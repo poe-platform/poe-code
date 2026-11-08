@@ -1,0 +1,122 @@
+name: PR Checks
+on:
+  workflow_call:
+    inputs:
+      ref:
+        required: false
+        type: string
+        default: ""
+  workflow_dispatch:
+    inputs:
+      ref:
+        required: false
+        type: string
+        default: ""
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref != '' && inputs.ref || github.ref }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: Install Rust WebAssembly target
+        run: rustup target add wasm32-unknown-unknown
+      - run: npm run build
+      - run: npm run codegen:plan-schemas
+      - name: Check generated plan schemas are fresh
+        run: |
+          if [ -n "$(git status --porcelain -- docs/schemas/plans)" ]; then
+            echo "Generated plan schemas are out of date. Run npm run codegen:plan-schemas."
+            git status --short -- docs/schemas/plans
+            git diff -- docs/schemas/plans
+            exit 1
+          fi
+      - run: npm run lint
+      - run: npm run lint:mcp-sdk-deps --workspace @poe-code/github-workflows
+      - run: npm run typecheck
+      - name: Route the complete @poe-platform/safe-bash tests separately
+        run: |
+          echo "Both unit jobs use Node22 for native-reference APIs and @poe-platform/safe-bash test discovery."
+          echo "Its complete test:unit suite runs in the separate safe-bash-node22 job; no tests are waived."
+      - name: Install Zsh for native completion tests
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes zsh
+          test -x /bin/zsh
+      - name: Run workspace unit stages serially
+        # Each stage has its own workers; overlapping stages oversubscribe runner CPUs.
+        run: npm test -- --concurrency=1 --exclude-workspace=@poe-platform/safe-bash
+        env:
+          # Native replay tests also need the full CPU budget within each stage.
+          VITEST_MAX_WORKERS: "1"
+      - run: npm run smoke
+  safe-bash-node22:
+    name: "@poe-platform/safe-bash (Node22)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref != '' && inputs.ref || github.ref }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: Install Rust WebAssembly target
+        run: rustup target add wasm32-unknown-unknown
+      - name: Build root public peer and workspace dependencies
+        run: npm run build
+      - uses: ./.github/actions/setup-bash-oracle
+      - name: Install pinned LLM reference for Python conformance tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          LLM_REFERENCE_ROOT="$RUNNER_TEMP/llm-reference"
+          python3 -m venv "$LLM_REFERENCE_ROOT"
+          "$LLM_REFERENCE_ROOT/bin/python" -m pip install --disable-pip-version-check "llm==0.27.1" "pydantic==2.12.5" "httpx==0.28.1"
+          echo "LLM_TEST_PYTHON=$LLM_REFERENCE_ROOT/bin/python" >> "$GITHUB_ENV"
+          echo "LLM_REFERENCE_PYTHON=$LLM_REFERENCE_ROOT/bin/python" >> "$GITHUB_ENV"
+      - name: Run the complete @poe-platform/safe-bash unit suite serially
+        run: npm run test:unit --workspace @poe-platform/safe-bash -- --test-concurrency=1 --test-timeout=600000
+  bun-public-imports:
+    name: Packed public APIs (Bun 1.3.11 and Node22)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref != '' && inputs.ref || github.ref }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.11
+      - name: Record exact runtime versions
+        run: |-
+          node --version
+          bun --version
+          bun --revision
+      - run: npm ci
+      - name: Install Rust WebAssembly target
+        run: rustup target add wasm32-unknown-unknown
+      - run: npm run build
+      - name: Install packed artifact and test direct imports
+        run: |-
+          set -euo pipefail
+          artifact="$(mktemp -d)"
+          npm pack --ignore-scripts --pack-destination "$artifact"
+          mkdir "$artifact/consumer"
+          cp packages/safe-fs/tests/packed-runtime-smoke.mjs "$artifact/consumer/smoke.mjs"
+          cd "$artifact/consumer"
+          npm init --yes
+          npm install --ignore-scripts --no-audit --no-fund "$artifact"/*.tgz
+          node smoke.mjs
+          bun smoke.mjs

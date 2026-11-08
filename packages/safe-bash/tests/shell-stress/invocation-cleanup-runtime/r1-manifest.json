@@ -1,0 +1,135 @@
+{
+  "recordedAt": "2026-08-27T08:25:01.457Z",
+  "sourceCommit": "1b133a8662a32ee84524794842074c9c98d5f6c3",
+  "baselineCommit": "4c16d9c5a0e8661bc326a754205559a3e7ea6a32",
+  "independentR1Evidence": "45051f5a0c6e1fd8042dee0196f37545fb6eee31",
+  "contractCommit": "07acb1a4d30b7592cf247a0220250317be4e2038",
+  "sourceChanges": [
+    "src/shell/shell.ts"
+  ],
+  "sourceHashes": {
+    "src/shell/shell.ts": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c",
+    "src/shell/runtime.ts": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b",
+    "src/shell/cleanup.ts": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385"
+  },
+  "baselineSourceHashes": {
+    "src/shell/shell.ts": "0e1d1396490970bf8db4d74ab07115d73e8303d29d7b748e145a06b13b316fee",
+    "src/shell/runtime.ts": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b",
+    "src/shell/cleanup.ts": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385"
+  },
+  "testHashes": {
+    "tests/shell/invocation-cleanup.test.ts": "5574c28fac6a1f69c2d0e1e0ff2f749fef13f5c0df6bd617295a0359fad417c0",
+    "tests/shell/invocation-cleanup-lifecycle.test.ts": "e61b1d76d32ba85c97de6ed73510adea26a9a6ef40b21d1ebce4ea5eb1be2dca",
+    "tests/shell/invocation-cleanup-pipeline.test.ts": "80e943b54723fe2e72894ee3cce6920039b1e99131faa0399efecd033e166987",
+    "tests/shell/invocation-cleanup-setup.test.ts": "6b39db101c9ed9f1cf6cd4b79ba195a96d885aaee425adc5f9330af3a126bf5e",
+    "tests/shell/streaming.test.ts": "cfd61d72b7b7a33081e43c5f96dbe7c1161e27e72d6057489394283608ffe585",
+    "tests/shell/lifecycle.test.ts": "f6dcd75da9ed5ffdd74d51c6473541af91c65f47085e27a48a042e6e3dc8002d",
+    "tests/shell/review-lifecycle.test.ts": "d8f3ce1d089addee37329076e7ad79eed82ee24e795e09165d1a19417766e7b2",
+    "tests/shell/invoke.test.ts": "314848095b66f3911a755e00dc3fb0bcb1286d35f285f72d7a29723f3f8ac310",
+    "tests/shell/pipeline-effects.test.ts": "1d822ac591af947cb9a65bc65a8abe0f36f132863c5ae9e7d824d177453468df",
+    "tests/shell/helpers.ts": "ea3bfd82b48886c5da020ef3983243d5139b9da23821a6a36336cb58eb804cb4"
+  },
+  "node": "v22.22.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "typescript": "5.9.3",
+  "runs": [
+    {
+      "name": "r1-red",
+      "baseline": "4c16d9c",
+      "cases": 10,
+      "passed": 4,
+      "failed": 6,
+      "cancelled": 0,
+      "skipped": 0,
+      "deadlineMs": 15000,
+      "exitCode": 1,
+      "signal": null,
+      "args": [
+        "--import",
+        "tsx",
+        "--test",
+        "tests/shell/invocation-cleanup-setup.test.ts"
+      ]
+    },
+    {
+      "name": "r1-focused",
+      "source": "1b133a8662a32ee84524794842074c9c98d5f6c3",
+      "cases": 10,
+      "passed": 10,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "deadlineMs": 15000,
+      "exitCode": 0,
+      "signal": null
+    },
+    {
+      "name": "r1-controls",
+      "source": "1b133a8662a32ee84524794842074c9c98d5f6c3",
+      "cases": 96,
+      "passed": 96,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "deadlineMs": 60000,
+      "exitCode": 0,
+      "signal": null,
+      "args": [
+        "--import",
+        "tsx",
+        "--test",
+        "tests/shell/invocation-cleanup.test.ts",
+        "tests/shell/invocation-cleanup-lifecycle.test.ts",
+        "tests/shell/invocation-cleanup-pipeline.test.ts",
+        "tests/shell/invocation-cleanup-setup.test.ts",
+        "tests/shell/streaming.test.ts",
+        "tests/shell/lifecycle.test.ts",
+        "tests/shell/review-lifecycle.test.ts",
+        "tests/shell/invoke.test.ts",
+        "tests/shell/pipeline-effects.test.ts"
+      ]
+    }
+  ],
+  "build": {
+    "command": [
+      "npm",
+      "run",
+      "build"
+    ],
+    "runs": 1,
+    "exitCode": 0,
+    "stdout": "\n> virtual-bash@0.0.0 build\n> tsc -p tsconfig.build.json\n\n",
+    "stdoutSha256": "192358b3fd3475b4bb505c07ba0b5608c6e4aa06624198bba950fe56e278e6f0"
+  },
+  "typecheck": {
+    "command": [
+      "npm",
+      "run",
+      "typecheck"
+    ],
+    "runs": 1,
+    "exitCode": 2,
+    "ownedErrors": 0,
+    "foreignDiagnostics": [
+      "tests/commands/regex-execution/continuation/artifacts/native/dialect-bFUsLx/alpha.ts(1,1): error TS2304: Cannot find name 'hit'.",
+      "tests/commands/regex-execution/continuation/artifacts/native/dialect-bFUsLx/beta.ts(1,1): error TS2304: Cannot find name 'hit'.",
+      "tests/commands/regex-execution/continuation/artifacts/native/dialect-uhGVu3/ab.ts(1,1): error TS2304: Cannot find name 'hit'.",
+      "tests/commands/regex-execution/continuation/artifacts/native/dialect-uhGVu3/🙂.ts(1,1): error TS2304: Cannot find name 'hit'.",
+      "tests/commands/regex-execution/continuation/artifacts/native/dialect-xj7h8F/a.ts(1,1): error TS2304: Cannot find name 'hit'.",
+      "tests/commands/regex-execution/continuation/artifacts/native/dialect-xj7h8F/d.ts(1,1): error TS2304: Cannot find name 'hit'."
+    ]
+  },
+  "historicalPublicWorkerResult": {
+    "testsCommit": "85e6d56017bafebf9aa8849cd9e038229e49c863",
+    "runtimePin": "4c16d9c5a0e8661bc326a754205559a3e7ea6a32",
+    "cases": 10,
+    "rerunForR1": false
+  },
+  "transcriptHashes": {
+    "r1-red.tap": "15c687411a5b75531338ea6fe9bcf9ab94960e0b149a4e9e029299ddf4e54d2e",
+    "r1-focused.tap": "98904f57dce25f6f21540697365e53ccefc3db71049d8267f8bbfdde84e53925",
+    "r1-controls.tap": "91b0bfa24a3168845e34ca24226b52e67ad200b866e55ae81f79207c94f7d36c",
+    "r1-types.txt": "d8d17655c65413ffcbc81959f645e61a8e7a621021f408daa13c6955cbeb1921"
+  }
+}

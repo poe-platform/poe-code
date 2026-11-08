@@ -1,0 +1,714 @@
+import assert from "node:assert/strict";
+import { test, type TestContext } from "node:test";
+import { gunzipSync } from "node:zlib";
+import { MemoryFileSystem } from "../../src/fs/memory/index.js";
+import { Shell } from "../../src/shell/index.js";
+import { standardCommands } from "../../src/commands/index.js";
+import { metadataCommands } from "../../src/commands/metadata/index.js";
+import { fileCommands } from "../../src/commands/file/index.js";
+import { createDuCommand } from "../../src/commands/du/index.js";
+import type { FileStat, FileSystem, FsOptions } from "../../src/contracts/index.js";
+import { MountFileSystem, ReadOnlyFileSystem } from "@poe-code/safe-fs/core";
+import { predicateCommands } from "../../src/commands/predicates.js";
+import { agentCommands } from "../../src/plugins/index.js";
+import { collectBytes, FsError, toByteSource } from "../../src/contracts/index.js";
+import { safeJsCommands } from "../../src/commands/safejs/index.js";
+import { contractRuntime } from "../commands/safejs/helpers.js";
+import { networkCommands } from "../../src/commands/network/index.js";
+import { dirname } from "../../src/contracts/path.js";
+
+for (const operator of [">", ">>"]) test(`default device view preserves backend implicit-parent output: ${operator}`, async context => {
+  const backing = new MemoryFileSystem();
+  const opens: string[] = [];
+  const fs: FileSystem = new Proxy(backing, { get(target, key) {
+    if (key === "capabilities") return { ...target.capabilities, implicitDirectories: true };
+    if (key === "open") return async (path: string, options: Parameters<MemoryFileSystem["open"]>[1]) => {
+      opens.push(path);
+      await target.mkdir(dirname(path), { recursive: true, ...(options.signal ? { signal: options.signal } : {}) });
+      return target.open(path, options);
+    };
+    if (key === "mkdir" || key === "copyFile") return () => { assert.fail("Shell must delegate creation to the backend"); };
+    const value: unknown = Reflect.get(target, key, target);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+  const shell = new Shell({ fs }).use(standardCommands());
+  context.after(() => shell.dispose());
+  for (const text of ["first", "ok"]) {
+    const result = await shell.exec(`printf ${text} ${operator} /missing/deep/file`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+  }
+  assert.deepEqual(opens, ["/missing/deep/file", "/missing/deep/file"]);
+  assert.equal(new TextDecoder().decode(await backing.readFile("/missing/deep/file")), operator === ">" ? "ok" : "firstok");
+});
+
+for (const deviceView of ["invalid", null, false, 0]) test(`invalid device view rejects before filesystem access: ${String(deviceView)}`, () => {
+  const fs = new Proxy({} as FileSystem, { get() { assert.fail("filesystem accessed before option validation"); } });
+  assert.throws(() => new Shell({ fs, deviceView } as never), { message: "deviceView must be default or provided" });
+});
+
+for (const operator of [">", ">>", ">|"]) for (const override of [false, true]) test(`provided device view preserves supplied ordinary null through nested execution: ${operator}, override=${override}`, async context => {
+  const initial = new MemoryFileSystem();
+  const fs = override ? new MemoryFileSystem() : initial;
+  await fs.mkdir("/dev");
+  await fs.writeFile("/dev/null", new TextEncoder().encode("provided"));
+  await fs.writeFile("/job", new TextEncoder().encode(`cat /dev/null; printf changed ${operator}/dev/null`));
+  const shell = new Shell({ fs: initial, deviceView: "provided" }).use(standardCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec("(sh /job); cat /dev/null", override ? { fs } : {});
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, "");
+  const content = operator === ">>" ? "providedchanged" : "changed";
+  assert.equal(result.stdout, `provided${content}`);
+  assert.equal(new TextDecoder().decode(await fs.readFile("/dev/null")), content);
+  if (override) await assert.rejects(initial.stat("/dev"), { code: "ENOENT" });
+});
+
+test("provided device view does not manufacture a missing null entry", async context => {
+  const fs = new MemoryFileSystem();
+  const shell = new Shell({ fs, deviceView: "provided" }).use(standardCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec("test -e /dev/null");
+  assert.equal(result.exitCode, 1);
+  await assert.rejects(fs.stat("/dev/null"), { code: "ENOENT" });
+});
+
+test("provided null redirects preserve parent admission and ordinary file creation", async context => {
+  const fs = new MemoryFileSystem();
+  const shell = new Shell({ fs, deviceView: "provided" }).use(standardCommands());
+  context.after(() => shell.dispose());
+  const missing = await shell.exec("printf rejected >/dev/null");
+  assert.equal(missing.exitCode, 1);
+  assert.equal(missing.stderr, "shell: line 1: /dev/null: No such file or directory\n");
+  await fs.mkdir("/dev");
+  const created = await shell.exec("{ printf created; } >/dev/null; cat /dev/null");
+  assert.equal(created.exitCode, 0, created.stderr);
+  assert.equal(created.stdout, "created");
+  assert.equal((await fs.stat("/dev/null")).type, "file");
+});
+
+test("provided device view retains canonical output accounting", async context => {
+  const fs = new MemoryFileSystem();
+  const shell = new Shell({ fs, deviceView: "provided", limits: { maxOutputBytes: 4 } }).use(standardCommands());
+  context.after(() => shell.dispose());
+  await assert.rejects(shell.exec("printf overflow >/out"), { limit: "maxOutputBytes" });
+  assert.deepEqual(await fs.readFile("/out"), new Uint8Array());
+});
+
+test("provided device view retains filesystem cancellation admission", async context => {
+  const fs = new MemoryFileSystem();
+  const caller = new AbortController();
+  let refused = false;
+  const shell = new Shell({ fs, deviceView: "provided" });
+  context.after(() => shell.dispose());
+  shell.register({ name: "cancel", async execute(command) {
+    caller.abort(false);
+    await assert.rejects(command.fs.writeFile("/forbidden", Uint8Array.of(1)), reason => reason === false);
+    refused = true;
+    return { exitCode: 0 };
+  } });
+  await assert.rejects(shell.exec("cancel", { signal: caller.signal }), reason => reason === false);
+  assert.equal(refused, true);
+  await assert.rejects(fs.stat("/forbidden"), { code: "ENOENT" });
+});
+
+function fixture(context: TestContext, fs = new MemoryFileSystem()) {
+  const shell = new Shell({ fs }).use(standardCommands()).use(metadataCommands()).use(fileCommands());
+  shell.register(createDuCommand());
+  context.after(() => shell.dispose());
+  return { shell, fs };
+}
+
+test("null device discards redirects and command writes without mutating historical backing rows", async context => {
+  const { shell, fs } = fixture(context);
+  await fs.mkdir("/dev");
+  await fs.writeFile("/dev/null", new TextEncoder().encode("historical diagnostics"));
+  await fs.writeFile("/input", new TextEncoder().encode("payload"));
+  const mutations: string[] = [];
+  for (const method of ["writeFile", "appendFile", "writeStream", "copyFile", "rm", "rename"] as const) {
+    const original = fs[method].bind(fs);
+    context.mock.method(fs, method, (...args: unknown[]) => {
+      mutations.push(`${method}:${String(args[0])}`);
+      return Reflect.apply(original, fs, args);
+    });
+  }
+  const result = await shell.exec("missing700 2>/dev/null; printf discard >/dev/null; printf append >>/dev/null; cat /dev/null; printf tee | tee /dev/null; cp /input /dev/null; cp -f /input /dev/null; cat /dev/null");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "tee");
+  assert.equal(result.stderr, "");
+  assert.deepEqual(mutations, []);
+  assert.equal(new TextDecoder().decode(await fs.readFile("/dev/null")), "historical diagnostics");
+});
+
+test("fresh null device exists through overrides, relative paths, aliases and nested commands", async context => {
+  const { shell, fs } = fixture(context);
+  const override = new MemoryFileSystem();
+  await override.mkdir("/work");
+  await override.symlink("/dev/null", "/alias");
+  const result = await shell.exec("printf hidden >../dev/./null; printf alias >/alias; sh -c 'cat /dev/null; printf nested >/dev/null'; value=$(cat /alias); (cat /dev/null); printf '<%s>' \"$value\"", { fs: override, cwd: "/work" });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "<>");
+  assert.equal(result.stderr, "");
+  await assert.rejects(override.stat("/dev/null"), { code: "ENOENT" });
+  await assert.rejects(fs.stat("/dev"), { code: "ENOENT" });
+});
+
+test("null device has character metadata and is never classified as a regular file", async context => {
+  const { shell } = fixture(context);
+  const result = await shell.exec("test -c /dev/null && test ! -f /dev/null && test -r /dev/null && test -w /dev/null && test ! -x /dev/null && stat -c '%F|%A|%a|%f|%s' /dev/null; find /dev -type c; find /dev -type f; file -b /dev/null; file -b --mime-type /dev/null; ls -l /dev/null");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, "");
+  assert.ok(result.stdout.startsWith("character special file|crw-rw-rw-|666|21b6|0\n/dev/null\ncharacter special\ninode/chardevice\n"), result.stdout);
+  assert.ok(result.stdout.split("\n").some(line => line.startsWith("crw-rw-rw- ")), result.stdout);
+});
+
+test("null directory listings merge siblings without duplicates or backing allocation", async context => {
+  const { shell, fs } = fixture(context);
+  assert.equal((await shell.exec("ls /dev")).stdout, "null\n");
+  await assert.rejects(fs.stat("/dev"), { code: "ENOENT" });
+  await fs.mkdir("/dev");
+  await fs.writeFile("/dev/null", new Uint8Array([1]));
+  await fs.writeFile("/dev/sibling", new Uint8Array([2]));
+  assert.equal((await shell.exec("ls /dev")).stdout, "null\nsibling\n");
+  assert.equal((await shell.exec("ls /")).stdout, "dev\n");
+});
+
+test("regular file copies, identity and capabilities survive the root device view", async context => {
+  const { shell, fs } = fixture(context);
+  await fs.writeFile("/input", new TextEncoder().encode("ordinary"));
+  await fs.link("/input", "/alias");
+  const before = await fs.stat("/input");
+  const backing: FileSystem = fs;
+  shell.register({ name: "inspect-view", async execute(command) {
+    assert.deepEqual(await command.fs.stat("/input"), before);
+    assert.deepEqual(await command.fs.capabilitiesFor?.("/input") ?? command.fs.capabilities, await backing.capabilitiesFor?.("/input") ?? backing.capabilities);
+    return { exitCode: 0 };
+  } });
+  const result = await shell.exec("inspect-view && test /input -ef /alias && test -f /input && cp /input /copy && cat /copy");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "ordinary");
+  const after = await fs.stat("/input");
+  assert.equal(after.identityScope, before.identityScope);
+  assert.equal(after.ino, before.ino);
+  assert.equal(after.dev, before.dev);
+  assert.equal(after.nlink, before.nlink);
+});
+
+test("directory commands classify existing device entries before mutation admission", async context => {
+  const backing = new MemoryFileSystem();
+  await backing.mkdir("/existing");
+  await backing.symlink("/dev", "/device-directory");
+  await backing.symlink("/dev/null", "/device-file");
+  const shell = new Shell({ fs: new ReadOnlyFileSystem(backing) }).use(standardCommands());
+  context.after(() => shell.dispose());
+  for (const source of ["mkdir -p /dev", "mkdir -p /device-directory", "mkdir -p /existing"]) {
+    const result = await shell.exec(source);
+    assert.equal(result.exitCode, 0, `${source}: ${result.stderr}`);
+    assert.equal(result.stderr, "");
+  }
+  for (const [source, code] of [
+    ["mkdir -p /dev/null", "EEXIST"], ["mkdir -p /device-file", "EEXIST"],
+    ["rmdir /dev/null", "ENOTDIR"], ["rmdir /device-file", "ENOTDIR"],
+    ["mkdir /new", "EROFS"], ["rmdir /existing", "EROFS"],
+  ] as const) {
+    const result = await shell.exec(source);
+    assert.equal(result.exitCode, 1, source);
+    assert.ok(result.stderr.includes(code), `${source}: ${result.stderr}`);
+  }
+  await assert.rejects(backing.stat("/dev"), { code: "ENOENT" });
+  await assert.rejects(backing.stat("/new"), { code: "ENOENT" });
+  assert.equal((await backing.stat("/existing")).type, "directory");
+});
+
+test("forced compression replacement admits the ordinary destination capability", async context => {
+  const fs = new MemoryFileSystem();
+  const shell = new Shell({ fs }).use(agentCommands());
+  context.after(() => shell.dispose());
+  await fs.writeFile("/input", new TextEncoder().encode("payload"));
+  await fs.writeFile("/input.gz", new TextEncoder().encode("previous"));
+  const result = await shell.exec("gzip -fk /input && zcat /input.gz");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "payload");
+  assert.equal(new TextDecoder().decode(await fs.readFile("/input")), "payload");
+});
+
+for (const permissions of [true, false, undefined]) test(`path permission admission requires explicit true: ${String(permissions)}`, async context => {
+  const backing = new MemoryFileSystem();
+  await backing.mkdir("/tmp");
+  await backing.writeFile("/tool", new TextEncoder().encode("printf executed"), { mode: 0o755 });
+  const fs = new Proxy(backing, {
+    get(target, property) {
+      if (property === "capabilitiesFor") return async () => ({ ...target.capabilities, permissions });
+      const member = Reflect.get(target, property);
+      return typeof member === "function" ? member.bind(target) : member;
+    },
+  });
+  const shell = new Shell({ fs, env: { PATH: "/" } }).use(standardCommands()).use(metadataCommands());
+  context.after(() => shell.dispose());
+  for (const source of ["tool", "/tool", "[[ -r /tool ]]", "mktemp /tmp/private.XXXXXX"]) {
+    const result = await shell.exec(source);
+    if (permissions === true) assert.equal(result.exitCode, 0, `${source}: ${result.stderr}`);
+    else {
+      assert.notEqual(result.exitCode, 0, source);
+      assert.ok(result.stderr.includes("permission"), `${source}: ${result.stderr}`);
+      assert.equal(result.stdout, "");
+    }
+  }
+  if (permissions !== true) assert.deepEqual(await backing.readdir("/tmp"), []);
+});
+
+for (const code of ["ENOTSUP", "EACCES"] as const) test(`patch conditional mutation preserves ordinary ${code} failures`, async context => {
+  const backing = new MemoryFileSystem();
+  let writes = 0;
+  const fs = new Proxy(backing, {
+    get(target, property) {
+      if (property === "confineExtraction") return async (...args: Parameters<MemoryFileSystem["confineExtraction"]>) => {
+        const confined = await target.confineExtraction(...args);
+        return new Proxy(confined, { get(view, key) {
+          if (key === "publishStagedFile") return async (_staging: unknown, path: string) => { writes++; assert.equal(path, "/new"); throw new FsError(code); };
+          const member = Reflect.get(view, key);
+          return typeof member === "function" ? member.bind(view) : member;
+        } });
+      };
+      const member = Reflect.get(target, property);
+      return typeof member === "function" ? member.bind(target) : member;
+    },
+  });
+  const shell = new Shell({ fs }).use(agentCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec("apply_patch '*** Begin Patch\n*** Add File: new\n+created\n*** End Patch'");
+  assert.equal(result.exitCode, 1, result.stdout);
+  assert.equal(result.stdout, "");
+  assert.equal(result.stderr, `apply_patch: operation 1; prior changes may remain: ${code === "ENOTSUP" ? "operation not supported" : "permission denied"}: /new\n`);
+  assert.equal(writes, 1);
+  assert.deepEqual(await backing.readdir("/"), []);
+});
+
+test("patch admission preserves declared ordinary permission failures", async context => {
+  const backing = new MemoryFileSystem();
+  const accessPaths: string[] = [];
+  const restricted = (filesystem: FileSystem): FileSystem => new Proxy(filesystem, {
+    get(target, property) {
+      if (property === "access") return async (path: string) => { accessPaths.push(path); throw new FsError("ENOTSUP"); };
+      if (property === "confineExtraction") return async (...args: Parameters<NonNullable<FileSystem["confineExtraction"]>>) => restricted(await target.confineExtraction!(...args));
+      const member = Reflect.get(target, property);
+      return typeof member === "function" ? member.bind(target) : member;
+    },
+  });
+  const fs = restricted(backing);
+  const shell = new Shell({ fs }).use(agentCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec("apply_patch '*** Begin Patch\n*** Add File: new\n+created\n*** End Patch'");
+  assert.equal(result.exitCode, 1, result.stdout);
+  assert.equal(result.stderr, "apply_patch: operation not supported: /\n");
+  assert.deepEqual(accessPaths, ["/"]);
+  assert.deepEqual(await backing.readdir("/"), []);
+});
+
+test("null writes stay available while ordinary paths retain backing read-only capabilities", async context => {
+  const backing = new MemoryFileSystem();
+  await backing.writeFile("/input", new TextEncoder().encode("retained"));
+  const fs = new ReadOnlyFileSystem(backing);
+  const shell = new Shell({ fs }).use(standardCommands());
+  context.after(() => shell.dispose());
+  const discard = await shell.exec("printf discarded >/dev/null; cat /input; printf tee | tee -a /dev/null; cp /input /dev/null");
+  assert.equal(discard.exitCode, 0, discard.stderr);
+  assert.equal(discard.stdout, "retainedtee");
+  assert.equal(discard.stderr, "");
+  const denied = await shell.exec("printf changed >/input");
+  assert.notEqual(denied.exitCode, 0);
+  assert.equal(new TextDecoder().decode(await backing.readFile("/input")), "retained");
+  await assert.rejects(backing.stat("/dev"), { code: "ENOENT" });
+});
+
+for (const source of ["cat /input", "head /input", "cat < /input", "split /input /piece", "sort /input -o /sorted"]) {
+  for (const retained of [false, true]) test(`ordinary read capability admission survives the mixed device view: ${source}, retained=${retained}`, async context => {
+    const backing = new MemoryFileSystem();
+    await backing.writeFile("/input", new TextEncoder().encode("b\na\n"));
+    let streamCalls = 0;
+    let retainedCalls = 0;
+    const fs = new Proxy(backing, {
+      get(target, property) {
+        const capabilities = { ...target.capabilities, streamingRead: false, streamingWrite: false, retainedRead: retained };
+        if (property === "capabilities") return capabilities;
+        if (property === "capabilitiesFor") return async () => capabilities;
+        if (property === "readStream" || property === "writeStream") return () => { streamCalls++; throw new Error("declared-disabled stream"); };
+        if (property === "openReadFile") return async (...args: Parameters<MemoryFileSystem["openReadFile"]>) => {
+          retainedCalls++;
+          assert.equal(retained, true, "declared-disabled retained reader must not be acquired");
+          return target.openReadFile(...args);
+        };
+        const member = Reflect.get(target, property);
+        return typeof member === "function" ? member.bind(target) : member;
+      },
+    });
+    const shell = new Shell({ fs }).use(agentCommands());
+    context.after(() => shell.dispose());
+    const result = await shell.exec(source);
+    // Sequential commands require streams or retained ranges; shell redirection
+    // still supports the explicit buffering convenience API.
+    const supported = retained || source === "cat < /input";
+    assert.equal(result.exitCode, supported ? 0 : source.startsWith("sort") ? 2 : 1, result.stderr);
+    assert.equal(streamCalls, 0);
+    if (!supported) {
+      const command = source.split(" ")[0]!;
+      assert.equal(result.stdout, "");
+      assert.equal(result.stderr, `${command}: ${command === "split" ? "" : "ENOTSUP: "}operation not supported, openReadFile '/input'\n`);
+      assert.equal(retainedCalls, 0);
+      assert.deepEqual((await backing.readdir("/")).map(entry => entry.name), ["input"]);
+    } else if (source.startsWith("split")) assert.equal(new TextDecoder().decode(await backing.readFile("/pieceaa")), "b\na\n");
+    else if (source.startsWith("sort")) assert.equal(new TextDecoder().decode(await backing.readFile("/sorted")), "a\nb\n");
+    else assert.equal(result.stdout, "b\na\n");
+    const offset = retainedCalls;
+    const bounded = await shell.exec("gzip -c /input");
+    assert.equal(bounded.exitCode, retained ? 0 : 1, bounded.stderr);
+    if (retained) {
+      assert.equal(bounded.stderr, "");
+      assert.deepEqual(gunzipSync(bounded.stdoutBytes), Buffer.from("b\na\n"));
+    } else {
+      assert.equal(bounded.stdout, "");
+      assert.equal(bounded.stderr, "gzip: ENOTSUP: named input requires retained VFS reads with stable scoped identities '/input'\n");
+    }
+    assert.equal(retainedCalls - offset, retained ? 1 : 0);
+    assert.equal(new TextDecoder().decode(await backing.readFile("/input")), "b\na\n");
+    assert.equal(streamCalls, 0);
+  });
+}
+
+test("cross-mount moves preserve ordinary directory permissions and timestamps", async context => {
+  const origin = new MemoryFileSystem();
+  const destination = new MemoryFileSystem();
+  await origin.mkdir("/directory", { mode: 0o751 });
+  await origin.utimes("/directory", 123000, 456000);
+  const shell = new Shell({ fs: new MountFileSystem({ root: new MemoryFileSystem(), mounts: { "/origin": origin, "/destination": destination } }) }).use(standardCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec("mv /origin/directory /destination/directory");
+  assert.equal(result.exitCode, 0, result.stderr);
+  const stat = await destination.stat("/directory");
+  assert.equal(stat.mode & 0o7777, 0o751);
+  assert.equal(stat.mtimeMs, 456000);
+  await assert.rejects(origin.stat("/directory"), { code: "ENOENT" });
+});
+
+for (const retainedRead of [true, false]) for (const source of ["diff /input /input", "gzip -c /input | gzip -d"]) {
+  test(`named-file input preserves independent retained-reader admission: ${retainedRead}, ${source}`, async context => {
+    const backing = new MemoryFileSystem();
+    await backing.writeFile("/input", new TextEncoder().encode("payload"));
+    let opened = 0;
+    const fs = new Proxy(backing, {
+      get(target, property) {
+        const capabilities = { ...target.capabilities, streamingRead: false, retainedRead };
+        if (property === "capabilities") return capabilities;
+        if (property === "capabilitiesFor") return async () => capabilities;
+        if (property === "readStream" || property === "readFile") return () => assert.fail("named-file input must use its retained reader");
+        if (property === "openReadFile") return retainedRead ? async (...args: Parameters<MemoryFileSystem["openReadFile"]>) => {
+          opened++;
+          return target.openReadFile(...args);
+        } : undefined;
+        const member = Reflect.get(target, property);
+        return typeof member === "function" ? member.bind(target) : member;
+      },
+    });
+    const shell = new Shell({ fs }).use(agentCommands());
+    context.after(() => shell.dispose());
+    const result = await shell.exec(`set -o pipefail; ${source}`);
+    if (retainedRead) {
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, source.startsWith("diff") ? "" : "payload");
+      assert.equal(result.stderr, "");
+      assert.ok(opened > 0);
+    } else {
+      assert.notEqual(result.exitCode, 0);
+      assert.ok(result.stderr.includes(source.startsWith("diff") ? "retained reads" : "ENOTSUP"), result.stderr);
+      assert.equal(result.stdout, "");
+      assert.equal(opened, 0);
+    }
+    assert.equal(new TextDecoder().decode(await backing.readFile("/input")), "payload");
+  });
+}
+
+for (const source of ["join /input /input", "html-to-markdown /input", "rg -F a /input", "node /input", "curl --data-binary @/input https://example.test/"]) {
+  test(`whole-file-only backend honors sequential read admission: ${source}`, async context => {
+    const backing = new MemoryFileSystem();
+    await backing.writeFile("/input", new TextEncoder().encode("a\nb\n"));
+    const readLimits: number[] = [];
+    const fs = new Proxy(backing, {
+      get(target, property) {
+        const capabilities = { ...target.capabilities, streamingRead: false, retainedRead: false, streamingWrite: false };
+        if (property === "capabilities") return capabilities;
+        if (property === "capabilitiesFor") return async () => capabilities;
+        if (property === "readStream" || property === "writeStream" || property === "openReadFile") return undefined;
+        if (property === "readFile") return async (path: string, options?: Parameters<FileSystem["readFile"]>[1]) => {
+          assert.ok(typeof options?.maxBytes === "number" && Number.isFinite(options.maxBytes));
+          readLimits.push(options.maxBytes);
+          return target.readFile(path, options);
+        };
+        const member = Reflect.get(target, property);
+        return typeof member === "function" ? member.bind(target) : member;
+      },
+    });
+    const runtime = {
+      ...contractRuntime(async value => {
+        assert.ok(value.endsWith("a\nb\n\n;await __safeBashTimers.drain(); __safeBashSetExitCode(process.exitCode);"));
+        assert.ok(value.includes("\na\nb\n"), "the injected runtime receives the file contents");
+      }),
+      makeFsModule() { return { readFile() { assert.fail("the guest must not read files"); } }; },
+    };
+    const shell = new Shell({ fs }).use(agentCommands({
+      tableText: { limits: { maxChunkBytes: 16 } },
+      htmlToMarkdown: { limits: { maxInputBytes: 16 } },
+      search: { maxFileBytes: 16 },
+    })).use(safeJsCommands({ runtime, limits: { maxSourceBytes: 16 } })).use(networkCommands({
+      limits: { maxUploadBytes: 16 },
+      authorize: () => true,
+      async transport(request) {
+        assert.equal(new TextDecoder().decode(await collectBytes(request.body!, { signal: request.signal, maxBytes: 16 })), "a\nb\n");
+        return { status: 200, statusText: "OK", headers: [], body: toByteSource("accepted"), async dispose() {} };
+      },
+    }));
+    context.after(() => shell.dispose());
+    const result = await shell.exec(source);
+    if (source === "node /input") {
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.ok(readLimits.length > 0, "the source loader retains its bounded buffering API");
+    } else {
+      const command = source.split(" ")[0]!;
+      assert.equal(result.exitCode, command === "curl" ? 26 : command === "rg" ? 2 : 1, result.stderr);
+      assert.equal(result.stdout, "");
+      assert.equal(result.stderr, command === "curl" ? "curl: (26) Failed to read virtual upload file\n"
+        : `${command}: ENOTSUP: operation not supported, openReadFile '/input'\n`);
+      assert.deepEqual(readLimits, [], "sequential input must not silently buffer whole files");
+    }
+    assert.equal(new TextDecoder().decode(await backing.readFile("/input")), "a\nb\n");
+    assert.deepEqual((await backing.readdir("/")).map(entry => entry.name), ["input"]);
+  });
+}
+
+for (const retained of [false, true]) test(`diff uses retained identity rather than buffered fallback: retained=${retained}`, async context => {
+  const backing = new MemoryFileSystem();
+  await backing.writeFile("/input", new TextEncoder().encode("a\nb\n"));
+  await backing.writeFile("/other", new TextEncoder().encode("a\nb\n"));
+  let acquisitions = 0;
+  let closes = 0;
+  const reads: number[] = [];
+  const fs = new Proxy(backing, { get(target, property) {
+    const capabilities = { ...target.capabilities, streamingRead: false, retainedRead: retained };
+    if (property === "capabilities") return capabilities;
+    if (property === "capabilitiesFor") return async () => capabilities;
+    if (property === "readStream") return undefined;
+    if (property === "readFile") return () => { assert.fail("diff must not fall back to pathname reads"); };
+    if (property === "openReadFile") return retained ? async (...args: Parameters<MemoryFileSystem["openReadFile"]>) => {
+      acquisitions++;
+      const handle = await target.openReadFile(...args);
+      return { ...handle, async read(position: number, length: number, options?: FsOptions) {
+        reads.push(length);
+        assert.ok(length > 0 && length <= 65536);
+        return handle.read(position, length, options);
+      }, async close() { closes++; await handle.close(); } };
+    } : undefined;
+    const member = Reflect.get(target, property);
+    return typeof member === "function" ? member.bind(target) : member;
+  } });
+  const shell = new Shell({ fs }).use(agentCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec("diff /input /other");
+  assert.equal(result.exitCode, retained ? 0 : 2, result.stderr);
+  assert.equal(result.stdout, "");
+  assert.equal(result.stderr, retained ? "" : "diff: diff input requires identity-checked retained reads\n");
+  assert.equal(acquisitions, retained ? 2 : 0);
+  assert.equal(closes, acquisitions);
+  assert.equal(reads.length, retained ? 2 : 0);
+  for (const path of ["/input", "/other"]) assert.equal(new TextDecoder().decode(await backing.readFile(path)), "a\nb\n");
+});
+
+test("diff retains bounded readers through the device view without pathname read fallbacks", async context => {
+  const backing = new MemoryFileSystem();
+  await backing.writeFile("/input", new TextEncoder().encode("a\nb\n"));
+  let opened = 0, closed = 0, reads = 0;
+  const fs = new Proxy(backing, {
+    get(target, property) {
+      if (property === "capabilities") return { ...target.capabilities, streamingRead: false };
+      if (property === "readStream" || property === "readFile") return () => { assert.fail("diff must use retained reads"); };
+      if (property === "openReadFile") return async (path: string, options?: FsOptions) => {
+        const handle = await target.openReadFile(path, options);
+        opened++;
+        return {
+          stat: handle.stat.bind(handle),
+          async read(position: number, maxBytes: number, options?: FsOptions) {
+            assert.ok(Number.isSafeInteger(maxBytes) && maxBytes > 0 && maxBytes <= 16);
+            reads++;
+            return handle.read(position, maxBytes, options);
+          },
+          async close() { closed++; await handle.close(); },
+        };
+      };
+      const member = Reflect.get(target, property);
+      return typeof member === "function" ? member.bind(target) : member;
+    },
+  });
+  const shell = new Shell({ fs }).use(agentCommands({ diffPatch: { maxInputBytes: 16 } }));
+  context.after(() => shell.dispose());
+  const result = await shell.exec("diff /input /input");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "");
+  assert.equal(opened, 2);
+  assert.equal(reads, 2);
+  assert.equal(closed, opened);
+});
+
+test("reserved null replacement and descendants cannot bypass the Shell device view", async context => {
+  const { shell, fs } = fixture(context);
+  await fs.mkdir("/dev");
+  await fs.writeFile("/dev/null", new TextEncoder().encode("historical"));
+  await fs.writeFile("/input", new TextEncoder().encode("ordinary"));
+  for (const command of ["rm /dev/null", "mv /input /dev/null", "mv /dev/null /moved", "printf child >/dev/null/child", "rm -r /dev"]) {
+    const result = await shell.exec(command);
+    assert.notEqual(result.exitCode, 0, command);
+    assert.equal((await shell.exec("cat /dev/null")).stdout, "");
+    assert.equal(new TextDecoder().decode(await fs.readFile("/dev/null")), "historical");
+  }
+  assert.equal(new TextDecoder().decode(await fs.readFile("/input")), "ordinary");
+});
+
+test("null-device traversal is rejected before lexical normalization can publish another path", async context => {
+  const { shell, fs } = fixture(context);
+  await fs.writeFile("/input", new TextEncoder().encode("ordinary"));
+  await fs.symlink("/dev/null", "/alias");
+  for (const path of ["/dev/null/../../escaped", "/alias/../escaped"]) {
+    for (const command of [`printf leaked >${path}`, `cp /input ${path}`, `printf leaked | tee ${path}`]) {
+      const result = await shell.exec(command);
+      assert.notEqual(result.exitCode, 0, command);
+      assert.ok(result.stderr.includes("Not a directory") || result.stderr.includes("ENOTDIR"), result.stderr);
+      await assert.rejects(fs.stat("/escaped"), { code: "ENOENT" });
+    }
+  }
+  const read = await shell.exec("cat /alias/../input");
+  assert.notEqual(read.exitCode, 0);
+  assert.equal(read.stdout, "");
+  const predicate = await shell.exec("test -d /dev/null/..");
+  assert.equal(predicate.exitCode, 1);
+});
+
+test("command-family filesystem operands retain device traversal before reads", async context => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/input", new TextEncoder().encode("0\n"));
+  await fs.symlink("/dev/null", "/alias");
+  const shell = new Shell({ fs }).use(agentCommands());
+  context.after(() => shell.dispose());
+  for (const path of ["/dev/null/../../input", "/alias/../input"]) {
+    for (const source of [`file ${path}`, `du ${path}`, `tree ${path}`, `jq . ${path}`, `yq . ${path}`, `od ${path}`, `nl ${path}`, `join ${path} /input`, `date -r ${path}`, `diff ${path} /input`]) {
+      const result = await shell.exec(source);
+      assert.notEqual(result.exitCode, 0, source);
+    }
+  }
+  for (const source of ["cat /dev/null/", "cat /alias/.", "cat </dev/null/", "cd /alias/..", "[[ -d /alias/.. ]]"]) {
+    assert.notEqual((await shell.exec(source)).exitCode, 0, source);
+  }
+  await fs.writeFile("/empty.tar", new Uint8Array(1024));
+  assert.notEqual((await shell.exec("tar -xf /empty.tar -C /alias/..")).exitCode, 0);
+});
+
+test("virtual directory entries count toward command listing admission", async context => {
+  const fs = new MemoryFileSystem();
+  const shell = new Shell({ fs }).use(standardCommands({ maxDirectoryEntries: 0 }));
+  context.after(() => shell.dispose());
+  for (const source of ["ls /", "ls /dev", "find /dev"]) {
+    const result = await shell.exec(source);
+    assert.notEqual(result.exitCode, 0, source);
+    assert.ok(result.stderr.includes("limit"), result.stderr);
+  }
+  await assert.rejects(fs.stat("/dev"), { code: "ENOENT" });
+});
+
+test("copying from null creates an ordinary empty destination", async context => {
+  const { shell, fs } = fixture(context);
+  const result = await shell.exec("cp /dev/null /empty && test -f /empty && test ! -s /empty && cat /empty");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "");
+  assert.equal(result.stderr, "");
+  assert.deepEqual(await fs.readFile("/empty"), new Uint8Array());
+  await assert.rejects(fs.stat("/dev"), { code: "ENOENT" });
+});
+
+test("streaming redirect to null cooperatively cancels and retires its producer", { timeout: 3000 }, async context => {
+  const { shell, fs } = fixture(context);
+  const controller = new AbortController();
+  const reason = new Error("cancel null stream");
+  let pulls = 0;
+  let retired = false;
+  const pending = shell.exec("cat >/dev/null", {
+    signal: controller.signal,
+    stdin: { async *[Symbol.asyncIterator]() {
+      const chunk = new Uint8Array(65536);
+      try { for (;;) { pulls++; yield chunk; } }
+      finally { retired = true; }
+    } },
+  });
+  const rejected = assert.rejects(pending, error => error === reason);
+  const timer = setTimeout(() => controller.abort(reason), 0);
+  try { await rejected; } finally { clearTimeout(timer); }
+  assert.ok(pulls > 0);
+  assert.equal(retired, true);
+  await assert.rejects(fs.stat("/dev"), { code: "ENOENT" });
+});
+
+for (const failure of [undefined, null, false, 0, ""]) {
+  test(`null streaming retains original ${typeof failure} producer failure`, async context => {
+    const { shell, fs } = fixture(context);
+    const seen: unknown[] = [];
+    const result = await shell.exec("cat >/dev/null", {
+      onInternalError(error) { seen.push(error); },
+      stdin: { async *[Symbol.asyncIterator]() { yield new Uint8Array([1]); throw failure; } },
+    });
+    assert.notEqual(result.exitCode, 0);
+    assert.deepEqual(seen, [failure]);
+    await assert.rejects(fs.stat("/dev"), { code: "ENOENT" });
+  });
+}
+
+test("character metadata consumers work independently of device path routing", async context => {
+  const { shell, fs } = fixture(context);
+  await fs.writeFile("/special", new Uint8Array());
+  const ordinary = await fs.stat("/special");
+  const character: FileStat = { ...ordinary, type: "character", mode: 0o20666, size: 0, allocatedBytes: 0 };
+  for (const method of ["stat", "lstat"] as const) {
+    const original = fs[method].bind(fs);
+    context.mock.method(fs, method, (path: string, options?: FsOptions) => path === "/special" ? Promise.resolve(character) : original(path, options));
+  }
+  const result = await shell.exec("test -c /special && test ! -f /special && [[ -c /special && ! -f /special ]] && stat -c '%F|%A|%s' /special; find /special -type c; file -b /special; file -b --mime-type /special; du -b /special; ls -l /special");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, "");
+  assert.ok(result.stdout.startsWith("character special file|crw-rw-rw-|0\n/special\ncharacter special\ninode/chardevice\n0\t/special\n"), result.stdout);
+  assert.ok(result.stdout.split("\n").some(line => line.startsWith("crw-rw-rw- ")), result.stdout);
+});
+
+test("device identity cannot alias an ordinary file with matching inode numbers", async context => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/ordinary", new Uint8Array());
+  const ordinary = await fs.stat("/ordinary");
+  const stat = fs.stat.bind(fs);
+  context.mock.method(fs, "stat", (path: string, options?: FsOptions) => path === "/special"
+    ? Promise.resolve({ ...ordinary, type: "character", mode: 0o20666, identityScope: Symbol("device") } satisfies FileStat)
+    : stat(path, options));
+  const result = await predicateCommands()[0]!.execute({
+    command: "test", args: ["/special", "-ef", "/ordinary"], fs, cwd: "/", env: {}, signal: new AbortController().signal,
+    stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write() {} }, stderr: { async write() { assert.fail("unexpected predicate diagnostic"); } },
+  });
+  assert.equal(result.exitCode, 1);
+});
+
+for (const [script, expected] of [
+  ["for x in a b; do printf %s \"$x\"; done >/dev/null", "ab"],
+  ["for x in a b; do printf %s \"$x\" >/dev/null; done", "b"],
+  ["while read x; do printf %s \"$x\"; done </dev/null >/copy", "provided\n"],
+] as const) test(`provided null remains an ordinary file in loops: ${script}`, async context => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/dev");
+  await fs.writeFile("/dev/null", new TextEncoder().encode("provided\n"));
+  const shell = new Shell({ fs, deviceView: "provided" }).use(standardCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec(script);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(new TextDecoder().decode(await fs.readFile("/dev/null")), expected);
+  if (script.includes("/copy")) assert.equal(new TextDecoder().decode(await fs.readFile("/copy")), "provided");
+});

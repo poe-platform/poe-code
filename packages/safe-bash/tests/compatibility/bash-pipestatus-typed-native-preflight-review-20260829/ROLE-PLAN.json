@@ -1,0 +1,48 @@
+{
+  "deadline": "2026-08-29T14:14:29.528Z",
+  "grant": {
+    "minutes": 12,
+    "knownOS": 32,
+    "peak": 3,
+    "capture": 50331648,
+    "work": 201326592
+  },
+  "planned": [
+    {
+      "role": "bootstrap+implementation patches",
+      "count": 2
+    },
+    {
+      "role": "inspect owner+Git",
+      "count": 2
+    },
+    {
+      "role": "up to four bounded metadata readers",
+      "count": 4
+    },
+    {
+      "role": "prepare owner+syntax",
+      "count": 2
+    },
+    {
+      "role": "preseal owner+Git add/commit",
+      "count": 3
+    },
+    {
+      "role": "replay owner+PURE helper",
+      "count": 2
+    },
+    {
+      "role": "publication owner+Git add/commit/status",
+      "count": 4
+    }
+  ],
+  "plannedKnown": 19,
+  "reserve": 13,
+  "expectedPeak": 2,
+  "PUREHelpersMax": 2,
+  "harmlessFixturesPlanned": 0,
+  "Bash": 0,
+  "Workers": 0,
+  "oldPIDProbes": 0
+}

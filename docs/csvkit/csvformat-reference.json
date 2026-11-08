@@ -1,0 +1,131 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "sourceSha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+  "cases": [
+    {
+      "command": "csvformat",
+      "argv": [
+        "-U",
+        "2"
+      ],
+      "stdin": "",
+      "stdout": "\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "command": "csvformat",
+      "argv": [
+        "-H",
+        "-U",
+        "2"
+      ],
+      "stdin": "",
+      "stdout": "\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "command": "csvformat",
+      "argv": [
+        "-E",
+        "-U",
+        "2"
+      ],
+      "stdin": "",
+      "stdout": "",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "command": "csvformat",
+      "argv": [
+        "-U",
+        "2"
+      ],
+      "stdin": "\n",
+      "stdout": "\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "command": "csvformat",
+      "argv": [
+        "-U",
+        "2"
+      ],
+      "stdin": "a\n",
+      "stdout": "\"a\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "command": "csvformat",
+      "argv": [
+        "-U",
+        "2"
+      ],
+      "stdin": "a\n\n",
+      "stdout": "\"a\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "command": "csvformat",
+      "argv": [
+        "-U",
+        "2"
+      ],
+      "stdin": "a\nnull\n",
+      "stdout": "\"a\"\n\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "command": "csvformat",
+      "argv": [
+        "-U",
+        "2"
+      ],
+      "stdin": "a,a\n1,2\n",
+      "stdout": "\"a\",\"a_2\"\n1,2\n",
+      "stderr": "/Users/kjopek/Workspace/poe-code-5/out/csvformat-reference/lib/python3.14/site-packages/agate/utils.py:288: DuplicateColumnWarning: Column name \"a\" already exists in Table. Column will be renamed to \"a_2\".\n  warn_duplicate_column(new_value, final_value)\n",
+      "status": 0
+    },
+    {
+      "command": "csvformat",
+      "argv": [
+        "-H",
+        "-E"
+      ],
+      "stdin": "x,y\nz,w\n",
+      "stdout": "x,y\nz,w\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "command": "csvformat",
+      "argv": [
+        "-u",
+        "2"
+      ],
+      "stdin": "\"a\"\n1\n",
+      "stdout": "a\n1.0\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "command": "csvformat",
+      "argv": [
+        "-U",
+        "2",
+        "--locale",
+        "de_DE"
+      ],
+      "stdin": "a,b,c\n\"1,7\",\"200.000.000\",\n",
+      "stdout": "\"a\",\"b\",\"c\"\n1.7,200000000,\"\"\n",
+      "stderr": "",
+      "status": 0
+    }
+  ]
+}

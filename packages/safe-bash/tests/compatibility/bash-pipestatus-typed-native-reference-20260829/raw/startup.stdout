@@ -1,0 +1,3 @@
+startedEpochSeconds=1788011502.7446589470
+Typed PIPESTATUS preparation only; no native authority
+?? tests/compatibility/bash-pipestatus-typed-native-reference-20260829/

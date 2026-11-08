@@ -1,0 +1,266 @@
+TAP version 13
+# Subtest: desired action-abort observes original host rejection without hiding abort
+not ok 1 - desired action-abort observes original host rejection without hiding abort
+  ---
+  duration_ms: 375.471042
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/action-abort.probe.ts:1:292'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"runPath":"/private/tmp/safe-bash-safejs-isolated-gnP0gu/baseline/packages/safejs/src/run.ts","interpreterPath":"/private/tmp/safe-bash-safejs-isolated-gnP0gu/baseline/packages/safejs/src/interp/interpreter.ts"}
+    {"actualEngineLoad":"/private/tmp/safe-bash-safejs-isolated-gnP0gu/baseline/packages/safejs/src/run.ts","sha256":"92382a36b94bc5be7f8fc0372bb4b91428fd137ba86742c5d6f75865726e5512"}
+    {"actualEngineLoad":"/private/tmp/safe-bash-safejs-isolated-gnP0gu/baseline/packages/safejs/src/interp/interpreter.ts","sha256":"9144707a43315e80cd75ff6dfdf650760d196c2b9fc09f5876b86ff551a3338d"}
+    outward abort observed
+    
+    /Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/action-abort.child.mjs:22
+        return Promise.reject(new Error("host action late rejection"));
+                              ^
+    
+    Error: host action late rejection
+        at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/action-abort.child.mjs:22:27)
+        at <anonymous> (/private/tmp/safe-bash-safejs-isolated-gnP0gu/baseline/packages/safejs/src/interp/host-bridge.ts:216:50)
+        at invokeHostCallback (/private/tmp/safe-bash-safejs-isolated-gnP0gu/baseline/packages/safejs/src/interp/host-bridge.ts:243:12)
+        at <anonymous> (/private/tmp/safe-bash-safejs-isolated-gnP0gu/baseline/packages/safejs/src/interp/host-bridge.ts:216:17)
+        at executeHostCall (/private/tmp/safe-bash-safejs-isolated-gnP0gu/baseline/packages/safejs/src/interp/host-bridge.ts:344:14)
+        at Object.call (/private/tmp/safe-bash-safejs-isolated-gnP0gu/baseline/packages/safejs/src/interp/host-bridge.ts:213:16)
+        at call (/private/tmp/safe-bash-safejs-isolated-gnP0gu/baseline/packages/safejs/src/interp/cancel.ts:50:43)
+        at invokeSandboxClosure (/private/tmp/safe-bash-safejs-isolated-gnP0gu/baseline/packages/safejs/src/interp/interpreter.ts:3500:28)
+        at evaluateResolvedCallExpression (/private/tmp/safe-bash-safejs-isolated-gnP0gu/baseline/packages/safejs/src/interp/interpreter.ts:3420:18)
+    
+    Node.js v22.22.2
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/action-abort.child.mjs:22:27)
+    <anonymous> (/private/tmp/safe-bash-safejs-isolated-gnP0gu/baseline/packages/safejs/src/interp/host-bridge.ts:216:50)
+    invokeHostCallback (/private/tmp/safe-bash-safejs-isolated-gnP0gu/baseline/packages/safejs/src/interp/host-bridge.ts:243:12)
+    <anonymous> (/private/tmp/safe-bash-safejs-isolated-gnP0gu/baseline/packages/safejs/src/interp/host-bridge.ts:216:17)
+    executeHostCall (/private/tmp/safe-bash-safejs-isolated-gnP0gu/baseline/packages/safejs/src/interp/host-bridge.ts:344:14)
+    Object.call (/private/tmp/safe-bash-safejs-isolated-gnP0gu/baseline/packages/safejs/src/interp/host-bridge.ts:213:16)
+    call (/private/tmp/safe-bash-safejs-isolated-gnP0gu/baseline/packages/safejs/src/interp/cancel.ts:50:43)
+    invokeSandboxClosure (/private/tmp/safe-bash-safejs-isolated-gnP0gu/baseline/packages/safejs/src/interp/interpreter.ts:3500:28)
+    evaluateResolvedCallExpression (/private/tmp/safe-bash-safejs-isolated-gnP0gu/baseline/packages/safejs/src/interp/interpreter.ts:3420:18)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/action-abort.probe.ts:24:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# {"actualEngineLoad":"/private/tmp/safe-bash-safejs-isolated-gnP0gu/baseline/packages/safejs/src/run.ts","sha256":"92382a36b94bc5be7f8fc0372bb4b91428fd137ba86742c5d6f75865726e5512"}
+# {"actualEngineLoad":"/private/tmp/safe-bash-safejs-isolated-gnP0gu/baseline/packages/safejs/src/interp/interpreter.ts","sha256":"9144707a43315e80cd75ff6dfdf650760d196c2b9fc09f5876b86ff551a3338d"}
+# Subtest: UNRESOLVED desired live-signal plugin behavior: new Error("constructed").message
+not ok 2 - UNRESOLVED desired live-signal plugin behavior: new Error("constructed").message
+  ---
+  duration_ms: 218.098792
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/upstream-desired.probe.ts:1:581'
+  failureType: 'testCodeFailure'
+  error: |-
+    safejs: Error is not a constructor.
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/upstream-desired.probe.ts:19:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: UNRESOLVED desired live-signal plugin behavior: new TypeError("constructed").message
+not ok 3 - UNRESOLVED desired live-signal plugin behavior: new TypeError("constructed").message
+  ---
+  duration_ms: 4.606583
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/upstream-desired.probe.ts:1:581'
+  failureType: 'testCodeFailure'
+  error: |-
+    safejs: TypeError is not a constructor.
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/upstream-desired.probe.ts:19:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: UNRESOLVED desired live-signal plugin behavior: new Map([["key", "value"]]).get("key")
+not ok 4 - UNRESOLVED desired live-signal plugin behavior: new Map([["key", "value"]]).get("key")
+  ---
+  duration_ms: 4.273917
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/upstream-desired.probe.ts:1:581'
+  failureType: 'testCodeFailure'
+  error: |-
+    safejs: Map is not a constructor.
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/upstream-desired.probe.ts:19:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: UNRESOLVED desired live-signal plugin behavior: new Set(["value"]).has("value")
+not ok 5 - UNRESOLVED desired live-signal plugin behavior: new Set(["value"]).has("value")
+  ---
+  duration_ms: 3.85575
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/upstream-desired.probe.ts:1:581'
+  failureType: 'testCodeFailure'
+  error: |-
+    safejs: Set is not a constructor.
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/upstream-desired.probe.ts:19:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: UNRESOLVED desired live-signal plugin behavior: new RegExp("^value$").test("value")
+not ok 6 - UNRESOLVED desired live-signal plugin behavior: new RegExp("^value$").test("value")
+  ---
+  duration_ms: 2.6415
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/upstream-desired.probe.ts:1:581'
+  failureType: 'testCodeFailure'
+  error: |-
+    safejs: RegExp is not a constructor.
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/upstream-desired.probe.ts:19:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: UNRESOLVED desired live-signal plugin behavior: Array.isArray([])
+not ok 7 - UNRESOLVED desired live-signal plugin behavior: Array.isArray([])
+  ---
+  duration_ms: 2.615125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/upstream-desired.probe.ts:1:581'
+  failureType: 'testCodeFailure'
+  error: |-
+    safejs: Function#isArray is not a supported method.
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/upstream-desired.probe.ts:19:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: UNRESOLVED desired live-signal plugin behavior: Array.from([1, 2])
+not ok 8 - UNRESOLVED desired live-signal plugin behavior: Array.from([1, 2])
+  ---
+  duration_ms: 2.852667
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/upstream-desired.probe.ts:1:581'
+  failureType: 'testCodeFailure'
+  error: |-
+    safejs: Function#from is not a supported method.
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/upstream-desired.probe.ts:19:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: UNRESOLVED desired live-signal plugin behavior: own __proto__ environment data
+not ok 9 - UNRESOLVED desired live-signal plugin behavior: own __proto__ environment data
+  ---
+  duration_ms: 3.392042
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/upstream-desired.probe.ts:2:6'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    '' !== 'literal\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    literal
+    
+  actual: ''
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/upstream-desired.probe.ts:28:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: UNRESOLVED desired raw engine behavior: pre-aborted pure run rejects original reason
+not ok 10 - UNRESOLVED desired raw engine behavior: pre-aborted pure run rejects original reason
+  ---
+  duration_ms: 2.3205
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/upstream-desired.probe.ts:2:412'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/upstream-desired.probe.ts:37:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 0
+# fail 10
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 572.464958

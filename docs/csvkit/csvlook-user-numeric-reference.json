@@ -1,0 +1,541 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "sourceSha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+  "environment": {
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "PYTHONIOENCODING": "utf-8"
+  },
+  "cases": [
+    {
+      "stdin": "n\n-NaN12\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "|      n |\n| ------ |\n| Na,N12 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n-NaN12\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "-1"
+      ],
+      "stdout": "|       n |\n| ------- |\n| Na,N12… |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n-NaN12\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "0"
+      ],
+      "stdout": "|      n |\n| ------ |\n| Na,N12 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n-NaN12\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "2"
+      ],
+      "stdout": "|      n |\n| ------ |\n| Na,N12 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n-NaN12\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "28"
+      ],
+      "stdout": "|      n |\n| ------ |\n| Na,N12 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\nNaN123456789012345678901234567890\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "|                                         n |\n| ----------------------------------------- |\n| N,aN3,456,789,012,345,678,901,234,567,890 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\nNaN123456789012345678901234567890\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "-1"
+      ],
+      "stdout": "|                                          n |\n| ------------------------------------------ |\n| N,aN3,456,789,012,345,678,901,234,567,890… |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\nNaN123456789012345678901234567890\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "0"
+      ],
+      "stdout": "|                                         n |\n| ----------------------------------------- |\n| N,aN3,456,789,012,345,678,901,234,567,890 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\nNaN123456789012345678901234567890\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "2"
+      ],
+      "stdout": "|                                         n |\n| ----------------------------------------- |\n| N,aN3,456,789,012,345,678,901,234,567,890 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\nNaN123456789012345678901234567890\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "28"
+      ],
+      "stdout": "|                                         n |\n| ----------------------------------------- |\n| N,aN3,456,789,012,345,678,901,234,567,890 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\nsNaN\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "| n    |\n| ---- |\n| sNaN |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\nsNaN\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "-1"
+      ],
+      "stdout": "| n    |\n| ---- |\n| sNaN |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\nsNaN\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "0"
+      ],
+      "stdout": "| n    |\n| ---- |\n| sNaN |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\nsNaN\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "2"
+      ],
+      "stdout": "| n    |\n| ---- |\n| sNaN |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\nsNaN\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "28"
+      ],
+      "stdout": "| n    |\n| ---- |\n| sNaN |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n1e309\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "|      n |\n| ------ |\n| 1E+309 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n1e309\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "-1"
+      ],
+      "stdout": "|      n |\n| ------ |\n| 1E+309 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n1e309\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "0"
+      ],
+      "stdout": "|      n |\n| ------ |\n| 1E+309 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n1e309\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "2"
+      ],
+      "stdout": "|      n |\n| ------ |\n| 1E+309 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n1e309\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "28"
+      ],
+      "stdout": "|      n |\n| ------ |\n| 1E+309 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n-1e309\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "|       n |\n| ------- |\n| -1E+309 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n-1e309\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "-1"
+      ],
+      "stdout": "|       n |\n| ------- |\n| -1E+309 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n-1e309\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "0"
+      ],
+      "stdout": "|       n |\n| ------- |\n| -1E+309 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n-1e309\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "2"
+      ],
+      "stdout": "|       n |\n| ------- |\n| -1E+309 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n-1e309\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "28"
+      ],
+      "stdout": "|       n |\n| ------- |\n| -1E+309 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n0e-900\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "| n |\n| - |\n| 0 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n0e-900\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "-1"
+      ],
+      "stdout": "|  n |\n| -- |\n| 0… |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n0e-900\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "0"
+      ],
+      "stdout": "| n |\n| - |\n| 0 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n0e-900\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "2"
+      ],
+      "stdout": "| n |\n| - |\n| 0 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n0e-900\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "28"
+      ],
+      "stdout": "| n |\n| - |\n| 0 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n9999999999999999999999999999.5\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "",
+      "stderr": "InvalidOperation: [<class 'decimal.InvalidOperation'>]\n",
+      "status": 1
+    },
+    {
+      "stdin": "n\n9999999999999999999999999999.5\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "-1"
+      ],
+      "stdout": "",
+      "stderr": "InvalidOperation: [<class 'decimal.InvalidOperation'>]\n",
+      "status": 1
+    },
+    {
+      "stdin": "n\n9999999999999999999999999999.5\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "0"
+      ],
+      "stdout": "",
+      "stderr": "InvalidOperation: [<class 'decimal.InvalidOperation'>]\n",
+      "status": 1
+    },
+    {
+      "stdin": "n\n9999999999999999999999999999.5\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "2"
+      ],
+      "stdout": "",
+      "stderr": "InvalidOperation: [<class 'decimal.InvalidOperation'>]\n",
+      "status": 1
+    },
+    {
+      "stdin": "n\n9999999999999999999999999999.5\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "28"
+      ],
+      "stdout": "",
+      "stderr": "InvalidOperation: [<class 'decimal.InvalidOperation'>]\n",
+      "status": 1
+    },
+    {
+      "stdin": "n\n0.00000000000000000000000000005\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "|      n |\n| ------ |\n| 0.000… |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n0.00000000000000000000000000005\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "-1"
+      ],
+      "stdout": "|  n |\n| -- |\n| 0… |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n0.00000000000000000000000000005\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "0"
+      ],
+      "stdout": "|  n |\n| -- |\n| 0… |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n0.00000000000000000000000000005\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "2"
+      ],
+      "stdout": "|     n |\n| ----- |\n| 0.00… |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n0.00000000000000000000000000005\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "28"
+      ],
+      "stdout": "|                             n |\n| ----------------------------- |\n| 0.000000000000000000000000000 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n123456789012345678901234567890\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "",
+      "stderr": "InvalidOperation: [<class 'decimal.InvalidOperation'>]\n",
+      "status": 1
+    },
+    {
+      "stdin": "n\n123456789012345678901234567890\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "-1"
+      ],
+      "stdout": "",
+      "stderr": "InvalidOperation: [<class 'decimal.InvalidOperation'>]\n",
+      "status": 1
+    },
+    {
+      "stdin": "n\n123456789012345678901234567890\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "0"
+      ],
+      "stdout": "",
+      "stderr": "InvalidOperation: [<class 'decimal.InvalidOperation'>]\n",
+      "status": 1
+    },
+    {
+      "stdin": "n\n123456789012345678901234567890\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "2"
+      ],
+      "stdout": "",
+      "stderr": "InvalidOperation: [<class 'decimal.InvalidOperation'>]\n",
+      "status": 1
+    },
+    {
+      "stdin": "n\n123456789012345678901234567890\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "28"
+      ],
+      "stdout": "",
+      "stderr": "InvalidOperation: [<class 'decimal.InvalidOperation'>]\n",
+      "status": 1
+    },
+    {
+      "stdin": "n\n2.12345\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "|      n |\n| ------ |\n| 2.123… |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n2.12345\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "-1"
+      ],
+      "stdout": "|  n |\n| -- |\n| 2… |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n2.12345\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "0"
+      ],
+      "stdout": "|  n |\n| -- |\n| 2… |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n2.12345\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "2"
+      ],
+      "stdout": "|     n |\n| ----- |\n| 2.12… |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n2.12345\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "28"
+      ],
+      "stdout": "|       n |\n| ------- |\n| 2.12345 |\n",
+      "stderr": "",
+      "status": 0
+    }
+  ]
+}

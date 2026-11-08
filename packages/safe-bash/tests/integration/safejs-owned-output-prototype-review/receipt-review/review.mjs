@@ -1,0 +1,392 @@
+import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync } from "node:fs";
+import { dirname, join, relative } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const repository = "/Users/kjopek/Workspace/safe-bash";
+const owned = dirname(fileURLToPath(import.meta.url));
+const evidence = join(owned, process.argv[3] ?? "");
+assert.ok(evidence === owned || evidence.startsWith(owned + "/"));
+const provenance = "tests/integration/safejs-owned-output-prototype-review/provenance/";
+const checkpoint = "tests/integration/safejs-owned-output-prototype-review/private-state/";
+const prefix = "tests/shell-stress/first-read-contract-review/";
+const v1 = prefix + "owned-output-prototype/";
+const streaming = prefix + "owned-output-streaming-prototype/";
+const qualified = prefix + "owned-output-qualified-prototype/";
+const fixture = prefix + "owned-output-streaming-review/fixture-replay-s1/";
+const ordering = prefix + "owned-output-qualified-review/ordering-replay-q1/";
+const preparerCommit = "f666ad8c76ea4362b093ee52e3e7e3b5c3702916";
+const checkpointCommit = "232868324ae4d4f063bd6116c87206f6a68429f7";
+const finalCommit = "e57b5aa16f749b6fac558877dff0712e64df05a8";
+const acceptedCommit = "3eba797a2f286c80149dff22afbcd177e3ffea08";
+const v1Commit = "1ff82cb748c60145740dba354610ac7ed7a7f15f";
+const streamingCommit = "c1985fd5ef365312a098148528cee517064cfaa9";
+const qualifiedCommit = "b8f5d46acf293138482b522d7b5f7263865b1303";
+const fixtureCommit = "669c881b7ae73e7731d721f124f457d10e7d8ec5";
+const baseCommit = "c9b96263d1204bdf54e89324cc0c7d1ef6bd3f79";
+const sourceIds = ["6d8589043618e623e35a63e92cbecc160b7f587335a69bba3e0b0f57e34dca8b", "c13d21a4205f75a846363e7e2c13db103ed841ee61397553105745c940f31c44", "42e7a2f5cb127f017ee2e3f99a852ae769244a15b524c9572b64955d1cad29c3", "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea"];
+const expectedPathSets = [
+  ["src/commands/network/curl.ts", "src/commands/network/transport.ts", "src/commands/network/types.ts", "src/commands/streams.ts", "src/contracts/index.ts", "src/contracts/io.ts", "src/contracts/output.ts", "src/shell/runtime.ts", "src/shell/shell.ts"],
+  ["src/commands/internal.ts", "src/commands/network/body.ts", "src/commands/streams.ts", "src/commands/structured/jq.ts"],
+  ["src/commands/network/curl.ts", "src/contracts/output.ts"],
+];
+const dirtyPaths = ["src/commands/tree/arguments.ts", "src/commands/tree/io.ts", "src/commands/tree/tree.ts"];
+const context = JSON.parse(readFileSync(process.argv[2]));
+const scratch = context.scratch;
+assert.equal(process.cwd(), repository);
+assert.ok(scratch.startsWith("/private/tmp/safe-bash-owned-output-receipt-review-"));
+assert.equal(realpathSync(scratch), scratch);
+const hash = bytes => createHash("sha256").update(bytes).digest("hex");
+const blobHash = bytes => createHash("sha1").update(`blob ${bytes.length}\0`).update(bytes).digest("hex");
+const environment = { PATH: "/usr/bin:/bin", GIT_OPTIONAL_LOCKS: "0", LC_ALL: "C", HOME: scratch, TMPDIR: scratch, TMP: scratch, TEMP: scratch };
+const children = [];
+const artifactMap = new Map();
+const objects = new Map();
+const proof = { started: context.started, reviewer: "new delegated leaf; not first preparer 01a0438a-acfd-7dd0-8d20-a9d07a3c527c", status: "IN_PROGRESS", scratch, restrictions: { productExecution: 0, guestExecution: 0, privateEngineExecution: 0, privateBuild: 0, installs: 0, symlinksCreated: 0, sourceOrApiPromotion: false }, stages: [], deltas: [], artifacts: [], checks: [] };
+let retainedBefore;
+let retainedRoot;
+
+function run(command, args, cwd = repository, timeout = 30000) {
+  const result = spawnSync(command, args, { cwd, env: environment, timeout, maxBuffer: 64 * 1024 * 1024 });
+  let reaped = false;
+  if (result.pid) {
+    try { process.kill(result.pid, 0); } catch (error) { if (error.code === "ESRCH") reaped = true; else throw error; }
+  }
+  children.push({ command, args, cwd, pid: result.pid, status: result.status, signal: result.signal, error: result.error?.message ?? null, reaped });
+  assert.equal(result.error, undefined);
+  assert.equal(result.status, 0, `${command}: ${result.stderr?.toString()}${result.stdout?.toString()}`);
+  assert.ok(reaped, "Synchronous child must have settled");
+  return result.stdout;
+}
+
+function put(path, bytes) {
+  assert.ok(path.startsWith(scratch + "/") || path.startsWith(owned + "/"));
+  mkdirSync(dirname(path), { recursive: true });
+  assert.equal(realpathSync(dirname(path)), dirname(path));
+  writeFileSync(path, bytes, { flag: "wx" });
+}
+
+function output(name, value) { put(join(evidence, name), JSON.stringify(value, null, 2) + "\n"); }
+
+function regularBytes(path) {
+  const stat = lstatSync(path);
+  assert.ok(stat.isFile() && !stat.isSymbolicLink(), path);
+  assert.equal(realpathSync(path), path, path);
+  return readFileSync(path);
+}
+
+function gitBytes(commit, path) {
+  const key = `${commit}:${path}`;
+  if (!objects.has(key)) objects.set(key, run("/usr/bin/git", ["show", key]));
+  return objects.get(key);
+}
+
+function artifact(commit, path, expected) {
+  const bytes = gitBytes(commit, path);
+  const actual = { commit, path, bytes: bytes.length, sha256: hash(bytes), gitBlob: blobHash(bytes), liveMatchesFrozen: hash(regularBytes(join(repository, path))) === hash(bytes) };
+  if (expected) assert.equal(actual.sha256, expected, path);
+  artifactMap.set(`${commit}:${path}`, actual);
+  const destination = join(scratch, "inputs", commit, path);
+  if (!existsSync(destination)) put(destination, bytes);
+  return { ...actual, bytes, destination };
+}
+
+function receipt(commit, path, expected) { return JSON.parse(artifact(commit, path, expected).bytes); }
+
+function inventory(root, metadata = false) {
+  assert.equal(realpathSync(root), root);
+  const files = [];
+  function visit(directory) {
+    for (const name of readdirSync(directory).sort()) {
+      const path = join(directory, name);
+      const stat = lstatSync(path);
+      assert.equal(stat.isSymbolicLink(), false, path);
+      if (stat.isDirectory()) visit(path);
+      else {
+        assert.ok(stat.isFile(), path);
+        files.push({ path: relative(root, path), bytes: stat.size, sha256: hash(readFileSync(path)), ...(metadata ? { mode: stat.mode & 0o777, mtimeMs: stat.mtimeMs, ctimeMs: stat.ctimeMs } : {}) });
+      }
+    }
+  }
+  visit(root);
+  return files.sort((left, right) => left.path < right.path ? -1 : left.path > right.path ? 1 : 0);
+}
+
+const normalized = entries => entries.map(({ path, bytes, sha256 }) => ({ path, bytes, sha256 })).sort((left, right) => left.path < right.path ? -1 : left.path > right.path ? 1 : 0);
+const sourceOnly = entries => entries.filter(entry => entry.path.startsWith("src/"));
+const delta = (before, after) => {
+  const left = new Map(before.map(entry => [entry.path, entry]));
+  const right = new Map(after.map(entry => [entry.path, entry]));
+  return [...new Set([...left.keys(), ...right.keys()])].sort().filter(path => left.get(path)?.sha256 !== right.get(path)?.sha256).map(path => ({ path, before: left.get(path) ?? null, after: right.get(path) ?? null }));
+};
+
+function extract(input, destination, expected) {
+  const extraction = JSON.parse(run("/usr/bin/python3", [join(owned, "extract.py"), input.destination, destination]));
+  const actual = inventory(destination);
+  assert.deepEqual(actual, extraction.files);
+  assert.deepEqual(actual, normalized(expected));
+  proof.checks.push({ name: "regular-only archive extraction", archive: input.path, sha256: input.sha256, files: actual.length, rawRegularEntries: extraction.rawRegularEntries, directoryEntries: extraction.directoryEntries, archiveMetadata: extraction.archiveMetadata, links: extraction.links, specialEntries: extraction.specialEntries });
+  return actual;
+}
+
+function stage(name, root, expected, expectedSourceId) {
+  const files = inventory(root);
+  assert.deepEqual(sourceOnly(files), normalized(expected));
+  const sourceId = hash(JSON.stringify(sourceOnly(files)));
+  assert.equal(sourceId, expectedSourceId);
+  const value = { name, files, sourceCount: sourceOnly(files).length, sourceId };
+  proof.stages.push(value);
+  return value;
+}
+
+function applyStage(name, root, patch, expectedPaths, expectedSource, expectedSourceId) {
+  const before = inventory(root);
+  const headerPaths = [...patch.bytes.toString().matchAll(/^diff --git a\/(\S+) b\/(\S+)$/gm)].map(match => { assert.equal(match[1], match[2]); return match[1]; }).sort();
+  assert.deepEqual(headerPaths, [...expectedPaths].sort());
+  run("/usr/bin/git", ["apply", "--check", patch.destination], root);
+  run("/usr/bin/git", ["apply", patch.destination], root);
+  const after = stage(name, root, expectedSource, expectedSourceId);
+  const changes = delta(before, after.files);
+  assert.deepEqual(changes.map(entry => entry.path), [...expectedPaths].sort());
+  proof.deltas.push({ name, patch: patch.path, patchSha256: patch.sha256, expectedPaths, changes, unchangedFiles: before.length - changes.filter(entry => entry.before).length, allOtherFilesUnchanged: true });
+  return after;
+}
+
+function authenticateArtifactSet(commit, root, name) {
+  const manifest = receipt(commit, root + name);
+  if (manifest.manifestSha256) assert.equal(hash(JSON.stringify(manifest.files)), manifest.manifestSha256);
+  for (const entry of manifest.files) {
+    const actual = artifact(commit, root + entry.path, entry.sha256);
+    if (entry.bytes !== undefined) assert.equal(actual.bytes.length, entry.bytes, entry.path);
+  }
+  proof.checks.push({ name: "complete receipt artifact set", manifest: root + name, commit, files: manifest.files.length });
+  return manifest;
+}
+
+function main() {
+  proof.handoffs = ["/tmp/safe-bash-owned-output-provenance-handoff-result.txt", "/tmp/safe-bash-owned-output-prototype-provenance-ready.txt"].map(path => {
+    const bytes = regularBytes(realpathSync(path));
+    return { path, bytes: bytes.length, sha256: hash(bytes), role: "retrieval/context only; not assembly authentication" };
+  });
+  const helper = artifact(preparerCommit, provenance + "snapshot.mjs", "dad095bb5f744d6137b374d70ba07971ce76965b215a2280bf2849e9717695ce");
+  assert.deepEqual(regularBytes(join(scratch, "snapshot.mjs")), helper.bytes);
+  const before = JSON.parse(regularBytes(join(scratch, "snapshot-before.json")));
+  const oldCheckpoint = receipt(checkpointCommit, checkpoint + "snapshot-after.json");
+  assert.deepEqual(before.private, oldCheckpoint.private);
+  proof.privateCheckpoint = { commit: checkpointCommit, samePrivateStateAtFreshBefore: true };
+  const assembly = receipt(preparerCommit, provenance + "assembly.json");
+  const preparerSeal = receipt(preparerCommit, provenance + "SEAL.json");
+  const buildProof = receipt(preparerCommit, provenance + "build-proof.json");
+  retainedRoot = assembly.task;
+  assert.equal(retainedRoot, "/private/tmp/safe-bash-owned-output-prototype-preparation-rE94MK");
+  retainedBefore = inventory(retainedRoot, true);
+  proof.retainedBefore = { root: retainedRoot, files: retainedBefore.length, metadataManifestSha256: hash(JSON.stringify(retainedBefore)) };
+  for (const entry of preparerSeal.files) artifact(preparerCommit, provenance + entry.path, entry.sha256);
+  proof.preservedFailures = ["preparation-first-failure.json", "preparation-subsequent-failure.json", "prepare-r0.mjs.data", "prepare-r1.mjs.data"].map(name => {
+    const input = artifact(preparerCommit, provenance + name);
+    return { path: input.path, sha256: input.sha256, bytes: input.bytes.length, gitBlob: input.gitBlob, ...(name.endsWith(".json") ? { message: JSON.parse(input.bytes).message } : {}) };
+  });
+  for (const entry of assembly.frozenInputs) {
+    const input = artifact(entry.commit, entry.path, entry.sha256);
+    assert.equal(input.gitBlob, entry.blob);
+    assert.deepEqual(regularBytes(join(retainedRoot, "inputs", entry.path)), input.bytes);
+  }
+  proof.checks.push({ name: "first-preparer actual retained frozen inputs", files: assembly.frozenInputs.length, hashesAndGitBlobsMatched: true });
+  for (const [commit, root, name] of [[v1Commit, v1, "ARTIFACTS.json"], [streamingCommit, streaming, "ARTIFACTS.json"], [qualifiedCommit, qualified, "ARTIFACTS.json"], [fixtureCommit, fixture, "SEAL.json"], [finalCommit, ordering, "ARTIFACTS.json"]]) authenticateArtifactSet(commit, root, name);
+  const freeze = receipt(acceptedCommit, prefix + "evidence/freeze.json");
+  const inputs = receipt(acceptedCommit, prefix + "evidence/inputs.json", "fe5bec0edc1d55cf574d035c36f7c41b2967cb9e3f43660b980773bec786acf2");
+  const reconstruction = receipt(v1Commit, v1 + "reconstruction.json");
+  const handoff = receipt(v1Commit, v1 + "handoff.json");
+  const retention = receipt(streamingCommit, streaming + "baseline-manifest.json");
+  const tested = receipt(streamingCommit, streaming + "tested-manifest.json", "4e84fe7dc3a762654a6bb1865f5f73f259fc61f8aa9bcabb250663ff7c9645f9");
+  const seal = receipt(streamingCommit, streaming + "SEAL.json");
+  receipt(streamingCommit, streaming + "reconstruction-proof.json", seal.reconstructionProofSha256);
+  artifact(streamingCommit, streaming + "restore.mjs.data", "0db36b56c820e33196c6f340012c7c6deaa20d9fdaa3286430ae76d261350431");
+  artifact(v1Commit, v1 + "reconstruct.mjs-data");
+  for (const entry of tested.restoreInputs) artifact(streamingCommit, entry.path, entry.sha256);
+  assert.equal(freeze.head, baseCommit);
+  assert.equal(hash(JSON.stringify(freeze.manifest)), freeze.manifestSha256);
+  const expectedBaseline = new Map(freeze.manifest.filter(entry => entry.path.startsWith("src/") || ["package.json", "package-lock.json", "tsconfig.json", "tsconfig.build.json"].includes(entry.path)).map(entry => [entry.path, entry]));
+  const historicalFixtures = inputs.manifest.filter(entry => entry.classification.startsWith("unchanged execution"));
+  for (const entry of historicalFixtures) expectedBaseline.set(entry.path, entry);
+  assert.deepEqual(normalized([...expectedBaseline.values()]), normalized(reconstruction.files));
+  const preservedNames = new Set(run("/usr/bin/git", ["ls-tree", "-r", "--name-only", acceptedCommit, prefix + "preserved"]).toString().trim().split("\n"));
+  const choices = [];
+  for (const entry of expectedBaseline.values()) {
+    const preservedPath = prefix + "preserved/" + entry.path + ".data";
+    const preserved = preservedNames.has(preservedPath);
+    const selected = preserved ? artifact(acceptedCommit, preservedPath, entry.sha256).bytes : gitBytes(baseCommit, entry.path);
+    assert.equal(hash(selected), entry.sha256, entry.path);
+    const clean = gitBytes(baseCommit, entry.path);
+    choices.push({ path: entry.path, bytes: selected.length, sha256: hash(selected), selectedFrom: preserved ? preservedPath : `${baseCommit}:${entry.path}`, preserved, differsFromCleanGit: hash(clean) !== hash(selected), cleanGitBlob: blobHash(clean), cleanSha256FreshlyComputed: hash(clean) });
+  }
+  assert.deepEqual(choices.filter(entry => entry.differsFromCleanGit).map(entry => entry.path).sort(), dirtyPaths);
+  const originalDirty = freeze.status.split("\n").filter(line => line.startsWith("1 ")).map(line => line.split(" ").slice(8).join(" ")).sort();
+  assert.deepEqual(originalDirty, dirtyPaths);
+  proof.baseline = { frozenAt: freeze.frozenAt, gitCommit: freeze.head, recordedStatus: freeze.status, broaderFreezeManifestSha256: freeze.manifestSha256, historicalFixtures: historicalFixtures.length, preservedSourceLabels: choices.filter(entry => entry.preserved && entry.path.startsWith("src/")).length, capturedDirtySourceFiles: choices.filter(entry => entry.differsFromCleanGit).length, choices };
+  const archive = artifact(v1Commit, v1 + "baseline.tar.gz.data", "0066bc48069f116b549ea895e4972c02ed6958be641fd23ea3b6db26cc181f05");
+  const sourceRoute = join(scratch, "source-route");
+  const baselineFiles = extract(archive, sourceRoute, [...expectedBaseline.values()]);
+  stage("B0", sourceRoute, sourceOnly(normalized([...expectedBaseline.values()])), sourceIds[0]);
+  const patchV1 = artifact(v1Commit, v1 + "source-r1.patch-data", "d73bb2637d54b97f62fd6e1baa57100cf0018a763679c31386349e30a19cc4e2");
+  const stageV1 = applyStage("V1", sourceRoute, patchV1, expectedPathSets[0], handoff.source, sourceIds[1]);
+  const fixtureChanges = [];
+  for (const [source, target, commit, sha256] of [
+    [v1 + "owned-output-author.test.ts.data", "tests/shell/owned-output-author.test.ts", v1Commit, "04914584fc2195f3a99006ab6fb7c18fd57d87ae6f8ba6dd4a847aa2ef1f8ce1"],
+    [v1 + "adapted-first-read-probe.ts.data", "tests/shell/adapted-first-read-probe.ts", v1Commit, "743f93c910422eb4ad64ac77caacb9aacf71837f28b92a51a1993e8651c6b771"],
+    [v1 + "adapted-remote-close.test.ts.data", "tests/shell/adapted-remote-close.test.ts", v1Commit, "913548f801bad996dc1d95767380bf48075129d3eeaaff096f13a99983b95cae"],
+  ]) {
+    const input = artifact(commit, source, sha256);
+    put(join(sourceRoute, target), input.bytes);
+    fixtureChanges.push({ path: target, before: null, after: { bytes: input.bytes.length, sha256: input.sha256 }, source });
+  }
+  assert.deepEqual(inventory(sourceRoute).filter(entry => entry.path.startsWith("tests/")), normalized(handoff.tests));
+  const retentionPatch = artifact(streamingCommit, streaming + "baseline-current-retention.patch-data", "063751093b7cf887d35b33498b65e1ef49a2f35f9dfb28e368ab6e409fda05b5");
+  const retentionGitDiff = run("/usr/bin/git", ["diff", baseCommit, "3b33f9a8e10ca5c697b7eb23727e1cc173b1672c", "--", ...expectedPathSets[1]]);
+  assert.deepEqual(retentionPatch.bytes, retentionGitDiff);
+  applyStage("retention", sourceRoute, retentionPatch, expectedPathSets[1], retention.source, sourceIds[2]);
+  const sourcePatch = artifact(streamingCommit, streaming + "source-S1-r0.patch-data", "80c523e21610d90c67c8ab0084532ab465f645a0d57442dcd952795de01f2f3f");
+  assert.deepEqual(sourcePatch.bytes, artifact(streamingCommit, streaming + "source-S1-r1.patch-data", sourcePatch.sha256).bytes);
+  const finalStage = applyStage("final-S1", sourceRoute, sourcePatch, expectedPathSets[2], tested.source, sourceIds[3]);
+  const v1ToFinal = delta(sourceOnly(stageV1.files), sourceOnly(finalStage.files));
+  assert.deepEqual(v1ToFinal.map(entry => entry.path), [...expectedPathSets[1], ...expectedPathSets[2]].sort());
+  proof.v1ToFinal = { changes: v1ToFinal, unchangedProductionPaths: 213 - v1ToFinal.length, expectedPathsFromOriginalPatchHeadersAndReceipts: true };
+  const author = artifact(streamingCommit, streaming + "author-r1.test.ts.data", "46291ac212a145924e477cb1d2767ec776b4ec9b53ae036c184699c7d220e03b");
+  put(join(sourceRoute, "tests/shell/owned-output-streaming-author.test.ts"), author.bytes);
+  fixtureChanges.push({ path: "tests/shell/owned-output-streaming-author.test.ts", before: null, after: { bytes: author.bytes.length, sha256: author.sha256 }, source: author.path });
+  const actualInputs = inventory(sourceRoute);
+  const configExpected = tested.config.map(entry => {
+    const baseline = expectedBaseline.get(entry.path);
+    assert.equal(entry.sha256, baseline.sha256);
+    return { ...entry, bytes: baseline.bytes };
+  });
+  assert.deepEqual(actualInputs, normalized([...tested.source, ...tested.tests, ...configExpected]));
+  const configs = actualInputs.filter(entry => !entry.path.includes("/"));
+  assert.deepEqual(configs, baselineFiles.filter(entry => !entry.path.includes("/")));
+  proof.fixtureAndConfig = { fixtureChanges, unchangedConfigs: configs, testCount: tested.tests.length, testManifestSha256: hash(JSON.stringify(actualInputs.filter(entry => entry.path.startsWith("tests/")))) };
+  assert.equal(proof.fixtureAndConfig.testManifestSha256, tested.testManifestSha256);
+  const profile = receipt(qualifiedCommit, qualified + "SOURCE-PROFILE.json", "dde465c6636625f7802f5ead10bbeb236f62c271d8a078459a5c8bb120de1ce2");
+  const candidateArchive = profile.archives.find(entry => entry.name === "candidate");
+  const packaged = artifact(qualifiedCommit, qualified + candidateArchive.path, "a3b9aa6fcb4596e8281de2c30943b98baa01449941c8368401d1172bce95d420");
+  const packagedRoute = join(scratch, "packaged-route");
+  const candidateFiles = extract(packaged, packagedRoute, candidateArchive.files);
+  assert.deepEqual(candidateFiles, normalized([...tested.source, ...tested.tests, ...configExpected, ...tested.compiled]));
+  assert.deepEqual(actualInputs, candidateFiles.filter(entry => !entry.path.startsWith("dist/")));
+  proof.routes = { sourceRoute, packagedRoute, archiveSha256: packaged.sha256, candidateFiles, sourceInputCount: actualInputs.length, allSourceInputsEqualPackagedRoute: true, excludedAlternatives: ["rejected prebuffer V2", "Q/current-capture", "Q/original-preoperation"], identicalS1PatchCapturesAppliedOnce: true };
+  const config = receipt(finalCommit, ordering + "config.json");
+  const candidatePrefix = dirname(dirname(config.candidateEntry.path)) + "/";
+  proof.ordering = [];
+  for (const phase of ["before", "after"]) {
+    const authentication = receipt(finalCommit, ordering + `authentication-${phase}.json`);
+    const entries = authentication.files.filter(entry => entry.path.startsWith(candidatePrefix)).map(entry => ({ path: entry.path.slice(candidatePrefix.length), sha256: entry.sha256 })).sort((left, right) => left.path < right.path ? -1 : 1);
+    assert.deepEqual(entries, candidateFiles.map(({ path, sha256 }) => ({ path, sha256 })));
+    assert.equal(authentication.sourceId, sourceIds[3]);
+    assert.equal(authentication.testId, tested.testManifestSha256);
+    assert.equal(authentication.compiledId, tested.compiledManifestSha256);
+    assert.equal(authentication.candidateFiles, candidateFiles.length);
+    proof.ordering.push({ phase, candidatePrefix, exactCandidateFilesMatched: entries.length, sourceId: authentication.sourceId, testId: authentication.testId, compiledId: authentication.compiledId });
+  }
+  const preSeal = receipt(finalCommit, ordering + "pre-run-seal.json");
+  artifact(finalCommit, ordering + "driver.mjs.data", preSeal.driverSha256);
+  artifact(finalCommit, ordering + "ordering-lifetime.mjs.data", preSeal.orderingFixtureSha256);
+  artifact(finalCommit, ordering + "config.json", preSeal.configSha256);
+  artifact(finalCommit, ordering + "authentication-before.json", config.authentication.sha256);
+  for (const entry of preSeal.files) artifact(finalCommit, ordering + entry.path, entry.sha256);
+  assert.equal(config.sourceIdentity, sourceIds[3]);
+  assert.equal(hash(regularBytes(join(packagedRoute, "dist/index.js"))), config.candidateEntry.sha256);
+  proof.checks.push({ name: "Q1 pre-run seal and config bind same candidate", entries: preSeal.files.length, entrySha256: config.candidateEntry.sha256 });
+  const fixtureSeal = receipt(fixtureCommit, fixture + "SEAL.json");
+  assert.equal(fixtureSeal.sourceIdentity, sourceIds[3]);
+  assert.equal(fixtureSeal.sourceFixCount, 0);
+  proof.fixtureOnlyCommits = [];
+  for (const commit of [fixtureCommit, "97909bec33c440e9917b13df188af1ad19700e23", "13536dd8705cdbfc68a19da1549b21b069020f41", finalCommit]) {
+    const paths = run("/usr/bin/git", ["diff-tree", "--no-commit-id", "--name-only", "-r", commit, "--", "src", "package.json", "package-lock.json", "tsconfig.json", "tsconfig.build.json"]).toString();
+    assert.equal(paths, "");
+    proof.fixtureOnlyCommits.push({ commit, productionAndRootConfigChangedPaths: [] });
+  }
+  proof.retainedComparisons = [];
+  for (const [label, root, expected] of [
+    ["candidate", assembly.candidate, candidateFiles],
+    ["reconstructed source and emitted output", assembly.reconstructed, candidateFiles],
+    ["consumer compiled package", buildProof.consumer, candidateFiles.filter(entry => entry.path === "package.json" || entry.path.startsWith("dist/"))],
+    ["baseline", assembly.baseline, baselineFiles],
+  ]) {
+    const files = inventory(root);
+    assert.deepEqual(files, expected, root);
+    proof.retainedComparisons.push({ label, root, files: files.length, actualManifestSha256: hash(JSON.stringify(files)), matchedActualArchiveBytes: true });
+  }
+  for (const tool of assembly.tooling) {
+    const files = inventory(join(retainedRoot, "node_modules", tool.name));
+    assert.deepEqual(files, normalized(tool.files));
+    for (const entry of files) put(join(scratch, "node_modules", tool.name, entry.path), regularBytes(join(retainedRoot, "node_modules", tool.name, entry.path)));
+    assert.deepEqual(inventory(join(scratch, "node_modules", tool.name)), files);
+    proof.checks.push({ name: "existing pinned regular tooling copy", package: tool.name, version: tool.package, files: files.length, manifestSha256: hash(JSON.stringify(files)) });
+  }
+  const compiler = join(scratch, "node_modules/typescript/bin/tsc");
+  const buildOutput = run(process.execPath, [compiler, "-p", "tsconfig.build.json"], sourceRoute, 120000).toString();
+  const built = inventory(sourceRoute);
+  assert.deepEqual(built, candidateFiles);
+  const compiled = built.filter(entry => entry.path.startsWith("dist/"));
+  assert.equal(hash(JSON.stringify(compiled)), tested.compiledManifestSha256);
+  const listOutput = run(process.execPath, [compiler, "--noEmit", "--listFiles", "-p", "tsconfig.json"], sourceRoute, 120000).toString();
+  const compilerInputs = listOutput.trim().split("\n").map(path => ({ normalizedPath: path.startsWith(sourceRoute + "/") ? "CANDIDATE/" + relative(sourceRoute, path) : repository + "/" + relative(scratch, path), sha256: hash(regularBytes(path)) }));
+  assert.deepEqual(compilerInputs, tested.compilerInputs.map(({ normalizedPath, sha256 }) => ({ normalizedPath, sha256 })));
+  for (const entry of preparerSeal.compilerInputs) assert.equal(hash(regularBytes(entry.actualPath)), entry.sha256);
+  proof.build = { publicBuilds: 1, buildOutput, compiledCount: compiled.length, compiledManifestSha256: hash(JSON.stringify(compiled)), fullSourceRouteEquals940FileArchive: true, compilerInputs, historicalCompilerInputsMatched: compilerInputs.length, scope: "historical selected source/tests/config and copied pinned development tooling; not current full TypeScript gate" };
+  const declarationProof = JSON.parse(run(process.execPath, [join(owned, "inspect-declarations.mjs"), scratch, sourceRoute], repository, 120000));
+  proof.api = declarationProof;
+  assert.deepEqual(inventory(sourceRoute), candidateFiles);
+  for (const root of [sourceRoute, packagedRoute]) {
+    function sealDirectory(directory) {
+      for (const name of readdirSync(directory)) {
+        const path = join(directory, name);
+        if (lstatSync(path).isDirectory()) sealDirectory(path); else chmodSync(path, 0o444);
+      }
+      chmodSync(directory, 0o555);
+    }
+    sealDirectory(root);
+  }
+  proof.status = "QUALIFIED_ACCEPT_ASSEMBLY_ONLY";
+}
+
+try { main(); }
+catch (error) {
+  proof.status = "REFUSE_ASSEMBLY";
+  proof.failure = { name: error.name, message: error.message, stack: error.stack };
+  process.exitCode = 1;
+} finally {
+  try {
+    run(process.execPath, [join(scratch, "snapshot.mjs"), "after"]);
+    const before = JSON.parse(regularBytes(join(scratch, "snapshot-before.json")));
+    const after = JSON.parse(regularBytes(join(scratch, "snapshot-after.json")));
+    output("private-before.json", before);
+    output("private-after.json", after);
+    assert.deepEqual(before.private, after.private);
+    proof.privateClosure = { before: before.at, after: after.at, unchanged: true, head: after.private.head, tree: after.private.tree, index: after.private.index, status: after.private.status, staged: after.private.staged, engineFiles: Object.keys(after.private.engine).length, metadataFiles: Object.keys(after.private.metadata).length, privateStateSha256: hash(JSON.stringify(after.private)), helperSha256: hash(regularBytes(join(scratch, "snapshot.mjs"))), engineIdentity: hash(JSON.stringify(Object.entries(after.private.engine).map(([path, entry]) => ({ path, sha256: entry.sha256 })))), publicComparison: after.comparison, exclusions: [".git", "node_modules", "dist", ".cache", ".turbo"], limits: "No excluded-content, unrelated untracked-content, directory-metadata, atime or nanosecond proof; sequential observations, not atomic/intervening/future-state proof" };
+    if (retainedBefore) {
+      const retainedAfter = inventory(retainedRoot, true);
+      assert.deepEqual(retainedAfter, retainedBefore);
+      proof.retainedAfter = { root: retainedRoot, files: retainedAfter.length, metadataManifestSha256: hash(JSON.stringify(retainedAfter)), exactBytesModeMtimeCtimeUnchanged: true };
+    }
+  } catch (error) {
+    proof.status = "REFUSE_ASSEMBLY";
+    proof.closureFailure = { name: error.name, message: error.message, stack: error.stack };
+    for (const phase of ["before", "after"]) {
+      const input = join(scratch, `snapshot-${phase}.json`);
+      const destination = join(evidence, `private-${phase}.json`);
+      if (existsSync(input) && !existsSync(destination)) put(destination, regularBytes(input));
+    }
+    process.exitCode = 1;
+  }
+  proof.artifacts = [...artifactMap.values()];
+  proof.completed = new Date().toISOString();
+  output("proof.json", proof);
+  output("children.json", children);
+  if (proof.status !== "QUALIFIED_ACCEPT_ASSEMBLY_ONLY") {
+    rmSync(scratch, { recursive: true, force: false });
+    output("scratch-cleanup.json", { scratch, absent: !existsSync(scratch), at: new Date().toISOString() });
+  }
+  console.log(JSON.stringify({ status: proof.status, scratch, failure: proof.failure?.message.slice(0,1800), closureFailure: proof.closureFailure?.message.slice(0,1800), artifacts: proof.artifacts.length, children: children.length, privateClosure: proof.privateClosure?.unchanged }));
+}

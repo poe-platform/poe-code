@@ -1,0 +1,18 @@
+{
+  "schema": "b35-author-launch-v2",
+  "command": "exec /usr/bin/env -i HOME=/tmp/safe-bash-b35-author-xSdFBJ/home TMPDIR=/tmp/safe-bash-b35-author-xSdFBJ/tmp PATH=/tmp/safe-bash-b35-author-xSdFBJ/empty-path LC_ALL=C LANG=C TZ=UTC /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/outer-v2.mjs",
+  "login": false,
+  "permission": "configured CLI permissions; if denied/unsupported do not reroute",
+  "seal": {
+    "bytes": 5742,
+    "sha256": "5b4cb28461e69fdda2e39bca117aa99d608e49b2284d944dcb60966db67ca02e"
+  },
+  "conditionalRootGrant": "2026-08-29 B35 SOURCEimplementation + AUTHOR testGO after complete preseal",
+  "sourceDeadline": "2026-08-29T12:33:55.085Z",
+  "outerExpectedSha256": "7daee61eb998b2cccc73baf807b790d8e824be634fe772dd1b099cd3c24d2b2a",
+  "runtimeWindow": "inclusive fixed25min from author window start, including checks/admin/publication; outer receives same start, no reset",
+  "noProductExecutedYet": true,
+  "authorWindowStarted": "2026-08-29T12:30:06.478Z",
+  "authorDeadline": "2026-08-29T12:55:06.478Z",
+  "priorUnrunLaunch": "LAUNCH.json"
+}

@@ -1,0 +1,203 @@
+{
+  "schema": 1,
+  "controls": [
+    {
+      "id": "CONTROL-01",
+      "recordIds": [
+        "NEG-01"
+      ],
+      "name": "frozen-input-byte",
+      "reference": "tests/commands/yq-independent-20260828/freeze/integration.json#/cases/27",
+      "executionKind": "OWNED_WORKER_CONTROLLED_REGULAR_COPY_OR_RECEIPT",
+      "expected": "Declared validator refusal observed inside a zero-exit worker; no actual child nonzero waiver",
+      "state": "UNRUN_NO_SUCCESSOR_GO"
+    },
+    {
+      "id": "CONTROL-02",
+      "recordIds": [
+        "NEG-02"
+      ],
+      "name": "added-frozen-entry",
+      "reference": "tests/commands/yq-independent-20260828/freeze/integration.json#/cases/28",
+      "executionKind": "OWNED_WORKER_CONTROLLED_REGULAR_COPY_OR_RECEIPT",
+      "expected": "Declared validator refusal observed inside a zero-exit worker; no actual child nonzero waiver",
+      "state": "UNRUN_NO_SUCCESSOR_GO"
+    },
+    {
+      "id": "CONTROL-03",
+      "recordIds": [
+        "NEG-03"
+      ],
+      "name": "reserved-diagnostic",
+      "reference": "tests/commands/yq-independent-20260828/freeze/integration.json#/cases/29",
+      "executionKind": "OWNED_WORKER_CONTROLLED_REGULAR_COPY_OR_RECEIPT",
+      "expected": "Declared validator refusal observed inside a zero-exit worker; no actual child nonzero waiver",
+      "state": "UNRUN_NO_SUCCESSOR_GO"
+    },
+    {
+      "id": "CONTROL-04",
+      "recordIds": [],
+      "name": "classifier-nonzero",
+      "reference": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/controls.json#host-nonzero",
+      "executionKind": "OWNED_WORKER_SYNTHETIC_METADATA_NOT_ACTUAL_HOST_FAILURE_PROOF",
+      "expected": "Declared validator refusal observed inside a zero-exit worker; no actual child nonzero waiver",
+      "state": "UNRUN_NO_SUCCESSOR_GO"
+    },
+    {
+      "id": "CONTROL-05",
+      "recordIds": [],
+      "name": "classifier-timeout-continuation",
+      "reference": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/controls.json#host-timeout",
+      "executionKind": "OWNED_WORKER_SYNTHETIC_METADATA_NOT_ACTUAL_HOST_FAILURE_PROOF",
+      "expected": "Declared validator refusal observed inside a zero-exit worker; no actual child nonzero waiver",
+      "state": "UNRUN_NO_SUCCESSOR_GO"
+    },
+    {
+      "id": "CONTROL-06",
+      "recordIds": [],
+      "name": "duplicate-receipts",
+      "reference": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/NEGATIVE-CASES.json#duplicate-receipt-key",
+      "executionKind": "OWNED_WORKER_CONTROLLED_REGULAR_COPY_OR_RECEIPT",
+      "expected": "Declared validator refusal observed inside a zero-exit worker; no actual child nonzero waiver",
+      "state": "UNRUN_NO_SUCCESSOR_GO"
+    },
+    {
+      "id": "CONTROL-07",
+      "recordIds": [],
+      "name": "classifier-reap-stop",
+      "reference": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/controls.json#reap-proof-stop",
+      "executionKind": "OWNED_WORKER_SYNTHETIC_METADATA_NOT_ACTUAL_HOST_FAILURE_PROOF",
+      "expected": "Declared validator refusal observed inside a zero-exit worker; no actual child nonzero waiver",
+      "state": "UNRUN_NO_SUCCESSOR_GO"
+    },
+    {
+      "id": "CONTROL-08",
+      "recordIds": [],
+      "name": "mode-mismatch",
+      "reference": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/NEGATIVE-CASES.json#mode-mismatch",
+      "executionKind": "OWNED_WORKER_CONTROLLED_REGULAR_COPY_OR_RECEIPT",
+      "expected": "Declared validator refusal observed inside a zero-exit worker; no actual child nonzero waiver",
+      "state": "UNRUN_NO_SUCCESSOR_GO"
+    },
+    {
+      "id": "CONTROL-09",
+      "recordIds": [
+        "MOV-01"
+      ],
+      "name": "readme-missing",
+      "reference": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/NEGATIVE-CASES.json#readme-absent",
+      "executionKind": "OWNED_WORKER_CONTROLLED_REGULAR_COPY_OR_RECEIPT",
+      "expected": "Declared validator refusal observed inside a zero-exit worker; no actual child nonzero waiver",
+      "state": "UNRUN_NO_SUCCESSOR_GO"
+    },
+    {
+      "id": "CONTROL-10",
+      "recordIds": [
+        "MOV-02"
+      ],
+      "name": "workspace-fallback",
+      "reference": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/NEGATIVE-CASES.json#workspace-fallback",
+      "executionKind": "OWNED_WORKER_CONTROLLED_REGULAR_COPY_OR_RECEIPT",
+      "expected": "Declared validator refusal observed inside a zero-exit worker; no actual child nonzero waiver",
+      "state": "UNRUN_NO_SUCCESSOR_GO"
+    },
+    {
+      "id": "CONTROL-11",
+      "recordIds": [
+        "MOV-02"
+      ],
+      "name": "not-moved",
+      "reference": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/NEGATIVE-CASES.json#in-place-not-moved",
+      "executionKind": "OWNED_WORKER_CONTROLLED_REGULAR_COPY_OR_RECEIPT",
+      "expected": "Declared validator refusal observed inside a zero-exit worker; no actual child nonzero waiver",
+      "state": "UNRUN_NO_SUCCESSOR_GO"
+    },
+    {
+      "id": "CONTROL-12",
+      "recordIds": [
+        "MOV-01"
+      ],
+      "name": "symlink",
+      "reference": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/NEGATIVE-CASES.json#symlink-entry",
+      "executionKind": "OWNED_WORKER_CONTROLLED_REGULAR_COPY_OR_RECEIPT",
+      "expected": "Declared validator refusal observed inside a zero-exit worker; no actual child nonzero waiver",
+      "state": "UNRUN_NO_SUCCESSOR_GO"
+    },
+    {
+      "id": "CONTROL-13",
+      "recordIds": [
+        "TYP-02"
+      ],
+      "name": "unrelated-type-diagnostic",
+      "reference": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/NEGATIVE-CASES.json#negative-unrelated-diagnostic",
+      "executionKind": "OWNED_WORKER_CONTROLLED_REGULAR_COPY_OR_RECEIPT",
+      "expected": "Declared validator refusal observed inside a zero-exit worker; no actual child nonzero waiver",
+      "state": "UNRUN_NO_SUCCESSOR_GO"
+    },
+    {
+      "id": "CONTROL-14",
+      "recordIds": [
+        "NEG-02"
+      ],
+      "name": "postcheck-added-file",
+      "reference": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/NEGATIVE-CASES.json#post-check-added-file",
+      "executionKind": "OWNED_WORKER_CONTROLLED_REGULAR_COPY_OR_RECEIPT",
+      "expected": "Declared validator refusal observed inside a zero-exit worker; no actual child nonzero waiver",
+      "state": "UNRUN_NO_SUCCESSOR_GO"
+    },
+    {
+      "id": "CONTROL-15",
+      "recordIds": [
+        "MOV-02"
+      ],
+      "name": "outside-import-parent",
+      "reference": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/NEGATIVE-CASES.json#import-parent-outside",
+      "executionKind": "OWNED_WORKER_CONTROLLED_REGULAR_COPY_OR_RECEIPT",
+      "expected": "Declared validator refusal observed inside a zero-exit worker; no actual child nonzero waiver",
+      "state": "UNRUN_NO_SUCCESSOR_GO"
+    },
+    {
+      "id": "CONTROL-16",
+      "recordIds": [
+        "MOV-01"
+      ],
+      "name": "wrong-source",
+      "reference": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/CONTROLS.json#wrong-new-source-bytes",
+      "executionKind": "OWNED_WORKER_CONTROLLED_REGULAR_COPY_OR_RECEIPT",
+      "expected": "Declared validator refusal observed inside a zero-exit worker; no actual child nonzero waiver",
+      "state": "UNRUN_NO_SUCCESSOR_GO"
+    },
+    {
+      "id": "CONTROL-17",
+      "recordIds": [
+        "MOV-01"
+      ],
+      "name": "runtime-admission-stop",
+      "reference": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/controls.json#authorization-selected-pin",
+      "executionKind": "OWNED_WORKER_CONTROLLED_REGULAR_COPY_OR_RECEIPT",
+      "expected": "Declared validator refusal observed inside a zero-exit worker; no actual child nonzero waiver",
+      "state": "UNRUN_NO_SUCCESSOR_GO"
+    },
+    {
+      "id": "CONTROL-18",
+      "recordIds": [
+        "MOV-02"
+      ],
+      "name": "ambient-node-modules",
+      "reference": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/NEGATIVE-CASES.json#node-modules-fallback",
+      "executionKind": "OWNED_WORKER_CONTROLLED_REGULAR_COPY_OR_RECEIPT",
+      "expected": "Declared validator refusal observed inside a zero-exit worker; no actual child nonzero waiver",
+      "state": "UNRUN_NO_SUCCESSOR_GO"
+    }
+  ],
+  "actualHostFailureProof": "Required independently reviewed runtime supervisor seal before GO. Classifier controls here do not rerun or claim actual host timeout/nonzero/reap controls. All actual worker/parent nonzero results always fail the run.",
+  "newPolicyCases": 0,
+  "cmd22": {
+    "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/DEFERRED-CONTROLS.json",
+    "sha256": "7945be17c3a132cf94382d5bc4b33768fb7a6c2fc93546a0fb7d875054057bb8",
+    "count": 31,
+    "executed": 0,
+    "workerId": "CONTROL-CMD22-31",
+    "expectedFailurePolicy": "Expected assertion rejection stays inside a zero-exit classifier worker; any actual worker nonzero is aggregate FAIL."
+  }
+}

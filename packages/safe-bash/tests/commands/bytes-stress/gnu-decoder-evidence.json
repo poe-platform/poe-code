@@ -1,0 +1,952 @@
+{
+  "identities": {
+    "base64": {
+      "version": "base64 (GNU coreutils) 9.7",
+      "sha256": "6a3b29a34efcae29e80465d1420c3a7c6b6ba36fe01d41a868ece04a5b945a44"
+    },
+    "base32": {
+      "version": "base32 (GNU coreutils) 9.7",
+      "sha256": "8744306c59f36cdb062639bb77e9d5f215740c9d8ac2c5550b4cefe1b6413710"
+    }
+  },
+  "observations": [
+    {
+      "name": "base64 -d \"\"",
+      "caseSha256": "614e6775a3fbb9fcaf2e84a8aef79375acb87003cee2a534f7600408733568a4",
+      "exitCode": 0,
+      "stdoutHex": "",
+      "stderr": ""
+    },
+    {
+      "name": "base64 -di \"\"",
+      "caseSha256": "14fb0d44e96dc4d870bff48697703f8b75d8a31c4894eb4103cce91c0ce1de2c",
+      "exitCode": 0,
+      "stdoutHex": "",
+      "stderr": ""
+    },
+    {
+      "name": "base64 -d \"A\"",
+      "caseSha256": "4a8f7788b517c7a11d729fe885a8f13fc2c2fad7b414ac57589d1e583ac43f6a",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "base64: invalid input\n"
+    },
+    {
+      "name": "base64 -di \"A\"",
+      "caseSha256": "0a713f8a58a0271ce42f8d6946fc390b2208844cbdbdcc4696671491fb64b492",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "base64: invalid input\n"
+    },
+    {
+      "name": "base64 -d \"Zg\"",
+      "caseSha256": "57aa05128b47801307843d34fe7f3a85c19711674e82fce055515df0aa0c6193",
+      "exitCode": 0,
+      "stdoutHex": "66",
+      "stderr": ""
+    },
+    {
+      "name": "base64 -di \"Zg\"",
+      "caseSha256": "21357b8e3c03e944da852ef6fc8346d63bd8626fa08fc6c4c285eec58c4bc797",
+      "exitCode": 0,
+      "stdoutHex": "66",
+      "stderr": ""
+    },
+    {
+      "name": "base64 -d \"Zg=\"",
+      "caseSha256": "acc55001b8196816f91f4d118a536e962f4577366b6a76b88a88ad41f9c8e9db",
+      "exitCode": 1,
+      "stdoutHex": "66",
+      "stderr": "base64: invalid input\n"
+    },
+    {
+      "name": "base64 -di \"Zg=\"",
+      "caseSha256": "6a82ffa7e672fd69154951582f50f5111538ba142871de743d265136dfc5c682",
+      "exitCode": 1,
+      "stdoutHex": "66",
+      "stderr": "base64: invalid input\n"
+    },
+    {
+      "name": "base64 -d \"=g==\"",
+      "caseSha256": "15880c1bc59c57fd161e49b43e68298b57456a99c1430de857a22b3293ea5aa2",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "base64: invalid input\n"
+    },
+    {
+      "name": "base64 -di \"=g==\"",
+      "caseSha256": "082727a5b0a56fd87d764cddc754e13646528cf9a227feafc43bfff7b5a47911",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "base64: invalid input\n"
+    },
+    {
+      "name": "base64 -d \"Z===\"",
+      "caseSha256": "320b6b463df568c08c56fb2b21ba96e22735448d0c0bb933f4905b54261357fa",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "base64: invalid input\n"
+    },
+    {
+      "name": "base64 -di \"Z===\"",
+      "caseSha256": "1c803bd9abe5bf56b83d099e40b6f2586c50a10aafb9fbbd335ebf0db5f61776",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "base64: invalid input\n"
+    },
+    {
+      "name": "base64 -d \"Zg=A\"",
+      "caseSha256": "760033dc8aeea87239f0e582226dc4f0afa6a2e5bdcd3ea76cc2857256c54b6d",
+      "exitCode": 1,
+      "stdoutHex": "66",
+      "stderr": "base64: invalid input\n"
+    },
+    {
+      "name": "base64 -di \"Zg=A\"",
+      "caseSha256": "56832389cd3ab057951d559c83f1edcafba595a4c6c7c147d07285c1445b5fd1",
+      "exitCode": 1,
+      "stdoutHex": "66",
+      "stderr": "base64: invalid input\n"
+    },
+    {
+      "name": "base64 -d \"Zg===\"",
+      "caseSha256": "aed51c0e09b1a90701ed3cdb449c535305e6fd574b6b06c3c1ed06511a48cc57",
+      "exitCode": 1,
+      "stdoutHex": "66",
+      "stderr": "base64: invalid input\n"
+    },
+    {
+      "name": "base64 -di \"Zg===\"",
+      "caseSha256": "fc23a8799c423c5b067859608c8c34e6f831da0e4e26b7bdba610f019b7115d9",
+      "exitCode": 1,
+      "stdoutHex": "66",
+      "stderr": "base64: invalid input\n"
+    },
+    {
+      "name": "base64 -d \"Zh==\"",
+      "caseSha256": "dd6213ebd3f2fe8039a7640cb9a8f033ababf2c34997b2b50a512fb5dd770353",
+      "exitCode": 1,
+      "stdoutHex": "66",
+      "stderr": "base64: invalid input\n"
+    },
+    {
+      "name": "base64 -di \"Zh==\"",
+      "caseSha256": "56f3ffbd9a123d8aa38ee207877a887e3d502b481dc8a253756b67fae513519d",
+      "exitCode": 1,
+      "stdoutHex": "66",
+      "stderr": "base64: invalid input\n"
+    },
+    {
+      "name": "base64 -d \"Zm9=\"",
+      "caseSha256": "7eb9be4024e05ea9b9564909dc6568d7fb7d7376b38577a6e20837a3af483850",
+      "exitCode": 1,
+      "stdoutHex": "666f",
+      "stderr": "base64: invalid input\n"
+    },
+    {
+      "name": "base64 -di \"Zm9=\"",
+      "caseSha256": "0303d84f7d618c33cb0059e8c259e079b5aa5ab41cb66eb8cbbda78c6039a188",
+      "exitCode": 1,
+      "stdoutHex": "666f",
+      "stderr": "base64: invalid input\n"
+    },
+    {
+      "name": "base64 -d \"Zm!v\"",
+      "caseSha256": "02461f77354fc451ecfd2396d9fc7e86df9307a35a4975aca3636e01fbd27773",
+      "exitCode": 1,
+      "stdoutHex": "66",
+      "stderr": "base64: invalid input\n"
+    },
+    {
+      "name": "base64 -di \"Zm!v\"",
+      "caseSha256": "7e7f4ca072d3caf68768ec0ebbce7e554c2766cbf764f16c3edee222f167849d",
+      "exitCode": 1,
+      "stdoutHex": "666b",
+      "stderr": "base64: invalid input\n"
+    },
+    {
+      "name": "base64 -d \"Zm9v\\r\"",
+      "caseSha256": "1725064534023d16e6a7ed1de43b0370a4cccef6f72d02658e8a5cd93dff5579",
+      "exitCode": 1,
+      "stdoutHex": "666f6f",
+      "stderr": "base64: invalid input\n"
+    },
+    {
+      "name": "base64 -di \"Zm9v\\r\"",
+      "caseSha256": "57e06e5042a15efbfedf8fdc0a620db6f3da8fdbf9b7d70d8739ffe0e4eabad9",
+      "exitCode": 0,
+      "stdoutHex": "666f6f",
+      "stderr": ""
+    },
+    {
+      "name": "base64 -d \"g==\"",
+      "caseSha256": "dfbfc88c2fc22205d512b8a0f5ad4b53befb46d85676200b6607fe08ac2f0966",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "base64: invalid input\n"
+    },
+    {
+      "name": "base64 -di \"g==\"",
+      "caseSha256": "2e1e5877962a8b4426052b7eb9e1d7688c5880b31575a34bb881bc99ffae163a",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "base64: invalid input\n"
+    },
+    {
+      "name": "base64 -d \"Zg==Zg==\"",
+      "caseSha256": "11d433b9f534e19a4808bd96950f1865129c38d1cf49f9ce37ca2bf417aa1992",
+      "exitCode": 0,
+      "stdoutHex": "6666",
+      "stderr": ""
+    },
+    {
+      "name": "base64 -di \"Zg==Zg==\"",
+      "caseSha256": "a66843accda760bf34345128cb4bcc51c908bcc2ba71e0340c08ac4ac18752c4",
+      "exitCode": 0,
+      "stdoutHex": "6666",
+      "stderr": ""
+    },
+    {
+      "name": "base64 -d \"Zg==Zg\"",
+      "caseSha256": "5bcece84c5e073fc826c2d5a723101a4be9e2223ee3f04f262ac3a867135a62a",
+      "exitCode": 0,
+      "stdoutHex": "6666",
+      "stderr": ""
+    },
+    {
+      "name": "base64 -di \"Zg==Zg\"",
+      "caseSha256": "243f251b87a22ed33773a8c29c8f112db50975bb4e4d7a450a2f5744272a6d16",
+      "exitCode": 0,
+      "stdoutHex": "6666",
+      "stderr": ""
+    },
+    {
+      "name": "base64 -d \"Zg==A\"",
+      "caseSha256": "ff8254f2ddb36cd632975399fc103a24b16c3a9dddad4b0c80f2e9f88cb3dd98",
+      "exitCode": 1,
+      "stdoutHex": "66",
+      "stderr": "base64: invalid input\n"
+    },
+    {
+      "name": "base64 -di \"Zg==A\"",
+      "caseSha256": "19c6bbed0407f9caa6ad945816e3ab422b4646a9da9aae7a24f13954b20d2bd1",
+      "exitCode": 1,
+      "stdoutHex": "66",
+      "stderr": "base64: invalid input\n"
+    },
+    {
+      "name": "base64 -d \"Zg==!\"",
+      "caseSha256": "affabf3826d94a3be457079a9a491702d12dff0bce9bf7fd9e836479247458e1",
+      "exitCode": 1,
+      "stdoutHex": "66",
+      "stderr": "base64: invalid input\n"
+    },
+    {
+      "name": "base64 -di \"Zg==!\"",
+      "caseSha256": "1ec93019b3947436776e8d0e16e7aaff35728d73d4250d8baa93da91df56e67a",
+      "exitCode": 0,
+      "stdoutHex": "66",
+      "stderr": ""
+    },
+    {
+      "name": "base64 -d \"Zg=\\n\"",
+      "caseSha256": "26ae6f2f9c0e7f38edd7221584613c0f286269b544cc6ca5da88662be6542a6a",
+      "exitCode": 0,
+      "stdoutHex": "66",
+      "stderr": ""
+    },
+    {
+      "name": "base64 -di \"Zg=\\n\"",
+      "caseSha256": "8be40f989adf21ed128fd110fcab973cb795b4c54e3fff511df26d5dfb229389",
+      "exitCode": 1,
+      "stdoutHex": "66",
+      "stderr": "base64: invalid input\n"
+    },
+    {
+      "name": "base64 -d \"Zg=\\r\\n\"",
+      "caseSha256": "d486a266cdade0ace3b6d4742d35621bbb3a6386dc26cfa7cd01968a5cad1a7a",
+      "exitCode": 1,
+      "stdoutHex": "66",
+      "stderr": "base64: invalid input\n"
+    },
+    {
+      "name": "base64 -di \"Zg=\\r\\n\"",
+      "caseSha256": "49f2f97a62e36cfcc19b1704079d99e05bf029598e99653066f478c195ea9677",
+      "exitCode": 1,
+      "stdoutHex": "66",
+      "stderr": "base64: invalid input\n"
+    },
+    {
+      "name": "base64 -d \"Zg==\\n\"",
+      "caseSha256": "38ee4ec84148ac01b9de8a825f2e64604a0aed41a605d6ab4ce9ac14504bf67c",
+      "exitCode": 0,
+      "stdoutHex": "66",
+      "stderr": ""
+    },
+    {
+      "name": "base64 -di \"Zg==\\n\"",
+      "caseSha256": "fb4e9741a3535840adce617599ec92f75b628b5ba0f6fe6cc6ecec24e8fcebe3",
+      "exitCode": 0,
+      "stdoutHex": "66",
+      "stderr": ""
+    },
+    {
+      "name": "base64 -d \"Zg!\"",
+      "caseSha256": "3036f0aabc8034188ca6fe14a7eca9327507969995afaa8425c41d2a39fa284f",
+      "exitCode": 1,
+      "stdoutHex": "66",
+      "stderr": "base64: invalid input\n"
+    },
+    {
+      "name": "base64 -di \"Zg!\"",
+      "caseSha256": "67a22994a25826e807beb375050812f0d6d6ed7bf57601f953491960e9402688",
+      "exitCode": 0,
+      "stdoutHex": "66",
+      "stderr": ""
+    },
+    {
+      "name": "base64 -d \"Zg\\u0000\"",
+      "caseSha256": "bcf72084572728a8347fc7f8cec24fb794d26383839057ecd02d83850eeee716",
+      "exitCode": 1,
+      "stdoutHex": "66",
+      "stderr": "base64: invalid input\n"
+    },
+    {
+      "name": "base64 -di \"Zg\\u0000\"",
+      "caseSha256": "d5e0bcd0fbef16a1af022a0139a2d657c22bcd2b4e02d7c656c9d4d7f0d8a176",
+      "exitCode": 0,
+      "stdoutHex": "66",
+      "stderr": ""
+    },
+    {
+      "name": "base64 -d \"Z\"",
+      "caseSha256": "fb7184d0736efe9553435e6dec2be0759b5501fd8cdc4d9195ef9f56425c449c",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "base64: invalid input\n"
+    },
+    {
+      "name": "base64 -di \"Z\"",
+      "caseSha256": "976a23081f6c1f48c8a37d7d71d78c4986a53100c3989fb15baf45b9c6f56b2e",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "base64: invalid input\n"
+    },
+    {
+      "name": "base64 -d \"Zm\"",
+      "caseSha256": "7ac1ed09c0eef40b197de58355f8f339e43ac777d524a6a82a89a03d858fe2a2",
+      "exitCode": 1,
+      "stdoutHex": "66",
+      "stderr": "base64: invalid input\n"
+    },
+    {
+      "name": "base64 -di \"Zm\"",
+      "caseSha256": "eb4d3a6f90e3a4bcbf07be96258623d3070eec7675a2650f5aab91f07975f6a6",
+      "exitCode": 1,
+      "stdoutHex": "66",
+      "stderr": "base64: invalid input\n"
+    },
+    {
+      "name": "base64 -d \"Zm9\"",
+      "caseSha256": "e485415c488a51697da517860e04bfafbfc9feceaa58a3a4cc4328c57b19e389",
+      "exitCode": 1,
+      "stdoutHex": "666f",
+      "stderr": "base64: invalid input\n"
+    },
+    {
+      "name": "base64 -di \"Zm9\"",
+      "caseSha256": "1488cc0b9bc6afef38c84b65fe4b289a1b158bc7194b3d806e2c4b8f43db47c6",
+      "exitCode": 1,
+      "stdoutHex": "666f",
+      "stderr": "base64: invalid input\n"
+    },
+    {
+      "name": "base64 -d \"Zm9v\"",
+      "caseSha256": "351f8a573806c306872baf1367e0800c80955a108cd3363d40f56d5db19d52a9",
+      "exitCode": 0,
+      "stdoutHex": "666f6f",
+      "stderr": ""
+    },
+    {
+      "name": "base64 -di \"Zm9v\"",
+      "caseSha256": "0adbb784241618af67a7cd73ce9952cfebf2d499513132089a652b7e319c127e",
+      "exitCode": 0,
+      "stdoutHex": "666f6f",
+      "stderr": ""
+    },
+    {
+      "name": "base64 -d \"Zm9vY\"",
+      "caseSha256": "f7b394daf3c87794bcaf0236415e0b629baf5dfeb877c475e381ce19f71ebb5f",
+      "exitCode": 1,
+      "stdoutHex": "666f6f",
+      "stderr": "base64: invalid input\n"
+    },
+    {
+      "name": "base64 -di \"Zm9vY\"",
+      "caseSha256": "2f857f448b4f2c6cd5d3aaa225618962de9e09a8ba916e7a0d0dfc08286c9fda",
+      "exitCode": 1,
+      "stdoutHex": "666f6f",
+      "stderr": "base64: invalid input\n"
+    },
+    {
+      "name": "base64 -d \"Zm9vYm\"",
+      "caseSha256": "f40bdb8d3516ed852c10695d367db9e9414095fa259b0135bd4ec6e0c63d7f96",
+      "exitCode": 1,
+      "stdoutHex": "666f6f62",
+      "stderr": "base64: invalid input\n"
+    },
+    {
+      "name": "base64 -di \"Zm9vYm\"",
+      "caseSha256": "58ca0a600517504a013458df5380b3d796567cb39752f40859c8c4a6af76a262",
+      "exitCode": 1,
+      "stdoutHex": "666f6f62",
+      "stderr": "base64: invalid input\n"
+    },
+    {
+      "name": "base64 -d \"Zm9vYmF\"",
+      "caseSha256": "40024a3123209d88dadb9b95d9b61070d5da873c477537a6d130cb76dedb1430",
+      "exitCode": 1,
+      "stdoutHex": "666f6f6261",
+      "stderr": "base64: invalid input\n"
+    },
+    {
+      "name": "base64 -di \"Zm9vYmF\"",
+      "caseSha256": "380c379b6b8b1ca3ee675b0d1a1fb19e3ce0cc7988c75644bd1097429edb51ba",
+      "exitCode": 1,
+      "stdoutHex": "666f6f6261",
+      "stderr": "base64: invalid input\n"
+    },
+    {
+      "name": "base64 -d \"Zm9vYmFy\"",
+      "caseSha256": "4a63df04559011bd609560750c109b03956ecb8bf0d5697cd8fe65b65f98d52d",
+      "exitCode": 0,
+      "stdoutHex": "666f6f626172",
+      "stderr": ""
+    },
+    {
+      "name": "base64 -di \"Zm9vYmFy\"",
+      "caseSha256": "206f83cb63723daf1d0ca9a4ef30e112edfddf010ab6b7440ce7364215ce1d57",
+      "exitCode": 0,
+      "stdoutHex": "666f6f626172",
+      "stderr": ""
+    },
+    {
+      "name": "base32 -d \"\"",
+      "caseSha256": "63257e788446f8b1c25933e6133e079a87b48cd04c57e057699aeb553abebdb5",
+      "exitCode": 0,
+      "stdoutHex": "",
+      "stderr": ""
+    },
+    {
+      "name": "base32 -di \"\"",
+      "caseSha256": "d93de39cd98c889c0aa9577d9c2b3a1d8c82d196ad2c1fc98cf4f90d8cc05ede",
+      "exitCode": 0,
+      "stdoutHex": "",
+      "stderr": ""
+    },
+    {
+      "name": "base32 -d \"M\"",
+      "caseSha256": "a5af3e41a95270880bf9beba95f324901d8763192efb31b38f210b120a71c7e3",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -di \"M\"",
+      "caseSha256": "07a6c2d61af2f485f10aec47970ba32e95a96c2fdfad5c6f5cbb60c98d9de628",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -d \"MY\"",
+      "caseSha256": "6863a5eda3cb82bacb6ffe91a18c0113c7a1b2dc4d0671e02a0afe29240ca709",
+      "exitCode": 0,
+      "stdoutHex": "66",
+      "stderr": ""
+    },
+    {
+      "name": "base32 -di \"MY\"",
+      "caseSha256": "94c1d6c01f7ea03fe964a77d372cff8cba3e124fea563b6cf14d55e17705fd6e",
+      "exitCode": 0,
+      "stdoutHex": "66",
+      "stderr": ""
+    },
+    {
+      "name": "base32 -d \"MY=====\"",
+      "caseSha256": "551fa93fa2c65dac18bdcf79deb2eea7e01e12e828547714f850705ebb7d26db",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -di \"MY=====\"",
+      "caseSha256": "7c0273407ff95c5bfdfcb86d2b187a6ac5b6c98832d34567e1d6114558596c62",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -d \"=Y======\"",
+      "caseSha256": "a8b3067dd28dcacb4f358a499a8b150addfe591534b3ba9ffb5939916a76ab54",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -di \"=Y======\"",
+      "caseSha256": "1947467b266321f19e3c748a75364ac44497cf48aa165556837766f5879ea868",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -d \"M=======\"",
+      "caseSha256": "d533daba31e63bb68a652189ca63bd4c758503054204d24c77ad8ff20b5b32ce",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -di \"M=======\"",
+      "caseSha256": "56346032241af1cc86902b36e9ac11b53dc00329cc2cfe1579b0fbbf39b5c1e2",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -d \"MY=====A\"",
+      "caseSha256": "682e824ea4aa22734d8394c09a88cc0a48f310f5921f5a486e9cf5fc91a88050",
+      "exitCode": 1,
+      "stdoutHex": "66",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -di \"MY=====A\"",
+      "caseSha256": "fd96e577574b6a96ecfc0ac733b842e321b336e2da37e73091b3f9bf44c6063a",
+      "exitCode": 1,
+      "stdoutHex": "66",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -d \"MY=======\"",
+      "caseSha256": "d7ea38a54e0ad9c93f14d5bf47f141ff457d99a9ef0d3b84eef693dd49bf4046",
+      "exitCode": 1,
+      "stdoutHex": "66",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -di \"MY=======\"",
+      "caseSha256": "09d49fb09513f20146912f86bf566523d6b987354c44e7bebb2cbab4958bec0b",
+      "exitCode": 1,
+      "stdoutHex": "66",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -d \"MZ======\"",
+      "caseSha256": "62da358520b7a43bf6e15ee3585e92a96e867b33a221bc43807c55d6ebedefca",
+      "exitCode": 1,
+      "stdoutHex": "66",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -di \"MZ======\"",
+      "caseSha256": "27d24a2d6744f799512a5079528c7b48f69c5b4b399658d203c12c7371796ebd",
+      "exitCode": 1,
+      "stdoutHex": "66",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -d \"MZXW7===\"",
+      "caseSha256": "7f97e7d2fb38eca9bbcc18a1501b253cead80616be26fe22923fa60a695dfcf0",
+      "exitCode": 1,
+      "stdoutHex": "666f6f",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -di \"MZXW7===\"",
+      "caseSha256": "bb0526eed935f90ff14f1e7b64d3e5ddf7d33d636c9da6dadf03ad7828f613a6",
+      "exitCode": 1,
+      "stdoutHex": "666f6f",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -d \"mzxw6===\"",
+      "caseSha256": "7240f9fe40224beec65fba83b5c62d8b810c42ccf5526805bc81526107e119ac",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -di \"mzxw6===\"",
+      "caseSha256": "54f1aee6ed9b6d366e3e5712f147fa3b9f8d7472204a4d2e170082b49fcf619d",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -d \"MZX!6===\"",
+      "caseSha256": "176cbc83f4f29f15e29bf63e0c5edad4a3dd29df2b95a250f2c839a5ac52f482",
+      "exitCode": 1,
+      "stdoutHex": "66",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -di \"MZX!6===\"",
+      "caseSha256": "bc871dbf4019e604bb07b8a3807d6f8cb752ea52f7800abd3960ed0539ec0e81",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -d \"Y======\"",
+      "caseSha256": "3298b271acd343a2ca927352caeed42a34581d32f0f1c68134c7838a7455bae2",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -di \"Y======\"",
+      "caseSha256": "fffcd1948947720a5be9bda544db376a7443d1346349314b2e40d1bc1dcd381a",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -d \"MY======MY======\"",
+      "caseSha256": "b25116965977d750e753e955630e7e9231bed7e8485e01b6cbf9b1b2808569f8",
+      "exitCode": 0,
+      "stdoutHex": "6666",
+      "stderr": ""
+    },
+    {
+      "name": "base32 -di \"MY======MY======\"",
+      "caseSha256": "b48b045dfc79f7c7c5732ce2db238857a1c03013220cbbc2e5f4095a70547bc6",
+      "exitCode": 0,
+      "stdoutHex": "6666",
+      "stderr": ""
+    },
+    {
+      "name": "base32 -d \"MY======MY\"",
+      "caseSha256": "2b459e109307af76d8ffbeb0115a7ec88d6b5e3c6ccf5e3342c2d2c230770181",
+      "exitCode": 0,
+      "stdoutHex": "6666",
+      "stderr": ""
+    },
+    {
+      "name": "base32 -di \"MY======MY\"",
+      "caseSha256": "b2c6c77a0cad2c22e82d3b9b2ce6abdebaf3de009270bd81fbb4cf615c249c75",
+      "exitCode": 0,
+      "stdoutHex": "6666",
+      "stderr": ""
+    },
+    {
+      "name": "base32 -d \"MY======A\"",
+      "caseSha256": "a9ea05b99132aeeacb5edaf8745fb47f605b1a32c1caecf86fe493cbaeb8e849",
+      "exitCode": 1,
+      "stdoutHex": "66",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -di \"MY======A\"",
+      "caseSha256": "dbf7a27a905734e6f7d4307a061fbd4d460df01eccd9d18691ef18bd34f719eb",
+      "exitCode": 1,
+      "stdoutHex": "66",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -d \"MY======!\"",
+      "caseSha256": "759f7513f0b370fa72b9ce16c691ec89e72a19198bb420c080cf1571aa1b5648",
+      "exitCode": 1,
+      "stdoutHex": "66",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -di \"MY======!\"",
+      "caseSha256": "8f1b99bb32390b76efaccc1a66ec9cc804ddb9d0345c5cffc9f731fb540e3925",
+      "exitCode": 0,
+      "stdoutHex": "66",
+      "stderr": ""
+    },
+    {
+      "name": "base32 -d \"MY=====\\n\"",
+      "caseSha256": "4822485741a4a1421a514904fba5f4a104bc93def66216c73b8455f34a112ead",
+      "exitCode": 0,
+      "stdoutHex": "66",
+      "stderr": ""
+    },
+    {
+      "name": "base32 -di \"MY=====\\n\"",
+      "caseSha256": "55c5f666c6921cd87445ada35438553d114bdd1a4964f60c82ddc37444638276",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -d \"MY=====\\r\\n\"",
+      "caseSha256": "0d93db415e37c6ced506d778f37cedafafddf68e251960a34e1d29ca0a88da40",
+      "exitCode": 1,
+      "stdoutHex": "66",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -di \"MY=====\\r\\n\"",
+      "caseSha256": "40b8391a3e6314a3bd0aca6d1004af2c07f089a89204d56fa8a9e3441094da7d",
+      "exitCode": 1,
+      "stdoutHex": "",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -d \"MY======\\n\"",
+      "caseSha256": "f32901c1a1aaa8fb35f7173cafc70da2c8aa17b2664c19b84153a13301a8f999",
+      "exitCode": 0,
+      "stdoutHex": "66",
+      "stderr": ""
+    },
+    {
+      "name": "base32 -di \"MY======\\n\"",
+      "caseSha256": "258e34f6a7879be616b4366d59b9cdc573ad1590997b556164e04e10ef160199",
+      "exitCode": 0,
+      "stdoutHex": "66",
+      "stderr": ""
+    },
+    {
+      "name": "base32 -d \"MY!\"",
+      "caseSha256": "a67d702bbe959ef8848fd0f4cde488990b98fe3d87f4322f18e4cb31a27415c6",
+      "exitCode": 1,
+      "stdoutHex": "66",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -di \"MY!\"",
+      "caseSha256": "853b0100c9b395dd2666a2e912df9c9f3b0d2e33c08f31199f27c9ab49f51543",
+      "exitCode": 0,
+      "stdoutHex": "66",
+      "stderr": ""
+    },
+    {
+      "name": "base32 -d \"MY\\u0000\"",
+      "caseSha256": "3bdf9135fa31f142c26809960b8c0586ad33331748933c8d182c60b774a454c8",
+      "exitCode": 1,
+      "stdoutHex": "66",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -di \"MY\\u0000\"",
+      "caseSha256": "340f2599735022fc1c90288a0c64c32c24aef253a31477902fcc8fcf5c81db8e",
+      "exitCode": 0,
+      "stdoutHex": "66",
+      "stderr": ""
+    },
+    {
+      "name": "base32 -d \"MZ\"",
+      "caseSha256": "e0f06c2edc7dfeff86d5d9e91521c92cd1bfea43a3e4eda8485de5766517a496",
+      "exitCode": 1,
+      "stdoutHex": "66",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -di \"MZ\"",
+      "caseSha256": "16018127fcfe07070ab131899d0876078795ad13c241b13c6e37c95beca618c1",
+      "exitCode": 1,
+      "stdoutHex": "66",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -d \"MZX\"",
+      "caseSha256": "991ee4d67c02be5b1129d4458d9f4258c72523ce32d6f6c1757abdc5c8b7f31d",
+      "exitCode": 1,
+      "stdoutHex": "66",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -di \"MZX\"",
+      "caseSha256": "158110445eb230d9ab7434512bbbdbefd7b2ccb91016c2d9bb8a5b5ed647d1c3",
+      "exitCode": 1,
+      "stdoutHex": "66",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -d \"MZXW\"",
+      "caseSha256": "09135a0439e88109b3ab5cd2d10a25030701e5df008d8e6a83b143e17cdb2d62",
+      "exitCode": 1,
+      "stdoutHex": "666f",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -di \"MZXW\"",
+      "caseSha256": "d4ad6dd04352712afaccce139c63e4fa05330ce2d90176abeb7008535a5ef85c",
+      "exitCode": 1,
+      "stdoutHex": "666f",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -d \"MZXW6\"",
+      "caseSha256": "860329a8d3de3ef4cd5b0fa6fcc4a3faa121b6032d6a9d68e237ca120df1918e",
+      "exitCode": 0,
+      "stdoutHex": "666f6f",
+      "stderr": ""
+    },
+    {
+      "name": "base32 -di \"MZXW6\"",
+      "caseSha256": "3e11b4c3bce7570c6f9e52585a139648d4097a97770ba47e008a8b1860bcf66f",
+      "exitCode": 0,
+      "stdoutHex": "666f6f",
+      "stderr": ""
+    },
+    {
+      "name": "base32 -d \"MZXW6Y\"",
+      "caseSha256": "d20f9c5f0dbd1946928b65b84050e145f1f26503e627d3c34692955688e79fda",
+      "exitCode": 1,
+      "stdoutHex": "666f6f",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -di \"MZXW6Y\"",
+      "caseSha256": "542730b78389c1e9bd26158d56d3a595d4dde4acfcc926fda73fae2abd180b00",
+      "exitCode": 1,
+      "stdoutHex": "666f6f",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -d \"MZXW6YT\"",
+      "caseSha256": "5822f5305020cee939f62df313c8a2155861ea893f77098da753d5cd02857c2c",
+      "exitCode": 1,
+      "stdoutHex": "666f6f62",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -di \"MZXW6YT\"",
+      "caseSha256": "3845886cf284e3f98907cff9ac0ed276062adb197f867b5391fa1b3b319faeac",
+      "exitCode": 1,
+      "stdoutHex": "666f6f62",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -d \"MZXW6YTB\"",
+      "caseSha256": "c33b74ac0f66e807c7fa8b2ca50fe2e619e59a93af53cbc3e24e2207016ab95e",
+      "exitCode": 0,
+      "stdoutHex": "666f6f6261",
+      "stderr": ""
+    },
+    {
+      "name": "base32 -di \"MZXW6YTB\"",
+      "caseSha256": "2df459e71a24f9891a62fe0b4fff1e6418515916bc5487965a59d159f8ee1d37",
+      "exitCode": 0,
+      "stdoutHex": "666f6f6261",
+      "stderr": ""
+    },
+    {
+      "name": "base32 -d \"MZXW6YTBO\"",
+      "caseSha256": "82759fac291a8069e2c5385e8068dcd55be7e8d37e6aee8505ed257c9b918500",
+      "exitCode": 1,
+      "stdoutHex": "666f6f6261",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -di \"MZXW6YTBO\"",
+      "caseSha256": "81e02617aff945c079304fc54e60dc89f91c1f964b77af83a7869153bfd85400",
+      "exitCode": 1,
+      "stdoutHex": "666f6f6261",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -d \"MZXW6YTBOI\"",
+      "caseSha256": "32274f8af9afc85d3a78dd7fdc09faf27f540c68a7c900ba86fc787ea90f1e24",
+      "exitCode": 0,
+      "stdoutHex": "666f6f626172",
+      "stderr": ""
+    },
+    {
+      "name": "base32 -di \"MZXW6YTBOI\"",
+      "caseSha256": "78b802abf2dad4147daf321fb52361c9e7bd801ff1d4c10a1597a21e29d7a39f",
+      "exitCode": 0,
+      "stdoutHex": "666f6f626172",
+      "stderr": ""
+    },
+    {
+      "name": "base32 -d \"MZXW6YTBOI=\"",
+      "caseSha256": "0125556e00b1c85dcfbe47c8a1386fd37e66fab78a28507860b552c6a62725a7",
+      "exitCode": 1,
+      "stdoutHex": "666f6f6261",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -di \"MZXW6YTBOI=\"",
+      "caseSha256": "2c1a87bf95408cc95f6ba76318404e39c554ba761bd761dd71eeffa7e42da468",
+      "exitCode": 1,
+      "stdoutHex": "666f6f6261",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -d \"MZXW6YTBOI==\"",
+      "caseSha256": "3aebe16f137d8d2c3b384ed4ee929f8d5afae51f621a5f1cef737f93ca2cb892",
+      "exitCode": 1,
+      "stdoutHex": "666f6f6261",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -di \"MZXW6YTBOI==\"",
+      "caseSha256": "d1e2105d54ee7ec7e25f463a89dfc3f96aad414035e7783a0b5c8e20db6d25d6",
+      "exitCode": 1,
+      "stdoutHex": "666f6f6261",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -d \"MZXW6YTBOI===\"",
+      "caseSha256": "d06b55c6b4cbc6c98b78ddf274c50c5a0d0cb97e43e59b75efef57c7012f1464",
+      "exitCode": 1,
+      "stdoutHex": "666f6f6261",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -di \"MZXW6YTBOI===\"",
+      "caseSha256": "3eb43c194b0139255e5c506117a271849871cc9fc040fa508932d5995aacf462",
+      "exitCode": 1,
+      "stdoutHex": "666f6f6261",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -d \"MZXW6YTBOI====\"",
+      "caseSha256": "810c5e54f6ded18aebc2b37199513f0b941bc9331b9e7f0a414b62f3f2ff0f55",
+      "exitCode": 1,
+      "stdoutHex": "666f6f6261",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -di \"MZXW6YTBOI====\"",
+      "caseSha256": "c4bcfb9fdd55987520b33344c2ec7967a237b36ff8108ed9124ccf704cc76537",
+      "exitCode": 1,
+      "stdoutHex": "666f6f6261",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -d \"MZXW6YTBOI=====\"",
+      "caseSha256": "899be91da66f44bc9e5a0d1c1e3cd9de19ce4708a8845053571bd3905fc0f98a",
+      "exitCode": 1,
+      "stdoutHex": "666f6f6261",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -di \"MZXW6YTBOI=====\"",
+      "caseSha256": "8ac82f1edb28d58df11e4a10af60e068458d54fad4e7b2c3dc285bb8ce711a2c",
+      "exitCode": 1,
+      "stdoutHex": "666f6f6261",
+      "stderr": "base32: invalid input\n"
+    },
+    {
+      "name": "base32 -d \"MZXW6YTBOI======\"",
+      "caseSha256": "41b3134173ce6649cf7678920378ea69b7ed5b74d8ea6a236394543bfa1cf2d2",
+      "exitCode": 0,
+      "stdoutHex": "666f6f626172",
+      "stderr": ""
+    },
+    {
+      "name": "base32 -di \"MZXW6YTBOI======\"",
+      "caseSha256": "a098e8e489f670b25b4db4d50ed91d93165a964e2c937d0b69b3c68ecfce0a67",
+      "exitCode": 0,
+      "stdoutHex": "666f6f626172",
+      "stderr": ""
+    }
+  ]
+}

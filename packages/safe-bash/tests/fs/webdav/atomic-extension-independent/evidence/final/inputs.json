@@ -1,0 +1,31 @@
+{
+  "revision": "d1174e2db9f4a4c92403842dee6fb3d4ff57ec96",
+  "archiveSha256": "0bbfbebaa2f61174db0617059a97f59091524207e36ccc53eb33c787edfc790b",
+  "node": "v22.22.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "tooling": {
+    "typescript": {
+      "version": "5.9.3",
+      "packageSha256": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6"
+    },
+    "tsx": {
+      "version": "4.23.12",
+      "packageSha256": "96aee9fd252d0cc31f3c01468250961f5b338c797bc208700d7db926450c7659"
+    },
+    "@types/node": {
+      "version": "22.20.1",
+      "packageSha256": "1e6d3bbbc5082745123d236b38dce0eacdab987d4ac9e57e299e55f780c170de"
+    }
+  },
+  "inputs": {
+    "holdouts.test.ts": "1326f42e407c103eee378434a27c3c7353389a8329f493122bb855ceea05062a",
+    "consumer.mts": "097fb4af66360dde04e79a9520bfd06a00e8213bc9f686d88c5a7ed52310dc46",
+    "loaded.mjs": "ea5182aadbd0ec7de8287dec00cca47e2d8354aa68aa87e8fde2d97215b37396",
+    "verify.mjs": "08d106b4205ce5691af9cee97baf3aa4421673ae48bc1a79b1c784daf7212e4b"
+  },
+  "workspace": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/.work-AqND4h",
+  "sourceInputCount": 237,
+  "inputHashesVerified": true,
+  "sharedDirtyStatus": " M tests/fs/webdav/atomic-extension/HARNESS-NOTES.md\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/filesystem-inspection-stress/file/\n?? tests/commands/filesystem-inspection-stress/tree/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/fs/webdav/atomic-extension-independent/\n?? tests/fs/webdav/atomic-extension/audit.mjs\n?? tests/fs/webdav/atomic-extension/closure-loader.mjs\n?? tests/fs/webdav/atomic-extension/consumer.mts\n?? tests/fs/webdav/atomic-extension/dependencies.json\n?? tests/fs/webdav/atomic-extension/evidence/provider-final/\n?? tests/fs/webdav/atomic-extension/evidence/provider-first/\n?? tests/fs/webdav/atomic-extension/evidence/provider-second/\n?? tests/fs/webdav/atomic-extension/example.mts\n?? tests/fs/webdav/atomic-extension/https.mts\n?? tests/fs/webdav/atomic-extension/openssl.cnf\n?? tests/fs/webdav/atomic-extension/run.mjs\n?? tests/fs/webdav/atomic-extension/server.py\n"
+}

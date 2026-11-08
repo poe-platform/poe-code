@@ -1,0 +1,28 @@
+[
+  {
+    "role": "seal-add",
+    "start": "2026-08-29T12:46:34.884Z",
+    "pid": 41551,
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "close": {
+      "code": 0,
+      "signal": null
+    }
+  },
+  {
+    "role": "seal-commit",
+    "start": "2026-08-29T12:46:35.099Z",
+    "pid": 41553,
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "close": {
+      "code": 0,
+      "signal": null
+    }
+  }
+]

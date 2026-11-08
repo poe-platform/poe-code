@@ -1,0 +1,70 @@
+[
+  {
+    "id": "local-replaces-global-numeric",
+    "actual": {
+      "status": 0,
+      "stdout": "YjoxMAphOjIKYzoxCg==",
+      "stderr": "",
+      "files": {}
+    },
+    "input": {
+      "bytes": 13,
+      "sha256": "67218d10dc0796628731f0b1ae9fb31119a4aa60d6947145220da77bd0cdc4e5"
+    },
+    "stdout": {
+      "bytes": 13,
+      "sha256": "67218d10dc0796628731f0b1ae9fb31119a4aa60d6947145220da77bd0cdc4e5"
+    },
+    "finalized": false,
+    "counters": {
+      "keyedConstructions": 1,
+      "sortComparisons": 2,
+      "keyedRequests": 4,
+      "extractions": 3,
+      "fieldObjects": 6,
+      "parses": 3,
+      "keyedAdmissions": 3,
+      "charged": 30,
+      "independentBackingCharge": 30,
+      "existingRecordBytes": 10,
+      "entriesPeak": 3,
+      "retainedPeak": 30,
+      "numericComparisons": 2,
+      "keyedHits": 1
+    }
+  },
+  {
+    "id": "local-numeric-replaces-global-reverse",
+    "actual": {
+      "status": 0,
+      "stdout": "YjoxMAphOjIKYzotMQo=",
+      "stderr": "",
+      "files": {}
+    },
+    "input": {
+      "bytes": 14,
+      "sha256": "698ac68d953b309033e6c0a4a816d46f70506dca13cae31ec73d79298ea5ee8c"
+    },
+    "stdout": {
+      "bytes": 14,
+      "sha256": "698ac68d953b309033e6c0a4a816d46f70506dca13cae31ec73d79298ea5ee8c"
+    },
+    "finalized": false,
+    "counters": {
+      "keyedConstructions": 1,
+      "sortComparisons": 2,
+      "keyedRequests": 4,
+      "extractions": 3,
+      "fieldObjects": 6,
+      "parses": 3,
+      "keyedAdmissions": 3,
+      "charged": 36,
+      "independentBackingCharge": 36,
+      "existingRecordBytes": 11,
+      "entriesPeak": 3,
+      "retainedPeak": 36,
+      "numericComparisons": 2,
+      "keyedHits": 1
+    }
+  }
+]

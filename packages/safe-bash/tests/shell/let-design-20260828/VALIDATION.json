@@ -1,0 +1,16 @@
+{
+  "schema": "let-artifact-validation-receipt-v1",
+  "recordedAt": "2026-08-28T07:02:13.030Z",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node tests/shell/let-design-20260828/validate.mjs",
+  "observedExitCode": 0,
+  "observedStdout": {
+    "artifactChecks": "passed",
+    "nativeReruns": 0,
+    "productExecutions": 0,
+    "rows": 28,
+    "capturedBytes": 3558,
+    "initialSyntaxFailureBytesPreserved": true
+  },
+  "diffCheck": "git diff --check -- tests/shell/let-design-20260828 exited 0",
+  "qualification": "Validation reads existing receipts and protected files only; no native/product rerun"
+}

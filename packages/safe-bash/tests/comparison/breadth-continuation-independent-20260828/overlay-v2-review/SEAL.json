@@ -1,0 +1,99 @@
+{
+  "schema": "independent-overlay-v2-static-review-seal-v1",
+  "reviewDate": "2026-08-28",
+  "timezone": "America/Chicago",
+  "authorCommit": "eb468a7e5283525e48a282c40dd98ec7617c4307",
+  "authorSealSha256": "0485cdb55542cd3f90237256f45eee2082003a90b4ba9d1d7827e3212b562b01",
+  "priorReceiptCommit": "157eb678f8bcb9ed18fd308a21771aa4d6a032ce",
+  "verdict": "SCOPED_DESIGN_ACCEPTANCE_EXECUTABLE_PREPARATION_HOLD",
+  "codeFindings": {
+    "F1": "HIGH_cleanup_skipped_on_emit_failure",
+    "F2": "HIGH_unsafe_control_exception_continuation",
+    "F3": "MEDIUM_incomplete_telemetry_qualification"
+  },
+  "preImportPreparation": {
+    "P1": "HIGH_complete_admission_worker_coordinator_missing",
+    "P2": "HIGH_W07_instrumentation_missing"
+  },
+  "finalStaticChecks": {
+    "checks": 218,
+    "holds": 218,
+    "doesNotHold": 0,
+    "notRuntimePasses": true
+  },
+  "historicalStaticResults": {
+    "latest": {
+      "holds": 400,
+      "checks": 402
+    },
+    "first": {
+      "holds": 391,
+      "checks": 394
+    },
+    "rerun": false
+  },
+  "historicalScoresUnchanged": [
+    "13/54",
+    "47/54"
+  ],
+  "executions": {
+    "product": 0,
+    "comparator": 0,
+    "nativeOracle": 0,
+    "timing": 0,
+    "controls": 0,
+    "repositoryModules": 0
+  },
+  "files": [
+    {
+      "path": "FINAL-AUTHENTICATION-POST.json",
+      "bytes": 1878,
+      "mode": 420,
+      "sha256": "53ddbd00ebcf870b38d6f80fda0144f1d4e2f2c46a76d6dea3882cbec1b2b8dd"
+    },
+    {
+      "path": "FINAL-AUTHENTICATION.json",
+      "bytes": 1878,
+      "mode": 420,
+      "sha256": "53ddbd00ebcf870b38d6f80fda0144f1d4e2f2c46a76d6dea3882cbec1b2b8dd"
+    },
+    {
+      "path": "INITIAL-STATE.md",
+      "bytes": 1462,
+      "mode": 420,
+      "sha256": "bb6f3401fd4bb549097bb7bda8cdc2e281c4605f4de4fc22eb9bbd1fe61c93cf"
+    },
+    {
+      "path": "README.md",
+      "bytes": 18835,
+      "mode": 420,
+      "sha256": "25f4d745b514a84e53970d3687f41be247924e7c378584dc53599572609c6528"
+    },
+    {
+      "path": "evidence-final/RESULT.json",
+      "bytes": 42945,
+      "mode": 420,
+      "sha256": "9ada85e384534e687dbe0f2c6f2affa7f790e28ee5343f99a41fe5d3aff62db3"
+    },
+    {
+      "path": "evidence-v1/RESULT.json",
+      "bytes": 42945,
+      "mode": 420,
+      "sha256": "a59c7326f386af3b21b58848f10834d5f4bb5055058b18af0e3f49fae9324019"
+    },
+    {
+      "path": "final-check.py",
+      "bytes": 3833,
+      "mode": 420,
+      "sha256": "fd061ef622dfffe54a1f0eb5ac51517fbaaaaace299634a88c80cce0413f0914"
+    },
+    {
+      "path": "static-check.py",
+      "bytes": 14722,
+      "mode": 420,
+      "sha256": "a408cd9a3ff785afb23f24e4275efe8a0782abe67921da4206044491e70e537e"
+    }
+  ],
+  "selfExcluded": true,
+  "qualification": "Static findings, data integrity and preexecution checklist only. No rootGO or comparator admission; all runtime evidence remains held."
+}

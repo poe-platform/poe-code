@@ -1,0 +1,84 @@
+{
+  "status": "HOLD_ENVIRONMENT_AND_ATTEMPT02_OWNER_BINDING",
+  "presealCommit": "cc17e9188ce66fda714d4b558def0dfb4686a757",
+  "presealSha256": "f3a56c999e133d1727b474efc4bba589f7e88006356bdbb04a88f8ea4fe19bec",
+  "oldManifestPublicationCommit": "bb2effc6b72c1149ac89df84de75c1324125ec56",
+  "actual": {
+    "controls": 8,
+    "qualified": 5,
+    "failed": 3,
+    "unrun": 0,
+    "processes": 20,
+    "peak": 3,
+    "unsafe": false,
+    "retry": 0
+  },
+  "failures": [
+    {
+      "id": "M01",
+      "reason": "Error: EXEC_REPLACEMENT_FINITE_ENV",
+      "observedEnvironmentKeys": [
+        "__CF_USER_TEXT_ENCODING"
+      ],
+      "environmentValuesCaptured": false,
+      "laterAssertionsExecuted": false
+    },
+    {
+      "id": "M02",
+      "reason": "Error: EXEC_REPLACEMENT_FINITE_ENV",
+      "observedEnvironmentKeys": [
+        "__CF_USER_TEXT_ENCODING"
+      ],
+      "environmentValuesCaptured": false,
+      "laterAssertionsExecuted": false
+    },
+    {
+      "id": "M03",
+      "reason": "Error: EXEC_REPLACEMENT_FINITE_ENV",
+      "observedEnvironmentKeys": [
+        "__CF_USER_TEXT_ENCODING"
+      ],
+      "environmentValuesCaptured": false,
+      "laterAssertionsExecuted": false
+    }
+  ],
+  "modeObservations": [
+    {
+      "id": "M01",
+      "mask": 18,
+      "requested": 420,
+      "actual": 420,
+      "stdout": 384,
+      "stderr": 384,
+      "disposition": 0,
+      "qualification": "Raw observations only; original family remains failed at finite-environment assertion"
+    },
+    {
+      "id": "M02",
+      "mask": 18,
+      "requested": 420,
+      "actual": 420,
+      "stdout": 384,
+      "stderr": 384,
+      "disposition": 0,
+      "qualification": "Raw observations only; original family remains failed at finite-environment assertion"
+    },
+    {
+      "id": "M03",
+      "mask": 63,
+      "requested": 420,
+      "actual": 384,
+      "stdout": 384,
+      "stderr": 384,
+      "disposition": 72,
+      "qualification": "Raw observations only; original family remains failed at finite-environment assertion"
+    }
+  ],
+  "remainingDecisions": [
+    "Version-pin attempt02 owner instance/literal and dependent authorization bindings; unchanged old owner cannot select unused02",
+    "Resolve finite environment contract: exact guest process.env key __CF_USER_TEXT_ENCODING was observed despite exec -c; its value and introduction origin were not captured. No broad whitelist, no empty-environment claim. A future explicit value binding or tightly scoped normalization needs a versioned preseal before execution."
+  ],
+  "actual02": "UNUSED; no actual root grant/AUTH or launch",
+  "futureProfile": "67 planned,20 administration slots,128 cap/peak5; prospective257MiB and90min; not executable until missing bindings resolved",
+  "historical": "6472790e0/14 remains consumed; 212/212 qualified only stated scope; V6/N02 losses/W07/prior failures unchanged"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "cleanup-failure-drains-sibling",
+  "families": [
+    "F08"
+  ],
+  "observation": {
+    "returned": {
+      "drained": 1,
+      "same": true
+    }
+  },
+  "classification": "SYNTHETIC_CONTROL_OBSERVATION_BEFORE_ASSERTION"
+}

@@ -1,0 +1,15 @@
+{
+  "started": "2026-08-27T06:17:24.834Z",
+  "finished": "2026-08-27T06:17:26.553Z",
+  "command": "npm",
+  "args": [
+    "run",
+    "build"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdoutSha256": "192358b3fd3475b4bb505c07ba0b5608c6e4aa06624198bba950fe56e278e6f0",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "sourceChangedDuringRun": [],
+  "afterHead": "16d884c01e66d7cea3939a2a401cc06623bc4e72"
+}

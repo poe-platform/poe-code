@@ -1,0 +1,66 @@
+{
+  "profile": "which-precode-author-design-v1",
+  "accessed": "2026-08-27",
+  "sourceRevision": "8268a31bcceb9ebe32d380cab792c89c5d897d15",
+  "localHeadAtCapture": "ebd77c05134bc77311609e02cf4a35c8aff0fcc2",
+  "sources": [
+    {
+      "name": "which-source",
+      "revision": "8268a31bcceb9ebe32d380cab792c89c5d897d15",
+      "repositoryPath": "usr.bin/which/which.c",
+      "url": "https://raw.githubusercontent.com/freebsd/freebsd-src/8268a31bcceb9ebe32d380cab792c89c5d897d15/usr.bin/which/which.c",
+      "officialTreeUrl": "https://cgit.freebsd.org/src/tree/usr.bin/which/which.c?id=8268a31bcceb9ebe32d380cab792c89c5d897d15",
+      "accessed": "2026-08-27",
+      "sha256": "dce7ea97b948b1ba0248a1a699248b8ab63c36f4887d8b95a8ae2b8cbe6bae25",
+      "bytes": 3470,
+      "retained": "src/commands/which/design-evidence/which-source.data"
+    },
+    {
+      "name": "which-manual",
+      "revision": "8268a31bcceb9ebe32d380cab792c89c5d897d15",
+      "repositoryPath": "usr.bin/which/which.1",
+      "url": "https://raw.githubusercontent.com/freebsd/freebsd-src/8268a31bcceb9ebe32d380cab792c89c5d897d15/usr.bin/which/which.1",
+      "officialTreeUrl": "https://cgit.freebsd.org/src/tree/usr.bin/which/which.1?id=8268a31bcceb9ebe32d380cab792c89c5d897d15",
+      "accessed": "2026-08-27",
+      "sha256": "904c4c1e74bbbbb1b6c0114cdea88b0609282cb6f7ed39513cfb4a912f151cdb",
+      "bytes": 3543,
+      "retained": "src/commands/which/design-evidence/which-manual.data"
+    },
+    {
+      "name": "getopt-source",
+      "revision": "8268a31bcceb9ebe32d380cab792c89c5d897d15",
+      "repositoryPath": "lib/libc/stdlib/getopt.c",
+      "url": "https://raw.githubusercontent.com/freebsd/freebsd-src/8268a31bcceb9ebe32d380cab792c89c5d897d15/lib/libc/stdlib/getopt.c",
+      "officialTreeUrl": "https://cgit.freebsd.org/src/tree/lib/libc/stdlib/getopt.c?id=8268a31bcceb9ebe32d380cab792c89c5d897d15",
+      "accessed": "2026-08-27",
+      "sha256": "a911e3dcd3cdfed04cc1192e7668feabe5452435c58304c53870a3d7a26f0fce",
+      "bytes": 4134,
+      "retained": "src/commands/which/design-evidence/getopt-source.data"
+    }
+  ],
+  "guards": {
+    "src/shell/runtime.ts": "c746e4cee0f5245d94bba2082ce72b62fdc3b251fd400ee247371fa44dfed722",
+    "src/contracts/command.ts": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+    "src/contracts/command.md": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+    "src/contracts/filesystem.ts": "e2343faf818a15ad7afc06618b3f8856cf14f36c86574cc49c85d51a13e7e522",
+    "src/contracts/filesystem.md": "fb74e8fc3841c06f89e8fa93fad55cdfac20788de4eee13db6b8a8072b963d2a",
+    "src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+    "src/contracts/io.ts": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809",
+    "src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+    "src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+    "src/commands/internal.ts": "ade20c95a7d3dac5250a214d112ab25d710ce7909a4c6605f18ee21781949654",
+    "src/commands/tree/index.ts": "cdd900d8e489736ec860aa55dfc7013e01c3dba797cbe51ec1a4366120b9cefc",
+    "src/commands/tree/options.ts": "8eefe8b28a9341af79e22714ab9898abf07d04fb0a5f99773c822a4432369483",
+    "src/fs/memory/index.ts": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+    "src/fs/real/index.ts": "ab139aa429c2705c7d5ec13a20d1583bacb182e3e2347fcdee2f169704c0bc9a",
+    "src/fs/s3/filesystem.ts": "9ac11951d681db45cee474568ca46d227cfb5bbd9b0d5ce2d6c176d0c4f94833",
+    "src/fs/webdav/webdav.ts": "e66a66e2745852c6bd12be12a18c855df069152cf6b8089d2ecee8880c62de94"
+  },
+  "qualification": {
+    "FreeBSDBinary": "not provisioned; 14.3 not claimed",
+    "DarwinBinary": "not invoked or qualified",
+    "observations": "source-derived only; zero native controls; not independent fixture freeze",
+    "cgitAndRenderedMan": "web open returned no usable body; pinned project mirror raw manual/source used"
+  },
+  "dataClassification": "Non-executable upstream reference data, not TypeScript, not implementation or tests; copyright/license notices retained verbatim."
+}

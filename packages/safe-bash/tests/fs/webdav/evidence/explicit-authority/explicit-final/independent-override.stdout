@@ -1,0 +1,17 @@
+TAP version 13
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoic3ViY2xhc3MtZGF2LWNvcHkiLCJkYXRhIjp7InJlc3VsdCI6InVua25vd24iLCJjb2RlIjoiRU5PVFNVUCIsImVmZmVjdHMiOltdLCJzb3VyY2UiOiJzb3VyY2Ugc2VudGluZWwifX0=
+# Subtest: WebDAV pre-construction data-method overrides cannot inherit resource authority over another backing store
+ok 1 - WebDAV pre-construction data-method overrides cannot inherit resource authority over another backing store
+  ---
+  duration_ms: 17.612791
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 142.390667

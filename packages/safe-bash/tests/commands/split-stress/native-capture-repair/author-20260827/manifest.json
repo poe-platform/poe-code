@@ -1,0 +1,496 @@
+{
+  "candidate": "46abd8792bee106b0a339a3e37f238604a2405ba",
+  "parent": "21edb9a47c9190e4d74634650b3ec53c45d5dd00",
+  "recordedAt": "2026-08-27T15:08:16.031Z",
+  "sourceEquivalent": {
+    "parentSrcTree": "eeb4ee78dd19a6dc4b8bae98baed707eae463cbc",
+    "candidateSrcTree": "eeb4ee78dd19a6dc4b8bae98baed707eae463cbc",
+    "commitPaths": [
+      "tests/commands/split/native-capture.test.ts",
+      "tests/commands/split/native-capture.ts",
+      "tests/commands/split/native-errors.test.ts",
+      "tests/commands/split/native.test.ts"
+    ],
+    "liveMatchesCandidate": true,
+    "liveCandidateDifferences": [],
+    "baselineChanged": [
+      "tests/commands/split/native-errors.test.ts",
+      "tests/commands/split/native.test.ts"
+    ]
+  },
+  "state": "Scoped author runs in a shared live working tree, not an executed frozen archive. Source/test/evidence hash snapshots are recorded before author work and after validation. Unrelated concurrent status/commits are not claimed clean or certified.",
+  "runtime": {
+    "node": "v22.22.2",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "platform": "darwin",
+    "arch": "arm64",
+    "osRelease": "25.4.0",
+    "osVersion": "Darwin Kernel Version 25.4.0: Thu Mar 19 19:33:50 PDT 2026; root:xnu-12377.101.15~1/RELEASE_ARM64_T6050",
+    "tsx": "4.23.12",
+    "typescript": "5.9.3"
+  },
+  "native": {
+    "gnuVersion": {
+      "status": 0,
+      "stdout": "split (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Torbjörn Granlund and Richard M. Stallman.\n",
+      "stderr": ""
+    },
+    "oracles": [
+      {
+        "path": "tests/commands/metadata-stress/.oracle/coreutils-9.7/src/split",
+        "sha256": "cf5851c4e6566983ce69940b766c0b5eb0cd26ebf2bb45eefe215b2d5c62f958"
+      },
+      {
+        "path": "/usr/bin/split",
+        "sha256": "7c2d5f3c73e849d664bad3a2f4c67c5154b0f03f59f2fa779d49e33dc7983f91"
+      }
+    ],
+    "qualification": "Pinned GNU coreutils 9.7 built on Darwin and pinned Apple /usr/bin/split, LC_ALL=C. Not GNU/Linux or deployed-service acceptance."
+  },
+  "outcomes": [
+    {
+      "name": "typecheck",
+      "started": "2026-08-27T15:02:41.631Z",
+      "finished": "2026-08-27T15:02:42.901Z",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "node_modules/typescript/bin/tsc",
+        "-p",
+        "tests/commands/split/tsconfig.json",
+        "--noEmit"
+      ],
+      "capture": false,
+      "status": 0,
+      "signal": null,
+      "error": null
+    },
+    {
+      "name": "canonical",
+      "started": "2026-08-27T15:02:42.921Z",
+      "finished": "2026-08-27T15:02:44.275Z",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/commands/split/native.test.ts",
+        "tests/commands/split/native-errors.test.ts"
+      ],
+      "capture": false,
+      "status": 0,
+      "signal": null,
+      "error": null
+    },
+    {
+      "name": "regression",
+      "started": "2026-08-27T15:02:44.289Z",
+      "finished": "2026-08-27T15:02:50.073Z",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/commands/split/native-capture.test.ts"
+      ],
+      "capture": false,
+      "status": 0,
+      "signal": null,
+      "error": null
+    },
+    {
+      "name": "capture",
+      "started": "2026-08-27T15:02:50.091Z",
+      "finished": "2026-08-27T15:02:51.481Z",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/commands/split/native.test.ts",
+        "tests/commands/split/native-errors.test.ts"
+      ],
+      "capture": true,
+      "status": 0,
+      "signal": null,
+      "error": null
+    }
+  ],
+  "counts": {
+    "canonical": {
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "skip": 0
+    },
+    "explicitCapture": {
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "skip": 0
+    },
+    "captureRegression": {
+      "tests": 9,
+      "pass": 9,
+      "fail": 0,
+      "skip": 0
+    },
+    "typecheckExit": 0,
+    "nativeVectors": [
+      {
+        "report": "gnu-errors.json",
+        "vectors": 9
+      },
+      {
+        "report": "native-profile-differences.json",
+        "vectors": 4
+      },
+      {
+        "report": "gnu9.7-darwin.json",
+        "vectors": 43
+      },
+      {
+        "report": "apple-bsd.json",
+        "vectors": 20
+      }
+    ],
+    "denominatorPolicy": "Explicit captures and regression child reruns repeat the same native corpus; 9 new test/harness regressions are not additional native vectors. Profile differences have 4 scenarios, each run against 2 pinned tools."
+  },
+  "attempts": [
+    {
+      "name": "first scoped typecheck",
+      "status": 2,
+      "cause": "New regression environment object inferred too narrowly; fixed explicit NodeJS.ProcessEnv type."
+    },
+    {
+      "name": "first complete checks",
+      "canonicalPass": 4,
+      "regressionPass": 5,
+      "regressionFail": 4,
+      "cause": "Child tsx disk cache appeared alongside expected scratch/capture directories; disabled cache in child env using installed tsx TSX_DISABLE_CACHE support, no assertion relaxation."
+    },
+    {
+      "name": "second complete regression",
+      "pass": 9,
+      "fail": 0,
+      "skip": 0,
+      "note": "Before lossless base64 diagnostic improvement."
+    },
+    {
+      "name": "final candidate source checks",
+      "pass": true,
+      "note": "All final owned source bytes match candidate; logs retained separately."
+    },
+    {
+      "name": "auxiliary report-byte comparison command",
+      "status": 1,
+      "cause": "Parenthesis syntax error in read-only Node command; corrected command confirmed 4 byte identities. No test or fixture change."
+    },
+    {
+      "name": "first evidence collection command",
+      "status": 1,
+      "cause": "git show exceeded default Node child maxBuffer on old stress-initial.json. No output files created. Retried with 32 MiB bounded buffer; historical input unchanged."
+    }
+  ],
+  "originalEvidence": {
+    "trackedFiles": 44,
+    "allUnchanged": true,
+    "latest": {
+      "tests/commands/split/evidence/apple-bsd-latest.json": {
+        "before": "dc738f09ae804a75741ecdce43c0ce43951f5d4015caa10b74fa099a7b072f73",
+        "after": "dc738f09ae804a75741ecdce43c0ce43951f5d4015caa10b74fa099a7b072f73",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/edge-latest.json": {
+        "before": "09882a536d0332e39f2088dbd0b1ef93f4896f54a29ce5b37fea77a9d57aa52e",
+        "after": "09882a536d0332e39f2088dbd0b1ef93f4896f54a29ce5b37fea77a9d57aa52e",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/gnu-errors-latest.json": {
+        "before": "38c52cd448a1682cd02b058b47071981745f94a2b6db9c8e7f29f0fcc5ffd79a",
+        "after": "38c52cd448a1682cd02b058b47071981745f94a2b6db9c8e7f29f0fcc5ffd79a",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/gnu9.7-darwin-latest.json": {
+        "before": "8a1c9b7a9e30025b8352bce2ec2dec5abf73527c8df634e4338de3d62b4f48a1",
+        "after": "8a1c9b7a9e30025b8352bce2ec2dec5abf73527c8df634e4338de3d62b4f48a1",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/stress-latest.json": {
+        "before": "c957eeb8225c861c6bfd2e6aae0a53b06792b5fff4096fecd61fc5b9524ebf26",
+        "after": "c957eeb8225c861c6bfd2e6aae0a53b06792b5fff4096fecd61fc5b9524ebf26",
+        "unchanged": true
+      }
+    },
+    "files": {
+      "tests/commands/split/evidence/api-declarations.txt": {
+        "before": "ec5c428ad9b9ecb0cccd6110dc79c450d7fb5ecf1cbba734801b4cbd4f62beea",
+        "after": "ec5c428ad9b9ecb0cccd6110dc79c450d7fb5ecf1cbba734801b4cbd4f62beea",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/apple-bsd-initial.json": {
+        "before": "dc738f09ae804a75741ecdce43c0ce43951f5d4015caa10b74fa099a7b072f73",
+        "after": "dc738f09ae804a75741ecdce43c0ce43951f5d4015caa10b74fa099a7b072f73",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/apple-bsd-latest.json": {
+        "before": "dc738f09ae804a75741ecdce43c0ce43951f5d4015caa10b74fa099a7b072f73",
+        "after": "dc738f09ae804a75741ecdce43c0ce43951f5d4015caa10b74fa099a7b072f73",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/author-initial-failures.txt": {
+        "before": "fe82e81aab8c211c2cb39a9fc2409d919de9178c0c190a6ed92b06d26c3998fa",
+        "after": "fe82e81aab8c211c2cb39a9fc2409d919de9178c0c190a6ed92b06d26c3998fa",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/compiled-consumer-initial.tap": {
+        "before": "64cb42819d0f83b881dddac8fbfaa0f2e27ec60670b5ac266c3247cfd39fb4d8",
+        "after": "64cb42819d0f83b881dddac8fbfaa0f2e27ec60670b5ac266c3247cfd39fb4d8",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/compiled-consumer.json": {
+        "before": "49f5b5dbcec5966a168ab4914e31231ad041d592633e6e9418553b2de076a1d9",
+        "after": "49f5b5dbcec5966a168ab4914e31231ad041d592633e6e9418553b2de076a1d9",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/dangling/README.md": {
+        "before": "0b581edd72d3e111f35644857ab61889372520d3ed14a736c65fed71d37f1c33",
+        "after": "0b581edd72d3e111f35644857ab61889372520d3ed14a736c65fed71d37f1c33",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/dangling/author-contracts-original.ts.txt": {
+        "before": "6fe808fcb0705e0f5d8664702384049a2cfddfa063cd5ab18c88991fbf79aea6",
+        "after": "6fe808fcb0705e0f5d8664702384049a2cfddfa063cd5ab18c88991fbf79aea6",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/dangling/author-handoff-original.md": {
+        "before": "6999e5bf7813eed2ef6ba9bbf2f1fc7b19075622b45efb1f862a1fe2ac04850f",
+        "after": "6999e5bf7813eed2ef6ba9bbf2f1fc7b19075622b45efb1f862a1fe2ac04850f",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/dangling/author-readme-original.md": {
+        "before": "b0089269472e923e938f20c53832f9daead07c6d316b788fe5822e8d4885188f",
+        "after": "b0089269472e923e938f20c53832f9daead07c6d316b788fe5822e8d4885188f",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/dangling/author-result-original.txt": {
+        "before": "5f12b132d86cf5a26c6f358fdbef0afde4700aea9fc9ba670f018709484e7568",
+        "after": "5f12b132d86cf5a26c6f358fdbef0afde4700aea9fc9ba670f018709484e7568",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/dangling/baseline-author43.tap": {
+        "before": "ee5237a53443430e0585856ce224ba7f5efd242e566f74dbae097b05fcfe9635",
+        "after": "ee5237a53443430e0585856ce224ba7f5efd242e566f74dbae097b05fcfe9635",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/dangling/final-author60.tap": {
+        "before": "3737ecb9bf792a46cf457beae5f13753695b9c57d733771b63c4b1df062f4ed4",
+        "after": "3737ecb9bf792a46cf457beae5f13753695b9c57d733771b63c4b1df062f4ed4",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/dangling/final-build.log": {
+        "before": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/dangling/final-compiled-consumer.jsonl": {
+        "before": "394e98cb528aac10a5172f50b7c3ce2d2015c3ca6dad567db038d724e80801f4",
+        "after": "394e98cb528aac10a5172f50b7c3ce2d2015c3ca6dad567db038d724e80801f4",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/dangling/final-contracts.tap": {
+        "before": "ea482491ad25efe752ff0f64c7254b852868a084b9fc6fd62553e5f55edf9f5b",
+        "after": "ea482491ad25efe752ff0f64c7254b852868a084b9fc6fd62553e5f55edf9f5b",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/dangling/final-manifest.json": {
+        "before": "55f9fad954e8e809c340b0272dd07ecfc339fc0050ff50eeb0723bdbbc52a4d9",
+        "after": "55f9fad954e8e809c340b0272dd07ecfc339fc0050ff50eeb0723bdbbc52a4d9",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/dangling/final-noEmit.log": {
+        "before": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/dangling/final-typecheck.log": {
+        "before": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/dangling/fixed-contracts.tap": {
+        "before": "818547161eedca2bb4f1e47874976b1940dac234aacb6db1befbeaf00cd0cd83",
+        "after": "818547161eedca2bb4f1e47874976b1940dac234aacb6db1befbeaf00cd0cd83",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/dangling/fixed-core-tests.tap": {
+        "before": "3afd77746df41f4efe427b6cca76809a1cb96f0f03084419b762845914e8aa25",
+        "after": "3afd77746df41f4efe427b6cca76809a1cb96f0f03084419b762845914e8aa25",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/dangling/initial-corrected-tests.tap": {
+        "before": "fd4238aab178eb23ec10b4318087963eb355226488cccbcd5652b3e49432702c",
+        "after": "fd4238aab178eb23ec10b4318087963eb355226488cccbcd5652b3e49432702c",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/dangling/native-final.json": {
+        "before": "3ded947a3bce974be859aa634e5ab4eb27ac7b6b538ddbaf9b1006635ea95adb",
+        "after": "3ded947a3bce974be859aa634e5ab4eb27ac7b6b538ddbaf9b1006635ea95adb",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/dangling/native-fixed.json": {
+        "before": "04a20e6afa29c24ff714f3ed3494f78eb4cc7e88bac9cdb2fdc12f00fc37998e",
+        "after": "04a20e6afa29c24ff714f3ed3494f78eb4cc7e88bac9cdb2fdc12f00fc37998e",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/dangling/native-initial.json": {
+        "before": "fd338f76c48d6124ea255d306fbaed31b0dca62b2d92984dd75a35709c924267",
+        "after": "fd338f76c48d6124ea255d306fbaed31b0dca62b2d92984dd75a35709c924267",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/dangling/pre-source-commit-status.txt": {
+        "before": "216e7c12ca03722b0354795fd45edaaf8d1425c9cb9356e58999c65358506abf",
+        "after": "216e7c12ca03722b0354795fd45edaaf8d1425c9cb9356e58999c65358506abf",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/dangling/typecheck.log": {
+        "before": "6693edd82cecf7fc5cd00605c7e330a8fb055509d6106f6584f9f7b63bd43bab",
+        "after": "6693edd82cecf7fc5cd00605c7e330a8fb055509d6106f6584f9f7b63bd43bab",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/edge-after-size.json": {
+        "before": "92fbd3976ccf53da8c009a2b7ea28d1ab95d48cd79306eba30843d2782030091",
+        "after": "92fbd3976ccf53da8c009a2b7ea28d1ab95d48cd79306eba30843d2782030091",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/edge-initial.json": {
+        "before": "da701c6f65e8f09073a8509bc5f754f24c69e504d9ac99621137d0e8ecb0d8b2",
+        "after": "da701c6f65e8f09073a8509bc5f754f24c69e504d9ac99621137d0e8ecb0d8b2",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/edge-latest.json": {
+        "before": "09882a536d0332e39f2088dbd0b1ef93f4896f54a29ce5b37fea77a9d57aa52e",
+        "after": "09882a536d0332e39f2088dbd0b1ef93f4896f54a29ce5b37fea77a9d57aa52e",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/final-author.tap": {
+        "before": "bcde8778597d90adf9d9a71408d2bc83071906fb1e1f17037aa673bc1bf0323b",
+        "after": "bcde8778597d90adf9d9a71408d2bc83071906fb1e1f17037aa673bc1bf0323b",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/final-build.log": {
+        "before": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/final-manifest.json": {
+        "before": "b17b3abea9c88272d99d8d72ee0e379b3ecd480b49c7aebd6db7e82f21893d30",
+        "after": "b17b3abea9c88272d99d8d72ee0e379b3ecd480b49c7aebd6db7e82f21893d30",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/final-typecheck.log": {
+        "before": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/gnu-errors-initial.json": {
+        "before": "b3e309877f7816b9088cab4a183966cf49ddaf771e548323f4d3e41267963b3b",
+        "after": "b3e309877f7816b9088cab4a183966cf49ddaf771e548323f4d3e41267963b3b",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/gnu-errors-latest.json": {
+        "before": "38c52cd448a1682cd02b058b47071981745f94a2b6db9c8e7f29f0fcc5ffd79a",
+        "after": "38c52cd448a1682cd02b058b47071981745f94a2b6db9c8e7f29f0fcc5ffd79a",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/gnu9.7-darwin-initial.json": {
+        "before": "8a1c9b7a9e30025b8352bce2ec2dec5abf73527c8df634e4338de3d62b4f48a1",
+        "after": "8a1c9b7a9e30025b8352bce2ec2dec5abf73527c8df634e4338de3d62b4f48a1",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/gnu9.7-darwin-latest.json": {
+        "before": "8a1c9b7a9e30025b8352bce2ec2dec5abf73527c8df634e4338de3d62b4f48a1",
+        "after": "8a1c9b7a9e30025b8352bce2ec2dec5abf73527c8df634e4338de3d62b4f48a1",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/initial-source-manifest.json": {
+        "before": "763d7a508ec2e56dff0dd24940fa3e502069a78b2c5b5e3ef2e32cb375fbc071",
+        "after": "763d7a508ec2e56dff0dd24940fa3e502069a78b2c5b5e3ef2e32cb375fbc071",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/late-pull-fixed.tap": {
+        "before": "8867ebc03c27d01dffecd4ddc3f5d56e17e1b2d9dffb201cc5c3a8bd4c882975",
+        "after": "8867ebc03c27d01dffecd4ddc3f5d56e17e1b2d9dffb201cc5c3a8bd4c882975",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/late-pull-initial.tap": {
+        "before": "27761b3e0ccde2fdd471ca67a2d425a07f0c7e6dbe2ae0801f65dc3d071d1413",
+        "after": "27761b3e0ccde2fdd471ca67a2d425a07f0c7e6dbe2ae0801f65dc3d071d1413",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/native-profile-differences.json": {
+        "before": "a4cd077a7dd762a2b5970d844cc3237a1bb5aa46a21040a8ef98f39e2c2b3668",
+        "after": "a4cd077a7dd762a2b5970d844cc3237a1bb5aa46a21040a8ef98f39e2c2b3668",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/stress-initial.json": {
+        "before": "c957eeb8225c861c6bfd2e6aae0a53b06792b5fff4096fecd61fc5b9524ebf26",
+        "after": "c957eeb8225c861c6bfd2e6aae0a53b06792b5fff4096fecd61fc5b9524ebf26",
+        "unchanged": true
+      },
+      "tests/commands/split/evidence/stress-latest.json": {
+        "before": "c957eeb8225c861c6bfd2e6aae0a53b06792b5fff4096fecd61fc5b9524ebf26",
+        "after": "c957eeb8225c861c6bfd2e6aae0a53b06792b5fff4096fecd61fc5b9524ebf26",
+        "unchanged": true
+      }
+    }
+  },
+  "captureReports": [
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-capture-8vgRU4/gnu-errors.json",
+      "sha256": "38c52cd448a1682cd02b058b47071981745f94a2b6db9c8e7f29f0fcc5ffd79a",
+      "original": "tests/commands/split/evidence/gnu-errors-latest.json",
+      "originalSha256": "38c52cd448a1682cd02b058b47071981745f94a2b6db9c8e7f29f0fcc5ffd79a",
+      "byteIdentical": true,
+      "vectors": 9
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-capture-1BomGd/native-profile-differences.json",
+      "sha256": "a4cd077a7dd762a2b5970d844cc3237a1bb5aa46a21040a8ef98f39e2c2b3668",
+      "original": "tests/commands/split/evidence/native-profile-differences.json",
+      "originalSha256": "a4cd077a7dd762a2b5970d844cc3237a1bb5aa46a21040a8ef98f39e2c2b3668",
+      "byteIdentical": true,
+      "vectors": 4
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-capture-bfLn3x/gnu9.7-darwin.json",
+      "sha256": "8a1c9b7a9e30025b8352bce2ec2dec5abf73527c8df634e4338de3d62b4f48a1",
+      "original": "tests/commands/split/evidence/gnu9.7-darwin-latest.json",
+      "originalSha256": "8a1c9b7a9e30025b8352bce2ec2dec5abf73527c8df634e4338de3d62b4f48a1",
+      "byteIdentical": true,
+      "vectors": 43
+    },
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-capture-GvM9Jt/apple-bsd.json",
+      "sha256": "dc738f09ae804a75741ecdce43c0ce43951f5d4015caa10b74fa099a7b072f73",
+      "original": "tests/commands/split/evidence/apple-bsd-latest.json",
+      "originalSha256": "dc738f09ae804a75741ecdce43c0ce43951f5d4015caa10b74fa099a7b072f73",
+      "byteIdentical": true,
+      "vectors": 20
+    }
+  ],
+  "knownLimits": [
+    "No whole gate run or original archive modification. Frozen8670 wholegate17454pass12fail0skip remains UNQUALIFIED.",
+    "Other split writers outside ownership remain: edge.test.ts, stress.test.ts, dangling-native.test.ts; other split tests also create repository scratch.",
+    "Original catches/skips and binary identities preserved; missing native prerequisites skip, changed installed binaries fail.",
+    "Guard checks reject preexisting destinations and detected symlink/identity changes, not hostile simultaneous host-JS namespace races.",
+    "Regression children remove only their owned scratch and reports after preservation checks; explicit final captures remain at listed unique OS-temp paths.",
+    "No product/package edits, new dependency, oracle expectation change, rebaseline, inflated corpus, independent-verifier claim or full-completion/superiority claim."
+  ],
+  "processState": "All author synchronous runners settled; no author-owned background processes remain."
+}

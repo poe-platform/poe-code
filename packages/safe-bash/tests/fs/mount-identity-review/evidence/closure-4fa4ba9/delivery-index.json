@@ -1,0 +1,195 @@
+{
+  "algorithm": "sha256",
+  "sourceCommit": "4fa4ba9502dac843bd13aa5031d128a3171f597d",
+  "contractCommit": "fa539de61ea2280cdaeaccf7bbf5c76d34e0e4f4",
+  "historicalFilesUnchanged": 11,
+  "pinnedSourceHasNoGitSymlinks": true,
+  "sourceModes": "100644 blob 72d9597a55bebbbc8595d131e3d4a9d923a84406\tsrc/commands/README.md\n100644 blob 4180a22e83a6246287b5a2d169cfbf039f6e4b37\tsrc/commands/basic.ts\n100644 blob cbede7ef862305eb4b6141066b75487e2c3a02d5\tsrc/commands/bytes/README.md\n100644 blob 2619a19c2ac614e2fd56d2ebf6900241957e42a2\tsrc/commands/bytes/checksums/README.md\n100644 blob aecf4f0b771b3024495aaf5c7adc479ac9c58501\tsrc/commands/bytes/checksums/index.ts\n100644 blob f524eafe82b1eea435310c2c4140dc095dc2863e\tsrc/commands/bytes/compression/README.md\n100644 blob d0351023bcf2374dd2fd7a37a8b8d6134bf66f93\tsrc/commands/bytes/compression/files.ts\n100644 blob f9f612b09588199a4f5ac8352b548505d3af41a7\tsrc/commands/bytes/compression/gunzip.ts\n100644 blob 6c2e773b5e76a45398e2ab68d0545a8793109911\tsrc/commands/bytes/compression/index.ts\n100644 blob 9d5b488692f35139be3c2dbf0480d98b9fa7732a\tsrc/commands/bytes/compression/options.ts\n100644 blob ad4faddb6372786fff00ea0a6f2666c46fb4827c\tsrc/commands/bytes/compression/stream.ts\n100644 blob a92a3cb0df45e31ddb2288dd4d2b30e887d2bc56\tsrc/commands/bytes/encoding/README.md\n100644 blob e0cfec562cb54de156b7552fa202107532a42ceb\tsrc/commands/bytes/encoding/base.ts\n100644 blob e0a457aa2a88f624eb412b405975ef7d902d907c\tsrc/commands/bytes/encoding/index.ts\n100644 blob 6e711801c87fd1cd5a409cddb8817bac48837430\tsrc/commands/bytes/encoding/od.ts\n100644 blob 03f68f3a9b0a53745bc33c4d605cd4013b9bd0af\tsrc/commands/bytes/encoding/shared.ts\n100644 blob b09bc20594c33eef4a363b5346de110d1874c6c8\tsrc/commands/bytes/encoding/xxd.ts\n100644 blob 7567da63d7acfc529db7dcd145ff55ed41b89b59\tsrc/commands/bytes/index.ts\n100644 blob e7079f5e49856057c1410aad6e470ece08368389\tsrc/commands/diff-patch/GNU-DIFF.md\n100644 blob 837c750aedd127cf96d59393f061d4055c9a11b5\tsrc/commands/diff-patch/GNU-PATCH.md\n100644 blob 4072ab11d446fce1e853a4659b43c5130c062bd9\tsrc/commands/diff-patch/PARSER.md\n100644 blob 9a4347ae0d093c176ae663d1e38d77fafb9f9c2c\tsrc/commands/diff-patch/README.md\n100644 blob ff3fd370362301cccd39322b643deb99b314b0fd\tsrc/commands/diff-patch/diff-format.ts\n100644 blob 3df080754f641b8119f5e920022632aa00344409\tsrc/commands/diff-patch/diff.ts\n100644 blob d7bc0c3c474ff420a0b8b431aaf3ed5764935512\tsrc/commands/diff-patch/index.ts\n100644 blob fa5745894d0a060fef9ff1edb511c9079f7f47a7\tsrc/commands/diff-patch/patch-envelope.ts\n100644 blob 454e9a55b7bf5f7eb029145cc31a6bda3a3dfb14\tsrc/commands/diff-patch/patch-formats.ts\n100644 blob 309f40b1c1b2888d63e67d7009bda5235c1d7b47\tsrc/commands/diff-patch/patch-gnu-paths.ts\n100644 blob 9513aa990e9845c0c5fccebae3807d82c1d83c9a\tsrc/commands/diff-patch/patch-gnu-reject.ts\n100644 blob 418cba549e068658f587927bfc41430880656fcb\tsrc/commands/diff-patch/patch-path.ts\n100644 blob 82ab67ce9dea426dfa012d1809c1305ba13459b6\tsrc/commands/diff-patch/patch.ts\n100644 blob 99d12adf757d03e779d180a1d027735bed88a6cb\tsrc/commands/diff-patch/shared.ts\n100644 blob 981d2a227213ebece0a52d1ee52d33bb13480ae0\tsrc/commands/diff-patch/unified.ts\n100644 blob cd390a077cc4f67fa89852aec29aa06543499341\tsrc/commands/execution.ts\n100644 blob 6c7a9a7e945e88728e3cf30bc30c0fc1d071100d\tsrc/commands/filesystem.ts\n100644 blob cc1854873f02be5a6ede00fa78283f3b80f647ee\tsrc/commands/find.ts\n100644 blob c02bf09d02abfdbc61326d7fe0b26b9743011243\tsrc/commands/grep.ts\n100644 blob f6b22a1443c1f608bc484d31188d83d448bdba41\tsrc/commands/index.ts\n100644 blob 6a72e6dd53e07d427bed3d40f760c42649fe1587\tsrc/commands/internal.ts\n100644 blob 6b2e7dcb7d7041f597446ffb4802eeefa935651e\tsrc/commands/metadata/README.md\n100644 blob c8a5ce1fa00216db5df8468110c674cf61329da6\tsrc/commands/metadata/chmod.ts\n100644 blob d8fec3587825da535600455ac219486a1cbd4943\tsrc/commands/metadata/index.ts\n100644 blob a2f986f3b6b0da855b8edc587f091c42fcc0193d\tsrc/commands/metadata/internal.ts\n100644 blob 5e650b9bead674f831430d87da9e530c740e73d0\tsrc/commands/metadata/mktemp.ts\n100644 blob 004a2393fa8649db734177feecb0e112bef80b11\tsrc/commands/metadata/stat.ts\n100644 blob 40f97b505dead7fc10d31a4c1f1fc60ec7ae9d0a\tsrc/commands/network/README.md\n100644 blob 4a58d259a98a839927aa9de70c94e4f7d9f9f1e1\tsrc/commands/network/args.ts\n100644 blob ce22b250d02215a885b5a9a65773aaceed98bf38\tsrc/commands/network/body.ts\n100644 blob a1808127a728f8fd1c072657303ec202e488b12c\tsrc/commands/network/curl.ts\n100644 blob 3e276efcb2b97a0da8773f58cf08ff25954fdc3d\tsrc/commands/network/index.ts\n100644 blob 394b03e6815015fab408b4a1d39585ee39b6519b\tsrc/commands/network/output.ts\n100644 blob 0eb39a0037af707b75193886432ebaf7fc71f6bd\tsrc/commands/network/shared.ts\n100644 blob fe3233039020eeb312fed0b61228fdf9cf600bac\tsrc/commands/network/transport.ts\n100644 blob 71a08ae76efadfd0e1c41e407400bf0ac8b33a4f\tsrc/commands/network/types.ts\n100644 blob 4a7ce27295d6347a26bd9edf4c0d2769afec0297\tsrc/commands/predicates.ts\n100644 blob 9d14f6dec5dd14e1e638f3f0c41441f8ce07b9ea\tsrc/commands/safejs/README.md\n100644 blob 686228f5c98e4f3fb95525770b743bd496cead36\tsrc/commands/safejs/index.ts\n100644 blob 99df4659cdb585be82b177e4e40ea3102ea1b87c\tsrc/commands/safejs/io.ts\n100644 blob d632015ceab0146605d271d6ea0b5557a26aea29\tsrc/commands/safejs/options.ts\n100644 blob 1d8d9a59f4481881c6ad938859c0a64bee0f8ff0\tsrc/commands/safejs/render.ts\n100644 blob 99b00cbf92e062838ae253ff6f8649ff4b34985b\tsrc/commands/safejs/types.ts\n100644 blob 379c81c50f45dbd9a33a46ab51b342644348393d\tsrc/commands/search/README.md\n100644 blob d546a687f9e3cafeecc2eb6da0efa14b58fa36c0\tsrc/commands/search/glob.ts\n100644 blob 8d94d01e37eb91c4ef97da40775ccc097b2d44f5\tsrc/commands/search/index.ts\n100644 blob 9b336abcc81a58237f841262716f802a072c0f22\tsrc/commands/search/matcher.ts\n100644 blob f5c999a385bf3233cbcb65bcf79fc7e4a7d43802\tsrc/commands/search/options.ts\n100644 blob 97d266abe7aa2a93388dc9b24f989b2fd0865b10\tsrc/commands/search/output.ts\n100644 blob 29c065b11c21b524abbd0304df28bf405295f02e\tsrc/commands/search/rg.ts\n100644 blob dd0c714274531b91c9196ff96d35b9e264e1189b\tsrc/commands/search/shared.ts\n100644 blob 9c838aa4ba844d46c3715a0fc92b577e57d85760\tsrc/commands/search/walk.ts\n100644 blob 14c0d3a74099eea23b3d5e4a4fac377ed50ab77c\tsrc/commands/streams.ts\n100644 blob 2c4da2dc8a3b2a2c67719cf8c6e0e3bb488b268f\tsrc/commands/structured/README.md\n100644 blob f2a68de1dd392442cafe407923f7eb336a4c58c5\tsrc/commands/structured/index.ts\n100644 blob a6e7e27aa1699d112734d688994ac224cfde5c9a\tsrc/commands/structured/input.ts\n100644 blob c8e8697cf1a21407d06385678dce36d1d5c44c75\tsrc/commands/structured/interpreter.ts\n100644 blob 80e054cdf8dd460f5dc4413750c71e45af3059e2\tsrc/commands/structured/jq.ts\n100644 blob 6091dc338b459cf00e662fcc9bed816a3351de56\tsrc/commands/structured/limits.ts\n100644 blob fb62745e88aa9183ee04e69784ed8b808c86c337\tsrc/commands/structured/numbers.ts\n100644 blob c14797031dcd01495d42c8e33145babe0aba4e35\tsrc/commands/structured/parser.ts\n100644 blob e2d7bb6635e60e0a479399e97ca8ede386b67dc1\tsrc/commands/structured/split.ts\n100644 blob 8f2617efd9830db9aec3dbda1f1a0ac10a4d7bde\tsrc/commands/structured/values.ts\n100644 blob 548a18b852918e207708da604bfddcb1186fc9d8\tsrc/commands/text-programs/README.md\n100644 blob 8ec5cc780d46438c80ad2410cd1fa8dbb149f842\tsrc/commands/text-programs/awk-runtime.ts\n100644 blob 46a9936adbbcc15a5228f5606814e4740687537c\tsrc/commands/text-programs/awk-syntax.ts\n100644 blob 0dd4f1b5193ab9548eb78a2199582730033a0f11\tsrc/commands/text-programs/awk-values.ts\n100644 blob 6dbd8bc5125a821de27a70541a8590efeee56243\tsrc/commands/text-programs/awk.ts\n100644 blob ffd06b0422a62d76d3d15c6a65ec2cc2805fe3fb\tsrc/commands/text-programs/index.ts\n100644 blob 1cf3c49b631cf046ec0abdcf9879d162334c80e6\tsrc/commands/text-programs/regex.ts\n100644 blob 9be29dd04a0c93934805fb27a76dbaee1e185e9a\tsrc/commands/text-programs/sed.ts\n100644 blob 2eff6d5d3f142a6f10be7a081c0f4ac4b4a4d9e5\tsrc/commands/text-programs/shared.ts\n100644 blob a44fa11cc70372c3341ab3c7e7c9e6e7be832513\tsrc/commands/text.ts\n100644 blob 3d112e1b9a7fc38c434e57ea087eecf1412cdd4b\tsrc/contracts/command.ts\n100644 blob d466866ce93c4feced56e2bd5fe4c41637e62226\tsrc/contracts/errors.ts\n100644 blob c0131e158c6a961f86431f69b5bc4f3da152affd\tsrc/contracts/filesystem.md\n100644 blob 232e441527547dcec45ca166c581166c2fd53411\tsrc/contracts/filesystem.ts\n100644 blob 778c289fc215e238a96880e9e64e04baed45e0d0\tsrc/contracts/index.ts\n100644 blob 738e6bb2e1055d6e575f6b342b75ed3053710f70\tsrc/contracts/io.ts\n100644 blob 4cbf95a4baa405a6fc5438c23511a9059b977201\tsrc/contracts/path.ts\n100644 blob 69b685ebbf6cfb7d1068c419b7e4109e4f9179d4\tsrc/contracts/plugin.ts\n100644 blob bdc0e58062b23b80cda2eef879d4974afd35e2ea\tsrc/fs/memory/index.ts\n100644 blob 9e5b0d6399d6faa9fd953b473e83d19ba49a3a9a\tsrc/fs/mount/README.md\n100644 blob 263c9db554babd12cb04c355c14ac54190ea0377\tsrc/fs/mount/identity.ts\n100644 blob 4c21b08ad0d94f7597a4e7911af0eb8c4596d8da\tsrc/fs/mount/index.ts\n100644 blob 56282f1f75ccafee9993cd31a72892e5c1faf02a\tsrc/fs/overlay/README.md\n100644 blob 4655944e53334afacd6df02cbc3475f438cdd8cd\tsrc/fs/overlay/index.ts\n100644 blob e92c0e7d776b15dc9bbc680f6d7f2e32b290f9a3\tsrc/fs/readonly/README.md\n100644 blob 8f26a8c9371022ce19a97738c87c94c84bb4a201\tsrc/fs/readonly/index.ts\n100644 blob 5b80d931d9a229fb54557abadd8556c119c7d770\tsrc/fs/real/index.ts\n100644 blob 43e046f3d2f6517cb1ecc2fb1731eba9d05f6cfc\tsrc/fs/s3/README.md\n100644 blob cdd6a151235f1d888a2dad7aeff3eef09033055d\tsrc/fs/s3/filesystem.ts\n100644 blob 4556d401259e31aff76d4cf871279f4462fc3136\tsrc/fs/s3/index.ts\n100644 blob a5a63a1d87ebb2579139437f3992fe9bdbb9b312\tsrc/fs/s3/mock.ts\n100644 blob 35a9d63441e80fafa2644528b4941fa5f0ee1eb1\tsrc/fs/s3/transport.ts\n100644 blob f17ff92101b5d62c79bd7cf55f082ad7f962eb0a\tsrc/fs/webdav/PRODUCTION_CHECKPOINT.md\n100644 blob 9d124c764bb517b13bca9a5362bd68f9aa57b243\tsrc/fs/webdav/README.md\n100644 blob 24e4c340865d3500ce42d1b129c1edb39a6b19b6\tsrc/fs/webdav/index.ts\n100644 blob f2e79f299d562525cb398dcb95a8e13132d16de2\tsrc/fs/webdav/webdav.ts\n100644 blob 53843cb7cb8b82664cf7a146e33228b53fd86833\tsrc/fs/webdav/xml.ts\n100644 blob f291ceece042af829129ca41f86a86c5f0457b5e\tsrc/index.ts\n100644 blob a1593368ebe58df7695bf6010e192bbbce9e9da6\tsrc/integrations/safejs/filesystem.ts\n100644 blob 52bb84f334e2749334f9eaadce17abe3344884ff\tsrc/integrations/safejs/index.ts\n100644 blob 2d1b1bdf717670ad6652ca0742ab8f4ed58bf00d\tsrc/integrations/safejs/shell.ts\n100644 blob 43769836bd8f8d611cebd031f3cc7d749b988a0f\tsrc/integrations/safejs/stats.ts\n100644 blob d326d0a41a7145bae4f6f12d3774522c9c500d76\tsrc/integrations/safejs/values.ts\n100644 blob 009a9c9ef4da508cbf104dccd7b7df1a4903852d\tsrc/plugins/index.ts\n100644 blob 223101946d13ac9b44f4a898f58fd16004ba86b9\tsrc/shell/arithmetic.ts\n100644 blob 0110bd9d5c0388dc6fe15abc27f27a18dd7a6b38\tsrc/shell/index.ts\n100644 blob 876a6e4bf6675deee897456b5719f76ced9d50d6\tsrc/shell/input.ts\n100644 blob 5a2cda6417f2f28af38b33f2d32a56271c0f5a58\tsrc/shell/locale.ts\n100644 blob 9ef32debb312ef1c123f0f09cb8cdad934765b8d\tsrc/shell/parser.ts\n100644 blob be8739ee6b6c9e9323c559aff15f2dd27ce8271c\tsrc/shell/pattern.ts\n100644 blob 23e2cd1d1b7d62d41d0554453879e9f15347c08d\tsrc/shell/runtime.ts\n100644 blob 190d991dd2ee0b0ec8639b29189f0164a590bef9\tsrc/shell/shell.ts\n100644 blob 8f7c766d5dd2d6b3ded4dedd3385b2bd2380cca4\tsrc/shell/types.ts\n",
+  "supplementCliNote": "Optional new-label argument added after its recorded default-label run; it changes only evidence label selection, not tests, source or environment correction.",
+  "files": [
+    {
+      "path": "tests/fs/mount-identity-review/CLOSURE_REVIEW.md",
+      "sha256": "4ce0257f975231949b161b16d765fea2464c80669dc25470659a34ed6bcc5b23"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/closure-capture.mjs",
+      "sha256": "7e14c3b3a892d67246d7db84010b530cdd1ace6fefc1929b99ebf3c88bdbc377"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/closure-fs-tsconfig.json",
+      "sha256": "46e1dbdeac1db64bacccbca4135393158b64b30facf965b952a51215e1a6eb6a"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/closure-seven-fs-tsconfig.json",
+      "sha256": "d3413f9d6df8c3d1489b97177f8fe4ba2049effeaf0f382405ac09bcb2eac062"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/closure-supplement.mjs",
+      "sha256": "6db02c23e334466c455bd6b2b05916ccf9af73ce99b9b50155cedf43d2db0abe"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/contract-edges.test.ts",
+      "sha256": "0b21a6e8a5a0d481ad91a35c7b12301da5aa7c39c1addd4c602ca392cfd6c71f"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/artifact-index.json",
+      "sha256": "a0e9219aa099b816476849344bdad8a2e367f0a9a38c5cfd6d8204093f6e3fa6"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/current-global-types.json",
+      "sha256": "ae7d7c5b9ee2113eabe7a5beddfd7a977b88f891ef1c9196de15d135bb1d82a6"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/diagnostics8.json",
+      "sha256": "4567d2815fc2d2b43f12e4287afd20630e17b5f15184b492170be093c24ff53d"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/final-state.json",
+      "sha256": "40b802bbe7bf1be7d89b9aa5b288cb4b442a12b7bacd085fe71e45e304789de5"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fixed-contract-edges.json",
+      "sha256": "9b1a20f318f45e01b010e1fcffef69de118d40a86afc58cb6aa6064eddbe5e7c"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fixed-fs-types.json",
+      "sha256": "1ebd6a8d6ec1fa0c6f566b8162ffe4df0f682967bcbe6d485313a0f0ae330357"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fixed-independent19.json",
+      "sha256": "db9257c8fc7b23799b9c52d4ed05b1b51b0b04202454d76d12f326e61dbd64fe"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fixed-native12.json",
+      "sha256": "6beaeed19b39978c5b094ab914b8a515a87bea823d3c4d4c6dc2eccca2779bd4"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fixed-original4.json",
+      "sha256": "cfb139a14a48b81fafa1a54ca6354ac3a62c73014751211c1913158bfbf49527"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fixed-own-types.json",
+      "sha256": "83f4e2fe082df9fda775ac81f2bf5dbd3edc1a1c9c29b35e5b64b4d185f76fb2"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fixed-required49.json",
+      "sha256": "5c6f0c16b10ba1ba9860bc9f2dc05e0d2623a2a54f673dd8e37126e486a6b669"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fs-conformance.json",
+      "sha256": "d345747161f854a9fe2655be055b999e9ece42350439659ef00ad9d99ca8d12b"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fs-memory.json",
+      "sha256": "0d743f51cfe41653a746494763f0fcba730400f91292287ca6f104e42a133869"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fs-mount.json",
+      "sha256": "fa76e163acbe4b9722b3dd9e0db3f535fffb7be448805fa3816cc57684953437"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fs-overlay.json",
+      "sha256": "47d9f27fbdaef55628f8634399ab4286fb02c1bba163caf19fbe39b14fd5e137"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fs-readonly.json",
+      "sha256": "25c4609ad508cfe1113130967e58de429475561752cd2c2cdf924cc2dabfc4de"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fs-real.json",
+      "sha256": "02260532d17ca37e0b51eadf3a795afbb02f2af4806589c3eaba10103648f030"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fs-s3.json",
+      "sha256": "47b3a4f6ad549b614afdb66ef88bf8118993896f4a5a4415848b376edb7a52dc"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fs-webdav.json",
+      "sha256": "80b7b4bdf0cbee708b8c15a6e18c3ee079e8249fe6add070143887ba6a92530c"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/mutant-generic-delegation-before-unknown-guard.json",
+      "sha256": "20c59a75a3428763784355727ccbf6446273d1aaad4e9094eecc5355fa069b22"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/mutant-missing-target-exclusive-removed.json",
+      "sha256": "3a6583c500bec41764f62dc0cc3f76105910187ffd3716c1b2b36c3ce1377dbd"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/mutant-mount-alias-guard-removed.json",
+      "sha256": "e11efb80087a1a8eb80fef930483737a4eb9a138a53e85170102207787464066"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/mutant-native-scope-per-instance.json",
+      "sha256": "f3429c22064a05173deac00861733984bd2232edfa2e76f4bbd603c36e86579a"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/mutant-overlay-scope-forwarding-removed.json",
+      "sha256": "9ad6a2e0fe87aef65b89e2a0dc68b4c4e8d672c555e81d29625bfbd4412b8911"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/mutant-readonly-scope-forwarding-removed.json",
+      "sha256": "482cf4ea72087cdf279dc69412c657bcf4290e09edeedc81a615b49087814933"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/mutant-unknown-identity-guard-removed.json",
+      "sha256": "5fadde8297e869a0a06377a726462a3ff3b12a4b3e6623c64e5d787cd5e185bd"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/mutation-effects.json",
+      "sha256": "343cf2aa9e4e2c566621d8269b151dc16d3e73926419a51f0d2e6a9d9f47dc55"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/mutation-provenance.json",
+      "sha256": "d4657755a293b60a9cd5f70004fcb72b4e23a61a10842c385f60026a4e78d323"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/previous-original4.json",
+      "sha256": "3801821f8fee56c8eeaf0b80bac429fb071b69461cafa88884b61d068affcdba"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/previous-required49.json",
+      "sha256": "8662cfd5f1927a389d4156d323e7b811ccc1d77d6d6cf683e56b506ee1aaa7d0"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/provenance.json",
+      "sha256": "e550a052371990118081d3daec3c95b4c5b91c3af9c1b77b80dcfd21064f43d2"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/restored-independent-and-edges.json",
+      "sha256": "ce75170da5ad66264e5582a77b5a4752f67c5186d2ab5ea3b2e59f15c0ef8457"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/revised-matrix79.json",
+      "sha256": "aabd836fbf73e71657fa97f35acae8b41aee65922a5ddf74d08ca7f24f28610a"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/safety-adapters.json",
+      "sha256": "526d1bd1e22b6af401b0cf43cfa50a3d1804e162b53e959d5ce90880a8ae94b1"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/safety-remote24.json",
+      "sha256": "64655f3d188c6df1f9baa8e1f2bbd34ba31d1813f0b59b215acc82bba7252280"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/safety-s3-bounded.json",
+      "sha256": "04784ecef96469559a0a708d738d416fcbe3f90b370b6ab6de385a44f1dfaad8"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/safety-s3-policy.json",
+      "sha256": "59a0bf0f44d7abed9504e5af76b6a9bc5a815035ac675b54d2961128fb1b4e9f"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/socket-path-recheck.json",
+      "sha256": "8316f202e7fec9987fc4f03254c3db7d179a5696c8a5213392409e7697bf6d2e"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/summary.json",
+      "sha256": "48bac8ee69d5570675f8b43f8f5267f9fffdf6813acba722a5f1e09ca65aaa89"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/tooling-cache-cleanup.json",
+      "sha256": "ea721925276b19cce1b81e0c6e83f4cbeb495d87c5165f331074496659d96695"
+    }
+  ]
+}

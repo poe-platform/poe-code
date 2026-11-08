@@ -1,0 +1,318 @@
+{
+  "schema": "webdav-directory-access-seal/v1",
+  "sealedAt": "2026-08-28T03:36:21.101Z",
+  "headAtSeal": "59ffe78652669796db19592c48c9cd5c0b1477c6",
+  "ownership": "tests/fs/webdav/directory-access-independent-20260828",
+  "allowedMembers": [
+    "DECLARED-CONTRACT.md",
+    "MANIFEST.json",
+    "PROTOCOL.md",
+    "VALIDATION.json",
+    "cases.mjs",
+    "typed-inputs.ts",
+    "validate.mjs"
+  ],
+  "files": {
+    "DECLARED-CONTRACT.md": "2eea1c7c4338ad1d25d2c737e364c834efd77e79d79d827230ece9834aa47ee0",
+    "PROTOCOL.md": "8626b19d58ee822e989f3784bd2272cd15e625df2342c814ca3c09a656796e55",
+    "cases.mjs": "7c2da9534975aa90ddc3bdcd23e727926e53630dd0f57e0c39f7026bf329fb34",
+    "typed-inputs.ts": "ed7561849eb048fafabba46fb80201fd006be5fb62a442f307e69c1812700614",
+    "validate.mjs": "ebb731419f5c39287f7318c0f11745f8965ada894bf2ffdad2ba13056c38201e"
+  },
+  "commits": {
+    "preseal": {
+      "commit": "603ba3371736373316e419c2327bc68c4d96dba9",
+      "tree": "2297cad33b6a0052f4a878770ffd60e71ef6d9fb",
+      "rawCommitSha256": "e1721f9a758bb6f4c0ddf6f7d1eb6cfb5e58814b54c2a23415eaea8f5ffb67a1"
+    },
+    "proposal": {
+      "commit": "6bd3a0d98d3043c14ed0fa80dedb36b72b65d9e5",
+      "tree": "3c254035aa3416b63330953df2b1b46ba3f3df3f",
+      "rawCommitSha256": "ce5591b87d49c982a37eb74a320a7147f21a3b0596bef7ea27598413658feaad"
+    },
+    "baseline": {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "tree": "48e5ae39ce98e1c8e416bae77da40d88b75e1db5",
+      "rawCommitSha256": "285999c1e01e52076a2ae9075db6cafd26c791a73a7c5af24cd9ce02e1039f59"
+    },
+    "acceptance": {
+      "commit": "0a7e062806537c1bcca3bdeece47e357a302e4b0",
+      "tree": "86fbb7124e7f3dffc56ff50fe98e9bbd22bda5fe",
+      "rawCommitSha256": "4e4e38cee07b3705ac69d51af9fc0021c04fde17427e3140add1716282006c0b"
+    }
+  },
+  "protectedInputs": {
+    "package.json": {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "sha256": "64846cc0868630f863fade5119cef195a949aa0ed36ecc341bd9a076d6c363e2"
+    },
+    "src/contracts/errors.ts": {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "sha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840"
+    },
+    "src/contracts/filesystem.md": {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "sha256": "fb74e8fc3841c06f89e8fa93fad55cdfac20788de4eee13db6b8a8072b963d2a"
+    },
+    "src/contracts/filesystem.ts": {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "sha256": "e2343faf818a15ad7afc06618b3f8856cf14f36c86574cc49c85d51a13e7e522"
+    },
+    "src/contracts/index.ts": {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "sha256": "21b09d18564ec4f586542af67a1e26f0198cc20938563f8b572cb5c4b38f676c"
+    },
+    "src/fs/readonly/index.ts": {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "sha256": "2d5057de23f90cfef1f98c45f41063545bcd6c5a4439aa57d9aa0a058645b7b2"
+    },
+    "src/fs/webdav/PRODUCTION_CHECKPOINT.md": {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "sha256": "ee00578d845be249d82cef70c999df1c92e30d1c5498d2da3a8e3191d5e1f6f2"
+    },
+    "src/fs/webdav/README.md": {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "sha256": "9a56aaeabed8f9e0bdc7ef93326f1f25ec0fec23c733150f7b474ed29cb8ae36"
+    },
+    "src/fs/webdav/index.ts": {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "sha256": "d359fa8a89c30fa7fa06b256c524b4bc1022b3217763051961e579c5fcfd7764"
+    },
+    "src/fs/webdav/resource-id.ts": {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "sha256": "ee5720f77a352503368d672caaf5237e45863bde88cf69b947d14178fcda49f2"
+    },
+    "src/fs/webdav/webdav.ts": {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "sha256": "e66a66e2745852c6bd12be12a18c855df069152cf6b8089d2ecee8880c62de94"
+    },
+    "src/fs/webdav/xml.ts": {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "sha256": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1"
+    },
+    "src/index.ts": {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "sha256": "6d847ff37316fcdc851145024a422cb6541f0cbeab15895c5a972d7f1f97bb6b"
+    },
+    "src/shell/runtime.ts": {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "sha256": "b44d60ed225c2d2add07499b965043d104491edf837cb5cf7f07096230286169"
+    },
+    "tests/fs/webdav/directory-access-review-20260828/FREEZE.json": {
+      "commit": "6bd3a0d98d3043c14ed0fa80dedb36b72b65d9e5",
+      "sha256": "819cbfcc4cb06f218b650a56d367a5afe62932bab9b1059cc50c3b662fcb652d"
+    },
+    "tests/fs/webdav/directory-access-review-20260828/POLICY-PROPOSAL.md": {
+      "commit": "6bd3a0d98d3043c14ed0fa80dedb36b72b65d9e5",
+      "sha256": "7b3254facd93439ba6ec42aef6181e2e2923d5965629a2101efc93d337a380c6"
+    },
+    "tests/fs/webdav/directory-access-review-20260828/README.md": {
+      "commit": "6bd3a0d98d3043c14ed0fa80dedb36b72b65d9e5",
+      "sha256": "2c7e3f38769e9f81618d096f179db21b022600005790a042bd20e1ed4a819a17"
+    },
+    "tests/fs/webdav/directory-access-review-20260828/ROOT-ACCEPTANCE.md": {
+      "commit": "0a7e062806537c1bcca3bdeece47e357a302e4b0",
+      "sha256": "30c2903afebeee777a32ca24b320855ac5dc90734b3ce0b4448b72ab1ff81fbb"
+    },
+    "tests/fs/webdav/directory-access-review-20260828/cases.json": {
+      "commit": "6bd3a0d98d3043c14ed0fa80dedb36b72b65d9e5",
+      "sha256": "f21d93e5595d1796ea11a9a6fd628df6e7a0e488ef848da5d412f64638adabde"
+    },
+    "tests/fs/webdav/directory-access-review-20260828/observations-01.json.gz.base64": {
+      "commit": "6bd3a0d98d3043c14ed0fa80dedb36b72b65d9e5",
+      "sha256": "d877086e3de5557c2fcbba947d3d377725923466fa1f40ab34631955682f7c46"
+    },
+    "tests/fs/webdav/directory-access-review-20260828/primary-v2.json": {
+      "commit": "6bd3a0d98d3043c14ed0fa80dedb36b72b65d9e5",
+      "sha256": "fc5d58fbfbff2fc06ebe59b833be5168990cdb63c03f9a52e16dac75bbd80b6a"
+    },
+    "tests/fs/webdav/directory-access-review-20260828/primary.json": {
+      "commit": "6bd3a0d98d3043c14ed0fa80dedb36b72b65d9e5",
+      "sha256": "ec99b62eb0c0f68a87082cc9bd50088a0acacac37c0c1a2cacf8481290674bc4"
+    },
+    "tests/fs/webdav/directory-access-review-20260828/primary.mjs": {
+      "commit": "6bd3a0d98d3043c14ed0fa80dedb36b72b65d9e5",
+      "sha256": "edd0ab1e131a5922676ee125d9ad59b321d28cbcc865a8d9cd9b907091cd496b"
+    },
+    "tests/fs/webdav/directory-access-review-20260828/run.mjs": {
+      "commit": "6bd3a0d98d3043c14ed0fa80dedb36b72b65d9e5",
+      "sha256": "96622560758d0c1d79a73c89151af59adf42702cc56a5084fa26ce60edcd1046"
+    },
+    "tests/fs/webdav/directory-access-review-20260828/verify.mjs": {
+      "commit": "6bd3a0d98d3043c14ed0fa80dedb36b72b65d9e5",
+      "sha256": "9ab91b57e58394175c2ef86d68cfe601b9d380a33071bedeca2551f0613cea27"
+    },
+    "tests/integration/combined77-stage2-independent-20260828/actual-01.json.gz.base64": {
+      "commit": "6bd3a0d98d3043c14ed0fa80dedb36b72b65d9e5",
+      "sha256": "583f870007f3fe4cd2f9d1b8e979e715b0d8bd975e486a88d2716d705063d0e6"
+    }
+  },
+  "exposedBodies": [
+    "src/fs/webdav/webdav.ts",
+    "src/fs/readonly/index.ts"
+  ],
+  "exposedDocsAndTypes": [
+    "src/fs/webdav/README.md",
+    "src/contracts/filesystem.ts",
+    "src/contracts/filesystem.md",
+    "src/index.ts",
+    "src/fs/webdav/index.ts",
+    "package.json"
+  ],
+  "exposedFixtures": [
+    "tests/fs/webdav/directory-access-review-20260828/FREEZE.json",
+    "tests/fs/webdav/directory-access-review-20260828/README.md",
+    "tests/fs/webdav/directory-access-review-20260828/POLICY-PROPOSAL.md",
+    "tests/fs/webdav/directory-access-review-20260828/ROOT-ACCEPTANCE.md",
+    "tests/fs/webdav/directory-access-review-20260828/cases.json",
+    "tests/fs/webdav/directory-access-review-20260828/run.mjs"
+  ],
+  "package": {
+    "evidence": "tests/integration/combined77-stage2-independent-20260828/actual-01.json.gz.base64",
+    "compressedEvidenceSha256": "88fadf81a9ab984e4c25ff26f9f1d13331967549c0dbe08fbce268ee7ed1da12",
+    "archiveSha256": "13fe54de1cf900d587855e276375fdf72ed1ed0d0e0625cf7ef00730f2bb74c9",
+    "entries": 846,
+    "publicImportSpecifier": "virtual-bash",
+    "runtimeExport": "./dist/index.js",
+    "typesExport": "./dist/index.d.ts",
+    "runtimeEntrySha256": "37a94a97433b8d5b654696d1c1332c88b3aeb63fd963a51a997568d4295904a7",
+    "typesEntrySha256": "d3e61ecf6b1db842cdfb51c137242c86d03fcf1d4678c4e210ab0ee923aa09f1",
+    "historicalAuthorImport": {
+      "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-dav-access-design-hStCyK/node_modules/virtual-bash/dist/index.js",
+      "sha256": "37a94a97433b8d5b654696d1c1332c88b3aeb63fd963a51a997568d4295904a7"
+    },
+    "runtimeImportedByThisFreeze": false,
+    "declarationHashAuthority": "packageInventory inside authenticated compressedEvidenceSha256",
+    "loadedDeclarations": [
+      "dist/commands/archive/index.d.ts",
+      "dist/commands/archive/internal.d.ts",
+      "dist/commands/bytes/index.d.ts",
+      "dist/commands/column/column.d.ts",
+      "dist/commands/column/index.d.ts",
+      "dist/commands/column/options.d.ts",
+      "dist/commands/diff-patch/index.d.ts",
+      "dist/commands/diff-patch/shared.d.ts",
+      "dist/commands/du/du.d.ts",
+      "dist/commands/du/index.d.ts",
+      "dist/commands/du/options.d.ts",
+      "dist/commands/expr/index.d.ts",
+      "dist/commands/expr/internal.d.ts",
+      "dist/commands/file/index.d.ts",
+      "dist/commands/file/shared.d.ts",
+      "dist/commands/grep-aliases/index.d.ts",
+      "dist/commands/html-to-markdown/index.d.ts",
+      "dist/commands/html-to-markdown/options.d.ts",
+      "dist/commands/index.d.ts",
+      "dist/commands/metadata/index.d.ts",
+      "dist/commands/metadata/internal.d.ts",
+      "dist/commands/network/curl.d.ts",
+      "dist/commands/network/index.d.ts",
+      "dist/commands/network/transport.d.ts",
+      "dist/commands/network/types.d.ts",
+      "dist/commands/regex-execution/client.d.ts",
+      "dist/commands/regex-execution/protocol.d.ts",
+      "dist/commands/safejs/index.d.ts",
+      "dist/commands/safejs/options.d.ts",
+      "dist/commands/safejs/types.d.ts",
+      "dist/commands/search/index.d.ts",
+      "dist/commands/search/options.d.ts",
+      "dist/commands/split/index.d.ts",
+      "dist/commands/split/options.d.ts",
+      "dist/commands/stream-format/index.d.ts",
+      "dist/commands/stream-format/shared.d.ts",
+      "dist/commands/stream-inspection/index.d.ts",
+      "dist/commands/stream-inspection/shared.d.ts",
+      "dist/commands/structured/index.d.ts",
+      "dist/commands/structured/limits.d.ts",
+      "dist/commands/structured/numbers.d.ts",
+      "dist/commands/table-text/index.d.ts",
+      "dist/commands/table-text/internal.d.ts",
+      "dist/commands/text-programs/index.d.ts",
+      "dist/commands/text-programs/shared.d.ts",
+      "dist/commands/time-env/index.d.ts",
+      "dist/commands/time-env/shared.d.ts",
+      "dist/commands/tree/index.d.ts",
+      "dist/commands/tree/options.d.ts",
+      "dist/commands/tree/tree.d.ts",
+      "dist/commands/which/index.d.ts",
+      "dist/commands/which/options.d.ts",
+      "dist/commands/which/which.d.ts",
+      "dist/contracts/command.d.ts",
+      "dist/contracts/errors.d.ts",
+      "dist/contracts/filesystem.d.ts",
+      "dist/contracts/index.d.ts",
+      "dist/contracts/io.d.ts",
+      "dist/contracts/output.d.ts",
+      "dist/contracts/path.d.ts",
+      "dist/contracts/plugin.d.ts",
+      "dist/fs/memory/index.d.ts",
+      "dist/fs/mount/index.d.ts",
+      "dist/fs/overlay/index.d.ts",
+      "dist/fs/readonly/index.d.ts",
+      "dist/fs/real/index.d.ts",
+      "dist/fs/s3/filesystem.d.ts",
+      "dist/fs/s3/http/index.d.ts",
+      "dist/fs/s3/http/transport.d.ts",
+      "dist/fs/s3/http/types.d.ts",
+      "dist/fs/s3/index.d.ts",
+      "dist/fs/s3/mock.d.ts",
+      "dist/fs/s3/transport.d.ts",
+      "dist/fs/webdav/index.d.ts",
+      "dist/fs/webdav/webdav.d.ts",
+      "dist/index.d.ts",
+      "dist/integrations/safejs/filesystem.d.ts",
+      "dist/integrations/safejs/index.d.ts",
+      "dist/integrations/safejs/shell.d.ts",
+      "dist/plugins/index.d.ts",
+      "dist/shell/arithmetic.d.ts",
+      "dist/shell/index.d.ts",
+      "dist/shell/parser.d.ts",
+      "dist/shell/shell.d.ts",
+      "dist/shell/types.d.ts"
+    ]
+  },
+  "summary": {
+    "schema": "webdav-directory-access-independent/v1",
+    "scenarios": 102,
+    "groups": {
+      "navigation-freshness": 5,
+      "metadata-namespace": 15,
+      "file-type": 4,
+      "ordering": 36,
+      "mode5-races": 5,
+      "input-bounds": 17,
+      "response-limits": 4,
+      "lookup-races": 4,
+      "cancellation-cleanup": 9,
+      "compatibility": 3
+    },
+    "invariants": 8,
+    "positiveTypeAssertions": 8,
+    "negativeTypeAssertions": 10,
+    "uncalledPublicCallExpressions": 5,
+    "expandedDataSha256": "7509db24bfa45f6e806d97cd5578db72cdd0eaaa2748f2f8f77a39fac2469cfb",
+    "maximumRequestTrace": 512,
+    "declarationCount": 85,
+    "declarationInventorySha256": "a6b782b0ae81f09e08c076a3d758ff0ac9f49b82cfab745453c9345c72451a3e",
+    "archiveEntriesAuthenticated": 846,
+    "implementationExecutions": 0,
+    "authorProfileExecutions": 0,
+    "serviceExecutions": 0
+  },
+  "tooling": {
+    "node": "v22.22.2",
+    "nodeBinarySha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "typescript": "5.9.3",
+    "typescriptCompilerSha256": "3ae902c92cc44dace175c0e69e13a4b0899f6983c6121d76b9ab8dd5795e7675"
+  },
+  "chronology": {
+    "firstBaselineAuthentication": {
+      "notEarlierThan": "2026-08-28T03:21:39Z",
+      "order": "completed-before-accepted-body-inspection"
+    },
+    "candidateRouted": false,
+    "providerInputsBeforeAndAfter": "accepted-baseline-unchanged",
+    "precodeQualification": "before any future routed candidate; no claim about unseen work elsewhere",
+    "originalForeignStaging": []
+  }
+}

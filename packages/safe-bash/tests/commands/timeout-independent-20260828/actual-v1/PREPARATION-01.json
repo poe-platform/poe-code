@@ -1,0 +1,10 @@
+{
+  "phase": "unsealed binding preparation, before materialization/build/product execution",
+  "command": "node recipe/prepare.mjs",
+  "exitCode": 1,
+  "actualProductCases": 0,
+  "cause": "Verifier read manifest.baseline.commit, but the authenticated manifest's baseline field is the exact commit string, not an object.",
+  "diagnostic": "AssertionError [ERR_ASSERTION]: actual undefined, expected '5137a74ec855a32d8a8860eb66b62eb44d11e290', recipe/prepare.mjs:13:8",
+  "correction": "Read manifest.baseline directly; identical expected commit retained. No candidate, frozen input, expectation or product result changed.",
+  "captureQualification": "Exact principal diagnostic retained from tool output; no separate full-terminal capture file was created. This is not a product/control-cohort attempt."
+}

@@ -1,0 +1,4 @@
+{
+  "scratchRemoved": true,
+  "processChildren": "synchronous native/build/driver children waited; driver terminates owned workers in finally; subprocess timeout is an infrastructure failure, not semantic result"
+}

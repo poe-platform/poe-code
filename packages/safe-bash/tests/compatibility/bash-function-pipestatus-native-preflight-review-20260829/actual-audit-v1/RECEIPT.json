@@ -1,0 +1,106 @@
+{
+  "schema": "native26-independent-actual-data-audit-v1",
+  "decision": "ACCEPT_FINITE_NATIVE_OBSERVATIONS",
+  "source": "5861ec9a8750de90bf38f93a2cd0df66198e8d9f",
+  "actualSealSha256": "98b005cf2ed86002f08da295161cd6b54546ee509164be9b549ba926546fbf42",
+  "checkedAt": "2026-08-29T13:36:43.082Z",
+  "checks": 7872,
+  "controls": 8,
+  "observations": 26,
+  "artifactFiles": 125,
+  "captureFiles": 109,
+  "captureBytes": 104198,
+  "sourcePinRecords": 154,
+  "distinctSourcePaths": 115,
+  "tools": 4,
+  "managedStarts": 27,
+  "casePids": [
+    7987,
+    7989,
+    7990,
+    7996,
+    7997,
+    8001,
+    8003,
+    8007,
+    8011,
+    8020,
+    8025,
+    8029,
+    8037,
+    8041,
+    8047,
+    8049,
+    8063,
+    8066,
+    8076,
+    8082,
+    8089,
+    8100,
+    8111,
+    8118,
+    8126,
+    8134
+  ],
+  "recordedCaseExitCloseAbsentGroups": 26,
+  "sourceForkReservations": "19 UNOBSERVED",
+  "owner": {
+    "pid": 7985,
+    "started": 1788009912097,
+    "reportedExit": 0,
+    "reportAuthority": "ROOT handoff; no independently captured approval-service or owner OS-exit receipt in sealed artifact set",
+    "artifactLedgerActive": 1,
+    "sourceExitMapping": "halted=false maps0 after RESULTS; artifact alone does not independently observe outer tool exit"
+  },
+  "fdAdmission": "successful AUTHENTICATED_START is source-correlated reachability after validateOuter; retained bootstrap files match recorded original identities and finalized0B captures; no new FD read or inode probe on old descriptors",
+  "approval": "exact approved-command DATA matches preflight/GO/slot receipt; no independent external tool-service approval-state attestation",
+  "window": {
+    "preflight": "2026-08-29T13:24:49.637Z",
+    "ownerStarted": "2026-08-29T13:25:12.097Z",
+    "lastCaseFinished": "2026-08-29T13:25:17.686Z",
+    "ownerDeadline": "2026-08-29T13:35:12.097Z",
+    "publicationDeadline": "2026-08-29T13:32:06.601Z",
+    "goExpiry": "2026-08-29T13:55:57.530Z"
+  },
+  "matrixSha256": "df4d749cce79b9bf923be23d0f464b252d407c1878fdf9125e2f81893897d800",
+  "policy": [
+    {
+      "id": "initial",
+      "evidence": "P02 first command <>\\n; no prologue",
+      "justified": "No visible initial [0] in this pinned local invocation",
+      "unproved": "unset versus empty, array shape/type, GNU5.3 startup"
+    },
+    {
+      "id": "readonly",
+      "evidence": "P16 readonly PIPESTATUS; false; prints <>\\n",
+      "justified": "Exact visible output under this initial binding state",
+      "unproved": "readonly pre-existing indexed-array internal-update permission; no prior indexed binding established"
+    },
+    {
+      "id": "absent",
+      "evidence": "P17 unset PIPESTATUS; next printf prints <0>\\n",
+      "justified": "Visible0 after unset command completes",
+      "unproved": "exact internal type/recreation mechanism beyond this observation"
+    },
+    {
+      "id": "present-nonarray",
+      "evidence": "No dedicated cohort case",
+      "justified": "none from native26",
+      "unproved": "preservation policy remains source/proposal only"
+    },
+    {
+      "id": "current-local",
+      "evidence": "P18 inner:<>\\nouter:<0>\\n",
+      "justified": "Exact inner/outer visible values",
+      "unproved": "local binding scalar/array type and general current-visible-selection semantics"
+    }
+  ],
+  "limitations": [
+    "local pinned Bash3.2 only; no fresh version probe or GNU5.3 inference",
+    "no native commands/product/Workers/old PID probes in this DATA audit",
+    "F05 final effect only; F09 accepted definition not invocation",
+    "raw case receiptPublished=false correctly mapped to pre-credit layer; journal and RESULTS separately verified",
+    "19 fork reservations not measured; known-role-only no OS containment/universal census",
+    "two failed source locator reads preserved, no change to underlying26 records/goldens"
+  ]
+}

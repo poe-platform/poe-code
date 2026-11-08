@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "sealedAt": "2026-08-28T04:05:57.902Z",
+  "status": "ROOT_RELEASE_CONDITION_BLOCKS_UNCHANGED_E062",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "driverSource": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a",
+  "driverSha256": "3d8d2a15214f12c07b64e3223f5e0088989845b8f60a74abb0a521dba32fa018",
+  "independentReview": "5c32f061c36081919a21cbc7e77b2865f0c49c0a",
+  "bindingReview": "8dd78d7d099969597989ddcc9bec73e929ebe223",
+  "releasePacket": "39dd983bf60c6934d9d8721e39557eae487d88ef",
+  "files": {
+    "ROOT-AUTHORITY.json": {
+      "bytes": 1758,
+      "sha256": "2dbf8f01e41b2c959636fc414ebd68e0a0f90f7d8c395827664f0153249d3577"
+    },
+    "FINDINGS.json": {
+      "bytes": 5757,
+      "sha256": "cd87999c4faf9949580e7a587f147f7a448a1388d6bd53472668e91094d4feef"
+    },
+    "README.md": {
+      "bytes": 5596,
+      "sha256": "3c80d65dfa69221ee26305c73f86836d5ff77d02c86f5a78c13fb33ca5496ec6"
+    }
+  },
+  "newGateLaunches": 0,
+  "phaseExecutions": 0,
+  "newSourceMaterializations": 0,
+  "newInstructionCopies": 0,
+  "scope": "Append-only metadata and root-conditional authority record; no executable release or source correction."
+}

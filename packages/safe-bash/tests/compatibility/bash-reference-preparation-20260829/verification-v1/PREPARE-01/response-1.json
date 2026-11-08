@@ -1,0 +1,18 @@
+{
+  "url": "https://savannah.gnu.org/maintenance/GpgKeyrings/",
+  "cap": 131072,
+  "name": "keyring-guidance.html",
+  "startedAt": "2026-08-29T04:59:46.699Z",
+  "bytes": 7704,
+  "status": 200,
+  "headers": {
+    "date": "Sat, 29 Aug 2026 04:59:47 GMT",
+    "content-type": "text/html",
+    "content-length": "7704",
+    "location": null
+  },
+  "sha256": "75d81371f0c5fb2b7aa09407530d28cc136bbcd8c5d8bcbadb9d11a99e925d12",
+  "capture": "keyring-guidance.html.data",
+  "disposition": "PUBLISHER_RESPONSE_NOT_YET_ATTRIBUTED_SIGNER",
+  "endedAt": "2026-08-29T04:59:47.216Z"
+}

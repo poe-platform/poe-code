@@ -1,0 +1,4 @@
+import { capture, candidate, owned } from './supervisor.mjs';
+import { resolve } from 'node:path';
+await capture('consumer-typecheck',process.execPath,[resolve(candidate,'node_modules/typescript/bin/tsc'),'--noEmit','--strict','--target','ES2023','--module','NodeNext','--moduleResolution','NodeNext','--types','node','--typeRoots',resolve(candidate,'node_modules/@types'),resolve(owned,'consumer.mts')]);
+await capture('consumer-compiled-import',process.execPath,[resolve(owned,'consumer-runtime.mjs')]);

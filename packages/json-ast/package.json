@@ -1,0 +1,29 @@
+{
+  "name": "@poe-code/json-ast",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "lint": "eslint src && tsc --noEmit && tsc -p tsconfig.test.json",
+    "test": "cd ../.. && vitest run packages/json-ast",
+    "test:unit": "cd ../.. && vitest run packages/json-ast"
+  },
+  "dependencies": {
+    "@poe-code/safe-fs": "*"
+  }
+}

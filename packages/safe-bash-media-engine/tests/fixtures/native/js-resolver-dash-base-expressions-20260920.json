@@ -1,0 +1,267 @@
+{
+  "scope": "Original native fixtures. Paired debug-open diagnostics are partial native access traces, not kernel coverage or proof of runtime mediation. Product discovery never reads these traces or executes native commands.",
+  "captured_utc": "2026-09-20T19:33:44.273Z",
+  "cwd": "/scratch/case",
+  "image_digest": "sha256:b1948740b8c8545eb21870f50d817f40c7fef5ab3f29700507e1a2cea9fd0663",
+  "executable": "/opt/ffmpeg/ffprobe",
+  "executable_sha256": "91dae15342bcbd3b8b3935d0fa0299ae47c5b59ef9cbd80f9d34547adb10fc9d",
+  "fixture_sha256": "f339abc08ba1da46d74bb3a1ccb6fd1093e95e99c11aaa2e7f75a7e3e5ee56a3",
+  "cases": [
+    {
+      "id": "representation-id",
+      "base": "../media/Case-$RepresentationID$.mp4",
+      "target": "media/Case-v.mp4",
+      "operand": "lists/representation-id.mpd",
+      "manifest": "<MPD xmlns=\"urn:mpeg:dash:schema:mpd:2011\" type=\"static\" mediaPresentationDuration=\"PT1S\" minBufferTime=\"PT1S\"><Period><AdaptationSet mimeType=\"video/mp4\"><Representation id=\"v\" bandwidth=\"7\"><BaseURL>../media/Case-$RepresentationID$.mp4</BaseURL></Representation></AdaptationSet></Period></MPD>",
+      "runs": [
+        {
+          "argv": [
+            "-v",
+            "error",
+            "-f",
+            "dash",
+            "-show_entries",
+            "stream=width,height",
+            "-of",
+            "json",
+            "lists/representation-id.mpd"
+          ],
+          "status": 0,
+          "signal": null,
+          "stdout": "{\n    \"programs\": [\n        {\n            \"streams\": [\n                {\n                    \"width\": 2,\n                    \"height\": 2\n                }\n            ]\n        }\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"width\": 2,\n            \"height\": 2\n        }\n    ]\n}\n",
+          "accesses": [],
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "argv": [
+            "-v",
+            "debug",
+            "-f",
+            "dash",
+            "-show_entries",
+            "stream=width,height",
+            "-of",
+            "json",
+            "lists/representation-id.mpd"
+          ],
+          "status": 0,
+          "signal": null,
+          "stdout": "{\n    \"programs\": [\n        {\n            \"streams\": [\n                {\n                    \"width\": 2,\n                    \"height\": 2\n                }\n            ]\n        }\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"width\": 2,\n            \"height\": 2\n        }\n    ]\n}\n",
+          "accesses": [
+            {
+              "access": "read",
+              "path_hex": "6c697374732f726570726573656e746174696f6e2d69642e6d7064"
+            },
+            {
+              "access": "read",
+              "path_hex": "6c697374732f2e2e2f6d656469612f436173652d762e6d7034"
+            }
+          ],
+          "stderr_sha256": "b3e8d4b89861218149505636e61c53841be9633a8702da008b16123912e407c2"
+        }
+      ],
+      "equal_status_stdout": true,
+      "fixtures_unchanged": true
+    },
+    {
+      "id": "case-insensitive-bandwidth",
+      "base": "../media/case-$bAnDwIdTh$.mp4",
+      "target": "media/case-7.mp4",
+      "operand": "lists/case-insensitive-bandwidth.mpd",
+      "manifest": "<MPD xmlns=\"urn:mpeg:dash:schema:mpd:2011\" type=\"static\" mediaPresentationDuration=\"PT1S\" minBufferTime=\"PT1S\"><Period><AdaptationSet mimeType=\"video/mp4\"><Representation id=\"v\" bandwidth=\"7\"><BaseURL>../media/case-$bAnDwIdTh$.mp4</BaseURL></Representation></AdaptationSet></Period></MPD>",
+      "runs": [
+        {
+          "argv": [
+            "-v",
+            "error",
+            "-f",
+            "dash",
+            "-show_entries",
+            "stream=width,height",
+            "-of",
+            "json",
+            "lists/case-insensitive-bandwidth.mpd"
+          ],
+          "status": 0,
+          "signal": null,
+          "stdout": "{\n    \"programs\": [\n        {\n            \"streams\": [\n                {\n                    \"width\": 2,\n                    \"height\": 2\n                }\n            ]\n        }\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"width\": 2,\n            \"height\": 2\n        }\n    ]\n}\n",
+          "accesses": [],
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "argv": [
+            "-v",
+            "debug",
+            "-f",
+            "dash",
+            "-show_entries",
+            "stream=width,height",
+            "-of",
+            "json",
+            "lists/case-insensitive-bandwidth.mpd"
+          ],
+          "status": 0,
+          "signal": null,
+          "stdout": "{\n    \"programs\": [\n        {\n            \"streams\": [\n                {\n                    \"width\": 2,\n                    \"height\": 2\n                }\n            ]\n        }\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"width\": 2,\n            \"height\": 2\n        }\n    ]\n}\n",
+          "accesses": [
+            {
+              "access": "read",
+              "path_hex": "6c697374732f636173652d696e73656e7369746976652d62616e6477696474682e6d7064"
+            },
+            {
+              "access": "read",
+              "path_hex": "6c697374732f2e2e2f6d656469612f636173652d372e6d7034"
+            }
+          ],
+          "stderr_sha256": "9e97fea4bd2e1f6513365de75e1dd13f5f6e0cdf597ba19c3aff54d915922016"
+        }
+      ],
+      "equal_status_stdout": true,
+      "fixtures_unchanged": true
+    },
+    {
+      "id": "inherited-template",
+      "inherited": "../media/$RepresentationID$/",
+      "base": "Case.mp4",
+      "target": "media/v/Case.mp4",
+      "operand": "lists/inherited-template.mpd",
+      "manifest": "<MPD xmlns=\"urn:mpeg:dash:schema:mpd:2011\" type=\"static\" mediaPresentationDuration=\"PT1S\" minBufferTime=\"PT1S\"><BaseURL>../media/$RepresentationID$/</BaseURL><Period><AdaptationSet mimeType=\"video/mp4\"><Representation id=\"v\" bandwidth=\"7\"><BaseURL>Case.mp4</BaseURL></Representation></AdaptationSet></Period></MPD>",
+      "runs": [
+        {
+          "argv": [
+            "-v",
+            "error",
+            "-f",
+            "dash",
+            "-show_entries",
+            "stream=width,height",
+            "-of",
+            "json",
+            "lists/inherited-template.mpd"
+          ],
+          "status": 1,
+          "signal": null,
+          "stdout": "{\n\n}\n",
+          "accesses": [],
+          "stderr_sha256": "ea61abfa19840f12027da5b76779ccd214afa4638e14b3ba37335e11bee42624"
+        },
+        {
+          "argv": [
+            "-v",
+            "debug",
+            "-f",
+            "dash",
+            "-show_entries",
+            "stream=width,height",
+            "-of",
+            "json",
+            "lists/inherited-template.mpd"
+          ],
+          "status": 1,
+          "signal": null,
+          "stdout": "{\n\n}\n",
+          "accesses": [
+            {
+              "access": "read",
+              "path_hex": "6c697374732f696e686572697465642d74656d706c6174652e6d7064"
+            },
+            {
+              "access": "read",
+              "path_hex": "6c697374732f436173652e6d7034"
+            }
+          ],
+          "stderr_sha256": "89464624279028c25f4de8be7336dcae07458e9882e2d0b7817d15f91c98411d"
+        }
+      ],
+      "equal_status_stdout": true,
+      "fixtures_unchanged": true
+    },
+    {
+      "id": "literal-frame-and-format",
+      "base": "../media/Case-$Number$-$Bandwidth%05d$.mp4",
+      "target": "media/Case-$Number$-$Bandwidth%05d$.mp4",
+      "operand": "lists/literal-frame-and-format.mpd",
+      "manifest": "<MPD xmlns=\"urn:mpeg:dash:schema:mpd:2011\" type=\"static\" mediaPresentationDuration=\"PT1S\" minBufferTime=\"PT1S\"><Period><AdaptationSet mimeType=\"video/mp4\"><Representation id=\"v\" bandwidth=\"7\"><BaseURL>../media/Case-$Number$-$Bandwidth%05d$.mp4</BaseURL></Representation></AdaptationSet></Period></MPD>",
+      "runs": [
+        {
+          "argv": [
+            "-v",
+            "error",
+            "-f",
+            "dash",
+            "-show_entries",
+            "stream=width,height",
+            "-of",
+            "json",
+            "lists/literal-frame-and-format.mpd"
+          ],
+          "status": 0,
+          "signal": null,
+          "stdout": "{\n    \"programs\": [\n        {\n            \"streams\": [\n                {\n                    \"width\": 2,\n                    \"height\": 2\n                }\n            ]\n        }\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"width\": 2,\n            \"height\": 2\n        }\n    ]\n}\n",
+          "accesses": [],
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "argv": [
+            "-v",
+            "debug",
+            "-f",
+            "dash",
+            "-show_entries",
+            "stream=width,height",
+            "-of",
+            "json",
+            "lists/literal-frame-and-format.mpd"
+          ],
+          "status": 0,
+          "signal": null,
+          "stdout": "{\n    \"programs\": [\n        {\n            \"streams\": [\n                {\n                    \"width\": 2,\n                    \"height\": 2\n                }\n            ]\n        }\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"width\": 2,\n            \"height\": 2\n        }\n    ]\n}\n",
+          "accesses": [
+            {
+              "access": "read",
+              "path_hex": "6c697374732f6c69746572616c2d6672616d652d616e642d666f726d61742e6d7064"
+            },
+            {
+              "access": "read",
+              "path_hex": "6c697374732f2e2e2f6d656469612f436173652d244e756d626572242d2442616e64776964746825303564242e6d7034"
+            }
+          ],
+          "stderr_sha256": "8aadedeb75fb6b4ab52cf9d04be8054fe97d06f694be189690c1965c20ad015f"
+        }
+      ],
+      "equal_status_stdout": true,
+      "fixtures_unchanged": true
+    }
+  ],
+  "capture_argv": [
+    "docker",
+    "--context",
+    "colima-poe-runtime-mediation",
+    "run",
+    "--rm",
+    "-i",
+    "--platform",
+    "linux/amd64",
+    "--read-only",
+    "--network",
+    "none",
+    "--cap-drop",
+    "ALL",
+    "--security-opt",
+    "no-new-privileges",
+    "--pids-limit",
+    "128",
+    "--memory",
+    "768m",
+    "--cpus",
+    "2",
+    "--tmpfs",
+    "/scratch:rw,size=32m,mode=1777",
+    "--tmpfs",
+    "/tmp:rw,size=16m",
+    "--entrypoint",
+    "node",
+    "sha256:b1948740b8c8545eb21870f50d817f40c7fef5ab3f29700507e1a2cea9fd0663",
+    "-"
+  ]
+}

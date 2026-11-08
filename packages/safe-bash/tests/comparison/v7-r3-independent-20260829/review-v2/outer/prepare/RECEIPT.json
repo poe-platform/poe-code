@@ -1,0 +1,38 @@
+{
+  "id": "prepare",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--max-old-space-size=256",
+    "/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/review-v2/prepare-review.mjs"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/review-v2",
+  "captureOpenedBeforeSpawn": true,
+  "pid": 60638,
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  },
+  "errors": [],
+  "signals": [],
+  "observed": {
+    "stdout": 622,
+    "stderr": 0,
+    "records": 0
+  },
+  "retained": {
+    "stdout": 622,
+    "stderr": 0,
+    "records": 0
+  },
+  "globalAbsenceClaim": false,
+  "hashes": {
+    "stdout": "fe0dd8af4ebb2c34bd7d95a1960712498a461e34ab6065e00f3beb6f9f5ffba2",
+    "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "records": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

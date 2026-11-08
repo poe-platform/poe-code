@@ -1,0 +1,18 @@
+[
+  {
+    "argv": [
+      "git",
+      "log",
+      "-1",
+      "--format=%H",
+      "--",
+      "tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/execution-binding.json"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 4635,
+    "status": 0,
+    "signal": null,
+    "stdout": "4d524fd8d8c7f0bfbafba625778e8fa4550acf5f\n",
+    "stderr": ""
+  }
+]

@@ -1,0 +1,18 @@
+{
+  "phase": "compiler-only",
+  "sourceAuthority": "current ROOT explicit one-shot compiler GO after preseal",
+  "review": "5fb0b295e3206386f25ddc95c03d9fc4b3696aa3",
+  "limits": {
+    "totalMs": 600000,
+    "ownedChildren": 8,
+    "peak": 3,
+    "captureBytes": 33554432,
+    "workBytes": 268435456
+  },
+  "workers": 0,
+  "guests": 0,
+  "privateReads": 0,
+  "network": 0,
+  "install": 0,
+  "workerBuiltinExpansion": false
+}

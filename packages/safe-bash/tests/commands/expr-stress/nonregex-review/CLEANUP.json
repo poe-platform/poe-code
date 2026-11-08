@@ -1,0 +1,33 @@
+{
+  "finishedAt": "2026-08-27T17:15:59.308Z",
+  "temporaryDirectories": [
+    {
+      "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-nonregex-review-FwDpNl",
+      "removed": true,
+      "checkedAbsent": true
+    },
+    {
+      "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-nonregex-review-MwWCKH",
+      "removed": true,
+      "checkedAbsent": true
+    },
+    {
+      "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-nonregex-review-VL5wMK",
+      "removed": true,
+      "checkedAbsent": true
+    }
+  ],
+  "finalOuterWorkers": {
+    "created": 6,
+    "terminationAndExitAwaited": 6
+  },
+  "preliminaryCorrectedOuterWorkers": {
+    "created": 6,
+    "terminationAndExitAwaited": 6
+  },
+  "initialInheritedFlagWorker": "failed worker and owning process exited, no active session",
+  "nativeOracleChildren": "unchanged frozen runner awaits close and asserts no known children before removing its unique fixture",
+  "taskOwnedProcessesRemaining": 0,
+  "unrelatedFixturesRemoved": false,
+  "finalEvidenceCopiesByteVerifiedBeforeRemoval": true
+}

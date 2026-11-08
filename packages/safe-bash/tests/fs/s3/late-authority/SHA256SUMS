@@ -1,0 +1,9 @@
+909ccdae411009d4fd1566a4ac79d8aaeac7457b1f5735843b9e9a93ab908aca  src/fs/s3/COMPARISON.md
+102a8ada61020ff65d3617cdd60fca350bff3e99f287fc0696ece04aac32b229  src/fs/s3/authority.ts
+97f91913c3b2a9916218776d286eeaf25928d3aebbe3df60f0bf2d24d1635f6f  src/fs/s3/filesystem.ts
+448bd37f8a02ac14a5ad9439d0812004d6bed12a55f716e23b9572dc473f71c0  tests/fs/s3/late-authority.test.ts
+a6be122ab237a919bfaa2c4286f58aadfc178c5544fb49f7aa2261c3e75499a1  tests/fs/s3/late-authority/REPORT.md
+0f5ae7ca455419c9aff2a66bddfb2f68b8267527a33b8b01f7c7e7447c94103a  tests/fs/s3/late-authority/after.json
+bfa9e958538594484f3887c25e2ae19e3ed19cd926a5cd60004589186d4bebc0  tests/fs/s3/late-authority/before.json
+32af8e2e99d6792acdce14e7c001d3bcd23e1f17300066381adffa1452df0921  tests/fs/s3/late-authority/final.json
+5c7232e4b03a085cead26b1aea9b11b6344e0c3feadc0be763b9ab63ed65cdeb  tests/fs/s3/late-authority/validate.mjs

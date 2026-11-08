@@ -1,0 +1,2081 @@
+{
+  "scope": "CAPWORDS C-string/NUL and visible host Unicode boundaries; native malformed-byte crashes retained, wider profiles still open",
+  "recordedAt": "2026-09-22",
+  "previousCohort": "docs/ssconvert/capwords-native-loader-gap-proof.json",
+  "behavior": "Stop at first NUL before capitalization, ignore invisible trailing host text, refuse visible unpaired UTF16 before publication. Existing invalidUTF8 byte-string refusal retained; valid Unicode capitalization profile remains Unicode16.",
+  "authority": {
+    "gnumeric": "Authenticated Gnumeric 1.12.61 loader uses PyUnicode_FromString(value_peek_string) and unchecked PyTuple_SetItem.",
+    "nativeBridge314": [
+      {
+        "name": "valid",
+        "formula": "=PY_CAPWORDS(PERL_SED(\"hELLO \u00dfETA\",\"z\",\"X\"))",
+        "exitCode": 0,
+        "stdoutHex": "2248656c6c6f205373657461220a",
+        "stderrHex": ""
+      },
+      {
+        "name": "invalid",
+        "formula": "=PY_CAPWORDS(PERL_SED(\"\u00e4\",\"\",\"X\"))",
+        "exitCode": -11,
+        "stdoutHex": "",
+        "stderrHex": ""
+      }
+    ],
+    "nativeBridge312": [
+      {
+        "name": "valid",
+        "python": "3.12.13",
+        "exitCode": 0,
+        "stdoutHex": "2248656c6c6f205373657461220a",
+        "stderrHex": ""
+      },
+      {
+        "name": "invalid",
+        "python": "3.12.13",
+        "exitCode": -11,
+        "stdoutHex": "",
+        "stderrHex": ""
+      }
+    ],
+    "nativeCrashDiagnosis": "Both activated Python profiles exit with SIGSEGV on invalid UTF-8 Perl-generated source, with empty stdout/stderr. Owned LLDB observation stops at a null access in Python _PyEval_Vector. Strict UTF-8 acquisition returns NULL, which the loader inserts unchecked; portable code retains an explicit refusal.",
+    "cstringSourceHarness": {
+      "scope": "CPython C-string acquisition plus authenticated unmodified sample function; private source harness, not activated Gnumeric workbook path",
+      "sourceSha256": "514e02e416c9664d8d5f0ad04ff58e51468c636e75ed7edc197fb73c88263b4f",
+      "cases": [
+        {
+          "inputHex": "68454c4c4f00774f524c44",
+          "acquired": "hELLO",
+          "output": "Hello"
+        },
+        {
+          "inputHex": "00774f524c44",
+          "acquired": "",
+          "output": ""
+        },
+        {
+          "inputHex": "4100ff",
+          "acquired": "A",
+          "output": "A"
+        },
+        {
+          "inputHex": "68454c4c4f20c39f455441",
+          "acquired": "hELLO \u00dfETA",
+          "output": "Hello Sseta"
+        }
+      ],
+      "python": "3.14.7",
+      "unicode": "16.0.0"
+    },
+    "sourceHarnessCaveat": "Actual CPython C API acquisition followed by the AST-selected unmodified authenticated sample function; private source qualification, not an activated native workbook NUL profile."
+  },
+  "originalFailures": {
+    "maintainedNewCases": 5,
+    "scratchIndependentCases": 5,
+    "oldIndependentExpectations": [
+      "Embedded NUL incorrectly retained inASCII128 andA-NUL-B control",
+      "Unpaired high surrogate incorrectly accepted"
+    ],
+    "fixtureCorrections": [
+      "Initial SDK QA expected mapped return on unsupported-feature; actualconvert rejects SsconvertError. Corrected harness requires theexact refusal andzero bytes.",
+      "Initial browser fixture omitted cstring.js routes;404retained then owned server routefixed."
+    ]
+  },
+  "checks": {
+    "focused": 22,
+    "maintainedFiles": 352,
+    "maintainedTests": 13289,
+    "packageLintProductionTestConsumerTypes": "passed",
+    "selectedMaintainedBuild": "passed",
+    "browserWorkerScreenshotInspected": true,
+    "guardedRootLint": {
+      "configured": 16382,
+      "linted": 16382,
+      "errorCount": 0,
+      "warningCount": 0,
+      "exitCode": 0
+    }
+  },
+  "publicNode": {
+    "sdk": {
+      "results": [
+        {
+          "id": "native-cstrings",
+          "exitCode": 0,
+          "diagnostics": [],
+          "outputBytes": 9,
+          "exactSourceOracle": true
+        },
+        {
+          "id": "visible-high-surrogate",
+          "exitCode": 1,
+          "diagnostics": [
+            {
+              "code": "unsupported-feature",
+              "message": "Malformed host UTF-16 has no lossless text byte representation"
+            }
+          ],
+          "outputBytes": 0,
+          "noOutput": true
+        },
+        {
+          "id": "visible-low-surrogate",
+          "exitCode": 1,
+          "diagnostics": [
+            {
+              "code": "unsupported-feature",
+              "message": "Malformed host UTF-16 has no lossless text byte representation"
+            }
+          ],
+          "outputBytes": 0,
+          "noOutput": true
+        },
+        {
+          "id": "native-invalid-utf8-refusal",
+          "exitCode": 1,
+          "diagnostics": [
+            {
+              "code": "unsupported-feature",
+              "message": "Native byte-string Unicode rendering is not qualified"
+            }
+          ],
+          "outputBytes": 0,
+          "noOutput": true
+        }
+      ]
+    },
+    "shell": [
+      {
+        "id": "native-cstrings",
+        "exitCode": 0,
+        "stderr": "",
+        "inputUnchanged": true,
+        "exactSourceOracle": true,
+        "replayExact": true
+      },
+      {
+        "id": "visible-high-surrogate",
+        "exitCode": 1,
+        "stderr": "Malformed host UTF-16 has no lossless text byte representation\n",
+        "inputUnchanged": true,
+        "targetUnchanged": true
+      },
+      {
+        "id": "visible-low-surrogate",
+        "exitCode": 1,
+        "stderr": "Malformed host UTF-16 has no lossless text byte representation\n",
+        "inputUnchanged": true,
+        "targetUnchanged": true
+      },
+      {
+        "id": "native-invalid-utf8-refusal",
+        "exitCode": 1,
+        "stderr": "Native byte-string Unicode rendering is not qualified\n",
+        "inputUnchanged": true,
+        "targetUnchanged": true
+      }
+    ]
+  },
+  "publicBrowserWorker": {
+    "existing": {
+      "browser": [
+        {
+          "label": "scalar153",
+          "caseCount": 153,
+          "exactNativeCsv": true,
+          "replayExact": true,
+          "inputUnchanged": true,
+          "diagnostics": [],
+          "outputBytes": 2300
+        },
+        {
+          "label": "unicode10488",
+          "caseCount": 10488,
+          "exactNativeCsv": true,
+          "replayExact": true,
+          "inputUnchanged": true,
+          "diagnostics": [],
+          "outputBytes": 74115
+        },
+        {
+          "label": "array-strings",
+          "caseCount": 4,
+          "exactNativeCsv": true,
+          "replayExact": true,
+          "diagnostics": []
+        },
+        {
+          "label": "array-typed",
+          "caseCount": 4,
+          "exactNativeCsv": true,
+          "replayExact": true,
+          "diagnostics": []
+        },
+        {
+          "label": "array-error-literal",
+          "caseCount": 4,
+          "exactNativeCsv": true,
+          "replayExact": true,
+          "diagnostics": []
+        }
+      ],
+      "worker": {
+        "results": [
+          {
+            "label": "scalar153",
+            "caseCount": 153,
+            "exactNativeCsv": true,
+            "replayExact": true,
+            "inputUnchanged": true,
+            "diagnostics": [],
+            "outputBytes": 2300
+          },
+          {
+            "label": "unicode10488",
+            "caseCount": 10488,
+            "exactNativeCsv": true,
+            "replayExact": true,
+            "inputUnchanged": true,
+            "diagnostics": [],
+            "outputBytes": 74115
+          },
+          {
+            "label": "array-strings",
+            "caseCount": 4,
+            "exactNativeCsv": true,
+            "replayExact": true,
+            "diagnostics": []
+          },
+          {
+            "label": "array-typed",
+            "caseCount": 4,
+            "exactNativeCsv": true,
+            "replayExact": true,
+            "diagnostics": []
+          },
+          {
+            "label": "array-error-literal",
+            "caseCount": 4,
+            "exactNativeCsv": true,
+            "replayExact": true,
+            "diagnostics": []
+          }
+        ]
+      }
+    },
+    "cstrings": {
+      "browser": {
+        "results": [
+          {
+            "id": "native-cstrings",
+            "exitCode": 0,
+            "diagnostics": [],
+            "outputBytes": 9,
+            "exactSourceOracle": true
+          },
+          {
+            "id": "visible-high-surrogate",
+            "exitCode": 1,
+            "diagnostics": [
+              {
+                "code": "unsupported-feature",
+                "message": "Malformed host UTF-16 has no lossless text byte representation"
+              }
+            ],
+            "outputBytes": 0,
+            "noOutput": true
+          },
+          {
+            "id": "visible-low-surrogate",
+            "exitCode": 1,
+            "diagnostics": [
+              {
+                "code": "unsupported-feature",
+                "message": "Malformed host UTF-16 has no lossless text byte representation"
+              }
+            ],
+            "outputBytes": 0,
+            "noOutput": true
+          },
+          {
+            "id": "native-invalid-utf8-refusal",
+            "exitCode": 1,
+            "diagnostics": [
+              {
+                "code": "unsupported-feature",
+                "message": "Native byte-string Unicode rendering is not qualified"
+              }
+            ],
+            "outputBytes": 0,
+            "noOutput": true
+          }
+        ]
+      },
+      "worker": {
+        "results": [
+          {
+            "id": "native-cstrings",
+            "exitCode": 0,
+            "diagnostics": [],
+            "outputBytes": 9,
+            "exactSourceOracle": true
+          },
+          {
+            "id": "visible-high-surrogate",
+            "exitCode": 1,
+            "diagnostics": [
+              {
+                "code": "unsupported-feature",
+                "message": "Malformed host UTF-16 has no lossless text byte representation"
+              }
+            ],
+            "outputBytes": 0,
+            "noOutput": true
+          },
+          {
+            "id": "visible-low-surrogate",
+            "exitCode": 1,
+            "diagnostics": [
+              {
+                "code": "unsupported-feature",
+                "message": "Malformed host UTF-16 has no lossless text byte representation"
+              }
+            ],
+            "outputBytes": 0,
+            "noOutput": true
+          },
+          {
+            "id": "native-invalid-utf8-refusal",
+            "exitCode": 1,
+            "diagnostics": [
+              {
+                "code": "unsupported-feature",
+                "message": "Native byte-string Unicode rendering is not qualified"
+              }
+            ],
+            "outputBytes": 0,
+            "noOutput": true
+          }
+        ]
+      }
+    }
+  },
+  "runtimeFixture": "Explicit trusted CASE_SOURCE(number) supplied through supported RuntimeFunctions returns host string controls. It does not override PY_CAPWORDS and is not a native function claim.",
+  "widePython312": {
+    "python": "3.12.13",
+    "unicode": "15.0.0",
+    "inputCases": 10488,
+    "exitCode": 0,
+    "stderrHex": "",
+    "exactWithUnicode16": 10349,
+    "differences": [
+      {
+        "id": "mapping-411",
+        "formula": "=PY_CAPWORDS(UNICHAR(411)&UNICHAR(411))",
+        "native": "\ua7dc\u019b",
+        "python312": "\u019b\u019b"
+      },
+      {
+        "id": "mapping-612",
+        "formula": "=PY_CAPWORDS(UNICHAR(612)&UNICHAR(612))",
+        "native": "\ua7cb\u0264",
+        "python312": "\u0264\u0264"
+      },
+      {
+        "id": "sigma-2199",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(2199)&\"\u03a3\")",
+        "native": "A\u0897\u03c2",
+        "python312": "A\u0897\u03c3"
+      },
+      {
+        "id": "mapping-7305",
+        "formula": "=PY_CAPWORDS(UNICHAR(7305)&UNICHAR(7305))",
+        "native": "\u1c89\u1c8a",
+        "python312": "\u1c89\u1c89"
+      },
+      {
+        "id": "sigma-7305",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(7305)&\"\u03a3\")",
+        "native": "A\u1c8a\u03c2",
+        "python312": "A\u1c89\u03c3"
+      },
+      {
+        "id": "mapping-7306",
+        "formula": "=PY_CAPWORDS(UNICHAR(7306)&UNICHAR(7306))",
+        "native": "\u1c89\u1c8a",
+        "python312": "\u1c8a\u1c8a"
+      },
+      {
+        "id": "sigma-7306",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(7306)&\"\u03a3\")",
+        "native": "A\u1c8a\u03c2",
+        "python312": "A\u1c8a\u03c3"
+      },
+      {
+        "id": "mapping-42955",
+        "formula": "=PY_CAPWORDS(UNICHAR(42955)&UNICHAR(42955))",
+        "native": "\ua7cb\u0264",
+        "python312": "\ua7cb\ua7cb"
+      },
+      {
+        "id": "sigma-42955",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(42955)&\"\u03a3\")",
+        "native": "A\u0264\u03c2",
+        "python312": "A\ua7cb\u03c3"
+      },
+      {
+        "id": "mapping-42956",
+        "formula": "=PY_CAPWORDS(UNICHAR(42956)&UNICHAR(42956))",
+        "native": "\ua7cc\ua7cd",
+        "python312": "\ua7cc\ua7cc"
+      },
+      {
+        "id": "sigma-42956",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(42956)&\"\u03a3\")",
+        "native": "A\ua7cd\u03c2",
+        "python312": "A\ua7cc\u03c3"
+      },
+      {
+        "id": "mapping-42957",
+        "formula": "=PY_CAPWORDS(UNICHAR(42957)&UNICHAR(42957))",
+        "native": "\ua7cc\ua7cd",
+        "python312": "\ua7cd\ua7cd"
+      },
+      {
+        "id": "sigma-42957",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(42957)&\"\u03a3\")",
+        "native": "A\ua7cd\u03c2",
+        "python312": "A\ua7cd\u03c3"
+      },
+      {
+        "id": "mapping-42970",
+        "formula": "=PY_CAPWORDS(UNICHAR(42970)&UNICHAR(42970))",
+        "native": "\ua7da\ua7db",
+        "python312": "\ua7da\ua7da"
+      },
+      {
+        "id": "sigma-42970",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(42970)&\"\u03a3\")",
+        "native": "A\ua7db\u03c2",
+        "python312": "A\ua7da\u03c3"
+      },
+      {
+        "id": "mapping-42971",
+        "formula": "=PY_CAPWORDS(UNICHAR(42971)&UNICHAR(42971))",
+        "native": "\ua7da\ua7db",
+        "python312": "\ua7db\ua7db"
+      },
+      {
+        "id": "sigma-42971",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(42971)&\"\u03a3\")",
+        "native": "A\ua7db\u03c2",
+        "python312": "A\ua7db\u03c3"
+      },
+      {
+        "id": "mapping-42972",
+        "formula": "=PY_CAPWORDS(UNICHAR(42972)&UNICHAR(42972))",
+        "native": "\ua7dc\u019b",
+        "python312": "\ua7dc\ua7dc"
+      },
+      {
+        "id": "sigma-42972",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(42972)&\"\u03a3\")",
+        "native": "A\u019b\u03c2",
+        "python312": "A\ua7dc\u03c3"
+      },
+      {
+        "id": "sigma-68942",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68942)&\"\u03a3\")",
+        "native": "A\ud803\udd4e\u03c2",
+        "python312": "A\ud803\udd4e\u03c3"
+      },
+      {
+        "id": "mapping-68944",
+        "formula": "=PY_CAPWORDS(UNICHAR(68944)&UNICHAR(68944))",
+        "native": "\ud803\udd50\ud803\udd70",
+        "python312": "\ud803\udd50\ud803\udd50"
+      },
+      {
+        "id": "sigma-68944",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68944)&\"\u03a3\")",
+        "native": "A\ud803\udd70\u03c2",
+        "python312": "A\ud803\udd50\u03c3"
+      },
+      {
+        "id": "mapping-68945",
+        "formula": "=PY_CAPWORDS(UNICHAR(68945)&UNICHAR(68945))",
+        "native": "\ud803\udd51\ud803\udd71",
+        "python312": "\ud803\udd51\ud803\udd51"
+      },
+      {
+        "id": "sigma-68945",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68945)&\"\u03a3\")",
+        "native": "A\ud803\udd71\u03c2",
+        "python312": "A\ud803\udd51\u03c3"
+      },
+      {
+        "id": "mapping-68946",
+        "formula": "=PY_CAPWORDS(UNICHAR(68946)&UNICHAR(68946))",
+        "native": "\ud803\udd52\ud803\udd72",
+        "python312": "\ud803\udd52\ud803\udd52"
+      },
+      {
+        "id": "sigma-68946",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68946)&\"\u03a3\")",
+        "native": "A\ud803\udd72\u03c2",
+        "python312": "A\ud803\udd52\u03c3"
+      },
+      {
+        "id": "mapping-68947",
+        "formula": "=PY_CAPWORDS(UNICHAR(68947)&UNICHAR(68947))",
+        "native": "\ud803\udd53\ud803\udd73",
+        "python312": "\ud803\udd53\ud803\udd53"
+      },
+      {
+        "id": "sigma-68947",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68947)&\"\u03a3\")",
+        "native": "A\ud803\udd73\u03c2",
+        "python312": "A\ud803\udd53\u03c3"
+      },
+      {
+        "id": "mapping-68948",
+        "formula": "=PY_CAPWORDS(UNICHAR(68948)&UNICHAR(68948))",
+        "native": "\ud803\udd54\ud803\udd74",
+        "python312": "\ud803\udd54\ud803\udd54"
+      },
+      {
+        "id": "sigma-68948",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68948)&\"\u03a3\")",
+        "native": "A\ud803\udd74\u03c2",
+        "python312": "A\ud803\udd54\u03c3"
+      },
+      {
+        "id": "mapping-68949",
+        "formula": "=PY_CAPWORDS(UNICHAR(68949)&UNICHAR(68949))",
+        "native": "\ud803\udd55\ud803\udd75",
+        "python312": "\ud803\udd55\ud803\udd55"
+      },
+      {
+        "id": "sigma-68949",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68949)&\"\u03a3\")",
+        "native": "A\ud803\udd75\u03c2",
+        "python312": "A\ud803\udd55\u03c3"
+      },
+      {
+        "id": "mapping-68950",
+        "formula": "=PY_CAPWORDS(UNICHAR(68950)&UNICHAR(68950))",
+        "native": "\ud803\udd56\ud803\udd76",
+        "python312": "\ud803\udd56\ud803\udd56"
+      },
+      {
+        "id": "sigma-68950",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68950)&\"\u03a3\")",
+        "native": "A\ud803\udd76\u03c2",
+        "python312": "A\ud803\udd56\u03c3"
+      },
+      {
+        "id": "mapping-68951",
+        "formula": "=PY_CAPWORDS(UNICHAR(68951)&UNICHAR(68951))",
+        "native": "\ud803\udd57\ud803\udd77",
+        "python312": "\ud803\udd57\ud803\udd57"
+      },
+      {
+        "id": "sigma-68951",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68951)&\"\u03a3\")",
+        "native": "A\ud803\udd77\u03c2",
+        "python312": "A\ud803\udd57\u03c3"
+      },
+      {
+        "id": "mapping-68952",
+        "formula": "=PY_CAPWORDS(UNICHAR(68952)&UNICHAR(68952))",
+        "native": "\ud803\udd58\ud803\udd78",
+        "python312": "\ud803\udd58\ud803\udd58"
+      },
+      {
+        "id": "sigma-68952",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68952)&\"\u03a3\")",
+        "native": "A\ud803\udd78\u03c2",
+        "python312": "A\ud803\udd58\u03c3"
+      },
+      {
+        "id": "mapping-68953",
+        "formula": "=PY_CAPWORDS(UNICHAR(68953)&UNICHAR(68953))",
+        "native": "\ud803\udd59\ud803\udd79",
+        "python312": "\ud803\udd59\ud803\udd59"
+      },
+      {
+        "id": "sigma-68953",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68953)&\"\u03a3\")",
+        "native": "A\ud803\udd79\u03c2",
+        "python312": "A\ud803\udd59\u03c3"
+      },
+      {
+        "id": "mapping-68954",
+        "formula": "=PY_CAPWORDS(UNICHAR(68954)&UNICHAR(68954))",
+        "native": "\ud803\udd5a\ud803\udd7a",
+        "python312": "\ud803\udd5a\ud803\udd5a"
+      },
+      {
+        "id": "sigma-68954",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68954)&\"\u03a3\")",
+        "native": "A\ud803\udd7a\u03c2",
+        "python312": "A\ud803\udd5a\u03c3"
+      },
+      {
+        "id": "mapping-68955",
+        "formula": "=PY_CAPWORDS(UNICHAR(68955)&UNICHAR(68955))",
+        "native": "\ud803\udd5b\ud803\udd7b",
+        "python312": "\ud803\udd5b\ud803\udd5b"
+      },
+      {
+        "id": "sigma-68955",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68955)&\"\u03a3\")",
+        "native": "A\ud803\udd7b\u03c2",
+        "python312": "A\ud803\udd5b\u03c3"
+      },
+      {
+        "id": "mapping-68956",
+        "formula": "=PY_CAPWORDS(UNICHAR(68956)&UNICHAR(68956))",
+        "native": "\ud803\udd5c\ud803\udd7c",
+        "python312": "\ud803\udd5c\ud803\udd5c"
+      },
+      {
+        "id": "sigma-68956",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68956)&\"\u03a3\")",
+        "native": "A\ud803\udd7c\u03c2",
+        "python312": "A\ud803\udd5c\u03c3"
+      },
+      {
+        "id": "mapping-68957",
+        "formula": "=PY_CAPWORDS(UNICHAR(68957)&UNICHAR(68957))",
+        "native": "\ud803\udd5d\ud803\udd7d",
+        "python312": "\ud803\udd5d\ud803\udd5d"
+      },
+      {
+        "id": "sigma-68957",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68957)&\"\u03a3\")",
+        "native": "A\ud803\udd7d\u03c2",
+        "python312": "A\ud803\udd5d\u03c3"
+      },
+      {
+        "id": "mapping-68958",
+        "formula": "=PY_CAPWORDS(UNICHAR(68958)&UNICHAR(68958))",
+        "native": "\ud803\udd5e\ud803\udd7e",
+        "python312": "\ud803\udd5e\ud803\udd5e"
+      },
+      {
+        "id": "sigma-68958",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68958)&\"\u03a3\")",
+        "native": "A\ud803\udd7e\u03c2",
+        "python312": "A\ud803\udd5e\u03c3"
+      },
+      {
+        "id": "mapping-68959",
+        "formula": "=PY_CAPWORDS(UNICHAR(68959)&UNICHAR(68959))",
+        "native": "\ud803\udd5f\ud803\udd7f",
+        "python312": "\ud803\udd5f\ud803\udd5f"
+      },
+      {
+        "id": "sigma-68959",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68959)&\"\u03a3\")",
+        "native": "A\ud803\udd7f\u03c2",
+        "python312": "A\ud803\udd5f\u03c3"
+      },
+      {
+        "id": "mapping-68960",
+        "formula": "=PY_CAPWORDS(UNICHAR(68960)&UNICHAR(68960))",
+        "native": "\ud803\udd60\ud803\udd80",
+        "python312": "\ud803\udd60\ud803\udd60"
+      },
+      {
+        "id": "sigma-68960",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68960)&\"\u03a3\")",
+        "native": "A\ud803\udd80\u03c2",
+        "python312": "A\ud803\udd60\u03c3"
+      },
+      {
+        "id": "mapping-68961",
+        "formula": "=PY_CAPWORDS(UNICHAR(68961)&UNICHAR(68961))",
+        "native": "\ud803\udd61\ud803\udd81",
+        "python312": "\ud803\udd61\ud803\udd61"
+      },
+      {
+        "id": "sigma-68961",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68961)&\"\u03a3\")",
+        "native": "A\ud803\udd81\u03c2",
+        "python312": "A\ud803\udd61\u03c3"
+      },
+      {
+        "id": "mapping-68962",
+        "formula": "=PY_CAPWORDS(UNICHAR(68962)&UNICHAR(68962))",
+        "native": "\ud803\udd62\ud803\udd82",
+        "python312": "\ud803\udd62\ud803\udd62"
+      },
+      {
+        "id": "sigma-68962",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68962)&\"\u03a3\")",
+        "native": "A\ud803\udd82\u03c2",
+        "python312": "A\ud803\udd62\u03c3"
+      },
+      {
+        "id": "mapping-68963",
+        "formula": "=PY_CAPWORDS(UNICHAR(68963)&UNICHAR(68963))",
+        "native": "\ud803\udd63\ud803\udd83",
+        "python312": "\ud803\udd63\ud803\udd63"
+      },
+      {
+        "id": "sigma-68963",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68963)&\"\u03a3\")",
+        "native": "A\ud803\udd83\u03c2",
+        "python312": "A\ud803\udd63\u03c3"
+      },
+      {
+        "id": "mapping-68964",
+        "formula": "=PY_CAPWORDS(UNICHAR(68964)&UNICHAR(68964))",
+        "native": "\ud803\udd64\ud803\udd84",
+        "python312": "\ud803\udd64\ud803\udd64"
+      },
+      {
+        "id": "sigma-68964",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68964)&\"\u03a3\")",
+        "native": "A\ud803\udd84\u03c2",
+        "python312": "A\ud803\udd64\u03c3"
+      },
+      {
+        "id": "mapping-68965",
+        "formula": "=PY_CAPWORDS(UNICHAR(68965)&UNICHAR(68965))",
+        "native": "\ud803\udd65\ud803\udd85",
+        "python312": "\ud803\udd65\ud803\udd65"
+      },
+      {
+        "id": "sigma-68965",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68965)&\"\u03a3\")",
+        "native": "A\ud803\udd85\u03c2",
+        "python312": "A\ud803\udd65\u03c3"
+      },
+      {
+        "id": "sigma-68969",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68969)&\"\u03a3\")",
+        "native": "A\ud803\udd69\u03c2",
+        "python312": "A\ud803\udd69\u03c3"
+      },
+      {
+        "id": "sigma-68970",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68970)&\"\u03a3\")",
+        "native": "A\ud803\udd6a\u03c2",
+        "python312": "A\ud803\udd6a\u03c3"
+      },
+      {
+        "id": "sigma-68972",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68972)&\"\u03a3\")",
+        "native": "A\ud803\udd6c\u03c2",
+        "python312": "A\ud803\udd6c\u03c3"
+      },
+      {
+        "id": "sigma-68973",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68973)&\"\u03a3\")",
+        "native": "A\ud803\udd6d\u03c2",
+        "python312": "A\ud803\udd6d\u03c3"
+      },
+      {
+        "id": "sigma-68975",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68975)&\"\u03a3\")",
+        "native": "A\ud803\udd6f\u03c2",
+        "python312": "A\ud803\udd6f\u03c3"
+      },
+      {
+        "id": "mapping-68976",
+        "formula": "=PY_CAPWORDS(UNICHAR(68976)&UNICHAR(68976))",
+        "native": "\ud803\udd50\ud803\udd70",
+        "python312": "\ud803\udd70\ud803\udd70"
+      },
+      {
+        "id": "sigma-68976",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68976)&\"\u03a3\")",
+        "native": "A\ud803\udd70\u03c2",
+        "python312": "A\ud803\udd70\u03c3"
+      },
+      {
+        "id": "mapping-68977",
+        "formula": "=PY_CAPWORDS(UNICHAR(68977)&UNICHAR(68977))",
+        "native": "\ud803\udd51\ud803\udd71",
+        "python312": "\ud803\udd71\ud803\udd71"
+      },
+      {
+        "id": "sigma-68977",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68977)&\"\u03a3\")",
+        "native": "A\ud803\udd71\u03c2",
+        "python312": "A\ud803\udd71\u03c3"
+      },
+      {
+        "id": "mapping-68978",
+        "formula": "=PY_CAPWORDS(UNICHAR(68978)&UNICHAR(68978))",
+        "native": "\ud803\udd52\ud803\udd72",
+        "python312": "\ud803\udd72\ud803\udd72"
+      },
+      {
+        "id": "sigma-68978",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68978)&\"\u03a3\")",
+        "native": "A\ud803\udd72\u03c2",
+        "python312": "A\ud803\udd72\u03c3"
+      },
+      {
+        "id": "mapping-68979",
+        "formula": "=PY_CAPWORDS(UNICHAR(68979)&UNICHAR(68979))",
+        "native": "\ud803\udd53\ud803\udd73",
+        "python312": "\ud803\udd73\ud803\udd73"
+      },
+      {
+        "id": "sigma-68979",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68979)&\"\u03a3\")",
+        "native": "A\ud803\udd73\u03c2",
+        "python312": "A\ud803\udd73\u03c3"
+      },
+      {
+        "id": "mapping-68980",
+        "formula": "=PY_CAPWORDS(UNICHAR(68980)&UNICHAR(68980))",
+        "native": "\ud803\udd54\ud803\udd74",
+        "python312": "\ud803\udd74\ud803\udd74"
+      },
+      {
+        "id": "sigma-68980",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68980)&\"\u03a3\")",
+        "native": "A\ud803\udd74\u03c2",
+        "python312": "A\ud803\udd74\u03c3"
+      },
+      {
+        "id": "mapping-68981",
+        "formula": "=PY_CAPWORDS(UNICHAR(68981)&UNICHAR(68981))",
+        "native": "\ud803\udd55\ud803\udd75",
+        "python312": "\ud803\udd75\ud803\udd75"
+      },
+      {
+        "id": "sigma-68981",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68981)&\"\u03a3\")",
+        "native": "A\ud803\udd75\u03c2",
+        "python312": "A\ud803\udd75\u03c3"
+      },
+      {
+        "id": "mapping-68982",
+        "formula": "=PY_CAPWORDS(UNICHAR(68982)&UNICHAR(68982))",
+        "native": "\ud803\udd56\ud803\udd76",
+        "python312": "\ud803\udd76\ud803\udd76"
+      },
+      {
+        "id": "sigma-68982",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68982)&\"\u03a3\")",
+        "native": "A\ud803\udd76\u03c2",
+        "python312": "A\ud803\udd76\u03c3"
+      },
+      {
+        "id": "mapping-68983",
+        "formula": "=PY_CAPWORDS(UNICHAR(68983)&UNICHAR(68983))",
+        "native": "\ud803\udd57\ud803\udd77",
+        "python312": "\ud803\udd77\ud803\udd77"
+      },
+      {
+        "id": "sigma-68983",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68983)&\"\u03a3\")",
+        "native": "A\ud803\udd77\u03c2",
+        "python312": "A\ud803\udd77\u03c3"
+      },
+      {
+        "id": "mapping-68984",
+        "formula": "=PY_CAPWORDS(UNICHAR(68984)&UNICHAR(68984))",
+        "native": "\ud803\udd58\ud803\udd78",
+        "python312": "\ud803\udd78\ud803\udd78"
+      },
+      {
+        "id": "sigma-68984",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68984)&\"\u03a3\")",
+        "native": "A\ud803\udd78\u03c2",
+        "python312": "A\ud803\udd78\u03c3"
+      },
+      {
+        "id": "mapping-68985",
+        "formula": "=PY_CAPWORDS(UNICHAR(68985)&UNICHAR(68985))",
+        "native": "\ud803\udd59\ud803\udd79",
+        "python312": "\ud803\udd79\ud803\udd79"
+      },
+      {
+        "id": "sigma-68985",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68985)&\"\u03a3\")",
+        "native": "A\ud803\udd79\u03c2",
+        "python312": "A\ud803\udd79\u03c3"
+      },
+      {
+        "id": "mapping-68986",
+        "formula": "=PY_CAPWORDS(UNICHAR(68986)&UNICHAR(68986))",
+        "native": "\ud803\udd5a\ud803\udd7a",
+        "python312": "\ud803\udd7a\ud803\udd7a"
+      },
+      {
+        "id": "sigma-68986",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68986)&\"\u03a3\")",
+        "native": "A\ud803\udd7a\u03c2",
+        "python312": "A\ud803\udd7a\u03c3"
+      },
+      {
+        "id": "mapping-68987",
+        "formula": "=PY_CAPWORDS(UNICHAR(68987)&UNICHAR(68987))",
+        "native": "\ud803\udd5b\ud803\udd7b",
+        "python312": "\ud803\udd7b\ud803\udd7b"
+      },
+      {
+        "id": "sigma-68987",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68987)&\"\u03a3\")",
+        "native": "A\ud803\udd7b\u03c2",
+        "python312": "A\ud803\udd7b\u03c3"
+      },
+      {
+        "id": "mapping-68988",
+        "formula": "=PY_CAPWORDS(UNICHAR(68988)&UNICHAR(68988))",
+        "native": "\ud803\udd5c\ud803\udd7c",
+        "python312": "\ud803\udd7c\ud803\udd7c"
+      },
+      {
+        "id": "sigma-68988",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68988)&\"\u03a3\")",
+        "native": "A\ud803\udd7c\u03c2",
+        "python312": "A\ud803\udd7c\u03c3"
+      },
+      {
+        "id": "mapping-68989",
+        "formula": "=PY_CAPWORDS(UNICHAR(68989)&UNICHAR(68989))",
+        "native": "\ud803\udd5d\ud803\udd7d",
+        "python312": "\ud803\udd7d\ud803\udd7d"
+      },
+      {
+        "id": "sigma-68989",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68989)&\"\u03a3\")",
+        "native": "A\ud803\udd7d\u03c2",
+        "python312": "A\ud803\udd7d\u03c3"
+      },
+      {
+        "id": "mapping-68990",
+        "formula": "=PY_CAPWORDS(UNICHAR(68990)&UNICHAR(68990))",
+        "native": "\ud803\udd5e\ud803\udd7e",
+        "python312": "\ud803\udd7e\ud803\udd7e"
+      },
+      {
+        "id": "sigma-68990",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68990)&\"\u03a3\")",
+        "native": "A\ud803\udd7e\u03c2",
+        "python312": "A\ud803\udd7e\u03c3"
+      },
+      {
+        "id": "mapping-68991",
+        "formula": "=PY_CAPWORDS(UNICHAR(68991)&UNICHAR(68991))",
+        "native": "\ud803\udd5f\ud803\udd7f",
+        "python312": "\ud803\udd7f\ud803\udd7f"
+      },
+      {
+        "id": "sigma-68991",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68991)&\"\u03a3\")",
+        "native": "A\ud803\udd7f\u03c2",
+        "python312": "A\ud803\udd7f\u03c3"
+      },
+      {
+        "id": "mapping-68992",
+        "formula": "=PY_CAPWORDS(UNICHAR(68992)&UNICHAR(68992))",
+        "native": "\ud803\udd60\ud803\udd80",
+        "python312": "\ud803\udd80\ud803\udd80"
+      },
+      {
+        "id": "sigma-68992",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68992)&\"\u03a3\")",
+        "native": "A\ud803\udd80\u03c2",
+        "python312": "A\ud803\udd80\u03c3"
+      },
+      {
+        "id": "mapping-68993",
+        "formula": "=PY_CAPWORDS(UNICHAR(68993)&UNICHAR(68993))",
+        "native": "\ud803\udd61\ud803\udd81",
+        "python312": "\ud803\udd81\ud803\udd81"
+      },
+      {
+        "id": "sigma-68993",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68993)&\"\u03a3\")",
+        "native": "A\ud803\udd81\u03c2",
+        "python312": "A\ud803\udd81\u03c3"
+      },
+      {
+        "id": "mapping-68994",
+        "formula": "=PY_CAPWORDS(UNICHAR(68994)&UNICHAR(68994))",
+        "native": "\ud803\udd62\ud803\udd82",
+        "python312": "\ud803\udd82\ud803\udd82"
+      },
+      {
+        "id": "sigma-68994",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68994)&\"\u03a3\")",
+        "native": "A\ud803\udd82\u03c2",
+        "python312": "A\ud803\udd82\u03c3"
+      },
+      {
+        "id": "mapping-68995",
+        "formula": "=PY_CAPWORDS(UNICHAR(68995)&UNICHAR(68995))",
+        "native": "\ud803\udd63\ud803\udd83",
+        "python312": "\ud803\udd83\ud803\udd83"
+      },
+      {
+        "id": "sigma-68995",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68995)&\"\u03a3\")",
+        "native": "A\ud803\udd83\u03c2",
+        "python312": "A\ud803\udd83\u03c3"
+      },
+      {
+        "id": "mapping-68996",
+        "formula": "=PY_CAPWORDS(UNICHAR(68996)&UNICHAR(68996))",
+        "native": "\ud803\udd64\ud803\udd84",
+        "python312": "\ud803\udd84\ud803\udd84"
+      },
+      {
+        "id": "sigma-68996",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68996)&\"\u03a3\")",
+        "native": "A\ud803\udd84\u03c2",
+        "python312": "A\ud803\udd84\u03c3"
+      },
+      {
+        "id": "mapping-68997",
+        "formula": "=PY_CAPWORDS(UNICHAR(68997)&UNICHAR(68997))",
+        "native": "\ud803\udd65\ud803\udd85",
+        "python312": "\ud803\udd85\ud803\udd85"
+      },
+      {
+        "id": "sigma-68997",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(68997)&\"\u03a3\")",
+        "native": "A\ud803\udd85\u03c2",
+        "python312": "A\ud803\udd85\u03c3"
+      },
+      {
+        "id": "sigma-69372",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(69372)&\"\u03a3\")",
+        "native": "A\ud803\udefc\u03c2",
+        "python312": "A\ud803\udefc\u03c3"
+      },
+      {
+        "id": "sigma-70587",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(70587)&\"\u03a3\")",
+        "native": "A\ud804\udfbb\u03c2",
+        "python312": "A\ud804\udfbb\u03c3"
+      },
+      {
+        "id": "sigma-70588",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(70588)&\"\u03a3\")",
+        "native": "A\ud804\udfbc\u03c2",
+        "python312": "A\ud804\udfbc\u03c3"
+      },
+      {
+        "id": "sigma-70591",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(70591)&\"\u03a3\")",
+        "native": "A\ud804\udfbf\u03c2",
+        "python312": "A\ud804\udfbf\u03c3"
+      },
+      {
+        "id": "sigma-70592",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(70592)&\"\u03a3\")",
+        "native": "A\ud804\udfc0\u03c2",
+        "python312": "A\ud804\udfc0\u03c3"
+      },
+      {
+        "id": "sigma-70606",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(70606)&\"\u03a3\")",
+        "native": "A\ud804\udfce\u03c2",
+        "python312": "A\ud804\udfce\u03c3"
+      },
+      {
+        "id": "sigma-70608",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(70608)&\"\u03a3\")",
+        "native": "A\ud804\udfd0\u03c2",
+        "python312": "A\ud804\udfd0\u03c3"
+      },
+      {
+        "id": "sigma-70610",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(70610)&\"\u03a3\")",
+        "native": "A\ud804\udfd2\u03c2",
+        "python312": "A\ud804\udfd2\u03c3"
+      },
+      {
+        "id": "sigma-70625",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(70625)&\"\u03a3\")",
+        "native": "A\ud804\udfe1\u03c2",
+        "python312": "A\ud804\udfe1\u03c3"
+      },
+      {
+        "id": "sigma-70626",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(70626)&\"\u03a3\")",
+        "native": "A\ud804\udfe2\u03c2",
+        "python312": "A\ud804\udfe2\u03c3"
+      },
+      {
+        "id": "sigma-71454",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(71454)&\"\u03a3\")",
+        "native": "A\ud805\udf1e\u03c3",
+        "python312": "A\ud805\udf1e\u03c2"
+      },
+      {
+        "id": "sigma-73562",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(73562)&\"\u03a3\")",
+        "native": "A\ud807\udf5a\u03c2",
+        "python312": "A\ud807\udf5a\u03c3"
+      },
+      {
+        "id": "sigma-90398",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(90398)&\"\u03a3\")",
+        "native": "A\ud818\udd1e\u03c2",
+        "python312": "A\ud818\udd1e\u03c3"
+      },
+      {
+        "id": "sigma-90399",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(90399)&\"\u03a3\")",
+        "native": "A\ud818\udd1f\u03c2",
+        "python312": "A\ud818\udd1f\u03c3"
+      },
+      {
+        "id": "sigma-90408",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(90408)&\"\u03a3\")",
+        "native": "A\ud818\udd28\u03c2",
+        "python312": "A\ud818\udd28\u03c3"
+      },
+      {
+        "id": "sigma-90409",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(90409)&\"\u03a3\")",
+        "native": "A\ud818\udd29\u03c2",
+        "python312": "A\ud818\udd29\u03c3"
+      },
+      {
+        "id": "sigma-90413",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(90413)&\"\u03a3\")",
+        "native": "A\ud818\udd2d\u03c2",
+        "python312": "A\ud818\udd2d\u03c3"
+      },
+      {
+        "id": "sigma-90414",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(90414)&\"\u03a3\")",
+        "native": "A\ud818\udd2e\u03c2",
+        "python312": "A\ud818\udd2e\u03c3"
+      },
+      {
+        "id": "sigma-90415",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(90415)&\"\u03a3\")",
+        "native": "A\ud818\udd2f\u03c2",
+        "python312": "A\ud818\udd2f\u03c3"
+      },
+      {
+        "id": "sigma-93504",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(93504)&\"\u03a3\")",
+        "native": "A\ud81b\udd40\u03c2",
+        "python312": "A\ud81b\udd40\u03c3"
+      },
+      {
+        "id": "sigma-93505",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(93505)&\"\u03a3\")",
+        "native": "A\ud81b\udd41\u03c2",
+        "python312": "A\ud81b\udd41\u03c3"
+      },
+      {
+        "id": "sigma-93506",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(93506)&\"\u03a3\")",
+        "native": "A\ud81b\udd42\u03c2",
+        "python312": "A\ud81b\udd42\u03c3"
+      },
+      {
+        "id": "sigma-93547",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(93547)&\"\u03a3\")",
+        "native": "A\ud81b\udd6b\u03c2",
+        "python312": "A\ud81b\udd6b\u03c3"
+      },
+      {
+        "id": "sigma-93548",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(93548)&\"\u03a3\")",
+        "native": "A\ud81b\udd6c\u03c2",
+        "python312": "A\ud81b\udd6c\u03c3"
+      },
+      {
+        "id": "sigma-124398",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(124398)&\"\u03a3\")",
+        "native": "A\ud839\uddee\u03c2",
+        "python312": "A\ud839\uddee\u03c3"
+      },
+      {
+        "id": "sigma-124399",
+        "formula": "=PY_CAPWORDS(\"A\"&UNICHAR(124399)&\"\u03a3\")",
+        "native": "A\ud839\uddef\u03c2",
+        "python312": "A\ud839\uddef\u03c3"
+      }
+    ]
+  },
+  "versionPolicy": "The portable binding explicitly declares Unicode 16. The 139 differences from Unicode 15 remain profile differences, rather than universal parity passes. Exact optional profile obligations remain open.",
+  "sourceBindings": [
+    {
+      "path": "packages/ssconvert/src/formulas/functions/python-capwords.ts",
+      "bytes": 3084,
+      "sha256": "2089ed226602eaaa751b9c402cbe9675df2cf361457ae211a270183d4be40a66"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/python-capwords-loader.test.ts",
+      "bytes": 2446,
+      "sha256": "5ef80d461e9506ce04990c2073bac8e69c202a8dfe75e9661c9f916e74749609"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/python-capwords-independent.test.ts",
+      "bytes": 4895,
+      "sha256": "ffd90715692dc9e1cb973aaccd5f2e0267e5f1f9ddaf5e5d84e1ff00f07dcf88"
+    }
+  ],
+  "dependencyInventory": [
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/cairo/__init__.py",
+      "bytes": 660,
+      "sha256": "5c81ff76ff32f215f157da4f0fb44eef466d7dcc4ff7924ccdcfc19f1bfbf134"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/cairo/__init__.pyi",
+      "bytes": 219293,
+      "sha256": "d4a3d84a6652f0e4e525f5c1beda5c955b28071c247e89ec08f104f06b8e3260"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/cairo/__pycache__/__init__.cpython-314.pyc",
+      "bytes": 1266,
+      "sha256": "1ed6810e78a9d62965f8235bc4687befd6c6ac1511b1070be6ce3196482de881"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/cairo/_cairo.cpython-314-darwin.so",
+      "bytes": 238736,
+      "sha256": "1f20791ec9cdffdcfbaf031c182d5d52e8edabcc52678d6bb6c356ba4d921208"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/cairo/include/py3cairo.h",
+      "bytes": 8778,
+      "sha256": "23f1242683f664a5e16271eea48881cf445d4780b2e93a84f18d145dc75571e1"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/cairo/py.typed",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/__init__.py",
+      "bytes": 7134,
+      "sha256": "d37e2a129b8757ec576ad0bd5c4fac7c1f6256996c0de4d37d810cc78f0f94f0"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/__pycache__/__init__.cpython-314.pyc",
+      "bytes": 8206,
+      "sha256": "3ea457b014c7c215d0c5952f847447758b16d346d0e66be060dbf1c882e0cf00"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/__pycache__/_constants.cpython-314.pyc",
+      "bytes": 2598,
+      "sha256": "0f6821d085d56d07385527d11cf4971533a78ddbc4ab75d986290cf603885590"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/__pycache__/_enum.cpython-314.pyc",
+      "bytes": 3194,
+      "sha256": "54f3745fdf9f4411368826b953730a4347784547c4957ecba4d9111ec00cef45"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/__pycache__/_error.cpython-314.pyc",
+      "bytes": 3546,
+      "sha256": "f93b929a35070fd1d800dad02a3557b2ebb742549580e578a270ab0a227ee2bd"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/__pycache__/_gtktemplate.cpython-314.pyc",
+      "bytes": 13225,
+      "sha256": "29bfb51806ca4d88410879db6aa7712ba679f414f18662e20151e878f9233401"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/__pycache__/_ossighelper.cpython-314.pyc",
+      "bytes": 10835,
+      "sha256": "e82b814b224a98c2740b2da1eec74399decea9b0a34be04f67cb316270554fd1"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/__pycache__/_propertyhelper.cpython-314.pyc",
+      "bytes": 17277,
+      "sha256": "205292bbb9d1c626ce546de585b0bfb69bf979542d08afce666f8167a2e7573b"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/__pycache__/_signalhelper.cpython-314.pyc",
+      "bytes": 10874,
+      "sha256": "0ade4a3aad299b6563eb122f54e5d0159692f16822406a5f07204c784a814d61"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/__pycache__/_signature.cpython-314.pyc",
+      "bytes": 8664,
+      "sha256": "bc23081746f193ccc69252be8bca295f71f749d8ea132d4dc554ff4e39f7e91a"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/__pycache__/docstring.cpython-314.pyc",
+      "bytes": 7323,
+      "sha256": "997a46a84b807d32c2237b813bb7cf33cf580015739839bc6795c4ba963a3c5f"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/__pycache__/events.cpython-314.pyc",
+      "bytes": 47738,
+      "sha256": "2c501815fd544c8537e308de09c5f8b4a9bf01f6d877c18f146343a6d33d33a6"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/__pycache__/importer.cpython-314.pyc",
+      "bytes": 5405,
+      "sha256": "4dc437aa7e7a84d40f3bd47994aea8940c52ec070c32fe41271522935bb18332"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/__pycache__/module.cpython-314.pyc",
+      "bytes": 11828,
+      "sha256": "ffb524ebfc4463a43867d6174780feb3352a1c138efcb798c69548cd83d27c40"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/__pycache__/types.cpython-314.pyc",
+      "bytes": 14962,
+      "sha256": "80b72c3f29b38235c5c148da7cdb7ddb469316e4508d46bce785e45c09a9cf2b"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/_constants.py",
+      "bytes": 1925,
+      "sha256": "9f94e3df807894065bd9e7b8684feb1ef622ec4aebc7221930d8087ca7495440"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/_enum.py",
+      "bytes": 2717,
+      "sha256": "fc29fa65f9c9cfcdb111c57e59060809a24faeb5a74984d4760205540c400315"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/_error.py",
+      "bytes": 2231,
+      "sha256": "a47de3e804dcd51d504c7cca6827acbc05ab30bee9bf8eb7311457f8a99a131c"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/_gi.cpython-314-darwin.so",
+      "bytes": 371992,
+      "sha256": "3e5ae0ace73d0566f9e73202af156203b20fa0d9e39200b8e3cbe642c2bb67aa"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/_gi_cairo.cpython-314-darwin.so",
+      "bytes": 55408,
+      "sha256": "e99e00ddd6b1b873ecea1c87e33ba01fc9f9254d7a84ca02e4fdfa5396c30ba9"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/_gtktemplate.py",
+      "bytes": 9946,
+      "sha256": "660ee43c4f2bb2bce175129f66d66f55eb7c17862cc08419c56b384cdf4914a0"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/_ossighelper.py",
+      "bytes": 8748,
+      "sha256": "790802fa17cecd3e0edf11087091a3794a7c1b2a8e88726392e97d67de82693e"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/_propertyhelper.py",
+      "bytes": 14851,
+      "sha256": "afa39455233f13f4ae8e3f257862f4c6f6aa7262d8ca2ead667e3583dce468cb"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/_signalhelper.py",
+      "bytes": 9508,
+      "sha256": "f9dcd0683a0c78b8f8a853bece180b142e4ec4bfac9c4b575d38b5877fbcb6a7"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/_signature.py",
+      "bytes": 6519,
+      "sha256": "e99b994a9b1c7cd53351689d20803f7a3e30558d2e3403a3a062b542286c133a"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/docstring.py",
+      "bytes": 6139,
+      "sha256": "bb73bfaf85cd91c06cdffda690095bceb2e7ae8f3f227f14bf67ca4bbbcc8588"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/events.py",
+      "bytes": 35437,
+      "sha256": "875804a8769933694a645f10b777ca05bddd7dbac752ab4ed2e51219f21e0422"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/importer.py",
+      "bytes": 5276,
+      "sha256": "4b06aee75a1bcfb8655536e9522a01b527846923352d4081c67b5edfc044fd54"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/module.py",
+      "bytes": 10393,
+      "sha256": "e0c034fb609f56d659ba15d4735d49158732908e00fcaba9d5c1312caa1d4bce"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/overrides/GIMarshallingTests.py",
+      "bytes": 2156,
+      "sha256": "52ab43aa5140e0844cc255cef74329de3307cd1f6ed478ae13f613324ba699d3"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/overrides/GLib.py",
+      "bytes": 35104,
+      "sha256": "2500e0555f88ccee9229574b5b458dca554e4798f955ded30fbcf7020e5a0b85"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/overrides/GLibUnix.py",
+      "bytes": 418,
+      "sha256": "a3c637c3872da76e9fbb04442fc040c199152c1c677293350cd903c6ef01de63"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/overrides/GObject.py",
+      "bytes": 27327,
+      "sha256": "153e758c6b71e85b16eb5836050100331ecbc13658af24ed342a6c1177e9f2da"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/overrides/Gdk.py",
+      "bytes": 15983,
+      "sha256": "48621ec689ec2df4e16ac7d872c9d3b37a5df7d935f15e31b235fed1318caee9"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/overrides/GdkPixbuf.py",
+      "bytes": 1797,
+      "sha256": "c58a61cfe95cad3f0d6ac679bf0660144e3910ba5f381cf547d90abbdd13a2cb"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/overrides/Gio.py",
+      "bytes": 22540,
+      "sha256": "d885379e8a0faa9a2668de0492bd76f5d4867d594d89b6a5e0f7a5f6d08a7f48"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/overrides/GioUnix.py",
+      "bytes": 5274,
+      "sha256": "b48f25a603024cf8f3183fb1df370983b339f623dedb0dac43bb2bfe59fdf2c1"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/overrides/Gtk.py",
+      "bytes": 62764,
+      "sha256": "da88308bcaf6004d38d81b0435b423c5d1263435c80f51e298d8264bf5a04255"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/overrides/Pango.py",
+      "bytes": 2383,
+      "sha256": "67dd0b7e5e64215ffeeaac16e9513441373146a6eabe61d0e29bb1fc4f7a0a8c"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/overrides/__init__.py",
+      "bytes": 13502,
+      "sha256": "3632855cd289704645b3d564fd24a36945e2ce8e04deca58fb1bf431708fe9e3"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/overrides/__pycache__/GIMarshallingTests.cpython-314.pyc",
+      "bytes": 2811,
+      "sha256": "b20ef619a63d15061fa1d8298285401c10a2c4e613d4a63b0c1a130def820fd5"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/overrides/__pycache__/GLib.cpython-314.pyc",
+      "bytes": 50970,
+      "sha256": "5844482e9c45020b98575cb913bccd8445fac4e1b73447b1d5cc409fc1dfc48a"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/overrides/__pycache__/GLibUnix.cpython-314.pyc",
+      "bytes": 625,
+      "sha256": "7ee05b1579452ab0c749988831ac79c16b0c47ed9737ca07f8516a34fbbcc8d0"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/overrides/__pycache__/GObject.cpython-314.pyc",
+      "bytes": 37548,
+      "sha256": "dc01bb185beab8c7ae1c9cc7cb259bffeb5a51e500065871444245d11edaad1a"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/overrides/__pycache__/Gdk.cpython-314.pyc",
+      "bytes": 21712,
+      "sha256": "cf60e53c773dcfa53723c131cef40939d61e69dca395d6836fe04c203b2b7569"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/overrides/__pycache__/GdkPixbuf.cpython-314.pyc",
+      "bytes": 1652,
+      "sha256": "3916dbdae9bb829458a1da212ad683a7e208e3d2d06d56cb32a61c1f39ddc1ba"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/overrides/__pycache__/Gio.cpython-314.pyc",
+      "bytes": 31884,
+      "sha256": "e7f815466a6a78048880f03aa26dd25ebb2e144668e0b34bbb60360d829d8567"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/overrides/__pycache__/GioUnix.cpython-314.pyc",
+      "bytes": 8801,
+      "sha256": "5b24314916661654e396e69f177d9fc54305bf4fce6f616e015664280536fead"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/overrides/__pycache__/Gtk.cpython-314.pyc",
+      "bytes": 89003,
+      "sha256": "47b2f0f3aaa6532f1cd0cc92f7fa57ec79983117320dbd5b4ccdf807a757e8ff"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/overrides/__pycache__/Pango.cpython-314.pyc",
+      "bytes": 3087,
+      "sha256": "bf905061e4e6f2ac2aa8463ef75c938f65e3e6e26a9af5462b52d981b7a986e1"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/overrides/__pycache__/__init__.cpython-314.pyc",
+      "bytes": 16713,
+      "sha256": "066c77bfba59389739f002364f78a0207353d68c8bd7d8f513b56c8c62b20122"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/repository/__init__.py",
+      "bytes": 916,
+      "sha256": "9e914d85ddff42f140712a113f4dac742f2701e6f8112dcada87169703085f99"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/repository/__pycache__/__init__.cpython-314.pyc",
+      "bytes": 414,
+      "sha256": "52aac9510e7003c1e8fd35da9dc3a16d730d427ea322cf5611aee464ba77643d"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/gi/types.py",
+      "bytes": 13833,
+      "sha256": "ff9c3eb2136b9689d267e853d907475ef0baa3493b48e025ef4e4307808bd2cf"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/include/python/PyGObject/pygobject-3.0/pygobject-types.h",
+      "bytes": 8802,
+      "sha256": "55b7dff425cc62154932645464a4db36d8ecabdb82e148e1bf6b880b3a0da0cf"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/include/python/PyGObject/pygobject-3.0/pygobject.h",
+      "bytes": 20540,
+      "sha256": "5c394380240e47a2f06950c4c2f3ae663e2036de087e72708561c4cac0884348"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/pycairo-1.29.1.dist-info/INSTALLER",
+      "bytes": 4,
+      "sha256": "ceebae7b8927a3227e5303cf5e0f1f7b34bb542ad7250ac03fbcde36ec2f1508"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/pycairo-1.29.1.dist-info/METADATA",
+      "bytes": 2279,
+      "sha256": "0598cab5e074c58b9d61c30f5348767e946af96b4ae8c2b60c73a2573bae05b5"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/pycairo-1.29.1.dist-info/RECORD",
+      "bytes": 744,
+      "sha256": "d8d4e6234c6429a4225ac118d467279c4040261b547cef930b466ee84848124b"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/pycairo-1.29.1.dist-info/WHEEL",
+      "bytes": 93,
+      "sha256": "0544ca10c8f2157ee50cda965bd09399ff80d1570f92cdd915b4287d9c18972b"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/pygobject-3.56.3.dist-info/COPYING",
+      "bytes": 26429,
+      "sha256": "f4cac31434b287b10a70b81c62cfa973d250417f8f248c4c1b5566d061ecfb2f"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/pygobject-3.56.3.dist-info/INSTALLER",
+      "bytes": 4,
+      "sha256": "ceebae7b8927a3227e5303cf5e0f1f7b34bb542ad7250ac03fbcde36ec2f1508"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/pygobject-3.56.3.dist-info/METADATA",
+      "bytes": 33717,
+      "sha256": "0d81052a540e0a39c909159c0599a12ed16e7719b23d9180f0f3d5290c491c7f"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/pygobject-3.56.3.dist-info/RECORD",
+      "bytes": 4150,
+      "sha256": "bd8f7281ca22f68c4fce01d4fc01840a2bb6ddbc4390a7983f4cfa7d1ca52f44"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/pygobject-3.56.3.dist-info/REQUESTED",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/reference/python-loader-deps/pygobject-3.56.3.dist-info/WHEEL",
+      "bytes": 93,
+      "sha256": "0544ca10c8f2157ee50cda965bd09399ff80d1570f92cdd915b4287d9c18972b"
+    }
+  ],
+  "receipts": [
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-312.csv",
+      "bytes": 2300,
+      "sha256": "d1c2a87260db133478d38811917183a64bcdd559fc53e2e375ca5b51f20db9de"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-312.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-314.csv",
+      "bytes": 2300,
+      "sha256": "d1c2a87260db133478d38811917183a64bcdd559fc53e2e375ca5b51f20db9de"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-314.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-array-error-literal.csv",
+      "bytes": 25,
+      "sha256": "bccf3a30d6e2c538241cf0fbacc352c8694ea0f14f7c093768496d328447f82d"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-array-error-literal.gnumeric",
+      "bytes": 421,
+      "sha256": "aa3832aa39ba616632d964a7d94b130cc00858c924104bf9ac160f570b08ba61"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-array-error-literal.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-array-error.csv",
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-array-error.gnumeric",
+      "bytes": 417,
+      "sha256": "35a82a64bad2eea02f6c719853f26fc6555124addbb454a3505fda9f0b3d11d6"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-array-error.stderr",
+      "bytes": 108,
+      "sha256": "c366ae060712b2c1f186137dbcdad05a15edff85c86f306948318bd3faa32155"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-array-public-results.json",
+      "bytes": 371,
+      "sha256": "3ea34728cd3f2d30f9bcbee675435f35d15eb2f361833359edfbaeea8ca5c3fe"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-array-public.log",
+      "bytes": 237,
+      "sha256": "9a869ce183637e9b7b2739d2d1d74d25c6868cd00a1f5d686a1e450e82313472"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-array-public.mjs",
+      "bytes": 2151,
+      "sha256": "773e73bbc4bf361cfa5e13a60a259315410f299c2e8668f32d47970a87614419"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-array-strings.csv",
+      "bytes": 23,
+      "sha256": "1e11f2b222cf4756be865abdd0ca7029d2993c525f53206e714862b40b72dfd9"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-array-strings.gnumeric",
+      "bytes": 421,
+      "sha256": "ab790ccdf404f9c3d3f553c992c55bcc1182602a55f1051b4c76bdba4b9a9ae9"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-array-strings.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-array-typed.csv",
+      "bytes": 28,
+      "sha256": "af1cfc9431c462e51b44caea0cbf659c81d42847fca128f462eae77c57b0c451"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-array-typed.gnumeric",
+      "bytes": 415,
+      "sha256": "a6f3fa264f1429fce10db28ad2db76d98fa5caf08bc785e5600e7593a32b11a0"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-array-typed.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-arrays-native.json",
+      "bytes": 4437,
+      "sha256": "88997874d152f03e00cd0cc58e28a0049ddb5f23cb56821169b5140c928088e8"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-bridge-invalid.csv",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-bridge-invalid.gnumeric",
+      "bytes": 421,
+      "sha256": "307603a52d9a74c98585e93c3fea49612384e357c0eb915d3e78091b792f701a"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-bridge-invalid.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-bridge-lldb.log",
+      "bytes": 946,
+      "sha256": "750be8a82e3e250e263b8cb493127b69de5024a6b5424c07b32bad8a2521ba6e"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-bridge-native.json",
+      "bytes": 353,
+      "sha256": "8ec5c9e6a35d649b8e979985e9ac8a07b516e7963dacf2b22d86641e1c38dd87"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-bridge-valid.csv",
+      "bytes": 14,
+      "sha256": "2a2537e80fb0cbbef1ed3a65baebae51001b03fb8ad25c07b2ef57bc37dc887d"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-bridge-valid.gnumeric",
+      "bytes": 431,
+      "sha256": "1f3ec0593a5956ea9ad58ad863a79af9c6568a12fcc9c7ef4bd130fb2eef7d43"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-bridge-valid.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-bridge312-invalid.csv",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-bridge312-invalid.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-bridge312-native.json",
+      "bytes": 265,
+      "sha256": "6af51e565b1bcd19d97a5bbcf1490ec0c9ba9195f3787d106051bbf14772ea3e"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-bridge312-valid.csv",
+      "bytes": 14,
+      "sha256": "2a2537e80fb0cbbef1ed3a65baebae51001b03fb8ad25c07b2ef57bc37dc887d"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-bridge312-valid.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-browser-failure-trace.log",
+      "bytes": 465,
+      "sha256": "c44b617c00ef05618c83712e7e3ec893635fe444289f54c368392197a26aa751"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-browser-final.log",
+      "bytes": 1386,
+      "sha256": "df6a4d3aa3abcbe5e5d756dcb463539591396436e1c5079c17d4d265e647bb25"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-browser-green.log",
+      "bytes": 790,
+      "sha256": "5099761b25579fa2063aeede3759ec4c1d0bb746e7bf41455267b71927a8bd54"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-browser-results.log",
+      "bytes": 250,
+      "sha256": "6cb97dffbc6a864026de62e3cd71e2ac2b21751924a3079336273520f8762071"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-browser-server.mjs",
+      "bytes": 989,
+      "sha256": "772a1e0d6e4c0126a6e889af5f8cb1d021c77144ea6b806abc13ee31efbc2632"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-cases.json",
+      "bytes": 13847,
+      "sha256": "4e6dc6ed130660bf844b2b2c32d776580d6f4b6619ff151555d420ebc7edd34e"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-cstring-browser-build.log",
+      "bytes": 104,
+      "sha256": "d0692588a4846300837584d2700c3553838bf54db42caa706e55fb822bc21a29"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-cstring-browser-fixture-404.log",
+      "bytes": 121,
+      "sha256": "4805ba1ea2aa52a4d6ee4dee405d10b0b1d3d77d92447c7279433c7539a06d1d"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-cstring-browser-results.log",
+      "bytes": 3388,
+      "sha256": "a66c81bec8393d3d0519eea1e4541cf0f2ff9bc2883f03716bb90a579956f877"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-cstring-build.log",
+      "bytes": 834,
+      "sha256": "0209f86942dd8ca393e80a4664010e73f9abb7b0c0588d769b48459e702948c6"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-cstring-green.log",
+      "bytes": 467,
+      "sha256": "a565bea47ee9f440b28f6e3f642814e216b47d22f29e10c598aa772ce37071e1"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-cstring-lint.log",
+      "bytes": 165,
+      "sha256": "21ca19e19d4ee1b13657e7e0f32fcea6ff6e2e858764826087c0f59aa396cad5"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-cstring-maintained-red.log",
+      "bytes": 7487,
+      "sha256": "876cd9b628eddf0918d0c6be49d8d21f6de38797418864b8d623787d73da8ef4"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-cstring-public-fixture-failure.log",
+      "bytes": 1443,
+      "sha256": "84e06d6e8aa9efc791c6117c6e47bda75f34bef1df77c8db7507ebfa7b2b3080"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-cstring-public-results.json",
+      "bytes": 1996,
+      "sha256": "fcc266db2bd189a95829e84cd1e0412cc5985d0a88955d67b25459fa5b6c1a6b"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-cstring-public.log",
+      "bytes": 1329,
+      "sha256": "845bd46f5f5f1783dba9a2dae7f5d142e1ae26a36c070da6996fecf6fe868f2e"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-cstring-public.mjs",
+      "bytes": 2669,
+      "sha256": "704c3800c0394c960d351547828a5e46df5341d7c6cc5b10b943d15d5f9671e3"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-cstring-red.log",
+      "bytes": 2856,
+      "sha256": "3acf42fefd9c42c100136978e96f2a65126d4c2026e47f44e9fd03ab3054b97b"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-cstring-red.test.ts",
+      "bytes": 1200,
+      "sha256": "a56fe67f1e4e1cee5c1aebf3b056251fb91db66e434890dca3378074b66d8a87"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-cstring-screenshot.log",
+      "bytes": 921,
+      "sha256": "7c9628665032a800047db10990141bf49a238fb387d85ba0d462945219072718"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-cstring-screenshot.png",
+      "bytes": 103108,
+      "sha256": "281056d9f4fbca512ba37686833fc5f569af5f56be134827f6e91a36998d27b1"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-cstring-source.json",
+      "bytes": 706,
+      "sha256": "49a5d0b27b3585f2c70f4c910c9fb8cb0cb9bd5b4da12c26c5f6836b02a78997"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-cstring-unit.log",
+      "bytes": 28118,
+      "sha256": "190992cd9aea0264e2844f1d716f6bc4b33249869e09801c9060af6d458314b4"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-cstring-vitest.config.ts",
+      "bytes": 165,
+      "sha256": "9ec23ea104054610ff32e136284c540c65ed0928286f8f836dc040b6e6d8dacd"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-input.gnumeric",
+      "bytes": 17445,
+      "sha256": "07a3a83065eea40a24f65fc40e10962349e47e958b3eeb4e975ce8c7560ea876"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-integration.log",
+      "bytes": 375,
+      "sha256": "0065d41a75108b17c3815d7e185b9126fbb917c35ed0fa3105e042f2cfb62fc5"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-native.json",
+      "bytes": 24209,
+      "sha256": "c1656f79eefb246067f13549cb2f669a468fa148e7808402f74f1ce56d7e1e0b"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-public-output.csv",
+      "bytes": 2300,
+      "sha256": "d1c2a87260db133478d38811917183a64bcdd559fc53e2e375ca5b51f20db9de"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-public-results.json",
+      "bytes": 169,
+      "sha256": "9739a3582d1df03d8cbc8328d4517f6f9f76a77862ba68619446d469171aa134"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-public.log",
+      "bytes": 57,
+      "sha256": "efad69552ed83be94690051fe9afcce41aa9c0e39fb70df7bbb9ae4b62ba73ea"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-public.mjs",
+      "bytes": 2396,
+      "sha256": "55958249bb34ad28a301ac4284b919cb269d3c002ab082fb6519ffc37e6ab457"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-scalar-build.log",
+      "bytes": 737,
+      "sha256": "74c61bc42f609961a221b273afb3deef522fd7f7278fac9d7b37593828c7c217"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-scalar-green.log",
+      "bytes": 465,
+      "sha256": "56be88107a5ec670886c7689639083e966e1ad2fd7d0ac550898bc00379a3017"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-scalar-lint.log",
+      "bytes": 165,
+      "sha256": "21ca19e19d4ee1b13657e7e0f32fcea6ff6e2e858764826087c0f59aa396cad5"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-scalar-red.log",
+      "bytes": 12034,
+      "sha256": "b40bb32311c2ba7996f3680e89857d5e11bbb9ec304eb7b1e9451a80ee0c83ff"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-scalar-unit.log",
+      "bytes": 27883,
+      "sha256": "5674b1c573f02c1946fab284eabf0f5fd819bd7562e9b3a6bd3576373c6092d1"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-screenshot.png",
+      "bytes": 55585,
+      "sha256": "cc8f1f69d0c2cf968290a0e6c204b91f3c303f699ea9853a711da9824d98513e"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-sdk-green.log",
+      "bytes": 138,
+      "sha256": "3f678ccf65b9bb74290ed8b7ca2a602450d5e921abf0b7af9278fe6168cb7333"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-sdk.csv",
+      "bytes": 2300,
+      "sha256": "d1c2a87260db133478d38811917183a64bcdd559fc53e2e375ca5b51f20db9de"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-sdk.log",
+      "bytes": 138,
+      "sha256": "c2153284545ee56cdc0c531cdac372b53e793052027b4073583aaa7b06da5026"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-sdk.mjs",
+      "bytes": 898,
+      "sha256": "fb5433470d6bd1e4ad664f64578204651556954f2306f04e96be8cee0ef0c36c"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-wide-comparison.json",
+      "bytes": 92,
+      "sha256": "faed91916fbf5f075f5340d2dd341fb28844131236197a901d7d24e8994d346d"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-wide-native.json",
+      "bytes": 1338586,
+      "sha256": "2a3687ac1e737d90a71ce51eb6c2f8b52a79e554273073929cdd1a91e2e84519"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-wide-public-output.csv",
+      "bytes": 74115,
+      "sha256": "858220d3273df41b13eb1ef7ebb569b34fe851f0d1e456ab0cca21b6b39ec32d"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-wide-public-results.json",
+      "bytes": 169,
+      "sha256": "9739a3582d1df03d8cbc8328d4517f6f9f76a77862ba68619446d469171aa134"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-wide-public.log",
+      "bytes": 59,
+      "sha256": "fb0c24d6fc6ab08a82f431fa7db097ed247694d73bb99d8d2f84c2acd28c7ea7"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-wide-public.mjs",
+      "bytes": 2433,
+      "sha256": "c7b376619994cfb8588b243b627c3eb285ec82b524a77ba85d168958cc441b29"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-wide-sdk.csv",
+      "bytes": 74115,
+      "sha256": "858220d3273df41b13eb1ef7ebb569b34fe851f0d1e456ab0cca21b6b39ec32d"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-wide-sdk.log",
+      "bytes": 142,
+      "sha256": "229406d469c6764c1a77e6553f6f9d2a77f597cb8c447324a8297f01282e5320"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-wide-sdk.mjs",
+      "bytes": 906,
+      "sha256": "3ba53de2fb62e009425267558edaaf8c553bfc1a3fffaf712da188cb0418ad17"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-wide.csv",
+      "bytes": 74115,
+      "sha256": "858220d3273df41b13eb1ef7ebb569b34fe851f0d1e456ab0cca21b6b39ec32d"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-wide.gnumeric",
+      "bytes": 1196659,
+      "sha256": "147021aebdefe5099cd3c0c519abc84733de268b3824d6effa49302af576f619"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-wide.py",
+      "bytes": 2761,
+      "sha256": "499feece15dd8906d379fcafa10b26ce428a2cc0a74461966d1655210efc7918"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-wide.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-wide312-comparison.json",
+      "bytes": 22360,
+      "sha256": "671e4c59225eb7e598950af455bb41f180bb2ca3443bd2adf0111f4f95d49776"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-wide312.csv",
+      "bytes": 74117,
+      "sha256": "d2c63c95089fb1a5351ff0c60ed1aaa5bbffd8ae50c6f520295170dae3097299"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-wide312.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-browser/cstring-worker.js",
+      "bytes": 184,
+      "sha256": "bb49383dedac50c8fa01b048a71ec4ce0159c5750ab405007912f0599641a337"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-browser/cstring.js",
+      "bytes": 2258,
+      "sha256": "a8aa17f45fc11dd03df4181cbc4a25e789437b144cfc9702a6e3b4ad19a9a73e"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-browser/index.html",
+      "bytes": 759,
+      "sha256": "adc14383783bcd0c709214b15de8f6296a362245514ae132457af9674f144186"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-browser/qa.js",
+      "bytes": 6460,
+      "sha256": "84f04b9daf20cbf84ff23477500290d513e2356395a458f2ba9fa0eff1f9896c"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-browser/ssconvert.js",
+      "bytes": 7079972,
+      "sha256": "d6c4e6dcaee0447157f58fec9a35a0e3dc50d7e612e6cf96ae81fb9a9d918c46"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/capwords-activated-browser/worker.js",
+      "bytes": 121,
+      "sha256": "6efcdf7911874b359d2580b08608a714eab4dfd71941a610fc4b3466b51d876d"
+    }
+  ],
+  "remaining": [
+    "Complete environment/plugin closure and all 14 exact optional Linux profiles",
+    "Native workbook byte and result acquisition profiles beyond the measured safe and crashing controls",
+    "Versioned Unicode profiles, native warnings/errors, and all other ledger families",
+    "Final frozen broad checks, packed/installed/registry qualification, and actual containing publication"
+  ],
+  "delivery": {
+    "localCommit": "cb4f0d3ee241b7096e131b7b71014f8f0ecb5eec",
+    "remoteMain": "pending",
+    "publication": "notverified; registry17.0.34historicalbaseline"
+  },
+  "scratchDisposition": "Observations reduced with exact receipts; owned capwords-activated scratch will be purged after delivery. Native archives and reference plugins remain in use for the active goal."
+}

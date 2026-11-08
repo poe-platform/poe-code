@@ -1,0 +1,8 @@
+{
+  "id": "raw-before-assertion",
+  "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+  "outcome": "MATCH",
+  "failure": null,
+  "raw": "raw-before-assertion-raw.json",
+  "semanticPasses": 0
+}

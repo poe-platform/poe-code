@@ -1,0 +1,33 @@
+{
+  "identifier": "F13",
+  "status": "PASS",
+  "checks": 39,
+  "observation": {
+    "identifier": "status-role",
+    "qualified": false,
+    "primary": {
+      "phase": "body",
+      "value": {
+        "name": "Error",
+        "message": "COORDINATOR_NOT_QUALIFIED",
+        "code": "COORDINATOR_NOT_QUALIFIED"
+      },
+      "undefinedValue": false
+    },
+    "resultReference": {
+      "path": "RESULT.json",
+      "bytes": 5189,
+      "sha256": "47ec42bbd9570a1a73984c0709a947079da8946dc6f682199c508f1e51d75f54",
+      "mode": 420
+    },
+    "wireSha256": "113c3612ddf943b1ad76fe138a0bbe67c2283e7d98213461d2ca7a27c3d8fb3b",
+    "stdoutSha256": "351e7da11c85a85c2c5390b4eefc56dcba5c1bb49d7d019aae080e79d8879f33",
+    "outerReference": {
+      "path": "OUTER.json",
+      "bytes": 1075,
+      "sha256": "167e5675d63d4f2f98c55a1dabb2dde7607cb27f8d9b90bb1d028a68d3d2b47a",
+      "mode": 420
+    },
+    "seedPreserved": true
+  }
+}

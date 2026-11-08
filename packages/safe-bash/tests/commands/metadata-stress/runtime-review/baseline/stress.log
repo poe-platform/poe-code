@@ -1,0 +1,310 @@
+{"label":"stress","command":"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","args":["--import","/tmp/safe-bash-metadata-review-native-count.mjs","--unhandled-rejections=strict","--import","tsx","--test","/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/adversarial.test.ts","/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/capabilities.test.ts","/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/chmod-controls.test.ts","/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/epoch-regression.test.ts","/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/mktemp-controls.test.ts","/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/native-differential.test.ts","/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/provenance.test.ts","/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/remote-cancellation.test.ts","/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-effects.test.ts","/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-flags.test.ts","/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-precision.test.ts"],"started":"2026-08-27T00:46:39.030Z","finished":"2026-08-27T00:46:45.373Z","exitCode":0,"signal":null,"stdoutHash":"d835b610a155dc461df8bc6fe8053c96cb571b1f715a7d0a95a182d9a43e6a73","stderrHash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+STDOUT
+TAP version 13
+# Subtest: mktemp injected collision preserves every competing byte and bounds retries
+ok 1 - mktemp injected collision preserves every competing byte and bounds retries
+  ---
+  duration_ms: 9.001333
+  type: 'test'
+  ...
+# Subtest: mktemp noncollision faults do not retry or create host files
+ok 2 - mktemp noncollision faults do not retry or create host files
+  ---
+  duration_ms: 0.525459
+  type: 'test'
+  ...
+# Subtest: chmod blocked stdout abort preserves bounded effects and late rejection
+ok 3 - chmod blocked stdout abort preserves bounded effects and late rejection
+  ---
+  duration_ms: 2.687708
+  type: 'test'
+  ...
+# Subtest: stat blocked stdout abort preserves bounded effects and late rejection
+ok 4 - stat blocked stdout abort preserves bounded effects and late rejection
+  ---
+  duration_ms: 2.80725
+  type: 'test'
+  ...
+# Subtest: mktemp blocked stdout abort preserves bounded effects and late rejection
+ok 5 - mktemp blocked stdout abort preserves bounded effects and late rejection
+  ---
+  duration_ms: 1.207042
+  type: 'test'
+  ...
+# Subtest: chmod pre-abort performs no effects
+ok 6 - chmod pre-abort performs no effects
+  ---
+  duration_ms: 2.274375
+  type: 'test'
+  ...
+# Subtest: stat pre-abort performs no effects
+ok 7 - stat pre-abort performs no effects
+  ---
+  duration_ms: 1.37625
+  type: 'test'
+  ...
+# Subtest: mktemp pre-abort performs no effects
+ok 8 - mktemp pre-abort performs no effects
+  ---
+  duration_ms: 0.244125
+  type: 'test'
+  ...
+# Subtest: chmod recursive budgets stop effects; hardlink aliases retain shared mode and bytes
+ok 9 - chmod recursive budgets stop effects; hardlink aliases retain shared mode and bytes
+  ---
+  duration_ms: 0.704208
+  type: 'test'
+  ...
+# Subtest: stat and mktemp output limits fail before output/creation; argument budget has no effects
+ok 10 - stat and mktemp output limits fail before output/creation; argument budget has no effects
+  ---
+  duration_ms: 0.766083
+  type: 'test'
+  ...
+# Subtest: chmod substitution detection refuses changed entry before mutation
+ok 11 - chmod substitution detection refuses changed entry before mutation
+  ---
+  duration_ms: 0.358041
+  type: 'test'
+  ...
+# Subtest: metadata actual memory capabilities and shell workflow
+ok 12 - metadata actual memory capabilities and shell workflow
+  ---
+  duration_ms: 14.619334
+  type: 'test'
+  ...
+# Subtest: metadata actual real capabilities and shell workflow
+ok 13 - metadata actual real capabilities and shell workflow
+  ---
+  duration_ms: 17.7885
+  type: 'test'
+  ...
+# Subtest: metadata actual mount capabilities and shell workflow
+ok 14 - metadata actual mount capabilities and shell workflow
+  ---
+  duration_ms: 6.648792
+  type: 'test'
+  ...
+# Subtest: metadata actual overlay capabilities and shell workflow
+ok 15 - metadata actual overlay capabilities and shell workflow
+  ---
+  duration_ms: 7.235542
+  type: 'test'
+  ...
+# Subtest: metadata actual s3 capabilities and shell workflow
+ok 16 - metadata actual s3 capabilities and shell workflow
+  ---
+  duration_ms: 6.608
+  type: 'test'
+  ...
+# Subtest: metadata actual webdav capabilities and shell workflow
+ok 17 - metadata actual webdav capabilities and shell workflow
+  ---
+  duration_ms: 14.636792
+  type: 'test'
+  ...
+# Subtest: metadata actual readonly capabilities and shell workflow
+ok 18 - metadata actual readonly capabilities and shell workflow
+  ---
+  duration_ms: 0.68125
+  type: 'test'
+  ...
+# Subtest: MemoryFS enforces owner bits but does not implement host identities
+ok 19 - MemoryFS enforces owner bits but does not implement host identities
+  ---
+  duration_ms: 0.492958
+  type: 'test'
+  ...
+# Subtest: GNU chmod directory setid controls compare actual host preservation
+ok 20 - GNU chmod directory setid controls compare actual host preservation
+  ---
+  duration_ms: 1192.457292
+  type: 'test'
+  ...
+# Subtest: GNU chmod verbose/changes/reference/error controls preserve bytes and aliases
+ok 21 - GNU chmod verbose/changes/reference/error controls preserve bytes and aliases
+  ---
+  duration_ms: 87.411333
+  type: 'test'
+  ...
+# Subtest: chmod root and unsupported traversal controls fail without namespace effects
+ok 22 - chmod root and unsupported traversal controls fail without namespace effects
+  ---
+  duration_ms: 0.557167
+  type: 'test'
+  ...
+# LEAF_NATIVE_COUNTS {"GNU9.7:chmod:behavior":53}
+# Subtest: GNU stat exact millisecond epoch values do not lose a millisecond in scaling
+ok 23 - GNU stat exact millisecond epoch values do not lose a millisecond in scaling
+  ---
+  duration_ms: 378.979166
+  type: 'test'
+  ...
+# LEAF_NATIVE_COUNTS {"GNU9.7:stat:behavior":11}
+# Subtest: GNU mktemp template grammar and quiet diagnostics: 24 controls
+ok 24 - GNU mktemp template grammar and quiet diagnostics: 24 controls
+  ---
+  duration_ms: 561.357875
+  type: 'test'
+  ...
+# Subtest: mktemp 64 concurrent creations reserve distinct names with virtual umasks
+ok 25 - mktemp 64 concurrent creations reserve distinct names with virtual umasks
+  ---
+  duration_ms: 4.893458
+  type: 'test'
+  ...
+# Subtest: mktemp crypto provenance remains node randomInt with no native/host filesystem fallback
+ok 26 - mktemp crypto provenance remains node randomInt with no native/host filesystem fallback
+  ---
+  duration_ms: 12.996083
+  type: 'test'
+  ...
+# Subtest: mktemp directory collision retries never delete competing entries
+ok 27 - mktemp directory collision retries never delete competing entries
+  ---
+  duration_ms: 0.502875
+  type: 'test'
+  ...
+# Subtest: mktemp post-create cancellation leaves one entry, never unsafe cleanup or retries
+ok 28 - mktemp post-create cancellation leaves one entry, never unsafe cleanup or retries
+  ---
+  duration_ms: 0.37275
+  type: 'test'
+  ...
+# Subtest: mktemp exclusive file creation cannot follow a competing symlink
+ok 29 - mktemp exclusive file creation cannot follow a competing symlink
+  ---
+  duration_ms: 0.289834
+  type: 'test'
+  ...
+# Subtest: mktemp byte-length and absent VFS TMPDIR failures leave the namespace untouched
+ok 30 - mktemp byte-length and absent VFS TMPDIR failures leave the namespace untouched
+  ---
+  duration_ms: 0.610917
+  type: 'test'
+  ...
+# LEAF_NATIVE_COUNTS {"GNU9.7:mktemp:behavior":24}
+# Subtest: GNU chmod seeded symbolic/numeric differential: 384 mode transitions
+ok 31 - GNU chmod seeded symbolic/numeric differential: 384 mode transitions
+  ---
+  duration_ms: 5696.721041
+  type: 'test'
+  ...
+# Subtest: GNU stat format matrix compares exact bytes over actual RealFS metadata
+ok 32 - GNU stat format matrix compares exact bytes over actual RealFS metadata
+  ---
+  duration_ms: 144.5525
+  type: 'test'
+  ...
+# Subtest: GNU mktemp option/template controls preserve result shape and private modes
+ok 33 - GNU mktemp option/template controls preserve result shape and private modes
+  ---
+  duration_ms: 136.454125
+  type: 'test'
+  ...
+# Subtest: GNU chmod recursive symlink control: tree
+ok 34 - GNU chmod recursive symlink control: tree
+  ---
+  duration_ms: 30.916833
+  type: 'test'
+  ...
+# Subtest: GNU chmod recursive symlink control: start
+ok 35 - GNU chmod recursive symlink control: start
+  ---
+  duration_ms: 22.927709
+  type: 'test'
+  ...
+# Subtest: GNU chmod recursive symlink control: dangling
+ok 36 - GNU chmod recursive symlink control: dangling
+  ---
+  duration_ms: 22.838709
+  type: 'test'
+  ...
+# LEAF_NATIVE_COUNTS {"GNU9.7:chmod:behavior":387,"GNU9.7:stat:behavior":10,"GNU9.7:mktemp:behavior":10}
+# Subtest: GNU oracle binaries/archive match the independently captured exact identities
+ok 37 - GNU oracle binaries/archive match the independently captured exact identities
+  ---
+  duration_ms: 122.264584
+  type: 'test'
+  ...
+# Subtest: all seven original author artifacts retain their handoff hashes
+ok 38 - all seven original author artifacts retain their handoff hashes
+  ---
+  duration_ms: 2.938333
+  type: 'test'
+  ...
+# LEAF_NATIVE_COUNTS {"GNU9.7:chmod:version":1,"GNU9.7:stat:version":1,"GNU9.7:mktemp:version":1}
+# Subtest: s3 stat forwards cancellation into actual remote reads
+ok 39 - s3 stat forwards cancellation into actual remote reads
+  ---
+  duration_ms: 1.882084
+  type: 'test'
+  ...
+# Subtest: s3 mktemp forwards cancellation into actual remote reads
+ok 40 - s3 mktemp forwards cancellation into actual remote reads
+  ---
+  duration_ms: 0.583125
+  type: 'test'
+  ...
+# Subtest: webdav stat forwards cancellation into actual remote reads
+ok 41 - webdav stat forwards cancellation into actual remote reads
+  ---
+  duration_ms: 9.628041
+  type: 'test'
+  ...
+# Subtest: webdav mktemp forwards cancellation into actual remote reads
+ok 42 - webdav mktemp forwards cancellation into actual remote reads
+  ---
+  duration_ms: 0.483334
+  type: 'test'
+  ...
+# Subtest: GNU stat types/link-follow/aliases compare exact bytes without namespace mutation
+ok 43 - GNU stat types/link-follow/aliases compare exact bytes without namespace mutation
+  ---
+  duration_ms: 349.718042
+  type: 'test'
+  ...
+# Subtest: stat missing/dangling operands preserve later output, typed API errors and all entries
+ok 44 - stat missing/dangling operands preserve later output, typed API errors and all entries
+  ---
+  duration_ms: 86.111417
+  type: 'test'
+  ...
+# LEAF_NATIVE_COUNTS {"GNU9.7:stat:behavior":12}
+# Subtest: stat unsigned fields ignore sign flags while epoch fields retain them
+ok 45 - stat unsigned fields ignore sign flags while epoch fields retain them
+  ---
+  duration_ms: 484.184875
+  type: 'test'
+  ...
+# LEAF_NATIVE_COUNTS {"GNU9.7:stat:behavior":13}
+# Subtest: GNU stat precision and UTF-8 byte width: 45 bounded format comparisons
+ok 46 - GNU stat precision and UTF-8 byte width: 45 bounded format comparisons
+  ---
+  duration_ms: 1195.961041
+  type: 'test'
+  ...
+# Subtest: GNU invalid percent modifiers fail; virtual rendering buffers the current operand
+ok 47 - GNU invalid percent modifiers fail; virtual rendering buffers the current operand
+  ---
+  duration_ms: 39.633791
+  type: 'test'
+  ...
+# Subtest: stat precision allocation is bounded before writing bytes
+ok 48 - stat precision allocation is bounded before writing bytes
+  ---
+  duration_ms: 3.521833
+  type: 'test'
+  ...
+# LEAF_NATIVE_COUNTS {"GNU9.7:stat:behavior":47}
+1..48
+# tests 48
+# suites 0
+# pass 48
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 6309.001833
+
+STDERR

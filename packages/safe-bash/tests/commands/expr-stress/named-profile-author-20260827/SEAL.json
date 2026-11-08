@@ -1,0 +1,154 @@
+{
+  "source": "246aa440c988d6c09464480956c4eff69009f7e4",
+  "designCommit": "47309c0be322f685431e2b6579edd86d56b79fdd",
+  "qualification": "author-only named scalar candidate, stale canonical failure retained, independent final review pending",
+  "inventory": [
+    {
+      "path": "REPORT.md",
+      "kind": "file",
+      "sha256": "5d1badb74e271f6c91c7d99c82b1c5dabf4fdaab725d8b59817826d98fead7e0"
+    },
+    {
+      "path": "candidate-01",
+      "kind": "directory"
+    },
+    {
+      "path": "candidate-01/blocked-baseline-receipt.txt",
+      "kind": "file",
+      "sha256": "8a60f630fc0df8eb2c44022fd1d3222572d8a6dc481de8e36ad99f4ccc67f5b6"
+    },
+    {
+      "path": "candidate-01/commands.json",
+      "kind": "file",
+      "sha256": "3b3dd47491a47772478d0d628ea71836bff811814c476da161d3d830c71bfa28"
+    },
+    {
+      "path": "candidate-01/design-authentication.json",
+      "kind": "file",
+      "sha256": "b4bc2595b0648b55fdcdd860f4ba55485519513ae8e9dd7d2cd908e1879e66f8"
+    },
+    {
+      "path": "candidate-01/historical10.json",
+      "kind": "file",
+      "sha256": "2df01dffb8da9786cffb045711e834b23ba1c79e7fe3aef3f52f3ab991594a14"
+    },
+    {
+      "path": "candidate-02",
+      "kind": "directory"
+    },
+    {
+      "path": "candidate-02/blocked-baseline-receipt.txt",
+      "kind": "file",
+      "sha256": "8a60f630fc0df8eb2c44022fd1d3222572d8a6dc481de8e36ad99f4ccc67f5b6"
+    },
+    {
+      "path": "candidate-02/commands.json",
+      "kind": "file",
+      "sha256": "e9f2ddfe59f454772608a65c43adef08f4349e7a61e26784340e983bd6a9468f"
+    },
+    {
+      "path": "candidate-02/design-authentication.json",
+      "kind": "file",
+      "sha256": "b4bc2595b0648b55fdcdd860f4ba55485519513ae8e9dd7d2cd908e1879e66f8"
+    },
+    {
+      "path": "candidate-02/historical10.json",
+      "kind": "file",
+      "sha256": "2df01dffb8da9786cffb045711e834b23ba1c79e7fe3aef3f52f3ab991594a14"
+    },
+    {
+      "path": "candidate-02/inputs.json",
+      "kind": "file",
+      "sha256": "90c865df7db06468d423479bc44f9262f6d6d397354cd2ef9a3899adf604b1c1"
+    },
+    {
+      "path": "candidate-02/runtime-C.json",
+      "kind": "file",
+      "sha256": "3f1f4e3c514650883c12b62b009df86e88857892a550d4e5ba119ff27ce91479"
+    },
+    {
+      "path": "candidate-02/runtime-named.json",
+      "kind": "file",
+      "sha256": "185efc0bd9dfbf0acc578e3d4cbdb5ef31344bdc2dfbf23bde7d035a35b218c4"
+    },
+    {
+      "path": "candidate-02/runtime.mjs.data",
+      "kind": "file",
+      "sha256": "7a8c3be378bb18974d423b3b0575f7dc6e44c2fd495b764c93c6d0c8c9a3e35e"
+    },
+    {
+      "path": "candidate-02/setup.json",
+      "kind": "file",
+      "sha256": "ae2f0f0b537830d571e93bf75e283010b720042a9c3b480ce56aefe3188c2e69"
+    },
+    {
+      "path": "candidate-02/summary.json",
+      "kind": "file",
+      "sha256": "320391b4d61f054ef10660ace1b1d97705de48a5091b67501a95798192ea0256"
+    },
+    {
+      "path": "candidate-03",
+      "kind": "directory"
+    },
+    {
+      "path": "candidate-03/blocked-baseline-receipt.txt",
+      "kind": "file",
+      "sha256": "8a60f630fc0df8eb2c44022fd1d3222572d8a6dc481de8e36ad99f4ccc67f5b6"
+    },
+    {
+      "path": "candidate-03/commands.json",
+      "kind": "file",
+      "sha256": "957c11f46031986555f7cdaa7a7c942ee2451113f40879acefa4fa05f775f127"
+    },
+    {
+      "path": "candidate-03/design-authentication.json",
+      "kind": "file",
+      "sha256": "b4bc2595b0648b55fdcdd860f4ba55485519513ae8e9dd7d2cd908e1879e66f8"
+    },
+    {
+      "path": "candidate-03/historical10.json",
+      "kind": "file",
+      "sha256": "2df01dffb8da9786cffb045711e834b23ba1c79e7fe3aef3f52f3ab991594a14"
+    },
+    {
+      "path": "candidate-03/inputs.json",
+      "kind": "file",
+      "sha256": "dd75eae62a1e0703f06ed2afe5129c44595e92a5ff073b545b0cdb5da2182f8e"
+    },
+    {
+      "path": "candidate-03/runtime-C.json",
+      "kind": "file",
+      "sha256": "8746c7a374af925b55a00e3c7491ff69edda2b7e11ea9f5e87be44fb9de06a35"
+    },
+    {
+      "path": "candidate-03/runtime-named.json",
+      "kind": "file",
+      "sha256": "7089ef6f62fdfa84ed020e7c96e79f10b6b2b702b11a4e0f77946dd30c7748d8"
+    },
+    {
+      "path": "candidate-03/setup.json",
+      "kind": "file",
+      "sha256": "741a85bc5153b5a348bf6572b4b492f291b98be7ec2a3c9af55ace2ad1284e3b"
+    },
+    {
+      "path": "candidate-03/summary.json",
+      "kind": "file",
+      "sha256": "320391b4d61f054ef10660ace1b1d97705de48a5091b67501a95798192ea0256"
+    },
+    {
+      "path": "capture.mjs",
+      "kind": "file",
+      "sha256": "881ebfac9e2b82d1dd76177757ca7326fa8bdcc31bd233172ab6999bf6132d67"
+    },
+    {
+      "path": "runtime.mjs",
+      "kind": "file",
+      "sha256": "04b036d7b2085be4fc801070408f2e70ebf6e8f7ba4d25ce631f40950dbeab1a"
+    },
+    {
+      "path": "verify.mjs",
+      "kind": "file",
+      "sha256": "99173e1897e8c50a472bd92cdb90253465961b6f8df1ab20c5fcb2ffa73daf10"
+    }
+  ]
+}

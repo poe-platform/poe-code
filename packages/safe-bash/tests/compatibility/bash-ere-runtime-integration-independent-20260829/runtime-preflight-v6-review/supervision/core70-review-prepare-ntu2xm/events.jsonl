@@ -1,0 +1,5 @@
+{"at":"2026-08-29T14:32:36.705Z","event":"owner-start","pid":93775,"mode":"prepare"}
+{"at":"2026-08-29T14:32:36.713Z","label":"inventory","event":"start","pid":93776,"exe":"/usr/bin/git","args":["-c","gc.auto=0","-c","maintenance.auto=false","-c","core.hooksPath=/dev/null","-c","commit.gpgsign=false","-c","core.abbrev=40","ls-tree","-rz","2fe9ed42910d719c40e2f441e71c4261cb961a41","--","tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4","tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v6"]}
+{"at":"2026-08-29T14:32:36.750Z","label":"inventory","event":"exit","pid":93776,"code":0,"signal":null}
+{"at":"2026-08-29T14:32:36.753Z","label":"inventory","event":"close","pid":93776,"code":0,"signal":null,"exited":true}
+{"at":"2026-08-29T14:32:38.081Z","event":"owner-complete","pid":93775,"mode":"prepare"}

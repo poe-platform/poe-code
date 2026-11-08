@@ -1,0 +1,2 @@
+{"event":"before","name":"binding-git","args":["ls-tree","-rz","f9534894b19085108ac042ff0f48805499d5c1dd","--","tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/final-binding-v1"],"utc":"2026-08-29T15:02:24.132Z"}
+{"event":"after","name":"binding-git","pid":48873,"status":0,"signal":null}

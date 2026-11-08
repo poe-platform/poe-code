@@ -1,0 +1,82 @@
+import { S } from "schema";
+
+export const schema = S.Object({
+  kind: S.Enum(["coverage-demo"]),
+  version: S.Number()
+});
+
+export default async (frontmatter) => {
+  const meta = import.meta;
+  const source = {
+    label: "coverage",
+    counts: [1, 2, 3],
+    nested: {
+      value: 4
+    }
+  };
+  const { label, counts } = source;
+  const [first, second, third] = counts;
+  const optionalValue = source.missing?.value ?? source.nested?.value ?? 0;
+  const branchCases = [
+    { kind: frontmatter.kind, version: frontmatter.version },
+    { kind: "coverage-demo-next", version: 2 },
+    { kind: "coverage-demo-fallback", version: 1 }
+  ];
+  let branches = [];
+  let total = 0;
+
+  for (const branchCase of branchCases) {
+    if (branchCase.kind === "coverage-demo") {
+      branches = branches.concat("if");
+      total = total + first;
+    } else if (branchCase.version > 1) {
+      branches = branches.concat("else-if");
+      total = total + second;
+    } else {
+      branches = branches.concat("else");
+      total = total + third;
+    }
+  }
+
+  for (const value of counts) {
+    total = total + value;
+  }
+
+  let countdown = 2;
+  while (countdown > 0) {
+    total = total + countdown;
+    countdown = countdown - 1;
+  }
+
+  for (let index = 0; index < 3; index = index + 1) {
+    total = total + index;
+  }
+
+  const comparison = total + optionalValue > 16;
+  const ternary = comparison ? "high" : "low";
+  const logical = comparison && label === "coverage" && "short-circuit-ok";
+  const merged = {
+    ...source,
+    first,
+    second,
+    third,
+    optionalValue,
+    total
+  };
+  const message = `${meta.kind}:${ternary}:${logical}`;
+
+  return {
+    kind: frontmatter.kind,
+    version: frontmatter.version,
+    message,
+    numbers: {
+      first: merged.first,
+      second: merged.second,
+      third: merged.third,
+      optionalValue: merged.optionalValue,
+      total: merged.total
+    },
+    branches,
+    comparison
+  };
+};

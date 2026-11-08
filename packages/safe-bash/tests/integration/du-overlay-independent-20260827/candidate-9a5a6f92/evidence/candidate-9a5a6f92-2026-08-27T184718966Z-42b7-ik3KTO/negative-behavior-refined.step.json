@@ -1,0 +1,14 @@
+{
+  "name": "negative-behavior-refined",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/verify-refined-v2.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-a4yR17/negative-overlay-behavior/consumer/node_modules/virtual-bash"
+  ],
+  "status": 1,
+  "signal": null,
+  "stdoutBytes": 829212,
+  "stderrBytes": 3631,
+  "stdoutSha256": "8633ede4cd6ac77a411bdcedd860bdc5b5fb1312f635f7ab542289a48f2f8452",
+  "stderrSha256": "f0edd4667b4feb8181efd1542cae76d82b472c68775165736013105d4a1d8b33"
+}

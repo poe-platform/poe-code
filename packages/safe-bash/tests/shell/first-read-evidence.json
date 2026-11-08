@@ -1,0 +1,1141 @@
+{
+  "schemaVersion": 1,
+  "classification": "RED reproducibility and custom-lifecycle design checkpoint; no product fix or approved API",
+  "shellSourceCommit": "90ddc748f21e2164ea3f20e47f32bbdad6a5b20c",
+  "preservedEvidenceCorrection": "adba1ea8c95dbaf8e4f4330d306d1d411d085b44",
+  "author": {
+    "command": [
+      "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "--unhandled-rejections=strict",
+      "--import",
+      "tsx",
+      "--test",
+      "--test-name-pattern=pipeline close: first-read-",
+      "tests/shell/remote-close.test.ts"
+    ],
+    "started": "2026-08-26T22:54:06.554Z",
+    "finished": "2026-08-26T22:54:13.746Z",
+    "status": 1,
+    "signal": null,
+    "counts": {
+      "tests": 6,
+      "pass": 1,
+      "fail": 5,
+      "skipped": 0,
+      "cancelled": 0
+    },
+    "innerDeadlineMs": 1200,
+    "outerDeadlineMs": 3000,
+    "changedFiles": [],
+    "selectedBeforeAndAfterHashes": {
+      "src/commands/basic.ts": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+      "src/commands/internal.ts": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+      "src/commands/network/curl.ts": "eb3683ae45b3f236e1929ddd67398baa8df5a901d4a0275df793b4dbb3e8236d",
+      "src/commands/network/output.ts": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab",
+      "src/commands/network/transport.ts": "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844",
+      "src/commands/streams.ts": "0b49e7f14ae8a399fcbea5454c48e930f047472f8631c2d5fe3ca385d14437d5",
+      "src/contracts/command.ts": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+      "src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "src/contracts/filesystem.md": "90838dc4c536147dcd331a09387281192a15aab45df980e280df008d1333a52a",
+      "src/contracts/filesystem.ts": "97257525eaead7d90c4280ec8a14bd063e9dac507ffc9b30398a9c421dcb118a",
+      "src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+      "src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+      "src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "src/fs/s3/filesystem.ts": "4fa05c3868c16ac9c2c309f760b46aa0fc9f211674a5dc3b179992f3e9eaf34f",
+      "src/fs/s3/mock.ts": "d2356f3917fed36524bf1d944b67af70e3f19b0956064b306e8680b974bf8b6d",
+      "src/fs/webdav/webdav.ts": "e63f010b99184df94c44f49fcbd52e84cc0d3137821637d030dee9651f60dd16",
+      "src/index.ts": "d33bf4a8e89cf225ed47ba6d028a5aa7a879ec6c1399762534b05c7b40dc2f16",
+      "src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "src/shell/input.ts": "c7492bb41555d865a0dcda9e3c7e8b2b3f5c5a1e73dc6e1bdb9b3fe6e7ed9a6d",
+      "src/shell/locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "src/shell/parser.ts": "73749cb5af6b6affe91014153aa4a6358bc8441807e8ad47fe09f74927c8c7b0",
+      "src/shell/pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "src/shell/runtime.ts": "0d4f6fd7c56702dd585d6838278d5b0184288446f95ee9cf5392acf8ee22e60d",
+      "src/shell/shell.ts": "ea1ae9136b6b5d2062a69c4307d6e31b6d4aada3947418c0e3dad66b13fcd127",
+      "src/shell/types.ts": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874",
+      "tests/shell/first-read-probe.ts": "b138e5572240533efb8cde733e0c5a9bbd1c960e431b9291c0a17a300b1c7ed6",
+      "tests/shell/remote-close.test.ts": "0ca0886333c793dbddb5e14e2fdbb2a3bb457919dbf4e70d419f87fab6505474",
+      "tests/stress/remote-cancellation/helpers.ts": "9e76ecf9ba6604fc2c4b94a96cf5b46ffed97de5e7d0c2524e138b4410e17678"
+    },
+    "fullOriginalManifestSha256": "6b26995937504ab6134a456cd952307fc889b61bead2f3b2857fe7f946e9ad17",
+    "rawOriginalTapSha256": "59d753ea2049f9a6f7d28b33641b03d8005b3a70f1f4c60bbdabba07f9fdf508",
+    "rawOriginalStderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tapExtraction": "TAP diagnostic backslash doubling is undone once solely to recover structured child events. No shell stdout/stderr normalization or expectation replacement.",
+    "shellDirectHead": {
+      "command": "head -n 0",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "acquired": 1,
+      "next": 0,
+      "returned": 1
+    },
+    "observations": [
+      {
+        "scenario": "first-read-head-zero",
+        "pid": 96036,
+        "processStatus": 0,
+        "signal": null,
+        "outerTimedOut": false,
+        "oversized": false,
+        "residualGroup": false,
+        "observedBeforeTeardown": {
+          "scenario": "first-read-head-zero",
+          "active": 0,
+          "reads": 0,
+          "returned": 1,
+          "abortedBeforeTeardown": false,
+          "events": [
+            "command.settled:head:0"
+          ]
+        },
+        "rawChildStdout": "first-read-head-zero: passed\n{\"scenario\":\"first-read-head-zero\",\"active\":0,\"reads\":0,\"returned\":1,\"abortedBeforeTeardown\":false,\"events\":[\"command.settled:head:0\"]}\n",
+        "deadlineDiagnostic": null
+      },
+      {
+        "scenario": "first-read-local",
+        "pid": 96042,
+        "processStatus": 1,
+        "signal": null,
+        "outerTimedOut": false,
+        "oversized": false,
+        "residualGroup": false,
+        "observedBeforeTeardown": {
+          "scenario": "first-read-local",
+          "active": 1,
+          "reads": 1,
+          "returned": 0,
+          "abortedBeforeTeardown": false,
+          "events": [
+            "source.next:pending-before-first-byte",
+            "command.settled:head:0"
+          ]
+        },
+        "rawChildStdout": "{\"scenario\":\"first-read-local\",\"active\":1,\"reads\":1,\"returned\":0,\"abortedBeforeTeardown\":false,\"events\":[\"source.next:pending-before-first-byte\",\"command.settled:head:0\"]}\n",
+        "deadlineDiagnostic": "Error: DEADLINE: first-read-local (1200ms)"
+      },
+      {
+        "scenario": "first-read-s3",
+        "pid": 96064,
+        "processStatus": 1,
+        "signal": null,
+        "outerTimedOut": false,
+        "oversized": false,
+        "residualGroup": false,
+        "observedBeforeTeardown": {
+          "scenario": "first-read-s3",
+          "active": 1,
+          "reads": 1,
+          "returned": 0,
+          "abortedBeforeTeardown": false,
+          "events": [
+            "op:S3.listObjectsV2:list:callerAborted=false:signal=live",
+            "op:S3.headObject:input:callerAborted=false:signal=live",
+            "op:S3.headObject:input/:callerAborted=false:signal=live",
+            "op:S3.listObjectsV2:list:callerAborted=false:signal=live",
+            "op:S3.getObjectStream:input:callerAborted=false:signal=live",
+            "source.next:pending-before-first-byte",
+            "command.settled:head:0"
+          ]
+        },
+        "rawChildStdout": "{\"scenario\":\"first-read-s3\",\"active\":1,\"reads\":1,\"returned\":0,\"abortedBeforeTeardown\":false,\"events\":[\"op:S3.listObjectsV2:list:callerAborted=false:signal=live\",\"op:S3.headObject:input:callerAborted=false:signal=live\",\"op:S3.headObject:input/:callerAborted=false:signal=live\",\"op:S3.listObjectsV2:list:callerAborted=false:signal=live\",\"op:S3.getObjectStream:input:callerAborted=false:signal=live\",\"source.next:pending-before-first-byte\",\"command.settled:head:0\"]}\n",
+        "deadlineDiagnostic": "Error: DEADLINE: first-read-s3 (1200ms)"
+      },
+      {
+        "scenario": "first-read-webdav",
+        "pid": 96066,
+        "processStatus": 1,
+        "signal": null,
+        "outerTimedOut": false,
+        "oversized": false,
+        "residualGroup": false,
+        "observedBeforeTeardown": {
+          "scenario": "first-read-webdav",
+          "active": 1,
+          "reads": 1,
+          "returned": 0,
+          "abortedBeforeTeardown": false,
+          "events": [
+            "op:DAV.PROPFIND:/dav/input:callerAborted=false:signal=live",
+            "http.socket.open",
+            "http.request:PROPFIND:/dav/input",
+            "http.response.close:PROPFIND:finished=true",
+            "op:DAV.GET:/dav/input:callerAborted=false:signal=live",
+            "http.socket.open",
+            "http.request:GET:/dav/input",
+            "http.GET:pending-before-first-byte",
+            "command.settled:head:0"
+          ]
+        },
+        "rawChildStdout": "{\"scenario\":\"first-read-webdav\",\"active\":1,\"reads\":1,\"returned\":0,\"abortedBeforeTeardown\":false,\"events\":[\"op:DAV.PROPFIND:/dav/input:callerAborted=false:signal=live\",\"http.socket.open\",\"http.request:PROPFIND:/dav/input\",\"http.response.close:PROPFIND:finished=true\",\"op:DAV.GET:/dav/input:callerAborted=false:signal=live\",\"http.socket.open\",\"http.request:GET:/dav/input\",\"http.GET:pending-before-first-byte\",\"command.settled:head:0\"]}\n",
+        "deadlineDiagnostic": "Error: DEADLINE: first-read-webdav (1200ms)"
+      },
+      {
+        "scenario": "first-read-curl-body",
+        "pid": 96080,
+        "processStatus": 1,
+        "signal": null,
+        "outerTimedOut": false,
+        "oversized": false,
+        "residualGroup": false,
+        "observedBeforeTeardown": {
+          "scenario": "first-read-curl-body",
+          "active": 1,
+          "reads": 1,
+          "returned": 0,
+          "abortedBeforeTeardown": false,
+          "events": [
+            "http.socket.open",
+            "http.request:GET:/dav/input",
+            "http.GET:pending-before-first-byte",
+            "command.settled:head:0"
+          ]
+        },
+        "rawChildStdout": "{\"scenario\":\"first-read-curl-body\",\"active\":1,\"reads\":1,\"returned\":0,\"abortedBeforeTeardown\":false,\"events\":[\"http.socket.open\",\"http.request:GET:/dav/input\",\"http.GET:pending-before-first-byte\",\"command.settled:head:0\"]}\n",
+        "deadlineDiagnostic": "Error: DEADLINE: first-read-curl-body (1200ms)"
+      },
+      {
+        "scenario": "first-read-curl-headers",
+        "pid": 96116,
+        "processStatus": 1,
+        "signal": null,
+        "outerTimedOut": false,
+        "oversized": false,
+        "residualGroup": false,
+        "observedBeforeTeardown": {
+          "scenario": "first-read-curl-headers",
+          "active": 1,
+          "reads": 1,
+          "returned": 0,
+          "abortedBeforeTeardown": false,
+          "events": [
+            "http.socket.open",
+            "http.request:GET:/dav/input",
+            "http.GET:pending-before-first-byte",
+            "command.settled:head:0"
+          ]
+        },
+        "rawChildStdout": "{\"scenario\":\"first-read-curl-headers\",\"active\":1,\"reads\":1,\"returned\":0,\"abortedBeforeTeardown\":false,\"events\":[\"http.socket.open\",\"http.request:GET:/dav/input\",\"http.GET:pending-before-first-byte\",\"command.settled:head:0\"]}\n",
+        "deadlineDiagnostic": "Error: DEADLINE: first-read-curl-headers (1200ms)"
+      }
+    ]
+  },
+  "independent": {
+    "attribution": "Separate read-only verifier report imported as evidence; not executed or independently certified by this author.",
+    "reviewerFindingsSha256": "9404b65bd324889b0631a4032d1d3893419a4734e90df56b31948c9728eb6472",
+    "scratchSha256": "b480b7417f7d669bf413f634a0a30b7ff296667736d52ef0a597ebd72f6ea0fa",
+    "archives": {
+      "classification": "Exact-byte archival correction after 13f8c3a; no rerun, new expectation or current-source result",
+      "script": {
+        "path": "tests/shell/first-read-independent.snapshot.mjs",
+        "originalPath": "/tmp/safe-bash-first-read-independent.mjs",
+        "bytes": 9489,
+        "sha256": "b480b7417f7d669bf413f634a0a30b7ff296667736d52ef0a597ebd72f6ea0fa"
+      },
+      "guard": {
+        "path": "tests/shell/first-read-guard.snapshot.mjs",
+        "originalPath": "/tmp/safe-bash-remote-close-additional-verifier.mjs",
+        "bytes": 5198,
+        "sha256": "8a9858bc16824951b9ade3f158cdb161b0a6d3870a72588220341f11e6a19031",
+        "required": "Bounds teardown beyond the script's 1200ms acceptance races; preserves the 6000ms process-group guard and descendant cleanup, without an output-size cap"
+      },
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "command": ["node", "tests/shell/first-read-guard.snapshot.mjs", "first-read-archive-local-001", "6000", "node", "--unhandled-rejections=strict", "--import", "tsx", "tests/shell/first-read-independent.snapshot.mjs", "local-generator"],
+      "limitations": "Use a fresh label; guard refuses artifact overwrites. Absolute checkout imports/cwd, existing Node/tsx, apply_patch, git, ps and POSIX groups required. Imports live TypeScript, not pinned historical 90ddc74. Neither archive matches tests/**/*.test.ts. Historical rows and raw outputs below are unchanged."
+    },
+    "counts": {
+      "directHeadPass": 1,
+      "directHeadTests": 1,
+      "requiredPipelinePass": 0,
+      "requiredPipelineTests": 6
+    },
+    "rows": [
+      {
+        "scenario": "head-direct",
+        "command": [
+          "node",
+          "--unhandled-rejections=strict",
+          "--import",
+          "tsx",
+          "/tmp/safe-bash-first-read-independent.mjs",
+          "head-direct"
+        ],
+        "environment": {
+          "NODE_OPTIONS": "--unhandled-rejections=strict"
+        },
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "pids": [
+          92310
+        ],
+        "forciblyStopped": [],
+        "started": "2026-08-26T22:53:20.001Z",
+        "finished": "2026-08-26T22:53:20.291Z",
+        "shellCommit": "90ddc748f21e2164ea3f20e47f32bbdad6a5b20c",
+        "changedFiles": [],
+        "rawStdout": "{\"scenario\":\"head-direct\",\"verdict\":\"PASS\",\"events\":[\"head.exit0:source.acquire=0:next=0:return=0\",\"fixture.teardown.begin:failed=false\",\"fixture.teardown.end:sockets=0:activeGETs=0:finalized=0\"]}\n\n",
+        "rawStderr": "\n",
+        "rawMetadataSha256": "fc0bb74aa7b0441e7081100dfddcd773add9e927bfa32aae95c81b6e1dfd2d60"
+      },
+      {
+        "scenario": "local-generator",
+        "command": [
+          "node",
+          "--unhandled-rejections=strict",
+          "--import",
+          "tsx",
+          "/tmp/safe-bash-first-read-independent.mjs",
+          "local-generator"
+        ],
+        "environment": {
+          "NODE_OPTIONS": "--unhandled-rejections=strict"
+        },
+        "status": 1,
+        "signal": null,
+        "timedOut": false,
+        "pids": [
+          92514
+        ],
+        "forciblyStopped": [],
+        "started": "2026-08-26T22:53:20.494Z",
+        "finished": "2026-08-26T22:53:21.986Z",
+        "shellCommit": "90ddc748f21e2164ea3f20e47f32bbdad6a5b20c",
+        "changedFiles": [],
+        "rawStdout": "{\"scenario\":\"local-generator\",\"verdict\":\"FAIL\",\"events\":[\"pipeline:cat | head -n 0\",\"generator.pending-before-first-yield\",\"command.settled:head\",\"FAILURE.before-teardown:FAIL: no-caller-rescue pipeline settlement exceeds unchanged 1200ms gate:activeGETs=0:return=0:stageAborted=false\",\"fixture.teardown.begin:failed=true\",\"generator.finalized\",\"command.settled:cat\",\"generator.return.requested\",\"fixture.teardown.end:sockets=0:activeGETs=0:finalized=1\"]}\n\n",
+        "rawStderr": "Error: FAIL: no-caller-rescue pipeline settlement exceeds unchanged 1200ms gate\n    at Timeout.<anonymous> (file:///private/tmp/safe-bash-first-read-independent.mjs:18:112)\n    at listOnTimeout (node:internal/timers:585:17)\n    at process.processTimers (node:internal/timers:521:7)\n\n",
+        "rawMetadataSha256": "54276ef849dab36d7619c2f5931f09c7b127e5ad5a21322c2f9a798b295a7e28"
+      },
+      {
+        "scenario": "local-pipefail",
+        "command": [
+          "node",
+          "--unhandled-rejections=strict",
+          "--import",
+          "tsx",
+          "/tmp/safe-bash-first-read-independent.mjs",
+          "local-pipefail"
+        ],
+        "environment": {
+          "NODE_OPTIONS": "--unhandled-rejections=strict"
+        },
+        "status": 1,
+        "signal": null,
+        "timedOut": false,
+        "pids": [
+          92904
+        ],
+        "forciblyStopped": [],
+        "started": "2026-08-26T22:53:22.194Z",
+        "finished": "2026-08-26T22:53:23.704Z",
+        "shellCommit": "90ddc748f21e2164ea3f20e47f32bbdad6a5b20c",
+        "changedFiles": [
+          "tests/commands/diff-patch-stress/gnu-revised-acceptance/evidence.json",
+          "tests/commands/diff-patch-stress/gnu-revised-acceptance/fixtures.ts"
+        ],
+        "rawStdout": "{\"scenario\":\"local-pipefail\",\"verdict\":\"FAIL\",\"events\":[\"pipeline:set -o pipefail; cat | head -n 0\",\"command.settled:set\",\"generator.pending-before-first-yield\",\"command.settled:head\",\"FAILURE.before-teardown:FAIL: no-caller-rescue pipeline settlement exceeds unchanged 1200ms gate:activeGETs=0:return=0:stageAborted=false\",\"fixture.teardown.begin:failed=true\",\"generator.finalized\",\"command.settled:cat\",\"generator.return.requested\",\"fixture.teardown.end:sockets=0:activeGETs=0:finalized=1\"]}\n\n",
+        "rawStderr": "Error: FAIL: no-caller-rescue pipeline settlement exceeds unchanged 1200ms gate\n    at Timeout.<anonymous> (file:///private/tmp/safe-bash-first-read-independent.mjs:18:112)\n    at listOnTimeout (node:internal/timers:585:17)\n    at process.processTimers (node:internal/timers:521:7)\n\n",
+        "rawMetadataSha256": "98436762c5d614a4fb63bc19c8a74337cc32afc616528b58e48418fc3a930d2d"
+      },
+      {
+        "scenario": "s3-first",
+        "command": [
+          "node",
+          "--unhandled-rejections=strict",
+          "--import",
+          "tsx",
+          "/tmp/safe-bash-first-read-independent.mjs",
+          "s3-first"
+        ],
+        "environment": {
+          "NODE_OPTIONS": "--unhandled-rejections=strict"
+        },
+        "status": 1,
+        "signal": null,
+        "timedOut": false,
+        "pids": [
+          93351
+        ],
+        "forciblyStopped": [],
+        "started": "2026-08-26T22:53:23.917Z",
+        "finished": "2026-08-26T22:53:25.446Z",
+        "shellCommit": "90ddc748f21e2164ea3f20e47f32bbdad6a5b20c",
+        "changedFiles": [
+          "tests/shell/remote-close.test.ts",
+          "tests/shell/first-read-probe.ts"
+        ],
+        "rawStdout": "{\"scenario\":\"s3-first\",\"verdict\":\"FAIL\",\"events\":[\"pipeline:cat /input | head -n 0\",\"S3.GET.start\",\"source.next.pending-before-first-byte\",\"command.settled:head\",\"FAILURE.before-teardown:FAIL: no-caller-rescue pipeline settlement exceeds unchanged 1200ms gate:activeGETs=1:return=0:stageAborted=false\",\"fixture.teardown.begin:failed=true\",\"source.return.requested\",\"S3.GET.signal.abort\",\"command.settled:cat\",\"fixture.teardown.end:sockets=0:activeGETs=0:finalized=0\"]}\n\n",
+        "rawStderr": "Error: FAIL: no-caller-rescue pipeline settlement exceeds unchanged 1200ms gate\n    at Timeout.<anonymous> (file:///private/tmp/safe-bash-first-read-independent.mjs:18:112)\n    at listOnTimeout (node:internal/timers:585:17)\n    at process.processTimers (node:internal/timers:521:7)\n\n",
+        "rawMetadataSha256": "54015df468bbccd0a6da452c50d982736d73877acdd329599d7afc12e927f4b0"
+      },
+      {
+        "scenario": "s3-middle",
+        "command": [
+          "node",
+          "--unhandled-rejections=strict",
+          "--import",
+          "tsx",
+          "/tmp/safe-bash-first-read-independent.mjs",
+          "s3-middle"
+        ],
+        "environment": {
+          "NODE_OPTIONS": "--unhandled-rejections=strict"
+        },
+        "status": 1,
+        "signal": null,
+        "timedOut": false,
+        "pids": [
+          93718
+        ],
+        "forciblyStopped": [],
+        "started": "2026-08-26T22:53:25.662Z",
+        "finished": "2026-08-26T22:53:27.173Z",
+        "shellCommit": "90ddc748f21e2164ea3f20e47f32bbdad6a5b20c",
+        "changedFiles": [],
+        "rawStdout": "{\"scenario\":\"s3-middle\",\"verdict\":\"FAIL\",\"events\":[\"pipeline:cat /input | cat | head -n 0\",\"S3.GET.start\",\"source.next.pending-before-first-byte\",\"command.settled:head\",\"FAILURE.before-teardown:FAIL: no-caller-rescue pipeline settlement exceeds unchanged 1200ms gate:activeGETs=1:return=0:stageAborted=false\",\"fixture.teardown.begin:failed=true\",\"source.return.requested\",\"S3.GET.signal.abort\",\"command.settled:cat\",\"command.settled:cat\",\"fixture.teardown.end:sockets=0:activeGETs=0:finalized=0\"]}\n\n",
+        "rawStderr": "Error: FAIL: no-caller-rescue pipeline settlement exceeds unchanged 1200ms gate\n    at Timeout.<anonymous> (file:///private/tmp/safe-bash-first-read-independent.mjs:18:112)\n    at listOnTimeout (node:internal/timers:585:17)\n    at process.processTimers (node:internal/timers:521:7)\n\n",
+        "rawMetadataSha256": "699ee47c4512b0055bfffa96903e70ceb90d3c745b23ee40861be2ce7dbc051a"
+      },
+      {
+        "scenario": "dav-first",
+        "command": [
+          "node",
+          "--unhandled-rejections=strict",
+          "--import",
+          "tsx",
+          "/tmp/safe-bash-first-read-independent.mjs",
+          "dav-first"
+        ],
+        "environment": {
+          "NODE_OPTIONS": "--unhandled-rejections=strict"
+        },
+        "status": 1,
+        "signal": null,
+        "timedOut": false,
+        "pids": [
+          94105
+        ],
+        "forciblyStopped": [],
+        "started": "2026-08-26T22:53:27.379Z",
+        "finished": "2026-08-26T22:53:28.867Z",
+        "shellCommit": "90ddc748f21e2164ea3f20e47f32bbdad6a5b20c",
+        "changedFiles": [],
+        "rawStdout": "{\"scenario\":\"dav-first\",\"verdict\":\"FAIL\",\"events\":[\"pipeline:cat /input | head -n 0\",\"http.request:PROPFIND\",\"http.request:GET\",\"HTTP.GET.active\",\"DAV.GET.headers-without-body\",\"command.settled:head\",\"FAILURE.before-teardown:FAIL: no-caller-rescue pipeline settlement exceeds unchanged 1200ms gate:activeGETs=1:return=0:stageAborted=false\",\"fixture.teardown.begin:failed=true\",\"command.settled:cat\",\"DAV.GET.signal.abort\",\"HTTP.GET.request.aborted\",\"http.socket.close\",\"HTTP.GET.response.close\",\"http.socket.close\",\"fixture.teardown.end:sockets=0:activeGETs=0:finalized=0\"]}\n\n",
+        "rawStderr": "Error: FAIL: no-caller-rescue pipeline settlement exceeds unchanged 1200ms gate\n    at Timeout.<anonymous> (file:///private/tmp/safe-bash-first-read-independent.mjs:18:112)\n    at listOnTimeout (node:internal/timers:585:17)\n    at process.processTimers (node:internal/timers:521:7)\n\n",
+        "rawMetadataSha256": "a81dda3d8571525468867ecf4bf56f3d699e667aaa7e96cc1d4a00d5c3c01692"
+      },
+      {
+        "scenario": "curl-first",
+        "command": [
+          "node",
+          "--unhandled-rejections=strict",
+          "--import",
+          "tsx",
+          "/tmp/safe-bash-first-read-independent.mjs",
+          "curl-first"
+        ],
+        "environment": {
+          "NODE_OPTIONS": "--unhandled-rejections=strict"
+        },
+        "status": 1,
+        "signal": null,
+        "timedOut": false,
+        "pids": [
+          94473
+        ],
+        "forciblyStopped": [],
+        "started": "2026-08-26T22:53:29.073Z",
+        "finished": "2026-08-26T22:53:30.571Z",
+        "shellCommit": "90ddc748f21e2164ea3f20e47f32bbdad6a5b20c",
+        "changedFiles": [],
+        "rawStdout": "{\"scenario\":\"curl-first\",\"verdict\":\"FAIL\",\"events\":[\"curl.explicit-plugin:exact-loopback-authorization\",\"pipeline:curl http://127.0.0.1:65101/dav/input | head -n 0\",\"http.request:GET\",\"HTTP.GET.active\",\"curl.body.next.pending\",\"command.settled:head\",\"FAILURE.before-teardown:FAIL: no-caller-rescue pipeline settlement exceeds unchanged 1200ms gate:activeGETs=1:return=0:stageAborted=false\",\"fixture.teardown.begin:failed=true\",\"curl.body.return\",\"curl.GET.signal.abort\",\"curl.response.dispose\",\"command.settled:curl\",\"HTTP.GET.request.aborted\",\"http.socket.close\",\"HTTP.GET.response.close\",\"fixture.teardown.end:sockets=0:activeGETs=0:finalized=0\"]}\n\n",
+        "rawStderr": "Error: FAIL: no-caller-rescue pipeline settlement exceeds unchanged 1200ms gate\n    at Timeout.<anonymous> (file:///private/tmp/safe-bash-first-read-independent.mjs:18:112)\n    at listOnTimeout (node:internal/timers:585:17)\n    at process.processTimers (node:internal/timers:521:7)\n\n",
+        "rawMetadataSha256": "4054fc1638a93f2087be3c9beab04e1806df8060311db4b73932b48ed5b4c042"
+      }
+    ]
+  },
+  "native": {
+    "interpretation": "Same complete scripts per fixed Bash profile; no per-case oracle selection. Host head rejects -n0, so that initial cohort is NOT successful head-zero evidence. Successful colon consumer and valid head-one are separate controls, not relabeled head-zero observations.",
+    "hostHeadRejectedZero": {
+      "classification": "new bounded native contrasts, not virtual first-read reruns",
+      "sourceArtifactSha256": "b07323e2db575a0e3a4f041f0ee8960b974cf6195fa5c836aa7564f63f8084c9",
+      "profiles": [
+        {
+          "name": "primary-5.3",
+          "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+          "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+          "version": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software; you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n"
+        },
+        {
+          "name": "historical-3.2",
+          "executable": "/bin/bash",
+          "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+          "version": "GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)\nCopyright (C) 2007 Free Software Foundation, Inc.\n"
+        }
+      ],
+      "utilities": [
+        {
+          "executable": "/usr/bin/head",
+          "sha256": "b4d147753ce0a14a40c5f9aaca06c04eb7697f2d56c207c0a5e7ce16f31ebfc1",
+          "version": "host macOS utility; not identified as GNU coreutils"
+        },
+        {
+          "executable": "/bin/sleep",
+          "sha256": "00c84d198e2b80da7dc47c0e30d311cd632f74c257793c4b45723f2cb7ca5d2c"
+        }
+      ],
+      "cases": [
+        {
+          "name": "no-write-still-waiting",
+          "timeout": 200,
+          "source": "{ printf 'producer.started\\n' >&2; /bin/sleep 2; } | { /usr/bin/head -n 0; printf \"consumer.done\\n\" >&2; }\nprintf \"pipeline=%s stages=%s\\n\" \"$?\" \"${PIPESTATUS[*]}\""
+        },
+        {
+          "name": "delayed-first-write-default",
+          "timeout": 1000,
+          "source": "{ /bin/sleep 0.05; printf x; printf forbidden >after; } | { /usr/bin/head -n 0; printf \"consumer.done\\n\" >&2; }\nprintf \"pipeline=%s stages=%s\\n\" \"$?\" \"${PIPESTATUS[*]}\""
+        },
+        {
+          "name": "delayed-first-write-pipefail",
+          "timeout": 1000,
+          "source": "set -o pipefail\n{ /bin/sleep 0.05; printf x; printf forbidden >after; } | { /usr/bin/head -n 0; printf \"consumer.done\\n\" >&2; }\nprintf \"pipeline=%s stages=%s\\n\" \"$?\" \"${PIPESTATUS[*]}\""
+        },
+        {
+          "name": "delayed-error-pipefail",
+          "timeout": 1000,
+          "source": "set -o pipefail\n{ /bin/sleep 0.05; printf 'late failure\\n' >&2; exit 7; } | { /usr/bin/head -n 0; printf \"consumer.done\\n\" >&2; }\nprintf \"pipeline=%s stages=%s\\n\" \"$?\" \"${PIPESTATUS[*]}\""
+        },
+        {
+          "name": "independent-file-effect-pipefail",
+          "timeout": 1000,
+          "source": "set -o pipefail\n{ /bin/sleep 0.05; printf kept >effect; exit 7; } | { /usr/bin/head -n 0; printf \"consumer.done\\n\" >&2; }\nprintf \"pipeline=%s stages=%s\\n\" \"$?\" \"${PIPESTATUS[*]}\""
+        },
+        {
+          "name": "redirected-output-pipefail",
+          "timeout": 1000,
+          "source": "set -o pipefail\n{ /bin/sleep 0.05; printf kept; exit 7; } >out | { /usr/bin/head -n 0; printf \"consumer.done\\n\" >&2; }\nprintf \"pipeline=%s stages=%s\\n\" \"$?\" \"${PIPESTATUS[*]}\""
+        }
+      ],
+      "argvTemplate": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "<case.source>",
+        "shell"
+      ],
+      "sanitizedEnvironment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "<row.cwd>",
+        "TMPDIR": "<row.cwd>",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      },
+      "maxBufferBytes": 8192,
+      "rows": [
+        {
+          "profile": "primary-5.3",
+          "case": "no-write-still-waiting",
+          "cwd": "/tmp/safe-bash-first-read-native-primary-5.3-no-write-still-waiting-OGTqkS",
+          "started": "2026-08-26T23:04:04.219Z",
+          "finished": "2026-08-26T23:04:04.424Z",
+          "pid": 32203,
+          "status": null,
+          "signal": "SIGKILL",
+          "error": {
+            "message": "Child exceeded 200 ms hard deadline",
+            "code": "ETIMEDOUT"
+          },
+          "stdout": "",
+          "stderr": "producer.started\nhead: illegal line count -- 0\nconsumer.done\n",
+          "files": {},
+          "residualGroup": false
+        },
+        {
+          "profile": "primary-5.3",
+          "case": "delayed-first-write-default",
+          "cwd": "/tmp/safe-bash-first-read-native-primary-5.3-delayed-first-write-default-gw79aP",
+          "started": "2026-08-26T23:04:04.425Z",
+          "finished": "2026-08-26T23:04:04.511Z",
+          "pid": 32208,
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "pipeline=0 stages=141 0\n",
+          "stderr": "head: illegal line count -- 0\nconsumer.done\n",
+          "files": {},
+          "residualGroup": false
+        },
+        {
+          "profile": "primary-5.3",
+          "case": "delayed-first-write-pipefail",
+          "cwd": "/tmp/safe-bash-first-read-native-primary-5.3-delayed-first-write-pipefail-N2sKm3",
+          "started": "2026-08-26T23:04:04.512Z",
+          "finished": "2026-08-26T23:04:04.596Z",
+          "pid": 32213,
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "pipeline=141 stages=141 0\n",
+          "stderr": "head: illegal line count -- 0\nconsumer.done\n",
+          "files": {},
+          "residualGroup": false
+        },
+        {
+          "profile": "primary-5.3",
+          "case": "delayed-error-pipefail",
+          "cwd": "/tmp/safe-bash-first-read-native-primary-5.3-delayed-error-pipefail-4bPpof",
+          "started": "2026-08-26T23:04:04.596Z",
+          "finished": "2026-08-26T23:04:04.687Z",
+          "pid": 32218,
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "pipeline=7 stages=7 0\n",
+          "stderr": "head: illegal line count -- 0\nconsumer.done\nlate failure\n",
+          "files": {},
+          "residualGroup": false
+        },
+        {
+          "profile": "primary-5.3",
+          "case": "independent-file-effect-pipefail",
+          "cwd": "/tmp/safe-bash-first-read-native-primary-5.3-independent-file-effect-pipefail-7A0YHW",
+          "started": "2026-08-26T23:04:04.688Z",
+          "finished": "2026-08-26T23:04:04.783Z",
+          "pid": 32223,
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "pipeline=7 stages=7 0\n",
+          "stderr": "head: illegal line count -- 0\nconsumer.done\n",
+          "files": {
+            "effect": {
+              "base64": "a2VwdA==",
+              "utf8": "kept"
+            }
+          },
+          "residualGroup": false
+        },
+        {
+          "profile": "primary-5.3",
+          "case": "redirected-output-pipefail",
+          "cwd": "/tmp/safe-bash-first-read-native-primary-5.3-redirected-output-pipefail-nwfv7J",
+          "started": "2026-08-26T23:04:04.784Z",
+          "finished": "2026-08-26T23:04:04.873Z",
+          "pid": 32228,
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "pipeline=7 stages=7 0\n",
+          "stderr": "head: illegal line count -- 0\nconsumer.done\n",
+          "files": {
+            "out": {
+              "base64": "a2VwdA==",
+              "utf8": "kept"
+            }
+          },
+          "residualGroup": false
+        },
+        {
+          "profile": "historical-3.2",
+          "case": "no-write-still-waiting",
+          "cwd": "/tmp/safe-bash-first-read-native-historical-3.2-no-write-still-waiting-LtjP1t",
+          "started": "2026-08-26T23:04:04.880Z",
+          "finished": "2026-08-26T23:04:05.084Z",
+          "pid": 32233,
+          "status": null,
+          "signal": "SIGKILL",
+          "error": {
+            "message": "Child exceeded 200 ms hard deadline",
+            "code": "ETIMEDOUT"
+          },
+          "stdout": "",
+          "stderr": "producer.started\nhead: illegal line count -- 0\nconsumer.done\n",
+          "files": {},
+          "residualGroup": false
+        },
+        {
+          "profile": "historical-3.2",
+          "case": "delayed-first-write-default",
+          "cwd": "/tmp/safe-bash-first-read-native-historical-3.2-delayed-first-write-default-tIOtss",
+          "started": "2026-08-26T23:04:05.085Z",
+          "finished": "2026-08-26T23:04:05.163Z",
+          "pid": 32240,
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "pipeline=0 stages=141 0\n",
+          "stderr": "head: illegal line count -- 0\nconsumer.done\n",
+          "files": {},
+          "residualGroup": false
+        },
+        {
+          "profile": "historical-3.2",
+          "case": "delayed-first-write-pipefail",
+          "cwd": "/tmp/safe-bash-first-read-native-historical-3.2-delayed-first-write-pipefail-3iO0DF",
+          "started": "2026-08-26T23:04:05.164Z",
+          "finished": "2026-08-26T23:04:05.243Z",
+          "pid": 32245,
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "pipeline=141 stages=141 0\n",
+          "stderr": "head: illegal line count -- 0\nconsumer.done\n",
+          "files": {},
+          "residualGroup": false
+        },
+        {
+          "profile": "historical-3.2",
+          "case": "delayed-error-pipefail",
+          "cwd": "/tmp/safe-bash-first-read-native-historical-3.2-delayed-error-pipefail-otQ9Jw",
+          "started": "2026-08-26T23:04:05.244Z",
+          "finished": "2026-08-26T23:04:05.324Z",
+          "pid": 32250,
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "pipeline=7 stages=7 0\n",
+          "stderr": "head: illegal line count -- 0\nconsumer.done\nlate failure\n",
+          "files": {},
+          "residualGroup": false
+        },
+        {
+          "profile": "historical-3.2",
+          "case": "independent-file-effect-pipefail",
+          "cwd": "/tmp/safe-bash-first-read-native-historical-3.2-independent-file-effect-pipefail-68rdMz",
+          "started": "2026-08-26T23:04:05.324Z",
+          "finished": "2026-08-26T23:04:05.405Z",
+          "pid": 32255,
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "pipeline=7 stages=7 0\n",
+          "stderr": "head: illegal line count -- 0\nconsumer.done\n",
+          "files": {
+            "effect": {
+              "base64": "a2VwdA==",
+              "utf8": "kept"
+            }
+          },
+          "residualGroup": false
+        },
+        {
+          "profile": "historical-3.2",
+          "case": "redirected-output-pipefail",
+          "cwd": "/tmp/safe-bash-first-read-native-historical-3.2-redirected-output-pipefail-TRodFw",
+          "started": "2026-08-26T23:04:05.406Z",
+          "finished": "2026-08-26T23:04:05.490Z",
+          "pid": 32260,
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "pipeline=7 stages=7 0\n",
+          "stderr": "head: illegal line count -- 0\nconsumer.done\n",
+          "files": {
+            "out": {
+              "base64": "a2VwdA==",
+              "utf8": "kept"
+            }
+          },
+          "residualGroup": false
+        }
+      ]
+    },
+    "successfulNoReadConsumer": {
+      "classification": "new explicit successful no-read Bash builtin consumer controls; NOT native head-zero observations",
+      "sourceArtifactSha256": "9644aeaa6a3e99d793468ea079fc74ace0208fe073d7bdaa19ff3a886c49db40",
+      "profiles": [
+        {
+          "name": "primary-5.3",
+          "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+          "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+          "version": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software; you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n"
+        },
+        {
+          "name": "historical-3.2",
+          "executable": "/bin/bash",
+          "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+          "version": "GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)\nCopyright (C) 2007 Free Software Foundation, Inc.\n"
+        }
+      ],
+      "utilities": [
+        {
+          "executable": "/bin/sleep",
+          "sha256": "00c84d198e2b80da7dc47c0e30d311cd632f74c257793c4b45723f2cb7ca5d2c"
+        }
+      ],
+      "cases": [
+        {
+          "name": "no-write-still-waiting",
+          "timeout": 200,
+          "source": "{ printf 'producer.started\\n' >&2; /bin/sleep 2; } | { :; printf \"consumer.done\\n\" >&2; }\nprintf \"pipeline=%s stages=%s\\n\" \"$?\" \"${PIPESTATUS[*]}\""
+        },
+        {
+          "name": "delayed-first-write-default",
+          "timeout": 1000,
+          "source": "{ /bin/sleep 0.05; printf x; printf forbidden >after; } | { :; printf \"consumer.done\\n\" >&2; }\nprintf \"pipeline=%s stages=%s\\n\" \"$?\" \"${PIPESTATUS[*]}\""
+        },
+        {
+          "name": "delayed-first-write-pipefail",
+          "timeout": 1000,
+          "source": "set -o pipefail\n{ /bin/sleep 0.05; printf x; printf forbidden >after; } | { :; printf \"consumer.done\\n\" >&2; }\nprintf \"pipeline=%s stages=%s\\n\" \"$?\" \"${PIPESTATUS[*]}\""
+        },
+        {
+          "name": "delayed-error-pipefail",
+          "timeout": 1000,
+          "source": "set -o pipefail\n{ /bin/sleep 0.05; printf 'late failure\\n' >&2; exit 7; } | { :; printf \"consumer.done\\n\" >&2; }\nprintf \"pipeline=%s stages=%s\\n\" \"$?\" \"${PIPESTATUS[*]}\""
+        },
+        {
+          "name": "independent-file-effect-pipefail",
+          "timeout": 1000,
+          "source": "set -o pipefail\n{ /bin/sleep 0.05; printf kept >effect; exit 7; } | { :; printf \"consumer.done\\n\" >&2; }\nprintf \"pipeline=%s stages=%s\\n\" \"$?\" \"${PIPESTATUS[*]}\""
+        },
+        {
+          "name": "redirected-output-pipefail",
+          "timeout": 1000,
+          "source": "set -o pipefail\n{ /bin/sleep 0.05; printf kept; exit 7; } >out | { :; printf \"consumer.done\\n\" >&2; }\nprintf \"pipeline=%s stages=%s\\n\" \"$?\" \"${PIPESTATUS[*]}\""
+        }
+      ],
+      "argvTemplate": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "<case.source>",
+        "shell"
+      ],
+      "sanitizedEnvironment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "<row.cwd>",
+        "TMPDIR": "<row.cwd>",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      },
+      "maxBufferBytes": 8192,
+      "rows": [
+        {
+          "profile": "primary-5.3",
+          "case": "no-write-still-waiting",
+          "cwd": "/tmp/safe-bash-first-read-colon-primary-5.3-no-write-still-waiting-4ij9AL",
+          "started": "2026-08-26T23:05:32.242Z",
+          "finished": "2026-08-26T23:05:32.447Z",
+          "pid": 36639,
+          "status": null,
+          "signal": "SIGKILL",
+          "error": {
+            "message": "Child exceeded 200 ms hard deadline",
+            "code": "ETIMEDOUT"
+          },
+          "stdout": "",
+          "stderr": "producer.started\nconsumer.done\n",
+          "files": {},
+          "residualGroup": false
+        },
+        {
+          "profile": "primary-5.3",
+          "case": "delayed-first-write-default",
+          "cwd": "/tmp/safe-bash-first-read-colon-primary-5.3-delayed-first-write-default-O8qoG4",
+          "started": "2026-08-26T23:05:32.449Z",
+          "finished": "2026-08-26T23:05:32.519Z",
+          "pid": 36645,
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "pipeline=0 stages=141 0\n",
+          "stderr": "consumer.done\n",
+          "files": {},
+          "residualGroup": false
+        },
+        {
+          "profile": "primary-5.3",
+          "case": "delayed-first-write-pipefail",
+          "cwd": "/tmp/safe-bash-first-read-colon-primary-5.3-delayed-first-write-pipefail-kPE6zb",
+          "started": "2026-08-26T23:05:32.520Z",
+          "finished": "2026-08-26T23:05:32.603Z",
+          "pid": 36650,
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "pipeline=141 stages=141 0\n",
+          "stderr": "consumer.done\n",
+          "files": {},
+          "residualGroup": false
+        },
+        {
+          "profile": "primary-5.3",
+          "case": "delayed-error-pipefail",
+          "cwd": "/tmp/safe-bash-first-read-colon-primary-5.3-delayed-error-pipefail-qSmWt9",
+          "started": "2026-08-26T23:05:32.603Z",
+          "finished": "2026-08-26T23:05:32.689Z",
+          "pid": 36655,
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "pipeline=7 stages=7 0\n",
+          "stderr": "consumer.done\nlate failure\n",
+          "files": {},
+          "residualGroup": false
+        },
+        {
+          "profile": "primary-5.3",
+          "case": "independent-file-effect-pipefail",
+          "cwd": "/tmp/safe-bash-first-read-colon-primary-5.3-independent-file-effect-pipefail-XMAXzm",
+          "started": "2026-08-26T23:05:32.689Z",
+          "finished": "2026-08-26T23:05:32.771Z",
+          "pid": 36660,
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "pipeline=7 stages=7 0\n",
+          "stderr": "consumer.done\n",
+          "files": {
+            "effect": {
+              "base64": "a2VwdA==",
+              "utf8": "kept"
+            }
+          },
+          "residualGroup": false
+        },
+        {
+          "profile": "primary-5.3",
+          "case": "redirected-output-pipefail",
+          "cwd": "/tmp/safe-bash-first-read-colon-primary-5.3-redirected-output-pipefail-wUhqxg",
+          "started": "2026-08-26T23:05:32.773Z",
+          "finished": "2026-08-26T23:05:32.856Z",
+          "pid": 36665,
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "pipeline=7 stages=7 0\n",
+          "stderr": "consumer.done\n",
+          "files": {
+            "out": {
+              "base64": "a2VwdA==",
+              "utf8": "kept"
+            }
+          },
+          "residualGroup": false
+        },
+        {
+          "profile": "historical-3.2",
+          "case": "no-write-still-waiting",
+          "cwd": "/tmp/safe-bash-first-read-colon-historical-3.2-no-write-still-waiting-43euhg",
+          "started": "2026-08-26T23:05:32.862Z",
+          "finished": "2026-08-26T23:05:33.066Z",
+          "pid": 36669,
+          "status": null,
+          "signal": "SIGKILL",
+          "error": {
+            "message": "Child exceeded 200 ms hard deadline",
+            "code": "ETIMEDOUT"
+          },
+          "stdout": "",
+          "stderr": "producer.started\nconsumer.done\n",
+          "files": {},
+          "residualGroup": false
+        },
+        {
+          "profile": "historical-3.2",
+          "case": "delayed-first-write-default",
+          "cwd": "/tmp/safe-bash-first-read-colon-historical-3.2-delayed-first-write-default-G5aDKW",
+          "started": "2026-08-26T23:05:33.066Z",
+          "finished": "2026-08-26T23:05:33.136Z",
+          "pid": 36675,
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "pipeline=0 stages=141 0\n",
+          "stderr": "consumer.done\n",
+          "files": {},
+          "residualGroup": false
+        },
+        {
+          "profile": "historical-3.2",
+          "case": "delayed-first-write-pipefail",
+          "cwd": "/tmp/safe-bash-first-read-colon-historical-3.2-delayed-first-write-pipefail-ljJjcn",
+          "started": "2026-08-26T23:05:33.136Z",
+          "finished": "2026-08-26T23:05:33.208Z",
+          "pid": 36679,
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "pipeline=141 stages=141 0\n",
+          "stderr": "consumer.done\n",
+          "files": {},
+          "residualGroup": false
+        },
+        {
+          "profile": "historical-3.2",
+          "case": "delayed-error-pipefail",
+          "cwd": "/tmp/safe-bash-first-read-colon-historical-3.2-delayed-error-pipefail-bPzZKP",
+          "started": "2026-08-26T23:05:33.208Z",
+          "finished": "2026-08-26T23:05:33.270Z",
+          "pid": 36685,
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "pipeline=7 stages=7 0\n",
+          "stderr": "consumer.done\nlate failure\n",
+          "files": {},
+          "residualGroup": false
+        },
+        {
+          "profile": "historical-3.2",
+          "case": "independent-file-effect-pipefail",
+          "cwd": "/tmp/safe-bash-first-read-colon-historical-3.2-independent-file-effect-pipefail-BvSqGJ",
+          "started": "2026-08-26T23:05:33.271Z",
+          "finished": "2026-08-26T23:05:33.341Z",
+          "pid": 36694,
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "pipeline=7 stages=7 0\n",
+          "stderr": "consumer.done\n",
+          "files": {
+            "effect": {
+              "base64": "a2VwdA==",
+              "utf8": "kept"
+            }
+          },
+          "residualGroup": false
+        },
+        {
+          "profile": "historical-3.2",
+          "case": "redirected-output-pipefail",
+          "cwd": "/tmp/safe-bash-first-read-colon-historical-3.2-redirected-output-pipefail-Jr0XPV",
+          "started": "2026-08-26T23:05:33.342Z",
+          "finished": "2026-08-26T23:05:33.412Z",
+          "pid": 36698,
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "pipeline=7 stages=7 0\n",
+          "stderr": "consumer.done\n",
+          "files": {
+            "out": {
+              "base64": "a2VwdA==",
+              "utf8": "kept"
+            }
+          },
+          "residualGroup": false
+        }
+      ]
+    },
+    "afterFirstWriteHeadOne": {
+      "classification": "new native after-first-write/head-one waiting contrast, not a head-zero oracle",
+      "sourceArtifactSha256": "8a808d88fe89d1ff4aba2d93827b284b45379bd81504c54aebb574f161405d98",
+      "profiles": [
+        {
+          "name": "primary-5.3",
+          "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+          "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+          "version": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software; you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n"
+        },
+        {
+          "name": "historical-3.2",
+          "executable": "/bin/bash",
+          "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+          "version": "GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)\nCopyright (C) 2007 Free Software Foundation, Inc.\n"
+        }
+      ],
+      "utilities": [
+        {
+          "executable": "/usr/bin/head",
+          "sha256": "b4d147753ce0a14a40c5f9aaca06c04eb7697f2d56c207c0a5e7ce16f31ebfc1",
+          "version": "host macOS utility; not identified as GNU coreutils"
+        },
+        {
+          "executable": "/bin/sleep",
+          "sha256": "00c84d198e2b80da7dc47c0e30d311cd632f74c257793c4b45723f2cb7ca5d2c"
+        }
+      ],
+      "cases": [
+        {
+          "name": "after-first-write-head-one-waiting",
+          "source": "{ printf \"first\\n\"; /bin/sleep 2; } | { /usr/bin/head -n 1; printf \"consumer.done\\n\" >&2; }\nprintf \"pipeline=%s stages=%s\\n\" \"$?\" \"${PIPESTATUS[*]}\"",
+          "timeout": 200
+        }
+      ],
+      "argvTemplate": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "<case.source>",
+        "shell"
+      ],
+      "sanitizedEnvironment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "<row.cwd>",
+        "TMPDIR": "<row.cwd>",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      },
+      "maxBufferBytes": 8192,
+      "rows": [
+        {
+          "profile": "primary-5.3",
+          "case": "after-first-write-head-one-waiting",
+          "cwd": "/tmp/safe-bash-first-read-after-prefix-primary-5.3-xm2uQD",
+          "started": "2026-08-26T23:06:21.564Z",
+          "finished": "2026-08-26T23:06:21.769Z",
+          "pid": 37814,
+          "status": null,
+          "signal": "SIGKILL",
+          "error": {
+            "message": "Child exceeded 200 ms hard deadline",
+            "code": "ETIMEDOUT"
+          },
+          "stdout": "first\n",
+          "stderr": "consumer.done\n",
+          "files": {},
+          "residualGroup": false
+        },
+        {
+          "profile": "historical-3.2",
+          "case": "after-first-write-head-one-waiting",
+          "cwd": "/tmp/safe-bash-first-read-after-prefix-historical-3.2-q9iFxT",
+          "started": "2026-08-26T23:06:21.772Z",
+          "finished": "2026-08-26T23:06:21.976Z",
+          "pid": 37821,
+          "status": null,
+          "signal": "SIGKILL",
+          "error": {
+            "message": "Child exceeded 200 ms hard deadline",
+            "code": "ETIMEDOUT"
+          },
+          "stdout": "first\n",
+          "stderr": "consumer.done\n",
+          "files": {},
+          "residualGroup": false
+        }
+      ]
+    }
+  },
+  "validation": {
+    "virtualTestsRepeatedThisDocumentationTurn": false,
+    "previousTypecheck": {
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "status": 2,
+      "stdout": "tests/fs/readonly/conformance.test.ts(70,57): error TS2353: Object literal may only specify known properties, and 'recursive' does not exist in type 'FsOptions'.\ntests/fs/readonly/readonly.test.ts(43,90): error TS2353: Object literal may only specify known properties, and 'recursive' does not exist in type 'FsOptions'.\n",
+      "stderr": ""
+    },
+    "freshTypecheck": {
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "exitRecordedAt": "2026-08-26T23:06:25.029Z"
+    }
+  }
+}

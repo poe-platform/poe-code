@@ -1,0 +1,9 @@
+unset d3a d3b d3c d3missing
+declare d3a=one d3a+=two 'bad-name'=x d3b=three
+printf 'mixed:%s\n' "$?"
+declare -p d3a d3missing d3b
+printf 'queries:%s\n' "$?"
+declare -r d3c=first d3c=second
+printf 'duplicate-readonly:%s\n' "$?"
+declare -p d3c d3b
+printf 'END V304\n'

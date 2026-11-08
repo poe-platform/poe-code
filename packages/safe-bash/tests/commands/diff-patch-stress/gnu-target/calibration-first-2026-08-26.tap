@@ -1,0 +1,116 @@
+TAP version 13
+# Subtest: binding: exact selected GNU versions and executable hashes
+ok 1 - binding: exact selected GNU versions and executable hashes
+  ---
+  duration_ms: 19.405333
+  type: 'test'
+  ...
+# Subtest: binding: fail closed for unproved patch ""
+ok 2 - binding: fail closed for unproved patch ""
+  ---
+  duration_ms: 94.14625
+  type: 'test'
+  ...
+# Subtest: binding: fail closed for unproved patch "patch"
+ok 3 - binding: fail closed for unproved patch "patch"
+  ---
+  duration_ms: 93.516542
+  type: 'test'
+  ...
+# Subtest: binding: fail closed for unproved patch "/missing/gnu/patch"
+ok 4 - binding: fail closed for unproved patch "/missing/gnu/patch"
+  ---
+  duration_ms: 94.190292
+  type: 'test'
+  ...
+# Subtest: binding: fail closed for unproved patch "/usr/bin/patch"
+ok 5 - binding: fail closed for unproved patch "/usr/bin/patch"
+  ---
+  duration_ms: 97.568291
+  type: 'test'
+  ...
+# Subtest: binding: fail closed for unproved patch "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff"
+ok 6 - binding: fail closed for unproved patch "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff"
+  ---
+  duration_ms: 96.291834
+  type: 'test'
+  ...
+# Subtest: Apple alternate calibration only: exact reverse corruption delete-3
+ok 7 - Apple alternate calibration only: exact reverse corruption delete-3
+  ---
+  duration_ms: 15.433125
+  type: 'test'
+  ...
+# evidence SHA-256 f10b84f6000f7c68eaae12fc726c828b913c97cc5c0e49d5108bee1a49774c28
+# Subtest: Apple alternate calibration only: exact reverse corruption delete-7
+ok 8 - Apple alternate calibration only: exact reverse corruption delete-7
+  ---
+  duration_ms: 5.984917
+  type: 'test'
+  ...
+# evidence SHA-256 f10b84f6000f7c68eaae12fc726c828b913c97cc5c0e49d5108bee1a49774c28
+# Subtest: Apple alternate calibration only: exact reverse corruption delete-11
+ok 9 - Apple alternate calibration only: exact reverse corruption delete-11
+  ---
+  duration_ms: 7.422083
+  type: 'test'
+  ...
+# evidence SHA-256 f10b84f6000f7c68eaae12fc726c828b913c97cc5c0e49d5108bee1a49774c28
+# Subtest: Apple alternate calibration only: exact reverse corruption repeated-alignment-7
+ok 10 - Apple alternate calibration only: exact reverse corruption repeated-alignment-7
+  ---
+  duration_ms: 7.590834
+  type: 'test'
+  ...
+# evidence SHA-256 f10b84f6000f7c68eaae12fc726c828b913c97cc5c0e49d5108bee1a49774c28
+# Subtest: Apple alternate calibration only: exact reverse corruption repeated-alignment-11
+ok 11 - Apple alternate calibration only: exact reverse corruption repeated-alignment-11
+  ---
+  duration_ms: 6.67675
+  type: 'test'
+  ...
+# evidence SHA-256 f10b84f6000f7c68eaae12fc726c828b913c97cc5c0e49d5108bee1a49774c28
+# Subtest: GNU parser calibration only: normal-tab-prefix
+ok 12 - GNU parser calibration only: normal-tab-prefix
+  ---
+  duration_ms: 8.924125
+  type: 'test'
+  ...
+# evidence SHA-256 f10b84f6000f7c68eaae12fc726c828b913c97cc5c0e49d5108bee1a49774c28; input "1c1\\n<\\told\\n---\\n>\\tnew\\n"
+# Subtest: GNU parser calibration only: normal-suppress-blank-empty
+ok 13 - GNU parser calibration only: normal-suppress-blank-empty
+  ---
+  duration_ms: 7.351542
+  type: 'test'
+  ...
+# evidence SHA-256 f10b84f6000f7c68eaae12fc726c828b913c97cc5c0e49d5108bee1a49774c28; input "1c1\\n< old\\n---\\n>\\n"
+# Subtest: GNU parser calibration only: normal-unsafe-integer
+ok 14 - GNU parser calibration only: normal-unsafe-integer
+  ---
+  duration_ms: 3005.412584
+  type: 'test'
+  ...
+# evidence SHA-256 f10b84f6000f7c68eaae12fc726c828b913c97cc5c0e49d5108bee1a49774c28; input "9007199254740993a1\\n> new\\n"
+# Subtest: GNU parser calibration only: GNU-normal-suppress-blank-empty
+ok 15 - GNU parser calibration only: GNU-normal-suppress-blank-empty
+  ---
+  duration_ms: 12.453042
+  type: 'test'
+  ...
+# evidence SHA-256 f10b84f6000f7c68eaae12fc726c828b913c97cc5c0e49d5108bee1a49774c28; input "1c1\\n< old\\n---\\n>\\n"
+# Subtest: GNU parser calibration only: GNU-context-zero-middle-deletion
+ok 16 - GNU parser calibration only: GNU-context-zero-middle-deletion
+  ---
+  duration_ms: 12.420625
+  type: 'test'
+  ...
+# evidence SHA-256 f10b84f6000f7c68eaae12fc726c828b913c97cc5c0e49d5108bee1a49774c28; input "*** target\\n--- target\\n***************\\n*** 2 ****\\n- removed\\n--- 1 ----\\n"
+1..16
+# tests 16
+# suites 0
+# pass 16
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3719.713875

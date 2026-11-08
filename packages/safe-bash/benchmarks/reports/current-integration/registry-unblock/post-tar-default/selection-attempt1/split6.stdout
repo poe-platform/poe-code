@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: split aggregate dispatch: memory stdin, files and coding pipeline
+ok 1 - split aggregate dispatch: memory stdin, files and coding pipeline
+  ---
+  duration_ms: 22.162625
+  type: 'test'
+  ...
+# Subtest: split aggregate dispatch: real stdin, files and coding pipeline
+ok 2 - split aggregate dispatch: real stdin, files and coding pipeline
+  ---
+  duration_ms: 20.916125
+  type: 'test'
+  ...
+# Subtest: split aggregate dispatch: s3 stdin, files and coding pipeline
+ok 3 - split aggregate dispatch: s3 stdin, files and coding pipeline
+  ---
+  duration_ms: 10.258
+  type: 'test'
+  ...
+# Subtest: split aggregate dispatch: webdav stdin, files and coding pipeline
+ok 4 - split aggregate dispatch: webdav stdin, files and coding pipeline
+  ---
+  duration_ms: 66.642292
+  type: 'test'
+  ...
+# Subtest: split aggregate dispatch: mount stdin, files and coding pipeline
+ok 5 - split aggregate dispatch: mount stdin, files and coding pipeline
+  ---
+  duration_ms: 22.452083
+  type: 'test'
+  ...
+# Subtest: split aggregate dispatch: overlay stdin, files and coding pipeline
+ok 6 - split aggregate dispatch: overlay stdin, files and coding pipeline
+  ---
+  duration_ms: 13.069458
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 369.814625

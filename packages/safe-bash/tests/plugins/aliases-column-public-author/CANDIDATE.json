@@ -1,0 +1,85 @@
+{
+  "candidate": "3dc0ac26d681badfd4db6319f2630274095c3100",
+  "tree": "badd2ec61bdbfcbf977f0c682cb5683f2f6dcebe",
+  "base": "0123c83d3aae72a15621acbb29a165b97b2c6ab6",
+  "rootSourceCommit": "cb940da68052a9f1ab7e115279900d277e051fdb",
+  "harnessAndFixtureCommit": "0bd5c20bd19b3993e2ec9eb48b2a00dcd9ffba44",
+  "sharedHeadNotTested": "0bd5c20bd19b3993e2ec9eb48b2a00dcd9ffba44",
+  "excludedSharedTreeCommit": "f1a90436",
+  "method": "git commit-tree with temporary private index; exact accepted base plus enumerated root/fixture/harness blobs; no branch, worktree or shared index change",
+  "bindings": [
+    {
+      "path": "README.md",
+      "blob": "b1b345bbd64a3820c66c8b9fc9b73eca958d7e81"
+    },
+    {
+      "path": "package.json",
+      "blob": "c821769405cc40b17eb2fcec860a97728f128268"
+    },
+    {
+      "path": "src/index.ts",
+      "blob": "efa79f233dde5b62e7044e528b0fc2426e2fe065"
+    },
+    {
+      "path": "src/plugins/index.ts",
+      "blob": "73fb9823f19d30be8b1e048be7f64c447354ec27"
+    },
+    {
+      "path": "tests/integration/stream-inspection-public-author/consumer.mts",
+      "blob": "4bba5d9ff40d2f5fd14977ac3b15190fbe0ba48d"
+    },
+    {
+      "path": "tests/integration/stream-inspection-public-author/public.test.ts",
+      "blob": "d56a27dc4f2b6e84ca2c01471fe474ffe989b34c"
+    },
+    {
+      "path": "tests/plugins/agent-commands.test.ts",
+      "blob": "14f1fa83c57add1e71b1b8bc44ca66c390b9330b"
+    },
+    {
+      "path": "tests/plugins/aliases-column-public-author/FIXTURE_CORRECTION.md",
+      "blob": "edcf693fb27a3535bbd07d4c0dc78a042e27a201"
+    },
+    {
+      "path": "tests/plugins/aliases-column-public-author/MIGRATION.md",
+      "blob": "d7740017b35f875c5cdadeaf8618edef1a5be84d"
+    },
+    {
+      "path": "tests/plugins/aliases-column-public-author/consumer.ts.fixture",
+      "blob": "61a4951639387c71335269405d405c44ed24c2da"
+    },
+    {
+      "path": "tests/plugins/aliases-column-public-author/negative.ts.fixture",
+      "blob": "5714f499f994cae08049a6d446aa55909f4302d4"
+    },
+    {
+      "path": "tests/plugins/aliases-column-public-author/verify.mjs",
+      "blob": "8f0de2e14e1c22e135f73e1a51244ac3083dfd54"
+    },
+    {
+      "path": "tests/plugins/stream-five-fixture-migration/public-options.mts",
+      "blob": "7d245724e4624bb00c7cabafed9dfc7abce3a1a0"
+    },
+    {
+      "path": "tests/plugins/stream-five-fixture-migration/registry.test.ts",
+      "blob": "080a9ec4c2f1f449c062c26521347a4e7a2dac6a"
+    }
+  ],
+  "changed": [
+    "README.md",
+    "package.json",
+    "src/index.ts",
+    "src/plugins/index.ts",
+    "tests/integration/stream-inspection-public-author/consumer.mts",
+    "tests/integration/stream-inspection-public-author/public.test.ts",
+    "tests/plugins/agent-commands.test.ts",
+    "tests/plugins/aliases-column-public-author/FIXTURE_CORRECTION.md",
+    "tests/plugins/aliases-column-public-author/MIGRATION.md",
+    "tests/plugins/aliases-column-public-author/consumer.ts.fixture",
+    "tests/plugins/aliases-column-public-author/negative.ts.fixture",
+    "tests/plugins/aliases-column-public-author/verify.mjs",
+    "tests/plugins/stream-five-fixture-migration/public-options.mts",
+    "tests/plugins/stream-five-fixture-migration/registry.test.ts"
+  ],
+  "priorCandidate": "a2a8f87fd9656948de2eabe9d36388497186653e"
+}

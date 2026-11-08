@@ -1,0 +1,27 @@
+{
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "-e",
+    "setInterval(()=>{},1000)"
+  ],
+  "cwd": "/private/tmp/safe-bash-column-final-5XKcCe",
+  "startedAt": "2026-08-27T16:27:18.057Z",
+  "endedAt": "2026-08-27T16:27:18.363Z",
+  "pid": 51639,
+  "deadlineMs": 300,
+  "outputCap": 65536,
+  "status": null,
+  "signal": "SIGKILL",
+  "termination": "deadline",
+  "spawnError": null,
+  "observedBytes": {
+    "stdout": 0,
+    "stderr": 0
+  },
+  "stdoutHex": "",
+  "stderrHex": "",
+  "groupAliveAtClose": false,
+  "groupAliveAfterRetirement": false,
+  "cleanup": "close-observed-group-checked-and-retired",
+  "forcedCleanupIsPass": false
+}

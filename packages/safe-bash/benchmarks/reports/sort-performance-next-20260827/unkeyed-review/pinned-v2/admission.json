@@ -1,0 +1,56 @@
+{
+  "scratch": "/private/tmp/sort-unkeyed-review-pinned-S1B3Ph",
+  "sources": [
+    {
+      "output": "helpers.mjs",
+      "path": "tests/commands/helpers.ts",
+      "commit": "e090f29d9eb1aaf52eba08b2c2bf0aae53b9fb64",
+      "originalSha256": "2ac2555ee51000aa885272340eba59db64f9738f4c771697d2cf19b7e5ebc463",
+      "adaptedSha256": "98d7bcf8f47c123c1242f5fa39239a2f3b3d9786ee479b7b60bffaac4f75b16f"
+    },
+    {
+      "output": "regressions.mjs",
+      "path": "tests/commands/core-sort/regressions.test.ts",
+      "commit": "e090f29d9eb1aaf52eba08b2c2bf0aae53b9fb64",
+      "originalSha256": "e5f65551496a365c86d0d92658650782d914049b19ec1d9cee654cb4b5905768",
+      "adaptedSha256": "3bf34e5bdfb4810bc0b294b6d35d4a1d5124ee3ec4e2a61bef4109d5da38456c"
+    },
+    {
+      "output": "borrowed.mjs",
+      "path": "tests/commands/core-sort/borrowed-buffer.test.ts",
+      "commit": "e090f29d9eb1aaf52eba08b2c2bf0aae53b9fb64",
+      "originalSha256": "8539cd88cea3e79a03d984febbba56afe7c2837dac0d3e54e948efacc05b8e81",
+      "adaptedSha256": "a67e9ce43ab97c73c46d975e73c3f8204f6d8393fe1bc156522cc47b9070bc0a"
+    },
+    {
+      "output": "io.mjs",
+      "path": "tests/contracts/io.test.ts",
+      "commit": "e090f29d9eb1aaf52eba08b2c2bf0aae53b9fb64",
+      "originalSha256": "0be30d243f4df7688f57fc2bdc5b7b914c3fae62203f8e5613595d4153e7f0ec",
+      "adaptedSha256": "ea1493e8bb6bd68e6394fd8324cf2b6f4dcfe27c1909acfd0ffbbb78e175a042"
+    },
+    {
+      "output": "hidden.mjs",
+      "path": "benchmarks/reports/sort-performance-independent-20260827/hidden.mjs",
+      "commit": "e090f29d9eb1aaf52eba08b2c2bf0aae53b9fb64",
+      "originalSha256": "16f99c817b651ca6e7264fef89863f856f2282e7f321b5b2049e2a79ba165621",
+      "adaptedSha256": "c2ca7036319bf29792cc1231a02d66685ccb1146437217cac464d925607166ae"
+    },
+    {
+      "output": "native.json",
+      "path": "tests/commands/core-sort/native.json",
+      "commit": "e090f29d9eb1aaf52eba08b2c2bf0aae53b9fb64",
+      "originalSha256": "5bc9a663d8b3b161d4c8f56dffc5c920a7aaa993a7f67d36a87649768d5472f1",
+      "adaptedSha256": "5bc9a663d8b3b161d4c8f56dffc5c920a7aaa993a7f67d36a87649768d5472f1"
+    }
+  ],
+  "testNamePattern": "^(?!hidden)|^hidden (public stdin ownership|exact total-byte limit boundary|source error|missing later|pending input cancellation|empty-chunk cancellation)",
+  "adaptation": "Only src import specifiers to public virtual-bash, helper relative path, TS transpilation, hidden public import. Assertions/test bodies and pinned native.json unchanged. Seven native-free hidden tests selected;23 native-dependent hidden tests are not executed. No fixture helper semantic changes.",
+  "nativePolicy": "spawnSync fails closed; no native processes allowed",
+  "childHeapMiB": 512,
+  "wallSeconds": 90,
+  "outputCapBytes": 8388608,
+  "limitTests": "Pinned exact32MiB streaming SHA256 boundary tests, not shell buffered output; explicit original limits preserved.",
+  "harnessSha256": "33851fda9d053c4de2c9558edf68b1eb8a952403c2d9815c406fc33d188540ae",
+  "workerSha256": "418738a88e0b01769c9893ea43b850022b54da2486683761ce3b0dd416f5e512"
+}

@@ -1,0 +1,166 @@
+{
+  "schema": "B1-r4-final-slot-independent-v1",
+  "decision": "ACCEPT_SCOPED_FINAL_SLOT_ONLY",
+  "at": "2026-08-29T15:06:02.082Z",
+  "phaseDeadline": 1788016158973.988,
+  "bindingCommit": "5d8a638bb2320c1071d28d9aab1c1ed85e6a142e",
+  "presealCommit": "8f0908d54285e96eea86619c1e4ddd2338d8b9c0",
+  "packet": {
+    "bytes": 29531,
+    "sha256": "3da56afc93588c0bdfa016d02341ed4d0e8e22cd3441d0ecea3f97651b97ccc1"
+  },
+  "runtimePreseal": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4/PRESEAL.json",
+    "bytes": 20804,
+    "sha256": "a7c5e284c4dedbb1726e2231a5e67b44ef960f55203706c73b79ce2e63fa8b70"
+  },
+  "publisherBinding": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4/PUBLICATION-BINDING.json",
+    "bytes": 3872,
+    "sha256": "8cc5f053a7331bd7c31d73064269d2034485a0aa78b4a8c96128af2e3b0559ea"
+  },
+  "publisherPreseal": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4-final-binding/PUBLICATION-PRESEAL.json",
+    "bytes": 1708,
+    "sha256": "034d23073d3442a0d2bafde999c3367922867926a41780596bd3f28611b94613"
+  },
+  "checkedCounts": {
+    "runtime": 55,
+    "publisher": 5,
+    "helpers": 2,
+    "byteIdenticalOrigins": 2,
+    "controls": 4,
+    "unusedSlots": 12
+  },
+  "rows": [
+    {
+      "id": "S01",
+      "status": "PASS",
+      "role": "PURE_BINDING_NOT_RUNTIME"
+    },
+    {
+      "id": "S02",
+      "status": "PASS",
+      "role": "PURE_BINDING_NOT_RUNTIME"
+    },
+    {
+      "id": "S03",
+      "status": "PASS",
+      "role": "PURE_BINDING_NOT_RUNTIME"
+    },
+    {
+      "id": "S04",
+      "status": "PASS",
+      "role": "PURE_BINDING_NOT_RUNTIME"
+    }
+  ],
+  "absent": [
+    "/private/tmp/safe-bash-coherent-b1-public15-20260829-r4",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4/actual-evidence",
+    "/private/tmp/coherent-b1-publication-r4-20260829-results",
+    "/private/tmp/coherent-b1-public15-20260829-r4.launch.stdout",
+    "/private/tmp/coherent-b1-public15-20260829-r4.launch.stderr",
+    "/private/tmp/coherent-b1-publication-r4-20260829.startup.stdout",
+    "/private/tmp/coherent-b1-publication-r4-20260829.startup.stderr",
+    "/private/tmp/safe-bash-coherent-b1-public15-20260829-r4/PUBLICATION-AUTHORITY-r4.json",
+    "/private/tmp/safe-bash-coherent-b1-public15-20260829-r4/PREPUBLICATION-LEDGER-r4.json",
+    "/private/tmp/safe-bash-coherent-b1-public15-20260829-r4/publication-preimport-r4.stdout",
+    "/private/tmp/safe-bash-coherent-b1-public15-20260829-r4/publication-preimport-r4.stderr",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4-final-binding/ACTUAL-ROOT-GRANT.json"
+  ],
+  "window": {
+    "issued": "2026-08-29T15:01:24.888Z",
+    "latest": "2026-08-29T15:21:24.888Z",
+    "expires": "2026-08-29T15:51:24.888Z"
+  },
+  "publisherPresealData": {
+    "schema": "B1-r4-current-publication-binding-preseal-v1",
+    "binding": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4/PUBLICATION-BINDING.json",
+      "bytes": 3872,
+      "sha256": "8cc5f053a7331bd7c31d73064269d2034485a0aa78b4a8c96128af2e3b0559ea"
+    },
+    "files": [
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4/policy.mjs",
+        "bytes": 4556,
+        "sha256": "0d9599223d606cdf69bce37c0b373d515fbffbd09d82889ddd16b355ff5a33ed"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4/publish.mjs",
+        "bytes": 13280,
+        "sha256": "380900151ecc5fa2b05cbba157d9fe3eb65401d88b62a26e7824b8a8742d1281"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4/publication.sh",
+        "bytes": 297,
+        "sha256": "4262c6d46e8410d3ecccfd34f796b3895da1c727d1ed7e21deeb35e9365da403"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-publication-v2/controls.mjs",
+        "bytes": 4623,
+        "sha256": "3c53108913ca49f5bd7d74b5dfff0ad7014c1e09ce8a22d003b46b0b8f2c90dd"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-publication-v2/seal.mjs",
+        "bytes": 2425,
+        "sha256": "4cd5f35ac2f6ee37975bdb9fcd18f50f7bda0dce8cffa894f99341b83fb96007"
+      }
+    ],
+    "qualifiedLogic": "7c8fb0e3 inherited logical profile plus current r4 PREEXEC53ad",
+    "actualAuthority": false
+  },
+  "productCalls": 0,
+  "Workers": 0,
+  "publisherMain": false,
+  "preimportMain": false,
+  "actualAuthority": false,
+  "dynamicSlots": "ROOT grant, measured ledger, same-buffer authority hashes/sizes remain unpopulated",
+  "prospectiveBounds": {
+    "knownOS": 32,
+    "peak": 3,
+    "roles": [
+      "offline-install",
+      "workflow-source-built",
+      "workflow-installed",
+      "workflow-physically-moved"
+    ],
+    "ids": [
+      "C10",
+      "C11",
+      "C15",
+      "C16",
+      "C18"
+    ],
+    "layouts": [
+      "source-built",
+      "installed",
+      "physically-moved"
+    ],
+    "calls": 15,
+    "guestWorkersPerLayout": 5,
+    "guestWorkersTotal": 15,
+    "guestWorkersLive": 5,
+    "regexWorkers": 0,
+    "asyncLoaderThreads": 0,
+    "mainSyncHooks": 3,
+    "guestSyncHooks": 15,
+    "inclusiveSeconds": 1800,
+    "activeSeconds": 1620,
+    "publicationReserveSeconds": 180,
+    "installSeconds": 120,
+    "layoutSeconds": 300,
+    "caseSeconds": 30,
+    "cleanupSeconds": 5,
+    "captureBytes": 67108864,
+    "workBytes": 805306368
+  },
+  "qualifications": [
+    "accepted explicit logical accounting only",
+    "Git internal physical growth trusted/unobserved",
+    "8KiB startup reserve/check not OS interception",
+    "late output/headroom/persistence qualifications retained",
+    "known roles not full census/group absence",
+    "static closure not nested dynamic load proof"
+  ]
+}

@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: fresh numeric/split pipelines: memory
+ok 1 - fresh numeric/split pipelines: memory
+  ---
+  duration_ms: 18.79325
+  type: 'test'
+  ...
+# Subtest: fresh numeric/split pipelines: real
+ok 2 - fresh numeric/split pipelines: real
+  ---
+  duration_ms: 19.611292
+  type: 'test'
+  ...
+# Subtest: fresh numeric/split pipelines: s3
+ok 3 - fresh numeric/split pipelines: s3
+  ---
+  duration_ms: 13.422917
+  type: 'test'
+  ...
+# Subtest: fresh numeric/split pipelines: webdav
+ok 4 - fresh numeric/split pipelines: webdav
+  ---
+  duration_ms: 70.3465
+  type: 'test'
+  ...
+# Subtest: fresh numeric/split pipelines: mount
+ok 5 - fresh numeric/split pipelines: mount
+  ---
+  duration_ms: 22.4415
+  type: 'test'
+  ...
+# Subtest: fresh numeric/split pipelines: overlay
+ok 6 - fresh numeric/split pipelines: overlay
+  ---
+  duration_ms: 12.429167
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 361.5965

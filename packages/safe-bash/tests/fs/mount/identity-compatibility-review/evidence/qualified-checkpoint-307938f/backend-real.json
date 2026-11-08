@@ -1,0 +1,37 @@
+{
+  "name": "backend-real",
+  "command": [
+    "node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-reporter=tap",
+    "tests/fs/real/adversarial.test.ts",
+    "tests/fs/real/cancellation-regression.test.ts",
+    "tests/fs/real/conformance.test.ts",
+    "tests/fs/real/copy-identity.test.ts",
+    "tests/fs/real/metadata-review/classification.test.ts",
+    "tests/fs/real/rmdir.test.ts",
+    "tests/fs/real/stress.test.ts",
+    "tests/fs/real/timestamps.test.ts",
+    "tests/fs/real/traversal-regression.test.ts"
+  ],
+  "environment": {},
+  "startedAt": "2026-08-27T01:39:58.462Z",
+  "finishedAt": "2026-08-27T01:39:59.737Z",
+  "code": 1,
+  "signal": null,
+  "timedOut": false,
+  "residualGroup": false,
+  "counts": {
+    "tests": 95,
+    "pass": 93,
+    "fail": 2,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "stdoutSha256": "564947e2343e472196fb64043bf4500e63e04e5f6f444a7a2febc291731562ae",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

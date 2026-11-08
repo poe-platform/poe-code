@@ -1,0 +1,17 @@
+{
+  "baseline": {
+    "sha256": "bb28e7210d5931d9164152049cc8d31e8a2e919fb421fb35c9ab4cabec13740e",
+    "bytes": 32,
+    "mode": 420
+  },
+  "candidateFiles": [
+    "README.md",
+    "dist/contracts/index.d.ts",
+    "dist/contracts/index.js",
+    "package.json",
+    "dist/commands/yq/index.d.ts",
+    "dist/commands/yq/index.d.ts.map",
+    "dist/commands/yq/index.js",
+    "dist/commands/yq/index.js.map"
+  ]
+}

@@ -1,0 +1,144 @@
+{
+  "source": {
+    "arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+    "display.ts": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+    "index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+    "input.ts": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+    "locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+    "parser.ts": "feb6cbb2f03ec0c409adeb816bec506788fb3014a23c8dd02f4002362dc4b9f2",
+    "pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+    "runtime.ts": "aabc27a9bff85a809b3d866d9dc162a29a321f9abe15e7a5226080aabded6c40",
+    "shell.ts": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+    "types.ts": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d"
+  },
+  "locale": "C",
+  "argv0": "bash",
+  "commandName": "shell",
+  "caseHash": "5ce8f2af1994af36f1ee7aace029256b5ea1392a0649b2c82f5e7700ff6f75f7",
+  "profiles": [
+    {
+      "name": "GNU-5.3",
+      "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+      "rows": [
+        {
+          "name": "leading-zero-name",
+          "expected": {
+            "stdout": "PGhlPg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "leading-zero-one",
+          "expected": {
+            "stdout": "PGJjPg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "leading-zero-ten",
+          "expected": {
+            "stdout": "PGJjPg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "leading-zero-missing",
+          "expected": {
+            "stdout": "PD4=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        }
+      ]
+    },
+    {
+      "name": "historical-3.2",
+      "executable": "/bin/bash",
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "rows": [
+        {
+          "name": "leading-zero-name",
+          "expected": {
+            "stdout": "PGhlPg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "leading-zero-one",
+          "expected": {
+            "stdout": "PGJjPg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "leading-zero-ten",
+          "expected": {
+            "stdout": "PGJjPg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "leading-zero-missing",
+          "expected": {
+            "stdout": "PD4=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        }
+      ]
+    }
+  ],
+  "before": [
+    {
+      "name": "leading-zero-name",
+      "actual": {
+        "stdout": "PD4=",
+        "stderr": "",
+        "status": 0,
+        "files": {}
+      }
+    },
+    {
+      "name": "leading-zero-one",
+      "actual": {
+        "stdout": "PGJjPg==",
+        "stderr": "",
+        "status": 0,
+        "files": {}
+      }
+    },
+    {
+      "name": "leading-zero-ten",
+      "actual": {
+        "stdout": "PGJjPg==",
+        "stderr": "",
+        "status": 0,
+        "files": {}
+      }
+    },
+    {
+      "name": "leading-zero-missing",
+      "actual": {
+        "stdout": "PD4=",
+        "stderr": "",
+        "status": 0,
+        "files": {}
+      }
+    }
+  ]
+}

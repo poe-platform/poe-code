@@ -1,0 +1,195 @@
+{
+  "authorizationKind": "ROOT_SOURCE_ACCEPTED_AUTHOR_BUILD",
+  "rootDecision": "2026-08-29 combined conditional GO; 20 minutes total, 56 known OS peak3, one strict compiler then one offline ignore-scripts package only",
+  "sourceReviewCommit": "42c5df0d2e6c8246d18ddd331ad3d3a0ecb65582",
+  "sourceReviewReceiptSha256": "aaee5bc24adb0460e0858eae44e10804ea6168a4470f13bfb84139b00d871a52",
+  "notIndependentProducerReview": true,
+  "sourceSeal": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-coherent-producer-20260829/SOURCE-INPUTS.json",
+    "bytes": 217999,
+    "sha256": "f7e7507a60cb96de29553d2f8a3036f0c4a339fc4a9fcdfa9e2bececfe9a1356"
+  },
+  "toolsSeal": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-coherent-producer-20260829/TOOLS.json",
+    "bytes": 581381,
+    "sha256": "2a9918a2f87773e7ab281866e6d0e0bab7f8cd263a8a656b9c4de94ef020f508"
+  },
+  "producerSha256": "7e55b7b5fff5bd830f6635d4fd1712e62de985c24d6f3aa332f9880ae87b3e6e",
+  "procedure": {
+    "status": "READY_PROCEDURE_ONLY_WAIT_PIPESTATUS",
+    "candidate": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-composition-readiness-20260829/reconciliation-v2/CANDIDATE-INPUTS.json",
+      "bytes": 178749,
+      "mode": 292,
+      "sha256": "ef910f1c3bccf4f0345a7d938cf9f2969a8d0e03ceaaafa55bf93b837e40cdbd"
+    },
+    "tools": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-composition-readiness-20260829/reconciliation-v2/TYPE-AND-TOOL-BINDINGS.json",
+      "bytes": 53567,
+      "mode": 292,
+      "sha256": "17c10b52c12c62d58d65a4e98297f8f210459b7316490fdfdfb1c64e7b0c0cdf"
+    },
+    "reconciliation": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-composition-readiness-20260829/reconciliation-v2/TREE-RECONCILIATION.json",
+      "bytes": 3698,
+      "mode": 292,
+      "sha256": "1c6e9ad570cf971f3e2f309434c658713f18884f3fd503b8cc6e9b040a6e815e"
+    },
+    "gates": [
+      "Independent SOURCE/PURE ACCEPT committed; ROOT conditional authorization active"
+    ],
+    "finalFreezeAuthorized": true,
+    "buildAuthorized": true,
+    "productAuthorized": false,
+    "outputRoot": "/private/tmp/safe-bash-final-composition-20260829",
+    "sourceRoot": "/private/tmp/safe-bash-final-composition-20260829/source",
+    "materialize": "Only the 323 explicitly authenticated input rows; accepted README from its pinned Git blob; exclude 40 tracked extras without deleting or editing them",
+    "environment": {
+      "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+      "HOME": "/private/tmp/safe-bash-final-composition-20260829/home",
+      "TMPDIR": "/private/tmp/safe-bash-final-composition-20260829/tmp",
+      "LANG": "C",
+      "LC_ALL": "C",
+      "TZ": "UTC",
+      "GIT_CONFIG_NOSYSTEM": "1",
+      "GIT_CONFIG_GLOBAL": "/dev/null",
+      "GIT_OPTIONAL_LOCKS": "0",
+      "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/user.npmrc",
+      "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/global.npmrc",
+      "npm_config_cache": "/private/tmp/safe-bash-final-composition-20260829/cache",
+      "npm_config_offline": "true",
+      "npm_config_ignore_scripts": "true",
+      "npm_config_audit": "false",
+      "npm_config_fund": "false"
+    },
+    "commands": {
+      "compiler": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "cwd": "/private/tmp/safe-bash-final-composition-20260829/source",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/tsc.js",
+          "-p",
+          "/private/tmp/safe-bash-final-composition-20260829/source/tsconfig.build.json",
+          "--typeRoots",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/type-tools/node_modules/@types"
+        ],
+        "maximumInvocations": 1,
+        "requiredExit": 0
+      },
+      "pack": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "cwd": "/private/tmp/safe-bash-final-composition-20260829/source",
+        "args": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js",
+          "pack",
+          "--offline",
+          "--ignore-scripts",
+          "--json",
+          "--userconfig=/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/user.npmrc",
+          "--globalconfig=/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/global.npmrc",
+          "--pack-destination=/private/tmp/safe-bash-final-composition-20260829/package"
+        ],
+        "maximumInvocations": 1,
+        "requiresCompilerExitZero": true
+      }
+    },
+    "artifactAdmission": {
+      "perDataFileMaximum": 16777216,
+      "noInheritedOutputCounts": true,
+      "completeEmitAndShippingInventoryRequired": true,
+      "archiveAndReceiptCommittedBeforeDecode": true,
+      "sameAuthenticatedBufferDecode": true
+    },
+    "noNewDependency": true
+  },
+  "buildConfig": {
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+      "rootDir": "src",
+      "outDir": "dist",
+      "declaration": true,
+      "declarationMap": true,
+      "sourceMap": true
+    },
+    "include": [
+      "src/**/*.ts"
+    ],
+    "exclude": [
+      "tests",
+      "dist",
+      "node_modules"
+    ]
+  },
+  "baseConfig": {
+    "compilerOptions": {
+      "target": "ES2023",
+      "lib": [
+        "ES2023"
+      ],
+      "module": "NodeNext",
+      "moduleResolution": "NodeNext",
+      "strict": true,
+      "noUncheckedIndexedAccess": true,
+      "exactOptionalPropertyTypes": true,
+      "verbatimModuleSyntax": true,
+      "forceConsistentCasingInFileNames": true,
+      "skipLibCheck": true,
+      "types": [
+        "node"
+      ]
+    },
+    "include": [
+      "src/**/*.ts",
+      "tests/**/*.ts"
+    ],
+    "exclude": [
+      "dist",
+      "node_modules",
+      "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts",
+      "tests/commands/regex-execution/continuation/artifacts/native",
+      "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__command.ts",
+      "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__filesystem.ts",
+      "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__io.ts",
+      "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__path.ts",
+      "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__plugin.ts",
+      "tests/integration/du-overlay-independent-20260827/approved-v5-9a5a6f92/consumer/consumer.ts",
+      "tests/integration/du-overlay-independent-20260827/approved-v6-9a5a6f92/consumer/consumer.ts",
+      "tests/integration/du-overlay-independent-20260827/approved-v7-9a5a6f92/consumer/consumer.ts",
+      "tests/integration/du-overlay-independent-20260827/approved-v8-9a5a6f92/consumer/consumer.ts",
+      "tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/consumer/consumer.ts",
+      "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/candidate-9a5a6f92-2026-08-27T184628110Z-fdd7-TvfiaD/harness/harness/consumer-v2/consumer.ts",
+      "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/candidate-9a5a6f92-2026-08-27T184718966Z-42b7-ik3KTO/harness/harness/consumer-v2/consumer.ts",
+      "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/candidate-9a5a6f92-2026-08-27T184742640Z-4378-47r2eR/harness/harness/consumer-v2/consumer.ts",
+      "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/supplied-revision-9a5a6f92-2026-08-27T183910720Z-c216-VLoupP/harness/harness/consumer/consumer.ts",
+      "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/consumer-v2/consumer.ts",
+      "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/consumer/consumer.ts",
+      "tests/integration/du-overlay-independent-20260827/consumer/consumer.ts",
+      "tests/integration/du-overlay-independent-20260827/evidence/baseline-877144ea-2026-08-27T182017267Z-cbc5-YXsTka/harness/consumer/consumer.ts",
+      "tests/integration/du-overlay-independent-20260827/evidence/baseline-877144ea-2026-08-27T182141438Z-2e8b-bTCRpv/harness/consumer/consumer.ts"
+    ]
+  },
+  "packageScripts": {
+    "benchmark": "node --import tsx benchmarks/run.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "node scripts/typecheck.mjs",
+    "typecheck:all": "node scripts/typecheck.mjs --build",
+    "typecheck:consumers": "node scripts/typecheck.mjs --consumers",
+    "test": "node --input-type=module -e \"import { globSync } from 'node:fs'; import { spawnSync } from 'node:child_process'; const files = globSync('tests/**/*.test.ts', { exclude: path => path === 'tests/commands/regex-execution/continuation/artifacts/native' }); if (!files.length) throw new Error('No test files found'); const result = spawnSync(process.execPath, ['--import', 'tsx', '--test', ...process.argv.slice(1), ...files], { stdio: 'inherit' }); process.exit(result.status ?? 1);\" --",
+    "test:contracts": "node --import tsx --test \"tests/contracts/**/*.test.ts\"",
+    "verify:stream-public": "node tests/plugins/stream-five-public/verify-public.mjs",
+    "verify:release:qualified": "node scripts/verify-qualified-release.mjs",
+    "verify:release:whole": "node scripts/verify-whole-gate.mjs"
+  },
+  "bounds": {
+    "deadline": "2026-08-29T17:47:02.000Z",
+    "publicationReserve": 180000,
+    "logicalBytes": 536870912,
+    "captureBytes": 83886080,
+    "perDataFile": 16777216,
+    "startupReserve": 268435456,
+    "knownOSMaximum": 56,
+    "conservativePeak": 3,
+    "qualification": "quiescent sampled logical working bytes, startup reserved/postchecked; not OS disk/RSS/peak quota; Git physical excluded"
+  },
+  "created": "2026-08-29T17:31:34.212Z"
+}

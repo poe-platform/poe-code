@@ -1,0 +1,26 @@
+{
+  "id": "inert-preparation-references",
+  "args": [
+    "ls-tree",
+    "-rz",
+    "--full-tree",
+    "27fd896575280fa96100924cf4f2ecc110710b82",
+    "--",
+    "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/FRESH-PREPARATION-REPORT.json",
+    "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/SOURCE-AUTH.json",
+    "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/PROCESS-CENSUS.json",
+    "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/FRESH-MANIFEST.json"
+  ],
+  "pid": 85290,
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  },
+  "bytes": 723,
+  "errors": [],
+  "stdoutSha256": "794cc8c52830a10144ee31a8968733d47c665e0140726bc717a263cad9eb9081"
+}

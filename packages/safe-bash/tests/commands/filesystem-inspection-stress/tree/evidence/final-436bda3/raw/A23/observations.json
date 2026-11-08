@@ -1,0 +1,64 @@
+{
+  "candidate": "/tmp/safe-bash-tree-final-436bda3-k1mKIO/candidate",
+  "api": "standalone src/commands/tree/index.ts",
+  "invocations": [
+    {
+      "argv": [
+        "-l",
+        "cycle"
+      ],
+      "limits": {
+        "maxEntries": 12
+      },
+      "cwd": "/",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TERM": "dumb",
+        "TZ": "UTC"
+      },
+      "stdout": [
+        {
+          "attemptedBase64": "Y3ljbGUK",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "YC0tIGlubmVyCg==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "ICAgIHwtLSBiYWNrIC0+IC4uCg==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "ICAgIHwgICBgLS0gaW5uZXIK",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "ICAgIHwgICAgICAgfC0tIGJhY2sK",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "ICAgIHwgICAgICAgfCAgIGAtLSBpbm5lcgo=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "ICAgIHwgICAgICAgfCAgICAgICB8LS0gYmFjawo=",
+          "state": "fulfilled"
+        }
+      ],
+      "stderr": [],
+      "startedAt": "2026-08-27T09:27:30.968Z",
+      "error": {
+        "name": "FsError",
+        "message": "EFBIG: tree entry limit exceeded (12)",
+        "code": "EFBIG",
+        "stack": "FsError: EFBIG: tree entry limit exceeded (12)\n    at WalkBudget.check (/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/candidate/src/commands/tree/io.ts:44:32)\n    at WalkBudget.entry (/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/candidate/src/commands/tree/io.ts:49:33)\n    at Walker.children (/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/candidate/src/commands/tree/tree.ts:98:17)\n    at async Walker.visit (/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/candidate/src/commands/tree/tree.ts:136:22)\n    at async Walker.visit (/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/candidate/src/commands/tree/tree.ts:165:9)\n    at async Walker.visit (/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/candidate/src/commands/tree/tree.ts:165:9)\n    at async Walker.visit (/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/candidate/src/commands/tree/tree.ts:165:9)\n    at async Walker.visit (/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/candidate/src/commands/tree/tree.ts:165:9)\n    at async Walker.visit (/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/candidate/src/commands/tree/tree.ts:165:9)\n    at async Walker.visit (/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/candidate/src/commands/tree/tree.ts:165:9)"
+      },
+      "rejected": true,
+      "sameAsSignalReason": false,
+      "finishedAt": "2026-08-27T09:27:30.971Z"
+    }
+  ],
+  "shells": []
+}

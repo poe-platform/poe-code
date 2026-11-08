@@ -1,0 +1,23 @@
+{
+  "utc": "2026-08-29T14:46:00.043Z",
+  "exactUniqueRetainedIds": 672,
+  "layoutCounts": [
+    48,
+    50,
+    67,
+    35,
+    12,
+    12
+  ],
+  "environmentKeys": [
+    "N14_CASE",
+    "EXT_CASE"
+  ],
+  "staticRelativeEdges": 13,
+  "literalDynamicRelativeEdges": 1,
+  "author14EdgesReconciled": true,
+  "coordinatorAdmissionBeforeLiteralImport": true,
+  "movedConsumerReuseWithoutSecondExclusiveWrite": true,
+  "loadedTraceQualification": "authenticated source supplied, not standalone proof of module evaluation",
+  "actualRoleMeasurements": "UNKNOWN_UNRUN"
+}

@@ -1,0 +1,106 @@
+{
+  "schema": 1,
+  "record": {
+    "schema": 3,
+    "role": "pure-host-double-v2",
+    "ownerPid": 63805,
+    "clockDomain": "owner:63805",
+    "pid": 63840,
+    "admitted": true,
+    "created": true,
+    "spawned": true,
+    "exited": true,
+    "closed": true,
+    "code": 0,
+    "signal": null,
+    "exitCode": 0,
+    "exitSignal": null,
+    "stdoutBytes": 38,
+    "stderrBytes": 0,
+    "stdoutClosed": true,
+    "stderrClosed": true,
+    "stdoutEnded": true,
+    "stderrEnded": true,
+    "state": "RETIRED",
+    "captureComplete": true,
+    "captureTruncated": false,
+    "termRequested": false,
+    "killRequested": false,
+    "primary": {
+      "present": false
+    },
+    "secondary": [],
+    "trace": [
+      {
+        "seq": 1,
+        "at": 419529,
+        "kind": "admit"
+      },
+      {
+        "seq": 2,
+        "at": 424815,
+        "kind": "created",
+        "pid": 63840
+      },
+      {
+        "seq": 3,
+        "at": 424903,
+        "kind": "spawn",
+        "pid": 63840
+      },
+      {
+        "seq": 4,
+        "at": 488977,
+        "kind": "stderrEnd"
+      },
+      {
+        "seq": 5,
+        "at": 489198,
+        "kind": "stdoutEnd"
+      },
+      {
+        "seq": 6,
+        "at": 489502,
+        "kind": "stdoutClose"
+      },
+      {
+        "seq": 7,
+        "at": 489591,
+        "kind": "stderrClose"
+      },
+      {
+        "seq": 8,
+        "at": 489641,
+        "kind": "exit",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "seq": 9,
+        "at": 489652,
+        "kind": "close",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "seq": 10,
+        "at": 489662,
+        "kind": "retired"
+      }
+    ]
+  },
+  "emergency": {
+    "state": "RETIRED",
+    "ownerPid": 63805,
+    "pid": 63840,
+    "knownExit": true,
+    "knownClose": true,
+    "captureComplete": true,
+    "captureTruncated": false,
+    "primary": {
+      "present": false
+    },
+    "secondaryCount": 0,
+    "ownedHandleRetained": false
+  }
+}

@@ -1,0 +1,781 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "captureEnvironment": {
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "PYTHONIOENCODING": "utf-8",
+    "COLUMNS": "80",
+    "LINES": "24"
+  },
+  "cases": [
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Expecting value: line 1 column 2 (char 1)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "{",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[1,",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Expecting value: line 1 column 4 (char 3)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "{\"a\":",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Expecting value: line 1 column 6 (char 5)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "{\"a\":1,",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Expecting property name enclosed in double quotes: line 1 column 8 (char 7)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "{\"a\"",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Expecting ':' delimiter: line 1 column 5 (char 4)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "{\"a\" 1}",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Expecting ':' delimiter: line 1 column 6 (char 5)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[\"\\u\"]",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Invalid \\uXXXX escape: line 1 column 4 (char 3)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[\"\\u0\"]",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Invalid \\uXXXX escape: line 1 column 4 (char 3)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[\"\\u00\"]",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Invalid \\uXXXX escape: line 1 column 4 (char 3)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[\"\\u000\"]",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Invalid \\uXXXX escape: line 1 column 4 (char 3)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[\"\\u000x\"]",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Invalid \\uXXXX escape: line 1 column 4 (char 3)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[\"\\x\"]",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Invalid \\escape: line 1 column 3 (char 2)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[\"\\\"]",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Unterminated string starting at: line 1 column 2 (char 1)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[\"abc]",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Unterminated string starting at: line 1 column 2 (char 1)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[\"\t\"]",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Invalid control character at: line 1 column 3 (char 2)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[\"😀\",]",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Illegal trailing comma before end of array: line 1 column 5 (char 4)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[\"😀\",true false]",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Expecting ',' delimiter: line 1 column 11 (char 10)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[\"😀\", \"\\ux\"]",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Invalid \\uXXXX escape: line 1 column 9 (char 8)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[\"a\", ]",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Expecting value: line 1 column 6 (char 5)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[1.]",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Expecting ',' delimiter: line 1 column 3 (char 2)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[1e]",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Expecting ',' delimiter: line 1 column 3 (char 2)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[1e+]",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Expecting ',' delimiter: line 1 column 3 (char 2)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[01]",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Expecting ',' delimiter: line 1 column 3 (char 2)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[-01]",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Expecting ',' delimiter: line 1 column 4 (char 3)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[-]",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Expecting value: line 1 column 2 (char 1)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[+1]",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Expecting value: line 1 column 2 (char 1)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[nan]",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Expecting value: line 1 column 2 (char 1)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[undefined]",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Expecting value: line 1 column 2 (char 1)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[true, ]",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Illegal trailing comma before end of array: line 1 column 6 (char 5)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "{\"a\":1, }",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Illegal trailing comma before end of object: line 1 column 7 (char 6)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "{\"a\":1,,}",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Expecting property name enclosed in double quotes: line 1 column 8 (char 7)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[1,,]",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Expecting value: line 1 column 4 (char 3)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[1\n2]",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Expecting ',' delimiter: line 2 column 1 (char 3)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "{\"a\":\n}",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Expecting value: line 2 column 1 (char 6)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "{\"a\": \"\\u12z4\"}",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Invalid \\uXXXX escape: line 1 column 9 (char 8)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[\"\\u1234x\",]",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Illegal trailing comma before end of array: line 1 column 11 (char 10)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[1]x",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Extra data: line 1 column 4 (char 3)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "null null",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Extra data: line 1 column 6 (char 5)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "{\"a\":1",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Expecting ',' delimiter: line 1 column 7 (char 6)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[{\"a\":1}",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Expecting ',' delimiter: line 1 column 9 (char 8)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[\"\\uD83D\\uDE00\", ]",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Illegal trailing comma before end of array: line 1 column 16 (char 15)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[{\"n\":-0},{\"n\":\"text\"}]",
+      "status": 0,
+      "stdout": "n\n0\ntext\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json",
+        "-I"
+      ],
+      "stdin": "[{\"n\":-0},{\"n\":\"text\"}]",
+      "status": 0,
+      "stdout": "n\n0\ntext\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[{\"n\":-0.0},{\"n\":\"text\"}]",
+      "status": 0,
+      "stdout": "n\n-0.0\ntext\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json",
+        "-I"
+      ],
+      "stdin": "[{\"n\":-0.0},{\"n\":\"text\"}]",
+      "status": 0,
+      "stdout": "n\n-0.0\ntext\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[{\"n\":0e0},{\"n\":\"text\"}]",
+      "status": 0,
+      "stdout": "n\n0\ntext\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json",
+        "-I"
+      ],
+      "stdin": "[{\"n\":0e0},{\"n\":\"text\"}]",
+      "status": 0,
+      "stdout": "n\n0\ntext\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[{\"n\":0e-7},{\"n\":\"text\"}]",
+      "status": 0,
+      "stdout": "n\n0E-7\ntext\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json",
+        "-I"
+      ],
+      "stdin": "[{\"n\":0e-7},{\"n\":\"text\"}]",
+      "status": 0,
+      "stdout": "n\n0E-7\ntext\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[{\"n\":-0e-7},{\"n\":\"text\"}]",
+      "status": 0,
+      "stdout": "n\n-0E-7\ntext\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json",
+        "-I"
+      ],
+      "stdin": "[{\"n\":-0e-7},{\"n\":\"text\"}]",
+      "status": 0,
+      "stdout": "n\n-0E-7\ntext\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[{\"n\":0e3},{\"n\":\"text\"}]",
+      "status": 0,
+      "stdout": "n\n0E+3\ntext\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json",
+        "-I"
+      ],
+      "stdin": "[{\"n\":0e3},{\"n\":\"text\"}]",
+      "status": 0,
+      "stdout": "n\n0E+3\ntext\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[{\"n\":1e-6},{\"n\":\"text\"}]",
+      "status": 0,
+      "stdout": "n\n0.000001\ntext\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json",
+        "-I"
+      ],
+      "stdin": "[{\"n\":1e-6},{\"n\":\"text\"}]",
+      "status": 0,
+      "stdout": "n\n0.000001\ntext\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[{\"n\":1e-7},{\"n\":\"text\"}]",
+      "status": 0,
+      "stdout": "n\n1E-7\ntext\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json",
+        "-I"
+      ],
+      "stdin": "[{\"n\":1e-7},{\"n\":\"text\"}]",
+      "status": 0,
+      "stdout": "n\n1E-7\ntext\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[{\"n\":1e28},{\"n\":\"text\"}]",
+      "status": 0,
+      "stdout": "n\n1E+28\ntext\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json",
+        "-I"
+      ],
+      "stdin": "[{\"n\":1e28},{\"n\":\"text\"}]",
+      "status": 0,
+      "stdout": "n\n1E+28\ntext\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[{\"n\":1.23456789012345678901234567890},{\"n\":\"text\"}]",
+      "status": 0,
+      "stdout": "n\n1.23456789012345678901234567890\ntext\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json",
+        "-I"
+      ],
+      "stdin": "[{\"n\":1.23456789012345678901234567890},{\"n\":\"text\"}]",
+      "status": 0,
+      "stdout": "n\n1.23456789012345678901234567890\ntext\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[{\"n\":1e-100},{\"n\":\"text\"}]",
+      "status": 0,
+      "stdout": "n\n1E-100\ntext\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json",
+        "-I"
+      ],
+      "stdin": "[{\"n\":1e-100},{\"n\":\"text\"}]",
+      "status": 0,
+      "stdout": "n\n1E-100\ntext\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[{\"n\":NaN},{\"n\":\"text\"}]",
+      "status": 0,
+      "stdout": "n\nnan\ntext\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json",
+        "-I"
+      ],
+      "stdin": "[{\"n\":NaN},{\"n\":\"text\"}]",
+      "status": 0,
+      "stdout": "n\nnan\ntext\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[{\"n\":Infinity},{\"n\":\"text\"}]",
+      "status": 0,
+      "stdout": "n\ninf\ntext\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json",
+        "-I"
+      ],
+      "stdin": "[{\"n\":Infinity},{\"n\":\"text\"}]",
+      "status": 0,
+      "stdout": "n\ninf\ntext\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[{\"n\":-Infinity},{\"n\":\"text\"}]",
+      "status": 0,
+      "stdout": "n\n-inf\ntext\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json",
+        "-I"
+      ],
+      "stdin": "[{\"n\":-Infinity},{\"n\":\"text\"}]",
+      "status": 0,
+      "stdout": "n\n-inf\ntext\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[\"\\",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Unterminated string starting at: line 1 column 2 (char 1)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[\"abc\\",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Unterminated string starting at: line 1 column 2 (char 1)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "{\"a\":\"\\",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Unterminated string starting at: line 1 column 6 (char 5)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "\"\\",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Unterminated string starting at: line 1 column 1 (char 0)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[\"😀\\",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Unterminated string starting at: line 1 column 2 (char 1)\n"
+    }
+  ],
+  "sourceSha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+  "runtimeSha256": "3d6400b63b150164e89a690d9813af8b0eb420af9f336ef1f6c5102c6da60eae",
+  "dependencyLock": "docs/csvkit/requirements-cpython-3.14.2.txt",
+  "captureMethod": "Original in2csv executable installed from hash-pinned source in a disposable CPython 3.14.2 venv; stdin UTF-8 bytes; stdout/stderr captured separately; environment is captureEnvironment only."
+}

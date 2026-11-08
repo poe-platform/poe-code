@@ -1,0 +1,24 @@
+{
+  "started": "2026-08-28T04:55:51.746Z",
+  "classification": "EVIDENCE_TRANSPORT_ONLY_NOT_QUALIFICATION",
+  "inputManifest": {
+    "bytes": 33785,
+    "sha256": "42b1c369bed32e39c3d1d49678618ae21e7c027686d0ad2d9e7add82488d60bd",
+    "mode": "644"
+  },
+  "tool": {
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "mode": "755"
+  },
+  "bundler": {
+    "bytes": 5001,
+    "sha256": "59214bd94d9321cbeacdf05fe95aa49f4ed04b9314dab777bdbff3ed5297916f",
+    "mode": "644"
+  },
+  "files": 175,
+  "directories": 29,
+  "chunkBytes": 65536,
+  "recordBytes": 131072,
+  "extractsFiles": false
+}

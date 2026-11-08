@@ -1,0 +1,57 @@
+{
+  "schema": "priority-actual-dispatch-hold-manifest-v1",
+  "role": "ADDITIVE_EVIDENCE_BINDINGS_NOT_PRODUCT_QUALIFICATION",
+  "status": "HOLD_BEFORE_EXECUTION",
+  "createdAt": "2026-08-28T18:39:45.360Z",
+  "files": [
+    {
+      "path": "ROOT-DISPATCH-CONFIRMATION.md",
+      "bytes": 5408,
+      "sha256": "5266dbdfe7e98f34f29116e1612defb797760f526a31164f4e00492e538f1efc"
+    },
+    {
+      "path": "PREAUTH.json",
+      "bytes": 147250,
+      "sha256": "694033e88e505a182812ef564114c8a1980102e5c62ac47ea6c6ef006a43a4d3"
+    },
+    {
+      "path": "HOLD-RECEIPT.json",
+      "bytes": 15321,
+      "sha256": "fdf7d97d1a1584de741fe420ceef2a6d2d7ef1e3ffda4b87ee44c2cb0ec1d345"
+    },
+    {
+      "path": "NPM-ORIGINAL-INVENTORY.json",
+      "bytes": 301990,
+      "sha256": "242f6ef74dfaf422c6513707c33187af5bc90297f8479d9a1bec72206afb3f79"
+    },
+    {
+      "path": "NPM-FAILURE.txt",
+      "bytes": 163,
+      "sha256": "e10718f17ba7572b386f19ad7547630cdc6aee52af4722ccdcbce2e295517b66"
+    },
+    {
+      "path": "ROOT-HOLD-CONFIRMATION.txt",
+      "bytes": 947,
+      "sha256": "c1a1748a6ab08492b14049b9108a6da066c57d25f2ecbaebe14e7a5ee49da079"
+    }
+  ],
+  "inventoryEncoding": "JSON.stringify of ordered [path,bytes,sha256] tuples",
+  "inventorySha256": "6692c21974c17e259fff48d2ffed02833223f7e003d910125741c8f06b1d23ca",
+  "manifestSelfExcluded": true,
+  "originalGrantUnchanged": true,
+  "originalBudgetUnchanged": true,
+  "futureRunRootAbsent": true,
+  "rootHoldConfirmationSha256": "c1a1748a6ab08492b14049b9108a6da066c57d25f2ecbaebe14e7a5ee49da079",
+  "preauthenticationComplete": false,
+  "dispatchCounts": {
+    "supervisor": 0,
+    "setup": 0,
+    "admission": 0,
+    "runtime": 0,
+    "productWorkers": 0,
+    "loaderRequests": 0
+  },
+  "metadataProcessQualification": "Data inspection, DevGit, apply_patch and commit processes are real separate roles; they are not charged or reported as sealed-supervisor/product dispatches. All invoked metadata children settled; no background inspection process was launched.",
+  "reservationDisposition": "Unspent, not released/returned/reused. No automatic later retry.",
+  "receiptScope": "Only newly owned additive HOLD records. No new full authentication, diagnosis, experiment or product acceptance after blocking npm disagreement."
+}

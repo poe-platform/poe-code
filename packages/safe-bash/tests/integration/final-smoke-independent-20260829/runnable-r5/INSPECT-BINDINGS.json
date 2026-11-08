@@ -1,0 +1,22 @@
+[
+  {
+    "file": "/private/tmp/final-smoke-r5-producer-review-binding.stdout",
+    "bytes": 1302,
+    "sha256": "49370192fa6c2bea427d2611ad4cd48d5311018cd19ec2ce9ce9cc569ca3dce7"
+  },
+  {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/runnable-r5/HANDOFF.md",
+    "bytes": 2253,
+    "sha256": "ef17467bad116c8e76b3a6d22089b4b6a029e0a86973904497f32540457c27b1"
+  },
+  {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/runnable-r5/COMMANDS.json",
+    "bytes": 743,
+    "sha256": "b0059f795e85221becda2fd937365eecd73b1b806b03675ac83969bcc958f6e2"
+  },
+  {
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/runnable-r5/ACTIVATION-BINDING.json",
+    "bytes": 1335,
+    "sha256": "3d26ec70d8421c16596bc53011d2a1391cecd32e7374790e5ac7538014859119"
+  }
+]

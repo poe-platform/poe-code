@@ -1,0 +1,45 @@
+import assert from 'node:assert/strict';
+import { chmodSync, cpSync, existsSync, readFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { join } from 'node:path';
+import { root, owned, work, gatedSnapshot, json, hashes, drift, sha, save, execute } from './tools.mjs';
+
+const snapshot = gatedSnapshot();
+const frozen = json(join(work, 'snapshot-manifest.json'));
+assert.deepEqual(drift(frozen.manifest, hashes(snapshot, Object.keys(frozen.manifest))), []);
+const prior = join(work, 'prior-source');
+assert.ok(!existsSync(prior), 'One bounded reversal, no silent retries');
+cpSync(snapshot, prior, { recursive: true, filter: path => path !== join(snapshot, 'dist') });
+const authorCommit = '6ef0d8ddd76b430737cc9158c9c3c509fe197097';
+const restored = [];
+for (const path of ['src/commands/table-text/comm.ts', 'src/commands/table-text/internal.ts']) {
+  const current = spawnSync('git', ['show', `${authorCommit}:${path}`], { cwd: root, encoding: 'utf8' });
+  const old = spawnSync('git', ['show', `${authorCommit}^:${path}`], { cwd: root, encoding: 'utf8' });
+  assert.equal(current.status, 0);
+  assert.equal(old.status, 0);
+  assert.equal(sha(current.stdout), frozen.manifest[path]);
+  chmodSync(join(prior, path), 0o644);
+  save(join(prior, path), old.stdout);
+  chmodSync(join(prior, path), 0o444);
+  restored.push({ path, fixedSha256: frozen.manifest[path], priorSha256: sha(old.stdout) });
+}
+const negativeHashes = hashes(prior, Object.keys(frozen.manifest));
+const differences = drift(frozen.manifest, negativeHashes);
+assert.deepEqual(differences.map(row => row.path), restored.map(row => row.path));
+const types = execute('prior-source-noemit', ['node_modules/typescript/bin/tsc', '--noEmit', '-p', 'tsconfig.build.json'], prior);
+assert.equal(types.exitCode, 0, 'Compiler errors cannot establish a semantic negative control');
+const result = execute('prior-source-shared-negative', ['--unhandled-rejections=strict', '--import', 'tsx', join(owned, 'selected-gnu.ts'), 'shared-negative'], prior);
+const stdout = json(join(work, 'prior-source-shared-negative.stdout'));
+assert.equal(result.exitCode, 1);
+assert.equal(result.signal, null);
+assert.equal(result.error, null);
+assert.equal(result.loadError, false);
+assert.equal(stdout.total, 1);
+assert.equal(stdout.selectedPass, 0);
+assert.deepEqual(stdout.observations[0].actual, { exitCode: 0, stdoutHex: '0909610a0909620a630a', stderrHex: '' });
+assert.match(readFileSync(join(work, 'prior-source-shared-negative.stderr'), 'utf8'), /ERR_ASSERTION/);
+const final = hashes(prior, Object.keys(frozen.manifest));
+assert.deepEqual(drift(negativeHashes, final), []);
+assert.deepEqual(drift(frozen.manifest, hashes(snapshot, Object.keys(frozen.manifest))), []);
+save(join(work, 'prior-source-control.json'), { authorCommit, finalSnapshot: snapshot, prior, finalSourceDigest: frozen.sourceDigest, restored, differences, allOtherInputsUnchanged: true, types, result, observed: stdout, semanticAssertion: true, inputDrift: drift(negativeHashes, final), finalSnapshotDrift: [], limitation: 'Only the original shared-stdin input is replayed on a separate two-file prior-source clone; not final-product acceptance or a rerun of the four historical mutants.' });
+console.log('Actual shared-stdin regression reproduced on type-valid prior source; fixed snapshot unchanged.');

@@ -1,0 +1,16 @@
+PRE-FREEZE STATIC AUTHENTICATION MISTAKE — not a control execution
+
+The first inline static-check script exited1 before writing STATIC-CHECKS.json.
+After node --check and selected Git-source hash comparisons, its diagnosis
+manifest assertion incorrectly compared an entry object to a SHA256 string.
+Actual entry:
+  { sha256: e44cf29f08c9d5fef8fbc377e929a1c4e6bc8039a4a419f1f28656ab6db94e6b,
+    bytes: 11851 }
+Expected:
+  e44cf29f08c9d5fef8fbc377e929a1c4e6bc8039a4a419f1f28656ab6db94e6b
+Observed error: AssertionError [ERR_ASSERTION], operator strictEqual, [eval1]:17:8.
+Node.js v22.22.2. No candidate/core/control imports or runtime execution occurred.
+The same mistaken schema assumption in authenticate.mjs was corrected BEFORE
+freeze to compare files["DIAGNOSIS.data"].sha256. No threshold/control/semantic
+policy changed. This note preserves the failed selfcheck rather than relabeling
+it as success; subsequent static results are separately recorded.

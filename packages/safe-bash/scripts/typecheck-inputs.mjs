@@ -1,0 +1,164 @@
+import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import * as fs from "node:fs";
+import { join, resolve } from "node:path";
+import { consumerGroups, currentConsumerPaths, currentSourceConsumerGroups, negativeGroups } from "../tests/plugins/qualified-current-release/consumers.mjs";
+import { verifyInventory } from "../tests/plugins/qualified-current-release/inventory-check.mjs";
+import { verifyStagedTypeInputs } from "./typecheck-staged-inputs.mjs";
+import { integrationExclusions, loadBoundaries, readTypecheckInventories } from "./integration-inputs.mjs";
+import { assertAdmittedInputPath, isHeldInputPath, readIntegrationTypeInputs, readRegularInput } from "./typecheck-integration-inputs.mjs";
+import { assertSafeOutputDirectory } from "../../../scripts/guard-package-dist.mjs";
+
+const sha256 = bytes => createHash("sha256").update(bytes).digest("hex");
+
+export function parseTypecheckArguments(args) {
+  const maximumCompilerTimeout = 3600000;
+  const options = { build: false, consumersOnly: false, sourceDependencies: false, compilerTimeout: maximumCompilerTimeout, reportPath: undefined };
+  const seen = new Set();
+  for (let index = 0; index < args.length; index++) {
+    const argument = args[index];
+    assert.ok(!seen.has(argument), `Duplicate typecheck option: ${argument}`);
+    seen.add(argument);
+    if (argument === "--build") options.build = true;
+    else if (argument === "--consumers") options.consumersOnly = true;
+    else if (argument === "--source-dependencies") options.sourceDependencies = true;
+    else {
+      assert.ok(["--report", "--compiler-timeout"].includes(argument), `Unknown typecheck option: ${argument}`);
+      const value = args[++index];
+      assert.ok(value && !value.startsWith("--"), `Missing value for ${argument}`);
+      if (argument === "--report") options.reportPath = resolve(value);
+      else {
+        const timeout = Number(value);
+        assert.ok(Number.isSafeInteger(timeout) && String(timeout) === value && timeout > 0 && timeout <= maximumCompilerTimeout,
+          `Compiler timeout must be an integer from 1 to ${maximumCompilerTimeout} milliseconds`);
+        options.compilerTimeout = timeout;
+      }
+    }
+  }
+  return options;
+}
+
+export function mergeStandaloneInventory(inventory, sealedEntries) {
+  const existing = new Map(inventory.entries.map(entry => [entry.path, entry]));
+  assert.equal(existing.size, inventory.entries.length, "duplicate standalone inventory entry");
+  assert.equal(new Set(sealedEntries.map(entry => entry.path)).size, sealedEntries.length, "duplicate sealed standalone entry");
+  const additions = [];
+  for (const entry of sealedEntries) {
+    assert.equal(entry.classification, "frozen-evidence", "standalone owner must bind frozen evidence");
+    const previous = existing.get(entry.path);
+    if (previous) {
+      assert.equal(previous.classification, entry.classification, `standalone classification conflict: ${entry.path}`);
+      assert.equal(previous.sha256, entry.sha256, `standalone binding conflict: ${entry.path}`);
+    } else additions.push(entry);
+  }
+  return {
+    ...inventory,
+    entries: [...inventory.entries, ...additions],
+    counts: { ...inventory.counts, "frozen-evidence": inventory.counts["frozen-evidence"] + additions.length },
+  };
+}
+
+export function includeCurrentSourceDeclarations(inventory) {
+  const declarations = ["bz2", "xz", "zstd"].map(codec => ({
+    path: `src/commands/bytes/compression/native/generated/${codec}.d.mts`,
+    classification: "declaration",
+    sha256: "c4539600528ca49e815605ce0ec33ab3382ac4123d5afa7d31a262f92e18934a",
+  }));
+  declarations.push(
+    { path: "scripts/typecheck-consumers.d.mts", classification: "declaration", sha256: "f8c970dbe603d56704b5b7f43c43a05eb87d4a5cfda05ddcf082ff58b014d001" },
+    { path: "tests/plugins/qualified-current-release/peer.d.mts", classification: "declaration", sha256: "0326915623a0cad2cf571f400598d95666176db937a13c4000e32009a0726636" },
+  );
+  return {
+    ...inventory,
+    entries: [...inventory.entries, ...declarations],
+    counts: { ...inventory.counts, declaration: (inventory.counts.declaration ?? 0) + declarations.length },
+  };
+}
+
+export function verifyAdmittedStandaloneInventory(inventory, tracked, currentPaths, negativePaths, read, boundaries) {
+  const paths = inventory.entries.map(entry => entry.path);
+  assert.deepEqual(tracked.filter(path => path.endsWith(".mts")).sort(), [...paths].sort(), "standalone inventory changed; classify new paths explicitly before qualification");
+  assert.equal(new Set(paths).size, paths.length);
+  const counts = {}, admittedCounts = {}, entries = [], heldEvidence = [];
+  for (const entry of inventory.entries) {
+    counts[entry.classification] = (counts[entry.classification] ?? 0) + 1;
+    if (isHeldInputPath(entry.path, boundaries)) {
+      assert.ok(["frozen-evidence", "frozen-oracle"].includes(entry.classification), `current/declaration/negative input cannot be withheld: ${entry.path}`);
+      heldEvidence.push({ path: entry.path, classification: entry.classification, evidence: (entry.freeze?.evidence ?? []).map(evidence => evidence.path), contentVerified: false });
+    } else {
+      for (const evidence of entry.freeze?.evidence ?? []) assertAdmittedInputPath(evidence.path, boundaries);
+      entries.push(entry);
+      admittedCounts[entry.classification] = (admittedCounts[entry.classification] ?? 0) + 1;
+    }
+  }
+  assert.deepEqual(counts, inventory.counts, "inventory totals disagree with entries");
+  const withheld = new Set(heldEvidence.map(entry => entry.path));
+  const checked = verifyInventory({ ...inventory, entries, counts: admittedCounts }, tracked.filter(path => !withheld.has(path)), currentPaths, negativePaths, read);
+  return { checked, heldEvidence, qualification: "Held historical entries remain inventoried but their contents and seals are not read or verified; all current and negative routes remain required" };
+}
+
+export function verifyTypecheckInputs(root, fileSystem = fs) {
+  const boundaries = loadBoundaries(root, fileSystem);
+  const { captured: classification, inventory: originalInventory } = readTypecheckInventories(root, boundaries, fileSystem);
+  const read = path => readRegularInput(root, path, 16 * 1024 * 1024, fileSystem, boundaries);
+  const config = JSON.parse(read("tsconfig.json"));
+  const staged = verifyStagedTypeInputs(root, consumerGroups, fileSystem);
+  const integrationTypes = readIntegrationTypeInputs(root, boundaries, fileSystem);
+  assert.deepEqual(config.include, ["src/**/*.ts", "tests/**/*.ts"], "current source/test coverage must remain enabled");
+  assert.deepEqual(config.exclude, [...classification.existingExclusions, ...classification.entries.map(entry => entry.path), ...staged.entries.map(entry => entry.path), ...integrationExclusions(boundaries), ...integrationTypes.capturedPaths], "type-data exclusions must be the exact authenticated entries and integration boundaries, not a directory or extension wildcard");
+  for (const evidence of classification.evidence) assert.equal(sha256(read(evidence.path)), evidence.sha256, `frozen capture evidence changed: ${evidence.path}`);
+  const provenance = JSON.parse(read(classification.provenance));
+  for (const entry of classification.entries) {
+    const bytes = read(entry.path);
+    assert.equal(bytes.length, entry.bytes, `captured data length changed: ${entry.path}`);
+    assert.equal(sha256(bytes), entry.sha256, `captured data changed: ${entry.path}`);
+    assert.equal(provenance.inputs.find(input => input.path === entry.originalPath)?.sha256, entry.sha256, `captured original identity missing: ${entry.path}`);
+    read(entry.originalPath);
+  }
+  const tracked = execFileSync("git", ["ls-files", "-z"], { cwd: root, maxBuffer: 32 * 1024 * 1024 }).toString().split("\0").filter(Boolean);
+  for (const entry of staged.entries) assert.ok(tracked.includes(entry.path) && tracked.includes(entry.owner.path), `staged input and owning manifest must be tracked: ${entry.path}`);
+  const inventory = includeCurrentSourceDeclarations(mergeStandaloneInventory(originalInventory, integrationTypes.standaloneEntries));
+  const classified = new Set(inventory.entries.map(entry => entry.path));
+  const unknown = tracked.filter(path => path.endsWith(".mts") && !classified.has(path));
+  assert.equal(unknown.length, 0, `Unclassified current .mts inputs require an explicit existing-inventory route: ${unknown.join(", ")}`);
+  const standaloneAdmission = verifyAdmittedStandaloneInventory(inventory, tracked, currentConsumerPaths(), negativeGroups.map(group => group.path), read, boundaries);
+  for (const path of currentConsumerPaths()) read(path);
+  for (const group of currentSourceConsumerGroups) for (const path of group.files) {
+    assert.ok(tracked.includes(path), `current source consumer is not tracked: ${path}`);
+    read(path);
+    assert.ok(!config.exclude.includes(path), `current source consumer excluded: ${path}`);
+  }
+  return { capturedData: classification.entries.length, stagedInputs: staged.entries.map(({ path, role, currentGroup }) => ({ path, role, currentGroup })), currentSourceConsumerGroups, standaloneInventory: inventory.counts, standaloneAdmission, integrationTypeEvidence: { capturedPaths: integrationTypes.capturedPaths, standaloneEntries: integrationTypes.standaloneEntries, cohorts: integrationTypes.cohorts } };
+}
+
+export function requireBuiltPackage(root, fileSystem = fs) {
+  const pkg = JSON.parse(readRegularInput(root, "package.json", 300000, fileSystem));
+  const targets = entry => {
+    if (entry === null) return [];
+    if (typeof entry === "string") return entry.includes("*") ? [] : [entry];
+    assert.ok(entry && typeof entry === "object" && !Array.isArray(entry), "Invalid export condition");
+    return Object.values(entry).flatMap(targets);
+  };
+  const missing = [...new Set(targets(pkg.exports))].filter(path => !fileSystem.existsSync(join(root, path)));
+  if (missing.length) {
+    const error = new Error(`Built-package prerequisite missing (${missing.length} files). Run npm run typecheck:all to build once and check source plus current consumers, or npm run build before npm run typecheck. No consumer compilation was attempted.`);
+    error.code = "TYPECHECK_BUILD_REQUIRED";
+    throw error;
+  }
+}
+
+export async function buildForTypecheck(root, compile, fileSystem) {
+  await assertSafeOutputDirectory(root, join(root, "dist"), fileSystem);
+  if (compile("build", [join(root, "scripts/build.mjs")]).status !== 0) throw new Error("Production build failed; stale declarations will not be used for consumer checks.");
+  if (!fileSystem) {
+    const repositoryRoot = resolve(root, "../..");
+    const { buildPackage } = await import("./build.mjs");
+    const { buildOptionalPackage } = await import("./build-optional.mjs");
+    const { buildBrowserShellOutputs } = await import("../../../scripts/bundle-safe-bash.mjs");
+    if ((await buildOptionalPackage({ rootDir: repositoryRoot, compile: buildPackage })).status !== 0) {
+      throw new Error("Optional package build failed; stale declarations will not be used for consumer checks.");
+    }
+    await buildBrowserShellOutputs(repositoryRoot);
+  }
+}

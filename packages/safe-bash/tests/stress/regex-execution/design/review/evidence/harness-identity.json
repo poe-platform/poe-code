@@ -1,0 +1,14 @@
+{
+  "utc": "2026-08-27T05:02:56.829Z",
+  "independentHarnessFreeze": "ad4c5adda0ea430438a1d3235520760270ad882e",
+  "liveHeadAtIdentity": "8fe9473846237260e1519bc621fc36d2fcf37c40",
+  "buildMetadataCorrection": "build.json reviewFreeze records the live HEAD at preparation (concurrent commits); independentHarnessFreeze here is the actual pre-probe harness freeze",
+  "scripts": {
+    ".gitignore": "28653d41c2154b67a86db62dd75bd39871dce96cf4f3081d5a5533426449b7f6",
+    "PLAN.md": "8d7c896adcbd78c7738fb756b17aca4777e458d9fac567b0234a348a666e4d80",
+    "fixtures.mjs": "2eac3acd3b135724f4586f2a838034c08cc800cab5fdbe5e0da2748c50d638cd",
+    "prepare.mjs": "5678a528fe7d937ba314ccba00fb036634f34d95f502e365bad52fbdc9248e32",
+    "child.mjs": "ebe2280ecb023f16a009ca1b141e337f7e9ace1e7912adfdfe81565ee9231393",
+    "run.mjs": "f8402a99e42b814fd3bf6adbb7d3854fc03ebcd39099d880aa62b56f2f65bfad"
+  }
+}

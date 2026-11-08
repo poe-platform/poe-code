@@ -1,0 +1,70 @@
+TAP version 13
+# Subtest: cancellation releases stalled stdin
+ok 1 - cancellation releases stalled stdin
+  ---
+  duration_ms: 37.166291
+  type: 'test'
+  ...
+# Subtest: cancellation releases stalled stdout
+ok 2 - cancellation releases stalled stdout
+  ---
+  duration_ms: 36.029084
+  type: 'test'
+  ...
+# Subtest: cancellation releases stalled stderr
+ok 3 - cancellation releases stalled stderr
+  ---
+  duration_ms: 22.519625
+  type: 'test'
+  ...
+# Subtest: cancellation releases stalled readStream
+ok 4 - cancellation releases stalled readStream
+  ---
+  duration_ms: 36.028333
+  type: 'test'
+  ...
+# Subtest: quiet closes a matching source before a stalled second read
+ok 5 - quiet closes a matching source before a stalled second read
+  ---
+  duration_ms: 14.5635
+  type: 'test'
+  ...
+# Subtest: EPIPE stops traversal without later reads, writes or diagnostics
+ok 6 - EPIPE stops traversal without later reads, writes or diagnostics
+  ---
+  duration_ms: 13.013834
+  type: 'test'
+  ...
+# Subtest: EPIPE cleanup never waits for an uncooperative source return
+ok 7 - EPIPE cleanup never waits for an uncooperative source return
+  ---
+  duration_ms: 11.948125
+  type: 'test'
+  ...
+# Subtest: cancellation wins a racing stdout EPIPE
+ok 8 - cancellation wins a racing stdout EPIPE
+  ---
+  duration_ms: 12.259584
+  type: 'test'
+  ...
+# Subtest: metadata-selected stdin yields during endless empty chunks
+ok 9 - metadata-selected stdin yields during endless empty chunks
+  ---
+  duration_ms: 30.872417
+  type: 'test'
+  ...
+# Subtest: native closed stdout exits successfully without diagnostics in three repetitions
+ok 10 - native closed stdout exits successfully without diagnostics in three repetitions
+  ---
+  duration_ms: 38.352625
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 413.309208

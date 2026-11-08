@@ -1,0 +1,12 @@
+{
+  "freezeCommit": "07341c4751d776ee258bcea6086bb216216dd7c2",
+  "candidate": "541f275843c2d06ab78500f559898e766973031a",
+  "count": 34,
+  "sourceManifestSha256": "dd7076a50d5092ad7ca67c6ccda3ec6f0f7428a534494b341febdc5b95d4c3b1",
+  "twoSiteHashes": {
+    "src/commands/network/body.ts": "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf",
+    "src/commands/structured/jq.ts": "feca27d38a096931faabe5a5449ecc65c39c8b0abbcf69d3ea73a31f729fdbac"
+  },
+  "authorReleased": true,
+  "note": "Expectations frozen before edits. Other worker live execution.ts drift excluded; baseline builds committed archive. Held-out details intentionally omitted."
+}

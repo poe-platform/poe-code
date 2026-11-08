@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "authorized": true,
+  "profileSha256": "bacc21fb126bb6e0b5441bee560cb0bad1f7ffda01d129b996c1cdd3e6312e05",
+  "sourceReview": "f17d8dec11190ef40ecac6c175b208a2e29c7fbf",
+  "producerReview": "5c2ef0795ca402344b5b0d28869b64db46d73b86",
+  "pilotReview": "fc188075658ef573da605bf11055460ca0b85112",
+  "issuedAt": "2026-08-29T17:10:00.000Z",
+  "latestStart": "2026-08-29T17:25:00.000Z",
+  "expiresAt": "2026-08-29T17:45:00.000Z",
+  "outerStarted": 267256708,
+  "sampledNpmWork": true,
+  "knownOS": 40,
+  "peak": 4,
+  "workers": 24,
+  "milliseconds": 1200000,
+  "publicationMilliseconds": 180000,
+  "captureBytes": 67108864,
+  "workingBytes": 268435456
+}

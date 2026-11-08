@@ -1,0 +1,134 @@
+{
+  "text": "think😀think😀done",
+  "requests": [
+    [
+      {
+        "role": "system",
+        "content": "system"
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "hello"
+          },
+          {
+            "type": "image_url",
+            "image_url": {
+              "url": "data:image/png;base64,AQID"
+            }
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "role": "system",
+        "content": "system"
+      },
+      {
+        "role": "user",
+        "content": "hello"
+      },
+      {
+        "role": "assistant",
+        "content": "think😀"
+      },
+      {
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "type": "function",
+            "id": "1",
+            "function": {
+              "name": "lookup",
+              "arguments": "{\"round\": 1}"
+            }
+          }
+        ]
+      },
+      {
+        "role": "tool",
+        "tool_call_id": "1",
+        "content": "found 1"
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "image_url",
+            "image_url": {
+              "url": "data:image/png;base64,CQ=="
+            }
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "role": "system",
+        "content": "system"
+      },
+      {
+        "role": "user",
+        "content": "hello"
+      },
+      {
+        "role": "assistant",
+        "content": "think😀"
+      },
+      {
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "type": "function",
+            "id": "1",
+            "function": {
+              "name": "lookup",
+              "arguments": "{\"round\": 1}"
+            }
+          }
+        ]
+      },
+      {
+        "role": "tool",
+        "tool_call_id": "1",
+        "content": "found 1"
+      },
+      {
+        "role": "assistant",
+        "content": "think😀"
+      },
+      {
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "type": "function",
+            "id": "2",
+            "function": {
+              "name": "lookup",
+              "arguments": "{\"round\": 2}"
+            }
+          }
+        ]
+      },
+      {
+        "role": "tool",
+        "tool_call_id": "2",
+        "content": "found 2"
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "image_url",
+            "image_url": {
+              "url": "data:image/png;base64,CQ=="
+            }
+          }
+        ]
+      }
+    ]
+  ]
+}

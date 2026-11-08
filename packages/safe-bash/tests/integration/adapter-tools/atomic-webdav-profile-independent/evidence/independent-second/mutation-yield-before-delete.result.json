@@ -1,0 +1,28 @@
+{
+  "name": "mutation-yield-before-delete",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/observe.mjs",
+    "--test",
+    "--test-reporter=tap",
+    "out-configured/tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.js"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe/consumer",
+  "startedAt": "2026-08-27T09:14:51.289Z",
+  "finishedAt": "2026-08-27T09:14:51.507Z",
+  "status": 1,
+  "signal": null,
+  "counts": {
+    "tests": 27,
+    "pass": 26,
+    "fail": 1,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failedRows": [
+    "hidden: direct helper mutates actual backing synchronously, exactly one entry"
+  ]
+}

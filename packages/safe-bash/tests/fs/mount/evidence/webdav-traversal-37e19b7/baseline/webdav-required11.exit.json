@@ -1,0 +1,16 @@
+{
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-name-pattern=^(REQUIRED webdav (one-mount|separate-clients)|REQUIRED memory .* webdav|positive webdav one-mount)",
+    "tests/fs/mount/identity-compatibility-review/compatibility.test.ts"
+  ],
+  "cwd": "/private/tmp/safe-bash-webdav-traversal-g9KWA8/baseline/archive",
+  "start": "2026-08-27T00:11:43.754Z",
+  "end": "2026-08-27T00:11:44.044Z",
+  "status": 1,
+  "signal": null
+}

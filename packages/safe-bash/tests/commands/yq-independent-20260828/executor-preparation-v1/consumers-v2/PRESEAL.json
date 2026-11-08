@@ -1,0 +1,13 @@
+{
+  "schema": 2,
+  "phase": "BEFORE_RAW_REPRODUCTION_OR_V2_CORRECTION_VALIDATION",
+  "date": "2026-08-28",
+  "files": {
+    "PROTOCOL.md": "bb02349543b095a3e74ee091397deab6f7878fd7336ff986775ba027c09f6b38",
+    "SOURCE-AUTHORITY.json": "718253db9c04fdcd459283362d00d80766c9b5ad3264b931ac127cb9aaa5db5d",
+    "SOURCE-RECEIPT.json": "0b2a4bb3f6e7ff878f6c17f2237363811376edc1fbcdd5aa7499759705ecd170",
+    "CONTROLS.json": "2146780878299d22d2328a70820f242046099cdd098c5d2012dd53bdac06b52c",
+    "reproduce-v1.mjs": "eb364fb853e8b980862b1eb5cb5171653ab39fedd6f58d4df4755944accd6750"
+  },
+  "productExecution": 0
+}

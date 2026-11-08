@@ -1,0 +1,5 @@
+{"at":"2026-08-29T14:02:36.883Z","event":"owner-start","pid":22863,"mode":"inspect","capture":"/tmp/pipestatus-typed-review-inspect-qB5OEJ"}
+{"at":"2026-08-29T14:02:36.891Z","event":"enrolled","label":"handoff","pid":22866,"exe":"/usr/bin/git","args":["-c","gc.auto=0","-c","maintenance.auto=false","-c","core.hooksPath=/dev/null","-c","commit.gpgsign=false","-c","core.abbrev=40","show","e10e371dc9c70583681add9c1747c85a710b1f59:tests/compatibility/bash-pipestatus-typed-native-reference-20260829/HANDOFF.md"]}
+{"at":"2026-08-29T14:02:36.934Z","event":"exit","label":"handoff","pid":22866,"code":0,"signal":null}
+{"at":"2026-08-29T14:02:36.941Z","event":"close","label":"handoff","pid":22866,"code":0,"signal":null,"exit":true,"error":false,"expired":false}
+{"at":"2026-08-29T14:02:36.947Z","event":"owner-complete","pid":22863,"mode":"inspect","code":0}

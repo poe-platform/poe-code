@@ -1,0 +1,14 @@
+{
+  "removed": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/search-stress/direct-stdin-close-review/.work/baseline-01",
+      "absent": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/search-stress/direct-stdin-close-review/.work/baseline-02",
+      "absent": true
+    }
+  ],
+  "scope": "Only two exact generated owned scratch trees, including npm cache and moved consumers. No OS-temp work beyond owned markers. Retained committed tarballs/manifests/outputs.",
+  "closedAt": "2026-08-27T13:38:20.211Z"
+}

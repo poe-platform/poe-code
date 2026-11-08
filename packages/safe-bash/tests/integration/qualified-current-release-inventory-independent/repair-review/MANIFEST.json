@@ -1,0 +1,59 @@
+{
+  "sourceCommit": "c3fbda6279028fd2bde9f6d967970870ff7546aa",
+  "files": [
+    {
+      "path": "tests/integration/qualified-current-release-inventory-independent/repair-review/evidence/current-consumers.json",
+      "sha256": "6987def386d7bb96be2ba3cfb2758e6dadbac127839eae6a1899cc50f65eb260"
+    },
+    {
+      "path": "tests/integration/qualified-current-release-inventory-independent/repair-review/evidence/canonical-regressions.json",
+      "sha256": "c59b0c18fac0ba2db21833e7fec5e2086cc0a3b962f003dbd5ba04ed61c35c1b",
+      "sourceArtifactSha256": "c3911c4ff539205f74d2ec89e373a2bbfcf2087b6a7d6472e5aeb413e111b2ee",
+      "copyNote": "Repository patch appends one final LF; source JSON data is identical. Initial manifest check detected this exact formatting delta."
+    },
+    {
+      "path": "tests/integration/qualified-current-release-inventory-independent/repair-review/evidence/classification.json",
+      "sha256": "422de79d977658c5284ab69a89b7eb4fed132b70ab6972117ebda3cda70f2698"
+    },
+    {
+      "path": "tests/integration/qualified-current-release-inventory-independent/repair-review/history/first-controls.json",
+      "sha256": "f8ee361d75637c33d065828cf423d08a6b2c4f0d74a7f4509efeb19a800eb686"
+    },
+    {
+      "path": "tests/integration/qualified-current-release-inventory-independent/repair-review/history/first-verify.mjs.data",
+      "sha256": "dabcb6cb1de5d462e2b9f0724740399bdf13cc59806b777a2c22259ab91c3872"
+    },
+    {
+      "path": "tests/integration/qualified-current-release-inventory-independent/repair-review/evidence/controls/atomic-missing-identity.json",
+      "sha256": "cbdaf6889e62e55f078bb2e6053dd7606f9b3ad5162f579d1ae288732290f3b4"
+    },
+    {
+      "path": "tests/integration/qualified-current-release-inventory-independent/repair-review/evidence/controls/declared-original-sentinel.json",
+      "sha256": "a7c8cdfcd0050e4cf1f474f1f3927b7113b498cc5cd5c2fa4781428e22902acc"
+    },
+    {
+      "path": "tests/integration/qualified-current-release-inventory-independent/repair-review/evidence/controls/missing-result.json",
+      "sha256": "951582a43d73316719a4753d45bd644316fe844d5ed96740d39dd46fba6df9a6"
+    },
+    {
+      "path": "tests/integration/qualified-current-release-inventory-independent/repair-review/evidence/controls/mutant-remove-postcheck.json",
+      "sha256": "ebbf989c690b9f0133f6b0698f3e8eb422b308252bab6f37a6e46b0bca36ad11"
+    },
+    {
+      "path": "tests/integration/qualified-current-release-inventory-independent/repair-review/evidence/controls/mutant-remove-precheck.json",
+      "sha256": "37b8bbc410bc4553f5b00343377806d46b2cf4065f8dda60b48c0a9284ed9faf"
+    },
+    {
+      "path": "tests/integration/qualified-current-release-inventory-independent/repair-review/evidence/controls/omitted-without-count.json",
+      "sha256": "5082fd183356c11b0d50ba531e695fc9dad1ed9a98da0e2843d9c31b80df44f0"
+    },
+    {
+      "path": "tests/integration/qualified-current-release-inventory-independent/repair-review/evidence/controls/report.json",
+      "sha256": "163c1d37dc04f513ab7a7729b09740f101551d473251affc93d16f5b0958d735"
+    },
+    {
+      "path": "tests/integration/qualified-current-release-inventory-independent/repair-review/verify.mjs",
+      "sha256": "abc06f9cece689d0560cfb1c8e0868cc30d0f05ebf32f6c422afe2b0293c0f4a"
+    }
+  ]
+}

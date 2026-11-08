@@ -1,0 +1,11 @@
+{
+  "primaryPresent": false,
+  "cleanupPresent": false,
+  "closed": true,
+  "signals": [],
+  "bytes": 346,
+  "pid": 80192,
+  "exitCode": 1,
+  "ownedGroupAbsent": true,
+  "elapsedSeconds": 0.7900221669988241
+}

@@ -1,0 +1,21 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
++ actual - expected
+
++ '/private/tmp/safe-bash-coherent-stage-a-20260829-r1/tools/npm/node_modules/@npmcli/arborist/bin/index.js'
+- '/tmp/safe-bash-coherent-stage-a-20260829-r1/tools/npm/node_modules/@npmcli/arborist/bin/index.js'
+
+    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-a/publish-stop.mjs:8:271
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: '/private/tmp/safe-bash-coherent-stage-a-20260829-r1/tools/npm/node_modules/@npmcli/arborist/bin/index.js',
+  expected: '/tmp/safe-bash-coherent-stage-a-20260829-r1/tools/npm/node_modules/@npmcli/arborist/bin/index.js',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.2

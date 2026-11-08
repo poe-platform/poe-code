@@ -1,0 +1,7 @@
+import { MemoryFileSystem as CurrentMemoryFileSystem } from "../../src/fs/memory/index.js";
+
+export declare class MemoryFileSystem extends CurrentMemoryFileSystem {
+  lstat(...args: Parameters<CurrentMemoryFileSystem["lstat"]>): Promise<
+    Awaited<ReturnType<CurrentMemoryFileSystem["lstat"]>> & { type: "file" | "directory" | "symlink" }
+  >;
+}

@@ -1,0 +1,13 @@
+{
+  "name": "consumer-run",
+  "argv": [
+    "/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/consumer.mjs"
+  ],
+  "cwd": "/private/tmp/safe-bash-tree-final-436bda3-k1mKIO",
+  "pid": 60082,
+  "completion": {
+    "exitCode": 0,
+    "signal": null
+  },
+  "elapsedMs": 58
+}

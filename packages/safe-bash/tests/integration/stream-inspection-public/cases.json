@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "scope": "Independent bounded public/default integration, not native parity",
+  "cases": [
+    {"id":"tac-default-binary","script":"tac","input":[255,0,65,10,66,128,10],"expected":[66,128,10,255,0,65,10]},
+    {"id":"expand-default-binary","script":"expand","input":[255,9,0,10],"expected":[255,32,32,32,32,32,32,32,0,10]},
+    {"id":"fold-byte-boundary","script":"fold -b -w 3","input":[255,0,65,66,128,10],"expected":[255,0,65,10,66,128,10]},
+    {"id":"strings-default-binary","script":"strings","input":[255,65,66,67,68,0,128,87,88,89,90,10],"expected":[65,66,67,68,10,87,88,89,90,10]},
+    {"id":"all-four-binary-pipeline","script":"tac | expand -t 4 | fold -b -w 4 | strings -n 3","input":[255,65,66,67,9,90,10,0,87,88,89,90,9,81,10],"expected":[87,88,89,10,90,32,32,32,10,65,66,67,10,32,32,32,32,10]},
+    {"id":"binary-producer-consumer","script":"producer | tac | tac | expand -t 4 | fold -b -w 8 | consumer","input":[255,0,65,9,66,10],"expected":[255,0,65,32,66,10]},
+    {"id":"vfs-redirection-readback","script":"tac /input.bin | tac > /output.bin; expand -t 4 /output.bin | fold -b -w 4 | strings -n 3 > /result.txt; cat /result.txt","input":[0,65,66,67,9,90,10],"expected":[65,66,67,10,32,32,32,32,10]},
+    {"id":"long-reused-chunks","script":"tac | tac | fold -b -w 256","repeat":513,"unit":[255,0,65,66],"width":256},
+    {"id":"empty-default","script":"tac | expand | fold | strings","input":[],"expected":[]}
+  ],
+  "additionalCategories": [
+    "packed root/subpath identity and dependency/export inventory",
+    "measured unique default registry count 60 and optional curl/safejs absent",
+    "root/subpath plugin collision preflight and explicit replacement",
+    "strict NodeNext public types and four wrong-type negative controls",
+    "public BytePipe backpressure, buffer ownership and blocked-write cancellation",
+    "actual Shell delayed-sink backpressure and cancellation",
+    "shared shell output and invocation command limits with positive controls",
+    "family input/output limits with exact-boundary positive controls",
+    "explicit temporary-root RealFileSystem readback",
+    "offline network-denial and resolver source-fallback controls"
+  ],
+  "priorEvidenceNotReused": "original independent 84/85 and manual dash conflict; separate native semantic 85/85; strict 68/85 with 17 diagnostic differences; SGID6/env unchanged"
+}

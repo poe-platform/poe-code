@@ -1,0 +1,148 @@
+import { PublicDiagnostic, publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
+import { FsError, withInputByteBudget, type CommandContext, type CommandDefinition } from "safe-bash-contracts";
+import { codeOf, diagnostic, output, pathOf } from "safe-bash-compression-engine/internal";
+import { UsageError } from "safe-bash-contracts/diagnostics";
+import { runOperand } from "safe-bash-compression-engine/operand";
+import { planOperands, verifyOperandDestinations } from "safe-bash-compression-engine/files";
+import { parseOptions, xzProfile, lzmaProfile } from "./options.js";
+import { DecodedBudget, type CompressionCommandOptions } from "safe-bash-compression-engine/stream";
+import { inspectXz, listingRatio, listingChecks, humanListing, verboseListing, listingSummary, humanListingSummary, type XzListing } from "./xz-list.js";
+
+import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
+
+export interface XzLimits {
+  readonly maxDecodedBytes: number;
+}
+
+export interface XzCommandsOptions extends CompressionCommandOptions {
+  readonly limits?: Partial<XzLimits>;
+  readonly replace?: boolean;
+}
+
+function listingError(context: CommandContext, name: string, error: unknown): PublicDiagnostic {
+  let reason = publicDiagnosticMessage(error, context.onInternalError);
+  if (error instanceof FsError) {
+    const suffix = `${error.syscall ? `, ${error.syscall}` : ""}${error.path === undefined ? "" : ` '${error.path}'`}${error.dest === undefined ? "" : ` -> '${error.dest}'`}`;
+    reason = reason.slice(error.code.length + 2, reason.length - suffix.length);
+    reason = reason.charAt(0).toUpperCase() + reason.slice(1);
+  }
+  return new PublicDiagnostic(`${name}: ${reason}`);
+}
+
+export function createXzCommand(config: XzCommandsOptions = {}, name = "xz"): CommandDefinition {
+  const maxDecodedBytes = config.limits?.maxDecodedBytes ?? config.maxDecodedBytes ?? Infinity;
+  if (maxDecodedBytes !== undefined && maxDecodedBytes !== Infinity && (!Number.isSafeInteger(maxDecodedBytes) || maxDecodedBytes < 0)) {
+    throw new RangeError("maxDecodedBytes must be a nonnegative safe integer or Infinity");
+  }
+  return { name, execute: withInputByteBudget(async (context) => {
+    context.signal.throwIfAborted();
+    try {
+      const options = parseOptions(name, context.args);
+      options.onXzAdjust = async dictionary => {
+        if (!options.quiet) await diagnostic(context, new PublicDiagnostic(`Adjusted LZMA${options.xzFormat === "lzma" ? "1" : "2"} dictionary size to ${dictionary / 1024 ** 2} MiB to not exceed the memory usage limit`));
+      };
+      if (options.help) {
+        await output(context, `Usage: ${name} [OPTION]... [FILE]...\n-c, --stdout, --to-stdout\n-d, --decompress, --uncompress\n-k, --keep\n-f, --force\n-t, --test\n-1..-9, --fast, --best\nDefault compression level: ${options.level}.\n-h, --help\nNo FILE or FILE '-' uses stdin; file output uses private VFS staging.\n`);
+        return { exitCode: 0 };
+      }
+      let plans;
+      let planningFailed = false;
+      const listingNames: string[] = [];
+      try {
+        if (options.xzList || options.operands.length > 1) {
+          plans = [];
+          for (const name of options.operands) {
+            try {
+              const source = options.xzList && name && name !== "-"
+                ? await context.fs.realpath(pathOf(context, name), { signal: context.signal }) : name;
+              plans.push(...await planOperands(context, { ...options, operands: [source] }));
+              listingNames.push(name);
+            } catch (error) {
+              context.signal.throwIfAborted();
+              if (codeOf(error) === "EROFS") throw error;
+              planningFailed = true;
+              if (options.quiet < 2) await diagnostic(context, options.xzList ? listingError(context, name, error) : error);
+            }
+          }
+          if (!options.xzList && plans.length > 1) await verifyOperandDestinations(context, plans);
+        } else plans = await planOperands(context, options);
+      }
+      catch (error) {
+        context.signal.throwIfAborted();
+        if (options.quiet < 2) throw error;
+        return { exitCode: 1 };
+      }
+      const decodedBudget = new DecodedBudget(maxDecodedBytes);
+      const totals: XzListing = { streams: 0, blocks: 0, compressed: 0, uncompressed: 0, padding: 0, checks: new Set() };
+      const verbosity = options.xzVerbose ?? 0;
+      if (verbosity > 1) totals.details = { streams: [], memory: 0, allSizes: true, minVersion: 50000002 };
+      let listed = 0;
+      let exitCode = planningFailed ? 1 : 0;
+      for (const plan of plans) {
+        try {
+          if (options.xzList) {
+            const value = await inspectXz(context, plan, options);
+            const name = listingNames[plans.indexOf(plan)] ?? plan.source;
+            if (!listed && !options.xzRobot && !verbosity) await output(context, "Strms  Blocks   Compressed Uncompressed  Ratio  Check   Filename\n");
+            if (options.xzRobot) await output(context, `name\t${name}\nfile\t${value.streams}\t${value.blocks}\t${value.compressed}\t${value.uncompressed}\t${listingRatio(value)}\t${listingChecks(value)}\t${value.padding}\n`);
+            else await output(context, verbosity
+              ? `${listed ? "\n" : ""}${name} (${plans.indexOf(plan) + 1}/${options.operands.length})\n${humanListingSummary(value)}`
+              : humanListing(value, name));
+            if (verbosity) await output(context, verboseListing(value, options.xzRobot ?? false, verbosity));
+            if (totals.details && value.details) {
+              totals.details.memory = Math.max(totals.details.memory, value.details.memory);
+              totals.details.allSizes &&= value.details.allSizes;
+              totals.details.minVersion = Math.max(totals.details.minVersion, value.details.minVersion);
+            }
+            for (const key of ["streams", "blocks", "compressed", "uncompressed", "padding"] as const) totals[key] += value[key];
+            for (const check of value.checks) totals.checks.add(check);
+            listed++;
+            continue;
+          }
+          const warned = await runOperand(context, plan, options, decodedBudget);
+          if (warned) {
+            if (!options.quiet) await diagnostic(context, new PublicDiagnostic(`${plan.source}: decompression OK, trailing garbage ignored`));
+            if (exitCode === 0) exitCode = 2;
+          }
+        } catch (error) {
+          context.signal.throwIfAborted();
+          if (options.quiet < 2) await diagnostic(context, options.xzList
+            ? listingError(context, listingNames[plans.indexOf(plan)] ?? plan.source, error) : error);
+          exitCode = 1;
+          if (decodedBudget.exceeded) break;
+        }
+      }
+      if (options.xzList && options.xzRobot) await output(context, `totals\t${totals.streams}\t${totals.blocks}\t${totals.compressed}\t${totals.uncompressed}\t${listingRatio(totals)}\t${listingChecks(totals)}\t${totals.padding}\t${listed}${verbosity > 1 ? `\t${listingSummary(totals, true)}` : ""}\n`);
+      else if (options.xzList && listed > 1) await output(context, verbosity
+        ? `\nTotals:\n${humanListingSummary(totals, listed)}${verbosity > 1 ? listingSummary(totals, false) : ""}`
+        : "-".repeat(79) + "\n" + humanListing(totals, `${listed} files`));
+      return { exitCode };
+    } catch (error) {
+      context.signal.throwIfAborted();
+      await diagnostic(context, error);
+      return { exitCode: error instanceof UsageError ? 2 : 1 };
+    }
+  }) };
+}
+
+export function createUnxzCommand(options: XzCommandsOptions = {}): CommandDefinition {
+  return createXzCommand(options, "unxz");
+}
+
+export function createXzcatCommand(options: XzCommandsOptions = {}): CommandDefinition {
+  return createXzCommand(options, "xzcat");
+}
+
+export function createXzCommands(options: XzCommandsOptions = {}): readonly CommandDefinition[] {
+  return [...xzProfile.names, ...lzmaProfile.names].map(name => createXzCommand(options, name));
+}
+
+export function xzCommands(options: XzCommandsOptions = {}): VirtualShellPlugin {
+  const commands = createXzCommands(options);
+  return {
+    name: "xz-commands",
+    setup(host) {
+      for (const command of commands) host.commands.register(command, { replace: options.replace ?? false });
+    }
+  };
+}

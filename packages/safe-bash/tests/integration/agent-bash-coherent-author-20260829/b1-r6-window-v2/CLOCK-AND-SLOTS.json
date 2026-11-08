@@ -1,0 +1,18 @@
+{
+  "clock": "Trusted tool host Date.now; exact UTC ISO parse roundtrip; not remote time attestation",
+  "issuedUTC": "2026-08-29T16:30:22.830Z",
+  "latestStartUTC": "2026-08-29T16:50:22.830Z",
+  "expiresUTC": "2026-08-29T17:20:22.830Z",
+  "latestDeltaMs": 1200000,
+  "headroomMs": 1800000,
+  "cutoffUTC": "2026-08-29T17:50:00.000Z",
+  "verifiedAbsent": [
+    "/private/tmp/coherent-b1-r5-admin",
+    "/private/tmp/coherent-b1-r5-runtime",
+    "/private/tmp/coherent-b1-r5-publication",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/actual-evidence",
+    "/private/tmp/coherent-b1-r6-window-v2-owner.stdout",
+    "/private/tmp/coherent-b1-r6-window-v2-owner.stderr"
+  ],
+  "scope": "New outer capture slots. Existing admin/runtime/publication roots remain exact fixed UNUSED slots; absent checked, no prior-root deletion or reuse of any populated root."
+}

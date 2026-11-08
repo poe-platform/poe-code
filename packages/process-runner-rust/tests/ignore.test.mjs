@@ -1,0 +1,11 @@
+import {test}from'node:test';import assert from'node:assert/strict';import ignore from'ignore';import {native}from'../dist/native.js';
+test('own ignore core matches development reference rule/path matrix',()=>{
+ const rules=['','*','*.js','foo','foo/','/foo','a/*','a/**','a/**/','a/**/**/','a/**/b','**/foo','foo*','file?.[ch]','[a-z].txt','[!a]','[^a]','[z-a]','[','a\\*','a/\\*','\\?','\\*/ ','\\#literal','\\!literal','foo ','foo\\ ','a\\ b','abc\\','foo/\n!foo/keep','foo/*\n!foo/keep','*\n!foo/\n!foo/keep','*.js\n!keep.js','FOO','Σ','[A-Z]','??','a**/b','a/**b'];
+ const paths=['foo','Foo','foo/','foo/bar','x/foo','x/foo/','foo/keep','foo/keep/','foo/other','a/','a/b','a/b/','a/x/b','a/x/y/b','a/x/y','ab/b','b/a/','main.js','MAIN.JS','keep.js','x/main.js','file1.c','file12.c','b.txt','Z.txt','a','b','!','^','[','#literal','!literal','foo ','a b','abc','abc\\','Σ','σ','ς','é','😀','\ud800'];let comparisons=0;
+ for(const rule of rules){const reference=ignore().add(rule),matcher=new native.DockerIgnore(rule);for(const path of paths){assert.equal(matcher.ignores(path.endsWith('/')?path.slice(0,-1):path,path.endsWith('/')),reference.ignores(path),JSON.stringify({rule,path}));comparisons++;}}assert.equal(comparisons,rules.length*paths.length);
+});
+test('generated escape and path combinations agree with the development reference',()=>{
+ const atoms=['a','b','*','**','?','[a-b]','[!a]','[^a]','[z-a]','\\*','\\?','\\[','\\!','\\#','\\ ',' '],patterns=new Set(['\ufeff#comment','\ufeff!foo','\\\\','\\\\*','a\t','a\\\t','a\r\nb']);for(const a of atoms)for(const b of atoms)for(const join of ['','/'])patterns.add(a+join+b);
+ const names=['a','b','ab','aa','ba','a b','a ','','!a','#a','a?','?','*','[','\\','😀','é','A'],paths=new Set();for(const a of names)if(a)for(const b of names){paths.add(a);paths.add(a+'/');if(b)paths.add(a+'/'+b);}let comparisons=0,rejected=0;
+ for(const pattern of patterns){let reference;try{reference=ignore().add(pattern);}catch(error){assert.ok(error instanceof SyntaxError);rejected++;continue;}const matcher=new native.DockerIgnore(pattern);for(const path of paths){assert.equal(matcher.ignores(path.endsWith('/')?path.slice(0,-1):path,path.endsWith('/')),reference.ignores(path),JSON.stringify({pattern,path}));comparisons++;}}assert.equal(comparisons,166991);assert.equal(rejected,1);
+});

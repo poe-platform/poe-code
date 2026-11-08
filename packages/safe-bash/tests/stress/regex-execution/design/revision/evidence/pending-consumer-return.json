@@ -1,0 +1,91 @@
+{
+  "name": "pending-consumer-return",
+  "pid": 62980,
+  "readyAt": 32.685040999999956,
+  "killed": false,
+  "code": 0,
+  "signal": null,
+  "ipcBytes": 703,
+  "streamBytes": 0,
+  "stderr": "",
+  "events": [
+    {
+      "event": "disconnect",
+      "values": [],
+      "atMs": 81.85325000000012
+    },
+    {
+      "event": "stdout-close"
+    },
+    {
+      "event": "stderr-close"
+    },
+    {
+      "event": "exit",
+      "values": [
+        0,
+        null
+      ],
+      "atMs": 83.89195799999993
+    },
+    {
+      "event": "close",
+      "code": 0,
+      "signal": null,
+      "atMs": 83.90358300000003
+    }
+  ],
+  "messages": [
+    {
+      "type": "ready",
+      "name": "pending-consumer-return"
+    },
+    {
+      "type": "done",
+      "name": "pending-consumer-return",
+      "observations": [],
+      "cleanup": [
+        {
+          "metrics": {
+            "created": 1,
+            "terminated": 1,
+            "requests": 3,
+            "execCalls": 4,
+            "inputBytes": 4,
+            "responseBytes": 104,
+            "startupMs": 23.042165999999998,
+            "workMs": 0.5500420000000119,
+            "terminationMs": 1.256750000000011,
+            "peakInflight": 1,
+            "listenersAfter": 0,
+            "exitCode": 1
+          },
+          "pending": false,
+          "released": true,
+          "capacity": 0,
+          "threadId": -1,
+          "signalListeners": 0,
+          "workerListeners": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "elapsedMs": 48.085542000000004,
+      "memory": {
+        "rss": 52379648,
+        "heapTotal": 6701056,
+        "heapUsed": 4758888,
+        "external": 1956198,
+        "arrayBuffers": 10802
+      },
+      "flags": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=64",
+        "--stack-size=2048"
+      ]
+    }
+  ]
+}

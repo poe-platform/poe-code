@@ -1,0 +1,243 @@
+import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
+import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
+import ts from "typescript";
+
+const home = path.dirname(fileURLToPath(import.meta.url));
+const root = path.resolve(home, "../../../../..");
+const fixture = "tests/commands/regex-execution/continuation/glob.test.ts";
+const protocolTest = "tests/commands/expr/regex-protocol.test.ts";
+const worker = "src/commands/regex-execution/worker.ts";
+const foreign = "tests/integration/owned-output-production-rebase/author-public/results-v1/FOREIGN-TYPECHECK.txt";
+const baselineRef = "40fb77fb09a2145e8a767c96b64966dafdff5c2b";
+const hash = bytes => createHash("sha256").update(bytes).digest("hex");
+const [mode, version, suppliedRef] = process.argv.slice(2);
+assert.ok(["freeze", "review"].includes(mode));
+assert.match(version ?? "", /^[a-z][a-z0-9-]+$/u);
+const output = path.join(home, version);
+fs.mkdirSync(output);
+const put = (relative, bytes) => {
+  const target = path.join(output, relative);
+  fs.mkdirSync(path.dirname(target), { recursive: true });
+  fs.writeFileSync(target, bytes, { flag: "wx" });
+};
+const json = (relative, value) => put(relative, `${JSON.stringify(value, null, 2)}\n`);
+const git = args => {
+  const result = spawnSync("git", args, { cwd: root, encoding: "utf8", maxBuffer: 16 * 1024 * 1024, timeout: 30000 });
+  assert.equal(result.status, 0, result.stderr);
+  return result.stdout;
+};
+const ref = git(["rev-parse", "--verify", `${mode === "freeze" ? baselineRef : suppliedRef}^{commit}`]).trim();
+const input = relative => git(["show", `${ref}:${relative}`]);
+const controls = fs.readFileSync(path.join(home, "CONTROLS.md"));
+put("controls.md.txt", controls);
+put("driver.mjs.txt", fs.readFileSync(fileURLToPath(import.meta.url)));
+if (mode === "review") {
+  const handoff = fs.readFileSync("/tmp/expr-glob-typing-author-20260827-candidate.txt", "utf8");
+  assert.ok(handoff.includes(`Candidate source commit: ${ref}`));
+  put("author-handoff.txt", handoff);
+}
+json("environment.json", {
+  startedAt: new Date().toISOString(), mode, ref, node: process.version, typescript: ts.version,
+  platform: process.platform, architecture: process.arch, controlsSha256: hash(controls),
+  driverSha256: hash(fs.readFileSync(fileURLToPath(import.meta.url))),
+  tooling: Object.fromEntries(["typescript/package.json", "typescript/lib/typescript.js", "@types/node/package.json"].map(relative => [relative, hash(fs.readFileSync(path.join(root, "node_modules", relative)))])),
+});
+put("live-status-before.txt", git(["status", "--short"]));
+put("index-before.txt", git(["diff", "--cached", "--name-only"]));
+put("FOREIGN-TYPECHECK.txt", input(foreign));
+const config = JSON.parse(input("tsconfig.json"));
+const converted = ts.convertCompilerOptionsFromJson(config.compilerOptions, root);
+assert.equal(converted.errors.length, 0);
+const selected = new Map();
+function visit(relative) {
+  if (selected.has(relative)) return;
+  const text = input(relative);
+  selected.set(relative, text);
+  const source = ts.createSourceFile(relative, text, ts.ScriptTarget.Latest, true);
+  function walk(node) {
+    let specifier;
+    if ((ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) && node.moduleSpecifier && ts.isStringLiteral(node.moduleSpecifier)) specifier = node.moduleSpecifier.text;
+    if (ts.isCallExpression(node) && node.expression.kind === ts.SyntaxKind.ImportKeyword && ts.isStringLiteral(node.arguments[0])) specifier = node.arguments[0].text;
+    if (specifier?.startsWith(".")) {
+      const target = path.posix.normalize(path.posix.join(path.posix.dirname(relative), specifier)).replace(/\.js$/u, ".ts");
+      assert.ok(target.startsWith("src/") || target.startsWith("tests/"), target);
+      visit(target);
+    } else if (specifier) assert.ok(specifier.startsWith("node:"), specifier);
+    ts.forEachChild(node, walk);
+  }
+  walk(source);
+}
+for (const entry of [fixture, worker, protocolTest]) visit(entry);
+for (const entry of ["package.json", "tsconfig.json"]) selected.set(entry, input(entry));
+for (const [relative, text] of selected) put(`inputs/${relative}.txt`, text);
+const inventory = [...selected].map(([relative, text]) => ({ path: relative, sha256: hash(text), bytes: Buffer.byteLength(text), gitBlob: git(["rev-parse", `${ref}:${relative}`]).trim() })).sort((left, right) => left.path.localeCompare(right.path));
+json("inputs.json", inventory);
+fs.mkdirSync(path.join(home, "node_modules"), { recursive: true });
+const temporary = fs.mkdtempSync(path.join(home, "node_modules", `review-${version}-`));
+const archive = path.join(temporary, "archive");
+for (const [relative, text] of selected) {
+  const target = path.join(archive, relative);
+  fs.mkdirSync(path.dirname(target), { recursive: true });
+  fs.writeFileSync(target, text, { flag: "wx" });
+}
+const options = {
+  ...converted.options, rootDir: archive, outDir: path.join(temporary, "emitted"),
+  typeRoots: [path.join(root, "node_modules/@types")], noEmitOnError: false,
+  sourceMap: false, inlineSourceMap: false, declaration: false,
+};
+const runtimeSupportFiles = [...selected.keys()].filter(relative => relative.endsWith(".ts") && relative !== fixture);
+json("compiler-options.json", { committed: config, applied: options, exactRootFiles: [fixture], runtimeSupportRootFiles: runtimeSupportFiles, scope: "Explicit files, no include/exclude discovery; compiler strictness inherited unchanged. Emit despite baseline diagnostics. Explicit closure roots ensure emission of imports housed beneath task-owned node_modules." });
+const serialize = diagnostic => {
+  const position = diagnostic.file && diagnostic.start !== undefined ? diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start) : undefined;
+  return { code: diagnostic.code, category: ts.DiagnosticCategory[diagnostic.category], file: diagnostic.file ? path.relative(archive, diagnostic.file.fileName) : null, line: position ? position.line + 1 : null, column: position ? position.character + 1 : null, message: ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n") };
+};
+function compile(label, files, emit = true) {
+  const program = ts.createProgram(files.map(relative => path.join(archive, relative)), options);
+  const diagnostics = ts.getPreEmitDiagnostics(program).map(serialize);
+  const emitted = [];
+  if (emit) {
+    const result = program.emit(undefined, (name, text) => {
+      fs.mkdirSync(path.dirname(name), { recursive: true });
+      fs.writeFileSync(name, text);
+      emitted.push({ path: path.relative(options.outDir, name), sha256: hash(text), bytes: Buffer.byteLength(text) });
+    });
+    diagnostics.push(...result.diagnostics.map(serialize));
+    assert.equal(result.emitSkipped, false);
+  }
+  json(`${label}.json`, { diagnostics, semanticExitEquivalent: diagnostics.length ? 2 : 0, inputs: program.getSourceFiles().map(source => ({ path: path.relative(archive, source.fileName), sha256: hash(source.text), external: !source.fileName.startsWith(`${archive}/`) })), emitted });
+  return { diagnostics, program, emitted };
+}
+function execute(label, relative) {
+  const args = ["--test", "--test-timeout=20000", "--test-concurrency=1", path.join(options.outDir, relative.replace(/\.ts$/u, ".js"))];
+  const start = Date.now();
+  const result = spawnSync(process.execPath, args, { cwd: archive, encoding: "utf8", timeout: 30000, maxBuffer: 4 * 1024 * 1024, env: { ...process.env, NODE_OPTIONS: "" } });
+  put(`${label}.stdout.txt`, result.stdout ?? "");
+  put(`${label}.stderr.txt`, result.stderr ?? "");
+  const receipt = { executable: process.execPath, args, status: result.status, signal: result.signal, error: result.error ? String(result.error) : null, elapsedMs: Date.now() - start, tests: Number(result.stdout?.match(/# tests (\d+)/u)?.[1]), pass: Number(result.stdout?.match(/# pass (\d+)/u)?.[1]), fail: Number(result.stdout?.match(/# fail (\d+)/u)?.[1]) };
+  json(`${label}.execution.json`, receipt);
+  return receipt;
+}
+function writeControl(relative, text) {
+  put(`controls/${relative}.txt`, text);
+  fs.writeFileSync(path.join(archive, relative), text, { flag: "wx" });
+}
+function archiveInventory() {
+  const entries = [];
+  function walk(directory) {
+    for (const name of fs.readdirSync(directory).sort()) {
+      const target = path.join(directory, name);
+      if (fs.statSync(target).isDirectory()) walk(target);
+      else entries.push({ path: path.relative(archive, target), sha256: hash(fs.readFileSync(target)) });
+    }
+  }
+  walk(archive);
+  return entries;
+}
+try {
+  const before = archiveInventory();
+  json("archive-before.json", before);
+  const exact = compile("fixture-typecheck", [fixture]);
+  const emittedFixture = fs.readFileSync(path.join(options.outDir, fixture.replace(/\.ts$/u, ".js")));
+  put("fixture.emitted.js.txt", emittedFixture);
+  const support = compile("runtime-support-typecheck", runtimeSupportFiles);
+  fs.copyFileSync(path.join(archive, "package.json"), path.join(options.outDir, "package.json"));
+  const globRuntime = execute("glob-runtime", fixture);
+  const exprRuntime = execute("expr-protocol-runtime", protocolTest);
+  const after = archiveInventory();
+  json("archive-after-runtime.json", after);
+  assert.deepEqual(after, before);
+  let review;
+  if (mode === "freeze") {
+    assert.deepEqual(exact.diagnostics.map(diagnostic => diagnostic.code), [2339, 2345, 2769]);
+    assert.ok(exact.diagnostics.every(diagnostic => diagnostic.file === fixture));
+  } else {
+    const frozen = path.join(home, "baseline-v3");
+    const previousInventory = JSON.parse(fs.readFileSync(path.join(frozen, "inputs.json"), "utf8"));
+    const differences = inventory.filter(entry => previousInventory.find(previous => previous.path === entry.path)?.sha256 !== entry.sha256);
+    const missing = previousInventory.filter(entry => !inventory.some(current => current.path === entry.path));
+    const parent = git(["rev-parse", `${ref}^`]).trim();
+    const changed = git(["diff-tree", "--no-commit-id", "--name-only", "-r", ref]).trim().split("\n");
+    put("candidate.patch", git(["show", "--format=fuller", "--no-ext-diff", ref, "--", fixture]));
+    json("candidate-commit.json", { ref, parent, changed, selectedDifferences: differences, selectedMissing: missing });
+    assert.deepEqual(differences.map(entry => entry.path), [fixture]);
+    assert.equal(missing.length, 0);
+    assert.deepEqual(changed.filter(relative => !relative.startsWith("tests/commands/expr-stress/glob-typing-review-20260827/author/")), [fixture]);
+    const originalText = fs.readFileSync(path.join(frozen, `inputs/${fixture}.txt`), "utf8");
+    const candidateText = selected.get(fixture);
+    const source = ts.createSourceFile(fixture, candidateText, ts.ScriptTarget.Latest, true);
+    const allNodes = [];
+    const walk = node => { allNodes.push(node); ts.forEachChild(node, walk); };
+    walk(source);
+    const declarations = allNodes.filter(node => ts.isVariableDeclaration(node) && node.name.getText(source) === "executor" && node.type);
+    assert.equal(declarations.length, 1);
+    const annotation = declarations[0].type.getText(source);
+    const forbidden = allNodes.filter(node => node.kind === ts.SyntaxKind.AnyKeyword || ts.isAsExpression(node) || ts.isTypeAssertionExpression(node));
+    assert.equal(forbidden.length, 0);
+    assert.equal(/@ts-(ignore|nocheck|expect-error)/u.test(candidateText), false);
+    const common = `import { RegexExecutor } from "./src/commands/regex-execution/client.js";\nimport { inputBytes, type Descriptor, type Match, type Row, type ExprMatchDescriptor, type ExprMatchResult } from "./src/commands/regex-execution/protocol.js";\ndeclare const regex: Descriptor;\ndeclare const expr: ExprMatchDescriptor;\ndeclare const rows: readonly Row[];\ndeclare const signal: AbortSignal;\nconst actual = new RegexExecutor();\nconst helper: ${annotation} = actual;\n`;
+    writeControl("positive-control.ts", `${common}const regexResult: Promise<Match[][]> = actual.request(regex, rows, signal);\nconst exprResult: Promise<ExprMatchResult> = actual.request(expr, rows, signal);\nconst helperResult: Promise<Match[][]> = helper.request(regex, rows, signal);\nconst regexInputBytes: number = inputBytes(regex, rows, signal);\n`);
+    writeControl("negative-helper.ts", `${common}helper.request(expr, rows, signal);\n`);
+    writeControl("negative-input-bytes.ts", `${common}inputBytes(expr, rows, signal);\n`);
+    const positive = compile("positive-control", ["positive-control.ts"], false);
+    const negativeHelper = compile("negative-helper", ["negative-helper.ts"], false);
+    const negativeInput = compile("negative-input-bytes", ["negative-input-bytes.ts"], false);
+    const removed = candidateText.slice(0, declarations[0].name.end) + candidateText.slice(declarations[0].type.end);
+    put("controls/annotation-removed.ts.txt", removed);
+    fs.writeFileSync(path.join(archive, fixture), removed);
+    const reversal = compile("annotation-removal-control", [fixture]);
+    const reversalJs = fs.readFileSync(path.join(options.outDir, fixture.replace(/\.ts$/u, ".js")));
+    fs.writeFileSync(path.join(archive, fixture), candidateText);
+    const calls = text => {
+      const parsed = ts.createSourceFile(fixture, text, ts.ScriptTarget.Latest, true);
+      const records = [];
+      const collect = node => {
+        if (ts.isCallExpression(node) && (node.expression.getText(parsed) === "test" || node.expression.getText(parsed).startsWith("assert."))) records.push({ callee: node.expression.getText(parsed), text: node.getText(parsed) });
+        ts.forEachChild(node, collect);
+      };
+      collect(parsed);
+      return records;
+    };
+    const assertions = calls(candidateText).filter(entry => entry.callee.startsWith("assert."));
+    assert.deepEqual(assertions, calls(originalText).filter(entry => entry.callee.startsWith("assert.")));
+    const testNames = text => calls(text).filter(entry => entry.callee === "test").map(entry => entry.text.match(/^test\(("[^"]+")/u)?.[1]);
+    assert.deepEqual(testNames(candidateText), testNames(originalText));
+    review = {
+      fixtureJavaScriptByteIdentical: emittedFixture.equals(fs.readFileSync(path.join(frozen, "fixture.emitted.js.txt"))),
+      baselineJsSha256: hash(fs.readFileSync(path.join(frozen, "fixture.emitted.js.txt"))), candidateJsSha256: hash(emittedFixture),
+      originalFixtureSha256: hash(originalText), candidateFixtureSha256: hash(candidateText),
+      annotation, forbiddenSyntaxCount: forbidden.length, assertionCalls: assertions.length, testNames: testNames(candidateText),
+      assertionTextIdentical: true, testNamesIdentical: true, positiveDiagnostics: positive.diagnostics,
+      negativeHelperDiagnostics: negativeHelper.diagnostics, negativeInputDiagnostics: negativeInput.diagnostics,
+      reversalDiagnostics: reversal.diagnostics, reversalJavaScriptByteIdentical: reversalJs.equals(emittedFixture),
+    };
+    json("patch-types-js-audit.json", review);
+    assert.equal(exact.diagnostics.length, 0);
+    assert.equal(positive.diagnostics.length, 0);
+    assert.equal(review.fixtureJavaScriptByteIdentical, true);
+    assert.equal(review.reversalJavaScriptByteIdentical, true);
+    assert.deepEqual(negativeHelper.diagnostics.map(diagnostic => diagnostic.code), [2345]);
+    assert.deepEqual(negativeInput.diagnostics.map(diagnostic => diagnostic.code), [2345]);
+    assert.deepEqual(reversal.diagnostics.map(diagnostic => diagnostic.code), [2339, 2345, 2769]);
+    json("archive-after-controls.json", archiveInventory());
+    for (const entry of inventory) assert.equal(hash(fs.readFileSync(path.join(archive, entry.path))), entry.sha256);
+  }
+  assert.equal(support.diagnostics.length, 0);
+  assert.equal(globRuntime.status, 0);
+  assert.equal(globRuntime.tests, 4);
+  assert.equal(globRuntime.pass, 4);
+  assert.equal(exprRuntime.status, 0);
+  assert.equal(exprRuntime.tests, 5);
+  assert.equal(exprRuntime.pass, 5);
+  for (const entry of inventory) assert.equal(hash(input(entry.path)), entry.sha256);
+  json("result.json", { status: "passed-focused-review", ref, mode, selectedFiles: inventory.length, exactDiagnostics: exact.diagnostics.map(diagnostic => diagnostic.code), runtimeSupportDiagnostics: support.diagnostics.length, globRuntime, exprRuntime, review, immutableGitInputsRechecked: true, runtimeArchiveTreeIncludingNewEntriesUnchanged: true, controlsOnlyUseExplicitRecordedTemporaryAdditions: mode === "review", endedAt: new Date().toISOString(), qualification: "Only exact glob fixture closure and five adjacent expr protocol tests. Original unrelated DU diagnostics preserved, not fixed or revalidated. No full gate, native oracle, broader corpus or performance claim." });
+} catch (error) {
+  json("failure.json", { message: String(error), stack: error.stack, at: new Date().toISOString() });
+  process.exitCode = 1;
+} finally {
+  fs.rmSync(temporary, { recursive: true });
+  json("cleanup.json", { removedTaskOwnedTemporary: temporary, exists: fs.existsSync(temporary), children: "Synchronous bounded child executions; no retained sessions." });
+}

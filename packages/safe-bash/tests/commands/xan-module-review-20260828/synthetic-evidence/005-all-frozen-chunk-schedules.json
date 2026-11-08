@@ -1,0 +1,14 @@
+{
+  "id": "all-frozen-chunk-schedules",
+  "families": [
+    "F02"
+  ],
+  "observation": {
+    "returned": {
+      "inputs": 8,
+      "schedules": 119,
+      "sameBytes": true
+    }
+  },
+  "classification": "SYNTHETIC_CONTROL_OBSERVATION_BEFORE_ASSERTION"
+}

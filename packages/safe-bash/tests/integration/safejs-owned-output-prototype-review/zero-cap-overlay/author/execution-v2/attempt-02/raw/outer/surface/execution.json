@@ -1,0 +1,22 @@
+{
+  "cohort": "surface",
+  "started": "2026-08-27T18:58:38.524047+00:00",
+  "rootRelease": "/Users/kjopek/Workspace/safe-bash/tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/author/execution-v2/ROOT-RELEASE.json",
+  "executionFreezeCommit": "71abbafc8a9adadf98ed8921b4cc549ae90399ff",
+  "launched": true,
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "/private/tmp/safe-bash-zero-status-binding-v2-5b3t7ehd/runtime/surface/run.mjs"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "pid": 99102,
+  "finished": "2026-08-27T18:59:13.075286+00:00",
+  "exitCode": 0,
+  "knownControllerReaped": true,
+  "outputBytes": 1219,
+  "containment": null,
+  "rawRoot": "/private/tmp/safe-bash-zero-status-binding-v2-5b3t7ehd/raw/surface-zero-overlay-Q7YVae/results",
+  "privateUnchanged": true,
+  "sharedUnchanged": true,
+  "inputsUnchanged": true
+}

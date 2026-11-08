@@ -1,0 +1,32 @@
+diff --git a/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/public.mjs b/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/abort-count-v2/public.mjs
+index b69f4b78..71c4c252 100644
+--- a/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/public.mjs
++++ b/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/abort-count-v2/public.mjs
+@@ -187,12 +187,24 @@ test('jq cooperative source abort preserves reason identity', watchdog, async co
+   const before = await inventory(fs);
+   shell.use(structuredCommands());
+   const accepted = [];
+-  await assert.rejects(shell.exec(commands.raw, { signal: controller.signal, stdout: { async write(chunk) { accepted.push(hex(chunk)); } } }), error => error === reason);
++  const errors = [];
++  let resolved = false;
++  await assert.rejects(shell.exec(commands.raw, { signal: controller.signal, stdout: { async write(chunk) { accepted.push(hex(chunk)); } }, stderr: { async write(chunk) { errors.push(hex(chunk)); } } }).then(result => { resolved = true; return result; }), error => error === reason);
++  assert.equal(resolved, false, 'caller abort rejects; there is no resolved result or numeric exit status');
+   assert.deepEqual(accepted, []);
++  assert.deepEqual(errors, []);
+   assert.deepEqual(await inventory(fs), before);
+   assert.equal(sources.length, 1);
+-  assert.deepEqual(sources[0].state, { yielded: 1, resumed: 1, finalized: true, unchangedChecks: 1 });
+-  context.diagnostic(JSON.stringify({ name: context.name, exactAbortIdentity: true, accepted, files: before, source: sources[0].state }));
++  assert.deepEqual(sources[0].state, { yielded: 2, resumed: 1, finalized: true, unchangedChecks: 2 });
++  const atRejection = { ...sources[0].state };
++  await shell.dispose();
++  assert.equal(resolved, false);
++  assert.deepEqual(sources[0].state, atRejection, 'no further producer resume/yield through cooperative shell disposal');
++  assert.equal(sources.length, 1);
++  assert.deepEqual(accepted, []);
++  assert.deepEqual(errors, []);
++  assert.deepEqual(await inventory(fs), before);
++  context.diagnostic(JSON.stringify({ name: context.name, outcome: 'rejected', resolved, status: null, exactAbortIdentity: true, accepted, stdout: accepted.join(''), stderr: errors.join(''), files: before, source: sources[0].state, shellDisposed: true }));
+ });
+ 
+ test('curl response error preserves partial bytes and closes response', watchdog, async context => {

@@ -1,0 +1,31 @@
+{
+  "version": 2,
+  "date": "2026-08-28",
+  "phase": "before any S54-v2 compiler/runtime/data execution",
+  "candidate": "753f33d2fa1a2ccd86089c563d4ad66b9a1ae26d",
+  "base": "8437e4eda904e1248c25eeef0d9d455b1d251495",
+  "original": "58be2d6c5706f3e90f01d48e695ecfd9daa52669",
+  "originalEvidence": "767b6729d3acac0dd17c42dfb9e0b93e6e9c4de5",
+  "perLayout": {"unchangedAuthor":63,"focused":16,"types":3},
+  "children": {"recipe":28,"includingRunner":29,"maximumIncludingRunner":32,"peakMaximum":4},
+  "mutants": ["bulk-copy:F08","skip-interval:F11","bulk-encode:F10","stage-admission:F16"],
+  "source": {
+    "src/commands/apply-patch/apply.ts":"4444754643de62e7d1385a2205f8ffde2f0b7787c5cbd466388ca351ff70a36e",
+    "src/commands/apply-patch/parser.ts":"3160bb0cdae28e3393d40b584a7bfadd83cd4035af6fb2cb718eaa98a33f0955",
+    "src/commands/apply-patch/matcher.ts":"c747472b92ed32bfa36cca27d99a57260554f147e4c2cbb4f8fe57af014c27ce",
+    "src/commands/apply-patch/shared.ts":"b0cd2d91508e402d581a85b748bb294fcf806e2e5c0a25d0b231f0a403aded9f",
+    "src/commands/apply-patch/options.ts":"3d0aad73e4b6482813fd2aebc117236b5f091bebe6531d7b1c35f019b8c50de3",
+    "src/commands/apply-patch/index.ts":"98dbcac5b211bd3d789ae4da451df3794ceaaca269b70cb10ed99fc3ce73050b"
+  },
+  "files": {
+    "ADJUDICATION.md":"576333000eecb3cf04c4af7dcd0ca7155bc789071a18510c5efa80c7b70110d0",
+    "PRESEAL.md":"cbc110201a3fea5f136008513b76e5ce856d7ba7dfda279a7ccb18ddc128c577",
+    "probe.mjs":"894f8db8a130a739eff5aa4f945363de6343813847f415ec058ab3f418177b22",
+    "run.mjs":"7f4650fd779f1b360fe00cd6c7a4585a2750a40404a63841f027e1e2e929cadb",
+    "../probe.mjs":"b98034e3a3b9e55558fd401ae53ab78bbb3fc2534c51fced281c5b96ea47f786",
+    "../loader.mjs":"2e3e3aa46fb2696f1c7794ad4a9fc5eefdb371bb386cc1602280cc23ad5cd0e5",
+    "../CASES-v1.json":"e13c2ed4ddce65dc0d976a06ba32ddd42f00d7472579cbc30769d007ea42ab61",
+    "../../../integration/coherent78-shell-author-20260828/compose.mjs":"326b23a6322756a2cd838462687b9ec20aa58d5c185f61b8f101c9a8caf85db5",
+    "../../../integration/coherent78-shell-author-20260828/MANIFEST.json":"4ecaed8c6fc04a90320482531ea50cc729a4ac52bcb88782922d0225417dc18e"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "schema": "timeout-independent-verifier-reconciliation-recipe/1",
+  "sealedAt": "2026-08-28T03:46:18.474Z",
+  "candidate": "9ed9a0f14d12758713a8dc42be1ff75f0c87a36f",
+  "baseline": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+  "chronology": "Post-old-source verifier reconciliation; new F22 candidate not received/inspected/bound. Original freezes and first result unchanged.",
+  "children": 9,
+  "focusedControls": 28,
+  "typePayloads": [
+    "root-negative-only, installed and moved"
+  ],
+  "productDiagnostics": [
+    "PC01 source",
+    "PC01 moved"
+  ],
+  "tail": [
+    "A09 newly captured exact-guard diagnosis",
+    "A10 actual public-export denial",
+    "M01",
+    "M02"
+  ],
+  "semanticCorrectionPC01": false,
+  "retries": 0,
+  "native": 0,
+  "safeJS": 0,
+  "files": {
+    "ADAPTER.json": "6214213960e13b5c7281a9b8b0dd0cad693ef9a7bc1fc35c62acb381fb4696a4",
+    "BINDINGS.json": "c9ac8686d1c248ab63e0918d377d4e523e32c0e69145edd1a5998f8a1f76edbb",
+    "PROTOCOL.md": "d5dae5a9837023408b9892efd2ea25b9443e536fb1666d49ef8730a3f20e99e8",
+    "cases.mjs": "8a4d9c58119e24a15ab4a3a3f8c3fc3bb52c87cf44ac1e200d7b31a7931f1be5",
+    "controls.mjs": "d14ef3788a7d251ee6253d4f3b99deb01fbb5d4cf1c0125aa4cc7642de3b62ee",
+    "executor.mjs": "0a015a803f8ad84d2efc23ded3ec3397122d2693a55796b2e7b4b2ee4a1ae2e8",
+    "io.mjs": "78262115a1350aea9654be67f4b530c11c3639c16a74758cf50ee9e09533f112",
+    "launch.mjs": "ab573ea62158fee2a87d7da401543fad466ccffe314423c3f9d44ecc72f1a3a4",
+    "negative-import.mjs": "a5aa187cb86828f2120b0e02fb5cd9a0b0bbd614227defe97db541c0f98d02ce",
+    "predicates.mjs": "4a5ab3842e40316df8658b5fe2b236864478553200027646f9e018c020125d1a",
+    "preload.mjs": "8b658fd213aaf772cb3e7ba6a206dca52b9cd824d8d837b969ddf5a219d4db25",
+    "tool-observer.cjs": "318f0ce280bdeddb86ef49691094b46ddfc4b8d12ba05f6abd04900f7df61967",
+    "types-root.ts.data": "a21d313f3ddd96399d2757b004b4d0c13bc5967ba1b63052c100e9d5182b0263"
+  }
+}

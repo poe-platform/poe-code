@@ -1,0 +1,27 @@
+P11 shell pid=90620; four sequential Git metadata/stage/commit children; peak known2
+closed preindex status=0
+closed add status=0
+[main 72187e5a] fix: reset descendant ERE reporting without clearing ranking history
+ 20 files changed, 2664 insertions(+), 1 deletion(-)
+ create mode 100644 tests/compatibility/bash-ere-engine-author-20260829/R01-PREP-START.log
+ create mode 100644 tests/compatibility/bash-ere-engine-author-20260829/r01-v1/BASELINE-SOURCE.json
+ create mode 100644 tests/compatibility/bash-ere-engine-author-20260829/r01-v1/INSPECTION.outer.jsonl
+ create mode 100644 tests/compatibility/bash-ere-engine-author-20260829/r01-v1/PREINDEX.nul
+ create mode 100644 tests/compatibility/bash-ere-engine-author-20260829/r01-v1/READ-01.log
+ create mode 100644 tests/compatibility/bash-ere-engine-author-20260829/r01-v1/READ-02.log
+ create mode 100644 tests/compatibility/bash-ere-engine-author-20260829/r01-v1/READ-03.log
+ create mode 100644 tests/compatibility/bash-ere-engine-author-20260829/r01-v1/READ-04.log
+ create mode 100644 tests/compatibility/bash-ere-engine-author-20260829/r01-v1/READ-05.log
+ create mode 100644 tests/compatibility/bash-ere-engine-author-20260829/r01-v1/READ-06.log
+ create mode 100644 tests/compatibility/bash-ere-engine-author-20260829/r01-v1/RECIPE.md
+ create mode 100644 tests/compatibility/bash-ere-engine-author-20260829/r01-v1/SEAL.json
+ create mode 100644 tests/compatibility/bash-ere-engine-author-20260829/r01-v1/cases-v2.json
+ create mode 100644 tests/compatibility/bash-ere-engine-author-20260829/r01-v1/inspect.mjs
+ create mode 100644 tests/compatibility/bash-ere-engine-author-20260829/r01-v1/native-visible.json
+ create mode 100644 tests/compatibility/bash-ere-engine-author-20260829/r01-v1/policy.mjs
+ create mode 100644 tests/compatibility/bash-ere-engine-author-20260829/r01-v1/reporting.mjs
+ create mode 100644 tests/compatibility/bash-ere-engine-author-20260829/r01-v1/runner.mjs
+ create mode 100644 tests/compatibility/bash-ere-engine-author-20260829/r01-v1/seal-PRESEAL-01.outer.jsonl
+closed commit status=0
+72187e5abc1179883f85a63e1ef558f2e141c542
+closed identity status=0

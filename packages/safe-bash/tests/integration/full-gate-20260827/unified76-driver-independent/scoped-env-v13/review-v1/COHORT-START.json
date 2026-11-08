@@ -1,0 +1,17 @@
+{
+  "startedAt": "2026-08-28T10:15:14.500Z",
+  "source": "02a5060019bccdd2a64f9811812104ba09d2aaee",
+  "reseal": "96daebc077381fb63ab6447a26ab707ce790ff25",
+  "evidence": "770381bc61b49b5abed96acdf0ab09f2d4b610ca",
+  "recipeSha256": "4225f050dc84d38c06a159efd6e6d66190555525f7d65b2f1b741c4a9c22bd11",
+  "reviewSha256": "2b095e2b535866e23685479254f55064f26405c8327d933a5c84719740483e96",
+  "workerSha256": "58a9948acf73d9052864b006ed77d6b4e2f1a08c0794ddbe55f27f2225e5529e",
+  "invocation": {
+    "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "args": [
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/review.mjs",
+      "--cohort-once"
+    ]
+  },
+  "cohortLimit": 1
+}

@@ -1,0 +1,29 @@
+import { agentCommands, createWhichCommand, createWhichCommands, whichCommands } from "virtual-bash";
+import type { AgentCommandsOptions, WhichCommandsOptions, WhichLimits, CommandInvokeOptions, CommandContext, ByteSink } from "virtual-bash";
+import { createWhichCommand as subCommand, createWhichCommands as subCommands, whichCommands as subPlugin } from "virtual-bash/commands/which";
+import type { WhichCommandsOptions as SubOptions, WhichLimits as SubLimits } from "virtual-bash/commands/which";
+import type { ShellInvokeOptions } from "virtual-bash";
+
+const limits: Partial<WhichLimits & SubLimits> = { maxProbes: 8, maxPathBytes: 1024 };
+const options: WhichCommandsOptions & SubOptions = { limits };
+const command: ReturnType<typeof subCommand> = createWhichCommand(options);
+const commands: ReturnType<typeof subCommands> = createWhichCommands(options);
+const plugin: ReturnType<typeof subPlugin> = whichCommands(options);
+const invoke: CommandInvokeOptions = { signal: undefined };
+const shellInvoke: ShellInvokeOptions = { signal: new AbortController().signal };
+const output: ByteSink = { async write(chunk) { void chunk.byteLength; } };
+const aggregate: AgentCommandsOptions = { replace: true, which: { limits } };
+agentCommands(aggregate);
+async function use(context: CommandContext) {
+  const cleanup = async () => {};
+  context.registerCleanup?.(cleanup);
+  await context.invoke?.("which", ["tool"], { ...invoke, stdout: output });
+  await cleanup();
+}
+// @ts-expect-error signal is readonly
+invoke.signal = undefined;
+// @ts-expect-error invalid signal type
+const invalid: CommandInvokeOptions = { signal: 42 };
+// @ts-expect-error aggregate omits nested replace
+const nested: AgentCommandsOptions = { which: { replace: true } };
+void [command, commands, plugin, shellInvoke, use, invalid, nested];

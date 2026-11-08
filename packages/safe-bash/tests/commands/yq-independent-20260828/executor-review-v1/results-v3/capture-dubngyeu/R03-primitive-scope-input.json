@@ -1,0 +1,16 @@
+{
+  "values": [
+    "undefined",
+    "null",
+    false,
+    true,
+    0,
+    "-0",
+    "NaN",
+    "Infinity",
+    "1n",
+    "1",
+    "symbols"
+  ],
+  "separateScopes": true
+}

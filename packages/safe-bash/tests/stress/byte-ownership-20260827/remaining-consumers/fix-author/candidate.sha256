@@ -1,0 +1,4 @@
+096897bfa9d875ba524cebd6b3959c551a26fa5e56d3b0d2fb42f9fabdf80da3  src/commands/structured/jq.ts
+93d8a8463ac7df91c8ef88368f2ee8524a0abd7e7970badf4d1312587a34c880  src/commands/network/body.ts
+a53b4e1681ba7aafd73feca3f64029017c08f74225cb3f93318e0ca587aa53e5  tests/commands/structured/byte-ownership.test.ts
+3370c17c93cbb31db18be0aa0b920085120399ece2a0fb0228ade3640f57ae84  tests/commands/network/byte-ownership.test.ts

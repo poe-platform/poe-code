@@ -1,0 +1,22 @@
+[
+  {
+    "path": "/private/tmp/safe-bash-coherent-b1-public15-20260829-r2/STOP.json",
+    "bytes": 441,
+    "sha256": "7d4fffdee311c259ba5586670f0393a6bb1eef4a8daa7f1907002709aa021919"
+  },
+  {
+    "path": "/private/tmp/safe-bash-coherent-b1-public15-20260829-r2/capture/events.jsonl",
+    "bytes": 6537,
+    "sha256": "053bedf99a86c7ee041e5ef1fd8fbc28ebee0638440fe94817d30b1e40be7560"
+  },
+  {
+    "path": "/private/tmp/coherent-b1-public15-20260829-r2.launch.stdout",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "/private/tmp/coherent-b1-public15-20260829-r2.launch.stderr",
+    "bytes": 1129,
+    "sha256": "bb1b22afd2ff0bf3714d7a320a003eeb180e6e0c1f357541eb7518f5549f257f"
+  }
+]

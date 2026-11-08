@@ -1,0 +1,12 @@
+{
+  "service": "MinIO Community",
+  "release": "RELEASE.2025-09-07T16-13-09Z",
+  "sourceCommit": "07c3a429bfed433e49018cb0f78a52145d4bedeb",
+  "platform": "darwin-arm64",
+  "url": "https://dl.min.io/server/minio/release/darwin-arm64/minio.RELEASE.2025-09-07T16-13-09Z",
+  "checksumUrl": "https://dl.min.io/server/minio/release/darwin-arm64/minio.RELEASE.2025-09-07T16-13-09Z.sha256sum",
+  "sha256": "7c3b3039b76e55a1b80935848ed83998d5e8d317374f87851f46a019ff5c0aa4",
+  "size": 108218434,
+  "releasePage": "https://github.com/minio/minio/releases/tag/RELEASE.2025-09-07T16-13-09Z",
+  "selection": "Pinned historical official binary, not a latest-version or production-security recommendation"
+}

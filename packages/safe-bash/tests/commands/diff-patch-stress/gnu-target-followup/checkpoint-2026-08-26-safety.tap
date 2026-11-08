@@ -1,0 +1,940 @@
+TAP version 13
+# Subtest: atomic extension malformed later section unsafe integer cannot partially commit
+ok 1 - atomic extension malformed later section unsafe integer cannot partially commit
+  ---
+  duration_ms: 10.195042
+  type: 'test'
+  ...
+# Subtest: atomic extension malformed later section overflow count cannot partially commit
+ok 2 - atomic extension malformed later section overflow count cannot partially commit
+  ---
+  duration_ms: 1.144458
+  type: 'test'
+  ...
+# Subtest: atomic extension malformed later section negative count cannot partially commit
+ok 3 - atomic extension malformed later section negative count cannot partially commit
+  ---
+  duration_ms: 0.929792
+  type: 'test'
+  ...
+# Subtest: atomic extension malformed later section zero count changes cannot partially commit
+ok 4 - atomic extension malformed later section zero count changes cannot partially commit
+  ---
+  duration_ms: 1.03275
+  type: 'test'
+  ...
+# Subtest: atomic extension malformed later section repeated old header cannot partially commit
+ok 5 - atomic extension malformed later section repeated old header cannot partially commit
+  ---
+  duration_ms: 0.681959
+  type: 'test'
+  ...
+# Subtest: atomic extension malformed later section new header without body cannot partially commit
+ok 6 - atomic extension malformed later section new header without body cannot partially commit
+  ---
+  duration_ms: 0.600917
+  type: 'test'
+  ...
+# Subtest: atomic extension malformed later section truncated hunk cannot partially commit
+ok 7 - atomic extension malformed later section truncated hunk cannot partially commit
+  ---
+  duration_ms: 0.4825
+  type: 'test'
+  ...
+# Subtest: atomic extension malformed later section extra deletion cannot partially commit
+ok 8 - atomic extension malformed later section extra deletion cannot partially commit
+  ---
+  duration_ms: 0.688375
+  type: 'test'
+  ...
+# Subtest: atomic extension malformed later section huge coordinate cannot partially commit
+ok 9 - atomic extension malformed later section huge coordinate cannot partially commit
+  ---
+  duration_ms: 0.991667
+  type: 'test'
+  ...
+# Subtest: atomic extension malformed later section repeated newline marker cannot partially commit
+ok 10 - atomic extension malformed later section repeated newline marker cannot partially commit
+  ---
+  duration_ms: 1.135417
+  type: 'test'
+  ...
+# Subtest: atomic extension aggregate input budget failure during preparation leaves targets unchanged
+ok 11 - atomic extension aggregate input budget failure during preparation leaves targets unchanged
+  ---
+  duration_ms: 1.425542
+  type: 'test'
+  ...
+# Subtest: atomic extension aggregate output budget failure during preparation leaves targets unchanged
+ok 12 - atomic extension aggregate output budget failure during preparation leaves targets unchanged
+  ---
+  duration_ms: 2.499458
+  type: 'test'
+  ...
+# Subtest: atomic extension aggregate lines budget failure during preparation leaves targets unchanged
+ok 13 - atomic extension aggregate lines budget failure during preparation leaves targets unchanged
+  ---
+  duration_ms: 0.32325
+  type: 'test'
+  ...
+# Subtest: atomic extension file count budget failure during preparation leaves targets unchanged
+ok 14 - atomic extension file count budget failure during preparation leaves targets unchanged
+  ---
+  duration_ms: 0.286375
+  type: 'test'
+  ...
+# Subtest: atomic extension hunk count budget failure during preparation leaves targets unchanged
+ok 15 - atomic extension hunk count budget failure during preparation leaves targets unchanged
+  ---
+  duration_ms: 0.296167
+  type: 'test'
+  ...
+# Subtest: atomic extension work budget failure during preparation leaves targets unchanged
+ok 16 - atomic extension work budget failure during preparation leaves targets unchanged
+  ---
+  duration_ms: 0.313917
+  type: 'test'
+  ...
+# Subtest: atomic extension recheck input bytes are charged before any commit
+ok 17 - atomic extension recheck input bytes are charged before any commit
+  ---
+  duration_ms: 2.946959
+  type: 'test'
+  ...
+# Subtest: repeated headers hit the section budget before any target read
+ok 18 - repeated headers hit the section budget before any target read
+  ---
+  duration_ms: 1.530292
+  type: 'test'
+  ...
+# Subtest: invalid configured limit 0 has no filesystem effects
+ok 19 - invalid configured limit 0 has no filesystem effects
+  ---
+  duration_ms: 0.680625
+  type: 'test'
+  ...
+# Subtest: invalid configured limit -1 has no filesystem effects
+ok 20 - invalid configured limit -1 has no filesystem effects
+  ---
+  duration_ms: 0.369708
+  type: 'test'
+  ...
+# Subtest: invalid configured limit 1.5 has no filesystem effects
+ok 21 - invalid configured limit 1.5 has no filesystem effects
+  ---
+  duration_ms: 0.23775
+  type: 'test'
+  ...
+# Subtest: invalid configured limit Infinity has no filesystem effects
+ok 22 - invalid configured limit Infinity has no filesystem effects
+  ---
+  duration_ms: 0.228709
+  type: 'test'
+  ...
+# Subtest: invalid configured limit NaN has no filesystem effects
+ok 23 - invalid configured limit NaN has no filesystem effects
+  ---
+  duration_ms: 0.342417
+  type: 'test'
+  ...
+# Subtest: invalid configured limit 9007199254740992 has no filesystem effects
+ok 24 - invalid configured limit 9007199254740992 has no filesystem effects
+  ---
+  duration_ms: 1.144875
+  type: 'test'
+  ...
+# Subtest: atomic extension bounded work-limit sweep covers preflight, partial-commit and success states
+ok 25 - atomic extension bounded work-limit sweep covers preflight, partial-commit and success states
+  ---
+  duration_ms: 483.689292
+  type: 'test'
+  ...
+# Subtest: atomic extension binary later target 62616400746578740a cannot cause an earlier write
+ok 26 - atomic extension binary later target 62616400746578740a cannot cause an earlier write
+  ---
+  duration_ms: 0.539333
+  type: 'test'
+  ...
+# Subtest: atomic extension binary later target fffe0a cannot cause an earlier write
+ok 27 - atomic extension binary later target fffe0a cannot cause an earlier write
+  ---
+  duration_ms: 0.306625
+  type: 'test'
+  ...
+# Subtest: overlong paths fail before any stat, read or write of their target
+ok 28 - overlong paths fail before any stat, read or write of their target
+  ---
+  duration_ms: 3.1315
+  type: 'test'
+  ...
+# Subtest: diff preserves exact pre-abort reason Error: preflight abort without any FS access
+ok 29 - diff preserves exact pre-abort reason Error: preflight abort without any FS access
+  ---
+  duration_ms: 8.277875
+  type: 'test'
+  ...
+# Subtest: diff preserves exact pre-abort reason [object Object] without any FS access
+ok 30 - diff preserves exact pre-abort reason [object Object] without any FS access
+  ---
+  duration_ms: 0.564916
+  type: 'test'
+  ...
+# Subtest: diff preserves exact pre-abort reason abort-string without any FS access
+ok 31 - diff preserves exact pre-abort reason abort-string without any FS access
+  ---
+  duration_ms: 0.503834
+  type: 'test'
+  ...
+# Subtest: diff preserves exact pre-abort reason null without any FS access
+ok 32 - diff preserves exact pre-abort reason null without any FS access
+  ---
+  duration_ms: 0.354416
+  type: 'test'
+  ...
+# Subtest: diff preserves exact pre-abort reason 0 without any FS access
+ok 33 - diff preserves exact pre-abort reason 0 without any FS access
+  ---
+  duration_ms: 0.750125
+  type: 'test'
+  ...
+# Subtest: diff preserves exact pre-abort reason false without any FS access
+ok 34 - diff preserves exact pre-abort reason false without any FS access
+  ---
+  duration_ms: 0.343875
+  type: 'test'
+  ...
+# Subtest: patch preserves exact pre-abort reason Error: preflight abort without any FS access
+ok 35 - patch preserves exact pre-abort reason Error: preflight abort without any FS access
+  ---
+  duration_ms: 0.35925
+  type: 'test'
+  ...
+# Subtest: patch preserves exact pre-abort reason [object Object] without any FS access
+ok 36 - patch preserves exact pre-abort reason [object Object] without any FS access
+  ---
+  duration_ms: 0.461459
+  type: 'test'
+  ...
+# Subtest: patch preserves exact pre-abort reason abort-string without any FS access
+ok 37 - patch preserves exact pre-abort reason abort-string without any FS access
+  ---
+  duration_ms: 0.68925
+  type: 'test'
+  ...
+# Subtest: patch preserves exact pre-abort reason null without any FS access
+ok 38 - patch preserves exact pre-abort reason null without any FS access
+  ---
+  duration_ms: 0.583375
+  type: 'test'
+  ...
+# Subtest: patch preserves exact pre-abort reason 0 without any FS access
+ok 39 - patch preserves exact pre-abort reason 0 without any FS access
+  ---
+  duration_ms: 0.184292
+  type: 'test'
+  ...
+# Subtest: patch preserves exact pre-abort reason false without any FS access
+ok 40 - patch preserves exact pre-abort reason false without any FS access
+  ---
+  duration_ms: 0.15275
+  type: 'test'
+  ...
+# Subtest: atomic extension blocked lstat aborts without effects and observes late host rejection
+ok 41 - atomic extension blocked lstat aborts without effects and observes late host rejection
+  ---
+  duration_ms: 10.077959
+  type: 'test'
+  ...
+# Subtest: atomic extension blocked readFile aborts without effects and observes late host rejection
+ok 42 - atomic extension blocked readFile aborts without effects and observes late host rejection
+  ---
+  duration_ms: 2.242625
+  type: 'test'
+  ...
+# Subtest: atomic extension blocked readStream aborts without effects and observes late host rejection
+ok 43 - atomic extension blocked readStream aborts without effects and observes late host rejection
+  ---
+  duration_ms: 2.419792
+  type: 'test'
+  ...
+# Subtest: blocked stdin next and cleanup return cannot replace the abort reason
+ok 44 - blocked stdin next and cleanup return cannot replace the abort reason
+  ---
+  duration_ms: 0.900625
+  type: 'test'
+  ...
+# Subtest: abort blocked writeFile leaves only successful prefix and no cleanup writes
+ok 45 - abort blocked writeFile leaves only successful prefix and no cleanup writes
+  ---
+  duration_ms: 4.736375
+  type: 'test'
+  ...
+# Subtest: abort blocked rm leaves only successful prefix and no cleanup writes
+ok 46 - abort blocked rm leaves only successful prefix and no cleanup writes
+  ---
+  duration_ms: 2.07375
+  type: 'test'
+  ...
+# Subtest: uncooperative in-flight write can finish after cancellation, but later files never start
+ok 47 - uncooperative in-flight write can finish after cancellation, but later files never start
+  ---
+  duration_ms: 2.071541
+  type: 'test'
+  ...
+# Subtest: abort immediately after first publication preserves that side effect and exact reason
+ok 48 - abort immediately after first publication preserves that side effect and exact reason
+  ---
+  duration_ms: 2.055709
+  type: 'test'
+  ...
+# Subtest: atomic extension abort blocked dry-run sink preserves the corresponding target state
+ok 49 - atomic extension abort blocked dry-run sink preserves the corresponding target state
+  ---
+  duration_ms: 1.219334
+  type: 'test'
+  ...
+# Subtest: atomic extension abort blocked status sink preserves the corresponding target state
+ok 50 - atomic extension abort blocked status sink preserves the corresponding target state
+  ---
+  duration_ms: 3.338083
+  type: 'test'
+  ...
+# Subtest: atomic extension abort blocked diagnostic sink preserves the corresponding target state
+ok 51 - atomic extension abort blocked diagnostic sink preserves the corresponding target state
+  ---
+  duration_ms: 0.694834
+  type: 'test'
+  ...
+# Subtest: COMMON-FLOW GAP: safely decoded Git-quoted filename "café.txt" updates exactly that inode
+ok 52 - COMMON-FLOW GAP: safely decoded Git-quoted filename "café.txt" updates exactly that inode
+  ---
+  duration_ms: 12.74525
+  type: 'test'
+  ...
+# Subtest: COMMON-FLOW GAP: safely decoded Git-quoted filename "quote\\"name.txt" updates exactly that inode
+ok 53 - COMMON-FLOW GAP: safely decoded Git-quoted filename "quote\\"name.txt" updates exactly that inode
+  ---
+  duration_ms: 1.55925
+  type: 'test'
+  ...
+# Subtest: quoted unsafe/invalid encoding remains non-mutating: a/\\056\\056/target
+ok 54 - quoted unsafe/invalid encoding remains non-mutating: a/\\056\\056/target
+  ---
+  duration_ms: 0.836083
+  type: 'test'
+  ...
+# Subtest: quoted unsafe/invalid encoding remains non-mutating: \\057sandbox/work/target
+ok 55 - quoted unsafe/invalid encoding remains non-mutating: \\057sandbox/work/target
+  ---
+  duration_ms: 0.832792
+  type: 'test'
+  ...
+# Subtest: quoted unsafe/invalid encoding remains non-mutating: a/target\\000suffix
+ok 56 - quoted unsafe/invalid encoding remains non-mutating: a/target\\000suffix
+  ---
+  duration_ms: 0.698958
+  type: 'test'
+  ...
+# Subtest: quoted unsafe/invalid encoding remains non-mutating: a/target\\q
+ok 57 - quoted unsafe/invalid encoding remains non-mutating: a/target\\q
+  ---
+  duration_ms: 1.387708
+  type: 'test'
+  ...
+# Subtest: quoted unsafe/invalid encoding remains non-mutating: a/target\\777
+ok 58 - quoted unsafe/invalid encoding remains non-mutating: a/target\\777
+  ---
+  duration_ms: 0.6835
+  type: 'test'
+  ...
+# Subtest: COMMON-FLOW GAP: adjacent slash strip handles a safe relative target
+ok 59 - COMMON-FLOW GAP: adjacent slash strip handles a safe relative target
+  ---
+  duration_ms: 1.963542
+  type: 'test'
+  ...
+# Subtest: atomic extension lstat EACCES on later target stops prevalidation without writes
+ok 60 - atomic extension lstat EACCES on later target stops prevalidation without writes
+  ---
+  duration_ms: 10.742584
+  type: 'test'
+  ...
+# Subtest: atomic extension lstat EIO on later target stops prevalidation without writes
+ok 61 - atomic extension lstat EIO on later target stops prevalidation without writes
+  ---
+  duration_ms: 2.233
+  type: 'test'
+  ...
+# Subtest: atomic extension lstat EPERM on later target stops prevalidation without writes
+ok 62 - atomic extension lstat EPERM on later target stops prevalidation without writes
+  ---
+  duration_ms: 1.642792
+  type: 'test'
+  ...
+# Subtest: atomic extension readFile EACCES on later target stops prevalidation without writes
+ok 63 - atomic extension readFile EACCES on later target stops prevalidation without writes
+  ---
+  duration_ms: 3.88925
+  type: 'test'
+  ...
+# Subtest: atomic extension readFile EIO on later target stops prevalidation without writes
+ok 64 - atomic extension readFile EIO on later target stops prevalidation without writes
+  ---
+  duration_ms: 1.928875
+  type: 'test'
+  ...
+# Subtest: atomic extension readFile EPERM on later target stops prevalidation without writes
+ok 65 - atomic extension readFile EPERM on later target stops prevalidation without writes
+  ---
+  duration_ms: 1.855292
+  type: 'test'
+  ...
+# Subtest: atomic extension readStream EACCES on later target stops prevalidation without writes
+ok 66 - atomic extension readStream EACCES on later target stops prevalidation without writes
+  ---
+  duration_ms: 1.408917
+  type: 'test'
+  ...
+# Subtest: atomic extension readStream EIO on later target stops prevalidation without writes
+ok 67 - atomic extension readStream EIO on later target stops prevalidation without writes
+  ---
+  duration_ms: 3.222667
+  type: 'test'
+  ...
+# Subtest: atomic extension readStream EPERM on later target stops prevalidation without writes
+ok 68 - atomic extension readStream EPERM on later target stops prevalidation without writes
+  ---
+  duration_ms: 2.3215
+  type: 'test'
+  ...
+# Subtest: atomic extension writeFile failure at commit 1 preserves precisely the completed prefix
+ok 69 - atomic extension writeFile failure at commit 1 preserves precisely the completed prefix
+  ---
+  duration_ms: 2.795625
+  type: 'test'
+  ...
+# Subtest: atomic extension rm failure at commit 1 preserves precisely the completed prefix
+ok 70 - atomic extension rm failure at commit 1 preserves precisely the completed prefix
+  ---
+  duration_ms: 2.991125
+  type: 'test'
+  ...
+# Subtest: atomic extension writeFile failure at commit 2 preserves precisely the completed prefix
+ok 71 - atomic extension writeFile failure at commit 2 preserves precisely the completed prefix
+  ---
+  duration_ms: 3.876292
+  type: 'test'
+  ...
+# Subtest: atomic extension rm failure at commit 2 preserves precisely the completed prefix
+ok 72 - atomic extension rm failure at commit 2 preserves precisely the completed prefix
+  ---
+  duration_ms: 1.828792
+  type: 'test'
+  ...
+# Subtest: atomic extension writeFile failure at commit 3 preserves precisely the completed prefix
+ok 73 - atomic extension writeFile failure at commit 3 preserves precisely the completed prefix
+  ---
+  duration_ms: 2.237375
+  type: 'test'
+  ...
+# Subtest: atomic extension rm failure at commit 3 preserves precisely the completed prefix
+ok 74 - atomic extension rm failure at commit 3 preserves precisely the completed prefix
+  ---
+  duration_ms: 5.243333
+  type: 'test'
+  ...
+# Subtest: atomic extension: a writeFile that mutates then throws is not falsely rolled back or counted successful
+ok 75 - atomic extension: a writeFile that mutates then throws is not falsely rolled back or counted successful
+  ---
+  duration_ms: 1.112666
+  type: 'test'
+  ...
+# Subtest: atomic extension: a rm that mutates then throws is not falsely rolled back or counted successful
+ok 76 - atomic extension: a rm that mutates then throws is not falsely rolled back or counted successful
+  ---
+  duration_ms: 0.912583
+  type: 'test'
+  ...
+# Subtest: exclusive creation refuses a competing new file without cleanup unlink
+ok 77 - exclusive creation refuses a competing new file without cleanup unlink
+  ---
+  duration_ms: 0.895208
+  type: 'test'
+  ...
+# Subtest: atomic extension observable content change after preparation prevents every command write
+ok 78 - atomic extension observable content change after preparation prevents every command write
+  ---
+  duration_ms: 1.281792
+  type: 'test'
+  ...
+# Subtest: atomic extension observable symlink change after preparation prevents every command write
+ok 79 - atomic extension observable symlink change after preparation prevents every command write
+  ---
+  duration_ms: 2.35325
+  type: 'test'
+  ...
+# Subtest: atomic extension observable hardlink change after preparation prevents every command write
+ok 80 - atomic extension observable hardlink change after preparation prevents every command write
+  ---
+  duration_ms: 1.255959
+  type: 'test'
+  ...
+# Subtest: atomic extension observable removed change after preparation prevents every command write
+ok 81 - atomic extension observable removed change after preparation prevents every command write
+  ---
+  duration_ms: 0.864125
+  type: 'test'
+  ...
+# Subtest: atomic extension observable parent change after preparation prevents every command write
+ok 82 - atomic extension observable parent change after preparation prevents every command write
+  ---
+  duration_ms: 0.912667
+  type: 'test'
+  ...
+# Subtest: rename capability and rename failures are not used as an atomicity fallback
+ok 83 - rename capability and rename failures are not used as an atomicity fallback
+  ---
+  duration_ms: 0.487875
+  type: 'test'
+  ...
+# Subtest: atomic extension status sink failure after publication preserves all committed files
+ok 84 - atomic extension status sink failure after publication preserves all committed files
+  ---
+  duration_ms: 1.498375
+  type: 'test'
+  ...
+# Subtest: failed diagnostic sink rejects rather than reporting successful handling
+ok 85 - failed diagnostic sink rejects rather than reporting successful handling
+  ---
+  duration_ms: 0.205208
+  type: 'test'
+  ...
+# Subtest: documented race limit: same-byte inode replacement is not an identity check
+ok 86 - documented race limit: same-byte inode replacement is not an identity check
+  ---
+  duration_ms: 0.491459
+  type: 'test'
+  ...
+# Subtest: recursive diff later lstat failure emits no buffered partial patch
+ok 87 - recursive diff later lstat failure emits no buffered partial patch
+  ---
+  duration_ms: 1.302708
+  type: 'test'
+  ...
+# Subtest: recursive diff later readFile failure emits no buffered partial patch
+ok 88 - recursive diff later readFile failure emits no buffered partial patch
+  ---
+  duration_ms: 1.233375
+  type: 'test'
+  ...
+# Subtest: recursive diff later readStream failure emits no buffered partial patch
+ok 89 - recursive diff later readStream failure emits no buffered partial patch
+  ---
+  duration_ms: 0.840334
+  type: 'test'
+  ...
+# Subtest: recursive diff later readdir failure emits no buffered partial patch
+ok 90 - recursive diff later readdir failure emits no buffered partial patch
+  ---
+  duration_ms: 0.800417
+  type: 'test'
+  ...
+# Subtest: commit-stage lstat failure reports the existing prefix without attempting second write
+not ok 91 - commit-stage lstat failure reports the existing prefix without attempting second write
+  ---
+  duration_ms: 5.083375
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/safety/failures.test.ts:1:9429'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /1\/3 files committed/u. Input:
+    
+    'patch: EIO: input/output error\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    patch: EIO: input/output error
+    
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/safety/failures.test.ts:221:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: Shell diff-to-patch pipeline treats Unicode/metacharacter labels literally
+ok 92 - Shell diff-to-patch pipeline treats Unicode/metacharacter labels literally
+  ---
+  duration_ms: 16.362291
+  type: 'test'
+  ...
+# Subtest: Shell heredoc unsafe later target cannot alter earlier files
+ok 93 - Shell heredoc unsafe later target cannot alter earlier files
+  ---
+  duration_ms: 8.319
+  type: 'test'
+  ...
+# Subtest: Shell dry-run reads explicit input outside cwd without any writes
+ok 94 - Shell dry-run reads explicit input outside cwd without any writes
+  ---
+  duration_ms: 2.285875
+  type: 'test'
+  ...
+# Subtest: Shell preserves partial commit diagnostics and third-file bytes on injected EIO
+ok 95 - Shell preserves partial commit diagnostics and third-file bytes on injected EIO
+  ---
+  duration_ms: 3.81375
+  type: 'test'
+  ...
+# Subtest: Shell cancellation propagates exact reason during a blocked patch write
+ok 96 - Shell cancellation propagates exact reason during a blocked patch write
+  ---
+  duration_ms: 6.4515
+  type: 'test'
+  ...
+# Subtest: Shell hardlink alias rejection does not truncate the alias or input
+ok 97 - Shell hardlink alias rejection does not truncate the alias or input
+  ---
+  duration_ms: 1.495334
+  type: 'test'
+  ...
+# Subtest: absolute headers reject automatic selection but explicit target wins without changing decoys
+ok 98 - absolute headers reject automatic selection but explicit target wins without changing decoys
+  ---
+  duration_ms: 15.55975
+  type: 'test'
+  ...
+# Subtest: unsafe second header leaves all identities and bytes intact: traversal
+ok 99 - unsafe second header leaves all identities and bytes intact: traversal
+  ---
+  duration_ms: 2.777583
+  type: 'test'
+  ...
+# Subtest: unsafe second header leaves all identities and bytes intact: traversal before strip
+ok 100 - unsafe second header leaves all identities and bytes intact: traversal before strip
+  ---
+  duration_ms: 3.721083
+  type: 'test'
+  ...
+# Subtest: unsafe second header leaves all identities and bytes intact: drive
+ok 101 - unsafe second header leaves all identities and bytes intact: drive
+  ---
+  duration_ms: 1.770958
+  type: 'test'
+  ...
+# Subtest: unsafe second header leaves all identities and bytes intact: backslash
+ok 102 - unsafe second header leaves all identities and bytes intact: backslash
+  ---
+  duration_ms: 1.216291
+  type: 'test'
+  ...
+# Subtest: unsafe second header leaves all identities and bytes intact: nul
+ok 103 - unsafe second header leaves all identities and bytes intact: nul
+  ---
+  duration_ms: 0.716708
+  type: 'test'
+  ...
+# Subtest: unsafe second header leaves all identities and bytes intact: escape
+ok 104 - unsafe second header leaves all identities and bytes intact: escape
+  ---
+  duration_ms: 1.901
+  type: 'test'
+  ...
+# Subtest: unsafe second header leaves all identities and bytes intact: del
+ok 105 - unsafe second header leaves all identities and bytes intact: del
+  ---
+  duration_ms: 1.394791
+  type: 'test'
+  ...
+# Subtest: unsafe second header leaves all identities and bytes intact: carriage return
+ok 106 - unsafe second header leaves all identities and bytes intact: carriage return
+  ---
+  duration_ms: 1.568917
+  type: 'test'
+  ...
+# Subtest: safe filename is literal, not decoded or evaluated: "café.txt"
+ok 107 - safe filename is literal, not decoded or evaluated: "café.txt"
+  ---
+  duration_ms: 1.189959
+  type: 'test'
+  ...
+# Subtest: safe filename is literal, not decoded or evaluated: "café.txt"
+ok 108 - safe filename is literal, not decoded or evaluated: "café.txt"
+  ---
+  duration_ms: 0.72075
+  type: 'test'
+  ...
+# Subtest: safe filename is literal, not decoded or evaluated: "file with spaces"
+ok 109 - safe filename is literal, not decoded or evaluated: "file with spaces"
+  ---
+  duration_ms: 0.479833
+  type: 'test'
+  ...
+# Subtest: safe filename is literal, not decoded or evaluated: "leading space "
+ok 110 - safe filename is literal, not decoded or evaluated: "leading space "
+  ---
+  duration_ms: 0.930917
+  type: 'test'
+  ...
+# Subtest: safe filename is literal, not decoded or evaluated: "-flag"
+ok 111 - safe filename is literal, not decoded or evaluated: "-flag"
+  ---
+  duration_ms: 1.479542
+  type: 'test'
+  ...
+# Subtest: safe filename is literal, not decoded or evaluated: "%2e%2e%2ftarget"
+ok 112 - safe filename is literal, not decoded or evaluated: "%2e%2e%2ftarget"
+  ---
+  duration_ms: 0.705917
+  type: 'test'
+  ...
+# Subtest: safe filename is literal, not decoded or evaluated: "$(touch sentinel)"
+ok 113 - safe filename is literal, not decoded or evaluated: "$(touch sentinel)"
+  ---
+  duration_ms: 0.402875
+  type: 'test'
+  ...
+# Subtest: safe filename is literal, not decoded or evaluated: "semi;colon"
+ok 114 - safe filename is literal, not decoded or evaluated: "semi;colon"
+  ---
+  duration_ms: 0.48875
+  type: 'test'
+  ...
+# Subtest: safe filename is literal, not decoded or evaluated: "name\#comment"
+ok 115 - safe filename is literal, not decoded or evaluated: "name\#comment"
+  ---
+  duration_ms: 0.389
+  type: 'test'
+  ...
+# Subtest: safe filename is literal, not decoded or evaluated: "name'quote"
+ok 116 - safe filename is literal, not decoded or evaluated: "name'quote"
+  ---
+  duration_ms: 0.450667
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: target + ./target, reverse=false, dryRun=false
+ok 117 - atomic extension single-final-write normalized sequence: target + ./target, reverse=false, dryRun=false
+  ---
+  duration_ms: 1.128667
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: target + ./target, reverse=false, dryRun=true
+ok 118 - atomic extension single-final-write normalized sequence: target + ./target, reverse=false, dryRun=true
+  ---
+  duration_ms: 4.153958
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: target + ./target, reverse=true, dryRun=false
+ok 119 - atomic extension single-final-write normalized sequence: target + ./target, reverse=true, dryRun=false
+  ---
+  duration_ms: 0.806084
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: target + ./target, reverse=true, dryRun=true
+ok 120 - atomic extension single-final-write normalized sequence: target + ./target, reverse=true, dryRun=true
+  ---
+  duration_ms: 0.429667
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: dir/target + dir/./target, reverse=false, dryRun=false
+ok 121 - atomic extension single-final-write normalized sequence: dir/target + dir/./target, reverse=false, dryRun=false
+  ---
+  duration_ms: 0.654375
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: dir/target + dir/./target, reverse=false, dryRun=true
+ok 122 - atomic extension single-final-write normalized sequence: dir/target + dir/./target, reverse=false, dryRun=true
+  ---
+  duration_ms: 0.497542
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: dir/target + dir/./target, reverse=true, dryRun=false
+ok 123 - atomic extension single-final-write normalized sequence: dir/target + dir/./target, reverse=true, dryRun=false
+  ---
+  duration_ms: 1.403875
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: dir/target + dir/./target, reverse=true, dryRun=true
+ok 124 - atomic extension single-final-write normalized sequence: dir/target + dir/./target, reverse=true, dryRun=true
+  ---
+  duration_ms: 0.69525
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: a/target + b/target, reverse=false, dryRun=false
+ok 125 - atomic extension single-final-write normalized sequence: a/target + b/target, reverse=false, dryRun=false
+  ---
+  duration_ms: 0.657792
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: a/target + b/target, reverse=false, dryRun=true
+ok 126 - atomic extension single-final-write normalized sequence: a/target + b/target, reverse=false, dryRun=true
+  ---
+  duration_ms: 0.586458
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: a/target + b/target, reverse=true, dryRun=false
+ok 127 - atomic extension single-final-write normalized sequence: a/target + b/target, reverse=true, dryRun=false
+  ---
+  duration_ms: 0.647042
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: a/target + b/target, reverse=true, dryRun=true
+ok 128 - atomic extension single-final-write normalized sequence: a/target + b/target, reverse=true, dryRun=true
+  ---
+  duration_ms: 0.426375
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: a/./target + b/target, reverse=false, dryRun=false
+ok 129 - atomic extension single-final-write normalized sequence: a/./target + b/target, reverse=false, dryRun=false
+  ---
+  duration_ms: 1.160292
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: a/./target + b/target, reverse=false, dryRun=true
+ok 130 - atomic extension single-final-write normalized sequence: a/./target + b/target, reverse=false, dryRun=true
+  ---
+  duration_ms: 0.446375
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: a/./target + b/target, reverse=true, dryRun=false
+ok 131 - atomic extension single-final-write normalized sequence: a/./target + b/target, reverse=true, dryRun=false
+  ---
+  duration_ms: 0.672667
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: a/./target + b/target, reverse=true, dryRun=true
+ok 132 - atomic extension single-final-write normalized sequence: a/./target + b/target, reverse=true, dryRun=true
+  ---
+  duration_ms: 0.51325
+  type: 'test'
+  ...
+# Subtest: atomic extension --force contradictory normalized sequence prevalidation: target + ./target
+ok 133 - atomic extension --force contradictory normalized sequence prevalidation: target + ./target
+  ---
+  duration_ms: 1.005875
+  type: 'test'
+  ...
+# Subtest: atomic extension --force contradictory normalized sequence prevalidation: dir/target + dir/./target
+ok 134 - atomic extension --force contradictory normalized sequence prevalidation: dir/target + dir/./target
+  ---
+  duration_ms: 0.678166
+  type: 'test'
+  ...
+# Subtest: atomic extension --force contradictory normalized sequence prevalidation: a/target + b/target
+ok 135 - atomic extension --force contradictory normalized sequence prevalidation: a/target + b/target
+  ---
+  duration_ms: 0.497834
+  type: 'test'
+  ...
+# Subtest: atomic extension --force contradictory normalized sequence prevalidation: a/./target + b/target
+ok 136 - atomic extension --force contradictory normalized sequence prevalidation: a/./target + b/target
+  ---
+  duration_ms: 2.067333
+  type: 'test'
+  ...
+# Subtest: timestamp fields cannot introduce a second target or escape cwd
+ok 137 - timestamp fields cannot introduce a second target or escape cwd
+  ---
+  duration_ms: 0.885375
+  type: 'test'
+  ...
+# Subtest: pre-existing final alias/parent rejection leaves full namespace unchanged
+ok 138 - pre-existing final alias/parent rejection leaves full namespace unchanged
+  ---
+  duration_ms: 0.627
+  type: 'test'
+  ...
+# Subtest: pre-existing ancestor alias/parent rejection leaves full namespace unchanged
+ok 139 - pre-existing ancestor alias/parent rejection leaves full namespace unchanged
+  ---
+  duration_ms: 0.299666
+  type: 'test'
+  ...
+# Subtest: pre-existing dangling alias/parent rejection leaves full namespace unchanged
+ok 140 - pre-existing dangling alias/parent rejection leaves full namespace unchanged
+  ---
+  duration_ms: 0.279625
+  type: 'test'
+  ...
+# Subtest: pre-existing cwd alias/parent rejection leaves full namespace unchanged
+ok 141 - pre-existing cwd alias/parent rejection leaves full namespace unchanged
+  ---
+  duration_ms: 0.201667
+  type: 'test'
+  ...
+# Subtest: pre-existing input alias/parent rejection leaves full namespace unchanged
+ok 142 - pre-existing input alias/parent rejection leaves full namespace unchanged
+  ---
+  duration_ms: 0.35525
+  type: 'test'
+  ...
+# Subtest: pre-existing hardlink alias/parent rejection leaves full namespace unchanged
+ok 143 - pre-existing hardlink alias/parent rejection leaves full namespace unchanged
+  ---
+  duration_ms: 0.46825
+  type: 'test'
+  ...
+# Subtest: pre-existing directory alias/parent rejection leaves full namespace unchanged
+ok 144 - pre-existing directory alias/parent rejection leaves full namespace unchanged
+  ---
+  duration_ms: 0.328333
+  type: 'test'
+  ...
+# Subtest: pre-existing file-parent alias/parent rejection leaves full namespace unchanged
+ok 145 - pre-existing file-parent alias/parent rejection leaves full namespace unchanged
+  ---
+  duration_ms: 1.031875
+  type: 'test'
+  ...
+# Subtest: GNU default creation and complete namespace: missing parent default strip
+ok 146 - GNU default creation and complete namespace: missing parent default strip
+  ---
+  duration_ms: 40.227209
+  type: 'test'
+  ...
+# Subtest: GNU default creation and complete namespace: missing parent explicit -p0
+ok 147 - GNU default creation and complete namespace: missing parent explicit -p0
+  ---
+  duration_ms: 19.974625
+  type: 'test'
+  ...
+# Subtest: dry-run mixed create/update/delete validates every result without mutation
+ok 148 - dry-run mixed create/update/delete validates every result without mutation
+  ---
+  duration_ms: 1.055541
+  type: 'test'
+  ...
+# Subtest: diff rejects header-injecting label "target\\n+++ sentinel" without output
+ok 149 - diff rejects header-injecting label "target\\n+++ sentinel" without output
+  ---
+  duration_ms: 0.448959
+  type: 'test'
+  ...
+# Subtest: diff rejects header-injecting label "target\\ttimestamp" without output
+ok 150 - diff rejects header-injecting label "target\\ttimestamp" without output
+  ---
+  duration_ms: 0.229416
+  type: 'test'
+  ...
+# Subtest: diff rejects header-injecting label "target\\r" without output
+ok 151 - diff rejects header-injecting label "target\\r" without output
+  ---
+  duration_ms: 0.107583
+  type: 'test'
+  ...
+# Subtest: diff rejects header-injecting label "target\\u0000" without output
+ok 152 - diff rejects header-injecting label "target\\u0000" without output
+  ---
+  duration_ms: 0.097542
+  type: 'test'
+  ...
+1..152
+# tests 152
+# suites 0
+# pass 151
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 686.871541

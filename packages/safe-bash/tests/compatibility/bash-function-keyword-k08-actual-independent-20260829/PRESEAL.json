@@ -1,0 +1,13 @@
+{
+  "schema": "K08-INDEPENDENT-DATA-AUDIT-1",
+  "sourceCommit": "3b72d9933d2efb431bf34ad0ae64bd7a78d0bce2",
+  "start": "2026-08-29T16:29:21.467Z",
+  "deadline": "2026-08-29T16:44:21.467Z",
+  "limits": {"knownOS":40,"peakKnownOS":3,"captureBytes":50331648,"logicalWorkBytes":201326592,"dataHelpers":2,"tamperControls":6},
+  "roles": ["captured immutable Git metadata", "up to two pure file-based DATA validators", "apply_patch editing tools", "scoped Git publication"],
+  "inputs": "Pinned Git tree supplies each author blob identity; local copies are usable only after regular-file size and Git blob SHA1 authentication. Raw base64 parts must match manifest SHA256 before decoding; package compressed bytes must match bound size/hash before same-buffer inflation.",
+  "checks": ["seal, authorization, exact command, package and code bindings", "all 469 captures and 15816908 raw bytes", "69 primary expected identities, exact stdout/stderr/status/effects", "three baseline helper batches of sixteen parameter rows", "three mutant diagnostics plus loaded mutant hashes", "two binding refusals", "known role exit/close, ownership, timing, postguards and census", "no new restore/type executions"],
+  "tamperControls": ["alter raw capture byte", "remove primary identity", "duplicate primary identity", "alter primary diagnostic", "alter mutant loaded hash", "remove known-role close"],
+  "exclusions": ["product execution or imports", "native execution", "Workers", "install/build/compiler", "network/private access", "universal process or group-absence claims"],
+  "history": "Old STOP1002 and LF-copy qualification remain unchanged; DATA tampering is not new runtime execution. Known-role-only functional review. No B2 activation."
+}

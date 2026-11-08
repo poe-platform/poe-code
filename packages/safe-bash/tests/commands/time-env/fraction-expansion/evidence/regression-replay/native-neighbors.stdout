@@ -1,0 +1,32 @@
+{
+  "rows": 36,
+  "GNU": 31,
+  "Apple": 0,
+  "mismatches": [
+    {
+      "category": "zone-label-profile",
+      "zone": "America/New_York",
+      "instant": "0008-01-02T03:04:05Z"
+    },
+    {
+      "category": "zone-label-profile",
+      "zone": "Europe/Paris",
+      "instant": "0008-01-02T03:04:05Z"
+    },
+    {
+      "category": "zone-label-profile",
+      "zone": "Europe/Paris",
+      "instant": "2024-02-29T15:06:07Z"
+    },
+    {
+      "category": "zone-label-profile",
+      "zone": "America/New_York",
+      "instant": "@-1"
+    },
+    {
+      "category": "zone-label-profile",
+      "zone": "Europe/Paris",
+      "instant": "@-1"
+    }
+  ]
+}

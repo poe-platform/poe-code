@@ -1,0 +1,37 @@
+import fs from 'node:fs';
+import crypto from 'node:crypto';
+import assert from 'node:assert/strict';
+import { pathToFileURL } from 'node:url';
+const scope = 'tests/integration/agent-bash-coherent-author-20260829/stage-b1-publication-v2';
+const [sealHash, sealSize] = process.argv.slice(2);
+const stat = fs.lstatSync(`${scope}/PRESEAL-v2.json`);
+assert(stat.isFile() && stat.size === Number(sealSize));
+const bytes = fs.readFileSync(`${scope}/PRESEAL-v2.json`);
+assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'), sealHash);
+const seal = JSON.parse(bytes);
+for (const file of seal.files) {
+  const meta = fs.lstatSync(file.path); assert(meta.isFile() && meta.size === file.bytes);
+  const body = fs.readFileSync(file.path); assert.equal(crypto.createHash('sha256').update(body).digest('hex'), file.sha256);
+}
+const { Ledger, completeWrite, failures, resultProfile, relativeName, inventoryEqual, deadline, limits } = await import(pathToFileURL(`${process.cwd()}/${scope}/policy.mjs`).href);
+const outcomes = [];
+const check = (id, callback) => { callback(); outcomes.push({ id, status: 'PASS', role: 'PURE; no OS/FD/commit or product proof' }); };
+const rows = ['source-built', 'installed', 'physically-moved'].map(layout => ({ layout, report: { rows: ['C10', 'C11', 'C15', 'C16', 'C18'].map(id => ({ id, reason: 0 })) } }));
+check('P01-short-writes', () => { let calls = 0; completeWrite(() => { calls++; return 1; }, Buffer.from('abc')); assert.equal(calls, 3); });
+check('P02-zero-write', () => assert.throws(() => completeWrite(() => 0, Buffer.from('a'))));
+check('P03-overlong-write', () => assert.throws(() => completeWrite(() => 2, Buffer.from('a'))));
+check('P04-paths', () => { for (const name of ['../x', '/x', 'x/AGENTS.md', 'x//y']) assert.throws(() => relativeName(name)); });
+check('P05-inventory', () => { assert.throws(() => inventoryEqual([], [{ path: 'x' }])); inventoryEqual([], []); });
+check('P06-complete-and-falsy', () => { const result = resultProfile(Buffer.from(JSON.stringify({ aggregate: rows }))); assert(result.complete); assert.equal(result.reportedRows[0].row.reason, 0); });
+check('P07-wrong-id', () => { const changed = structuredClone(rows); changed[0].report.rows[0].id = 'C99'; assert.equal(resultProfile(Buffer.from(JSON.stringify({ aggregate: changed }))).complete, false); });
+check('P08-clock', () => { const auth = { startedUTC: '2026-08-29T14:00:00Z', latestStartUTC: '2026-08-29T14:01:00Z', expiresUTC: '2026-08-29T14:31:00Z' }; assert.throws(() => deadline(auth, Date.parse('2026-08-29T14:30:00Z'))); deadline(auth, Date.parse('2026-08-29T14:00:01Z')); });
+check('P09-generated-metadata-charge', () => { const ledger = new Ledger(); ledger.charge(500); assert.equal(ledger.used.capture, 500); assert.equal(ledger.used.work, 500); });
+check('P10-live-tail', () => { const ledger = new Ledger({ capture: limits.capture - limits.tailCapture, work: 0 }); assert.throws(() => ledger.charge(1)); ledger.beginTail(); ledger.charge(128); assert.equal(ledger.used.capture, limits.capture - limits.tailCapture + 128); });
+check('P11-outside-evidence-charge', () => { const ledger = new Ledger({ capture: 100, work: 200 }); ledger.charge(300); assert.deepEqual(ledger.used, { capture: 400, work: 500 }); });
+check('P12-partial', () => { const result = resultProfile(Buffer.from(JSON.stringify({ aggregate: rows.slice(0, 1) }))); assert.equal(result.complete, false); assert.equal(result.reportedRows.length, 5); });
+check('P13-missing-malformed', () => { assert.equal(resultProfile(undefined, false).reportedRows, null); assert.equal(resultProfile(Buffer.from('{')).kind, 'MALFORMED'); });
+check('P14-no-inferred-zero', () => { for (const value of ['null', 'false', '0', '{}']) { const result = resultProfile(Buffer.from(value)); assert.equal(result.reportedRows, null); assert.equal(result.complete, false); } });
+check('P15-falsy-presence', () => { for (const value of [undefined, null, false, 0, '']) { const record = failures(); record.add(value); record.add(false); assert(record.primaryPresent); assert.equal(record.secondary[0].value, false); } });
+check('P16-final-receipt-reserve', () => { const ledger = new Ledger(); ledger.charge(123); assert(ledger.snapshot().reserved.capture > 0); ledger.beginTail(); ledger.charge(345); assert.equal(ledger.snapshot().used.capture, 468); });
+fs.writeFileSync(`${scope}/CONTROLS.json`, JSON.stringify({ startedUTC: seal.issuedUTC, finishedUTC: new Date().toISOString(), passed: outcomes.length, actual: 0, outcomes }, null, 2) + '\n', { flag: 'wx' });
+console.log(JSON.stringify({ purePassed: outcomes.length, actual: 0 }));

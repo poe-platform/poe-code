@@ -1,0 +1,21 @@
+{
+  "schema": "administrative-owner-r1",
+  "self": {
+    "id": "owner-59480",
+    "role": "administrative-owner",
+    "pid": 59480,
+    "startUTC": "2026-08-29T16:30:22.520Z",
+    "startObserved": true,
+    "exitObserved": false,
+    "closeObserved": false,
+    "state": "LIVE_COORDINATOR"
+  },
+  "starts": [],
+  "attempts": [],
+  "knownStarts": 1,
+  "activeKnownPIDs": [],
+  "captureBytes": 0,
+  "metadataBytes": 0,
+  "elapsedMs": 1.782,
+  "poisoned": false
+}

@@ -1,0 +1,26 @@
+{
+  "action": "created",
+  "comment": {
+    "body": "@poe-code resolve this issue",
+    "user": {
+      "login": "test-user"
+    }
+  },
+  "issue": {
+    "number": 1,
+    "title": "Test issue for comment trigger",
+    "body": "This issue is used to test comment-triggered workflows.",
+    "user": {
+      "login": "test-user"
+    },
+    "labels": [],
+    "assignees": []
+  },
+  "repository": {
+    "full_name": "anthropics/poe-setup-scripts",
+    "name": "poe-setup-scripts",
+    "owner": {
+      "login": "anthropics"
+    }
+  }
+}

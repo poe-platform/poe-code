@@ -1,0 +1,2328 @@
+{
+  "startedAt": "{\n  \"startedAt\": \"2026-08-29T05:21:49.553Z\",\n  \"authorizedChildren\": 17,\n  \"network\": false\n}",
+  "endedAt": "2026-08-29T05:22:20.986Z",
+  "elapsedMs": 31432.728041,
+  "status": "ALL_16_OUTCOMES_CAPTURED",
+  "starts": 17,
+  "ownedClosed": true,
+  "childrenClosed": 17,
+  "totalCapture": 1516321,
+  "completedPairs": 16,
+  "attributedValid": 16,
+  "literalRefusals": 0,
+  "unrunPairs": 0,
+  "outcomes": [
+    {
+      "id": "PAIR-01",
+      "name": "bash-5.3.tar.gz",
+      "payload": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash-5.3.tar.gz.data",
+        "bytes": 11355854,
+        "mode": "600",
+        "sha256": "0d5cd86965f869a26cf64f4b71be7b96f90a3ba8b3d74e27e8e9d9d5550f31ba",
+        "role": "OPAQUE_SOURCE"
+      },
+      "signature": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash-5.3.tar.gz.sig.data",
+        "bytes": 95,
+        "mode": "600",
+        "sha256": "bd32023612c9554182393b10d9db909fc5e35e2f07b38e327ff65e500288a9ad",
+        "role": "OPAQUE_DETACHED_SIGNATURE"
+      },
+      "keyring": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "bytes": 1507,
+        "mode": "600",
+        "sha256": "4adabad0482fb4634c0a13c3f3bff27308567a898b29e59c432327e3efddbe94"
+      },
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "machine": [
+        {
+          "raw": "[GNUPG:] NEWSIG",
+          "code": "NEWSIG",
+          "fields": []
+        },
+        {
+          "raw": "[GNUPG:] KEY_CONSIDERED 7C0135FB088AAF6C66C650B9BB5869F064EA74AB 0",
+          "code": "KEY_CONSIDERED",
+          "fields": [
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+            "0"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] SIG_ID VE3K2Ycj3yENCbTMdb1qYsck3Nw 2025-07-30 1753883263",
+          "code": "SIG_ID",
+          "fields": [
+            "VE3K2Ycj3yENCbTMdb1qYsck3Nw",
+            "2025-07-30",
+            "1753883263"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] GOODSIG BB5869F064EA74AB Chet Ramey <chet@cwru.edu>",
+          "code": "GOODSIG",
+          "fields": [
+            "BB5869F064EA74AB",
+            "Chet",
+            "Ramey",
+            "<chet@cwru.edu>"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] VALIDSIG 7C0135FB088AAF6C66C650B9BB5869F064EA74AB 2025-07-30 1753883263 0 4 0 17 2 00 7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "code": "VALIDSIG",
+          "fields": [
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+            "2025-07-30",
+            "1753883263",
+            "0",
+            "4",
+            "0",
+            "17",
+            "2",
+            "00",
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB"
+          ]
+        }
+      ],
+      "validSignatures": [
+        {
+          "signingFingerprint": "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "primaryFingerprintField": "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "directAttributedPrimaryMatch": true,
+          "signatureDate": "2025-07-30",
+          "timestamp": "1753883263",
+          "expiration": "0",
+          "publicKeyAlgorithm": "17",
+          "digestAlgorithm": "2",
+          "signatureClass": "00"
+        }
+      ],
+      "adverse": [],
+      "attributed": true,
+      "classification": "VALID_SIGNATURE_WITH_SOURCE_ATTRIBUTED_PRIMARY",
+      "unknownSignerHints": [],
+      "imagesObserved": 610,
+      "keyHomeEntries": []
+    },
+    {
+      "id": "PAIR-02",
+      "name": "bash53-001",
+      "payload": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-001.data",
+        "bytes": 1531,
+        "mode": "600",
+        "sha256": "1f608434364af86b9b45c8b0ea3fb3b165fb830d27697e6cdfc7ac17dee3287f",
+        "role": "OPAQUE_SOURCE"
+      },
+      "signature": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-001.sig.data",
+        "bytes": 95,
+        "mode": "600",
+        "sha256": "47a678b49a5b5c63f56cf119a65be650d37b922e49ef4263654fc7842bc7f4c6",
+        "role": "OPAQUE_DETACHED_SIGNATURE"
+      },
+      "keyring": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "bytes": 1507,
+        "mode": "600",
+        "sha256": "4adabad0482fb4634c0a13c3f3bff27308567a898b29e59c432327e3efddbe94"
+      },
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "machine": [
+        {
+          "raw": "[GNUPG:] NEWSIG",
+          "code": "NEWSIG",
+          "fields": []
+        },
+        {
+          "raw": "[GNUPG:] KEY_CONSIDERED 7C0135FB088AAF6C66C650B9BB5869F064EA74AB 0",
+          "code": "KEY_CONSIDERED",
+          "fields": [
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+            "0"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] SIG_ID G8HTrR1QqvOylbHu3qmG2T0a5tI 2025-07-21 1753125478",
+          "code": "SIG_ID",
+          "fields": [
+            "G8HTrR1QqvOylbHu3qmG2T0a5tI",
+            "2025-07-21",
+            "1753125478"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] GOODSIG BB5869F064EA74AB Chet Ramey <chet@cwru.edu>",
+          "code": "GOODSIG",
+          "fields": [
+            "BB5869F064EA74AB",
+            "Chet",
+            "Ramey",
+            "<chet@cwru.edu>"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] VALIDSIG 7C0135FB088AAF6C66C650B9BB5869F064EA74AB 2025-07-21 1753125478 0 4 0 17 2 00 7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "code": "VALIDSIG",
+          "fields": [
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+            "2025-07-21",
+            "1753125478",
+            "0",
+            "4",
+            "0",
+            "17",
+            "2",
+            "00",
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB"
+          ]
+        }
+      ],
+      "validSignatures": [
+        {
+          "signingFingerprint": "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "primaryFingerprintField": "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "directAttributedPrimaryMatch": true,
+          "signatureDate": "2025-07-21",
+          "timestamp": "1753125478",
+          "expiration": "0",
+          "publicKeyAlgorithm": "17",
+          "digestAlgorithm": "2",
+          "signatureClass": "00"
+        }
+      ],
+      "adverse": [],
+      "attributed": true,
+      "classification": "VALID_SIGNATURE_WITH_SOURCE_ATTRIBUTED_PRIMARY",
+      "unknownSignerHints": [],
+      "imagesObserved": 610,
+      "keyHomeEntries": []
+    },
+    {
+      "id": "PAIR-03",
+      "name": "bash53-002",
+      "payload": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-002.data",
+        "bytes": 2635,
+        "mode": "600",
+        "sha256": "e385548a00130765ec7938a56fbdca52447ab41fabc95a25f19ade527e282001",
+        "role": "OPAQUE_SOURCE"
+      },
+      "signature": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-002.sig.data",
+        "bytes": 95,
+        "mode": "600",
+        "sha256": "693d6b30c3cbcbcb30ad262b1b870fd33ee6f56113146b0f3586577af57d3f3f",
+        "role": "OPAQUE_DETACHED_SIGNATURE"
+      },
+      "keyring": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "bytes": 1507,
+        "mode": "600",
+        "sha256": "4adabad0482fb4634c0a13c3f3bff27308567a898b29e59c432327e3efddbe94"
+      },
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "machine": [
+        {
+          "raw": "[GNUPG:] NEWSIG",
+          "code": "NEWSIG",
+          "fields": []
+        },
+        {
+          "raw": "[GNUPG:] KEY_CONSIDERED 7C0135FB088AAF6C66C650B9BB5869F064EA74AB 0",
+          "code": "KEY_CONSIDERED",
+          "fields": [
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+            "0"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] SIG_ID 0HhVoWc0O7+9qLCRdl3B3LrzVm0 2025-07-21 1753125487",
+          "code": "SIG_ID",
+          "fields": [
+            "0HhVoWc0O7+9qLCRdl3B3LrzVm0",
+            "2025-07-21",
+            "1753125487"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] GOODSIG BB5869F064EA74AB Chet Ramey <chet@cwru.edu>",
+          "code": "GOODSIG",
+          "fields": [
+            "BB5869F064EA74AB",
+            "Chet",
+            "Ramey",
+            "<chet@cwru.edu>"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] VALIDSIG 7C0135FB088AAF6C66C650B9BB5869F064EA74AB 2025-07-21 1753125487 0 4 0 17 2 00 7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "code": "VALIDSIG",
+          "fields": [
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+            "2025-07-21",
+            "1753125487",
+            "0",
+            "4",
+            "0",
+            "17",
+            "2",
+            "00",
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB"
+          ]
+        }
+      ],
+      "validSignatures": [
+        {
+          "signingFingerprint": "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "primaryFingerprintField": "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "directAttributedPrimaryMatch": true,
+          "signatureDate": "2025-07-21",
+          "timestamp": "1753125487",
+          "expiration": "0",
+          "publicKeyAlgorithm": "17",
+          "digestAlgorithm": "2",
+          "signatureClass": "00"
+        }
+      ],
+      "adverse": [],
+      "attributed": true,
+      "classification": "VALID_SIGNATURE_WITH_SOURCE_ATTRIBUTED_PRIMARY",
+      "unknownSignerHints": [],
+      "imagesObserved": 610,
+      "keyHomeEntries": []
+    },
+    {
+      "id": "PAIR-04",
+      "name": "bash53-003",
+      "payload": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-003.data",
+        "bytes": 2683,
+        "mode": "600",
+        "sha256": "f245d9c7dc3f5a20d84b53d249334747940936f09dc97e1dcb89fc3ab37d60ed",
+        "role": "OPAQUE_SOURCE"
+      },
+      "signature": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-003.sig.data",
+        "bytes": 95,
+        "mode": "600",
+        "sha256": "975ea7c4d40ec435ed8d453b2802f4d61916db1fa2d56f760db5b13a8b918500",
+        "role": "OPAQUE_DETACHED_SIGNATURE"
+      },
+      "keyring": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "bytes": 1507,
+        "mode": "600",
+        "sha256": "4adabad0482fb4634c0a13c3f3bff27308567a898b29e59c432327e3efddbe94"
+      },
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "machine": [
+        {
+          "raw": "[GNUPG:] NEWSIG",
+          "code": "NEWSIG",
+          "fields": []
+        },
+        {
+          "raw": "[GNUPG:] KEY_CONSIDERED 7C0135FB088AAF6C66C650B9BB5869F064EA74AB 0",
+          "code": "KEY_CONSIDERED",
+          "fields": [
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+            "0"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] SIG_ID wWTJfyNE7oRk9eybT9fvSYgG7Hc 2025-07-21 1753125489",
+          "code": "SIG_ID",
+          "fields": [
+            "wWTJfyNE7oRk9eybT9fvSYgG7Hc",
+            "2025-07-21",
+            "1753125489"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] GOODSIG BB5869F064EA74AB Chet Ramey <chet@cwru.edu>",
+          "code": "GOODSIG",
+          "fields": [
+            "BB5869F064EA74AB",
+            "Chet",
+            "Ramey",
+            "<chet@cwru.edu>"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] VALIDSIG 7C0135FB088AAF6C66C650B9BB5869F064EA74AB 2025-07-21 1753125489 0 4 0 17 2 00 7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "code": "VALIDSIG",
+          "fields": [
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+            "2025-07-21",
+            "1753125489",
+            "0",
+            "4",
+            "0",
+            "17",
+            "2",
+            "00",
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB"
+          ]
+        }
+      ],
+      "validSignatures": [
+        {
+          "signingFingerprint": "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "primaryFingerprintField": "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "directAttributedPrimaryMatch": true,
+          "signatureDate": "2025-07-21",
+          "timestamp": "1753125489",
+          "expiration": "0",
+          "publicKeyAlgorithm": "17",
+          "digestAlgorithm": "2",
+          "signatureClass": "00"
+        }
+      ],
+      "adverse": [],
+      "attributed": true,
+      "classification": "VALID_SIGNATURE_WITH_SOURCE_ATTRIBUTED_PRIMARY",
+      "unknownSignerHints": [],
+      "imagesObserved": 610,
+      "keyHomeEntries": []
+    },
+    {
+      "id": "PAIR-05",
+      "name": "bash53-004",
+      "payload": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-004.data",
+        "bytes": 1266,
+        "mode": "600",
+        "sha256": "9591d245045529f32f0812f94180b9d9ce9023f5a765c039b852e5dfc99747d0",
+        "role": "OPAQUE_SOURCE"
+      },
+      "signature": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-004.sig.data",
+        "bytes": 95,
+        "mode": "600",
+        "sha256": "8014107113756b307b9e79b9d17a99806e7e529694d3e90c906bc2ef8cf8ca2e",
+        "role": "OPAQUE_DETACHED_SIGNATURE"
+      },
+      "keyring": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "bytes": 1507,
+        "mode": "600",
+        "sha256": "4adabad0482fb4634c0a13c3f3bff27308567a898b29e59c432327e3efddbe94"
+      },
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "machine": [
+        {
+          "raw": "[GNUPG:] NEWSIG",
+          "code": "NEWSIG",
+          "fields": []
+        },
+        {
+          "raw": "[GNUPG:] KEY_CONSIDERED 7C0135FB088AAF6C66C650B9BB5869F064EA74AB 0",
+          "code": "KEY_CONSIDERED",
+          "fields": [
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+            "0"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] SIG_ID jSM6pTsNCLt6rRPAauJ/pLVKXY4 2025-11-26 1764177330",
+          "code": "SIG_ID",
+          "fields": [
+            "jSM6pTsNCLt6rRPAauJ/pLVKXY4",
+            "2025-11-26",
+            "1764177330"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] GOODSIG BB5869F064EA74AB Chet Ramey <chet@cwru.edu>",
+          "code": "GOODSIG",
+          "fields": [
+            "BB5869F064EA74AB",
+            "Chet",
+            "Ramey",
+            "<chet@cwru.edu>"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] VALIDSIG 7C0135FB088AAF6C66C650B9BB5869F064EA74AB 2025-11-26 1764177330 0 4 0 17 2 00 7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "code": "VALIDSIG",
+          "fields": [
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+            "2025-11-26",
+            "1764177330",
+            "0",
+            "4",
+            "0",
+            "17",
+            "2",
+            "00",
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB"
+          ]
+        }
+      ],
+      "validSignatures": [
+        {
+          "signingFingerprint": "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "primaryFingerprintField": "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "directAttributedPrimaryMatch": true,
+          "signatureDate": "2025-11-26",
+          "timestamp": "1764177330",
+          "expiration": "0",
+          "publicKeyAlgorithm": "17",
+          "digestAlgorithm": "2",
+          "signatureClass": "00"
+        }
+      ],
+      "adverse": [],
+      "attributed": true,
+      "classification": "VALID_SIGNATURE_WITH_SOURCE_ATTRIBUTED_PRIMARY",
+      "unknownSignerHints": [],
+      "imagesObserved": 610,
+      "keyHomeEntries": []
+    },
+    {
+      "id": "PAIR-06",
+      "name": "bash53-005",
+      "payload": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-005.data",
+        "bytes": 1072,
+        "mode": "600",
+        "sha256": "cca1ef52dbbf433bc98e33269b64b2c814028efe2538be1e2c9a377da90bc99d",
+        "role": "OPAQUE_SOURCE"
+      },
+      "signature": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-005.sig.data",
+        "bytes": 95,
+        "mode": "600",
+        "sha256": "cb47825ff8ed52574bc15550aa4175d8e989955644f8e94a4d25047f8f1c8654",
+        "role": "OPAQUE_DETACHED_SIGNATURE"
+      },
+      "keyring": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "bytes": 1507,
+        "mode": "600",
+        "sha256": "4adabad0482fb4634c0a13c3f3bff27308567a898b29e59c432327e3efddbe94"
+      },
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "machine": [
+        {
+          "raw": "[GNUPG:] NEWSIG",
+          "code": "NEWSIG",
+          "fields": []
+        },
+        {
+          "raw": "[GNUPG:] KEY_CONSIDERED 7C0135FB088AAF6C66C650B9BB5869F064EA74AB 0",
+          "code": "KEY_CONSIDERED",
+          "fields": [
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+            "0"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] SIG_ID qPj5girRNOYLJt+pEpI4fqktiAY 2025-11-26 1764177339",
+          "code": "SIG_ID",
+          "fields": [
+            "qPj5girRNOYLJt+pEpI4fqktiAY",
+            "2025-11-26",
+            "1764177339"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] GOODSIG BB5869F064EA74AB Chet Ramey <chet@cwru.edu>",
+          "code": "GOODSIG",
+          "fields": [
+            "BB5869F064EA74AB",
+            "Chet",
+            "Ramey",
+            "<chet@cwru.edu>"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] VALIDSIG 7C0135FB088AAF6C66C650B9BB5869F064EA74AB 2025-11-26 1764177339 0 4 0 17 2 00 7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "code": "VALIDSIG",
+          "fields": [
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+            "2025-11-26",
+            "1764177339",
+            "0",
+            "4",
+            "0",
+            "17",
+            "2",
+            "00",
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB"
+          ]
+        }
+      ],
+      "validSignatures": [
+        {
+          "signingFingerprint": "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "primaryFingerprintField": "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "directAttributedPrimaryMatch": true,
+          "signatureDate": "2025-11-26",
+          "timestamp": "1764177339",
+          "expiration": "0",
+          "publicKeyAlgorithm": "17",
+          "digestAlgorithm": "2",
+          "signatureClass": "00"
+        }
+      ],
+      "adverse": [],
+      "attributed": true,
+      "classification": "VALID_SIGNATURE_WITH_SOURCE_ATTRIBUTED_PRIMARY",
+      "unknownSignerHints": [],
+      "imagesObserved": 610,
+      "keyHomeEntries": []
+    },
+    {
+      "id": "PAIR-07",
+      "name": "bash53-006",
+      "payload": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-006.data",
+        "bytes": 1346,
+        "mode": "600",
+        "sha256": "29119addefed8eff91ae37fd51822c31780ee30d4a28376e96002706c995ff10",
+        "role": "OPAQUE_SOURCE"
+      },
+      "signature": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-006.sig.data",
+        "bytes": 95,
+        "mode": "600",
+        "sha256": "0039bdd8d88c9150358bbfb3155a97019b9b88cd9a8c6d4ad5d7a19de65c51e7",
+        "role": "OPAQUE_DETACHED_SIGNATURE"
+      },
+      "keyring": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "bytes": 1507,
+        "mode": "600",
+        "sha256": "4adabad0482fb4634c0a13c3f3bff27308567a898b29e59c432327e3efddbe94"
+      },
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "machine": [
+        {
+          "raw": "[GNUPG:] NEWSIG",
+          "code": "NEWSIG",
+          "fields": []
+        },
+        {
+          "raw": "[GNUPG:] KEY_CONSIDERED 7C0135FB088AAF6C66C650B9BB5869F064EA74AB 0",
+          "code": "KEY_CONSIDERED",
+          "fields": [
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+            "0"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] SIG_ID H56uQpL0l7dju5WhSOXaE14WQho 2025-11-26 1764177340",
+          "code": "SIG_ID",
+          "fields": [
+            "H56uQpL0l7dju5WhSOXaE14WQho",
+            "2025-11-26",
+            "1764177340"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] GOODSIG BB5869F064EA74AB Chet Ramey <chet@cwru.edu>",
+          "code": "GOODSIG",
+          "fields": [
+            "BB5869F064EA74AB",
+            "Chet",
+            "Ramey",
+            "<chet@cwru.edu>"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] VALIDSIG 7C0135FB088AAF6C66C650B9BB5869F064EA74AB 2025-11-26 1764177340 0 4 0 17 2 00 7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "code": "VALIDSIG",
+          "fields": [
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+            "2025-11-26",
+            "1764177340",
+            "0",
+            "4",
+            "0",
+            "17",
+            "2",
+            "00",
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB"
+          ]
+        }
+      ],
+      "validSignatures": [
+        {
+          "signingFingerprint": "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "primaryFingerprintField": "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "directAttributedPrimaryMatch": true,
+          "signatureDate": "2025-11-26",
+          "timestamp": "1764177340",
+          "expiration": "0",
+          "publicKeyAlgorithm": "17",
+          "digestAlgorithm": "2",
+          "signatureClass": "00"
+        }
+      ],
+      "adverse": [],
+      "attributed": true,
+      "classification": "VALID_SIGNATURE_WITH_SOURCE_ATTRIBUTED_PRIMARY",
+      "unknownSignerHints": [],
+      "imagesObserved": 610,
+      "keyHomeEntries": []
+    },
+    {
+      "id": "PAIR-08",
+      "name": "bash53-007",
+      "payload": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-007.data",
+        "bytes": 1437,
+        "mode": "600",
+        "sha256": "c0976bbfffa1453c7cfdd62058f206a318568ff2d690f5d4fa048793fa3eb299",
+        "role": "OPAQUE_SOURCE"
+      },
+      "signature": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-007.sig.data",
+        "bytes": 95,
+        "mode": "600",
+        "sha256": "66ef5f0e535594c9836810aba5b9e4a0cd23a2fb258a01f5e34a950618e4faea",
+        "role": "OPAQUE_DETACHED_SIGNATURE"
+      },
+      "keyring": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "bytes": 1507,
+        "mode": "600",
+        "sha256": "4adabad0482fb4634c0a13c3f3bff27308567a898b29e59c432327e3efddbe94"
+      },
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "machine": [
+        {
+          "raw": "[GNUPG:] NEWSIG",
+          "code": "NEWSIG",
+          "fields": []
+        },
+        {
+          "raw": "[GNUPG:] KEY_CONSIDERED 7C0135FB088AAF6C66C650B9BB5869F064EA74AB 0",
+          "code": "KEY_CONSIDERED",
+          "fields": [
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+            "0"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] SIG_ID WLrj+HxL0n0SeIyLR3xir2we5OM 2025-11-26 1764177342",
+          "code": "SIG_ID",
+          "fields": [
+            "WLrj+HxL0n0SeIyLR3xir2we5OM",
+            "2025-11-26",
+            "1764177342"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] GOODSIG BB5869F064EA74AB Chet Ramey <chet@cwru.edu>",
+          "code": "GOODSIG",
+          "fields": [
+            "BB5869F064EA74AB",
+            "Chet",
+            "Ramey",
+            "<chet@cwru.edu>"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] VALIDSIG 7C0135FB088AAF6C66C650B9BB5869F064EA74AB 2025-11-26 1764177342 0 4 0 17 2 00 7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "code": "VALIDSIG",
+          "fields": [
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+            "2025-11-26",
+            "1764177342",
+            "0",
+            "4",
+            "0",
+            "17",
+            "2",
+            "00",
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB"
+          ]
+        }
+      ],
+      "validSignatures": [
+        {
+          "signingFingerprint": "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "primaryFingerprintField": "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "directAttributedPrimaryMatch": true,
+          "signatureDate": "2025-11-26",
+          "timestamp": "1764177342",
+          "expiration": "0",
+          "publicKeyAlgorithm": "17",
+          "digestAlgorithm": "2",
+          "signatureClass": "00"
+        }
+      ],
+      "adverse": [],
+      "attributed": true,
+      "classification": "VALID_SIGNATURE_WITH_SOURCE_ATTRIBUTED_PRIMARY",
+      "unknownSignerHints": [],
+      "imagesObserved": 610,
+      "keyHomeEntries": []
+    },
+    {
+      "id": "PAIR-09",
+      "name": "bash53-008",
+      "payload": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-008.data",
+        "bytes": 5717,
+        "mode": "600",
+        "sha256": "097cd723cbfb8907674ac32214063a3fd85282657ec5b4e544d2c0f719653fb4",
+        "role": "OPAQUE_SOURCE"
+      },
+      "signature": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-008.sig.data",
+        "bytes": 95,
+        "mode": "600",
+        "sha256": "09e80b5a51d848da582b61aa99e2a18e4f5c7102348c8e16f735dd9dd8b3405f",
+        "role": "OPAQUE_DETACHED_SIGNATURE"
+      },
+      "keyring": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "bytes": 1507,
+        "mode": "600",
+        "sha256": "4adabad0482fb4634c0a13c3f3bff27308567a898b29e59c432327e3efddbe94"
+      },
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "machine": [
+        {
+          "raw": "[GNUPG:] NEWSIG",
+          "code": "NEWSIG",
+          "fields": []
+        },
+        {
+          "raw": "[GNUPG:] KEY_CONSIDERED 7C0135FB088AAF6C66C650B9BB5869F064EA74AB 0",
+          "code": "KEY_CONSIDERED",
+          "fields": [
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+            "0"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] SIG_ID fkvDUevYTZ95ZG428UhuGiII8JQ 2025-11-26 1764177343",
+          "code": "SIG_ID",
+          "fields": [
+            "fkvDUevYTZ95ZG428UhuGiII8JQ",
+            "2025-11-26",
+            "1764177343"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] GOODSIG BB5869F064EA74AB Chet Ramey <chet@cwru.edu>",
+          "code": "GOODSIG",
+          "fields": [
+            "BB5869F064EA74AB",
+            "Chet",
+            "Ramey",
+            "<chet@cwru.edu>"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] VALIDSIG 7C0135FB088AAF6C66C650B9BB5869F064EA74AB 2025-11-26 1764177343 0 4 0 17 2 00 7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "code": "VALIDSIG",
+          "fields": [
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+            "2025-11-26",
+            "1764177343",
+            "0",
+            "4",
+            "0",
+            "17",
+            "2",
+            "00",
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB"
+          ]
+        }
+      ],
+      "validSignatures": [
+        {
+          "signingFingerprint": "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "primaryFingerprintField": "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "directAttributedPrimaryMatch": true,
+          "signatureDate": "2025-11-26",
+          "timestamp": "1764177343",
+          "expiration": "0",
+          "publicKeyAlgorithm": "17",
+          "digestAlgorithm": "2",
+          "signatureClass": "00"
+        }
+      ],
+      "adverse": [],
+      "attributed": true,
+      "classification": "VALID_SIGNATURE_WITH_SOURCE_ATTRIBUTED_PRIMARY",
+      "unknownSignerHints": [],
+      "imagesObserved": 610,
+      "keyHomeEntries": []
+    },
+    {
+      "id": "PAIR-10",
+      "name": "bash53-009",
+      "payload": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-009.data",
+        "bytes": 2468,
+        "mode": "600",
+        "sha256": "eee30fe78a4b0cb2fe20e010e00308899cfc613e0774ebb3c8557a1552f24f8c",
+        "role": "OPAQUE_SOURCE"
+      },
+      "signature": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-009.sig.data",
+        "bytes": 95,
+        "mode": "600",
+        "sha256": "153a8b129f2a4d97e75ccedda7cda032283d3976196b831a191f391a62a8120c",
+        "role": "OPAQUE_DETACHED_SIGNATURE"
+      },
+      "keyring": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "bytes": 1507,
+        "mode": "600",
+        "sha256": "4adabad0482fb4634c0a13c3f3bff27308567a898b29e59c432327e3efddbe94"
+      },
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "machine": [
+        {
+          "raw": "[GNUPG:] NEWSIG",
+          "code": "NEWSIG",
+          "fields": []
+        },
+        {
+          "raw": "[GNUPG:] KEY_CONSIDERED 7C0135FB088AAF6C66C650B9BB5869F064EA74AB 0",
+          "code": "KEY_CONSIDERED",
+          "fields": [
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+            "0"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] SIG_ID XSrjmLeNXrTEEaeIwXCKV2BLMQM 2025-12-05 1764948764",
+          "code": "SIG_ID",
+          "fields": [
+            "XSrjmLeNXrTEEaeIwXCKV2BLMQM",
+            "2025-12-05",
+            "1764948764"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] GOODSIG BB5869F064EA74AB Chet Ramey <chet@cwru.edu>",
+          "code": "GOODSIG",
+          "fields": [
+            "BB5869F064EA74AB",
+            "Chet",
+            "Ramey",
+            "<chet@cwru.edu>"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] VALIDSIG 7C0135FB088AAF6C66C650B9BB5869F064EA74AB 2025-12-05 1764948764 0 4 0 17 2 00 7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "code": "VALIDSIG",
+          "fields": [
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+            "2025-12-05",
+            "1764948764",
+            "0",
+            "4",
+            "0",
+            "17",
+            "2",
+            "00",
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB"
+          ]
+        }
+      ],
+      "validSignatures": [
+        {
+          "signingFingerprint": "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "primaryFingerprintField": "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "directAttributedPrimaryMatch": true,
+          "signatureDate": "2025-12-05",
+          "timestamp": "1764948764",
+          "expiration": "0",
+          "publicKeyAlgorithm": "17",
+          "digestAlgorithm": "2",
+          "signatureClass": "00"
+        }
+      ],
+      "adverse": [],
+      "attributed": true,
+      "classification": "VALID_SIGNATURE_WITH_SOURCE_ATTRIBUTED_PRIMARY",
+      "unknownSignerHints": [],
+      "imagesObserved": 610,
+      "keyHomeEntries": []
+    },
+    {
+      "id": "PAIR-11",
+      "name": "bash53-010",
+      "payload": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-010.data",
+        "bytes": 1457,
+        "mode": "600",
+        "sha256": "cf76f1cce2ea300c18bff9f002d21f280cc931acd17c28518110b93fe6e72569",
+        "role": "OPAQUE_SOURCE"
+      },
+      "signature": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-010.sig.data",
+        "bytes": 123,
+        "mode": "600",
+        "sha256": "fbf008c39eaf01401df6ade2a9b8ac38a173cce2025523c6b0919c54d8bea69d",
+        "role": "OPAQUE_DETACHED_SIGNATURE"
+      },
+      "keyring": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "bytes": 1507,
+        "mode": "600",
+        "sha256": "4adabad0482fb4634c0a13c3f3bff27308567a898b29e59c432327e3efddbe94"
+      },
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "machine": [
+        {
+          "raw": "[GNUPG:] NEWSIG",
+          "code": "NEWSIG",
+          "fields": []
+        },
+        {
+          "raw": "[GNUPG:] KEY_CONSIDERED 7C0135FB088AAF6C66C650B9BB5869F064EA74AB 0",
+          "code": "KEY_CONSIDERED",
+          "fields": [
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+            "0"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] SIG_ID 8fmwukaWUPgZcADCOPT/S+YEgFk 2026-06-02 1780409555",
+          "code": "SIG_ID",
+          "fields": [
+            "8fmwukaWUPgZcADCOPT/S+YEgFk",
+            "2026-06-02",
+            "1780409555"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] GOODSIG BB5869F064EA74AB Chet Ramey <chet@cwru.edu>",
+          "code": "GOODSIG",
+          "fields": [
+            "BB5869F064EA74AB",
+            "Chet",
+            "Ramey",
+            "<chet@cwru.edu>"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] VALIDSIG 7C0135FB088AAF6C66C650B9BB5869F064EA74AB 2026-06-02 1780409555 0 4 0 17 2 00 7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "code": "VALIDSIG",
+          "fields": [
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+            "2026-06-02",
+            "1780409555",
+            "0",
+            "4",
+            "0",
+            "17",
+            "2",
+            "00",
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB"
+          ]
+        }
+      ],
+      "validSignatures": [
+        {
+          "signingFingerprint": "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "primaryFingerprintField": "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "directAttributedPrimaryMatch": true,
+          "signatureDate": "2026-06-02",
+          "timestamp": "1780409555",
+          "expiration": "0",
+          "publicKeyAlgorithm": "17",
+          "digestAlgorithm": "2",
+          "signatureClass": "00"
+        }
+      ],
+      "adverse": [],
+      "attributed": true,
+      "classification": "VALID_SIGNATURE_WITH_SOURCE_ATTRIBUTED_PRIMARY",
+      "unknownSignerHints": [],
+      "imagesObserved": 610,
+      "keyHomeEntries": []
+    },
+    {
+      "id": "PAIR-12",
+      "name": "bash53-011",
+      "payload": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-011.data",
+        "bytes": 2251,
+        "mode": "600",
+        "sha256": "0298df8f5ea2a31d3be43ed7d269c5b3c7c342dd5b570bea7f64d66dcbbe7531",
+        "role": "OPAQUE_SOURCE"
+      },
+      "signature": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-011.sig.data",
+        "bytes": 123,
+        "mode": "600",
+        "sha256": "97a2fefb3ac297635b54662c201b80edd7f54276a0eabb54494fe5d17443fb0f",
+        "role": "OPAQUE_DETACHED_SIGNATURE"
+      },
+      "keyring": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "bytes": 1507,
+        "mode": "600",
+        "sha256": "4adabad0482fb4634c0a13c3f3bff27308567a898b29e59c432327e3efddbe94"
+      },
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "machine": [
+        {
+          "raw": "[GNUPG:] NEWSIG",
+          "code": "NEWSIG",
+          "fields": []
+        },
+        {
+          "raw": "[GNUPG:] KEY_CONSIDERED 7C0135FB088AAF6C66C650B9BB5869F064EA74AB 0",
+          "code": "KEY_CONSIDERED",
+          "fields": [
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+            "0"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] SIG_ID i+rReENxX4FDIbzZ+6uUGSkM+EQ 2026-06-02 1780409562",
+          "code": "SIG_ID",
+          "fields": [
+            "i+rReENxX4FDIbzZ+6uUGSkM+EQ",
+            "2026-06-02",
+            "1780409562"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] GOODSIG BB5869F064EA74AB Chet Ramey <chet@cwru.edu>",
+          "code": "GOODSIG",
+          "fields": [
+            "BB5869F064EA74AB",
+            "Chet",
+            "Ramey",
+            "<chet@cwru.edu>"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] VALIDSIG 7C0135FB088AAF6C66C650B9BB5869F064EA74AB 2026-06-02 1780409562 0 4 0 17 2 00 7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "code": "VALIDSIG",
+          "fields": [
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+            "2026-06-02",
+            "1780409562",
+            "0",
+            "4",
+            "0",
+            "17",
+            "2",
+            "00",
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB"
+          ]
+        }
+      ],
+      "validSignatures": [
+        {
+          "signingFingerprint": "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "primaryFingerprintField": "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "directAttributedPrimaryMatch": true,
+          "signatureDate": "2026-06-02",
+          "timestamp": "1780409562",
+          "expiration": "0",
+          "publicKeyAlgorithm": "17",
+          "digestAlgorithm": "2",
+          "signatureClass": "00"
+        }
+      ],
+      "adverse": [],
+      "attributed": true,
+      "classification": "VALID_SIGNATURE_WITH_SOURCE_ATTRIBUTED_PRIMARY",
+      "unknownSignerHints": [],
+      "imagesObserved": 610,
+      "keyHomeEntries": []
+    },
+    {
+      "id": "PAIR-13",
+      "name": "bash53-012",
+      "payload": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-012.data",
+        "bytes": 2378,
+        "mode": "600",
+        "sha256": "d71379b39bebaedaf123414414e77fb458a0a43b9ad3116594c6df7ca6754573",
+        "role": "OPAQUE_SOURCE"
+      },
+      "signature": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-012.sig.data",
+        "bytes": 123,
+        "mode": "600",
+        "sha256": "536ccbaff4fd28c95fb0394bea230b125d607821d12fee3f231f44682aa2c8af",
+        "role": "OPAQUE_DETACHED_SIGNATURE"
+      },
+      "keyring": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "bytes": 1507,
+        "mode": "600",
+        "sha256": "4adabad0482fb4634c0a13c3f3bff27308567a898b29e59c432327e3efddbe94"
+      },
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "machine": [
+        {
+          "raw": "[GNUPG:] NEWSIG",
+          "code": "NEWSIG",
+          "fields": []
+        },
+        {
+          "raw": "[GNUPG:] KEY_CONSIDERED 7C0135FB088AAF6C66C650B9BB5869F064EA74AB 0",
+          "code": "KEY_CONSIDERED",
+          "fields": [
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+            "0"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] SIG_ID 6Dgf2E0EefUD9Ow03vKx22WlY5Y 2026-06-02 1780409563",
+          "code": "SIG_ID",
+          "fields": [
+            "6Dgf2E0EefUD9Ow03vKx22WlY5Y",
+            "2026-06-02",
+            "1780409563"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] GOODSIG BB5869F064EA74AB Chet Ramey <chet@cwru.edu>",
+          "code": "GOODSIG",
+          "fields": [
+            "BB5869F064EA74AB",
+            "Chet",
+            "Ramey",
+            "<chet@cwru.edu>"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] VALIDSIG 7C0135FB088AAF6C66C650B9BB5869F064EA74AB 2026-06-02 1780409563 0 4 0 17 2 00 7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "code": "VALIDSIG",
+          "fields": [
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+            "2026-06-02",
+            "1780409563",
+            "0",
+            "4",
+            "0",
+            "17",
+            "2",
+            "00",
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB"
+          ]
+        }
+      ],
+      "validSignatures": [
+        {
+          "signingFingerprint": "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "primaryFingerprintField": "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "directAttributedPrimaryMatch": true,
+          "signatureDate": "2026-06-02",
+          "timestamp": "1780409563",
+          "expiration": "0",
+          "publicKeyAlgorithm": "17",
+          "digestAlgorithm": "2",
+          "signatureClass": "00"
+        }
+      ],
+      "adverse": [],
+      "attributed": true,
+      "classification": "VALID_SIGNATURE_WITH_SOURCE_ATTRIBUTED_PRIMARY",
+      "unknownSignerHints": [],
+      "imagesObserved": 610,
+      "keyHomeEntries": []
+    },
+    {
+      "id": "PAIR-14",
+      "name": "bash53-013",
+      "payload": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-013.data",
+        "bytes": 1467,
+        "mode": "600",
+        "sha256": "042f9cda967e24bf4211944697441e93d06ff42b4b998629a98a1b249279f200",
+        "role": "OPAQUE_SOURCE"
+      },
+      "signature": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-013.sig.data",
+        "bytes": 123,
+        "mode": "600",
+        "sha256": "c1ed27f2231f982e494e3bb73f53c9310f8853ee46354b993114cc8c1030eb22",
+        "role": "OPAQUE_DETACHED_SIGNATURE"
+      },
+      "keyring": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "bytes": 1507,
+        "mode": "600",
+        "sha256": "4adabad0482fb4634c0a13c3f3bff27308567a898b29e59c432327e3efddbe94"
+      },
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "machine": [
+        {
+          "raw": "[GNUPG:] NEWSIG",
+          "code": "NEWSIG",
+          "fields": []
+        },
+        {
+          "raw": "[GNUPG:] KEY_CONSIDERED 7C0135FB088AAF6C66C650B9BB5869F064EA74AB 0",
+          "code": "KEY_CONSIDERED",
+          "fields": [
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+            "0"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] SIG_ID 3DwKFpiSwbrc8n0RY3pVA7PE8TQ 2026-06-08 1780928394",
+          "code": "SIG_ID",
+          "fields": [
+            "3DwKFpiSwbrc8n0RY3pVA7PE8TQ",
+            "2026-06-08",
+            "1780928394"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] GOODSIG BB5869F064EA74AB Chet Ramey <chet@cwru.edu>",
+          "code": "GOODSIG",
+          "fields": [
+            "BB5869F064EA74AB",
+            "Chet",
+            "Ramey",
+            "<chet@cwru.edu>"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] VALIDSIG 7C0135FB088AAF6C66C650B9BB5869F064EA74AB 2026-06-08 1780928394 0 4 0 17 2 00 7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "code": "VALIDSIG",
+          "fields": [
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+            "2026-06-08",
+            "1780928394",
+            "0",
+            "4",
+            "0",
+            "17",
+            "2",
+            "00",
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB"
+          ]
+        }
+      ],
+      "validSignatures": [
+        {
+          "signingFingerprint": "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "primaryFingerprintField": "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "directAttributedPrimaryMatch": true,
+          "signatureDate": "2026-06-08",
+          "timestamp": "1780928394",
+          "expiration": "0",
+          "publicKeyAlgorithm": "17",
+          "digestAlgorithm": "2",
+          "signatureClass": "00"
+        }
+      ],
+      "adverse": [],
+      "attributed": true,
+      "classification": "VALID_SIGNATURE_WITH_SOURCE_ATTRIBUTED_PRIMARY",
+      "unknownSignerHints": [],
+      "imagesObserved": 610,
+      "keyHomeEntries": []
+    },
+    {
+      "id": "PAIR-15",
+      "name": "bash53-014",
+      "payload": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-014.data",
+        "bytes": 2229,
+        "mode": "600",
+        "sha256": "bd4360b401d38507e358783dcad8536a99c6789f0d3a5bd0cfb8c4a34144696c",
+        "role": "OPAQUE_SOURCE"
+      },
+      "signature": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-014.sig.data",
+        "bytes": 123,
+        "mode": "600",
+        "sha256": "fa7746cd7c02a03a752d41c5dea8343a8ef4ffd9d0fe88b1e3247f9d0678e80b",
+        "role": "OPAQUE_DETACHED_SIGNATURE"
+      },
+      "keyring": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "bytes": 1507,
+        "mode": "600",
+        "sha256": "4adabad0482fb4634c0a13c3f3bff27308567a898b29e59c432327e3efddbe94"
+      },
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "machine": [
+        {
+          "raw": "[GNUPG:] NEWSIG",
+          "code": "NEWSIG",
+          "fields": []
+        },
+        {
+          "raw": "[GNUPG:] KEY_CONSIDERED 7C0135FB088AAF6C66C650B9BB5869F064EA74AB 0",
+          "code": "KEY_CONSIDERED",
+          "fields": [
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+            "0"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] SIG_ID KDddHC+xg8dGGJQ1wAY+fjS+t+Y 2026-06-08 1780928397",
+          "code": "SIG_ID",
+          "fields": [
+            "KDddHC+xg8dGGJQ1wAY+fjS+t+Y",
+            "2026-06-08",
+            "1780928397"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] GOODSIG BB5869F064EA74AB Chet Ramey <chet@cwru.edu>",
+          "code": "GOODSIG",
+          "fields": [
+            "BB5869F064EA74AB",
+            "Chet",
+            "Ramey",
+            "<chet@cwru.edu>"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] VALIDSIG 7C0135FB088AAF6C66C650B9BB5869F064EA74AB 2026-06-08 1780928397 0 4 0 17 2 00 7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "code": "VALIDSIG",
+          "fields": [
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+            "2026-06-08",
+            "1780928397",
+            "0",
+            "4",
+            "0",
+            "17",
+            "2",
+            "00",
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB"
+          ]
+        }
+      ],
+      "validSignatures": [
+        {
+          "signingFingerprint": "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "primaryFingerprintField": "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "directAttributedPrimaryMatch": true,
+          "signatureDate": "2026-06-08",
+          "timestamp": "1780928397",
+          "expiration": "0",
+          "publicKeyAlgorithm": "17",
+          "digestAlgorithm": "2",
+          "signatureClass": "00"
+        }
+      ],
+      "adverse": [],
+      "attributed": true,
+      "classification": "VALID_SIGNATURE_WITH_SOURCE_ATTRIBUTED_PRIMARY",
+      "unknownSignerHints": [],
+      "imagesObserved": 610,
+      "keyHomeEntries": []
+    },
+    {
+      "id": "PAIR-16",
+      "name": "bash53-015",
+      "payload": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-015.data",
+        "bytes": 2151,
+        "mode": "600",
+        "sha256": "55b79ceee2fc27f6767eed697e939a7eb2fe2a28c01556bd75f18d581014f46e",
+        "role": "OPAQUE_SOURCE"
+      },
+      "signature": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-015.sig.data",
+        "bytes": 123,
+        "mode": "600",
+        "sha256": "8a432fbe5bd1f0d4f5ecbcb7a462009fe7f780a8c5cf0e71b423692aaf22bfc5",
+        "role": "OPAQUE_DETACHED_SIGNATURE"
+      },
+      "keyring": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "bytes": 1507,
+        "mode": "600",
+        "sha256": "4adabad0482fb4634c0a13c3f3bff27308567a898b29e59c432327e3efddbe94"
+      },
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "machine": [
+        {
+          "raw": "[GNUPG:] NEWSIG",
+          "code": "NEWSIG",
+          "fields": []
+        },
+        {
+          "raw": "[GNUPG:] KEY_CONSIDERED 7C0135FB088AAF6C66C650B9BB5869F064EA74AB 0",
+          "code": "KEY_CONSIDERED",
+          "fields": [
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+            "0"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] SIG_ID RLUtZ3zaxxnhrT98fRVFkOur2Lg 2026-06-08 1780928398",
+          "code": "SIG_ID",
+          "fields": [
+            "RLUtZ3zaxxnhrT98fRVFkOur2Lg",
+            "2026-06-08",
+            "1780928398"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] GOODSIG BB5869F064EA74AB Chet Ramey <chet@cwru.edu>",
+          "code": "GOODSIG",
+          "fields": [
+            "BB5869F064EA74AB",
+            "Chet",
+            "Ramey",
+            "<chet@cwru.edu>"
+          ]
+        },
+        {
+          "raw": "[GNUPG:] VALIDSIG 7C0135FB088AAF6C66C650B9BB5869F064EA74AB 2026-06-08 1780928398 0 4 0 17 2 00 7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "code": "VALIDSIG",
+          "fields": [
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+            "2026-06-08",
+            "1780928398",
+            "0",
+            "4",
+            "0",
+            "17",
+            "2",
+            "00",
+            "7C0135FB088AAF6C66C650B9BB5869F064EA74AB"
+          ]
+        }
+      ],
+      "validSignatures": [
+        {
+          "signingFingerprint": "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "primaryFingerprintField": "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+          "directAttributedPrimaryMatch": true,
+          "signatureDate": "2026-06-08",
+          "timestamp": "1780928398",
+          "expiration": "0",
+          "publicKeyAlgorithm": "17",
+          "digestAlgorithm": "2",
+          "signatureClass": "00"
+        }
+      ],
+      "adverse": [],
+      "attributed": true,
+      "classification": "VALID_SIGNATURE_WITH_SOURCE_ATTRIBUTED_PRIMARY",
+      "unknownSignerHints": [],
+      "imagesObserved": 610,
+      "keyHomeEntries": []
+    }
+  ],
+  "children": [
+    {
+      "id": "KEYRING",
+      "executable": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpg",
+      "argv": [
+        "--no-options",
+        "--homedir",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/KEYRING/gnupg",
+        "--batch",
+        "--no-autostart",
+        "--no-default-keyring",
+        "--no-keyring",
+        "--no-auto-check-trustdb",
+        "--no-auto-key-locate",
+        "--no-auto-key-retrieve",
+        "--no-auto-key-import",
+        "--output",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "--dearmor",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/PUBLISHER-KEY-01/maintainer-public-key.data"
+      ],
+      "disposition": {
+        "code": 0,
+        "signal": null
+      },
+      "events": [
+        {
+          "type": "spawn",
+          "pid": 52925
+        },
+        {
+          "type": "exit",
+          "code": 0,
+          "signal": null,
+          "elapsedMs": 73.10162499999933
+        },
+        {
+          "type": "close",
+          "code": 0,
+          "signal": null,
+          "elapsedMs": 73.11595800000032
+        }
+      ],
+      "lengths": {
+        "stdout": 0,
+        "stderr": 88561
+      },
+      "ownedClosed": true,
+      "failure": null,
+      "elapsedMs": 74.00245799999902
+    },
+    {
+      "id": "PAIR-01",
+      "executable": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+      "argv": [
+        "--homedir",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-01/gnupg",
+        "--keyring",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "--status-fd",
+        "1",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash-5.3.tar.gz.sig.data",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash-5.3.tar.gz.data"
+      ],
+      "disposition": {
+        "code": 0,
+        "signal": null
+      },
+      "events": [
+        {
+          "type": "spawn",
+          "pid": 52927
+        },
+        {
+          "type": "exit",
+          "code": 0,
+          "signal": null,
+          "elapsedMs": 469.6526660000018
+        },
+        {
+          "type": "close",
+          "code": 0,
+          "signal": null,
+          "elapsedMs": 469.6568750000006
+        }
+      ],
+      "lengths": {
+        "stdout": 346,
+        "stderr": 88889
+      },
+      "ownedClosed": true,
+      "failure": null,
+      "elapsedMs": 470.29349999999977
+    },
+    {
+      "id": "PAIR-02",
+      "executable": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+      "argv": [
+        "--homedir",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-02/gnupg",
+        "--keyring",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "--status-fd",
+        "1",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-001.sig.data",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-001.data"
+      ],
+      "disposition": {
+        "code": 0,
+        "signal": null
+      },
+      "events": [
+        {
+          "type": "spawn",
+          "pid": 52936
+        },
+        {
+          "type": "exit",
+          "code": 0,
+          "signal": null,
+          "elapsedMs": 30.740249999998923
+        },
+        {
+          "type": "close",
+          "code": 0,
+          "signal": null,
+          "elapsedMs": 30.758374999997613
+        }
+      ],
+      "lengths": {
+        "stdout": 346,
+        "stderr": 88889
+      },
+      "ownedClosed": true,
+      "failure": null,
+      "elapsedMs": 31.514666999999463
+    },
+    {
+      "id": "PAIR-03",
+      "executable": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+      "argv": [
+        "--homedir",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-03/gnupg",
+        "--keyring",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "--status-fd",
+        "1",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-002.sig.data",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-002.data"
+      ],
+      "disposition": {
+        "code": 0,
+        "signal": null
+      },
+      "events": [
+        {
+          "type": "spawn",
+          "pid": 52938
+        },
+        {
+          "type": "exit",
+          "code": 0,
+          "signal": null,
+          "elapsedMs": 30.4923340000023
+        },
+        {
+          "type": "close",
+          "code": 0,
+          "signal": null,
+          "elapsedMs": 30.49866699999984
+        }
+      ],
+      "lengths": {
+        "stdout": 346,
+        "stderr": 88889
+      },
+      "ownedClosed": true,
+      "failure": null,
+      "elapsedMs": 31.000708999999915
+    },
+    {
+      "id": "PAIR-04",
+      "executable": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+      "argv": [
+        "--homedir",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-04/gnupg",
+        "--keyring",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "--status-fd",
+        "1",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-003.sig.data",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-003.data"
+      ],
+      "disposition": {
+        "code": 0,
+        "signal": null
+      },
+      "events": [
+        {
+          "type": "spawn",
+          "pid": 52939
+        },
+        {
+          "type": "exit",
+          "code": 0,
+          "signal": null,
+          "elapsedMs": 28.01245800000106
+        },
+        {
+          "type": "close",
+          "code": 0,
+          "signal": null,
+          "elapsedMs": 28.016208000000915
+        }
+      ],
+      "lengths": {
+        "stdout": 346,
+        "stderr": 88889
+      },
+      "ownedClosed": true,
+      "failure": null,
+      "elapsedMs": 28.557541000001947
+    },
+    {
+      "id": "PAIR-05",
+      "executable": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+      "argv": [
+        "--homedir",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-05/gnupg",
+        "--keyring",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "--status-fd",
+        "1",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-004.sig.data",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-004.data"
+      ],
+      "disposition": {
+        "code": 0,
+        "signal": null
+      },
+      "events": [
+        {
+          "type": "spawn",
+          "pid": 52940
+        },
+        {
+          "type": "exit",
+          "code": 0,
+          "signal": null,
+          "elapsedMs": 28.02770800000144
+        },
+        {
+          "type": "close",
+          "code": 0,
+          "signal": null,
+          "elapsedMs": 28.031041999998706
+        }
+      ],
+      "lengths": {
+        "stdout": 346,
+        "stderr": 88889
+      },
+      "ownedClosed": true,
+      "failure": null,
+      "elapsedMs": 28.537583000001177
+    },
+    {
+      "id": "PAIR-06",
+      "executable": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+      "argv": [
+        "--homedir",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-06/gnupg",
+        "--keyring",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "--status-fd",
+        "1",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-005.sig.data",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-005.data"
+      ],
+      "disposition": {
+        "code": 0,
+        "signal": null
+      },
+      "events": [
+        {
+          "type": "spawn",
+          "pid": 52944
+        },
+        {
+          "type": "exit",
+          "code": 0,
+          "signal": null,
+          "elapsedMs": 27.12433299999975
+        },
+        {
+          "type": "close",
+          "code": 0,
+          "signal": null,
+          "elapsedMs": 27.128124999999272
+        }
+      ],
+      "lengths": {
+        "stdout": 346,
+        "stderr": 88889
+      },
+      "ownedClosed": true,
+      "failure": null,
+      "elapsedMs": 27.4028330000001
+    },
+    {
+      "id": "PAIR-07",
+      "executable": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+      "argv": [
+        "--homedir",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-07/gnupg",
+        "--keyring",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "--status-fd",
+        "1",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-006.sig.data",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-006.data"
+      ],
+      "disposition": {
+        "code": 0,
+        "signal": null
+      },
+      "events": [
+        {
+          "type": "spawn",
+          "pid": 52945
+        },
+        {
+          "type": "exit",
+          "code": 0,
+          "signal": null,
+          "elapsedMs": 30.373708999999508
+        },
+        {
+          "type": "close",
+          "code": 0,
+          "signal": null,
+          "elapsedMs": 30.392166999998153
+        }
+      ],
+      "lengths": {
+        "stdout": 346,
+        "stderr": 88889
+      },
+      "ownedClosed": true,
+      "failure": null,
+      "elapsedMs": 32.070416999999
+    },
+    {
+      "id": "PAIR-08",
+      "executable": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+      "argv": [
+        "--homedir",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-08/gnupg",
+        "--keyring",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "--status-fd",
+        "1",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-007.sig.data",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-007.data"
+      ],
+      "disposition": {
+        "code": 0,
+        "signal": null
+      },
+      "events": [
+        {
+          "type": "spawn",
+          "pid": 52946
+        },
+        {
+          "type": "exit",
+          "code": 0,
+          "signal": null,
+          "elapsedMs": 28.06499999999869
+        },
+        {
+          "type": "close",
+          "code": 0,
+          "signal": null,
+          "elapsedMs": 28.0692089999975
+        }
+      ],
+      "lengths": {
+        "stdout": 346,
+        "stderr": 88889
+      },
+      "ownedClosed": true,
+      "failure": null,
+      "elapsedMs": 28.583666999998968
+    },
+    {
+      "id": "PAIR-09",
+      "executable": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+      "argv": [
+        "--homedir",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-09/gnupg",
+        "--keyring",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "--status-fd",
+        "1",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-008.sig.data",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-008.data"
+      ],
+      "disposition": {
+        "code": 0,
+        "signal": null
+      },
+      "events": [
+        {
+          "type": "spawn",
+          "pid": 52948
+        },
+        {
+          "type": "exit",
+          "code": 0,
+          "signal": null,
+          "elapsedMs": 25.46374999999898
+        },
+        {
+          "type": "close",
+          "code": 0,
+          "signal": null,
+          "elapsedMs": 25.4698329999992
+        }
+      ],
+      "lengths": {
+        "stdout": 346,
+        "stderr": 88889
+      },
+      "ownedClosed": true,
+      "failure": null,
+      "elapsedMs": 25.953874999999243
+    },
+    {
+      "id": "PAIR-10",
+      "executable": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+      "argv": [
+        "--homedir",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-10/gnupg",
+        "--keyring",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "--status-fd",
+        "1",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-009.sig.data",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-009.data"
+      ],
+      "disposition": {
+        "code": 0,
+        "signal": null
+      },
+      "events": [
+        {
+          "type": "spawn",
+          "pid": 52950
+        },
+        {
+          "type": "exit",
+          "code": 0,
+          "signal": null,
+          "elapsedMs": 29.83954200000153
+        },
+        {
+          "type": "close",
+          "code": 0,
+          "signal": null,
+          "elapsedMs": 29.842334000000847
+        }
+      ],
+      "lengths": {
+        "stdout": 346,
+        "stderr": 88889
+      },
+      "ownedClosed": true,
+      "failure": null,
+      "elapsedMs": 30.170625000002474
+    },
+    {
+      "id": "PAIR-11",
+      "executable": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+      "argv": [
+        "--homedir",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-11/gnupg",
+        "--keyring",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "--status-fd",
+        "1",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-010.sig.data",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-010.data"
+      ],
+      "disposition": {
+        "code": 0,
+        "signal": null
+      },
+      "events": [
+        {
+          "type": "spawn",
+          "pid": 52951
+        },
+        {
+          "type": "exit",
+          "code": 0,
+          "signal": null,
+          "elapsedMs": 30.111917000001995
+        },
+        {
+          "type": "close",
+          "code": 0,
+          "signal": null,
+          "elapsedMs": 30.11437500000102
+        }
+      ],
+      "lengths": {
+        "stdout": 346,
+        "stderr": 88889
+      },
+      "ownedClosed": true,
+      "failure": null,
+      "elapsedMs": 30.786959000000934
+    },
+    {
+      "id": "PAIR-12",
+      "executable": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+      "argv": [
+        "--homedir",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-12/gnupg",
+        "--keyring",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "--status-fd",
+        "1",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-011.sig.data",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-011.data"
+      ],
+      "disposition": {
+        "code": 0,
+        "signal": null
+      },
+      "events": [
+        {
+          "type": "spawn",
+          "pid": 52953
+        },
+        {
+          "type": "exit",
+          "code": 0,
+          "signal": null,
+          "elapsedMs": 48.382000000001426
+        },
+        {
+          "type": "close",
+          "code": 0,
+          "signal": null,
+          "elapsedMs": 48.404083000001265
+        }
+      ],
+      "lengths": {
+        "stdout": 346,
+        "stderr": 88889
+      },
+      "ownedClosed": true,
+      "failure": null,
+      "elapsedMs": 48.71687500000189
+    },
+    {
+      "id": "PAIR-13",
+      "executable": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+      "argv": [
+        "--homedir",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-13/gnupg",
+        "--keyring",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "--status-fd",
+        "1",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-012.sig.data",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-012.data"
+      ],
+      "disposition": {
+        "code": 0,
+        "signal": null
+      },
+      "events": [
+        {
+          "type": "spawn",
+          "pid": 52955
+        },
+        {
+          "type": "exit",
+          "code": 0,
+          "signal": null,
+          "elapsedMs": 26.41495799999757
+        },
+        {
+          "type": "close",
+          "code": 0,
+          "signal": null,
+          "elapsedMs": 26.41795799999818
+        }
+      ],
+      "lengths": {
+        "stdout": 346,
+        "stderr": 88889
+      },
+      "ownedClosed": true,
+      "failure": null,
+      "elapsedMs": 26.68499999999767
+    },
+    {
+      "id": "PAIR-14",
+      "executable": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+      "argv": [
+        "--homedir",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-14/gnupg",
+        "--keyring",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "--status-fd",
+        "1",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-013.sig.data",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-013.data"
+      ],
+      "disposition": {
+        "code": 0,
+        "signal": null
+      },
+      "events": [
+        {
+          "type": "spawn",
+          "pid": 52956
+        },
+        {
+          "type": "exit",
+          "code": 0,
+          "signal": null,
+          "elapsedMs": 32.830291999998735
+        },
+        {
+          "type": "close",
+          "code": 0,
+          "signal": null,
+          "elapsedMs": 32.85124999999971
+        }
+      ],
+      "lengths": {
+        "stdout": 346,
+        "stderr": 88889
+      },
+      "ownedClosed": true,
+      "failure": null,
+      "elapsedMs": 33.17816699999821
+    },
+    {
+      "id": "PAIR-15",
+      "executable": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+      "argv": [
+        "--homedir",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-15/gnupg",
+        "--keyring",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "--status-fd",
+        "1",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-014.sig.data",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-014.data"
+      ],
+      "disposition": {
+        "code": 0,
+        "signal": null
+      },
+      "events": [
+        {
+          "type": "spawn",
+          "pid": 52960
+        },
+        {
+          "type": "exit",
+          "code": 0,
+          "signal": null,
+          "elapsedMs": 27.295208999999886
+        },
+        {
+          "type": "close",
+          "code": 0,
+          "signal": null,
+          "elapsedMs": 27.298124999997526
+        }
+      ],
+      "lengths": {
+        "stdout": 346,
+        "stderr": 88889
+      },
+      "ownedClosed": true,
+      "failure": null,
+      "elapsedMs": 27.612999999997555
+    },
+    {
+      "id": "PAIR-16",
+      "executable": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+      "argv": [
+        "--homedir",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-16/gnupg",
+        "--keyring",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "--status-fd",
+        "1",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-015.sig.data",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-015.data"
+      ],
+      "disposition": {
+        "code": 0,
+        "signal": null
+      },
+      "events": [
+        {
+          "type": "spawn",
+          "pid": 52963
+        },
+        {
+          "type": "exit",
+          "code": 0,
+          "signal": null,
+          "elapsedMs": 24.556083999999828
+        },
+        {
+          "type": "close",
+          "code": 0,
+          "signal": null,
+          "elapsedMs": 24.558709000000817
+        }
+      ],
+      "lengths": {
+        "stdout": 346,
+        "stderr": 88889
+      },
+      "ownedClosed": true,
+      "failure": null,
+      "elapsedMs": 24.87037500000224
+    }
+  ],
+  "network": false,
+  "globalKeyringUsed": false,
+  "noRuntimeOrContainmentQualification": true
+}

@@ -1,0 +1,1 @@
+false; value=ok; printf "<%s>\n" "${PIPESTATUS[@]}"

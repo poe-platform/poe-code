@@ -1,0 +1,84 @@
+TAP version 13
+# Subtest: webdav: capable timestamp provider persists exact values over real fetch without rewriting bytes
+not ok 1 - webdav: capable timestamp provider persists exact values over real fetch without rewriting bytes
+  ---
+  duration_ms: 4.974
+  type: 'test'
+  location: '/private/tmp/safe-bash-adapter-corrections-0yDYsZ/03-webdav/archive/tests/stress/adapters/webdav-timestamps-profile.test.ts:1:425'
+  failureType: 'testCodeFailure'
+  error: 'EINVAL: an explicit fetch transport is required'
+  code: 'EINVAL'
+  name: 'FsError'
+  stack: |-
+    new WebDavFileSystem (/private/tmp/safe-bash-adapter-corrections-0yDYsZ/03-webdav/archive/src/fs/webdav/webdav.ts:114:52)
+    <anonymous> (/private/tmp/safe-bash-adapter-corrections-0yDYsZ/03-webdav/archive/tests/stress/adapters/webdav-timestamps-profile.test.ts:16:16)
+    withLoopbackDav (/private/tmp/safe-bash-adapter-corrections-0yDYsZ/03-webdav/archive/tests/fs/webdav/property-fixture.ts:87:11)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async TestContext.<anonymous> (/private/tmp/safe-bash-adapter-corrections-0yDYsZ/03-webdav/archive/tests/stress/adapters/webdav-timestamps-profile.test.ts:11:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: webdav: original provider's PROPPATCH 501 remains typed ENOTSUP with no fallback effects
+not ok 2 - webdav: original provider's PROPPATCH 501 remains typed ENOTSUP with no fallback effects
+  ---
+  duration_ms: 1.512833
+  type: 'test'
+  location: '/private/tmp/safe-bash-adapter-corrections-0yDYsZ/03-webdav/archive/tests/stress/adapters/webdav-timestamps-profile.test.ts:1:1728'
+  failureType: 'testCodeFailure'
+  error: 'EINVAL: an explicit fetch transport is required'
+  code: 'EINVAL'
+  name: 'FsError'
+  stack: |-
+    new WebDavFileSystem (/private/tmp/safe-bash-adapter-corrections-0yDYsZ/03-webdav/archive/src/fs/webdav/webdav.ts:114:52)
+    <anonymous> (/private/tmp/safe-bash-adapter-corrections-0yDYsZ/03-webdav/archive/tests/stress/adapters/webdav-timestamps-profile.test.ts:48:16)
+    withLoopbackDav (/private/tmp/safe-bash-adapter-corrections-0yDYsZ/03-webdav/archive/tests/fs/webdav/property-fixture.ts:87:11)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async TestContext.<anonymous> (/private/tmp/safe-bash-adapter-corrections-0yDYsZ/03-webdav/archive/tests/stress/adapters/webdav-timestamps-profile.test.ts:43:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: webdav: timestamp property status 403 preserves bytes and prior property
+ok 3 - webdav: timestamp property status 403 preserves bytes and prior property
+  ---
+  duration_ms: 8.864667
+  type: 'test'
+  ...
+# Subtest: webdav: timestamp property status 423 preserves bytes and prior property
+ok 4 - webdav: timestamp property status 423 preserves bytes and prior property
+  ---
+  duration_ms: 4.404375
+  type: 'test'
+  ...
+# Subtest: webdav: timestamp property status 424 preserves bytes and prior property
+ok 5 - webdav: timestamp property status 424 preserves bytes and prior property
+  ---
+  duration_ms: 1.832416
+  type: 'test'
+  ...
+# Subtest: webdav: timestamp property status 507 preserves bytes and prior property
+ok 6 - webdav: timestamp property status 507 preserves bytes and prior property
+  ---
+  duration_ms: 1.427958
+  type: 'test'
+  ...
+# Subtest: webdav: stale timestamp condition preserves competing bytes and prior property
+ok 7 - webdav: stale timestamp condition preserves competing bytes and prior property
+  ---
+  duration_ms: 1.521625
+  type: 'test'
+  ...
+# Subtest: webdav: lost PROPPATCH acknowledgement reports EIO without pretending persisted effects rolled back
+ok 8 - webdav: lost PROPPATCH acknowledgement reports EIO without pretending persisted effects rolled back
+  ---
+  duration_ms: 1.933416
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 6
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 180.453084

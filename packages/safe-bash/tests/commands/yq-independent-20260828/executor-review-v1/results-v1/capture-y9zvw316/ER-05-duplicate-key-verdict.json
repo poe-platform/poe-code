@@ -1,0 +1,9 @@
+{
+  "family": "ER-05",
+  "name": "duplicate-key",
+  "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+  "outcome": "CONTROL_PASS",
+  "failure": null,
+  "input": "ER-05-duplicate-key-input.json",
+  "raw": "ER-05-duplicate-key-raw.json"
+}

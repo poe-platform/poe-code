@@ -1,0 +1,60 @@
+name: Release terminal-pilot + terminal-pilot-mcp
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "packages/terminal-pilot/**"
+      - "packages/terminal-pilot-mcp/**"
+concurrency:
+  # Finish the active release; accumulate newer changes in one pending run.
+  queue: single
+  group: release-terminal-pilot
+  cancel-in-progress: false
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.sha }}
+      - name: Check release tree admission
+        id: release-admission
+        uses: ./.github/actions/release-tree-admission
+        with:
+          paths: |
+            packages/terminal-pilot
+            packages/terminal-pilot-mcp
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.14.0
+      - name: Upgrade npm for trusted publishing
+        run: npm install --global npm@^11.5.1
+      - name: Install dependencies
+        run: npm clean-install
+      - name: Build terminal-pilot, terminal-pilot-mcp and dependencies
+        run: npx turbo build --filter=terminal-pilot-mcp...
+      - name: Compute next version
+        id: version
+        run: |
+          REMOTE=$(npm view terminal-pilot version 2>/dev/null || echo "0.0.0")
+          NEXT=$(node -e "const semver = require('semver'); const next = semver.inc(process.argv[1], 'patch'); if (!next) process.exit(1); console.log(next);" "${REMOTE}")
+          echo "next=${NEXT}" >> "$GITHUB_OUTPUT"
+      - name: Prepare lockstep package versions
+        uses: ./.github/actions/prepare-lockstep-release
+        with:
+          version: ${{ steps.version.outputs.next }}
+          packages: '["packages/terminal-pilot", "packages/terminal-pilot-mcp"]'
+      - name: Publish terminal-pilot
+        working-directory: packages/terminal-pilot
+        run: npm publish --provenance --access public
+        if: steps.release-admission.outputs.publish == 'true'
+      - name: Publish terminal-pilot-mcp
+        working-directory: packages/terminal-pilot-mcp
+        run: npm publish --provenance --access public
+        if: steps.release-admission.outputs.publish == 'true'

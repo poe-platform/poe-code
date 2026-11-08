@@ -1,0 +1,15 @@
+{
+  "at": "2026-08-28T01:16:47.801Z",
+  "archive": "captures.jsonl.gz",
+  "archiveSha256": "33b03284cdac220cb4c1fefc4b389d9dff560fb0eb4ef6d0338ed25f3d40fee3",
+  "compressedBytes": 7049989,
+  "regularFiles": 478,
+  "decodedBytes": 47445895,
+  "allDecodedFilesHashVerified": true,
+  "stagedWorkRemoved": true,
+  "originalRawDirectoryLocksRetained": [
+    "execution-01/INVOCATION.json",
+    "qualification-01/RESULT.json"
+  ],
+  "productRerun": false
+}

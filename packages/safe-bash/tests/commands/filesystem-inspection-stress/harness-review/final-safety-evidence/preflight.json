@@ -1,0 +1,25 @@
+{
+  "authPath": "/tmp/safe-bash-inspection-v2-root-approved.json",
+  "authSha256": "86d99b7d185bdd6e51e61b8476316346c00ab709f5ae39bdba80780f6a92453a",
+  "proposalPath": "/tmp/safe-bash-inspection-v2-authorization.proposed.json",
+  "proposalSha256": "e9612864715f8894945f771674016826d0a05a5ef9d44a1ac37e8def3db6cffd",
+  "onlyApprovalChanged": true,
+  "sourceCommit": "436bda3e21b2b6041409fac7408cf072b5d3fe5e",
+  "snapshot": "/private/tmp/safe-bash-inspection-final-YZxhi8/snapshot",
+  "verifiedFiles": 920,
+  "cases": [
+    "T-DP-cumulative",
+    "T-sort-many"
+  ],
+  "previousStarts": 4,
+  "maximumNew": 2,
+  "maximumTotal": 6,
+  "claimAbsent": true,
+  "wrongMarkerPreparation": {
+    "path": "/tmp/safe-bash-inspection-v2-wrong-marker-unexecuted.json",
+    "sha256": "9b9f82b689eec875e30ec1dd6c51c6ce131a9999fa0a57ca7915844054eae3bd",
+    "approval": "ROOT_FINAL_SOURCE_FREEZE_EXECUTION_AUTHORIZED",
+    "executed": false
+  },
+  "newProductInvocations": 0
+}

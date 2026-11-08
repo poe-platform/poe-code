@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "status": "SEMANTIC_FREEZE_ONLY",
+  "candidate": null,
+  "files": [
+    {
+      "path": "CASES.json",
+      "bytes": 14044,
+      "sha256": "d1b2c49b813b5e4b505a540a09f47dfd1387d36252ea16fd27cc5ba1dfafcf30"
+    },
+    {
+      "path": "README.md",
+      "bytes": 13690,
+      "sha256": "3286fc98a9aa1a19fceb85d4cb875771bc99b1bc4bba8caec34d51afeeb98e3a"
+    },
+    {
+      "path": "BASELINE.json",
+      "bytes": 7627,
+      "sha256": "48be553d0f2ee5aac626b4faf48a35ba32871cea9080cf04e6ed8e32e6973e29"
+    },
+    {
+      "path": "assert-observation.mjs",
+      "bytes": 1068,
+      "sha256": "0f3eb6349f3eaeb175850ad477cb67988d6515ec94d3ca49b42b36c51d38109a"
+    },
+    {
+      "path": "scorer-controls.mjs",
+      "bytes": 2396,
+      "sha256": "c29763a128669404d3de71edf850294bca863345edff7c8f936138f5c167e4d9"
+    },
+    {
+      "path": "verify-freeze.mjs",
+      "bytes": 2352,
+      "sha256": "c28fd6cff717516646cd46f6934c9420437d138199002bbd07c46d8a895a3444"
+    }
+  ]
+}

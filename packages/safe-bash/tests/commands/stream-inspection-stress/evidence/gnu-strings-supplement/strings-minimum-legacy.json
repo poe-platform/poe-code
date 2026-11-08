@@ -1,0 +1,22 @@
+{
+  "id": "strings-minimum-legacy",
+  "args": [
+    "-5"
+  ],
+  "locale": "C",
+  "inputSha256": "69596e53ea87b927913983411b61d2e18d15e399609457b26769f3098dc5867d",
+  "fileHashes": {},
+  "originalExpected": {
+    "stdoutHex": "66697665730a656e64696e670a",
+    "stderrHex": "",
+    "exitCode": 0
+  },
+  "expected": {
+    "stdoutHex": "66697665730a656e64696e670a",
+    "stderrHex": "",
+    "exitCode": 0
+  },
+  "differences": [],
+  "signal": null,
+  "error": null
+}

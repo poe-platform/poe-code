@@ -1,0 +1,128 @@
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+
+const owned = dirname(fileURLToPath(import.meta.url));
+const root = resolve(owned, '../../../..');
+const destination = join(owned, 'final-audit-02');
+assert(!existsSync(destination), 'final audit is write-once');
+mkdirSync(destination);
+const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+const save = (name, value) => writeFileSync(join(destination, name), `${JSON.stringify(value, null, 2)}\n`, { flag: 'wx' });
+const load = name => JSON.parse(readFileSync(join(owned, name)));
+function git(...args) {
+  const result = spawnSync('git', args, { cwd: root, timeout: 30000, maxBuffer: 32 * 1024 * 1024 });
+  assert.ifError(result.error); assert.equal(result.status, 0, result.stderr?.toString());
+  return result.stdout;
+}
+function inventory(directory) {
+  const entries = [];
+  function visit(relative) {
+    for (const entry of readdirSync(join(directory, relative), { withFileTypes: true }).sort((left, right) => left.name.localeCompare(right.name))) {
+      const path = join(relative, entry.name);
+      if (entry.isDirectory()) { entries.push({ path, kind: 'directory' }); visit(path); }
+      else { assert(entry.isFile(), path); const bytes = readFileSync(join(directory, path)); entries.push({ path, kind: 'file', bytes: bytes.length, sha256: hash(bytes) }); }
+    }
+  }
+  visit('');
+  return entries;
+}
+try {
+  const provenance = load('run-01/provenance.json');
+  const authorCommit = git('rev-parse', '9fb0e32c').toString().trim();
+  const proofCommit = git('rev-parse', '064f3381').toString().trim();
+  const head = git('rev-parse', 'HEAD').toString().trim();
+  const authorRelative = 'tests/commands/expr-stress/approved-profile-fixtures-20260827';
+  const authorRoot = join(root, authorRelative);
+  const receiptBytes = readFileSync('/tmp/expr-approved-fixtures-20260827-result.txt');
+  const receipt = receiptBytes.toString();
+  assert(receipt.includes('35db31aa') && receipt.includes('9fb0e32c'));
+  assert(receipt.includes('Policy remains blocked'));
+  writeFileSync(join(destination, 'author-receipt.txt.data'), receiptBytes, { flag: 'wx' });
+  git('merge-base', '--is-ancestor', authorCommit, provenance.candidate);
+  git('merge-base', '--is-ancestor', proofCommit, provenance.candidate);
+  const changes = git('diff-tree', '--no-commit-id', '--name-only', '-r', authorCommit).toString().trim().split('\n');
+  assert(changes.every(path => path.startsWith(`${authorRelative}/`)));
+  const files = git('ls-tree', '-r', authorCommit, '--', authorRelative).toString().trim().split('\n').map(line => {
+    const [header, path] = line.split('\t'); const blob = header.split(' ')[2];
+    const body = git('show', `${authorCommit}:${path}`);
+    assert.equal(hash(readFileSync(join(root, path))), hash(body), path);
+    return { path, blob, bytes: body.length, sha256: hash(body) };
+  });
+  const before = inventory(authorRoot);
+  assert.deepEqual(before.filter(entry => entry.kind === 'file').map(entry => `${authorRelative}/${entry.path}`).sort(), files.map(entry => entry.path).sort());
+  const directorySet = new Set();
+  for (const entry of files) {
+    let relative = dirname(entry.path.slice(authorRelative.length + 1));
+    while (relative !== '.') { directorySet.add(relative); relative = dirname(relative); }
+  }
+  assert.deepEqual(before.filter(entry => entry.kind === 'directory').map(entry => entry.path).sort(), [...directorySet].sort());
+  const manifest = JSON.parse(readFileSync(join(authorRoot, 'FILE-MANIFEST.json')));
+  assert.deepEqual(before.filter(entry => entry.path !== 'FILE-MANIFEST.json'), manifest.entries);
+  assert.equal(manifest.policySatisfied, false);
+  const revisedBinding = readFileSync(join(authorRoot, 'runtime-binding.v2.json'));
+  assert.equal(hash(revisedBinding), hash(readFileSync(join(owned, 'run-01/runtime-binding.revised.json'))));
+  const report = readFileSync(join(authorRoot, 'REPORT.md'), 'utf8');
+  for (const phrase of ['broader emergency-output policy BLOCKED', '23-byte', 'without the same output-quota check', 'at-most-once', 'Policy satisfaction is not claimed', 'there is no new 241-case run or inferred 241/241 result']) assert(report.includes(phrase), phrase);
+  const authorBlocker = JSON.parse(readFileSync(join(authorRoot, 'run-01/ordinary-error-policy-blocker.json')));
+  assert.equal(authorBlocker.passed, false);
+  assert.deepEqual([authorBlocker.actual.status, authorBlocker.stdout, authorBlocker.stderr, authorBlocker.stderrBytes], [2, '', 'expr: division by zero\n', 23]);
+  save('author-binding.json', { authorCommit, sourceMigration: provenance.approvedMigration, includedInReplayedCommit: provenance.candidate,
+    receiptSha256: hash(receiptBytes), authorChangedOnlyNewOwnedEvidence: true, files, before,
+    fixtureBindingSha256: hash(revisedBinding), manifestAuthenticated: true, detectsAddedFilesAndDirectories: true,
+    documentationStatesActualGap: true, completeOutputPolicyClaim: false, authorLegacyScope: 'No author 241-test replay; this verifier provides the separate current 241/241 result.' });
+  const sourcePaths = ['src/commands/expr/index.ts', 'src/commands/expr/evaluate.ts', 'src/commands/expr/syntax.ts',
+    'src/commands/expr/internal.ts', 'src/commands/expr/bre-worker.ts', 'src/commands/regex-execution/client.ts', 'src/contracts/io.ts'];
+  const sourceHashes = sourcePaths.map(path => ({ path, gitBlob: git('rev-parse', `${provenance.candidate}:${path}`).toString().trim(),
+    sha256: hash(git('show', `${provenance.candidate}:${path}`)), proofSha256: hash(git('show', `${proofCommit}:${path}`)) }));
+  for (const entry of sourceHashes) assert.equal(entry.sha256, entry.proofSha256);
+  assert.equal(sourceHashes[0].sha256, '4fd60b3b2fec4126e42e492922004e90e870a08aa319d2f088c085255355841d');
+  const compositionDelta = git('diff', '--name-only', provenance.candidate, head, '--', ...provenance.selected).toString();
+  const authorSourceDelta = git('diff', '--name-only', provenance.approvedMigration, authorCommit, '--', ...provenance.selected).toString();
+  assert.equal(authorSourceDelta, '');
+  save('source-qualification.json', { replayCandidate: provenance.candidate, authorCommit, proofCommit, headAtAudit: head, sourceHashes,
+    authorSelectedSourceDelta: authorSourceDelta, postReplaySelectedSourceDelta: compositionDelta,
+    selectedInputsStillIdenticalAtAudit: compositionDelta === '',
+    scope: 'Selected committed source/test/config composition authenticated. Reference 4fd60 is not a substitute for actual archive authentication. Concurrent live edits excluded.' });
+  const proofPath = 'tests/commands/expr-stress/output-emergency-review-20260827/run02/results.json';
+  const proofBytes = git('show', `${proofCommit}:${proofPath}`);
+  assert.equal(hash(proofBytes), hash(readFileSync(join(root, proofPath))));
+  const proof = JSON.parse(proofBytes);
+  const division = proof.rows.find(row => row.input.id === 'division-cap-1');
+  assert.equal(division.passed, false);
+  assert.deepEqual([division.input.argv, division.input.cap, division.actual.status, division.actual.stderr], [['1', '/', '0'], 1, 2, 'expr: division by zero\n']);
+  assert.equal(proof.passed, 36); assert.equal(proof.total, 47);
+  const issueBytes = readFileSync('/tmp/expr-emergency-proof-20260827-issue.txt');
+  const originalIssueBytes = readFileSync(join(authorRoot, 'independent-proof-issue.txt.data'));
+  assert.deepEqual(issueBytes.subarray(0, originalIssueBytes.length), originalIssueBytes);
+  save('proof-receipt-lineage.json', { originalBytes: originalIssueBytes.length, originalSha256: hash(originalIssueBytes),
+    currentBytes: issueBytes.length, currentSha256: hash(issueBytes), originalPrefixByteIdentical: true,
+    appendedText: issueBytes.subarray(originalIssueBytes.length).toString(),
+    classification: 'The separate proof leaf appended runtime confirmation to its temporary receipt. Committed original remains unchanged; committed run02 is the authenticated proof authority.' });
+  writeFileSync(join(destination, 'separate-proof-issue.txt.data'), issueBytes, { flag: 'wx' });
+  save('separate-policy-proof.json', { proofCommit, path: proofPath, sha256: hash(proofBytes), sourceHashesMatchReplayedCandidate: true,
+    passed: proof.passed, total: proof.total, division, ownership: 'Evidence inspected, not re-executed or authored by this verifier.',
+    requiredPolicy: 'All normal writes obey normal quota; at most one fixed separate emergency diagnostic, awaited. Revised 12/12 is insufficient.' });
+  const controls = load('run-01/independent-controls-results.json');
+  assert.equal(controls.forcedCleanup, 0); assert.equal(controls.activeAfterSafetyCleanup, 0);
+  assert.equal(controls.rows.length, 11);
+  assert(controls.rows.every(row => row.dynamicCalls.length === 0 && row.activeAtSettlement === 0 && row.activeAfterCleanup === 0));
+  assert(controls.imports.every(entry => !entry.resolved.endsWith('/bre-worker.js') && !entry.resolved.endsWith('/regex-execution/worker.js') && !entry.resolved.endsWith('/regex-execution/matching.js')));
+  const legacy = load('run-01/revised-legacy241.json');
+  assert(legacy.stdout.includes('✔ the BRE compiler refuses main-thread execution'));
+  const active = load('run-01/cleanup.json'); assert.equal(active.absent, true); assert(!existsSync(active.ownedWork));
+  const after = inventory(authorRoot); assert.deepEqual(after, before);
+  save('author-after.json', after);
+  save('verification.json', { authenticatedFinalAuthorReceipt: true, actualAuthorCommit: authorCommit,
+    authorTreeUnchangedIncludingAddedEntries: true, sourceQualificationRecorded: true,
+    outputPolicyAccepted: false, policyFailurePreserved: true, mainThreadDynamicRegexCalls: 0,
+    mainThreadMatchCompilerNotImportedByIndependentProbe: true, legacyWorkerOnlyGuardPassed: true,
+    childrenNormallyExited: true, forcedWorkerCleanup: 0, ownedScratchAbsent: true, finished: new Date().toISOString() });
+} catch (error) {
+  save('failure.json', { message: error.message, stack: error.stack });
+  throw error;
+}
+console.log(readFileSync(join(destination, 'verification.json'), 'utf8'));

@@ -1,0 +1,52 @@
+{
+  "schema": "observer-review-file-bindings-v1",
+  "files": [
+    {
+      "path": "publication-admin.mjs",
+      "bytes": 4018,
+      "sha256": "29e4bf8db89b7984fded68c57c26ca3cc40d123fd64991c1661251343b6e1b96"
+    },
+    {
+      "path": "PHASE-PLAN.json",
+      "bytes": 722,
+      "sha256": "e1084cee1521ea094d2ed85ba1d6bdf3abbe4a321378bcca85b347fc0b2d79c1"
+    },
+    {
+      "path": "historical/TERMINAL-STOP.json",
+      "bytes": 2449,
+      "sha256": "40dcc85bebf86611540ab751fd6dfe0f78012bb50f9481700cd93d55d8695efe"
+    },
+    {
+      "path": "HISTORICAL-CAPTURES.json",
+      "bytes": 18449,
+      "sha256": "d0e4fde8c306b8ff4cc881afc13d5f40091499ada4b536a7db35f6f484d44970"
+    },
+    {
+      "path": "SOURCE-AUTH.json",
+      "bytes": 3082,
+      "sha256": "9c1236d36bec83df6967660c2983d122ecbc19b404ad3d6188a9d54150086a7e"
+    },
+    {
+      "path": "OBSERVER-DATA.json",
+      "bytes": 1731,
+      "sha256": "0dfeb154edb59e664933117982cf5112eafc130bf44cb075b555599664fd81a8"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 6386,
+      "sha256": "807103550ed7831900d7901cf324f3297d8ac888e58b2149f972859d86227026"
+    },
+    {
+      "path": "BASH-READINESS-PROPOSAL.md",
+      "bytes": 4896,
+      "sha256": "a4933dffe1887050cccc363aba65d18d18421ea81225aa22f36411cc08de72a5"
+    },
+    {
+      "path": "AUTHENTICATION.json",
+      "bytes": 2032,
+      "sha256": "63548e7a93b5b66b72972c3365fac4d2cfc6bf2a2694194dae449b969a280233"
+    }
+  ],
+  "terminalCopyByteExact": true,
+  "historicalEnvelopeDecodedByteExact": true
+}

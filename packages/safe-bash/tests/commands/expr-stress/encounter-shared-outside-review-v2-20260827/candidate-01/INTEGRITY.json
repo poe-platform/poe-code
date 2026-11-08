@@ -1,0 +1,12 @@
+{
+  "candidate": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+  "sourceFileCount": 349,
+  "archiveSha256": "c29675ec05c0697b3d56b13a0fad075bd148df6b0c3a91e597f628a21cee0fa7",
+  "fullSourceAndBuildEntrySetsUnchanged": true,
+  "detectsAddedRemovedChangedEntries": true,
+  "toolingEntrySetsUnchanged": true,
+  "originalReviewEntrySetsUnchanged": true,
+  "manifestUnchanged": true,
+  "nativeBinaryUnchanged": true,
+  "scope": "Selected candidate source/test/root inputs, isolated build, existing tooling, old review; observation-time checks, not transient mutation detection or global live-tree proof"
+}

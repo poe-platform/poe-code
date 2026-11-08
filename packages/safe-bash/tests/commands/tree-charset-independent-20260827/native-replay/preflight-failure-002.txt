@@ -1,0 +1,11 @@
+First selected-blob/build attempt output:
+
+fatal: not a git repository (or any of the parent directories): .git
+selected-git-blobs-checked=0 mismatches=0
+zsh:16: command not found: npm
+
+This attempt was invalid and was discarded. It ran from the copied candidate, which
+has no .git directory, and used `path` as a zsh loop variable, clobbering zsh's tied
+PATH variable. No build or replay ran. The corrected check used `git -C` against the
+repository, exact commit f1a90436c45208ca248e058a039893233c608daa, and a non-special
+`file_path` loop variable.

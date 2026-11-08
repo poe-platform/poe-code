@@ -1,0 +1,20 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
++ actual - expected
+
++ '2f1302b8e35533595f7283947f766865df62da990ed00573a4e4ada85483408c'
+- '5c43af95204ccca8e61493e86268158ee7bd77f932f23f8e24068b4101bf7176'
+
+    at file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-conditional-independent-20260829/successor-v5/check-prep.mjs:12:45 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: '2f1302b8e35533595f7283947f766865df62da990ed00573a4e4ada85483408c',
+  expected: '5c43af95204ccca8e61493e86268158ee7bd77f932f23f8e24068b4101bf7176',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.2

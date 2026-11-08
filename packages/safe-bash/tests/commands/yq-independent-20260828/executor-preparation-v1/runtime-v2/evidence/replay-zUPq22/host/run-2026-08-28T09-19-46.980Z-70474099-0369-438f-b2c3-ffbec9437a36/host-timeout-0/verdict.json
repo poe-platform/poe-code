@@ -1,0 +1,26 @@
+{
+  "jobId": "host-timeout-0",
+  "admitted": true,
+  "outcome": "FAIL",
+  "failures": [
+    "child-process"
+  ],
+  "integrity": true,
+  "reapProof": true,
+  "metadata": {
+    "pid": 14177,
+    "group": 14177,
+    "exitCode": null,
+    "signal": "SIGKILL",
+    "timedOut": true,
+    "overflow": false,
+    "spawnError": null,
+    "closed": true,
+    "reaped": true,
+    "kills": [
+      "SIGTERM",
+      "SIGKILL"
+    ],
+    "elapsedMs": 265
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "workspace": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-vmE9th/fixtures/.work-0vVgDf",
+  "startedAt": "2026-08-27T06:54:41.206Z",
+  "endedAt": "2026-08-27T06:54:50.499Z",
+  "serverPid": 56713,
+  "serverExitCode": null,
+  "serverSignalCode": "SIGTERM",
+  "serviceDurationMs": 3134,
+  "removed": true
+}

@@ -1,0 +1,36 @@
+{
+  "id": "N18",
+  "status": "pass",
+  "rawPredicate": {
+    "id": "N18",
+    "status": "pass",
+    "evidence": {
+      "exitCode": 2,
+      "stdoutBytes": 0,
+      "stderrBytes": 35,
+      "fsCalls": 0,
+      "comparison": "status-and-diagnostic"
+    }
+  },
+  "completion": {
+    "exitCode": 0,
+    "signal": null
+  },
+  "elapsedMs": 190,
+  "pid": 58839,
+  "productInvocations": 1,
+  "command": {
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "argv": [
+      "--import",
+      "/tmp/safe-bash-tree-final-436bda3-k1mKIO/candidate/node_modules/tsx/dist/loader.mjs",
+      "/tmp/safe-bash-tree-final-436bda3-k1mKIO/harness/derived/run.mjs",
+      "--execute",
+      "/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/bridge.mjs",
+      "/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/profile.json",
+      "N18"
+    ],
+    "cwd": "/tmp/safe-bash-tree-final-436bda3-k1mKIO/candidate"
+  },
+  "observationAvailable": true
+}

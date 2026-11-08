@@ -1,0 +1,64 @@
+{
+  "checkedAt": "2026-08-27T04:01:44.061Z",
+  "movingHead": "22ca649492275aed151193986d6956a95ff7f3f7",
+  "checks": [
+    {
+      "name": "verbatim archive AGENTS.md",
+      "pass": true,
+      "sha256": "23dc7a2bb8299e61a9553c93799a33b43ec4fd1c272e536e8fadd3e4d19b3009"
+    },
+    {
+      "name": "verbatim archive README.md",
+      "pass": true,
+      "sha256": "7b522c6a6e113ca595248d158ad9fb76f33d0ae61afc36d0083d12c79a5d80a3"
+    },
+    {
+      "name": "Workspace orchestrator unchanged",
+      "pass": true,
+      "sha256": "a57c7dc70a12ec6f8d26a2c3ac908d81a66b3a268c782f42926c2b7e840b23b7"
+    },
+    {
+      "name": "exact requirement IT MUST BE BETTER than just-bash, much better",
+      "pass": true
+    },
+    {
+      "name": "exact requirement one more note - zero dependency if posisble",
+      "pass": true
+    },
+    {
+      "name": "exact requirement i also need curl",
+      "pass": true
+    },
+    {
+      "name": "exact requirement WORK 72 hours",
+      "pass": true
+    },
+    {
+      "name": "exact requirement init git, make atomic commits",
+      "pass": true
+    },
+    {
+      "name": "no transient pass-fraction counts in AGENTS",
+      "pass": true
+    },
+    {
+      "name": "README fenced examples byte-identical",
+      "pass": true,
+      "count": 8
+    },
+    {
+      "name": "README local Markdown links resolve",
+      "pass": true
+    },
+    {
+      "name": "root manifest/export files untouched",
+      "pass": true
+    }
+  ],
+  "after": {
+    "agentsLines": 128,
+    "agentsSha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678",
+    "readmeSha256": "47686897b96c20cd8030d58f14927a42e5e851240c9c9a58cfdd820e75db5272"
+  },
+  "scope": "Documentation integrity only. Isolated build/export audit has its own committed-source report; no competing product suites rerun."
+}

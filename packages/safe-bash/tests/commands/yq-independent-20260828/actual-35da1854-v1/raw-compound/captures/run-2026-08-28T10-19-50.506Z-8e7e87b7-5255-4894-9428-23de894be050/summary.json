@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "aggregate": "PASS",
+  "requested": 1,
+  "admitted": 1,
+  "stop": null,
+  "results": [
+    {
+      "jobId": "PAR-15--whole",
+      "admitted": true,
+      "outcome": "PASS",
+      "failures": [],
+      "integrity": true,
+      "reapProof": true,
+      "metadata": {
+        "pid": 88867,
+        "group": 88867,
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "spawnError": null,
+        "closed": true,
+        "reaped": true,
+        "kills": [],
+        "elapsedMs": 376
+      }
+    }
+  ],
+  "activeChildren": [],
+  "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-50.506Z-8e7e87b7-5255-4894-9428-23de894be050"
+}

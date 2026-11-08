@@ -1,0 +1,102 @@
+{
+  "schema": "FINAL_SMOKE_PRODUCER_BINDING_R3_PREPARATION",
+  "producer": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-coherent-producer-20260829/PRODUCER-RECEIPT.json",
+    "bytes": 146948,
+    "sha256": "c5e2b614f775688d72e793fd88fad3044e8217c32a4aac8495d13d00d02f22ce"
+  },
+  "data": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-coherent-producer-20260829/DATA-RECEIPT.json",
+    "bytes": 3072,
+    "sha256": "d8451028627a01651e4fadf648147c15a39ef04e643dfa2e48a0259be385a50e"
+  },
+  "archive": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-coherent-producer-20260829/virtual-bash-0.0.0.tgz",
+    "bytes": 974493,
+    "sha256": "de8741c1be9c870650e92944020fa2785114b7046ef1774af2c27ea79238e17a"
+  },
+  "source": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-coherent-producer-20260829/SOURCE-INPUTS.json",
+    "bytes": 217999,
+    "sha256": "f7e7507a60cb96de29553d2f8a3036f0c4a339fc4a9fcdfa9e2bececfe9a1356"
+  },
+  "tools": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-coherent-producer-20260829/TOOLS.json",
+    "bytes": 581381,
+    "sha256": "2a9918a2f87773e7ab281866e6d0e0bab7f8cd263a8a656b9c4de94ef020f508"
+  },
+  "shipping": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-coherent-producer-20260829/SHIPPING.json",
+    "bytes": 200220,
+    "sha256": "7a0ff180f4cc397014b62c6478c5076f5dbfd0c2ade3dfcd5248f6b420aa8738"
+  },
+  "emits": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-coherent-producer-20260829/EMITS.json",
+    "bytes": 194410,
+    "sha256": "46384bb94fd0c941fa301a86feac4b6b6bec66154cba8a1fca85f85613d7fb80"
+  },
+  "helpers": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/new/tar.mjs",
+      "bytes": 2436,
+      "sha256": "ab62ab9627e69558b8291f90fc92dee40cf12172c289187918a0da42bdc51865"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/legacy/stage-a-r2/common.mjs",
+      "bytes": 7095,
+      "sha256": "e56e611e245a3582a4b562e646b5f1186c455b31360766c4bea0b92b7b8d2bac"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/new/loader.mjs",
+      "bytes": 2726,
+      "sha256": "8cfc738cc4a4312d6cdb5b745317f1846025ed268da48eccda3b777146cb7a4e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/new/trace.mjs",
+      "bytes": 3040,
+      "sha256": "f735f64c5e93acf1becab940f959b9d89dbb834032f64cbfdc3e0345266bacfe"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/new/support.mjs",
+      "bytes": 8442,
+      "sha256": "ad950ba9f2807ad7b08131dc267b76132c5279cb31706441abf033bde46611e0"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/new/cache-census.mjs",
+      "bytes": 2896,
+      "sha256": "e82810cef780ef57aa6bcbe63dc88b44baedb735dc0c6f2dd5c05dded6d1f535"
+    }
+  ],
+  "ownPins": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/producer-binding-r3/admission.mjs",
+      "bytes": 1631,
+      "sha256": "4a83bec28a7052a1324b3f4acbde6222c16f1dbee949c46a047d91e481d5ee78"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/producer-binding-r3/worker-denial.mjs",
+      "bytes": 853,
+      "sha256": "f9eaf5d08311db33a65052c8d4667c46f9d48fb235fff684bc8ebc5ea0af9be4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/producer-binding-r3/entry.mjs",
+      "bytes": 1913,
+      "sha256": "d696d697249fbd2158d8aa680fecad8f5135b6fc0dc9e21df583357b8e837441"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/producer-binding-r3/finish.mjs",
+      "bytes": 10502,
+      "sha256": "900706ab849d19d0ef0347301d41f3d98c9c4d1c087dbca45653dd2a50b7a986"
+    }
+  ],
+  "controls": [
+    "same-buffer-before-decode",
+    "wrong-size-before-open",
+    "wrong-hash-before-consumption",
+    "symlink-before-open",
+    "exact-installed-mode",
+    "wrong-umask-or-archive-mode"
+  ],
+  "independentProducerReview": "PENDING",
+  "actualGo": false
+}

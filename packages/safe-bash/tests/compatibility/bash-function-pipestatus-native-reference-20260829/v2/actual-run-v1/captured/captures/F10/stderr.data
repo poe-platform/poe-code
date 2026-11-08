@@ -1,0 +1,2 @@
+surface-function-pipestatus: -c: line 0: syntax error near unexpected token `printf'
+surface-function-pipestatus: -c: line 0: `function f() printf BAD'

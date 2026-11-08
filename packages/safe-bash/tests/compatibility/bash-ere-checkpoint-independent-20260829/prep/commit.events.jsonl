@@ -1,0 +1,5 @@
+{"at":1787994991499,"event":"capture-open","pid":56875}
+{"at":1787994991541,"event":"child-close","pid":56877,"status":0,"signal":null,"error":null}
+{"at":1787994991645,"event":"child-close","pid":56878,"status":0,"signal":null,"error":null}
+{"at":1787994991844,"event":"child-close","pid":56880,"status":0,"signal":null,"error":null}
+{"at":1787994991845,"event":"capture-closure"}

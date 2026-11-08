@@ -1,0 +1,1 @@
+src/fs/webdav/webdav.ts(725,72): error TS2353: Object literal may only specify known properties, and 'duplex' does not exist in type 'RequestInit'.

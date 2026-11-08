@@ -1,0 +1,17 @@
+{
+  "id": "07-reflection-profile",
+  "pid": 99987,
+  "started": 1787844030646,
+  "deadline": 1787844040646,
+  "timedOut": false,
+  "outputExceeded": false,
+  "code": 0,
+  "signal": null,
+  "closed": 1787844031217,
+  "parentAfter": {
+    "pid": 99924,
+    "at": "2026-08-27T15:20:31.217Z",
+    "alive": true,
+    "knownLiveChildren": []
+  }
+}

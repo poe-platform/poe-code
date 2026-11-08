@@ -1,0 +1,541 @@
+{
+  "recordedDate": "2026-08-26",
+  "scope": "Independent absolute-target verifier; no product, benchmark, or existing test edits",
+  "tests": {
+    "total": 30,
+    "pass": 30,
+    "fail": 0,
+    "skip": 0,
+    "shellVectors": 27,
+    "exactIntegrationTests": 1,
+    "nativeTests": 2,
+    "strictScopedTypecheck": "pass",
+    "logPath": "/tmp/safe-bash-absolute-target-tests-final.tap",
+    "logSha256": "af57f86de102bd899ec8cd607bae0dd0d6d717153649031728b503d1e810dc5b"
+  },
+  "source": {
+    "authorizationCommit": "e685231032b34f06c34038ce4c443376af7e066d",
+    "subsequentPatchCommit": "b7f2bfffc1fe4d50fac0352fdcc19eac6225359d",
+    "initialInspectionPatchSha256": "3ef569a8473e9fea6b097f4cb8376d66f8da7214f06f7480c010b64093df4b32",
+    "verifiedPatchSha256BeforeAndAfter": "a4149cf2c27c4edaab9e79a8a703353a15853a0615983296a1ca26c260e1b7ee",
+    "verifiedPatchPathSha256BeforeAndAfter": "f4a115ab2dbd3bba8e6ac383ca6dcea46a6cc6fa6ed9a14fc206ab763a6bf35b",
+    "verifiedPatchFormatsSha256BeforeAndAfter": "ef67097df66662e6b0ed74d707e2c75332b434464e7aafb9bd0164be40c37c6c",
+    "caveat": "Patch source files matched committed blobs. Full comparator ran a stable shared worktree with other workers' uncommitted source edits; not proof for a clean checkout of the recorded HEAD."
+  },
+  "comparison": {
+    "reportPath": "/tmp/safe-bash-absolute-target-comparison.json",
+    "reportSha256": "cfc6c0ab831e0b133e48d06e54a395845497a4a2c9a7cd71ea971149bc104899",
+    "startedAt": "2026-08-26T20:47:46.531Z",
+    "completedAt": "2026-08-26T20:47:47.100Z",
+    "virtualBash": {
+      "packageVersion": "0.0.0",
+      "gitRevisionBefore": "2340844163cce1b2528e7c0165575165c00e9638",
+      "gitRevisionAfter": "2340844163cce1b2528e7c0165575165c00e9638",
+      "sourceSha256Before": "27cee218a2e12e862b4ead2bbaf3dd2f8fe96ff17f08031f2dec9443d7edfa8f",
+      "sourceSha256After": "27cee218a2e12e862b4ead2bbaf3dd2f8fe96ff17f08031f2dec9443d7edfa8f",
+      "runtimeDependencies": {}
+    },
+    "comparatorVersion": "3.4.2",
+    "comparatorLockSha256": "6aad93176a9f7fc2578dd720802ce93a1e71b3be9dd9052ef0a54fab8bdc7d70",
+    "harnessSha256Before": "543d943eff58107b55fbdb1bc64a8ec23e02f15c3e5104dfa4bf8c2447af0575",
+    "harnessSha256After": "543d943eff58107b55fbdb1bc64a8ec23e02f15c3e5104dfa4bf8c2447af0575",
+    "validity": {
+      "sourceChangedDuringRun": false,
+      "backgroundErrors": [],
+      "comparableSnapshot": true
+    },
+    "corpus": {
+      "path": "tests/fixtures/shell-cases.json",
+      "sha256": "cc1df2a29865b60a830afddca63869a84ea9782b1f5871e664f842654d7f4d3c",
+      "fixtureCount": 88,
+      "generatedCaseCount": 18,
+      "pluginIntegrationCount": 7,
+      "pinnedGnuDialectCount": 2,
+      "probeCount": 3,
+      "totalPerEngine": 118,
+      "seed": 1526603814,
+      "filters": null,
+      "everyFixtureIncluded": true
+    },
+    "summary": {
+      "virtual-bash": {
+        "total": 118,
+        "pass": 118,
+        "fail": 0,
+        "error": 0,
+        "timeout": 0,
+        "pending": 0,
+        "unsupported": 0,
+        "passRate": 1
+      },
+      "just-bash": {
+        "total": 118,
+        "pass": 108,
+        "fail": 9,
+        "error": 0,
+        "timeout": 0,
+        "pending": 0,
+        "unsupported": 1,
+        "passRate": 0.9152542372881356
+      }
+    },
+    "overall": "fail",
+    "exactFixture": [
+      {
+        "engine": "virtual-bash",
+        "name": "plugin-diff-patch-roundtrip",
+        "tier": "plugin-integration",
+        "tags": [
+          "diff",
+          "patch",
+          "files"
+        ],
+        "source": "plugin-integration",
+        "assertions": [
+          {
+            "name": "stdout.bytes",
+            "status": "pass",
+            "expected": {
+              "byteLength": 31,
+              "sha256": "b94030adb9613cc6afe013713e25e8a3117982b658f69e8ae2d73911bbd16f87",
+              "base64Prefix": "cGF0Y2hpbmcgZmlsZSAvZml4dHVyZS9vbGQKYQpjCg==",
+              "truncated": false
+            },
+            "actual": {
+              "byteLength": 31,
+              "sha256": "b94030adb9613cc6afe013713e25e8a3117982b658f69e8ae2d73911bbd16f87",
+              "base64Prefix": "cGF0Y2hpbmcgZmlsZSAvZml4dHVyZS9vbGQKYQpjCg==",
+              "truncated": false
+            },
+            "detail": "native-bytes"
+          },
+          {
+            "name": "stderr.bytes",
+            "status": "pass",
+            "expected": {
+              "byteLength": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "base64Prefix": "",
+              "truncated": false
+            },
+            "actual": {
+              "byteLength": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "base64Prefix": "",
+              "truncated": false
+            },
+            "detail": "native-bytes"
+          },
+          {
+            "name": "exitCode",
+            "status": "pass",
+            "expected": 0,
+            "actual": 0
+          },
+          {
+            "name": "filesystem.complete-regular-file-snapshot",
+            "status": "pass",
+            "expected": {
+              "old": {
+                "byteLength": 4,
+                "sha256": "b72cf6d7918130f75347ff0f8b6e9fde004ee6d7fc26af90a349707207f72750",
+                "base64Prefix": "YQpjCg==",
+                "truncated": false
+              },
+              "new": {
+                "byteLength": 4,
+                "sha256": "b72cf6d7918130f75347ff0f8b6e9fde004ee6d7fc26af90a349707207f72750",
+                "base64Prefix": "YQpjCg==",
+                "truncated": false
+              },
+              "change": {
+                "byteLength": 41,
+                "sha256": "4b74798812231cc3719bacbe3a8a83234364d303a7a8c5ea112abf1fff6def54",
+                "base64Prefix": "LS0tIG9sZAorKysgbmV3CkBAIC0xLDIgKzEsMiBAQAogYQotYgorYwo=",
+                "truncated": false
+              }
+            },
+            "actual": {
+              "change": {
+                "byteLength": 41,
+                "sha256": "4b74798812231cc3719bacbe3a8a83234364d303a7a8c5ea112abf1fff6def54",
+                "base64Prefix": "LS0tIG9sZAorKysgbmV3CkBAIC0xLDIgKzEsMiBAQAogYQotYgorYwo=",
+                "truncated": false
+              },
+              "new": {
+                "byteLength": 4,
+                "sha256": "b72cf6d7918130f75347ff0f8b6e9fde004ee6d7fc26af90a349707207f72750",
+                "base64Prefix": "YQpjCg==",
+                "truncated": false
+              },
+              "old": {
+                "byteLength": 4,
+                "sha256": "b72cf6d7918130f75347ff0f8b6e9fde004ee6d7fc26af90a349707207f72750",
+                "base64Prefix": "YQpjCg==",
+                "truncated": false
+              }
+            },
+            "detail": "{\"fileDifferences\":[],\"rejectedNonRegularEntries\":[]}"
+          }
+        ],
+        "status": "pass",
+        "durationMs": 2.5904580000000124,
+        "details": {
+          "configuredCommandNames": [
+            "true",
+            "false",
+            "echo",
+            "pwd",
+            "basename",
+            "dirname",
+            "printf",
+            "mkdir",
+            "touch",
+            "cp",
+            "mv",
+            "rm",
+            "rmdir",
+            "ln",
+            "readlink",
+            "realpath",
+            "ls",
+            "cat",
+            "head",
+            "tail",
+            "wc",
+            "tee",
+            "tr",
+            "sort",
+            "uniq",
+            "cut",
+            "grep",
+            "test",
+            "[",
+            "env",
+            "xargs",
+            "find",
+            "sed",
+            "awk",
+            "jq",
+            "rg",
+            "base64",
+            "base32",
+            "xxd",
+            "od",
+            "sha256sum",
+            "sha1sum",
+            "md5sum",
+            "cksum",
+            "gzip",
+            "gunzip",
+            "zcat",
+            "diff",
+            "patch"
+          ],
+          "configuredPluginNames": [
+            "standard-commands",
+            "text-program-commands",
+            "structured-commands",
+            "search-commands",
+            "byte-commands",
+            "diff-patch-commands"
+          ],
+          "stdoutCapture": "native-bytes",
+          "stderrCapture": "native-bytes"
+        }
+      },
+      {
+        "engine": "just-bash",
+        "name": "plugin-diff-patch-roundtrip",
+        "tier": "plugin-integration",
+        "tags": [
+          "diff",
+          "patch",
+          "files"
+        ],
+        "source": "plugin-integration",
+        "assertions": [
+          {
+            "name": "stdout.bytes",
+            "status": "fail",
+            "expected": {
+              "byteLength": 31,
+              "sha256": "b94030adb9613cc6afe013713e25e8a3117982b658f69e8ae2d73911bbd16f87",
+              "base64Prefix": "cGF0Y2hpbmcgZmlsZSAvZml4dHVyZS9vbGQKYQpjCg==",
+              "truncated": false
+            },
+            "actual": {
+              "byteLength": 4,
+              "sha256": "911169ddaaf146aff539f58c26c489af3b892dff0fe283c1c264c65ae5aa59a2",
+              "base64Prefix": "YQpiCg==",
+              "truncated": false
+            },
+            "detail": "public-text-utf8"
+          },
+          {
+            "name": "stderr.bytes",
+            "status": "fail",
+            "expected": {
+              "byteLength": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "base64Prefix": "",
+              "truncated": false
+            },
+            "actual": {
+              "byteLength": 67,
+              "sha256": "b52a8e10539fb98b0a4ac2205312817ac659675afa99915f7bfa6172e8d5b22d",
+              "base64Prefix": "ZGlmZjogdW5yZWNvZ25pemVkIG9wdGlvbiAnLS1sYWJlbCcKYmFzaDogcGF0Y2g6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+              "truncated": false
+            },
+            "detail": "public-text-utf8"
+          },
+          {
+            "name": "exitCode",
+            "status": "pass",
+            "expected": 0,
+            "actual": 0
+          },
+          {
+            "name": "filesystem.complete-regular-file-snapshot",
+            "status": "fail",
+            "expected": {
+              "old": {
+                "byteLength": 4,
+                "sha256": "b72cf6d7918130f75347ff0f8b6e9fde004ee6d7fc26af90a349707207f72750",
+                "base64Prefix": "YQpjCg==",
+                "truncated": false
+              },
+              "new": {
+                "byteLength": 4,
+                "sha256": "b72cf6d7918130f75347ff0f8b6e9fde004ee6d7fc26af90a349707207f72750",
+                "base64Prefix": "YQpjCg==",
+                "truncated": false
+              },
+              "change": {
+                "byteLength": 41,
+                "sha256": "4b74798812231cc3719bacbe3a8a83234364d303a7a8c5ea112abf1fff6def54",
+                "base64Prefix": "LS0tIG9sZAorKysgbmV3CkBAIC0xLDIgKzEsMiBAQAogYQotYgorYwo=",
+                "truncated": false
+              }
+            },
+            "actual": {
+              "change": {
+                "byteLength": 0,
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "base64Prefix": "",
+                "truncated": false
+              },
+              "new": {
+                "byteLength": 4,
+                "sha256": "b72cf6d7918130f75347ff0f8b6e9fde004ee6d7fc26af90a349707207f72750",
+                "base64Prefix": "YQpjCg==",
+                "truncated": false
+              },
+              "old": {
+                "byteLength": 4,
+                "sha256": "911169ddaaf146aff539f58c26c489af3b892dff0fe283c1c264c65ae5aa59a2",
+                "base64Prefix": "YQpiCg==",
+                "truncated": false
+              }
+            },
+            "detail": "{\"fileDifferences\":[{\"path\":\"change\",\"expected\":{\"byteLength\":41,\"sha256\":\"4b74798812231cc3719bacbe3a8a83234364d303a7a8c5ea112abf1fff6def54\",\"base64Prefix\":\"LS0tIG9sZAorKysgbmV3CkBAIC0xLDIgKzEsMiBAQAogYQotYgorYwo=\",\"truncated\":false},\"actual\":{\"byteLength\":0,\"sha256\":\"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\"base64Prefix\":\"\",\"truncated\":false}},{\"path\":\"old\",\"expected\":{\"byteLength\":4,\"sha256\":\"b72cf6d7918130f75347ff0f8b6e9fde004ee6d7fc26af90a349707207f72750\",\"base64Prefix\":\"YQpjCg==\",\"truncated\":false},\"actual\":{\"byteLength\":4,\"sha256\":\"911169ddaaf146aff539f58c26c489af3b892dff0fe283c1c264c65ae5aa59a2\",\"base64Prefix\":\"YQpiCg==\",\"truncated\":false}}],\"rejectedNonRegularEntries\":[]}"
+          }
+        ],
+        "status": "fail",
+        "durationMs": 12.126374999999939,
+        "details": {
+          "configuredCommandNames": [
+            "echo",
+            "cat",
+            "printf",
+            "ls",
+            "mkdir",
+            "rmdir",
+            "touch",
+            "rm",
+            "cp",
+            "mv",
+            "ln",
+            "chmod",
+            "pwd",
+            "readlink",
+            "head",
+            "tail",
+            "wc",
+            "stat",
+            "grep",
+            "fgrep",
+            "egrep",
+            "rg",
+            "sed",
+            "awk",
+            "sort",
+            "uniq",
+            "comm",
+            "cut",
+            "paste",
+            "tr",
+            "rev",
+            "nl",
+            "fold",
+            "expand",
+            "unexpand",
+            "strings",
+            "split",
+            "column",
+            "join",
+            "tee",
+            "find",
+            "basename",
+            "dirname",
+            "tree",
+            "du",
+            "env",
+            "printenv",
+            "alias",
+            "unalias",
+            "history",
+            "xargs",
+            "true",
+            "false",
+            "clear",
+            "bash",
+            "sh",
+            "jq",
+            "base64",
+            "diff",
+            "date",
+            "sleep",
+            "timeout",
+            "time",
+            "seq",
+            "expr",
+            "md5sum",
+            "sha1sum",
+            "sha256sum",
+            "file",
+            "html-to-markdown",
+            "help",
+            "which",
+            "tac",
+            "hostname",
+            "whoami",
+            "od",
+            "gzip",
+            "gunzip",
+            "zcat",
+            "tar",
+            "yq",
+            "xan",
+            "sqlite3"
+          ],
+          "configuredPluginNames": [],
+          "stdoutCapture": "public-text-utf8",
+          "stderrCapture": "public-text-utf8"
+        }
+      }
+    ],
+    "nonpass": [
+      {
+        "engine": "just-bash",
+        "name": "ordinary-assignment-is-not-exported",
+        "status": "fail"
+      },
+      {
+        "engine": "just-bash",
+        "name": "sequential-cats-share-consumed-stdin",
+        "status": "fail"
+      },
+      {
+        "engine": "just-bash",
+        "name": "cat-dash-operands-do-not-replay-stdin",
+        "status": "fail"
+      },
+      {
+        "engine": "just-bash",
+        "name": "read-then-cat-consume-one-shared-stream",
+        "status": "fail"
+      },
+      {
+        "engine": "just-bash",
+        "name": "binary-file-byte-fidelity",
+        "status": "fail"
+      },
+      {
+        "engine": "just-bash",
+        "name": "plugin-rg-file-locations",
+        "status": "fail"
+      },
+      {
+        "engine": "just-bash",
+        "name": "plugin-rg-empty-pipe-implicit",
+        "status": "fail"
+      },
+      {
+        "engine": "just-bash",
+        "name": "plugin-diff-patch-roundtrip",
+        "status": "fail"
+      },
+      {
+        "engine": "just-bash",
+        "name": "gnu-sed-4.9:sed-inplace-quit-per-file",
+        "status": "fail"
+      },
+      {
+        "engine": "just-bash",
+        "name": "streaming-backpressure",
+        "status": "unsupported"
+      }
+    ]
+  },
+  "native": [
+    {
+      "executable": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "binarySha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00",
+      "version": "GNU patch 2.8",
+      "args": [
+        "--batch",
+        "--no-backup-if-mismatch",
+        "-p999",
+        "target"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/absolute-target/.native-0BpUJq/cwd",
+      "input": "--- /Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/absolute-target/.native-0BpUJq/outside/old-header\n+++ /Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/absolute-target/.native-0BpUJq/outside/new-header\n@@ -1,3 +1,3 @@\n anchor\n-before\n+after\n end\n",
+      "result": {
+        "exitCode": 0,
+        "stdout": "patching file target\n",
+        "stderr": ""
+      },
+      "files": {
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/absolute-target/.native-0BpUJq/cwd/sentinel": "untouched\n",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/absolute-target/.native-0BpUJq/cwd/target": "anchor\nafter\nend\n",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/absolute-target/.native-0BpUJq/outside/new-header": "unchanged new header\n",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/absolute-target/.native-0BpUJq/outside/old-header": "anchor\nbefore\nend\n"
+      }
+    },
+    {
+      "executable": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "binarySha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00",
+      "version": "GNU patch 2.8",
+      "args": [
+        "--batch",
+        "--no-backup-if-mismatch",
+        "-p999",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/absolute-target/.native-Bwt6Ha/outside/target"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/absolute-target/.native-Bwt6Ha/cwd",
+      "input": "--- old-header\n+++ new-header\n@@ -1,3 +1,3 @@\n anchor\n-before\n+after\n end\n",
+      "result": {
+        "exitCode": 0,
+        "stdout": "patching file /Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/absolute-target/.native-Bwt6Ha/outside/target\n",
+        "stderr": ""
+      },
+      "files": {
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/absolute-target/.native-Bwt6Ha/cwd/sentinel": "untouched\n",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/absolute-target/.native-Bwt6Ha/outside/new-header": "unchanged new header\n",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/absolute-target/.native-Bwt6Ha/outside/old-header": "anchor\nbefore\nend\n",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/absolute-target/.native-Bwt6Ha/outside/target": "anchor\nafter\nend\n"
+      }
+    }
+  ]
+}

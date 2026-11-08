@@ -1,0 +1,45 @@
+{
+  "capturedEpoch": 1787791249.8373919,
+  "runtime": "v22.22.2",
+  "sourceChecks": {
+    "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/source": {
+      "changed": [],
+      "same": true,
+      "fingerprint": "d779b4b516275895677f05c5011cf7c39e8252eda7686fecdcaa453a56920e91"
+    },
+    "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/mutation-source": {
+      "changed": [],
+      "same": true,
+      "fingerprint": "d779b4b516275895677f05c5011cf7c39e8252eda7686fecdcaa453a56920e91"
+    }
+  },
+  "dependencyChecks": {
+    "/tmp/safe-bash-current-integration-69dbdy0m/source-clean": {
+      "checkedRegularFiles": 314,
+      "mismatches": []
+    },
+    "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/source": {
+      "checkedRegularFiles": 314,
+      "mismatches": []
+    },
+    "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/mutation-source": {
+      "checkedRegularFiles": 314,
+      "mismatches": []
+    }
+  },
+  "acceptedParentManifestEntriesVerified": 94,
+  "acceptedParentManifestMatchesCommit": "96db59ac7d355d1a94422634b4c4f53d00932ad9",
+  "ownedChildProcessGroupsRemaining": [],
+  "liveFinalSeparate": {
+    "head": "f291156eb4dd9697584e669f5d2a7f19019a3b86",
+    "status": " M README.md\n M package.json\n M src/commands/structured/input.ts\n M src/commands/structured/interpreter.ts\n M src/commands/structured/jq.ts\n M src/commands/structured/limits.ts\n M src/commands/structured/parser.ts\n M src/commands/structured/values.ts\n M src/index.ts\n M src/plugins/index.ts\n M src/shell/parser.ts\n M src/shell/runtime.ts\n M tests/plugins/agent-commands.test.ts\n?? benchmarks/reports/current-integration/registry-unblock/PREPARATION.md\n?? benchmarks/reports/current-integration/registry-unblock/PREPARATION.sha256\n?? benchmarks/reports/current-integration/registry-unblock/__pycache__/execute.cpython-314.pyc\n?? benchmarks/reports/current-integration/registry-unblock/execute.py\n?? benchmarks/reports/current-integration/registry-unblock/execution/accounting.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/after.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/checkpoint.txt\n?? benchmarks/reports/current-integration/registry-unblock/execution/diagnostic-callbacks.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/diagnostics8.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/diagnostics8.stderr\n?? benchmarks/reports/current-integration/registry-unblock/execution/diagnostics8.stdout\n?? benchmarks/reports/current-integration/registry-unblock/execution/exact-registry52.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/exact-registry52.stderr\n?? benchmarks/reports/current-integration/registry-unblock/execution/exact-registry52.stdout\n?? benchmarks/reports/current-integration/registry-unblock/execution/fresh6.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/fresh6.stderr\n?? benchmarks/reports/current-integration/registry-unblock/execution/fresh6.stdout\n?? benchmarks/reports/current-integration/registry-unblock/execution/independent162.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/independent162.stderr\n?? benchmarks/reports/current-integration/registry-unblock/execution/independent162.stdout\n?? benchmarks/reports/current-integration/registry-unblock/execution/matrix79.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/matrix79.stderr\n?? benchmarks/reports/current-integration/registry-unblock/execution/matrix79.stdout\n?? benchmarks/reports/current-integration/registry-unblock/execution/phase-results.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/preflight-author30.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/preflight-author30.stderr\n?? benchmarks/reports/current-integration/registry-unblock/execution/preflight-author30.stdout\n?? benchmarks/reports/current-integration/registry-unblock/execution/registry-author2.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/registry-author2.stderr\n?? benchmarks/reports/current-integration/registry-unblock/execution/registry-author2.stdout\n?? benchmarks/reports/current-integration/registry-unblock/execution/root-build.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/root-build.stderr\n?? benchmarks/reports/current-integration/registry-unblock/execution/root-build.stdout\n?? benchmarks/reports/current-integration/registry-unblock/execution/scoped-typecheck.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/scoped-typecheck.stderr\n?? benchmarks/reports/current-integration/registry-unblock/execution/scoped-typecheck.stdout\n?? benchmarks/reports/current-integration/registry-unblock/execution/sealed-input.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/split6.environment.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/split6.stderr\n?? benchmarks/reports/current-integration/registry-unblock/execution/split6.stdout\n?? benchmarks/reports/current-integration/registry-unblock/execution/static-closure.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/static-entrypoints.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/supplement-after.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/supplement-input.json\n?? benchmarks/reports/current-integration/registry-unblock/execution/supplement-phase-results.json\n?? benchmarks/reports/current-integration/registry-unblock/expected-default-commands.json\n?? benchmarks/reports/current-integration/registry-unblock/historical-99.json\n?? benchmarks/reports/current-integration/registry-unblock/independent-mutations.test.mjs\n?? benchmarks/reports/current-integration/registry-unblock/preparation-evidence.json\n?? benchmarks/reports/current-integration/registry-unblock/proposed-commands.json\n?? benchmarks/reports/current-integration/registry-unblock/scoped-tsconfig.json\n?? benchmarks/reports/current-integration/registry-unblock/static-closure.mjs\n?? benchmarks/reports/current-integration/registry-unblock/verify.py\n?? src/shell/display.ts\n?? tests/commands/archive-stress/.gitignore\n?? tests/commands/archive-stress/README.md\n?? tests/commands/archive-stress/acceptance.test.ts\n?? tests/commands/archive-stress/fixtures.ts\n?? tests/commands/archive-stress/helpers.ts\n?? tests/commands/archive-stress/native.test.ts\n?? tests/commands/archive-stress/run-provisional.mjs\n?? tests/commands/archive-stress/tsconfig.json\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/next\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/old\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/target\n?? tests/commands/metadata-stress/built-package.check.mjs\n?? tests/commands/search-stress/.native-1m4O1e/input\n?? tests/commands/structured-stress/jq-42-author-20260827/first-fix.json\n?? tests/commands/structured-stress/jq-42-author-20260827/first-owned.tap\n?? tests/commands/structured-stress/jq-42-independent-review/cases.mjs\n?? tests/commands/structured-stress/jq-42-independent-review/common.mjs\n?? tests/commands/structured-stress/jq-42-independent-review/freeze.mjs\n?? tests/commands/structured-stress/jq-42-independent-review/manifest.json\n?? tests/commands/structured-stress/jq-42-independent-review/native-frozen.json\n?? tests/shell-stress/invocation-closure/cases.ts\n?? tests/shell-stress/invocation-closure/holdout.test.ts\n?? tests/shell-stress/invocation-closure/native-preparation.json\n?? tests/shell-stress/invocation-closure/native-preparation.log\n?? tests/shell-stress/invocation-closure/native.ts\n?? tests/shell-stress/invocation-closure/preparation-types.log\n?? tests/shell-stress/invocation-closure/probe.ts\n?? tests/shell-stress/invocation-closure/support.ts\n?? tests/shell/BOM_CAPTURE.md\n?? tests/shell/bom-capture-evidence.json\n?? tests/shell/bom-capture.test.ts\n?? tests/shell/invocation-closure-cases.ts\n?? tests/shell/invocation-closure-discovery-reference.json\n?? tests/shell/invocation-closure-discovery.test.ts\n?? tests/shell/invocation-closure-native.ts\n",
+    "staged": ""
+  },
+  "independentHarnessSha256": "481df432869fbd8fc0a0288f94c773f63604765fb1529c50fc9aab842dc7c872",
+  "independentHarnessCopyMatches": true,
+  "limits": [
+    "All dirty paths captured before/after sealing; selected source file bytes hashed. Excluded reports/debris paths are inventoried, not certified as frozen input bytes.",
+    "Native jq expectations are retained frozen JSON, not a fresh host jq oracle; S3 mock and loopback WebDAV do not establish real provider coverage.",
+    "Live changes after seal are separate from frozen results; no source-frozen committed-tree claim."
+  ]
+}

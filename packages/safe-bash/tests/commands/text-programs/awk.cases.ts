@@ -1,0 +1,501 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { Shell } from "../../../src/shell/index.js";
+import { standardCommands } from "../../../src/commands/index.js";
+import { textProgramCommands } from "../../../src/commands/text-programs/index.js";
+import { byteChunks, makeFileSystem, runVirtual } from "./helpers.js";
+
+for (const key of ["01", "007", "1.0", "1e2", " 1 "]) {
+  test(`awk foreach preserves string comparison for key ${JSON.stringify(key)}`, async () => {
+    const result = await runVirtual("awk", {
+      args: [`BEGIN { a["${key}"] = "value"; for (k in a) print k == ${Number(key)}, k + 0, a[k] }`],
+    });
+    assert.deepEqual([result.exitCode, result.stdout.toString(), result.stderr.toString()], [0, `0 ${Number(key)} value\n`, ""]);
+  });
+}
+
+test("awk foreach compares distinct numeric-looking keys as strings", async () => {
+  const result = await runVirtual("awk", {
+    args: ['BEGIN { a["1"] = "one"; a["01"] = "zero-one"; for (k in a) if (k == 1) print "matches 1:", k, a[k]; for (k1 in a) for (k2 in a) if (k1 != k2) print "distinct:", k1, k2 }'],
+  });
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stderr.toString(), "");
+  assert.deepEqual(result.stdout.toString().trim().split("\n").sort(), ["distinct: 01 1", "distinct: 1 01", "matches 1: 1 one"]);
+});
+
+for (const args of [["-E", "owned.awk"], ["-Eowned.awk"], ["--exec=owned.awk"], ["--exec", "owned.awk"]]) {
+  test(`awk executes VFS program: ${JSON.stringify(args)}`, async () => {
+    const fs = await makeFileSystem({ "owned.awk": "{print $2}", records: "Independent 31\nChanged 47\n" });
+    const shell = new Shell({ fs, cwd: "/work" }).use(textProgramCommands());
+    try {
+      const result = await shell.exec(`awk ${args.join(" ")} records`);
+      assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, "31\n47\n", ""]);
+    } finally { await shell.dispose(); }
+  });
+}
+
+for (const args of [["-i", "./include.awk"], ["-i./include.awk"], ["--include=./include.awk"], ["--include", "./include.awk"]]) {
+  for (const main of [["{print transform($2)}"], ["-f", "main.awk"], ["-E", "main.awk"]]) {
+    test(`awk includes VFS function: ${JSON.stringify([...args, ...main])}`, async () => {
+      const result = await runVirtual("awk", {
+        args: [...args, ...main, "records"],
+        files: { "include.awk": 'function transform(s) { return "Actual:" s }', "main.awk": "{print transform($2)}", records: "Independent 31\nChanged 47\n" },
+      });
+      assert.deepEqual([result.exitCode, result.stdout.toString(), result.stderr.toString()], [0, "Actual:31\nActual:47\n", ""]);
+    });
+  }
+}
+
+test("awk exec ends options and disables operand assignments", async () => {
+  const result = await runVirtual("awk", {
+    args: ["-E", "main.awk", "-v", "x=record"],
+    files: { "main.awk": "{print $2}", "-v": "first 31\n", "x=record": "second 47\n" },
+  });
+  assert.deepEqual([result.exitCode, result.stdout.toString(), result.stderr.toString()], [0, "31\n47\n", ""]);
+});
+
+for (const flag of ["-E", "--exec", "-i", "--include"]) {
+  test(`awk requires ${flag} file argument`, async () => {
+    const result = await runVirtual("awk", { args: [flag] });
+    assert.equal(result.exitCode, 2);
+    assert.equal(result.stderr.toString(), `awk: ${flag} requires an argument\n`);
+  });
+  test(`awk does not search ambient paths for ${flag}`, async () => {
+    const result = await runVirtual("awk", { args: [flag, "missing.awk", "BEGIN {print 1}"] });
+    assert.equal(result.exitCode, 1);
+    assert.match(result.stderr.toString(), /missing.awk/u);
+    assert.equal(result.stdout.length, 0);
+  });
+}
+
+for (const args of [
+  ["--field-separator=,", "{print $2}", "input"],
+  ["--field-separator", ",", "{print $2}", "input"],
+  ["--source={print $2}", "--field-separator=,", "input"],
+  ["--source", "{print $2}", "-F,", "input"],
+  ["-e{print $2}", "-F,", "input"],
+  ["-e", "{print $2}", "-F,", "input"],
+]) {
+  test(`awk GNU separator/source options: ${JSON.stringify(args)}`, async () => {
+    const fs = await makeFileSystem({ input: "a,b\n" });
+    const shell = new Shell({ fs, cwd: "/work" }).use(textProgramCommands());
+    try {
+      const result = await shell.exec(`awk ${args.map(value => `'${value}'`).join(" ")}`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "b\n");
+      assert.equal(result.stderr, "");
+    } finally { await shell.dispose(); }
+  });
+}
+
+for (const flag of ["--characters-as-bytes", "-b"]) {
+  test(`awk ${flag} counts and preserves raw bytes`, async () => {
+    const input = Buffer.from([0xc3, 0xa9, 0xff, 10]);
+    const result = await runVirtual("awk", { args: [flag, "{print length($0); print $0}"], stdin: input });
+    assert.equal(result.exitCode, 0, result.stderr.toString());
+    assert.deepEqual(result.stdout, Buffer.concat([Buffer.from("3\n"), input]));
+    assert.equal(result.stderr.length, 0);
+  });
+}
+
+test("awk combines ordered source and program-file fragments", async () => {
+  const result = await runVirtual("awk", {
+    args: ["--source=BEGIN {print 1}", "-f", "program.awk", "-e", "END {print 3}", "input"],
+    files: { "program.awk": "{print $2}", input: "a 2\n" },
+  });
+  assert.equal(result.exitCode, 0, result.stderr.toString());
+  assert.equal(result.stdout.toString(), "1\n2\n3\n");
+});
+
+test("awk accepts an explicitly empty source without consuming a program operand", async () => {
+  const result = await runVirtual("awk", { args: ["--source=", "input"], files: { input: "a b\n" } });
+  assert.equal(result.exitCode, 0, result.stderr.toString());
+  assert.equal(result.stdout.length, 0);
+});
+
+for (const [separator, input, expected] of [
+  ["", "abc\n", "b\n"],
+  [String.raw`\t`, "a\tb\n", "b\n"],
+  ["=", "a=b\n", "b\n"],
+] as const) {
+  test(`awk long separator preserves ${JSON.stringify(separator)}`, async () => {
+    const result = await runVirtual("awk", { args: [`--field-separator=${separator}`, "{print $2}"], stdin: input });
+    assert.equal(result.exitCode, 0, result.stderr.toString());
+    assert.equal(result.stdout.toString(), expected);
+  });
+}
+
+test("awk source options respect the end of options before file operands", async () => {
+  const result = await runVirtual("awk", {
+    args: ["--source={print $2}", "--", "--source=input"], files: { "--source=input": "a b\n" },
+  });
+  assert.equal(result.exitCode, 0, result.stderr.toString());
+  assert.equal(result.stdout.toString(), "b\n");
+});
+
+for (const flag of ["--source-extra=BEGIN{}", "--characters-as-bytes=yes", "--bignum", "--sandbox"]) {
+  test(`awk rejects unsupported ${flag} before program effects`, async () => {
+    const result = await runVirtual("awk", { args: ["--source=BEGIN {print 1 > \"created\"}", flag] });
+    assert.equal(result.exitCode, 2);
+    assert.equal(result.stdout.length, 0);
+    assert.equal(result.stderr.toString(), `awk: unsupported awk option '${flag}'\n`);
+    assert.deepEqual(result.files, {});
+  });
+}
+
+for (const flag of ["--source", "--field-separator", "-e"]) {
+  test(`awk rejects missing ${flag} argument before reading stdin`, async () => {
+    let consumed = false;
+    const source = (async function* () { consumed = true; yield Buffer.from("input\n"); })();
+    const result = await runVirtual("awk", { args: [flag] }, {}, source);
+    assert.equal(result.exitCode, 2);
+    assert.equal(result.stdout.length, 0);
+    assert.equal(result.stderr.toString(), `awk: ${flag} requires an argument\n`);
+    assert.equal(consumed, false);
+  });
+}
+
+for (const [name, replacement, expected] of [
+  ["plain text", "plain", "plain"],
+  ["literal backslash n", String.raw`\\n`, String.raw`\n`],
+  ["literal backslash t", String.raw`\\t`, String.raw`\t`],
+  ["literal backslash comma", String.raw`\\,`, String.raw`\,`],
+  ["literal backslash semicolon", String.raw`\\;`, String.raw`\;`],
+  ["literal backslash q", String.raw`\\q`, String.raw`\q`],
+  ["literal backslash 1", String.raw`\\1`, String.raw`\1`],
+  ["literal backslash 2", String.raw`\\2`, String.raw`\2`],
+  ["literal backslash 3", String.raw`\\3`, String.raw`\3`],
+  ["literal backslash 4", String.raw`\\4`, String.raw`\4`],
+  ["literal backslash 5", String.raw`\\5`, String.raw`\5`],
+  ["literal backslash 6", String.raw`\\6`, String.raw`\6`],
+  ["literal backslash 7", String.raw`\\7`, String.raw`\7`],
+  ["literal backslash 8", String.raw`\\8`, String.raw`\8`],
+  ["literal backslash 9", String.raw`\\9`, String.raw`\9`],
+  ["decoded octal", String.raw`\1`, "\x01"],
+  ["decoded newline", String.raw`\n`, "\n"],
+  ["decoded tab", String.raw`\t`, "\t"],
+  ["matched text", "<&>", "<x>"],
+  ["escaped ampersand", String.raw`\\&`, "&"],
+  ["backslash and matched text", String.raw`\\\\&`, "\\x"],
+  ["backslash and escaped ampersand", String.raw`\\\\\\&`, "\\&"],
+  ["trailing backslash", String.raw`\\`, "\\"],
+  ["escaped backslash", String.raw`\\\\`, "\\"],
+  ["escaped backslash before n", String.raw`\\\\n`, String.raw`\n`],
+] as const) {
+  for (const operation of ["sub", "gsub"]) {
+    for (const variable of [false, true]) {
+      test(`awk ${operation} replacement ${name}, variable=${variable}`, async () => {
+        const setup = variable ? `replacement="${replacement}";` : "";
+        const argument = variable ? "replacement" : `"${replacement}"`;
+        const program = `BEGIN { ${setup} value="xx"; count=${operation}(/x/,${argument},value); printf "%s\\n%d\\n",value,count }`;
+        const result = await runVirtual("awk", { args: [program] });
+        assert.equal(result.exitCode, 0, result.stderr.toString());
+        assert.equal(result.stderr.length, 0);
+        assert.deepEqual(result.stdout, Buffer.from(operation === "sub" ? `${expected}x\n1\n` : `${expected}${expected}\n2\n`));
+      });
+    }
+  }
+}
+
+test("awk program files preserve literal replacement backslashes through the shell", async () => {
+  const fs = await makeFileSystem({ "program.awk": String.raw`BEGIN {s="x"; gsub(/x/,"\\n",s); printf "%s\n",s}` });
+  const shell = new Shell({ fs, cwd: "/work" }).use(textProgramCommands());
+  try {
+    const result = await shell.exec("awk -f program.awk");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.deepEqual(Buffer.from(result.stdout), Buffer.from([0x5c, 0x6e, 0x0a]));
+  } finally {
+    await shell.dispose();
+  }
+});
+
+test("awk substitution without a match preserves its target", async () => {
+  const result = await runVirtual("awk", { args: [String.raw`BEGIN {value="unchanged"; print sub(/x/,"\\n",value),gsub(/x/,"\\t",value); print value}`] });
+  assert.equal(result.exitCode, 0, result.stderr.toString());
+  assert.equal(result.stdout.toString(), "0 0\nunchanged\n");
+  assert.equal(result.stderr.length, 0);
+});
+
+for (const separator of ["", " ", "\t", ";", "\n"]) {
+  test(`awk accepts a pattern after an action with separator ${JSON.stringify(separator)}`, async () => {
+    const fs = await makeFileSystem();
+    const shell = new Shell({ fs, cwd: "/work" }).use(standardCommands()).use(textProgramCommands());
+    try {
+      const result = await shell.exec(`printf '2 102\\n3 103\\n4 104\\n' > input.txt\nawk 'BEGIN{n=0}${separator}NF{n++} END{print n}' input.txt`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "3\n");
+      assert.equal(result.stderr, "");
+    } finally {
+      await shell.dispose();
+    }
+  });
+}
+
+for (const [name, program, expected] of [
+  ["record action", "{n++}NF{n++}END{print n}", "6\n"],
+  ["END action", "END{print n}NF{n++}", "3\n"],
+  ["function definition", "function count(){return 1}NF{n+=count()}END{print n}", "3\n"],
+  ["regular expression pattern", "BEGIN{n=0}/^[234] /{n++}END{print n}", "3\n"],
+  ["range pattern", "BEGIN{n=0}NR==1,NR==2{n++}END{print n}", "2\n"],
+  ["numeric pattern", "BEGIN{n=0}1{n++}END{print n}", "3\n"],
+  ["string pattern", 'BEGIN{n=0}"match"{n++}END{print n}', "3\n"],
+  ["field pattern", "BEGIN{n=0}$1{n++}END{print n}", "3\n"],
+  ["parenthesized pattern", "BEGIN{n=0}(NF>0){n++}END{print n}", "3\n"],
+  ["unary pattern", "BEGIN{n=0}!0{n++}END{print n}", "3\n"],
+  ["nested action", "BEGIN{if(1){n=0}}NF{n++}END{print n}", "3\n"],
+  ["default action at EOF", "BEGIN{}NF", "2 102\n3 103\n4 104\n"],
+  ["default action before semicolon", "NF;END{print NR}", "2 102\n3 103\n4 104\n3\n"],
+  ["default action before newline", "NF\nEND{print NR}", "2 102\n3 103\n4 104\n3\n"],
+  ["adjacent unpatterned actions", "{n++}{n++}END{print n}", "6\n"],
+] as const) {
+  test(`awk rule boundary: ${name}`, async () => {
+    const result = await runVirtual("awk", { args: [program], stdin: "2 102\n3 103\n4 104\n" });
+    assert.equal(result.exitCode, 0, result.stderr.toString());
+    assert.equal(result.stdout.toString(), expected);
+    assert.equal(result.stderr.length, 0);
+    assert.deepEqual(result.files, {});
+  });
+}
+
+for (const [name, suffix] of [
+  ["default action before BEGIN", "NF BEGIN{}"],
+  ["default action before END", "NF END{}"],
+  ["default action before function", "NF function value(){return 1}"],
+  ["range default action before END", "NR==1,NR==2 END{}"],
+  ["missing pattern operand", "NF && {print}"],
+  ["missing range endpoint", "NF, {print}"],
+  ["unmatched action brace", "NF{print"],
+  ["extra closing brace", "}"],
+  ["missing statement separator", "NF{print 1 print 2}"],
+  ["invalid pattern keyword", "else{print}"],
+] as const) {
+  test(`awk rejects invalid rule boundary before effects: ${name}`, async () => {
+    let consumed = false;
+    const source = (async function* () { consumed = true; yield Buffer.from("input\n"); })();
+    const program = `BEGIN{print "bad" > "created"};${suffix}`;
+    const result = await runVirtual("awk", { args: [program] }, {}, source);
+    assert.equal(result.exitCode, 2);
+    assert.equal(result.stdout.length, 0);
+    assert.notEqual(result.stderr.length, 0);
+    assert.deepEqual(result.files, {});
+    assert.equal(consumed, false);
+  });
+}
+
+for (const program of ['{ print }', 'BEGIN { while ((getline value < "-") > 0) print value }']) {
+  for (const carriedBytes of [0, 64]) {
+    test(`awk reader rejects before copying or decoding: carry=${carriedBytes}, ${program}`, async context => {
+      const maxBufferBytes = 128;
+      const rejected = new Uint8Array(maxBufferBytes - carriedBytes + 1).fill(120);
+      const prefix = Buffer.from(`done\n${"x".repeat(carriedBytes)}`);
+      let pulls = 0;
+      let closed = false;
+      const source = (async function* () {
+        try {
+          if (carriedBytes) { pulls++; yield prefix; }
+          pulls++; yield rejected;
+          pulls++; yield Uint8Array.of(10);
+        } finally { closed = true; }
+      })();
+      const from = context.mock.method(Buffer, "from");
+      const toString = context.mock.method(Buffer.prototype, "toString");
+      const result = await runVirtual("awk", { args: [program] }, { maxBufferBytes }, source);
+      const copies = from.mock.calls.filter(call => call.arguments[0] === rejected);
+      const decodings = toString.mock.calls.filter((call: { this: unknown }) => copies.some(copy => copy.result === call.this));
+      assert.equal(result.exitCode, 2);
+      assert.equal(result.stderr.toString(), "awk: text buffer limit exceeded\n");
+      assert.equal(result.stdout.toString(), carriedBytes ? "done\n" : "");
+      assert.equal(pulls, carriedBytes ? 2 : 1);
+      assert.equal(closed, true);
+      assert.deepEqual({ copies: copies.length, decodings: decodings.length }, { copies: 0, decodings: 0 });
+    });
+  }
+}
+
+test("awk reader admits exact byte limits with split UTF-8, carry and empty chunks", async () => {
+  const contents = Buffer.from(`${"é".repeat(63)}x\n`);
+  assert.equal(contents.byteLength, 128);
+  const source = (async function* () {
+    yield contents.subarray(0, 1);
+    yield new Uint8Array();
+    yield contents.subarray(1, 127);
+    yield contents.subarray(127);
+    yield contents;
+  })();
+  const result = await runVirtual("awk", { args: ['{ print }'] }, { maxBufferBytes: 128 }, source);
+  assert.equal(result.exitCode, 0, result.stderr.toString());
+  assert.deepEqual(result.stdout, Buffer.concat([contents, contents]));
+});
+
+test("awk reader counts UTF-8 bytes rather than decoded characters", async () => {
+  const result = await runVirtual("awk", { args: ['{ print }'], stdin: `${"é".repeat(64)}\n` }, { maxBufferBytes: 128 });
+  assert.equal(result.exitCode, 2);
+  assert.equal(result.stderr.toString(), "awk: text buffer limit exceeded\n");
+  assert.equal(result.stdout.length, 0);
+});
+
+test("awk reader retains owned raw bytes across producer reuse and unterminated EOF", async () => {
+  const source = (async function* () {
+    const chunk = Uint8Array.of(0xff, 0xc3);
+    yield chunk;
+    chunk.set([0xa9, 0]);
+    yield chunk;
+    chunk.fill(120);
+  })();
+  const result = await runVirtual("awk", { args: ['{ print }'] }, { maxBufferBytes: 128 }, source);
+  assert.equal(result.exitCode, 0, result.stderr.toString());
+  assert.deepEqual(result.stdout, Buffer.from([0xff, 0xc3, 0xa9, 0, 10]));
+});
+
+for (const synchronous of [false, true]) for (const buffer of [false, true]) {
+  if (!synchronous && !buffer) continue;
+  test(`awk reader owns reused chunks: synchronous=${synchronous}, Buffer=${buffer}`, async () => {
+    const chunk = buffer ? Buffer.from([0xff, 0xc3]) : Uint8Array.of(0xff, 0xc3);
+    let step = 0;
+    const advance = (): IteratorResult<Uint8Array> => {
+      if (step++ === 0) return { done: false, value: chunk };
+      if (step === 2) {
+        chunk.set([0xa9, 0]);
+        return { done: false, value: chunk };
+      }
+      chunk.fill(120);
+      return { done: true, value: undefined };
+    };
+    const source = {
+      [Symbol.asyncIterator]() {
+        return { next: async () => advance(), ...(synchronous ? { tryNextSync: advance } : {}) };
+      },
+    };
+    const result = await runVirtual("awk", { args: ['{ print }'] }, { maxBufferBytes: 128 }, source);
+    assert.equal(result.exitCode, 0, result.stderr.toString());
+    assert.deepEqual(result.stdout, Buffer.from([0xff, 0xc3, 0xa9, 0, 10]));
+  });
+}
+
+test("awk reader refreshes cached text when a producer reuses a large chunk", async () => {
+  const chunk = Buffer.alloc(512, 97);
+  chunk[511] = 10;
+  const first = Buffer.from(chunk);
+  const second = Buffer.from(chunk);
+  second[17] = 98;
+  const source = (async function* () {
+    yield chunk;
+    chunk[17] = 98;
+    yield chunk;
+  })();
+  const result = await runVirtual("awk", { args: ['{ print }'] }, {}, source);
+  assert.equal(result.exitCode, 0, result.stderr.toString());
+  assert.deepEqual(result.stdout, Buffer.concat([first, second]));
+});
+
+for (const [name, program, expected] of [
+  ["empty program", "", ""],
+  ["only repeated mixed separators", "\n;;\n;\n", ""],
+  ["mixed statement and rule separators", '\n;;BEGIN { ;\n; print "first";\n;; print "second"\n;; };\n;END { print "last" };;\n', "first\nsecond\nlast\n"],
+  ["empty action", "\nBEGIN\n\n{\n;;\n}\n", ""],
+  ["semicolon remains an empty conditional body", 'BEGIN { if (0); print "after"; while (0); print "done" }', "after\ndone\n"],
+  ["literal separators", 'BEGIN { print ";", "a;b", "\\n"; print "after" }', "; a;b \n\nafter\n"],
+  ["newlines before action and in conditions", 'BEGIN\n\n{ if (\n\n1\n\n)\n\n print "yes"; else\n\n print "no" }', "yes\n"],
+  ["newlines before function body", 'function value()\n\n{ return 7 }\n\nBEGIN { print value() }', "7\n"],
+] as const) {
+  test(`Group E awk separator control: ${name}`, async () => {
+    const result = await runVirtual("awk", { args: [program], stdin: "input\n" });
+    assert.equal(result.exitCode, 0, result.stderr.toString());
+    assert.equal(result.stdout.toString(), expected);
+    assert.equal(result.stderr.length, 0);
+    assert.deepEqual(result.files, {});
+  });
+}
+
+for (const [name, program] of [
+  ["before BEGIN action", 'BEGIN; { print "bad" > "created" }'],
+  ["before function body", 'function value(); { return 7 } BEGIN { print "bad" > "created" }'],
+  ["before condition expression", 'BEGIN { print "bad" > "created"; if (;1) print "bad" }'],
+  ["after condition expression", 'BEGIN { print "bad" > "created"; if (1;) print "bad" }'],
+] as const) {
+  test(`Group E awk rejects semicolon ${name} before effects`, async () => {
+    let consumed = false;
+    const source = (async function* () { consumed = true; yield Buffer.from("input\n"); })();
+    const result = await runVirtual("awk", { args: [program] }, {}, source);
+    assert.equal(result.exitCode, 2);
+    assert.equal(result.stdout.length, 0);
+    assert.notEqual(result.stderr.length, 0);
+    assert.deepEqual(result.files, {});
+    assert.equal(consumed, false);
+  });
+}
+
+test("awk rejects unsupported syntax and unknown calls before input and output effects", async () => {
+  for (const program of [
+    'BEGIN { print "bad" > "created"; system("never execute") }',
+    'BEGIN { print "bad" | "never execute" }',
+    'BEGIN { print "bad"; missing_function() }',
+    'BEGIN { print "bad"; break }',
+    'BEGIN { print "bad"; next }',
+    'BEGIN { print "bad"; values=split("x", "not-an-array") }',
+    'BEGIN { print "bad"; value=match("x", /(unterminated/) }',
+    'BEGIN { print "bad"; printf "%q", "x" }',
+    'BEGIN { print "bad"; value=sprintf("%q", "x") }',
+    'BEGIN { print "bad"; index=1 }',
+  ]) {
+    let consumed = false;
+    const source = (async function* () { consumed = true; yield Buffer.from("input\n"); })();
+    const result = await runVirtual("awk", { args: [program] }, {}, source);
+    assert.equal(result.exitCode, 2, program);
+    assert.equal(result.stdout.length, 0, program);
+    assert.deepEqual(result.files, {}, program);
+    assert.equal(consumed, false, program);
+  }
+});
+
+test("awk loops, recursive functions and regex matching are bounded", async () => {
+  for (const program of ['BEGIN { while(1) value++ }', 'function repeat() { return repeat() } BEGIN { repeat() }', '{ print ($0 ~ /(a+)+b/) }']) {
+    const result = await runVirtual("awk", { args: [program], stdin: "a".repeat(1000) }, { maxSteps: 1000 });
+    assert.equal(result.exitCode, 2);
+    assert.match(result.stderr.toString(), /limit/u);
+  }
+});
+
+test("awk streams one-byte records and composes with sed and existing virtual tools", async () => {
+  const streamed = await runVirtual("awk", { args: ['{ sum+=$2 } END { print NR,sum }'] }, {}, byteChunks("one 2\ntwo 3"));
+  assert.equal(streamed.stdout.toString(), "2 5\n");
+  const fs = await makeFileSystem();
+  const shell = new Shell({ fs, cwd: "/work" }).use(standardCommands()).use(textProgramCommands());
+  const result = await shell.exec("printf 'skip:z 99\\nkeep:pear 2\\nkeep:apple 3\\nkeep:pear 4\\n' | sed -n 's/^keep://p' | awk '{ sums[$1]+=$2 } END { for(name in sums) printf \"%s:%d\\n\",name,sums[name] }' | sort | tee totals");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "apple:3\npear:6\n");
+  assert.equal(new TextDecoder().decode(await fs.readFile("/work/totals")), result.stdout);
+});
+
+for (const [name, program, stdin, args, files, expected] of [
+  ["plain main input", '/^HEADER$/ { getline; print NR, FNR, $0, NF, $1 }', "HEADER\nvalue1\nother\nHEADER\nvalue2\n", [], {}, "2 2 value1 1 value1\n5 5 value2 1 value2\n"],
+  ["variable and EOF", '{ r = (getline nextline); print r, NR, FNR, $0, NF, "->", nextline }', "line1\nline2\nline3\n", [], {}, "1 2 2 line1 1 -> line2\n0 3 3 line3 1 -> line2\n"],
+  ["BEGIN shares input", 'BEGIN { getline; print NR, FNR, $0 } { print NR, FNR, $0 } END { print getline, NR, FNR, $0 }', "a\nb\n", [], {}, "1 1 a\n2 2 b\n0 2 2 b\n"],
+  ["crosses files", '{ r = getline value; print r, NR, FNR, FILENAME, $0, value }', "", ["first", "empty", "last"], { first: "a\n", empty: "", last: "b\nc\n" }, "1 2 1 last a b\n0 3 2 last c b\n"],
+  ["assignable field", '{ r = getline $2; print r, NR, NF, $0 }', "a x\nb y\n", [], {}, "1 2 2 a b y\n"],
+] as const) {
+  test(`awk unredirected getline ${name}`, async () => {
+    const result = await runVirtual("awk", { args: [program, ...args], stdin, files });
+    assert.deepEqual([result.exitCode, result.stdout.toString(), result.stderr.toString()], [0, expected, ""]);
+  });
+}
+
+test("awk treats nonexistent/intervening fields as empty strings, supports /dev/std* redirects, preserves mainReader for END getline, and parses hex numeric strings", async () => {
+  const r1 = await runVirtual("awk", { args: ['BEGIN { $1="a"; $3="c"; print ($2 == 0), ($4 == 0) }'] });
+  assert.equal(r1.exitCode, 0);
+  assert.equal(r1.stdout.toString(), "0 0\n");
+
+  const r2 = await runVirtual("awk", { args: ['BEGIN { print "err" > "/dev/stderr"; print "out" > "/dev/stdout" }'] });
+  assert.equal(r2.exitCode, 0);
+  assert.equal(r2.stdout.toString(), "out\n");
+  assert.equal(r2.stderr.toString(), "err\n");
+
+  const r3 = await runVirtual("awk", { args: ['NR == 1 { exit } END { print (getline), $0 }'], stdin: "line1\nline2\n" });
+  assert.equal(r3.exitCode, 0);
+  assert.equal(r3.stdout.toString(), "1 line2\n");
+
+  const r4 = await runVirtual("awk", { args: ['BEGIN { printf "%d\\n", "0x10" }'] });
+  assert.equal(r4.exitCode, 0);
+  assert.equal(r4.stdout.toString(), "16\n");
+});

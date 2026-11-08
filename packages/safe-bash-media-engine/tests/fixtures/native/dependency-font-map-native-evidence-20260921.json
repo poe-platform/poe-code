@@ -1,0 +1,127 @@
+{
+  "scope": "Original manual native qualification. Interposed stat attempts qualify native font-map search only, not font byte reads, kernel timing, rendering or remote mediation. Product code never loads or executes this observer.",
+  "captured_utc": "2026-09-21T12:58:44.174309+00:00",
+  "cwd": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/font-map-qualification-wf6baiio",
+  "executable": "/opt/homebrew/Cellar/imagemagick/7.1.2-31/bin/magick",
+  "executable_sha256": "d5a0dee6582f6843bf30fcf567febe993ad45eb53dcba108a0572d5f0d454a73",
+  "source": "/tmp/ImageMagick-7.1.2-31/MagickCore/type.c",
+  "source_sha256": "794243fcb3e32d0dad48fc1c5e607c037f0c2cd156f5995ecb3c275d8eefdba0",
+  "observer_source": "#include <sys/stat.h>\n#include <unistd.h>\n#include <stdio.h>\nstatic int traced_stat(const char *path, struct stat *buf) {\n  char line[8192]; int n=snprintf(line,sizeof(line),\"FONT_STAT \");\n  for(const unsigned char *p=(const unsigned char *)path; *p && n+3<sizeof(line); ++p) n+=snprintf(line+n,sizeof(line)-n,\"%02x\",*p);\n  line[n++]='\\n';write(2,line,n);\n  return stat(path,buf);\n}\n__attribute__((used)) static struct { const void *replacement; const void *original; } entry __attribute__((section(\"__DATA,__interpose\"))) = { (const void *)traced_stat, (const void *)stat };\n",
+  "cases": [
+    {
+      "id": "cwd-collision",
+      "manifest": "<typemap><type name=\"OriginalResolverFont\" family=\"OriginalResolverFont\" glyphs=\"https:Case雪.ttf\"/></typemap>",
+      "before": {
+        "https:Case雪.ttf": "64a0563d8a8ed5027d035fe55ac775e703582302762c369a9657f7399bb5aeb0",
+        "config/type.xml": "e7d799cd9a1db13060da379a653daff7df60688da70425d60cc62bf87be792f3",
+        "config/https:Case雪.ttf": "1d21f7cbd7adb1e34972dcd9ee18e7e512198876e12d85ad3a57764051fc49ef"
+      },
+      "after": {
+        "https:Case雪.ttf": "64a0563d8a8ed5027d035fe55ac775e703582302762c369a9657f7399bb5aeb0",
+        "config/type.xml": "e7d799cd9a1db13060da379a653daff7df60688da70425d60cc62bf87be792f3",
+        "config/https:Case雪.ttf": "1d21f7cbd7adb1e34972dcd9ee18e7e512198876e12d85ad3a57764051fc49ef"
+      },
+      "runs": [
+        {
+          "status": 0,
+          "stdout_sha256": "c445c89eb4f7a6d7909f6a06b10b96609eb86094e009729cfd1d21db650d27c6",
+          "font_stat_attempts": [],
+          "selected_glyphs": []
+        },
+        {
+          "status": 0,
+          "stdout_sha256": "c445c89eb4f7a6d7909f6a06b10b96609eb86094e009729cfd1d21db650d27c6",
+          "font_stat_attempts": [
+            "https:Case雪.ttf"
+          ],
+          "selected_glyphs": []
+        }
+      ]
+    },
+    {
+      "id": "map-fallback",
+      "manifest": "<typemap><type name=\"OriginalResolverFont\" family=\"OriginalResolverFont\" glyphs=\"https:Case雪.ttf\"/></typemap>",
+      "before": {
+        "config/type.xml": "e7d799cd9a1db13060da379a653daff7df60688da70425d60cc62bf87be792f3",
+        "config/https:Case雪.ttf": "1d21f7cbd7adb1e34972dcd9ee18e7e512198876e12d85ad3a57764051fc49ef"
+      },
+      "after": {
+        "config/type.xml": "e7d799cd9a1db13060da379a653daff7df60688da70425d60cc62bf87be792f3",
+        "config/https:Case雪.ttf": "1d21f7cbd7adb1e34972dcd9ee18e7e512198876e12d85ad3a57764051fc49ef"
+      },
+      "runs": [
+        {
+          "status": 0,
+          "stdout_sha256": "5844695817338d7476c537864f67842d7d1759924127835c74d3efe58a2f29f0",
+          "font_stat_attempts": [],
+          "selected_glyphs": []
+        },
+        {
+          "status": 0,
+          "stdout_sha256": "5844695817338d7476c537864f67842d7d1759924127835c74d3efe58a2f29f0",
+          "font_stat_attempts": [
+            "https:Case雪.ttf",
+            "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/font-map-qualification-wf6baiio/config/https:Case雪.ttf"
+          ],
+          "selected_glyphs": []
+        }
+      ]
+    },
+    {
+      "id": "absent",
+      "manifest": "<typemap><type name=\"OriginalResolverFont\" family=\"OriginalResolverFont\" glyphs=\"https:Case雪.ttf\"/></typemap>",
+      "before": {
+        "config/type.xml": "e7d799cd9a1db13060da379a653daff7df60688da70425d60cc62bf87be792f3"
+      },
+      "after": {
+        "config/type.xml": "e7d799cd9a1db13060da379a653daff7df60688da70425d60cc62bf87be792f3"
+      },
+      "runs": [
+        {
+          "status": 0,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "font_stat_attempts": [],
+          "selected_glyphs": []
+        },
+        {
+          "status": 0,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "font_stat_attempts": [
+            "https:Case雪.ttf",
+            "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/font-map-qualification-wf6baiio/config/https:Case雪.ttf"
+          ],
+          "selected_glyphs": []
+        }
+      ]
+    },
+    {
+      "id": "case-collision-on-insensitive-host",
+      "manifest": "<typemap><type name=\"OriginalResolverFont\" family=\"OriginalResolverFont\" glyphs=\"https:Case雪.ttf\"/></typemap>",
+      "before": {
+        "https:case雪.ttf": "c735afee57e8f4e2545856d03577ef894458c150220826df89e054f754add71a",
+        "config/type.xml": "e7d799cd9a1db13060da379a653daff7df60688da70425d60cc62bf87be792f3"
+      },
+      "after": {
+        "https:case雪.ttf": "c735afee57e8f4e2545856d03577ef894458c150220826df89e054f754add71a",
+        "config/type.xml": "e7d799cd9a1db13060da379a653daff7df60688da70425d60cc62bf87be792f3"
+      },
+      "runs": [
+        {
+          "status": 0,
+          "stdout_sha256": "c445c89eb4f7a6d7909f6a06b10b96609eb86094e009729cfd1d21db650d27c6",
+          "font_stat_attempts": [],
+          "selected_glyphs": []
+        },
+        {
+          "status": 0,
+          "stdout_sha256": "c445c89eb4f7a6d7909f6a06b10b96609eb86094e009729cfd1d21db650d27c6",
+          "font_stat_attempts": [
+            "https:Case雪.ttf"
+          ],
+          "selected_glyphs": []
+        }
+      ]
+    }
+  ],
+  "filesystem_case_sensitive": false
+}

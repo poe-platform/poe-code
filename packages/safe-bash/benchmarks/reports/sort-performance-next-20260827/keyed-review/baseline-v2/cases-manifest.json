@@ -1,0 +1,142 @@
+[
+  {
+    "id": "inherited-numeric",
+    "script": "sort -ns -t: -k2,2",
+    "inputBytes": 14
+  },
+  {
+    "id": "local-replaces-global-numeric",
+    "script": "sort -nr -t: -k2,2r",
+    "inputBytes": 13
+  },
+  {
+    "id": "local-numeric-replaces-global-reverse",
+    "script": "sort -rs -t: -k2,2n",
+    "inputBytes": 14
+  },
+  {
+    "id": "local-reverse-end-flags",
+    "script": "sort -s -t: -k2,2nr",
+    "inputBytes": 14
+  },
+  {
+    "id": "whitespace-included-character",
+    "script": "sort -s -k2.2,2n",
+    "inputBytes": 15
+  },
+  {
+    "id": "whitespace-blanks-transform",
+    "script": "sort -s -k2.2,2bn",
+    "inputBytes": 16
+  },
+  {
+    "id": "delimited-empty-and-missing",
+    "script": "sort -s -t: -k2,2n",
+    "inputBytes": 19
+  },
+  {
+    "id": "open-ended-key",
+    "script": "sort -s -t: -k2n",
+    "inputBytes": 21
+  },
+  {
+    "id": "end-field-and-char-boundary",
+    "script": "sort -s -t: -k2.2,2.3n",
+    "inputBytes": 21
+  },
+  {
+    "id": "out-of-range-character",
+    "script": "sort -s -t: -k2.99,2.100n",
+    "inputBytes": 12
+  },
+  {
+    "id": "start-after-end",
+    "script": "sort -s -t: -k3,2n",
+    "inputBytes": 18
+  },
+  {
+    "id": "utf8-byte-offset",
+    "script": "sort -s -t: -k2.3,2n",
+    "inputBytes": 20
+  },
+  {
+    "id": "invalid-byte-key-and-fallback",
+    "script": "sort -t: -k2,2n",
+    "inputBytes": 14
+  },
+  {
+    "id": "exact-integers-above-double",
+    "script": "sort -s -t: -k2,2n",
+    "inputBytes": 78
+  },
+  {
+    "id": "exact-fractions-and-prefix-grammar",
+    "script": "sort -s -t: -k2,2n",
+    "inputBytes": 87
+  },
+  {
+    "id": "ties-stable",
+    "script": "sort -s -t: -k2,2n",
+    "inputBytes": 18
+  },
+  {
+    "id": "ties-reverse-byte-fallback",
+    "script": "sort -r -t: -k2,2n",
+    "inputBytes": 18
+  },
+  {
+    "id": "unique-first-signed-zero",
+    "script": "sort -u -t: -k2,2n",
+    "inputBytes": 29
+  },
+  {
+    "id": "reverse-unique-first",
+    "script": "sort -u -t: -k2,2nr",
+    "inputBytes": 23
+  },
+  {
+    "id": "guard-multiple-keys",
+    "script": "sort -s -t: -k2,2n -k1,1r",
+    "inputBytes": 12
+  },
+  {
+    "id": "guard-nonnumeric-local",
+    "script": "sort -n -t: -k2,2f",
+    "inputBytes": 12
+  },
+  {
+    "id": "guard-numeric-fold-transform",
+    "script": "sort -s -t: -k2,2nf",
+    "inputBytes": 13
+  },
+  {
+    "id": "guard-check-disorder",
+    "script": "sort -c -t: -k2,2n",
+    "inputBytes": 8
+  },
+  {
+    "id": "borrowed-offset-finalizer-newline",
+    "script": "sort -s -t: -k2,2n",
+    "inputBytes": 13
+  },
+  {
+    "id": "borrowed-offset-finalizer-nul",
+    "script": "sort -sz -t: -k2,2n",
+    "inputBytes": 13
+  },
+  {
+    "id": "input-error-keeps-destination",
+    "script": "sort -s -t: -k2,2n -o output input absent",
+    "inputBytes": 0
+  },
+  {
+    "id": "cancel-input-keeps-destination",
+    "script": "sort -s -t: -k2,2n -o output",
+    "inputBytes": 4
+  },
+  {
+    "id": "output-budget-rejection",
+    "script": "sort -s -t: -k2,2n",
+    "inputBytes": 8
+  }
+]

@@ -1,0 +1,226 @@
+# Cloudflare Playwright for safe-bash
+
+Run the standard `playwright-cli` commands against Cloudflare Browser Run, with
+native JavaScript, browser networking, uploads, snapshots, generated action code,
+screenshots/PDFs/traces with optional limits, and isolated Worker Loader `run-code` execution.
+The implementation ships through `@poe-platform/safe-bash/playwright/cloudflare`.
+Cloudflare dependencies stay outside the portable shell and CLI entrypoints.
+
+```ts
+import { createPlaywrightCli } from "@poe-platform/safe-bash/playwright";
+import { createCloudflarePlaywrightAdapter } from "@poe-platform/safe-bash/playwright/cloudflare";
+
+const adapter = createCloudflarePlaywrightAdapter(
+  env.BROWSER,
+  undefined,
+  { ownerId: authenticatedOwnerKey, loader: env.BROWSER_RUN_CODE_LOADER },
+  { maxStorageBytes: 2 * 1024 * 1024 }
+);
+const cli = createPlaywrightCli({ adapter, limits: { maxSessions: 2, maxTabs: 8 } });
+```
+
+Provide a Browser Run binding and select the `workerd` export to run without
+`nodejs_compat`, including binary uploads. Both export routes use the same
+qualified portable provider.
+The adapter requires Cloudflare Workers runtime APIs.
+Install exactly `@cloudflare/playwright@1.3.6` for provider TypeScript declarations.
+Supply a Worker Loader binding for `run-code`. The public
+types target Worker projects using TypeScript's `Bundler` module resolution and
+Cloudflare Workers types. `run-code` reports an unavailable binding if no loader
+is supplied; other browser commands remain available.
+Pass a function accepting `page`, for example
+`playwright-cli run-code 'async (page) => { return await page.title(); }'`, or
+bare statements such as `playwright-cli run-code 'await page.reload(); return await page.title();'`.
+Both forms also work with `--filename`. Statements run inside an async function
+with `page` available; use `return` to report a result. Syntax selection happens
+before browser access, so runtime errors never retry a script.
+Native page and context state transfers impose no default byte, page-count, or
+init-script-count cap. Script registrations survive reconnection and user-code
+errors; explicitly configured result and portable profile budgets still apply.
+Compilation syntax errors retain their original detail and include this example;
+corrected code can run in the same session.
+Worker `run-code` imposes no default source, result, page, context, execution-time,
+CPU, or subrequest ceiling. Limits supplied by the host still apply; individual
+omitted limits stay unlimited. Results have no implicit JSON size, nesting,
+container, entry, allocation, or parsing-time limits. A configured output byte
+budget is checked before host parsing, and cancellation is checked before and
+after parsing. Invalid JSON still fails syntax validation. Cloudflare's own
+platform constraints continue to apply.
+
+The host constructs the trusted `ownerId` and scopes each CLI instance to one
+authenticated user/agent. Session aliases, `-s`, and `PLAYWRIGHT_CLI_SESSION`
+select sessions inside that owner's instance. The library never constructs an
+authenticated owner key, routes Durable Objects, admits owners, stores profiles,
+or schedules automatic persistence.
+
+Browser cleanup and storage preparation have no local deadline by default.
+The fourth argument accepts `resourceLimits: { releaseTimeoutMs: 5000,
+storageTimeoutMs: 10000 }` to opt into deadlines; both accept `Infinity`.
+Cloudflare's own session lifetime constraints still apply.
+Owned browser release errors name failed cleanup phases and phases still pending
+at an explicitly configured deadline. The aggregate retains the original errors; its
+message contains only fixed phase names, without session IDs or protocol data.
+Call release again after a failure to retry settled failed phases. Concurrent calls
+share an attempt; completed cleanup is retained. A deadline does not prove pending
+work stopped: retries continue waiting for it rather than replaying it. Successful
+release is idempotent, and DELETE HTTP 404 counts as success because the owned
+session is already absent. Other unsuccessful HTTP statuses remain errors.
+
+An optional second argument supplies `loadState(session, signal)`. Explicit
+`contextOptions.storageState`, including an empty state, overrides that callback.
+The fourth argument optionally bounds storage restoration bytes; omitted limits
+and explicit `Infinity` are unlimited. The bundled provider automatically supplies
+its own memory-backed filesystem for trace capture. Leave `artifactFileSystem`
+unset to use that filesystem; an override must access the same files written by
+the provider and support retained reads (`openReadFile`). Screenshots and PDFs
+return provider bytes directly. Capture performs its file I/O through safe-fs.
+
+The fourth argument also accepts `traceCapture: "archive"`. This explicitly
+selects the standard CLI's `tracing-start` / `tracing-stop` ZIP artifact flow,
+without per-command live trace files. Omission or `"live"` preserves live
+capture, which requires authoritative pathname and retained-file identity.
+Archive capture awaits the trusted provider in a private temporary directory,
+reads the completed file through one retained handle, and always removes the
+directory. Its artifact byte limit bounds the completed compressed output.
+To also bound retention while recording, supply the fourth argument's
+`traceLimits: { maxBytes: 16 * 1024 * 1024, maxFiles: 1024,
+maxArchiveBytes: 16 * 1024 * 1024 }`. All three values accept positive
+integers or `Infinity`. Each omitted trace limit defaults to `Infinity`.
+`maxPathBytes`, `maxDepth`, `maxPaxBytes`, and `maxTextBytes` optionally bound
+archive paths, nesting, extended headers, and text through the ZIP codec; ZIP
+format constraints still apply.
+Trace budgeting uses the browser provider's memory filesystem automatically.
+Omitting `traceLimits` preserves the existing provider behavior.
+`maxBytes` admits raw trace files, queued replacement versions, and retained
+call-stack, request, and page-metadata records. `maxFiles` bounds those retained
+files and records, including individual stack calls, pending requests, and pages; it is not
+only the number of eventual ZIP members. Superseded file versions release their
+reservation after the native write queue drains. `maxArchiveBytes` admits
+compressed chunks and the complete standard trace ZIP before retention or output
+allocation. A recording's first refusal stays visible to subsequent commands;
+normal CLI resource-error disposal still applies.
+
+Each bounded recording owns a fresh native recorder and temporary directory.
+Restart and release drain admitted writes and remove only that recording's
+files and stack sessions. Live call-stack snapshots use the admitted queue at
+command checks instead of queuing a full rewrite for every call. Ordinary browser
+traffic outside tracing has no cumulative quota. These limits bound retained
+trace data, not total Worker memory: native response bodies and request metadata
+can be materialized before trace admission, and serialization and compression
+temporarily hold additional bounded copies. They do not establish an RSS ceiling.
+The host must preserve the request-owned provider/filesystem lifetime through
+production and capture; native `/tmp` is not cross-request storage.
+Portable profile byte, tab, and traversal limits are independently optional and default to unlimited; `Infinity` is also accepted. Explicit positive finite limits remain enforced. Storage structure and provider limits still apply.
+
+The trusted storage control channel has no default frame-byte, pending-command,
+pending-byte, subscription, late-reply, or command-time limit. Individual control
+budgets remain available, and outgoing budget refusals leave the channel usable.
+Configured deadlines share one timer and advance even when the Worker clock stays
+stationary; exact late-reply identities remain tracked.
+Unknown target creation outcomes and invalid native replies still fail closed.
+Private browser transport client, target, session, graph, queue, byte, and timeout
+budgets also default to unlimited and accept explicit `Infinity`. Positive finite
+limits opt into individual budgets; unlimited deadlines schedule no timers.
+
+```ts
+import {
+  parseBrowserProfile,
+  checkpointBrowserProfile,
+  restoreBrowserProfile
+} from "@poe-platform/safe-bash/playwright";
+
+const limits = {}; // Optional: set maxBytes, maxTabs, or maxTraversalBytes.
+const persistence = {
+  async restore({ name, signal }) {
+    const bytes = await hostProfiles.load(name, signal);
+    if (!bytes) return;
+    const profile = parseBrowserProfile(bytes, limits);
+    // The host checks expiry and whether this profile is resumable.
+    return restoreBrowserProfile({ adapter, profile, limits, name, signal });
+  },
+  async checkpoint(session, signal) {
+    const bytes = await checkpointBrowserProfile(session, limits, signal);
+    await hostProfiles.save(session.name, bytes, signal);
+  },
+  async delete(name, signal) {
+    await hostProfiles.remove(name, signal);
+  }
+};
+const persistentCli = createPlaywrightCli({ adapter, persistence });
+```
+
+`encodeBrowserProfile` and `parseBrowserProfile` serialize and validate portable
+storage state, ordered tab URLs, selection, context options, session configuration,
+and optional expiry metadata. Cloudflare checkpoints also retain provider-qualified
+dynamic context/page emulation, timeouts, and init scripts through the same
+state-transfer implementation used for `run-code` reconnect. An incompatible
+adapter rejects unsupported settings. Restoration allocates blank tabs in order,
+preserves selection, and returns an initializer to the standard controller, which
+installs configuration before provider settings. Saved URLs are replayed only with
+explicit `tabRestoration: 'navigate'`; replay can repeat action endpoints.
+Failed allocation releases the acquired lease. After adoption, the
+controller owns failed-initialization retirement. Checkpoints settle isolated
+storage-reader cleanup before returning bytes, including closed-origin IndexedDB.
+Live-context `state-load` retains tab identity, DOM, and sessionStorage.
+
+After an interrupted owner, use `persistentCli.inspectRecovery({ name })` to
+inspect retained-page, saved-storage, and unavailable outcomes without restoring
+or navigating. Supply metadata-only `persistence.inspectRecovery` and durable
+`recordOperation` callbacks to retain operation correlation across owner resets.
+An operation left `running` has an unknown outcome; do not replay its effects.
+Call `restoreBrowserProfile({ adapter, profile, limits, name, signal, recovery: true })`
+and adopt the result with `restoreSession({ name, acquire: async () => restored })`
+to import storage into one inert page. Inspection continues to report lost live
+page state. Saved URLs, initPage modules, and provider runtime scripts are not
+replayed; the original DOM and in-flight JavaScript cannot be reconstructed.
+
+Browser acquisitions retain one owned provider session and its physical sockets.
+Release is idempotent and shares deletion with Worker retirement. Ordinary guest
+script errors and configured output-byte refusals retain the session after state
+restoration and confirmed transport cleanup. Cancellation, deadlines, active
+page/context quota failures, and unconfirmed cleanup retire it.
+A pre-existing foreign private context rejects `run-code` and retires
+the browser. That error includes the owned target/context IDs, the observed
+private-context IDs, and foreign page IDs with private-context flags and URL
+states (`empty`, `about:blank`, or `other`);
+it omits URLs and titles. These observations come from successive CDP calls,
+so they describe admission evidence rather than an atomic lifecycle snapshot.
+
+Large handle enumerations wait for explicitly configured private CDP transport
+capacity. Queue and command-byte budgets are unlimited by default. Waiting time
+counts toward configured command deadlines; queue exhaustion, timeouts, and
+native cleanup errors remain visible failures.
+
+Browser traffic, redirects, fetch/request APIs, WebSockets, and workers
+remain enabled. Remote downloads report unsupported artifact retrieval through
+the existing command result; CLI help is unchanged.
+
+Native-provider bridges for context state, retained page CDP identities, utility
+world snapshots, and trace files are isolated in this workspace and qualified
+against `@cloudflare/playwright@1.3.6`. The build refuses a different version for
+native code generation. It ships the minified guest and action-generator assets
+with license notices, so hosts do not rebundle provider internals. Updating the
+provider requires rerunning native and Worker conformance and installed-archive
+verification. Chromium conformance uses Miniflare 4.20260708.1 with compatibility
+date 2026-07-08; transport fault tests use the consumer's 2025-01-01 compatibility
+profile with explicitly enabled Node modules.
+
+For local native fixtures, use esbuild and run each browser scenario in a fresh
+host subprocess when recreating Miniflare runtimes is unstable. Bun's own bundler
+has a separate first-build incompatibility with unused peer Electron assets in
+the qualified versions. See the [runtime qualification](docs/runtime-qualification.md)
+for the tested versions, restart results and diagnostic boundaries.
+
+Text and structured snapshots are unlimited by default. Explicit `maxSnapshotBytes`
+or snapshot-capture `maxBytes` budgets limit UTF-8 output and preserve the healthy
+browser session on refusal. Structured snapshots
+traverse all captured frames and transfer JSON as text so large trees avoid CDP
+per-property serialization overhead. Native reference identities remain actionable.
+
+The reusable implementation and conformance cases were ported from Poe's
+agent-tool-service at `a03e2c70269656d767e775848e69e30254f27217`. Consumer persistence
+and owner-manifest implementations appear only as test fixtures; they are excluded
+from published artifacts. The adapter and portable profiles own the reusable
+lifecycle used by those fixtures.
+
+The shell adapter options accept `transportLimits` for owned-browser protocol budgets (including `maxMessageBytes`, `maxPendingBytes`, and `maxBufferedBytes`). Omitted budgets are unlimited.

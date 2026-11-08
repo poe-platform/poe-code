@@ -1,0 +1,32 @@
+[
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/types.ts",
+    "size": 1554,
+    "mode": 420,
+    "sha256": "b8401fe06db29726ce989390d445138b26912c946eb64cac013f8ff2a2e91f2b"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/errors.ts",
+    "size": 1003,
+    "mode": 420,
+    "sha256": "9496bc26dbe7866451fedf13ea2c25de9837f88331f208bf27f4f6edff1ec38c"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/limits.ts",
+    "size": 3471,
+    "mode": 420,
+    "sha256": "ab7a87c37449dc7184ce530840f90c25ae3f48fb60204a3f6bd3d07c5d2146af"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/syntax.ts",
+    "size": 13070,
+    "mode": 420,
+    "sha256": "9136451259d3dfafe7aca8ffd592d43414ef4995fbe6811d7d8719f3085ee105"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/matcher.ts",
+    "size": 8543,
+    "mode": 420,
+    "sha256": "455c506467353c96eea0d55349c04c013be8ee53d6f8282982a9dd5d438871e8"
+  }
+]

@@ -1,0 +1,120 @@
+{
+  "capturedAt": "2026-08-27T07:24:46.348Z",
+  "sourceRevision": "04879692a66d88eee129b8ffd6e7ca93c7a9476a",
+  "inputRevision": "debb29ead94ae387f359d9d04b333ee4380f88d6",
+  "helperRevision": "debb29ead94ae387f359d9d04b333ee4380f88d6",
+  "sourceTree": "f7479a1c8d893bb25eee5ca26d2d0a5efed0a157",
+  "sourceHash": "4fd795e7c72a92f6791b502fc6e094cf80a8181531bb3f2560329c790d06e932",
+  "originalInputHash": "1eb1f97daa3e1125199cdf14c1e31d9cb9cd50a66bcd947b4bbf866a4e132a30",
+  "archives": [
+    {
+      "name": "source",
+      "revision": "04879692a66d88eee129b8ffd6e7ca93c7a9476a",
+      "paths": [
+        "src",
+        "package.json",
+        "package-lock.json",
+        "tsconfig.json",
+        "tsconfig.build.json"
+      ],
+      "file": "source.tar.gz",
+      "bytes": 502995,
+      "sha256": "afc3190a03b9a6d3b54e6e8944ff1c59069ea6fed32e60f06f017dbcf2afcb54"
+    },
+    {
+      "name": "input",
+      "revision": "debb29ead94ae387f359d9d04b333ee4380f88d6",
+      "paths": [
+        "tests/integration/adapter-tools/fixtures.ts",
+        "tests/integration/adapter-tools/matrix.test.ts",
+        "tests/integration/adapter-tools/preflight-review/preflight.ts",
+        "tests/integration/adapter-tools/preflight-review/preflight.test.ts"
+      ],
+      "file": "input.tar.gz",
+      "bytes": 8415,
+      "sha256": "540620f175fe23252753b51f723debc2a382e857f406e3b0461edfcbac7e977c"
+    },
+    {
+      "name": "helper",
+      "revision": "debb29ead94ae387f359d9d04b333ee4380f88d6",
+      "paths": [
+        "tests/fs/webdav/mock.ts"
+      ],
+      "file": "helper.tar.gz",
+      "bytes": 3519,
+      "sha256": "69f19140159bb724dd34df3f87f4e36598bd2a47acdbbd87cc55d8c127abb80e"
+    }
+  ],
+  "node": "v22.22.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "toolchain": [
+    {
+      "name": "tsx",
+      "version": "4.23.12",
+      "packageJsonSha256": "96aee9fd252d0cc31f3c01468250961f5b338c797bc208700d7db926450c7659"
+    },
+    {
+      "name": "esbuild",
+      "version": "0.28.2",
+      "packageJsonSha256": "9d0bc453f4e791553c4cc2298ba023b409241fd9801e494741666eb0f6051490"
+    },
+    {
+      "name": "typescript",
+      "version": "5.9.3",
+      "packageJsonSha256": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6"
+    },
+    {
+      "name": "@types/node",
+      "version": "22.20.1",
+      "packageJsonSha256": "1e6d3bbbc5082745123d236b38dce0eacdab987d4ac9e57e299e55f780c170de"
+    }
+  ],
+  "runnerSha256": "5736c7e4d3260fada6edbd83d9e170933d488af642f872d3e844f97b52fc2867",
+  "testSha256": "1a0cfacea4533e3307f0801aa728a2ed2a898b43b671450c3274d7ebf4ced25c",
+  "compared": [
+    {
+      "path": "tests/integration/adapter-tools/fixtures.ts",
+      "originalSha256": "127a6910a2733d6b6df01285d37d5c90ccbeeeefda40e0869dc633ef8f6d14e5",
+      "combinedSha256": "127a6910a2733d6b6df01285d37d5c90ccbeeeefda40e0869dc633ef8f6d14e5",
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/adapter-tools/matrix.test.ts",
+      "originalSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "combinedSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/adapter-tools/preflight-review/preflight.ts",
+      "originalSha256": "0cca6e8941bde1ebd89e3eaaf856d77047b1bd91219446ba8e732bd7c4c5b2cf",
+      "combinedSha256": "0cca6e8941bde1ebd89e3eaaf856d77047b1bd91219446ba8e732bd7c4c5b2cf",
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/adapter-tools/preflight-review/preflight.test.ts",
+      "originalSha256": "d52a4f91f8518cd26c4c6ea70e3791f0b8a4709577e4f8c0dd6dfab86736f4e6",
+      "combinedSha256": "d52a4f91f8518cd26c4c6ea70e3791f0b8a4709577e4f8c0dd6dfab86736f4e6",
+      "unchanged": true
+    },
+    {
+      "path": "src/fs/s3/mock.ts",
+      "originalSha256": "99655664c7a52c595dc1ec4e5d461e4c002a0c9ba60d222ded078e5b9780841e",
+      "combinedSha256": "99655664c7a52c595dc1ec4e5d461e4c002a0c9ba60d222ded078e5b9780841e",
+      "unchanged": true
+    },
+    {
+      "path": "tests/fs/webdav/mock.ts",
+      "originalSha256": "177f79ee640460822cfe0486c87f7cc61ac7c8b84389abe32b48ef27f4b4ef36",
+      "combinedSha256": "177f79ee640460822cfe0486c87f7cc61ac7c8b84389abe32b48ef27f4b4ef36",
+      "unchanged": true
+    }
+  ],
+  "cleanupOperation": {
+    "operation": "rmSync",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/remote-rmdir/combined-shell/.frozen-lBF2JY",
+    "recursive": true,
+    "force": true
+  },
+  "policy": "Original79 unchanged; new6 separate. Actual S3FileSystem and unchanged MockS3Client; only new tests inject a late put via the public mock delete method. No real service, install, production edit or original-fixture waiver."
+}

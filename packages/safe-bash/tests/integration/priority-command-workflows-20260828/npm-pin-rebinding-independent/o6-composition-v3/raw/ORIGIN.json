@@ -1,0 +1,12 @@
+{
+  "originMonotonicMs": 791226.207416,
+  "wall": "2026-08-28T20:24:12.501Z",
+  "caps": {
+    "wallMs": 600000,
+    "sourceMs": 360000,
+    "childMs": 60000,
+    "children": 16,
+    "captureBytes": 33554432,
+    "workBytes": 134217728
+  }
+}

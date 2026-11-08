@@ -1,0 +1,10 @@
+{
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "tests/fs/webdav/real-service-independent/run.mjs",
+    "/tmp/safe-bash-webdav-scope-author-i2t7jE/capture",
+    "69672fe210fbf8a23cc980828bb46d073b078425"
+  ],
+  "status": 0,
+  "signal": null
+}

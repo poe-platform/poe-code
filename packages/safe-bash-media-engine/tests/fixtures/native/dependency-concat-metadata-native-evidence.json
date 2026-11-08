@@ -1,0 +1,219 @@
+{
+  "scope": "Original plain/debug pairs; named attempted AVIO reads only, not exhaustive kernel timing or production runtime qualification. Native execution is evidence only.",
+  "cwd": "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-metadata-21c6qtnm",
+  "executable": "/opt/homebrew/bin/ffprobe",
+  "executableSha256": "860eadc7b01d86126a208601c83602feb8eab952da232ce603066fb2f65471d8",
+  "sources": {
+    "libavformat/concatdec.c": {
+      "url": "https://raw.githubusercontent.com/FFmpeg/FFmpeg/639ee849526cfe61ceb312776335c245b98bd9d4/libavformat/concatdec.c",
+      "sha256": "b739c121b0280ed45b94fee82163773640ca99d01cf51e93e24efbfe06d4bdae"
+    },
+    "libavutil/dict.c": {
+      "url": "https://raw.githubusercontent.com/FFmpeg/FFmpeg/639ee849526cfe61ceb312776335c245b98bd9d4/libavutil/dict.c",
+      "sha256": "7af36341177b718f04257caed6df73a60dd6b22c9dacddde7cd6d96fdaa32b3a"
+    }
+  },
+  "before": {
+    "Case雪.wav": "314a61f48b54a71b2fd934da99c6799d0fc0ceb19e64c9c6b98ade42f9ff105b",
+    "lists/valid": "e887197bcab869bacbb0d9220341b87d6a01da86394a4b4aebe9ea5551d18b6d",
+    "lists/empty": "cbf1544e3607a923fe8c6290c4816b8be93be53bb922b8e293010454157991d4",
+    "lists/missing": "dd3852505270615592d8b1478444d7f2b8af98f77847ab191953affa5e60488b",
+    "lists/quoted": "5770245c6cc7138c431111181a393b1411f448fd71043d82be1ec1f045060f40",
+    "lists/Case雪.wav": "60c0b6c740c791f5d9c1b7d688aa4e6719b93c8f4e7c4b7919ab86ad78b74068"
+  },
+  "after": {
+    "Case雪.wav": "314a61f48b54a71b2fd934da99c6799d0fc0ceb19e64c9c6b98ade42f9ff105b",
+    "lists/valid": "e887197bcab869bacbb0d9220341b87d6a01da86394a4b4aebe9ea5551d18b6d",
+    "lists/empty": "cbf1544e3607a923fe8c6290c4816b8be93be53bb922b8e293010454157991d4",
+    "lists/missing": "dd3852505270615592d8b1478444d7f2b8af98f77847ab191953affa5e60488b",
+    "lists/quoted": "5770245c6cc7138c431111181a393b1411f448fd71043d82be1ec1f045060f40",
+    "lists/Case雪.wav": "60c0b6c740c791f5d9c1b7d688aa4e6719b93c8f4e7c4b7919ab86ad78b74068"
+  },
+  "fixturesUnchanged": true,
+  "cases": [
+    {
+      "name": "valid",
+      "manifest": "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-metadata-21c6qtnm/lists/valid",
+      "content": "ffconcat version 1.0\nfile 'Case雪.wav'\nfile_packet_metadata 'key=value:other=more'\nfile 'Case雪.wav'\n",
+      "runs": [
+        {
+          "argv": [
+            "-v",
+            "error",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-metadata-21c6qtnm/lists/valid"
+          ],
+          "status": 0,
+          "stdout": "0,value:other=more,Strings Metadata\n80\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "-v",
+            "debug",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-metadata-21c6qtnm/lists/valid"
+          ],
+          "status": 0,
+          "stdout": "0,value:other=more,Strings Metadata\n80\n",
+          "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'pts' to the entries to show in section 'packet'\n'packet' matches section with unique name 'packet'\n[concat @ 0x151705b60] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-metadata-21c6qtnm/lists/valid' for reading\n[file @ 0x6000005800c0] Setting default whitelist 'file,crypto,data'\n[concat @ 0x151705b60] 'file_packet_metadata key=value:key=value' is deprecated, use multiple 'file_packet_meta key value' instead\n[AVFormatContext @ 0x1530042f0] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-metadata-21c6qtnm/lists/Case雪.wav' for reading\n[wav @ 0x1530042f0] Format wav probed with size=2048 and score=99\n[wav @ 0x1530042f0] Before avformat_find_stream_info() pos: 44 bytes read:204 seeks:0 nb_streams:1\n[wav @ 0x1530042f0] probing stream 0 pp:32\n[wav @ 0x1530042f0] probing stream 0 pp:31\n[wav @ 0x1530042f0] probed stream 0\n[wav @ 0x1530042f0] parser not found for codec pcm_s16le, packets or times may be invalid.\n[wav @ 0x1530042f0] After avformat_find_stream_info() pos: 204 bytes read:204 seeks:0 frames:1\n[concat @ 0x151705b60] Before avformat_find_stream_info() pos: 103 bytes read:103 seeks:0 nb_streams:1\n[concat @ 0x151705b60] file:0 stream:0 pts:0 pts_time:0 dts:0 dts_time:0 -> pts:0 pts_time:0 dts:0 dts_time:0\n[concat @ 0x151705b60] All info found\n[concat @ 0x151705b60] After avformat_find_stream_info() pos: 103 bytes read:103 seeks:0 frames:1\nInput #0, concat, from '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-metadata-21c6qtnm/lists/valid':\n  Duration: N/A, start: 0.000000, bitrate: 128 kb/s\n  Stream #0:0, 1, 1/8000: Audio: pcm_s16le ([1][0][0][0] / 0x0001), 8000 Hz, 1 channels, s16, 128 kb/s\nProcessing read interval id:0 start:N/A end:N/A\n[AVIOContext @ 0x1530041a0] Statistics: 204 bytes read, 0 seeks\n[AVFormatContext @ 0x1530041a0] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-metadata-21c6qtnm/lists/Case雪.wav' for reading\n[wav @ 0x1530041a0] Format wav probed with size=2048 and score=99\n[wav @ 0x1530041a0] Before avformat_find_stream_info() pos: 44 bytes read:204 seeks:0 nb_streams:1\n[wav @ 0x1530041a0] probing stream 0 pp:32\n[wav @ 0x1530041a0] probing stream 0 pp:31\n[wav @ 0x1530041a0] probed stream 0\n[wav @ 0x1530041a0] parser not found for codec pcm_s16le, packets or times may be invalid.\n[wav @ 0x1530041a0] After avformat_find_stream_info() pos: 204 bytes read:204 seeks:0 frames:1\n[concat @ 0x151705b60] file:1 stream:0 pts:0 pts_time:0 dts:0 dts_time:0 -> pts:80 pts_time:0.01 dts:80 dts_time:0.01\n[AVIOContext @ 0x153104080] Statistics: 204 bytes read, 0 seeks\n[AVIOContext @ 0x153004080] Statistics: 103 bytes read, 0 seeks\n"
+        }
+      ],
+      "equalStatusStdout": true
+    },
+    {
+      "name": "quoted",
+      "manifest": "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-metadata-21c6qtnm/lists/quoted",
+      "content": "ffconcat version 1.0\nfile 'Case雪.wav'\nfile_packet_metadata ''\\''key=part'\\''=value'\nfile 'Case雪.wav'\n",
+      "runs": [
+        {
+          "argv": [
+            "-v",
+            "error",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-metadata-21c6qtnm/lists/quoted"
+          ],
+          "status": 0,
+          "stdout": "0,value,Strings Metadata\n80\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "-v",
+            "debug",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-metadata-21c6qtnm/lists/quoted"
+          ],
+          "status": 0,
+          "stdout": "0,value,Strings Metadata\n80\n",
+          "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'pts' to the entries to show in section 'packet'\n'packet' matches section with unique name 'packet'\n[concat @ 0x148004900] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-metadata-21c6qtnm/lists/quoted' for reading\n[file @ 0x600000b600c0] Setting default whitelist 'file,crypto,data'\n[concat @ 0x148004900] 'file_packet_metadata key=value:key=value' is deprecated, use multiple 'file_packet_meta key value' instead\n[AVFormatContext @ 0x1467053d0] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-metadata-21c6qtnm/lists/Case雪.wav' for reading\n[wav @ 0x1467053d0] Format wav probed with size=2048 and score=99\n[wav @ 0x1467053d0] Before avformat_find_stream_info() pos: 44 bytes read:204 seeks:0 nb_streams:1\n[wav @ 0x1467053d0] probing stream 0 pp:32\n[wav @ 0x1467053d0] probing stream 0 pp:31\n[wav @ 0x1467053d0] probed stream 0\n[wav @ 0x1467053d0] parser not found for codec pcm_s16le, packets or times may be invalid.\n[wav @ 0x1467053d0] After avformat_find_stream_info() pos: 204 bytes read:204 seeks:0 frames:1\n[concat @ 0x148004900] Before avformat_find_stream_info() pos: 105 bytes read:105 seeks:0 nb_streams:1\n[concat @ 0x148004900] file:0 stream:0 pts:0 pts_time:0 dts:0 dts_time:0 -> pts:0 pts_time:0 dts:0 dts_time:0\n[concat @ 0x148004900] All info found\n[concat @ 0x148004900] After avformat_find_stream_info() pos: 105 bytes read:105 seeks:0 frames:1\nInput #0, concat, from '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-metadata-21c6qtnm/lists/quoted':\n  Duration: N/A, start: 0.000000, bitrate: 128 kb/s\n  Stream #0:0, 1, 1/8000: Audio: pcm_s16le ([1][0][0][0] / 0x0001), 8000 Hz, 1 channels, s16, 128 kb/s\nProcessing read interval id:0 start:N/A end:N/A\n[AVIOContext @ 0x148104080] Statistics: 204 bytes read, 0 seeks\n[AVFormatContext @ 0x148104080] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-metadata-21c6qtnm/lists/Case雪.wav' for reading\n[wav @ 0x148104080] Format wav probed with size=2048 and score=99\n[wav @ 0x148104080] Before avformat_find_stream_info() pos: 44 bytes read:204 seeks:0 nb_streams:1\n[wav @ 0x148104080] probing stream 0 pp:32\n[wav @ 0x148104080] probing stream 0 pp:31\n[wav @ 0x148104080] probed stream 0\n[wav @ 0x148104080] parser not found for codec pcm_s16le, packets or times may be invalid.\n[wav @ 0x148104080] After avformat_find_stream_info() pos: 204 bytes read:204 seeks:0 frames:1\n[concat @ 0x148004900] file:1 stream:0 pts:0 pts_time:0 dts:0 dts_time:0 -> pts:80 pts_time:0.01 dts:80 dts_time:0.01\n[AVIOContext @ 0x146705280] Statistics: 204 bytes read, 0 seeks\n[AVIOContext @ 0x146705160] Statistics: 105 bytes read, 0 seeks\n"
+        }
+      ],
+      "equalStatusStdout": true
+    },
+    {
+      "name": "missing",
+      "manifest": "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-metadata-21c6qtnm/lists/missing",
+      "content": "ffconcat version 1.0\nfile 'Case雪.wav'\nfile_packet_metadata 'missing'\nfile 'Case雪.wav'\n",
+      "runs": [
+        {
+          "argv": [
+            "-v",
+            "error",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-metadata-21c6qtnm/lists/missing"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "[concat @ 0x15b805b60] Line 3: failed to parse metadata string\n/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-metadata-21c6qtnm/lists/missing: Invalid data found when processing input\n"
+        },
+        {
+          "argv": [
+            "-v",
+            "debug",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-metadata-21c6qtnm/lists/missing"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'pts' to the entries to show in section 'packet'\n'packet' matches section with unique name 'packet'\n[concat @ 0x130805b60] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-metadata-21c6qtnm/lists/missing' for reading\n[file @ 0x600002cf0000] Setting default whitelist 'file,crypto,data'\n[concat @ 0x130805b60] Line 3: failed to parse metadata string\n[AVIOContext @ 0x130805300] Statistics: 90 bytes read, 0 seeks\n/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-metadata-21c6qtnm/lists/missing: Invalid data found when processing input\n"
+        }
+      ],
+      "equalStatusStdout": true
+    },
+    {
+      "name": "empty",
+      "manifest": "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-metadata-21c6qtnm/lists/empty",
+      "content": "ffconcat version 1.0\nfile 'Case雪.wav'\nfile_packet_metadata 'key='\nfile 'Case雪.wav'\n",
+      "runs": [
+        {
+          "argv": [
+            "-v",
+            "error",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-metadata-21c6qtnm/lists/empty"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "[concat @ 0x141e06230] Line 3: failed to parse metadata string\n/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-metadata-21c6qtnm/lists/empty: Invalid data found when processing input\n"
+        },
+        {
+          "argv": [
+            "-v",
+            "debug",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-metadata-21c6qtnm/lists/empty"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'pts' to the entries to show in section 'packet'\n'packet' matches section with unique name 'packet'\n[concat @ 0x143f046e0] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-metadata-21c6qtnm/lists/empty' for reading\n[file @ 0x600000aac300] Setting default whitelist 'file,crypto,data'\n[concat @ 0x143f046e0] Line 3: failed to parse metadata string\n[AVIOContext @ 0x143f043b0] Statistics: 87 bytes read, 0 seeks\n/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-metadata-21c6qtnm/lists/empty: Invalid data found when processing input\n"
+        }
+      ],
+      "equalStatusStdout": true
+    }
+  ]
+}

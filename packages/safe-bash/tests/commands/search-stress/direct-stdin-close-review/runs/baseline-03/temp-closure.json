@@ -1,0 +1,10 @@
+{
+  "removed": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/search-stress/direct-stdin-close-review/.work/baseline-03",
+      "absent": true
+    }
+  ],
+  "scope": "Only exact owned baseline-03 generated scratch; baseline-01/02 previously removed; OS-temp work limited to owned markers.",
+  "closedAt": "2026-08-27T13:42:56.450Z"
+}

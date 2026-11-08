@@ -1,0 +1,18 @@
+{
+  "package.json": {
+    "type": "file",
+    "bytes": 4287,
+    "sha256": "691426f4934c471d2a76d49675f3fc19f3ddc47c8aa63cc38671d899a09c4535"
+  },
+  "src": {
+    "type": "directory"
+  },
+  "src/shell": {
+    "type": "directory"
+  },
+  "src/shell/getopts.ts": {
+    "type": "file",
+    "bytes": 9964,
+    "sha256": "bf0bcfd9f370861504e9561c54cfd12c8706663ee7dc3ca8a28b70f66290e9ee"
+  }
+}

@@ -1,0 +1,198 @@
+{
+  "classification": "immutable-0123-final-shared-module-replay-not-root-integration",
+  "candidate": "0123c83d3aae72a15621acbb29a165b97b2c6ab6",
+  "sourceFixCommit": "04644bc2c15d67155f5f4b170a66fc9bef3f6e3d",
+  "historicalEvidenceCommits": [
+    "7550a317c699392867d5a779058039e7fc0d9f1e",
+    "a8b1c7d25bb209a91767e369a0fa297b40de0551"
+  ],
+  "decision": "HOLD: unchanged replay retains two fulfilled-status assertions; root public integration HOLD independently pending Arch v2 review",
+  "newAliasSourceDefectObserved": false,
+  "aliasSourceSha256": "c2333d21c049651a3ef75f811f7c3f516a364d41fdbed2f3683388fba0adbcff",
+  "inputSourceSha256": "4214a448a1a076acb297c3ba6a02d72482d488cf8b6df4549498148a012e5c32",
+  "archiveSha256": "64fac38e43ce89009e03d24b8b3dffb8425dd98a313bea4d4133d6db8030cccf",
+  "packageSha256": "62228b67ca6793544f0f4374ca00fbbb6e627f514f184d5880fd7723ccf179c6",
+  "wholeGitArchive": {
+    "entries": 29834,
+    "files": 27675,
+    "symlinks": 12,
+    "sha256": "a9d74bd4a02713e5eb616c43cf630f31dbbc3c7e1e87f8b8d673c677659d9027",
+    "gitRows": 27687,
+    "gitMembershipSha256": "e5056f529fe441d92b58eec680b69e5afae8919145a149a058e943963ad0d878",
+    "allGitBlobsAuthenticated": true,
+    "dataSymlinksPreservedWithoutTraversal": true,
+    "productFilesRegular": true
+  },
+  "base": {
+    "cases": 77,
+    "pass": 75,
+    "fail": 2
+  },
+  "supplement": {
+    "cases": 5,
+    "pass": 5,
+    "fail": 0
+  },
+  "combined": {
+    "cases": 82,
+    "pass": 80,
+    "fail": 2
+  },
+  "originalGroups": {
+    "executed": 38,
+    "pass": 37,
+    "fail": 1,
+    "failed": [
+      "S07"
+    ]
+  },
+  "failureRows": [
+    {
+      "id": "S07",
+      "label": "borrowed-external-Shell-stdin-return-rejection-not-waived",
+      "error": "Error: external-return-sentinel\n    at file:///private/tmp/safe-bash-alias-final-0123-20260827T1634-02/physically-moved-offline-consumer/run/holdouts.mjs:579:29\n    at observe (file:///private/tmp/safe-bash-alias-final-0123-20260827T1634-02/physically-moved-offline-consumer/run/holdouts.mjs:113:15)\n    at TestContext.<anonymous> (file:///private/tmp/safe-bash-alias-final-0123-20260827T1634-02/physically-moved-offline-consumer/run/holdouts.mjs:130:63)\n    at Test.runInAsyncScope (node:async_hooks:214:14)\n    at Test.run (node:internal/test_runner/test:1047:25)\n    at Test.start (node:internal/test_runner/test:944:17)\n    at TestContext.test (node:internal/test_runner/test:373:20)\n    at TestContext.<anonymous> (file:///private/tmp/safe-bash-alias-final-0123-20260827T1634-02/physically-moved-offline-consumer/run/holdouts.mjs:130:26)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async Test.run (node:internal/test_runner/test:1054:7)"
+    },
+    {
+      "id": "ROOT-CONTROL",
+      "label": "public-registered-grep-reproduces-external-return-failure",
+      "error": "Error: shared-grep-return-sentinel\n    at file:///private/tmp/safe-bash-alias-final-0123-20260827T1634-02/physically-moved-offline-consumer/run/holdouts.mjs:928:29\n    at observe (file:///private/tmp/safe-bash-alias-final-0123-20260827T1634-02/physically-moved-offline-consumer/run/holdouts.mjs:113:15)\n    at TestContext.<anonymous> (file:///private/tmp/safe-bash-alias-final-0123-20260827T1634-02/physically-moved-offline-consumer/run/holdouts.mjs:130:63)\n    at Test.runInAsyncScope (node:async_hooks:214:14)\n    at Test.run (node:internal/test_runner/test:1047:25)\n    at Test.start (node:internal/test_runner/test:944:17)\n    at TestContext.test (node:internal/test_runner/test:373:20)\n    at TestContext.<anonymous> (file:///private/tmp/safe-bash-alias-final-0123-20260827T1634-02/physically-moved-offline-consumer/run/holdouts.mjs:130:26)\n    at Test.runInAsyncScope (node:async_hooks:214:14)\n    at Test.run (node:internal/test_runner/test:1047:25)"
+    }
+  ],
+  "failureClassification": "Both exact sentinel rejections are now preserved; old assertions require a fulfilled status-2 ShellResult. They remain failures, not new passes and not evidence that the old swallow persists.",
+  "diagnosticObservations": {
+    "count": 2,
+    "notProductPasses": true,
+    "exactReasonIdentities": [
+      {
+        "command": "egrep -q keep",
+        "settlement": "rejected",
+        "exactReturnReasonIdentity": true,
+        "returns": 1,
+        "nextCalls": 1
+      },
+      {
+        "command": "grep -q keep",
+        "settlement": "rejected",
+        "exactReturnReasonIdentity": true,
+        "returns": 1,
+        "nextCalls": 1
+      }
+    ]
+  },
+  "historicalNativeProfiles": {
+    "executed": 26,
+    "bsdExact": 16,
+    "gnuExact": 0,
+    "gnuPayloadProjectionOnly": 26,
+    "stderrStripped": false,
+    "newNativeChildren": 0,
+    "warningProfile": "raw historical Darwin C-locale BSD/GNU captures, not newly run native references or GNU/Linux parity"
+  },
+  "workers": {
+    "base": {
+      "created": 86,
+      "exited": 86,
+      "loadedWorkerRealpath": "/private/tmp/safe-bash-alias-final-0123-20260827T1634-02/physically-moved-offline-consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+      "loadedWorkerSha256": "bb568433f1194d957dd14d1eb8229e9733bd13cd42db7ca5f2ac77b5f739b8f7",
+      "oneExitPerActualWorker": true
+    },
+    "supplement": {
+      "created": 5,
+      "exited": 5,
+      "loadedWorkerRealpath": "/private/tmp/safe-bash-alias-final-0123-20260827T1634-02/physically-moved-offline-consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+      "loadedWorkerSha256": "bb568433f1194d957dd14d1eb8229e9733bd13cd42db7ca5f2ac77b5f739b8f7",
+      "oneExitPerActualWorker": true
+    },
+    "diagnostic": {
+      "created": 2,
+      "exited": 2,
+      "loadedWorkerRealpath": "/private/tmp/safe-bash-alias-final-0123-20260827T1634-02/physically-moved-offline-consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+      "loadedWorkerSha256": "bb568433f1194d957dd14d1eb8229e9733bd13cd42db7ca5f2ac77b5f739b8f7",
+      "oneExitPerActualWorker": true
+    },
+    "totalCreated": 93,
+    "totalExited": 93,
+    "active": 0,
+    "verifierForcedTerminations": 0,
+    "baseThreadIdField": "observer monotonic identity, not OS thread ID"
+  },
+  "processes": {
+    "base": [
+      {
+        "name": "strict-types",
+        "status": 0,
+        "signal": null,
+        "error": null
+      },
+      {
+        "name": "candidate-tests",
+        "status": 1,
+        "signal": null,
+        "error": null
+      }
+    ],
+    "supplement": [
+      {
+        "name": "strict-types",
+        "status": 0,
+        "signal": null,
+        "error": null
+      },
+      {
+        "name": "pipeline-supplement",
+        "status": 0,
+        "signal": null,
+        "error": null
+      }
+    ],
+    "diagnostic": {
+      "classification": "diagnostic-only-not-cohort-pass",
+      "candidate": "0123c83d3aae72a15621acbb29a165b97b2c6ab6",
+      "packageSha256": "62228b67ca6793544f0f4374ca00fbbb6e627f514f184d5880fd7723ccf179c6",
+      "sourceSha256": "f4ed0b4b1a0bd34bfc71e26ceb5699a7c21808e260526c2326bae66cd52db157",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/tmp/safe-bash-alias-final-0123-20260827T1634-02/physically-moved-offline-consumer/run-diagnosis/diagnose-return.mjs",
+        "/tmp/safe-bash-alias-final-0123-20260827T1634-02/diagnosis-results.json"
+      ],
+      "cwd": "/tmp/safe-bash-alias-final-0123-20260827T1634-02/physically-moved-offline-consumer",
+      "pid": 68669,
+      "timeoutMs": 15000,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutHex": "",
+      "stderrHex": ""
+    },
+    "allProductChildrenExited": true,
+    "forcedCleanup": false
+  },
+  "boundaries": {
+    "borrowedExternalStdin": "original failure expectations retained; rejection identity diagnosed separately",
+    "ownedVfsAndDirect": "unchanged original cases pass",
+    "registeredCleanup": "unchanged registration/overlap/dispose controls pass",
+    "opaqueUnregisteredReturnWait": "no stronger column S38 expectation imported"
+  },
+  "sourceOrHistoricalFixtureEdits": false,
+  "dependencyInstalls": false,
+  "publicAliasSubpathExists": false,
+  "fullMembershipAndNewEntryDetection": true,
+  "preparationAttempts": [
+    {
+      "id": "prepare-01",
+      "status": "verifier-binding-path-failure",
+      "candidateExecuted": false,
+      "preserved": true
+    },
+    {
+      "id": "prepare-02",
+      "status": "built-and-physically-moved",
+      "candidateExecuted": true
+    }
+  ],
+  "startedAt": "2026-08-27T16:32:10.755Z",
+  "endedAt": "2026-08-27T16:33:44.780Z",
+  "temporarySnapshot": "/tmp/safe-bash-alias-final-0123-20260827T1634-02",
+  "threadId": "01a04392-fd24-7870-a9d4-abfdce728e4d",
+  "rootAction": "Keep the old rows unchanged; separately resolve returned-status versus rejection expectation before claiming a green unchanged cohort. Do not change shared source merely to satisfy those rows. Arch v2 independent review and public exports/integration remain root-owned."
+}

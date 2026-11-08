@@ -1,0 +1,45 @@
+{
+  "scope": "offline reporter-only checks on sealed receipts; zero Git/worker/product execution; historical CLIexit1 unchanged",
+  "rows": [
+    {
+      "name": "original9/10 remains failure",
+      "expected": 1,
+      "status": "PASS"
+    },
+    {
+      "name": "focused actual1/1 maps success not ten-group acceptance",
+      "expected": 0,
+      "status": "PASS"
+    },
+    {
+      "name": "unknown status",
+      "expected": 1,
+      "status": "PASS"
+    },
+    {
+      "name": "missing group",
+      "expected": 1,
+      "status": "PASS"
+    },
+    {
+      "name": "failure count",
+      "expected": 1,
+      "status": "PASS"
+    },
+    {
+      "name": "forced cleanup",
+      "expected": 1,
+      "status": "PASS"
+    },
+    {
+      "name": "nonzero child",
+      "expected": 1,
+      "status": "PASS"
+    },
+    {
+      "name": "claim full rerun",
+      "expected": 1,
+      "status": "PASS"
+    }
+  ]
+}

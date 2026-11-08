@@ -1,0 +1,146 @@
+{
+  "schema": "worker-l04-diagnostic-v11-preseal",
+  "createdUTC": "2026-08-29T00:25:22.696Z",
+  "sourceEvidence": "2eb0536d68684306162f9b9a38e15f001fc4917e",
+  "phase": "controls then conditional one actual L04 diagnostic",
+  "sourceWindow": {
+    "maximumMs": 600000,
+    "maximumChildren": 12,
+    "peakProcesses": 3,
+    "captureBytes": 33554432,
+    "workBytes": 134217728
+  },
+  "actual": {
+    "maximumMs": 300000,
+    "maximumChildren": 6,
+    "peakProcesses": 3,
+    "captureBytes": 16777216,
+    "workBytes": 268435456,
+    "workers": 1,
+    "guests": 1,
+    "retries": 0,
+    "ownerTimeoutMs": 180000,
+    "killAfterTermMs": 2000
+  },
+  "files": [
+    {
+      "path": "worker-error-observation.mjs",
+      "bytes": 1766,
+      "sha256": "1dcb8319e5d216d2f2bbf1793f4ccacfa51c18149b3dee074b9c77900fed339a"
+    },
+    {
+      "path": "worker-body.mjs",
+      "bytes": 2713,
+      "sha256": "849a32e41ccb2adf6536e9b1ff8238435e461d0c35801480be7ba5fbed899452"
+    },
+    {
+      "path": "supervisor.mjs",
+      "bytes": 7572,
+      "sha256": "fa7263a44274246381b8f012657c35e4d918782e0ebc3813b7c09c33cf73c300"
+    },
+    {
+      "path": "parent-entry.mjs",
+      "bytes": 5032,
+      "sha256": "cfe545830af3afa79daeaeb20a6ca1c3bfe64d36fbca9c266f99ff5eb8c28dfe"
+    },
+    {
+      "path": "future-owner.mjs",
+      "bytes": 7285,
+      "sha256": "4f170b8e9a1345e17bce363b85529b72215f3d1c5316ebd186dc2aba22b9c8e0"
+    },
+    {
+      "path": "CASES.json",
+      "bytes": 1217,
+      "sha256": "8de095942d8218e60d6e06234b0fdfd97988b2129ed9b7fc7e0480c59ed452eb"
+    },
+    {
+      "path": "PROFILE.json",
+      "bytes": 4612,
+      "sha256": "3238217bb8d0ef0c572c185daaf0e39d7c33c36faf1950f1caca1a07834e304d"
+    },
+    {
+      "path": "GRANT.template.json",
+      "bytes": 399,
+      "sha256": "7235291806a91ff7e4a6c89109c26cf72cd270fd0395fe8813f5ab4a46e6c9a9"
+    },
+    {
+      "path": "MODULES.json",
+      "bytes": 123076,
+      "sha256": "eb1a0afe541c06df37715eddac50a77b4a07680370ee20935a23f994c8e930f1"
+    },
+    {
+      "path": "SOURCES.json",
+      "bytes": 47205,
+      "sha256": "1b8ba7a25e47e99935275ee1277afeac21880422a69d2b4577bb93dbc65b9a7f"
+    },
+    {
+      "path": "COMPOSITION.json",
+      "bytes": 44855,
+      "sha256": "ce0a29fd56363c48b266b12c27688c87b31792b2a2e66fd7e9fd036f34fef24a"
+    },
+    {
+      "path": "observer-controls.mjs",
+      "bytes": 3280,
+      "sha256": "0df2244a3b5e3cfd29c6d0fda0a4ed8585e52a06d307ab9f3ea184a0f747c717"
+    }
+  ],
+  "node": {
+    "role": "node",
+    "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "platform": "darwin",
+    "arch": "arm64",
+    "mode": 493,
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "ownerClosure": [
+    {
+      "path": "../preparation-v6-ready/import-policy.mjs",
+      "bytes": 2194,
+      "sha256": "b2b2b970748bf841600cc58b487938a557cba43bd78af121466fd0a7f354178a"
+    },
+    {
+      "path": "../preparation-v7-capture/capture-owner.mjs",
+      "bytes": 3125,
+      "sha256": "1cbec42dfb24de259c515e5686faa3aff8a5cb17171689831fa3b3360a9fe104"
+    }
+  ],
+  "compositionSha256": "ce0a29fd56363c48b266b12c27688c87b31792b2a2e66fd7e9fd036f34fef24a",
+  "control": {
+    "argv": [
+      "--permission",
+      "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v11-l04-diagnostic/observer-controls.mjs",
+      "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v11-l04-diagnostic/worker-error-observation.mjs",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v11-l04-diagnostic/observer-controls.mjs"
+    ],
+    "env": {
+      "PATH": "/usr/bin:/bin",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    },
+    "stdout": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v11-l04-diagnostic/control.stdout.raw",
+    "stderr": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v11-l04-diagnostic/control.stderr.raw",
+    "maximumMs": 30000,
+    "killAfterTermMs": 2000,
+    "expect": 20
+  },
+  "newEdge": {
+    "importer": "worker-error-observation.mjs",
+    "importerSha256": "1dcb8319e5d216d2f2bbf1793f4ccacfa51c18149b3dee074b9c77900fed339a",
+    "specifier": "node:util",
+    "target": "node:util",
+    "roles": [
+      "worker"
+    ]
+  },
+  "guestSource": {
+    "target": "scaffold.guest.js.data",
+    "source": "../preparation-v6-ready/scaffold.guest.js.data",
+    "bytes": 7000,
+    "sha256": "04e8842ed42ef72e1ed4ea2a851cf785558380e024c4c801444c15acb5bf5833",
+    "inputRole": "new frozen source"
+  },
+  "emissionCount": 95,
+  "qualification": "Source instrumentation only; original guest program bytes unchanged. Observation does not prove guest entry or pending Promise construction. No rescore or seven-tail authority."
+}

@@ -1,0 +1,23 @@
+{
+  "role": "root",
+  "phase": "admission",
+  "attempts": 1,
+  "runId": "admission-v7-r2-01",
+  "outputRoot": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/admission-v7-r2-01",
+  "recipeSha256": "b19d04354088d31ac387c82606aaa0a7ce64cf26efd0ffbebcfc4f4e5969a03c",
+  "reviewSha256": "e3c3764394a6e19dce23abbbbe218d9b37f27779abb8e1b01862ea7e3880fc12",
+  "planSha256": "03463349729bdd298b0ff3ca8c1066c568daad4d5049532e957ce825374ce475",
+  "bootstrapProfile": "JUST_BASH_3_4_2_UNAVAILABLE_BOOTSTRAP_V1",
+  "reportProtocol": "BOUNDED_TERMINAL_V3",
+  "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+  "packSha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06",
+  "command": {
+    "entry": "coordinator.mjs",
+    "phase": "admission",
+    "runId": "admission-v7-r2-01",
+    "nodeArgs": [
+      "--unhandled-rejections=strict",
+      "--max-old-space-size=256"
+    ]
+  }
+}

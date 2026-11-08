@@ -1,0 +1,40 @@
+import {jsonFormat,modifyAtPath,detectIndent,serializeUpdate} from '../dist/json.js';
+import type {ConfigObject,ConfigFormat} from '../dist/index.js';
+import {tomlFormat} from '../dist/toml.js';
+const format:ConfigFormat=jsonFormat;
+const object:ConfigObject=format.parse('{}');
+const text:string=format.serialize(object);
+modifyAtPath(text,['nested',0],new Date());detectIndent(text);serializeUpdate(text,object,object);
+const toml:ConfigFormat=tomlFormat;toml.serialize({updated:new Date()});toml.parse('[section]\nkey=1');
+import {yamlFormat} from '../dist/yaml.js';
+const yaml:ConfigFormat=yamlFormat;yaml.serialize({enabled:true});yaml.parse('key: value');
+import {runMutations} from '../dist/execution.js';
+import type {FileSystem,MutationResult} from '../dist/execution.js';
+declare const fs:FileSystem;
+const operation:Promise<MutationResult>=runMutations([{kind:'ensureDirectory',path:'~/config'},{kind:'chmod',target:'~/config',mode:0o700},{kind:'removeFile',target:ctx=>String(ctx.target),whenEmpty:true}],{fs,homeDir:'/home/test'},{target:'~/empty'});
+void operation;
+
+import {fileMutation} from '../dist/execution.js';
+runMutations([fileMutation.backup({target:'~/config',once:true}),fileMutation.restoreBackup({target:'~/config'})],{fs,homeDir:'/home/test'});
+
+import {configMutation} from '../dist/execution.js';
+runMutations([configMutation.merge({target:'~/config.json',value:{enabled:true}}),configMutation.prune({target:'~/config.json',shape:{enabled:null},onlyIf:(doc,ctx)=>doc.enabled===true&&ctx.remove===true}),configMutation.transform({target:'~/config.json',transform:doc=>({content:doc,changed:false})})],{fs,homeDir:'/home/test'});
+
+import {templateMutation} from '../dist/execution.js';
+runMutations([templateMutation.write({target:'~/config',templateId:'agent',context:ctx=>({name:String(ctx.name)})}),templateMutation.mergeJson({target:'~/config.json',templateId:'agent'}),templateMutation.mergeToml({target:'~/config.toml',templateId:'agent'})],{fs,homeDir:'/home/test',templates:async id=>id});
+
+const rootApi:typeof import('../../config-mutations/dist/index.js')=await import('../dist/index.js');
+rootApi.renderTemplate('{{name}}',{name:'<K>'});
+const read:Promise<string|null>=rootApi.readFileIfExists(fs,'~/config');
+const exists:Promise<boolean>=rootApi.pathExists(fs,'~/config');
+const timestamp:string=rootApi.createTimestamp();
+void read;void exists;void timestamp;
+
+const testingApi:typeof import('../../config-mutations/dist/testing/index.js')=await import('../dist/testing.js');
+const mock=testingApi.createMockFs({'~/config':'content'});
+const bytes:Promise<Uint8Array>=mock.readFile('~/config');
+void bytes;
+rootApi.runMutations([rootApi.configMutation.merge({target:'~/agent.json',value:{enabled:true}})],{fs:mock,homeDir:'/home/test'});
+
+declare const paths:NonNullable<import('../../config-mutations/dist/index.js').MutationContext['paths']>;
+runMutations([],{fs,homeDir:'/home/test',paths});

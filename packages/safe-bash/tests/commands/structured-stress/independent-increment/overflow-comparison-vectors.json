@@ -1,0 +1,110 @@
+{
+  "provenance": {
+    "capturedAt": "2026-08-26T21:11:00.027Z",
+    "version": {
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "6a712d312e372e312d6170706c650a",
+      "stderrHex": "",
+      "stdoutSha256": "8f0cb494827734c0ed992bd222c9888398f880757e9156f3f3264ff061480bb4",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "build": {
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "2d2d776974682d6f6e69677572756d613d6275696c74696e0a",
+      "stderrHex": "",
+      "stdoutSha256": "91e521c87733f623b24c129f5fa117b52861aba52652a293ee3fa6c8db745703",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "executableSha256": "1625910a3f99fbd11c3ad58cc16ebc359507e6e19c21e91d8ab7da2116c8429f",
+    "sourceHashes": {
+      "input.ts": "6469818c00b516a1e041f797b1ea788064db48bc091e323958de7bebaa3b0161",
+      "jq.ts": "05605084518711302c70721a9c7e8a9f3ce45bb0f157809cdc8024add6dfbd38",
+      "interpreter.ts": "74b30d6e8e6d420d5bd508fcbef011db07f7d0aa48992f99e29e861b4be6ded3",
+      "parser.ts": "e3d5aef240c10ad56c193b4b9e1b3fe9db1586879a186a8ff9ab8fb8691acdec",
+      "limits.ts": "d0d8dabc84e9397edda5e93b93ab213b68d457b34f440be906833ca4986d6039",
+      "values.ts": "c2dfbab20d72c3f05c80c0efb12f5c3b2739dfffb0ea851bbe3c603010c7a164",
+      "numbers.ts": "04c19c84f43cb00d10ea8beb301c64a08cacb51001a79b46387758fc12442e65"
+    },
+    "note": "Additional author-native vectors captured before the overflow-literal comparison fix. Earlier numeric work already present. Literal argv, watchdog and stream caps use the original harness; only small trusted literals and bounded comparisons."
+  },
+  "cases": [
+    {
+      "id": "overflow-compare-positive",
+      "category": "decimal-overflow-comparison",
+      "argv": [
+        "-c",
+        "--",
+        "[.[0]>.[1],.[0]==.[1],sort,unique]"
+      ],
+      "inputHex": "5b3165313030303030303030302c31653430305d",
+      "inputSha256": "7fdf09d3d2fee9427e13b4d43b1079ef4086c3884103e16d59795258ff9ff70f",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "5b747275652c66616c73652c5b31452b3430302c312e37393736393331333438363233313537652b3330385d2c5b31452b3430302c312e37393736393331333438363233313537652b3330385d5d0a",
+        "stderrHex": "",
+        "stdoutSha256": "fa7c230dc5b9672018d0cbdf67f0e814a5bfe0421e9cad46abc746f40aadd2df",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "id": "overflow-compare-negative",
+      "category": "decimal-overflow-comparison",
+      "argv": [
+        "-c",
+        "--",
+        "[.[0]<.[1],.[0]==.[1],sort,unique]"
+      ],
+      "inputHex": "5b2d3165313030303030303030302c2d31653430305d",
+      "inputSha256": "a4cd9d18cea665b76b57dc3367dcb203130d76c2ea521d9e4fd22271dae01fbf",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "5b747275652c66616c73652c5b2d312e37393736393331333438363233313537652b3330382c2d31452b3430305d2c5b2d312e37393736393331333438363233313537652b3330382c2d31452b3430305d5d0a",
+        "stderrHex": "",
+        "stdoutSha256": "e146efc0cd24cf55b39c55923682955d187eff98bd44db7b651c894a95129bc0",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "id": "overflow-compare-equal",
+      "category": "decimal-overflow-comparison",
+      "argv": [
+        "-c",
+        "--",
+        "[.[0]>.[1],.[0]==.[1],sort,unique]"
+      ],
+      "inputHex": "5b3165313030303030303030302c3165313030303030303030315d",
+      "inputSha256": "07bd56ddaf30fe468f59b4f1762cb3b9fc109705739a06823dbfe6612816f91b",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "5b66616c73652c747275652c5b312e37393736393331333438363233313537652b3330382c312e37393736393331333438363233313537652b3330385d2c5b312e37393736393331333438363233313537652b3330385d5d0a",
+        "stderrHex": "",
+        "stdoutSha256": "699f8e0124bc98faa8bbeee7489536825fcf0dce1ba1d15aa49784815be42ea5",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "id": "overflow-compare-mixed",
+      "category": "decimal-overflow-comparison",
+      "argv": [
+        "-c",
+        "--",
+        "[.[0]==(.[1]+0),(.[0]+0)==.[1]]"
+      ],
+      "inputHex": "5b3165313030303030303030302c31653430305d",
+      "inputSha256": "7fdf09d3d2fee9427e13b4d43b1079ef4086c3884103e16d59795258ff9ff70f",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "5b747275652c747275655d0a",
+        "stderrHex": "",
+        "stdoutSha256": "f4ad278aced37942fd2e169e552317712a7674f2fa74f223d0ef01ed6d18cef9",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ]
+}

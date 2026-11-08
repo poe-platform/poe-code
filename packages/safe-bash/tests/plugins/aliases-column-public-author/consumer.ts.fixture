@@ -1,0 +1,185 @@
+import assert from "node:assert/strict";
+import { createRequire, syncBuiltinESMExports } from "node:module";
+import test, { after } from "node:test";
+import type { Worker as WorkerType } from "node:worker_threads";
+import type { AgentCommandsOptions, ColumnCommandsOptions, ColumnLimits, GrepAliasOptions, PluginHost, RegexExecutionOptions } from "virtual-bash";
+import type { GrepAliasOptions as AliasSubpathOptions } from "virtual-bash/commands/grep-aliases";
+import type { ColumnCommandsOptions as ColumnSubpathOptions } from "virtual-bash/commands/column";
+
+const require = createRequire(import.meta.url);
+const threads = require("node:worker_threads") as { Worker: typeof WorkerType };
+const OriginalWorker = threads.Worker;
+const active = new Set<WorkerType>();
+const observed: { stack?: number; old?: number; path: string }[] = [];
+let created = 0, exited = 0;
+class ObservedWorker extends OriginalWorker {
+  constructor(...args: ConstructorParameters<typeof OriginalWorker>) {
+    super(...args);
+    created++; active.add(this);
+    const resources = args[1]?.resourceLimits;
+    observed.push({ ...(resources?.stackSizeMb === undefined ? {} : { stack: resources.stackSizeMb }), ...(resources?.maxOldGenerationSizeMb === undefined ? {} : { old: resources.maxOldGenerationSizeMb }), path: String(args[0]) });
+    this.once("exit", () => { exited++; active.delete(this); });
+  }
+}
+threads.Worker = ObservedWorker;
+syncBuiltinESMExports();
+const root = await import("virtual-bash");
+const aliases = await import("virtual-bash/commands/grep-aliases");
+const columns = await import("virtual-bash/commands/column");
+const regex: RegexExecutionOptions = { maxWorkers: 1, workerOldGenerationMb: 48, workerStackMb: 8 };
+const aliasOptions: GrepAliasOptions & AliasSubpathOptions = { regex };
+const limits: Partial<ColumnLimits> = { maxInputBytes: 1024, maxOutputBytes: 1024, maxRows: 16 };
+const columnOptions: ColumnCommandsOptions & ColumnSubpathOptions = { limits };
+const aggregateOptions: AgentCommandsOptions = { regex, column: { limits } };
+
+after(() => {
+  threads.Worker = OriginalWorker; syncBuiltinESMExports();
+  assert.equal(active.size, 0); assert.equal(created, exited);
+});
+
+test("root and subpath factories have identical public bindings", () => {
+  for (const name of ["grepAliasCommands", "createGrepAliasCommands", "egrepCommand", "fgrepCommand"] as const) assert.equal(root[name], aliases[name]);
+  for (const name of ["columnCommands", "createColumnCommands", "createColumnCommand"] as const) assert.equal(root[name], columns[name]);
+  assert.deepEqual(aliases.createGrepAliasCommands(aliasOptions).map(command => command.name), ["egrep", "fgrep"]);
+  assert.equal(aliases.egrepCommand().name, "egrep"); assert.equal(aliases.fgrepCommand().name, "fgrep");
+  assert.deepEqual(columns.createColumnCommands(columnOptions).map(command => command.name), ["column"]);
+  assert.equal(columns.createColumnCommand().name, "column");
+});
+
+test("default registry has exactly the explicit73 names and excludes optional/future commands", () => {
+  const expected = [
+    "true", "false", "echo", "pwd", "basename", "dirname", "printf", "mkdir", "touch", "cp", "mv", "rm", "rmdir", "ln", "readlink", "realpath", "ls", "cat", "head", "tail", "wc", "tee", "tr", "sort", "uniq", "cut", "grep", "test", "[", "env", "xargs", "find",
+    "sed", "awk", "jq", "rg", "base64", "base32", "xxd", "od", "sha256sum", "sha1sum", "md5sum", "cksum", "gzip", "gunzip", "zcat", "diff", "patch", "chmod", "stat", "mktemp", "tar", "paste", "comm", "join", "tac", "expand", "fold", "strings", "seq", "nl", "rev", "unexpand", "split", "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column",
+  ];
+  assert.equal(expected.length, 73); assert.equal(new Set(expected).size, 73);
+  assert.deepEqual(root.createAgentCommands().map(command => command.name), expected);
+  for (const name of ["curl", "safejs", "expr", "du"]) assert.equal(expected.includes(name), false);
+});
+
+test("standalone aliases work without grep and keep fixed versus extended semantics", async () => {
+  const shell = new root.Shell({ fs: root.createMemoryFileSystem() }).use(aliases.grepAliasCommands(aliasOptions));
+  try {
+    assert.equal(shell.commands.has("grep"), false);
+    const extended = await shell.exec("egrep 'a|b'", { stdin: "a\nb\nc\n" });
+    assert.deepEqual([extended.exitCode, extended.stdout, extended.stderr], [0, "a\nb\n", ""]);
+    const fixed = await shell.exec("fgrep 'a|b'", { stdin: "a\na|b\nb\n" });
+    assert.deepEqual([fixed.exitCode, fixed.stdout, fixed.stderr], [0, "a|b\n", ""]);
+  } finally { await shell.dispose(); }
+});
+
+test("standalone alias to column pipeline writes only VFS output", async () => {
+  const fs = root.createMemoryFileSystem();
+  const shell = new root.Shell({ fs }).use(aliases.grepAliasCommands()).use(columns.columnCommands(columnOptions));
+  try {
+    const result = await shell.exec("egrep '^keep' | column -t > /table", { stdin: "keep 1\ndrop 2\nkeep 3\n" });
+    assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, "", ""]);
+    assert.deepEqual(Buffer.from(await fs.readFile("/table")), Buffer.from("keep  1\nkeep  3\n"));
+  } finally { await shell.dispose(); }
+});
+
+test("default aliases and column compose with nested env and VFS pipes", async () => {
+  const fs = root.createMemoryFileSystem();
+  await fs.writeFile("/input", Buffer.from("keep 1\ndrop 2\nkeep 3\n"));
+  const shell = new root.Shell({ fs }).use(root.agentCommands(aggregateOptions));
+  try {
+    const result = await shell.exec("cat /input | env egrep '^keep' | fgrep keep | column -t > /table; cat /table");
+    assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, "keep  1\nkeep  3\n", ""]);
+    assert.deepEqual(Buffer.from(await fs.readFile("/table")), Buffer.from(result.stdout));
+    assert.deepEqual(Buffer.from(await fs.readFile("/input")), Buffer.from("keep 1\ndrop 2\nkeep 3\n"));
+  } finally { await shell.dispose(); }
+});
+
+test("fgrep preserves non-UTF8 selected bytes", async () => {
+  const shell = new root.Shell({ fs: root.createMemoryFileSystem() }).use(root.agentCommands());
+  try {
+    const result = await shell.exec("fgrep '.'", { stdin: Uint8Array.of(255, 46, 10, 65, 10) });
+    assert.equal(result.exitCode, 0); assert.equal(result.stderr, "");
+    assert.deepEqual(result.stdoutBytes, Uint8Array.of(255, 46, 10));
+  } finally { await shell.dispose(); }
+});
+
+for (const name of ["grep", "egrep", "fgrep"]) test(`aggregate regex resource settings reach actual ${name} worker`, async () => {
+  const start = observed.length;
+  const shell = new root.Shell({ fs: root.createMemoryFileSystem() }).use(root.agentCommands({ regex }));
+  try {
+    const result = await shell.exec(`${name} keep`, { stdin: "keep\n" });
+    assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, "keep\n", ""]);
+  } finally { await shell.dispose(); }
+  const workers = observed.slice(start);
+  assert.equal(workers.length, 1);
+  assert.equal(workers[0]!.stack, 8); assert.equal(workers[0]!.old, 48);
+  assert.equal(workers[0]!.path, new URL("node_modules/virtual-bash/dist/commands/regex-execution/worker.js", import.meta.url.replace(/run\/consumer\.mjs$/, "")).href);
+  assert.equal(active.size, 0);
+});
+
+for (const name of ["egrep", "fgrep", "column"]) test(`${name} collision preflight and top-level replacement are atomic`, async () => {
+  const shell = new root.Shell({ fs: root.createMemoryFileSystem() });
+  const custom = { name: "custom", execute: () => ({ exitCode: 19 }) };
+  const existing = { name, execute: () => ({ exitCode: 23 }) };
+  shell.commands.register(custom); shell.commands.register(existing);
+  const host: PluginHost = { commands: shell.commands, use() { throw new Error("Unexpected middleware"); }, registerFileSystem() { throw new Error("Unexpected filesystem"); } };
+  try {
+    const before = shell.commands.list();
+    assert.throws(() => root.agentCommands({ column: { replace: true } } as unknown as AgentCommandsOptions).setup(host), /already registered/);
+    assert.deepEqual(shell.commands.list(), before);
+    await root.agentCommands({ replace: true, column: { replace: false } } as unknown as AgentCommandsOptions).setup(host);
+    assert.equal(shell.commands.list().length, 74);
+    assert.equal(shell.commands.get("custom"), before.find(command => command.name === "custom"));
+    assert.notEqual(shell.commands.get(name), before.find(command => command.name === name));
+  } finally { await shell.dispose(); }
+});
+
+test("column aggregate limits reject real input and preserve the source", async () => {
+  const fs = root.createMemoryFileSystem();
+  await fs.writeFile("/input", Buffer.from("a b\n"));
+  const shell = new root.Shell({ fs }).use(root.agentCommands({ column: { limits: { maxInputBytes: 1 } } }));
+  try {
+    const result = await shell.exec("column -t /input");
+    assert.equal(result.exitCode, 1); assert.equal(result.stdout, "");
+    assert.equal(result.stderr, "column: EFBIG: column input limit exceeded\n");
+    assert.deepEqual(Buffer.from(await fs.readFile("/input")), Buffer.from("a b\n"));
+  } finally { await shell.dispose(); }
+});
+
+test("invalid column settings fail before any aggregate registration", async () => {
+  const shell = new root.Shell({ fs: root.createMemoryFileSystem() });
+  const host: PluginHost = { commands: shell.commands, use() { throw new Error("Unexpected middleware"); }, registerFileSystem() { throw new Error("Unexpected filesystem"); } };
+  try {
+    assert.throws(() => root.agentCommands({ column: { limits: { maxRows: 0 } } }).setup(host), /Invalid column limit/);
+    assert.equal(shell.commands.list().length, 0);
+  } finally { await shell.dispose(); }
+});
+
+test("Shell.use defers plugin errors to execution without partial registration", async () => {
+  const shell = new root.Shell({ fs: root.createMemoryFileSystem() });
+  const original = { name: "column", execute: () => ({ exitCode: 23 }) };
+  shell.commands.register(original);
+  try {
+    assert.equal(shell.use(root.agentCommands()), shell);
+    await assert.rejects(shell.exec(""), /already registered: column/);
+    assert.deepEqual(shell.commands.list(), [original]);
+  } finally { await shell.dispose(); }
+});
+
+test("preaborted aliases and column retain the exact reason without reading", async () => {
+  const shell = new root.Shell({ fs: root.createMemoryFileSystem() }).use(root.agentCommands());
+  let reads = 0;
+  const stdin = { async *[Symbol.asyncIterator]() { reads++; yield Buffer.from("keep 1\n"); } };
+  try {
+    for (const command of ["egrep keep", "fgrep keep", "column -t"]) {
+      const reason = new Error(command), controller = new AbortController(); controller.abort(reason);
+      await assert.rejects(shell.exec(command, { stdin, signal: controller.signal }), error => error === reason);
+    }
+    assert.equal(reads, 0); assert.equal(active.size, 0);
+  } finally { await shell.dispose(); }
+});
+
+test("public alias return rejection preserves sentinel while direct status boundaries remain external evidence", async () => {
+  const shell = new root.Shell({ fs: root.createMemoryFileSystem() }).use(root.agentCommands());
+  const sentinel = new Error("public-integration-return"); let returns = 0;
+  const input = { [Symbol.asyncIterator]() { return { next: async () => ({ done: false as const, value: Buffer.from("keep\n") }), return: async () => { returns++; throw sentinel; } }; } };
+  try {
+    await assert.rejects(shell.exec("egrep -q keep", { stdin: input }), error => error === sentinel);
+    assert.equal(returns, 1); assert.equal(active.size, 0);
+  } finally { await shell.dispose(); }
+});

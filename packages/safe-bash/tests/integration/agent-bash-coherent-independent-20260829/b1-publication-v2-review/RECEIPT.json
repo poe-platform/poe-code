@@ -1,0 +1,116 @@
+{
+  "schema": 1,
+  "verdict": "QUALIFIED_PREEXECUTION_ACCEPT",
+  "created": "2026-08-29T13:32:15.973Z",
+  "deadline": "2026-08-29T13:37:10.232Z",
+  "source": "daf5179dfc674b8d4744ad117dcc9e7bc6c492df",
+  "binding": {
+    "bytes": 3923,
+    "sha256": "022ff1fc4ec15f25ef937419062a69ade7a0b3e3df482a0dcea7318e802fce56"
+  },
+  "preseal": {
+    "bytes": 1532,
+    "sha256": "eaf5c9d789906e689eb47b7586c1b0ad41226eff4a3ae4957a51013fbded7152"
+  },
+  "outcomes": {
+    "authorPure": 16,
+    "independentPure": 6,
+    "failures": 0,
+    "actualB1": 0,
+    "publisherExecuted": false,
+    "Workers": 0,
+    "productImports": 0
+  },
+  "accounting": {
+    "logicalOwnedArtifactsOnly": true,
+    "gitInternalPhysicalGrowth": "UNOBSERVED_ALLOWED_TRUSTED_TOOL_BOUNDARY",
+    "startup": "Real fd1/fd2 redirection before Node exec; declared 8192-byte reservation and 4096-per-file checks; not hard interception",
+    "persistence": "MAY_REFUSE_OR_FAIL; existing raws preserved; no guaranteed final artifact"
+  },
+  "pending": [
+    "Fresh ROOT authorization/window; old window RETIRED_UNUSED",
+    "Exact absolute binding/auth paths, hashes and sizes",
+    "Predispatch publisher/policy hash admission before import",
+    "Fresh exclusive output/capture paths and actual measured prepublication role count",
+    "Future actual 15 execution, not authorized by this receipt"
+  ],
+  "reviewRoles": {
+    "knownThroughPlannedPublication": 16,
+    "finalGitRolesPendingAtReceipt": 2,
+    "roleGraph": {
+      "initialMetadataGit": 2,
+      "presealGit": 2,
+      "pureNode": 1,
+      "developmentPatchShellAndTool": 6,
+      "finalMetadataGit": 3,
+      "finalPublicationGit": 2
+    },
+    "peakConservative": 3,
+    "grantKnown": 24,
+    "grantPeak": 3,
+    "allProcessCensus": false,
+    "rawCaptureSnapshotBytes": 84278,
+    "helperClosed": true
+  },
+  "historical": [
+    "fdabb950 F01/F02 unchanged",
+    "No retired actual-window reuse"
+  ],
+  "files": [
+    {
+      "path": "ADMISSION.json",
+      "bytes": 6144,
+      "sha256": "dc51652dccad1ea5e7c7e20ff9c78468941b3aee7df431b4ebe0cd8c2391a29c"
+    },
+    {
+      "path": "CAPTURE-MANIFEST.json",
+      "bytes": 314,
+      "sha256": "4d7e3fde38b607c8565e8ce870ef3a935ff75c64ddff299eab5499ab1fd4dea7"
+    },
+    {
+      "path": "CAPTURE.json.gz",
+      "bytes": 37367,
+      "sha256": "cac37fc7e3f4bb7cb2dd187606eb256ddf9956b47f31457fcf5eacd4ead22edc"
+    },
+    {
+      "path": "FINAL-METADATA.json",
+      "bytes": 651,
+      "sha256": "53f77f92e5dfa19e855da732aa76d7d2f00923bc450ec496dc4637a589e5c7e7"
+    },
+    {
+      "path": "INPUTS.json",
+      "bytes": 64987,
+      "sha256": "5c3f39ba41870ec3763d5c663a63f0720c88b1a8fe352d0943a581d7c2dfdfa4"
+    },
+    {
+      "path": "PRESEAL.json",
+      "bytes": 688,
+      "sha256": "4447a98d3d0b19a9edc341d7a6d3c63e35b16d648b15cf8c0718d455b0325cac"
+    },
+    {
+      "path": "PURE-PROCESS.json",
+      "bytes": 309,
+      "sha256": "3215718d940390e02eee70b323c02fbffb06f06a38c429d89abb2ff0a3e67977"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 8438,
+      "sha256": "4146f35f468039b93fd68d854968d11e014bfa4d1f944a0471d3861a16d167b3"
+    },
+    {
+      "path": "RESULT.json",
+      "bytes": 3034,
+      "sha256": "911a2a15ff42201098d4bfcce5785c565a6ce24ba88bccabb9a11187ba84a329"
+    },
+    {
+      "path": "SOURCE-PROCESS.json",
+      "bytes": 189,
+      "sha256": "1990d5c6624953587e4740f025b0377f6ae1a9f0599c2d65da6f78a6f56fd9c9"
+    },
+    {
+      "path": "review.mjs",
+      "bytes": 5040,
+      "sha256": "50c9733c981bdfe6289d0b5106e5b4c05c2b04c1d03c8f10866e4ec0a436556e"
+    }
+  ]
+}

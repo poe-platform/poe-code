@@ -1,0 +1,47 @@
+{
+  "oracle": [
+    "This is Zip 3.0 (July 5th 2008), by Info-ZIP, with modifications by Apple Inc.",
+    "Please report bugs to Apple."
+  ],
+  "cases": [
+    {
+      "args": [
+        "-q",
+        "o.zip",
+        "-"
+      ],
+      "stdin": "YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/",
+      "archive": "UEsDBC0AAAAIAMRpL101dvQI//////////8BABQALQEAEADgAQAAAAAAABYAAAAAAAAAS8rMSyyqZChIrMzJT0z5nzTKHV5cAFBLAQIeAy0AAAAIAMRpL101dvQIFgAAAOABAAABAAAAAAAAAAAAAACwEQAAAAAtUEsGBiwAAAAAAAAAHgMtAAAAAAAAAAAAAQAAAAAAAAABAAAAAAAAAC8AAAAAAAAASQAAAAAAAABQSwYHAAAAAHgAAAAAAAAAAQAAAFBLBQYAAAAAAQABAC8AAABJAAAAAAA=",
+      "sha256": "bdc3ed61ef74f972dca0751553d82cf310b63dd383b9c65495b99077638c8a79",
+      "unzipStatus": 0,
+      "unzipStdout": "YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/YmluYXJ5AHBheWxvYWT/",
+      "unzipStderr": ""
+    },
+    {
+      "args": [
+        "-qfz",
+        "o.zip",
+        "tiny"
+      ],
+      "stdin": "",
+      "archive": "UEsDBC0AAAAAAMRpL11Dvrfo//////////8EADAAdGlueVVUCQAD8IqpavCKqWp1eAsAAQT1AQAABBQAAAABABAAAQAAAAAAAAABAAAAAAAAAGFQSwECHgMtAAAAAADEaS9dQ7636AEAAAD/////BAAkAAAAAAABAAAApIEAAAAAdGlueVVUBQAD8IqpanV4CwABBPUBAAAEFAAAAAEACAABAAAAAAAAAFBLBgYsAAAAAAAAAB4DLQAAAAAAAAAAAAEAAAAAAAAAAQAAAAAAAABWAAAAAAAAAFMAAAAAAAAAUEsGBwAAAACpAAAAAAAAAAEAAABQSwUGAAAAAAEAAQBWAAAA/////wAA",
+      "sha256": "4b2f3471677c6ff00e3039047cb9baeca00b0c8706af1e164740d0a602d2c860",
+      "unzipStatus": 0,
+      "unzipStdout": "YQ==",
+      "unzipStderr": ""
+    },
+    {
+      "args": [
+        "-qfz",
+        "-",
+        "tiny"
+      ],
+      "stdin": "",
+      "archive": "UEsDBC0ACAAIAMRpL10AAAAA//////////8EADAAdGlueVVUCQAD8IqpavCKqWp1eAsAAQT1AQAABBQAAAABABAAAQAAAAAAAAAAAAAAAAAAAEsEAFBLBwhDvrfoAwAAAAAAAAABAAAAAAAAAFBLAQIeAy0ACAAIAMRpL11DvrfoAwAAAP////8EACQAAAAAAAEAAACkgQAAAAB0aW55VVQFAAPwiqlqdXgLAAEE9QEAAAQUAAAAAQAIAAEAAAAAAAAAUEsFBgAAAAABAAEAVgAAAP////8AAA==",
+      "sha256": "1e6888d7fac96bca662c3a5167f031dc90c312d0a4ae876db5bb10c346ad6080",
+      "unzipStatus": 2,
+      "unzipStdout": "YQ==",
+      "unzipStderr": "error [/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/tmpydchooux/native.zip]:  missing 4294967186 bytes in zipfile\n  (attempting to process anyway)\nerror [/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/tmpydchooux/native.zip]:  attempt to seek before beginning of zipfile\n  (please check that you have transferred or created the zipfile in the\n  appropriate BINARY mode and that you have compiled UnZip properly)\n  (attempting to re-compensate)\n"
+    }
+  ]
+}

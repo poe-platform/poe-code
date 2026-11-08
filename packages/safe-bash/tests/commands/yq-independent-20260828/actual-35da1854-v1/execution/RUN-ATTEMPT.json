@@ -1,0 +1,25 @@
+{
+  "date": "2026-08-28",
+  "presealCommit": "7d3423edda8de5f125cabb884d49c3712e5e25d3",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/run.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/actual-35da1854-v1/ROOT-EXECUTION.json",
+    "74afb45f09d1a7189f816ec09a68fe1727a4cab3a285ba844f05d7a7e3afdce9",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/SEAL-v4.json",
+    "47c3874f520efee18062d4b2e687159a52039a86d35945a7f5371e85eb00fdff"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "env": {
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC"
+  },
+  "bounds": {
+    "parentDeadlineMs": 660000,
+    "termGraceMs": 150,
+    "reapMs": 2500,
+    "combinedCaptureBytes": 16777216
+  },
+  "rule": "Exactly one invocation; no failed-case or setup retry."
+}

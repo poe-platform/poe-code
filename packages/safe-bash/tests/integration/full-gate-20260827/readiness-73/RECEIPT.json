@@ -1,0 +1,14 @@
+{
+  "format": "readiness-only-73-v1",
+  "createdAt": "2026-08-27T17:42:48.732Z",
+  "sourceRevision": "c355751f36ca3fdbab8f888eaab30203c1bcd343",
+  "suiteLaunched": false,
+  "files": {
+    "INVENTORY.json": "3d0757db1e380a5b228366b5c6022f1023e2c12afd7be12b691f0ef20545fb2f",
+    "OBSERVATION-01.json": "e1d161ecdd5342f84df89f950dc6cad1715586bf50cf04a283240a08ce1a241a",
+    "inventory.mjs": "3ec3a465c6f608ba640cea55ff16dad2c9c368e0d6d46d4d9e7868e14c057717",
+    "verify.mjs": "040d7c560f07e5667dbb4da20a08db0f59028f6bc414d617d1147f39ed675e26",
+    "README.md": "86c708429b61d750104ff4013e98bc4e531a6c9114a719cdfed0e5b9720e73bc"
+  },
+  "qualification": "Read-only observations; not source approval, native profile execution, or gate admission. First observation predates added supplemental inventory fields; preserved unchanged."
+}

@@ -1,0 +1,8 @@
+tests/compatibility/bash-function-keyword-independent-20260829/preexec-v4/PUBLICATION.jsonl
+tests/compatibility/bash-function-keyword-independent-20260829/preexec-v4/RECEIPT.json
+tests/compatibility/bash-function-keyword-independent-20260829/preexec-v4/REPORT.md
+tests/compatibility/bash-function-keyword-independent-20260829/preexec-v4/RESULT.json
+tests/compatibility/bash-function-keyword-independent-20260829/preexec-v4/precommit.jsonl
+tests/compatibility/bash-function-keyword-independent-20260829/preexec-v4/run.jsonl
+tests/compatibility/bash-function-keyword-independent-20260829/preexec-v4/run.stderr
+tests/compatibility/bash-function-keyword-independent-20260829/preexec-v4/run.stdout

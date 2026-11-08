@@ -1,0 +1,38 @@
+{
+  "name": "missing-receipt-stops-marker",
+  "expected": true,
+  "cohort": {
+    "rows": [
+      {
+        "mode": "missing-receipt",
+        "outcome": "unexpected-control-failure",
+        "safety": {
+          "safe": false,
+          "missing": [
+            "receiptPresent",
+            "numericReceiptPresent"
+          ],
+          "proof": {
+            "bindingsIntact": true,
+            "receiptPresent": false,
+            "numericReceiptPresent": false,
+            "closeObserved": true,
+            "reaped": true,
+            "groupEmpty": true,
+            "cleanupComplete": true
+          }
+        },
+        "physicalSafety": true,
+        "close": {
+          "code": 0,
+          "signal": null
+        },
+        "signals": []
+      }
+    ],
+    "unexecuted": [
+      "marker"
+    ],
+    "exitCode": 1
+  }
+}

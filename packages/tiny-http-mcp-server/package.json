@@ -1,0 +1,82 @@
+{
+  "name": "tiny-http-mcp-server",
+  "version": "0.1.0",
+  "description": "Minimal MCP server over HTTP built on tiny-stdio-mcp-server",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "tiny-http-mcp-server": "dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "import": "./dist/server.js"
+    },
+    "./testing": {
+      "types": "./dist/testing.d.ts",
+      "import": "./dist/testing.js"
+    },
+    "./test-support": {
+      "types": "./dist/test-support.d.ts",
+      "import": "./dist/test-support.js"
+    },
+    "./fetch": {
+      "types": "./dist/fetch.d.ts",
+      "import": "./dist/fetch.js"
+    }
+  },
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "prepack": "node ../../scripts/set-bin-executable.mjs && node ../../scripts/manage-bundled-workspace-deps.mjs prepare-local . mcp-oauth auth-store tiny-mcp-client jose @poe-code/safe-fs @poe-code/xml-ast @noble/hashes saxes",
+    "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup-after-pack . mcp-oauth auth-store tiny-mcp-client jose @poe-code/safe-fs @poe-code/xml-ast @noble/hashes saxes",
+    "prepublishOnly": "tsc",
+    "postpublish": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . mcp-oauth auth-store tiny-mcp-client jose @poe-code/safe-fs @poe-code/xml-ast @noble/hashes saxes",
+    "test:unit": "cd ../.. && vitest run packages/tiny-http-mcp-server/src"
+  },
+  "files": [
+    "LICENSE",
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poe-platform/poe-code.git",
+    "directory": "packages/tiny-http-mcp-server"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "jose": "^6.1.2",
+    "tiny-stdio-mcp-server": "^0.1.29",
+    "@noble/hashes": "2.4.0",
+    "saxes": "6.0.0"
+  },
+  "bundleDependencies": [
+    "mcp-oauth",
+    "auth-store",
+    "tiny-mcp-client",
+    "jose",
+    "@poe-code/safe-fs",
+    "@poe-code/xml-ast",
+    "@noble/hashes",
+    "saxes"
+  ],
+  "optionalDependencies": {
+    "auth-store": "*",
+    "mcp-oauth": "*",
+    "tiny-mcp-client": "*",
+    "@poe-code/safe-fs": "*",
+    "@poe-code/xml-ast": "*"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.26.0",
+    "@types/express": "^5.0.6",
+    "express": "^5.1.0"
+  }
+}

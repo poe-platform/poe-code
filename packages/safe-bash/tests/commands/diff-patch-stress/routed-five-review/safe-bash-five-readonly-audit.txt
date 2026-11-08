@@ -1,0 +1,18 @@
+READONLY PRE-CLOSURE AUDIT
+Quiet diagnostic paths inspected in src/commands/diff-patch/patch.ts:
+- Parsed quiet state currently gates normal patching/checking and individual successful/failed hunk chatter; failed-count/reject summary remains unconditional.
+- Automatic reversal, misordered-hunk warning and deletion-content warning remain unconditional.
+- Missing/unlocated target and skipped-hunk status use status() independently of the per-file success string.
+- Tool/parser/publication failures go through the existing error path; quiet must not blanket-gate stdout or stderr sinks.
+- Atomic status buffering shares status(); empty-string early return must not spend output budget for suppressed progress. Actual output/effect limits still apply.
+Precision source inspected:
+- FileStat atimeMs/mtimeMs are number, not integral-ms or nanosecond fields.
+- Memory utimes stores finite number values unchanged. Real stat forwards Node stat millisecond numbers, potentially fractional; real utimes constructs Date and cannot set submillisecond values.
+- Existing timestamp() constructs Date directly and uses ISO's three digits; Date truncates fractional milliseconds. Negative epochs need floor-second/calendar handling rather than absolute-fraction attachment.
+- Existing epoch() intentionally supports at most three decimal places; its signed/width behavior must remain unchanged. Human %x/%y/%z/%w and epoch %X/%Y/%Z/%W are distinct formatting paths.
+- Review actual binary-number resolution, negative/submillisecond/large-epoch cases in the author's bounded new cases; do not fabricate precision not present in FileStat or expand format/mode/async scope.
+Evidence gates:
+- Both new author closure markers required before source-consuming acceptance.
+- Use historical helper bytes and exact five JSON recipes/observations from 8e09db9 and bd2cacb evidence; hash all helper/native/dependency/source inputs.
+- Full raw namespace comparison retains native-only tmp directory; source effect/status/streams can succeed without full-row parity.
+- Keep original18 failures, originalSGID6, old human-three-digit fixture profile conflicts and historical table comm mismatch separate.

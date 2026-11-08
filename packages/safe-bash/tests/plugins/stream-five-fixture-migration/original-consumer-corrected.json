@@ -1,0 +1,32 @@
+{
+  "qualification": "Original unchanged consumer and captured compiled source; isolated consumer package boundary/rootDir correct TS2209 harness error; initial failed harness result preserved separately.",
+  "args": [
+    "--strict",
+    "--noUncheckedIndexedAccess",
+    "--exactOptionalPropertyTypes",
+    "--verbatimModuleSyntax",
+    "--module",
+    "NodeNext",
+    "--moduleResolution",
+    "NodeNext",
+    "--target",
+    "ES2023",
+    "--types",
+    "node",
+    "--rootDir",
+    ".",
+    "--outDir",
+    "emitted",
+    "consumer.mts"
+  ],
+  "types": {
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "runtime": {
+    "status": 1,
+    "stdout": "",
+    "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n65 !== 60\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/plugins/stream-five-fixture-migration/dist/original/consumer/emitted/consumer.mjs:25:8 {\n  generatedMessage: true,\n  code: 'ERR_ASSERTION',\n  actual: 65,\n  expected: 60,\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n"
+  }
+}

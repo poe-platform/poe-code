@@ -1,0 +1,24 @@
+id: hello-file
+title: E2E hello file smoke
+target:
+  repo: src/__fixtures__/e2e-target.git
+  ref: main
+  plan_dest: docs/plans/eval-task.md
+scorer:
+  command: node "$ORACLE_DIR/score.mjs"
+  result_path: .scorer-result.json
+  timeout_ms: 5000
+oracle:
+  path: oracle
+budget:
+  max_iterations: 10
+  max_tokens: 100000
+  wall_clock_ms: 120000
+judge:
+  agent: claude-code
+  model: anthropic/claude-haiku-4-5-20251001
+  rubric:
+    - completeness
+weights:
+  tests: 1
+  judge: 0

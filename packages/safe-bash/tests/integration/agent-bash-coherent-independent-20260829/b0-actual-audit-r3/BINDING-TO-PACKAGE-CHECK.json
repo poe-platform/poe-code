@@ -1,0 +1,23 @@
+{
+  "at": "2026-08-29T12:21:26.332Z",
+  "records": [
+    {
+      "layout": "source-built",
+      "inputs": 1012,
+      "bindingSha256": "92b1f77012a646889519f207103fb728488da1ad66ce9362906505c5b48039cc",
+      "allInputHashesMatchAcceptedFullPackage": true
+    },
+    {
+      "layout": "installed",
+      "inputs": 1012,
+      "bindingSha256": "04e7ea29d8f43de9caa4436df3162e6a63a981b025144a3a71ee8bd6491467de",
+      "allInputHashesMatchAcceptedFullPackage": true
+    },
+    {
+      "layout": "physically-moved",
+      "inputs": 1012,
+      "bindingSha256": "ca162d05a0fadcf5fd2094b93c5fa01aee7120bf68e2e5bfae9dcb435c49a85c",
+      "allInputHashesMatchAcceptedFullPackage": true
+    }
+  ]
+}

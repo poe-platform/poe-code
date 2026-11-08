@@ -1,0 +1,15 @@
+{
+  "removedOnlyAuditTmpChildren": [
+    {
+      "path": "/tmp/safe-bash-current-integration-69dbdy0m/tmp/node-compile-cache",
+      "directory": true,
+      "symlink": false
+    },
+    {
+      "path": "/tmp/safe-bash-current-integration-69dbdy0m/tmp/tsx-501",
+      "directory": true,
+      "symlink": false
+    }
+  ],
+  "remaining": []
+}

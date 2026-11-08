@@ -1,0 +1,13 @@
+{
+  "startedMs": 1787988611372,
+  "seconds": 3600,
+  "allKnownOSCeiling": 128,
+  "peak": 4,
+  "plannedDirect": 42,
+  "fixedLoaderPlan": 32,
+  "loaderCeiling": 40,
+  "regexPlan": 0,
+  "regexCeiling": 8,
+  "conservativeOuterSlots": 3,
+  "adminReserve": 40
+}

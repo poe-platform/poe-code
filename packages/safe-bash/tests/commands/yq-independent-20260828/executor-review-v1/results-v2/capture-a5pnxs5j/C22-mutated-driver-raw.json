@@ -1,0 +1,11 @@
+{
+  "id": "C22-mutated-driver",
+  "expected": "DRIVER_INTEGRITY",
+  "value": null,
+  "error": {
+    "code": "DRIVER_INTEGRITY",
+    "message": "DRIVER_INTEGRITY: ",
+    "stack": "Error: DRIVER_INTEGRITY: \n    at Module.requireFact (file:///private/tmp/yq-composition-independent-aoq9aj85/object-reader/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/guards.mjs:20:39)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v2/check.mjs:71:13\n    at observe (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v2/check.mjs:23:23)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v2/check.mjs:66:9"
+  },
+  "role": "DATA_OR_SYNTHETIC_NOT_YQ"
+}

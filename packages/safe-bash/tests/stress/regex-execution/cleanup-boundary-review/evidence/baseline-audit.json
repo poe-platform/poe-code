@@ -1,0 +1,19 @@
+{
+  "label": "baseline",
+  "sourceCommit": "07acb1a4d30b7592cf247a0220250317be4e2038",
+  "time": "2026-08-27T07:48:06.564Z",
+  "node": "v22.22.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "sourceFiles": 196,
+  "emittedFiles": 636,
+  "approvedContractAndHistorical": 15,
+  "differences": [],
+  "rootDelta": [],
+  "baselineMatchesPriorRegex": true,
+  "unchangedDefaultPolicy": true,
+  "mismatches": [],
+  "riskConsumed": 0,
+  "additionalSix": "UNUSED",
+  "defaultAcceptance": false
+}

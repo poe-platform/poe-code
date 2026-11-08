@@ -1,0 +1,72 @@
+{
+  "name": "tiny-stdio-mcp-server",
+  "version": "0.1.29",
+  "bugs": {
+    "url": "https://github.com/poe-platform/poe-code/issues"
+  },
+  "description": "Minimal MCP server over stdio with typed tools and rich content helpers",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./jsonrpc": {
+      "types": "./dist/jsonrpc.d.ts",
+      "import": "./dist/jsonrpc.js"
+    },
+    "./testing": {
+      "types": "./dist/testing.d.ts",
+      "import": "./dist/testing.js"
+    },
+    "./headers": {
+      "types": "./dist/headers.d.ts",
+      "import": "./dist/headers.js"
+    },
+    "./protocol": {
+      "types": "./dist/protocol.d.ts",
+      "import": "./dist/protocol.js"
+    },
+    "./core": {
+      "types": "./dist/core.d.ts",
+      "import": "./dist/core.js"
+    }
+  },
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "prepublishOnly": "tsc",
+    "prepack": "node ../../scripts/manage-bundled-workspace-deps.mjs prepare . toolcraft-schema",
+    "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . toolcraft-schema",
+    "test:unit": "cd ../.. && vitest run packages/tiny-stdio-mcp-server/src"
+  },
+  "files": [
+    "LICENSE",
+    "dist"
+  ],
+  "engines": {
+    "node": ">=18.18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/poe-platform/poe-code.git",
+    "directory": "packages/tiny-stdio-mcp-server"
+  },
+  "license": "MIT",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "stdio",
+    "server"
+  ],
+  "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.25.3"
+  },
+  "dependencies": {
+    "toolcraft-schema": "*"
+  },
+  "bundleDependencies": [
+    "toolcraft-schema"
+  ]
+}

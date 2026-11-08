@@ -1,0 +1,11 @@
+{
+  "probedAt": "2026-08-27T20:32:03.629Z",
+  "bootstrapRootRecords": 54,
+  "materializedRootRecords": 59,
+  "totalRootRecords": 113,
+  "totalGroupRecords": 113,
+  "liveRootPids": [],
+  "liveProcessGroups": [],
+  "timeoutGrandchildPid": 97364,
+  "timeoutGrandchildAlive": false
+}

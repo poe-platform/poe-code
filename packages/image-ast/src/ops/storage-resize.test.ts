@@ -1,0 +1,21 @@
+import {expect,it,vi} from "vitest";
+import type {GravityPosition,ResizeFit,RgbaImage} from "../ast.js";
+import {resizeImage} from "./resize.js";
+import {resizeStoredImage} from "./storage-resize.js";
+const fits:ResizeFit[]=["fill","cover","contain","inside","outside"];
+const positions:GravityPosition[]=["center","northwest","southeast","entropy","attention"];
+it.each(fits.flatMap(fit=>positions.flatMap(position=>[false,true].map(alpha=>({fit,position,alpha})))))("matches $fit at $position alpha=$alpha",async({fit,position,alpha})=>{
+  const data=Uint8Array.from({length:31*23*4},(_,i)=>i%4===3&&!alpha?255:(i*43+Math.floor(i/7))%256);
+  const image:RgbaImage={width:31,height:23,data,format:"png",space:"srgb",channels:4,depth:"uchar",density:72,hasAlpha:alpha};
+  const spec={width:13,height:17,fit,position,kernel:"lanczos3" as const,background:{r:17,g:39,b:79,a:128},withoutEnlargement:false,withoutReduction:false};
+  const expected=resizeImage(image,spec);
+  const memory=new Uint8Array(1_000_000);memory.set(data,8);let end=data.length+8;
+  const storage={allocate(length:number){const result=end;end+=length;return result;},read:vi.fn(async(position:number,length:number)=>memory.subarray(position,position+length)),write:vi.fn(async(position:number,bytes:Uint8Array)=>{memory.set(bytes,position);})};
+  const {data:ignored,...metadata}=image;
+  const actual=await resizeStoredImage({...metadata,position:8},storage,spec,new AbortController().signal);
+  const {data:ignoredExpected,...expectedMetadata}=expected;
+  expect(actual).toEqual({...expectedMetadata,position:actual.position});
+  expect(Buffer.compare(memory.subarray(actual.position,actual.position+actual.width*actual.height*4),expected.data)).toBe(0);
+  expect(storage.read.mock.calls.every(([,length])=>length<=4096)).toBe(true);
+  expect(storage.write.mock.calls.every(([,bytes])=>bytes.length<=4096)).toBe(true);
+});

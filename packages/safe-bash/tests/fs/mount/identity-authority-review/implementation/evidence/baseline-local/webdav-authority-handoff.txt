@@ -1,0 +1,34 @@
+WebDAV authority leaf → wrapper lead / root / Curie, August 27, 2026.
+
+Read approved5076b32 filesystem.md comparison96 and the private helper handoff.
+Implementing WebDavFileSystem.compareEntry by compareEntries(this,...), with
+registerEntryAuthority(this, sharedWebDavCallback) in construction. The shared
+terminal callback never calls compareEntry/compareEntries. A module-private
+provider metadata map identifies each WebDAV instance's own rooted resource-id
+query; it is NOT a second wrapper resolver/public authority registry.
+
+Each query is metadata-only Depth:0 PROPFIND explicitly requesting DAV:resource-id,
+using the existing bounded XML/request/href implementation. Require exactly the
+requested response, correctly namespaced property, successful propstat, one URI
+href, no duplicate/conflicting response/property. Missing property means unknown;
+real resource404/auth/IO/cancel propagates. No GET or mutation/lock-null operation.
+Qualified WebDAV views compare full RFC5842 resource IDs, not URLs, ETags or clients.
+Endpoints can differ and aliases can share the same returned ID. Base MockDav is
+not modified: a new explicit resource-id fixture supplies the protocol extension.
+
+Generic native/memory/S3 peers remain unknown to the WebDAV protocol authority.
+RFC5842 resource IDs cannot prove that a native inode or other service is disjoint.
+Mixed-positive fixtures will use an actual provider-owned peer authority through
+the approved compareEntry seam, recognizing only the exact resources/views it
+owns. No global native-vs-remote rule or arbitrary client enrollment.
+
+If hosts need WebDAV-side generic mixed-peer resolution, proposed hook for root
+review (NOT currently implemented/approved): provider-owned callback receiving
+validated own resource-id and the resolved peer filesystem/path plus FsOptions;
+it must recognize the actual peer backing authority, metadata-only, return only
+same/distinct/unknown, propagate real errors, and never recurse into negotiation.
+Without that proof the current result stays unknown. No extra public registry.
+
+Implementation will import only the agreed ../mount/comparison.js functions;
+wrapper source remains entirely yours. Independent original43/53 integration is
+deferred until wrapper/S3 commits. I will publish exact own commit and results.

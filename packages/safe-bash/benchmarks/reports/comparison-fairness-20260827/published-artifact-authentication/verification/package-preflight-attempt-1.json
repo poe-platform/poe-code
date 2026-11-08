@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "kind": "OFFLINE_PUBLISHED_PACKAGE_IDENTITY_ONLY",
+  "at": "2026-08-27T06:02:37.109Z",
+  "productExecutions": 0,
+  "networkRequests": 0,
+  "extractionPerformed": false,
+  "finalAcceptance": false,
+  "blockers": [
+    {
+      "message": "ENOENT: no such file or directory, lstat '/Users/kjopek/Workspace/safe-bash/benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/verification/package-preflight-input.json'",
+      "stack": "Error: ENOENT: no such file or directory, lstat '/Users/kjopek/Workspace/safe-bash/benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/verification/package-preflight-input.json'\n    at async lstat (node:internal/fs/promises:1028:18)\n    at async regular (file:///Users/kjopek/Workspace/safe-bash/benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/verification/verify-package.mjs:14:20)\n    at async file:///Users/kjopek/Workspace/safe-bash/benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/verification/verify-package.mjs:73:28"
+    }
+  ],
+  "status": "BLOCKED"
+}

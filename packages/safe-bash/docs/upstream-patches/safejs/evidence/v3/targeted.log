@@ -1,0 +1,15 @@
+
+ RUN  v3.2.6 /private/tmp/safe-bash-safejs-isolated-wt42MU/patched
+
+ ✓ packages/safejs/src/runner/run-harness.test.ts (31 tests) 85ms
+ ✓ packages/safejs/src/run.test.ts (66 tests) 185ms
+ ✓ packages/safejs/src/error/shape-audit.test.ts (12 tests) 18ms
+
+ Test Files  3 passed (3)
+      Tests  109 passed (109)
+   Start at  17:39:58
+   Duration  811ms (transform 551ms, setup 76ms, collect 776ms, tests 288ms, environment 0ms, prepare 107ms)
+
+JSON report written to /tmp/safe-bash-safejs-isolated-wt42MU/v3-targeted.json
+
+EXIT=0

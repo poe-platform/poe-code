@@ -1,0 +1,41 @@
+{
+  "candidate": "f8819e9d6b6d535b0626e0aa004bb10a7bc36785",
+  "started": "2026-08-27T16:06:14.427Z",
+  "ended": "2026-08-27T16:06:31.310Z",
+  "cohorts": [
+    {
+      "candidate": "f8819e9d6b6d535b0626e0aa004bb10a7bc36785",
+      "fixtureCommit": "0ec75ef320ecaea9fc66e1ba952f3961c917685c",
+      "name": "original32",
+      "count": 32,
+      "passes": 24,
+      "failures": [
+        "shell-eof-sync",
+        "shell-eof-reject",
+        "shell-eof-zero",
+        "shell-deferred-eof-return",
+        "shell-primary-read-zero",
+        "shell-primary-read-error",
+        "shell-primary-sink-error",
+        "shell-sequential-nested-binary"
+      ]
+    },
+    {
+      "candidate": "f8819e9d6b6d535b0626e0aa004bb10a7bc36785",
+      "fixtureCommit": "92f7626200d1509cf0efe17e4ee6c3d558f3a277",
+      "name": "provisional35",
+      "count": 35,
+      "passes": 33,
+      "failures": [
+        "shell-primary-read-zero",
+        "shell-primary-read-error"
+      ]
+    }
+  ],
+  "controlsDetected": 4,
+  "childrenClosed": true,
+  "watchdogExpiries": 0,
+  "ownedActiveChildren": 0,
+  "scratchRetained": "/private/tmp/shared-stdin-independent-candidate-work-1dpIJX",
+  "state": "FINAL_CANDIDATE_UNCHANGED_FIXTURE_REPLAY_NOT_AUTOMATIC_ACCEPTANCE"
+}

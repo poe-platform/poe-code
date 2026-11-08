@@ -1,0 +1,17 @@
+ROOT RELEASE — 2026-08-27
+Author worker82439 and native provider86284 have CLOSED normally; not suspended.
+Author commit4af1b107d4b9449a2c4e7fed467d187448392fd5 is now frozen.
+Owned seven-file source manifest SHA25657c6e29cc6fae6dce5946dddb211b0cc1bf94ef20badb4286546aeafe1e1d553.
+Read author-result.txt/author-validation.json for individual hashes; independently verify current bytes before execution.
+Author API createStreamInspectionCommands/streamInspectionCommands; exactly tac,expand,fold,strings; source opt-in only. Current default aggregate56 unchanged, no public/default integration authorized.
+
+Authorize TWO DISTINCT comparisons, never replacing historical expectations:
+1. Literal original85 unchanged, including original strings-dash-stdin-extension stdout535444494e0a46494c450a. Retain observed historical mismatch and do not label it a GNU product defect.
+2. Separate native-backed85: original65 GNU9.7 plus all20 newly captured GNUstrings2.44 outcomes. Exactly ONE non-null original expectation delta, same dash argv/input/files: native stdout46494c450a. No input, oracle executable, testcase selection, or original expected artifact changes. Five originally null stderr fields stay explicitly outside selected-semantic parity; native actual diagnostics preserved for separate strict reporting.
+Native supplement report SHA2568082fe55e6f426d6ea76107abe27321aadd30046ad429c734c9123bc3c25e3ae; all20 raw results and SHA256.json must remain durable in owned evidence. GNUstrings runtime SHA25690b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f; GNU on Darwin, not Linux.
+Original cases SHA256956152bcc27f97af0111073f582e9ca0e74199c309ec406b71ca0c022190da75, native-controls6ea061845c931b1c69e5a9e1a434836ad6af9af37a3688cacad905ffc3fb2e26, intentdcda66b0affa72b2311291ab810b2ad8f0350a8683e92f3b95a9e0c8336683b5 remain immutable. Tentative expand negative annotations do not override captured native successes.
+
+Run original and revised separately plus already frozen contract/pipeline/budget/ownership/backpressure/cancel/late rejection groups with separate denominators. Preserve first failures. Freeze full actual snapshot/source/config/dependency/loader paths and audit symlink targets/TSX binding; no current rootdist leakage or package build emission. Do not add corpus to chase a desired total.
+Reviewer source edits forbidden; report precise genuine defects, captured native/reference result, source hashes and minimal reproducer to root. A distinct source-fix leaf may follow; rerun unchanged holdouts only after its source freeze/closure. Do not edit author tests/root/registry/exports/FS/grep/Arch/tabletext or unowned files.
+Publish reproducible stress evidence atomically under owned tests/commands/stream-inspection-stress only; bounded publisher timeout. Source/expectation/harness changes separate and honestly identified. Native calls isolated reference fixtures only. No whole-package or superiority claim; no new dependency.
+Close owned processes normally and report exact commit/tests/byte and native semantic-vs-strict counts, source hashes, cleanup, remaining limitations and git status. Fresh reviewer identity distinct from prior closed preparator and closed author must be explicit.

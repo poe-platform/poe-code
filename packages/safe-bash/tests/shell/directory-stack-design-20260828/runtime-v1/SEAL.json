@@ -1,0 +1,29 @@
+{
+  "role": "author candidate/evidence only; independent acceptance pending",
+  "sourceCommit": "3e4cd743f1d4d2302b6b58a337740b3fde68462a",
+  "base": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+  "provider": "ca1d33424b94a21ae0f40a36412fd8191611e2df",
+  "acceptedLet": "c26892c3a1a419311c9cf46a6c2976e696e00624",
+  "independentFreeze": [
+    "302351279c8ca6122c618e72768782c8ad118878",
+    "8a930834c606f6a6688abb9eb0edeb3ba76924cb"
+  ],
+  "ratification": "232c2f357a1049cbf096dbef3051445c8f7c476b",
+  "sources": {
+    "src/shell/runtime.ts": "12b2ebdc006ba36159eb81149498cba65ba65d4efc014ce076ae13dc1c4ba419",
+    "src/shell/shell.ts": "59e5f9dfac10ada26bc4d836ea78aabd998c8f269e467dd17ffe316ffc047018"
+  },
+  "packageSha256": "15aa8d8dd6e78a9b7d12156ea2adaf93bd5f0037f13443e8928268c9d5215a18",
+  "artifacts": {
+    "README.md": "7b87f054f19c5df12cff4a21a559b7203f3448d7a6ae9a8a3714e00b24ea9471",
+    "HANDOFF.md": "8b44dd3f1f1f2031c01c3b6e602e53afb9921887ec81c7f59bf566f3bdcb9a8f",
+    "stack.test.ts": "084499be5ad221bad7ba9842c5f4d12761b2526c7991f8bb994f30838f73326e",
+    "validate.mjs": "3e4c798c7ad39315964c64b8b390fa1ae08022b1ec727401089fea4a529a6160",
+    "loader.mjs": "47db42180680ed90de9d988a9e37cfd4f9d6bf893ebb5b4ab45154efb3877cb3",
+    "verify-evidence.mjs": "46b2ed3db4b9f9e526ca10a89352eb5241ec8c39ddab88c5a97d529e60ece1c2",
+    "candidate-01.json.gz.base64": "3835a7af9fae8ad23ab0669714c3658321727b445f9a6a4cc7e8022779081de3",
+    "candidate-02.json.gz.base64": "a4f4cd3c2901a0ed4a15f6df7e6fba079a6f9ae8f846524de75bbdef5d393304",
+    "candidate-03.json.gz.base64": "1cd587af5e12969e136b58f4c93270711ee0f352cf3212576af383ab775d87c1",
+    "candidate-04.json.gz.base64": "9c2d70352a38afdd02cdbc63c85f3b20fba0698f9a151fe83d78a13b09f2243b"
+  }
+}

@@ -1,0 +1,1884 @@
+{
+  "schemaVersion": 1,
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "executableSha256": "3d6400b63b150164e89a690d9813af8b0eb420af9f336ef1f6c5102c6da60eae",
+  "unicodeVersion": "16.0.0",
+  "sourceArchiveSha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+  "scope": "stdlib re compile/search observations; not command stderr or full-suite qualification",
+  "cases": [
+    {
+      "category": "bounded-membership",
+      "pattern": "a",
+      "texts": [
+        "",
+        "a",
+        "b",
+        "abc",
+        "a\n",
+        "a\nb",
+        "cde",
+        "aab",
+        "١",
+        "\u001c",
+        "_",
+        "😀b",
+        "ab😀",
+        "😀",
+        ""
+      ],
+      "disposition": "supported",
+      "reference": {
+        "matches": [
+          false,
+          true,
+          false,
+          true,
+          true,
+          true,
+          false,
+          true,
+          false,
+          false,
+          false,
+          false,
+          true,
+          false,
+          false
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "bounded-membership",
+      "pattern": "(?:ab|cd)e",
+      "texts": [
+        "",
+        "a",
+        "b",
+        "abc",
+        "a\n",
+        "a\nb",
+        "cde",
+        "aab",
+        "١",
+        "\u001c",
+        "_",
+        "😀b",
+        "ab😀",
+        "😀",
+        ""
+      ],
+      "disposition": "supported",
+      "reference": {
+        "matches": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "bounded-membership",
+      "pattern": "^a$",
+      "texts": [
+        "",
+        "a",
+        "b",
+        "abc",
+        "a\n",
+        "a\nb",
+        "cde",
+        "aab",
+        "١",
+        "\u001c",
+        "_",
+        "😀b",
+        "ab😀",
+        "😀",
+        ""
+      ],
+      "disposition": "supported",
+      "reference": {
+        "matches": [
+          false,
+          true,
+          false,
+          false,
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "bounded-membership",
+      "pattern": "a$",
+      "texts": [
+        "",
+        "a",
+        "b",
+        "abc",
+        "a\n",
+        "a\nb",
+        "cde",
+        "aab",
+        "١",
+        "\u001c",
+        "_",
+        "😀b",
+        "ab😀",
+        "😀",
+        ""
+      ],
+      "disposition": "supported",
+      "reference": {
+        "matches": [
+          false,
+          true,
+          false,
+          false,
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "bounded-membership",
+      "pattern": "a\\Z",
+      "texts": [
+        "",
+        "a",
+        "b",
+        "abc",
+        "a\n",
+        "a\nb",
+        "cde",
+        "aab",
+        "١",
+        "\u001c",
+        "_",
+        "😀b",
+        "ab😀",
+        "😀",
+        ""
+      ],
+      "disposition": "supported",
+      "reference": {
+        "matches": [
+          false,
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "bounded-membership",
+      "pattern": "a\\z",
+      "texts": [
+        "",
+        "a",
+        "b",
+        "abc",
+        "a\n",
+        "a\nb",
+        "cde",
+        "aab",
+        "١",
+        "\u001c",
+        "_",
+        "😀b",
+        "ab😀",
+        "😀",
+        ""
+      ],
+      "disposition": "supported",
+      "reference": {
+        "matches": [
+          false,
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "bounded-membership",
+      "pattern": "\\Aa",
+      "texts": [
+        "",
+        "a",
+        "b",
+        "abc",
+        "a\n",
+        "a\nb",
+        "cde",
+        "aab",
+        "١",
+        "\u001c",
+        "_",
+        "😀b",
+        "ab😀",
+        "😀",
+        ""
+      ],
+      "disposition": "supported",
+      "reference": {
+        "matches": [
+          false,
+          true,
+          false,
+          true,
+          true,
+          true,
+          false,
+          true,
+          false,
+          false,
+          false,
+          false,
+          true,
+          false,
+          false
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "bounded-membership",
+      "pattern": "\\b",
+      "texts": [
+        "",
+        "a",
+        "b",
+        "_",
+        "!",
+        "ab"
+      ],
+      "disposition": "supported",
+      "reference": {
+        "matches": [
+          false,
+          true,
+          true,
+          true,
+          false,
+          true
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "bounded-membership",
+      "pattern": "\\B",
+      "texts": [
+        "",
+        "a",
+        "b",
+        "_",
+        "!",
+        "ab"
+      ],
+      "disposition": "supported",
+      "reference": {
+        "matches": [
+          true,
+          false,
+          false,
+          false,
+          true,
+          true
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "bounded-membership",
+      "pattern": "\\d+",
+      "texts": [
+        "",
+        "a",
+        "b",
+        "abc",
+        "a\n",
+        "a\nb",
+        "cde",
+        "aab",
+        "١",
+        "\u001c",
+        "_",
+        "😀b",
+        "ab😀",
+        "😀",
+        ""
+      ],
+      "disposition": "supported",
+      "reference": {
+        "matches": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "bounded-membership",
+      "pattern": "\\D+",
+      "texts": [
+        "",
+        "a",
+        "b",
+        "abc",
+        "a\n",
+        "a\nb",
+        "cde",
+        "aab",
+        "١",
+        "\u001c",
+        "_",
+        "😀b",
+        "ab😀",
+        "😀",
+        ""
+      ],
+      "disposition": "supported",
+      "reference": {
+        "matches": [
+          false,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          false,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "bounded-membership",
+      "pattern": "\\s+",
+      "texts": [
+        "",
+        "a",
+        "b",
+        "abc",
+        "a\n",
+        "a\nb",
+        "cde",
+        "aab",
+        "١",
+        "\u001c",
+        "_",
+        "😀b",
+        "ab😀",
+        "😀",
+        ""
+      ],
+      "disposition": "supported",
+      "reference": {
+        "matches": [
+          false,
+          false,
+          false,
+          false,
+          true,
+          true,
+          false,
+          false,
+          false,
+          true,
+          false,
+          false,
+          false,
+          false,
+          false
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "bounded-membership",
+      "pattern": "\\S+",
+      "texts": [
+        "",
+        "a",
+        "b",
+        "abc",
+        "a\n",
+        "a\nb",
+        "cde",
+        "aab",
+        "١",
+        "\u001c",
+        "_",
+        "😀b",
+        "ab😀",
+        "😀",
+        ""
+      ],
+      "disposition": "supported",
+      "reference": {
+        "matches": [
+          false,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          false,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "bounded-membership",
+      "pattern": "(?a)\\w+",
+      "texts": [
+        "",
+        "a",
+        "b",
+        "abc",
+        "a\n",
+        "a\nb",
+        "cde",
+        "aab",
+        "١",
+        "\u001c",
+        "_",
+        "😀b",
+        "ab😀",
+        "😀",
+        ""
+      ],
+      "disposition": "supported",
+      "reference": {
+        "matches": [
+          false,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          false,
+          false,
+          true,
+          true,
+          true,
+          false,
+          false
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "bounded-membership",
+      "pattern": "(?a)\\W+",
+      "texts": [
+        "",
+        "a",
+        "b",
+        "abc",
+        "a\n",
+        "a\nb",
+        "cde",
+        "aab",
+        "١",
+        "\u001c",
+        "_",
+        "😀b",
+        "ab😀",
+        "😀",
+        ""
+      ],
+      "disposition": "supported",
+      "reference": {
+        "matches": [
+          false,
+          false,
+          false,
+          false,
+          true,
+          true,
+          false,
+          false,
+          true,
+          true,
+          false,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "bounded-membership",
+      "pattern": "(?i)abc",
+      "texts": [
+        "",
+        "a",
+        "b",
+        "_",
+        "!",
+        "ab"
+      ],
+      "disposition": "supported",
+      "reference": {
+        "matches": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "bounded-membership",
+      "pattern": "(?m)^a$",
+      "texts": [
+        "",
+        "a",
+        "b",
+        "abc",
+        "a\n",
+        "a\nb",
+        "cde",
+        "aab",
+        "١",
+        "\u001c",
+        "_",
+        "😀b",
+        "ab😀",
+        "😀",
+        ""
+      ],
+      "disposition": "supported",
+      "reference": {
+        "matches": [
+          false,
+          true,
+          false,
+          false,
+          true,
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "bounded-membership",
+      "pattern": "(?s)^a.b$",
+      "texts": [
+        "",
+        "a",
+        "b",
+        "abc",
+        "a\n",
+        "a\nb",
+        "cde",
+        "aab",
+        "١",
+        "\u001c",
+        "_",
+        "😀b",
+        "ab😀",
+        "😀",
+        ""
+      ],
+      "disposition": "supported",
+      "reference": {
+        "matches": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          true,
+          false,
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "bounded-membership",
+      "pattern": "a{0}",
+      "texts": [
+        "",
+        "a",
+        "b",
+        "abc",
+        "a\n",
+        "a\nb",
+        "cde",
+        "aab",
+        "١",
+        "\u001c",
+        "_",
+        "😀b",
+        "ab😀",
+        "😀",
+        ""
+      ],
+      "disposition": "supported",
+      "reference": {
+        "matches": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "bounded-membership",
+      "pattern": "a{1,2}?",
+      "texts": [
+        "",
+        "a",
+        "b",
+        "abc",
+        "a\n",
+        "a\nb",
+        "cde",
+        "aab",
+        "١",
+        "\u001c",
+        "_",
+        "😀b",
+        "ab😀",
+        "😀",
+        ""
+      ],
+      "disposition": "supported",
+      "reference": {
+        "matches": [
+          false,
+          true,
+          false,
+          true,
+          true,
+          true,
+          false,
+          true,
+          false,
+          false,
+          false,
+          false,
+          true,
+          false,
+          false
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "bounded-membership",
+      "pattern": "(?:)*",
+      "texts": [
+        "",
+        "a",
+        "b",
+        "abc",
+        "a\n",
+        "a\nb",
+        "cde",
+        "aab",
+        "١",
+        "\u001c",
+        "_",
+        "😀b",
+        "ab😀",
+        "😀",
+        ""
+      ],
+      "disposition": "supported",
+      "reference": {
+        "matches": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "bounded-membership",
+      "pattern": "(?:a?){2}b",
+      "texts": [
+        "",
+        "a",
+        "b",
+        "abc",
+        "a\n",
+        "a\nb",
+        "cde",
+        "aab",
+        "١",
+        "\u001c",
+        "_",
+        "😀b",
+        "ab😀",
+        "😀",
+        ""
+      ],
+      "disposition": "supported",
+      "reference": {
+        "matches": [
+          false,
+          false,
+          true,
+          true,
+          false,
+          true,
+          false,
+          true,
+          false,
+          false,
+          false,
+          true,
+          true,
+          false,
+          false
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "bounded-membership",
+      "pattern": "(?=a){2}a",
+      "texts": [
+        "",
+        "a",
+        "b",
+        "abc",
+        "a\n",
+        "a\nb",
+        "cde",
+        "aab",
+        "١",
+        "\u001c",
+        "_",
+        "😀b",
+        "ab😀",
+        "😀",
+        ""
+      ],
+      "disposition": "supported",
+      "reference": {
+        "matches": [
+          false,
+          true,
+          false,
+          true,
+          true,
+          true,
+          false,
+          true,
+          false,
+          false,
+          false,
+          false,
+          true,
+          false,
+          false
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "bounded-membership",
+      "pattern": "(?!a){2}b",
+      "texts": [
+        "",
+        "a",
+        "b",
+        "abc",
+        "a\n",
+        "a\nb",
+        "cde",
+        "aab",
+        "١",
+        "\u001c",
+        "_",
+        "😀b",
+        "ab😀",
+        "😀",
+        ""
+      ],
+      "disposition": "supported",
+      "reference": {
+        "matches": [
+          false,
+          false,
+          true,
+          true,
+          false,
+          true,
+          false,
+          true,
+          false,
+          false,
+          false,
+          true,
+          true,
+          false,
+          false
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "bounded-membership",
+      "pattern": "(?<=ab|cd)e",
+      "texts": [
+        "",
+        "a",
+        "b",
+        "abc",
+        "a\n",
+        "a\nb",
+        "cde",
+        "aab",
+        "١",
+        "\u001c",
+        "_",
+        "😀b",
+        "ab😀",
+        "😀",
+        ""
+      ],
+      "disposition": "supported",
+      "reference": {
+        "matches": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "bounded-membership",
+      "pattern": "(?<!😀)b",
+      "texts": [
+        "",
+        "a",
+        "b",
+        "abc",
+        "a\n",
+        "a\nb",
+        "cde",
+        "aab",
+        "١",
+        "\u001c",
+        "_",
+        "😀b",
+        "ab😀",
+        "😀",
+        ""
+      ],
+      "disposition": "supported",
+      "reference": {
+        "matches": [
+          false,
+          false,
+          true,
+          true,
+          false,
+          true,
+          false,
+          true,
+          false,
+          false,
+          false,
+          false,
+          true,
+          false,
+          false
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "bounded-membership",
+      "pattern": "(?<=a{2})b",
+      "texts": [
+        "",
+        "a",
+        "b",
+        "abc",
+        "a\n",
+        "a\nb",
+        "cde",
+        "aab",
+        "١",
+        "\u001c",
+        "_",
+        "😀b",
+        "ab😀",
+        "😀",
+        ""
+      ],
+      "disposition": "supported",
+      "reference": {
+        "matches": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "bounded-membership",
+      "pattern": "\\x61\\u0062\\U0001f600",
+      "texts": [
+        "",
+        "a",
+        "b",
+        "abc",
+        "a\n",
+        "a\nb",
+        "cde",
+        "aab",
+        "١",
+        "\u001c",
+        "_",
+        "😀b",
+        "ab😀",
+        "😀",
+        ""
+      ],
+      "disposition": "supported",
+      "reference": {
+        "matches": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          true,
+          false,
+          false
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "bounded-membership",
+      "pattern": "[-😀]",
+      "texts": [
+        "",
+        "a",
+        "b",
+        "abc",
+        "a\n",
+        "a\nb",
+        "cde",
+        "aab",
+        "١",
+        "\u001c",
+        "_",
+        "😀b",
+        "ab😀",
+        "😀",
+        ""
+      ],
+      "disposition": "supported",
+      "reference": {
+        "matches": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "unicode-word",
+      "pattern": "\\w",
+      "texts": [
+        "é",
+        "α",
+        "١",
+        "²",
+        "́",
+        "😀"
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "matches": [
+          true,
+          true,
+          true,
+          true,
+          false,
+          false
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "unicode-boundary",
+      "pattern": "\\bé\\b",
+      "texts": [
+        "é",
+        "éx"
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "matches": [
+          true,
+          false
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "unicode-ignorecase",
+      "pattern": "(?i)[a-z]",
+      "texts": [
+        "İ",
+        "ı",
+        "ſ",
+        "K"
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "matches": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "named-group",
+      "pattern": "(?P<word>a)",
+      "texts": [
+        "a"
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "matches": [
+          true
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "named-backreference",
+      "pattern": "(?P<x>a)(?P=x)",
+      "texts": [
+        "aa",
+        "ab"
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "matches": [
+          true,
+          false
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "numbered-backreference",
+      "pattern": "(a)\\1",
+      "texts": [
+        "aa",
+        "ab"
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "matches": [
+          true,
+          false
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "lookbehind-backreference",
+      "pattern": "(ab)(?<=\\1)c",
+      "texts": [
+        "abc"
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "matches": [
+          true
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "lookahead-capture",
+      "pattern": "(?=(a))\\1",
+      "texts": [
+        "a"
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "matches": [
+          true
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "conditionals",
+      "pattern": "(a)?(?(1)b|c)",
+      "texts": [
+        "ab",
+        "c",
+        "ac"
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "matches": [
+          true,
+          true,
+          true
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "scoped-flags",
+      "pattern": "(?i:a)b",
+      "texts": [
+        "Ab",
+        "AB"
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "matches": [
+          true,
+          false
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "scoped-remove-flags",
+      "pattern": "(?i)a(?-i:b)",
+      "texts": [
+        "Ab",
+        "AB"
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "matches": [
+          true,
+          false
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "consecutive-global-flags",
+      "pattern": "(?i)(?i)a",
+      "texts": [
+        "A"
+      ],
+      "disposition": "supported",
+      "reference": {
+        "matches": [
+          true
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "verbose",
+      "pattern": "(?x)a # comment\n b",
+      "texts": [
+        "ab",
+        "a b"
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "matches": [
+          true,
+          false
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "comments",
+      "pattern": "a(?#hello)b",
+      "texts": [
+        "ab"
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "matches": [
+          true
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "atomic",
+      "pattern": "(?>a|ab)c",
+      "texts": [
+        "abc",
+        "ac"
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "matches": [
+          false,
+          true
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "possessive",
+      "pattern": "a*+a",
+      "texts": [
+        "aaa"
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "matches": [
+          false
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "octal",
+      "pattern": "\\141",
+      "texts": [
+        "a"
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "matches": [
+          true
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "class-octal",
+      "pattern": "[\\1]",
+      "texts": [
+        "\u0001"
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "matches": [
+          true
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "unicode-name",
+      "pattern": "\\N{LATIN SMALL LETTER A}",
+      "texts": [
+        "a"
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "matches": [
+          true
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "warning-nested-set",
+      "pattern": "[[]",
+      "texts": [
+        "["
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "matches": [
+          true
+        ]
+      },
+      "warnings": [
+        {
+          "category": "FutureWarning",
+          "message": "Possible nested set at position 1"
+        }
+      ]
+    },
+    {
+      "category": "warning-intersection",
+      "pattern": "[a&&b]",
+      "texts": [
+        "a",
+        "&"
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "matches": [
+          true,
+          true
+        ]
+      },
+      "warnings": [
+        {
+          "category": "FutureWarning",
+          "message": "Possible set intersection at position 2"
+        }
+      ]
+    },
+    {
+      "category": "warning-union",
+      "pattern": "[a||b]",
+      "texts": [
+        "|"
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "matches": [
+          true
+        ]
+      },
+      "warnings": [
+        {
+          "category": "FutureWarning",
+          "message": "Possible set union at position 2"
+        }
+      ]
+    },
+    {
+      "category": "warning-symmetric-difference",
+      "pattern": "[a~~b]",
+      "texts": [
+        "~"
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "matches": [
+          true
+        ]
+      },
+      "warnings": [
+        {
+          "category": "FutureWarning",
+          "message": "Possible set symmetric difference at position 2"
+        }
+      ]
+    },
+    {
+      "category": "range-escaped",
+      "pattern": "[\\x61-\\x7a]",
+      "texts": [
+        "a",
+        "z"
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "matches": [
+          true,
+          true
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "named-group-unicode",
+      "pattern": "(?P<é>a)",
+      "texts": [
+        "a"
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "matches": [
+          true
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "omitted-minimum",
+      "pattern": "a{,2}",
+      "texts": [
+        "",
+        "aa"
+      ],
+      "disposition": "supported",
+      "reference": {
+        "matches": [
+          true,
+          true
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "category": "invalid-pattern",
+      "pattern": "(",
+      "texts": [
+        ""
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "exception": "PatternError",
+        "message": "missing ), unterminated subpattern at position 0"
+      },
+      "warnings": []
+    },
+    {
+      "category": "invalid-pattern",
+      "pattern": ")",
+      "texts": [
+        ""
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "exception": "PatternError",
+        "message": "unbalanced parenthesis at position 0"
+      },
+      "warnings": []
+    },
+    {
+      "category": "invalid-pattern",
+      "pattern": "[",
+      "texts": [
+        ""
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "exception": "PatternError",
+        "message": "unterminated character set at position 0"
+      },
+      "warnings": []
+    },
+    {
+      "category": "invalid-pattern",
+      "pattern": "[z-a]",
+      "texts": [
+        ""
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "exception": "PatternError",
+        "message": "bad character range z-a at position 1"
+      },
+      "warnings": []
+    },
+    {
+      "category": "invalid-pattern",
+      "pattern": "[😀-]",
+      "texts": [
+        ""
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "exception": "PatternError",
+        "message": "bad character range 😀- at position 1"
+      },
+      "warnings": []
+    },
+    {
+      "category": "invalid-pattern",
+      "pattern": "\\q",
+      "texts": [
+        ""
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "exception": "PatternError",
+        "message": "bad escape \\q at position 0"
+      },
+      "warnings": []
+    },
+    {
+      "category": "invalid-pattern",
+      "pattern": "\\",
+      "texts": [
+        ""
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "exception": "PatternError",
+        "message": "bad escape (end of pattern) at position 0"
+      },
+      "warnings": []
+    },
+    {
+      "category": "invalid-pattern",
+      "pattern": "\\x0",
+      "texts": [
+        ""
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "exception": "PatternError",
+        "message": "incomplete escape \\x0 at position 0"
+      },
+      "warnings": []
+    },
+    {
+      "category": "invalid-pattern",
+      "pattern": "\\u000",
+      "texts": [
+        ""
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "exception": "PatternError",
+        "message": "incomplete escape \\u000 at position 0"
+      },
+      "warnings": []
+    },
+    {
+      "category": "invalid-pattern",
+      "pattern": "\\U00110000",
+      "texts": [
+        ""
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "exception": "PatternError",
+        "message": "bad escape \\U00110000 at position 0"
+      },
+      "warnings": []
+    },
+    {
+      "category": "invalid-pattern",
+      "pattern": "(?<=a*)b",
+      "texts": [
+        ""
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "exception": "PatternError",
+        "message": "look-behind requires fixed-width pattern"
+      },
+      "warnings": []
+    },
+    {
+      "category": "invalid-pattern",
+      "pattern": "(?<=a|bc)d",
+      "texts": [
+        ""
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "exception": "PatternError",
+        "message": "look-behind requires fixed-width pattern"
+      },
+      "warnings": []
+    },
+    {
+      "category": "invalid-pattern",
+      "pattern": "(?au)a",
+      "texts": [
+        ""
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "exception": "PatternError",
+        "message": "bad inline flags: flags 'a', 'u' and 'L' are incompatible at position 4"
+      },
+      "warnings": []
+    },
+    {
+      "category": "invalid-pattern",
+      "pattern": "(?L)a",
+      "texts": [
+        ""
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "exception": "PatternError",
+        "message": "bad inline flags: cannot use 'L' flag with a str pattern at position 3"
+      },
+      "warnings": []
+    },
+    {
+      "category": "invalid-pattern",
+      "pattern": "a**",
+      "texts": [
+        ""
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "exception": "PatternError",
+        "message": "multiple repeat at position 2"
+      },
+      "warnings": []
+    },
+    {
+      "category": "invalid-pattern",
+      "pattern": "*a",
+      "texts": [
+        ""
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "exception": "PatternError",
+        "message": "nothing to repeat at position 0"
+      },
+      "warnings": []
+    },
+    {
+      "category": "invalid-pattern",
+      "pattern": "a{2,1}",
+      "texts": [
+        ""
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "exception": "PatternError",
+        "message": "min repeat greater than max repeat at position 2"
+      },
+      "warnings": []
+    },
+    {
+      "category": "invalid-pattern",
+      "pattern": "a{4294967295}",
+      "texts": [
+        ""
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "exception": "OverflowError",
+        "message": "the repetition number is too large"
+      },
+      "warnings": []
+    },
+    {
+      "category": "invalid-pattern",
+      "pattern": "(a)\\2",
+      "texts": [
+        ""
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "exception": "PatternError",
+        "message": "invalid group reference 2 at position 4"
+      },
+      "warnings": []
+    },
+    {
+      "category": "invalid-pattern",
+      "pattern": "(?P<x>a)(?P<x>b)",
+      "texts": [
+        ""
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "exception": "PatternError",
+        "message": "redefinition of group name 'x' as group 2; was group 1 at position 12"
+      },
+      "warnings": []
+    },
+    {
+      "category": "invalid-pattern",
+      "pattern": "(?(2)a|b)",
+      "texts": [
+        ""
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "exception": "PatternError",
+        "message": "invalid group reference 2 at position 3"
+      },
+      "warnings": []
+    },
+    {
+      "category": "invalid-pattern",
+      "pattern": "(?P<1>a)",
+      "texts": [
+        ""
+      ],
+      "disposition": "blocker",
+      "reference": {
+        "exception": "PatternError",
+        "message": "bad character in group name '1' at position 4"
+      },
+      "warnings": []
+    }
+  ]
+}

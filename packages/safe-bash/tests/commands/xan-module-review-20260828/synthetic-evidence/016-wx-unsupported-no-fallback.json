@@ -1,0 +1,14 @@
+{
+  "id": "wx-unsupported-no-fallback",
+  "families": [
+    "F10"
+  ],
+  "observation": {
+    "thrown": {
+      "code": "ENOTSUP",
+      "name": "Error",
+      "message": "ENOTSUP"
+    }
+  },
+  "classification": "SYNTHETIC_CONTROL_OBSERVATION_BEFORE_ASSERTION"
+}

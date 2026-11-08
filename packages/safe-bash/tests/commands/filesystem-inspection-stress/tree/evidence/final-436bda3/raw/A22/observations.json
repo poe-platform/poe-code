@@ -1,0 +1,48 @@
+{
+  "candidate": "/tmp/safe-bash-tree-final-436bda3-k1mKIO/candidate",
+  "api": "standalone src/commands/tree/index.ts",
+  "invocations": [
+    {
+      "argv": [
+        "finite"
+      ],
+      "limits": {},
+      "cwd": "/",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TERM": "dumb",
+        "TZ": "UTC"
+      },
+      "stdout": [
+        {
+          "attemptedBase64": "ZmluaXRlCg==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "YC0tIGNoaWxkCg==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "ICAgIGAtLSBncmFuZGNoaWxkCg==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "ICAgICAgICBgLS0gbGVhZi1tYXJrZXIudHh0Cg==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "CjMgZGlyZWN0b3JpZXMsIDEgZmlsZQo=",
+          "state": "fulfilled"
+        }
+      ],
+      "stderr": [],
+      "startedAt": "2026-08-27T09:27:30.777Z",
+      "result": {
+        "exitCode": 0
+      },
+      "finishedAt": "2026-08-27T09:27:30.778Z"
+    }
+  ],
+  "shells": []
+}

@@ -1,0 +1,25 @@
+{
+  "name": "serial-jq",
+  "kind": "jq",
+  "durationMs": 7665.259417,
+  "checks": [
+    {
+      "name": "exact direct child and streams closed successfully",
+      "pass": true
+    },
+    {
+      "name": "canonical TAP retains 15 passes, zero failures/skips",
+      "pass": true
+    },
+    {
+      "name": "330 independently frozen actual triple digests, unique routes/transports",
+      "pass": true
+    },
+    {
+      "name": "module readiness precedes execution and actual read/output evidence",
+      "pass": true
+    }
+  ],
+  "traceEvents": 1981,
+  "pass": true
+}

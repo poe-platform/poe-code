@@ -1,0 +1,21 @@
+{
+  "source": {
+    "path": "/private/tmp/coherent-b1-r5-admin/STOP.json",
+    "bytes": 6370,
+    "sha256": "aedc944979b054cc77586a41959c6d00ca39636b75b31748c480ae29a96667ca",
+    "mode": 420,
+    "dev": 16777232,
+    "ino": 190027342,
+    "mtimeMs": 1788021749001.2017,
+    "origin": {
+      "finalSha256": "89f3c55c91dc664a94df815ef23d5ddbbe6fb7376a1ef5a8e490255c475dd72b",
+      "locator": "/private/tmp/coherent-b1-r5-admin/STOP.json"
+    },
+    "role": "original-admin-failureReceipt"
+  },
+  "dataPath": "data/c431c92c5bdbc5f6b5b17e58e4a33d1ae7b4c2eeb8b779e0ee4b51a797e6493c.raw",
+  "identityPath": "identities/c431c92c5bdbc5f6b5b17e58e4a33d1ae7b4c2eeb8b779e0ee4b51a797e6493c.json",
+  "copiedBytes": 6370,
+  "copiedMode": 420,
+  "copiedSha256": "aedc944979b054cc77586a41959c6d00ca39636b75b31748c480ae29a96667ca"
+}

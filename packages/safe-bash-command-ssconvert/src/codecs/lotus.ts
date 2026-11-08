@@ -1,0 +1,830 @@
+// Released Gnumeric 1.12.61 plugins/lotus-123; GPL-2.0-or-later.
+import { SsconvertError, type CapabilityContext } from "../contracts.js";
+import { formatA1, parseA1, type Cell, type CellValue, type Workbook, type AxisMetadata, type ImportedValue, type UnsupportedRecord } from "../workbook.js";
+import { lotusColors } from "./lotus-colors.js";
+import { LotusRldb } from "./lotus-rldb.js";
+import { Binary } from "./biff-binary.js";
+import { lmbcsGroups } from "./lotus-charset.js";
+import { readLotusWorks } from "./lotus-works.js";
+import { worksFunctions } from "./lotus-works-functions.js";
+import { lotusFunctions, lotusFunctionsByName } from "./lotus-functions.js";
+import { gnumericGrammar, internalOdfGrammar } from "../formulas/conventions.js";
+import { quoteFormulaString, serializeExpression } from "../formulas/serialization.js";
+import { parseExpression } from "../formulas/parser.js";
+import type { FormulaNode, ReferenceEndpoint } from "../formulas/ast.js";
+import { biffDbcsTables } from "../encoding/biff-dbcs-tables.js";
+import { singleByteTables } from "../encoding/tables.js";
+
+export function probeLotus(bytes: Uint8Array, context: CapabilityContext): boolean {
+  context.signal.throwIfAborted();
+  if (bytes.length < 6) return false;
+  const b = new Binary(bytes), length = b.u16(2), version = b.u16(4);
+  if (b.u16(0) === 0 && version === 0x1000)
+    return length === 26 && bytes.length >= 8 && b.u16(6) === 4;
+  return (b.u16(0) === 0 || b.u16(0) === 0xff) &&
+    ([0x404, 0x405, 0x406].includes(version) ? length === 2 : [0x1002, 0x1003, 0x1004, 0x1005].includes(version) && length >= 19);
+}
+const lmbcsDoubleByteCodepages: Readonly<Record<number, number>> = { 0x10: 932, 0x11: 949, 0x12: 950, 0x13: 936 };
+
+function decodeSheetName(bytes: Uint8Array): string {
+  const zero = bytes.indexOf(0);
+  return Array.from(zero < 0 ? bytes : bytes.subarray(0, zero), byte => {
+    const character = singleByteTables["windows-1252"]![byte]!;
+    return character === "\uffff" ? String.fromCharCode(byte) : character;
+  }).join("");
+}
+
+async function lmbcs(bytes: Uint8Array, group: number, context: CapabilityContext): Promise<string> {
+  let text = "";
+  const warn = async (message: string) => context.diagnostic?.({ code: "lotus", severity: "warning", message });
+  const mapped = (g: number, c: number) => lmbcsGroups[g]?.[c - ([3, 4, 5, 8, 11].includes(g) ? 128 : 0)] ?? 0;
+  for (let at = 0; at < bytes.length;) {
+    context.signal.throwIfAborted();
+    const c = bytes[at++]!;
+    if (!c) break;
+    if ([1, 2, 3, 4, 5, 6, 8, 11].includes(c)) {
+      if (at >= bytes.length) break;
+      const uc = mapped(c, bytes[at++]!); if (uc) text += String.fromCodePoint(uc);
+    } else if (c === 0x0f) {
+      if (at >= bytes.length) break;
+      const control = bytes[at++]!;
+      // ICU's control group offsets C0 values, but preserves C1 values.
+      if (control >= 0x20) text += String.fromCharCode(control < 0x80 ? control - 0x20 : control);
+    } else if (c === 0x14) {
+      if (at + 1 >= bytes.length) break;
+      const high = bytes[at++]!, low = bytes[at++]!;
+      // ICU GetUniFromLMBCSUni: F6/xx encodes xx/00 without a NUL byte.
+      text += String.fromCharCode(high === 0xf6 ? low * 256 : high * 256 + low);
+    } else if (lmbcsDoubleByteCodepages[c] !== undefined || c >= 128 && lmbcsDoubleByteCodepages[group] !== undefined) {
+      const explicit = lmbcsDoubleByteCodepages[c] !== undefined;
+      const table = biffDbcsTables[lmbcsDoubleByteCodepages[explicit ? c : group]!]!;
+      let character: string | undefined;
+      if (explicit) {
+        if (at + 1 >= bytes.length) break;
+        const lead = bytes[at++]!, trail = bytes[at++]!;
+        // ICU doubles the group prefix to introduce a single-byte character.
+        character = lead === c ? table.single[trail] : table.double[lead]?.[trail];
+      } else {
+        const trails = table.double[c];
+        if (trails) {
+          if (at >= bytes.length) break;
+          character = trails[bytes[at++]!];
+        } else character = table.single[c];
+      }
+      if (character !== undefined && character !== "\uffff") text += character;
+    } else if ([7, 12, 14].includes(c)) {
+      if (at >= bytes.length) break;
+      await warn(`Unhandled character 0x${(c * 256 + bytes[at++]!).toString(16).padStart(4, "0")}`);
+    } else if ([21, 22, 23].includes(c)) {
+      if (at + 1 >= bytes.length) break;
+      await warn(`Unhandled character 0x${(c * 65536 + bytes[at++]! * 256 + bytes[at++]!).toString(16).padStart(6, "0")}`);
+    } else if (c >= 24 && c <= 31 && c !== 0x19) at++;
+    else if (c < 128) text += String.fromCharCode(c);
+    else if (lmbcsGroups[group]) { const uc = mapped(group, c); if (uc) text += String.fromCodePoint(uc); }
+    else await warn(`Unhandled character set 0x${group.toString(16)}`);
+  }
+  return text;
+}
+function smallNumber(d: number): number {
+  const factor = [5000, 500, -20, -200, -2000, -20000, -16, -64][d >> 1 & 7]!;
+  return d & 1 ? factor > 0 ? factor * (d >> 4) : (d >> 4) / -factor : d >> 1;
+}
+function packedNumber(d: number): number { return (d >>> 6) * (d & 32 ? -1 : 1) * 10 ** ((d & 16 ? -1 : 1) * (d & 15)); }
+function treal(b: Binary, at: number): CellValue {
+  b.check(at, 10);
+  if (b.u16(at + 8) === 65535) {
+    const code = b.u8(at + 7);
+    if (!code) return { kind: "blank" };
+    if (code === 0xc0 || code === 0xd0) return { kind: "error", value: code === 0xc0 ? "#VALUE!" : "#N/A" };
+    if (code === 0xe0) return { kind: "string", value: "" };
+  }
+  const exponent = b.u16(at + 8);
+  let mantissa = BigInt(b.u32(at + 4)) * 0x100000000n + BigInt(b.u32(at));
+  let scale = (exponent & 32767) - 16383 - 63;
+  // Round once to binary64 precision or its minimum subnormal quantum. Scaling
+  // the unnormalized significand first can underflow even for normal results.
+  const shift = Math.max(0, mantissa.toString(2).length - 53, -1074 - scale);
+  if (shift > 64) mantissa = 0n;
+  else if (shift > 0) {
+    const bits = BigInt(shift), halfway = 1n << (bits - 1n);
+    const remainder = mantissa & ((halfway << 1n) - 1n);
+    mantissa >>= bits;
+    if (remainder > halfway || remainder === halfway && (mantissa & 1n) !== 0n) mantissa++;
+    scale += shift;
+  }
+  const value = mantissa === 0n ? 0 : Number(mantissa) * 2 ** scale;
+  return { kind: "number", value: (exponent & 32768 ? -1 : 1) * value };
+}
+async function lotusFormat(fmt: number, context: CapabilityContext): Promise<string> {
+  const kind = fmt >> 4 & 7, precision = fmt & 15, decimals = precision ? "." + "0".repeat(precision) : "";
+  if (kind === 0 || kind === 1 || kind === 3) return "0" + decimals + (kind === 1 ? "E+00" : kind === 3 ? "%" : "");
+  if (kind === 2) return `$#,##0${decimals}_);[Red]($#,##0${decimals})`;
+  if (kind === 4) return "#,##0" + decimals;
+  if (kind === 7) return ["General", "General", "d-mmm-yy", "d-mmm", "mmm yy", "General", ";;;", "h:mm:ss AM/PM", "h:mm", "m/d/yy", "d/m/yy"][precision] ?? "General";
+  await context.diagnostic?.({ code: "lotus", severity: "warning", message: kind === 6 ? "Country format used." : `Unknown format type ${kind} used.` });
+  return "";
+}
+
+type LotusNamedRange = { name: string; first: { row: number; column: number; sheet: number }; last: { row: number; column: number; sheet: number } };
+
+function lotusExternalVariable(name: string): string | undefined {
+  if (!name.startsWith("<<")) return;
+  const end = name.indexOf(">", 2);
+  if (end <= 2 || name[end + 1] !== ">") return;
+  let at = end + 2;
+  const endpoint = () => {
+    const colon = name.indexOf(":", at);
+    if (colon <= at) return;
+    const sheet = name.slice(at, colon); at = colon + 1;
+    const start = at;
+    while (name[at] !== undefined && name[at]! >= "A" && name[at]! <= "Z") at++;
+    const digits = at;
+    while (name[at] !== undefined && name[at]! >= "0" && name[at]! <= "9") at++;
+    if (digits === start || digits === at) return;
+    const row = Number(name.slice(digits, at));
+    if (!Number.isSafeInteger(row) || row < 1) return;
+    try {
+      // Use actual A1 column arithmetic, including AA and subsequent columns.
+      const point = parseA1(name.slice(start, digits) + row);
+      return quoteFormulaString(sheet, "'", gnumericGrammar) + "!" + formatA1(point.row, point.column);
+    } catch { return; }
+  };
+  const first = endpoint();
+  if (first === undefined) return;
+  let last: string | undefined;
+  if (at !== name.length) {
+    if (name.slice(at, at + 2) !== "..") return;
+    at += 2; last = endpoint();
+    if (last === undefined || at !== name.length) return;
+  }
+  // libwps parseVariable's fallback keeps relative axes for both op7 and op8.
+  return "[" + quoteFormulaString(name.slice(2, end), "'", gnumericGrammar) + "]" + first + (last === undefined ? "" : ":" + last);
+}
+
+async function lotusFormula(bytes: Uint8Array, format: "wk1" | "wk3" | "123", group: number, row: number, column: number,
+  sheetIndex: number, sheetName: (index: number) => string, context: CapabilityContext,
+  consumeOperation: () => void, functions: typeof lotusFunctions = lotusFunctions, names?: ReadonlyMap<string, LotusNamedRange>, legacyReferenceLayout?: "wk1" | "wk2" | "works3" | "symphony"): Promise<string> {
+  const b = new Binary(bytes), stack: string[] = [], modern = format !== "wk1";
+  const relativeReferences = new Map<string, Extract<FormulaNode, { kind: "reference" }>>();
+  // Fixed sheet spans can be projected into standard single-sheet areas.
+  // Keep relative sheet spans intact for the existing AST relocation path.
+  const indexRanges = new Map<string, { firstSheet: number; lastSheet: number; first: string; last: string }>();
+  let at = 0;
+  const pop = async () => {
+    if (stack.length) return stack.pop()!;
+    await context.diagnostic?.({ code: "lotus", severity: "warning", message: `${formatA1(row, column)}: stack underflow` }); return "#REF!";
+  };
+  const ref = (r: number, c: number, rr: boolean, cr: boolean) => {
+    const rows = modern || legacyReferenceLayout === undefined ? 65536 : legacyReferenceLayout === "wk1" ? 2048 : 16384;
+    if (r < 0 || r >= rows || c < 0 || c >= 256) return "#REF!";
+    const a = formatA1(r, c); let i = 0; while (a[i]! >= "A" && a[i]! <= "Z") i++;
+    return (cr ? "" : "$") + a.slice(0, i) + (rr ? "" : "$") + a.slice(i);
+  };
+  const oldRef = (p: number) => {
+    const c = b.u16(p), r = b.u16(p + 2), cr = !!(c & 32768), rr = !!(r & 32768);
+    if (legacyReferenceLayout === "works3" || legacyReferenceLayout === "symphony") {
+      // libwps WKS4Spreadsheet::readCell: signed 14-bit rows for both;
+      // Windows Works uses signed 15-bit columns, DOS Symphony wraps low bytes.
+      const axis = (raw: number, origin: number, bits: number) => {
+        if (!(raw & 0x8000)) return raw & ((1 << bits) - 1);
+        const shift = 32 - bits, boundary = 2 ** (bits - 1);
+        let delta = raw << shift >> shift;
+        if (delta + origin >= boundary) delta -= boundary;
+        return origin + delta;
+      };
+      let targetColumn = c & 0xff;
+      if (legacyReferenceLayout === "symphony" && cr) {
+        let delta = c & 0xff;
+        if ((delta & 0x80) && delta + column >= 0x100) delta -= 0x100;
+        targetColumn = column + delta;
+      } else if (legacyReferenceLayout === "works3") targetColumn = axis(c, column, 15);
+      return ref(axis(r, row, 14), targetColumn, rr, cr);
+    }
+    if (legacyReferenceLayout !== undefined) {
+      // LibreOffice LotusRelToScRel: signed offsets, with version-specific rows.
+      const shift = 32 - (legacyReferenceLayout === "wk1" ? 11 : 13);
+      return ref(rr ? (r << shift >> shift) + row : r & (legacyReferenceLayout === "wk1" ? 0x7ff : 0x3fff),
+        cr ? (c << 24 >> 24) + column : c & 0xff, rr, cr);
+    }
+    return ref((r & 4095) * (rr && r & 4096 ? -1 : 1) + (rr ? row : 0),
+      (c & 4095) % 256 * (cr && c & 4096 ? -1 : 1) + (cr ? column : 0), rr, cr);
+  };
+  const newRef = (p: number, flags: number, qualifySheet: boolean) => {
+    const target = b.u8(p + 2), name = sheetName(target);
+    return (target === sheetIndex && !qualifySheet ? "" : quoteFormulaString(name, "'", gnumericGrammar) + "!") + ref(b.u16(p), b.u8(p + 3), !!(flags & 2), !!(flags & 1));
+  };
+  const rangeReference = (first: string, last?: string) => {
+    if (first.endsWith("#REF!") || last?.endsWith("#REF!")) return "#REF!";
+    return first + (last === undefined ? "" : ":" + last);
+  };
+  while (at < bytes.length) {
+    context.signal.throwIfAborted();
+    const op = b.u8(at++);
+    if (op === 3) break;
+    consumeOperation();
+    if (op === 4) continue;
+    if (op === 0) {
+      const length = format === "wk3" ? 10 : 8; if (at + length > bytes.length) break;
+      const value = format === "wk3" ? treal(b, at) : { kind: "number" as const, value: b.f64(at) };
+      stack.push(value.kind === "number" ? String(value.value) : value.kind === "error" ? value.value : value.kind === "string" ? '""' : "0"); at += length;
+    } else if (op === 1 || op === 2) {
+      const length = modern ? op === 1 ? 5 : 9 : op === 1 ? 4 : 8;
+      if (at + length > bytes.length) break;
+      if (modern) {
+        // Each reference carries its own column/row/sheet relativity bits.
+        const flags = b.u8(at);
+        // A span must qualify both sheets, including the formula's own sheet.
+        const crossSheet = op === 2 && b.u8(at + 3) !== b.u8(at + 7);
+        const endpoint = (p: number, bits: number): ReferenceEndpoint => {
+          const target = b.u8(p + 2), rr = !!(bits & 2), cr = !!(bits & 1);
+          return { ...(target !== sheetIndex || crossSheet ? { sheet: sheetName(target) } : {}),
+            // LibreOffice ReadSRD forces same-sheet references relative.
+            sheetRelative: !!(bits & 4) || target === sheetIndex,
+            row: { value: b.u16(p) - (rr ? row : 0), relative: rr },
+            column: { value: b.u8(p + 3) - (cr ? column : 0), relative: cr } };
+        };
+        const first = endpoint(at + 1, flags & 7), last = op === 2 ? endpoint(at + 5, flags >> 3 & 7) : undefined;
+        if (first.sheet && first.sheetRelative || last?.sheet && last.sheetRelative) {
+          // These decoder-owned identifiers are replaced with reference nodes
+          // before the expression leaves this function; live names stay distinct.
+          const name = `LOTUS_SHEET_REFERENCE_${relativeReferences.size}`;
+          relativeReferences.set(name, { kind: "reference", start: 0, end: 0, first, ...(last ? { last } : {}) });
+          stack.push(name);
+        } else {
+          const source = rangeReference(newRef(at + 1, flags & 7, crossSheet), op === 2 ? newRef(at + 5, flags >> 3 & 7, crossSheet) : undefined);
+          stack.push(source);
+          if (crossSheet) indexRanges.set(source, { firstSheet: b.u8(at + 3), lastSheet: b.u8(at + 7),
+            first: ref(b.u16(at + 1), b.u8(at + 4), !!(flags & 2), !!(flags & 1)),
+            last: ref(b.u16(at + 5), b.u8(at + 8), !!(flags & 16), !!(flags & 8)) });
+        }
+      } else stack.push(rangeReference(oldRef(at), op === 2 ? oldRef(at + 4) : undefined));
+      at += length;
+    } else if (op === 5) {
+      const length = format === "123" ? 4 : 2;
+      if (at + length > bytes.length) break;
+      const n = b.u16(at), signed = n >= 32768 ? n - 65536 : n;
+      stack.push(String(modern ? length === 4 ? packedNumber(b.u32(at)) : smallNumber(signed) : signed)); at += length;
+    } else if (op === 6) {
+      const start = at; while (at < bytes.length && bytes[at]) at++;
+      stack.push(quoteFormulaString(await lmbcs(bytes.subarray(start, at), group, context), '"', gnumericGrammar)); at++;
+    } else if (modern && (op === 7 || op === 8)) {
+      const start = at;
+      while (at < bytes.length && bytes[at]) { context.signal.throwIfAborted(); at++; }
+      if (at === bytes.length) {
+        await context.diagnostic?.({ code: "lotus", severity: "warning", message: "Unterminated Lotus named reference." });
+        stack.push("#REF!"); break;
+      }
+      let name = await lmbcs(bytes.subarray(start, at), group, context); at++;
+      // Only absolute-name tokens carry a '$' marker (Calc FindRel/FindAbs).
+      if (op === 8 && name.startsWith("$")) name = name.slice(1);
+      const range = names?.get(name.toUpperCase());
+      const external = range ? undefined : lotusExternalVariable(name);
+      if (external !== undefined) stack.push(external);
+      else {
+        if (!range)
+          await context.diagnostic?.({ code: "lotus", severity: "warning", message: `Unknown Lotus named reference '${name}'.` });
+        // Retain identity and copy mode even when the declaration is missing,
+        // so adding or editing it later can bind this same formula reference.
+        const fixedSheet = range && (range.first.sheet !== sheetIndex || range.last.sheet !== sheetIndex);
+        stack.push(name ? `@name.${op === 7 ? "relative" : "absolute"}${fixedSheet ? ".fixed-sheet" : ""}[0,0,0]:` + quoteFormulaString(range?.name ?? name, '"', gnumericGrammar) : "#NAME?");
+      }
+    } else if (modern && op >= 9 && op <= 11) {
+      const length = op === 9 ? 4 : op === 10 ? 5 : 11;
+      if (at + length > bytes.length) break;
+      stack.push(op === 11 ? "#VALUE!" : "#REF!"); at += length;
+    } else if (op === (modern ? 14 : 8) || op === (modern ? 29 : 23) || op === (modern ? 28 : 22)) {
+      const arg = await pop(); stack.push(op === (modern ? 28 : 22) ? `NOT(${arg})` : `${op === (modern ? 14 : 8) ? "-" : "+"}(${arg})`);
+    } else if (op >= (modern ? 15 : 9) && op <= (modern ? 27 : 21) || op === (modern ? 30 : 24)) {
+      const right = await pop(), left = await pop(), base = modern ? 15 : 9;
+      const operators = ["+", "-", "*", "/", "^", "=", "<>", "<=", ">=", "<", ">"];
+      stack.push(op === base + 11 || op === base + 12 ? `${op === base + 11 ? "AND" : "OR"}(${left},${right})` : `(${left}${op === (modern ? 30 : 24) ? "&" : operators[op - base]}${right})`);
+    } else {
+      let info = functions[op], args = info?.[0] ?? 0, name = info?.[2] ?? `LOTUS_${info?.[1] ?? ""}`;
+      if (modern && op === 0x7a) {
+        if (at + 3 > bytes.length) break;
+        args = b.u8(at++); const length = b.u16(at); at += 2; if (at + length > bytes.length) break;
+        let raw = await lmbcs(bytes.subarray(at, at + length), group, context); at += length;
+        if (raw.endsWith("(")) raw = raw.slice(0, -1);
+        let i = raw.length; while (i && ((raw[i - 1]! >= "a" && raw[i - 1]! <= "z") || (raw[i - 1]! >= "A" && raw[i - 1]! <= "Z") || (raw[i - 1]! >= "0" && raw[i - 1]! <= "9"))) i--;
+        raw = raw.slice(i); info = lotusFunctionsByName[raw];
+        name = info?.[2] ?? `LOTUS_${raw}`;
+      } else {
+        if (functions === lotusFunctions && op >= 166) await context.diagnostic?.({ code: "lotus", severity: "warning", message: `Encountered lotus opcode ${op}\n` });
+        if (!info) { await context.diagnostic?.({ code: "lotus", severity: "warning", message: `${formatA1(row, column)}: unknown PTG 0x${op.toString(16)}` }); continue; }
+        if (args < 0) { if (at >= bytes.length) break; args = b.u8(at++); }
+      }
+      const operands: string[] = []; for (let i = 0; i < args; i++) operands.unshift(await pop());
+      let subtract = info?.[3] === "wk1_year_func" ? 1900 : 0;
+      if (functions === lotusFunctions) {
+        // LibreOffice LotusToSc::DoFunc translates Lotus's zero-based positions.
+        // Use the resolved function so named opcodes follow the same conventions.
+        switch (info?.[1]) {
+          case "CHOOSE":
+            if (operands.length > 0) operands[0] = `(${operands[0]}+1)`;
+            break;
+          case "MID": case "REPLACE":
+            if (operands.length > 1) operands[1] = `(${operands[1]}+1)`;
+            break;
+          case "FIND":
+            if (operands.length > 2) operands[2] = `(${operands[2]}+1)`;
+            subtract = 1;
+            break;
+          case "VLOOKUP": case "HLOOKUP":
+            if (operands.length === 3) operands[2] = `(${operands[2]}+1)`;
+            break;
+          case "DSUM": case "DAVG": case "DCNT": case "DMIN":
+          case "DMAX": case "DVAR": case "DSTD": case "DPURECOUNT":
+            if (operands.length > 1) operands[1] = `(${operands[1]}+1)`;
+            break;
+          case "INDEX":
+            if (operands.length === 3 || operands.length === 4) {
+              const [, column, row] = operands;
+              operands[1] = `(${row}+1)`;
+              operands[2] = `(${column}+1)`;
+              if (operands.length === 4) operands[3] = `(${operands[3]}+1)`;
+              const span = indexRanges.get(operands[0]!);
+              if (span) {
+                const choices: string[] = [];
+                for (let index = Math.min(span.firstSheet, span.lastSheet); index <= Math.max(span.firstSheet, span.lastSheet); index++) {
+                  consumeOperation();
+                  choices.push(quoteFormulaString(sheetName(index), "'", gnumericGrammar) + "!" + span.first + ":" + span.last);
+                }
+                operands[0] = `(${choices.join(",")})`;
+              }
+            }
+            break;
+          case "STRING": operands.push("TRUE()"); break;
+          case "ROUNDUP": case "ROUNDDOWN":
+            if (operands.length === 3) operands.pop();
+            break;
+          case "PMT": case "PV": case "FV":
+            operands.push(`-(${operands.shift()!})`);
+            break;
+          case "IRR": operands.reverse(); break;
+          case "RATE":
+            if (operands.length === 3) {
+              const [fv, pv, nper] = operands;
+              operands.splice(0, 3, nper!, "0", `-(${pv})`, fv!);
+            }
+            break;
+          case "TERM":
+            name = "NPER";
+            if (operands.length === 3) {
+              const [pmt, rate, fv] = operands;
+              operands.splice(0, 3, rate!, `-(${pmt})`, "0", fv!);
+            }
+            break;
+          case "CTERM":
+            name = "NPER";
+            if (operands.length === 3) {
+              const [rate, fv, pv] = operands;
+              operands.splice(0, 3, rate!, "0", `-(${pv})`, fv!);
+            }
+            break;
+        }
+      } else {
+        // Preserve existing Works behavior pending its own source qualification.
+        if ([0x38, 0x39, 0x3a].includes(op)) operands.push(`-(${operands.shift()!})`);
+        if (op === 0x59) operands.reverse();
+      }
+      const expression = `${name}(${operands.join(",")})`;
+      stack.push(subtract ? `(${expression}-${subtract})` : expression);
+    }
+    if (stack.reduce((n, s) => n + s.length, 0) > context.limits.inputBytes)
+      throw new SsconvertError("resource-limit", "ssconvert Lotus formula length limit exceeded");
+  }
+  const result = stack.pop() ?? "#VALUE!";
+  if (stack.length) await context.diagnostic?.({ code: "lotus", severity: "warning", message: `${formatA1(row, column)}: args remain on stack` });
+  context.signal.throwIfAborted();
+  if (relativeReferences.size) {
+    const parsed = parseExpression(`=${result}`, { maximumDepth: context.limits.formulaDepth, position: { sheet: sheetName(sheetIndex), row, column }, signal: context.signal,
+      maximumLength: context.limits.workbookTextBytes ?? context.limits.inputBytes, maximumNodes: context.limits.workbookNodes ?? Infinity });
+    if (!parsed.ok) throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: Lotus relative-sheet formula");
+    const substitute = (node: FormulaNode): FormulaNode => {
+      context.signal.throwIfAborted();
+      if (node.kind === "name") return node.relocation ? node : relativeReferences.get(node.name) ?? node;
+      if (node.kind === "unary" || node.kind === "parentheses") return { ...node, child: substitute(node.child) };
+      if (node.kind === "binary") return { ...node, left: substitute(node.left), right: substitute(node.right) };
+      if (node.kind === "call") return { ...node, args: node.args.map(substitute) };
+      if (node.kind === "array") return { ...node, rows: node.rows.map(row => row.map(substitute)) };
+      return node;
+    };
+    const expression = serializeExpression({ ...parsed.document, root: substitute(parsed.document.root) }, internalOdfGrammar, false, true);
+    if (expression.length > (context.limits.workbookTextBytes ?? context.limits.inputBytes))
+      throw new SsconvertError("resource-limit", "ssconvert Lotus formula length limit exceeded");
+    return expression;
+  }
+  return `=${result}`;
+}
+
+export async function readLotus(bytes: Uint8Array, context: CapabilityContext): Promise<Workbook> {
+  context.signal.throwIfAborted();
+  if (bytes.length > context.limits.inputBytes) throw new SsconvertError("resource-limit", "ssconvert input bytes limit exceeded");
+  const b = new Binary(new Uint8Array(bytes));
+  if (bytes.length >= 6 && b.u16(0) === 255 && b.u16(4) === 0x404) return readLotusWorks(b.bytes, context,
+    (tokens, row, column, index, name, tick) => lotusFormula(tokens, "wk1", 1, row, column, index, name, context, tick, worksFunctions, undefined, "works3"),
+    text => lmbcs(text, 1, context));
+  if (bytes.length < 6 || b.u16(0) !== 0 || b.u16(2) < 2) throw new SsconvertError("io", "Error while reading lotus workbook.");
+  const version = b.u16(4), modern = ![0x404, 0x405, 0x406].includes(version);
+  // LibreOffice ImportLotus::Bof/ScanVersion qualify WK3's 26-byte, subtype-4 BOF.
+  if (version === 0x1000 && (b.u16(2) !== 26 || bytes.length < 8 || b.u16(6) !== 4))
+    throw new SsconvertError("unsupported-feature", "Unsupported WK3 header.");
+  if (![0x404, 0x405, 0x406, 0x1000, 0x1002, 0x1003, 0x1004, 0x1005].includes(version))
+    await context.diagnostic?.({ code: "lotus", severity: "warning", message: `Unexpected version ${version.toString(16)}` });
+  context.signal.throwIfAborted();
+  let at = 0, group = 1, active = -1, nameIndex = 0, count = 0, outside = false, work = 0;
+  const consumeOperation = () => {
+    context.signal.throwIfAborted();
+    if (++work > context.limits.operations)
+      throw new SsconvertError("resource-limit", "ssconvert Lotus operations limit exceeded");
+  };
+  let database: LotusRldb | undefined, databaseType = 0;
+  const styles = new Map<number, Record<string, ImportedValue>>();
+  const names = new Map<string, LotusNamedRange>();
+  const deferredFormulas: { tokens: Uint8Array; format: "wk3" | "123"; group: number; index: number; cell: Cell }[] = [];
+  const deferredByCell = new WeakMap<Cell, typeof deferredFormulas[number]>();
+  const sheets: { id: string; name: string; cells: Map<string, Cell>; columns: Map<number, AxisMetadata>; rows: Map<number, AxisMetadata>; defaultColumnWidth?: number; view: Record<string, ImportedValue>; metadata: UnsupportedRecord[]; formats: Map<string, string> }[] = [];
+  const sheet = (index: number) => {
+    if (index >= context.limits.sheets) throw new SsconvertError("resource-limit", "ssconvert Lotus sheets limit exceeded");
+    while (sheets.length <= index) {
+      const n = sheets.length; sheets.push({ id: `lotus-${n}`, name: modern ? `Sheet${n + 1}` : formatA1(0, n).slice(0, -1), cells: new Map(), columns: new Map(), rows: new Map(), view: {}, metadata: [], formats: new Map() });
+    }
+    return sheets[index]!;
+  };
+  const warn = async (message: string) => context.diagnostic?.({ code: "lotus", severity: "warning", message });
+  while (at + 4 <= bytes.length) {
+    context.signal.throwIfAborted();
+    const id = b.u16(at); let length = b.u16(at + 2); at += 4;
+    if (at + length > bytes.length) { await warn("Truncated record.  File is probably corrupted.\n"); length = 0; }
+    const data = new Binary(b.slice(at, length)); at += length;
+    if (id === 0) {
+      if (modern) { if (version >= 0x1002 && length >= 18) group = data.u8(16); } else { active = sheets.length; sheet(active); }
+      continue;
+    }
+    if (id === 1) { if (modern) break; active = -1; continue; }
+    if (version >= 0x1003 && version <= 0x1005 && id === 0x23) {
+      consumeOperation();
+      if (length < 5) await warn(`Record with type 0x23 has wrong length ${length}.`);
+      else {
+        // LibreOffice OP_SheetName123: two ignored bytes, a sheet index and
+        // a bounded C string. libwps defaults this record to Windows Western.
+        const name = decodeSheetName(data.bytes.subarray(4));
+        if (name) sheet(data.u16(2)).name = name;
+      }
+      continue;
+    }
+    if (id === (modern ? 9 : 11)) {
+      consumeOperation();
+      if (length < (modern ? 26 : 24)) { await warn(`Record with type 0x${id.toString(16)} has wrong length ${length}.`); continue; }
+      const type = modern ? data.u16(0) : 0;
+      if (type > 1) {
+        sheet(0).metadata.push({ source: "lotus", kind: "NamedRange", disposition: "retained", data: {
+          type, payload: Array.from(data.bytes, byte => byte.toString(16).padStart(2, "0")).join("")
+        } });
+        await warn(`Ignoring unqualified Lotus named range type ${type}.`); continue;
+      }
+      const name = await lmbcs(data.bytes.subarray(modern ? 2 : 0, modern ? 18 : 16), group, context);
+      if (!name) { await warn("Ignoring empty Lotus name."); continue; }
+      const first = modern ? { row: data.u16(18), sheet: data.u8(20), column: data.u8(21) } : { row: data.u16(18), column: data.u16(16), sheet: active };
+      const last = modern ? { row: data.u16(22), sheet: data.u8(24), column: data.u8(25) } : { row: data.u16(22), column: data.u16(20), sheet: active };
+      if (first.column >= 256 || last.column >= 256 || first.sheet < 0 || last.sheet < 0) {
+        await warn(`Ignoring invalid Lotus named range '${name}'.`); continue;
+      }
+      if (names.has(name.toUpperCase())) { await warn(`Ignoring duplicate Lotus name '${name}'.`); continue; }
+      sheet(first.sheet); sheet(last.sheet);
+      names.set(name.toUpperCase(), { name, first, last }); continue;
+    }
+    if (modern && id >= 0x800 && id <= 0x804) {
+      const runSize = version >= 0x1005 ? 4 : 2;
+      const readRun = (offset: number) => runSize === 4 ? data.u32(offset) : data.u16(offset);
+      const valid = id === 0x804 ? length >= 4 + runSize : id === 0x800 ? length >= runSize : id === 0x802 || id === 0x803 ? length === 2 : true;
+      if (!valid) await warn(`Record with type 0x${id.toString(16)} has wrong length ${length}.`);
+      else if (id === 0x804) {
+        if (database) await warn(database.root.remaining ? "Unfinished rldb." : "Unused rldb.");
+        database = undefined;
+        const dimensions = data.u16(2);
+        if (length !== 4 + runSize * dimensions) await warn(`Record with type 0x804 has wrong length ${length}.`);
+        else if (dimensions < 1 || dimensions > 3) await warn(`Ignoring ${dimensions}d rldb.`);
+        else database = new LotusRldb(Array.from({ length: dimensions }, (_, i) => readRun(4 + runSize * (dimensions - 1 - i))), consumeOperation);
+      } else if (!database) await warn(`Ignoring stray ${id === 0x800 ? "RLDB_NODE" : id === 0x801 ? "RLDB_DATANODE" : id === 0x802 ? "RLDB_REGISTERID" : "RLDB_USEID"}`);
+      else if (id === 0x800) await database.repeat(readRun(0), warn);
+      else if (id === 0x801) database.data(data.bytes);
+      else if (id === 0x802) database.register(data.u16(0));
+      else database.use(data.u16(0));
+      continue;
+    }
+    if (modern && [0x284, 0x293, 0x294, 0x295, 0x296].includes(id)) {
+      if (!databaseType) databaseType = id;
+      else if (!database || databaseType !== id) await warn("Unordered style info.");
+      else {
+        if (database.root.remaining) throw new SsconvertError("io", "Error while reading lotus workbook.");
+        
+        const axis = id === 0x295 || id === 0x296, dimensions = axis ? 2 : 3;
+        if (database.root.dimensions !== dimensions) throw new SsconvertError("io", "Error while reading lotus workbook.");
+        let sheetIndex = 0;
+        for (const sheetRun of database.root.children) {
+          for (let repeat = 0; repeat < sheetRun.repeat && sheetIndex < sheets.length; repeat++, sheetIndex++) {
+            const s = sheets[sheetIndex]!; let start = 0;
+            for (const columnRun of sheetRun.children) {
+              if (start > (axis && id === 0x296 ? 65535 : 255)) break;
+              const end = Math.min(axis && id === 0x296 ? 65535 : 255, start + columnRun.repeat - 1);
+              if (axis) {
+                const payload = columnRun.data;
+                if (payload?.length) {
+                  if (payload.length < 8) throw new SsconvertError("io", "Error while reading lotus workbook.");
+                  const value = new Binary(payload), flags = value.u16(2), raw = value.u32(4);
+                  const sizePoints = version >= 0x1005 ? (raw * 100 + 880) / 1740 : (raw * 100 + 11264) / 22272;
+                  const values = id === 0x295 ? s.columns : s.rows;
+                  for (let index = start; index <= end; index++) { consumeOperation(); const old = values.get(index);
+                    values.set(index, { ...old, index, sizePoints, ...(flags & 2 ? { hidden: true } : {}) }); }
+                }
+              } else {
+                let row = 0;
+                for (const rowRun of columnRun.children) {
+                  if (row > 65535) break;
+                  const endRow = Math.min(65535, row + rowRun.repeat - 1), payload = rowRun.data;
+                  if (payload?.length && id !== 0x294) {
+                    const value = new Binary(payload);
+                    if (id === 0x284 ? payload.length !== 2 : payload.length < 4) throw new SsconvertError("io", "Error while reading lotus workbook.");
+                    const word = id === 0x284 ? 0 : value.u32(0);
+                    let style: Record<string, ImportedValue> | undefined;
+                    if (id === 0x284 || word & 0x800) {
+                      if (id !== 0x284 && payload.length < 6) throw new SsconvertError("io", "Error while reading lotus workbook.");
+                      style = styles.get(value.u16(id === 0x284 ? 0 : 4));
+                      if (!style) throw new SsconvertError("io", "Error while reading lotus workbook.");
+                    }
+                    const format = id === 0x284 ? undefined : await lotusFormat(word, context);
+                    for (const [key, cell] of s.cells) { consumeOperation(); if (cell.column >= start && cell.column <= end && cell.row >= row && cell.row <= endRow) {
+                      if (format !== undefined) s.formats.set(key, format);
+                      if (style) s.cells.set(key, { ...cell, style: { ...cell.style, ...style } });
+                    } }
+                    s.metadata.push({ source: "lotus", kind: id === 0x284 ? "StyleRange" : "FormatRange", disposition: "retained", data: { startRow: row, endRow, startColumn: start, endColumn: end, ...(format !== undefined ? { format } : {}), ...(style ? { style } : {}) } });
+                  }
+                  row = endRow + 1;
+                }
+              }
+              start = end + 1;
+            }
+          }
+        }
+        database = undefined; databaseType = 0;
+      }
+      continue;
+    }
+    if (modern && id === 5) {
+      if (length !== 16) await warn(`Record with type 0x5 has wrong length ${length}.`);
+      else {
+        consumeOperation();
+        const s = sheet(data.u8(0));
+        s.view.selection = formatA1(data.u16(4), data.u8(6));
+        s.view.initialTopLeft = formatA1(data.u16(8), data.u8(7));
+      }
+      continue;
+    }
+    if (modern && id === 0x26) {
+      if (length < 6) await warn(`Record with type 0x26 has wrong length ${length}.`);
+      else {
+        consumeOperation();
+        sheet(data.u8(2)).metadata.push({ source: "lotus", kind: "CellComment", disposition: "retained",
+          data: { ObjectBound: formatA1(data.u16(0), data.u8(3)), Text: await lmbcs(data.bytes.subarray(5), group, context) } });
+      }
+      continue;
+    }
+    if (modern && id === 0x13) {
+      if (length < 2) await warn(`Record with type 0x13 has wrong length ${length}.`);
+      else {
+        const s = sheet(data.u8(0)), subtype = data.u8(1);
+        if (subtype === 0 && length >= 4) {
+          const row = data.u16(2); let column = 0;
+          for (let offset = 4; offset + 4 <= length; offset += 4) {
+            const word = data.u32(offset), repeat = !!(word & 0x80000000) && offset + 4 < length;
+            const n = repeat ? 1 + data.u8(offset++ + 4) : 1;
+            const format = await lotusFormat(word, context);
+            for (let c = column; c < Math.min(256, column + n); c++) {
+              consumeOperation();
+              if (format) s.formats.set(`${row}:${c}`, format);
+            }
+            if (format) s.metadata.push({ source: "lotus", kind: "FormatRange", disposition: "retained", data: { startRow: row, endRow: row, startColumn: column, endColumn: Math.min(255, column + n - 1), format } });
+            column += n;
+          }
+        } else if (subtype === 2 && length >= 8) {
+          const row = data.u16(2), source = sheet(data.u16(4)), sourceRow = data.u16(6);
+          const snapshot = source.metadata.slice();
+          s.metadata.push({ source: "lotus", kind: "StyleRange", disposition: "retained", data: { startRow: row, endRow: row, startColumn: 0, endColumn: 255, style: {}, reset: true, format: "General" } });
+          for (let c = 0; c < 256; c++) {
+            consumeOperation();
+            let format = source.formats.get(`${sourceRow}:${c}`) ?? "General";
+            let style: Record<string, ImportedValue> = {};
+            for (const record of snapshot) {
+              consumeOperation();
+              if (record.kind !== "StyleRange" && record.kind !== "FormatRange") continue;
+              const range = record.data as Record<string, ImportedValue>;
+              if (sourceRow < Number(range.startRow) || sourceRow > Number(range.endRow) || c < Number(range.startColumn) || c > Number(range.endColumn)) continue;
+              if (range.reset) style = {};
+              if (range.style) style = { ...style, ...range.style as Record<string, ImportedValue> };
+              if (typeof range.format === "string") format = range.format;
+            }
+            s.formats.set(`${row}:${c}`, format);
+            if (format !== "General") s.metadata.push({ source: "lotus", kind: "FormatRange", disposition: "retained", data: { startRow: row, endRow: row, startColumn: c, endColumn: c, format } });
+            if (Object.keys(style).length) s.metadata.push({ source: "lotus", kind: "StyleRange", disposition: "retained", data: { startRow: row, endRow: row, startColumn: c, endColumn: c, style } });
+            const cell = s.cells.get(`${row}:${c}`);
+            if (cell) s.cells.set(`${row}:${c}`, { ...cell, style, format });
+          }
+        } else if (subtype === 0 || subtype === 2) await warn(`Record with type 0x13 has wrong length ${length}.`);
+        else await warn(`Unknown format record 0x13/${subtype.toString(16).padStart(2, "0")} of length ${length}.\n`);
+      }
+      continue;
+    }
+    if (modern && id === 0x1b) {
+      if (length < 2) await warn(`Record with type 0x1b has wrong length ${length}.`);
+      else {
+        const subtype = data.u16(0);
+        if (subtype === 0x36b0) {
+          consumeOperation();
+          if (length < 5) await warn(`Record with type 0x1b has wrong length ${length}.`);
+          else {
+            // libwps readSheetName1B uses the full index and bounded C string.
+            const name = await lmbcs(data.bytes.subarray(4, length), group, context);
+            if (name) sheet(data.u16(2)).name = name;
+          }
+        } else if (subtype === 0xfa1) {
+          if (length < 24) await warn(`Record with type 0x1b has wrong length ${length}.`);
+        } else if (subtype === 0xfdc) {
+          if (length < 11) await warn(`Record with type 0x1b has wrong length ${length}.`);
+          else { consumeOperation(); styles.set(data.u16(2), { fontName: await lmbcs(data.bytes.subarray(10), group, context) }); }
+        } else if (subtype === 0xfd2) {
+          // Released parser checks >=24 but reads through byte28; bound those reads.
+          if (length < 29) await warn(`Record with type 0x1b has wrong length ${length}.`);
+          else {
+            consumeOperation();
+            const style: Record<string, ImportedValue> = {}, faces = data.u16(16), mask = data.u16(18);
+            const color = async (id: number): Promise<string | undefined> => {
+              if (id === 65535) return;
+              if (id < lotusColors.length) return lotusColors[id];
+              const labels = ["3D face", "highlight", "button shadow", "window background", "window text"];
+              await warn(id >= 240 && id <= 244 ? `Unhandled "${labels[id - 240]}" color.` : `Unhandled color id ${id}.`);
+              return;
+            };
+            const background = await color(data.u16(26)), foreground = await color(data.u16(24)), text = await color(data.u16(12));
+            if (background) style.backgroundColor = background;
+            if (foreground) style.patternColor = foreground;
+            if (text) style.fontColor = text;
+            const patternId = data.u8(28) === 255 && background ? 2 : data.u8(28);
+            const patterns: Record<number, number> = { 0: 0, 2: 1, 8: 15, 26: 4, 27: 3, 51: 7, 55: 8 };
+            if (patterns[patternId] !== undefined) style.pattern = patterns[patternId]!;
+            else if (patternId !== 255) await warn(`Unhandled pattern ${patternId}.`);
+            if (data.u16(10) !== 65535) style.fontSize = Math.floor(((data.u16(10) * 100 / 83 + 16) / 32) * 2 + 0.5) / 2;
+            for (const [bit, name] of [[1, "bold"], [2, "italic"], [4, "underline"], [128, "strike"]] as const) if (mask & bit) style[name] = !!(faces & bit);
+            styles.set(data.u16(2), style);
+          }
+        } else if (![0x07d7, 0x0fab, 0x0fb4, 0x0fc9, 0x0fe6, 0x0ff0, 0x0ffa, 0x32e7].includes(subtype))
+          await warn(`Unknown style record 0x1b/${subtype.toString(16).padStart(4, "0")} of length ${length}.\n`);
+      }
+      continue;
+    }
+    if (modern && (id === 6 || id === 7)) {
+      if (id === 6 ? length !== 5 : length < 4) {
+        await warn(`Record with type 0x${id.toString(16)} has wrong length ${length}.`);
+      } else {
+        const s = sheet(data.u8(0));
+        // Native performs integer division before converting twips to points.
+        const width = (chars: number) => (chars * 130 * 100 + 880) / 1740;
+        if (id === 6) { consumeOperation(); s.defaultColumnWidth = width(data.u8(4)); }
+        else for (let i = 4; i + 1 < length; i += 2) {
+          consumeOperation();
+          const index = data.u8(i); s.columns.set(index, { index, sizePoints: width(data.u8(i + 1)) });
+        }
+      }
+      continue;
+    }
+    if (modern && id === 0x204) {
+      if (length < 11) await warn(`Record with type 0x204 has wrong length ${length}.`);
+      else sheet(nameIndex++).name = await lmbcs(data.bytes.subarray(10), group, context);
+      continue;
+    }
+    const minimums: Record<number, number> = modern ? { 20: 4, 21: 4, 22: 6, 23: 14, 24: 6, 25: 15, 26: 5, 37: 8, 39: 12, 40: 13 } : { 13: 7, 14: 13, 15: 7, 16: 15 };
+    const minimum = minimums[id];
+    if (minimum === undefined) {
+      if (modern) {
+        if (id === 0x10d) await warn('Unhandled "large data" record seen.');
+        else if (![3, 9, 10, 11, 12, 0x1c, 0x1f, 0x23, 0x100, 0x103, 0x104, 0x105, 0x106, 0x107,
+          0x109, 0x10a, 0x10b, 0x10c, 0x10e, 0x10f, 0x200, 0x201, 0x202, 0x205,
+          0x280, 0x281, 0x282, 0x283, 0x285, 0x286, 0x287, 0x288, 0x292, 0x299, 0x29a,
+          0x304, 0x400, 0x401, 0x640, 0x642, 0x643, 0x701, 0x702, 0x703, 0x704, 0x780, 0xa80, 0x2af6].includes(id))
+          await warn(`Unknown record 0x${id.toString(16)} of length ${length}.`);
+      }
+      continue;
+    }
+    if (length < minimum || modern && id === 37 && length !== 8) { await warn(`Record with type 0x${id.toString(16)} has wrong length ${length}.`); continue; }
+    const index = modern ? data.u8(2) : active;
+    if (index < 0) continue;
+    const s = sheet(index), row = modern ? data.u16(0) : data.u16(3), column = modern ? data.u8(3) : data.u16(1);
+    const maxRows = modern ? 65536 : 65536;
+    if (column >= 256 || row >= maxRows) {
+      if (!outside) { outside = true; await warn("File is most likely corrupted.\n(It claims to contain a cell outside the range Gnumeric can handle.)"); }
+      continue;
+    }
+    let value: CellValue = { kind: "blank" }, formula: string | undefined;
+    if (!modern) {
+      if (id === 13) { const n = data.u16(5); value = { kind: "number", value: n >= 32768 ? n - 65536 : n }; }
+      if (id === 14 || id === 16) value = { kind: "number", value: data.f64(5) };
+      if (id === 15) value = { kind: "string", value: await lmbcs(data.bytes.subarray(6), group, context) };
+      if (id === 16) {
+        const n = data.u16(13); if (15 + n > length) continue;
+        // LibreOffice ScanVersion qualifies WK1/WK2; libwps identifies 0x0405 as Symphony.
+        const legacyReferenceLayout = version === 0x404 ? "wk1" : version === 0x406 ? "wk2" : version === 0x405 ? "symphony" : undefined;
+        formula = await lotusFormula(data.bytes.subarray(15, 15 + n), "wk1", group, row, column, index, i => sheet(i).name, context, consumeOperation, lotusFunctions, undefined, legacyReferenceLayout);
+        if ((data.u16(11) & 0x7ff8) === 0x7ff0) {
+          value = { kind: "error", value: "#VALUE!" };
+          if (at + 4 <= bytes.length && b.u16(at) === 0x33) {
+            const n = b.u16(at + 2); if (at + 4 + n <= bytes.length && n >= 5) value = { kind: "string", value: await lmbcs(b.slice(at + 9, n - 5), group, context) };
+            at += n + 4;
+          }
+        }
+      }
+    } else {
+      if (id === 20 || id === 21) value = { kind: "error", value: id === 20 ? "#VALUE!" : "#N/A" };
+      if (id === 22 || id === 26) value = { kind: "string", value: await lmbcs(data.bytes.subarray(id === 22 ? 5 : 4), group, context) };
+      if (id === 23 || id === 25) value = treal(data, 4);
+      if (id === 24) { const n = data.u16(4); value = { kind: "number", value: smallNumber(n >= 32768 ? n - 65536 : n) }; }
+      if (id === 37) value = { kind: "number", value: packedNumber(data.u32(4)) };
+      if (id === 39 || id === 40) value = { kind: "number", value: data.f64(4) };
+      // Names and display sheet names can follow formula records. Decode after
+      // record collection; the placeholder also preserves cached string records.
+      if (id === 25 || id === 40) formula = "=#VALUE!";
+    }
+    const key = `${row}:${column}`, old = s.cells.get(key);
+    if (!old && ++count > context.limits.cells) throw new SsconvertError("resource-limit", "ssconvert Lotus cells limit exceeded");
+    let format = modern ? s.formats.get(key) : await lotusFormat(data.u8(0), context);
+    let style = old?.style;
+    if (modern) for (const record of s.metadata) {
+      consumeOperation();
+      if (record.kind !== "FormatRange" && record.kind !== "StyleRange") continue;
+      const range = record.data as Record<string, ImportedValue>;
+      if (row < Number(range.startRow) || row > Number(range.endRow) || column < Number(range.startColumn) || column > Number(range.endColumn)) continue;
+      if (range.reset) style = {};
+      if (typeof range.format === "string") format = range.format;
+      if (range.style) style = { ...style, ...range.style as Record<string, ImportedValue> };
+    }
+    if (modern && format !== undefined) s.formats.set(key, format);
+    const cell: Cell = { row, column, value, ...(format ? { format } : {}), ...(style ? { style } : {}),
+      ...(formula ? { formula, cachedResult: value, formulaDirty: false } : id === 26 && old?.formula ? { formula: old.formula, cachedResult: value, formulaDirty: false } : {}) };
+    s.cells.set(key, cell);
+    if (modern && (id === 25 || id === 40)) {
+      // LibreOffice OP_Formula123 and libwps readFormula select numeric widths
+      // from the record layout, independently of the workbook BOF version.
+      const pending: typeof deferredFormulas[number] = { tokens: data.bytes.subarray(id === 25 ? 14 : 12), format: id === 25 ? "wk3" : "123", group, index, cell };
+      deferredFormulas.push(pending); deferredByCell.set(cell, pending);
+    } else if (modern && id === 26 && old) {
+      const pending = deferredByCell.get(old);
+      if (pending) { pending.cell = cell; deferredByCell.set(cell, pending); }
+    }
+  }
+  if (database) await warn(database.root.remaining ? "Unfinished rldb." : "Unused rldb.");
+  context.signal.throwIfAborted();
+  if (!sheets.length) throw new SsconvertError("io", "Error while reading lotus workbook.");
+  let expressionTextBytes = 0;
+  const chargeExpressionText = (text: string, escapeQuotes = false) => {
+    for (const character of text) {
+      context.signal.throwIfAborted();
+      const point = character.codePointAt(0)!;
+      expressionTextBytes += (point < 128 ? 1 : point < 2048 ? 2 : point < 65536 ? 3 : 4) + (escapeQuotes && (character === "'" || character === "\\") ? 1 : 0);
+      if (expressionTextBytes > (context.limits.workbookTextBytes ?? context.limits.inputBytes))
+        throw new SsconvertError("resource-limit", "ssconvert Lotus expression text limit exceeded");
+    }
+  };
+  for (const pending of deferredFormulas) {
+    context.signal.throwIfAborted();
+    const formula = await lotusFormula(pending.tokens, pending.format, pending.group, pending.cell.row, pending.cell.column,
+      pending.index, i => sheet(i).name, context, consumeOperation, lotusFunctions, names);
+    const owner = sheet(pending.index), key = `${pending.cell.row}:${pending.cell.column}`;
+    if (owner.cells.get(key) === pending.cell) { chargeExpressionText(formula); owner.cells.set(key, { ...pending.cell, formula }); }
+  }
+  const importedNames = [...names.values()].map(({ name, first, last }) => {
+    consumeOperation(); chargeExpressionText(name); chargeExpressionText("=");
+    const qualifier = (index: number) => {
+      chargeExpressionText("''!"); chargeExpressionText(sheets[index]!.name, true);
+      return quoteFormulaString(sheets[index]!.name, "'", gnumericGrammar) + "!";
+    };
+    const address = (row: number, column: number) => {
+      const a1 = formatA1(row, column); let digits = 0;
+      while (a1[digits]! >= "A" && a1[digits]! <= "Z") digits++;
+      const result = "$" + a1.slice(0, digits) + "$" + a1.slice(digits);
+      chargeExpressionText(result); return result;
+    };
+    const single = first.sheet === last.sheet && first.row === last.row && first.column === last.column;
+    const firstQualifier = qualifier(first.sheet), firstAddress = address(first.row, first.column);
+    let end = "";
+    if (!single) {
+      chargeExpressionText(":");
+      const lastQualifier = first.sheet === last.sheet ? "" : qualifier(last.sheet), lastAddress = address(last.row, last.column);
+      end = ":" + lastQualifier + lastAddress;
+    }
+    return { name, expression: "=" + firstQualifier + firstAddress + end };
+  });
+  return { sheets: sheets.map(s => ({ id: s.id, name: s.name, size: { rows: 65536, columns: 256 }, cells: [...s.cells.values()].map(cell => s.formats.has(`${cell.row}:${cell.column}`) ? { ...cell, format: s.formats.get(`${cell.row}:${cell.column}`)! } : cell).sort((a, b) => a.row - b.row || a.column - b.column),
+    ...(s.rows.size ? { rows: [...s.rows.values()].sort((a, b) => a.index - b.index) } : {}),
+    ...(s.columns.size ? { columns: [...s.columns.values()].sort((a, b) => a.index - b.index) } : {}),
+    ...(Object.keys(s.view).length || s.defaultColumnWidth !== undefined ? { view: { ...s.view, ...(s.defaultColumnWidth !== undefined ? { defaultColumnWidth: s.defaultColumnWidth } : {}) } } : {}),
+    ...(s.metadata.length ? { unsupportedRecords: s.metadata } : {}) })), activeSheet: sheets[0]!.id, ...(importedNames.length ? { names: importedNames } : {}) };
+}

@@ -1,0 +1,5 @@
+[
+  {"name":"metadata-row","args":["--unhandled-rejections=strict","--import","tsx","--test","--test-name-pattern=webdav: optional metadata","tests/stress/adapters/core.test.ts"]},
+  {"name":"timestamp-profiles","args":["--unhandled-rejections=strict","--import","tsx","--test","tests/stress/adapters/webdav-timestamps-profile.test.ts"]},
+  {"name":"timestamp-backend","args":["--unhandled-rejections=strict","--import","tsx","--test","tests/fs/webdav/timestamps.test.ts"]}
+]

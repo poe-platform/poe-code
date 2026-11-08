@@ -1,0 +1,88 @@
+{
+  "candidate": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate",
+  "api": "standalone src/commands/tree/index.ts",
+  "invocations": [
+    {
+      "argv": [
+        "basic"
+      ],
+      "limits": {},
+      "cwd": "/",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TERM": "dumb",
+        "TZ": "UTC"
+      },
+      "stdout": [
+        {
+          "attemptedBase64": "YmFzaWMK",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fC0tIEFscGhhLnR4dAo=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fC0tIGItZGlyCg==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fCAgIHwtLSBkcm9wLmJpbgo=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fCAgIHwtLSBrZWVwLnR4dAo=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fCAgIGAtLSBuZXN0ZWQK",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fCAgICAgICBgLS0gbGFzdC50eHQK",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fC0tIGIudHh0Cg==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fC0tIGVtcHR5Cg==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fC0tIHNraXAtZGlyCg==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fCAgIGAtLSBoaWRkZW4tYnktZmlsdGVyLnR4dAo=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fC0tIHotZGlyCg==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fCAgIGAtLSBkZWVwLnR4dAo=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "YC0tIHpldGEudHh0Cg==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "CjYgZGlyZWN0b3JpZXMsIDggZmlsZXMK",
+          "state": "fulfilled"
+        }
+      ],
+      "stderr": [],
+      "startedAt": "2026-08-27T08:28:24.963Z",
+      "result": {
+        "exitCode": 0
+      },
+      "finishedAt": "2026-08-27T08:28:24.993Z"
+    }
+  ],
+  "shells": []
+}

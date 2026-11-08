@@ -1,0 +1,1 @@
+negative-root.mts(1,10): error TS2724: '"virtual-bash"' has no exported member named 'createTimeoutCommand'. Did you mean 'createTimeEnvCommands'?

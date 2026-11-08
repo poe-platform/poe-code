@@ -1,0 +1,6 @@
+{"phase":"start","time":"2026-08-29T06:47:26.473Z","label":"source","revision":"9afc9c5a321711fb566817916a281fe4776935fd","selected":"tests/compatibility/bash-surface-independent-20260829/functional-reference-v1"}
+{"phase":"before-child","children":1,"executable":"/usr/bin/git","args":["ls-tree","-r","-z","9afc9c5a321711fb566817916a281fe4776935fd","--","tests/compatibility/bash-surface-independent-20260829/functional-reference-v1"]}
+{"phase":"after-child","children":1,"status":0,"signal":null,"stdoutBytes":2358,"stderrBytes":0}
+{"phase":"before-child","children":2,"executable":"/usr/bin/git","args":["cat-file","--batch"]}
+{"phase":"after-child","children":2,"status":0,"signal":null,"stdoutBytes":120106,"stderrBytes":0}
+{"phase":"complete","children":2,"files":16,"bytes":119273}

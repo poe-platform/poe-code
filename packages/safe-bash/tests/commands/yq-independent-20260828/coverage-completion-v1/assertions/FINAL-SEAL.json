@@ -1,0 +1,154 @@
+{
+  "schema": 1,
+  "role": "ASSERTIONS_COMPONENT_SEAL_NOT_ROOT_RECIPE_OR_ACCEPTANCE",
+  "presealCommit": "363616da2d8e3f95f98e3cdd9b13ffe5a06b5e11",
+  "files": [
+    {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/assertions/CONTRIBUTION.json",
+      "sha256": "17c6bda9eb226d3db716b4bd44c55c640ff00e85fbf55e9296a8a86b5f97cefb",
+      "bytes": 5584,
+      "mode": 420
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/assertions/INPUTS.json",
+      "sha256": "313eaaedfcd66fb6ccb7ce3c917d0aece1df0d91b7de4a3340a9349e0e36c6c2",
+      "bytes": 7998,
+      "mode": 420
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/assertions/OBSERVATION-NEEDS.json",
+      "sha256": "6d855fe183c80130a7fafe99d998e33e0bd1781aeec6a95a3a3155fb2fb006dc",
+      "bytes": 37283,
+      "mode": 420
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/assertions/PREPARATION-HISTORY.json",
+      "sha256": "4c4e1629cbf22eb66f73cbf48b6caaed547e84104ee81142dcc13cd38e239be5",
+      "bytes": 1137,
+      "mode": 420
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/assertions/README.md",
+      "sha256": "5f78bdcdf562ce707ccf09c49f74aff83b421d09326039acc04e59859c519e41",
+      "bytes": 4412,
+      "mode": 420
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/assertions/RESULTS.json",
+      "sha256": "432105b0d77c266cffc04d4e0fdd83490c3e8c150316d6723c9035e5a8986a29",
+      "bytes": 12819,
+      "mode": 420
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/assertions/SPECIFICATION.md",
+      "sha256": "41c9de7505df4baf62f2be7ab98a1eebdf7373f6d2f12302491b38cec1fe4239",
+      "bytes": 9936,
+      "mode": 420
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/assertions/STATIC-CHECKS.json",
+      "sha256": "dc36e86f82aa1bc9455118c11492a00142d4499badf7135738ddfeeec84aa762",
+      "bytes": 1599,
+      "mode": 420
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/assertions/SYNTHETIC-CONTROLS.json",
+      "sha256": "dbf6210b3b3c22ad1d676b9c5c23f34e0012a6bce25e6f5599505f9eb776a492",
+      "bytes": 37843,
+      "mode": 420
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/assertions/TEST-RECIPE.json",
+      "sha256": "4938a5ebb88c5b34f96ecdf7fc91c25a710666a5cfdaef1f9b70a4a48cb5762b",
+      "bytes": 4528,
+      "mode": 420
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/assertions/catalogue.json",
+      "sha256": "77e64e9b4fdb7b84493da6f094a72d95197aac3824b0b1531b06bc11aec0f216",
+      "bytes": 322743,
+      "mode": 420
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/assertions/evaluate-assertions.mjs",
+      "sha256": "6bdbb7ff4d21d79009296f162bc00827ee6284f1000744a9ebf9ea541e7968ea",
+      "bytes": 18757,
+      "mode": 420
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/assertions/evidence/synthetic-v1/child-raw.json",
+      "sha256": "d14c5292029f4da79660cabd5b532dc4a9ff420c088d68b9e0ebc9fdc9ee72ac",
+      "bytes": 389,
+      "mode": 420
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/assertions/evidence/synthetic-v1/launch.json",
+      "sha256": "58360dcc3c5f8893df826fcd07cac5c1ecfa2850895618228f3c649d5e445482",
+      "bytes": 1180,
+      "mode": 420
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/assertions/evidence/synthetic-v1/raw.jsonl",
+      "sha256": "874ddba375fb6379e4383252a63c4e7c06e2de33743822eb2b93b968e6807751",
+      "bytes": 416162,
+      "mode": 420
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/assertions/evidence/synthetic-v1/results.jsonl",
+      "sha256": "8673894e2d50aabb13a0f878eb95d0f6cb22a3af92a853b0cfb8fcfa00f882ce",
+      "bytes": 270758,
+      "mode": 420
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/assertions/evidence/synthetic-v1/start.json",
+      "sha256": "c98141defe0377e8fac9e11237255685edaf658644d94da2d217b5ffb24300b8",
+      "bytes": 187,
+      "mode": 420
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/assertions/evidence/synthetic-v1/stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "mode": 420
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/assertions/evidence/synthetic-v1/stdout.bin",
+      "sha256": "56028bb41b88f3eda4311876635b16f8b494a9b471d84a3081c904a45dd2ec05",
+      "bytes": 246,
+      "mode": 420
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/assertions/evidence/synthetic-v1/summary.json",
+      "sha256": "56028bb41b88f3eda4311876635b16f8b494a9b471d84a3081c904a45dd2ec05",
+      "bytes": 246,
+      "mode": 420
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/assertions/evidence/synthetic-v1/supervisor.json",
+      "sha256": "59034810304a60a1e2189e5c6639b04439dcec6e9816940c81f2af7067f6c800",
+      "bytes": 715,
+      "mode": 420
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/assertions/synthetic-checks.mjs",
+      "sha256": "714dab62eacf4b33bd6581beff3061c9d29184625f328145a563bf2321c66f47",
+      "bytes": 11534,
+      "mode": 420
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/assertions/synthetic-supervisor.mjs",
+      "sha256": "dbe7ec90b86a87c509b10663c698acd94cff9b73ec8e50d174d29d707a1e3fb8",
+      "bytes": 6304,
+      "mode": 420
+    }
+  ],
+  "sealSelf": "This file is content-bound by the final explicit-path commit and readiness SHA256; self excluded to avoid recursion.",
+  "historicalDataPolicy": "ORIGINAL_MODE_UNATTESTED input origins remain read-only; fresh listed active projections have strict observed regular-file path/mode/hash/size.",
+  "targetExecutions": 0,
+  "compilerExecutions": 0,
+  "productImports": 0,
+  "syntheticChecks": 280,
+  "syntheticMatches": 280,
+  "activeOwnedChildren": 0,
+  "differentReview": "PENDING"
+}

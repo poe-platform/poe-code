@@ -1,0 +1,158 @@
+import assert from 'node:assert/strict';
+import threads from 'node:worker_threads';
+import { registerHooks, syncBuiltinESMExports } from 'node:module';
+import { pathToFileURL } from 'node:url';
+import { cases, constants } from './cases.mjs';
+import { save } from './common.mjs';
+
+const [candidate, destination] = process.argv.slice(2);
+const base = pathToFileURL(`${candidate}/`).href;
+const NativeWorker = threads.Worker;
+const active = new Set();
+const imports = [];
+const violations = [];
+const unhandled = [];
+let current;
+process.on('unhandledRejection', reason => unhandled.push(String(reason)));
+const hooks = registerHooks({ resolve(specifier, context, next) {
+  const result = next(specifier, context);
+  if (context.parentURL?.startsWith(base)) {
+    assert(result.url.startsWith(base) || result.url.startsWith('node:'));
+    imports.push({ parent: context.parentURL.slice(base.length), resolved: result.url.replace(base, '') });
+    if (result.url.endsWith('/bre-worker.js') || result.url.endsWith('/matching.js')) {
+      violations.push(result.url);
+      throw new Error('Main-thread matcher import forbidden');
+    }
+  }
+  return result;
+} });
+threads.Worker = class extends NativeWorker {
+  constructor(url, options) {
+    assert.equal(url.href, `${base}dist/commands/regex-execution/worker.js`);
+    assert(current);
+    super(url, options);
+    this.owner = current;
+    active.add(this);
+    this.owner.events.push('worker-start');
+    this.on('exit', () => { active.delete(this); this.owner.events.push('worker-exit'); });
+  }
+  postMessage(message, ...rest) {
+    this.owner.jobs.push({ kind: message.descriptor?.kind, id: message.id });
+    super.postMessage(message, ...rest);
+    if (this.owner.input.mode === 'abort-post') this.owner.controller.abort(this.owner.abortReason);
+  }
+  terminate() {
+    this.owner.events.push('worker-terminate');
+    return super.terminate();
+  }
+};
+syncBuiltinESMExports();
+const tick = () => new Promise(resolve => setImmediate(resolve));
+const deferred = () => { let resolve, reject; const promise = new Promise((yes, no) => { resolve = yes; reject = no; }); return { promise, resolve, reject }; };
+const rows = [];
+try {
+  const { createExprCommand } = await import(`${base}dist/commands/expr/index.js`);
+  const { RegexSession, RegexExecutor } = await import(`${base}dist/commands/regex-execution/client.js`);
+  const originalClose = RegexSession.prototype.close;
+  const originalOpen = RegexExecutor.prototype.open;
+  RegexSession.prototype.close = function (...args) { current.events.push('session-close'); return originalClose.apply(this, args); };
+  RegexExecutor.prototype.open = function (...args) { current.events.push('session-open'); return originalOpen.apply(this, args); };
+  const api = await import(`${base}dist/index.js`);
+  for (const input of cases) {
+    const events = [], jobs = [], attempts = [], stdout = [], stderr = [], cleanups = [];
+    const controller = new AbortController();
+    const abortReason = Object.assign(new Error('owned abort reason'), { code: 'ENOENT' });
+    const sinkReason = new Error('ATTACKER_SINK_MESSAGE');
+    const gate = deferred(), entered = deferred();
+    const row = { input, events, jobs, attempts, checks: [] };
+    current = { ...row, controller, abortReason };
+    const check = (name, condition) => row.checks.push({ name, passed: Boolean(condition) });
+    const sinks = Object.fromEntries(['stdout', 'stderr'].map(channel => [channel, { async write(bytes) {
+      const copy = Buffer.from(bytes);
+      assert(attempts.reduce((sum, attempt) => sum + attempt.bytes, 0) + copy.length <= 8192);
+      attempts.push({ channel, bytes: copy.length, hex: copy.toString('hex'), text: copy.toString() });
+      events.push(`${channel}-entered`);
+      const mode = input.mode ?? '';
+      if (mode === `reject-${channel}`) throw sinkReason;
+      if ([`held-${channel}`, `abort-${channel}`, `cleanup-${channel}`].includes(mode)) {
+        entered.resolve();
+        await gate.promise;
+      }
+      (channel === 'stdout' ? stdout : stderr).push(copy);
+      events.push(`${channel}-completed`);
+    } }]));
+    if (input.mode === 'preabort') controller.abort(abortReason);
+    const command = createExprCommand({ limits: { ...input.limits, maxOutputBytes: input.cap } });
+    let shell;
+    let invocation;
+    if (input.shell) {
+      shell = new api.Shell({ fs: new api.MemoryFileSystem(), commands: new api.CommandRegistry([command]), env: { LC_ALL: 'C' } });
+      invocation = shell.exec(`expr ${input.argv.map(argument => `'${argument.replaceAll("'", "'\\''")}'`).join(' ')}`).then(result => {
+        stdout.push(Buffer.from(result.stdout)); stderr.push(Buffer.from(result.stderr)); return result;
+      });
+    } else {
+      invocation = command.execute({ command: input.commandName ?? 'expr', args: input.argv, env: { LC_ALL: 'C' }, cwd: '/', signal: controller.signal,
+        stdinIsDefault: true, get stdin() { throw new Error('stdin forbidden'); }, fs: new Proxy({}, { get() { throw new Error('filesystem forbidden'); } }),
+        invoke() { throw new Error('invoke forbidden'); }, ...sinks,
+        registerCleanup(cleanup) { events.push('register-cleanup'); cleanups.push(cleanup); },
+      });
+    }
+    let settled = false;
+    const completion = Promise.resolve(invocation).then(value => { settled = true; events.push('settled'); return { value }; }, error => { settled = true; events.push('settled'); return { error }; });
+    if (input.mode?.startsWith('held-') || input.mode?.startsWith('abort-') && input.mode !== 'abort-post' || input.mode?.startsWith('cleanup-')) {
+      await entered.promise;
+      await tick();
+      check('awaited sink before settlement', !settled);
+      if (input.mode.startsWith('cleanup-')) {
+        const first = cleanups[0](), second = cleanups[0]();
+        check('overlapping cleanup shares promise', first === second);
+        await Promise.all([first, second]);
+        check('cleanup waits owned workers', active.size === 0);
+        check('cleanup does not detach awaited sink', !settled);
+      }
+      if (input.mode.startsWith('abort-')) controller.abort(abortReason);
+      else gate.resolve();
+    }
+    const outcome = await completion;
+    row.activeAtSettlement = active.size;
+    if (input.mode === 'abort-stderr' || input.mode === 'abort-stdout') gate.reject(sinkReason);
+    for (const cleanup of cleanups) {
+      const first = cleanup(), second = cleanup();
+      check('postsettlement cleanup shares promise', first === second);
+      await Promise.all([first, second]);
+    }
+    if (shell) await shell.dispose();
+    await tick(); await tick();
+    row.actual = { status: outcome.value?.exitCode ?? null, stdout: Buffer.concat(stdout).toString(), stderr: Buffer.concat(stderr).toString(),
+      stdoutHex: Buffer.concat(stdout).toString('hex'), stderrHex: Buffer.concat(stderr).toString('hex'),
+      rejection: outcome.error === sinkReason ? 'sink' : outcome.error === abortReason ? 'abort' : outcome.error ? String(outcome.error) : null };
+    row.activeAfterCleanup = active.size;
+    check('exact result and rejection identity', row.actual.status === input.expected.status && row.actual.stdout === input.expected.stdout && row.actual.stderr === input.expected.stderr && row.actual.rejection === (input.expected.rejection ?? null));
+    if (input.id === 'stdout-rejection-normal-quota') check('identical stdout rejection without diagnostic attempt', outcome.error === sinkReason && attempts.length === 1 && attempts[0].channel === 'stdout');
+    check('exact worker job count', jobs.length === input.expected.jobs);
+    check('worker count bounded without duplicate acquisition', events.filter(event => event === 'worker-start').length === (input.expected.jobs ? 1 : 0));
+    check('no duplicate termination', events.filter(event => event === 'worker-terminate').length <= (input.expected.jobs ? 1 : 0));
+    check('no owned workers at settlement or cleanup', row.activeAtSettlement === 0 && active.size === 0);
+    const emergencyAttempts = attempts.filter(attempt => attempt.channel === 'stderr' && attempt.hex === constants.emergencyHex);
+    check('at most one exact constant emergency attempt', emergencyAttempts.length <= 1);
+    const normalAttempts = attempts.filter(attempt => !emergencyAttempts.includes(attempt));
+    check('normal attempted bytes obey normal quota', normalAttempts.reduce((sum, attempt) => sum + attempt.bytes, 0) <= input.cap);
+    if (!input.shell) {
+      check('one registration and session close or none when preaborted', cleanups.length === (input.mode === 'preabort' ? 0 : 1) && events.filter(event => event === 'session-close').length === (input.mode === 'preabort' ? 0 : 1));
+      if (input.mode !== 'preabort') check('registration precedes session acquisition', events.indexOf('register-cleanup') < events.indexOf('session-open'));
+      check('at most one stderr attempt', attempts.filter(attempt => attempt.channel === 'stderr').length <= 1);
+    }
+    row.passed = row.checks.every(result => result.passed);
+    rows.push(row);
+  }
+  RegexSession.prototype.close = originalClose;
+  RegexExecutor.prototype.open = originalOpen;
+} finally {
+  const safetyTerminations = active.size;
+  for (const worker of active) await worker.terminate();
+  threads.Worker = NativeWorker;
+  syncBuiltinESMExports();
+  hooks.deregister();
+  save(destination, { constants, rows, passed: rows.filter(row => row.passed).length, total: rows.length, imports,
+    mainThreadMatcherViolations: violations, unhandledRejections: unhandled, safetyTerminations, activeAfterSafety: active.size });
+}

@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "executedCaptureSourcePath": "capture-executed.mjs.data",
+  "executedCaptureSourceSha256": "54272c9fe8b3160e76183731b1b4911caa1bea92907484ae445aa0d6f03440d6",
+  "currentGuardedCaptureSourceSha256": "3b805cee40968d00163ea24a666d904c6b4a517228917e9800ac48f539575cfe",
+  "postCaptureChange": "Only a fail-if-output-exists guard plus its existsSync import. The executed writer is preserved verbatim as explicit historical data; no output was recaptured or altered.",
+  "runtimeExecutionInputsChanged": false,
+  "privateQueries": 0,
+  "rawCapturesRewritten": false
+}

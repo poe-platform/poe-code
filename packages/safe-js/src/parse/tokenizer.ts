@@ -1,0 +1,1445 @@
+import { CompactTokens } from "./compact-tokens.js";
+import type { CompactSourcePositions } from "./compact-spans.js";
+import { RegexCompileGuard, type CompileScope } from "../interp/regex/compile-guard.js";
+
+export type Position = {
+  line: number;
+  column: number;
+  offset: number;
+};
+
+export type TokenType =
+  | "identifier"
+  | "private-identifier"
+  | "keyword"
+  | "escaped-keyword"
+  | "numeric"
+  | "regex"
+  | "string"
+  | "template"
+  | "punctuator"
+  | "eof";
+
+export type Token = {
+  type: TokenType;
+  value: string;
+  legacyEscape?: boolean;
+  templateExpressions?: ReadonlyArray<{ start: number; end: number }>;
+  start: Position;
+  end: Position;
+};
+
+export type Comment = {
+  type: "block" | "line";
+  value: string;
+  start: Position;
+  end: Position;
+};
+
+export type TokenizeOptions = {
+  allowRegexLiterals?: boolean;
+  statementList?: boolean;
+  allowLegacyNumbers?: boolean;
+  allowLegacyEscapes?: boolean;
+  allowHtmlComments?: boolean;
+  comments?: Comment[];
+  compilation?: CompileScope;
+  // Internal source graphs can reuse immutable token boundary positions.
+  sharedPositions?: boolean;
+};
+
+const freezePosition = Object.freeze;
+
+const KEYWORDS = new Set([
+  "class",
+  "extends",
+  "super",
+  "const",
+  "let",
+  "if",
+  "else",
+  "for",
+  "do",
+  "while",
+  "with",
+  "return",
+  "break",
+  "continue",
+  "try",
+  "catch",
+  "finally",
+  "throw",
+  "function",
+  "async",
+  "await",
+  "yield",
+  "import",
+  "as",
+  "true",
+  "false",
+  "null",
+  "typeof",
+  "void",
+  "delete",
+  "this",
+  "instanceof",
+  "in",
+  "of"
+]);
+
+const EXPRESSION_ENDING_KEYWORDS = new Set(["true", "false", "null"]);
+export const RESERVED_IDENTIFIER_SPELLINGS = new Set(["case", "default", "debugger", "enum", "export", "new", "switch", "var"]);
+const CONTROL_FLOW_PAREN_KEYWORDS = new Set(["if", "while", "with", "for", "catch", "switch"]);
+const MAX_UNICODE_CODE_POINT = 0x10ffff;
+const IDENTIFIER_START_PATTERN = /^\p{ID_Start}$/u;
+const IDENTIFIER_PART_PATTERN = /^\p{ID_Continue}$/u;
+const SPACE_SEPARATOR_PATTERN = /^\p{Zs}$/u;
+
+const PUNCTUATORS = [
+  ">>>=",
+  "&&=",
+  "||=",
+  "??=",
+  "===",
+  "!==",
+  ">>>",
+  "<<=",
+  ">>=",
+  "**=",
+  "?.",
+  "...",
+  "??",
+  "&&",
+  "||",
+  "==",
+  "!=",
+  "<=",
+  ">=",
+  "=>",
+  "++",
+  "--",
+  "<<",
+  ">>",
+  "**",
+  "+=",
+  "-=",
+  "*=",
+  "/=",
+  "%=",
+  "&=",
+  "|=",
+  "^=",
+  "??",
+  "{",
+  "}",
+  "(",
+  ")",
+  "[",
+  "]",
+  ".",
+  ";",
+  ",",
+  ":",
+  "?",
+  "~",
+  "+",
+  "-",
+  "*",
+  "/",
+  "%",
+  "&",
+  "|",
+  "^",
+  "!",
+  "<",
+  ">",
+  "="
+];
+
+export function tokenize(source: string, options: TokenizeOptions = {}): Token[] {
+  const lexer = new Lexer(source, options);
+  return lexer.tokenize();
+}
+
+/** Internal classic compilation with bounded materialized token/position caches. */
+export function tokenizeCompact(
+  source: string,
+  options: TokenizeOptions,
+  positions: CompactSourcePositions,
+  lazyPositions = false
+): Token[] {
+  const tokens = new CompactTokens(positions, lazyPositions);
+  new Lexer(source, {...options, sharedPositions: true}, tokens.indexed).tokenize();
+  return tokens.finish();
+}
+
+export function collectComments(source: string): Comment[] {
+  const comments: Comment[] = [];
+  tokenize(source, { allowRegexLiterals: true, statementList: true, comments });
+  return comments;
+}
+
+type GroupingContext = {
+  value: "(" | "[" | "{";
+  isControlCondition?: boolean;
+  statementList?: boolean;
+  closesStatement?: boolean;
+  classBody?: boolean;
+  functionParameters?: boolean;
+};
+
+type GroupingState = {
+  stack: GroupingContext[];
+  classHeads: Array<{depth: number; declaration: boolean}>;
+  tokenCount: number;
+  functionBody?: boolean;
+};
+
+class Lexer {
+  private index = 0;
+  private line = 1;
+  private column = 1;
+  private readonly groupingState: GroupingState = {stack: [], classHeads: [], tokenCount: 0};
+  private lastClosedStatementBoundary = false;
+  private legacyStringEscape = false;
+  private lineHasToken = false;
+  private lastPosition?: Position;
+
+  constructor(
+    private readonly source: string,
+    private readonly options: TokenizeOptions,
+    private readonly tokens: Token[] = []
+  ) {}
+
+  tokenize(): Token[] {
+    while (!this.isAtEnd()) {
+      this.skipTrivia();
+
+      if (this.isAtEnd()) {
+        break;
+      }
+
+      const start = this.position();
+      const char = this.currentChar();
+      const codePointChar = this.currentCodePointChar();
+
+      if (!this.options.allowHtmlComments && this.isHtmlStyleCommentDelimiter()) {
+        this.syntaxError("HTML-style comments are not supported in Agent Script", start);
+      }
+
+      if (char === "*" && this.peekChar(1) === "/") {
+        this.syntaxError("Unexpected block comment terminator", start);
+      }
+
+      if (char === "#") {
+        this.advance();
+        this.readIdentifierOrKeyword(start, true);
+        continue;
+      }
+
+      if (isIdentifierStart(codePointChar) || this.startsUnicodeEscape()) {
+        this.readIdentifierOrKeyword(start);
+        continue;
+      }
+
+      if (char === "'" || char === '"') {
+        this.readString(start, char);
+        continue;
+      }
+
+      if (char === "`") {
+        this.readTemplate(start);
+        continue;
+      }
+
+      if (isDecimalDigit(char) || (char === "." && isDecimalDigit(this.peekChar(1)))) {
+        this.readNumber(start);
+        continue;
+      }
+
+      this.readSlashOrPunctuator(start);
+    }
+
+    const end = this.position();
+    this.tokens.push({
+      type: "eof",
+      value: "",
+      start: end,
+      end
+    });
+    return this.tokens;
+  }
+
+  private skipTrivia(): void {
+    while (!this.isAtEnd()) {
+      const char = this.currentChar();
+
+      if (this.options.allowHtmlComments) {
+        const open = this.source.startsWith("<!--", this.index);
+        const close = !this.lineHasToken && this.source.startsWith("-->", this.index);
+        if (open || close) {
+          this.skipLineComment(open ? 4 : 3);
+          continue;
+        }
+      }
+
+      if (this.isHashbangCommentStart()) {
+        this.skipLineComment();
+        continue;
+      }
+
+      if (isWhitespace(char) || isLineBreak(char)) {
+        this.advance();
+        continue;
+      }
+
+      if (char === "/" && this.peekChar(1) === "/") {
+        const start = this.position();
+        this.advance();
+        this.advance();
+        const valueStart = this.index;
+        while (!this.isAtEnd() && !isLineBreak(this.currentChar())) {
+          this.advance();
+        }
+        this.recordComment("line", start, valueStart);
+        continue;
+      }
+
+      if (char === "/" && this.peekChar(1) === "*") {
+        this.skipBlockComment();
+        continue;
+      }
+
+      break;
+    }
+  }
+
+  private readIdentifierOrKeyword(start: Position, privateName = false): void {
+    let value = "";
+    let isStart = true;
+    let escapedKeyword = false;
+
+    while (!this.isAtEnd()) {
+      if (this.startsUnicodeEscape()) {
+        escapedKeyword = true;
+        const escapeStart = this.position();
+        const escaped = this.readUnicodeEscape();
+        const isValidIdentifierCharacter = isStart
+          ? isIdentifierStart(escaped)
+          : isIdentifierPart(escaped);
+
+        if (!isValidIdentifierCharacter) {
+          this.syntaxError("Invalid identifier escape", escapeStart);
+        }
+
+        value += escaped;
+        isStart = false;
+        continue;
+      }
+
+      const char = this.currentCodePointChar();
+      const isValidIdentifierCharacter = isStart ? isIdentifierStart(char) : isIdentifierPart(char);
+
+      if (!isValidIdentifierCharacter) {
+        break;
+      }
+
+      this.advanceBy(char.length);
+      value += char;
+      isStart = false;
+    }
+
+    if (privateName && isStart) this.syntaxError("Expected private identifier", start);
+    const type = privateName ? "private-identifier"
+      : escapedKeyword && (KEYWORDS.has(value) || RESERVED_IDENTIFIER_SPELLINGS.has(value)) ? "escaped-keyword"
+      : KEYWORDS.has(value) ? "keyword" : "identifier";
+    this.pushToken(type, start, value);
+  }
+
+  private readString(start: Position, quote: string): void {
+    this.legacyStringEscape = false;
+    this.advance();
+
+    while (!this.isAtEnd()) {
+      const char = this.currentChar();
+      if (char === quote) {
+        this.advance();
+        this.pushToken("string", start, this.source.slice(start.offset, this.index));
+        if (this.legacyStringEscape) this.tokens[this.tokens.length - 1]!.legacyEscape = true;
+        return;
+      }
+
+      if (char === "\\") {
+        this.readEscapedLiteralCharacter();
+        continue;
+      }
+
+      if (char === "\n" || char === "\r") {
+        this.syntaxError("Unterminated string literal", start);
+      }
+
+      this.advance();
+    }
+
+    this.syntaxError("Unterminated string literal", start);
+  }
+
+  private readTemplate(start: Position): void {
+    const expressions: Array<{ start: number; end: number }> = [];
+    this.advance();
+
+    while (!this.isAtEnd()) {
+      const char = this.currentChar();
+
+      if (char === "`") {
+        this.advance();
+        this.pushToken("template", start, this.source.slice(start.offset, this.index));
+        this.tokens[this.tokens.length - 1]!.templateExpressions = expressions;
+        return;
+      }
+
+      if (char === "\\") {
+        this.skipEscapedTemplateCharacter();
+        continue;
+      }
+
+      if (char === "$" && this.peekChar(1) === "{") {
+        const expressionStart = this.position();
+        this.advance();
+        this.advance();
+        this.skipTemplateExpression(expressionStart);
+        expressions.push({
+          start: expressionStart.offset + 2 - start.offset,
+          end: this.index - 1 - start.offset
+        });
+        continue;
+      }
+
+      this.advance();
+    }
+
+    this.syntaxError("Unterminated template literal", start);
+  }
+
+  private skipTemplateExpression(start: Position): void {
+    let depth = 1;
+    const tokens: Array<Pick<Token, "type" | "value">> = [];
+    const groupingState: GroupingState = {stack: [], classHeads: [], tokenCount: 0};
+    let lastClosedStatementBoundary = false;
+
+    while (!this.isAtEnd() && depth > 0) {
+      this.skipTrivia();
+      if (this.isAtEnd()) break;
+      const char = this.currentChar();
+
+      if (!this.options.allowHtmlComments && this.isHtmlStyleCommentDelimiter()) {
+        this.syntaxError("HTML-style comments are not supported in Agent Script", this.position());
+      }
+
+      if (char === "'" || char === '"') {
+        this.skipQuotedString(char);
+        tokens.push({ type: "string", value: char });
+        lastClosedStatementBoundary = false;
+        continue;
+      }
+
+      if (char === "`") {
+        this.skipNestedTemplate();
+        tokens.push({ type: "template", value: "`" });
+        lastClosedStatementBoundary = false;
+        continue;
+      }
+
+      if (char === "/" && this.peekChar(1) === "/") {
+        this.skipLineComment();
+        continue;
+      }
+
+      if (char === "/" && this.peekChar(1) === "*") {
+        this.skipBlockComment();
+        continue;
+      }
+
+      if (char === "*" && this.peekChar(1) === "/") {
+        this.syntaxError("Unexpected block comment terminator", this.position());
+      }
+
+      if (isIdentifierStart(this.currentCodePointChar()) || this.startsUnicodeEscape()) {
+        let value = "";
+        let isStart = true;
+
+        while (!this.isAtEnd()) {
+          if (this.startsUnicodeEscape()) {
+            const escapeStart = this.position();
+            const escaped = this.readUnicodeEscape();
+            const isValidIdentifierCharacter = isStart
+              ? isIdentifierStart(escaped)
+              : isIdentifierPart(escaped);
+
+            if (!isValidIdentifierCharacter) {
+              this.syntaxError("Invalid identifier escape", escapeStart);
+            }
+
+            value += escaped;
+            isStart = false;
+            continue;
+          }
+
+          const identifierChar = this.currentCodePointChar();
+          const isValidIdentifierCharacter = isStart
+            ? isIdentifierStart(identifierChar)
+            : isIdentifierPart(identifierChar);
+
+          if (!isValidIdentifierCharacter) {
+            break;
+          }
+
+          this.advanceBy(identifierChar.length);
+          value += identifierChar;
+          isStart = false;
+        }
+
+        tokens.push({ type: KEYWORDS.has(value) ? "keyword" : "identifier", value });
+        lastClosedStatementBoundary = false;
+        continue;
+      }
+
+      if (isDecimalDigit(char) || (char === "." && isDecimalDigit(this.peekChar(1)))) {
+        const start = this.position();
+        const value = this.scanNumber(start);
+        tokens.push({ type: "numeric", value });
+        lastClosedStatementBoundary = false;
+        continue;
+      }
+
+      if (char === "{") {
+        depth += 1;
+        this.advance();
+        const previousToken = tokens[tokens.length - 1];
+        tokens.push({ type: "punctuator", value: "{" });
+        updateGroupingState(groupingState, previousToken, "{", lastClosedStatementBoundary, false, tokens);
+        lastClosedStatementBoundary = false;
+        continue;
+      }
+
+      if (char === "}") {
+        depth -= 1;
+        this.advance();
+
+        if (depth === 0) {
+          return;
+        }
+
+        const previousToken = tokens[tokens.length - 1];
+        tokens.push({ type: "punctuator", value: "}" });
+        lastClosedStatementBoundary = updateGroupingState(groupingState, previousToken, "}", lastClosedStatementBoundary, false, tokens);
+        continue;
+      }
+
+      if (
+        char === "/" &&
+        shouldRejectRegexLiteral(tokens[tokens.length - 1], lastClosedStatementBoundary, tokens)
+      ) {
+        if (!this.options.allowRegexLiterals) {
+          this.syntaxError("Regular expression literals are not supported", this.position());
+        }
+
+        const start = this.position();
+        const value = this.scanRegexLiteral(start);
+        tokens.push({ type: "regex", value });
+        lastClosedStatementBoundary = false;
+        continue;
+      }
+
+      const punctuator = matchPunctuator(this.source, this.index);
+      if (punctuator !== undefined) {
+        const previousToken = tokens[tokens.length - 1];
+        this.advanceBy(punctuator.length);
+        tokens.push({ type: "punctuator", value: punctuator });
+        lastClosedStatementBoundary = updateGroupingState(
+          groupingState,
+          previousToken,
+          punctuator,
+          lastClosedStatementBoundary,
+          false,
+          tokens
+        );
+        continue;
+      }
+
+      this.advance();
+    }
+
+    if (depth !== 0) {
+      this.syntaxError("Unterminated template expression", start);
+    }
+  }
+
+  private skipQuotedString(quote: string): void {
+    const start = this.position();
+    this.advance();
+
+    while (!this.isAtEnd()) {
+      const char = this.currentChar();
+      if (char === quote) {
+        this.advance();
+        return;
+      }
+      if (char === "\\") {
+        this.readEscapedLiteralCharacter();
+        continue;
+      }
+      if (char === "\n" || char === "\r") {
+        this.syntaxError("Unterminated string literal", start);
+      }
+      this.advance();
+    }
+
+    this.syntaxError("Unterminated string literal", start);
+  }
+
+  private skipNestedTemplate(): void {
+    const start = this.position();
+    this.advance();
+
+    while (!this.isAtEnd()) {
+      const char = this.currentChar();
+      if (char === "`") {
+        this.advance();
+        return;
+      }
+      if (char === "\\") {
+        this.skipEscapedTemplateCharacter();
+        continue;
+      }
+      if (char === "$" && this.peekChar(1) === "{") {
+        const expressionStart = this.position();
+        this.advance();
+        this.advance();
+        this.skipTemplateExpression(expressionStart);
+        continue;
+      }
+      this.advance();
+    }
+
+    this.syntaxError("Unterminated template literal", start);
+  }
+
+  private skipLineComment(delimiterLength = 2): void {
+    const start = this.position();
+    this.advanceBy(delimiterLength);
+    const valueStart = this.index;
+    while (!this.isAtEnd() && !isLineBreak(this.currentChar())) {
+      this.advance();
+    }
+    this.recordComment("line", start, valueStart);
+  }
+
+  private skipBlockComment(): void {
+    const start = this.position();
+    const lineHadToken = this.lineHasToken;
+    let containsLineBreak = false;
+    this.advance();
+    this.advance();
+    const valueStart = this.index;
+
+    while (!this.isAtEnd()) {
+      if (this.currentChar() === "*" && this.peekChar(1) === "/") {
+        const valueEnd = this.index;
+        this.advance();
+        this.advance();
+        this.lineHasToken = containsLineBreak ? false : lineHadToken;
+        this.recordComment("block", start, valueStart, valueEnd);
+        return;
+      }
+      if (isLineBreak(this.currentChar())) containsLineBreak = true;
+      this.advance();
+    }
+
+    this.syntaxError("Unterminated block comment", start);
+  }
+
+  private recordComment(
+    type: Comment["type"],
+    start: Position,
+    valueStart: number,
+    valueEnd = this.index
+  ): void {
+    this.options.comments?.push({
+      type,
+      value: this.source.slice(valueStart, valueEnd),
+      start,
+      end: this.position()
+    });
+  }
+
+  private readNumber(start: Position): void {
+    const value = this.scanNumber(start);
+    this.pushToken("numeric", start, value);
+  }
+
+  private scanNumber(start: Position): string {
+    if (this.currentChar() === ".") {
+      this.advance();
+      this.consumeDecimalDigits();
+      this.consumeExponent();
+      this.rejectBigIntSuffix();
+      this.rejectInvalidNumericLiteralContinuation();
+      return this.source.slice(start.offset, this.index);
+    }
+
+    if (this.currentChar() === "0") {
+      const prefix = this.peekChar(1);
+      if (prefix === "x" || prefix === "X") {
+        this.advance();
+        this.advance();
+        this.consumeDigitsForBase(isHexDigit, "hexadecimal");
+        if (this.currentChar() === "n") this.advance();
+        this.rejectInvalidNumericLiteralContinuation();
+        return this.source.slice(start.offset, this.index);
+      }
+      if (prefix === "b" || prefix === "B") {
+        this.advance();
+        this.advance();
+        this.consumeDigitsForBase(isBinaryDigit, "binary");
+        if (this.currentChar() === "n") this.advance();
+        this.rejectInvalidNumericLiteralContinuation();
+        return this.source.slice(start.offset, this.index);
+      }
+      if (prefix === "o" || prefix === "O") {
+        this.advance();
+        this.advance();
+        this.consumeDigitsForBase(isOctalDigit, "octal");
+        if (this.currentChar() === "n") this.advance();
+        this.rejectInvalidNumericLiteralContinuation();
+        return this.source.slice(start.offset, this.index);
+      }
+
+      if (isDecimalDigit(prefix)) {
+        if (this.options.allowLegacyNumbers) {
+          let octal = true;
+          while (isDecimalDigit(this.currentChar())) {
+            if (!isOctalDigit(this.currentChar())) octal = false;
+            this.advance();
+          }
+          if (!octal) {
+            if (this.currentChar() === ".") {
+              this.advance();
+              this.consumeOptionalDecimalDigits();
+            }
+            this.consumeExponent();
+          }
+          this.rejectBigIntSuffix();
+          this.rejectInvalidNumericLiteralContinuation();
+          return this.source.slice(start.offset, this.index);
+        }
+        // Agent Script uses strict-mode JavaScript numeric grammar, so legacy octal
+        // and non-octal leading-zero decimal literals are not accepted.
+        this.advance();
+        this.syntaxError("Legacy octal numeric literals are not supported in strict mode", start);
+      }
+
+      if (prefix === "_") {
+        this.advance();
+        this.syntaxError("Invalid decimal numeric literal", this.position());
+      }
+    }
+
+    this.consumeDecimalDigits();
+
+    if (this.currentChar() === "n") {
+      this.advance();
+      this.rejectInvalidNumericLiteralContinuation();
+      return this.source.slice(start.offset, this.index);
+    }
+
+    if (this.currentChar() === "." && (this.peekChar(1) !== "." || this.peekChar(2) !== ".")) {
+      this.advance();
+      this.consumeOptionalDecimalDigits();
+    }
+
+    this.consumeExponent();
+    this.rejectBigIntSuffix();
+    this.rejectInvalidNumericLiteralContinuation();
+    return this.source.slice(start.offset, this.index);
+  }
+
+  private consumeDecimalDigits(): void {
+    this.consumeDigitsForBase(isDecimalDigit, "decimal");
+  }
+
+  private consumeOptionalDecimalDigits(): void {
+    let consumedDigit = false;
+    let lastWasSeparator = false;
+
+    while (!this.isAtEnd()) {
+      const char = this.currentChar();
+      if (isDecimalDigit(char)) {
+        consumedDigit = true;
+        lastWasSeparator = false;
+        this.advance();
+        continue;
+      }
+
+      if (char === "_") {
+        if (!consumedDigit || lastWasSeparator || !isDecimalDigit(this.peekChar(1))) {
+          this.syntaxError("Invalid decimal numeric literal", this.position());
+        }
+        lastWasSeparator = true;
+        this.advance();
+        continue;
+      }
+
+      break;
+    }
+
+    if (lastWasSeparator) {
+      this.syntaxError("Invalid decimal numeric literal", this.position());
+    }
+  }
+
+  private consumeDigitsForBase(isValidDigit: (char: string) => boolean, label: string): void {
+    let consumedDigit = false;
+    let lastWasSeparator = false;
+
+    while (!this.isAtEnd()) {
+      const char = this.currentChar();
+      if (isValidDigit(char)) {
+        consumedDigit = true;
+        lastWasSeparator = false;
+        this.advance();
+        continue;
+      }
+
+      if (char === "_") {
+        if (!consumedDigit || lastWasSeparator || !isValidDigit(this.peekChar(1))) {
+          this.syntaxError(`Invalid ${label} numeric literal`, this.position());
+        }
+        lastWasSeparator = true;
+        this.advance();
+        continue;
+      }
+
+      break;
+    }
+
+    if (!consumedDigit || lastWasSeparator) {
+      this.syntaxError(`Invalid ${label} numeric literal`, this.position());
+    }
+  }
+
+  private consumeExponent(): void {
+    const char = this.currentChar();
+    if (char !== "e" && char !== "E") {
+      return;
+    }
+
+    const exponentStart = this.position();
+    this.advance();
+
+    if (this.currentChar() === "+" || this.currentChar() === "-") {
+      this.advance();
+    }
+
+    let consumedDigit = false;
+    let lastWasSeparator = false;
+
+    while (!this.isAtEnd()) {
+      const next = this.currentChar();
+      if (isDecimalDigit(next)) {
+        consumedDigit = true;
+        lastWasSeparator = false;
+        this.advance();
+        continue;
+      }
+
+      if (next === "_") {
+        if (!consumedDigit || lastWasSeparator || !isDecimalDigit(this.peekChar(1))) {
+          this.syntaxError("Invalid decimal numeric literal", this.position());
+        }
+        lastWasSeparator = true;
+        this.advance();
+        continue;
+      }
+
+      break;
+    }
+
+    if (!consumedDigit || lastWasSeparator) {
+      this.syntaxError("Invalid decimal numeric literal", exponentStart);
+    }
+  }
+
+  private rejectBigIntSuffix(): void {
+    if (this.currentChar() === "n") {
+      this.syntaxError("BigInt literals cannot contain a fraction or exponent", this.position());
+    }
+  }
+
+  private rejectInvalidNumericLiteralContinuation(): void {
+    const char = this.currentChar();
+    if (
+      char === "_" ||
+      isIdentifierStart(this.currentCodePointChar()) ||
+      isDecimalDigit(char) ||
+      this.startsUnicodeEscape()
+    ) {
+      this.syntaxError("Invalid number", this.position());
+    }
+  }
+
+  private readSlashOrPunctuator(start: Position): void {
+    if (
+      this.currentChar() === "/" &&
+      shouldRejectRegexLiteral(this.lastSignificantToken(), this.lastClosedStatementBoundary, this.tokens)
+    ) {
+      if (!this.options.allowRegexLiterals) {
+        this.syntaxError("Regular expression literals are not supported", start);
+      }
+
+      this.pushToken("regex", start, this.scanRegexLiteral(start));
+      return;
+    }
+
+    const punctuator = matchPunctuator(this.source, this.index);
+    if (punctuator !== undefined) {
+      this.advanceBy(punctuator.length);
+      this.pushToken("punctuator", start, punctuator);
+      return;
+    }
+
+    this.syntaxError(`Unexpected character '${this.currentChar()}'`, start);
+  }
+
+  private lastSignificantToken(): Token | undefined {
+    for (let index = this.tokens.length - 1; index >= 0; index -= 1) {
+      const token = this.tokens[index];
+      if (token.type !== "eof") {
+        return token;
+      }
+    }
+    return undefined;
+  }
+
+  private scanRegexLiteral(start: Position): string {
+    const guard = new RegexCompileGuard(this.options.compilation);
+    try {
+      guard.work(1);
+      this.advance();
+      const patternStart = this.index;
+      let inCharacterClass = false;
+      const advancePattern = () => {
+        const width = this.currentChar() === "\r" && this.peekChar(1) === "\n" ? 2 : 1;
+        guard.checkLength(this.index - patternStart + width);
+        guard.work(width);
+        if (isLineBreak(this.currentChar())) this.syntaxError("Unterminated regular expression literal", this.position());
+        this.advance();
+      };
+      while (!this.isAtEnd()) {
+        const char = this.currentChar();
+        if (char === "\\") {
+          advancePattern();
+          if (!this.isAtEnd()) advancePattern();
+          continue;
+        }
+        if (char === "[" && !inCharacterClass) {
+          inCharacterClass = true;
+          advancePattern();
+          continue;
+        }
+        if (char === "]" && inCharacterClass) {
+          inCharacterClass = false;
+          advancePattern();
+          continue;
+        }
+        if (char === "/" && !inCharacterClass) {
+          guard.work(1);
+          this.advance();
+          const flagsStart = this.index;
+          while (!this.isAtEnd() && isAsciiLetter(this.currentChar())) {
+            guard.checkLength(this.index - flagsStart + 1, true);
+            guard.work(1);
+            this.advance();
+          }
+          break;
+        }
+        advancePattern();
+      }
+      guard.allocate(this.index - start.offset);
+      guard.work(this.index - start.offset);
+      const raw = this.source.slice(start.offset, this.index);
+      guard.retainScratch();
+      return raw;
+    } finally {
+      guard.close();
+    }
+  }
+
+  private pushToken(type: TokenType, start: Position, value: string): void {
+    const previousToken = this.lastSignificantToken();
+    const token = {
+      type,
+      value,
+      start,
+      end: this.position()
+    };
+
+    this.tokens.push(token);
+
+    if (type === "punctuator") {
+      this.lastClosedStatementBoundary = updateGroupingState(
+        this.groupingState,
+        previousToken,
+        value,
+        this.lastClosedStatementBoundary,
+        this.options.statementList === true,
+        this.tokens
+      );
+      return;
+    }
+
+    this.lastClosedStatementBoundary = false;
+  }
+
+  private currentChar(): string {
+    return this.source[this.index] ?? "";
+  }
+
+  private peekChar(distance: number): string {
+    return this.source[this.index + distance] ?? "";
+  }
+
+  private currentCodePointChar(): string {
+    const codePoint = this.source.codePointAt(this.index);
+    return codePoint === undefined ? "" : String.fromCodePoint(codePoint);
+  }
+
+  private startsUnicodeEscape(): boolean {
+    return this.currentChar() === "\\" && this.peekChar(1) === "u";
+  }
+
+  private isHtmlStyleCommentDelimiter(): boolean {
+    return this.source.startsWith("<!--", this.index) || this.source.startsWith("-->", this.index);
+  }
+
+  private isHashbangCommentStart(): boolean {
+    return (
+      this.source.startsWith("#!", this.index) &&
+      (this.index === 0 || (this.index === 1 && this.source[0] === "\uFEFF"))
+    );
+  }
+
+  private readUnicodeEscape(): string {
+    const escapeStart = this.position();
+    this.advance();
+    return this.readUnicodeEscapeAfterBackslash(escapeStart);
+  }
+
+  private readUnicodeEscapeAfterBackslash(escapeStart: Position): string {
+    this.advance();
+
+    if (this.currentChar() === "{") {
+      return this.readExtendedUnicodeEscape(escapeStart);
+    }
+
+    let value = "";
+    for (let index = 0; index < 4; index += 1) {
+      const char = this.currentChar();
+      if (!isHexDigit(char)) {
+        this.syntaxError("Invalid unicode escape", escapeStart);
+      }
+      value += char;
+      this.advance();
+    }
+
+    return String.fromCharCode(Number.parseInt(value, 16));
+  }
+
+  private readEscapedLiteralCharacter(): void {
+    const escapeStart = this.position();
+    this.advance();
+
+    if (this.isAtEnd()) {
+      return;
+    }
+
+    const escaped = this.currentChar();
+    if (escaped === "u") {
+      this.readUnicodeEscapeAfterBackslash(escapeStart);
+      return;
+    }
+
+    if (escaped === "x") {
+      this.advance();
+      for (let index = 0; index < 2; index += 1) {
+        if (!isHexDigit(this.currentChar())) {
+          this.syntaxError("Invalid hex escape", escapeStart);
+        }
+        this.advance();
+      }
+      return;
+    }
+
+    if (escaped === "0") {
+      this.advance();
+      if (isDecimalDigit(this.currentChar())) {
+        if (!this.options.allowLegacyEscapes)
+          this.syntaxError("Legacy octal escape sequences are not supported", escapeStart);
+        this.legacyStringEscape = true;
+      }
+      return;
+    }
+
+    if (isOctalDigit(escaped)) {
+      if (!this.options.allowLegacyEscapes)
+        this.syntaxError("Legacy octal escape sequences are not supported", escapeStart);
+      this.legacyStringEscape = true;
+    }
+    if (escaped === "8" || escaped === "9") {
+      if (!this.options.allowLegacyEscapes)
+        this.syntaxError("Legacy decimal escape sequences are not supported", escapeStart);
+      this.legacyStringEscape = true;
+    }
+
+    this.advance();
+  }
+
+  private skipEscapedTemplateCharacter(): void {
+    this.advance();
+
+    if (this.isAtEnd()) {
+      return;
+    }
+
+    const escaped = this.currentChar();
+    if (escaped === "\r") {
+      this.advance();
+      if (this.currentChar() === "\n") {
+        this.advance();
+      }
+      return;
+    }
+
+    this.advance();
+  }
+
+  private readExtendedUnicodeEscape(escapeStart: Position): string {
+    this.advance();
+    const codePointStart = this.position();
+    let value = "";
+
+    while (!this.isAtEnd() && this.currentChar() !== "}") {
+      const char = this.currentChar();
+      if (!isHexDigit(char)) {
+        this.syntaxError("Invalid unicode escape", this.position());
+      }
+
+      value += char;
+      this.advance();
+    }
+
+    if (value.length === 0) {
+      this.syntaxError("Invalid unicode escape", escapeStart);
+    }
+
+    if (this.isAtEnd()) {
+      this.syntaxError("Invalid unicode escape", escapeStart);
+    }
+
+    const codePoint = Number.parseInt(value, 16);
+    if (codePoint > MAX_UNICODE_CODE_POINT) {
+      this.syntaxError("Invalid unicode escape", codePointStart);
+    }
+
+    this.advance();
+    return String.fromCodePoint(codePoint);
+  }
+
+  private isAtEnd(): boolean {
+    return this.index >= this.source.length;
+  }
+
+  private position(): Position {
+    if (this.options.sharedPositions && this.lastPosition?.offset === this.index)
+      return this.lastPosition;
+    const position = {
+      line: this.line,
+      column: this.column,
+      offset: this.index
+    };
+    if (!this.options.sharedPositions) return position;
+    return (this.lastPosition = freezePosition(position));
+  }
+
+  private advance(): void {
+    if (this.isAtEnd()) {
+      return;
+    }
+
+    const char = this.currentChar();
+    if (isLineBreak(char)) this.lineHasToken = false;
+    else if (!isWhitespace(char)) this.lineHasToken = true;
+    if (char === "\r") {
+      this.index += 1;
+      if (this.currentChar() === "\n") {
+        this.index += 1;
+      }
+      this.line += 1;
+      this.column = 1;
+      return;
+    }
+
+    this.index += 1;
+    if (isLineBreak(char)) {
+      this.line += 1;
+      this.column = 1;
+      return;
+    }
+
+    this.column += 1;
+  }
+
+  private advanceBy(length: number): void {
+    for (let index = 0; index < length; index += 1) {
+      this.advance();
+    }
+  }
+
+  private syntaxError(message: string, position: Position): never {
+    throw new Error(`${message} at line ${position.line}, column ${position.column}.`);
+  }
+}
+
+function isIdentifierStart(char: string): boolean {
+  return char === "_" || char === "$" || IDENTIFIER_START_PATTERN.test(char);
+}
+
+function isIdentifierPart(char: string): boolean {
+  return (
+    isIdentifierStart(char) ||
+    isDecimalDigit(char) ||
+    char === "\u200c" ||
+    char === "\u200d" ||
+    IDENTIFIER_PART_PATTERN.test(char)
+  );
+}
+
+function isAsciiLetter(char: string): boolean {
+  return (char >= "a" && char <= "z") || (char >= "A" && char <= "Z");
+}
+
+function isDecimalDigit(char: string): boolean {
+  return char >= "0" && char <= "9";
+}
+
+function isHexDigit(char: string): boolean {
+  return isDecimalDigit(char) || (char >= "a" && char <= "f") || (char >= "A" && char <= "F");
+}
+
+function isBinaryDigit(char: string): boolean {
+  return char === "0" || char === "1";
+}
+
+function isOctalDigit(char: string): boolean {
+  return char >= "0" && char <= "7";
+}
+
+function isWhitespace(char: string): boolean {
+  return char === " " || char === "\t" || char === "\v" || char === "\f" || char === "\uFEFF" ||
+    (char.charCodeAt(0) > 0x7f && SPACE_SEPARATOR_PATTERN.test(char));
+}
+
+function isLineBreak(char: string): boolean {
+  return char === "\n" || char === "\r" || char === "\u2028" || char === "\u2029";
+}
+
+function isExpressionEndingPunctuator(value: string): boolean {
+  return value === ")" || value === "]" || value === "}" || value === "++" || value === "--";
+}
+
+function matchPunctuator(source: string, index: number): string | undefined {
+  return PUNCTUATORS.find(
+    (punctuator) =>
+      source.startsWith(punctuator, index) &&
+      (punctuator !== "?." || !isDecimalDigit(source[index + 2] ?? ""))
+  );
+}
+
+function shouldRejectRegexLiteral(
+  previousToken: Pick<Token, "type" | "value"> | undefined,
+  lastClosedStatementBoundary: boolean,
+  tokens: ReadonlyArray<Pick<Token, "type" | "value">>
+): boolean {
+  if (previousToken === undefined) {
+    return true;
+  }
+
+  // `new` is tokenized as an identifier but starts a constructor expression.
+  // An IdentifierName in a member access still ends an expression.
+  if (previousToken.type === "identifier" && previousToken.value === "new" &&
+      tokens.at(-2)?.value !== "." && tokens.at(-2)?.value !== "?.") return true;
+
+  if (
+    previousToken.type === "identifier" ||
+    previousToken.type === "private-identifier" ||
+    previousToken.type === "numeric" ||
+    previousToken.type === "string" ||
+    previousToken.type === "template"
+  ) {
+    return false;
+  }
+
+  if (previousToken.type === "keyword") {
+    if (previousToken.value === "of") return endsWithForOfSeparator(tokens);
+    return !EXPRESSION_ENDING_KEYWORDS.has(previousToken.value);
+  }
+
+  if (previousToken.value === ")" || previousToken.value === "}") {
+    return lastClosedStatementBoundary;
+  }
+
+  return !isExpressionEndingPunctuator(previousToken.value);
+}
+
+function endsWithForOfSeparator(tokens: ReadonlyArray<Pick<Token, "type" | "value">>): boolean {
+  let depth = 0;
+  let start = -1;
+  for (let index = tokens.length - 2; index >= 0; index--) {
+    const token = tokens[index];
+    if (token.type !== "punctuator") continue;
+    if ([")", "]", "}"].includes(token.value)) depth++;
+    else if (["(", "[", "{"].includes(token.value)) {
+      if (depth > 0) { depth--; continue; }
+      if (token.value === "(" && (tokens[index - 1]?.value === "for" ||
+          (tokens[index - 1]?.value === "await" && tokens[index - 2]?.value === "for"))) start = index + 1;
+      break;
+    } else if (depth === 0 && token.value === ";") break;
+  }
+  if (start < 0) return false;
+  depth = 0;
+  for (let index = start; index < tokens.length; index++) {
+    const token = tokens[index];
+    if (token.type === "punctuator") {
+      if (["(", "[", "{"].includes(token.value)) depth++;
+      else if ([")", "]", "}"].includes(token.value)) depth--;
+    }
+    if (depth === 0 && token.type === "keyword" && token.value === "of" &&
+        index !== start && tokens[index - 1]?.value !== "." && tokens[index - 1]?.value !== "?." &&
+        !(index === start + 1 && ["const", "let", "var"].includes(tokens[start].value)))
+      return index === tokens.length - 1;
+  }
+  return false;
+}
+
+function updateGroupingState(
+  state: GroupingState,
+  previousToken: Pick<Token, "type" | "value"> | undefined,
+  punctuator: string,
+  previousStatementBoundary: boolean,
+  initialStatementList: boolean,
+  tokens: ReadonlyArray<Pick<Token, "type" | "value">>
+): boolean {
+  const groupingStack = state.stack;
+  const functionBody = state.functionBody;
+  state.functionBody = false;
+  for (let index = state.tokenCount; index < tokens.length; index++) {
+    const token = tokens[index];
+    if (token.type !== "keyword" || token.value !== "class") continue;
+    const before = tokens[index - 1];
+    if (before?.value === "." || before?.value === "?.") continue;
+    const next = tokens[index + 1]?.value;
+    const afterName = tokens[index + 2]?.value;
+    if (next !== "{" && next !== "extends" && afterName !== "{" && afterName !== "extends") continue;
+    const parent = groupingStack[groupingStack.length - 1];
+    if (parent?.classBody && (before === undefined || ["{", "}", ";", "static"].includes(before.value) ||
+        ["identifier", "numeric", "string", "template", "regex"].includes(before.type))) continue;
+    state.classHeads.push({depth: groupingStack.length,
+      declaration: isDeclarationPosition(tokens, index, groupingStack, initialStatementList)});
+  }
+  state.tokenCount = tokens.length;
+  const beforePreviousToken = tokens[tokens.length - 3];
+  if (punctuator === "(") {
+    let functionIndex = tokens.length - 2;
+    if (tokens[functionIndex]?.value !== "function") {
+      if (tokens[functionIndex]?.value !== "*") functionIndex--;
+      if (tokens[functionIndex]?.value === "*") functionIndex--;
+    }
+    const functionParameters = tokens[functionIndex]?.type === "keyword" && tokens[functionIndex].value === "function";
+    const functionDeclaration = functionParameters && isDeclarationPosition(tokens, functionIndex, groupingStack, initialStatementList);
+    groupingStack.push({
+      value: "(", functionParameters,
+      isControlCondition: functionDeclaration || (
+        (previousToken?.type === "keyword" || previousToken?.type === "identifier") &&
+        (CONTROL_FLOW_PAREN_KEYWORDS.has(previousToken.value) ||
+          (previousToken.value === "await" && beforePreviousToken?.type === "keyword" && beforePreviousToken.value === "for")) &&
+        beforePreviousToken?.value !== "." && beforePreviousToken?.value !== "?.")
+    });
+    return false;
+  }
+
+  if (punctuator === "[") {
+    groupingStack.push({ value: "[" });
+    return false;
+  }
+
+  if (punctuator === "{") {
+    const classHead = state.classHeads[state.classHeads.length - 1];
+    if (!functionBody && previousToken?.value !== "=>" && classHead?.depth === groupingStack.length) {
+      state.classHeads.pop();
+      groupingStack.push({value: "{", classBody: true, closesStatement: classHead.declaration});
+      return false;
+    }
+    const parent = groupingStack[groupingStack.length - 1];
+    const closesStatement = previousToken === undefined ? initialStatementList
+      : previousStatementBoundary ||
+        (["{", ";"].includes(previousToken.value) && (parent === undefined || parent.statementList === true)) ||
+        (previousToken.type === "keyword" && ["else", "do", "try", "finally"].includes(previousToken.value));
+    groupingStack.push({ value: "{", closesStatement,
+      statementList: closesStatement || previousToken?.value === ")" || previousToken?.value === "=>" || previousToken?.value === "static" });
+    return false;
+  }
+
+  if (punctuator === ")") {
+    const group = popGroupingContext(groupingStack, "(");
+    state.functionBody = group?.functionParameters === true;
+    return group?.isControlCondition === true;
+  }
+
+  if (punctuator === "]") {
+    popGroupingContext(groupingStack, "[");
+    return false;
+  }
+
+  if (punctuator === "}") {
+    return popGroupingContext(groupingStack, "{")?.closesStatement === true;
+  }
+
+  return false;
+}
+
+function isDeclarationPosition(
+  tokens: ReadonlyArray<Pick<Token, "type" | "value">>,
+  index: number,
+  groupingStack: GroupingContext[],
+  initialStatementList: boolean
+): boolean {
+  const parent = groupingStack[groupingStack.length - 1];
+  if (parent === undefined ? !initialStatementList : parent.statementList !== true) return false;
+  if (tokens[index - 1]?.value === "async") index--;
+  const previous = tokens[index - 1];
+  return previous === undefined || ["{", "}", ";", ")", "]", "export", "default"].includes(previous.value) ||
+    ["identifier", "numeric", "string", "template", "regex"].includes(previous.type) ||
+    (previous.type === "keyword" && EXPRESSION_ENDING_KEYWORDS.has(previous.value));
+}
+
+function popGroupingContext(
+  groupingStack: GroupingContext[],
+  expected: GroupingContext["value"]
+): GroupingContext | undefined {
+  const top = groupingStack[groupingStack.length - 1];
+  if (top?.value !== expected) {
+    return undefined;
+  }
+
+  return groupingStack.pop();
+}

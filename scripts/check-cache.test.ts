@@ -1,0 +1,391 @@
+import { createFsFromVolume, Volume } from "memfs";
+import { describe, expect, it } from "vitest";
+import { createCheckCache, createTaskFingerprints, prepareBuildCache } from "./check-cache.mjs";
+
+function fixture(root = "/repo") {
+  const files = {
+    "package-lock.json": "lock", "vitest.config.ts": "config", "tests/setup.ts": "setup",
+    "packages/alpha/package.json": '{"name":"alpha"}', "packages/alpha/src/index.ts": "alpha",
+    "packages/beta/package.json": '{"name":"beta"}', "packages/beta/src/index.ts": "beta",
+    "packages/other/src/index.ts": "other"
+  };
+  const fileSystem = createFsFromVolume(Volume.fromJSON(Object.fromEntries(
+    Object.entries(files).map(([name, content]) => [root + "/" + name, content]))));
+  const plan = { root, workspaces: [{ name: "alpha", path: "packages/alpha" }, { name: "beta", path: "packages/beta" }, { name: "other", path: "packages/other" }], edges: [{ from: "alpha", to: "beta" }] };
+  return { root, files: Object.keys(files), fileSystem, plan };
+}
+
+describe("content-addressed check cache", () => {
+  it("preserves compiler input identity when cached outputs already match", () => {
+    const state = fixture();
+    const root = "/repo/packages/alpha";
+    state.fileSystem.mkdirSync(root + "/dist", { recursive: true });
+    state.fileSystem.writeFileSync(root + "/dist/index.js", "export const value = 1", { mode: 0o644 });
+    const cache = createCheckCache({ directory: "/cache", fileSystem: state.fileSystem });
+    const records = cache.capture(root, ["dist/**"]);
+    const before = state.fileSystem.statSync(root + "/dist/index.js");
+    cache.restore(root, ["dist/**"], records);
+    const after = state.fileSystem.statSync(root + "/dist/index.js");
+    expect([after.ino, after.mtimeMs, after.ctimeMs]).toEqual([before.ino, before.mtimeMs, before.ctimeMs]);
+    state.fileSystem.mkdirSync(root + "/dist/stale-empty");
+    cache.restore(root, ["dist/**"], records);
+    expect(state.fileSystem.existsSync(root + "/dist/stale-empty")).toBe(false);
+  });
+  it("reuses keys across checkout paths and invalidates source consumers without invalidating unrelated packages", () => {
+    const first = fixture(), second = fixture("/other-checkout");
+    const keys = state => createTaskFingerprints(state.plan, { files: state.files, fileSystem: state.fileSystem, environment: {}, runtime: "node-test" });
+    const before = keys(first);
+    expect(keys(second).get("alpha")).toBe(before.get("alpha"));
+    first.fileSystem.writeFileSync("/repo/packages/beta/src/index.ts", "changed");
+    const after = keys(first);
+    expect(after.get("alpha")).not.toBe(before.get("alpha"));
+    expect(after.get("beta")).not.toBe(before.get("beta"));
+    expect(after.get("other")).toBe(before.get("other"));
+  });
+
+  it("normalizes npm checkout bin paths while retaining external PATH identity", () => {
+    const first = fixture(), second = fixture("/other-checkout");
+    const key = (state, external = "/usr/bin") => createTaskFingerprints(state.plan, {
+      files: state.files, fileSystem: state.fileSystem, runtime: "node-test",
+      environment: { PATH: state.root + "/packages/alpha/node_modules/.bin:" + state.root + "/node_modules/.bin:" + external }
+    }).get("alpha");
+    expect(key(second)).toBe(key(first));
+    expect(key(second, "/different/bin")).not.toBe(key(first));
+  });
+
+  it("includes untracked files, deletions, shared setup, runtime and relevant environment", () => {
+    const state = fixture();
+    const key = (options = {}) => createTaskFingerprints(state.plan, { files: state.files, fileSystem: state.fileSystem, environment: {}, runtime: "node-test", ...options }).get("alpha");
+    const before = key();
+    expect(key({ runtime: "different-node" })).not.toBe(before);
+    expect(key({ environment: { TZ: "UTC" } })).not.toBe(before);
+    expect(key({ environment: { PWD: "/elsewhere", npm_package_name: "different" } })).toBe(before);
+    expect(key({ environment: { GITHUB_RUN_ID: "new-run", GITHUB_SHA: "new-head", RUNNER_TRACKING_ID: "new-process", CODEX_THREAD_ID: "new-session", INVOCATION_ID: "vm-uuid-1", JOURNAL_STREAM: "8:99999", SYSTEMD_EXEC_PID: "1234", TMUX_PANE: "%2", SSH_CONNECTION: "1.2.3.4" } })).toBe(before);
+    state.fileSystem.writeFileSync("/repo/tests/setup.ts", "new setup");
+    expect(key()).not.toBe(before);
+    state.fileSystem.writeFileSync("/repo/tests/setup.ts", "setup");
+    state.fileSystem.unlinkSync("/repo/packages/beta/src/index.ts");
+    expect(key()).not.toBe(before);
+    state.fileSystem.writeFileSync("/repo/packages/beta/src/index.ts", "beta");
+    state.fileSystem.writeFileSync("/repo/packages/alpha/src/new.ts", "new");
+    expect(key({ files: [...state.files, "packages/alpha/src/new.ts"] })).not.toBe(before);
+  });
+
+  it("includes source imports missing from manifests, including relative imports and dependency cycles", () => {
+    const state = fixture();
+    state.fileSystem.writeFileSync("/repo/packages/alpha/src/index.ts", 'export { value } from "other";');
+    state.fileSystem.writeFileSync("/repo/packages/other/src/index.ts", 'export { value } from "../../alpha/src/index.js";');
+    const keys = () => createTaskFingerprints(state.plan, { files: state.files, fileSystem: state.fileSystem, environment: {}, runtime: "node-test" });
+    const before = keys();
+    expect(before.get("alpha")).not.toBe(before.get("other"));
+    state.fileSystem.writeFileSync("/repo/packages/other/src/index.ts", 'export { value } from "../../alpha/src/index.js"; export const changed = true;');
+    expect(keys().get("alpha")).not.toBe(before.get("alpha"));
+    expect(keys().get("beta")).toBe(before.get("beta"));
+  });
+
+  it("does not read unrelated package payloads when fingerprinting selected workspaces", () => {
+    const state = fixture();
+    const read = state.fileSystem.readFileSync.bind(state.fileSystem);
+    const observed: string[] = [];
+    state.fileSystem.readFileSync = ((filename, ...args) => {
+      observed.push(String(filename));
+      return read(filename, ...args);
+    }) as typeof state.fileSystem.readFileSync;
+    const keys = createTaskFingerprints(state.plan, { files: state.files, fileSystem: state.fileSystem, environment: {}, runtime: "node-test", selected: ["alpha"] });
+    expect(keys.has("alpha")).toBe(true);
+    expect(keys.has("other")).toBe(false);
+    expect(observed.some(filename => filename.includes("/packages/other/"))).toBe(false);
+  });
+
+  it("hashes a shared imported JSON asset without reading the owning package's unrelated source", () => {
+    const state = fixture();
+    state.fileSystem.writeFileSync("/repo/vitest.config.ts", 'import config from "./packages/other/quarantine.json";');
+    state.fileSystem.writeFileSync("/repo/packages/other/quarantine.json", "[]");
+    const files = [...state.files, "packages/other/quarantine.json"];
+    const read = state.fileSystem.readFileSync.bind(state.fileSystem);
+    const observed: string[] = [];
+    const fileSystem = { ...state.fileSystem, readFileSync(filename, ...args) { observed.push(String(filename)); return read(filename, ...args); } };
+    const key = () => createTaskFingerprints(state.plan, { files, fileSystem, environment: {}, runtime: "node-test", selected: ["alpha"] }).get("alpha");
+    const before = key();
+    expect(observed).not.toContain("/repo/packages/other/src/index.ts");
+    state.fileSystem.writeFileSync("/repo/packages/other/quarantine.json", '["excluded.test.ts"]');
+    expect(key()).not.toBe(before);
+  });
+
+  it("uses the same package key when other packages are selected in the same batch", () => {
+    const state = fixture();
+    state.fileSystem.writeFileSync("/repo/packages/other/data.json", "[]");
+    state.fileSystem.writeFileSync("/repo/packages/other/src/index.ts", 'import data from "../data.json";');
+    const options = { files: [...state.files, "packages/other/data.json"], fileSystem: state.fileSystem, environment: {}, runtime: "node-test" };
+    const alone = createTaskFingerprints(state.plan, { ...options, selected: ["alpha"] });
+    const batch = createTaskFingerprints(state.plan, { ...options, selected: ["other", "alpha"] });
+    expect(batch.get("alpha")).toBe(alone.get("alpha"));
+  });
+
+  it("invalidates changes to the contents of symbolic link inputs", () => {
+    const state = fixture();
+    state.fileSystem.writeFileSync("/repo/shared.ts", "before");
+    state.fileSystem.unlinkSync("/repo/packages/beta/src/index.ts");
+    state.fileSystem.symlinkSync("../../../shared.ts", "/repo/packages/beta/src/index.ts");
+    const key = () => createTaskFingerprints(state.plan, { files: state.files, fileSystem: state.fileSystem, environment: {}, runtime: "node-test" }).get("alpha");
+    const before = key();
+    state.fileSystem.writeFileSync("/repo/shared.ts", "after");
+    expect(key()).not.toBe(before);
+  });
+
+  it("keeps build fingerprints independent of unit test source and setup", () => {
+    const state = fixture();
+    const key = () => createTaskFingerprints(state.plan, { files: state.files, fileSystem: state.fileSystem, environment: {}, runtime: "node-test", event: "build" }).get("alpha");
+    const before = key();
+    state.fileSystem.writeFileSync("/repo/tests/setup.ts", "changed");
+    expect(key()).toBe(before);
+    state.fileSystem.writeFileSync("/repo/tsconfig.json", "changed compiler configuration");
+    expect(createTaskFingerprints(state.plan, { files: [...state.files, "tsconfig.json"], fileSystem: state.fileSystem, environment: {}, runtime: "node-test", event: "build" }).get("alpha")).not.toBe(before);
+  });
+
+  it("includes root source imported by a workspace build without changing batch identity", () => {
+    const state = fixture();
+    state.fileSystem.writeFileSync("/repo/helper.ts", "export const value = 1;");
+    state.fileSystem.writeFileSync("/repo/packages/alpha/src/index.ts", 'import { value } from "../../../helper.js";');
+    const options = { files: [...state.files, "helper.ts"], fileSystem: state.fileSystem, environment: {}, runtime: "node-test", event: "build" };
+    const key = () => createTaskFingerprints(state.plan, { ...options, selected: ["alpha"] }).get("alpha");
+    const before = key();
+    expect(createTaskFingerprints(state.plan, { ...options, selected: ["other", "alpha"] }).get("alpha")).toBe(before);
+    state.fileSystem.writeFileSync("/repo/helper.ts", "export const value = 2;");
+    expect(key()).not.toBe(before);
+  });
+
+  it("runs tasks fresh when a dependency contains a directory link", () => {
+    const state = fixture();
+    state.fileSystem.mkdirSync("/external", { recursive: true });
+    state.fileSystem.symlinkSync("/external", "/repo/packages/beta/fixtures");
+    const keys = createTaskFingerprints(state.plan, { files: [...state.files, "packages/beta/fixtures"], fileSystem: state.fileSystem, environment: {}, runtime: "node-test" });
+    expect(keys.has("alpha")).toBe(false);
+    expect(keys.has("beta")).toBe(false);
+    expect(keys.has("other")).toBe(true);
+  });
+
+  it("does not remove outputs before rejecting a symbolic-link ancestor", () => {
+    const state = fixture();
+    state.fileSystem.mkdirSync("/copy", { recursive: true });
+    state.fileSystem.mkdirSync("/foreign", { recursive: true });
+    state.fileSystem.writeFileSync("/foreign/keep.js", "keep");
+    state.fileSystem.symlinkSync("/foreign", "/copy/dist");
+    const cache = createCheckCache({ directory: "/cache", fileSystem: state.fileSystem });
+    expect(() => cache.restore("/copy", ["dist/**"], [{ path: "dist/index.js", bytes: "", mode: 0o644 }])).toThrow();
+    expect(state.fileSystem.readFileSync("/foreign/keep.js", "utf8")).toBe("keep");
+  });
+
+  it("records successful task results atomically and treats corrupt records as misses", () => {
+    const state = fixture();
+    const cache = createCheckCache({ directory: "/cache", fileSystem: state.fileSystem });
+    expect(cache.read("a".repeat(64))).toBeNull();
+    cache.write("a".repeat(64), { success: true, durationMs: 21 });
+    expect(cache.read("a".repeat(64))).toEqual({ success: true, durationMs: 21 });
+    state.fileSystem.writeFileSync("/cache/" + "a".repeat(64) + ".json.gz", "broken");
+    expect(cache.read("a".repeat(64))).toBeNull();
+    expect(() => cache.write("../escape", {})).toThrow();
+  });
+
+  it("restores build outputs and permissions into another checkout and removes stale outputs", () => {
+    const state = fixture();
+    state.fileSystem.mkdirSync("/repo/packages/alpha/dist", { recursive: true });
+    state.fileSystem.writeFileSync("/repo/packages/alpha/dist/index.js", "built", { mode: 0o755 });
+    const cache = createCheckCache({ directory: "/cache", fileSystem: state.fileSystem });
+    const outputs = cache.capture("/repo/packages/alpha", ["dist/**"]);
+    state.fileSystem.mkdirSync("/copy/dist", { recursive: true });
+    state.fileSystem.writeFileSync("/copy/dist/stale.js", "stale");
+    cache.restore("/copy", ["dist/**"], outputs);
+    expect(state.fileSystem.readFileSync("/copy/dist/index.js", "utf8")).toBe("built");
+    expect(state.fileSystem.statSync("/copy/dist/index.js").mode & 0o777).toBe(0o755);
+    expect(state.fileSystem.existsSync("/copy/dist/stale.js")).toBe(false);
+    expect(() => cache.restore("/copy", ["dist/**"], [{ path: "../escape", bytes: "", mode: 0o644 }])).toThrow();
+  });
+  it("keeps workspace unit test fingerprints unaffected by unimported root source or test edits", () => {
+    const state = fixture();
+    state.fileSystem.mkdirSync("/repo/src", { recursive: true });
+    state.fileSystem.writeFileSync("/repo/src/unrelated-cli.ts", "export const cli = 1;");
+    state.fileSystem.writeFileSync("/repo/tests/unrelated.test.ts", "export const test = 1;");
+    const files = [...state.files, "src/unrelated-cli.ts", "tests/unrelated.test.ts"];
+    const key = () => createTaskFingerprints(state.plan, { files, fileSystem: state.fileSystem, environment: {}, runtime: "node-test", event: "test:unit" }).get("alpha");
+    const before = key();
+    state.fileSystem.writeFileSync("/repo/src/unrelated-cli.ts", "export const cli = 2;");
+    state.fileSystem.writeFileSync("/repo/tests/unrelated.test.ts", "export const test = 2;");
+    expect(key()).toBe(before);
+    state.fileSystem.writeFileSync("/repo/tests/setup.ts", "changed global setup");
+    expect(key()).not.toBe(before);
+  });
+
+  it("reads through from a read-only primary cache and writes new entries to the shared fallback directory", () => {
+    const state = fixture();
+    const primaryCache = createCheckCache({ directory: "/cache", fileSystem: state.fileSystem });
+    primaryCache.write("a".repeat(64), { success: true, durationMs: 12 });
+    const readOnlyFs = {
+      ...state.fileSystem,
+      mkdirSync(target: string, ...args: unknown[]) {
+        if (String(target).startsWith("/cache")) throw Object.assign(new Error("read-only cache"), { code: "EPERM" });
+        return state.fileSystem.mkdirSync(target, ...(args as [any]));
+      },
+      writeFileSync(target: string, ...args: unknown[]) {
+        if (String(target).startsWith("/cache")) throw Object.assign(new Error("read-only cache"), { code: "EPERM" });
+        return state.fileSystem.writeFileSync(target, ...(args as [any, any]));
+      }
+    } as typeof state.fileSystem;
+    const sharedCache = createCheckCache({ directory: "/cache", fallbackDirectory: "/tmp/shared-cache", fileSystem: readOnlyFs });
+    expect(sharedCache.read("a".repeat(64))).toEqual({ success: true, durationMs: 12 });
+    sharedCache.write("b".repeat(64), { success: true, durationMs: 34 });
+    expect(sharedCache.read("b".repeat(64))).toEqual({ success: true, durationMs: 34 });
+  });
+
+  it("keeps workspace fingerprints stable across root package.json exports/files changes while invalidating on dependency changes", () => {
+    const state = fixture();
+    state.fileSystem.writeFileSync("/repo/package.json", JSON.stringify({
+      name: "poe-code",
+      type: "module",
+      workspaces: ["packages/*"],
+      exports: { ".": "./dist/index.js" },
+      files: ["dist"],
+      dependencies: { semver: "^7.0.0" }
+    }));
+    const files = [...state.files, "package.json"];
+    const key = () => createTaskFingerprints(state.plan, { files, fileSystem: state.fileSystem, environment: {}, runtime: "node-test", event: "build" }).get("alpha");
+    const before = key();
+    state.fileSystem.writeFileSync("/repo/package.json", JSON.stringify({
+      name: "poe-code",
+      type: "module",
+      workspaces: ["packages/*"],
+      exports: { ".": "./dist/index.js", "./extra": "./dist/extra.js" },
+      files: ["dist", "!**/*.js.map"],
+      dependencies: { semver: "^7.0.0" }
+    }));
+    expect(key()).toBe(before);
+    state.fileSystem.writeFileSync("/repo/package.json", JSON.stringify({
+      name: "poe-code",
+      type: "module",
+      workspaces: ["packages/*"],
+      exports: { ".": "./dist/index.js", "./extra": "./dist/extra.js" },
+      files: ["dist", "!**/*.js.map"],
+      dependencies: { semver: "^7.6.0" }
+    }));
+    expect(key()).not.toBe(before);
+  });
+
+  it("keeps workspace fingerprints stable across workspace-only entries in package.json and package-lock.json while invalidating on external package updates", () => {
+    const state = fixture();
+    state.fileSystem.writeFileSync("/repo/package.json", JSON.stringify({
+      name: "poe-code",
+      type: "module",
+      workspaces: ["packages/*"],
+      dependencies: { semver: "^7.0.0" },
+      devDependencies: { "@poe-code/beta": "0.0.1" }
+    }));
+    state.fileSystem.writeFileSync("/repo/package-lock.json", JSON.stringify({
+      lockfileVersion: 3,
+      packages: {
+        "": { dependencies: { semver: "^7.0.0" }, devDependencies: { "@poe-code/beta": "0.0.1" } },
+        "packages/alpha": { name: "alpha", version: "0.0.1" },
+        "packages/beta": { name: "beta", version: "0.0.1" },
+        "node_modules/@poe-code/beta": { resolved: "packages/beta", link: true },
+        "node_modules/semver": { version: "7.5.4", resolved: "https://registry.npmjs.org/semver/-/semver-7.5.4.tgz", integrity: "sha512-1" }
+      }
+    }));
+    const files = [...state.files, "package.json"];
+    const key = () => createTaskFingerprints(state.plan, { files, fileSystem: state.fileSystem, environment: {}, runtime: "node-test", event: "build" }).get("alpha");
+    const before = key();
+
+    state.fileSystem.writeFileSync("/repo/package.json", JSON.stringify({
+      name: "poe-code",
+      type: "module",
+      workspaces: ["packages/*"],
+      dependencies: { semver: "^7.0.0" },
+      devDependencies: { "@poe-code/beta": "0.0.1", "@poe-code/other": "0.0.1" }
+    }));
+    state.fileSystem.writeFileSync("/repo/package-lock.json", JSON.stringify({
+      lockfileVersion: 3,
+      packages: {
+        "": { dependencies: { semver: "^7.0.0" }, devDependencies: { "@poe-code/other": "0.0.1", "@poe-code/beta": "0.0.1" } },
+        "packages/other": { name: "other", version: "0.0.1" },
+        "packages/alpha": { name: "alpha", version: "0.0.1" },
+        "packages/beta": { name: "beta", version: "0.0.1" },
+        "node_modules/@poe-code/other": { resolved: "packages/other", link: true },
+        "node_modules/@poe-code/beta": { resolved: "packages/beta", link: true },
+        "node_modules/semver": { version: "7.5.4", resolved: "https://registry.npmjs.org/semver/-/semver-7.5.4.tgz", integrity: "sha512-1" }
+      }
+    }));
+    expect(key()).toBe(before);
+
+    state.fileSystem.writeFileSync("/repo/package-lock.json", JSON.stringify({
+      lockfileVersion: 3,
+      packages: {
+        "node_modules/semver": { version: "7.6.0", resolved: "https://registry.npmjs.org/semver/-/semver-7.6.0.tgz", integrity: "sha512-2" }
+      }
+    }));
+    expect(key()).not.toBe(before);
+  });
+  it("scopes turbo.json task overrides per workspace so unrelated workspace entries do not invalidate other packages", () => {
+    const state = fixture();
+    state.fileSystem.writeFileSync("/repo/turbo.json", JSON.stringify({
+      tasks: {
+        build: { dependsOn: ["^build"], outputs: ["dist/**"] },
+        "test:unit": { dependsOn: ["^build"] },
+        "alpha#test:unit": { dependsOn: ["build"] }
+      }
+    }));
+    const files = [...state.files, "turbo.json"];
+    const key = (name = "alpha", event = "test:unit") =>
+      createTaskFingerprints(state.plan, { files, fileSystem: state.fileSystem, environment: {}, runtime: "node-test", event }).get(name);
+    const alphaBefore = key("alpha");
+    const betaBefore = key("beta");
+
+    state.fileSystem.writeFileSync("/repo/turbo.json", JSON.stringify({
+      tasks: {
+        build: { dependsOn: ["^build"], outputs: ["dist/**"] },
+        "test:unit": { dependsOn: ["^build"] },
+        "alpha#test:unit": { dependsOn: ["build"] },
+        "other#test:unit": { dependsOn: ["^build"], outputs: [] }
+      }
+    }));
+    expect(key("alpha")).toBe(alphaBefore);
+    expect(key("beta")).toBe(betaBefore);
+
+    state.fileSystem.writeFileSync("/repo/turbo.json", JSON.stringify({
+      tasks: {
+        build: { dependsOn: ["^build"], outputs: ["dist/**"] },
+        "test:unit": { dependsOn: ["^build"] },
+        "alpha#test:unit": { dependsOn: ["^build"], inputs: ["src/**"] },
+        "other#test:unit": { dependsOn: ["^build"], outputs: [] }
+      }
+    }));
+    expect(key("alpha")).not.toBe(alphaBefore);
+    expect(key("beta")).toBe(betaBefore);
+  });
+
+  it("treats cached safe-bash build records without postbuild dist/opt-in and dist/browser outputs as cache misses", () => {
+    const state = fixture();
+    const buildScript = "node ../../scripts/guard-package-dist.mjs && rm -rf dist/opt-in && node scripts/integration-inputs.mjs && node scripts/build.mjs";
+    const postbuildScript = "node scripts/build-optional-cli.mjs";
+    const stage = {
+      name: "alpha",
+      path: "packages/alpha",
+      event: "build",
+      manifest: { name: "alpha", scripts: { build: buildScript, postbuild: postbuildScript } }
+    };
+    const plan = {
+      ...state.plan,
+      configuration: { tasks: { build: { outputs: ["dist/**"] } } },
+      workspaces: [{ name: "alpha", path: "packages/alpha", manifest: stage.manifest }, ...state.plan.workspaces.slice(1)]
+    };
+    const cacheStore = createCheckCache({ directory: "/cache", fileSystem: state.fileSystem });
+    state.fileSystem.mkdirSync("/repo/packages/alpha/dist", { recursive: true });
+    state.fileSystem.writeFileSync("/repo/packages/alpha/dist/index.js", "export {};");
+    const first = prepareBuildCache(plan, [stage], { cacheStore, cacheFiles: state.files, environment: {}, fileSystem: state.fileSystem });
+    first.save(stage, 100);
+    expect(first.restore(stage)).toBe(false);
+    state.fileSystem.mkdirSync("/repo/packages/alpha/dist/opt-in/entrypoints", { recursive: true });
+    state.fileSystem.writeFileSync("/repo/packages/alpha/dist/opt-in/entrypoints/shuf.d.ts", "export {};");
+    state.fileSystem.mkdirSync("/repo/packages/alpha/dist/browser", { recursive: true });
+    state.fileSystem.writeFileSync("/repo/packages/alpha/dist/browser/index.js", "export {};");
+    first.save(stage, 100);
+    expect(first.restore(stage)).toBe(true);
+  });
+});

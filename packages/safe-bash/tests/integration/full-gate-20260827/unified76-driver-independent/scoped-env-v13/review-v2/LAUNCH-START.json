@@ -1,0 +1,10 @@
+{
+  "at": "2026-08-28T10:34:40.405Z",
+  "pid": 27933,
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v2/launch.mjs",
+    "--cohort-once"
+  ],
+  "recipeSha256": "32594007fba6a60aa4ea2623f84475be09d801d61bc16918a9627e4e9fe88657"
+}

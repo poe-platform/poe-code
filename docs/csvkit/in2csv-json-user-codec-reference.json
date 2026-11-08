@@ -1,0 +1,181 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "sourceSha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+  "captureEnvironment": {
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "PYTHONIOENCODING": "utf-8",
+    "COLUMNS": "80",
+    "LINES": "24"
+  },
+  "dependencies": {
+    "csvkit": "2.2.0",
+    "agate": "1.14.2",
+    "SQLAlchemy": "2.0.54"
+  },
+  "cases": [
+    {
+      "argv": [
+        "-f",
+        "json",
+        "-e",
+        "utf-8-sig"
+      ],
+      "bytes": [
+        239,
+        187,
+        191,
+        91,
+        123,
+        34,
+        97,
+        34,
+        58,
+        34,
+        120,
+        34,
+        125,
+        93
+      ],
+      "status": 0,
+      "stdout": "a\nx\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "ndjson",
+        "-e",
+        "utf-8-sig"
+      ],
+      "bytes": [
+        239,
+        187,
+        191,
+        123,
+        34,
+        97,
+        34,
+        58,
+        34,
+        120,
+        34,
+        125,
+        10
+      ],
+      "status": 0,
+      "stdout": "a\nx\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json",
+        "-e",
+        "latin1"
+      ],
+      "bytes": [
+        91,
+        123,
+        34,
+        97,
+        34,
+        58,
+        34,
+        233,
+        34,
+        125,
+        93
+      ],
+      "status": 0,
+      "stdout": "a\n\u00e9\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json",
+        "-e",
+        "utf-8"
+      ],
+      "bytes": [
+        91,
+        123,
+        34,
+        97,
+        34,
+        58,
+        34,
+        255,
+        34,
+        125,
+        93
+      ],
+      "status": 1,
+      "stdout": "",
+      "stderr": "Your file is not \"utf-8\" encoded. Please specify the correct encoding with the --encoding flag. Use the -v flag to see the complete error.\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json",
+        "-e",
+        "utf-16"
+      ],
+      "bytes": [
+        255,
+        254,
+        91,
+        0,
+        123,
+        0,
+        34,
+        0,
+        97,
+        0,
+        34,
+        0,
+        58,
+        0,
+        34,
+        0,
+        120,
+        0,
+        34,
+        0,
+        125,
+        0,
+        93,
+        0
+      ],
+      "status": 0,
+      "stdout": "a\nx\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json",
+        "-e",
+        "bad-codec"
+      ],
+      "bytes": [
+        91,
+        123,
+        34,
+        97,
+        34,
+        58,
+        34,
+        120,
+        34,
+        125,
+        93
+      ],
+      "status": 1,
+      "stdout": "",
+      "stderr": "LookupError: unknown encoding: bad-codec\n"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "key": "elevenlabs-elevenlabs-v3-5501d1f4053f",
+  "request": {
+    "model": "elevenlabs/elevenlabs-v3",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hello world. This is a short audio test."
+      }
+    ],
+    "type": "audio"
+  },
+  "response": {
+    "url": "https://pfst.cf2.poecdn.net/base/audio/bac176d8d4c8f9d39611e7b4ee49e29745283622f5d01dc604936f4124b2fe9e"
+  },
+  "metadata": {
+    "recordedAt": "2026-02-17T21:19:10.226Z",
+    "model": "elevenlabs/elevenlabs-v3",
+    "type": "audio"
+  }
+}

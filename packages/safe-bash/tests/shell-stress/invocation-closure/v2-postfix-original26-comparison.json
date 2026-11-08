@@ -1,0 +1,3194 @@
+{
+  "timestamp": "2026-08-27T01:55:12.926Z",
+  "mode": "new",
+  "virtualFile": "v2-postfix-original34.json",
+  "virtualHash": "ef7c1a649ce71a9720d72c10eddc102fb75813e05605c5160dbada1ef2e1201c",
+  "nativeFile": "native-preparation.json",
+  "nativeHash": "c5c698cf91b3cbf32c63f338af5e5a241be941c092821dc3a900d58ccaeceabe",
+  "comparison": "Raw exact bytes/status and legacy effects; no cwd, diagnostic or dialect normalization. New semantic tests separately declare native-cwd to VFS /work mapping. Legacy TAP transport reuses captured stdoutHex decoding, never escaped JSON parsing.",
+  "comparisons": [
+    {
+      "profile": "gnu-5.3",
+      "total": 26,
+      "passed": 24,
+      "rows": [
+        {
+          "id": "query-v-multiple-status",
+          "pass": true,
+          "fields": [],
+          "expected": {
+            "id": "query-v-multiple-status",
+            "source": "command -v printf closure_missing; printf \"first:%s\\n\" \"$?\"; command -v closure_missing printf; printf \"second:%s\\n\" \"$?\"; command -v closure_missing; printf \"none:%s\\n\" \"$?\"",
+            "sourceHash": "b00f88cc6898537e985b0e7aa3a8e20ce06647b2ee0a4730db5eb02248448156",
+            "inputHex": "",
+            "renderedFixtures": [],
+            "result": {
+              "argv": [
+                "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "command -v printf closure_missing; printf \"first:%s\\n\" \"$?\"; command -v closure_missing printf; printf \"second:%s\\n\" \"$?\"; command -v closure_missing; printf \"none:%s\\n\" \"$?\"",
+                "bash"
+              ],
+              "argv0": "bash",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-QqEJmJ",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89674,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "7072696e74660a66697273743a300a7072696e74660a7365636f6e643a300a6e6f6e653a310a",
+              "stderrHex": "",
+              "stdout": "printf\nfirst:0\nprintf\nsecond:0\nnone:1\n",
+              "stderr": "",
+              "elapsedMs": 8.936958000000004
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "query-v-multiple-status",
+            "source": "command -v printf closure_missing; printf \"first:%s\\n\" \"$?\"; command -v closure_missing printf; printf \"second:%s\\n\" \"$?\"; command -v closure_missing; printf \"none:%s\\n\" \"$?\"",
+            "role": "bash",
+            "args": [
+              "-c",
+              "command -v printf closure_missing; printf \"first:%s\\n\" \"$?\"; command -v closure_missing printf; printf \"second:%s\\n\" \"$?\"; command -v closure_missing; printf \"none:%s\\n\" \"$?\"",
+              "bash"
+            ],
+            "inputHex": "",
+            "exitCode": 0,
+            "stdoutHex": "7072696e74660a66697273743a300a7072696e74660a7365636f6e643a300a6e6f6e653a310a",
+            "stderrHex": "",
+            "stdout": "printf\nfirst:0\nprintf\nsecond:0\nnone:1\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "query-V-verbose",
+          "pass": false,
+          "fields": [
+            "stdout bytes"
+          ],
+          "expected": {
+            "id": "query-V-verbose",
+            "source": "closurefn() { :; }; PATH=tools; command -V printf closurefn closuretool",
+            "sourceHash": "8776189b1b692c7b45030c6cde30ec9990c85690cfd35dccfc4f3506b8c7b502",
+            "inputHex": "",
+            "renderedFixtures": [
+              {
+                "path": "tools/closuretool",
+                "hex": "23212f746d702f736166652d626173682d676e752d626173682d352e332e5561357430322f696e7374616c6c2f62696e2f626173680a7072696e7466202766696c653a3c25733e5c6e2720222440220a",
+                "sha256": "507606319cc0051bca7efc5df2b5f6c37d2f9cf9d8a9f27ed22760040fbbb52e",
+                "mode": 493
+              }
+            ],
+            "result": {
+              "argv": [
+                "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "closurefn() { :; }; PATH=tools; command -V printf closurefn closuretool",
+                "bash"
+              ],
+              "argv0": "bash",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-BqvL6K",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89675,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "7072696e74662069732061207368656c6c206275696c74696e0a636c6f73757265666e20697320612066756e6374696f6e0a636c6f73757265666e202829200a7b200a202020203a0a7d0a636c6f73757265746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2d7374726573732f696e766f636174696f6e2d636c6f737572652f2e6e61746976652d4271764c364b2f746f6f6c732f636c6f73757265746f6f6c0a",
+              "stderrHex": "",
+              "stdout": "printf is a shell builtin\nclosurefn is a function\nclosurefn () \n{ \n    :\n}\nclosuretool is /Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-BqvL6K/tools/closuretool\n",
+              "stderr": "",
+              "elapsedMs": 8.52045799999999
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "query-V-verbose",
+            "source": "closurefn() { :; }; PATH=tools; command -V printf closurefn closuretool",
+            "role": "bash",
+            "args": [
+              "-c",
+              "closurefn() { :; }; PATH=tools; command -V printf closurefn closuretool",
+              "bash"
+            ],
+            "inputHex": "",
+            "exitCode": 0,
+            "stdoutHex": "7072696e74662069732061207265676973746572656420636f6d6d616e640a636c6f73757265666e20697320612066756e6374696f6e0a636c6f73757265666e202829200a7b200a202020203a0a7d0a636c6f73757265746f6f6c206973202f776f726b2f746f6f6c732f636c6f73757265746f6f6c0a",
+            "stderrHex": "",
+            "stdout": "printf is a registered command\nclosurefn is a function\nclosurefn () \n{ \n    :\n}\nclosuretool is /work/tools/closuretool\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "type-multiple-status",
+          "pass": false,
+          "fields": [
+            "stdout bytes"
+          ],
+          "expected": {
+            "id": "type-multiple-status",
+            "source": "closurefn() { :; }; PATH=tools; type -t printf closurefn closuretool closure_missing; printf \"mixed:%s\\n\" \"$?\"; type printf closuretool",
+            "sourceHash": "16550a6e91a9ab999c3e590b63021aaefa74fe41c64c89697097c554eefd537c",
+            "inputHex": "",
+            "renderedFixtures": [
+              {
+                "path": "tools/closuretool",
+                "hex": "23212f746d702f736166652d626173682d676e752d626173682d352e332e5561357430322f696e7374616c6c2f62696e2f626173680a7072696e7466202766696c653a3c25733e5c6e2720222440220a",
+                "sha256": "507606319cc0051bca7efc5df2b5f6c37d2f9cf9d8a9f27ed22760040fbbb52e",
+                "mode": 493
+              }
+            ],
+            "result": {
+              "argv": [
+                "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "closurefn() { :; }; PATH=tools; type -t printf closurefn closuretool closure_missing; printf \"mixed:%s\\n\" \"$?\"; type printf closuretool",
+                "bash"
+              ],
+              "argv0": "bash",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-TOHGYu",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89676,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "6275696c74696e0a66756e6374696f6e0a66696c650a6d697865643a310a7072696e74662069732061207368656c6c206275696c74696e0a636c6f73757265746f6f6c20697320746f6f6c732f636c6f73757265746f6f6c0a",
+              "stderrHex": "",
+              "stdout": "builtin\nfunction\nfile\nmixed:1\nprintf is a shell builtin\nclosuretool is tools/closuretool\n",
+              "stderr": "",
+              "elapsedMs": 8.603208999999993
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "type-multiple-status",
+            "source": "closurefn() { :; }; PATH=tools; type -t printf closurefn closuretool closure_missing; printf \"mixed:%s\\n\" \"$?\"; type printf closuretool",
+            "role": "bash",
+            "args": [
+              "-c",
+              "closurefn() { :; }; PATH=tools; type -t printf closurefn closuretool closure_missing; printf \"mixed:%s\\n\" \"$?\"; type printf closuretool",
+              "bash"
+            ],
+            "inputHex": "",
+            "exitCode": 0,
+            "stdoutHex": "636f6d6d616e640a66756e6374696f6e0a66696c650a6d697865643a310a7072696e74662069732061207265676973746572656420636f6d6d616e640a636c6f73757265746f6f6c20697320746f6f6c732f636c6f73757265746f6f6c0a",
+            "stderrHex": "",
+            "stdout": "command\nfunction\nfile\nmixed:1\nprintf is a registered command\nclosuretool is tools/closuretool\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "type-option-combinations",
+          "pass": true,
+          "fields": [],
+          "expected": {
+            "id": "type-option-combinations",
+            "source": "closuretool() { :; }; PATH=first:second; type -at closuretool; type -ap closuretool; type -P closuretool; type -ft closuretool",
+            "sourceHash": "a3cbf815abeeca28dc59e4e6180d6b61c0aab00d73e3550121b253e7caefa073",
+            "inputHex": "",
+            "renderedFixtures": [
+              {
+                "path": "first/closuretool",
+                "hex": "23212f746d702f736166652d626173682d676e752d626173682d352e332e5561357430322f696e7374616c6c2f62696e2f626173680a7072696e7466202766696c653a3c25733e5c6e2720222440220a",
+                "sha256": "507606319cc0051bca7efc5df2b5f6c37d2f9cf9d8a9f27ed22760040fbbb52e",
+                "mode": 493
+              },
+              {
+                "path": "second/closuretool",
+                "hex": "23212f746d702f736166652d626173682d676e752d626173682d352e332e5561357430322f696e7374616c6c2f62696e2f626173680a7072696e7466202766696c653a3c25733e5c6e2720222440220a",
+                "sha256": "507606319cc0051bca7efc5df2b5f6c37d2f9cf9d8a9f27ed22760040fbbb52e",
+                "mode": 493
+              }
+            ],
+            "result": {
+              "argv": [
+                "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "closuretool() { :; }; PATH=first:second; type -at closuretool; type -ap closuretool; type -P closuretool; type -ft closuretool",
+                "bash"
+              ],
+              "argv0": "bash",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-LT7p6Z",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89677,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "66756e6374696f6e0a66696c650a66696c650a66697273742f636c6f73757265746f6f6c0a7365636f6e642f636c6f73757265746f6f6c0a66697273742f636c6f73757265746f6f6c0a66696c650a",
+              "stderrHex": "",
+              "stdout": "function\nfile\nfile\nfirst/closuretool\nsecond/closuretool\nfirst/closuretool\nfile\n",
+              "stderr": "",
+              "elapsedMs": 8.605625000000003
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "type-option-combinations",
+            "source": "closuretool() { :; }; PATH=first:second; type -at closuretool; type -ap closuretool; type -P closuretool; type -ft closuretool",
+            "role": "bash",
+            "args": [
+              "-c",
+              "closuretool() { :; }; PATH=first:second; type -at closuretool; type -ap closuretool; type -P closuretool; type -ft closuretool",
+              "bash"
+            ],
+            "inputHex": "",
+            "exitCode": 0,
+            "stdoutHex": "66756e6374696f6e0a66696c650a66696c650a66697273742f636c6f73757265746f6f6c0a7365636f6e642f636c6f73757265746f6f6c0a66697273742f636c6f73757265746f6f6c0a66696c650a",
+            "stderrHex": "",
+            "stdout": "function\nfile\nfile\nfirst/closuretool\nsecond/closuretool\nfirst/closuretool\nfile\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "command-bypasses-function",
+          "pass": true,
+          "fields": [],
+          "expected": {
+            "id": "command-bypasses-function",
+            "source": "closuretool() { printf \"function\\n\"; }; PATH=tools; command -v closuretool; closuretool; command closuretool \"\" \"a b\" \"*;literal\"; command command printf \"builtin\\n\"",
+            "sourceHash": "9d7aa39287d62a4dfecf3cffeed2b98b2ec866254cb2d82ee99f7df17e1367a0",
+            "inputHex": "",
+            "renderedFixtures": [
+              {
+                "path": "tools/closuretool",
+                "hex": "23212f746d702f736166652d626173682d676e752d626173682d352e332e5561357430322f696e7374616c6c2f62696e2f626173680a7072696e7466202766696c653a3c25733e5c6e2720222440220a",
+                "sha256": "507606319cc0051bca7efc5df2b5f6c37d2f9cf9d8a9f27ed22760040fbbb52e",
+                "mode": 493
+              }
+            ],
+            "result": {
+              "argv": [
+                "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "closuretool() { printf \"function\\n\"; }; PATH=tools; command -v closuretool; closuretool; command closuretool \"\" \"a b\" \"*;literal\"; command command printf \"builtin\\n\"",
+                "bash"
+              ],
+              "argv0": "bash",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-uiKccH",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89678,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "636c6f73757265746f6f6c0a66756e6374696f6e0a66696c653a3c3e0a66696c653a3c6120623e0a66696c653a3c2a3b6c69746572616c3e0a6275696c74696e0a",
+              "stderrHex": "",
+              "stdout": "closuretool\nfunction\nfile:<>\nfile:<a b>\nfile:<*;literal>\nbuiltin\n",
+              "stderr": "",
+              "elapsedMs": 436.7405
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "command-bypasses-function",
+            "source": "closuretool() { printf \"function\\n\"; }; PATH=tools; command -v closuretool; closuretool; command closuretool \"\" \"a b\" \"*;literal\"; command command printf \"builtin\\n\"",
+            "role": "bash",
+            "args": [
+              "-c",
+              "closuretool() { printf \"function\\n\"; }; PATH=tools; command -v closuretool; closuretool; command closuretool \"\" \"a b\" \"*;literal\"; command command printf \"builtin\\n\"",
+              "bash"
+            ],
+            "inputHex": "",
+            "exitCode": 0,
+            "stdoutHex": "636c6f73757265746f6f6c0a66756e6374696f6e0a66696c653a3c3e0a66696c653a3c6120623e0a66696c653a3c2a3b6c69746572616c3e0a6275696c74696e0a",
+            "stderrHex": "",
+            "stdout": "closuretool\nfunction\nfile:<>\nfile:<a b>\nfile:<*;literal>\nbuiltin\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "query-effective-path-cwd",
+          "pass": true,
+          "fields": [],
+          "expected": {
+            "id": "query-effective-path-cwd",
+            "source": "PATH=missing; PATH=\"tool dir\" command -v closuretool; PATH=\"tool dir\" command closuretool prefix; cd sub; PATH=\"tool dir\" command -v closuretool; PATH=\"tool dir\" command closuretool child",
+            "sourceHash": "cc59c5e2ddc17d4a339847a939935cdf8dcfd88fe9f947bd8c48593fc47dd45f",
+            "inputHex": "",
+            "renderedFixtures": [
+              {
+                "path": "tool dir/closuretool",
+                "hex": "23212f746d702f736166652d626173682d676e752d626173682d352e332e5561357430322f696e7374616c6c2f62696e2f626173680a7072696e74662027726f6f743a3c25733e5c6e2720222440220a",
+                "sha256": "6bd3a9ea4c146d64ec012e220a0ccc78fe96a37ceec35f2bd8cdb065f1b13fd1",
+                "mode": 493
+              },
+              {
+                "path": "sub/tool dir/closuretool",
+                "hex": "23212f746d702f736166652d626173682d676e752d626173682d352e332e5561357430322f696e7374616c6c2f62696e2f626173680a7072696e746620277375623a3c25733e5c6e2720222440220a",
+                "sha256": "7149f7d18e6c2fa12c278994b2ba489fb78545c1477a3a5d6758378661bb073b",
+                "mode": 493
+              }
+            ],
+            "result": {
+              "argv": [
+                "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "PATH=missing; PATH=\"tool dir\" command -v closuretool; PATH=\"tool dir\" command closuretool prefix; cd sub; PATH=\"tool dir\" command -v closuretool; PATH=\"tool dir\" command closuretool child",
+                "bash"
+              ],
+              "argv0": "bash",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-pSxM4P",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89696,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "746f6f6c206469722f636c6f73757265746f6f6c0a726f6f743a3c7072656669783e0a746f6f6c206469722f636c6f73757265746f6f6c0a7375623a3c6368696c643e0a",
+              "stderrHex": "",
+              "stdout": "tool dir/closuretool\nroot:<prefix>\ntool dir/closuretool\nsub:<child>\n",
+              "stderr": "",
+              "elapsedMs": 389.34683299999995
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "query-effective-path-cwd",
+            "source": "PATH=missing; PATH=\"tool dir\" command -v closuretool; PATH=\"tool dir\" command closuretool prefix; cd sub; PATH=\"tool dir\" command -v closuretool; PATH=\"tool dir\" command closuretool child",
+            "role": "bash",
+            "args": [
+              "-c",
+              "PATH=missing; PATH=\"tool dir\" command -v closuretool; PATH=\"tool dir\" command closuretool prefix; cd sub; PATH=\"tool dir\" command -v closuretool; PATH=\"tool dir\" command closuretool child",
+              "bash"
+            ],
+            "inputHex": "",
+            "exitCode": 0,
+            "stdoutHex": "746f6f6c206469722f636c6f73757265746f6f6c0a726f6f743a3c7072656669783e0a746f6f6c206469722f636c6f73757265746f6f6c0a7375623a3c6368696c643e0a",
+            "stderrHex": "",
+            "stdout": "tool dir/closuretool\nroot:<prefix>\ntool dir/closuretool\nsub:<child>\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "query-denied-directory-symlink",
+          "pass": true,
+          "fields": [],
+          "expected": {
+            "id": "query-denied-directory-symlink",
+            "source": "PATH=denied:directory:links; command -v closuretool; type -t closuretool; command closuretool yes; command -v ./real/tool; command ./real/tool direct",
+            "sourceHash": "05d9536e1d5c33314c63277c97265ac13e3aee93bad3f5c7cf2811b47e971f42",
+            "inputHex": "",
+            "renderedFixtures": [
+              {
+                "path": "denied/closuretool",
+                "hex": "23212f746d702f736166652d626173682d676e752d626173682d352e332e5561357430322f696e7374616c6c2f62696e2f626173680a7072696e7466202764656e6965643a3c25733e5c6e2720222440220a",
+                "sha256": "0331b83e02822eae67d6907ae14aeb6a25f73386be4da78d330c1ecf66146a31",
+                "mode": 420
+              },
+              {
+                "path": "real/tool",
+                "hex": "23212f746d702f736166652d626173682d676e752d626173682d352e332e5561357430322f696e7374616c6c2f62696e2f626173680a7072696e7466202766696c653a3c25733e5c6e2720222440220a",
+                "sha256": "507606319cc0051bca7efc5df2b5f6c37d2f9cf9d8a9f27ed22760040fbbb52e",
+                "mode": 493
+              }
+            ],
+            "result": {
+              "argv": [
+                "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "PATH=denied:directory:links; command -v closuretool; type -t closuretool; command closuretool yes; command -v ./real/tool; command ./real/tool direct",
+                "bash"
+              ],
+              "argv0": "bash",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-gD4zHC",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89698,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "6c696e6b732f636c6f73757265746f6f6c0a66696c650a66696c653a3c7965733e0a2e2f7265616c2f746f6f6c0a66696c653a3c6469726563743e0a",
+              "stderrHex": "",
+              "stdout": "links/closuretool\nfile\nfile:<yes>\n./real/tool\nfile:<direct>\n",
+              "stderr": "",
+              "elapsedMs": 189.94558299999994
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "query-denied-directory-symlink",
+            "source": "PATH=denied:directory:links; command -v closuretool; type -t closuretool; command closuretool yes; command -v ./real/tool; command ./real/tool direct",
+            "role": "bash",
+            "args": [
+              "-c",
+              "PATH=denied:directory:links; command -v closuretool; type -t closuretool; command closuretool yes; command -v ./real/tool; command ./real/tool direct",
+              "bash"
+            ],
+            "inputHex": "",
+            "exitCode": 0,
+            "stdoutHex": "6c696e6b732f636c6f73757265746f6f6c0a66696c650a66696c653a3c7965733e0a2e2f7265616c2f746f6f6c0a66696c653a3c6469726563743e0a",
+            "stderrHex": "",
+            "stdout": "links/closuretool\nfile\nfile:<yes>\n./real/tool\nfile:<direct>\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "query-empty-and-unsupported-option",
+          "pass": true,
+          "fields": [],
+          "expected": {
+            "id": "query-empty-and-unsupported-option",
+            "source": "command; printf \"empty:%s\\n\" \"$?\"; command -z printf; printf \"bad:%s\\n\" \"$?\"",
+            "sourceHash": "33e472dd1755cefe421b28b1142477867e94fcec1247afab6409d742ba46d688",
+            "inputHex": "",
+            "renderedFixtures": [],
+            "result": {
+              "argv": [
+                "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "command; printf \"empty:%s\\n\" \"$?\"; command -z printf; printf \"bad:%s\\n\" \"$?\"",
+                "bash"
+              ],
+              "argv0": "bash",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-W9XcRm",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89700,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "656d7074793a300a6261643a320a",
+              "stderrHex": "626173683a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a",
+              "stdout": "empty:0\nbad:2\n",
+              "stderr": "bash: line 1: command: -z: invalid option\ncommand: usage: command [-pVv] command [arg ...]\n",
+              "elapsedMs": 19.866834000000154
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "query-empty-and-unsupported-option",
+            "source": "command; printf \"empty:%s\\n\" \"$?\"; command -z printf; printf \"bad:%s\\n\" \"$?\"",
+            "role": "bash",
+            "args": [
+              "-c",
+              "command; printf \"empty:%s\\n\" \"$?\"; command -z printf; printf \"bad:%s\\n\" \"$?\"",
+              "bash"
+            ],
+            "inputHex": "",
+            "exitCode": 0,
+            "stdoutHex": "656d7074793a300a6261643a320a",
+            "stderrHex": "626173683a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a",
+            "stdout": "empty:0\nbad:2\n",
+            "stderr": "bash: line 1: command: -z: invalid option\ncommand: usage: command [-pVv] command [arg ...]\n"
+          }
+        },
+        {
+          "id": "read-N-character-count-en_US.UTF-8",
+          "pass": true,
+          "fields": [],
+          "expected": {
+            "id": "read-N-character-count-en_US.UTF-8",
+            "source": "read -r -N 2 value; printf \"first:%s:<%s>\\n\" \"$?\" \"$value\"; read -r rest; printf \"rest:%s:<%s>\\n\" \"$?\" \"$rest\"",
+            "sourceHash": "26c0eee8c6ec3994d9f3f49315d3464614997f153f2317f2eb077ce171c26d8f",
+            "inputHex": "c3a9587461696c0a",
+            "renderedFixtures": [],
+            "result": {
+              "argv": [
+                "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "read -r -N 2 value; printf \"first:%s:<%s>\\n\" \"$?\" \"$value\"; read -r rest; printf \"rest:%s:<%s>\\n\" \"$?\" \"$rest\"",
+                "bash"
+              ],
+              "argv0": "bash",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-tH0YWw",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "en_US.UTF-8",
+                "LANG": "en_US.UTF-8",
+                "TZ": "UTC"
+              },
+              "pid": 89701,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "66697273743a303a3cc3a9583e0a726573743a303a3c7461696c3e0a",
+              "stderrHex": "",
+              "stdout": "first:0:<éX>\nrest:0:<tail>\n",
+              "stderr": "",
+              "elapsedMs": 15.994791999999961
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "read-N-character-count-en_US.UTF-8",
+            "source": "read -r -N 2 value; printf \"first:%s:<%s>\\n\" \"$?\" \"$value\"; read -r rest; printf \"rest:%s:<%s>\\n\" \"$?\" \"$rest\"",
+            "role": "bash",
+            "args": [
+              "-c",
+              "read -r -N 2 value; printf \"first:%s:<%s>\\n\" \"$?\" \"$value\"; read -r rest; printf \"rest:%s:<%s>\\n\" \"$?\" \"$rest\"",
+              "bash"
+            ],
+            "inputHex": "c3a9587461696c0a",
+            "exitCode": 0,
+            "stdoutHex": "66697273743a303a3cc3a9583e0a726573743a303a3c7461696c3e0a",
+            "stderrHex": "",
+            "stdout": "first:0:<éX>\nrest:0:<tail>\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "read-N-character-count-C",
+          "pass": true,
+          "fields": [],
+          "expected": {
+            "id": "read-N-character-count-C",
+            "source": "read -r -N 2 value; printf \"first:%s:<%s>\\n\" \"$?\" \"$value\"; read -r rest; printf \"rest:%s:<%s>\\n\" \"$?\" \"$rest\"",
+            "sourceHash": "26c0eee8c6ec3994d9f3f49315d3464614997f153f2317f2eb077ce171c26d8f",
+            "inputHex": "c3a9587461696c0a",
+            "renderedFixtures": [],
+            "result": {
+              "argv": [
+                "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "read -r -N 2 value; printf \"first:%s:<%s>\\n\" \"$?\" \"$value\"; read -r rest; printf \"rest:%s:<%s>\\n\" \"$?\" \"$rest\"",
+                "bash"
+              ],
+              "argv0": "bash",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-iKVV30",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89702,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "66697273743a303a3cc3a93e0a726573743a303a3c587461696c3e0a",
+              "stderrHex": "",
+              "stdout": "first:0:<é>\nrest:0:<Xtail>\n",
+              "stderr": "",
+              "elapsedMs": 15.689834000000019
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "read-N-character-count-C",
+            "source": "read -r -N 2 value; printf \"first:%s:<%s>\\n\" \"$?\" \"$value\"; read -r rest; printf \"rest:%s:<%s>\\n\" \"$?\" \"$rest\"",
+            "role": "bash",
+            "args": [
+              "-c",
+              "read -r -N 2 value; printf \"first:%s:<%s>\\n\" \"$?\" \"$value\"; read -r rest; printf \"rest:%s:<%s>\\n\" \"$?\" \"$rest\"",
+              "bash"
+            ],
+            "inputHex": "c3a9587461696c0a",
+            "exitCode": 0,
+            "stdoutHex": "66697273743a303a3cc3a93e0a726573743a303a3c587461696c3e0a",
+            "stderrHex": "",
+            "stdout": "first:0:<é>\nrest:0:<Xtail>\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "read-N-delimiter-vs-n",
+          "pass": true,
+          "fields": [],
+          "expected": {
+            "id": "read-N-delimiter-vs-n",
+            "source": "read -r -N 3 -d : first; printf \"N:%s:<%s>\\n\" \"$?\" \"$first\"; read -r -n 3 -d : second; printf \"n:%s:<%s>\\n\" \"$?\" \"$second\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+            "sourceHash": "295b30540a26fc693a97c521d732cce63aaf30a93ce455d309583d3b178d96d2",
+            "inputHex": "410a42433a440a",
+            "renderedFixtures": [],
+            "result": {
+              "argv": [
+                "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "read -r -N 3 -d : first; printf \"N:%s:<%s>\\n\" \"$?\" \"$first\"; read -r -n 3 -d : second; printf \"n:%s:<%s>\\n\" \"$?\" \"$second\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+                "bash"
+              ],
+              "argv0": "bash",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-dm5sCA",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89703,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "4e3a303a3c410a423e0a6e3a303a3c433e0a726573743a3c443e0a",
+              "stderrHex": "",
+              "stdout": "N:0:<A\nB>\nn:0:<C>\nrest:<D>\n",
+              "stderr": "",
+              "elapsedMs": 13.067083000000139
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "read-N-delimiter-vs-n",
+            "source": "read -r -N 3 -d : first; printf \"N:%s:<%s>\\n\" \"$?\" \"$first\"; read -r -n 3 -d : second; printf \"n:%s:<%s>\\n\" \"$?\" \"$second\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+            "role": "bash",
+            "args": [
+              "-c",
+              "read -r -N 3 -d : first; printf \"N:%s:<%s>\\n\" \"$?\" \"$first\"; read -r -n 3 -d : second; printf \"n:%s:<%s>\\n\" \"$?\" \"$second\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+              "bash"
+            ],
+            "inputHex": "410a42433a440a",
+            "exitCode": 0,
+            "stdoutHex": "4e3a303a3c410a423e0a6e3a303a3c433e0a726573743a3c443e0a",
+            "stderrHex": "",
+            "stdout": "N:0:<A\nB>\nn:0:<C>\nrest:<D>\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "read-N-skips-nul-data",
+          "pass": true,
+          "fields": [],
+          "expected": {
+            "id": "read-N-skips-nul-data",
+            "source": "read -r -N 3 value; printf \"value:%s:<%s>\\n\" \"$?\" \"$value\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+            "sourceHash": "8c4a46e3781bea68262b4d81d82ac232197b69aaee9d8e6121c218c3f7a89e30",
+            "inputHex": "4100420a7461696c0a",
+            "renderedFixtures": [],
+            "result": {
+              "argv": [
+                "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "read -r -N 3 value; printf \"value:%s:<%s>\\n\" \"$?\" \"$value\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+                "bash"
+              ],
+              "argv0": "bash",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-Wyu6QG",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89704,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "76616c75653a303a3c41420a3e0a726573743a3c7461696c3e0a",
+              "stderrHex": "",
+              "stdout": "value:0:<AB\n>\nrest:<tail>\n",
+              "stderr": "",
+              "elapsedMs": 11.854125000000067
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "read-N-skips-nul-data",
+            "source": "read -r -N 3 value; printf \"value:%s:<%s>\\n\" \"$?\" \"$value\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+            "role": "bash",
+            "args": [
+              "-c",
+              "read -r -N 3 value; printf \"value:%s:<%s>\\n\" \"$?\" \"$value\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+              "bash"
+            ],
+            "inputHex": "4100420a7461696c0a",
+            "exitCode": 0,
+            "stdoutHex": "76616c75653a303a3c41420a3e0a726573743a3c7461696c3e0a",
+            "stderrHex": "",
+            "stdout": "value:0:<AB\n>\nrest:<tail>\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "read-N-nul-delimiter",
+          "pass": true,
+          "fields": [],
+          "expected": {
+            "id": "read-N-nul-delimiter",
+            "source": "read -r -N 3 -d \"\" value; printf \"value:%s:<%s>\\n\" \"$?\" \"$value\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+            "sourceHash": "d9fab4076266c29a1ee31adc594ca5aa90d2e2a82b7577a1fcf8b23c4a88c8b6",
+            "inputHex": "410042437461696c0a",
+            "renderedFixtures": [],
+            "result": {
+              "argv": [
+                "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "read -r -N 3 -d \"\" value; printf \"value:%s:<%s>\\n\" \"$?\" \"$value\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+                "bash"
+              ],
+              "argv0": "bash",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-3TPYhf",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89705,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "76616c75653a303a3c4142433e0a726573743a3c7461696c3e0a",
+              "stderrHex": "",
+              "stdout": "value:0:<ABC>\nrest:<tail>\n",
+              "stderr": "",
+              "elapsedMs": 11.563875000000053
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "read-N-nul-delimiter",
+            "source": "read -r -N 3 -d \"\" value; printf \"value:%s:<%s>\\n\" \"$?\" \"$value\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+            "role": "bash",
+            "args": [
+              "-c",
+              "read -r -N 3 -d \"\" value; printf \"value:%s:<%s>\\n\" \"$?\" \"$value\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+              "bash"
+            ],
+            "inputHex": "410042437461696c0a",
+            "exitCode": 0,
+            "stdoutHex": "76616c75653a303a3c4142433e0a726573743a3c7461696c3e0a",
+            "stderrHex": "",
+            "stdout": "value:0:<ABC>\nrest:<tail>\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "read-N-no-ifs-split",
+          "pass": true,
+          "fields": [],
+          "expected": {
+            "id": "read-N-no-ifs-split",
+            "source": "IFS=:; read -r -N 4 first second; printf \"value:%s:<%s>:<%s>\\n\" \"$?\" \"$first\" \"$second\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+            "sourceHash": "587b76080593dd7b824b9f38d8d794a56a4b9c5b8a4d1c8d820a2adbb0e453fe",
+            "inputHex": "613a623a726573740a",
+            "renderedFixtures": [],
+            "result": {
+              "argv": [
+                "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "IFS=:; read -r -N 4 first second; printf \"value:%s:<%s>:<%s>\\n\" \"$?\" \"$first\" \"$second\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+                "bash"
+              ],
+              "argv0": "bash",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-ThwNWv",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89706,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "76616c75653a303a3c613a623a3e3a3c3e0a726573743a3c726573743e0a",
+              "stderrHex": "",
+              "stdout": "value:0:<a:b:>:<>\nrest:<rest>\n",
+              "stderr": "",
+              "elapsedMs": 11.733042000000069
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "read-N-no-ifs-split",
+            "source": "IFS=:; read -r -N 4 first second; printf \"value:%s:<%s>:<%s>\\n\" \"$?\" \"$first\" \"$second\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+            "role": "bash",
+            "args": [
+              "-c",
+              "IFS=:; read -r -N 4 first second; printf \"value:%s:<%s>:<%s>\\n\" \"$?\" \"$first\" \"$second\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+              "bash"
+            ],
+            "inputHex": "613a623a726573740a",
+            "exitCode": 0,
+            "stdoutHex": "76616c75653a303a3c613a623a3e3a3c3e0a726573743a3c726573743e0a",
+            "stderrHex": "",
+            "stdout": "value:0:<a:b:>:<>\nrest:<rest>\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "read-N-backslash-raw",
+          "pass": true,
+          "fields": [],
+          "expected": {
+            "id": "read-N-backslash-raw",
+            "source": "read -N 3 cooked; printf \"cooked:%s:<%s>\\n\" \"$?\" \"$cooked\"; read -r -N 3 raw; printf \"raw:%s:<%s>\\n\" \"$?\" \"$raw\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+            "sourceHash": "56422bbeeec8e49dabfef68d1f7ec1dc6e15bed5482a2038612ec9c4c92a84c0",
+            "inputHex": "615c0a62635c7879726573740a",
+            "renderedFixtures": [],
+            "result": {
+              "argv": [
+                "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "read -N 3 cooked; printf \"cooked:%s:<%s>\\n\" \"$?\" \"$cooked\"; read -r -N 3 raw; printf \"raw:%s:<%s>\\n\" \"$?\" \"$raw\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+                "bash"
+              ],
+              "argv0": "bash",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-3ykLWu",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89707,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "636f6f6b65643a303a3c6162633e0a7261773a303a3c5c78793e0a726573743a3c726573743e0a",
+              "stderrHex": "",
+              "stdout": "cooked:0:<abc>\nraw:0:<\\xy>\nrest:<rest>\n",
+              "stderr": "",
+              "elapsedMs": 10.785958000000164
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "read-N-backslash-raw",
+            "source": "read -N 3 cooked; printf \"cooked:%s:<%s>\\n\" \"$?\" \"$cooked\"; read -r -N 3 raw; printf \"raw:%s:<%s>\\n\" \"$?\" \"$raw\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+            "role": "bash",
+            "args": [
+              "-c",
+              "read -N 3 cooked; printf \"cooked:%s:<%s>\\n\" \"$?\" \"$cooked\"; read -r -N 3 raw; printf \"raw:%s:<%s>\\n\" \"$?\" \"$raw\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+              "bash"
+            ],
+            "inputHex": "615c0a62635c7879726573740a",
+            "exitCode": 0,
+            "stdoutHex": "636f6f6b65643a303a3c6162633e0a7261773a303a3c5c78793e0a726573743a3c726573743e0a",
+            "stderrHex": "",
+            "stdout": "cooked:0:<abc>\nraw:0:<\\xy>\nrest:<rest>\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "read-N-zero-invalid",
+          "pass": true,
+          "fields": [],
+          "expected": {
+            "id": "read-N-zero-invalid",
+            "source": "value=old; read -N 0 value; printf \"zero:%s:<%s>\\n\" \"$?\" \"$value\"; read -N -1 value; printf \"negative:%s\\n\" \"$?\"; read -N bad value; printf \"invalid:%s\\n\" \"$?\"; read -r value; printf \"remaining:<%s>\\n\" \"$value\"",
+            "sourceHash": "0a3ec017d2cba28e1c8cfc2393b801090857c80224a71540e861718b66478927",
+            "inputHex": "756e746f75636865640a",
+            "renderedFixtures": [],
+            "result": {
+              "argv": [
+                "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "value=old; read -N 0 value; printf \"zero:%s:<%s>\\n\" \"$?\" \"$value\"; read -N -1 value; printf \"negative:%s\\n\" \"$?\"; read -N bad value; printf \"invalid:%s\\n\" \"$?\"; read -r value; printf \"remaining:<%s>\\n\" \"$value\"",
+                "bash"
+              ],
+              "argv0": "bash",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-vlbqyJ",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89708,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "7a65726f3a303a3c3e0a6e656761746976653a310a696e76616c69643a310a72656d61696e696e673a3c756e746f75636865643e0a",
+              "stderrHex": "626173683a206c696e6520313a20726561643a202d313a20696e76616c6964206e756d6265720a626173683a206c696e6520313a20726561643a206261643a20696e76616c6964206e756d6265720a",
+              "stdout": "zero:0:<>\nnegative:1\ninvalid:1\nremaining:<untouched>\n",
+              "stderr": "bash: line 1: read: -1: invalid number\nbash: line 1: read: bad: invalid number\n",
+              "elapsedMs": 11.251334000000043
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "read-N-zero-invalid",
+            "source": "value=old; read -N 0 value; printf \"zero:%s:<%s>\\n\" \"$?\" \"$value\"; read -N -1 value; printf \"negative:%s\\n\" \"$?\"; read -N bad value; printf \"invalid:%s\\n\" \"$?\"; read -r value; printf \"remaining:<%s>\\n\" \"$value\"",
+            "role": "bash",
+            "args": [
+              "-c",
+              "value=old; read -N 0 value; printf \"zero:%s:<%s>\\n\" \"$?\" \"$value\"; read -N -1 value; printf \"negative:%s\\n\" \"$?\"; read -N bad value; printf \"invalid:%s\\n\" \"$?\"; read -r value; printf \"remaining:<%s>\\n\" \"$value\"",
+              "bash"
+            ],
+            "inputHex": "756e746f75636865640a",
+            "exitCode": 0,
+            "stdoutHex": "7a65726f3a303a3c3e0a6e656761746976653a310a696e76616c69643a310a72656d61696e696e673a3c756e746f75636865643e0a",
+            "stderrHex": "626173683a206c696e6520313a20726561643a202d313a20696e76616c6964206e756d6265720a626173683a206c696e6520313a20726561643a206261643a20696e76616c6964206e756d6265720a",
+            "stdout": "zero:0:<>\nnegative:1\ninvalid:1\nremaining:<untouched>\n",
+            "stderr": "bash: line 1: read: -1: invalid number\nbash: line 1: read: bad: invalid number\n"
+          }
+        },
+        {
+          "id": "read-N-eof-partial",
+          "pass": true,
+          "fields": [],
+          "expected": {
+            "id": "read-N-eof-partial",
+            "source": "read -r -N 5 value; printf \"partial:%s:<%s>\\n\" \"$?\" \"$value\"; read -r -N 1 next; printf \"next:%s:<%s>\\n\" \"$?\" \"$next\"",
+            "sourceHash": "b636accab27cc4ddcc9de418d7cb3b1d7202d63237f7d9532b393ba6bd1f9ccd",
+            "inputHex": "c3a9",
+            "renderedFixtures": [],
+            "result": {
+              "argv": [
+                "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "read -r -N 5 value; printf \"partial:%s:<%s>\\n\" \"$?\" \"$value\"; read -r -N 1 next; printf \"next:%s:<%s>\\n\" \"$?\" \"$next\"",
+                "bash"
+              ],
+              "argv0": "bash",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-VkbIjP",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "en_US.UTF-8",
+                "LANG": "en_US.UTF-8",
+                "TZ": "UTC"
+              },
+              "pid": 89709,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "7061727469616c3a313a3cc3a93e0a6e6578743a313a3c3e0a",
+              "stderrHex": "",
+              "stdout": "partial:1:<é>\nnext:1:<>\n",
+              "stderr": "",
+              "elapsedMs": 10.659333999999944
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "read-N-eof-partial",
+            "source": "read -r -N 5 value; printf \"partial:%s:<%s>\\n\" \"$?\" \"$value\"; read -r -N 1 next; printf \"next:%s:<%s>\\n\" \"$?\" \"$next\"",
+            "role": "bash",
+            "args": [
+              "-c",
+              "read -r -N 5 value; printf \"partial:%s:<%s>\\n\" \"$?\" \"$value\"; read -r -N 1 next; printf \"next:%s:<%s>\\n\" \"$?\" \"$next\"",
+              "bash"
+            ],
+            "inputHex": "c3a9",
+            "exitCode": 0,
+            "stdoutHex": "7061727469616c3a313a3cc3a93e0a6e6578743a313a3c3e0a",
+            "stderrHex": "",
+            "stdout": "partial:1:<é>\nnext:1:<>\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "read-N-stdin-source-cursor",
+          "pass": true,
+          "fields": [],
+          "expected": {
+            "id": "read-N-stdin-source-cursor",
+            "source": "read -r -N 2 value\néΩprintf \"cursor:<%s>\\n\" \"$value\"\nprintf \"next-source\\n\"\n",
+            "sourceHash": "ede70669b843c1f9cea0eb0ab5c0cf0a6ad7a020c560380eafc5a3607fbfcded",
+            "inputHex": "72656164202d72202d4e20322076616c75650ac3a9cea97072696e74662022637572736f723a3c25733e5c6e2220222476616c7565220a7072696e746620226e6578742d736f757263655c6e220a",
+            "renderedFixtures": [],
+            "result": {
+              "argv": [
+                "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-s"
+              ],
+              "argv0": "bash",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-ZLgVht",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "en_US.UTF-8",
+                "LANG": "en_US.UTF-8",
+                "TZ": "UTC"
+              },
+              "pid": 89710,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "637572736f723a3cc3a9cea93e0a6e6578742d736f757263650a",
+              "stderrHex": "",
+              "stdout": "cursor:<éΩ>\nnext-source\n",
+              "stderr": "",
+              "elapsedMs": 10.191416000000117
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "read-N-stdin-source-cursor",
+            "source": "read -r -N 2 value\néΩprintf \"cursor:<%s>\\n\" \"$value\"\nprintf \"next-source\\n\"\n",
+            "role": "bash",
+            "args": [
+              "-s"
+            ],
+            "inputHex": "72656164202d72202d4e20322076616c75650ac3a9cea97072696e74662022637572736f723a3c25733e5c6e2220222476616c7565220a7072696e746620226e6578742d736f757263655c6e220a",
+            "exitCode": 0,
+            "stdoutHex": "637572736f723a3cc3a9cea93e0a6e6578742d736f757263650a",
+            "stderrHex": "",
+            "stdout": "cursor:<éΩ>\nnext-source\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "bash-special-ordinary-function",
+          "pass": true,
+          "fields": [],
+          "expected": {
+            "id": "bash-special-ordinary-function",
+            "source": "value=before; value=special :; printf \"special:%s\\n\" \"$value\"; value=ordinary true; printf \"ordinary:%s\\n\" \"$value\"; closurefn() { printf \"inside:%s\\n\" \"$value\"; }; value=function closurefn; printf \"function:%s\\n\" \"$value\"",
+            "sourceHash": "08c97ed0a983505363798c76026a9022835ced5d64255c699b6d3878542370ca",
+            "inputHex": "",
+            "renderedFixtures": [],
+            "result": {
+              "argv": [
+                "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "value=before; value=special :; printf \"special:%s\\n\" \"$value\"; value=ordinary true; printf \"ordinary:%s\\n\" \"$value\"; closurefn() { printf \"inside:%s\\n\" \"$value\"; }; value=function closurefn; printf \"function:%s\\n\" \"$value\"",
+                "bash"
+              ],
+              "argv0": "bash",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-TVkwUA",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89711,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "7370656369616c3a6265666f72650a6f7264696e6172793a6265666f72650a696e736964653a66756e6374696f6e0a66756e6374696f6e3a6265666f72650a",
+              "stderrHex": "",
+              "stdout": "special:before\nordinary:before\ninside:function\nfunction:before\n",
+              "stderr": "",
+              "elapsedMs": 9.850500000000011
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "bash-special-ordinary-function",
+            "source": "value=before; value=special :; printf \"special:%s\\n\" \"$value\"; value=ordinary true; printf \"ordinary:%s\\n\" \"$value\"; closurefn() { printf \"inside:%s\\n\" \"$value\"; }; value=function closurefn; printf \"function:%s\\n\" \"$value\"",
+            "role": "bash",
+            "args": [
+              "-c",
+              "value=before; value=special :; printf \"special:%s\\n\" \"$value\"; value=ordinary true; printf \"ordinary:%s\\n\" \"$value\"; closurefn() { printf \"inside:%s\\n\" \"$value\"; }; value=function closurefn; printf \"function:%s\\n\" \"$value\"",
+              "bash"
+            ],
+            "inputHex": "",
+            "exitCode": 0,
+            "stdoutHex": "7370656369616c3a6265666f72650a6f7264696e6172793a6265666f72650a696e736964653a66756e6374696f6e0a66756e6374696f6e3a6265666f72650a",
+            "stderrHex": "",
+            "stdout": "special:before\nordinary:before\ninside:function\nfunction:before\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "sh-special-ordinary-function",
+          "pass": true,
+          "fields": [],
+          "expected": {
+            "id": "sh-special-ordinary-function",
+            "source": "value=before; value=special :; printf \"special:%s\\n\" \"$value\"; value=ordinary true; printf \"ordinary:%s\\n\" \"$value\"; closurefn() { printf \"inside:%s\\n\" \"$value\"; }; value=function closurefn; printf \"function:%s\\n\" \"$value\"",
+            "sourceHash": "08c97ed0a983505363798c76026a9022835ced5d64255c699b6d3878542370ca",
+            "inputHex": "",
+            "renderedFixtures": [],
+            "result": {
+              "argv": [
+                "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "value=before; value=special :; printf \"special:%s\\n\" \"$value\"; value=ordinary true; printf \"ordinary:%s\\n\" \"$value\"; closurefn() { printf \"inside:%s\\n\" \"$value\"; }; value=function closurefn; printf \"function:%s\\n\" \"$value\"",
+                "sh"
+              ],
+              "argv0": "sh",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-8mFMS6",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89712,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "7370656369616c3a7370656369616c0a6f7264696e6172793a7370656369616c0a696e736964653a66756e6374696f6e0a66756e6374696f6e3a7370656369616c0a",
+              "stderrHex": "",
+              "stdout": "special:special\nordinary:special\ninside:function\nfunction:special\n",
+              "stderr": "",
+              "elapsedMs": 10.5474999999999
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "sh-special-ordinary-function",
+            "source": "value=before; value=special :; printf \"special:%s\\n\" \"$value\"; value=ordinary true; printf \"ordinary:%s\\n\" \"$value\"; closurefn() { printf \"inside:%s\\n\" \"$value\"; }; value=function closurefn; printf \"function:%s\\n\" \"$value\"",
+            "role": "sh",
+            "args": [
+              "-c",
+              "value=before; value=special :; printf \"special:%s\\n\" \"$value\"; value=ordinary true; printf \"ordinary:%s\\n\" \"$value\"; closurefn() { printf \"inside:%s\\n\" \"$value\"; }; value=function closurefn; printf \"function:%s\\n\" \"$value\"",
+              "sh"
+            ],
+            "inputHex": "",
+            "exitCode": 0,
+            "stdoutHex": "7370656369616c3a7370656369616c0a6f7264696e6172793a7370656369616c0a696e736964653a66756e6374696f6e0a66756e6374696f6e3a7370656369616c0a",
+            "stderrHex": "",
+            "stdout": "special:special\nordinary:special\ninside:function\nfunction:special\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "sh-command-special-prefix",
+          "pass": true,
+          "fields": [],
+          "expected": {
+            "id": "sh-command-special-prefix",
+            "source": "value=before; value=after command :; printf \"command:%s\\n\" \"$value\"; value=direct :; printf \"direct:%s\\n\" \"$value\"; value=again command command :; printf \"twice:%s\\n\" \"$value\"",
+            "sourceHash": "0d170790ef0031a3c8834b1751ab913fefd450f676cfafcd262453fcbb266add",
+            "inputHex": "",
+            "renderedFixtures": [],
+            "result": {
+              "argv": [
+                "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "value=before; value=after command :; printf \"command:%s\\n\" \"$value\"; value=direct :; printf \"direct:%s\\n\" \"$value\"; value=again command command :; printf \"twice:%s\\n\" \"$value\"",
+                "sh"
+              ],
+              "argv0": "sh",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-q3Neb3",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89713,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "636f6d6d616e643a6265666f72650a6469726563743a6469726563740a74776963653a6469726563740a",
+              "stderrHex": "",
+              "stdout": "command:before\ndirect:direct\ntwice:direct\n",
+              "stderr": "",
+              "elapsedMs": 10.680250000000115
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "sh-command-special-prefix",
+            "source": "value=before; value=after command :; printf \"command:%s\\n\" \"$value\"; value=direct :; printf \"direct:%s\\n\" \"$value\"; value=again command command :; printf \"twice:%s\\n\" \"$value\"",
+            "role": "sh",
+            "args": [
+              "-c",
+              "value=before; value=after command :; printf \"command:%s\\n\" \"$value\"; value=direct :; printf \"direct:%s\\n\" \"$value\"; value=again command command :; printf \"twice:%s\\n\" \"$value\"",
+              "sh"
+            ],
+            "inputHex": "",
+            "exitCode": 0,
+            "stdoutHex": "636f6d6d616e643a6265666f72650a6469726563743a6469726563740a74776963653a6469726563740a",
+            "stderrHex": "",
+            "stdout": "command:before\ndirect:direct\ntwice:direct\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "sh-special-export-set-shift-unset",
+          "pass": true,
+          "fields": [],
+          "expected": {
+            "id": "sh-special-export-set-shift-unset",
+            "source": "value=one export child=shown; printf \"%s:%s\\n\" \"$value\" \"$child\"; value=two set -- A B; printf \"%s:%s\\n\" \"$value\" \"$#\"; value=three shift; printf \"%s:%s\\n\" \"$value\" \"$1\"; value=four unset child; printf \"%s:<%s>\\n\" \"$value\" \"$child\"",
+            "sourceHash": "9ca2de58837d345975de1da508093fae946233026d4417abfb2a93f0e12fbd02",
+            "inputHex": "",
+            "renderedFixtures": [],
+            "result": {
+              "argv": [
+                "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "value=one export child=shown; printf \"%s:%s\\n\" \"$value\" \"$child\"; value=two set -- A B; printf \"%s:%s\\n\" \"$value\" \"$#\"; value=three shift; printf \"%s:%s\\n\" \"$value\" \"$1\"; value=four unset child; printf \"%s:<%s>\\n\" \"$value\" \"$child\"",
+                "sh"
+              ],
+              "argv0": "sh",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-MVho3P",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89714,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "6f6e653a73686f776e0a74776f3a320a74687265653a420a666f75723a3c3e0a",
+              "stderrHex": "",
+              "stdout": "one:shown\ntwo:2\nthree:B\nfour:<>\n",
+              "stderr": "",
+              "elapsedMs": 9.953833000000031
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "sh-special-export-set-shift-unset",
+            "source": "value=one export child=shown; printf \"%s:%s\\n\" \"$value\" \"$child\"; value=two set -- A B; printf \"%s:%s\\n\" \"$value\" \"$#\"; value=three shift; printf \"%s:%s\\n\" \"$value\" \"$1\"; value=four unset child; printf \"%s:<%s>\\n\" \"$value\" \"$child\"",
+            "role": "sh",
+            "args": [
+              "-c",
+              "value=one export child=shown; printf \"%s:%s\\n\" \"$value\" \"$child\"; value=two set -- A B; printf \"%s:%s\\n\" \"$value\" \"$#\"; value=three shift; printf \"%s:%s\\n\" \"$value\" \"$1\"; value=four unset child; printf \"%s:<%s>\\n\" \"$value\" \"$child\"",
+              "sh"
+            ],
+            "inputHex": "",
+            "exitCode": 0,
+            "stdoutHex": "6f6e653a73686f776e0a74776f3a320a74687265653a420a666f75723a3c3e0a",
+            "stderrHex": "",
+            "stdout": "one:shown\ntwo:2\nthree:B\nfour:<>\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "sh-file-profile",
+          "pass": true,
+          "fields": [],
+          "expected": {
+            "id": "sh-file-profile",
+            "source": "value=before; value=after :; printf \"file:%s\\n\" \"$value\"\n",
+            "sourceHash": "08b165a2587b84cfaf115c19fa828dc6cd2cb9e3837bbe585101d03bdde0cea9",
+            "inputHex": "",
+            "renderedFixtures": [
+              {
+                "path": "entry.sh",
+                "hex": "76616c75653d6265666f72653b2076616c75653d6166746572203a3b207072696e7466202266696c653a25735c6e2220222476616c7565220a",
+                "sha256": "08b165a2587b84cfaf115c19fa828dc6cd2cb9e3837bbe585101d03bdde0cea9",
+                "mode": 420
+              }
+            ],
+            "result": {
+              "argv": [
+                "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+                "--noprofile",
+                "--norc",
+                "entry.sh"
+              ],
+              "argv0": "sh",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-tbUG4K",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89715,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "66696c653a61667465720a",
+              "stderrHex": "",
+              "stdout": "file:after\n",
+              "stderr": "",
+              "elapsedMs": 10.026041999999961
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "sh-file-profile",
+            "source": "value=before; value=after :; printf \"file:%s\\n\" \"$value\"\n",
+            "role": "sh",
+            "args": [
+              "entry.sh"
+            ],
+            "inputHex": "",
+            "exitCode": 0,
+            "stdoutHex": "66696c653a61667465720a",
+            "stderrHex": "",
+            "stdout": "file:after\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "sh-stdin-profile",
+          "pass": true,
+          "fields": [],
+          "expected": {
+            "id": "sh-stdin-profile",
+            "source": "value=before\nvalue=after :\nprintf \"stdin:%s\\n\" \"$value\"\n",
+            "sourceHash": "fdd48f11881ab7e11d58f4ac0bb6283be3b0d402c11bd8fab426b4f287a52840",
+            "inputHex": "76616c75653d6265666f72650a76616c75653d6166746572203a0a7072696e74662022737464696e3a25735c6e2220222476616c7565220a",
+            "renderedFixtures": [],
+            "result": {
+              "argv": [
+                "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-s"
+              ],
+              "argv0": "sh",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-hMvTm1",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89716,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "737464696e3a61667465720a",
+              "stderrHex": "",
+              "stdout": "stdin:after\n",
+              "stderr": "",
+              "elapsedMs": 10.33508299999994
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "sh-stdin-profile",
+            "source": "value=before\nvalue=after :\nprintf \"stdin:%s\\n\" \"$value\"\n",
+            "role": "sh",
+            "args": [
+              "-s"
+            ],
+            "inputHex": "76616c75653d6265666f72650a76616c75653d6166746572203a0a7072696e74662022737464696e3a25735c6e2220222476616c7565220a",
+            "exitCode": 0,
+            "stdoutHex": "737464696e3a61667465720a",
+            "stderrHex": "",
+            "stdout": "stdin:after\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "sh-nested-bash-resets-sh-inherits",
+          "pass": true,
+          "fields": [],
+          "expected": {
+            "id": "sh-nested-bash-resets-sh-inherits",
+            "source": "export value=parent; .roles/bash -c 'value=child :; printf \"bash:%s\\n\" \"$value\"'; .roles/sh -c 'value=child :; printf \"sh:%s\\n\" \"$value\"'; printf \"parent:%s\\n\" \"$value\"",
+            "sourceHash": "fd42bbfe3b1eecc5fb93bc357769da63202a1a2005c18ffd13086d863f870ed7",
+            "inputHex": "",
+            "renderedFixtures": [],
+            "result": {
+              "argv": [
+                "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "export value=parent; .roles/bash -c 'value=child :; printf \"bash:%s\\n\" \"$value\"'; .roles/sh -c 'value=child :; printf \"sh:%s\\n\" \"$value\"'; printf \"parent:%s\\n\" \"$value\"",
+                "sh"
+              ],
+              "argv0": "sh",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-qVtfqC",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89717,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "626173683a706172656e740a73683a6368696c640a706172656e743a706172656e740a",
+              "stderrHex": "",
+              "stdout": "bash:parent\nsh:child\nparent:parent\n",
+              "stderr": "",
+              "elapsedMs": 27.938458999999966
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "sh-nested-bash-resets-sh-inherits",
+            "source": "export value=parent; bash -c 'value=child :; printf \"bash:%s\\n\" \"$value\"'; sh -c 'value=child :; printf \"sh:%s\\n\" \"$value\"'; printf \"parent:%s\\n\" \"$value\"",
+            "role": "sh",
+            "args": [
+              "-c",
+              "export value=parent; bash -c 'value=child :; printf \"bash:%s\\n\" \"$value\"'; sh -c 'value=child :; printf \"sh:%s\\n\" \"$value\"'; printf \"parent:%s\\n\" \"$value\"",
+              "sh"
+            ],
+            "inputHex": "",
+            "exitCode": 0,
+            "stdoutHex": "626173683a706172656e740a73683a6368696c640a706172656e743a706172656e740a",
+            "stderrHex": "",
+            "stdout": "bash:parent\nsh:child\nparent:parent\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "sh-special-exported-environment",
+          "pass": true,
+          "fields": [],
+          "expected": {
+            "id": "sh-special-exported-environment",
+            "source": "value=before; value=after :; .roles/bash -c 'printf \"child:<%s>\\n\" \"$value\"'; printf \"parent:%s\\n\" \"$value\"; value=temporary command printf \"ordinary\\n\"; printf \"after-command:%s\\n\" \"$value\"",
+            "sourceHash": "0d3f49d65d0c447c41ec9fb6518d06a91a1c9ba993b4bcb255bf0ef66689ff76",
+            "inputHex": "",
+            "renderedFixtures": [],
+            "result": {
+              "argv": [
+                "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "value=before; value=after :; .roles/bash -c 'printf \"child:<%s>\\n\" \"$value\"'; printf \"parent:%s\\n\" \"$value\"; value=temporary command printf \"ordinary\\n\"; printf \"after-command:%s\\n\" \"$value\"",
+                "sh"
+              ],
+              "argv0": "sh",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-lWl2Lb",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89720,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "6368696c643a3c61667465723e0a706172656e743a61667465720a6f7264696e6172790a61667465722d636f6d6d616e643a61667465720a",
+              "stderrHex": "",
+              "stdout": "child:<after>\nparent:after\nordinary\nafter-command:after\n",
+              "stderr": "",
+              "elapsedMs": 18.508540999999923
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "sh-special-exported-environment",
+            "source": "value=before; value=after :; bash -c 'printf \"child:<%s>\\n\" \"$value\"'; printf \"parent:%s\\n\" \"$value\"; value=temporary command printf \"ordinary\\n\"; printf \"after-command:%s\\n\" \"$value\"",
+            "role": "sh",
+            "args": [
+              "-c",
+              "value=before; value=after :; bash -c 'printf \"child:<%s>\\n\" \"$value\"'; printf \"parent:%s\\n\" \"$value\"; value=temporary command printf \"ordinary\\n\"; printf \"after-command:%s\\n\" \"$value\"",
+              "sh"
+            ],
+            "inputHex": "",
+            "exitCode": 0,
+            "stdoutHex": "6368696c643a3c61667465723e0a706172656e743a61667465720a6f7264696e6172790a61667465722d636f6d6d616e643a61667465720a",
+            "stderrHex": "",
+            "stdout": "child:<after>\nparent:after\nordinary\nafter-command:after\n",
+            "stderr": ""
+          }
+        }
+      ]
+    },
+    {
+      "profile": "historical-3.2",
+      "total": 26,
+      "passed": 12,
+      "rows": [
+        {
+          "id": "query-v-multiple-status",
+          "pass": true,
+          "fields": [],
+          "expected": {
+            "id": "query-v-multiple-status",
+            "source": "command -v printf closure_missing; printf \"first:%s\\n\" \"$?\"; command -v closure_missing printf; printf \"second:%s\\n\" \"$?\"; command -v closure_missing; printf \"none:%s\\n\" \"$?\"",
+            "sourceHash": "b00f88cc6898537e985b0e7aa3a8e20ce06647b2ee0a4730db5eb02248448156",
+            "inputHex": "",
+            "renderedFixtures": [],
+            "result": {
+              "argv": [
+                "/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "command -v printf closure_missing; printf \"first:%s\\n\" \"$?\"; command -v closure_missing printf; printf \"second:%s\\n\" \"$?\"; command -v closure_missing; printf \"none:%s\\n\" \"$?\"",
+                "bash"
+              ],
+              "argv0": "bash",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-tfroWS",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89724,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "7072696e74660a66697273743a300a7072696e74660a7365636f6e643a300a6e6f6e653a310a",
+              "stderrHex": "",
+              "stdout": "printf\nfirst:0\nprintf\nsecond:0\nnone:1\n",
+              "stderr": "",
+              "elapsedMs": 6.667083999999932
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "query-v-multiple-status",
+            "source": "command -v printf closure_missing; printf \"first:%s\\n\" \"$?\"; command -v closure_missing printf; printf \"second:%s\\n\" \"$?\"; command -v closure_missing; printf \"none:%s\\n\" \"$?\"",
+            "role": "bash",
+            "args": [
+              "-c",
+              "command -v printf closure_missing; printf \"first:%s\\n\" \"$?\"; command -v closure_missing printf; printf \"second:%s\\n\" \"$?\"; command -v closure_missing; printf \"none:%s\\n\" \"$?\"",
+              "bash"
+            ],
+            "inputHex": "",
+            "exitCode": 0,
+            "stdoutHex": "7072696e74660a66697273743a300a7072696e74660a7365636f6e643a300a6e6f6e653a310a",
+            "stderrHex": "",
+            "stdout": "printf\nfirst:0\nprintf\nsecond:0\nnone:1\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "query-V-verbose",
+          "pass": false,
+          "fields": [
+            "stdout bytes"
+          ],
+          "expected": {
+            "id": "query-V-verbose",
+            "source": "closurefn() { :; }; PATH=tools; command -V printf closurefn closuretool",
+            "sourceHash": "8776189b1b692c7b45030c6cde30ec9990c85690cfd35dccfc4f3506b8c7b502",
+            "inputHex": "",
+            "renderedFixtures": [
+              {
+                "path": "tools/closuretool",
+                "hex": "23212f62696e2f626173680a7072696e7466202766696c653a3c25733e5c6e2720222440220a",
+                "sha256": "229f1bc76f435117d4a1247988edac2a161b0ea1aa88aa7d932a7a3a693e6720",
+                "mode": 493
+              }
+            ],
+            "result": {
+              "argv": [
+                "/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "closurefn() { :; }; PATH=tools; command -V printf closurefn closuretool",
+                "bash"
+              ],
+              "argv0": "bash",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-iuXhu1",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89725,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "7072696e74662069732061207368656c6c206275696c74696e0a636c6f73757265666e20697320612066756e6374696f6e0a636c6f73757265666e202829200a7b200a202020203a0a7d0a636c6f73757265746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2d7374726573732f696e766f636174696f6e2d636c6f737572652f2e6e61746976652d6975586875312f746f6f6c732f636c6f73757265746f6f6c0a",
+              "stderrHex": "",
+              "stdout": "printf is a shell builtin\nclosurefn is a function\nclosurefn () \n{ \n    :\n}\nclosuretool is /Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-iuXhu1/tools/closuretool\n",
+              "stderr": "",
+              "elapsedMs": 6.351541999999881
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "query-V-verbose",
+            "source": "closurefn() { :; }; PATH=tools; command -V printf closurefn closuretool",
+            "role": "bash",
+            "args": [
+              "-c",
+              "closurefn() { :; }; PATH=tools; command -V printf closurefn closuretool",
+              "bash"
+            ],
+            "inputHex": "",
+            "exitCode": 0,
+            "stdoutHex": "7072696e74662069732061207265676973746572656420636f6d6d616e640a636c6f73757265666e20697320612066756e6374696f6e0a636c6f73757265666e202829200a7b200a202020203a0a7d0a636c6f73757265746f6f6c206973202f776f726b2f746f6f6c732f636c6f73757265746f6f6c0a",
+            "stderrHex": "",
+            "stdout": "printf is a registered command\nclosurefn is a function\nclosurefn () \n{ \n    :\n}\nclosuretool is /work/tools/closuretool\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "type-multiple-status",
+          "pass": false,
+          "fields": [
+            "stdout bytes"
+          ],
+          "expected": {
+            "id": "type-multiple-status",
+            "source": "closurefn() { :; }; PATH=tools; type -t printf closurefn closuretool closure_missing; printf \"mixed:%s\\n\" \"$?\"; type printf closuretool",
+            "sourceHash": "16550a6e91a9ab999c3e590b63021aaefa74fe41c64c89697097c554eefd537c",
+            "inputHex": "",
+            "renderedFixtures": [
+              {
+                "path": "tools/closuretool",
+                "hex": "23212f62696e2f626173680a7072696e7466202766696c653a3c25733e5c6e2720222440220a",
+                "sha256": "229f1bc76f435117d4a1247988edac2a161b0ea1aa88aa7d932a7a3a693e6720",
+                "mode": 493
+              }
+            ],
+            "result": {
+              "argv": [
+                "/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "closurefn() { :; }; PATH=tools; type -t printf closurefn closuretool closure_missing; printf \"mixed:%s\\n\" \"$?\"; type printf closuretool",
+                "bash"
+              ],
+              "argv0": "bash",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-uKl46o",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89726,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "6275696c74696e0a66756e6374696f6e0a66696c650a6d697865643a300a7072696e74662069732061207368656c6c206275696c74696e0a636c6f73757265746f6f6c20697320746f6f6c732f636c6f73757265746f6f6c0a",
+              "stderrHex": "",
+              "stdout": "builtin\nfunction\nfile\nmixed:0\nprintf is a shell builtin\nclosuretool is tools/closuretool\n",
+              "stderr": "",
+              "elapsedMs": 7.3276250000001255
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "type-multiple-status",
+            "source": "closurefn() { :; }; PATH=tools; type -t printf closurefn closuretool closure_missing; printf \"mixed:%s\\n\" \"$?\"; type printf closuretool",
+            "role": "bash",
+            "args": [
+              "-c",
+              "closurefn() { :; }; PATH=tools; type -t printf closurefn closuretool closure_missing; printf \"mixed:%s\\n\" \"$?\"; type printf closuretool",
+              "bash"
+            ],
+            "inputHex": "",
+            "exitCode": 0,
+            "stdoutHex": "636f6d6d616e640a66756e6374696f6e0a66696c650a6d697865643a310a7072696e74662069732061207265676973746572656420636f6d6d616e640a636c6f73757265746f6f6c20697320746f6f6c732f636c6f73757265746f6f6c0a",
+            "stderrHex": "",
+            "stdout": "command\nfunction\nfile\nmixed:1\nprintf is a registered command\nclosuretool is tools/closuretool\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "type-option-combinations",
+          "pass": true,
+          "fields": [],
+          "expected": {
+            "id": "type-option-combinations",
+            "source": "closuretool() { :; }; PATH=first:second; type -at closuretool; type -ap closuretool; type -P closuretool; type -ft closuretool",
+            "sourceHash": "a3cbf815abeeca28dc59e4e6180d6b61c0aab00d73e3550121b253e7caefa073",
+            "inputHex": "",
+            "renderedFixtures": [
+              {
+                "path": "first/closuretool",
+                "hex": "23212f62696e2f626173680a7072696e7466202766696c653a3c25733e5c6e2720222440220a",
+                "sha256": "229f1bc76f435117d4a1247988edac2a161b0ea1aa88aa7d932a7a3a693e6720",
+                "mode": 493
+              },
+              {
+                "path": "second/closuretool",
+                "hex": "23212f62696e2f626173680a7072696e7466202766696c653a3c25733e5c6e2720222440220a",
+                "sha256": "229f1bc76f435117d4a1247988edac2a161b0ea1aa88aa7d932a7a3a693e6720",
+                "mode": 493
+              }
+            ],
+            "result": {
+              "argv": [
+                "/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "closuretool() { :; }; PATH=first:second; type -at closuretool; type -ap closuretool; type -P closuretool; type -ft closuretool",
+                "bash"
+              ],
+              "argv0": "bash",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-bgsmIO",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89727,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "66756e6374696f6e0a66696c650a66696c650a66697273742f636c6f73757265746f6f6c0a7365636f6e642f636c6f73757265746f6f6c0a66697273742f636c6f73757265746f6f6c0a66696c650a",
+              "stderrHex": "",
+              "stdout": "function\nfile\nfile\nfirst/closuretool\nsecond/closuretool\nfirst/closuretool\nfile\n",
+              "stderr": "",
+              "elapsedMs": 6.75366699999995
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "type-option-combinations",
+            "source": "closuretool() { :; }; PATH=first:second; type -at closuretool; type -ap closuretool; type -P closuretool; type -ft closuretool",
+            "role": "bash",
+            "args": [
+              "-c",
+              "closuretool() { :; }; PATH=first:second; type -at closuretool; type -ap closuretool; type -P closuretool; type -ft closuretool",
+              "bash"
+            ],
+            "inputHex": "",
+            "exitCode": 0,
+            "stdoutHex": "66756e6374696f6e0a66696c650a66696c650a66697273742f636c6f73757265746f6f6c0a7365636f6e642f636c6f73757265746f6f6c0a66697273742f636c6f73757265746f6f6c0a66696c650a",
+            "stderrHex": "",
+            "stdout": "function\nfile\nfile\nfirst/closuretool\nsecond/closuretool\nfirst/closuretool\nfile\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "command-bypasses-function",
+          "pass": true,
+          "fields": [],
+          "expected": {
+            "id": "command-bypasses-function",
+            "source": "closuretool() { printf \"function\\n\"; }; PATH=tools; command -v closuretool; closuretool; command closuretool \"\" \"a b\" \"*;literal\"; command command printf \"builtin\\n\"",
+            "sourceHash": "9d7aa39287d62a4dfecf3cffeed2b98b2ec866254cb2d82ee99f7df17e1367a0",
+            "inputHex": "",
+            "renderedFixtures": [
+              {
+                "path": "tools/closuretool",
+                "hex": "23212f62696e2f626173680a7072696e7466202766696c653a3c25733e5c6e2720222440220a",
+                "sha256": "229f1bc76f435117d4a1247988edac2a161b0ea1aa88aa7d932a7a3a693e6720",
+                "mode": 493
+              }
+            ],
+            "result": {
+              "argv": [
+                "/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "closuretool() { printf \"function\\n\"; }; PATH=tools; command -v closuretool; closuretool; command closuretool \"\" \"a b\" \"*;literal\"; command command printf \"builtin\\n\"",
+                "bash"
+              ],
+              "argv0": "bash",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-wFdra8",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89728,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "636c6f73757265746f6f6c0a66756e6374696f6e0a66696c653a3c3e0a66696c653a3c6120623e0a66696c653a3c2a3b6c69746572616c3e0a6275696c74696e0a",
+              "stderrHex": "",
+              "stdout": "closuretool\nfunction\nfile:<>\nfile:<a b>\nfile:<*;literal>\nbuiltin\n",
+              "stderr": "",
+              "elapsedMs": 231.21675000000005
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "command-bypasses-function",
+            "source": "closuretool() { printf \"function\\n\"; }; PATH=tools; command -v closuretool; closuretool; command closuretool \"\" \"a b\" \"*;literal\"; command command printf \"builtin\\n\"",
+            "role": "bash",
+            "args": [
+              "-c",
+              "closuretool() { printf \"function\\n\"; }; PATH=tools; command -v closuretool; closuretool; command closuretool \"\" \"a b\" \"*;literal\"; command command printf \"builtin\\n\"",
+              "bash"
+            ],
+            "inputHex": "",
+            "exitCode": 0,
+            "stdoutHex": "636c6f73757265746f6f6c0a66756e6374696f6e0a66696c653a3c3e0a66696c653a3c6120623e0a66696c653a3c2a3b6c69746572616c3e0a6275696c74696e0a",
+            "stderrHex": "",
+            "stdout": "closuretool\nfunction\nfile:<>\nfile:<a b>\nfile:<*;literal>\nbuiltin\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "query-effective-path-cwd",
+          "pass": true,
+          "fields": [],
+          "expected": {
+            "id": "query-effective-path-cwd",
+            "source": "PATH=missing; PATH=\"tool dir\" command -v closuretool; PATH=\"tool dir\" command closuretool prefix; cd sub; PATH=\"tool dir\" command -v closuretool; PATH=\"tool dir\" command closuretool child",
+            "sourceHash": "cc59c5e2ddc17d4a339847a939935cdf8dcfd88fe9f947bd8c48593fc47dd45f",
+            "inputHex": "",
+            "renderedFixtures": [
+              {
+                "path": "tool dir/closuretool",
+                "hex": "23212f62696e2f626173680a7072696e74662027726f6f743a3c25733e5c6e2720222440220a",
+                "sha256": "b8e612cc93831835c23627831af6425a426391edd8a6281be707597bd97975a0",
+                "mode": 493
+              },
+              {
+                "path": "sub/tool dir/closuretool",
+                "hex": "23212f62696e2f626173680a7072696e746620277375623a3c25733e5c6e2720222440220a",
+                "sha256": "25968e61b1c87eef14e0ad8a856ab1f9082ce45be8503b300c3331ba784afed7",
+                "mode": 493
+              }
+            ],
+            "result": {
+              "argv": [
+                "/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "PATH=missing; PATH=\"tool dir\" command -v closuretool; PATH=\"tool dir\" command closuretool prefix; cd sub; PATH=\"tool dir\" command -v closuretool; PATH=\"tool dir\" command closuretool child",
+                "bash"
+              ],
+              "argv0": "bash",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-KvfHJN",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89731,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "746f6f6c206469722f636c6f73757265746f6f6c0a726f6f743a3c7072656669783e0a746f6f6c206469722f636c6f73757265746f6f6c0a7375623a3c6368696c643e0a",
+              "stderrHex": "",
+              "stdout": "tool dir/closuretool\nroot:<prefix>\ntool dir/closuretool\nsub:<child>\n",
+              "stderr": "",
+              "elapsedMs": 331.2616250000001
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "query-effective-path-cwd",
+            "source": "PATH=missing; PATH=\"tool dir\" command -v closuretool; PATH=\"tool dir\" command closuretool prefix; cd sub; PATH=\"tool dir\" command -v closuretool; PATH=\"tool dir\" command closuretool child",
+            "role": "bash",
+            "args": [
+              "-c",
+              "PATH=missing; PATH=\"tool dir\" command -v closuretool; PATH=\"tool dir\" command closuretool prefix; cd sub; PATH=\"tool dir\" command -v closuretool; PATH=\"tool dir\" command closuretool child",
+              "bash"
+            ],
+            "inputHex": "",
+            "exitCode": 0,
+            "stdoutHex": "746f6f6c206469722f636c6f73757265746f6f6c0a726f6f743a3c7072656669783e0a746f6f6c206469722f636c6f73757265746f6f6c0a7375623a3c6368696c643e0a",
+            "stderrHex": "",
+            "stdout": "tool dir/closuretool\nroot:<prefix>\ntool dir/closuretool\nsub:<child>\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "query-denied-directory-symlink",
+          "pass": true,
+          "fields": [],
+          "expected": {
+            "id": "query-denied-directory-symlink",
+            "source": "PATH=denied:directory:links; command -v closuretool; type -t closuretool; command closuretool yes; command -v ./real/tool; command ./real/tool direct",
+            "sourceHash": "05d9536e1d5c33314c63277c97265ac13e3aee93bad3f5c7cf2811b47e971f42",
+            "inputHex": "",
+            "renderedFixtures": [
+              {
+                "path": "denied/closuretool",
+                "hex": "23212f62696e2f626173680a7072696e7466202764656e6965643a3c25733e5c6e2720222440220a",
+                "sha256": "ae3c761984883030486957c36c4f9b1c642a91c0b38ec1876807c297cfc354db",
+                "mode": 420
+              },
+              {
+                "path": "real/tool",
+                "hex": "23212f62696e2f626173680a7072696e7466202766696c653a3c25733e5c6e2720222440220a",
+                "sha256": "229f1bc76f435117d4a1247988edac2a161b0ea1aa88aa7d932a7a3a693e6720",
+                "mode": 493
+              }
+            ],
+            "result": {
+              "argv": [
+                "/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "PATH=denied:directory:links; command -v closuretool; type -t closuretool; command closuretool yes; command -v ./real/tool; command ./real/tool direct",
+                "bash"
+              ],
+              "argv0": "bash",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-z4o96o",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89740,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "6c696e6b732f636c6f73757265746f6f6c0a66696c650a66696c653a3c7965733e0a2e2f7265616c2f746f6f6c0a66696c653a3c6469726563743e0a",
+              "stderrHex": "",
+              "stdout": "links/closuretool\nfile\nfile:<yes>\n./real/tool\nfile:<direct>\n",
+              "stderr": "",
+              "elapsedMs": 168.1067909999997
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "query-denied-directory-symlink",
+            "source": "PATH=denied:directory:links; command -v closuretool; type -t closuretool; command closuretool yes; command -v ./real/tool; command ./real/tool direct",
+            "role": "bash",
+            "args": [
+              "-c",
+              "PATH=denied:directory:links; command -v closuretool; type -t closuretool; command closuretool yes; command -v ./real/tool; command ./real/tool direct",
+              "bash"
+            ],
+            "inputHex": "",
+            "exitCode": 0,
+            "stdoutHex": "6c696e6b732f636c6f73757265746f6f6c0a66696c650a66696c653a3c7965733e0a2e2f7265616c2f746f6f6c0a66696c653a3c6469726563743e0a",
+            "stderrHex": "",
+            "stdout": "links/closuretool\nfile\nfile:<yes>\n./real/tool\nfile:<direct>\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "query-empty-and-unsupported-option",
+          "pass": false,
+          "fields": [
+            "stderr bytes"
+          ],
+          "expected": {
+            "id": "query-empty-and-unsupported-option",
+            "source": "command; printf \"empty:%s\\n\" \"$?\"; command -z printf; printf \"bad:%s\\n\" \"$?\"",
+            "sourceHash": "33e472dd1755cefe421b28b1142477867e94fcec1247afab6409d742ba46d688",
+            "inputHex": "",
+            "renderedFixtures": [],
+            "result": {
+              "argv": [
+                "/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "command; printf \"empty:%s\\n\" \"$?\"; command -z printf; printf \"bad:%s\\n\" \"$?\"",
+                "bash"
+              ],
+              "argv0": "bash",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-es7JD8",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89749,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "656d7074793a300a6261643a320a",
+              "stderrHex": "626173683a206c696e6520303a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a",
+              "stdout": "empty:0\nbad:2\n",
+              "stderr": "bash: line 0: command: -z: invalid option\ncommand: usage: command [-pVv] command [arg ...]\n",
+              "elapsedMs": 11.669000000000324
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "query-empty-and-unsupported-option",
+            "source": "command; printf \"empty:%s\\n\" \"$?\"; command -z printf; printf \"bad:%s\\n\" \"$?\"",
+            "role": "bash",
+            "args": [
+              "-c",
+              "command; printf \"empty:%s\\n\" \"$?\"; command -z printf; printf \"bad:%s\\n\" \"$?\"",
+              "bash"
+            ],
+            "inputHex": "",
+            "exitCode": 0,
+            "stdoutHex": "656d7074793a300a6261643a320a",
+            "stderrHex": "626173683a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a",
+            "stdout": "empty:0\nbad:2\n",
+            "stderr": "bash: line 1: command: -z: invalid option\ncommand: usage: command [-pVv] command [arg ...]\n"
+          }
+        },
+        {
+          "id": "read-N-character-count-en_US.UTF-8",
+          "pass": false,
+          "fields": [
+            "stdout bytes",
+            "stderr bytes"
+          ],
+          "expected": {
+            "id": "read-N-character-count-en_US.UTF-8",
+            "source": "read -r -N 2 value; printf \"first:%s:<%s>\\n\" \"$?\" \"$value\"; read -r rest; printf \"rest:%s:<%s>\\n\" \"$?\" \"$rest\"",
+            "sourceHash": "26c0eee8c6ec3994d9f3f49315d3464614997f153f2317f2eb077ce171c26d8f",
+            "inputHex": "c3a9587461696c0a",
+            "renderedFixtures": [],
+            "result": {
+              "argv": [
+                "/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "read -r -N 2 value; printf \"first:%s:<%s>\\n\" \"$?\" \"$value\"; read -r rest; printf \"rest:%s:<%s>\\n\" \"$?\" \"$rest\"",
+                "bash"
+              ],
+              "argv0": "bash",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-C3NQIR",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "en_US.UTF-8",
+                "LANG": "en_US.UTF-8",
+                "TZ": "UTC"
+              },
+              "pid": 89750,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "66697273743a323a3c3e0a726573743a303a3cc3a9587461696c3e0a",
+              "stderrHex": "626173683a206c696e6520303a20726561643a202d4e3a20696e76616c6964206f7074696f6e0a726561643a2075736167653a2072656164205b2d6572735d205b2d752066645d205b2d742074696d656f75745d205b2d702070726f6d70745d205b2d612061727261795d205b2d6e206e63686172735d205b2d642064656c696d5d205b6e616d65202e2e2e5d0a",
+              "stdout": "first:2:<>\nrest:0:<éXtail>\n",
+              "stderr": "bash: line 0: read: -N: invalid option\nread: usage: read [-ers] [-u fd] [-t timeout] [-p prompt] [-a array] [-n nchars] [-d delim] [name ...]\n",
+              "elapsedMs": 11.623875000000226
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "read-N-character-count-en_US.UTF-8",
+            "source": "read -r -N 2 value; printf \"first:%s:<%s>\\n\" \"$?\" \"$value\"; read -r rest; printf \"rest:%s:<%s>\\n\" \"$?\" \"$rest\"",
+            "role": "bash",
+            "args": [
+              "-c",
+              "read -r -N 2 value; printf \"first:%s:<%s>\\n\" \"$?\" \"$value\"; read -r rest; printf \"rest:%s:<%s>\\n\" \"$?\" \"$rest\"",
+              "bash"
+            ],
+            "inputHex": "c3a9587461696c0a",
+            "exitCode": 0,
+            "stdoutHex": "66697273743a303a3cc3a9583e0a726573743a303a3c7461696c3e0a",
+            "stderrHex": "",
+            "stdout": "first:0:<éX>\nrest:0:<tail>\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "read-N-character-count-C",
+          "pass": false,
+          "fields": [
+            "stdout bytes",
+            "stderr bytes"
+          ],
+          "expected": {
+            "id": "read-N-character-count-C",
+            "source": "read -r -N 2 value; printf \"first:%s:<%s>\\n\" \"$?\" \"$value\"; read -r rest; printf \"rest:%s:<%s>\\n\" \"$?\" \"$rest\"",
+            "sourceHash": "26c0eee8c6ec3994d9f3f49315d3464614997f153f2317f2eb077ce171c26d8f",
+            "inputHex": "c3a9587461696c0a",
+            "renderedFixtures": [],
+            "result": {
+              "argv": [
+                "/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "read -r -N 2 value; printf \"first:%s:<%s>\\n\" \"$?\" \"$value\"; read -r rest; printf \"rest:%s:<%s>\\n\" \"$?\" \"$rest\"",
+                "bash"
+              ],
+              "argv0": "bash",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-SZqQMR",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89751,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "66697273743a323a3c3e0a726573743a303a3cc3a9587461696c3e0a",
+              "stderrHex": "626173683a206c696e6520303a20726561643a202d4e3a20696e76616c6964206f7074696f6e0a726561643a2075736167653a2072656164205b2d6572735d205b2d752066645d205b2d742074696d656f75745d205b2d702070726f6d70745d205b2d612061727261795d205b2d6e206e63686172735d205b2d642064656c696d5d205b6e616d65202e2e2e5d0a",
+              "stdout": "first:2:<>\nrest:0:<éXtail>\n",
+              "stderr": "bash: line 0: read: -N: invalid option\nread: usage: read [-ers] [-u fd] [-t timeout] [-p prompt] [-a array] [-n nchars] [-d delim] [name ...]\n",
+              "elapsedMs": 11.04529199999979
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "read-N-character-count-C",
+            "source": "read -r -N 2 value; printf \"first:%s:<%s>\\n\" \"$?\" \"$value\"; read -r rest; printf \"rest:%s:<%s>\\n\" \"$?\" \"$rest\"",
+            "role": "bash",
+            "args": [
+              "-c",
+              "read -r -N 2 value; printf \"first:%s:<%s>\\n\" \"$?\" \"$value\"; read -r rest; printf \"rest:%s:<%s>\\n\" \"$?\" \"$rest\"",
+              "bash"
+            ],
+            "inputHex": "c3a9587461696c0a",
+            "exitCode": 0,
+            "stdoutHex": "66697273743a303a3cc3a93e0a726573743a303a3c587461696c3e0a",
+            "stderrHex": "",
+            "stdout": "first:0:<é>\nrest:0:<Xtail>\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "read-N-delimiter-vs-n",
+          "pass": false,
+          "fields": [
+            "stdout bytes",
+            "stderr bytes"
+          ],
+          "expected": {
+            "id": "read-N-delimiter-vs-n",
+            "source": "read -r -N 3 -d : first; printf \"N:%s:<%s>\\n\" \"$?\" \"$first\"; read -r -n 3 -d : second; printf \"n:%s:<%s>\\n\" \"$?\" \"$second\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+            "sourceHash": "295b30540a26fc693a97c521d732cce63aaf30a93ce455d309583d3b178d96d2",
+            "inputHex": "410a42433a440a",
+            "renderedFixtures": [],
+            "result": {
+              "argv": [
+                "/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "read -r -N 3 -d : first; printf \"N:%s:<%s>\\n\" \"$?\" \"$first\"; read -r -n 3 -d : second; printf \"n:%s:<%s>\\n\" \"$?\" \"$second\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+                "bash"
+              ],
+              "argv0": "bash",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-j6SYZC",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89752,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "4e3a323a3c3e0a6e3a303a3c410a423e0a726573743a3c433a443e0a",
+              "stderrHex": "626173683a206c696e6520303a20726561643a202d4e3a20696e76616c6964206f7074696f6e0a726561643a2075736167653a2072656164205b2d6572735d205b2d752066645d205b2d742074696d656f75745d205b2d702070726f6d70745d205b2d612061727261795d205b2d6e206e63686172735d205b2d642064656c696d5d205b6e616d65202e2e2e5d0a",
+              "stdout": "N:2:<>\nn:0:<A\nB>\nrest:<C:D>\n",
+              "stderr": "bash: line 0: read: -N: invalid option\nread: usage: read [-ers] [-u fd] [-t timeout] [-p prompt] [-a array] [-n nchars] [-d delim] [name ...]\n",
+              "elapsedMs": 9.584957999999915
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "read-N-delimiter-vs-n",
+            "source": "read -r -N 3 -d : first; printf \"N:%s:<%s>\\n\" \"$?\" \"$first\"; read -r -n 3 -d : second; printf \"n:%s:<%s>\\n\" \"$?\" \"$second\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+            "role": "bash",
+            "args": [
+              "-c",
+              "read -r -N 3 -d : first; printf \"N:%s:<%s>\\n\" \"$?\" \"$first\"; read -r -n 3 -d : second; printf \"n:%s:<%s>\\n\" \"$?\" \"$second\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+              "bash"
+            ],
+            "inputHex": "410a42433a440a",
+            "exitCode": 0,
+            "stdoutHex": "4e3a303a3c410a423e0a6e3a303a3c433e0a726573743a3c443e0a",
+            "stderrHex": "",
+            "stdout": "N:0:<A\nB>\nn:0:<C>\nrest:<D>\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "read-N-skips-nul-data",
+          "pass": false,
+          "fields": [
+            "stdout bytes",
+            "stderr bytes"
+          ],
+          "expected": {
+            "id": "read-N-skips-nul-data",
+            "source": "read -r -N 3 value; printf \"value:%s:<%s>\\n\" \"$?\" \"$value\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+            "sourceHash": "8c4a46e3781bea68262b4d81d82ac232197b69aaee9d8e6121c218c3f7a89e30",
+            "inputHex": "4100420a7461696c0a",
+            "renderedFixtures": [],
+            "result": {
+              "argv": [
+                "/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "read -r -N 3 value; printf \"value:%s:<%s>\\n\" \"$?\" \"$value\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+                "bash"
+              ],
+              "argv0": "bash",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-E7WwNa",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89753,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "76616c75653a323a3c3e0a726573743a3c413e0a",
+              "stderrHex": "626173683a206c696e6520303a20726561643a202d4e3a20696e76616c6964206f7074696f6e0a726561643a2075736167653a2072656164205b2d6572735d205b2d752066645d205b2d742074696d656f75745d205b2d702070726f6d70745d205b2d612061727261795d205b2d6e206e63686172735d205b2d642064656c696d5d205b6e616d65202e2e2e5d0a",
+              "stdout": "value:2:<>\nrest:<A>\n",
+              "stderr": "bash: line 0: read: -N: invalid option\nread: usage: read [-ers] [-u fd] [-t timeout] [-p prompt] [-a array] [-n nchars] [-d delim] [name ...]\n",
+              "elapsedMs": 8.920040999999856
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "read-N-skips-nul-data",
+            "source": "read -r -N 3 value; printf \"value:%s:<%s>\\n\" \"$?\" \"$value\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+            "role": "bash",
+            "args": [
+              "-c",
+              "read -r -N 3 value; printf \"value:%s:<%s>\\n\" \"$?\" \"$value\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+              "bash"
+            ],
+            "inputHex": "4100420a7461696c0a",
+            "exitCode": 0,
+            "stdoutHex": "76616c75653a303a3c41420a3e0a726573743a3c7461696c3e0a",
+            "stderrHex": "",
+            "stdout": "value:0:<AB\n>\nrest:<tail>\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "read-N-nul-delimiter",
+          "pass": false,
+          "fields": [
+            "stdout bytes",
+            "stderr bytes"
+          ],
+          "expected": {
+            "id": "read-N-nul-delimiter",
+            "source": "read -r -N 3 -d \"\" value; printf \"value:%s:<%s>\\n\" \"$?\" \"$value\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+            "sourceHash": "d9fab4076266c29a1ee31adc594ca5aa90d2e2a82b7577a1fcf8b23c4a88c8b6",
+            "inputHex": "410042437461696c0a",
+            "renderedFixtures": [],
+            "result": {
+              "argv": [
+                "/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "read -r -N 3 -d \"\" value; printf \"value:%s:<%s>\\n\" \"$?\" \"$value\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+                "bash"
+              ],
+              "argv0": "bash",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-0yNMT0",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89754,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "76616c75653a323a3c3e0a726573743a3c413e0a",
+              "stderrHex": "626173683a206c696e6520303a20726561643a202d4e3a20696e76616c6964206f7074696f6e0a726561643a2075736167653a2072656164205b2d6572735d205b2d752066645d205b2d742074696d656f75745d205b2d702070726f6d70745d205b2d612061727261795d205b2d6e206e63686172735d205b2d642064656c696d5d205b6e616d65202e2e2e5d0a",
+              "stdout": "value:2:<>\nrest:<A>\n",
+              "stderr": "bash: line 0: read: -N: invalid option\nread: usage: read [-ers] [-u fd] [-t timeout] [-p prompt] [-a array] [-n nchars] [-d delim] [name ...]\n",
+              "elapsedMs": 8.379041000000143
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "read-N-nul-delimiter",
+            "source": "read -r -N 3 -d \"\" value; printf \"value:%s:<%s>\\n\" \"$?\" \"$value\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+            "role": "bash",
+            "args": [
+              "-c",
+              "read -r -N 3 -d \"\" value; printf \"value:%s:<%s>\\n\" \"$?\" \"$value\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+              "bash"
+            ],
+            "inputHex": "410042437461696c0a",
+            "exitCode": 0,
+            "stdoutHex": "76616c75653a303a3c4142433e0a726573743a3c7461696c3e0a",
+            "stderrHex": "",
+            "stdout": "value:0:<ABC>\nrest:<tail>\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "read-N-no-ifs-split",
+          "pass": false,
+          "fields": [
+            "stdout bytes",
+            "stderr bytes"
+          ],
+          "expected": {
+            "id": "read-N-no-ifs-split",
+            "source": "IFS=:; read -r -N 4 first second; printf \"value:%s:<%s>:<%s>\\n\" \"$?\" \"$first\" \"$second\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+            "sourceHash": "587b76080593dd7b824b9f38d8d794a56a4b9c5b8a4d1c8d820a2adbb0e453fe",
+            "inputHex": "613a623a726573740a",
+            "renderedFixtures": [],
+            "result": {
+              "argv": [
+                "/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "IFS=:; read -r -N 4 first second; printf \"value:%s:<%s>:<%s>\\n\" \"$?\" \"$first\" \"$second\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+                "bash"
+              ],
+              "argv0": "bash",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-F3itTQ",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89755,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "76616c75653a323a3c3e3a3c3e0a726573743a3c613a623a726573743e0a",
+              "stderrHex": "626173683a206c696e6520303a20726561643a202d4e3a20696e76616c6964206f7074696f6e0a726561643a2075736167653a2072656164205b2d6572735d205b2d752066645d205b2d742074696d656f75745d205b2d702070726f6d70745d205b2d612061727261795d205b2d6e206e63686172735d205b2d642064656c696d5d205b6e616d65202e2e2e5d0a",
+              "stdout": "value:2:<>:<>\nrest:<a:b:rest>\n",
+              "stderr": "bash: line 0: read: -N: invalid option\nread: usage: read [-ers] [-u fd] [-t timeout] [-p prompt] [-a array] [-n nchars] [-d delim] [name ...]\n",
+              "elapsedMs": 8.941375000000335
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "read-N-no-ifs-split",
+            "source": "IFS=:; read -r -N 4 first second; printf \"value:%s:<%s>:<%s>\\n\" \"$?\" \"$first\" \"$second\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+            "role": "bash",
+            "args": [
+              "-c",
+              "IFS=:; read -r -N 4 first second; printf \"value:%s:<%s>:<%s>\\n\" \"$?\" \"$first\" \"$second\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+              "bash"
+            ],
+            "inputHex": "613a623a726573740a",
+            "exitCode": 0,
+            "stdoutHex": "76616c75653a303a3c613a623a3e3a3c3e0a726573743a3c726573743e0a",
+            "stderrHex": "",
+            "stdout": "value:0:<a:b:>:<>\nrest:<rest>\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "read-N-backslash-raw",
+          "pass": false,
+          "fields": [
+            "stdout bytes",
+            "stderr bytes"
+          ],
+          "expected": {
+            "id": "read-N-backslash-raw",
+            "source": "read -N 3 cooked; printf \"cooked:%s:<%s>\\n\" \"$?\" \"$cooked\"; read -r -N 3 raw; printf \"raw:%s:<%s>\\n\" \"$?\" \"$raw\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+            "sourceHash": "56422bbeeec8e49dabfef68d1f7ec1dc6e15bed5482a2038612ec9c4c92a84c0",
+            "inputHex": "615c0a62635c7879726573740a",
+            "renderedFixtures": [],
+            "result": {
+              "argv": [
+                "/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "read -N 3 cooked; printf \"cooked:%s:<%s>\\n\" \"$?\" \"$cooked\"; read -r -N 3 raw; printf \"raw:%s:<%s>\\n\" \"$?\" \"$raw\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+                "bash"
+              ],
+              "argv0": "bash",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-PGE5tS",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89756,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "636f6f6b65643a323a3c3e0a7261773a323a3c3e0a726573743a3c615c3e0a",
+              "stderrHex": "626173683a206c696e6520303a20726561643a202d4e3a20696e76616c6964206f7074696f6e0a726561643a2075736167653a2072656164205b2d6572735d205b2d752066645d205b2d742074696d656f75745d205b2d702070726f6d70745d205b2d612061727261795d205b2d6e206e63686172735d205b2d642064656c696d5d205b6e616d65202e2e2e5d0a626173683a206c696e6520303a20726561643a202d4e3a20696e76616c6964206f7074696f6e0a726561643a2075736167653a2072656164205b2d6572735d205b2d752066645d205b2d742074696d656f75745d205b2d702070726f6d70745d205b2d612061727261795d205b2d6e206e63686172735d205b2d642064656c696d5d205b6e616d65202e2e2e5d0a",
+              "stdout": "cooked:2:<>\nraw:2:<>\nrest:<a\\>\n",
+              "stderr": "bash: line 0: read: -N: invalid option\nread: usage: read [-ers] [-u fd] [-t timeout] [-p prompt] [-a array] [-n nchars] [-d delim] [name ...]\nbash: line 0: read: -N: invalid option\nread: usage: read [-ers] [-u fd] [-t timeout] [-p prompt] [-a array] [-n nchars] [-d delim] [name ...]\n",
+              "elapsedMs": 8.524167000000034
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "read-N-backslash-raw",
+            "source": "read -N 3 cooked; printf \"cooked:%s:<%s>\\n\" \"$?\" \"$cooked\"; read -r -N 3 raw; printf \"raw:%s:<%s>\\n\" \"$?\" \"$raw\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+            "role": "bash",
+            "args": [
+              "-c",
+              "read -N 3 cooked; printf \"cooked:%s:<%s>\\n\" \"$?\" \"$cooked\"; read -r -N 3 raw; printf \"raw:%s:<%s>\\n\" \"$?\" \"$raw\"; read -r rest; printf \"rest:<%s>\\n\" \"$rest\"",
+              "bash"
+            ],
+            "inputHex": "615c0a62635c7879726573740a",
+            "exitCode": 0,
+            "stdoutHex": "636f6f6b65643a303a3c6162633e0a7261773a303a3c5c78793e0a726573743a3c726573743e0a",
+            "stderrHex": "",
+            "stdout": "cooked:0:<abc>\nraw:0:<\\xy>\nrest:<rest>\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "read-N-zero-invalid",
+          "pass": false,
+          "fields": [
+            "stdout bytes",
+            "stderr bytes"
+          ],
+          "expected": {
+            "id": "read-N-zero-invalid",
+            "source": "value=old; read -N 0 value; printf \"zero:%s:<%s>\\n\" \"$?\" \"$value\"; read -N -1 value; printf \"negative:%s\\n\" \"$?\"; read -N bad value; printf \"invalid:%s\\n\" \"$?\"; read -r value; printf \"remaining:<%s>\\n\" \"$value\"",
+            "sourceHash": "0a3ec017d2cba28e1c8cfc2393b801090857c80224a71540e861718b66478927",
+            "inputHex": "756e746f75636865640a",
+            "renderedFixtures": [],
+            "result": {
+              "argv": [
+                "/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "value=old; read -N 0 value; printf \"zero:%s:<%s>\\n\" \"$?\" \"$value\"; read -N -1 value; printf \"negative:%s\\n\" \"$?\"; read -N bad value; printf \"invalid:%s\\n\" \"$?\"; read -r value; printf \"remaining:<%s>\\n\" \"$value\"",
+                "bash"
+              ],
+              "argv0": "bash",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-GRyoxC",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89757,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "7a65726f3a323a3c6f6c643e0a6e656761746976653a320a696e76616c69643a320a72656d61696e696e673a3c756e746f75636865643e0a",
+              "stderrHex": "626173683a206c696e6520303a20726561643a202d4e3a20696e76616c6964206f7074696f6e0a726561643a2075736167653a2072656164205b2d6572735d205b2d752066645d205b2d742074696d656f75745d205b2d702070726f6d70745d205b2d612061727261795d205b2d6e206e63686172735d205b2d642064656c696d5d205b6e616d65202e2e2e5d0a626173683a206c696e6520303a20726561643a202d4e3a20696e76616c6964206f7074696f6e0a726561643a2075736167653a2072656164205b2d6572735d205b2d752066645d205b2d742074696d656f75745d205b2d702070726f6d70745d205b2d612061727261795d205b2d6e206e63686172735d205b2d642064656c696d5d205b6e616d65202e2e2e5d0a626173683a206c696e6520303a20726561643a202d4e3a20696e76616c6964206f7074696f6e0a726561643a2075736167653a2072656164205b2d6572735d205b2d752066645d205b2d742074696d656f75745d205b2d702070726f6d70745d205b2d612061727261795d205b2d6e206e63686172735d205b2d642064656c696d5d205b6e616d65202e2e2e5d0a",
+              "stdout": "zero:2:<old>\nnegative:2\ninvalid:2\nremaining:<untouched>\n",
+              "stderr": "bash: line 0: read: -N: invalid option\nread: usage: read [-ers] [-u fd] [-t timeout] [-p prompt] [-a array] [-n nchars] [-d delim] [name ...]\nbash: line 0: read: -N: invalid option\nread: usage: read [-ers] [-u fd] [-t timeout] [-p prompt] [-a array] [-n nchars] [-d delim] [name ...]\nbash: line 0: read: -N: invalid option\nread: usage: read [-ers] [-u fd] [-t timeout] [-p prompt] [-a array] [-n nchars] [-d delim] [name ...]\n",
+              "elapsedMs": 8.699832999999671
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "read-N-zero-invalid",
+            "source": "value=old; read -N 0 value; printf \"zero:%s:<%s>\\n\" \"$?\" \"$value\"; read -N -1 value; printf \"negative:%s\\n\" \"$?\"; read -N bad value; printf \"invalid:%s\\n\" \"$?\"; read -r value; printf \"remaining:<%s>\\n\" \"$value\"",
+            "role": "bash",
+            "args": [
+              "-c",
+              "value=old; read -N 0 value; printf \"zero:%s:<%s>\\n\" \"$?\" \"$value\"; read -N -1 value; printf \"negative:%s\\n\" \"$?\"; read -N bad value; printf \"invalid:%s\\n\" \"$?\"; read -r value; printf \"remaining:<%s>\\n\" \"$value\"",
+              "bash"
+            ],
+            "inputHex": "756e746f75636865640a",
+            "exitCode": 0,
+            "stdoutHex": "7a65726f3a303a3c3e0a6e656761746976653a310a696e76616c69643a310a72656d61696e696e673a3c756e746f75636865643e0a",
+            "stderrHex": "626173683a206c696e6520313a20726561643a202d313a20696e76616c6964206e756d6265720a626173683a206c696e6520313a20726561643a206261643a20696e76616c6964206e756d6265720a",
+            "stdout": "zero:0:<>\nnegative:1\ninvalid:1\nremaining:<untouched>\n",
+            "stderr": "bash: line 1: read: -1: invalid number\nbash: line 1: read: bad: invalid number\n"
+          }
+        },
+        {
+          "id": "read-N-eof-partial",
+          "pass": false,
+          "fields": [
+            "stdout bytes",
+            "stderr bytes"
+          ],
+          "expected": {
+            "id": "read-N-eof-partial",
+            "source": "read -r -N 5 value; printf \"partial:%s:<%s>\\n\" \"$?\" \"$value\"; read -r -N 1 next; printf \"next:%s:<%s>\\n\" \"$?\" \"$next\"",
+            "sourceHash": "b636accab27cc4ddcc9de418d7cb3b1d7202d63237f7d9532b393ba6bd1f9ccd",
+            "inputHex": "c3a9",
+            "renderedFixtures": [],
+            "result": {
+              "argv": [
+                "/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "read -r -N 5 value; printf \"partial:%s:<%s>\\n\" \"$?\" \"$value\"; read -r -N 1 next; printf \"next:%s:<%s>\\n\" \"$?\" \"$next\"",
+                "bash"
+              ],
+              "argv0": "bash",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-h3PHWw",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "en_US.UTF-8",
+                "LANG": "en_US.UTF-8",
+                "TZ": "UTC"
+              },
+              "pid": 89758,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "7061727469616c3a323a3c3e0a6e6578743a323a3c3e0a",
+              "stderrHex": "626173683a206c696e6520303a20726561643a202d4e3a20696e76616c6964206f7074696f6e0a726561643a2075736167653a2072656164205b2d6572735d205b2d752066645d205b2d742074696d656f75745d205b2d702070726f6d70745d205b2d612061727261795d205b2d6e206e63686172735d205b2d642064656c696d5d205b6e616d65202e2e2e5d0a626173683a206c696e6520303a20726561643a202d4e3a20696e76616c6964206f7074696f6e0a726561643a2075736167653a2072656164205b2d6572735d205b2d752066645d205b2d742074696d656f75745d205b2d702070726f6d70745d205b2d612061727261795d205b2d6e206e63686172735d205b2d642064656c696d5d205b6e616d65202e2e2e5d0a",
+              "stdout": "partial:2:<>\nnext:2:<>\n",
+              "stderr": "bash: line 0: read: -N: invalid option\nread: usage: read [-ers] [-u fd] [-t timeout] [-p prompt] [-a array] [-n nchars] [-d delim] [name ...]\nbash: line 0: read: -N: invalid option\nread: usage: read [-ers] [-u fd] [-t timeout] [-p prompt] [-a array] [-n nchars] [-d delim] [name ...]\n",
+              "elapsedMs": 8.735791000000063
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "read-N-eof-partial",
+            "source": "read -r -N 5 value; printf \"partial:%s:<%s>\\n\" \"$?\" \"$value\"; read -r -N 1 next; printf \"next:%s:<%s>\\n\" \"$?\" \"$next\"",
+            "role": "bash",
+            "args": [
+              "-c",
+              "read -r -N 5 value; printf \"partial:%s:<%s>\\n\" \"$?\" \"$value\"; read -r -N 1 next; printf \"next:%s:<%s>\\n\" \"$?\" \"$next\"",
+              "bash"
+            ],
+            "inputHex": "c3a9",
+            "exitCode": 0,
+            "stdoutHex": "7061727469616c3a313a3cc3a93e0a6e6578743a313a3c3e0a",
+            "stderrHex": "",
+            "stdout": "partial:1:<é>\nnext:1:<>\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "read-N-stdin-source-cursor",
+          "pass": false,
+          "fields": [
+            "stdout bytes",
+            "stderr bytes"
+          ],
+          "expected": {
+            "id": "read-N-stdin-source-cursor",
+            "source": "read -r -N 2 value\néΩprintf \"cursor:<%s>\\n\" \"$value\"\nprintf \"next-source\\n\"\n",
+            "sourceHash": "ede70669b843c1f9cea0eb0ab5c0cf0a6ad7a020c560380eafc5a3607fbfcded",
+            "inputHex": "72656164202d72202d4e20322076616c75650ac3a9cea97072696e74662022637572736f723a3c25733e5c6e2220222476616c7565220a7072696e746620226e6578742d736f757263655c6e220a",
+            "renderedFixtures": [],
+            "result": {
+              "argv": [
+                "/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-s"
+              ],
+              "argv0": "bash",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-zKHPNV",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "en_US.UTF-8",
+                "LANG": "en_US.UTF-8",
+                "TZ": "UTC"
+              },
+              "pid": 89759,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "6e6578742d736f757263650a",
+              "stderrHex": "626173683a206c696e6520313a20726561643a202d4e3a20696e76616c6964206f7074696f6e0a726561643a2075736167653a2072656164205b2d6572735d205b2d752066645d205b2d742074696d656f75745d205b2d702070726f6d70745d205b2d612061727261795d205b2d6e206e63686172735d205b2d642064656c696d5d205b6e616d65202e2e2e5d0a626173683a206c696e6520323a20c3a9cea97072696e74663a20636f6d6d616e64206e6f7420666f756e640a",
+              "stdout": "next-source\n",
+              "stderr": "bash: line 1: read: -N: invalid option\nread: usage: read [-ers] [-u fd] [-t timeout] [-p prompt] [-a array] [-n nchars] [-d delim] [name ...]\nbash: line 2: éΩprintf: command not found\n",
+              "elapsedMs": 8.891333000000031
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "read-N-stdin-source-cursor",
+            "source": "read -r -N 2 value\néΩprintf \"cursor:<%s>\\n\" \"$value\"\nprintf \"next-source\\n\"\n",
+            "role": "bash",
+            "args": [
+              "-s"
+            ],
+            "inputHex": "72656164202d72202d4e20322076616c75650ac3a9cea97072696e74662022637572736f723a3c25733e5c6e2220222476616c7565220a7072696e746620226e6578742d736f757263655c6e220a",
+            "exitCode": 0,
+            "stdoutHex": "637572736f723a3cc3a9cea93e0a6e6578742d736f757263650a",
+            "stderrHex": "",
+            "stdout": "cursor:<éΩ>\nnext-source\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "bash-special-ordinary-function",
+          "pass": true,
+          "fields": [],
+          "expected": {
+            "id": "bash-special-ordinary-function",
+            "source": "value=before; value=special :; printf \"special:%s\\n\" \"$value\"; value=ordinary true; printf \"ordinary:%s\\n\" \"$value\"; closurefn() { printf \"inside:%s\\n\" \"$value\"; }; value=function closurefn; printf \"function:%s\\n\" \"$value\"",
+            "sourceHash": "08c97ed0a983505363798c76026a9022835ced5d64255c699b6d3878542370ca",
+            "inputHex": "",
+            "renderedFixtures": [],
+            "result": {
+              "argv": [
+                "/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "value=before; value=special :; printf \"special:%s\\n\" \"$value\"; value=ordinary true; printf \"ordinary:%s\\n\" \"$value\"; closurefn() { printf \"inside:%s\\n\" \"$value\"; }; value=function closurefn; printf \"function:%s\\n\" \"$value\"",
+                "bash"
+              ],
+              "argv0": "bash",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-id8sUO",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89761,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "7370656369616c3a6265666f72650a6f7264696e6172793a6265666f72650a696e736964653a66756e6374696f6e0a66756e6374696f6e3a6265666f72650a",
+              "stderrHex": "",
+              "stdout": "special:before\nordinary:before\ninside:function\nfunction:before\n",
+              "stderr": "",
+              "elapsedMs": 7.737792000000354
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "bash-special-ordinary-function",
+            "source": "value=before; value=special :; printf \"special:%s\\n\" \"$value\"; value=ordinary true; printf \"ordinary:%s\\n\" \"$value\"; closurefn() { printf \"inside:%s\\n\" \"$value\"; }; value=function closurefn; printf \"function:%s\\n\" \"$value\"",
+            "role": "bash",
+            "args": [
+              "-c",
+              "value=before; value=special :; printf \"special:%s\\n\" \"$value\"; value=ordinary true; printf \"ordinary:%s\\n\" \"$value\"; closurefn() { printf \"inside:%s\\n\" \"$value\"; }; value=function closurefn; printf \"function:%s\\n\" \"$value\"",
+              "bash"
+            ],
+            "inputHex": "",
+            "exitCode": 0,
+            "stdoutHex": "7370656369616c3a6265666f72650a6f7264696e6172793a6265666f72650a696e736964653a66756e6374696f6e0a66756e6374696f6e3a6265666f72650a",
+            "stderrHex": "",
+            "stdout": "special:before\nordinary:before\ninside:function\nfunction:before\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "sh-special-ordinary-function",
+          "pass": false,
+          "fields": [
+            "stdout bytes"
+          ],
+          "expected": {
+            "id": "sh-special-ordinary-function",
+            "source": "value=before; value=special :; printf \"special:%s\\n\" \"$value\"; value=ordinary true; printf \"ordinary:%s\\n\" \"$value\"; closurefn() { printf \"inside:%s\\n\" \"$value\"; }; value=function closurefn; printf \"function:%s\\n\" \"$value\"",
+            "sourceHash": "08c97ed0a983505363798c76026a9022835ced5d64255c699b6d3878542370ca",
+            "inputHex": "",
+            "renderedFixtures": [],
+            "result": {
+              "argv": [
+                "/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "value=before; value=special :; printf \"special:%s\\n\" \"$value\"; value=ordinary true; printf \"ordinary:%s\\n\" \"$value\"; closurefn() { printf \"inside:%s\\n\" \"$value\"; }; value=function closurefn; printf \"function:%s\\n\" \"$value\"",
+                "sh"
+              ],
+              "argv0": "sh",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-e1boXb",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89762,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "7370656369616c3a7370656369616c0a6f7264696e6172793a7370656369616c0a696e736964653a66756e6374696f6e0a66756e6374696f6e3a66756e6374696f6e0a",
+              "stderrHex": "",
+              "stdout": "special:special\nordinary:special\ninside:function\nfunction:function\n",
+              "stderr": "",
+              "elapsedMs": 7.453583999999864
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "sh-special-ordinary-function",
+            "source": "value=before; value=special :; printf \"special:%s\\n\" \"$value\"; value=ordinary true; printf \"ordinary:%s\\n\" \"$value\"; closurefn() { printf \"inside:%s\\n\" \"$value\"; }; value=function closurefn; printf \"function:%s\\n\" \"$value\"",
+            "role": "sh",
+            "args": [
+              "-c",
+              "value=before; value=special :; printf \"special:%s\\n\" \"$value\"; value=ordinary true; printf \"ordinary:%s\\n\" \"$value\"; closurefn() { printf \"inside:%s\\n\" \"$value\"; }; value=function closurefn; printf \"function:%s\\n\" \"$value\"",
+              "sh"
+            ],
+            "inputHex": "",
+            "exitCode": 0,
+            "stdoutHex": "7370656369616c3a7370656369616c0a6f7264696e6172793a7370656369616c0a696e736964653a66756e6374696f6e0a66756e6374696f6e3a7370656369616c0a",
+            "stderrHex": "",
+            "stdout": "special:special\nordinary:special\ninside:function\nfunction:special\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "sh-command-special-prefix",
+          "pass": true,
+          "fields": [],
+          "expected": {
+            "id": "sh-command-special-prefix",
+            "source": "value=before; value=after command :; printf \"command:%s\\n\" \"$value\"; value=direct :; printf \"direct:%s\\n\" \"$value\"; value=again command command :; printf \"twice:%s\\n\" \"$value\"",
+            "sourceHash": "0d170790ef0031a3c8834b1751ab913fefd450f676cfafcd262453fcbb266add",
+            "inputHex": "",
+            "renderedFixtures": [],
+            "result": {
+              "argv": [
+                "/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "value=before; value=after command :; printf \"command:%s\\n\" \"$value\"; value=direct :; printf \"direct:%s\\n\" \"$value\"; value=again command command :; printf \"twice:%s\\n\" \"$value\"",
+                "sh"
+              ],
+              "argv0": "sh",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-6A9Ltb",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89763,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "636f6d6d616e643a6265666f72650a6469726563743a6469726563740a74776963653a6469726563740a",
+              "stderrHex": "",
+              "stdout": "command:before\ndirect:direct\ntwice:direct\n",
+              "stderr": "",
+              "elapsedMs": 7.753083999999944
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "sh-command-special-prefix",
+            "source": "value=before; value=after command :; printf \"command:%s\\n\" \"$value\"; value=direct :; printf \"direct:%s\\n\" \"$value\"; value=again command command :; printf \"twice:%s\\n\" \"$value\"",
+            "role": "sh",
+            "args": [
+              "-c",
+              "value=before; value=after command :; printf \"command:%s\\n\" \"$value\"; value=direct :; printf \"direct:%s\\n\" \"$value\"; value=again command command :; printf \"twice:%s\\n\" \"$value\"",
+              "sh"
+            ],
+            "inputHex": "",
+            "exitCode": 0,
+            "stdoutHex": "636f6d6d616e643a6265666f72650a6469726563743a6469726563740a74776963653a6469726563740a",
+            "stderrHex": "",
+            "stdout": "command:before\ndirect:direct\ntwice:direct\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "sh-special-export-set-shift-unset",
+          "pass": true,
+          "fields": [],
+          "expected": {
+            "id": "sh-special-export-set-shift-unset",
+            "source": "value=one export child=shown; printf \"%s:%s\\n\" \"$value\" \"$child\"; value=two set -- A B; printf \"%s:%s\\n\" \"$value\" \"$#\"; value=three shift; printf \"%s:%s\\n\" \"$value\" \"$1\"; value=four unset child; printf \"%s:<%s>\\n\" \"$value\" \"$child\"",
+            "sourceHash": "9ca2de58837d345975de1da508093fae946233026d4417abfb2a93f0e12fbd02",
+            "inputHex": "",
+            "renderedFixtures": [],
+            "result": {
+              "argv": [
+                "/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "value=one export child=shown; printf \"%s:%s\\n\" \"$value\" \"$child\"; value=two set -- A B; printf \"%s:%s\\n\" \"$value\" \"$#\"; value=three shift; printf \"%s:%s\\n\" \"$value\" \"$1\"; value=four unset child; printf \"%s:<%s>\\n\" \"$value\" \"$child\"",
+                "sh"
+              ],
+              "argv0": "sh",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-rUHmrf",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89764,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "6f6e653a73686f776e0a74776f3a320a74687265653a420a666f75723a3c3e0a",
+              "stderrHex": "",
+              "stdout": "one:shown\ntwo:2\nthree:B\nfour:<>\n",
+              "stderr": "",
+              "elapsedMs": 7.79037500000004
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "sh-special-export-set-shift-unset",
+            "source": "value=one export child=shown; printf \"%s:%s\\n\" \"$value\" \"$child\"; value=two set -- A B; printf \"%s:%s\\n\" \"$value\" \"$#\"; value=three shift; printf \"%s:%s\\n\" \"$value\" \"$1\"; value=four unset child; printf \"%s:<%s>\\n\" \"$value\" \"$child\"",
+            "role": "sh",
+            "args": [
+              "-c",
+              "value=one export child=shown; printf \"%s:%s\\n\" \"$value\" \"$child\"; value=two set -- A B; printf \"%s:%s\\n\" \"$value\" \"$#\"; value=three shift; printf \"%s:%s\\n\" \"$value\" \"$1\"; value=four unset child; printf \"%s:<%s>\\n\" \"$value\" \"$child\"",
+              "sh"
+            ],
+            "inputHex": "",
+            "exitCode": 0,
+            "stdoutHex": "6f6e653a73686f776e0a74776f3a320a74687265653a420a666f75723a3c3e0a",
+            "stderrHex": "",
+            "stdout": "one:shown\ntwo:2\nthree:B\nfour:<>\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "sh-file-profile",
+          "pass": true,
+          "fields": [],
+          "expected": {
+            "id": "sh-file-profile",
+            "source": "value=before; value=after :; printf \"file:%s\\n\" \"$value\"\n",
+            "sourceHash": "08b165a2587b84cfaf115c19fa828dc6cd2cb9e3837bbe585101d03bdde0cea9",
+            "inputHex": "",
+            "renderedFixtures": [
+              {
+                "path": "entry.sh",
+                "hex": "76616c75653d6265666f72653b2076616c75653d6166746572203a3b207072696e7466202266696c653a25735c6e2220222476616c7565220a",
+                "sha256": "08b165a2587b84cfaf115c19fa828dc6cd2cb9e3837bbe585101d03bdde0cea9",
+                "mode": 420
+              }
+            ],
+            "result": {
+              "argv": [
+                "/bin/bash",
+                "--noprofile",
+                "--norc",
+                "entry.sh"
+              ],
+              "argv0": "sh",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-Hasy4d",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89765,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "66696c653a61667465720a",
+              "stderrHex": "",
+              "stdout": "file:after\n",
+              "stderr": "",
+              "elapsedMs": 7.0900000000001455
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "sh-file-profile",
+            "source": "value=before; value=after :; printf \"file:%s\\n\" \"$value\"\n",
+            "role": "sh",
+            "args": [
+              "entry.sh"
+            ],
+            "inputHex": "",
+            "exitCode": 0,
+            "stdoutHex": "66696c653a61667465720a",
+            "stderrHex": "",
+            "stdout": "file:after\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "sh-stdin-profile",
+          "pass": true,
+          "fields": [],
+          "expected": {
+            "id": "sh-stdin-profile",
+            "source": "value=before\nvalue=after :\nprintf \"stdin:%s\\n\" \"$value\"\n",
+            "sourceHash": "fdd48f11881ab7e11d58f4ac0bb6283be3b0d402c11bd8fab426b4f287a52840",
+            "inputHex": "76616c75653d6265666f72650a76616c75653d6166746572203a0a7072696e74662022737464696e3a25735c6e2220222476616c7565220a",
+            "renderedFixtures": [],
+            "result": {
+              "argv": [
+                "/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-s"
+              ],
+              "argv0": "sh",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-QeDNot",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89766,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "737464696e3a61667465720a",
+              "stderrHex": "",
+              "stdout": "stdin:after\n",
+              "stderr": "",
+              "elapsedMs": 7.010499999999865
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "sh-stdin-profile",
+            "source": "value=before\nvalue=after :\nprintf \"stdin:%s\\n\" \"$value\"\n",
+            "role": "sh",
+            "args": [
+              "-s"
+            ],
+            "inputHex": "76616c75653d6265666f72650a76616c75653d6166746572203a0a7072696e74662022737464696e3a25735c6e2220222476616c7565220a",
+            "exitCode": 0,
+            "stdoutHex": "737464696e3a61667465720a",
+            "stderrHex": "",
+            "stdout": "stdin:after\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "sh-nested-bash-resets-sh-inherits",
+          "pass": true,
+          "fields": [],
+          "expected": {
+            "id": "sh-nested-bash-resets-sh-inherits",
+            "source": "export value=parent; .roles/bash -c 'value=child :; printf \"bash:%s\\n\" \"$value\"'; .roles/sh -c 'value=child :; printf \"sh:%s\\n\" \"$value\"'; printf \"parent:%s\\n\" \"$value\"",
+            "sourceHash": "fd42bbfe3b1eecc5fb93bc357769da63202a1a2005c18ffd13086d863f870ed7",
+            "inputHex": "",
+            "renderedFixtures": [],
+            "result": {
+              "argv": [
+                "/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "export value=parent; .roles/bash -c 'value=child :; printf \"bash:%s\\n\" \"$value\"'; .roles/sh -c 'value=child :; printf \"sh:%s\\n\" \"$value\"'; printf \"parent:%s\\n\" \"$value\"",
+                "sh"
+              ],
+              "argv0": "sh",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-xHcVSi",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89767,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "626173683a706172656e740a73683a6368696c640a706172656e743a706172656e740a",
+              "stderrHex": "",
+              "stdout": "bash:parent\nsh:child\nparent:parent\n",
+              "stderr": "",
+              "elapsedMs": 22.618082999999842
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "sh-nested-bash-resets-sh-inherits",
+            "source": "export value=parent; bash -c 'value=child :; printf \"bash:%s\\n\" \"$value\"'; sh -c 'value=child :; printf \"sh:%s\\n\" \"$value\"'; printf \"parent:%s\\n\" \"$value\"",
+            "role": "sh",
+            "args": [
+              "-c",
+              "export value=parent; bash -c 'value=child :; printf \"bash:%s\\n\" \"$value\"'; sh -c 'value=child :; printf \"sh:%s\\n\" \"$value\"'; printf \"parent:%s\\n\" \"$value\"",
+              "sh"
+            ],
+            "inputHex": "",
+            "exitCode": 0,
+            "stdoutHex": "626173683a706172656e740a73683a6368696c640a706172656e743a706172656e740a",
+            "stderrHex": "",
+            "stdout": "bash:parent\nsh:child\nparent:parent\n",
+            "stderr": ""
+          }
+        },
+        {
+          "id": "sh-special-exported-environment",
+          "pass": true,
+          "fields": [],
+          "expected": {
+            "id": "sh-special-exported-environment",
+            "source": "value=before; value=after :; .roles/bash -c 'printf \"child:<%s>\\n\" \"$value\"'; printf \"parent:%s\\n\" \"$value\"; value=temporary command printf \"ordinary\\n\"; printf \"after-command:%s\\n\" \"$value\"",
+            "sourceHash": "0d3f49d65d0c447c41ec9fb6518d06a91a1c9ba993b4bcb255bf0ef66689ff76",
+            "inputHex": "",
+            "renderedFixtures": [],
+            "result": {
+              "argv": [
+                "/bin/bash",
+                "--noprofile",
+                "--norc",
+                "-c",
+                "value=before; value=after :; .roles/bash -c 'printf \"child:<%s>\\n\" \"$value\"'; printf \"parent:%s\\n\" \"$value\"; value=temporary command printf \"ordinary\\n\"; printf \"after-command:%s\\n\" \"$value\"",
+                "sh"
+              ],
+              "argv0": "sh",
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-AFQRe5",
+              "env": {
+                "PATH": "unused",
+                "HOME": "/nonexistent",
+                "LC_ALL": "C",
+                "LANG": "C",
+                "TZ": "UTC"
+              },
+              "pid": 89770,
+              "code": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "stdoutHex": "6368696c643a3c61667465723e0a706172656e743a61667465720a6f7264696e6172790a61667465722d636f6d6d616e643a61667465720a",
+              "stderrHex": "",
+              "stdout": "child:<after>\nparent:after\nordinary\nafter-command:after\n",
+              "stderr": "",
+              "elapsedMs": 14.189166999999998
+            },
+            "effects": {}
+          },
+          "actual": {
+            "id": "sh-special-exported-environment",
+            "source": "value=before; value=after :; bash -c 'printf \"child:<%s>\\n\" \"$value\"'; printf \"parent:%s\\n\" \"$value\"; value=temporary command printf \"ordinary\\n\"; printf \"after-command:%s\\n\" \"$value\"",
+            "role": "sh",
+            "args": [
+              "-c",
+              "value=before; value=after :; bash -c 'printf \"child:<%s>\\n\" \"$value\"'; printf \"parent:%s\\n\" \"$value\"; value=temporary command printf \"ordinary\\n\"; printf \"after-command:%s\\n\" \"$value\"",
+              "sh"
+            ],
+            "inputHex": "",
+            "exitCode": 0,
+            "stdoutHex": "6368696c643a3c61667465723e0a706172656e743a61667465720a6f7264696e6172790a61667465722d636f6d6d616e643a61667465720a",
+            "stderrHex": "",
+            "stdout": "child:<after>\nparent:after\nordinary\nafter-command:after\n",
+            "stderr": ""
+          }
+        }
+      ]
+    }
+  ],
+  "nativeChanges": []
+}

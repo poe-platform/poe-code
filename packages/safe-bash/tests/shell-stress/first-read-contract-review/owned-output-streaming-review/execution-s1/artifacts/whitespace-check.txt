@@ -1,0 +1,6 @@
+tests/shell-stress/first-read-contract-review/owned-output-streaming-review/execution-s1/driver-binding-delta.patch-data:7: trailing whitespace.
++ 
+tests/shell-stress/first-read-contract-review/owned-output-streaming-review/execution-s1/driver-binding-delta.patch-data:22: trailing whitespace.
++ 
+tests/shell-stress/first-read-contract-review/owned-output-streaming-review/execution-s1/driver-binding-delta.patch-data:40: trailing whitespace.
++ 

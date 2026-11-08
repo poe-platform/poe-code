@@ -1,0 +1,1850 @@
+{
+  "benchmarkCommit": "8e09db96b51248137648cd5fd6093e4bc08f2b59",
+  "frozenSource": "bd2cacb3a20403302fd0a49441932d5522793e56",
+  "provenance": {
+    "benchmarks/reports/expanded-20260827/native-corrected/native.json": {
+      "sha256": "976601e3aeb465fcb5eb11e53e9e61e48978d148e8615a9ee37c2261743df801",
+      "gitBlob": "c9f7acf647474be7238e68fd7752f7c137ab4cc6"
+    },
+    "benchmarks/reports/expanded-20260827/corrected-bd2cacb/functional.json": {
+      "sha256": "7e2b4bdfbbe64917ff88d94c9b97438aa6a1a709cff83b2a3c860d788b522b2e",
+      "gitBlob": "5821e1239e3406586b1298d97d655b06f1b9ac39"
+    },
+    "benchmarks/reports/expanded-20260827/ANALYSIS.md": {
+      "sha256": "87659d10b514f99402095c582322f9a8958967d14101f66514e359b72ee43e9a",
+      "gitBlob": "adf0abb6e7de75a92dc5328c44359701a644d898"
+    },
+    "benchmarks/expanded/recipes.mjs": {
+      "sha256": "0dc4535976308a3b44da7216507ffc26d1e44f4e52c53834652e756f27c2ca94",
+      "gitBlob": "40f653c4d584b2a60ff9ed30461aa7ea5d53252e"
+    },
+    "benchmarks/expanded/common.mjs": {
+      "sha256": "28e51f7bb98aaf72550a76a159d79a09fb767b5780320fc1426740fedc311061",
+      "gitBlob": "0d595c7cd0657bfcac9c3ce147eed5196c678149"
+    },
+    "benchmarks/expanded/engine.mjs": {
+      "sha256": "0d534d17f3eb930c12f10d11df551ea31ec79ca4ce495e53bba91ab3abf95b39",
+      "gitBlob": "4a6785e735c3441801cbaab8cf26829c6fe749df"
+    },
+    "benchmarks/expanded/native.mjs": {
+      "sha256": "5acf494ad37655fce1dea5b43ca5d905cc75ef99a99a6eda32c0d9f833aebce7",
+      "gitBlob": "0c25b9a607c4b458ade0a59a2f76b21497558aef"
+    },
+    "benchmarks/expanded/session.mjs": {
+      "sha256": "3a22a973b57abcb82d706de4b070b36562e4c900bc6fde0a0de5a68ebf5542c5",
+      "gitBlob": "ddfe792310a33da39851710f53a7e2600eaac81b"
+    },
+    "benchmarks/expanded/capture.mjs": {
+      "sha256": "77648449a4f8726ad1dff27f535dfd900750bf4c341a96d310916941a79ca2be",
+      "gitBlob": "d9a7c7bbb1cebc84946556f1f8a831c99db626ad"
+    }
+  },
+  "toolIdentities": {
+    "true": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/true",
+      "sha256": "b1418c18dc164ff9622139b12f67d4fff709e02845fa1f58051351576d34b3b6",
+      "versionExit": 0,
+      "versionStdout": "true (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Jim Meyering.\n",
+      "versionStderr": ""
+    },
+    "false": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/false",
+      "sha256": "39732a775b1c39b47152389fb072a47a8ca54db7c2206d34d4ead71070641aab",
+      "versionExit": 1,
+      "versionStdout": "false (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Jim Meyering.\n",
+      "versionStderr": ""
+    },
+    "echo": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/echo",
+      "sha256": "02aa6dce372cbc4b1a6703570fc57363e6090ff93da95f9aacbfd17ab8752511",
+      "versionExit": 0,
+      "versionStdout": "echo (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Brian Fox and Chet Ramey.\n",
+      "versionStderr": ""
+    },
+    "pwd": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/pwd",
+      "sha256": "f140fb6bacb964f7a2f360711094af81657b3af858aa6c891794cb70c706e5e2",
+      "versionExit": 0,
+      "versionStdout": "pwd (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Jim Meyering.\n",
+      "versionStderr": ""
+    },
+    "basename": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/basename",
+      "sha256": "35d9c06d9bb81a88bedf7f076f47f9c64ec1fd14e150d6fc8edb75cd885abf2b",
+      "versionExit": 0,
+      "versionStdout": "basename (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David MacKenzie.\n",
+      "versionStderr": ""
+    },
+    "dirname": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/dirname",
+      "sha256": "68dad0b0c12352ad85aad378544a1034329ae2ba65d7ea805c38f2b0af47593c",
+      "versionExit": 0,
+      "versionStdout": "dirname (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David MacKenzie and Jim Meyering.\n",
+      "versionStderr": ""
+    },
+    "printf": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/printf",
+      "sha256": "6137f189a1f9235a691ac291a3946db6a7216f076369597858c8c78d5b94e95a",
+      "versionExit": 0,
+      "versionStdout": "printf (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David MacKenzie.\n",
+      "versionStderr": ""
+    },
+    "mkdir": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/mkdir",
+      "sha256": "ac1135fd4a3493b336eb473f0a01df3b20c2ce859432f52b2adc7b5cc1e3a6a0",
+      "versionExit": 0,
+      "versionStdout": "mkdir (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David MacKenzie.\n",
+      "versionStderr": ""
+    },
+    "touch": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/touch",
+      "sha256": "b9ad7d77fc728255e22f4ae0e4ef4d4ff1e905537f9c1316f3474062689737dc",
+      "versionExit": 0,
+      "versionStdout": "touch (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Paul Rubin, Arnold Robbins, Jim Kingdon,\nDavid MacKenzie, and Randy Smith.\n",
+      "versionStderr": ""
+    },
+    "cp": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/cp",
+      "sha256": "fe93071259536039cb18aa8393c86b9042f3912eca82992a3f7af1baef5fc3e5",
+      "versionExit": 0,
+      "versionStdout": "cp (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Torbjorn Granlund, David MacKenzie, and Jim Meyering.\n",
+      "versionStderr": ""
+    },
+    "mv": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/mv",
+      "sha256": "0b546b9069ec7523a424bb5be1ff2b825f3f2ac8a12fcec0b452fdb021a11500",
+      "versionExit": 0,
+      "versionStdout": "mv (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Mike Parker, David MacKenzie, and Jim Meyering.\n",
+      "versionStderr": ""
+    },
+    "rm": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/rm",
+      "sha256": "0ba2285521607805b1696c03d7335c482aee211db3c2432ba97231c47853325e",
+      "versionExit": 0,
+      "versionStdout": "rm (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Paul Rubin, David MacKenzie, Richard M. Stallman,\nand Jim Meyering.\n",
+      "versionStderr": ""
+    },
+    "rmdir": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/rmdir",
+      "sha256": "592b57d91ef946d140a5a2feb472e903737ca234468a7d8dfd4197adf58dc46d",
+      "versionExit": 0,
+      "versionStdout": "rmdir (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David MacKenzie.\n",
+      "versionStderr": ""
+    },
+    "ln": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/ln",
+      "sha256": "20edee25870bdc34c11394550a14600868d89b71039b8ffb11b295a308df49ef",
+      "versionExit": 0,
+      "versionStdout": "ln (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Mike Parker and David MacKenzie.\n",
+      "versionStderr": ""
+    },
+    "readlink": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/readlink",
+      "sha256": "180c81ba68ad7b87bc45995c48a4fcd439f2c028a51b6e1e75355a64ed02a3c9",
+      "versionExit": 0,
+      "versionStdout": "readlink (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Dmitry V. Levin.\n",
+      "versionStderr": ""
+    },
+    "realpath": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/realpath",
+      "sha256": "c88d28201142f5126674d7d32cdc32f08d6dd5dbbf10b6c774e6810716067e81",
+      "versionExit": 0,
+      "versionStdout": "realpath (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Padraig Brady.\n",
+      "versionStderr": ""
+    },
+    "ls": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/ls",
+      "sha256": "74f85d4ca750dbc20dfc498127c665d322aacea8741e76ee1cc2fe8898c029d3",
+      "versionExit": 0,
+      "versionStdout": "ls (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Richard M. Stallman and David MacKenzie.\n",
+      "versionStderr": ""
+    },
+    "cat": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/cat",
+      "sha256": "939e15035f639d275954e4a338e670087e5d29a66a0d7ceffca9c9c85cc0cd96",
+      "versionExit": 0,
+      "versionStdout": "cat (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Torbjorn Granlund and Richard M. Stallman.\n",
+      "versionStderr": ""
+    },
+    "head": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/head",
+      "sha256": "a0e0db954c55629531f4f800a8a78a1ed7b0af7ccb1df718ce4ed046fba11c62",
+      "versionExit": 0,
+      "versionStdout": "head (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David MacKenzie and Jim Meyering.\n",
+      "versionStderr": ""
+    },
+    "tail": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/tail",
+      "sha256": "47822f1733ad19afcc0996a0446c896534a8115e85446b8771dad50fbe9e4956",
+      "versionExit": 0,
+      "versionStdout": "tail (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Paul Rubin, David MacKenzie, Ian Lance Taylor,\nand Jim Meyering.\n",
+      "versionStderr": ""
+    },
+    "wc": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/wc",
+      "sha256": "0e5f97838353293c4e4272cccf4a37de800539ad9d6b1094f4d9695501da7060",
+      "versionExit": 0,
+      "versionStdout": "wc (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Paul Rubin and David MacKenzie.\n",
+      "versionStderr": ""
+    },
+    "tee": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/tee",
+      "sha256": "2b16c8c18c44f37ba2d93805a32d529fa24efb5ea130b1c31cbc0d084bbf6242",
+      "versionExit": 0,
+      "versionStdout": "tee (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Mike Parker, Richard M. Stallman, and David MacKenzie.\n",
+      "versionStderr": ""
+    },
+    "tr": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/tr",
+      "sha256": "4847ade75448c7834f295052a7c1dd29df2e45e61acdd4adc98db85ef8aa750c",
+      "versionExit": 0,
+      "versionStdout": "tr (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Jim Meyering.\n",
+      "versionStderr": ""
+    },
+    "sort": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/sort",
+      "sha256": "ce2ff9ef2a8f80f2420a0a046c2bde5a40c0b9aedbf472c5560924c8aa8b54a5",
+      "versionExit": 0,
+      "versionStdout": "sort (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Mike Haertel and Paul Eggert.\n",
+      "versionStderr": ""
+    },
+    "uniq": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/uniq",
+      "sha256": "c0a8589d62edd484ace4278fd4bfd96c0c142b8dca59db09041012e8e42e3184",
+      "versionExit": 0,
+      "versionStdout": "uniq (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Richard M. Stallman and David MacKenzie.\n",
+      "versionStderr": ""
+    },
+    "cut": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/cut",
+      "sha256": "551e121c47410beb8514aa9492fa948b2f6198995bd3ea667930430baed50d8d",
+      "versionExit": 0,
+      "versionStdout": "cut (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David M. Ihnat, David MacKenzie, and Jim Meyering.\n",
+      "versionStderr": ""
+    },
+    "grep": {
+      "executable": "/usr/bin/grep",
+      "sha256": "468ff46a0b9f0e88de268ce12640bfa37610d585f968127cf32cf4e86d5c70ab",
+      "versionExit": 0,
+      "versionStdout": "grep (BSD grep, GNU compatible) 2.6.0-FreeBSD\n",
+      "versionStderr": ""
+    },
+    "test": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/test",
+      "sha256": "344f320cca86104a7e15c4335be790da3d43d73f5a7d0d3be3f8f4438b2beb53",
+      "versionExit": 0,
+      "versionStdout": "",
+      "versionStderr": ""
+    },
+    "[": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/[",
+      "sha256": "27968fdbff375de8c6796273ceb6018030b447c2f5c1da858f6c160f9f63450c",
+      "versionExit": 0,
+      "versionStdout": "[ (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Kevin Braunsdorf and Matthew Bradburn.\n",
+      "versionStderr": ""
+    },
+    "env": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+      "sha256": "1026eb36ffd2fdca6d064c0ffd6dd99ceb7bb3f49ec5e804df2c53bef372dbf0",
+      "versionExit": 0,
+      "versionStdout": "env (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Richard Mlynarik, David MacKenzie, and Assaf Gordon.\n",
+      "versionStderr": ""
+    },
+    "xargs": {
+      "executable": "/usr/bin/xargs",
+      "sha256": "aebe3d43c7bfa8df51a2c14a0f3718e24f08e68698cb2fd89ffdb980c4ab3213",
+      "versionExit": 1,
+      "versionStdout": "",
+      "versionStderr": "xargs: unrecognized option `--version'\nusage: xargs [-0opt] [-E eofstr] [-I replstr [-R replacements] [-S replsize]]\n             [-J replstr] [-L number] [-n number [-x]] [-P maxprocs]\n             [-s size] [utility [argument ...]]\n"
+    },
+    "find": {
+      "executable": "/usr/bin/find",
+      "sha256": "cba00ca2fb86aaafa7f8448b2b3d94fd792d28f079562b9547425fda1fa683a4",
+      "versionExit": 1,
+      "versionStdout": "",
+      "versionStderr": "find: illegal option -- -\nusage: find [-H | -L | -P] [-EXdsx] [-f path] path ... [expression]\n       find [-H | -L | -P] [-EXdsx] -f path [path ...] [expression]\n"
+    },
+    "sed": {
+      "executable": "/private/tmp/safe-bash-gnu-sed-4.9.oqztSn/sed-4.9/sed/sed",
+      "sha256": "6902b31ee223e6a4ef6c6bd9ee010c96bad43d7b39d808866fa59595d3b3cfa1",
+      "versionExit": 0,
+      "versionStdout": "sed (GNU sed) 4.9\nCopyright (C) 2022 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Jay Fenlason, Tom Lord, Ken Pizzini,\nPaolo Bonzini, Jim Meyering, and Assaf Gordon.\n\nThis sed program was built without SELinux support.\n\nGNU sed home page: <https://www.gnu.org/software/sed/>.\nGeneral help using GNU software: <htt",
+      "versionStderr": ""
+    },
+    "awk": {
+      "executable": "/usr/bin/awk",
+      "sha256": "116aa4d27323ba29b0b481119e2e0b0aec0f518e1d535f424531c002311ac505",
+      "versionExit": 0,
+      "versionStdout": "awk version 20200816\n",
+      "versionStderr": ""
+    },
+    "jq": {
+      "executable": "/usr/bin/jq",
+      "sha256": "1625910a3f99fbd11c3ad58cc16ebc359507e6e19c21e91d8ab7da2116c8429f",
+      "versionExit": 0,
+      "versionStdout": "jq-1.7.1-apple\n",
+      "versionStderr": ""
+    },
+    "rg": {
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path/rg",
+      "sha256": "4298efd414836892c913b2e87401d62fdd7c6ec4026d9bad8e3fab10557e411f",
+      "versionExit": 0,
+      "versionStdout": "ripgrep 15.2.0 (rev e89fff89ac)\n\nfeatures:+pcre2\nsimd(compile):+NEON\nsimd(runtime):+NEON\n\nPCRE2 10.45 is available (JIT is available)\n",
+      "versionStderr": ""
+    },
+    "base64": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/base64",
+      "sha256": "6a3b29a34efcae29e80465d1420c3a7c6b6ba36fe01d41a868ece04a5b945a44",
+      "versionExit": 0,
+      "versionStdout": "base64 (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Simon Josefsson.\n",
+      "versionStderr": ""
+    },
+    "base32": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/base32",
+      "sha256": "8744306c59f36cdb062639bb77e9d5f215740c9d8ac2c5550b4cefe1b6413710",
+      "versionExit": 0,
+      "versionStdout": "base32 (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Simon Josefsson.\n",
+      "versionStderr": ""
+    },
+    "xxd": {
+      "executable": "/usr/bin/xxd",
+      "sha256": "3d0750827dbf28eac2e967b4bc9fb9a33532c99596ad0172e3fc45f2693aa161",
+      "versionExit": 0,
+      "versionStdout": "",
+      "versionStderr": "xxd 2025-08-24 by Juergen Weigert et al.\n"
+    },
+    "od": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/od",
+      "sha256": "a20c3dff8309ac8025addb112432b44175684f333bd619be164000eff0718eb8",
+      "versionExit": 0,
+      "versionStdout": "od (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Jim Meyering.\n",
+      "versionStderr": ""
+    },
+    "sha256sum": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/sha256sum",
+      "sha256": "3762e64f4f316b945e47226d998570785707dfdc68f8998c329b5192ded37604",
+      "versionExit": 0,
+      "versionStdout": "sha256sum (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Ulrich Drepper, Scott Miller, and David Madore.\n",
+      "versionStderr": ""
+    },
+    "sha1sum": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/sha1sum",
+      "sha256": "614e3fbda9ec6864d950668b53844f46100f3275f0abee1ee2690078e35de1f3",
+      "versionExit": 0,
+      "versionStdout": "sha1sum (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Ulrich Drepper, Scott Miller, and David Madore.\n",
+      "versionStderr": ""
+    },
+    "md5sum": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/md5sum",
+      "sha256": "0c8db6953d4be626a1cc67a0613e19d121fc3d4503d1b452e695a5f1a098c6c7",
+      "versionExit": 0,
+      "versionStdout": "md5sum (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Ulrich Drepper, Scott Miller, and David Madore.\n",
+      "versionStderr": ""
+    },
+    "cksum": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/cksum",
+      "sha256": "0b7f60af075d73d860c3c1f3b467856f2ff8c64da61ce0285fdd89fe3986de43",
+      "versionExit": 0,
+      "versionStdout": "cksum (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Padraig Brady and Q. Frank Xia.\n",
+      "versionStderr": ""
+    },
+    "gzip": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/gzip-1.14/gzip",
+      "sha256": "732b7e6e8c8969cebbc841c38f9d0f5b2524c752dbd323d0594550ecb1a8be9c",
+      "versionExit": 0,
+      "versionStdout": "gzip 1.14\nCopyright (C) 2025 Free Software Foundation, Inc.\nCopyright (C) 1993 Jean-loup Gailly.\nThis is free software.  You may redistribute copies of it under the terms of\nthe GNU General Public License <https://www.gnu.org/licenses/gpl.html>.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Jean-loup Gailly.\n",
+      "versionStderr": ""
+    },
+    "gunzip": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/gzip-1.14/gunzip",
+      "sha256": "4f13375fc268dcc8f94112fdcf9e2a334487e8f14a0ba1d830ba3173da3aa3df",
+      "versionExit": 0,
+      "versionStdout": "gunzip (gzip) 1.14\nCopyright (C) 2025 Free Software Foundation, Inc.\nThis is free software.  You may redistribute copies of it under the terms of\nthe GNU General Public License <https://www.gnu.org/licenses/gpl.html>.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Paul Eggert.\n",
+      "versionStderr": ""
+    },
+    "zcat": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/gzip-1.14/zcat",
+      "sha256": "92d54e643e95fe03732613bc48cf744d95bb7029779aa6be4ce1a32a58feb1ef",
+      "versionExit": 0,
+      "versionStdout": "zcat (gzip) 1.14\nCopyright (C) 2025 Free Software Foundation, Inc.\nThis is free software.  You may redistribute copies of it under the terms of\nthe GNU General Public License <https://www.gnu.org/licenses/gpl.html>.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Paul Eggert.\n",
+      "versionStderr": ""
+    },
+    "diff": {
+      "executable": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+      "sha256": "f13ef516c397b0281818ffe8685aa763100b56a6549295c91849c6af937a83c9",
+      "versionExit": 0,
+      "versionStdout": "diff (GNU diffutils) 3.12\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Paul Eggert, Mike Haertel, David Hayes,\nRichard Stallman, and Len Tower.\n",
+      "versionStderr": ""
+    },
+    "patch": {
+      "executable": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00",
+      "versionExit": 0,
+      "versionStdout": "GNU patch 2.8\nCopyright 1989-2025 Free Software Foundation, Inc.\nCopyright 1984-1988 Larry Wall\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Larry Wall and Paul Eggert\n",
+      "versionStderr": ""
+    },
+    "chmod": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/chmod",
+      "sha256": "d81ce6d3d2e45ce887ed78b376ab4895252a16de0b9b669e3c858b7ff8e556c0",
+      "versionExit": 0,
+      "versionStdout": "chmod (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David MacKenzie and Jim Meyering.\n",
+      "versionStderr": ""
+    },
+    "stat": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/stat",
+      "sha256": "bf6f8514f2a220a3c3743154e0530baeec864b9d1f20315cd9cb5832d28c9860",
+      "versionExit": 0,
+      "versionStdout": "stat (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Michael Meskes.\n",
+      "versionStderr": ""
+    },
+    "mktemp": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/mktemp",
+      "sha256": "d2457bdef598e8119245dff116f4f11781660e243ebf01b98bbf1486d5fa7322",
+      "versionExit": 0,
+      "versionStdout": "mktemp (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Jim Meyering and Eric Blake.\n",
+      "versionStderr": ""
+    },
+    "tar": {
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+      "sha256": "49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66",
+      "versionExit": 0,
+      "versionStdout": "tar (GNU tar) 1.35\nCopyright (C) 2023 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by John Gilmore and Jay Fenlason.\n",
+      "versionStderr": ""
+    },
+    "paste": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/paste",
+      "sha256": "1916958b8ae7c602acf473b4d3c7928945394ec0598a7dc4c04ed015733c0cbc",
+      "versionExit": 0,
+      "versionStdout": "paste (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David M. Ihnat and David MacKenzie.\n",
+      "versionStderr": ""
+    },
+    "comm": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/comm",
+      "sha256": "de6214ad2723e5c660d4fe2d7bcc01b1abb7604403c2ecc06ba5218544215718",
+      "versionExit": 0,
+      "versionStdout": "comm (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Richard M. Stallman and David MacKenzie.\n",
+      "versionStderr": ""
+    },
+    "join": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/join",
+      "sha256": "dc44314f9b47e818b2c0467c38813684e1a18f9a35229fd9ad55012684bd4c3e",
+      "versionExit": 0,
+      "versionStdout": "join (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Mike Haertel.\n",
+      "versionStderr": ""
+    },
+    "bash": {
+      "executable": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+      "versionExit": 0,
+      "versionStdout": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software; you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n",
+      "versionStderr": ""
+    },
+    "sh": {
+      "executable": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+      "versionExit": 0,
+      "versionStdout": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software; you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n",
+      "versionStderr": ""
+    },
+    "curl": {
+      "executable": "/usr/bin/curl",
+      "sha256": "5ef748580e05e8208c8faacc9be88d1aa48d9970101c0a29ba26896e017e6226",
+      "versionExit": 0,
+      "versionStdout": "curl 8.7.1 (x86_64-apple-darwin25.0) libcurl/8.7.1 (SecureTransport) LibreSSL/3.3.6 zlib/1.2.12 nghttp2/1.68.0\nRelease-Date: 2024-03-27\nProtocols: dict file ftp ftps gopher gophers http https imap imaps ipfs ipns ldap ldaps mqtt pop3 pop3s rtsp smb smbs smtp smtps telnet tftp\nFeatures: alt-svc AsynchDNS GSS-API HSTS HTTP2 HTTPS-proxy IPv6 Kerberos Largefile libz MultiSSL NTLM SPNEGO SSL threadsafe UnixSockets\n",
+      "versionStderr": ""
+    }
+  },
+  "cases": [
+    {
+      "specimen": {
+        "id": "kernel/type/type",
+        "group": "kernel",
+        "command": "type",
+        "optionFamily": "type",
+        "script": "type -t printf; type -t cat; f(){ :; }; type -t f",
+        "files": {},
+        "stdin": "",
+        "nativeExit": 0,
+        "modes": false,
+        "directories": [],
+        "fileModes": {},
+        "fileTimes": {},
+        "network": false,
+        "stderrPolicy": "exact-after-root-path-projection"
+      },
+      "expected": {
+        "id": "kernel/type/type",
+        "recipeHash": "fd3481c4d97f57a6b3b63fd9a5afb5a35a47ed70e2c74888c79b6feb9678f6a7",
+        "stdout": "YnVpbHRpbgpmaWxlCmZ1bmN0aW9uCg==",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {},
+        "oracleValid": true,
+        "reason": null,
+        "signal": null
+      },
+      "frozen": {
+        "id": "kernel/type/type",
+        "group": "kernel",
+        "command": "type",
+        "optionFamily": "type",
+        "expected": {
+          "id": "kernel/type/type",
+          "recipeHash": "fd3481c4d97f57a6b3b63fd9a5afb5a35a47ed70e2c74888c79b6feb9678f6a7",
+          "stdout": "YnVpbHRpbgpmaWxlCmZ1bmN0aW9uCg==",
+          "stderr": "",
+          "exitCode": 0,
+          "entries": {},
+          "oracleValid": true,
+          "reason": null,
+          "signal": null
+        },
+        "order": [
+          "just-bash",
+          "virtual-bash"
+        ],
+        "just-bash": {
+          "id": 182,
+          "observation": {
+            "stdout": "YnVpbHRpbgpmaWxlCmZ1bmN0aW9uCg==",
+            "stderr": "",
+            "exitCode": 0,
+            "entries": {},
+            "events": [],
+            "registryEvents": [],
+            "executeMs": 0.6520410000000538,
+            "memory": {
+              "before": {
+                "rss": 194347008,
+                "heapTotal": 62619648,
+                "heapUsed": 26051856,
+                "external": 4221001,
+                "arrayBuffers": 155891
+              },
+              "after": {
+                "rss": 194347008,
+                "heapTotal": 62619648,
+                "heapUsed": 26554680,
+                "external": 4206076,
+                "arrayBuffers": 155913
+              },
+              "sampledPeak": {
+                "rss": 194347008,
+                "heapUsed": 26553880,
+                "external": 4221001
+              },
+              "processMaxRssKiB": 189792,
+              "sampleIntervalMs": 2
+            },
+            "capture": "public stdoutAsBytes/latin1FromBytes; stderr UTF8 public text"
+          },
+          "status": "pass",
+          "comparison": {
+            "pass": true,
+            "assertions": [
+              {
+                "field": "stdout",
+                "pass": true
+              },
+              {
+                "field": "stderr",
+                "pass": true
+              },
+              {
+                "field": "exitCode",
+                "pass": true
+              },
+              {
+                "field": "entries",
+                "pass": true
+              }
+            ]
+          }
+        },
+        "virtual-bash": {
+          "id": 182,
+          "observation": {
+            "stdout": "Y29tbWFuZApjb21tYW5kCmZ1bmN0aW9uCg==",
+            "stderr": "",
+            "exitCode": 0,
+            "entries": {},
+            "events": [
+              {
+                "name": "type",
+                "args": [
+                  "-t",
+                  "printf"
+                ]
+              },
+              {
+                "name": "type",
+                "args": [
+                  "-t",
+                  "cat"
+                ]
+              },
+              {
+                "name": "type",
+                "args": [
+                  "-t",
+                  "f"
+                ]
+              }
+            ],
+            "registryEvents": [],
+            "executeMs": 0.47720799999979135,
+            "memory": {
+              "before": {
+                "rss": 127762432,
+                "heapTotal": 54673408,
+                "heapUsed": 18034632,
+                "external": 4080810,
+                "arrayBuffers": 87242
+              },
+              "after": {
+                "rss": 127762432,
+                "heapTotal": 54673408,
+                "heapUsed": 18241632,
+                "external": 4080400,
+                "arrayBuffers": 87267
+              },
+              "sampledPeak": {
+                "rss": 127762432,
+                "heapUsed": 18240896,
+                "external": 4080810
+              },
+              "processMaxRssKiB": 124768,
+              "sampleIntervalMs": 2
+            },
+            "capture": "native Uint8Array stdout/stderr"
+          },
+          "status": "fail",
+          "comparison": {
+            "pass": false,
+            "assertions": [
+              {
+                "field": "stdout",
+                "pass": false
+              },
+              {
+                "field": "stderr",
+                "pass": true
+              },
+              {
+                "field": "exitCode",
+                "pass": true
+              },
+              {
+                "field": "entries",
+                "pass": true
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "specimen": {
+        "id": "kernel/executable-file/executable-file",
+        "group": "kernel",
+        "command": "executable-file",
+        "optionFamily": "executable-file",
+        "script": "./script argument",
+        "files": {
+          "script": "cHJpbnRmICdyYW46JXMnICIkMSIK"
+        },
+        "stdin": "",
+        "nativeExit": 0,
+        "modes": false,
+        "directories": [],
+        "fileModes": {
+          "script": 493
+        },
+        "fileTimes": {},
+        "network": false,
+        "stderrPolicy": "exact-after-root-path-projection"
+      },
+      "expected": {
+        "id": "kernel/executable-file/executable-file",
+        "recipeHash": "5dd2479896042416025c66f25b3562f2fd783de8f9936d7a1660cab41f1d3631",
+        "stdout": "cmFuOmFyZ3VtZW50",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {
+          "script": {
+            "type": "file",
+            "bytes": "cHJpbnRmICdyYW46JXMnICIkMSIK"
+          }
+        },
+        "oracleValid": true,
+        "reason": null,
+        "signal": null
+      },
+      "frozen": {
+        "id": "kernel/executable-file/executable-file",
+        "group": "kernel",
+        "command": "executable-file",
+        "optionFamily": "executable-file",
+        "expected": {
+          "id": "kernel/executable-file/executable-file",
+          "recipeHash": "5dd2479896042416025c66f25b3562f2fd783de8f9936d7a1660cab41f1d3631",
+          "stdout": "cmFuOmFyZ3VtZW50",
+          "stderr": "",
+          "exitCode": 0,
+          "entries": {
+            "script": {
+              "type": "file",
+              "bytes": "cHJpbnRmICdyYW46JXMnICIkMSIK"
+            }
+          },
+          "oracleValid": true,
+          "reason": null,
+          "signal": null
+        },
+        "order": [
+          "virtual-bash",
+          "just-bash"
+        ],
+        "virtual-bash": {
+          "id": 187,
+          "observation": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IGRpcmVjdCBleGVjdXRpb24gcmVxdWlyZXMgYSBzdXBwb3J0ZWQgQmFzaCBzaGViYW5nCg==",
+            "exitCode": 126,
+            "entries": {
+              "script": {
+                "type": "file",
+                "bytes": "cHJpbnRmICdyYW46JXMnICIkMSIK"
+              }
+            },
+            "events": [
+              {
+                "name": "./script",
+                "args": [
+                  "argument"
+                ]
+              }
+            ],
+            "registryEvents": [],
+            "executeMs": 0.37712499999997817,
+            "memory": {
+              "before": {
+                "rss": 127795200,
+                "heapTotal": 54935552,
+                "heapUsed": 18051736,
+                "external": 4080996,
+                "arrayBuffers": 87305
+              },
+              "after": {
+                "rss": 127795200,
+                "heapTotal": 54935552,
+                "heapUsed": 18179984,
+                "external": 4080705,
+                "arrayBuffers": 87572
+              },
+              "sampledPeak": {
+                "rss": 127795200,
+                "heapUsed": 18179248,
+                "external": 4080996
+              },
+              "processMaxRssKiB": 124800,
+              "sampleIntervalMs": 2
+            },
+            "capture": "native Uint8Array stdout/stderr"
+          },
+          "status": "fail",
+          "comparison": {
+            "pass": false,
+            "assertions": [
+              {
+                "field": "stdout",
+                "pass": false
+              },
+              {
+                "field": "stderr",
+                "pass": false
+              },
+              {
+                "field": "exitCode",
+                "pass": false
+              },
+              {
+                "field": "entries",
+                "pass": true
+              }
+            ]
+          }
+        },
+        "just-bash": {
+          "id": 187,
+          "observation": {
+            "stdout": "cmFuOmFyZ3VtZW50",
+            "stderr": "",
+            "exitCode": 0,
+            "entries": {
+              "script": {
+                "type": "file",
+                "bytes": "cHJpbnRmICdyYW46JXMnICIkMSIK"
+              }
+            },
+            "events": [],
+            "registryEvents": [
+              {
+                "name": "printf",
+                "args": [
+                  "ran:%s",
+                  "argument"
+                ]
+              }
+            ],
+            "executeMs": 0.9021249999998417,
+            "memory": {
+              "before": {
+                "rss": 194347008,
+                "heapTotal": 62881792,
+                "heapUsed": 26070520,
+                "external": 4212884,
+                "arrayBuffers": 155954
+              },
+              "after": {
+                "rss": 194347008,
+                "heapTotal": 62881792,
+                "heapUsed": 26521504,
+                "external": 4206129,
+                "arrayBuffers": 155966
+              },
+              "sampledPeak": {
+                "rss": 194347008,
+                "heapUsed": 26520704,
+                "external": 4212884
+              },
+              "processMaxRssKiB": 189792,
+              "sampleIntervalMs": 2
+            },
+            "capture": "public stdoutAsBytes/latin1FromBytes; stderr UTF8 public text"
+          },
+          "status": "pass",
+          "comparison": {
+            "pass": true,
+            "assertions": [
+              {
+                "field": "stdout",
+                "pass": true
+              },
+              {
+                "field": "stderr",
+                "pass": true
+              },
+              {
+                "field": "exitCode",
+                "pass": true
+              },
+              {
+                "field": "entries",
+                "pass": true
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "specimen": {
+        "id": "kernel/env-shebang/env-shebang",
+        "group": "kernel",
+        "command": "env-shebang",
+        "optionFamily": "env-shebang",
+        "script": "./script argument",
+        "files": {
+          "script": "IyEvdXNyL2Jpbi9lbnYgYmFzaApwcmludGYgJ2VudjolcycgIiQxIgo="
+        },
+        "stdin": "",
+        "nativeExit": 0,
+        "modes": false,
+        "directories": [],
+        "fileModes": {
+          "script": 493
+        },
+        "fileTimes": {},
+        "network": false,
+        "stderrPolicy": "exact-after-root-path-projection"
+      },
+      "expected": {
+        "id": "kernel/env-shebang/env-shebang",
+        "recipeHash": "938e615695b559d6f9d9dd0975dd8fa3e04af86ff48b66c3161c7a5d0ff7751a",
+        "stdout": "ZW52OmFyZ3VtZW50",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {
+          "script": {
+            "type": "file",
+            "bytes": "IyEvdXNyL2Jpbi9lbnYgYmFzaApwcmludGYgJ2VudjolcycgIiQxIgo="
+          }
+        },
+        "oracleValid": true,
+        "reason": null,
+        "signal": null
+      },
+      "frozen": {
+        "id": "kernel/env-shebang/env-shebang",
+        "group": "kernel",
+        "command": "env-shebang",
+        "optionFamily": "env-shebang",
+        "expected": {
+          "id": "kernel/env-shebang/env-shebang",
+          "recipeHash": "938e615695b559d6f9d9dd0975dd8fa3e04af86ff48b66c3161c7a5d0ff7751a",
+          "stdout": "ZW52OmFyZ3VtZW50",
+          "stderr": "",
+          "exitCode": 0,
+          "entries": {
+            "script": {
+              "type": "file",
+              "bytes": "IyEvdXNyL2Jpbi9lbnYgYmFzaApwcmludGYgJ2VudjolcycgIiQxIgo="
+            }
+          },
+          "oracleValid": true,
+          "reason": null,
+          "signal": null
+        },
+        "order": [
+          "just-bash",
+          "virtual-bash"
+        ],
+        "just-bash": {
+          "id": 188,
+          "observation": {
+            "stdout": "ZW52OmFyZ3VtZW50",
+            "stderr": "",
+            "exitCode": 0,
+            "entries": {
+              "script": {
+                "type": "file",
+                "bytes": "IyEvdXNyL2Jpbi9lbnYgYmFzaApwcmludGYgJ2VudjolcycgIiQxIgo="
+              }
+            },
+            "events": [],
+            "registryEvents": [
+              {
+                "name": "printf",
+                "args": [
+                  "env:%s",
+                  "argument"
+                ]
+              }
+            ],
+            "executeMs": 0.6859999999999218,
+            "memory": {
+              "before": {
+                "rss": 194347008,
+                "heapTotal": 62619648,
+                "heapUsed": 26079528,
+                "external": 4212938,
+                "arrayBuffers": 155966
+              },
+              "after": {
+                "rss": 194347008,
+                "heapTotal": 62619648,
+                "heapUsed": 26520776,
+                "external": 4206141,
+                "arrayBuffers": 155978
+              },
+              "sampledPeak": {
+                "rss": 194347008,
+                "heapUsed": 26519976,
+                "external": 4212938
+              },
+              "processMaxRssKiB": 189792,
+              "sampleIntervalMs": 2
+            },
+            "capture": "public stdoutAsBytes/latin1FromBytes; stderr UTF8 public text"
+          },
+          "status": "pass",
+          "comparison": {
+            "pass": true,
+            "assertions": [
+              {
+                "field": "stdout",
+                "pass": true
+              },
+              {
+                "field": "stderr",
+                "pass": true
+              },
+              {
+                "field": "exitCode",
+                "pass": true
+              },
+              {
+                "field": "entries",
+                "pass": true
+              }
+            ]
+          }
+        },
+        "virtual-bash": {
+          "id": 188,
+          "observation": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IHVuc3VwcG9ydGVkIGludGVycHJldGVyOiAvdXNyL2Jpbi9lbnYgYmFzaAo=",
+            "exitCode": 126,
+            "entries": {
+              "script": {
+                "type": "file",
+                "bytes": "IyEvdXNyL2Jpbi9lbnYgYmFzaApwcmludGYgJ2VudjolcycgIiQxIgo="
+              }
+            },
+            "events": [
+              {
+                "name": "./script",
+                "args": [
+                  "argument"
+                ]
+              }
+            ],
+            "registryEvents": [],
+            "executeMs": 0.36904100000015205,
+            "memory": {
+              "before": {
+                "rss": 127795200,
+                "heapTotal": 54673408,
+                "heapUsed": 18048200,
+                "external": 4081266,
+                "arrayBuffers": 87317
+              },
+              "after": {
+                "rss": 127795200,
+                "heapTotal": 54673408,
+                "heapUsed": 18181480,
+                "external": 4080693,
+                "arrayBuffers": 87560
+              },
+              "sampledPeak": {
+                "rss": 127795200,
+                "heapUsed": 18180744,
+                "external": 4081266
+              },
+              "processMaxRssKiB": 124800,
+              "sampleIntervalMs": 2
+            },
+            "capture": "native Uint8Array stdout/stderr"
+          },
+          "status": "fail",
+          "comparison": {
+            "pass": false,
+            "assertions": [
+              {
+                "field": "stdout",
+                "pass": false
+              },
+              {
+                "field": "stderr",
+                "pass": false
+              },
+              {
+                "field": "exitCode",
+                "pass": false
+              },
+              {
+                "field": "entries",
+                "pass": true
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "specimen": {
+        "id": "kernel/source/source",
+        "group": "kernel",
+        "command": "source",
+        "optionFamily": "source",
+        "script": "source script; printf '%s' \"$VALUE\"",
+        "files": {
+          "script": "VkFMVUU9c291cmNlZAo="
+        },
+        "stdin": "",
+        "nativeExit": 0,
+        "modes": false,
+        "directories": [],
+        "fileModes": {},
+        "fileTimes": {},
+        "network": false,
+        "stderrPolicy": "exact-after-root-path-projection"
+      },
+      "expected": {
+        "id": "kernel/source/source",
+        "recipeHash": "015ed7a630c4c22758ed6aebdbc33d677bf1aedcd021afc5579fd15f93e92bd0",
+        "stdout": "c291cmNlZA==",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {
+          "script": {
+            "type": "file",
+            "bytes": "VkFMVUU9c291cmNlZAo="
+          }
+        },
+        "oracleValid": true,
+        "reason": null,
+        "signal": null
+      },
+      "frozen": {
+        "id": "kernel/source/source",
+        "group": "kernel",
+        "command": "source",
+        "optionFamily": "source",
+        "expected": {
+          "id": "kernel/source/source",
+          "recipeHash": "015ed7a630c4c22758ed6aebdbc33d677bf1aedcd021afc5579fd15f93e92bd0",
+          "stdout": "c291cmNlZA==",
+          "stderr": "",
+          "exitCode": 0,
+          "entries": {
+            "script": {
+              "type": "file",
+              "bytes": "VkFMVUU9c291cmNlZAo="
+            }
+          },
+          "oracleValid": true,
+          "reason": null,
+          "signal": null
+        },
+        "order": [
+          "virtual-bash",
+          "just-bash"
+        ],
+        "virtual-bash": {
+          "id": 189,
+          "observation": {
+            "stdout": "",
+            "stderr": "c291cmNlOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "exitCode": 0,
+            "entries": {
+              "script": {
+                "type": "file",
+                "bytes": "VkFMVUU9c291cmNlZAo="
+              }
+            },
+            "events": [
+              {
+                "name": "source",
+                "args": [
+                  "script"
+                ]
+              },
+              {
+                "name": "printf",
+                "args": [
+                  "%s",
+                  ""
+                ]
+              }
+            ],
+            "registryEvents": [
+              {
+                "name": "printf",
+                "args": [
+                  "%s",
+                  ""
+                ]
+              }
+            ],
+            "executeMs": 0.4097919999999249,
+            "memory": {
+              "before": {
+                "rss": 127795200,
+                "heapTotal": 54935552,
+                "heapUsed": 18053920,
+                "external": 4081206,
+                "arrayBuffers": 87269
+              },
+              "after": {
+                "rss": 127795200,
+                "heapTotal": 54935552,
+                "heapUsed": 18223672,
+                "external": 4080434,
+                "arrayBuffers": 87301
+              },
+              "sampledPeak": {
+                "rss": 127795200,
+                "heapUsed": 18222936,
+                "external": 4081206
+              },
+              "processMaxRssKiB": 124800,
+              "sampleIntervalMs": 2
+            },
+            "capture": "native Uint8Array stdout/stderr"
+          },
+          "status": "fail",
+          "comparison": {
+            "pass": false,
+            "assertions": [
+              {
+                "field": "stdout",
+                "pass": false
+              },
+              {
+                "field": "stderr",
+                "pass": false
+              },
+              {
+                "field": "exitCode",
+                "pass": true
+              },
+              {
+                "field": "entries",
+                "pass": true
+              }
+            ]
+          }
+        },
+        "just-bash": {
+          "id": 189,
+          "observation": {
+            "stdout": "c291cmNlZA==",
+            "stderr": "",
+            "exitCode": 0,
+            "entries": {
+              "script": {
+                "type": "file",
+                "bytes": "VkFMVUU9c291cmNlZAo="
+              }
+            },
+            "events": [],
+            "registryEvents": [
+              {
+                "name": "printf",
+                "args": [
+                  "%s",
+                  "sourced"
+                ]
+              }
+            ],
+            "executeMs": 0.9334579999999733,
+            "memory": {
+              "before": {
+                "rss": 194347008,
+                "heapTotal": 62619648,
+                "heapUsed": 26080480,
+                "external": 4212902,
+                "arrayBuffers": 155918
+              },
+              "after": {
+                "rss": 194363392,
+                "heapTotal": 62619648,
+                "heapUsed": 26532144,
+                "external": 4206088,
+                "arrayBuffers": 155925
+              },
+              "sampledPeak": {
+                "rss": 194363392,
+                "heapUsed": 26531344,
+                "external": 4212902
+              },
+              "processMaxRssKiB": 189808,
+              "sampleIntervalMs": 2
+            },
+            "capture": "public stdoutAsBytes/latin1FromBytes; stderr UTF8 public text"
+          },
+          "status": "pass",
+          "comparison": {
+            "pass": true,
+            "assertions": [
+              {
+                "field": "stdout",
+                "pass": true
+              },
+              {
+                "field": "stderr",
+                "pass": true
+              },
+              {
+                "field": "exitCode",
+                "pass": true
+              },
+              {
+                "field": "entries",
+                "pass": true
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "specimen": {
+        "id": "kernel/dot/dot",
+        "group": "kernel",
+        "command": "dot",
+        "optionFamily": "dot",
+        "script": ". ./script; printf '%s' \"$VALUE\"",
+        "files": {
+          "script": "VkFMVUU9ZG90dGVkCg=="
+        },
+        "stdin": "",
+        "nativeExit": 0,
+        "modes": false,
+        "directories": [],
+        "fileModes": {},
+        "fileTimes": {},
+        "network": false,
+        "stderrPolicy": "exact-after-root-path-projection"
+      },
+      "expected": {
+        "id": "kernel/dot/dot",
+        "recipeHash": "f98c9431e2acb4d05f000772a4bd3030d1f5026ccc54ca23d96befcd49492ef0",
+        "stdout": "ZG90dGVk",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {
+          "script": {
+            "type": "file",
+            "bytes": "VkFMVUU9ZG90dGVkCg=="
+          }
+        },
+        "oracleValid": true,
+        "reason": null,
+        "signal": null
+      },
+      "frozen": {
+        "id": "kernel/dot/dot",
+        "group": "kernel",
+        "command": "dot",
+        "optionFamily": "dot",
+        "expected": {
+          "id": "kernel/dot/dot",
+          "recipeHash": "f98c9431e2acb4d05f000772a4bd3030d1f5026ccc54ca23d96befcd49492ef0",
+          "stdout": "ZG90dGVk",
+          "stderr": "",
+          "exitCode": 0,
+          "entries": {
+            "script": {
+              "type": "file",
+              "bytes": "VkFMVUU9ZG90dGVkCg=="
+            }
+          },
+          "oracleValid": true,
+          "reason": null,
+          "signal": null
+        },
+        "order": [
+          "just-bash",
+          "virtual-bash"
+        ],
+        "just-bash": {
+          "id": 190,
+          "observation": {
+            "stdout": "ZG90dGVk",
+            "stderr": "",
+            "exitCode": 0,
+            "entries": {
+              "script": {
+                "type": "file",
+                "bytes": "VkFMVUU9ZG90dGVkCg=="
+              }
+            },
+            "events": [],
+            "registryEvents": [
+              {
+                "name": "printf",
+                "args": [
+                  "%s",
+                  "dotted"
+                ]
+              }
+            ],
+            "executeMs": 0.7667089999999916,
+            "memory": {
+              "before": {
+                "rss": 194363392,
+                "heapTotal": 62881792,
+                "heapUsed": 26091336,
+                "external": 4212834,
+                "arrayBuffers": 155903
+              },
+              "after": {
+                "rss": 194363392,
+                "heapTotal": 62881792,
+                "heapUsed": 26533864,
+                "external": 4206072,
+                "arrayBuffers": 155909
+              },
+              "sampledPeak": {
+                "rss": 194363392,
+                "heapUsed": 26533064,
+                "external": 4212834
+              },
+              "processMaxRssKiB": 189808,
+              "sampleIntervalMs": 2
+            },
+            "capture": "public stdoutAsBytes/latin1FromBytes; stderr UTF8 public text"
+          },
+          "status": "pass",
+          "comparison": {
+            "pass": true,
+            "assertions": [
+              {
+                "field": "stdout",
+                "pass": true
+              },
+              {
+                "field": "stderr",
+                "pass": true
+              },
+              {
+                "field": "exitCode",
+                "pass": true
+              },
+              {
+                "field": "entries",
+                "pass": true
+              }
+            ]
+          }
+        },
+        "virtual-bash": {
+          "id": 190,
+          "observation": {
+            "stdout": "",
+            "stderr": "LjogY29tbWFuZCBub3QgZm91bmQK",
+            "exitCode": 0,
+            "entries": {
+              "script": {
+                "type": "file",
+                "bytes": "VkFMVUU9ZG90dGVkCg=="
+              }
+            },
+            "events": [
+              {
+                "name": ".",
+                "args": [
+                  "./script"
+                ]
+              },
+              {
+                "name": "printf",
+                "args": [
+                  "%s",
+                  ""
+                ]
+              }
+            ],
+            "registryEvents": [
+              {
+                "name": "printf",
+                "args": [
+                  "%s",
+                  ""
+                ]
+              }
+            ],
+            "executeMs": 0.35649999999986903,
+            "memory": {
+              "before": {
+                "rss": 127795200,
+                "heapTotal": 54673408,
+                "heapUsed": 18053912,
+                "external": 4080932,
+                "arrayBuffers": 87254
+              },
+              "after": {
+                "rss": 127795200,
+                "heapTotal": 54673408,
+                "heapUsed": 18220840,
+                "external": 4080414,
+                "arrayBuffers": 87281
+              },
+              "sampledPeak": {
+                "rss": 127795200,
+                "heapUsed": 18220104,
+                "external": 4080932
+              },
+              "processMaxRssKiB": 124800,
+              "sampleIntervalMs": 2
+            },
+            "capture": "native Uint8Array stdout/stderr"
+          },
+          "status": "fail",
+          "comparison": {
+            "pass": false,
+            "assertions": [
+              {
+                "field": "stdout",
+                "pass": false
+              },
+              {
+                "field": "stderr",
+                "pass": false
+              },
+              {
+                "field": "exitCode",
+                "pass": true
+              },
+              {
+                "field": "entries",
+                "pass": true
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "specimen": {
+        "id": "kernel/eval/eval",
+        "group": "kernel",
+        "command": "eval",
+        "optionFamily": "eval",
+        "script": "VALUE=world; eval 'printf \"hello %s\" \"$VALUE\"'",
+        "files": {},
+        "stdin": "",
+        "nativeExit": 0,
+        "modes": false,
+        "directories": [],
+        "fileModes": {},
+        "fileTimes": {},
+        "network": false,
+        "stderrPolicy": "exact-after-root-path-projection"
+      },
+      "expected": {
+        "id": "kernel/eval/eval",
+        "recipeHash": "6a2c30dc94bc450cea746bdc695646d470d3f45b73bd8fa8fa8d9fbbae73a3bb",
+        "stdout": "aGVsbG8gd29ybGQ=",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {},
+        "oracleValid": true,
+        "reason": null,
+        "signal": null
+      },
+      "frozen": {
+        "id": "kernel/eval/eval",
+        "group": "kernel",
+        "command": "eval",
+        "optionFamily": "eval",
+        "expected": {
+          "id": "kernel/eval/eval",
+          "recipeHash": "6a2c30dc94bc450cea746bdc695646d470d3f45b73bd8fa8fa8d9fbbae73a3bb",
+          "stdout": "aGVsbG8gd29ybGQ=",
+          "stderr": "",
+          "exitCode": 0,
+          "entries": {},
+          "oracleValid": true,
+          "reason": null,
+          "signal": null
+        },
+        "order": [
+          "virtual-bash",
+          "just-bash"
+        ],
+        "virtual-bash": {
+          "id": 191,
+          "observation": {
+            "stdout": "",
+            "stderr": "ZXZhbDogY29tbWFuZCBub3QgZm91bmQK",
+            "exitCode": 127,
+            "entries": {},
+            "events": [
+              {
+                "name": "eval",
+                "args": [
+                  "printf \"hello %s\" \"$VALUE\""
+                ]
+              }
+            ],
+            "registryEvents": [],
+            "executeMs": 0.2920409999999265,
+            "memory": {
+              "before": {
+                "rss": 127795200,
+                "heapTotal": 54935552,
+                "heapUsed": 18056072,
+                "external": 4080855,
+                "arrayBuffers": 87243
+              },
+              "after": {
+                "rss": 127795200,
+                "heapTotal": 54935552,
+                "heapUsed": 18183672,
+                "external": 4080406,
+                "arrayBuffers": 87273
+              },
+              "sampledPeak": {
+                "rss": 127795200,
+                "heapUsed": 18182936,
+                "external": 4080855
+              },
+              "processMaxRssKiB": 124800,
+              "sampleIntervalMs": 2
+            },
+            "capture": "native Uint8Array stdout/stderr"
+          },
+          "status": "fail",
+          "comparison": {
+            "pass": false,
+            "assertions": [
+              {
+                "field": "stdout",
+                "pass": false
+              },
+              {
+                "field": "stderr",
+                "pass": false
+              },
+              {
+                "field": "exitCode",
+                "pass": false
+              },
+              {
+                "field": "entries",
+                "pass": true
+              }
+            ]
+          }
+        },
+        "just-bash": {
+          "id": 191,
+          "observation": {
+            "stdout": "aGVsbG8gd29ybGQ=",
+            "stderr": "",
+            "exitCode": 0,
+            "entries": {},
+            "events": [],
+            "registryEvents": [
+              {
+                "name": "printf",
+                "args": [
+                  "hello %s",
+                  "world"
+                ]
+              }
+            ],
+            "executeMs": 1.055166999999983,
+            "memory": {
+              "before": {
+                "rss": 194428928,
+                "heapTotal": 62619648,
+                "heapUsed": 26088376,
+                "external": 4212807,
+                "arrayBuffers": 155892
+              },
+              "after": {
+                "rss": 194445312,
+                "heapTotal": 62619648,
+                "heapUsed": 26546768,
+                "external": 4206066,
+                "arrayBuffers": 155903
+              },
+              "sampledPeak": {
+                "rss": 194445312,
+                "heapUsed": 26545968,
+                "external": 4212807
+              },
+              "processMaxRssKiB": 189888,
+              "sampleIntervalMs": 2
+            },
+            "capture": "public stdoutAsBytes/latin1FromBytes; stderr UTF8 public text"
+          },
+          "status": "pass",
+          "comparison": {
+            "pass": true,
+            "assertions": [
+              {
+                "field": "stdout",
+                "pass": true
+              },
+              {
+                "field": "stderr",
+                "pass": true
+              },
+              {
+                "field": "exitCode",
+                "pass": true
+              },
+              {
+                "field": "entries",
+                "pass": true
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "specimen": {
+        "id": "kernel/parameter/parameter",
+        "group": "kernel",
+        "command": "parameter",
+        "optionFamily": "parameter",
+        "script": "VALUE=abcabc; printf '%s:%s:%s' \"${VALUE#abc}\" \"${VALUE%abc}\" \"${VALUE//a/X}\"",
+        "files": {},
+        "stdin": "",
+        "nativeExit": 0,
+        "modes": false,
+        "directories": [],
+        "fileModes": {},
+        "fileTimes": {},
+        "network": false,
+        "stderrPolicy": "exact-after-root-path-projection"
+      },
+      "expected": {
+        "id": "kernel/parameter/parameter",
+        "recipeHash": "0206d7ab02a9bb0870ded71bd3360303cbd38415f41b34a162deb1ac78466da2",
+        "stdout": "YWJjOmFiYzpYYmNYYmM=",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {},
+        "oracleValid": true,
+        "reason": null,
+        "signal": null
+      },
+      "frozen": {
+        "id": "kernel/parameter/parameter",
+        "group": "kernel",
+        "command": "parameter",
+        "optionFamily": "parameter",
+        "expected": {
+          "id": "kernel/parameter/parameter",
+          "recipeHash": "0206d7ab02a9bb0870ded71bd3360303cbd38415f41b34a162deb1ac78466da2",
+          "stdout": "YWJjOmFiYzpYYmNYYmM=",
+          "stderr": "",
+          "exitCode": 0,
+          "entries": {},
+          "oracleValid": true,
+          "reason": null,
+          "signal": null
+        },
+        "order": [
+          "virtual-bash",
+          "just-bash"
+        ],
+        "virtual-bash": {
+          "id": 193,
+          "observation": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IFVudGVybWluYXRlZCBvciB1bnN1cHBvcnRlZCBwYXJhbWV0ZXIgZXhwYW5zaW9uIGF0IG9mZnNldCA3MAo=",
+            "exitCode": 2,
+            "entries": {},
+            "events": [],
+            "registryEvents": [],
+            "executeMs": 0.24187499999993634,
+            "memory": {
+              "before": {
+                "rss": 127827968,
+                "heapTotal": 55197696,
+                "heapUsed": 18087912,
+                "external": 4080859,
+                "arrayBuffers": 87296
+              },
+              "after": {
+                "rss": 127827968,
+                "heapTotal": 55197696,
+                "heapUsed": 18140480,
+                "external": 4080633,
+                "arrayBuffers": 87500
+              },
+              "sampledPeak": {
+                "rss": 127827968,
+                "heapUsed": 18139744,
+                "external": 4080859
+              },
+              "processMaxRssKiB": 124832,
+              "sampleIntervalMs": 2
+            },
+            "capture": "native Uint8Array stdout/stderr"
+          },
+          "status": "fail",
+          "comparison": {
+            "pass": false,
+            "assertions": [
+              {
+                "field": "stdout",
+                "pass": false
+              },
+              {
+                "field": "stderr",
+                "pass": false
+              },
+              {
+                "field": "exitCode",
+                "pass": false
+              },
+              {
+                "field": "entries",
+                "pass": true
+              }
+            ]
+          }
+        },
+        "just-bash": {
+          "id": 193,
+          "observation": {
+            "stdout": "YWJjOmFiYzpYYmNYYmM=",
+            "stderr": "",
+            "exitCode": 0,
+            "entries": {},
+            "events": [],
+            "registryEvents": [
+              {
+                "name": "printf",
+                "args": [
+                  "%s:%s:%s",
+                  "abc",
+                  "abc",
+                  "XbcXbc"
+                ]
+              }
+            ],
+            "executeMs": 1.421291999999994,
+            "memory": {
+              "before": {
+                "rss": 194494464,
+                "heapTotal": 62881792,
+                "heapUsed": 26187704,
+                "external": 4212858,
+                "arrayBuffers": 155945
+              },
+              "after": {
+                "rss": 194510848,
+                "heapTotal": 62881792,
+                "heapUsed": 26784928,
+                "external": 4206126,
+                "arrayBuffers": 155963
+              },
+              "sampledPeak": {
+                "rss": 194510848,
+                "heapUsed": 26784128,
+                "external": 4212858
+              },
+              "processMaxRssKiB": 189952,
+              "sampleIntervalMs": 2
+            },
+            "capture": "public stdoutAsBytes/latin1FromBytes; stderr UTF8 public text"
+          },
+          "status": "pass",
+          "comparison": {
+            "pass": true,
+            "assertions": [
+              {
+                "field": "stdout",
+                "pass": true
+              },
+              {
+                "field": "stderr",
+                "pass": true
+              },
+              {
+                "field": "exitCode",
+                "pass": true
+              },
+              {
+                "field": "entries",
+                "pass": true
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

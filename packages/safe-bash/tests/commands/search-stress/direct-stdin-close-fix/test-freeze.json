@@ -1,0 +1,9 @@
+{
+  "at": "2026-08-27T13:30:33.273Z",
+  "path": "tests/commands/search-stress/direct-stdin-close.test.ts",
+  "sha256": "816db1e33ac4b9b0251aa35697538e752993b66fea3aeac1d79af2e6b20c9a32",
+  "intentPath": "tests/commands/search-stress/direct-stdin-close-fix/intentions.md",
+  "intentSha256": "b9e646989a2c278f5ad354b48c6dff4b23e217bab391fdbd937ce3df5bf4d44b",
+  "topLevelLogicalTests": 14,
+  "patchedRunsBeforeFreeze": 0
+}

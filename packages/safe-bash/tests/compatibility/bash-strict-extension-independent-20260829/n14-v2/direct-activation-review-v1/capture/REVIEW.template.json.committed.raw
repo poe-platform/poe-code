@@ -1,0 +1,8 @@
+{
+  "schema": "direct-activation-independent-review-v1",
+  "decision": "PENDING",
+  "scope": "B-mechanism-and-final-activation-binding",
+  "profileCommit": "464666830d16016ca7a7bf9ef466aa6dc764e2d3",
+  "sealSha256": "254e4d2bf3f12583c625b627b9230829f839745fb490abb8421b47d0fdc73781",
+  "qualification": "Template only; no independent acceptance implied"
+}

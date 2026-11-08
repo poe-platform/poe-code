@@ -1,0 +1,72 @@
+TAP version 13
+# Subtest: desired action-abort observes original host rejection without hiding abort
+ok 1 - desired action-abort observes original host rejection without hiding abort
+  ---
+  duration_ms: 449.412084
+  type: 'test'
+  ...
+# {"actualEngineLoad":"/private/tmp/safe-bash-safejs-isolated-gnP0gu/patched/packages/safejs/src/run.ts","sha256":"437516219bd7e6150b35b76d4f4db3a5027496d75d1534142032a4fe466ff4f2"}
+# {"actualEngineLoad":"/private/tmp/safe-bash-safejs-isolated-gnP0gu/patched/packages/safejs/src/interp/interpreter.ts","sha256":"9144707a43315e80cd75ff6dfdf650760d196c2b9fc09f5876b86ff551a3338d"}
+# Subtest: UNRESOLVED desired live-signal plugin behavior: new Error("constructed").message
+ok 2 - UNRESOLVED desired live-signal plugin behavior: new Error("constructed").message
+  ---
+  duration_ms: 222.827708
+  type: 'test'
+  ...
+# Subtest: UNRESOLVED desired live-signal plugin behavior: new TypeError("constructed").message
+ok 3 - UNRESOLVED desired live-signal plugin behavior: new TypeError("constructed").message
+  ---
+  duration_ms: 4.037792
+  type: 'test'
+  ...
+# Subtest: UNRESOLVED desired live-signal plugin behavior: new Map([["key", "value"]]).get("key")
+ok 4 - UNRESOLVED desired live-signal plugin behavior: new Map([["key", "value"]]).get("key")
+  ---
+  duration_ms: 5.046083
+  type: 'test'
+  ...
+# Subtest: UNRESOLVED desired live-signal plugin behavior: new Set(["value"]).has("value")
+ok 5 - UNRESOLVED desired live-signal plugin behavior: new Set(["value"]).has("value")
+  ---
+  duration_ms: 4.405041
+  type: 'test'
+  ...
+# Subtest: UNRESOLVED desired live-signal plugin behavior: new RegExp("^value$").test("value")
+ok 6 - UNRESOLVED desired live-signal plugin behavior: new RegExp("^value$").test("value")
+  ---
+  duration_ms: 3.841833
+  type: 'test'
+  ...
+# Subtest: UNRESOLVED desired live-signal plugin behavior: Array.isArray([])
+ok 7 - UNRESOLVED desired live-signal plugin behavior: Array.isArray([])
+  ---
+  duration_ms: 2.641667
+  type: 'test'
+  ...
+# Subtest: UNRESOLVED desired live-signal plugin behavior: Array.from([1, 2])
+ok 8 - UNRESOLVED desired live-signal plugin behavior: Array.from([1, 2])
+  ---
+  duration_ms: 3.1885
+  type: 'test'
+  ...
+# Subtest: UNRESOLVED desired live-signal plugin behavior: own __proto__ environment data
+ok 9 - UNRESOLVED desired live-signal plugin behavior: own __proto__ environment data
+  ---
+  duration_ms: 4.7875
+  type: 'test'
+  ...
+# Subtest: UNRESOLVED desired raw engine behavior: pre-aborted pure run rejects original reason
+ok 10 - UNRESOLVED desired raw engine behavior: pre-aborted pure run rejects original reason
+  ---
+  duration_ms: 2.066541
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 610.085208

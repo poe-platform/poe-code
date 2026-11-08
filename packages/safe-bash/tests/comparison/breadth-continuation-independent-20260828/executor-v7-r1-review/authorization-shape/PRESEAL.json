@@ -1,0 +1,237 @@
+{
+  "classification": "DATA_ONLY_VERSION_SPECIFIC_OPT_IN_REVIEW_NOT_ROOT_GRANTS",
+  "createdAt": "2026-08-28T14:53:49.791Z",
+  "candidate": "230ed3c6e15617b312760367adf9ede4e5c7ff6a",
+  "suppliedEvidenceCommit": "fedfca3c445696a19aaf84ac85bc74cff229d5c2",
+  "suppliedRecipeSha256": "05aa8dce295c507fd605c93aa113ba2ecd5605064dc0f6dfe3a20aa6dc6bf04d",
+  "recipeQualification": "User-supplied identifier only; no packet authentication or grant/review resolution performed.",
+  "policyCommit": "f5fa0d3fa03532860bad120bf1a71a1b0af3caaa",
+  "policy": {
+    "path": "AGENTS.md",
+    "bytes": 13467,
+    "mode": 420,
+    "sha256": "64fde885fd30edd6751f95603defac1d15defb6a33dedca2049a82f9aace379c"
+  },
+  "metadataHead": "30c38df6a8ee526392fc59850475dfad679cfd59",
+  "ownership": "tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/authorization-shape/** only; all other paths read-only; no children",
+  "authorizationPath": "tests/comparison/breadth-continuation-20260828/executor-v7-r1/authorization.mjs",
+  "sourceAuthentication": "Every listed file byte-equal to supplied candidate and current committed HEAD; live SHA-256 recorded before candidate import.",
+  "staticAudit": {
+    "inspectedModules": 13,
+    "importClosure": [
+      "executor-v7-r1/authorization.mjs",
+      "executor-v4/safety.mjs",
+      "executor-v7-r1/projection.mjs",
+      "executor-v4/operations.mjs",
+      "executor-v7-r1/bootstrap.mjs",
+      "executor-v7-r1/schema.mjs",
+      "executor-v3/regular-read.mjs",
+      "executor-v7/projection.mjs",
+      "executor-v7/schema.mjs",
+      "executor-v5/projection.mjs",
+      "executor-v5/consumer-scope.mjs",
+      "executor-v3/safety.mjs",
+      "executor-v3/projection.mjs"
+    ],
+    "importTimeData": "executor-v5/consumer-scope.mjs reads/parses only its local CONSUMER-SCOPES.json; path constants, function bindings and frozen profile literals otherwise.",
+    "safetyDecision": "No import-time engine/comparator source import, child spawn, network or staging execution. consumer wrappers are strings/data, not executed.",
+    "builtins": [
+      "node:fs",
+      "node:path",
+      "node:child_process",
+      "node:crypto",
+      "node:url",
+      "node:zlib"
+    ],
+    "dormantEffects": "authority contains spawnSync; projection contains staging functions; bootstrap accepts a load callback. None is invoked by import or readAuthorization.",
+    "readAuthorizationCalls": [
+      "fs.lstatSync",
+      "readRegular (bounded open/stat/read/close)",
+      "hash",
+      "JSON.parse",
+      "dataObject",
+      "requireThat",
+      "hashString",
+      "relativeName"
+    ],
+    "callerStaticOnly": "production.mjs authorize forwards external.review/grant to authority unchanged. authority load uses `${binding.commit}:${binding.path}` template interpolation. No authority call or reference Git lookup."
+  },
+  "exactCaseCount": 8,
+  "caseOrder": [
+    "A01",
+    "A02",
+    "A03",
+    "A04",
+    "A05",
+    "A06",
+    "A07",
+    "A08"
+  ],
+  "fixtureDesign": "A01 canonical references; A02-A07 alter review only, leaving grant canonical; A08 wraps canonical object in array. Numeric commit is 0. JSON own-data fixtures only; no accessor/realm/order permutations.",
+  "nonexistentReferences": [
+    "tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/authorization-shape/runs/paths/nonexistent-review.json",
+    "tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/authorization-shape/runs/paths/nonexistent-grant.json"
+  ],
+  "dummyValues": {
+    "commit": "0000000000000000000000000000000000000000",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "expectedPolicy": "Exact own-data types and exact reference keys without coercion. All eight expected outcomes fixed in EXPECTATIONS.json before candidate import/calls.",
+  "sources": [
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r1/authorization.mjs",
+      "bytes": 5367,
+      "mode": 420,
+      "sha256": "bf0c0d1dc58a634606c16911b7ffd82ef0259ac963463bd1020f9796ecca1bd1"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/safety.mjs",
+      "bytes": 3107,
+      "mode": 420,
+      "sha256": "74849abb4e28b012ec8cddb729d1bae02cbde253291b3e2f2bb070457b7e66a2"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r1/projection.mjs",
+      "bytes": 113,
+      "mode": 420,
+      "sha256": "372c5c121f5cb25acc1c42357344da69acab1bedbc34ff7efa9c686f72e78c34"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/operations.mjs",
+      "bytes": 3560,
+      "mode": 420,
+      "sha256": "c4ec72e794ced9affb2bd7fee57b6a6d53b28bb7ea699178ecd160f4cd755741"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r1/bootstrap.mjs",
+      "bytes": 5261,
+      "mode": 420,
+      "sha256": "5104b893860638beb026acac1526f677eb2861a6a2c354e58818cdf51bc04ffd"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r1/schema.mjs",
+      "bytes": 93,
+      "mode": 420,
+      "sha256": "1b516b9be6a36964254e79694c7f6df2243b9380d96d9b4a986266f5b7a074ed"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v3/regular-read.mjs",
+      "bytes": 999,
+      "mode": 420,
+      "sha256": "9995afc3c98840ece5b85fa7057c48f5331c5e174b52a8dea682df65c72833bb"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7/projection.mjs",
+      "bytes": 138,
+      "mode": 420,
+      "sha256": "2d2a2b6d76a4b6af24320616565213a71f8946bf71bb7ad5a451ed63906aed3e"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7/schema.mjs",
+      "bytes": 1438,
+      "mode": 420,
+      "sha256": "37fc2c5ef2c36157c4e617fb611950018265376ac3d1ef7b4632207a0be3ff3e"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v5/projection.mjs",
+      "bytes": 8547,
+      "mode": 420,
+      "sha256": "ee3f76cebbb9fa3905b27eed1232b7c475f362c5bace14a1a178c9ff2cc1763d"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v5/consumer-scope.mjs",
+      "bytes": 2056,
+      "mode": 420,
+      "sha256": "8bcd4f1ac63fbbdd882eec1d9564601a4f1027c65e71d83d6d3a9981b3f59b09"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs",
+      "bytes": 3012,
+      "mode": 420,
+      "sha256": "056f5c1c205e2c7273270a44898b05c247628413f4cd0e3182075d405b83b913"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v3/projection.mjs",
+      "bytes": 8872,
+      "mode": 420,
+      "sha256": "13f3363d839f4c3820f5bdd860684564087fb15b7ed2a1d337a10297000b84e1"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v5/CONSUMER-SCOPES.json",
+      "bytes": 1539,
+      "mode": 420,
+      "sha256": "bb15018f97824b908421464cf45b325a0e3176698a183b6ef58597423066e664"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r1/production.mjs",
+      "bytes": 4131,
+      "mode": 420,
+      "sha256": "663cff7f5d4ba5ca4a4c5dc53e9cd4aed9f34aabefcb6d8803fbf4c5ca8c5fc9"
+    }
+  ],
+  "inputs": [
+    {
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/authorization-shape/harness.mjs",
+      "bytes": 5209,
+      "mode": 420,
+      "sha256": "27c3f1647d63b05baf6c38ed67b2d19fc81fde5fd1406ef7c9e1799bbfff37b0"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/authorization-shape/EXPECTATIONS.json",
+      "bytes": 2316,
+      "mode": 420,
+      "sha256": "2294d3000d2f33a71c4b1c38628ec2d9c5a7177884cafe9f9de8f4e281b08c3f"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/authorization-shape/runs/paths/A01/AUTH.json",
+      "bytes": 619,
+      "mode": 420,
+      "sha256": "af42c0c3de12d12e53d327f394e8b44e2f653fa0ce5e5fcadc57323ef32b694c"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/authorization-shape/runs/paths/A02/AUTH.json",
+      "bytes": 633,
+      "mode": 420,
+      "sha256": "5c5393bf20340e764137bd53d8fa7a0fdd0b68ea0bcbd4700042a60e4c24e172"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/authorization-shape/runs/paths/A03/AUTH.json",
+      "bytes": 578,
+      "mode": 420,
+      "sha256": "59502a11a3f5724a44f9ad6a29bf63bda9f8a11f41f75f33df5d4c7151e87302"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/authorization-shape/runs/paths/A04/AUTH.json",
+      "bytes": 633,
+      "mode": 420,
+      "sha256": "7b5f6933133ee73a5162a881f6852d2b0cb9ce25bd3030b8a256a011755f9b3e"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/authorization-shape/runs/paths/A05/AUTH.json",
+      "bytes": 633,
+      "mode": 420,
+      "sha256": "47088debd33e6a31cfd2f333ec6b83b769b72521886c12a7f2d7e885bb8e3fa2"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/authorization-shape/runs/paths/A06/AUTH.json",
+      "bytes": 638,
+      "mode": 420,
+      "sha256": "f974bb09ce50f2fd21a6301f1c69d4fc61981c8b2515a2941b4e9ef8a480fbfb"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/authorization-shape/runs/paths/A07/AUTH.json",
+      "bytes": 537,
+      "mode": 420,
+      "sha256": "785f27252dade62a0052db6d94201d71f3a59e391466d4a97b8e4bc13af197d3"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/authorization-shape/runs/paths/A08/AUTH.json",
+      "bytes": 647,
+      "mode": 420,
+      "sha256": "87b5db2fa0a2c9275b3635f7c30b6134e5f3039b2ad3018bdc73b00cc8ab9b57"
+    }
+  ],
+  "execution": "node --unhandled-rejections=strict <owned-root>/harness.mjs <preseal-commit>; exactly one readAuthorization call per fixture; no subprocess tests, eval, VM, product imports or authority/authenticatePacket/launch calls.",
+  "capture": "Exclusive new runs/RESULTS.json; preserve originals; mismatch exit 1, fatal/integrity exit 2. No rebaseline or rerun. Post-check covers listed files, not new entries or append-proof trees.",
+  "interpretation": "Unexpected acceptance is strict type/schema divergence, not authorization bypass. Same immutable commit may still bind after caller template interpolation. No readiness GO."
+}

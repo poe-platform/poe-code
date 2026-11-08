@@ -1,0 +1,586 @@
+import type { Budget, CompileOwner } from "../budget.js";
+import { retainValues } from "../resources.js";
+import { guestProxyStates } from "../guest-proxy.js";
+import { sandboxIsArray } from "../guest-proxy-array.js";
+import { sandboxOwnKeys } from "../guest-proxy-own-keys.js";
+import { sandboxGetOwnPropertyDescriptor } from "../guest-proxy-descriptor.js";
+import { sandboxGetProperty } from "../guest-proxy-get.js";
+import { invokeBuiltinClosure } from "../builtin-call.js";
+import { parseJsonWithReviver } from "./json-parse.js";
+import { admitJson } from "./json-admission.js";
+import { createRawJson, isRawJson } from "../raw-json.js";
+import { readPropertyDescriptor } from "../accessors.js";
+import { createIntrinsicObject, getBoxedPrototype, getSandboxPropertyDescriptor, getSandboxPrototype, materializeFunctionProperties, registerIntrinsicFunction, registerIntrinsicObject, setSandboxPrototype } from "../object-model.js";
+import { hostFunctionMetadata } from "../host-function-metadata.js";
+import { registerBuiltinIdentities } from "../intrinsics.js";
+import { boxedValue, isSandboxBox } from "../boxed.js";
+import { sandboxNumber, sandboxString } from "../string-coercion.js";
+import { CompileScope } from "../regex/compile-guard.js";
+import type { HostCallJournal } from "../host-call.js";
+import { wrapCallerInjectedBindings } from "../host-bridge.js";
+import {
+  allocateProducedSandboxValue,
+  createSandboxClosure,
+  deepCopyFromSandbox,
+  isSandboxClosure,
+  isSandboxPromise,
+  ownEnumerableSandboxKeys,
+  type SandboxArray,
+  type SandboxCallContext,
+  type SandboxClosure,
+  type SandboxObject,
+  type SandboxValue
+} from "../values.js";
+
+export type ConsoleSink = {
+  error: (...args: unknown[]) => void;
+  log: (...args: unknown[]) => void;
+};
+
+export type ConsoleJsonGlobalsOptions = {
+  budget: Budget;
+  compileOwner?: CompileOwner;
+  sink?: ConsoleSink;
+  hostCalls?: HostCallJournal;
+};
+
+export function createConsoleJsonGlobals(
+  options: ConsoleJsonGlobalsOptions
+): Record<"JSON" | "console", SandboxObject> {
+  const sink = options.sink ?? console;
+
+  const globals = {
+    JSON: createIntrinsicObject({
+      rawJSON: createSandboxClosure({
+        sandbox: true,
+        guest: true,
+        name: "rawJSON",
+        length: 1,
+        call: async ([value], context) => {
+          const text = await sandboxString(value, options.budget, context);
+          options.budget.visitNode(text.length);
+          return createRawJson(options.budget.allocateString(text));
+        }
+      }),
+      isRawJSON: createSandboxClosure({
+        sandbox: true,
+        guest: true,
+        name: "isRawJSON",
+        length: 1,
+        call: ([value]) => isRawJson(value)
+      }),
+      parse: createSandboxClosure({
+        sandbox: true,
+        guest: true,
+        length: 2,
+        call: async ([text, reviver], context) => {
+          const converted = sandboxString(text, options.budget, context);
+          const source = converted instanceof Promise ? await converted : converted;
+          admitJson(source, options.budget);
+          if (isSandboxClosure(reviver)) return parseJsonWithReviver(source, reviver, options.budget, context);
+          return copyJsonToSandbox(
+            JSON.parse(source),
+            options.budget
+          );
+        },
+        name: "parse"
+      }),
+      stringify: createSandboxClosure({
+        sandbox: true,
+        guest: true,
+        length: 3,
+        call: async ([value, replacer, indent], context) =>
+          stringifyJson(value, replacer, indent, options.budget, context),
+        name: "stringify"
+      })
+    }),
+    console:
+      options.hostCalls === undefined
+        ? {
+            error: createSandboxClosure({
+              sandbox: true,
+              call: async (args, context) => {
+                const operation = options.budget.acquireCompileOwner(
+                  false,
+                  options.compileOwner ?? context?.compilation?.owner
+                );
+                const compilation = new CompileScope(operation.owner);
+                try {
+                  sink.error(...args.map((value) => deepCopyFromSandbox(value, { compilation })));
+                  return undefined;
+                } finally {
+                  compilation.dispose();
+                  operation.release();
+                }
+              },
+              name: "error"
+            }),
+            log: createSandboxClosure({
+              sandbox: true,
+              call: async (args, context) => {
+                const operation = options.budget.acquireCompileOwner(
+                  false,
+                  options.compileOwner ?? context?.compilation?.owner
+                );
+                const compilation = new CompileScope(operation.owner);
+                try {
+                  sink.log(...args.map((value) => deepCopyFromSandbox(value, { compilation })));
+                  return undefined;
+                } finally {
+                  compilation.dispose();
+                  operation.release();
+                }
+              },
+              name: "log"
+            })
+          }
+        : wrapCallerInjectedBindings(
+            {
+              error: (...args: unknown[]) => {
+                sink.error(...args);
+                return undefined;
+              },
+              log: (...args: unknown[]) => {
+                sink.log(...args);
+                return undefined;
+              }
+            },
+            {
+              budget: options.budget,
+              compileOwner: options.compileOwner,
+              hostCalls: options.hostCalls,
+              moduleId: "<console>"
+            }
+          )
+  };
+  for (const method of Object.values(globals.console)) {
+    const properties = materializeFunctionProperties(method as SandboxClosure);
+    hostFunctionMetadata.set(properties, new Map(Object.entries(Object.getOwnPropertyDescriptors(properties))));
+  }
+  const jsonMethods = Object.entries(globals.JSON);
+  for (const [name] of jsonMethods) {
+    Object.defineProperty(globals.JSON, name, { enumerable: false });
+  }
+  Object.defineProperty(globals.JSON, Symbol.toStringTag, { value: "JSON", configurable: true });
+  registerBuiltinIdentities(options.budget, { JSON: globals.JSON });
+  for (const [, method] of jsonMethods) registerIntrinsicFunction(options.budget, method as SandboxClosure);
+  registerIntrinsicObject(options.budget, globals.JSON);
+  return globals;
+}
+
+async function stringifyJson(
+  value: SandboxValue,
+  replacer: SandboxValue,
+  indent: SandboxValue,
+  budget: Budget,
+  context?: SandboxCallContext
+): Promise<SandboxValue> {
+  const allocation = {};
+  let propertyList: string[] | undefined;
+  const release = retainValues(budget, () => [value, replacer, indent]);
+  try {
+    if (!isSandboxClosure(replacer) && sandboxIsArray(replacer, budget)) {
+      propertyList = [];
+      const seen = new Set<string>();
+      let size = 0;
+      const state: StringifyState = { budget, context, gap: "", stack: [] };
+      const length = await stringifyArrayLength(replacer as SandboxArray | SandboxObject, state);
+      for (let index = 0; index < length; index++) {
+        budget.visitNode();
+        const entry = await getStringifyProperty(replacer as SandboxArray | SandboxObject, String(index), state);
+        const primitive = isSandboxBox(entry) ? boxedValue(entry) : entry;
+        if (typeof primitive !== "string" && typeof primitive !== "number") continue;
+        const key = await sandboxString(entry, budget, context);
+        if (seen.has(key)) continue;
+        budget.allocateArrayLength(propertyList.length + 1);
+        size += key.length + 2;
+        budget.setRetainedDataUsage(allocation, size);
+        propertyList.push(key);
+        seen.add(key);
+      }
+    }
+
+    if (isSandboxBox(indent)) {
+      const primitive = boxedValue(indent);
+      if (typeof primitive === "number") indent = await sandboxNumber(indent, budget, context);
+      else if (typeof primitive === "string") indent = await sandboxString(indent, budget, context);
+    }
+
+    const holder: SandboxObject = {};
+    defineDataProperty(holder, "", value);
+    const output = await stringifyProperty("", holder, {
+      budget,
+      context,
+      gap: normalizeStringifyGap(indent),
+      replacer: isSandboxClosure(replacer) ? replacer : undefined,
+      propertyList,
+      stack: []
+    });
+
+    if (output === undefined) {
+      return undefined;
+    }
+
+    return budget.allocateString(output);
+  } finally {
+    budget.setRetainedDataUsage(allocation, 0);
+    release();
+  }
+}
+
+type StringifyState = {
+  budget: Budget;
+  context?: SandboxCallContext;
+  gap: string;
+  replacer?: SandboxClosure;
+  propertyList?: string[];
+  stack: object[];
+};
+
+async function stringifyProperty(
+  key: string,
+  holder: SandboxArray | SandboxObject,
+  state: StringifyState,
+  indent = ""
+): Promise<string | undefined> {
+  let value: unknown = await getStringifyProperty(holder, key, state);
+  const release = retainValues(state.budget, () => [holder, value]);
+  try {
+    if (typeof value === "bigint" || isSandboxClosure(value) || isStringifyContainer(value)) {
+      const toJSON = await getStringifyProperty(value, "toJSON", state);
+      if (isSandboxClosure(toJSON)) {
+        value = await callStringifyClosure(toJSON, [key], value, state);
+      }
+    }
+
+    if (state.replacer !== undefined) {
+      value = await callStringifyClosure(
+        state.replacer,
+        [key, toSandboxValue(value)],
+        holder,
+        state
+      );
+    }
+
+    return await stringifyValue(value, state, indent);
+  } finally {
+    release();
+  }
+}
+
+async function stringifyValue(
+  value: unknown,
+  state: StringifyState,
+  indent: string
+): Promise<string | undefined> {
+  if (isRawJson(value)) return value.rawJSON;
+  if (isSandboxBox(value)) {
+    const primitive = boxedValue(value);
+    value =
+      typeof primitive === "number"
+        ? await sandboxNumber(value, state.budget, state.context)
+        : typeof primitive === "string"
+          ? await sandboxString(value, state.budget, state.context)
+          : typeof primitive === "symbol" ? value : primitive;
+  }
+  if (value === null) {
+    return "null";
+  }
+
+  if (typeof value === "string") {
+    return quoteJsonString(value, state.budget);
+  }
+
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? String(value) : "null";
+  }
+
+  if (typeof value === "boolean") {
+    return value ? "true" : "false";
+  }
+
+  if (typeof value === "bigint") {
+    throw new TypeError("Do not know how to serialize a BigInt.");
+  }
+
+  if (value === undefined || isSandboxClosure(value)) {
+    return undefined;
+  }
+
+  if (isStringifyContainer(value) && sandboxIsArray(value, state.budget)) {
+    return stringifyArray(value, state, indent);
+  }
+
+  if (isStringifyObject(value)) {
+    return stringifyObject(value, state, indent);
+  }
+
+  return undefined;
+}
+
+async function stringifyArray(
+  value: SandboxArray | SandboxObject,
+  state: StringifyState,
+  indent: string
+): Promise<string> {
+  enterStringifyObject(value, state);
+  const entries: string[] = [];
+  const release = retainValues(state.budget, () => entries);
+  try {
+    const nextIndent = indent + state.gap;
+
+    const length = await stringifyArrayLength(value, state);
+    for (let index = 0; index < length; index += 1) {
+      state.budget.visitNode();
+      entries.push((await stringifyProperty(String(index), value, state, nextIndent)) ?? "null");
+    }
+
+    if (entries.length === 0) {
+      return "[]";
+    }
+
+    if (state.gap === "") {
+      return `[${entries.join(",")}]`;
+    }
+
+    return `[\n${nextIndent}${entries.join(`,\n${nextIndent}`)}\n${indent}]`;
+  } finally {
+    release();
+    leaveStringifyObject(value, state);
+  }
+}
+
+async function stringifyObject(
+  value: SandboxObject,
+  state: StringifyState,
+  indent: string
+): Promise<string> {
+  enterStringifyObject(value, state);
+  const entries: string[] = [];
+  let keys: string[] = [], ownKeys: Array<string | symbol> = [];
+  const release = retainValues(state.budget, () => [entries, keys, ownKeys]);
+  try {
+    const nextIndent = indent + state.gap;
+
+    if (state.propertyList !== undefined) keys = state.propertyList;
+    else if (guestProxyStates.has(value)) {
+      ownKeys = await sandboxOwnKeys(value, state.budget, state.context);
+      for (const key of ownKeys) {
+        state.budget.visitNode();
+        if (typeof key !== "string") continue;
+        const descriptor = await sandboxGetOwnPropertyDescriptor(value, key, state.budget, state.context);
+        if (descriptor?.enumerable) keys.push(key);
+      }
+    } else keys = ownEnumerableSandboxKeys(value);
+    for (const key of keys) {
+      const serialized = await stringifyProperty(key, value, state, nextIndent);
+      if (serialized !== undefined) {
+        entries.push(`${quoteJsonString(key, state.budget)}:${state.gap === "" ? "" : " "}${serialized}`);
+      }
+    }
+
+    if (entries.length === 0) {
+      return "{}";
+    }
+
+    if (state.gap === "") {
+      return `{${entries.join(",")}}`;
+    }
+
+    return `{\n${nextIndent}${entries.join(`,\n${nextIndent}`)}\n${indent}}`;
+  } finally {
+    release();
+    leaveStringifyObject(value, state);
+  }
+}
+
+async function callStringifyClosure(
+  closure: SandboxClosure,
+  args: readonly SandboxValue[],
+  thisValue: SandboxValue,
+  state: StringifyState
+): Promise<unknown> {
+  const result = await invokeBuiltinClosure(closure, args, state.budget, state.context, thisValue);
+  if (isSandboxPromise(result) && result.synchronousPrefix !== undefined) {
+    await result.synchronousPrefix;
+  }
+  return allocateProducedSandboxValue(result, state.budget);
+}
+
+function enterStringifyObject(value: object, state: StringifyState): void {
+  if (state.stack.includes(value)) {
+    throw new TypeError("Converting circular structure to JSON.");
+  }
+
+  state.stack.push(value);
+}
+
+function leaveStringifyObject(value: object, state: StringifyState): void {
+  if (state.stack.at(-1) === value) {
+    state.stack.pop();
+    return;
+  }
+
+  const index = state.stack.lastIndexOf(value);
+  if (index >= 0) {
+    state.stack.splice(index, 1);
+  }
+}
+
+function normalizeStringifyGap(indent: SandboxValue): string {
+  if (typeof indent === "number") {
+    return " ".repeat(Math.min(10, Math.max(0, Math.trunc(indent))));
+  }
+
+  if (typeof indent === "string") {
+    return indent.slice(0, 10);
+  }
+
+  return "";
+}
+
+function quoteJsonString(value: string, budget: Budget): string {
+  let length = 2;
+  budget.allocateStringLength(length);
+  for (let index = 0; index < value.length; index++) {
+    budget.visitNode();
+    const code = value.charCodeAt(index);
+    if (code === 0x22 || code === 0x5c || code === 8 || code === 9 || code === 10 || code === 12 || code === 13) {
+      length += 2;
+    } else if (code < 0x20) {
+      length += 6;
+    } else if (code >= 0xd800 && code <= 0xdbff) {
+      const next = value.charCodeAt(index + 1);
+      if (next >= 0xdc00 && next <= 0xdfff) {
+        budget.visitNode();
+        index++;
+        length += 2;
+      } else length += 6;
+    } else if (code >= 0xdc00 && code <= 0xdfff) {
+      length += 6;
+    } else length++;
+    budget.allocateStringLength(length);
+  }
+  // Reserve the escaped output while native quoting allocates it.
+  const release = budget.provisionDataUsage(length);
+  try {
+    return JSON.stringify(value);
+  } finally {
+    release();
+  }
+}
+
+function isStringifyContainer(value: unknown): value is SandboxArray | SandboxObject {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    !isSandboxClosure(value)
+  );
+}
+
+function isStringifyObject(value: unknown): value is SandboxObject {
+  return isStringifyContainer(value) && !Array.isArray(value);
+}
+
+function toSandboxValue(value: unknown): SandboxValue {
+  if (
+    value === null ||
+    value === undefined ||
+    typeof value === "string" ||
+    typeof value === "number" ||
+    typeof value === "bigint" ||
+    typeof value === "symbol" ||
+    typeof value === "boolean" ||
+    isSandboxClosure(value) ||
+    isSandboxPromise(value) ||
+    Array.isArray(value) ||
+    isStringifyContainer(value)
+  ) {
+    return value as SandboxValue;
+  }
+
+  throw new TypeError(
+    `JSON.stringify(value) produced an unsupported value of type ${typeof value}.`
+  );
+}
+
+function getStringifyProperty(
+  target: SandboxArray | SandboxObject | SandboxClosure | bigint,
+  key: string,
+  state: StringifyState
+): SandboxValue | Promise<SandboxValue> {
+  if (state.context?.getProperty !== undefined) return state.context.getProperty(target, key);
+  if (typeof target === "object" && guestProxyStates.has(target))
+    return sandboxGetProperty(target, key, target, state.budget, state.context);
+  const object = typeof target === "bigint" ? getBoxedPrototype(target, state.budget) : target;
+  const descriptor = object === undefined ? undefined : getSandboxPropertyDescriptor(object, key, state.budget);
+  return descriptor === undefined
+    ? undefined
+    : readPropertyDescriptor(descriptor, target, state.context);
+}
+
+async function stringifyArrayLength(value: SandboxArray | SandboxObject, state: StringifyState): Promise<number> {
+  const raw = await getStringifyProperty(value, "length", state);
+  const release = retainValues(state.budget, () => [raw]);
+  try {
+    const number = await sandboxNumber(raw, state.budget, state.context);
+    return Number.isNaN(number) || number <= 0 ? 0 : Math.min(Math.trunc(number), Number.MAX_SAFE_INTEGER);
+  } finally {
+    release();
+  }
+}
+
+function copyJsonToSandbox(value: unknown, budget: Budget): SandboxValue {
+  if (
+    value === null ||
+    value === undefined ||
+    typeof value === "boolean" ||
+    typeof value === "number"
+  ) {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    return budget.allocateString(value);
+  }
+
+  if (Array.isArray(value)) {
+    budget.allocateArrayLength(value.length);
+    const copy = value.map((entry) => copyJsonToSandbox(entry, budget));
+    const prototype = getSandboxPrototype(copy, budget);
+    if (prototype !== null) setSandboxPrototype(copy, prototype, budget);
+    return copy;
+  }
+
+  if (isPlainObject(value)) {
+    const copy = Object.create(null) as SandboxObject;
+    const prototype = getSandboxPrototype(copy, budget);
+    if (prototype !== null) setSandboxPrototype(copy, prototype, budget);
+
+    for (const [key, entry] of Object.entries(value)) {
+      defineDataProperty(copy, key, copyJsonToSandbox(entry, budget));
+    }
+
+    return copy;
+  }
+
+  throw new TypeError("JSON.parse(text) produced an unsupported value.");
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return false;
+  }
+
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
+}
+
+function defineDataProperty(target: SandboxObject, key: string, value: SandboxValue): void {
+  Object.defineProperty(target, key, {
+    configurable: true,
+    enumerable: true,
+    value,
+    writable: true
+  });
+}

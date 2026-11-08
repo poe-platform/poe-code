@@ -1,0 +1,900 @@
+{
+  "date": "2026-08-27",
+  "namesCommit": "22ca649",
+  "source": {
+    "src/shell/parser.ts": "f8a76103ccc3e0f981bdb8cf391f48a8864dbf895c39e459d5f5da7b6ec77b0c",
+    "src/shell/runtime.ts": "f307642e52c3bfeb5df64057fb26af6645135bb5bdc307f399de6ce1541c0ddb",
+    "src/shell/shell.ts": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+    "src/shell/types.ts": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+    "src/contracts/command.ts": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+    "src/contracts/command.md": "8201518b283448f6cc038b8a4c7239b28fd495738493179d6f4708cd848e3e2e"
+  },
+  "scenarioHash": "2b01e6cb1fe97f4b105fe3398a3bfb5100550e0e7845e7d5959a1e39d470bc32",
+  "nativeHash": "217f074f3d21a91419dc7148adb323fb9d599e50b610412cfffc7414f82c8ce4",
+  "redHash": "86ab9fca213d405fed686831c06ffaa7080efdeb2d2ba58b28090a989e2ee601",
+  "fixed": {
+    "source": {
+      "arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "display.ts": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+      "index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "input.ts": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+      "locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "parser.ts": "f8a76103ccc3e0f981bdb8cf391f48a8864dbf895c39e459d5f5da7b6ec77b0c",
+      "pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "runtime.ts": "f307642e52c3bfeb5df64057fb26af6645135bb5bdc307f399de6ce1541c0ddb",
+      "shell.ts": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+      "types.ts": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d"
+    },
+    "actual": [
+      {
+        "name": "blank-separator",
+        "observation": {
+          "stdout": "PGFiYz4=",
+          "stderr": "c2hlbGw6IGxpbmUgNzogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "name": "comments",
+        "observation": {
+          "stdout": "PGFiYz4=",
+          "stderr": "c2hlbGw6IGxpbmUgNzogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "name": "leading-blank",
+        "observation": {
+          "stdout": "PGFiYz4=",
+          "stderr": "c2hlbGw6IGxpbmUgNzogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "name": "semicolon-newlines",
+        "observation": {
+          "stdout": "PGFiYz4=",
+          "stderr": "c2hlbGw6IGxpbmUgNTogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "name": "and-continuation",
+        "observation": {
+          "stdout": "PGFiYz4=",
+          "stderr": "c2hlbGw6IGxpbmUgNTogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "name": "or-continuation",
+        "observation": {
+          "stdout": "PGFiYz4=",
+          "stderr": "c2hlbGw6IGxpbmUgNTogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "name": "pipe-continuation",
+        "observation": {
+          "stdout": "PGFiYz4=",
+          "stderr": "c2hlbGw6IGxpbmUgNTogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "name": "quoted-newlines",
+        "observation": {
+          "stdout": "PGFiYz4=",
+          "stderr": "c2hlbGw6IGxpbmUgMTA6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo=",
+          "status": 0,
+          "files": {
+            "scratch": "Zmlyc3QKCmxhc3Q="
+          }
+        }
+      },
+      {
+        "name": "first-word-newline",
+        "observation": {
+          "stdout": "PGFiYz4=",
+          "stderr": "c2hlbGw6IGxpbmUgODogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "name": "escaped-newline",
+        "observation": {
+          "stdout": "PGFiYz4=",
+          "stderr": "c2hlbGw6IGxpbmUgNzogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "name": "three-level",
+        "observation": {
+          "stdout": "PGFiYz4=",
+          "stderr": "c2hlbGw6IGxpbmUgMTE6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo=",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "name": "named-dollar",
+        "observation": {
+          "stdout": "PGFiYz4=",
+          "stderr": "bmFtZWQtc291cmNlOiBsaW5lIDE6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo=",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "name": "named-backtick",
+        "observation": {
+          "stdout": "PGFiYz4=",
+          "stderr": "c291cmNlIHdpdGggc3BhY2VzOiBsaW5lIDE6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo=",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "name": "two-warnings",
+        "observation": {
+          "stdout": "YWJjL2FiYw==",
+          "stderr": "dHdvLXNvdXJjZTogbGluZSAxOiB3YXJuaW5nOiBjb21tYW5kIHN1YnN0aXR1dGlvbjogaWdub3JlZCBudWxsIGJ5dGUgaW4gaW5wdXQKdHdvLXNvdXJjZTogbGluZSAyOiB3YXJuaW5nOiBjb21tYW5kIHN1YnN0aXR1dGlvbjogaWdub3JlZCBudWxsIGJ5dGUgaW4gaW5wdXQK",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "name": "file-context",
+        "observation": {
+          "stdout": "YWJj",
+          "stderr": "Li9wcm9ncmFtOiBsaW5lIDI6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo=",
+          "status": 0,
+          "files": {
+            "program": "Ogp2YWx1ZT0kKHByaW50ZiAnYVwwYlwwYycpOyBwcmludGYgJyVzJyAiJHZhbHVlIg=="
+          }
+        }
+      },
+      {
+        "name": "dot-context",
+        "observation": {
+          "stdout": "YWJj",
+          "stderr": "Li9wcm9ncmFtOiBsaW5lIDI6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo=",
+          "status": 0,
+          "files": {
+            "program": "Ogp2YWx1ZT0kKHByaW50ZiAnYVwwYlwwYycpOyBwcmludGYgJyVzJyAiJHZhbHVlIg=="
+          }
+        }
+      },
+      {
+        "name": "source-context",
+        "observation": {
+          "stdout": "YWJj",
+          "stderr": "Li9wcm9ncmFtOiBsaW5lIDI6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo=",
+          "status": 0,
+          "files": {
+            "program": "Ogp2YWx1ZT0kKHByaW50ZiAnYVwwYlwwYycpOyBwcmludGYgJyVzJyAiJHZhbHVlIg=="
+          }
+        }
+      },
+      {
+        "name": "eval-context",
+        "observation": {
+          "stdout": "YWJj",
+          "stderr": "ZXZhbC1zb3VyY2U6IGxpbmUgMjogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "name": "function-context",
+        "observation": {
+          "stdout": "YWJj",
+          "stderr": "ZnVuY3Rpb24tc291cmNlOiBsaW5lIDE6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo=",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "name": "source-function-context",
+        "observation": {
+          "stdout": "YWJj",
+          "stderr": "Li9wcm9ncmFtOiBsaW5lIDE6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo=",
+          "status": 0,
+          "files": {
+            "program": "ZW1pdCgpIHsgdmFsdWU9JChwcmludGYgJ2FcMGJcMGMnKTsgcHJpbnRmICclcycgIiR2YWx1ZSI7IH0="
+          }
+        }
+      },
+      {
+        "name": "backtick-blank-control",
+        "observation": {
+          "stdout": "YWJj",
+          "stderr": "c2hlbGw6IGxpbmUgNjogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "name": "named-line-context",
+        "observation": {
+          "stdout": "YWJj",
+          "stderr": "bmFtZWQtbGluZXM6IGxpbmUgNjogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "name": "source-line-context",
+        "observation": {
+          "stdout": "YWJj",
+          "stderr": "Li9wcm9ncmFtOiBsaW5lIDY6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo=",
+          "status": 0,
+          "files": {
+            "program": "Ogp2YWx1ZT0kKDoKCnByaW50ZiAnJXMnICIkKHByaW50ZiAnYVwwYlwwYycpIgopOyBwcmludGYgJyVzJyAiJHZhbHVlIg=="
+          }
+        }
+      },
+      {
+        "name": "eval-line-context",
+        "observation": {
+          "stdout": "YWJj",
+          "stderr": "c2hlbGw6IGxpbmUgNjogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "name": "binary-stream-control",
+        "observation": {
+          "stdout": "YQBi",
+          "stderr": "eAB5",
+          "status": 0,
+          "files": {}
+        }
+      }
+    ],
+    "comparisons": [
+      {
+        "name": "GNU-5.3",
+        "total": 25,
+        "mismatches": []
+      },
+      {
+        "name": "historical-3.2",
+        "total": 25,
+        "mismatches": [
+          "blank-separator",
+          "comments",
+          "leading-blank",
+          "semicolon-newlines",
+          "and-continuation",
+          "or-continuation",
+          "pipe-continuation",
+          "quoted-newlines",
+          "first-word-newline",
+          "escaped-newline",
+          "three-level",
+          "named-dollar",
+          "named-backtick",
+          "two-warnings",
+          "file-context",
+          "dot-context",
+          "source-context",
+          "eval-context",
+          "function-context",
+          "source-function-context",
+          "backtick-blank-control",
+          "named-line-context",
+          "source-line-context",
+          "eval-line-context"
+        ]
+      }
+    ]
+  },
+  "initial": {
+    "head": "98de827f9f8986f572532d750d3eb9d5ce1c0a86",
+    "node": "v22.22.2",
+    "runs": [
+      {
+        "name": "author",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--import",
+          "tsx",
+          "--import",
+          "./tests/shell/invocation-discovery-fixes-imports.mjs",
+          "--test",
+          "--test-concurrency=1",
+          "tests/shell/diagnostic-context.test.ts",
+          "tests/shell/diagnostic-context-bounds.test.ts"
+        ],
+        "pid": 55627,
+        "status": 0,
+        "counts": {
+          "tests": 26,
+          "pass": 26,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "rawHash": "efeb731dde5a2923753fa767b45ccc169c8987c2d702a73b3a98f00c8c1e38cb",
+        "diagnostics": [
+          "# tests 26",
+          "# pass 26",
+          "# fail 0"
+        ],
+        "stderr": "",
+        "before": "e023be1116f5419d5219e3d7a506d5c704823256d1f58aaba9f821fd796df3cd",
+        "after": "e023be1116f5419d5219e3d7a506d5c704823256d1f58aaba9f821fd796df3cd",
+        "changed": [],
+        "importedMismatch": [],
+        "actualImports": {
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/diagnostic-context-bounds.test.ts": "99e43b4d3d3dd50aefe6dac7894fa452edcb97a87c0337178a6ec7aada9da35e",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/diagnostic-context.test.ts": "3c02fe818c8da28829c0266b2bef011fb332b33ff2aed14e7f72ec9577bbe185",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/diagnostic-context-cases.ts": "2b01e6cb1fe97f4b105fe3398a3bfb5100550e0e7845e7d5959a1e39d470bc32",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/diagnostic-context-native.ts": "8c4706cf9572ef70fdcf5a037fedf43701d85b501723ca62b9c58c1e0c5cecb8",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/index.ts": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/memory/index.ts": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-closure-native.ts": "65c4e0dcc50a0b060ea1cb1dd735f6cde7cabdb51012ad3716c57d26eeea1aa2",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/command.ts": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/filesystem.ts": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/basic.ts": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/filesystem.ts": "74fb5fdd66c2eaf7a8f31d2be8c6be0e94c09ff65892c561bbc0c6bc6f875a8f",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/streams.ts": "8966dd770c11731e5256a1e42aaec4b07ae7f0508a3e89a3efc956d27109098d",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/text.ts": "17a4c60061bdeeca1000499ae9b433f7e3e58c768e1c855e81e7c5338f8998d2",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/grep.ts": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/predicates.ts": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/execution.ts": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/find.ts": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/internal.ts": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/mount/comparison.ts": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/s3/authority.ts": "1a95f7a28904b8607948673db3e99d3d4a49b2a3839d980143fe13c25e1af344",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/webdav/resource-id.ts": "ee5720f77a352503368d672caaf5237e45863bde88cf69b947d14178fcda49f2",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/shell.ts": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/parser.ts": "f8a76103ccc3e0f981bdb8cf391f48a8864dbf895c39e459d5f5da7b6ec77b0c",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/types.ts": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-closure-cases.ts": "4fbb8af13f7b5de7456f3d3af300a30877030abe0ad27a51d3ed9ad5f39c1c1e",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-closure-read-cases.ts": "8544bb892abc50cd30815bbaea8d3e50738e850e08279068ecc9a3d3edca8e2a",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-closure-sh-cases.ts": "e33bfc1908a7c8bdab2b162a81a73feac3041319a7606acea4703062dfcd1481",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/copy-identity.ts": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/move.ts": "31e1fe6a2c0fc9efb9efa44b636d9478d4cab273de4c4e809d4f572b28084042",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/mount/identity.ts": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/input.ts": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts": "f307642e52c3bfeb5df64057fb26af6645135bb5bdc307f399de6ce1541c0ddb",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/display.ts": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069"
+        },
+        "compilerInputs": {
+          "digest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "count": 0
+        },
+        "compilerInputCount": 0,
+        "unguardedCompilerPaths": []
+      },
+      {
+        "name": "diagnostic-parser",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--import",
+          "tsx",
+          "--import",
+          "./tests/shell/invocation-discovery-fixes-imports.mjs",
+          "--test",
+          "--test-concurrency=1",
+          "tests/shell/substitution-nul.test.ts",
+          "tests/shell/diagnostic-regressions.test.ts",
+          "tests/shell/fatal-diagnostics.test.ts",
+          "tests/shell/fs-error-diagnostics.test.ts",
+          "tests/shell/parser-regressions.test.ts",
+          "tests/shell/descriptor-moves.test.ts",
+          "tests/shell/descriptor-inheritance.test.ts",
+          "tests/shell/ansi-words.test.ts",
+          "tests/shell/input-units.test.ts"
+        ],
+        "pid": 55636,
+        "status": 0,
+        "counts": {
+          "tests": 171,
+          "pass": 171,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "rawHash": "b59a41ae4ea49d88a57a0c44f58834771fa430b66a25096683908275bbecf271",
+        "diagnostics": [
+          "# tests 171",
+          "# pass 171",
+          "# fail 0"
+        ],
+        "stderr": "",
+        "before": "e023be1116f5419d5219e3d7a506d5c704823256d1f58aaba9f821fd796df3cd",
+        "after": "e023be1116f5419d5219e3d7a506d5c704823256d1f58aaba9f821fd796df3cd",
+        "changed": [],
+        "importedMismatch": [],
+        "actualImports": {
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/ansi-words.test.ts": "879708ac4acb09bce02382160fa2525a1d81d10de01a96b0fcf4917477da7ab8",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/bash-bugfix-helpers.ts": "15c7e522377e30e78015d330df30bd25ce44349de20e247f442b4dae0dcecbdd",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/helpers.ts": "ea3bfd82b48886c5da020ef3983243d5139b9da23821a6a36336cb58eb804cb4",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/memory/index.ts": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/command.ts": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/filesystem.ts": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/mount/comparison.ts": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/s3/authority.ts": "1a95f7a28904b8607948673db3e99d3d4a49b2a3839d980143fe13c25e1af344",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/webdav/resource-id.ts": "ee5720f77a352503368d672caaf5237e45863bde88cf69b947d14178fcda49f2",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/shell.ts": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/parser.ts": "f8a76103ccc3e0f981bdb8cf391f48a8864dbf895c39e459d5f5da7b6ec77b0c",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/types.ts": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/mount/identity.ts": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/input.ts": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts": "f307642e52c3bfeb5df64057fb26af6645135bb5bdc307f399de6ce1541c0ddb",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/display.ts": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/descriptor-inheritance.test.ts": "a6a9452b417044d9466d490b7ee4f6b443571988c0c1c184cff7f58f289bdde0",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/descriptor-moves.test.ts": "6d505b35287b68ea3bd2b2d8822846f01599f7991c673e73c34bf1f985e4b6e4",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/diagnostic-regressions.test.ts": "006380415e5e359b40917ef79535a3ed55641fe641d33a48774335d3646de264",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/index.ts": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/basic.ts": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/filesystem.ts": "74fb5fdd66c2eaf7a8f31d2be8c6be0e94c09ff65892c561bbc0c6bc6f875a8f",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/streams.ts": "8966dd770c11731e5256a1e42aaec4b07ae7f0508a3e89a3efc956d27109098d",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/text.ts": "17a4c60061bdeeca1000499ae9b433f7e3e58c768e1c855e81e7c5338f8998d2",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/grep.ts": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/predicates.ts": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/execution.ts": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/find.ts": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/internal.ts": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/copy-identity.ts": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/move.ts": "31e1fe6a2c0fc9efb9efa44b636d9478d4cab273de4c4e809d4f572b28084042",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/fatal-diagnostics.test.ts": "1ca21d05e9a3caf6d365b7b7b89620b1ca866b86d68f8866516bc378638f13e0",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/fs-error-diagnostics.test.ts": "5ac1508bc8416b6de0824577dab5ae518fad28bbf05f7c2e9fd5bc01c05befea",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/input-units.test.ts": "f1b6917a96cd9a58e6cc3bc79d8ef539616cfbffa976d7eb7b3a9f5941ea4a8c",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/parser-regressions.test.ts": "472aaeb11f94d053a03caf14736033458ba7a0564fe0508c5aefc3f74e601761",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/substitution-nul.test.ts": "3a9ef28345586bd79d2eb478a29966ab86770623177a9edd4b9bc47eb55ae3d1"
+        },
+        "compilerInputs": {
+          "digest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "count": 0
+        },
+        "compilerInputCount": 0,
+        "unguardedCompilerPaths": []
+      },
+      {
+        "name": "current-shell43",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--import",
+          "tsx",
+          "--import",
+          "./tests/shell/invocation-discovery-fixes-imports.mjs",
+          "--test",
+          "--test-concurrency=1",
+          "tests/shell-stress/current-shell/current-shell.test.ts"
+        ],
+        "pid": 55747,
+        "status": 0,
+        "counts": {
+          "tests": 44,
+          "pass": 44,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "rawHash": "bf4aa16a6ce4f2b06a91feb795accd19598add6e3fd9a3bb5cc029c3a0775ddb",
+        "diagnostics": [
+          "# tests 44",
+          "# pass 44",
+          "# fail 0"
+        ],
+        "stderr": "",
+        "before": "e023be1116f5419d5219e3d7a506d5c704823256d1f58aaba9f821fd796df3cd",
+        "after": "e023be1116f5419d5219e3d7a506d5c704823256d1f58aaba9f821fd796df3cd",
+        "changed": [],
+        "importedMismatch": [],
+        "actualImports": {
+          "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/current-shell/current-shell.test.ts": "fa803152d6d4f179345e476202c7dafc5dc3f5af1006b49404dcec0a23770253"
+        },
+        "compilerInputs": {
+          "digest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "count": 0
+        },
+        "compilerInputCount": 0,
+        "unguardedCompilerPaths": []
+      },
+      {
+        "name": "source-eval134",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--import",
+          "tsx",
+          "--import",
+          "./tests/shell/invocation-discovery-fixes-imports.mjs",
+          "--test",
+          "--test-concurrency=1",
+          "tests/shell/source-dot-eval-source.test.ts",
+          "tests/shell/source-dot-eval-source-host.test.ts",
+          "tests/shell/source-dot-eval-eval.test.ts",
+          "tests/shell/source-dot-eval-eval-host.test.ts",
+          "tests/shell/source-dot-eval-diagnostics.test.ts"
+        ],
+        "pid": 55825,
+        "status": 0,
+        "counts": {
+          "tests": 134,
+          "pass": 134,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "rawHash": "2ca751f967381615d5f5756b8748699d6a3c818cb30151b302ec55f668826408",
+        "diagnostics": [
+          "# tests 134",
+          "# pass 134",
+          "# fail 0"
+        ],
+        "stderr": "",
+        "before": "e023be1116f5419d5219e3d7a506d5c704823256d1f58aaba9f821fd796df3cd",
+        "after": "e023be1116f5419d5219e3d7a506d5c704823256d1f58aaba9f821fd796df3cd",
+        "changed": [],
+        "importedMismatch": [],
+        "actualImports": {
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/source-dot-eval-diagnostics.test.ts": "43c47c6ded2d2a5d0f62a34b8c0c4240bf1ff09629666f59f39e5a5c9680ee8f",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/source-dot-eval-diagnostics-native.ts": "3c7c3d553c20567b3a2974768558cf589396e9d52390df232785082a27f83fe3",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/memory/index.ts": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-closure-native.ts": "65c4e0dcc50a0b060ea1cb1dd735f6cde7cabdb51012ad3716c57d26eeea1aa2",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/source-dot-eval-diagnostics-cases.ts": "c92d93654278bb538b68e13cca315c03252f5e9096b7a506457ec026afe0c47d",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/mount/comparison.ts": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/s3/authority.ts": "1a95f7a28904b8607948673db3e99d3d4a49b2a3839d980143fe13c25e1af344",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/webdav/resource-id.ts": "ee5720f77a352503368d672caaf5237e45863bde88cf69b947d14178fcda49f2",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/shell.ts": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/parser.ts": "f8a76103ccc3e0f981bdb8cf391f48a8864dbf895c39e459d5f5da7b6ec77b0c",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/types.ts": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/index.ts": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-closure-cases.ts": "4fbb8af13f7b5de7456f3d3af300a30877030abe0ad27a51d3ed9ad5f39c1c1e",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-closure-read-cases.ts": "8544bb892abc50cd30815bbaea8d3e50738e850e08279068ecc9a3d3edca8e2a",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-closure-sh-cases.ts": "e33bfc1908a7c8bdab2b162a81a73feac3041319a7606acea4703062dfcd1481",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/input.ts": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts": "f307642e52c3bfeb5df64057fb26af6645135bb5bdc307f399de6ce1541c0ddb",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/mount/identity.ts": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/command.ts": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/filesystem.ts": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/basic.ts": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/filesystem.ts": "74fb5fdd66c2eaf7a8f31d2be8c6be0e94c09ff65892c561bbc0c6bc6f875a8f",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/text.ts": "17a4c60061bdeeca1000499ae9b433f7e3e58c768e1c855e81e7c5338f8998d2",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/grep.ts": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/predicates.ts": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/execution.ts": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/find.ts": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/internal.ts": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/streams.ts": "8966dd770c11731e5256a1e42aaec4b07ae7f0508a3e89a3efc956d27109098d",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/copy-identity.ts": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/display.ts": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/move.ts": "31e1fe6a2c0fc9efb9efa44b636d9478d4cab273de4c4e809d4f572b28084042",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/source-dot-eval-eval-host.test.ts": "cc055f2d81d289175ad9bcd87f2fab7c75ad5088d65484fd4b1cce25619be9bc",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/source-dot-eval-eval.test.ts": "6ded6b6c37d5f495f8b0a0c28a0c7924cb3ffba2adc87116966f318da07233c3",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/source-dot-eval-cases.ts": "258daac6f521fd00c31a9dbf630c98cc47199cc8ebaed5e1468e25a835db3c64",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/source-dot-eval-native.ts": "1c67728961742bf9c7c64729a3391add87642d5e99d9ba0cde51249982c3acc4",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/source-dot-eval-source-host.test.ts": "00a146e9a164d0ea6427e2bb7cc91c7e38ccb2ef8ea1717f913101cf2abddd17",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/source-dot-eval-source.test.ts": "9b90d7b30120e76481c3bcab4bd639117fc951fb7610eca6908277fb1456a969"
+        },
+        "compilerInputs": {
+          "digest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "count": 0
+        },
+        "compilerInputCount": 0,
+        "unguardedCompilerPaths": []
+      },
+      {
+        "name": "global",
+        "executable": "./node_modules/.bin/tsc",
+        "args": [
+          "--noEmit",
+          "--listFiles"
+        ],
+        "pid": 55844,
+        "status": 2,
+        "counts": {},
+        "rawHash": "1f2f37a37a5a2668db3971f6fe33e91d9764b8a5440620582565ed7f9e7a3134",
+        "diagnostics": [
+          "tests/shell/diagnostic-context-bounds.test.ts(7,176): error TS2769: No overload matches this call.",
+          "  Overload 1 of 8, '(command: string, args: readonly string[], options: SpawnSyncOptionsWithStringEncoding): SpawnSyncReturns<string>', gave the following error.",
+          "    Object literal may only specify known properties, and 'detached' does not exist in type 'SpawnSyncOptionsWithStringEncoding'.",
+          "  Overload 2 of 8, '(command: string, args: readonly string[], options: SpawnSyncOptionsWithBufferEncoding): SpawnSyncReturns<NonSharedBuffer>', gave the following error.",
+          "    Object literal may only specify known properties, and 'detached' does not exist in type 'SpawnSyncOptionsWithBufferEncoding'.",
+          "  Overload 3 of 8, '(command: string, args?: readonly string[] | undefined, options?: SpawnSyncOptions | undefined): SpawnSyncReturns<string | NonSharedBuffer>', gave the following error.",
+          "    Object literal may only specify known properties, and 'detached' does not exist in type 'SpawnSyncOptions'."
+        ],
+        "stderr": "",
+        "before": "a27dfdb656a4feeb610d58392363ca230f3a6d89c031a774d1cd57cca76596b9",
+        "after": "a27dfdb656a4feeb610d58392363ca230f3a6d89c031a774d1cd57cca76596b9",
+        "changed": [],
+        "importedMismatch": [],
+        "actualImports": {},
+        "compilerInputs": {
+          "digest": "45aaed9a7a88dd03ed4e1b1c7e0d75eaa80fd35faf0680495cf6b309d0e00029",
+          "count": 1079
+        },
+        "compilerInputCount": 1079,
+        "unguardedCompilerPaths": []
+      },
+      {
+        "name": "build",
+        "executable": "./node_modules/.bin/tsc",
+        "args": [
+          "-p",
+          "tsconfig.build.json",
+          "--noEmit",
+          "--listFiles"
+        ],
+        "pid": 55880,
+        "status": 0,
+        "counts": {},
+        "rawHash": "18404f94bec13b57daf827f4dc70ffc16ac3a14f29481319d8347d574067c356",
+        "diagnostics": [],
+        "stderr": "",
+        "before": "622cee8a611745fdb501d5816a2f069d561080271beb9a62812796526b0f8ce7",
+        "after": "622cee8a611745fdb501d5816a2f069d561080271beb9a62812796526b0f8ce7",
+        "changed": [],
+        "importedMismatch": [],
+        "actualImports": {},
+        "compilerInputs": {
+          "digest": "54bb1aae6154b82c7c7f91ef853dc9c3b8ed878d5792ebb1c0192a1ad475fb7a",
+          "count": 302
+        },
+        "compilerInputCount": 302,
+        "unguardedCompilerPaths": []
+      },
+      {
+        "name": "benchmark",
+        "executable": "./node_modules/.bin/tsc",
+        "args": [
+          "-p",
+          "benchmarks/tsconfig.json",
+          "--noEmit",
+          "--listFiles"
+        ],
+        "pid": 55882,
+        "status": 0,
+        "counts": {},
+        "rawHash": "d2cc98788066aca8e98818325750886c857c76c9fe39780501030e00e21b8f1a",
+        "diagnostics": [],
+        "stderr": "",
+        "before": "26c5a50294ecaecb145708a3b4d5582d782c5410524112554ab6b2b11f249a00",
+        "after": "26c5a50294ecaecb145708a3b4d5582d782c5410524112554ab6b2b11f249a00",
+        "changed": [],
+        "importedMismatch": [],
+        "actualImports": {},
+        "compilerInputs": {
+          "digest": "50137a248fcbcfc717316cd61776d5f332a8f4537e915656972383ede04f80c3",
+          "count": 411
+        },
+        "compilerInputCount": 411,
+        "unguardedCompilerPaths": []
+      }
+    ]
+  },
+  "final": {
+    "head": "98de827f9f8986f572532d750d3eb9d5ce1c0a86",
+    "node": "v22.22.2",
+    "runs": [
+      {
+        "name": "author",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--import",
+          "tsx",
+          "--import",
+          "./tests/shell/invocation-discovery-fixes-imports.mjs",
+          "--test",
+          "--test-concurrency=1",
+          "tests/shell/diagnostic-context.test.ts",
+          "tests/shell/diagnostic-context-bounds.test.ts"
+        ],
+        "pid": 56499,
+        "status": 0,
+        "counts": {
+          "tests": 26,
+          "pass": 26,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "rawHash": "5632bf1918bfe16cb95f060bcbdacb460fd486d2b8e8594372523a8ae18430be",
+        "diagnostics": [
+          "# tests 26",
+          "# pass 26",
+          "# fail 0"
+        ],
+        "stderr": "",
+        "before": "9f3f7df2e0781ecda87d908478ade82e381ccbf1e6ab30a3e0cb0693c50d9f93",
+        "after": "9f3f7df2e0781ecda87d908478ade82e381ccbf1e6ab30a3e0cb0693c50d9f93",
+        "changed": [],
+        "importedMismatch": [],
+        "actualImports": {
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/diagnostic-context-bounds.test.ts": "3ea904e89a8eeccbe45eeed7b6242742944ddc2d7b5026c9ad76ae5fee81e648",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/diagnostic-context.test.ts": "3c02fe818c8da28829c0266b2bef011fb332b33ff2aed14e7f72ec9577bbe185",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/diagnostic-context-native.ts": "8c4706cf9572ef70fdcf5a037fedf43701d85b501723ca62b9c58c1e0c5cecb8",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/diagnostic-context-cases.ts": "2b01e6cb1fe97f4b105fe3398a3bfb5100550e0e7845e7d5959a1e39d470bc32",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/index.ts": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/memory/index.ts": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-closure-native.ts": "65c4e0dcc50a0b060ea1cb1dd735f6cde7cabdb51012ad3716c57d26eeea1aa2",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/command.ts": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/filesystem.ts": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/basic.ts": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/filesystem.ts": "74fb5fdd66c2eaf7a8f31d2be8c6be0e94c09ff65892c561bbc0c6bc6f875a8f",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/streams.ts": "8966dd770c11731e5256a1e42aaec4b07ae7f0508a3e89a3efc956d27109098d",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/text.ts": "17a4c60061bdeeca1000499ae9b433f7e3e58c768e1c855e81e7c5338f8998d2",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/grep.ts": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/predicates.ts": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/execution.ts": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/find.ts": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/internal.ts": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/mount/comparison.ts": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/s3/authority.ts": "1a95f7a28904b8607948673db3e99d3d4a49b2a3839d980143fe13c25e1af344",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/webdav/resource-id.ts": "ee5720f77a352503368d672caaf5237e45863bde88cf69b947d14178fcda49f2",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/shell.ts": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/parser.ts": "f8a76103ccc3e0f981bdb8cf391f48a8864dbf895c39e459d5f5da7b6ec77b0c",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/types.ts": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-closure-cases.ts": "4fbb8af13f7b5de7456f3d3af300a30877030abe0ad27a51d3ed9ad5f39c1c1e",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-closure-read-cases.ts": "8544bb892abc50cd30815bbaea8d3e50738e850e08279068ecc9a3d3edca8e2a",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-closure-sh-cases.ts": "e33bfc1908a7c8bdab2b162a81a73feac3041319a7606acea4703062dfcd1481",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/copy-identity.ts": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/move.ts": "31e1fe6a2c0fc9efb9efa44b636d9478d4cab273de4c4e809d4f572b28084042",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/mount/identity.ts": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/input.ts": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts": "f307642e52c3bfeb5df64057fb26af6645135bb5bdc307f399de6ce1541c0ddb",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/display.ts": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069"
+        },
+        "compilerInputs": {
+          "digest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "count": 0
+        },
+        "compilerInputCount": 0,
+        "unguardedCompilerPaths": []
+      },
+      {
+        "name": "global",
+        "executable": "./node_modules/.bin/tsc",
+        "args": [
+          "--noEmit",
+          "--listFiles"
+        ],
+        "pid": 56549,
+        "status": 0,
+        "counts": {},
+        "rawHash": "a692ad5b0b85eb99e52327ee6f85875312420e61e269dcb494b1514abb8ddfd3",
+        "diagnostics": [],
+        "stderr": "",
+        "before": "89fefaca2b93d451d65fb213845255779a99643075cc3ba3027533c6466829db",
+        "after": "89fefaca2b93d451d65fb213845255779a99643075cc3ba3027533c6466829db",
+        "changed": [],
+        "importedMismatch": [],
+        "actualImports": {},
+        "compilerInputs": {
+          "digest": "17515336d8c7596c9e070651041a3835daa7a4840b1372cfbc602d98bc79c548",
+          "count": 1079
+        },
+        "compilerInputCount": 1079,
+        "unguardedCompilerPaths": []
+      },
+      {
+        "name": "build",
+        "executable": "./node_modules/.bin/tsc",
+        "args": [
+          "-p",
+          "tsconfig.build.json",
+          "--noEmit",
+          "--listFiles"
+        ],
+        "pid": 56742,
+        "status": 0,
+        "counts": {},
+        "rawHash": "18404f94bec13b57daf827f4dc70ffc16ac3a14f29481319d8347d574067c356",
+        "diagnostics": [],
+        "stderr": "",
+        "before": "b30e3fe940e6514c33c11983e46f372177c5601b25905bcbd37a2f3242e994f7",
+        "after": "b30e3fe940e6514c33c11983e46f372177c5601b25905bcbd37a2f3242e994f7",
+        "changed": [],
+        "importedMismatch": [],
+        "actualImports": {},
+        "compilerInputs": {
+          "digest": "54bb1aae6154b82c7c7f91ef853dc9c3b8ed878d5792ebb1c0192a1ad475fb7a",
+          "count": 302
+        },
+        "compilerInputCount": 302,
+        "unguardedCompilerPaths": []
+      },
+      {
+        "name": "benchmark",
+        "executable": "./node_modules/.bin/tsc",
+        "args": [
+          "-p",
+          "benchmarks/tsconfig.json",
+          "--noEmit",
+          "--listFiles"
+        ],
+        "pid": 56773,
+        "status": 0,
+        "counts": {},
+        "rawHash": "d2cc98788066aca8e98818325750886c857c76c9fe39780501030e00e21b8f1a",
+        "diagnostics": [],
+        "stderr": "",
+        "before": "d61f8171e65e408fd6a938348e3441eb2dc4ef33e142cb09e40f099dba3deba2",
+        "after": "d61f8171e65e408fd6a938348e3441eb2dc4ef33e142cb09e40f099dba3deba2",
+        "changed": [],
+        "importedMismatch": [],
+        "actualImports": {},
+        "compilerInputs": {
+          "digest": "50137a248fcbcfc717316cd61776d5f332a8f4537e915656972383ede04f80c3",
+          "count": 411
+        },
+        "compilerInputCount": 411,
+        "unguardedCompilerPaths": []
+      }
+    ]
+  },
+  "detailedGuards": {
+    "initial": {
+      "path": "/tmp/safe-bash-diagnostic-context-validation.json",
+      "sha256": "29727afef8694d17f31b5ad6e53b71351eab97b8518237ee3f8c9d4a97a5f140"
+    },
+    "final": {
+      "path": "/tmp/safe-bash-diagnostic-context-validation-final.json",
+      "sha256": "d8adbba01a06cc220e1cc5b95539877ca81091ae5f0cfd226c88245ab99ac21b"
+    }
+  },
+  "qualification": "Unique input-manifest digests retained; full prelisted input maps/raw logs at scratch paths. Durable runner rebuilds guards; own/source import maps retained here. Current-shell nested children additionally enforce their independent per-row source guards; parent loader observes only test entrypoint."
+}

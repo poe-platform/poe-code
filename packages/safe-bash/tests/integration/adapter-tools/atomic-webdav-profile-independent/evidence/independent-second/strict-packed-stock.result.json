@@ -1,0 +1,15 @@
+{
+  "name": "strict-packed-stock",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+    "-p",
+    "tsconfig.json",
+    "--listFiles"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe/consumer",
+  "startedAt": "2026-08-27T09:14:45.573Z",
+  "finishedAt": "2026-08-27T09:14:45.968Z",
+  "status": 0,
+  "signal": null
+}

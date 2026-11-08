@@ -1,0 +1,171 @@
+{
+  "key": "anthropic-claude-sonnet-4-6-1918ffbf4efd",
+  "request": {
+    "model": "anthropic/claude-sonnet-4.6",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a Poe agent, built by Poe — an interactive CLI tool that helps users with software engineering tasks.\n\n## Security\n\nAssist with defensive security only. Refuse malicious code, credential harvesting, or bulk crawling for secrets. Allow security analysis, detection rules, vulnerability explanations, and defensive tools.\n\nNever generate or guess URLs unless they help with programming. You may use URLs from user messages or local files.\n\n## Behavior\n\n- Be concise and direct. Minimize output tokens. Skip preamble and postamble.\n- Do what was asked — nothing more, nothing less.\n- Prefer editing existing files over creating new ones. Never create docs/READMEs unless asked.\n- Prioritize technical accuracy over validating beliefs. Disagree when necessary.\n- Read before you write.\n"
+      },
+      {
+        "role": "user",
+        "content": "In the file /workspace/test-document.txt, use the edit_file tool with command \"str_replace\" to replace the following old_str:\n\nTesting methodologies range from unit tests, which verify individual components in\nisolation, to integration tests that ensure different parts of a system work together\nharmoniously. Each level of testing serves a unique purpose in the overall quality\nassurance strategy, forming what is commonly known as the testing pyramid.\n\nWith this new_str:\n\nEnd-to-end testing represents the pinnacle of the testing pyramid, validating entire\nuser workflows from start to finish. These tests exercise the full stack, including\ndatabases, APIs, and user interfaces, providing the highest confidence that the system\nworks as intended for real users in production scenarios."
+      }
+    ],
+    "tools": [
+      {
+        "type": "function",
+        "function": {
+          "name": "read_file",
+          "description": "Read UTF-8 content from a file.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "description": "Path to the file to read."
+              }
+            },
+            "required": [
+              "path"
+            ]
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "edit_file",
+          "description": "Edit or create files. Use 'str_replace' to replace exact text in an existing file (old_str must appear exactly once). Use 'create' to create a new file (fails if file already exists).",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "command": {
+                "type": "string",
+                "enum": [
+                  "str_replace",
+                  "create"
+                ],
+                "description": "Operation to perform."
+              },
+              "path": {
+                "type": "string",
+                "description": "File path."
+              },
+              "old_str": {
+                "type": "string",
+                "description": "Exact string to find and replace (str_replace only). Must match exactly once."
+              },
+              "new_str": {
+                "type": "string",
+                "description": "Replacement string (str_replace only)."
+              },
+              "file_text": {
+                "type": "string",
+                "description": "Full file content (create only)."
+              }
+            },
+            "required": [
+              "command",
+              "path"
+            ]
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "list_files",
+          "description": "List files in a directory.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "description": "Directory path to list. Defaults to current working directory."
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "run_command",
+          "description": "Run a shell command.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "command": {
+                "type": "string",
+                "description": "Command to execute."
+              },
+              "cwd": {
+                "type": "string",
+                "description": "Working directory for command execution."
+              }
+            },
+            "required": [
+              "command"
+            ]
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "search_web",
+          "description": "Search the web for a query.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string",
+                "description": "Search query."
+              }
+            },
+            "required": [
+              "query"
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "response": {
+    "id": "chatcmpl-0b2be652057e1ac88f507763",
+    "object": "chat.completion",
+    "created": 1772225587,
+    "model": "anthropic/claude-sonnet-4.6",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "Sure! I'll make that replacement right away.",
+          "reasoning_content": "The user wants me to use the edit_file tool with str_replace command to replace specific text in a file. Let me do that.",
+          "reasoning": "The user wants me to use the edit_file tool with str_replace command to replace specific text in a file. Let me do that.",
+          "tool_calls": [
+            {
+              "id": "toolu_bdrk_01C2yEVKudtmoVYNDspN6Qzr",
+              "type": "function",
+              "function": {
+                "name": "edit_file",
+                "arguments": "{\"command\": \"str_replace\", \"path\": \"/workspace/test-document.txt\", \"old_str\": \"Testing methodologies range from unit tests, which verify individual components in\\nisolation, to integration tests that ensure different parts of a system work together\\nharmoniously. Each level of testing serves a unique purpose in the overall quality\\nassurance strategy, forming what is commonly known as the testing pyramid.\", \"new_str\": \"End-to-end testing represents the pinnacle of the testing pyramid, validating entire\\nuser workflows from start to finish. These tests exercise the full stack, including\\ndatabases, APIs, and user interfaces, providing the highest confidence that the system\\nworks as intended for real users in production scenarios.\"}"
+              }
+            }
+          ]
+        },
+        "finish_reason": "tool_calls"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 303,
+      "completion_tokens": 10,
+      "total_tokens": 313
+    }
+  },
+  "metadata": {
+    "recordedAt": "2026-02-27T20:53:07.705Z"
+  }
+}

@@ -1,0 +1,225 @@
+[
+  {
+    "name": "memory-subclass-before-buffer",
+    "data": {
+      "answer": "unknown",
+      "error": "ENOTSUP",
+      "effects": [],
+      "source": "c291cmNlIHN1cnZpdmVzAO+/vQ==",
+      "target": "aW5kZXBlbmRlbnQgdGFyZ2V0IHN1cnZpdmVz"
+    }
+  },
+  {
+    "name": "memory-prototype-before-buffer",
+    "data": {
+      "answer": "unknown",
+      "error": "ENOTSUP",
+      "effects": [],
+      "source": "c291cmNlIHN1cnZpdmVzAO+/vQ==",
+      "target": "aW5kZXBlbmRlbnQgdGFyZ2V0IHN1cnZpdmVz"
+    }
+  },
+  {
+    "name": "memory-own-after-buffer",
+    "data": {
+      "answer": "unknown",
+      "error": "ENOTSUP",
+      "effects": [],
+      "source": "c291cmNlIHN1cnZpdmVzAO+/vQ==",
+      "target": "aW5kZXBlbmRlbnQgdGFyZ2V0IHN1cnZpdmVz"
+    }
+  },
+  {
+    "name": "memory-prototype-after-buffer",
+    "data": {
+      "answer": "unknown",
+      "error": "ENOTSUP",
+      "effects": [],
+      "source": "c291cmNlIHN1cnZpdmVzAO+/vQ==",
+      "target": "aW5kZXBlbmRlbnQgdGFyZ2V0IHN1cnZpdmVz"
+    }
+  },
+  {
+    "name": "memory-subclass-before-stream",
+    "data": {
+      "answer": "unknown",
+      "error": "ENOTSUP",
+      "effects": [],
+      "source": "c291cmNlIHN1cnZpdmVzAO+/vQ==",
+      "target": "aW5kZXBlbmRlbnQgdGFyZ2V0IHN1cnZpdmVz"
+    }
+  },
+  {
+    "name": "memory-prototype-before-stream",
+    "data": {
+      "answer": "unknown",
+      "error": "ENOTSUP",
+      "effects": [],
+      "source": "c291cmNlIHN1cnZpdmVzAO+/vQ==",
+      "target": "aW5kZXBlbmRlbnQgdGFyZ2V0IHN1cnZpdmVz"
+    }
+  },
+  {
+    "name": "memory-own-after-stream",
+    "data": {
+      "answer": "unknown",
+      "error": "ENOTSUP",
+      "effects": [],
+      "source": "c291cmNlIHN1cnZpdmVzAO+/vQ==",
+      "target": "aW5kZXBlbmRlbnQgdGFyZ2V0IHN1cnZpdmVz"
+    }
+  },
+  {
+    "name": "memory-prototype-after-stream",
+    "data": {
+      "answer": "unknown",
+      "error": "ENOTSUP",
+      "effects": [],
+      "source": "c291cmNlIHN1cnZpdmVzAO+/vQ==",
+      "target": "aW5kZXBlbmRlbnQgdGFyZ2V0IHN1cnZpdmVz"
+    }
+  },
+  {
+    "name": "s3-subclass-before-buffer",
+    "data": {
+      "answer": "unknown",
+      "error": "ENOTSUP",
+      "effects": [],
+      "source": "c291cmNlIHN1cnZpdmVzAO+/vQ==",
+      "target": "aW5kZXBlbmRlbnQgdGFyZ2V0IHN1cnZpdmVz"
+    }
+  },
+  {
+    "name": "s3-prototype-before-buffer",
+    "data": {
+      "answer": "unknown",
+      "error": "ENOTSUP",
+      "effects": [],
+      "source": "c291cmNlIHN1cnZpdmVzAO+/vQ==",
+      "target": "aW5kZXBlbmRlbnQgdGFyZ2V0IHN1cnZpdmVz"
+    }
+  },
+  {
+    "name": "s3-own-after-buffer",
+    "data": {
+      "answer": "unknown",
+      "error": "ENOTSUP",
+      "effects": [],
+      "source": "c291cmNlIHN1cnZpdmVzAO+/vQ==",
+      "target": "aW5kZXBlbmRlbnQgdGFyZ2V0IHN1cnZpdmVz"
+    }
+  },
+  {
+    "name": "s3-prototype-after-buffer",
+    "data": {
+      "answer": "unknown",
+      "error": "ENOTSUP",
+      "effects": [],
+      "source": "c291cmNlIHN1cnZpdmVzAO+/vQ==",
+      "target": "aW5kZXBlbmRlbnQgdGFyZ2V0IHN1cnZpdmVz"
+    }
+  },
+  {
+    "name": "s3-subclass-before-stream",
+    "data": {
+      "answer": "unknown",
+      "error": "ENOTSUP",
+      "effects": [],
+      "source": "c291cmNlIHN1cnZpdmVzAO+/vQ==",
+      "target": "aW5kZXBlbmRlbnQgdGFyZ2V0IHN1cnZpdmVz"
+    }
+  },
+  {
+    "name": "s3-prototype-before-stream",
+    "data": {
+      "answer": "unknown",
+      "error": "ENOTSUP",
+      "effects": [],
+      "source": "c291cmNlIHN1cnZpdmVzAO+/vQ==",
+      "target": "aW5kZXBlbmRlbnQgdGFyZ2V0IHN1cnZpdmVz"
+    }
+  },
+  {
+    "name": "s3-own-after-stream",
+    "data": {
+      "answer": "unknown",
+      "error": "ENOTSUP",
+      "effects": [],
+      "source": "c291cmNlIHN1cnZpdmVzAO+/vQ==",
+      "target": "aW5kZXBlbmRlbnQgdGFyZ2V0IHN1cnZpdmVz"
+    }
+  },
+  {
+    "name": "s3-prototype-after-stream",
+    "data": {
+      "answer": "unknown",
+      "error": "ENOTSUP",
+      "effects": [],
+      "source": "c291cmNlIHN1cnZpdmVzAO+/vQ==",
+      "target": "aW5kZXBlbmRlbnQgdGFyZ2V0IHN1cnZpdmVz"
+    }
+  },
+  {
+    "name": "memory-explicit-late-error",
+    "data": {
+      "compareError": "EACCES",
+      "compareQueries": 1,
+      "copyError": "EACCES",
+      "copyQueries": 1,
+      "target": "aW5kZXBlbmRlbnQgdGFyZ2V0IHN1cnZpdmVz"
+    }
+  },
+  {
+    "name": "s3-explicit-late-error",
+    "data": {
+      "compareError": "EACCES",
+      "compareQueries": 1,
+      "copyError": "EACCES",
+      "copyQueries": 1,
+      "target": "aW5kZXBlbmRlbnQgdGFyZ2V0IHN1cnZpdmVz"
+    }
+  },
+  {
+    "name": "webdav-explicit-late-error",
+    "data": {
+      "compareError": "EACCES",
+      "compareQueries": 1,
+      "copyError": "EACCES",
+      "copyQueries": 1,
+      "target": "aW5kZXBlbmRlbnQgdGFyZ2V0IHN1cnZpdmVz"
+    }
+  },
+  {
+    "name": "split-s3-copy",
+    "data": {
+      "result": "unknown",
+      "code": "ENOTSUP",
+      "effects": [],
+      "source": "source sentinel"
+    }
+  },
+  {
+    "name": "split-dav-comparison",
+    "data": {
+      "result": "unknown",
+      "effects": []
+    }
+  },
+  {
+    "name": "split-dav-copy",
+    "data": {
+      "code": "ENOTSUP",
+      "effects": [],
+      "source": "source sentinel"
+    }
+  },
+  {
+    "name": "subclass-dav-copy",
+    "data": {
+      "result": "unknown",
+      "code": "ENOTSUP",
+      "effects": [],
+      "source": "source sentinel"
+    }
+  }
+]

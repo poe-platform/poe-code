@@ -1,0 +1,146 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "purpose": "IMMUTABLE_PART_A_INDEPENDENT_BUILD_EVIDENCE_NOT_RUNTIME_ACCEPTANCE",
+  "status": "INDEPENDENT_BUILD_AND_BYTE_EXACT_PACKAGE_PASS",
+  "presealCommit": "94573dcaefad7db5d9ccf9a17c958a04eb8b422c",
+  "buildPresealSha256": "0577678fbc1a6f3cb73e615213c378645f0e7f706f620e9c7be1fbed95c8f469",
+  "rootMode": 493,
+  "files": {
+    "ATTEMPT-STARTED.json": {
+      "sha256": "79e6f29b1d04f2fefd105fdbb976132c3c61df51161f50f68f3ebec6c943fb48",
+      "bytes": 1061,
+      "mode": 420
+    },
+    "BUILD-PRESEAL.json": {
+      "sha256": "0577678fbc1a6f3cb73e615213c378645f0e7f706f620e9c7be1fbed95c8f469",
+      "bytes": 2792,
+      "mode": 420
+    },
+    "COMPILER-PROCESS.json": {
+      "sha256": "576130630afd01d3b0f05636e217575fcc781ea617af1f209233148beec1cabc",
+      "bytes": 2012,
+      "mode": 420
+    },
+    "EXPECTED-HASHES.json": {
+      "sha256": "00d6b2c83977085cf60e2e038bb4a6792f8fd2fde0134a885be0212c4e09987c",
+      "bytes": 979,
+      "mode": 420
+    },
+    "FULL-RECEIPT.json": {
+      "sha256": "edf7a483436475c87a3fb8293517788905d4669fb8515790be1e098a6fdbb14d",
+      "bytes": 7454,
+      "mode": 420
+    },
+    "HANDOFF-BINDINGS.json": {
+      "sha256": "2916d1fc5c177c5f75c0607d6dbd29e3a5b3816fb0d3fb7be4da89e7cf213f3f",
+      "bytes": 12965,
+      "mode": 420
+    },
+    "INDEPENDENT-BUILD-RECEIPT.json": {
+      "sha256": "ae74c3f95061d481aec2dab99260214eb22babf5b1d2682b37928a9cc8dd62d6",
+      "bytes": 4718,
+      "mode": 420
+    },
+    "INDEPENDENT-PACKAGE-MAP.json": {
+      "sha256": "1b44932f2d5a1da4c1ebfde6148bc5edac9e65411e98d6c821023b55b59c757b",
+      "bytes": 121291,
+      "mode": 420
+    },
+    "INPUTS.json": {
+      "sha256": "63eaea01df7f206f0c0d10f9f7b39f4a3c83e1d6d63172582953cc261ba3c83c",
+      "bytes": 116989,
+      "mode": 420
+    },
+    "INTEGRITY-AFTER.json": {
+      "sha256": "daf4d2b15c04e27b4b92085232eca32e0cf2796c09eb984a89c8d079aac0d0b0",
+      "bytes": 5962,
+      "mode": 420
+    },
+    "OUTPUT-COMPARISONS.json": {
+      "sha256": "858f28b1581ade646aca4455593b9f3f6bf1e1272c8833b24d6a74bf3ccd69ad",
+      "bytes": 471772,
+      "mode": 420
+    },
+    "PACKING.json": {
+      "sha256": "feb4cf9d2bddd7d50f8bd8b0076b1b3420319bb12713e5a5e246c642c1deb5fe",
+      "bytes": 850,
+      "mode": 420
+    },
+    "RAW-OUTPUT-MAP.json": {
+      "sha256": "b7ac9c9c91a8978d1ac3c34672fc75b10683f10e0144d2ee2d279eef77212278",
+      "bytes": 121061,
+      "mode": 420
+    },
+    "README.md": {
+      "sha256": "4c713c1e1b7d7b1b93bb4d175e04f42c9f4ca610eac2890c528829e2525e2c15",
+      "bytes": 5012,
+      "mode": 420
+    },
+    "RECIPE.md": {
+      "sha256": "c0f5b4c60a94502031cea536a13ce231c1b7468cebeb4ea4c44e44da8ad8f6b1",
+      "bytes": 7880,
+      "mode": 420
+    },
+    "RESULT.json": {
+      "sha256": "51a866934331d0f45d336d87f15b17464bcec75dadee795dbfa6c6b390a324ea",
+      "bytes": 3266,
+      "mode": 420
+    },
+    "build-once.mjs": {
+      "sha256": "07c20e18ab1f34299a2d00ca3c65588ce0f4964334ea2eb9b3b8a7d14cf134d2",
+      "bytes": 32955,
+      "mode": 420
+    },
+    "compiler.stderr.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "mode": 420
+    },
+    "compiler.stdout.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "mode": 420
+    },
+    "verify-seal.mjs": {
+      "sha256": "7939beab866908f98e12bd3d90fc65b038c6b65fba99a184ea60e2148bfb12fa",
+      "bytes": 1784,
+      "mode": 420
+    }
+  },
+  "selfExcluded": "FINAL-SEAL.json only; independently route raw digest from owned Git seal",
+  "result": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/INDEPENDENT-BUILD-RECEIPT.json",
+    "sha256": "ae74c3f95061d481aec2dab99260214eb22babf5b1d2682b37928a9cc8dd62d6",
+    "bytes": 4718,
+    "mode": 420
+  },
+  "counts": {
+    "source": 271,
+    "archivedSource": 273,
+    "compiledSource": 217,
+    "compilerOutputs": 868,
+    "rawEqual": 434,
+    "relocatedMaps": 434,
+    "finalEqual": 868,
+    "fullPackage": 870,
+    "baselinePackage": 846,
+    "additions": 24
+  },
+  "execution": {
+    "compilerAttempts": 1,
+    "productImports": 0,
+    "productRuns": 0,
+    "declarationConsumerRuns": 0,
+    "semanticVectors": 0,
+    "authorTestRuns": 0,
+    "npm": 0,
+    "nativeYaml": 0,
+    "retries": 0
+  },
+  "limitations": [
+    "Root routing of new independent build proof; fixed integration-v2 still pins original author receipt",
+    "Actual semantic/type/moved/lifecycle/CARRY review elsewhere",
+    "Public exports remain absent; no global typecheck acceptance"
+  ]
+}

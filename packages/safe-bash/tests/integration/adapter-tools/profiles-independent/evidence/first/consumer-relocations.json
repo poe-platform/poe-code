@@ -1,0 +1,30 @@
+{
+  "rootImports": [
+    {
+      "path": "tests/integration/adapter-tools/matrix.test.ts",
+      "from": "../../../src/index.js",
+      "to": "virtual-bash"
+    },
+    {
+      "path": "tests/integration/adapter-tools/fixtures.ts",
+      "from": "../../../src/index.js",
+      "to": "virtual-bash"
+    },
+    {
+      "path": "tests/integration/adapter-tools/profiles/stock-webdav-capability.test.ts",
+      "from": "../../../../src/index.js",
+      "to": "virtual-bash"
+    },
+    {
+      "path": "tests/integration/adapter-tools/preflight-review/preflight.ts",
+      "from": "../../../../src/index.js",
+      "to": "virtual-bash"
+    },
+    {
+      "path": "tests/integration/adapter-tools/profiles-independent/controls.test.ts",
+      "from": "../../../../src/index.js",
+      "to": "virtual-bash"
+    }
+  ],
+  "mockOnly": "unchanged MockDav private resource-id bookkeeping relocated to actual packed file; no new fake identity; mock type import uses public /fs/webdav"
+}

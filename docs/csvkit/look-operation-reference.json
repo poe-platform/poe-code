@@ -1,0 +1,91 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "sourceSha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+  "cases": [
+    {
+      "command": "csvlook",
+      "argv": [
+        "-I",
+        "-y0"
+      ],
+      "stdin": "a,b\nx,y\nlong,null\n",
+      "status": 0,
+      "stdout": "| a    | b |\n| ---- | - |\n| x    | y |\n| long |   |\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvlook",
+      "argv": [
+        "-I",
+        "-y0",
+        "--max-rows",
+        "1"
+      ],
+      "stdin": "a,b\nx,y\nz,toolong\n",
+      "status": 0,
+      "stdout": "| a | b |\n| - | - |\n| x | y |\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvlook",
+      "argv": [
+        "-I",
+        "-y0",
+        "--max-columns",
+        "1"
+      ],
+      "stdin": "a,b,c\nx,y,z\n",
+      "status": 0,
+      "stdout": "| a | ... |\n| - | --- |\n| x | ... |\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvlook",
+      "argv": [
+        "-I",
+        "-y0",
+        "--max-column-width",
+        "3"
+      ],
+      "stdin": "abcdef,b\nlonger,y\n",
+      "status": 0,
+      "stdout": "| ... | b |\n| --- | - |\n| ... | y |\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvlook",
+      "argv": [
+        "-I",
+        "-y0"
+      ],
+      "stdin": "a,b\n\"x\ny\",\ud83d\ude00\n",
+      "status": 0,
+      "stdout": "| a   | b |\n| --- | - |\n| x\u21b5y | \ud83d\ude00 |\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvlook",
+      "argv": [
+        "-I",
+        "-y0"
+      ],
+      "stdin": "",
+      "status": 0,
+      "stdout": "||\n|  |\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvlook",
+      "argv": [
+        "-I",
+        "-y0",
+        "--max-rows",
+        "-1"
+      ],
+      "stdin": "a\nx\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "ValueError: Stop argument for islice() must be None or an integer: 0 <= x <= sys.maxsize.\n"
+    }
+  ]
+}

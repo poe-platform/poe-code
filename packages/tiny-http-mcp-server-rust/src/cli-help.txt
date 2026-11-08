@@ -1,0 +1,56 @@
+Options:
+  --port <port>          Port to listen on (default: 3000)
+  --hostname <hostname>  Hostname to bind to (default: 127.0.0.1)
+  --path <path>          HTTP path to serve MCP on (default: /mcp)
+  --stateless            Disable session support
+  --json-response        Return application/json for POST responses
+  --allowed-host <host>  Allowed Host header value (repeatable; default: localhost loopback hosts)
+  --allowed-origin <url> Allowed CORS Origin value (repeatable)
+  --max-request-bytes <bytes>
+                        Maximum JSON request body size
+  --max-response-bytes <bytes>
+                        Maximum JSON body or SSE frame size (default: 16777216)
+  --max-batch-size <count>
+                        Maximum JSON-RPC batch member count
+  --max-sessions <count> Maximum active sessions (default: 128)
+  --max-sessions-per-subject <count>
+                        Maximum sessions per authenticated subject (default: 16)
+  --session-ttl-ms <ms>  Expire idle sessions (default: 900000)
+  --max-streams-per-session <count>
+                        Maximum concurrent GET SSE streams per session
+  --max-stream-buffer-bytes <bytes>
+                        Maximum buffered bytes per SSE stream (default: 1048576)
+  --max-sse-event-history <count>
+                        Number of SSE events retained for Last-Event-ID replay
+  --sse-keep-alive-ms <ms>
+                        SSE keepalive interval (default: 30000; 0 disables)
+  --max-concurrent-tool-calls <count>
+                        Maximum concurrent tool calls across sessions (default: 4)
+  --max-active-requests <count>
+                        Maximum active requests across connections (default: 128)
+  --max-queued-tool-calls <count>
+                        Maximum waiting tool calls (default: 64; 0 disables waiting)
+  --trusted-proxy        Trust X-Forwarded-Proto and X-Forwarded-Host
+  --request-timeout-ms <ms>
+                        Node HTTP request timeout
+  --headers-timeout-ms <ms>
+                        Node HTTP headers timeout
+  --keep-alive-timeout-ms <ms>
+                        Node HTTP keep-alive timeout
+  --shutdown-grace-ms <ms>
+                        Grace period before force-closing connections (default: 10000)
+  --oauth-resource <uri> Enable OAuth mode with this canonical resource URI
+  --oauth-authorization-server <issuer>
+                        Authorization server issuer URL (repeatable)
+  --oauth-supported-scope <scope>
+                        Scope published in OAuth metadata (repeatable)
+  --oauth-required-scope <scope>
+                        Scope required on MCP requests (repeatable)
+  --oauth-bearer-method <method>
+                        Bearer transport published in metadata (repeatable)
+  --oauth-verifier-module <path-or-file-url>
+                        Module that exports the TokenVerifier implementation
+  --oauth-verifier-export <name>
+                        Export name to load from the verifier module (default: default)
+  --version              Show the package version
+  -h, --help             Show this help message

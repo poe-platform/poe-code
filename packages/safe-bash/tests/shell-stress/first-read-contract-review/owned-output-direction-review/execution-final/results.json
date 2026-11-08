@@ -1,0 +1,1219 @@
+{
+  "finishedAt": "2026-08-27T10:43:43.360Z",
+  "startedArtifactAt": "2026-08-27T10:31:05.578Z",
+  "new7": {
+    "executed": 7,
+    "total": 7,
+    "pass": 3,
+    "fail": 4,
+    "cases": [
+      {
+        "id": "D01",
+        "profile": "unchanged-frozen-seven-initial-binding",
+        "passed": false,
+        "records": [
+          {
+            "event": "stdout.closed",
+            "stageAborted": false,
+            "callerAborted": false,
+            "writes": 0
+          },
+          {
+            "event": "pending.snapshot",
+            "next": 2,
+            "active": 1,
+            "requests": 0
+          },
+          {
+            "event": "curl.result",
+            "result": {
+              "exitCode": 0,
+              "stdout": "",
+              "stderr": ""
+            },
+            "statuses": [
+              141
+            ],
+            "reads": 5,
+            "requests": 0
+          },
+          {
+            "event": "cursor.accounting",
+            "delivered": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "curlDelivered": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "committed": "",
+            "sibling": "",
+            "owner": "",
+            "handbackApi": false
+          },
+          {
+            "event": "network.before-teardown",
+            "requests": [],
+            "sockets": 0,
+            "borrowed": {
+              "next": 7,
+              "returns": 0,
+              "cancel": 0,
+              "close": 0,
+              "active": 0,
+              "maxActive": 1,
+              "delivered": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          },
+          {
+            "event": "server.cleanup",
+            "sockets": 0
+          }
+        ],
+        "failures": [
+          {
+            "label": "exact positive sibling remainder",
+            "actual": "",
+            "expected": "sibling-after\n"
+          },
+          {
+            "label": "exact positive owner remainder",
+            "actual": "",
+            "expected": "owner-after\n"
+          },
+          {
+            "label": "no curl theft of suffix",
+            "actual": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "expected": [
+              0,
+              1
+            ]
+          },
+          {
+            "label": "prefix and late committed or public handback",
+            "actual": "",
+            "expected": "curl-prefix\ncurl-late\n"
+          }
+        ],
+        "unhandled": [],
+        "raw": "runs/new7-r0-D01.json"
+      },
+      {
+        "id": "D02",
+        "profile": "unchanged-frozen-seven-initial-binding",
+        "passed": false,
+        "records": [
+          {
+            "event": "stdout.closed",
+            "stageAborted": false,
+            "callerAborted": false,
+            "writes": 0
+          },
+          {
+            "event": "opaque.pending",
+            "operationDone": true,
+            "active": 1,
+            "next": 1
+          },
+          {
+            "event": "opaque.effects",
+            "record": "late-owned-read\n",
+            "sibling": "sibling-tail\n",
+            "owner": "owner-tail\n",
+            "state": {
+              "next": 3,
+              "returns": 3,
+              "cancel": 0,
+              "close": 0,
+              "active": 0,
+              "maxActive": 1,
+              "delivered": [
+                0,
+                1,
+                2
+              ]
+            }
+          }
+        ],
+        "failures": [
+          {
+            "label": "borrowed return/cancel/close",
+            "actual": [
+              3,
+              0,
+              0
+            ],
+            "expected": [
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "unhandled": [],
+        "raw": "runs/new7-r0-D02.json"
+      },
+      {
+        "id": "D03",
+        "profile": "unchanged-frozen-seven-initial-binding",
+        "passed": false,
+        "records": [
+          {
+            "event": "owner-explicitly-transfers-exclusive-source"
+          },
+          {
+            "event": "stdout.closed",
+            "stageAborted": false,
+            "callerAborted": false,
+            "writes": 0
+          },
+          {
+            "event": "transfer.effects",
+            "reads": 1,
+            "returns": 1,
+            "active": 0,
+            "survivor": "still-borrowed\n",
+            "file": "transfer-survived\n",
+            "result": {
+              "name": "Error",
+              "message": "Shell is disposed"
+            }
+          }
+        ],
+        "failures": [
+          {
+            "label": "borrowed return/cancel/close",
+            "actual": [
+              1,
+              0,
+              0
+            ],
+            "expected": [
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "unhandled": [],
+        "raw": "runs/new7-r0-D03.json"
+      },
+      {
+        "id": "D04",
+        "profile": "unchanged-frozen-seven-initial-binding",
+        "passed": true,
+        "records": [
+          {
+            "event": "stdout.closed",
+            "stageAborted": false,
+            "callerAborted": false,
+            "writes": 0
+          },
+          {
+            "event": "tree.effects",
+            "releases": {
+              "child": 1,
+              "grandchild": 1
+            },
+            "lateStarted": 0,
+            "reasons": [
+              true,
+              true,
+              true
+            ],
+            "file": "outside-parent-tree\n",
+            "stderr": "parent-tree-drained\n",
+            "work": {
+              "name": "Error",
+              "message": "Shell is disposed"
+            }
+          }
+        ],
+        "failures": [],
+        "unhandled": [],
+        "raw": "runs/new7-r0-D04.json"
+      },
+      {
+        "id": "D05",
+        "profile": "unchanged-frozen-seven-initial-binding",
+        "passed": true,
+        "records": [
+          {
+            "event": "stdout.closed",
+            "stageAborted": false,
+            "callerAborted": false,
+            "writes": 0
+          },
+          {
+            "event": "child.effects",
+            "parent": "parent-still-live\n",
+            "sibling": "sibling-still-live\n",
+            "stderr": "stderr-still-live\n"
+          }
+        ],
+        "failures": [],
+        "unhandled": [],
+        "raw": "runs/new7-r0-D05.json"
+      },
+      {
+        "id": "D06",
+        "profile": "unchanged-frozen-seven-initial-binding",
+        "passed": true,
+        "records": [
+          {
+            "event": "stdout.closed",
+            "stageAborted": false,
+            "callerAborted": false,
+            "writes": 0
+          },
+          {
+            "event": "pending.snapshot",
+            "next": 2,
+            "active": 1,
+            "requests": 0
+          },
+          {
+            "event": "curl.result",
+            "result": {
+              "exitCode": 0,
+              "stdout": "",
+              "stderr": "mixed-stderr-completes\n"
+            },
+            "statuses": [
+              141
+            ],
+            "reads": 3,
+            "requests": 1
+          },
+          {
+            "event": "vfs.effects",
+            "/direction/body": "mixed-body-kept\n",
+            "/direction/headers": "HTTP/1.1 200 OK\r\nContent-Length: 16\r\nX-Direction: mixed\r\nConnection: close\r\n\r\n",
+            "/direction/independent": "file-still-completes\n"
+          },
+          {
+            "event": "wire",
+            "value": "HTTP/1.1 200 OK\r\nContent-Length: 16\r\nX-Direction: mixed\r\nConnection: close\r\n\r\nmixed-body-kept\n"
+          },
+          {
+            "event": "network.before-teardown",
+            "requests": [
+              {
+                "url": "/mixed",
+                "body": "mixed-prefix\nmixed-late\n"
+              }
+            ],
+            "sockets": 0,
+            "borrowed": {
+              "next": 3,
+              "returns": 0,
+              "cancel": 0,
+              "close": 0,
+              "active": 0,
+              "maxActive": 1,
+              "delivered": [
+                0,
+                1
+              ]
+            }
+          },
+          {
+            "event": "server.cleanup",
+            "sockets": 0
+          }
+        ],
+        "failures": [],
+        "unhandled": [],
+        "raw": "runs/new7-r0-D06.json"
+      },
+      {
+        "id": "D07",
+        "profile": "unchanged-frozen-seven-initial-binding",
+        "passed": false,
+        "records": [
+          {
+            "event": "stdout.closed",
+            "stageAborted": false,
+            "callerAborted": false,
+            "writes": 0
+          },
+          {
+            "event": "failure.subrun",
+            "name": "caller-object-with-child-cleanup-failure",
+            "error": {
+              "code": "EPIPE",
+              "marker": "caller-not-output-close"
+            },
+            "cleanups": [
+              1,
+              1
+            ],
+            "survivor": "reason-owner-survived\n",
+            "active": 0,
+            "failuresSoFar": 1
+          },
+          {
+            "event": "subrun.result",
+            "name": "caller-object-with-child-cleanup-failure",
+            "pass": false
+          },
+          {
+            "event": "stdout.closed",
+            "stageAborted": false,
+            "callerAborted": false,
+            "writes": 0
+          },
+          {
+            "event": "failure.subrun",
+            "name": "caller-zero-with-child-cleanup-failure",
+            "error": 0,
+            "cleanups": [
+              1,
+              1
+            ],
+            "survivor": "reason-owner-survived\n",
+            "active": 0,
+            "failuresSoFar": 2
+          },
+          {
+            "event": "subrun.result",
+            "name": "caller-zero-with-child-cleanup-failure",
+            "pass": false
+          },
+          {
+            "event": "stdout.closed",
+            "stageAborted": false,
+            "callerAborted": false,
+            "writes": 0
+          },
+          {
+            "event": "failure.subrun",
+            "name": "execution-rejection-with-late-opaque-rejection",
+            "error": {
+              "name": "ShellLimitError",
+              "message": "direction-execution-error"
+            },
+            "cleanups": [
+              1,
+              1
+            ],
+            "survivor": "reason-owner-survived\n",
+            "active": 0,
+            "failuresSoFar": 3
+          },
+          {
+            "event": "subrun.result",
+            "name": "execution-rejection-with-late-opaque-rejection",
+            "pass": false
+          },
+          {
+            "event": "stdout.closed",
+            "stageAborted": false,
+            "callerAborted": false,
+            "writes": 0
+          },
+          {
+            "event": "failure.subrun",
+            "name": "two-child-cleanup-errors-with-late-opaque-rejection",
+            "error": {
+              "name": "AggregateError",
+              "message": "Output operation cleanup failed",
+              "errors": [
+                {
+                  "name": "Error",
+                  "message": "direction-cleanup-a"
+                },
+                {
+                  "name": "Error",
+                  "message": "direction-cleanup-b"
+                }
+              ]
+            },
+            "cleanups": [
+              1,
+              1
+            ],
+            "survivor": "reason-owner-survived\n",
+            "active": 0,
+            "failuresSoFar": 4
+          },
+          {
+            "event": "subrun.result",
+            "name": "two-child-cleanup-errors-with-late-opaque-rejection",
+            "pass": false
+          }
+        ],
+        "failures": [
+          {
+            "label": "borrowed return/cancel/close",
+            "actual": [
+              2,
+              0,
+              0
+            ],
+            "expected": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "label": "borrowed return/cancel/close",
+            "actual": [
+              2,
+              0,
+              0
+            ],
+            "expected": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "label": "borrowed return/cancel/close",
+            "actual": [
+              2,
+              0,
+              0
+            ],
+            "expected": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "label": "borrowed return/cancel/close",
+            "actual": [
+              2,
+              0,
+              0
+            ],
+            "expected": [
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "unhandled": [],
+        "raw": "runs/new7-r0-D07.json"
+      }
+    ]
+  },
+  "d07Subruns": [
+    {
+      "event": "subrun.result",
+      "name": "caller-object-with-child-cleanup-failure",
+      "pass": false
+    },
+    {
+      "event": "subrun.result",
+      "name": "caller-zero-with-child-cleanup-failure",
+      "pass": false
+    },
+    {
+      "event": "subrun.result",
+      "name": "execution-rejection-with-late-opaque-rejection",
+      "pass": false
+    },
+    {
+      "event": "subrun.result",
+      "name": "two-child-cleanup-errors-with-late-opaque-rejection",
+      "pass": false
+    }
+  ],
+  "old16": [
+    {
+      "profile": "initial",
+      "total": 16,
+      "pass": 15,
+      "results": [
+        {
+          "id": "H01",
+          "passed": true,
+          "raw": "runs/old16-shared-H01-adapted.json",
+          "supplemental": "runs/old16-initial-H01.json",
+          "supplementalPassed": true
+        },
+        {
+          "id": "H02",
+          "passed": true,
+          "raw": "runs/old16-shared-H02-adapted.json"
+        },
+        {
+          "id": "H03",
+          "passed": true,
+          "raw": "runs/old16-shared-H03-adapted.json"
+        },
+        {
+          "id": "H04",
+          "passed": true,
+          "raw": "runs/old16-shared-H04-adapted.json"
+        },
+        {
+          "id": "H05",
+          "passed": true,
+          "raw": "runs/old16-shared-H05-adapted.json"
+        },
+        {
+          "id": "H06",
+          "passed": true,
+          "raw": "runs/old16-initial-H06.json"
+        },
+        {
+          "id": "H07",
+          "passed": true,
+          "raw": "runs/old16-initial-H07.json"
+        },
+        {
+          "id": "H08",
+          "passed": true,
+          "raw": "runs/old16-initial-H08.json"
+        },
+        {
+          "id": "H09",
+          "passed": true,
+          "raw": "runs/old16-initial-H09.json"
+        },
+        {
+          "id": "H10",
+          "passed": true,
+          "raw": "runs/old16-initial-H10.json"
+        },
+        {
+          "id": "H11",
+          "passed": true,
+          "raw": "runs/old16-initial-H11.json"
+        },
+        {
+          "id": "H12",
+          "passed": false,
+          "raw": "runs/old16-initial-H12.json"
+        },
+        {
+          "id": "H13",
+          "passed": true,
+          "raw": "runs/old16-initial-H13.json"
+        },
+        {
+          "id": "H14",
+          "passed": true,
+          "raw": "runs/old16-initial-H14.json"
+        },
+        {
+          "id": "H15",
+          "passed": true,
+          "raw": "runs/old16-initial-H15.json"
+        },
+        {
+          "id": "H16",
+          "passed": true,
+          "raw": "runs/old16-initial-H16.json"
+        }
+      ]
+    },
+    {
+      "profile": "corrected",
+      "total": 16,
+      "pass": 16,
+      "results": [
+        {
+          "id": "H01",
+          "passed": true,
+          "raw": "runs/old16-shared-H01-adapted.json",
+          "supplemental": "runs/old16-corrected-H01.json",
+          "supplementalPassed": true
+        },
+        {
+          "id": "H02",
+          "passed": true,
+          "raw": "runs/old16-shared-H02-adapted.json"
+        },
+        {
+          "id": "H03",
+          "passed": true,
+          "raw": "runs/old16-shared-H03-adapted.json"
+        },
+        {
+          "id": "H04",
+          "passed": true,
+          "raw": "runs/old16-shared-H04-adapted.json"
+        },
+        {
+          "id": "H05",
+          "passed": true,
+          "raw": "runs/old16-shared-H05-adapted.json"
+        },
+        {
+          "id": "H06",
+          "passed": true,
+          "raw": "runs/old16-corrected-H06.json"
+        },
+        {
+          "id": "H07",
+          "passed": true,
+          "raw": "runs/old16-corrected-H07.json"
+        },
+        {
+          "id": "H08",
+          "passed": true,
+          "raw": "runs/old16-corrected-H08.json"
+        },
+        {
+          "id": "H09",
+          "passed": true,
+          "raw": "runs/old16-corrected-H09.json"
+        },
+        {
+          "id": "H10",
+          "passed": true,
+          "raw": "runs/old16-corrected-H10.json"
+        },
+        {
+          "id": "H11",
+          "passed": true,
+          "raw": "runs/old16-corrected-H11.json"
+        },
+        {
+          "id": "H12",
+          "passed": true,
+          "raw": "runs/old16-corrected-H12.json"
+        },
+        {
+          "id": "H13",
+          "passed": true,
+          "raw": "runs/old16-corrected-H13.json"
+        },
+        {
+          "id": "H14",
+          "passed": true,
+          "raw": "runs/old16-corrected-H14.json"
+        },
+        {
+          "id": "H15",
+          "passed": true,
+          "raw": "runs/old16-corrected-H15.json"
+        },
+        {
+          "id": "H16",
+          "passed": true,
+          "raw": "runs/old16-corrected-H16.json"
+        }
+      ]
+    }
+  ],
+  "original5": {
+    "total": 5,
+    "pass": 1,
+    "fail": 4,
+    "rawCombinedWithHeadZero": {
+      "tests": 6,
+      "pass": 2,
+      "fail": 4,
+      "skipped": 0,
+      "cancelled": 0
+    },
+    "historicalBaseline": "0/5 at 1200ms; retained, not rerun",
+    "historicalV1": "1/5 unchanged; retained"
+  },
+  "adapted5": {
+    "tests": 5,
+    "pass": 5,
+    "fail": 0,
+    "skipped": 0,
+    "cancelled": 0
+  },
+  "legacy57": {
+    "total": 57,
+    "pass": 57,
+    "headZeroSeparateControl": 1,
+    "groups": [
+      {
+        "label": "existing-remote-after-write-and-no-write",
+        "tests": 19,
+        "pass": 19,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0
+      },
+      {
+        "label": "existing-byte-io",
+        "tests": 28,
+        "pass": 28,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0
+      },
+      {
+        "label": "existing-shared-lifecycle",
+        "tests": 5,
+        "pass": 5,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0
+      },
+      {
+        "label": "existing-streaming",
+        "tests": 4,
+        "pass": 4,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0
+      }
+    ]
+  },
+  "controls9": {
+    "total": 9,
+    "pass": 9,
+    "cases": [
+      {
+        "id": "C1",
+        "passed": true,
+        "product": true
+      },
+      {
+        "id": "C2",
+        "passed": true,
+        "product": true
+      },
+      {
+        "id": "C3",
+        "passed": true,
+        "product": true
+      },
+      {
+        "id": "C4",
+        "passed": true,
+        "product": true
+      },
+      {
+        "id": "C5",
+        "passed": true,
+        "product": true
+      },
+      {
+        "id": "C6",
+        "passed": true,
+        "product": true
+      },
+      {
+        "id": "C7",
+        "passed": true,
+        "product": true
+      },
+      {
+        "id": "C8",
+        "passed": true,
+        "product": true
+      },
+      {
+        "id": "C9",
+        "passed": true,
+        "product": false
+      }
+    ],
+    "C9": "synthetic harness timing control, not product evidence"
+  },
+  "native5": "known historical reference retained; no new native breadth/replay in this execution",
+  "checks": [
+    {
+      "label": "callsite-r2-syntax",
+      "status": 0
+    },
+    {
+      "label": "declared-binding-typecheck",
+      "status": 0
+    },
+    {
+      "label": "driver-syntax-r0",
+      "status": 0
+    },
+    {
+      "label": "final-copied-build",
+      "status": 0
+    },
+    {
+      "label": "final-copied-scoped-typecheck",
+      "status": 0
+    },
+    {
+      "label": "old-bound-scoped-typecheck",
+      "status": 0
+    }
+  ],
+  "callsiteReplays": [
+    {
+      "id": "D02",
+      "firstInstrumentation": "unbound owned identifier swallowed during return; preserved, no callsite credit",
+      "final": {
+        "id": "D02",
+        "passed": false,
+        "records": [
+          {
+            "event": "stdout.closed",
+            "stageAborted": false,
+            "callerAborted": false,
+            "writes": 0
+          },
+          {
+            "event": "borrowed.return.callsite",
+            "active": 1,
+            "reads": 1,
+            "callsite": "at file:///private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/candidate/dist/shell/input.js:73:80"
+          },
+          {
+            "event": "opaque.pending",
+            "operationDone": true,
+            "active": 1,
+            "next": 1
+          },
+          {
+            "event": "borrowed.return.callsite",
+            "active": 0,
+            "reads": 2,
+            "callsite": "at file:///private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/candidate/dist/shell/input.js:73:80"
+          },
+          {
+            "event": "borrowed.return.callsite",
+            "active": 0,
+            "reads": 3,
+            "callsite": "at file:///private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/candidate/dist/shell/input.js:73:80"
+          },
+          {
+            "event": "opaque.effects",
+            "record": "late-owned-read\n",
+            "sibling": "sibling-tail\n",
+            "owner": "owner-tail\n",
+            "state": {
+              "next": 3,
+              "returns": 3,
+              "cancel": 0,
+              "close": 0,
+              "active": 0,
+              "maxActive": 1,
+              "delivered": [
+                0,
+                1,
+                2
+              ]
+            }
+          }
+        ],
+        "failures": [
+          {
+            "label": "borrowed return/cancel/close",
+            "actual": [
+              3,
+              0,
+              0
+            ],
+            "expected": [
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "unhandled": []
+      }
+    },
+    {
+      "id": "D03",
+      "firstInstrumentation": "unbound owned identifier swallowed during return; preserved, no callsite credit",
+      "final": {
+        "id": "D03",
+        "passed": false,
+        "records": [
+          {
+            "event": "owner-explicitly-transfers-exclusive-source"
+          },
+          {
+            "event": "stdout.closed",
+            "stageAborted": false,
+            "callerAborted": false,
+            "writes": 0
+          },
+          {
+            "event": "borrowed.return.callsite",
+            "active": 0,
+            "reads": 1,
+            "callsite": "at file:///private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/candidate/dist/shell/input.js:73:80"
+          },
+          {
+            "event": "transfer.effects",
+            "reads": 1,
+            "returns": 1,
+            "active": 0,
+            "survivor": "still-borrowed\n",
+            "file": "transfer-survived\n",
+            "result": {
+              "name": "Error",
+              "message": "Shell is disposed"
+            }
+          }
+        ],
+        "failures": [
+          {
+            "label": "borrowed return/cancel/close",
+            "actual": [
+              1,
+              0,
+              0
+            ],
+            "expected": [
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "unhandled": []
+      }
+    },
+    {
+      "id": "D07",
+      "firstInstrumentation": "unbound owned identifier swallowed during return; preserved, no callsite credit",
+      "final": {
+        "id": "D07",
+        "passed": false,
+        "records": [
+          {
+            "event": "stdout.closed",
+            "stageAborted": false,
+            "callerAborted": false,
+            "writes": 0
+          },
+          {
+            "event": "borrowed.return.callsite",
+            "active": 0,
+            "reads": 1,
+            "callsite": "at file:///private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/candidate/dist/shell/input.js:73:80"
+          },
+          {
+            "event": "borrowed.return.callsite",
+            "active": 0,
+            "reads": 2,
+            "callsite": "at file:///private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/candidate/dist/shell/input.js:73:80"
+          },
+          {
+            "event": "failure.subrun",
+            "name": "caller-object-with-child-cleanup-failure",
+            "error": {
+              "code": "EPIPE",
+              "marker": "caller-not-output-close"
+            },
+            "cleanups": [
+              1,
+              1
+            ],
+            "survivor": "reason-owner-survived\n",
+            "active": 0,
+            "failuresSoFar": 1
+          },
+          {
+            "event": "subrun.result",
+            "name": "caller-object-with-child-cleanup-failure",
+            "pass": false
+          },
+          {
+            "event": "stdout.closed",
+            "stageAborted": false,
+            "callerAborted": false,
+            "writes": 0
+          },
+          {
+            "event": "borrowed.return.callsite",
+            "active": 0,
+            "reads": 1,
+            "callsite": "at file:///private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/candidate/dist/shell/input.js:73:80"
+          },
+          {
+            "event": "borrowed.return.callsite",
+            "active": 0,
+            "reads": 2,
+            "callsite": "at file:///private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/candidate/dist/shell/input.js:73:80"
+          },
+          {
+            "event": "failure.subrun",
+            "name": "caller-zero-with-child-cleanup-failure",
+            "error": 0,
+            "cleanups": [
+              1,
+              1
+            ],
+            "survivor": "reason-owner-survived\n",
+            "active": 0,
+            "failuresSoFar": 2
+          },
+          {
+            "event": "subrun.result",
+            "name": "caller-zero-with-child-cleanup-failure",
+            "pass": false
+          },
+          {
+            "event": "stdout.closed",
+            "stageAborted": false,
+            "callerAborted": false,
+            "writes": 0
+          },
+          {
+            "event": "borrowed.return.callsite",
+            "active": 1,
+            "reads": 1,
+            "callsite": "at file:///private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/candidate/dist/shell/input.js:73:80"
+          },
+          {
+            "event": "borrowed.return.callsite",
+            "active": 0,
+            "reads": 2,
+            "callsite": "at file:///private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/candidate/dist/shell/input.js:73:80"
+          },
+          {
+            "event": "failure.subrun",
+            "name": "execution-rejection-with-late-opaque-rejection",
+            "error": {
+              "name": "ShellLimitError",
+              "message": "direction-execution-error"
+            },
+            "cleanups": [
+              1,
+              1
+            ],
+            "survivor": "reason-owner-survived\n",
+            "active": 0,
+            "failuresSoFar": 3
+          },
+          {
+            "event": "subrun.result",
+            "name": "execution-rejection-with-late-opaque-rejection",
+            "pass": false
+          },
+          {
+            "event": "stdout.closed",
+            "stageAborted": false,
+            "callerAborted": false,
+            "writes": 0
+          },
+          {
+            "event": "borrowed.return.callsite",
+            "active": 1,
+            "reads": 1,
+            "callsite": "at file:///private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/candidate/dist/shell/input.js:73:80"
+          },
+          {
+            "event": "borrowed.return.callsite",
+            "active": 0,
+            "reads": 2,
+            "callsite": "at file:///private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/candidate/dist/shell/input.js:73:80"
+          },
+          {
+            "event": "failure.subrun",
+            "name": "two-child-cleanup-errors-with-late-opaque-rejection",
+            "error": {
+              "name": "AggregateError",
+              "message": "Output operation cleanup failed",
+              "errors": [
+                {
+                  "name": "Error",
+                  "message": "direction-cleanup-a"
+                },
+                {
+                  "name": "Error",
+                  "message": "direction-cleanup-b"
+                }
+              ]
+            },
+            "cleanups": [
+              1,
+              1
+            ],
+            "survivor": "reason-owner-survived\n",
+            "active": 0,
+            "failuresSoFar": 4
+          },
+          {
+            "event": "subrun.result",
+            "name": "two-child-cleanup-errors-with-late-opaque-rejection",
+            "pass": false
+          }
+        ],
+        "failures": [
+          {
+            "label": "borrowed return/cancel/close",
+            "actual": [
+              2,
+              0,
+              0
+            ],
+            "expected": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "label": "borrowed return/cancel/close",
+            "actual": [
+              2,
+              0,
+              0
+            ],
+            "expected": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "label": "borrowed return/cancel/close",
+            "actual": [
+              2,
+              0,
+              0
+            ],
+            "expected": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "label": "borrowed return/cancel/close",
+            "actual": [
+              2,
+              0,
+              0
+            ],
+            "expected": [
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "unhandled": []
+      }
+    }
+  ],
+  "noSourceFixes": true,
+  "noExpectationChanges": true,
+  "productionApproval": false,
+  "fullRelease": false
+}

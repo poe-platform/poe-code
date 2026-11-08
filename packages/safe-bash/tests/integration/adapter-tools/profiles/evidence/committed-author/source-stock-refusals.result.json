@@ -1,0 +1,29 @@
+{
+  "name": "source-stock-refusals",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-reporter=tap",
+    "tests/integration/adapter-tools/profiles/stock-webdav-capability.test.ts"
+  ],
+  "cwd": "source",
+  "startedAt": "2026-08-27T10:03:56.847Z",
+  "durationMs": 410.66212499999983,
+  "status": 0,
+  "signal": null,
+  "counts": {
+    "tests": 2,
+    "pass": 2,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "names": [
+    "stock-webdav: empty rmdir is ENOTSUP",
+    "stock-webdav: nonempty rmdir is ENOTEMPTY"
+  ],
+  "failedRows": []
+}

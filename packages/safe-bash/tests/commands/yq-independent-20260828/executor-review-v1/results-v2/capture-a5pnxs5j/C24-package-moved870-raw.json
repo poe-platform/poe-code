@@ -1,0 +1,11 @@
+{
+  "id": "C24-package-moved870",
+  "expected": "ACCEPT",
+  "value": {
+    "path": "/private/tmp/yq-candidate-admission-35da1854-BAdsoU/package-870-moved",
+    "files": 870,
+    "packageMapSha256": "4ce4908953986584ae50f61976796d9ee7c1259e7c0d009afa4b675225496088"
+  },
+  "error": null,
+  "role": "DATA_OR_SYNTHETIC_NOT_YQ"
+}

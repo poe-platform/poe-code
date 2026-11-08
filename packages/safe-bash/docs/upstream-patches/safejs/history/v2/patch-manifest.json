@@ -1,0 +1,36 @@
+{
+  "artifactRevision": "v2-cause-preserving-proposal",
+  "previousPatchSha256": "5a47508be5571601ccce1158c40e309ac406fd16db6f4f3b34747a9f7fe0ea09",
+  "baselineRevision": "031436f3d89ea1df8a33371e30076cb5e44ec262",
+  "files": {
+    "packages/safejs/src/run.ts": {
+      "before": "92382a36b94bc5be7f8fc0372bb4b91428fd137ba86742c5d6f75865726e5512",
+      "after": "4c7bebb540df03cfa66b367ab1f59284c300fb57aa1a3b8500f58d7811c00cc6"
+    },
+    "packages/safejs/src/interp/cancel.ts": {
+      "before": "7652feb38be7c034e7f98f8e98370835307571fec46647d930908a3c1a23d6e4",
+      "after": "06e50faaf1e87fac502c218f04a2437d07e83c5054e33cb621965c35acce29ab"
+    },
+    "packages/safejs/src/interp/values.ts": {
+      "before": "53861da4e9c9dda042432213d5b73f31ac98d5f358dea384d0347359f77d8cf8",
+      "after": "988f0ec6ec1e8af5ced60a4cc71b2facc25a738e45af3f9db9dcfe9acd30acc2"
+    },
+    "packages/safejs/src/interp/host-bridge.ts": {
+      "before": "8f508e320e61f0074b3dbd97a46b6bcf72117302a89270bbd829e3375d2f2e70",
+      "after": "8b1be1c12597a54cab6b9187eff2180e1a68219fedb23e9145c540e318ad2a68"
+    },
+    "packages/safejs/src/interp/exceptions.ts": {
+      "before": "089f08ed0a282d62ef751407ecd9e0ea938e6b2172e41530ca95a0b95b7c6773",
+      "after": "c4344ea258f6e1e283f26bf99e8b1dd5f2423c6db99ae7715f308fe276f963a0"
+    },
+    "packages/safejs/src/interp/globals/error.ts": {
+      "before": "6d32795654371c6748f785d96b9b4d37002f245c436ce56572752f23a598f47b",
+      "after": "7b8d53d83574a7378a64ba81467eb990f7c1963da30868a2fd4700ef7d5c06ae"
+    },
+    "packages/safejs/src/interp/globals/collections.ts": {
+      "before": "6cb56413e215814b76d01782dc7d8a5b66b0afccf5c16f8fca56b9e55788c089",
+      "after": "ee036d3e11c6e98f5beb824386ba2bcf0429988e49dca7a22e4f69ba893548e4"
+    }
+  },
+  "patchSha256": "c5419b5edc91a8883d72cb5fe08d08bf47c48fde21bee2fe1f926f836c243f2d"
+}

@@ -1,0 +1,17 @@
+node:fs:1879
+    throw new ERR_ACCESS_DENIED('fs.symlink API requires full fs.read and fs.write permissions.');
+          ^
+
+Error [ERR_ACCESS_DENIED]: fs.symlink API requires full fs.read and fs.write permissions.
+    at Object.symlinkSync (node:fs:1879:11)
+    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/run-controls.mjs:44:42)
+    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/run-controls.mjs:78:56
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
+  code: 'ERR_ACCESS_DENIED',
+  permission: '',
+  resource: ''
+}
+
+Node.js v22.22.2

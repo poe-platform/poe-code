@@ -1,0 +1,23 @@
+{
+  "results": [
+    {
+      "path": "/opt/homebrew/Cellar/gnupg/2.5.21/INSTALL_RECEIPT.json",
+      "captured": "INSTALL_RECEIPT.json.data",
+      "bytes": 4290,
+      "mode": "644",
+      "sha256": "8e9a0e9f87428634f209f976f44a52d26b7840d2a687e700c1694f2f6df0f61a",
+      "disposition": "DECLARED_PACKAGE_METADATA_NOT_LOADED_CLOSURE"
+    },
+    {
+      "path": "/opt/homebrew/Cellar/gnupg/2.5.21/.brew/gnupg.rb",
+      "captured": "gnupg.rb.data",
+      "bytes": 3059,
+      "mode": "644",
+      "sha256": "749cde3b8a168a21c6c560fd51837afc349e0dc00b736db37249dc30a9f2acee",
+      "disposition": "DECLARED_PACKAGE_METADATA_NOT_LOADED_CLOSURE"
+    }
+  ],
+  "elapsedMs": 5.450499999999998,
+  "verifierExecutions": 0,
+  "children": 0
+}

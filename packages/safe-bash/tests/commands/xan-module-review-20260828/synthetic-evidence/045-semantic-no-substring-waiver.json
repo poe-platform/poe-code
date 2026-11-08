@@ -1,0 +1,15 @@
+{
+  "id": "semantic-no-substring-waiver",
+  "families": [
+    "F05",
+    "F12"
+  ],
+  "observation": {
+    "thrown": {
+      "code": "SEMANTIC_REVIEW_REQUIRED",
+      "name": "Error",
+      "message": "SEMANTIC_REVIEW_REQUIRED: synthetic-semantic"
+    }
+  },
+  "classification": "SYNTHETIC_CONTROL_OBSERVATION_BEFORE_ASSERTION"
+}

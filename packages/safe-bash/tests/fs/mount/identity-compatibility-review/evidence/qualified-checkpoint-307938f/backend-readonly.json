@@ -1,0 +1,33 @@
+{
+  "name": "backend-readonly",
+  "command": [
+    "node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-reporter=tap",
+    "tests/fs/readonly/conformance.test.ts",
+    "tests/fs/readonly/metadata.test.ts",
+    "tests/fs/readonly/readonly.test.ts",
+    "tests/fs/readonly/rmdir.test.ts",
+    "tests/fs/readonly/streaming.test.ts"
+  ],
+  "environment": {},
+  "startedAt": "2026-08-27T01:40:00.248Z",
+  "finishedAt": "2026-08-27T01:40:00.461Z",
+  "code": 0,
+  "signal": null,
+  "timedOut": false,
+  "residualGroup": false,
+  "counts": {
+    "tests": 103,
+    "pass": 103,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "stdoutSha256": "fbc5c706b9ffd6602b32eb6e1f32de75e87fe88567bca6617c98f9a2a63b91a5",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

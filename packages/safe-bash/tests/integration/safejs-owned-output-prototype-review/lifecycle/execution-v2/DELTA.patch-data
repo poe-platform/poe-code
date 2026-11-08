@@ -1,0 +1,197 @@
+diff --git a/tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/child.mjs b/tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v2/child.mjs
+index 9af3d4e6..a1ed1894 100644
+--- a/tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/child.mjs
++++ b/tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v2/child.mjs
+@@ -11,0 +12,4 @@ assert.ok(row);
++const revision = JSON.parse(readFileSync(join(root, "consumer/harness/REVISION.json"), "utf8"));
++const variant = revision.variants[row.id];
++const variantId = variant?.variantId ?? row.id;
++const publicSource = variant?.publicSource ?? cases.commonInputs.publicShellCommand;
+@@ -14 +18 @@ const events = [];
+-const report = { id: row.id, selected: row, pid: process.pid, node: process.version, started: new Date().toISOString(),
++const report = { id: row.id, variantId, publicSource, publicSourceHex: Buffer.from(publicSource).toString("hex"), publicSourceBytes: Buffer.byteLength(publicSource), selected: row, pid: process.pid, node: process.version, started: new Date().toISOString(),
+@@ -36,0 +41,2 @@ let diagnosticRejected = false;
++let selectorCalls = 0;
++let selectorThrows = 0;
+@@ -58,0 +65,5 @@ let authorizeCalls = 0;
++let transportCalls = 0;
++let transportCleanupCalls = 0;
++let responseDisposeCalls = 0;
++const authorizationJournal = [];
++const transportJournal = [];
+@@ -290 +301 @@ try {
+-          uploadGate.resolve(); transportClosed = true; mark("transport-cleanup-done");
++          transportCleanupCalls += 1; uploadGate.resolve(); transportClosed = true; mark("transport-cleanup-done", { count: transportCleanupCalls });
+@@ -293,2 +304,9 @@ try {
+-          authorizeCalls += 1; assert.equal(request.url, cases.curlInputs.authorizedUrl); assert.equal(request.method, cases.curlInputs.method);
+-          assert.equal(request.redirectFrom, undefined); mark("transport-authorized"); return true;
++          authorizeCalls += 1;
++          const entry = { call: authorizeCalls, url: request.url, method: request.method, attempt: request.attempt,
++            hasRedirectFrom: Object.hasOwn(request, "redirectFrom"), redirectFrom: request.redirectFrom, signalAborted: request.signal.aborted };
++          authorizationJournal.push(entry); mark("authorization-entry", entry);
++          const allowed = authorizeCalls === 1 && request.url === cases.curlInputs.authorizedUrl && request.method === cases.curlInputs.method
++            && request.attempt === 0 && request.redirectFrom === undefined && !request.signal.aborted;
++          entry.allowed = allowed; mark("authorization-decision", { call: authorizeCalls, allowed });
++          if (allowed) mark("transport-authorized");
++          return allowed;
+@@ -295,0 +314,6 @@ try {
++          transportCalls += 1;
++          const entry = { call: transportCalls, url: request.url, method: request.method, signalAborted: request.signal.aborted };
++          transportJournal.push(entry); mark("transport-entry", entry);
++          const allowed = transportCalls === 1 && request.url === cases.curlInputs.authorizedUrl && request.method === cases.curlInputs.method && !request.signal.aborted;
++          entry.allowed = allowed; mark("transport-decision", { call: transportCalls, allowed });
++          if (!allowed) throw new Error("Fixture transport denied unexpected admission");
+@@ -311 +335 @@ try {
+-          return { status: 200, statusText: "OK", httpVersion: "1.1", headers: cases.curlInputs.responseHeaders,
++          const response = { status: 200, statusText: "OK", httpVersion: "1.1", headers: cases.curlInputs.responseHeaders,
+@@ -313 +337,3 @@ try {
+-            dispose() { return disposePromise ??= Promise.resolve().then(async () => { responseDisposed = true; mark("response-disposed"); await closeTransport(); }); } };
++            dispose() { return disposePromise ??= Promise.resolve().then(async () => { responseDisposeCalls += 1; responseDisposed = true; mark("response-disposed", { count: responseDisposeCalls }); await closeTransport(); }); } };
++          mark("transport-response-created", { status: response.status, statusText: response.statusText, httpVersion: response.httpVersion, headers: response.headers, signalAborted: request.signal.aborted });
++          return response;
+@@ -361 +387,15 @@ try {
+-    if (row.id === "L05-execution-error") { diagnosticRejected = true; mark("public-diagnostic-rejected", { executionIdentity: true, attemptedHex: Buffer.from(bytes).toString("hex") }); throw executionError; }
++    if (row.id === "L05-execution-error") {
++      const selected = variant?.variantId === "L05-S1-selected-after-command" && Buffer.from(bytes).equals(Buffer.from(variant.selectorDiagnostic));
++      if (selected) {
++        selectorCalls += 1;
++        mark("selected-syntax-diagnostic-sink-enter", { count: selectorCalls, attemptedHex: Buffer.from(bytes).toString("hex"), bytes: bytes.length,
++          selectedGuestStatus, cleanupDone, cleanupErrorObserved, releases, callerAborted: caller.signal.aborted });
++      }
++      diagnosticRejected = true; mark("public-diagnostic-rejected", { executionIdentity: true, attemptedHex: Buffer.from(bytes).toString("hex") });
++      if (selected) {
++        try { throw executionError; } catch (error) {
++          selectorThrows += 1; mark("selected-syntax-diagnostic-sink-throw", { count: selectorThrows, executionIdentity: error === executionError }); throw error;
++        }
++      }
++      throw executionError;
++    }
+@@ -364,2 +404,2 @@ try {
+-  mark("public-exec-enter", { command: "owned-guest" });
+-  try { publicResult = await outer.exec("owned-guest", { signal: caller.signal, stdin: Buffer.alloc(0), stdout: publicStdout, stderr: publicStderr }); }
++  mark("public-exec-enter", { command: publicSource, variantId, sourceHex: Buffer.from(publicSource).toString("hex"), sourceBytes: Buffer.byteLength(publicSource) });
++  try { publicResult = await outer.exec(publicSource, { signal: caller.signal, stdin: Buffer.alloc(0), stdout: publicStdout, stderr: publicStderr }); }
+@@ -373,0 +414,6 @@ try {
++  if (variant?.variantId === "L05-S1-selected-after-command") report.selector = { calls: selectorCalls, throws: selectorThrows,
++    publicResultAbsent: publicResult === undefined, publicExecutionIdentity: publicError === executionError, callerAborted: caller.signal.aborted };
++  if (row.workflow === "L06") report.network = { authorizationJournal, transportJournal, transportCalls, transportCleanupCalls, responseDisposeCalls,
++    authorizationCallsForRetry: authorizationJournal.filter(entry => entry.attempt > 0).length,
++    authorizationCallsWithRedirectFrom: authorizationJournal.filter(entry => entry.redirectFrom !== undefined).length,
++    additionalTransportEntries: Math.max(0, transportJournal.length - 1) };
+@@ -440,0 +487,47 @@ try {
++  if (variant?.variantId === "L05-S1-selected-after-command") check("new exact source-selected rejection after nested status and cleanup", () => {
++    assert.equal(report.publicSource, "owned-guest\n)"); assert.equal(report.publicSourceBytes, 13);
++    assert.equal(Buffer.byteLength(variant.selectorDiagnostic), 37);
++    assert.equal(selectorCalls, 1); assert.equal(selectorThrows, 1); assert.equal(publicResult, undefined);
++    assert.equal(publicError, executionError); assert.equal(caller.signal.aborted, false); assert.equal(Buffer.concat(stderr).length, 0);
++    assert.equal(selectedGuestStatus, 1);
++    const nested = events.filter(entry => entry.event === "safejs-invoke-settled");
++    assert.equal(nested.length, 1); assert.equal(nested[0].status, 1);
++    assert.equal(events.filter(entry => entry.event === "safejs-invoke-rejected").length, 0);
++    const released = events.find(entry => entry.event === "resource-release-done" && entry.label === "guest-output");
++    const cleanup = events.find(entry => entry.event === "close-rejected" && entry.label === "guest-output" && entry.cleanupIdentity);
++    const entered = events.find(entry => entry.event === "selected-syntax-diagnostic-sink-enter");
++    const thrown = events.find(entry => entry.event === "selected-syntax-diagnostic-sink-throw");
++    const settled = events.find(entry => entry.event === "public-exec-settled");
++    assert.ok(nested[0].order < released.order && released.order < cleanup.order && cleanup.order < entered.order && entered.order < thrown.order && thrown.order < settled.order);
++    assert.equal(entered.bytes, 37); assert.equal(entered.attemptedHex, Buffer.from(variant.selectorDiagnostic).toString("hex"));
++    assert.equal(entered.selectedGuestStatus, 1); assert.equal(entered.cleanupDone, true); assert.equal(entered.cleanupErrorObserved, true);
++    assert.equal(entered.releases, 1); assert.equal(entered.callerAborted, false); assert.equal(thrown.executionIdentity, true);
++    assert.deepEqual(events.filter(entry => entry.event === "public-diagnostic-rejected").map(entry => Buffer.from(entry.attemptedHex, "hex").toString()), variant.expectedDiagnosticAttempts);
++  });
++  if (row.workflow === "L06") check("single admitted authorization and transport with exact lifetime order", () => {
++    assert.deepEqual(authorizationJournal, [{ call: 1, url: cases.curlInputs.authorizedUrl, method: "PUT", attempt: 0,
++      hasRedirectFrom: false, redirectFrom: undefined, signalAborted: false, allowed: true }]);
++    assert.deepEqual(transportJournal, [{ call: 1, url: cases.curlInputs.authorizedUrl, method: "PUT", signalAborted: false, allowed: true }]);
++    assert.equal(transportCalls, 1); assert.equal(transportCleanupCalls, 1); assert.equal(responseDisposeCalls, 1);
++    assert.equal(report.network.authorizationCallsForRetry, 0); assert.equal(report.network.authorizationCallsWithRedirectFrom, 0); assert.equal(report.network.additionalTransportEntries, 0);
++    const authorization = events.find(entry => entry.event === "authorization-entry");
++    const transport = events.find(entry => entry.event === "transport-entry");
++    const registered = events.find(entry => entry.event === "transport-cleanup-registered");
++    const uploads = events.filter(entry => entry.event === "transport-upload-received");
++    const response = events.find(entry => entry.event === "transport-response-created");
++    const disposed = events.find(entry => entry.event === "response-disposed");
++    const closed = events.find(entry => entry.event === "transport-cleanup-done");
++    const nested = events.find(entry => entry.event === "curl-invoke-settled");
++    const settled = events.find(entry => entry.event === "public-exec-settled");
++    assert.equal(uploads.length, 2);
++    assert.ok(authorization.order < transport.order && transport.order < registered.order && registered.order < uploads[0].order);
++    assert.ok(uploads[0].order < uploads[1].order && uploads[1].order < response.order);
++    assert.ok(response.order < disposed.order && response.order < closed.order && disposed.order < nested.order && closed.order < nested.order && nested.order < settled.order);
++    assert.deepEqual(uploads.map(entry => entry.hex), cases.curlInputs.uploadChunksHex);
++    assert.equal(response.status, 200); assert.equal(response.statusText, "OK"); assert.equal(response.httpVersion, "1.1");
++    assert.deepEqual(response.headers, cases.curlInputs.responseHeaders); assert.equal(response.headers.some(([name]) => name.toLowerCase() === "location"), false);
++    assert.equal(response.signalAborted, false);
++    const consumerEvents = events.filter(entry => entry.event === "curl-consumer-closed");
++    assert.equal(consumerEvents.length, row.closeCurlConsumer ? 1 : 0);
++    if (row.closeCurlConsumer) { assert.ok(uploads[0].order < consumerEvents[0].order && consumerEvents[0].order < uploads[1].order); assert.equal(consumerEvents[0].reasonIdentity, true); }
++  });
+@@ -443,0 +537 @@ try {
++  if (variant?.variantId === "L05-S1-selected-after-command" && selectorCalls !== 1) report.classification = "UNPROVED";
+@@ -468 +562 @@ try {
+-console.log(JSON.stringify({ id: row.id, classification: report.classification, engineRuns: report.engineRuns, assertions: report.assertions.map(entry => [entry.name, entry.pass]), guard: report.guard }));
++console.log(JSON.stringify({ id: row.id, variantId, classification: report.classification, engineRuns: report.engineRuns, assertions: report.assertions.map(entry => [entry.name, entry.pass]), guard: report.guard }));
+diff --git a/tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/run.mjs b/tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v2/run.mjs
+index 336da4a0..41d5f3a1 100644
+--- a/tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/run.mjs
++++ b/tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v2/run.mjs
+@@ -7,0 +8,2 @@ import { copyRegular, git, inventory, load, owner, privateState, record, reposit
++import { verifyProfile } from "./profile.mjs";
++
+@@ -11 +13 @@ assert.equal(process.cwd(), repository);
+-assert.equal(process.argv.length, 3, "Usage: node execution-v1/run.mjs NEW_OWNED_EVIDENCE_DIRECTORY");
++assert.equal(process.argv.length, 3, "Usage: node execution-v2/run.mjs NEW_OWNED_EVIDENCE_DIRECTORY");
+@@ -17 +19,3 @@ const save = (name, value) => writeFileSync(join(output, name), typeof value ===
+-const cases = load(join(lifecycle, "CASES.json"));
++const cases = load(join(directory, "CASES.json"));
++const revision = load(join(directory, "REVISION.json"));
++const variantId = row => revision.variants[row.id]?.variantId ?? row.id;
+@@ -22,2 +26,2 @@ const report = { started: new Date().toISOString(), status: "RUNNING", originalF
+-  source: pins.staticReadEquality.sourceManifestSha256, rows: [], children: [], imports: [], guardChecks: [],
+-  scopes: { runtime: "Released eleven rows / six workflows only", product: "TEMP prototype; not frozen production8670 acceptance", private: "Readonly actual checkout, regular unchanged engine copies only" } };
++  profile: revision, source: pins.staticReadEquality.sourceManifestSha256, rows: [], children: [], imports: [], guardChecks: [],
++  scopes: { runtime: "One revised eleven-row / six-workflow author cohort: eight unchanged controls and three explicitly named revised bindings", product: "TEMP prototype; not frozen production8670 acceptance", private: "Readonly actual checkout, regular unchanged engine copies only" } };
+@@ -37,2 +41,2 @@ function verifyRunner() {
+-  assert.equal(sha(git(repository, "show", `HEAD:${owner}/execution-v1/RUNNER-FREEZE.json`)), record(join(directory, "RUNNER-FREEZE.json")).sha256);
+-  return git(repository, "log", "-1", "--format=%H", "--", `${owner}/execution-v1/RUNNER-FREEZE.json`).toString().trim();
++  assert.equal(sha(git(repository, "show", `HEAD:${owner}/execution-v2/RUNNER-FREEZE.json`)), record(join(directory, "RUNNER-FREEZE.json")).sha256);
++  return git(repository, "log", "-1", "--format=%H", "--", `${owner}/execution-v2/RUNNER-FREEZE.json`).toString().trim();
+@@ -68 +72 @@ async function launch(row, deadline) {
+-  const entry = { id: row.id, pid: child.pid, command: process.execPath, args, cwd: join(temporary, "consumer"), started, closed: new Date().toISOString(), ...closed, error, containment: contained ?? null, outputBytes: size };
++  const entry = { id: row.id, variantId: variantId(row), pid: child.pid, command: process.execPath, args, cwd: join(temporary, "consumer"), started, closed: new Date().toISOString(), ...closed, error, containment: contained ?? null, outputBytes: size };
+@@ -80 +84 @@ async function launch(row, deadline) {
+-  return { id: row.id, classification, engineRuns: detail?.engineRuns ?? 0, childExit: closed.code, signal: closed.signal, containment: !!contained || !!detail?.containment, reportPresent: !!detail, fatal: detail?.fatal };
++  return { id: row.id, variantId: variantId(row), classification, engineRuns: detail?.engineRuns ?? 0, childExit: closed.code, signal: closed.signal, containment: !!contained || !!detail?.containment, reportPresent: !!detail, fatal: detail?.fatal };
+@@ -82,0 +87,3 @@ try {
++  before = privateState();
++  save("private-before.json", before);
++  report.profileProof = verifyProfile();
+@@ -103,2 +110 @@ try {
+-  before = privateState();
+-  save("private-before.json", before);
++  assert.deepEqual(before, load(join(lifecycle, "execution-v1/evidence/attempt-01/private-after.json")), "Fresh private state drift from original accepted engine profile");
+@@ -116 +122 @@ try {
+-  temporary = realpathSync(mkdtempSync("/tmp/safe-bash-owned-output-lifecycle-execution-"));
++  temporary = realpathSync(mkdtempSync("/tmp/safe-bash-owned-output-lifecycle-execution-v2-"));
+@@ -129 +135,2 @@ try {
+-  writeFileSync(join(temporary, "consumer/harness/CASES.json"), readFileSync(join(lifecycle, "CASES.json")), { flag: "wx", mode: 0o400 });
++  writeFileSync(join(temporary, "consumer/harness/CASES.json"), readFileSync(join(directory, "CASES.json")), { flag: "wx", mode: 0o400 });
++  writeFileSync(join(temporary, "consumer/harness/REVISION.json"), readFileSync(join(directory, "REVISION.json")), { flag: "wx", mode: 0o400 });
+@@ -144 +151 @@ try {
+-    if (blocked) { report.rows.push({ id: row.id, classification: "BLOCKED", engineRuns: 0, reason: blocked }); continue; }
++    if (blocked) { report.rows.push({ id: row.id, variantId: variantId(row), classification: "BLOCKED", engineRuns: 0, reason: blocked }); continue; }
+@@ -149,0 +157 @@ try {
++    if (result.classification !== "PASS") blocked = `First revised-cohort non-pass in ${variantId(row)}; no later child or retry authorized`;
+@@ -180,0 +189,2 @@ try {
++    report.profileAfter = verifyProfile();
++    report.runnerAfterCommit = verifyRunner();
+@@ -189 +199 @@ try {
+-  for (const row of cases.rows) if (!report.rows.some(entry => entry.id === row.id)) report.rows.push({ id: row.id, classification: "BLOCKED", engineRuns: 0, reason: "Earlier input/harness failure; no guest launched" });
++  for (const row of cases.rows) if (!report.rows.some(entry => entry.id === row.id)) report.rows.push({ id: row.id, variantId: variantId(row), classification: "BLOCKED", engineRuns: 0, reason: "Earlier input/harness failure; no guest launched" });
+diff --git a/tests/integration/safejs-owned-output-prototype-review/lifecycle/CASES.json b/tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v2/CASES.json
+index bba6fd73..727b1499 100644
+--- a/tests/integration/safejs-owned-output-prototype-review/lifecycle/CASES.json
++++ b/tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v2/CASES.json
+@@ -118 +118 @@
+-    "limits": {"maxUploadBytes": 1024, "maxDownloadBytes": 1024, "maxBufferBytes": 4096, "maxHeaderBytes": 4096, "maxRedirects": 0, "maxRetries": 0, "maxUrls": 1, "maxTimeMs": 2500},
++    "limits": {"maxUploadBytes": 1024, "maxDownloadBytes": 1024, "maxBufferBytes": 4096, "maxHeaderBytes": 4096, "maxRedirects": 1, "maxRetries": 1, "maxUrls": 1, "maxTimeMs": 2500},

@@ -1,0 +1,456 @@
+{
+  "capturedAt": "2026-08-27T02:08:36.716Z",
+  "executable": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/cksum",
+  "sha256": "0b7f60af075d73d860c3c1f3b467856f2ff8c64da61ce0285fdd89fe3986de43",
+  "version": "cksum (GNU coreutils) 9.7",
+  "rows": [
+    {
+      "args": [
+        "-a",
+        "crc"
+      ],
+      "stdin": "AID/DQpB",
+      "files": {
+        "input": "AID/DQpB",
+        "line\nname": "AID/DQpB",
+        "back\\name": "AID/DQpB"
+      },
+      "stdout": "MzA1NDAwNjQ4MyA2Cg==",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "--algorithm=crc",
+        "input"
+      ],
+      "stdin": "AID/DQpB",
+      "files": {
+        "input": "AID/DQpB",
+        "line\nname": "AID/DQpB",
+        "back\\name": "AID/DQpB"
+      },
+      "stdout": "MzA1NDAwNjQ4MyA2IGlucHV0Cg==",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "-a",
+        "crc",
+        "line\nname",
+        "back\\name"
+      ],
+      "stdin": "AID/DQpB",
+      "files": {
+        "input": "AID/DQpB",
+        "line\nname": "AID/DQpB",
+        "back\\name": "AID/DQpB"
+      },
+      "stdout": "MzA1NDAwNjQ4MyA2IGxpbmUKbmFtZQozMDU0MDA2NDgzIDYgYmFja1xuYW1lCg==",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "-z",
+        "-a",
+        "crc",
+        "line\nname"
+      ],
+      "stdin": "AID/DQpB",
+      "files": {
+        "input": "AID/DQpB",
+        "line\nname": "AID/DQpB",
+        "back\\name": "AID/DQpB"
+      },
+      "stdout": "MzA1NDAwNjQ4MyA2IGxpbmUKbmFtZQA=",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "-a",
+        "md5"
+      ],
+      "stdin": "AID/DQpB",
+      "files": {
+        "input": "AID/DQpB",
+        "line\nname": "AID/DQpB",
+        "back\\name": "AID/DQpB"
+      },
+      "stdout": "TUQ1ICgtKSA9IDc5MTMwYzhhZjY2YmVkY2JkOTQzYjNkNGViMmUwZGVhCg==",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "--algorithm=md5",
+        "input"
+      ],
+      "stdin": "AID/DQpB",
+      "files": {
+        "input": "AID/DQpB",
+        "line\nname": "AID/DQpB",
+        "back\\name": "AID/DQpB"
+      },
+      "stdout": "TUQ1IChpbnB1dCkgPSA3OTEzMGM4YWY2NmJlZGNiZDk0M2IzZDRlYjJlMGRlYQo=",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "-a",
+        "md5",
+        "line\nname",
+        "back\\name"
+      ],
+      "stdin": "AID/DQpB",
+      "files": {
+        "input": "AID/DQpB",
+        "line\nname": "AID/DQpB",
+        "back\\name": "AID/DQpB"
+      },
+      "stdout": "XE1ENSAobGluZVxubmFtZSkgPSA3OTEzMGM4YWY2NmJlZGNiZDk0M2IzZDRlYjJlMGRlYQpcTUQ1IChiYWNrXFxuYW1lKSA9IDc5MTMwYzhhZjY2YmVkY2JkOTQzYjNkNGViMmUwZGVhCg==",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "-z",
+        "-a",
+        "md5",
+        "line\nname"
+      ],
+      "stdin": "AID/DQpB",
+      "files": {
+        "input": "AID/DQpB",
+        "line\nname": "AID/DQpB",
+        "back\\name": "AID/DQpB"
+      },
+      "stdout": "TUQ1IChsaW5lCm5hbWUpID0gNzkxMzBjOGFmNjZiZWRjYmQ5NDNiM2Q0ZWIyZTBkZWEA",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "-a",
+        "sha1"
+      ],
+      "stdin": "AID/DQpB",
+      "files": {
+        "input": "AID/DQpB",
+        "line\nname": "AID/DQpB",
+        "back\\name": "AID/DQpB"
+      },
+      "stdout": "U0hBMSAoLSkgPSAwY2FiNDAyZDgzZjFiM2Q2MjBmZDc4ZDNhY2Y2YTFhMDQzNDkyNTYxCg==",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "--algorithm=sha1",
+        "input"
+      ],
+      "stdin": "AID/DQpB",
+      "files": {
+        "input": "AID/DQpB",
+        "line\nname": "AID/DQpB",
+        "back\\name": "AID/DQpB"
+      },
+      "stdout": "U0hBMSAoaW5wdXQpID0gMGNhYjQwMmQ4M2YxYjNkNjIwZmQ3OGQzYWNmNmExYTA0MzQ5MjU2MQo=",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "-a",
+        "sha1",
+        "line\nname",
+        "back\\name"
+      ],
+      "stdin": "AID/DQpB",
+      "files": {
+        "input": "AID/DQpB",
+        "line\nname": "AID/DQpB",
+        "back\\name": "AID/DQpB"
+      },
+      "stdout": "XFNIQTEgKGxpbmVcbm5hbWUpID0gMGNhYjQwMmQ4M2YxYjNkNjIwZmQ3OGQzYWNmNmExYTA0MzQ5MjU2MQpcU0hBMSAoYmFja1xcbmFtZSkgPSAwY2FiNDAyZDgzZjFiM2Q2MjBmZDc4ZDNhY2Y2YTFhMDQzNDkyNTYxCg==",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "-z",
+        "-a",
+        "sha1",
+        "line\nname"
+      ],
+      "stdin": "AID/DQpB",
+      "files": {
+        "input": "AID/DQpB",
+        "line\nname": "AID/DQpB",
+        "back\\name": "AID/DQpB"
+      },
+      "stdout": "U0hBMSAobGluZQpuYW1lKSA9IDBjYWI0MDJkODNmMWIzZDYyMGZkNzhkM2FjZjZhMWEwNDM0OTI1NjEA",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "-a",
+        "sha224"
+      ],
+      "stdin": "AID/DQpB",
+      "files": {
+        "input": "AID/DQpB",
+        "line\nname": "AID/DQpB",
+        "back\\name": "AID/DQpB"
+      },
+      "stdout": "U0hBMjI0ICgtKSA9IGRjN2ZhNzg0NWEyMGQwYTkyOWEyNzNiYzJhYmUxNDhlYTg3Y2U1YmJmZDRlYmQzMmU0Y2FmZjhlCg==",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "--algorithm=sha224",
+        "input"
+      ],
+      "stdin": "AID/DQpB",
+      "files": {
+        "input": "AID/DQpB",
+        "line\nname": "AID/DQpB",
+        "back\\name": "AID/DQpB"
+      },
+      "stdout": "U0hBMjI0IChpbnB1dCkgPSBkYzdmYTc4NDVhMjBkMGE5MjlhMjczYmMyYWJlMTQ4ZWE4N2NlNWJiZmQ0ZWJkMzJlNGNhZmY4ZQo=",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "-a",
+        "sha224",
+        "line\nname",
+        "back\\name"
+      ],
+      "stdin": "AID/DQpB",
+      "files": {
+        "input": "AID/DQpB",
+        "line\nname": "AID/DQpB",
+        "back\\name": "AID/DQpB"
+      },
+      "stdout": "XFNIQTIyNCAobGluZVxubmFtZSkgPSBkYzdmYTc4NDVhMjBkMGE5MjlhMjczYmMyYWJlMTQ4ZWE4N2NlNWJiZmQ0ZWJkMzJlNGNhZmY4ZQpcU0hBMjI0IChiYWNrXFxuYW1lKSA9IGRjN2ZhNzg0NWEyMGQwYTkyOWEyNzNiYzJhYmUxNDhlYTg3Y2U1YmJmZDRlYmQzMmU0Y2FmZjhlCg==",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "-z",
+        "-a",
+        "sha224",
+        "line\nname"
+      ],
+      "stdin": "AID/DQpB",
+      "files": {
+        "input": "AID/DQpB",
+        "line\nname": "AID/DQpB",
+        "back\\name": "AID/DQpB"
+      },
+      "stdout": "U0hBMjI0IChsaW5lCm5hbWUpID0gZGM3ZmE3ODQ1YTIwZDBhOTI5YTI3M2JjMmFiZTE0OGVhODdjZTViYmZkNGViZDMyZTRjYWZmOGUA",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "-a",
+        "sha256"
+      ],
+      "stdin": "AID/DQpB",
+      "files": {
+        "input": "AID/DQpB",
+        "line\nname": "AID/DQpB",
+        "back\\name": "AID/DQpB"
+      },
+      "stdout": "U0hBMjU2ICgtKSA9IDE2ZTJlMTZiMjQ4YmIyN2E5MjQ2ZWY4NmJhZjBkMWQ4ZDBlYzFlYjNkZThiM2FmZGZhMmJjMDk5YjE3YTA2YTEK",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "--algorithm=sha256",
+        "input"
+      ],
+      "stdin": "AID/DQpB",
+      "files": {
+        "input": "AID/DQpB",
+        "line\nname": "AID/DQpB",
+        "back\\name": "AID/DQpB"
+      },
+      "stdout": "U0hBMjU2IChpbnB1dCkgPSAxNmUyZTE2YjI0OGJiMjdhOTI0NmVmODZiYWYwZDFkOGQwZWMxZWIzZGU4YjNhZmRmYTJiYzA5OWIxN2EwNmExCg==",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "-a",
+        "sha256",
+        "line\nname",
+        "back\\name"
+      ],
+      "stdin": "AID/DQpB",
+      "files": {
+        "input": "AID/DQpB",
+        "line\nname": "AID/DQpB",
+        "back\\name": "AID/DQpB"
+      },
+      "stdout": "XFNIQTI1NiAobGluZVxubmFtZSkgPSAxNmUyZTE2YjI0OGJiMjdhOTI0NmVmODZiYWYwZDFkOGQwZWMxZWIzZGU4YjNhZmRmYTJiYzA5OWIxN2EwNmExClxTSEEyNTYgKGJhY2tcXG5hbWUpID0gMTZlMmUxNmIyNDhiYjI3YTkyNDZlZjg2YmFmMGQxZDhkMGVjMWViM2RlOGIzYWZkZmEyYmMwOTliMTdhMDZhMQo=",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "-z",
+        "-a",
+        "sha256",
+        "line\nname"
+      ],
+      "stdin": "AID/DQpB",
+      "files": {
+        "input": "AID/DQpB",
+        "line\nname": "AID/DQpB",
+        "back\\name": "AID/DQpB"
+      },
+      "stdout": "U0hBMjU2IChsaW5lCm5hbWUpID0gMTZlMmUxNmIyNDhiYjI3YTkyNDZlZjg2YmFmMGQxZDhkMGVjMWViM2RlOGIzYWZkZmEyYmMwOTliMTdhMDZhMQA=",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "-a",
+        "sha384"
+      ],
+      "stdin": "AID/DQpB",
+      "files": {
+        "input": "AID/DQpB",
+        "line\nname": "AID/DQpB",
+        "back\\name": "AID/DQpB"
+      },
+      "stdout": "U0hBMzg0ICgtKSA9IDk4OTJmNWQyZjYyYjRjZGE0NzQ1NjIyZTcyZTBkZTI4YmZlZWJjYThlMTRiYzYzOTg1NGUwYjI5YWQ0NjE2M2IzNDlmMjExZDI3YTIyZDMyYmExNGU0NTA3Njk4NjE3OQo=",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "--algorithm=sha384",
+        "input"
+      ],
+      "stdin": "AID/DQpB",
+      "files": {
+        "input": "AID/DQpB",
+        "line\nname": "AID/DQpB",
+        "back\\name": "AID/DQpB"
+      },
+      "stdout": "U0hBMzg0IChpbnB1dCkgPSA5ODkyZjVkMmY2MmI0Y2RhNDc0NTYyMmU3MmUwZGUyOGJmZWViY2E4ZTE0YmM2Mzk4NTRlMGIyOWFkNDYxNjNiMzQ5ZjIxMWQyN2EyMmQzMmJhMTRlNDUwNzY5ODYxNzkK",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "-a",
+        "sha384",
+        "line\nname",
+        "back\\name"
+      ],
+      "stdin": "AID/DQpB",
+      "files": {
+        "input": "AID/DQpB",
+        "line\nname": "AID/DQpB",
+        "back\\name": "AID/DQpB"
+      },
+      "stdout": "XFNIQTM4NCAobGluZVxubmFtZSkgPSA5ODkyZjVkMmY2MmI0Y2RhNDc0NTYyMmU3MmUwZGUyOGJmZWViY2E4ZTE0YmM2Mzk4NTRlMGIyOWFkNDYxNjNiMzQ5ZjIxMWQyN2EyMmQzMmJhMTRlNDUwNzY5ODYxNzkKXFNIQTM4NCAoYmFja1xcbmFtZSkgPSA5ODkyZjVkMmY2MmI0Y2RhNDc0NTYyMmU3MmUwZGUyOGJmZWViY2E4ZTE0YmM2Mzk4NTRlMGIyOWFkNDYxNjNiMzQ5ZjIxMWQyN2EyMmQzMmJhMTRlNDUwNzY5ODYxNzkK",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "-z",
+        "-a",
+        "sha384",
+        "line\nname"
+      ],
+      "stdin": "AID/DQpB",
+      "files": {
+        "input": "AID/DQpB",
+        "line\nname": "AID/DQpB",
+        "back\\name": "AID/DQpB"
+      },
+      "stdout": "U0hBMzg0IChsaW5lCm5hbWUpID0gOTg5MmY1ZDJmNjJiNGNkYTQ3NDU2MjJlNzJlMGRlMjhiZmVlYmNhOGUxNGJjNjM5ODU0ZTBiMjlhZDQ2MTYzYjM0OWYyMTFkMjdhMjJkMzJiYTE0ZTQ1MDc2OTg2MTc5AA==",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "-a",
+        "sha512"
+      ],
+      "stdin": "AID/DQpB",
+      "files": {
+        "input": "AID/DQpB",
+        "line\nname": "AID/DQpB",
+        "back\\name": "AID/DQpB"
+      },
+      "stdout": "U0hBNTEyICgtKSA9IGQxNTQyMTAyNTg4ZGFiMGNmOTQ2ODNjNDE5OTZiMzYyZGUyNzFjZWNhMmJlN2M2NzA0MTZlZWUyYjQ0MTRkMGEwMDg0ZTZhNDM0MDIwZGJhOTlhOTc1MWE3NzE4YjIwMmEzY2Y1NWQ1MmY5OTA2ODk1NzdjMjRlYzk4YjE5OTBkCg==",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "--algorithm=sha512",
+        "input"
+      ],
+      "stdin": "AID/DQpB",
+      "files": {
+        "input": "AID/DQpB",
+        "line\nname": "AID/DQpB",
+        "back\\name": "AID/DQpB"
+      },
+      "stdout": "U0hBNTEyIChpbnB1dCkgPSBkMTU0MjEwMjU4OGRhYjBjZjk0NjgzYzQxOTk2YjM2MmRlMjcxY2VjYTJiZTdjNjcwNDE2ZWVlMmI0NDE0ZDBhMDA4NGU2YTQzNDAyMGRiYTk5YTk3NTFhNzcxOGIyMDJhM2NmNTVkNTJmOTkwNjg5NTc3YzI0ZWM5OGIxOTkwZAo=",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "-a",
+        "sha512",
+        "line\nname",
+        "back\\name"
+      ],
+      "stdin": "AID/DQpB",
+      "files": {
+        "input": "AID/DQpB",
+        "line\nname": "AID/DQpB",
+        "back\\name": "AID/DQpB"
+      },
+      "stdout": "XFNIQTUxMiAobGluZVxubmFtZSkgPSBkMTU0MjEwMjU4OGRhYjBjZjk0NjgzYzQxOTk2YjM2MmRlMjcxY2VjYTJiZTdjNjcwNDE2ZWVlMmI0NDE0ZDBhMDA4NGU2YTQzNDAyMGRiYTk5YTk3NTFhNzcxOGIyMDJhM2NmNTVkNTJmOTkwNjg5NTc3YzI0ZWM5OGIxOTkwZApcU0hBNTEyIChiYWNrXFxuYW1lKSA9IGQxNTQyMTAyNTg4ZGFiMGNmOTQ2ODNjNDE5OTZiMzYyZGUyNzFjZWNhMmJlN2M2NzA0MTZlZWUyYjQ0MTRkMGEwMDg0ZTZhNDM0MDIwZGJhOTlhOTc1MWE3NzE4YjIwMmEzY2Y1NWQ1MmY5OTA2ODk1NzdjMjRlYzk4YjE5OTBkCg==",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "args": [
+        "-z",
+        "-a",
+        "sha512",
+        "line\nname"
+      ],
+      "stdin": "AID/DQpB",
+      "files": {
+        "input": "AID/DQpB",
+        "line\nname": "AID/DQpB",
+        "back\\name": "AID/DQpB"
+      },
+      "stdout": "U0hBNTEyIChsaW5lCm5hbWUpID0gZDE1NDIxMDI1ODhkYWIwY2Y5NDY4M2M0MTk5NmIzNjJkZTI3MWNlY2EyYmU3YzY3MDQxNmVlZTJiNDQxNGQwYTAwODRlNmE0MzQwMjBkYmE5OWE5NzUxYTc3MThiMjAyYTNjZjU1ZDUyZjk5MDY4OTU3N2MyNGVjOThiMTk5MGQA",
+      "stderr": "",
+      "exitCode": 0
+    }
+  ]
+}

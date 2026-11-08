@@ -1,0 +1,97 @@
+--- 3f6db4dd29950d92410a4d4f9871ba18a5b56e89/run.mjs
++++ independent/lifecycle-run.mjs
+@@ -3,16 +3,16 @@
+ import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync } from "node:fs";
+ import { dirname, join, relative, resolve } from "node:path";
+ import { fileURLToPath, pathToFileURL } from "node:url";
+-import { copyRegular, git, inventory, load, owner, privateState, record, repository, serialize, sha, state, verifyOriginal } from "./common.mjs";
++import { copyRegular, git, inventory, load, owner, privateState, record, repository, serialize, sha, state, verifyOriginal } from "/private/tmp/safe-bash-independent-v2-inputs-5dho_5db/lifecycle/execution-v2/common.mjs";
+ 
+-import { verifyProfile } from "./profile.mjs";
++import { verifyProfile } from "/private/tmp/safe-bash-independent-v2-inputs-5dho_5db/lifecycle/execution-v2/profile.mjs";
+ 
+-const directory = dirname(fileURLToPath(import.meta.url));
++const directory = "/private/tmp/safe-bash-independent-v2-inputs-5dho_5db/lifecycle/execution-v2";
+ const lifecycle = resolve(directory, "..");
+ assert.equal(process.cwd(), repository);
+ assert.equal(process.argv.length, 3, "Usage: node execution-v2/run.mjs NEW_OWNED_EVIDENCE_DIRECTORY");
+ const output = resolve(process.argv[2]);
+-assert.ok(output.startsWith(join(directory, "evidence") + "/"));
++assert.ok(output.startsWith("/private/tmp/safe-bash-independent-v2-inputs-5dho_5db/independent-results/"));
+ assert.equal(existsSync(output), false, "Preserve every previous attempt");
+ mkdirSync(output, { recursive: true });
+ const save = (name, value) => writeFileSync(join(output, name), typeof value === "string" ? value : JSON.stringify(value, null, 2) + "\n", { flag: "wx" });
+@@ -24,7 +24,25 @@
+ const report = { started: new Date().toISOString(), status: "RUNNING", originalFreeze: "c8df5cf2819d7ad9d54c2a70800258c7c200665a",
+   receiptReview: "07a7dae5db51612a23e74d1d164d33723d4d61b6", reportCorrection: "db139ae983ad66364e0367f9fb1ed0262ee61f63",
+   profile: revision, source: pins.staticReadEquality.sourceManifestSha256, rows: [], children: [], imports: [], guardChecks: [],
+-  scopes: { runtime: "One revised eleven-row / six-workflow author cohort: eight unchanged controls and three explicitly named revised bindings", product: "TEMP prototype; not frozen production8670 acceptance", private: "Readonly actual checkout, regular unchanged engine copies only" } };
++  scopes: { runtime: "Independent exact-child eleven-row replay: eight unchanged controls and three approved revised bindings", product: "TEMP prototype; not frozen production8670 acceptance", private: "Readonly actual checkout, regular unchanged engine copies only" } };
++function independentDirectoryShape(roots) {
++  const output = {};
++  for (const root of roots) {
++    const entries = [];
++    const visit = directory => {
++      for (const entry of readdirSync(directory, { withFileTypes: true }).sort((left, right) => left.name.localeCompare(right.name))) {
++        assert.ok(entry.isDirectory() || entry.isFile(), `Nonregular independent input: ${entry.name}`);
++        const filename = join(directory, entry.name);
++        entries.push({ path: relative(root, filename), kind: entry.isDirectory() ? "directory" : "file" });
++        if (entry.isDirectory()) visit(filename);
++      }
++    };
++    visit(root); output[root] = entries;
++  }
++  return output;
++}
++let independentShapes;
++
+ let temporary;
+ let immutable;
+ let sharedBefore;
+@@ -35,11 +53,11 @@
+ function verifyRunner() {
+   for (const entry of runnerFreeze.files) {
+     assert.equal(record(join(directory, entry.path)).sha256, entry.sha256, entry.path);
+-    const filename = relative(repository, join(directory, entry.path));
+-    assert.equal(sha(git(repository, "show", `HEAD:${filename}`)), entry.sha256, `Runner must be committed before guests: ${filename}`);
+-  }
+-  assert.equal(sha(git(repository, "show", `HEAD:${owner}/execution-v2/RUNNER-FREEZE.json`)), record(join(directory, "RUNNER-FREEZE.json")).sha256);
+-  return git(repository, "log", "-1", "--format=%H", "--", `${owner}/execution-v2/RUNNER-FREEZE.json`).toString().trim();
++    const filename = `tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v2/${entry.path}`;
++    assert.equal(sha(git(repository, "show", `3f6db4dd29950d92410a4d4f9871ba18a5b56e89:${filename}`)), entry.sha256, `Runner must be committed before guests: ${filename}`);
++  }
++  assert.equal(sha(git(repository, "show", `3f6db4dd29950d92410a4d4f9871ba18a5b56e89:${owner}/execution-v2/RUNNER-FREEZE.json`)), record(join(directory, "RUNNER-FREEZE.json")).sha256);
++  return "3f6db4dd29950d92410a4d4f9871ba18a5b56e89";
+ }
+ function currentImmutable() {
+   return Object.fromEntries(["product", "engine", "node_modules", "consumer/node_modules/virtual-bash", "consumer/harness"].map(name => [name, inventory(join(temporary, name), new Set(), true)]));
+@@ -119,7 +137,7 @@
+   const assembly = load(join(repository, "tests/integration/safejs-owned-output-prototype-review/provenance/assembly.json"));
+   for (const root of [proof.routes.sourceRoute, proof.routes.packagedRoute, assembly.candidate]) assert.deepEqual(inventory(root), assembly.candidateFiles);
+   assert.equal(sha(JSON.stringify(assembly.candidateFiles.filter(entry => entry.path.startsWith("src/")))), report.source);
+-  temporary = realpathSync(mkdtempSync("/tmp/safe-bash-owned-output-lifecycle-execution-v2-"));
++  temporary = realpathSync(mkdtempSync("/private/tmp/safe-bash-independent-lifecycle-v2-"));
+   report.temporary = temporary;
+   for (const name of ["logs", "tmp", "home", "consumer/harness"]) mkdirSync(join(temporary, name), { recursive: true });
+   copyRegular(proof.routes.packagedRoute, join(temporary, "product"), assembly.candidateFiles);
+@@ -139,6 +157,8 @@
+     XDG_CACHE_HOME: join(temporary, "tmp"), TSX_DISABLE_CACHE: "1", TSX_CACHE_DIR: join(temporary, "tmp"), GIT_OPTIONAL_LOCKS: "0", LC_ALL: "C", TZ: "UTC", SURFACE_ROOT: temporary };
+   report.environment = environment;
+   immutable = currentImmutable();
++  independentShapes = independentDirectoryShape([...Object.keys(immutable).map(name => join(temporary, name)), ...sharedRoots]);
++  save("independent-directory-before.json", independentShapes);
+   save("immutable-before.json", immutable);
+   save("runner-freeze.json", runnerFreeze);
+   save("original-freeze.json", load(join(lifecycle, "FREEZE.json")));
+@@ -188,7 +208,10 @@
+     report.originalAfter = verifyOriginal();
+     report.profileAfter = verifyProfile();
+     report.runnerAfterCommit = verifyRunner();
+-    if (immutable) { verifyCopies("after-execution"); save("immutable-after.json", currentImmutable()); }
++    if (immutable) {
++      const shapesAfter = independentDirectoryShape([...Object.keys(immutable).map(name => join(temporary, name)), ...sharedRoots]);
++      save("independent-directory-after.json", shapesAfter); assert.deepEqual(shapesAfter, independentShapes);
++      verifyCopies("after-execution"); save("immutable-after.json", currentImmutable()); }
+     if (sharedBefore) {
+       const sharedAfter = Object.fromEntries(sharedRoots.map(root => [root, inventory(root, new Set(), true)]));
+       save("shared-after.json", sharedAfter); assert.deepEqual(sharedAfter, sharedBefore); report.sharedUnchanged = true;

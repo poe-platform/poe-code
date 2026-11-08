@@ -1,0 +1,110 @@
+{
+  "profile": "primary-5.3",
+  "oracle": {
+    "executable": "/tmp/safe-bash-gnu-5.3-adjudication.0zMRKT/bash-5.3/bash",
+    "executableHash": "a0cfc1af0ff50f6b6e67c638979e2604f1c276c90116937fbaafcabb62ee2b40",
+    "version": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)",
+    "archiveSHA256": "0d5cd86965f869a26cf64f4b71be7b96f90a3ba8b3d74e27e8e9d9d5550f31ba",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "<record.source>",
+      "shell"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "PATH": "/__safe_bash_oracle_no_path__"
+    },
+    "stdin": null
+  },
+  "provenance": {
+    "capturePath": "/tmp/safe-bash-scripting-oracles-20260904/function-coordinate-review-20260905/results.json",
+    "captureSHA256": "af40155af991580fd1026554020faf44cf890eafa8081047ddb24d01968ad9b8",
+    "driverPath": "/tmp/safe-bash-scripting-oracles-20260904/function-coordinate-review-20260905/review.mts",
+    "driverSHA256": "f1e560910eae411ad6335baada51cd123dd0019aba5c91d702574e7ed4cc6673",
+    "policy": "Eight original control names and program strings are unchanged. Expected status/stdoutHex/stderrHex are copied exclusively from controls[index].expected, captured from authenticated native Bash 5.3.0. No current or baseline4a virtual observation is used as an expectation. Original observations remain preserved in the capture."
+  },
+  "records": [
+    {
+      "name": "eval-created function inside substitution",
+      "source": ":\n:\nprintf '%s' \"$(eval 'fn() {\n:\nmissing_coordinate;\n}\n'; fn)\"",
+      "captureIndex": 0,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520353a206d697373696e675f636f6f7264696e6174653a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "if in substituted function body",
+      "source": ":\nprintf '%s' \"$(fn(){ if true; then missing_coordinate; fi; }; fn)\"",
+      "captureIndex": 1,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520353a206d697373696e675f636f6f7264696e6174653a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "for in substituted function body",
+      "source": ":\nprintf '%s' \"$(fn(){ for item in one; do missing_coordinate; done; }; fn)\"",
+      "captureIndex": 2,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520363a206d697373696e675f636f6f7264696e6174653a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "while in substituted function body",
+      "source": ":\nprintf '%s' \"$(fn(){ while true; do missing_coordinate; break; done; }; fn)\"",
+      "captureIndex": 3,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520353a206d697373696e675f636f6f7264696e6174653a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "if before substituted function declaration",
+      "source": ":\nprintf '%s' \"$(if true; then :; fi; fn(){ missing_coordinate; }; fn)\"",
+      "captureIndex": 4,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520363a206d697373696e675f636f6f7264696e6174653a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "multiline argument before substituted function declaration",
+      "source": ":\nprintf '%s' \"$(printf '%s' 'first\nlast'; fn(){ missing_coordinate; }; fn)\"",
+      "captureIndex": 5,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "66697273740a6c617374",
+        "stderrHex": "7368656c6c3a206c696e6520353a206d697373696e675f636f6f7264696e6174653a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "multiple multiline arguments in substituted function",
+      "source": ":\nprintf '%s' \"$(fn(){ printf '%s' 'first\nlast' 'more\nlines'; missing_coordinate; }; fn)\"",
+      "captureIndex": 6,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "66697273740a6c6173746d6f72650a6c696e6573",
+        "stderrHex": "7368656c6c3a206c696e6520373a206d697373696e675f636f6f7264696e6174653a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "eval-created conditional function outside substitution",
+      "source": ":\n:\neval 'fn() {\nif true; then\nmissing_coordinate;\nfi;\n}\n'; eval fn",
+      "captureIndex": 7,
+      "expected": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520353a206d697373696e675f636f6f7264696e6174653a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    }
+  ]
+}

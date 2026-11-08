@@ -1,0 +1,21 @@
+{
+  "source": {
+    "path": "/private/tmp/coherent-b1-r5-runtime/capture/03-workflow-physically-moved.stderr",
+    "bytes": 170944,
+    "sha256": "2590f03400b5990a51b8ddc73f57501bb067cb9c0d9990086c07985b86301a6a",
+    "mode": 420,
+    "dev": 16777232,
+    "ino": 190027232,
+    "mtimeMs": 1788021747746.272,
+    "origin": {
+      "finalSha256": "89f3c55c91dc664a94df815ef23d5ddbbe6fb7376a1ef5a8e490255c475dd72b",
+      "locator": "/private/tmp/coherent-b1-r5-runtime/capture/03-workflow-physically-moved.stderr"
+    },
+    "role": "fixed-capture-directory-member"
+  },
+  "dataPath": "data/a6641014bd3b10cab136401a8b3c5c8edbbf7346019c415df75a932093c41edc.raw",
+  "identityPath": "identities/a6641014bd3b10cab136401a8b3c5c8edbbf7346019c415df75a932093c41edc.json",
+  "copiedBytes": 170944,
+  "copiedMode": 420,
+  "copiedSha256": "2590f03400b5990a51b8ddc73f57501bb067cb9c0d9990086c07985b86301a6a"
+}

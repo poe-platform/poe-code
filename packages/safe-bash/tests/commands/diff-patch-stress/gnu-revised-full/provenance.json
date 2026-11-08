@@ -1,0 +1,39 @@
+{
+  "role": "editor/author",
+  "capturedDriverSha256": "4d3ab02482002be80295f117d3a7f422169b7888459017bb903ecd59025105c5",
+  "committedDriverSha256": "9f2e7b580ee866f4c74422169590d95723bdefc2720bf0c7be231abfe7e4b4af",
+  "onlyPostRunDriverChange": {
+    "before": "  const pinsAfter = run(\"pins-after\", [\"--import\", \"tsx\", \"--input-type=module\", \"-e\", `import {oracleIdentity} from './tests/commands/diff-patch-stress/gnu-target/oracle.ts';console.log(JSON.stringify(['gnu','apple-calibration'].flatMap(profile=>['diff','patch'].map(tool=>({profile,tool,...oracleIdentity(tool,profile)}))))`]);",
+    "after": "  const pinsAfter = run(\"pins-after\", [\"--import\", \"tsx\", \"--input-type=module\", \"-e\", `import {oracleIdentity} from './tests/commands/diff-patch-stress/gnu-target/oracle.ts';console.log(JSON.stringify(['gnu','apple-calibration'].flatMap(profile=>['diff','patch'].map(tool=>({profile,tool,...oracleIdentity(tool,profile)})))));`]);"
+  },
+  "newScriptSyntaxChecks": [
+    {
+      "file": "tests/commands/diff-patch-stress/gnu-revised-full/delta-v1.mjs",
+      "exitCode": 0,
+      "sha256": "dab23166e15d2bc9bbb59ba0441ef7989221ff7e302a994a56c1a5ff5cfba8dc"
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/gnu-revised-full/finalize.mjs",
+      "exitCode": 0,
+      "sha256": "2d4c52c4bace7f8022abcf8c0d7081b75453c166e423b567b3d8801973db12f6"
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/gnu-revised-full/proof.mjs",
+      "exitCode": 0,
+      "sha256": "0eadc2d29ecd3b4163828f6559b6f4752554e6199811f9f8d50f6e49a57c83ed"
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/gnu-revised-full/read-evidence.mjs",
+      "exitCode": 0,
+      "sha256": "31c5ab1722c70ad5e94dad0cf637e4377a05e13e957e067e32608decb49ee1b2"
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/gnu-revised-full/run.mjs",
+      "exitCode": 0,
+      "sha256": "9f2e7b580ee866f4c74422169590d95723bdefc2720bf0c7be231abfe7e4b4af"
+    }
+  ],
+  "correctedPinExpressionSyntaxExitCode": 0,
+  "fullCohortRerun": false,
+  "archiveMembers": 273
+}

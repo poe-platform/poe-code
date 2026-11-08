@@ -1,0 +1,23 @@
+{
+  "source": "02a78bf64c29dedcd69071551ed5848b0765c107",
+  "overlay": false,
+  "results": [
+    {
+      "name": "original-consumer13",
+      "status": 1,
+      "counts": {
+        "tests": 13,
+        "pass": 12,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    }
+  ],
+  "runtimeModuleCount": 157,
+  "cleanup": {
+    "workspace": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/release-timestamp/.work-93U9g7",
+    "removed": true
+  }
+}

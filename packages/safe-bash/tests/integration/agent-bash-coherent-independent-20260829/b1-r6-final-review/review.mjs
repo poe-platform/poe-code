@@ -1,0 +1,65 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import assert from 'node:assert/strict';
+import { pathToFileURL } from 'node:url';
+const own = path.resolve('tests/integration/agent-bash-coherent-independent-20260829/b1-r6-final-review');
+const base = path.resolve('tests/integration/agent-bash-coherent-author-20260829/final-admin-r6');
+const deadline = fs.statSync(`${own}/raw/startup.stdout`).birthtimeMs + 420000;
+const admitted = new Map();
+const jsonVisited = new Set();
+function admit(pin) {
+  assert(Date.now() < deadline, 'REVIEW_DEADLINE');
+  assert(typeof pin.path === 'string' && /^[a-f0-9]{64}$/.test(pin.sha256));
+  const file = path.resolve(pin.path);
+  const stat = fs.lstatSync(file);
+  assert(stat.isFile() && !stat.isSymbolicLink(), `REGULAR:${file}`);
+  assert(Number.isSafeInteger(pin.bytes) && stat.size === pin.bytes && stat.size <= 120000000, `SIZE:${file}`);
+  if (pin.mode !== undefined) assert.equal(stat.mode & 511, pin.mode, `MODE:${file}`);
+  const hash = crypto.createHash('sha256');
+  const descriptor = fs.openSync(file, 'r');
+  const chunk = Buffer.alloc(65536);
+  const chunks = file.endsWith('.json') && stat.size <= 1048576 ? [] : null;
+  let total = 0;
+  try { for (;;) { const size = fs.readSync(descriptor, chunk, 0, chunk.length, null); if (!size) break; total += size; hash.update(chunk.subarray(0, size)); if (chunks) chunks.push(Buffer.from(chunk.subarray(0, size))); } }
+  finally { fs.closeSync(descriptor); }
+  assert.equal(total, pin.bytes); assert.equal(hash.digest('hex'), pin.sha256, `HASH:${file}`);
+  admitted.set(file, { path: file, bytes: total, sha256: pin.sha256 });
+  assert(admitted.size <= 256);
+  return chunks ? JSON.parse(Buffer.concat(chunks).toString('utf8')) : null;
+}
+function walk(value) {
+  if (!value || typeof value !== 'object') return;
+  if (typeof value.path === 'string' && typeof value.sha256 === 'string' && Number.isSafeInteger(value.bytes)) {
+    const data = admit(value);
+    if (data && !jsonVisited.has(value.path)) { jsonVisited.add(value.path); walk(data); }
+  }
+  for (const item of Object.values(value)) walk(item);
+}
+const final = admit({ path: `${base}/FINAL.json`, bytes: 24620, sha256: '8bd385557c356994062d62fb10d9aef485e3c440dd509e68220425ae770e03a9' });
+walk(final);
+const fixture = admit({ path: `${base}/fixture-v2/PRESEAL.json`, bytes: 3421, sha256: '97141a41039c1c7e77082662e6f291aba5ca0352a991da54fec34d8c9e3df04e' });
+walk(fixture);
+for (const file of [`${base}/startup-policy.mjs`, `${base}/fixture-v2/controls.mjs`, path.resolve(base, '../stage-b1-r4/policy.mjs')]) assert(admitted.has(file), `LOAD_CLOSURE:${file}`);
+for (const key of ['adminRoot', 'runtimeRoot', 'publicationRoot']) assert(!fs.existsSync(final[key]), `UNUSED:${key}`);
+assert.equal(final.actualAuthority, false);
+assert.equal(final.latestStartUTC, '2026-08-29T16:17:10.730Z');
+assert.equal(final.expiresUTC, '2026-08-29T16:47:10.730Z');
+assert.equal(final.maxKnownOS, 36); assert.equal(final.peak, 3);
+const { controls } = await import(pathToFileURL(`${base}/fixture-v2/controls.mjs`).href);
+const { startupReservation, observeStartup } = await import(pathToFileURL(`${base}/startup-policy.mjs`).href);
+const results = controls();
+const make = caps => ({ outputs: { startupCaptures: caps.map((_, index) => `/private/tmp/r6-review-owned-${index}`) }, startupStreams: caps.map((capBytes, index) => ({ path: `/private/tmp/r6-review-owned-${index}`, capBytes })) });
+const add = (id, body) => { body(); results.push({ id, outcome: 'PASS', role: 'NOVEL_PURE' }); };
+add('N01-mixed-zero-caps', () => { const reservation = startupReservation(make([1,4096,0,8])); assert.equal(reservation.bytes,4105); const result = observeStartup(reservation, () => ({ isFile:()=>true, isSymbolicLink:()=>false, size:0 }),4105); assert.equal(result.remainingReservedBytes,4105); assert.throws(()=>observeStartup(reservation,()=>null,4104), /STARTUP_AGGREGATE_HEADROOM/); });
+add('N02-accessor-no-effect', () => { const binding=make([1]); let calls=0; Object.defineProperty(binding.startupStreams[0],'capBytes',{get(){calls++;return 1;},enumerable:true}); assert.throws(()=>startupReservation(binding),/STARTUP_DATA/); assert.equal(calls,0); });
+add('N03-order-and-type', () => { const binding=make([1,2]); binding.outputs.startupCaptures.reverse(); assert.throws(()=>startupReservation(binding),/STARTUP_BOUND_ORDER/); const reserve=startupReservation(make([1])); assert.throws(()=>observeStartup(reserve,()=>({isFile:()=>false,isSymbolicLink:()=>false,size:0})),/STARTUP_STREAM_OVERRUN/); });
+for (const pin of [...admitted.values()]) admit(pin);
+const oldPublisher=path.resolve(base,'../final-admin-r5/publish.mjs');
+const previous=fs.readFileSync(oldPublisher,'utf8').split('\n');
+const current=fs.readFileSync(`${base}/publish.mjs`,'utf8').split('\n');
+const delta={removed:previous.filter(line=>!current.includes(line)),added:current.filter(line=>!previous.includes(line)),qualification:'line-set summary, not a program-equivalence proof'};
+const result={at:new Date().toISOString(),results,author:8,novel:3,admission:[...admitted.values()],unused:[final.adminRoot,final.runtimeRoot,final.publicationRoot],window:{issued:final.issuedUTC,latest:final.latestStartUTC,expiry:final.expiresUTC,currentlyStartable:Date.now()<Date.parse(final.latestStartUTC)},delta,actualGo:false,actualPublisher:0,product:0,Workers:0};
+assert(Date.now()<deadline);
+fs.writeFileSync(`${own}/RESULT.json`,JSON.stringify(result,null,2)+'\n',{flag:'wx'});
+console.log(JSON.stringify({at:result.at,author:8,novel:3,admitted:admitted.size,window:result.window,delta},null,2));

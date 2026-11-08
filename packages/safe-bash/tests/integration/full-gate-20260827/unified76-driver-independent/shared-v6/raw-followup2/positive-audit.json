@@ -1,0 +1,16 @@
+[
+  {
+    "nonce": "94d272fc-c076-45f2-8505-1b4a838bbf24",
+    "pid": 34360,
+    "parent": 34339,
+    "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "compiler": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc",
+    "project": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/tsconfig.build.json",
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source",
+    "args": [
+      "-p",
+      "tsconfig.build.json"
+    ],
+    "startedAt": "2026-08-28T03:45:18.932Z"
+  }
+]

@@ -1,0 +1,22 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: fatal: pathspec 'tests/shell/cancellation-stage2-author-20260827/runtime-v1/runtime.test.ts' did not match any files
+
+
+128 !== 0
+
+    at git (file:///Users/kjopek/Workspace/safe-bash/tests/fs/webdav/directory-access-author-20260828/validate.mjs:22:10)
+    at file:///Users/kjopek/Workspace/safe-bash/tests/fs/webdav/directory-access-author-20260828/validate.mjs:36:17
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 128,
+  expected: 0,
+  operator: 'strictEqual'
+}
+
+Node.js v22.22.2

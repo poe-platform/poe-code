@@ -1,0 +1,18 @@
+{
+  "name": "pack",
+  "executable": "npm",
+  "args": [
+    "--cache",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile/.isolated-eV6iml/npm-cache",
+    "pack",
+    "--ignore-scripts",
+    "--json",
+    "--pack-destination",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final"
+  ],
+  "cwd": "source",
+  "startedAt": "2026-08-27T09:01:21.708Z",
+  "durationMs": 872.6271659999984,
+  "status": 0,
+  "signal": null
+}

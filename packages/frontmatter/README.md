@@ -1,0 +1,40 @@
+# @poe-code/frontmatter
+
+Shared YAML frontmatter parsing for poe-code packages.
+
+## API
+
+```ts
+import {
+  FrontmatterKindError,
+  FrontmatterParseError,
+  isFrontmatterKindError,
+  parseFrontmatter,
+  parseFrontmatterDocument,
+  stringifyFrontmatter
+} from "@poe-code/frontmatter";
+```
+
+- `parseFrontmatter(source)` returns `{ frontmatter, body }`.
+- `parseFrontmatterDocument(source)` returns `{ frontmatter, body, errors, lineCounter }` for callers that need YAML diagnostics.
+- `stringifyFrontmatter(frontmatter, body)` writes `---` fences, YAML, and the body.
+- `FrontmatterParseError` is thrown for malformed frontmatter, invalid YAML, non-object frontmatter, and stringify failures.
+- `FrontmatterKindError` extends `FrontmatterParseError` and carries `expectedKind` / `foundKind` so callers can report a document kind mismatch instead of a missing file. `isFrontmatterKindError(error)` narrows to it.
+
+When no leading frontmatter block exists, parsing returns `{ frontmatter: {}, body: source }`.
+The returned `body` is sliced from the original input and is otherwise byte-for-byte unchanged.
+YAML mappings that contain `__proto__` keep it as an own property without changing the object's prototype.
+
+Duplicate mapping keys use YAML's last-wins behavior by default, matching the
+legacy frontmatter readers. Callers that need strict YAML mappings can pass
+`{ uniqueKeys: true }` to `parseFrontmatter` or `parseFrontmatterDocument`.
+
+## Environment Variables
+
+This package reads no environment variables.
+
+## Configuration Options
+
+This package has no configuration options.
+
+Diagnostics retain source offsets, including CRLF input. Opening fences may have trailing spaces or tabs; a missing closing fence is reported as a diagnostic. Writing frontmatter requires an object root.

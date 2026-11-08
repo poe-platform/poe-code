@@ -1,0 +1,682 @@
+{
+  "argv0": "shell",
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC"
+  },
+  "repetitions": 2,
+  "deadlineMs": 2000,
+  "maxOutputBytes": 262144,
+  "fixtureHash": "d4cfe5f7d0a06b2a8eb259a4c3c8d93223555e4a191cea5ed99dccfef1bf7621",
+  "captureHash": "821bb733e58cd8b87156bc3c8b2f8c3b5ddf74e5b7ec42f1d57828c4481aee44",
+  "captures": [
+    {
+      "name": "primary-5.3",
+      "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+      "version": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)",
+      "records": [
+        {
+          "name": "double-quote-eof",
+          "source": "printf touched >marker; printf \"unterminated",
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IC1jOiBsaW5lIDE6IHVuZXhwZWN0ZWQgRU9GIHdoaWxlIGxvb2tpbmcgZm9yIG1hdGNoaW5nIGAiJwo=",
+          "exitCode": 2,
+          "files": {}
+        },
+        {
+          "name": "double-quote-later-unit",
+          "source": ": >before;\nprintf \"unterminated",
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IC1jOiBsaW5lIDI6IHVuZXhwZWN0ZWQgRU9GIHdoaWxlIGxvb2tpbmcgZm9yIG1hdGNoaW5nIGAiJwo=",
+          "exitCode": 2,
+          "files": {
+            "before": ""
+          }
+        },
+        {
+          "name": "double-quote-multiline",
+          "source": "printf \"one\ntwo\n",
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IC1jOiBsaW5lIDE6IHVuZXhwZWN0ZWQgRU9GIHdoaWxlIGxvb2tpbmcgZm9yIG1hdGNoaW5nIGAiJwo=",
+          "exitCode": 2,
+          "files": {}
+        },
+        {
+          "name": "single-quote-eof",
+          "source": "printf touched >marker; printf 'unterminated",
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IC1jOiBsaW5lIDE6IHVuZXhwZWN0ZWQgRU9GIHdoaWxlIGxvb2tpbmcgZm9yIG1hdGNoaW5nIGAnJwo=",
+          "exitCode": 2,
+          "files": {}
+        },
+        {
+          "name": "single-quote-multiline",
+          "source": "printf 'one\ntwo\n",
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IC1jOiBsaW5lIDE6IHVuZXhwZWN0ZWQgRU9GIHdoaWxlIGxvb2tpbmcgZm9yIG1hdGNoaW5nIGAnJwo=",
+          "exitCode": 2,
+          "files": {}
+        },
+        {
+          "name": "ansi-quote-eof",
+          "source": "printf %s $'unterminated",
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IC1jOiBsaW5lIDE6IHVuZXhwZWN0ZWQgRU9GIHdoaWxlIGxvb2tpbmcgZm9yIG1hdGNoaW5nIGAnJwo=",
+          "exitCode": 2,
+          "files": {}
+        },
+        {
+          "name": "group-eof",
+          "source": "{ printf touched >marker;",
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IC1jOiBsaW5lIDI6IHN5bnRheCBlcnJvcjogdW5leHBlY3RlZCBlbmQgb2YgZmlsZSBmcm9tIGB7JyBjb21tYW5kIG9uIGxpbmUgMQo=",
+          "exitCode": 2,
+          "files": {}
+        },
+        {
+          "name": "group-later-unit",
+          "source": ": >before;\n{ : >wrong;",
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IC1jOiBsaW5lIDM6IHN5bnRheCBlcnJvcjogdW5leHBlY3RlZCBlbmQgb2YgZmlsZSBmcm9tIGB7JyBjb21tYW5kIG9uIGxpbmUgMgo=",
+          "exitCode": 2,
+          "files": {
+            "before": ""
+          }
+        },
+        {
+          "name": "nested-group-eof",
+          "source": "{\n{ :;\n",
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IC1jOiBsaW5lIDM6IHN5bnRheCBlcnJvcjogdW5leHBlY3RlZCBlbmQgb2YgZmlsZSBmcm9tIGB7JyBjb21tYW5kIG9uIGxpbmUgMgo=",
+          "exitCode": 2,
+          "files": {}
+        },
+        {
+          "name": "group-with-completed-if",
+          "source": "{ if true; then :; fi;",
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IC1jOiBsaW5lIDI6IHN5bnRheCBlcnJvcjogdW5leHBlY3RlZCBlbmQgb2YgZmlsZSBmcm9tIGB7JyBjb21tYW5kIG9uIGxpbmUgMQo=",
+          "exitCode": 2,
+          "files": {}
+        },
+        {
+          "name": "if-with-incomplete-group",
+          "source": "if true; then { :;",
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IC1jOiBsaW5lIDI6IHN5bnRheCBlcnJvcjogdW5leHBlY3RlZCBlbmQgb2YgZmlsZSBmcm9tIGB7JyBjb21tYW5kIG9uIGxpbmUgMQo=",
+          "exitCode": 2,
+          "files": {}
+        },
+        {
+          "name": "nul-one-warning-per-substitution",
+          "source": "value=$(printf 'a\\0b\\0\\n\\n'); printf '<%s>:%s' \"$value\" \"$?\"",
+          "stdoutBase64": "PGFiPjow",
+          "stderrBase64": "c2hlbGw6IGxpbmUgMTogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==",
+          "exitCode": 0,
+          "files": {}
+        },
+        {
+          "name": "nul-two-substitutions",
+          "source": "value=$(printf 'a\\0b')$(printf 'c\\0d'); printf '<%s>' \"$value\"",
+          "stdoutBase64": "PGFiY2Q+",
+          "stderrBase64": "c2hlbGw6IGxpbmUgMTogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0CnNoZWxsOiBsaW5lIDE6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo=",
+          "exitCode": 0,
+          "files": {}
+        },
+        {
+          "name": "nul-multiline-assignment",
+          "source": "value=$(\nprintf 'a\\0b'\n); printf '<%s>' \"$value\"",
+          "stdoutBase64": "PGFiPg==",
+          "stderrBase64": "c2hlbGw6IGxpbmUgMzogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==",
+          "exitCode": 0,
+          "files": {}
+        },
+        {
+          "name": "nul-multiline-backtick-assignment",
+          "source": "value=`\nprintf 'a\\0b'\n`; printf '<%s>' \"$value\"",
+          "stdoutBase64": "PGFiPg==",
+          "stderrBase64": "c2hlbGw6IGxpbmUgMzogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==",
+          "exitCode": 0,
+          "files": {}
+        },
+        {
+          "name": "nul-multiline-argument",
+          "source": "printf '<%s>' \"\n$(printf 'a\\0b')\"",
+          "stdoutBase64": "PAphYj4=",
+          "stderrBase64": "c2hlbGw6IGxpbmUgMTogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==",
+          "exitCode": 0,
+          "files": {}
+        },
+        {
+          "name": "nul-multiline-backtick-argument",
+          "source": "printf '<%s>' \"\n`printf 'a\\0b'`\"",
+          "stdoutBase64": "PAphYj4=",
+          "stderrBase64": "c2hlbGw6IGxpbmUgMTogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==",
+          "exitCode": 0,
+          "files": {}
+        },
+        {
+          "name": "nul-function-definition-line",
+          "source": "call() {\nvalue=$(printf 'a\\0b')\n};\ncall",
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IGxpbmUgMjogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==",
+          "exitCode": 0,
+          "files": {}
+        },
+        {
+          "name": "nul-nested-substitution-line",
+          "source": "value=$(\nprintf '%s' \"$(printf 'a\\0b')\"\n); printf '<%s>' \"$value\"",
+          "stdoutBase64": "PGFiPg==",
+          "stderrBase64": "c2hlbGw6IGxpbmUgMzogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==",
+          "exitCode": 0,
+          "files": {}
+        },
+        {
+          "name": "nul-redirected-parent-stderr",
+          "source": "{ value=$(\nprintf 'a\\0b'\n); printf '<%s>' \"$value\"; } 2>errors",
+          "stdoutBase64": "PGFiPg==",
+          "stderrBase64": "",
+          "exitCode": 0,
+          "files": {
+            "errors": "c2hlbGw6IGxpbmUgMzogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg=="
+          }
+        },
+        {
+          "name": "nul-heredoc-command-line",
+          "source": "cat <<EOF\n$(printf 'a\\0b')\nEOF\n",
+          "stdoutBase64": "YWIK",
+          "stderrBase64": "c2hlbGw6IGxpbmUgMTogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==",
+          "exitCode": 0,
+          "files": {}
+        },
+        {
+          "name": "nul-here-string-command-line",
+          "source": "cat <<<\"\n$(printf 'a\\0b')\"",
+          "stdoutBase64": "CmFiCg==",
+          "stderrBase64": "c2hlbGw6IGxpbmUgMTogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==",
+          "exitCode": 0,
+          "files": {}
+        },
+        {
+          "name": "nul-short-circuit-not-expanded",
+          "source": "false && value=$(printf 'a\\0b'); :",
+          "stdoutBase64": "",
+          "stderrBase64": "",
+          "exitCode": 0,
+          "files": {}
+        },
+        {
+          "name": "nul-binary-pipeline-control",
+          "source": "printf 'a\\0b' | cat",
+          "stdoutBase64": "YQBi",
+          "stderrBase64": "",
+          "exitCode": 0,
+          "files": {}
+        },
+        {
+          "name": "nul-continued-command-line",
+          "source": "printf \\\n'<%s>' \"$(printf 'a\\0b')\"",
+          "stdoutBase64": "PGFiPg==",
+          "stderrBase64": "c2hlbGw6IGxpbmUgMTogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==",
+          "exitCode": 0,
+          "files": {}
+        },
+        {
+          "name": "arithmetic-multiline-argument",
+          "source": ": >before;\nprintf '%s' \"\n$((1/0))\"; : >wrong",
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IGxpbmUgMjogMS8wOiBkaXZpc2lvbiBieSAwIChlcnJvciB0b2tlbiBpcyAiMCIpCg==",
+          "exitCode": 1,
+          "files": {
+            "before": ""
+          }
+        },
+        {
+          "name": "parameter-multiline-argument",
+          "source": ": >before;\nprintf '%s' \"\n${missing:?stop}\"; : >wrong",
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IGxpbmUgMjogbWlzc2luZzogc3RvcAo=",
+          "exitCode": 127,
+          "files": {
+            "before": ""
+          }
+        },
+        {
+          "name": "arithmetic-multiline-assignment",
+          "source": "value=\"\n$((1/0))\"; : >wrong",
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IGxpbmUgMjogMS8wOiBkaXZpc2lvbiBieSAwIChlcnJvciB0b2tlbiBpcyAiMCIpCg==",
+          "exitCode": 1,
+          "files": {}
+        },
+        {
+          "name": "parameter-multiline-assignment",
+          "source": "value=\"\n${missing:?stop}\"; : >wrong",
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IGxpbmUgMjogbWlzc2luZzogc3RvcAo=",
+          "exitCode": 127,
+          "files": {}
+        },
+        {
+          "name": "parameter-multiline-redirection",
+          "source": ": >before;\n: >\"\n${missing:?stop}\"; : >wrong",
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IGxpbmUgMjogbWlzc2luZzogc3RvcAo=",
+          "exitCode": 127,
+          "files": {
+            "before": ""
+          }
+        },
+        {
+          "name": "parameter-multiline-redirect-only",
+          "source": ">\"\n${missing:?stop}\"; : >wrong",
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IGxpbmUgMjogbWlzc2luZzogc3RvcAo=",
+          "exitCode": 127,
+          "files": {}
+        },
+        {
+          "name": "nul-redirection-first-command-line",
+          "source": ">\"\nfile\" value=$(printf 'a\\0b'); printf '<%s>' \"$value\"",
+          "stdoutBase64": "PGFiPg==",
+          "stderrBase64": "c2hlbGw6IGxpbmUgMjogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==",
+          "exitCode": 0,
+          "files": {
+            "\nfile": ""
+          }
+        },
+        {
+          "name": "cd-missing",
+          "source": "cd missing",
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IGxpbmUgMTogY2Q6IG1pc3Npbmc6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkK",
+          "exitCode": 1,
+          "files": {}
+        },
+        {
+          "name": "cd-nondirectory",
+          "source": ": >file; cd file",
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IGxpbmUgMTogY2Q6IGZpbGU6IE5vdCBhIGRpcmVjdG9yeQo=",
+          "exitCode": 1,
+          "files": {
+            "file": ""
+          }
+        },
+        {
+          "name": "cd-nondirectory-tail",
+          "source": ": >file; cd file/child",
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IGxpbmUgMTogY2Q6IGZpbGUvY2hpbGQ6IE5vdCBhIGRpcmVjdG9yeQo=",
+          "exitCode": 1,
+          "files": {
+            "file": ""
+          }
+        },
+        {
+          "name": "cd-error-redirected",
+          "source": "cd missing 2>errors; printf '%s' \"$?\"; : >after",
+          "stdoutBase64": "MQ==",
+          "stderrBase64": "",
+          "exitCode": 0,
+          "files": {
+            "after": "",
+            "errors": "c2hlbGw6IGxpbmUgMTogY2Q6IG1pc3Npbmc6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkK"
+          }
+        },
+        {
+          "name": "redirect-missing-control",
+          "source": "cat <missing",
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IGxpbmUgMTogbWlzc2luZzogTm8gc3VjaCBmaWxlIG9yIGRpcmVjdG9yeQo=",
+          "exitCode": 1,
+          "files": {}
+        },
+        {
+          "name": "redirect-shortcut-missing-control",
+          "source": "value=$(<missing); printf '%s' \"$?\"",
+          "stdoutBase64": "MQ==",
+          "stderrBase64": "c2hlbGw6IGxpbmUgMTogbWlzc2luZzogTm8gc3VjaCBmaWxlIG9yIGRpcmVjdG9yeQo=",
+          "exitCode": 0,
+          "files": {}
+        }
+      ]
+    },
+    {
+      "name": "historical-3.2",
+      "executable": "/bin/bash",
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "version": "GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)",
+      "records": [
+        {
+          "name": "double-quote-eof",
+          "source": "printf touched >marker; printf \"unterminated",
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IC1jOiBsaW5lIDA6IHVuZXhwZWN0ZWQgRU9GIHdoaWxlIGxvb2tpbmcgZm9yIG1hdGNoaW5nIGAiJwpzaGVsbDogLWM6IGxpbmUgMTogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGVuZCBvZiBmaWxlCg==",
+          "exitCode": 2,
+          "files": {}
+        },
+        {
+          "name": "double-quote-later-unit",
+          "source": ": >before;\nprintf \"unterminated",
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IC1jOiBsaW5lIDE6IHVuZXhwZWN0ZWQgRU9GIHdoaWxlIGxvb2tpbmcgZm9yIG1hdGNoaW5nIGAiJwpzaGVsbDogLWM6IGxpbmUgMjogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGVuZCBvZiBmaWxlCg==",
+          "exitCode": 2,
+          "files": {
+            "before": ""
+          }
+        },
+        {
+          "name": "double-quote-multiline",
+          "source": "printf \"one\ntwo\n",
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IC1jOiBsaW5lIDA6IHVuZXhwZWN0ZWQgRU9GIHdoaWxlIGxvb2tpbmcgZm9yIG1hdGNoaW5nIGAiJwpzaGVsbDogLWM6IGxpbmUgMjogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGVuZCBvZiBmaWxlCg==",
+          "exitCode": 2,
+          "files": {}
+        },
+        {
+          "name": "single-quote-eof",
+          "source": "printf touched >marker; printf 'unterminated",
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IC1jOiBsaW5lIDA6IHVuZXhwZWN0ZWQgRU9GIHdoaWxlIGxvb2tpbmcgZm9yIG1hdGNoaW5nIGAnJwpzaGVsbDogLWM6IGxpbmUgMTogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGVuZCBvZiBmaWxlCg==",
+          "exitCode": 2,
+          "files": {}
+        },
+        {
+          "name": "single-quote-multiline",
+          "source": "printf 'one\ntwo\n",
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IC1jOiBsaW5lIDA6IHVuZXhwZWN0ZWQgRU9GIHdoaWxlIGxvb2tpbmcgZm9yIG1hdGNoaW5nIGAnJwpzaGVsbDogLWM6IGxpbmUgMjogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGVuZCBvZiBmaWxlCg==",
+          "exitCode": 2,
+          "files": {}
+        },
+        {
+          "name": "ansi-quote-eof",
+          "source": "printf %s $'unterminated",
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IC1jOiBsaW5lIDA6IHVuZXhwZWN0ZWQgRU9GIHdoaWxlIGxvb2tpbmcgZm9yIG1hdGNoaW5nIGAnJwpzaGVsbDogLWM6IGxpbmUgMTogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGVuZCBvZiBmaWxlCg==",
+          "exitCode": 2,
+          "files": {}
+        },
+        {
+          "name": "group-eof",
+          "source": "{ printf touched >marker;",
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvcjogdW5leHBlY3RlZCBlbmQgb2YgZmlsZQo=",
+          "exitCode": 2,
+          "files": {}
+        },
+        {
+          "name": "group-later-unit",
+          "source": ": >before;\n{ : >wrong;",
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IC1jOiBsaW5lIDI6IHN5bnRheCBlcnJvcjogdW5leHBlY3RlZCBlbmQgb2YgZmlsZQo=",
+          "exitCode": 2,
+          "files": {
+            "before": ""
+          }
+        },
+        {
+          "name": "nested-group-eof",
+          "source": "{\n{ :;\n",
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IC1jOiBsaW5lIDI6IHN5bnRheCBlcnJvcjogdW5leHBlY3RlZCBlbmQgb2YgZmlsZQo=",
+          "exitCode": 2,
+          "files": {}
+        },
+        {
+          "name": "group-with-completed-if",
+          "source": "{ if true; then :; fi;",
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvcjogdW5leHBlY3RlZCBlbmQgb2YgZmlsZQo=",
+          "exitCode": 2,
+          "files": {}
+        },
+        {
+          "name": "if-with-incomplete-group",
+          "source": "if true; then { :;",
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvcjogdW5leHBlY3RlZCBlbmQgb2YgZmlsZQo=",
+          "exitCode": 2,
+          "files": {}
+        },
+        {
+          "name": "nul-one-warning-per-substitution",
+          "source": "value=$(printf 'a\\0b\\0\\n\\n'); printf '<%s>:%s' \"$value\" \"$?\"",
+          "stdoutBase64": "PGFiPjow",
+          "stderrBase64": "",
+          "exitCode": 0,
+          "files": {}
+        },
+        {
+          "name": "nul-two-substitutions",
+          "source": "value=$(printf 'a\\0b')$(printf 'c\\0d'); printf '<%s>' \"$value\"",
+          "stdoutBase64": "PGFiY2Q+",
+          "stderrBase64": "",
+          "exitCode": 0,
+          "files": {}
+        },
+        {
+          "name": "nul-multiline-assignment",
+          "source": "value=$(\nprintf 'a\\0b'\n); printf '<%s>' \"$value\"",
+          "stdoutBase64": "PGFiPg==",
+          "stderrBase64": "",
+          "exitCode": 0,
+          "files": {}
+        },
+        {
+          "name": "nul-multiline-backtick-assignment",
+          "source": "value=`\nprintf 'a\\0b'\n`; printf '<%s>' \"$value\"",
+          "stdoutBase64": "PGFiPg==",
+          "stderrBase64": "",
+          "exitCode": 0,
+          "files": {}
+        },
+        {
+          "name": "nul-multiline-argument",
+          "source": "printf '<%s>' \"\n$(printf 'a\\0b')\"",
+          "stdoutBase64": "PAphYj4=",
+          "stderrBase64": "",
+          "exitCode": 0,
+          "files": {}
+        },
+        {
+          "name": "nul-multiline-backtick-argument",
+          "source": "printf '<%s>' \"\n`printf 'a\\0b'`\"",
+          "stdoutBase64": "PAphYj4=",
+          "stderrBase64": "",
+          "exitCode": 0,
+          "files": {}
+        },
+        {
+          "name": "nul-function-definition-line",
+          "source": "call() {\nvalue=$(printf 'a\\0b')\n};\ncall",
+          "stdoutBase64": "",
+          "stderrBase64": "",
+          "exitCode": 0,
+          "files": {}
+        },
+        {
+          "name": "nul-nested-substitution-line",
+          "source": "value=$(\nprintf '%s' \"$(printf 'a\\0b')\"\n); printf '<%s>' \"$value\"",
+          "stdoutBase64": "PGFiPg==",
+          "stderrBase64": "",
+          "exitCode": 0,
+          "files": {}
+        },
+        {
+          "name": "nul-redirected-parent-stderr",
+          "source": "{ value=$(\nprintf 'a\\0b'\n); printf '<%s>' \"$value\"; } 2>errors",
+          "stdoutBase64": "PGFiPg==",
+          "stderrBase64": "",
+          "exitCode": 0,
+          "files": {
+            "errors": ""
+          }
+        },
+        {
+          "name": "nul-heredoc-command-line",
+          "source": "cat <<EOF\n$(printf 'a\\0b')\nEOF\n",
+          "stdoutBase64": "YWIK",
+          "stderrBase64": "",
+          "exitCode": 0,
+          "files": {}
+        },
+        {
+          "name": "nul-here-string-command-line",
+          "source": "cat <<<\"\n$(printf 'a\\0b')\"",
+          "stdoutBase64": "CmFiCg==",
+          "stderrBase64": "",
+          "exitCode": 0,
+          "files": {}
+        },
+        {
+          "name": "nul-short-circuit-not-expanded",
+          "source": "false && value=$(printf 'a\\0b'); :",
+          "stdoutBase64": "",
+          "stderrBase64": "",
+          "exitCode": 0,
+          "files": {}
+        },
+        {
+          "name": "nul-binary-pipeline-control",
+          "source": "printf 'a\\0b' | cat",
+          "stdoutBase64": "YQBi",
+          "stderrBase64": "",
+          "exitCode": 0,
+          "files": {}
+        },
+        {
+          "name": "nul-continued-command-line",
+          "source": "printf \\\n'<%s>' \"$(printf 'a\\0b')\"",
+          "stdoutBase64": "PGFiPg==",
+          "stderrBase64": "",
+          "exitCode": 0,
+          "files": {}
+        },
+        {
+          "name": "arithmetic-multiline-argument",
+          "source": ": >before;\nprintf '%s' \"\n$((1/0))\"; : >wrong",
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IGxpbmUgMTogMS8wOiBkaXZpc2lvbiBieSAwIChlcnJvciB0b2tlbiBpcyAiMCIpCg==",
+          "exitCode": 1,
+          "files": {
+            "before": ""
+          }
+        },
+        {
+          "name": "parameter-multiline-argument",
+          "source": ": >before;\nprintf '%s' \"\n${missing:?stop}\"; : >wrong",
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo=",
+          "exitCode": 127,
+          "files": {
+            "before": ""
+          }
+        },
+        {
+          "name": "arithmetic-multiline-assignment",
+          "source": "value=\"\n$((1/0))\"; : >wrong",
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IGxpbmUgMTogMS8wOiBkaXZpc2lvbiBieSAwIChlcnJvciB0b2tlbiBpcyAiMCIpCg==",
+          "exitCode": 1,
+          "files": {}
+        },
+        {
+          "name": "parameter-multiline-assignment",
+          "source": "value=\"\n${missing:?stop}\"; : >wrong",
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo=",
+          "exitCode": 127,
+          "files": {}
+        },
+        {
+          "name": "parameter-multiline-redirection",
+          "source": ": >before;\n: >\"\n${missing:?stop}\"; : >wrong",
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo=",
+          "exitCode": 127,
+          "files": {
+            "before": ""
+          }
+        },
+        {
+          "name": "parameter-multiline-redirect-only",
+          "source": ">\"\n${missing:?stop}\"; : >wrong",
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo=",
+          "exitCode": 127,
+          "files": {}
+        },
+        {
+          "name": "nul-redirection-first-command-line",
+          "source": ">\"\nfile\" value=$(printf 'a\\0b'); printf '<%s>' \"$value\"",
+          "stdoutBase64": "PGFiPg==",
+          "stderrBase64": "",
+          "exitCode": 0,
+          "files": {
+            "\nfile": ""
+          }
+        },
+        {
+          "name": "cd-missing",
+          "source": "cd missing",
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IGxpbmUgMDogY2Q6IG1pc3Npbmc6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkK",
+          "exitCode": 1,
+          "files": {}
+        },
+        {
+          "name": "cd-nondirectory",
+          "source": ": >file; cd file",
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IGxpbmUgMDogY2Q6IGZpbGU6IE5vdCBhIGRpcmVjdG9yeQo=",
+          "exitCode": 1,
+          "files": {
+            "file": ""
+          }
+        },
+        {
+          "name": "cd-nondirectory-tail",
+          "source": ": >file; cd file/child",
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IGxpbmUgMDogY2Q6IGZpbGUvY2hpbGQ6IE5vdCBhIGRpcmVjdG9yeQo=",
+          "exitCode": 1,
+          "files": {
+            "file": ""
+          }
+        },
+        {
+          "name": "cd-error-redirected",
+          "source": "cd missing 2>errors; printf '%s' \"$?\"; : >after",
+          "stdoutBase64": "MQ==",
+          "stderrBase64": "",
+          "exitCode": 0,
+          "files": {
+            "after": "",
+            "errors": "c2hlbGw6IGxpbmUgMDogY2Q6IG1pc3Npbmc6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkK"
+          }
+        },
+        {
+          "name": "redirect-missing-control",
+          "source": "cat <missing",
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IG1pc3Npbmc6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkK",
+          "exitCode": 1,
+          "files": {}
+        },
+        {
+          "name": "redirect-shortcut-missing-control",
+          "source": "value=$(<missing); printf '%s' \"$?\"",
+          "stdoutBase64": "MQ==",
+          "stderrBase64": "c2hlbGw6IG1pc3Npbmc6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkK",
+          "exitCode": 0,
+          "files": {}
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,186 @@
+{
+  "format": "independent-private-getopts-review-result-v1",
+  "completedAt": "2026-08-27T19:56:12.101Z",
+  "candidate": "157d78c957b56f83f6e705fc35da60b1f2ea3a9b",
+  "freeze": "7a47dcdba6175a4eccc9dad16c3ac9733cf0e0bf",
+  "driverCommits": {
+    "v1": "904620b96563192696cd63ffdd9a0877bc5d2db7",
+    "v2": "d8e8a0bf3c50e5aade747625537c9c9ddd9142b8",
+    "v3": "6108e727f901a1fa8d36c12a01eb719fa0bac5eb"
+  },
+  "verdict": "Scoped review complete; no confirmed candidate defect. Original frozen P03 remains failed because its expectation is incorrect; do not report the frozen gate fully passing.",
+  "frozenRuntime": {
+    "modes": [
+      "committed TypeScript source",
+      "compiled physically moved private module"
+    ],
+    "runsPerMode": 2,
+    "semanticSequences": 31,
+    "scanProjections": {
+      "total": 85,
+      "pass": 85,
+      "fail": 0
+    },
+    "policyNamedControls": {
+      "total": 32,
+      "pass": 31,
+      "fail": 1
+    },
+    "policyRows": {
+      "total": 153,
+      "pass": 152,
+      "fail": 1
+    },
+    "combinedRowsPerRun": {
+      "total": 238,
+      "pass": 237,
+      "fail": 1
+    },
+    "failureIds": [
+      "P03/reset-clones"
+    ],
+    "failureClassification": "reviewer oracle defect; actual native agrees with candidate"
+  },
+  "strictTypes": {
+    "modes": [
+      "actual committed source",
+      "actual emitted moved declarations"
+    ],
+    "positiveProbes": 2,
+    "negativeProbes": 26,
+    "originalPerMode": {
+      "total": 28,
+      "pass": 27,
+      "fail": 1
+    },
+    "originalFailure": "T20: checker omitted correct TypeScript 2740 missing AbortSignal properties diagnostic",
+    "correctedPerMode": {
+      "total": 28,
+      "pass": 28,
+      "fail": 0
+    },
+    "frozenProbeCodeUnchanged": true
+  },
+  "nativeFrozen": {
+    "bash53": {
+      "scripts": 12,
+      "passedScripts": 12,
+      "records": 71,
+      "passedRecords": 71,
+      "role": "primary",
+      "platform": "Darwin",
+      "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c"
+    },
+    "bash32": {
+      "scripts": 12,
+      "passedScripts": 12,
+      "records": 71,
+      "passedRecords": 71,
+      "role": "separate historical comparison",
+      "platform": "Darwin",
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3"
+    },
+    "linuxClaim": false
+  },
+  "supplementalCursor": {
+    "sourceInformed": true,
+    "scriptsPerNativeProfile": 3,
+    "recordsPerNativeProfile": 6,
+    "originalExpectedScenarioResultsPerModeAndProfile": {
+      "pass": 1,
+      "fail": 2
+    },
+    "failedExpectationIds": [
+      "F01",
+      "F03"
+    ],
+    "actualCandidateNativeScenarioMatchesPerModeAndProfile": {
+      "pass": 3,
+      "fail": 0
+    },
+    "correctedControlsPerCandidateMode": {
+      "total": 3,
+      "pass": 3,
+      "fail": 0
+    },
+    "frozenP03Unchanged": true
+  },
+  "mutants": {
+    "targets": 16,
+    "concreteVariants": 16,
+    "loaded": 16,
+    "killedWithBaselinePassingWitness": 16,
+    "invalidLoadsCountedAsKills": 0,
+    "excludedPreexistingFailure": "M03/P03/reset-clones",
+    "scope": "source-copy mutations; no live product edits; not every alternative in each mutation family"
+  },
+  "candidateFindings": [],
+  "reviewerFindings": [
+    {
+      "id": "P03-oracle",
+      "candidateSource": "src/shell/getopts.ts:191",
+      "description": "EOF when index exceeds current argv length agrees with both authenticated native profiles; frozen retained-cursor expectation overgeneralized."
+    },
+    {
+      "id": "T20-checker",
+      "description": "Correct negative compiler diagnostic misclassified; narrow correction and actual rerun retained separately."
+    },
+    {
+      "id": "M03-attribution",
+      "description": "Preexisting P03 failure excluded; independent S12 witnesses still kill mutant."
+    }
+  ],
+  "proof": {
+    "actualCommittedInput": true,
+    "completeScannerImportClosure": true,
+    "fullProductTreeExecuted": false,
+    "fullTrackedInventoryRecorded": true,
+    "sourceLoadLog": true,
+    "physicallyMovedInternalPackage": true,
+    "noTsxInMovedConsumer": true,
+    "publicExportAcceptance": false,
+    "strictSourceAndMovedDeclarations": true,
+    "sourceAndPackageMembershipIncludingNewEntriesChecked": true,
+    "frozenEightFilesUnchanged": true
+  },
+  "preservation": {
+    "ownedNewDirectoryOnly": true,
+    "productEdited": false,
+    "rootExportsOrPackageEdited": false,
+    "agentsEdited": false,
+    "privateRepositoriesTouched": false,
+    "authorEvidenceEdited": false,
+    "frozenFilesEdited": false,
+    "foreignStagingPreserved": true,
+    "ephemeralOwnedScratchRemoved": true,
+    "wholeLiveTreeImmutabilityClaim": false
+  },
+  "executionChronology": {
+    "v1DriverBeforeExecution": true,
+    "v2DriverBeforeExecution": false,
+    "v2Reason": "Concurrent foreign Git index.lock prevented attempted pre-execution commit; left untouched; v2 committed after followup execution.",
+    "v3DriverBeforeExecution": true
+  },
+  "authorClaimsNotRerun": {
+    "distinctAuthorTests": 134,
+    "runs": 2,
+    "priorScannerProjections": 76,
+    "priorBash53Scripts": 17,
+    "retainedOriginalNativeObservations": 124
+  },
+  "stage2": "WITHHELD: variable/name binding, readonly policy enforcement, assignment-origin hooks, local/function/subshell restoration, registration, usable builtin and shared shell-budget wiring.",
+  "unverified": [
+    "Full product/current live tree acceptance",
+    "Every tracked TypeScript fixture or maintained public consumer",
+    "Runtime integration and public package exports",
+    "Linux/native profiles other than authenticated Darwin binaries",
+    "Exhaustive scanner parity or all possible mutants",
+    "Complete sealed external tooling installation",
+    "Uncooperative host work forcible termination or rollback of completed effects"
+  ],
+  "evidence": [
+    "capture-01",
+    "capture-followup-02",
+    "capture-corrected-03"
+  ]
+}

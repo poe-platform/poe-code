@@ -1,0 +1,5 @@
+Additional preseal refinements, still no product attempt: synthetic receipts durable before predicates; independently audit actual load hashes.
+SYNTAX validator.mjs
+SYNTAX run.mjs
+SYNTAX evidence.mjs
+SYNTAX PASS.

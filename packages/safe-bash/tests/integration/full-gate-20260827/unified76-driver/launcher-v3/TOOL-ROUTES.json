@@ -1,0 +1,51 @@
+{
+  "schema": "unified76-tool-routes/1",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "approval": "Root explicitly approved the exact direct otool-classic binary and its two ENOENT system-reference pairs on 2026-08-28; existing Mach-O inspection only, no other DeveloperTools or unknown-library exception.",
+  "inspector": {
+    "origin": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+    "physical": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+    "bytes": 472320,
+    "mode": 493,
+    "sha256": "6beb1ad9c4fb7edafd59fddcb093f358f9a250bfe1db2db9f04ed1aacd523a69"
+  },
+  "systemReferences": ["/usr/lib/libc++.1.dylib", "/usr/lib/libSystem.B.dylib"],
+  "environment": {"PATH":"/dev/null","LANG":"C","LC_ALL":"C","TZ":"UTC"},
+  "inspectionTargets": [
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+    "/usr/bin/tar",
+    "/usr/bin/sandbox-exec"
+  ],
+  "git": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+  "gitCore": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core",
+  "aliases": {
+    "node": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "git": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+    "sh": "/bin/sh",
+    "tar": "/usr/bin/tar",
+    "ps": "/bin/ps",
+    "lsof": "/usr/sbin/lsof",
+    "sw_vers": "/usr/bin/sw_vers",
+    "bsdtar": "/usr/bin/bsdtar",
+    "gzip": "/usr/bin/gzip",
+    "gunzip": "/usr/bin/gunzip",
+    "bash": "/bin/bash",
+    "sed": "/usr/bin/sed",
+    "awk": "/usr/bin/awk",
+    "jq": "/usr/bin/jq",
+    "curl": "/usr/bin/curl",
+    "rev": "/usr/bin/rev",
+    "expand": "/usr/bin/expand",
+    "fold": "/usr/bin/fold"
+  },
+  "deniedSelectorExecutables": [
+    "/usr/bin/otool",
+    "/usr/bin/git",
+    "/usr/bin/xcrun",
+    "/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild",
+    "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool",
+    "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/llvm-otool"
+  ],
+  "qualification": "Finite declared PATH, not an ambient host-command directory or a universal executable/library sandbox. Existing native staging remains separately bound. Unlisted required commands are explicit failures, never fallback successes. Missing OS library files are metadata trust, not file hashes or full OS attestation."
+}

@@ -1,0 +1,71 @@
+# Preview rendered prompt: poe-code github-workflows prompt-preview <name>
+
+response_style: |
+  - Start with a direct answer or decision.
+  - Keep it concise.
+  - Use short Markdown sections only when they improve clarity.
+
+verify_before_responding: |
+  Before responding:
+  - Inspect the checked-out repository.
+  - Verify every claim against the repo before you post it.
+
+skill_github_cli: |
+  Use the `gh` CLI for all GitHub operations (issues, PRs, reviews, checks).
+  When posting GitHub bodies, comments, or reviews that contain Markdown, code fences, backticks, `$`, or multiple lines, do not inline that text in a double-quoted shell argument.
+  Write the content with a quoted heredoc and pass it via `--body-file` so the shell cannot mangle it.
+  After posting or editing, verify the rendered result with `gh issue view` / `gh pr view`.
+
+pull_request_guidelines: |
+  - One logical change per PR. Feel free to open multiple PRs.
+  - Follow the repo guidelines
+
+code_review_guidelines: |
+  - Review every changed file, not just the diff summary.
+  - Verify the change follows existing patterns in the codebase. New abstractions need justification.
+  - Leave small inline comments on the specific lines that need attention. When you can show the fix directly, use GitHub's `suggestion` code block so the author can apply it with one click.
+  - Keep the summary comment extremely short: either "LGTM" or "Requested changes: <one-line reason>". Details belong in the inline comments.
+  - Err on the side of approving. Only request changes when there is a security issue, a clear correctness bug, or a regression. Style preferences, naming bikesheds, and speculative concerns belong as non-blocking inline comments.
+  - Post the review in a single API call so the inline comments and the summary land together. Use `gh api` with `POST /repos/{owner}/{repo}/pulls/{pr}/reviews` and pass the comments in the body.
+  - Example — approve with a single inline note:
+    ```sh
+    gh api --method POST -H "Accept: application/vnd.github+json" \
+      repos/OWNER/REPO/pulls/PR_NUMBER/reviews \
+      --input - <<'JSON'
+    {
+      "event": "APPROVE",
+      "body": "LGTM",
+      "comments": [
+        { "path": "src/foo.ts", "line": 42, "body": "Nit: consider renaming to `parseX`." }
+      ]
+    }
+    JSON
+    ```
+  - Example — a one-click suggestion on a specific line:
+    ```sh
+    gh api --method POST -H "Accept: application/vnd.github+json" \
+      repos/OWNER/REPO/pulls/PR_NUMBER/reviews \
+      --input - <<'JSON'
+    {
+      "event": "APPROVE",
+      "body": "LGTM",
+      "comments": [
+        { "path": "src/foo.ts", "line": 42, "body": "```suggestion\nreturn parseX(value);\n```" }
+      ]
+    }
+    JSON
+    ```
+  - Example — request changes for a security issue only:
+    ```sh
+    gh api --method POST -H "Accept: application/vnd.github+json" \
+      repos/OWNER/REPO/pulls/PR_NUMBER/reviews \
+      --input - <<'JSON'
+    {
+      "event": "REQUEST_CHANGES",
+      "body": "Requested changes: unsanitized input flows into shell.",
+      "comments": [
+        { "path": "src/run.ts", "line": 17, "body": "Shell injection: pass args as an array to `spawn` instead of concatenating into a string." }
+      ]
+    }
+    JSON
+    ```

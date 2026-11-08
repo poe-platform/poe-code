@@ -1,0 +1,36 @@
+[
+  {
+    "id": "guard-multiple-keys",
+    "actual": {
+      "status": 0,
+      "stdout": "YjoxCmE6MgpjOjIK",
+      "stderr": "",
+      "files": {}
+    },
+    "input": {
+      "bytes": 12,
+      "sha256": "2abdb0a52119dab7540877a693ecd22f1a487bfc5a958b4ec7bc9636a7bd2ff8"
+    },
+    "stdout": {
+      "bytes": 12,
+      "sha256": "9ee1a61195345f8fd0edceda4c978e180a781613db643db0a67e361ea5005f29"
+    },
+    "finalized": false,
+    "counters": {
+      "keyedConstructions": 1,
+      "sortComparisons": 4,
+      "keyedRequests": 8,
+      "extractions": 3,
+      "fieldObjects": 6,
+      "parses": 3,
+      "keyedAdmissions": 3,
+      "charged": 24,
+      "independentBackingCharge": 24,
+      "existingRecordBytes": 9,
+      "entriesPeak": 3,
+      "retainedPeak": 24,
+      "numericComparisons": 4,
+      "keyedHits": 5
+    }
+  }
+]

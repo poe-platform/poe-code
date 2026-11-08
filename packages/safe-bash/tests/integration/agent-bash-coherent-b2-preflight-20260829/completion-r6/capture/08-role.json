@@ -1,0 +1,15 @@
+{
+  "role": "prepare-data",
+  "pid": 77424,
+  "start": "2026-08-29T14:28:07.526Z",
+  "knownChildren": 0,
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  },
+  "end": "2026-08-29T14:28:07.739Z"
+}

@@ -1,0 +1,30 @@
+{
+  "files": [
+    {
+      "path": "config/oracle-identity.json",
+      "bytes": 582,
+      "sha256": "7bc8e13ea19e432b8320d08f5e19f8e4cbcbe4f8dad19984df6f9259960ebf4f",
+      "gitBlob": "006e80030216385b81ae0917ab4822ccfd8d18b7"
+    },
+    {
+      "path": "fixtures/native-env-cases.json",
+      "bytes": 4259,
+      "sha256": "ba95af81e2ffd7f7b80afb4a49a173487d9dacb7c911c61b31bf80b515c8cd5b",
+      "gitBlob": "5d10b771614815024262bce0ccd7f4bda843cadd"
+    },
+    {
+      "path": "harness/process-manager.mjs",
+      "bytes": 10866,
+      "sha256": "f322101cfaa23612287cd728f52f50c672a19325eda00b69d8280827d83cfa5d",
+      "gitBlob": "28e7ac96913d169bb1f2bee3c2c63736ade16c63"
+    },
+    {
+      "path": "native-env.mjs",
+      "bytes": 6212,
+      "sha256": "e7c62a3c7976163c684f68f63efd2a95f0b7ea43481a887a5bcd32832b35b9eb",
+      "gitBlob": "308191c598157e2aa0e7fbb652ccceef8064d236"
+    }
+  ],
+  "exactInventoryNoAddedEntries": true,
+  "originalManifestNotUsedForPatchedBytes": true
+}

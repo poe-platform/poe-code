@@ -1,0 +1,80 @@
+[
+  {
+    "id": "entry-above",
+    "actual": {
+      "status": 0,
+      "stdout": {
+        "bytes": 185514,
+        "sha256": "7b1ad4e308fa0ccca1e1110c55740dc913895270761f43ce399ebd51f62b08d6"
+      },
+      "stderr": "",
+      "files": {}
+    },
+    "input": {
+      "bytes": 185514,
+      "sha256": "fb962e03adbc5050a32100566fd5cdc6e23665179b87a7cb07c3796620f18cd3"
+    },
+    "stdout": {
+      "bytes": 185514,
+      "sha256": "7b1ad4e308fa0ccca1e1110c55740dc913895270761f43ce399ebd51f62b08d6"
+    },
+    "finalized": false,
+    "counters": {
+      "keyedConstructions": 1,
+      "sortComparisons": 16384,
+      "keyedRequests": 32768,
+      "extractions": 16385,
+      "fieldObjects": 32770,
+      "parses": 16384,
+      "keyedAdmissions": 16384,
+      "charged": 457676,
+      "independentBackingCharge": 457676,
+      "existingRecordBytes": 169122,
+      "entriesPeak": 16384,
+      "retainedPeak": 457676,
+      "numericComparisons": 16384,
+      "keyedHits": 16383,
+      "fallback": 1,
+      "entryFallback": 1
+    }
+  },
+  {
+    "id": "oversized-extracted-small-prefix",
+    "actual": {
+      "status": 0,
+      "stdout": {
+        "bytes": 174806,
+        "sha256": "28711deee8c6a9164ab203fe686cc2a0d3dde12947bba31a6d6aa8aa9a86dc4e"
+      },
+      "stderr": "",
+      "files": {}
+    },
+    "input": {
+      "bytes": 174806,
+      "sha256": "a1bbe20c43aeab7adee5de829a34c6365e662fd564684042c323d4c282c78ce1"
+    },
+    "stdout": {
+      "bytes": 174806,
+      "sha256": "28711deee8c6a9164ab203fe686cc2a0d3dde12947bba31a6d6aa8aa9a86dc4e"
+    },
+    "finalized": false,
+    "counters": {
+      "keyedConstructions": 1,
+      "sortComparisons": 4,
+      "keyedRequests": 8,
+      "extractions": 5,
+      "fieldObjects": 10,
+      "fallback": 3,
+      "byteFallback": 3,
+      "parses": 2,
+      "keyedAdmissions": 2,
+      "charged": 16,
+      "independentBackingCharge": 16,
+      "existingRecordBytes": 6,
+      "entriesPeak": 2,
+      "retainedPeak": 16,
+      "numericComparisons": 4,
+      "keyedHits": 3
+    }
+  }
+]

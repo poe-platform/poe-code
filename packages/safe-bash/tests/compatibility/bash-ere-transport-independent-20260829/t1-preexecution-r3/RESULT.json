@@ -1,0 +1,350 @@
+{
+  "author": {
+    "schema": 3,
+    "retained14": 14,
+    "versionedOld19": [
+      {
+        "id": "N01-first-open",
+        "pass": true
+      },
+      {
+        "id": "N02-second-open",
+        "pass": true
+      },
+      {
+        "id": "N03-both-closes",
+        "pass": true
+      },
+      {
+        "id": "N04-short-write",
+        "pass": true
+      },
+      {
+        "id": "N05-zero-write",
+        "pass": true
+      },
+      {
+        "id": "N06-positive-r3",
+        "pass": true
+      },
+      {
+        "id": "N07-pass-exit",
+        "pass": true
+      },
+      {
+        "id": "N08-unknown",
+        "pass": true
+      },
+      {
+        "id": "N09-spawn",
+        "pass": true
+      },
+      {
+        "id": "N10-trace",
+        "pass": true
+      },
+      {
+        "id": "N11-cleanup",
+        "pass": true
+      },
+      {
+        "id": "N12-capture",
+        "pass": true
+      },
+      {
+        "id": "N13-extra",
+        "pass": true
+      },
+      {
+        "id": "N14-getter",
+        "pass": true
+      },
+      {
+        "id": "N15-hole",
+        "pass": true
+      },
+      {
+        "id": "N16-ordinary-failure",
+        "pass": true
+      },
+      {
+        "id": "F01-reserved-admission",
+        "pass": true
+      },
+      {
+        "id": "F02-preclock-false",
+        "pass": true
+      },
+      {
+        "id": "F03-async-publication-undefined",
+        "pass": true
+      }
+    ],
+    "novel8": [
+      {
+        "id": "I01-reversed",
+        "pass": true
+      },
+      {
+        "id": "I02-retired-before-exit",
+        "pass": true
+      },
+      {
+        "id": "I03-unbound-A03",
+        "pass": true
+      },
+      {
+        "id": "I04-non-A03-fabrication",
+        "pass": true
+      },
+      {
+        "id": "I05-missing-process-admission",
+        "pass": true
+      },
+      {
+        "id": "I06-request-trace-mismatch",
+        "pass": true
+      },
+      {
+        "id": "I07-invalid-numbers",
+        "pass": true
+      },
+      {
+        "id": "I08-unknown-retirement",
+        "pass": true
+      }
+    ],
+    "additional": [
+      {
+        "id": "Q01-A03-bound-positive",
+        "pass": true
+      },
+      {
+        "id": "Q02-EOF-before-exit-positive",
+        "pass": true
+      },
+      {
+        "id": "Q03-clock-domain",
+        "pass": true
+      },
+      {
+        "id": "Q04-time-reversal",
+        "pass": true
+      },
+      {
+        "id": "Q05-post-after-exit",
+        "pass": true
+      },
+      {
+        "id": "Q06-invalid-process-fields",
+        "pass": true
+      },
+      {
+        "id": "Q07-NOT-OBSERVED",
+        "pass": true
+      },
+      {
+        "id": "Q08-close-before-exit",
+        "pass": true
+      },
+      {
+        "id": "U-no-close",
+        "pass": true
+      },
+      {
+        "id": "U-exit-only",
+        "pass": true
+      }
+    ],
+    "results": [
+      {
+        "id": "N01-first-open",
+        "pass": true
+      },
+      {
+        "id": "N02-second-open",
+        "pass": true
+      },
+      {
+        "id": "N03-both-closes",
+        "pass": true
+      },
+      {
+        "id": "N04-short-write",
+        "pass": true
+      },
+      {
+        "id": "N05-zero-write",
+        "pass": true
+      },
+      {
+        "id": "N06-positive-r3",
+        "pass": true
+      },
+      {
+        "id": "N07-pass-exit",
+        "pass": true
+      },
+      {
+        "id": "N08-unknown",
+        "pass": true
+      },
+      {
+        "id": "N09-spawn",
+        "pass": true
+      },
+      {
+        "id": "N10-trace",
+        "pass": true
+      },
+      {
+        "id": "N11-cleanup",
+        "pass": true
+      },
+      {
+        "id": "N12-capture",
+        "pass": true
+      },
+      {
+        "id": "N13-extra",
+        "pass": true
+      },
+      {
+        "id": "N14-getter",
+        "pass": true
+      },
+      {
+        "id": "N15-hole",
+        "pass": true
+      },
+      {
+        "id": "N16-ordinary-failure",
+        "pass": true
+      },
+      {
+        "id": "F01-reserved-admission",
+        "pass": true
+      },
+      {
+        "id": "F02-preclock-false",
+        "pass": true
+      },
+      {
+        "id": "F03-async-publication-undefined",
+        "pass": true
+      },
+      {
+        "id": "I01-reversed",
+        "pass": true
+      },
+      {
+        "id": "I02-retired-before-exit",
+        "pass": true
+      },
+      {
+        "id": "I03-unbound-A03",
+        "pass": true
+      },
+      {
+        "id": "I04-non-A03-fabrication",
+        "pass": true
+      },
+      {
+        "id": "I05-missing-process-admission",
+        "pass": true
+      },
+      {
+        "id": "I06-request-trace-mismatch",
+        "pass": true
+      },
+      {
+        "id": "I07-invalid-numbers",
+        "pass": true
+      },
+      {
+        "id": "I08-unknown-retirement",
+        "pass": true
+      },
+      {
+        "id": "Q01-A03-bound-positive",
+        "pass": true
+      },
+      {
+        "id": "Q02-EOF-before-exit-positive",
+        "pass": true
+      },
+      {
+        "id": "Q03-clock-domain",
+        "pass": true
+      },
+      {
+        "id": "Q04-time-reversal",
+        "pass": true
+      },
+      {
+        "id": "Q05-post-after-exit",
+        "pass": true
+      },
+      {
+        "id": "Q06-invalid-process-fields",
+        "pass": true
+      },
+      {
+        "id": "Q07-NOT-OBSERVED",
+        "pass": true
+      },
+      {
+        "id": "Q08-close-before-exit",
+        "pass": true
+      },
+      {
+        "id": "U-no-close",
+        "pass": true
+      },
+      {
+        "id": "U-exit-only",
+        "pass": true
+      }
+    ],
+    "pass": true,
+    "Workers": 0,
+    "realChildren": 0,
+    "syntheticUnknown": 2
+  },
+  "independent": [
+    {
+      "id": "R01-finite-timestamp-domains",
+      "status": "PASS"
+    },
+    {
+      "id": "R02-retained-C2-only-no-process",
+      "status": "PASS"
+    },
+    {
+      "id": "R03-A03-bound-neighbors",
+      "status": "PASS"
+    },
+    {
+      "id": "R04-delivery-and-own-data",
+      "status": "PASS"
+    },
+    {
+      "id": "R05-null-prototype-valid-and-sticky-unknown",
+      "status": "PASS"
+    },
+    {
+      "id": "R06-root-clock-conflict-is-real-admission",
+      "status": "PASS"
+    }
+  ],
+  "normalRetainedDATAOnly": true,
+  "archiveFiles": 4191,
+  "archiveBytes": 15168573,
+  "actualWorkers": 0,
+  "productImports": 0,
+  "compiler": 0,
+  "clockConflict": {
+    "rootRequested": 1800000,
+    "candidate": 2100000
+  }
+}

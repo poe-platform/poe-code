@@ -1,0 +1,36 @@
+{
+  "records": [
+    {
+      "args": [
+        "ls-tree",
+        "-rlz",
+        "--full-tree",
+        "016aa3a940c19dc17fd94bce0ed7468676e1d5c5",
+        "--",
+        "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1"
+      ],
+      "startedAt": "2026-08-29T10:07:00.891Z",
+      "pid": 26058,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "closed": true,
+      "finishedAt": "2026-08-29T10:07:00.929Z"
+    },
+    {
+      "args": [
+        "cat-file",
+        "--batch"
+      ],
+      "startedAt": "2026-08-29T10:07:00.938Z",
+      "pid": 26059,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "closed": true,
+      "finishedAt": "2026-08-29T10:07:00.966Z"
+    }
+  ],
+  "captureBytes": 35190,
+  "native": 0
+}

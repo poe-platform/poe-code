@@ -1,0 +1,890 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { textCommands } from "../../src/commands/text.js";
+import { FsError, toByteSource, type CommandContext, type FileSystem } from "../../src/contracts/index.js";
+import { registerYieldCheckpoint, scheduleTurn } from "../../src/contracts/yield.js";
+import { createStandardCommands } from "../../src/commands/index.js";
+import { chunks, fixture, run } from "./helpers.js";
+
+function sortProbe(args: readonly string[], stdin: string, signal: AbortSignal, fs: FileSystem) {
+  const stdout: Uint8Array[] = [];
+  const stderr: Uint8Array[] = [];
+  const context: CommandContext = {
+    command: "sort", args, cwd: "/work", env: {}, fs, signal, stdin: toByteSource(stdin),
+    stdout: { async write(bytes) { stdout.push(new Uint8Array(bytes)); } },
+    stderr: { async write(bytes) { stderr.push(new Uint8Array(bytes)); } },
+  };
+  return { context, stdout, stderr };
+}
+
+test("uniq reports only its own closed stdout as a silent broken pipe", async () => {
+  const command = textCommands().find(command => command.name === "uniq")!;
+  for (const mode of ["closed", "provider", "distinct", "cancelled", "other-closure"] as const) {
+    const caller = new AbortController();
+    const consumer = new AbortController();
+    const closure = new FsError(mode === "other-closure" ? "EIO" : "EPIPE");
+    const providerFailure = new FsError("EPIPE", { message: "provider failure" });
+    const cancellation = new Error("caller cancellation");
+    const probe = sortProbe(["--"], "a\nb\nc\n", caller.signal, await fixture());
+    const stdout = {
+      ownedOutput: { consumerClosed: consumer.signal, async write() { assert.fail("ordinary writes must retain their shell ownership"); } },
+      async write(bytes: Uint8Array) {
+        probe.stdout.push(new Uint8Array(bytes));
+        if (mode !== "provider") consumer.abort(closure);
+        if (mode === "cancelled") caller.abort(cancellation);
+        if (mode === "provider" || mode === "distinct") throw providerFailure;
+      },
+    };
+    const pending = Promise.resolve(command.execute({ ...probe.context, command: "uniq", stdout }));
+    if (mode === "cancelled") {
+      await assert.rejects(pending, error => error === cancellation);
+      assert.equal(Buffer.concat(probe.stderr).toString(), "");
+    } else {
+      const result = await pending;
+      assert.equal(result.exitCode, mode === "closed" ? 141 : 1, mode);
+      assert.equal(Buffer.concat(probe.stderr).toString(), mode === "closed" ? "" : `uniq: ${(mode === "other-closure" ? closure : providerFailure).message}\n`, mode);
+    }
+    assert.equal(Buffer.concat(probe.stdout).toString(), "a\nb\n", mode);
+  }
+});
+
+test("uniq preserves file-output errors when stdout is already closed", async () => {
+  const consumer = new AbortController();
+  const failure = new FsError("EPIPE", { message: "file output failure" });
+  consumer.abort(failure);
+  const fs = await fixture();
+  Object.defineProperty(fs, "writeStream", { value: undefined });
+  fs.writeFile = async () => { throw failure; };
+  const probe = sortProbe(["-", "out.txt"], "a\na\nb\n", new AbortController().signal, fs);
+  const result = await textCommands().find(command => command.name === "uniq")!.execute({
+    ...probe.context, command: "uniq",
+    stdout: {
+      async write() { assert.fail("file output must not write to stdout"); },
+      ownedOutput: { consumerClosed: consumer.signal, async write() { assert.fail("file output must not write to owned stdout"); } },
+    },
+  });
+  assert.equal(result.exitCode, 1);
+  assert.equal(Buffer.concat(probe.stderr).toString(), `uniq: ${failure.message}\n`);
+});
+
+test("sort merge publishes before pulling the next record and awaits its sink", async () => {
+  const probe = sortProbe(["-m"], "", new AbortController().signal, await fixture());
+  let writes = 0;
+  let closed = false;
+  const stdin = (async function* () {
+    const reused = new Uint8Array(2);
+    try {
+      for (let i = 0; i < 9; i++) {
+        assert.equal(writes, i, "merge must await publication before advancing its source");
+        reused[0] = 48 + i; reused[1] = 10;
+        yield reused;
+      }
+    } finally { closed = true; reused.fill(255); }
+  })();
+  const stdout = { async write(bytes: Uint8Array) {
+    const owned = new Uint8Array(bytes);
+    await new Promise<void>(resolve => setImmediate(resolve));
+    assert.deepEqual(bytes, owned);
+    probe.stdout.push(owned);
+    writes += [...bytes].filter(byte => byte === 10).length;
+  } };
+  const result = await textCommands().find(command => command.name === "sort")!.execute({ ...probe.context, stdin, stdout });
+  assert.equal(result.exitCode, 0, Buffer.concat(probe.stderr).toString());
+  assert.equal(Buffer.concat(probe.stdout).toString(), "0\n1\n2\n3\n4\n5\n6\n7\n8\n");
+  assert.equal(closed, true);
+});
+
+test("uniq keeps the original iterator when synchronous input is unavailable", async () => {
+  for (const synchronousProbe of [false, true]) {
+    const probe = sortProbe([], "", new AbortController().signal, await fixture());
+    let readers = 0;
+    const records = ["a\na\n", "b\nb\n"];
+    const stdin = {
+      abortSignal: probe.context.signal,
+      [Symbol.asyncIterator]() {
+        readers++;
+        assert.equal(readers, 1, "stdin must only acquire one reader");
+        let index = 0;
+        return {
+          ...(synchronousProbe ? { tryNextSync: () => undefined } : {}),
+          async next() {
+            await Promise.resolve();
+            return index < records.length
+              ? { done: false as const, value: new TextEncoder().encode(records[index++]!) }
+              : { done: true as const, value: undefined };
+          },
+        };
+      },
+    };
+    const result = await textCommands().find(command => command.name === "uniq")!.execute({ ...probe.context, command: "uniq", stdin });
+    assert.equal(result.exitCode, 0, Buffer.concat(probe.stderr).toString());
+    assert.equal(Buffer.concat(probe.stdout).toString(), "a\nb\n");
+    assert.equal(readers, 1);
+  }
+});
+
+for (const buffer of [false, true]) for (const args of [[], ["-f", "1"], ["-s", "2"], ["-w", "3"], ["-i", "-f", "1"]]) {
+  test(`uniq owns retained keys with Buffer=${buffer} args=${args.join(" ")}`, async () => {
+    const probe = sortProbe(args, "", new AbortController().signal, await fixture());
+    const storage = buffer ? Buffer.alloc(6) : new Uint8Array(6);
+    const stdin = { async *[Symbol.asyncIterator]() {
+      for (const line of ["a one\n", "b two\n", "b two\n"]) {
+        storage.set(new TextEncoder().encode(line));
+        yield storage;
+      }
+      storage.fill(0);
+    } };
+    const result = await textCommands().find(command => command.name === "uniq")!.execute({ ...probe.context, command: "uniq", stdin, env: { LC_ALL: "C" } });
+    assert.equal(result.exitCode, 0, Buffer.concat(probe.stderr).toString());
+    assert.equal(Buffer.concat(probe.stdout).toString(), "a one\nb two\n");
+  });
+}
+
+for (const args of [[], ["-r"]]) {
+  for (const synchronous of [false, true]) for (const failing of [false, true]) {
+    test(`sort ${args.join(" ")} closes input (synchronous=${synchronous}, failing=${failing})`, async () => {
+      const probe = sortProbe(args, "", new AbortController().signal, await fixture());
+      let closed = 0;
+      let reads = 0;
+      const next = () => {
+        if (reads++ === 0) return { done: false as const, value: new TextEncoder().encode("b\na\n") };
+        if (failing) throw new Error("input failed");
+        return { done: true as const, value: undefined };
+      };
+      const stdin = {
+        abortSignal: probe.context.signal,
+        [Symbol.asyncIterator]() {
+          return {
+            ...(synchronous ? { tryNextSync: next } : {}),
+            async next() { return next(); },
+            async return() { closed++; return { done: true as const, value: undefined }; },
+          };
+        },
+      };
+      const result = await textCommands().find(command => command.name === "sort")!.execute({ ...probe.context, stdin });
+      assert.equal(result.exitCode, failing ? 2 : 0);
+      assert.equal(closed, 1);
+      assert.equal(Buffer.concat(probe.stdout).toString(), failing ? "" : args.length ? "b\na\n" : "a\nb\n");
+    });
+  }
+  test(`sort ${args.join(" ")} cooperates with queued cancellation without an installed checkpoint`, async () => {
+    const controller = new AbortController();
+    const rows = Array.from({ length: 3000 }, (_, index) => `${3000 - index} tenant`).join("\n") + "\n";
+    const probe = sortProbe(args, rows, controller.signal, await fixture());
+    const reason = new Error("cancel sort work");
+    scheduleTurn(() => controller.abort(reason));
+    await assert.rejects(Promise.resolve(textCommands().find(command => command.name === "sort")!.execute(probe.context)), error => error === reason);
+    assert.equal(probe.stdout.length, 0);
+  });
+}
+
+test("sort batches both comparisons and record moves without publishing during checkpoints", async () => {
+  const controller = new AbortController();
+  const probe = sortProbe([], "\n".repeat(1024), controller.signal, await fixture());
+  let checkpoints = 0;
+  registerYieldCheckpoint(controller.signal, () => {
+    checkpoints++;
+    assert.equal(probe.stdout.length, 0);
+  });
+  const result = await textCommands().find(command => command.name === "sort")!.execute(probe.context);
+  assert.equal(result.exitCode, 0);
+  assert.ok(checkpoints >= 3 && checkpoints <= 6, `batched comparison/move checkpoints: ${checkpoints}`);
+  assert.equal(Buffer.concat(probe.stdout).toString(), "\n".repeat(1024));
+});
+
+test("sort yields queued cancellation before output for every comparison path", async () => {
+  const stdin = Array.from({ length: 256 }, (_, index) => `${String(index * 73 % 256).padStart(4, "0")} tail`).join("\n") + "\n";
+  for (const args of [[], ["-f"], ["-k1,1"], ["-n"], ["-k1,1n"]]) {
+    for (const reason of [false, null]) {
+      const controller = new AbortController();
+      const fs = await fixture({ kept: "unchanged" });
+      const probe = sortProbe([...args, "-o", "kept"], stdin, controller.signal, fs);
+      let checkpoints = 0;
+      let entered = false;
+      registerYieldCheckpoint(controller.signal, () => {
+        // Invocation admission notifies checkpoints without yielding a turn.
+        if (!entered) { entered = true; return; }
+        checkpoints++;
+        scheduleTurn(() => controller.abort(reason));
+      });
+      await assert.rejects(Promise.resolve(textCommands().find(command => command.name === "sort")!.execute(probe.context)), failure => failure === reason);
+      assert.equal(checkpoints, 1);
+      assert.equal(probe.stdout.length, 0);
+      assert.equal(probe.stderr.length, 0);
+      assert.equal(new TextDecoder().decode(await fs.readFile("/work/kept")), "unchanged");
+    }
+  }
+});
+
+test("sort numeric comparisons remain cancellable after input is fully ingested", async () => {
+  const text = Array.from({ length: 256 }, (_, index) => String(index * 73 % 256).padStart(4, "0")).join("\n") + "\n";
+  for (const args of [["-n"], ["-k1,1n"]]) {
+    for (const reason of [false, null]) {
+      const controller = new AbortController();
+      const probe = sortProbe(args, text, controller.signal, await fixture());
+      let ingested = false, interrupted = false;
+      const stdin = (async function* () {
+        yield new TextEncoder().encode(text);
+        ingested = true;
+      })();
+      registerYieldCheckpoint(controller.signal, () => {
+        if (ingested) { interrupted = true; queueMicrotask(() => controller.abort(reason)); }
+      });
+      await assert.rejects(Promise.resolve(textCommands().find(command => command.name === "sort")!.execute({ ...probe.context, stdin })), failure => failure === reason);
+      assert.equal(ingested, true);
+      assert.equal(interrupted, true);
+      assert.equal(probe.stdout.length, 0);
+      assert.equal(probe.stderr.length, 0);
+    }
+  }
+});
+
+test("sort long-record preparation cooperates even with only one comparison", async () => {
+  for (const [args, stdin] of [
+    [["-f"], `${"a".repeat(16_384)}x\n${"a".repeat(16_384)}y\n`],
+    [["-b"], `${" ".repeat(16_384)}x\n${" ".repeat(16_384)}y\n`],
+    [["-k1,1"], `${"a".repeat(16_384)}x\n${"a".repeat(16_384)}y\n`],
+    [["-t", ":", "-k2,2"], `${"a:".repeat(8192)}x\n${"a:".repeat(8192)}y\n`],
+    [["-n"], `${"1".repeat(16_384)}2\n${"1".repeat(16_384)}3\n`],
+    [[], `${"a".repeat(16_384)}x\n${"a".repeat(16_384)}y\n`],
+  ] as const) {
+    for (const reason of [false, null]) {
+      const controller = new AbortController();
+      const probe = sortProbe(args, stdin, controller.signal, await fixture());
+      let checkpoints = 0;
+      registerYieldCheckpoint(controller.signal, () => {
+        checkpoints++;
+        queueMicrotask(() => controller.abort(reason));
+      });
+      await assert.rejects(Promise.resolve(textCommands().find(command => command.name === "sort")!.execute(probe.context)), failure => failure === reason);
+      assert.equal(checkpoints, 1);
+      assert.equal(probe.stdout.length, 0);
+      assert.equal(probe.stderr.length, 0);
+    }
+  }
+});
+
+test("sort keeps byte profiles and key-local flag precedence while honoring collation", async () => {
+  const stdin = "b:2\na:2\nz:1\n";
+  assert.equal((await run("sort", ["-r", "-t", ":", "-k2,2n", "-s"], { stdin })).stdout, "z:1\nb:2\na:2\n");
+  assert.equal((await run("sort", ["-t", ":", "-k2,2nr"], { stdin })).stdout, "a:2\nb:2\nz:1\n");
+  assert.equal((await run("sort", ["-t", ":", "-k2,2n", "-u"], { stdin })).stdout, "z:1\nb:2\n");
+  assert.deepEqual((await run("sort", [], { stdin: Uint8Array.from([255, 10, 0, 10, 128, 10, 65, 10]) })).stdoutBytes, Buffer.from([0, 10, 65, 10, 128, 10, 255, 10]));
+  for (const locale of ["C", "tr_TR.UTF-8"]) {
+    assert.equal((await run("sort", ["-f"], { stdin: "ı\ni\nİ\nI\n", env: { LC_ALL: locale } })).stdout, locale === "C" ? "I\ni\nİ\nı\n" : "ı\nI\ni\nİ\n");
+  }
+  for (const flag of ["-V", "--version-sort"]) assert.equal((await run("sort", [flag], { stdin: "v10\nv2\n" })).stdout, "v2\nv10\n");
+});
+
+test("sort applies collation precedence to text, keys, reverse and check modes", async () => {
+  const stdin = "B\nb\nA\na\n";
+  for (const env of [{ LC_ALL: "en_US.UTF-8" }, { LC_ALL: "", LC_COLLATE: "en_US.UTF-8", LANG: "C" }, { LANG: "en_US.UTF-8" }]) {
+    assert.equal((await run("sort", [], { stdin, env })).stdout, "a\nA\nb\nB\n");
+    assert.equal((await run("sort", ["-r"], { stdin, env })).stdout, "B\nb\nA\na\n");
+    assert.equal((await run("sort", ["-k2,2"], { stdin: "x A\ny a\n", env })).stdout, "y a\nx A\n");
+    assert.equal((await run("sort", ["-c"], { stdin: "a\nA\nb\nB\n", env })).exitCode, 0);
+    assert.equal((await run("sort", ["-c"], { stdin: "A\na\n", env })).exitCode, 1);
+  }
+  assert.equal((await run("sort", [], { stdin, env: { LC_ALL: "C", LC_COLLATE: "en_US.UTF-8" } })).stdout, "A\nB\na\nb\n");
+  assert.deepEqual((await run("sort", [], { stdin: Uint8Array.of(255, 10, 65, 10, 128, 10), env: { LC_ALL: "en_US.UTF-8" } })).stdoutBytes, Buffer.from([65, 10, 128, 10, 255, 10]));
+});
+
+test("sort uses byte ordering, numeric keys, reverse, stable and unique modes", async () => {
+  assert.equal((await run("sort", [], { stdin: chunks("z\na\na\nb") })).stdout, "a\na\nb\nz\n");
+  assert.equal((await run("sort", ["-nu"], { stdin: "10\n2\n02\n-3\n0.5\n" })).stdout, "-3\n0.5\n2\n10\n");
+  assert.equal((await run("sort", ["-nr"], { stdin: "2\n10\n-1\n" })).stdout, "10\n2\n-1\n");
+  assert.equal((await run("sort", ["-t", ":", "-k", "2,2n", "-s"], { stdin: "b:2\na:2\nz:1\n" })).stdout, "z:1\nb:2\na:2\n");
+  assert.equal((await run("sort", ["-n"], { stdin: "9007199254740993\n9007199254740992\n" })).stdout, "9007199254740992\n9007199254740993\n");
+  assert.equal((await run("sort", ["-fu"], { stdin: "b\nA\na\n" })).stdout, "A\nb\n");
+});
+
+test("sort checks order, writes output safely after reading input, and handles zero records", async () => {
+  assert.equal((await run("sort", ["-c"], { stdin: "a\nb\n" })).exitCode, 0);
+  assert.equal((await run("sort", ["-c"], { stdin: "b\na\n" })).exitCode, 1);
+  assert.equal((await run("sort", ["-cu"], { stdin: "a\na\n" })).exitCode, 1);
+  assert.equal((await run("sort", ["-z"], { stdin: "b\0a\0" })).stdout, "a\0b\0");
+  const fs = await fixture({ input: "b\na\n" });
+  assert.equal((await run("sort", ["-o", "input", "input"], { fs })).exitCode, 0);
+  assert.equal(new TextDecoder().decode(await fs.readFile("/work/input")), "a\nb\n");
+  assert.equal((await run("sort", ["-k", "0"])).exitCode, 2);
+});
+
+test("uniq groups adjacent records and supports counts, repeated/unique selection and comparisons", async () => {
+  const stdin = "a\na\nb\na\n";
+  assert.equal((await run("uniq", [], { stdin: chunks(stdin) })).stdout, "a\nb\na\n");
+  assert.equal((await run("uniq", ["-c"], { stdin })).stdout, "      2 a\n      1 b\n      1 a\n");
+  assert.equal((await run("uniq", ["-d"], { stdin })).stdout, "a\n");
+  assert.equal((await run("uniq", ["-u"], { stdin })).stdout, "b\na\n");
+  assert.equal((await run("uniq", ["-if", "1"], { stdin: "one SAME\ntwo same\nthree other" })).stdout, "one SAME\nthree other\n");
+  assert.equal((await run("uniq", ["-s", "1", "-w", "1"], { stdin: "abX\ncbY\ndz" })).stdout, "abX\ndz\n");
+  assert.equal((await run("uniq", ["-z"], { stdin: "a\0a\0b\0" })).stdout, "a\0b\0");
+});
+
+test("uniq emits every repeated record and separates selected groups", async () => {
+  const fs = await fixture({ input: "a\na\nb\nc\nc\n" });
+  for (const [option, expected] of [
+    ["-D", "a\na\nc\nc\n"],
+    ["--all-repeated", "a\na\nc\nc\n"],
+    ["--all-repeated=none", "a\na\nc\nc\n"],
+    ["--all-repeated=separate", "a\na\n\nc\nc\n"],
+    ["--all-repeated=prepend", "\na\na\n\nc\nc\n"],
+    ["--group", "a\na\n\nb\n\nc\nc\n"],
+    ["--group=separate", "a\na\n\nb\n\nc\nc\n"],
+    ["--group=prepend", "\na\na\n\nb\n\nc\nc\n"],
+    ["--group=append", "a\na\n\nb\n\nc\nc\n\n"],
+    ["--group=both", "\na\na\n\nb\n\nc\nc\n\n"],
+  ]) {
+    const result = await run("uniq", [option!, "input"], { fs });
+    assert.equal(result.exitCode, 0, option);
+    assert.equal(result.stdout, expected, option);
+    assert.equal(result.stderr, "", option);
+  }
+  assert.equal((await run("uniq", ["-iD"], { stdin: chunks("A\na\na\nb\n") })).stdout, "A\na\na\n");
+  assert.equal((await run("uniq", ["-uD"], { stdin: "a\na\nb\n" })).stdout, "");
+  assert.deepEqual((await run("uniq", ["-D"], { stdin: chunks(Uint8Array.of(255, 10, 255, 10, 254, 10)) })).stdoutBytes, Buffer.from([255, 10, 255, 10]));
+  assert.equal((await run("uniq", ["-z", "--group=both"], { stdin: chunks("a\0a\0b") })).stdout, "\0a\0a\0\0b\0\0");
+  assert.equal((await run("uniq", ["--group=both"], { stdin: "" })).stdout, "");
+  assert.equal((await run("uniq", ["--", "--group"], { fs: await fixture({ "--group": "a\na\n" }) })).stdout, "a\n");
+  for (const stdin of ["", "only\n"]) {
+    assert.equal((await run("uniq", ["--all-repeated=prepend"], { stdin })).stdout, "");
+  }
+  const result = await run("uniq", ["--group=append", "input", "output"], { fs });
+  assert.equal(result.exitCode, 0);
+  assert.equal(new TextDecoder().decode(await fs.readFile("/work/output")), "a\na\n\nb\n\nc\nc\n\n");
+});
+
+test("uniq rejects invalid group methods and incompatible selections", async () => {
+  for (const args of [["--all-repeated=append"], ["--group=none"], ["--group="], ["-cD"], ["--group", "-d"], ["--group", "-u"], ["--group", "-c"], ["--group", "-D"]]) {
+    const result = await run("uniq", args, { stdin: "a\na\n" });
+    assert.equal(result.exitCode, 2, args.join(" "));
+    assert.equal(result.stdout, "");
+  }
+});
+
+test("uniq refuses aliased output before opening a writer", async () => {
+  for (const [source, destination] of [
+    ["input", "input"], ["./input", "input"], ["/work/input", "/work//input"],
+    ["sub/../input", "input"], ["input", "symbolic"], ["symbolic", "input"],
+    ["input", "hard"], ["hard", "input"], ["alias/input", "input"],
+  ]) {
+    const contents = "x\nx\ny\n";
+    const fs = await fixture({ input: contents });
+    await fs.mkdir("/work/sub");
+    await fs.symlink("input", "/work/symbolic");
+    await fs.symlink(".", "/work/alias");
+    await fs.link("/work/input", "/work/hard");
+    let writes = 0;
+    const writeStream = fs.writeStream.bind(fs);
+    fs.writeStream = async (...args) => { writes++; return writeStream(...args); };
+    const result = await run("uniq", [source!, destination!], { fs });
+    assert.equal(Buffer.from(await fs.readFile("/work/input")).toString(), contents, `${source} -> ${destination}`);
+    assert.equal(writes, 0);
+    assert.equal(result.exitCode, 2);
+    assert.equal(result.stderr, "uniq: input and output must be different files\n");
+  }
+});
+
+test("uniq uses the last all-repeated option including bundled short flags", async () => {
+  for (const args of [["--all-repeated=separate", "-D"], ["--all-repeated=prepend", "-iD"], ["--all-repeated=separate", "--all-repeated"]]) {
+    const result = await run("uniq", args, { stdin: "x\nx\ny\ny\n" });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "x\nx\ny\ny\n");
+  }
+  assert.equal((await run("uniq", ["-D", "--all-repeated=separate"], { stdin: "x\nx\ny\ny\n" })).stdout, "x\nx\n\ny\ny\n");
+});
+
+test("uniq refuses uncertain existing output identity without destroying a hidden hard link", async () => {
+  const contents = "x\nx\ny\n";
+  const fs = await fixture({ input: contents });
+  await fs.link("/work/input", "/work/alias");
+  const stat = fs.stat.bind(fs);
+  fs.stat = async (...args) => {
+    const result = { ...await stat(...args) };
+    delete result.identityScope;
+    return result;
+  };
+  fs.compareEntry = async () => "unknown";
+  const result = await run("uniq", ["input", "alias"], { fs });
+  assert.equal(Buffer.from(await fs.readFile("/work/input")).toString(), contents);
+  assert.equal(result.exitCode, 1);
+  assert.ok(result.stderr.includes("cannot determine whether input and output are distinct files"));
+});
+
+test("uniq uses provider entry comparison when stat identity is unavailable", async () => {
+  for (const comparison of ["same", "distinct"] as const) {
+    const fs = await fixture({ input: "x\nx\ny\n", output: "old\n" });
+    const stat = fs.stat.bind(fs);
+    fs.stat = async (...args) => {
+      const result = { ...await stat(...args) };
+      delete result.identityScope;
+      return result;
+    };
+    let compared = false;
+    fs.compareEntry = async (path, peer, peerPath) => {
+      assert.equal(path, "/work/input");
+      assert.equal(peer, fs);
+      assert.equal(peerPath, "/work/output");
+      compared = true;
+      return comparison;
+    };
+    const result = await run("uniq", ["input", "output"], { fs });
+    assert.equal(compared, true);
+    assert.equal(result.exitCode, comparison === "same" ? 2 : 0, result.stderr);
+    assert.equal(Buffer.from(await fs.readFile("/work/output")).toString(), comparison === "same" ? "old\n" : "x\ny\n");
+  }
+});
+
+test("cut supports overlapping/open ranges, complement, literal fields and UTF-8 characters", async () => {
+  assert.equal((await run("cut", ["-b", "1-2,2-3,5-"], { stdin: chunks("abcdef\n") })).stdout, "abcef\n");
+  assert.equal((await run("cut", ["--complement", "-b", "2-4"], { stdin: "abcdef" })).stdout, "aef\n");
+  assert.equal((await run("cut", ["-c", "2"], { stdin: chunks("aéz\n") })).stdout, "é\n");
+  assert.deepEqual((await run("cut", ["-b", "2"], { stdin: "aéz\n" })).stdoutBytes, Buffer.from([195, 10]));
+  assert.equal((await run("cut", ["-d", ":", "-f", "2,4", "--output-delimiter=|"], { stdin: "a:b:c:d\nplain\n" })).stdout, "b|d\nplain\n");
+  assert.equal((await run("cut", ["-sd", ":", "-f", "2"], { stdin: "plain\na:b" })).stdout, "b\n");
+  assert.equal((await run("cut", ["-b", "3-1"])).exitCode, 1);
+  assert.equal((await run("cut", ["-f", "0"])).exitCode, 2);
+});
+
+test("cut character selection preserves raw bytes in C and POSIX locales", async () => {
+  const stdin = Uint8Array.of(255, 10, 195, 169, 10);
+  for (const env of [{ LC_ALL: "C" }, { LC_ALL: "POSIX" }, { LC_CTYPE: "C" }, { LANG: "C" }, { LC_ALL: "", LC_CTYPE: "", LANG: "POSIX" }]) {
+    for (const args of [["-c", "1"], ["--characters=1"]]) {
+      const result = await run("cut", args, { stdin: chunks(stdin), env });
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, "");
+      assert.deepEqual(result.stdoutBytes, Buffer.from([255, 10, 195, 10]));
+    }
+    const fs = await fixture({ input: stdin });
+    assert.deepEqual((await run("cut", ["-c", "1", "input"], { fs, env })).stdoutBytes, Buffer.from([255, 10, 195, 10]));
+  }
+});
+
+test("cut character locale precedence selects bytes or Unicode characters", async () => {
+  for (const env of [{ LC_ALL: "C", LC_CTYPE: "en_US.UTF-8", LANG: "en_US.UTF-8" }, { LC_ALL: "", LC_CTYPE: "POSIX", LANG: "en_US.UTF-8" }]) {
+    assert.deepEqual((await run("cut", ["-c", "1"], { stdin: "é\n", env })).stdoutBytes, Buffer.from([195, 10]));
+  }
+  for (const env of [{}, { LC_ALL: "en_US.UTF-8", LC_CTYPE: "C", LANG: "C" }, { LC_CTYPE: "en_US.UTF-8", LANG: "C" }]) {
+    assert.equal((await run("cut", ["-c", "1"], { stdin: "é\n", env })).stdout, "é\n");
+  }
+  assert.deepEqual((await run("cut", ["-zc", "2", "--complement", "--output-delimiter=|"], { stdin: Uint8Array.of(255, 195, 169, 0), env: { LC_ALL: "C" } })).stdoutBytes, Buffer.from([255, 124, 169, 0]));
+});
+
+function cutProbe(args: readonly string[], stdin: CommandContext["stdin"], signal: AbortSignal, fs: FileSystem) {
+  const stdout: Uint8Array[] = [];
+  const stderr: Uint8Array[] = [];
+  const context: CommandContext = {
+    command: "cut", args, cwd: "/work", env: {}, fs, signal, stdin,
+    stdout: { async write(bytes) { stdout.push(new Uint8Array(bytes)); } },
+    stderr: { async write(bytes) { stderr.push(new Uint8Array(bytes)); } },
+  };
+  return { context, stdout, stderr };
+}
+
+test("cut async fallback preserves retained synchronous chunks across multiple flushes", async () => {
+  const first = "a".repeat(70 * 1024);
+  const second = "b".repeat(70 * 1024);
+  const stdin = (async function* () {
+    yield new TextEncoder().encode(`${first},tail\n`);
+    yield new TextEncoder().encode(`${second},tail\n`);
+  })();
+  const probe = cutProbe(["-f", "1", "-d", ","], stdin, new AbortController().signal, await fixture());
+  Object.assign(probe.context.stdout, {
+    writeSync(bytes: Uint8Array) {
+      probe.stdout.push(bytes);
+      return true;
+    },
+  });
+  const result = await textCommands().find(command => command.name === "cut")!.execute(probe.context);
+  assert.equal(result.exitCode, 0, Buffer.concat(probe.stderr).toString());
+  assert.ok(probe.stdout.length > 1);
+  assert.equal(Buffer.concat(probe.stdout).equals(Buffer.from(`${first}\n${second}\n`)), true);
+});
+
+test("cut selection work does not rescan all ranges per position", async testContext => {
+  for (const mode of ["b", "c", "f"]) {
+    await testContext.test(mode, async () => {
+      const positions = 2048;
+      const ranges = Array.from({ length: 32 }, (_, index) => String(100000 + index * 2)).join(",");
+      const stdin = mode === "f" ? Array(positions).fill("x").join(",") + "\n" : "x".repeat(positions) + "\n";
+      const probe = cutProbe([`-${mode}`, ranges, ...(mode === "f" ? ["-d", ","] : [])], toByteSource(stdin), new AbortController().signal, await fixture());
+      let comparisons = 0;
+      const original = Array.prototype.some;
+      Array.prototype.some = function (this: unknown[], predicate: (value: unknown, index: number, array: unknown[]) => unknown, receiver?: unknown) {
+        const first = this[0];
+        const rangeList = typeof first === "object" && first !== null && "start" in first && first.start === 100000;
+        return original.call(this, (value: unknown, index: number, array: unknown[]) => {
+          if (rangeList) comparisons++;
+          return predicate.call(receiver, value, index, array);
+        });
+      };
+      try {
+        const result = await textCommands().find(command => command.name === "cut")!.execute(probe.context);
+        assert.equal(result.exitCode, 0);
+      } finally { Array.prototype.some = original; }
+      assert.equal(Buffer.concat(probe.stdout).toString(), "\n");
+      assert.ok(comparisons <= 4 * (positions + 32), `range comparisons: ${comparisons}`);
+    });
+  }
+});
+
+test("cut parse sort and normalization deliver queued false/null cancellation before input", async testContext => {
+  const ranges = Array(8192).fill("1").join(",");
+  for (const checkpoint of [1, 5, 31]) {
+    for (const reason of [false, null]) {
+      await testContext.test(`checkpoint ${checkpoint}, reason ${reason}`, async () => {
+        const controller = new AbortController();
+        let reads = 0;
+        let checkpoints = 0;
+        let entered = false;
+        const stdin = { async *[Symbol.asyncIterator]() { reads++; yield new Uint8Array([120, 10]); } };
+        const probe = cutProbe(["-b", ranges], stdin, controller.signal, await fixture());
+        registerYieldCheckpoint(controller.signal, () => {
+          // Count parsing/normalization yields after invocation admission.
+          if (!entered) { entered = true; return; }
+          if (++checkpoints === checkpoint) scheduleTurn(() => controller.abort(reason));
+        });
+        await assert.rejects(Promise.resolve(textCommands().find(command => command.name === "cut")!.execute(probe.context)), failure => failure === reason);
+        assert.equal(checkpoints, checkpoint);
+        assert.equal(reads, 0);
+        assert.equal(probe.stdout.length, 0);
+        assert.equal(probe.stderr.length, 0);
+      });
+    }
+  }
+});
+
+test("cut record selection delivers queued false/null cancellation in every mode", async testContext => {
+  for (const mode of ["b", "c", "f"]) {
+    for (const reason of [false, null]) {
+      await testContext.test(`${mode}, reason ${reason}`, async () => {
+        const controller = new AbortController();
+        let checkpoints = 0;
+        let entered = false;
+        const stdin = mode === "f" ? Array(8192).fill("x").join(",") + "\n" : "x".repeat(8192) + "\n";
+        const probe = cutProbe([`-${mode}`, "100000", ...(mode === "f" ? ["-d", ","] : [])], toByteSource(stdin), controller.signal, await fixture());
+        registerYieldCheckpoint(controller.signal, () => {
+          // Count selection yields after invocation admission.
+          if (!entered) { entered = true; return; }
+          checkpoints++;
+          scheduleTurn(() => controller.abort(reason));
+        });
+        await assert.rejects(Promise.resolve(textCommands().find(command => command.name === "cut")!.execute(probe.context)), failure => failure === reason);
+        assert.equal(checkpoints, 1);
+        assert.equal(probe.stdout.length, 0);
+        assert.equal(probe.stderr.length, 0);
+      });
+    }
+  }
+});
+
+test("cut preabort preserves false/null reasons without reading or writing", async () => {
+  for (const reason of [false, null]) {
+    const controller = new AbortController();
+    controller.abort(reason);
+    const stdin = { async *[Symbol.asyncIterator]() { assert.fail("preabort must not read"); yield new Uint8Array(); } };
+    const probe = cutProbe(["-b", "1"], stdin, controller.signal, await fixture());
+    await assert.rejects(Promise.resolve(textCommands().find(command => command.name === "cut")!.execute(probe.context)), failure => failure === reason);
+    assert.equal(probe.stdout.length, 0);
+    assert.equal(probe.stderr.length, 0);
+  }
+});
+
+test("cut bounds output writes and awaits backpressure in every mode", async testContext => {
+  for (const mode of ["b", "c", "f"]) {
+    await testContext.test(mode, async () => {
+      const stdin = "x".repeat(70 * 1024) + (mode === "f" ? ",tail\n" : "\n");
+      const expected = "x".repeat(70 * 1024) + "\n";
+      const probe = cutProbe([`-${mode}`, mode === "f" ? "1" : "1-", ...(mode === "f" ? ["-d", ","] : [])], toByteSource(stdin), new AbortController().signal, await fixture());
+      let writing = false;
+      let writes = 0;
+      probe.context.stdout.write = async bytes => {
+        assert.equal(writing, false);
+        assert.ok(bytes.byteLength <= 64 * 1024, `write size: ${bytes.byteLength}`);
+        writing = true;
+        writes++;
+        const owned = new Uint8Array(bytes);
+        await new Promise<void>(resolve => scheduleTurn(resolve));
+        assert.deepEqual(bytes, owned);
+        probe.stdout.push(owned);
+        writing = false;
+      };
+      const result = await textCommands().find(command => command.name === "cut")!.execute(probe.context);
+      assert.equal(result.exitCode, 0, Buffer.concat(probe.stderr).toString());
+      assert.ok(writes >= 2);
+      assert.equal(writing, false);
+      assert.equal(Buffer.concat(probe.stdout).toString(), expected);
+    });
+  }
+});
+
+test("cut stops after an awaited output write receives queued false/null cancellation", async testContext => {
+  for (const mode of ["b", "c", "f"]) {
+    for (const reason of [false, null]) {
+      await testContext.test(`${mode}, reason ${reason}`, async () => {
+        const controller = new AbortController();
+        const stdin = "x".repeat(70 * 1024) + (mode === "f" ? ",tail\n" : "\n");
+        const probe = cutProbe([`-${mode}`, mode === "f" ? "1" : "1-", ...(mode === "f" ? ["-d", ","] : [])], toByteSource(stdin), controller.signal, await fixture());
+        probe.context.stdout.write = async bytes => {
+          probe.stdout.push(new Uint8Array(bytes));
+          scheduleTurn(() => controller.abort(reason));
+          await new Promise<void>(resolve => scheduleTurn(resolve));
+        };
+        await assert.rejects(Promise.resolve(textCommands().find(command => command.name === "cut")!.execute(probe.context)), failure => failure === reason);
+        assert.equal(probe.stdout.length, 1);
+        assert.equal(probe.stdout[0]!.length, 64 * 1024);
+        assert.equal(probe.stderr.length, 0);
+      });
+    }
+  }
+});
+
+test("cut single-field fast output bounds terminated and EOF records across sink paths", async testContext => {
+  for (const ending of ["\n", ""]) {
+    for (const sink of ["async", "sync", "sync-refused"] as const) {
+      await testContext.test(`${ending ? "terminated" : "EOF"}, ${sink}`, async () => {
+        const selected = "x".repeat(70 * 1024);
+        const probe = cutProbe(["-f", "1", "-d", ","], toByteSource(`kept,tail\n${selected},tail${ending}`), new AbortController().signal, await fixture());
+        let writing = false;
+        const capture = (bytes: Uint8Array) => {
+          assert.ok(bytes.length > 0 && bytes.length <= 64 * 1024, `write size: ${bytes.length}`);
+          probe.stdout.push(new Uint8Array(bytes));
+        };
+        probe.context.stdout.write = async bytes => {
+          assert.notEqual(sink, "sync", "accepted sync writes must not be repeated");
+          assert.equal(writing, false);
+          writing = true;
+          const owned = new Uint8Array(bytes);
+          await new Promise<void>(resolve => scheduleTurn(resolve));
+          assert.deepEqual(bytes, owned);
+          capture(bytes);
+          writing = false;
+        };
+        if (sink !== "async") Object.assign(probe.context.stdout, {
+          writeSync(bytes: Uint8Array) {
+            assert.equal(writing, false);
+            assert.ok(bytes.length > 0 && bytes.length <= 64 * 1024, `sync write size: ${bytes.length}`);
+            if (sink === "sync-refused") return false;
+            capture(bytes);
+            return true;
+          },
+        });
+        const result = await textCommands().find(command => command.name === "cut")!.execute(probe.context);
+        assert.equal(result.exitCode, 0, Buffer.concat(probe.stderr).toString());
+        assert.equal(Buffer.concat(probe.stdout).toString(), `kept\n${selected}\n`);
+        assert.equal(writing, false);
+      });
+    }
+  }
+});
+
+test("cut single-field EOF output preserves false/null cancellation between bounded writes", async testContext => {
+  for (const reason of [false, null]) {
+    for (const sink of ["async", "sync"] as const) {
+      await testContext.test(`${sink}, reason ${reason}`, async () => {
+        const controller = new AbortController();
+        const probe = cutProbe(["-f", "1", "-d", ","], toByteSource("x".repeat(70 * 1024) + ",tail"), controller.signal, await fixture());
+        probe.context.stdout.write = async bytes => {
+          assert.equal(sink, "async");
+          probe.stdout.push(new Uint8Array(bytes));
+          scheduleTurn(() => controller.abort(reason));
+          await new Promise<void>(resolve => scheduleTurn(resolve));
+        };
+        if (sink === "sync") Object.assign(probe.context.stdout, {
+          writeSync(bytes: Uint8Array) {
+            probe.stdout.push(new Uint8Array(bytes));
+            controller.abort(reason);
+            return true;
+          },
+        });
+        await assert.rejects(Promise.resolve(textCommands().find(command => command.name === "cut")!.execute(probe.context)), failure => failure === reason);
+        assert.equal(probe.stdout.length, 1);
+        assert.equal(probe.stdout[0]!.length, 64 * 1024);
+        assert.equal(probe.stderr.length, 0);
+      });
+    }
+  }
+});
+
+test("cut single-field output retains empty selections after an exactly full buffer", async () => {
+  for (const ending of ["\n", ""]) {
+    const selected = "x".repeat(64 * 1024 - 1);
+    const probe = cutProbe(["-f", "1", "-d", ","], toByteSource(`${selected},tail\n,tail${ending}`), new AbortController().signal, await fixture());
+    const result = await textCommands().find(command => command.name === "cut")!.execute(probe.context);
+    assert.equal(result.exitCode, 0, Buffer.concat(probe.stderr).toString());
+    assert.equal(Buffer.concat(probe.stdout).toString(), `${selected}\n\n`);
+    assert.ok(probe.stdout.every(bytes => bytes.length > 0 && bytes.length <= 64 * 1024));
+  }
+});
+
+test("cut encodes large output delimiters in bounded writes without splitting surrogate pairs", async () => {
+  const delimiter = "x".repeat(4095) + "😀" + "y".repeat(64 * 1024);
+  for (const mode of ["b", "c", "f"]) {
+    const stdin = mode === "f" ? "a,b,c\n" : "abc\n";
+    const probe = cutProbe([`-${mode}`, "1,3", "--output-delimiter", delimiter, ...(mode === "f" ? ["-d", ","] : [])], toByteSource(stdin), new AbortController().signal, await fixture());
+    const result = await textCommands().find(command => command.name === "cut")!.execute(probe.context);
+    assert.equal(result.exitCode, 0);
+    assert.ok(probe.stdout.length >= 2);
+    assert.ok(probe.stdout.every(bytes => bytes.length <= 64 * 1024));
+    assert.equal(Buffer.concat(probe.stdout).toString(), `a${delimiter}c\n`);
+  }
+});
+
+test("cut preserves range union record and Unicode behavior across chunk boundaries", async () => {
+  for (const mode of ["b", "c"]) {
+    for (const ranges of ["5-,2-3,1-2,2", "1-3,5-", "-3,5-"]) {
+      assert.equal((await run("cut", [`-${mode}`, ranges, "--output-delimiter=|"], { stdin: "abcdef\nabcdef" })).stdout, "abc|ef\nabc|ef\n");
+    }
+    assert.equal((await run("cut", [`-${mode}`, "1,2,3-4", "--output-delimiter=|"], { stdin: "abcdef\n" })).stdout, "a|b|cd\n");
+    assert.equal((await run("cut", [`-${mode}`, "2-4,3", "--complement"], { stdin: "abcdef\n" })).stdout, "aef\n");
+    assert.equal((await run("cut", ["-z", `-${mode}`, "2"], { stdin: "abc\0def" })).stdout, "b\0e\0");
+  }
+  assert.equal((await run("cut", ["-d", ",", "-f", "4,1,3,3", "--output-delimiter=|"], { stdin: ",two,,\nplain\n" })).stdout, "||\nplain\n");
+  assert.equal((await run("cut", ["-d", ",", "-f", "2", "--complement"], { stdin: ",two,,\n" })).stdout, ",,\n");
+  assert.equal((await run("cut", ["-sd", ",", "-f", "2"], { stdin: "plain\n\na,b" })).stdout, "b\n");
+  assert.equal((await run("cut", ["-d", "😀", "-f", "2,3"], { stdin: "a".repeat(4095) + "😀é😀z\n" })).stdout, "é😀z\n");
+  const unicode = "a".repeat(4095) + "😀éz\n";
+  assert.equal((await run("cut", ["-c", "4096-4097", "--output-delimiter=|"], { stdin: chunks(unicode, 137) })).stdout, "😀é\n");
+  assert.equal((await run("cut", ["-c", "1-"], { stdin: unicode })).stdout, unicode);
+  assert.deepEqual((await run("cut", ["-b", "1-"], { stdin: new Uint8Array([255, 195, 10]) })).stdoutBytes, Buffer.from([255, 195, 10]));
+  assert.equal((await run("cut", ["-c", "1-"], { stdin: new Uint8Array([255, 195, 10]) })).stdout, "��\n");
+  assert.equal((await run("cut", ["-c", "1-"], { stdin: "\uFEFFa\uFEFFb\n\uFEFFc\n" })).stdout, "\uFEFFa\uFEFFb\n\uFEFFc\n");
+  assert.equal((await run("cut", ["-b", "1-"], { stdin: "\uFEFFa\n" })).stdout, "\uFEFFa\n");
+  assert.equal((await run("cut", ["-b", Array(10001).fill("1").join(",")], { stdin: "abc\n" })).stdout, "a\n");
+  for (const ranges of ["", "0", "-", "1--2", "1,", ",1", "9007199254740992"]) {
+    assert.equal((await run("cut", ["-b", ranges])).exitCode, 2, ranges);
+  }
+  assert.equal((await run("cut", ["-b", "01,, 2"], { stdin: "abc\n" })).exitCode, 2);
+});
+
+test("cut keeps adjacent range boundaries and merges only overlaps", async () => {
+  for (const mode of ["-b", "-c"]) {
+    for (const [list, expected] of [["1-2,3-4", "ab:cd\n"], ["3-4,1,2", "a:b:cd\n"], ["1-3,2-4", "abcd\n"], ["1,1,2-", "a:bcd\n"]]) {
+      const result = await run("cut", [mode, list!, "--output-delimiter=:"], { stdin: "abcd\n" });
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, expected);
+    }
+    assert.equal((await run("cut", [mode, "1-2,3-4"], { stdin: "abcd\n" })).stdout, "abcd\n");
+    assert.equal((await run("cut", [mode, "2,3", "--complement", "--output-delimiter=:"], { stdin: "abcdef\n" })).stdout, "a:def\n");
+    const input = "a".repeat(4096) + "bc\n";
+    assert.equal((await run("cut", [mode, "1-4096,4097-", "--output-delimiter=:"], { stdin: chunks(input, 137) })).stdout, "a".repeat(4096) + ":bc\n");
+  }
+  assert.equal((await run("cut", ["-c", "1,2-3", "--output-delimiter=:"], { stdin: "é😀z\n" })).stdout, "é:😀z\n");
+});
+
+test("cut accepts blank separators and padding while rejecting empty comma items", async () => {
+  for (const mode of ["-b", "-c", "-f"]) {
+    const args = mode === "-f" ? ["-d", ":"] : [];
+    const stdin = mode === "-f" ? "a:b:c\n" : "abc\n";
+    for (const list of [" 1,2", "1,2 ", "1\t2", "\t1 , \t2\t ", "1  2", "1,\t2", "1 2,3"]) {
+      const result = await run("cut", [mode, list, ...args, "--output-delimiter=|"], { stdin });
+      assert.equal(result.exitCode, 0, `${JSON.stringify(list)}: ${result.stderr}`);
+      assert.equal(result.stdout, list === "1 2,3" ? "a|b|c\n" : "a|b\n");
+    }
+    for (const list of ["1,,2", "1, ,2", "1,\t,2", ",1", "1,", "1, ", " \t", "1\n2"]) {
+      const result = await run("cut", [mode, list, ...args], { stdin });
+      assert.equal(result.exitCode, 2, JSON.stringify(list));
+      assert.equal(result.stdout, "");
+    }
+  }
+});
+
+for (const size of [65535, 65536, 65537]) {
+  for (const terminated of [false, true]) test(`cut preserves the final newline at ${size} bytes, terminated=${terminated}`, async () => {
+    const line = "x".repeat(size);
+    const result = await run("cut", ["-f1"], { commands: textCommands(), stdin: line + (terminated ? "\n" : "") });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdoutBytes.length, size + 1);
+    assert.equal(result.stdout, line + "\n");
+  });
+}
+
+test("cut rejects undocumented short options", async () => {
+  for (const args of [["-b", "1,2", "-o", ":"], ["-b", "1", "-C"]]) {
+    const result = await run("cut", args, { stdin: "ab\n" });
+    assert.equal(result.exitCode, 2);
+    assert.equal(result.stdout, "");
+  }
+});
+
+test("cut field mode works with portable Buffer indexOf contracts", async () => {
+  const indexOf = Buffer.prototype.indexOf;
+  const descriptor = Object.getOwnPropertyDescriptor(Buffer.prototype, "indexOf")!;
+  Object.defineProperty(Buffer.prototype, "indexOf", {
+    ...descriptor,
+    value(this: Buffer, needle: string | number | Uint8Array, offset?: number, encoding?: BufferEncoding) {
+      if (needle instanceof Uint8Array && !Buffer.isBuffer(needle)) {
+        throw new TypeError("val must be string, number or Buffer");
+      }
+      return indexOf.call(this, needle, offset, encoding);
+    },
+  });
+  try {
+    const commands = createStandardCommands();
+    const stdin = await run("cut", ["-f", "2,3"], { commands: textCommands(), stdin: "a\tb\t\nc\t\td\n" });
+    assert.equal(stdin.exitCode, 0, stdin.stderr);
+    assert.equal(stdin.stdout, "b\t\n\td\n");
+
+    const fs = await fixture({ rows: "a,b\nc,,d\n" });
+    const file = await run("cut", ["-d", ",", "-f", "2,3", "rows"], { commands, fs });
+    assert.equal(file.exitCode, 0, file.stderr);
+    assert.equal(file.stdout, "b\n,d\n");
+  } finally {
+    Object.defineProperty(Buffer.prototype, "indexOf", descriptor);
+  }
+});
+
+test("sort -V dotfiles, incompatible -d/-i flags, -c/-C check modes, cut NUL delimiters, and uniq -D -u", async () => {
+  const commands = createStandardCommands();
+  assert.equal((await run("sort", ["-V"], { commands: textCommands(), stdin: ".a\n.b\n.a.1\n.a~\n" })).stdout, ".a~\n.a\n.a.1\n.b\n");
+  assert.equal((await run("sort", ["-V"], { commands: textCommands(), stdin: "..a\n.a\n...a\n" })).stdout, "..a\n.a\n...a\n");
+
+  for (const args of [["-dn"], ["-in"], ["-dg"], ["-ig"], ["-dh"], ["-ih"], ["-dM"], ["-iM"], ["-c", "-C"]]) {
+    const res = await run("sort", args, { commands: textCommands(), stdin: "" });
+    assert.equal(res.exitCode, 2);
+    assert.match(res.stderr, /are incompatible/u);
+  }
+
+  const quietFail = await run("sort", ["-C"], { commands: textCommands(), stdin: "b\na\n" });
+  assert.equal(quietFail.exitCode, 1);
+  assert.equal(quietFail.stderr, "");
+
+  const quietLongFail = await run("sort", ["--check=quiet"], { commands: textCommands(), stdin: "b\na\n" });
+  assert.equal(quietLongFail.exitCode, 1);
+  assert.equal(quietLongFail.stderr, "");
+
+  const fsFixture = await fixture({ f1: "a\n", f2: "b\n" });
+  const extraCheck = await run("sort", ["-c", "f1", "f2"], { commands, fs: fsFixture });
+  assert.equal(extraCheck.exitCode, 2);
+  assert.match(extraCheck.stderr, /extra operand 'f2' not allowed with -c/u);
+
+  const cutNulIn = await run("cut", ["-d", "", "-f1,3"], { commands: textCommands(), stdin: Uint8Array.from([97, 0, 98, 0, 99, 10]) });
+  assert.equal(cutNulIn.exitCode, 0, cutNulIn.stderr);
+  assert.deepEqual(cutNulIn.stdoutBytes, Buffer.from([97, 0, 99, 10]));
+
+  const cutNulOut = await run("cut", ["-f1,3", "--output-delimiter="], { commands: textCommands(), stdin: "a\tb\tc\n" });
+  assert.equal(cutNulOut.exitCode, 0, cutNulOut.stderr);
+  assert.deepEqual(cutNulOut.stdoutBytes, Buffer.from([97, 0, 99, 10]));
+
+  const cutTouching = await run("cut", ["-b", "1,2", "--output-delimiter=:"], { commands: textCommands(), stdin: "abcd\n" });
+  assert.equal(cutTouching.exitCode, 0, cutTouching.stderr);
+  assert.equal(cutTouching.stdout, "a:b\n");
+
+  for (const sep of ["\\0", ""]) {
+    const sortNulSep = await run("sort", ["-t", sep, "-k2,2"], { commands: textCommands(), stdin: Uint8Array.from([120, 0, 98, 10, 121, 0, 97, 10]) });
+    assert.equal(sortNulSep.exitCode, 0, sortNulSep.stderr);
+    assert.deepEqual(sortNulSep.stdoutBytes, Buffer.from([121, 0, 97, 10, 120, 0, 98, 10]));
+  }
+});
+
+test("sort -k preserves blank-only and trailing-blank fields", async () => {
+  const s1 = await run("sort", ["-k", "1,1", "-s"], { commands: textCommands(), stdin: "   \n\n" });
+  assert.equal(s1.exitCode, 0, s1.stderr);
+  assert.equal(s1.stdout, "\n   \n");
+  const s2 = await run("sort", ["-k", "1,1", "-u"], { commands: textCommands(), stdin: "   \n\n" });
+  assert.equal(s2.exitCode, 0, s2.stderr);
+  assert.equal(s2.stdout, "\n   \n");
+  const s3 = await run("sort", ["-k", "2,2", "-u"], { commands: textCommands(), stdin: "a   \na\n" });
+  assert.equal(s3.exitCode, 0, s3.stderr);
+  assert.equal(s3.stdout, "a\na   \n");
+});

@@ -1,0 +1,69 @@
+{
+  "schema": 1,
+  "phase": "SOURCE_DIAGNOSIS_NOT_ACTUAL_WORKER",
+  "limits": {
+    "milliseconds": 720000,
+    "knownOS": 28,
+    "peak": 3,
+    "captureBytes": 41943040,
+    "workBytes": 167772160
+  },
+  "helpers": {
+    "maximum": 2,
+    "first": {
+      "path": "inspect-method.mjs",
+      "size": 1420,
+      "sha256": "ff7e820ec4d5698b7e39628f0283382b98eafc4709e21a27a6d82caadb347912",
+      "imports": [
+        "node:worker_threads",
+        "node:fs",
+        "node:crypto"
+      ],
+      "role": "Bounded public prototype method source metadata only, no invocation/construction; no process.binding/eval/deep import."
+    },
+    "second": "Separately sealed <=6 host-double control groups only after exact first source observation"
+  },
+  "tool": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "size": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "hashChunkBytes": 65536
+  },
+  "sourceInputs": [
+    {
+      "name": "preparation-r3/CASES/076-built/worker-bridge.mjs",
+      "size": 2775,
+      "sha256": "05e485aaf0ee2161093a1bd39983498fd98b52d72039a085a28fc16cff51f739"
+    },
+    {
+      "name": "preparation-r3/CASES/076-built/package/ere/transport/owner.js",
+      "size": 7353,
+      "sha256": "16306b78d3cdee1758b1e81834419187e0f50597a756e27ff589f02f015e2652"
+    },
+    {
+      "name": "preparation-r3/CASES/076-built/package/ere/transport/root.js",
+      "size": 12642,
+      "sha256": "44600e8e777a212da0dede616ee22416e092aa27e01ef2c6ac55a5fe494a4d9a"
+    },
+    {
+      "name": "preparation-r3/DEFERRED.md",
+      "size": 5416,
+      "sha256": "37a9db8330410dac73cc891f01301beb100b13a0b26d6e18de28e288f8c446ae"
+    },
+    {
+      "name": "SOURCES.json",
+      "size": 103555,
+      "sha256": "84d53de2f9f0905caba16fcf728c324e3a325d72328bb733510371479d78119b"
+    }
+  ],
+  "command": {
+    "args": [
+      "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-diagnosis-v1"
+    ],
+    "stdout": "capture/method.stdout",
+    "stderr": "capture/method.stderr"
+  },
+  "actualWorkers": 0,
+  "productImports": 0,
+  "productionEdits": false
+}

@@ -1,0 +1,891 @@
+TAP version 13
+# Subtest: positive overwrite: independent-memory, distinct backing files
+ok 1 - positive overwrite: independent-memory, distinct backing files
+  ---
+  duration_ms: 6.816708
+  type: 'test'
+  ...
+# {"case":"positive overwrite: independent-memory, distinct backing files","outcome":{"status":"success"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[]}
+# Subtest: positive overwrite: shared-memory, distinct backing files
+ok 2 - positive overwrite: shared-memory, distinct backing files
+  ---
+  duration_ms: 0.635208
+  type: 'test'
+  ...
+# {"case":"positive overwrite: shared-memory, distinct backing files","outcome":{"status":"success"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[]}
+# Subtest: positive overwrite: readonly, distinct backing files
+ok 3 - positive overwrite: readonly, distinct backing files
+  ---
+  duration_ms: 0.598
+  type: 'test'
+  ...
+# {"case":"positive overwrite: readonly, distinct backing files","outcome":{"status":"success"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[]}
+# Subtest: positive overwrite: overlay, distinct backing files
+ok 4 - positive overwrite: overlay, distinct backing files
+  ---
+  duration_ms: 1.157833
+  type: 'test'
+  ...
+# {"case":"positive overwrite: overlay, distinct backing files","outcome":{"status":"success"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[]}
+# Subtest: positive overwrite: opaque, distinct backing files
+ok 5 - positive overwrite: opaque, distinct backing files
+  ---
+  duration_ms: 0.467291
+  type: 'test'
+  ...
+# {"case":"positive overwrite: opaque, distinct backing files","outcome":{"status":"success"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[]}
+# Subtest: positive overwrite: real-shared-root, distinct backing files
+ok 6 - positive overwrite: real-shared-root, distinct backing files
+  ---
+  duration_ms: 13.696792
+  type: 'test'
+  ...
+# {"case":"positive overwrite: real-shared-root, distinct backing files","outcome":{"status":"success"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[]}
+# Subtest: paired alias control: opaque does not manufacture disjoint scopes
+ok 7 - paired alias control: opaque does not manufacture disjoint scopes
+  ---
+  duration_ms: 0.498791
+  type: 'test'
+  ...
+# {"case":"paired alias control: opaque does not manufacture disjoint scopes","expectedCode":"EINVAL","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]}}
+# Subtest: paired alias control: real-shared-root does not manufacture disjoint scopes
+ok 8 - paired alias control: real-shared-root does not manufacture disjoint scopes
+  ---
+  duration_ms: 4.572375
+  type: 'test'
+  ...
+# {"case":"paired alias control: real-shared-root does not manufacture disjoint scopes","expectedCode":"EINVAL","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]}}
+# Subtest: positive same-mount memory rename replaces a distinct file
+ok 9 - positive same-mount memory rename replaces a distinct file
+  ---
+  duration_ms: 0.5085
+  type: 'test'
+  ...
+# {"case":"positive same-mount memory rename replaces a distinct file","outcome":{"status":"success"},"source":"/source","target":"/target","action":"rename","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[]}
+# Subtest: REQUIRED cross-mount memory mv, target missing
+not ok 10 - REQUIRED cross-mount memory mv, target missing
+  ---
+  duration_ms: 4.850208
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:1:8165'
+  failureType: 'testCodeFailure'
+  error: |-
+    REQUIRED compatibility: distinct-file operation must succeed
+    + actual - expected
+    
+      {
+    +   exitCode: 1,
+    +   status: 'command-error',
+    +   stderr: "mv: EXDEV: cross-device link not permitted, rename '/left/source' -> '/right/target'\n"
+    -   status: 'success'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 'success'
+  actual:
+    status: 'command-error'
+    exitCode: 1
+    stderr: |-
+      mv: EXDEV: cross-device link not permitted, rename '/left/source' -> '/right/target'
+      
+  operator: 'deepStrictEqual'
+  stack: |-
+    exercise (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:118:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:192:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"case":"REQUIRED cross-mount memory mv, target missing","outcome":{"status":"command-error","exitCode":1,"stderr":"mv: EXDEV: cross-device link not permitted, rename '/left/source' -> '/right/target'\\n"},"source":"/left/source","target":"/right/target","action":"mv","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]}]},"operations":[]}
+# Subtest: REQUIRED cross-mount memory mv, target existing
+not ok 11 - REQUIRED cross-mount memory mv, target existing
+  ---
+  duration_ms: 0.757375
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:1:8165'
+  failureType: 'testCodeFailure'
+  error: |-
+    REQUIRED compatibility: distinct-file operation must succeed
+    + actual - expected
+    
+      {
+    +   exitCode: 1,
+    +   status: 'command-error',
+    +   stderr: "mv: EXDEV: cross-device link not permitted, rename '/left/source' -> '/right/target'\n"
+    -   status: 'success'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 'success'
+  actual:
+    status: 'command-error'
+    exitCode: 1
+    stderr: |-
+      mv: EXDEV: cross-device link not permitted, rename '/left/source' -> '/right/target'
+      
+  operator: 'deepStrictEqual'
+  stack: |-
+    exercise (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:118:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:192:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"case":"REQUIRED cross-mount memory mv, target existing","outcome":{"status":"command-error","exitCode":1,"stderr":"mv: EXDEV: cross-device link not permitted, rename '/left/source' -> '/right/target'\\n"},"source":"/left/source","target":"/right/target","action":"mv","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"operations":[]}
+# Subtest: REQUIRED s3 direct copy, target missing
+ok 12 - REQUIRED s3 direct copy, target missing
+  ---
+  duration_ms: 2.798625
+  type: 'test'
+  ...
+# {"case":"REQUIRED s3 direct copy, target missing","outcome":{"status":"success"},"source":"/source","target":"/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"copyObject","key":"same-prefix/target"}]}
+# Subtest: REQUIRED s3 direct copy, target existing
+ok 13 - REQUIRED s3 direct copy, target existing
+  ---
+  duration_ms: 1.888375
+  type: 'test'
+  ...
+# {"case":"REQUIRED s3 direct copy, target existing","outcome":{"status":"success"},"source":"/source","target":"/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"copyObject","key":"same-prefix/target"}]}
+# Subtest: REQUIRED s3 one-mount copy, target missing
+ok 14 - REQUIRED s3 one-mount copy, target missing
+  ---
+  duration_ms: 1.71975
+  type: 'test'
+  ...
+# {"case":"REQUIRED s3 one-mount copy, target missing","outcome":{"status":"success"},"source":"/source","target":"/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"copyObject","key":"same-prefix/target"}]}
+# Subtest: REQUIRED s3 one-mount copy, target existing
+not ok 15 - REQUIRED s3 one-mount copy, target existing
+  ---
+  duration_ms: 1.244625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:1:8622'
+  failureType: 'testCodeFailure'
+  error: |-
+    REQUIRED compatibility: distinct-file operation must succeed
+    + actual - expected
+    
+      {
+    +   code: 'ENOTSUP',
+    +   dest: '/target',
+    +   path: '/source',
+    +   status: 'filesystem-error',
+    +   syscall: 'copyFile'
+    -   status: 'success'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 'success'
+  actual:
+    status: 'filesystem-error'
+    code: 'ENOTSUP'
+    syscall: 'copyFile'
+    path: '/source'
+    dest: '/target'
+  operator: 'deepStrictEqual'
+  stack: |-
+    exercise (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:118:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:207:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"case":"REQUIRED s3 one-mount copy, target existing","outcome":{"status":"filesystem-error","code":"ENOTSUP","syscall":"copyFile","path":"/source","dest":"/target"},"source":"/source","target":"/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"operations":[{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""}]}
+# Subtest: REQUIRED s3 separate-clients copy, target missing
+ok 16 - REQUIRED s3 separate-clients copy, target missing
+  ---
+  duration_ms: 1.965084
+  type: 'test'
+  ...
+# {"case":"REQUIRED s3 separate-clients copy, target missing","outcome":{"status":"success"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"putObject","key":"same-prefix/target"},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"getObject","key":"same-prefix/source"}]}
+# Subtest: REQUIRED s3 separate-clients copy, target existing
+not ok 17 - REQUIRED s3 separate-clients copy, target existing
+  ---
+  duration_ms: 1.180834
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:1:8622'
+  failureType: 'testCodeFailure'
+  error: |-
+    REQUIRED compatibility: distinct-file operation must succeed
+    + actual - expected
+    
+      {
+    +   code: 'ENOTSUP',
+    +   dest: '/right/target',
+    +   path: '/left/source',
+    +   status: 'filesystem-error',
+    +   syscall: 'copyFile'
+    -   status: 'success'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 'success'
+  actual:
+    status: 'filesystem-error'
+    code: 'ENOTSUP'
+    syscall: 'copyFile'
+    path: '/left/source'
+    dest: '/right/target'
+  operator: 'deepStrictEqual'
+  stack: |-
+    exercise (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:118:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:207:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"case":"REQUIRED s3 separate-clients copy, target existing","outcome":{"status":"filesystem-error","code":"ENOTSUP","syscall":"copyFile","path":"/left/source","dest":"/right/target"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"operations":[{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""}]}
+# Subtest: positive s3 direct existing-target rename (non-atomic opt-in)
+ok 18 - positive s3 direct existing-target rename (non-atomic opt-in)
+  ---
+  duration_ms: 1.032375
+  type: 'test'
+  ...
+# {"case":"positive s3 direct existing-target rename (non-atomic opt-in)","outcome":{"status":"success"},"source":"/source","target":"/target","action":"rename","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"copyObject","key":"same-prefix/target"},{"operation":"deleteObject","key":"same-prefix/source"}]}
+# Subtest: positive s3 one-mount existing-target rename (non-atomic opt-in)
+ok 19 - positive s3 one-mount existing-target rename (non-atomic opt-in)
+  ---
+  duration_ms: 1.74625
+  type: 'test'
+  ...
+# {"case":"positive s3 one-mount existing-target rename (non-atomic opt-in)","outcome":{"status":"success"},"source":"/source","target":"/target","action":"rename","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"copyObject","key":"same-prefix/target"},{"operation":"deleteObject","key":"same-prefix/source"}]}
+# Subtest: REQUIRED s3 separate-clients cross-mount mv, target missing
+not ok 20 - REQUIRED s3 separate-clients cross-mount mv, target missing
+  ---
+  duration_ms: 1.354417
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:1:9679'
+  failureType: 'testCodeFailure'
+  error: |-
+    REQUIRED compatibility: distinct-file operation must succeed
+    + actual - expected
+    
+      {
+    +   exitCode: 1,
+    +   status: 'command-error',
+    +   stderr: "mv: EXDEV: cross-device link not permitted, rename '/left/source' -> '/right/target'\n"
+    -   status: 'success'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 'success'
+  actual:
+    status: 'command-error'
+    exitCode: 1
+    stderr: |-
+      mv: EXDEV: cross-device link not permitted, rename '/left/source' -> '/right/target'
+      
+  operator: 'deepStrictEqual'
+  stack: |-
+    exercise (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:118:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:227:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"case":"REQUIRED s3 separate-clients cross-mount mv, target missing","outcome":{"status":"command-error","exitCode":1,"stderr":"mv: EXDEV: cross-device link not permitted, rename '/left/source' -> '/right/target'\\n"},"source":"/left/source","target":"/right/target","action":"mv","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""}]}
+# Subtest: REQUIRED s3 separate-clients cross-mount mv, target existing
+not ok 21 - REQUIRED s3 separate-clients cross-mount mv, target existing
+  ---
+  duration_ms: 1.293959
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:1:9679'
+  failureType: 'testCodeFailure'
+  error: |-
+    REQUIRED compatibility: distinct-file operation must succeed
+    + actual - expected
+    
+      {
+    +   exitCode: 1,
+    +   status: 'command-error',
+    +   stderr: "mv: EXDEV: cross-device link not permitted, rename '/left/source' -> '/right/target'\n"
+    -   status: 'success'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 'success'
+  actual:
+    status: 'command-error'
+    exitCode: 1
+    stderr: |-
+      mv: EXDEV: cross-device link not permitted, rename '/left/source' -> '/right/target'
+      
+  operator: 'deepStrictEqual'
+  stack: |-
+    exercise (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:118:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:227:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"case":"REQUIRED s3 separate-clients cross-mount mv, target existing","outcome":{"status":"command-error","exitCode":1,"stderr":"mv: EXDEV: cross-device link not permitted, rename '/left/source' -> '/right/target'\\n"},"source":"/left/source","target":"/right/target","action":"mv","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"operations":[{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""}]}
+# Subtest: paired s3 opaque separate-client alias stays unknown and unchanged
+ok 22 - paired s3 opaque separate-client alias stays unknown and unchanged
+  ---
+  duration_ms: 2.542916
+  type: 'test'
+  ...
+# {"case":"paired s3 opaque separate-client alias stays unknown and unchanged","expectedCode":"ENOTSUP","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""}]}
+# Subtest: REQUIRED memory to-remote s3 copy, target missing
+ok 23 - REQUIRED memory to-remote s3 copy, target missing
+  ---
+  duration_ms: 0.579209
+  type: 'test'
+  ...
+# {"case":"REQUIRED memory to-remote s3 copy, target missing","outcome":{"status":"success"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"putObject","key":"same-prefix/target"}]}
+# Subtest: REQUIRED memory to-remote s3 copy, target existing
+not ok 24 - REQUIRED memory to-remote s3 copy, target existing
+  ---
+  duration_ms: 0.515917
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:1:11064'
+  failureType: 'testCodeFailure'
+  error: |-
+    REQUIRED compatibility: distinct-file operation must succeed
+    + actual - expected
+    
+      {
+    +   code: 'ENOTSUP',
+    +   dest: '/right/target',
+    +   path: '/left/source',
+    +   status: 'filesystem-error',
+    +   syscall: 'copyFile'
+    -   status: 'success'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 'success'
+  actual:
+    status: 'filesystem-error'
+    code: 'ENOTSUP'
+    syscall: 'copyFile'
+    path: '/left/source'
+    dest: '/right/target'
+  operator: 'deepStrictEqual'
+  stack: |-
+    exercise (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:118:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:258:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"case":"REQUIRED memory to-remote s3 copy, target existing","outcome":{"status":"filesystem-error","code":"ENOTSUP","syscall":"copyFile","path":"/left/source","dest":"/right/target"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"operations":[{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""}]}
+# Subtest: REQUIRED memory from-remote s3 copy, target missing
+ok 25 - REQUIRED memory from-remote s3 copy, target missing
+  ---
+  duration_ms: 0.587041
+  type: 'test'
+  ...
+# {"case":"REQUIRED memory from-remote s3 copy, target missing","outcome":{"status":"success"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"getObject","key":"same-prefix/source"}]}
+# Subtest: REQUIRED memory from-remote s3 copy, target existing
+not ok 26 - REQUIRED memory from-remote s3 copy, target existing
+  ---
+  duration_ms: 0.563625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:1:11064'
+  failureType: 'testCodeFailure'
+  error: |-
+    REQUIRED compatibility: distinct-file operation must succeed
+    + actual - expected
+    
+      {
+    +   code: 'ENOTSUP',
+    +   dest: '/right/target',
+    +   path: '/left/source',
+    +   status: 'filesystem-error',
+    +   syscall: 'copyFile'
+    -   status: 'success'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 'success'
+  actual:
+    status: 'filesystem-error'
+    code: 'ENOTSUP'
+    syscall: 'copyFile'
+    path: '/left/source'
+    dest: '/right/target'
+  operator: 'deepStrictEqual'
+  stack: |-
+    exercise (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:118:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:258:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"case":"REQUIRED memory from-remote s3 copy, target existing","outcome":{"status":"filesystem-error","code":"ENOTSUP","syscall":"copyFile","path":"/left/source","dest":"/right/target"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"operations":[{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""}]}
+# Subtest: REQUIRED webdav direct copy, target missing
+ok 27 - REQUIRED webdav direct copy, target missing
+  ---
+  duration_ms: 18.467584
+  type: 'test'
+  ...
+# {"case":"REQUIRED webdav direct copy, target missing","outcome":{"status":"success"},"source":"/source","target":"/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"COPY","key":"/dav/source"}]}
+# Subtest: REQUIRED webdav direct copy, target existing
+ok 28 - REQUIRED webdav direct copy, target existing
+  ---
+  duration_ms: 4.699875
+  type: 'test'
+  ...
+# {"case":"REQUIRED webdav direct copy, target existing","outcome":{"status":"success"},"source":"/source","target":"/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"LOCK","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"COPY","key":"/dav/source"},{"operation":"UNLOCK","key":"/dav/target"}]}
+# Subtest: REQUIRED webdav one-mount copy, target missing
+not ok 29 - REQUIRED webdav one-mount copy, target missing
+  ---
+  duration_ms: 3.621416
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:1:8622'
+  failureType: 'testCodeFailure'
+  error: |-
+    REQUIRED compatibility: distinct-file operation must succeed
+    + actual - expected
+    
+      {
+    +   code: 'ENOTSUP',
+    +   dest: '/target',
+    +   path: '/source',
+    +   status: 'filesystem-error',
+    +   syscall: 'copyFile'
+    -   status: 'success'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 'success'
+  actual:
+    status: 'filesystem-error'
+    code: 'ENOTSUP'
+    syscall: 'copyFile'
+    path: '/source'
+    dest: '/target'
+  operator: 'deepStrictEqual'
+  stack: |-
+    exercise (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:118:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:207:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"case":"REQUIRED webdav one-mount copy, target missing","outcome":{"status":"filesystem-error","code":"ENOTSUP","syscall":"copyFile","path":"/source","dest":"/target"},"source":"/source","target":"/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"}]}
+# Subtest: REQUIRED webdav one-mount copy, target existing
+not ok 30 - REQUIRED webdav one-mount copy, target existing
+  ---
+  duration_ms: 2.9275
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:1:8622'
+  failureType: 'testCodeFailure'
+  error: |-
+    REQUIRED compatibility: distinct-file operation must succeed
+    + actual - expected
+    
+      {
+    +   code: 'ENOTSUP',
+    +   dest: '/target',
+    +   path: '/source',
+    +   status: 'filesystem-error',
+    +   syscall: 'copyFile'
+    -   status: 'success'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 'success'
+  actual:
+    status: 'filesystem-error'
+    code: 'ENOTSUP'
+    syscall: 'copyFile'
+    path: '/source'
+    dest: '/target'
+  operator: 'deepStrictEqual'
+  stack: |-
+    exercise (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:118:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:207:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"case":"REQUIRED webdav one-mount copy, target existing","outcome":{"status":"filesystem-error","code":"ENOTSUP","syscall":"copyFile","path":"/source","dest":"/target"},"source":"/source","target":"/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"}]}
+# Subtest: REQUIRED webdav separate-clients copy, target missing
+not ok 31 - REQUIRED webdav separate-clients copy, target missing
+  ---
+  duration_ms: 3.086708
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:1:8622'
+  failureType: 'testCodeFailure'
+  error: |-
+    REQUIRED compatibility: distinct-file operation must succeed
+    + actual - expected
+    
+      {
+    +   code: 'ENOTSUP',
+    +   dest: '/right/target',
+    +   path: '/left/source',
+    +   status: 'filesystem-error',
+    +   syscall: 'copyFile'
+    -   status: 'success'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 'success'
+  actual:
+    status: 'filesystem-error'
+    code: 'ENOTSUP'
+    syscall: 'copyFile'
+    path: '/left/source'
+    dest: '/right/target'
+  operator: 'deepStrictEqual'
+  stack: |-
+    exercise (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:118:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:207:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"case":"REQUIRED webdav separate-clients copy, target missing","outcome":{"status":"filesystem-error","code":"ENOTSUP","syscall":"copyFile","path":"/left/source","dest":"/right/target"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"}]}
+# Subtest: REQUIRED webdav separate-clients copy, target existing
+not ok 32 - REQUIRED webdav separate-clients copy, target existing
+  ---
+  duration_ms: 3.373541
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:1:8622'
+  failureType: 'testCodeFailure'
+  error: |-
+    REQUIRED compatibility: distinct-file operation must succeed
+    + actual - expected
+    
+      {
+    +   code: 'ENOTSUP',
+    +   dest: '/right/target',
+    +   path: '/left/source',
+    +   status: 'filesystem-error',
+    +   syscall: 'copyFile'
+    -   status: 'success'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 'success'
+  actual:
+    status: 'filesystem-error'
+    code: 'ENOTSUP'
+    syscall: 'copyFile'
+    path: '/left/source'
+    dest: '/right/target'
+  operator: 'deepStrictEqual'
+  stack: |-
+    exercise (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:118:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:207:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"case":"REQUIRED webdav separate-clients copy, target existing","outcome":{"status":"filesystem-error","code":"ENOTSUP","syscall":"copyFile","path":"/left/source","dest":"/right/target"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"}]}
+# Subtest: positive webdav direct existing-target rename (default lock policy)
+ok 33 - positive webdav direct existing-target rename (default lock policy)
+  ---
+  duration_ms: 4.835625
+  type: 'test'
+  ...
+# {"case":"positive webdav direct existing-target rename (default lock policy)","outcome":{"status":"success"},"source":"/source","target":"/target","action":"rename","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"LOCK","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"MOVE","key":"/dav/source"},{"operation":"UNLOCK","key":"/dav/target"}]}
+# Subtest: positive webdav one-mount existing-target rename (default lock policy)
+not ok 34 - positive webdav one-mount existing-target rename (default lock policy)
+  ---
+  duration_ms: 2.041542
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:1:9279'
+  failureType: 'testCodeFailure'
+  error: |-
+    REQUIRED compatibility: distinct-file operation must succeed
+    + actual - expected
+    
+      {
+    +   code: 'ENOTSUP',
+    +   dest: '/target',
+    +   path: '/source',
+    +   status: 'filesystem-error',
+    +   syscall: 'rename'
+    -   status: 'success'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 'success'
+  actual:
+    status: 'filesystem-error'
+    code: 'ENOTSUP'
+    syscall: 'rename'
+    path: '/source'
+    dest: '/target'
+  operator: 'deepStrictEqual'
+  stack: |-
+    exercise (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:118:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:218:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"case":"positive webdav one-mount existing-target rename (default lock policy)","outcome":{"status":"filesystem-error","code":"ENOTSUP","syscall":"rename","path":"/source","dest":"/target"},"source":"/source","target":"/target","action":"rename","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"}]}
+# Subtest: REQUIRED webdav separate-clients cross-mount mv, target missing
+not ok 35 - REQUIRED webdav separate-clients cross-mount mv, target missing
+  ---
+  duration_ms: 2.021958
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:1:9679'
+  failureType: 'testCodeFailure'
+  error: |-
+    REQUIRED compatibility: distinct-file operation must succeed
+    + actual - expected
+    
+      {
+    +   exitCode: 1,
+    +   status: 'command-error',
+    +   stderr: "mv: ENOTSUP: operation not supported, stat '/right/target'\n"
+    -   status: 'success'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 'success'
+  actual:
+    status: 'command-error'
+    exitCode: 1
+    stderr: |-
+      mv: ENOTSUP: operation not supported, stat '/right/target'
+      
+  operator: 'deepStrictEqual'
+  stack: |-
+    exercise (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:118:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:227:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"case":"REQUIRED webdav separate-clients cross-mount mv, target missing","outcome":{"status":"command-error","exitCode":1,"stderr":"mv: ENOTSUP: operation not supported, stat '/right/target'\\n"},"source":"/left/source","target":"/right/target","action":"mv","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"}]}
+# Subtest: REQUIRED webdav separate-clients cross-mount mv, target existing
+not ok 36 - REQUIRED webdav separate-clients cross-mount mv, target existing
+  ---
+  duration_ms: 3.131125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:1:9679'
+  failureType: 'testCodeFailure'
+  error: |-
+    REQUIRED compatibility: distinct-file operation must succeed
+    + actual - expected
+    
+      {
+    +   exitCode: 1,
+    +   status: 'command-error',
+    +   stderr: "mv: ENOTSUP: operation not supported, stat '/right/target'\n"
+    -   status: 'success'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 'success'
+  actual:
+    status: 'command-error'
+    exitCode: 1
+    stderr: |-
+      mv: ENOTSUP: operation not supported, stat '/right/target'
+      
+  operator: 'deepStrictEqual'
+  stack: |-
+    exercise (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:118:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:227:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"case":"REQUIRED webdav separate-clients cross-mount mv, target existing","outcome":{"status":"command-error","exitCode":1,"stderr":"mv: ENOTSUP: operation not supported, stat '/right/target'\\n"},"source":"/left/source","target":"/right/target","action":"mv","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"}]}
+# Subtest: paired webdav opaque separate-client alias stays unknown and unchanged
+not ok 37 - paired webdav opaque separate-client alias stays unknown and unchanged
+  ---
+  duration_ms: 0.487208
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:1:9997'
+  failureType: 'testCodeFailure'
+  error: "ENOTSUP: operation not supported, stat '/left/source'"
+  code: 'ENOTSUP'
+  name: 'FsError'
+  stack: |-
+    MountFileSystem.error (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/src/fs/mount/index.ts:137:12)
+    MountFileSystem.operation (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/src/fs/mount/index.ts:152:18)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:236:19)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: REQUIRED memory to-remote webdav copy, target missing
+not ok 38 - REQUIRED memory to-remote webdav copy, target missing
+  ---
+  duration_ms: 0.754875
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:1:11064'
+  failureType: 'testCodeFailure'
+  error: |-
+    REQUIRED compatibility: distinct-file operation must succeed
+    + actual - expected
+    
+      {
+    +   code: 'ENOTSUP',
+    +   dest: '/right/target',
+    +   path: '/left/source',
+    +   status: 'filesystem-error',
+    +   syscall: 'copyFile'
+    -   status: 'success'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 'success'
+  actual:
+    status: 'filesystem-error'
+    code: 'ENOTSUP'
+    syscall: 'copyFile'
+    path: '/left/source'
+    dest: '/right/target'
+  operator: 'deepStrictEqual'
+  stack: |-
+    exercise (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:118:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:258:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"case":"REQUIRED memory to-remote webdav copy, target missing","outcome":{"status":"filesystem-error","code":"ENOTSUP","syscall":"copyFile","path":"/left/source","dest":"/right/target"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"}]}
+# Subtest: REQUIRED memory to-remote webdav copy, target existing
+not ok 39 - REQUIRED memory to-remote webdav copy, target existing
+  ---
+  duration_ms: 1.027875
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:1:11064'
+  failureType: 'testCodeFailure'
+  error: |-
+    REQUIRED compatibility: distinct-file operation must succeed
+    + actual - expected
+    
+      {
+    +   code: 'ENOTSUP',
+    +   dest: '/right/target',
+    +   path: '/left/source',
+    +   status: 'filesystem-error',
+    +   syscall: 'copyFile'
+    -   status: 'success'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 'success'
+  actual:
+    status: 'filesystem-error'
+    code: 'ENOTSUP'
+    syscall: 'copyFile'
+    path: '/left/source'
+    dest: '/right/target'
+  operator: 'deepStrictEqual'
+  stack: |-
+    exercise (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:118:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:258:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"case":"REQUIRED memory to-remote webdav copy, target existing","outcome":{"status":"filesystem-error","code":"ENOTSUP","syscall":"copyFile","path":"/left/source","dest":"/right/target"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"}]}
+# Subtest: REQUIRED memory from-remote webdav copy, target missing
+not ok 40 - REQUIRED memory from-remote webdav copy, target missing
+  ---
+  duration_ms: 0.891333
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:1:11064'
+  failureType: 'testCodeFailure'
+  error: |-
+    REQUIRED compatibility: distinct-file operation must succeed
+    + actual - expected
+    
+      {
+    +   code: 'ENOTSUP',
+    +   dest: '/right/target',
+    +   path: '/left/source',
+    +   status: 'filesystem-error',
+    +   syscall: 'copyFile'
+    -   status: 'success'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 'success'
+  actual:
+    status: 'filesystem-error'
+    code: 'ENOTSUP'
+    syscall: 'copyFile'
+    path: '/left/source'
+    dest: '/right/target'
+  operator: 'deepStrictEqual'
+  stack: |-
+    exercise (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:118:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:258:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"case":"REQUIRED memory from-remote webdav copy, target missing","outcome":{"status":"filesystem-error","code":"ENOTSUP","syscall":"copyFile","path":"/left/source","dest":"/right/target"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"}]}
+# Subtest: REQUIRED memory from-remote webdav copy, target existing
+not ok 41 - REQUIRED memory from-remote webdav copy, target existing
+  ---
+  duration_ms: 0.933083
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:1:11064'
+  failureType: 'testCodeFailure'
+  error: |-
+    REQUIRED compatibility: distinct-file operation must succeed
+    + actual - expected
+    
+      {
+    +   code: 'ENOTSUP',
+    +   dest: '/right/target',
+    +   path: '/left/source',
+    +   status: 'filesystem-error',
+    +   syscall: 'copyFile'
+    -   status: 'success'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 'success'
+  actual:
+    status: 'filesystem-error'
+    code: 'ENOTSUP'
+    syscall: 'copyFile'
+    path: '/left/source'
+    dest: '/right/target'
+  operator: 'deepStrictEqual'
+  stack: |-
+    exercise (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:118:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/pinned-757X84/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:258:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"case":"REQUIRED memory from-remote webdav copy, target existing","outcome":{"status":"filesystem-error","code":"ENOTSUP","syscall":"copyFile","path":"/left/source","dest":"/right/target"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"}]}
+# Subtest: declared S3 default rename limit remains typed ENOTSUP and effect-free
+ok 42 - declared S3 default rename limit remains typed ENOTSUP and effect-free
+  ---
+  duration_ms: 0.99975
+  type: 'test'
+  ...
+# {"case":"declared S3 default rename limit remains typed ENOTSUP and effect-free","expectedCode":"ENOTSUP","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"operations":[]}
+1..42
+# tests 42
+# suites 0
+# pass 22
+# fail 20
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 289.408209

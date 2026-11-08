@@ -1,0 +1,633 @@
+{
+  "schemaVersion": 1,
+  "oracle": {
+    "name": "5.3.0",
+    "version": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)",
+    "executableSHA256": "a0cfc1af0ff50f6b6e67c638979e2604f1c276c90116937fbaafcabb62ee2b40",
+    "archiveSHA256": "0d5cd86965f869a26cf64f4b71be7b96f90a3ba8b3d74e27e8e9d9d5550f31ba",
+    "environment": {
+      "LC_ALL": "C",
+      "PATH": "/__safe_bash_oracle_no_path__"
+    }
+  },
+  "provenance": {
+    "capturePath": "/tmp/safe-bash-scripting-oracles-20260904/function-origin-profile-review.HOyFoK/results.json",
+    "captureSHA256": "af7f7b9e9666827ea9a7bfa826153d3aefc6fca75da9e3ac60fa0b77683a607d",
+    "driverSHA256": "a7a3d7edad7534d079d8f5a07443aebf1cfd1bae1a852ce92ec1aca9c60d9e49",
+    "archivePath": "/tmp/safe-bash-scripting-oracles-20260904/function-origin-primary-migration.wzHxto",
+    "original52Result": {
+      "tests": 31,
+      "pass": 8,
+      "fail": 23,
+      "skipped": 0,
+      "logSHA256": "7e90b1e9fa51e52219df02446b5a283cb86ccabf09170d1cb891bc86c9200e22"
+    },
+    "policy": "Expected status/stdout/stderr are copied exclusively from each original record.native.profiles[1], authenticated Bash 5.3.0. No baseline or virtual output is used. The original 5.2 tests, captures, import-only extracted programs and replay driver are retained in the archive. Unit fixtures retain program bodies and exact output assertions; only the four argv0 test titles are corrected for the primary version.",
+    "originalFixtures": [
+      {
+        "cohort": "core20",
+        "file": "function-diagnostic-origin.test.ts",
+        "sha256": "a91bc876d1ed83325bd2cafbc7b710ad44ad3b6cf1f3018b04b5b9fe4480473a",
+        "extractionSHA256": "8862828bdf13440b7e109f64b0b84e6f7ebbd7a551a01ed1562131afdf4a030f"
+      },
+      {
+        "cohort": "provenance11",
+        "file": "function-origin-review.test.ts",
+        "sha256": "1cb9e74bd34adead2ee3d6312faeaf7b6ee64e2281eb233d5ba26f1b30542feb",
+        "extractionSHA256": "710a06f33aa9a127f063e26604d4e48b5aa36aec46badf49b7832a2aa231b6e4"
+      }
+    ]
+  },
+  "fixtures": [
+    {
+      "file": "function-diagnostic-origin.test.ts",
+      "sha256": "fd16dca0727366bae83d6c0af34e84d10f04fdc0ad8fae0251bad45973a4c656"
+    },
+    {
+      "file": "function-origin-review.test.ts",
+      "sha256": "417256ea03474dce85d7c3e326e9fa87b48ea957cee48f8961fa8bd0f8e3ad24"
+    }
+  ],
+  "records": [
+    {
+      "name": "function diagnostic origin: command-text definition through direct",
+      "captureIndex": 0,
+      "capturedName": "function diagnostic origin: command-text definition through direct",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        ":\n:\norigin_fn() {\n:\nmissing_origin_command;\n}\n:\n:\norigin_fn; printf 'status=%s' \"$?\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": null,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d313237",
+        "stderrHex": "7368656c6c3a206c696e6520353a206d697373696e675f6f726967696e5f636f6d6d616e643a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "function diagnostic origin: command-text definition through eval",
+      "captureIndex": 1,
+      "capturedName": "function diagnostic origin: command-text definition through eval",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        ":\n:\norigin_fn() {\n:\nmissing_origin_command;\n}\n:\n:\neval origin_fn; printf 'status=%s' \"$?\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": null,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d313237",
+        "stderrHex": "7368656c6c3a206c696e6520353a206d697373696e675f6f726967696e5f636f6d6d616e643a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "function diagnostic origin: command-text definition through extension.evaluate",
+      "captureIndex": 2,
+      "capturedName": "function diagnostic origin: command-text definition through extension.evaluate",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        ":\n:\norigin_fn() {\n:\nmissing_origin_command;\n}\n:\n:\neval origin_fn; printf 'status=%s' \"$?\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": null,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d313237",
+        "stderrHex": "7368656c6c3a206c696e6520353a206d697373696e675f6f726967696e5f636f6d6d616e643a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "function diagnostic origin: command-text definition through command extension.evaluate",
+      "captureIndex": 3,
+      "capturedName": "function diagnostic origin: command-text definition through command extension.evaluate",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        ":\n:\norigin_fn() {\n:\nmissing_origin_command;\n}\n:\n:\ncommand eval origin_fn; printf 'status=%s' \"$?\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": null,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d313237",
+        "stderrHex": "7368656c6c3a206c696e6520353a206d697373696e675f6f726967696e5f636f6d6d616e643a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "function diagnostic origin: command-text definition through builtin extension.evaluate",
+      "captureIndex": 4,
+      "capturedName": "function diagnostic origin: command-text definition through builtin extension.evaluate",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        ":\n:\norigin_fn() {\n:\nmissing_origin_command;\n}\n:\n:\nbuiltin eval origin_fn; printf 'status=%s' \"$?\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": null,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d313237",
+        "stderrHex": "7368656c6c3a206c696e6520353a206d697373696e675f6f726967696e5f636f6d6d616e643a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "function diagnostic origin: sourced definition through direct",
+      "captureIndex": 5,
+      "capturedName": "function diagnostic origin: sourced definition through direct",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        ". /dev/fd/3 3<<'FUNCTION_ORIGIN_REVIEW'\norigin_fn() {\n:\nmissing_origin_command;\n}\nFUNCTION_ORIGIN_REVIEW\n:\n:\norigin_fn; printf 'status=%s' \"$?\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": null,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d313237",
+        "stderrHex": "2f6465762f66642f333a206c696e6520333a206d697373696e675f6f726967696e5f636f6d6d616e643a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "function diagnostic origin: sourced definition through eval",
+      "captureIndex": 6,
+      "capturedName": "function diagnostic origin: sourced definition through eval",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        ". /dev/fd/3 3<<'FUNCTION_ORIGIN_REVIEW'\norigin_fn() {\n:\nmissing_origin_command;\n}\nFUNCTION_ORIGIN_REVIEW\n:\n:\neval origin_fn; printf 'status=%s' \"$?\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": null,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d313237",
+        "stderrHex": "2f6465762f66642f333a206c696e6520333a206d697373696e675f6f726967696e5f636f6d6d616e643a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "function diagnostic origin: sourced definition through extension.evaluate",
+      "captureIndex": 7,
+      "capturedName": "function diagnostic origin: sourced definition through extension.evaluate",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        ". /dev/fd/3 3<<'FUNCTION_ORIGIN_REVIEW'\norigin_fn() {\n:\nmissing_origin_command;\n}\nFUNCTION_ORIGIN_REVIEW\n:\n:\neval origin_fn; printf 'status=%s' \"$?\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": null,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d313237",
+        "stderrHex": "2f6465762f66642f333a206c696e6520333a206d697373696e675f6f726967696e5f636f6d6d616e643a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "function diagnostic origin: sourced definition through command extension.evaluate",
+      "captureIndex": 8,
+      "capturedName": "function diagnostic origin: sourced definition through command extension.evaluate",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        ". /dev/fd/3 3<<'FUNCTION_ORIGIN_REVIEW'\norigin_fn() {\n:\nmissing_origin_command;\n}\nFUNCTION_ORIGIN_REVIEW\n:\n:\ncommand eval origin_fn; printf 'status=%s' \"$?\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": null,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d313237",
+        "stderrHex": "2f6465762f66642f333a206c696e6520333a206d697373696e675f6f726967696e5f636f6d6d616e643a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "function diagnostic origin: sourced definition through builtin extension.evaluate",
+      "captureIndex": 9,
+      "capturedName": "function diagnostic origin: sourced definition through builtin extension.evaluate",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        ". /dev/fd/3 3<<'FUNCTION_ORIGIN_REVIEW'\norigin_fn() {\n:\nmissing_origin_command;\n}\nFUNCTION_ORIGIN_REVIEW\n:\n:\nbuiltin eval origin_fn; printf 'status=%s' \"$?\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": null,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d313237",
+        "stderrHex": "2f6465762f66642f333a206c696e6520333a206d697373696e675f6f726967696e5f636f6d6d616e643a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "function diagnostic origin: eval definition through direct",
+      "captureIndex": 10,
+      "capturedName": "function diagnostic origin: eval definition through direct",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        ":\n:\neval 'origin_fn() {\n:\nmissing_origin_command;\n}\n'\n:\n:\norigin_fn; printf 'status=%s' \"$?\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": null,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d313237",
+        "stderrHex": "7368656c6c3a206c696e6520353a206d697373696e675f6f726967696e5f636f6d6d616e643a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "function diagnostic origin: eval definition through eval",
+      "captureIndex": 11,
+      "capturedName": "function diagnostic origin: eval definition through eval",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        ":\n:\neval 'origin_fn() {\n:\nmissing_origin_command;\n}\n'\n:\n:\neval origin_fn; printf 'status=%s' \"$?\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": null,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d313237",
+        "stderrHex": "7368656c6c3a206c696e6520353a206d697373696e675f6f726967696e5f636f6d6d616e643a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "function diagnostic origin: origin_eval definition through direct",
+      "captureIndex": 12,
+      "capturedName": "function diagnostic origin: origin_eval definition through direct",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        ":\n:\neval 'origin_fn() {\n:\nmissing_origin_command;\n}\n'\n:\n:\norigin_fn; printf 'status=%s' \"$?\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": null,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d313237",
+        "stderrHex": "7368656c6c3a206c696e6520353a206d697373696e675f6f726967696e5f636f6d6d616e643a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "function diagnostic origin: origin_eval definition through eval",
+      "captureIndex": 13,
+      "capturedName": "function diagnostic origin: origin_eval definition through eval",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        ":\n:\neval 'origin_fn() {\n:\nmissing_origin_command;\n}\n'\n:\n:\neval origin_fn; printf 'status=%s' \"$?\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": null,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d313237",
+        "stderrHex": "7368656c6c3a206c696e6520353a206d697373696e675f6f726967696e5f636f6d6d616e643a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "function diagnostic origin: command bypasses the function rather than adopting its definition origin",
+      "captureIndex": 14,
+      "capturedName": "function diagnostic origin: command bypasses the function rather than adopting its definition origin",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "origin_fn() {\n:\nmissing_origin_command;\n}\n\ncommand origin_fn; printf 'status=%s' \"$?\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": null,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d313237",
+        "stderrHex": "7368656c6c3a206c696e6520363a206f726967696e5f666e3a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "function diagnostic origin: builtin bypasses the function rather than adopting its definition origin",
+      "captureIndex": 15,
+      "capturedName": "function diagnostic origin: builtin bypasses the function rather than adopting its definition origin",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "origin_fn() {\n:\nmissing_origin_command;\n}\n\nbuiltin origin_fn; printf 'status=%s' \"$?\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": null,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d31",
+        "stderrHex": "7368656c6c3a206c696e6520363a206275696c74696e3a206f726967696e5f666e3a206e6f742061207368656c6c206275696c74696e0a"
+      }
+    },
+    {
+      "name": "function diagnostic origin: top-level command-text error retains caller name",
+      "captureIndex": 16,
+      "capturedName": "function diagnostic origin: top-level command-text error retains caller name",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "missing_origin_command; printf 'status=%s' \"$?\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": null,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d313237",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e675f6f726967696e5f636f6d6d616e643a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "function diagnostic origin: stdin-defined program direct function",
+      "captureIndex": 17,
+      "capturedName": "function diagnostic origin: stdin-defined program direct function",
+      "args": [
+        "--noprofile",
+        "--norc"
+      ],
+      "argv0": "bash",
+      "inputHex": "6f726967696e5f666e2829207b0a3a0a6d697373696e675f6f726967696e5f636f6d6d616e643b0a7d0a3a0a3a0a6f726967696e5f666e3b207072696e746620277374617475733d2573272022243f22",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d313237",
+        "stderrHex": "626173683a206c696e6520333a206d697373696e675f6f726967696e5f636f6d6d616e643a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "function diagnostic origin: stdin-defined program eval function",
+      "captureIndex": 18,
+      "capturedName": "function diagnostic origin: stdin-defined program eval function",
+      "args": [
+        "--noprofile",
+        "--norc"
+      ],
+      "argv0": "bash",
+      "inputHex": "6f726967696e5f666e2829207b0a3a0a6d697373696e675f6f726967696e5f636f6d6d616e643b0a7d0a3a0a3a0a6576616c206f726967696e5f666e3b207072696e746620277374617475733d2573272022243f22",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d313237",
+        "stderrHex": "626173683a206c696e6520333a206d697373696e675f6f726967696e5f636f6d6d616e643a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "function diagnostic origin: stdin-defined program top-level error",
+      "captureIndex": 19,
+      "capturedName": "function diagnostic origin: stdin-defined program top-level error",
+      "args": [
+        "--noprofile",
+        "--norc"
+      ],
+      "argv0": "bash",
+      "inputHex": "6d697373696e675f6f726967696e5f636f6d6d616e643b207072696e746620277374617475733d2573272022243f22",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d313237",
+        "stderrHex": "626173683a206c696e6520313a206d697373696e675f6f726967696e5f636f6d6d616e643a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "function diagnostic source follows command-string argv0 shell",
+      "captureIndex": 20,
+      "capturedName": "function provenance is not inferred from command-string argv0 shell",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "cb() { missing_inside; return 0; }; cb; missing_after; printf 'status=%s' \"$?\"",
+        "shell"
+      ],
+      "argv0": "bash",
+      "inputHex": null,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d313237",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e675f696e736964653a20636f6d6d616e64206e6f7420666f756e640a7368656c6c3a206c696e6520313a206d697373696e675f61667465723a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "function diagnostic source follows command-string argv0 bash",
+      "captureIndex": 21,
+      "capturedName": "function provenance is not inferred from command-string argv0 bash",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "cb() { missing_inside; return 0; }; cb; missing_after; printf 'status=%s' \"$?\"",
+        "bash"
+      ],
+      "argv0": "bash",
+      "inputHex": null,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d313237",
+        "stderrHex": "626173683a206c696e6520313a206d697373696e675f696e736964653a20636f6d6d616e64206e6f7420666f756e640a626173683a206c696e6520313a206d697373696e675f61667465723a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "function diagnostic source follows command-string argv0 environment",
+      "captureIndex": 22,
+      "capturedName": "function provenance is not inferred from command-string argv0 environment",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "cb() { missing_inside; return 0; }; cb; missing_after; printf 'status=%s' \"$?\"",
+        "environment"
+      ],
+      "argv0": "bash",
+      "inputHex": null,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d313237",
+        "stderrHex": "656e7669726f6e6d656e743a206c696e6520313a206d697373696e675f696e736964653a20636f6d6d616e64206e6f7420666f756e640a656e7669726f6e6d656e743a206c696e6520313a206d697373696e675f61667465723a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "function diagnostic source follows command-string argv0 main",
+      "captureIndex": 23,
+      "capturedName": "function provenance is not inferred from command-string argv0 main",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "cb() { missing_inside; return 0; }; cb; missing_after; printf 'status=%s' \"$?\"",
+        "main"
+      ],
+      "argv0": "bash",
+      "inputHex": null,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d313237",
+        "stderrHex": "6d61696e3a206c696e6520313a206d697373696e675f696e736964653a20636f6d6d616e64206e6f7420666f756e640a6d61696e3a206c696e6520313a206d697373696e675f61667465723a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "function declared by returned evaluate name=environment retains definition provenance and restores caller",
+      "captureIndex": 24,
+      "capturedName": "function declared by returned evaluate name=environment retains definition provenance and restores caller",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "eval 'cb() { missing_inside; return 0; }'; cb; missing_after; printf 'status=%s' \"$?\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": null,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d313237",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e675f696e736964653a20636f6d6d616e64206e6f7420666f756e640a7368656c6c3a206c696e6520313a206d697373696e675f61667465723a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "function declared by returned evaluate name=main retains definition provenance and restores caller",
+      "captureIndex": 25,
+      "capturedName": "function declared by returned evaluate name=main retains definition provenance and restores caller",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "eval 'cb() { missing_inside; return 0; }'; cb; missing_after; printf 'status=%s' \"$?\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": null,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d313237",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e675f696e736964653a20636f6d6d616e64206e6f7420666f756e640a7368656c6c3a206c696e6520313a206d697373696e675f61667465723a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "function declared by returned evaluate name=stdin retains definition provenance and restores caller",
+      "captureIndex": 26,
+      "capturedName": "function declared by returned evaluate name=stdin retains definition provenance and restores caller",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "eval 'cb() { missing_inside; return 0; }'; cb; missing_after; printf 'status=%s' \"$?\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": null,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d313237",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e675f696e736964653a20636f6d6d616e64206e6f7420666f756e640a7368656c6c3a206c696e6520313a206d697373696e675f61667465723a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "sourced function via evaluate name=environment returns to the caller's diagnostic origin",
+      "captureIndex": 27,
+      "capturedName": "sourced function via evaluate name=environment returns to the caller's diagnostic origin",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        ". /dev/fd/3 3<<'FUNCTION_PROVENANCE_REVIEW'\ncb() {\nmissing_inside;\nreturn 0;\n}\nFUNCTION_PROVENANCE_REVIEW\n:\neval cb; missing_after; printf 'status=%s' \"$?\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": null,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d313237",
+        "stderrHex": "2f6465762f66642f333a206c696e6520323a206d697373696e675f696e736964653a20636f6d6d616e64206e6f7420666f756e640a7368656c6c3a206c696e6520383a206d697373696e675f61667465723a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "sourced function via evaluate name=main returns to the caller's diagnostic origin",
+      "captureIndex": 28,
+      "capturedName": "sourced function via evaluate name=main returns to the caller's diagnostic origin",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        ". /dev/fd/3 3<<'FUNCTION_PROVENANCE_REVIEW'\ncb() {\nmissing_inside;\nreturn 0;\n}\nFUNCTION_PROVENANCE_REVIEW\n:\neval cb; missing_after; printf 'status=%s' \"$?\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": null,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d313237",
+        "stderrHex": "2f6465762f66642f333a206c696e6520323a206d697373696e675f696e736964653a20636f6d6d616e64206e6f7420666f756e640a7368656c6c3a206c696e6520383a206d697373696e675f61667465723a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "returned unsuccessful named evaluation does not rename later caller errors",
+      "captureIndex": 29,
+      "capturedName": "returned unsuccessful named evaluation does not rename later caller errors",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "eval false; printf 'eval=%s;' \"$?\"; missing_after; printf 'status=%s' \"$?\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": null,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "6576616c3d313b7374617475733d313237",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e675f61667465723a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "named evaluation of command-bypass errors retains caller rather than function provenance",
+      "captureIndex": 30,
+      "capturedName": "named evaluation of command-bypass errors retains caller rather than function provenance",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "cb() { missing_inside; }; eval 'command cb'; missing_after; printf 'status=%s' \"$?\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": null,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d313237",
+        "stderrHex": "7368656c6c3a206c696e6520313a2063623a20636f6d6d616e64206e6f7420666f756e640a7368656c6c3a206c696e6520313a206d697373696e675f61667465723a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    }
+  ]
+}

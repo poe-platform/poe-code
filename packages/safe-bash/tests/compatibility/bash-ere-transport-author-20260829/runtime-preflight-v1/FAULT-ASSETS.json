@@ -1,0 +1,167 @@
+{
+  "schema": 1,
+  "activation": false,
+  "assets": [
+    {
+      "id": "P04/undefined",
+      "role": "OWNED static literal fault/held Worker; no matching engine or production entry claim",
+      "bytes": 536,
+      "sha256": "fb5932e76fe816ea024f58b9109d9c826f024149879dac95acb5f2ec2979c527",
+      "source": "import {parentPort} from 'node:worker_threads';\nconst ready={version:1,operation:'shell-ere',kind:'ready'};\nfunction reply(request){return{version:1,operation:'shell-ere',id:request.id,grantId:request.grantId,kind:'result',result:{matched:true,groupCount:0,spans:[{start:0,end:1}],steps:1,allocatedUnits:0},usage:{patternBytes:1,subjectBytes:request.subject.length,work:1,states:0,allocationUnits:0,captureBytes:1,captureSlots:1}};}\nparentPort.postMessage(ready);\nparentPort.on(\"message\",request=>{parentPort.postMessage(undefined);});\n"
+    },
+    {
+      "id": "P04/null",
+      "role": "OWNED static literal fault/held Worker; no matching engine or production entry claim",
+      "bytes": 531,
+      "sha256": "08ceefc51324eff20adeff19dcee3d6a9b6cbdd5c7dd70ca397209b1d895f11e",
+      "source": "import {parentPort} from 'node:worker_threads';\nconst ready={version:1,operation:'shell-ere',kind:'ready'};\nfunction reply(request){return{version:1,operation:'shell-ere',id:request.id,grantId:request.grantId,kind:'result',result:{matched:true,groupCount:0,spans:[{start:0,end:1}],steps:1,allocatedUnits:0},usage:{patternBytes:1,subjectBytes:request.subject.length,work:1,states:0,allocationUnits:0,captureBytes:1,captureSlots:1}};}\nparentPort.postMessage(ready);\nparentPort.on(\"message\",request=>{parentPort.postMessage(null);});\n"
+    },
+    {
+      "id": "P04/false",
+      "role": "OWNED static literal fault/held Worker; no matching engine or production entry claim",
+      "bytes": 532,
+      "sha256": "a8fb701b4210a419aca379fde0e04a520af00c326d75986ad067d9be7dd1a276",
+      "source": "import {parentPort} from 'node:worker_threads';\nconst ready={version:1,operation:'shell-ere',kind:'ready'};\nfunction reply(request){return{version:1,operation:'shell-ere',id:request.id,grantId:request.grantId,kind:'result',result:{matched:true,groupCount:0,spans:[{start:0,end:1}],steps:1,allocatedUnits:0},usage:{patternBytes:1,subjectBytes:request.subject.length,work:1,states:0,allocationUnits:0,captureBytes:1,captureSlots:1}};}\nparentPort.postMessage(ready);\nparentPort.on(\"message\",request=>{parentPort.postMessage(false);});\n"
+    },
+    {
+      "id": "P04/0",
+      "role": "OWNED static literal fault/held Worker; no matching engine or production entry claim",
+      "bytes": 528,
+      "sha256": "a544666bc458c2c32e2290d061f2e592d9dc36448105d5129433dc290b3ec1a9",
+      "source": "import {parentPort} from 'node:worker_threads';\nconst ready={version:1,operation:'shell-ere',kind:'ready'};\nfunction reply(request){return{version:1,operation:'shell-ere',id:request.id,grantId:request.grantId,kind:'result',result:{matched:true,groupCount:0,spans:[{start:0,end:1}],steps:1,allocatedUnits:0},usage:{patternBytes:1,subjectBytes:request.subject.length,work:1,states:0,allocationUnits:0,captureBytes:1,captureSlots:1}};}\nparentPort.postMessage(ready);\nparentPort.on(\"message\",request=>{parentPort.postMessage(0);});\n"
+    },
+    {
+      "id": "P04/empty-string",
+      "role": "OWNED static literal fault/held Worker; no matching engine or production entry claim",
+      "bytes": 529,
+      "sha256": "3bcc90d5c8ed2d94b6953a12b22ef0d7ebbd957221bc1ed05fc228a319c94a5a",
+      "source": "import {parentPort} from 'node:worker_threads';\nconst ready={version:1,operation:'shell-ere',kind:'ready'};\nfunction reply(request){return{version:1,operation:'shell-ere',id:request.id,grantId:request.grantId,kind:'result',result:{matched:true,groupCount:0,spans:[{start:0,end:1}],steps:1,allocatedUnits:0},usage:{patternBytes:1,subjectBytes:request.subject.length,work:1,states:0,allocationUnits:0,captureBytes:1,captureSlots:1}};}\nparentPort.postMessage(ready);\nparentPort.on(\"message\",request=>{parentPort.postMessage(\"\");});\n"
+    },
+    {
+      "id": "P06/hole",
+      "role": "OWNED static literal fault/held Worker; no matching engine or production entry claim",
+      "bytes": 640,
+      "sha256": "7c884753e9a1ef21ead27922725fb65bf4182dca44a96746c946b646c09ea078",
+      "source": "import {parentPort} from 'node:worker_threads';\nconst ready={version:1,operation:'shell-ere',kind:'ready'};\nfunction reply(request){return{version:1,operation:'shell-ere',id:request.id,grantId:request.grantId,kind:'result',result:{matched:true,groupCount:0,spans:[{start:0,end:1}],steps:1,allocatedUnits:0},usage:{patternBytes:1,subjectBytes:request.subject.length,work:1,states:0,allocationUnits:0,captureBytes:1,captureSlots:1}};}\nparentPort.postMessage(ready);\nparentPort.on(\"message\",request=>{const frame=reply(request);frame.result.groupCount=1;frame.result.spans.length=2;frame.usage.captureSlots=2;parentPort.postMessage(frame);});\n"
+    },
+    {
+      "id": "P06/wrong-count",
+      "role": "OWNED static literal fault/held Worker; no matching engine or production entry claim",
+      "bytes": 585,
+      "sha256": "1c62a58aee109884271beafd1d761f161e182d594c10f251600fa42f6a48c69b",
+      "source": "import {parentPort} from 'node:worker_threads';\nconst ready={version:1,operation:'shell-ere',kind:'ready'};\nfunction reply(request){return{version:1,operation:'shell-ere',id:request.id,grantId:request.grantId,kind:'result',result:{matched:true,groupCount:0,spans:[{start:0,end:1}],steps:1,allocatedUnits:0},usage:{patternBytes:1,subjectBytes:request.subject.length,work:1,states:0,allocationUnits:0,captureBytes:1,captureSlots:1}};}\nparentPort.postMessage(ready);\nparentPort.on(\"message\",request=>{const frame=reply(request);frame.result.groupCount=1;parentPort.postMessage(frame);});\n"
+    },
+    {
+      "id": "P06/outside-overall",
+      "role": "OWNED static literal fault/held Worker; no matching engine or production entry claim",
+      "bytes": 680,
+      "sha256": "41055b298c497510af36b52f3f1ea9b225346ba37b3e8f302a2f5df62757ceac",
+      "source": "import {parentPort} from 'node:worker_threads';\nconst ready={version:1,operation:'shell-ere',kind:'ready'};\nfunction reply(request){return{version:1,operation:'shell-ere',id:request.id,grantId:request.grantId,kind:'result',result:{matched:true,groupCount:0,spans:[{start:0,end:1}],steps:1,allocatedUnits:0},usage:{patternBytes:1,subjectBytes:request.subject.length,work:1,states:0,allocationUnits:0,captureBytes:1,captureSlots:1}};}\nparentPort.postMessage(ready);\nparentPort.on(\"message\",request=>{const frame=reply(request);frame.result.groupCount=1;frame.result.spans.push({start:0,end:2});frame.usage.captureSlots=2;frame.usage.captureBytes=3;parentPort.postMessage(frame);});\n"
+    },
+    {
+      "id": "P07/over-grant",
+      "role": "OWNED static literal fault/held Worker; no matching engine or production entry claim",
+      "bytes": 637,
+      "sha256": "253ea543a25779d56fe0b6d54cfa80ffd1992ed01e2190ded7963154aa12af53",
+      "source": "import {parentPort} from 'node:worker_threads';\nconst ready={version:1,operation:'shell-ere',kind:'ready'};\nfunction reply(request){return{version:1,operation:'shell-ere',id:request.id,grantId:request.grantId,kind:'result',result:{matched:true,groupCount:0,spans:[{start:0,end:1}],steps:1,allocatedUnits:0},usage:{patternBytes:1,subjectBytes:request.subject.length,work:1,states:0,allocationUnits:0,captureBytes:1,captureSlots:1}};}\nparentPort.postMessage(ready);\nparentPort.on(\"message\",request=>{const frame=reply(request);frame.usage.work=request.allowance.work+1;frame.result.steps=frame.usage.work;parentPort.postMessage(frame);});\n"
+    },
+    {
+      "id": "P07/noninteger",
+      "role": "OWNED static literal fault/held Worker; no matching engine or production entry claim",
+      "bytes": 603,
+      "sha256": "3a23b4a1b18ce23ed55836727dc31b4ba5ace39f93f625fabed37aa3d83ff05d",
+      "source": "import {parentPort} from 'node:worker_threads';\nconst ready={version:1,operation:'shell-ere',kind:'ready'};\nfunction reply(request){return{version:1,operation:'shell-ere',id:request.id,grantId:request.grantId,kind:'result',result:{matched:true,groupCount:0,spans:[{start:0,end:1}],steps:1,allocatedUnits:0},usage:{patternBytes:1,subjectBytes:request.subject.length,work:1,states:0,allocationUnits:0,captureBytes:1,captureSlots:1}};}\nparentPort.postMessage(ready);\nparentPort.on(\"message\",request=>{const frame=reply(request);frame.usage.work=0.5;frame.result.steps=0.5;parentPort.postMessage(frame);});\n"
+    },
+    {
+      "id": "P07/duplicate-counter-mismatch",
+      "role": "OWNED static literal fault/held Worker; no matching engine or production entry claim",
+      "bytes": 580,
+      "sha256": "faeff9434a50b1ed488ffd71c0ff6d8080ef9a7093c8e83cac2932d153ff3758",
+      "source": "import {parentPort} from 'node:worker_threads';\nconst ready={version:1,operation:'shell-ere',kind:'ready'};\nfunction reply(request){return{version:1,operation:'shell-ere',id:request.id,grantId:request.grantId,kind:'result',result:{matched:true,groupCount:0,spans:[{start:0,end:1}],steps:1,allocatedUnits:0},usage:{patternBytes:1,subjectBytes:request.subject.length,work:1,states:0,allocationUnits:0,captureBytes:1,captureSlots:1}};}\nparentPort.postMessage(ready);\nparentPort.on(\"message\",request=>{const frame=reply(request);frame.result.steps=2;parentPort.postMessage(frame);});\n"
+    },
+    {
+      "id": "P09/duplicate",
+      "role": "OWNED static literal fault/held Worker; no matching engine or production entry claim",
+      "bytes": 589,
+      "sha256": "41e57459277d72d7c10e66849a34b436023a06ef6d09d16d10d1a25d7b3f8eb0",
+      "source": "import {parentPort} from 'node:worker_threads';\nconst ready={version:1,operation:'shell-ere',kind:'ready'};\nfunction reply(request){return{version:1,operation:'shell-ere',id:request.id,grantId:request.grantId,kind:'result',result:{matched:true,groupCount:0,spans:[{start:0,end:1}],steps:1,allocatedUnits:0},usage:{patternBytes:1,subjectBytes:request.subject.length,work:1,states:0,allocationUnits:0,captureBytes:1,captureSlots:1}};}\nparentPort.postMessage(ready);\nparentPort.on(\"message\",request=>{const frame=reply(request);parentPort.postMessage(frame);parentPort.postMessage(frame);});\n"
+    },
+    {
+      "id": "P09/stale-id",
+      "role": "OWNED static literal fault/held Worker; no matching engine or production entry claim",
+      "bytes": 570,
+      "sha256": "0b43165499e8457022f1ce502a5009a38404cde2737534bbab80c76fc4c37c5f",
+      "source": "import {parentPort} from 'node:worker_threads';\nconst ready={version:1,operation:'shell-ere',kind:'ready'};\nfunction reply(request){return{version:1,operation:'shell-ere',id:request.id,grantId:request.grantId,kind:'result',result:{matched:true,groupCount:0,spans:[{start:0,end:1}],steps:1,allocatedUnits:0},usage:{patternBytes:1,subjectBytes:request.subject.length,work:1,states:0,allocationUnits:0,captureBytes:1,captureSlots:1}};}\nparentPort.postMessage(ready);\nparentPort.on(\"message\",request=>{const frame=reply(request);frame.id=0;parentPort.postMessage(frame);});\n"
+    },
+    {
+      "id": "P09/wrong-operation",
+      "role": "OWNED static literal fault/held Worker; no matching engine or production entry claim",
+      "bytes": 588,
+      "sha256": "52db9df454a6e1a74a8b41b9bfa039c602ebad5c4dd71854f7117cedfc333c87",
+      "source": "import {parentPort} from 'node:worker_threads';\nconst ready={version:1,operation:'shell-ere',kind:'ready'};\nfunction reply(request){return{version:1,operation:'shell-ere',id:request.id,grantId:request.grantId,kind:'result',result:{matched:true,groupCount:0,spans:[{start:0,end:1}],steps:1,allocatedUnits:0},usage:{patternBytes:1,subjectBytes:request.subject.length,work:1,states:0,allocationUnits:0,captureBytes:1,captureSlots:1}};}\nparentPort.postMessage(ready);\nparentPort.on(\"message\",request=>{const frame=reply(request);frame.operation=\"expr-match\";parentPort.postMessage(frame);});\n"
+    },
+    {
+      "id": "L03/queued-abort-false",
+      "role": "OWNED static literal fault/held Worker; no matching engine or production entry claim",
+      "bytes": 577,
+      "sha256": "090582b81d6a2d4efed9d1b5f756e632fe7d87278abf006ac39320fc6b7a7507",
+      "source": "import {parentPort} from 'node:worker_threads';\nconst ready={version:1,operation:'shell-ere',kind:'ready'};\nfunction reply(request){return{version:1,operation:'shell-ere',id:request.id,grantId:request.grantId,kind:'result',result:{matched:true,groupCount:0,spans:[{start:0,end:1}],steps:1,allocatedUnits:0},usage:{patternBytes:1,subjectBytes:request.subject.length,work:1,states:0,allocationUnits:0,captureBytes:1,captureSlots:1}};}\nparentPort.postMessage(ready);\nparentPort.on(\"message\",request=>{setTimeout(()=>parentPort.postMessage(reply(request)),request.id===1?50:0);});\n"
+    },
+    {
+      "id": "L04/active-abort-zero",
+      "role": "OWNED static literal fault/held Worker; no matching engine or production entry claim",
+      "bytes": 515,
+      "sha256": "adef1d871b94f6ccd5c2cc1d09f84478fe741ba995948df0fb2e6148f3c644b4",
+      "source": "import {parentPort} from 'node:worker_threads';\nconst ready={version:1,operation:'shell-ere',kind:'ready'};\nfunction reply(request){return{version:1,operation:'shell-ere',id:request.id,grantId:request.grantId,kind:'result',result:{matched:true,groupCount:0,spans:[{start:0,end:1}],steps:1,allocatedUnits:0},usage:{patternBytes:1,subjectBytes:request.subject.length,work:1,states:0,allocationUnits:0,captureBytes:1,captureSlots:1}};}\nparentPort.postMessage(ready);\nparentPort.on(\"message\",request=>{void request;});\n"
+    },
+    {
+      "id": "L06/startup-timeout",
+      "role": "OWNED static literal fault/held Worker; no matching engine or production entry claim",
+      "bytes": 484,
+      "sha256": "aa33dcf44006f077e1c7ef47a397bb186af03126e55afd6340d4e3d9f0cff0cb",
+      "source": "import {parentPort} from 'node:worker_threads';\nconst ready={version:1,operation:'shell-ere',kind:'ready'};\nfunction reply(request){return{version:1,operation:'shell-ere',id:request.id,grantId:request.grantId,kind:'result',result:{matched:true,groupCount:0,spans:[{start:0,end:1}],steps:1,allocatedUnits:0},usage:{patternBytes:1,subjectBytes:request.subject.length,work:1,states:0,allocationUnits:0,captureBytes:1,captureSlots:1}};}\nparentPort.on(\"message\",request=>{void request;});\n"
+    },
+    {
+      "id": "L06/request-timeout",
+      "role": "OWNED static literal fault/held Worker; no matching engine or production entry claim",
+      "bytes": 515,
+      "sha256": "adef1d871b94f6ccd5c2cc1d09f84478fe741ba995948df0fb2e6148f3c644b4",
+      "source": "import {parentPort} from 'node:worker_threads';\nconst ready={version:1,operation:'shell-ere',kind:'ready'};\nfunction reply(request){return{version:1,operation:'shell-ere',id:request.id,grantId:request.grantId,kind:'result',result:{matched:true,groupCount:0,spans:[{start:0,end:1}],steps:1,allocatedUnits:0},usage:{patternBytes:1,subjectBytes:request.subject.length,work:1,states:0,allocationUnits:0,captureBytes:1,captureSlots:1}};}\nparentPort.postMessage(ready);\nparentPort.on(\"message\",request=>{void request;});\n"
+    },
+    {
+      "id": "L07/worker-error",
+      "role": "OWNED static literal fault/held Worker; no matching engine or production entry claim",
+      "bytes": 546,
+      "sha256": "07730648e857f8d6beaa11ca48f49512f1d44f54472f9210dafba07b138d0bf9",
+      "source": "import {parentPort} from 'node:worker_threads';\nconst ready={version:1,operation:'shell-ere',kind:'ready'};\nfunction reply(request){return{version:1,operation:'shell-ere',id:request.id,grantId:request.grantId,kind:'result',result:{matched:true,groupCount:0,spans:[{start:0,end:1}],steps:1,allocatedUnits:0},usage:{patternBytes:1,subjectBytes:request.subject.length,work:1,states:0,allocationUnits:0,captureBytes:1,captureSlots:1}};}\nparentPort.postMessage(ready);\nparentPort.on(\"message\",request=>{throw new Error(\"ERE fixture worker-error\");});\n"
+    },
+    {
+      "id": "L07/unexpected-exit",
+      "role": "OWNED static literal fault/held Worker; no matching engine or production entry claim",
+      "bytes": 521,
+      "sha256": "8985885f640f38448db087c2790af4f99b791a03d9fbabf7378ede2defe3274b",
+      "source": "import {parentPort} from 'node:worker_threads';\nconst ready={version:1,operation:'shell-ere',kind:'ready'};\nfunction reply(request){return{version:1,operation:'shell-ere',id:request.id,grantId:request.grantId,kind:'result',result:{matched:true,groupCount:0,spans:[{start:0,end:1}],steps:1,allocatedUnits:0},usage:{patternBytes:1,subjectBytes:request.subject.length,work:1,states:0,allocationUnits:0,captureBytes:1,captureSlots:1}};}\nparentPort.postMessage(ready);\nparentPort.on(\"message\",request=>{parentPort.close();});\n"
+    },
+    {
+      "id": "L09/instrumented-publication-rejects",
+      "role": "OWNED static literal fault/held Worker; no matching engine or production entry claim",
+      "bytes": 515,
+      "sha256": "adef1d871b94f6ccd5c2cc1d09f84478fe741ba995948df0fb2e6148f3c644b4",
+      "source": "import {parentPort} from 'node:worker_threads';\nconst ready={version:1,operation:'shell-ere',kind:'ready'};\nfunction reply(request){return{version:1,operation:'shell-ere',id:request.id,grantId:request.grantId,kind:'result',result:{matched:true,groupCount:0,spans:[{start:0,end:1}],steps:1,allocatedUnits:0},usage:{patternBytes:1,subjectBytes:request.subject.length,work:1,states:0,allocationUnits:0,captureBytes:1,captureSlots:1}};}\nparentPort.postMessage(ready);\nparentPort.on(\"message\",request=>{void request;});\n"
+    },
+    {
+      "id": "B04/crash-unproved",
+      "role": "OWNED static literal fault/held Worker; no matching engine or production entry claim",
+      "bytes": 546,
+      "sha256": "07730648e857f8d6beaa11ca48f49512f1d44f54472f9210dafba07b138d0bf9",
+      "source": "import {parentPort} from 'node:worker_threads';\nconst ready={version:1,operation:'shell-ere',kind:'ready'};\nfunction reply(request){return{version:1,operation:'shell-ere',id:request.id,grantId:request.grantId,kind:'result',result:{matched:true,groupCount:0,spans:[{start:0,end:1}],steps:1,allocatedUnits:0},usage:{patternBytes:1,subjectBytes:request.subject.length,work:1,states:0,allocationUnits:0,captureBytes:1,captureSlots:1}};}\nparentPort.postMessage(ready);\nparentPort.on(\"message\",request=>{throw new Error(\"ERE fixture worker-error\");});\n"
+    },
+    {
+      "id": "B04/malformed-unproved",
+      "role": "OWNED static literal fault/held Worker; no matching engine or production entry claim",
+      "bytes": 532,
+      "sha256": "a8fb701b4210a419aca379fde0e04a520af00c326d75986ad067d9be7dd1a276",
+      "source": "import {parentPort} from 'node:worker_threads';\nconst ready={version:1,operation:'shell-ere',kind:'ready'};\nfunction reply(request){return{version:1,operation:'shell-ere',id:request.id,grantId:request.grantId,kind:'result',result:{matched:true,groupCount:0,spans:[{start:0,end:1}],steps:1,allocatedUnits:0},usage:{patternBytes:1,subjectBytes:request.subject.length,work:1,states:0,allocationUnits:0,captureBytes:1,captureSlots:1}};}\nparentPort.postMessage(ready);\nparentPort.on(\"message\",request=>{parentPort.postMessage(false);});\n"
+    }
+  ]
+}

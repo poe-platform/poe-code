@@ -1,0 +1,213 @@
+import { parsePdftkStyleChunks } from "./info-style-stream.js";
+import { parsePdftkGeometryChunks } from "./info-geometry-stream.js";
+import { parsePdftkIntegerChunks } from "./info-integer-stream.js";
+import { decodePdftkEntityChunks } from "./info-entity-stream.js";
+import { PdfTextStore, type PdfIndexStorage, type RetainedInfoUpdate } from "@poe-code/pdf-ast";
+import { hexToBytes } from "./info-text.js";
+
+const styles: Readonly<Record<string, string>> = { DecimalArabicNumerals: "D", UppercaseRomanNumerals: "R", LowercaseRomanNumerals: "r", UppercaseLetters: "A", LowercaseLetters: "a" };
+
+const integerFields = ["BookmarkLevel:", "BookmarkPageNumber:", "PageLabelNewIndex:", "PageLabelStart:", "PageMediaNumber:", "PageMediaRotation:"] as const;
+
+const geometryFields = ["PageMediaRect:", "PageMediaDimensions:", "PageMediaCropBox:", "PageMediaCropRect:"] as const;
+
+async function* lines(chunks: AsyncIterable<Uint8Array>, texts: PdfTextStore, signal: AbortSignal): AsyncGenerator<string | { style: string } | { geometry: typeof geometryFields[number]; result: Awaited<ReturnType<typeof parsePdftkGeometryChunks>> } | { integer: typeof integerFields[number]; value: number } | { field: "BookmarkTitle:" | "PageLabelPrefix:" | "InfoValue:" | "InfoKey:"; text: () => AsyncGenerator<string, void, void> }> {
+  async function* decoded() {
+    const decoder = new TextDecoder();
+    for await (const bytes of chunks) for (let at = 0; at < bytes.length; at += 4096) {
+      signal.throwIfAborted(); yield decoder.decode(bytes.subarray(at, at + 4096), { stream: true });
+    }
+    yield decoder.decode();
+  }
+  const input = decoded(); let buffer = "", offset = 0, ended = false, failed = false;
+  async function* line() {
+    while (!ended || offset < buffer.length) {
+      if (offset === buffer.length) { const next = await input.next(); ended = !!next.done; buffer = next.value ?? ""; offset = 0; if (ended) return; }
+      const end = buffer.indexOf("\n", offset);
+      if (end >= 0) { yield buffer.slice(offset, end); offset = end + 1; return; }
+      yield buffer.slice(offset); offset = buffer.length;
+    }
+  }
+  try {
+    while (!ended || offset < buffer.length) {
+      const id = await texts.append(line()); let start = -1, end = 0, position = 0, head = "";
+      for await (const part of texts.text(id)) {
+        for (let at = 0; at < part.length; at++) {
+          const character = part[at]!;
+          if (character.trim()) { if (start < 0) start = position; end = position + 1; }
+          if (start >= 0 && head.length < 64) head += character;
+          position++;
+        }
+      }
+      async function* field(skip: number) {
+        let position = 0, leading = true;
+        for await (const part of texts.text(id)) {
+          const from = Math.max(0, start + skip - position), to = Math.min(part.length, end - position);
+          if (to > from) {
+            let value = part.slice(from, to);
+            if (leading) { value = value.trimStart(); leading = !value.length; }
+            if (value) yield value;
+          }
+          position += part.length; if (position >= end) break;
+        }
+      }
+      const geometry = geometryFields.find(name => head.startsWith(name));
+      const integer = integerFields.find(name => head.startsWith(name));
+      const streamed = head.startsWith("BookmarkTitle:") ? "BookmarkTitle:" : head.startsWith("PageLabelPrefix:") ? "PageLabelPrefix:" : head.startsWith("InfoValue:") ? "InfoValue:" : head.startsWith("InfoKey:") ? "InfoKey:" : undefined;
+      if (streamed) {
+        let body = start + streamed.length;
+        for await (const part of texts.text(id, body)) {
+          const value = part.trimStart(); body += part.length - value.length; if (value) break;
+        }
+        async function* readText(offset: number) {
+          let position = body + offset;
+          for await (const part of texts.text(id, position)) {
+            const length = Math.min(part.length, end - position); if (length <= 0) break;
+            yield part.slice(0, length); position += length; if (position >= end) break;
+          }
+        }
+        yield { field: streamed, text: () => decodePdftkEntityChunks(readText, signal) };
+      }
+      else if (integer) {
+        yield { integer, value: await parsePdftkIntegerChunks(field(integer.length), signal) };
+      } else if (geometry) {
+        yield { geometry, result: await parsePdftkGeometryChunks(field(geometry.length), signal) };
+      } else if (head.startsWith("PageLabelNumStyle:")) {
+        yield { style: await parsePdftkStyleChunks(field("PageLabelNumStyle:".length), signal) };
+      } else {
+        // Unknown lines are ignored without collecting their contents. The
+        // remaining scalar update fields keep their existing conversion rules.
+        const begin = ["InfoBegin", "BookmarkBegin", "PageLabelBegin", "PageMediaBegin"].some(name => end - start === name.length && head.startsWith(name));
+        const known = ["PdfID0:", "PdfID1:", "InfoKey:", "InfoValue:", "BookmarkLevel:", "BookmarkPageNumber:", "PageLabelNewIndex:", "PageLabelStart:", "PageLabelPrefix:", "PageLabelNumStyle:", "PageMediaNumber:", "PageMediaRotation:", "PageMediaRect:", "PageMediaDimensions:", "PageMediaCropBox:", "PageMediaCropRect:"].some(name => head.startsWith(name));
+        if (!begin && !known) continue;
+        let text = ""; for await (const part of field(0)) text += part; yield text;
+      }
+    }
+  } catch (error) { failed = true; throw error; }
+  finally { await input.return().catch(error => { if (!failed) throw error; }); }
+}
+
+export async function* retainedInfoUpdates(chunks: AsyncIterable<Uint8Array>, signal: AbortSignal, storage: PdfIndexStorage): AsyncGenerator<RetainedInfoUpdate> {
+  const texts = new PdfTextStore(storage, { signal }); let failed = false;
+  try {
+  let mode: "none" | "info" | "bookmark" | "pagelabel" | "pagemedia" = "none";
+  let curKey: string | (() => AsyncIterable<string>) = "";
+  let bmTitle: string | (() => AsyncIterable<string>) = "";
+  let bmLevel = 1;
+  let bmPage = 1;
+  const pending: RetainedInfoUpdate[] = [];
+
+  let plNewIndex = 1;
+  let plStart = 1;
+  let plPrefix: string | (() => AsyncIterable<string>) = "";
+  let plStyle = "DecimalArabicNumerals";
+
+  let pmNumber = 0;
+  let pmRotation: number | undefined;
+  let pmMediaRect: [number, number, number, number] | undefined;
+  let pmDimensions: [number, number] | undefined;
+  let pmCropBox: [number, number, number, number] | undefined;
+
+  const flushStanza = () => {
+    if (mode === "bookmark" && bmTitle) {
+      pending.push({ kind: "bookmark", title: bmTitle, level: Math.min(Number.MAX_SAFE_INTEGER, Math.max(1, bmLevel)), pageNumber: Math.min(Number.MAX_SAFE_INTEGER, Math.max(1, bmPage)) });
+    } else if (mode === "pagelabel") {
+      pending.push({
+        kind: "label", index: Math.max(0, plNewIndex - 1),
+        start: Math.max(1, plStart),
+        prefix: plPrefix,
+        ...(styles[plStyle] ? { style: styles[plStyle]! } : {}),
+      });
+    } else if (mode === "pagemedia" && pmNumber >= 1) {
+      if (pmRotation !== undefined) pending.push({ kind: "page", pageNumber: pmNumber, property: "rotation", values: [Number.isFinite(pmRotation) ? pmRotation : 0] });
+      if (pmMediaRect !== undefined) pending.push({ kind: "page", pageNumber: pmNumber, property: "media", values: pmMediaRect });
+      if (pmDimensions !== undefined) pending.push({ kind: "page", pageNumber: pmNumber, property: "dimensions", values: pmDimensions });
+      if (pmCropBox !== undefined) pending.push({ kind: "page", pageNumber: pmNumber, property: "crop", values: pmCropBox });
+    }
+    bmTitle = "";
+    bmLevel = 1;
+    bmPage = 1;
+    plNewIndex = 1;
+    plStart = 1;
+    plPrefix = "";
+    plStyle = "DecimalArabicNumerals";
+    pmNumber = 0;
+    pmRotation = undefined;
+    pmMediaRect = undefined;
+    pmDimensions = undefined;
+    pmCropBox = undefined;
+  };
+
+  for await (const raw of lines(chunks, texts, signal)) {
+    if (typeof raw !== "string") {
+      if ("style" in raw) {
+        if (mode === "pagelabel") plStyle = raw.style;
+        continue;
+      }
+      if ("geometry" in raw) {
+        if (mode !== "pagemedia") continue;
+        const { values, count, finite } = raw.result;
+        if (raw.geometry === "PageMediaDimensions:") {
+          if (count >= 2 && Number.isFinite(values[0]) && Number.isFinite(values[1])) pmDimensions = [values[0]!, values[1]!];
+        } else if (count >= 4 && finite) {
+          const rectangle: [number, number, number, number] = [values[0]!, values[1]!, values[2]!, values[3]!];
+          if (raw.geometry === "PageMediaRect:") pmMediaRect = rectangle;
+          else pmCropBox = rectangle;
+        }
+        continue;
+      }
+      if ("integer" in raw) {
+        if (mode === "bookmark" && raw.integer === "BookmarkLevel:") bmLevel = raw.value || 1;
+        else if (mode === "bookmark" && raw.integer === "BookmarkPageNumber:") bmPage = raw.value || 1;
+        else if (mode === "pagelabel" && raw.integer === "PageLabelNewIndex:") plNewIndex = raw.value || 1;
+        else if (mode === "pagelabel" && raw.integer === "PageLabelStart:") plStart = raw.value || 1;
+        else if (mode === "pagemedia" && raw.integer === "PageMediaNumber:") pmNumber = raw.value || 0;
+        else if (mode === "pagemedia" && raw.integer === "PageMediaRotation:") pmRotation = raw.value || 0;
+        continue;
+      }
+      if (mode === "bookmark" && raw.field === "BookmarkTitle:") {
+        let nonempty = false; for await (const part of raw.text()) nonempty ||= !!part.length;
+        bmTitle = nonempty ? raw.text : "";
+      } else if (mode === "pagelabel" && raw.field === "PageLabelPrefix:") {
+        // Validate now, including prefixes overwritten later in the stanza.
+        for await (const part of raw.text()) { signal.throwIfAborted(); void part; }
+        plPrefix = raw.text;
+      } else if (mode === "info" && raw.field === "InfoKey:") {
+        let nonempty = false; for await (const part of raw.text()) nonempty ||= !!part.length;
+        curKey = nonempty ? raw.text : "";
+      } else if (mode === "info" && curKey && raw.field === "InfoValue:") {
+        for await (const part of raw.text()) { signal.throwIfAborted(); void part; }
+        yield { kind: "info", key: curKey, value: raw.text }; mode = "none"; curKey = "";
+      }
+      continue;
+    }
+    const line = raw.trim();
+    if (line === "InfoBegin") {
+      flushStanza();
+      yield* pending; pending.length = 0;
+      mode = "info";
+      curKey = "";
+    } else if (line === "BookmarkBegin") {
+      flushStanza();
+      yield* pending; pending.length = 0;
+      mode = "bookmark";
+    } else if (line === "PageLabelBegin") {
+      flushStanza();
+      yield* pending; pending.length = 0;
+      mode = "pagelabel";
+    } else if (line === "PageMediaBegin") {
+      flushStanza();
+      yield* pending; pending.length = 0;
+      mode = "pagemedia";
+    } else if (line.startsWith("PdfID0:")) {
+      yield { kind: "id", index: 0, bytes: hexToBytes(line.slice("PdfID0:".length)) };
+    } else if (line.startsWith("PdfID1:")) {
+      yield { kind: "id", index: 1, bytes: hexToBytes(line.slice("PdfID1:".length)) };
+
+    }
+  }
+  flushStanza();
+  yield* pending;
+  } catch (error) { failed = true; throw error; }
+  finally { await texts.close().catch(error => { if (!failed) throw error; }); }
+}

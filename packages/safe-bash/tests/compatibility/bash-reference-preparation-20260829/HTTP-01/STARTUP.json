@@ -1,0 +1,23 @@
+{
+  "startedAt": "2026-08-29T04:34:05.041Z",
+  "requests": [
+    [
+      "GET",
+      "https://ftp.gnu.org/gnu/bash/"
+    ],
+    [
+      "GET",
+      "https://ftp.gnu.org/gnu/bash/bash-5.3-patches/"
+    ],
+    [
+      "HEAD",
+      "https://ftp.gnu.org/gnu/bash/bash-5.3.tar.gz"
+    ],
+    [
+      "HEAD",
+      "https://ftp.gnu.org/gnu/bash/bash-5.3.tar.gz.sig"
+    ]
+  ],
+  "children": 0,
+  "archiveBodyFetches": 0
+}

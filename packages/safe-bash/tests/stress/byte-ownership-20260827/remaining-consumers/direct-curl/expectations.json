@@ -1,0 +1,33 @@
+{
+  "profile": "Direct public-root source import through tsx; registered CommandDefinition.execute; NOT Shell, NOT packed",
+  "args": ["--location", "--upload-file", "-", "https://byte-audit.invalid/first"],
+  "inputChunks": [[0, 255, 128, 195], [40, 10, 13, 0], [254, 65, 226, 40]],
+  "backingLength": 16,
+  "viewOffset": 5,
+  "finalizerFill": 238,
+  "cases": [
+    {
+      "id": "direct-registered-curl-buffer-307-replay",
+      "kind": "Buffer",
+      "expectedFirst": [0, 255, 128, 195, 40, 10, 13, 0, 254, 65, 226, 40],
+      "expectedSecond": [0, 255, 128, 195, 40, 10, 13, 0, 254, 65, 226, 40]
+    },
+    {
+      "id": "direct-registered-curl-native-uint8array-307-replay",
+      "kind": "Uint8Array",
+      "expectedFirst": [0, 255, 128, 195, 40, 10, 13, 0, 254, 65, 226, 40],
+      "expectedSecond": [0, 255, 128, 195, 40, 10, 13, 0, 254, 65, 226, 40]
+    }
+  ],
+  "expectedExitCode": 0,
+  "expectedMethods": ["PUT", "PUT"],
+  "expectedUrls": ["https://byte-audit.invalid/first", "https://byte-audit.invalid/replay"],
+  "expectedResponseStatuses": [307, 200],
+  "expectedStdinYields": 7,
+  "expectedStdinEmptyYields": 4,
+  "expectedStdinFinalizations": 1,
+  "expectedResponseGeneratorFinalizations": [0, 1],
+  "expectedResponseDisposals": [1, 1],
+  "expectedStdout": [],
+  "expectedStderr": []
+}

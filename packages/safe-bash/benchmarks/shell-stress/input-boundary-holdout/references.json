@@ -1,0 +1,281 @@
+{
+  "schemaVersion": 1,
+  "provenance": {
+    "artifact": "/tmp/safe-bash-shell-gaps-final-validation.json",
+    "sha256": "7c49e6f2d29dfed6799bb70069c710dae397940f9fc34fed58ca9b9879999e54",
+    "native": {
+      "binary": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+      "version": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software; you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n"
+    },
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "<fixture.script>",
+      "shell-stress"
+    ],
+    "environment": {
+      "PATH": "/usr/bin:/bin",
+      "HOME": "<isolated temporary cwd>",
+      "TMPDIR": "<isolated temporary cwd>",
+      "LANG": "C",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    },
+    "safety": {
+      "literalArgv": true,
+      "shell": false,
+      "detachedProcessGroups": true,
+      "nativeDeadlineMs": 2000,
+      "nativeCombinedOutputLimit": 65536,
+      "virtualDeadlineMs": 5000,
+      "virtualCombinedOutputLimit": 1048576,
+      "captureCountPerCase": 1,
+      "scratch": "/tmp/safe-bash-shell-final-native-*",
+      "cleanup": "finally plus existing isolatedSpawn process-group cleanup"
+    },
+    "scope": "Exactly the twelve previously executed independent boundary/control probes; no recapture, replacement, expansion, or post-fix observation."
+  },
+  "cases": [
+    {
+      "fixture": {
+        "name": "same-line-invalid-ordinary-substitution",
+        "script": "printf before >before; value=$(true |); printf after >after"
+      },
+      "scriptSha256": "197fff276ba29f914de633b482987e219a51053637d1c55b534463372952bef3",
+      "capturedBefore": "2026-08-26T21:30:57.760Z",
+      "capturedAfter": "2026-08-26T21:30:58.040Z",
+      "expected": {
+        "stdout": "",
+        "stderr": "shell-stress: -c: line 1: syntax error near unexpected token `)'\nshell-stress: -c: line 1: `printf before >before; value=$(true |); printf after >after'\n",
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiAtYzogbGluZSAxOiBzeW50YXggZXJyb3IgbmVhciB1bmV4cGVjdGVkIHRva2VuIGApJwpzaGVsbC1zdHJlc3M6IC1jOiBsaW5lIDE6IGBwcmludGYgYmVmb3JlID5iZWZvcmU7IHZhbHVlPSQodHJ1ZSB8KTsgcHJpbnRmIGFmdGVyID5hZnRlcicK",
+        "exitCode": 127,
+        "files": {}
+      }
+    },
+    {
+      "fixture": {
+        "name": "newline-invalid-ordinary-substitution",
+        "script": "printf before >before\nvalue=$(true |); printf after >after"
+      },
+      "scriptSha256": "a847395e8cf83cf7b1ad1e7832687b6cb371ed38ed0aff6a1253de4a4b5ebefd",
+      "capturedBefore": "2026-08-26T21:30:58.133Z",
+      "capturedAfter": "2026-08-26T21:30:58.434Z",
+      "expected": {
+        "stdout": "",
+        "stderr": "shell-stress: -c: line 2: syntax error near unexpected token `)'\nshell-stress: -c: line 2: `value=$(true |); printf after >after'\n",
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiAtYzogbGluZSAyOiBzeW50YXggZXJyb3IgbmVhciB1bmV4cGVjdGVkIHRva2VuIGApJwpzaGVsbC1zdHJlc3M6IC1jOiBsaW5lIDI6IGB2YWx1ZT0kKHRydWUgfCk7IHByaW50ZiBhZnRlciA+YWZ0ZXInCg==",
+        "exitCode": 127,
+        "files": {
+          "before": {
+            "type": "file",
+            "base64": "YmVmb3Jl"
+          }
+        }
+      }
+    },
+    {
+      "fixture": {
+        "name": "exit-does-not-parse-future-unit",
+        "script": "printf before >before; exit 7\nvalue=$(true |); printf after >after"
+      },
+      "scriptSha256": "bfe527acb3e0aa94caa0af8b5fc7e9f9683a695185adc20a4eeb5d8ec48217bc",
+      "capturedBefore": "2026-08-26T21:30:58.523Z",
+      "capturedAfter": "2026-08-26T21:30:58.804Z",
+      "expected": {
+        "stdout": "",
+        "stderr": "",
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "exitCode": 7,
+        "files": {
+          "before": {
+            "type": "file",
+            "base64": "YmVmb3Jl"
+          }
+        }
+      }
+    },
+    {
+      "fixture": {
+        "name": "fatal-does-not-parse-future-unit",
+        "script": "printf before >before; : \"${absent:?halt}\"\nvalue=$(true |); printf after >after"
+      },
+      "scriptSha256": "bcea58a172dd35d2445d9f4cf1864d0c35f6d643e9f0cf811229b24115c3105e",
+      "capturedBefore": "2026-08-26T21:30:58.900Z",
+      "capturedAfter": "2026-08-26T21:30:59.192Z",
+      "expected": {
+        "stdout": "",
+        "stderr": "shell-stress: line 1: absent: halt\n",
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiBsaW5lIDE6IGFic2VudDogaGFsdAo=",
+        "exitCode": 127,
+        "files": {
+          "before": {
+            "type": "file",
+            "base64": "YmVmb3Jl"
+          }
+        }
+      }
+    },
+    {
+      "fixture": {
+        "name": "compound-keeps-invalid-substitution-in-current-unit",
+        "script": "printf first >first\n{ printf inside >inside;\nvalue=$(true |); }\nprintf after >after"
+      },
+      "scriptSha256": "ae03aae0fedde07cd317228a7a02840b497bc356997cdbbf7212ce41bfe46e18",
+      "capturedBefore": "2026-08-26T21:30:59.291Z",
+      "capturedAfter": "2026-08-26T21:30:59.582Z",
+      "expected": {
+        "stdout": "",
+        "stderr": "shell-stress: -c: line 3: syntax error near unexpected token `)'\nshell-stress: -c: line 3: `value=$(true |); }'\n",
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiAtYzogbGluZSAzOiBzeW50YXggZXJyb3IgbmVhciB1bmV4cGVjdGVkIHRva2VuIGApJwpzaGVsbC1zdHJlc3M6IC1jOiBsaW5lIDM6IGB2YWx1ZT0kKHRydWUgfCk7IH0nCg==",
+        "exitCode": 127,
+        "files": {
+          "first": {
+            "type": "file",
+            "base64": "Zmlyc3Q="
+          }
+        }
+      }
+    },
+    {
+      "fixture": {
+        "name": "continued-pipeline-keeps-current-unit",
+        "script": "printf before >before |\ncat; value=$(true |)\nprintf after >after"
+      },
+      "scriptSha256": "f63a66a069336e043059548d2c1f214529b5d71ce3f21c4fd50abd09000a33bb",
+      "capturedBefore": "2026-08-26T21:30:59.671Z",
+      "capturedAfter": "2026-08-26T21:30:59.950Z",
+      "expected": {
+        "stdout": "",
+        "stderr": "shell-stress: -c: line 2: syntax error near unexpected token `)'\nshell-stress: -c: line 2: `cat; value=$(true |)'\n",
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiAtYzogbGluZSAyOiBzeW50YXggZXJyb3IgbmVhciB1bmV4cGVjdGVkIHRva2VuIGApJwpzaGVsbC1zdHJlc3M6IC1jOiBsaW5lIDI6IGBjYXQ7IHZhbHVlPSQodHJ1ZSB8KScK",
+        "exitCode": 127,
+        "files": {}
+      }
+    },
+    {
+      "fixture": {
+        "name": "continued-and-or-keeps-current-unit",
+        "script": "printf before >before &&\nprintf yes; value=$(true |)\nprintf after >after"
+      },
+      "scriptSha256": "d1aeb1970c6a5bbaaf6555fb85fa6cb040f489abefc63d3466f9f7f0958a07e9",
+      "capturedBefore": "2026-08-26T21:31:00.042Z",
+      "capturedAfter": "2026-08-26T21:31:00.328Z",
+      "expected": {
+        "stdout": "",
+        "stderr": "shell-stress: -c: line 2: syntax error near unexpected token `)'\nshell-stress: -c: line 2: `printf yes; value=$(true |)'\n",
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiAtYzogbGluZSAyOiBzeW50YXggZXJyb3IgbmVhciB1bmV4cGVjdGVkIHRva2VuIGApJwpzaGVsbC1zdHJlc3M6IC1jOiBsaW5lIDI6IGBwcmludGYgeWVzOyB2YWx1ZT0kKHRydWUgfCknCg==",
+        "exitCode": 127,
+        "files": {}
+      }
+    },
+    {
+      "fixture": {
+        "name": "quoted-and-escaped-newlines-are-not-unit-boundaries",
+        "script": "printf \"first\nsecond\" >before; \\\nvalue=$(true |)\nprintf after >after"
+      },
+      "scriptSha256": "fdedd06de8c6fdce75869d507f9acc123f69ab40ef54ac171ff98b22f54d97cb",
+      "capturedBefore": "2026-08-26T21:31:00.419Z",
+      "capturedAfter": "2026-08-26T21:31:00.714Z",
+      "expected": {
+        "stdout": "",
+        "stderr": "shell-stress: -c: line 3: syntax error near unexpected token `)'\nshell-stress: -c: line 3: `value=$(true |)'\n",
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiAtYzogbGluZSAzOiBzeW50YXggZXJyb3IgbmVhciB1bmV4cGVjdGVkIHRva2VuIGApJwpzaGVsbC1zdHJlc3M6IC1jOiBsaW5lIDM6IGB2YWx1ZT0kKHRydWUgfCknCg==",
+        "exitCode": 127,
+        "files": {}
+      }
+    },
+    {
+      "fixture": {
+        "name": "queued-heredoc-body-before-future-invalid-unit",
+        "script": "cat <<ONE <<TWO >body\nignored\nONE\nkept\nTWO\nvalue=$(true |); : >after"
+      },
+      "scriptSha256": "8a0086849a054a40816dfa12306607c724a0b3b8d4b2d5603a192a8dc38ee907",
+      "capturedBefore": "2026-08-26T21:31:00.805Z",
+      "capturedAfter": "2026-08-26T21:31:01.112Z",
+      "expected": {
+        "stdout": "",
+        "stderr": "shell-stress: -c: line 6: syntax error near unexpected token `)'\nshell-stress: -c: line 6: `value=$(true |); : >after'\n",
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiAtYzogbGluZSA2OiBzeW50YXggZXJyb3IgbmVhciB1bmV4cGVjdGVkIHRva2VuIGApJwpzaGVsbC1zdHJlc3M6IC1jOiBsaW5lIDY6IGB2YWx1ZT0kKHRydWUgfCk7IDogPmFmdGVyJwo=",
+        "exitCode": 127,
+        "files": {
+          "body": {
+            "type": "file",
+            "base64": "a2VwdAo="
+          }
+        }
+      }
+    },
+    {
+      "fixture": {
+        "name": "skipped-heredoc-invalid-body-validation-timing",
+        "script": "printf before >before; false && cat <<EOF\n$(true |)\nEOF\nprintf after >after"
+      },
+      "scriptSha256": "9100ad5c0c72cf0b80618e9dcf640bb4955bccc891f245be9c31fa845a0ab240",
+      "capturedBefore": "2026-08-26T21:31:01.207Z",
+      "capturedAfter": "2026-08-26T21:31:01.490Z",
+      "expected": {
+        "stdout": "",
+        "stderr": "",
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {
+          "after": {
+            "type": "file",
+            "base64": "YWZ0ZXI="
+          },
+          "before": {
+            "type": "file",
+            "base64": "YmVmb3Jl"
+          }
+        }
+      }
+    },
+    {
+      "fixture": {
+        "name": "shared-stdin-across-complete-units",
+        "script": "IFS= read -r -n 2 first\nIFS= read -r -n 2 second\nprintf \"<%s><%s>:\" \"$first\" \"$second\"\ncat",
+        "stdin": "abcdef\n"
+      },
+      "scriptSha256": "571cdb49755e9539b350071bbfa985fd79c9c8e6d7d577742c4db40c7f79ae9f",
+      "capturedBefore": "2026-08-26T21:31:01.582Z",
+      "capturedAfter": "2026-08-26T21:31:01.877Z",
+      "expected": {
+        "stdout": "<ab><cd>:ef\n",
+        "stderr": "",
+        "stdoutBase64": "PGFiPjxjZD46ZWYK",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      }
+    },
+    {
+      "fixture": {
+        "name": "locale-assignment-across-versus-within-units",
+        "script": "LC_ALL=en_US.UTF-8; printf '<%s>' $'\\u00e9'\nprintf '<%s>' $'\\u00e9'\nLC_ALL=C; printf '<%s>' $'\\u00e9'\nprintf '<%s>' $'\\u00e9'"
+      },
+      "scriptSha256": "3a28f09ec68513bbbdac1aae7087369cf6dbe1c186a45d74dc38a9eea2ca9a81",
+      "capturedBefore": "2026-08-26T21:31:01.974Z",
+      "capturedAfter": "2026-08-26T21:31:02.273Z",
+      "expected": {
+        "stdout": "<\\u00E9><é><é><\\u00E9>",
+        "stderr": "",
+        "stdoutBase64": "PFx1MDBFOT48w6k+PMOpPjxcdTAwRTk+",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      }
+    }
+  ]
+}

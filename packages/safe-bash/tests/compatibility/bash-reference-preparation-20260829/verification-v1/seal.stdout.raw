@@ -1,0 +1,10 @@
+{"files":66,"bytes":425367,"publicKeyFingerprints":["7C0135FB088AAF6C66C650B9BB5869F064EA74AB","55F49F31DC1457FE6E012F9E2A7C3276F2C850E7"],"observedLoadedImages":611,"unresolvedImages":[],"keyHomeEntries":["trustdb.gpg"],"keyChild":{"code":0,"signal":null},"metadataChildren":4,"verifiedPairs":0,"pairsUnrun":16}
+pub:-:1024:17:BB5869F064EA74AB:1091481708:::-:::scESC::::::::0:
+fpr:::::::::7C0135FB088AAF6C66C650B9BB5869F064EA74AB:
+uid:-::::1138940561::AA247B2E1E16152100C5408DD983583812C300DB::Chet Ramey <chet@cwru.edu>::::::::::0:
+uid:-::::1138939857::489E3466306F4CEE4AB99D8282B46087B73CF5AA::Chet Ramey (Case standard) <chet.ramey@case.edu>::::::::::0:
+uid:-::::1138939823::73BAED22F308DC7CC80CBA34C01CA8A4B5FDD535::Chet Ramey (alternate) <chet@case.edu>::::::::::0:
+uid:-::::1138940483::2332D026DA5D20FDC8FFE199B2DA3D8C6D9CC280::Chet Ramey <chet@po.cwru.edu>::::::::::0:
+sub:-:1024:16:2A7C3276F2C850E7:1091481711::::::e:::::::
+fpr:::::::::55F49F31DC1457FE6E012F9E2A7C3276F2C850E7:
+

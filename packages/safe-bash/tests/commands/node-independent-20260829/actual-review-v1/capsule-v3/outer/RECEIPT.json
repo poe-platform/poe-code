@@ -1,0 +1,40 @@
+{
+  "role": "independent-outer-owner",
+  "start": "2026-08-29T05:46:51.417Z",
+  "spawned": true,
+  "closed": true,
+  "pid": 4161,
+  "status": 0,
+  "signal": null,
+  "timeout": false,
+  "captureBytes": 315,
+  "captureFault": null,
+  "ownerSummary": {
+    "pass": true,
+    "unsafe": false,
+    "stopped": null,
+    "processCount": 89,
+    "workers": 116,
+    "guestEntries": 108,
+    "cleanup": true,
+    "raw": {
+      "bytes": 1646165,
+      "sha256": "6cd17c473bfdb8ee51664fc91e967f1a2df820d2c22182d06bb0e7e821283733",
+      "mode": 384
+    }
+  },
+  "cleanup": true,
+  "args": [
+    "--experimental-permission",
+    "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/node_modules/typescript",
+    "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/node_modules/@types/node",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/node_modules/undici-types",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-independent-20260829/actual-review-v1/capsule-v3",
+    "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/commands/node-independent-20260829/actual-review-v1/capsule-v3",
+    "--allow-child-process",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/node-independent-20260829/actual-review-v1/capsule-v3/owner-v5.mjs"
+  ],
+  "end": "2026-08-29T05:51:49.013Z"
+}

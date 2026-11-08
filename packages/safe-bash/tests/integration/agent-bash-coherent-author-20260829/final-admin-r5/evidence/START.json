@@ -1,0 +1,21 @@
+{
+  "schema": "administrative-owner-r1",
+  "self": {
+    "id": "owner-26417",
+    "role": "administrative-owner",
+    "pid": 26417,
+    "startUTC": "2026-08-29T15:36:55.095Z",
+    "startObserved": true,
+    "exitObserved": false,
+    "closeObserved": false,
+    "state": "LIVE_COORDINATOR"
+  },
+  "starts": [],
+  "attempts": [],
+  "knownStarts": 1,
+  "activeKnownPIDs": [],
+  "captureBytes": 0,
+  "metadataBytes": 0,
+  "elapsedMs": 1.992124999999998,
+  "poisoned": false
+}

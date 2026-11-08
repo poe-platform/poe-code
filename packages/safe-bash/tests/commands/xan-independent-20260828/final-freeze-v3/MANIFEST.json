@@ -1,0 +1,422 @@
+{
+  "classification": "BLOCKED_B01_NOT_COMPLETE_NORMATIVE_FREEZE; RESOLVED_ARTIFACTS_SEALED; NOT_EXECUTED",
+  "profileCommit": "1168432e12568e63ff307e92ed83d64d78a03a3c",
+  "currentHeadAtMetadata": "0a7e062806537c1bcca3bdeece47e357a302e4b0",
+  "observedAtUTC": "2026-08-28T03:22:40.599Z",
+  "sourceAbsence": {
+    "scope": "src/commands/xan",
+    "sourceEntries": [],
+    "claim": "No implementation source observed in this subtree; docs/JSON only. Not a future guarantee or whole-repository absence proof.",
+    "inventory": [
+      {
+        "path": "src/commands/xan/design-evidence/BYTE-TABLE-V2.md",
+        "type": "file",
+        "bytes": 6135,
+        "sha256": "bb098e841cd62791066432ae74f6b8368f99fbb1d9083d63583bc201cbeb2172"
+      },
+      {
+        "path": "src/commands/xan/design-evidence/BYTE-TABLE-V3.md",
+        "type": "file",
+        "bytes": 7674,
+        "sha256": "5a46a960ebf9709e3e2373984cf0ae44e9ae66821263c347b35168f5bab1f6a2"
+      },
+      {
+        "path": "src/commands/xan/design-evidence/FINAL-BINDING-V3.json",
+        "type": "file",
+        "bytes": 11823,
+        "sha256": "058aa5c6495225f5202b7bd06e2715b39729000e50254279af39c2aad3f02d4e"
+      },
+      {
+        "path": "src/commands/xan/design-evidence/HANDOFF-V2.md",
+        "type": "file",
+        "bytes": 5112,
+        "sha256": "36457c0a546af45c3fb05a6ee64283d54f7b16ad8002481ca21bde79e218fa75"
+      },
+      {
+        "path": "src/commands/xan/design-evidence/HANDOFF-V3.md",
+        "type": "file",
+        "bytes": 4459,
+        "sha256": "30bc8d219a35ce7d4cc9fd6c71ffd206d920cb457057d3a8dc60dabf5f8a3238"
+      },
+      {
+        "path": "src/commands/xan/design-evidence/LOCAL-BINDING.json",
+        "type": "file",
+        "bytes": 2586,
+        "sha256": "23c95d7ce93839e9314302304c1782d1bf533d97e733bf97bba5272f2ada7633"
+      },
+      {
+        "path": "src/commands/xan/design-evidence/PROFILE-V2.md",
+        "type": "file",
+        "bytes": 16001,
+        "sha256": "e9084f0074cd4e13ac3f9406bb6ea3d9f1764903004716a1e94840d626a8595d"
+      },
+      {
+        "path": "src/commands/xan/design-evidence/PROFILE-V3.md",
+        "type": "file",
+        "bytes": 5952,
+        "sha256": "8ec63164310e818b670bbafc01780356ffb83adea409e7273c456165c2e7bb44"
+      },
+      {
+        "path": "src/commands/xan/design-evidence/RECEIPT.md",
+        "type": "file",
+        "bytes": 6531,
+        "sha256": "99cfe1c2da8aa09b055113134cb48700685752411d9df18664cbe8c8292c1869"
+      },
+      {
+        "path": "src/commands/xan/design-evidence/REVIEW-BINDING-V2.json",
+        "type": "file",
+        "bytes": 3712,
+        "sha256": "e18eeb25d599c139cd325dc1e6961a47b0753b86225360db50033054cecf8bb0"
+      },
+      {
+        "path": "src/commands/xan/design-evidence/SOURCE-MAP.md",
+        "type": "file",
+        "bytes": 5613,
+        "sha256": "7bef1e1e9815441dd396c65cc99207fc14d6a64746f3e2aea577e3a99a9f85c7"
+      },
+      {
+        "path": "src/commands/xan/DESIGN.md",
+        "type": "file",
+        "bytes": 38677,
+        "sha256": "a91220c4b62c15e89e88e54d488d8b58534907a8197d71a97748b6f7e945e5ea"
+      }
+    ],
+    "checkRule": "Compare/re-enumerate this exact tree after commit to detect newly added entries; selected other original-path hashes alone are not append-proof",
+    "precommitRecheckedAtUTC": "2026-08-28T03:25:03.990Z"
+  },
+  "readOnlyBindings": [
+    {
+      "path": "src/commands/xan/DESIGN.md",
+      "revision": "1168432e12568e63ff307e92ed83d64d78a03a3c",
+      "gitBlob": "0d04e8b9cf1b7fe37107d02bad12d6c937defb78",
+      "sha256": "a91220c4b62c15e89e88e54d488d8b58534907a8197d71a97748b6f7e945e5ea",
+      "bytes": 38677,
+      "liveMatched": true
+    },
+    {
+      "path": "src/commands/xan/design-evidence/PROFILE-V3.md",
+      "revision": "1168432e12568e63ff307e92ed83d64d78a03a3c",
+      "gitBlob": "6b845ecb307bd8d397cee809ff92fc1c9d3d45bf",
+      "sha256": "8ec63164310e818b670bbafc01780356ffb83adea409e7273c456165c2e7bb44",
+      "bytes": 5952,
+      "liveMatched": true
+    },
+    {
+      "path": "src/commands/xan/design-evidence/BYTE-TABLE-V3.md",
+      "revision": "1168432e12568e63ff307e92ed83d64d78a03a3c",
+      "gitBlob": "8eb7ff4812b7bcda3fd42b0f9fea6a560698e02e",
+      "sha256": "5a46a960ebf9709e3e2373984cf0ae44e9ae66821263c347b35168f5bab1f6a2",
+      "bytes": 7674,
+      "liveMatched": true
+    },
+    {
+      "path": "src/commands/xan/design-evidence/HANDOFF-V3.md",
+      "revision": "1168432e12568e63ff307e92ed83d64d78a03a3c",
+      "gitBlob": "82308e800bbd9593511325adac24ba473a9b9862",
+      "sha256": "30bc8d219a35ce7d4cc9fd6c71ffd206d920cb457057d3a8dc60dabf5f8a3238",
+      "bytes": 4459,
+      "liveMatched": true
+    },
+    {
+      "path": "src/commands/xan/design-evidence/FINAL-BINDING-V3.json",
+      "revision": "1168432e12568e63ff307e92ed83d64d78a03a3c",
+      "gitBlob": "2b2847c403a84f31a02e0e8879d726544ed04039",
+      "sha256": "058aa5c6495225f5202b7bd06e2715b39729000e50254279af39c2aad3f02d4e",
+      "bytes": 11823,
+      "liveMatched": true
+    },
+    {
+      "path": "src/commands/xan/design-evidence/PROFILE-V2.md",
+      "revision": "1168432e12568e63ff307e92ed83d64d78a03a3c",
+      "gitBlob": "e1d2c1214ef8f0b93724f97986db2ea14b03915d",
+      "sha256": "e9084f0074cd4e13ac3f9406bb6ea3d9f1764903004716a1e94840d626a8595d",
+      "bytes": 16001,
+      "liveMatched": true
+    },
+    {
+      "path": "src/contracts/io.ts",
+      "revision": "1168432e12568e63ff307e92ed83d64d78a03a3c",
+      "gitBlob": "6dc0efb87132376763228a845b2e62638898268a",
+      "sha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809",
+      "bytes": 7663,
+      "liveMatched": true
+    },
+    {
+      "path": "src/contracts/output.ts",
+      "revision": "1168432e12568e63ff307e92ed83d64d78a03a3c",
+      "gitBlob": "3b1fe9536352a5e13c94ff231ce20ead354aabc8",
+      "sha256": "5e262bda9541a5b70fcb23d4950e92844d404f9029f02c32c889b90d7c92d83e",
+      "bytes": 4661,
+      "liveMatched": true
+    },
+    {
+      "path": "src/contracts/command.ts",
+      "revision": "1168432e12568e63ff307e92ed83d64d78a03a3c",
+      "gitBlob": "9c5f2d150df8681f2688fe6aee7ed2d5dfcd22b8",
+      "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c",
+      "bytes": 2968,
+      "liveMatched": true
+    },
+    {
+      "path": "src/contracts/command.md",
+      "revision": "1168432e12568e63ff307e92ed83d64d78a03a3c",
+      "gitBlob": "ef94adf238122441a66c2232fb3055aaee62d290",
+      "sha256": "ace3670c3820fff94055c6a9d6bee7ac1206a06bcb7607fdafe30f340c0234c6",
+      "bytes": 9253,
+      "liveMatched": true
+    },
+    {
+      "path": "src/contracts/filesystem.ts",
+      "revision": "1168432e12568e63ff307e92ed83d64d78a03a3c",
+      "gitBlob": "5c1a59a85e47bc9bc242a2e92b22680d785fcc89",
+      "sha256": "e2343faf818a15ad7afc06618b3f8856cf14f36c86574cc49c85d51a13e7e522",
+      "bytes": 3897,
+      "liveMatched": true
+    },
+    {
+      "path": "src/contracts/filesystem.md",
+      "revision": "1168432e12568e63ff307e92ed83d64d78a03a3c",
+      "gitBlob": "574db49cd823e7d662cb6ada5ad4dd0c92a8d192",
+      "sha256": "fb74e8fc3841c06f89e8fa93fad55cdfac20788de4eee13db6b8a8072b963d2a",
+      "bytes": 20876,
+      "liveMatched": true
+    },
+    {
+      "path": "src/contracts/errors.ts",
+      "revision": "1168432e12568e63ff307e92ed83d64d78a03a3c",
+      "gitBlob": "d466866ce93c4feced56e2bd5fe4c41637e62226",
+      "sha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "bytes": 3457,
+      "liveMatched": true
+    },
+    {
+      "path": "src/commands/copy-identity.ts",
+      "revision": "1168432e12568e63ff307e92ed83d64d78a03a3c",
+      "gitBlob": "020bedd35a95893736aae453330c96cff58a112b",
+      "sha256": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe",
+      "bytes": 2179,
+      "liveMatched": true
+    },
+    {
+      "path": "src/fs/memory/index.ts",
+      "revision": "1168432e12568e63ff307e92ed83d64d78a03a3c",
+      "gitBlob": "29551d4afa95503783f915410fcdafaf518a6786",
+      "sha256": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+      "bytes": 23533,
+      "liveMatched": true
+    },
+    {
+      "path": "src/fs/real/index.ts",
+      "revision": "1168432e12568e63ff307e92ed83d64d78a03a3c",
+      "gitBlob": "fd2e528075dd2f4be46eb18e2a72fa44dbfb57c4",
+      "sha256": "ab139aa429c2705c7d5ec13a20d1583bacb182e3e2347fcdee2f169704c0bc9a",
+      "bytes": 23656,
+      "liveMatched": true
+    },
+    {
+      "path": "src/fs/s3/filesystem.ts",
+      "revision": "1168432e12568e63ff307e92ed83d64d78a03a3c",
+      "gitBlob": "fd019babc0252f31cb3ae3c23bafd87898af4aae",
+      "sha256": "9ac11951d681db45cee474568ca46d227cfb5bbd9b0d5ce2d6c176d0c4f94833",
+      "bytes": 51254,
+      "liveMatched": true
+    },
+    {
+      "path": "src/fs/webdav/webdav.ts",
+      "revision": "1168432e12568e63ff307e92ed83d64d78a03a3c",
+      "gitBlob": "a9c2fa23e94bf058340028a4aa0eda27771163c9",
+      "sha256": "e66a66e2745852c6bd12be12a18c855df069152cf6b8089d2ecee8880c62de94",
+      "bytes": 53307,
+      "liveMatched": true
+    },
+    {
+      "path": "src/index.ts",
+      "revision": "1168432e12568e63ff307e92ed83d64d78a03a3c",
+      "gitBlob": "ff7ab9b4e4a2f2a25eb0fae8db1d3149c514ad16",
+      "sha256": "6d847ff37316fcdc851145024a422cb6541f0cbeab15895c5a972d7f1f97bb6b",
+      "bytes": 1593,
+      "liveMatched": true
+    },
+    {
+      "path": "package.json",
+      "revision": "1168432e12568e63ff307e92ed83d64d78a03a3c",
+      "gitBlob": "161191ea9e8e56bbea0e74b48af54ee57b646015",
+      "sha256": "64846cc0868630f863fade5119cef195a949aa0ed36ecc341bd9a076d6c363e2",
+      "bytes": 4840,
+      "liveMatched": true
+    },
+    {
+      "path": "src/commands/index.ts",
+      "revision": "1168432e12568e63ff307e92ed83d64d78a03a3c",
+      "gitBlob": "ced15c531fe849ac874f2b3825bda12a0928daa5",
+      "sha256": "67a0e34ea9a8518d2349b4707ef5214e9da0de790ea5c1973daac71dabc70aa9",
+      "bytes": 2292,
+      "liveMatched": true
+    },
+    {
+      "path": "src/shell/index.ts",
+      "revision": "1168432e12568e63ff307e92ed83d64d78a03a3c",
+      "gitBlob": "0110bd9d5c0388dc6fe15abc27f27a18dd7a6b38",
+      "sha256": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "bytes": 275,
+      "liveMatched": true
+    },
+    {
+      "path": "src/shell/types.ts",
+      "revision": "1168432e12568e63ff307e92ed83d64d78a03a3c",
+      "gitBlob": "763d2ee0ad2b15c7ed7af31e7c6171f739c98486",
+      "sha256": "aaef878966d35d1c671cf84e5b416f10f6a31433f1ec264ef1730b9c6570f990",
+      "bytes": 2223,
+      "liveMatched": true
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "revision": "1168432e12568e63ff307e92ed83d64d78a03a3c",
+      "gitBlob": "0b96a82f4ec29da4dbdd447806cca6a2f514311a",
+      "sha256": "3e36a27bbf98b384c7351ffa40d396485c788b0aa0bbefb8702e3bd45ce11a24",
+      "bytes": 15002,
+      "liveMatched": true
+    },
+    {
+      "path": "tests/commands/xan-oracle-prep-20260828/ROWS.json",
+      "revision": "1168432e12568e63ff307e92ed83d64d78a03a3c",
+      "gitBlob": "e794aaf4e1359ff9ad91b0f498aeea288e7eb67f",
+      "sha256": "7a019c039971f45e612a1bfffd17fc940bf425f326d19f84036cb68ed9d69db2",
+      "bytes": 2809,
+      "liveMatched": true
+    },
+    {
+      "path": "tests/commands/xan-oracle-prep-20260828/RESULTS.json",
+      "revision": "1168432e12568e63ff307e92ed83d64d78a03a3c",
+      "gitBlob": "28fa4395d627c2520e13f4621ad7a8c8a4ef3d45",
+      "sha256": "402fcdc93732d32ca87cdcb2b9bc4e896568f6763c5162c1dae4924771fc987a",
+      "bytes": 54174,
+      "liveMatched": true
+    }
+  ],
+  "priorBindings": [
+    {
+      "path": "tests/commands/xan-independent-20260828/PREPARATION.md",
+      "revision": "76d19835b2e576cdae4a78e1f1e68f2f5a7afca3",
+      "sha256": "6f46773f02394f3c5a238eb8af2f7b83480a9097fd36583cbf6c426386c588af"
+    },
+    {
+      "path": "tests/commands/xan-independent-20260828/FAMILIES.json",
+      "revision": "76d19835b2e576cdae4a78e1f1e68f2f5a7afca3",
+      "sha256": "1b4eb2a1175a974d62ff1b9e7cb60a07abdb2b18413066100b08730484729948"
+    },
+    {
+      "path": "tests/commands/xan-independent-20260828/EVIDENCE.json",
+      "revision": "76d19835b2e576cdae4a78e1f1e68f2f5a7afca3",
+      "sha256": "5dd9f3521fab8e3d32788b35672676014312e6bf81d19f287847bf8091b3ff5f"
+    },
+    {
+      "path": "tests/commands/xan-independent-20260828/PROFILE-UPDATE-v2.md",
+      "revision": "dc5084b34ea2737552d05307262b40530329ed15",
+      "sha256": "140b12ab94b0f9723dbc9b9babc2274745d123ece6d75059d707ed693965971e"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "sha256": "fe33803bad06802d8cad8d0c4faa3b7eaeb75b28b67f46ed7e7b92fbe72568c5",
+      "bytes": 30285
+    },
+    {
+      "path": "tests/commands/xan-independent-20260828/final-freeze-v3/CONTROLS.json",
+      "sha256": "35f3c9081d4617abc56714f174f82cfd1d221ba9f8c8715b4d7a34762051f518",
+      "bytes": 13506
+    },
+    {
+      "path": "tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json",
+      "sha256": "cc81bbe66251f1e143ff17b45da05ac5f0b5cfe0209230a84a16cfe6581b48e9",
+      "bytes": 7514
+    },
+    {
+      "path": "tests/commands/xan-independent-20260828/final-freeze-v3/HANDOFF.md",
+      "sha256": "0ea3473bdde2d4b103fd1d455de02b794668a829c9fc1a94bcce97b99af6152a",
+      "bytes": 12175
+    }
+  ],
+  "counts": {
+    "concreteCases": 88,
+    "byteTableTranscriptions": 44,
+    "otherConcreteCases": 44,
+    "observedLiteralCases": 6,
+    "existingFamilies": 12,
+    "capRows": 18,
+    "executedProduct": 0,
+    "executedNative": 0,
+    "executedTests": 0,
+    "processCohorts": 0
+  },
+  "nativeHistory": {
+    "originalProtocol": "4e2e582847bc3438f3092f963db05d12fc3bc6c5",
+    "originalObservations": "4628da200ba3f79f13a07ea8f5881206f70e6819",
+    "originalCalls": 28,
+    "status0": 23,
+    "status1": 5,
+    "meaning": "Historical observations, NOT passes; no rerun",
+    "sourceCommit": "2f9156c8ec79a3ecc09e0879735ac68ec8997b7a",
+    "binarySha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+    "archiveSha256": "fded89ddb5941a848a31e40c966c792754ea38dea6b2771fce02879ef197f6c0",
+    "authentication": "Receipt identities only; no external artifact/cache reauthentication or source-build proof"
+  },
+  "blockers": [
+    {
+      "id": "B01",
+      "kind": "root semantic disposition",
+      "locations": [
+        "PROFILE-V3.md:84-85",
+        "HANDOFF-V3.md:44-45",
+        "DESIGN.md:570-571"
+      ],
+      "required": "Explicit resolution of proposed strict numeric/selector/mixed-mode and pathological-delimiter boundaries; no implementation clearance or complete freeze claim without it"
+    }
+  ],
+  "futureBindings": [
+    "root grammar disposition/additive fixture resolution",
+    "actual implementation/public API candidate commit",
+    "independently enumerated resource/work/capacity traces and reachable limit generators",
+    "pre-execution expanded batch manifest; no unexecuted row scored"
+  ],
+  "artifactChecks": {
+    "kind": "Document/data/hash consistency only, NOT tests",
+    "jsonDocumentsParsed": 4,
+    "tableLiteralOutputsMatched": 44,
+    "exactLimitRowsMatched": 18,
+    "authorRecordedEvidenceAndDocGitHashesMatched": 24,
+    "selectedSourceHashesMatched": 26,
+    "priorPrepHashesMatched": 4,
+    "rootCrLiteralsMatched": 2,
+    "ownedBackgroundProcesses": 0,
+    "finalConsistencyAtUTC": "2026-08-28T03:25:04.090Z"
+  },
+  "selfBinding": "MANIFEST itself is sealed by its Git blob in the exact owned commit reported to root; no circular self-hash",
+  "blockerExcerpts": [
+    {
+      "path": "src/commands/xan/design-evidence/PROFILE-V3.md",
+      "revision": "1168432e12568e63ff307e92ed83d64d78a03a3c",
+      "startLine": 84,
+      "endLine": 85,
+      "utf8": "Strict numeric/selector/mixed-mode boundaries remain declared proposals requiring\nexplicit resolution; this delta adds no grammar or feature breadth. Source-only\n",
+      "sha256": "6fbe5d758a220f3c41a7bfcf7f18dbd5f32db4cef63e12f26f6b84f9ae366888"
+    },
+    {
+      "path": "src/commands/xan/design-evidence/HANDOFF-V3.md",
+      "revision": "1168432e12568e63ff307e92ed83d64d78a03a3c",
+      "startLine": 44,
+      "endLine": 45,
+      "utf8": "Strict numeric/selector/mixed-mode grammar boundaries remain declared proposals,\nnot new approvals. Root must resolve them explicitly; Dirac must not invent\n",
+      "sha256": "843b8d286cc2f6fa922dc1c116c158c1fc23870277f8c87c21bae3903dfce4da"
+    },
+    {
+      "path": "src/commands/xan/DESIGN.md",
+      "revision": "1168432e12568e63ff307e92ed83d64d78a03a3c",
+      "startLine": 570,
+      "endLine": 571,
+      "utf8": "   Strict numeric/selector/mixed-mode boundaries remain declared proposals,\n   not newly approved grammar or new command breadth.\n",
+      "sha256": "fc1ddf6ab3c026ffadfb381640362ec1bbfc44b934338a54f3ab2ad08734cc30"
+    }
+  ]
+}

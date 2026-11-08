@@ -1,0 +1,32 @@
+{
+  "status": "root-ratified design; different freeze and implementation GO pending",
+  "policyDate": "2026-08-28",
+  "packetCommit": "053505fcb5b63d8872991eb09655bc927dd7080d",
+  "inspectedHeadBeforeDocumentation": "6620463abdf7e952aaa855abfba13159a6c5cc83",
+  "ratified": [
+    "R1",
+    "R2",
+    "R3",
+    "R4"
+  ],
+  "implementationAuthorized": false,
+  "runtimeWindow": "released for LET first",
+  "futureLetComposition": null,
+  "artifacts": {
+    "ROOT-RATIFICATION.md": "65708d2adcf5e5b6c434e8fc2741a07ac15d5e575584091f1d65561c210f6476",
+    "LOCKE-HANDOFF.md": "beef09914738d5e31b7e70924efc1852f34cdf285a96c652c2e3ff3be07c55c1",
+    "verify.mjs": "c10f7e0d00234c0113a3e5091e0fa6d4a6127ddb53a1d205df0f4a357ea02637"
+  },
+  "parentArtifacts": {
+    "BINDING.json": "f95018c2963df8b5bfd3f60560ef8ec14effeea6c151e117caafc050568d3d2c",
+    "GRAMMAR-FREEZE.json": "929f0504d8d05fde877af5265607d405dbb02cf7d6b0a79ef269086473181fcb",
+    "HANDOFF.md": "d864c0865c58813400e8206e4df25d03fc93145078b66b1d2db51f366cc716d0",
+    "PACKET.md": "af77d8b26ddcbc26ec933d3678f07ac4a0777ed9e5f871ace2dcd067eb1006b9",
+    "grammar-cases.json": "3fc1561c03e8f52c23236818618d398ecf55401e598576cfa811b85a2cd58cb2",
+    "grammar-observations-01.json.gz.base64": "211e3c926df5651e5342e03b8a3fe530bbdab00b1b4db4b00e09158b4db79e19",
+    "grammar.mjs": "bc488f01a41716a2ab48956f1757d2ce7196f4ec206c0b7fd23661cd1fca701c",
+    "verify.mjs": "4fc5d4f06f4299a3b889692ec4db0a88936dff360ab95b68ae8043c89d7a4f73",
+    "../observations-01.json.gz.base64": "179d48ba3dbfe8cc81e6280df7dcbc5d49c84c5a2297b9ed8ca05f04e90cbaf2",
+    "../supplemental-observations-01.json.gz.base64": "ecb8bd5f8653a4dad2aaa8eb22a496466a45a3e9e5229441c926b422cac680c8"
+  }
+}

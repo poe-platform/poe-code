@@ -1,0 +1,29 @@
+{
+  "command": [
+    "git",
+    "archive",
+    "--format=tar",
+    "--output=/private/tmp/safe-bash-column-final-5XKcCe/candidate.tar",
+    "0123c83d3aae72a15621acbb29a165b97b2c6ab6"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "startedAt": "2026-08-27T16:27:18.539Z",
+  "endedAt": "2026-08-27T16:27:22.569Z",
+  "pid": 51674,
+  "deadlineMs": 90000,
+  "outputCap": 8388608,
+  "status": 0,
+  "signal": null,
+  "termination": null,
+  "spawnError": null,
+  "observedBytes": {
+    "stdout": 0,
+    "stderr": 0
+  },
+  "stdoutHex": "",
+  "stderrHex": "",
+  "groupAliveAtClose": false,
+  "groupAliveAfterRetirement": false,
+  "cleanup": "close-observed-group-checked-and-retired",
+  "forcedCleanupIsPass": false
+}

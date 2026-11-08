@@ -1,0 +1,6 @@
+10c962649d4486f564aee7362a2913af86ad4dfdb3a5b3ecc0cb49f482d40243  src/shell/runtime.ts
+61940d3b86593243c13cab716be87f84647e42b69476757482dfebafc7d693a6  src/commands/execution.ts
+b005331bff0dd207a65b9001d235020f005eed45b813cca912851502c3f9dcf4  src/commands/env-split.ts
+287a240ef68a599f648b02e9dda7551d61b2f12bc9bf588205a29714d87b8736  tests/shell/env-shebang.test.ts
+7a1f609682269f751e7b7544e7cdafe6eaa3bfc59d7a1b196d7d17adc2d9a8f3  tests/shell/env-shebang-host.test.ts
+78454386eeddec592bbdd79128696434fac3c19b862866b89684a2e3747c4a21  tests/shell-stress/env-split-author/native-frozen.json

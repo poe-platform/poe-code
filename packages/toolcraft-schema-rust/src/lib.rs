@@ -1,0 +1,164 @@
+use mcp_protocol_rust::json::Value;
+use std::collections::{HashMap, HashSet};
+use std::sync::Arc;
+
+pub mod builders;
+mod compile;
+mod evaluate;
+pub mod host_values;
+pub mod nullability;
+mod pattern;
+pub mod properties;
+pub mod schema_document;
+mod unicode_categories;
+mod uri;
+pub mod validate;
+
+#[derive(Default)]
+pub struct CompileOptions {
+    pub registry: Vec<(String, Value)>,
+}
+
+#[derive(Debug)]
+pub struct CompileError {
+    pub message: String,
+    /// A rejected pattern, retained losslessly for host syntax diagnostics.
+    pub pattern: Option<Vec<u16>>,
+}
+
+impl From<String> for CompileError {
+    fn from(message: String) -> Self {
+        Self {
+            message,
+            pattern: None,
+        }
+    }
+}
+impl From<&str> for CompileError {
+    fn from(message: &str) -> Self {
+        Self::from(message.to_owned())
+    }
+}
+impl std::fmt::Display for CompileError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(&self.message)
+    }
+}
+impl std::error::Error for CompileError {}
+
+pub trait FormatValidator {
+    /// None leaves an unregistered format as an annotation.
+    fn check(&mut self, name: &[u16], value: &[u16]) -> Result<Option<bool>, String>;
+}
+
+#[derive(Default)]
+pub struct ValidationOptions<'a> {
+    pub formats: Option<&'a mut dyn FormatValidator>,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct ValidationIssue {
+    pub path: Vec<Vec<u16>>,
+    pub expected: Vec<u16>,
+    pub received: String,
+    pub message: Vec<u16>,
+    pub keyword: Vec<u16>,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+enum Dialect {
+    Draft7,
+    Modern,
+}
+
+struct Node {
+    schema: Value,
+    dialect: Dialect,
+    children: HashMap<Vec<u16>, usize>,
+    reference: Option<usize>,
+    dynamic_reference: Option<(usize, Option<Vec<u16>>)>,
+    recursive_reference: Option<(usize, bool)>,
+    resource_root: usize,
+    resource_uri: Arc<str>,
+    base_uri: Arc<str>,
+    document: usize,
+    validation_vocabulary: bool,
+    pattern: Option<pattern::Pattern>,
+    property_patterns: Vec<(Vec<u16>, pattern::Pattern)>,
+}
+
+pub struct CompiledSchema {
+    nodes: Vec<Node>,
+    dynamic_anchors: HashMap<usize, HashMap<Vec<u16>, usize>>,
+}
+
+impl CompiledSchema {
+    pub fn validate(
+        &self,
+        value: &Value,
+        options: ValidationOptions<'_>,
+    ) -> Result<Vec<ValidationIssue>, String> {
+        evaluate::Evaluator {
+            graph: self,
+            active: HashSet::new(),
+            calls: 0,
+            dynamic_scope: Vec::new(),
+            formats: options.formats,
+        }
+        .evaluate(0, value, &[], 0)
+        .map(|result| result.issues)
+    }
+}
+
+fn units(source: &str) -> Vec<u16> {
+    source.encode_utf16().collect()
+}
+fn is_string(value: &Value, source: &str) -> bool {
+    matches!(value, Value::String(text) if text.iter().copied().eq(source.encode_utf16()))
+}
+fn child_key(keyword: &str, key: &[u16]) -> Vec<u16> {
+    keyword
+        .encode_utf16()
+        .chain([47])
+        .chain(key.iter().copied())
+        .collect()
+}
+
+fn equal(left: &Value, right: &Value) -> bool {
+    match (left, right) {
+        (Value::Number(left), Value::Number(right)) => {
+            (left.is_nan() && right.is_nan())
+                || (left == right
+                    && (left != &0.0 || left.is_sign_negative() == right.is_sign_negative()))
+        }
+        (Value::Object(left), Value::Object(right)) => {
+            left.len() == right.len()
+                && left.iter().all(|(name, value)| {
+                    right
+                        .iter()
+                        .find(|(key, _)| key == name)
+                        .is_some_and(|(_, other)| equal(value, other))
+                })
+        }
+        (Value::Array(left), Value::Array(right)) => {
+            left.len() == right.len()
+                && left
+                    .iter()
+                    .zip(right)
+                    .all(|(left, right)| equal(left, right))
+        }
+        _ => left == right,
+    }
+}
+
+fn received(value: &Value) -> &'static str {
+    match value {
+        Value::Null => "null",
+        Value::Bool(_) => "boolean",
+        Value::String(_) => "string",
+        Value::Array(_) => "array",
+        Value::Object(_) => "object",
+        Value::Number(number) if number.is_finite() && number.fract() == 0.0 => "integer",
+        Value::Number(_) => "number",
+    }
+}

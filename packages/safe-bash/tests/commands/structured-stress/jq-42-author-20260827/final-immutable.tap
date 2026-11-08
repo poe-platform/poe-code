@@ -1,0 +1,1438 @@
+TAP version 13
+# Subtest: additive pre-fix evidence retains all 81 unique cases
+ok 1 - additive pre-fix evidence retains all 81 unique cases
+  ---
+  duration_ms: 0.990917
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: decimal-0.00
+ok 2 - additive native exact bytes: decimal-0.00
+  ---
+  duration_ms: 3.5825
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: decimal--0.00
+ok 3 - additive native exact bytes: decimal--0.00
+  ---
+  duration_ms: 1.180125
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: decimal-0e2
+ok 4 - additive native exact bytes: decimal-0e2
+  ---
+  duration_ms: 0.506375
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: decimal-0e-6
+ok 5 - additive native exact bytes: decimal-0e-6
+  ---
+  duration_ms: 0.491833
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: decimal-0e-7
+ok 6 - additive native exact bytes: decimal-0e-7
+  ---
+  duration_ms: 0.572
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: decimal-0.0000000
+ok 7 - additive native exact bytes: decimal-0.0000000
+  ---
+  duration_ms: 0.415417
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: decimal-1.2300e3
+ok 8 - additive native exact bytes: decimal-1.2300e3
+  ---
+  duration_ms: 0.318125
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: decimal-1.2300e-3
+ok 9 - additive native exact bytes: decimal-1.2300e-3
+  ---
+  duration_ms: 0.403167
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: decimal-1.2300e-7
+ok 10 - additive native exact bytes: decimal-1.2300e-7
+  ---
+  duration_ms: 0.611625
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: decimal-100e-2
+ok 11 - additive native exact bytes: decimal-100e-2
+  ---
+  duration_ms: 0.406208
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: decimal-100e2
+ok 12 - additive native exact bytes: decimal-100e2
+  ---
+  duration_ms: 0.421542
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: decimal-0.000001
+ok 13 - additive native exact bytes: decimal-0.000001
+  ---
+  duration_ms: 0.311792
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: decimal-0.0000001
+ok 14 - additive native exact bytes: decimal-0.0000001
+  ---
+  duration_ms: 0.384667
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: decimal-1e9999
+ok 15 - additive native exact bytes: decimal-1e9999
+  ---
+  duration_ms: 1.274166
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: decimal--1e9999
+ok 16 - additive native exact bytes: decimal--1e9999
+  ---
+  duration_ms: 0.31925
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: decimal-1e-9999
+ok 17 - additive native exact bytes: decimal-1e-9999
+  ---
+  duration_ms: 0.177667
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: decimal--1e-9999
+ok 18 - additive native exact bytes: decimal--1e-9999
+  ---
+  duration_ms: 0.206833
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: decimal-2.2250738585072012e-308
+ok 19 - additive native exact bytes: decimal-2.2250738585072012e-308
+  ---
+  duration_ms: 0.244625
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: decimal-4.9406564584124654e-324
+ok 20 - additive native exact bytes: decimal-4.9406564584124654e-324
+  ---
+  duration_ms: 0.174
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: decimal-1.23456789012345665
+ok 21 - additive native exact bytes: decimal-1.23456789012345665
+  ---
+  duration_ms: 0.274666
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: decimal-1.23456789012345675
+ok 22 - additive native exact bytes: decimal-1.23456789012345675
+  ---
+  duration_ms: 0.225833
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: decimal-1.00000000000000011102230246251565404236316680908203125
+ok 23 - additive native exact bytes: decimal-1.00000000000000011102230246251565404236316680908203125
+  ---
+  duration_ms: 0.286417
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: decimal-999999999999999995
+ok 24 - additive native exact bytes: decimal-999999999999999995
+  ---
+  duration_ms: 0.19075
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: decimal-1000000000000000100
+ok 25 - additive native exact bytes: decimal-1000000000000000100
+  ---
+  duration_ms: 0.192375
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: computed-1e15
+ok 26 - additive native exact bytes: computed-1e15
+  ---
+  duration_ms: 0.154333
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: computed-1e16
+ok 27 - additive native exact bytes: computed-1e16
+  ---
+  duration_ms: 0.181458
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: computed-1e17
+ok 28 - additive native exact bytes: computed-1e17
+  ---
+  duration_ms: 0.298
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: computed-1e20
+ok 29 - additive native exact bytes: computed-1e20
+  ---
+  duration_ms: 0.12725
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: computed-1e21
+ok 30 - additive native exact bytes: computed-1e21
+  ---
+  duration_ms: 0.283625
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: computed-1e30
+ok 31 - additive native exact bytes: computed-1e30
+  ---
+  duration_ms: 0.31625
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: computed-1.23e17
+ok 32 - additive native exact bytes: computed-1.23e17
+  ---
+  duration_ms: 0.320666
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: computed-1.23e18
+ok 33 - additive native exact bytes: computed-1.23e18
+  ---
+  duration_ms: 0.156792
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: computed-1.2345678901234568e29
+ok 34 - additive native exact bytes: computed-1.2345678901234568e29
+  ---
+  duration_ms: 0.324125
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: computed-1e-4
+ok 35 - additive native exact bytes: computed-1e-4
+  ---
+  duration_ms: 0.134
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: computed-1e-5
+ok 36 - additive native exact bytes: computed-1e-5
+  ---
+  duration_ms: 0.129916
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: computed-1e-6
+ok 37 - additive native exact bytes: computed-1e-6
+  ---
+  duration_ms: 0.830208
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: computed-1e-7
+ok 38 - additive native exact bytes: computed-1e-7
+  ---
+  duration_ms: 0.115083
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: computed--1e-7
+ok 39 - additive native exact bytes: computed--1e-7
+  ---
+  duration_ms: 0.157208
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: computed-5e-324
+ok 40 - additive native exact bytes: computed-5e-324
+  ---
+  duration_ms: 0.093209
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: computed-1.7976931348623157e308
+ok 41 - additive native exact bytes: computed-1.7976931348623157e308
+  ---
+  duration_ms: 0.10925
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: compare-scale
+ok 42 - additive native exact bytes: compare-scale
+  ---
+  duration_ms: 0.373875
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: compare-zeros
+ok 43 - additive native exact bytes: compare-zeros
+  ---
+  duration_ms: 0.217708
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: compare-adjacent
+ok 44 - additive native exact bytes: compare-adjacent
+  ---
+  duration_ms: 0.187625
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: compare-negative
+ok 45 - additive native exact bytes: compare-negative
+  ---
+  duration_ms: 0.1635
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: compare-exponents
+ok 46 - additive native exact bytes: compare-exponents
+  ---
+  duration_ms: 0.23
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: compare-tiny
+ok 47 - additive native exact bytes: compare-tiny
+  ---
+  duration_ms: 0.161084
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: compare-coefficient
+ok 48 - additive native exact bytes: compare-coefficient
+  ---
+  duration_ms: 0.149208
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: compare-fraction
+ok 49 - additive native exact bytes: compare-fraction
+  ---
+  duration_ms: 0.159583
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: compare-mixed-double
+ok 50 - additive native exact bytes: compare-mixed-double
+  ---
+  duration_ms: 0.256209
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: scalar-types
+ok 51 - additive native exact bytes: scalar-types
+  ---
+  duration_ms: 0.198917
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: number-indices
+ok 52 - additive native exact bytes: number-indices
+  ---
+  duration_ms: 0.323291
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: number-range
+ok 53 - additive native exact bytes: number-range
+  ---
+  duration_ms: 0.126041
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: number-repeat
+ok 54 - additive native exact bytes: number-repeat
+  ---
+  duration_ms: 0.109583
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: preserve-through-copy
+ok 55 - additive native exact bytes: preserve-through-copy
+  ---
+  duration_ms: 0.390125
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: conversions-raw
+ok 56 - additive native exact bytes: conversions-raw
+  ---
+  duration_ms: 0.341
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: conversions-json
+ok 57 - additive native exact bytes: conversions-json
+  ---
+  duration_ms: 0.22125
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: quant-generator-scalar
+ok 58 - additive native exact bytes: quant-generator-scalar
+  ---
+  duration_ms: 0.221583
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: quant-generator-short
+ok 59 - additive native exact bytes: quant-generator-short
+  ---
+  duration_ms: 0.832375
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: quant-condition-short
+ok 60 - additive native exact bytes: quant-condition-short
+  ---
+  duration_ms: 0.162209
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: quant-generator-caught
+ok 61 - additive native exact bytes: quant-generator-caught
+  ---
+  duration_ms: 0.42325
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: quant-empty-condition
+ok 62 - additive native exact bytes: quant-empty-condition
+  ---
+  duration_ms: 0.154
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: quant-insertion-order
+ok 63 - additive native exact bytes: quant-insertion-order
+  ---
+  duration_ms: 0.183916
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: compare-mixed-double-grouped
+ok 64 - additive native exact bytes: compare-mixed-double-grouped
+  ---
+  duration_ms: 0.138292
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: scalar-types-grouped
+ok 65 - additive native exact bytes: scalar-types-grouped
+  ---
+  duration_ms: 0.311875
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: preserve-through-copy-grouped
+ok 66 - additive native exact bytes: preserve-through-copy-grouped
+  ---
+  duration_ms: 0.191125
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: arithmetic-overflow
+ok 67 - additive native exact bytes: arithmetic-overflow
+  ---
+  duration_ms: 0.112833
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: conversion-large-token
+ok 68 - additive native exact bytes: conversion-large-token
+  ---
+  duration_ms: 0.185458
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: range-literal-first
+ok 69 - additive native exact bytes: range-literal-first
+  ---
+  duration_ms: 0.095792
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: exponent-bound-0
+ok 70 - additive native exact bytes: exponent-bound-0
+  ---
+  duration_ms: 0.056209
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: exponent-bound-1
+ok 71 - additive native exact bytes: exponent-bound-1
+  ---
+  duration_ms: 0.05075
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: exponent-bound-2
+ok 72 - additive native exact bytes: exponent-bound-2
+  ---
+  duration_ms: 0.050541
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: exponent-bound-3
+ok 73 - additive native exact bytes: exponent-bound-3
+  ---
+  duration_ms: 0.046875
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: exponent-bound-4
+ok 74 - additive native exact bytes: exponent-bound-4
+  ---
+  duration_ms: 0.045541
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: exponent-bound-5
+ok 75 - additive native exact bytes: exponent-bound-5
+  ---
+  duration_ms: 0.045041
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: exponent-bound-6
+ok 76 - additive native exact bytes: exponent-bound-6
+  ---
+  duration_ms: 0.048416
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: old-tonumber-large
+ok 77 - additive native exact bytes: old-tonumber-large
+  ---
+  duration_ms: 0.043125
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: old-fromjson-large
+ok 78 - additive native exact bytes: old-fromjson-large
+  ---
+  duration_ms: 0.040875
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: overflow-compare-positive
+ok 79 - additive native exact bytes: overflow-compare-positive
+  ---
+  duration_ms: 0.13075
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: overflow-compare-negative
+ok 80 - additive native exact bytes: overflow-compare-negative
+  ---
+  duration_ms: 0.268416
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: overflow-compare-equal
+ok 81 - additive native exact bytes: overflow-compare-equal
+  ---
+  duration_ms: 0.163791
+  type: 'test'
+  ...
+# Subtest: additive native exact bytes: overflow-compare-mixed
+ok 82 - additive native exact bytes: overflow-compare-mixed
+  ---
+  duration_ms: 0.1375
+  type: 'test'
+  ...
+# Subtest: independent native vectors retain their frozen exact-byte hashes
+ok 83 - independent native vectors retain their frozen exact-byte hashes
+  ---
+  duration_ms: 1.347584
+  type: 'test'
+  ...
+# Subtest: native exact bytes: object-vacant-any(empty)
+ok 84 - native exact bytes: object-vacant-any(empty)
+  ---
+  duration_ms: 2.300958
+  type: 'test'
+  ...
+# Subtest: native exact bytes: object-vacant-all(empty)
+ok 85 - native exact bytes: object-vacant-all(empty)
+  ---
+  duration_ms: 0.547666
+  type: 'test'
+  ...
+# Subtest: native exact bytes: object-vacant-any
+ok 86 - native exact bytes: object-vacant-any
+  ---
+  duration_ms: 0.756541
+  type: 'test'
+  ...
+# Subtest: native exact bytes: object-vacant-all
+ok 87 - native exact bytes: object-vacant-all
+  ---
+  duration_ms: 0.351708
+  type: 'test'
+  ...
+# Subtest: native exact bytes: object-vacant-any(. == 7)
+ok 88 - native exact bytes: object-vacant-any(. == 7)
+  ---
+  duration_ms: 0.753333
+  type: 'test'
+  ...
+# Subtest: native exact bytes: object-vacant-all(. != null)
+ok 89 - native exact bytes: object-vacant-all(. != null)
+  ---
+  duration_ms: 0.266
+  type: 'test'
+  ...
+# Subtest: native exact bytes: object-vacant-any(.[]; . == 7)
+ok 90 - native exact bytes: object-vacant-any(.[]; . == 7)
+  ---
+  duration_ms: 0.243791
+  type: 'test'
+  ...
+# Subtest: native exact bytes: object-vacant-all(.[]; . != null)
+ok 91 - native exact bytes: object-vacant-all(.[]; . != null)
+  ---
+  duration_ms: 0.220375
+  type: 'test'
+  ...
+# Subtest: native exact bytes: object-vacant-optional-empty
+ok 92 - native exact bytes: object-vacant-optional-empty
+  ---
+  duration_ms: 0.884541
+  type: 'test'
+  ...
+# Subtest: native exact bytes: object-ordered-any(empty)
+ok 93 - native exact bytes: object-ordered-any(empty)
+  ---
+  duration_ms: 0.572666
+  type: 'test'
+  ...
+# Subtest: native exact bytes: object-ordered-all(empty)
+ok 94 - native exact bytes: object-ordered-all(empty)
+  ---
+  duration_ms: 0.189208
+  type: 'test'
+  ...
+# Subtest: native exact bytes: object-ordered-any
+ok 95 - native exact bytes: object-ordered-any
+  ---
+  duration_ms: 0.168166
+  type: 'test'
+  ...
+# Subtest: native exact bytes: object-ordered-all
+ok 96 - native exact bytes: object-ordered-all
+  ---
+  duration_ms: 0.331583
+  type: 'test'
+  ...
+# Subtest: native exact bytes: object-ordered-any(. == 7)
+ok 97 - native exact bytes: object-ordered-any(. == 7)
+  ---
+  duration_ms: 0.724917
+  type: 'test'
+  ...
+# Subtest: native exact bytes: object-ordered-all(. != null)
+ok 98 - native exact bytes: object-ordered-all(. != null)
+  ---
+  duration_ms: 0.267666
+  type: 'test'
+  ...
+# Subtest: native exact bytes: object-ordered-any(.[]; . == 7)
+ok 99 - native exact bytes: object-ordered-any(.[]; . == 7)
+  ---
+  duration_ms: 0.228208
+  type: 'test'
+  ...
+# Subtest: native exact bytes: object-ordered-all(.[]; . != null)
+ok 100 - native exact bytes: object-ordered-all(.[]; . != null)
+  ---
+  duration_ms: 1.266125
+  type: 'test'
+  ...
+# Subtest: native exact bytes: object-ordered-optional-empty
+ok 101 - native exact bytes: object-ordered-optional-empty
+  ---
+  duration_ms: 0.290166
+  type: 'test'
+  ...
+# Subtest: native exact bytes: short-any
+ok 102 - native exact bytes: short-any
+  ---
+  duration_ms: 0.226
+  type: 'test'
+  ...
+# Subtest: native exact bytes: short-all
+ok 103 - native exact bytes: short-all
+  ---
+  duration_ms: 0.1585
+  type: 'test'
+  ...
+# Subtest: native exact bytes: empty-condition-array
+ok 104 - native exact bytes: empty-condition-array
+  ---
+  duration_ms: 0.155292
+  type: 'test'
+  ...
+# Subtest: native exact bytes: number-scale-identity
+ok 105 - native exact bytes: number-scale-identity
+  ---
+  duration_ms: 0.111375
+  type: 'test'
+  ...
+# Subtest: native exact bytes: number-scale-conversion
+ok 106 - native exact bytes: number-scale-conversion
+  ---
+  duration_ms: 0.193834
+  type: 'test'
+  ...
+# Subtest: native exact bytes: number-scale-length
+ok 107 - native exact bytes: number-scale-length
+  ---
+  duration_ms: 0.094083
+  type: 'test'
+  ...
+# Subtest: native exact bytes: number-positive-exponent-identity
+ok 108 - native exact bytes: number-positive-exponent-identity
+  ---
+  duration_ms: 0.119666
+  type: 'test'
+  ...
+# Subtest: native exact bytes: number-positive-exponent-conversion
+ok 109 - native exact bytes: number-positive-exponent-conversion
+  ---
+  duration_ms: 0.314042
+  type: 'test'
+  ...
+# Subtest: native exact bytes: number-positive-exponent-length
+ok 110 - native exact bytes: number-positive-exponent-length
+  ---
+  duration_ms: 0.08825
+  type: 'test'
+  ...
+# Subtest: native exact bytes: number-negative-exponent-identity
+ok 111 - native exact bytes: number-negative-exponent-identity
+  ---
+  duration_ms: 0.069
+  type: 'test'
+  ...
+# Subtest: native exact bytes: number-negative-exponent-conversion
+ok 112 - native exact bytes: number-negative-exponent-conversion
+  ---
+  duration_ms: 0.136833
+  type: 'test'
+  ...
+# Subtest: native exact bytes: number-negative-exponent-length
+ok 113 - native exact bytes: number-negative-exponent-length
+  ---
+  duration_ms: 0.079459
+  type: 'test'
+  ...
+# Subtest: native exact bytes: number-negative-zero-identity
+ok 114 - native exact bytes: number-negative-zero-identity
+  ---
+  duration_ms: 0.07625
+  type: 'test'
+  ...
+# Subtest: native exact bytes: number-negative-zero-conversion
+ok 115 - native exact bytes: number-negative-zero-conversion
+  ---
+  duration_ms: 0.307
+  type: 'test'
+  ...
+# Subtest: native exact bytes: number-negative-zero-length
+ok 116 - native exact bytes: number-negative-zero-length
+  ---
+  duration_ms: 0.248459
+  type: 'test'
+  ...
+# Subtest: native exact bytes: number-negative-zero-scale-identity
+ok 117 - native exact bytes: number-negative-zero-scale-identity
+  ---
+  duration_ms: 0.161375
+  type: 'test'
+  ...
+# Subtest: native exact bytes: number-negative-zero-scale-conversion
+ok 118 - native exact bytes: number-negative-zero-scale-conversion
+  ---
+  duration_ms: 0.25225
+  type: 'test'
+  ...
+# Subtest: native exact bytes: number-negative-zero-scale-length
+ok 119 - native exact bytes: number-negative-zero-scale-length
+  ---
+  duration_ms: 0.1105
+  type: 'test'
+  ...
+# Subtest: native exact bytes: number-exponent-zero-identity
+ok 120 - native exact bytes: number-exponent-zero-identity
+  ---
+  duration_ms: 0.085542
+  type: 'test'
+  ...
+# Subtest: native exact bytes: number-exponent-zero-conversion
+ok 121 - native exact bytes: number-exponent-zero-conversion
+  ---
+  duration_ms: 0.331166
+  type: 'test'
+  ...
+# Subtest: native exact bytes: number-exponent-zero-length
+ok 122 - native exact bytes: number-exponent-zero-length
+  ---
+  duration_ms: 0.119042
+  type: 'test'
+  ...
+# Subtest: native exact bytes: number-large-integer-identity
+ok 123 - native exact bytes: number-large-integer-identity
+  ---
+  duration_ms: 0.100417
+  type: 'test'
+  ...
+# Subtest: native exact bytes: number-large-integer-conversion
+ok 124 - native exact bytes: number-large-integer-conversion
+  ---
+  duration_ms: 0.145958
+  type: 'test'
+  ...
+# Subtest: native exact bytes: number-large-integer-length
+ok 125 - native exact bytes: number-large-integer-length
+  ---
+  duration_ms: 0.115
+  type: 'test'
+  ...
+# Subtest: native exact bytes: number-long-fraction-identity
+ok 126 - native exact bytes: number-long-fraction-identity
+  ---
+  duration_ms: 0.134917
+  type: 'test'
+  ...
+# Subtest: native exact bytes: number-long-fraction-conversion
+ok 127 - native exact bytes: number-long-fraction-conversion
+  ---
+  duration_ms: 0.118125
+  type: 'test'
+  ...
+# Subtest: native exact bytes: number-long-fraction-length
+ok 128 - native exact bytes: number-long-fraction-length
+  ---
+  duration_ms: 0.068834
+  type: 'test'
+  ...
+# Subtest: native exact bytes: number-large-magnitude-identity
+ok 129 - native exact bytes: number-large-magnitude-identity
+  ---
+  duration_ms: 0.065666
+  type: 'test'
+  ...
+# Subtest: native exact bytes: number-large-magnitude-conversion
+ok 130 - native exact bytes: number-large-magnitude-conversion
+  ---
+  duration_ms: 0.11125
+  type: 'test'
+  ...
+# Subtest: native exact bytes: number-large-magnitude-length
+ok 131 - native exact bytes: number-large-magnitude-length
+  ---
+  duration_ms: 0.06325
+  type: 'test'
+  ...
+# Subtest: native exact bytes: number-overflow-identity
+ok 132 - native exact bytes: number-overflow-identity
+  ---
+  duration_ms: 0.651792
+  type: 'test'
+  ...
+# Subtest: native exact bytes: number-overflow-conversion
+ok 133 - native exact bytes: number-overflow-conversion
+  ---
+  duration_ms: 0.099083
+  type: 'test'
+  ...
+# Subtest: native exact bytes: number-overflow-length
+ok 134 - native exact bytes: number-overflow-length
+  ---
+  duration_ms: 0.055542
+  type: 'test'
+  ...
+# Subtest: native exact bytes: number-underflow-identity
+ok 135 - native exact bytes: number-underflow-identity
+  ---
+  duration_ms: 0.049667
+  type: 'test'
+  ...
+# Subtest: native exact bytes: number-underflow-conversion
+ok 136 - native exact bytes: number-underflow-conversion
+  ---
+  duration_ms: 0.083458
+  type: 'test'
+  ...
+# Subtest: native exact bytes: number-underflow-length
+ok 137 - native exact bytes: number-underflow-length
+  ---
+  duration_ms: 0.054125
+  type: 'test'
+  ...
+# Subtest: native exact bytes: number-binary-rounding-identity
+ok 138 - native exact bytes: number-binary-rounding-identity
+  ---
+  duration_ms: 0.047417
+  type: 'test'
+  ...
+# Subtest: native exact bytes: number-binary-rounding-conversion
+ok 139 - native exact bytes: number-binary-rounding-conversion
+  ---
+  duration_ms: 0.082958
+  type: 'test'
+  ...
+# Subtest: native exact bytes: number-binary-rounding-length
+ok 140 - native exact bytes: number-binary-rounding-length
+  ---
+  duration_ms: 0.0495
+  type: 'test'
+  ...
+# Subtest: native exact bytes: literal-scale
+ok 141 - native exact bytes: literal-scale
+  ---
+  duration_ms: 0.086041
+  type: 'test'
+  ...
+# Subtest: native exact bytes: arithmetic-rounding
+ok 142 - native exact bytes: arithmetic-rounding
+  ---
+  duration_ms: 0.109167
+  type: 'test'
+  ...
+# Subtest: native exact bytes: signed-arithmetic-zero
+ok 143 - native exact bytes: signed-arithmetic-zero
+  ---
+  duration_ms: 0.166209
+  type: 'test'
+  ...
+# Subtest: native exact bytes: small-double
+ok 144 - native exact bytes: small-double
+  ---
+  duration_ms: 0.098334
+  type: 'test'
+  ...
+# Subtest: native exact bytes: large-double
+ok 145 - native exact bytes: large-double
+  ---
+  duration_ms: 0.075959
+  type: 'test'
+  ...
+# Subtest: native exact bytes: copy-nested
+ok 146 - native exact bytes: copy-nested
+  ---
+  duration_ms: 0.196583
+  type: 'test'
+  ...
+# Subtest: native exact bytes: update-unrelated
+ok 147 - native exact bytes: update-unrelated
+  ---
+  duration_ms: 0.268833
+  type: 'test'
+  ...
+# Subtest: native exact bytes: decimal-equality
+ok 148 - native exact bytes: decimal-equality
+  ---
+  duration_ms: 0.091167
+  type: 'test'
+  ...
+# Subtest: native exact bytes: decimal-order
+ok 149 - native exact bytes: decimal-order
+  ---
+  duration_ms: 0.130291
+  type: 'test'
+  ...
+# Subtest: native exact bytes: decimal-unique
+ok 150 - native exact bytes: decimal-unique
+  ---
+  duration_ms: 0.099334
+  type: 'test'
+  ...
+# Subtest: native exact bytes: tonumber
+ok 151 - native exact bytes: tonumber
+  ---
+  duration_ms: 0.063916
+  type: 'test'
+  ...
+# Subtest: native exact bytes: fromjson
+ok 152 - native exact bytes: fromjson
+  ---
+  duration_ms: 0.279041
+  type: 'test'
+  ...
+# Subtest: native exact bytes: argjson-precision
+ok 153 - native exact bytes: argjson-precision
+  ---
+  duration_ms: 0.055375
+  type: 'test'
+  ...
+# Subtest: native exact bytes: unicode-records
+ok 154 - native exact bytes: unicode-records
+  ---
+  duration_ms: 0.212417
+  type: 'test'
+  ...
+# Subtest: native exact bytes: unicode-records:bytewise
+ok 155 - native exact bytes: unicode-records:bytewise
+  ---
+  duration_ms: 0.288042
+  type: 'test'
+  ...
+# Subtest: native exact bytes: unicode-join
+ok 156 - native exact bytes: unicode-join
+  ---
+  duration_ms: 0.178875
+  type: 'test'
+  ...
+# Subtest: native exact bytes: unicode-join:bytewise
+ok 157 - native exact bytes: unicode-join:bytewise
+  ---
+  duration_ms: 0.19575
+  type: 'test'
+  ...
+# Subtest: native exact bytes: unicode-slurp
+ok 158 - native exact bytes: unicode-slurp
+  ---
+  duration_ms: 0.092125
+  type: 'test'
+  ...
+# Subtest: native exact bytes: unicode-slurp:bytewise
+ok 159 - native exact bytes: unicode-slurp:bytewise
+  ---
+  duration_ms: 0.23475
+  type: 'test'
+  ...
+# Subtest: native exact bytes: raw-empty-record
+ok 160 - native exact bytes: raw-empty-record
+  ---
+  duration_ms: 0.095
+  type: 'test'
+  ...
+# Subtest: native exact bytes: raw-empty-record:bytewise
+ok 161 - native exact bytes: raw-empty-record:bytewise
+  ---
+  duration_ms: 0.104417
+  type: 'test'
+  ...
+# Subtest: native exact bytes: raw-empty-slurp
+ok 162 - native exact bytes: raw-empty-slurp
+  ---
+  duration_ms: 0.106125
+  type: 'test'
+  ...
+# Subtest: native exact bytes: raw-empty-slurp:bytewise
+ok 163 - native exact bytes: raw-empty-slurp:bytewise
+  ---
+  duration_ms: 0.081709
+  type: 'test'
+  ...
+# Subtest: native exact bytes: raw-empty-stream
+ok 164 - native exact bytes: raw-empty-stream
+  ---
+  duration_ms: 0.037542
+  type: 'test'
+  ...
+# Subtest: native exact bytes: raw-empty-stream:bytewise
+ok 165 - native exact bytes: raw-empty-stream:bytewise
+  ---
+  duration_ms: 0.030542
+  type: 'test'
+  ...
+# Subtest: native exact bytes: raw-nul
+ok 166 - native exact bytes: raw-nul
+  ---
+  duration_ms: 0.077792
+  type: 'test'
+  ...
+# Subtest: native exact bytes: raw-nul:bytewise
+ok 167 - native exact bytes: raw-nul:bytewise
+  ---
+  duration_ms: 0.818542
+  type: 'test'
+  ...
+# Subtest: native exact bytes: raw-bom
+ok 168 - native exact bytes: raw-bom
+  ---
+  duration_ms: 0.114292
+  type: 'test'
+  ...
+# Subtest: native exact bytes: raw-bom:bytewise
+ok 169 - native exact bytes: raw-bom:bytewise
+  ---
+  duration_ms: 0.156041
+  type: 'test'
+  ...
+# Subtest: native exact bytes: join-mixed
+ok 170 - native exact bytes: join-mixed
+  ---
+  duration_ms: 0.11725
+  type: 'test'
+  ...
+# Subtest: native exact bytes: join-mixed:bytewise
+ok 171 - native exact bytes: join-mixed:bytewise
+  ---
+  duration_ms: 0.224625
+  type: 'test'
+  ...
+# Subtest: native exact bytes: join-object-order
+ok 172 - native exact bytes: join-object-order
+  ---
+  duration_ms: 0.084125
+  type: 'test'
+  ...
+# Subtest: native exact bytes: join-object-order:bytewise
+ok 173 - native exact bytes: join-object-order:bytewise
+  ---
+  duration_ms: 0.384958
+  type: 'test'
+  ...
+# Subtest: native exact bytes: join-json-output
+ok 174 - native exact bytes: join-json-output
+  ---
+  duration_ms: 0.12175
+  type: 'test'
+  ...
+# Subtest: native exact bytes: join-json-output:bytewise
+ok 175 - native exact bytes: join-json-output:bytewise
+  ---
+  duration_ms: 0.194917
+  type: 'test'
+  ...
+# Subtest: native exact bytes: join-exit-last-false
+ok 176 - native exact bytes: join-exit-last-false
+  ---
+  duration_ms: 0.048
+  type: 'test'
+  ...
+# Subtest: native exact bytes: join-exit-last-false:bytewise
+ok 177 - native exact bytes: join-exit-last-false:bytewise
+  ---
+  duration_ms: 0.049958
+  type: 'test'
+  ...
+# Subtest: native exact bytes: join-exit-empty
+ok 178 - native exact bytes: join-exit-empty
+  ---
+  duration_ms: 0.0515
+  type: 'test'
+  ...
+# Subtest: native exact bytes: join-exit-empty:bytewise
+ok 179 - native exact bytes: join-exit-empty:bytewise
+  ---
+  duration_ms: 0.054458
+  type: 'test'
+  ...
+# Subtest: native exact bytes: json-multibyte
+ok 180 - native exact bytes: json-multibyte
+  ---
+  duration_ms: 0.08275
+  type: 'test'
+  ...
+# Subtest: native exact bytes: json-multibyte:bytewise
+ok 181 - native exact bytes: json-multibyte:bytewise
+  ---
+  duration_ms: 0.354667
+  type: 'test'
+  ...
+# Subtest: native exact bytes: separator-empty-prunes-error
+ok 182 - native exact bytes: separator-empty-prunes-error
+  ---
+  duration_ms: 0.059625
+  type: 'test'
+  ...
+# Subtest: native exact bytes: separator-error-after-prefix
+ok 183 - native exact bytes: separator-error-after-prefix
+  ---
+  duration_ms: 0.252584
+  type: 'test'
+  ...
+# Subtest: native exact bytes: separator-error-caught
+ok 184 - native exact bytes: separator-error-caught
+  ---
+  duration_ms: 0.218
+  type: 'test'
+  ...
+# Subtest: native exact bytes: separator-limit-lazy
+ok 185 - native exact bytes: separator-limit-lazy
+  ---
+  duration_ms: 0.240875
+  type: 'test'
+  ...
+# Subtest: native exact bytes: separator-first-empty
+ok 186 - native exact bytes: separator-first-empty
+  ---
+  duration_ms: 0.114875
+  type: 'test'
+  ...
+# Subtest: native exact bytes: cartesian-generators
+ok 187 - native exact bytes: cartesian-generators
+  ---
+  duration_ms: 0.205042
+  type: 'test'
+  ...
+# Subtest: native exact bytes: recover-following-json
+ok 188 - native exact bytes: recover-following-json
+  ---
+  duration_ms: 0.188541
+  type: 'test'
+  ...
+# Subtest: native exact bytes: recover-following-json:bytewise
+ok 189 - native exact bytes: recover-following-json:bytewise
+  ---
+  duration_ms: 0.291208
+  type: 'test'
+  ...
+# Subtest: native exact bytes: recover-following-json-exit
+ok 190 - native exact bytes: recover-following-json-exit
+  ---
+  duration_ms: 0.158209
+  type: 'test'
+  ...
+# Subtest: native exact bytes: recover-following-json-exit:bytewise
+ok 191 - native exact bytes: recover-following-json-exit:bytewise
+  ---
+  duration_ms: 2.673666
+  type: 'test'
+  ...
+# Subtest: native exact bytes: recover-following-raw
+ok 192 - native exact bytes: recover-following-raw
+  ---
+  duration_ms: 0.3495
+  type: 'test'
+  ...
+# Subtest: native exact bytes: recover-following-raw:bytewise
+ok 193 - native exact bytes: recover-following-raw:bytewise
+  ---
+  duration_ms: 0.285375
+  type: 'test'
+  ...
+# Subtest: native exact bytes: recover-final-error
+ok 194 - native exact bytes: recover-final-error
+  ---
+  duration_ms: 0.136125
+  type: 'test'
+  ...
+# Subtest: native exact bytes: recover-final-error:bytewise
+ok 195 - native exact bytes: recover-final-error:bytewise
+  ---
+  duration_ms: 0.177792
+  type: 'test'
+  ...
+# Subtest: native exact bytes: recover-internal-generator
+ok 196 - native exact bytes: recover-internal-generator
+  ---
+  duration_ms: 0.344583
+  type: 'test'
+  ...
+# Subtest: native exact bytes: recover-internal-generator:bytewise
+ok 197 - native exact bytes: recover-internal-generator:bytewise
+  ---
+  duration_ms: 0.443958
+  type: 'test'
+  ...
+# Subtest: native exact bytes: parse-error-after-prefix
+ok 198 - native exact bytes: parse-error-after-prefix
+  ---
+  duration_ms: 0.096916
+  type: 'test'
+  ...
+# Subtest: native exact bytes: parse-error-after-prefix:bytewise
+ok 199 - native exact bytes: parse-error-after-prefix:bytewise
+  ---
+  duration_ms: 0.179208
+  type: 'test'
+  ...
+# Subtest: native exact bytes: raw-lone-continuation
+ok 200 - native exact bytes: raw-lone-continuation
+  ---
+  duration_ms: 0.058083
+  type: 'test'
+  ...
+# Subtest: native exact bytes: raw-lone-continuation:bytewise
+ok 201 - native exact bytes: raw-lone-continuation:bytewise
+  ---
+  duration_ms: 0.096084
+  type: 'test'
+  ...
+# Subtest: native exact bytes: raw-truncated
+ok 202 - native exact bytes: raw-truncated
+  ---
+  duration_ms: 0.051708
+  type: 'test'
+  ...
+# Subtest: native exact bytes: raw-truncated:bytewise
+ok 203 - native exact bytes: raw-truncated:bytewise
+  ---
+  duration_ms: 0.122875
+  type: 'test'
+  ...
+# Subtest: native exact bytes: raw-surrogate
+ok 204 - native exact bytes: raw-surrogate
+  ---
+  duration_ms: 0.063667
+  type: 'test'
+  ...
+# Subtest: native exact bytes: raw-surrogate:bytewise
+ok 205 - native exact bytes: raw-surrogate:bytewise
+  ---
+  duration_ms: 0.117
+  type: 'test'
+  ...
+# Subtest: native exact bytes: raw-overlong-slurp
+ok 206 - native exact bytes: raw-overlong-slurp
+  ---
+  duration_ms: 0.043083
+  type: 'test'
+  ...
+# Subtest: native exact bytes: raw-overlong-slurp:bytewise
+ok 207 - native exact bytes: raw-overlong-slurp:bytewise
+  ---
+  duration_ms: 0.059833
+  type: 'test'
+  ...
+# Subtest: native exact bytes: raw-bad-continuation
+ok 208 - native exact bytes: raw-bad-continuation
+  ---
+  duration_ms: 0.042292
+  type: 'test'
+  ...
+# Subtest: native exact bytes: raw-bad-continuation:bytewise
+ok 209 - native exact bytes: raw-bad-continuation:bytewise
+  ---
+  duration_ms: 0.055792
+  type: 'test'
+  ...
+# Subtest: native exact bytes: json-bad-string
+ok 210 - native exact bytes: json-bad-string
+  ---
+  duration_ms: 0.077792
+  type: 'test'
+  ...
+# Subtest: native exact bytes: json-bad-string:bytewise
+ok 211 - native exact bytes: json-bad-string:bytewise
+  ---
+  duration_ms: 0.167541
+  type: 'test'
+  ...
+# Subtest: native exact bytes: json-truncated-string
+ok 212 - native exact bytes: json-truncated-string
+  ---
+  duration_ms: 0.048334
+  type: 'test'
+  ...
+# Subtest: native exact bytes: json-truncated-string:bytewise
+ok 213 - native exact bytes: json-truncated-string:bytewise
+  ---
+  duration_ms: 0.079458
+  type: 'test'
+  ...
+# Subtest: native exact bytes: json-low-surrogate-escape
+ok 214 - native exact bytes: json-low-surrogate-escape
+  ---
+  duration_ms: 0.049125
+  type: 'test'
+  ...
+# Subtest: native exact bytes: json-low-surrogate-escape:bytewise
+ok 215 - native exact bytes: json-low-surrogate-escape:bytewise
+  ---
+  duration_ms: 0.087583
+  type: 'test'
+  ...
+# Subtest: native exact bytes: json-high-surrogate-escape
+ok 216 - native exact bytes: json-high-surrogate-escape
+  ---
+  duration_ms: 0.081084
+  type: 'test'
+  ...
+# Subtest: native exact bytes: json-high-surrogate-escape:bytewise
+ok 217 - native exact bytes: json-high-surrogate-escape:bytewise
+  ---
+  duration_ms: 0.106334
+  type: 'test'
+  ...
+# Subtest: native exact bytes: raw-file-record-boundary
+ok 218 - native exact bytes: raw-file-record-boundary
+  ---
+  duration_ms: 0.356666
+  type: 'test'
+  ...
+# Subtest: native exact bytes: raw-file-utf8-boundary
+ok 219 - native exact bytes: raw-file-utf8-boundary
+  ---
+  duration_ms: 0.155917
+  type: 'test'
+  ...
+# Subtest: native exact bytes: raw-repeated-stdin
+ok 220 - native exact bytes: raw-repeated-stdin
+  ---
+  duration_ms: 0.990125
+  type: 'test'
+  ...
+# Subtest: native exact bytes: pipe-raw-select-join
+ok 221 - native exact bytes: pipe-raw-select-join
+  ---
+  duration_ms: 6.790375
+  type: 'test'
+  ...
+# Subtest: native exact bytes: pipe-numeric-roundtrip
+ok 222 - native exact bytes: pipe-numeric-roundtrip
+  ---
+  duration_ms: 1.31575
+  type: 'test'
+  ...
+# Subtest: native exact bytes: pipe-error-recovery
+ok 223 - native exact bytes: pipe-error-recovery
+  ---
+  duration_ms: 1.119917
+  type: 'test'
+  ...
+# Subtest: native exact bytes: fromjson-valid-precision
+ok 224 - native exact bytes: fromjson-valid-precision
+  ---
+  duration_ms: 0.115875
+  type: 'test'
+  ...
+# Subtest: native exact bytes: join-mixed-valid
+ok 225 - native exact bytes: join-mixed-valid
+  ---
+  duration_ms: 0.11975
+  type: 'test'
+  ...
+# Subtest: native exact bytes: large-length-1e20
+ok 226 - native exact bytes: large-length-1e20
+  ---
+  duration_ms: 0.073625
+  type: 'test'
+  ...
+# Subtest: native exact bytes: tiny-length
+ok 227 - native exact bytes: tiny-length
+  ---
+  duration_ms: 0.06225
+  type: 'test'
+  ...
+# Subtest: native exact bytes: literal-exponents
+ok 228 - native exact bytes: literal-exponents
+  ---
+  duration_ms: 0.050292
+  type: 'test'
+  ...
+# Subtest: native exact bytes: input-exponent-conversions
+ok 229 - native exact bytes: input-exponent-conversions
+  ---
+  duration_ms: 0.071
+  type: 'test'
+  ...
+# Subtest: native exact bytes: join-quota-prefix
+ok 230 - native exact bytes: join-quota-prefix
+  ---
+  duration_ms: 0.08975
+  type: 'test'
+  ...
+# Subtest: native exact bytes: raw-quota-reference
+ok 231 - native exact bytes: raw-quota-reference
+  ---
+  duration_ms: 0.068708
+  type: 'test'
+  ...
+# Subtest: native exact bytes: join-json-quota-reference
+ok 232 - native exact bytes: join-json-quota-reference
+  ---
+  duration_ms: 0.062
+  type: 'test'
+  ...
+# Subtest: native exact bytes: join-unicode-separator
+ok 233 - native exact bytes: join-unicode-separator
+  ---
+  duration_ms: 0.134
+  type: 'test'
+  ...
+# Subtest: native exact bytes: chunk-edge-reference
+ok 234 - native exact bytes: chunk-edge-reference
+  ---
+  duration_ms: 1.785875
+  type: 'test'
+  ...
+# Subtest: native exact bytes: json-surrogate-pair
+ok 235 - native exact bytes: json-surrogate-pair
+  ---
+  duration_ms: 0.076916
+  type: 'test'
+  ...
+# Subtest: native exact bytes: generator-error-suppressed-next-input
+ok 236 - native exact bytes: generator-error-suppressed-next-input
+  ---
+  duration_ms: 0.338375
+  type: 'test'
+  ...
+# Subtest: native exact bytes: runtime-error-last-false
+ok 237 - native exact bytes: runtime-error-last-false
+  ---
+  duration_ms: 0.334291
+  type: 'test'
+  ...
+# Subtest: native exact bytes: runtime-error-last-empty
+ok 238 - native exact bytes: runtime-error-last-empty
+  ---
+  duration_ms: 0.231125
+  type: 'test'
+  ...
+1..238
+# tests 238
+# suites 0
+# pass 238
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 184.20325

@@ -1,0 +1,41 @@
+[
+  {
+    "name": "rfc4918",
+    "url": "https://www.rfc-editor.org/rfc/rfc4918.txt",
+    "status": 200,
+    "retrievedAt": "2026-08-28T03:12:12.510Z",
+    "sha256": "619ad705b4c0e26af2d0652bb48ca1fa9bd080546993d46730d604b9fe2bdf25",
+    "bytes": 276352,
+    "excerpts": [
+      {
+        "pattern": "/^9\\.1\\. /",
+        "line": 1939,
+        "text": "9.1.  PROPFIND Method\n\n   The PROPFIND method retrieves properties defined on the resource\n   identified by the Request-URI, if the resource does not have any\n   internal members, or on the resource identified by the Request-URI\n   and potentially its member resources, if the resource is a collection\n   that has internal member URLs.  All DAV-compliant resources MUST\n   support the PROPFIND method and the propfind XML element\n   (Section 14.20) along with all XML elements defined for use with that\n   element.\n\n   A client MUST submit a Depth header with a value of \"0\", \"1\", or\n   \"infinity\" with a PROPFIND request.  Servers MUST support \"0\" and \"1\"\n   depth requests on WebDAV-compliant resources and SHOULD support\n   \"infinity\" requests.  In practice, support for infinite-depth\n   requests MAY be disabled, due to the performance and security\n   concerns associated with this behavior.  Servers SHOULD treat a\n   request without a Depth header as if a \"Depth: infinity\" header was\n   included.\n\n\n\n\nDusseault                   Standards Track                    [Page 35]\n\f\nRFC 4918                         WebDAV                        June 2007\n\n\n   A client may submit a 'propfind' XML element in the body of the\n   request method describing what information is being requested.  It is\n   possible to:\n\n   o  Request particular property values, by naming the properties\n      desired within the 'prop' element (the ordering of properties in\n      here MAY be ignored by the server),\n\n   o  Request property values for those properties defined in this\n      specification (at a minimum) plus dead properties, by using the\n      'allprop' element (the 'include' element can be used with\n      'allprop' to instruct the server to also include additional live\n      properties that may not have been returned otherwise),\n\n   o  Request a list of names of all the properties defined on the\n      resource, by using the 'propname' element."
+      },
+      {
+        "pattern": "/^9\\.1\\.1\\. /",
+        "line": 2036,
+        "text": "9.1.1.  PROPFIND Status Codes\n\n   This section, as with similar sections for other methods, provides\n   some guidance on error codes and preconditions or postconditions\n   (defined in Section 16) that might be particularly useful with\n   PROPFIND.\n\n   403 Forbidden - A server MAY reject PROPFIND requests on collections\n   with depth header of \"Infinity\", in which case it SHOULD use this\n   error with the precondition code 'propfind-finite-depth' inside the\n   error body.\n\n9.1.2.  Status Codes for Use in 'propstat' Element\n\n   In PROPFIND responses, information about individual properties is\n   returned inside 'propstat' elements (see Section 14.22), each\n   containing an individual 'status' element containing information\n   about the properties appearing in it.  The list below summarizes the\n   most common status codes used inside 'propstat'; however, clients\n   should be prepared to handle other 2/3/4/5xx series status codes as\n   well.\n\n   200 OK - A property exists and/or its value is successfully returned.\n\n   401 Unauthorized - The property cannot be viewed without appropriate\n   authorization.\n\n   403 Forbidden - The property cannot be viewed regardless of\n   authentication.\n\n   404 Not Found - The property does not exist.\n\n\n\n\n\n\n\nDusseault                   Standards Track                    [Page 37]\n\f\nRFC 4918                         WebDAV                        June 2007\n\n\n9.1.3.  Example - Retrieving Named Properties"
+      },
+      {
+        "pattern": "/^15\\.9\\. /",
+        "line": 5330,
+        "text": "15.9.  resourcetype Property\n\n   Name:   resourcetype\n\n   Purpose:   Specifies the nature of the resource.\n\n   Protected:   SHOULD be protected.  Resource type is generally decided\n      through the operation creating the resource (MKCOL vs PUT), not by\n      PROPPATCH.\n\n   COPY/MOVE behavior:   Generally a COPY/MOVE of a resource results in\n      the same type of resource at the destination.\n\n   Description:   MUST be defined on all DAV-compliant resources.  Each\n      child element identifies a specific type the resource belongs to,\n      such as 'collection', which is the only resource type defined by\n      this specification (see Section 14.3).  If the element contains\n      the 'collection' child element plus additional unrecognized\n      elements, it should generally be treated as a collection.  If the\n      element contains no recognized child elements, it should be\n      treated as a non-collection resource.  The default value is empty.\n      This element MUST NOT contain text or mixed content.  Any custom\n      child element is considered to be an identifier for a resource\n      type.\n\n   Example: (fictional example to show extensibility)\n\n       <x:resourcetype xmlns:x=\"DAV:\">\n           <x:collection/>\n           <f:search-results xmlns:f=\"http://www.example.com/ns\"/>\n       </x:resourcetype>\n\n15.10.  supportedlock Property\n\n   Name:   supportedlock\n\n   Purpose:   To provide a listing of the lock capabilities supported by\n      the resource.\n\n   Protected:   MUST be protected.  Servers, not clients, determine what\n      lock mechanisms are supported.\n\n\n"
+      },
+      {
+        "pattern": "/^20\\. /",
+        "line": 5847,
+        "text": "20.  Security Considerations\n\n   This section is provided to detail issues concerning security\n   implications of which WebDAV applications need to be aware.\n\n   All of the security considerations of HTTP/1.1 (discussed in\n   [RFC2616]) and XML (discussed in [RFC3023]) also apply to WebDAV.  In\n   addition, the security risks inherent in remote authoring require\n   stronger authentication technology, introduce several new privacy\n   concerns, and may increase the hazards from poor server design.\n   These issues are detailed below.\n\n20.1.  Authentication of Clients\n\n   Due to their emphasis on authoring, WebDAV servers need to use\n   authentication technology to protect not just access to a network\n   resource, but the integrity of the resource as well.  Furthermore,\n   the introduction of locking functionality requires support for\n   authentication.\n\n   A password sent in the clear over an insecure channel is an\n   inadequate means for protecting the accessibility and integrity of a\n   resource as the password may be intercepted.  Since Basic\n   authentication for HTTP/1.1 performs essentially clear text\n   transmission of a password, Basic authentication MUST NOT be used to\n   authenticate a WebDAV client to a server unless the connection is\n   secure.  Furthermore, a WebDAV server MUST NOT send a Basic\n   authentication challenge in a WWW-Authenticate header unless the\n   connection is secure.  An example of a secure connection would be a\n   Transport Layer Security (TLS) connection employing a strong cipher\n   suite and server authentication.\n\n\n\n\nDusseault                   Standards Track                   [Page 105]\n\f\nRFC 4918                         WebDAV                        June 2007\n\n\n   WebDAV applications MUST support the Digest authentication scheme\n   [RFC2617].  Since Digest authentication verifies that both parties to\n   a communication know a shared secret, a password, without having to\n   send that secret in the clear, Digest authentication avoids the"
+      }
+    ]
+  },
+  {
+    "name": "rfc3744",
+    "url": "https://www.rfc-editor.org/rfc/rfc3744.txt",
+    "failedAt": "2026-08-28T03:12:12.633Z",
+    "failure": {
+      "name": "AssertionError",
+      "message": "rfc3744 /^3\\.1\\.1\\. /"
+    }
+  }
+]

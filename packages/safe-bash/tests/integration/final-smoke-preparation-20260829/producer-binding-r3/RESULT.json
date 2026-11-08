@@ -1,0 +1,71 @@
+{
+  "status": "ARTIFACT_AND_SOURCE_BINDING_READY_EXECUTABLE_ASSEMBLY_INCOMPLETE",
+  "outcomes": [
+    {
+      "id": "same-buffer-before-decode",
+      "status": "PASS",
+      "role": "ACTUAL_DATA_DECODE_NO_PRODUCT"
+    },
+    {
+      "id": "wrong-size-before-open",
+      "status": "PASS",
+      "role": "PURE_IO"
+    },
+    {
+      "id": "wrong-hash-before-consumption",
+      "status": "PASS",
+      "role": "DATA_REFUSAL_NO_DECODE"
+    },
+    {
+      "id": "symlink-before-open",
+      "status": "PASS",
+      "role": "PURE_IO"
+    },
+    {
+      "id": "exact-installed-mode",
+      "status": "PASS",
+      "role": "PURE_MODES"
+    },
+    {
+      "id": "wrong-umask-or-archive-mode",
+      "status": "PASS",
+      "role": "PURE_MODES"
+    }
+  ],
+  "sourceFilesAuthenticated": 1070,
+  "sourceCount": 323,
+  "emits": 1068,
+  "members": 1070,
+  "package": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-coherent-producer-20260829/virtual-bash-0.0.0.tgz",
+    "bytes": 974493,
+    "sha256": "de8741c1be9c870650e92944020fa2785114b7046ef1774af2c27ea79238e17a"
+  },
+  "fit": {
+    "sums": {
+      "archive": 974493,
+      "sourceBuiltCopy": 5382293,
+      "installed": 5382293,
+      "movedAdditionalCopy": 0,
+      "cacheReserve": 134217728,
+      "captureReserve": 67108864,
+      "helperAndMetadataReserve": 33554432,
+      "publicationReserve": 16777216,
+      "decodeReserve": 67108864
+    },
+    "total": 330506183,
+    "headroom": 206364729,
+    "qualification": "prospective reserved logical fit; actual cache/post-close observations and all owned outputs remain mandatory"
+  },
+  "startedUTC": "2026-08-29T17:37:30.211Z",
+  "endedUTC": "2026-08-29T17:41:25.238Z",
+  "productExecutions": 0,
+  "loaderExecutions": 0,
+  "childSpawns": 0,
+  "independentProducerReview": "PENDING",
+  "blockers": [
+    "Final captured entry/whole-helper import-member map and callback implementation remain unsealed; coordinator source alone is not a runnable envelope",
+    "Per-case30s teardown ownership is not established by existing beforeCase headroom check; no actual per-case timer/cleanup proof",
+    "Existing r2 validator requires fixed1200s anchor1020+180. Shrinking-window semantics require explicit versioned binding; no new window issued"
+  ]
+}

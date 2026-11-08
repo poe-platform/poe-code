@@ -1,0 +1,18 @@
+{
+  "executable": "tar",
+  "args": [
+    "-xf",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised.tar",
+    "-C",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work/revised"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work",
+  "started": "2026-08-27T20:20:04.014Z",
+  "finished": "2026-08-27T20:20:04.109Z",
+  "pid": 70972,
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "stdout": "",
+  "stderr": ""
+}

@@ -1,0 +1,269 @@
+import { createOAuthFormRequest } from "./oauth-form.js";
+import type { OAuthMetadataFetch, StoredOAuthTokens, OAuthTokenEndpointAuthMethod } from "./types.js";
+import { canonicalizeResourceIndicator } from "../resource-indicator.js";
+import { readBoundedResponseText } from "../http-response.js";
+import { fetchMcpResponse } from "../http-fetch.js";
+import { normalizeOAuthScope } from "./scope.js";
+
+const MAX_JS_DATE_MS = 8_640_000_000_000_000;
+const oauthErrorBrand = Symbol.for("poe-platform.mcp-oauth.OAuthError");
+
+interface OAuthErrorShape {
+  error: string;
+  error_description?: string;
+  error_uri?: string;
+}
+
+export class OAuthError extends Error {
+  /** Recognize errors from separately bundled copies of this package. */
+  static is(value: unknown): value is OAuthError {
+    return value instanceof Error && Object.getOwnPropertyDescriptor(value, oauthErrorBrand)?.value === true;
+  }
+  readonly error: string;
+  readonly errorDescription: string | undefined;
+  readonly errorUri: string | undefined;
+  readonly error_description: string | undefined;
+  readonly error_uri: string | undefined;
+  readonly status: number;
+  readonly retryable: boolean;
+  readonly terminal: boolean;
+  /** True only when a complete OAuth error response establishes rejection. */
+  readonly outcomeKnown: boolean;
+
+  constructor(shape: OAuthErrorShape, status: number, outcomeKnown = true) {
+    const description = Object.hasOwn(shape, "error_description") ? shape.error_description : undefined;
+    const uri = Object.hasOwn(shape, "error_uri") ? shape.error_uri : undefined;
+    super(description ?? (outcomeKnown ? shape.error : `OAuth HTTP response did not contain a valid error (HTTP ${status})`));
+    this.name = "OAuthError";
+    Object.defineProperty(this, oauthErrorBrand, { value: true });
+    this.error = shape.error;
+    this.errorDescription = description;
+    this.errorUri = uri;
+    this.error_description = description;
+    this.error_uri = uri;
+    this.status = status;
+    this.retryable = isRetryableOAuthError(this);
+    this.terminal = !this.retryable;
+    this.outcomeKnown = outcomeKnown;
+  }
+}
+
+export function isRetryableOAuthError(error: unknown): error is OAuthError {
+  return (
+    error instanceof OAuthError &&
+    (error.status >= 500 ||
+      error.error === "server_error" ||
+      error.error === "temporarily_unavailable")
+  );
+}
+
+export async function exchangeAuthorizationCode(input: {
+  tokenEndpoint: string;
+  clientId: string;
+  clientSecret?: string;
+  tokenEndpointAuthMethod?: OAuthTokenEndpointAuthMethod;
+  code: string;
+  codeVerifier: string;
+  redirectUri: string;
+  resource: string;
+  fetch: OAuthMetadataFetch;
+  signal?: AbortSignal;
+  now: () => number;
+}): Promise<StoredOAuthTokens> {
+  const resource = canonicalizeResourceIndicator(input.resource);
+
+  return requestTokens({
+    tokenEndpoint: input.tokenEndpoint,
+    clientId: input.clientId,
+    clientSecret: input.clientSecret,
+    tokenEndpointAuthMethod: input.tokenEndpointAuthMethod,
+    params: {
+      grant_type: "authorization_code",
+      code: input.code,
+      code_verifier: input.codeVerifier,
+      redirect_uri: input.redirectUri,
+      resource
+    },
+    fetch: input.fetch,
+    signal: input.signal,
+    now: input.now
+  });
+}
+
+export async function refreshAccessToken(input: {
+  tokenEndpoint: string;
+  clientId: string;
+  clientSecret?: string;
+  tokenEndpointAuthMethod?: OAuthTokenEndpointAuthMethod;
+  refreshToken: string;
+  resource: string;
+  fetch: OAuthMetadataFetch;
+  signal?: AbortSignal;
+  now: () => number;
+}): Promise<StoredOAuthTokens> {
+  const resource = canonicalizeResourceIndicator(input.resource);
+  const refreshToken = input.refreshToken;
+
+  const tokens = await requestTokens({
+    tokenEndpoint: input.tokenEndpoint,
+    clientId: input.clientId,
+    clientSecret: input.clientSecret,
+    tokenEndpointAuthMethod: input.tokenEndpointAuthMethod,
+    params: {
+      grant_type: "refresh_token",
+      refresh_token: refreshToken,
+      resource
+    },
+    fetch: input.fetch,
+    signal: input.signal,
+    now: input.now
+  });
+  return { ...tokens, refreshToken: tokens.refreshToken ?? refreshToken };
+}
+
+async function requestTokens(input: {
+  tokenEndpoint: string;
+  clientId: string;
+  clientSecret?: string;
+  tokenEndpointAuthMethod?: OAuthTokenEndpointAuthMethod;
+  params: Record<string, string>;
+  fetch: OAuthMetadataFetch;
+  signal?: AbortSignal;
+  now: () => number;
+}): Promise<StoredOAuthTokens> {
+  const { body, headers } = createOAuthFormRequest(input);
+
+  input.signal?.throwIfAborted();
+  const deadline = AbortSignal.timeout(30_000);
+  const signal = input.signal === undefined ? deadline : AbortSignal.any([input.signal, deadline]);
+  const response = await fetchMcpResponse(input.fetch, input.tokenEndpoint, {
+    method: "POST",
+    headers,
+    body: body.toString(),
+    signal
+  });
+  const payload = await readOAuthJsonObjectResponse(response, signal);
+  const accessToken = getOwnEntry(payload, "access_token");
+
+  if (typeof accessToken !== "string" || accessToken.trim().length === 0) {
+    throw new Error("OAuth token response missing access_token");
+  }
+  const normalizedAccessToken = accessToken.trim();
+  try { new Headers({ Authorization: `Bearer ${normalizedAccessToken}` }); }
+  catch { throw new Error("OAuth token response access_token is not a valid HTTP header value"); }
+
+  const tokenType = normalizeBearerTokenType(getOwnEntry(payload, "token_type"));
+  if (tokenType === null) {
+    throw new Error("OAuth token response missing token_type=Bearer");
+  }
+
+  const expiresIn = getOwnEntry(payload, "expires_in");
+  let expiresAt: number | null = null;
+  if (expiresIn !== undefined) {
+    if (
+      typeof expiresIn !== "number" ||
+      !Number.isFinite(expiresIn) ||
+      !Number.isInteger(expiresIn) ||
+      expiresIn < 0
+    ) {
+      throw new Error("OAuth token response has invalid expires_in");
+    }
+
+    const issuedAt = input.now();
+    if (!Number.isSafeInteger(issuedAt) || Math.abs(issuedAt) > MAX_JS_DATE_MS)
+      throw new Error("OAuth token response has invalid expires_in");
+    expiresAt = issuedAt + expiresIn * 1000;
+    if (
+      !Number.isSafeInteger(expiresAt) ||
+      expiresAt > MAX_JS_DATE_MS ||
+      !Number.isFinite(new Date(expiresAt).getTime())
+    ) {
+      throw new Error("OAuth token response has invalid expires_in");
+    }
+  }
+
+  const refreshToken = getOwnEntry(payload, "refresh_token");
+  if (refreshToken !== undefined && (typeof refreshToken !== "string" || refreshToken.trim().length === 0))
+    throw new Error("OAuth token response has invalid refresh_token");
+  const scope = getOwnEntry(payload, "scope");
+  const normalizedRefreshToken =
+    typeof refreshToken === "string" && refreshToken.trim().length > 0
+      ? refreshToken.trim()
+      : undefined;
+  const normalizedScope = scope === "" ? "" : normalizeOAuthScope(scope);
+  if (scope !== undefined && normalizedScope === undefined)
+    throw new Error("Invalid OAuth scope syntax in token response");
+  return {
+    accessToken: normalizedAccessToken,
+    refreshToken: normalizedRefreshToken === undefined ? undefined : normalizedRefreshToken,
+    tokenType,
+    expiresAt,
+    scope: normalizedScope === undefined ? undefined : normalizedScope
+  };
+}
+
+export async function readOAuthJsonObjectResponse(
+  response: Response,
+  signal?: AbortSignal
+): Promise<Record<string, unknown>> {
+  const fallbackError = createFallbackOAuthError(response.status);
+  let payload: unknown;
+
+  try {
+    payload = JSON.parse(await readBoundedResponseText(response, 1024 * 1024, undefined, signal));
+  } catch (error) {
+    if (signal?.aborted) throw signal.reason;
+    if (error instanceof Error && error.message.startsWith("HTTP response exceeds ")) throw error;
+    if (!response.ok) {
+      throw fallbackError;
+    }
+    throw new Error("OAuth response must be a JSON object");
+  }
+
+  if (typeof payload !== "object" || payload === null || Array.isArray(payload)) {
+    if (!response.ok) {
+      throw fallbackError;
+    }
+    throw new Error("OAuth response must be a JSON object");
+  }
+
+  const record = payload as Record<string, unknown>;
+  if (!response.ok) {
+    const error = getOwnEntry(record, "error");
+    if (typeof error !== "string" || error.trim() === "") throw fallbackError;
+    throw new OAuthError(readOAuthError(record), response.status);
+  }
+
+  return record;
+}
+
+function readOAuthError(
+  payload: Record<string, unknown>,
+  fallbackError = "server_error"
+): OAuthErrorShape {
+  const error = getOwnEntry(payload, "error");
+  const errorDescription = getOwnEntry(payload, "error_description");
+  const errorUri = getOwnEntry(payload, "error_uri");
+  return {
+    error: typeof error === "string" ? error : fallbackError,
+    error_description: typeof errorDescription === "string" ? errorDescription : undefined,
+    error_uri: typeof errorUri === "string" ? errorUri : undefined
+  };
+}
+
+function getOwnEntry(record: Record<string, unknown>, key: string): unknown {
+  return Object.prototype.hasOwnProperty.call(record, key) ? record[key] : undefined;
+}
+
+function createFallbackOAuthError(status: number): OAuthError {
+  const error = status === 503 ? "temporarily_unavailable" : status >= 500 ? "server_error" : "invalid_response";
+  return new OAuthError({ error }, status, false);
+}
+
+function normalizeBearerTokenType(value: unknown): "Bearer" | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  return value.toLowerCase() === "bearer" ? "Bearer" : null;
+}

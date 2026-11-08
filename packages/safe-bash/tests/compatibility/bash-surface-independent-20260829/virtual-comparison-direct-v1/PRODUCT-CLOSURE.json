@@ -1,0 +1,9 @@
+{
+  "schema": "direct-profile-product-closure-v1",
+  "candidate": "bf079ada185a79aec864b068f3738ddc5520822e",
+  "identityKind": "DERIVED_COMPOSITION_NOT_GIT_OBJECT",
+  "decision": "HOLD_WAITING_DIRAC_ACCEPTED_LOCATORS",
+  "productImportsAuthorized": false,
+  "productCalls": 0,
+  "disposition": "Do not retry candidate:path Git lookup. Exact accepted manifest/blob/archive binding will be supplied independently; no mutable HEAD substitution."
+}

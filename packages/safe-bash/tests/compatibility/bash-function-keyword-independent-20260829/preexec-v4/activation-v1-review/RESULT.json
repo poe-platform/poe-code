@@ -1,0 +1,58 @@
+{
+  "decision": "ACCEPT",
+  "scope": "FINAL_SLOT_DATA_ONLY_NOT_ACTUAL_GO",
+  "utc": "2026-08-29T14:04:22.799Z",
+  "inventory": 24,
+  "sourcePins": 29,
+  "toolRows": 247,
+  "toolBinaries": 3,
+  "packageAuthenticated": true,
+  "activationFourFields": true,
+  "richReceiptSeparate": true,
+  "remainingStartMs": 943938,
+  "window": {
+    "issued": "2026-08-29T14:00:06.737Z",
+    "latestStart": "2026-08-29T14:20:06.737Z",
+    "expires": "2026-08-29T14:45:06.737Z"
+  },
+  "validationAtNow": {
+    "finalDeadline": 1788013762798,
+    "duration": 1500000
+  },
+  "workEmptyDirectories": [
+    "capture",
+    "empty-path",
+    "home",
+    "tmp"
+  ],
+  "measuredFutureRoles": "UNKNOWN_PENDING",
+  "actualCalls": 0,
+  "roles": {
+    "owner": 1,
+    "build": 1,
+    "strictTypes": 3,
+    "primaryCases": 54,
+    "mutants": 3,
+    "bindingRefusals": 2,
+    "totalRuntimeKnownStarts": 65,
+    "extraSyntaxMetadataPublication": 7,
+    "maximumAllKnownStarts": 72,
+    "peakMaximum": 3,
+    "sourceDerivedInternalChildForks": 0,
+    "caseChildProcessPermission": 0,
+    "caseWorkerPermission": 0,
+    "asyncLoaders": 0,
+    "collector": 1
+  },
+  "limits": {
+    "durationMs": 1500000,
+    "finalizationTailMs": 60000,
+    "captureBytes": 100663296,
+    "workBytes": 536870912,
+    "streamBytes": 65536,
+    "ownerCaptureReservation": 196608,
+    "caseMs": 30000,
+    "buildMs": 120000
+  },
+  "command": "exec /bin/zsh -f '/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/launch.sh' '9470' 'b4b562d5ce6673aea3f9d91c50b6697ebaf01f9b92ca8107265a84ff652edfa3' 'd483bbd28c5686e844b25bf56689538ad0a2720220d1cf1e18a8f065be9fef55' '34f4d2f65854f26968e3fe6a204432f060fef2c6628db51c2cce90a88b617d32'\n"
+}

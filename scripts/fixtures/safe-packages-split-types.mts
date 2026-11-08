@@ -1,0 +1,10 @@
+import { createSplitCommand, createSplitCommands, splitCommands, createAgentCommands, type SplitCommandsOptions, type SplitLimits, type CommandDefinition } from "@poe-platform/safe-bash";
+import { createSplitCommand as subpathCommand, createSplitCommands as subpathCommands, splitCommands as subpathPlugin, type SplitCommandsOptions as SubpathOptions, type SplitLimits as SubpathLimits } from "@poe-platform/safe-bash/commands/split";
+const limits: Partial<SplitLimits & SubpathLimits> = { maxArgumentBytes: 1024, maxSteps: 100000, maxOutputBytes: 4096 };
+const options: SplitCommandsOptions & SubpathOptions = { limits, replace: true };
+const command: CommandDefinition = createSplitCommand(options);
+const commands: readonly CommandDefinition[] = createSplitCommands(options);
+const factory: typeof createSplitCommand = subpathCommand;
+const factories: typeof createSplitCommands = subpathCommands;
+const plugin: typeof splitCommands = subpathPlugin;
+void [command, commands, factory, factories, plugin(options), createAgentCommands({ split: { limits } })];

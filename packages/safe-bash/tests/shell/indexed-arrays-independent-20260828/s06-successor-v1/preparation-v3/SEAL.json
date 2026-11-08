@@ -1,0 +1,1362 @@
+{
+  "kind": "complete-array-successor-preparation-v3",
+  "status": "preseal only; NO actual root GO",
+  "candidate": "c0adae539c736db0e4023d401562ce958d9ebb00",
+  "composition": "30f88590b66b88dc9694a56c85f1ee690f02218b",
+  "packageSha256": "e12ed19882b6722503a8fb962ca88e0d6c40300a7e76acc3f81aef5961e0a3a3",
+  "projectionSha256": "b290d820b6dcdd2cc406bd27b5b980c873f9ec2cd8a0ad3f66d630012ed50380",
+  "scopeSha256": "ed7d15f4026bb81df52362956939236c7c5f04fb7285f6acc5f9e5ba803d84f3",
+  "policySha256": "999bc032e4dab04266b71ad859718019489db19aee7c0d0c82e445a148331fc2",
+  "roles": [
+    {
+      "path": "candidate-v1/ADMISSION-02.json.gz.base64",
+      "bytes": 1581449,
+      "mode": 420,
+      "sha256": "26f232de331bd326e018b2c152405777795c1ea982cd671bda8237c3ea2c8e5a"
+    },
+    {
+      "path": "candidate-v1/NPM-TOOL-INVENTORY.json.gz.base64",
+      "bytes": 129385,
+      "mode": 420,
+      "sha256": "5623653d01886efdbb55e5a4c6b387ba8af00e4b4673740caf23a482ce473af4"
+    },
+    {
+      "path": "candidate-v1/boundary-app.mjs",
+      "bytes": 11119,
+      "mode": 420,
+      "sha256": "a8c7cddbf73fe9dddab960a59c430265a16262691a71fc88e8fe6b9fffae40cf"
+    },
+    {
+      "path": "candidate-v1/layout-adapter-v2.mjs",
+      "bytes": 354,
+      "mode": 420,
+      "sha256": "9c58055da6a01020c04da7d1c0b47e45b743f9b311f1883822379a82fd90e9a8"
+    },
+    {
+      "path": "candidate-v1/mechanism-adapter-v1.mjs",
+      "bytes": 12478,
+      "mode": 420,
+      "sha256": "4a5897751a2559ab5a19eff6beeac7173ba021821803b1afcb8e2020fdf49931"
+    },
+    {
+      "path": "candidate-v1/npm-tool.mjs",
+      "bytes": 7031,
+      "mode": 420,
+      "sha256": "6118a3923dc8666826696374bb0eee7df216881501a10fa9d61d46ca8d8def63"
+    },
+    {
+      "path": "candidate-v1/observer-v2.mjs",
+      "bytes": 4791,
+      "mode": 420,
+      "sha256": "ec60788c4423b9689d6335d1bc26f90ec9d29f7cb7fcdbc72ab6774a5470d7a9"
+    },
+    {
+      "path": "candidate-v1/public-v2.mts.fixture",
+      "bytes": 780,
+      "mode": 420,
+      "sha256": "6e5611ab3df79c79445615a3dc2d9905dca8663dad713b264303b789b79015e6"
+    },
+    {
+      "path": "candidate-v1/terminal-adapter-v2.mjs",
+      "bytes": 1829,
+      "mode": 420,
+      "sha256": "48b78aa96c383b536a531cee19e8208d7578b591a1c077e4c474cc56a801f1f6"
+    },
+    {
+      "path": "candidate-v1/types-v2.mjs",
+      "bytes": 4517,
+      "mode": 420,
+      "sha256": "924718dc7fb70730df8d7b1c1eaf97f79bb1059cb2fb0a2158e0969b11987fbf"
+    },
+    {
+      "path": "executor-v1/BASELINE.json",
+      "bytes": 82970,
+      "mode": 420,
+      "sha256": "c154ccc9f221080d3b19f0a3dc3eff38529ef9e16c464317fa3635f8789ad21d"
+    },
+    {
+      "path": "executor-v1/HOLDOUTS.json",
+      "bytes": 8286,
+      "mode": 420,
+      "sha256": "b38508ef94dcd8ce42329c7cf1e173ab460a200e3ddb96e4f5e4cfdd8b3e5e95"
+    },
+    {
+      "path": "executor-v1/ast-negative.mts.fixture",
+      "bytes": 660,
+      "mode": 420,
+      "sha256": "e2ebbc5487d7ba4f53e89068f2557dd2eb7ce0cde2934669f6ca22a08ceb30a3"
+    },
+    {
+      "path": "executor-v1/ast.mts.fixture",
+      "bytes": 626,
+      "mode": 420,
+      "sha256": "aa22806603f68de7045da87701051493c4ca871e6c405a4015d44631389875eb"
+    },
+    {
+      "path": "executor-v1/export-inverse.mts.fixture",
+      "bytes": 50,
+      "mode": 420,
+      "sha256": "da3924a338244737c7f6d313ca445ec49af0ea8b684b49c4a9e4542feb60c190"
+    },
+    {
+      "path": "executor-v1/limit-inverse.mts.fixture",
+      "bytes": 112,
+      "mode": 420,
+      "sha256": "a6c1f3bbf7472dcc92fbdc52718d1d7c5cca945d20ef7019f465df267d228385"
+    },
+    {
+      "path": "executor-v1/negative-export.mts.fixture",
+      "bytes": 62,
+      "mode": 420,
+      "sha256": "cd9ace2cce1311219a09ba7cca31d9d535e62d6c485f921cd0129fb70c6a5475"
+    },
+    {
+      "path": "executor-v1/negative-limit.mts.fixture",
+      "bytes": 110,
+      "mode": 420,
+      "sha256": "cbe288071759d6f506cd4e718537d3678cffdc4d7a74781edcc6b2a6aef1db8c"
+    },
+    {
+      "path": "executor-v1/negative-option.mts.fixture",
+      "bytes": 193,
+      "mode": 420,
+      "sha256": "2eee359f7f9c271033584d77cdc0cc9dab0e212d6f32b66f238b3492c49a18ad"
+    },
+    {
+      "path": "executor-v1/option-inverse.mts.fixture",
+      "bytes": 177,
+      "mode": 420,
+      "sha256": "2fd15c27f53dfbcb5365f4297291a7a1ba1de14bff8e14f3354e49681ec076f1"
+    },
+    {
+      "path": "executor-v1/public.mts.fixture",
+      "bytes": 634,
+      "mode": 420,
+      "sha256": "3d8cd8e3617f5881153caa2b31c0f49233992d44cf34f8e30fabfcda349f7d7b"
+    },
+    {
+      "path": "executor-v1/run.mjs",
+      "bytes": 3204,
+      "mode": 420,
+      "sha256": "9121d2bd261c1f74f702e8a9a7a6c35b3b532d38da33aeb9d8ba59760fae7f2a"
+    },
+    {
+      "path": "executor-v1/semantic.mjs",
+      "bytes": 8099,
+      "mode": 420,
+      "sha256": "26b67699cd36861fbe5e3cb09b8b9d2ac217dace3113fbcfa577480f95a65849"
+    },
+    {
+      "path": "executor-v1/supervisor.mjs",
+      "bytes": 5140,
+      "mode": 420,
+      "sha256": "5d745475931e62c108516bafe6754986440260488eab65685a79269a07d20f94"
+    },
+    {
+      "path": "executor-v1/worker.mjs",
+      "bytes": 4348,
+      "mode": 420,
+      "sha256": "3e27cbc8875a80b2d8ded29beca9113bfe673d58412c5d81556f6293b5828db7"
+    },
+    {
+      "path": "review-v3/CONTROLS.json",
+      "bytes": 5806,
+      "mode": 420,
+      "sha256": "8c9c0604e4f855fd5bd9fdf7b5d4f09cee11b2b1a631bf99bc26217777d16951"
+    },
+    {
+      "path": "review-v3/VECTORS.json",
+      "bytes": 5113,
+      "mode": 420,
+      "sha256": "7d9c591a044fa1fc609c1c6e72a06146ec9e0c26d7c45304d516418f425e5095"
+    },
+    {
+      "path": "s06-successor-v1/AST-COMPAT-v1.json",
+      "bytes": 1256,
+      "mode": 420,
+      "sha256": "948bb6315611bd37a5378327d88c30d9bbbabf650fc7c8f96a0918195a43c0a9"
+    },
+    {
+      "path": "s06-successor-v1/SCOPE-BINDING-v2.json",
+      "bytes": 322163,
+      "mode": 420,
+      "sha256": "ed7d15f4026bb81df52362956939236c7c5f04fb7285f6acc5f9e5ba803d84f3"
+    },
+    {
+      "path": "s06-successor-v1/compiled-mutation-v2.mjs",
+      "bytes": 3554,
+      "mode": 420,
+      "sha256": "c98166c81acedd2f396725e83296b5d8f5c60c6693c58c0e97a0129ee8ce3c2c"
+    },
+    {
+      "path": "s06-successor-v1/preparation-v3/H12-DECISION.json",
+      "bytes": 1272,
+      "mode": 420,
+      "sha256": "f84f7f8f3f90e6bc8a3769884ee72eaad754095c2150bf7aebb978f2850c9d1c"
+    },
+    {
+      "path": "s06-successor-v1/preparation-v3/MUTANTS.json",
+      "bytes": 34771,
+      "mode": 420,
+      "sha256": "ea1b52072749eb8a7eb47d03f8690d1ad2fc1d923269871c54cf1775edbce471"
+    },
+    {
+      "path": "s06-successor-v1/preparation-v3/POLICY.json",
+      "bytes": 2026,
+      "mode": 420,
+      "sha256": "999bc032e4dab04266b71ad859718019489db19aee7c0d0c82e445a148331fc2"
+    },
+    {
+      "path": "s06-successor-v1/preparation-v3/PRESEAL.md",
+      "bytes": 9754,
+      "mode": 420,
+      "sha256": "c7d8522c3c802c58f9e1ec727ecf7a8b29fa2396ab3654a37613c3a0e0ad3736"
+    },
+    {
+      "path": "s06-successor-v1/preparation-v3/SOURCE-PROOFS.json",
+      "bytes": 6447,
+      "mode": 420,
+      "sha256": "a55b9a9a4cb5c553a80e453815cb9f676d13276e83cdb6adba2b8f3e365a9a73"
+    },
+    {
+      "path": "s06-successor-v1/preparation-v3/admission-controls.mjs",
+      "bytes": 2322,
+      "mode": 420,
+      "sha256": "b2a32a0ffbaa63a3912244e331dca070b7515ae5d4bd957ad49653000e895f36"
+    },
+    {
+      "path": "s06-successor-v1/preparation-v3/assess.mjs",
+      "bytes": 1009,
+      "mode": 420,
+      "sha256": "6ba3a4c1c5317b9e469b8544e1201a0230686c182c974f0c835db1dfd6687760"
+    },
+    {
+      "path": "s06-successor-v1/preparation-v3/ast-core.mjs",
+      "bytes": 835,
+      "mode": 420,
+      "sha256": "7b39360420e2a0c968723535a7de0400a529cac804124e33170973928ac2501e"
+    },
+    {
+      "path": "s06-successor-v1/preparation-v3/ast-worker.mjs",
+      "bytes": 2620,
+      "mode": 420,
+      "sha256": "7d91ecb4a271276ef9184d5d55f88de37019b8e26313b5a3bf8a694d840e164e"
+    },
+    {
+      "path": "s06-successor-v1/preparation-v3/compiled-mutation.mjs",
+      "bytes": 3826,
+      "mode": 420,
+      "sha256": "cad8525b12df5f18e43f9e0d115787d97813dbd01a14b10b7d45559972017cec"
+    },
+    {
+      "path": "s06-successor-v1/preparation-v3/complete-adapter.mjs",
+      "bytes": 19489,
+      "mode": 420,
+      "sha256": "dc37bf93b13970b8b25cc3e834728c96a7b0c9a7f40ec47d51a6b695328d3e9e"
+    },
+    {
+      "path": "s06-successor-v1/preparation-v3/controller.mjs",
+      "bytes": 4077,
+      "mode": 420,
+      "sha256": "24fc5060e7f6e3f1a7bcd401d506c42ded891d19877fb1a1c54a2576fadc23d9"
+    },
+    {
+      "path": "s06-successor-v1/preparation-v3/dispatch.mjs",
+      "bytes": 22301,
+      "mode": 420,
+      "sha256": "31341699ef40543d2f16e5e83647184e8f4b319c071297014612ed54f215054a"
+    },
+    {
+      "path": "s06-successor-v1/preparation-v3/fixtures/ast-negative.mts.fixture",
+      "bytes": 660,
+      "mode": 420,
+      "sha256": "e2ebbc5487d7ba4f53e89068f2557dd2eb7ce0cde2934669f6ca22a08ceb30a3"
+    },
+    {
+      "path": "s06-successor-v1/preparation-v3/fixtures/ast.mts.fixture",
+      "bytes": 626,
+      "mode": 420,
+      "sha256": "aa22806603f68de7045da87701051493c4ca871e6c405a4015d44631389875eb"
+    },
+    {
+      "path": "s06-successor-v1/preparation-v3/fixtures/export-inverse.mts.fixture",
+      "bytes": 50,
+      "mode": 420,
+      "sha256": "da3924a338244737c7f6d313ca445ec49af0ea8b684b49c4a9e4542feb60c190"
+    },
+    {
+      "path": "s06-successor-v1/preparation-v3/fixtures/limit-inverse.mts.fixture",
+      "bytes": 112,
+      "mode": 420,
+      "sha256": "a6c1f3bbf7472dcc92fbdc52718d1d7c5cca945d20ef7019f465df267d228385"
+    },
+    {
+      "path": "s06-successor-v1/preparation-v3/fixtures/negative-export.mts.fixture",
+      "bytes": 62,
+      "mode": 420,
+      "sha256": "cd9ace2cce1311219a09ba7cca31d9d535e62d6c485f921cd0129fb70c6a5475"
+    },
+    {
+      "path": "s06-successor-v1/preparation-v3/fixtures/negative-limit.mts.fixture",
+      "bytes": 110,
+      "mode": 420,
+      "sha256": "cbe288071759d6f506cd4e718537d3678cffdc4d7a74781edcc6b2a6aef1db8c"
+    },
+    {
+      "path": "s06-successor-v1/preparation-v3/fixtures/negative-option.mts.fixture",
+      "bytes": 193,
+      "mode": 420,
+      "sha256": "2eee359f7f9c271033584d77cdc0cc9dab0e212d6f32b66f238b3492c49a18ad"
+    },
+    {
+      "path": "s06-successor-v1/preparation-v3/fixtures/option-inverse.mts.fixture",
+      "bytes": 177,
+      "mode": 420,
+      "sha256": "2fd15c27f53dfbcb5365f4297291a7a1ba1de14bff8e14f3354e49681ec076f1"
+    },
+    {
+      "path": "s06-successor-v1/preparation-v3/fixtures/public-v2.mts.fixture",
+      "bytes": 780,
+      "mode": 420,
+      "sha256": "6e5611ab3df79c79445615a3dc2d9905dca8663dad713b264303b789b79015e6"
+    },
+    {
+      "path": "s06-successor-v1/preparation-v3/fixtures/public.mts.fixture",
+      "bytes": 634,
+      "mode": 420,
+      "sha256": "3d8cd8e3617f5881153caa2b31c0f49233992d44cf34f8e30fabfcda349f7d7b"
+    },
+    {
+      "path": "s06-successor-v1/preparation-v3/guard-worker.mjs",
+      "bytes": 1212,
+      "mode": 420,
+      "sha256": "07026e7e0ece37ee96647fa5b3c4f436e5dfd3ce3bfb55f0b26d38726d1d29b7"
+    },
+    {
+      "path": "s06-successor-v1/preparation-v3/instrumentation.mjs",
+      "bytes": 2330,
+      "mode": 420,
+      "sha256": "1fe77d24e99032a026c614c925a29af3c8b46834f2f047b07c5f81bee4787ed6"
+    },
+    {
+      "path": "s06-successor-v1/preparation-v3/mechanism-adapter-v1.mjs",
+      "bytes": 12478,
+      "mode": 420,
+      "sha256": "12316acd04b08d67ecb70cfad52a1a204851b89055feed74596af5b47b9363f5"
+    },
+    {
+      "path": "s06-successor-v1/preparation-v3/prepare-data.mjs",
+      "bytes": 8813,
+      "mode": 420,
+      "sha256": "c2cf9548b07a2aed98b0fa811e28c7ed65378533f61e57db6fd050c6e6b8c69d"
+    },
+    {
+      "path": "s06-successor-v1/preparation-v3/prepare-mutations.mjs",
+      "bytes": 8238,
+      "mode": 420,
+      "sha256": "ba360000a3c76337438ad2aaaa207e3a6bde134f517c2fea1b21554c2a9d4fcd"
+    },
+    {
+      "path": "s06-successor-v1/preparation-v3/prepare-seal.mjs",
+      "bytes": 7895,
+      "mode": 420,
+      "sha256": "37b3fc34c96bd8d16c90add8465196411848b70ecc6675e010e5629cb2be15ba"
+    },
+    {
+      "path": "s06-successor-v1/preparation-v3/staging.mjs",
+      "bytes": 4647,
+      "mode": 420,
+      "sha256": "861e25bad0935d25cc035b9aa991fdbb9cb9ceddaea72665532ed2a8805e717d"
+    },
+    {
+      "path": "s06-successor-v1/preparation-v3/synthetic-stubs/layout-adapter-v2.mjs",
+      "bytes": 354,
+      "mode": 420,
+      "sha256": "9c58055da6a01020c04da7d1c0b47e45b743f9b311f1883822379a82fd90e9a8"
+    },
+    {
+      "path": "s06-successor-v1/preparation-v3/synthetic-stubs/mechanism-adapter-v1.mjs",
+      "bytes": 137,
+      "mode": 420,
+      "sha256": "92422f47368e58051a6410b170b83c7c48d7c5149477aa452b61edb7b5688202"
+    },
+    {
+      "path": "s06-successor-v1/preparation-v3/synthetic-stubs/terminal-adapter-v2.mjs",
+      "bytes": 99,
+      "mode": 420,
+      "sha256": "b7c8fe47cbfebf482f792a6c023c0f1ccc21faa573c4f9a2fff2ec293093a7b6"
+    },
+    {
+      "path": "s06-successor-v1/preparation-v3/synthetic.mjs",
+      "bytes": 8103,
+      "mode": 420,
+      "sha256": "71f318670e7073ef3100a24c0576083ed0ba81ed1bf11668f1aadbc44f6250cd"
+    },
+    {
+      "path": "s06-successor-v1/preparation-v3/terminal-adapter-v2.mjs",
+      "bytes": 1829,
+      "mode": 420,
+      "sha256": "58c4b942074b07cf72374827cf7db71fc49008a8e061e4d48d390ff9a12d8c69"
+    },
+    {
+      "path": "s06-successor-v1/preparation-v3/types.mjs",
+      "bytes": 4524,
+      "mode": 420,
+      "sha256": "925f9a3d51c29a5242278eb7c6664b88f215e5d0f49888c7ee7027a3e3819100"
+    },
+    {
+      "path": "s06-successor-v1/preparation-v3/worker.mjs",
+      "bytes": 4798,
+      "mode": 420,
+      "sha256": "69030f9e8c2fc972f8a6f5c30bb828c0baca706cbcaa1b5b2730ac00b2463fc4"
+    },
+    {
+      "path": "s06-successor-v1/semantic-registration-v2.mjs",
+      "bytes": 8412,
+      "mode": 420,
+      "sha256": "6dddc394ed8f532d5ee100a67df7c9996cca5343529fee05009136bed9b8bb62"
+    }
+  ],
+  "appRoles": [
+    {
+      "destination": "boundary.mjs",
+      "path": "candidate-v1/boundary-app.mjs",
+      "bytes": 11119,
+      "mode": 420,
+      "sha256": "a8c7cddbf73fe9dddab960a59c430265a16262691a71fc88e8fe6b9fffae40cf"
+    },
+    {
+      "destination": "semantic.mjs",
+      "path": "s06-successor-v1/semantic-registration-v2.mjs",
+      "bytes": 8412,
+      "mode": 420,
+      "sha256": "6dddc394ed8f532d5ee100a67df7c9996cca5343529fee05009136bed9b8bb62"
+    },
+    {
+      "destination": "observer-v2.mjs",
+      "path": "candidate-v1/observer-v2.mjs",
+      "bytes": 4791,
+      "mode": 420,
+      "sha256": "ec60788c4423b9689d6335d1bc26f90ec9d29f7cb7fcdbc72ab6774a5470d7a9"
+    },
+    {
+      "destination": "VECTORS.json",
+      "path": "review-v3/VECTORS.json",
+      "bytes": 5113,
+      "mode": 420,
+      "sha256": "7d9c591a044fa1fc609c1c6e72a06146ec9e0c26d7c45304d516418f425e5095"
+    },
+    {
+      "destination": "CONTROLS.json",
+      "path": "review-v3/CONTROLS.json",
+      "bytes": 5806,
+      "mode": 420,
+      "sha256": "8c9c0604e4f855fd5bd9fdf7b5d4f09cee11b2b1a631bf99bc26217777d16951"
+    },
+    {
+      "destination": "HOLDOUTS.json",
+      "path": "executor-v1/HOLDOUTS.json",
+      "bytes": 8286,
+      "mode": 420,
+      "sha256": "b38508ef94dcd8ce42329c7cf1e173ab460a200e3ddb96e4f5e4cfdd8b3e5e95"
+    },
+    {
+      "destination": "BASELINE.json",
+      "path": "executor-v1/BASELINE.json",
+      "bytes": 82970,
+      "mode": 420,
+      "sha256": "c154ccc9f221080d3b19f0a3dc3eff38529ef9e16c464317fa3635f8789ad21d"
+    },
+    {
+      "destination": "AST-COMPAT.json",
+      "path": "s06-successor-v1/AST-COMPAT-v1.json",
+      "bytes": 1256,
+      "mode": 420,
+      "sha256": "948bb6315611bd37a5378327d88c30d9bbbabf650fc7c8f96a0918195a43c0a9"
+    },
+    {
+      "destination": "worker.mjs",
+      "path": "s06-successor-v1/preparation-v3/worker.mjs",
+      "bytes": 4798,
+      "mode": 420,
+      "sha256": "69030f9e8c2fc972f8a6f5c30bb828c0baca706cbcaa1b5b2730ac00b2463fc4"
+    },
+    {
+      "destination": "guard-worker.mjs",
+      "path": "s06-successor-v1/preparation-v3/guard-worker.mjs",
+      "bytes": 1212,
+      "mode": 420,
+      "sha256": "07026e7e0ece37ee96647fa5b3c4f436e5dfd3ce3bfb55f0b26d38726d1d29b7"
+    },
+    {
+      "destination": "ast-worker.mjs",
+      "path": "s06-successor-v1/preparation-v3/ast-worker.mjs",
+      "bytes": 2620,
+      "mode": 420,
+      "sha256": "7d91ecb4a271276ef9184d5d55f88de37019b8e26313b5a3bf8a694d840e164e"
+    },
+    {
+      "destination": "ast-core.mjs",
+      "path": "s06-successor-v1/preparation-v3/ast-core.mjs",
+      "bytes": 835,
+      "mode": 420,
+      "sha256": "7b39360420e2a0c968723535a7de0400a529cac804124e33170973928ac2501e"
+    },
+    {
+      "destination": "instrumentation.mjs",
+      "path": "s06-successor-v1/preparation-v3/instrumentation.mjs",
+      "bytes": 2330,
+      "mode": 420,
+      "sha256": "1fe77d24e99032a026c614c925a29af3c8b46834f2f047b07c5f81bee4787ed6"
+    },
+    {
+      "destination": "complete-adapter.mjs",
+      "path": "s06-successor-v1/preparation-v3/complete-adapter.mjs",
+      "bytes": 19489,
+      "mode": 420,
+      "sha256": "dc37bf93b13970b8b25cc3e834728c96a7b0c9a7f40ec47d51a6b695328d3e9e"
+    },
+    {
+      "destination": "mechanism-adapter-v1.mjs",
+      "path": "s06-successor-v1/preparation-v3/mechanism-adapter-v1.mjs",
+      "bytes": 12478,
+      "mode": 420,
+      "sha256": "12316acd04b08d67ecb70cfad52a1a204851b89055feed74596af5b47b9363f5"
+    },
+    {
+      "destination": "terminal-adapter-v2.mjs",
+      "path": "s06-successor-v1/preparation-v3/terminal-adapter-v2.mjs",
+      "bytes": 1829,
+      "mode": 420,
+      "sha256": "58c4b942074b07cf72374827cf7db71fc49008a8e061e4d48d390ff9a12d8c69"
+    },
+    {
+      "destination": "SOURCE-PROOFS.json",
+      "path": "s06-successor-v1/preparation-v3/SOURCE-PROOFS.json",
+      "bytes": 6447,
+      "mode": 420,
+      "sha256": "a55b9a9a4cb5c553a80e453815cb9f676d13276e83cdb6adba2b8f3e365a9a73"
+    }
+  ],
+  "cohorts": {
+    "semantic": [
+      "S01",
+      "S02",
+      "S03",
+      "S04",
+      "S05",
+      "S06",
+      "S07",
+      "S08",
+      "S09",
+      "S10",
+      "S11",
+      "S12",
+      "S13",
+      "S14",
+      "S15",
+      "S16",
+      "S17",
+      "O01",
+      "O02",
+      "O03",
+      "O04",
+      "O05",
+      "O06",
+      "O07",
+      "O08",
+      "O09",
+      "O10",
+      "O11",
+      "O12",
+      "O13",
+      "O14",
+      "O15",
+      "O16"
+    ],
+    "holdouts": [
+      "H01",
+      "H02",
+      "H03",
+      "H04",
+      "H05",
+      "H06",
+      "H07",
+      "H08",
+      "H09",
+      "H10",
+      "H11",
+      "H13",
+      "H14",
+      "H15",
+      "H16"
+    ],
+    "mechanical": [
+      "M01",
+      "M02",
+      "M03",
+      "M04",
+      "M05",
+      "M06",
+      "M07",
+      "M08",
+      "M09",
+      "M10",
+      "M11",
+      "M12",
+      "M13",
+      "M14",
+      "M15",
+      "M16",
+      "M17",
+      "M18",
+      "M19",
+      "M20",
+      "M21",
+      "M22"
+    ],
+    "operations": [
+      "P01",
+      "P02",
+      "P03",
+      "P04",
+      "P05",
+      "P06",
+      "P07",
+      "P08",
+      "P09",
+      "P10"
+    ],
+    "ast": [
+      "AST01",
+      "AST02",
+      "AST03",
+      "AST04"
+    ],
+    "guard": [
+      "G-FALLBACK"
+    ]
+  },
+  "jobs": [
+    {
+      "label": "source-build-semantic",
+      "layout": "source-build",
+      "cohort": "semantic",
+      "ids": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S05",
+        "S06",
+        "S07",
+        "S08",
+        "S09",
+        "S10",
+        "S11",
+        "S12",
+        "S13",
+        "S14",
+        "S15",
+        "S16",
+        "S17",
+        "O01",
+        "O02",
+        "O03",
+        "O04",
+        "O05",
+        "O06",
+        "O07",
+        "O08",
+        "O09",
+        "O10",
+        "O11",
+        "O12",
+        "O13",
+        "O14",
+        "O15",
+        "O16"
+      ]
+    },
+    {
+      "label": "source-build-holdouts",
+      "layout": "source-build",
+      "cohort": "holdouts",
+      "ids": [
+        "H01",
+        "H02",
+        "H03",
+        "H04",
+        "H05",
+        "H06",
+        "H07",
+        "H08",
+        "H09",
+        "H10",
+        "H11",
+        "H13",
+        "H14",
+        "H15",
+        "H16"
+      ]
+    },
+    {
+      "label": "source-build-mechanical",
+      "layout": "source-build",
+      "cohort": "mechanical",
+      "ids": [
+        "M01",
+        "M02",
+        "M03",
+        "M04",
+        "M05",
+        "M06",
+        "M07",
+        "M08",
+        "M09",
+        "M10",
+        "M11",
+        "M12",
+        "M13",
+        "M14",
+        "M15",
+        "M16",
+        "M17",
+        "M18",
+        "M19",
+        "M20",
+        "M21",
+        "M22"
+      ]
+    },
+    {
+      "label": "source-build-operations",
+      "layout": "source-build",
+      "cohort": "operations",
+      "ids": [
+        "P01",
+        "P02",
+        "P03",
+        "P04",
+        "P05",
+        "P06",
+        "P07",
+        "P08",
+        "P09",
+        "P10"
+      ]
+    },
+    {
+      "label": "source-build-ast",
+      "layout": "source-build",
+      "cohort": "ast",
+      "ids": [
+        "AST01",
+        "AST02",
+        "AST03",
+        "AST04"
+      ]
+    },
+    {
+      "label": "source-build-guard",
+      "layout": "source-build",
+      "cohort": "guard",
+      "ids": [
+        "G-FALLBACK"
+      ]
+    },
+    {
+      "label": "installed-semantic",
+      "layout": "installed",
+      "cohort": "semantic",
+      "ids": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S05",
+        "S06",
+        "S07",
+        "S08",
+        "S09",
+        "S10",
+        "S11",
+        "S12",
+        "S13",
+        "S14",
+        "S15",
+        "S16",
+        "S17",
+        "O01",
+        "O02",
+        "O03",
+        "O04",
+        "O05",
+        "O06",
+        "O07",
+        "O08",
+        "O09",
+        "O10",
+        "O11",
+        "O12",
+        "O13",
+        "O14",
+        "O15",
+        "O16"
+      ]
+    },
+    {
+      "label": "installed-holdouts",
+      "layout": "installed",
+      "cohort": "holdouts",
+      "ids": [
+        "H01",
+        "H02",
+        "H03",
+        "H04",
+        "H05",
+        "H06",
+        "H07",
+        "H08",
+        "H09",
+        "H10",
+        "H11",
+        "H13",
+        "H14",
+        "H15",
+        "H16"
+      ]
+    },
+    {
+      "label": "installed-mechanical",
+      "layout": "installed",
+      "cohort": "mechanical",
+      "ids": [
+        "M01",
+        "M02",
+        "M03",
+        "M04",
+        "M05",
+        "M06",
+        "M07",
+        "M08",
+        "M09",
+        "M10",
+        "M11",
+        "M12",
+        "M13",
+        "M14",
+        "M15",
+        "M16",
+        "M17",
+        "M18",
+        "M19",
+        "M20",
+        "M21",
+        "M22"
+      ]
+    },
+    {
+      "label": "installed-operations",
+      "layout": "installed",
+      "cohort": "operations",
+      "ids": [
+        "P01",
+        "P02",
+        "P03",
+        "P04",
+        "P05",
+        "P06",
+        "P07",
+        "P08",
+        "P09",
+        "P10"
+      ]
+    },
+    {
+      "label": "installed-ast",
+      "layout": "installed",
+      "cohort": "ast",
+      "ids": [
+        "AST01",
+        "AST02",
+        "AST03",
+        "AST04"
+      ]
+    },
+    {
+      "label": "installed-guard",
+      "layout": "installed",
+      "cohort": "guard",
+      "ids": [
+        "G-FALLBACK"
+      ]
+    },
+    {
+      "label": "moved-semantic",
+      "layout": "moved",
+      "cohort": "semantic",
+      "ids": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S05",
+        "S06",
+        "S07",
+        "S08",
+        "S09",
+        "S10",
+        "S11",
+        "S12",
+        "S13",
+        "S14",
+        "S15",
+        "S16",
+        "S17",
+        "O01",
+        "O02",
+        "O03",
+        "O04",
+        "O05",
+        "O06",
+        "O07",
+        "O08",
+        "O09",
+        "O10",
+        "O11",
+        "O12",
+        "O13",
+        "O14",
+        "O15",
+        "O16"
+      ]
+    },
+    {
+      "label": "moved-holdouts",
+      "layout": "moved",
+      "cohort": "holdouts",
+      "ids": [
+        "H01",
+        "H02",
+        "H03",
+        "H04",
+        "H05",
+        "H06",
+        "H07",
+        "H08",
+        "H09",
+        "H10",
+        "H11",
+        "H13",
+        "H14",
+        "H15",
+        "H16"
+      ]
+    },
+    {
+      "label": "moved-mechanical",
+      "layout": "moved",
+      "cohort": "mechanical",
+      "ids": [
+        "M01",
+        "M02",
+        "M03",
+        "M04",
+        "M05",
+        "M06",
+        "M07",
+        "M08",
+        "M09",
+        "M10",
+        "M11",
+        "M12",
+        "M13",
+        "M14",
+        "M15",
+        "M16",
+        "M17",
+        "M18",
+        "M19",
+        "M20",
+        "M21",
+        "M22"
+      ]
+    },
+    {
+      "label": "moved-operations",
+      "layout": "moved",
+      "cohort": "operations",
+      "ids": [
+        "P01",
+        "P02",
+        "P03",
+        "P04",
+        "P05",
+        "P06",
+        "P07",
+        "P08",
+        "P09",
+        "P10"
+      ]
+    },
+    {
+      "label": "moved-ast",
+      "layout": "moved",
+      "cohort": "ast",
+      "ids": [
+        "AST01",
+        "AST02",
+        "AST03",
+        "AST04"
+      ]
+    },
+    {
+      "label": "moved-guard",
+      "layout": "moved",
+      "cohort": "guard",
+      "ids": [
+        "G-FALLBACK"
+      ]
+    },
+    {
+      "label": "positive-before-mechanical",
+      "stage": "positive-before",
+      "cohort": "mechanical",
+      "ids": [
+        "M01",
+        "M04",
+        "M05",
+        "M06",
+        "M17",
+        "M18",
+        "M16",
+        "M22",
+        "M07"
+      ]
+    },
+    {
+      "label": "positive-before-semantic",
+      "stage": "positive-before",
+      "cohort": "semantic",
+      "ids": [
+        "S01",
+        "O15",
+        "S06",
+        "S08"
+      ]
+    },
+    {
+      "label": "positive-before-holdouts",
+      "stage": "positive-before",
+      "cohort": "holdouts",
+      "ids": [
+        "H01"
+      ]
+    },
+    {
+      "label": "positive-before-operations",
+      "stage": "positive-before",
+      "cohort": "operations",
+      "ids": [
+        "P06"
+      ]
+    },
+    {
+      "label": "positive-after-mechanical",
+      "stage": "positive-after",
+      "cohort": "mechanical",
+      "ids": [
+        "M01",
+        "M04",
+        "M05",
+        "M06",
+        "M17",
+        "M18",
+        "M16",
+        "M22",
+        "M07"
+      ]
+    },
+    {
+      "label": "positive-after-semantic",
+      "stage": "positive-after",
+      "cohort": "semantic",
+      "ids": [
+        "S01",
+        "O15",
+        "S06",
+        "S08"
+      ]
+    },
+    {
+      "label": "positive-after-holdouts",
+      "stage": "positive-after",
+      "cohort": "holdouts",
+      "ids": [
+        "H01"
+      ]
+    },
+    {
+      "label": "positive-after-operations",
+      "stage": "positive-after",
+      "cohort": "operations",
+      "ids": [
+        "P06"
+      ]
+    }
+  ],
+  "mutations": [
+    {
+      "id": "U01",
+      "member": "dist/shell/arrays/ledger.js",
+      "cohort": "mechanical",
+      "ids": [
+        "M01"
+      ],
+      "requiredFailed": [
+        "M01"
+      ],
+      "requiredPassed": [],
+      "changedSha256": "9777960bf1a7a2b9135152762faa9009b4c434dbc423b49d817933a2f748c718"
+    },
+    {
+      "id": "U02",
+      "member": "dist/shell/arrays/bindings.js",
+      "cohort": "mechanical",
+      "ids": [
+        "M04"
+      ],
+      "requiredFailed": [
+        "M04"
+      ],
+      "requiredPassed": [],
+      "changedSha256": "7bba61c09889ece63ae9a76b2430ee2ca7aa8f879f307723f4d6e417409dd999"
+    },
+    {
+      "id": "U03",
+      "member": "dist/shell/arrays/bindings.js",
+      "cohort": "mechanical",
+      "ids": [
+        "M05"
+      ],
+      "requiredFailed": [
+        "M05"
+      ],
+      "requiredPassed": [],
+      "changedSha256": "69ea0429da32755f3c3f9dfb231096a9339b9a07b3aa3dcca7ce72cf7174eb21"
+    },
+    {
+      "id": "U04",
+      "member": "dist/shell/arrays/bindings.js",
+      "cohort": "mechanical",
+      "ids": [
+        "M06"
+      ],
+      "requiredFailed": [
+        "M06"
+      ],
+      "requiredPassed": [],
+      "changedSha256": "d17b282a35bfacb736c00aa8a382466841b65f26eb3be1ddadcfd6a574a84762"
+    },
+    {
+      "id": "U05",
+      "member": "dist/shell/arrays/state.js",
+      "cohort": "mechanical",
+      "ids": [
+        "M17"
+      ],
+      "requiredFailed": [
+        "M17"
+      ],
+      "requiredPassed": [],
+      "changedSha256": "06d30a08a5779711fa70b012a83335f0eb01e0bfe5685e5cdd29b358df111c8b"
+    },
+    {
+      "id": "U06",
+      "member": "dist/shell/arrays/state.js",
+      "cohort": "mechanical",
+      "ids": [
+        "M18"
+      ],
+      "requiredFailed": [
+        "M18"
+      ],
+      "requiredPassed": [],
+      "changedSha256": "7c0452853fa7a468a81474c9345ea35e7a502dc0cb8f4236d09fd93d99d3d817"
+    },
+    {
+      "id": "U07",
+      "member": "dist/shell/runtime.js",
+      "cohort": "mechanical",
+      "ids": [
+        "M16"
+      ],
+      "requiredFailed": [
+        "M16"
+      ],
+      "requiredPassed": [],
+      "changedSha256": "b2885f2bfadad0b0f76a651d0119e36de0cc939de9dd41172693b8f88b573a4b"
+    },
+    {
+      "id": "U08",
+      "member": "dist/shell/runtime.js",
+      "cohort": "mechanical",
+      "ids": [
+        "M22"
+      ],
+      "requiredFailed": [
+        "M22"
+      ],
+      "requiredPassed": [],
+      "changedSha256": "8cc9ec1edaacd0aa06643936b955b0a9551bbbf8349118877273adeee6569279"
+    },
+    {
+      "id": "U09",
+      "member": "dist/shell/runtime.js",
+      "cohort": "semantic",
+      "ids": [
+        "S01",
+        "O15"
+      ],
+      "requiredFailed": [
+        "S01",
+        "O15"
+      ],
+      "requiredPassed": [],
+      "changedSha256": "04f5b3b4c49fa6cf4255bb24f93b40f533549d12586b86be9bc75564e79abe87"
+    },
+    {
+      "id": "U10",
+      "member": "dist/shell/runtime.js",
+      "cohort": "holdouts",
+      "ids": [
+        "H01"
+      ],
+      "requiredFailed": [
+        "H01"
+      ],
+      "requiredPassed": [],
+      "changedSha256": "43d86c4b0724c76e54b70689392d02b053d137f9e39a6592a77367a523cfb860"
+    },
+    {
+      "id": "U11",
+      "member": "dist/shell/runtime.js",
+      "cohort": "operations",
+      "ids": [
+        "P06"
+      ],
+      "requiredFailed": [
+        "P06"
+      ],
+      "requiredPassed": [],
+      "changedSha256": "636da6d2400ac6ad4f9b82f13a0e30c8be5e2c8612ec47562ad7354300e52485"
+    },
+    {
+      "id": "U12",
+      "member": "dist/shell/arrays/ledger.js",
+      "cohort": "mechanical",
+      "ids": [
+        "M07"
+      ],
+      "requiredFailed": [
+        "M07"
+      ],
+      "requiredPassed": [],
+      "changedSha256": "73172f943eeb549fdf9f2a65e56923227fb8e3e091a025c6b4ed28fca533cf5f"
+    },
+    {
+      "id": "U13-S06",
+      "member": "dist/shell/runtime.js",
+      "cohort": "semantic",
+      "ids": [
+        "S06",
+        "S08"
+      ],
+      "requiredFailed": [
+        "S06"
+      ],
+      "requiredPassed": [
+        "S08"
+      ],
+      "changedSha256": "ddc15913410eba296ca3094a5cb7d35e68f893adecd939521ba1380b61fb3f02"
+    }
+  ],
+  "git": {
+    "path": "/Library/Developer/CommandLineTools/usr/bin/git",
+    "sha256": "be4afb2b003904725826250de9fb76567bbacf82323457b5a1ec26706b66bcae",
+    "bytes": 7604272,
+    "role": "actual CLT git executable, not /usr/bin xcrun selector; built-in show/rev-parse only"
+  },
+  "storage": [
+    {
+      "name": "immutable-source",
+      "directory": "source",
+      "maxBytes": 16777216
+    },
+    {
+      "name": "single-build",
+      "directory": "build",
+      "maxBytes": 33554432
+    },
+    {
+      "name": "regular-type-tools",
+      "directory": "tools",
+      "maxBytes": 100663296
+    },
+    {
+      "name": "apps-one-mutant-at-a-time",
+      "directory": "apps",
+      "maxBytes": 67108864
+    },
+    {
+      "name": "whole-tars-and-variants",
+      "directory": "artifacts",
+      "maxBytes": 33554432
+    },
+    {
+      "name": "isolated-npm-state",
+      "directory": "scratch",
+      "maxBytes": 33554432
+    },
+    {
+      "name": "all-child-and-integrity-records",
+      "directory": "records",
+      "maxBytes": 134217728
+    }
+  ],
+  "counts": {
+    "semanticPerLayout": 33,
+    "mechanicalPerLayout": 22,
+    "holdoutsPerLayout": 15,
+    "extraH12Held": 1,
+    "operationsPerLayout": 10,
+    "astPerLayout": 4,
+    "typePerLayout": 10,
+    "negativeTypesPerLayout": 5,
+    "runtimeLayoutChildren": 18,
+    "mutantChildren": 13,
+    "positiveCompanionChildren": 8,
+    "oldAstChild": 1,
+    "runtimeChildren": 40,
+    "typeChildren": 30,
+    "toolChildren": 3,
+    "directPrimaryChildren": 73,
+    "expectedGitChildren": 272,
+    "maxGitChildren": 300,
+    "expectedTotalDirectChildren": 345,
+    "maxTotalDirectChildren": 373,
+    "originalNestedGitPotentialRetained": 4842
+  },
+  "limitations": [
+    "No execution by this DATA sealer; actual successor and mutant pass/kill counts remain zero.",
+    "M21 source-only acyclic owning-edge argument; M03/M07/M14/M15/M20 combine specified dynamics with bound source premises, not universal engine allocation/RSS proof.",
+    "M01/M02 private near-ticket-end constructor hook is not a configured public boundary. M14 widened slots: literal F4 ledger plus reachable F128 watch, not pretend F4 full store.",
+    "G4A input and registered command formatting after argv transfer are E outside private cap; no combined memory/RSS or hard primitive preemption claim.",
+    "H12 assignment-context IFS joining remains a precise proposed policy, outside the15 frozen executable holdouts; cannot claim16/16 without root decision.",
+    "Old31/33 layouts,14 unregistered printf failures, zero old mutant loads, all original admission/observer failures remain unchanged.",
+    "No native/private/YQ/XAN/fullgate. Accepted STACK136/C06partial/S13unsupported;77 defaults unchanged.",
+    "269 authenticated Git source reads cached once, not4842 per-coordinator reads; every actual worker still gets complete append-aware source/app census plus actual loaded-byte witnesses.",
+    "Node children deny process/worker creation; trusted git builtin metadata role has no configured hooks/external filters. Group reap mandatory; no hostile-host-executable sandbox or kernel scheduling guarantee."
+  ]
+}

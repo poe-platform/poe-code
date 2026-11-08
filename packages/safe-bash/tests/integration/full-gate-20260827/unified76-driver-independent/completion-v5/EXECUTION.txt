@@ -1,0 +1,11 @@
+containment prerequisite: PASS
+A01 literal HEAD candidate refused: PASS
+A01 exact pinned token parses without inspection launch: PASS
+A16 complete seal positive: PASS
+A16 entire CLEANUP.json absence refused: PASS
+A16 exact manifest restoration restores seal: PASS
+A12 positive contained symlink transport: FAIL
+A11 one isolated authenticated production build: PASS
+A11 independent full c109 package reproduction: PASS
+A18 six actual cleanup component controls: PASS
+{"summary":{"pass":9,"fail":1},"workRemoved":true,"wholeGateLaunched":false}

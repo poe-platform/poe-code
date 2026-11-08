@@ -1,0 +1,25 @@
+TAP version 13
+# Subtest: cancelled write source refuses even its prefetched first chunk
+not ok 1 - cancelled write source refuses even its prefetched first chunk
+  ---
+  duration_ms: 2.926
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/split/contracts.test.ts:1:15551'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/split/contracts.test.ts:394:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 137.289125

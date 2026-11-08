@@ -1,0 +1,23 @@
+[
+  {
+    "url": "https://www.iana.org/assignments/media-types/application/vnd.sqlite3",
+    "fetchedAt": "2026-08-27T08:30:03.955Z",
+    "bytes": 5590,
+    "sha256": "1d5d4bd8b6abe9080b712d4a2306dfc2c1597a11e9cf1733d5d3e38e580b0d1c",
+    "file": "vnd.sqlite3.txt"
+  },
+  {
+    "url": "https://www.iana.org/assignments/media-types/application/vnd.microsoft.portable-executable",
+    "fetchedAt": "2026-08-27T08:30:04.162Z",
+    "bytes": 2844,
+    "sha256": "b9142545900bbf2ed052e24b7a52322f44ec31f750e19b12214285e021d174d3",
+    "file": "vnd.microsoft.portable-executable.txt"
+  },
+  {
+    "url": "https://www.iana.org/assignments/media-types/application/wasm",
+    "fetchedAt": "2026-08-27T08:30:04.375Z",
+    "bytes": 1695,
+    "sha256": "ca21a4741458dab19e774d61a6ff30e5f6bafe5ea4f67c8c68c2a38a5b2607ac",
+    "file": "wasm.txt"
+  }
+]

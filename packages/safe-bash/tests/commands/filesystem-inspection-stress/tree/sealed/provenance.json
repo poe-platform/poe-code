@@ -1,0 +1,781 @@
+{
+  "preparedAt": "2026-08-27T08:05:54.198Z",
+  "repository": "/Users/kjopek/Workspace/safe-bash",
+  "headAtCapture": "966cfac676f593e2542e4c84d1b79cb49776c08d",
+  "statusAtCapture": "?? src/commands/file/\n?? src/commands/tree/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/filesystem-inspection-stress/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/fs/webdav/atomic-extension/\n?? tests/shell-stress/invocation-cleanup-holdout/acceptance-first-scratch.json\n?? tests/shell-stress/invocation-cleanup-holdout/acceptance-first.json\n?? tests/shell-stress/invocation-cleanup-holdout/acceptance-source-preflight.json\n?? tests/shell-stress/invocation-cleanup-holdout/setup-disposal-control.mjs\n?? tests/shell-stress/invocation-cleanup-holdout/setup-disposal-review.json\n?? tests/shell-stress/invocation-cleanup-holdout/setup-disposal-review.mjs\n?? tests/shell-stress/invocation-cleanup-holdout/setup-disposal-scratch.json\n?? tests/shell-stress/invocation-cleanup-holdout/setup-disposal-trace.mjs\n?? tests/shell-stress/invocation-cleanup-runtime/public-worker.mjs\n?? tests/shell/invocation-cleanup-public.test.ts\n?? tests/stress/regex-execution/queued-close-adjudication/PROPOSED-TEST-DELTA.md\n?? tests/stress/regex-execution/queued-close-adjudication/REPORT.md\n?? tests/stress/regex-execution/queued-close-adjudication/check.mjs\n?? tests/stress/regex-execution/queued-close-adjudication/controls.test.ts\n?? tests/stress/regex-execution/queued-close-adjudication/evidence/\n?? tests/stress/regex-execution/queued-close-adjudication/review/.gitignore\n?? tests/stress/regex-execution/queued-close-adjudication/review/INITIAL.md\n?? tests/stress/regex-execution/queued-close-adjudication/review/evidence.json\n?? tests/stress/regex-execution/queued-close-adjudication/review/probe.mjs\n?? tests/stress/regex-execution/queued-close-adjudication/review/run.mjs\n?? tests/stress/regex-execution/queued-close-adjudication/run.mjs",
+  "indexAtCapture": "",
+  "scope": "NEW tests/commands/filesystem-inspection-stress/tree/** plus private owned /tmp only; no staging/commit",
+  "phase": "PREP: no product execution, new plugin imports, author implementation reads, or author test reads",
+  "host": {
+    "platform": "darwin",
+    "release": "25.4.0",
+    "arch": "arm64",
+    "node": "v22.22.2"
+  },
+  "oracle": {
+    "originalOracle": "/tmp/safe-bash-tree-oracle-MlUjmM",
+    "copiedExistingBinary": true,
+    "downloadedOrBuiltByVerifier": false,
+    "version": {
+      "exitCode": 0,
+      "stdoutBase64": "dHJlZSB2Mi4yLjEgKGMpIDE5OTYgLSAyMDI0IGJ5IFN0ZXZlIEJha2VyLCBUaG9tYXMgTW9vcmUsIEZyYW5jZXNjIFJvY2hlciwgRmxvcmlhbiBTZXNzZXIsIEt5b3N1a2UgVG9rb3JvCg==",
+      "stderrBase64": "",
+      "stdoutSha256": "c6fc88e6176bec78d88a2669b255d09cb6cda604766c6afc370aff066ffa3c7a",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "binarySha256": "34a794e5737d4b09a20a58dc0b7231e6300a3d229be5065c3a549969d205f10a",
+    "archiveSha256": "e911c4a2bea53586cc7be6f3d7d7f4d9c2f2bcbbad77d30700b31046e38f4bc5",
+    "manualSha256": "0900385101aa663c970b3e558ed3eec8b4fc96e175b70bedefcf32cf4f8bc3dd",
+    "sourceFiles": [
+      {
+        "path": "Makefile",
+        "sha256": "128e8ab59c6d0d6b6051a3f8108e41f53173532c38c0f195d5dda3eb7faeb37b"
+      },
+      {
+        "path": "color.c",
+        "sha256": "0b92328df20aeb8fc6988cba7f78b1ceea8832958b032b2a1434b19a2155eb22"
+      },
+      {
+        "path": "file.c",
+        "sha256": "85d040d4e306efadd88c8acc2e192651adaa05c1cface98e69ec111c38327e5d"
+      },
+      {
+        "path": "filter.c",
+        "sha256": "9843946752aeb63f25d7dc55b1cb53f82d005eddbfe649c7824d0ff9798aa497"
+      },
+      {
+        "path": "hash.c",
+        "sha256": "19da2128444393e79d889f9885a290bc70cf470f14361a91cbeeef29d952773c"
+      },
+      {
+        "path": "html.c",
+        "sha256": "b813efb8bcf45d6bcc35c9cdacb00d72d6b8bd52f63d02669a0349059e807696"
+      },
+      {
+        "path": "info.c",
+        "sha256": "59d056c124711893f6484113b69b1d81a2b7a83ad52f3ac83fd672744e0c47b0"
+      },
+      {
+        "path": "json.c",
+        "sha256": "cc2e11786febab38e36b7ea5c2281525dd74568cc052c86d576926f92032b2ad"
+      },
+      {
+        "path": "list.c",
+        "sha256": "9b82dd7ea3b4e2e4fb1e36276fcb0cacbd90b8202be883286dda69b27ec5c15a"
+      },
+      {
+        "path": "strverscmp.c",
+        "sha256": "4f85e943f83b0edf4737a239a8dcdcefb81db6a285a5a4a43af8bdfd17def538"
+      },
+      {
+        "path": "tree.c",
+        "sha256": "a471fe4fe3694ee65e74d3b58b19edfb1ce61ab12bdfd2f416d17e8b4326e92f"
+      },
+      {
+        "path": "tree.h",
+        "sha256": "b6f5b56ea123a6d5cb81cafe2daed4292f4c5a6b9231bec50ecae78ab9d99c85"
+      },
+      {
+        "path": "unix.c",
+        "sha256": "45902771e238a5be1eff9560589b062d19dce6be6ce4a86ea1303286443d9dc9"
+      },
+      {
+        "path": "xml.c",
+        "sha256": "3ed02cf08e4adba5c32a944021b7c8a5cdaf13ab3d04ce1186d19441cdd4133a"
+      }
+    ],
+    "buildProvenance": "Existing author/root-staged binary. No build log inspected or independently rebuilt; compiler flags and exact binary-to-archive reproducibility UNVERIFIED pending root provenance.",
+    "profile": {
+      "environment": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TERM": "dumb",
+        "TZ": "UTC"
+      },
+      "commonArgv": [
+        "-n",
+        "--charset=ASCII"
+      ],
+      "timeoutMs": 2500,
+      "maxBufferBytes": 262144,
+      "fixtureRoot": "/private/tmp/safe-bash-tree-hidden-prep-vyzfHc/native-fixtures",
+      "stdin": "empty",
+      "terminal": false
+    },
+    "primaryWebSources": [
+      "https://gitlab.com/OldManProgrammer/unix-tree/-/raw/2.2.1/doc/tree.1",
+      "https://gitlab.com/OldManProgrammer/unix-tree/-/tags/2.2.1",
+      "https://oldmanprogrammer.net/source.php?dir=projects%2Ftree%2Fdoc%2F%2Ftree.1"
+    ],
+    "manualPolicy": "Pinned 2.2.1 raw manual is authoritative for this oracle. Current upstream manual identifies 2.3.2 and is not substituted. No latest-version claim."
+  },
+  "inputs": [
+    {
+      "path": "AGENTS.md",
+      "bytes": 8857,
+      "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+    },
+    {
+      "path": "src/contracts/command.ts",
+      "bytes": 2923,
+      "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8"
+    },
+    {
+      "path": "src/contracts/command.md",
+      "bytes": 8066,
+      "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8"
+    },
+    {
+      "path": "src/contracts/filesystem.ts",
+      "bytes": 3861,
+      "sha256": "a11b016e6bac06e6e8cd26fabb3b56a30788c8f75091513f6bf01ab7d016909d"
+    },
+    {
+      "path": "src/contracts/filesystem.md",
+      "bytes": 17153,
+      "sha256": "4c0c83ac7477776455055b32370844453ee7521467f02e5304bff23901df06b2"
+    },
+    {
+      "path": "src/contracts/io.ts",
+      "bytes": 7383,
+      "sha256": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb"
+    },
+    {
+      "path": "src/contracts/errors.ts",
+      "bytes": 3457,
+      "sha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840"
+    },
+    {
+      "path": "src/contracts/plugin.ts",
+      "bytes": 2359,
+      "sha256": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae"
+    },
+    {
+      "path": "src/contracts/path.ts",
+      "bytes": 1675,
+      "sha256": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34"
+    }
+  ],
+  "nativeDirectoryEntries": {
+    "basic": [
+      ".hidden.txt",
+      ".secret",
+      "Alpha.txt",
+      "b-dir",
+      "b.txt",
+      "empty",
+      "skip-dir",
+      "z-dir",
+      "zeta.txt"
+    ],
+    "controls": [
+      "-leading",
+      "back\\slash",
+      "carriage\rreturn",
+      "escape\u001b[31m",
+      "line\nbreak.txt",
+      "quote\"name",
+      "tab\tname",
+      "z-last",
+      "éclair.txt",
+      "雪.txt",
+      "😀.txt"
+    ],
+    "links": [
+      "alias-a",
+      "alias-b",
+      "dangling",
+      "file-link",
+      "target"
+    ],
+    "cycle": [
+      "inner"
+    ],
+    "rootlink": [
+      "leaf.txt"
+    ],
+    "finite": [
+      "child"
+    ],
+    "errors": [
+      "a-good",
+      "z-denied"
+    ],
+    "wide": [
+      "entry-000-雪.txt",
+      "entry-001-雪.txt",
+      "entry-002-雪.txt",
+      "entry-003-雪.txt",
+      "entry-004-雪.txt",
+      "entry-005-雪.txt",
+      "entry-006-雪.txt",
+      "entry-007-雪.txt",
+      "entry-008-雪.txt",
+      "entry-009-雪.txt",
+      "entry-010-雪.txt",
+      "entry-011-雪.txt",
+      "entry-012-雪.txt",
+      "entry-013-雪.txt",
+      "entry-014-雪.txt",
+      "entry-015-雪.txt",
+      "entry-016-雪.txt",
+      "entry-017-雪.txt",
+      "entry-018-雪.txt",
+      "entry-019-雪.txt",
+      "entry-020-雪.txt",
+      "entry-021-雪.txt",
+      "entry-022-雪.txt",
+      "entry-023-雪.txt",
+      "entry-024-雪.txt",
+      "entry-025-雪.txt",
+      "entry-026-雪.txt",
+      "entry-027-雪.txt",
+      "entry-028-雪.txt",
+      "entry-029-雪.txt",
+      "entry-030-雪.txt",
+      "entry-031-雪.txt",
+      "entry-032-雪.txt",
+      "entry-033-雪.txt",
+      "entry-034-雪.txt",
+      "entry-035-雪.txt",
+      "entry-036-雪.txt",
+      "entry-037-雪.txt",
+      "entry-038-雪.txt",
+      "entry-039-雪.txt"
+    ]
+  },
+  "rules": {
+    "freeze": "No product execution/imports before explicit root resume and author candidate. Never change expectations to match candidate.",
+    "features": "Root supplies a documented supported profile before execution. Missing optional features are unsupported, not pass. Required invariants are never feature-skipped.",
+    "providerBoundary": "DirectoryEntry is only name:string/type in current contracts; absent realpath violates the required method shape. These probes characterize defensive handling, not universal native-parity failures. No deduplication or exact rejection diagnostic is mandated.",
+    "errors": "Typed FsError factory injected only after resume. Human-readable diagnostics preserve meaning/path; stderr need not serialize errno. Accepted bytes cannot be undone. Partial output may be empty; success is forbidden after a genuine failure.",
+    "identity": "Complete scope/dev/ino use reference identity. Different truthful backing universes may have equal numeric IDs. Unknown metadata is not cycle evidence; it may stop at an explicit bound rather than claim a detected cycle.",
+    "limits": "Adapter maps existing documented limits only; no invented API names. Global entry limit is distinct from native --filelimit. Explicit positive budgets use broad ceilings without prescribing whether root counts.",
+    "cancellation": "Prompt local settlement with exact reason, propagated signal, no new effects after abort, late rejection observed. Host work is deliberately uncooperative; cancellation is not host preemption.",
+    "native": "Pinned 2.2.1 on Darwin arm64, LC_ALL=C LANG=C TERM=dumb TZ=UTC, -n --charset=ASCII, bounded temp fixtures. This is not latest-version or Linux behavior evidence.",
+    "validation": "Preparation checks only native fixtures and verifier harness. Product cases remain NOT RUN. No claimed parity, provider deployment, performance, subprocess audit, or full gate."
+  },
+  "intendedCases": [
+    {
+      "id": "N01",
+      "title": "Unsorted creation, deterministic listing/report, real adapter",
+      "kind": "native",
+      "root": "basic",
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "basic"
+      ],
+      "requires": [
+        "ascii-C-profile"
+      ],
+      "comparison": "bytes"
+    },
+    {
+      "id": "N02",
+      "title": "Hidden children and nested hidden directory",
+      "kind": "native",
+      "root": "basic",
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "-a",
+        "basic"
+      ],
+      "requires": [
+        "ascii-C-profile",
+        "hidden"
+      ],
+      "comparison": "bytes"
+    },
+    {
+      "id": "N03",
+      "title": "Depth one boundary",
+      "kind": "native",
+      "root": "basic",
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "-L",
+        "1",
+        "basic"
+      ],
+      "requires": [
+        "ascii-C-profile",
+        "depth"
+      ],
+      "comparison": "bytes"
+    },
+    {
+      "id": "N04",
+      "title": "Depth two boundary",
+      "kind": "native",
+      "root": "basic",
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "-L",
+        "2",
+        "basic"
+      ],
+      "requires": [
+        "ascii-C-profile",
+        "depth"
+      ],
+      "comparison": "bytes"
+    },
+    {
+      "id": "N05",
+      "title": "Reverse combined with directories first",
+      "kind": "native",
+      "root": "basic",
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "-r",
+        "--dirsfirst",
+        "basic"
+      ],
+      "requires": [
+        "ascii-C-profile",
+        "reverse",
+        "dirsfirst"
+      ],
+      "comparison": "bytes"
+    },
+    {
+      "id": "N06",
+      "title": "Directories-only report",
+      "kind": "native",
+      "root": "basic",
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "-d",
+        "basic"
+      ],
+      "requires": [
+        "ascii-C-profile",
+        "directories-only"
+      ],
+      "comparison": "bytes"
+    },
+    {
+      "id": "N07",
+      "title": "Include glob preserves traversable directories",
+      "kind": "native",
+      "root": "basic",
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "-P",
+        "*.txt",
+        "basic"
+      ],
+      "requires": [
+        "ascii-C-profile",
+        "include-glob"
+      ],
+      "comparison": "bytes"
+    },
+    {
+      "id": "N08",
+      "title": "Excluded directory is not descended",
+      "kind": "native",
+      "root": "basic",
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "-I",
+        "skip*",
+        "basic"
+      ],
+      "requires": [
+        "ascii-C-profile",
+        "exclude-glob"
+      ],
+      "comparison": "bytes"
+    },
+    {
+      "id": "N09",
+      "title": "Prune after include filtering",
+      "kind": "native",
+      "root": "basic",
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "-P",
+        "*.txt",
+        "--prune",
+        "basic"
+      ],
+      "requires": [
+        "ascii-C-profile",
+        "include-glob",
+        "prune"
+      ],
+      "comparison": "bytes"
+    },
+    {
+      "id": "N10",
+      "title": "No indentation, full paths, no report",
+      "kind": "native",
+      "root": "basic",
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "-i",
+        "-f",
+        "--noreport",
+        "basic"
+      ],
+      "requires": [
+        "ascii-C-profile",
+        "flat",
+        "full-path",
+        "no-report"
+      ],
+      "comparison": "bytes"
+    },
+    {
+      "id": "N11",
+      "title": "Unicode and newline/tab/escape/control default escaping",
+      "kind": "native",
+      "root": "controls",
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "controls"
+      ],
+      "requires": [
+        "ascii-C-profile",
+        "native-C-escaping"
+      ],
+      "comparison": "bytes"
+    },
+    {
+      "id": "N12",
+      "title": "Explicit literal filename output",
+      "kind": "native",
+      "root": "controls",
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "-N",
+        "controls"
+      ],
+      "requires": [
+        "ascii-C-profile",
+        "literal-names"
+      ],
+      "comparison": "bytes"
+    },
+    {
+      "id": "N13",
+      "title": "Directory/file/dangling symlinks without follow",
+      "kind": "native",
+      "root": "links",
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "links"
+      ],
+      "requires": [
+        "ascii-C-profile",
+        "symlinks"
+      ],
+      "comparison": "bytes"
+    },
+    {
+      "id": "N14",
+      "title": "Follow sibling aliases independently",
+      "kind": "native",
+      "root": "links",
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "-l",
+        "links"
+      ],
+      "requires": [
+        "ascii-C-profile",
+        "follow-links"
+      ],
+      "comparison": "bytes"
+    },
+    {
+      "id": "N15",
+      "title": "Follow ancestor cycle without unbounded recursion",
+      "kind": "native",
+      "root": "cycle",
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "-l",
+        "cycle"
+      ],
+      "requires": [
+        "ascii-C-profile",
+        "follow-links"
+      ],
+      "comparison": "bytes"
+    },
+    {
+      "id": "N16",
+      "title": "Symlink root operand without follow flag",
+      "kind": "native",
+      "root": "rootlink",
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "rootlink"
+      ],
+      "requires": [
+        "ascii-C-profile",
+        "symlinks"
+      ],
+      "comparison": "bytes"
+    },
+    {
+      "id": "N17",
+      "title": "File root and missing root error status",
+      "kind": "native",
+      "root": "basic/Alpha.txt",
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "missing-root",
+        "basic/Alpha.txt"
+      ],
+      "requires": [
+        "ascii-C-profile"
+      ],
+      "comparison": "status-and-diagnostic"
+    },
+    {
+      "id": "N18",
+      "title": "Reject zero display depth",
+      "kind": "native",
+      "root": "basic",
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "-L",
+        "0",
+        "basic"
+      ],
+      "requires": [
+        "ascii-C-profile",
+        "depth"
+      ],
+      "comparison": "status-and-diagnostic"
+    },
+    {
+      "id": "N19",
+      "title": "Native per-directory filelimit (not global budget)",
+      "kind": "native",
+      "root": "basic",
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "--filelimit",
+        "2",
+        "basic"
+      ],
+      "requires": [
+        "ascii-C-profile",
+        "native-filelimit"
+      ],
+      "comparison": "bytes"
+    },
+    {
+      "id": "N20",
+      "title": "JSON filename escaping and names round trip",
+      "kind": "native",
+      "root": "controls",
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "-J",
+        "--noreport",
+        "controls"
+      ],
+      "requires": [
+        "ascii-C-profile",
+        "json",
+        "no-report"
+      ],
+      "comparison": "json"
+    },
+    {
+      "id": "A21",
+      "title": "Disjoint providers collide on scoped device/inode",
+      "kind": "adversarial",
+      "scenario": "scoped-collision",
+      "requires": [],
+      "classification": "required-invariant"
+    },
+    {
+      "id": "A22",
+      "title": "Unknown/unscoped identity, realpath ENOTSUP, finite walk",
+      "kind": "adversarial",
+      "scenario": "unknown-finite",
+      "requires": [],
+      "classification": "required-invariant"
+    },
+    {
+      "id": "A23",
+      "title": "Unknown identity and ancestor link: bounded not invented cycle",
+      "kind": "adversarial",
+      "scenario": "unknown-loop",
+      "requires": [
+        "follow-links",
+        "entry-limit"
+      ],
+      "classification": "required-invariant"
+    },
+    {
+      "id": "A24",
+      "title": "Absent mandatory realpath method robustness",
+      "kind": "adversarial",
+      "scenario": "missing-realpath",
+      "requires": [],
+      "classification": "nonconforming-provider-exploration"
+    },
+    {
+      "id": "A25",
+      "title": "Pathlike/dot/empty/NUL readdir entries cannot escape walk",
+      "kind": "adversarial",
+      "scenario": "malicious-names",
+      "requires": [],
+      "classification": "provider-boundary-exploration"
+    },
+    {
+      "id": "A26",
+      "title": "Duplicate readdir entries remain bounded",
+      "kind": "adversarial",
+      "scenario": "duplicate-names",
+      "requires": [
+        "entry-limit"
+      ],
+      "classification": "provider-boundary-exploration"
+    },
+    {
+      "id": "A27",
+      "title": "Root permission failure retains path and failure",
+      "kind": "adversarial",
+      "scenario": "permission",
+      "requires": [],
+      "classification": "required-invariant"
+    },
+    {
+      "id": "A28",
+      "title": "Late subtree EIO, preserve accepted output and failure",
+      "kind": "adversarial",
+      "scenario": "late-error",
+      "requires": [],
+      "classification": "required-invariant"
+    },
+    {
+      "id": "A29",
+      "title": "Errno-shaped pre-abort is not swallowed",
+      "kind": "adversarial",
+      "scenario": "pre-abort",
+      "requires": [],
+      "classification": "required-invariant"
+    },
+    {
+      "id": "A30",
+      "title": "Pending filesystem abort and observed late rejection",
+      "kind": "adversarial",
+      "scenario": "pending-fs",
+      "requires": [],
+      "classification": "required-invariant"
+    },
+    {
+      "id": "A31",
+      "title": "Pending sink abort and observed late rejection",
+      "kind": "adversarial",
+      "scenario": "pending-sink",
+      "requires": [],
+      "classification": "required-invariant"
+    },
+    {
+      "id": "A32",
+      "title": "Await sink backpressure; retain chunk ownership",
+      "kind": "adversarial",
+      "scenario": "backpressure",
+      "requires": [],
+      "classification": "required-invariant"
+    },
+    {
+      "id": "A33",
+      "title": "Multibyte output budget and partial output policy",
+      "kind": "adversarial",
+      "scenario": "output-limit",
+      "requires": [
+        "output-limit"
+      ],
+      "classification": "required-invariant"
+    },
+    {
+      "id": "A34",
+      "title": "Wide listing entry budget",
+      "kind": "adversarial",
+      "scenario": "entry-limit",
+      "requires": [
+        "entry-limit"
+      ],
+      "classification": "required-invariant"
+    },
+    {
+      "id": "A35",
+      "title": "Signal propagation, metadata-only, VFS-only operation",
+      "kind": "adversarial",
+      "scenario": "signals",
+      "requires": [
+        "follow-links"
+      ],
+      "classification": "required-invariant"
+    },
+    {
+      "id": "A36",
+      "title": "Tree never consumes command stdin",
+      "kind": "adversarial",
+      "scenario": "stdin-unread",
+      "requires": [],
+      "classification": "required-invariant"
+    },
+    {
+      "id": "A37",
+      "title": "Actual Shell JSON pipeline, redirect and stdin consumer",
+      "kind": "adversarial",
+      "scenario": "shell-pipeline",
+      "requires": [
+        "json",
+        "no-report",
+        "actual-shell"
+      ],
+      "classification": "required-invariant"
+    },
+    {
+      "id": "A38",
+      "title": "Sink EPIPE after accepted prefix remains failure",
+      "kind": "adversarial",
+      "scenario": "sink-failure",
+      "requires": [],
+      "classification": "required-invariant"
+    }
+  ],
+  "productRuns": 0,
+  "productResults": "NOT RUN",
+  "nativeCaptures": 20,
+  "unsupported": "Final API and supported profile pending; unsupported cases remain in denominator and are not passes.",
+  "limitations": [
+    "No deployed remote providers",
+    "No performance or memory comparison",
+    "No full native parity",
+    "No product subprocess/dependency audit yet",
+    "Same-user files are hidden by coordination, not an OS security boundary"
+  ]
+}

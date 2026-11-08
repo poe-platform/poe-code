@@ -1,0 +1,75 @@
+{
+  "sourceCommit": "4f01c1593486c1abff3b007f9a3b16923b88559f",
+  "fixtureCommit": "efb1a25aa3e2544cf71aba10f2aaa54b256091ff",
+  "results": {
+    "original-4f": {
+      "tests": 68,
+      "pass": 64,
+      "fail": 4,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "failures": [
+        "active length still rejects unsupported character locale",
+        "active index still rejects unsupported character locale",
+        "active substr still rejects unsupported character locale",
+        "active match still rejects unsupported character locale"
+      ]
+    },
+    "efb-fixture-overlay": {
+      "tests": 68,
+      "pass": 68,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "failures": []
+    },
+    "negative-wording": {
+      "tests": 68,
+      "pass": 64,
+      "fail": 4,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "failures": [
+        "active length still rejects unsupported character locale",
+        "active index still rejects unsupported character locale",
+        "active substr still rejects unsupported character locale",
+        "active match still rejects unsupported character locale"
+      ]
+    },
+    "negative-status": {
+      "tests": 68,
+      "pass": 64,
+      "fail": 4,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "failures": [
+        "active length still rejects unsupported character locale",
+        "active index still rejects unsupported character locale",
+        "active substr still rejects unsupported character locale",
+        "active match still rejects unsupported character locale"
+      ]
+    }
+  },
+  "strictOriginalStatus": 0,
+  "strictOverlayStatus": 0,
+  "workerBuildStatus": 0,
+  "sourceBeforeSha256": "0207037ff5f726b7201c0da2ddb8a077e4fb32943daa393ad2492c9894a78d25",
+  "sourceAfterSha256": "0207037ff5f726b7201c0da2ddb8a077e4fb32943daa393ad2492c9894a78d25",
+  "mutationControls": {
+    "wrongWordingSha256": "7a34017b8a669bc610b213a98fc4b3e576f51390c9e3c643fad79075e61f4c12",
+    "wrongStatusSha256": "3a300b92a5f007b4f35d4901aca3e1f41ac375ee995ee4cc3afbf14f10536e6d",
+    "onlyOwnedTemporaryFixtureCopies": true
+  },
+  "original225HistoricalNotRescored": "221/225 remains immutable historical RED",
+  "older217Separate": "217/217 different source composition, not merged",
+  "untouchedNotRerun": [
+    "contracts.test.ts:40 stale en_US assertion (1)",
+    "byte-cap RED (1)",
+    "encounter-ordering failures (19)"
+  ],
+  "scope": "Independent fixture-only 4f-source + efb-fixture overlay; not current HEAD, public expr, GNU, whole gate, or product qualification."
+}

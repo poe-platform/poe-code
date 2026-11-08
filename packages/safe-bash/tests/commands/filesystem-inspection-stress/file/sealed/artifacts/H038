@@ -1,0 +1,145 @@
+import assert from 'node:assert/strict';
+import { posix } from 'node:path';
+
+export function deferred() {
+  let resolve;
+  let reject;
+  const promise = new Promise((accept, decline) => { resolve = accept; reject = decline; });
+  return { promise, resolve, reject };
+}
+
+export const turn = () => new Promise((resolve) => setImmediate(resolve));
+
+export async function deadline(promise, label, milliseconds = 2000) {
+  let timer;
+  try {
+    return await Promise.race([promise, new Promise((_, reject) => { timer = setTimeout(() => reject(new Error(`Harness watchdog: ${label}`)), milliseconds); })]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+export function sourceProbe(chunks, options = {}) {
+  const trace = { next: 0, returned: 0, bytes: 0 };
+  let cursor = 0;
+  const source = {
+    [Symbol.asyncIterator]() { return this; },
+    async next() {
+      trace.next++;
+      if (cursor >= chunks.length) {
+        if (options.poisonTail) throw new Error('Forbidden read beyond sealed prefix');
+        return { done: true, value: undefined };
+      }
+      const bytes = chunks[cursor++];
+      trace.bytes += bytes.length;
+      return { done: false, value: bytes };
+    },
+    async return() {
+      trace.returned++;
+      if (options.returnGate) return options.returnGate.promise;
+      return { done: true, value: undefined };
+    },
+  };
+  return { source, trace };
+}
+
+export function probeFs(makeError, initialEntries, hooks = {}) {
+  const entries = new Map(Object.entries(initialEntries));
+  const trace = [];
+  const fail = (code, path, syscall) => { throw makeError(code, { path, syscall }); };
+  const normalize = (path) => posix.resolve('/', path);
+  const lookup = (path, follow, depth = 0) => {
+    if (depth >= 16) return fail('ELOOP', path, 'stat');
+    const normalized = normalize(path);
+    const entry = entries.get(normalized);
+    if (!entry) return fail('ENOENT', path, 'stat');
+    if (follow && entry.type === 'symlink') return lookup(posix.resolve(posix.dirname(normalized), entry.target), true, depth + 1);
+    return entry;
+  };
+  const record = (method, path, options) => {
+    trace.push({ method, path, options });
+    options?.signal?.throwIfAborted();
+    hooks.before?.(method, path, options);
+  };
+  const metadata = (entry) => ({ type: entry.type ?? 'file', size: entry.size ?? entry.bytes?.length ?? 0, mode: entry.type === 'directory' ? 0o755 : 0o644, mtimeMs: 0, atimeMs: 0, ctimeMs: 0 });
+  const fs = {
+    capabilities: { symlinks: true, streamingRead: hooks.readFileOnly !== true },
+    async lstat(path, options) {
+      record('lstat', path, options);
+      return metadata(lookup(path, false));
+    },
+    async stat(path, options) {
+      record('stat', path, options);
+      return metadata(lookup(path, true));
+    },
+    async readFile(path, options) {
+      record('readFile', path, options);
+      if (hooks.readFile) return hooks.readFile(path, options);
+      const entry = lookup(path, true);
+      if (entry.type === 'directory') return fail('EISDIR', path, 'readFile');
+      if (options?.maxBytes !== undefined && entry.bytes.length > options.maxBytes) return fail('EFBIG', path, 'readFile');
+      return new Uint8Array(entry.bytes);
+    },
+    async readlink(path, options) {
+      record('readlink', path, options);
+      const entry = lookup(path, false);
+      if (entry.type !== 'symlink') return fail('EINVAL', path, 'readlink');
+      return entry.target;
+    },
+    async realpath(path, options) {
+      record('realpath', path, options);
+      let normalized = normalize(path);
+      for (let depth = 0; depth < 16; depth++) {
+        const entry = lookup(normalized, false);
+        if (entry.type !== 'symlink') return normalized;
+        normalized = posix.resolve(posix.dirname(normalized), entry.target);
+      }
+      return fail('ELOOP', path, 'realpath');
+    },
+    async access(path, mode, options) { record('access', path, options); lookup(path, true); },
+    async readdir(path, options) { record('readdir', path, options); return fail('ENOTSUP', path, 'readdir'); },
+  };
+  if (!hooks.readFileOnly) {
+    fs.readStream = (path, options) => {
+      record('readStream', path, options);
+      if (hooks.readStream) return hooks.readStream(path, options);
+      const entry = lookup(path, true);
+      if (entry.type === 'directory') return fail('EISDIR', path, 'readStream');
+      return sourceProbe([new Uint8Array(entry.bytes.subarray(options?.start ?? 0, options?.endExclusive ?? entry.bytes.length))]).source;
+    };
+  }
+  for (const method of ['writeFile', 'appendFile', 'mkdir', 'rm', 'rmdir', 'rename', 'copyFile']) {
+    fs[method] = async (path, ...rest) => {
+      trace.push({ method, path, rest });
+      throw new Error(`Forbidden mutating FS method: ${method}`);
+    };
+  }
+  return { fs, trace, entries };
+}
+
+export function launch(adapter, fs, args, options = {}) {
+  const stdout = [];
+  const stderr = [];
+  let collected = 0;
+  const sink = (target) => ({ async write(chunk) {
+    assert(chunk instanceof Uint8Array);
+    collected += chunk.length;
+    assert(collected <= 65536, 'bounded harness output collector');
+    target.push(new Uint8Array(chunk));
+  } });
+  const context = {
+    command: 'file', args, fs, cwd: '/', env: {},
+    stdin: options.stdin ?? sourceProbe([]).source,
+    stdinIsDefault: options.stdin === undefined,
+    signal: options.signal ?? new AbortController().signal,
+    stdout: options.stdout ?? sink(stdout),
+    stderr: options.stderr ?? sink(stderr),
+  };
+  const promise = Promise.resolve().then(() => adapter.execute(context));
+  void promise.catch(() => {});
+  return { context, promise, stdout, stderr };
+}
+
+export const outputText = (chunks) => Buffer.concat(chunks).toString('utf8');
+export const fileEntry = (bytes) => ({ type: 'file', bytes: new Uint8Array(bytes) });
+export const traceJson = (trace) => trace.map((entry) => ({ ...entry, options: entry.options && { ...entry.options, signal: entry.options.signal === undefined ? 'omitted' : entry.options.signal.aborted ? 'aborted' : 'present' } }));

@@ -1,0 +1,15 @@
+{
+  "session": 10303,
+  "launchChunk": "6b2dba",
+  "terminalChunk": "3a76b2",
+  "exitCode": 78,
+  "observedUTC": "2026-08-29T17:00:57.248Z",
+  "runtimeAttempts": 1,
+  "retries": 0,
+  "outer": {
+    "path": "/private/tmp/safe-bash-b2-runtime-r8.outer.raw",
+    "bytes": 67913,
+    "sha256": "4c543fee4ee439ba9c7019a55e5ceb02cdc6c6ea0a30dbbd7943057fa393a863"
+  },
+  "scope": "tool-observed terminal; not independent descendant census"
+}

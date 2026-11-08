@@ -1,0 +1,22 @@
+diff --git a/tests/shell/getopts-independent-20260827/stage2/safejs-getopts-followup-618d8967/G2.guest.txt b/tests/shell/getopts-independent-20260827/stage2/safejs-getopts-g2-correction-618d8967/G2.guest.txt
+index 07b47dc5..42f5fe02 100644
+--- a/tests/shell/getopts-independent-20260827/stage2/safejs-getopts-followup-618d8967/G2.guest.txt
++++ b/tests/shell/getopts-independent-20260827/stage2/safejs-getopts-g2-correction-618d8967/G2.guest.txt
+@@ -7,7 +7,7 @@ function check(condition, label) {
+ }
+ check(!Object.hasOwn(command.env, "OPTIND") && !Object.hasOwn(command.env, "OPTERR"), "outer locals not exported");
+ const parent = await shell.exec(`printf 'G2|fresh|%s|%s\n' "$OPTIND" "$OPTERR"
+-export -p
++export
+ set -- -ab
+ getopts ab option
+ printf 'G2|parent-first|%s|%s|%s|%s\n' "$?" "$option" "$OPTIND" "$OPTERR"
+@@ -22,7 +22,7 @@ check(parent.stdout.indexOf("OPTIND=") === -1 && parent.stdout.indexOf("OPTERR="
+ const parentLines = parent.stdout.split("\n").filter(line => line.startsWith("G2|"));
+ check(parentLines.join("\n") === "G2|fresh|1|1\nG2|parent-first|0|a|1|1\nG2|child|0|b|2|0\nG2|parent-unchanged|a|1|1\nG2|parent-resume|0|b|2|1\nG2|sibling|0|a|1|1\nG2|parent-final|b|2|1|1|-ab", "subshell scan and state isolation");
+ const sibling = await shell.exec(`printf 'G2|exec-fresh|%s|%s\n' "$OPTIND" "$OPTERR"
+-export -p
++export
+ getopts ab option -a
+ printf 'G2|exec-scan|%s|%s|%s|%s\n' "$?" "$option" "$OPTIND" "$OPTERR"`);
+ check(sibling.exitCode === 0 && sibling.stderr === "", "sibling status diagnostics");

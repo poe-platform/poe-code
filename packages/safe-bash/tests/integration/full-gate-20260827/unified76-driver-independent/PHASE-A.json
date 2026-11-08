@@ -1,0 +1,241 @@
+{
+  "schema": "unified76-independent-preparation/phase-a/v1",
+  "status": "PRE-CANDIDATE/HOLD",
+  "controlsStatus": "NOT_EXECUTED",
+  "authority": "User's independent review/preparation leaf assignment and applicable AGENTS.md only; no proposal or driver body informed these controls.",
+  "ownership": "tests/integration/full-gate-20260827/unified76-driver-independent/** (new files only)",
+  "chronology": {
+    "observationUtc": "2026-08-28T00:14:01Z",
+    "observationLocal": "2026-08-27T19:14:01-05:00",
+    "headAtObservation": "0902f3c541c8e9a79771f55cb5c9b78c6b6eb09b",
+    "phase": "POST author-file existence / PRE proposal and implementation inspection",
+    "bodyExposure": [],
+    "knownFromUser": "Root coordinator had read AGENTS/git status and metadata, not driver bodies/proposal contents; this is an attributed report, not independent evidence of root exposure.",
+    "readByLeaf": ["User brief", "Applicable root AGENTS.md", "Git root/HEAD/status/index and object identities", "Driver file names, sizes, filesystem birth/mtime metadata and tracked blob IDs only"],
+    "agentsSha256": "d54a4610a70cb11e81ce06471951c40fd5f96707fd28d802844fa06e977605a8",
+    "trackedAuthorFiles": ["FREEZE.json", "freeze.mjs"],
+    "untrackedAuthorFilesObserved": ["CANDIDATE.json", "PROFILE-RECEIPT.json", "PROFILE.json.gz.base64", "admission.mjs", "assemble.mjs", "common.mjs", "consumer.mts.fixture", "controls.mjs", "fixture-proof.mjs", "negative.mts.fixture", "profile.mjs", "public.mjs", "reconstruct.mjs", "run.mjs", "seal.mjs"],
+    "metadataExamples": [
+      {"file": "FREEZE.json", "birthLocal": "2026-08-27T18:58:03-0500", "mtimeLocal": "2026-08-27T18:58:03-0500", "bytes": 4290},
+      {"file": "CANDIDATE.json", "birthLocal": "2026-08-27T18:59:28-0500", "mtimeLocal": "2026-08-27T18:59:28-0500", "bytes": 3773},
+      {"file": "run.mjs", "birthLocal": "2026-08-27T19:10:56-0500", "mtimeLocal": "2026-08-27T19:11:54-0500", "bytes": 17551},
+      {"file": "controls.mjs", "birthLocal": "2026-08-27T19:13:53-0500", "mtimeLocal": "2026-08-27T19:13:53-0500", "bytes": 9686}
+    ],
+    "qualification": "Filesystem timestamps are observations, not authenticated creation chronology. Additional author files beyond the brief were visible by filename only. No literal pre-code, pre-authoring, or blind-to-file-existence attestation.",
+    "initialIndex": "No staged paths observed; foreign untracked evidence and native scratch directories left untouched."
+  },
+  "bindings": {
+    "proposalCommit": "71bf8b4d30f015459bb4e888114e5eb6d323eae8",
+    "proposalPath": "tests/integration/full-gate-20260827/unified76-proposal/PROPOSAL.md",
+    "productBaseCommit": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+    "driverPath": "tests/integration/full-gate-20260827/unified76-driver",
+    "candidateCommit": null,
+    "driverCommit": null,
+    "driverManifestSha256": null,
+    "productPackSha256": null,
+    "productPackKnownPrefixOnly": "c109",
+    "nodeVersion": "24.11.1",
+    "nodeRealpath": null,
+    "nodeSha256": null,
+    "runtimeClosureManifest": null,
+    "canonicalMembership": null,
+    "classifiedMtsMembership": null,
+    "native49Plus2Membership": null,
+    "cleanup256Membership": null,
+    "exactFixturePathsAndPatches": null,
+    "unknownPolicy": "Null means unbound/HOLD, never a wildcard or permission for live fallback. Append bindings separately; never rewrite this first freeze."
+  },
+  "fixturePolicy": {
+    "overlayFileCount": 4,
+    "onlyAuthorizedChanges": [
+      {"role": "split integration", "from": 73, "to": 76},
+      {"role": "stream-format contracts", "from": 73, "to": 76},
+      {"role": "stream-inspection public including custom", "from": 74, "to": 77},
+      {"role": "maintained stream-five consumer", "from": 70, "to": 76}
+    ],
+    "proof": "Bind the exact four paths and count-only patches. Reversing those authorized patches must recover each base blob byte-for-byte; all non-count assertions, expected names, other bytes, modes and all other product/test files remain unchanged.",
+    "exclusions": ["Later helper373 changes", "Later which changes", "Any fifth fixture", "Any product/source change", "Synthetic later implementation"],
+    "candidateModel": "Immutable product base plus explicitly authorized four-fixture overlay, separately bound to immutable driver artifact; not unapproved live fallback.",
+    "acceptanceBoundary": "Root's accepted eba/618/fbbe/073/TAPe422 statement does not confer scoped public acceptance. HTML/DU/expr public acceptance remains pending."
+  },
+  "executionPolicy": {
+    "thisLeafMay": ["Read pinned policy/proposal/manifests after committing Phase A", "Read-only static JSON/schema/hash/membership validation", "Write and individually commit new owned preparation files"],
+    "thisLeafMustNot": ["Launch full gate", "Execute driver", "Import product", "Build or pack", "Run types, test cohorts or native oracles", "Install dependencies", "Write private files", "Read unfrozen live author bodies", "Copy AGENTS", "Create loose TypeScript snapshots", "Buffer or copy large archives"],
+    "controlMeaning": "The following are concrete mutation recipes and required future stage/verdicts, not executed fixtures or a new gate implementation. Stage names are review concepts, not claims about author APIs. Every positive is conditional on all other required immutable bindings and prerequisites being valid.",
+    "historical": "Old 522/profilec355 and Meitner freeze0895926b/71 pass/7 unexecuted remain historical. No old runner execution, seven-case rescoring, or answer attribution.",
+    "limits": "No full-gate acceptance, superiority, all-Node-version, native parity, or performance claims. No SIGSTOP of productive workers."
+  },
+  "controls": [
+    {
+      "id": "A01", "group": "Candidate and driver admission", "stage": "admission",
+      "positive": {"mutation": "Bind root-selected 44f00bf84278e3361b52106478d59c707ab7b2bc plus exactly four authorized fixture changes and the separately frozen driver hash.", "verdict": "ADMISSIBLE_ONLY_AFTER_ROOT_BINDINGS"},
+      "negative": [
+        {"mutation": "Leave candidate/driver immutable identity null or substitute a different product base.", "verdict": "HOLD_NO_LAUNCH"},
+        {"mutation": "Add a fifth file, product change, helper373 or which change to candidate inputs.", "verdict": "REJECT_CANDIDATE"}
+      ]
+    },
+    {
+      "id": "A02", "group": "Exact four-fixture reverse proof", "stage": "fixture-proof",
+      "positive": {"mutation": "Apply only 73->76, 73->76, public-with-custom 74->77, and maintained 70->76 changes to their bound base blobs, then reverse exactly those hunks.", "verdict": "BASE_BYTES_AND_ALL_OTHER_FILES_IDENTICAL"},
+      "negative": [
+        {"mutation": "Change public custom count to 76 instead of 77, or leave maintained count at 70.", "verdict": "REJECT_FIXTURE_DELTA"},
+        {"mutation": "Also delete an assertion, change an expected command name, alter non-count whitespace/bytes, mode or another file.", "verdict": "REJECT_REVERSE_PROOF"}
+      ]
+    },
+    {
+      "id": "A03", "group": "Runtime inputs beyond typing", "stage": "source-guard",
+      "positive": {"mutation": "Keep a bound runtimehelper.mjs, runtime config .json, native golden, loader and child entry unchanged alongside the typing set.", "verdict": "RUNTIME_CLOSURE_MATCH"},
+      "negative": [
+        {"mutation": "Individually remove or change each of those runtime inputs without changing any TypeScript compiler source file.", "verdict": "REJECT_RUNTIME_INPUT"},
+        {"mutation": "Add a dynamic read of an undeclared helper or live path while the typing inventory stays identical.", "verdict": "REJECT_UNBOUND_READ_NO_FALLBACK"}
+      ]
+    },
+    {
+      "id": "A04", "group": "Transitive runtime and generated closure", "stage": "closure-admission",
+      "positive": {"mutation": "Bind actual shell/npm/compiler consumers, test helpers, child entries, generated bindings, provider fixtures and installed loader/tool inputs used by each phase, with generated-output lineage.", "verdict": "CLOSURE_DECLARED"},
+      "negative": [
+        {"mutation": "Supply only 192 MTS paths or only TypeScript getSourceFiles output; omit a consumed .mjs/.json/native/child dependency.", "verdict": "HOLD_INCOMPLETE_CLOSURE"},
+        {"mutation": "Replace a generated binding or provider fixture without changing its declared generator or typed source membership.", "verdict": "REJECT_RUNTIME_OR_GENERATED_BINDING"}
+      ]
+    },
+    {
+      "id": "A05", "group": "Exact inventory membership", "stage": "inventory",
+      "positive": {"mutation": "Provide unique exact canonical 632-path and classified 192-MTS memberships with hashes, classifications and consumer linkage.", "verdict": "MEMBERSHIP_MATCH_NOT_COVERAGE_ACCEPTANCE"},
+      "negative": [
+        {"mutation": "Delete one member, replace one with a different path while preserving counts, add an undeclared member, or duplicate a member.", "verdict": "REJECT_MEMBERSHIP"},
+        {"mutation": "Provide totals 632/192 without exact path identities.", "verdict": "HOLD_COUNTS_NOT_PROOF"}
+      ]
+    },
+    {
+      "id": "A06", "group": "Source provenance and no live fallback", "stage": "origin-guard",
+      "positive": {"mutation": "Use immutable reconstructed regular source files; separately declare any permitted fixture links and their sealed targets.", "verdict": "DECLARED_ORIGIN_MATCH"},
+      "negative": [
+        {"mutation": "Replace a source/helper with a symlink into live src, live tests or another external tree, even if target bytes initially match.", "verdict": "REJECT_LIVE_ORIGIN"},
+        {"mutation": "Make a missing archive entry resolve through live filesystem lookup or ambient dependency search.", "verdict": "REJECT_NO_FALLBACK"}
+      ]
+    },
+    {
+      "id": "A07", "group": "Pinned Node executable", "stage": "prerequisite",
+      "positive": {"mutation": "Supply Node 24.11.1 at the bound realpath with exact executable SHA-256 for every Node child.", "verdict": "NODE_PREREQUISITE_MATCH"},
+      "negative": [
+        {"mutation": "Use another version, same version with different binary hash, changed symlink target, or a child resolved from ambient PATH.", "verdict": "FAIL_PREREQUISITE_NO_SKIP_GREEN"}
+      ]
+    },
+    {
+      "id": "A08", "group": "Permissions and loader admission", "stage": "argv-admission",
+      "positive": {"mutation": "Supply exact frozen permission grants and loader arguments with explicit concurrency 2 to all intended invocations.", "verdict": "ARGV_PROFILE_MATCH"},
+      "negative": [
+        {"mutation": "Omit the loader or permission enablement, broaden a grant to live source, or change concurrency from 2.", "verdict": "REJECT_ARGV_BEFORE_COHORT"}
+      ]
+    },
+    {
+      "id": "A09", "group": "Explicit TAP arguments and parsing", "stage": "argv-and-tap",
+      "positive": {"mutation": "Place explicit TAP reporter and concurrency arguments before positional test/glob operands; retain raw TAP and independent child exit status.", "verdict": "ADMIT_ARGV_THEN_REQUIRE_COMPLETE_TAP"},
+      "negative": [
+        {"mutation": "Move reporter after positional glob, omit explicit reporter, or rely on environment reporter selection.", "verdict": "REJECT_ARGV"},
+        {"mutation": "Supply fabricated green parsed JSON with raw TAP containing not ok, bailout, truncated plan, or nonzero child exit.", "verdict": "FAIL_EVIDENCE_NOT_PARSED_GREEN"}
+      ]
+    },
+    {
+      "id": "A10", "group": "Single build and consistent types", "stage": "build-lineage",
+      "positive": {"mutation": "Record exactly one build; bind emitted runtime/declarations and subsequent type consumers to the same base plus declared fixture overlay.", "verdict": "ONE_BUILD_SAME_LINEAGE"},
+      "negative": [
+        {"mutation": "Perform a second hidden build, typecheck stale dist, or use declarations emitted from another candidate.", "verdict": "FAIL_BUILD_LINEAGE"},
+        {"mutation": "Install product dependencies or silently inject later source to make consumers pass.", "verdict": "REJECT_UNAUTHORIZED_INPUT"}
+      ]
+    },
+    {
+      "id": "A11", "group": "Exact full-product package", "stage": "pack-binding",
+      "positive": {"mutation": "Match the complete c109-prefixed SHA-256 obtained from pinned evidence, or an explicit root-declared replacement, and identify full package contents/exports.", "verdict": "PACK_BOUND_TO_SAME_PRODUCT"},
+      "negative": [
+        {"mutation": "Compare only c109 prefix, leave full digest unknown, or change digest without root declaration.", "verdict": "HOLD_OR_REJECT_PACK"},
+        {"mutation": "Label a targeted consumer-only package as the full product or use unrelated build output.", "verdict": "REJECT_PACK_SCOPE"}
+      ]
+    },
+    {
+      "id": "A12", "group": "Bounded archive reconstruction", "stage": "reconstruction-resource",
+      "positive": {"mutation": "Stream Git archive through hashing and extraction with explicit chunk, metadata, entry/total-size and outstanding-work limits recorded before launch.", "verdict": "BOUNDED_RECONSTRUCTION_POLICY_MATCH"},
+      "negative": [
+        {"mutation": "Collect the full tar in Buffer/array/Buffer.concat, or omit finite reconstruction resource bounds.", "verdict": "REJECT_UNBOUNDED_ARCHIVE"},
+        {"mutation": "Exceed a declared reconstruction bound or feed a truncated archive.", "verdict": "FAIL_RECONSTRUCTION_NO_PARTIAL_ACCEPTANCE"}
+      ]
+    },
+    {
+      "id": "A13", "group": "Archive path and link safety", "stage": "archive-extraction",
+      "positive": {"mutation": "Extract declared normalized relative regular entries into a fresh owned candidate directory with separately checked fixture-link policy.", "verdict": "CONTAINED_RECONSTRUCTION"},
+      "negative": [
+        {"mutation": "Insert ../escape, an absolute member, duplicate normalized member, hardlink/symlink escape or source symlink to live tree.", "verdict": "REJECT_BEFORE_ESCAPING_WRITE"},
+        {"mutation": "Tamper with an archived member while retaining the old manifest digest.", "verdict": "REJECT_ARCHIVE_INTEGRITY"}
+      ]
+    },
+    {
+      "id": "A14", "group": "Candidate freeze versus output growth", "stage": "pre-and-post-integrity",
+      "positive": {"mutation": "Keep exact frozen candidate membership/hash/mode/origin unchanged while writing only separately declared output/build/capture scopes.", "verdict": "IMMUTABLE_INPUTS_DECLARED_OUTPUTS"},
+      "negative": [
+        {"mutation": "Add an undeclared input entry, change/remove an original entry, or relabel a new runtime input as output.", "verdict": "REJECT_TREE_CHANGE"},
+        {"mutation": "Check only originally tracked files and claim append-proof tree integrity.", "verdict": "REJECT_INTEGRITY_CLAIM"}
+      ]
+    },
+    {
+      "id": "A15", "group": "Declared native 49 plus 2", "stage": "native-prerequisite",
+      "positive": {"mutation": "Bind all declared 49+2 native entries, logical-command to physical-binary/wrapper mapping, realpaths, hashes, versions and qualified host/library profile where available.", "verdict": "DECLARED_NATIVE_PROFILE_MATCH"},
+      "negative": [
+        {"mutation": "Remove one tool, replace a binary/wrapper, alter a hash or replace a member while preserving the total.", "verdict": "FAIL_PREREQUISITE_NOT_SKIP_GREEN"},
+        {"mutation": "Count shared binaries as independent implementations or call GNU-on-Darwin output GNU/Linux parity.", "verdict": "REJECT_PROFILE_CLAIM"}
+      ]
+    },
+    {
+      "id": "A16", "group": "Cleanup 256 exact membership", "stage": "cleanup-inventory",
+      "positive": {"mutation": "Bind the exact current 256 cleanup members and awaiting/disposal assertions, with explicit delta from historical 244.", "verdict": "CURRENT_CLEANUP_MEMBERSHIP_BOUND"},
+      "negative": [
+        {"mutation": "Substitute the old 244 list, replace one current member at fixed count 256, or remove an awaiting assertion.", "verdict": "REJECT_CLEANUP_MEMBERSHIP_OR_SEMANTICS"}
+      ]
+    },
+    {
+      "id": "A17", "group": "Owned process tree and failure semantics", "stage": "execution-lifecycle",
+      "positive": {"mutation": "Use declared time/resource limits; await owned children and cleanup, preserve first-attempt raw status, and close the owned process tree without touching productive foreign workers.", "verdict": "CLOSED_TREE_ORIGINAL_STATUS"},
+      "negative": [
+        {"mutation": "Inject child leak, timeout or forced-cleanup failure.", "verdict": "FAIL_WITH_RAW_FAILURE_AND_CLEANUP_EVIDENCE"},
+        {"mutation": "Hide failure behind a retry, suppress failed cleanup, or SIGSTOP productive workers for capacity.", "verdict": "REJECT_LIFECYCLE_POLICY"}
+      ]
+    },
+    {
+      "id": "A18", "group": "Registered versus opaque cleanup", "stage": "cleanup-contract",
+      "positive": {"mutation": "Keep synchronous registerCleanup-before-acquisition, idempotent shared completion and awaited admitted cooperative work; retain finally for custom hosts without hook.", "verdict": "REGISTERED_RESOURCE_SETTLEMENT_REQUIRED"},
+      "negative": [
+        {"mutation": "Treat cancellation as undoing completed effects or forcibly stopping opaque uncooperative work; close stdout by cancelling sibling outputs or the whole context.", "verdict": "REJECT_CONTRACT_OVERCLAIM_OR_WRONG_OWNERSHIP"},
+        {"mutation": "Allow new acquisitions after close or settle before admitted cooperative cleanup completes.", "verdict": "FAIL_CLEANUP_SETTLEMENT"}
+      ]
+    },
+    {
+      "id": "A19", "group": "Raw capture and strict gate verdict", "stage": "evidence-verdict",
+      "positive": {"mutation": "Retain raw stdout/stderr, child statuses, complete TAP and unique capture manifest for every required phase; reconcile denominator and stricter gate policy separately from parser summary.", "verdict": "EVIDENCE_COMPLETE_NOT_AUTOMATIC_ACCEPTANCE"},
+      "negative": [
+        {"mutation": "Truncate stderr/TAP, omit a phase/status/capture, overwrite old evidence, or report unexecuted/TODO/unsupported cases as passes.", "verdict": "FAIL_INCOMPLETE_OR_FALSE_EVIDENCE"},
+        {"mutation": "Treat a skip or TODO as satisfying a required case without a frozen explicit disposition.", "verdict": "HOLD_STRICT_POLICY_NOT_SILENT_GREEN"}
+      ]
+    },
+    {
+      "id": "A20", "group": "Explicit CLI admission and import safety", "stage": "entrypoint",
+      "positive": {"mutation": "Import helpers without effects; require explicit CLI --run plus successful immutable admission before any gate child launch.", "verdict": "NO_IMPLICIT_GATE_EXECUTION"},
+      "negative": [
+        {"mutation": "Import run/helper module, call CLI without --run, or provide --run with missing candidate/driver bindings.", "verdict": "NO_GATE_LAUNCH"},
+        {"mutation": "Trigger build/tests/native probes during import or failed admission.", "verdict": "REJECT_ENTRYPOINT_SIDE_EFFECT"}
+      ]
+    },
+    {
+      "id": "A21", "group": "Captured data versus canonical inputs", "stage": "classification",
+      "positive": {"mutation": "Classify exact immutable native/input/captured files separately while preserving their bytes and runtime guard membership when consumed; keep canonical source/test/helper checking intact.", "verdict": "EXACT_CLASSIFICATION_WITH_RUNTIME_COVERAGE"},
+      "negative": [
+        {"mutation": "Let a captured typed-looking artifact fall through canonical discovery, omit consumed data from runtime guard, or broadly exclude tests to make types pass.", "verdict": "REJECT_CLASSIFICATION_OR_COVERAGE"}
+      ]
+    },
+    {
+      "id": "A22", "group": "Historical versioning and acceptance boundary", "stage": "policy-binding",
+      "positive": {"mutation": "Version successor controls from historical case IDs where old literals require 76/77; preserve original 522/profilec355, freeze0895926b and 71-pass/7-unexecuted records unchanged.", "verdict": "NEW_BINDING_QUESTIONS_ONLY"},
+      "negative": [
+        {"mutation": "Reuse old literal73/244/522 as current membership, rescore the old seven, or infer public HTML/DU/expr acceptance from the root product base.", "verdict": "REJECT_HISTORICAL_OR_SCOPED_ACCEPTANCE_CLAIM"}
+      ]
+    }
+  ]
+}

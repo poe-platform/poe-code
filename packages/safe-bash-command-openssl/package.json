@@ -1,0 +1,42 @@
+{
+  "name": "safe-bash-command-openssl",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "poeCode": {
+    "bundle": {
+      "prebuilt": true
+    }
+  },
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc && esbuild src/index.ts --bundle --platform=browser --conditions=workerd --format=esm --target=es2022 --define:Buffer=undefined --define:globalThis.Buffer=undefined --external:safe-bash-contracts --external:safe-bash-contracts/* --external:@poe-code/safe-fs --external:@poe-code/safe-fs/* --outfile=dist/index.js",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
+    "lint": "eslint src && npm run typecheck",
+    "test": "node --import tsx --test src/*.test.ts",
+    "test:unit": "node --import tsx --test src/*.test.ts"
+  },
+  "dependencies": {
+    "@noble/hashes": "2.4.0",
+    "@peculiar/x509": "2.1.0",
+    "reflect-metadata": "0.2.2"
+  },
+  "devDependencies": {
+    "@poe-code/safe-fs": "*",
+    "safe-bash-contracts": "*"
+  }
+}

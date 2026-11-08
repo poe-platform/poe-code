@@ -1,0 +1,18 @@
+{
+  "headBefore": "333c7bb31715b18947aa3dd921cc73e530d3d9b7",
+  "headAfter": "333c7bb31715b18947aa3dd921cc73e530d3d9b7",
+  "liveVersusFrozenInputs": [
+    {
+      "path": "package.json",
+      "sha256": "82858a418d8974cc53ec4b9eff231e49415b51224490a78baad61f3da291eb22"
+    },
+    {
+      "path": "src/plugins/index.ts",
+      "sha256": "df8834110688f62ce16f06d273f783b33e7b0fdf4944e3083da4d360b4fa5045"
+    }
+  ],
+  "frozenChanged": [],
+  "sourcePatch": "",
+  "success": false,
+  "serviceOutput": "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/evidence-6zhLg6/service-tYxYLU"
+}

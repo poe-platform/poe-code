@@ -1,0 +1,190 @@
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { FsError } from "../../../../src/contracts/errors.js";
+import type { FileSystemCapabilities } from "../../../../src/contracts/filesystem.js";
+import { MockS3Client, S3FileSystem, S3ServiceError, createS3Transport } from "../../../../src/fs/s3/index.js";
+import type { MockS3Request, S3ListOutput, S3Transport } from "../../../../src/fs/s3/index.js";
+import { WebDavFileSystem } from "../../../../src/fs/webdav/index.js";
+import { MockDav } from "../../../fs/webdav/mock.js";
+
+const bucket = "safe-workflows";
+const directory = "/work/scratch/nested";
+const marker = "work/scratch/nested/";
+const payload = new Uint8Array([0, 255, 128, 13, 10, 0, 7]);
+
+interface Entry {
+  key: string;
+  body: Uint8Array;
+  metadata: Record<string, string> | undefined;
+  etag: string | undefined;
+}
+
+async function inventory(backend: MockS3Client): Promise<Entry[]> {
+  const entries: Entry[] = [];
+  const tokens = new Set<string>();
+  let token: string | undefined;
+  for (;;) {
+    const page = await backend.listObjectsV2({ Bucket: bucket, MaxKeys: 1, ...(token ? { ContinuationToken: token } : {}) });
+    assert.equal(typeof page.IsTruncated, "boolean");
+    for (const entry of page.Contents ?? []) {
+      assert.equal(typeof entry.Key, "string");
+      const object = await backend.getObject({ Bucket: bucket, Key: entry.Key! });
+      assert.ok(object.Body instanceof Uint8Array);
+      entries.push({ key: entry.Key!, body: new Uint8Array(object.Body), metadata: structuredClone(object.Metadata), etag: object.ETag });
+    }
+    if (!page.IsTruncated) return entries.sort((left, right) => left.key.localeCompare(right.key));
+    assert.ok(page.NextContinuationToken);
+    assert.equal(tokens.has(page.NextContinuationToken), false);
+    token = page.NextContinuationToken;
+    tokens.add(token);
+  }
+}
+
+async function fixture(override?: (base: S3Transport, backend: MockS3Client) => Partial<S3Transport>) {
+  const backend = new MockS3Client({ buckets: [bucket], pageSize: 1 });
+  const base = createS3Transport(backend, {});
+  const mutations: MockS3Request[] = [];
+  const transport: S3Transport = {
+    ...base,
+    putObject: (input, options) => { mutations.push(structuredClone({ operation: "putObject", input })); return base.putObject(input, options); },
+    copyObject: (input, options) => { mutations.push(structuredClone({ operation: "copyObject", input })); return base.copyObject(input, options); },
+    deleteObject: (input, options) => { mutations.push(structuredClone({ operation: "deleteObject", input })); return base.deleteObject(input, options); },
+  };
+  const fs = new S3FileSystem({ bucket, transport: { ...transport, ...override?.(transport, backend) }, pageSize: 1 });
+  await fs.mkdir(directory, { recursive: true });
+  await fs.writeFile(`${directory}/owned-file`, payload);
+  await fs.writeFile("/sentinel", new Uint8Array([255, 3]));
+  await fs.writeFile("/work/scratch/sibling", payload);
+  await fs.writeFile("/work-neighbor", payload);
+  await fs.rm(`${directory}/owned-file`);
+  return { backend, fs, mutations };
+}
+
+function rejection(code: string): (error: unknown) => boolean {
+  return error => {
+    assert.ok(error instanceof FsError);
+    assert.equal(error.code, code);
+    assert.equal(error.syscall, "rmdir");
+    assert.equal(error.path, directory);
+    return true;
+  };
+}
+
+function exactDelete(mutations: MockS3Request[]): void {
+  assert.deepEqual(mutations, [{ operation: "deleteObject", input: { Bucket: bucket, Key: marker } }]);
+}
+
+test("independent quiescent profile preserves every object except the exact marker", async () => {
+  const { backend, fs, mutations } = await fixture();
+  assert.equal(fs.capabilities.snapshotRmdir, true);
+  assert.equal(fs.capabilities.atomicRename, false);
+  const before = await inventory(backend);
+  assert.ok(before.length > 1);
+  assert.equal(before.filter(entry => entry.key === marker).length, 1);
+  assert.deepEqual(before.find(entry => entry.key === marker)!.body, new Uint8Array());
+  mutations.length = 0;
+  await fs.rmdir(directory);
+  exactDelete(mutations);
+  assert.deepEqual(await inventory(backend), before.filter(entry => entry.key !== marker));
+  for (const parent of ["/work", "/work/scratch"]) assert.equal((await fs.stat(parent)).type, "directory");
+  await assert.rejects(fs.stat(directory), { code: "ENOENT" });
+  assert.deepEqual(await fs.readFile("/sentinel"), new Uint8Array([255, 3]));
+});
+
+for (const child of ["bytes", "child/", "child/deep-bytes"]) {
+  test(`independent observed descendant ${child} refuses without effects`, async () => {
+    const { backend, fs, mutations } = await fixture();
+    await backend.putObject({ Bucket: bucket, Key: marker + child, Body: child.endsWith("/") ? new Uint8Array() : payload, Metadata: { preserve: "yes" } });
+    const before = await inventory(backend);
+    mutations.length = 0;
+    await assert.rejects(fs.rmdir(directory), rejection("ENOTEMPTY"));
+    assert.deepEqual(mutations, []);
+    assert.deepEqual(await inventory(backend), before);
+  });
+}
+
+test("independent late descendants survive successful marker removal and retain visibility", async () => {
+  let injected = false;
+  let afterInjection: Entry[] = [];
+  const { backend, fs, mutations } = await fixture((base, client) => ({
+    listObjectsV2: async (input, options) => {
+      const page = await base.listObjectsV2(input, options);
+      if (input.Prefix === marker && input.Delimiter === "/" && page.IsTruncated === false) {
+        assert.equal(injected, false);
+        for (const [key, body] of [[marker + "late", payload], [marker + "child/", new Uint8Array()], [marker + "child/deep", payload]] as const) {
+          await client.putObject({ Bucket: bucket, Key: key, Body: body, Metadata: { generation: "late" } });
+        }
+        injected = true;
+        afterInjection = await inventory(client);
+      }
+      return page;
+    },
+  }));
+  mutations.length = 0;
+  await fs.rmdir(directory);
+  assert.equal(injected, true);
+  exactDelete(mutations);
+  assert.deepEqual(await inventory(backend), afterInjection.filter(entry => entry.key !== marker));
+  assert.equal((await fs.stat(directory)).type, "directory");
+  assert.deepEqual(await fs.readFile(`${directory}/late`), payload);
+  assert.deepEqual(await fs.readFile(`${directory}/child/deep`), payload);
+});
+
+const incomplete: { name: string; pages: S3ListOutput[] }[] = [
+  { name: "missing completeness", pages: [{ Contents: [{ Key: marker, Size: 0 }] }] },
+  { name: "missing token", pages: [{ Contents: [{ Key: marker, Size: 0 }], IsTruncated: true }] },
+  { name: "repeated token", pages: [{ Contents: [{ Key: marker, Size: 0 }], IsTruncated: true, NextContinuationToken: "loop" }, { Contents: [], IsTruncated: true, NextContinuationToken: "loop" }] },
+];
+
+for (const scenario of incomplete) {
+  test(`independent incomplete listing ${scenario.name} fails closed`, async () => {
+    let calls = 0;
+    const { backend, fs, mutations } = await fixture((base) => ({
+      listObjectsV2: (input, options) => input.Prefix === marker && input.Delimiter === "/"
+        ? Promise.resolve(scenario.pages[calls++]!) : base.listObjectsV2(input, options),
+    }));
+    const before = await inventory(backend);
+    mutations.length = 0;
+    await assert.rejects(fs.rmdir(directory), rejection("EIO"));
+    assert.equal(calls, scenario.pages.length);
+    assert.deepEqual(mutations, []);
+    assert.deepEqual(await inventory(backend), before);
+  });
+}
+
+test("independent failed final listing preserves all bytes and markers", async () => {
+  let calls = 0;
+  const { backend, fs, mutations } = await fixture(base => ({
+    listObjectsV2: async (input, options) => {
+      if (input.Prefix !== marker || input.Delimiter !== "/") return base.listObjectsV2(input, options);
+      calls++;
+      if (calls === 1) return { Contents: [{ Key: marker, Size: 0 }], IsTruncated: true, NextContinuationToken: "final" };
+      throw new S3ServiceError("AccessDenied", 403);
+    },
+  }));
+  const before = await inventory(backend);
+  mutations.length = 0;
+  await assert.rejects(fs.rmdir(directory), rejection("EACCES"));
+  assert.equal(calls, 2);
+  assert.deepEqual(mutations, []);
+  assert.deepEqual(await inventory(backend), before);
+});
+
+test("independent stock WebDAV exact ENOTSUP preserves all parents and bytes", async () => {
+  const mock = new MockDav();
+  const fs = new WebDavFileSystem({ baseUrl: "https://example.test/dav/", fetch: mock.fetch });
+  await fs.mkdir(directory, { recursive: true });
+  await fs.writeFile(`${directory}/owned-file`, payload);
+  await fs.writeFile("/sentinel", new Uint8Array([255, 3]));
+  await fs.writeFile("/work/scratch/sibling", payload);
+  await fs.rm(`${directory}/owned-file`);
+  const before = structuredClone(mock.files);
+  const start = mock.requests.length;
+  const capabilities: FileSystemCapabilities = fs.capabilities;
+  assert.notEqual(capabilities.snapshotRmdir, true);
+  await assert.rejects(fs.rmdir(directory), rejection("ENOTSUP"));
+  assert.deepEqual(mock.files, before);
+  assert.deepEqual(mock.requests.slice(start).filter(request => !["PROPFIND", "GET", "HEAD"].includes(request.init.method!)), []);
+  for (const parent of ["/work", "/work/scratch", directory]) assert.equal((await fs.stat(parent)).type, "directory");
+  assert.deepEqual(await fs.readFile("/sentinel"), new Uint8Array([255, 3]));
+});

@@ -1,0 +1,9 @@
+import * as command from "command";
+import * as stdio from "stdio";
+import * as fs from "fs";
+const incoming = await stdio.readText();
+await fs.writeFile("/work/out", incoming + "|vfs");
+const saved = await fs.readFile("/work/out", "utf8");
+await stdio.write("stdio:" + saved + "\n");
+command.setExitCode(7);
+return { input: incoming, saved, args: command.args, cwd: command.cwd, tag: command.env.TAG };

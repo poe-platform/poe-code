@@ -1,0 +1,138 @@
+{
+  "schema": "B2-R8-CONDITIONAL-BINDING-HOLD-1",
+  "decision": "HOLD",
+  "actualGo": false,
+  "independentPreexec": "a54f318dedf6e80edd3ac12887f9e50ae4bff758",
+  "blockers": [
+    "zero-width requested window under unchanged anchored schema",
+    "sole helper postcheck path-construction error; source correction not executed"
+  ],
+  "grantInstalled": false,
+  "pendingGrant": {
+    "bytes": 1081,
+    "sha256": "82cf566716bdd9baa8eb094a8a3afe790ecdd5376ccdb7254e6c311a3b6f0eca"
+  },
+  "packet": {
+    "bytes": 6945,
+    "sha256": "6df866e7990386218848061128777008bfbd6cdd93a7c0f658559fc0d0aa23f9"
+  },
+  "command": "/bin/zsh /Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/new/launch.sh /private/tmp/B2-R8-ROOT-GO.json 6945",
+  "commandSha256": "59b7adb628be811652ede031c8ea3a0726de316a5c6a9dc4663b4b3bf7b4b18f",
+  "commandHashDomain": "UTF8 no trailing newline",
+  "startedUTC": "2026-08-29T16:41:27.204Z",
+  "publishedUTC": "2026-08-29T16:45:19.953Z",
+  "deadlineUTC": "2026-08-29T16:47:27.204Z",
+  "knownRolesBeforeGitPublication": 9,
+  "reservedGitPublication": 4,
+  "knownOSCap": 20,
+  "peakKnown": 2,
+  "dataHelpers": 1,
+  "knownUnresolvedChildren": 0,
+  "files": [
+    {
+      "path": "evidence/01-inventory.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/01-inventory.stdout",
+      "bytes": 24753,
+      "sha256": "b7ddb83ab33bebfc8597e9d510aac4bc37a9bfb42a35e27130a3008a3815bdb1"
+    },
+    {
+      "path": "evidence/01-role.json",
+      "bytes": 113,
+      "sha256": "0ae9c6f0e05d8fec7404c9a86ee01214ac961d7e59fcfbfb7d28fc3352b9665d"
+    },
+    {
+      "path": "evidence/02-patch.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/02-patch.stdout",
+      "bytes": 314,
+      "sha256": "2142881fbb6266ac6ec6327b5d0951de6ec31fb9125e3d1b80947152a179e78a"
+    },
+    {
+      "path": "evidence/03-review.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/03-review.stdout",
+      "bytes": 41,
+      "sha256": "7bd5bf70fb3a5ff496252412d76b4873b48ad29acea7900b7536dedaa1c52f97"
+    },
+    {
+      "path": "evidence/03-role.json",
+      "bytes": 78,
+      "sha256": "1109616820dfc60622b6c5c53405d5f28aff4dfa28f152a08c4c79ee913232b9"
+    },
+    {
+      "path": "evidence/04-patch.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/04-patch.stdout",
+      "bytes": 324,
+      "sha256": "df0fe4b4176ed1597433d2fa7fe069efa863549030aebfe811688bc5c5cfd364"
+    },
+    {
+      "path": "evidence/05-bind.stderr",
+      "bytes": 862,
+      "sha256": "1a326f573a9127629d720042020340c932f58d3f0f342979686e2242d3e0b2d6"
+    },
+    {
+      "path": "evidence/05-bind.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/05-role.json",
+      "bytes": 151,
+      "sha256": "45055ce506148b474ab331da9fa37888b577021cb0c93a5ce1b07d4eba122ac2"
+    },
+    {
+      "path": "evidence/06-patch.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/06-patch.stdout",
+      "bytes": 312,
+      "sha256": "7b2a60fa6e5629fa145394877bec263b90bbc89834157028b36b09c61295be36"
+    },
+    {
+      "path": "PRESEAL.json",
+      "bytes": 935,
+      "sha256": "58fbd637eb3c3fb99d0bded241e2051aaddce71883ace7d21c3eabaf00b34881"
+    },
+    {
+      "path": "ROOT-PREEXEC-UPDATE.md",
+      "bytes": 446,
+      "sha256": "b1530940e0d59bbb5271338e0344fcd3a032191bdf01667d8eede85d2e7d2536"
+    },
+    {
+      "path": "bind.mjs",
+      "bytes": 4892,
+      "sha256": "8e62960fb0571773c8299209f67e4fd42deaa159be70bc3c88061d90df260957"
+    },
+    {
+      "path": "GRANT.pending.json",
+      "bytes": 1081,
+      "sha256": "82cf566716bdd9baa8eb094a8a3afe790ecdd5376ccdb7254e6c311a3b6f0eca"
+    },
+    {
+      "path": "HANDOFF.md",
+      "bytes": 3413,
+      "sha256": "f7f34ceb8edcd15f78271be59d5714269b17b053e82914e7e2ccd666239175f7"
+    },
+    {
+      "path": "evidence/bind-attempt-1.mjs.data",
+      "bytes": 4892,
+      "sha256": "cb7334f7e8aa136ad69931321f5cec0e53e1a5a080d094415189e2c4acb88bad"
+    }
+  ]
+}

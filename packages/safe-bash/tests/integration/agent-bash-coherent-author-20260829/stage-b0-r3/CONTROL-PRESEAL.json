@@ -1,0 +1,30 @@
+{
+  "role": "PREEXECUTION_CONTROL_SEAL",
+  "groups": 16,
+  "controllerProcesses": 1,
+  "realChildren": 0,
+  "maxSeconds": 30,
+  "maxCaptureBytes": 1048576,
+  "files": [
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/owner.mjs",
+      "bytes": 8991,
+      "sha256": "9172cab72f0a7833401e0900fb01ef1821fc59cde1718e3abf3cbfd1d6c970dd"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/controls.mjs",
+      "bytes": 8279,
+      "sha256": "e314b766848641f23a4250b0cb65377ff22e661e5ea81f1ca947483688100cc9"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/PROFILE.md",
+      "bytes": 3364,
+      "sha256": "07607e2231b1f5d58bcf327a53a34780513fe8133b467fff0d3a593ac1661c03"
+    }
+  ],
+  "node": {
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "productImports": 0
+}

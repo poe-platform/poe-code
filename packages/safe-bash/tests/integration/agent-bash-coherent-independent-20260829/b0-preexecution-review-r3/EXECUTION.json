@@ -1,0 +1,31 @@
+{
+  "records": [
+    {
+      "role": "author16",
+      "pid": 36163,
+      "started": "2026-08-29T11:39:00.591Z",
+      "finished": "2026-08-29T11:39:00.649Z",
+      "status": 0,
+      "signal": null,
+      "exited": true,
+      "closed": true,
+      "groupAbsent": true,
+      "violation": null
+    },
+    {
+      "role": "independent8",
+      "pid": 36164,
+      "started": "2026-08-29T11:39:00.654Z",
+      "finished": "2026-08-29T11:39:00.703Z",
+      "status": 0,
+      "signal": null,
+      "exited": true,
+      "closed": true,
+      "groupAbsent": true,
+      "violation": null
+    }
+  ],
+  "postHashes": true,
+  "productImports": 0,
+  "realFixtureChildren": 0
+}

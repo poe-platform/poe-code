@@ -1,0 +1,101 @@
+diff --git a/tests/fs/webdav/mock.ts b/tests/fs/webdav/mock.ts
+index cccbd82..66899a4 100644
+--- a/tests/fs/webdav/mock.ts
++++ b/tests/fs/webdav/mock.ts
+@@ -1,5 +1,34 @@
+ import { createHash, randomUUID } from "node:crypto";
+ import type { WebDavFetch } from "../../../src/fs/webdav/index.js";
++import { forwardOwnedWebDavFetch, registerMockWebDavFetch, registerOwnedResourceResponse } from "../../../src/fs/webdav/resource-id.js";
++
++function resourceMap() {
++  const files = new Map<string, Uint8Array | null>();
++  const identities = new Map<string, { readonly identifier: string }>();
++  Object.defineProperties(files, {
++    set: { configurable: true, writable: true, value(path: string, value: Uint8Array | null) {
++      if (!files.has(path)) identities.set(path, Object.freeze({ identifier: `urn:uuid:${randomUUID()}` }));
++      Map.prototype.set.call(files, path, value);
++      return files;
++    } },
++    delete: { configurable: true, writable: true, value(path: string) {
++      identities.delete(path);
++      return Map.prototype.delete.call(files, path);
++    } },
++    clear: { configurable: true, writable: true, value() { identities.clear(); Map.prototype.clear.call(files); } },
++  });
++  return {
++    files,
++    identity(path: string) { return identities.get(path); },
++    restoreIdentity(path: string, identity: { readonly identifier: string }): void {
++      identities.set(path, identity);
++    },
++    preserveIdentity(source: string, destination: string) {
++      const identity = identities.get(source);
++      if (identity) identities.set(destination, identity);
++    },
++  };
++}
+ 
+ export function escapeXml(text: string): string {
+   return text.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&apos;");
+@@ -30,9 +59,20 @@ export interface MockRequest {
+ }
+ 
+ export class MockDav {
+-  readonly files = new Map<string, Uint8Array | null>([["/", null]]);
++  private readonly resources = resourceMap();
++  readonly files = this.resources.files.set("/", null);
+   readonly requests: MockRequest[] = [];
+   readonly locks = new Map<string, { token: string; expires: number }>();
++  constructor() {
++    const files = this.files;
++    const names = ["get", "set", "has", "delete", "clear", "entries", "keys", Symbol.iterator] as const;
++    const methods = names.map(name => files[name]);
++    registerMockWebDavFetch(this.fetch, files, () => this.files === files && names.every((name, index) => files[name] === methods[index]));
++  }
++
++  createFetch(): WebDavFetch {
++    return forwardOwnedWebDavFetch(this.fetch);
++  }
+   etag(path: string): string | undefined {
+     const data = this.files.get(path);
+     return data === undefined ? undefined : `"${createHash("sha256").update(data === null ? "directory" : "file").update(data ?? "").digest("hex")}"`;
+@@ -100,10 +140,17 @@ export class MockDav {
+       if (!exists) return new Response(null, { status: 404 });
+       const entries = [...this.files].filter(([name]) => name === path || (headers.get("Depth") === "1"
+         && (name.slice(0, name.lastIndexOf("/")) || "/") === path && name !== "/"));
+-      return xmlResponse(multistatus(...entries.map(([name, data]) => resource(
++      const resourceIds = (init.body instanceof Uint8Array ? new TextDecoder().decode(init.body) : String(init.body)).includes("resource-id");
++      const result = xmlResponse(multistatus(...entries.map(([name, data]) => resource(
+         `/dav${name === "/" ? "/" : name.split("/").map(encodeURIComponent).join("/")}${data === null && name !== "/" ? "/" : ""}`,
+-        data === null, data?.byteLength ?? 0, "", this.etag(name),
++        data === null, data?.byteLength ?? 0, resourceIds
++          ? `<z:propstat><z:prop><z:resource-id><z:href>${this.resources.identity(name)!.identifier}</z:href></z:resource-id></z:prop><z:status>HTTP/1.1 200 OK</z:status></z:propstat>`
++          : "", this.etag(name),
+       ))));
++      registerOwnedResourceResponse(result, new Map(entries.map(([name]) => [name, {
++        storage: this.files, resource: this.resources.identity(name)!, identifier: this.resources.identity(name)!.identifier,
++      }])));
++      return result;
+     }
+     if (method === "GET") {
+       if (!exists) return new Response(null, { status: 404 });
+@@ -135,11 +182,18 @@ export class MockDav {
+       const destinationExists = this.files.has(target);
+       if (destinationExists && headers.get("Overwrite") === "F") return new Response(null, { status: 412 });
+       if (this.files.get(target.slice(0, target.lastIndexOf("/")) || "/") !== null) return new Response(null, { status: 409 });
++      const destinationIdentities = new Map([...this.files.keys()].filter(name => name === target || name.startsWith(`${target}/`))
++        .map(name => [name, this.resources.identity(name)!]));
+       for (const name of this.files.keys()) if (name === target || name.startsWith(`${target}/`)) this.files.delete(name);
+       for (const [name, data] of [...this.files]) {
+         if (name === path || name.startsWith(`${path}/`)) {
+           this.files.set(target + name.slice(path.length), data === null ? null : new Uint8Array(data));
+-          if (method === "MOVE") this.files.delete(name);
++          const priorIdentity = destinationIdentities.get(target + name.slice(path.length));
++          if (method === "COPY" && priorIdentity) this.resources.restoreIdentity(target + name.slice(path.length), priorIdentity);
++          if (method === "MOVE") {
++            this.resources.preserveIdentity(name, target + name.slice(path.length));
++            this.files.delete(name);
++          }
+         }
+       }
+       return new Response(null, { status: destinationExists ? 204 : 201 });

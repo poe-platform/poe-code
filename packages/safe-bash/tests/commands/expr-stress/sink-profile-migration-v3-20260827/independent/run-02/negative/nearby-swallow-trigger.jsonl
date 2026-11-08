@@ -1,0 +1,1 @@
+{"mutation":"swallow","args":["a",":","a"],"options":{"regex":{"startupTimeoutMs":10000,"requestTimeoutMs":3000}},"caughtReasonType":"object","caughtMessage":"independent sink failure"}

@@ -1,0 +1,573 @@
+{
+  "time": "2026-08-27T01:20:19.690Z",
+  "removed": [
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-2eEbVe",
+      "files": {
+        "left": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "right": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-2lf6ea",
+      "files": {
+        "left": "7fd3b5f7873dfc08595c556ff3b7d04610eadba0a55ff352c1261aeaa395f1b3",
+        "right": "a16970ca4a3ea3eedf2dd680cfb10b29c4faabf5475924d2afa88b509327796d",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-3Zz0ON",
+      "files": {
+        "left": "43188a865feb18ca21edda92b409e384bcf53c4d815b244950b3aad5496eb4f4",
+        "right": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-4austh",
+      "files": {
+        "left": "2aeeae6987a2aa6ac79ec1ea68989d24bc5a0cb2327d0937eccb944b2a65cf46",
+        "right": "c05118d2b584db3d056dd155ab8500fc178fec4dba1022915ff7ad9825d8b52a",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-4tSBOR",
+      "files": {
+        "left": "645647a730ead06e2204d97023c1ae7bfc271acbd509972e87779ce23c183e85",
+        "right": "aa4cf6961b9cfc987a2b011e5c7c206bae95da9cc56871073565886bdd830735",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-5HJJSF",
+      "files": {
+        "left": "1689e72f77ceee751c0262c8133ed56c91521ac7c2ab532890d34c207380bb4d",
+        "right": "8b7589b13271672ec400ac3ed99b9562121653a0dd3cea835d086414a5456a46",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-6E4ecl",
+      "files": {
+        "left": "5873b37be03d5752f9fa8140da36c927c9b1a49730c4403eec33db3fd71b4e22",
+        "right": "681f434383d35fa10a2c89304fbde70691d1f653f79696e02cc82b886c0160be",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-6MxdWm",
+      "files": {
+        "left": "c95297b6a9f20a2f5e64caea1a7402f0898436ead38bb3abf21244befdf72d24",
+        "right": "7dc52b681e7284e53cc5bc8b5584a949a0d11cc6a36984b851290a6c53a380ca",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-7NFiOW",
+      "files": {
+        "left": "a9ae42356530fd5c82a9abe5a561caa78ba0515af068e46e01dfb1bd741149cf",
+        "right": "eb8d88f1f096da4a4a258541d5433a505989701f639000ad82dbdd879d278b92",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-8BoZgT",
+      "files": {
+        "left": "df2e534c14038350e7a0be70e28e418d8a9dbe0cddc255735c72edb8beec2a1f",
+        "right": "3e073bd829613172a7cda918202d99c1d1a3d22eb7f3bee8353cdb09bcfc490d",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-95ctpO",
+      "files": {
+        "left": "42963f4103f51cfbd3be0c1ac163361f4d581e9562ec5de0d6f0ae26dc2fd9f3",
+        "right": "1ebeef77890498303f8919fc901c12541eecef9cd3bd7371610ed7160095c6ee",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-96tWfS",
+      "files": {
+        "left": "e6e5a406ad96186528a7feedd95de1c6871989b518cda30a252fe238acc38d75",
+        "right": "3b5cd0027c7f5a8ed4457c3a98a5198997d9444ae4ac611bec1afa63bd132850",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-9GNrae",
+      "files": {
+        "left": "490f74bf2b666d409e9063f0336f877966d5d6a2f925a7920db536e8dc01545f",
+        "right": "f2c15d0ffb142618735af281fcfe2728bc4649b5df69d86c1b7b6fa1565163eb",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-CB1m1K",
+      "files": {
+        "left": "c95297b6a9f20a2f5e64caea1a7402f0898436ead38bb3abf21244befdf72d24",
+        "right": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-CLLfYa",
+      "files": {
+        "left": "aea8a04c2f293417e499bf5de2def8ebb1ed40264d128a67180ea56fbe4600ff",
+        "right": "c865f6c5ab8d1b0bcd383a5e1e3879d22681c96bf462c269b7581d523fbe70ab",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-ChH5lt",
+      "files": {
+        "left": "6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d",
+        "right": "bae093434561d2ea8f1db2619a9c989b39118903c42b1233eb65ec2bc14ce216",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-DqoTwU",
+      "files": {
+        "left": "cc0f5a2e8c550f5e317ab95ed14cf2ea255763dfed18a3213a95516a822b2802",
+        "right": "3795b2df93512c8d4f0da2c1ea494db4f339923f92d5b6f7be61813378d7730c",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-FNN1e5",
+      "files": {
+        "left": "c95297b6a9f20a2f5e64caea1a7402f0898436ead38bb3abf21244befdf72d24",
+        "right": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-FXA3rm",
+      "files": {
+        "left": "2d504401d775953ba7056df9c514613fdbd6034a4d91dd44f2700738b1017bdc",
+        "right": "2c9ced9599a417985a4bf43305de3dc8dfe38545e2322eddf71ee1b36b2a764e",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-FuOmNv",
+      "files": {
+        "left": "80ed476c5929c5db3a633a2359778c3943b369732beae89bee2f70c0d2ca458f",
+        "right": "ae882e932ef9959a7c0720c5355a470db63e41910e10f353441fbf6c982dd281",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-GfgyV8",
+      "files": {
+        "left": "4f25090e0cc6e45c2c43de260db13bf4383f0ad00a388bb9f1af3d666d494b8d",
+        "right": "66f99a5dae4e1c00a3b222fea7fb86e81232d12b9697c92428746f5262e50dcc",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-Ho4htW",
+      "files": {
+        "left": "d0540aeb390dac890d056a342d6796c75a1585c2d7b2c52a1196a2300162133b",
+        "right": "7d634c534ad291bf144d884ac2b66c74849d6c7f3a9029e1367b23f6eb24fb49",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-JHVtS0",
+      "files": {
+        "left": "8343c620dc64d81af0c8daeace4af0101db18d4aff1873faa297ac9b8d772987",
+        "right": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-JMTPjn",
+      "files": {
+        "left": "53d3b8b139c989fb01ef977cb2c367584068c8cdf946b1fef1caf81a12ede5d6",
+        "right": "8b7589b13271672ec400ac3ed99b9562121653a0dd3cea835d086414a5456a46",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-JVL0pU",
+      "files": {
+        "left": "02bd27f38ce378a2150049e3a8edbf4cff9bf2ed4d1f1c3f1acdb0b53f8a0c33",
+        "right": "a8629902c8ea2c79753fd9b91ea09987bc95749485c98802e588b0944561c256",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-KTEoYW",
+      "files": {
+        "left": "ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb",
+        "right": "ffe9aaeaa2a2d5048174df0b80599ef0197ec024c4b051bc9860cff58ef7f9f3",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-MrWvCN",
+      "files": {
+        "left": "2cf1b92d162e678e5960774c9c8ddf72d3a3ad43a10f859336f7fd5bedb94ca3",
+        "right": "3e073bd829613172a7cda918202d99c1d1a3d22eb7f3bee8353cdb09bcfc490d",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-NMnKj9",
+      "files": {
+        "left": "8281003838767ecadb3338f3b040705fd8715497c334cb09998e03e321537e40",
+        "right": "a6fd1f843f10bf97379ccfa11f5b6255160a3710265c338133fc2ef744fa54d1",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-OHhwdo",
+      "files": {
+        "left": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "right": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-OnplFv",
+      "files": {
+        "left": "12eb8d2afddbae118bc85adc359141a1f760982a6d42e6a46d49ecb66a5ea541",
+        "right": "f34d26a37e1ac9e323866ecbf4f13fddf862dea9b0df7fdf58cce4f7d67a694f",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-PYBOkt",
+      "files": {
+        "left": "80ed476c5929c5db3a633a2359778c3943b369732beae89bee2f70c0d2ca458f",
+        "right": "ae882e932ef9959a7c0720c5355a470db63e41910e10f353441fbf6c982dd281",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-QDesFz",
+      "files": {
+        "left": "a9ae42356530fd5c82a9abe5a561caa78ba0515af068e46e01dfb1bd741149cf",
+        "right": "eb8d88f1f096da4a4a258541d5433a505989701f639000ad82dbdd879d278b92",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-R07zyL",
+      "files": {
+        "left": "cd2ef1e45322257bebfa05d5f3df95d5e5f7a67f6e1d3fa240311df27feaffa5",
+        "right": "0517ed0be266feac2ae2f35b23bb9b90ff570f4fc81cb66179463c13ff8c820d",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-RJlkLg",
+      "files": {
+        "left": "ea7fb08b7a2dc4619ffb7c7bb38d95a2047935fa165d71b12efd3852a2e6d0cc",
+        "right": "ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-RhqiCr",
+      "files": {
+        "left": "c334265dfbff597fb0aee59d9f568cf494bbcd8bf9cf2dcbe6109cda529cf127",
+        "right": "c74f9ee7d42d4d6d89e9ff9f7d1593011198a6099029569fed65c1ab6bded3df",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-Rujkq1",
+      "files": {
+        "left": "ef176763019c4086b683bf61a29b4aa278b891838a3c1c5c30128f42f467a2db",
+        "right": "6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-SAxhfg",
+      "files": {
+        "left": "10f026c03b291fdec592b10715a6bb7333beb84b76d287a0678c32cff5582697",
+        "right": "d5a05d295295dc70a2dbf1fb15a87d8fe3e15c81affc96e0a64bb5550c322ee2",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-SJwnv5",
+      "files": {
+        "left": "2d504401d775953ba7056df9c514613fdbd6034a4d91dd44f2700738b1017bdc",
+        "right": "2c9ced9599a417985a4bf43305de3dc8dfe38545e2322eddf71ee1b36b2a764e",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-SefXJi",
+      "files": {
+        "left": "bce6d26f247247d8ac9dded31d18e8b508b6948e3477511537ace6bc8298cd0e",
+        "right": "661d92d347014ef171d3d757be81daa0d51bb6a0f5bace5a208598eb253b4c96",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-Sp4tjR",
+      "files": {
+        "left": "92a11eea982c4db96c25cb582f0f12fdd0fa7f4b9506a3f16ab9f46a8eaf1d26",
+        "right": "545add05afdcec751a87b377008b8aaaf96b5aa7f76d8ad944becf583141c4d2",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-UVuKWe",
+      "files": {
+        "left": "aea8a04c2f293417e499bf5de2def8ebb1ed40264d128a67180ea56fbe4600ff",
+        "right": "c865f6c5ab8d1b0bcd383a5e1e3879d22681c96bf462c269b7581d523fbe70ab",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-WTSRD4",
+      "files": {
+        "left": "c9f090c22e931b109795e5351d46ea38ff857397d0e1b7489a115b9878618c2d",
+        "right": "33f8316698b00648107380ad8f112bb849f780f7b1f3cd2b5f9735ff5c457f71",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-YTo1Zt",
+      "files": {
+        "left": "10f026c03b291fdec592b10715a6bb7333beb84b76d287a0678c32cff5582697",
+        "right": "d5a05d295295dc70a2dbf1fb15a87d8fe3e15c81affc96e0a64bb5550c322ee2",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-ZUDFZP",
+      "files": {
+        "left": "7fa54a42524916a1648ec76ce75d295024840b7a3a4f4bbaf3e43155d0014767",
+        "right": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-aHu6HM",
+      "files": {
+        "left": "df2e534c14038350e7a0be70e28e418d8a9dbe0cddc255735c72edb8beec2a1f",
+        "right": "3e073bd829613172a7cda918202d99c1d1a3d22eb7f3bee8353cdb09bcfc490d",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-ahZtkA",
+      "files": {
+        "left": "f00118472657f8105b7f9da0fd176e57f120cf1b09148ed246ef1c05736cc50b",
+        "right": "4453ef533653620d28858c20a8a1019faef12373094404854f32d4d9e279dfcf",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-b6a7Rl",
+      "files": {
+        "left": "8e513a891839456fd9b3b644883fb6016fa44983ab892cd742f45687550f337c",
+        "right": "d57d8b102fb3ff5424dec2721f44716220ad931676a84bf14a44a889f712114a",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-bytxkr",
+      "files": {
+        "left": "ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb",
+        "right": "ffe9aaeaa2a2d5048174df0b80599ef0197ec024c4b051bc9860cff58ef7f9f3",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-clg4bv",
+      "files": {
+        "left": "c95297b6a9f20a2f5e64caea1a7402f0898436ead38bb3abf21244befdf72d24",
+        "right": "7dc52b681e7284e53cc5bc8b5584a949a0d11cc6a36984b851290a6c53a380ca",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-dr4JE9",
+      "files": {
+        "left": "12d05a2895b59d4ff2e3d28d6d7d5b343a0ed4761567f6d55aa9e8ce39a96ac2",
+        "right": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-eBvZCG",
+      "files": {
+        "left": "6d421ec4b623af3bdd47ad1d61a629eab8c11f7bf19a1e59576b5f2eede7befc",
+        "right": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-fQrPf9",
+      "files": {
+        "left": "9f163cefd6a69aaa4303e91cbce2fb1671f45a7b45fa72737d2604f046356a53",
+        "right": "84cf7acee8d1fee84c20a4419fde87d700a41932a102936c3e8a7f466c8e6dd0",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-gFLOMp",
+      "files": {
+        "left": "e3f809b54de3f4e8baff5d2f355d2d83e0618c5bd70971b7470c8dd374264fbb",
+        "right": "3781d4387a13c3d00f7ead814b0d8601e51eaccdbd9dd3100ec2fb3875b2bf0c",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-gjPRlX",
+      "files": {
+        "left": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "right": "dd68f7d9c5242a2d9bd3312a95747e2c4381900d13b57dd79c4705033625b0ae",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-j2cAR9",
+      "files": {
+        "left": "69080fd460d57320989bc06db789bb7e143b14fc513cfb36b6e8356c25e27a30",
+        "right": "c2da132fb0e02d9544386fd4c7945b776a0e69ccc03e64ae7edb00c9282abcf7",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-jVxl6O",
+      "files": {
+        "left": "0e46a2a309f191f9cc61bfd803c98fa22b1022e12414ccea50b2753f0f052cdc",
+        "right": "7fc6820662b0cbe4ab63699f113d0f44dd14abbfb55ba67041982953b85c629f",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-jkegs1",
+      "files": {
+        "left": "2cf1b92d162e678e5960774c9c8ddf72d3a3ad43a10f859336f7fd5bedb94ca3",
+        "right": "3e073bd829613172a7cda918202d99c1d1a3d22eb7f3bee8353cdb09bcfc490d",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-lNDSBm",
+      "files": {
+        "left": "c95297b6a9f20a2f5e64caea1a7402f0898436ead38bb3abf21244befdf72d24",
+        "right": "7dc52b681e7284e53cc5bc8b5584a949a0d11cc6a36984b851290a6c53a380ca",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-mvVbbF",
+      "files": {
+        "left": "490f74bf2b666d409e9063f0336f877966d5d6a2f925a7920db536e8dc01545f",
+        "right": "f2c15d0ffb142618735af281fcfe2728bc4649b5df69d86c1b7b6fa1565163eb",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-n4qP9d",
+      "files": {
+        "left": "12d05a2895b59d4ff2e3d28d6d7d5b343a0ed4761567f6d55aa9e8ce39a96ac2",
+        "right": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-nnPAYr",
+      "files": {
+        "left": "42963f4103f51cfbd3be0c1ac163361f4d581e9562ec5de0d6f0ae26dc2fd9f3",
+        "right": "1ebeef77890498303f8919fc901c12541eecef9cd3bd7371610ed7160095c6ee",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-oX2g2b",
+      "files": {
+        "left": "8e513a891839456fd9b3b644883fb6016fa44983ab892cd742f45687550f337c",
+        "right": "d57d8b102fb3ff5424dec2721f44716220ad931676a84bf14a44a889f712114a",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-ptjHab",
+      "files": {
+        "left": "8c1f6ba657b85a70b55e10ba096c0ba609ea68eda33eebb6c7bfb010f114ace8",
+        "right": "e59258db981bdfb396770ce4d42209a721cd0a43851f5274f6af6d5e5ab151dd",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-sSY5xp",
+      "files": {
+        "left": "ea7fb08b7a2dc4619ffb7c7bb38d95a2047935fa165d71b12efd3852a2e6d0cc",
+        "right": "ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-t8YG7p",
+      "files": {
+        "left": "433a255373ea11131d6ef6cc39f3bd3acb8b1ab18201bcc04d0b112775518ca7",
+        "right": "2844542825eeda536a907845ef5cf9246c7689107b30893c43814f6dd95123b8",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-tOeBFY",
+      "files": {
+        "left": "8281003838767ecadb3338f3b040705fd8715497c334cb09998e03e321537e40",
+        "right": "a6fd1f843f10bf97379ccfa11f5b6255160a3710265c338133fc2ef744fa54d1",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-uuqefH",
+      "files": {
+        "left": "69080fd460d57320989bc06db789bb7e143b14fc513cfb36b6e8356c25e27a30",
+        "right": "c2da132fb0e02d9544386fd4c7945b776a0e69ccc03e64ae7edb00c9282abcf7",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-wOG0fu",
+      "files": {
+        "left": "ef176763019c4086b683bf61a29b4aa278b891838a3c1c5c30128f42f467a2db",
+        "right": "6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-wzHeps",
+      "files": {
+        "left": "c95297b6a9f20a2f5e64caea1a7402f0898436ead38bb3abf21244befdf72d24",
+        "right": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-z3QjdK",
+      "files": {
+        "left": "aea8a04c2f293417e499bf5de2def8ebb1ed40264d128a67180ea56fbe4600ff",
+        "right": "c865f6c5ab8d1b0bcd383a5e1e3879d22681c96bf462c269b7581d523fbe70ab",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    },
+    {
+      "path": "/tmp/safe-bash-table-review-owned/closed/tests/commands/table-text-stress/.native-zhgR1p",
+      "files": {
+        "left": "6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d",
+        "right": "bae093434561d2ea8f1db2619a9c989b39118903c42b1233eb65ec2bc14ce216",
+        "sentinel": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+      }
+    }
+  ]
+}

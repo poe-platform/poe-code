@@ -1,0 +1,55 @@
+{
+  "status": "exact-byte-envelopes-verified",
+  "provenance": [
+    {
+      "name": "v2-baseline-canonical-path.json",
+      "origin": "/private/tmp/safe-bash-current-webdav-consumer-blocker-stage-lXZn5P/v2-baseline-canonical-path.json",
+      "sha256": "2456c05a349fe5391bb4bcf98018bcdb7c7a9ef2f7b10887346d9ee39b837ddc",
+      "archivedEnvelope": "other-agent-webdav/exact-bytes/v2-baseline-canonical-path.json",
+      "firstTextCopySha256": "2456c05a349fe5391bb4bcf98018bcdb7c7a9ef2f7b10887346d9ee39b837ddc",
+      "expectedSha256": "2456c05a349fe5391bb4bcf98018bcdb7c7a9ef2f7b10887346d9ee39b837ddc"
+    },
+    {
+      "name": "v2-protocol-controls.json",
+      "origin": "/private/tmp/safe-bash-current-webdav-consumer-blocker-stage-lXZn5P/v2-protocol-controls.json",
+      "sha256": "545787c89c5b3a7312741af9127b0b39ee4e57ee782f23f772d24767ccbee201",
+      "archivedEnvelope": "other-agent-webdav/exact-bytes/v2-protocol-controls.json",
+      "firstTextCopySha256": "545787c89c5b3a7312741af9127b0b39ee4e57ee782f23f772d24767ccbee201",
+      "expectedSha256": "545787c89c5b3a7312741af9127b0b39ee4e57ee782f23f772d24767ccbee201"
+    },
+    {
+      "name": "v2-owned-copy-consumer-diagnostic.json",
+      "origin": "/private/tmp/safe-bash-current-webdav-consumer-blocker-stage-lXZn5P/v2-owned-copy-consumer-diagnostic.json",
+      "sha256": "6c622dbaba65a3b5325c7bcae8aaa7eb596070264ccbbf5f682de6686ba2b676",
+      "archivedEnvelope": "other-agent-webdav/exact-bytes/v2-owned-copy-consumer-diagnostic.json",
+      "firstTextCopySha256": "6c622dbaba65a3b5325c7bcae8aaa7eb596070264ccbbf5f682de6686ba2b676",
+      "expectedSha256": "6c622dbaba65a3b5325c7bcae8aaa7eb596070264ccbbf5f682de6686ba2b676"
+    },
+    {
+      "name": "baseline.json",
+      "origin": "/private/tmp/safe-bash-current-webdav-consumer-blocker-stage-lXZn5P/baseline.json",
+      "sha256": "950d3ddeba273e9a5b2ee6f2ca1a6c2d7a736ba7cc21777759e791a8a1237f83",
+      "archivedEnvelope": "other-agent-webdav/exact-bytes/baseline.json",
+      "firstTextCopySha256": "18d3e91d05df074845a7ce9c027bb9e6213159f4249d9d1b8914cadf132eb88d",
+      "expectedSha256": null
+    },
+    {
+      "name": "protocol-controls.json",
+      "origin": "/private/tmp/safe-bash-current-webdav-consumer-blocker-stage-lXZn5P/protocol-controls.json",
+      "sha256": "af1ae7e39c89a224e38a5c4fb6a5e690bdaf9158cda07820f1dee1c036c7f1e0",
+      "archivedEnvelope": "other-agent-webdav/exact-bytes/protocol-controls.json",
+      "firstTextCopySha256": null,
+      "expectedSha256": null
+    },
+    {
+      "name": "v2-diagnostic-summary.json",
+      "origin": "/private/tmp/safe-bash-current-webdav-consumer-blocker-stage-lXZn5P/v2-diagnostic-summary.json",
+      "sha256": "c08d333a7b65f06ed4180577d1237d56d7e5441c4b36e262d4d1f0ee026d4303",
+      "archivedEnvelope": "other-agent-webdav/exact-bytes/v2-diagnostic-summary.json",
+      "firstTextCopySha256": null,
+      "expectedSha256": null
+    }
+  ],
+  "scope": "The first three v2 raw JSON copies also match byte-for-byte. First baseline text copy gained a trailing newline through apply_patch and is retained as an explicitly nonidentical first archive attempt, not used as authenticated raw input. Decode exact-byte envelope content to recover original bytes. Earlier baseline permission-path failure and observer-only consumed-stream failure remain preserved; no new product tests.",
+  "correctedHarnessSha256": "7de6d8d4e376efc09a44629d4068b9cc6a0847902c5aeaa7f507fbcf2a65cf4b"
+}

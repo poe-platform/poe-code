@@ -1,0 +1,120 @@
+{
+  "productImported": false,
+  "sourceCertified": false,
+  "canonicalApplied": false,
+  "checks": [
+    {
+      "name": "minimal nonoverlapping spans and bytewise untouched regions",
+      "files": 13,
+      "spans": 36,
+      "immutableTrees": 5
+    },
+    {
+      "name": "native unified patch checks and reconstructs snapshots",
+      "paths": [
+        "tests/commands/structured-stress/harness.ts",
+        "tests/commands/structured-stress/independent-increment/safety.test.ts",
+        "tests/commands/structured-stress/join.test.ts",
+        "tests/commands/structured-stress/jq-grammar-byte-assertions-v3.test.ts",
+        "tests/commands/structured-stress/jq-grammar-native-v3.json",
+        "tests/commands/structured-stress/jq-grammar-native-v3.ts",
+        "tests/commands/structured-stress/raw-input.test.ts",
+        "tests/commands/structured-stress/safety.test.ts",
+        "tests/commands/structured-stress/split-increment/command.test.ts",
+        "tests/commands/structured/cli.test.ts",
+        "tests/commands/structured/helpers.ts",
+        "tests/commands/structured/resources.test.ts"
+      ]
+    },
+    {
+      "name": "host unified patch checks and reconstructs snapshots",
+      "paths": [
+        "tests/commands/structured-stress/jq-42-author-20260827/safety.test.ts"
+      ]
+    },
+    {
+      "name": "actual original/proposed selected callback schedules match",
+      "rows": 29,
+      "calls": 464,
+      "constituents": 96,
+      "uniqueInputKeys": 90,
+      "productCalls": 0,
+      "method": "Transpile proposed test callbacks in memory; inject frozen tuples only, compare full invocation/chunk/file schedules. This validates proposal wiring, not product parity."
+    },
+    {
+      "name": "unselected registrations and shared-loop branches retained",
+      "tests": 373,
+      "byteIdenticalCallbacks": 167,
+      "syntheticTraceChecks": 206,
+      "index20Retained": true,
+      "split2Retained": true
+    },
+    {
+      "name": "byte mutation and lookup safeguards",
+      "documentedMutantsRejectedByActualProposedCallbacks": 14,
+      "proposedHelperTests": 15,
+      "missingAndDuplicateRejected": true,
+      "undefinedNotConflatedWithDefault": true
+    },
+    {
+      "name": "proposed test-only helpers against injected command stub",
+      "helpers": [
+        {
+          "path": "tests/commands/structured-stress/harness.ts",
+          "copiedBeforeBufferReuse": true,
+          "legacyFieldsPreserved": true,
+          "actualDefaultNull": true,
+          "overridesAndOptionsPreserved": true,
+          "originalCaptureCapPreserved": 131072
+        },
+        {
+          "path": "tests/commands/structured/helpers.ts",
+          "copiedBeforeBufferReuse": true,
+          "legacyFieldsPreserved": true,
+          "actualDefaultNull": true,
+          "overridesAndOptionsPreserved": true,
+          "originalCaptureCapPreserved": "original helper has no added cap"
+        }
+      ]
+    },
+    {
+      "name": "conditional host patch wiring only, not contract approval",
+      "jqErrorRows": 1,
+      "unchangedEpipeControl": 1,
+      "identityStubPasses": true,
+      "rejectedStubMutations": [
+        "convert-to-status",
+        "diagnostic-write",
+        "extra-read"
+      ],
+      "nativeParity": false,
+      "sourceContractDecisionPending": true
+    },
+    {
+      "name": "bytewise static unrelated statements and complete safety suffix",
+      "untouchedTopLevelStatements": 93,
+      "safetySuffixBytes": 7017,
+      "safetySuffixSha256": "8b1f26fa92b33bf83dee716cf778d7bfd5572a62e64b825751465fbbeaa0bf32",
+      "allIdentical": true
+    },
+    {
+      "name": "in-memory proposed-files typecheck",
+      "proposedDiagnostics": [],
+      "transitiveDiagnostics": [],
+      "noEmit": true,
+      "productImported": false,
+      "warning": "Type analysis of reachable declarations/source only; not runtime or source acceptance."
+    }
+  ],
+  "summary": {
+    "selectedRows": 29,
+    "selectedSchedules": 464,
+    "hostConditionalRows": 1,
+    "mutantsRejected": 14,
+    "helpersChecked": 2,
+    "unselectedTests": 373,
+    "noProductImport": true,
+    "literalFileChecksUnavailable": 2
+  },
+  "supersedes": "verification-v3.json omitted 69 unchanged split-native registrations via an empty fixture stub; final validation uses the actual immutable 69-case fixture. Prior artifact retained, not overwritten."
+}

@@ -1,0 +1,16 @@
+{
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-name-pattern=optional truncate",
+    "tests/stress/adapters/core.test.ts"
+  ],
+  "cwd": "/tmp/safe-bash-adapter-corrections-0yDYsZ/01-truncate-fixed-runner/archive",
+  "start": "2026-08-26T23:32:15.775Z",
+  "end": "2026-08-26T23:32:15.972Z",
+  "status": 0,
+  "signal": null
+}

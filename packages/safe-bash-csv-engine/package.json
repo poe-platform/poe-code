@@ -1,0 +1,62 @@
+{
+  "name": "safe-bash-csv-engine",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./sniffer": {
+      "types": "./dist/sniffer.d.ts",
+      "import": "./dist/sniffer.js"
+    },
+    "./sniffer-quotes": {
+      "types": "./dist/sniffer-quotes.d.ts",
+      "import": "./dist/sniffer-quotes.js"
+    },
+    "./sniffer-unicode": {
+      "types": "./dist/sniffer-unicode.d.ts",
+      "import": "./dist/sniffer-unicode.js"
+    },
+    "./text-decoder": {
+      "types": "./dist/text-decoder.d.ts",
+      "import": "./dist/text-decoder.js"
+    },
+    "./python-codec-aliases": {
+      "types": "./dist/python-codec-aliases.d.ts",
+      "import": "./dist/python-codec-aliases.js"
+    },
+    "./python-codepages": {
+      "types": "./dist/python-codepages.d.ts",
+      "import": "./dist/python-codepages.js"
+    },
+    "./python-utf16": {
+      "types": "./dist/python-utf16.d.ts",
+      "import": "./dist/python-utf16.js"
+    },
+    "./python-file-codepages": {
+      "types": "./dist/python-file-codepages.d.ts",
+      "import": "./dist/python-file-codepages.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc && cp LICENSE dist/",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
+    "lint": "eslint src && npm run typecheck",
+    "test": "node --import tsx --test src/*.test.ts",
+    "test:unit": "node --import tsx --test src/*.test.ts"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "safe-bash-contracts": "*"
+  }
+}

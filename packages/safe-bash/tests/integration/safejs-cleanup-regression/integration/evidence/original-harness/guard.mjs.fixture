@@ -1,0 +1,44 @@
+import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { appendFileSync, lstatSync, readFileSync, realpathSync } from "node:fs";
+import { registerHooks } from "node:module";
+import { relative, isAbsolute } from "node:path";
+import { fileURLToPath } from "node:url";
+import { threadId } from "node:worker_threads";
+
+const root = realpathSync(process.env.INTEGRATION_ROOT);
+const inventory = JSON.parse(readFileSync(process.env.INTEGRATION_MANIFEST, "utf8"));
+const loaded = new Set();
+const emit = entry => appendFileSync(process.env.INTEGRATION_IMPORTS, `${JSON.stringify({ pid: process.pid, threadId, ...entry })}\n`);
+
+function check(url) {
+  if (url.startsWith("node:")) return;
+  assert.ok(url.startsWith("file:"), `Forbidden import protocol: ${url}`);
+  const requested = fileURLToPath(url);
+  const filename = realpathSync(requested);
+  const local = relative(root, filename);
+  if (isAbsolute(local) || local === ".." || local.startsWith("../") || !inventory[local]) {
+    emit({ rejected: filename });
+    throw Object.assign(new Error(`Import outside audited runtime: ${filename}`), { code: "INTEGRATION_IMPORT_DENIED" });
+  }
+  assert.equal(lstatSync(requested).isSymbolicLink(), false);
+  return { local, filename };
+}
+
+registerHooks({
+  resolve(specifier, context, next) {
+    const result = next(specifier, context);
+    check(result.url);
+    return result;
+  },
+  load(url, context, next) {
+    const entry = check(url);
+    if (entry && !loaded.has(entry.local)) {
+      const sha256 = createHash("sha256").update(readFileSync(entry.filename)).digest("hex");
+      assert.equal(sha256, inventory[entry.local].sha256, `Import changed: ${entry.local}`);
+      loaded.add(entry.local);
+      emit({ loaded: entry.local, sha256 });
+    }
+    return next(url, context);
+  },
+});

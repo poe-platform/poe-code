@@ -1,0 +1,167 @@
+{
+  "schema": 1,
+  "role": "strict emitted internal USTAR package producer, not npm/full public package",
+  "presealSha256": "5c5d04fd30c17f1222bc126e3a6043f4c5200a9e220d561c1dc6082545056c9e",
+  "sourceManifestSha256": "84d53de2f9f0905caba16fcf728c324e3a325d72328bb733510371479d78119b",
+  "sourceModules": 12,
+  "emissions": 24,
+  "entries": [
+    {
+      "name": "ere/errors.d.ts",
+      "size": 691,
+      "mode": 420,
+      "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994"
+    },
+    {
+      "name": "ere/errors.js",
+      "size": 1045,
+      "mode": 420,
+      "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+    },
+    {
+      "name": "ere/limits.d.ts",
+      "size": 671,
+      "mode": 420,
+      "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121"
+    },
+    {
+      "name": "ere/limits.js",
+      "size": 3265,
+      "mode": 420,
+      "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+    },
+    {
+      "name": "ere/matcher.d.ts",
+      "size": 231,
+      "mode": 420,
+      "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941"
+    },
+    {
+      "name": "ere/matcher.js",
+      "size": 9747,
+      "mode": 420,
+      "sha256": "194822e62db2ba5304f7d65e1956de9fd1f3a53c420488765810126484335891"
+    },
+    {
+      "name": "ere/syntax.d.ts",
+      "size": 445,
+      "mode": 420,
+      "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005"
+    },
+    {
+      "name": "ere/syntax.js",
+      "size": 14270,
+      "mode": 420,
+      "sha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee"
+    },
+    {
+      "name": "ere/transport/accounting.d.ts",
+      "size": 1925,
+      "mode": 420,
+      "sha256": "81e8fa768afcbc3df8d813e15eda2517336bf42528cbc9b529e273de0bdea933"
+    },
+    {
+      "name": "ere/transport/accounting.js",
+      "size": 7003,
+      "mode": 420,
+      "sha256": "a2efde0057aad148fd90e410cfc85a33c17be8c0ac9725868f8836b4d4d2ec48"
+    },
+    {
+      "name": "ere/transport/owner.d.ts",
+      "size": 492,
+      "mode": 420,
+      "sha256": "c18c4a6e4251a1de24640a45578a18aac8f0510bf616b6899216fb7a606c76c6"
+    },
+    {
+      "name": "ere/transport/owner.js",
+      "size": 7353,
+      "mode": 420,
+      "sha256": "16306b78d3cdee1758b1e81834419187e0f50597a756e27ff589f02f015e2652"
+    },
+    {
+      "name": "ere/transport/protocol.d.ts",
+      "size": 2658,
+      "mode": 420,
+      "sha256": "ce61f60671b31c025f0b43e18c11bc3411c4d8933f8c5f671d020f1e731b8f11"
+    },
+    {
+      "name": "ere/transport/protocol.js",
+      "size": 1198,
+      "mode": 420,
+      "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f"
+    },
+    {
+      "name": "ere/transport/root.d.ts",
+      "size": 562,
+      "mode": 420,
+      "sha256": "95d6c0cd45a950cd63caad8add334ad48c036bf4a4a9422e4519ca74ad979ff1"
+    },
+    {
+      "name": "ere/transport/root.js",
+      "size": 12642,
+      "mode": 420,
+      "sha256": "44600e8e777a212da0dede616ee22416e092aa27e01ef2c6ac55a5fe494a4d9a"
+    },
+    {
+      "name": "ere/transport/validation.d.ts",
+      "size": 1462,
+      "mode": 420,
+      "sha256": "7389ff532f83f8c66b7aa3fe33d1b71e6bf6c19ee0c4aa2f1c69f6cdc628d59c"
+    },
+    {
+      "name": "ere/transport/validation.js",
+      "size": 12831,
+      "mode": 420,
+      "sha256": "94400abdbe0afb2101e98e866c19f4b7fe3fbcb85efec68badfebcc0aafe374b"
+    },
+    {
+      "name": "ere/transport/wire-engine.d.ts",
+      "size": 164,
+      "mode": 420,
+      "sha256": "1eae95d8426401b1bd892fb7becc82b366129e3983fbf069c82f54174add384c"
+    },
+    {
+      "name": "ere/transport/wire-engine.js",
+      "size": 2514,
+      "mode": 420,
+      "sha256": "4c0d20d2c63b7081158091eee5599440569a2cb767679982a51cb64b398296d2"
+    },
+    {
+      "name": "ere/transport/worker-entry.d.ts",
+      "size": 11,
+      "mode": 420,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "name": "ere/transport/worker-entry.js",
+      "size": 1502,
+      "mode": 420,
+      "sha256": "289d6f45264aa38d32deb1f1fa2aa06635351399ba9954abfadcb802ab9cb434"
+    },
+    {
+      "name": "ere/types.d.ts",
+      "size": 1606,
+      "mode": 420,
+      "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704"
+    },
+    {
+      "name": "ere/types.js",
+      "size": 11,
+      "mode": 420,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "name": "package.json",
+      "size": 223,
+      "mode": 420,
+      "sha256": "e5d8d03db4faf1bf2091c53b0d6dcd889853746b99f9c74e6bf66b8857009441"
+    }
+  ],
+  "tarBytes": 105472,
+  "tarSha256": "2afaefcd8b35caa5259f501294bad7201aef76ed9dbb0af7cbc15d782289f45f",
+  "compressedBytes": 17324,
+  "compressedSha256": "fcf17fcb9682a8d3970f0ec3577807359ac03d437ad0d0f7e4fac36d1260f674",
+  "textBytes": 23101,
+  "textSha256": "20307c3f345a174ccb6194abff7eebc0f8dc700e7f64d99e8cc4e5bddd81ae6a",
+  "format": "gzip USTAR; ASCII names, lexical byte order, all regular0644, uid/gid/mtime0; package/ prefix"
+}

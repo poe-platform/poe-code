@@ -1,0 +1,166 @@
+import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
+import { test } from "node:test";
+import { Shell } from "../../src/shell/index.js";
+import { MemoryFileSystem } from "../../src/fs/memory/index.js";
+import { CommandRegistry } from "../../src/contracts/index.js";
+import { basicCommands } from "../../src/commands/basic.js";
+import { streamCommands } from "../../src/commands/streams.js";
+import { createByteCommands } from "../../src/commands/bytes/index.js";
+import { createStreamInspectionCommands } from "../../src/commands/stream-inspection/index.js";
+import { grepCommands } from "../../src/commands/grep.js";
+
+for (const loop of ["for ((i=0;i<3;i++))", "for i in {0..2}"]) {
+  for (const [name, body, expected] of [
+    ["echo prefixes", 'echo "line_$(printf "item_%d\\n" "$i" | grep item_0)"', "line_item_0\nline_\nline_\n"],
+    ["append", 'acc+="$(printf "item_%d\\n" "$i" | grep item_0)"; echo "$acc"', "item_0\nitem_0\nitem_0\n"],
+    ["assignment prefixes", 'g="prefix_$(printf "item_%d\\n" "$i" | grep item_0)"; echo "$g"', "prefix_item_0\nprefix_\nprefix_\n"],
+    ["count and status", 'g="$(printf "item_%d\\n" "$i" | grep -c item_0)"; echo "$?:$g"', "0:1\n1:0\n1:0\n"],
+    ["empty output status", 'g="$(printf "item_%d\\n" "$i" | grep item_0)"; echo "$?:$g"', "0:item_0\n1:\n1:\n"],
+    ["later pipeline status", 'g="$(printf "item_%d\\n" "$i" | grep item_0 | wc -l)"; echo "$?:$g"', "0:1\n0:0\n0:0\n"],
+  ]) {
+    test(`${loop} preserves grep ${name}`, async () => {
+      const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry([...basicCommands(), ...streamCommands(), ...grepCommands()]) });
+      try {
+        const result = await shell.exec(`acc=""; ${loop}; do ${body}; done`);
+        assert.equal(result.stdout, expected);
+        assert.equal(result.stderr, "");
+        assert.equal(result.exitCode, 0);
+      } finally { await shell.dispose(); }
+    });
+  }
+}
+
+test("arithmetic loop substitutions cross command checkpoints without corruption", async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(basicCommands()) });
+  try {
+    const result = await shell.exec('out=""; for ((i=1;i<=1800;i++)); do a=$(printf "%d" "$i"); b=$(printf "%d" "$i"); c=$(printf "%d" "$i"); d=$(printf "%d" "$i"); out+="$(printf "%d," "$i")"; done; echo "$a:$b:$c:$d"; echo "$out"');
+    assert.equal(result.stdout, `1800:1800:1800:1800\n${Array.from({ length: 1800 }, (_, i) => `${i + 1},`).join("")}\n`);
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+  } finally { await shell.dispose(); }
+});
+
+for (const flag of ["-q", "-v"]) {
+  test(`grep ${flag} without a pattern rejects the invocation`, async () => {
+    const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry([...basicCommands(), ...streamCommands(), ...grepCommands()]) });
+    try {
+      const result = await shell.exec(`for ((i=0;i<2;i++)); do g="$(printf '%s\\n' '${flag}' | grep ${flag})"; echo "$?:$g"; done`);
+      assert.equal(result.stdout, "2:\n2:\n");
+      assert.notEqual(result.stderr, "");
+    } finally { await shell.dispose(); }
+  });
+}
+
+for (const loop of ["for ((i=0;i<3;i++))", "for i in {0..2}"]) {
+  for (const [body, tail, expected] of [
+    ['acc+="$(printf "item_%d\\n" "$i" | grep item_0)"', 'echo "$acc"', "item_0\n"],
+    ['g="prefix_$(printf "item_%d\\n" "$i" | grep item_0)"', 'echo "$g"', "prefix_\n"],
+    ['g="$(printf "item_%d\\n" "$i" | grep -c item_0)"; acc="${acc}[$i:$g]"', 'echo "$acc"', "[0:1][1:0][2:0]\n"],
+  ]) {
+    test(`${loop} retains assignment output after synchronous execution: ${body}`, async () => {
+      const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry([...basicCommands(), ...grepCommands()]) });
+      try {
+        const result = await shell.exec(`acc=""; ${loop}; do ${body}; done; ${tail}`);
+        assert.equal(result.stdout, expected);
+        assert.equal(result.stderr, "");
+        assert.equal(result.exitCode, 0);
+      } finally { await shell.dispose(); }
+    });
+  }
+}
+
+for (const pipefail of [false, true]) {
+  test(`zero-match grep pipeline preserves status with pipefail=${pipefail}`, async () => {
+    const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry([...basicCommands(), ...streamCommands(), ...grepCommands()]) });
+    try {
+      const result = await shell.exec(`${pipefail ? "set -o pipefail;" : ""} g="$(printf 'x\\n' | grep missing | wc -l)"; echo "$?:$g"`);
+      assert.equal(result.stdout, `${pipefail ? 1 : 0}:0\n`);
+      assert.equal(result.stderr, "");
+    } finally { await shell.dispose(); }
+  });
+}
+
+test("ordinary for loop substitutions cross a pre-existing command checkpoint", async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(basicCommands()) });
+  try {
+    const result = await shell.exec('a=x; for ((j=0;j<1600;j++)); do a=x; b=x; c=x; d=x; e=x; done; out=""; for i in {1..150}; do a=$(printf "%d" "$i"); b=$(printf "%d" "$i"); c=$(printf "%d" "$i"); d=$(printf "%d" "$i"); out+="$a:$b:$c:$d:$(printf "%d," "$i")"; done; echo "$out"');
+    assert.equal(result.stdout, `${Array.from({ length: 150 }, (_, i) => `${i + 1}:${i + 1}:${i + 1}:${i + 1}:${i + 1},`).join("")}\n`);
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+  } finally { await shell.dispose(); }
+});
+
+for (const [name, values, command] of [
+  ["printf hex escape", "1 2", 'printf "%s\\x41\\n" "$p"'],
+  ["printf zero padding", "1 2", 'printf "%05s\\n" "$p"'],
+  ["printf invalid integer", "1x 2x", 'printf "%d\\n" "$p"'],
+  ["printf large width", "1 2", 'printf "%129s\\n" "$p"'],
+  ["printf non-ASCII width", "é 界", 'printf "%5s\\n" "$p"'],
+  ["echo dynamic option", "hi -n", 'echo "$p"'],
+  ["echo dynamic escape option", "hi -e", 'echo "$p" "a\\nb"'],
+  ["echo empty prefix", "hi -n", 'echo """$p"'],
+  ["echo safe prefix", "hi -n", 'echo "item_$p"'],
+] as const) {
+  for (const suffix of ["", " | head -n 10"]) {
+    for (const assignment of ['out+=$(COMMAND)', 'out=$(COMMAND)']) {
+      test(`loop substitution ${name}${suffix}: ${assignment}`, async () => {
+        const source = `out=""; for p in ${values}; do ${assignment.replace("COMMAND", command + suffix)}; done; printf '[%s]\\n' "$out"`;
+        const oracle = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8" });
+        assert.equal(oracle.error, undefined);
+        const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry([...basicCommands(), ...streamCommands()]) });
+        try {
+          const result = await shell.exec(source);
+          if (name.startsWith("printf")) {
+            // macOS Bash 3.2 differs from modern printf for zero-padded strings
+            // and partially converted numbers. Compare with ordinary execution.
+            const reference = await shell.exec(`out=""; ${values.split(" ").map(value => `p='${value}'; ${assignment.replace("COMMAND", command + suffix)}`).join("; ")}; printf '[%s]\\n' "$out"`);
+            assert.equal(result.stdout, reference.stdout);
+            assert.equal(result.stderr, reference.stderr);
+            assert.equal(result.exitCode, reference.exitCode);
+            assert.ok(!result.stdout.includes("undefined"));
+          } else {
+            assert.equal(result.stdout, oracle.stdout);
+            assert.equal(result.stderr, oracle.stderr);
+            assert.equal(result.exitCode, oracle.status);
+          }
+        } finally { await shell.dispose(); }
+      });
+    }
+  }
+}
+
+for (const [pipeline, expected] of [
+  ['head -c 1 <<< "ab" | tac', "a"],
+  ['tr -d "\\n" <<< "ab" | tac', "ab"],
+  ['echo "ab" | head -c 1 | tac', "a"],
+  ['echo "ab" | tr -d "\\n" | tac', "ab"],
+  ['head -c 3 <<< "a\nb" | tac', "ba"],
+  ['head -c 5 <<< "a\nb\nc" | tac', "cb\na"],
+  ['head -c 0 <<< "ab" | tac', ""],
+] as const) {
+  test(`sync pipeline preserves partial tac records: ${pipeline}`, async () => {
+    const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry([...basicCommands(), ...streamCommands(), ...createStreamInspectionCommands()]) });
+    try {
+      const result = await shell.exec(`for i in 1 2; do echo "$( ${pipeline} )"; done`);
+      assert.equal(result.stdout, `${expected}\n`.repeat(2));
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+    } finally { await shell.dispose(); }
+  });
+}
+
+test("sync pipeline retains expanded stages beyond shared buffer capacity", async () => {
+  const { createTextProgramCommands } = await import("../../src/commands/text-programs/index.js");
+  for (const suffix of ["", " | head -c 70000", " | tr a b", " | base64 | base64 -d"]) {
+    const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry([...basicCommands(), ...streamCommands(), ...createTextProgramCommands(), ...createByteCommands()]) });
+    try {
+      const source = `s=${"a".repeat(4000)}; for i in 1 2; do echo "$(echo "x$s" | sed 's/a/aaaaaaaaaaaaaaaaaaaa/g'${suffix})"; done`;
+      const result = await shell.exec(source);
+      const expanded = "x" + (suffix.includes("tr a b") ? "b" : "a").repeat(80000);
+      assert.equal(result.stdout, ((suffix.includes("head") ? expanded.slice(0, 70000) : expanded) + "\n").repeat(2));
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+    } finally { await shell.dispose(); }
+  }
+});

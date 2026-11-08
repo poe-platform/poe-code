@@ -1,0 +1,59 @@
+{
+  "records": [
+    {
+      "name": "runtime",
+      "argv": [
+        "show",
+        "928be5585f05c15867fbbb5f4b5debe153b0734e:src/shell/runtime.ts"
+      ],
+      "status": {
+        "code": 0,
+        "signal": null
+      },
+      "lengths": [
+        197605,
+        0
+      ],
+      "sha256": "d47946f659af53880de53e65f93d26b934404a56b31183d937174d0f46221f66",
+      "closed": true,
+      "failure": null
+    },
+    {
+      "name": "parser",
+      "argv": [
+        "show",
+        "928be5585f05c15867fbbb5f4b5debe153b0734e:src/shell/parser.ts"
+      ],
+      "status": {
+        "code": 0,
+        "signal": null
+      },
+      "lengths": [
+        39122,
+        0
+      ],
+      "sha256": "e8c19ffc7a5c2ffcd63608f0fd4722466e1999e647bc2e676b12710555a0e9a4",
+      "closed": true,
+      "failure": null
+    },
+    {
+      "name": "arithmetic",
+      "argv": [
+        "show",
+        "c83f352f057c64917f219eb938f54aa42cdab829:src/shell/arithmetic.ts"
+      ],
+      "status": {
+        "code": 128,
+        "signal": null
+      },
+      "lengths": [
+        0,
+        108
+      ],
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "closed": true,
+      "failure": null
+    }
+  ],
+  "childrenClosed": 3
+}

@@ -1,0 +1,6 @@
+{
+  "scratchAbsent": true,
+  "parentAbsent": true,
+  "children": "synchronous children waited, driver workers awaited; no SIGSTOP",
+  "integrity": "full extracted source/tests and compiled inventories detect new entries too; authenticated original freeze paths checked before/after; no append-proof claim for independent evidence directory"
+}

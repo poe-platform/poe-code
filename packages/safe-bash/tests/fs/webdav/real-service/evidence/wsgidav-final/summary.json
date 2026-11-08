@@ -1,0 +1,31 @@
+{
+  "provider": "wsgidav",
+  "raw": {
+    "positive": {
+      "pass": 3,
+      "fail": 6
+    },
+    "guard": {
+      "pass": 3,
+      "fail": 4
+    },
+    "refusal": {
+      "pass": 0,
+      "fail": 0
+    }
+  },
+  "consumer": {
+    "positive": {
+      "pass": 10,
+      "fail": 5
+    },
+    "guard": {
+      "pass": 13,
+      "fail": 0
+    },
+    "refusal": {
+      "pass": 4,
+      "fail": 0
+    }
+  }
+}

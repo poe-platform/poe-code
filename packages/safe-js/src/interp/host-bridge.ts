@@ -1,0 +1,1818 @@
+import { captureJobScheduler, suspendJob } from "./jobs.js";
+import { resolveSandboxValue } from "./promise.js";
+import { readNativeMap, readNativeSet } from "./native-collections.js";
+import { copyCollectionPropertiesOperation, getCollectionProperties } from "./collection-properties.js";
+import { runDataCopy, type DataCopyOperation } from "./data-copy.js";
+import { runResources, type RunResources } from "./resources.js";
+import { nativeConstructorName } from "./native-constructor-name.js";
+import { types } from "#safe-js-platform";
+import { nativePromiseDataProperties } from "./native-promise-properties.js";
+import { readNativeRegExp } from "./native-regexp.js";
+import { importedPromises } from "./promise-state.js";
+import { observeSandboxPromise } from "./promise-tracker.js";
+import { guestProxyStates } from "./guest-proxy.js";
+import { callGuestProxy } from "./guest-proxy-call.js";
+import { sandboxGetProperty } from "./guest-proxy-get.js";
+import { invokeBuiltinClosure } from "./builtin-call.js";
+import { moduleFunctionOrigins } from "./module-function-origin.js";
+import { hostFunctionMetadata } from "./host-function-metadata.js";
+import { normalizeClosureResult } from "./async.js";
+import { copyNativeDate } from "./date.js";
+import { createSandboxTemporalInstant, hostTemporalInstantEpoch } from "./temporal-instant.js";
+import { createSandboxTemporalDuration, hostTemporalDurationFields } from "./temporal-duration.js";
+import { createSandboxTemporalPlainTime, hostTemporalPlainTimeFields } from "./temporal-plain-time.js";
+import { createSandboxTemporalPlainDateTime, hostTemporalPlainDateTimeFields } from "./temporal-plain-date-time.js";
+import { createSandboxTemporalPlainDate, hostTemporalPlainDateFields } from "./temporal-plain-date.js";
+import { createSandboxTemporalPlainMonthDay, hostTemporalPlainMonthDayFields } from "./temporal-plain-month-day.js";
+import { createSandboxTemporalPlainYearMonth, hostTemporalPlainYearMonthFields } from "./temporal-plain-year-month.js";
+import { createSandboxTemporalZonedDateTime, hostTemporalZonedDateTimeFields } from "./temporal-zoned-date-time.js";
+import { createIntrinsicObject, hasExplicitSandboxPrototype, hasNullObjectPrototype, materializeFunctionProperties, setSandboxPrototype } from "./object-model.js";
+import { boxedDataProperties, createSandboxBox, nativeBoxedValue } from "./boxed.js";
+import { exportHostCapability, importHostCapability, isGuestHostObject, isLiveCapability } from "./host-capabilities.js";
+import { activeCancellation } from "./cancel.js";
+import { ordinaryHasInstance } from "./instanceof.js";
+import { attachErrorSpan, replaceErrorStack, type ErrorSourceSpan } from "../error/shape.js";
+import { SandboxError, type Budget, type CompileOwner } from "./budget.js";
+import { CompileScope } from "./regex/compile-guard.js";
+import { arrayBufferDataProperties, arrayBufferLength, arrayBufferOptions, copyArrayBufferStorage, isSandboxArrayBuffer } from "./array-buffer.js";
+import { isSandboxSharedArrayBuffer } from "./shared-array-buffer.js";
+import { copyDataViewStorage, dataViewBuffer, dataViewDataProperties, isSandboxDataView } from "./data-view.js";
+import {
+  checkTypedArrayAllocation,
+  copyTypedArrayStorage,
+  typedArrayDataProperties,
+  typedArrayStorage,
+  isNumericTypedArray
+} from "./typed-array.js";
+import { createSubsetErrorValue } from "./exceptions.js";
+import { bindOtelSpan, getBoundOtelSpan } from "../observability/otel.js";
+import {
+  readRegisteredPendingHostCallPolicy,
+  type PendingHostCallPolicyMode
+} from "../snapshot/policy.js";
+import {
+  digestHostCallArguments,
+  HostCallResumabilityError,
+  UnresolvedReplayCapabilityError,
+  type HostCallJournal,
+  type HostCallOutcome,
+  type HostCallRecord
+} from "./host-call.js";
+import {
+  assertNativeProxyCopyable,
+  copiedPlainObjects,
+  createSandboxClosure,
+  createSandboxMap,
+  createSandboxPromise,
+  getPromiseProperties,
+  createSandboxRegex,
+  getRegexProperties,
+  isSandboxRegex,
+  createSandboxSet,
+  deepCopyFromSandbox,
+  deepCopyToSandbox,
+  defineOwnDataProperty,
+  isArrayIndexKey,
+  isSandboxClosure,
+  isSandboxMap,
+  isSandboxSet,
+  isSandboxPromise,
+  measureSandboxData,
+  defaultDataMeasurementOptions,
+  type SandboxClosure,
+  type SandboxPromise,
+  type SandboxCallContext,
+  type SandboxObject,
+  type SandboxValue
+} from "./values.js";
+import { enterRunningState } from "./running-state.js";
+import { promiseReplayContext } from "./promise-replay.js";
+import { hostErrorData, sandboxErrorTypes } from "../error/shape.js";
+import { encodeReplayData, type ReplayData } from "../snapshot/replay-data.js";
+import type { RunLifecycle } from "../snapshot/dump.js";
+
+const AsyncFunction = (async () => undefined).constructor;
+const constructorPromiseThen = Promise.prototype.then;
+const nativeHostConstructors = new WeakSet<SandboxClosure>();
+const domExceptionDiagnostics = {
+  name: Object.getOwnPropertyDescriptor(DOMException.prototype, "name")?.get,
+  message: Object.getOwnPropertyDescriptor(DOMException.prototype, "message")?.get
+};
+
+const hostErrorMetadata = {
+  code: "string",
+  dest: "string",
+  errno: "number",
+  path: "string",
+  syscall: "string"
+} as const;
+
+type CallerInjectedFunction = {
+  bivarianceHack(...args: readonly unknown[]): unknown;
+}["bivarianceHack"];
+
+const awaitedHostOperations = new WeakSet<CallerInjectedFunction>();
+const scheduledCallbackOperations = new WeakSet<CallerInjectedFunction>();
+
+export function schedulesHostCallbacks(operation: CallerInjectedFunction): boolean {
+  return scheduledCallbackOperations.has(operation);
+}
+
+const budgetedHostOperations = new WeakMap<CallerInjectedFunction, (args: readonly unknown[], budget: Budget) => unknown>();
+
+export function declareBudgetedHostOperation(operation: CallerInjectedFunction, invoke: (args: readonly unknown[], budget: Budget) => unknown): void {
+  budgetedHostOperations.set(operation, invoke);
+}
+
+const hostOperationPolicies = new WeakMap<CallerInjectedFunction, PendingHostCallPolicyMode>();
+const hostOperationReplayHandlers = new WeakMap<
+  CallerInjectedFunction,
+  (args: readonly unknown[], outcome: HostCallOutcome) => void
+>();
+
+export type RealmBridge = {
+  readonly owner: object;
+  assertActive(): void;
+  wrapCallback(closure: SandboxClosure): (...args: readonly unknown[]) => Promise<unknown>;
+  invoke(operation: CallerInjectedFunction, call: () => unknown): unknown;
+  awaitResult(operation: CallerInjectedFunction): boolean;
+  captureArguments(operation: CallerInjectedFunction, args: readonly SandboxValue[], copy: (
+    values: readonly SandboxValue[], wrapClosure?: RealmBridge["wrapCallback"]
+  ) => unknown[]): { args: unknown[]; rollback(): void };
+};
+
+export type HostBridgeOptions = {
+  resources?: RunResources;
+  realm?: RealmBridge;
+  registerCapabilities?: boolean;
+  capabilityPath?: readonly string[];
+  moduleCapabilities?: Map<string, SandboxClosure>;
+  budget: Budget;
+  compileOwner?: CompileOwner;
+  hostCalls?: HostCallJournal;
+  moduleId?: string;
+  operation?: string;
+  signal?: AbortSignal;
+  lifecycle?: RunLifecycle;
+  proofFunctions?: WeakMap<object, SandboxClosure>;
+  promiseReplacements?: WeakMap<SandboxPromise, SandboxPromise>;
+};
+
+type HostCallbacks = {
+  schedule?: ReturnType<typeof captureJobScheduler>;
+  record?: HostCallRecord;
+  journal?: HostCallJournal;
+  entries: Map<number, (args: SandboxValue[], token?: string, receiver?: SandboxValue) => Promise<unknown>>;
+  hostFunctions: Map<number, (...args: readonly unknown[]) => Promise<unknown>>;
+  sourceFunctions: Map<number, SandboxClosure>;
+  proofFunctions: WeakMap<object, SandboxClosure>;
+  active: Set<Promise<unknown>>;
+  seen: WeakMap<SandboxClosure, (...args: readonly unknown[]) => Promise<unknown>>;
+  nextReissuedInvocation?: number;
+  restored: Array<{ id: number; arguments: ReplayData; hasReceiver?: true; result: Promise<unknown> }>;
+};
+
+export type CallerInjectedBinding =
+  | SandboxValue
+  | CallerInjectedFunction
+  | readonly CallerInjectedBinding[]
+  | {
+      readonly [key: string]: CallerInjectedBinding;
+    };
+
+export function declareHostOperation<TFunction extends CallerInjectedFunction>(
+  operation: TFunction,
+  policy: PendingHostCallPolicyMode,
+  options: { onReplay?: (args: readonly unknown[], outcome: HostCallOutcome) => void; awaitResult?: boolean; /** Queue exported callbacks after the current guest synchronous prefix. */ callbackScheduling?: "after-prefix" } = {}
+): TFunction {
+  if (options.callbackScheduling !== undefined && options.callbackScheduling !== "after-prefix") throw new TypeError("Host callbackScheduling must be after-prefix.");
+  if (options.callbackScheduling === "after-prefix" && options.awaitResult === true) throw new TypeError("Queued callbacks cannot be combined with awaitResult.");
+  hostOperationPolicies.set(operation, policy);
+  if (options.callbackScheduling === "after-prefix") scheduledCallbackOperations.add(operation);
+  else scheduledCallbackOperations.delete(operation);
+  if (options.awaitResult === true) awaitedHostOperations.add(operation);
+  else awaitedHostOperations.delete(operation);
+  if (options.onReplay !== undefined) hostOperationReplayHandlers.set(operation, options.onReplay);
+  return operation;
+}
+
+export function readHostOperationPolicy(
+  operation: CallerInjectedFunction
+): PendingHostCallPolicyMode | undefined {
+  return hostOperationPolicies.get(operation);
+}
+
+export function wrapCallerInjectedBindings(
+  bindings: Record<string, CallerInjectedBinding>,
+  options: HostBridgeOptions
+): Record<string, SandboxValue> {
+  const operation = options.budget.acquireCompileOwner(false, options.compileOwner);
+  options = { ...options, resources: options.resources ?? runResources.getStore(), registerCapabilities: true, compileOwner: operation.owner };
+  try {
+    const state = { seen: new WeakMap<object, SandboxValue>() };
+    const copied = Object.fromEntries(
+      Object.entries(bindings).map(([name, value]) => [
+        name,
+        typeof value === "function" && !isLiveCapability(value)
+          ? wrapCallerInjectedFunction(name, value, { ...options, capabilityPath: [name] }, state)
+          : copyHostValueToSandbox(
+              value,
+              [],
+              { ...options, operation: name, capabilityPath: [name] },
+              state,
+              "<root>"
+            )
+      ])
+    );
+    options.budget.chargeDataUsage(measureSandboxData(Object.values(copied)));
+    return copied;
+  } finally {
+    operation.release();
+  }
+}
+
+export function wrapHostConstructor(
+  name: string,
+  construct: CallerInjectedFunction,
+  options: HostBridgeOptions,
+  definition: { parent?: SandboxValue; hasInstance?: CallerInjectedFunction; constants: Record<string, number> }
+): SandboxClosure {
+  if (options.realm === undefined || options.hostCalls !== undefined)
+    throw new TypeError("Host constructors require a persistent realm without replay.");
+  const parent = definition.parent;
+  if (parent !== undefined && (!isSandboxClosure(parent) || !nativeHostConstructors.has(parent)))
+    throw new TypeError("Host constructor parent must be a native constructor from this realm.");
+  const invocation = wrapCallerInjectedFunction(name, construct, options, { seen: new WeakMap() }, result => {
+    if (types.isPromise(result)) {
+      try {
+        Reflect.apply(constructorPromiseThen, result, [undefined, () => undefined]);
+      } catch {
+        // An exotic species hook must not replace the constructor contract error.
+      }
+    }
+    if (typeof result !== "object" || result === null || !isLiveCapability(result))
+      throw new TypeError("Host constructors must synchronously return a live host object.");
+    const guest = importHostCapability(result, options.realm!.owner);
+    if (!isGuestHostObject(guest) || exportHostCapability(guest, options.realm!.owner) !== result)
+      throw new TypeError("Host constructors must synchronously return a live host object.");
+    return result;
+  }) as SandboxClosure;
+  const constructor = createSandboxClosure({
+    guest: true,
+    name,
+    length: 0,
+    cancellationSignal: options.signal,
+    call: () => { throw new TypeError("Host constructor requires new."); },
+    construct: (args, context) => {
+      options.realm!.assertActive();
+      if (activeCancellation.getStore()?.signal !== options.signal)
+        throw new TypeError("Host constructors require their owning realm.");
+      return invocation.call(args, context);
+    },
+    retainedValues: () => [invocation]
+  });
+  const properties = materializeFunctionProperties(constructor);
+  const prototype = properties.prototype as SandboxObject;
+  if (parent !== undefined) {
+    const parentPrototype = materializeFunctionProperties(parent as SandboxClosure).prototype;
+    if (typeof parentPrototype !== "object" || parentPrototype === null)
+      throw new TypeError("Host constructor parent must have an object prototype.");
+    setSandboxPrototype(constructor, parent as SandboxClosure, options.budget);
+    setSandboxPrototype(prototype, parentPrototype, options.budget);
+  }
+  for (const [key, value] of Object.entries(definition.constants)) {
+    Object.defineProperty(properties, key, { value, enumerable: true });
+    Object.defineProperty(prototype, key, { value, enumerable: true });
+  }
+  if (definition.hasInstance !== undefined) {
+    const check = wrapCallerInjectedFunction("[Symbol.hasInstance]", definition.hasInstance, options, { seen: new WeakMap() }, result => {
+      if (types.isPromise(result)) {
+        try { Reflect.apply(constructorPromiseThen, result, [undefined, () => undefined]); }
+        catch { /* Preserve the synchronous result contract if a species hook fails. */ }
+      }
+      if (typeof result !== "boolean") throw new TypeError("Host instance checks must synchronously return a boolean.");
+      return result;
+    }) as SandboxClosure;
+    Object.defineProperty(properties, Symbol.hasInstance, { value: createSandboxClosure({
+      guest: true,
+      sandbox: true,
+      name: "[Symbol.hasInstance]",
+      length: 1,
+      cancellationSignal: options.signal,
+      call: ([value], context) => {
+        options.realm!.assertActive();
+        if (context?.thisValue !== constructor)
+          return ordinaryHasInstance(value, context?.thisValue, options.budget, context).catch(error => {
+            if (error instanceof TypeError && error.message === "Live host object descriptors are not supported.") return false;
+            throw error;
+          });
+        return isGuestHostObject(value) ? check.call([value], context) : false;
+      },
+      retainedValues: () => [constructor, check]
+    }) });
+    Object.defineProperty(prototype, Symbol.toStringTag, { value: name, configurable: true });
+  }
+  nativeHostConstructors.add(constructor);
+  return constructor;
+}
+
+function wrapCallerInjectedFunction(
+  name: string,
+  value: CallerInjectedFunction,
+  options: HostBridgeOptions,
+  state: { seen: WeakMap<object, SandboxValue> },
+  validateResult?: (result: unknown) => unknown
+): SandboxValue {
+  const existing = state.seen.get(value) ?? options.hostCalls?.nativeClosures.get(value);
+  if (existing !== undefined) return existing;
+  const nativeName = name === "default" ? Object.getOwnPropertyDescriptor(value, "name")?.value : undefined;
+  const bindingName = typeof nativeName === "string" && nativeName.length > 0 ? nativeName : name;
+  const callable = value as (...args: readonly unknown[]) => unknown;
+  const awaitResult = awaitedHostOperations.has(value) || options.realm?.awaitResult(callable) === true;
+  if (awaitResult && schedulesHostCallbacks(callable)) throw new TypeError("Queued callbacks cannot be combined with awaitResult or nestedOperation.");
+
+  return createSandboxClosure({
+    ...(isAsyncFunction(callable) && !awaitResult ? { async: true as const } : {}),
+    cancellationSignal: options.signal,
+    call: (args, context) => {
+      options.realm?.assertActive();
+      const operationLease = options.budget.acquireCompileOwner(false, options.compileOwner);
+      const compilation = new CompileScope(operationLease.owner);
+      try {
+        if (options.signal?.aborted) throw readAbortReason(options.signal);
+        const stackFrames = context?.stack ?? [];
+        const callbacks: HostCallbacks = {
+          ...(schedulesHostCallbacks(callable) ? { schedule: captureJobScheduler() } : {}),
+          journal: options.hostCalls,
+          entries: new Map(),
+          hostFunctions: new Map(),
+          sourceFunctions: new Map(),
+          proofFunctions: new WeakMap(),
+          active: new Set(),
+          seen: new WeakMap(),
+          restored: []
+        };
+        const exportedSharedArguments: SharedArrayBuffer[] = [];
+        const copyArguments = (values: readonly SandboxValue[], wrapClosure?: RealmBridge["wrapCallback"]) => deepCopyFromSandbox([...values], {
+          compilation,
+          onSharedBuffer: value => { exportedSharedArguments.push(value); },
+          unwrapHostObject: options.realm === undefined ? undefined : object => exportHostCapability(object, options.realm!.owner),
+          wrapClosure: wrapClosure ?? ((closure) =>
+            options.realm?.wrapCallback(closure) ?? wrapSandboxClosureForHost(
+              closure,
+              stackFrames,
+              options.budget,
+              operationLease.owner,
+              callbacks,
+              options.signal
+            ))
+        }) as unknown[];
+        const captured = options.realm?.captureArguments(callable, args, copyArguments);
+        const hostArgs = captured?.args ?? copyArguments(args);
+
+        const budgetedOperation = budgetedHostOperations.get(callable);
+        const invokeOperation = () => {
+          const result = budgetedOperation === undefined
+            ? Reflect.apply(callable, undefined, hostArgs)
+            : budgetedOperation(hostArgs, options.budget);
+          return validateResult === undefined ? result : validateResult(result);
+        };
+        const resources = options.resources;
+        const callOperation = resources === undefined
+          ? invokeOperation
+          : () => runResources.run(resources, invokeOperation);
+
+        const hostCalls = options.hostCalls;
+        const operation = options.operation ?? bindingName;
+        const moduleId = options.moduleId ?? "<bindings>";
+        const policy =
+          readHostOperationPolicy(value) ??
+          readRegisteredPendingHostCallPolicy(moduleId, operation) ??
+          "re-issue";
+        if (hostCalls === undefined) {
+          let result: unknown;
+          if (options.realm !== undefined) {
+            try {
+              result = options.realm.invoke(callable, callOperation);
+            } catch (error) {
+              captured!.rollback();
+              throw error;
+            }
+          } else {
+            result = invokeHostCallback(callOperation, options);
+          }
+          if (awaitResult) {
+            return wrapHostPromiseWithSignal(Promise.resolve(result), options.signal)
+              .then(value => copyHostResultToSandbox(value, stackFrames, options), error => {
+                if (isFatalBridgeError(error)) throw error;
+                throw createHostErrorValue(error, stackFrames, options.budget, context?.span);
+              });
+          }
+          return copyHostResultToSandbox(result, stackFrames, options);
+        }
+
+        const sharedArguments:SharedArrayBuffer[]=[];
+        const issued = hostCalls.issue({
+          argumentDigest: digestHostCallArguments(hostArgs,sharedArguments),
+          moduleId,
+          operation,
+          policy
+        });
+        hostCalls.registerSharedArguments(issued.record, sharedArguments, exportedSharedArguments, issued.restored);
+        callbacks.record = issued.record;
+        for (const [id, closure] of callbacks.sourceFunctions) {
+          hostCalls.registerCallbackFunction(
+            issued.record,
+            id,
+            closure,
+            callbacks.hostFunctions.get(id)!
+          );
+        }
+        if (issued.restored) {
+          promiseReplayContext.getStore()?.registerCallbacks(
+            (issued.record.callbacks ?? []).map((invocation, index) => {
+              let resolve!: (value: unknown) => void;
+              let reject!: (reason: unknown) => void;
+              const result = new Promise<unknown>((resolveResult, rejectResult) => {
+                resolve = resolveResult;
+                reject = rejectResult;
+              });
+              void result.catch(() => undefined);
+              callbacks.active.add(result);
+              void result.then(
+                () => {
+                  callbacks.active.delete(result);
+                },
+                () => {
+                  callbacks.active.delete(result);
+                }
+              );
+              callbacks.restored.push({
+                id: invocation.id,
+                arguments: invocation.arguments,
+                hasReceiver: invocation.hasReceiver,
+                result
+              });
+              const token = `${issued.record.id}/callback/${index + 1}`;
+              return {
+                token,
+                start: () => {
+                  const callbackLease = options.budget.acquireCompileOwner(
+                    false,
+                    options.compileOwner
+                  );
+                  const callbackCompilation = new CompileScope(callbackLease.owner);
+                  try {
+                    const callback = callbacks.entries.get(invocation.id);
+                    if (callback === undefined)
+                      throw new TypeError("Missing restored host callback.");
+                    const args = hostCalls.replayCallbackArguments(invocation, callbackCompilation);
+                    void callback(invocation.hasReceiver ? args.slice(1) : args, token, invocation.hasReceiver ? args[0] : undefined)
+                      .then(resolve, reject)
+                      .finally(() => {
+                        callbackCompilation.dispose();
+                        callbackLease.release();
+                      });
+                  } catch (error) {
+                    callbackCompilation.dispose();
+                    callbackLease.release();
+                    throw error;
+                  }
+                }
+              };
+            })
+          );
+        }
+        if (issued.restored)
+          hostCalls.trackCallbackCompletion(
+            issued.record,
+            callbacks.restored.map((invocation) => invocation.result)
+          );
+        const result = executeHostCall(
+          issued.record,
+          issued.restored,
+          () => invokeHostCallback(callOperation, options),
+          stackFrames,
+          options,
+          context?.span,
+          callbacks,
+          hostOperationReplayHandlers.get(value)?.bind(undefined, hostArgs)
+        );
+        return awaitResult && isSandboxPromise(result)
+          ? resolveSandboxValue(result)
+          : result;
+      } catch (error) {
+        compilation.dispose();
+        if (
+          isFatalBridgeError(error) ||
+          (typeof error === "object" && error !== null && sandboxErrorTypes.has(error))
+        ) {
+          throw error;
+        }
+
+        throw createHostErrorValue(error, context?.stack ?? [], options.budget, context?.span);
+      } finally {
+        compilation.dispose();
+        operationLease.release();
+      }
+    },
+    name: bindingName,
+    properties: (closure) => {
+      state.seen.set(value, closure);
+      // Constructor callbacks are operations, not host function property sources.
+      if (validateResult !== undefined) return {};
+      if (options.registerCapabilities) {
+        if (options.moduleCapabilities !== undefined && options.moduleId !== undefined) {
+          const origin = { module: options.moduleId, path: [...(options.capabilityPath ?? [bindingName])] };
+          moduleFunctionOrigins.set(closure, origin);
+          options.moduleCapabilities.set(JSON.stringify([origin.module, ...origin.path]), closure);
+        }
+        options.hostCalls?.registerHostCapability(
+          JSON.stringify([
+            options.moduleId ?? "<bindings>",
+            ...(options.capabilityPath ?? [bindingName])
+          ]),
+          closure,
+          value
+        );
+      }
+      return (
+        copyFunctionProperties(callable, [], options, state, options.operation ?? bindingName) ?? {}
+      );
+    }
+  });
+}
+
+function invokeHostCallback(invoke: () => unknown, options: HostBridgeOptions): unknown {
+  const lifecycle = options.lifecycle;
+  if (lifecycle === undefined) {
+    return invoke();
+  }
+
+  lifecycle.hostCallbackDepth += 1;
+  try {
+    const result = lifecycle.hostCallbackContext.run(true, invoke);
+    if (isPromiseLike(result)) {
+      return Promise.resolve(result).finally(() => {
+        lifecycle.hostCallbackDepth -= 1;
+      });
+    }
+    lifecycle.hostCallbackDepth -= 1;
+    return result;
+  } catch (error) {
+    lifecycle.hostCallbackDepth -= 1;
+    throw error;
+  }
+}
+
+function executeHostCall(
+  record: HostCallRecord,
+  restored: boolean,
+  invoke: () => unknown,
+  stackFrames: readonly string[],
+  options: HostBridgeOptions,
+  span?: ErrorSourceSpan,
+  callbacks?: HostCallbacks,
+  onReplay?: (outcome: HostCallOutcome) => void
+): SandboxValue {
+  const hostCalls = options.hostCalls as HostCallJournal;
+  let replayed: HostCallOutcome | undefined;
+  try {
+    replayed = restored ? hostCalls.replayOutcome(record) : undefined;
+  } catch (error) {
+    if (!(error instanceof UnresolvedReplayCapabilityError) || !record.asynchronous) throw error;
+    const promise = (async () => {
+      let missing = error;
+      while (true) {
+        await hostCalls.waitForCapability(missing.id);
+        try {
+          const outcome = hostCalls.replayOutcome(record);
+          if (outcome === undefined) throw new TypeError("Missing restored host outcome.");
+          restoreReplayedHostState(record, outcome, onReplay);
+          if (outcome.status === "rejected") throw outcome.reason;
+          return outcome.value;
+        } catch (error) {
+          if (!(error instanceof UnresolvedReplayCapabilityError)) throw error;
+          missing = error;
+        }
+      }
+    })();
+    void promise.catch(() => undefined);
+    return createSandboxPromise(promise, { hostCall: record, hostCallJournal: hostCalls });
+  }
+  if (replayed !== undefined) {
+    restoreReplayedHostState(record, replayed, onReplay);
+    if (record.asynchronous) return createReplayedHostCallResult(replayed, record, hostCalls);
+    if (replayed.status === "rejected") throw replayed.reason;
+    return replayed.value;
+  }
+  if (
+    restored &&
+    record.policy === "read-side-effect" &&
+    record.lifecycle === "consumed" &&
+    record.outcome !== undefined
+  ) {
+    return createReplayedHostCallResult(record.outcome, record, hostCalls);
+  }
+  if (
+    restored &&
+    record.policy === "read-side-effect" &&
+    record.lifecycle === "settled" &&
+    record.outcome !== undefined
+  ) {
+    return createHostCallPromise(record, Promise.resolve(record.outcome), hostCalls);
+  }
+  if (restored && record.lifecycle === "cancelled" && record.policy === "read-side-effect") {
+    throw new HostCallResumabilityError(
+      record,
+      "reset",
+      `Host call ${record.id} was cancelled; reset is required.`
+    );
+  }
+  if (restored && record.policy === "read-side-effect" && record.lifecycle !== "created") {
+    hostCalls.replaySharedPrefix(record);
+    let active = true;
+    const context =
+      callbacks === undefined
+        ? undefined
+        : {
+            callbacks: new Map(callbacks.hostFunctions),
+            replayed: callbacks.restored.map((invocation) => ({
+              callbackId: invocation.id,
+              result: invocation.result
+            })),
+            async waitForCallbacks() {
+              while (callbacks.active.size > 0) await Promise.allSettled([...callbacks.active]);
+            },
+            toSandboxValue(value: unknown): SandboxValue {
+              if (!active) throw new TypeError("Host call resume context is no longer active.");
+              if (options.signal?.aborted) throw readAbortReason(options.signal);
+              return copyHostValueToSandbox(
+                value,
+                stackFrames,
+                { ...options, proofFunctions: callbacks.proofFunctions },
+                { seen: new WeakMap() },
+                "<root>"
+              );
+            }
+          };
+    const outcome = hostCalls.reconcile(record, context).finally(() => {
+      active = false;
+    });
+    return createHostCallPromise(record, outcome, hostCalls);
+  }
+
+  if (restored && callbacks !== undefined) callbacks.nextReissuedInvocation = 0;
+  hostCalls.start(record);
+  let result: unknown;
+  try {
+    result = invoke();
+  } catch (error) {
+    if (!types.isProxy(error) && error instanceof HostCallResumabilityError) {
+      throw error;
+    }
+
+    const reason = createHostErrorValue(error, stackFrames, options.budget, span);
+    hostCalls.settle(record, { status: "rejected", reason });
+    throw error;
+  }
+
+  if (!isPromiseLike(result)) {
+    record.asynchronous = false;
+    const value = copyHostResultToSandbox(result, stackFrames, options);
+    hostCalls.settle(record, { status: "fulfilled", value });
+    hostCalls.consume(record);
+    return value;
+  }
+
+  record.asynchronous = true;
+  hostCalls.captureSharedPrefix(record);
+  const outcome = wrapHostPromiseWithSignal(Promise.resolve(result), options.signal).then(
+    (value): HostCallOutcome => {
+      try {
+        return {
+          status: "fulfilled",
+          value: copyHostResultToSandbox(value, stackFrames, options)
+        };
+      } catch (error) {
+        if (isFatalBridgeError(error)) {
+          throw error;
+        }
+
+        return {
+          status: "rejected",
+          reason: createHostErrorValue(error, stackFrames, options.budget, span)
+        };
+      }
+    },
+    (error): HostCallOutcome | Promise<never> => {
+      if (isFatalBridgeError(error)) {
+        return Promise.reject(error);
+      }
+
+      return {
+        status: "rejected",
+        reason: createHostErrorValue(error, stackFrames, options.budget, span)
+      };
+    }
+  );
+  return createHostCallPromise(record, outcome, hostCalls);
+}
+
+function restoreReplayedHostState(
+  record: HostCallRecord,
+  outcome: HostCallOutcome,
+  onReplay: ((outcome: HostCallOutcome) => void) | undefined
+): void {
+  try {
+    const result = onReplay?.(outcome);
+    if (isPromiseLike(result)) {
+      void Promise.resolve(result).catch(() => undefined);
+      throw new TypeError("Host replay state hooks must complete synchronously.");
+    }
+  } catch (reason) {
+    const error = new HostCallResumabilityError(
+      record,
+      "reset",
+      `Cannot restore host-local state for ${record.id}: ${reason instanceof Error ? reason.message : String(reason)}`
+    );
+    promiseReplayContext.getStore()?.fail(error);
+    throw error;
+  }
+}
+
+function createReplayedHostCallResult(
+  outcome: HostCallOutcome,
+  record: HostCallRecord,
+  hostCalls: HostCallJournal
+): SandboxValue {
+  const promise =
+    outcome.status === "fulfilled"
+      ? Promise.resolve(outcome.value)
+      : Promise.reject(outcome.reason);
+  promise.catch(() => undefined);
+  return createSandboxPromise(promise, { hostCall: record, hostCallJournal: hostCalls,
+    replaySettlement:value=>hostCalls.replaySettlement(record,value) });
+}
+
+function createHostCallPromise(
+  record: HostCallRecord,
+  outcomePromise: Promise<HostCallOutcome>,
+  hostCalls: HostCallJournal
+): SandboxValue {
+  const promise = outcomePromise.then((outcome) => {
+    if (outcome.status === "rejected" && isAbortReason(outcome.reason)) {
+      hostCalls.cancel(record, outcome.reason);
+    } else {
+      hostCalls.settle(record, outcome);
+    }
+    return outcome.status === "fulfilled" ? outcome.value : Promise.reject(outcome.reason);
+  });
+  promise.catch(() => undefined);
+  return createSandboxPromise(promise, { hostCall: record, hostCallJournal: hostCalls });
+}
+
+function isAbortReason(reason: SandboxValue): boolean {
+  return (
+    typeof reason === "object" &&
+    reason !== null &&
+    (("name" in reason && reason.name === "AbortError") ||
+      ("code" in reason && reason.code === "aborted"))
+  );
+}
+
+function copyHostResultToSandbox(
+  result: unknown,
+  stackFrames: readonly string[],
+  options: HostBridgeOptions
+): SandboxValue {
+  const value = copyHostValueToSandbox(
+    result,
+    stackFrames,
+    { ...options, registerCapabilities: false },
+    {
+      seen: new WeakMap()
+    },
+    "<root>"
+  );
+  options.budget.chargeDataUsage(measureSandboxData([value], { ...defaultDataMeasurementOptions, ignoreHostObjectPrototypes: true }));
+  return value;
+}
+
+function createHostErrorValue(
+  reason: unknown,
+  stackFrames: readonly string[],
+  budget: Budget,
+  span?: ErrorSourceSpan,
+  state: { seen: WeakMap<object, SandboxValue> } = { seen: new WeakMap() },
+  chargeBudget = false
+): SandboxObject {
+  const proxy = types.isProxy(reason);
+  const nativeError = !proxy && (types.isNativeError(reason) || reason instanceof Error);
+  if (nativeError) {
+    const existing = state.seen.get(reason);
+    if (existing !== undefined) return existing as SandboxObject;
+  }
+  const error =
+    nativeError
+      ? createSubsetErrorValue(readHostErrorDiagnostic(reason, "name", "Error"), readHostErrorDiagnostic(reason, "message", ""), stackFrames, budget, {
+          cause: reason,
+          chargeBudget,
+          transport: true
+        })
+      : createSubsetErrorValue("Error", proxy ? "Host operation failed." : describeThrownReason(reason), stackFrames, budget, {
+          chargeBudget: false,
+          transport: true
+        });
+
+  if (nativeError) {
+    state.seen.set(reason, error);
+    copyHostErrorMetadata(error, reason, budget, chargeBudget);
+    let data = hostErrorData.get(reason);
+    for (const key of ["errors", "error", "suppressed"]) {
+      const descriptor = Object.getOwnPropertyDescriptor(reason, key);
+      if (descriptor !== undefined && "value" in descriptor) {
+        data = { ...data, [key]: descriptor.value };
+      }
+    }
+    if (data !== undefined) {
+      const copied = copyHostValueToSandbox(
+        data,
+        stackFrames,
+        { budget, errorData: true },
+        state,
+        "<error>"
+      ) as SandboxObject;
+      Object.defineProperties(error, Object.getOwnPropertyDescriptors(copied));
+      budget.chargeDataUsage(measureSandboxData([error]));
+    }
+  }
+
+  attachErrorSpan(error, span);
+  return error;
+}
+
+function readHostErrorDiagnostic(error: object, key: "name" | "message", fallback: string): string {
+  let current: object | null = error;
+  while (current !== null && !types.isProxy(current)) {
+    const descriptor = Object.getOwnPropertyDescriptor(current, key);
+    if (descriptor !== undefined) {
+      if (descriptor.get !== undefined && descriptor.get === domExceptionDiagnostics[key]) {
+        try { return Reflect.apply(descriptor.get, error, []) as string; } catch { return fallback; }
+      }
+      return "value" in descriptor && typeof descriptor.value === "string" ? descriptor.value : fallback;
+    }
+    current = Object.getPrototypeOf(current);
+  }
+  return fallback;
+}
+
+function copyHostErrorMetadata(
+  error: SandboxObject,
+  reason: Error,
+  budget: Budget,
+  chargeBudget: boolean
+): void {
+  const resumeChecks = chargeBudget ? undefined : budget.suspendChecks();
+
+  try {
+    for (const [key, expectedType] of Object.entries(hostErrorMetadata)) {
+      const descriptor = Object.getOwnPropertyDescriptor(reason, key);
+      if (descriptor === undefined || "get" in descriptor || "set" in descriptor) {
+        continue;
+      }
+
+      const value = descriptor.value as unknown;
+      if (typeof value !== expectedType) {
+        continue;
+      }
+
+      error[key] = typeof value === "string" ? budget.allocateString(value) : (value as number);
+    }
+  } finally {
+    resumeChecks?.();
+  }
+}
+
+function wrapSandboxClosureForHost(
+  closure: SandboxClosure,
+  stackFrames: readonly string[],
+  budget: Budget,
+  compileOwner: CompileOwner,
+  callbacks?: HostCallbacks,
+  signal?: AbortSignal
+): (...args: readonly unknown[]) => Promise<unknown> {
+  const existing = callbacks?.seen.get(closure);
+  if (existing !== undefined) return existing;
+  const id = (callbacks?.entries.size ?? 0) + 1;
+  const invokeNow = async (sandboxArgs: SandboxValue[], token?: string, receiver?: SandboxValue) => {
+    const operation = budget.acquireCompileOwner(false, compileOwner);
+    const compilation = new CompileScope(operation.owner);
+    let leaveRunning: (() => void) | undefined;
+    let leaveCall: (() => void) | undefined;
+    const wrapClosure = (nestedClosure: SandboxClosure) =>
+      wrapSandboxClosureForHost(nestedClosure, stackFrames, budget, compileOwner, callbacks, signal);
+    const onSharedBuffer = callbacks?.journal?.markSharedCallbackExport.bind(callbacks.journal);
+
+    try {
+      signal?.throwIfAborted();
+      leaveRunning = enterRunningState(closure);
+      leaveCall = budget.enterCall();
+      let result: ReturnType<SandboxClosure["call"]>;
+      try {
+        const callerContext: SandboxCallContext = {
+          compilation,
+          stack: stackFrames,
+          thisValue: receiver,
+          getProperty: (object, key) => sandboxGetProperty(object, key, object, budget, bridge)
+        };
+        const bridge: SandboxCallContext = {
+          ...callerContext,
+          invokeClosure: (target, values, receiver, construct, newTarget) =>
+            invokeBuiltinClosure(target, values, budget, callerContext, receiver, construct, newTarget)
+        };
+        result = guestProxyStates.has(closure)
+          ? await callGuestProxy(closure, sandboxArgs, budget, bridge, receiver)
+          : closure.call(sandboxArgs, { compilation, stack: stackFrames, thisValue: receiver });
+        if (callbacks?.schedule !== undefined) result = await result;
+      } catch (error) {
+        if (isSandboxLikeValue(error)) {
+          throw deepCopyFromSandbox(error, {
+            compilation,
+            wrapClosure,
+            onSharedBuffer
+          });
+        }
+
+        throw error;
+      }
+
+      const settlement = deepCopyFromSandbox(normalizeClosureResult(result, budget), {
+        compilation,
+        wrapClosure,
+        onSharedBuffer
+      }) as Promise<unknown>;
+      if (callbacks?.schedule !== undefined) {
+        void settlement.catch(() => undefined);
+        if (isSandboxPromise(result) && result.synchronousPrefix !== undefined) await result.synchronousPrefix;
+        return await suspendJob(settlement);
+      }
+      return await settlement;
+    } catch (error) {
+      if (isFatalBridgeError(error)) promiseReplayContext.getStore()?.fail(error);
+      throw error;
+    } finally {
+      compilation.dispose();
+      operation.release();
+      leaveCall?.();
+      leaveRunning?.();
+      if (token !== undefined) promiseReplayContext.getStore()?.completeCallback(token);
+    }
+  };
+  const invoke = callbacks?.schedule === undefined ? invokeNow
+    : (args: SandboxValue[], token?: string, receiver?: SandboxValue) => callbacks.schedule!(() => invokeNow(args, token, receiver));
+  const wrapped = async function (this: unknown, ...args: readonly unknown[]) {
+    const operation = budget.acquireCompileOwner(false, compileOwner);
+    try {
+      const hasReceiver = this !== undefined;
+      const invocationValues = copyHostValueToSandbox(
+        hasReceiver ? [this, ...args] : [...args],
+        stackFrames,
+        {
+          budget,
+          compileOwner,
+          hostCalls: callbacks?.journal
+        },
+        { seen: new WeakMap() },
+        "<callback>"
+      ) as SandboxValue[];
+      const receiver = hasReceiver ? invocationValues[0] : undefined;
+      const sandboxArgs = hasReceiver ? invocationValues.slice(1) : invocationValues;
+      const restored =
+        callbacks?.nextReissuedInvocation === undefined
+          ? undefined
+          : callbacks.restored[callbacks.nextReissuedInvocation++];
+      if (restored !== undefined) {
+        if (
+          restored.id !== id ||
+          (restored.hasReceiver === true) !== hasReceiver ||
+          JSON.stringify(
+            encodeReplayData(invocationValues, {
+              identifyCapability: callbacks?.journal?.identifyCapability
+            })
+          ) !== JSON.stringify(restored.arguments)
+        ) {
+          const error = new HostCallResumabilityError(
+            callbacks!.record!,
+            "external-reconciliation",
+            "Host callback arguments changed while re-issuing the operation; external reconciliation is required."
+          );
+          promiseReplayContext.getStore()?.fail(error);
+          throw error;
+        }
+        return await restored.result;
+      }
+      const replay = promiseReplayContext.getStore();
+      const catchUp = replay?.waitForLiveExecution();
+      if (catchUp !== undefined) await catchUp;
+      const token =
+        callbacks?.record === undefined
+          ? undefined
+          : callbacks.journal?.recordCallback(
+              callbacks.record,
+              id,
+              invocationValues,
+              replay?.currentStep ?? 0,
+              hasReceiver
+            );
+      if (token !== undefined) replay?.beginCallback(token);
+      const pending = invoke(sandboxArgs, token, receiver);
+      callbacks?.active.add(pending);
+      void pending.then(
+        () => {
+          callbacks?.active.delete(pending);
+        },
+        () => {
+          callbacks?.active.delete(pending);
+        }
+      );
+      return await pending;
+    } finally {
+      operation.release();
+    }
+  };
+  if (closure.length !== undefined)
+    Object.defineProperty(wrapped, "length", { value: closure.length });
+  callbacks?.seen.set(closure, wrapped);
+  callbacks?.entries.set(id, invoke);
+  callbacks?.hostFunctions.set(id, wrapped);
+  callbacks?.sourceFunctions.set(id, closure);
+  callbacks?.proofFunctions.set(wrapped, closure);
+  if (callbacks?.record !== undefined)
+    callbacks.journal?.registerCallbackFunction(callbacks.record, id, closure, wrapped);
+  return wrapped;
+}
+
+function isSandboxLikeValue(value: unknown): value is SandboxValue {
+  if (
+    value === null ||
+    value === undefined ||
+    typeof value === "string" ||
+    typeof value === "number" ||
+    typeof value === "bigint" ||
+    typeof value === "boolean"
+  ) {
+    return true;
+  }
+
+  if (isSandboxClosure(value) || isSandboxPromise(value)) {
+    return true;
+  }
+
+  if (Array.isArray(value)) {
+    return Object.getPrototypeOf(value) === Array.prototype;
+  }
+
+  if (typeof value !== "object") {
+    return false;
+  }
+
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
+}
+
+function isAsyncFunction(value: (...args: readonly unknown[]) => unknown): boolean {
+  return value instanceof AsyncFunction;
+}
+
+function isPromiseLike(value: unknown): value is PromiseLike<unknown> {
+  if (isLiveCapability(value)) return false;
+  assertNativeProxyCopyable(value);
+  return typeof value === "object" && value !== null && "then" in value;
+}
+
+function isFatalBridgeError(error: unknown): error is SandboxError | HostCallResumabilityError {
+  return (
+    !types.isProxy(error) && (
+      error instanceof HostCallResumabilityError ||
+      (error instanceof SandboxError && (error.code === "budgetExceeded" || error.code === "reentry"))
+    )
+  );
+}
+
+function wrapHostPromiseWithSignal<TValue>(
+  promise: Promise<TValue>,
+  signal: AbortSignal | undefined
+): Promise<TValue> {
+  if (signal === undefined) {
+    return promise;
+  }
+
+  if (signal.aborted) {
+    void promise.catch(() => undefined);
+    return Promise.reject(readAbortReason(signal));
+  }
+
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const cleanup = () => {
+      signal.removeEventListener("abort", onAbort);
+    };
+    const settle = (complete: () => void) => {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      cleanup();
+      complete();
+    };
+    const onAbort = () => {
+      settle(() => reject(readAbortReason(signal)));
+    };
+
+    signal.addEventListener("abort", onAbort, { once: true });
+    promise.then(
+      (value) => {
+        settle(() => resolve(value));
+      },
+      (reason) => {
+        settle(() => reject(reason));
+      }
+    );
+  });
+}
+
+type HostCopyState = {
+  seen: WeakMap<object, SandboxValue>;
+  float32Buffers?: WeakMap<ArrayBufferLike, ArrayBufferLike>;
+  promiseIdentities?: WeakMap<object, SandboxValue>;
+};
+
+export function copyHostValueToSandbox(
+  value: unknown,
+  stackFrames: readonly string[],
+  options: HostBridgeOptions & { errorData?: boolean },
+  state: HostCopyState,
+  path: string
+): SandboxValue {
+  return runDataCopy(copyHostValueNode(value, stackFrames, options, state, path));
+}
+
+function* copyHostValueNode(
+  value: unknown,
+  stackFrames: readonly string[],
+  options: HostBridgeOptions & { errorData?: boolean },
+  state: HostCopyState,
+  path: string
+): DataCopyOperation<SandboxValue> {
+  const { budget } = options;
+
+  if (isLiveCapability(value)) {
+    if (options.realm === undefined || options.errorData || options.hostCalls !== undefined) throw new TypeError("Live capabilities are not portable replay or error data.");
+    return importHostCapability(value as object, options.realm.owner);
+  }
+
+  assertNativeProxyCopyable(value);
+
+  if (
+    value === null ||
+    value === undefined ||
+    typeof value === "number" ||
+    typeof value === "bigint" ||
+    typeof value === "boolean"
+  ) {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    return options.budget.allocateString(value);
+  }
+
+  if (typeof value === "symbol") {
+    if (options.proofFunctions !== undefined)
+      throw new TypeError(`Unsupported proof value at ${path}: symbol`);
+    if (value.description !== undefined) budget.allocateString(value.description);
+    return value;
+  }
+
+  if (types.isNativeError(value) || value instanceof Error) {
+    return createHostErrorValue(value, stackFrames, budget, undefined, state, true);
+  }
+
+  if (
+    options.errorData &&
+    (typeof value === "function" ||
+      isSandboxClosure(value) ||
+      isSandboxPromise(value) ||
+      value instanceof Promise)
+  ) {
+    throw new TypeError("Host error data must not contain functions or promises.");
+  }
+
+  if (isSandboxClosure(value) || isSandboxPromise(value)) {
+    if (options.proofFunctions !== undefined)
+      throw new TypeError(`Unsupported proof value at ${path}: sandbox capability`);
+    if (isSandboxPromise(value)) {
+      const replacement = options.promiseReplacements?.get(value);
+      if (replacement !== undefined) return replacement;
+      if (options.promiseReplacements === undefined || !importedPromises.has(value)) return value;
+      const existing = state.seen.get(value) ?? state.promiseIdentities?.get(value);
+      if (existing !== undefined) return existing;
+      observeSandboxPromise(value);
+      const copied = yield copyHostValueNode(value.promise, stackFrames, options, state, path);
+      if (!isSandboxPromise(copied)) throw new TypeError("Invalid copied imported Promise.");
+      options.promiseReplacements.set(value, copied);
+      state.seen.set(value, copied);
+      (state.promiseIdentities ??= new WeakMap()).set(value, copied);
+      const properties = getPromiseProperties(value);
+      for (const key of Reflect.ownKeys(properties)) {
+        const descriptor = Object.getOwnPropertyDescriptor(properties, key)!;
+        if (!("value" in descriptor)) throw new TypeError("Imported Promise accessors require an explicit capability.");
+        if (typeof key === "symbol" && key.description !== undefined) budget.allocateString(key.description);
+        Object.defineProperty(getPromiseProperties(copied), typeof key === "string" ? budget.allocateString(key) : key, { ...descriptor,
+          value: yield copyHostValueNode(descriptor.value, stackFrames, options, state, joinPath(path, String(key))) });
+      }
+      if (!Object.isExtensible(properties)) Object.preventExtensions(getPromiseProperties(copied));
+      return copied;
+    }
+    return deepCopyToSandbox(value);
+  }
+
+  if (isSandboxRegex(value) || types.isRegExp(value)) {
+    const existing = state.seen.get(value);
+    if (existing !== undefined) return existing;
+    const sandbox = isSandboxRegex(value);
+    const { source, flags } = sandbox ? value : readNativeRegExp(value);
+    const compilation = new CompileScope(options.compileOwner);
+    try {
+      const copy = createSandboxRegex(source, flags, 0, compilation);
+      state.seen.set(value, copy);
+      const properties = sandbox ? getRegexProperties(value) : value;
+      for (const key of Reflect.ownKeys(properties)) {
+        const descriptor = Object.getOwnPropertyDescriptor(properties, key)!;
+        if (!("value" in descriptor)) throw new TypeError("Host RegExp accessors are not data.");
+        if (typeof key !== "string") throw new TypeError("Host RegExp symbol properties require an explicit capability path.");
+        Object.defineProperty(getRegexProperties(copy), budget.allocateString(key), {
+          ...descriptor,
+          value: yield copyHostValueNode(descriptor.value, stackFrames,
+            { ...options, capabilityPath: [...(options.capabilityPath ?? []), key] }, state,
+            joinPath(path, key))
+        });
+      }
+      if (!Object.isExtensible(properties)) Object.preventExtensions(getRegexProperties(copy));
+      budget.chargeDataUsage(measureSandboxData([copy]));
+      return copy;
+    } finally {
+      compilation.dispose();
+    }
+  }
+
+  if (typeof value === "function") {
+    if (options.proofFunctions !== undefined) {
+      const sourceClosure = options.proofFunctions.get(value);
+      if (sourceClosure === undefined)
+        throw new TypeError(`Unsupported proof value at ${path}: function`);
+      return sourceClosure;
+    }
+    const sourceClosure = options.hostCalls?.nativeClosures.get(value);
+    if (sourceClosure !== undefined) return sourceClosure;
+    const callable = value as (...args: readonly unknown[]) => unknown;
+    const existing = state.seen.get(value);
+    if (existing !== undefined) {
+      return existing;
+    }
+
+    return wrapCallerInjectedFunction(
+      callable.name.length > 0 ? callable.name : readPathName(path),
+      callable,
+      {
+        ...options,
+        operation: path.startsWith("<root>")
+          ? `${options.operation ?? "<root>"}${path.slice(6)}`
+          : path
+      },
+      state
+    );
+  }
+
+  const primitive = nativeBoxedValue(value);
+  if (primitive !== undefined) {
+    if (typeof primitive === "string") budget.allocateString(primitive);
+    const original = value as object;
+    const existing = state.seen.get(original);
+    if (existing !== undefined) return existing;
+    const copy = createSandboxBox(primitive);
+    state.seen.set(original, copy);
+    budget.chargeDataUsage(measureSandboxData([copy]));
+    const descriptors = runResources.getStore()?.hostDataMetadata === false
+      ? boxedDataProperties(original) : boxedDataProperties(original, true);
+    const hasSymbols = descriptors.some(([key]) => typeof key === "symbol");
+    for (const [index, [key, descriptor]] of descriptors.entries()) {
+      const segment = hasSymbols
+        ? JSON.stringify(typeof key === "symbol" ? ["symbol", index] : ["property", key]) : key as string;
+      if (!("value" in descriptor)) throw new TypeError(`Unsupported sandbox value at ${joinPath(path, segment)}: accessor property`);
+      if (typeof key === "symbol" && key.description !== undefined) budget.allocateString(key.description);
+      Object.defineProperty(copy, typeof key === "string" ? budget.allocateString(key) : key, {
+        ...descriptor,
+        value: yield copyHostValueNode(descriptor.value, stackFrames,
+          { ...options, capabilityPath: [...(options.capabilityPath ?? []), segment] }, state, joinPath(path, segment))
+      });
+    }
+    if (runResources.getStore()?.hostDataMetadata !== false && !Object.isExtensible(original)) Object.preventExtensions(copy);
+    return copy;
+  }
+
+  const instantEpoch = hostTemporalInstantEpoch(value);
+  const durationFields = hostTemporalDurationFields(value);
+  const timeFields = hostTemporalPlainTimeFields(value);
+  const dateTimeFields = hostTemporalPlainDateTimeFields(value);
+  const dateFields = hostTemporalPlainDateFields(value);
+  const monthDayFields = hostTemporalPlainMonthDayFields(value);
+  const yearMonthFields = hostTemporalPlainYearMonthFields(value);
+  const zonedFields = hostTemporalZonedDateTimeFields(value);
+  if (instantEpoch !== undefined || durationFields !== undefined || timeFields !== undefined || dateTimeFields !== undefined || dateFields !== undefined || monthDayFields !== undefined || yearMonthFields !== undefined || zonedFields !== undefined) {
+    const original = value as object;
+    const existing = state.seen.get(original);
+    if (existing !== undefined) return existing;
+    const copy = instantEpoch !== undefined
+      ? createSandboxTemporalInstant(instantEpoch)
+      : durationFields !== undefined
+        ? createSandboxTemporalDuration(durationFields)
+        : timeFields !== undefined
+          ? createSandboxTemporalPlainTime(timeFields)
+          : dateTimeFields !== undefined
+            ? createSandboxTemporalPlainDateTime(dateTimeFields)
+            : dateFields !== undefined
+              ? createSandboxTemporalPlainDate(dateFields)
+              : monthDayFields !== undefined
+                ? createSandboxTemporalPlainMonthDay(monthDayFields)
+                : yearMonthFields !== undefined
+                  ? createSandboxTemporalPlainYearMonth(yearMonthFields)
+                  : createSandboxTemporalZonedDateTime(zonedFields!);
+    state.seen.set(original, copy);
+    budget.chargeDataUsage(measureSandboxData([copy]));
+    if (Object.getPrototypeOf(original) === null) setSandboxPrototype(copy, null);
+    for (const key of Reflect.ownKeys(original)) {
+      if (typeof key !== "string") throw new TypeError("Host Temporal symbol properties require an explicit capability path.");
+      const descriptor = Object.getOwnPropertyDescriptor(original, key)!;
+      if (!("value" in descriptor)) throw new TypeError(`Unsupported sandbox value at ${joinPath(path, key)}: accessor property`);
+      Object.defineProperty(copy, budget.allocateString(key), { ...descriptor,
+        value: yield copyHostValueNode(descriptor.value, stackFrames,
+          { ...options, capabilityPath: [...(options.capabilityPath ?? []), key] }, state, joinPath(path, key)) });
+    }
+    if (!Object.isExtensible(original)) Object.preventExtensions(copy);
+    return copy;
+  }
+
+  const date = copyNativeDate(value);
+  if (date !== undefined) {
+    const existing = state.seen.get(value as object);
+    if (existing !== undefined) return existing;
+    budget.chargeDataUsage(9);
+    state.seen.set(value as object, date);
+    return date;
+  }
+
+  if (isSandboxDataView(value)) {
+    const existing = state.seen.get(value);
+    if (existing !== undefined) return existing;
+    const buffer = dataViewBuffer(value);
+    const length = arrayBufferLength(buffer);
+    budget.allocateArrayLength(arrayBufferOptions(buffer)?.maxByteLength ?? length);
+    budget.provisionDataUsage(length + 2)();
+    const copy = copyDataViewStorage(value, state);
+    state.seen.set(value, copy);
+    yield copyHostValueNode(buffer, stackFrames,
+      { ...options, capabilityPath: [...(options.capabilityPath ?? []), "buffer"] }, state, `${path}.buffer`);
+    for (const [key, descriptor] of dataViewDataProperties(value)) {
+      if (typeof key !== "string") throw new TypeError("Host DataView symbol properties require an explicit capability path.");
+      Object.defineProperty(copy, key, { ...descriptor,
+        value: yield copyHostValueNode(descriptor.value, stackFrames,
+          { ...options, capabilityPath: [...(options.capabilityPath ?? []), key] }, state, joinPath(path, key)) });
+    }
+    if (!Object.isExtensible(value)) Object.preventExtensions(copy);
+    return copy;
+  }
+
+  if (isSandboxArrayBuffer(value) || isSandboxSharedArrayBuffer(value)) {
+    const existing = state.seen.get(value);
+    if (existing !== undefined) return existing;
+    const length = arrayBufferLength(value);
+    budget.allocateArrayLength(arrayBufferOptions(value)?.maxByteLength ?? length);
+    budget.provisionDataUsage(length + 1)();
+    const copy = copyArrayBufferStorage(value, state);
+    state.seen.set(value, copy);
+    if (isSandboxSharedArrayBuffer(copy)) options.hostCalls?.registerSharedStorage(copy);
+    for (const [key, descriptor] of arrayBufferDataProperties(value)) {
+      if (typeof key === "symbol") throw new TypeError("Host ArrayBuffer symbol properties require an explicit capability path.");
+      Object.defineProperty(copy, key, { ...descriptor,
+        value: yield copyHostValueNode(descriptor.value, stackFrames,
+          { ...options, capabilityPath: [...(options.capabilityPath ?? []), key] }, state, joinPath(path, key)) });
+    }
+    if (!Object.isExtensible(value)) Object.preventExtensions(copy);
+    return copy;
+  }
+
+  if (isNumericTypedArray(value)) {
+    const existing = state.seen.get(value);
+    if (existing !== undefined) return existing;
+    const capacity = arrayBufferOptions(typedArrayStorage(value).buffer)?.maxByteLength;
+    if (capacity !== undefined) budget.allocateArrayLength(capacity);
+    const storage = typedArrayStorage(value);
+    checkTypedArrayAllocation(Math.ceil(storage.byteLength / storage.elementSize), budget, storage.elementSize);
+    const copy = copyTypedArrayStorage(value, state, true);
+    state.seen.set(value, copy);
+    yield copyHostValueNode(typedArrayStorage(value).buffer, stackFrames,
+      { ...options, capabilityPath: [...(options.capabilityPath ?? []), "buffer"] }, state, `${path}.buffer`);
+    for (const [key, descriptor] of typedArrayDataProperties(value)) {
+      Object.defineProperty(copy, key, {
+        ...descriptor,
+        value: yield copyHostValueNode(
+          descriptor.value,
+          stackFrames,
+          { ...options, capabilityPath: [...(options.capabilityPath ?? []), key] },
+          state,
+          joinPath(path, key)
+        )
+      });
+    }
+    if (!Object.isExtensible(value)) Object.preventExtensions(copy);
+    return copy;
+  }
+
+  if (!options.errorData && isPromiseLike(value)) {
+    if (options.proofFunctions !== undefined)
+      throw new TypeError(`Unsupported proof value at ${path}: promise`);
+    const promiseIdentities = state.promiseIdentities ??= new WeakMap<object, SandboxValue>();
+    const existing = state.seen.get(value) ?? promiseIdentities.get(value);
+    if (existing !== undefined) return existing;
+    const descriptors = types.isPromise(value) ? nativePromiseDataProperties(value) : [];
+    const observed = types.isPromise(value)
+      ? Reflect.apply(Promise.prototype.then, value, [(settled: unknown) => settled]) as Promise<unknown>
+      : Promise.resolve(value);
+    const promise = wrapHostPromiseWithSignal(observed, options.signal).then(
+      (resolved) => {
+        try {
+          return copyHostValueToSandbox(
+            resolved,
+            stackFrames,
+            options,
+            {
+              seen: new WeakMap(),
+              promiseIdentities
+            },
+            "<root>"
+          );
+        } catch (error) {
+          if (isFatalBridgeError(error)) {
+            return Promise.reject(error);
+          }
+
+          return Promise.reject(createHostErrorValue(error, stackFrames, budget));
+        }
+      },
+      (reason) => {
+        if (isFatalBridgeError(reason)) {
+          return Promise.reject(reason);
+        }
+
+        return Promise.reject(createHostErrorValue(reason, stackFrames, budget));
+      }
+    );
+    const sandboxPromise = createSandboxPromise(promise, { importCompileOwner: options.compileOwner });
+    importedPromises.add(sandboxPromise);
+    state.seen.set(value, sandboxPromise);
+    promiseIdentities.set(value, sandboxPromise);
+    if (types.isPromise(value)) {
+      const properties = getPromiseProperties(sandboxPromise);
+      const hasSymbols = descriptors.some(([key]) => typeof key === "symbol");
+      for (const [index, [key, descriptor]] of descriptors.entries()) {
+        if (typeof key === "symbol" && key.description !== undefined) budget.allocateString(key.description);
+        const segment = hasSymbols
+          ? JSON.stringify(typeof key === "symbol" ? ["symbol", index] : ["property", key]) : key as string;
+        Object.defineProperty(properties, typeof key === "string" ? budget.allocateString(key) : key, { ...descriptor,
+          value: yield copyHostValueNode(descriptor.value, stackFrames,
+            { ...options, capabilityPath: [...(options.capabilityPath ?? []), segment] }, state, joinPath(path, String(key))) });
+      }
+      if (!Object.isExtensible(value)) Object.preventExtensions(properties);
+    }
+    const span = getBoundOtelSpan(value);
+    if (span !== undefined) {
+      bindOtelSpan(promise, span);
+      bindOtelSpan(sandboxPromise, span);
+    }
+    return sandboxPromise;
+  }
+
+  if (Array.isArray(value)) {
+    const existing = state.seen.get(value);
+    if (existing !== undefined) {
+      return existing;
+    }
+
+    const copy = new Array(value.length) as SandboxValue[];
+    state.seen.set(value, copy);
+    budget.allocateArrayLength(value.length);
+
+    const descriptors = Object.getOwnPropertyDescriptors(value);
+    const keys = runResources.getStore()?.hostDataMetadata === false ? Object.keys(descriptors) : Reflect.ownKeys(descriptors);
+    const hasSymbols = keys.some(key => typeof key === "symbol");
+    for (const [index, key] of keys.entries()) {
+      const descriptor = Object.getOwnPropertyDescriptor(descriptors, key)!.value as PropertyDescriptor;
+      const indexed = typeof key === "string" && isArrayIndexKey(key);
+      if (key === "length" || (!descriptor.enumerable && !indexed)) continue;
+      const segment = hasSymbols
+        ? JSON.stringify(typeof key === "symbol" ? ["symbol", index] : ["property", key]) : key as string;
+      const entryPath = indexed ? `${path}[${key}]` : joinPath(path, segment);
+      if (!("value" in descriptor)) {
+        throw new TypeError(`Unsupported sandbox value at ${entryPath}: accessor property`);
+      }
+      if (typeof key === "symbol" && key.description !== undefined) budget.allocateString(key.description);
+      defineOwnDataProperty(
+        copy,
+        typeof key === "symbol" || indexed ? key : budget.allocateString(key),
+        yield copyHostValueNode(
+          descriptor.value,
+          stackFrames,
+          { ...options, capabilityPath: [...(options.capabilityPath ?? []), segment] },
+          state,
+          entryPath
+        )
+      );
+    }
+
+    return copy;
+  }
+
+  if (isSandboxMap(value) || value instanceof Map) {
+    const existing = state.seen.get(value);
+    if (existing !== undefined) {
+      return existing;
+    }
+
+    const native = isSandboxMap(value) ? undefined : readNativeMap(value);
+    const entries = isSandboxMap(value) ? value.entries : native!.entries;
+    const copy = createSandboxMap();
+    state.seen.set(value, copy);
+    budget.allocateCollectionEntries(isSandboxMap(value) ? value.entries.size : native!.size);
+    if (runResources.getStore()?.hostDataMetadata !== false) {
+      let propertyIndex = 0;
+      yield copyCollectionPropertiesOperation(value, getCollectionProperties(copy), (entry, key) => {
+        if (typeof key === "string") budget.allocateString(key);
+        else if (key.description !== undefined) budget.allocateString(key.description);
+        const segment = JSON.stringify(["property", typeof key === "symbol" ? ["symbol", propertyIndex++] : ["string", key]]);
+        return copyHostValueNode(entry, stackFrames,
+          { ...options, capabilityPath: [...(options.capabilityPath ?? []), segment] }, state, joinPath(path, segment));
+      });
+    }
+    for (const [key, entry] of entries) {
+      const ordinal = copy.entries.size;
+      copy.entries.set(
+        yield copyHostValueNode(
+          key,
+          stackFrames,
+          { ...options, capabilityPath: [...(options.capabilityPath ?? []), `key:${ordinal}`] },
+          state,
+          `${path}.<key>`
+        ),
+        yield copyHostValueNode(
+          entry,
+          stackFrames,
+          { ...options, capabilityPath: [...(options.capabilityPath ?? []), `value:${ordinal}`] },
+          state,
+          `${path}.<value>`
+        )
+      );
+    }
+    return copy;
+  }
+
+  if (isSandboxSet(value) || value instanceof Set) {
+    const existing = state.seen.get(value);
+    if (existing !== undefined) {
+      return existing;
+    }
+
+    const native = isSandboxSet(value) ? undefined : readNativeSet(value);
+    const entries = isSandboxSet(value) ? value.values : native!.entries;
+    const copy = createSandboxSet();
+    state.seen.set(value, copy);
+    budget.allocateCollectionEntries(isSandboxSet(value) ? value.values.size : native!.size);
+    if (runResources.getStore()?.hostDataMetadata !== false) {
+      let propertyIndex = 0;
+      yield copyCollectionPropertiesOperation(value, getCollectionProperties(copy), (entry, key) => {
+        if (typeof key === "string") budget.allocateString(key);
+        else if (key.description !== undefined) budget.allocateString(key.description);
+        const segment = JSON.stringify(["property", typeof key === "symbol" ? ["symbol", propertyIndex++] : ["string", key]]);
+        return copyHostValueNode(entry, stackFrames,
+          { ...options, capabilityPath: [...(options.capabilityPath ?? []), segment] }, state, joinPath(path, segment));
+      });
+    }
+    for (const entry of entries) {
+      copy.values.add(
+        yield copyHostValueNode(
+          entry,
+          stackFrames,
+          {
+            ...options,
+            capabilityPath: [...(options.capabilityPath ?? []), String(copy.values.size)]
+          },
+          state,
+          `${path}.<value>`
+        )
+      );
+    }
+    return copy;
+  }
+
+  if (isPlainObject(value)) {
+    const existing = state.seen.get(value);
+    if (existing !== undefined) {
+      return existing;
+    }
+
+    const copy = Object.getPrototypeOf(value) === null ? Object.create(null) : {};
+    if (runResources.getStore()?.hostDataMetadata !== false &&
+        (hasNullObjectPrototype(value) || (!copiedPlainObjects.has(value) && !hasExplicitSandboxPrototype(value) && Object.getPrototypeOf(value) === null)))
+      setSandboxPrototype(copy, null);
+    copiedPlainObjects.add(copy);
+    state.seen.set(value, copy);
+
+    const descriptors = Object.getOwnPropertyDescriptors(value);
+    const keys = runResources.getStore()?.hostDataMetadata === false ? Object.keys(descriptors) : Reflect.ownKeys(descriptors);
+    const hasSymbols = keys.some(key => typeof key === "symbol");
+    for (const [index, key] of keys.entries()) {
+      const descriptor = Object.getOwnPropertyDescriptor(descriptors, key)!.value as PropertyDescriptor;
+      if (!descriptor.enumerable) continue;
+      const segment = hasSymbols
+        ? JSON.stringify(typeof key === "symbol" ? ["symbol", index] : ["property", key]) : key as string;
+      if (!("value" in descriptor)) {
+        throw new TypeError(
+          `Unsupported sandbox value at ${joinPath(path, segment)}: accessor property`
+        );
+      }
+      if (typeof key === "symbol" && key.description !== undefined) budget.allocateString(key.description);
+      Object.defineProperty(copy, typeof key === "string" ? budget.allocateString(key) : key, {
+        enumerable: true,
+        configurable: true,
+        writable: true,
+        value: yield copyHostValueNode(
+          descriptor.value,
+          stackFrames,
+          { ...options, capabilityPath: [...(options.capabilityPath ?? []), segment] },
+          state,
+          joinPath(path, segment)
+        )
+      });
+    }
+
+    return copy;
+  }
+
+  throw new TypeError(`Unsupported sandbox value at ${path}: ${describeValue(value)}`);
+}
+
+function readAbortReason(signal: AbortSignal): unknown {
+  return signal.reason ?? createAbortError();
+}
+
+function createAbortError(): Error {
+  if (typeof DOMException === "function") {
+    const error = new DOMException("This operation was aborted", "AbortError");
+    replaceErrorStack(error);
+    return error;
+  }
+
+  const error = new Error("This operation was aborted");
+  error.name = "AbortError";
+  replaceErrorStack(error);
+  return error;
+}
+
+function describeThrownReason(reason: unknown): string {
+  if (reason === undefined) {
+    return "";
+  }
+
+  if (typeof reason === "string") {
+    return reason;
+  }
+
+  if (
+    reason === null ||
+    typeof reason === "number" ||
+    typeof reason === "boolean" ||
+    typeof reason === "bigint" ||
+    typeof reason === "symbol"
+  ) {
+    return String(reason);
+  }
+
+  if (typeof reason === "object") {
+    const message = readStringProperty(reason, "message");
+    if (message !== undefined && message.length > 0) {
+      return message;
+    }
+
+    const name = readStringProperty(reason, "name");
+    if (name !== undefined && name.length > 0) {
+      return name;
+    }
+  }
+
+  return "Host operation failed.";
+}
+
+function readStringProperty(value: object, key: string): string | undefined {
+  if (types.isProxy(value)) return undefined;
+  const descriptor = Object.getOwnPropertyDescriptor(value, key);
+  return descriptor !== undefined && "value" in descriptor && typeof descriptor.value === "string"
+    ? descriptor.value : undefined;
+}
+
+function copyFunctionProperties(
+  callable: (...args: readonly unknown[]) => unknown,
+  stackFrames: readonly string[],
+  options: HostBridgeOptions,
+  state: {
+    seen: WeakMap<object, SandboxValue>;
+  },
+  path: string
+): SandboxObject | undefined {
+  const properties = createIntrinsicObject({});
+  const metadata = new Map<string, PropertyDescriptor>();
+
+  for (const key of Object.getOwnPropertyNames(callable)) {
+    const descriptor = Object.getOwnPropertyDescriptor(callable, key);
+    if (descriptor === undefined) {
+      continue;
+    }
+    if ("get" in descriptor || "set" in descriptor) {
+      continue;
+    }
+
+    if ((key === "name" && typeof descriptor.value === "string") ||
+        (key === "length" && typeof descriptor.value === "number")) {
+      Object.defineProperty(properties, key, descriptor);
+      metadata.set(key, descriptor);
+      continue;
+    }
+
+    if (typeof descriptor.value !== "function") {
+      continue;
+    }
+
+    properties[key] = copyHostValueToSandbox(
+      descriptor.value,
+      stackFrames,
+      { ...options, capabilityPath: [...(options.capabilityPath ?? []), key] },
+      state,
+      joinPath(path, key)
+    );
+  }
+
+  if (metadata.size > 0) hostFunctionMetadata.set(properties, metadata);
+  return Reflect.ownKeys(properties).length > 0 ? properties : undefined;
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return false;
+  }
+
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
+}
+
+function joinPath(path: string, key: string): string {
+  return /^[A-Za-z_$][A-Za-z0-9_$]*$/u.test(key)
+    ? `${path}.${key}`
+    : `${path}[${JSON.stringify(key)}]`;
+}
+
+function readPathName(path: string): string {
+  const segment = path.replace(/^.*\./u, "");
+  return segment === "<root>" ? "host" : segment;
+}
+
+function describeValue(value: unknown): string {
+  if (value === null) {
+    return "null";
+  }
+
+  if (value === undefined) {
+    return "undefined";
+  }
+
+  if (typeof value === "function") {
+    return "function";
+  }
+
+  if (typeof value === "object") {
+    const name = nativeConstructorName(value) ?? "Object";
+    return name && name.length > 0 ? name : "object";
+  }
+
+  return typeof value;
+}

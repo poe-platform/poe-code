@@ -1,0 +1,10 @@
+import { createExprCommand, createExprCommands, exprCommands, createAgentCommands, type ExprCommandsOptions, type ExprLimits, type CommandDefinition } from "@poe-platform/safe-bash";
+import { createExprCommand as subpathCommand, createExprCommands as subpathCommands, exprCommands as subpathPlugin, type ExprCommandsOptions as SubpathOptions, type ExprLimits as SubpathLimits } from "@poe-platform/safe-bash/commands/expr";
+const limits: Partial<ExprLimits & SubpathLimits> = { maxArgumentBytes: 1024, maxSteps: 100000, maxOutputBytes: 4096 };
+const options: ExprCommandsOptions & SubpathOptions = { limits, replace: true };
+const command: CommandDefinition = createExprCommand(options);
+const commands: readonly CommandDefinition[] = createExprCommands(options);
+const factory: typeof createExprCommand = subpathCommand;
+const factories: typeof createExprCommands = subpathCommands;
+const plugin: typeof exprCommands = subpathPlugin;
+void [command, commands, factory, factories, plugin(options), createAgentCommands({ expr: { limits } })];

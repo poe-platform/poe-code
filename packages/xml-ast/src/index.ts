@@ -1,0 +1,824 @@
+import { XmlAttributes, type XmlAttributeRequest } from "./attributes.js";
+export type { XmlAttributeRequest, XmlAttributeRecord, XmlAttributeState } from "./attributes.js";
+import { XmlFrames, bindNamespace, namespaceValue, namespaceMetadata, hasNamespace, type XmlNamespaceRequest, type XmlFrameRequest, type XmlParserFrame } from "./frames.js";
+export type { XmlParserFrame, XmlFrameRequest, XmlNamespaceScope, XmlNamespaceRequest } from "./frames.js";
+import { validCharacter } from "./characters.js";
+export { normalizeXmlChunks } from "./characters.js";
+import { XmlSource, type XmlSourceSpan, type XmlSourceStep } from "./source.js";
+export type { XmlSourceRead, XmlSourceSpan, XmlSourceStep } from "./source.js";
+import type { XmlStreamEvent } from "./stream.js";
+import { XmlLimitError } from "./errors.js";
+export { XmlLimitError } from "./errors.js";
+
+export interface XmlName {
+  readonly name: string;
+  readonly nameSource?: XmlSourceSpan;
+  readonly nameReference?: number;
+  readonly localNameSource?: XmlSourceSpan;
+  readonly localNameReference?: number;
+  readonly prefix?: string;
+  readonly prefixSource?: XmlSourceSpan;
+  readonly prefixReference?: number;
+  readonly namespace: string;
+  readonly namespaceReference?: number;
+  readonly localName: string;
+}
+export interface XmlAttribute extends XmlName { readonly value: string; }
+export type XmlContent = XmlElement | { readonly kind: "text" | "cdata" | "comment"; readonly text: string }
+  | { readonly kind: "processing-instruction"; readonly target: string; readonly targetSource?: XmlSourceSpan; readonly targetReference?: number; readonly text: string };
+export interface XmlElement extends XmlName {
+  readonly kind: "element";
+  readonly children: XmlElement[];
+  readonly content: readonly XmlContent[];
+  readonly attributes: readonly XmlAttribute[];
+  readonly namespaces: ReadonlyMap<string, string>;
+  text: string;
+  readonly declaration?: string;
+  readonly prolog?: readonly XmlContent[];
+  readonly epilog?: readonly XmlContent[];
+}
+export interface XmlLimits {
+  /** Opt-in best-effort parsing; each repaired syntax error is reported. DTDs remain forbidden. */
+  readonly recover?: (message: string) => void;
+  readonly expectedEncoding?: "UTF-8" | "UTF-16" | "UTF-16LE" | "UTF-16BE";
+  readonly retainContent?: boolean;
+  readonly maxDepth?: number;
+  readonly maxNodes?: number;
+  readonly maxAttributes?: number;
+  readonly maxAttributesPerElement?: number;
+  readonly maxNamespaces?: number;
+  readonly maxContentNodes?: number;
+  readonly maxTextLength?: number;
+  readonly onElement?: (element: XmlName, parent: XmlName | undefined, depth: number) => void;
+}
+
+function find(source: string, needle: string, start: number): Generator<number, number, void>;
+function find(source: XmlSource, needle: string, start: number): Generator<XmlSourceStep, number, void>;
+function* find(source: string | XmlSource, needle: string, start: number): Generator<XmlSourceStep, number, void> {
+  const found = typeof source === "string" ? source.indexOf(needle, start) : yield* source.indexOf(needle, start);
+  const end = found < 0 ? source.length : found;
+  let remaining = end - start;
+  while (remaining >= 512) { yield 512; remaining -= 512; }
+  if (remaining > 0) yield remaining;
+  return found;
+}
+
+const xmlNamespace = "http://www.w3.org/XML/1998/namespace";
+const xmlnsNamespace = "http://www.w3.org/2000/xmlns/";
+
+function invalid(message: string): never {
+  throw new SyntaxError(`Invalid XML: ${message}`);
+}
+
+function nameStart(point: number): boolean {
+  return point === 95 || (point >= 65 && point <= 90) || (point >= 97 && point <= 122)
+    || (point >= 0xc0 && point <= 0xd6) || (point >= 0xd8 && point <= 0xf6)
+    || (point >= 0xf8 && point <= 0x2ff) || (point >= 0x370 && point <= 0x37d)
+    || (point >= 0x37f && point <= 0x1fff) || (point >= 0x200c && point <= 0x200d)
+    || (point >= 0x2070 && point <= 0x218f) || (point >= 0x2c00 && point <= 0x2fef)
+    || (point >= 0x3001 && point <= 0xd7ff) || (point >= 0xf900 && point <= 0xfdcf)
+    || (point >= 0xfdf0 && point <= 0xfffd) || (point >= 0x10000 && point <= 0xeffff);
+}
+
+function namePart(point: number): boolean {
+  return nameStart(point) || point === 45 || point === 46 || point === 0xb7
+    || (point >= 48 && point <= 57) || (point >= 0x300 && point <= 0x36f)
+    || (point >= 0x203f && point <= 0x2040);
+}
+
+interface QualifiedNameCache {
+  name: string | undefined;
+  parts: [string, string] | undefined;
+}
+
+function qualifiedNameSync(name: string, cache: QualifiedNameCache): [string, string] {
+  if (cache.name === name) return cache.parts!;
+  let prefix = "";
+  let start = 0;
+  let first = true;
+  for (let offset = 0; offset < name.length;) {
+    const point = name.codePointAt(offset)!;
+    if (point === 58) {
+      if (start !== 0 || first) invalid("invalid qualified name");
+      prefix = name.slice(0, offset);
+      start = offset + 1;
+      first = true;
+    } else {
+      if (!(first ? nameStart(point) : namePart(point))) invalid("invalid qualified name");
+      first = false;
+    }
+    offset += point > 0xffff ? 2 : 1;
+  }
+  if (first) invalid("invalid qualified name");
+  const parts: [string, string] = [prefix, name.slice(start)];
+  // Retain only one short name; namespace resolution still happens per element.
+  if (name.length <= 512) {
+    cache.name = name;
+    cache.parts = parts;
+  }
+  return parts;
+}
+
+/** Validate a name span without retaining its spelling. */
+function* validateNameSpan(source: XmlSource, start: number, end: number): Generator<XmlSourceStep, number, void> {
+  let first = true, colon = -1, work = 0;
+  for (let offset = start; offset < end;) {
+    let point = yield* source.charCodeAt(offset);
+    if (point >= 0xd800 && point <= 0xdbff && offset + 1 < end) {
+      const low = yield* source.charCodeAt(offset + 1);
+      if (low >= 0xdc00 && low <= 0xdfff) point = 0x10000 + (point - 0xd800) * 1024 + low - 0xdc00;
+    }
+    if (point === 58) {
+      if (colon >= 0 || first) invalid("invalid qualified name");
+      colon = offset; first = true;
+    } else {
+      if (!(first ? nameStart(point) : namePart(point))) invalid("invalid qualified name");
+      first = false;
+    }
+    const size = point > 0xffff ? 2 : 1;
+    offset += size; work += size;
+    if (work >= 512) { yield 512; work -= 512; }
+  }
+  if (first) invalid("invalid qualified name");
+  if (work) yield work;
+  return colon;
+}
+
+function entity(source: string, start: number, end: number, recover?: (message: string) => void): Generator<number, string, void>;
+function entity(source: XmlSource, start: number, end: number, recover?: (message: string) => void): Generator<XmlSourceStep, string, void>;
+function* entity(source: string | XmlSource, start: number, end: number, recover?: (message: string) => void): Generator<XmlSourceStep, string, void> {
+  // Inspect only a bounded prefix, even for arbitrarily long numeric references.
+  const prefix = typeof source === "string" ? source.slice(start, Math.min(end, start + 4))
+    : yield* source.slice(start, Math.min(end, start + 4));
+  const predefined: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'" };
+  if (end - start <= 4 && Object.hasOwn(predefined, prefix)) return predefined[prefix]!;
+  const hexadecimal = prefix.startsWith("#x"), digits = start + (hexadecimal ? 2 : 1);
+  if (!prefix.startsWith("#") || digits >= end) {
+    if (!recover) invalid("undeclared entity");
+    recover("undeclared entity");
+    return "";
+  }
+  let point = 0;
+  for (let index = digits; index < end; index++) {
+    const code = typeof source === "string" ? source.charCodeAt(index) : yield* source.charCodeAt(index);
+    const digit = code >= 48 && code <= 57 ? code - 48 : hexadecimal && code >= 65 && code <= 70 ? code - 55
+      : hexadecimal && code >= 97 && code <= 102 ? code - 87 : -1;
+    if (digit < 0) invalid("undeclared entity");
+    point = point * (hexadecimal ? 16 : 10) + digit;
+    if (point > 0x10ffff) invalid("invalid character reference");
+    if ((index - digits + 1) % 512 === 0) yield 512;
+  }
+  if ((end - digits) % 512) yield (end - digits) % 512;
+  if (!validCharacter(point)) invalid("invalid character reference");
+  return String.fromCodePoint(point);
+}
+
+/** Decoded text fragments; source read/work requests remain host-serviced. */
+function* textParts(source: XmlSource, start: number, end: number, decode: boolean,
+  recover?: (message: string) => void, attribute = false): Generator<XmlSourceStep | string, void, void> {
+  let cursor = start;
+  while (cursor < end) {
+    let finish = Math.min(end, cursor + 512);
+    if (finish < end) {
+      const last = yield* source.charCodeAt(finish - 1);
+      if (last >= 0xd800 && last <= 0xdbff) finish--;
+    }
+    let raw = yield* source.slice(cursor, finish);
+    if (attribute) {
+      let normalized = "";
+      for (const character of raw) normalized += "\t\n\r".includes(character) ? " " : character;
+      raw = normalized;
+    }
+    const found = decode ? raw.indexOf("&") : -1;
+    if (found < 0) {
+      yield raw;
+      yield raw.length;
+      cursor = finish;
+      continue;
+    }
+    const amp = cursor + found;
+    if (found) { yield raw.slice(0, found); yield found; }
+    const semicolon = yield* source.indexOf(";", amp + 1, end);
+    if (semicolon < 0) {
+      if (!recover) invalid("unterminated entity");
+      recover("unterminated entity");
+      cursor = amp + 1;
+      decode = false;
+      continue;
+    }
+    const part = yield* entity(source, amp + 1, semicolon, recover);
+    if (part) yield part;
+    yield 1;
+    cursor = semicolon + 1;
+  }
+}
+
+function* textFragments(source: XmlSource, start: number, end: number, decode: boolean,
+  recover?: (message: string) => void, attribute = false): Generator<XmlSourceStep | string, void, void> {
+  let pending = "";
+  for (const part of textParts(source, start, end, decode, recover, attribute)) {
+    if (typeof part !== "string") { yield part; continue; }
+    pending += part;
+    while (pending.length >= 512) {
+      const last = pending.charCodeAt(511), width = last >= 0xd800 && last <= 0xdbff ? 511 : 512;
+      yield pending.slice(0, width);
+      pending = pending.slice(width);
+    }
+  }
+  if (pending) yield pending;
+}
+
+function* entities(text: string, recover?: (message: string) => void): Generator<number, string, void> {
+  let result = "";
+  let offset = 0;
+  while (offset < text.length) {
+    const start = yield* find(text, "&", offset);
+    if (start < 0) return result + text.slice(offset);
+    result += text.slice(offset, start);
+    const end = yield* find(text, ";", start + 1);
+    if (end < 0) {
+      if (!recover) invalid("unterminated entity");
+      recover("unterminated entity");
+      return result + text.slice(start + 1);
+    }
+    result += yield* entity(text, start + 1, end, recover);
+    offset = end + 1;
+  }
+  return result;
+}
+
+function* readDeclaration(source: XmlSource, offset: number, end: number,
+  expectedEncoding: XmlLimits["expectedEncoding"]): Generator<XmlSourceStep, string | undefined, void> {
+  const whitespace = function* (): Generator<XmlSourceStep, number, void> {
+    const start = offset;
+    while (offset < end && " \t\n\r".includes(yield* source.slice(offset, offset + 1))) {
+      offset++;
+      if ((offset - start) % 512 === 0) yield 512;
+    }
+    if ((offset - start) % 512) yield (offset - start) % 512;
+    return offset - start;
+  };
+  const field = function* (name: string, maxLength: number): Generator<XmlSourceStep, string | undefined, void> {
+    if ((yield* source.slice(offset, Math.min(end, offset + name.length))) !== name) return undefined;
+    offset += name.length;
+    yield name.length;
+    yield* whitespace();
+    if (offset >= end || (yield* source.charCodeAt(offset++)) !== 61) return undefined;
+    yield* whitespace();
+    if (offset >= end) return undefined;
+    const quote = yield* source.slice(offset++, offset);
+    if (quote !== "'" && quote !== '"') return undefined;
+    const start = offset;
+    while (offset < end && (yield* source.slice(offset, offset + 1)) !== quote) {
+      offset++;
+      if ((offset - start) % 512 === 0) yield 512;
+    }
+    if ((offset - start) % 512) yield (offset - start) % 512;
+    if (offset >= end || offset - start > maxLength) return undefined;
+    return yield* source.slice(start, offset++);
+  };
+  if (!(yield* whitespace()) || (yield* field("version", 3)) !== "1.0") return undefined;
+  let result = '<?xml version="1.0"';
+  let spacing = yield* whitespace();
+  if ((yield* source.slice(offset, Math.min(end, offset + 8))) === "encoding") {
+    if (!spacing) return undefined;
+    const encoding = yield* field("encoding", 8);
+    if (encoding === undefined || !["utf-8", "utf-16", "utf-16le", "utf-16be"].includes(encoding.toLowerCase())) return undefined;
+    if (expectedEncoding !== undefined && encoding.toLowerCase() !== expectedEncoding.toLowerCase()
+      && !(encoding.toLowerCase() === "utf-16" && (expectedEncoding === "UTF-16LE" || expectedEncoding === "UTF-16BE"))) return undefined;
+    result += ` encoding="${encoding}"`;
+    spacing = yield* whitespace();
+  }
+  if ((yield* source.slice(offset, Math.min(end, offset + 10))) === "standalone") {
+    if (!spacing) return undefined;
+    const standalone = yield* field("standalone", 3);
+    if (standalone === undefined || !["yes", "no"].includes(standalone)) return undefined;
+    result += ` standalone="${standalone}"`;
+    yield* whitespace();
+  }
+  return offset === end ? result + "?>" : undefined;
+}
+
+export interface XmlStepLimits extends XmlLimits {
+  /** Return root metadata without retaining descendants or text. */
+  readonly retainTree?: boolean;
+  /** Synchronous ordered events, including repaired closes. Requires retainTree:
+   * false. Drive the step iterator to await external consumers between windows. */
+  readonly events?: (event: XmlStreamEvent) => void;
+}
+
+function validateLimits(limits: XmlStepLimits): void {
+  for (const limit of [limits.maxDepth, limits.maxNodes, limits.maxAttributes, limits.maxContentNodes, limits.maxAttributesPerElement, limits.maxNamespaces]) {
+    if (limit !== undefined && ((limit !== Infinity && !Number.isSafeInteger(limit)) || limit < 1)) throw new RangeError("XML limits must be positive integers");
+  }
+  if (limits.maxTextLength !== undefined && ((limits.maxTextLength !== Infinity && !Number.isSafeInteger(limits.maxTextLength)) || limits.maxTextLength < 1)) throw new RangeError("XML limits must be positive integers");
+  if (limits.events && limits.retainTree !== false) throw new TypeError("XML events require retainTree: false");
+}
+
+export interface XmlSourceLimits extends XmlStepLimits {
+  /** Keep normalized declaration fields instead of the complete source spelling. */
+  readonly compactDeclaration?: boolean;
+  /** Emit content bodies in bounded fragments, marking continuations of the same logical
+   * node. Requires retainTree: false; consumers must preserve fragment identity. */
+  readonly fragmentContent?: boolean;
+  /** Store active parser frames through host-serviced requests. Requires retainTree: false. */
+  readonly storeFrames?: boolean;
+  /** Resolve namespace scopes through host-serviced requests. Requires retainTree: false. */
+  readonly storeNamespaces?: boolean;
+  /** Carry host namespace token references in event metadata. Requires stored namespaces. */
+  readonly deferNamespaces?: boolean;
+  /** Emit long processing-instruction targets as source spans. Requires fragmentContent. */
+  readonly deferContentNames?: boolean;
+  /** Defer long element names and, with external namespaces, their prefixes. */
+  readonly deferElementNames?: boolean;
+  /** Defer attribute names and namespace declaration prefixes to source spans. */
+  readonly deferAttributeNames?: boolean;
+  /** Store attribute collections through host requests and emit resolved attributes individually. */
+  readonly storeAttributes?: boolean;
+  readonly fragmentAttributes?: boolean;
+  readonly onAttribute?: (attribute: XmlAttribute, element: XmlElement, continuation?: boolean) => void;
+}
+export type XmlParseStep = XmlSourceStep | XmlFrameRequest | XmlNamespaceRequest | XmlAttributeRequest;
+
+/** Parse a validated, BOM-free, line-normalized UTF-16 source via bounded read requests. */
+export function parseXmlSourceSteps(length: number | undefined, limits?: XmlStepLimits & { readonly storeFrames?: false; readonly storeNamespaces?: false; readonly storeAttributes?: false }): Generator<XmlSourceStep, XmlElement, void>;
+export function parseXmlSourceSteps(length: number | undefined, limits: XmlSourceLimits): Generator<XmlParseStep, XmlElement, void>;
+export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSourceLimits = {}): Generator<XmlParseStep, XmlElement, void> {
+  validateLimits(limits);
+  if (limits.deferAttributeNames && (!limits.storeAttributes || !limits.storeNamespaces)) throw new TypeError("Deferred attribute names require stored attributes and namespaces");
+  if (limits.deferElementNames && limits.retainTree !== false) throw new TypeError("Deferred element names require retainTree: false");
+  if (limits.deferContentNames && !limits.fragmentContent) throw new TypeError("Deferred XML content names require fragmentContent: true");
+  if (limits.fragmentAttributes && !limits.storeAttributes) throw new TypeError("XML attribute fragments require storeAttributes: true");
+  if (limits.storeFrames && limits.retainTree !== false) throw new TypeError("Stored XML frames require retainTree: false");
+  if (limits.storeAttributes && limits.retainTree !== false) throw new TypeError("Stored XML attributes require retainTree: false");
+  if (limits.deferNamespaces && !limits.storeNamespaces) throw new TypeError("Deferred XML namespaces require stored namespaces");
+  if (limits.storeNamespaces && limits.retainTree !== false) throw new TypeError("Stored XML namespaces require retainTree: false");
+  if (limits.fragmentContent && limits.retainTree !== false) throw new TypeError("XML content fragments require retainTree: false");
+  const source = new XmlSource(length);
+  const maxDepth = limits.maxDepth ?? Infinity;
+  const maxNodes = limits.maxNodes ?? Infinity;
+  const maxAttributes = limits.maxAttributes ?? Infinity;
+  const retainContent = limits.retainContent !== false;
+  const retainTree = limits.retainTree !== false;
+  const retain = retainTree && retainContent;
+  const maxContentNodes = limits.maxContentNodes ?? Infinity;
+  const emptyContent: readonly XmlContent[] = Object.freeze([]);
+  const emptyAttributes: readonly XmlAttribute[] = Object.freeze([]);
+  const emptyNamespaces: ReadonlyMap<string, string> = new Map();
+  const maxAttributesPerElement = limits.maxAttributesPerElement ?? Infinity;
+  const maxNamespaces = limits.maxNamespaces ?? Infinity;
+  const maxTextLength = limits.maxTextLength ?? Infinity;
+  let textLength = 0;
+  const admitText = (text: string): void => {
+    if (text.length > maxTextLength - textLength) throw new XmlLimitError("maxTextLength", "XML text limit exceeded");
+    textLength += text.length;
+  };
+  const initialNamespaces = limits.storeNamespaces ? yield* bindNamespace({ reference: 0, size: 0 }, "xml", xmlNamespace) : new Map([["xml", xmlNamespace]]);
+  const stack = new XmlFrames(limits.storeFrames === true);
+  let root: XmlElement | undefined;
+  const prolog: XmlContent[] = [];
+  const epilog: XmlContent[] = [];
+  let declaration: string | undefined;
+  let offset = 0;
+  let nodes = 0;
+  let attributeCount = 0;
+  let contentNodes = 0;
+  let previousEmpty: { suffix: string; name: string; prefix: string; localName: string } | undefined;
+  const qualifiedNames: QualifiedNameCache = { name: undefined, parts: undefined };
+  const admitContent = (): void => {
+    if (++contentNodes > maxContentNodes) throw new XmlLimitError("maxContentNodes", "XML content node limit exceeded");
+  };
+  let pendingWork = 0;
+  const skipWhitespace = function* (): Generator<XmlSourceStep, number> {
+    const start = offset;
+    while (yield* source.has(offset)) {
+      const c = (yield* source.charCodeAt(offset));
+      if (c !== 32 && c !== 9 && c !== 10 && c !== 13) break;
+      offset++;
+      pendingWork++;
+      if (pendingWork >= 512) { yield 512; pendingWork -= 512; }
+    }
+    return offset - start;
+  };
+  const sameName = function* (left: XmlName, right: string, span?: XmlSourceSpan): Generator<XmlSourceStep, boolean, void> {
+    if (!left.nameSource && !span) return left.name === right;
+    const leftLength = left.nameSource ? left.nameSource.end - left.nameSource.start : left.name.length;
+    const rightLength = span ? span.end - span.start : right.length;
+    if (leftLength !== rightLength) return false;
+    for (let index = 0; index < leftLength; index += 512) {
+      const end = Math.min(leftLength, index + 512);
+      const a = left.nameSource ? yield* source.slice(left.nameSource.start + index, left.nameSource.start + end) : left.name.slice(index, end);
+      const b = span ? yield* source.slice(span.start + index, span.start + end) : right.slice(index, end);
+      yield end - index;
+      if (a !== b) return false;
+    }
+    return true;
+  };
+  const scanName = function* (defer?: "content" | "element" | "attribute"): Generator<XmlSourceStep, [string, string, string, (XmlSourceSpan | undefined)?, (XmlSourceSpan | undefined)?, (XmlSourceSpan | undefined)?]> {
+    const start = offset;
+    while (yield* source.has(offset)) {
+      const c = (yield* source.charCodeAt(offset));
+      if (c === 32 || c === 9 || c === 13 || c === 10 || c === 47 || c === 61 || c === 62 || c === 63) break;
+      offset++;
+      pendingWork++;
+      if (pendingWork >= 512) { yield 512; pendingWork -= 512; }
+    }
+    if (defer && offset - start > 512) {
+      const colon = yield* validateNameSpan(source, start, offset);
+      if (defer === "content") return ["", "", "", { start, end: offset }];
+      if (colon - start > 512 && !limits.storeNamespaces) {
+        const name = yield* source.slice(start, offset);
+        return [name, name.slice(0, colon - start), name.slice(colon - start + 1)];
+      }
+      const localStart = colon < 0 ? start : colon + 1;
+      const prefixSource = colon - start > 512 ? { start, end: colon } : undefined;
+      const prefix = colon < 0 || prefixSource ? "" : yield* source.slice(start, colon);
+      const localNameSource = offset - localStart > 512 ? { start: localStart, end: offset } : undefined;
+      const local = localNameSource ? "" : yield* source.slice(localStart, offset);
+      return ["", prefix, local, { start, end: offset }, localNameSource, prefixSource];
+    }
+    const name = (yield* source.slice(start, offset));
+    pendingWork += offset - start;
+    while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
+    const [prefix, localName] = qualifiedNameSync(name, qualifiedNames);
+    return [name, prefix, localName];
+  };
+  const rawContent = function* (kind: "cdata" | "comment" | "processing-instruction", start: number, end: number,
+    parent: XmlParserFrame | undefined, target = "", targetSource?: XmlSourceSpan): Generator<XmlSourceStep, void, void> {
+    if (end - start > maxTextLength - textLength) throw new XmlLimitError("maxTextLength", "XML text limit exceeded");
+    textLength += end - start;
+    admitContent();
+    let cursor = start, continuation = false;
+    do {
+      let finish = limits.fragmentContent ? Math.min(end, cursor + 512) : end;
+      if (finish < end) {
+        const last = yield* source.charCodeAt(finish - 1);
+        if (last >= 0xd800 && last <= 0xdbff) finish--;
+      }
+      const text = yield* source.slice(cursor, finish);
+      const content: Exclude<XmlContent, XmlElement> = kind === "processing-instruction" ? { kind, target, text, ...(targetSource ? { targetSource } : {}) } : { kind, text };
+      if (kind === "cdata" && retainTree) parent!.element.text += text;
+      if (retain) (parent?.content ?? (root ? epilog : prolog)).push(content);
+      limits.events?.({ type: "content", content, parent: parent?.element,
+        ...(continuation ? { continuation: true } : {}) });
+      if (limits.fragmentContent) yield Math.max(1, text.length);
+      continuation = true;
+      cursor = finish;
+    } while (cursor < end);
+  };
+  while (yield* source.has(offset)) {
+    pendingWork += 1;
+    if (pendingWork >= 512) {
+      while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
+    }
+    if ((yield* source.charCodeAt(offset)) !== 60) {
+      const next = (yield* source.indexOf("<", offset));
+      const endPos = next < 0 ? source.length : next;
+      if (limits.fragmentContent) {
+        if ((yield* source.indexOf("]]>", offset, endPos)) >= 0) invalid("CDATA terminator in text");
+        const parent = yield* stack.peek();
+        let size = 0, outsideText = false;
+        // Validate before emitting any part of the logical node. This preserves
+        // entity/recovery diagnostics and limit precedence without retaining it.
+        for (const part of textFragments(source, offset, endPos, !!parent, limits.recover)) {
+          if (typeof part !== "string") { yield part; continue; }
+          size += part.length;
+          if (!parent) for (const character of part) {
+            if (!" \t\r\n".includes(character)) outsideText = true;
+          }
+        }
+        if (size > maxTextLength - textLength) throw new XmlLimitError("maxTextLength", "XML text limit exceeded");
+        textLength += size;
+        if (outsideText) invalid("text outside the root");
+        if (size) {
+          admitContent();
+          if (limits.events) {
+            let continuation = false;
+            for (const part of textFragments(source, offset, endPos, !!parent, limits.recover ? () => {} : undefined)) {
+              if (typeof part !== "string") { yield part; continue; }
+              limits.events({ type: "content", content: { kind: "text", text: part }, parent: parent?.element,
+                ...(continuation ? { continuation: true } : {}) });
+              continuation = true;
+              yield 1;
+            }
+          }
+        }
+        offset = endPos;
+        continue;
+      }
+      const text = (yield* source.slice(offset, endPos));
+      pendingWork += (endPos - offset) + text.length;
+      while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
+      if (text.indexOf("]]>") >= 0) invalid("CDATA terminator in text");
+      const resolved = stack.length ? (text.indexOf("&") < 0 ? (pendingWork += text.length, text) : yield* entities(text, limits.recover)) : text;
+      while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
+      admitText(resolved);
+      const parent = (yield* stack.peek());
+      if (parent) {
+        if (retainTree) parent.element.text += resolved;
+        if (resolved.length) {
+          admitContent();
+          if (retain) parent.content!.push({ kind: "text", text: resolved });
+          limits.events?.({ type: "content", content: { kind: "text", text: resolved }, parent: parent.element });
+        }
+      } else {
+        for (let index = 0; index < resolved.length; index++) {
+          pendingWork++;
+          if (pendingWork >= 512) { yield 512; pendingWork -= 512; }
+          const c = resolved.charCodeAt(index);
+          if (c !== 32 && c !== 9 && c !== 13 && c !== 10) invalid("text outside the root");
+        }
+        while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
+        if (resolved.length) {
+          admitContent();
+          if (retain) (root ? epilog : prolog).push({ kind: "text", text: resolved });
+          limits.events?.({ type: "content", content: { kind: "text", text: resolved }, parent: undefined });
+        }
+      }
+      offset = endPos;
+    } else if ((yield* source.startsWith("<!--", offset))) {
+      const end = yield* find(source, "-->", offset + 4);
+      if (end < 0 || (yield* source.indexOf("--", offset + 4, end)) >= 0
+        || (end > offset + 4 && (yield* source.charCodeAt(end - 1)) === 45)) invalid("malformed comment");
+      yield* rawContent("comment", offset + 4, end, yield* stack.peek());
+      offset = end + 3;
+    } else if ((yield* source.startsWith("<![CDATA[", offset))) {
+      if (!stack.length) invalid("CDATA outside root");
+      const end = yield* find(source, "]]>", offset + 9);
+      if (end < 0) invalid("unterminated CDATA");
+      yield* rawContent("cdata", offset + 9, end, yield* stack.peek());
+      offset = end + 3;
+    } else if ((yield* source.startsWith("<?", offset))) {
+      const start = offset;
+      offset += 2;
+      const [target, , , targetSource] = yield* scanName(limits.deferContentNames ? "content" : undefined);
+      while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
+      const end = yield* find(source, "?>", offset);
+      if (end < 0) invalid("unterminated processing instruction");
+      if (target.length === 3 && target.toLowerCase() === "xml") {
+        if (start !== 0 || target !== "xml") invalid("unsupported XML declaration");
+        const parsed = yield* readDeclaration(source, offset, end, limits.expectedEncoding);
+        if (parsed === undefined) invalid("unsupported XML declaration");
+        if (retainContent) declaration = limits.compactDeclaration ? parsed : yield* source.slice(start, end + 2);
+      } else {
+        if (offset < end && !" \t\n\r".includes(yield* source.slice(offset, offset + 1))) invalid("invalid processing instruction");
+        let body = offset;
+        while (body < end && " \t\n\r".includes(yield* source.slice(body, body + 1))) {
+          body++;
+          pendingWork++;
+          if (pendingWork >= 512) { yield 512; pendingWork -= 512; }
+        }
+        while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
+        yield* rawContent("processing-instruction", body, end, yield* stack.peek(), target, targetSource);
+      }
+      offset = end + 2;
+    } else if ((yield* source.startsWith("<!", offset))) {
+      invalid("DTD and entity declarations are forbidden");
+    } else if ((yield* source.charCodeAt(offset + 1)) === 47) {
+      offset += 2;
+      const [name, , , nameSource] = yield* scanName(limits.deferElementNames ? "element" : undefined);
+      yield* skipWhitespace();
+      while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
+      const closed = (yield* source.slice(offset++, offset)) === ">" ? (yield* stack.pop()) : undefined;
+      if (!closed || !(yield* sameName(closed.element, name, nameSource))) {
+        if (!limits.recover) invalid("mismatched closing tag");
+        limits.recover("mismatched closing tag");
+      }
+      if (closed) limits.events?.({ type: "close", element: closed.element, parent: (yield* stack.peek())?.element });
+    } else {
+      offset++;
+      const repeated = previousEmpty && (yield* source.startsWith(previousEmpty.suffix, offset)) ? previousEmpty : undefined;
+      const [name, prefix, localName, nameSource, localNameSource, prefixSource]: [string, string, string, (XmlSourceSpan | undefined)?, (XmlSourceSpan | undefined)?, (XmlSourceSpan | undefined)?] = repeated
+        ? [repeated.name, repeated.prefix, repeated.localName]
+        : (yield* scanName(limits.deferElementNames ? "element" : undefined));
+      if (repeated) offset += name.length;
+      // Preserve scan/validation work while reusing the admitted spelling.
+      if (repeated) pendingWork += name.length * 2;
+      while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
+      const attributes = new XmlAttributes(limits.storeAttributes === true);
+      const namespaceParent = yield* stack.peek();
+      let namespaces = namespaceParent?.namespaceScope ?? namespaceParent?.namespaces ?? (initialNamespaces instanceof Map ? new Map(initialNamespaces) : initialNamespaces);
+      let ownsNamespaces = stack.length === 0;
+      while (!repeated) {
+        const ws = (yield* skipWhitespace());
+        while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
+        const ch = (yield* source.charCodeAt(offset));
+        if (ch === 47 || ch === 62 || limits.recover && offset === source.length) break;
+        if (ws === 0) invalid("attributes require whitespace");
+        const [attribute, attrPrefix, attrLocal, nameSource, localNameSource, attrPrefixSource] = yield* scanName(limits.deferAttributeNames ? "attribute" : undefined);
+        while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
+        if ((yield* attributes.has(attribute, nameSource))) invalid("duplicate attribute");
+        if (++attributeCount > maxAttributes) throw new XmlLimitError("maxAttributes", "XML attribute limit exceeded");
+        if (attributes.size >= maxAttributesPerElement) throw new XmlLimitError("maxAttributesPerElement", "XML attribute limit exceeded");
+        yield* skipWhitespace();
+        if ((yield* source.slice(offset++, offset)) !== "=") invalid("missing attribute equals");
+        yield* skipWhitespace();
+        const quote = (yield* source.slice(offset++, offset));
+        if (quote !== '"' && quote !== "'") invalid("unquoted attribute");
+        const end = (yield* source.indexOf(quote, offset));
+        const scanLen = (end < 0 ? source.length : end) - offset;
+        pendingWork += scanLen;
+        while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
+        if (end < 0) invalid("unterminated attribute");
+        const fragmented = limits.fragmentAttributes && (limits.storeNamespaces || attribute !== "xmlns" && attrPrefix !== "xmlns");
+        const valueStart = offset;
+        let value = "", size = 0, matchesXml = true, matchesXmlns = true;
+        if (fragmented) {
+          if ((yield* source.indexOf("<", offset, end)) >= 0) invalid("less-than in attribute");
+          for (const part of textFragments(source, offset, end, true, limits.recover, true)) {
+            if (typeof part !== "string") yield part;
+            else {
+              matchesXml = matchesXml && part === xmlNamespace.slice(size, size + part.length);
+              matchesXmlns = matchesXmlns && part === xmlnsNamespace.slice(size, size + part.length);
+              size += part.length;
+            }
+          }
+          matchesXml = matchesXml && size === xmlNamespace.length;
+          matchesXmlns = matchesXmlns && size === xmlnsNamespace.length;
+          if (size > maxTextLength - textLength) throw new XmlLimitError("maxTextLength", "XML text limit exceeded");
+          textLength += size;
+        } else {
+          const raw = (yield* source.slice(offset, end));
+          pendingWork += raw.length * 2;
+          while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
+          if (raw.indexOf("<") >= 0) invalid("less-than in attribute");
+          let normalized = raw;
+          if (raw.includes("\t") || raw.includes("\n") || raw.includes("\r")) {
+            normalized = "";
+            for (const character of raw) normalized += "\t\n\r".includes(character) ? " " : character;
+          }
+          value = normalized.indexOf("&") < 0 ? (pendingWork += normalized.length, normalized) : yield* entities(normalized, limits.recover);
+          while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
+          admitText(value);
+        }
+        yield* attributes.append(attribute, attrPrefix, attrLocal, value, limits.fragmentAttributes ? { start: offset, end } : undefined, nameSource, localNameSource, attrPrefixSource);
+        offset = end + 1;
+        if (attribute === "xmlns" || attrPrefix === "xmlns") {
+          const nsPrefix = attribute === "xmlns" ? "" : attrLocal;
+          const nsPrefixSource = attrPrefix === "xmlns" ? localNameSource : undefined;
+          if (nsPrefix === "xmlns" || (fragmented ? matchesXmlns : value === xmlnsNamespace)
+            || (nsPrefix === "xml") !== (fragmented ? matchesXml : value === xmlNamespace)
+            || ((nsPrefix !== "" || nsPrefixSource) && (fragmented ? size === 0 : value === ""))) invalid("invalid namespace binding");
+          if (!ownsNamespaces && namespaces instanceof Map) {
+            const copy = new Map<string, string>();
+            for (const [key, uri] of namespaces) { copy.set(key, uri); pendingWork += 1; }
+            namespaces = copy;
+            ownsNamespaces = true;
+          }
+          namespaces = yield* bindNamespace(namespaces, nsPrefix, fragmented
+            ? textFragments(source, valueStart, end, true, limits.recover ? () => {} : undefined, true) : value, nsPrefixSource);
+          if (namespaces.size > maxNamespaces) throw new XmlLimitError("maxNamespaces", "XML namespace scope limit exceeded");
+        }
+      }
+      if (attributes.length > 0) {
+        for (let cursor = attributes.first; cursor;) {
+          const record = yield* attributes.read(cursor, false);
+          cursor = record.next;
+          const { name: attribute, prefix: attrPrefix, localName: attrLocal } = record;
+          if (attribute === "xmlns" || attrPrefix === "xmlns") continue;
+          pendingWork += attribute.length;
+          if ((attrPrefix || record.prefixSource) && !(yield* hasNamespace(namespaces, attrPrefix, record.prefixSource))) invalid("unbound attribute prefix");
+          if (attributes.length > 1) {
+            const backed = limits.storeAttributes && !(namespaces instanceof Map) ? namespaces : undefined;
+            const key = backed ? attrLocal : `${attrPrefix ? (yield* namespaceValue(namespaces, attrPrefix)) : ""}\0${attrLocal}`;
+            if (yield* attributes.expanded(key, backed ? { scope: backed, prefix: attrPrefix, ...(record.prefixSource ? { prefixSource: record.prefixSource } : {}) } : undefined, record.localNameSource)) invalid("duplicate expanded attribute");
+          }
+        }
+      }
+      pendingWork += name.length;
+      while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
+      if (prefix === "xmlns" || ((prefix || prefixSource) && !(yield* hasNamespace(namespaces, prefix, prefixSource)))) invalid("unbound element prefix");
+      if (++nodes > maxNodes) throw new XmlLimitError("maxNodes", "XML resource limit exceeded");
+      if (stack.length + 1 > maxDepth) throw new XmlLimitError("maxDepth", "XML resource limit exceeded");
+      const namespace = yield* namespaceMetadata(namespaces, prefix, limits.deferNamespaces, prefixSource);
+      const elementName = { name, localName, ...(nameSource ? { nameSource, prefix } : {}), ...(localNameSource ? { localNameSource } : {}), ...(prefixSource ? { prefixSource } : {}) };
+      limits.onElement?.({ ...elementName, ...namespace }, (yield* stack.peek())?.element, stack.length + 1);
+      admitContent();
+      const retainedAttributes: XmlAttribute[] = [];
+      if (retainContent) {
+        for (let cursor = attributes.first; cursor;) {
+          const record = yield* attributes.read(cursor, !limits.storeAttributes);
+          cursor = record.next;
+          const { name: attribute, prefix: attrPrefix, localName: attrLocal, value } = record;
+          admitContent();
+          if (!limits.storeAttributes) retainedAttributes.push({ name: attribute, localName: attrLocal,
+            namespace: attribute === "xmlns" || attrPrefix === "xmlns" ? xmlnsNamespace : attrPrefix ? (yield* namespaceValue(namespaces, attrPrefix))! : "", value });
+          pendingWork += attribute.length + 1;
+        }
+      }
+      while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
+      const content: XmlContent[] | undefined = retain ? [] : undefined;
+      const element: XmlElement = { kind: "element", ...elementName, ...namespace, children: [], text: "", content: content ?? emptyContent, attributes: retainContent ? retainedAttributes : emptyAttributes, namespaces: retainContent && namespaces instanceof Map ? namespaces : emptyNamespaces, ...(root === undefined && retainContent ? { prolog, epilog, ...(declaration === undefined ? {} : { declaration }) } : {}) };
+      const parent = (yield* stack.peek());
+      if (parent) { if (retainTree) { parent.element.children.push(element); parent.content?.push(element); } }
+      else if (root) invalid("multiple root elements");
+      else root = element;
+      const empty = (yield* source.slice(offset, offset + 1)) === "/";
+      if (empty) offset++;
+      if ((yield* source.slice(offset++, offset)) !== ">") {
+        if (!limits.recover) invalid("unterminated start tag");
+        limits.recover("unterminated start tag");
+      }
+      // Only cache compact, attribute-free spellings. Namespace resolution and
+      // every admission counter still run for each distinct physical element.
+      if (empty && !nameSource && !attributes.length && name.length <= 512 && (yield* source.slice(offset - name.length - 3, offset)) === `<${name}/>`)
+        previousEmpty = { suffix: name + "/>", name, prefix, localName };
+      limits.events?.({ type: "open", element, parent: parent?.element });
+      if (limits.storeAttributes && limits.onAttribute && retainContent) {
+        yield 1;
+        for (let cursor = attributes.first; cursor;) {
+          const attribute = yield* attributes.read(cursor, true);
+          cursor = attribute.next;
+          const namespace = attribute.name === "xmlns" || attribute.prefix === "xmlns" ? { namespace: xmlnsNamespace }
+            : attribute.prefix || attribute.prefixSource ? yield* namespaceMetadata(namespaces, attribute.prefix, limits.deferNamespaces, attribute.prefixSource) : { namespace: "" };
+          const nameMetadata = { name: attribute.name, localName: attribute.localName, ...(attribute.nameSource ? { nameSource: attribute.nameSource, prefix: attribute.prefix } : {}), ...(attribute.localNameSource ? { localNameSource: attribute.localNameSource } : {}), ...(attribute.prefixSource ? { prefixSource: attribute.prefixSource } : {}) };
+          let continuation = false;
+          if (attribute.source) {
+            for (const part of textFragments(source, attribute.source.start, attribute.source.end, true, limits.recover ? () => {} : undefined, true)) {
+              if (typeof part !== "string") { yield part; continue; }
+              limits.onAttribute({ ...nameMetadata, ...namespace, value: part }, element, continuation);
+              continuation = true;
+              yield 1;
+            }
+          }
+          if (!continuation) {
+            limits.onAttribute({ ...nameMetadata, ...namespace, value: attribute.value }, element);
+            yield 1;
+          }
+        }
+      }
+      if (!empty) yield* stack.push({ element, content, name, namespaces: namespaces instanceof Map ? namespaces : new Map(), ...(namespaces instanceof Map ? {} : { namespaceScope: namespaces }) });
+      else limits.events?.({ type: "close", element, parent: parent?.element });
+    }
+  }
+  if (pendingWork > 0) { yield pendingWork; pendingWork = 0; }
+  if (!root) invalid("incomplete document");
+  if (stack.length) {
+    if (!limits.recover) invalid("incomplete document");
+    limits.recover("incomplete document");
+    while (stack.length) {
+      const closed = (yield* stack.pop())!;
+      limits.events?.({ type: "close", element: closed.element, parent: (yield* stack.peek())?.element });
+      yield 1;
+    }
+  }
+  return root;
+}
+
+function* normalizeXmlSteps(input: string): Generator<number, string, void> {
+  const chunks: string[] = [];
+  const start = input.charCodeAt(0) === 0xfeff ? 1 : 0;
+  let chunkStart = start;
+  let chunkLength = 0;
+  let normalizedChunk = "";
+  // Keep validated spans intact; only changed line endings need new strings.
+  for (let index = start; index < input.length; index++) {
+    const point = input.codePointAt(index)!;
+    if (!validCharacter(point)) invalid("invalid character");
+    if (point === 13) {
+      normalizedChunk += input.slice(chunkStart, index) + "\n";
+      if (input.charCodeAt(index + 1) === 10) index++;
+      chunkStart = index + 1;
+      chunkLength++;
+    } else {
+      chunkLength += point > 0xffff ? 2 : 1;
+      if (point > 0xffff) index++;
+    }
+    if (chunkLength >= 512) {
+      if (normalizedChunk) {
+        chunks.push(normalizedChunk + input.slice(chunkStart, index + 1));
+        normalizedChunk = "";
+        chunkStart = index + 1;
+      }
+      chunkLength = 0;
+      yield 512;
+    }
+  }
+  if (chunkLength) yield chunkLength;
+  if (chunks.length || normalizedChunk) chunks.push(normalizedChunk + input.slice(chunkStart));
+  return chunks.length ? chunks.join("") : input.slice(start);
+}
+
+export function* parseXmlSteps(input: string, limits: XmlStepLimits = {}): Generator<number, XmlElement, void> {
+  validateLimits(limits);
+  const source = yield* normalizeXmlSteps(input);
+  const parser = parseXmlSourceSteps(source.length, limits);
+  let step = parser.next();
+  try {
+    while (!step.done) {
+      if (typeof step.value === "number") yield step.value;
+      else step.value.value = source.slice(step.value.offset, step.value.offset + step.value.length);
+      step = parser.next();
+    }
+    return step.value;
+  } finally { if (!step.done) parser.return(undefined as never); }
+}
+
+export function parseXml(input: string, limits: XmlLimits = {}): XmlElement {
+  const parser = parseXmlSteps(input, limits);
+  let result = parser.next();
+  while (!result.done) result = parser.next();
+  return result.value;
+}
+
+export { parseXmlStream, type XmlStreamLimits, type XmlStreamEvent } from "./stream.js";

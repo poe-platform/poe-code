@@ -1,0 +1,14 @@
+import fs from 'node:fs';
+import crypto from 'node:crypto';
+const scope = 'tests/integration/agent-bash-coherent-author-20260829/stage-b1-publication-v2';
+const identity = file => { const stat = fs.lstatSync(file); if (!stat.isFile() || stat.size > 131072) throw Error('Source admission'); const body = fs.readFileSync(file); return { path: file, bytes: body.length, sha256: crypto.createHash('sha256').update(body).digest('hex') }; };
+const files = ['policy.mjs', 'publish.mjs', 'publication.sh', 'controls.mjs', 'seal.mjs'].map(name => identity(`${scope}/${name}`));
+const previous = 'tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding/BINDING.json';
+const priorIdentity = identity(previous);
+if (priorIdentity.bytes !== 4265 || priorIdentity.sha256 !== 'adce87b6432ac4c80b84bdf13a225e1b9b0771a398740866734b70476610c97f') throw Error('Prior binding changed');
+const prior = JSON.parse(fs.readFileSync(previous));
+const binding = { schema: 'b1-publication-v2-review-only', repo: process.cwd(), candidate: prior.sourceCandidate, runtimePreseal: prior.preseal, package: prior.package, files, retiredBinding: priorIdentity, windows: 'PENDING; August29 12:58/13:18/13:48 window retired, no extension', rootActualAuthority: false, outputs: { work: prior.workRoot, evidence: `${process.cwd()}/${scope}/actual-evidence`, publication: '/private/tmp/coherent-b1-publication-v2-20260829-results', launchCaptures: prior.captures.slice(0, 2), startupCaptures: ['/private/tmp/coherent-b1-publication-v2-20260829.startup.stdout', '/private/tmp/coherent-b1-publication-v2-20260829.startup.stderr'], authority: 'exact future root-bound absolute file, identity and bytes required', git: 'shared existing database excluded; newly generated logical object allowance charged; actual physical object growth unobserved' }, expectedCalls: 15, expectedIds: ['C10', 'C11', 'C15', 'C16', 'C18'], workerProfile: prior.prospective };
+const write = (name, value) => { fs.writeFileSync(`${scope}/${name}`, JSON.stringify(value, null, 2) + '\n', { flag: 'wx' }); return identity(`${scope}/${name}`); };
+const receipt = write('BINDING-v2.json', binding);
+const seal = write('PRESEAL-v2.json', { issuedUTC: new Date().toISOString(), role: 'publication-only PURE controls; no actual authority', files, binding: receipt, groups: 16, helpers: 1, productImports: 0 });
+console.log(JSON.stringify({ binding: receipt, preseal: seal }));

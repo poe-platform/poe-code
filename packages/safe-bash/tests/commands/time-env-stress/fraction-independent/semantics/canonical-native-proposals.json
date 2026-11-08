@@ -1,0 +1,41 @@
+{
+  "note": "Only the two user-requested legacy canonical inputs plus ordinary %--N policy witness; native-only classification after freeze, outside the312/1624 denominators. No product rerun, no canonical edits.",
+  "binary": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/date",
+  "binarySha256": "8d7c339a192d04e3de9768ebe4330d68bb541a4ed6c82f2bc3a807a270b156ff",
+  "env": {
+    "LC_ALL": "C",
+    "TZ": "UTC0"
+  },
+  "rows": [
+    {
+      "args": [
+        "-d@0",
+        "+%12N"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "3030303030303030303030300a",
+      "stderrHex": ""
+    },
+    {
+      "args": [
+        "-d@0",
+        "+%-N"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "3030303030300a",
+      "stderrHex": ""
+    },
+    {
+      "args": [
+        "-d@0",
+        "+%--N"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "300a",
+      "stderrHex": ""
+    }
+  ]
+}

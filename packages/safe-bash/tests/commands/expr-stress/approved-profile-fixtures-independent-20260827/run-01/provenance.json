@@ -1,0 +1,59 @@
+{
+  "started": "2026-08-27T20:19:51.159Z",
+  "baseline": "6f2f0abb0fb337715849adf8978d5429d086fb6d",
+  "candidate": "592c864ef62f5a29b1f126c83b6ac532357fb599",
+  "approvedMigration": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+  "freezeCommit": "7f4f187b",
+  "selected": [
+    "src",
+    "tests/commands/expr",
+    "tests/commands/expr-author",
+    "package.json",
+    "package-lock.json",
+    "tsconfig.json",
+    "tsconfig.build.json"
+  ],
+  "node": {
+    "version": "v22.22.2",
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "platform": "darwin",
+  "arch": "arm64",
+  "headAtStart": "592c864ef62f5a29b1f126c83b6ac532357fb599",
+  "liveStatus": " M tests/integration/owned-output-production-independent-20260827/candidate-v1/core-cases.mjs\n M tests/integration/owned-output-production-independent-20260827/candidate-v1/execute.mjs\n M tests/integration/owned-output-production-independent-20260827/candidate-v1/run-case.mjs\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/probe.mjs\n?? tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/replay.mjs\n?? tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/\n?? tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/runtime-probe.mjs\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/ATTEMPT-01.md\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/NEIGHBORS.json\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/SUMMARY.json\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/VERIFIED.json\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/adjacent-probe.mjs\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/common.mjs\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/followup.mjs\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/legacy-ast.mjs\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/probe.mjs\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/run.mjs\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/run01/\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/run02/\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/run03/\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/run04/\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/run05.MANIFEST.json\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/run05.json.gz.base64\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/run05/\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/seal.mjs\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/setup.mjs\n?? tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/verify-evidence.mjs\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/integration/du-overlay-independent-20260827/approved-v8-9a5a6f92/\n?? tests/integration/owned-output-production-independent-20260827/candidate-v1/mutations.mjs\n?? tests/integration/owned-output-production-independent-20260827/candidate-v1/network-cases.mjs\n?? tests/integration/owned-output-production-independent-20260827/candidate-v1/public-controls.mjs\n?? tests/integration/owned-output-production-independent-20260827/candidate-v1/safejs-loader.mjs\n?? tests/integration/owned-output-production-independent-20260827/candidate-v1/safejs-review.mjs\n?? tests/integration/owned-output-production-rebase/author-public/results-v1/\n?? tests/integration/owned-output-production-rebase/author/compiled-legacy-v2/\n",
+  "stagedAtStart": "",
+  "historical": [
+    {
+      "path": "tests/commands/expr-stress/qualified-final-review-20260827/expr-legacy241-candidate.json",
+      "sha256": "81ab2a2a229723109e5e53795b3bdc342eaa0b899e5ee54f3010c8d41afd7acb",
+      "gitBlob": "013fb0b7f7169ff69604da8bc2d9a258f1cab1a1"
+    },
+    {
+      "path": "tests/commands/expr-stress/qualified-final-review-20260827/diagnostics-runtime12.json",
+      "sha256": "dd29ab7752f4f1d63aed1ade00fffd4a42da1907ae5714e5f7a20bf707d394c8",
+      "gitBlob": "90035d4d8e42f788ae919af5e1d110545c8e5319"
+    },
+    {
+      "path": "tests/commands/expr-stress/fixture-output-contract-20260827/before-01/runtime-frozen.json",
+      "sha256": "e4996ee9ad9c0a1c5240379f2f2aeee041606547de5f05851a914d6230176605",
+      "gitBlob": "2c93f25adde6ba1cedc469f889b2209ebf93220b"
+    }
+  ],
+  "oracle": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+    "sha256": "e8a4e2b58a33d2ad6bfa9eb8a4ed5f62775ab9ceac4b9421680c98973fd9109c",
+    "policy": "Existing unchanged canonical tests execute their pinned GNU9.7 Darwin oracle. No new native capture, no new oracle inputs, no Linux claim."
+  },
+  "fixture": {
+    "originalSha256": "c474fa9cc29f47a5cbc64c45b9ab46cda8d7fc6f5aff4b70946af81bb546dc8b",
+    "revisedSha256": "6b03867e5349278eb5e6562b8ab14b12da6b03be9d26ebf48a0c645aa1f56197",
+    "onlyExpectedAssertionReplacement": true
+  },
+  "driverSha256": "649443266097a92d93e8e58e408c34a688a66b724a510a433be80eea11a1caf8",
+  "authorBindingAtRead": {
+    "sha256": "6d31d82b20320c589d76156086cc721267f5041263238a74bf216b58cf072636",
+    "initiallyUncommitted": true,
+    "finalCommitBindingRequired": true
+  }
+}

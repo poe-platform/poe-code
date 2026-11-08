@@ -1,0 +1,32 @@
+{
+  "phase": "diagnostics8",
+  "capturedEpoch": 1787791048.9726532,
+  "provenance": "CONTEMPORANEOUS immediately before spawn",
+  "env": {
+    "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/opt/homebrew/bin:/usr/bin:/bin",
+    "LANG": "C.UTF-8",
+    "LC_ALL": "C.UTF-8",
+    "TZ": "UTC",
+    "CI": "1",
+    "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/environment/diagnostics8/HOME",
+    "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/environment/diagnostics8/TMPDIR",
+    "XDG_CACHE_HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/environment/diagnostics8/XDG_CACHE_HOME",
+    "XDG_CONFIG_HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/environment/diagnostics8/XDG_CONFIG_HOME",
+    "XDG_DATA_HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/environment/diagnostics8/XDG_DATA_HOME",
+    "XDG_STATE_HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/environment/diagnostics8/XDG_STATE_HOME",
+    "npm_config_cache": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/environment/diagnostics8/npm_config_cache",
+    "XDG_RUNTIME_DIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/environment/diagnostics8/runtime"
+  },
+  "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/source",
+  "argv": [
+    "node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-concurrency=1",
+    "--test-reporter=tap",
+    "--test-name-pattern=^(?:memory:ENOENT|real:ENOENT|s3:ENOENT|webdav:ENOENT|mount:ENOENT|overlay:ENOENT|readonly:truncate:EROFS|readonly:append:EROFS)$",
+    "tests/integration/adapter-tools-diagnostics/eight-cases.test.ts"
+  ]
+}

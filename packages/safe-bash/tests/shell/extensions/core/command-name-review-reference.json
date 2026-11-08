@@ -1,0 +1,2046 @@
+{
+  "oracle": {
+    "executable": "/tmp/safe-bash-gnu-5.3-adjudication.0zMRKT/bash-5.3/bash",
+    "sha256": "a0cfc1af0ff50f6b6e67c638979e2604f1c276c90116937fbaafcabb62ee2b40",
+    "version": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)"
+  },
+  "profile": "primary-5.3",
+  "provenance": {
+    "cCapture": {
+      "path": "/tmp/safe-bash-scripting-oracles-20260904/command-name-review.uZxwh0/results.json",
+      "sha256": "f74c7e3a2bcf308e1f67420a3c40ebbcff1baf5a453e444739dd1cdba541cd4c",
+      "driverSHA256": "bc54039d4e30b9c9e9252e832a8d647d0648a3ba6616eddc37f38efb9d491f78"
+    },
+    "utf8Capture": {
+      "path": "/tmp/safe-bash-scripting-oracles-20260904/command-name-utf8-review.uB0A1x/results.json",
+      "sha256": "52530e1c0d90bf6690028d88b4aa7af15f0f2a5781a8be8dffa777494b2abc65",
+      "driverSHA256": "23139b87eb7a618f17b32882121b92246d8c1fb9c8a934fb341f620ed4cf8b42"
+    },
+    "policy": "All expected status/stdoutHex/stderrHex fields are copied only from authenticated native record.expected observations. Current virtual observations and proposed formatter predictions are never used as goldens. C26 records and both UTF-8 locale cohorts retain their exact original names, name bytes and source programs. No live native prerequisite, locale fallback, stderr normalization or host-file unit fixture.",
+    "localBashSourceHashes": {
+      "general.c": "669ef408f4bcc6b4ce424677d29532f28e903430c93b335fa1a292dd360bd165",
+      "lib/sh/strtrans.c": "75b7495881561d0df055727dca91fcd30a48725df5d054919b1f5b848aeb3c4e",
+      "include/shmbutil.h": "df45c27172b612e006fcefcc5c11ebe9710ef914cb8840e95d4e951aafe75061",
+      "locale.c": "d9e9911b8b0e6cd3146349b69ec41488b76562169aee14bc36afef66ed0f1687"
+    },
+    "qualification": "Observed Darwin primary Bash 5.3.0 locale behavior, not a fabricated universal iswprint table. Native printability and printf-q metadata are evidence only, not assertions about the virtual glob/printf implementations."
+  },
+  "profiles": [
+    {
+      "locale": "C",
+      "source": "value=$'\\303\\251'; [[ $value == [[:print:]] ]]; print_status=$?; printf '%s;%s;%s' \"$LC_ALL\" \"${#value}\" \"$print_status\"",
+      "observation": {
+        "status": 0,
+        "stdoutHex": "433b323b31",
+        "stderrHex": ""
+      },
+      "supported": true
+    },
+    {
+      "locale": "en_US.UTF-8",
+      "source": "value=$'\\303\\251'; [[ $value == [[:print:]] ]]; print_status=$?; printf '%s;%s;%s' \"$LC_ALL\" \"${#value}\" \"$print_status\"",
+      "observation": {
+        "status": 0,
+        "stdoutHex": "656e5f55532e5554462d383b313b30",
+        "stderrHex": ""
+      },
+      "supported": true
+    },
+    {
+      "locale": "C.UTF-8",
+      "source": "value=$'\\303\\251'; [[ $value == [[:print:]] ]]; print_status=$?; printf '%s;%s;%s' \"$LC_ALL\" \"${#value}\" \"$print_status\"",
+      "observation": {
+        "status": 0,
+        "stdoutHex": "432e5554462d383b313b30",
+        "stderrHex": ""
+      },
+      "supported": true
+    }
+  ],
+  "records": [
+    {
+      "locale": "C",
+      "name": "plain",
+      "nameHex": "6d697373696e675f706c61696e",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\160\\154\\141\\151\\156'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "c",
+      "captureIndex": 0,
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675f706c61696e",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e675f706c61696e3a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C",
+      "name": "space",
+      "nameHex": "6d697373696e675f612062",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\141\\040\\142'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "c",
+      "captureIndex": 1,
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675f612062",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e675f6120623a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C",
+      "name": "quotes and backslash",
+      "nameHex": "6d697373696e675f27225c",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\047\\042\\134'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "c",
+      "captureIndex": 2,
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675f27225c",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e675f27225c3a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C",
+      "name": "shell metas",
+      "nameHex": "6d697373696e675f613b242878292a3f5b5d7e",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\141\\073\\044\\050\\170\\051\\052\\077\\133\\135\\176'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "c",
+      "captureIndex": 3,
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675f613b242878292a3f5b5d7e",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e675f613b242878292a3f5b5d7e3a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C",
+      "name": "tab",
+      "nameHex": "6d697373696e675f09",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\011'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "c",
+      "captureIndex": 4,
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675f09",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c74273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C",
+      "name": "newline",
+      "nameHex": "6d697373696e675f0a",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\012'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "c",
+      "captureIndex": 5,
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675f0a",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c6e273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C",
+      "name": "carriage return",
+      "nameHex": "6d697373696e675f0d",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\015'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "c",
+      "captureIndex": 6,
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675f0d",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c72273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C",
+      "name": "bell",
+      "nameHex": "6d697373696e675f07",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\007'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "c",
+      "captureIndex": 7,
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675f07",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c61273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C",
+      "name": "backspace",
+      "nameHex": "6d697373696e675f08",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\010'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "c",
+      "captureIndex": 8,
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675f08",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c62273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C",
+      "name": "vertical tab",
+      "nameHex": "6d697373696e675f0b",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\013'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "c",
+      "captureIndex": 9,
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675f0b",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c76273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C",
+      "name": "form feed",
+      "nameHex": "6d697373696e675f0c",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\014'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "c",
+      "captureIndex": 10,
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675f0c",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c66273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C",
+      "name": "escape",
+      "nameHex": "6d697373696e675f1b",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\033'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "c",
+      "captureIndex": 11,
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675f1b",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c45273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C",
+      "name": "SOH",
+      "nameHex": "6d697373696e675f01",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\001'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "c",
+      "captureIndex": 12,
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675f01",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c303031273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C",
+      "name": "unit separator",
+      "nameHex": "6d697373696e675f1f",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\037'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "c",
+      "captureIndex": 13,
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675f1f",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c303337273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C",
+      "name": "DEL",
+      "nameHex": "6d697373696e675f7f",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\177'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "c",
+      "captureIndex": 14,
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675f7f",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c313737273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C",
+      "name": "high 80",
+      "nameHex": "6d697373696e675f80",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\200'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "c",
+      "captureIndex": 15,
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675f80",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c323030273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C",
+      "name": "high FF",
+      "nameHex": "6d697373696e675fff",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\377'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "c",
+      "captureIndex": 16,
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fff",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c333737273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C",
+      "name": "invalid UTF8",
+      "nameHex": "6d697373696e675fc328",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\303\\050'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "c",
+      "captureIndex": 17,
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fc328",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c33303328273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C",
+      "name": "overlong UTF8",
+      "nameHex": "6d697373696e675fc080",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\300\\200'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "c",
+      "captureIndex": 18,
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fc080",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c3330305c323030273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C",
+      "name": "UTF8 e acute",
+      "nameHex": "6d697373696e675fc3a9",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\303\\251'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "c",
+      "captureIndex": 19,
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fc3a9",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c3330335c323531273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C",
+      "name": "UTF8 emoji",
+      "nameHex": "6d697373696e675ff09f9880",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\360\\237\\230\\200'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "c",
+      "captureIndex": 20,
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675ff09f9880",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c3336305c3233375c3233305c323030273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C",
+      "name": "mixed quote backslash LF",
+      "nameHex": "6d697373696e675f275c0a22",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\047\\134\\012\\042'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "c",
+      "captureIndex": 21,
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675f275c0a22",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c275c5c5c6e22273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C",
+      "name": "empty command",
+      "nameHex": "",
+      "source": "name=$''; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "c",
+      "captureIndex": 22,
+      "expected": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a203a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C",
+      "name": "command forwarded FF",
+      "nameHex": "6d697373696e675fff",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\377'; printf '%s' \"$name\"; command \"$name\"",
+      "route": "command",
+      "capture": "c",
+      "captureIndex": 23,
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fff",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c333737273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C",
+      "name": "builtin tab remains raw",
+      "nameHex": "6d697373696e675f09",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\011'; printf '%s' \"$name\"; builtin \"$name\"",
+      "route": "builtin",
+      "capture": "c",
+      "captureIndex": 24,
+      "expected": {
+        "status": 1,
+        "stdoutHex": "6d697373696e675f09",
+        "stderrHex": "7368656c6c3a206c696e6520313a206275696c74696e3a206d697373696e675f093a206e6f742061207368656c6c206275696c74696e0a"
+      }
+    },
+    {
+      "locale": "C",
+      "name": "builtin FF remains raw",
+      "nameHex": "6d697373696e675fff",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\377'; printf '%s' \"$name\"; builtin \"$name\"",
+      "route": "builtin",
+      "capture": "c",
+      "captureIndex": 25,
+      "expected": {
+        "status": 1,
+        "stdoutHex": "6d697373696e675fff",
+        "stderrHex": "7368656c6c3a206c696e6520313a206275696c74696e3a206d697373696e675fff3a206e6f742061207368656c6c206275696c74696e0a"
+      }
+    },
+    {
+      "locale": "en_US.UTF-8",
+      "name": "printable e acute",
+      "nameHex": "6d697373696e675fc3a9",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\303\\251'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 0,
+      "nativeCharacterEvidence": {
+        "payloadHex": "c3a9",
+        "classificationSource": "value=$'\\303\\251'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "310a300a300ac3a9",
+          "stderrHex": ""
+        },
+        "length": 1,
+        "allPrintStatus": 0,
+        "singlePrintStatus": 0,
+        "printfQHex": "c3a9"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fc3a9",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e675fc3a93a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "en_US.UTF-8",
+      "name": "printable CJK",
+      "nameHex": "6d697373696e675fe4b8ad",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\344\\270\\255'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 1,
+      "nativeCharacterEvidence": {
+        "payloadHex": "e4b8ad",
+        "classificationSource": "value=$'\\344\\270\\255'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "310a300a300ae4b8ad",
+          "stderrHex": ""
+        },
+        "length": 1,
+        "allPrintStatus": 0,
+        "singlePrintStatus": 0,
+        "printfQHex": "e4b8ad"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fe4b8ad",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e675fe4b8ad3a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "en_US.UTF-8",
+      "name": "printable emoji",
+      "nameHex": "6d697373696e675ff09f9880",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\360\\237\\230\\200'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 2,
+      "nativeCharacterEvidence": {
+        "payloadHex": "f09f9880",
+        "classificationSource": "value=$'\\360\\237\\230\\200'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "310a300a300af09f9880",
+          "stderrHex": ""
+        },
+        "length": 1,
+        "allPrintStatus": 0,
+        "singlePrintStatus": 0,
+        "printfQHex": "f09f9880"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675ff09f9880",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e675ff09f98803a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "en_US.UTF-8",
+      "name": "multibyte plus newline",
+      "nameHex": "6d697373696e675fc3a90a",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\303\\251\\012'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 3,
+      "nativeCharacterEvidence": {
+        "payloadHex": "c3a90a",
+        "classificationSource": "value=$'\\303\\251\\012'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "320a310a310a2427c3a95c6e27",
+          "stderrHex": ""
+        },
+        "length": 2,
+        "allPrintStatus": 1,
+        "singlePrintStatus": 1,
+        "printfQHex": "2427c3a95c6e27"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fc3a90a",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675fc3a95c6e273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "en_US.UTF-8",
+      "name": "multibyte plus escape",
+      "nameHex": "6d697373696e675fe4b8ad1b",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\344\\270\\255\\033'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 4,
+      "nativeCharacterEvidence": {
+        "payloadHex": "e4b8ad1b",
+        "classificationSource": "value=$'\\344\\270\\255\\033'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "320a310a310a2427e4b8ad5c4527",
+          "stderrHex": ""
+        },
+        "length": 2,
+        "allPrintStatus": 1,
+        "singlePrintStatus": 1,
+        "printfQHex": "2427e4b8ad5c4527"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fe4b8ad1b",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675fe4b8ad5c45273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "en_US.UTF-8",
+      "name": "multibyte plus SOH",
+      "nameHex": "6d697373696e675fc3a901",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\303\\251\\001'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 5,
+      "nativeCharacterEvidence": {
+        "payloadHex": "c3a901",
+        "classificationSource": "value=$'\\303\\251\\001'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "320a310a310a2427c3a95c30303127",
+          "stderrHex": ""
+        },
+        "length": 2,
+        "allPrintStatus": 1,
+        "singlePrintStatus": 1,
+        "printfQHex": "2427c3a95c30303127"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fc3a901",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675fc3a95c303031273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "en_US.UTF-8",
+      "name": "invalid FF",
+      "nameHex": "6d697373696e675fff",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\377'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 6,
+      "nativeCharacterEvidence": {
+        "payloadHex": "ff",
+        "classificationSource": "value=$'\\377'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "310a310a310a24275c33373727",
+          "stderrHex": ""
+        },
+        "length": 1,
+        "allPrintStatus": 1,
+        "singlePrintStatus": 1,
+        "printfQHex": "24275c33373727"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fff",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c333737273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "en_US.UTF-8",
+      "name": "invalid lead then ASCII",
+      "nameHex": "6d697373696e675fc328",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\303\\050'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 7,
+      "nativeCharacterEvidence": {
+        "payloadHex": "c328",
+        "classificationSource": "value=$'\\303\\050'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "320a310a310a24275c3330332827",
+          "stderrHex": ""
+        },
+        "length": 2,
+        "allPrintStatus": 1,
+        "singlePrintStatus": 1,
+        "printfQHex": "24275c3330332827"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fc328",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c33303328273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "en_US.UTF-8",
+      "name": "incomplete UTF8",
+      "nameHex": "6d697373696e675fe282",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\342\\202'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 8,
+      "nativeCharacterEvidence": {
+        "payloadHex": "e282",
+        "classificationSource": "value=$'\\342\\202'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "320a310a310a24275c3334325c32303227",
+          "stderrHex": ""
+        },
+        "length": 2,
+        "allPrintStatus": 1,
+        "singlePrintStatus": 1,
+        "printfQHex": "24275c3334325c32303227"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fe282",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c3334325c323032273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "en_US.UTF-8",
+      "name": "overlong UTF8",
+      "nameHex": "6d697373696e675fc0af",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\300\\257'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 9,
+      "nativeCharacterEvidence": {
+        "payloadHex": "c0af",
+        "classificationSource": "value=$'\\300\\257'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "320a310a310a24275c3330305c32353727",
+          "stderrHex": ""
+        },
+        "length": 2,
+        "allPrintStatus": 1,
+        "singlePrintStatus": 1,
+        "printfQHex": "24275c3330305c32353727"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fc0af",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c3330305c323537273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "en_US.UTF-8",
+      "name": "UTF8 surrogate",
+      "nameHex": "6d697373696e675feda080",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\355\\240\\200'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 10,
+      "nativeCharacterEvidence": {
+        "payloadHex": "eda080",
+        "classificationSource": "value=$'\\355\\240\\200'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "330a310a310a24275c3335355c3234305c32303027",
+          "stderrHex": ""
+        },
+        "length": 3,
+        "allPrintStatus": 1,
+        "singlePrintStatus": 1,
+        "printfQHex": "24275c3335355c3234305c32303027"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675feda080",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c3335355c3234305c323030273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "en_US.UTF-8",
+      "name": "valid invalid valid",
+      "nameHex": "6d697373696e675fc3a9ffe4b8ad",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\303\\251\\377\\344\\270\\255'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 11,
+      "nativeCharacterEvidence": {
+        "payloadHex": "c3a9ffe4b8ad",
+        "classificationSource": "value=$'\\303\\251\\377\\344\\270\\255'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "330a310a310a2427c3a95c333737e4b8ad27",
+          "stderrHex": ""
+        },
+        "length": 3,
+        "allPrintStatus": 1,
+        "singlePrintStatus": 1,
+        "printfQHex": "2427c3a95c333737e4b8ad27"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fc3a9ffe4b8ad",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675fc3a95c333737e4b8ad273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "en_US.UTF-8",
+      "name": "combining acute",
+      "nameHex": "6d697373696e675fcc81",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\314\\201'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 12,
+      "nativeCharacterEvidence": {
+        "payloadHex": "cc81",
+        "classificationSource": "value=$'\\314\\201'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "310a300a300acc81",
+          "stderrHex": ""
+        },
+        "length": 1,
+        "allPrintStatus": 0,
+        "singlePrintStatus": 0,
+        "printfQHex": "cc81"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fcc81",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e675fcc813a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "en_US.UTF-8",
+      "name": "base plus combining acute",
+      "nameHex": "6d697373696e675f65cc81",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\145\\314\\201'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 13,
+      "nativeCharacterEvidence": {
+        "payloadHex": "65cc81",
+        "classificationSource": "value=$'\\145\\314\\201'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "320a300a310a65cc81",
+          "stderrHex": ""
+        },
+        "length": 2,
+        "allPrintStatus": 0,
+        "singlePrintStatus": 1,
+        "printfQHex": "65cc81"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675f65cc81",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e675f65cc813a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "en_US.UTF-8",
+      "name": "zero width joiner",
+      "nameHex": "6d697373696e675fe2808d",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\342\\200\\215'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 14,
+      "nativeCharacterEvidence": {
+        "payloadHex": "e2808d",
+        "classificationSource": "value=$'\\342\\200\\215'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "310a310a310a24275c3334325c3230305c32313527",
+          "stderrHex": ""
+        },
+        "length": 1,
+        "allPrintStatus": 1,
+        "singlePrintStatus": 1,
+        "printfQHex": "24275c3334325c3230305c32313527"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fe2808d",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c3334325c3230305c323135273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "en_US.UTF-8",
+      "name": "zero width space",
+      "nameHex": "6d697373696e675fe2808b",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\342\\200\\213'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 15,
+      "nativeCharacterEvidence": {
+        "payloadHex": "e2808b",
+        "classificationSource": "value=$'\\342\\200\\213'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "310a310a310a24275c3334325c3230305c32313327",
+          "stderrHex": ""
+        },
+        "length": 1,
+        "allPrintStatus": 1,
+        "singlePrintStatus": 1,
+        "printfQHex": "24275c3334325c3230305c32313327"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fe2808b",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c3334325c3230305c323133273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "en_US.UTF-8",
+      "name": "left to right mark",
+      "nameHex": "6d697373696e675fe2808e",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\342\\200\\216'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 16,
+      "nativeCharacterEvidence": {
+        "payloadHex": "e2808e",
+        "classificationSource": "value=$'\\342\\200\\216'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "310a310a310a24275c3334325c3230305c32313627",
+          "stderrHex": ""
+        },
+        "length": 1,
+        "allPrintStatus": 1,
+        "singlePrintStatus": 1,
+        "printfQHex": "24275c3334325c3230305c32313627"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fe2808e",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c3334325c3230305c323136273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "en_US.UTF-8",
+      "name": "right to left override",
+      "nameHex": "6d697373696e675fe280ae",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\342\\200\\256'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 17,
+      "nativeCharacterEvidence": {
+        "payloadHex": "e280ae",
+        "classificationSource": "value=$'\\342\\200\\256'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "310a310a310a24275c3334325c3230305c32353627",
+          "stderrHex": ""
+        },
+        "length": 1,
+        "allPrintStatus": 1,
+        "singlePrintStatus": 1,
+        "printfQHex": "24275c3334325c3230305c32353627"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fe280ae",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c3334325c3230305c323536273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "en_US.UTF-8",
+      "name": "word joiner",
+      "nameHex": "6d697373696e675fe281a0",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\342\\201\\240'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 18,
+      "nativeCharacterEvidence": {
+        "payloadHex": "e281a0",
+        "classificationSource": "value=$'\\342\\201\\240'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "310a310a310a24275c3334325c3230315c32343027",
+          "stderrHex": ""
+        },
+        "length": 1,
+        "allPrintStatus": 1,
+        "singlePrintStatus": 1,
+        "printfQHex": "24275c3334325c3230315c32343027"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fe281a0",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c3334325c3230315c323430273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "en_US.UTF-8",
+      "name": "BOM character",
+      "nameHex": "6d697373696e675fefbbbf",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\357\\273\\277'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 19,
+      "nativeCharacterEvidence": {
+        "payloadHex": "efbbbf",
+        "classificationSource": "value=$'\\357\\273\\277'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "310a310a310a24275c3335375c3237335c32373727",
+          "stderrHex": ""
+        },
+        "length": 1,
+        "allPrintStatus": 1,
+        "singlePrintStatus": 1,
+        "printfQHex": "24275c3335375c3237335c32373727"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fefbbbf",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c3335375c3237335c323737273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "en_US.UTF-8",
+      "name": "nonbreaking space",
+      "nameHex": "6d697373696e675fc2a0",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\302\\240'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 20,
+      "nativeCharacterEvidence": {
+        "payloadHex": "c2a0",
+        "classificationSource": "value=$'\\302\\240'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "310a300a300ac2a0",
+          "stderrHex": ""
+        },
+        "length": 1,
+        "allPrintStatus": 0,
+        "singlePrintStatus": 0,
+        "printfQHex": "c2a0"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fc2a0",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e675fc2a03a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "en_US.UTF-8",
+      "name": "narrow nonbreaking space",
+      "nameHex": "6d697373696e675fe280af",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\342\\200\\257'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 21,
+      "nativeCharacterEvidence": {
+        "payloadHex": "e280af",
+        "classificationSource": "value=$'\\342\\200\\257'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "310a300a300ae280af",
+          "stderrHex": ""
+        },
+        "length": 1,
+        "allPrintStatus": 0,
+        "singlePrintStatus": 0,
+        "printfQHex": "e280af"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fe280af",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e675fe280af3a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "en_US.UTF-8",
+      "name": "soft hyphen",
+      "nameHex": "6d697373696e675fc2ad",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\302\\255'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 22,
+      "nativeCharacterEvidence": {
+        "payloadHex": "c2ad",
+        "classificationSource": "value=$'\\302\\255'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "310a310a310a24275c3330325c32353527",
+          "stderrHex": ""
+        },
+        "length": 1,
+        "allPrintStatus": 1,
+        "singlePrintStatus": 1,
+        "printfQHex": "24275c3330325c32353527"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fc2ad",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c3330325c323535273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "en_US.UTF-8",
+      "name": "line separator",
+      "nameHex": "6d697373696e675fe280a8",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\342\\200\\250'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 23,
+      "nativeCharacterEvidence": {
+        "payloadHex": "e280a8",
+        "classificationSource": "value=$'\\342\\200\\250'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "310a300a300ae280a8",
+          "stderrHex": ""
+        },
+        "length": 1,
+        "allPrintStatus": 0,
+        "singlePrintStatus": 0,
+        "printfQHex": "e280a8"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fe280a8",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e675fe280a83a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "en_US.UTF-8",
+      "name": "paragraph separator",
+      "nameHex": "6d697373696e675fe280a9",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\342\\200\\251'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 24,
+      "nativeCharacterEvidence": {
+        "payloadHex": "e280a9",
+        "classificationSource": "value=$'\\342\\200\\251'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "310a300a300ae280a9",
+          "stderrHex": ""
+        },
+        "length": 1,
+        "allPrintStatus": 0,
+        "singlePrintStatus": 0,
+        "printfQHex": "e280a9"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fe280a9",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e675fe280a93a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "en_US.UTF-8",
+      "name": "C1 next line",
+      "nameHex": "6d697373696e675fc285",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\302\\205'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 25,
+      "nativeCharacterEvidence": {
+        "payloadHex": "c285",
+        "classificationSource": "value=$'\\302\\205'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "310a310a310a24275c3330325c32303527",
+          "stderrHex": ""
+        },
+        "length": 1,
+        "allPrintStatus": 1,
+        "singlePrintStatus": 1,
+        "printfQHex": "24275c3330325c32303527"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fc285",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c3330325c323035273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "en_US.UTF-8",
+      "name": "unassigned U0378",
+      "nameHex": "6d697373696e675fcdb8",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\315\\270'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 26,
+      "nativeCharacterEvidence": {
+        "payloadHex": "cdb8",
+        "classificationSource": "value=$'\\315\\270'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "310a310a310a24275c3331355c32373027",
+          "stderrHex": ""
+        },
+        "length": 1,
+        "allPrintStatus": 1,
+        "singlePrintStatus": 1,
+        "printfQHex": "24275c3331355c32373027"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fcdb8",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c3331355c323730273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "en_US.UTF-8",
+      "name": "private use UE000",
+      "nameHex": "6d697373696e675fee8080",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\356\\200\\200'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 27,
+      "nativeCharacterEvidence": {
+        "payloadHex": "ee8080",
+        "classificationSource": "value=$'\\356\\200\\200'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "310a300a300aee8080",
+          "stderrHex": ""
+        },
+        "length": 1,
+        "allPrintStatus": 0,
+        "singlePrintStatus": 0,
+        "printfQHex": "ee8080"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fee8080",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e675fee80803a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "en_US.UTF-8",
+      "name": "noncharacter UFDD0",
+      "nameHex": "6d697373696e675fefb790",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\357\\267\\220'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 28,
+      "nativeCharacterEvidence": {
+        "payloadHex": "efb790",
+        "classificationSource": "value=$'\\357\\267\\220'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "310a310a310a24275c3335375c3236375c32323027",
+          "stderrHex": ""
+        },
+        "length": 1,
+        "allPrintStatus": 1,
+        "singlePrintStatus": 1,
+        "printfQHex": "24275c3335375c3236375c32323027"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fefb790",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c3335375c3236375c323230273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "en_US.UTF-8",
+      "name": "variation selector 16",
+      "nameHex": "6d697373696e675fefb88f",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\357\\270\\217'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 29,
+      "nativeCharacterEvidence": {
+        "payloadHex": "efb88f",
+        "classificationSource": "value=$'\\357\\270\\217'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "310a300a300aefb88f",
+          "stderrHex": ""
+        },
+        "length": 1,
+        "allPrintStatus": 0,
+        "singlePrintStatus": 0,
+        "printfQHex": "efb88f"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fefb88f",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e675fefb88f3a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C.UTF-8",
+      "name": "printable e acute",
+      "nameHex": "6d697373696e675fc3a9",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\303\\251'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 30,
+      "nativeCharacterEvidence": {
+        "payloadHex": "c3a9",
+        "classificationSource": "value=$'\\303\\251'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "310a300a300ac3a9",
+          "stderrHex": ""
+        },
+        "length": 1,
+        "allPrintStatus": 0,
+        "singlePrintStatus": 0,
+        "printfQHex": "c3a9"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fc3a9",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e675fc3a93a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C.UTF-8",
+      "name": "printable CJK",
+      "nameHex": "6d697373696e675fe4b8ad",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\344\\270\\255'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 31,
+      "nativeCharacterEvidence": {
+        "payloadHex": "e4b8ad",
+        "classificationSource": "value=$'\\344\\270\\255'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "310a300a300ae4b8ad",
+          "stderrHex": ""
+        },
+        "length": 1,
+        "allPrintStatus": 0,
+        "singlePrintStatus": 0,
+        "printfQHex": "e4b8ad"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fe4b8ad",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e675fe4b8ad3a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C.UTF-8",
+      "name": "printable emoji",
+      "nameHex": "6d697373696e675ff09f9880",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\360\\237\\230\\200'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 32,
+      "nativeCharacterEvidence": {
+        "payloadHex": "f09f9880",
+        "classificationSource": "value=$'\\360\\237\\230\\200'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "310a300a300af09f9880",
+          "stderrHex": ""
+        },
+        "length": 1,
+        "allPrintStatus": 0,
+        "singlePrintStatus": 0,
+        "printfQHex": "f09f9880"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675ff09f9880",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e675ff09f98803a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C.UTF-8",
+      "name": "multibyte plus newline",
+      "nameHex": "6d697373696e675fc3a90a",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\303\\251\\012'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 33,
+      "nativeCharacterEvidence": {
+        "payloadHex": "c3a90a",
+        "classificationSource": "value=$'\\303\\251\\012'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "320a310a310a2427c3a95c6e27",
+          "stderrHex": ""
+        },
+        "length": 2,
+        "allPrintStatus": 1,
+        "singlePrintStatus": 1,
+        "printfQHex": "2427c3a95c6e27"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fc3a90a",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675fc3a95c6e273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C.UTF-8",
+      "name": "multibyte plus escape",
+      "nameHex": "6d697373696e675fe4b8ad1b",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\344\\270\\255\\033'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 34,
+      "nativeCharacterEvidence": {
+        "payloadHex": "e4b8ad1b",
+        "classificationSource": "value=$'\\344\\270\\255\\033'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "320a310a310a2427e4b8ad5c4527",
+          "stderrHex": ""
+        },
+        "length": 2,
+        "allPrintStatus": 1,
+        "singlePrintStatus": 1,
+        "printfQHex": "2427e4b8ad5c4527"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fe4b8ad1b",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675fe4b8ad5c45273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C.UTF-8",
+      "name": "multibyte plus SOH",
+      "nameHex": "6d697373696e675fc3a901",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\303\\251\\001'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 35,
+      "nativeCharacterEvidence": {
+        "payloadHex": "c3a901",
+        "classificationSource": "value=$'\\303\\251\\001'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "320a310a310a2427c3a95c30303127",
+          "stderrHex": ""
+        },
+        "length": 2,
+        "allPrintStatus": 1,
+        "singlePrintStatus": 1,
+        "printfQHex": "2427c3a95c30303127"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fc3a901",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675fc3a95c303031273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C.UTF-8",
+      "name": "invalid FF",
+      "nameHex": "6d697373696e675fff",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\377'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 36,
+      "nativeCharacterEvidence": {
+        "payloadHex": "ff",
+        "classificationSource": "value=$'\\377'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "310a310a310a24275c33373727",
+          "stderrHex": ""
+        },
+        "length": 1,
+        "allPrintStatus": 1,
+        "singlePrintStatus": 1,
+        "printfQHex": "24275c33373727"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fff",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c333737273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C.UTF-8",
+      "name": "invalid lead then ASCII",
+      "nameHex": "6d697373696e675fc328",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\303\\050'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 37,
+      "nativeCharacterEvidence": {
+        "payloadHex": "c328",
+        "classificationSource": "value=$'\\303\\050'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "320a310a310a24275c3330332827",
+          "stderrHex": ""
+        },
+        "length": 2,
+        "allPrintStatus": 1,
+        "singlePrintStatus": 1,
+        "printfQHex": "24275c3330332827"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fc328",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c33303328273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C.UTF-8",
+      "name": "incomplete UTF8",
+      "nameHex": "6d697373696e675fe282",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\342\\202'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 38,
+      "nativeCharacterEvidence": {
+        "payloadHex": "e282",
+        "classificationSource": "value=$'\\342\\202'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "320a310a310a24275c3334325c32303227",
+          "stderrHex": ""
+        },
+        "length": 2,
+        "allPrintStatus": 1,
+        "singlePrintStatus": 1,
+        "printfQHex": "24275c3334325c32303227"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fe282",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c3334325c323032273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C.UTF-8",
+      "name": "overlong UTF8",
+      "nameHex": "6d697373696e675fc0af",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\300\\257'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 39,
+      "nativeCharacterEvidence": {
+        "payloadHex": "c0af",
+        "classificationSource": "value=$'\\300\\257'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "320a310a310a24275c3330305c32353727",
+          "stderrHex": ""
+        },
+        "length": 2,
+        "allPrintStatus": 1,
+        "singlePrintStatus": 1,
+        "printfQHex": "24275c3330305c32353727"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fc0af",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c3330305c323537273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C.UTF-8",
+      "name": "UTF8 surrogate",
+      "nameHex": "6d697373696e675feda080",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\355\\240\\200'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 40,
+      "nativeCharacterEvidence": {
+        "payloadHex": "eda080",
+        "classificationSource": "value=$'\\355\\240\\200'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "330a310a310a24275c3335355c3234305c32303027",
+          "stderrHex": ""
+        },
+        "length": 3,
+        "allPrintStatus": 1,
+        "singlePrintStatus": 1,
+        "printfQHex": "24275c3335355c3234305c32303027"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675feda080",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c3335355c3234305c323030273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C.UTF-8",
+      "name": "valid invalid valid",
+      "nameHex": "6d697373696e675fc3a9ffe4b8ad",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\303\\251\\377\\344\\270\\255'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 41,
+      "nativeCharacterEvidence": {
+        "payloadHex": "c3a9ffe4b8ad",
+        "classificationSource": "value=$'\\303\\251\\377\\344\\270\\255'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "330a310a310a2427c3a95c333737e4b8ad27",
+          "stderrHex": ""
+        },
+        "length": 3,
+        "allPrintStatus": 1,
+        "singlePrintStatus": 1,
+        "printfQHex": "2427c3a95c333737e4b8ad27"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fc3a9ffe4b8ad",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675fc3a95c333737e4b8ad273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C.UTF-8",
+      "name": "combining acute",
+      "nameHex": "6d697373696e675fcc81",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\314\\201'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 42,
+      "nativeCharacterEvidence": {
+        "payloadHex": "cc81",
+        "classificationSource": "value=$'\\314\\201'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "310a300a300acc81",
+          "stderrHex": ""
+        },
+        "length": 1,
+        "allPrintStatus": 0,
+        "singlePrintStatus": 0,
+        "printfQHex": "cc81"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fcc81",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e675fcc813a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C.UTF-8",
+      "name": "base plus combining acute",
+      "nameHex": "6d697373696e675f65cc81",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\145\\314\\201'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 43,
+      "nativeCharacterEvidence": {
+        "payloadHex": "65cc81",
+        "classificationSource": "value=$'\\145\\314\\201'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "320a300a310a65cc81",
+          "stderrHex": ""
+        },
+        "length": 2,
+        "allPrintStatus": 0,
+        "singlePrintStatus": 1,
+        "printfQHex": "65cc81"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675f65cc81",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e675f65cc813a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C.UTF-8",
+      "name": "zero width joiner",
+      "nameHex": "6d697373696e675fe2808d",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\342\\200\\215'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 44,
+      "nativeCharacterEvidence": {
+        "payloadHex": "e2808d",
+        "classificationSource": "value=$'\\342\\200\\215'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "310a310a310a24275c3334325c3230305c32313527",
+          "stderrHex": ""
+        },
+        "length": 1,
+        "allPrintStatus": 1,
+        "singlePrintStatus": 1,
+        "printfQHex": "24275c3334325c3230305c32313527"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fe2808d",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c3334325c3230305c323135273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C.UTF-8",
+      "name": "zero width space",
+      "nameHex": "6d697373696e675fe2808b",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\342\\200\\213'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 45,
+      "nativeCharacterEvidence": {
+        "payloadHex": "e2808b",
+        "classificationSource": "value=$'\\342\\200\\213'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "310a310a310a24275c3334325c3230305c32313327",
+          "stderrHex": ""
+        },
+        "length": 1,
+        "allPrintStatus": 1,
+        "singlePrintStatus": 1,
+        "printfQHex": "24275c3334325c3230305c32313327"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fe2808b",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c3334325c3230305c323133273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C.UTF-8",
+      "name": "left to right mark",
+      "nameHex": "6d697373696e675fe2808e",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\342\\200\\216'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 46,
+      "nativeCharacterEvidence": {
+        "payloadHex": "e2808e",
+        "classificationSource": "value=$'\\342\\200\\216'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "310a310a310a24275c3334325c3230305c32313627",
+          "stderrHex": ""
+        },
+        "length": 1,
+        "allPrintStatus": 1,
+        "singlePrintStatus": 1,
+        "printfQHex": "24275c3334325c3230305c32313627"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fe2808e",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c3334325c3230305c323136273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C.UTF-8",
+      "name": "right to left override",
+      "nameHex": "6d697373696e675fe280ae",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\342\\200\\256'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 47,
+      "nativeCharacterEvidence": {
+        "payloadHex": "e280ae",
+        "classificationSource": "value=$'\\342\\200\\256'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "310a310a310a24275c3334325c3230305c32353627",
+          "stderrHex": ""
+        },
+        "length": 1,
+        "allPrintStatus": 1,
+        "singlePrintStatus": 1,
+        "printfQHex": "24275c3334325c3230305c32353627"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fe280ae",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c3334325c3230305c323536273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C.UTF-8",
+      "name": "word joiner",
+      "nameHex": "6d697373696e675fe281a0",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\342\\201\\240'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 48,
+      "nativeCharacterEvidence": {
+        "payloadHex": "e281a0",
+        "classificationSource": "value=$'\\342\\201\\240'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "310a310a310a24275c3334325c3230315c32343027",
+          "stderrHex": ""
+        },
+        "length": 1,
+        "allPrintStatus": 1,
+        "singlePrintStatus": 1,
+        "printfQHex": "24275c3334325c3230315c32343027"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fe281a0",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c3334325c3230315c323430273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C.UTF-8",
+      "name": "BOM character",
+      "nameHex": "6d697373696e675fefbbbf",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\357\\273\\277'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 49,
+      "nativeCharacterEvidence": {
+        "payloadHex": "efbbbf",
+        "classificationSource": "value=$'\\357\\273\\277'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "310a310a310a24275c3335375c3237335c32373727",
+          "stderrHex": ""
+        },
+        "length": 1,
+        "allPrintStatus": 1,
+        "singlePrintStatus": 1,
+        "printfQHex": "24275c3335375c3237335c32373727"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fefbbbf",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c3335375c3237335c323737273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C.UTF-8",
+      "name": "nonbreaking space",
+      "nameHex": "6d697373696e675fc2a0",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\302\\240'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 50,
+      "nativeCharacterEvidence": {
+        "payloadHex": "c2a0",
+        "classificationSource": "value=$'\\302\\240'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "310a300a300ac2a0",
+          "stderrHex": ""
+        },
+        "length": 1,
+        "allPrintStatus": 0,
+        "singlePrintStatus": 0,
+        "printfQHex": "c2a0"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fc2a0",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e675fc2a03a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C.UTF-8",
+      "name": "narrow nonbreaking space",
+      "nameHex": "6d697373696e675fe280af",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\342\\200\\257'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 51,
+      "nativeCharacterEvidence": {
+        "payloadHex": "e280af",
+        "classificationSource": "value=$'\\342\\200\\257'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "310a300a300ae280af",
+          "stderrHex": ""
+        },
+        "length": 1,
+        "allPrintStatus": 0,
+        "singlePrintStatus": 0,
+        "printfQHex": "e280af"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fe280af",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e675fe280af3a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C.UTF-8",
+      "name": "soft hyphen",
+      "nameHex": "6d697373696e675fc2ad",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\302\\255'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 52,
+      "nativeCharacterEvidence": {
+        "payloadHex": "c2ad",
+        "classificationSource": "value=$'\\302\\255'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "310a310a310a24275c3330325c32353527",
+          "stderrHex": ""
+        },
+        "length": 1,
+        "allPrintStatus": 1,
+        "singlePrintStatus": 1,
+        "printfQHex": "24275c3330325c32353527"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fc2ad",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c3330325c323535273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C.UTF-8",
+      "name": "line separator",
+      "nameHex": "6d697373696e675fe280a8",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\342\\200\\250'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 53,
+      "nativeCharacterEvidence": {
+        "payloadHex": "e280a8",
+        "classificationSource": "value=$'\\342\\200\\250'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "310a300a300ae280a8",
+          "stderrHex": ""
+        },
+        "length": 1,
+        "allPrintStatus": 0,
+        "singlePrintStatus": 0,
+        "printfQHex": "e280a8"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fe280a8",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e675fe280a83a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C.UTF-8",
+      "name": "paragraph separator",
+      "nameHex": "6d697373696e675fe280a9",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\342\\200\\251'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 54,
+      "nativeCharacterEvidence": {
+        "payloadHex": "e280a9",
+        "classificationSource": "value=$'\\342\\200\\251'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "310a300a300ae280a9",
+          "stderrHex": ""
+        },
+        "length": 1,
+        "allPrintStatus": 0,
+        "singlePrintStatus": 0,
+        "printfQHex": "e280a9"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fe280a9",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e675fe280a93a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C.UTF-8",
+      "name": "C1 next line",
+      "nameHex": "6d697373696e675fc285",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\302\\205'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 55,
+      "nativeCharacterEvidence": {
+        "payloadHex": "c285",
+        "classificationSource": "value=$'\\302\\205'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "310a310a310a24275c3330325c32303527",
+          "stderrHex": ""
+        },
+        "length": 1,
+        "allPrintStatus": 1,
+        "singlePrintStatus": 1,
+        "printfQHex": "24275c3330325c32303527"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fc285",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c3330325c323035273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C.UTF-8",
+      "name": "unassigned U0378",
+      "nameHex": "6d697373696e675fcdb8",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\315\\270'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 56,
+      "nativeCharacterEvidence": {
+        "payloadHex": "cdb8",
+        "classificationSource": "value=$'\\315\\270'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "310a310a310a24275c3331355c32373027",
+          "stderrHex": ""
+        },
+        "length": 1,
+        "allPrintStatus": 1,
+        "singlePrintStatus": 1,
+        "printfQHex": "24275c3331355c32373027"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fcdb8",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c3331355c323730273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C.UTF-8",
+      "name": "private use UE000",
+      "nameHex": "6d697373696e675fee8080",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\356\\200\\200'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 57,
+      "nativeCharacterEvidence": {
+        "payloadHex": "ee8080",
+        "classificationSource": "value=$'\\356\\200\\200'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "310a300a300aee8080",
+          "stderrHex": ""
+        },
+        "length": 1,
+        "allPrintStatus": 0,
+        "singlePrintStatus": 0,
+        "printfQHex": "ee8080"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fee8080",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e675fee80803a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C.UTF-8",
+      "name": "noncharacter UFDD0",
+      "nameHex": "6d697373696e675fefb790",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\357\\267\\220'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 58,
+      "nativeCharacterEvidence": {
+        "payloadHex": "efb790",
+        "classificationSource": "value=$'\\357\\267\\220'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "310a310a310a24275c3335375c3236375c32323027",
+          "stderrHex": ""
+        },
+        "length": 1,
+        "allPrintStatus": 1,
+        "singlePrintStatus": 1,
+        "printfQHex": "24275c3335375c3236375c32323027"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fefb790",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024276d697373696e675f5c3335375c3236375c323230273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "locale": "C.UTF-8",
+      "name": "variation selector 16",
+      "nameHex": "6d697373696e675fefb88f",
+      "source": "name=$'\\155\\151\\163\\163\\151\\156\\147\\137\\357\\270\\217'; printf '%s' \"$name\"; \"$name\"",
+      "route": "direct",
+      "capture": "utf8",
+      "captureIndex": 59,
+      "nativeCharacterEvidence": {
+        "payloadHex": "efb88f",
+        "classificationSource": "value=$'\\357\\270\\217'; [[ $value != *[![:print:]]* ]]; all_print=$?; [[ $value == [[:print:]] ]]; one_print=$?; printf '%s\\n%s\\n%s\\n' \"${#value}\" \"$all_print\" \"$one_print\"; printf '%q' \"$value\"",
+        "classification": {
+          "status": 0,
+          "stdoutHex": "310a300a300aefb88f",
+          "stderrHex": ""
+        },
+        "length": 1,
+        "allPrintStatus": 0,
+        "singlePrintStatus": 0,
+        "printfQHex": "efb88f"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "6d697373696e675fefb88f",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e675fefb88f3a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    }
+  ]
+}

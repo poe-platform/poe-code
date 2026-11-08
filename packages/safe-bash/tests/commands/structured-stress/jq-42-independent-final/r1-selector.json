@@ -1,0 +1,30 @@
+{
+  "tapPath": "tests/commands/structured-stress/jq-42-author-20260827/final-owned.tap",
+  "tapSha256": "927f32925c0f612e5c1f2f64a74addfb9fea900479c84d84e98cb985d5d28658",
+  "failures": [
+    "strict UTF-8 rejection remains chunk invariant (not native parity): raw-lone-continuation",
+    "strict UTF-8 rejection remains chunk invariant (not native parity): raw-truncated",
+    "strict UTF-8 rejection remains chunk invariant (not native parity): raw-bad-continuation",
+    "strict UTF-8 rejection remains chunk invariant (not native parity): json-bad-string",
+    "raw native: record-error-prefix",
+    "raw native: file-unicode:-Rc",
+    "raw native: file-unicode:-Rsc",
+    "raw native: invalid:0:-Rc",
+    "raw native: invalid:0:-Rsc",
+    "raw native: invalid:1:-Rc",
+    "raw native: invalid:1:-Rsc",
+    "raw native: invalid:2:-Rc",
+    "raw native: invalid:2:-Rsc",
+    "raw native: invalid:3:-Rc",
+    "raw native: invalid:3:-Rsc",
+    "raw native: invalid:4:-Rc",
+    "raw native: invalid:4:-Rsc",
+    "strict malformed JSON 14 across chunk boundaries",
+    "strict malformed JSON 16 across chunk boundaries",
+    "invalid UTF-8 never becomes replacement text",
+    "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+    "valid large decimals survive while malformed JSON and division by zero fail"
+  ],
+  "selector": "^(?:strict UTF-8 rejection remains chunk invariant \\(not native parity\\): raw-lone-continuation|strict UTF-8 rejection remains chunk invariant \\(not native parity\\): raw-truncated|strict UTF-8 rejection remains chunk invariant \\(not native parity\\): raw-bad-continuation|strict UTF-8 rejection remains chunk invariant \\(not native parity\\): json-bad-string|raw native: record-error-prefix|raw native: file-unicode:-Rc|raw native: file-unicode:-Rsc|raw native: invalid:0:-Rc|raw native: invalid:0:-Rsc|raw native: invalid:1:-Rc|raw native: invalid:1:-Rsc|raw native: invalid:2:-Rc|raw native: invalid:2:-Rsc|raw native: invalid:3:-Rc|raw native: invalid:3:-Rsc|raw native: invalid:4:-Rc|raw native: invalid:4:-Rsc|strict malformed JSON 14 across chunk boundaries|strict malformed JSON 16 across chunk boundaries|invalid UTF-8 never becomes replacement text|malformed UTF-8 preserves completed JSON prefix across every chunk split|valid large decimals survive while malformed JSON and division by zero fail)$",
+  "limits": "Only these 22 existing failing test names are selected; no full broad-suite denominator is claimed."
+}

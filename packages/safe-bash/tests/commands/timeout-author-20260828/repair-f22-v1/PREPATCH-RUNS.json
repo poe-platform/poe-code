@@ -1,0 +1,71 @@
+{
+  "schema": "timeout-author-f22-prepatch-runs/1",
+  "classification": "fresh post-candidate baseline; no original independent bytes recovered",
+  "environment": {
+    "node": "v22.22.2",
+    "platform": "darwin",
+    "architecture": "arm64",
+    "locale": "C",
+    "timezone": "UTC"
+  },
+  "runs": [
+    {
+      "name": "focused-product-and-receiver-capture",
+      "command": [
+        "node",
+        "--import",
+        "tsx",
+        "tests/commands/timeout-author-20260828/repair-f22-v1/capture-prepatch.mts"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "stdout": {
+        "path": "PREPATCH-CAPTURE.json",
+        "bytes": 1623,
+        "sha256": "66be9319569f970f8600c6ac48fdcd524a8f9db16293b03431c673a324234638"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "productRoutes": [
+        "direct CommandDefinition execution with registered cleanup",
+        "actual Shell and registry invocation"
+      ],
+      "productObserved": "125 with exact fresh timer-setup diagnostic; child not admitted",
+      "receiverDiagnostic": "separate direct Node call only; not original or product stderr"
+    },
+    {
+      "name": "presealed-focused-regression",
+      "command": [
+        "node",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/commands/timeout-author-20260828/repair-f22-v1/timeout-f22.test.ts"
+      ],
+      "exitCode": 1,
+      "signal": null,
+      "stdout": {
+        "path": "runs/prepatch-regression.stdout.txt",
+        "bytes": 1374,
+        "sha256": "d0418e1b3ccd2e774f03c60234ca7a4ee18f793f9fd8c3e901c0a0d986fcf403"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "tests": 2,
+      "passed": 1,
+      "failed": 1,
+      "expectedRed": "F22 default clock expected child status 7 but received 125",
+      "passingControl": "custom captured receiver, chunks, cancellation, and cleanup"
+    }
+  ],
+  "independentPreservation": {
+    "originalCombinedQualification": "31/34 in each layout",
+    "rescored": false,
+    "originalStderrRecovered": false,
+    "originalUnderlyingExceptionRecovered": false
+  }
+}

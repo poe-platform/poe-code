@@ -1,0 +1,16 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+    "-p",
+    "review-tsconfig.json"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-final-review-v2-20260827/node_modules/candidate-01/source",
+  "started": "2026-08-27T20:57:45.351Z",
+  "finished": "2026-08-27T20:57:49.330Z",
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "stdout": "",
+  "stderr": ""
+}

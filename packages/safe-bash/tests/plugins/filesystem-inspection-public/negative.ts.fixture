@@ -1,0 +1,7 @@
+import { agentCommands, treeCommands, fileCommands, createTreeCommand, createFileCommand } from "virtual-bash";
+agentCommands({ tree: { replace: true } });
+agentCommands({ file: { replace: true } });
+treeCommands({ limits: { maxDepth: "2" } });
+fileCommands({ limits: { maxSniffBytes: "8" } });
+createTreeCommand({ maximumDepth: 2 });
+createFileCommand({ limits: { unknownLimit: 1 } });

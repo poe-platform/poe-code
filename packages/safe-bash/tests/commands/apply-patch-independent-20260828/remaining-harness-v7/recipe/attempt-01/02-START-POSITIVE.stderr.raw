@@ -1,0 +1,14 @@
+node:fs:1879
+    throw new ERR_ACCESS_DENIED('fs.symlink API requires full fs.read and fs.write permissions.');
+          ^
+
+Error [ERR_ACCESS_DENIED]: fs.symlink API requires full fs.read and fs.write permissions.
+    at Object.symlinkSync (node:fs:1879:11)
+    at runDataControls (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v7/recipe/data-controls.mjs:46:6)
+    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v7/recipe/child.mjs:19:11 {
+  code: 'ERR_ACCESS_DENIED',
+  permission: '',
+  resource: ''
+}
+
+Node.js v22.22.2

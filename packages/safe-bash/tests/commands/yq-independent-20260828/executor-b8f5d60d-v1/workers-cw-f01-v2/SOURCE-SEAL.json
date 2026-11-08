@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "state": "SOURCE_AND_DEFERRED_DATA_PRESEALED_BEFORE_VALIDATION",
+  "files": {
+    "ASSEMBLY.json": {
+      "sha256": "2d826d6cc3d508d46aa50950c5317a2a20d95513c9fff209eefe5ce8d6c254d2",
+      "bytes": 21601,
+      "mode": 420,
+      "kind": "file"
+    },
+    "DEFERRED-CONTROLS.json": {
+      "sha256": "418c6bc218b7ab6bdfefc6b43a1deb0394270ef191d8df171515c0575b6ad88a",
+      "bytes": 27008,
+      "mode": 420,
+      "kind": "file"
+    },
+    "SPECIFICATION.md": {
+      "sha256": "cadc00f75a58d8d69c5d503c1a4658b6605180674cbfd3f789fa9ac3344ff3c4",
+      "bytes": 7236,
+      "mode": 420,
+      "kind": "file"
+    },
+    "type-worker.mjs": {
+      "sha256": "f1d7b464a7018807289080a563ea4735a3902565ecdf16a32d0deab5200571fd",
+      "bytes": 11186,
+      "mode": 420,
+      "kind": "file"
+    }
+  },
+  "directories": {
+    "": 493
+  },
+  "changedExecutableFiles": 1,
+  "rootGO": false,
+  "authoredExecutions": 0,
+  "deferredControlsExecuted": 0
+}

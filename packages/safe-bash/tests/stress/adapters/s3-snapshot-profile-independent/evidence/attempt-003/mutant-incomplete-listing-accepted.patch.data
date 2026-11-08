@@ -1,0 +1,5 @@
+*** Begin Patch
+*** Update File: src/fs/s3/filesystem.ts
+@@
+-        if (page.IsTruncated === undefined) fail("EIO", "rmdir", input, "listing did not confirm completeness");
+*** End Patch

@@ -1,0 +1,119 @@
+TAP version 13
+# Subtest: TREE-WORK-002: actual Shell meters many long-prefix byte comparisons
+not ok 1 - TREE-WORK-002: actual Shell meters many long-prefix byte comparisons
+  ---
+  duration_ms: 6.076292
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/tree/sort-text-bound.test.ts:1:1380'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    0 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/tree/sort-text-bound.test.ts:40:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# {"entries":32,"nameBytes":64,"commonPrefixBytes":62,"maxSteps":256,"exitCode":0,"stdoutBytes":2082,"stderr":""}
+# Subtest: TREE-WORK-002: dirsfirst consumes work beyond the first sorting pass
+not ok 2 - TREE-WORK-002: dirsfirst consumes work beyond the first sorting pass
+  ---
+  duration_ms: 4.6525
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/tree/sort-text-bound.test.ts:1:2012'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    0 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/tree/sort-text-bound.test.ts:56:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"entries":32,"nameBytes":2,"plainSteps":97,"dirsfirstExitCode":0,"stderr":""}
+# Subtest: TEXT-BOUND-001: oversized backend error is admitted before regex or byte scanning
+not ok 3 - TEXT-BOUND-001: oversized backend error is admitted before regex or byte scanning
+  ---
+  duration_ms: 0.805
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/tree/sort-text-bound.test.ts:1:2843'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+    +   byteLength: 1,
+    -   byteLength: 0,
+        encode: 0,
+    +   replace: 1
+    -   replace: 0
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    replace: 0
+    byteLength: 0
+    encode: 0
+  actual:
+    replace: 1
+    byteLength: 1
+    encode: 0
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/tree/sort-text-bound.test.ts:68:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"messageCodeUnits":96,"maxPathBytes":32,"measuredRawMessageScans":{"replace":1,"byteLength":1,"encode":0}}
+# Subtest: TEXT-BOUND-001: prefix stripping cannot evade raw backend message admission
+not ok 4 - TEXT-BOUND-001: prefix stripping cannot evade raw backend message admission
+  ---
+  duration_ms: 0.818084
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/tree/sort-text-bound.test.ts:1:3360'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '.  [denied]\n'
+    - ''
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ''
+  actual: |-
+    .  [denied]
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/tree/sort-text-bound.test.ts:77:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"rawMessageCodeUnits":104,"maxPathBytes":32,"exitCode":1,"stdout":".  [denied]\\n","stderr":"tree: .: denied\\n"}
+1..4
+# tests 4
+# suites 0
+# pass 0
+# fail 4
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 152.001792

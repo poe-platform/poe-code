@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "approvedHost": "macOS26.4.1/build25E253 arm64",
+  "binary": {
+    "path": "/usr/bin/sandbox-exec",
+    "bytes": 102560,
+    "mode": 493,
+    "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42"
+  },
+  "host": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n",
+  "linkage": "/usr/bin/sandbox-exec:\n\t/usr/lib/libsandbox.1.dylib (compatibility version 1.0.0, current version 1.0.0)\n\t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1356.0.0)\n",
+  "systemReferences": [
+    [
+      "/usr/bin/sandbox-exec",
+      "/usr/lib/libsandbox.1.dylib"
+    ],
+    [
+      "/usr/bin/sandbox-exec",
+      "/usr/lib/libSystem.B.dylib"
+    ]
+  ],
+  "qualification": "Root approved exactly two additional sandbox-exec/tool system-reference pairs on pinned macOS26.4.1/25E253; physical library paths ENOENT, not file-hash/full-OS attestation. Original eleven-pair receipt unchanged. No non-system or ambient-loader exception.",
+  "preseal": "Historical cedd4b96 thirty-group author freeze retained; scoped resolved-write acceptance38a4e7b is not full release. Tool-route successor uses separate0444f359 twelve-control freeze.",
+  "writePolicy": "Fresh initial roots reject preexisting aliases. Runtime inert outside symlink creation is allowed; resolved writes through outside/instruction aliases, chains and renamed links are denied. Outside hardlinks and physical-directory rename/import are denied. Preopened writable-descriptor limitation remains; fixed shipping descriptor isolation is mandatory.",
+  "toolRouting": "TOOL-ROUTES.json pins the separately root-approved direct inspector and exactly two additional ENOENT reference pairs; kernel denies old selector executables. No unbound xcodebuild or broader DeveloperTools allowance.",
+  "fullGate": false
+}

@@ -1,0 +1,336 @@
+{
+  "schema": 5,
+  "purpose": "fresh recoverable v9 correction of immutable failed-v8 real-host atime controls after separately frozen bounded diagnosis; not a reconstruction of unavailable historical bytes",
+  "authoredDate": "2026-08-27",
+  "candidateCommit": "9a5a6f922beb1bc6ba84a0cd32ea7a12f8ce985d",
+  "candidateTree": "62c1b2f2784ca465b17d4b15a5736c42b8bdcf2d",
+  "baseFreeze": {
+    "commit": "ae0f8b3f4f927b06718fc51e176ca7a54b517364",
+    "repositoryTree": "bf0d08a7a5640a1cb8aa0d1871d0b68d89cfc170",
+    "fixtureTree": "8c845070afd27a3be5038b50d222f36dd9178838",
+    "path": "tests/integration/du-overlay-independent-20260827/approved-v8-9a5a6f92",
+    "fileCount": 22,
+    "manifestBytes": 4809,
+    "manifestGitBlob": "8c57cf22913c922ca11b3773f1748aaf184aa44a",
+    "manifestSha256": "e8f957bd9ea434b0af5388ab0e2ed2d936d5338fcbca5344f3793b08e5e38af7",
+    "disposition": "actual immutable replay rejected as two frozen atime-control precondition failures; original 24/24 and fresh 38/40; no candidate defect established"
+  },
+  "rejectedV8Replay": {
+    "preReplayAuditCommit": "2477d20c385adf55e3f737eb1dada4e1f9139931",
+    "evidenceCommit": "04e53b45fe48e25aed4c5f000e6fb29b07b45013",
+    "evidenceTree": "fe50fbc2d172a6fe73c5c2fb343332ad1333b642",
+    "path": "tests/integration/du-overlay-independent-20260827/approved-v8-replay-9a5a6f92",
+    "manifestCommit": "d4d96b30c2a5b9ff6040f05df79f6f7973ca5b5e",
+    "evidenceManifestGitBlob": "057f4c916a28599db797bd669d4b6d6eb3efa246",
+    "evidenceManifestSha256": "93ae1db1caaddabb698f8eaf8a6d045a9f8021def65fff3fe52c3b41a32823cb",
+    "nonSelfRecords": 376,
+    "reportGitBlob": "d3d3265a0daffbf9cd36448dde4740582a66e44d",
+    "reportSha256": "b9adef65ba36a2c427debe4cbc2724a595060ea797bfce23ef323efc7bc317da",
+    "failureAnalysisGitBlob": "463e250fbe6b50390db68ea8695acaa7567768ba",
+    "failureAnalysisSha256": "8742b419f29cb370c8ba4a2aa29d1a869ee4aebf0158970dba0f3b41614924c0",
+    "reached": {
+      "original": {
+        "passed": 24,
+        "total": 24
+      },
+      "fresh": {
+        "passed": 38,
+        "total": 40
+      },
+      "literalEnvironmentTable": {
+        "passed": 16,
+        "total": 16
+      },
+      "metadataDu": {
+        "passed": 19,
+        "total": 19,
+        "authorizedDirectoryAtimeDeltas": 19,
+        "unauthorizedDeltas": 0
+      },
+      "positiveControls": {
+        "passed": 4,
+        "total": 4
+      },
+      "negativeControls": {
+        "passed": 6,
+        "total": 7
+      }
+    },
+    "failedControls": [
+      "V5-023",
+      "V5-024"
+    ],
+    "notReached": [
+      "scoped-regressions-128",
+      "npm-package",
+      "moved-package",
+      "moved-consumer",
+      "nextLoad",
+      "declaration-controls",
+      "native-environment-16"
+    ],
+    "closure": {
+      "rootsAndGroupsAbsent": 113,
+      "timeoutGrandchildAbsent": true,
+      "scratch": "ENOENT"
+    }
+  },
+  "diagnosis": {
+    "inputCommit": "86dfbe9a4f86e0d7c4b084ec0c7c1c865a3f7804",
+    "evidenceCommit": "a852a471b65b70b8f19e2915d316e3c12847cabb",
+    "evidenceTree": "6cab0827f80ed4af008bed9a3a2e2a3a68cc4f4c",
+    "path": "tests/integration/du-overlay-independent-20260827/atime-diagnosis-v9",
+    "reportGitBlob": "405ded2b89f91c26fce21b0de0f18cc30f3b0e48",
+    "reportSha256": "b21ff35ee32c5aa2da01a0fdc792d1d78db660f47506b615cbee934777b45abc",
+    "rawGitBlob": "628a4bb60696c63bdab74870895042402d923376",
+    "rawSha256": "b2ee65868b1ccd15db17e945fddab7c14546840992ff8bf408b2166bbe2dd9ab",
+    "fixedIterations": 3,
+    "v8MimicLstatOnlyAtimePublication": {
+      "observed": 1,
+      "total": 3
+    },
+    "completedReadThenResetAtimePublication": {
+      "observed": 1,
+      "total": 3
+    },
+    "noAccessChanges": {
+      "observed": 0,
+      "total": 3
+    },
+    "deliberateDirectoryListingAtime": {
+      "observed": 3,
+      "total": 3
+    },
+    "deliberateFileReadAtime": {
+      "observed": 3,
+      "total": 3
+    },
+    "configuredCanonicalIdentityMatches": {
+      "observed": 3,
+      "total": 3
+    },
+    "actorIdentified": false,
+    "establishedCause": "the controls treated post-utimes atime as a stable and causally attributable read marker although later host publication can precede the action sample"
+  },
+  "chronology": {
+    "postCandidate": true,
+    "postV8PreReplayAudit": true,
+    "postV8FailureEvidence": true,
+    "postDiagnosticInputFreeze": true,
+    "postDiagnosticExecution": true,
+    "beforeV9SemanticReplay": true,
+    "blindHoldout": false
+  },
+  "recoverableHistory": {
+    "v5Commit": "ea02d6b79beeac36d263743c77e15bda7931dc67",
+    "v7Commit": "a08227b95b5ac3fc9175df6ca90a7700e5bdcbf4",
+    "v8Commit": "ae0f8b3f4f927b06718fc51e176ca7a54b517364",
+    "guardedArchiveExampleCommit": "b1b5abe972bbfc2feffbf04b8c2c98f324391923",
+    "unavailableOriginalVerifierBlob": "f127f231fe53392ed3635af1c255b66526b5c485",
+    "v2ToV3ExactDelta": "permanently unproved; unrecoverable bytes are neither guessed nor reconstructed",
+    "old22Failure10PassEvidenceRewritten": false,
+    "later33CaseQualificationRewritten": false,
+    "priorTemporaryAgentsCopyIncidentRewritten": false
+  },
+  "byteIdenticalFromV8": [
+    {
+      "path": "CORRECTION_V7.md",
+      "bytes": 6328,
+      "sha256": "23f07912e4100758808be61973d208062011467f80d54fe44a70f5d77a474fc4",
+      "gitBlob": "75c56848f1dde19aa1d291ecd69f4f43675bb121"
+    },
+    {
+      "path": "CORRECTION_V8.md",
+      "bytes": 6610,
+      "sha256": "3e7c375cc916684399cecf409e852c51dd9bab9a7a0c27d08c4f7ecf896dbca3",
+      "gitBlob": "fca766ad86d48d3358373046c7945fafc1e6699b"
+    },
+    {
+      "path": "config/candidate-selected-paths.txt",
+      "bytes": 7522,
+      "sha256": "9427aad46a7f184d94517a666ab02a8f1da43ccf9074c5a15186d4569233679b",
+      "gitBlob": "65e8eea7ed343140252629a5e030c102033e48d2"
+    },
+    {
+      "path": "config/oracle-identity.json",
+      "bytes": 582,
+      "sha256": "7bc8e13ea19e432b8320d08f5e19f8e4cbcbe4f8dad19984df6f9259960ebf4f",
+      "gitBlob": "006e80030216385b81ae0917ab4822ccfd8d18b7"
+    },
+    {
+      "path": "config/static-tooling.json",
+      "bytes": 210,
+      "sha256": "a665c0d24aedea5a987d444e98d9708378a1db44c49b5a10872cf2a11062506f",
+      "gitBlob": "09bca6e67f082086ea7b7020acf08f0ed3eea673"
+    },
+    {
+      "path": "consumer/consumer.ts",
+      "bytes": 603,
+      "sha256": "14e55e16f60f8262c2b299fcf48911d2789e3ec1c7b44674dd622f5dab4552b7",
+      "gitBlob": "6544c8e7f1fb4df43d84ea6c8e1b812fa040ca9d"
+    },
+    {
+      "path": "consumer/package.json",
+      "bytes": 93,
+      "sha256": "52fe278e686f24c3992cd55042b2a5029bc3de967ab198821020c423fe85344f",
+      "gitBlob": "58b3477b86fba4b5cf05ed7ac6715996ea6e9fce"
+    },
+    {
+      "path": "consumer/runtime.mjs",
+      "bytes": 1420,
+      "sha256": "61e13d86b50487bb6a768859e75d111d896c3502b9ce1b286637b43da2ad87b5",
+      "gitBlob": "5d4b023c175da6084b26875a9431b0ea27ff20fe"
+    },
+    {
+      "path": "consumer/tsconfig.json",
+      "bytes": 236,
+      "sha256": "1ece8865863403be31eb2601b88f1739c5412dfe495e7dba65b66e43a2fc607b",
+      "gitBlob": "9be38da0ab7fecf777ed8667dce8015956f9af16"
+    },
+    {
+      "path": "fixtures/native-env-cases.json",
+      "bytes": 4259,
+      "sha256": "ba95af81e2ffd7f7b80afb4a49a173487d9dacb7c911c61b31bf80b515c8cd5b",
+      "gitBlob": "5d10b771614815024262bce0ccd7f4bda843cadd"
+    },
+    {
+      "path": "harness/attest-loader.mjs",
+      "bytes": 1358,
+      "sha256": "856d860f818db6848388be87da7cd59ee4def1bf133abe582206bbd69b083d1d",
+      "gitBlob": "f3ecf208359702d9946f13b5da8558fa0792bea2"
+    },
+    {
+      "path": "harness/process-manager.mjs",
+      "bytes": 10866,
+      "sha256": "f322101cfaa23612287cd728f52f50c672a19325eda00b69d8280827d83cfa5d",
+      "gitBlob": "28e7ac96913d169bb1f2bee3c2c63736ade16c63"
+    },
+    {
+      "path": "harness/process-timeout-control.mjs",
+      "bytes": 565,
+      "sha256": "2ac32a6d8a09f7f37f157e2adc1ac6b1fbd7cc0899cc7d643542a7dc743dc652",
+      "gitBlob": "b1d7d317bc8d48b1b07a20d79d2308cea603d28d"
+    },
+    {
+      "path": "harness/verify-original.mjs",
+      "bytes": 26190,
+      "sha256": "c08b96e73891995f329583b7d04d7837e1cd66953e13790b906d833f5fcc1c5a",
+      "gitBlob": "14a93028c2c9dcb4ba9fee4a44d8acb18055dd6c"
+    },
+    {
+      "path": "native-env.mjs",
+      "bytes": 6204,
+      "sha256": "e537055e0b7516e2a2ddcd520f5197625334d2493b1b238d82b99edc94fd7def",
+      "gitBlob": "894f6b7aae57e800d8e5eb603a9ea33cb665a38f"
+    }
+  ],
+  "modifiedFromV8": [
+    {
+      "path": "CASE_MAP.md",
+      "v8Bytes": 2278,
+      "v8Sha256": "0bdd741abdbf47090cfd97986b91529d834d9cbe5666e9d579c77c808a2d9d92",
+      "v8GitBlob": "610b4bedbf988575cf32581cc4a70adfc6152049",
+      "delta": "v9 label and exact V5-023 calibration/V5-024 independent content-read and deterministic actual-file-atime guard description; counts unchanged"
+    },
+    {
+      "path": "FREEZE.md",
+      "v8Bytes": 7634,
+      "v8Sha256": "0d9da7511bed9d841ceeab0a72b65561d4efb3daa53976d94ea90a8416273699",
+      "v8GitBlob": "46d5bb04786301ad743be5c89facaa339bea5300",
+      "delta": "actual v8 failure plus frozen diagnosis chronology, exact v9 correction, static-only boundary and v9 paths"
+    },
+    {
+      "path": "ORIGINS.json",
+      "v8Bytes": 9953,
+      "v8Sha256": "a73b753fe54b6d0d6d481eed427b8939e3f874bfc96e83e7dae5c005dba90851",
+      "v8GitBlob": "1e975649d6894489206e513dc76c3f323ad255d5",
+      "delta": "complete v8 base/evidence/diagnosis binding and v8-to-v9 path/hash classification"
+    },
+    {
+      "path": "harness/verify-v5.mjs",
+      "v8Bytes": 57514,
+      "v8Sha256": "85d79b9a8c1bf93eebd16ce63484cce2d4a5884e52440cace0e567acff1a29b2",
+      "v8GitBlob": "53be58713265e6647655db0086ca136237d0e7fd",
+      "delta": "only V5-023 stops prescribing a provider read-atime outcome and V5-024 proves content-read and actual file-atime violations independently with complete deltas"
+    },
+    {
+      "path": "replay.mjs",
+      "v8Bytes": 43382,
+      "v8Sha256": "c9bce1090f07dc43e3a823a8b7ffaee051eab92fc84681e66466f80ebde18797",
+      "v8GitBlob": "be31487ac2cc75284145d88d9a00245fd3861b1e",
+      "delta": "frozen relative path changed from approved-v8 to approved-v9; all protocol logic otherwise byte-identical"
+    },
+    {
+      "path": "verify-freeze.mjs",
+      "v8Bytes": 2463,
+      "v8Sha256": "a3574f857c6cd8028a0007bada5cb7a92ee8dbc85b2b1e26b69cc78a80e478cc",
+      "v8GitBlob": "4d37de0436cd15913817bea78c82804b0914ee61",
+      "delta": "frozen relative path changed from approved-v8 to approved-v9; all verifier logic otherwise byte-identical"
+    }
+  ],
+  "newV9Files": [
+    {
+      "path": "CORRECTION_V9.md",
+      "purpose": "versioned v8 failure, neutral diagnosis, policy-equivalent correction and chronology rationale"
+    }
+  ],
+  "manifestTransition": {
+    "v8Bytes": 4809,
+    "v8GitBlob": "8c57cf22913c922ca11b3773f1748aaf184aa44a",
+    "v8Sha256": "e8f957bd9ea434b0af5388ab0e2ed2d936d5338fcbca5344f3793b08e5e38af7",
+    "delta": "regenerated complete self-excluded v9 inventory for 22 non-self files and 23 total files"
+  },
+  "completeClassification": {
+    "v8Paths": 22,
+    "byteIdentical": 15,
+    "modified": 6,
+    "replacedSelfExcludedManifest": 1,
+    "newNonSelf": 1,
+    "v9NonSelfPaths": 22,
+    "v9TotalPaths": 23,
+    "newHashesAndGitBlobs": "MANIFEST.json",
+    "oldHashesAndGitBlobs": "byteIdenticalFromV8, modifiedFromV8 and manifestTransition"
+  },
+  "originalVerifier": {
+    "path": "harness/verify-original.mjs",
+    "expectedCaseCount": 24,
+    "byteIdentical": true
+  },
+  "freshVerifier": {
+    "path": "harness/verify-v5.mjs",
+    "expectedCaseCount": 40,
+    "semanticBodiesChanged": [
+      "V5-023",
+      "V5-024"
+    ],
+    "metadataDuPrefixCount": 19
+  },
+  "literalEnvironmentControl": {
+    "path": "fixtures/native-env-cases.json",
+    "caseCount": 16,
+    "byteIdentical": true
+  },
+  "selectedCandidateInputs": {
+    "path": "config/candidate-selected-paths.txt",
+    "pathCount": 249,
+    "byteIdentical": true
+  },
+  "capturedConsumerConvention": {
+    "path": "consumer/consumer.ts",
+    "byteIdentical": true,
+    "classificationOwnership": "outside this leaf task"
+  },
+  "productWindowPolicy": {
+    "onlyActualSameLayerPathReaddirMayAuthorizeDirectoryAtime": true,
+    "fileAtimeAuthorized": false,
+    "nonAtimeFieldsAuthorized": false,
+    "contentReadAuthorized": false,
+    "explicitMutationAuthorized": false,
+    "byteOrEntryChangeAuthorized": false,
+    "copyUpAuthorized": false
+  },
+  "semanticCandidateCasesExecutedBeforeV9Freeze": false,
+  "semanticNativeCasesExecutedBeforeV9Freeze": false,
+  "semanticImportsExecutedBeforeV9Freeze": false,
+  "productBuildPackInstallOrConsumerExecutedBeforeV9Freeze": false
+}

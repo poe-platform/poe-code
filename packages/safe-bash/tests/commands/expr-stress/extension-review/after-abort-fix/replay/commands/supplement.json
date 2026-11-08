@@ -1,0 +1,14 @@
+{
+  "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "tests/commands/expr-stress/extension-review/after-abort-fix/replay/supplement.mjs",
+    "capture"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "timeoutMs": 120000,
+  "status": 0,
+  "signal": null,
+  "failure": null,
+  "stdout": "{\"rows\":42,\"failed\":[],\"legacyProtocolEqual\":true,\"transcriptMismatches\":[],\"nullableMismatches\":[\"empty\",\"a\",\"aa\",\"aaa\",\"mandatory-empty\"]}\n",
+  "stderr": ""
+}

@@ -1,0 +1,18 @@
+{
+  "commit": "cc6eb305",
+  "rawSha256": "8f3c8c2837c2fafdc7b4c6500b58817110bef8982b7c18a2a7a7fb210cff5384",
+  "parserFailure": "receipt role",
+  "sourceAuthorPass": 63,
+  "sourceTypes": 24,
+  "independentChildPass": 22,
+  "ownerRecordedWorkers": 29,
+  "actualWorkers": 45,
+  "ownerRecordedEntries": 25,
+  "actualEntries": 41,
+  "ownerProcessCount": 35,
+  "outerAdditionalProcesses": 1,
+  "allRetired": true,
+  "captureBytes": 1821368,
+  "writtenBytes": 161061323,
+  "originalOutcome": "HOLD, not rewritten"
+}

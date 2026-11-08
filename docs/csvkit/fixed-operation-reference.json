@@ -1,0 +1,34 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "sourceSha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+  "cases": [
+    {
+      "schema": "column,start,length\na,1,2\nb,3,2\n",
+      "stdin": "xyzz\nuv  \n",
+      "status": 0,
+      "stdout": "a,b\nxy,zz\nuv,\n",
+      "stderr": ""
+    },
+    {
+      "schema": "column,start,length\na,0,1\nb,1,2\n",
+      "stdin": "\u00e9xy\n\ud800\udc00uv\n",
+      "status": 0,
+      "stdout": "a,b\n\u00e9,xy\n\ud800\udc00,uv\n",
+      "stderr": ""
+    },
+    {
+      "schema": "column,length\na,2\n",
+      "stdin": "abcd\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "ValueError: A column named \"start\" must exist in the schema file.\n"
+    },
+    {
+      "schema": "column,start,length\na,x,2\n",
+      "stdin": "abcd\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "ValueError: Error reading schema at line 2: invalid literal for int() with base 10: 'x'\n"
+    }
+  ]
+}

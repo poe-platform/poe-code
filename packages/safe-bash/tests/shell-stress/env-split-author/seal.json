@@ -1,0 +1,50 @@
+{
+  "stage": "Preparation only; no product writes by this author; concurrent source drift qualified",
+  "head": "c63eedc53adc7cd1f30b1e65cfd47b6fe3e31c65",
+  "borrowed": {
+    "node": "v22.22.2",
+    "tsxVersion": "4.23.12",
+    "tsxPackageHash": "96aee9fd252d0cc31f3c01468250961f5b338c797bc208700d7db926450c7659",
+    "packageLockHash": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b"
+  },
+  "files": {
+    "CURRENT_FACTS.txt": "8226032a950dc14bcfbbc5cb721e9eb4ca0b330bd9f9a685e8dbec02b12880ee",
+    "DESIGN.md": "3d72dfe67beee483b55f8a1f67e5fa610a91634abd8b7b196266ac0d811a97d5",
+    "baseline-attempt1.json": "c4106bab85d5071b80a0b95dfabab75d52755be6937affdf74a5b24b731160b3",
+    "baseline-frozen.json": "9fbb2229ef6fdb6290a406b31376a75eedbf8c3e434d2914efdd332f78d1a5d9",
+    "baseline.mjs": "39b8922824469eec4d25afe342ddc1f1c4da4c3fcdffd6e53fe2787974bdff28",
+    "capture.mjs": "6dfd2157587c1a44034a4d9f365fffcdb7288e5aeaf8d69f429b3549e5f04d93",
+    "cases-attempt1.mjs": "3da2715b2c52f10377b7952ba8b19c205f369981757b52350c71d439b0a7eb26",
+    "cases.mjs": "ca5e3ab2a3ed67e95b4f2ce0e5bae4159445f015b92a3a32d29f631eb23cc68d",
+    "native-attempt1.json": "e710b0531872a2dc2e1a9881b51e15624e9fd3c0703b4948bb0de82ed1d57292",
+    "native-frozen.json": "78454386eeddec592bbdd79128696434fac3c19b862866b89684a2e3747c4a21",
+    "recorder.c": "6a4cee5f76920213609d473ca4d9e943144c37654abc0bcb9fe6946a3b27e98b"
+  },
+  "groupsAbsent": 122,
+  "scratchRemoved": true,
+  "noNewHoldoutsRead": true,
+  "sourceObservation": {
+    "src/shell/runtime.ts": "f8339cd8922967e85f574dd94d28e52d364b890a42f1db3c212d5792af185171",
+    "src/shell/parser.ts": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e",
+    "src/commands/execution.ts": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700",
+    "src/commands/internal.ts": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+    "src/contracts/command.ts": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8"
+  },
+  "baselineSources": {
+    "src/shell/runtime.ts": "5589f60a1db983538d37168e3b9276555ef71a2bc67446783535e47789f9d6eb",
+    "src/shell/parser.ts": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e",
+    "src/commands/execution.ts": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700",
+    "src/commands/internal.ts": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+    "src/contracts/command.ts": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8"
+  },
+  "externalDrift": {
+    "contractCommit": "07acb1a4d30b7592cf247a0220250317be4e2038",
+    "laterObservedHead": "b7ae676a57adec1193b51fe08a91b17eac6f5884",
+    "foreignPaths": [
+      "src/shell/runtime.ts",
+      "src/shell/shell.ts",
+      "src/shell/cleanup.ts"
+    ],
+    "qualification": "Source observation is later than baseline and is not a stable current acceptance candidate. Author made no product edits. Runtime/env baseline selected guards were stable; baseline contracts already include the concurrent contract change."
+  }
+}

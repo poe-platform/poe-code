@@ -1,0 +1,265 @@
+import { describe, expect, it } from "vitest";
+import { findBundleIssues } from "./bundle-policy.js";
+import { canonicalBundleFixture } from "./fixtures.js";
+
+it("accepts bundled portable signing code while rejecting other foreign filesystem inputs", () => {
+  for (const profile of ["canonicalBundle", "browserCanonicalBundle"] as const) {
+    for (const location of ["node_modules/@noble/hashes/sha2.js", "packages/safe-fs/node_modules/@noble/hashes/hmac.js"]) {
+      const { manifest, metafile, packed } = canonicalBundleFixture();
+      const output = Object.values(metafile[profile].metafile.outputs).find(value => Object.keys(value.inputs ?? {}).some(input => input.startsWith("packages/safe-fs/src/")))!;
+      output.inputs[location] = {};
+      expect(findBundleIssues(manifest, new Set(), metafile, packed)).toEqual([]);
+      delete output.inputs[location];
+      output.inputs[location.replace("@noble/hashes/", "@noble/hashes-unrelated/")] = {};
+      expect(findBundleIssues(manifest, new Set(), metafile, packed)).toContainEqual({ external: "poe-code/safe-fs", reason: "foreign-canonical-input" });
+    }
+  }
+});
+
+describe("version-independent builtins retain released FS profile restrictions", () => {
+  it.each([
+    "node:sqlite",
+    "node:sea",
+    "inspector/promises",
+    "node:inspector/promises",
+    "node:test",
+    "node:test/reporters",
+    "fs",
+    "fs/promises"
+  ])("accepts %s in Node FS runtime and declaration edges", (name) => {
+    const { manifest, metafile, packed, chunk } = canonicalBundleFixture();
+    metafile.canonicalBundle.metafile.outputs[chunk].imports.push({ path: name, external: true });
+    metafile.canonicalTypes["dist/types/safe-fs/platform/node.d.ts"].push(name);
+    expect(findBundleIssues(manifest, new Set(), metafile, packed)).toEqual([]);
+  });
+
+  it.each(["node:sqlite", "node:sea", "node:test", "node:test/reporters", "fs", "fs/promises"])(
+    "still rejects %s in browser FS runtime and declaration edges",
+    (name) => {
+      const { manifest, metafile, packed } = canonicalBundleFixture();
+      metafile.browserCanonicalBundle.metafile.outputs[
+        "dist/shared/safe-js/browser/chunks/fs.js"
+      ].imports.push({ path: name, external: true });
+      metafile.canonicalTypes["dist/types/safe-fs/platform/browser.d.ts"].push(name);
+      expect(findBundleIssues(manifest, new Set(), metafile, packed)).toEqual([
+        { external: "poe-code/safe-fs", reason: "external-canonical-dependency" },
+        { external: "poe-code/safe-fs", reason: "external-canonical-types" }
+      ]);
+    }
+  );
+
+  it.each([
+    ["node:nonexistent", "invalid-external"],
+    ["node:sqlite/extra", "invalid-external"],
+    ["node:node:fs", "invalid-external"],
+    ["sqlite", "undeclared-dependency"],
+    ["fs/unknown", "undeclared-dependency"]
+  ])(
+    "still rejects unknown or nonbuiltin %s in Node FS edges",
+    (name, reason) => {
+      const { manifest, metafile, packed, chunk } = canonicalBundleFixture();
+      metafile.canonicalBundle.metafile.outputs[chunk].imports.push({ path: name, external: true });
+      metafile.canonicalTypes["dist/types/safe-fs/platform/node.d.ts"].push(name);
+      expect(findBundleIssues(manifest, new Set(), metafile, packed)).toEqual([
+        { external: name, reason },
+        { external: "poe-code/safe-fs", reason: "external-canonical-dependency" },
+        { external: "poe-code/safe-fs", reason: "external-canonical-types" }
+      ]);
+    }
+  );
+});
+
+describe("SafeJS browser boundary", () => {
+  const routes = [
+    "./safe-js", "./safe-js/core", "./safe-js/cli",
+    "./safejs", "./safejs/core", "./safejs/cli"
+  ] as const;
+  it.each(routes)("rejects unsafe export conditions for %s", (route) => {
+    const { manifest, metafile, packed } = canonicalBundleFixture();
+    expect(findBundleIssues(manifest, new Set(), metafile, packed)).toEqual([]);
+    const original = manifest.exports[route];
+    const variants = [
+      undefined,
+      { types: original.types.default, import: original.import },
+      { ...original, browser: original.import },
+      { types: original.types, import: original.import, browser: null },
+      { ...original, types: { ...original.types, browser: "./missing.d.ts" } },
+      { ...original, types: { ...original.types, default: "./missing.d.ts" } },
+      { ...original, import: "./missing.js" }
+    ];
+    for (const value of variants) {
+      const changed = { ...manifest, exports: { ...manifest.exports, [route]: value } };
+      expect(findBundleIssues(changed, new Set(), metafile, packed)).toContainEqual({
+        external: `poe-code${route.slice(1)}`,
+        reason: "invalid-node-only-safejs-export"
+      });
+    }
+  });
+  it.each(routes)("does not add %s to the self-import exception", (route) => {
+    const { manifest, metafile, packed } = canonicalBundleFixture();
+    metafile.outputs["dist/index.js"].imports.push({
+      path: `poe-code${route.slice(1)}`,
+      external: true,
+      kind: "import-statement"
+    });
+    expect(findBundleIssues(manifest, new Set(), metafile, packed)).toContainEqual({
+      external: `poe-code${route.slice(1)}`,
+      reason: "workspace-not-inlined"
+    });
+  });
+  it("does not deny unrelated public routes", () => {
+    const { manifest, metafile, packed } = canonicalBundleFixture();
+    const extended = {
+      ...manifest,
+      exports: { ...manifest.exports, "./credentials": { import: "./dist/credentials.js" } }
+    };
+    expect(findBundleIssues(extended, new Set(), metafile, packed)).toEqual([]);
+  });
+});
+
+describe("conditional canonical FS publication", () => {
+  it.each(["contracts/errors.ts", "bridge/filesystem.ts"])(
+    "rejects multiple packed copies of %s inside one profile",
+    (filename) => {
+      const { manifest, metafile, packed, entry, chunk } = canonicalBundleFixture();
+      const canonical = metafile.canonicalBundle.metafile;
+      const singleton = `packages/safe-fs/src/${filename}`;
+      canonical.inputs[singleton] = {};
+      canonical.outputs[chunk].inputs[singleton] = {};
+      expect(findBundleIssues(manifest, new Set(), metafile, packed)).toEqual([]);
+      canonical.outputs[entry].inputs[singleton] = {};
+      expect(findBundleIssues(manifest, new Set(), metafile, packed)).toContainEqual({
+        external: "poe-code/safe-fs",
+        reason: "duplicate-canonical-singleton"
+      });
+    }
+  );
+  it("accepts a reachable dynamic chunk, not an undeclared public root", () => {
+    const { manifest, metafile, packed } = canonicalBundleFixture();
+    const output = "dist/shared/safe-js/chunks/lazy.js";
+    const canonical = metafile.canonicalBundle.metafile;
+    canonical.outputs[output] = {
+      entryPoint: "packages/safe-fs/src/lazy.ts",
+      imports: [],
+      inputs: {}
+    };
+    canonical.outputs[`${output}.map`] = { imports: [], inputs: {} };
+    canonical.outputs["dist/shared/safe-js/chunks/fs.js"].imports.push({ path: output });
+    packed.add(output);
+    packed.add(`${output}.map`);
+    expect(findBundleIssues(manifest, new Set(), metafile, packed)).toEqual([]);
+    canonical.outputs["dist/shared/safe-js/chunks/fs.js"].imports.pop();
+    expect(findBundleIssues(manifest, new Set(), metafile, packed)).toContainEqual({
+      external: "poe-code/safe-fs",
+      reason: "undeclared-canonical-root"
+    });
+    packed.delete(output);
+    packed.delete(`${output}.map`);
+    expect(findBundleIssues(manifest, new Set(), metafile, packed)).toEqual([]);
+  });
+  it.each(["poe-code/safe-fs", "poe-code/safe-fs/core", "poe-code/safe-fs/node"])(
+    "accepts the exact route %s with both complete profiles",
+    (specifier) => {
+      const { manifest, metafile, packed } = canonicalBundleFixture();
+      metafile.outputs["dist/index.js"].imports[0].path = specifier;
+      expect(findBundleIssues(manifest, new Set(["@poe-code/safe-fs"]), metafile, packed)).toEqual(
+        []
+      );
+    }
+  );
+
+  it.each([
+    "extra-route",
+    "unknown-self",
+    "missing-browser",
+    "wrong-node-policy",
+    "wrong-browser-policy",
+    "browser-node-external",
+    "browser-private-external",
+    "cross-profile-edge",
+    "missing-core-root",
+    "unpacked-browser-chunk",
+    "missing-transitive-types",
+    "missing-types-metadata",
+    "node-types-in-browser",
+    "type-protocol",
+    "bad-private-types",
+    "runtime-private-policy",
+    "node-route-browser-fallback",
+    "types-condition-order",
+    "browser-condition-order",
+    "nested-package-scope",
+    "nonempty-node-types"
+  ])("rejects %s without a broad self-import exemption", (defect) => {
+    const { manifest, metafile, packed } = canonicalBundleFixture();
+    const browser = metafile.browserCanonicalBundle.metafile;
+    const shared = "dist/shared/safe-js/browser/chunks/fs.js";
+    if (defect === "nested-package-scope") packed.add("dist/types/safe-fs/package.json");
+    if (defect === "nonempty-node-types") metafile.canonicalEmptyTypes = [];
+    if (defect === "extra-route")
+      Object.assign(manifest.exports, { "./safe-fs/anything": manifest.exports["./safe-fs"] });
+    if (defect === "unknown-self")
+      metafile.outputs["dist/index.js"].imports[0].path = "poe-code/safe-fs/anything";
+    if (defect === "missing-browser")
+      delete (metafile as Partial<typeof metafile>).browserCanonicalBundle;
+    if (defect === "wrong-node-policy")
+      metafile.canonicalBundle.metafile.inputs["packages/safe-fs/src/platform/browser.ts"] = {};
+    if (defect === "wrong-browser-policy")
+      browser.inputs["packages/safe-fs/src/platform/node.ts"] = {};
+    if (defect === "browser-node-external")
+      browser.outputs[shared].imports = [{ path: "node:crypto", external: true }];
+    if (defect === "browser-private-external")
+      browser.outputs[shared].imports = [{ path: "#safe-fs-platform", external: true }];
+    if (defect === "cross-profile-edge")
+      browser.outputs[shared].imports = [{ path: "dist/shared/safe-js/chunks/fs.js" }];
+    if (defect === "missing-core-root")
+      delete metafile.canonicalBundle.metafile.outputs["dist/shared/safe-js/safe-fs-core.js"];
+    if (defect === "unpacked-browser-chunk") packed.delete(shared);
+    if (defect === "missing-transitive-types")
+      packed.delete("dist/types/safe-fs/contracts/errors.d.ts");
+    if (defect === "missing-types-metadata")
+      delete metafile.canonicalTypes["dist/types/safe-fs/contracts/errors.d.ts"];
+    if (defect === "node-types-in-browser")
+      metafile.canonicalTypes["dist/types/safe-fs/core.d.ts"].push("node:fs");
+    if (defect === "type-protocol")
+      metafile.canonicalTypes["dist/types/safe-fs/core.d.ts"].push("file:///tmp/types.d.ts");
+    if (defect === "bad-private-types")
+      manifest.imports["#safe-fs-platform"].types.browser =
+        "./dist/types/safe-fs/platform/node.d.ts";
+    if (defect === "runtime-private-policy")
+      Object.assign(manifest.imports["#safe-fs-platform"], { import: "./policy.js" });
+    if (defect === "node-route-browser-fallback")
+      Object.assign(manifest.exports["./safe-fs/node"], {
+        browser: "./dist/shared/safe-js/safe-fs-node.js"
+      });
+    if (defect === "types-condition-order")
+      Object.assign(manifest.exports, {
+        "./safe-fs": {
+          ...manifest.exports["./safe-fs"],
+          types: {
+            default: "./dist/types/safe-fs/index.d.ts",
+            browser: "./dist/types/safe-fs/core.d.ts"
+          }
+        }
+      });
+    if (defect === "browser-condition-order") {
+      const exported = manifest.exports["./safe-fs"];
+      Object.assign(manifest.exports, {
+        "./safe-fs": { types: exported.types, import: exported.import, browser: exported.browser }
+      });
+    }
+    expect(
+      findBundleIssues(manifest, new Set(["@poe-code/safe-fs"]), metafile, packed).length
+    ).toBeGreaterThan(0);
+  });
+});
+
+it.each(["./safe-js/core", "./safejs/core"] as const)("accepts the portable browser core at %s", route => {
+  const { manifest, metafile, packed } = canonicalBundleFixture();
+  const original = manifest.exports[route];
+  const changed = { ...manifest, exports: { ...manifest.exports, [route]: {
+    ...original, browser: "./packages/safe-js/dist/core.js",
+    types: { ...original.types, browser: "./dist/types/safe-js/core.d.ts" }
+  } } };
+  expect(findBundleIssues(changed, new Set(), metafile, packed)).toEqual([]);
+});

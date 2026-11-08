@@ -1,0 +1,41 @@
+[package]
+name = "agent-spawn-rust-node"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.88"
+license = "MIT"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+providers-rust={path="../../providers-rust"}
+config-extends-rust={path="../../config-extends-rust"}
+poe-code-config-rust={path="../../poe-code-config-rust"}
+toolcraft-design-rust={path="../../toolcraft-design-rust"}
+toolcraft-design-rust-napi-core={path="../../toolcraft-design-rust/bindings/shared"}
+frontmatter-rust-napi-core={path="../../frontmatter-rust/bindings/shared"}
+task-list-rust={path="../../task-list-rust"}
+config-mutations-rust={path="../../config-mutations-rust"}
+config-mutations-rust-napi-core={path="../../config-mutations-rust/bindings/shared"}
+process-runner-rust={path="../../process-runner-rust"}
+user-error-rust={path="../../user-error-rust"}
+agent-defs-rust={path="../../agent-defs-rust"}
+agent-harness-tools-rust={path="../../agent-harness-tools-rust"}
+agent-skill-config-rust={path="../../agent-skill-config-rust"}
+agent-hook-config-rust={path="../../agent-hook-config-rust"}
+agent-spawn-rust = { path = ".." }
+mcp-protocol-rust = { path = "../../mcp-protocol-rust" }
+mcp-protocol-rust-napi-core = { path = "../../mcp-protocol-rust/bindings/shared" }
+napi = { version = "=3.12.6", default-features = false, features = ["napi6"] }
+napi-derive = "=3.6.7"
+
+poe-acp-client-rust = { path = "../../poe-acp-client-rust" }
+
+[build-dependencies]
+napi-build = "=2.4.3"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = "symbols"

@@ -1,0 +1,15 @@
+{
+  "id": "parent-wrong-job",
+  "state": "HOLD",
+  "exitCode": 1,
+  "phases": [
+    {
+      "id": "build",
+      "status": "PASS"
+    }
+  ],
+  "error": {
+    "name": "Error",
+    "message": "A01_HOLD_DEPENDENTS: receipt job\n+ actual - expected\n\n+ 'wrong'\n- 'parent-wrong-job'\n"
+  }
+}

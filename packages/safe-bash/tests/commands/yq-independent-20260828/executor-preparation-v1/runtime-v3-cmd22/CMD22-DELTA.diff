@@ -1,0 +1,213 @@
+diff --git a/recipe/assert-capture.mjs b/recipe/assert-capture.mjs
+--- a/recipe/assert-capture.mjs
++++ b/recipe/assert-capture.mjs
+@@ -1,47 +1,50 @@
+ import assert from 'node:assert/strict';
+ import { join } from 'node:path';
+ import { atomicWrite } from './integrity.mjs';
+-
+-export function assertCapture(receipt, job, evidence, catalogue) {
+-  assert.equal(receipt.outcome, 'CAPTURED');
+-  const capture = receipt.capture;
+-  assert(capture && typeof capture === 'object');
+-  for (const name of ['stdoutHex', 'stderrHex']) assert(typeof capture[name] === 'string' && /^(?:[0-9a-f]{2})*$/.test(capture[name]), 'Malformed captured bytes');
+-  const stdout = Buffer.from(capture.stdoutHex, 'hex');
+-  const stderr = Buffer.from(capture.stderrHex, 'hex');
+-  atomicWrite(join(evidence, 'command-stdout.bin'), stdout);
+-  atomicWrite(join(evidence, 'command-stderr.bin'), stderr);
+-
+-  const expected = job.expected;
+-  const unfulfilled = [];
+-  const supported = new Set(['status', 'stdoutHex', 'stdoutUtf8', 'reads', 'documents', 'diagnosticCode', 'effectProfile', 'assertions']);
+-  assert(expected && typeof expected === 'object' && !Array.isArray(expected), 'Malformed expectations');
+-  for (const key of Object.keys(expected)) {
+-    if (!supported.has(key)) unfulfilled.push({ path: 'expected.' + key, value: expected[key], reason: 'No assertion adapter bound' });
+-  }
+-  if (Object.hasOwn(expected, 'assertions')) {
+-    if (!Array.isArray(expected.assertions)) unfulfilled.push({ path: 'expected.assertions', value: expected.assertions, reason: 'Malformed assertion obligations' });
+-    else for (const [index, value] of expected.assertions.entries()) unfulfilled.push({ path: 'expected.assertions[' + index + ']', value, reason: 'Natural-language obligation has no executable proof binding' });
+-  }
+-  if (Object.hasOwn(expected, 'documents') && !(Array.isArray(expected.documents) && job.argv.includes('json') && job.argv.includes('-c') && !job.argv.includes('-r'))) unfulfilled.push({ path: 'expected.documents', value: expected.documents, reason: 'JSON document projection not applicable' });
+-  if (Object.hasOwn(expected, 'effectProfile') && !['information', 'cli-rejection', 'compile-rejection'].includes(expected.effectProfile)) unfulfilled.push({ path: 'expected.effectProfile', value: expected.effectProfile, reason: 'Unknown effect profile' });
+-  if (Object.hasOwn(expected, 'reads') && !Array.isArray(expected.reads)) unfulfilled.push({ path: 'expected.reads', value: expected.reads, reason: 'Malformed read obligation' });
+-  if (Object.hasOwn(expected, 'diagnosticCode') && (typeof expected.diagnosticCode !== 'string' || !expected.diagnosticCode)) unfulfilled.push({ path: 'expected.diagnosticCode', value: expected.diagnosticCode, reason: 'Malformed diagnostic obligation' });
+-  for (const key of ['stdoutHex', 'stdoutUtf8']) if (Object.hasOwn(expected, key) && typeof expected[key] !== 'string') unfulfilled.push({ path: 'expected.' + key, reason: 'Malformed byte obligation' });
+-  if (Object.hasOwn(job, 'missingBindings') && !Array.isArray(job.missingBindings)) unfulfilled.push({ path: 'missingBindings', reason: 'Malformed missing bindings' });
+-  else for (const value of job.missingBindings ?? []) unfulfilled.push({ path: 'missingBindings', value, reason: 'Frozen missing proof binding' });
+-  if (job.fullRecordEligibleAfterProjection === false) unfulfilled.push({ path: 'fullRecordEligibleAfterProjection', value: false, reason: 'Frozen partial record remains incomplete' });
+-  atomicWrite(join(evidence, 'obligations.json'), JSON.stringify({ schemaVersion: 2, status: unfulfilled.length ? 'INCOMPLETE' : 'BOUND_PROJECTION_ONLY', unfulfilled, semanticFullRecordPass: false }) + '\n');
+-  assert.equal(unfulfilled.length, 0, 'UNFULFILLED_OBLIGATIONS: see obligations.json; no full-record or semantic PASS');
+-  assert(Number.isSafeInteger(expected.status) && expected.status >= 0 && expected.status <= 255, 'Missing or malformed status obligation');
+-  assert.equal(capture.rejected, false, `Unexpected raw rejection: ${JSON.stringify(capture.rejection)}`);
+-  assert.deepEqual(capture.cleanupErrors, []);
+-  assert.equal(capture.status, job.expected.status);
+-  assert.deepEqual(capture.effects.after, capture.effects.before, 'Read-only namespace/bytes');
+-  assert(!capture.events.some((event) => event.kind === 'unbound-fs-operation'), 'Unexpected VFS operation');
+-  const reads = capture.events.filter((event) => event.kind === 'fs-read');
+-  assert(reads.every((event) => event.signalIsContext), 'VFS read signal not forwarded');
+-  if (job.expected.reads) assert.deepEqual(reads.map((event) => event.path), job.expected.reads);
++import { assertCmd22ReadPaths } from './cmd22-read-paths.mjs';
++import cmd22Binding from './cmd22-binding.json' with { type: 'json' };
++
++export function assertCapture(receipt, job, evidence, catalogue) {
++  assert.equal(receipt.outcome, 'CAPTURED');
++  const capture = receipt.capture;
++  assert(capture && typeof capture === 'object');
++  for (const name of ['stdoutHex', 'stderrHex']) assert(typeof capture[name] === 'string' && /^(?:[0-9a-f]{2})*$/.test(capture[name]), 'Malformed captured bytes');
++  const stdout = Buffer.from(capture.stdoutHex, 'hex');
++  const stderr = Buffer.from(capture.stderrHex, 'hex');
++  atomicWrite(join(evidence, 'command-stdout.bin'), stdout);
++  atomicWrite(join(evidence, 'command-stderr.bin'), stderr);
++
++  const expected = job.expected;
++  const unfulfilled = [];
++  const supported = new Set(['status', 'stdoutHex', 'stdoutUtf8', 'reads', 'documents', 'diagnosticCode', 'effectProfile', 'assertions']);
++  assert(expected && typeof expected === 'object' && !Array.isArray(expected), 'Malformed expectations');
++  for (const key of Object.keys(expected)) {
++    if (!supported.has(key)) unfulfilled.push({ path: 'expected.' + key, value: expected[key], reason: 'No assertion adapter bound' });
++  }
++  if (Object.hasOwn(expected, 'assertions')) {
++    if (!Array.isArray(expected.assertions)) unfulfilled.push({ path: 'expected.assertions', value: expected.assertions, reason: 'Malformed assertion obligations' });
++    else for (const [index, value] of expected.assertions.entries()) unfulfilled.push({ path: 'expected.assertions[' + index + ']', value, reason: 'Natural-language obligation has no executable proof binding' });
++  }
++  if (Object.hasOwn(expected, 'documents') && !(Array.isArray(expected.documents) && job.argv.includes('json') && job.argv.includes('-c') && !job.argv.includes('-r'))) unfulfilled.push({ path: 'expected.documents', value: expected.documents, reason: 'JSON document projection not applicable' });
++  if (Object.hasOwn(expected, 'effectProfile') && !['information', 'cli-rejection', 'compile-rejection'].includes(expected.effectProfile)) unfulfilled.push({ path: 'expected.effectProfile', value: expected.effectProfile, reason: 'Unknown effect profile' });
++  if (Object.hasOwn(expected, 'reads') && !Array.isArray(expected.reads)) unfulfilled.push({ path: 'expected.reads', value: expected.reads, reason: 'Malformed read obligation' });
++  if (Object.hasOwn(expected, 'diagnosticCode') && (typeof expected.diagnosticCode !== 'string' || !expected.diagnosticCode)) unfulfilled.push({ path: 'expected.diagnosticCode', value: expected.diagnosticCode, reason: 'Malformed diagnostic obligation' });
++  for (const key of ['stdoutHex', 'stdoutUtf8']) if (Object.hasOwn(expected, key) && typeof expected[key] !== 'string') unfulfilled.push({ path: 'expected.' + key, reason: 'Malformed byte obligation' });
++  if (Object.hasOwn(job, 'missingBindings') && !Array.isArray(job.missingBindings)) unfulfilled.push({ path: 'missingBindings', reason: 'Malformed missing bindings' });
++  else for (const value of job.missingBindings ?? []) unfulfilled.push({ path: 'missingBindings', value, reason: 'Frozen missing proof binding' });
++  if (job.fullRecordEligibleAfterProjection === false) unfulfilled.push({ path: 'fullRecordEligibleAfterProjection', value: false, reason: 'Frozen partial record remains incomplete' });
++  atomicWrite(join(evidence, 'obligations.json'), JSON.stringify({ schemaVersion: 2, status: unfulfilled.length ? 'INCOMPLETE' : 'BOUND_PROJECTION_ONLY', unfulfilled, semanticFullRecordPass: false }) + '\n');
++  assert.equal(unfulfilled.length, 0, 'UNFULFILLED_OBLIGATIONS: see obligations.json; no full-record or semantic PASS');
++  assert(Number.isSafeInteger(expected.status) && expected.status >= 0 && expected.status <= 255, 'Missing or malformed status obligation');
++  assert.equal(capture.rejected, false, `Unexpected raw rejection: ${JSON.stringify(capture.rejection)}`);
++  assert.deepEqual(capture.cleanupErrors, []);
++  assert.equal(capture.status, job.expected.status);
++  assert.deepEqual(capture.effects.after, capture.effects.before, 'Read-only namespace/bytes');
++  assert(!capture.events.some((event) => event.kind === 'unbound-fs-operation'), 'Unexpected VFS operation');
++  const reads = capture.events.filter((event) => event.kind === 'fs-read');
++  assert(reads.every((event) => event.signalIsContext), 'VFS read signal not forwarded');
++  if (job.recordId === 'CMD-22') assertCmd22ReadPaths(reads, job, evidence, cmd22Binding);
++  else if (job.expected.reads) assert.deepEqual(reads.map((event) => event.path), job.expected.reads);
+   if (job.expected.stdoutHex !== undefined) assert.equal(capture.stdoutHex, job.expected.stdoutHex);
+   if (job.expected.stdoutUtf8 !== undefined) assert.deepEqual(stdout, Buffer.from(job.expected.stdoutUtf8));
+   if (job.expected.status === 0) assert.equal(stderr.length, 0, 'Unexpected success stderr');
+diff --git a/recipe/cmd22-read-paths.mjs b/recipe/cmd22-read-paths.mjs
+new file mode 100644
+--- /dev/null
++++ b/recipe/cmd22-read-paths.mjs
+@@ -0,0 +1,38 @@
++import assert from 'node:assert/strict';
++import { createHash } from 'node:crypto';
++import { join, posix } from 'node:path';
++import { atomicJson } from './integrity.mjs';
++
++const bindingHash = '15397c06c09297f1dcd3a386af12bca3f673ff6c5acc68380bb083e5db88aeb9';
++const profileHash = '1d49d68bc1136d126aef0695f3c8380f2caebfe5d6a95f50432466694201caef';
++const jsonHash = (value) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
++
++export function resolveFixtureReadOperand(profile, operand) {
++  assert(profile && jsonHash(profile) === profileHash, 'Missing or unbound fixture resolver profile');
++  assert.equal(typeof profile.cwd, 'string');
++  assert(!profile.cwd.includes('\0') && posix.isAbsolute(profile.cwd), 'Explicit absolute virtual cwd required');
++  assert(typeof operand === 'string' && !operand.includes('\0'), 'String/NUL-free operand required');
++  return posix.resolve(profile.cwd, operand);
++}
++
++export function bindCmd22ReadProjection(job, binding) {
++  assert(binding && jsonHash(binding) === bindingHash, 'Missing or unbound CMD-22 path-domain binding');
++  assert.equal(job.recordId, 'CMD-22');
++  for (const [key, expected] of Object.entries(binding.frozenJob)) assert.deepEqual(job[key], expected, `Changed frozen CMD-22 field: ${key}`);
++  assert.deepEqual(job.expected.reads, binding.literalOperands);
++  const expectedVfsPaths = binding.literalOperands.map((operand) => resolveFixtureReadOperand(binding.profile, operand));
++  assert.deepEqual(expectedVfsPaths, binding.resolvedExpectedReads, 'Bound literal/resolved mapping');
++  return { bindingId: binding.id, profileId: binding.profile.id, cwd: binding.profile.cwd, literalOperands: [...binding.literalOperands], expectedVfsPaths };
++}
++
++export function assertCmd22ReadPaths(reads, job, evidence, binding) {
++  let projection;
++  try { projection = bindCmd22ReadProjection(job, binding); }
++  catch (cause) {
++    atomicJson(join(evidence, 'cmd22-path-domain.json'), { schemaVersion: 1, status: 'INCOMPLETE', recordId: job.recordId, reason: String(cause), semanticFullRecordPass: false });
++    throw new Error('INCOMPLETE_CMD22_PATH_BINDING: see cmd22-path-domain.json', { cause });
++  }
++  const actualVfsPaths = reads.map((event) => event.path);
++  atomicJson(join(evidence, 'cmd22-path-domain.json'), { schemaVersion: 1, status: 'BOUND_PROJECTION_ONLY', ...projection, actualVfsPaths, semanticFullRecordPass: false });
++  assert.deepEqual(actualVfsPaths, projection.expectedVfsPaths, 'Exact ordered resolved VFS read paths');
++}
+diff --git a/recipe/cmd22-binding.json b/recipe/cmd22-binding.json
+new file mode 100644
+--- /dev/null
++++ b/recipe/cmd22-binding.json
+@@ -0,0 +1,70 @@
++{
++  "schemaVersion": 1,
++  "version": "runtime-v3-cmd22-path-domain-preseal",
++  "id": "CMD-22-literal-operand-to-resolved-vfs-v1",
++  "recordId": "CMD-22",
++  "expectationDomain": "literal-file-operands",
++  "observationDomain": "resolved-vfs-paths",
++  "profile": {
++    "id": "frozen-fixture-posix-resolve-v1",
++    "cwd": "/v",
++    "contextSha256": "b4827ee8656e9d2a88a23176c9b61b757bf9d4c79f8c46463c5cb579e42e7821",
++    "resolverSourceCommit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
++    "resolverSourcePath": "src/contracts/path.ts",
++    "resolverSourceSha256": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
++    "operation": "validate string/NUL-free absolute cwd and string/NUL-free operand; node:path.posix.resolve(cwd, operand)",
++    "scope": "lexical fixture VFS paths, not host cwd, symlink containment or deployed filesystem semantics"
++  },
++  "literalOperands": [
++    "-name"
++  ],
++  "resolvedExpectedReads": [
++    "/v/-name"
++  ],
++  "frozenJobSha256": "ae7d0831845bc564edaab13216e81a113a1c8c6d1cfe01ae5be2c641d72e8cb3",
++  "frozenJob": {
++    "id": "CMD-22--whole",
++    "recordId": "CMD-22",
++    "role": "command-semantic-runtime",
++    "argv": [
++      "--output-format=json",
++      "--compact-output",
++      "--",
++      ".",
++      "-name"
++    ],
++    "stdinChunksHex": [
++      ""
++    ],
++    "stdinIsDefault": true,
++    "producerReuse": false,
++    "files": [
++      {
++        "path": "-name",
++        "hex": "66616c73650a"
++      }
++    ],
++    "expected": {
++      "status": 0,
++      "stdoutUtf8": "false\n",
++      "reads": [
++        "-name"
++      ]
++    },
++    "fullRecordEligibleAfterProjection": true,
++    "sourceReference": {
++      "source": "freeze-command-parser",
++      "path": "tests/commands/yq-independent-20260828/freeze/command-parser.json",
++      "revision": "f074c142411ba839cbd9da45a499cc798965149d",
++      "pointer": "/cases/21",
++      "recordSha256": "2b02982553c2e253a6caea3eeeb65ee91dd0dd1170e890644691648249ddac8f",
++      "inputSha256": "745189fc77fe0a3f0bdc11a460db36f6d2629f9fe16d261942cdd289728d9d8e",
++      "defaultsSha256": "203ec05dc33535f956bb0eb3ddf94bb6bde70f9ed89e8cf312dea0aa5e3a287d"
++    },
++    "overlayReference": null,
++    "missingBindings": []
++  },
++  "historicalReviewCommit": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
++  "semanticPasses": 0,
++  "grantsGO": false
++}

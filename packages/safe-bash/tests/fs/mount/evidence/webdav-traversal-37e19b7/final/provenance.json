@@ -1,0 +1,14 @@
+{
+  "pin": "21a6b9149e3a0e35e14f1c740860971f08053686",
+  "phase": "final",
+  "archiveSha256": "109e774b6508b90a54411726e1ee3bd1e7f040efece0934de876e9ec0c564990",
+  "worktreeHead": "37e19b773327a9e8b08d500a1280f3c4f4687adc",
+  "worktreeStatus": " M src/fs/mount/README.md\n M src/fs/mount/index.ts\n M tests/shell-stress/invocation-modes/FINDINGS.md\n M tests/shell-stress/invocation-modes/README.md\n?? src/commands/archive/\n?? tests/commands/archive/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/diff-patch-stress/gnu-revised-full-review/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/fs/mount/identity-authority-review/\n?? tests/fs/mount/webdav-traversal.test.ts\n?? tests/shell-stress/invocation-modes/POST_READY.md\n?? tests/shell-stress/invocation-modes/compare-frozen.ts\n?? tests/shell-stress/invocation-modes/post-ready-handoff-audit.json\n?? tests/shell-stress/invocation-modes/post-ready-holdout-evidence.json\n?? tests/shell-stress/invocation-modes/post-ready-raw-comparison.json\n?? tests/shell-stress/invocation-modes/post-ready-regression-evidence.json\n?? tests/shell-stress/invocation-modes/post-ready-supplement-evidence.json\n?? tests/shell-stress/invocation-modes/post-ready-supplement.ts\n",
+  "node": "v22.22.2",
+  "testFixture": {
+    "path": "tests/fs/mount/identity-compatibility-review/compatibility.test.ts",
+    "sha256": "9d11741fd9b37757046c1278fdaa00c734633bfd9a1fc58ae479415c2f5a6734"
+  },
+  "originalReviewCommit": "d799cbb",
+  "sourceAncestor": "4fa4ba9502dac843bd13aa5031d128a3171f597d"
+}

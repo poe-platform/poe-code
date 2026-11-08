@@ -1,0 +1,12 @@
+{
+  "source": "d1174e2db9f4a4c92403842dee6fb3d4ff57ec96",
+  "cleanup": {
+    "server": {
+      "code": 0,
+      "signal": null
+    },
+    "pid": 76013,
+    "workspace": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension/.service-J8Kew3",
+    "removed": true
+  }
+}

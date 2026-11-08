@@ -1,0 +1,13 @@
+{
+  "id": "F01",
+  "expected": "Actual outer/body/store/report synthetic positive qualifies only with syntheticOnly; real authority refuses.",
+  "pass": true,
+  "started": "2026-08-28T15:01:02.038Z",
+  "finished": "2026-08-28T15:01:02.101Z",
+  "detail": {
+    "syntheticQualified": true,
+    "realAuthorityRefused": true,
+    "fixturePassRows": 12,
+    "engineCalls": 0
+  }
+}

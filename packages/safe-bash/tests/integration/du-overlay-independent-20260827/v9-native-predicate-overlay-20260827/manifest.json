@@ -1,0 +1,209 @@
+{
+  "schema": 1,
+  "scope": "V9-native-strict-rejection-predicate-only",
+  "base": {
+    "freezeCommit": "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29",
+    "candidateCommit": "9a5a6f922beb1bc6ba84a0cd32ea7a12f8ce985d",
+    "fixtureRoot": "tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92",
+    "fixtureTree": "5746d585be79a0c187d1b19a8e2f58b98c3dc433",
+    "manifest": {
+      "path": "MANIFEST.json",
+      "bytes": 5087,
+      "sha256": "474a95bd160636cdbabe03943a0a84aaaeb56d04ab87d25915bb1ac8cbdf9fa2",
+      "gitBlob": "4d75e2b6e35b86b15960ba2a1059715ef13d7c5e"
+    }
+  },
+  "lineageCompatibility": {
+    "commit": "0bd5a1f3c31ef5e6203a82026181fa0fc73acc79",
+    "materializedChangedPath": "harness/verify-v5.mjs",
+    "nativeEnvChanged": false,
+    "nativeEnvGitBlobAtFreeze": "894f6b7aae57e800d8e5eb603a9ea33cb665a38f",
+    "nativeEnvGitBlobAtLineage": "894f6b7aae57e800d8e5eb603a9ea33cb665a38f",
+    "nativeEnvGitBlobAtReport": "894f6b7aae57e800d8e5eb603a9ea33cb665a38f"
+  },
+  "captureProvenance": {
+    "reportCommit": "d53b003b9e7a20a3a593378a9b7a9ed8e896c493",
+    "reportParent": "c2d6b7c395c522e173526d9311f04f53c568285b",
+    "reportSubject": "test: record bounded DU V9 overlay replay and native matcher blocker",
+    "verdict": {
+      "path": "tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/VERDICT.md",
+      "bytes": 7884,
+      "sha256": "1378d5eb699877511111299bb883714a60ad049feef34230ae462b18d0f81ccb",
+      "gitBlob": "c16d08e905d57cb577eb7527dff2a46d3fb37f63"
+    },
+    "rawTable": {
+      "path": "tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/run-2026-08-27T212245338Z-1682b6/native-environment-table.json",
+      "bytes": 29253,
+      "sha256": "a699954c6daa495fb5bb2808d140c1b157ec91c0a6a00dbc2651b0920c068d34",
+      "gitBlob": "f7a72329f77d9d3c556a8bb22fabc6a906e05394",
+      "recordedSummary": {
+        "total": 16,
+        "matched": 13,
+        "mismatched": 3
+      }
+    },
+    "nativeOracle": {
+      "realpath": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/du",
+      "sha256": "f1df033deed07d208d80128568404c1043b283c59f294164f1240789bfadcf2b",
+      "versionFirstLine": "du (GNU coreutils) 9.7"
+    }
+  },
+  "diagnostic": {
+    "jsonEscaped": "du: invalid -B argument 'invalid-value'\n",
+    "hex": "64753a20696e76616c6964202d4220617267756d656e742027696e76616c69642d76616c7565270a",
+    "bytes": 40,
+    "sha256": "927dbaaabbcd6f07c69e90d54e68af1d9f353275c4455837191ea77460d77009",
+    "sameForAllBoundRows": true
+  },
+  "rawCaptureBindings": [
+    {
+      "id": "du-block-size-explicit-invalid-strict",
+      "selected": "DU_BLOCK_SIZE",
+      "argv": [
+        "--apparent-size",
+        "-B",
+        "invalid-value",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "DU_BLOCK_SIZE": "3072",
+        "BLOCK_SIZE": "512"
+      },
+      "expectedStatusClass": "failure",
+      "observedStatus": 1,
+      "expectedStdout": "",
+      "observedStdoutBytes": 0,
+      "observedStdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "observedStderrBytes": 40,
+      "observedStderrSha256": "927dbaaabbcd6f07c69e90d54e68af1d9f353275c4455837191ea77460d77009"
+    },
+    {
+      "id": "block-size-explicit-invalid-strict",
+      "selected": "BLOCK_SIZE",
+      "argv": [
+        "--apparent-size",
+        "-B",
+        "invalid-value",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "BLOCK_SIZE": "3072",
+        "BLOCKSIZE": "512"
+      },
+      "expectedStatusClass": "failure",
+      "observedStatus": 1,
+      "expectedStdout": "",
+      "observedStdoutBytes": 0,
+      "observedStdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "observedStderrBytes": 40,
+      "observedStderrSha256": "927dbaaabbcd6f07c69e90d54e68af1d9f353275c4455837191ea77460d77009"
+    },
+    {
+      "id": "blocksize-explicit-invalid-strict",
+      "selected": "BLOCKSIZE",
+      "argv": [
+        "--apparent-size",
+        "-B",
+        "invalid-value",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin"
+      ],
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "BLOCKSIZE": "3072"
+      },
+      "expectedStatusClass": "failure",
+      "observedStatus": 1,
+      "expectedStdout": "",
+      "observedStdoutBytes": 0,
+      "observedStdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "observedStderrBytes": 40,
+      "observedStderrSha256": "927dbaaabbcd6f07c69e90d54e68af1d9f353275c4455837191ea77460d77009"
+    }
+  ],
+  "unchangedInputs": [
+    {
+      "path": "config/oracle-identity.json",
+      "bytes": 582,
+      "sha256": "7bc8e13ea19e432b8320d08f5e19f8e4cbcbe4f8dad19984df6f9259960ebf4f",
+      "gitBlob": "006e80030216385b81ae0917ab4822ccfd8d18b7"
+    },
+    {
+      "path": "fixtures/native-env-cases.json",
+      "bytes": 4259,
+      "sha256": "ba95af81e2ffd7f7b80afb4a49a173487d9dacb7c911c61b31bf80b515c8cd5b",
+      "gitBlob": "5d10b771614815024262bce0ccd7f4bda843cadd"
+    }
+  ],
+  "patch": {
+    "path": "native-env.mjs.patch.data",
+    "bytes": 932,
+    "sha256": "b5d837a790fdefd15beb27267c8ec9ef1c7e128d97463de5887b01516732c6c1",
+    "gitBlob": "eca7b3f0b06371658340263a9ae69dcdb38ebb9b"
+  },
+  "changedFile": {
+    "base": {
+      "path": "native-env.mjs",
+      "bytes": 6204,
+      "sha256": "e537055e0b7516e2a2ddcd520f5197625334d2493b1b238d82b99edc94fd7def",
+      "gitBlob": "894f6b7aae57e800d8e5eb603a9ea33cb665a38f"
+    },
+    "overlay": {
+      "path": "native-env.mjs",
+      "bytes": 6212,
+      "sha256": "e7c62a3c7976163c684f68f63efd2a95f0b7ea43481a887a5bcd32832b35b9eb",
+      "gitBlob": "308191c598157e2aa0e7fbb652ccceef8064d236"
+    },
+    "changedExpressionCount": 1
+  },
+  "bundleFiles": [
+    {
+      "path": "README.md",
+      "bytes": 1899,
+      "sha256": "e4e8eee9f0ebb03e420d8277c819e8d7b84543d7af1580e553ae01ce1494515b",
+      "gitBlob": "ddc2d829127573f8281a375ad26d3554cf437d77"
+    },
+    {
+      "path": "focused-predicate-controls.mjs",
+      "bytes": 7754,
+      "sha256": "783613d5f29333f757d54791fc04bce87fefcd19fd8e369f8c8a4113f75f0e21",
+      "gitBlob": "c15c072f5f719ae9dea2e6539de9f12858efbeb4"
+    },
+    {
+      "path": "focused-predicate-controls.process.json",
+      "bytes": 814,
+      "sha256": "d6c80cbbda89aaea40b633b8f3ba5a5a8f4b5ee663eea2d5eff8971874524d13",
+      "gitBlob": "6c8103ca265f6ccaab11c88152d70773b41d0d72"
+    },
+    {
+      "path": "focused-predicate-controls.stdout.data",
+      "bytes": 569,
+      "sha256": "0d87c09c2598ab52916e5e338531acdf9ef5a2b96012ffa749a0a4ab0e061f6b",
+      "gitBlob": "e309145f3d2d41e681814c6eb34061534d62a932"
+    },
+    {
+      "path": "focused-predicate-controls.stderr.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    }
+  ],
+  "execution": {
+    "focusedPredicateControls": "14/14",
+    "nativeOracleExecuted": false,
+    "nativeRowsExecuted": 0,
+    "fullRecipeExecuted": false,
+    "successOnlyTailExecuted": false,
+    "aggregateSuccessClaimed": false
+  }
+}

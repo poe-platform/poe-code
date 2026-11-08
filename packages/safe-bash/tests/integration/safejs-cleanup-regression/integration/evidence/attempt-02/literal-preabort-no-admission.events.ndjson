@@ -1,0 +1,3 @@
+{"order":0,"event":"public-exec-enter","argv":"safejs -e 'import { search } from \"companion\"; import { setExitCode } from \"command\"; setExitCode(await search(\"grep\", [\"-E\",\"^alpha\",\"/work/input\"]));'"}
+{"order":1,"event":"public-exec-settled","cleanupDone":false,"hostCalls":0,"runnerCalls":0,"workers":[]}
+{"order":2,"event":"public-dispose-settled","cleanupDone":false,"hostCalls":0,"runnerCalls":0,"workers":[]}

@@ -1,0 +1,179 @@
+REPLAY 1: exit=0
+TAP version 13
+# Subtest: S01 S3 pre-aborted aggregate pipeline starts no transport
+ok 1 - S01 S3 pre-aborted aggregate pipeline starts no transport
+  ---
+  duration_ms: 4.234834
+  type: 'test'
+  ...
+# {"name":"S01 S3 pre-aborted aggregate pipeline starts no transport","verdict":"PASS","durationMs":4,"pipelines":1,"events":["caller.abort","pipeline:cat /input | cat","settled:shell-rejection:Error: audit cancellation"]}
+# Subtest: S02 S3 pending metadata stops waiting and observes late rejection
+ok 2 - S02 S3 pending metadata stops waiting and observes late rejection
+  ---
+  duration_ms: 1.115458
+  type: 'test'
+  ...
+# {"name":"S02 S3 pending metadata stops waiting and observes late rejection","verdict":"PASS","durationMs":1,"pipelines":0,"events":["op:S3.listObjectsV2:list:callerAborted=false:signal=live","op:S3.headObject:input:callerAborted=false:signal=live","caller.abort","transport.signal.abort:S3.listObjectsV2:list","settled:error:ECANCELED:waitMs=0"]}
+# Subtest: S03 S3 aggregate GET abort closes cooperative body
+ok 3 - S03 S3 aggregate GET abort closes cooperative body
+  ---
+  duration_ms: 7.263334
+  type: 'test'
+  ...
+# {"name":"S03 S3 aggregate GET abort closes cooperative body","verdict":"PASS","durationMs":7,"pipelines":1,"events":["pipeline:cat /input | cat","command.start:cat","command.start:cat","op:S3.listObjectsV2:list:callerAborted=false:signal=live","op:S3.headObject:input:callerAborted=false:signal=live","op:S3.headObject:input/:callerAborted=false:signal=live","op:S3.listObjectsV2:list:callerAborted=false:signal=live","op:S3.getObjectStream:input:callerAborted=false:signal=live","source.acquire","source.next","source.next","caller.abort","transport.signal.abort:S3.listObjectsV2:list","transport.signal.abort:S3.getObjectStream:input","GET.signal.abort","source.return","settled:shell-rejection:Error: audit cancellation","command.settled:cat","command.settled:cat"]}
+# Subtest: S04 S3 noncooperative GET next and late rejecting return are observed
+ok 4 - S04 S3 noncooperative GET next and late rejecting return are observed
+  ---
+  duration_ms: 1.228583
+  type: 'test'
+  ...
+# {"name":"S04 S3 noncooperative GET next and late rejecting return are observed","verdict":"PASS","durationMs":1,"pipelines":0,"events":["op:S3.listObjectsV2:list:callerAborted=false:signal=live","op:S3.headObject:input:callerAborted=false:signal=live","op:S3.headObject:input/:callerAborted=false:signal=live","op:S3.listObjectsV2:list:callerAborted=false:signal=live","op:S3.getObjectStream:input:callerAborted=false:signal=live","source.acquire","source.next","source.next","caller.abort","transport.signal.abort:S3.listObjectsV2:list","transport.signal.abort:S3.getObjectStream:input","source.return","settled:error:ECANCELED:waitMs=0"]}
+# Subtest: S05 S3 late GET response body is disposed after prompt cancellation
+ok 5 - S05 S3 late GET response body is disposed after prompt cancellation
+  ---
+  duration_ms: 1.344542
+  type: 'test'
+  ...
+# {"name":"S05 S3 late GET response body is disposed after prompt cancellation","verdict":"PASS","durationMs":1,"pipelines":0,"events":["op:S3.listObjectsV2:list:callerAborted=false:signal=live","op:S3.headObject:input:callerAborted=false:signal=live","op:S3.headObject:input/:callerAborted=false:signal=live","op:S3.listObjectsV2:list:callerAborted=false:signal=live","op:S3.getObjectStream:input:callerAborted=false:signal=live","caller.abort","transport.signal.abort:S3.listObjectsV2:list","transport.signal.abort:S3.getObjectStream:input","settled:error:ECANCELED:waitMs=0","late.body.destroy"]}
+# Subtest: S06 S3 aggregate PUT staging abort preserves old destination
+ok 6 - S06 S3 aggregate PUT staging abort preserves old destination
+  ---
+  duration_ms: 3.047458
+  type: 'test'
+  ...
+# {"name":"S06 S3 aggregate PUT staging abort preserves old destination","verdict":"PASS","durationMs":3,"pipelines":1,"events":["pipeline:cat | sort -o /output","command.start:cat","command.start:sort","command.settled:cat","op:S3.listObjectsV2:list:callerAborted=false:signal=live","op:S3.headObject:output:callerAborted=false:signal=live","op:S3.headObject:output/:callerAborted=false:signal=live","op:S3.listObjectsV2:list:callerAborted=false:signal=live","op:S3.putObjectStream:output:callerAborted=false:signal=live","PUT.transport.body.acquire","PUT.body.acquire","PUT.transport.body.next","PUT.stage:6","caller.abort","transport.signal.abort:S3.listObjectsV2:list","transport.signal.abort:S3.putObjectStream:output","settled:shell-rejection:Error: audit cancellation","command.settled:sort","state:output=KEEP:publication=not-started","PUT.transport.body.return","PUT.body.return"]}
+# Subtest: S07 S3 append staging abort returns pending producer before PUT
+ok 7 - S07 S3 append staging abort returns pending producer before PUT
+  ---
+  duration_ms: 0.944083
+  type: 'test'
+  ...
+# {"name":"S07 S3 append staging abort returns pending producer before PUT","verdict":"PASS","durationMs":1,"pipelines":0,"events":["op:S3.listObjectsV2:list:callerAborted=false:signal=live","op:S3.headObject:output:callerAborted=false:signal=live","op:S3.headObject:output/:callerAborted=false:signal=live","op:S3.listObjectsV2:list:callerAborted=false:signal=live","op:S3.getObject:output:callerAborted=false:signal=live","source.acquire","source.next","source.next","caller.abort","transport.signal.abort:S3.listObjectsV2:list","source.return","settled:error:ECANCELED:waitMs=0","state:output=KEEP:publication=not-started"]}
+# Subtest: S08 S3 aggregate head early exit cancels upstream GET
+ok 8 - S08 S3 aggregate head early exit cancels upstream GET
+  ---
+  duration_ms: 2.32025
+  type: 'test'
+  ...
+# {"name":"S08 S3 aggregate head early exit cancels upstream GET","verdict":"PASS","durationMs":2,"pipelines":1,"events":["pipeline:cat /input | head -n 1","command.start:cat","op:S3.listObjectsV2:list:callerAborted=false:signal=live","command.start:head","op:S3.headObject:input:callerAborted=false:signal=live","op:S3.headObject:input/:callerAborted=false:signal=live","op:S3.listObjectsV2:list:callerAborted=false:signal=live","op:S3.getObjectStream:input:callerAborted=false:signal=live","source.acquire","source.next","source.next","head.stdout:first\\\\n","command.settled:head","transport.signal.abort:S3.listObjectsV2:list","transport.signal.abort:S3.getObjectStream:input","source.return","command.settled:cat","settled:exit=0:stdout=\\"first\\\\n\\""]}
+# Subtest: S09 S3 aggregate output quota releases GET iterator
+ok 9 - S09 S3 aggregate output quota releases GET iterator
+  ---
+  duration_ms: 2.189625
+  type: 'test'
+  ...
+# {"name":"S09 S3 aggregate output quota releases GET iterator","verdict":"PASS","durationMs":2,"pipelines":1,"events":["pipeline:cat /input | cat","command.start:cat","command.start:cat","op:S3.listObjectsV2:list:callerAborted=false:signal=live","op:S3.headObject:input:callerAborted=false:signal=live","op:S3.headObject:input/:callerAborted=false:signal=live","op:S3.listObjectsV2:list:callerAborted=false:signal=live","op:S3.getObjectStream:input:callerAborted=false:signal=live","source.acquire","source.next","transport.signal.abort:S3.listObjectsV2:list","transport.signal.abort:S3.getObjectStream:input","settled:shell-rejection:ShellLimitError: Shell limit exceeded: maxOutputBytes","command.settled:cat","source.return","command.settled:cat"]}
+# Subtest: S10 S3 aggregate upload quota closes body without publication
+ok 10 - S10 S3 aggregate upload quota closes body without publication
+  ---
+  duration_ms: 5.02925
+  type: 'test'
+  ...
+# {"name":"S10 S3 aggregate upload quota closes body without publication","verdict":"PASS","durationMs":5,"pipelines":1,"events":["pipeline:cat | sort -o /output","command.start:cat","command.start:sort","command.settled:cat","op:S3.listObjectsV2:list:callerAborted=false:signal=live","op:S3.headObject:output:callerAborted=false:signal=live","op:S3.headObject:output/:callerAborted=false:signal=live","op:S3.listObjectsV2:list:callerAborted=false:signal=live","op:S3.putObjectStream:output:callerAborted=false:signal=live","PUT.transport.body.acquire","PUT.transport.body.next","PUT.transport.body.error:EFBIG","PUT.transport.body.return","transport.signal.abort:S3.putObjectStream:output","command.settled:sort","transport.signal.abort:S3.listObjectsV2:list","settled:exit=1:stderr=sort: EFBIG: file too large, writeStream '/output'","state:output=KEEP:publication=not-started"]}
+# Subtest: S11 S3 rename abort after accepted copy retains documented partial effect
+ok 11 - S11 S3 rename abort after accepted copy retains documented partial effect
+  ---
+  duration_ms: 1.0635
+  type: 'test'
+  ...
+# {"name":"S11 S3 rename abort after accepted copy retains documented partial effect","verdict":"PASS","durationMs":1,"pipelines":0,"events":["op:S3.listObjectsV2:list:callerAborted=false:signal=live","op:S3.headObject:input:callerAborted=false:signal=live","op:S3.headObject:input/:callerAborted=false:signal=live","op:S3.listObjectsV2:list:callerAborted=false:signal=live","op:S3.listObjectsV2:list:callerAborted=false:signal=live","op:S3.headObject:copied:callerAborted=false:signal=live","op:S3.headObject:copied/:callerAborted=false:signal=live","op:S3.listObjectsV2:list:callerAborted=false:signal=live","op:S3.copyObject:copied:callerAborted=false:signal=live","copy.accepted:copied","caller.abort","transport.signal.abort:S3.listObjectsV2:list","settled:S3RenameError:ECANCELED:phase=copy:copiedKeys=[]","state:input=original:copied=original:accepted-copy-not-undone"]}
+# Subtest: S12 S3 streaming PUT abort returns pending producer before mock publication
+ok 12 - S12 S3 streaming PUT abort returns pending producer before mock publication
+  ---
+  duration_ms: 0.970208
+  type: 'test'
+  ...
+# {"name":"S12 S3 streaming PUT abort returns pending producer before mock publication","verdict":"PASS","durationMs":1,"pipelines":0,"events":["op:S3.listObjectsV2:list:callerAborted=false:signal=live","op:S3.headObject:output:callerAborted=false:signal=live","op:S3.headObject:output/:callerAborted=false:signal=live","op:S3.listObjectsV2:list:callerAborted=false:signal=live","op:S3.putObjectStream:output:callerAborted=false:signal=live","PUT.transport.body.acquire","PUT.transport.body.next","source.acquire","source.next","PUT.transport.body.next","source.next","caller.abort","transport.signal.abort:S3.listObjectsV2:list","transport.signal.abort:S3.putObjectStream:output","PUT.transport.body.return","source.return","PUT.transport.body.error:undefined","settled:error:ECANCELED:waitMs=0","state:output=KEEP:publication=not-started"]}
+# Subtest: D01 native HTTP WebDAV pre-aborted aggregate pipeline sends nothing
+ok 13 - D01 native HTTP WebDAV pre-aborted aggregate pipeline sends nothing
+  ---
+  duration_ms: 4.654875
+  type: 'test'
+  ...
+# {"name":"D01 native HTTP WebDAV pre-aborted aggregate pipeline sends nothing","verdict":"PASS","durationMs":5,"pipelines":1,"events":["caller.abort","pipeline:cat /input | cat","settled:shell-rejection:Error: audit cancellation","http.final:sockets=0:tasks=0:listening=false:errors=0"]}
+# Subtest: D02 injected WebDAV pending metadata stops waiting despite noncooperative fetch
+ok 14 - D02 injected WebDAV pending metadata stops waiting despite noncooperative fetch
+  ---
+  duration_ms: 0.985333
+  type: 'test'
+  ...
+# {"name":"D02 injected WebDAV pending metadata stops waiting despite noncooperative fetch","verdict":"PASS","durationMs":1,"pipelines":0,"events":["op:DAV.PROPFIND:callerAborted=false:signal=live","caller.abort","transport.signal.abort:DAV.PROPFIND","settled:error:ECANCELED:waitMs=0","after-fixture-release:metadata","settled:error:ECANCELED:waitMs=0"]}
+# Subtest: D03 native HTTP WebDAV aggregate GET abort closes stalled socket
+ok 15 - D03 native HTTP WebDAV aggregate GET abort closes stalled socket
+  ---
+  duration_ms: 20.565041
+  type: 'test'
+  ...
+# {"name":"D03 native HTTP WebDAV aggregate GET abort closes stalled socket","verdict":"PASS","durationMs":21,"pipelines":1,"events":["pipeline:cat /input | cat","command.start:cat","command.start:cat","op:DAV.PROPFIND:/dav/input:callerAborted=false:signal=live","http.socket.open","http.request:PROPFIND:/dav/input","http.response.close:PROPFIND:finished=true","op:DAV.GET:/dav/input:callerAborted=false:signal=live","http.socket.open","http.request:GET:/dav/input","stdout:6","caller.abort","transport.signal.abort:DAV.PROPFIND:/dav/input","transport.signal.abort:DAV.GET:/dav/input","settled:shell-rejection:Error: audit cancellation","command.settled:cat","command.settled:cat","http.request.aborted:GET","http.socket.close","http.response.close:GET:finished=false","http.socket.close","http.final:sockets=0:tasks=0:listening=false:errors=0"]}
+# Subtest: D04 injected WebDAV stalled body releases reader and observes late cancel rejection
+ok 16 - D04 injected WebDAV stalled body releases reader and observes late cancel rejection
+  ---
+  duration_ms: 1.492167
+  type: 'test'
+  ...
+# {"name":"D04 injected WebDAV stalled body releases reader and observes late cancel rejection","verdict":"PASS","durationMs":1,"pipelines":0,"events":["op:DAV.PROPFIND:callerAborted=false:signal=live","op:DAV.GET:callerAborted=false:signal=live","body.pull","caller.abort","transport.signal.abort:DAV.PROPFIND","transport.signal.abort:DAV.GET","body.cancel","settled:error:ECANCELED:waitMs=0","body.reader.released=true"]}
+# Subtest: D05 injected WebDAV late GET response is canceled after bounded caller settlement
+ok 17 - D05 injected WebDAV late GET response is canceled after bounded caller settlement
+  ---
+  duration_ms: 1.087791
+  type: 'test'
+  ...
+# {"name":"D05 injected WebDAV late GET response is canceled after bounded caller settlement","verdict":"PASS","durationMs":1,"pipelines":0,"events":["op:DAV.PROPFIND:callerAborted=false:signal=live","op:DAV.GET:callerAborted=false:signal=live","caller.abort","transport.signal.abort:DAV.PROPFIND","transport.signal.abort:DAV.GET","settled:error:ECANCELED:waitMs=0","after-fixture-release:GET-response","late.body.cancel","settled:error:ECANCELED:waitMs=0","late.body.reader.released=true"]}
+# Subtest: D06 native HTTP WebDAV aggregate PUT abort before server publication
+ok 18 - D06 native HTTP WebDAV aggregate PUT abort before server publication
+  ---
+  duration_ms: 7.198708
+  type: 'test'
+  ...
+# {"name":"D06 native HTTP WebDAV aggregate PUT abort before server publication","verdict":"PASS","durationMs":7,"pipelines":1,"events":["pipeline:cat | sort -o /output","command.start:cat","command.start:sort","command.settled:cat","op:DAV.PROPFIND:/dav/output:callerAborted=false:signal=live","http.socket.open","http.request:PROPFIND:/dav/output","http.response.close:PROPFIND:finished=true","op:DAV.PUT:/dav/output:callerAborted=false:signal=live","http.socket.open","http.request:PUT:/dav/output","PUT.staged:13:publication=not-started","caller.abort","transport.signal.abort:DAV.PROPFIND:/dav/output","transport.signal.abort:DAV.PUT:/dav/output","settled:shell-rejection:Error: audit cancellation","command.settled:sort","http.socket.close","http.response.close:PUT:finished=false","state:output=KEEP:publication=not-started","http.socket.close","http.final:sockets=0:tasks=0:listening=false:errors=0"]}
+# Subtest: D07 native HTTP WebDAV PUT abort returns blocked producer and preserves unpublished bytes
+ok 19 - D07 native HTTP WebDAV PUT abort returns blocked producer and preserves unpublished bytes
+  ---
+  duration_ms: 5.212459
+  type: 'test'
+  ...
+# {"name":"D07 native HTTP WebDAV PUT abort returns blocked producer and preserves unpublished bytes","verdict":"PASS","durationMs":5,"pipelines":0,"events":["op:DAV.PROPFIND:/dav/output:callerAborted=false:signal=live","http.socket.open","http.request:PROPFIND:/dav/output","http.response.close:PROPFIND:finished=true","op:DAV.PUT:/dav/output:callerAborted=false:signal=live","source.acquire","source.next","source.next","http.socket.open","http.request:PUT:/dav/output","PUT.received:3","caller.abort","transport.signal.abort:DAV.PROPFIND:/dav/output","transport.signal.abort:DAV.PUT:/dav/output","source.return","settled:error:ECANCELED:waitMs=0","http.request.aborted:PUT","http.socket.close","http.response.close:PUT:finished=false","state:output=KEEP:publication=not-started","http.socket.close","http.final:sockets=0:tasks=0:listening=false:errors=0"]}
+# Subtest: D08 native HTTP WebDAV aggregate head early exit cancels GET socket
+ok 20 - D08 native HTTP WebDAV aggregate head early exit cancels GET socket
+  ---
+  duration_ms: 11.02175
+  type: 'test'
+  ...
+# {"name":"D08 native HTTP WebDAV aggregate head early exit cancels GET socket","verdict":"PASS","durationMs":11,"pipelines":1,"events":["pipeline:cat /input | head -n 1","command.start:cat","op:DAV.PROPFIND:/dav/input:callerAborted=false:signal=live","command.start:head","http.socket.open","http.request:PROPFIND:/dav/input","http.response.close:PROPFIND:finished=true","op:DAV.GET:/dav/input:callerAborted=false:signal=live","http.socket.open","http.request:GET:/dav/input","head.stdout:first\\\\n","command.settled:head","transport.signal.abort:DAV.PROPFIND:/dav/input","transport.signal.abort:DAV.GET:/dav/input","command.settled:cat","settled:exit=0:stdout=\\"first\\\\n\\"","http.request.aborted:GET","http.socket.close","http.response.close:GET:finished=false","http.socket.close","http.final:sockets=0:tasks=0:listening=false:errors=0"]}
+# Subtest: D09 native HTTP WebDAV aggregate output quota cancels GET socket
+ok 21 - D09 native HTTP WebDAV aggregate output quota cancels GET socket
+  ---
+  duration_ms: 6.385292
+  type: 'test'
+  ...
+# {"name":"D09 native HTTP WebDAV aggregate output quota cancels GET socket","verdict":"PASS","durationMs":6,"pipelines":1,"events":["pipeline:cat /input | cat","command.start:cat","command.start:cat","op:DAV.PROPFIND:/dav/input:callerAborted=false:signal=live","http.socket.open","http.request:PROPFIND:/dav/input","http.response.close:PROPFIND:finished=true","op:DAV.GET:/dav/input:callerAborted=false:signal=live","http.socket.open","http.request:GET:/dav/input","transport.signal.abort:DAV.PROPFIND:/dav/input","transport.signal.abort:DAV.GET:/dav/input","settled:shell-rejection:ShellLimitError: Shell limit exceeded: maxOutputBytes","command.settled:cat","command.settled:cat","http.request.aborted:GET","http.socket.close","http.response.close:GET:finished=false","http.socket.close","http.final:sockets=0:tasks=0:listening=false:errors=0"]}
+# Subtest: D10 native HTTP WebDAV aggregate upload quota preserves unpublished destination
+ok 22 - D10 native HTTP WebDAV aggregate upload quota preserves unpublished destination
+  ---
+  duration_ms: 4.906625
+  type: 'test'
+  ...
+# {"name":"D10 native HTTP WebDAV aggregate upload quota preserves unpublished destination","verdict":"PASS","durationMs":5,"pipelines":1,"events":["pipeline:cat | sort -o /output","command.start:cat","command.start:sort","command.settled:cat","op:DAV.PROPFIND:/dav/output:callerAborted=false:signal=live","http.socket.open","http.request:PROPFIND:/dav/output","http.response.close:PROPFIND:finished=true","op:DAV.PUT:/dav/output:callerAborted=false:signal=live","command.settled:sort","transport.signal.abort:DAV.PROPFIND:/dav/output","transport.signal.abort:DAV.PUT:/dav/output","settled:exit=1:stderr=sort: EFBIG: upload exceeds byte limit, writeStream '/output'","state:output=KEEP:publication=not-started","http.socket.close","http.final:sockets=0:tasks=0:listening=false:errors=0"]}
+# Subtest: D11 native HTTP WebDAV MOVE accepted before abort is not rolled back
+ok 23 - D11 native HTTP WebDAV MOVE accepted before abort is not rolled back
+  ---
+  duration_ms: 3.600291
+  type: 'test'
+  ...
+# {"name":"D11 native HTTP WebDAV MOVE accepted before abort is not rolled back","verdict":"PASS","durationMs":4,"pipelines":0,"events":["op:DAV.PROPFIND:/dav/input:callerAborted=false:signal=live","http.socket.open","http.request:PROPFIND:/dav/input","http.response.close:PROPFIND:finished=true","op:DAV.PROPFIND:/dav/moved:callerAborted=false:signal=live","http.socket.open","http.request:PROPFIND:/dav/moved","http.response.close:PROPFIND:finished=true","op:DAV.MOVE:/dav/input:callerAborted=false:signal=live","http.request:MOVE:/dav/input","MOVE.accepted:201:response-withheld","caller.abort","transport.signal.abort:DAV.PROPFIND:/dav/input","transport.signal.abort:DAV.PROPFIND:/dav/moved","transport.signal.abort:DAV.MOVE:/dav/input","settled:error:ECANCELED:waitMs=0","http.socket.close","http.response.close:MOVE:finished=false","state:input=absent:moved=original:accepted-MOVE-not-undone","http.socket.close","http.final:sockets=0:tasks=0:listening=false:errors=0"]}
+# Subtest: D12 native HTTP WebDAV pending metadata abort closes response socket
+ok 24 - D12 native HTTP WebDAV pending metadata abort closes response socket
+  ---
+  duration_ms: 1.436917
+  type: 'test'
+  ...
+# {"name":"D12 native HTTP WebDAV pending metadata abort closes response socket","verdict":"PASS","durationMs":1,"pipelines":0,"events":["op:DAV.PROPFIND:/dav/input:callerAborted=false:signal=live","http.socket.open","http.request:PROPFIND:/dav/input","caller.abort","transport.signal.abort:DAV.PROPFIND:/dav/input","settled:error:ECANCELED:waitMs=0","http.socket.close","http.response.close:PROPFIND:finished=false","http.final:sockets=0:tasks=0:listening=false:errors=0"]}
+1..24
+# tests 24
+# suites 0
+# pass 24
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 282.000375

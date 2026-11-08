@@ -1,0 +1,373 @@
+{
+  "schemaVersion": 1,
+  "profileId": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "sourceArchiveSha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+  "sourceArchiveBytes": 3820365,
+  "executableSha256": "3d6400b63b150164e89a690d9813af8b0eb420af9f336ef1f6c5102c6da60eae",
+  "python": "3.14.2",
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "PYTHONIOENCODING": "utf-8",
+    "COLUMNS": "80",
+    "LINES": "24"
+  },
+  "runtimeLock": {
+    "file": "docs/csvkit/requirements-cpython-3.14.2.txt",
+    "sha256": "7ecb88fddc47bb86867cf738670b24ed88f11f671feef127246b0d422a71d7a8",
+    "installation": "uv pip install --require-hashes via locked requirements; no product runtime usage"
+  },
+  "runtimeVersions": {
+    "text-unidecode": "1.3",
+    "dbfread": "2.0.7",
+    "parsedatetime": "2.6",
+    "olefile": "0.47",
+    "python-slugify": "9.0.0",
+    "openpyxl": "3.1.5",
+    "babel": "2.18.0",
+    "et_xmlfile": "2.0.0",
+    "agate": "1.14.2",
+    "agate-sql": "0.7.3",
+    "xlrd": "2.0.2",
+    "isodate": "0.7.2",
+    "pytimeparse": "1.1.8",
+    "agate-dbf": "0.2.4",
+    "leather": "0.4.1",
+    "agate-excel": "0.4.2",
+    "SQLAlchemy": "2.0.54",
+    "typing_extensions": "4.16.0",
+    "csvkit": "2.2.0"
+  },
+  "cases": [
+    {
+      "command": "csvcut",
+      "argv": [
+        "data.csv"
+      ],
+      "stdin": "",
+      "files": {
+        "data.csv": "a,b\r\n\"x\u0000\ry\r\nz\",q\r"
+      },
+      "stdout": "a,b\n\"x\ny\nz\",q\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "command": "csvcut",
+      "argv": [
+        "-"
+      ],
+      "stdin": "a,b\r\n\"x\u0000\ry\r\nz\",q\r",
+      "files": {},
+      "stdout": "a,b\n\"x\u0000\ny\n\nz\",q\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "command": "csvcut",
+      "argv": [
+        "data.csv",
+        "-K",
+        "1"
+      ],
+      "stdin": "",
+      "files": {
+        "data.csv": "ignore\u0000\r\na,b\rx,y\n"
+      },
+      "stdout": "a,b\nx,y\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "command": "csvstack",
+      "argv": [
+        "-",
+        "-"
+      ],
+      "stdin": "a,b\nx,y\nz,q\n",
+      "files": {},
+      "stdout": "",
+      "stderr": "UnsupportedOperation: It is not possible to set the encoding or newline of stream after the first read\n",
+      "status": 1
+    },
+    {
+      "command": "csvstack",
+      "argv": [
+        "-H",
+        "-",
+        "-"
+      ],
+      "stdin": "a,b\nx,y\nz,q\n",
+      "files": {},
+      "stdout": "a,b\na,b\nx,y\nz,q\n",
+      "stderr": "ValueError: I/O operation on closed file.\n",
+      "status": 1
+    },
+    {
+      "command": "csvstack",
+      "argv": [
+        "-H",
+        "--filenames",
+        "-"
+      ],
+      "stdin": "a,b\nx,y\n",
+      "files": {},
+      "stdout": "group,a,b\na,b\n<stdin>,x,y\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "command": "csvstack",
+      "argv": [
+        "-H",
+        "-g",
+        "g",
+        "-"
+      ],
+      "stdin": "a,b\nx,y\n",
+      "files": {},
+      "stdout": "group,a,b\na,b\ng,x,y\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "command": "csvstack",
+      "argv": [
+        "data.csv",
+        "data.csv"
+      ],
+      "stdin": "",
+      "files": {
+        "data.csv": "a,b\nx,y\n"
+      },
+      "stdout": "a,b\nx,y\nx,y\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "command": "in2csv",
+      "argv": [
+        "-I",
+        "-y0",
+        "-f",
+        "csv",
+        "data.csv"
+      ],
+      "stdin": "",
+      "files": {
+        "data.csv": "a,b\r\nx\u0000,y\r"
+      },
+      "stdout": "a,b\nx,y\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "command": "in2csv",
+      "argv": [
+        "-I",
+        "-y0",
+        "-f",
+        "csv",
+        "-"
+      ],
+      "stdin": "a,b\r\nx\u0000,y\r",
+      "files": {},
+      "stdout": "a,b\nx\u0000,y\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "command": "csvclean",
+      "argv": [
+        "--length-mismatch",
+        "data.csv"
+      ],
+      "stdin": "",
+      "files": {
+        "data.csv": "a,b\nx\n"
+      },
+      "stdout": "a,b\nx\n",
+      "stderr": "line_number,msg,a,b\n1,\"Expected 2 columns, found 1 columns\",x\n",
+      "status": 1
+    },
+    {
+      "command": "csvpy",
+      "argv": [
+        "-"
+      ],
+      "stdin": "a,b\nx,y\n",
+      "files": {},
+      "stdout": "",
+      "stderr": "usage: csvpy [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n             [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n             [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n             [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n             [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-V] [--dict]\n             [--agate] [--no-number-ellipsis] [-y SNIFF_LIMIT] [-I]\n             [FILE]\ncsvpy: error: csvpy cannot accept input as piped data via STDIN.\n",
+      "status": 2
+    },
+    {
+      "command": "in2csv",
+      "argv": [
+        "-"
+      ],
+      "stdin": "a,b\nx,y\n",
+      "files": {},
+      "stdout": "",
+      "stderr": "usage: in2csv [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n              [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n              [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n              [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n              [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l] [--add-bom]\n              [--zero] [-V] [-f {csv,dbf,fixed,geojson,json,ndjson,xls,xlsx}]\n              [-s SCHEMA] [-k KEY] [-n] [--sheet SHEET]\n              [--write-sheets WRITE_SHEETS] [--use-sheet-names]\n              [--reset-dimensions] [--encoding-xls ENCODING_XLS]\n              [-y SNIFF_LIMIT] [-I]\n              [FILE]\nin2csv: error: You must specify a format when providing input as piped data via STDIN.\n",
+      "status": 2
+    },
+    {
+      "command": "csvstack",
+      "argv": [
+        "-",
+        "-"
+      ],
+      "stdin": "",
+      "files": {},
+      "stdout": "\n",
+      "stderr": "ValueError: I/O operation on closed file.\n",
+      "status": 1
+    },
+    {
+      "command": "csvstack",
+      "argv": [
+        "-K1",
+        "-",
+        "-"
+      ],
+      "stdin": "ignore\na,b\nx,y\n",
+      "files": {},
+      "stdout": "",
+      "stderr": "UnsupportedOperation: It is not possible to set the encoding or newline of stream after the first read\n",
+      "status": 1
+    },
+    {
+      "command": "csvcut",
+      "argv": [
+        "-"
+      ],
+      "stdin": "a,b\rc,d\n",
+      "files": {},
+      "stdout": "",
+      "stderr": "Error: new-line character seen in unquoted field - do you need to open the file with newline=''?\n",
+      "status": 1
+    },
+    {
+      "command": "csvcut",
+      "argv": [
+        "data.csv"
+      ],
+      "stdin": "",
+      "files": {
+        "data.csv": "a,b\rc,d\n"
+      },
+      "stdout": "a,b\nc,d\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "command": "csvcut",
+      "argv": [
+        "-K1",
+        "-"
+      ],
+      "stdin": "skip\ra,b\nx,y\n",
+      "files": {},
+      "stdout": "x,y\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "command": "csvcut",
+      "argv": [
+        "-K1",
+        "data.csv"
+      ],
+      "stdin": "",
+      "files": {
+        "data.csv": "skip\ra,b\nx,y\n"
+      },
+      "stdout": "a,b\nx,y\n",
+      "stderr": "",
+      "status": 0
+    }
+  ],
+  "lazyFile": [
+    {
+      "mode": "read",
+      "result": "a\u0000\nb\u0000\nc\u0000\n"
+    },
+    {
+      "mode": "iterator",
+      "result": [
+        "a\n",
+        "b\n",
+        "c\n"
+      ]
+    },
+    {
+      "mode": "line-then-read",
+      "result": [
+        "a\n",
+        "b\u0000\nc\u0000\n"
+      ]
+    }
+  ],
+  "stdinPhysical": [
+    {
+      "method": "read",
+      "result": "a\u0000\r\nb\u0000\rc\u0000\n"
+    },
+    {
+      "method": "iterator",
+      "result": [
+        "a\u0000\r\n",
+        "b\u0000\rc\u0000\n"
+      ]
+    }
+  ],
+  "stdinReconfigure": [
+    {
+      "stdin": "",
+      "method": "read",
+      "value": "",
+      "result": "ok"
+    },
+    {
+      "stdin": "",
+      "method": "readline",
+      "value": "",
+      "result": "ok"
+    },
+    {
+      "stdin": "",
+      "method": "iterator",
+      "value": [],
+      "result": "ok"
+    },
+    {
+      "stdin": "a\nb\n",
+      "method": "read",
+      "value": "a\nb\n",
+      "result": "ok"
+    },
+    {
+      "stdin": "a\nb\n",
+      "method": "readline",
+      "value": "a\n",
+      "result": "UnsupportedOperation: It is not possible to set the encoding or newline of stream after the first read"
+    },
+    {
+      "stdin": "a\nb\n",
+      "method": "iterator",
+      "value": [
+        "a\n",
+        "b\n"
+      ],
+      "result": "ok"
+    }
+  ],
+  "blockers": [
+    "Windows wildcard/home/environment expansion profile unmeasured",
+    "Native late source failures/TTY PTY interaction unmeasured",
+    "Database-driver IO effects outside this probe"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": {
+    "paths": {
+      "@poe-code/safe-js": [
+        "packages/safe-js/src/index.ts"
+      ]
+    },
+    "noEmit": true
+  },
+  "include": [
+    "final-async-proof*.test.ts",
+    "fixtures/final-async-proof.ts",
+    "final-async-proof.vitest.config.ts"
+  ]
+}

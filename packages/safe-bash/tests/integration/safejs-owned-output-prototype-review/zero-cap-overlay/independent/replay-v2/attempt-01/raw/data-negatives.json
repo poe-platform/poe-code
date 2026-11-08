@@ -1,0 +1,6 @@
+{
+  "kind": "DATA_ONLY_NOT_GUEST_PASSES",
+  "status": "BLOCKED",
+  "reason": "All three independently passing baselines required",
+  "guestExecutions": 0
+}

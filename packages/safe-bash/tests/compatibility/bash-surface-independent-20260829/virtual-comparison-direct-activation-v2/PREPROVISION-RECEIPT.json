@@ -1,0 +1,9 @@
+{
+  "schema": "direct-activation-preprovisioned-v1",
+  "work": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01",
+  "createdAt": "2026-08-29T11:00:48.330Z",
+  "phase": "SOURCE_DATA_PREPARATION_ONLY",
+  "actualStarts": 0,
+  "ownerCaptureNotYetCreated": true,
+  "profile": "bash-surface-direct-owned-child-functional-v1"
+}

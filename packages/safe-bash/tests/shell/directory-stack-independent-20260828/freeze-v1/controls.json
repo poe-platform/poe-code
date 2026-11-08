@@ -1,0 +1,48 @@
+{
+  "version":1,
+  "staticControls":[
+    {"id":"N01","mutation":"duplicate-case-id","expect":"reject duplicate inventory"},
+    {"id":"N02","mutation":"omit-case","expect":"reject independent exact inventory"},
+    {"id":"N03","mutation":"transactional-rotation-expectation","expect":"reject F02 frozen partial-mutation anchor"},
+    {"id":"N04","mutation":"native34-rescore","expect":"reject preserved virtualMatches0"},
+    {"id":"N05","mutation":"grammar8-as-virtual","expect":"reject native-only grammar8 profile"},
+    {"id":"N06","mutation":"invent-candidate","expect":"reject non-null future candidate"},
+    {"id":"N07","mutation":"invent-go","expect":"reject premature release"},
+    {"id":"N08","mutation":"merge-work-counters","expect":"reject merged stack/CD counter policy"},
+    {"id":"N09","mutation":"whole-line-diagnostic","expect":"reject changed payload scope"},
+    {"id":"N10","mutation":"add-product-path","expect":"reject product scope beyond runtime/shell"},
+    {"id":"N11","mutation":"mislabel-private-proof","expect":"reject source-proof role promoted to measured"},
+    {"id":"N12","mutation":"unknown-control-reference","expect":"reject nonexistent mutant reference"},
+    {"id":"N13","mutation":"missing-import-as-type-pass","expect":"reject changed type gate"},
+    {"id":"N14","mutation":"change-accepted-tree","expect":"reject exact CD composition anchor"},
+    {"id":"N15","mutation":"extra-frozen-member","expect":"reject appended file membership in memory without filesystem writes"},
+    {"id":"N16","mutation":"alter-frozen-byte","expect":"reject SHA256 mismatch in memory without filesystem writes"}
+  ],
+  "productMutants":[
+    {"id":"U01","mutation":"retain tail on Shell instead of fresh exec/process reset","killBy":["S02","S03","S12","S13"],"role":"future valid compiled semantic mutant; not run"},
+    {"id":"U02","mutation":"share mutable tail array across clone or invoke; mutate clear/pop in place","killBy":["S07","S08","S09","S10","I03"],"role":"future public semantic rows plus pinned source alias proof; not run"},
+    {"id":"U03","mutation":"clone/restore tail on function/source return","killBy":["S04","S05","S06"],"role":"future semantic mutant; not run"},
+    {"id":"U04","mutation":"replace Symbol stamp with direct-command boolean or path inequality","killBy":["M03","M04","M06","I05","I06"],"role":"future semantic mutant; not run"},
+    {"id":"U05","mutation":"stamp every dirs/-n or share child stamp container with parent","killBy":["M01","M02","M07","M08"],"role":"future semantic mutant; not run"},
+    {"id":"U06","mutation":"make swap/rotation tail transactional until successful cd","killBy":["F02","F03","F05"],"role":"future semantic mutant; not run"},
+    {"id":"U07","mutation":"ordinary push/top-pop publish tail before required CDPATH print succeeds","killBy":["F08","F09"],"role":"future semantic mutant; not run"},
+    {"id":"U08","mutation":"reset/bypass combined display counter for required cd path print","killBy":["I14","I24"],"role":"future source-control or explicitly instrumented mutation; no unmasked public witness claimed"},
+    {"id":"U09","mutation":"exclude inserted cwd from remembered-byte/path pre-admission or permit4097 entries","killBy":["L01","L13","L15","I07","I11"],"role":"future public reachable rows plus source boundary proof; not run"},
+    {"id":"U10","mutation":"reset stack work around cd, merge with CdLookup, or reserve after allocation","killBy":["I07","I08","I09","I19","I24"],"role":"future source-control/instrumented variant only; not dynamic private-counter claim"},
+    {"id":"U11","mutation":"remove final partial scheduling flush before publication/provider delegation","killBy":["I08","I24"],"role":"future pinned-source control or explicitly instrumented schedule; public cancellation alone insufficient"},
+    {"id":"U12","mutation":"eagerly scan all args/HOME; normalize HOME; stat raw -n entry","killBy":["B10","D07","L07","L09","L10","L11","L12","L16"],"role":"future distinct bounded variants; grouped mutation family, not eight counted kills"},
+    {"id":"U13","mutation":"generic getopt, safe-integer-only numeric parser, late push range or malformed clear override","killBy":["G01","G09","G14","G15","G23","G24","G29","G30","G32"],"role":"future distinct grammar variants, frozen family count only; not run"},
+    {"id":"U14","mutation":"drop awaited sink/enrollment or cancel siblings on stdout close","killBy":["C04","C07","C08","C10","I15","I18"],"role":"future output/ownership semantic controls; not run"},
+    {"id":"U15","mutation":"bound whole diagnostic line instead of owned payload or build full string first","killBy":["I16","I24"],"role":"future source proof plus presealed public diagnostic-boundary witness; not run"},
+    {"id":"U16","mutation":"dispatch overridable cd with extra budget, register plugin commands, expose stack keys/types","killBy":["A01","A02","A04","C11","I01","I17","I22","TN01","TN05"],"role":"future distinct valid variants/type inversions; not run"}
+  ],
+  "futureImportNegatives":[
+    {"id":"Q01","input":"otherwise valid consumer imports candidate with runtime blob changed","expect":"reject at authenticated input boundary in every layout"},
+    {"id":"Q02","input":"otherwise valid consumer imports candidate with shell blob changed","expect":"reject at authenticated input boundary in every layout"},
+    {"id":"Q03","input":"installed/moved public root missing; sibling source tree available","expect":"reject missing entry; never silently fall back"},
+    {"id":"Q04","input":"append unlisted source/test/helper/package entry after initial snapshot","expect":"post-run complete-membership audit rejects, including added symlink/empty-directory variants"},
+    {"id":"Q05","input":"candidate base silently substitutes moving HEAD or unapproved LET/runtime blob","expect":"reject exact-base/composition mismatch before build or import"},
+    {"id":"Q06","input":"otherwise valid strict negative compile with missing public module","expect":"harness failure, not intended negative-type pass"}
+  ],
+  "executionGate":"No product mutant/import negative/type inversion executes now. Freeze individual variant diffs, syntax/build proof, valid baseline, actual loads and expected assertion/site before future execution; loader failure is not a semantic kill. Source-only controls remain separately counted."
+}

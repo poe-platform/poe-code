@@ -1,0 +1,47 @@
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { chmod, lstat, readdir, readFile, readlink, writeFile } from 'node:fs/promises';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const root = dirname(fileURLToPath(import.meta.url));
+const hash = (bytes) => createHash('sha256').update(bytes).digest('hex');
+const excluded = new Set(['seal-catalog.json', 'public-manifest-proposal.json']);
+const artifacts = [];
+async function collect(relative = '') {
+  for (const name of (await readdir(join(root, relative))).sort()) {
+    const child = relative ? `${relative}/${name}` : name;
+    if (excluded.has(child)) continue;
+    const metadata = await lstat(join(root, child));
+    if (metadata.isDirectory()) await collect(child);
+    else {
+      const type = metadata.isSymbolicLink() ? 'symlink-target' : 'file';
+      assert(type === 'symlink-target' || metadata.isFile());
+      const bytes = type === 'symlink-target' ? Buffer.from(await readlink(join(root, child))) : await readFile(join(root, child));
+      artifacts.push({ id: `H${String(artifacts.length + 1).padStart(3, '0')}`, relativePath: child, type, bytes: bytes.length, sha256: hash(bytes) });
+    }
+  }
+}
+await collect();
+const sealedAt = new Date().toISOString();
+const catalog = { schema: 1, sealedAt, artifacts };
+const catalogBytes = Buffer.from(`${JSON.stringify(catalog, null, 2)}\n`);
+await writeFile(join(root, 'seal-catalog.json'), catalogBytes, { flag: 'wx', mode: 0o600 });
+const publicArtifacts = artifacts.map(({ relativePath, ...entry }) => entry);
+const aggregate = hash(publicArtifacts.map((entry) => `${entry.id}\0${entry.type}\0${entry.bytes}\0${entry.sha256}\n`).join(''));
+const manifest = {
+  schema: 1, purpose: 'Independent hidden file holdout PREP seal; not product acceptance',
+  sealedAt, candidateImports: 0, candidateExecutions: 0,
+  caseCount: 40, byteFixtureCount: 20, contentViewCount: 80,
+  nativeReferenceObservationCount: 109, harnessSelfChecks: { passed: 9, failed: 0 },
+  artifactCount: artifacts.length, artifactRootSha256: aggregate, privateCatalogSha256: hash(catalogBytes),
+  confidentiality: 'Opaque hashes only. Authors must not access private corpus before root failure handoff. Same-account permissions do not enforce isolation.',
+  resume: 'Root instructions and private location are in /tmp/safe-bash-file-holdout-prep-detail.txt. API bridge and product execution remain deferred until finished candidate handoff.',
+  artifacts: publicArtifacts,
+};
+await writeFile(join(root, 'public-manifest-proposal.json'), `${JSON.stringify(manifest, null, 2)}\n`, { flag: 'wx', mode: 0o600 });
+for (const entry of artifacts) if (entry.type === 'file') await chmod(join(root, entry.relativePath), 0o400);
+await chmod(root, 0o700);
+await chmod(join(root, 'seal-catalog.json'), 0o400);
+await chmod(join(root, 'public-manifest-proposal.json'), 0o400);
+console.log(JSON.stringify({ sealedAt, artifactCount: artifacts.length, artifactRootSha256: aggregate, privateCatalogSha256: manifest.privateCatalogSha256 }, null, 2));

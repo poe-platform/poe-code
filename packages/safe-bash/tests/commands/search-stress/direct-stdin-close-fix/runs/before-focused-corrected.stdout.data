@@ -1,0 +1,233 @@
+TAP version 13
+# Subtest: direct stalled stdin closes once for Error cancellation
+not ok 1 - direct stalled stdin closes once for Error cancellation
+  ---
+  duration_ms: 16.777708
+  type: 'test'
+  location: '/private/tmp/safe-bash-search-stdin-close-fix-20260827/before/tests/commands/search-stress/direct-stdin-close.test.ts:1:2442'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+        reads: 1,
+    +   returnCompleted: false,
+    +   returns: 0
+    -   returnCompleted: true,
+    -   returns: 1
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    reads: 1
+    returns: 1
+    returnCompleted: true
+  actual:
+    reads: 1
+    returns: 0
+    returnCompleted: false
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-search-stdin-close-fix-20260827/before/tests/commands/search-stress/direct-stdin-close.test.ts:90:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: direct stalled stdin closes once for zero cancellation
+not ok 2 - direct stalled stdin closes once for zero cancellation
+  ---
+  duration_ms: 12.739375
+  type: 'test'
+  location: '/private/tmp/safe-bash-search-stdin-close-fix-20260827/before/tests/commands/search-stress/direct-stdin-close.test.ts:1:2442'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+        reads: 1,
+    +   returnCompleted: false,
+    +   returns: 0
+    -   returnCompleted: true,
+    -   returns: 1
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    reads: 1
+    returns: 1
+    returnCompleted: true
+  actual:
+    reads: 1
+    returns: 0
+    returnCompleted: false
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-search-stdin-close-fix-20260827/before/tests/commands/search-stress/direct-stdin-close.test.ts:90:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: direct stalled stdin closes once for native default cancellation
+not ok 3 - direct stalled stdin closes once for native default cancellation
+  ---
+  duration_ms: 12.313833
+  type: 'test'
+  location: '/private/tmp/safe-bash-search-stdin-close-fix-20260827/before/tests/commands/search-stress/direct-stdin-close.test.ts:1:2442'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+        reads: 1,
+    +   returnCompleted: false,
+    +   returns: 0
+    -   returnCompleted: true,
+    -   returns: 1
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    reads: 1
+    returns: 1
+    returnCompleted: true
+  actual:
+    reads: 1
+    returns: 0
+    returnCompleted: false
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-search-stdin-close-fix-20260827/before/tests/commands/search-stress/direct-stdin-close.test.ts:90:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: input quota counts chunks once and closes only the exceeded source
+ok 4 - input quota counts chunks once and closes only the exceeded source
+  ---
+  duration_ms: 25.046583
+  type: 'test'
+  ...
+# Subtest: shared output quota retains the primary error despite source cleanup failure
+ok 5 - shared output quota retains the primary error despite source cleanup failure
+  ---
+  duration_ms: 13.145833
+  type: 'test'
+  ...
+# Subtest: -q returns stdin without a second pull
+ok 6 - -q returns stdin without a second pull
+  ---
+  duration_ms: 12.270084
+  type: 'test'
+  ...
+# Subtest: -m1 returns stdin without a second pull
+ok 7 - -m1 returns stdin without a second pull
+  ---
+  duration_ms: 12.083
+  type: 'test'
+  ...
+# Subtest: natural completion preserves UTF8, null records and no-match status without closing
+ok 8 - natural completion preserves UTF8, null records and no-match status without closing
+  ---
+  duration_ms: 35.954292
+  type: 'test'
+  ...
+# Subtest: explicit file input never acquires unrelated stdin
+ok 9 - explicit file input never acquires unrelated stdin
+  ---
+  duration_ms: 12.566375
+  type: 'test'
+  ...
+# Subtest: public Shell already closes its structural owner before rejection
+ok 10 - public Shell already closes its structural owner before rejection
+  ---
+  duration_ms: 14.521875
+  type: 'test'
+  ...
+# Subtest: nonreturnable borrowed input leaves close authority with its direct owner
+ok 11 - nonreturnable borrowed input leaves close authority with its direct owner
+  ---
+  duration_ms: 24.13275
+  type: 'test'
+  ...
+# Subtest: nested Shell invocation and sibling retain parent input until owner settlement
+not ok 12 - nested Shell invocation and sibling retain parent input until owner settlement
+  ---
+  duration_ms: 25.029541
+  type: 'test'
+  location: '/private/tmp/safe-bash-search-stdin-close-fix-20260827/before/tests/commands/search-stress/direct-stdin-close.test.ts:1:9033'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + Uint8Array(4) [
+    - Buffer(4) [Uint8Array] [
+        98,
+        97,
+        114,
+        10
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 98
+    1: 97
+    2: 114
+    3: 10
+  actual:
+    0: 98
+    1: 97
+    2: 114
+    3: 10
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-search-stdin-close-fix-20260827/before/tests/commands/search-stress/direct-stdin-close.test.ts:216:46)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: direct opaque generator return invocation does not require finally completion
+not ok 13 - direct opaque generator return invocation does not require finally completion
+  ---
+  duration_ms: 12.68225
+  type: 'test'
+  location: '/private/tmp/safe-bash-search-stdin-close-fix-20260827/before/tests/commands/search-stress/direct-stdin-close.test.ts:1:10151'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    0 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-search-stdin-close-fix-20260827/before/tests/commands/search-stress/direct-stdin-close.test.ts:245:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: public opaque generator return invocation does not require finally completion
+ok 14 - public opaque generator return invocation does not require finally completion
+  ---
+  duration_ms: 13.292959
+  type: 'test'
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 9
+# fail 5
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 449.013042

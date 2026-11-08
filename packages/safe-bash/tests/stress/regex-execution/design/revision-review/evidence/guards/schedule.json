@@ -1,0 +1,33 @@
+{
+  "utc": "2026-08-27T05:22:11.209Z",
+  "cases": [
+    "exit-active",
+    "error-active",
+    "exit-error-abort-race",
+    "partial-live-close",
+    "pending-source-reject",
+    "pending-source-abort",
+    "uncooperative-pending-abort",
+    "downstream-close-pending",
+    "downstream-throw",
+    "single-next-order",
+    "batch-byte-cap",
+    "capacity-policy"
+  ],
+  "expected": "all pass; capacity-policy explicitly records failfast and idle slot retention, not a production policy endorsement",
+  "flags": [
+    "--unhandled-rejections=strict",
+    "--max-old-space-size=64",
+    "--stack-size=2048"
+  ],
+  "afterReadyMs": 3000,
+  "startupMs": 3000,
+  "cleanupMs": 1000,
+  "maxIpcBytes": 131072,
+  "maxStreamBytes": 16384,
+  "newRiskConsumed": 0,
+  "harness": {
+    "guards-child.mjs": "1089c2e864253b7c5aab561cdbd175490e779a983b0d293d036c78b2993dcdd2",
+    "guards-run.mjs": "7f3b0e09495ab7927c852bf8bacb50138dbd7d34782edf4954eeaff1632c67ba"
+  }
+}

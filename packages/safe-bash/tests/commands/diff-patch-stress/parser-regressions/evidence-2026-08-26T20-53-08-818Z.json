@@ -1,0 +1,2558 @@
+{
+  "identities": [
+    {
+      "binary": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00",
+      "exitCode": 0,
+      "stdout": "GNU patch 2.8\nCopyright 1989-2025 Free Software Foundation, Inc.\nCopyright 1984-1988 Larry Wall\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Larry Wall and Paul Eggert\n",
+      "stderr": ""
+    },
+    {
+      "binary": "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+      "sha256": "f13ef516c397b0281818ffe8685aa763100b56a6549295c91849c6af937a83c9",
+      "exitCode": 0,
+      "stdout": "diff (GNU diffutils) 3.12\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Paul Eggert, Mike Haertel, David Hayes,\nRichard Stallman, and Len Tower.\n",
+      "stderr": ""
+    }
+  ],
+  "records": [
+    {
+      "fixture": {
+        "id": "normal-empty-insert",
+        "before": "",
+        "patch": "0a1\n> new\n",
+        "after": "new\n",
+        "category": "valid grammar"
+      },
+      "product": {
+        "exitCode": 0,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "patching file /work/target\n",
+        "stderr": "",
+        "target": "new\n",
+        "other": "old\n",
+        "mutations": [
+          "writeFile:/work/target"
+        ],
+        "milliseconds": 2.463166000000001
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file target\n",
+        "stderr": "",
+        "target": "new\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "normal-empty-insert-incomplete",
+        "before": "",
+        "patch": "0a1\n> new\n\\ No newline at end of file\n",
+        "after": "new",
+        "category": "valid grammar"
+      },
+      "product": {
+        "exitCode": 0,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "patching file /work/target\n",
+        "stderr": "",
+        "target": "new",
+        "other": "old\n",
+        "mutations": [
+          "writeFile:/work/target"
+        ],
+        "milliseconds": 0.6835419999999885
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file target\n",
+        "stderr": "",
+        "target": "new",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "normal-delete-to-empty",
+        "before": "old\n",
+        "patch": "1d0\n< old\n",
+        "after": "",
+        "category": "valid grammar"
+      },
+      "product": {
+        "exitCode": 0,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "patching file /work/target\n",
+        "stderr": "",
+        "target": "",
+        "other": "old\n",
+        "mutations": [
+          "writeFile:/work/target"
+        ],
+        "milliseconds": 1.0697910000000093
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file target\n",
+        "stderr": "",
+        "target": "",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "normal-both-incomplete",
+        "before": "old",
+        "patch": "1c1\n< old\n\\ No newline at end of file\n---\n> new\n\\ No newline at end of file\n",
+        "after": "new",
+        "category": "valid grammar"
+      },
+      "product": {
+        "exitCode": 0,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "patching file /work/target\n",
+        "stderr": "",
+        "target": "new",
+        "other": "old\n",
+        "mutations": [
+          "writeFile:/work/target"
+        ],
+        "milliseconds": 0.9140419999999949
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file target\n",
+        "stderr": "",
+        "target": "new",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "normal-blank-data",
+        "before": "old\n",
+        "patch": "1c1\n< old\n---\n> \n",
+        "after": "\n",
+        "category": "valid grammar"
+      },
+      "product": {
+        "exitCode": 0,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "patching file /work/target\n",
+        "stderr": "",
+        "target": "\n",
+        "other": "old\n",
+        "mutations": [
+          "writeFile:/work/target"
+        ],
+        "milliseconds": 0.982167000000004
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file target\n",
+        "stderr": "",
+        "target": "\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "normal-tab-prefix",
+        "before": "old\n",
+        "patch": "1c1\n<\told\n---\n>\tnew\n",
+        "after": "new\n",
+        "category": "valid grammar"
+      },
+      "product": {
+        "exitCode": 0,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "patching file /work/target\n",
+        "stderr": "",
+        "target": "new\n",
+        "other": "old\n",
+        "mutations": [
+          "writeFile:/work/target"
+        ],
+        "milliseconds": 0.5221659999999986
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** Only garbage was found in the patch input.\n",
+        "target": "old\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": [
+        "GNU 2.8 valid control: exit=2, expected=\"new\\n\", actual=\"old\\n\""
+      ]
+    },
+    {
+      "fixture": {
+        "id": "normal-patch-looking-data",
+        "before": "old\n",
+        "patch": "1c1,5\n< old\n---\n> *** target\n> --- 1 ----\n> @@ -1 +1 @@\n> \\ No newline at end of file\n> 1c1\n",
+        "after": "*** target\n--- 1 ----\n@@ -1 +1 @@\n\\ No newline at end of file\n1c1\n",
+        "category": "valid grammar"
+      },
+      "product": {
+        "exitCode": 0,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "patching file /work/target\n",
+        "stderr": "",
+        "target": "*** target\n--- 1 ----\n@@ -1 +1 @@\n\\ No newline at end of file\n1c1\n",
+        "other": "old\n",
+        "mutations": [
+          "writeFile:/work/target"
+        ],
+        "milliseconds": 0.46295800000001464
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file target\n",
+        "stderr": "",
+        "target": "*** target\n--- 1 ----\n@@ -1 +1 @@\n\\ No newline at end of file\n1c1\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "normal-crlf-data",
+        "before": "old\r\n",
+        "patch": "1c1\n< old\r\n---\n> new\r\n",
+        "after": "new\r\n",
+        "category": "valid grammar"
+      },
+      "product": {
+        "exitCode": 0,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "patching file /work/target\n",
+        "stderr": "",
+        "target": "new\r\n",
+        "other": "old\n",
+        "mutations": [
+          "writeFile:/work/target"
+        ],
+        "milliseconds": 0.4084169999999858
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file target\n",
+        "stderr": "",
+        "target": "new\r\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "normal-suppress-blank-empty",
+        "before": "old\n",
+        "patch": "1c1\n< old\n---\n>\n",
+        "after": "\n",
+        "category": "GNU suppress-blank-empty"
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: malformed patch body prefix\n",
+        "target": "old\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.2704999999999984
+      },
+      "productIssues": [
+        "valid input rejected: exit=2; patch: malformed patch body prefix\n",
+        "wrong target bytes: expected \"\\n\", got \"old\\n\""
+      ],
+      "native": {
+        "exitCode": 2,
+        "stdout": "patching file target\n",
+        "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** '>' followed by space or tab expected at line 4 of patch\n",
+        "target": "old\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": [
+        "GNU 2.8 valid control: exit=2, expected=\"\\n\", actual=\"old\\n\""
+      ]
+    },
+    {
+      "fixture": {
+        "id": "normal-empty-patch-noop",
+        "before": "old\n",
+        "patch": "",
+        "after": "old\n",
+        "category": "valid grammar"
+      },
+      "product": {
+        "exitCode": 0,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "",
+        "target": "old\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.08929200000000037
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "",
+        "target": "old\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "normal-leading-empty-lines",
+        "before": "old\n",
+        "patch": "\n\n1c1\n< old\n---\n> new\n",
+        "after": "new\n",
+        "category": "valid grammar"
+      },
+      "product": {
+        "exitCode": 0,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "patching file /work/target\n",
+        "stderr": "",
+        "target": "new\n",
+        "other": "old\n",
+        "mutations": [
+          "writeFile:/work/target"
+        ],
+        "milliseconds": 0.39929200000000264
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file target\n",
+        "stderr": "",
+        "target": "new\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "normal-two-ordered-hunks",
+        "before": "old\nkeep\nend\n",
+        "patch": "1c1\n< old\n---\n> new\n3c3\n< end\n---\n> final\n",
+        "after": "new\nkeep\nfinal\n",
+        "category": "valid grammar"
+      },
+      "product": {
+        "exitCode": 0,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "patching file /work/target\n",
+        "stderr": "",
+        "target": "new\nkeep\nfinal\n",
+        "other": "old\n",
+        "mutations": [
+          "writeFile:/work/target"
+        ],
+        "milliseconds": 0.3404999999999916
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file target\n",
+        "stderr": "",
+        "target": "new\nkeep\nfinal\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "context-empty-insert",
+        "before": "",
+        "patch": "*** target\n--- target\n***************\n*** 0 ****\n--- 1 ----\n+ new\n",
+        "after": "new\n",
+        "category": "valid grammar"
+      },
+      "product": {
+        "exitCode": 0,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "patching file /work/target\n",
+        "stderr": "",
+        "target": "new\n",
+        "other": "old\n",
+        "mutations": [
+          "writeFile:/work/target"
+        ],
+        "milliseconds": 0.5487080000000049
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file target\n",
+        "stderr": "",
+        "target": "new\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "context-delete-to-empty",
+        "before": "old\n",
+        "patch": "*** target\n--- target\n***************\n*** 1 ****\n- old\n--- 0 ----\n",
+        "after": "",
+        "category": "valid grammar"
+      },
+      "product": {
+        "exitCode": 0,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "patching file /work/target\n",
+        "stderr": "",
+        "target": "",
+        "other": "old\n",
+        "mutations": [
+          "writeFile:/work/target"
+        ],
+        "milliseconds": 0.4602920000000097
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file target\n",
+        "stderr": "",
+        "target": "",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "context-empty-insert-incomplete",
+        "before": "",
+        "patch": "*** target\n--- target\n***************\n*** 0 ****\n--- 1 ----\n+ new\n\\ No newline at end of file\n",
+        "after": "new",
+        "category": "valid grammar"
+      },
+      "product": {
+        "exitCode": 0,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "patching file /work/target\n",
+        "stderr": "",
+        "target": "new",
+        "other": "old\n",
+        "mutations": [
+          "writeFile:/work/target"
+        ],
+        "milliseconds": 0.32491700000002766
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file target\n",
+        "stderr": "",
+        "target": "new",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "context-both-incomplete",
+        "before": "old",
+        "patch": "*** target\n--- target\n***************\n*** 1 ****\n! old\n\\ No newline at end of file\n--- 1 ----\n! new\n\\ No newline at end of file\n",
+        "after": "new",
+        "category": "valid grammar"
+      },
+      "product": {
+        "exitCode": 0,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "patching file /work/target\n",
+        "stderr": "",
+        "target": "new",
+        "other": "old\n",
+        "mutations": [
+          "writeFile:/work/target"
+        ],
+        "milliseconds": 0.39483300000000554
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file target\n",
+        "stderr": "",
+        "target": "new",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "context-omitted-old-with-context",
+        "before": "left\nright\n",
+        "patch": "*** target\n--- target\n***************\n*** 1,2 ****\n--- 1,3 ----\n  left\n+ added\n  right\n",
+        "after": "left\nadded\nright\n",
+        "category": "valid grammar"
+      },
+      "product": {
+        "exitCode": 0,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "patching file /work/target\n",
+        "stderr": "",
+        "target": "left\nadded\nright\n",
+        "other": "old\n",
+        "mutations": [
+          "writeFile:/work/target"
+        ],
+        "milliseconds": 0.3578749999999786
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file target\n",
+        "stderr": "",
+        "target": "left\nadded\nright\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "context-omitted-new-with-context",
+        "before": "left\nremoved\nright\n",
+        "patch": "*** target\n--- target\n***************\n*** 1,3 ****\n  left\n- removed\n  right\n--- 1,2 ----\n",
+        "after": "left\nright\n",
+        "category": "valid grammar"
+      },
+      "product": {
+        "exitCode": 0,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "patching file /work/target\n",
+        "stderr": "",
+        "target": "left\nright\n",
+        "other": "old\n",
+        "mutations": [
+          "writeFile:/work/target"
+        ],
+        "milliseconds": 0.26720799999998235
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file target\n",
+        "stderr": "",
+        "target": "left\nright\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "context-incomplete-shared-tail",
+        "before": "left\ntail",
+        "patch": "*** target\n--- target\n***************\n*** 1,2 ****\n--- 1,3 ----\n  left\n+ added\n  tail\n\\ No newline at end of file\n",
+        "after": "left\nadded\ntail",
+        "category": "valid grammar"
+      },
+      "product": {
+        "exitCode": 0,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "patching file /work/target\n",
+        "stderr": "",
+        "target": "left\nadded\ntail",
+        "other": "old\n",
+        "mutations": [
+          "writeFile:/work/target"
+        ],
+        "milliseconds": 0.3182499999999777
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file target\n",
+        "stderr": "",
+        "target": "left\nadded\ntail",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "context-patch-looking-data",
+        "before": "old\n",
+        "patch": "*** target\n--- target\n***************\n*** 1 ****\n! old\n--- 1,4 ----\n! --- 1 ----\n! *** 1 ****\n! ***************\n! \\ No newline at end of file\n",
+        "after": "--- 1 ----\n*** 1 ****\n***************\n\\ No newline at end of file\n",
+        "category": "valid grammar"
+      },
+      "product": {
+        "exitCode": 0,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "patching file /work/target\n",
+        "stderr": "",
+        "target": "--- 1 ----\n*** 1 ****\n***************\n\\ No newline at end of file\n",
+        "other": "old\n",
+        "mutations": [
+          "writeFile:/work/target"
+        ],
+        "milliseconds": 0.3686670000000163
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file target\n",
+        "stderr": "",
+        "target": "--- 1 ----\n*** 1 ****\n***************\n\\ No newline at end of file\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "context-crlf-data",
+        "before": "old\r\n",
+        "patch": "*** target\n--- target\n***************\n*** 1 ****\n! old\r\n--- 1 ----\n! new\r\n",
+        "after": "new\r\n",
+        "category": "valid grammar"
+      },
+      "product": {
+        "exitCode": 0,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "patching file /work/target\n",
+        "stderr": "",
+        "target": "new\r\n",
+        "other": "old\n",
+        "mutations": [
+          "writeFile:/work/target"
+        ],
+        "milliseconds": 0.3100420000000099
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file target\n",
+        "stderr": "",
+        "target": "new\r\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "context-crlf-transport",
+        "before": "old\n",
+        "patch": "*** target\r\n--- target\r\n***************\r\n*** 1 ****\r\n! old\r\n--- 1 ----\r\n! new\r\n",
+        "after": "new\n",
+        "category": "GNU CRLF transport"
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: malformed context hunk separator\n",
+        "target": "old\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.11495800000000145
+      },
+      "productIssues": [
+        "valid input rejected: exit=2; patch: malformed context hunk separator\n",
+        "wrong target bytes: expected \"new\\n\", got \"old\\n\""
+      ],
+      "native": {
+        "exitCode": 0,
+        "stdout": "(Stripping trailing CRs from patch; use --binary to disable.)\npatching file target\n",
+        "stderr": "",
+        "target": "new\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "context-suppress-blank-empty",
+        "before": "old\n",
+        "patch": "*** target\n--- target\n***************\n*** 1 ****\n! old\n--- 1 ----\n!\n",
+        "after": "\n",
+        "category": "GNU suppress-blank-empty"
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: malformed patch body prefix\n",
+        "target": "old\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.1150000000000091
+      },
+      "productIssues": [
+        "valid input rejected: exit=2; patch: malformed patch body prefix\n",
+        "wrong target bytes: expected \"\\n\", got \"old\\n\""
+      ],
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file target\n",
+        "stderr": "",
+        "target": "\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "context-blank-context-line",
+        "before": "\nold\n",
+        "patch": "*** target\n--- target\n***************\n*** 1,2 ****\n  \n! old\n--- 1,2 ----\n  \n! new\n",
+        "after": "\nnew\n",
+        "category": "valid grammar"
+      },
+      "product": {
+        "exitCode": 0,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "patching file /work/target\n",
+        "stderr": "",
+        "target": "\nnew\n",
+        "other": "old\n",
+        "mutations": [
+          "writeFile:/work/target"
+        ],
+        "milliseconds": 0.3002920000000131
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file target\n",
+        "stderr": "",
+        "target": "\nnew\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "mixed-normal-context",
+        "before": "old\n",
+        "patch": "1c1\n< old\n---\n> new\n*** target\n--- target\n***************\n*** 1 ****\n! new\n--- 1 ----\n! final\n",
+        "after": "final\n",
+        "category": "mixed sections"
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: malformed normal patch command\n",
+        "target": "old\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.11579100000000153
+      },
+      "productIssues": [
+        "valid input rejected: exit=2; patch: malformed normal patch command\n",
+        "wrong target bytes: expected \"final\\n\", got \"old\\n\""
+      ],
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file target\npatching file target\n",
+        "stderr": "",
+        "target": "final\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "mixed-context-unified",
+        "before": "old\n",
+        "patch": "*** target\n--- target\n***************\n*** 1 ****\n! old\n--- 1 ----\n! new\n--- target\n+++ target\n@@ -1 +1 @@\n-new\n+final\n",
+        "after": "final\n",
+        "category": "mixed sections"
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: expected context file header\n",
+        "target": "old\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.12354199999998627
+      },
+      "productIssues": [
+        "valid input rejected: exit=2; patch: expected context file header\n",
+        "wrong target bytes: expected \"final\\n\", got \"old\\n\""
+      ],
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file target\npatching file target\n",
+        "stderr": "",
+        "target": "final\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "mixed-unified-normal",
+        "before": "old\n",
+        "patch": "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n1c1\n< new\n---\n> final\n",
+        "after": "final\n",
+        "category": "mixed sections"
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: expected --- file header\n",
+        "target": "old\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.12887500000005048
+      },
+      "productIssues": [
+        "valid input rejected: exit=2; patch: expected --- file header\n",
+        "wrong target bytes: expected \"final\\n\", got \"old\\n\""
+      ],
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file target\npatching file target\n",
+        "stderr": "",
+        "target": "final\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "mixed-context-normal-unified",
+        "before": "old\n",
+        "patch": "*** target\n--- target\n***************\n*** 1 ****\n! old\n--- 1 ----\n! new\n1c1\n< new\n---\n> middle\n--- target\n+++ target\n@@ -1 +1 @@\n-middle\n+final\n",
+        "after": "final\n",
+        "category": "mixed sections"
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: expected context file header\n",
+        "target": "old\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.1407920000000331
+      },
+      "productIssues": [
+        "valid input rejected: exit=2; patch: expected context file header\n",
+        "wrong target bytes: expected \"final\\n\", got \"old\\n\""
+      ],
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file target\npatching file target\npatching file target\n",
+        "stderr": "",
+        "target": "final\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "normal-truncated-new-body",
+        "before": "old\nkeep\nend\n",
+        "patch": "1c1\n< old\n---\n",
+        "category": "truncation"
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: truncated patch\n",
+        "target": "old\nkeep\nend\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.11120800000003328
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 2,
+        "stdout": "patching file target\n",
+        "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** unexpected end of file in patch at line 3\n",
+        "target": "old\nkeep\nend\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "normal-truncated-final-lf",
+        "before": "old\nkeep\nend\n",
+        "patch": "1c1\n< old\n---\n> new",
+        "category": "truncation"
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: patch is truncated: missing final LF\n",
+        "target": "old\nkeep\nend\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.117416999999989
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 2,
+        "stdout": "patching file target\npatch unexpectedly ends in middle of line\n",
+        "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** unexpected end of file in patch at line 3\n",
+        "target": "old\nkeep\nend\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "normal-missing-change-separator",
+        "before": "old\nkeep\nend\n",
+        "patch": "1c1\n< old\n> new\n",
+        "category": "malformed delimiter"
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: missing normal change separator\n",
+        "target": "old\nkeep\nend\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.11720799999994824
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 2,
+        "stdout": "patching file target\n",
+        "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** '---' expected at line 3 of patch\n",
+        "target": "old\nkeep\nend\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "normal-old-count-underflow",
+        "before": "old\nkeep\nend\n",
+        "patch": "1,2c1\n< old\n---\n> new\n",
+        "category": "count mismatch"
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: malformed patch body prefix\n",
+        "target": "old\nkeep\nend\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.1103750000000332
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 2,
+        "stdout": "patching file target\n",
+        "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** '<' followed by space or tab expected at line 3 of patch\n",
+        "target": "old\nkeep\nend\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "normal-new-count-overflow",
+        "before": "old\nkeep\nend\n",
+        "patch": "1c1\n< old\n---\n> new\n> extra\n",
+        "category": "count mismatch"
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: malformed normal patch command\n",
+        "target": "old\nkeep\nend\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.11791600000003655
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file target\n",
+        "stderr": "",
+        "target": "new\nkeep\nend\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "normal-descending-range",
+        "before": "old\nkeep\nend\n",
+        "patch": "2,1c1\n< old\n---\n> new\n",
+        "category": "range/order"
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: invalid normal patch range\n",
+        "target": "old\nkeep\nend\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.11079200000000355
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 2,
+        "stdout": "patching file target\n",
+        "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** '---' expected at line 2 of patch\n",
+        "target": "old\nkeep\nend\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "normal-append-old-range",
+        "before": "old\nkeep\nend\n",
+        "patch": "0,1a1\n> new\n",
+        "category": "range/order"
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: invalid normal patch range\n",
+        "target": "old\nkeep\nend\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.11149999999997817
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 2,
+        "stdout": "patching file target\n",
+        "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** '<' followed by space or tab expected at line 2 of patch\n",
+        "target": "old\nkeep\nend\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "normal-delete-new-range",
+        "before": "old\nkeep\nend\n",
+        "patch": "1d0,1\n< old\n",
+        "category": "range/order"
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: invalid normal patch range\n",
+        "target": "old\nkeep\nend\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.09504200000003493
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 2,
+        "stdout": "patching file target\n",
+        "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** unexpected end of file in patch at line 2\n",
+        "target": "old\nkeep\nend\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "normal-overlapping-old-hunks",
+        "before": "old\nkeep\nend\n",
+        "patch": "1c1\n< old\n---\n> new\n1c1\n< old\n---\n> new\n",
+        "category": "overlap"
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: overlapping or inconsistent hunk coordinates\n",
+        "target": "old\nkeep\nend\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.1937499999999659
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 1,
+        "stdout": "patching file target\nmisordered hunks! output would be garbled\nHunk #2 FAILED at 1.\n1 out of 2 hunks FAILED -- saving rejects to file reject\n",
+        "stderr": "",
+        "target": "new\nkeep\nend\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "reject",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "normal-inconsistent-new-coordinates",
+        "before": "old\nkeep\nend\n",
+        "patch": "1c2\n< old\n---\n> new\n",
+        "category": "coordinate consistency"
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: overlapping or inconsistent hunk coordinates\n",
+        "target": "old\nkeep\nend\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.174082999999996
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file target\n",
+        "stderr": "",
+        "target": "new\nkeep\nend\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "normal-unsafe-integer",
+        "before": "old\nkeep\nend\n",
+        "patch": "9007199254740993a1\n> new\n",
+        "category": "coordinate overflow"
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: invalid patch range: 9007199254740993\n",
+        "target": "old\nkeep\nend\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.11616699999996172
+      },
+      "productIssues": [],
+      "nativeError": "GNU oracle exceeded 3000 ms",
+      "nativeIssues": [
+        "GNU oracle execution failed: GNU oracle exceeded 3000 ms"
+      ]
+    },
+    {
+      "fixture": {
+        "id": "normal-marker-before-body",
+        "before": "old\nkeep\nend\n",
+        "patch": "1c1\n\\ No newline at end of file\n< old\n---\n> new\n",
+        "category": "newline marker"
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: malformed patch body prefix\n",
+        "target": "old\nkeep\nend\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.13833299999987503
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file target\n",
+        "stderr": "",
+        "target": "old\nkeep\nend\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "normal-incomplete-nonfinal-new-line",
+        "before": "old\nkeep\nend\n",
+        "patch": "1c1,2\n< old\n---\n> new\n\\ No newline at end of file\n> tail\n",
+        "category": "newline marker"
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: content follows an incomplete final line\n",
+        "target": "old\nkeep\nend\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.18095900000025722
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 2,
+        "stdout": "patching file target\n",
+        "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** '>' followed by space or tab expected at line 5 of patch\n",
+        "target": "old\nkeep\nend\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "context-missing-new-range",
+        "before": "old\nkeep\nend\n",
+        "patch": "*** target\n--- target\n***************\n*** 1 ****\n! old\n! new\n",
+        "category": "truncation"
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: truncated patch\n",
+        "target": "old\nkeep\nend\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.15320800000017698
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** unexpected end of file in patch\n",
+        "target": "old\nkeep\nend\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "context-old-count-mismatch",
+        "before": "old\nkeep\nend\n",
+        "patch": "*** target\n--- target\n***************\n*** 1,2 ****\n! old\n--- 1 ----\n! new\n",
+        "category": "count mismatch"
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: context body count does not match range\n",
+        "target": "old\nkeep\nend\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.16662500000029468
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** Premature '---' at line 6; check line numbers at line 4\n",
+        "target": "old\nkeep\nend\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "context-zero-nonempty-range",
+        "before": "old\nkeep\nend\n",
+        "patch": "*** target\n--- target\n***************\n*** 0 ****\n! old\n--- 1 ----\n! new\n",
+        "category": "range/order"
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: context body count does not match range\n",
+        "target": "old\nkeep\nend\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.1801660000000993
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** Overdue '---' at line 6; check line numbers at line 4\n",
+        "target": "old\nkeep\nend\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "context-overlapping-hunks",
+        "before": "old\nkeep\nend\n",
+        "patch": "*** target\n--- target\n***************\n*** 1 ****\n! old\n--- 1 ----\n! new\n***************\n*** 1 ****\n! old\n--- 1 ----\n! new\n",
+        "category": "overlap"
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: overlapping or inconsistent hunk coordinates\n",
+        "target": "old\nkeep\nend\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.31587500000023283
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 1,
+        "stdout": "patching file target\nmisordered hunks! output would be garbled\nHunk #2 FAILED at 1.\n1 out of 2 hunks FAILED -- saving rejects to file reject\n",
+        "stderr": "",
+        "target": "new\nkeep\nend\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "reject",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "context-unsafe-integer",
+        "before": "old\nkeep\nend\n",
+        "patch": "*** target\n--- target\n***************\n*** 9007199254740993 ****\n! old\n--- 1 ----\n! new\n",
+        "category": "coordinate overflow"
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: invalid patch range: 9007199254740993\n",
+        "target": "old\nkeep\nend\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.1323330000000169
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file target\nHunk #1 succeeded at 1 (offset -9007199254740992 lines).\n",
+        "stderr": "",
+        "target": "new\nkeep\nend\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "context-missing-changed-old-half",
+        "before": "old\nkeep\nend\n",
+        "patch": "*** target\n--- target\n***************\n*** 1 ****\n--- 1 ----\n! new\n",
+        "category": "omitted changed half"
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: missing old changed context body\n",
+        "target": "old\nkeep\nend\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.16775000000006912
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file target\n",
+        "stderr": "",
+        "target": "old\nkeep\nend\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "context-missing-changed-new-half",
+        "before": "old\nkeep\nend\n",
+        "patch": "*** target\n--- target\n***************\n*** 1 ****\n! old\n--- 1 ----\n",
+        "category": "omitted changed half"
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: missing new changed context body\n",
+        "target": "old\nkeep\nend\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.17162499999994907
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** context mangled in hunk at line 4\n",
+        "target": "old\nkeep\nend\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "context-halves-disagree",
+        "before": "old\nkeep\nend\n",
+        "patch": "*** target\n--- target\n***************\n*** 1,2 ****\n  old\n! keep\n--- 1,2 ----\n  wrong\n! new\n",
+        "category": "context disagreement"
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: context halves disagree\n",
+        "target": "old\nkeep\nend\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.17220899999983885
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 1,
+        "stdout": "patching file target\nHunk #1 FAILED at 1.\n1 out of 1 hunk FAILED -- saving rejects to file reject\n",
+        "stderr": "",
+        "target": "old\nkeep\nend\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "reject",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "context-duplicate-newline-marker",
+        "before": "old\nkeep\nend\n",
+        "patch": "*** target\n--- target\n***************\n*** 1 ****\n! old\n--- 1 ----\n! new\n\\ No newline at end of file\n\\ No newline at end of file\n",
+        "category": "newline marker"
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: expected context file header\n",
+        "target": "old\nkeep\nend\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.15029200000026322
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file target\n",
+        "stderr": "",
+        "target": "new\nkeep\nend\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "normal-valid-then-malformed-context",
+        "before": "old\nkeep\nend\n",
+        "patch": "1c1\n< old\n---\n> new\n*** target\n--- target\n***************\n*** 1 ****\n! new\n--- 1 ----\n",
+        "category": "late malformed section"
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: malformed normal patch command\n",
+        "target": "old\nkeep\nend\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.11124999999992724
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 2,
+        "stdout": "patching file target\n",
+        "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** context mangled in hunk at line 8\n",
+        "target": "new\nkeep\nend\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "context-valid-then-malformed-unified",
+        "before": "old\nkeep\nend\n",
+        "patch": "*** target\n--- target\n***************\n*** 1 ****\n! old\n--- 1 ----\n! new\n--- other\n+++ other\n@@ -1 +1 @@\n-old\n",
+        "category": "late malformed section"
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: expected context file header\n",
+        "target": "old\nkeep\nend\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.3057080000003225
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 2,
+        "stdout": "patching file target\npatching file target\n",
+        "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** malformed patch at line 11:  \n\n",
+        "target": "new\nkeep\nend\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "mutation-0-normal",
+        "before": "old\n",
+        "patch": "1c1\n?O old\n---\n> new\n",
+        "category": "deterministic invalid-prefix mutation"
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: malformed patch body prefix\n",
+        "target": "old\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.11845899999980247
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file target\n",
+        "stderr": "",
+        "target": "old\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "mutation-1-context",
+        "before": "old\n",
+        "patch": "*** target\n--- target\n***************\n*** 1 ****\n! old\n--- 1 ----\n?D new\n",
+        "category": "deterministic invalid-prefix mutation"
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: missing new changed context body\n",
+        "target": "old\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.14516699999967386
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** malformed patch at line 7: ?D new\n\n",
+        "target": "old\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "mutation-2-normal",
+        "before": "old\n",
+        "patch": "1c1\n?Y old\n---\n> new\n",
+        "category": "deterministic invalid-prefix mutation"
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: malformed patch body prefix\n",
+        "target": "old\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.13374999999996362
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file target\n",
+        "stderr": "",
+        "target": "old\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "mutation-3-context",
+        "before": "old\n",
+        "patch": "*** target\n--- target\n***************\n*** 1 ****\n! old\n--- 1 ----\n?H new\n",
+        "category": "deterministic invalid-prefix mutation"
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: missing new changed context body\n",
+        "target": "old\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.12483399999973699
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** malformed patch at line 7: ?H new\n\n",
+        "target": "old\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "mutation-4-normal",
+        "before": "old\n",
+        "patch": "1c1\n\u0000 old\n---\n> new\n",
+        "category": "deterministic invalid-prefix mutation"
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: binary input is unsupported (NUL byte)\n",
+        "target": "old\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.1145409999999174
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** patch line 2 contains NUL byte\n",
+        "target": "old\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "mutation-5-context",
+        "before": "old\n",
+        "patch": "*** target\n--- target\n***************\n*** 1 ****\n! old\n--- 1 ----\n\u0000 new\n",
+        "category": "deterministic invalid-prefix mutation"
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: binary input is unsupported (NUL byte)\n",
+        "target": "old\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.10016600000017206
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** malformed patch at line 7: \n",
+        "target": "old\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "mutation-6-normal",
+        "before": "old\n",
+        "patch": "1c1\n\u0000 old\n---\n> new\n",
+        "category": "deterministic invalid-prefix mutation"
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: binary input is unsupported (NUL byte)\n",
+        "target": "old\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.08849999999983993
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** patch line 2 contains NUL byte\n",
+        "target": "old\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "mutation-7-context",
+        "before": "old\n",
+        "patch": "*** target\n--- target\n***************\n*** 1 ****\n! old\n--- 1 ----\n\u0000 new\n",
+        "category": "deterministic invalid-prefix mutation"
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: binary input is unsupported (NUL byte)\n",
+        "target": "old\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.11074999999982538
+      },
+      "productIssues": [],
+      "native": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** malformed patch at line 7: \n",
+        "target": "old\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "normal-maxLines-empty-flood",
+        "category": "maxLines",
+        "before": "old\n",
+        "patch": "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n1c1\n< old\n---\n> new\n",
+        "options": {
+          "maxLines": 64
+        },
+        "native": false
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: line limit exceeded\n",
+        "target": "old\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.18299999999999272
+      },
+      "productIssues": [],
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "normal-maxHunks-second-hunk",
+        "category": "maxHunks",
+        "before": "old\nkeep\nend\n",
+        "patch": "1c1\n< old\n---\n> new\n3c3\n< end\n---\n> new\n",
+        "options": {
+          "maxHunks": 1
+        },
+        "native": false
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: hunk limit exceeded\n",
+        "target": "old\nkeep\nend\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.1512920000000122
+      },
+      "productIssues": [],
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "normal-maxWork-empty-flood",
+        "category": "maxWork",
+        "before": "old\n",
+        "patch": "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n1c1\n< old\n---\n> new\n",
+        "options": {
+          "maxWork": 16
+        },
+        "native": false
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: work limit exceeded\n",
+        "target": "old\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.08825000000024374
+      },
+      "productIssues": [],
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "normal-maxInput",
+        "category": "maxInputBytes",
+        "before": "old\n",
+        "patch": "1c1\n< old\n---\n> new\n",
+        "options": {
+          "maxInputBytes": 19
+        },
+        "native": false
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: EFBIG: output exceeds maxBytes, collectBytes\n",
+        "target": "old\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.2135840000000826
+      },
+      "productIssues": [],
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "normal-maxOutput",
+        "category": "maxOutputBytes",
+        "before": "old\n",
+        "patch": "1c1\n< old\n---\n> new\n",
+        "options": {
+          "maxOutputBytes": 1
+        },
+        "native": false
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: output byte limit exceeded\n",
+        "target": "old\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.234375
+      },
+      "productIssues": [],
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "normal-cancel-input",
+        "category": "cancellation",
+        "before": "old\n",
+        "patch": "1c1\n< old\n---\n> new\n",
+        "cancel": "input",
+        "native": false
+      },
+      "product": {
+        "thrown": "parser-verifier cancellation: normal-cancel-input",
+        "sameAbortReason": true,
+        "cancellationScheduled": false,
+        "cancellationFired": true,
+        "stdout": "",
+        "stderr": "",
+        "target": "old\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.12966699999969933
+      },
+      "productIssues": [],
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "normal-cancel-parse",
+        "category": "cancellation",
+        "before": "old\n",
+        "patch": "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n1c1\n< old\n---\n> new\n",
+        "cancel": "parse",
+        "native": false
+      },
+      "product": {
+        "thrown": "parser-verifier cancellation: normal-cancel-parse",
+        "sameAbortReason": true,
+        "cancellationScheduled": true,
+        "cancellationFired": true,
+        "stdout": "",
+        "stderr": "",
+        "target": "old\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 9.664083000000119
+      },
+      "productIssues": [],
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "context-maxLines-empty-flood",
+        "category": "maxLines",
+        "before": "old\n",
+        "patch": "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n*** target\n--- target\n***************\n*** 1 ****\n! old\n--- 1 ----\n! new\n",
+        "options": {
+          "maxLines": 64
+        },
+        "native": false
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: line limit exceeded\n",
+        "target": "old\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.284291999999823
+      },
+      "productIssues": [],
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "context-maxHunks-second-hunk",
+        "category": "maxHunks",
+        "before": "old\nkeep\nend\n",
+        "patch": "*** target\n--- target\n***************\n*** 1 ****\n! old\n--- 1 ----\n! new\n***************\n*** 3 ****\n! end\n--- 3 ----\n! new\n",
+        "options": {
+          "maxHunks": 1
+        },
+        "native": false
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: hunk limit exceeded\n",
+        "target": "old\nkeep\nend\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.16820800000004965
+      },
+      "productIssues": [],
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "context-maxWork-empty-flood",
+        "category": "maxWork",
+        "before": "old\n",
+        "patch": "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n*** target\n--- target\n***************\n*** 1 ****\n! old\n--- 1 ----\n! new\n",
+        "options": {
+          "maxWork": 16
+        },
+        "native": false
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: work limit exceeded\n",
+        "target": "old\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.19079199999987395
+      },
+      "productIssues": [],
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "context-maxInput",
+        "category": "maxInputBytes",
+        "before": "old\n",
+        "patch": "*** target\n--- target\n***************\n*** 1 ****\n! old\n--- 1 ----\n! new\n",
+        "options": {
+          "maxInputBytes": 71
+        },
+        "native": false
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: EFBIG: output exceeds maxBytes, collectBytes\n",
+        "target": "old\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.08041700000012497
+      },
+      "productIssues": [],
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "context-maxOutput",
+        "category": "maxOutputBytes",
+        "before": "old\n",
+        "patch": "*** target\n--- target\n***************\n*** 1 ****\n! old\n--- 1 ----\n! new\n",
+        "options": {
+          "maxOutputBytes": 1
+        },
+        "native": false
+      },
+      "product": {
+        "exitCode": 2,
+        "sameAbortReason": false,
+        "cancellationScheduled": false,
+        "cancellationFired": false,
+        "stdout": "",
+        "stderr": "patch: output byte limit exceeded\n",
+        "target": "old\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.28966700000000856
+      },
+      "productIssues": [],
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "context-cancel-input",
+        "category": "cancellation",
+        "before": "old\n",
+        "patch": "*** target\n--- target\n***************\n*** 1 ****\n! old\n--- 1 ----\n! new\n",
+        "cancel": "input",
+        "native": false
+      },
+      "product": {
+        "thrown": "parser-verifier cancellation: context-cancel-input",
+        "sameAbortReason": true,
+        "cancellationScheduled": false,
+        "cancellationFired": true,
+        "stdout": "",
+        "stderr": "",
+        "target": "old\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 0.09541699999999764
+      },
+      "productIssues": [],
+      "nativeIssues": []
+    },
+    {
+      "fixture": {
+        "id": "context-cancel-parse",
+        "category": "cancellation",
+        "before": "old\n",
+        "patch": "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n*** target\n--- target\n***************\n*** 1 ****\n! old\n--- 1 ----\n! new\n",
+        "cancel": "parse",
+        "native": false
+      },
+      "product": {
+        "thrown": "parser-verifier cancellation: context-cancel-parse",
+        "sameAbortReason": true,
+        "cancellationScheduled": true,
+        "cancellationFired": true,
+        "stdout": "",
+        "stderr": "",
+        "target": "old\n",
+        "other": "old\n",
+        "mutations": [],
+        "milliseconds": 6.208209000000352
+      },
+      "productIssues": [],
+      "nativeIssues": []
+    },
+    {
+      "control": {
+        "id": "GNU-normal-suppress-blank-empty",
+        "before": "old\n",
+        "after": "\n",
+        "args": [
+          "--normal",
+          "--suppress-blank-empty"
+        ]
+      },
+      "diff": {
+        "exitCode": 1,
+        "stdout": "1c1\n< old\n---\n>\n",
+        "stderr": ""
+      },
+      "patch": {
+        "exitCode": 2,
+        "stdout": "patching file target\n",
+        "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** '>' followed by space or tab expected at line 4 of patch\n",
+        "target": "old\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": [
+        "GNU patch 2.8 exit 2, expected \"\\n\", got \"old\\n\""
+      ]
+    },
+    {
+      "control": {
+        "id": "GNU-context-suppress-blank-empty",
+        "before": "old\n",
+        "after": "\n",
+        "args": [
+          "-c",
+          "--suppress-blank-empty"
+        ]
+      },
+      "diff": {
+        "exitCode": 1,
+        "stdout": "*** target\n--- target\n***************\n*** 1 ****\n! old\n--- 1 ----\n!\n",
+        "stderr": ""
+      },
+      "patch": {
+        "exitCode": 0,
+        "stdout": "patching file target\n",
+        "stderr": "",
+        "target": "\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    },
+    {
+      "control": {
+        "id": "GNU-context-zero-middle-deletion",
+        "before": "left\nremoved\nright\n",
+        "after": "left\nright\n",
+        "args": [
+          "-C0"
+        ]
+      },
+      "diff": {
+        "exitCode": 1,
+        "stdout": "*** target\n--- target\n***************\n*** 2 ****\n- removed\n--- 1 ----\n",
+        "stderr": ""
+      },
+      "patch": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** replacement text or line numbers mangled in hunk at line 4\n",
+        "target": "left\nremoved\nright\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": [
+        "GNU patch 2.8 exit 2, expected \"left\\nright\\n\", got \"left\\nremoved\\nright\\n\""
+      ]
+    },
+    {
+      "control": {
+        "id": "GNU-context-zero-empty-insertion",
+        "before": "",
+        "after": "new\n",
+        "args": [
+          "-C0"
+        ]
+      },
+      "diff": {
+        "exitCode": 1,
+        "stdout": "*** target\n--- target\n***************\n*** 0 ****\n--- 1 ----\n+ new\n",
+        "stderr": ""
+      },
+      "patch": {
+        "exitCode": 0,
+        "stdout": "patching file target\n",
+        "stderr": "",
+        "target": "new\n",
+        "other": "old\n",
+        "entries": [
+          "other",
+          "target"
+        ]
+      },
+      "nativeIssues": []
+    }
+  ]
+}

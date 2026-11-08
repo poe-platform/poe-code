@@ -1,0 +1,32 @@
+{
+  "at": "2026-08-27T22:44:34.176Z",
+  "head": "9cccda89e185b80f31d011797b97a27c47a691ff",
+  "status": " M tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/PLAN.md\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/next\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/old\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/target\n?? tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/INPUTS.json\n?? tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/POLICY.md\n?? tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/PREDICTIONS.json\n?? tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/README.md\n?? tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/SOURCES.json\n?? tests/commands/expr-stress/nullable-hierarchy-v5-20260827/review/run-controls.mjs\n?? tests/commands/search-stress/.native-1m4O1e/input\n?? tests/integration/html-public-admission-v2-independent-20260827/BOOTSTRAP-CORRECTED.json\n?? tests/integration/html-public-admission-v2-independent-20260827/BOOTSTRAP-READY.json\n?? tests/integration/html-public-admission-v2-independent-20260827/BOOTSTRAP.json\n?? tests/integration/html-public-admission-v2-independent-20260827/PRE-ARCHIVE-PRE.json\n?? tests/integration/html-public-admission-v2-independent-20260827/PRE-ARCHIVE-RAW.json\n?? tests/integration/html-public-admission-v2-independent-20260827/PRE-AUTH-INVOCATION.json\n?? tests/integration/html-public-admission-v2-independent-20260827/PRE-AUTH-READY.exit.data\n?? tests/integration/html-public-admission-v2-independent-20260827/PRE-AUTH-READY.stderr.data\n?? tests/integration/html-public-admission-v2-independent-20260827/PRE-AUTH-READY.stdout.data\n?? tests/integration/html-public-admission-v2-independent-20260827/PRE-AUTH.exit.data\n?? tests/integration/html-public-admission-v2-independent-20260827/PRE-AUTH.stderr.data\n?? tests/integration/html-public-admission-v2-independent-20260827/PRE-AUTH.stdout.data\n?? tests/integration/html-public-admission-v2-independent-20260827/PRE.json\n?? tests/integration/html-public-admission-v2-independent-20260827/REVIEWER-DEVELOPMENT.md\n?? tests/integration/html-public-admission-v2-independent-20260827/authenticate-initial.mjs.data\n?? tests/integration/html-public-admission-v2-independent-20260827/authenticate.mjs\n?? tests/shell/cancellation-stage1-independent-20260827/CONCRETIZATION-v1.md\n?? tests/shell/cancellation-stage1-independent-20260827/cohort-v1.mjs\n?? tests/shell/cancellation-stage1-independent-20260827/negative-v1.ts.data\n?? tests/shell/cancellation-stage1-independent-20260827/positive-v1.ts.data\n?? tests/shell/cancellation-stage1-independent-20260827/review-v1.mjs\n?? tests/shell/first-read-owned-fixtures.ts\n",
+  "index": "",
+  "fixtures": [
+    {
+      "path": "CONCRETIZATION-v1.md",
+      "sha256": "120ee01808508558243b4faddc3e216af8650f48b180a7d853ed42a3f7d32d33"
+    },
+    {
+      "path": "FREEZE-v1.md",
+      "sha256": "208597fd22714b86629133ed4c4dd928a49a52821794ce4eb9a04c93f4730849"
+    },
+    {
+      "path": "cohort-v1.mjs",
+      "sha256": "b195fe6ac3d547235835311bc95b259f60bbe767592a13056ea85cbcf5cd59e1"
+    },
+    {
+      "path": "negative-v1.ts.data",
+      "sha256": "43a63f7795344ea6ad8b840954320a55241b916c592c6fa9bc1a6396bdf4fc9f"
+    },
+    {
+      "path": "positive-v1.ts.data",
+      "sha256": "508ae8d6c2277845f3477e20a5ba95cce62c19201ad5d9c80614a4f85607a03f"
+    },
+    {
+      "path": "review-v1.mjs",
+      "sha256": "3cd3188e3cc68cd986fe835d7b5347487297a00e5465d657dd33ff0f1bb4bd50"
+    }
+  ]
+}

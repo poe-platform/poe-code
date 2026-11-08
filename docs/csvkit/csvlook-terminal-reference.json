@@ -1,0 +1,31 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "source": {
+    "sha256": "6ceec3eb0ed79c5dbb0a54d4ffe3f4dff867f77ac2093f7d0e0febce514ffc06",
+    "text": "#!/usr/bin/env python\n\nimport agate\nfrom agate import config\n\nfrom csvkit.cli import CSVKitUtility\n\n\nclass CSVLook(CSVKitUtility):\n    description = 'Render a CSV file in the console as a Markdown-compatible, fixed-width table.'\n\n    def add_arguments(self):\n        self.argparser.add_argument(\n            '--max-rows', dest='max_rows', type=int,\n            help='The maximum number of rows to display before truncating the data.')\n        self.argparser.add_argument(\n            '--max-columns', dest='max_columns', type=int,\n            help='The maximum number of columns to display before truncating the data.')\n        self.argparser.add_argument(\n            '--max-column-width', dest='max_column_width', type=int,\n            help='Truncate all columns to at most this width. The remainder will be replaced with ellipsis.')\n        self.argparser.add_argument(\n            '--max-precision', dest='max_precision', type=int,\n            help='The maximum number of decimal places to display. The remainder will be replaced with ellipsis.')\n        self.argparser.add_argument(\n            '--no-number-ellipsis', dest='no_number_ellipsis', action='store_true',\n            help='Disable the ellipsis if --max-precision is exceeded.')\n        self.argparser.add_argument(\n            '-y', '--snifflimit', dest='sniff_limit', type=int, default=1024,\n            help='Limit CSV dialect sniffing to the specified number of bytes. '\n                 'Specify \"0\" to disable sniffing entirely, or \"-1\" to sniff the entire file.')\n        self.argparser.add_argument(\n            '-I', '--no-inference', dest='no_inference', action='store_true',\n            help='Disable type inference (and --locale, --date-format, --datetime-format, --no-leading-zeroes) '\n                 'when parsing the input.')\n\n    def main(self):\n        if self.additional_input_expected():\n            self.argparser.error('You must provide an input file or piped data.')\n\n        kwargs = {}\n        # In agate, max_precision defaults to 3. None means infinity.\n        if self.args.max_precision is not None:\n            kwargs['max_precision'] = self.args.max_precision\n\n        if self.args.no_number_ellipsis:\n            config.set_option('number_truncation_chars', '')\n\n        sniff_limit = self.args.sniff_limit if self.args.sniff_limit != -1 else None\n        table = agate.Table.from_csv(\n            self.input_file,\n            skip_lines=self.args.skip_lines,\n            sniff_limit=sniff_limit,\n            row_limit=self.args.max_rows,\n            column_types=self.get_column_types(),\n            line_numbers=self.args.line_numbers,\n            **self.reader_kwargs,\n        )\n\n        table.print_table(\n            output=self.output_file,\n            max_rows=self.args.max_rows,\n            max_columns=self.args.max_columns,\n            max_column_width=self.args.max_column_width,\n            **kwargs,\n        )\n\n\ndef launch_new_instance():\n    utility = CSVLook()\n    utility.run()\n\n\nif __name__ == '__main__':\n    launch_new_instance()\n"
+  },
+  "captures": [
+    {
+      "columns": 80,
+      "lines": 24,
+      "stdinTTY": false,
+      "stdoutTTY": true,
+      "stderrTTY": false,
+      "stdin": "n,text\n1234.56789,abcdef\n2.5,\u754ce\u0301\n",
+      "stdout": "|          n | text   |\r\n| ---------- | ------ |\r\n| 1,234.568\u2026 | abcdef |\r\n|     2.500\u2026 | \u754ce\u0301    |\r\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "columns": 5,
+      "lines": 3,
+      "stdinTTY": false,
+      "stdoutTTY": true,
+      "stderrTTY": false,
+      "stdin": "n,text\n1234.56789,abcdef\n2.5,\u754ce\u0301\n",
+      "stdout": "|          n | text   |\r\n| ---------- | ------ |\r\n| 1,234.568\u2026 | abcdef |\r\n|     2.500\u2026 | \u754ce\u0301    |\r\n",
+      "stderr": "",
+      "status": 0
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "platform": "linux/amd64",
+  "baseImage": "node:24-bookworm@sha256:b977d0f785d96029d8d4c0790b6bf1c2a4c72e0f26319808e7ba2e9d966a1ac3",
+  "baseDigestSource": "Docker Hub OCI index for node:24-bookworm, selected Linux amd64 manifest, 2026-09-14",
+  "artifacts": [
+    {
+      "url": "https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-09-14-13-17/ffmpeg-n9.0.1-29-gad500d59cb-linux64-gpl-9.0.tar.xz",
+      "path": "/tmp/ffmpeg.tar.xz",
+      "bytes": 150158740,
+      "sha256": "f78852b0c4286d245a6bc989704ea03f8f7dcd8b66cd1ad55d190131d4f21bb9"
+    },
+    {
+      "url": "https://github.com/ImageMagick/ImageMagick/releases/download/7.1.2-31/ImageMagick-7.1.2-31-gcc-x86_64.AppImage",
+      "path": "/tmp/magick.AppImage",
+      "bytes": 33315320,
+      "sha256": "b22dee096a68e7eb6771a6f98c16490ea78d399ffa27f34ca2ec4f02e707fd9c"
+    },
+    {
+      "url": "https://deb.debian.org/debian/pool/main/s/squashfs-tools/squashfs-tools_4.5.1-1_amd64.deb",
+      "path": "/tmp/squashfs-tools.deb",
+      "bytes": 182756,
+      "sha256": "3f96b16c9b985ea03cf70f90a05f4dc5c15039e845326f8f4293a3280fd0b2f4"
+    }
+  ],
+  "executables": {
+    "ffmpeg": "693997243e25684ab5976522d97111f44dbc14cfb47f968c2e2283b8fe070a17",
+    "ffprobe": "91dae15342bcbd3b8b3935d0fa0299ae47c5b59ef9cbd80f9d34547adb10fc9d",
+    "magick": "ebe8030aa93f0ef778c3d0cb773169b63e0342f31141901492a030968068399c"
+  },
+  "builtImageDigest": null,
+  "inventoryStatus": "No production image is admitted. Executable and byte-argv helper pins are fixed; disposable inventory receipts remain separate from deployment-qualified inventories.",
+  "qualification": "Canonical live-files, delegates, endpoints, devices, mmap and escaped process-tree cleanup remain unqualified. The pinned byte-argv helper is qualified only by explicitly executed disposable-container cases.",
+  "executablePaths": {
+    "ffmpeg": "/opt/ffmpeg/ffmpeg",
+    "ffprobe": "/opt/ffmpeg/ffprobe",
+    "magick": "/opt/imagemagick/AppRun"
+  },
+  "maxExecutableBytes": 536870912,
+  "byteArgvLauncher": {
+    "helperExecutable": "/opt/remote-execution/execve",
+    "helperDigest": "07fedf62d8d75a7984994413e596007626a01919bb5746d91a3cbe1fccb12c64",
+    "maxHelperBytes": 1048576,
+    "sourceDigest": "80265240b793f1380a2b8d7fd8f634cf8c2779e7bc4c42bee738bf04375f13a6"
+  }
+}

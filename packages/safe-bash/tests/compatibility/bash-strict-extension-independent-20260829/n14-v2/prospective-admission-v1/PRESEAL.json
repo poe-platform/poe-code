@@ -1,0 +1,78 @@
+{
+  "schema": 1,
+  "files": {
+    "package-admission.mjs": {
+      "bytes": 3895,
+      "sha256": "9ce5c2829716f8b0734ac1dcb0a571f758df8874ab5d6e450c4ec03a307094a6"
+    },
+    "parse-manifest.mjs": {
+      "bytes": 2860,
+      "sha256": "0dd49a2e6fa0d222ada2477937a482aed613f220f28bef1f790cb06b61270f61"
+    },
+    "controls.mjs": {
+      "bytes": 5856,
+      "sha256": "13b1861559e642c110e4f471faddabd786bce360d5e1dabe23d864640ab6b37f"
+    },
+    "outer.mjs": {
+      "bytes": 4656,
+      "sha256": "7cde51e18f9a4a141a687184d3a578197bf38e04ffa32b80701d1293a9de5fba"
+    },
+    "prepare.mjs": {
+      "bytes": 5953,
+      "sha256": "fc303e1cc542c05c7b6b57f572adaba101ea8ab80b9b336199bc0cd34bfdbe24"
+    },
+    "ordering-mutant.mjs": {
+      "bytes": 3965,
+      "sha256": "f5f190d236024ffcf20e89e7eabbf7675dacffc80972c2ed29bfefd7acb0f97b"
+    },
+    "restored-admission.mjs": {
+      "bytes": 3895,
+      "sha256": "9ce5c2829716f8b0734ac1dcb0a571f758df8874ab5d6e450c4ec03a307094a6"
+    },
+    "ARTIFACT.json": {
+      "bytes": 447,
+      "sha256": "80ac5406792e5b8214ce0981bdaa8dff8bce1cf10bf7a3e624bb77cb57f572ba"
+    },
+    "EXPECTED-MEMBERS.json": {
+      "bytes": 166933,
+      "sha256": "9800c6e7b6025c548c7b6be8376ca4804b5d3601115578c264ba7f7dd5b35011"
+    },
+    "PRESEAL.md": {
+      "bytes": 3138,
+      "sha256": "5e35c7ad49d31d3f0c11c9a6f0866cf75f663130bcac4531232bceb3cc057e28"
+    }
+  },
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "artifactSha256": "3f3ae85116f12ab4354a6103c0c95e967c4e88bd2eb133e63236148a2734af49",
+  "artifactBytes": 872281,
+  "expectedMembers": 954,
+  "priorManifest": "c471ecf8d9582fb7fed677ef25e734b51ab8f988a9e55a2c853489016cbdcabb",
+  "priorResult": "c031715228f24c4bd48a231a87668f153ff7cf1ee2882fde7ac90ed372267a3a",
+  "controls": 12,
+  "realArtifactAdmissions": 1,
+  "actualInflationsMaximum": 1,
+  "extraction": 0,
+  "productImports": 0,
+  "scratch": "actual-v1/work",
+  "outer": "outer.mjs",
+  "child": "controls.mjs",
+  "actualProcessCount": 2,
+  "actualPeak": 2,
+  "rootKnownProcessMaximum": 48,
+  "rootSeconds": 1500,
+  "innerSeconds": 90,
+  "cleanupSeconds": 5,
+  "captureCap": 8388608,
+  "decodedCap": 67108864,
+  "aggregateLogicalBufferCap": 100663296,
+  "mutant": {
+    "source": "ordering-mutant.mjs",
+    "insertedBefore": "    if (digest !== authority.sha256) refuse('HASH');",
+    "restored": "restored-admission.mjs"
+  },
+  "scope": "Prospective harness proof only; original attempt remains noncompliant; no rescore744."
+}

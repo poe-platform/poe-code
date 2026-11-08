@@ -1,0 +1,1713 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-09-11T16:38:05.333Z",
+  "profile": {
+    "platform": "linux",
+    "arch": "x64",
+    "node": "v22.22.0",
+    "env": {
+      "PATH": "/usr/bin:/bin",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    },
+    "timeoutMs": 5000,
+    "maxBufferBytes": 1048576,
+    "fixtureTimestamp": "2024-01-02T03:04:06.000Z",
+    "fixtureTimestampPolicy": "Reset source files and folder before each zip invocation; payloads and archive fixtures from captured helper source.",
+    "sourceHashPolicy": "Historical capture inputs, not current implementation pins. Native test hash identifies the live-oracle runner before snapshot conversion.",
+    "versions": {
+      "zip": {
+        "args": [
+          "-v"
+        ],
+        "exitCode": 0,
+        "stdout": "Copyright (c) 1990-2008 Info-ZIP - Type 'zip \"-L\"' for software license.\nThis is Zip 3.0 (July 5th 2008), by Info-ZIP.\nCurrently maintained by E. Gordon.  Please send bug reports to\nthe authors using the web page at www.info-zip.org; see README for details.\n\nLatest sources and executables are at ftp://ftp.info-zip.org/pub/infozip,\nas of above date; see http://www.info-zip.org/ for other sites.\n\nCompiled with gcc 6.3.0 20170415 for Unix (Linux ELF).\n\nZip special compilation options:\n\tUSE_EF_UT_TIME       (store Universal Time)\n\tBZIP2_SUPPORT        (bzip2 library version 1.0.8, 13-Jul-2019)\n\t    bzip2 code and library copyright (c) Julian R Seward\n\t    (See the bzip2 license for terms of use)\n\tSYMLINK_SUPPORT      (symbolic links supported)\n\tLARGE_FILE_SUPPORT   (can read and write large files on file system)\n\tZIP64_SUPPORT        (use Zip64 to store large files in archives)\n\tUNICODE_SUPPORT      (store and read UTF-8 Unicode paths)\n\tSTORE_UNIX_UIDs_GIDs (store UID/GID sizes/values using new extra field)\n\tUIDGID_NOT_16BIT     (old Unix 16-bit UID/GID extra field not used)\n\t[encryption, version 2.91 of 05 Jan 2007] (modified for Zip 3)\n\nEncryption notice:\n\tThe encryption code of this program is not copyrighted and is\n\tput in the public domain.  It was originally written in Europe\n\tand, to the best of our knowledge, can be freely distributed\n\tin both source and object forms from any country, including\n\tthe USA under License Exception TSU of the U.S. Export\n\tAdministration Regulations (section 740.13(e)) of 6 June 2002.\n\nZip environment options:\n             ZIP:  [none]\n          ZIPOPT:  [none]\n",
+        "stderr": ""
+      },
+      "unzip": {
+        "args": [
+          "-v"
+        ],
+        "exitCode": 0,
+        "stdout": "UnZip 6.00 of 20 April 2009, by Debian. Original by Info-ZIP.\n\nLatest sources and executables are at ftp://ftp.info-zip.org/pub/infozip/ ;\nsee ftp://ftp.info-zip.org/pub/infozip/UnZip.html for other sites.\n\nCompiled with gcc 9.4.0 for Unix (Linux ELF).\n\nUnZip special compilation options:\n        ACORN_FTYPE_NFS\n        COPYRIGHT_CLEAN (PKZIP 0.9x unreducing method not supported)\n        SET_DIR_ATTRIB\n        SYMLINKS (symbolic links supported, if RTL and file system permit)\n        TIMESTAMP\n        UNIXBACKUP\n        USE_EF_UT_TIME\n        USE_UNSHRINK (PKZIP/Zip 1.x unshrinking method supported)\n        USE_DEFLATE64 (PKZIP 4.x Deflate64(tm) supported)\n        UNICODE_SUPPORT [wide-chars, char coding: other] (handle UTF-8 paths)\n        LARGE_FILE_SUPPORT (large files over 2 GiB supported)\n        ZIP64_SUPPORT (archives using Zip64 for large files supported)\n        USE_BZIP2 (PKZIP 4.6+, using bzip2 lib version 1.0.8, 13-Jul-2019)\n        VMS_TEXT_CONV\n        WILD_STOP_AT_DIR\n        [decryption, version 2.11 of 05 Jan 2007]\n\nUnZip and ZipInfo environment options:\n           UNZIP:  [none]\n        UNZIPOPT:  [none]\n         ZIPINFO:  [none]\n      ZIPINFOOPT:  [none]\n",
+        "stderr": ""
+      }
+    }
+  },
+  "sourceHashes": {
+    "packages/safe-bash/tests/commands/zip-standard-flags-native.test.ts": "c103eb48c96ee72009a131107b57240f479bf04212b29477692af826fa174117",
+    "packages/safe-bash/tests/commands/zip-standard-flags.helpers.ts": "386b2221fc5da06a4a7d236c272870230fe900e2ef671c72264f55db272891e2",
+    "packages/safe-bash/src/commands/archive/zip-format.ts": "448cab6d21012354e1e9a45e5a9e68074fb3b235ab85d2df557fc5bda646c066"
+  },
+  "blobs": [
+    {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "base64": ""
+    },
+    {
+      "sha256": "dfd7b4ad6050ad5270207ae6d984d6e733cca8f474e0ef76f08921091a84439b",
+      "base64": "UEsDBAoAAAAAAIMYIljL2hNlBgAAAAYAAAAGABwAYmluYXJ5VVQJAAMmfZNlJn2TZXV4CwABBGxKAgAEbEoCAAD/gA0KQVBLAQIeAwoAAAAAAIMYIljL2hNlBgAAAAYAAAAGABgAAAAAAAAAAAC0gQAAAABiaW5hcnlVVAUAAyZ9k2V1eAsAAQRsSgIABGxKAgBQSwUGAAAAAAEAAQBMAAAARgAAAAAA"
+    },
+    {
+      "sha256": "31a585d272841100582ac67abb19b601f45521b7875d2d89c19e8adf87031f50",
+      "base64": "AP+ADQpB"
+    },
+    {
+      "sha256": "6dad428fb1fceff53391ffbcedd2b29983c2d2642daf700508da511799eff138",
+      "base64": "UEsDBAoAAAAAAIMYIljL2hNlBgAAAAYAAAAGABwAYmluYXJ5VVQJAAMmfZNlJn2TZXV4CwABBGxKAgAEbEoCAAD/gA0KQVBLAwQUAAAACACDGCJY4UFEaCIAAAAACAAACwAcAGZvbGRlci9kYXRhVVQJAAMmfZNlJn2TZXV4CwABBGxKAgAEbEoCAEvKzEssqmQoSKzMyU9M4eVKGuWP8kf5o/xR/ih/lD/s+QBQSwECHgMKAAAAAACDGCJYy9oTZQYAAAAGAAAABgAYAAAAAAAAAAAAtIEAAAAAYmluYXJ5VVQFAAMmfZNldXgLAAEEbEoCAARsSgIAUEsBAh4DFAAAAAgAgxgiWOFBRGgiAAAAAAgAAAsAGAAAAAAAAAAAALSBRgAAAGZvbGRlci9kYXRhVVQFAAMmfZNldXgLAAEEbEoCAARsSgIAUEsFBgAAAAACAAIAnQAAAK0AAAAAAA=="
+    },
+    {
+      "sha256": "9dc98963332512c5e3b882792040107c3f219a41c879835004a6ca7f8456b99a",
+      "base64": "AP+ADQpBYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQo="
+    },
+    {
+      "sha256": "261b01fa013128cdfb3225a3b2ce7bb1fe450559153bdbbe7c107d5b9ab61a4b",
+      "base64": "UEsDBAoAAAAAAIMYIlgAAAAAAAAAAAAAAAAHABwAZm9sZGVyL1VUCQADJn2TZW0upGp1eAsAAQRsSgIABGxKAgBQSwMEFAAAAAgAgxgiWOFBRGgiAAAAAAgAAAsAHABmb2xkZXIvZGF0YVVUCQADJn2TZSZ9k2V1eAsAAQRsSgIABGxKAgBLysxLLKpkKEiszMlPTOHlShrlj/JH+aP8Uf4of5Q/7PkAUEsBAh4DCgAAAAAAgxgiWAAAAAAAAAAAAAAAAAcAGAAAAAAAAAAQAP1BAAAAAGZvbGRlci9VVAUAAyZ9k2V1eAsAAQRsSgIABGxKAgBQSwECHgMUAAAACACDGCJY4UFEaCIAAAAACAAACwAYAAAAAAAAAAAAtIFBAAAAZm9sZGVyL2RhdGFVVAUAAyZ9k2V1eAsAAQRsSgIABGxKAgBQSwUGAAAAAAIAAgCeAAAAqAAAAAAA"
+    },
+    {
+      "sha256": "b1502c903eb9c4e3191ba7f63704bddd7966ab0166207931b9270119d5351b1b",
+      "base64": "YmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQo="
+    },
+    {
+      "sha256": "6a71ef7e542e0ce65611c4d2163feaa682605ad62b2bf8bfbc3cd38074b35842",
+      "base64": "CnppcCBlcnJvcjogTm90aGluZyB0byBkbyEgKGFic2VudC56aXApCg=="
+    },
+    {
+      "sha256": "cc2a8f6ec6dfcdca032b8447d3436bc211ad34f3ff11ed76a270375ea7b1a2ea",
+      "base64": "CnppcCBlcnJvcjogTm90aGluZyB0byBkbyEgKG91dHB1dC56aXApCg=="
+    },
+    {
+      "sha256": "a90215dc0d3aa231377d90ae7c08a94f0c03e08b6f9fbb7b093970728c256bf1",
+      "base64": "CnppcCBlcnJvcjogTm90aGluZyB0byBkbyEgKHRyeTogemlwIC1xciBhYnNlbnQuemlwIC4gLWkgbWlzc2luZykK"
+    },
+    {
+      "sha256": "d258a3c30993d8d8ac1b920638a5686e390d4fc0a10b26d188114bdb734859a8",
+      "base64": "CnppcCBlcnJvcjogSW52YWxpZCBjb21tYW5kIGFyZ3VtZW50cyAoY2Fubm90IHJlcGVhdCBuYW1lcyBpbiB6aXAgZmlsZSkK"
+    },
+    {
+      "sha256": "dc3901611a69548f2d90f7a8f9e14a2347e2ae258648111556c64db43e1c8256",
+      "base64": "UEsDBAoAAAgAAIMYIlgAAAAAAAAAAAAAAAAHAAkAZm9sZGVyL1VUBQABJn2TZVBLAwQKAAAIAACDGCJYy9oTZQYAAAAGAAAABgAJAGJpbmFyeVVUBQABJn2TZQD/gA0KQVBLAwQUAAAICACDGCJY4UFEaCIAAAAACAAACwAJAGZvbGRlci9kYXRhVVQFAAEmfZNlS8rMSyyqZChIrMzJT0zh5Uoa5Y/yR/mj/FH+KH+UP+z5AFBLAwQKAAAIAACDGCJYAAAAAAAAAAAAAAAABQAJAGVtcHR5VVQFAAEmfZNlUEsDBAoAAAgAAIMYIlgoPBEOCQAAAAkAAAAEAAkAbGlua1VUBQABJn2TZS4uL2JpbmFyeVBLAQIeAwoAAAgAAIMYIlgAAAAAAAAAAAAAAAAHAAkAAAAAAAAAEADtQQAAAABmb2xkZXIvVVQFAAEmfZNlUEsBAh4DCgAACAAAgxgiWMvaE2UGAAAABgAAAAYACQAAAAAAAAAAAKSBLgAAAGJpbmFyeVVUBQABJn2TZVBLAQIeAxQAAAgIAIMYIljhQURoIgAAAAAIAAALAAkAAAAAAAAAAACkgWEAAABmb2xkZXIvZGF0YVVUBQABJn2TZVBLAQIeAwoAAAgAAIMYIlgAAAAAAAAAAAAAAAAFAAkAAAAAAAAAAACkgbUAAABlbXB0eVVUBQABJn2TZVBLAQIeAwoAAAgAAIMYIlgoPBEOCQAAAAkAAAAEAAkAAAAAAAAAAAD/oeEAAABsaW5rVVQFAAEmfZNlUEsFBgAAAAAFAAUANAEAABUBAAAQAGFyY2hpdmUgY29tbWVudAo="
+    },
+    {
+      "sha256": "3c29d25fcdb4b48c37ed3f6a0ae1c9978f37fa5ca028de371911826cc69362e2",
+      "base64": "AP+ADQpBYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQpiaW5hcnkAcGF5bG9hZA0KYmluYXJ5AHBheWxvYWQNCmJpbmFyeQBwYXlsb2FkDQouLi9iaW5hcnk="
+    },
+    {
+      "sha256": "0a74b3868262054d789010212ccf3b7be469247f7ca7173f3c57a50cb706e560",
+      "base64": "Y2F1dGlvbjogZmlsZW5hbWUgbm90IG1hdGNoZWQ6ICBiaW5hcnkK"
+    },
+    {
+      "sha256": "78913ee5b44fe9854c7860f627990fdf07538904280e280dee6646cd85a722af",
+      "base64": "Li4vYmluYXJ5"
+    },
+    {
+      "sha256": "7f2b5257a87919dae53aac19b71359164014686bbe9021a7fd5e3353070905c8",
+      "base64": "Y2F1dGlvbjogZmlsZW5hbWUgbm90IG1hdGNoZWQ6ICBtaXNzaW5nCg=="
+    },
+    {
+      "sha256": "4f6e9a05eabbbacda86ef7c11153f93b0d53d791b6ca33490fab712c2fff502a",
+      "base64": "Y2F1dGlvbjogIG5vdCBleHRyYWN0aW5nOyAtZCBpZ25vcmVkCg=="
+    },
+    {
+      "sha256": "bf71a028bb61d3f17a2abc73cc8e724a6fdd36b1ef8359af0a44cc44c29ec75e",
+      "base64": "Y2F1dGlvbjogIG5vdCBleHRyYWN0aW5nOyAtZCBpZ25vcmVkCmNhdXRpb246IGZpbGVuYW1lIG5vdCBtYXRjaGVkOiAgYmluYXJ5Cg=="
+    },
+    {
+      "sha256": "65833024278cfa8037b0e414b3d6b70bb1e8d32a9df715a9c279645f0576af04",
+      "base64": "Y2F1dGlvbjogIG5vdCBleHRyYWN0aW5nOyAtZCBpZ25vcmVkCmNhdXRpb246IGZpbGVuYW1lIG5vdCBtYXRjaGVkOiAgbWlzc2luZwo="
+    },
+    {
+      "sha256": "73a4796a16929d765c81b413e9a2341b59ecbce95abf899a424dad22e86d2ed0",
+      "base64": "UEsFBgAAAAAAAAAAAAAAAAAAAAAQAGFyY2hpdmUgY29tbWVudAo="
+    },
+    {
+      "sha256": "b04b4a51df7b35a2cc49b1e06286350a6e111b37d2044918b104eff3982843b8",
+      "base64": "d2FybmluZyBbZW1wdHkuemlwXTogIHppcGZpbGUgaXMgZW1wdHkK"
+    },
+    {
+      "sha256": "fdfd641b4a6261b0e68578b2d8f93f1a23fdb45a6f92c6304aeb1c83f8e47baa",
+      "base64": "UEsDBAoAAAgAAIMYIlgAAAAABgAAAAYAAAAGAAkAYmluYXJ5VVQFAAEmfZNlAP+ADQpBUEsBAh4DCgAACAAAgxgiWAAAAAAGAAAABgAAAAYACQAAAAAAAAAAAKSBAAAAAGJpbmFyeVVUBQABJn2TZVBLBQYAAAAAAQABAD0AAAAzAAAAEABhcmNoaXZlIGNvbW1lbnQK"
+    },
+    {
+      "sha256": "1e2ece2af03ef8b3ebecb8e6b0ea9ac469e7d07771ac4fae3a70ec838332f495",
+      "base64": "YmluYXJ5ICAgICAgICAgICAgICAgICAgYmFkIENSQyA2NTEzZGFjYiAgKHNob3VsZCBiZSAwMDAwMDAwMCkK"
+    },
+    {
+      "sha256": "830bc1178300b1f69cc9bf28eb3a0702ce4723171760db1d2ed4b0de1c6f18dc",
+      "base64": "UEsDBBQAAAgIAIMYIlgAAAAAIgAAAAAIAAALAAkAZm9sZGVyL2RhdGFVVAUAASZ9k2VLysxLLKpkKEiszMlPTOHlShrlj/JH+aP8Uf4of5Q/7PkAUEsBAh4DFAAACAgAgxgiWAAAAAAiAAAAAAgAAAsACQAAAAAAAAAAAKSBAAAAAGZvbGRlci9kYXRhVVQFAAEmfZNlUEsFBgAAAAABAAEAQgAAAFQAAAAQAGFyY2hpdmUgY29tbWVudAo="
+    },
+    {
+      "sha256": "9894717aee3f66be3634dbfd64bf389d4ff4c9abfd13f4fb4725c4aa4c21c042",
+      "base64": "Zm9sZGVyL2RhdGEgICAgICAgICAgICAgYmFkIENSQyA2ODQ0NDFlMSAgKHNob3VsZCBiZSAwMDAwMDAwMCkK"
+    }
+  ],
+  "groups": {
+    "zip": [
+      {
+        "args": [
+          "-q",
+          "output.zip",
+          "binary"
+        ],
+        "observation": {
+          "exitCode": 0,
+          "stdout": 0,
+          "stderr": 0
+        },
+        "archive": {
+          "name": "output.zip",
+          "bytes": 1,
+          "stream": {
+            "args": [
+              "-p",
+              "output.zip"
+            ],
+            "observation": {
+              "exitCode": 0,
+              "stdout": 2,
+              "stderr": 0
+            }
+          }
+        }
+      },
+      {
+        "args": [
+          "-q",
+          "output.zip",
+          "folder/data"
+        ],
+        "observation": {
+          "exitCode": 0,
+          "stdout": 0,
+          "stderr": 0
+        },
+        "archive": {
+          "name": "output.zip",
+          "bytes": 3,
+          "stream": {
+            "args": [
+              "-p",
+              "output.zip"
+            ],
+            "observation": {
+              "exitCode": 0,
+              "stdout": 4,
+              "stderr": 0
+            }
+          }
+        }
+      },
+      {
+        "args": [
+          "-qr",
+          "recursive.zip",
+          "folder"
+        ],
+        "observation": {
+          "exitCode": 0,
+          "stdout": 0,
+          "stderr": 0
+        },
+        "archive": {
+          "name": "recursive.zip",
+          "bytes": 5,
+          "stream": {
+            "args": [
+              "-p",
+              "recursive.zip"
+            ],
+            "observation": {
+              "exitCode": 0,
+              "stdout": 6,
+              "stderr": 0
+            }
+          }
+        }
+      },
+      {
+        "args": [
+          "-rq",
+          "reverse.zip",
+          "folder"
+        ],
+        "observation": {
+          "exitCode": 0,
+          "stdout": 0,
+          "stderr": 0
+        },
+        "archive": {
+          "name": "reverse.zip",
+          "bytes": 5,
+          "stream": {
+            "args": [
+              "-p",
+              "reverse.zip"
+            ],
+            "observation": {
+              "exitCode": 0,
+              "stdout": 6,
+              "stderr": 0
+            }
+          }
+        }
+      },
+      {
+        "args": [
+          "after.zip",
+          "binary",
+          "-q"
+        ],
+        "observation": {
+          "exitCode": 0,
+          "stdout": 0,
+          "stderr": 0
+        },
+        "archive": {
+          "name": "after.zip",
+          "bytes": 1,
+          "stream": {
+            "args": [
+              "-p",
+              "after.zip"
+            ],
+            "observation": {
+              "exitCode": 0,
+              "stdout": 2,
+              "stderr": 0
+            }
+          }
+        }
+      },
+      {
+        "args": [
+          "-q",
+          "mixed.zip",
+          "missing",
+          "binary"
+        ],
+        "observation": {
+          "exitCode": 0,
+          "stdout": 0,
+          "stderr": 0
+        },
+        "archive": {
+          "name": "mixed.zip",
+          "bytes": 1,
+          "stream": {
+            "args": [
+              "-p",
+              "mixed.zip"
+            ],
+            "observation": {
+              "exitCode": 0,
+              "stdout": 2,
+              "stderr": 0
+            }
+          }
+        }
+      },
+      {
+        "args": [
+          "-q",
+          "absent.zip",
+          "missing"
+        ],
+        "observation": {
+          "exitCode": 12,
+          "stdout": 7,
+          "stderr": 0
+        }
+      },
+      {
+        "args": [
+          "-q",
+          "output.zip"
+        ],
+        "observation": {
+          "exitCode": 12,
+          "stdout": 8,
+          "stderr": 0
+        }
+      },
+      {
+        "args": [
+          "-qr",
+          "absent.zip",
+          "missing"
+        ],
+        "observation": {
+          "exitCode": 12,
+          "stdout": 9,
+          "stderr": 0
+        }
+      },
+      {
+        "args": [
+          "-q",
+          "duplicate.zip",
+          "binary",
+          "./binary"
+        ],
+        "observation": {
+          "exitCode": 16,
+          "stdout": 10,
+          "stderr": 0
+        }
+      }
+    ],
+    "selection": {
+      "archive": 11,
+      "cases": [
+        {
+          "args": [
+            "-p",
+            "sample.zip"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 12,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-p",
+            "sample.zip",
+            "binary"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 2,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-p",
+            "sample.zip",
+            "folder/*",
+            "binary"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 4,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-p",
+            "sample.zip",
+            "binary",
+            "binary"
+          ],
+          "observation": {
+            "exitCode": 11,
+            "stdout": 2,
+            "stderr": 13
+          }
+        },
+        {
+          "args": [
+            "-p",
+            "sample.zip",
+            "b?n[aeiou]ry"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 2,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-p",
+            "sample.zip",
+            "empty"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 0,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-p",
+            "sample.zip",
+            "folder/"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 0,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-p",
+            "sample.zip",
+            "link"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 14,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-p",
+            "sample.zip",
+            "missing"
+          ],
+          "observation": {
+            "exitCode": 11,
+            "stdout": 0,
+            "stderr": 15
+          }
+        },
+        {
+          "args": [
+            "-p",
+            "sample.zip",
+            "binary",
+            "missing"
+          ],
+          "observation": {
+            "exitCode": 11,
+            "stdout": 2,
+            "stderr": 15
+          }
+        },
+        {
+          "args": [
+            "-pp",
+            "sample.zip"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 12,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-pp",
+            "sample.zip",
+            "binary"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 2,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-pp",
+            "sample.zip",
+            "folder/*",
+            "binary"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 4,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-pp",
+            "sample.zip",
+            "binary",
+            "binary"
+          ],
+          "observation": {
+            "exitCode": 11,
+            "stdout": 2,
+            "stderr": 13
+          }
+        },
+        {
+          "args": [
+            "-pp",
+            "sample.zip",
+            "b?n[aeiou]ry"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 2,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-pp",
+            "sample.zip",
+            "empty"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 0,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-pp",
+            "sample.zip",
+            "folder/"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 0,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-pp",
+            "sample.zip",
+            "link"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 14,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-pp",
+            "sample.zip",
+            "missing"
+          ],
+          "observation": {
+            "exitCode": 11,
+            "stdout": 0,
+            "stderr": 15
+          }
+        },
+        {
+          "args": [
+            "-pp",
+            "sample.zip",
+            "binary",
+            "missing"
+          ],
+          "observation": {
+            "exitCode": 11,
+            "stdout": 2,
+            "stderr": 15
+          }
+        },
+        {
+          "args": [
+            "-lp",
+            "sample.zip"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 12,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-lp",
+            "sample.zip",
+            "binary"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 2,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-lp",
+            "sample.zip",
+            "folder/*",
+            "binary"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 4,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-lp",
+            "sample.zip",
+            "binary",
+            "binary"
+          ],
+          "observation": {
+            "exitCode": 11,
+            "stdout": 2,
+            "stderr": 13
+          }
+        },
+        {
+          "args": [
+            "-lp",
+            "sample.zip",
+            "b?n[aeiou]ry"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 2,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-lp",
+            "sample.zip",
+            "empty"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 0,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-lp",
+            "sample.zip",
+            "folder/"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 0,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-lp",
+            "sample.zip",
+            "link"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 14,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-lp",
+            "sample.zip",
+            "missing"
+          ],
+          "observation": {
+            "exitCode": 11,
+            "stdout": 0,
+            "stderr": 15
+          }
+        },
+        {
+          "args": [
+            "-lp",
+            "sample.zip",
+            "binary",
+            "missing"
+          ],
+          "observation": {
+            "exitCode": 11,
+            "stdout": 2,
+            "stderr": 15
+          }
+        },
+        {
+          "args": [
+            "-pl",
+            "sample.zip"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 12,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-pl",
+            "sample.zip",
+            "binary"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 2,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-pl",
+            "sample.zip",
+            "folder/*",
+            "binary"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 4,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-pl",
+            "sample.zip",
+            "binary",
+            "binary"
+          ],
+          "observation": {
+            "exitCode": 11,
+            "stdout": 2,
+            "stderr": 13
+          }
+        },
+        {
+          "args": [
+            "-pl",
+            "sample.zip",
+            "b?n[aeiou]ry"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 2,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-pl",
+            "sample.zip",
+            "empty"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 0,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-pl",
+            "sample.zip",
+            "folder/"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 0,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-pl",
+            "sample.zip",
+            "link"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 14,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-pl",
+            "sample.zip",
+            "missing"
+          ],
+          "observation": {
+            "exitCode": 11,
+            "stdout": 0,
+            "stderr": 15
+          }
+        },
+        {
+          "args": [
+            "-pl",
+            "sample.zip",
+            "binary",
+            "missing"
+          ],
+          "observation": {
+            "exitCode": 11,
+            "stdout": 2,
+            "stderr": 15
+          }
+        },
+        {
+          "args": [
+            "-p",
+            "-l",
+            "sample.zip"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 12,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-p",
+            "-l",
+            "sample.zip",
+            "binary"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 2,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-p",
+            "-l",
+            "sample.zip",
+            "folder/*",
+            "binary"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 4,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-p",
+            "-l",
+            "sample.zip",
+            "binary",
+            "binary"
+          ],
+          "observation": {
+            "exitCode": 11,
+            "stdout": 2,
+            "stderr": 13
+          }
+        },
+        {
+          "args": [
+            "-p",
+            "-l",
+            "sample.zip",
+            "b?n[aeiou]ry"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 2,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-p",
+            "-l",
+            "sample.zip",
+            "empty"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 0,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-p",
+            "-l",
+            "sample.zip",
+            "folder/"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 0,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-p",
+            "-l",
+            "sample.zip",
+            "link"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 14,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-p",
+            "-l",
+            "sample.zip",
+            "missing"
+          ],
+          "observation": {
+            "exitCode": 11,
+            "stdout": 0,
+            "stderr": 15
+          }
+        },
+        {
+          "args": [
+            "-p",
+            "-l",
+            "sample.zip",
+            "binary",
+            "missing"
+          ],
+          "observation": {
+            "exitCode": 11,
+            "stdout": 2,
+            "stderr": 15
+          }
+        },
+        {
+          "args": [
+            "-l",
+            "-p",
+            "sample.zip"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 12,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-l",
+            "-p",
+            "sample.zip",
+            "binary"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 2,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-l",
+            "-p",
+            "sample.zip",
+            "folder/*",
+            "binary"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 4,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-l",
+            "-p",
+            "sample.zip",
+            "binary",
+            "binary"
+          ],
+          "observation": {
+            "exitCode": 11,
+            "stdout": 2,
+            "stderr": 13
+          }
+        },
+        {
+          "args": [
+            "-l",
+            "-p",
+            "sample.zip",
+            "b?n[aeiou]ry"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 2,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-l",
+            "-p",
+            "sample.zip",
+            "empty"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 0,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-l",
+            "-p",
+            "sample.zip",
+            "folder/"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 0,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-l",
+            "-p",
+            "sample.zip",
+            "link"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 14,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-l",
+            "-p",
+            "sample.zip",
+            "missing"
+          ],
+          "observation": {
+            "exitCode": 11,
+            "stdout": 0,
+            "stderr": 15
+          }
+        },
+        {
+          "args": [
+            "-l",
+            "-p",
+            "sample.zip",
+            "binary",
+            "missing"
+          ],
+          "observation": {
+            "exitCode": 11,
+            "stdout": 2,
+            "stderr": 15
+          }
+        },
+        {
+          "args": [
+            "-op",
+            "sample.zip"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 12,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-op",
+            "sample.zip",
+            "binary"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 2,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-op",
+            "sample.zip",
+            "folder/*",
+            "binary"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 4,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-op",
+            "sample.zip",
+            "binary",
+            "binary"
+          ],
+          "observation": {
+            "exitCode": 11,
+            "stdout": 2,
+            "stderr": 13
+          }
+        },
+        {
+          "args": [
+            "-op",
+            "sample.zip",
+            "b?n[aeiou]ry"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 2,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-op",
+            "sample.zip",
+            "empty"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 0,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-op",
+            "sample.zip",
+            "folder/"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 0,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-op",
+            "sample.zip",
+            "link"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 14,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-op",
+            "sample.zip",
+            "missing"
+          ],
+          "observation": {
+            "exitCode": 11,
+            "stdout": 0,
+            "stderr": 15
+          }
+        },
+        {
+          "args": [
+            "-op",
+            "sample.zip",
+            "binary",
+            "missing"
+          ],
+          "observation": {
+            "exitCode": 11,
+            "stdout": 2,
+            "stderr": 15
+          }
+        },
+        {
+          "args": [
+            "-po",
+            "sample.zip"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 12,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-po",
+            "sample.zip",
+            "binary"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 2,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-po",
+            "sample.zip",
+            "folder/*",
+            "binary"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 4,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-po",
+            "sample.zip",
+            "binary",
+            "binary"
+          ],
+          "observation": {
+            "exitCode": 11,
+            "stdout": 2,
+            "stderr": 13
+          }
+        },
+        {
+          "args": [
+            "-po",
+            "sample.zip",
+            "b?n[aeiou]ry"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 2,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-po",
+            "sample.zip",
+            "empty"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 0,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-po",
+            "sample.zip",
+            "folder/"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 0,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-po",
+            "sample.zip",
+            "link"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 14,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-po",
+            "sample.zip",
+            "missing"
+          ],
+          "observation": {
+            "exitCode": 11,
+            "stdout": 0,
+            "stderr": 15
+          }
+        },
+        {
+          "args": [
+            "-po",
+            "sample.zip",
+            "binary",
+            "missing"
+          ],
+          "observation": {
+            "exitCode": 11,
+            "stdout": 2,
+            "stderr": 15
+          }
+        },
+        {
+          "args": [
+            "-p",
+            "-d",
+            "absent/path",
+            "sample.zip"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 12,
+            "stderr": 16
+          }
+        },
+        {
+          "args": [
+            "-p",
+            "-d",
+            "absent/path",
+            "sample.zip",
+            "binary"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 2,
+            "stderr": 16
+          }
+        },
+        {
+          "args": [
+            "-p",
+            "-d",
+            "absent/path",
+            "sample.zip",
+            "folder/*",
+            "binary"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 4,
+            "stderr": 16
+          }
+        },
+        {
+          "args": [
+            "-p",
+            "-d",
+            "absent/path",
+            "sample.zip",
+            "binary",
+            "binary"
+          ],
+          "observation": {
+            "exitCode": 11,
+            "stdout": 2,
+            "stderr": 17
+          }
+        },
+        {
+          "args": [
+            "-p",
+            "-d",
+            "absent/path",
+            "sample.zip",
+            "b?n[aeiou]ry"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 2,
+            "stderr": 16
+          }
+        },
+        {
+          "args": [
+            "-p",
+            "-d",
+            "absent/path",
+            "sample.zip",
+            "empty"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 0,
+            "stderr": 16
+          }
+        },
+        {
+          "args": [
+            "-p",
+            "-d",
+            "absent/path",
+            "sample.zip",
+            "folder/"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 0,
+            "stderr": 16
+          }
+        },
+        {
+          "args": [
+            "-p",
+            "-d",
+            "absent/path",
+            "sample.zip",
+            "link"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 14,
+            "stderr": 16
+          }
+        },
+        {
+          "args": [
+            "-p",
+            "-d",
+            "absent/path",
+            "sample.zip",
+            "missing"
+          ],
+          "observation": {
+            "exitCode": 11,
+            "stdout": 0,
+            "stderr": 18
+          }
+        },
+        {
+          "args": [
+            "-p",
+            "-d",
+            "absent/path",
+            "sample.zip",
+            "binary",
+            "missing"
+          ],
+          "observation": {
+            "exitCode": 11,
+            "stdout": 2,
+            "stderr": 18
+          }
+        },
+        {
+          "args": [
+            "-plodabsent/path",
+            "sample.zip"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 12,
+            "stderr": 16
+          }
+        },
+        {
+          "args": [
+            "-plodabsent/path",
+            "sample.zip",
+            "binary"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 2,
+            "stderr": 16
+          }
+        },
+        {
+          "args": [
+            "-plodabsent/path",
+            "sample.zip",
+            "folder/*",
+            "binary"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 4,
+            "stderr": 16
+          }
+        },
+        {
+          "args": [
+            "-plodabsent/path",
+            "sample.zip",
+            "binary",
+            "binary"
+          ],
+          "observation": {
+            "exitCode": 11,
+            "stdout": 2,
+            "stderr": 17
+          }
+        },
+        {
+          "args": [
+            "-plodabsent/path",
+            "sample.zip",
+            "b?n[aeiou]ry"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 2,
+            "stderr": 16
+          }
+        },
+        {
+          "args": [
+            "-plodabsent/path",
+            "sample.zip",
+            "empty"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 0,
+            "stderr": 16
+          }
+        },
+        {
+          "args": [
+            "-plodabsent/path",
+            "sample.zip",
+            "folder/"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 0,
+            "stderr": 16
+          }
+        },
+        {
+          "args": [
+            "-plodabsent/path",
+            "sample.zip",
+            "link"
+          ],
+          "observation": {
+            "exitCode": 0,
+            "stdout": 14,
+            "stderr": 16
+          }
+        },
+        {
+          "args": [
+            "-plodabsent/path",
+            "sample.zip",
+            "missing"
+          ],
+          "observation": {
+            "exitCode": 11,
+            "stdout": 0,
+            "stderr": 18
+          }
+        },
+        {
+          "args": [
+            "-plodabsent/path",
+            "sample.zip",
+            "binary",
+            "missing"
+          ],
+          "observation": {
+            "exitCode": 11,
+            "stdout": 2,
+            "stderr": 18
+          }
+        }
+      ],
+      "namespace": {
+        "root": [
+          "binary",
+          "folder",
+          "sample.zip"
+        ],
+        "folder": [
+          "data"
+        ]
+      }
+    },
+    "failures": {
+      "missing": [
+        {
+          "args": [
+            "-p",
+            "missing.zip"
+          ],
+          "observation": {
+            "exitCode": 9,
+            "stdout": 0,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-pl",
+            "missing.zip"
+          ],
+          "observation": {
+            "exitCode": 9,
+            "stdout": 0,
+            "stderr": 0
+          }
+        },
+        {
+          "args": [
+            "-p",
+            "-d",
+            "absent",
+            "missing.zip"
+          ],
+          "observation": {
+            "exitCode": 9,
+            "stdout": 0,
+            "stderr": 16
+          }
+        }
+      ],
+      "crc": [
+        {
+          "member": "binary",
+          "archive": 21,
+          "args": [
+            "-p",
+            "bad.zip"
+          ],
+          "observation": {
+            "exitCode": 2,
+            "stdout": 2,
+            "stderr": 22
+          }
+        },
+        {
+          "member": "folder/data",
+          "archive": 23,
+          "args": [
+            "-p",
+            "bad.zip"
+          ],
+          "observation": {
+            "exitCode": 2,
+            "stdout": 6,
+            "stderr": 24
+          }
+        }
+      ],
+      "empty": {
+        "archive": 19,
+        "args": [
+          "-p",
+          "empty.zip"
+        ],
+        "observation": {
+          "exitCode": 1,
+          "stdout": 0,
+          "stderr": 20
+        }
+      }
+    }
+  }
+}

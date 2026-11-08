@@ -1,0 +1,14 @@
+decl_zero=old
+declare -a decl_zero
+declare -p decl_zero
+decl_zero[7]=''
+declare decl_zero=new
+printf 'bare=%s\n' "$?"
+declare -a decl_zero+=tail
+printf 'append=%s\n' "$?"
+declare -p decl_zero
+declare -a decl_empty
+declare -p decl_empty
+declare -a decl_empty=()
+declare -p decl_empty
+printf 'END D03\n'

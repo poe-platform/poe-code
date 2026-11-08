@@ -1,0 +1,9 @@
+import { Shell, createMemoryFileSystem, createStructuredCommands, structuredCommands, type StructuredCommandsOptions } from "virtual-bash";
+
+const options: StructuredCommandsOptions = { limits: { maxSteps: 1, maxOutputBytes: 32 } };
+const shell: Shell = new Shell({ fs: createMemoryFileSystem() }).use(structuredCommands(options));
+const definitions = createStructuredCommands(options);
+const name: string = definitions[0]!.name;
+const result: Promise<{ exitCode: number; stdout: string; stderr: string }> = shell.exec("jq -nc 'length'");
+void name;
+void result;

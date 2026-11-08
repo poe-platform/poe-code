@@ -1,0 +1,2115 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "sourceSha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+  "python": "3.14.2 (main, Jan 27 2026, 23:32:07) [Clang 21.1.4 ]",
+  "versions": {
+    "agate": "1.14.2",
+    "csvkit": "2.2.0",
+    "Babel": "2.18.0",
+    "SQLAlchemy": "2.0.54"
+  },
+  "config": {
+    "default_locale": "en_US_POSIX",
+    "horizontal_line_char": "-",
+    "vertical_line_char": "|",
+    "bar_char": "\u2591",
+    "printable_bar_char": ":",
+    "zero_line_char": "\u2593",
+    "printable_zero_line_char": "|",
+    "tick_char": "+",
+    "ellipsis_chars": "...",
+    "text_truncation_chars": "...",
+    "number_truncation_chars": "\u2026"
+  },
+  "sources": {
+    "table/print_table.py": {
+      "sha256": "8794cd8902a4624857ad563f8cb760310d1f8a006410e8e9ddd1c2fc24df089c",
+      "text": "import math\nimport sys\n\nfrom babel.numbers import format_decimal\n\nfrom agate import config, utils\nfrom agate.data_types import Number, Text\n\n\ndef print_table(self, max_rows=20, max_columns=6, output=sys.stdout, max_column_width=20, locale=None,\n                max_precision=3):\n    \"\"\"\n    Print a text-based view of the data in this table.\n\n    The output of this method is GitHub Flavored Markdown (GFM) compatible.\n\n    :param max_rows:\n        The maximum number of rows to display before truncating the data. This\n        defaults to :code:`20` to prevent accidental printing of the entire\n        table. Pass :code:`None` to disable the limit.\n    :param max_columns:\n        The maximum number of columns to display before truncating the data.\n        This defaults to :code:`6` to prevent wrapping in most cases. Pass\n        :code:`None` to disable the limit.\n    :param output:\n        A file-like object to print to.\n    :param max_column_width:\n        Truncate all columns to at most this width. The remainder will be\n        replaced with ellipsis.\n    :param locale:\n        Provide a locale you would like to be used to format the output.\n        By default it will use the system's setting.\n    :max_precision:\n        Puts a limit on the maximum precision displayed for number types.\n        Numbers with lesser precision won't be affected.\n        This defaults to :code:`3`. Pass :code:`None` to disable limit.\n    \"\"\"\n    if max_rows is None:\n        max_rows = len(self._rows)\n\n    if max_columns is None:\n        max_columns = len(self._columns)\n\n    if max_precision is None:\n        max_precision = float('inf')\n\n    ellipsis = config.get_option('ellipsis_chars')\n    truncation = config.get_option('text_truncation_chars')\n    len_truncation = len(truncation)\n    h_line = config.get_option('horizontal_line_char')\n    v_line = config.get_option('vertical_line_char')\n    locale = locale or config.get_option('default_locale')\n\n    rows_truncated = max_rows < len(self._rows)\n    columns_truncated = max_columns < len(self._column_names)\n    column_names = []\n    for column_name in self.column_names[:max_columns]:\n        if max_column_width is not None and len(column_name) > max_column_width:\n            column_names.append('{}{}'.format(column_name[:max_column_width - len_truncation], truncation))\n        else:\n            column_names.append(column_name)\n\n    if columns_truncated:\n        column_names.append(ellipsis)\n\n    widths = [len(n) for n in column_names]\n    number_formatters = []\n    formatted_data = []\n\n    # Determine correct number of decimal places for each Number column\n    for i, c in enumerate(self._columns):\n        if i >= max_columns:\n            break\n\n        if isinstance(c.data_type, Number):\n            max_places = utils.max_precision(c[:max_rows])\n            add_ellipsis = False\n            if max_places > max_precision:\n                add_ellipsis = True\n                max_places = max_precision\n            number_formatters.append(utils.make_number_formatter(max_places, add_ellipsis))\n        else:\n            number_formatters.append(None)\n\n    # Format data and display column widths\n    for i, row in enumerate(self._rows):\n        if i >= max_rows:\n            break\n\n        formatted_row = []\n\n        for j, v in enumerate(row):\n            if j >= max_columns:\n                v = ellipsis\n            elif v is None:\n                v = ''\n            elif number_formatters[j] is not None and not math.isinf(v):\n                v = format_decimal(\n                    v,\n                    format=number_formatters[j],\n                    locale=locale\n                )\n            else:\n                v = str(v).replace('\\n', '\u21b5')\n\n            if max_column_width is not None and len(v) > max_column_width:\n                v = '{}{}'.format(v[:max_column_width - len_truncation], truncation)\n\n            if len(v) > widths[j]:\n                widths[j] = len(v)\n\n            formatted_row.append(v)\n\n            if j >= max_columns:\n                break\n\n        formatted_data.append(formatted_row)\n\n    def write(line):\n        output.write(line + '\\n')\n\n    def write_row(formatted_row):\n        \"\"\"\n        Helper function that formats individual rows.\n        \"\"\"\n        row_output = []\n\n        for j, d in enumerate(formatted_row):\n            # Text is left-justified, all other values are right-justified\n            if isinstance(self._column_types[j], Text):\n                output = ' %s ' % d.ljust(widths[j])\n            else:\n                output = ' %s ' % d.rjust(widths[j])\n\n            row_output.append(output)\n\n        text = v_line.join(row_output)\n\n        write(f'{v_line}{text}{v_line}')\n\n    divider = '{v_line} {columns} {v_line}'.format(\n        v_line=v_line,\n        columns=' | '.join(h_line * w for w in widths)\n    )\n\n    # Headers\n    write_row(column_names)\n    write(divider)\n\n    # Rows\n    for formatted_row in formatted_data:\n        write_row(formatted_row)\n\n    # Row indicating data was truncated\n    if rows_truncated:\n        write_row([ellipsis for n in column_names])\n"
+    },
+    "config.py": {
+      "sha256": "d72e480fff27b4286d52ca118572c836bfebd71dffb67de11700615af80e78f5",
+      "text": "\"\"\"\nThis module contains the global configuration for agate. Users should use\n:meth:`get_option` and :meth:`set_option` to modify the global\nconfiguration.\n\n**Available configuation options:**\n\n+-------------------------+------------------------------------------+-----------------------------------------+\n| Option                  | Description                              | Default value                           |\n+=========================+==========================================+=========================================+\n| default_locale          | Default locale for number formatting     | default_locale('LC_NUMERIC') or 'en_US' |\n+-------------------------+------------------------------------------+-----------------------------------------+\n| horizontal_line_char    | Character to render for horizontal lines | '-'                                     |\n+-------------------------+------------------------------------------+-----------------------------------------+\n| vertical_line_char      | Character to render for vertical lines   | '|'                                     |\n+-------------------------+------------------------------------------+-----------------------------------------+\n| bar_char                | Character to render for bar chart units  | '\u2591'                                     |\n+-------------------------+------------------------------------------+-----------------------------------------+\n| printable_bar_char      | Printable character for bar chart units  | ':'                                     |\n+-------------------------+------------------------------------------+-----------------------------------------+\n| zero_line_char          | Character to render for zero line units  | '\u2593'                                     |\n+-------------------------+------------------------------------------+-----------------------------------------+\n| printable_zero_line_char| Printable character for zero line units  | '|'                                     |\n+-------------------------+------------------------------------------+-----------------------------------------+\n| tick_char               | Character to render for axis ticks       | '+'                                     |\n+-------------------------+------------------------------------------+-----------------------------------------+\n| ellipsis_chars          | Characters to render for ellipsis        | '...'                                   |\n+-------------------------+------------------------------------------+-----------------------------------------+\n| text_truncation_chars   | Characters for truncated text values     | '...'                                   |\n+-------------------------+------------------------------------------+-----------------------------------------+\n| number_truncation_chars | Characters for truncated number values   | '\u2026'                                     |\n+-------------------------+------------------------------------------+-----------------------------------------+\n\n\"\"\"\n\nfrom babel.core import default_locale\n\n_options = {\n    #: Default locale for number formatting\n    'default_locale': default_locale('LC_NUMERIC') or 'en_US',\n    #: Character to render for horizontal lines\n    'horizontal_line_char': '-',\n    #: Character to render for vertical lines\n    'vertical_line_char': '|',\n    #: Character to render for bar chart units\n    'bar_char': '\u2591',\n    #: Printable character to render for bar chart units\n    'printable_bar_char': ':',\n    #: Character to render for zero line units\n    'zero_line_char': '\u2593',\n    #: Printable character to render for zero line units\n    'printable_zero_line_char': '|',\n    #: Character to render for axis ticks\n    'tick_char': '+',\n    #: Characters to render for ellipsis\n    'ellipsis_chars': '...',\n    #: Characters for truncated text values\n    'text_truncation_chars': '...',\n    #: Characters for truncated number values\n    'number_truncation_chars': '\u2026',\n}\n\n\ndef get_option(key):\n    \"\"\"\n    Get a global configuration option for agate.\n\n    :param key:\n        The name of the configuration option.\n    \"\"\"\n    return _options[key]\n\n\ndef set_option(key, value):\n    \"\"\"\n    Set a global configuration option for agate.\n\n    :param key:\n        The name of the configuration option.\n    :param value:\n        The new value to set for the configuration option.\n    \"\"\"\n    _options[key] = value\n\n\ndef set_options(options):\n    \"\"\"\n    Set a dictionary of options simultaneously.\n\n    :param hash:\n        A dictionary of option names and values.\n    \"\"\"\n    _options.update(options)\n"
+    },
+    "utils.py": {
+      "sha256": "a66c7cdc7586b154aaed7a1126e32c5c2265e95270221d8f197ccbf4e49e01ed",
+      "text": "\"\"\"\nThis module contains a collection of utility classes and functions used in\nagate.\n\"\"\"\n\nimport math\nimport string\nfrom collections import OrderedDict\nfrom collections.abc import Sequence\nfrom decimal import ROUND_CEILING, ROUND_FLOOR, Decimal, getcontext\nfrom functools import wraps\n\nfrom slugify import slugify as pslugify\n\nfrom agate import config\nfrom agate.warns import warn_duplicate_column, warn_unnamed_column\n\n#: Sentinal for use when `None` is an valid argument value\ndefault = object()\n\n\ndef memoize(func):\n    \"\"\"\n    Dead-simple memoize decorator for instance methods that take no arguments.\n\n    This is especially useful since so many of our classes are immutable.\n    \"\"\"\n    memo = None\n\n    @wraps(func)\n    def wrapper(self):\n        if memo is not None:\n            return memo\n\n        return func(self)\n\n    return wrapper\n\n\nclass NullOrder:\n    \"\"\"\n    Dummy object used for sorting in place of None.\n\n    Sorts as \"greater than everything but other nulls.\"\n    \"\"\"\n    def __lt__(self, other):\n        return False\n\n    def __eq__(self, other):\n        return isinstance(other, NullOrder)\n\n    def __gt__(self, other):\n        return not isinstance(other, NullOrder)\n\n\nclass Quantiles(Sequence):\n    \"\"\"\n    A class representing quantiles (percentiles, quartiles, etc.) for a given\n    column of Number data.\n    \"\"\"\n    def __init__(self, quantiles):\n        self._quantiles = quantiles\n\n    def __getitem__(self, i):\n        return self._quantiles.__getitem__(i)\n\n    def __iter__(self):\n        return self._quantiles.__iter__()\n\n    def __len__(self):\n        return self._quantiles.__len__()\n\n    def __repr__(self):\n        return repr(self._quantiles)\n\n    def __eq__(self, other):\n        return self._quantiles == other._quantiles\n\n    def locate(self, value):\n        \"\"\"\n        Identify which quantile a given value is part of.\n        \"\"\"\n        i = 0\n\n        if value < self._quantiles[0]:\n            raise ValueError('Value is less than minimum quantile value.')\n\n        if value > self._quantiles[-1]:\n            raise ValueError('Value is greater than maximum quantile value.')\n\n        if value == self._quantiles[-1]:\n            return Decimal(len(self._quantiles) - 1)\n\n        while value >= self._quantiles[i + 1]:\n            i += 1\n\n        return Decimal(i)\n\n\ndef median(data_sorted):\n    \"\"\"\n    Finds the median value of a given series of values.\n\n    :param data_sorted:\n        The values to find the median of. Must be sorted.\n    \"\"\"\n    length = len(data_sorted)\n\n    if length % 2 == 1:\n        return data_sorted[((length + 1) // 2) - 1]\n\n    half = length // 2\n    a = data_sorted[half - 1]\n    b = data_sorted[half]\n\n    return (a + b) / 2\n\n\ndef max_precision(values):\n    \"\"\"\n    Given a series of values (such as a :class:`.Column`) returns the most\n    significant decimal places present in any value.\n\n    :param values:\n        The values to analyze.\n    \"\"\"\n    max_whole_places = 1\n    max_decimal_places = 0\n    precision = getcontext().prec\n\n    for value in values:\n        if value is None or math.isnan(value) or math.isinf(value):\n            continue\n\n        sign, digits, exponent = value.normalize().as_tuple()\n\n        exponent_places = exponent * -1\n        whole_places = len(digits) - exponent_places\n\n        if whole_places > max_whole_places:\n            max_whole_places = whole_places\n\n        if exponent_places > max_decimal_places:\n            max_decimal_places = exponent_places\n\n    # In Python 2 it was possible for the total digits to exceed the\n    # available context precision. This ensures that can't happen. See #412\n    if max_whole_places + max_decimal_places > precision:  # pragma: no cover\n        max_decimal_places = precision - max_whole_places\n\n    return max_decimal_places\n\n\ndef make_number_formatter(decimal_places, add_ellipsis=False):\n    \"\"\"\n    Given a number of decimal places creates a formatting string that will\n    display numbers with that precision.\n\n    :param decimal_places:\n        The number of decimal places\n    :param add_ellipsis:\n        Optionally add an ellipsis symbol at the end of a number\n    \"\"\"\n    fraction = '0' * decimal_places\n    ellipsis = config.get_option('number_truncation_chars') if add_ellipsis else ''\n    return ''.join(['#,##0.', fraction, ellipsis, ';-#,##0.', fraction, ellipsis])\n\n\ndef round_limits(minimum, maximum):\n    \"\"\"\n    Rounds a pair of minimum and maximum values to form reasonable \"round\"\n    values suitable for use as axis minimum and maximum values.\n\n    Values are rounded \"out\": up for maximum and down for minimum, and \"off\":\n    to one higher than the first significant digit shared by both.\n\n    See unit tests for examples.\n    \"\"\"\n    min_bits = minimum.normalize().as_tuple()\n    max_bits = maximum.normalize().as_tuple()\n\n    max_digits = max(\n        len(min_bits.digits) + min_bits.exponent,\n        len(max_bits.digits) + max_bits.exponent\n    )\n\n    # Whole number rounding\n    if max_digits > 0:\n        multiplier = Decimal('10') ** (max_digits - 1)\n\n        min_fraction = (minimum / multiplier).to_integral_value(rounding=ROUND_FLOOR)\n        max_fraction = (maximum / multiplier).to_integral_value(rounding=ROUND_CEILING)\n\n        return (\n            min_fraction * multiplier,\n            max_fraction * multiplier\n        )\n\n    max_exponent = max(min_bits.exponent, max_bits.exponent)\n\n    # Fractional rounding\n    q = Decimal('10') ** (max_exponent + 1)\n\n    return (\n        minimum.quantize(q, rounding=ROUND_FLOOR).normalize(),\n        maximum.quantize(q, rounding=ROUND_CEILING).normalize()\n    )\n\n\ndef letter_name(index):\n    \"\"\"\n    Given a column index, assign a \"letter\" column name equivalent to\n    Excel. For example, index ``4`` would return ``E``.\n    Index ``30`` would return ``EE``.\n    \"\"\"\n    letters = string.ascii_lowercase\n    count = len(letters)\n\n    return letters[index % count] * ((index // count) + 1)\n\n\ndef parse_object(obj, path=''):\n    \"\"\"\n    Recursively parse JSON-like Python objects as a dictionary of paths/keys\n    and values.\n\n    Inspired by JSONPipe (https://github.com/dvxhouse/jsonpipe).\n    \"\"\"\n    if isinstance(obj, dict):\n        iterator = obj.items()\n    elif isinstance(obj, (list, tuple)):\n        iterator = enumerate(obj)\n    else:\n        return {path.strip('/'): obj}\n\n    d = OrderedDict()\n\n    for key, value in iterator:\n        key = str(key)\n        d.update(parse_object(value, path + key + '/'))\n\n    return d\n\n\ndef issequence(obj):\n    \"\"\"\n    Returns :code:`True` if the given object is an instance of\n    :class:`.Sequence` that is not also a string.\n    \"\"\"\n    return isinstance(obj, Sequence) and not isinstance(obj, str)\n\n\ndef deduplicate(values, column_names=False, separator='_'):\n    \"\"\"\n    Append a unique identifer to duplicate strings in a given sequence of\n    strings. Identifers are an underscore followed by the occurance number of\n    the specific string.\n\n    ['abc', 'abc', 'cde', 'abc'] -> ['abc', 'abc_2', 'cde', 'abc_3']\n\n    :param column_names:\n        If True, values are treated as column names. Warnings will be thrown\n        if column names are None or duplicates. None values will be replaced with\n        letter indices.\n    \"\"\"\n    final_values = []\n\n    for i, value in enumerate(values):\n        if column_names:\n            if not value:\n                new_value = letter_name(i)\n                warn_unnamed_column(i, new_value)\n            elif isinstance(value, str):\n                new_value = value\n            else:\n                raise ValueError('Column names must be strings or None.')\n        else:\n            new_value = value\n\n        final_value = new_value\n        duplicates = 0\n\n        while final_value in final_values:\n            final_value = new_value + separator + str(duplicates + 2)\n            duplicates += 1\n\n        if column_names and duplicates > 0:\n            warn_duplicate_column(new_value, final_value)\n\n        final_values.append(final_value)\n\n    return tuple(final_values)\n\n\ndef slugify(values, ensure_unique=False, **kwargs):\n    \"\"\"\n    Given a sequence of strings, returns a standardized version of the sequence.\n    If ``ensure_unique`` is True, any duplicate strings will be appended with\n    a unique identifier.\n\n    agate uses an underscore as a default separator but this can be changed with\n    kwargs.\n\n    Any kwargs will be passed to the slugify method in python-slugify. See:\n    https://github.com/un33k/python-slugify\n    \"\"\"\n    slug_args = {'separator': '_'}\n    slug_args.update(kwargs)\n\n    if ensure_unique:\n        new_values = tuple(pslugify(value, **slug_args) for value in values)\n        return deduplicate(new_values, separator=slug_args['separator'])\n\n    return tuple(pslugify(value, **slug_args) for value in values)\n"
+    }
+  },
+  "warningUtilsPath": "/Users/kjopek/.cache/uv/archive-v0/s-e6Z1tsuHBqlXiv/lib/python3.14/site-packages/agate/utils.py",
+  "cases": [
+    {
+      "stdin": "a,b\nx,y\nlong,null\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "| a    |    b |\n| ---- | ---- |\n| x    | True |\n| long |      |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\nx,y\nlong,null\n",
+      "argv": [
+        "-y0",
+        "-I"
+      ],
+      "stdout": "| a    | b |\n| ---- | - |\n| x    | y |\n| long |   |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\nx,y\nlong,null\n",
+      "argv": [
+        "-y0",
+        "-l"
+      ],
+      "stdout": "| line_numbers | a    |    b |\n| ------------ | ---- | ---- |\n|            1 | x    | True |\n|            2 | long |      |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\nx,y\nlong,null\n",
+      "argv": [
+        "-y0",
+        "-I",
+        "-l"
+      ],
+      "stdout": "| line_numbers | a    | b |\n| ------------ | ---- | - |\n| 1            | x    | y |\n| 2            | long |   |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\nx,y\nlong,null\n",
+      "argv": [
+        "-y0",
+        "--max-rows",
+        "0"
+      ],
+      "stdout": "| a | b |\n| - | - |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\nx,y\nlong,null\n",
+      "argv": [
+        "-y0",
+        "--max-rows",
+        "1"
+      ],
+      "stdout": "| a |    b |\n| - | ---- |\n| x | True |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\nx,y\nlong,null\n",
+      "argv": [
+        "-y0",
+        "--max-columns",
+        "0"
+      ],
+      "stdout": "| ... |\n| --- |\n| ... |\n| ... |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\nx,y\nlong,null\n",
+      "argv": [
+        "-y0",
+        "--max-columns",
+        "1"
+      ],
+      "stdout": "| a    | ... |\n| ---- | --- |\n| x    | ... |\n| long | ... |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\nx,y\nlong,null\n",
+      "argv": [
+        "-y0",
+        "--max-columns",
+        "-1"
+      ],
+      "stdout": "| a   | ... |\n| --- | --- |\n| ... |\n| ... |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\nx,y\nlong,null\n",
+      "argv": [
+        "-y0",
+        "--max-column-width",
+        "1"
+      ],
+      "stdout": "| a     |     b |\n| ----- | ----- |\n| x     | Tr... |\n| lo... |       |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\nx,y\nlong,null\n",
+      "argv": [
+        "-y0",
+        "--max-column-width",
+        "2"
+      ],
+      "stdout": "| a      |      b |\n| ------ | ------ |\n| x      | Tru... |\n| lon... |        |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\nx,y\nlong,null\n",
+      "argv": [
+        "-y0",
+        "--max-column-width",
+        "-1"
+      ],
+      "stdout": "| ... | ... |\n| --- | --- |\n| ... | ... |\n| ... | ... |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\nx,y\nlong,null\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "0"
+      ],
+      "stdout": "| a    |    b |\n| ---- | ---- |\n| x    | True |\n| long |      |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\nx,y\nlong,null\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "1"
+      ],
+      "stdout": "| a    |    b |\n| ---- | ---- |\n| x    | True |\n| long |      |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\nx,y\nlong,null\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "-1"
+      ],
+      "stdout": "| a    |    b |\n| ---- | ---- |\n| x    | True |\n| long |      |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\nx,y\nlong,null\n",
+      "argv": [
+        "-y0",
+        "--no-number-ellipsis"
+      ],
+      "stdout": "| a    |    b |\n| ---- | ---- |\n| x    | True |\n| long |      |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n,text\n1234.56789,a\n2.5,b\n-2.34565,c\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "|          n | text |\n| ---------- | ---- |\n| 1,234.568\u2026 | a    |\n|     2.500\u2026 | b    |\n|    -2.346\u2026 | c    |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n,text\n1234.56789,a\n2.5,b\n-2.34565,c\n",
+      "argv": [
+        "-y0",
+        "-I"
+      ],
+      "stdout": "| n          | text |\n| ---------- | ---- |\n| 1234.56789 | a    |\n| 2.5        | b    |\n| -2.34565   | c    |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n,text\n1234.56789,a\n2.5,b\n-2.34565,c\n",
+      "argv": [
+        "-y0",
+        "-l"
+      ],
+      "stdout": "| line_numbers |          n | text |\n| ------------ | ---------- | ---- |\n|            1 | 1,234.568\u2026 | a    |\n|            2 |     2.500\u2026 | b    |\n|            3 |    -2.346\u2026 | c    |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n,text\n1234.56789,a\n2.5,b\n-2.34565,c\n",
+      "argv": [
+        "-y0",
+        "-I",
+        "-l"
+      ],
+      "stdout": "| line_numbers | n          | text |\n| ------------ | ---------- | ---- |\n| 1            | 1234.56789 | a    |\n| 2            | 2.5        | b    |\n| 3            | -2.34565   | c    |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n,text\n1234.56789,a\n2.5,b\n-2.34565,c\n",
+      "argv": [
+        "-y0",
+        "--max-rows",
+        "0"
+      ],
+      "stdout": "| n | text |\n| - | ---- |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n,text\n1234.56789,a\n2.5,b\n-2.34565,c\n",
+      "argv": [
+        "-y0",
+        "--max-rows",
+        "1"
+      ],
+      "stdout": "|          n | text |\n| ---------- | ---- |\n| 1,234.568\u2026 | a    |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n,text\n1234.56789,a\n2.5,b\n-2.34565,c\n",
+      "argv": [
+        "-y0",
+        "--max-columns",
+        "0"
+      ],
+      "stdout": "| ... |\n| --- |\n| ... |\n| ... |\n| ... |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n,text\n1234.56789,a\n2.5,b\n-2.34565,c\n",
+      "argv": [
+        "-y0",
+        "--max-columns",
+        "1"
+      ],
+      "stdout": "|          n | ... |\n| ---------- | --- |\n| 1,234.568\u2026 | ... |\n|     2.500\u2026 | ... |\n|    -2.346\u2026 | ... |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n,text\n1234.56789,a\n2.5,b\n-2.34565,c\n",
+      "argv": [
+        "-y0",
+        "--max-columns",
+        "-1"
+      ],
+      "stdout": "|   n | ... |\n| --- | --- |\n| ... |\n| ... |\n| ... |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n,text\n1234.56789,a\n2.5,b\n-2.34565,c\n",
+      "argv": [
+        "-y0",
+        "--max-column-width",
+        "1"
+      ],
+      "stdout": "|           n | te... |\n| ----------- | ----- |\n| 1,234.56... | a     |\n|     2.50... | b     |\n|    -2.34... | c     |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n,text\n1234.56789,a\n2.5,b\n-2.34565,c\n",
+      "argv": [
+        "-y0",
+        "--max-column-width",
+        "2"
+      ],
+      "stdout": "|            n | tex... |\n| ------------ | ------ |\n| 1,234.568... | a      |\n|     2.500... | b      |\n|    -2.346... | c      |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n,text\n1234.56789,a\n2.5,b\n-2.34565,c\n",
+      "argv": [
+        "-y0",
+        "--max-column-width",
+        "-1"
+      ],
+      "stdout": "|       ... | ... |\n| --------- | --- |\n| 1,234.... | ... |\n|     2.... | ... |\n|    -2.... | ... |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n,text\n1234.56789,a\n2.5,b\n-2.34565,c\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "0"
+      ],
+      "stdout": "|      n | text |\n| ------ | ---- |\n| 1,235\u2026 | a    |\n|     2\u2026 | b    |\n|    -2\u2026 | c    |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n,text\n1234.56789,a\n2.5,b\n-2.34565,c\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "1"
+      ],
+      "stdout": "|        n | text |\n| -------- | ---- |\n| 1,234.6\u2026 | a    |\n|     2.5\u2026 | b    |\n|    -2.3\u2026 | c    |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n,text\n1234.56789,a\n2.5,b\n-2.34565,c\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "-1"
+      ],
+      "stdout": "|      n | text |\n| ------ | ---- |\n| 1,235\u2026 | a    |\n|     2\u2026 | b    |\n|    -2\u2026 | c    |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n,text\n1234.56789,a\n2.5,b\n-2.34565,c\n",
+      "argv": [
+        "-y0",
+        "--no-number-ellipsis"
+      ],
+      "stdout": "|         n | text |\n| --------- | ---- |\n| 1,234.568 | a    |\n|     2.500 | b    |\n|    -2.346 | c    |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,d,t\nyes,2024-01-02,1:02:03\nno,2024-03-04,2 days\nnull,null,null\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "|     b |          d |               t |\n| ----- | ---------- | --------------- |\n|  True | 2024-01-02 |         1:02:03 |\n| False | 2024-03-04 | 2 days, 0:00:00 |\n|       |            |                 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,d,t\nyes,2024-01-02,1:02:03\nno,2024-03-04,2 days\nnull,null,null\n",
+      "argv": [
+        "-y0",
+        "-I"
+      ],
+      "stdout": "| b   | d          | t       |\n| --- | ---------- | ------- |\n| yes | 2024-01-02 | 1:02:03 |\n| no  | 2024-03-04 | 2 days  |\n|     |            |         |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,d,t\nyes,2024-01-02,1:02:03\nno,2024-03-04,2 days\nnull,null,null\n",
+      "argv": [
+        "-y0",
+        "-l"
+      ],
+      "stdout": "| line_numbers |     b |          d |               t |\n| ------------ | ----- | ---------- | --------------- |\n|            1 |  True | 2024-01-02 |         1:02:03 |\n|            2 | False | 2024-03-04 | 2 days, 0:00:00 |\n|            3 |       |            |                 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,d,t\nyes,2024-01-02,1:02:03\nno,2024-03-04,2 days\nnull,null,null\n",
+      "argv": [
+        "-y0",
+        "-I",
+        "-l"
+      ],
+      "stdout": "| line_numbers | b   | d          | t       |\n| ------------ | --- | ---------- | ------- |\n| 1            | yes | 2024-01-02 | 1:02:03 |\n| 2            | no  | 2024-03-04 | 2 days  |\n| 3            |     |            |         |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,d,t\nyes,2024-01-02,1:02:03\nno,2024-03-04,2 days\nnull,null,null\n",
+      "argv": [
+        "-y0",
+        "--max-rows",
+        "0"
+      ],
+      "stdout": "| b | d | t |\n| - | - | - |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,d,t\nyes,2024-01-02,1:02:03\nno,2024-03-04,2 days\nnull,null,null\n",
+      "argv": [
+        "-y0",
+        "--max-rows",
+        "1"
+      ],
+      "stdout": "|    b |          d |       t |\n| ---- | ---------- | ------- |\n| True | 2024-01-02 | 1:02:03 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,d,t\nyes,2024-01-02,1:02:03\nno,2024-03-04,2 days\nnull,null,null\n",
+      "argv": [
+        "-y0",
+        "--max-columns",
+        "0"
+      ],
+      "stdout": "| ... |\n| --- |\n| ... |\n| ... |\n| ... |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,d,t\nyes,2024-01-02,1:02:03\nno,2024-03-04,2 days\nnull,null,null\n",
+      "argv": [
+        "-y0",
+        "--max-columns",
+        "1"
+      ],
+      "stdout": "|     b | ... |\n| ----- | --- |\n|  True | ... |\n| False | ... |\n|       | ... |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,d,t\nyes,2024-01-02,1:02:03\nno,2024-03-04,2 days\nnull,null,null\n",
+      "argv": [
+        "-y0",
+        "--max-columns",
+        "-1"
+      ],
+      "stdout": "|   b | d | ... |\n| --- | - | --- |\n| ... |\n| ... |\n| ... |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,d,t\nyes,2024-01-02,1:02:03\nno,2024-03-04,2 days\nnull,null,null\n",
+      "argv": [
+        "-y0",
+        "--max-column-width",
+        "1"
+      ],
+      "stdout": "|      b |           d |                t |\n| ------ | ----------- | ---------------- |\n|  Tr... | 2024-01-... |         1:02:... |\n| Fal... | 2024-03-... | 2 days, 0:00:... |\n|        |             |                  |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,d,t\nyes,2024-01-02,1:02:03\nno,2024-03-04,2 days\nnull,null,null\n",
+      "argv": [
+        "-y0",
+        "--max-column-width",
+        "2"
+      ],
+      "stdout": "|       b |            d |                 t |\n| ------- | ------------ | ----------------- |\n|  Tru... | 2024-01-0... |         1:02:0... |\n| Fals... | 2024-03-0... | 2 days, 0:00:0... |\n|         |              |                   |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,d,t\nyes,2024-01-02,1:02:03\nno,2024-03-04,2 days\nnull,null,null\n",
+      "argv": [
+        "-y0",
+        "--max-column-width",
+        "-1"
+      ],
+      "stdout": "|  ... |       ... |            ... |\n| ---- | --------- | -------------- |\n|  ... | 2024-0... |         1:0... |\n| F... | 2024-0... | 2 days, 0:0... |\n|  ... |       ... |            ... |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,d,t\nyes,2024-01-02,1:02:03\nno,2024-03-04,2 days\nnull,null,null\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "0"
+      ],
+      "stdout": "|     b |          d |               t |\n| ----- | ---------- | --------------- |\n|  True | 2024-01-02 |         1:02:03 |\n| False | 2024-03-04 | 2 days, 0:00:00 |\n|       |            |                 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,d,t\nyes,2024-01-02,1:02:03\nno,2024-03-04,2 days\nnull,null,null\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "1"
+      ],
+      "stdout": "|     b |          d |               t |\n| ----- | ---------- | --------------- |\n|  True | 2024-01-02 |         1:02:03 |\n| False | 2024-03-04 | 2 days, 0:00:00 |\n|       |            |                 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,d,t\nyes,2024-01-02,1:02:03\nno,2024-03-04,2 days\nnull,null,null\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "-1"
+      ],
+      "stdout": "|     b |          d |               t |\n| ----- | ---------- | --------------- |\n|  True | 2024-01-02 |         1:02:03 |\n| False | 2024-03-04 | 2 days, 0:00:00 |\n|       |            |                 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,d,t\nyes,2024-01-02,1:02:03\nno,2024-03-04,2 days\nnull,null,null\n",
+      "argv": [
+        "-y0",
+        "--no-number-ellipsis"
+      ],
+      "stdout": "|     b |          d |               t |\n| ----- | ---------- | --------------- |\n|  True | 2024-01-02 |         1:02:03 |\n| False | 2024-03-04 | 2 days, 0:00:00 |\n|       |            |                 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\n\"x\ny\",\ud83d\ude00\n\"x\ty\",\u754ce\u0301\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "| a   | b   |\n| --- | --- |\n| x\u21b5y | \ud83d\ude00   |\n| x\ty | \u754ce\u0301 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\n\"x\ny\",\ud83d\ude00\n\"x\ty\",\u754ce\u0301\n",
+      "argv": [
+        "-y0",
+        "-I"
+      ],
+      "stdout": "| a   | b   |\n| --- | --- |\n| x\u21b5y | \ud83d\ude00   |\n| x\ty | \u754ce\u0301 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\n\"x\ny\",\ud83d\ude00\n\"x\ty\",\u754ce\u0301\n",
+      "argv": [
+        "-y0",
+        "-l"
+      ],
+      "stdout": "| line_numbers | a   | b   |\n| ------------ | --- | --- |\n|            2 | x\u21b5y | \ud83d\ude00   |\n|            3 | x\ty | \u754ce\u0301 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\n\"x\ny\",\ud83d\ude00\n\"x\ty\",\u754ce\u0301\n",
+      "argv": [
+        "-y0",
+        "-I",
+        "-l"
+      ],
+      "stdout": "| line_numbers | a   | b   |\n| ------------ | --- | --- |\n| 2            | x\u21b5y | \ud83d\ude00   |\n| 3            | x\ty | \u754ce\u0301 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\n\"x\ny\",\ud83d\ude00\n\"x\ty\",\u754ce\u0301\n",
+      "argv": [
+        "-y0",
+        "--max-rows",
+        "0"
+      ],
+      "stdout": "| a | b |\n| - | - |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\n\"x\ny\",\ud83d\ude00\n\"x\ty\",\u754ce\u0301\n",
+      "argv": [
+        "-y0",
+        "--max-rows",
+        "1"
+      ],
+      "stdout": "| a   | b |\n| --- | - |\n| x\u21b5y | \ud83d\ude00 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\n\"x\ny\",\ud83d\ude00\n\"x\ty\",\u754ce\u0301\n",
+      "argv": [
+        "-y0",
+        "--max-columns",
+        "0"
+      ],
+      "stdout": "| ... |\n| --- |\n| ... |\n| ... |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\n\"x\ny\",\ud83d\ude00\n\"x\ty\",\u754ce\u0301\n",
+      "argv": [
+        "-y0",
+        "--max-columns",
+        "1"
+      ],
+      "stdout": "| a   | ... |\n| --- | --- |\n| x\u21b5y | ... |\n| x\ty | ... |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\n\"x\ny\",\ud83d\ude00\n\"x\ty\",\u754ce\u0301\n",
+      "argv": [
+        "-y0",
+        "--max-columns",
+        "-1"
+      ],
+      "stdout": "| a   | ... |\n| --- | --- |\n| ... |\n| ... |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\n\"x\ny\",\ud83d\ude00\n\"x\ty\",\u754ce\u0301\n",
+      "argv": [
+        "-y0",
+        "--max-column-width",
+        "1"
+      ],
+      "stdout": "| a    | b    |\n| ---- | ---- |\n| x... | \ud83d\ude00    |\n| x... | \u754c... |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\n\"x\ny\",\ud83d\ude00\n\"x\ty\",\u754ce\u0301\n",
+      "argv": [
+        "-y0",
+        "--max-column-width",
+        "2"
+      ],
+      "stdout": "| a     | b     |\n| ----- | ----- |\n| x\u21b5... | \ud83d\ude00     |\n| x\t... | \u754ce... |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\n\"x\ny\",\ud83d\ude00\n\"x\ty\",\u754ce\u0301\n",
+      "argv": [
+        "-y0",
+        "--max-column-width",
+        "-1"
+      ],
+      "stdout": "| ... | ... |\n| --- | --- |\n| ... | ... |\n| ... | ... |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\n\"x\ny\",\ud83d\ude00\n\"x\ty\",\u754ce\u0301\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "0"
+      ],
+      "stdout": "| a   | b   |\n| --- | --- |\n| x\u21b5y | \ud83d\ude00   |\n| x\ty | \u754ce\u0301 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\n\"x\ny\",\ud83d\ude00\n\"x\ty\",\u754ce\u0301\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "1"
+      ],
+      "stdout": "| a   | b   |\n| --- | --- |\n| x\u21b5y | \ud83d\ude00   |\n| x\ty | \u754ce\u0301 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\n\"x\ny\",\ud83d\ude00\n\"x\ty\",\u754ce\u0301\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "-1"
+      ],
+      "stdout": "| a   | b   |\n| --- | --- |\n| x\u21b5y | \ud83d\ude00   |\n| x\ty | \u754ce\u0301 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\n\"x\ny\",\ud83d\ude00\n\"x\ty\",\u754ce\u0301\n",
+      "argv": [
+        "-y0",
+        "--no-number-ellipsis"
+      ],
+      "stdout": "| a   | b   |\n| --- | --- |\n| x\u21b5y | \ud83d\ude00   |\n| x\ty | \u754ce\u0301 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "||\n|  |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "",
+      "argv": [
+        "-y0",
+        "-I"
+      ],
+      "stdout": "||\n|  |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "",
+      "argv": [
+        "-y0",
+        "-l"
+      ],
+      "stdout": "||\n|  |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "",
+      "argv": [
+        "-y0",
+        "-I",
+        "-l"
+      ],
+      "stdout": "||\n|  |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "",
+      "argv": [
+        "-y0",
+        "--max-rows",
+        "0"
+      ],
+      "stdout": "||\n|  |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "",
+      "argv": [
+        "-y0",
+        "--max-rows",
+        "1"
+      ],
+      "stdout": "||\n|  |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "",
+      "argv": [
+        "-y0",
+        "--max-columns",
+        "0"
+      ],
+      "stdout": "||\n|  |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "",
+      "argv": [
+        "-y0",
+        "--max-columns",
+        "1"
+      ],
+      "stdout": "||\n|  |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "",
+      "argv": [
+        "-y0",
+        "--max-columns",
+        "-1"
+      ],
+      "stdout": "",
+      "stderr": "IndexError: tuple index out of range\n",
+      "status": 1
+    },
+    {
+      "stdin": "",
+      "argv": [
+        "-y0",
+        "--max-column-width",
+        "1"
+      ],
+      "stdout": "||\n|  |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "",
+      "argv": [
+        "-y0",
+        "--max-column-width",
+        "2"
+      ],
+      "stdout": "||\n|  |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "",
+      "argv": [
+        "-y0",
+        "--max-column-width",
+        "-1"
+      ],
+      "stdout": "||\n|  |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "0"
+      ],
+      "stdout": "||\n|  |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "1"
+      ],
+      "stdout": "||\n|  |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "-1"
+      ],
+      "stdout": "||\n|  |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "",
+      "argv": [
+        "-y0",
+        "--no-number-ellipsis"
+      ],
+      "stdout": "||\n|  |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "| a | b |\n| - | - |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\n",
+      "argv": [
+        "-y0",
+        "-I"
+      ],
+      "stdout": "| a | b |\n| - | - |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\n",
+      "argv": [
+        "-y0",
+        "-l"
+      ],
+      "stdout": "| line_numbers | a | b |\n| ------------ | - | - |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\n",
+      "argv": [
+        "-y0",
+        "-I",
+        "-l"
+      ],
+      "stdout": "| line_numbers | a | b |\n| ------------ | - | - |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\n",
+      "argv": [
+        "-y0",
+        "--max-rows",
+        "0"
+      ],
+      "stdout": "| a | b |\n| - | - |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\n",
+      "argv": [
+        "-y0",
+        "--max-rows",
+        "1"
+      ],
+      "stdout": "| a | b |\n| - | - |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\n",
+      "argv": [
+        "-y0",
+        "--max-columns",
+        "0"
+      ],
+      "stdout": "| ... |\n| --- |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\n",
+      "argv": [
+        "-y0",
+        "--max-columns",
+        "1"
+      ],
+      "stdout": "| a | ... |\n| - | --- |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\n",
+      "argv": [
+        "-y0",
+        "--max-columns",
+        "-1"
+      ],
+      "stdout": "| a | ... |\n| - | --- |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\n",
+      "argv": [
+        "-y0",
+        "--max-column-width",
+        "1"
+      ],
+      "stdout": "| a | b |\n| - | - |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\n",
+      "argv": [
+        "-y0",
+        "--max-column-width",
+        "2"
+      ],
+      "stdout": "| a | b |\n| - | - |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\n",
+      "argv": [
+        "-y0",
+        "--max-column-width",
+        "-1"
+      ],
+      "stdout": "| ... | ... |\n| --- | --- |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "0"
+      ],
+      "stdout": "| a | b |\n| - | - |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "1"
+      ],
+      "stdout": "| a | b |\n| - | - |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "-1"
+      ],
+      "stdout": "| a | b |\n| - | - |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\n",
+      "argv": [
+        "-y0",
+        "--no-number-ellipsis"
+      ],
+      "stdout": "| a | b |\n| - | - |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nnull\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "| a |\n| - |\n|   |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nnull\n",
+      "argv": [
+        "-y0",
+        "-I"
+      ],
+      "stdout": "| a |\n| - |\n|   |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nnull\n",
+      "argv": [
+        "-y0",
+        "-l"
+      ],
+      "stdout": "| line_numbers | a |\n| ------------ | - |\n|         True |   |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nnull\n",
+      "argv": [
+        "-y0",
+        "-I",
+        "-l"
+      ],
+      "stdout": "| line_numbers | a |\n| ------------ | - |\n| 1            |   |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nnull\n",
+      "argv": [
+        "-y0",
+        "--max-rows",
+        "0"
+      ],
+      "stdout": "| a |\n| - |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nnull\n",
+      "argv": [
+        "-y0",
+        "--max-rows",
+        "1"
+      ],
+      "stdout": "| a |\n| - |\n|   |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nnull\n",
+      "argv": [
+        "-y0",
+        "--max-columns",
+        "0"
+      ],
+      "stdout": "| ... |\n| --- |\n| ... |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nnull\n",
+      "argv": [
+        "-y0",
+        "--max-columns",
+        "1"
+      ],
+      "stdout": "| a |\n| - |\n|   |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nnull\n",
+      "argv": [
+        "-y0",
+        "--max-columns",
+        "-1"
+      ],
+      "stdout": "| ... |\n| --- |\n| ... |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nnull\n",
+      "argv": [
+        "-y0",
+        "--max-column-width",
+        "1"
+      ],
+      "stdout": "| a |\n| - |\n|   |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nnull\n",
+      "argv": [
+        "-y0",
+        "--max-column-width",
+        "2"
+      ],
+      "stdout": "| a |\n| - |\n|   |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nnull\n",
+      "argv": [
+        "-y0",
+        "--max-column-width",
+        "-1"
+      ],
+      "stdout": "| ... |\n| --- |\n| ... |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nnull\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "0"
+      ],
+      "stdout": "| a |\n| - |\n|   |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nnull\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "1"
+      ],
+      "stdout": "| a |\n| - |\n|   |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nnull\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "-1"
+      ],
+      "stdout": "| a |\n| - |\n|   |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nnull\n",
+      "argv": [
+        "-y0",
+        "--no-number-ellipsis"
+      ],
+      "stdout": "| a |\n| - |\n|   |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nNaN\n2\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "|   a |\n| --- |\n| NaN |\n|   2 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nNaN\n2\n",
+      "argv": [
+        "-y0",
+        "-I"
+      ],
+      "stdout": "| a   |\n| --- |\n| NaN |\n| 2   |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nNaN\n2\n",
+      "argv": [
+        "-y0",
+        "-l"
+      ],
+      "stdout": "| line_numbers |   a |\n| ------------ | --- |\n|            1 | NaN |\n|            2 |   2 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nNaN\n2\n",
+      "argv": [
+        "-y0",
+        "-I",
+        "-l"
+      ],
+      "stdout": "| line_numbers | a   |\n| ------------ | --- |\n| 1            | NaN |\n| 2            | 2   |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nNaN\n2\n",
+      "argv": [
+        "-y0",
+        "--max-rows",
+        "0"
+      ],
+      "stdout": "| a |\n| - |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nNaN\n2\n",
+      "argv": [
+        "-y0",
+        "--max-rows",
+        "1"
+      ],
+      "stdout": "|   a |\n| --- |\n| NaN |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nNaN\n2\n",
+      "argv": [
+        "-y0",
+        "--max-columns",
+        "0"
+      ],
+      "stdout": "| ... |\n| --- |\n| ... |\n| ... |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nNaN\n2\n",
+      "argv": [
+        "-y0",
+        "--max-columns",
+        "1"
+      ],
+      "stdout": "|   a |\n| --- |\n| NaN |\n|   2 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nNaN\n2\n",
+      "argv": [
+        "-y0",
+        "--max-columns",
+        "-1"
+      ],
+      "stdout": "| ... |\n| --- |\n| ... |\n| ... |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nNaN\n2\n",
+      "argv": [
+        "-y0",
+        "--max-column-width",
+        "1"
+      ],
+      "stdout": "|    a |\n| ---- |\n| N... |\n|    2 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nNaN\n2\n",
+      "argv": [
+        "-y0",
+        "--max-column-width",
+        "2"
+      ],
+      "stdout": "|     a |\n| ----- |\n| Na... |\n|     2 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nNaN\n2\n",
+      "argv": [
+        "-y0",
+        "--max-column-width",
+        "-1"
+      ],
+      "stdout": "| ... |\n| --- |\n| ... |\n| ... |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nNaN\n2\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "0"
+      ],
+      "stdout": "|   a |\n| --- |\n| NaN |\n|   2 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nNaN\n2\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "1"
+      ],
+      "stdout": "|   a |\n| --- |\n| NaN |\n|   2 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nNaN\n2\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "-1"
+      ],
+      "stdout": "|    a |\n| ---- |\n| NaN\u2026 |\n|   2\u2026 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nNaN\n2\n",
+      "argv": [
+        "-y0",
+        "--no-number-ellipsis"
+      ],
+      "stdout": "|   a |\n| --- |\n| NaN |\n|   2 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nInfinity\n-Infinity\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "|         a |\n| --------- |\n|  Infinity |\n| -Infinity |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nInfinity\n-Infinity\n",
+      "argv": [
+        "-y0",
+        "-I"
+      ],
+      "stdout": "| a         |\n| --------- |\n| Infinity  |\n| -Infinity |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nInfinity\n-Infinity\n",
+      "argv": [
+        "-y0",
+        "-l"
+      ],
+      "stdout": "| line_numbers |         a |\n| ------------ | --------- |\n|            1 |  Infinity |\n|            2 | -Infinity |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nInfinity\n-Infinity\n",
+      "argv": [
+        "-y0",
+        "-I",
+        "-l"
+      ],
+      "stdout": "| line_numbers | a         |\n| ------------ | --------- |\n| 1            | Infinity  |\n| 2            | -Infinity |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nInfinity\n-Infinity\n",
+      "argv": [
+        "-y0",
+        "--max-rows",
+        "0"
+      ],
+      "stdout": "| a |\n| - |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nInfinity\n-Infinity\n",
+      "argv": [
+        "-y0",
+        "--max-rows",
+        "1"
+      ],
+      "stdout": "|        a |\n| -------- |\n| Infinity |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nInfinity\n-Infinity\n",
+      "argv": [
+        "-y0",
+        "--max-columns",
+        "0"
+      ],
+      "stdout": "| ... |\n| --- |\n| ... |\n| ... |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nInfinity\n-Infinity\n",
+      "argv": [
+        "-y0",
+        "--max-columns",
+        "1"
+      ],
+      "stdout": "|         a |\n| --------- |\n|  Infinity |\n| -Infinity |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nInfinity\n-Infinity\n",
+      "argv": [
+        "-y0",
+        "--max-columns",
+        "-1"
+      ],
+      "stdout": "| ... |\n| --- |\n| ... |\n| ... |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nInfinity\n-Infinity\n",
+      "argv": [
+        "-y0",
+        "--max-column-width",
+        "1"
+      ],
+      "stdout": "|          a |\n| ---------- |\n|  Infini... |\n| -Infini... |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nInfinity\n-Infinity\n",
+      "argv": [
+        "-y0",
+        "--max-column-width",
+        "2"
+      ],
+      "stdout": "|           a |\n| ----------- |\n|  Infinit... |\n| -Infinit... |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nInfinity\n-Infinity\n",
+      "argv": [
+        "-y0",
+        "--max-column-width",
+        "-1"
+      ],
+      "stdout": "|      ... |\n| -------- |\n|  Infi... |\n| -Infi... |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nInfinity\n-Infinity\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "0"
+      ],
+      "stdout": "|         a |\n| --------- |\n|  Infinity |\n| -Infinity |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nInfinity\n-Infinity\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "1"
+      ],
+      "stdout": "|         a |\n| --------- |\n|  Infinity |\n| -Infinity |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nInfinity\n-Infinity\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "-1"
+      ],
+      "stdout": "|         a |\n| --------- |\n|  Infinity |\n| -Infinity |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nInfinity\n-Infinity\n",
+      "argv": [
+        "-y0",
+        "--no-number-ellipsis"
+      ],
+      "stdout": "|         a |\n| --------- |\n|  Infinity |\n| -Infinity |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\n-0\n2\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "|  a |\n| -- |\n| -0 |\n|  2 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\n-0\n2\n",
+      "argv": [
+        "-y0",
+        "-I"
+      ],
+      "stdout": "| a  |\n| -- |\n| -0 |\n| 2  |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\n-0\n2\n",
+      "argv": [
+        "-y0",
+        "-l"
+      ],
+      "stdout": "| line_numbers |  a |\n| ------------ | -- |\n|            1 | -0 |\n|            2 |  2 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\n-0\n2\n",
+      "argv": [
+        "-y0",
+        "-I",
+        "-l"
+      ],
+      "stdout": "| line_numbers | a  |\n| ------------ | -- |\n| 1            | -0 |\n| 2            | 2  |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\n-0\n2\n",
+      "argv": [
+        "-y0",
+        "--max-rows",
+        "0"
+      ],
+      "stdout": "| a |\n| - |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\n-0\n2\n",
+      "argv": [
+        "-y0",
+        "--max-rows",
+        "1"
+      ],
+      "stdout": "|  a |\n| -- |\n| -0 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\n-0\n2\n",
+      "argv": [
+        "-y0",
+        "--max-columns",
+        "0"
+      ],
+      "stdout": "| ... |\n| --- |\n| ... |\n| ... |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\n-0\n2\n",
+      "argv": [
+        "-y0",
+        "--max-columns",
+        "1"
+      ],
+      "stdout": "|  a |\n| -- |\n| -0 |\n|  2 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\n-0\n2\n",
+      "argv": [
+        "-y0",
+        "--max-columns",
+        "-1"
+      ],
+      "stdout": "| ... |\n| --- |\n| ... |\n| ... |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\n-0\n2\n",
+      "argv": [
+        "-y0",
+        "--max-column-width",
+        "1"
+      ],
+      "stdout": "|   a |\n| --- |\n| ... |\n|   2 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\n-0\n2\n",
+      "argv": [
+        "-y0",
+        "--max-column-width",
+        "2"
+      ],
+      "stdout": "|  a |\n| -- |\n| -0 |\n|  2 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\n-0\n2\n",
+      "argv": [
+        "-y0",
+        "--max-column-width",
+        "-1"
+      ],
+      "stdout": "| ... |\n| --- |\n| ... |\n| ... |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\n-0\n2\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "0"
+      ],
+      "stdout": "|  a |\n| -- |\n| -0 |\n|  2 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\n-0\n2\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "1"
+      ],
+      "stdout": "|  a |\n| -- |\n| -0 |\n|  2 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\n-0\n2\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "-1"
+      ],
+      "stdout": "|   a |\n| --- |\n| -0\u2026 |\n|  2\u2026 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\n-0\n2\n",
+      "argv": [
+        "-y0",
+        "--no-number-ellipsis"
+      ],
+      "stdout": "|  a |\n| -- |\n| -0 |\n|  2 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n1234567890123456789012345678\n0.123456789\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "|                                     n |\n| ------------------------------------- |\n| 1,234,567,890,123,456,789,012,345,678 |\n|                                     0 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n1234567890123456789012345678\n0.123456789\n",
+      "argv": [
+        "-y0",
+        "-I"
+      ],
+      "stdout": "| n                            |\n| ---------------------------- |\n| 1234567890123456789012345678 |\n| 0.123456789                  |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n1234567890123456789012345678\n0.123456789\n",
+      "argv": [
+        "-y0",
+        "-l"
+      ],
+      "stdout": "| line_numbers |                                     n |\n| ------------ | ------------------------------------- |\n|            1 | 1,234,567,890,123,456,789,012,345,678 |\n|            2 |                                     0 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n1234567890123456789012345678\n0.123456789\n",
+      "argv": [
+        "-y0",
+        "-I",
+        "-l"
+      ],
+      "stdout": "| line_numbers | n                            |\n| ------------ | ---------------------------- |\n| 1            | 1234567890123456789012345678 |\n| 2            | 0.123456789                  |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n1234567890123456789012345678\n0.123456789\n",
+      "argv": [
+        "-y0",
+        "--max-rows",
+        "0"
+      ],
+      "stdout": "| n |\n| - |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n1234567890123456789012345678\n0.123456789\n",
+      "argv": [
+        "-y0",
+        "--max-rows",
+        "1"
+      ],
+      "stdout": "|                                     n |\n| ------------------------------------- |\n| 1,234,567,890,123,456,789,012,345,678 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n1234567890123456789012345678\n0.123456789\n",
+      "argv": [
+        "-y0",
+        "--max-columns",
+        "0"
+      ],
+      "stdout": "| ... |\n| --- |\n| ... |\n| ... |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n1234567890123456789012345678\n0.123456789\n",
+      "argv": [
+        "-y0",
+        "--max-columns",
+        "1"
+      ],
+      "stdout": "|                                     n |\n| ------------------------------------- |\n| 1,234,567,890,123,456,789,012,345,678 |\n|                                     0 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n1234567890123456789012345678\n0.123456789\n",
+      "argv": [
+        "-y0",
+        "--max-columns",
+        "-1"
+      ],
+      "stdout": "| ... |\n| --- |\n| ... |\n| ... |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n1234567890123456789012345678\n0.123456789\n",
+      "argv": [
+        "-y0",
+        "--max-column-width",
+        "1"
+      ],
+      "stdout": "|                                      n |\n| -------------------------------------- |\n| 1,234,567,890,123,456,789,012,345,6... |\n|                                      0 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n1234567890123456789012345678\n0.123456789\n",
+      "argv": [
+        "-y0",
+        "--max-column-width",
+        "2"
+      ],
+      "stdout": "|                                       n |\n| --------------------------------------- |\n| 1,234,567,890,123,456,789,012,345,67... |\n|                                       0 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n1234567890123456789012345678\n0.123456789\n",
+      "argv": [
+        "-y0",
+        "--max-column-width",
+        "-1"
+      ],
+      "stdout": "|                                  ... |\n| ------------------------------------ |\n| 1,234,567,890,123,456,789,012,345... |\n|                                  ... |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n1234567890123456789012345678\n0.123456789\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "0"
+      ],
+      "stdout": "|                                     n |\n| ------------------------------------- |\n| 1,234,567,890,123,456,789,012,345,678 |\n|                                     0 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n1234567890123456789012345678\n0.123456789\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "1"
+      ],
+      "stdout": "|                                     n |\n| ------------------------------------- |\n| 1,234,567,890,123,456,789,012,345,678 |\n|                                     0 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n1234567890123456789012345678\n0.123456789\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "-1"
+      ],
+      "stdout": "|                                      n |\n| -------------------------------------- |\n| 1,234,567,890,123,456,789,012,345,678\u2026 |\n|                                     0\u2026 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n1234567890123456789012345678\n0.123456789\n",
+      "argv": [
+        "-y0",
+        "--no-number-ellipsis"
+      ],
+      "stdout": "|                                     n |\n| ------------------------------------- |\n| 1,234,567,890,123,456,789,012,345,678 |\n|                                     0 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "1,2\n3,4\n",
+      "argv": [
+        "-y0",
+        "-H",
+        "--max-rows",
+        "0"
+      ],
+      "stdout": "||\n|  |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,a,\nx,y,z\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "| a |  a_2 | c |\n| - | ---- | - |\n| x | True | z |\n",
+      "stderr": "/Users/kjopek/.cache/uv/archive-v0/s-e6Z1tsuHBqlXiv/lib/python3.14/site-packages/agate/utils.py:288: DuplicateColumnWarning: Column name \"a\" already exists in Table. Column will be renamed to \"a_2\".\n  warn_duplicate_column(new_value, final_value)\n/Users/kjopek/.cache/uv/archive-v0/s-e6Z1tsuHBqlXiv/lib/python3.14/site-packages/agate/utils.py:272: UnnamedColumnWarning: Column 2 has no name. Using \"c\".\n  warn_unnamed_column(i, new_value)\n",
+      "status": 0
+    },
+    {
+      "stdin": "n\n1.2345\ntext\n",
+      "argv": [
+        "-y0",
+        "--max-rows",
+        "1"
+      ],
+      "stdout": "|      n |\n| ------ |\n| 1.234\u2026 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a;b\nx;y\n",
+      "argv": [],
+      "stdout": "| a |    b |\n| - | ---- |\n| x | True |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\n\"\r\n\t\u001b\u0000\"\n",
+      "argv": [
+        "-y0",
+        "-I"
+      ],
+      "stdout": "| a     |\n| ----- |\n| \r\u21b5\t\u001b\u0000 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nx\n",
+      "argv": [
+        "-y0",
+        "--add-bom"
+      ],
+      "stdout": "\ufeff| a |\n| - |\n| x |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\nx\n",
+      "argv": [
+        "-y0",
+        "-l",
+        "--zero"
+      ],
+      "stdout": "| line_numbers | a |\n| ------------ | - |\n|         True | x |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n1,2\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "",
+      "stderr": "ValueError: Row 0 has 2 values, but Table only has 1 columns.\n",
+      "status": 1
+    },
+    {
+      "stdin": "n\n-NaN12\n2.12345\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "|           n |\n| ----------- |\n| Na,N12.000\u2026 |\n|      2.123\u2026 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\nNaN12\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "|      n |\n| ------ |\n| Na,N12 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n-0.0001\n0\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "|       n |\n| ------- |\n| -0.000\u2026 |\n|  0.000\u2026 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n2.3455\n2.3445\n-2.3455\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "|       n |\n| ------- |\n|  2.346\u2026 |\n|  2.344\u2026 |\n| -2.346\u2026 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "n\n9999999999999999999999999999\n2.12345\n",
+      "argv": [
+        "-y0",
+        "--max-precision",
+        "30"
+      ],
+      "stdout": "|                                     n |\n| ------------------------------------- |\n| 9,999,999,999,999,999,999,999,999,999 |\n|                                     2 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "aa,bb\n",
+      "argv": [
+        "-y0",
+        "-H",
+        "--max-rows",
+        "0",
+        "-z1"
+      ],
+      "stdout": "||\n|  |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "d\n2024-01-01T01:02:03.123456+0100\n",
+      "argv": [
+        "-y0",
+        "--datetime-format",
+        "%Y-%m-%dT%H:%M:%S.%f%z"
+      ],
+      "stdout": "|                                d |\n| -------------------------------- |\n| 2024-01-01 01:02:03.123456+01:00 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\n\"h\neader\",x\nlast,y\n",
+      "argv": [
+        "-y0",
+        "-l"
+      ],
+      "stdout": "| line_numbers | a       | b |\n| ------------ | ------- | - |\n|            2 | h\u21b5eader | x |\n|            3 | last    | y |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\nfoo,bar\n",
+      "argv": [
+        "-y0",
+        "--max-columns",
+        "-20"
+      ],
+      "stdout": "| ... |\n| --- |\n| ... |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\nfoo,bar\n",
+      "argv": [
+        "-y0",
+        "--max-column-width",
+        "0"
+      ],
+      "stdout": "| ... | ... |\n| --- | --- |\n| ... | ... |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a,b\nfoo,bar\n",
+      "argv": [
+        "-y0",
+        "--max-rows",
+        "-1"
+      ],
+      "stdout": "",
+      "stderr": "ValueError: Stop argument for islice() must be None or an integer: 0 <= x <= sys.maxsize.\n",
+      "status": 1
+    }
+  ]
+}

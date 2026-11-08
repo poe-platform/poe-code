@@ -1,0 +1,23 @@
+{
+  "id": "shell-status17-unread-reject",
+  "mutant": "none",
+  "pass": true,
+  "events": [
+    "return",
+    "return-entered:release",
+    "rejected:Error: independent-return-failure",
+    "observed-result:null",
+    "next-entered:release"
+  ],
+  "input": {
+    "reads": 0,
+    "returns": 1,
+    "acquired": 1,
+    "concurrent": 0,
+    "maxConcurrent": 0
+  },
+  "output": [],
+  "stderr": [],
+  "strictUnhandled": true,
+  "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+}

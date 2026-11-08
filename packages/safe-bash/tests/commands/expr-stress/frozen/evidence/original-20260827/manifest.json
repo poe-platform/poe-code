@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "sourceBaselineCommit": "b67eabd289997b2daf8b9cf04dd48aea9cb48282",
+  "candidate": null,
+  "createdAt": "2026-08-27T16:51:54.301Z",
+  "hashAlgorithm": "SHA256",
+  "files": [
+    {
+      "path": "inputs.json",
+      "sha256": "d52e6d93668c2d368d65f456a1d4fdf12a43820b6a3bbd46b9c4980cfc5ac8ba"
+    },
+    {
+      "path": "controls.json",
+      "sha256": "5cbd8dd6e102730bf09d88b2e61ebdaccdcf3127432f37edab36ed879f32e4ec"
+    },
+    {
+      "path": "primary-sources.json",
+      "sha256": "6e259e64408bb3eb5835ccd302e1baec051d29a56b6c68ebb1a651f9334f741b"
+    },
+    {
+      "path": "runner.mjs.data",
+      "sha256": "41aea89a81b5e83eafd072ab585844c8590f6bdc766cd2cc59726674562fb9d8"
+    },
+    {
+      "path": "README.md",
+      "sha256": "123231477bc6efa4f9f8f36dad66e2386772d60f6b6f70ad5c53b8999276cdc9"
+    },
+    {
+      "path": "evidence/original-20260827/oracle.json",
+      "sha256": "66b3b03c30b63d97e6cbe4ba77e185d03caa57780a6be3b681a15784dee9efd3"
+    }
+  ],
+  "caseCount": 95,
+  "observations": 208,
+  "immutablePolicy": "Original files are never rewritten. Later captures require a new unique explicit directory. This manifest checks listed files, not appended entries."
+}

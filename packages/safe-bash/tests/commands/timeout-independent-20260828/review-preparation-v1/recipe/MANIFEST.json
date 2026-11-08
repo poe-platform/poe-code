@@ -1,0 +1,17 @@
+{
+  "schema": "timeout-review-support-preinspection/1",
+  "sealedAt": "2026-08-28T02:50:05.497Z",
+  "candidateKnown": "9ed9a0f14d12758713a8dc42be1ff75f0c87a36f",
+  "sourceInspected": false,
+  "chronology": "post-source per root release; before reviewer source inspection",
+  "controls": 24,
+  "productExecuted": 0,
+  "nativeExecuted": 0,
+  "files": {
+    "PROTECTED.json": "61fe7cb3da0b3634f83baf15304656268f1aca870d476a75523edf960d1a3880",
+    "README.md": "dd4808ef36138496057345e423e6dcb7d5d9d3496176c6504e16ff20fd1deab0",
+    "controls.mjs": "2d2c401d137873869750584a7102a3a2af414e3eae63079668ec371d5324d962",
+    "launch-controls.mjs": "c76ccdcd647c0accffe6ff2192b97f22dc8a8ca213a632a951cf4ef99cda786b",
+    "support.mjs": "cfcdc9008e2b5f8e937a7a3072c1b2980b7ed50d32a73aa3fe91ee05aa15fde0"
+  }
+}

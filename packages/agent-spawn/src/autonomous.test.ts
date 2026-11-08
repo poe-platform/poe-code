@@ -1,0 +1,243 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const renderAcpStreamMock = vi.hoisted(() => vi.fn(async () => {}));
+
+vi.mock("./acp/renderer.js", () => ({
+  renderAcpStream: renderAcpStreamMock
+}));
+
+import { isActivityTimeoutError } from "./spawn.js";
+import { spawnAutonomous } from "./autonomous.js";
+import type { SpawnResult } from "./types.js";
+
+function createEvents(): AsyncIterable<never> {
+  return (async function* () {})();
+}
+
+function createSpawnResult(result: Promise<SpawnResult>) {
+  return {
+    events: createEvents(),
+    result
+  };
+}
+
+function createDeferred<T>() {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+
+  return { promise, resolve, reject };
+}
+
+async function flushMicrotasks(times = 5): Promise<void> {
+  for (let index = 0; index < times; index += 1) {
+    await Promise.resolve();
+  }
+}
+
+function createActivityTimeoutError(timeoutMs = 1_500): Error {
+  const error = new Error(`Agent spawn timed out after ${timeoutMs / 1000}s of inactivity`);
+  error.name = "ActivityTimeoutError";
+  expect(isActivityTimeoutError(error)).toBe(true);
+  return error;
+}
+
+describe("spawnAutonomous()", () => {
+  beforeEach(() => {
+    renderAcpStreamMock.mockReset();
+    renderAcpStreamMock.mockResolvedValue(undefined);
+  });
+
+  it("returns the spawn result on the first attempt", async () => {
+    const expected: SpawnResult = {
+      stdout: "done",
+      stderr: "",
+      exitCode: 0
+    };
+    const sdkSpawn = vi.fn((_service: string, _options: object) =>
+      createSpawnResult(Promise.resolve(expected))
+    );
+
+    const result = await spawnAutonomous(sdkSpawn, {
+      service: "codex",
+      prompt: "Fix the bug"
+    });
+
+    expect(sdkSpawn).toHaveBeenCalledTimes(1);
+    expect(sdkSpawn).toHaveBeenCalledWith("codex", {
+      prompt: "Fix the bug"
+    });
+    expect(renderAcpStreamMock).toHaveBeenCalledTimes(1);
+    expect(result).toEqual(expected);
+  });
+
+  it("retries timeout errors and returns the first successful retry result", async () => {
+    const timeoutError = createActivityTimeoutError();
+    const expected: SpawnResult = {
+      stdout: "retry-success",
+      stderr: "",
+      exitCode: 0
+    };
+    const sdkSpawn = vi
+      .fn()
+      .mockImplementationOnce(() => createSpawnResult(Promise.reject(timeoutError)))
+      .mockImplementationOnce(() => createSpawnResult(Promise.reject(timeoutError)))
+      .mockImplementationOnce(() => createSpawnResult(Promise.reject(timeoutError)))
+      .mockImplementationOnce(() => createSpawnResult(Promise.reject(timeoutError)))
+      .mockReturnValueOnce(createSpawnResult(Promise.resolve(expected)));
+
+    const result = await spawnAutonomous(sdkSpawn, {
+      service: "codex",
+      prompt: "Retry me"
+    });
+
+    expect(sdkSpawn).toHaveBeenCalledTimes(5);
+    expect(renderAcpStreamMock).toHaveBeenCalledTimes(5);
+    expect(result).toEqual(expected);
+  });
+
+  it("throws after exhausting explicit timeout retries", async () => {
+    const timeoutError = createActivityTimeoutError();
+    const sdkSpawn = vi
+      .fn()
+      .mockImplementation(() => createSpawnResult(Promise.reject(timeoutError)));
+
+    await expect(
+      spawnAutonomous(sdkSpawn, {
+        service: "codex",
+        prompt: "Still timing out",
+        maxTimeoutRetries: 3
+      })
+    ).rejects.toBe(timeoutError);
+
+    expect(sdkSpawn).toHaveBeenCalledTimes(3);
+    expect(renderAcpStreamMock).toHaveBeenCalledTimes(3);
+  });
+
+  it("throws non-timeout errors without retrying", async () => {
+    const spawnError = new Error("spawn failed");
+    const sdkSpawn = vi
+      .fn()
+      .mockReturnValue(createSpawnResult(Promise.reject(spawnError)));
+
+    await expect(
+      spawnAutonomous(sdkSpawn, {
+        service: "codex",
+        prompt: "Do not retry"
+      })
+    ).rejects.toBe(spawnError);
+
+    expect(isActivityTimeoutError(spawnError)).toBe(false);
+    expect(sdkSpawn).toHaveBeenCalledTimes(1);
+    expect(renderAcpStreamMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("passes through a custom activity timeout", async () => {
+    const sdkSpawn = vi.fn((_service: string, _options: object) =>
+      createSpawnResult(
+        Promise.resolve({
+          stdout: "",
+          stderr: "",
+          exitCode: 0
+        })
+      )
+    );
+
+    await spawnAutonomous(sdkSpawn, {
+      service: "codex",
+      prompt: "Custom timeout",
+      activityTimeoutMs: 1_500
+    });
+
+    expect(sdkSpawn).toHaveBeenCalledWith("codex", {
+      prompt: "Custom timeout",
+      activityTimeoutMs: 1_500
+    });
+  });
+
+  it("retries timeout errors without waiting for ACP rendering to finish", async () => {
+    const timeoutError = createActivityTimeoutError();
+    const firstRender = createDeferred<void>();
+    const expected: SpawnResult = {
+      stdout: "retry-success",
+      stderr: "",
+      exitCode: 0
+    };
+    const sdkSpawn = vi
+      .fn()
+      .mockImplementationOnce(() => createSpawnResult(Promise.reject(timeoutError)))
+      .mockReturnValueOnce(createSpawnResult(Promise.resolve(expected)));
+
+    renderAcpStreamMock
+      .mockImplementationOnce(() => firstRender.promise)
+      .mockResolvedValueOnce(undefined);
+
+    const resultPromise = spawnAutonomous(sdkSpawn, {
+      service: "codex",
+      prompt: "Retry before render completes"
+    });
+
+    await flushMicrotasks();
+
+    expect(sdkSpawn).toHaveBeenCalledTimes(2);
+
+    firstRender.resolve();
+
+    await expect(resultPromise).resolves.toEqual(expected);
+    expect(renderAcpStreamMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("uses a custom maxTimeoutRetries value", async () => {
+    const timeoutError = createActivityTimeoutError();
+    const sdkSpawn = vi
+      .fn()
+      .mockImplementation(() => createSpawnResult(Promise.reject(timeoutError)));
+
+    await expect(
+      spawnAutonomous(sdkSpawn, {
+        service: "codex",
+        prompt: "Retry exactly twice",
+        maxTimeoutRetries: 2
+      })
+    ).rejects.toBe(timeoutError);
+
+    expect(sdkSpawn).toHaveBeenCalledWith("codex", { prompt: "Retry exactly twice" });
+    expect(sdkSpawn).toHaveBeenCalledTimes(2);
+    expect(renderAcpStreamMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("stops timeout retries when explicitly cancelled", async () => {
+    const controller = new AbortController();
+    const error = createActivityTimeoutError();
+    const sdkSpawn = vi.fn(() => {
+      controller.abort("stop");
+      return createSpawnResult(Promise.reject(error));
+    });
+    await expect(spawnAutonomous(sdkSpawn, {
+      service: "codex", signal: controller.signal
+    })).rejects.toBe(error);
+    expect(sdkSpawn).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([-1, 0, 1.5, Number.NaN])(
+    "rejects invalid maxTimeoutRetries values before spawning: %s",
+    async (maxTimeoutRetries) => {
+      const sdkSpawn = vi.fn();
+
+      await expect(
+        spawnAutonomous(sdkSpawn, {
+          service: "codex",
+          prompt: "Do not run",
+          maxTimeoutRetries
+        })
+      ).rejects.toThrow(
+        "spawnAutonomous maxTimeoutRetries must be an integer greater than or equal to 1."
+      );
+
+      expect(sdkSpawn).not.toHaveBeenCalled();
+    }
+  );
+});

@@ -1,0 +1,772 @@
+{
+  "revision": "b02bbe855b6b45d635b521e3dc2f31ea2b04e215",
+  "sourceSetSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+  "archiveSha256": "6244531a117e5e81dbc532a4dba3ec2bbb06a3158b388997bb6847cfdca8155d",
+  "results": [
+    {
+      "name": "original43",
+      "sourceStability": {
+        "revision": "b02bbe855b6b45d635b521e3dc2f31ea2b04e215",
+        "beforeSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+        "afterSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+        "stable": true
+      },
+      "command": [
+        "node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/fs/mount/identity-compatibility-review/compatibility.test.ts"
+      ],
+      "environment": {},
+      "startedAt": "2026-08-27T01:50:32.367Z",
+      "finishedAt": "2026-08-27T01:50:32.730Z",
+      "code": 1,
+      "signal": null,
+      "timedOut": false,
+      "residualGroup": false,
+      "counts": {
+        "tests": 43,
+        "pass": 36,
+        "fail": 7,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stdoutSha256": "87fbddf816c9c709309be4e3c54301a9194a24293808be6385105de78740024b",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "original4",
+      "sourceStability": {
+        "revision": "b02bbe855b6b45d635b521e3dc2f31ea2b04e215",
+        "beforeSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+        "afterSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+        "stable": true
+      },
+      "command": [
+        "node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/fs/mount/copy-identity.test.ts"
+      ],
+      "environment": {},
+      "startedAt": "2026-08-27T01:50:32.751Z",
+      "finishedAt": "2026-08-27T01:50:32.931Z",
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "residualGroup": false,
+      "counts": {
+        "tests": 4,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stdoutSha256": "d7ba1077209c5d30e04bc2f41cf71c18118570637c9f970f0e6f6740ed1279c1",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "required49",
+      "sourceStability": {
+        "revision": "b02bbe855b6b45d635b521e3dc2f31ea2b04e215",
+        "beforeSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+        "afterSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+        "stable": true
+      },
+      "command": [
+        "node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/fs/mount/copy-identity-guards.test.ts",
+        "tests/fs/overlay/copy-identity.test.ts"
+      ],
+      "environment": {},
+      "startedAt": "2026-08-27T01:50:32.955Z",
+      "finishedAt": "2026-08-27T01:50:33.855Z",
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "residualGroup": false,
+      "counts": {
+        "tests": 49,
+        "pass": 49,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stdoutSha256": "e6569d579e6690f46238db68a812953a190d03e7f69f4640f49a5d565d2aaa65",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "backend-memory",
+      "sourceStability": {
+        "revision": "b02bbe855b6b45d635b521e3dc2f31ea2b04e215",
+        "beforeSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+        "afterSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+        "stable": true
+      },
+      "command": [
+        "node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/fs/memory/comparison.test.ts",
+        "tests/fs/memory/conformance.test.ts",
+        "tests/fs/memory/late-authority.test.ts",
+        "tests/fs/memory/memory.test.ts",
+        "tests/fs/memory/review-regressions.test.ts",
+        "tests/fs/memory/rmdir.test.ts"
+      ],
+      "environment": {},
+      "startedAt": "2026-08-27T01:50:34.135Z",
+      "finishedAt": "2026-08-27T01:50:34.866Z",
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "residualGroup": false,
+      "counts": {
+        "tests": 143,
+        "pass": 143,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stdoutSha256": "2f0c60b57a667430fb9d17227dacbb6a2cb57e26ab3cd7f6ad73b68110110cbe",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "backend-real",
+      "sourceStability": {
+        "revision": "b02bbe855b6b45d635b521e3dc2f31ea2b04e215",
+        "beforeSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+        "afterSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+        "stable": true
+      },
+      "command": [
+        "node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/fs/real/adversarial.test.ts",
+        "tests/fs/real/cancellation-regression.test.ts",
+        "tests/fs/real/conformance.test.ts",
+        "tests/fs/real/copy-identity.test.ts",
+        "tests/fs/real/rmdir.test.ts",
+        "tests/fs/real/stress.test.ts",
+        "tests/fs/real/timestamps.test.ts",
+        "tests/fs/real/traversal-regression.test.ts"
+      ],
+      "environment": {},
+      "startedAt": "2026-08-27T01:50:34.924Z",
+      "finishedAt": "2026-08-27T01:50:37.072Z",
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "residualGroup": false,
+      "counts": {
+        "tests": 94,
+        "pass": 94,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stdoutSha256": "b00cc59657d3741c43dd62273a56cb9a2c1dc4e375d3c6732389e35533b38914",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "backend-mount",
+      "sourceStability": {
+        "revision": "b02bbe855b6b45d635b521e3dc2f31ea2b04e215",
+        "beforeSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+        "afterSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+        "stable": true
+      },
+      "command": [
+        "node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/fs/mount/comparison.test.ts",
+        "tests/fs/mount/copy-identity-guards.test.ts",
+        "tests/fs/mount/copy-identity.test.ts",
+        "tests/fs/mount/identity-scope.test.ts",
+        "tests/fs/mount/mount.test.ts",
+        "tests/fs/mount/review-regressions.test.ts",
+        "tests/fs/mount/rmdir.test.ts",
+        "tests/fs/mount/streaming.test.ts",
+        "tests/fs/mount/webdav-traversal.test.ts"
+      ],
+      "environment": {},
+      "startedAt": "2026-08-27T01:50:37.129Z",
+      "finishedAt": "2026-08-27T01:50:37.879Z",
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "residualGroup": false,
+      "counts": {
+        "tests": 209,
+        "pass": 209,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stdoutSha256": "435c04b39e6219dd2fba65d85b1d27fc92fea8d3cada5120926211203be22ff3",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "backend-readonly",
+      "sourceStability": {
+        "revision": "b02bbe855b6b45d635b521e3dc2f31ea2b04e215",
+        "beforeSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+        "afterSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+        "stable": true
+      },
+      "command": [
+        "node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/fs/readonly/conformance.test.ts",
+        "tests/fs/readonly/metadata.test.ts",
+        "tests/fs/readonly/readonly.test.ts",
+        "tests/fs/readonly/rmdir.test.ts",
+        "tests/fs/readonly/streaming.test.ts"
+      ],
+      "environment": {},
+      "startedAt": "2026-08-27T01:50:37.933Z",
+      "finishedAt": "2026-08-27T01:50:38.233Z",
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "residualGroup": false,
+      "counts": {
+        "tests": 103,
+        "pass": 103,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stdoutSha256": "2b5b0206a231221eb58a57567102748950bf609c1b5cffcc98d6fec97e66bad8",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "backend-overlay",
+      "sourceStability": {
+        "revision": "b02bbe855b6b45d635b521e3dc2f31ea2b04e215",
+        "beforeSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+        "afterSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+        "stable": true
+      },
+      "command": [
+        "node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/fs/overlay/adversarial.test.ts",
+        "tests/fs/overlay/conformance.test.ts",
+        "tests/fs/overlay/copy-identity.test.ts",
+        "tests/fs/overlay/review-regressions.test.ts",
+        "tests/fs/overlay/rmdir-static-lower.test.ts",
+        "tests/fs/overlay/rmdir.test.ts",
+        "tests/fs/overlay/scoped-links.test.ts",
+        "tests/fs/overlay/streaming.test.ts"
+      ],
+      "environment": {},
+      "startedAt": "2026-08-27T01:50:38.293Z",
+      "finishedAt": "2026-08-27T01:50:38.892Z",
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "residualGroup": false,
+      "counts": {
+        "tests": 184,
+        "pass": 184,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stdoutSha256": "2134099c25200b79c60a0bfe5d74dc2bbf5e84fb11d6fe4c480091ff470402ba",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "backend-s3",
+      "sourceStability": {
+        "revision": "b02bbe855b6b45d635b521e3dc2f31ea2b04e215",
+        "beforeSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+        "afterSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+        "stable": true
+      },
+      "command": [
+        "node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/fs/s3/adapter-overrides.test.ts",
+        "tests/fs/s3/comparison.test.ts",
+        "tests/fs/s3/copy-races.test.ts",
+        "tests/fs/s3/filesystem.test.ts",
+        "tests/fs/s3/late-authority.test.ts",
+        "tests/fs/s3/mock.test.ts",
+        "tests/fs/s3/mutation-regressions.test.ts",
+        "tests/fs/s3/production-flows.test.ts",
+        "tests/fs/s3/rename-guards.test.ts",
+        "tests/fs/s3/rmdir.test.ts",
+        "tests/fs/s3/streaming.test.ts",
+        "tests/fs/s3/stress.test.ts"
+      ],
+      "environment": {},
+      "startedAt": "2026-08-27T01:50:38.937Z",
+      "finishedAt": "2026-08-27T01:50:39.584Z",
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "residualGroup": false,
+      "counts": {
+        "tests": 254,
+        "pass": 254,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stdoutSha256": "b25fb3e76e499ab15c536b4cfdc0d76c038a0d900872a290ecd029bac76b12d1",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "backend-webdav",
+      "sourceStability": {
+        "revision": "b02bbe855b6b45d635b521e3dc2f31ea2b04e215",
+        "beforeSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+        "afterSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+        "stable": true
+      },
+      "command": [
+        "node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/fs/webdav/append.test.ts",
+        "tests/fs/webdav/body-integrity.test.ts",
+        "tests/fs/webdav/fetch-cancellation.test.ts",
+        "tests/fs/webdav/listing-budget.test.ts",
+        "tests/fs/webdav/lock-cancellation.test.ts",
+        "tests/fs/webdav/lock-multistatus.test.ts",
+        "tests/fs/webdav/operation-authority.test.ts",
+        "tests/fs/webdav/replacement.test.ts",
+        "tests/fs/webdav/resource-id.test.ts",
+        "tests/fs/webdav/review-regressions.test.ts",
+        "tests/fs/webdav/rmdir.test.ts",
+        "tests/fs/webdav/stream-http.test.ts",
+        "tests/fs/webdav/streams.test.ts",
+        "tests/fs/webdav/timestamps.test.ts",
+        "tests/fs/webdav/uploads.test.ts",
+        "tests/fs/webdav/webdav.test.ts",
+        "tests/fs/webdav/xml.test.ts"
+      ],
+      "environment": {},
+      "startedAt": "2026-08-27T01:50:39.606Z",
+      "finishedAt": "2026-08-27T01:50:40.648Z",
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "residualGroup": false,
+      "counts": {
+        "tests": 526,
+        "pass": 526,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stdoutSha256": "90838104cec906e75ee8807499c57ef8587d2cb87277620fd5f804727ede0dbb",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "shared-conformance",
+      "sourceStability": {
+        "revision": "b02bbe855b6b45d635b521e3dc2f31ea2b04e215",
+        "beforeSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+        "afterSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+        "stable": true
+      },
+      "command": [
+        "node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/fs/conformance/shared.test.ts"
+      ],
+      "environment": {},
+      "startedAt": "2026-08-27T01:50:40.668Z",
+      "finishedAt": "2026-08-27T01:50:41.413Z",
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "residualGroup": false,
+      "counts": {
+        "tests": 202,
+        "pass": 202,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stdoutSha256": "868d9a83418833f5a32321b9bfab695a36ea072d546cffb04044cb7e8c522d49",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "s3-policy86",
+      "sourceStability": {
+        "revision": "b02bbe855b6b45d635b521e3dc2f31ea2b04e215",
+        "beforeSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+        "afterSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+        "stable": true
+      },
+      "command": [
+        "node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/stress/s3-policy/rename.test.ts",
+        "tests/stress/s3-policy/bounded-races.test.ts"
+      ],
+      "environment": {},
+      "startedAt": "2026-08-27T01:50:41.434Z",
+      "finishedAt": "2026-08-27T01:50:41.630Z",
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "residualGroup": false,
+      "counts": {
+        "tests": 86,
+        "pass": 86,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stdoutSha256": "a7449197a5c19f93900111d19504746da5ffcfb5b289f3bef24d4dfbe3c9973f",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "remote-cancellation24",
+      "sourceStability": {
+        "revision": "b02bbe855b6b45d635b521e3dc2f31ea2b04e215",
+        "beforeSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+        "afterSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+        "stable": true
+      },
+      "command": [
+        "node",
+        "tests/stress/remote-cancellation/run.mjs"
+      ],
+      "environment": {
+        "AUDIT_REPEATS": "1",
+        "AUDIT_VERBOSE": "1"
+      },
+      "startedAt": "2026-08-27T01:50:41.650Z",
+      "finishedAt": "2026-08-27T01:50:41.979Z",
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "residualGroup": false,
+      "counts": {
+        "tests": 24,
+        "pass": 24,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stdoutSha256": "d6b7e9c27f8887994e8e55ce0a39d907a70e53e2502264ddd5f74465958e5237",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "diagnostics8",
+      "sourceStability": {
+        "revision": "b02bbe855b6b45d635b521e3dc2f31ea2b04e215",
+        "beforeSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+        "afterSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+        "stable": true
+      },
+      "command": [
+        "node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/integration/adapter-tools-diagnostics/eight-cases.test.ts"
+      ],
+      "environment": {
+        "DIAGNOSTIC_REVISION": "b02bbe855b6b45d635b521e3dc2f31ea2b04e215",
+        "DIAGNOSTIC_MATRIX_REVISION": "b02bbe855b6b45d635b521e3dc2f31ea2b04e215"
+      },
+      "startedAt": "2026-08-27T01:50:42.001Z",
+      "finishedAt": "2026-08-27T01:50:42.506Z",
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "residualGroup": false,
+      "counts": {
+        "tests": 8,
+        "pass": 8,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stdoutSha256": "6d94e6fddb7fa426c8842e9223e78853eecad75019a3bb502013d3d274628ac2",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "required-preflight-matrix79",
+      "sourceStability": {
+        "revision": "b02bbe855b6b45d635b521e3dc2f31ea2b04e215",
+        "beforeSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+        "afterSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+        "stable": true
+      },
+      "command": [
+        "node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/integration/adapter-tools/matrix.test.ts"
+      ],
+      "environment": {},
+      "startedAt": "2026-08-27T01:50:42.527Z",
+      "finishedAt": "2026-08-27T01:50:43.742Z",
+      "code": 1,
+      "signal": null,
+      "timedOut": false,
+      "residualGroup": false,
+      "counts": {
+        "tests": 79,
+        "pass": 77,
+        "fail": 2,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stdoutSha256": "51f3c5b72e972e86071b1a60c8f97e449c021f3040e9f709900b7f6bea0f70c6",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "live-adapter-stress",
+      "sourceStability": {
+        "revision": "b02bbe855b6b45d635b521e3dc2f31ea2b04e215",
+        "beforeSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+        "afterSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+        "stable": true
+      },
+      "command": [
+        "node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/stress/adapters/core.test.ts",
+        "tests/stress/adapters/policy.test.ts",
+        "tests/stress/adapters/remote-safe-workflows.test.ts",
+        "tests/stress/adapters/s3-rename-profile.test.ts",
+        "tests/stress/adapters/s3-truncate-profile.test.ts",
+        "tests/stress/adapters/s3.test.ts",
+        "tests/stress/adapters/webdav-timestamps-profile.test.ts",
+        "tests/stress/adapters/webdav.test.ts"
+      ],
+      "environment": {},
+      "startedAt": "2026-08-27T01:50:43.762Z",
+      "finishedAt": "2026-08-27T01:50:44.198Z",
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "residualGroup": false,
+      "counts": {
+        "tests": 99,
+        "pass": 99,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stdoutSha256": "4c29d14e7232f168efaa9e4ec705ccc81ebceecfc2faf8049adea6d5adc5a050",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "approved-s3-permission-policy",
+      "sourceStability": {
+        "revision": "b02bbe855b6b45d635b521e3dc2f31ea2b04e215",
+        "beforeSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+        "afterSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+        "stable": true
+      },
+      "command": [
+        "node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/stress/adapters/s3-permission-profile/revised-policy.test.ts"
+      ],
+      "environment": {},
+      "startedAt": "2026-08-27T01:50:44.219Z",
+      "finishedAt": "2026-08-27T01:50:44.388Z",
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "residualGroup": false,
+      "counts": {
+        "tests": 7,
+        "pass": 7,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stdoutSha256": "58f087149ffbc5f36d2eb80adc61067898f11fab9c9aabd96322ca7f81fdcfb8",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "scoped-fs-types",
+      "sourceStability": {
+        "revision": "b02bbe855b6b45d635b521e3dc2f31ea2b04e215",
+        "beforeSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+        "afterSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+        "stable": true
+      },
+      "command": [
+        "node",
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "checkpoint-types.json"
+      ],
+      "environment": {},
+      "startedAt": "2026-08-27T01:50:44.410Z",
+      "finishedAt": "2026-08-27T01:50:47.064Z",
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "residualGroup": false,
+      "counts": {
+        "tests": -1,
+        "pass": -1,
+        "fail": -1,
+        "cancelled": -1,
+        "skipped": -1,
+        "todo": -1
+      },
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "diagnostic-qualified43",
+      "sourceStability": {
+        "revision": "b02bbe855b6b45d635b521e3dc2f31ea2b04e215",
+        "beforeSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+        "afterSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+        "stable": true
+      },
+      "command": [
+        "node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/fs/mount/identity-compatibility-review/compatibility.test.ts"
+      ],
+      "environment": {},
+      "startedAt": "2026-08-27T01:50:47.144Z",
+      "finishedAt": "2026-08-27T01:50:47.483Z",
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "residualGroup": false,
+      "counts": {
+        "tests": 43,
+        "pass": 43,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stdoutSha256": "82233a8c3ccfc29cf4ac03273ee7ec4c2df172f4a541ef4408ad7ca602eab604",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "diagnostic-qualified-types",
+      "sourceStability": {
+        "revision": "b02bbe855b6b45d635b521e3dc2f31ea2b04e215",
+        "beforeSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+        "afterSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+        "stable": true
+      },
+      "command": [
+        "node",
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "diagnostic-types.json"
+      ],
+      "environment": {},
+      "startedAt": "2026-08-27T01:50:47.504Z",
+      "finishedAt": "2026-08-27T01:50:48.288Z",
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "residualGroup": false,
+      "counts": {
+        "tests": -1,
+        "pass": -1,
+        "fail": -1,
+        "cancelled": -1,
+        "skipped": -1,
+        "todo": -1
+      },
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "countsMustNotBeSummedAcrossOverlappingCohorts": true
+}

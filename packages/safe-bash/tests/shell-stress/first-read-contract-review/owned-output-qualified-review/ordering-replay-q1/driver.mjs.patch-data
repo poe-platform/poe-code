@@ -1,0 +1,11 @@
+--- /Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/driver.mjs.data	2026-08-27 07:48:45
++++ /Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-review/ordering-replay-q1/driver.mjs.data	2026-08-27 08:08:30
+@@ -884,7 +884,7 @@
+ 
+ async function executionConfig(configPath) {
+   const physicalDirectory = await realpath(directory);
+-  assert.match(physicalDirectory, /^\/(?:private\/)?tmp\/safe-bash-owned-output-qualified-execution-[^/]+$/);
++  assert.match(physicalDirectory, /^\/(?:private\/)?tmp\/safe-bash-owned-output-qualified-ordering-[^/]+$/);
+   assert.equal(process.env.TSX_DISABLE_CACHE, '1');
+   for (const name of ['TMPDIR', 'TMP', 'TEMP']) assert.equal(await realpath(process.env[name]), join(physicalDirectory, 'tmp'));
+   const config = JSON.parse(await readFile(configPath, 'utf8'));

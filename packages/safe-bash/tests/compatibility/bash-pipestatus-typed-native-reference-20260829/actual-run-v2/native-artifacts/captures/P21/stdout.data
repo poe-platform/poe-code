@@ -1,0 +1,1 @@
+declare -ar PIPESTATUS='([0]="0")'

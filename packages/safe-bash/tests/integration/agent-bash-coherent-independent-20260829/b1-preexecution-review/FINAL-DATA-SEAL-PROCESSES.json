@@ -1,0 +1,28 @@
+[
+  {
+    "role": "final-data-add",
+    "start": "2026-08-29T12:51:31.635Z",
+    "pid": 48735,
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "close": {
+      "code": 0,
+      "signal": null
+    }
+  },
+  {
+    "role": "final-data-seal",
+    "start": "2026-08-29T12:51:31.741Z",
+    "pid": 48743,
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "close": {
+      "code": 0,
+      "signal": null
+    }
+  }
+]

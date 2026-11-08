@@ -1,0 +1,18 @@
+{
+  "id": "INSTALLED_MOVED-generic-module-executor",
+  "families": [
+    "F01",
+    "F07"
+  ],
+  "observation": {
+    "returned": {
+      "code": 0,
+      "reaped": true,
+      "stages": [
+        "RECEIPT_BEFORE_ASSERTION",
+        "ASSERTED"
+      ]
+    }
+  },
+  "classification": "SYNTHETIC_CONTROL_OBSERVATION_BEFORE_ASSERTION"
+}

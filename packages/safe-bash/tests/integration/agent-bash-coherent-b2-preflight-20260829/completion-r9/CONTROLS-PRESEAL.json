@@ -1,0 +1,26 @@
+{
+  "schema": "B2_R9_PURE_PRESEAL",
+  "created": "2026-08-29T17:15:08.712Z",
+  "packetSha256": "5b4a12e14081d6c95f7805358737d32008b0b7f5844413b485e77a81fb1b807d",
+  "groups": [
+    "eligible-1014-installed-0600",
+    "wrong-installed-mode-refused",
+    "wrong-content-hash-refused",
+    "wrong-process-umask-refused",
+    "ineligible-archive-mode-refused",
+    "source-mode-unchanged"
+  ],
+  "helperProcesses": 1,
+  "caseSeconds": 30,
+  "productImports": 0,
+  "workers": 0,
+  "installations": 0,
+  "sourceOnlyMoved": "rename preserves modes; no moved execution",
+  "phaseCaps": {
+    "knownOS": 24,
+    "peak": 3,
+    "captureBytes": 25165824,
+    "workBytes": 134217728,
+    "minutes": 8
+  }
+}

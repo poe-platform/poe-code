@@ -1,0 +1,15 @@
+{
+  "status": 0,
+  "counts": {
+    "tests": 276,
+    "pass": 276,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "scratch": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-qualified-final-review-20260827-native-final-c8TXVi",
+  "fixtureRootsRemoved": true,
+  "sourceAddedEntryPostcheck": true,
+  "qualification": "Exact same candidate eleven-file tests, no assertions/inputs changed. Native scratch outside repository restores original rg fixture profile. TSX_DISABLE_CACHE=1 changes development-tool caching only so empty scratch postcondition can be checked; previous 276/276 plus wrapper cache assertion failure retained."
+}

@@ -1,0 +1,29 @@
+# safe-bash-command-cal
+
+Render ASCII monthly and annual calendars with Julian/Gregorian reformation support.
+
+Resource limits default to `Infinity`; configure finite quotas through command options when needed.
+
+Display formatted single-month, three-month (`-3`), or full-year (`-y`) calendars with Sunday/Monday week starts and day-of-year (`-j`) modes. `ncal` keeps vertical weekday rows for all month spans and full years. Set `SOURCE_DATE_EPOCH` for reproducible default dates.
+
+## Features
+
+- `cal [[[DAY] MONTH] YEAR]` — Render a specific month or 12-month year grid
+- `-3` / `--three`, `-1` / `--one`, `-y` / `--year` — Surrounding month and full-year layouts
+- `-M` / `--monday` and `-j` / `--julian` — Monday-first weeks and Julian day-of-year numbers
+- **1752 Reformation** — Accurate 11-day September 1752 transition
+
+## Quick Start
+
+```ts
+import { createMemoryFileSystem, Shell, agentCommands } from "@poe-platform/safe-bash";
+
+const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
+const res = await shell.exec("cal 9 1752");
+```
+
+Resource limits are disabled (`Infinity`) by default. Pass `limits` to the command factory or plugin to enforce bounds; omitted limits remain disabled.
+
+The `maxMonths` quota applies to the complete rendered span, including `-A`/`-B`, `-3`, and full-year calendars. Multi-month rendering cooperates with cancellation.
+
+Calendar spans must stay within years 1–9999. Day operands must exist in the selected month; September 3–13, 1752 are omitted by the calendar reform. Invalid dates or spans fail without printing a calendar.

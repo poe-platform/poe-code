@@ -1,0 +1,16 @@
+{
+  "schema": "v6-bootstrap-array-own-data-correction",
+  "priorSourceCommit": "50f3a4770016676d92d50aaa0a2007fcd15e611c",
+  "priorData": {
+    "pass": 54,
+    "fail": 0,
+    "executions": 54,
+    "actualEngineLoads": 0
+  },
+  "finding": "SOURCE inspection after passing54: bootstrap observed array index descriptors not checked before reading observed[index]. No observed exploit or prior failure fabricated.",
+  "fix": "Validate own length/keys/index data descriptors before reading values; reject array extras, holes and accessors without invocation.",
+  "controls": "Same54 expectations replayed after new preseal; B-accessor now checks record and array accessor paths with zero invocation. Prior54 retained, not retroactive current-source passes.",
+  "guestCasesUnchanged": 11,
+  "guestEvaluationsStill": 0,
+  "compilerRetries": 0
+}

@@ -1,0 +1,280 @@
+{
+  "timestamp": "2026-08-27T09:39:09.101Z",
+  "movingHead": "6ffe4f4f17637e44b55cc0455394513e8d6b94de",
+  "scope": "bounded independent WebDAV helper456 acceptance; historical failures remain failures",
+  "rows": [
+    {
+      "label": "exact-failed",
+      "source": "02a78bf64c29dedcd69071551ed5848b0765c107",
+      "results": [
+        {
+          "name": "original-consumer13",
+          "status": 1,
+          "counts": {
+            "tests": 13,
+            "pass": 12,
+            "fail": 1,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          }
+        }
+      ],
+      "mutantKills": [],
+      "loadedModuleCounts": {
+        "original-consumer13": 157
+      }
+    },
+    {
+      "label": "current-before",
+      "source": "96e051e81312c7d33d8f4f5078efa09a4dd87947",
+      "results": [
+        {
+          "name": "original-consumer13",
+          "status": 1,
+          "counts": {
+            "tests": 13,
+            "pass": 12,
+            "fail": 1,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          }
+        },
+        {
+          "name": "author-regressions19",
+          "status": 1,
+          "counts": {
+            "tests": 19,
+            "pass": 3,
+            "fail": 16,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          }
+        }
+      ],
+      "mutantKills": [],
+      "loadedModuleCounts": {
+        "original-consumer13": 157,
+        "author-regressions19": 157
+      }
+    },
+    {
+      "label": "candidate-final",
+      "source": "456a0738b0d2dc130ebbd9b7ccf5e299bcf177da",
+      "results": [
+        {
+          "name": "original-consumer13",
+          "status": 0,
+          "counts": {
+            "tests": 13,
+            "pass": 13,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          }
+        },
+        {
+          "name": "author-regressions19",
+          "status": 0,
+          "counts": {
+            "tests": 19,
+            "pass": 19,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          }
+        },
+        {
+          "name": "independent-controls",
+          "status": 0,
+          "counts": {
+            "tests": 23,
+            "pass": 23,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          }
+        },
+        {
+          "name": "unchanged-postcondition5",
+          "status": 0,
+          "counts": {
+            "tests": 5,
+            "pass": 5,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          }
+        }
+      ],
+      "mutantKills": [
+        "MUTANT_KILLED omit-readback",
+        "MUTANT_KILLED nonpersisting",
+        "MUTANT_KILLED mask-eagain"
+      ],
+      "loadedModuleCounts": {
+        "original-consumer13": 164,
+        "author-regressions19": 164,
+        "independent-controls": 164
+      }
+    },
+    {
+      "label": "current-head",
+      "source": "8e1298b02966a1a2344d81c04f3eddd906828682",
+      "results": [
+        {
+          "name": "original-consumer13",
+          "status": 0,
+          "counts": {
+            "tests": 13,
+            "pass": 13,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          }
+        },
+        {
+          "name": "author-regressions19",
+          "status": 0,
+          "counts": {
+            "tests": 19,
+            "pass": 19,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          }
+        },
+        {
+          "name": "independent-controls",
+          "status": 0,
+          "counts": {
+            "tests": 23,
+            "pass": 23,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          }
+        },
+        {
+          "name": "unchanged-postcondition5",
+          "status": 0,
+          "counts": {
+            "tests": 5,
+            "pass": 5,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          }
+        }
+      ],
+      "mutantKills": [
+        "MUTANT_KILLED omit-readback",
+        "MUTANT_KILLED nonpersisting",
+        "MUTANT_KILLED mask-eagain"
+      ],
+      "loadedModuleCounts": {
+        "original-consumer13": 164,
+        "author-regressions19": 164,
+        "independent-controls": 164
+      }
+    }
+  ],
+  "preservedHistoricalRawFiles": 31,
+  "cleanup": "no owned .work-* directories",
+  "artifacts": {
+    "evidence/.gitkeep": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "evidence/candidate-final/baseline.json": "64f6ce00313154a7dc65cd8a3f50a6202a61b63bca045d53f36e423503560b70",
+    "evidence/candidate-final/commands.json": "59025c8b203730e692d9d9863c7a39b51ffb4fcc8e9fd3e3ba3420ef46d5cf40",
+    "evidence/candidate-final/inputs/author-regressions.mjs.txt": "49b8d03876f3d7912018d54bb2a2f1c6631668fd0f7353afc0ca904ff3eccd21",
+    "evidence/candidate-final/inputs/consumer.test.mts.txt": "b69e78c54d5afb844cef7f59c4d530e1ddad6634394a32e56e455b7a7bce752a",
+    "evidence/candidate-final/inputs/example.mts.txt": "7a51aed0e78cc30d54dfa1b616c9e659710bed4f0a4cd7e42e28258a974f7b15",
+    "evidence/candidate-final/inputs/independent.test.mts.txt": "9df9eb1914e8a8a7cf98e40e29dac567488f16aba7e0fdabe42793eff5f2f358",
+    "evidence/candidate-final/inputs/postcondition.test.ts.txt": "4aa5f6f6b79b4952e282cdbc68d00c43869ff5536ebcd35ba23dba8fbbd6a263",
+    "evidence/candidate-final/inputs/provider.mts.txt": "af9ffdb0f991696818512c5f50dab94fdb76387d3b66a2abca80fb799d6d30b6",
+    "evidence/candidate-final/inputs/types.mts.txt": "90ad547d0b4ff13cb0b5fc4f79b26b8b59ceac144adea8de4f511b421663d028",
+    "evidence/candidate-final/package.json": "3f1eb64a7f1b3d26a2ae638cdf53534c3f19b55d3ed041dc7f0a67d2713d9498",
+    "evidence/candidate-final/protected-after.json": "6eca5b98efbaf12f51f1f4405feff27232e38ecab77c088bc645aa947c7dafc8",
+    "evidence/candidate-final/protected-before.json": "6eca5b98efbaf12f51f1f4405feff27232e38ecab77c088bc645aa947c7dafc8",
+    "evidence/candidate-final/runtime-closures.json": "264ab361d211c8a4ddf181010162fb2dffba0c3695a100fc7e5774b8c037f462",
+    "evidence/candidate-final/summary.json": "0dc2d71e1b0ed927ca158e044ab5e1fc61ec30ae2a1e525d78a2f999ee435b6d",
+    "evidence/candidate-first/baseline.json": "80fd60046f4ad11681e52ad6e310d1d07892bd464c7f6ccbb63c01ecebff5efb",
+    "evidence/candidate-first/commands.json": "af067bd460e0f6227e8fb6e4c955e0ea0b65776303cfd30a5e1ac5d0ede2acc9",
+    "evidence/candidate-first/inputs/consumer.test.mts.txt": "b69e78c54d5afb844cef7f59c4d530e1ddad6634394a32e56e455b7a7bce752a",
+    "evidence/candidate-first/inputs/example.mts.txt": "7a51aed0e78cc30d54dfa1b616c9e659710bed4f0a4cd7e42e28258a974f7b15",
+    "evidence/candidate-first/inputs/independent.test.mts.txt": "7b701bbdba0529d55ec63650b71b76b8dde79a76284dac33e8065e2b30fcabe5",
+    "evidence/candidate-first/inputs/provider.mts.txt": "af9ffdb0f991696818512c5f50dab94fdb76387d3b66a2abca80fb799d6d30b6",
+    "evidence/candidate-first/inputs/types.mts.txt": "90ad547d0b4ff13cb0b5fc4f79b26b8b59ceac144adea8de4f511b421663d028",
+    "evidence/candidate-first/package.json": "3f1eb64a7f1b3d26a2ae638cdf53534c3f19b55d3ed041dc7f0a67d2713d9498",
+    "evidence/candidate-first/protected-after.json": "6eca5b98efbaf12f51f1f4405feff27232e38ecab77c088bc645aa947c7dafc8",
+    "evidence/candidate-first/protected-before.json": "6eca5b98efbaf12f51f1f4405feff27232e38ecab77c088bc645aa947c7dafc8",
+    "evidence/candidate-first/summary.json": "46c9341eb45c3beabad0b49886b8b035eb510e7ce98e3bf795441df2780dcc75",
+    "evidence/candidate-second/baseline.json": "338a715530e7bda49e1e5ae252a9efda0c76bf43dac059f62213e758daf7496b",
+    "evidence/candidate-second/commands.json": "25c00e3c964e8621c903df5202407f66f27e169487be73a3728a0b6d960b2903",
+    "evidence/candidate-second/inputs/author-regressions.mjs.txt": "49b8d03876f3d7912018d54bb2a2f1c6631668fd0f7353afc0ca904ff3eccd21",
+    "evidence/candidate-second/inputs/consumer.test.mts.txt": "b69e78c54d5afb844cef7f59c4d530e1ddad6634394a32e56e455b7a7bce752a",
+    "evidence/candidate-second/inputs/example.mts.txt": "7a51aed0e78cc30d54dfa1b616c9e659710bed4f0a4cd7e42e28258a974f7b15",
+    "evidence/candidate-second/inputs/independent.test.mts.txt": "de71b16f1082fcb42977dc5a5010e853e31f1db01e51e499a31d68c48830e2d6",
+    "evidence/candidate-second/inputs/postcondition.test.ts.txt": "4aa5f6f6b79b4952e282cdbc68d00c43869ff5536ebcd35ba23dba8fbbd6a263",
+    "evidence/candidate-second/inputs/provider.mts.txt": "af9ffdb0f991696818512c5f50dab94fdb76387d3b66a2abca80fb799d6d30b6",
+    "evidence/candidate-second/inputs/types.mts.txt": "90ad547d0b4ff13cb0b5fc4f79b26b8b59ceac144adea8de4f511b421663d028",
+    "evidence/candidate-second/package.json": "3f1eb64a7f1b3d26a2ae638cdf53534c3f19b55d3ed041dc7f0a67d2713d9498",
+    "evidence/candidate-second/protected-after.json": "6eca5b98efbaf12f51f1f4405feff27232e38ecab77c088bc645aa947c7dafc8",
+    "evidence/candidate-second/protected-before.json": "6eca5b98efbaf12f51f1f4405feff27232e38ecab77c088bc645aa947c7dafc8",
+    "evidence/candidate-second/runtime-closures.json": "ef4009aa4ec95fc4e92bbe2c75c8d9614b6f805924e823ab9d2c2d1ec4bb9f63",
+    "evidence/candidate-second/summary.json": "76fd6366d30ba582c4ac00c4b5d18daa848dff7bf1055e232bba2aad101f5b94",
+    "evidence/current-before/baseline.json": "a17cd3f56e2cd636b2d8d7b299f24731bc1f4a6087a7894949442d141202ed71",
+    "evidence/current-before/commands.json": "6a82be9b539d72287eebb2a86639a4abe71f7bcc10a7a7d52eab8207bd8ee812",
+    "evidence/current-before/inputs/author-regressions.mjs.txt": "49b8d03876f3d7912018d54bb2a2f1c6631668fd0f7353afc0ca904ff3eccd21",
+    "evidence/current-before/inputs/consumer.test.mts.txt": "b69e78c54d5afb844cef7f59c4d530e1ddad6634394a32e56e455b7a7bce752a",
+    "evidence/current-before/inputs/example.mts.txt": "7a51aed0e78cc30d54dfa1b616c9e659710bed4f0a4cd7e42e28258a974f7b15",
+    "evidence/current-before/inputs/provider.mts.txt": "288d17dca5b6950fababb945cf21c15594dfbf37897d1cdcaab2aba1088a6b9b",
+    "evidence/current-before/inputs/types.mts.txt": "90ad547d0b4ff13cb0b5fc4f79b26b8b59ceac144adea8de4f511b421663d028",
+    "evidence/current-before/package.json": "4db73bd3275f15d2e3b1e1c497e20bf935076c58f0f0f74cd73813cd79309119",
+    "evidence/current-before/protected-after.json": "6eca5b98efbaf12f51f1f4405feff27232e38ecab77c088bc645aa947c7dafc8",
+    "evidence/current-before/protected-before.json": "6eca5b98efbaf12f51f1f4405feff27232e38ecab77c088bc645aa947c7dafc8",
+    "evidence/current-before/runtime-closures.json": "39938cf8c981f7c7c927cd077313ef6b3ef875cd10784621232338ab94854f8b",
+    "evidence/current-before/summary.json": "74403a2e21b1b3e0671946d449d51e25a51acbeb8d858b13639857e86f1003af",
+    "evidence/current-head/baseline.json": "09d71988b5c0d118e095db005980a3fc0a93e819f7e20823c8d6898d7f42ab58",
+    "evidence/current-head/commands.json": "a7c5e32dd5317998fe8bc06b79fdb66540dc13f2ee0dcbca9ddc8f2e269ce3af",
+    "evidence/current-head/inputs/author-regressions.mjs.txt": "49b8d03876f3d7912018d54bb2a2f1c6631668fd0f7353afc0ca904ff3eccd21",
+    "evidence/current-head/inputs/consumer.test.mts.txt": "b69e78c54d5afb844cef7f59c4d530e1ddad6634394a32e56e455b7a7bce752a",
+    "evidence/current-head/inputs/example.mts.txt": "7a51aed0e78cc30d54dfa1b616c9e659710bed4f0a4cd7e42e28258a974f7b15",
+    "evidence/current-head/inputs/independent.test.mts.txt": "9df9eb1914e8a8a7cf98e40e29dac567488f16aba7e0fdabe42793eff5f2f358",
+    "evidence/current-head/inputs/postcondition.test.ts.txt": "4aa5f6f6b79b4952e282cdbc68d00c43869ff5536ebcd35ba23dba8fbbd6a263",
+    "evidence/current-head/inputs/provider.mts.txt": "af9ffdb0f991696818512c5f50dab94fdb76387d3b66a2abca80fb799d6d30b6",
+    "evidence/current-head/inputs/types.mts.txt": "90ad547d0b4ff13cb0b5fc4f79b26b8b59ceac144adea8de4f511b421663d028",
+    "evidence/current-head/package.json": "3f1eb64a7f1b3d26a2ae638cdf53534c3f19b55d3ed041dc7f0a67d2713d9498",
+    "evidence/current-head/protected-after.json": "6eca5b98efbaf12f51f1f4405feff27232e38ecab77c088bc645aa947c7dafc8",
+    "evidence/current-head/protected-before.json": "6eca5b98efbaf12f51f1f4405feff27232e38ecab77c088bc645aa947c7dafc8",
+    "evidence/current-head/runtime-closures.json": "073875f77dcb7588a6428c0109652ef6e85370de467f90a7898d89e801d2cc0b",
+    "evidence/current-head/summary.json": "6fdb9b7286ec648d416c2fcd14064590d5ffd7bbd238572e617a3a6d556e4be4",
+    "evidence/exact-failed/baseline.json": "898cffc3db75a778e026fea9174a045ee476e42eb2b50acc54ab6c50e80f1151",
+    "evidence/exact-failed/commands.json": "4a91db03181114f148e6c482a97b8bb95668be2b1f11f6a603280420857863b8",
+    "evidence/exact-failed/inputs/consumer.test.mts.txt": "b69e78c54d5afb844cef7f59c4d530e1ddad6634394a32e56e455b7a7bce752a",
+    "evidence/exact-failed/inputs/example.mts.txt": "7a51aed0e78cc30d54dfa1b616c9e659710bed4f0a4cd7e42e28258a974f7b15",
+    "evidence/exact-failed/inputs/provider.mts.txt": "288d17dca5b6950fababb945cf21c15594dfbf37897d1cdcaab2aba1088a6b9b",
+    "evidence/exact-failed/inputs/types.mts.txt": "90ad547d0b4ff13cb0b5fc4f79b26b8b59ceac144adea8de4f511b421663d028",
+    "evidence/exact-failed/package.json": "e5640125fd1ae82bf5cb381196aaa7b7e7829a5703679e5645595c826dc2c3e9",
+    "evidence/exact-failed/protected-after.json": "6eca5b98efbaf12f51f1f4405feff27232e38ecab77c088bc645aa947c7dafc8",
+    "evidence/exact-failed/protected-before.json": "6eca5b98efbaf12f51f1f4405feff27232e38ecab77c088bc645aa947c7dafc8",
+    "evidence/exact-failed/runtime-closures.json": "c4f8cfeedc1362ebb4fc524a1688b0f5d25e704d28294d19cb56e8ac2a63dfa8",
+    "evidence/exact-failed/summary.json": "e685a5a16f817d7053004064eacfc84bf2017d1df50852a5ac6e83a282f37496",
+    "run.mjs": "03c84039e6831b7758476a8e74d8bab1a852b5cb0b97473082a6fb067e3f7c62",
+    "seal.mjs": "1588ac3eb864530252eff05db6b97b27ed0b216b61a003e7468541b4d81bd2ae",
+    "closure-loader.mjs": "6eca0da77d258f3e1bb41034cdd88099e9d00c9edb20ffc68c5e73225f78eed9",
+    "independent.test.mts": "9df9eb1914e8a8a7cf98e40e29dac567488f16aba7e0fdabe42793eff5f2f358",
+    "README.md": "70d7dcc0d2670d9c87364b89cc27ccdfaab3e319e30d90448b2d116444136a0b",
+    "REPORT.md": "cacac7e6307776843b5f51fa8a78717cd65751dd429d950facad529eb0537dd0",
+    ".gitignore": "1e1d43a7bd60996fc2e4c4a9d19c1e60d546c009770db8ef31af4c841874d823"
+  }
+}

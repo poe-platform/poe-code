@@ -1,0 +1,466 @@
+{
+  "sourceSha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+  "profile": {
+    "python": "3.14.2 (main, Jan 27 2026, 23:32:07) [Clang 21.1.4 ]",
+    "agate": "1.14.2",
+    "agate-sql": "0.7.3",
+    "sqlalchemy": "2.0.54",
+    "csvkit": "2.2.0",
+    "locale": "C",
+    "timezone": "UTC",
+    "sqlite": "3.50.4",
+    "pythonExecutableSha256": "3d6400b63b150164e89a690d9813af8b0eb420af9f336ef1f6c5102c6da60eae",
+    "environment": {
+      "PATH": "/usr/bin:/bin",
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "PYTHONIOENCODING": "utf-8",
+      "COLUMNS": "80",
+      "LINES": "24"
+    }
+  },
+  "cases": [
+    {
+      "argv": [
+        "-y",
+        "0"
+      ],
+      "stdin": "n,t,b,d,dt\n12.34,hello,true,2020-01-02,2020-01-02 03:04:05\n23.1,bye,false,2021-02-03,2021-02-03 04:05:06\n",
+      "stdout": "CREATE TABLE stdin (\n\tn DECIMAL NOT NULL, \n\tt VARCHAR NOT NULL, \n\tb BOOLEAN NOT NULL, \n\td DATE NOT NULL, \n\tdt TIMESTAMP\n);\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "-y",
+        "0",
+        "-i",
+        "sqlite"
+      ],
+      "stdin": "n,t,b,d,dt\n12.34,hello,true,2020-01-02,2020-01-02 03:04:05\n23.1,bye,false,2021-02-03,2021-02-03 04:05:06\n",
+      "stdout": "CREATE TABLE stdin (\n\tn FLOAT NOT NULL, \n\tt VARCHAR NOT NULL, \n\tb BOOLEAN NOT NULL, \n\td DATE NOT NULL, \n\tdt TIMESTAMP\n);\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "-y",
+        "0",
+        "-i",
+        "mysql"
+      ],
+      "stdin": "n,t,b,d,dt\n12.34,hello,true,2020-01-02,2020-01-02 03:04:05\n23.1,bye,false,2021-02-03,2021-02-03 04:05:06\n",
+      "stdout": "CREATE TABLE stdin (\n\tn DECIMAL(38, 2) NOT NULL, \n\tt VARCHAR(5) NOT NULL, \n\tb BOOL NOT NULL, \n\td DATE NOT NULL, \n\tdt TIMESTAMP NULL\n);\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "-y",
+        "0",
+        "-i",
+        "mssql"
+      ],
+      "stdin": "n,t,b,d,dt\n12.34,hello,true,2020-01-02,2020-01-02 03:04:05\n23.1,bye,false,2021-02-03,2021-02-03 04:05:06\n",
+      "stdout": "CREATE TABLE stdin (\n\tn DECIMAL(38, 2) NOT NULL, \n\tt VARCHAR(max) NOT NULL, \n\tb BIT NOT NULL, \n\td DATE NOT NULL, \n\tdt DATETIME NULL\n);\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "-y",
+        "0",
+        "-i",
+        "oracle"
+      ],
+      "stdin": "n,t,b,d,dt\n12.34,hello,true,2020-01-02,2020-01-02 03:04:05\n23.1,bye,false,2021-02-03,2021-02-03 04:05:06\n",
+      "stdout": "CREATE TABLE stdin (\n\tn DECIMAL(38, 2) NOT NULL, \n\tt VARCHAR NOT NULL, \n\tb BOOLEAN NOT NULL, \n\td DATE NOT NULL, \n\tdt TIMESTAMP\n);\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "-y",
+        "0",
+        "-i",
+        "postgresql"
+      ],
+      "stdin": "n,t,b,d,dt\n12.34,hello,true,2020-01-02,2020-01-02 03:04:05\n23.1,bye,false,2021-02-03,2021-02-03 04:05:06\n",
+      "stdout": "CREATE TABLE stdin (\n\tn DECIMAL NOT NULL, \n\tt VARCHAR NOT NULL, \n\tb BOOLEAN NOT NULL, \n\td DATE NOT NULL, \n\tdt TIMESTAMP WITHOUT TIME ZONE\n);\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "--query",
+        "SELECT 1 AS value",
+        "-y",
+        "0"
+      ],
+      "stdin": "",
+      "stdout": "value\n1\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "--query",
+        "SELECT 1 AS value;UPDATE t",
+        "-y",
+        "0"
+      ],
+      "stdin": "",
+      "stdout": "",
+      "stderr": "OperationalError: (sqlite3.OperationalError) incomplete input\n[SQL: UPDATE t]\n(Background on this error at: https://sqlalche.me/e/20/e3q8)\n",
+      "status": 1
+    },
+    {
+      "argv": [
+        "--query",
+        "; ;",
+        "-y",
+        "0"
+      ],
+      "stdin": "",
+      "stdout": "",
+      "stderr": "AttributeError: 'NoneType' object has no attribute 'returns_rows'\n",
+      "status": 1
+    },
+    {
+      "argv": [
+        "--query",
+        "SELECT 'a;b'",
+        "-y",
+        "0"
+      ],
+      "stdin": "",
+      "stdout": "",
+      "stderr": "OperationalError: (sqlite3.OperationalError) unrecognized token: \"'a\"\n[SQL: SELECT 'a]\n(Background on this error at: https://sqlalche.me/e/20/e3q8)\n",
+      "status": 1
+    },
+    {
+      "argv": [
+        "-i",
+        "mysql",
+        "-I",
+        "-y",
+        "0",
+        "--min-col-len",
+        "50",
+        "--col-len-multiplier",
+        "5"
+      ],
+      "stdin": "a\nx\n",
+      "stdout": "CREATE TABLE stdin (\n\ta VARCHAR(1) NOT NULL\n);\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "--unique-constraint",
+        "missing",
+        "-y",
+        "0",
+        "-I"
+      ],
+      "stdin": "a\nx\n",
+      "stdout": "",
+      "stderr": "ConstraintColumnNotFoundError: Can't create UniqueConstraint on table 'stdin': no column named 'missing' is present.\n",
+      "status": 1
+    },
+    {
+      "argv": [
+        "--query",
+        "SELECT * FROM stdin",
+        "--chunk-size",
+        "0",
+        "-y",
+        "0",
+        "-I"
+      ],
+      "stdin": "a\nx\n",
+      "stdout": "",
+      "stderr": "ZeroDivisionError: division by zero\n",
+      "status": 1
+    },
+    {
+      "argv": [
+        "--query",
+        "SELECT * FROM stdin",
+        "--chunk-size",
+        "-1",
+        "-y",
+        "0",
+        "-I"
+      ],
+      "stdin": "a\nx\n",
+      "stdout": "",
+      "stderr": "IntegrityError: (sqlite3.IntegrityError) NOT NULL constraint failed: stdin.a\n[SQL: INSERT INTO stdin DEFAULT VALUES]\n(Background on this error at: https://sqlalche.me/e/20/gkpj)\n",
+      "status": 1
+    },
+    {
+      "argv": [
+        "--query",
+        "SELECT * FROM stdin",
+        "-y",
+        "0",
+        "-I",
+        "--add-bom",
+        "-l"
+      ],
+      "stdin": "a\nx\ny\n",
+      "stdout": "\ufeffline_number,a\n1,x\n2,y\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "--query",
+        "SELECT 1.0 AS value, -0.0 AS zero, 1 AS integer, NULL AS empty",
+        "-y",
+        "0"
+      ],
+      "stdin": "",
+      "stdout": "value,zero,integer,empty\n1.0,-0.0,1,\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "--query",
+        "SELECT * FROM stdin",
+        "-y",
+        "0"
+      ],
+      "stdin": "a\n12.34\n23.1\n",
+      "stdout": "a\n12.34\n23.1\n",
+      "stderr": "",
+      "status": 0,
+      "sqliteRows": [
+        12.34,
+        23.1
+      ]
+    },
+    {
+      "argv": [
+        "--query",
+        "SELECT * FROM stdin",
+        "-y",
+        "0"
+      ],
+      "stdin": "a\n2020-01-02 03:04:05\n2021-02-03 04:05:06\n",
+      "stdout": "a\n2020-01-02 03:04:05.000000\n2021-02-03 04:05:06.000000\n",
+      "stderr": "",
+      "status": 0,
+      "sqliteRows": [
+        "2020-01-02 03:04:05.000000",
+        "2021-02-03 04:05:06.000000"
+      ]
+    },
+    {
+      "argv": [
+        "--query",
+        "SELECT * FROM stdin",
+        "-y",
+        "0"
+      ],
+      "stdin": "a\n02:03:04\n03:04:05\n",
+      "stdout": "a\n1970-01-01 02:03:04.000000\n1970-01-01 03:04:05.000000\n",
+      "stderr": "",
+      "status": 0,
+      "sqliteRows": [
+        "1970-01-01 02:03:04.000000",
+        "1970-01-01 03:04:05.000000"
+      ]
+    },
+    {
+      "argv": [
+        "--insert",
+        "-i",
+        "sqlite",
+        "--no-create"
+      ],
+      "stdin": "",
+      "stdout": "",
+      "stderr": "usage: csvsql [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n              [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n              [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n              [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n              [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l] [--add-bom]\n              [--zero] [-V] [-i {mssql,mysql,oracle,postgresql,sqlite}]\n              [--db CONNECTION_STRING]\n              [--engine-option ENGINE_OPTION ENGINE_OPTION] [--query QUERIES]\n              [--insert] [--prefix PREFIX] [--before-insert BEFORE_INSERT]\n              [--after-insert AFTER_INSERT] [--sql-delimiter SQL_DELIMITER]\n              [--tables TABLE_NAMES] [--no-constraints]\n              [--unique-constraint UNIQUE_CONSTRAINT] [--no-create]\n              [--create-if-not-exists] [--overwrite] [--db-schema DB_SCHEMA]\n              [-y SNIFF_LIMIT] [-I] [--chunk-size CHUNK_SIZE]\n              [--min-col-len MIN_COL_LEN]\n              [--col-len-multiplier COL_LEN_MULTIPLIER]\n              [FILE ...]\ncsvsql: error: The --insert option is only valid when either --db or --query is specified.\n",
+      "status": 2
+    },
+    {
+      "argv": [
+        "--query",
+        "SELECT 1",
+        "-i",
+        "mysql",
+        "--overwrite",
+        "--no-create"
+      ],
+      "stdin": "",
+      "stdout": "",
+      "stderr": "usage: csvsql [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n              [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n              [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n              [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n              [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l] [--add-bom]\n              [--zero] [-V] [-i {mssql,mysql,oracle,postgresql,sqlite}]\n              [--db CONNECTION_STRING]\n              [--engine-option ENGINE_OPTION ENGINE_OPTION] [--query QUERIES]\n              [--insert] [--prefix PREFIX] [--before-insert BEFORE_INSERT]\n              [--after-insert AFTER_INSERT] [--sql-delimiter SQL_DELIMITER]\n              [--tables TABLE_NAMES] [--no-constraints]\n              [--unique-constraint UNIQUE_CONSTRAINT] [--no-create]\n              [--create-if-not-exists] [--overwrite] [--db-schema DB_SCHEMA]\n              [-y SNIFF_LIMIT] [-I] [--chunk-size CHUNK_SIZE]\n              [--min-col-len MIN_COL_LEN]\n              [--col-len-multiplier COL_LEN_MULTIPLIER]\n              [FILE ...]\ncsvsql: error: The --dialect option is only valid when neither --db nor --query are specified.\n",
+      "status": 2
+    },
+    {
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--insert",
+        "--overwrite",
+        "--no-create"
+      ],
+      "stdin": "",
+      "stdout": "",
+      "stderr": "usage: csvsql [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n              [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n              [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n              [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n              [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l] [--add-bom]\n              [--zero] [-V] [-i {mssql,mysql,oracle,postgresql,sqlite}]\n              [--db CONNECTION_STRING]\n              [--engine-option ENGINE_OPTION ENGINE_OPTION] [--query QUERIES]\n              [--insert] [--prefix PREFIX] [--before-insert BEFORE_INSERT]\n              [--after-insert AFTER_INSERT] [--sql-delimiter SQL_DELIMITER]\n              [--tables TABLE_NAMES] [--no-constraints]\n              [--unique-constraint UNIQUE_CONSTRAINT] [--no-create]\n              [--create-if-not-exists] [--overwrite] [--db-schema DB_SCHEMA]\n              [-y SNIFF_LIMIT] [-I] [--chunk-size CHUNK_SIZE]\n              [--min-col-len MIN_COL_LEN]\n              [--col-len-multiplier COL_LEN_MULTIPLIER]\n              [FILE ...]\ncsvsql: error: The --overwrite option is only valid if --no-create is not specified.\n",
+      "status": 2
+    },
+    {
+      "argv": [
+        "--before-insert",
+        "hook",
+        "--chunk-size",
+        "0"
+      ],
+      "stdin": "",
+      "stdout": "",
+      "stderr": "usage: csvsql [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n              [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n              [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n              [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n              [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l] [--add-bom]\n              [--zero] [-V] [-i {mssql,mysql,oracle,postgresql,sqlite}]\n              [--db CONNECTION_STRING]\n              [--engine-option ENGINE_OPTION ENGINE_OPTION] [--query QUERIES]\n              [--insert] [--prefix PREFIX] [--before-insert BEFORE_INSERT]\n              [--after-insert AFTER_INSERT] [--sql-delimiter SQL_DELIMITER]\n              [--tables TABLE_NAMES] [--no-constraints]\n              [--unique-constraint UNIQUE_CONSTRAINT] [--no-create]\n              [--create-if-not-exists] [--overwrite] [--db-schema DB_SCHEMA]\n              [-y SNIFF_LIMIT] [-I] [--chunk-size CHUNK_SIZE]\n              [--min-col-len MIN_COL_LEN]\n              [--col-len-multiplier COL_LEN_MULTIPLIER]\n              [FILE ...]\ncsvsql: error: The --before-insert option is only valid if --insert is also specified.\n",
+      "status": 2
+    },
+    {
+      "argv": [
+        "--chunk-size",
+        "0",
+        "-y",
+        "0"
+      ],
+      "stdin": "",
+      "stdout": "",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--insert",
+        "--no-create",
+        "--create-if-not-exists"
+      ],
+      "stdin": "",
+      "stdout": "",
+      "stderr": "usage: csvsql [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n              [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n              [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n              [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n              [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l] [--add-bom]\n              [--zero] [-V] [-i {mssql,mysql,oracle,postgresql,sqlite}]\n              [--db CONNECTION_STRING]\n              [--engine-option ENGINE_OPTION ENGINE_OPTION] [--query QUERIES]\n              [--insert] [--prefix PREFIX] [--before-insert BEFORE_INSERT]\n              [--after-insert AFTER_INSERT] [--sql-delimiter SQL_DELIMITER]\n              [--tables TABLE_NAMES] [--no-constraints]\n              [--unique-constraint UNIQUE_CONSTRAINT] [--no-create]\n              [--create-if-not-exists] [--overwrite] [--db-schema DB_SCHEMA]\n              [-y SNIFF_LIMIT] [-I] [--chunk-size CHUNK_SIZE]\n              [--min-col-len MIN_COL_LEN]\n              [--col-len-multiplier COL_LEN_MULTIPLIER]\n              [FILE ...]\ncsvsql: error: The --no-create and --create-if-not-exists options are mutually exclusive.\n",
+      "status": 2
+    },
+    {
+      "argv": [
+        "--chunk-size",
+        "-1"
+      ],
+      "stdin": "",
+      "stdout": "",
+      "stderr": "usage: csvsql [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n              [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n              [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n              [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n              [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l] [--add-bom]\n              [--zero] [-V] [-i {mssql,mysql,oracle,postgresql,sqlite}]\n              [--db CONNECTION_STRING]\n              [--engine-option ENGINE_OPTION ENGINE_OPTION] [--query QUERIES]\n              [--insert] [--prefix PREFIX] [--before-insert BEFORE_INSERT]\n              [--after-insert AFTER_INSERT] [--sql-delimiter SQL_DELIMITER]\n              [--tables TABLE_NAMES] [--no-constraints]\n              [--unique-constraint UNIQUE_CONSTRAINT] [--no-create]\n              [--create-if-not-exists] [--overwrite] [--db-schema DB_SCHEMA]\n              [-y SNIFF_LIMIT] [-I] [--chunk-size CHUNK_SIZE]\n              [--min-col-len MIN_COL_LEN]\n              [--col-len-multiplier COL_LEN_MULTIPLIER]\n              [FILE ...]\ncsvsql: error: The --chunk-size option is only valid if --insert is also specified.\n",
+      "status": 2
+    },
+    {
+      "argv": [
+        "-I",
+        "-y",
+        "0",
+        "--tables",
+        "\u30c6\u30fc\u30d6\u30eb",
+        "--db-schema",
+        "sch\u00e9ma"
+      ],
+      "stdin": "caf\u00e9,\u0131,\u017f\nx,y,z\n",
+      "stdout": "CREATE TABLE \"sch\u00e9ma\".\"\u30c6\u30fc\u30d6\u30eb\" (\n\t\"caf\u00e9\" VARCHAR NOT NULL, \n\t\u0131 VARCHAR NOT NULL, \n\t\u017f VARCHAR NOT NULL\n);\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "-I",
+        "-y",
+        "0"
+      ],
+      "stdin": "\"a\n\",b\nx,y\n",
+      "stdout": "CREATE TABLE stdin (\n\ta\n VARCHAR NOT NULL, \n\tb VARCHAR NOT NULL\n);\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "-I",
+        "-y",
+        "0",
+        ""
+      ],
+      "stdin": "",
+      "stdout": "",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "-I",
+        "-y",
+        "0",
+        "--tables",
+        ","
+      ],
+      "stdin": "a\nx\n",
+      "stdout": "",
+      "stderr": "IndexError: string index out of range\n",
+      "status": 1
+    },
+    {
+      "argv": [
+        "--db",
+        "sqlite://",
+        "--insert",
+        "--no-create",
+        "--tables",
+        ",",
+        "--chunk-size",
+        "-1",
+        "-I",
+        "-y",
+        "0"
+      ],
+      "stdin": "a\nx\ny\n",
+      "stdout": "",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "-i",
+        "mysql",
+        "--no-constraints",
+        "--unique-constraint",
+        "missing",
+        "-I",
+        "-y",
+        "0"
+      ],
+      "stdin": "a\nx\n",
+      "stdout": "",
+      "stderr": "ConstraintColumnNotFoundError: Can't create UniqueConstraint on table 'stdin': no column named 'missing' is present.\n",
+      "status": 1
+    },
+    {
+      "argv": [
+        "--tables",
+        ",",
+        "--unique-constraint",
+        "missing",
+        "-I",
+        "-y",
+        "0"
+      ],
+      "stdin": "a\nx\n",
+      "stdout": "",
+      "stderr": "ConstraintColumnNotFoundError: Can't create UniqueConstraint on table '': no column named 'missing' is present.\n",
+      "status": 1
+    }
+  ],
+  "referenceProfileId": "csvkit-2.2.0-cpython-3.14.2-agate-1.14.2-agatesql-0.7.3-sqlalchemy-2.0.54-sqlite-3.50.4-C-UTC"
+}

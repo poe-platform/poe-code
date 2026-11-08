@@ -1,0 +1,26 @@
+{
+  "id": "direct-helper-eof-no-close",
+  "mutant": "none",
+  "pass": true,
+  "events": [
+    "next:0",
+    "next-entered:release",
+    "next:1",
+    "next:2",
+    "return-entered:release"
+  ],
+  "input": {
+    "reads": 3,
+    "returns": 0,
+    "acquired": 1,
+    "concurrent": 0,
+    "maxConcurrent": 1
+  },
+  "output": [
+    "",
+    "00ff"
+  ],
+  "stderr": [],
+  "strictUnhandled": true,
+  "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+}

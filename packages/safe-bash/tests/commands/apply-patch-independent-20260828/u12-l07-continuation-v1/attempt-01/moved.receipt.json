@@ -1,0 +1,21 @@
+{
+  "layout": "moved",
+  "pid": 18733,
+  "code": 0,
+  "signal": null,
+  "closeObserved": true,
+  "absent": true,
+  "failure": null,
+  "channels": {
+    "stdout": {
+      "path": "moved.stdout.raw",
+      "bytes": 85859,
+      "sha256": "05c49748cf9778d5ac5fd918a62c8c2b73b1b11c4fb320de24e808782a287572"
+    },
+    "stderr": {
+      "path": "moved.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  }
+}

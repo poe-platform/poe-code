@@ -1,0 +1,6 @@
+tree 8cadf30519a179418fb2f7a859d6cf64ef1c8049
+parent 8a674adf8e99f64a7baf965527dd9fc9c30bdbb2
+author Kamil Jopek <kjopek@quora.com> 1787863965 -0500
+committer Kamil Jopek <kjopek@quora.com> 1787863965 -0500
+
+feat(shell): integrate checked getopts state and regular builtin

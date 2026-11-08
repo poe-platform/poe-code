@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "removedAfterInventory": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/approved-v7-replay-9a5a6f92/replay-001/work-lDLkHu",
+      "inventoryEvidence": "RETAINED_SCRATCH_INVENTORY.json",
+      "actualPostRemovalStat": "ENOENT"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/approved-v7-replay-9a5a6f92/replay-001/bootstrap-scratch",
+      "inventoryEvidence": "BOOTSTRAP_SCRATCH_INVENTORY.json",
+      "actualPostRemovalStat": "ENOENT"
+    }
+  ],
+  "retainedScratchInventorySha256": "7bbff786540210a64a6ac0ddd6dc1b848fe853f4025a02cebdf44449f5bd05f5",
+  "bootstrapScratchInventorySha256": "2e60eb368ade46d487e9f4491b42042cfb0ea2ed44f86bfc1424a3d8917bca4e",
+  "processProbeEvidence": "POST_RUN_PROCESS_PROBE.json",
+  "everyRecordedRootAndGroupAbsent": true,
+  "timeoutGrandchildAbsent": true
+}

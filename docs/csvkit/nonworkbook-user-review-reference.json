@@ -1,0 +1,657 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "oracleExecutableSha256": "3d6400b63b150164e89a690d9813af8b0eb420af9f336ef1f6c5102c6da60eae",
+  "environment": {
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "PYTHONIOENCODING": "utf-8",
+    "COLUMNS": "80",
+    "LINES": "24"
+  },
+  "measuredGrid": {
+    "total": 335,
+    "exactMatches": 315,
+    "explicitBlockers": 20,
+    "blockerOptions": [
+      "csvcut -u 4",
+      "csvcut -u 5"
+    ]
+  },
+  "cases": [
+    {
+      "argv": [
+        "csvcut"
+      ],
+      "input": "",
+      "expected": {
+        "stdout": "\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "argv": [
+        "csvcut",
+        "-l"
+      ],
+      "input": "",
+      "expected": {
+        "stdout": "line_number\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "argv": [
+        "csvcut",
+        "-H",
+        "-l"
+      ],
+      "input": "",
+      "expected": {
+        "stdout": "line_number\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "argv": [
+        "csvgrep",
+        "-c",
+        "1",
+        "-m",
+        "x"
+      ],
+      "input": "",
+      "expected": {
+        "stdout": "\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "argv": [
+        "csvstack",
+        "-H",
+        "-"
+      ],
+      "input": "",
+      "expected": {
+        "stdout": "\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "argv": [
+        "csvcut"
+      ],
+      "input": "\n",
+      "expected": {
+        "stdout": "\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "argv": [
+        "csvcut",
+        "-H",
+        "-l"
+      ],
+      "input": "\n",
+      "expected": {
+        "stdout": "line_number\n1\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "argv": [
+        "csvstack",
+        "-H",
+        "-"
+      ],
+      "input": "\n\n",
+      "expected": {
+        "stdout": "\n\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "argv": [
+        "csvgrep",
+        "-c",
+        "1",
+        "-m",
+        "x"
+      ],
+      "input": "a\n",
+      "expected": {
+        "stdout": "a\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "argv": [
+        "csvgrep",
+        "-c",
+        "1,2",
+        "-m",
+        "x",
+        "-a"
+      ],
+      "input": "a\n",
+      "expected": {
+        "stdout": "",
+        "stderr": "ColumnIdentifierError: Column 2 is invalid. The last column is 'a' at index 1.\n",
+        "status": 1
+      }
+    },
+    {
+      "argv": [
+        "csvcut",
+        "-c",
+        "2,1,2"
+      ],
+      "input": "a,b\n",
+      "expected": {
+        "stdout": "b,a,b\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "argv": [
+        "csvformat"
+      ],
+      "input": "a,b\n",
+      "expected": {
+        "stdout": "a,b\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "argv": [
+        "csvcut",
+        "-x",
+        "-c",
+        "1"
+      ],
+      "input": "a,b\nx\n",
+      "expected": {
+        "stdout": "a\nx\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "argv": [
+        "csvstack",
+        "-"
+      ],
+      "input": "a,b\nx\n",
+      "expected": {
+        "stdout": "a,b\nx,\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "argv": [
+        "csvformat"
+      ],
+      "input": "a,b\nx,y,z\n",
+      "expected": {
+        "stdout": "a,b\nx,y,z\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "argv": [
+        "csvcut",
+        "-l"
+      ],
+      "input": ",a,a\nA,B,C\n",
+      "expected": {
+        "stdout": "line_number,,a,a\n1,A,B,C\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "argv": [
+        "csvgrep",
+        "-c",
+        "1,2",
+        "-m",
+        "x",
+        "-a"
+      ],
+      "input": ",a,a\nA,B,C\n",
+      "expected": {
+        "stdout": ",a,a\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "argv": [
+        "csvcut",
+        "-l"
+      ],
+      "input": "a,b\n\nx,y\n",
+      "expected": {
+        "stdout": "line_number,a,b\n1,,\n2,x,y\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "argv": [
+        "csvformat",
+        "-U",
+        "3"
+      ],
+      "input": "a,b\n\nx,y\n",
+      "expected": {
+        "stdout": "a,b\n\nx,y\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "argv": [
+        "csvcut"
+      ],
+      "input": "a,b\n\"x\ny\",z\nq,r\n",
+      "expected": {
+        "stdout": "a,b\n\"x\ny\",z\nq,r\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "argv": [
+        "csvgrep",
+        "-c",
+        "1,2",
+        "-m",
+        "x",
+        "-a"
+      ],
+      "input": "a,b\n\"x\ny\",z\nq,r\n",
+      "expected": {
+        "stdout": "a,b\n\"x\ny\",z\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "argv": [
+        "csvcut",
+        "-H",
+        "-l"
+      ],
+      "input": "a,b\r\nx,y\rz,w\n",
+      "expected": {
+        "stdout": "line_number,a,b\n1,a,b\n",
+        "stderr": "Error: new-line character seen in unquoted field - do you need to open the file with newline=''?\n",
+        "status": 1
+      }
+    },
+    {
+      "argv": [
+        "csvgrep",
+        "-c",
+        "1",
+        "-m",
+        "x"
+      ],
+      "input": "a,b\r\nx,y\rz,w\n",
+      "expected": {
+        "stdout": "a,b\n",
+        "stderr": "Error: new-line character seen in unquoted field - do you need to open the file with newline=''?\n",
+        "status": 1
+      }
+    },
+    {
+      "argv": [
+        "csvformat",
+        "-l"
+      ],
+      "input": "a,b\r\nx,y\rz,w\n",
+      "expected": {
+        "stdout": "line_number,a,b\n",
+        "stderr": "Error: new-line character seen in unquoted field - do you need to open the file with newline=''?\n",
+        "status": 1
+      }
+    },
+    {
+      "argv": [
+        "csvcut",
+        "-c",
+        "2,1,2"
+      ],
+      "input": "a,b\n\"\",\n0,False\n",
+      "expected": {
+        "stdout": "b,a,b\n,,\nFalse,0,False\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "argv": [
+        "csvstack",
+        "-H",
+        "-"
+      ],
+      "input": "a,b\n\"\",\n0,False\n",
+      "expected": {
+        "stdout": "a,b\na,b\n,\n0,False\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "argv": [
+        "csvgrep",
+        "-c",
+        "1,2",
+        "-m",
+        "x",
+        "-a"
+      ],
+      "input": "a,b\n  x, y\n",
+      "expected": {
+        "stdout": "a,b\n  x, y\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "argv": [
+        "csvformat",
+        "-U",
+        "3"
+      ],
+      "input": "a,b\n  x, y\n",
+      "expected": {
+        "stdout": "a,b\n  x, y\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "argv": [
+        "csvformat",
+        "-U",
+        "4"
+      ],
+      "input": "a,b\n\"unclosed,x\n",
+      "expected": {
+        "stdout": "\"a\",\"b\"\n\"unclosed,x\n\"\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "argv": [
+        "csvformat",
+        "-B",
+        "-P",
+        "\\"
+      ],
+      "input": "a,b\n\"unclosed,x\n",
+      "expected": {
+        "stdout": "a,b\n\"unclosed,x\n\"\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "argv": [
+        "csvformat",
+        "-M",
+        "x"
+      ],
+      "input": "a,b\n\"unclosed,x\n",
+      "expected": {
+        "stdout": "a,bx\"unclosed,x\n\"x",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "argv": [
+        "csvclean",
+        "-a",
+        "--header-normalize-space"
+      ],
+      "input": "a,b\n\"unclosed,x\n",
+      "expected": {
+        "stdout": "a,b\n\"unclosed,x\n\"\n",
+        "stderr": "line_number,msg,a,b\n1,\"Expected 2 columns, found 1 columns\",\"unclosed,x\n\"\n1,Empty columns named 'b'! Try: csvcut -C 2,,\n",
+        "status": 1
+      }
+    },
+    {
+      "argv": [
+        "csvformat",
+        "-U",
+        "3",
+        "-P",
+        "\\"
+      ],
+      "input": "a,b\n\"x\"suffix,y\n",
+      "expected": {
+        "stdout": "a,b\nxsuffix,y\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "argv": [
+        "csvclean",
+        "--length-mismatch",
+        "--join-short-rows"
+      ],
+      "input": "a,b\n\"x\"suffix,y\n",
+      "expected": {
+        "stdout": "a,b\nxsuffix,y\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "argv": [
+        "csvformat",
+        "-Q",
+        "\ud83d\ude00"
+      ],
+      "input": "a,b\n\\\n",
+      "expected": {
+        "stdout": "a,b\n\\\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "argv": [
+        "csvformat",
+        "-U",
+        "4"
+      ],
+      "input": "a,b\n\"\u0000\u2028\t\",x\n",
+      "expected": {
+        "stdout": "\"a\",\"b\"\n\"\u0000\u2028\t\",\"x\"\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "argv": [
+        "csvformat",
+        "-U",
+        "3",
+        "-P",
+        "\\"
+      ],
+      "input": "a,b\n\"\u0000\u2028\t\",x\n",
+      "expected": {
+        "stdout": "a,b\n\u0000\u2028\t,x\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "argv": [
+        "csvformat",
+        "-Q",
+        "\ud83d\ude00"
+      ],
+      "input": "a,b\n\"\u0000\u2028\t\",x\n",
+      "expected": {
+        "stdout": "a,b\n\u0000\u2028\t,x\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "argv": [
+        "csvformat",
+        "-D",
+        "\ud83d\ude00"
+      ],
+      "input": "a,b\n\"\u0000\u2028\t\",x\n",
+      "expected": {
+        "stdout": "a\ud83d\ude00b\n\u0000\u2028\t\ud83d\ude00x\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "argv": [
+        "csvformat",
+        "-B",
+        "-P",
+        "\\"
+      ],
+      "input": "a,b\n\ud83d\ude00,\u00e9\n",
+      "expected": {
+        "stdout": "a,b\n\ud83d\ude00,\u00e9\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "argv": [
+        "csvformat",
+        "-D",
+        "\ud83d\ude00"
+      ],
+      "input": "a,b\n\ud83d\ude00,\u00e9\n",
+      "expected": {
+        "stdout": "a\ud83d\ude00b\n\"\ud83d\ude00\"\ud83d\ude00\u00e9\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "argv": [
+        "csvformat",
+        "-U",
+        "3",
+        "-P",
+        "\\"
+      ],
+      "input": "a,b\n\"\r\nx\r\",z\n",
+      "expected": {
+        "stdout": "a,b\n\\\n\\\nx\\\n,z\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "argv": [
+        "csvclean",
+        "--length-mismatch",
+        "--fill-short-rows"
+      ],
+      "input": "a,b\n\"\r\nx\r\",z\n",
+      "expected": {
+        "stdout": "a,b\n\"\n\nx\n\",z\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "argv": [
+        "csvclean",
+        "--length-mismatch"
+      ],
+      "input": " a\t,\u00a0b\u2003\nX,Y\n",
+      "expected": {
+        "stdout": " a\t,\u00a0b\u2003\nX,Y\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "argv": [
+        "csvclean",
+        "--length-mismatch",
+        "--join-short-rows"
+      ],
+      "input": "a,b,c\nx\ny,z\nw\n",
+      "expected": {
+        "stdout": "a,b,c\nx\ny,z\nw\n",
+        "stderr": "line_number,msg,a,b,c\n1,\"Expected 3 columns, found 1 columns\",x\n2,\"Expected 3 columns, found 2 columns\",y,z\n3,\"Expected 3 columns, found 1 columns\",w\n",
+        "status": 1
+      }
+    },
+    {
+      "argv": [
+        "csvclean",
+        "-a",
+        "--header-normalize-space"
+      ],
+      "input": "a,b\n\n\n",
+      "expected": {
+        "stdout": "a,b\n\n\n",
+        "stderr": "line_number,msg,a,b\n1,\"Expected 2 columns, found 0 columns\"\n2,\"Expected 2 columns, found 0 columns\"\n1,\"Empty columns named 'a', 'b'! Try: csvcut -C 1,2\",,\n",
+        "status": 1
+      }
+    },
+    {
+      "argv": [
+        "csvclean",
+        "--length-mismatch"
+      ],
+      "input": "a,b\nx,y,z\nx\n",
+      "expected": {
+        "stdout": "a,b\nx,y,z\nx\n",
+        "stderr": "line_number,msg,a,b\n1,\"Expected 2 columns, found 3 columns\",x,y,z\n2,\"Expected 2 columns, found 1 columns\",x\n",
+        "status": 1
+      }
+    },
+    {
+      "argv": [
+        "csvclean",
+        "--length-mismatch",
+        "--fill-short-rows"
+      ],
+      "input": "a,b\nx,y,z\nx\n",
+      "expected": {
+        "stdout": "a,b\nx,y,z\nx,\n",
+        "stderr": "line_number,msg,a,b\n1,\"Expected 2 columns, found 3 columns\",x,y,z\n",
+        "status": 1
+      }
+    }
+  ]
+}

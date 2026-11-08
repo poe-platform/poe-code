@@ -1,0 +1,2 @@
+{"danglingCompiledConsumer":true,"exitCode":0,"stdout":"abc","link":"target","target":"/out/target"}
+{"compiledModule":"tests/commands/split/.build/src/commands/split/index.js","factory":"createSplitCommands","plugin":"splitCommands","files":["out","partaa.bin","partab.bin","prefix"],"stdoutHex":"ff00410a420a","exitCode":0,"packageSubpathExport":false}

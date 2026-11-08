@@ -1,0 +1,10 @@
+{
+  "at": "2026-08-29T11:34:24.898Z",
+  "error": "Cannot read properties of undefined (reading 'body')",
+  "phase": "optional HANDOFF display after immutable metadata collection and closure",
+  "cause": "HANDOFF belongs to evidence successor rather than source commit",
+  "sourceCollectionPreserved": true,
+  "unknownRetirement": false,
+  "productImports": 0,
+  "correction": "Fetch exact handoff from supplied evidence66b399e0; do not replace source8ab0."
+}

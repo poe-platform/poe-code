@@ -1,0 +1,19 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: candidate must not call Array.from for the sentinel
+
+true !== false
+
+    at allocationDiscriminator (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-length-author-NOIEmN/baseline-consumer-moved/worker.mjs:185:47)
+    at async file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-length-author-NOIEmN/baseline-consumer-moved/worker.mjs:211:51 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: true,
+  expected: false,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.2

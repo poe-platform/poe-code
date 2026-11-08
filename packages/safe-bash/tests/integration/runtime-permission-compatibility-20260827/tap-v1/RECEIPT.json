@@ -1,0 +1,26 @@
+{
+  "sourceCommit": "c800c899114c6c83b3d3eb67231176d124abaf49",
+  "permissionBaseline": "774644f9ea39b41f824db4c829e7a97e6e1386be",
+  "frozenProductCandidate": "8670ebe8f0d39966c2de2638780437398e5f8490",
+  "sourceFiles": {
+    "scripts/verify-current-consumers.mjs": "09d04680a1dd80059fd31da73068c919bb0402d8bdd31a4d0a971a67d8e1259c",
+    "tests/integration/runtime-permission-compatibility-20260827/tap-v1/controls.mjs": "7e49238d1cd37b3f31d98c819dc95e0b8a4e4c1da345c1be4440677c54dda02c",
+    "tests/integration/runtime-permission-compatibility-20260827/controls.mjs": "8c44a150418968b65000994b89165d2cf4ca645279d9a83b2c5daff4245fabab"
+  },
+  "artifacts": [
+    {
+      "name": "AUTHOR_RESULTS.json",
+      "bytes": 59432,
+      "sha256": "e84d0b0336b917a6991aa24d1e26b80e4c5cf7b38912a58b17418aacb98c301a"
+    },
+    {
+      "name": "UNCHANGED_AUTHOR26.json",
+      "bytes": 42288,
+      "sha256": "4e287a07aea8a4243856e8e97cd9593da1df05ad3c78dc8bdf380187785689e4"
+    }
+  ],
+  "authorControls": 24,
+  "unchangedAuthorControls": 26,
+  "independentReplay": "pending: unchanged30-case cohort belongs to Plato",
+  "full16GroupsExecuted": false
+}

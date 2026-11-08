@@ -1,0 +1,10 @@
+Completed bounded checkpoint 2026-08-27T02:04:16.028Z
+Six original GNU status/effect mismatches reproduced; unresolved.
+Poincare libc explanation independently validated by native controls and five primary source hashes.
+No safe command-only exact-effect fix established; minimum backend authority request documented.
+Report: /tmp/safe-bash-metadata-sgid-feasibility.txt
+Exact replay: /tmp/safe-bash-metadata-sgid-replay.json
+Focused controls: /tmp/safe-bash-metadata-sgid-controls.json
+97 consumed inputs stable; final drift [].
+Active owned child processes:0. Owned fixture directories remaining:0.
+No repository/Git edits by leaf. No implementation or new acceptance waiver.

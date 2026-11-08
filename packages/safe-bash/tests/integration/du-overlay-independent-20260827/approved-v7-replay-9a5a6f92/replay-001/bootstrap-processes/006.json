@@ -1,0 +1,34 @@
+{
+  "sequence": 6,
+  "command": "git",
+  "args": [
+    "ls-tree",
+    "-r",
+    "--name-only",
+    "a08227b95b5ac3fc9175df6ca90a7700e5bdcbf4",
+    "--",
+    "tests/integration/du-overlay-independent-20260827/approved-v7-9a5a6f92"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "status": 0,
+  "signal": null,
+  "pid": 46831,
+  "pgid": 46831,
+  "timedOut": false,
+  "termination": {
+    "termSent": false,
+    "killSent": false,
+    "groupGone": true
+  },
+  "closure": {
+    "descendantGroupDetected": false,
+    "rootPidGone": true,
+    "groupGone": true
+  },
+  "timeoutMs": 120000,
+  "startedAt": "2026-08-27T20:11:37.892Z",
+  "finishedAt": "2026-08-27T20:11:37.914Z",
+  "durationMs": 21.516,
+  "stdoutSha256": "11e5097a44e5d456d06f3c82b7607cf0c19db0e33522c5fb50afc0377817f024",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

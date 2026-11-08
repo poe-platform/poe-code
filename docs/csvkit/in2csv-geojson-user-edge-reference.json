@@ -1,0 +1,211 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "sourceSha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+  "converterSourcePath": "csvkit/convert/geojs.py",
+  "converterSourceSha256": "15a85f4c41baa308e48dafca69b905c28ce253d9a7f0dd28c612506f09b97988",
+  "captureMethod": "Original in2csv executable; reference-only environment reconstructed with --require-hashes pinned requirements; captured non-TTY byte pipes, decoded UTF-8 without newline translation.",
+  "executableSha256": "3d6400b63b150164e89a690d9813af8b0eb420af9f336ef1f6c5102c6da60eae",
+  "versions": {
+    "CPython": "3.14.2",
+    "csvkit": "2.2.0",
+    "agate": "1.14.2",
+    "SQLAlchemy": "2.0.54"
+  },
+  "environment": {
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "PYTHONIOENCODING": "utf-8",
+    "COLUMNS": "80",
+    "LINES": "24"
+  },
+  "argv": [
+    "-f",
+    "geojson"
+  ],
+  "pipelineObservation": {
+    "inputCase": "negative floats and exponent",
+    "downstreamCommand": "csvcut",
+    "downstreamArgv": ["-c", "1"],
+    "stdout": "id\n-0.0\n",
+    "stderr": "",
+    "status": 0
+  },
+  "cases": [
+    {
+      "name": "DEL geometry and ordered property",
+      "stdin": "{\"type\": \"FeatureCollection\", \"features\": [{\"properties\": {\"ordered\": {\"\\u007f\": \"\\u007f\"}, \"list\": [\"\\u007f\"]}, \"geometry\": {\"type\": \"Point\", \"coordinates\": [1, 2], \"\\u007f\": \"\\u007f\"}}]}",
+      "stdout": "id,ordered,list,geojson,type,longitude,latitude\n,\"{\"\"\\u007f\"\": \"\"\\u007f\"\"}\",['\\x7f'],\"{\"\"type\"\": \"\"Point\"\", \"\"coordinates\"\": [1, 2], \"\"\\u007f\"\": \"\"\\u007f\"\"}\",Point,1,2\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "control and unicode cells",
+      "stdin": "{\"type\": \"FeatureCollection\", \"features\": [{\"geometry\": null, \"id\": \"\\u0000\\t\\r\\n\\u007f\\ud83d\\ude00\", \"properties\": {\"\\u0000\\r\\n\": {\"a\": \"\\b\\f\\n\\r\\t\\u001f\\u007f\\ud83d\\ude00\"}, \"list\": [\"\\u0000\\u007f\\u2028\\u00a0\\ud83d\\ude00\", \"'\\\"\\\\\"]}}]}",
+      "stdout": "id,\"\u0000\n\n\",list,geojson,type,longitude,latitude\n\"\u0000\t\n\n😀\",\"{\"\"a\"\": \"\"\\b\\f\\n\\r\\t\\u001f\\u007f\\ud83d\\ude00\"\"}\",\"['\\x00\\x7f\\u2028\\xa0😀', '\\'\"\"\\\\']\",null,,,\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "integer-looking property order",
+      "stdin": "{\"type\": \"FeatureCollection\", \"features\": [{\"geometry\": null, \"properties\": {\"10\": 10, \"2\": 2, \"01\": 1, \"__proto__\": {\"x\": 2}, \"constructor\": [\"x\"]}}, {\"geometry\": null, \"properties\": {\"1\": 1, \"10\": null}}]}",
+      "stdout": "id,10,2,01,__proto__,constructor,1,geojson,type,longitude,latitude\n,10,2,1,\"{\"\"x\"\": 2}\",['x'],,null,,,\n,,,,,,1,null,,,\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "false geometry types",
+      "stdin": "{\"type\": \"FeatureCollection\", \"features\": [{\"geometry\": null}, {\"geometry\": false}, {\"geometry\": 0}, {\"geometry\": -0.0}, {\"geometry\": \"\"}, {\"geometry\": []}, {\"geometry\": {}}]}",
+      "stdout": "id,geojson,type,longitude,latitude\n,null,,,\n,false,,,\n,0,,,\n,-0.0,,,\n,\"\"\"\"\"\",,,\n,[],,,\n,{},,,\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "unknown and missing geometry type",
+      "stdin": "{\"type\": \"FeatureCollection\", \"features\": [{\"geometry\": {\"coordinates\": [1, 2]}}, {\"geometry\": {\"type\": null, \"coordinates\": [1, 2]}}, {\"geometry\": {\"type\": false, \"coordinates\": [1, 2]}}]}",
+      "stdout": "id,geojson,type,longitude,latitude\n,\"{\"\"coordinates\"\": [1, 2]}\",,,\n,\"{\"\"type\"\": null, \"\"coordinates\"\": [1, 2]}\",,,\n,\"{\"\"type\"\": false, \"\"coordinates\"\": [1, 2]}\",False,,\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "nonpoint coordinates ignored",
+      "stdin": "{\"type\": \"FeatureCollection\", \"features\": [{\"geometry\": {\"type\": \"Polygon\", \"coordinates\": false}}, {\"geometry\": {\"type\": \"point\", \"coordinates\": [1]}}]}",
+      "stdout": "id,geojson,type,longitude,latitude\n,\"{\"\"type\"\": \"\"Polygon\"\", \"\"coordinates\"\": false}\",Polygon,,\n,\"{\"\"type\"\": \"\"point\"\", \"\"coordinates\"\": [1]}\",point,,\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "unicode coordinate slicing",
+      "stdin": "{\"type\": \"FeatureCollection\", \"features\": [{\"geometry\": {\"type\": \"Point\", \"coordinates\": \"\\ud83d\\ude00\\u00e9ALT\"}}]}",
+      "stdout": "id,geojson,type,longitude,latitude\n,\"{\"\"type\"\": \"\"Point\"\", \"\"coordinates\"\": \"\"\\ud83d\\ude00\\u00e9ALT\"\"}\",Point,😀,é\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "complex point cells",
+      "stdin": "{\"type\": \"FeatureCollection\", \"features\": [{\"geometry\": {\"type\": \"Point\", \"coordinates\": [[true, null], {\"2\": 2, \"1\": 1}, 3]}, \"id\": {\"b\": []}}]}",
+      "stdout": "id,geojson,type,longitude,latitude\nOrderedDict({'b': []}),\"{\"\"type\"\": \"\"Point\"\", \"\"coordinates\"\": [[true, null], {\"\"2\"\": 2, \"\"1\"\": 1}, 3]}\",Point,\"[True, None]\",\"OrderedDict({'2': 2, '1': 1})\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "all reserved collisions",
+      "stdin": "{\"type\": \"FeatureCollection\", \"features\": [{\"geometry\": {\"type\": \"Point\", \"coordinates\": [1, 2, 3]}, \"id\": 0, \"properties\": {\"latitude\": \"latitude\", \"longitude\": \"longitude\", \"type\": \"type\", \"geojson\": \"geojson\", \"id\": \"id\"}}]}",
+      "stdout": "id,latitude,longitude,type,geojson,id,geojson,type,longitude,latitude\n0,latitude,longitude,type,geojson,id,\"{\"\"type\"\": \"\"Point\"\", \"\"coordinates\"\": [1, 2, 3]}\",Point,1,2\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "late invalid feature",
+      "stdin": "{\"type\": \"FeatureCollection\", \"features\": [{\"geometry\": null, \"id\": 1}, null]}",
+      "stdout": "",
+      "stderr": "AttributeError: 'NoneType' object has no attribute 'get'\n",
+      "status": 1
+    },
+    {
+      "name": "properties validation precedes geometry",
+      "stdin": "{\"type\": \"FeatureCollection\", \"features\": [{\"properties\": false}]}",
+      "stdout": "",
+      "stderr": "AttributeError: 'bool' object has no attribute 'keys'\n",
+      "status": 1
+    },
+    {
+      "name": "missing geometry key",
+      "stdin": "{\"type\": \"FeatureCollection\", \"features\": [{\"id\": 1}]}",
+      "stdout": "",
+      "stderr": "KeyError: 'geometry'\n",
+      "status": 1
+    },
+    {
+      "name": "empty coordinates",
+      "stdin": "{\"type\": \"FeatureCollection\", \"features\": [{\"geometry\": {\"type\": \"Point\", \"coordinates\": []}}]}",
+      "stdout": "",
+      "stderr": "ValueError: not enough values to unpack (expected 2, got 0)\n",
+      "status": 1
+    },
+    {
+      "name": "one unicode coordinate",
+      "stdin": "{\"type\": \"FeatureCollection\", \"features\": [{\"geometry\": {\"type\": \"Point\", \"coordinates\": \"\\ud83d\\ude00\"}}]}",
+      "stdout": "",
+      "stderr": "ValueError: not enough values to unpack (expected 2, got 1)\n",
+      "status": 1
+    },
+    {
+      "name": "bool coordinate diagnostic",
+      "stdin": "{\"type\": \"FeatureCollection\", \"features\": [{\"geometry\": {\"type\": \"Point\", \"coordinates\": true}}]}",
+      "stdout": "",
+      "stderr": "TypeError: 'bool' object is not subscriptable\n",
+      "status": 1
+    },
+    {
+      "name": "truthy bool geometry",
+      "stdin": "{\"type\": \"FeatureCollection\", \"features\": [{\"geometry\": true}]}",
+      "stdout": "",
+      "stderr": "AttributeError: 'bool' object has no attribute 'get'\n",
+      "status": 1
+    },
+    {
+      "name": "truthy string geometry",
+      "stdin": "{\"type\": \"FeatureCollection\", \"features\": [{\"geometry\": \"x\"}]}",
+      "stdout": "",
+      "stderr": "AttributeError: 'str' object has no attribute 'get'\n",
+      "status": 1
+    },
+    {
+      "name": "empty features string",
+      "stdin": "{\"type\": \"FeatureCollection\", \"features\": \"\"}",
+      "stdout": "id,geojson,type,longitude,latitude\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "nonempty unicode features string",
+      "stdin": "{\"type\": \"FeatureCollection\", \"features\": \"\\ud83d\\ude00\"}",
+      "stdout": "",
+      "stderr": "AttributeError: 'str' object has no attribute 'get'\n",
+      "status": 1
+    },
+    {
+      "name": "bool features",
+      "stdin": "{\"type\": \"FeatureCollection\", \"features\": false}",
+      "stdout": "",
+      "stderr": "TypeError: 'bool' object is not iterable\n",
+      "status": 1
+    },
+    {
+      "name": "root list type",
+      "stdin": "{\"type\": [\"\\u00e9\", {\"x\": true}], \"features\": []}",
+      "stdout": "",
+      "stderr": "TypeError: Only GeoJSON with root FeatureCollection type is supported. Not ['é', OrderedDict({'x': True})]\n",
+      "status": 1
+    },
+    {
+      "name": "root bool type",
+      "stdin": "{\"type\": false, \"features\": []}",
+      "stdout": "",
+      "stderr": "TypeError: Only GeoJSON with root FeatureCollection type is supported. Not False\n",
+      "status": 1
+    },
+    {
+      "name": "duplicate keys preserve first position",
+      "stdin": "{\"type\":\"FeatureCollection\",\"features\":[{\"id\":1,\"id\":2,\"properties\":{\"2\":\"first\",\"1\":1,\"2\":\"last\"},\"geometry\":{\"coordinates\":[0,1],\"type\":\"Point\",\"coordinates\":[2,3]}}]}",
+      "stdout": "id,2,1,geojson,type,longitude,latitude\n2,last,1,\"{\"\"coordinates\"\": [2, 3], \"\"type\"\": \"\"Point\"\"}\",Point,2,3\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "duplicate root type last wins",
+      "stdin": "{\"type\":\"Feature\",\"features\":[],\"type\":\"FeatureCollection\"}",
+      "stdout": "id,geojson,type,longitude,latitude\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "negative floats and exponent",
+      "stdin": "{\"type\":\"FeatureCollection\",\"features\":[{\"id\":-0.0,\"properties\":{\"x\":[-0.0,1e-7,1e16,9007199254740993]},\"geometry\":{\"type\":\"Point\",\"coordinates\":[-0.0,1e-7]}}]}",
+      "stdout": "id,x,geojson,type,longitude,latitude\n-0.0,\"[-0.0, 1e-07, 1e+16, 9007199254740993]\",\"{\"\"type\"\": \"\"Point\"\", \"\"coordinates\"\": [-0.0, 1e-07]}\",Point,-0.0,1e-07\n",
+      "stderr": "",
+      "status": 0
+    }
+  ]
+}

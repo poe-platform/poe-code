@@ -1,0 +1,52 @@
+{
+  "name": "safe-bash-command-find",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    "./find-format": {
+      "types": "./dist/find-format.d.ts",
+      "workerd": "./dist/find-format.js",
+      "browser": "./dist/find-format.js",
+      "import": "./dist/find-format.js"
+    },
+    "./find": {
+      "types": "./dist/find.d.ts",
+      "workerd": "./dist/find.js",
+      "browser": "./dist/find.js",
+      "import": "./dist/find.js"
+    },
+    "./index": {
+      "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
+      "import": "./dist/index.js"
+    },
+    ".": {
+      "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
+    "lint": "eslint src && npm run typecheck",
+    "test": "node --import tsx --test src/*.test.ts",
+    "test:unit": "node --import tsx --test src/*.test.ts"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "safe-bash-contracts": "*",
+    "@poe-code/safe-fs": "*",
+    "safe-bash-io-engine": "*"
+  }
+}

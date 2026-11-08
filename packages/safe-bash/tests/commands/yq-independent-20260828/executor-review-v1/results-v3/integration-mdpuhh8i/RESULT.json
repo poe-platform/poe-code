@@ -1,0 +1,33 @@
+{
+  "verdict": "PASS_BOUNDED_INTEGRATION_METADATA_ONLY",
+  "sourceCommit": "4fafd93a2a414fe9ce1965f77ab45da1d417d10a",
+  "evidenceCommit": "83035d641c415019ac62a0d0114cf2836ba77e45",
+  "preseal": "d3cf71539c9bade4faaedc92954843240b6c45e4",
+  "controls": 10,
+  "matched": 10,
+  "process": {
+    "argv": [
+      "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/integration-check.mjs",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/integration-mdpuhh8i/CONFIG.json"
+    ],
+    "pid": 63629,
+    "group": 63629,
+    "status": 0,
+    "signal": null,
+    "timedOut": false,
+    "reaped": true,
+    "groupAbsent": true,
+    "signalsSent": [],
+    "elapsedMs": 197,
+    "stdoutBytes": 29,
+    "stderrBytes": 0
+  },
+  "productImports": 0,
+  "productRuns": 0,
+  "builds": 0,
+  "compilerRuns": 0,
+  "positiveBindExecuted": false,
+  "loadComponentsExecuted": false,
+  "candidateGO": false
+}

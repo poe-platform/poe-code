@@ -1,0 +1,74 @@
+{
+  "name": "@poe-code/superintendent",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "poe-superintendent-mcp": "dist/mcp.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./cli": {
+      "types": "./dist/cli.d.ts",
+      "import": "./dist/cli.js"
+    },
+    "./mcp": {
+      "types": "./dist/mcp.d.ts",
+      "import": "./dist/mcp.js"
+    }
+  },
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc && node scripts/copy-templates.mjs",
+    "test": "cd ../.. && vitest run packages/superintendent/src/",
+    "test:unit": "cd ../.. && vitest run packages/superintendent/src/"
+  },
+  "files": [
+    "dist"
+  ],
+  "devDependencies": {
+    "@poe-code/frontmatter": "*",
+    "@poe-code/agent-defs": "*",
+    "@poe-code/agent-harness-tools": "*",
+    "@poe-code/agent-skill-config": "*",
+    "@poe-code/agent-spawn": "*",
+    "@poe-code/config-extends": "*",
+    "toolcraft": "*",
+    "toolcraft-design": "*",
+    "@poe-code/poe-agent": "*",
+    "@poe-code/poe-code-config": "*",
+    "@poe-code/worktree": "*",
+    "@poe-code/safe-fs": "*"
+  },
+  "imports": {
+    "#superintendent-runner": {
+      "types": "./src/runtime/agent-runner.node.ts",
+      "workerd": "./dist/runtime/agent-runner.workerd.js",
+      "browser": "./dist/runtime/agent-runner.workerd.js",
+      "worker": "./dist/runtime/agent-runner.workerd.js",
+      "default": "./dist/runtime/agent-runner.node.js"
+    },
+    "#superintendent-filesystem": {
+      "types": "./src/default-filesystem.ts",
+      "workerd": "./dist/default-filesystem.workerd.js",
+      "browser": "./dist/default-filesystem.workerd.js",
+      "worker": "./dist/default-filesystem.workerd.js",
+      "default": "./dist/default-filesystem.js"
+    },
+    "#superintendent-command-platform": {
+      "types": "./src/command-platform.ts",
+      "workerd": "./dist/command-platform.workerd.js",
+      "browser": "./dist/command-platform.workerd.js",
+      "worker": "./dist/command-platform.workerd.js",
+      "default": "./dist/command-platform.js"
+    },
+    "#superintendent-template": {
+      "types": "./src/template-data.d.ts",
+      "default": "./dist/template-data.js"
+    }
+  }
+}

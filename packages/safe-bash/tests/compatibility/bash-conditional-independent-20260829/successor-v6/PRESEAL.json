@@ -1,0 +1,671 @@
+{
+  "role": "INDEPENDENT_CONDITIONAL_SUCCESSOR_PROJECT_PROFILE",
+  "date": "2026-08-29",
+  "sourceCommit": "7a5c620005fb04518d44bb284f4e99284e4a7c33",
+  "candidate": "74dfe69135a3fc5ba89396b20dd32d9c9daae131",
+  "previous": "501ad98748e639c909f717007dac4f1da19c67dc",
+  "rootDecisions": "1a48ecdc6bde26487ce9514ca1b49368b229eba3",
+  "expectedInputs": 293,
+  "defaultCount": 80,
+  "expectedPackageMembers": 954,
+  "expectedPackageSha256": "46a845f6c12933308aef11dbbf8f861afcc38ff9973b83bcccea13c3329c0a09",
+  "baseEvidence": "a49b8a7055ac2902d1368ddb638d62c5a1896dc9ed25c18b025816a710077509",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "developmentGit": {
+    "path": "/usr/bin/git",
+    "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba",
+    "role": "development exact blob/tree reads, no native oracle"
+  },
+  "bounds": {
+    "totalSeconds": 3570,
+    "children": 110,
+    "peak": 4,
+    "serial": true,
+    "caseSeconds": 30,
+    "childSeconds": 120,
+    "captureBytes": 234881024,
+    "scratchBytes": 939524096,
+    "childCaptureBytes": 16777216,
+    "loaderAdmissions": 40,
+    "regexWorkers": 12
+  },
+  "overallGrant": {
+    "totalSeconds": 3600,
+    "allOsProcesses": 128,
+    "peak": 4,
+    "captureBytes": 268435456,
+    "scratchBytes": 1073741824,
+    "includesInitialAdmissionFinalPublicationAndCleanup": true
+  },
+  "fixtureCopies": [
+    {
+      "destination": "public.mjs",
+      "from": "fixtures/public.mjs",
+      "sha256": "5c43af95204ccca8e61493e86268158ee7bd77f932f23f8e24068b4101bf7176"
+    },
+    {
+      "destination": "apply-public.mjs",
+      "from": "fixtures/apply-public.mjs",
+      "sha256": "ae8e036792df4a4c6e651fd6a75691075f3b8d6fd3bd2ea59fd3f1105561b7c2"
+    },
+    {
+      "destination": "names.mjs",
+      "from": "fixtures/names.mjs",
+      "sha256": "7a098b1ff37d04e10096ba9db55880025dd39bca542f81a3407288685faed377"
+    },
+    {
+      "destination": "consumer.ts.fixture",
+      "from": "fixtures/consumer.ts.fixture",
+      "sha256": "46a717a1902c55d2c19f6bfd301de45395a81be5e7a76540c7113d08248e1be1"
+    },
+    {
+      "destination": "arrays.mjs",
+      "from": "fixtures/arrays.mjs",
+      "sha256": "ac91a9c48b30e3a186468d2a22f44cfecdcf7b3adf54584cf270749f66448f24"
+    },
+    {
+      "destination": "ARRAY-CASES.json",
+      "from": "fixtures/ARRAY-CASES.json",
+      "sha256": "37b39949691b09c665c63e4d81babfebcbcfeb7b6b1c96f6bf2e154c91ab20b2"
+    },
+    {
+      "destination": "coherence/probe.mjs",
+      "from": "fixtures/coherence/probe.mjs",
+      "sha256": "c46da7b648b7f1c5402666276f88893f940c60d02606c5f911c6352309586456"
+    },
+    {
+      "destination": "coherence/names.mjs",
+      "from": "fixtures/coherence/names.mjs",
+      "sha256": "eeffe4db1547913544ef0fee85886c7d924f9242e6b43b05530008817ebfbbee"
+    },
+    {
+      "destination": "coherence/CASES.json",
+      "from": "fixtures/coherence/CASES.json",
+      "sha256": "61486dae6c131769af1a39aef34a5585074467d4f32a34dd90b4be8374d023b0"
+    },
+    {
+      "destination": "coherence/CASES-v2-overlay.json",
+      "from": "fixtures/coherence/CASES-v2-overlay.json",
+      "sha256": "a9aba608d1e30b24b8b3e4c70ca27bd4af8cca2dfac8df45fa460a15d052194d"
+    },
+    {
+      "destination": "redirections.mjs",
+      "from": "fixtures/redirections.mjs",
+      "sha256": "5d22e251da75541bc23a5b786dca6340586cf7bc426801f219f539b73a3e2561"
+    },
+    {
+      "destination": "redirection-cases.json",
+      "from": "fixtures/redirection-cases.json",
+      "sha256": "ac48ca9999caef45a1f08ea3ae5e9a189864f41e5e96069e63ac06c092d156dc"
+    },
+    {
+      "destination": "strict.mjs",
+      "from": "fixtures/strict.mjs",
+      "sha256": "c571a8977ac6553622493d743e18bdba9d23d17355a2f0d625e8fef8e1993ee8"
+    },
+    {
+      "destination": "strict-design.json",
+      "from": "fixtures/strict-design.json",
+      "sha256": "99468cfc96e56130fa65ce12835f4d8a3740002ec9519ea306d4e120cbe5adff"
+    },
+    {
+      "destination": "conditional.mjs",
+      "from": "fixtures/conditional.mjs",
+      "sha256": "0c8216e79aeaadd22bededaf2cc72a8daf83e296584c4b31efa2fed0b5c917e7"
+    },
+    {
+      "destination": "novel.mjs",
+      "from": "fixtures/novel.mjs",
+      "sha256": "22e3f9749fc8d92361291c6bc892dd55ef5b52da8aea9dfe5cc3dc0b9c40eb1e"
+    },
+    {
+      "destination": "retained.mjs",
+      "from": "fixtures/retained.mjs",
+      "sha256": "c39fd9018d0aa3e31bb716a7df2123c1f6aa27287a6712a3a463cc8923544568"
+    },
+    {
+      "destination": "fallback.mjs",
+      "from": "fixtures/fallback.mjs",
+      "sha256": "3d42d69a76f1f843dd042de7a64dc0ec90f119738d705203155cb61ac449f17e"
+    },
+    {
+      "destination": "NOVEL-CASES.json",
+      "from": "NOVEL-CASES.json",
+      "sha256": "03add0fafc84de43e3af155413671c2bf4e88a019f4bbc8f7f1b05d474e00805"
+    },
+    {
+      "destination": "fixture.json",
+      "from": "fixtures/fixture.json",
+      "sha256": "fcb7bae1505a86b2b676396742d7bf362ad779c77192770ed94085646f8d0074"
+    },
+    {
+      "destination": "packs.json",
+      "from": "fixtures/packs.json",
+      "sha256": "eda294f89c61d09319701c50c76e1004d2b4de27fc5d025473a4058fc75a7080"
+    }
+  ],
+  "authorNegativeDiagnostics": [
+    [
+      9,
+      "2353"
+    ],
+    [
+      11,
+      "2353"
+    ],
+    [
+      13,
+      "2322"
+    ],
+    [
+      15,
+      "2353"
+    ],
+    [
+      17,
+      "2353"
+    ],
+    [
+      19,
+      "2353"
+    ],
+    [
+      25,
+      "2322"
+    ],
+    [
+      27,
+      "2339"
+    ]
+  ],
+  "mutants": [
+    {
+      "id": "M01",
+      "path": "dist/shell/conditional.js",
+      "pattern": "frame\\.stage === 1 && \\(node\\.kind === \"and\" \\? result : !result\\)",
+      "replacement": "frame.stage === 1",
+      "script": "novel.mjs",
+      "environment": {
+        "NOVEL_CASE": "N05"
+      },
+      "qualification": "Eager valid unsupported RHS activation."
+    },
+    {
+      "id": "M02",
+      "path": "dist/shell/conditional.js",
+      "pattern": "const left = await context\\.expand\\(node\\.left\\);",
+      "replacement": "const left = await context.expand(node.left); if (left === \"||\" || left === \"]]\") unsupported(\"expanded operator\");",
+      "script": "novel.mjs",
+      "environment": {
+        "NOVEL_CASE": "N02"
+      },
+      "qualification": "Rejects operator-like expanded data; not a full grammar reparser mutant."
+    },
+    {
+      "id": "M03",
+      "path": "dist/shell/runtime.js",
+      "pattern": "this\\.word\\(word, state, io, false, pattern, false, pattern\\)",
+      "replacement": "this.word(word, state, io, false, false, false, false)",
+      "script": "novel.mjs",
+      "environment": {
+        "NOVEL_CASE": "N04"
+      },
+      "qualification": "Removes pattern quote-fragment escaping."
+    },
+    {
+      "id": "M04",
+      "path": "dist/shell/runtime.js",
+      "pattern": "io = await this\\.redirect\\(command\\.redirects, state, io, inputs, outputs, command\\.kind === \"subshell\", command\\.kind !== \"subshell\"\\);",
+      "replacement": "if (command.kind !== \"conditional\") io = await this.redirect(command.redirects, state, io, inputs, outputs, command.kind === \"subshell\", command.kind !== \"subshell\");",
+      "script": "novel.mjs",
+      "environment": {
+        "NOVEL_CASE": "N10"
+      },
+      "qualification": "Omits conditional redirect admission, rather than a claim of every late-order mutation."
+    },
+    {
+      "id": "M05",
+      "path": "dist/shell/conditional.js",
+      "pattern": "if \\(!isFsError\\(error\\)\\)\\s+throw error;",
+      "replacement": "if (!isFsError(error)) return false;",
+      "script": "conditional.mjs",
+      "environment": {
+        "CONDITIONAL_CASE": "S12-untyped"
+      },
+      "qualification": "Unexpected plain-object/Error errno falsely mapped to condition false."
+    },
+    {
+      "id": "M06",
+      "path": "dist/shell/shell.js",
+      "pattern": "throw selection\\.outcome\\.reason;",
+      "replacement": "throw new Error(\"lost caller identity\");",
+      "script": "conditional.mjs",
+      "environment": {
+        "CONDITIONAL_CASE": "H01"
+      },
+      "qualification": "Inherited public caller-boundary identity guard; not new conditional resource ownership."
+    },
+    {
+      "id": "M07",
+      "path": "dist/shell/parser.js",
+      "pattern": "this\\.error\\(\"Expected conditional operand\"\\);",
+      "replacement": "return { parts: [{ kind: \"literal\", value: \"\", quoted: false }], plain: \"\" };",
+      "script": "novel.mjs",
+      "environment": {
+        "NOVEL_CASE": "N03"
+      },
+      "qualification": "Malformed skipped RHS silently acquires empty operand."
+    },
+    {
+      "id": "M08",
+      "path": "dist/shell/conditional.js",
+      "pattern": "if \\(node\\.operator === \"=~\" \\|\\|",
+      "replacement": "if (node.operator === \"=~\") return true; if (node.operator === \"=~\" ||",
+      "script": "novel.mjs",
+      "environment": {
+        "NOVEL_CASE": "N09"
+      },
+      "qualification": "Unsupported regex silently accepted; no actual Worker/native regex."
+    },
+    {
+      "id": "M09",
+      "path": "dist/shell/conditional.js",
+      "pattern": "if \\(digit < 0 \\|\\| digit >= base\\)\\s+unsupported\\(\"numeric expression or literal\"\\);",
+      "replacement": "if (digit < 0 || digit >= base) return 0n;",
+      "script": "novel.mjs",
+      "environment": {
+        "NOVEL_CASE": "N08"
+      },
+      "qualification": "Invalid expression-text fallback accepted; no injected arithmetic writer/host eval."
+    },
+    {
+      "id": "M10",
+      "path": "dist/shell/parser.js",
+      "pattern": "if \\(nodes >= 4096\\)",
+      "replacement": "if (false)",
+      "script": "conditional.mjs",
+      "environment": {
+        "CONDITIONAL_CASE": "H08"
+      },
+      "qualification": "Grammar node-cap removal, inputs bounded at4097 nodes."
+    }
+  ],
+  "internalLoader": {
+    "labels": [
+      "source-conditional",
+      "source-novel",
+      "source-retained",
+      "installed-conditional",
+      "installed-novel",
+      "installed-retained",
+      "moved-conditional",
+      "moved-novel",
+      "moved-retained",
+      "M01",
+      "M01-restored",
+      "M02",
+      "M02-restored",
+      "M03",
+      "M03-restored",
+      "M04",
+      "M04-restored",
+      "M05",
+      "M05-restored",
+      "M06",
+      "M06-restored",
+      "M07",
+      "M07-restored",
+      "M08",
+      "M08-restored",
+      "M09",
+      "M09-restored",
+      "M10",
+      "M10-restored",
+      "binding-missing",
+      "binding-changed",
+      "binding-wrong-root",
+      "binding-fallback"
+    ],
+    "maximumAdmissions": 40
+  },
+  "planned": {
+    "directReviewChildren": 49,
+    "fixedLoaderLaunches": 33,
+    "regexWorkerCeiling": 12,
+    "outerAndCoordinator": 2,
+    "administrationOsReserve": 20,
+    "conservativeProcessesPlusThreadReservations": 116,
+    "actualOsProcessesMustBeReportedSeparately": true
+  },
+  "cohorts": {
+    "conditional": 67,
+    "novel": 12,
+    "retained": 201,
+    "retainedParts": {
+      "publicGit": 45,
+      "apply": 28,
+      "unit1": 48,
+      "unit2": 50,
+      "arrays": 12,
+      "coherence": 18
+    },
+    "perLayout": 280,
+    "threeLayoutOutcomes": 840,
+    "typeGroups": 12,
+    "typeNegativeDiagnostics": 33,
+    "loadedMutants": 10,
+    "restored": 10,
+    "bindingRefusals": 4
+  },
+  "qualification": "Original author531 comprise177/layout and only110 old retained/layout. This planned review adds all201 selected retained from immutable fixtures, not a full gate. Native design40 and originalH02 failures remain unchanged. Concrete mutation mechanism witnesses explicitly qualified in mutants. N11 exact bytes source-derived from accepted Unit2 current redirected io, not runtime observation. No AST clone/RSS/universal-preemption/native claims. Original ca670096 staging refusal is preserved. New raw-byte staging validates all19 fixtures without trimming or altered expected hashes.",
+  "stagingRepair": {
+    "commit": "de486dd8424a19773963fff323241a219a2b0b76",
+    "controls": 6,
+    "fixtureAdmissions": 19,
+    "allOriginalExpectedHashesUnchanged": true
+  },
+  "identities": {
+    "conditional": [
+      "A01",
+      "A02",
+      "A03",
+      "A04",
+      "A05",
+      "A06",
+      "A07",
+      "A08",
+      "A09",
+      "A10",
+      "A11",
+      "A12",
+      "A13",
+      "A14",
+      "A15",
+      "A16",
+      "A17",
+      "A18",
+      "A19",
+      "A20",
+      "A21",
+      "A22",
+      "A23",
+      "A24",
+      "A25",
+      "A26",
+      "A27",
+      "A28",
+      "A29",
+      "A30",
+      "A31",
+      "A32",
+      "A33",
+      "A34",
+      "A35",
+      "A36",
+      "A37",
+      "A38",
+      "A39",
+      "A40",
+      "H01",
+      "H02-v4",
+      "H03",
+      "H04",
+      "H05",
+      "H06",
+      "H07",
+      "H08",
+      "H09",
+      "H10",
+      "S01-registered",
+      "S02-at",
+      "S03-star",
+      "S04-skipped",
+      "S05-ENOENT",
+      "S06-ENOTDIR",
+      "S07-EACCES",
+      "S08-EPERM",
+      "S09-ENOTSUP",
+      "S10-EOPNOTSUPP",
+      "S11-ENOSYS",
+      "S12-untyped",
+      "S13-untyped",
+      "S14-untyped",
+      "S15-unclassified",
+      "S16-code-getter",
+      "S17-limit-caller"
+    ],
+    "novel": [
+      "N01",
+      "N02",
+      "N03",
+      "N04",
+      "N05",
+      "N06",
+      "N07",
+      "N08",
+      "N09",
+      "N10",
+      "N11",
+      "N12"
+    ],
+    "retained": {
+      "public": [
+        "G01-public-exports",
+        "G02-exact80",
+        "G03-standalone",
+        "G04-collision-global-false",
+        "G05-replace-global-true",
+        "G06-discovery-boundary",
+        "G07-fixed-options",
+        "G08-standalone-replacement",
+        "G09-readonly-packed",
+        "G10-pipeline",
+        "G11-apply-crossfeature",
+        "G12-array-function",
+        "G13-preaborted-caller",
+        "G14-corrupt-pack-before-output",
+        "G15-unsupported-storage",
+        "G16-usage-not-version-stub",
+        "G17-diff-exit-one",
+        "G18-stdout-backpressure",
+        "loose-workflow-1",
+        "loose-workflow-2",
+        "loose-workflow-3",
+        "loose-workflow-4",
+        "loose-workflow-5",
+        "loose-workflow-6",
+        "P01-workflow-1",
+        "P01-workflow-2",
+        "P01-workflow-3",
+        "P01-workflow-4",
+        "P01-workflow-5",
+        "P01-workflow-6",
+        "P02-workflow-1",
+        "P02-workflow-2",
+        "P02-workflow-3",
+        "P02-workflow-4",
+        "P02-workflow-5",
+        "P02-workflow-6",
+        "P03-public-verified-blob",
+        "P04-public-verified-blob",
+        "P05-public-verified-blob",
+        "P06-public-verified-blob",
+        "P07-public-verified-blob",
+        "P08-public-verified-blob",
+        "P09-public-verified-blob",
+        "P11-public-verified-blob",
+        "P12-public-verified-blob"
+      ],
+      "apply": [
+        "P01-public-exports",
+        "P02-exact80",
+        "P03-standalone",
+        "P04-collision-global-false",
+        "P05-replace-global-true",
+        "P06-invalid-options-atomic",
+        "P07-forwarded-limit",
+        "P08-literal-argument",
+        "P09-heredoc-input",
+        "P10-update",
+        "P11-move",
+        "P12-delete",
+        "P13-staging-before-publication",
+        "P14-readonly",
+        "P15-mount",
+        "P16-symlink-refusal",
+        "P17-traversal-refusal",
+        "P18-invalid-encoding",
+        "P19-pipeline",
+        "P20-array-arguments",
+        "P21-local-array-scope",
+        "P22-borrowed-input",
+        "P23-preabort-identity",
+        "P24-required-stderr",
+        "P25-output-failure-after-publication",
+        "P26-registered-cleanups-idempotent",
+        "P27-caller-abort-after-publication",
+        "P28-awaited-output"
+      ],
+      "redirections": [
+        "R01",
+        "R02",
+        "R03",
+        "R04",
+        "R05",
+        "R06",
+        "R07",
+        "R08",
+        "R09",
+        "R10",
+        "R11",
+        "R12",
+        "R13",
+        "R14",
+        "R15",
+        "R16",
+        "R17",
+        "R18",
+        "R19",
+        "R20",
+        "R21",
+        "R22",
+        "R23",
+        "R24",
+        "R25",
+        "R26",
+        "R27",
+        "R28",
+        "R29",
+        "R30",
+        "R31",
+        "R32",
+        "R33",
+        "R34",
+        "R35",
+        "R36",
+        "C01-default80-display",
+        "C02-versioned-conditional-support",
+        "C03-single-open-and-raw-bytes",
+        "C04-before-open-caller-identity",
+        "C05-blocked-write-caller-identity",
+        "C06-backpressure",
+        "C07-sink-fault-profile-preserved",
+        "C08-required-file-after-downstream-close",
+        "C09-open-failure-and-prior-effect",
+        "C10-output-limit-and-cleanup",
+        "C11-closed-descriptor-error",
+        "C12-owned-real-file"
+      ],
+      "strict": [
+        "U01",
+        "U02",
+        "U03",
+        "U04",
+        "U05",
+        "U08",
+        "U09",
+        "U10",
+        "U11",
+        "U12",
+        "U13",
+        "U14",
+        "U15",
+        "U16",
+        "U18",
+        "U19",
+        "U20",
+        "U21",
+        "U22",
+        "U23",
+        "U24",
+        "U25",
+        "U26",
+        "U29",
+        "U30",
+        "U37",
+        "U38",
+        "U39",
+        "U40",
+        "U41",
+        "U42",
+        "U43",
+        "U44",
+        "U45",
+        "U46",
+        "U47",
+        "U48",
+        "U49",
+        "U50",
+        "E01-active-file-stderr",
+        "E02-here-string",
+        "E03-ordered-redirect-effects",
+        "E04-lazy-array-zero",
+        "E05-function-option-state",
+        "E06-if-not-errexit",
+        "E07-here-document",
+        "E08-nested-sink-rejection",
+        "E09-invoke-sink-boundary",
+        "E10-primary-sink-cleanup",
+        "E11-substitution-errexit"
+      ],
+      "arrays": [
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A05",
+        "A06",
+        "A07",
+        "A08",
+        "A09",
+        "A10",
+        "A11",
+        "A12"
+      ],
+      "coherence": [
+        "C02",
+        "C03",
+        "C04",
+        "C05",
+        "C06",
+        "C07",
+        "C08",
+        "C09",
+        "C10",
+        "C11",
+        "C12",
+        "C13",
+        "C14",
+        "C15",
+        "C16",
+        "C17",
+        "C18",
+        "R15"
+      ]
+    }
+  }
+}

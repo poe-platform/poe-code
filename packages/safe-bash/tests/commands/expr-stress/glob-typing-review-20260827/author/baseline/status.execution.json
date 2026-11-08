@@ -1,0 +1,17 @@
+{
+  "name": "status",
+  "command": "git",
+  "args": [
+    "status",
+    "--short"
+  ],
+  "started": "2026-08-27T20:30:41.813Z",
+  "finished": "2026-08-27T20:30:42.035Z",
+  "pid": 98329,
+  "code": 0,
+  "signal": null,
+  "timedOut": false,
+  "overflow": false,
+  "groupRemaining": false,
+  "expected": 0
+}

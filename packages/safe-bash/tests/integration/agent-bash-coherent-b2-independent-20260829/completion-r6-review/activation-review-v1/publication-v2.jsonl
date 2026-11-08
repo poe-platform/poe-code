@@ -1,0 +1,4 @@
+{"event":"before","name":"add-v2","utc":"2026-08-29T15:02:49.396Z"}
+{"event":"after","name":"add-v2","pid":49033,"status":0,"signal":null}
+{"event":"before","name":"commit-v2","utc":"2026-08-29T15:02:49.491Z"}
+{"event":"after","name":"commit-v2","pid":49036,"status":0,"signal":null}

@@ -1,0 +1,12 @@
+{
+  "schema": "FUNCTIONAL_V2_TOOL_LAUNCH_DISPOSITION",
+  "sessionId": 30354,
+  "ownerPid": 52842,
+  "execReplacement": true,
+  "closed": true,
+  "exitCode": 1,
+  "toolUnredirectedOutputBytes": 0,
+  "redirectedOwnerStdoutBytes": 1793,
+  "redirectedOwnerStderrBytes": 0,
+  "qualification": "Tool observed process completion; exact owner/launcher/coordinator/worker dispositions remain in raw receipts. Not a host-global census."
+}

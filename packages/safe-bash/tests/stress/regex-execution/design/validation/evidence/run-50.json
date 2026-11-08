@@ -1,0 +1,89 @@
+{
+  "args": [
+    "bench",
+    "small-many-line",
+    "worker",
+    "2"
+  ],
+  "pid": 70966,
+  "readyAt": 41.8537080000001,
+  "killed": false,
+  "events": [
+    {
+      "event": "disconnect",
+      "values": [],
+      "at": 81.93425000000025
+    },
+    {
+      "event": "stdout-close"
+    },
+    {
+      "event": "stderr-close"
+    },
+    {
+      "event": "exit",
+      "values": [
+        0,
+        null
+      ],
+      "at": 83.75812499999984
+    },
+    {
+      "event": "close",
+      "code": 0,
+      "signal": null,
+      "at": 83.76291600000013
+    }
+  ],
+  "messages": [
+    {
+      "type": "ready"
+    },
+    {
+      "type": "done",
+      "result": {
+        "id": "small-many-line",
+        "engine": "worker",
+        "pass": true,
+        "workMs": 0.7561249999999973,
+        "startupMs": 12.635583999999994,
+        "cleanupMs": 0.7261249999999961,
+        "streamIncludesAutomaticDisposal": false,
+        "repetitions": 3,
+        "exactOutputGateBeforeTiming": true,
+        "inputUtf8Bytes": 1938,
+        "inputUtf16Bytes": 3876,
+        "rows": 128,
+        "batches": 4,
+        "protocolHitBytes": 10152,
+        "hits": 128,
+        "execCalls": 256,
+        "captureValues": 384,
+        "selectedBytes": 2066,
+        "selectedSha256": "3e582f1edcc7f5e13007e86d16eb0b31ce6ad725d76dc98d6c6651699bf2029b",
+        "serializedBytes": 10174,
+        "serializedSha256": "8ae7b6b5ba17b753dbb88df057a866f8889c6ab6f7304b373c9786db56c216ea",
+        "metrics": {
+          "created": 1,
+          "terminated": 1,
+          "requests": 5,
+          "execCalls": 256,
+          "inputBytes": 3876,
+          "responseBytes": 10152,
+          "startupMs": 12.471957999999994,
+          "workMs": 0.804750999999996,
+          "terminationMs": 0.719333000000006,
+          "peakInflight": 1,
+          "listenersAfter": 0,
+          "exitCode": 1
+        },
+        "rssAfter": 62078976
+      }
+    }
+  ],
+  "stderr": "",
+  "ipcBytes": 900,
+  "streamBytes": 0,
+  "code": 0,
+  "signal": null
+}

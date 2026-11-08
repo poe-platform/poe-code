@@ -1,0 +1,305 @@
+[
+  {
+    "encoding": "utf-8",
+    "base64": "Iu2ggCI=",
+    "points": [
+      55296
+    ]
+  },
+  {
+    "encoding": "utf-8",
+    "base64": "Iu2wgCI=",
+    "points": [
+      56320
+    ]
+  },
+  {
+    "encoding": "utf-8",
+    "base64": "Iu2ggO2wgCI=",
+    "points": [
+      55296,
+      56320
+    ]
+  },
+  {
+    "encoding": "utf-8",
+    "base64": "IvCQgIAi",
+    "points": [
+      65536
+    ]
+  },
+  {
+    "encoding": "utf-8",
+    "base64": "Iu2ggEHtsIAi",
+    "points": [
+      55296,
+      65,
+      56320
+    ]
+  },
+  {
+    "encoding": "utf-8",
+    "base64": "Ilx1ZDgwMFx1ZGMwMCI=",
+    "points": [
+      65536
+    ]
+  },
+  {
+    "encoding": "utf-8",
+    "base64": "Iu2ggFx1ZGMwMCI=",
+    "points": [
+      55296,
+      56320
+    ]
+  },
+  {
+    "encoding": "utf-8",
+    "base64": "Ilx1ZDgwMO2wgCI=",
+    "points": [
+      55296,
+      56320
+    ]
+  },
+  {
+    "encoding": "utf-16-le",
+    "base64": "IgAA2CIA",
+    "points": [
+      55296
+    ]
+  },
+  {
+    "encoding": "utf-16-le",
+    "base64": "IgAA3CIA",
+    "points": [
+      56320
+    ]
+  },
+  {
+    "encoding": "utf-16-le",
+    "base64": "IgAA2ADcIgA=",
+    "points": [
+      65536
+    ]
+  },
+  {
+    "encoding": "utf-16-le",
+    "base64": "IgAA2ADcIgA=",
+    "points": [
+      65536
+    ]
+  },
+  {
+    "encoding": "utf-16-le",
+    "base64": "IgAA2EEAANwiAA==",
+    "points": [
+      55296,
+      65,
+      56320
+    ]
+  },
+  {
+    "encoding": "utf-16-le",
+    "base64": "IgBcAHUAZAA4ADAAMABcAHUAZABjADAAMAAiAA==",
+    "points": [
+      65536
+    ]
+  },
+  {
+    "encoding": "utf-16-le",
+    "base64": "IgAA2FwAdQBkAGMAMAAwACIA",
+    "points": [
+      55296,
+      56320
+    ]
+  },
+  {
+    "encoding": "utf-16-le",
+    "base64": "IgBcAHUAZAA4ADAAMAAA3CIA",
+    "points": [
+      55296,
+      56320
+    ]
+  },
+  {
+    "encoding": "utf-16-be",
+    "base64": "ACLYAAAi",
+    "points": [
+      55296
+    ]
+  },
+  {
+    "encoding": "utf-16-be",
+    "base64": "ACLcAAAi",
+    "points": [
+      56320
+    ]
+  },
+  {
+    "encoding": "utf-16-be",
+    "base64": "ACLYANwAACI=",
+    "points": [
+      65536
+    ]
+  },
+  {
+    "encoding": "utf-16-be",
+    "base64": "ACLYANwAACI=",
+    "points": [
+      65536
+    ]
+  },
+  {
+    "encoding": "utf-16-be",
+    "base64": "ACLYAABB3AAAIg==",
+    "points": [
+      55296,
+      65,
+      56320
+    ]
+  },
+  {
+    "encoding": "utf-16-be",
+    "base64": "ACIAXAB1AGQAOAAwADAAXAB1AGQAYwAwADAAIg==",
+    "points": [
+      65536
+    ]
+  },
+  {
+    "encoding": "utf-16-be",
+    "base64": "ACLYAABcAHUAZABjADAAMAAi",
+    "points": [
+      55296,
+      56320
+    ]
+  },
+  {
+    "encoding": "utf-16-be",
+    "base64": "ACIAXAB1AGQAOAAwADDcAAAi",
+    "points": [
+      55296,
+      56320
+    ]
+  },
+  {
+    "encoding": "utf-32-le",
+    "base64": "IgAAAADYAAAiAAAA",
+    "points": [
+      55296
+    ]
+  },
+  {
+    "encoding": "utf-32-le",
+    "base64": "IgAAAADcAAAiAAAA",
+    "points": [
+      56320
+    ]
+  },
+  {
+    "encoding": "utf-32-le",
+    "base64": "IgAAAADYAAAA3AAAIgAAAA==",
+    "points": [
+      55296,
+      56320
+    ]
+  },
+  {
+    "encoding": "utf-32-le",
+    "base64": "IgAAAAAAAQAiAAAA",
+    "points": [
+      65536
+    ]
+  },
+  {
+    "encoding": "utf-32-le",
+    "base64": "IgAAAADYAABBAAAAANwAACIAAAA=",
+    "points": [
+      55296,
+      65,
+      56320
+    ]
+  },
+  {
+    "encoding": "utf-32-le",
+    "base64": "IgAAAFwAAAB1AAAAZAAAADgAAAAwAAAAMAAAAFwAAAB1AAAAZAAAAGMAAAAwAAAAMAAAACIAAAA=",
+    "points": [
+      65536
+    ]
+  },
+  {
+    "encoding": "utf-32-le",
+    "base64": "IgAAAADYAABcAAAAdQAAAGQAAABjAAAAMAAAADAAAAAiAAAA",
+    "points": [
+      55296,
+      56320
+    ]
+  },
+  {
+    "encoding": "utf-32-le",
+    "base64": "IgAAAFwAAAB1AAAAZAAAADgAAAAwAAAAMAAAAADcAAAiAAAA",
+    "points": [
+      55296,
+      56320
+    ]
+  },
+  {
+    "encoding": "utf-32-be",
+    "base64": "AAAAIgAA2AAAAAAi",
+    "points": [
+      55296
+    ]
+  },
+  {
+    "encoding": "utf-32-be",
+    "base64": "AAAAIgAA3AAAAAAi",
+    "points": [
+      56320
+    ]
+  },
+  {
+    "encoding": "utf-32-be",
+    "base64": "AAAAIgAA2AAAANwAAAAAIg==",
+    "points": [
+      55296,
+      56320
+    ]
+  },
+  {
+    "encoding": "utf-32-be",
+    "base64": "AAAAIgABAAAAAAAi",
+    "points": [
+      65536
+    ]
+  },
+  {
+    "encoding": "utf-32-be",
+    "base64": "AAAAIgAA2AAAAABBAADcAAAAACI=",
+    "points": [
+      55296,
+      65,
+      56320
+    ]
+  },
+  {
+    "encoding": "utf-32-be",
+    "base64": "AAAAIgAAAFwAAAB1AAAAZAAAADgAAAAwAAAAMAAAAFwAAAB1AAAAZAAAAGMAAAAwAAAAMAAAACI=",
+    "points": [
+      65536
+    ]
+  },
+  {
+    "encoding": "utf-32-be",
+    "base64": "AAAAIgAA2AAAAABcAAAAdQAAAGQAAABjAAAAMAAAADAAAAAi",
+    "points": [
+      55296,
+      56320
+    ]
+  },
+  {
+    "encoding": "utf-32-be",
+    "base64": "AAAAIgAAAFwAAAB1AAAAZAAAADgAAAAwAAAAMAAA3AAAAAAi",
+    "points": [
+      55296,
+      56320
+    ]
+  }
+]

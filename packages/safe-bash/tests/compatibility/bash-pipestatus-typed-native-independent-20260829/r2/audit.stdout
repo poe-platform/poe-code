@@ -1,0 +1,1 @@
+{"status":"DATA_AUDIT_COMPLETED","observations":6,"controls":6,"evidenceRows":50,"rawBytes":25569,"sourceRecords":26,"tools":4,"journalRows":19,"requestKeys":["0","1","2","3","4","5"],"approvalKeys":["cmd","workdir","shell","login","sandbox_permissions","justification","yield_time_ms","max_output_tokens"]}

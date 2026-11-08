@@ -1,0 +1,1 @@
+{"mode":"metadata","refs":["9bb91c370a0672687399c0a9da4ce1b161f79615","41d488","efcd8b49"],"paths":["src/shell/runtime.ts","src/commands/regex-execution","tests/compatibility/bash-reference-preparation-20260829","tests/compatibility/bash-strict-reference-source-20260829","tests/compatibility/bash-functional-reference-review-20260829"]}

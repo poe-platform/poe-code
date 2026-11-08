@@ -1,0 +1,138 @@
+{
+  "date": "2026-08-27",
+  "status": "AUTHOR checkpoint only; not independently verified",
+  "sourceCommit": "be29e3822736472a26450182bb3987709238e0db",
+  "sourceTree": "7bbe36bfc8f6743f6d68bac0be537e3c27a533c6",
+  "testsTreeAtSourceCommit": "bf52d2ffc36b8fec94aba78547f904463760f1da",
+  "ownedPaths": ["src/commands/archive/**", "tests/commands/archive/**"],
+  "sourceSha256": {
+    "src/commands/archive/create.ts": "cdddce8ccd1d53987fa1a314cdc6e04d48246fa59fd0880fb444c66bdca7199c",
+    "src/commands/archive/extract.ts": "db27fa691b839849b982fecd38eb1196d1c370dc08bae500905d8b62bd533212",
+    "src/commands/archive/format.ts": "d2a1106ab7e484aaa2b5ad57c7b17fa7d93ae51cd1f4e54b7ddc34b1d05a14d0",
+    "src/commands/archive/index.ts": "6f23a98dbe89bb37f44799f47c365fb430e910f87363c50291f7b44293e416d0",
+    "src/commands/archive/internal.ts": "6e9a204384490607973f7e1109c51a082319b6eed2fecb8f410d9d51711367d9",
+    "src/commands/archive/options.ts": "1c2dc4e57c80901b402f8f08b1a5638b7acad9f882aca67ae4f9be73295bf956",
+    "src/commands/archive/stream.ts": "31a3b70bf7ce89f81e287cac09c6816637bd06dc398010dd82386ce5d93ceba4"
+  },
+  "finalAuthorSuite": {
+    "command": "node tests/commands/archive/run-author.mjs",
+    "strictUnhandledRejections": true,
+    "outerWatchdogMs": 120000,
+    "testTimeoutMs": 20000,
+    "lifecycleSettlementWatchdogMs": 1500,
+    "tests": 128,
+    "passed": 128,
+    "failed": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "todo": 0,
+    "durationMs": 2456.947959,
+    "cohorts": {
+      "core.test.ts": 12,
+      "boundaries.test.ts": 22,
+      "lifecycle.test.ts": 13,
+      "native.test.ts": 5,
+      "options.test.ts": 20,
+      "safety.test.ts": 56
+    },
+    "nonNativeAuthorTests": 123,
+    "nativeAuthorTests": 5,
+    "interpretation": "Tests include expected rejections, safety deviations, and partial-failure characterizations. Passing test counts do not mean unsupported operations succeeded or establish GNU tar parity."
+  },
+  "nativeCounts": {
+    "countingUnit": "per complete final native-suite run, not cumulative subprocesses across repeated author iterations",
+    "gnuBehaviorInvocationsPerNativeSuite": 11,
+    "plainGzipBidirectionalArchiveReads": 8,
+    "plainGzipBreakdown": "GNU-created list+extract by virtual and virtual-created list+extract by GNU, repeated for plain and gzip",
+    "additionalGnuLegacyLongRecordRead": 1,
+    "frozenCaptureBehaviorInvocations": {
+      "native-profile.json": { "gnu": 7, "apple": 7, "total": 14, "additionalVersionProbes": 2 },
+      "native-safety-profile.json": { "gnu": 8, "apple": 0, "total": 8 },
+      "native-source-profile.json": { "gnu": 7, "apple": 0, "total": 7 }
+    },
+    "notes": "Setup extraction/version checks, exploratory tool discovery, repeated test runs, frozen captures, crossreads and virtual assertions are separate units; no lifetime cumulative native invocation total is claimed."
+  },
+  "nativeProfile": {
+    "gnuExecutable": "tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+    "gnuVersion": "tar (GNU tar) 1.35",
+    "gnuExecutableSha256": "49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66",
+    "gnuBottleSha256": "4e3782b9393e2e53a1cccd9c1047c2fc43b81c34746b10755050d5d162b21269",
+    "profile": "Homebrew gnu-tar 1.35 rebuild 1 arm64_tahoe; test-local executable, no installation or runtime dependency",
+    "appleExecutable": "/usr/bin/tar",
+    "appleVersion": "bsdtar 3.5.3 - libarchive 3.7.4 zlib/1.2.12 liblzma/5.4.3 bz2lib/1.0.8",
+    "appleExecutableSha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9",
+    "appleIsNotGnuOracle": true
+  },
+  "frozenEvidenceSha256": {
+    "native-profile.json": "c73249e53eb22a698130579caa28fcd981e752ec2df7a25e9f6f6f0cf52c68a4",
+    "native-safety-profile.json": "26814b0a9f1cd249cce6a101590a55f2266382c20b1d441ab6df9c5968d0c121",
+    "native-source-profile.json": "f85fe52377328f747a64048c0a1b03c2a439d00fc1a15a8109620b402afb6fcc"
+  },
+  "validation": [
+    { "command": "npm run build", "exitCode": 0 },
+    { "command": "npm run typecheck", "exitCode": 0 },
+    { "command": "node --unhandled-rejections=strict tests/commands/archive/built-package.mjs", "exitCode": 0, "checks": 4, "passed": 4, "cohorts": ["public built API", "zero runtime package dependencies", "gzip Shell pipeline", "listing Shell pipeline"] },
+    { "command": "git diff --cached --check -- src/commands/archive tests/commands/archive", "exitCode": 0 }
+  ],
+  "validationScope": "Author tests and final build/typecheck ran against the concurrent working tree, not an isolated clean whole-repository HEAD. Root integration was not edited by this leaf. No broad unrelated suites were run or fixed.",
+  "historicalAuthorObservations": [
+    "Initial core suite: 11/11 before later cases were added.",
+    "Initial safety suite: 52/54; corrected an author directory-header permission fixture and moved unsupported-link validation before parent creation; subsequent 54/54 before later cases.",
+    "Initial native suite: 4/5 because the author wrongly assumed GNU deferred forward hardlinks. Native status 2 was frozen in native-followup.json; corrected the test, not the already-rejecting product behavior.",
+    "One intermediate text-budget test failed after bounded diagnostics were introduced; diagnostics received their own explicit maxDiagnosticBytes limit rather than silently bypassing an undocumented bound.",
+    "An early global typecheck included an unrelated src/commands/table-text/comm.ts Uint8Array generic error. This leaf did not modify it; final fresh whole-tree typecheck passed after concurrent work.",
+    "First 128-test run: 127/128. Tar preserved a leading BOM in filename/listing bytes, but the shared Shell stdout text decoder removed it. The exact-byte assertion was corrected to stdoutBytes and the shared text behavior is documented, not patched here."
+  ],
+  "sharedOwnerObservation": {
+    "owner": "Sagan / coordinating root",
+    "scope": "Shell result text decoding, not archive framing",
+    "repro": "List an archive whose first member is U+FEFF + 'file'. ShellResult.stdoutBytes begins EF BB BF 66 69 6C 65 0A, while ShellResult.stdout is 'file\\n'.",
+    "effect": "Archive bytes and extracted filename are preserved. Text consumers must use stdoutBytes for exact leading-BOM behavior.",
+    "sharedFilesEdited": false
+  },
+  "api": {
+    "curieRootImport": "./commands/archive/index.js",
+    "exports": ["archiveCommands", "createArchiveCommands", "createTarCommand", "ArchiveCommandsOptions", "ArchiveLimits", "DEFAULT_ARCHIVE_LIMITS"],
+    "options": "{ replace?: boolean, limits?: Partial<ArchiveLimits> }",
+    "defaultBounds": {
+      "maxArchiveBytes": 268435456,
+      "maxEntryBytes": 67108864,
+      "maxTotalBytes": 268435456,
+      "maxMembers": 10000,
+      "maxPathBytes": 4096,
+      "maxDepth": 128,
+      "maxPaxBytes": 1048576,
+      "maxFilesFromBytes": 1048576,
+      "maxArgumentBytes": 65536,
+      "maxTextBytes": 1048576,
+      "maxDiagnosticBytes": 4096,
+      "maxPatternSteps": 10000000,
+      "maxBufferedFileBytes": 1048576,
+      "chunkSize": 65536
+    },
+    "example": "new Shell({ fs }).use(agentCommands()).use(archiveCommands()); tar czf - -C /input . | tar xzf - -C /output",
+    "rootOrAggregateIntegrationEdited": false
+  },
+  "safetyAndPublication": {
+    "productNativeProcessesOrHostFs": false,
+    "runtimeDependenciesAdded": 0,
+    "newArchivesAndPayloadsStream": true,
+    "strictHeaderPaxChecksumFramingAndGzipValidation": true,
+    "wholeArchiveAtomicityOrRollback": false,
+    "partialWritesAndEarlierMembersCanRemain": true,
+    "observedAliasesGuardedBeforeDestructiveArchivePublication": true,
+    "unknownIdentityDestructiveNamedArchiveReplacementRejected": true,
+    "concurrentNamespaceOrSnapshotGuarantee": false,
+    "uncooperativeHostWorkForciblyTerminated": false,
+    "knownSharedHeadZeroReadLifecycleLimitationNotChanged": true
+  },
+  "cleanupAtSourceCheckpoint": {
+    "ownedGitStatusClean": true,
+    "nativeTemporaryDirectoriesRemaining": 0,
+    "activeArchiveTestOrOracleProcesses": 0,
+    "retainedIgnoredAsset": "tests/commands/archive/.oracle contains the intentionally reusable pinned test executable and bottle, not an active process or runtime dependency",
+    "unownedWorkingTreeChangesPreserved": true
+  },
+  "nextOwner": "A different independent verifier; Curie alone owns root exports/aggregate/package wiring",
+  "notClaimed": ["independent verification", "full GNU/BSD tar compatibility", "full Bash support", "broad backend matrix acceptance", "superiority to just-bash", "72 hours of work", "full product completion"]
+}

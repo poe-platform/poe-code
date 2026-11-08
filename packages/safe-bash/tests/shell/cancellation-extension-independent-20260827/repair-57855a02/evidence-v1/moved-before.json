@@ -1,0 +1,24 @@
+{
+  ".": {
+    "kind": "directory",
+    "mode": 493
+  },
+  "cancellation.d.ts": {
+    "kind": "file",
+    "size": 5113,
+    "mode": 420,
+    "sha256": "7edba703edd9d09da8fc6b1b754722695d9af2fba9fac0669408bbe1e79eb79d"
+  },
+  "cancellation.js": {
+    "kind": "file",
+    "size": 27650,
+    "mode": 420,
+    "sha256": "4b8bfbd52a001ab307bae25230d63275ba2073e7d4e62893c66f075a45e67561"
+  },
+  "package.json": {
+    "kind": "file",
+    "size": 23,
+    "mode": 420,
+    "sha256": "3ca9d4afd21425087cf31893b8f9f63c81b0b8408db5e343ca76e5f8aa26ab9a"
+  }
+}

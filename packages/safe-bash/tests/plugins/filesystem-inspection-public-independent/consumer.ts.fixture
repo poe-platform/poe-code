@@ -1,0 +1,102 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { Shell, MemoryFileSystem, CommandRegistry, agentCommands, createAgentCommands, FsError,
+  treeCommands, fileCommands, createTreeCommand, createFileCommand, createTreeCommands, createFileCommands,
+  type AgentCommandsOptions, type TreeCommandsOptions, type FileCommandsOptions, type TreeLimits, type FileLimits,
+  type FileSystem, type ByteSource } from 'virtual-bash';
+import { treeCommands as treePlugin, createTreeCommands as trees, createTreeCommand as tree,
+  type TreeCommandsOptions as TreeOptions, type TreeLimits as TreeBudget } from 'virtual-bash/commands/tree';
+import { fileCommands as filePlugin, createFileCommands as files, createFileCommand as file,
+  type FileCommandsOptions as FileOptions, type FileLimits as FileBudget } from 'virtual-bash/commands/file';
+
+const names = '[ awk base32 base64 basename cat chmod cksum comm cp cut date diff dirname echo env expand false file find fold grep gunzip gzip head join jq ln ls md5sum mkdir mktemp mv nl od paste patch printenv printf pwd readlink realpath rev rg rm rmdir sed seq sha1sum sha256sum sleep sort split stat strings tac tail tar tee test touch tr tree true unexpand uniq wc xargs xxd zcat'.split(' ');
+const treeBudget: Partial<TreeLimits> = { maxDepth: 5 }; const leafTreeBudget: Partial<TreeBudget> = treeBudget;
+const fileBudget: Partial<FileLimits> = { maxSniffBytes: 64 }; const leafFileBudget: Partial<FileBudget> = fileBudget;
+const treeOptions: TreeCommandsOptions = { limits: leafTreeBudget }; const leafTree: TreeOptions = treeOptions;
+const fileOptions: FileCommandsOptions = { limits: leafFileBudget }; const leafFile: FileOptions = fileOptions;
+const noTreeReplace: 'replace' extends keyof NonNullable<AgentCommandsOptions['tree']> ? false : true = true;
+const noFileReplace: 'replace' extends keyof NonNullable<AgentCommandsOptions['file']> ? false : true = true;
+async function using(action: (shell: Shell, fs: FileSystem) => Promise<void>, options: AgentCommandsOptions = {}, fs: FileSystem = new MemoryFileSystem()) {
+  const shell = new Shell({ fs }).use(agentCommands(options));
+  try { await action(shell, fs); } finally { await shell.dispose(); }
+}
+function wrap(fs: FileSystem, overrides: { [Key in keyof FileSystem]?: FileSystem[Key] | undefined }): FileSystem {
+  return new Proxy(fs, { get(target, property) {
+    if (Object.hasOwn(overrides, property)) return Reflect.get(overrides, property);
+    const value: unknown = Reflect.get(target, property); return typeof value === 'function' ? value.bind(target) : value;
+  } });
+}
+test('root/subpath factories and option types are identical public interfaces', () => {
+  assert.equal(treeCommands, treePlugin); assert.equal(fileCommands, filePlugin);
+  assert.equal(createTreeCommand, tree); assert.equal(createFileCommand, file);
+  assert.equal(createTreeCommands, trees); assert.equal(createFileCommands, files);
+  assert.deepEqual(trees(leafTree).map(entry => entry.name), ['tree']); assert.deepEqual(files(leafFile).map(entry => entry.name), ['file']);
+  assert.equal(noTreeReplace, true); assert.equal(noFileReplace, true);
+});
+test('literal70 default names and optional capability isolation', async () => {
+  assert.equal(names.length, 70); assert.equal(new Set(names).size, 70);
+  assert.deepEqual(createAgentCommands().map(entry => entry.name).sort(), names);
+  await using(async shell => {
+    assert.equal((await shell.exec(':')).exitCode, 0); assert.deepEqual(shell.commands.list().map(entry => entry.name).sort(), names);
+    assert.equal(shell.commands.has('curl'), false); assert.equal(shell.commands.has('safejs'), false);
+  });
+});
+test('actual JSON tree pipeline and byte classification use only virtual files', async () => {
+  const host = { ...process.env };
+  await using(async (shell, fs) => {
+    const result = await shell.exec("mkdir -p /code/lib; printf '{\"v\":2}\\n' > /code/doc.txt; printf 'source\\n' > /code/lib/main; tree -J --noreport /code | tee /tree.json | file -b --mime-type -; file -b --mime-type /code/doc.txt");
+    assert.equal(result.exitCode, 0, result.stderr); assert.equal(result.stdout, 'application/json\napplication/json\n');
+    const report = JSON.parse(Buffer.from(await fs.readFile('/tree.json')).toString());
+    assert.equal(report[0].name, '/code'); assert.deepEqual(report[0].contents.map((entry: { name: string }) => entry.name), ['doc.txt', 'lib']);
+    assert.equal(Buffer.from(await fs.readFile('/code/lib/main')).toString(), 'source\n');
+  });
+  assert.deepEqual({ ...process.env }, host);
+});
+test('factory-created default dispatch supports binary stdin and symlink policy', async () => {
+  const fs = new MemoryFileSystem(); await fs.writeFile('/source', Buffer.from('hello\n')); await fs.symlink('/source', '/alias');
+  const shell = new Shell({ fs, commands: new CommandRegistry(createAgentCommands()) });
+  try {
+    const result = await shell.exec("printf '\\000\\377' | file -bi -; file -bi /alias; file -bL --mime-type /alias");
+    assert.equal(result.exitCode, 0, result.stderr); assert.equal(result.stdout, 'application/octet-stream; charset=binary\ninode/symlink; charset=binary\ntext/plain\n');
+  } finally { await shell.dispose(); }
+});
+for (const family of ['tree', 'file'] as const) test(`aggregate ${family} collision and authoritative replace policy`, async () => {
+  const registry = new CommandRegistry([{ name: family, execute: () => ({ exitCode: 31 }) }, { name: 'kept', execute: () => ({ exitCode: 27 }) }]);
+  const before = registry.list();
+  const rejected = new Shell({ fs: new MemoryFileSystem(), commands: registry }).use(agentCommands({ [family]: { replace: true } } as unknown as AgentCommandsOptions));
+  try { await assert.rejects(rejected.exec(':'), /already registered/); assert.deepEqual(registry.list(), before); }
+  finally { await rejected.dispose(); }
+  const shell = new Shell({ fs: new MemoryFileSystem(), commands: registry }).use(agentCommands({ replace: true, [family]: { replace: false } } as AgentCommandsOptions));
+  try { assert.equal((await shell.exec(`${family} --help`)).exitCode, 0); assert.equal(registry.list().length, 71); assert.equal(registry.get('kept'), before[1]); assert.notEqual(registry.get(family), before[0]); }
+  finally { await shell.dispose(); }
+});
+test('standalone public plugins install only their own definitions', async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(treePlugin()).use(filePlugin());
+  try { await shell.exec(':'); assert.deepEqual(shell.commands.list().map(entry => entry.name), ['tree', 'file']); assert.equal((await shell.exec('tree --help; file --help')).exitCode, 0); }
+  finally { await shell.dispose(); }
+});
+test('tree limit forwarding retains documented partial output without mutations', async () => {
+  await using(async (shell, fs) => {
+    await fs.mkdir('/repo'); await fs.writeFile('/repo/long-name', Buffer.from('saved'));
+    const result = await shell.exec('tree -i --noreport /repo'); assert.equal(result.exitCode, 1); assert.equal(result.stdout, '/repo\n'); assert.match(result.stderr, /limit/);
+    assert.equal(Buffer.from(await fs.readFile('/repo/long-name')).toString(), 'saved');
+  }, { tree: { limits: { maxOutputBytes: 6 } } });
+  assert.throws(() => createAgentCommands({ tree: { limits: { maxDepth: 0 } } }), RangeError);
+});
+test('file readFile bound is forwarded before oversized content access', async () => {
+  const memory = new MemoryFileSystem(); await memory.writeFile('/large', Buffer.alloc(9, 65)); let reads = 0;
+  const fs = wrap(memory, { capabilities: { ...memory.capabilities, streamingRead: false }, readStream: undefined, async readFile() { reads++; throw new Error('unadmitted read'); } });
+  await using(async shell => { const result = await shell.exec('file /large'); assert.equal(result.exitCode, 1); assert.equal(result.stdout, ''); assert.match(result.stderr, /readFile.*limit/); assert.equal(reads, 0); }, { file: { limits: { maxReadFileBytes: 8 } } }, fs);
+  assert.throws(() => createAgentCommands({ file: { limits: { maxSniffBytes: 0 } } }), RangeError);
+});
+test('VFS metadata refusal reaches both public commands without content reads', async () => {
+  const memory = new MemoryFileSystem(); await memory.writeFile('/unknown', Buffer.from('unchanged')); let reads = 0;
+  const fs = wrap(memory, { async lstat(path) { throw new FsError('ENOTSUP', { path }); }, async readFile() { reads++; return new Uint8Array(); }, readStream() { reads++; throw new Error('unexpected'); } });
+  await using(async shell => { for (const command of ['tree /unknown', 'file /unknown']) { const result = await shell.exec(command); assert.equal(result.exitCode, 1); assert.match(result.stderr, /not supported/); } assert.equal(reads, 0); }, {}, fs);
+  assert.equal(Buffer.from(await memory.readFile('/unknown')).toString(), 'unchanged');
+});
+test('aggregate sniff limit closes byte producer at the supported boundary', async () => {
+  let next = 0, returned = 0;
+  const stdin: ByteSource = { [Symbol.asyncIterator]() { return { async next() { next++; return { done: false, value: Buffer.from('line\nnext') }; }, async return() { returned++; return { done: true, value: undefined }; } }; } };
+  await using(async shell => { const result = await shell.exec('file -b --mime-type -', { stdin }); assert.equal(result.exitCode, 0); assert.equal(result.stdout, 'text/plain\n'); assert.equal(next, 1); assert.equal(returned, 1); }, { file: { limits: { maxSniffBytes: 5 } } });
+});

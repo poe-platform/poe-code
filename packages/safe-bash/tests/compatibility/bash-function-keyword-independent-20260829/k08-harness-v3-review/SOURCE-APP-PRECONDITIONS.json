@@ -1,0 +1,30 @@
+[
+  {
+    "path": "/private/tmp/safe-bash-k08-author-RAvH2m/source-app/auth.mjs",
+    "absent": true
+  },
+  {
+    "path": "/private/tmp/safe-bash-k08-author-RAvH2m/source-app/profile.mjs",
+    "absent": true
+  },
+  {
+    "path": "/private/tmp/safe-bash-k08-author-RAvH2m/source-app/guard.mjs",
+    "absent": true
+  },
+  {
+    "path": "/private/tmp/safe-bash-k08-author-RAvH2m/source-app/case-driver.mjs",
+    "absent": true
+  },
+  {
+    "path": "/private/tmp/safe-bash-k08-author-RAvH2m/source-app/helper-driver.mjs",
+    "absent": true
+  },
+  {
+    "path": "/private/tmp/safe-bash-k08-author-RAvH2m/source-app/case-adapter.mjs",
+    "absent": true
+  },
+  {
+    "path": "/private/tmp/safe-bash-k08-author-RAvH2m/source-app/CASES.json",
+    "absent": true
+  }
+]

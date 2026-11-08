@@ -1,0 +1,75 @@
+{
+  "name": "@poe-code/remote-execution",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
+      "node": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./protocol": {
+      "types": "./dist/protocol.d.ts",
+      "workerd": "./dist/protocol.js",
+      "browser": "./dist/protocol.js",
+      "node": "./dist/protocol.js",
+      "default": "./dist/protocol.js"
+    },
+    "./server": {
+      "types": {
+        "workerd": "./dist/node-unavailable.d.ts",
+        "browser": "./dist/node-unavailable.d.ts",
+        "node": "./dist/server.d.ts",
+        "default": "./dist/node-unavailable.d.ts"
+      },
+      "workerd": null,
+      "browser": null,
+      "node": "./dist/server.js",
+      "default": null
+    },
+    "./binary": {
+      "types": "./dist/binary.d.ts",
+      "workerd": "./dist/binary.js",
+      "browser": "./dist/binary.js",
+      "node": "./dist/binary.js",
+      "default": "./dist/binary.js"
+    },
+    "./wire": {
+      "types": "./dist/wire.generated.d.ts",
+      "workerd": "./dist/wire.generated.js",
+      "browser": "./dist/wire.generated.js",
+      "node": "./dist/wire.generated.js",
+      "default": "./dist/wire.generated.js"
+    },
+    "./schemas/v1/*": "./schemas/v1/*",
+    "./providers/*": {
+      "types": "./dist/providers/*.d.ts",
+      "workerd": "./dist/providers/*.js",
+      "browser": "./dist/providers/*.js",
+      "node": "./dist/providers/*.js",
+      "default": "./dist/providers/*.js"
+    }
+  },
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "test:unit": "vitest run --config vitest.config.ts",
+    "test": "npm run test:unit",
+    "lint": "tsc --noEmit && eslint src",
+    "protocol:check": "python3 scripts/protocol.py --check",
+    "test:container": "node integration/container.mjs"
+  },
+  "dependencies": {
+    "@poe-code/safe-fs": "*"
+  },
+  "files": [
+    "dist",
+    "schemas/v1",
+    "native/execve.c",
+    "README.md",
+    "protocol.md",
+    "job-recovery.md"
+  ]
+}

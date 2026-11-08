@@ -1,0 +1,13 @@
+{
+  "role": "SOURCE_DATA_ONLY",
+  "sourceMatches": 16,
+  "baselineBodies": 278,
+  "engineEntries": 96,
+  "actualEngine": 0,
+  "build": 0,
+  "workers": 0,
+  "caseIdentities": 63,
+  "independentRows": 22,
+  "recipeDeltas": 11,
+  "sealSha256": "945c7e202e54146d63bb2b6abb7e4225f60eb8fa407c985ca1989ba977dd9647"
+}

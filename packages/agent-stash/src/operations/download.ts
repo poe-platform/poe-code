@@ -1,0 +1,283 @@
+import { createBackup } from "../backup-store.js";
+import { loadBundleFromGist, verifyBundleHashes } from "../bundle.js";
+import { createDefaultGistClient } from "../gist-client.js";
+import { hookEventFromFragmentContent } from "../hook-items.js";
+import { loadIgnoreMatcher, type IgnoreMatcher } from "../ignore.js";
+import {
+  isLocalTargetIgnored,
+  removeLocalHookEvents,
+  targetPathForItem,
+  validateItemForLocalWrite,
+  validateTargetForLocalWrite,
+  writeItemToLocal
+} from "../local-writes.js";
+import { normalizeAgent } from "../locations.js";
+import { MANIFEST_FILENAME, parseManifest } from "../manifest.js";
+import { baselineNameForTarget, readBaselineManifest, recordProfilePull, resolveProfileGist, writeBaselineManifest } from "../profile-store.js";
+import { traceAgentStash, traceAgentStashError, traceItems, traceItemSet } from "../trace.js";
+import { assertAgentStashScope, assertSelectedItemsFound, selectedHookMatchesName } from "../validation.js";
+import type { AgentStashContext, AgentStashManifest, AgentStashItem, DownloadOptions, DownloadResult, GistClient, GistRecord } from "../types.js";
+
+const DOWNLOAD_MANIFEST_READ_ATTEMPTS = 6;
+const DOWNLOAD_MANIFEST_RETRY_DELAY_MS = 500;
+
+export async function downloadBundle(ctx: AgentStashContext, options: DownloadOptions): Promise<DownloadResult> {
+  assertAgentStashScope(options.scope);
+  if (!options.yes) {
+    throw new Error("Download writes require --yes in non-interactive mode.");
+  }
+  await traceAgentStash(ctx, "download.start", {
+    profile: options.profile,
+    gist: options.gist,
+    scope: options.scope,
+    agent: options.agent,
+    skills: options.skills,
+    hooks: options.hooks
+  });
+  try {
+    const agentId = normalizeAgent(options.agent);
+    const now = ctx.now?.() ?? new Date();
+    const resolved = await resolveProfileGist(ctx, options.profile, options.gist);
+    const usesProfileTarget = options.profile !== undefined && options.gist === undefined;
+    const profileName = usesProfileTarget ? options.profile : undefined;
+    if (!resolved.gistId) {
+      throw new Error("A profile with a Gist or --gist is required.");
+    }
+    const client = ctx.gistClient ?? (await createDefaultGistClient());
+    const baselineName = baselineNameForTarget(profileName, resolved.gistId);
+    const baseline = await readBaselineManifest(ctx, baselineName);
+    let gist = await readDownloadGistRecord(client, resolved.gistId, baseline);
+    let bundle = loadDownloadBundle(gist);
+    let selected = await selectDownloadItems(ctx, options, agentId, bundle.manifest.items);
+    for (
+      let attempt = 1;
+      attempt < DOWNLOAD_MANIFEST_READ_ATTEMPTS && isMissingSelectedDownloadItem(selected, options);
+      attempt += 1
+    ) {
+      await traceAgentStash(ctx, "download.remote.retry", {
+        gistId: resolved.gistId,
+        attempt,
+        reason: "selected-items-missing",
+        gistUpdatedAt: gist.updatedAt
+      });
+      await sleep(DOWNLOAD_MANIFEST_RETRY_DELAY_MS);
+      gist = await client.read(resolved.gistId);
+      bundle = loadDownloadBundle(gist);
+      selected = await selectDownloadItems(ctx, options, agentId, bundle.manifest.items);
+    }
+    assertSelectedItemsFound(selected, options);
+    await traceAgentStash(ctx, "download.remote.selected", { gistId: resolved.gistId, ...traceItemSet(selected) });
+    const selectedFiles = selected.map((item) => {
+      const files = item.files.map((file) => {
+        const content = bundle.files.get(file.path);
+        if (content === undefined) {
+          throw new Error(`Remote bundle is missing ${file.path}`);
+        }
+        return { path: file.path, content };
+      });
+      validateItemForLocalWrite(item, files);
+      return { item, files };
+    });
+    const eventReplacements = hookEventReplacementsForDownload(ctx, options, selectedFiles);
+    const backupPaths = [
+      ...new Set([
+        ...selected.map((item) => targetPathForItem(ctx, item)),
+        ...eventReplacements.map((replacement) => targetPathForItem(ctx, replacement.referenceItem))
+      ])
+    ];
+    for (const item of selected) {
+      await validateTargetForLocalWrite(ctx, item);
+    }
+    const backup = backupPaths.length > 0
+      ? await createBackup(ctx, { command: "download", args: options as unknown as Record<string, unknown>, paths: backupPaths })
+      : undefined;
+
+    for (const replacement of eventReplacements) {
+      await removeLocalHookEvents(ctx, replacement.referenceItem, [...replacement.events]);
+    }
+
+    for (const { item, files } of selectedFiles) {
+      await writeItemToLocal(ctx, item, files);
+    }
+
+    await recordProfilePull(ctx, profileName, gist.id, gist.htmlUrl, now.toISOString());
+    await writeBaselineManifest(
+      ctx,
+      baselineName,
+      isFilteredDownload(options)
+        ? mergeSelectedDownloadBaseline(baseline, bundle.manifest, selected)
+        : bundle.manifest
+    );
+    await traceAgentStash(ctx, "download.finish", {
+      gistId: gist.id,
+      downloaded: traceItems(selected),
+      downloadedIds: selected.map((item) => item.id),
+      backupId: backup?.id
+    });
+    return { manifest: bundle.manifest, downloaded: selected, backupId: backup?.id };
+  } catch (error) {
+    await traceAgentStashError(ctx, "download.error", error);
+    throw error;
+  }
+}
+
+function loadDownloadBundle(gist: GistRecord): ReturnType<typeof loadBundleFromGist> {
+  const bundle = loadBundleFromGist(gist);
+  verifyBundleHashes(bundle, { allowUntrackedLegacyHookChunks: true });
+  return bundle;
+}
+
+async function selectDownloadItems(
+  ctx: AgentStashContext,
+  options: DownloadOptions,
+  agentId: string,
+  items: readonly AgentStashItem[]
+): Promise<AgentStashItem[]> {
+  return filterIgnoredRemoteItems(ctx, await loadIgnoreMatcher(ctx, options.scope), options.scope, items.filter((item) => {
+    if (item.scope !== options.scope || item.agentId !== agentId) {
+      return false;
+    }
+    if (item.kind === "skill" && options.skills !== undefined) {
+      return options.skills.includes(item.name);
+    }
+    if (item.kind === "hook" && options.hooks !== undefined) {
+      return options.hooks.some((hook) => selectedHookMatchesName(item.name, hook));
+    }
+    return options.skills === undefined && options.hooks === undefined;
+  }));
+}
+
+function isMissingSelectedDownloadItem(
+  items: Array<Pick<AgentStashItem, "kind" | "name">>,
+  selected: { skills?: string[]; hooks?: string[] }
+): boolean {
+  for (const skill of selected.skills ?? []) {
+    if (!items.some((item) => item.kind === "skill" && item.name === skill)) {
+      return true;
+    }
+  }
+  for (const hook of selected.hooks ?? []) {
+    if (!items.some((item) => item.kind === "hook" && selectedHookMatchesName(item.name, hook))) {
+      return true;
+    }
+  }
+  return false;
+}
+
+async function readDownloadGistRecord(
+  client: GistClient,
+  gistId: string,
+  baseline: AgentStashManifest | null
+): Promise<GistRecord> {
+  let latest = await client.read(gistId);
+  for (let attempt = 1; attempt < DOWNLOAD_MANIFEST_READ_ATTEMPTS && shouldRetryDownloadGistRead(latest, baseline, attempt); attempt += 1) {
+    if (attempt > 1) {
+      await sleep(DOWNLOAD_MANIFEST_RETRY_DELAY_MS);
+    }
+    latest = await client.read(gistId);
+  }
+  return latest;
+}
+
+function shouldRetryDownloadGistRead(gist: GistRecord, baseline: AgentStashManifest | null, attempt: number): boolean {
+  if (isNonEmptyGistWithoutManifest(gist)) {
+    return true;
+  }
+  if (baseline === null) {
+    return attempt === 1 && gist.files[MANIFEST_FILENAME] !== undefined;
+  }
+  return isGistManifestStaleAgainstBaseline(gist, baseline.updatedAt);
+}
+
+function isNonEmptyGistWithoutManifest(gist: GistRecord): boolean {
+  return gist.files[MANIFEST_FILENAME] === undefined && Object.keys(gist.files).length > 0;
+}
+
+function isGistManifestStaleAgainstBaseline(gist: GistRecord, baselineUpdatedAt: string): boolean {
+  const baselineTime = parseTimestamp(baselineUpdatedAt);
+  if (baselineTime === undefined) {
+    return false;
+  }
+  const manifestContent = gist.files[MANIFEST_FILENAME]?.content;
+  if (manifestContent === undefined) {
+    return false;
+  }
+  const manifestTime = parseTimestamp(parseManifest(manifestContent).updatedAt);
+  if (manifestTime === undefined) {
+    return false;
+  }
+  if (manifestTime < baselineTime) {
+    return true;
+  }
+  const gistUpdatedAt = parseTimestamp(gist.updatedAt);
+  return gistUpdatedAt !== undefined && gistUpdatedAt > baselineTime && manifestTime <= baselineTime;
+}
+
+function parseTimestamp(value: string | undefined): number | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  const timestamp = Date.parse(value);
+  return Number.isFinite(timestamp) ? timestamp : undefined;
+}
+
+async function sleep(ms: number): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function isFilteredDownload(options: DownloadOptions): boolean {
+  return options.skills !== undefined || options.hooks !== undefined;
+}
+
+function hookEventReplacementsForDownload(
+  ctx: AgentStashContext,
+  options: DownloadOptions,
+  selectedFiles: readonly { item: AgentStashItem; files: readonly { path: string; content: string }[] }[]
+): Array<{ referenceItem: AgentStashItem; events: Set<string> }> {
+  const selectedHookEvents = options.hooks === undefined ? undefined : new Set(options.hooks);
+  const replacementsByTarget = new Map<string, { referenceItem: AgentStashItem; events: Set<string> }>();
+  for (const { item, files } of selectedFiles) {
+    if (item.kind !== "hook") {
+      continue;
+    }
+    const event = hookEventFromFragmentContent(files[0]?.content ?? "");
+    if (event === undefined || (selectedHookEvents !== undefined && !selectedHookEvents.has(event))) {
+      continue;
+    }
+    const targetPath = targetPathForItem(ctx, item);
+    const replacement = replacementsByTarget.get(targetPath) ?? { referenceItem: item, events: new Set<string>() };
+    replacement.events.add(event);
+    replacementsByTarget.set(targetPath, replacement);
+  }
+  return [...replacementsByTarget.values()];
+}
+
+function mergeSelectedDownloadBaseline(
+  base: AgentStashManifest | null,
+  remoteManifest: AgentStashManifest,
+  selected: readonly AgentStashItem[]
+): AgentStashManifest {
+  const selectedIds = new Set(selected.map((item) => item.id));
+  const nextById = new Map((base?.items ?? []).map((item) => [item.id, item]));
+  for (const id of selectedIds) {
+    nextById.delete(id);
+  }
+  for (const item of remoteManifest.items) {
+    if (selectedIds.has(item.id)) {
+      nextById.set(item.id, item);
+    }
+  }
+  return {
+    ...remoteManifest,
+    items: [...nextById.values()].sort((left, right) => left.id.localeCompare(right.id))
+  };
+}
+
+function filterIgnoredRemoteItems(
+  ctx: AgentStashContext,
+  matcher: IgnoreMatcher,
+  scope: DownloadOptions["scope"],
+  items: DownloadResult["downloaded"]
+): DownloadResult["downloaded"] {
+  return items.filter((item) => !isLocalTargetIgnored(ctx, matcher, item, scope));
+}

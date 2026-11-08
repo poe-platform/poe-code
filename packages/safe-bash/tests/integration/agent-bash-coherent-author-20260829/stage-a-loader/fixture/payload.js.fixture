@@ -1,0 +1,5 @@
+'use strict';
+const fs = require('node:fs');
+const crypto = require('node:crypto');
+const main = fs.readFileSync(require.main.filename);
+process.stdout.write(JSON.stringify({ role: 'HARMLESS_ENTRY_RECEIPT', nonce: process.env.LOADER_FIXTURE_NONCE, main: require.main.filename, payload: __filename, cwd: process.cwd(), mainSha256: crypto.createHash('sha256').update(main).digest('hex'), node: process.version }) + '\n');

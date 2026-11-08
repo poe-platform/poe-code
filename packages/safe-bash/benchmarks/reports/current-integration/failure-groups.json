@@ -1,0 +1,1200 @@
+{
+  "tests/commands/diff-patch-stress/editflows": {
+    "count": 1,
+    "records": [
+      {
+        "id": "clean-test:tap-line-3498",
+        "line": 3498,
+        "name": "quoted-path security: quoted ancestor symlink",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/diff-patch-stress/editflows/quoted-safety.test.ts:1:2819"
+      }
+    ]
+  },
+  "tests/commands/diff-patch-stress/emptyfile-delta": {
+    "count": 6,
+    "records": [
+      {
+        "id": "clean-test:tap-line-3526",
+        "line": 3526,
+        "name": "GNU default: normal/-E/apply",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts:1:245"
+      },
+      {
+        "id": "clean-test:tap-line-3616",
+        "line": 3616,
+        "name": "GNU default: normal/--remove-empty-files/apply",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts:1:245"
+      },
+      {
+        "id": "clean-test:tap-line-3712",
+        "line": 3712,
+        "name": "GNU default: context/-E/apply",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts:1:245"
+      },
+      {
+        "id": "clean-test:tap-line-3802",
+        "line": 3802,
+        "name": "GNU default: context/--remove-empty-files/apply",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts:1:245"
+      },
+      {
+        "id": "clean-test:tap-line-3898",
+        "line": 3898,
+        "name": "GNU default: unified/-E/apply",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts:1:245"
+      },
+      {
+        "id": "clean-test:tap-line-3988",
+        "line": 3988,
+        "name": "GNU default: unified/--remove-empty-files/apply",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts:1:245"
+      }
+    ]
+  },
+  "tests/commands/diff-patch-stress/fuzz": {
+    "count": 1,
+    "records": [
+      {
+        "id": "clean-test:tap-line-11030",
+        "line": 11030,
+        "name": "atomic extension malformed backward-second-hunk is not swallowed after a valid file section",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/diff-patch-stress/fuzz/edits.test.ts:24:4098"
+      }
+    ]
+  },
+  "tests/commands/structured-stress": {
+    "count": 54,
+    "records": [
+      {
+        "id": "clean-test:tap-line-33635",
+        "line": 33635,
+        "name": "fresh numeric/split pipelines: memory",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/final-increment/fresh-interop.test.ts:1:658"
+      },
+      {
+        "id": "clean-test:tap-line-33789",
+        "line": 33789,
+        "name": "fresh numeric/split pipelines: real",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/final-increment/fresh-interop.test.ts:1:658"
+      },
+      {
+        "id": "clean-test:tap-line-33943",
+        "line": 33943,
+        "name": "fresh numeric/split pipelines: s3",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/final-increment/fresh-interop.test.ts:1:658"
+      },
+      {
+        "id": "clean-test:tap-line-34097",
+        "line": 34097,
+        "name": "fresh numeric/split pipelines: webdav",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/final-increment/fresh-interop.test.ts:1:658"
+      },
+      {
+        "id": "clean-test:tap-line-34252",
+        "line": 34252,
+        "name": "fresh numeric/split pipelines: mount",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/final-increment/fresh-interop.test.ts:1:658"
+      },
+      {
+        "id": "clean-test:tap-line-34406",
+        "line": 34406,
+        "name": "fresh numeric/split pipelines: overlay",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/final-increment/fresh-interop.test.ts:1:658"
+      },
+      {
+        "id": "clean-test:tap-line-35208",
+        "line": 35208,
+        "name": "additive native exact bytes: compare-mixed-double",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/independent-increment/additive-regressions.test.ts:1:385"
+      },
+      {
+        "id": "clean-test:tap-line-35242",
+        "line": 35242,
+        "name": "additive native exact bytes: scalar-types",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/independent-increment/additive-regressions.test.ts:1:385"
+      },
+      {
+        "id": "clean-test:tap-line-35294",
+        "line": 35294,
+        "name": "additive native exact bytes: preserve-through-copy",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/independent-increment/additive-regressions.test.ts:1:385"
+      },
+      {
+        "id": "clean-test:tap-line-35400",
+        "line": 35400,
+        "name": "additive native exact bytes: conversion-large-token",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/independent-increment/additive-regressions.test.ts:1:385"
+      },
+      {
+        "id": "clean-test:tap-line-35932",
+        "line": 35932,
+        "name": "native exact bytes: fromjson",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/independent-increment/native-regressions.test.ts:1:813"
+      },
+      {
+        "id": "clean-test:tap-line-36068",
+        "line": 36068,
+        "name": "native exact bytes: join-mixed",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/independent-increment/native-regressions.test.ts:1:813"
+      },
+      {
+        "id": "clean-test:tap-line-36103",
+        "line": 36103,
+        "name": "native exact bytes: join-mixed:bytewise",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/independent-increment/native-regressions.test.ts:1:813"
+      },
+      {
+        "id": "clean-test:tap-line-36204",
+        "line": 36204,
+        "name": "native exact bytes: separator-error-after-prefix",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/independent-increment/native-regressions.test.ts:1:813"
+      },
+      {
+        "id": "clean-test:tap-line-36262",
+        "line": 36262,
+        "name": "native exact bytes: recover-following-json",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/independent-increment/native-regressions.test.ts:1:813"
+      },
+      {
+        "id": "clean-test:tap-line-36298",
+        "line": 36298,
+        "name": "native exact bytes: recover-following-json:bytewise",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/independent-increment/native-regressions.test.ts:1:813"
+      },
+      {
+        "id": "clean-test:tap-line-36334",
+        "line": 36334,
+        "name": "native exact bytes: recover-following-json-exit",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/independent-increment/native-regressions.test.ts:1:813"
+      },
+      {
+        "id": "clean-test:tap-line-36370",
+        "line": 36370,
+        "name": "native exact bytes: recover-following-json-exit:bytewise",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/independent-increment/native-regressions.test.ts:1:813"
+      },
+      {
+        "id": "clean-test:tap-line-36406",
+        "line": 36406,
+        "name": "native exact bytes: recover-following-raw",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/independent-increment/native-regressions.test.ts:1:813"
+      },
+      {
+        "id": "clean-test:tap-line-36442",
+        "line": 36442,
+        "name": "native exact bytes: recover-following-raw:bytewise",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/independent-increment/native-regressions.test.ts:1:813"
+      },
+      {
+        "id": "clean-test:tap-line-36478",
+        "line": 36478,
+        "name": "native exact bytes: recover-final-error",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/independent-increment/native-regressions.test.ts:1:813"
+      },
+      {
+        "id": "clean-test:tap-line-36512",
+        "line": 36512,
+        "name": "native exact bytes: recover-final-error:bytewise",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/independent-increment/native-regressions.test.ts:1:813"
+      },
+      {
+        "id": "clean-test:tap-line-36546",
+        "line": 36546,
+        "name": "native exact bytes: recover-internal-generator",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/independent-increment/native-regressions.test.ts:1:813"
+      },
+      {
+        "id": "clean-test:tap-line-36581",
+        "line": 36581,
+        "name": "native exact bytes: recover-internal-generator:bytewise",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/independent-increment/native-regressions.test.ts:1:813"
+      },
+      {
+        "id": "clean-test:tap-line-36616",
+        "line": 36616,
+        "name": "native exact bytes: parse-error-after-prefix",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/independent-increment/native-regressions.test.ts:1:813"
+      },
+      {
+        "id": "clean-test:tap-line-36650",
+        "line": 36650,
+        "name": "native exact bytes: parse-error-after-prefix:bytewise",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/independent-increment/native-regressions.test.ts:1:813"
+      },
+      {
+        "id": "clean-test:tap-line-36684",
+        "line": 36684,
+        "name": "native exact bytes: raw-lone-continuation",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/independent-increment/native-regressions.test.ts:1:813"
+      },
+      {
+        "id": "clean-test:tap-line-36720",
+        "line": 36720,
+        "name": "native exact bytes: raw-lone-continuation:bytewise",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/independent-increment/native-regressions.test.ts:1:813"
+      },
+      {
+        "id": "clean-test:tap-line-36756",
+        "line": 36756,
+        "name": "native exact bytes: raw-truncated",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/independent-increment/native-regressions.test.ts:1:813"
+      },
+      {
+        "id": "clean-test:tap-line-36792",
+        "line": 36792,
+        "name": "native exact bytes: raw-truncated:bytewise",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/independent-increment/native-regressions.test.ts:1:813"
+      },
+      {
+        "id": "clean-test:tap-line-36828",
+        "line": 36828,
+        "name": "native exact bytes: raw-surrogate",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/independent-increment/native-regressions.test.ts:1:813"
+      },
+      {
+        "id": "clean-test:tap-line-36864",
+        "line": 36864,
+        "name": "native exact bytes: raw-surrogate:bytewise",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/independent-increment/native-regressions.test.ts:1:813"
+      },
+      {
+        "id": "clean-test:tap-line-36900",
+        "line": 36900,
+        "name": "native exact bytes: raw-overlong-slurp",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/independent-increment/native-regressions.test.ts:1:813"
+      },
+      {
+        "id": "clean-test:tap-line-36936",
+        "line": 36936,
+        "name": "native exact bytes: raw-overlong-slurp:bytewise",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/independent-increment/native-regressions.test.ts:1:813"
+      },
+      {
+        "id": "clean-test:tap-line-36972",
+        "line": 36972,
+        "name": "native exact bytes: raw-bad-continuation",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/independent-increment/native-regressions.test.ts:1:813"
+      },
+      {
+        "id": "clean-test:tap-line-37008",
+        "line": 37008,
+        "name": "native exact bytes: raw-bad-continuation:bytewise",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/independent-increment/native-regressions.test.ts:1:813"
+      },
+      {
+        "id": "clean-test:tap-line-37044",
+        "line": 37044,
+        "name": "native exact bytes: json-bad-string",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/independent-increment/native-regressions.test.ts:1:813"
+      },
+      {
+        "id": "clean-test:tap-line-37080",
+        "line": 37080,
+        "name": "native exact bytes: json-bad-string:bytewise",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/independent-increment/native-regressions.test.ts:1:813"
+      },
+      {
+        "id": "clean-test:tap-line-37116",
+        "line": 37116,
+        "name": "native exact bytes: json-truncated-string",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/independent-increment/native-regressions.test.ts:1:813"
+      },
+      {
+        "id": "clean-test:tap-line-37152",
+        "line": 37152,
+        "name": "native exact bytes: json-truncated-string:bytewise",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/independent-increment/native-regressions.test.ts:1:813"
+      },
+      {
+        "id": "clean-test:tap-line-37188",
+        "line": 37188,
+        "name": "native exact bytes: json-low-surrogate-escape",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/independent-increment/native-regressions.test.ts:1:813"
+      },
+      {
+        "id": "clean-test:tap-line-37224",
+        "line": 37224,
+        "name": "native exact bytes: json-low-surrogate-escape:bytewise",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/independent-increment/native-regressions.test.ts:1:813"
+      },
+      {
+        "id": "clean-test:tap-line-37260",
+        "line": 37260,
+        "name": "native exact bytes: json-high-surrogate-escape",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/independent-increment/native-regressions.test.ts:1:813"
+      },
+      {
+        "id": "clean-test:tap-line-37294",
+        "line": 37294,
+        "name": "native exact bytes: json-high-surrogate-escape:bytewise",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/independent-increment/native-regressions.test.ts:1:813"
+      },
+      {
+        "id": "clean-test:tap-line-37334",
+        "line": 37334,
+        "name": "native exact bytes: raw-file-utf8-boundary",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/independent-increment/native-regressions.test.ts:1:813"
+      },
+      {
+        "id": "clean-test:tap-line-37388",
+        "line": 37388,
+        "name": "native exact bytes: pipe-error-recovery",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/independent-increment/native-regressions.test.ts:1:813"
+      },
+      {
+        "id": "clean-test:tap-line-37501",
+        "line": 37501,
+        "name": "native exact bytes: runtime-error-last-false",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/independent-increment/native-regressions.test.ts:1:813"
+      },
+      {
+        "id": "clean-test:tap-line-37537",
+        "line": 37537,
+        "name": "native exact bytes: runtime-error-last-empty",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/independent-increment/native-regressions.test.ts:1:813"
+      },
+      {
+        "id": "clean-test:tap-line-41670",
+        "line": 41670,
+        "name": "split aggregate dispatch: memory stdin, files and coding pipeline",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/split-increment/interop.test.ts:1:315"
+      },
+      {
+        "id": "clean-test:tap-line-41824",
+        "line": 41824,
+        "name": "split aggregate dispatch: real stdin, files and coding pipeline",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/split-increment/interop.test.ts:1:315"
+      },
+      {
+        "id": "clean-test:tap-line-41978",
+        "line": 41978,
+        "name": "split aggregate dispatch: s3 stdin, files and coding pipeline",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/split-increment/interop.test.ts:1:315"
+      },
+      {
+        "id": "clean-test:tap-line-42132",
+        "line": 42132,
+        "name": "split aggregate dispatch: webdav stdin, files and coding pipeline",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/split-increment/interop.test.ts:1:315"
+      },
+      {
+        "id": "clean-test:tap-line-42287",
+        "line": 42287,
+        "name": "split aggregate dispatch: mount stdin, files and coding pipeline",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/split-increment/interop.test.ts:1:315"
+      },
+      {
+        "id": "clean-test:tap-line-42441",
+        "line": 42441,
+        "name": "split aggregate dispatch: overlay stdin, files and coding pipeline",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/commands/structured-stress/split-increment/interop.test.ts:1:315"
+      }
+    ]
+  },
+  "tests/integration/adapter-tools": {
+    "count": 79,
+    "records": [
+      {
+        "id": "clean-test:tap-line-55049",
+        "line": 55049,
+        "name": "memory: independent six-family named-file probes",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:1:628"
+      },
+      {
+        "id": "clean-test:tap-line-55203",
+        "line": 55203,
+        "name": "memory: aggregate six-family coding-agent flow",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:2:592"
+      },
+      {
+        "id": "clean-test:tap-line-55357",
+        "line": 55357,
+        "name": "memory: binary stdin, compression, hashes and redirected bytes",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:3:774"
+      },
+      {
+        "id": "clean-test:tap-line-55511",
+        "line": 55511,
+        "name": "memory: cwd, supplied stdin and explicitly empty stdin",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:4:73"
+      },
+      {
+        "id": "clean-test:tap-line-55665",
+        "line": 55665,
+        "name": "memory: create, copy, append, inspect and remove files",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:4:856"
+      },
+      {
+        "id": "clean-test:tap-line-55819",
+        "line": 55819,
+        "name": "memory: move retains bytes and removes source",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:5:284"
+      },
+      {
+        "id": "clean-test:tap-line-55973",
+        "line": 55973,
+        "name": "memory: touch creates an empty file successfully",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:5:612"
+      },
+      {
+        "id": "clean-test:tap-line-56127",
+        "line": 56127,
+        "name": "memory: in-place edit, diff-to-patch stdin and reverse",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:5:934"
+      },
+      {
+        "id": "clean-test:tap-line-56281",
+        "line": 56281,
+        "name": "memory: missing paths, stderr redirection and command errors",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:5:1709"
+      },
+      {
+        "id": "clean-test:tap-line-56435",
+        "line": 56435,
+        "name": "memory: cancellation interrupts actual blocked command pipeline",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:5:3033"
+      },
+      {
+        "id": "clean-test:tap-line-56589",
+        "line": 56589,
+        "name": "memory: output limit terminates real binary reads",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:5:4531"
+      },
+      {
+        "id": "clean-test:tap-line-56743",
+        "line": 56743,
+        "name": "real: independent six-family named-file probes",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:1:628"
+      },
+      {
+        "id": "clean-test:tap-line-56897",
+        "line": 56897,
+        "name": "real: aggregate six-family coding-agent flow",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:2:592"
+      },
+      {
+        "id": "clean-test:tap-line-57051",
+        "line": 57051,
+        "name": "real: binary stdin, compression, hashes and redirected bytes",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:3:774"
+      },
+      {
+        "id": "clean-test:tap-line-57205",
+        "line": 57205,
+        "name": "real: cwd, supplied stdin and explicitly empty stdin",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:4:73"
+      },
+      {
+        "id": "clean-test:tap-line-57359",
+        "line": 57359,
+        "name": "real: create, copy, append, inspect and remove files",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:4:856"
+      },
+      {
+        "id": "clean-test:tap-line-57513",
+        "line": 57513,
+        "name": "real: move retains bytes and removes source",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:5:284"
+      },
+      {
+        "id": "clean-test:tap-line-57667",
+        "line": 57667,
+        "name": "real: touch creates an empty file successfully",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:5:612"
+      },
+      {
+        "id": "clean-test:tap-line-57821",
+        "line": 57821,
+        "name": "real: in-place edit, diff-to-patch stdin and reverse",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:5:934"
+      },
+      {
+        "id": "clean-test:tap-line-57975",
+        "line": 57975,
+        "name": "real: missing paths, stderr redirection and command errors",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:5:1709"
+      },
+      {
+        "id": "clean-test:tap-line-58129",
+        "line": 58129,
+        "name": "real: cancellation interrupts actual blocked command pipeline",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:5:3033"
+      },
+      {
+        "id": "clean-test:tap-line-58283",
+        "line": 58283,
+        "name": "real: output limit terminates real binary reads",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:5:4531"
+      },
+      {
+        "id": "clean-test:tap-line-58437",
+        "line": 58437,
+        "name": "s3: independent six-family named-file probes",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:1:628"
+      },
+      {
+        "id": "clean-test:tap-line-58591",
+        "line": 58591,
+        "name": "s3: aggregate six-family coding-agent flow",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:2:592"
+      },
+      {
+        "id": "clean-test:tap-line-58745",
+        "line": 58745,
+        "name": "s3: binary stdin, compression, hashes and redirected bytes",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:3:774"
+      },
+      {
+        "id": "clean-test:tap-line-58899",
+        "line": 58899,
+        "name": "s3: cwd, supplied stdin and explicitly empty stdin",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:4:73"
+      },
+      {
+        "id": "clean-test:tap-line-59053",
+        "line": 59053,
+        "name": "s3: create, copy, append, inspect and remove files",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:4:856"
+      },
+      {
+        "id": "clean-test:tap-line-59207",
+        "line": 59207,
+        "name": "s3: move retains bytes and removes source",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:5:284"
+      },
+      {
+        "id": "clean-test:tap-line-59361",
+        "line": 59361,
+        "name": "s3: touch creates an empty file successfully",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:5:612"
+      },
+      {
+        "id": "clean-test:tap-line-59515",
+        "line": 59515,
+        "name": "s3: in-place edit, diff-to-patch stdin and reverse",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:5:934"
+      },
+      {
+        "id": "clean-test:tap-line-59669",
+        "line": 59669,
+        "name": "s3: missing paths, stderr redirection and command errors",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:5:1709"
+      },
+      {
+        "id": "clean-test:tap-line-59823",
+        "line": 59823,
+        "name": "s3: cancellation interrupts actual blocked command pipeline",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:5:3033"
+      },
+      {
+        "id": "clean-test:tap-line-59977",
+        "line": 59977,
+        "name": "s3: output limit terminates real binary reads",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:5:4531"
+      },
+      {
+        "id": "clean-test:tap-line-60131",
+        "line": 60131,
+        "name": "webdav: independent six-family named-file probes",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:1:628"
+      },
+      {
+        "id": "clean-test:tap-line-60286",
+        "line": 60286,
+        "name": "webdav: aggregate six-family coding-agent flow",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:2:592"
+      },
+      {
+        "id": "clean-test:tap-line-60441",
+        "line": 60441,
+        "name": "webdav: binary stdin, compression, hashes and redirected bytes",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:3:774"
+      },
+      {
+        "id": "clean-test:tap-line-60596",
+        "line": 60596,
+        "name": "webdav: cwd, supplied stdin and explicitly empty stdin",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:4:73"
+      },
+      {
+        "id": "clean-test:tap-line-60751",
+        "line": 60751,
+        "name": "webdav: create, copy, append, inspect and remove files",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:4:856"
+      },
+      {
+        "id": "clean-test:tap-line-60906",
+        "line": 60906,
+        "name": "webdav: move retains bytes and removes source",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:5:284"
+      },
+      {
+        "id": "clean-test:tap-line-61061",
+        "line": 61061,
+        "name": "webdav: touch creates an empty file successfully",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:5:612"
+      },
+      {
+        "id": "clean-test:tap-line-61216",
+        "line": 61216,
+        "name": "webdav: in-place edit, diff-to-patch stdin and reverse",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:5:934"
+      },
+      {
+        "id": "clean-test:tap-line-61371",
+        "line": 61371,
+        "name": "webdav: missing paths, stderr redirection and command errors",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:5:1709"
+      },
+      {
+        "id": "clean-test:tap-line-61526",
+        "line": 61526,
+        "name": "webdav: cancellation interrupts actual blocked command pipeline",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:5:3033"
+      },
+      {
+        "id": "clean-test:tap-line-61681",
+        "line": 61681,
+        "name": "webdav: output limit terminates real binary reads",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:5:4531"
+      },
+      {
+        "id": "clean-test:tap-line-61836",
+        "line": 61836,
+        "name": "mount: independent six-family named-file probes",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:1:628"
+      },
+      {
+        "id": "clean-test:tap-line-61990",
+        "line": 61990,
+        "name": "mount: aggregate six-family coding-agent flow",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:2:592"
+      },
+      {
+        "id": "clean-test:tap-line-62144",
+        "line": 62144,
+        "name": "mount: binary stdin, compression, hashes and redirected bytes",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:3:774"
+      },
+      {
+        "id": "clean-test:tap-line-62298",
+        "line": 62298,
+        "name": "mount: cwd, supplied stdin and explicitly empty stdin",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:4:73"
+      },
+      {
+        "id": "clean-test:tap-line-62452",
+        "line": 62452,
+        "name": "mount: create, copy, append, inspect and remove files",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:4:856"
+      },
+      {
+        "id": "clean-test:tap-line-62606",
+        "line": 62606,
+        "name": "mount: move retains bytes and removes source",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:5:284"
+      },
+      {
+        "id": "clean-test:tap-line-62760",
+        "line": 62760,
+        "name": "mount: touch creates an empty file successfully",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:5:612"
+      },
+      {
+        "id": "clean-test:tap-line-62914",
+        "line": 62914,
+        "name": "mount: in-place edit, diff-to-patch stdin and reverse",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:5:934"
+      },
+      {
+        "id": "clean-test:tap-line-63068",
+        "line": 63068,
+        "name": "mount: missing paths, stderr redirection and command errors",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:5:1709"
+      },
+      {
+        "id": "clean-test:tap-line-63222",
+        "line": 63222,
+        "name": "mount: cancellation interrupts actual blocked command pipeline",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:5:3033"
+      },
+      {
+        "id": "clean-test:tap-line-63376",
+        "line": 63376,
+        "name": "mount: output limit terminates real binary reads",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:5:4531"
+      },
+      {
+        "id": "clean-test:tap-line-63530",
+        "line": 63530,
+        "name": "overlay: independent six-family named-file probes",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:1:628"
+      },
+      {
+        "id": "clean-test:tap-line-63684",
+        "line": 63684,
+        "name": "overlay: aggregate six-family coding-agent flow",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:2:592"
+      },
+      {
+        "id": "clean-test:tap-line-63838",
+        "line": 63838,
+        "name": "overlay: binary stdin, compression, hashes and redirected bytes",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:3:774"
+      },
+      {
+        "id": "clean-test:tap-line-63992",
+        "line": 63992,
+        "name": "overlay: cwd, supplied stdin and explicitly empty stdin",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:4:73"
+      },
+      {
+        "id": "clean-test:tap-line-64146",
+        "line": 64146,
+        "name": "overlay: create, copy, append, inspect and remove files",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:4:856"
+      },
+      {
+        "id": "clean-test:tap-line-64300",
+        "line": 64300,
+        "name": "overlay: move retains bytes and removes source",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:5:284"
+      },
+      {
+        "id": "clean-test:tap-line-64454",
+        "line": 64454,
+        "name": "overlay: touch creates an empty file successfully",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:5:612"
+      },
+      {
+        "id": "clean-test:tap-line-64608",
+        "line": 64608,
+        "name": "overlay: in-place edit, diff-to-patch stdin and reverse",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:5:934"
+      },
+      {
+        "id": "clean-test:tap-line-64762",
+        "line": 64762,
+        "name": "overlay: missing paths, stderr redirection and command errors",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:5:1709"
+      },
+      {
+        "id": "clean-test:tap-line-64916",
+        "line": 64916,
+        "name": "overlay: cancellation interrupts actual blocked command pipeline",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:5:3033"
+      },
+      {
+        "id": "clean-test:tap-line-65070",
+        "line": 65070,
+        "name": "overlay: output limit terminates real binary reads",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:5:4531"
+      },
+      {
+        "id": "clean-test:tap-line-65224",
+        "line": 65224,
+        "name": "mount: cross-backend pipeline and copy use real mount plus S3",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:5:4847"
+      },
+      {
+        "id": "clean-test:tap-line-65378",
+        "line": 65378,
+        "name": "overlay: edit and remove lower files without changing S3 lower",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:6:283"
+      },
+      {
+        "id": "clean-test:tap-line-65532",
+        "line": 65532,
+        "name": "readonly: all six aggregate families can inspect without mutation",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:6:826"
+      },
+      {
+        "id": "clean-test:tap-line-65686",
+        "line": 65686,
+        "name": "structured capability gap: raw slurped text can be split into lines",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:7:282"
+      },
+      {
+        "id": "clean-test:tap-line-65840",
+        "line": 65840,
+        "name": "readonly: rejects mutation: printf 'changed' > target.txt",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:7:840"
+      },
+      {
+        "id": "clean-test:tap-line-65994",
+        "line": 65994,
+        "name": "readonly: rejects mutation: printf 'changed' >> target.txt",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:7:840"
+      },
+      {
+        "id": "clean-test:tap-line-66148",
+        "line": 66148,
+        "name": "readonly: rejects mutation: mkdir denied",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:7:840"
+      },
+      {
+        "id": "clean-test:tap-line-66302",
+        "line": 66302,
+        "name": "readonly: rejects mutation: cp old.txt denied.txt",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:7:840"
+      },
+      {
+        "id": "clean-test:tap-line-66456",
+        "line": 66456,
+        "name": "readonly: rejects mutation: mv old.txt denied.txt",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:7:840"
+      },
+      {
+        "id": "clean-test:tap-line-66610",
+        "line": 66610,
+        "name": "readonly: rejects mutation: rm old.txt",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:7:840"
+      },
+      {
+        "id": "clean-test:tap-line-66764",
+        "line": 66764,
+        "name": "readonly: rejects mutation: sed -i 's/beta/BETA/' target.txt",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:7:840"
+      },
+      {
+        "id": "clean-test:tap-line-66918",
+        "line": 66918,
+        "name": "readonly: rejects mutation: patch -i change.diff",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:7:840"
+      },
+      {
+        "id": "clean-test:tap-line-67072",
+        "line": 67072,
+        "name": "readonly: rejects mutation: gzip payload.bin",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools/matrix.test.ts:7:840"
+      }
+    ]
+  },
+  "tests/integration/adapter-tools-diagnostics": {
+    "count": 8,
+    "records": [
+      {
+        "id": "clean-test:tap-line-54296",
+        "line": 54296,
+        "name": "memory:ENOENT",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools-diagnostics/eight-cases.test.ts:1:2015"
+      },
+      {
+        "id": "clean-test:tap-line-54390",
+        "line": 54390,
+        "name": "real:ENOENT",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools-diagnostics/eight-cases.test.ts:1:2015"
+      },
+      {
+        "id": "clean-test:tap-line-54484",
+        "line": 54484,
+        "name": "s3:ENOENT",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools-diagnostics/eight-cases.test.ts:1:2015"
+      },
+      {
+        "id": "clean-test:tap-line-54578",
+        "line": 54578,
+        "name": "webdav:ENOENT",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools-diagnostics/eight-cases.test.ts:1:2015"
+      },
+      {
+        "id": "clean-test:tap-line-54673",
+        "line": 54673,
+        "name": "mount:ENOENT",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools-diagnostics/eight-cases.test.ts:1:2015"
+      },
+      {
+        "id": "clean-test:tap-line-54767",
+        "line": 54767,
+        "name": "overlay:ENOENT",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools-diagnostics/eight-cases.test.ts:1:2015"
+      },
+      {
+        "id": "clean-test:tap-line-54861",
+        "line": 54861,
+        "name": "readonly:truncate:EROFS",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools-diagnostics/eight-cases.test.ts:1:2015"
+      },
+      {
+        "id": "clean-test:tap-line-54955",
+        "line": 54955,
+        "name": "readonly:append:EROFS",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/integration/adapter-tools-diagnostics/eight-cases.test.ts:1:2015"
+      }
+    ]
+  },
+  "tests/shell-stress/current-gaps": {
+    "count": 4,
+    "records": [
+      {
+        "id": "clean-test:tap-line-67562",
+        "line": 67562,
+        "name": "remaining-gap independent Bash: move-output-really-closes-source",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/shell-stress/current-gaps/compatibility.test.ts:1:234"
+      },
+      {
+        "id": "clean-test:tap-line-67624",
+        "line": 67624,
+        "name": "remaining-gap independent Bash: move-input-really-closes-source",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/shell-stress/current-gaps/compatibility.test.ts:1:234"
+      },
+      {
+        "id": "clean-test:tap-line-67722",
+        "line": 67722,
+        "name": "remaining-gap independent Bash: prevalidation-prior-output-and-file",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/shell-stress/current-gaps/compatibility.test.ts:1:234"
+      },
+      {
+        "id": "clean-test:tap-line-67788",
+        "line": 67788,
+        "name": "remaining-gap independent Bash: fatal-parameter-preserves-only-earlier-effects",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/shell-stress/current-gaps/compatibility.test.ts:1:234"
+      }
+    ]
+  },
+  "tests/shell-stress/differential.test.ts:1:485": {
+    "count": 5,
+    "records": [
+      {
+        "id": "clean-test:tap-line-68864",
+        "line": 68864,
+        "name": "Bash differential: nested-substitution-syntax-error-does-not-prevent-earlier-effects",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/shell-stress/differential.test.ts:1:485"
+      },
+      {
+        "id": "clean-test:tap-line-68945",
+        "line": 68945,
+        "name": "Bash differential: fatal-parameter-expansion-prevents-following-file-effect",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/shell-stress/differential.test.ts:1:485"
+      },
+      {
+        "id": "clean-test:tap-line-68996",
+        "line": 68996,
+        "name": "Bash differential: fatal-arithmetic-expansion-prevents-following-file-effect",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/shell-stress/differential.test.ts:1:485"
+      },
+      {
+        "id": "clean-test:tap-line-69048",
+        "line": 69048,
+        "name": "Bash differential: fatal-expansion-in-substitution-stops-substitution-only",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/shell-stress/differential.test.ts:1:485"
+      },
+      {
+        "id": "clean-test:tap-line-69152",
+        "line": 69152,
+        "name": "Bash differential: command-substitution-removes-nul-bytes",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/shell-stress/differential.test.ts:1:485"
+      }
+    ]
+  },
+  "tests/shell/remote-close.test.ts:1:723": {
+    "count": 5,
+    "records": [
+      {
+        "id": "clean-test:tap-line-73772",
+        "line": 73772,
+        "name": "hard-deadline pipeline close: first-read-local",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/shell/remote-close.test.ts:1:723"
+      },
+      {
+        "id": "clean-test:tap-line-73808",
+        "line": 73808,
+        "name": "hard-deadline pipeline close: first-read-s3",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/shell/remote-close.test.ts:1:723"
+      },
+      {
+        "id": "clean-test:tap-line-73845",
+        "line": 73845,
+        "name": "hard-deadline pipeline close: first-read-webdav",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/shell/remote-close.test.ts:1:723"
+      },
+      {
+        "id": "clean-test:tap-line-73882",
+        "line": 73882,
+        "name": "hard-deadline pipeline close: first-read-curl-body",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/shell/remote-close.test.ts:1:723"
+      },
+      {
+        "id": "clean-test:tap-line-73918",
+        "line": 73918,
+        "name": "hard-deadline pipeline close: first-read-curl-headers",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/shell/remote-close.test.ts:1:723"
+      }
+    ]
+  },
+  "tests/stress/adapters": {
+    "count": 1,
+    "records": [
+      {
+        "id": "clean-test:tap-line-74906",
+        "line": 74906,
+        "name": "s3: optional metadata capabilities are exercised or fail closed",
+        "status": "fail",
+        "location": "/private/tmp/safe-bash-current-integration-69dbdy0m/source-clean/tests/stress/adapters/core.test.ts:1:1224"
+      }
+    ]
+  }
+}

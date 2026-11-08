@@ -1,0 +1,14 @@
+{
+  "label": "fixed-validate",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "tests/fs/s3/http-independent/validate.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/http/final-verification/protocol/.tmp/protocol-ZTYC8l/safe-s3-http-independent-xONJHg"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "timeoutMs": 180000,
+  "status": 0,
+  "signal": null,
+  "stdout": "{\n  \"directory\": \"/Users/kjopek/Workspace/safe-bash/tests/fs/s3/http/final-verification/protocol/.tmp/protocol-ZTYC8l/safe-s3-http-independent-xONJHg\",\n  \"phases\": [\n    {\n      \"label\": \"unchanged-author69-and-independent60\",\n      \"status\": 0\n    },\n    {\n      \"label\": \"scoped-strict-types\",\n      \"status\": 0\n    },\n    {\n      \"label\": \"independent-packed-public-workflow-types\",\n      \"status\": 0\n    }\n  ]\n}\n",
+  "stderr": ""
+}

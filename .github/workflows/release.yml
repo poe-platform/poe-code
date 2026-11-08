@@ -1,0 +1,191 @@
+name: Release
+# Note: workflow_dispatch is needed because pushes made with GitHub App tokens
+# don't trigger other workflows (to prevent infinite loops). Workflows like
+# bump-version uses `gh workflow run` to trigger this.
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      build_only:
+        description: Publish a fresh build without running validation checks
+        type: boolean
+        default: false
+      cold_cache:
+        description: Ignore restored Turbo results to measure cold test execution
+        type: boolean
+        default: false
+permissions:
+  actions: read
+  contents: write
+  issues: write
+  pull-requests: write
+  id-token: write
+jobs:
+  release-stable:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          filter: blob:none
+          persist-credentials: false
+        env:
+          GIT_CONFIG_COUNT: "1"
+          GIT_CONFIG_KEY_0: init.defaultBranch
+          GIT_CONFIG_VALUE_0: main
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm clean-install
+      - name: Restore cached build archive
+        id: build-archive-cache
+        uses: actions/cache/restore@v6.1.0
+        with:
+          path: ${{ runner.temp }}/poe-build/build.tar
+          key: build-tar-v1-${{ github.sha }}
+      - name: Download freshly verified build
+        if: steps.build-archive-cache.outputs.cache-hit != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for attempt in 1 2 3 4 5 6; do
+            rm -rf "$RUNNER_TEMP/poe-build"
+            if gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "build-$GITHUB_SHA" --dir "$RUNNER_TEMP/poe-build"; then
+              exit 0
+            fi
+            [ "$attempt" -lt 6 ] && sleep $((attempt * 5 + RANDOM % 10))
+          done
+          exit 1
+      - name: Restore freshly verified build
+        env:
+          BUILD_SHA256: ${{ needs.validate.outputs.archive-sha256 }}
+        run: |
+          printf '%s  %s\n' "$BUILD_SHA256" "$RUNNER_TEMP/poe-build/build.tar" | sha256sum --check --status
+          tar -xf "$RUNNER_TEMP/poe-build/build.tar"
+      - name: Generate GitHub App token
+        id: app_token
+        uses: actions/create-github-app-token@v3.0.0
+        with:
+          app-id: ${{ secrets.POE_CODE_AGENT_APP_ID }}
+          private-key: ${{ secrets.POE_CODE_AGENT_PRIVATE_KEY }}
+      - name: Release Stable
+        env:
+          GITHUB_TOKEN: ${{ steps.app_token.outputs.token }}
+          GH_TOKEN: ${{ steps.app_token.outputs.token }}
+          HUSKY: "0"
+          NPM_CONFIG_LOGLEVEL: http
+          # The same-run build above was digest-verified.
+          # Preserve it instead of rebuilding through npm's prepack lifecycle.
+          NPM_CONFIG_IGNORE_SCRIPTS: "true"
+        run: |-
+          gh auth setup-git
+          # This ref only advances to same-run validated main commits. It is never forced.
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          git fetch --filter=blob:none origin main
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+          publication_ref=refs/heads/stable-publication
+          remote_head=$(git ls-remote --heads origin "$publication_ref" | cut -f1)
+          if [ -n "$remote_head" ]; then
+            git fetch --filter=blob:none origin "$publication_ref"
+            if [ "$remote_head" != "$GITHUB_SHA" ] && git merge-base --is-ancestor "$GITHUB_SHA" "$remote_head"; then
+              echo "::notice::Publication superseded by validated commit $remote_head; this run did not publish."
+              echo "Publication superseded by validated commit $remote_head; this run did not publish." >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            git merge-base --is-ancestor "$remote_head" "$GITHUB_SHA"
+          fi
+          git checkout -B stable-publication "$GITHUB_SHA"
+          git push origin "HEAD:$publication_ref"
+          node --input-type=module <<'JS'
+          import { readFileSync, appendFileSync } from 'node:fs';
+          import { createHash } from 'node:crypto';
+          import semanticRelease from 'semantic-release';
+          const config = JSON.parse(readFileSync('.releaserc.json', 'utf8'));
+          let analyzed = false;
+          let releaseType;
+          let npmPublished = false;
+          const hooks = new Set(['verifyConditions', 'analyzeCommits', 'verifyRelease', 'generateNotes', 'prepare', 'publish', 'addChannel', 'success', 'fail']);
+          const plugins = await Promise.all(config.plugins.map(async (entry) => {
+            const [name, options = {}] = Array.isArray(entry) ? entry : [entry];
+            const imported = await import(name);
+            const plugin = imported.default ?? imported;
+            const wrapped = Object.fromEntries(Object.entries(plugin).filter(([hook]) => hooks.has(hook)).map(([hook, fn]) => [hook, async (settings, context) => {
+              // env-ci uses the real checked-out publication branch. Plugins keep the
+              // authentic Actions context, including main's ref/SHA and OIDC provenance.
+              const result = await fn(settings, { ...context, env: { ...context.env, GITHUB_ACTIONS: process.env.GITHUB_ACTIONS } });
+              if (hook === 'analyzeCommits') {
+                analyzed = true;
+                releaseType = result;
+              }
+              if (name === '@semantic-release/npm' && hook === 'publish' && result) {
+                const { version, gitHead } = context.nextRelease;
+                const metadataResponse = await fetch(`https://registry.npmjs.org/poe-code/${version}?release=${gitHead}`, {
+                  headers: { 'Cache-Control': 'no-cache' }, signal: AbortSignal.timeout(30_000)
+                });
+                if (!metadataResponse.ok) throw new Error(`npm publish returned success, but poe-code@${version} metadata returned HTTP ${metadataResponse.status}.`);
+                const metadata = await metadataResponse.json();
+                if (metadata.name !== 'poe-code' || metadata.version !== version || metadata.gitHead !== gitHead) {
+                  throw new Error(`npm metadata does not match poe-code@${version} at ${gitHead}.`);
+                }
+                if (!metadata.dist?.integrity?.startsWith('sha512-') || !metadata.dist?.tarball) {
+                  throw new Error('Published npm metadata is missing the tarball or SHA512 integrity.');
+                }
+                const tarball = await fetch(metadata.dist.tarball, { signal: AbortSignal.timeout(120_000) });
+                if (!tarball.ok) throw new Error(`Published npm tarball returned HTTP ${tarball.status}.`);
+                const hash = createHash('sha512');
+                for await (const chunk of tarball.body) hash.update(chunk);
+                if (`sha512-${hash.digest('base64')}` !== metadata.dist.integrity) {
+                  throw new Error('Published npm tarball does not match its SHA512 integrity.');
+                }
+                const latestResponse = await fetch(`https://registry.npmjs.org/-/package/poe-code/dist-tags?release=${gitHead}`, {
+                  headers: { 'Cache-Control': 'no-cache' }, signal: AbortSignal.timeout(30_000)
+                });
+                if (!latestResponse.ok || (await latestResponse.json()).latest !== version) {
+                  throw new Error(`npm latest does not point to the verified poe-code@${version}.`);
+                }
+                context.logger.log(`Verified npm poe-code@${version}, commit ${gitHead}, tarball SHA512 and latest tag.`);
+                npmPublished = true;
+              }
+              return result;
+            }]));
+            return [wrapped, options];
+          }));
+          const result = await semanticRelease({ ...config, branches: [{ name: 'stable-publication' }], plugins }, {
+            env: { ...process.env, GITHUB_ACTIONS: '', CI: 'true' }
+          });
+          let summary;
+          if (!result && analyzed && !releaseType) {
+            summary = 'No releasable changes; this run did not publish.';
+            console.log('::notice::' + summary);
+          } else if (result?.nextRelease?.gitHead === process.env.GITHUB_SHA && npmPublished) {
+            summary = `Published poe-code@${result.nextRelease.version} from validated commit ${process.env.GITHUB_SHA}.`;
+          } else {
+            throw new Error('Stable publication did not complete for the validated commit.');
+          }
+          appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary + '\n');
+          JS
+    needs:
+      - validate
+    concurrency:
+      # Finish the active release; accumulate newer changes in one pending run.
+      queue: single
+      group: release-${{ github.ref }}
+      cancel-in-progress: false
+    if: github.ref == 'refs/heads/main'
+  validate:
+    uses: ./.github/workflows/release-validation.yml
+    permissions:
+      actions: read
+      contents: read
+    with:
+      build_only: ${{ inputs.build_only || false }}
+      cold_cache: ${{ inputs.cold_cache || false }}
+    concurrency:
+      # Finish the active release; accumulate newer changes in one pending run.
+      queue: single
+      group: release-validation-${{ github.ref }}-${{ inputs.build_only && 'build-only' || 'full' }}
+      cancel-in-progress: false

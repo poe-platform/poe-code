@@ -1,0 +1,11 @@
+import { createJqCommand, createJqCommands, jqCommands, type JqCommandsOptions, type JqLimits } from "@poe-platform/safe-bash/commands/jq";
+import { structuredCommands, createStructuredCommands, defaultJqLimits, type StructuredCommandsOptions } from "@poe-platform/safe-bash";
+import type { CommandDefinition, VirtualShellPlugin } from "@poe-platform/safe-bash/contracts";
+const limits: Partial<JqLimits> = { maxSteps: 1000, maxOutputBytes: 4096 };
+const options: JqCommandsOptions & StructuredCommandsOptions = { limits, replace: true };
+const command: CommandDefinition = createJqCommand(options);
+const commands: readonly CommandDefinition[] = createJqCommands(options);
+const plugin: VirtualShellPlugin = jqCommands(options);
+const legacyPlugin: VirtualShellPlugin = structuredCommands(options);
+const legacyCommands: readonly CommandDefinition[] = createStructuredCommands({ limits: defaultJqLimits });
+void [command, commands, plugin, legacyPlugin, legacyCommands];

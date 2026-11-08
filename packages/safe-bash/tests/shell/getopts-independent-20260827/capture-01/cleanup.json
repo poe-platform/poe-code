@@ -1,0 +1,14 @@
+{
+  "scratch": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-capture-01",
+  "removedOwnedScratch": true,
+  "childrenAwaited": true,
+  "originalInputsRetainedIn": [
+    "candidate-module-inputs.tar",
+    "candidate-scanner.ts.data"
+  ],
+  "emittedBytesRetainedIn": [
+    "emitted-getopts.js.data",
+    "emitted-getopts.d.ts.data"
+  ],
+  "noForeignDeletion": true
+}

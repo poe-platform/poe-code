@@ -1,0 +1,10 @@
+{
+  "at": "2026-08-29T15:55:49.391Z",
+  "mode": "build",
+  "reason": "AssertionError [ERR_ASSERTION]: strict-build failed; exact receipt preserved",
+  "stack": "AssertionError [ERR_ASSERTION]: strict-build failed; exact receipt preserved\n    at Object.run (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v2/io.mjs:75:7)\n    at async main (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v2/producer.mjs:108:3)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v2/producer.mjs:127:7",
+  "compilerMayHaveRun": true,
+  "noAutomaticRetry": true,
+  "product": 0,
+  "Workers": 0
+}

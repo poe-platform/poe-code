@@ -1,0 +1,143 @@
+[
+  {
+    "args": [
+      "--",
+      "prompt",
+      "hello"
+    ],
+    "code": 0,
+    "out": "```text\nanswer\n```\n",
+    "err": "",
+    "calls": [
+      {
+        "prompt": "hello",
+        "stream": true
+      }
+    ]
+  },
+  {
+    "args": [
+      "--",
+      "prompt hello"
+    ],
+    "code": 0,
+    "out": "```text\nanswer\n```\n",
+    "err": "",
+    "calls": [
+      {
+        "prompt": "prompt hello",
+        "stream": true
+      }
+    ]
+  },
+  {
+    "args": [
+      "-n",
+      "--",
+      "-x"
+    ],
+    "code": 0,
+    "out": "answer\n\n",
+    "err": "",
+    "calls": [
+      {
+        "prompt": "",
+        "stream": false
+      }
+    ]
+  },
+  {
+    "args": [
+      "--",
+      "--",
+      "-x"
+    ],
+    "code": 0,
+    "out": "```text\nanswer\n```\n",
+    "err": "",
+    "calls": [
+      {
+        "prompt": "-x",
+        "stream": true
+      }
+    ]
+  },
+  {
+    "args": [
+      "-mfixture",
+      "--",
+      "-x"
+    ],
+    "code": 0,
+    "out": "answer\n\n",
+    "err": "",
+    "calls": [
+      {
+        "prompt": "",
+        "stream": false
+      }
+    ]
+  },
+  {
+    "args": [
+      "-m",
+      "fixture",
+      "--",
+      "-x"
+    ],
+    "code": 0,
+    "out": "```text\nanswer\n```\n",
+    "err": "",
+    "calls": [
+      {
+        "prompt": "-x",
+        "stream": true
+      }
+    ]
+  },
+  {
+    "args": [
+      "prompt",
+      "--",
+      "-x"
+    ],
+    "code": 0,
+    "out": "```text\nanswer\n```\n",
+    "err": "",
+    "calls": [
+      {
+        "prompt": "-x",
+        "stream": true
+      }
+    ]
+  },
+  {
+    "args": [
+      "--",
+      "prompt",
+      "--",
+      "-x"
+    ],
+    "code": 0,
+    "out": "```text\nanswer\n```\n",
+    "err": "",
+    "calls": [
+      {
+        "prompt": "-x",
+        "stream": true
+      }
+    ]
+  },
+  {
+    "args": [
+      "--",
+      "prompt",
+      "hello",
+      "world"
+    ],
+    "code": 2,
+    "out": "",
+    "err": "Usage: llm prompt [OPTIONS] [PROMPT]\nTry 'llm prompt --help' for help.\n\nError: Got unexpected extra argument (world)\n",
+    "calls": []
+  }
+]

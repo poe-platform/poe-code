@@ -1,0 +1,799 @@
+{
+  "kind": "Manual diagnostic interposition of clean GNU binary only. A tiny temporary tracing library records actual permission/timestamp calls on inherited fd3; no product code or native fallback. Return values and errno preserved. Instrumented evidence distinct from uninstrumented acceptance captures.",
+  "binary": "/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src/ginstall",
+  "library": "/tmp/safe-bash-scripting-oracles-20260904/install-calltrace-szmMAA/trace.dylib",
+  "rows": [
+    {
+      "args": [
+        "-m",
+        "2700",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot change permissions of 'target': Operation not permitted\n"
+      },
+      "sourceBefore": {
+        "atimeMs": 1000,
+        "mtimeMs": 2000
+      },
+      "targetBeforeRead": {
+        "mode": 384,
+        "atimeMs": 1788562140846.5315,
+        "mtimeMs": 1788562140846.041,
+        "uid": 501,
+        "gid": 0
+      },
+      "trace": [
+        {
+          "operation": "fchmod",
+          "descriptor": 5,
+          "path": "",
+          "requested": 384,
+          "status": 0,
+          "errno": 0,
+          "observed": 0,
+          "mode": 384,
+          "uid": 501,
+          "gid": 0
+        },
+        {
+          "operation": "fchmodat",
+          "descriptor": -2,
+          "path": "target",
+          "requested": 1472,
+          "status": -1,
+          "errno": 1,
+          "observed": 0,
+          "mode": 384,
+          "uid": 501,
+          "gid": 0
+        }
+      ]
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "2700",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sourceBefore": {
+        "atimeMs": 1000,
+        "mtimeMs": 2000
+      },
+      "targetBeforeRead": {
+        "mode": 448,
+        "atimeMs": 1788562140854.0347,
+        "mtimeMs": 1788562140854.0347,
+        "uid": 501,
+        "gid": 0
+      },
+      "trace": [
+        {
+          "operation": "mkdir",
+          "descriptor": -2,
+          "path": "target",
+          "requested": 1472,
+          "status": 0,
+          "errno": 0,
+          "observed": 0,
+          "mode": 448,
+          "uid": 501,
+          "gid": 0
+        },
+        {
+          "operation": "fchmod",
+          "descriptor": 4,
+          "path": "",
+          "requested": 1472,
+          "status": 0,
+          "errno": 0,
+          "observed": 0,
+          "mode": 448,
+          "uid": 501,
+          "gid": 0
+        }
+      ]
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "2700",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sourceBefore": {
+        "atimeMs": 1000,
+        "mtimeMs": 2000
+      },
+      "targetBeforeRead": {
+        "mode": 448,
+        "atimeMs": 1788562140855.401,
+        "mtimeMs": 1788562140855.401,
+        "uid": 501,
+        "gid": 0
+      },
+      "trace": [
+        {
+          "operation": "mkdir",
+          "descriptor": -2,
+          "path": "target",
+          "requested": 1472,
+          "status": -1,
+          "errno": 17,
+          "observed": 0,
+          "mode": 493,
+          "uid": 501,
+          "gid": 0
+        },
+        {
+          "operation": "fchmod",
+          "descriptor": 4,
+          "path": "",
+          "requested": 1472,
+          "status": 0,
+          "errno": 0,
+          "observed": 0,
+          "mode": 448,
+          "uid": 501,
+          "gid": 0
+        }
+      ]
+    },
+    {
+      "args": [
+        "-m",
+        "7777",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot change permissions of 'target': Operation not permitted\n"
+      },
+      "sourceBefore": {
+        "atimeMs": 1000,
+        "mtimeMs": 2000
+      },
+      "targetBeforeRead": {
+        "mode": 384,
+        "atimeMs": 1788562140871.7695,
+        "mtimeMs": 1788562140871.8308,
+        "uid": 501,
+        "gid": 0
+      },
+      "trace": [
+        {
+          "operation": "fchmod",
+          "descriptor": 5,
+          "path": "",
+          "requested": 384,
+          "status": 0,
+          "errno": 0,
+          "observed": 0,
+          "mode": 384,
+          "uid": 501,
+          "gid": 0
+        },
+        {
+          "operation": "fchmodat",
+          "descriptor": -2,
+          "path": "target",
+          "requested": 4095,
+          "status": -1,
+          "errno": 1,
+          "observed": 0,
+          "mode": 384,
+          "uid": 501,
+          "gid": 0
+        }
+      ]
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "7777",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sourceBefore": {
+        "atimeMs": 1000,
+        "mtimeMs": 2000
+      },
+      "targetBeforeRead": {
+        "mode": 3071,
+        "atimeMs": 1788562140883.1858,
+        "mtimeMs": 1788562140883.1858,
+        "uid": 501,
+        "gid": 0
+      },
+      "trace": [
+        {
+          "operation": "mkdir",
+          "descriptor": -2,
+          "path": "target",
+          "requested": 4077,
+          "status": 0,
+          "errno": 0,
+          "observed": 0,
+          "mode": 493,
+          "uid": 501,
+          "gid": 0
+        },
+        {
+          "operation": "fchmod",
+          "descriptor": 4,
+          "path": "",
+          "requested": 4095,
+          "status": 0,
+          "errno": 0,
+          "observed": 0,
+          "mode": 3071,
+          "uid": 501,
+          "gid": 0
+        }
+      ]
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "7777",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sourceBefore": {
+        "atimeMs": 1000,
+        "mtimeMs": 2000
+      },
+      "targetBeforeRead": {
+        "mode": 3071,
+        "atimeMs": 1788562140884.7822,
+        "mtimeMs": 1788562140884.7822,
+        "uid": 501,
+        "gid": 0
+      },
+      "trace": [
+        {
+          "operation": "mkdir",
+          "descriptor": -2,
+          "path": "target",
+          "requested": 4077,
+          "status": -1,
+          "errno": 17,
+          "observed": 0,
+          "mode": 493,
+          "uid": 501,
+          "gid": 0
+        },
+        {
+          "operation": "fchmod",
+          "descriptor": 4,
+          "path": "",
+          "requested": 4095,
+          "status": 0,
+          "errno": 0,
+          "observed": 0,
+          "mode": 3071,
+          "uid": 501,
+          "gid": 0
+        }
+      ]
+    },
+    {
+      "args": [
+        "-m",
+        "a+s",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot change permissions of 'target': Operation not permitted\n"
+      },
+      "sourceBefore": {
+        "atimeMs": 1000,
+        "mtimeMs": 2000
+      },
+      "targetBeforeRead": {
+        "mode": 384,
+        "atimeMs": 1788562140903.9495,
+        "mtimeMs": 1788562140904.0103,
+        "uid": 501,
+        "gid": 0
+      },
+      "trace": [
+        {
+          "operation": "fchmod",
+          "descriptor": 5,
+          "path": "",
+          "requested": 384,
+          "status": 0,
+          "errno": 0,
+          "observed": 0,
+          "mode": 384,
+          "uid": 501,
+          "gid": 0
+        },
+        {
+          "operation": "fchmodat",
+          "descriptor": -2,
+          "path": "target",
+          "requested": 3072,
+          "status": -1,
+          "errno": 1,
+          "observed": 0,
+          "mode": 384,
+          "uid": 501,
+          "gid": 0
+        }
+      ]
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "a+s",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot change permissions of 'target': Operation not permitted\n"
+      },
+      "sourceBefore": {
+        "atimeMs": 1000,
+        "mtimeMs": 2000
+      },
+      "targetBeforeRead": {
+        "mode": 0,
+        "atimeMs": 1788562140913.56,
+        "mtimeMs": 1788562140913.56,
+        "uid": 501,
+        "gid": 0
+      },
+      "trace": [
+        {
+          "operation": "mkdir",
+          "descriptor": -2,
+          "path": "target",
+          "requested": 3072,
+          "status": 0,
+          "errno": 0,
+          "observed": 0,
+          "mode": 0,
+          "uid": 501,
+          "gid": 0
+        },
+        {
+          "operation": "lchmod",
+          "descriptor": -2,
+          "path": "target",
+          "requested": 3072,
+          "status": -1,
+          "errno": 1,
+          "observed": 0,
+          "mode": 0,
+          "uid": 501,
+          "gid": 0
+        }
+      ]
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "a+s",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sourceBefore": {
+        "atimeMs": 1000,
+        "mtimeMs": 2000
+      },
+      "targetBeforeRead": {
+        "mode": 2541,
+        "atimeMs": 1788562140914.5657,
+        "mtimeMs": 1788562140914.5657,
+        "uid": 501,
+        "gid": 0
+      },
+      "trace": [
+        {
+          "operation": "mkdir",
+          "descriptor": -2,
+          "path": "target",
+          "requested": 3072,
+          "status": -1,
+          "errno": 17,
+          "observed": 0,
+          "mode": 493,
+          "uid": 501,
+          "gid": 0
+        },
+        {
+          "operation": "fchmod",
+          "descriptor": 4,
+          "path": "",
+          "requested": 3565,
+          "status": 0,
+          "errno": 0,
+          "observed": 0,
+          "mode": 2541,
+          "uid": 501,
+          "gid": 0
+        }
+      ]
+    },
+    {
+      "args": [
+        "-m",
+        "g+s",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot change permissions of 'target': Operation not permitted\n"
+      },
+      "sourceBefore": {
+        "atimeMs": 1000,
+        "mtimeMs": 2000
+      },
+      "targetBeforeRead": {
+        "mode": 384,
+        "atimeMs": 1788562140930.2202,
+        "mtimeMs": 1788562140930.2852,
+        "uid": 501,
+        "gid": 0
+      },
+      "trace": [
+        {
+          "operation": "fchmod",
+          "descriptor": 5,
+          "path": "",
+          "requested": 384,
+          "status": 0,
+          "errno": 0,
+          "observed": 0,
+          "mode": 384,
+          "uid": 501,
+          "gid": 0
+        },
+        {
+          "operation": "fchmodat",
+          "descriptor": -2,
+          "path": "target",
+          "requested": 1024,
+          "status": -1,
+          "errno": 1,
+          "observed": 0,
+          "mode": 384,
+          "uid": 501,
+          "gid": 0
+        }
+      ]
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "g+s",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot change permissions of 'target': Operation not permitted\n"
+      },
+      "sourceBefore": {
+        "atimeMs": 1000,
+        "mtimeMs": 2000
+      },
+      "targetBeforeRead": {
+        "mode": 0,
+        "atimeMs": 1788562140938.2437,
+        "mtimeMs": 1788562140938.2437,
+        "uid": 501,
+        "gid": 0
+      },
+      "trace": [
+        {
+          "operation": "mkdir",
+          "descriptor": -2,
+          "path": "target",
+          "requested": 1024,
+          "status": 0,
+          "errno": 0,
+          "observed": 0,
+          "mode": 0,
+          "uid": 501,
+          "gid": 0
+        },
+        {
+          "operation": "lchmod",
+          "descriptor": -2,
+          "path": "target",
+          "requested": 1024,
+          "status": -1,
+          "errno": 1,
+          "observed": 0,
+          "mode": 0,
+          "uid": 501,
+          "gid": 0
+        }
+      ]
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "g+s",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sourceBefore": {
+        "atimeMs": 1000,
+        "mtimeMs": 2000
+      },
+      "targetBeforeRead": {
+        "mode": 493,
+        "atimeMs": 1788562140939.0793,
+        "mtimeMs": 1788562140939.0793,
+        "uid": 501,
+        "gid": 0
+      },
+      "trace": [
+        {
+          "operation": "mkdir",
+          "descriptor": -2,
+          "path": "target",
+          "requested": 1024,
+          "status": -1,
+          "errno": 17,
+          "observed": 0,
+          "mode": 493,
+          "uid": 501,
+          "gid": 0
+        },
+        {
+          "operation": "fchmod",
+          "descriptor": 4,
+          "path": "",
+          "requested": 1517,
+          "status": 0,
+          "errno": 0,
+          "observed": 0,
+          "mode": 493,
+          "uid": 501,
+          "gid": 0
+        }
+      ]
+    },
+    {
+      "args": [
+        "-p",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sourceBefore": {
+        "atimeMs": 1000,
+        "mtimeMs": 2000
+      },
+      "targetBeforeRead": {
+        "mode": 493,
+        "atimeMs": 1788562140955.4502,
+        "mtimeMs": 2000,
+        "uid": 501,
+        "gid": 0
+      },
+      "trace": [
+        {
+          "operation": "futimens",
+          "descriptor": 5,
+          "status": 0,
+          "errno": 0,
+          "atimeSeconds": 1788562140,
+          "atimeNanos": 955450260,
+          "mtimeSeconds": 2,
+          "mtimeNanos": 0
+        },
+        {
+          "operation": "fchmod",
+          "descriptor": 5,
+          "path": "",
+          "requested": 384,
+          "status": 0,
+          "errno": 0,
+          "observed": 0,
+          "mode": 384,
+          "uid": 501,
+          "gid": 0
+        },
+        {
+          "operation": "fchmodat",
+          "descriptor": -2,
+          "path": "target",
+          "requested": 493,
+          "status": 0,
+          "errno": 0,
+          "observed": 0,
+          "mode": 493,
+          "uid": 501,
+          "gid": 0
+        }
+      ]
+    },
+    {
+      "args": [
+        "-p",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sourceBefore": {
+        "atimeMs": 1000,
+        "mtimeMs": 2000
+      },
+      "targetBeforeRead": {
+        "mode": 493,
+        "atimeMs": 1788562140963.3237,
+        "mtimeMs": 2000,
+        "uid": 501,
+        "gid": 0
+      },
+      "trace": [
+        {
+          "operation": "futimens",
+          "descriptor": 5,
+          "status": 0,
+          "errno": 0,
+          "atimeSeconds": 1788562140,
+          "atimeNanos": 963323674,
+          "mtimeSeconds": 2,
+          "mtimeNanos": 0
+        },
+        {
+          "operation": "fchmod",
+          "descriptor": 5,
+          "path": "",
+          "requested": 384,
+          "status": 0,
+          "errno": 0,
+          "observed": 0,
+          "mode": 384,
+          "uid": 501,
+          "gid": 0
+        },
+        {
+          "operation": "fchmodat",
+          "descriptor": -2,
+          "path": "target",
+          "requested": 493,
+          "status": 0,
+          "errno": 0,
+          "observed": 0,
+          "mode": 493,
+          "uid": 501,
+          "gid": 0
+        }
+      ]
+    },
+    {
+      "args": [
+        "-p",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sourceBefore": {
+        "atimeMs": 1000,
+        "mtimeMs": 2000
+      },
+      "targetBeforeRead": {
+        "mode": 493,
+        "atimeMs": 1788562140970.8083,
+        "mtimeMs": 2000,
+        "uid": 501,
+        "gid": 0
+      },
+      "trace": [
+        {
+          "operation": "futimens",
+          "descriptor": 5,
+          "status": 0,
+          "errno": 0,
+          "atimeSeconds": 1788562140,
+          "atimeNanos": 970808292,
+          "mtimeSeconds": 2,
+          "mtimeNanos": 0
+        },
+        {
+          "operation": "fchmod",
+          "descriptor": 5,
+          "path": "",
+          "requested": 384,
+          "status": 0,
+          "errno": 0,
+          "observed": 0,
+          "mode": 384,
+          "uid": 501,
+          "gid": 0
+        },
+        {
+          "operation": "fchmodat",
+          "descriptor": -2,
+          "path": "target",
+          "requested": 493,
+          "status": 0,
+          "errno": 0,
+          "observed": 0,
+          "mode": 493,
+          "uid": 501,
+          "gid": 0
+        }
+      ]
+    }
+  ]
+}

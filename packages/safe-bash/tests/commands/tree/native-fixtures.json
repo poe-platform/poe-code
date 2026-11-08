@@ -1,0 +1,311 @@
+{
+  "provenance": {
+    "version": "tree v2.2.1 (c) 1996 - 2024 by Steve Baker, Thomas Moore, Francesc Rocher, Florian Sesser, Kyosuke Tokoro",
+    "binarySha256": "34a794e5737d4b09a20a58dc0b7231e6300a3d229be5065c3a549969d205f10a",
+    "platform": "darwin arm64 25.4.0",
+    "locale": "LC_ALL=C",
+    "charset": "ASCII (unless explicit UTF-8)",
+    "source": "https://gitlab.com/OldManProgrammer/unix-tree/-/archive/2.2.1/unix-tree-2.2.1.tar.bz2",
+    "archiveSha256": "e911c4a2bea53586cc7be6f3d7d7f4d9c2f2bcbbad77d30700b31046e38f4bc5",
+    "build": "make CC=cc CFLAGS='-O2 -std=c11 -Wall -Wextra' LDFLAGS= tree; Apple clang 21.0.0; no source modifications",
+    "captured": "2026-08-27T08:06:20.133Z"
+  },
+  "exact": [
+    {
+      "args": [],
+      "exitCode": 0,
+      "stdout": ".\n|-- B\n|-- a.txt\n|-- back\\\\slash\n|-- broken -> absent\n|-- dir\n|   |-- sub\n|   |   `-- c.md\n|   |-- up -> ..\n|   `-- z.txt\n|-- empty\n|-- line\\nfeed\n|-- link -> dir\n|-- tab\\tname\n|-- \\303\\251\n`-- \\351\\233\\252\n\n6 directories, 10 files\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-a"
+      ],
+      "exitCode": 0,
+      "stdout": ".\n|-- .hidden-dir\n|-- .hide\n|-- B\n|-- a.txt\n|-- back\\\\slash\n|-- broken -> absent\n|-- dir\n|   |-- sub\n|   |   `-- c.md\n|   |-- up -> ..\n|   `-- z.txt\n|-- empty\n|-- line\\nfeed\n|-- link -> dir\n|-- tab\\tname\n|-- \\303\\251\n`-- \\351\\233\\252\n\n7 directories, 11 files\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-d"
+      ],
+      "exitCode": 0,
+      "stdout": ".\n|-- dir\n|   |-- sub\n|   `-- up -> ..\n|-- empty\n`-- link -> dir\n\n6 directories\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-L",
+        "1"
+      ],
+      "exitCode": 0,
+      "stdout": ".\n|-- B\n|-- a.txt\n|-- back\\\\slash\n|-- broken -> absent\n|-- dir\n|-- empty\n|-- line\\nfeed\n|-- link -> dir\n|-- tab\\tname\n|-- \\303\\251\n`-- \\351\\233\\252\n\n4 directories, 8 files\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-L2"
+      ],
+      "exitCode": 0,
+      "stdout": ".\n|-- B\n|-- a.txt\n|-- back\\\\slash\n|-- broken -> absent\n|-- dir\n|   |-- sub\n|   |-- up -> ..\n|   `-- z.txt\n|-- empty\n|-- line\\nfeed\n|-- link -> dir\n|-- tab\\tname\n|-- \\303\\251\n`-- \\351\\233\\252\n\n6 directories, 9 files\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-P",
+        "*.txt"
+      ],
+      "exitCode": 0,
+      "stdout": ".\n|-- a.txt\n|-- dir\n|   |-- sub\n|   `-- z.txt\n`-- empty\n\n4 directories, 2 files\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-P",
+        "*.txt",
+        "-P",
+        "*.md"
+      ],
+      "exitCode": 0,
+      "stdout": ".\n|-- a.txt\n|-- dir\n|   |-- sub\n|   |   `-- c.md\n|   `-- z.txt\n`-- empty\n\n4 directories, 3 files\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-I",
+        "dir"
+      ],
+      "exitCode": 0,
+      "stdout": ".\n|-- B\n|-- a.txt\n|-- back\\\\slash\n|-- broken -> absent\n|-- empty\n|-- line\\nfeed\n|-- link -> dir\n|-- tab\\tname\n|-- \\303\\251\n`-- \\351\\233\\252\n\n3 directories, 8 files\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-I",
+        "*.txt|B"
+      ],
+      "exitCode": 0,
+      "stdout": ".\n|-- back\\\\slash\n|-- broken -> absent\n|-- dir\n|   |-- sub\n|   |   `-- c.md\n|   `-- up -> ..\n|-- empty\n|-- line\\nfeed\n|-- link -> dir\n|-- tab\\tname\n|-- \\303\\251\n`-- \\351\\233\\252\n\n6 directories, 7 files\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-P",
+        "[a-z]*"
+      ],
+      "exitCode": 0,
+      "stdout": ".\n|-- a.txt\n|-- back\\\\slash\n|-- broken -> absent\n|-- dir\n|   |-- sub\n|   |   `-- c.md\n|   |-- up -> ..\n|   `-- z.txt\n|-- empty\n|-- line\\nfeed\n|-- link -> dir\n`-- tab\\tname\n\n6 directories, 7 files\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-P",
+        "[^a]*"
+      ],
+      "exitCode": 0,
+      "stdout": ".\n|-- B\n|-- back\\\\slash\n|-- broken -> absent\n|-- dir\n|   |-- sub\n|   |   `-- c.md\n|   |-- up -> ..\n|   `-- z.txt\n|-- empty\n|-- line\\nfeed\n|-- link -> dir\n|-- tab\\tname\n|-- \\303\\251\n`-- \\351\\233\\252\n\n6 directories, 9 files\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-P",
+        "?.txt"
+      ],
+      "exitCode": 0,
+      "stdout": ".\n|-- a.txt\n|-- dir\n|   |-- sub\n|   `-- z.txt\n`-- empty\n\n4 directories, 2 files\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-fi",
+        "--noreport"
+      ],
+      "exitCode": 0,
+      "stdout": ".\n./B\n./a.txt\n./back\\\\slash\n./broken -> absent\n./dir\n./dir/sub\n./dir/sub/c.md\n./dir/up -> ..\n./dir/z.txt\n./empty\n./line\\nfeed\n./link -> dir\n./tab\\tname\n./\\303\\251\n./\\351\\233\\252\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-ai"
+      ],
+      "exitCode": 0,
+      "stdout": ".\n.hidden-dir\n.hide\nB\na.txt\nback\\\\slash\nbroken -> absent\ndir\nsub\nc.md\nup -> ..\nz.txt\nempty\nline\\nfeed\nlink -> dir\ntab\\tname\n\\303\\251\n\\351\\233\\252\n\n7 directories, 11 files\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-r"
+      ],
+      "exitCode": 0,
+      "stdout": ".\n|-- \\351\\233\\252\n|-- \\303\\251\n|-- tab\\tname\n|-- link -> dir\n|-- line\\nfeed\n|-- empty\n|-- dir\n|   |-- z.txt\n|   |-- up -> ..\n|   `-- sub\n|       `-- c.md\n|-- broken -> absent\n|-- back\\\\slash\n|-- a.txt\n`-- B\n\n6 directories, 10 files\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "--dirsfirst"
+      ],
+      "exitCode": 0,
+      "stdout": ".\n|-- dir\n|   |-- sub\n|   |   `-- c.md\n|   |-- up -> ..\n|   `-- z.txt\n|-- empty\n|-- link -> dir\n|-- B\n|-- a.txt\n|-- back\\\\slash\n|-- broken -> absent\n|-- line\\nfeed\n|-- tab\\tname\n|-- \\303\\251\n`-- \\351\\233\\252\n\n6 directories, 10 files\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-dr"
+      ],
+      "exitCode": 0,
+      "stdout": ".\n|-- link -> dir\n|-- empty\n`-- dir\n    |-- up -> ..\n    `-- sub\n\n6 directories\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "--charset=UTF-8",
+        "-L1"
+      ],
+      "exitCode": 0,
+      "stdout": ".\n├── B\n├── a.txt\n├── back\\\\slash\n├── broken -> absent\n├── dir\n├── empty\n├── line\\nfeed\n├── link -> dir\n├── tab\\tname\n├── \\303\\251\n└── \\351\\233\\252\n\n4 directories, 8 files\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "dir",
+        "empty"
+      ],
+      "exitCode": 0,
+      "stdout": "dir\n|-- sub\n|   `-- c.md\n|-- up -> ..\n`-- z.txt\nempty\n\n3 directories, 2 files\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "empty"
+      ],
+      "exitCode": 0,
+      "stdout": "empty\n\n0 directories, 0 files\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-d",
+        "-P",
+        "*.txt"
+      ],
+      "exitCode": 0,
+      "stdout": ".\n|-- dir\n|   `-- sub\n`-- empty\n\n4 directories\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-a",
+        "-P",
+        ".*"
+      ],
+      "exitCode": 0,
+      "stdout": ".\n|-- .hidden-dir\n|-- .hide\n|-- dir\n|   `-- sub\n`-- empty\n\n5 directories, 1 file\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "--",
+        "dir"
+      ],
+      "exitCode": 0,
+      "stdout": "dir\n|-- sub\n|   `-- c.md\n|-- up -> ..\n`-- z.txt\n\n3 directories, 2 files\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-Ji"
+      ],
+      "exitCode": 0,
+      "stdout": "[{\"type\":\"directory\",\"name\":\".\",\"contents\":[{\"type\":\"file\",\"name\":\"B\"},{\"type\":\"file\",\"name\":\"a.txt\"},{\"type\":\"file\",\"name\":\"back\\\\slash\"},{\"type\":\"link\",\"name\":\"broken\",\"target\":\"absent\"},{\"type\":\"directory\",\"name\":\"dir\",\"contents\":[{\"type\":\"directory\",\"name\":\"sub\",\"contents\":[{\"type\":\"file\",\"name\":\"c.md\"}]},{\"type\":\"link\",\"name\":\"up\",\"target\":\"..\"},{\"type\":\"file\",\"name\":\"z.txt\"}]},{\"type\":\"directory\",\"name\":\"empty\"},{\"type\":\"file\",\"name\":\"line\\nfeed\"},{\"type\":\"link\",\"name\":\"link\",\"target\":\"dir\"},{\"type\":\"file\",\"name\":\"tab\\tname\"},{\"type\":\"file\",\"name\":\"é\"},{\"type\":\"file\",\"name\":\"雪\"}]},{\"type\":\"report\",\"directories\":6,\"files\":10}]\n",
+      "stderr": ""
+    }
+  ],
+  "semantic": [
+    {
+      "args": [
+        "-J"
+      ],
+      "exitCode": 0,
+      "stdout": "[\n  {\"type\":\"directory\",\"name\":\".\",\"contents\":[\n    {\"type\":\"file\",\"name\":\"B\"},\n    {\"type\":\"file\",\"name\":\"a.txt\"},\n    {\"type\":\"file\",\"name\":\"back\\\\slash\"},\n    {\"type\":\"link\",\"name\":\"broken\",\"target\":\"absent\"},\n    {\"type\":\"directory\",\"name\":\"dir\",\"contents\":[\n      {\"type\":\"directory\",\"name\":\"sub\",\"contents\":[\n        {\"type\":\"file\",\"name\":\"c.md\"}\n      ]},\n      {\"type\":\"link\",\"name\":\"up\",\"target\":\"..\"},\n      {\"type\":\"file\",\"name\":\"z.txt\"}\n    ]},\n    {\"type\":\"directory\",\"name\":\"empty\"},\n    {\"type\":\"file\",\"name\":\"line\\nfeed\"},\n    {\"type\":\"link\",\"name\":\"link\",\"target\":\"dir\"},\n    {\"type\":\"file\",\"name\":\"tab\\tname\"},\n    {\"type\":\"file\",\"name\":\"é\"},\n    {\"type\":\"file\",\"name\":\"雪\"}\n  ]}\n,\n  {\"type\":\"report\",\"directories\":6,\"files\":10}\n]\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-Jd"
+      ],
+      "exitCode": 0,
+      "stdout": "[\n  {\"type\":\"directory\",\"name\":\".\",\"contents\":[\n    {\"type\":\"directory\",\"name\":\"dir\",\"contents\":[\n      {\"type\":\"directory\",\"name\":\"sub\"},\n      {\"type\":\"link\",\"name\":\"up\",\"target\":\"..\"}\n    ]},\n    {\"type\":\"directory\",\"name\":\"empty\"},\n    {\"type\":\"link\",\"name\":\"link\",\"target\":\"dir\"}\n  ]}\n,\n  {\"type\":\"report\",\"directories\":6}\n]\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-Jf",
+        "-L1"
+      ],
+      "exitCode": 0,
+      "stdout": "[\n  {\"type\":\"directory\",\"name\":\".\",\"contents\":[\n    {\"type\":\"file\",\"name\":\"./B\"},\n    {\"type\":\"file\",\"name\":\"./a.txt\"},\n    {\"type\":\"file\",\"name\":\"./back\\\\slash\"},\n    {\"type\":\"link\",\"name\":\"./broken\",\"target\":\"absent\"},\n    {\"type\":\"directory\",\"name\":\"./dir\"},\n    {\"type\":\"directory\",\"name\":\"./empty\"},\n    {\"type\":\"file\",\"name\":\"./line\\nfeed\"},\n    {\"type\":\"link\",\"name\":\"./link\",\"target\":\"dir\"},\n    {\"type\":\"file\",\"name\":\"./tab\\tname\"},\n    {\"type\":\"file\",\"name\":\"./é\"},\n    {\"type\":\"file\",\"name\":\"./雪\"}\n  ]}\n,\n  {\"type\":\"report\",\"directories\":4,\"files\":8}\n]\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-J",
+        "--noreport"
+      ],
+      "exitCode": 0,
+      "stdout": "[\n  {\"type\":\"directory\",\"name\":\".\",\"contents\":[\n    {\"type\":\"file\",\"name\":\"B\"},\n    {\"type\":\"file\",\"name\":\"a.txt\"},\n    {\"type\":\"file\",\"name\":\"back\\\\slash\"},\n    {\"type\":\"link\",\"name\":\"broken\",\"target\":\"absent\"},\n    {\"type\":\"directory\",\"name\":\"dir\",\"contents\":[\n      {\"type\":\"directory\",\"name\":\"sub\",\"contents\":[\n        {\"type\":\"file\",\"name\":\"c.md\"}\n      ]},\n      {\"type\":\"link\",\"name\":\"up\",\"target\":\"..\"},\n      {\"type\":\"file\",\"name\":\"z.txt\"}\n    ]},\n    {\"type\":\"directory\",\"name\":\"empty\"},\n    {\"type\":\"file\",\"name\":\"line\\nfeed\"},\n    {\"type\":\"link\",\"name\":\"link\",\"target\":\"dir\"},\n    {\"type\":\"file\",\"name\":\"tab\\tname\"},\n    {\"type\":\"file\",\"name\":\"é\"},\n    {\"type\":\"file\",\"name\":\"雪\"}\n  ]}\n\n]\n",
+      "stderr": ""
+    }
+  ],
+  "divergent": [
+    {
+      "args": [
+        "-l"
+      ],
+      "exitCode": 0,
+      "stdout": ".\n|-- B\n|-- a.txt\n|-- back\\\\slash\n|-- broken -> absent\n|-- dir\n|   |-- sub\n|   |   `-- c.md\n|   |-- up -> ..  [recursive, not followed]\n|   `-- z.txt\n|-- empty\n|-- line\\nfeed\n|-- link -> dir  [recursive, not followed]\n|-- tab\\tname\n|-- \\303\\251\n`-- \\351\\233\\252\n\n6 directories, 10 files\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "link"
+      ],
+      "exitCode": 0,
+      "stdout": "link\n|-- sub\n|   `-- c.md\n|-- up -> ..\n`-- z.txt\n\n3 directories, 2 files\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "a.txt"
+      ],
+      "exitCode": 0,
+      "stdout": "a.txt  [error opening dir]\n\n0 directories, 1 file\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "missing"
+      ],
+      "exitCode": 2,
+      "stdout": "missing  [error opening dir]\n\n0 directories, 0 files\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-J",
+        "missing"
+      ],
+      "exitCode": 2,
+      "stdout": "[\n,\"name\":\"missing\",\"contents\":[{\"error\": \"error opening dir\"}\n  ]}\n,\n  {\"type\":\"report\",\"directories\":0,\"files\":0}\n]\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-J",
+        "a.txt"
+      ],
+      "exitCode": 0,
+      "stdout": "[\n  {\"type\":\"file\",\"name\":\"a.txt\",\"contents\":[{\"error\": \"error opening dir\"}\n  ]}\n,\n  {\"type\":\"report\",\"directories\":0,\"files\":1}\n]\n",
+      "stderr": ""
+    }
+  ]
+}

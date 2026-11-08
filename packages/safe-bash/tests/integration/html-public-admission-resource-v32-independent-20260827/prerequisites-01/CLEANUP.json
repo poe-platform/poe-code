@@ -1,0 +1,310 @@
+{
+  "at": "2026-08-28T00:56:28.333Z",
+  "rawRemovedAfterCompleteArchiveVerification": true,
+  "runtimeStreamsAwaited": true,
+  "completedOriginalRunProbe": {
+    "at": "2026-08-28T00:54:04.059Z",
+    "pids": [
+      {
+        "pid": 33930,
+        "state": "absent"
+      },
+      {
+        "pid": 34212,
+        "state": "absent"
+      },
+      {
+        "pid": 34507,
+        "state": "absent"
+      },
+      {
+        "pid": 34790,
+        "state": "absent"
+      },
+      {
+        "pid": 35185,
+        "state": "absent"
+      },
+      {
+        "pid": 35474,
+        "state": "absent"
+      },
+      {
+        "pid": 35754,
+        "state": "absent"
+      },
+      {
+        "pid": 36097,
+        "state": "absent"
+      },
+      {
+        "pid": 36480,
+        "state": "absent"
+      },
+      {
+        "pid": 36633,
+        "state": "absent"
+      }
+    ],
+    "groups": [
+      {
+        "pgid": 33930,
+        "members": []
+      },
+      {
+        "pgid": 34212,
+        "members": []
+      },
+      {
+        "pgid": 34507,
+        "members": []
+      },
+      {
+        "pgid": 34790,
+        "members": []
+      },
+      {
+        "pgid": 35185,
+        "members": []
+      },
+      {
+        "pgid": 35474,
+        "members": []
+      },
+      {
+        "pgid": 35754,
+        "members": []
+      },
+      {
+        "pgid": 36097,
+        "members": []
+      },
+      {
+        "pgid": 36480,
+        "members": []
+      }
+    ]
+  },
+  "stalePidLeaseClaim": false,
+  "watchdogSignals": [],
+  "childStatuses": [
+    {
+      "pid": 34212,
+      "exit": {
+        "at": "2026-08-28T00:53:06.361Z",
+        "ns": "121800495046333",
+        "pid": 33930,
+        "type": "exit",
+        "childPid": 34212,
+        "code": 17,
+        "signal": null
+      },
+      "close": {
+        "at": "2026-08-28T00:53:06.364Z",
+        "ns": "121800498475041",
+        "pid": 33930,
+        "type": "close",
+        "childPid": 34212,
+        "code": 17,
+        "signal": null
+      },
+      "signals": []
+    },
+    {
+      "pid": 34507,
+      "exit": {
+        "at": "2026-08-28T00:53:12.823Z",
+        "ns": "121806957231750",
+        "pid": 33930,
+        "type": "exit",
+        "childPid": 34507,
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "at": "2026-08-28T00:53:12.826Z",
+        "ns": "121806960472083",
+        "pid": 33930,
+        "type": "close",
+        "childPid": 34507,
+        "code": 0,
+        "signal": null
+      },
+      "signals": []
+    },
+    {
+      "pid": 34790,
+      "exit": {
+        "at": "2026-08-28T00:53:22.197Z",
+        "ns": "121816331050291",
+        "pid": 33930,
+        "type": "exit",
+        "childPid": 34790,
+        "code": null,
+        "signal": "SIGKILL"
+      },
+      "close": {
+        "at": "2026-08-28T00:53:22.201Z",
+        "ns": "121816334749875",
+        "pid": 33930,
+        "type": "close",
+        "childPid": 34790,
+        "code": null,
+        "signal": "SIGKILL"
+      },
+      "signals": [
+        {
+          "at": "2026-08-28T00:53:19.187Z",
+          "ns": "121813321589541",
+          "pid": 33930,
+          "type": "signal",
+          "childPid": 34790,
+          "signal": "SIGTERM",
+          "accepted": true
+        },
+        {
+          "at": "2026-08-28T00:53:22.192Z",
+          "ns": "121816326544875",
+          "pid": 33930,
+          "type": "signal",
+          "childPid": 34790,
+          "signal": "SIGKILL",
+          "accepted": true
+        }
+      ]
+    },
+    {
+      "pid": 35185,
+      "exit": {
+        "at": "2026-08-28T00:53:28.516Z",
+        "ns": "121822649982208",
+        "pid": 33930,
+        "type": "exit",
+        "childPid": 35185,
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "at": "2026-08-28T00:53:28.519Z",
+        "ns": "121822652842375",
+        "pid": 33930,
+        "type": "close",
+        "childPid": 35185,
+        "code": 0,
+        "signal": null
+      },
+      "signals": []
+    },
+    {
+      "pid": 35474,
+      "exit": {
+        "at": "2026-08-28T00:53:34.946Z",
+        "ns": "121829080003625",
+        "pid": 33930,
+        "type": "exit",
+        "childPid": 35474,
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "at": "2026-08-28T00:53:34.949Z",
+        "ns": "121829083403916",
+        "pid": 33930,
+        "type": "close",
+        "childPid": 35474,
+        "code": 0,
+        "signal": null
+      },
+      "signals": []
+    },
+    {
+      "pid": 35754,
+      "exit": {
+        "at": "2026-08-28T00:53:41.435Z",
+        "ns": "121835568915625",
+        "pid": 33930,
+        "type": "exit",
+        "childPid": 35754,
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "at": "2026-08-28T00:53:41.439Z",
+        "ns": "121835573270958",
+        "pid": 33930,
+        "type": "close",
+        "childPid": 35754,
+        "code": 0,
+        "signal": null
+      },
+      "signals": []
+    },
+    {
+      "pid": 36097,
+      "exit": {
+        "at": "2026-08-28T00:53:47.860Z",
+        "ns": "121841993781500",
+        "pid": 33930,
+        "type": "exit",
+        "childPid": 36097,
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "at": "2026-08-28T00:53:47.863Z",
+        "ns": "121841997266000",
+        "pid": 33930,
+        "type": "close",
+        "childPid": 36097,
+        "code": 0,
+        "signal": null
+      },
+      "signals": []
+    },
+    {
+      "pid": 36480,
+      "exit": {
+        "at": "2026-08-28T00:53:54.303Z",
+        "ns": "121848436975041",
+        "pid": 33930,
+        "type": "exit",
+        "childPid": 36480,
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "at": "2026-08-28T00:53:54.306Z",
+        "ns": "121848440129791",
+        "pid": 33930,
+        "type": "close",
+        "childPid": 36480,
+        "code": 0,
+        "signal": null
+      },
+      "signals": []
+    },
+    {
+      "pid": 36633,
+      "exit": {
+        "at": "2026-08-28T00:54:00.838Z",
+        "ns": "121854972382625",
+        "pid": 33930,
+        "type": "exit",
+        "childPid": 36633,
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "at": "2026-08-28T00:54:00.842Z",
+        "ns": "121854976504916",
+        "pid": 33930,
+        "type": "close",
+        "childPid": 36633,
+        "code": 0,
+        "signal": null
+      },
+      "signals": []
+    }
+  ],
+  "subsequentCaseExecutions": 0
+}

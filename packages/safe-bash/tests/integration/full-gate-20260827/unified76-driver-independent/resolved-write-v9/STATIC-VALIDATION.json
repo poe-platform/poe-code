@@ -1,0 +1,16 @@
+{
+  "scope": "Post-seal static JSON/hash/capture verification only",
+  "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node tests/integration/full-gate-20260827/unified76-driver-independent/resolved-write-v9/validate-v2.mjs",
+  "status": 0,
+  "result": {
+    "status": "PASS_STATIC_INTEGRITY_ONLY",
+    "jsonFilesAtInvocation": 15,
+    "rawFiles": 102,
+    "rawBytes": 99816251,
+    "regularFiles": 46871,
+    "regularBytes": 3189907528,
+    "priorArtifactsUnchanged": 329,
+    "removedRootsStillAbsent": 10
+  },
+  "preservedFailure": "VALIDATION-FOLLOWUP.json and original validate.mjs; not a driver-control outcome"
+}

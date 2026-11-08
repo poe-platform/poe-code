@@ -1,0 +1,26 @@
+{
+  "name": "@poe-code/terminal-name",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.workerd.js",
+      "browser": "./dist/index.workerd.js",
+      "worker": "./dist/index.workerd.js",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "test": "cd ../.. && vitest run packages/terminal-name/src",
+    "test:unit": "cd ../.. && vitest run packages/terminal-name/src"
+  },
+  "files": [
+    "dist"
+  ]
+}

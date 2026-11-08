@@ -1,0 +1,15 @@
+node:internal/fs/promises:639
+  return new FileHandle(await PromisePrototypeThen(
+                        ^
+
+Error: ENOENT: no such file or directory, open '/Users/kjopek/Workspace/safe-bash/tests/tests/commands/git-design-20260828/NEUTRAL-FIXTURE.json'
+    at async open (node:internal/fs/promises:639:25)
+    at async Object.readFile (node:internal/fs/promises:1249:14)
+    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/run.mjs:15:51 {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/kjopek/Workspace/safe-bash/tests/tests/commands/git-design-20260828/NEUTRAL-FIXTURE.json'
+}
+
+Node.js v22.22.2

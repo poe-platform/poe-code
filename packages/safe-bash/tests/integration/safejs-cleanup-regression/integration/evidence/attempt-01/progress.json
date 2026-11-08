@@ -1,0 +1,9 @@
+[
+  {
+    "id": "literal-grep-success",
+    "accepted": true,
+    "status": 0,
+    "signal": null,
+    "capture": "pass"
+  }
+]

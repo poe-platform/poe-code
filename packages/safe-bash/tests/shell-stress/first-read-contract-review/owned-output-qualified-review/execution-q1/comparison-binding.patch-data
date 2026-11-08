@@ -1,0 +1,33 @@
+--- tests/shell-stress/first-read-contract-review/owned-output-qualified-prototype/controls.mjs.data	2026-08-27 07:30:01
++++ /tmp/safe-bash-owned-output-qualified-execution-zgVdib/controls.mjs	2026-08-27 07:48:03
+@@ -5,7 +5,7 @@
+ import { resolve } from 'node:path';
+ import { setImmediate as turn } from 'node:timers/promises';
+ import { createHash } from 'node:crypto';
+-const task = '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA';
++const task = '/tmp/safe-bash-owned-output-qualified-execution-zgVdib';
+ const encode = text => new TextEncoder().encode(text);
+ const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+ const gate = () => { let resolve; const promise = new Promise(done => { resolve = done; }); return { promise, resolve }; };
+@@ -117,7 +117,12 @@
+   const curl = ['/usr/bin/curl', ...args].map(quote).join(' ');
+   const helper = [process.execPath, resolve(task, 'native-helper.mjs'), profile.mode === 'closed' ? 'closed' : 'drain', fixture.origin].map(quote).join(' ');
+   const script = `${profile.pipefail ? 'set -o pipefail; ' : ''}${curl}${profile.mode === 'error' ? ' 1>&-' : ''} | ${helper}; printf '%s\\n' "$?" "\${PIPESTATUS[*]}" > ${quote(resolve(directory, 'statuses'))}; printf 'independent-stderr\\n' >&2; printf 'independent-file\\n' > ${quote(resolve(directory, 'independent'))}`;
+-  const child = spawn('/bin/bash', ['--noprofile', '--norc', '-c', script], { cwd: directory, env: nativeEnv, detached: true, stdio: ['ignore', 'pipe', 'pipe'] });
++  const child = spawn('/bin/bash', ['--noprofile', '--norc', '-c', script], { cwd: directory, env: nativeEnv, detached: true, stdio: ['ignore', 'pipe', 'pipe', 'pipe', 'pipe'] });
++  child.stdio[3].on('error',error=>events.push({barrierWriteError:describe(error)}));
++  if(profile.mode==='closed') {
++    void fixture.started.promise.then(()=>{events.push('fd3.request-start-barrier');child.stdio[3].end('started\n');});
++    child.stdio[4].once('data',chunk=>{assert.equal(chunk.toString(),'closed\n');events.push('fd4.consumer-fd0-closed');fixture.release.resolve();});
++  } else child.stdio[3].end();
+   const stdout = []; const stderr = []; child.stdout.on('data', chunk => stdout.push(Buffer.from(chunk))); child.stderr.on('data', chunk => stderr.push(Buffer.from(chunk)));
+   let timer = setTimeout(() => { try { process.kill(-child.pid, 'SIGKILL'); } catch {} }, 9000);
+   let closure;
+@@ -240,6 +245,7 @@
+   } finally { await shell.dispose(); }
+ }
+ const mode = process.argv[2] ?? 'all';
++assert.equal(mode,'curl','Independent replay permits exactly the frozen eight comparison profiles only');
+ const records = { startedAt: new Date().toISOString(), mode, curl: [], precedence: [], auxiliary: [], failures: [] };
+ const save = () => writeFileSync(resolve(task, `results-${mode}.json`), JSON.stringify(records, null, 2) + '\n');
+ try {

@@ -1,0 +1,354 @@
+import assert from 'node:assert/strict';
+import { setImmediate as turn } from 'node:timers/promises';
+
+export const caseNames = [
+  'direct-first-pending-no-hook', 'direct-split-prefix-pending',
+  'shell-structural-pending', 'direct-opaque-pending', 'shell-opaque-pending',
+  'quiet-awaits-cooperative-return', 'epipe-gated-return',
+  'abort-sink-return-error-identities', 'input-error-before-return-error',
+  'limit-input', 'limit-line', 'limit-output', 'binary-exact-natural-eof',
+  'chunks-64', 'chunks-256', 'already-aborted-zero-active-workers',
+  'invalid-zero-maxworkers', 'shared-executor-sibling-isolation',
+];
+
+function gate() {
+  let resolve;
+  let reject;
+  const promise = new Promise((yes, no) => { resolve = yes; reject = no; });
+  void promise.catch(() => {});
+  return { promise, resolve, reject };
+}
+
+function structural(chunks, options = {}) {
+  const entered = gate();
+  const pending = gate();
+  const returnEntered = gate();
+  const returnGate = gate();
+  const state = { acquired: 0, next: 0, returns: 0, returnDone: 0, closed: false,
+    eof: false, bytes: 0, manualReturns: 0, nextDuringWrite: 0 };
+  const work = [];
+  const iterator = {
+    [Symbol.asyncIterator]() { state.acquired++; return this; },
+    next() {
+      state.next++;
+      if (options.writing?.()) state.nextDuringWrite++;
+      const index = state.next - 1;
+      if (index < chunks.length) {
+        const value = Buffer.from(chunks[index]);
+        state.bytes += value.length;
+        return Promise.resolve({ done: false, value });
+      }
+      if (options.pending && !(options.endAfterPending && state.next > chunks.length + 1)) { entered.resolve(); work.push(pending.promise); return pending.promise; }
+      if (options.readError) return Promise.reject(options.readError);
+      state.eof = true;
+      state.closed = true;
+      return Promise.resolve({ done: true, value: undefined });
+    },
+    return() {
+      state.returns++;
+      returnEntered.resolve();
+      if (!options.gatedReturn) state.closed = true;
+      const completion = (async () => {
+        if (options.gatedReturn) await returnGate.promise;
+        state.closed = true;
+        state.returnDone++;
+        if (options.returnError) throw options.returnError;
+        return { done: true, value: undefined };
+      })();
+      void completion.catch(() => {});
+      work.push(completion);
+      return completion;
+    },
+  };
+  return {
+    source: iterator, state, entered, pending, returnEntered, returnGate,
+    snapshot() { return { ...state }; },
+    async cleanup() {
+      pending.reject(new Error('fixture-late-read-not-caller'));
+      returnGate.resolve();
+      await turn();
+      if (!state.closed) { state.manualReturns++; await iterator.return().catch(() => {}); }
+      await Promise.allSettled(work);
+    },
+  };
+}
+
+function opaque() {
+  const entered = gate();
+  const release = gate();
+  const state = { acquired: 0, next: 0, returns: 0, finalized: false, manualReturns: 0 };
+  const work = [];
+  const generator = (async function* () {
+    try { entered.resolve(); await release.promise; yield Buffer.from('hit\n'); }
+    finally { state.finalized = true; }
+  })();
+  const source = {
+    [Symbol.asyncIterator]() { state.acquired++; return this; },
+    next() { state.next++; const result = generator.next(); work.push(result); return result; },
+    return() { state.returns++; const result = generator.return(); work.push(result); return result; },
+  };
+  return {
+    source, state, entered,
+    snapshot() { return { ...state }; },
+    async cleanup() {
+      release.resolve();
+      await turn();
+      if (state.returns === 0) { state.manualReturns++; await source.return(); }
+      await Promise.allSettled(work);
+    },
+  };
+}
+
+export async function runCase(name, api, workers) {
+  const checks = [];
+  const observations = {};
+  const fixtures = [];
+  const shells = [];
+  const controllers = [];
+  const cleanupHooks = [];
+  const executions = [];
+  const releases = [];
+  function check(identity, actual, expected) {
+    let pass = true;
+    try { assert.deepEqual(actual, expected); } catch { pass = false; }
+    checks.push({ identity, pass, actual, expected });
+  }
+  function source(chunks, options) { const fixture = structural(chunks, options); fixtures.push(fixture); return fixture; }
+  function controller() { const result = new AbortController(); controllers.push(result); return result; }
+  async function register(options = {}) {
+    const registry = new api.CommandRegistry();
+    const plugin = api.searchCommands(options);
+    await plugin.setup({ commands: registry, use() { throw new Error('unexpected plugin use'); },
+      registerFileSystem() { throw new Error('unexpected filesystem registration'); } });
+    const definition = registry.get('rg');
+    check('public-plugin-registered-rg', definition?.name, 'rg');
+    return definition;
+  }
+  async function start(fixture, settings = {}) {
+    const abort = settings.controller ?? controller();
+    const stdout = [];
+    const attempts = [];
+    const stderr = [];
+    const hooks = [];
+    const sink = { async write(chunk) {
+      attempts.push(Buffer.from(chunk));
+      if (settings.write) await settings.write(chunk);
+      stdout.push(Buffer.from(chunk));
+    } };
+    const errors = { async write(chunk) { stderr.push(Buffer.from(chunk)); } };
+    let execution;
+    if (settings.shell) {
+      const shell = new api.Shell({ fs: new api.MemoryFileSystem() });
+      shells.push(shell);
+      shell.use(api.searchCommands(settings.options));
+      execution = shell.exec(['rg', ...(settings.args ?? ['-a', '-F', 'hit', '-'])].join(' '), {
+        stdin: fixture.source, stdout: sink, stderr: errors, signal: abort.signal,
+      });
+    } else {
+      const definition = settings.definition ?? await register(settings.options);
+      const context = { command: 'rg', args: settings.args ?? ['-a', '-F', 'hit', '-'],
+        stdin: fixture.source, stdinIsDefault: false, stdout: sink, stderr: errors,
+        cwd: '/', env: {}, fs: new api.MemoryFileSystem(), signal: abort.signal };
+      if (settings.hook !== false) context.registerCleanup = cleanup => { hooks.push(cleanup); cleanupHooks.push(cleanup); };
+      execution = Promise.resolve().then(() => definition.execute(context));
+    }
+    const invocation = { abort, settled: false, hooks, stdout, stderr, attempts };
+    invocation.outcome = execution.then(result => { invocation.settled = true; return { result }; },
+      error => { invocation.settled = true; return { error }; });
+    executions.push(invocation.outcome);
+    invocation.snapshot = () => ({ stdoutHex: Buffer.concat(stdout).toString('hex'),
+      stderrHex: Buffer.concat(stderr).toString('hex'), attemptsHex: attempts.map(chunk => chunk.toString('hex')),
+      hookCount: hooks.length, source: fixture.snapshot() });
+    return invocation;
+  }
+  function output(invocation, stdout, stderr = '') {
+    check('stdout-exact-hex', Buffer.concat(invocation.stdout).toString('hex'), Buffer.from(stdout).toString('hex'));
+    check('stderr-exact-hex', Buffer.concat(invocation.stderr).toString('hex'), Buffer.from(stderr).toString('hex'));
+  }
+  function counts(fixture, next, returns, closed) {
+    check('source-next-count', fixture.state.next, next);
+    check('source-return-count', fixture.state.returns, returns);
+    check('source-resource-closed', fixture.state.closed, closed);
+  }
+  try {
+    if (['direct-first-pending-no-hook', 'direct-split-prefix-pending', 'shell-structural-pending',
+      'direct-opaque-pending', 'shell-opaque-pending'].includes(name)) {
+      const isOpaque = name.includes('opaque');
+      const chunks = name === 'direct-split-prefix-pending' ? ['', 'mi', 'ss\n']
+        : name === 'shell-structural-pending' ? ['miss\n'] : [];
+      const fixture = isOpaque ? opaque() : source(chunks, { pending: true });
+      if (isOpaque) fixtures.push(fixture);
+      const invocation = await start(fixture, { shell: name.startsWith('shell'), hook: !name.endsWith('no-hook') });
+      const reason = Object.freeze({ code: 'EPIPE', identity: name });
+      await fixture.entered.promise;
+      check('not-settled-before-abort', invocation.settled, false);
+      invocation.abort.abort(reason);
+      const outcome = await invocation.outcome;
+      observations.atSettlement = invocation.snapshot();
+      check('caller-reason-reference', outcome.error === reason, true);
+      check('source-next-count', fixture.state.next, chunks.length + 1);
+      check('source-return-before-settlement', fixture.state.returns, 1);
+      check('source-acquire-count', fixture.state.acquired, 1);
+      if (isOpaque) check('opaque-finalizer-not-preempted', fixture.state.finalized, false);
+      else check('structural-resource-closed-before-settlement', fixture.state.closed, true);
+      output(invocation, '');
+    } else if (name === 'quiet-awaits-cooperative-return') {
+      const fixture = source(['hit\nignored\n'], { pending: true, gatedReturn: true });
+      const invocation = await start(fixture, { args: ['-q', '-F', 'hit', '-'] });
+      await fixture.returnEntered.promise;
+      await turn();
+      observations.beforeRelease = invocation.snapshot();
+      check('awaits-cooperative-return', invocation.settled, false);
+      counts(fixture, 1, 1, false);
+      fixture.returnGate.resolve();
+      const outcome = await invocation.outcome;
+      check('exit-code', outcome.result?.exitCode, 0);
+      counts(fixture, 1, 1, true);
+      output(invocation, '');
+      observations.atSettlement = invocation.snapshot();
+    } else if (name === 'epipe-gated-return') {
+      const fixture = source(['hit\n'], { pending: true, gatedReturn: true });
+      const invocation = await start(fixture, { write: async () => { throw new api.FsError('EPIPE'); } });
+      const outcome = await invocation.outcome;
+      observations.atSettlement = invocation.snapshot();
+      check('exit-code', outcome.result?.exitCode, 0);
+      counts(fixture, 1, 1, false);
+      check('single-write-exact', invocation.attempts.map(chunk => chunk.toString('hex')), ['6869740a']);
+      output(invocation, '');
+    } else if (name === 'abort-sink-return-error-identities') {
+      const reason = Object.freeze({ message: 'shared-message', code: 'EPIPE' });
+      const lateSink = Object.freeze({ message: 'shared-message', code: 'EPIPE' });
+      const lateReturn = Object.freeze({ message: 'shared-message', code: 'EPIPE' });
+      const entered = gate();
+      const pendingWrite = gate();
+      releases.push(() => pendingWrite.reject(lateSink));
+      const fixture = source(['hit\n'], { pending: true, returnError: lateReturn });
+      const invocation = await start(fixture, { write: async () => { entered.resolve(); await pendingWrite.promise; } });
+      await entered.promise;
+      invocation.abort.abort(reason);
+      const outcome = await invocation.outcome;
+      observations.atSettlement = invocation.snapshot();
+      check('three-distinct-reason-references', reason !== lateSink && reason !== lateReturn && lateSink !== lateReturn, true);
+      check('caller-reason-reference', outcome.error === reason, true);
+      check('not-late-sink-or-return-reason', outcome.error !== lateSink && outcome.error !== lateReturn, true);
+      counts(fixture, 1, 1, true);
+      output(invocation, '');
+    } else if (name === 'input-error-before-return-error') {
+      const inputError = new Error('primary input failure');
+      const returnError = new Error('secondary return failure');
+      const fixture = source(['mi'], { readError: inputError, returnError });
+      const invocation = await start(fixture);
+      const outcome = await invocation.outcome;
+      observations.atSettlement = invocation.snapshot();
+      check('distinct-errors', inputError !== returnError, true);
+      check('exit-code', outcome.result?.exitCode, 2);
+      counts(fixture, 2, 1, true);
+      output(invocation, '', 'rg: primary input failure\n');
+    } else if (name.startsWith('limit-')) {
+      const selected = {
+        'limit-input': { chunks: ['hi', 't\n'], options: { maxFileBytes: 3 }, next: 2, stdout: '', diagnostic: 'input file byte limit exceeded' },
+        'limit-line': { chunks: ['hit'], options: { maxLineBytes: 2 }, next: 1, stdout: '', diagnostic: 'line byte limit exceeded' },
+        'limit-output': { chunks: ['hit\n', 'hit\n'], options: { maxOutputBytes: 7 }, next: 2, stdout: 'hit\n', diagnostic: 'output byte limit exceeded' },
+      }[name];
+      const fixture = source(selected.chunks, { pending: true });
+      const invocation = await start(fixture, { options: selected.options });
+      const outcome = await invocation.outcome;
+      observations.atSettlement = invocation.snapshot();
+      check('exit-code', outcome.result?.exitCode, 2);
+      counts(fixture, selected.next, 1, true);
+      output(invocation, selected.stdout, `rg: ${selected.diagnostic}\n`);
+    } else if (name === 'binary-exact-natural-eof') {
+      const fixture = source(['', 'hi', Uint8Array.of(116, 0, 255, 10), '', 'miss']);
+      const invocation = await start(fixture, { options: { maxLineBytes: 5, maxFileBytes: 10, maxOutputBytes: 6 } });
+      const outcome = await invocation.outcome;
+      observations.atSettlement = invocation.snapshot();
+      check('exit-code', outcome.result?.exitCode, 0);
+      counts(fixture, 6, 0, true);
+      check('input-bytes', fixture.state.bytes, 10);
+      check('natural-eof', fixture.state.eof, true);
+      output(invocation, Uint8Array.of(104, 105, 116, 0, 255, 10));
+    } else if (name.startsWith('chunks-')) {
+      const amount = Number(name.slice(7));
+      let writing = false;
+      let writes = 0;
+      const fixture = source(Array.from({ length: amount }, () => 'hit\n'), { writing: () => writing });
+      const invocation = await start(fixture, { write: async () => {
+        writing = true;
+        writes++;
+        check(`chunk-${writes}-handshake`, fixture.state.next, writes);
+        await turn();
+        check(`chunk-${writes}-no-prefetch`, fixture.state.next, writes);
+        writing = false;
+      } });
+      const outcome = await invocation.outcome;
+      observations.atSettlement = invocation.snapshot();
+      check('exit-code', outcome.result?.exitCode, 0);
+      counts(fixture, amount + 1, 0, true);
+      check('no-next-during-awaited-write', fixture.state.nextDuringWrite, 0);
+      check('writes-exact', writes, amount);
+      check('input-bytes', fixture.state.bytes, amount * 4);
+      output(invocation, 'hit\n'.repeat(amount));
+    } else if (name === 'already-aborted-zero-active-workers') {
+      const abort = controller();
+      const reason = Object.freeze({ code: 'EFBIG', identity: name });
+      abort.abort(reason);
+      const fixture = source([], { pending: true });
+      const invocation = await start(fixture, { controller: abort });
+      const outcome = await invocation.outcome;
+      observations.atSettlement = invocation.snapshot();
+      check('caller-reason-reference', outcome.error === reason, true);
+      counts(fixture, 0, 0, false);
+      check('no-iterator-acquisition', fixture.state.acquired, 0);
+      check('no-hook-registration', invocation.hooks.length, 0);
+      check('no-worker-created', workers.created(), 0);
+      output(invocation, '');
+    } else if (name === 'invalid-zero-maxworkers') {
+      let error;
+      try { await register({ regex: { maxWorkers: 0 } }); } catch (caught) { error = caught; }
+      check('positive-worker-policy', error instanceof RangeError, true);
+      check('positive-worker-message', error?.message, 'regex maxWorkers must be a safe integer >= 1');
+      check('no-worker-created', workers.created(), 0);
+    } else if (name === 'shared-executor-sibling-isolation') {
+      const definition = await register({ regex: { maxWorkers: 1 } });
+      const cancelled = source([], { pending: true });
+      const survivor = source([], { pending: true, endAfterPending: true });
+      const first = await start(cancelled, { definition });
+      await cancelled.entered.promise;
+      const second = await start(survivor, { definition });
+      await survivor.entered.promise;
+      const reason = Object.freeze({ identity: 'only-first-caller' });
+      first.abort.abort(reason);
+      const firstOutcome = await first.outcome;
+      observations.cancelledAtSettlement = first.snapshot();
+      observations.survivorBeforeRelease = second.snapshot();
+      check('cancelled-caller-reference', firstOutcome.error === reason, true);
+      counts(cancelled, 1, 1, true);
+      check('sibling-not-settled', second.settled, false);
+      check('sibling-not-returned', survivor.state.returns, 0);
+      check('sibling-not-aborted', second.abort.signal.aborted, false);
+      survivor.state.bytes += 4;
+      survivor.pending.resolve({ done: false, value: Buffer.from('hit\n') });
+      const secondOutcome = await second.outcome;
+      check('sibling-exit-code', secondOutcome.result?.exitCode, 0);
+      counts(survivor, 2, 0, true);
+      output(first, '');
+      output(second, 'hit\n');
+      observations.survivorAtSettlement = second.snapshot();
+    } else throw new Error(`unknown case ${name}`);
+    check('zero-live-workers-at-settlement', workers.active(), 0);
+  } catch (error) {
+    checks.push({ identity: 'unexpected-harness-or-product-error', pass: false,
+      actual: { name: error?.name, message: error?.message, stack: error?.stack }, expected: 'completed observations' });
+  } finally {
+    for (const abort of controllers) if (!abort.signal.aborted) abort.abort(new Error('fixture-final-cleanup'));
+    for (const release of releases) release();
+    for (const fixture of fixtures) await fixture.cleanup();
+    await Promise.allSettled(executions);
+    await Promise.allSettled(cleanupHooks.map(cleanup => Promise.resolve().then(cleanup)));
+    await Promise.allSettled(shells.map(shell => shell.dispose()));
+    await turn();
+    observations.afterFixtureCleanup = fixtures.map(fixture => fixture.snapshot());
+    check('zero-live-workers-after-cleanup', workers.active(), 0);
+  }
+  return { name, pass: checks.every(check => check.pass), observations, checks };
+}

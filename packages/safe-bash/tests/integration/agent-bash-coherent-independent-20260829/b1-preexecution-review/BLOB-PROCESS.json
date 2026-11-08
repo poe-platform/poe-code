@@ -1,0 +1,13 @@
+{
+  "role": "immutable-blobs",
+  "start": "2026-08-29T12:42:51.308Z",
+  "pid": 33429,
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  }
+}

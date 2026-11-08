@@ -1,0 +1,14 @@
+[
+ {"args":[],"code":0,"out":"alpha: e\n  0 embeddings\nzed: e\n  1 embedding\n","err":""},
+ {"args":["--json"],"code":0,"out":"[\n    {\n        \"name\": \"alpha\",\n        \"model\": \"e\",\n        \"num_embeddings\": 0\n    },\n    {\n        \"name\": \"zed\",\n        \"model\": \"e\",\n        \"num_embeddings\": 1\n    }\n]\n","err":""},
+ {"args":["path"],"code":0,"out":"/config/embeddings.db\n","err":""},
+ {"args":["delete"],"code":2,"out":"","err":"Usage: llm collections delete [OPTIONS] COLLECTION\nTry 'llm collections delete -h' for help.\n\nError: Missing argument 'COLLECTION'.\n"},
+ {"args":["delete","missing"],"code":1,"out":"","err":"Error: Collection does not exist\n"},
+ {"args":["list","x"],"code":2,"out":"","err":"Usage: llm collections list [OPTIONS]\nTry 'llm collections list -h' for help.\n\nError: Got unexpected extra argument (x)\n"},
+ {"args":["bogus"],"code":2,"out":"","err":"Usage: llm collections list [OPTIONS]\nTry 'llm collections list -h' for help.\n\nError: Got unexpected extra argument (bogus)\n"},
+ {"args":["--bogus"],"code":2,"out":"","err":"Usage: llm collections list [OPTIONS]\nTry 'llm collections list -h' for help.\n\nError: No such option: --bogus\n"},
+ {"args":["path","-d","/data.db"],"code":2,"out":"","err":"Usage: llm collections path [OPTIONS]\nTry 'llm collections path -h' for help.\n\nError: No such option: -d\n"},
+ {"args":["-d"],"code":2,"out":"","err":"Error: Option '-d' requires an argument.\n"},
+ {"args":["--json=x"],"code":2,"out":"","err":"Error: Option '--json' does not take a value.\n"},
+ {"args":["--","list"],"code":0,"out":"alpha: e\n  0 embeddings\nzed: e\n  1 embedding\n","err":""}
+]

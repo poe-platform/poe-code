@@ -1,0 +1,1072 @@
+{
+  "rows": [
+    {
+      "path": "BUILD-INSPECTION-STARTUP.json",
+      "bytes": 65,
+      "mode": "600",
+      "sha256": "2cc9a13213c0a8a782d2ff6adeb6194a7a105eb9eb2d9894a4674880b831b5d5",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "BUILD-PROPOSAL.md",
+      "bytes": 6716,
+      "mode": "644",
+      "sha256": "758c76115391f23a32fa66d4a3632c872c3a6a12a8f0f1e7bfde9881b00f3e21",
+      "role": "REVIEW_CODE_OR_DOCUMENT"
+    },
+    {
+      "path": "BUILD-RECIPE-DETAILS.json",
+      "bytes": 8047,
+      "mode": "600",
+      "sha256": "e39da121bc87a688f533723c160ee09563c28fc7c9a05567ab07e69db5afd597",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "EXECUTION-SEAL.json",
+      "bytes": 67575,
+      "mode": "600",
+      "sha256": "2baee5e4baf0bace694c9be7a8a94d034cde11c05a2fc96f722965b5dd9b1472",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "HANDOFF.md",
+      "bytes": 6656,
+      "mode": "644",
+      "sha256": "0e1619d65847db10a31d1fd155336ae0f14e11b039326f25e148a0824446f066",
+      "role": "REVIEW_CODE_OR_DOCUMENT"
+    },
+    {
+      "path": "METADATA-STARTUP.json",
+      "bytes": 79,
+      "mode": "600",
+      "sha256": "752970f6d4956b51f39d8ad41402b06c7b466cff6df75b4aa11f9a7d75f2162f",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "PATCH-PATHS-STARTUP.json",
+      "bytes": 65,
+      "mode": "600",
+      "sha256": "a3e555d554af1fa07ab39b007d0d989c63cb305300e426bcde555e61c0dd20f2",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "PATCH-PATHS.json",
+      "bytes": 7578,
+      "mode": "600",
+      "sha256": "9d1b6d4df6228ceca353c6493c5a5c47372f1c3bf0d8f66c91ab506628088b62",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "PRESEAL.md",
+      "bytes": 4432,
+      "mode": "644",
+      "sha256": "893b85857d0ccd12e6c470ba59e28d6f8e2fd6fcdc450556906df7083675feed",
+      "role": "REVIEW_CODE_OR_DOCUMENT"
+    },
+    {
+      "path": "PROCESS-LEDGER.json",
+      "bytes": 2321,
+      "mode": "600",
+      "sha256": "1d723c68f2abaf1e8b5371900cbc5baeebc00d4289d5376af9d3e1b1e3467585",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "PUBLICATION-STARTUP.json",
+      "bytes": 65,
+      "mode": "600",
+      "sha256": "e4afe2374cb11eba92b3d39bf8236f1dda38ddfd0d8a5d352ccad86924507982",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "PUBLICATION.json",
+      "bytes": 537,
+      "mode": "600",
+      "sha256": "e256f1a309f5dbae0c3b7d6d2a6c03392e460347bf9e4c975501d989ecb0a936",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/ARCHIVE-INVENTORY.json",
+      "bytes": 481661,
+      "mode": "600",
+      "sha256": "44e409340ae4e1e250c09b30c843766554dacdfd867de7b56020cc70be8de457",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/BUILD-DEPENDENCIES.json",
+      "bytes": 8137,
+      "mode": "600",
+      "sha256": "fb1dd3528ee14eccdcd0f585be3817c9c9ae637171e87b34ad61feaf084e6fc4",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/BUILD-SOURCE-OBSERVATIONS.json",
+      "bytes": 14167,
+      "mode": "600",
+      "sha256": "e71afc5376a04a89987948b785fc53688928f6f2bf8173a07a8a2b65b26c2d43",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/FINAL-SOURCE-INVENTORY.json",
+      "bytes": 365787,
+      "mode": "600",
+      "sha256": "a09a69e158ef9bd277f39e05688d9b4f44a708d61f7e6d164d8463a8c3162cc6",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/INPUT-ADMISSION.json",
+      "bytes": 27954,
+      "mode": "600",
+      "sha256": "3f7856da00636cf0710a863268e79c724e24e429a1931e57c30818627a8b8563",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/INPUT-POSTCHECK.json",
+      "bytes": 85,
+      "mode": "600",
+      "sha256": "346639e782c05ff0e88bd78a2c696b464614dc2f18b13a465bd91b0d21dd068d",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/META-01/ADMISSION.json",
+      "bytes": 955,
+      "mode": "600",
+      "sha256": "3db453337510a7fcb04f1421293e1a305be0965111d8e94f6c3342f47c23a866",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/META-01/CHILD.json",
+      "bytes": 478,
+      "mode": "600",
+      "sha256": "2b13c3caa78c81f1e97630ff0417ab0062b9321116f6632d8ac3804af16e8f87",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/META-01/stderr.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/META-01/stdout.raw",
+      "bytes": 100,
+      "mode": "600",
+      "sha256": "1b4b016e220c1d9e62cbc300dcfd8fb764a9d01a9318d776f940253f8ff16baf",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/META-02/ADMISSION.json",
+      "bytes": 948,
+      "mode": "600",
+      "sha256": "02f8dc1a0a277c0eed4415af411b276ad774209efe2ba03de01f685bdc0ff78f",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/META-02/CHILD.json",
+      "bytes": 479,
+      "mode": "600",
+      "sha256": "76ad7e05bf74d72825391ad37f6b9b7f8d9fb779c3a3f2dabc18c9785a379d2d",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/META-02/stderr.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/META-02/stdout.raw",
+      "bytes": 93,
+      "mode": "600",
+      "sha256": "c0000c0860379488a4034ddfcc67c92be911018733b68023b45fb4be15354dc5",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/META-03/ADMISSION.json",
+      "bytes": 990,
+      "mode": "600",
+      "sha256": "e17f8b2f2ffcf167cc599212382a59958175699bf205cdcb726b7e07ab7fb0df",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/META-03/CHILD.json",
+      "bytes": 479,
+      "mode": "600",
+      "sha256": "98cec76087ee5d21fa980bd4536e877095fdfd8c2f88dc4f232ae63624e56a13",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/META-03/stderr.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/META-03/stdout.raw",
+      "bytes": 793,
+      "mode": "600",
+      "sha256": "2c911c9a4ed7eb3112acf7097a91100df2568689fb47ee275ae71af885e1b214",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/META-04/ADMISSION.json",
+      "bytes": 989,
+      "mode": "600",
+      "sha256": "85082a7a55315c6cb9307521e99f8cda54752e3c24c4cb7f127001b745c6c560",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/META-04/CHILD.json",
+      "bytes": 480,
+      "mode": "600",
+      "sha256": "c171c1f95babf3075002213fe10e92925193874e72a304552c2ee1c912159699",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/META-04/stderr.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/META-04/stdout.raw",
+      "bytes": 311,
+      "mode": "600",
+      "sha256": "a0342ea56cf60a64ee766e54514f9cafd1a6a408145ce8245c0bec015c44b4a1",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/META-05/ADMISSION.json",
+      "bytes": 987,
+      "mode": "600",
+      "sha256": "22977127e6050d7b7795e2a5573ca07bfb7aa4a1ed60ccb7a6518e32f7c471f1",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/META-05/CHILD.json",
+      "bytes": 482,
+      "mode": "600",
+      "sha256": "dc9bc91f3084894d6b2fa01ddecbb157129a45f46b5a88501e5d4980d4f22f20",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/META-05/stderr.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/META-05/stdout.raw",
+      "bytes": 2085,
+      "mode": "600",
+      "sha256": "93d0afcf0a8c5022fd288667e0f7dbc52b81a6daf2219eab12caf0cee4913d12",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/META-06/ADMISSION.json",
+      "bytes": 987,
+      "mode": "600",
+      "sha256": "a2f9969e330b2a60e515a08d87b9c6797e2efd8e86a050e9d2a0a00f17747905",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/META-06/CHILD.json",
+      "bytes": 482,
+      "mode": "600",
+      "sha256": "bd52d9fb7e99589ece66abe4d678d1069949a1ddafb90ad66d874075108c52ee",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/META-06/stderr.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/META-06/stdout.raw",
+      "bytes": 307,
+      "mode": "600",
+      "sha256": "a1b18190369ce702a2356afa4cb5630413635524ef54a59bc6a177e1c93bba31",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/META-07/ADMISSION.json",
+      "bytes": 992,
+      "mode": "600",
+      "sha256": "07a8d67f15b0a79390889a9d1aa37c3ed0f802cad7eeec4475de613ece5fa938",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/META-07/CHILD.json",
+      "bytes": 481,
+      "mode": "600",
+      "sha256": "96e6959488cfe74f2e60aac44df74b5110e63dc4c18d0cc603a21a193ae57465",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/META-07/stderr.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/META-07/stdout.raw",
+      "bytes": 635,
+      "mode": "600",
+      "sha256": "abeaea07001368b2687161f838163b002006d50e65e5d5df1a2052cffdd9f64f",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/META-08/ADMISSION.json",
+      "bytes": 995,
+      "mode": "600",
+      "sha256": "21a114ddf4e0e7adee1e26de3d2227f498ff4749c4adf95fd2541edd2de41466",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/META-08/CHILD.json",
+      "bytes": 482,
+      "mode": "600",
+      "sha256": "c479c1056d7afec4d295bab12a31557cb1fd5703598018bc16c5142a55ac8e92",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/META-08/stderr.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/META-08/stdout.raw",
+      "bytes": 487,
+      "mode": "600",
+      "sha256": "d5cc9346ed5bb0574d903e57818ec740aad3f3f324f9c0e32eba1df8ca7066e9",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/RESULT.json",
+      "bytes": 14376,
+      "mode": "600",
+      "sha256": "f689b6d7718375af959298440719861b19cca4adaa25f13db9a29ec24debb908",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/STARTUP.json",
+      "bytes": 140,
+      "mode": "600",
+      "sha256": "4866d7f2d0bb594dbe7f28bb526b629734e3b6cd5abfab6910f788826b913cc5",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/WORK-OWNERSHIP.json",
+      "bytes": 157,
+      "mode": "600",
+      "sha256": "26f6d14dfb62c1a597194ef405600038aef790657dbb9a4515d750a274024bf1",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-001/ADMISSION.json",
+      "bytes": 1155,
+      "mode": "600",
+      "sha256": "f187cac74d9e195f5f80fb4c2af499a8924c0698bba27247b9c4ce81ebed569c",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-001/CHILD.json",
+      "bytes": 483,
+      "mode": "600",
+      "sha256": "d75726e34581cbc13d42e334d3c13f6d2ab086d5a49d2a4b2291847058b0f94a",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-001/PATCH-RESULT.json",
+      "bytes": 1792,
+      "mode": "600",
+      "sha256": "758c046dcdff13af4582f2f86553376e047417b95131a65ae29ee9932e8732f8",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-001/stderr.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-001/stdout.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-002/ADMISSION.json",
+      "bytes": 1155,
+      "mode": "600",
+      "sha256": "413660cc9defe18fc67c17b19fec7296b1de81aa86bc5c162f53d148f57700e8",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-002/CHILD.json",
+      "bytes": 481,
+      "mode": "600",
+      "sha256": "e4d8ab97d255c3d6062fc1a1881ed54d1bd0d93e2bda7012e594b850d697d1e8",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-002/PATCH-RESULT.json",
+      "bytes": 1821,
+      "mode": "600",
+      "sha256": "d1144099b57fb3c081690f3224b1f8337bc3419cc4de44143643fcab24fc533a",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-002/stderr.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-002/stdout.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-003/ADMISSION.json",
+      "bytes": 1155,
+      "mode": "600",
+      "sha256": "8f0e205946901fab26d1138b7b2d4714feab1b107ba209f254db4b247133c851",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-003/CHILD.json",
+      "bytes": 481,
+      "mode": "600",
+      "sha256": "78f303352ce66c2a99060507b9f336443f88c81659792f9c9156c35f460cf99b",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-003/PATCH-RESULT.json",
+      "bytes": 2360,
+      "mode": "600",
+      "sha256": "e78946602d079bd2118138580f4ac168ba28d397aaeeeb39eae5546fe0b15250",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-003/stderr.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-003/stdout.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-004/ADMISSION.json",
+      "bytes": 1155,
+      "mode": "600",
+      "sha256": "6811b3cfa8a90360f91360ae313c6450803356708819ea5e9761128a443ae8bc",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-004/CHILD.json",
+      "bytes": 481,
+      "mode": "600",
+      "sha256": "de70eafb7a7defc623b0d2a9027d17f8289178a9ff35d9b4d662ea8b561e879d",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-004/PATCH-RESULT.json",
+      "bytes": 1829,
+      "mode": "600",
+      "sha256": "bb7e208bb8f482cdf4f2ff7d07a3d373329af4d8e9e43444fd774db6d7b088ca",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-004/stderr.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-004/stdout.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-005/ADMISSION.json",
+      "bytes": 1155,
+      "mode": "600",
+      "sha256": "9ed21e7ce89b25002fc29f2a141aca44a49ec310f767e2caf9ab21ed0a9e503e",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-005/CHILD.json",
+      "bytes": 479,
+      "mode": "600",
+      "sha256": "e12a90d81ba5f39f544f414bfe791a56bcc5ac2cbd1298da3c8ad788b2cdfff1",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-005/PATCH-RESULT.json",
+      "bytes": 1790,
+      "mode": "600",
+      "sha256": "3becd165e5a8829f3db9256e31dc62372952824e3c698cdd3d527ed71dce15c3",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-005/stderr.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-005/stdout.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-006/ADMISSION.json",
+      "bytes": 1155,
+      "mode": "600",
+      "sha256": "dbd895f01f55f549ce6c889ad0ce651dc443d3775a43d3a51c1eb763f5789f48",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-006/CHILD.json",
+      "bytes": 480,
+      "mode": "600",
+      "sha256": "9e93f9dce5b7886293874cb829fe186da5e9e79ccbaf41103ac91381286026c3",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-006/PATCH-RESULT.json",
+      "bytes": 1823,
+      "mode": "600",
+      "sha256": "95505911394d741fbc8cfafe3693a5e9461cf47bd780077c330f4f3c21b1a343",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-006/stderr.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-006/stdout.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-007/ADMISSION.json",
+      "bytes": 1155,
+      "mode": "600",
+      "sha256": "2ff403b412ff492a8c736202a6bd127af94c370909e3f51c4815afc258fb16cf",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-007/CHILD.json",
+      "bytes": 483,
+      "mode": "600",
+      "sha256": "677b610a906ed6647b38d332f932e45eda6524b4cfab3e79f7bca072d4719cac",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-007/PATCH-RESULT.json",
+      "bytes": 1795,
+      "mode": "600",
+      "sha256": "e558251d666d5dc1042bb7fde38b1041561d6be06277f544bcec2ce4b0b0d6a5",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-007/stderr.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-007/stdout.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-008/ADMISSION.json",
+      "bytes": 1155,
+      "mode": "600",
+      "sha256": "03f4e48d1d7a3e7532e754dbdb193ed31390db97f233007274025726ef45a1dc",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-008/CHILD.json",
+      "bytes": 480,
+      "mode": "600",
+      "sha256": "25d193406f87810d8bd250180cf726061ce9547f5b197eaef509673821b76634",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-008/PATCH-RESULT.json",
+      "bytes": 1821,
+      "mode": "600",
+      "sha256": "1a1a886686d1dea43c349d1b50cb9b4321dedb93341110ded73c83d3ab7e184a",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-008/stderr.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-008/stdout.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-009/ADMISSION.json",
+      "bytes": 1155,
+      "mode": "600",
+      "sha256": "3428ccd1499666422edc9f9761e590c1764d4d55d257a262f269186fbe165cbc",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-009/CHILD.json",
+      "bytes": 481,
+      "mode": "600",
+      "sha256": "3c603266cb884b140e7a932d209065abd308a963e4bb7cc10f04ee80f5164ea6",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-009/PATCH-RESULT.json",
+      "bytes": 2399,
+      "mode": "600",
+      "sha256": "a05f63922e760a282d6dcf61a83f9e4e780ee0dc843f374dfbb8e03016de3cb1",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-009/stderr.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-009/stdout.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-010/ADMISSION.json",
+      "bytes": 1155,
+      "mode": "600",
+      "sha256": "eb72c1e704ea30ba0cd30e7f25ff257628fa37802edc20eaaea56e22729e1c73",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-010/CHILD.json",
+      "bytes": 482,
+      "mode": "600",
+      "sha256": "a9e2de85370ef4549f37a3bd74dc20dd0e96130192975897e9d7c76e1f73aa95",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-010/PATCH-RESULT.json",
+      "bytes": 1792,
+      "mode": "600",
+      "sha256": "8118abfa16f28459105e9a72932bd760d24004c50b78f759a3413d0fc1f902b7",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-010/stderr.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-010/stdout.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-011/ADMISSION.json",
+      "bytes": 1155,
+      "mode": "600",
+      "sha256": "7bb5ee097dfbfac32043a766717162102f72f1cb4023734445eaa2b67158f69a",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-011/CHILD.json",
+      "bytes": 483,
+      "mode": "600",
+      "sha256": "af867702c52a8d4ff215b8b064f584af39fe18af3f6e46b7c58c4bb712cd6fd2",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-011/PATCH-RESULT.json",
+      "bytes": 1830,
+      "mode": "600",
+      "sha256": "1e81964a61e24dfae71171b937b549c11be84e62ecca3be06224f8e1ab37e0e3",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-011/stderr.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-011/stdout.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-012/ADMISSION.json",
+      "bytes": 1155,
+      "mode": "600",
+      "sha256": "1eec220cfa8373de6313e1f32d33cf25c499788cc2a192bcb10fa99e70d8b314",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-012/CHILD.json",
+      "bytes": 483,
+      "mode": "600",
+      "sha256": "fda0f6a8bdb3f3b5afa535ec72036c9cbe5a005e0887aeda9df3f60eb9a3637d",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-012/PATCH-RESULT.json",
+      "bytes": 2329,
+      "mode": "600",
+      "sha256": "cd4aa4c56c45ceaf83305f63bdd4caf2ae49d3811213367a14d71cf45882f308",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-012/stderr.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-012/stdout.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-013/ADMISSION.json",
+      "bytes": 1155,
+      "mode": "600",
+      "sha256": "35cc3a76df6c4109d274ffd85d61ff8d5e46e184649edfda6718653209af80e8",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-013/CHILD.json",
+      "bytes": 483,
+      "mode": "600",
+      "sha256": "f28a396ea726734e503f75ae2e79b6a1d657901dfec2aca8021f6a0390aea730",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-013/PATCH-RESULT.json",
+      "bytes": 1823,
+      "mode": "600",
+      "sha256": "5a6e95439762894d573c8aae0277c85f1c93ad7d90457871a35b13e9d014cb61",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-013/stderr.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-013/stdout.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-014/ADMISSION.json",
+      "bytes": 1155,
+      "mode": "600",
+      "sha256": "739f06b97a8139513a5792addd7c9e8ebe67c37648607d06ab0befc6c4515f83",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-014/CHILD.json",
+      "bytes": 480,
+      "mode": "600",
+      "sha256": "3697894e11cf20fee31eefd06abf00050b14fa356d90822d4912a21e40963605",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-014/PATCH-RESULT.json",
+      "bytes": 1830,
+      "mode": "600",
+      "sha256": "176d6135685458f085791939b3099e8cc48b753c1ff12f7450416bf957577ba4",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-014/stderr.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-014/stdout.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-015/ADMISSION.json",
+      "bytes": 1155,
+      "mode": "600",
+      "sha256": "3615317943b536b7021b94a51ce017f2776fbd41060d76b2cba8c8578a3b4c76",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-015/CHILD.json",
+      "bytes": 483,
+      "mode": "600",
+      "sha256": "8450894c44bfb841bb538d6fbc1e20077883544ec38f9ae295674bc59a1fffb2",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-015/PATCH-RESULT.json",
+      "bytes": 1823,
+      "mode": "600",
+      "sha256": "9ab5314883ddd0faa5e5c2bea38260b77930beba7da213a9edaff1756e3c0b90",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-015/stderr.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "RUN-01/bash53-015/stdout.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "SEAL-STARTUP.json",
+      "bytes": 70,
+      "mode": "600",
+      "sha256": "ab7386659d265e0a46de4c20b5b607eb7201811fadddfb38c94c4d46c0ee99e7",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "TOOLS.json",
+      "bytes": 13221,
+      "mode": "600",
+      "sha256": "2fb761e3a1fabf10a049e747a7009c3ada0241d5d978818684d1c3925a63f656",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "build-inspection.stderr.raw",
+      "bytes": 0,
+      "mode": "644",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "build-inspection.stdout.raw",
+      "bytes": 8776,
+      "mode": "644",
+      "sha256": "08e1746a7bf3c19bef6e0bc2978c05a27081c4cc219da3b17eb71cac41874923",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "git-tree.stderr.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "git-tree.stdout.raw",
+      "bytes": 20155,
+      "mode": "600",
+      "sha256": "c9ee1a70795af5720a51442defe2cf5027528517b2490f9417cbd71bce7fa840",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "inspect-build.mjs",
+      "bytes": 4133,
+      "mode": "644",
+      "sha256": "f7f7fe3048444cb6a9a4f4af48cafb131716ef21bbdb5ab21874d444fd4006b3",
+      "role": "REVIEW_CODE_OR_DOCUMENT"
+    },
+    {
+      "path": "metadata.mjs",
+      "bytes": 3272,
+      "mode": "644",
+      "sha256": "2e448980bc83313c2bdfa24c99ec22f412a81525b45d79d9e32b212a5d763736",
+      "role": "REVIEW_CODE_OR_DOCUMENT"
+    },
+    {
+      "path": "metadata.stderr.raw",
+      "bytes": 0,
+      "mode": "644",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "metadata.stdout.raw",
+      "bytes": 4817,
+      "mode": "644",
+      "sha256": "1a084b0d371f54f2bce1322e2f1b51fc574d22668a7b47a27068d6cc4f0f622d",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "patch-paths.mjs",
+      "bytes": 1476,
+      "mode": "644",
+      "sha256": "0c738a97dce0b2582bc7d1644da17db8cafe2a16248b99a82817d41f9e689ba3",
+      "role": "REVIEW_CODE_OR_DOCUMENT"
+    },
+    {
+      "path": "patch-paths.stderr.raw",
+      "bytes": 0,
+      "mode": "644",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "patch-paths.stdout.raw",
+      "bytes": 4898,
+      "mode": "644",
+      "sha256": "13da35934e348c872b6f44117a75168b2404181a1c86b88d9bb39faa70cbac20",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "prepare-source.mjs",
+      "bytes": 23146,
+      "mode": "644",
+      "sha256": "e8ce75c66d8c0134a49c43fd8ff177679556271ec3d99ed68f3f5bd915ea9442",
+      "role": "REVIEW_CODE_OR_DOCUMENT"
+    },
+    {
+      "path": "publish.mjs",
+      "bytes": 5574,
+      "mode": "644",
+      "sha256": "d9b4fe2a4dc01afcf89b841a6e33012c819433bd102287cf3dab7e0f844835fe",
+      "role": "REVIEW_CODE_OR_DOCUMENT"
+    },
+    {
+      "path": "publish.stderr.raw",
+      "bytes": 0,
+      "mode": "644",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "publish.stdout.raw",
+      "bytes": 0,
+      "mode": "644",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "seal.mjs",
+      "bytes": 3713,
+      "mode": "644",
+      "sha256": "4b5b14bddebda7e594a7e82376a945651acd93c3ab5a1b1ce7696704f88ccdd2",
+      "role": "REVIEW_CODE_OR_DOCUMENT"
+    },
+    {
+      "path": "seal.stderr.raw",
+      "bytes": 0,
+      "mode": "644",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "seal.stdout.raw",
+      "bytes": 147,
+      "mode": "644",
+      "sha256": "85740b695efe988d9213d4454500090f46a1b0026145408c1e7ecc47e531aa8d",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "source.stderr.raw",
+      "bytes": 0,
+      "mode": "644",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURE_OR_DATA"
+    },
+    {
+      "path": "source.stdout.raw",
+      "bytes": 278,
+      "mode": "644",
+      "sha256": "8051fb63531a41425f00715378e73652a008084fa7f46328de0e5c4f7d5aa823",
+      "role": "CAPTURE_OR_DATA"
+    }
+  ],
+  "bytes": 1180178,
+  "canonicalRowsSha256": "2ff16f4f993dc275d8adec650dbea17f7424fabd28a96eea6f2fb5170438d42e",
+  "captureModeAuthority": "Fresh exclusive file creation plus final lstat, not Git index mode",
+  "sourceProof": {
+    "at": "2026-08-29T05:39:22.844Z",
+    "signatureCommit": "fe5d87a215310cbe847bee99bbe3c7650aa3f6e3",
+    "sourceInventoryHash": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+    "exactSourceMembers": 1602,
+    "sourceRegularBytes": 36699471,
+    "appendAndMutationCheck": true,
+    "nativeChildrenClosed": 23,
+    "processRoleCeiling": 63,
+    "plannedOuterMaximum": 64,
+    "buildRuns": 0,
+    "activeOwnedChildren": 0,
+    "retainedWork": "/tmp/safe-bash-reference-source-20260829-fn91Rw/bash-5.3",
+    "temporaryTarRemoved": true
+  }
+}

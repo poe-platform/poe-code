@@ -1,0 +1,32 @@
+{
+  "id": "bash53-009",
+  "disposition": {
+    "code": 0,
+    "signal": null
+  },
+  "events": [
+    {
+      "event": "spawn-request",
+      "pid": 76662
+    },
+    {
+      "event": "exit",
+      "code": 0,
+      "signal": null,
+      "ms": 11.379958999999872
+    },
+    {
+      "event": "close",
+      "code": 0,
+      "signal": null,
+      "ms": 11.39679199999955
+    }
+  ],
+  "lengths": [
+    0,
+    0
+  ],
+  "elapsedMs": 11.39929199999824,
+  "closed": true,
+  "failure": null
+}

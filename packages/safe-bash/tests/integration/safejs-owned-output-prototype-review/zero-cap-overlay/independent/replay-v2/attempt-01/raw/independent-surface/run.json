@@ -1,0 +1,10 @@
+{
+  "cohort": "surface",
+  "started": "2026-08-27T18:22:03.248744+00:00",
+  "status": "PRIVATE_GUARD_NONPASS",
+  "childrenLaunched": 0,
+  "error": "AssertionError('status')",
+  "privateUnchanged": true,
+  "privateAfterFailure": "AssertionError('status')",
+  "finished": "2026-08-27T18:22:11.149739+00:00"
+}

@@ -1,0 +1,1722 @@
+{
+  "pin": "50f517d4e28281ccba8c7580d017fe65a4bf8e20",
+  "observations": 11,
+  "rows": [
+    {
+      "case": "static-lower-only",
+      "expectedUnderExistingOwnershipPreconditions": "success",
+      "result": {
+        "status": "fulfilled"
+      },
+      "removalCalls": [],
+      "before": {
+        "overlay": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "mtimeMs": 1787786462509,
+            "ctimeMs": 1787786462509,
+            "birthtimeMs": 1787786462509,
+            "ino": 1,
+            "dev": 0,
+            "nlink": 2,
+            "uid": 0,
+            "gid": 0
+          },
+          "children": {
+            "d": {
+              "stat": {
+                "type": "directory",
+                "size": 0,
+                "mode": 16895,
+                "mtimeMs": 1787786462509,
+                "ctimeMs": 1787786462509,
+                "birthtimeMs": 1787786462509,
+                "ino": 2,
+                "dev": 0,
+                "nlink": 2,
+                "uid": 0,
+                "gid": 0
+              },
+              "children": {}
+            }
+          }
+        },
+        "upper": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "ino": 1,
+            "dev": 0,
+            "uid": 0,
+            "gid": 0,
+            "nlink": 2,
+            "mtimeMs": 1787786462509,
+            "ctimeMs": 1787786462509,
+            "birthtimeMs": 1787786462509
+          },
+          "children": {}
+        },
+        "lower": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "ino": 1,
+            "dev": 0,
+            "uid": 0,
+            "gid": 0,
+            "nlink": 3,
+            "mtimeMs": 1787786462509,
+            "ctimeMs": 1787786462509,
+            "birthtimeMs": 1787786462509
+          },
+          "children": {
+            "d": {
+              "stat": {
+                "type": "directory",
+                "size": 0,
+                "mode": 16895,
+                "ino": 2,
+                "dev": 0,
+                "uid": 0,
+                "gid": 0,
+                "nlink": 2,
+                "mtimeMs": 1787786462509,
+                "ctimeMs": 1787786462509,
+                "birthtimeMs": 1787786462509
+              },
+              "children": {}
+            }
+          }
+        }
+      },
+      "after": {
+        "overlay": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "mtimeMs": 1787786462509,
+            "ctimeMs": 1787786462509,
+            "birthtimeMs": 1787786462509,
+            "ino": 1,
+            "dev": 0,
+            "nlink": 2,
+            "uid": 0,
+            "gid": 0
+          },
+          "children": {}
+        },
+        "upper": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "ino": 1,
+            "dev": 0,
+            "uid": 0,
+            "gid": 0,
+            "nlink": 2,
+            "mtimeMs": 1787786462509,
+            "ctimeMs": 1787786462509,
+            "birthtimeMs": 1787786462509
+          },
+          "children": {}
+        },
+        "lower": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "ino": 1,
+            "dev": 0,
+            "uid": 0,
+            "gid": 0,
+            "nlink": 3,
+            "mtimeMs": 1787786462509,
+            "ctimeMs": 1787786462509,
+            "birthtimeMs": 1787786462509
+          },
+          "children": {
+            "d": {
+              "stat": {
+                "type": "directory",
+                "size": 0,
+                "mode": 16895,
+                "ino": 2,
+                "dev": 0,
+                "uid": 0,
+                "gid": 0,
+                "nlink": 2,
+                "mtimeMs": 1787786462509,
+                "ctimeMs": 1787786462509,
+                "birthtimeMs": 1787786462509
+              },
+              "children": {}
+            }
+          }
+        }
+      }
+    },
+    {
+      "case": "static-preexisting-upper-only",
+      "expectedUnderExistingOwnershipPreconditions": "success",
+      "result": {
+        "status": "fulfilled"
+      },
+      "removalCalls": [
+        {
+          "layer": "upper",
+          "method": "rmdir",
+          "path": "/d"
+        }
+      ],
+      "before": {
+        "overlay": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "mtimeMs": 1787786462511,
+            "ctimeMs": 1787786462511,
+            "birthtimeMs": 1787786462511,
+            "ino": 1,
+            "dev": 0,
+            "nlink": 3,
+            "uid": 0,
+            "gid": 0
+          },
+          "children": {
+            "d": {
+              "stat": {
+                "type": "directory",
+                "size": 0,
+                "mode": 16895,
+                "mtimeMs": 1787786462511,
+                "ctimeMs": 1787786462511,
+                "birthtimeMs": 1787786462511,
+                "ino": 2,
+                "dev": 0,
+                "nlink": 2,
+                "uid": 0,
+                "gid": 0
+              },
+              "children": {}
+            }
+          }
+        },
+        "upper": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "ino": 1,
+            "dev": 0,
+            "uid": 0,
+            "gid": 0,
+            "nlink": 3,
+            "mtimeMs": 1787786462511,
+            "ctimeMs": 1787786462511,
+            "birthtimeMs": 1787786462511
+          },
+          "children": {
+            "d": {
+              "stat": {
+                "type": "directory",
+                "size": 0,
+                "mode": 16895,
+                "ino": 2,
+                "dev": 0,
+                "uid": 0,
+                "gid": 0,
+                "nlink": 2,
+                "mtimeMs": 1787786462511,
+                "ctimeMs": 1787786462511,
+                "birthtimeMs": 1787786462511
+              },
+              "children": {}
+            }
+          }
+        },
+        "lower": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "ino": 1,
+            "dev": 0,
+            "uid": 0,
+            "gid": 0,
+            "nlink": 2,
+            "mtimeMs": 1787786462511,
+            "ctimeMs": 1787786462511,
+            "birthtimeMs": 1787786462511
+          },
+          "children": {}
+        }
+      },
+      "after": {
+        "overlay": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "mtimeMs": 1787786462511,
+            "ctimeMs": 1787786462511,
+            "birthtimeMs": 1787786462511,
+            "ino": 1,
+            "dev": 0,
+            "nlink": 2,
+            "uid": 0,
+            "gid": 0
+          },
+          "children": {}
+        },
+        "upper": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "ino": 1,
+            "dev": 0,
+            "uid": 0,
+            "gid": 0,
+            "nlink": 2,
+            "mtimeMs": 1787786462511,
+            "ctimeMs": 1787786462511,
+            "birthtimeMs": 1787786462511
+          },
+          "children": {}
+        },
+        "lower": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "ino": 1,
+            "dev": 0,
+            "uid": 0,
+            "gid": 0,
+            "nlink": 2,
+            "mtimeMs": 1787786462511,
+            "ctimeMs": 1787786462511,
+            "birthtimeMs": 1787786462511
+          },
+          "children": {}
+        }
+      }
+    },
+    {
+      "case": "static-merged",
+      "expectedUnderExistingOwnershipPreconditions": "success",
+      "result": {
+        "status": "fulfilled"
+      },
+      "removalCalls": [
+        {
+          "layer": "upper",
+          "method": "rmdir",
+          "path": "/d"
+        }
+      ],
+      "before": {
+        "overlay": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "mtimeMs": 1787786462512,
+            "ctimeMs": 1787786462512,
+            "birthtimeMs": 1787786462512,
+            "ino": 1,
+            "dev": 0,
+            "nlink": 3,
+            "uid": 0,
+            "gid": 0
+          },
+          "children": {
+            "d": {
+              "stat": {
+                "type": "directory",
+                "size": 0,
+                "mode": 16895,
+                "mtimeMs": 1787786462512,
+                "ctimeMs": 1787786462512,
+                "birthtimeMs": 1787786462512,
+                "ino": 2,
+                "dev": 0,
+                "nlink": 2,
+                "uid": 0,
+                "gid": 0
+              },
+              "children": {}
+            }
+          }
+        },
+        "upper": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "ino": 1,
+            "dev": 0,
+            "uid": 0,
+            "gid": 0,
+            "nlink": 3,
+            "mtimeMs": 1787786462512,
+            "ctimeMs": 1787786462512,
+            "birthtimeMs": 1787786462512
+          },
+          "children": {
+            "d": {
+              "stat": {
+                "type": "directory",
+                "size": 0,
+                "mode": 16895,
+                "ino": 2,
+                "dev": 0,
+                "uid": 0,
+                "gid": 0,
+                "nlink": 2,
+                "mtimeMs": 1787786462512,
+                "ctimeMs": 1787786462512,
+                "birthtimeMs": 1787786462512
+              },
+              "children": {}
+            }
+          }
+        },
+        "lower": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "ino": 1,
+            "dev": 0,
+            "uid": 0,
+            "gid": 0,
+            "nlink": 3,
+            "mtimeMs": 1787786462512,
+            "ctimeMs": 1787786462512,
+            "birthtimeMs": 1787786462512
+          },
+          "children": {
+            "d": {
+              "stat": {
+                "type": "directory",
+                "size": 0,
+                "mode": 16895,
+                "ino": 2,
+                "dev": 0,
+                "uid": 0,
+                "gid": 0,
+                "nlink": 2,
+                "mtimeMs": 1787786462512,
+                "ctimeMs": 1787786462512,
+                "birthtimeMs": 1787786462512
+              },
+              "children": {}
+            }
+          }
+        }
+      },
+      "after": {
+        "overlay": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "mtimeMs": 1787786462512,
+            "ctimeMs": 1787786462512,
+            "birthtimeMs": 1787786462512,
+            "ino": 1,
+            "dev": 0,
+            "nlink": 2,
+            "uid": 0,
+            "gid": 0
+          },
+          "children": {}
+        },
+        "upper": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "ino": 1,
+            "dev": 0,
+            "uid": 0,
+            "gid": 0,
+            "nlink": 2,
+            "mtimeMs": 1787786462512,
+            "ctimeMs": 1787786462512,
+            "birthtimeMs": 1787786462512
+          },
+          "children": {}
+        },
+        "lower": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "ino": 1,
+            "dev": 0,
+            "uid": 0,
+            "gid": 0,
+            "nlink": 3,
+            "mtimeMs": 1787786462512,
+            "ctimeMs": 1787786462512,
+            "birthtimeMs": 1787786462512
+          },
+          "children": {
+            "d": {
+              "stat": {
+                "type": "directory",
+                "size": 0,
+                "mode": 16895,
+                "ino": 2,
+                "dev": 0,
+                "uid": 0,
+                "gid": 0,
+                "nlink": 2,
+                "mtimeMs": 1787786462512,
+                "ctimeMs": 1787786462512,
+                "birthtimeMs": 1787786462512
+              },
+              "children": {}
+            }
+          }
+        }
+      }
+    },
+    {
+      "case": "overlay-created-upper",
+      "expectedUnderExistingOwnershipPreconditions": "success",
+      "result": {
+        "status": "fulfilled"
+      },
+      "removalCalls": [
+        {
+          "layer": "upper",
+          "method": "rmdir",
+          "path": "/d"
+        }
+      ],
+      "before": {
+        "overlay": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "mtimeMs": 1787786462512,
+            "ctimeMs": 1787786462512,
+            "birthtimeMs": 1787786462512,
+            "ino": 1,
+            "dev": 0,
+            "nlink": 3,
+            "uid": 0,
+            "gid": 0
+          },
+          "children": {
+            "d": {
+              "stat": {
+                "type": "directory",
+                "size": 0,
+                "mode": 16895,
+                "mtimeMs": 1787786462512,
+                "ctimeMs": 1787786462512,
+                "birthtimeMs": 1787786462512,
+                "ino": 3,
+                "dev": 0,
+                "nlink": 2,
+                "uid": 0,
+                "gid": 0
+              },
+              "children": {}
+            }
+          }
+        },
+        "upper": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "ino": 1,
+            "dev": 0,
+            "uid": 0,
+            "gid": 0,
+            "nlink": 3,
+            "mtimeMs": 1787786462512,
+            "ctimeMs": 1787786462512,
+            "birthtimeMs": 1787786462512
+          },
+          "children": {
+            "d": {
+              "stat": {
+                "type": "directory",
+                "size": 0,
+                "mode": 16895,
+                "ino": 3,
+                "dev": 0,
+                "uid": 0,
+                "gid": 0,
+                "nlink": 2,
+                "mtimeMs": 1787786462512,
+                "ctimeMs": 1787786462512,
+                "birthtimeMs": 1787786462512
+              },
+              "children": {}
+            }
+          }
+        },
+        "lower": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "ino": 1,
+            "dev": 0,
+            "uid": 0,
+            "gid": 0,
+            "nlink": 2,
+            "mtimeMs": 1787786462512,
+            "ctimeMs": 1787786462512,
+            "birthtimeMs": 1787786462512
+          },
+          "children": {}
+        }
+      },
+      "after": {
+        "overlay": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "mtimeMs": 1787786462512,
+            "ctimeMs": 1787786462512,
+            "birthtimeMs": 1787786462512,
+            "ino": 1,
+            "dev": 0,
+            "nlink": 2,
+            "uid": 0,
+            "gid": 0
+          },
+          "children": {}
+        },
+        "upper": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "ino": 1,
+            "dev": 0,
+            "uid": 0,
+            "gid": 0,
+            "nlink": 2,
+            "mtimeMs": 1787786462512,
+            "ctimeMs": 1787786462512,
+            "birthtimeMs": 1787786462512
+          },
+          "children": {}
+        },
+        "lower": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "ino": 1,
+            "dev": 0,
+            "uid": 0,
+            "gid": 0,
+            "nlink": 2,
+            "mtimeMs": 1787786462512,
+            "ctimeMs": 1787786462512,
+            "birthtimeMs": 1787786462512
+          },
+          "children": {}
+        }
+      }
+    },
+    {
+      "case": "hidden-lower-child-unisolated",
+      "expectedUnderExistingOwnershipPreconditions": "success",
+      "result": {
+        "status": "fulfilled"
+      },
+      "removalCalls": [
+        {
+          "layer": "upper",
+          "method": "rmdir",
+          "path": "/d"
+        }
+      ],
+      "before": {
+        "overlay": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "mtimeMs": 1787786462513,
+            "ctimeMs": 1787786462513,
+            "birthtimeMs": 1787786462512,
+            "ino": 1,
+            "dev": 0,
+            "nlink": 3,
+            "uid": 0,
+            "gid": 0
+          },
+          "children": {
+            "d": {
+              "stat": {
+                "type": "directory",
+                "size": 0,
+                "mode": 16895,
+                "mtimeMs": 1787786462513,
+                "ctimeMs": 1787786462513,
+                "birthtimeMs": 1787786462513,
+                "ino": 3,
+                "dev": 0,
+                "nlink": 2,
+                "uid": 0,
+                "gid": 0
+              },
+              "children": {}
+            }
+          }
+        },
+        "upper": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "ino": 1,
+            "dev": 0,
+            "uid": 0,
+            "gid": 0,
+            "nlink": 3,
+            "mtimeMs": 1787786462513,
+            "ctimeMs": 1787786462513,
+            "birthtimeMs": 1787786462512
+          },
+          "children": {
+            "d": {
+              "stat": {
+                "type": "directory",
+                "size": 0,
+                "mode": 16895,
+                "ino": 3,
+                "dev": 0,
+                "uid": 0,
+                "gid": 0,
+                "nlink": 2,
+                "mtimeMs": 1787786462513,
+                "ctimeMs": 1787786462513,
+                "birthtimeMs": 1787786462513
+              },
+              "children": {}
+            }
+          }
+        },
+        "lower": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "ino": 1,
+            "dev": 0,
+            "uid": 0,
+            "gid": 0,
+            "nlink": 3,
+            "mtimeMs": 1787786462512,
+            "ctimeMs": 1787786462512,
+            "birthtimeMs": 1787786462512
+          },
+          "children": {
+            "d": {
+              "stat": {
+                "type": "directory",
+                "size": 0,
+                "mode": 16895,
+                "ino": 2,
+                "dev": 0,
+                "uid": 0,
+                "gid": 0,
+                "nlink": 2,
+                "mtimeMs": 1787786462513,
+                "ctimeMs": 1787786462513,
+                "birthtimeMs": 1787786462512
+              },
+              "children": {
+                "child": {
+                  "stat": {
+                    "type": "file",
+                    "size": 4,
+                    "mode": 33206,
+                    "ino": 3,
+                    "dev": 0,
+                    "uid": 0,
+                    "gid": 0,
+                    "nlink": 1,
+                    "mtimeMs": 1787786462513,
+                    "ctimeMs": 1787786462513,
+                    "birthtimeMs": 1787786462513
+                  },
+                  "bytes": [
+                    0,
+                    255,
+                    128,
+                    10
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "after": {
+        "overlay": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "mtimeMs": 1787786462513,
+            "ctimeMs": 1787786462513,
+            "birthtimeMs": 1787786462512,
+            "ino": 1,
+            "dev": 0,
+            "nlink": 2,
+            "uid": 0,
+            "gid": 0
+          },
+          "children": {}
+        },
+        "upper": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "ino": 1,
+            "dev": 0,
+            "uid": 0,
+            "gid": 0,
+            "nlink": 2,
+            "mtimeMs": 1787786462513,
+            "ctimeMs": 1787786462513,
+            "birthtimeMs": 1787786462512
+          },
+          "children": {}
+        },
+        "lower": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "ino": 1,
+            "dev": 0,
+            "uid": 0,
+            "gid": 0,
+            "nlink": 3,
+            "mtimeMs": 1787786462512,
+            "ctimeMs": 1787786462512,
+            "birthtimeMs": 1787786462512
+          },
+          "children": {
+            "d": {
+              "stat": {
+                "type": "directory",
+                "size": 0,
+                "mode": 16895,
+                "ino": 2,
+                "dev": 0,
+                "uid": 0,
+                "gid": 0,
+                "nlink": 2,
+                "mtimeMs": 1787786462513,
+                "ctimeMs": 1787786462513,
+                "birthtimeMs": 1787786462512
+              },
+              "children": {
+                "child": {
+                  "stat": {
+                    "type": "file",
+                    "size": 4,
+                    "mode": 33206,
+                    "ino": 3,
+                    "dev": 0,
+                    "uid": 0,
+                    "gid": 0,
+                    "nlink": 1,
+                    "mtimeMs": 1787786462513,
+                    "ctimeMs": 1787786462513,
+                    "birthtimeMs": 1787786462513
+                  },
+                  "bytes": [
+                    0,
+                    255,
+                    128,
+                    10
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "case": "hidden-lower-child-opaque",
+      "expectedUnderExistingOwnershipPreconditions": "success",
+      "result": {
+        "status": "fulfilled"
+      },
+      "removalCalls": [
+        {
+          "layer": "upper",
+          "method": "rmdir",
+          "path": "/d"
+        }
+      ],
+      "before": {
+        "overlay": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "mtimeMs": 1787786462513,
+            "ctimeMs": 1787786462513,
+            "birthtimeMs": 1787786462513,
+            "ino": 1,
+            "dev": 0,
+            "nlink": 3,
+            "uid": 0,
+            "gid": 0
+          },
+          "children": {
+            "d": {
+              "stat": {
+                "type": "directory",
+                "size": 0,
+                "mode": 16895,
+                "mtimeMs": 1787786462513,
+                "ctimeMs": 1787786462513,
+                "birthtimeMs": 1787786462513,
+                "ino": 6,
+                "dev": 0,
+                "nlink": 2,
+                "uid": 0,
+                "gid": 0
+              },
+              "children": {}
+            }
+          }
+        },
+        "upper": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "ino": 1,
+            "dev": 0,
+            "uid": 0,
+            "gid": 0,
+            "nlink": 3,
+            "mtimeMs": 1787786462513,
+            "ctimeMs": 1787786462513,
+            "birthtimeMs": 1787786462513
+          },
+          "children": {
+            "d": {
+              "stat": {
+                "type": "directory",
+                "size": 0,
+                "mode": 16895,
+                "ino": 6,
+                "dev": 0,
+                "uid": 0,
+                "gid": 0,
+                "nlink": 2,
+                "mtimeMs": 1787786462513,
+                "ctimeMs": 1787786462513,
+                "birthtimeMs": 1787786462513
+              },
+              "children": {}
+            }
+          }
+        },
+        "lower": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "ino": 1,
+            "dev": 0,
+            "uid": 0,
+            "gid": 0,
+            "nlink": 3,
+            "mtimeMs": 1787786462513,
+            "ctimeMs": 1787786462513,
+            "birthtimeMs": 1787786462513
+          },
+          "children": {
+            "d": {
+              "stat": {
+                "type": "directory",
+                "size": 0,
+                "mode": 16895,
+                "ino": 2,
+                "dev": 0,
+                "uid": 0,
+                "gid": 0,
+                "nlink": 2,
+                "mtimeMs": 1787786462513,
+                "ctimeMs": 1787786462513,
+                "birthtimeMs": 1787786462513
+              },
+              "children": {
+                "child": {
+                  "stat": {
+                    "type": "file",
+                    "size": 4,
+                    "mode": 33206,
+                    "ino": 3,
+                    "dev": 0,
+                    "uid": 0,
+                    "gid": 0,
+                    "nlink": 1,
+                    "mtimeMs": 1787786462513,
+                    "ctimeMs": 1787786462513,
+                    "birthtimeMs": 1787786462513
+                  },
+                  "bytes": [
+                    0,
+                    255,
+                    128,
+                    10
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "after": {
+        "overlay": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "mtimeMs": 1787786462513,
+            "ctimeMs": 1787786462513,
+            "birthtimeMs": 1787786462513,
+            "ino": 1,
+            "dev": 0,
+            "nlink": 2,
+            "uid": 0,
+            "gid": 0
+          },
+          "children": {}
+        },
+        "upper": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "ino": 1,
+            "dev": 0,
+            "uid": 0,
+            "gid": 0,
+            "nlink": 2,
+            "mtimeMs": 1787786462513,
+            "ctimeMs": 1787786462513,
+            "birthtimeMs": 1787786462513
+          },
+          "children": {}
+        },
+        "lower": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "ino": 1,
+            "dev": 0,
+            "uid": 0,
+            "gid": 0,
+            "nlink": 3,
+            "mtimeMs": 1787786462513,
+            "ctimeMs": 1787786462513,
+            "birthtimeMs": 1787786462513
+          },
+          "children": {
+            "d": {
+              "stat": {
+                "type": "directory",
+                "size": 0,
+                "mode": 16895,
+                "ino": 2,
+                "dev": 0,
+                "uid": 0,
+                "gid": 0,
+                "nlink": 2,
+                "mtimeMs": 1787786462513,
+                "ctimeMs": 1787786462513,
+                "birthtimeMs": 1787786462513
+              },
+              "children": {
+                "child": {
+                  "stat": {
+                    "type": "file",
+                    "size": 4,
+                    "mode": 33206,
+                    "ino": 3,
+                    "dev": 0,
+                    "uid": 0,
+                    "gid": 0,
+                    "nlink": 1,
+                    "mtimeMs": 1787786462513,
+                    "ctimeMs": 1787786462513,
+                    "birthtimeMs": 1787786462513
+                  },
+                  "bytes": [
+                    0,
+                    255,
+                    128,
+                    10
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "case": "visible-lower-child",
+      "expectedUnderExistingOwnershipPreconditions": "ENOTEMPTY",
+      "result": {
+        "status": "rejected",
+        "code": "ENOTEMPTY",
+        "syscall": "rmdir",
+        "path": "/d",
+        "message": "ENOTEMPTY: directory not empty, rmdir '/d'"
+      },
+      "removalCalls": [],
+      "before": {
+        "overlay": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "mtimeMs": 1787786462514,
+            "ctimeMs": 1787786462514,
+            "birthtimeMs": 1787786462514,
+            "ino": 1,
+            "dev": 0,
+            "nlink": 2,
+            "uid": 0,
+            "gid": 0
+          },
+          "children": {
+            "d": {
+              "stat": {
+                "type": "directory",
+                "size": 0,
+                "mode": 16895,
+                "mtimeMs": 1787786462514,
+                "ctimeMs": 1787786462514,
+                "birthtimeMs": 1787786462514,
+                "ino": 2,
+                "dev": 0,
+                "nlink": 2,
+                "uid": 0,
+                "gid": 0
+              },
+              "children": {
+                "child": {
+                  "stat": {
+                    "type": "file",
+                    "size": 4,
+                    "mode": 33206,
+                    "mtimeMs": 1787786462514,
+                    "ctimeMs": 1787786462514,
+                    "birthtimeMs": 1787786462514,
+                    "ino": 3,
+                    "dev": 0,
+                    "nlink": 1,
+                    "uid": 0,
+                    "gid": 0
+                  },
+                  "bytes": [
+                    0,
+                    255,
+                    128,
+                    10
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "upper": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "ino": 1,
+            "dev": 0,
+            "uid": 0,
+            "gid": 0,
+            "nlink": 2,
+            "mtimeMs": 1787786462514,
+            "ctimeMs": 1787786462514,
+            "birthtimeMs": 1787786462514
+          },
+          "children": {}
+        },
+        "lower": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "ino": 1,
+            "dev": 0,
+            "uid": 0,
+            "gid": 0,
+            "nlink": 3,
+            "mtimeMs": 1787786462514,
+            "ctimeMs": 1787786462514,
+            "birthtimeMs": 1787786462514
+          },
+          "children": {
+            "d": {
+              "stat": {
+                "type": "directory",
+                "size": 0,
+                "mode": 16895,
+                "ino": 2,
+                "dev": 0,
+                "uid": 0,
+                "gid": 0,
+                "nlink": 2,
+                "mtimeMs": 1787786462514,
+                "ctimeMs": 1787786462514,
+                "birthtimeMs": 1787786462514
+              },
+              "children": {
+                "child": {
+                  "stat": {
+                    "type": "file",
+                    "size": 4,
+                    "mode": 33206,
+                    "ino": 3,
+                    "dev": 0,
+                    "uid": 0,
+                    "gid": 0,
+                    "nlink": 1,
+                    "mtimeMs": 1787786462514,
+                    "ctimeMs": 1787786462514,
+                    "birthtimeMs": 1787786462514
+                  },
+                  "bytes": [
+                    0,
+                    255,
+                    128,
+                    10
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "after": {
+        "overlay": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "mtimeMs": 1787786462514,
+            "ctimeMs": 1787786462514,
+            "birthtimeMs": 1787786462514,
+            "ino": 1,
+            "dev": 0,
+            "nlink": 2,
+            "uid": 0,
+            "gid": 0
+          },
+          "children": {
+            "d": {
+              "stat": {
+                "type": "directory",
+                "size": 0,
+                "mode": 16895,
+                "mtimeMs": 1787786462514,
+                "ctimeMs": 1787786462514,
+                "birthtimeMs": 1787786462514,
+                "ino": 2,
+                "dev": 0,
+                "nlink": 2,
+                "uid": 0,
+                "gid": 0
+              },
+              "children": {
+                "child": {
+                  "stat": {
+                    "type": "file",
+                    "size": 4,
+                    "mode": 33206,
+                    "mtimeMs": 1787786462514,
+                    "ctimeMs": 1787786462514,
+                    "birthtimeMs": 1787786462514,
+                    "ino": 3,
+                    "dev": 0,
+                    "nlink": 1,
+                    "uid": 0,
+                    "gid": 0
+                  },
+                  "bytes": [
+                    0,
+                    255,
+                    128,
+                    10
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "upper": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "ino": 1,
+            "dev": 0,
+            "uid": 0,
+            "gid": 0,
+            "nlink": 2,
+            "mtimeMs": 1787786462514,
+            "ctimeMs": 1787786462514,
+            "birthtimeMs": 1787786462514
+          },
+          "children": {}
+        },
+        "lower": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "ino": 1,
+            "dev": 0,
+            "uid": 0,
+            "gid": 0,
+            "nlink": 3,
+            "mtimeMs": 1787786462514,
+            "ctimeMs": 1787786462514,
+            "birthtimeMs": 1787786462514
+          },
+          "children": {
+            "d": {
+              "stat": {
+                "type": "directory",
+                "size": 0,
+                "mode": 16895,
+                "ino": 2,
+                "dev": 0,
+                "uid": 0,
+                "gid": 0,
+                "nlink": 2,
+                "mtimeMs": 1787786462514,
+                "ctimeMs": 1787786462514,
+                "birthtimeMs": 1787786462514
+              },
+              "children": {
+                "child": {
+                  "stat": {
+                    "type": "file",
+                    "size": 4,
+                    "mode": 33206,
+                    "ino": 3,
+                    "dev": 0,
+                    "uid": 0,
+                    "gid": 0,
+                    "nlink": 1,
+                    "mtimeMs": 1787786462514,
+                    "ctimeMs": 1787786462514,
+                    "birthtimeMs": 1787786462514
+                  },
+                  "bytes": [
+                    0,
+                    255,
+                    128,
+                    10
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "case": "visible-upper-child",
+      "expectedUnderExistingOwnershipPreconditions": "ENOTEMPTY",
+      "result": {
+        "status": "rejected",
+        "code": "ENOTEMPTY",
+        "syscall": "rmdir",
+        "path": "/d",
+        "message": "ENOTEMPTY: directory not empty, rmdir '/d'"
+      },
+      "removalCalls": [],
+      "before": {
+        "overlay": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "mtimeMs": 1787786462514,
+            "ctimeMs": 1787786462514,
+            "birthtimeMs": 1787786462514,
+            "ino": 1,
+            "dev": 0,
+            "nlink": 3,
+            "uid": 0,
+            "gid": 0
+          },
+          "children": {
+            "d": {
+              "stat": {
+                "type": "directory",
+                "size": 0,
+                "mode": 16895,
+                "mtimeMs": 1787786462514,
+                "ctimeMs": 1787786462514,
+                "birthtimeMs": 1787786462514,
+                "ino": 2,
+                "dev": 0,
+                "nlink": 2,
+                "uid": 0,
+                "gid": 0
+              },
+              "children": {
+                "child": {
+                  "stat": {
+                    "type": "file",
+                    "size": 4,
+                    "mode": 33206,
+                    "mtimeMs": 1787786462514,
+                    "ctimeMs": 1787786462514,
+                    "birthtimeMs": 1787786462514,
+                    "ino": 3,
+                    "dev": 0,
+                    "nlink": 1,
+                    "uid": 0,
+                    "gid": 0
+                  },
+                  "bytes": [
+                    0,
+                    255,
+                    128,
+                    10
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "upper": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "ino": 1,
+            "dev": 0,
+            "uid": 0,
+            "gid": 0,
+            "nlink": 3,
+            "mtimeMs": 1787786462514,
+            "ctimeMs": 1787786462514,
+            "birthtimeMs": 1787786462514
+          },
+          "children": {
+            "d": {
+              "stat": {
+                "type": "directory",
+                "size": 0,
+                "mode": 16895,
+                "ino": 2,
+                "dev": 0,
+                "uid": 0,
+                "gid": 0,
+                "nlink": 2,
+                "mtimeMs": 1787786462514,
+                "ctimeMs": 1787786462514,
+                "birthtimeMs": 1787786462514
+              },
+              "children": {
+                "child": {
+                  "stat": {
+                    "type": "file",
+                    "size": 4,
+                    "mode": 33206,
+                    "ino": 3,
+                    "dev": 0,
+                    "uid": 0,
+                    "gid": 0,
+                    "nlink": 1,
+                    "mtimeMs": 1787786462514,
+                    "ctimeMs": 1787786462514,
+                    "birthtimeMs": 1787786462514
+                  },
+                  "bytes": [
+                    0,
+                    255,
+                    128,
+                    10
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "lower": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "ino": 1,
+            "dev": 0,
+            "uid": 0,
+            "gid": 0,
+            "nlink": 2,
+            "mtimeMs": 1787786462514,
+            "ctimeMs": 1787786462514,
+            "birthtimeMs": 1787786462514
+          },
+          "children": {}
+        }
+      },
+      "after": {
+        "overlay": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "mtimeMs": 1787786462514,
+            "ctimeMs": 1787786462514,
+            "birthtimeMs": 1787786462514,
+            "ino": 1,
+            "dev": 0,
+            "nlink": 3,
+            "uid": 0,
+            "gid": 0
+          },
+          "children": {
+            "d": {
+              "stat": {
+                "type": "directory",
+                "size": 0,
+                "mode": 16895,
+                "mtimeMs": 1787786462514,
+                "ctimeMs": 1787786462514,
+                "birthtimeMs": 1787786462514,
+                "ino": 2,
+                "dev": 0,
+                "nlink": 2,
+                "uid": 0,
+                "gid": 0
+              },
+              "children": {
+                "child": {
+                  "stat": {
+                    "type": "file",
+                    "size": 4,
+                    "mode": 33206,
+                    "mtimeMs": 1787786462514,
+                    "ctimeMs": 1787786462514,
+                    "birthtimeMs": 1787786462514,
+                    "ino": 3,
+                    "dev": 0,
+                    "nlink": 1,
+                    "uid": 0,
+                    "gid": 0
+                  },
+                  "bytes": [
+                    0,
+                    255,
+                    128,
+                    10
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "upper": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "ino": 1,
+            "dev": 0,
+            "uid": 0,
+            "gid": 0,
+            "nlink": 3,
+            "mtimeMs": 1787786462514,
+            "ctimeMs": 1787786462514,
+            "birthtimeMs": 1787786462514
+          },
+          "children": {
+            "d": {
+              "stat": {
+                "type": "directory",
+                "size": 0,
+                "mode": 16895,
+                "ino": 2,
+                "dev": 0,
+                "uid": 0,
+                "gid": 0,
+                "nlink": 2,
+                "mtimeMs": 1787786462514,
+                "ctimeMs": 1787786462514,
+                "birthtimeMs": 1787786462514
+              },
+              "children": {
+                "child": {
+                  "stat": {
+                    "type": "file",
+                    "size": 4,
+                    "mode": 33206,
+                    "ino": 3,
+                    "dev": 0,
+                    "uid": 0,
+                    "gid": 0,
+                    "nlink": 1,
+                    "mtimeMs": 1787786462514,
+                    "ctimeMs": 1787786462514,
+                    "birthtimeMs": 1787786462514
+                  },
+                  "bytes": [
+                    0,
+                    255,
+                    128,
+                    10
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "lower": {
+          "stat": {
+            "type": "directory",
+            "size": 0,
+            "mode": 16877,
+            "ino": 1,
+            "dev": 0,
+            "uid": 0,
+            "gid": 0,
+            "nlink": 2,
+            "mtimeMs": 1787786462514,
+            "ctimeMs": 1787786462514,
+            "birthtimeMs": 1787786462514
+          },
+          "children": {}
+        }
+      }
+    },
+    {
+      "case": "same-instance-writer-queued-before-rmdir",
+      "results": [
+        {
+          "status": "fulfilled"
+        },
+        {
+          "status": "rejected",
+          "code": "ENOTEMPTY",
+          "syscall": "rmdir",
+          "path": "/d",
+          "message": "ENOTEMPTY: directory not empty, rmdir '/d'"
+        }
+      ],
+      "childBytes": [
+        0,
+        255,
+        128,
+        10
+      ],
+      "backingRmdirCalls": [],
+      "calls": [
+        {
+          "layer": "upper",
+          "method": "mkdir",
+          "path": "/.virtual-bash-overlay-4f67b560-3afd-4161-984e-15c75dac8715"
+        },
+        {
+          "layer": "upper",
+          "method": "writeFile",
+          "path": "/.virtual-bash-overlay-4f67b560-3afd-4161-984e-15c75dac8715/entry"
+        },
+        {
+          "layer": "upper",
+          "method": "rename",
+          "path": "/.virtual-bash-overlay-4f67b560-3afd-4161-984e-15c75dac8715/entry"
+        },
+        {
+          "layer": "upper",
+          "method": "rm",
+          "path": "/.virtual-bash-overlay-4f67b560-3afd-4161-984e-15c75dac8715",
+          "recursive": true
+        }
+      ]
+    },
+    {
+      "case": "same-instance-writer-queued-after-rmdir-holds-queue",
+      "results": [
+        {
+          "status": "fulfilled"
+        },
+        {
+          "status": "rejected",
+          "code": "ENOENT",
+          "syscall": "overlay",
+          "path": "/d",
+          "message": "ENOENT: no such file or directory, overlay '/d'"
+        }
+      ],
+      "events": [
+        "upper-rmdir-entered",
+        "same-instance-child-write-queued",
+        "upper-rmdir-released"
+      ],
+      "calls": [
+        {
+          "layer": "upper",
+          "method": "rmdir",
+          "path": "/d"
+        }
+      ],
+      "noChildCreatedOrDeleted": true
+    },
+    {
+      "case": "external-lower-write-outside-documented-precondition",
+      "outsideContract": true,
+      "result": {
+        "status": "rejected",
+        "code": "ENOTEMPTY",
+        "syscall": "rmdir",
+        "path": "/d",
+        "message": "ENOTEMPTY: directory not empty, rmdir '/d'"
+      },
+      "calls": [],
+      "preservedBytes": [
+        0,
+        255,
+        128,
+        10
+      ]
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+import * as stdio from "stdio";
+import * as command from "command";
+const aliases = [stdio.write, stdio.writeBytes, stdio.error, command.setExitCode];
+await aliases[0]("alias\n");
+await aliases[1]([0, 127, 255, 10]);
+await aliases[2]("stderr\n");
+aliases[3](7);
+return "alias-complete";

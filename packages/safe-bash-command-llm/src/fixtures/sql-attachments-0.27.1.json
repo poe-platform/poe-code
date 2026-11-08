@@ -1,0 +1,246 @@
+[
+  {
+    "name": "missing",
+    "args": [
+      "--attach",
+      "source",
+      "missing.db",
+      "--sql",
+      "SELECT 1,'ok'"
+    ],
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "exception": null,
+    "files": {
+      "source.db": 8192,
+      "broken.db": 10,
+      "main.db": 40960,
+      "missing.db": 0
+    },
+    "tables": [
+      "_sqlite_migrations",
+      "collections",
+      "embeddings"
+    ]
+  },
+  {
+    "name": "main-alias",
+    "args": [
+      "--attach",
+      "main",
+      "missing.db",
+      "--sql",
+      "SELECT 1,'ok'"
+    ],
+    "code": 1,
+    "out": "",
+    "err": "",
+    "exception": {
+      "type": "OperationalError",
+      "message": "database main is already in use"
+    },
+    "files": {
+      "source.db": 8192,
+      "broken.db": 10,
+      "main.db": 0
+    },
+    "tables": []
+  },
+  {
+    "name": "duplicate",
+    "args": [
+      "--attach",
+      "source",
+      "source.db",
+      "--attach",
+      "source",
+      "missing.db",
+      "--sql",
+      "SELECT 1,'ok'"
+    ],
+    "code": 1,
+    "out": "",
+    "err": "",
+    "exception": {
+      "type": "OperationalError",
+      "message": "database source is already in use"
+    },
+    "files": {
+      "source.db": 8192,
+      "broken.db": 10,
+      "main.db": 0
+    },
+    "tables": []
+  },
+  {
+    "name": "broken",
+    "args": [
+      "--attach",
+      "source",
+      "broken.db",
+      "--sql",
+      "SELECT 1,'ok'"
+    ],
+    "code": 1,
+    "out": "",
+    "err": "",
+    "exception": {
+      "type": "DatabaseError",
+      "message": "file is not a database"
+    },
+    "files": {
+      "source.db": 8192,
+      "broken.db": 10,
+      "main.db": 0
+    },
+    "tables": []
+  },
+  {
+    "name": "unused-broken",
+    "args": [
+      "--attach",
+      "source",
+      "broken.db",
+      "-",
+      "--format",
+      "csv"
+    ],
+    "code": 1,
+    "out": "",
+    "err": "",
+    "exception": {
+      "type": "DatabaseError",
+      "message": "file is not a database"
+    },
+    "files": {
+      "source.db": 8192,
+      "broken.db": 10,
+      "main.db": 0
+    },
+    "tables": []
+  },
+  {
+    "name": "unused-missing",
+    "args": [
+      "--attach",
+      "source",
+      "missing.db",
+      "-",
+      "--format",
+      "csv"
+    ],
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "exception": null,
+    "files": {
+      "source.db": 8192,
+      "broken.db": 10,
+      "main.db": 40960,
+      "missing.db": 0
+    },
+    "tables": [
+      "_sqlite_migrations",
+      "collections",
+      "embeddings"
+    ]
+  },
+  {
+    "name": "bracket",
+    "args": [
+      "--attach",
+      "bad]",
+      "missing.db",
+      "--sql",
+      "SELECT 1,'ok'"
+    ],
+    "code": 1,
+    "out": "",
+    "err": "",
+    "exception": {
+      "type": "OperationalError",
+      "message": "unrecognized token: \"]\""
+    },
+    "files": {
+      "source.db": 8192,
+      "broken.db": 10,
+      "main.db": 0
+    },
+    "tables": []
+  },
+  {
+    "name": "missing-parent",
+    "args": [
+      "--attach",
+      "source",
+      "absent/source.db",
+      "--sql",
+      "SELECT 1,'ok'"
+    ],
+    "code": 1,
+    "out": "",
+    "err": "",
+    "exception": {
+      "type": "OperationalError",
+      "message": "unable to open database: /work/absent/source.db"
+    },
+    "files": {
+      "source.db": 8192,
+      "broken.db": 10,
+      "main.db": 0
+    },
+    "tables": []
+  },
+  {
+    "name": "directory",
+    "args": [
+      "--attach",
+      "source",
+      "directory",
+      "--sql",
+      "SELECT 1,'ok'"
+    ],
+    "code": 2,
+    "out": "",
+    "err": "Usage: cli embed-multi [OPTIONS] COLLECTION [INPUT_PATH]\nTry 'cli embed-multi -h' for help.\n\nError: Invalid value for '--attach': File 'directory' is a directory.\n",
+    "exception": {
+      "type": "SystemExit",
+      "message": "2"
+    },
+    "files": {
+      "source.db": 8192,
+      "broken.db": 10
+    },
+    "tables": []
+  },
+  {
+    "name": "missing-model",
+    "args": [
+      "--attach",
+      "source",
+      "missing.db",
+      "--sql",
+      "SELECT 1,'ok'"
+    ],
+    "no_model": true,
+    "code": 1,
+    "out": "",
+    "err": "Error: You need to specify an embedding model (no default model is set)\n",
+    "exception": {
+      "type": "SystemExit",
+      "message": "1"
+    },
+    "files": {
+      "source.db": 8192,
+      "broken.db": 10,
+      "main.db": 40960,
+      "missing.db": 0
+    },
+    "tables": [
+      "_sqlite_migrations",
+      "collections",
+      "embeddings"
+    ]
+  }
+]

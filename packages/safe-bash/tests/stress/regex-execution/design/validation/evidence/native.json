@@ -1,0 +1,651 @@
+{
+  "at": "2026-08-27T05:19:34.019Z",
+  "platform": "darwin",
+  "arch": "arm64",
+  "env": {
+    "LANG": "C",
+    "LC_ALL": "C",
+    "PATH": "/usr/bin:/bin"
+  },
+  "profiles": [
+    {
+      "name": "rg-primary",
+      "tool": "rg",
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path/rg",
+      "prefix": [
+        "--no-config",
+        "--color=never",
+        "--no-heading",
+        "--no-line-number",
+        "--no-filename",
+        "--engine=default"
+      ],
+      "available": true,
+      "realpath": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path/rg",
+      "sha256": "4298efd414836892c913b2e87401d62fdd7c6ec4026d9bad8e3fab10557e411f",
+      "version": "ripgrep 15.2.0 (rev e89fff89ac)\n\nfeatures:+pcre2\nsimd(compile):+NEON\nsimd(runtime):+NEON\n\nPCRE2 10.45 is available (JIT is available)\n",
+      "versionStatus": 0,
+      "helpSha256": "537946d556964600879c6290f6d9efa4010e11872d6185f5ebf039f0cfc4e92b"
+    },
+    {
+      "name": "bsd-grep-auxiliary",
+      "tool": "grep",
+      "path": "/usr/bin/grep",
+      "prefix": [],
+      "available": true,
+      "realpath": "/usr/bin/grep",
+      "sha256": "468ff46a0b9f0e88de268ce12640bfa37610d585f968127cf32cf4e86d5c70ab",
+      "version": "grep (BSD grep, GNU compatible) 2.6.0-FreeBSD\n",
+      "versionStatus": 0,
+      "helpSha256": "5b6f1bc85fd310044325ebc6c22c50f3cc2758cfba74739c19ff85b877becf2b"
+    },
+    {
+      "name": "gnu-grep-primary",
+      "tool": "grep",
+      "prefix": [],
+      "available": false,
+      "searched": [
+        "/opt/homebrew/bin/ggrep",
+        "/opt/homebrew/sbin/ggrep",
+        "/usr/local/bin/ggrep",
+        "/System/Cryptexes/App/usr/bin/ggrep",
+        "/usr/bin/ggrep",
+        "/bin/ggrep",
+        "/usr/sbin/ggrep",
+        "/sbin/ggrep",
+        "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/ggrep",
+        "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/ggrep",
+        "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/ggrep",
+        "/opt/pkg/env/active/bin/ggrep",
+        "/opt/pmk/env/global/bin/ggrep",
+        "/Library/Apple/usr/bin/ggrep",
+        "/Library/TeX/texbin/ggrep",
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path/ggrep",
+        "/Users/kjopek/.codex/tmp/arg0/codex-arg05olSAg/ggrep",
+        "/Users/kjopek/.codex/tmp/arg0/codex-arg0wITElD/ggrep",
+        "/Users/kjopek/Library/Application Support/Garmin/ConnectIQ/Sdks/connectiq-sdk-mac-9.2.0-2026-06-09-92a1605b2/bin/ggrep",
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/ggrep",
+        "/Users/kjopek/.local/bin/ggrep",
+        "/Users/kjopek/.bun/bin/ggrep",
+        "/Users/kjopek/bin/ggrep",
+        "/Users/kjopek/.cargo/bin/ggrep",
+        "/Applications/iTerm.app/Contents/Resources/utilities/ggrep",
+        "/opt/homebrew/opt/grep/bin/ggrep"
+      ]
+    }
+  ],
+  "commands": 22,
+  "results": [
+    {
+      "id": "grep-bre-group",
+      "profile": "bsd-grep-auxiliary",
+      "command": [
+        "/usr/bin/grep",
+        "-o",
+        "\\(ab\\)",
+        "-"
+      ],
+      "inputHex": "616220780a",
+      "expected": {
+        "stdoutHex": "61620a",
+        "status": 0
+      },
+      "actual": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "61620a",
+        "stderrHex": "",
+        "error": null
+      },
+      "matchesFrozenExpectation": true
+    },
+    {
+      "id": "grep-ere-order",
+      "profile": "bsd-grep-auxiliary",
+      "command": [
+        "/usr/bin/grep",
+        "-Eo",
+        "a|ab",
+        "-"
+      ],
+      "inputHex": "61620a",
+      "expected": {
+        "stdoutHex": "61620a",
+        "status": 0
+      },
+      "actual": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "61620a",
+        "stderrHex": "",
+        "error": null
+      },
+      "matchesFrozenExpectation": true
+    },
+    {
+      "id": "grep-fixed-punctuation",
+      "profile": "bsd-grep-auxiliary",
+      "command": [
+        "/usr/bin/grep",
+        "-Fo",
+        "a.b",
+        "-"
+      ],
+      "inputHex": "612e62206178620a",
+      "expected": {
+        "stdoutHex": "612e620a",
+        "status": 0
+      },
+      "actual": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "612e620a",
+        "stderrHex": "",
+        "error": null
+      },
+      "matchesFrozenExpectation": true
+    },
+    {
+      "id": "grep-posix-digit",
+      "profile": "bsd-grep-auxiliary",
+      "command": [
+        "/usr/bin/grep",
+        "-Eo",
+        "[[:digit:]]+",
+        "-"
+      ],
+      "inputHex": "613132620a",
+      "expected": {
+        "stdoutHex": "31320a",
+        "status": 0
+      },
+      "actual": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "31320a",
+        "stderrHex": "",
+        "error": null
+      },
+      "matchesFrozenExpectation": true
+    },
+    {
+      "id": "grep-raw-byte",
+      "profile": "bsd-grep-auxiliary",
+      "command": [
+        "/usr/bin/grep",
+        "-Eao",
+        ".",
+        "-"
+      ],
+      "inputHex": "ff0a",
+      "expected": {
+        "stdoutHex": "ff0a",
+        "status": 0
+      },
+      "actual": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "ff0a",
+        "stderrHex": "",
+        "error": null
+      },
+      "matchesFrozenExpectation": true
+    },
+    {
+      "id": "grep-utf8-literal",
+      "profile": "bsd-grep-auxiliary",
+      "command": [
+        "/usr/bin/grep",
+        "-Fo",
+        "é",
+        "-"
+      ],
+      "inputHex": "c3a920780a",
+      "expected": {
+        "stdoutHex": "c3a90a",
+        "status": 0
+      },
+      "actual": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "c3a90a",
+        "stderrHex": "",
+        "error": null
+      },
+      "matchesFrozenExpectation": true
+    },
+    {
+      "id": "grep-empty-only",
+      "profile": "bsd-grep-auxiliary",
+      "command": [
+        "/usr/bin/grep",
+        "-Eo",
+        "",
+        "-"
+      ],
+      "inputHex": "6162630a",
+      "expected": {
+        "stdoutHex": "",
+        "status": 0
+      },
+      "actual": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "",
+        "stderrHex": "",
+        "error": null
+      },
+      "matchesFrozenExpectation": true
+    },
+    {
+      "id": "grep-ascii-i",
+      "profile": "bsd-grep-auxiliary",
+      "command": [
+        "/usr/bin/grep",
+        "-Eio",
+        "abc",
+        "-"
+      ],
+      "inputHex": "4142430a",
+      "expected": {
+        "stdoutHex": "4142430a",
+        "status": 0
+      },
+      "actual": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "4142430a",
+        "stderrHex": "",
+        "error": null
+      },
+      "matchesFrozenExpectation": true
+    },
+    {
+      "id": "grep-word",
+      "profile": "bsd-grep-auxiliary",
+      "command": [
+        "/usr/bin/grep",
+        "-Ewo",
+        "cat",
+        "-"
+      ],
+      "inputHex": "7363617420636174210a",
+      "expected": {
+        "stdoutHex": "6361740a",
+        "status": 0
+      },
+      "actual": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "6361740a",
+        "stderrHex": "",
+        "error": null
+      },
+      "matchesFrozenExpectation": true
+    },
+    {
+      "id": "grep-whole",
+      "profile": "bsd-grep-auxiliary",
+      "command": [
+        "/usr/bin/grep",
+        "-Ex",
+        "ab",
+        "-"
+      ],
+      "inputHex": "6162630a61620a",
+      "expected": {
+        "stdoutHex": "61620a",
+        "status": 0
+      },
+      "actual": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "61620a",
+        "stderrHex": "",
+        "error": null
+      },
+      "matchesFrozenExpectation": true
+    },
+    {
+      "id": "grep-bre-backref",
+      "profile": "bsd-grep-auxiliary",
+      "command": [
+        "/usr/bin/grep",
+        "-o",
+        "\\(a\\)\\1",
+        "-"
+      ],
+      "inputHex": "61610a",
+      "expected": {
+        "stdoutHex": "61610a",
+        "status": 0
+      },
+      "actual": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "61610a",
+        "stderrHex": "",
+        "error": null
+      },
+      "matchesFrozenExpectation": true
+    },
+    {
+      "id": "grep-special-rejected",
+      "profile": "bsd-grep-auxiliary",
+      "command": [
+        "/usr/bin/grep",
+        "-Eo",
+        "(?<letter>a)",
+        "-"
+      ],
+      "inputHex": "610a",
+      "expected": {
+        "stdoutHex": "",
+        "status": 2
+      },
+      "actual": {
+        "status": 2,
+        "signal": null,
+        "stdoutHex": "",
+        "stderrHex": "677265703a2072657065746974696f6e2d6f70657261746f72206f706572616e6420696e76616c69640a",
+        "error": null
+      },
+      "matchesFrozenExpectation": true
+    },
+    {
+      "id": "rg-unicode-dot",
+      "profile": "rg-primary",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path/rg",
+        "--no-config",
+        "--color=never",
+        "--no-heading",
+        "--no-line-number",
+        "--no-filename",
+        "--engine=default",
+        "-o",
+        ".",
+        "-"
+      ],
+      "inputHex": "f09f9880c3a90a",
+      "expected": {
+        "stdoutHex": "f09f98800ac3a90a",
+        "status": 0
+      },
+      "actual": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "f09f98800ac3a90a",
+        "stderrHex": "",
+        "error": null
+      },
+      "matchesFrozenExpectation": true
+    },
+    {
+      "id": "rg-invalid-fragments",
+      "profile": "rg-primary",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path/rg",
+        "--no-config",
+        "--color=never",
+        "--no-heading",
+        "--no-line-number",
+        "--no-filename",
+        "--engine=default",
+        "-ao",
+        ".",
+        "-"
+      ],
+      "inputHex": "61ff620a",
+      "expected": {
+        "stdoutHex": "610a620a",
+        "status": 0
+      },
+      "actual": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "610a620a",
+        "stderrHex": "",
+        "error": null
+      },
+      "matchesFrozenExpectation": true
+    },
+    {
+      "id": "rg-word-unicode",
+      "profile": "rg-primary",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path/rg",
+        "--no-config",
+        "--color=never",
+        "--no-heading",
+        "--no-line-number",
+        "--no-filename",
+        "--engine=default",
+        "-wo",
+        "a",
+        "-"
+      ],
+      "inputHex": "c3a96120610a",
+      "expected": {
+        "stdoutHex": "610a",
+        "status": 0
+      },
+      "actual": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "610a",
+        "stderrHex": "",
+        "error": null
+      },
+      "matchesFrozenExpectation": true
+    },
+    {
+      "id": "rg-undocumented-named-backref",
+      "profile": "rg-primary",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path/rg",
+        "--no-config",
+        "--color=never",
+        "--no-heading",
+        "--no-line-number",
+        "--no-filename",
+        "--engine=default",
+        "-o",
+        "(?<letter>a)\\k<letter>",
+        "-"
+      ],
+      "inputHex": "61610a",
+      "expected": {
+        "stdoutHex": "",
+        "status": 2
+      },
+      "actual": {
+        "status": 2,
+        "signal": null,
+        "stdoutHex": "",
+        "stderrHex": "72673a207265676578207061727365206572726f723a0a20202020283f3a283f3c6c65747465723e61295c6b3c6c65747465723e290a202020202020202020202020202020202020205e5e0a6572726f723a20756e7265636f676e697a6564206573636170652073657175656e63650a",
+        "error": null
+      },
+      "matchesFrozenExpectation": true
+    },
+    {
+      "id": "rg-lookaround-rejected",
+      "profile": "rg-primary",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path/rg",
+        "--no-config",
+        "--color=never",
+        "--no-heading",
+        "--no-line-number",
+        "--no-filename",
+        "--engine=default",
+        "-o",
+        "(?=a)a",
+        "-"
+      ],
+      "inputHex": "610a",
+      "expected": {
+        "stdoutHex": "",
+        "status": 2
+      },
+      "actual": {
+        "status": 2,
+        "signal": null,
+        "stdoutHex": "",
+        "stderrHex": "72673a207265676578207061727365206572726f723a0a20202020283f3a283f3d612961290a202020202020205e5e5e0a6572726f723a206c6f6f6b2d61726f756e642c20696e636c7564696e67206c6f6f6b2d616865616420616e64206c6f6f6b2d626568696e642c206973206e6f7420737570706f727465640a0a436f6e736964657220656e61626c696e67205043524532207769746820746865202d2d706372653220666c61672c2077686963682063616e2068616e646c65206261636b7265666572656e6365730a616e64206c6f6f6b2d61726f756e642e0a",
+        "error": null
+      },
+      "matchesFrozenExpectation": true
+    },
+    {
+      "id": "rg-unicode-i-kelvin",
+      "profile": "rg-primary",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path/rg",
+        "--no-config",
+        "--color=never",
+        "--no-heading",
+        "--no-line-number",
+        "--no-filename",
+        "--engine=default",
+        "-Fio",
+        "k",
+        "-"
+      ],
+      "inputHex": "e284aa204b206b0a",
+      "expected": {
+        "stdoutHex": "e284aa0a4b0a6b0a",
+        "status": 0
+      },
+      "actual": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "e284aa0a4b0a6b0a",
+        "stderrHex": "",
+        "error": null
+      },
+      "matchesFrozenExpectation": true
+    },
+    {
+      "id": "rg-declared-js-digit",
+      "profile": "rg-primary",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path/rg",
+        "--no-config",
+        "--color=never",
+        "--no-heading",
+        "--no-line-number",
+        "--no-filename",
+        "--engine=default",
+        "-o",
+        "\\d",
+        "-"
+      ],
+      "inputHex": "d9a1310a",
+      "expected": {
+        "stdoutHex": "d9a10a310a",
+        "status": 0
+      },
+      "actual": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "d9a10a310a",
+        "stderrHex": "",
+        "error": null
+      },
+      "matchesFrozenExpectation": true
+    },
+    {
+      "id": "rg-empty-byte-boundaries",
+      "profile": "rg-primary",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path/rg",
+        "--no-config",
+        "--color=never",
+        "--no-heading",
+        "--no-line-number",
+        "--no-filename",
+        "--engine=default",
+        "-o",
+        "",
+        "-"
+      ],
+      "inputHex": "c3a90a",
+      "expected": {
+        "stdoutHex": "",
+        "status": 0
+      },
+      "actual": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "0a0a0a",
+        "stderrHex": "",
+        "error": null
+      },
+      "matchesFrozenExpectation": false
+    },
+    {
+      "id": "rg-capture",
+      "profile": "rg-primary",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path/rg",
+        "--no-config",
+        "--color=never",
+        "--no-heading",
+        "--no-line-number",
+        "--no-filename",
+        "--engine=default",
+        "-o",
+        "(ab)(c)?",
+        "-"
+      ],
+      "inputHex": "6162206162630a",
+      "expected": {
+        "stdoutHex": "61620a6162630a",
+        "status": 0
+      },
+      "actual": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "61620a6162630a",
+        "stderrHex": "",
+        "error": null
+      },
+      "matchesFrozenExpectation": true
+    },
+    {
+      "id": "rg-pattern-order",
+      "profile": "rg-primary",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path/rg",
+        "--no-config",
+        "--color=never",
+        "--no-heading",
+        "--no-line-number",
+        "--no-filename",
+        "--engine=default",
+        "-o",
+        "-e",
+        "a",
+        "-e",
+        "ab",
+        "-"
+      ],
+      "inputHex": "61620a",
+      "expected": {
+        "stdoutHex": "610a",
+        "status": 0
+      },
+      "actual": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "610a",
+        "stderrHex": "",
+        "error": null
+      },
+      "matchesFrozenExpectation": true
+    }
+  ],
+  "installs": 0,
+  "riskyExecutions": 0
+}

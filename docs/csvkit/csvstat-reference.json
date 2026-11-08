@@ -1,0 +1,2529 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "sourceSha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+  "utilitySha256": "049d7423f21e8b1097418d4855111e8d99871c7d387a2129c99ae79c95e1ccc5",
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "PYTHONIOENCODING": "utf-8",
+    "COLUMNS": "80",
+    "LINES": "24"
+  },
+  "runtimeLock": "requirements-cpython-3.14.2.txt",
+  "runtimeLockSha256": "7ecb88fddc47bb86867cf738670b24ed88f11f671feef127246b0d422a71d7a8",
+  "formats": {
+    "[\"%.3f\",\"2.50\",true]": "2.500",
+    "[\"%.3f\",\"4.25\",true]": "4.250",
+    "[\"%.3f\",\"9.25\",true]": "9.250",
+    "[\"%.3f\",\"3.083333333333333333333333333\",true]": "3.083",
+    "[\"%.3f\",\"2.5\",true]": "2.500",
+    "[\"%.3f\",\"1.010362971081845087891010366\",true]": "1.010",
+    "[\"%.3f\",\"3\",true]": "3.000",
+    "[\"%.3f\",\"2\",true]": "2.000",
+    "[\"%.3f\",\"-0.00\",true]": "-0.000",
+    "[\"%.3f\",\"2.000\",true]": "2.000",
+    "[\"%.3f\",\"0.6666666666666666666666666667\",true]": "0.667",
+    "[\"%.3f\",\"0\",true]": "0.000",
+    "[\"%.3f\",\"1.154700538379251529018297561\",true]": "1.155",
+    "[\"%.3f\",\"0.123\",true]": "0.123",
+    "[\"%.3f\",\"1E+27\",true]": "1000000000000000013287555072.000",
+    "[\"%.3f\",\"1000000000000000000000000000\",true]": "1000000000000000013287555072.000",
+    "[\"%.3f\",\"500000000000000000000000000\",true]": "500000000000000006643777536.000",
+    "[\"%.3f\",\"707106781186547524400844362.0\",true]": "707106781186547508647559168.000",
+    "[\"%d\",\"2.50\",true]": "2",
+    "[\"%d\",\"4.25\",true]": "4",
+    "[\"%d\",\"9.25\",true]": "9",
+    "[\"%d\",\"3.083333333333333333333333333\",true]": "3",
+    "[\"%d\",\"2.5\",true]": "2",
+    "[\"%d\",\"1.010362971081845087891010366\",true]": "1",
+    "[\"%d\",\"3\",true]": "3",
+    "[\"%.0f\",\"2.50\",true]": "2",
+    "[\"%.0f\",\"4.25\",true]": "4",
+    "[\"%.0f\",\"9.25\",true]": "9",
+    "[\"%.0f\",\"3.083333333333333333333333333\",true]": "3",
+    "[\"%.0f\",\"2.5\",true]": "2",
+    "[\"%.0f\",\"1.010362971081845087891010366\",true]": "1",
+    "[\"%.0f\",\"3\",true]": "3",
+    "[\"%.2e\",\"2.50\",true]": "2.50e+00",
+    "[\"%.2e\",\"4.25\",true]": "4.25e+00",
+    "[\"%.2e\",\"9.25\",true]": "9.25e+00",
+    "[\"%.2e\",\"3.083333333333333333333333333\",true]": "3.08e+00",
+    "[\"%.2e\",\"2.5\",true]": "2.50e+00",
+    "[\"%.2e\",\"1.010362971081845087891010366\",true]": "1.01e+00",
+    "[\"%.2e\",\"3\",true]": "3.00e+00",
+    "[\"bad\",\"2.50\",true]": "bad",
+    "[\"bad\",\"4.25\",true]": "bad",
+    "[\"bad\",\"9.25\",true]": "bad",
+    "[\"bad\",\"3.083333333333333333333333333\",true]": "bad",
+    "[\"bad\",\"2.5\",true]": "bad",
+    "[\"bad\",\"1.010362971081845087891010366\",true]": "bad",
+    "[\"bad\",\"3\",true]": "bad",
+    "[\"%.3f\",\"2.50\",false]": "2.500",
+    "[\"%.3f\",\"4.25\",false]": "4.250",
+    "[\"%.3f\",\"9.25\",false]": "9.250",
+    "[\"%.3f\",\"3.083333333333333333333333333\",false]": "3.083",
+    "[\"%.3f\",\"2.5\",false]": "2.500",
+    "[\"%.3f\",\"1.010362971081845087891010366\",false]": "1.010",
+    "[\"%.3f\",\"3\",false]": "3.000",
+    "[\"%.3f\",\"4\",true]": "4.000",
+    "[\"%.3f\",\"10\",true]": "10.000",
+    "[\"%.3f\",\"19\",true]": "19.000",
+    "[\"%.3f\",\"7\",true]": "7.000",
+    "[\"%.3f\",\"0.01\",true]": "0.010",
+    "[\"%.3f\",\"1E+28\",true]": "9999999999999999583119736832.000",
+    "[\"%.3f\",\"1.000000000000000000000000000E+28\",true]": "9999999999999999583119736832.000",
+    "[\"%.3f\",\"5.00000000000000000000000000E+27\",true]": "4999999999999999791559868416.000",
+    "[\"%.3f\",\"7071067811865475244008443621\",true]": "7071067811865475636231405568.000",
+    "[\"%.3f\",\"-0.0\",true]": "-0.000",
+    "[\"%.3f\",\"0.00\",true]": "0.000",
+    "[\"%.3f\",\"2.0\",true]": "2.000",
+    "[\"%.3f\",\"6.0\",true]": "6.000",
+    "[\"%.3f\",\"12.0\",true]": "12.000",
+    "[\"%.3f\",\"4.0\",true]": "4.000",
+    "[\"%.3f\",\"9999999999999999999999999998\",true]": "9999999999999999583119736832.000",
+    "[\"%.3f\",\"9999999999999999999999999999\",true]": "9999999999999999583119736832.000",
+    "[\"%.3f\",\"2.000000000000000000000000000E+28\",true]": "19999999999999999166239473664.000",
+    "[\"%.3f\",\"2.236067977499789696409173669\",true]": "2.236",
+    "[\"%.3f\",\"2.000000000000000000000000001\",true]": "2.000",
+    "[\"%.3f\",\"2.000000000000000000000000002\",true]": "2.000",
+    "[\"%.3f\",\"4.000000000000000000000000003\",true]": "4.000",
+    "[\"%.3f\",\"1E-27\",true]": "0.000",
+    "[\"%.3f\",\"-100\",true]": "-100.000",
+    "[\"%.3f\",\"99\",true]": "99.000",
+    "[\"%.3f\",\"-0.5\",true]": "-0.500",
+    "[\"%.3f\",\"-0.1666666666666666666666666667\",true]": "-0.167",
+    "[\"%.3f\",\"0.5\",true]": "0.500",
+    "[\"%.3f\",\"99.50167502777696120473235130\",true]": "99.502"
+  },
+  "cases": [
+    {
+      "stdin": "b,n,t,d,dt,delta\nyes,2.50,cat,2020-01-02,2020-01-02T12:00:00,1 hour\nno,4.25,😀ab,2021-03-04,2021-03-04T15:00:00,2 hours\nnull,null,null,null,null,null\nyes,2.5,cat,2020-01-02,2020-01-02T12:00:00,1 hour\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "  1. \"b\"\n\n\tType of data:          Boolean\n\tContains null values:  True (excluded from calculations)\n\tNon-null values:       3\n\tUnique values:         3\n\tMost common values:    True (2x)\n\t                       False (1x)\n\t                       None (1x)\n\n  2. \"n\"\n\n\tType of data:          Number\n\tContains null values:  True (excluded from calculations)\n\tNon-null values:       3\n\tUnique values:         3\n\tSmallest value:        2.5\n\tLargest value:         4.25\n\tSum:                   9.25\n\tMean:                  3.083\n\tMedian:                2.5\n\tStDev:                 1.01\n\tMost decimal places:   2\n\tMost common values:    2.5 (2x)\n\t                       4.25 (1x)\n\t                       None (1x)\n\n  3. \"t\"\n\n\tType of data:          Text\n\tContains null values:  True (excluded from calculations)\n\tNon-null values:       3\n\tUnique values:         3\n\tLongest value:         3 characters\n\tMost common values:    cat (2x)\n\t                       😀ab (1x)\n\t                       None (1x)\n\n  4. \"d\"\n\n\tType of data:          Date\n\tContains null values:  True (excluded from calculations)\n\tNon-null values:       3\n\tUnique values:         3\n\tSmallest value:        2020-01-02\n\tLargest value:         2021-03-04\n\tMost common values:    2020-01-02 (2x)\n\t                       2021-03-04 (1x)\n\t                       None (1x)\n\n  5. \"dt\"\n\n\tType of data:          DateTime\n\tContains null values:  True (excluded from calculations)\n\tNon-null values:       3\n\tUnique values:         3\n\tSmallest value:        2020-01-02 12:00:00\n\tLargest value:         2021-03-04 15:00:00\n\tMost common values:    2020-01-02 12:00:00 (2x)\n\t                       2021-03-04 15:00:00 (1x)\n\t                       None (1x)\n\n  6. \"delta\"\n\n\tType of data:          TimeDelta\n\tContains null values:  True (excluded from calculations)\n\tNon-null values:       3\n\tUnique values:         3\n\tSmallest value:        1:00:00\n\tLargest value:         2:00:00\n\tSum:                   4:00:00\n\tMean:                  1:20:00\n\tMost common values:    1:00:00 (2x)\n\t                       2:00:00 (1x)\n\t                       None (1x)\n\nRow count: 4\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,n,t,d,dt,delta\nyes,2.50,cat,2020-01-02,2020-01-02T12:00:00,1 hour\nno,4.25,😀ab,2021-03-04,2021-03-04T15:00:00,2 hours\nnull,null,null,null,null,null\nyes,2.5,cat,2020-01-02,2020-01-02T12:00:00,1 hour\n",
+      "argv": [
+        "-y0",
+        "--type"
+      ],
+      "stdout": "  1. b: Boolean\n  2. n: Number\n  3. t: Text\n  4. d: Date\n  5. dt: DateTime\n  6. delta: TimeDelta\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,n,t,d,dt,delta\nyes,2.50,cat,2020-01-02,2020-01-02T12:00:00,1 hour\nno,4.25,😀ab,2021-03-04,2021-03-04T15:00:00,2 hours\nnull,null,null,null,null,null\nyes,2.5,cat,2020-01-02,2020-01-02T12:00:00,1 hour\n",
+      "argv": [
+        "-y0",
+        "--nulls"
+      ],
+      "stdout": "  1. b: True\n  2. n: True\n  3. t: True\n  4. d: True\n  5. dt: True\n  6. delta: True\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,n,t,d,dt,delta\nyes,2.50,cat,2020-01-02,2020-01-02T12:00:00,1 hour\nno,4.25,😀ab,2021-03-04,2021-03-04T15:00:00,2 hours\nnull,null,null,null,null,null\nyes,2.5,cat,2020-01-02,2020-01-02T12:00:00,1 hour\n",
+      "argv": [
+        "-y0",
+        "--non-nulls"
+      ],
+      "stdout": "  1. b: 3\n  2. n: 3\n  3. t: 3\n  4. d: 3\n  5. dt: 3\n  6. delta: 3\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,n,t,d,dt,delta\nyes,2.50,cat,2020-01-02,2020-01-02T12:00:00,1 hour\nno,4.25,😀ab,2021-03-04,2021-03-04T15:00:00,2 hours\nnull,null,null,null,null,null\nyes,2.5,cat,2020-01-02,2020-01-02T12:00:00,1 hour\n",
+      "argv": [
+        "-y0",
+        "--unique"
+      ],
+      "stdout": "  1. b: 3\n  2. n: 3\n  3. t: 3\n  4. d: 3\n  5. dt: 3\n  6. delta: 3\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,n,t,d,dt,delta\nyes,2.50,cat,2020-01-02,2020-01-02T12:00:00,1 hour\nno,4.25,😀ab,2021-03-04,2021-03-04T15:00:00,2 hours\nnull,null,null,null,null,null\nyes,2.5,cat,2020-01-02,2020-01-02T12:00:00,1 hour\n",
+      "argv": [
+        "-y0",
+        "--min"
+      ],
+      "stdout": "  1. b: None\n  2. n: 2.5\n  3. t: None\n  4. d: 2020-01-02\n  5. dt: 2020-01-02 12:00:00\n  6. delta: 1:00:00\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,n,t,d,dt,delta\nyes,2.50,cat,2020-01-02,2020-01-02T12:00:00,1 hour\nno,4.25,😀ab,2021-03-04,2021-03-04T15:00:00,2 hours\nnull,null,null,null,null,null\nyes,2.5,cat,2020-01-02,2020-01-02T12:00:00,1 hour\n",
+      "argv": [
+        "-y0",
+        "--max"
+      ],
+      "stdout": "  1. b: None\n  2. n: 4.25\n  3. t: None\n  4. d: 2021-03-04\n  5. dt: 2021-03-04 15:00:00\n  6. delta: 2:00:00\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,n,t,d,dt,delta\nyes,2.50,cat,2020-01-02,2020-01-02T12:00:00,1 hour\nno,4.25,😀ab,2021-03-04,2021-03-04T15:00:00,2 hours\nnull,null,null,null,null,null\nyes,2.5,cat,2020-01-02,2020-01-02T12:00:00,1 hour\n",
+      "argv": [
+        "-y0",
+        "--sum"
+      ],
+      "stdout": "  1. b: None\n  2. n: 9.25\n  3. t: None\n  4. d: None\n  5. dt: None\n  6. delta: 4:00:00\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,n,t,d,dt,delta\nyes,2.50,cat,2020-01-02,2020-01-02T12:00:00,1 hour\nno,4.25,😀ab,2021-03-04,2021-03-04T15:00:00,2 hours\nnull,null,null,null,null,null\nyes,2.5,cat,2020-01-02,2020-01-02T12:00:00,1 hour\n",
+      "argv": [
+        "-y0",
+        "--mean"
+      ],
+      "stdout": "  1. b: None\n  2. n: 3.083\n  3. t: None\n  4. d: None\n  5. dt: None\n  6. delta: 1:20:00\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,n,t,d,dt,delta\nyes,2.50,cat,2020-01-02,2020-01-02T12:00:00,1 hour\nno,4.25,😀ab,2021-03-04,2021-03-04T15:00:00,2 hours\nnull,null,null,null,null,null\nyes,2.5,cat,2020-01-02,2020-01-02T12:00:00,1 hour\n",
+      "argv": [
+        "-y0",
+        "--median"
+      ],
+      "stdout": "  1. b: None\n  2. n: 2.5\n  3. t: None\n  4. d: None\n  5. dt: None\n  6. delta: None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,n,t,d,dt,delta\nyes,2.50,cat,2020-01-02,2020-01-02T12:00:00,1 hour\nno,4.25,😀ab,2021-03-04,2021-03-04T15:00:00,2 hours\nnull,null,null,null,null,null\nyes,2.5,cat,2020-01-02,2020-01-02T12:00:00,1 hour\n",
+      "argv": [
+        "-y0",
+        "--stdev"
+      ],
+      "stdout": "  1. b: None\n  2. n: 1.01\n  3. t: None\n  4. d: None\n  5. dt: None\n  6. delta: None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,n,t,d,dt,delta\nyes,2.50,cat,2020-01-02,2020-01-02T12:00:00,1 hour\nno,4.25,😀ab,2021-03-04,2021-03-04T15:00:00,2 hours\nnull,null,null,null,null,null\nyes,2.5,cat,2020-01-02,2020-01-02T12:00:00,1 hour\n",
+      "argv": [
+        "-y0",
+        "--len"
+      ],
+      "stdout": "  1. b: None\n  2. n: None\n  3. t: 3\n  4. d: None\n  5. dt: None\n  6. delta: None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,n,t,d,dt,delta\nyes,2.50,cat,2020-01-02,2020-01-02T12:00:00,1 hour\nno,4.25,😀ab,2021-03-04,2021-03-04T15:00:00,2 hours\nnull,null,null,null,null,null\nyes,2.5,cat,2020-01-02,2020-01-02T12:00:00,1 hour\n",
+      "argv": [
+        "-y0",
+        "--max-precision"
+      ],
+      "stdout": "  1. b: None\n  2. n: 2\n  3. t: None\n  4. d: None\n  5. dt: None\n  6. delta: None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,n,t,d,dt,delta\nyes,2.50,cat,2020-01-02,2020-01-02T12:00:00,1 hour\nno,4.25,😀ab,2021-03-04,2021-03-04T15:00:00,2 hours\nnull,null,null,null,null,null\nyes,2.5,cat,2020-01-02,2020-01-02T12:00:00,1 hour\n",
+      "argv": [
+        "-y0",
+        "--freq"
+      ],
+      "stdout": "  1. b: { \"True\": 2, \"False\": 1, \"None\": 1 }\n  2. n: { \"2.50\": 2, \"4.25\": 1, \"None\": 1 }\n  3. t: { \"cat\": 2, \"😀ab\": 1, \"None\": 1 }\n  4. d: { \"2020-01-02\": 2, \"2021-03-04\": 1, \"None\": 1 }\n  5. dt: { \"2020-01-02 12:00:00\": 2, \"2021-03-04 15:00:00\": 1, \"None\": 1 }\n  6. delta: { \"1:00:00\": 2, \"2:00:00\": 1, \"None\": 1 }\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,n,t,d,dt,delta\nyes,2.50,cat,2020-01-02,2020-01-02T12:00:00,1 hour\nno,4.25,😀ab,2021-03-04,2021-03-04T15:00:00,2 hours\nnull,null,null,null,null,null\nyes,2.5,cat,2020-01-02,2020-01-02T12:00:00,1 hour\n",
+      "argv": [
+        "-y0",
+        "--csv"
+      ],
+      "stdout": "column_id,column_name,type,nulls,nonnulls,unique,min,max,sum,mean,median,stdev,len,maxprecision,freq\n1,b,Boolean,True,3,3,,,,,,,,,\"True, False, None\"\n2,n,Number,True,3,3,2.5,4.25,9.25,3.083,2.5,1.01,,2,\"2.50, 4.25, None\"\n3,t,Text,True,3,3,,,,,,,3,,\"cat, 😀ab, None\"\n4,d,Date,True,3,3,2020-01-02,2021-03-04,,,,,,,\"2020-01-02, 2021-03-04, None\"\n5,dt,DateTime,True,3,3,2020-01-02 12:00:00,2021-03-04 15:00:00,,,,,,,\"2020-01-02 12:00:00, 2021-03-04 15:00:00, None\"\n6,delta,TimeDelta,True,3,3,1:00:00,2:00:00,4:00:00,1:20:00,,,,,\"1:00:00, 2:00:00, None\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,n,t,d,dt,delta\nyes,2.50,cat,2020-01-02,2020-01-02T12:00:00,1 hour\nno,4.25,😀ab,2021-03-04,2021-03-04T15:00:00,2 hours\nnull,null,null,null,null,null\nyes,2.5,cat,2020-01-02,2020-01-02T12:00:00,1 hour\n",
+      "argv": [
+        "-y0",
+        "--json"
+      ],
+      "stdout": "[{\"column_id\": 1, \"column_name\": \"b\", \"type\": \"Boolean\", \"nulls\": true, \"nonnulls\": 3, \"unique\": 3, \"freq\": [{\"value\": true, \"count\": 2}, {\"value\": false, \"count\": 1}, {\"value\": null, \"count\": 1}]}, {\"column_id\": 2, \"column_name\": \"n\", \"type\": \"Number\", \"nulls\": true, \"nonnulls\": 3, \"unique\": 3, \"min\": 2.5, \"max\": 4.25, \"sum\": 9.25, \"mean\": 3.0833333333333335, \"median\": 2.5, \"stdev\": 1.0103629710818451, \"maxprecision\": 2, \"freq\": [{\"value\": 2.5, \"count\": 2}, {\"value\": 4.25, \"count\": 1}, {\"value\": null, \"count\": 1}]}, {\"column_id\": 3, \"column_name\": \"t\", \"type\": \"Text\", \"nulls\": true, \"nonnulls\": 3, \"unique\": 3, \"len\": 3.0, \"freq\": [{\"value\": \"cat\", \"count\": 2}, {\"value\": \"😀ab\", \"count\": 1}, {\"value\": null, \"count\": 1}]}, {\"column_id\": 4, \"column_name\": \"d\", \"type\": \"Date\", \"nulls\": true, \"nonnulls\": 3, \"unique\": 3, \"min\": \"2020-01-02\", \"max\": \"2021-03-04\", \"freq\": [{\"value\": \"2020-01-02\", \"count\": 2}, {\"value\": \"2021-03-04\", \"count\": 1}, {\"value\": null, \"count\": 1}]}, {\"column_id\": 5, \"column_name\": \"dt\", \"type\": \"DateTime\", \"nulls\": true, \"nonnulls\": 3, \"unique\": 3, \"min\": \"2020-01-02T12:00:00\", \"max\": \"2021-03-04T15:00:00\", \"freq\": [{\"value\": \"2020-01-02T12:00:00\", \"count\": 2}, {\"value\": \"2021-03-04T15:00:00\", \"count\": 1}, {\"value\": null, \"count\": 1}]}, {\"column_id\": 6, \"column_name\": \"delta\", \"type\": \"TimeDelta\", \"nulls\": true, \"nonnulls\": 3, \"unique\": 3, \"min\": 3600.0, \"max\": 7200.0, \"sum\": 14400.0, \"mean\": 4800.0, \"freq\": [{\"value\": 3600.0, \"count\": 2}, {\"value\": 7200.0, \"count\": 1}, {\"value\": null, \"count\": 1}]}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "  1. \"x\"\n\n\tType of data:          Boolean\n\tContains null values:  False\n\tNon-null values:       0\n\tUnique values:         0\n\nRow count: 0\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n",
+      "argv": [
+        "-y0",
+        "--type"
+      ],
+      "stdout": "Boolean\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n",
+      "argv": [
+        "-y0",
+        "--nulls"
+      ],
+      "stdout": "False\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n",
+      "argv": [
+        "-y0",
+        "--non-nulls"
+      ],
+      "stdout": "0\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n",
+      "argv": [
+        "-y0",
+        "--unique"
+      ],
+      "stdout": "0\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n",
+      "argv": [
+        "-y0",
+        "--min"
+      ],
+      "stdout": "None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n",
+      "argv": [
+        "-y0",
+        "--max"
+      ],
+      "stdout": "None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n",
+      "argv": [
+        "-y0",
+        "--sum"
+      ],
+      "stdout": "None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n",
+      "argv": [
+        "-y0",
+        "--mean"
+      ],
+      "stdout": "None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n",
+      "argv": [
+        "-y0",
+        "--median"
+      ],
+      "stdout": "None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n",
+      "argv": [
+        "-y0",
+        "--stdev"
+      ],
+      "stdout": "None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n",
+      "argv": [
+        "-y0",
+        "--len"
+      ],
+      "stdout": "None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n",
+      "argv": [
+        "-y0",
+        "--max-precision"
+      ],
+      "stdout": "None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n",
+      "argv": [
+        "-y0",
+        "--freq"
+      ],
+      "stdout": "{  }\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n",
+      "argv": [
+        "-y0",
+        "--csv"
+      ],
+      "stdout": "column_id,column_name,type,nulls,nonnulls,unique,min,max,sum,mean,median,stdev,len,maxprecision,freq\n1,x,Boolean,False,0,0,,,,,,,,,\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n",
+      "argv": [
+        "-y0",
+        "--json"
+      ],
+      "stdout": "[{\"column_id\": 1, \"column_name\": \"x\", \"type\": \"Boolean\", \"nulls\": false, \"nonnulls\": 0, \"unique\": 0, \"freq\": []}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nnull\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "  1. \"x\"\n\n\tType of data:          Boolean\n\tContains null values:  True (excluded from calculations)\n\tNon-null values:       0\n\tUnique values:         1\n\tMost common values:    None (1x)\n\nRow count: 1\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nnull\n",
+      "argv": [
+        "-y0",
+        "--type"
+      ],
+      "stdout": "Boolean\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nnull\n",
+      "argv": [
+        "-y0",
+        "--nulls"
+      ],
+      "stdout": "True\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nnull\n",
+      "argv": [
+        "-y0",
+        "--non-nulls"
+      ],
+      "stdout": "0\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nnull\n",
+      "argv": [
+        "-y0",
+        "--unique"
+      ],
+      "stdout": "1\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nnull\n",
+      "argv": [
+        "-y0",
+        "--min"
+      ],
+      "stdout": "None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nnull\n",
+      "argv": [
+        "-y0",
+        "--max"
+      ],
+      "stdout": "None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nnull\n",
+      "argv": [
+        "-y0",
+        "--sum"
+      ],
+      "stdout": "None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nnull\n",
+      "argv": [
+        "-y0",
+        "--mean"
+      ],
+      "stdout": "None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nnull\n",
+      "argv": [
+        "-y0",
+        "--median"
+      ],
+      "stdout": "None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nnull\n",
+      "argv": [
+        "-y0",
+        "--stdev"
+      ],
+      "stdout": "None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nnull\n",
+      "argv": [
+        "-y0",
+        "--len"
+      ],
+      "stdout": "None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nnull\n",
+      "argv": [
+        "-y0",
+        "--max-precision"
+      ],
+      "stdout": "None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nnull\n",
+      "argv": [
+        "-y0",
+        "--freq"
+      ],
+      "stdout": "{ \"None\": 1 }\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nnull\n",
+      "argv": [
+        "-y0",
+        "--csv"
+      ],
+      "stdout": "column_id,column_name,type,nulls,nonnulls,unique,min,max,sum,mean,median,stdev,len,maxprecision,freq\n1,x,Boolean,True,0,1,,,,,,,,,None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nnull\n",
+      "argv": [
+        "-y0",
+        "--json"
+      ],
+      "stdout": "[{\"column_id\": 1, \"column_name\": \"x\", \"type\": \"Boolean\", \"nulls\": true, \"nonnulls\": 0, \"unique\": 1, \"freq\": [{\"value\": null, \"count\": 1}]}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n2.5\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "  1. \"x\"\n\n\tType of data:          Number\n\tContains null values:  False\n\tNon-null values:       1\n\tUnique values:         1\n\tSmallest value:        2.5\n\tLargest value:         2.5\n\tSum:                   2.5\n\tMean:                  2.5\n\tMedian:                2.5\n\tMost decimal places:   1\n\tMost common values:    2.5 (1x)\n\nRow count: 1\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n2.5\n",
+      "argv": [
+        "-y0",
+        "--type"
+      ],
+      "stdout": "Number\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n2.5\n",
+      "argv": [
+        "-y0",
+        "--nulls"
+      ],
+      "stdout": "False\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n2.5\n",
+      "argv": [
+        "-y0",
+        "--non-nulls"
+      ],
+      "stdout": "1\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n2.5\n",
+      "argv": [
+        "-y0",
+        "--unique"
+      ],
+      "stdout": "1\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n2.5\n",
+      "argv": [
+        "-y0",
+        "--min"
+      ],
+      "stdout": "2.5\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n2.5\n",
+      "argv": [
+        "-y0",
+        "--max"
+      ],
+      "stdout": "2.5\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n2.5\n",
+      "argv": [
+        "-y0",
+        "--sum"
+      ],
+      "stdout": "2.5\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n2.5\n",
+      "argv": [
+        "-y0",
+        "--mean"
+      ],
+      "stdout": "2.5\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n2.5\n",
+      "argv": [
+        "-y0",
+        "--median"
+      ],
+      "stdout": "2.5\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n2.5\n",
+      "argv": [
+        "-y0",
+        "--stdev"
+      ],
+      "stdout": "None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n2.5\n",
+      "argv": [
+        "-y0",
+        "--len"
+      ],
+      "stdout": "None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n2.5\n",
+      "argv": [
+        "-y0",
+        "--max-precision"
+      ],
+      "stdout": "1\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n2.5\n",
+      "argv": [
+        "-y0",
+        "--freq"
+      ],
+      "stdout": "{ \"2.5\": 1 }\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n2.5\n",
+      "argv": [
+        "-y0",
+        "--csv"
+      ],
+      "stdout": "column_id,column_name,type,nulls,nonnulls,unique,min,max,sum,mean,median,stdev,len,maxprecision,freq\n1,x,Number,False,1,1,2.5,2.5,2.5,2.5,2.5,,,1,2.5\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n2.5\n",
+      "argv": [
+        "-y0",
+        "--json"
+      ],
+      "stdout": "[{\"column_id\": 1, \"column_name\": \"x\", \"type\": \"Number\", \"nulls\": false, \"nonnulls\": 1, \"unique\": 1, \"min\": 2.5, \"max\": 2.5, \"sum\": 2.5, \"mean\": 2.5, \"median\": 2.5, \"maxprecision\": 1, \"freq\": [{\"value\": 2.5, \"count\": 1}]}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "Row count: 0\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "",
+      "argv": [
+        "-y0",
+        "--type"
+      ],
+      "stdout": "",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "",
+      "argv": [
+        "-y0",
+        "--nulls"
+      ],
+      "stdout": "",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "",
+      "argv": [
+        "-y0",
+        "--non-nulls"
+      ],
+      "stdout": "",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "",
+      "argv": [
+        "-y0",
+        "--unique"
+      ],
+      "stdout": "",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "",
+      "argv": [
+        "-y0",
+        "--min"
+      ],
+      "stdout": "",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "",
+      "argv": [
+        "-y0",
+        "--max"
+      ],
+      "stdout": "",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "",
+      "argv": [
+        "-y0",
+        "--sum"
+      ],
+      "stdout": "",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "",
+      "argv": [
+        "-y0",
+        "--mean"
+      ],
+      "stdout": "",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "",
+      "argv": [
+        "-y0",
+        "--median"
+      ],
+      "stdout": "",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "",
+      "argv": [
+        "-y0",
+        "--stdev"
+      ],
+      "stdout": "",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "",
+      "argv": [
+        "-y0",
+        "--len"
+      ],
+      "stdout": "",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "",
+      "argv": [
+        "-y0",
+        "--max-precision"
+      ],
+      "stdout": "",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "",
+      "argv": [
+        "-y0",
+        "--freq"
+      ],
+      "stdout": "",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "",
+      "argv": [
+        "-y0",
+        "--csv"
+      ],
+      "stdout": "column_id,column_name,type,nulls,nonnulls,unique,min,max,sum,mean,median,stdev,len,maxprecision,freq\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "",
+      "argv": [
+        "-y0",
+        "--json"
+      ],
+      "stdout": "[]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nNaN\n2\nInfinity\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "  1. \"x\"\n\n\tType of data:          Number\n\tContains null values:  False\n\tNon-null values:       3\n\tUnique values:         3\n\tSum:                   NaN\n\tMean:                  NaN\n\tStDev:                 NaN\n\tMost decimal places:   0\n\tMost common values:    NaN (1x)\n\t                       2 (1x)\n\t                       Infinity (1x)\n\nRow count: 3\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nNaN\n2\nInfinity\n",
+      "argv": [
+        "-y0",
+        "--type"
+      ],
+      "stdout": "Number\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nNaN\n2\nInfinity\n",
+      "argv": [
+        "-y0",
+        "--nulls"
+      ],
+      "stdout": "False\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nNaN\n2\nInfinity\n",
+      "argv": [
+        "-y0",
+        "--non-nulls"
+      ],
+      "stdout": "3\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nNaN\n2\nInfinity\n",
+      "argv": [
+        "-y0",
+        "--unique"
+      ],
+      "stdout": "3\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nNaN\n2\nInfinity\n",
+      "argv": [
+        "-y0",
+        "--min"
+      ],
+      "stdout": "None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nNaN\n2\nInfinity\n",
+      "argv": [
+        "-y0",
+        "--max"
+      ],
+      "stdout": "None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nNaN\n2\nInfinity\n",
+      "argv": [
+        "-y0",
+        "--sum"
+      ],
+      "stdout": "NaN\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nNaN\n2\nInfinity\n",
+      "argv": [
+        "-y0",
+        "--mean"
+      ],
+      "stdout": "NaN\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nNaN\n2\nInfinity\n",
+      "argv": [
+        "-y0",
+        "--median"
+      ],
+      "stdout": "None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nNaN\n2\nInfinity\n",
+      "argv": [
+        "-y0",
+        "--stdev"
+      ],
+      "stdout": "NaN\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nNaN\n2\nInfinity\n",
+      "argv": [
+        "-y0",
+        "--len"
+      ],
+      "stdout": "None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nNaN\n2\nInfinity\n",
+      "argv": [
+        "-y0",
+        "--max-precision"
+      ],
+      "stdout": "0\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nNaN\n2\nInfinity\n",
+      "argv": [
+        "-y0",
+        "--freq"
+      ],
+      "stdout": "{ \"NaN\": 1, \"2\": 1, \"Infinity\": 1 }\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nNaN\n2\nInfinity\n",
+      "argv": [
+        "-y0",
+        "--csv"
+      ],
+      "stdout": "column_id,column_name,type,nulls,nonnulls,unique,min,max,sum,mean,median,stdev,len,maxprecision,freq\n1,x,Number,False,3,3,,,NaN,NaN,,NaN,,0,\"NaN, 2, Infinity\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nNaN\n2\nInfinity\n",
+      "argv": [
+        "-y0",
+        "--json"
+      ],
+      "stdout": "[{\"column_id\": 1, \"column_name\": \"x\", \"type\": \"Number\", \"nulls\": false, \"nonnulls\": 3, \"unique\": 3, \"sum\": NaN, \"mean\": NaN, \"stdev\": NaN, \"maxprecision\": 0, \"freq\": [{\"value\": NaN, \"count\": 1}, {\"value\": 2.0, \"count\": 1}, {\"value\": Infinity, \"count\": 1}]}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n-0.00\n0\n2.000\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "  1. \"x\"\n\n\tType of data:          Number\n\tContains null values:  False\n\tNon-null values:       3\n\tUnique values:         2\n\tSmallest value:        -0\n\tLargest value:         2\n\tSum:                   2\n\tMean:                  0.667\n\tMedian:                0\n\tStDev:                 1.155\n\tMost decimal places:   0\n\tMost common values:    -0 (2x)\n\t                       2 (1x)\n\nRow count: 3\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n-0.00\n0\n2.000\n",
+      "argv": [
+        "-y0",
+        "--type"
+      ],
+      "stdout": "Number\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n-0.00\n0\n2.000\n",
+      "argv": [
+        "-y0",
+        "--nulls"
+      ],
+      "stdout": "False\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n-0.00\n0\n2.000\n",
+      "argv": [
+        "-y0",
+        "--non-nulls"
+      ],
+      "stdout": "3\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n-0.00\n0\n2.000\n",
+      "argv": [
+        "-y0",
+        "--unique"
+      ],
+      "stdout": "2\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n-0.00\n0\n2.000\n",
+      "argv": [
+        "-y0",
+        "--min"
+      ],
+      "stdout": "-0\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n-0.00\n0\n2.000\n",
+      "argv": [
+        "-y0",
+        "--max"
+      ],
+      "stdout": "2\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n-0.00\n0\n2.000\n",
+      "argv": [
+        "-y0",
+        "--sum"
+      ],
+      "stdout": "2\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n-0.00\n0\n2.000\n",
+      "argv": [
+        "-y0",
+        "--mean"
+      ],
+      "stdout": "0.667\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n-0.00\n0\n2.000\n",
+      "argv": [
+        "-y0",
+        "--median"
+      ],
+      "stdout": "0\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n-0.00\n0\n2.000\n",
+      "argv": [
+        "-y0",
+        "--stdev"
+      ],
+      "stdout": "1.155\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n-0.00\n0\n2.000\n",
+      "argv": [
+        "-y0",
+        "--len"
+      ],
+      "stdout": "None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n-0.00\n0\n2.000\n",
+      "argv": [
+        "-y0",
+        "--max-precision"
+      ],
+      "stdout": "0\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n-0.00\n0\n2.000\n",
+      "argv": [
+        "-y0",
+        "--freq"
+      ],
+      "stdout": "{ \"-0.00\": 2, \"2.000\": 1 }\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n-0.00\n0\n2.000\n",
+      "argv": [
+        "-y0",
+        "--csv"
+      ],
+      "stdout": "column_id,column_name,type,nulls,nonnulls,unique,min,max,sum,mean,median,stdev,len,maxprecision,freq\n1,x,Number,False,3,2,-0,2,2,0.667,0,1.155,,0,\"-0.00, 2.000\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n-0.00\n0\n2.000\n",
+      "argv": [
+        "-y0",
+        "--json"
+      ],
+      "stdout": "[{\"column_id\": 1, \"column_name\": \"x\", \"type\": \"Number\", \"nulls\": false, \"nonnulls\": 3, \"unique\": 2, \"min\": -0.0, \"max\": 2.0, \"sum\": 2.0, \"mean\": 0.6666666666666666, \"median\": 0.0, \"stdev\": 1.1547005383792515, \"maxprecision\": 0, \"freq\": [{\"value\": -0.0, \"count\": 2}, {\"value\": 2.0, \"count\": 1}]}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n1e27\n0.123\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "  1. \"x\"\n\n\tType of data:          Number\n\tContains null values:  False\n\tNon-null values:       2\n\tUnique values:         2\n\tSmallest value:        0.123\n\tLargest value:         1000000000000000013287555072\n\tSum:                   1000000000000000013287555072\n\tMean:                  500000000000000006643777536\n\tMedian:                500000000000000006643777536\n\tStDev:                 707106781186547508647559168\n\tMost decimal places:   0\n\tMost common values:    1000000000000000013287555072 (1x)\n\t                       0.123 (1x)\n\nRow count: 2\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n1e27\n0.123\n",
+      "argv": [
+        "-y0",
+        "--type"
+      ],
+      "stdout": "Number\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n1e27\n0.123\n",
+      "argv": [
+        "-y0",
+        "--nulls"
+      ],
+      "stdout": "False\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n1e27\n0.123\n",
+      "argv": [
+        "-y0",
+        "--non-nulls"
+      ],
+      "stdout": "2\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n1e27\n0.123\n",
+      "argv": [
+        "-y0",
+        "--unique"
+      ],
+      "stdout": "2\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n1e27\n0.123\n",
+      "argv": [
+        "-y0",
+        "--min"
+      ],
+      "stdout": "0.123\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n1e27\n0.123\n",
+      "argv": [
+        "-y0",
+        "--max"
+      ],
+      "stdout": "1000000000000000013287555072\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n1e27\n0.123\n",
+      "argv": [
+        "-y0",
+        "--sum"
+      ],
+      "stdout": "1000000000000000013287555072\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n1e27\n0.123\n",
+      "argv": [
+        "-y0",
+        "--mean"
+      ],
+      "stdout": "500000000000000006643777536\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n1e27\n0.123\n",
+      "argv": [
+        "-y0",
+        "--median"
+      ],
+      "stdout": "500000000000000006643777536\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n1e27\n0.123\n",
+      "argv": [
+        "-y0",
+        "--stdev"
+      ],
+      "stdout": "707106781186547508647559168\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n1e27\n0.123\n",
+      "argv": [
+        "-y0",
+        "--len"
+      ],
+      "stdout": "None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n1e27\n0.123\n",
+      "argv": [
+        "-y0",
+        "--max-precision"
+      ],
+      "stdout": "0\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n1e27\n0.123\n",
+      "argv": [
+        "-y0",
+        "--freq"
+      ],
+      "stdout": "{ \"1E+27\": 1, \"0.123\": 1 }\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n1e27\n0.123\n",
+      "argv": [
+        "-y0",
+        "--csv"
+      ],
+      "stdout": "column_id,column_name,type,nulls,nonnulls,unique,min,max,sum,mean,median,stdev,len,maxprecision,freq\n1,x,Number,False,2,2,0.123,1000000000000000013287555072,1000000000000000013287555072,500000000000000006643777536,500000000000000006643777536,707106781186547508647559168,,0,\"1E+27, 0.123\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n1e27\n0.123\n",
+      "argv": [
+        "-y0",
+        "--json"
+      ],
+      "stdout": "[{\"column_id\": 1, \"column_name\": \"x\", \"type\": \"Number\", \"nulls\": false, \"nonnulls\": 2, \"unique\": 2, \"min\": 0.123, \"max\": 1e+27, \"sum\": 1e+27, \"mean\": 5e+26, \"median\": 5e+26, \"stdev\": 7.071067811865475e+26, \"maxprecision\": 0, \"freq\": [{\"value\": 1e+27, \"count\": 1}, {\"value\": 0.123, \"count\": 1}]}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n1 hour\n2 hours\n3 hours\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "  1. \"x\"\n\n\tType of data:          TimeDelta\n\tContains null values:  False\n\tNon-null values:       3\n\tUnique values:         3\n\tSmallest value:        1:00:00\n\tLargest value:         3:00:00\n\tSum:                   6:00:00\n\tMean:                  2:00:00\n\tMost common values:    1:00:00 (1x)\n\t                       2:00:00 (1x)\n\t                       3:00:00 (1x)\n\nRow count: 3\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n1 hour\n2 hours\n3 hours\n",
+      "argv": [
+        "-y0",
+        "--type"
+      ],
+      "stdout": "TimeDelta\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n1 hour\n2 hours\n3 hours\n",
+      "argv": [
+        "-y0",
+        "--nulls"
+      ],
+      "stdout": "False\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n1 hour\n2 hours\n3 hours\n",
+      "argv": [
+        "-y0",
+        "--non-nulls"
+      ],
+      "stdout": "3\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n1 hour\n2 hours\n3 hours\n",
+      "argv": [
+        "-y0",
+        "--unique"
+      ],
+      "stdout": "3\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n1 hour\n2 hours\n3 hours\n",
+      "argv": [
+        "-y0",
+        "--min"
+      ],
+      "stdout": "1:00:00\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n1 hour\n2 hours\n3 hours\n",
+      "argv": [
+        "-y0",
+        "--max"
+      ],
+      "stdout": "3:00:00\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n1 hour\n2 hours\n3 hours\n",
+      "argv": [
+        "-y0",
+        "--sum"
+      ],
+      "stdout": "6:00:00\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n1 hour\n2 hours\n3 hours\n",
+      "argv": [
+        "-y0",
+        "--mean"
+      ],
+      "stdout": "2:00:00\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n1 hour\n2 hours\n3 hours\n",
+      "argv": [
+        "-y0",
+        "--median"
+      ],
+      "stdout": "None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n1 hour\n2 hours\n3 hours\n",
+      "argv": [
+        "-y0",
+        "--stdev"
+      ],
+      "stdout": "None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n1 hour\n2 hours\n3 hours\n",
+      "argv": [
+        "-y0",
+        "--len"
+      ],
+      "stdout": "None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n1 hour\n2 hours\n3 hours\n",
+      "argv": [
+        "-y0",
+        "--max-precision"
+      ],
+      "stdout": "None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n1 hour\n2 hours\n3 hours\n",
+      "argv": [
+        "-y0",
+        "--freq"
+      ],
+      "stdout": "{ \"1:00:00\": 1, \"2:00:00\": 1, \"3:00:00\": 1 }\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n1 hour\n2 hours\n3 hours\n",
+      "argv": [
+        "-y0",
+        "--csv"
+      ],
+      "stdout": "column_id,column_name,type,nulls,nonnulls,unique,min,max,sum,mean,median,stdev,len,maxprecision,freq\n1,x,TimeDelta,False,3,3,1:00:00,3:00:00,6:00:00,2:00:00,,,,,\"1:00:00, 2:00:00, 3:00:00\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n1 hour\n2 hours\n3 hours\n",
+      "argv": [
+        "-y0",
+        "--json"
+      ],
+      "stdout": "[{\"column_id\": 1, \"column_name\": \"x\", \"type\": \"TimeDelta\", \"nulls\": false, \"nonnulls\": 3, \"unique\": 3, \"min\": 3600.0, \"max\": 10800.0, \"sum\": 21600.0, \"mean\": 7200.0, \"freq\": [{\"value\": 3600.0, \"count\": 1}, {\"value\": 7200.0, \"count\": 1}, {\"value\": 10800.0, \"count\": 1}]}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,n,t,d,dt,delta\nyes,2.50,cat,2020-01-02,2020-01-02T12:00:00,1 hour\nno,4.25,😀ab,2021-03-04,2021-03-04T15:00:00,2 hours\nnull,null,null,null,null,null\nyes,2.5,cat,2020-01-02,2020-01-02T12:00:00,1 hour\n",
+      "argv": [
+        "-y0",
+        "--freq",
+        "--freq-count",
+        "0"
+      ],
+      "stdout": "  1. b: { \"True\": 2, \"False\": 1, \"None\": 1 }\n  2. n: { \"2.50\": 2, \"4.25\": 1, \"None\": 1 }\n  3. t: { \"cat\": 2, \"😀ab\": 1, \"None\": 1 }\n  4. d: { \"2020-01-02\": 2, \"2021-03-04\": 1, \"None\": 1 }\n  5. dt: { \"2020-01-02 12:00:00\": 2, \"2021-03-04 15:00:00\": 1, \"None\": 1 }\n  6. delta: { \"1:00:00\": 2, \"2:00:00\": 1, \"None\": 1 }\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,n,t,d,dt,delta\nyes,2.50,cat,2020-01-02,2020-01-02T12:00:00,1 hour\nno,4.25,😀ab,2021-03-04,2021-03-04T15:00:00,2 hours\nnull,null,null,null,null,null\nyes,2.5,cat,2020-01-02,2020-01-02T12:00:00,1 hour\n",
+      "argv": [
+        "-y0",
+        "--freq",
+        "--freq-count",
+        "-1"
+      ],
+      "stdout": "  1. b: {  }\n  2. n: {  }\n  3. t: {  }\n  4. d: {  }\n  5. dt: {  }\n  6. delta: {  }\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,n,t,d,dt,delta\nyes,2.50,cat,2020-01-02,2020-01-02T12:00:00,1 hour\nno,4.25,😀ab,2021-03-04,2021-03-04T15:00:00,2 hours\nnull,null,null,null,null,null\nyes,2.5,cat,2020-01-02,2020-01-02T12:00:00,1 hour\n",
+      "argv": [
+        "-y0",
+        "--freq",
+        "--freq-count",
+        "2"
+      ],
+      "stdout": "  1. b: { \"True\": 2, \"False\": 1 }\n  2. n: { \"2.50\": 2, \"4.25\": 1 }\n  3. t: { \"cat\": 2, \"😀ab\": 1 }\n  4. d: { \"2020-01-02\": 2, \"2021-03-04\": 1 }\n  5. dt: { \"2020-01-02 12:00:00\": 2, \"2021-03-04 15:00:00\": 1 }\n  6. delta: { \"1:00:00\": 2, \"2:00:00\": 1 }\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,n,t,d,dt,delta\nyes,2.50,cat,2020-01-02,2020-01-02T12:00:00,1 hour\nno,4.25,😀ab,2021-03-04,2021-03-04T15:00:00,2 hours\nnull,null,null,null,null,null\nyes,2.5,cat,2020-01-02,2020-01-02T12:00:00,1 hour\n",
+      "argv": [
+        "-y0",
+        "--csv",
+        "--json"
+      ],
+      "stdout": "column_id,column_name,type,nulls,nonnulls,unique,min,max,sum,mean,median,stdev,len,maxprecision,freq\n1,b,Boolean,True,3,3,,,,,,,,,\"True, False, None\"\n2,n,Number,True,3,3,2.50,4.25,9.25,3.083333333333333333333333333,2.5,1.010362971081845087891010366,,2,\"2.50, 4.25, None\"\n3,t,Text,True,3,3,,,,,,,3,,\"cat, 😀ab, None\"\n4,d,Date,True,3,3,2020-01-02,2021-03-04,,,,,,,\"2020-01-02, 2021-03-04, None\"\n5,dt,DateTime,True,3,3,2020-01-02 12:00:00,2021-03-04 15:00:00,,,,,,,\"2020-01-02 12:00:00, 2021-03-04 15:00:00, None\"\n6,delta,TimeDelta,True,3,3,1:00:00,2:00:00,4:00:00,1:20:00,,,,,\"1:00:00, 2:00:00, None\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,n,t,d,dt,delta\nyes,2.50,cat,2020-01-02,2020-01-02T12:00:00,1 hour\nno,4.25,😀ab,2021-03-04,2021-03-04T15:00:00,2 hours\nnull,null,null,null,null,null\nyes,2.5,cat,2020-01-02,2020-01-02T12:00:00,1 hour\n",
+      "argv": [
+        "-y0",
+        "--count",
+        "--csv",
+        "--json"
+      ],
+      "stdout": "4\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,n,t,d,dt,delta\nyes,2.50,cat,2020-01-02,2020-01-02T12:00:00,1 hour\nno,4.25,😀ab,2021-03-04,2021-03-04T15:00:00,2 hours\nnull,null,null,null,null,null\nyes,2.5,cat,2020-01-02,2020-01-02T12:00:00,1 hour\n",
+      "argv": [
+        "-y0",
+        "--zero",
+        "-c",
+        "1",
+        "--mean"
+      ],
+      "stdout": "3.083\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,n,t,d,dt,delta\nyes,2.50,cat,2020-01-02,2020-01-02T12:00:00,1 hour\nno,4.25,😀ab,2021-03-04,2021-03-04T15:00:00,2 hours\nnull,null,null,null,null,null\nyes,2.5,cat,2020-01-02,2020-01-02T12:00:00,1 hour\n",
+      "argv": [
+        "-y0",
+        "--zero"
+      ],
+      "stdout": "  1. \"b\"\n\n\tType of data:          Boolean\n\tContains null values:  True (excluded from calculations)\n\tNon-null values:       3\n\tUnique values:         3\n\tMost common values:    True (2x)\n\t                       False (1x)\n\t                       None (1x)\n\n  2. \"n\"\n\n\tType of data:          Number\n\tContains null values:  True (excluded from calculations)\n\tNon-null values:       3\n\tUnique values:         3\n\tSmallest value:        2.5\n\tLargest value:         4.25\n\tSum:                   9.25\n\tMean:                  3.083\n\tMedian:                2.5\n\tStDev:                 1.01\n\tMost decimal places:   2\n\tMost common values:    2.5 (2x)\n\t                       4.25 (1x)\n\t                       None (1x)\n\n  3. \"t\"\n\n\tType of data:          Text\n\tContains null values:  True (excluded from calculations)\n\tNon-null values:       3\n\tUnique values:         3\n\tLongest value:         3 characters\n\tMost common values:    cat (2x)\n\t                       😀ab (1x)\n\t                       None (1x)\n\n  4. \"d\"\n\n\tType of data:          Date\n\tContains null values:  True (excluded from calculations)\n\tNon-null values:       3\n\tUnique values:         3\n\tSmallest value:        2020-01-02\n\tLargest value:         2021-03-04\n\tMost common values:    2020-01-02 (2x)\n\t                       2021-03-04 (1x)\n\t                       None (1x)\n\n  5. \"dt\"\n\n\tType of data:          DateTime\n\tContains null values:  True (excluded from calculations)\n\tNon-null values:       3\n\tUnique values:         3\n\tSmallest value:        2020-01-02 12:00:00\n\tLargest value:         2021-03-04 15:00:00\n\tMost common values:    2020-01-02 12:00:00 (2x)\n\t                       2021-03-04 15:00:00 (1x)\n\t                       None (1x)\n\n  6. \"delta\"\n\n\tType of data:          TimeDelta\n\tContains null values:  True (excluded from calculations)\n\tNon-null values:       3\n\tUnique values:         3\n\tSmallest value:        1:00:00\n\tLargest value:         2:00:00\n\tSum:                   4:00:00\n\tMean:                  1:20:00\n\tMost common values:    1:00:00 (2x)\n\t                       2:00:00 (1x)\n\t                       None (1x)\n\nRow count: 4\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,n,t,d,dt,delta\nyes,2.50,cat,2020-01-02,2020-01-02T12:00:00,1 hour\nno,4.25,😀ab,2021-03-04,2021-03-04T15:00:00,2 hours\nnull,null,null,null,null,null\nyes,2.5,cat,2020-01-02,2020-01-02T12:00:00,1 hour\n",
+      "argv": [
+        "-y0",
+        "--csv",
+        "-l",
+        "--add-bom"
+      ],
+      "stdout": "﻿column_id,column_name,type,nulls,nonnulls,unique,min,max,sum,mean,median,stdev,len,maxprecision,freq\n1,b,Boolean,True,3,3,,,,,,,,,\"True, False, None\"\n2,n,Number,True,3,3,2.5,4.25,9.25,3.083,2.5,1.01,,2,\"2.50, 4.25, None\"\n3,t,Text,True,3,3,,,,,,,3,,\"cat, 😀ab, None\"\n4,d,Date,True,3,3,2020-01-02,2021-03-04,,,,,,,\"2020-01-02, 2021-03-04, None\"\n5,dt,DateTime,True,3,3,2020-01-02 12:00:00,2021-03-04 15:00:00,,,,,,,\"2020-01-02 12:00:00, 2021-03-04 15:00:00, None\"\n6,delta,TimeDelta,True,3,3,1:00:00,2:00:00,4:00:00,1:20:00,,,,,\"1:00:00, 2:00:00, None\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,n,t,d,dt,delta\nyes,2.50,cat,2020-01-02,2020-01-02T12:00:00,1 hour\nno,4.25,😀ab,2021-03-04,2021-03-04T15:00:00,2 hours\nnull,null,null,null,null,null\nyes,2.5,cat,2020-01-02,2020-01-02T12:00:00,1 hour\n",
+      "argv": [
+        "-y0",
+        "--json",
+        "-i",
+        "0"
+      ],
+      "stdout": "[\n{\n\"column_id\": 1,\n\"column_name\": \"b\",\n\"type\": \"Boolean\",\n\"nulls\": true,\n\"nonnulls\": 3,\n\"unique\": 3,\n\"freq\": [\n{\n\"value\": true,\n\"count\": 2\n},\n{\n\"value\": false,\n\"count\": 1\n},\n{\n\"value\": null,\n\"count\": 1\n}\n]\n},\n{\n\"column_id\": 2,\n\"column_name\": \"n\",\n\"type\": \"Number\",\n\"nulls\": true,\n\"nonnulls\": 3,\n\"unique\": 3,\n\"min\": 2.5,\n\"max\": 4.25,\n\"sum\": 9.25,\n\"mean\": 3.0833333333333335,\n\"median\": 2.5,\n\"stdev\": 1.0103629710818451,\n\"maxprecision\": 2,\n\"freq\": [\n{\n\"value\": 2.5,\n\"count\": 2\n},\n{\n\"value\": 4.25,\n\"count\": 1\n},\n{\n\"value\": null,\n\"count\": 1\n}\n]\n},\n{\n\"column_id\": 3,\n\"column_name\": \"t\",\n\"type\": \"Text\",\n\"nulls\": true,\n\"nonnulls\": 3,\n\"unique\": 3,\n\"len\": 3.0,\n\"freq\": [\n{\n\"value\": \"cat\",\n\"count\": 2\n},\n{\n\"value\": \"😀ab\",\n\"count\": 1\n},\n{\n\"value\": null,\n\"count\": 1\n}\n]\n},\n{\n\"column_id\": 4,\n\"column_name\": \"d\",\n\"type\": \"Date\",\n\"nulls\": true,\n\"nonnulls\": 3,\n\"unique\": 3,\n\"min\": \"2020-01-02\",\n\"max\": \"2021-03-04\",\n\"freq\": [\n{\n\"value\": \"2020-01-02\",\n\"count\": 2\n},\n{\n\"value\": \"2021-03-04\",\n\"count\": 1\n},\n{\n\"value\": null,\n\"count\": 1\n}\n]\n},\n{\n\"column_id\": 5,\n\"column_name\": \"dt\",\n\"type\": \"DateTime\",\n\"nulls\": true,\n\"nonnulls\": 3,\n\"unique\": 3,\n\"min\": \"2020-01-02T12:00:00\",\n\"max\": \"2021-03-04T15:00:00\",\n\"freq\": [\n{\n\"value\": \"2020-01-02T12:00:00\",\n\"count\": 2\n},\n{\n\"value\": \"2021-03-04T15:00:00\",\n\"count\": 1\n},\n{\n\"value\": null,\n\"count\": 1\n}\n]\n},\n{\n\"column_id\": 6,\n\"column_name\": \"delta\",\n\"type\": \"TimeDelta\",\n\"nulls\": true,\n\"nonnulls\": 3,\n\"unique\": 3,\n\"min\": 3600.0,\n\"max\": 7200.0,\n\"sum\": 14400.0,\n\"mean\": 4800.0,\n\"freq\": [\n{\n\"value\": 3600.0,\n\"count\": 2\n},\n{\n\"value\": 7200.0,\n\"count\": 1\n},\n{\n\"value\": null,\n\"count\": 1\n}\n]\n}\n]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,n,t,d,dt,delta\nyes,2.50,cat,2020-01-02,2020-01-02T12:00:00,1 hour\nno,4.25,😀ab,2021-03-04,2021-03-04T15:00:00,2 hours\nnull,null,null,null,null,null\nyes,2.5,cat,2020-01-02,2020-01-02T12:00:00,1 hour\n",
+      "argv": [
+        "-y0",
+        "--json",
+        "-i",
+        "-1"
+      ],
+      "stdout": "[\n{\n\"column_id\": 1,\n\"column_name\": \"b\",\n\"type\": \"Boolean\",\n\"nulls\": true,\n\"nonnulls\": 3,\n\"unique\": 3,\n\"freq\": [\n{\n\"value\": true,\n\"count\": 2\n},\n{\n\"value\": false,\n\"count\": 1\n},\n{\n\"value\": null,\n\"count\": 1\n}\n]\n},\n{\n\"column_id\": 2,\n\"column_name\": \"n\",\n\"type\": \"Number\",\n\"nulls\": true,\n\"nonnulls\": 3,\n\"unique\": 3,\n\"min\": 2.5,\n\"max\": 4.25,\n\"sum\": 9.25,\n\"mean\": 3.0833333333333335,\n\"median\": 2.5,\n\"stdev\": 1.0103629710818451,\n\"maxprecision\": 2,\n\"freq\": [\n{\n\"value\": 2.5,\n\"count\": 2\n},\n{\n\"value\": 4.25,\n\"count\": 1\n},\n{\n\"value\": null,\n\"count\": 1\n}\n]\n},\n{\n\"column_id\": 3,\n\"column_name\": \"t\",\n\"type\": \"Text\",\n\"nulls\": true,\n\"nonnulls\": 3,\n\"unique\": 3,\n\"len\": 3.0,\n\"freq\": [\n{\n\"value\": \"cat\",\n\"count\": 2\n},\n{\n\"value\": \"😀ab\",\n\"count\": 1\n},\n{\n\"value\": null,\n\"count\": 1\n}\n]\n},\n{\n\"column_id\": 4,\n\"column_name\": \"d\",\n\"type\": \"Date\",\n\"nulls\": true,\n\"nonnulls\": 3,\n\"unique\": 3,\n\"min\": \"2020-01-02\",\n\"max\": \"2021-03-04\",\n\"freq\": [\n{\n\"value\": \"2020-01-02\",\n\"count\": 2\n},\n{\n\"value\": \"2021-03-04\",\n\"count\": 1\n},\n{\n\"value\": null,\n\"count\": 1\n}\n]\n},\n{\n\"column_id\": 5,\n\"column_name\": \"dt\",\n\"type\": \"DateTime\",\n\"nulls\": true,\n\"nonnulls\": 3,\n\"unique\": 3,\n\"min\": \"2020-01-02T12:00:00\",\n\"max\": \"2021-03-04T15:00:00\",\n\"freq\": [\n{\n\"value\": \"2020-01-02T12:00:00\",\n\"count\": 2\n},\n{\n\"value\": \"2021-03-04T15:00:00\",\n\"count\": 1\n},\n{\n\"value\": null,\n\"count\": 1\n}\n]\n},\n{\n\"column_id\": 6,\n\"column_name\": \"delta\",\n\"type\": \"TimeDelta\",\n\"nulls\": true,\n\"nonnulls\": 3,\n\"unique\": 3,\n\"min\": 3600.0,\n\"max\": 7200.0,\n\"sum\": 14400.0,\n\"mean\": 4800.0,\n\"freq\": [\n{\n\"value\": 3600.0,\n\"count\": 2\n},\n{\n\"value\": 7200.0,\n\"count\": 1\n},\n{\n\"value\": null,\n\"count\": 1\n}\n]\n}\n]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,n,t,d,dt,delta\nyes,2.50,cat,2020-01-02,2020-01-02T12:00:00,1 hour\nno,4.25,😀ab,2021-03-04,2021-03-04T15:00:00,2 hours\nnull,null,null,null,null,null\nyes,2.5,cat,2020-01-02,2020-01-02T12:00:00,1 hour\n",
+      "argv": [
+        "-y0",
+        "--json",
+        "-i",
+        "12"
+      ],
+      "stdout": "[\n            {\n                        \"column_id\": 1,\n                        \"column_name\": \"b\",\n                        \"type\": \"Boolean\",\n                        \"nulls\": true,\n                        \"nonnulls\": 3,\n                        \"unique\": 3,\n                        \"freq\": [\n                                    {\n                                                \"value\": true,\n                                                \"count\": 2\n                                    },\n                                    {\n                                                \"value\": false,\n                                                \"count\": 1\n                                    },\n                                    {\n                                                \"value\": null,\n                                                \"count\": 1\n                                    }\n                        ]\n            },\n            {\n                        \"column_id\": 2,\n                        \"column_name\": \"n\",\n                        \"type\": \"Number\",\n                        \"nulls\": true,\n                        \"nonnulls\": 3,\n                        \"unique\": 3,\n                        \"min\": 2.5,\n                        \"max\": 4.25,\n                        \"sum\": 9.25,\n                        \"mean\": 3.0833333333333335,\n                        \"median\": 2.5,\n                        \"stdev\": 1.0103629710818451,\n                        \"maxprecision\": 2,\n                        \"freq\": [\n                                    {\n                                                \"value\": 2.5,\n                                                \"count\": 2\n                                    },\n                                    {\n                                                \"value\": 4.25,\n                                                \"count\": 1\n                                    },\n                                    {\n                                                \"value\": null,\n                                                \"count\": 1\n                                    }\n                        ]\n            },\n            {\n                        \"column_id\": 3,\n                        \"column_name\": \"t\",\n                        \"type\": \"Text\",\n                        \"nulls\": true,\n                        \"nonnulls\": 3,\n                        \"unique\": 3,\n                        \"len\": 3.0,\n                        \"freq\": [\n                                    {\n                                                \"value\": \"cat\",\n                                                \"count\": 2\n                                    },\n                                    {\n                                                \"value\": \"😀ab\",\n                                                \"count\": 1\n                                    },\n                                    {\n                                                \"value\": null,\n                                                \"count\": 1\n                                    }\n                        ]\n            },\n            {\n                        \"column_id\": 4,\n                        \"column_name\": \"d\",\n                        \"type\": \"Date\",\n                        \"nulls\": true,\n                        \"nonnulls\": 3,\n                        \"unique\": 3,\n                        \"min\": \"2020-01-02\",\n                        \"max\": \"2021-03-04\",\n                        \"freq\": [\n                                    {\n                                                \"value\": \"2020-01-02\",\n                                                \"count\": 2\n                                    },\n                                    {\n                                                \"value\": \"2021-03-04\",\n                                                \"count\": 1\n                                    },\n                                    {\n                                                \"value\": null,\n                                                \"count\": 1\n                                    }\n                        ]\n            },\n            {\n                        \"column_id\": 5,\n                        \"column_name\": \"dt\",\n                        \"type\": \"DateTime\",\n                        \"nulls\": true,\n                        \"nonnulls\": 3,\n                        \"unique\": 3,\n                        \"min\": \"2020-01-02T12:00:00\",\n                        \"max\": \"2021-03-04T15:00:00\",\n                        \"freq\": [\n                                    {\n                                                \"value\": \"2020-01-02T12:00:00\",\n                                                \"count\": 2\n                                    },\n                                    {\n                                                \"value\": \"2021-03-04T15:00:00\",\n                                                \"count\": 1\n                                    },\n                                    {\n                                                \"value\": null,\n                                                \"count\": 1\n                                    }\n                        ]\n            },\n            {\n                        \"column_id\": 6,\n                        \"column_name\": \"delta\",\n                        \"type\": \"TimeDelta\",\n                        \"nulls\": true,\n                        \"nonnulls\": 3,\n                        \"unique\": 3,\n                        \"min\": 3600.0,\n                        \"max\": 7200.0,\n                        \"sum\": 14400.0,\n                        \"mean\": 4800.0,\n                        \"freq\": [\n                                    {\n                                                \"value\": 3600.0,\n                                                \"count\": 2\n                                    },\n                                    {\n                                                \"value\": 7200.0,\n                                                \"count\": 1\n                                    },\n                                    {\n                                                \"value\": null,\n                                                \"count\": 1\n                                    }\n                        ]\n            }\n]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,n,t,d,dt,delta\nyes,2.50,cat,2020-01-02,2020-01-02T12:00:00,1 hour\nno,4.25,😀ab,2021-03-04,2021-03-04T15:00:00,2 hours\nnull,null,null,null,null,null\nyes,2.5,cat,2020-01-02,2020-01-02T12:00:00,1 hour\n",
+      "argv": [
+        "-y0",
+        "--decimal-format",
+        "%d"
+      ],
+      "stdout": "  1. \"b\"\n\n\tType of data:          Boolean\n\tContains null values:  True (excluded from calculations)\n\tNon-null values:       3\n\tUnique values:         3\n\tMost common values:    True (2x)\n\t                       False (1x)\n\t                       None (1x)\n\n  2. \"n\"\n\n\tType of data:          Number\n\tContains null values:  True (excluded from calculations)\n\tNon-null values:       3\n\tUnique values:         3\n\tSmallest value:        2\n\tLargest value:         4\n\tSum:                   9\n\tMean:                  3\n\tMedian:                2\n\tStDev:                 1\n\tMost decimal places:   2\n\tMost common values:    2 (2x)\n\t                       4 (1x)\n\t                       None (1x)\n\n  3. \"t\"\n\n\tType of data:          Text\n\tContains null values:  True (excluded from calculations)\n\tNon-null values:       3\n\tUnique values:         3\n\tLongest value:         3 characters\n\tMost common values:    cat (2x)\n\t                       😀ab (1x)\n\t                       None (1x)\n\n  4. \"d\"\n\n\tType of data:          Date\n\tContains null values:  True (excluded from calculations)\n\tNon-null values:       3\n\tUnique values:         3\n\tSmallest value:        2020-01-02\n\tLargest value:         2021-03-04\n\tMost common values:    2020-01-02 (2x)\n\t                       2021-03-04 (1x)\n\t                       None (1x)\n\n  5. \"dt\"\n\n\tType of data:          DateTime\n\tContains null values:  True (excluded from calculations)\n\tNon-null values:       3\n\tUnique values:         3\n\tSmallest value:        2020-01-02 12:00:00\n\tLargest value:         2021-03-04 15:00:00\n\tMost common values:    2020-01-02 12:00:00 (2x)\n\t                       2021-03-04 15:00:00 (1x)\n\t                       None (1x)\n\n  6. \"delta\"\n\n\tType of data:          TimeDelta\n\tContains null values:  True (excluded from calculations)\n\tNon-null values:       3\n\tUnique values:         3\n\tSmallest value:        1:00:00\n\tLargest value:         2:00:00\n\tSum:                   4:00:00\n\tMean:                  1:20:00\n\tMost common values:    1:00:00 (2x)\n\t                       2:00:00 (1x)\n\t                       None (1x)\n\nRow count: 4\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,n,t,d,dt,delta\nyes,2.50,cat,2020-01-02,2020-01-02T12:00:00,1 hour\nno,4.25,😀ab,2021-03-04,2021-03-04T15:00:00,2 hours\nnull,null,null,null,null,null\nyes,2.5,cat,2020-01-02,2020-01-02T12:00:00,1 hour\n",
+      "argv": [
+        "-y0",
+        "--decimal-format",
+        "%.0f"
+      ],
+      "stdout": "  1. \"b\"\n\n\tType of data:          Boolean\n\tContains null values:  True (excluded from calculations)\n\tNon-null values:       3\n\tUnique values:         3\n\tMost common values:    True (2x)\n\t                       False (1x)\n\t                       None (1x)\n\n  2. \"n\"\n\n\tType of data:          Number\n\tContains null values:  True (excluded from calculations)\n\tNon-null values:       3\n\tUnique values:         3\n\tSmallest value:        2\n\tLargest value:         4\n\tSum:                   9\n\tMean:                  3\n\tMedian:                2\n\tStDev:                 1\n\tMost decimal places:   2\n\tMost common values:    2 (2x)\n\t                       4 (1x)\n\t                       None (1x)\n\n  3. \"t\"\n\n\tType of data:          Text\n\tContains null values:  True (excluded from calculations)\n\tNon-null values:       3\n\tUnique values:         3\n\tLongest value:         3 characters\n\tMost common values:    cat (2x)\n\t                       😀ab (1x)\n\t                       None (1x)\n\n  4. \"d\"\n\n\tType of data:          Date\n\tContains null values:  True (excluded from calculations)\n\tNon-null values:       3\n\tUnique values:         3\n\tSmallest value:        2020-01-02\n\tLargest value:         2021-03-04\n\tMost common values:    2020-01-02 (2x)\n\t                       2021-03-04 (1x)\n\t                       None (1x)\n\n  5. \"dt\"\n\n\tType of data:          DateTime\n\tContains null values:  True (excluded from calculations)\n\tNon-null values:       3\n\tUnique values:         3\n\tSmallest value:        2020-01-02 12:00:00\n\tLargest value:         2021-03-04 15:00:00\n\tMost common values:    2020-01-02 12:00:00 (2x)\n\t                       2021-03-04 15:00:00 (1x)\n\t                       None (1x)\n\n  6. \"delta\"\n\n\tType of data:          TimeDelta\n\tContains null values:  True (excluded from calculations)\n\tNon-null values:       3\n\tUnique values:         3\n\tSmallest value:        1:00:00\n\tLargest value:         2:00:00\n\tSum:                   4:00:00\n\tMean:                  1:20:00\n\tMost common values:    1:00:00 (2x)\n\t                       2:00:00 (1x)\n\t                       None (1x)\n\nRow count: 4\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,n,t,d,dt,delta\nyes,2.50,cat,2020-01-02,2020-01-02T12:00:00,1 hour\nno,4.25,😀ab,2021-03-04,2021-03-04T15:00:00,2 hours\nnull,null,null,null,null,null\nyes,2.5,cat,2020-01-02,2020-01-02T12:00:00,1 hour\n",
+      "argv": [
+        "-y0",
+        "--decimal-format",
+        "%.2e"
+      ],
+      "stdout": "  1. \"b\"\n\n\tType of data:          Boolean\n\tContains null values:  True (excluded from calculations)\n\tNon-null values:       3\n\tUnique values:         3\n\tMost common values:    True (2x)\n\t                       False (1x)\n\t                       None (1x)\n\n  2. \"n\"\n\n\tType of data:          Number\n\tContains null values:  True (excluded from calculations)\n\tNon-null values:       3\n\tUnique values:         3\n\tSmallest value:        2.50e+\n\tLargest value:         4.25e+\n\tSum:                   9.25e+\n\tMean:                  3.08e+\n\tMedian:                2.50e+\n\tStDev:                 1.01e+\n\tMost decimal places:   2\n\tMost common values:    2.50e+ (2x)\n\t                       4.25e+ (1x)\n\t                       None (1x)\n\n  3. \"t\"\n\n\tType of data:          Text\n\tContains null values:  True (excluded from calculations)\n\tNon-null values:       3\n\tUnique values:         3\n\tLongest value:         3.00e+ characters\n\tMost common values:    cat (2x)\n\t                       😀ab (1x)\n\t                       None (1x)\n\n  4. \"d\"\n\n\tType of data:          Date\n\tContains null values:  True (excluded from calculations)\n\tNon-null values:       3\n\tUnique values:         3\n\tSmallest value:        2020-01-02\n\tLargest value:         2021-03-04\n\tMost common values:    2020-01-02 (2x)\n\t                       2021-03-04 (1x)\n\t                       None (1x)\n\n  5. \"dt\"\n\n\tType of data:          DateTime\n\tContains null values:  True (excluded from calculations)\n\tNon-null values:       3\n\tUnique values:         3\n\tSmallest value:        2020-01-02 12:00:00\n\tLargest value:         2021-03-04 15:00:00\n\tMost common values:    2020-01-02 12:00:00 (2x)\n\t                       2021-03-04 15:00:00 (1x)\n\t                       None (1x)\n\n  6. \"delta\"\n\n\tType of data:          TimeDelta\n\tContains null values:  True (excluded from calculations)\n\tNon-null values:       3\n\tUnique values:         3\n\tSmallest value:        1:00:00\n\tLargest value:         2:00:00\n\tSum:                   4:00:00\n\tMean:                  1:20:00\n\tMost common values:    1:00:00 (2x)\n\t                       2:00:00 (1x)\n\t                       None (1x)\n\nRow count: 4\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,n,t,d,dt,delta\nyes,2.50,cat,2020-01-02,2020-01-02T12:00:00,1 hour\nno,4.25,😀ab,2021-03-04,2021-03-04T15:00:00,2 hours\nnull,null,null,null,null,null\nyes,2.5,cat,2020-01-02,2020-01-02T12:00:00,1 hour\n",
+      "argv": [
+        "-y0",
+        "--decimal-format",
+        "bad"
+      ],
+      "stdout": "  1. \"b\"\n\n\tType of data:          Boolean\n\tContains null values:  True (excluded from calculations)\n\tNon-null values:       3\n\tUnique values:         3\n\tMost common values:    True (2x)\n\t                       False (1x)\n\t                       None (1x)\n\n  2. \"n\"\n\n\tType of data:          Number\n\tContains null values:  True (excluded from calculations)\n\tNon-null values:       3\n\tUnique values:         3\n\tSmallest value:        bad\n\tLargest value:         bad\n\tSum:                   bad\n\tMean:                  bad\n\tMedian:                bad\n\tStDev:                 bad\n\tMost decimal places:   2\n\tMost common values:    bad (2x)\n\t                       bad (1x)\n\t                       None (1x)\n\n  3. \"t\"\n\n\tType of data:          Text\n\tContains null values:  True (excluded from calculations)\n\tNon-null values:       3\n\tUnique values:         3\n\tLongest value:         bad characters\n\tMost common values:    cat (2x)\n\t                       😀ab (1x)\n\t                       None (1x)\n\n  4. \"d\"\n\n\tType of data:          Date\n\tContains null values:  True (excluded from calculations)\n\tNon-null values:       3\n\tUnique values:         3\n\tSmallest value:        2020-01-02\n\tLargest value:         2021-03-04\n\tMost common values:    2020-01-02 (2x)\n\t                       2021-03-04 (1x)\n\t                       None (1x)\n\n  5. \"dt\"\n\n\tType of data:          DateTime\n\tContains null values:  True (excluded from calculations)\n\tNon-null values:       3\n\tUnique values:         3\n\tSmallest value:        2020-01-02 12:00:00\n\tLargest value:         2021-03-04 15:00:00\n\tMost common values:    2020-01-02 12:00:00 (2x)\n\t                       2021-03-04 15:00:00 (1x)\n\t                       None (1x)\n\n  6. \"delta\"\n\n\tType of data:          TimeDelta\n\tContains null values:  True (excluded from calculations)\n\tNon-null values:       3\n\tUnique values:         3\n\tSmallest value:        1:00:00\n\tLargest value:         2:00:00\n\tSum:                   4:00:00\n\tMean:                  1:20:00\n\tMost common values:    1:00:00 (2x)\n\t                       2:00:00 (1x)\n\t                       None (1x)\n\nRow count: 4\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,n,t,d,dt,delta\nyes,2.50,cat,2020-01-02,2020-01-02T12:00:00,1 hour\nno,4.25,😀ab,2021-03-04,2021-03-04T15:00:00,2 hours\nnull,null,null,null,null,null\nyes,2.5,cat,2020-01-02,2020-01-02T12:00:00,1 hour\n",
+      "argv": [
+        "-y0",
+        "-G"
+      ],
+      "stdout": "  1. \"b\"\n\n\tType of data:          Boolean\n\tContains null values:  True (excluded from calculations)\n\tNon-null values:       3\n\tUnique values:         3\n\tMost common values:    True (2x)\n\t                       False (1x)\n\t                       None (1x)\n\n  2. \"n\"\n\n\tType of data:          Number\n\tContains null values:  True (excluded from calculations)\n\tNon-null values:       3\n\tUnique values:         3\n\tSmallest value:        2.5\n\tLargest value:         4.25\n\tSum:                   9.25\n\tMean:                  3.083\n\tMedian:                2.5\n\tStDev:                 1.01\n\tMost decimal places:   2\n\tMost common values:    2.5 (2x)\n\t                       4.25 (1x)\n\t                       None (1x)\n\n  3. \"t\"\n\n\tType of data:          Text\n\tContains null values:  True (excluded from calculations)\n\tNon-null values:       3\n\tUnique values:         3\n\tLongest value:         3 characters\n\tMost common values:    cat (2x)\n\t                       😀ab (1x)\n\t                       None (1x)\n\n  4. \"d\"\n\n\tType of data:          Date\n\tContains null values:  True (excluded from calculations)\n\tNon-null values:       3\n\tUnique values:         3\n\tSmallest value:        2020-01-02\n\tLargest value:         2021-03-04\n\tMost common values:    2020-01-02 (2x)\n\t                       2021-03-04 (1x)\n\t                       None (1x)\n\n  5. \"dt\"\n\n\tType of data:          DateTime\n\tContains null values:  True (excluded from calculations)\n\tNon-null values:       3\n\tUnique values:         3\n\tSmallest value:        2020-01-02 12:00:00\n\tLargest value:         2021-03-04 15:00:00\n\tMost common values:    2020-01-02 12:00:00 (2x)\n\t                       2021-03-04 15:00:00 (1x)\n\t                       None (1x)\n\n  6. \"delta\"\n\n\tType of data:          TimeDelta\n\tContains null values:  True (excluded from calculations)\n\tNon-null values:       3\n\tUnique values:         3\n\tSmallest value:        1:00:00\n\tLargest value:         2:00:00\n\tSum:                   4:00:00\n\tMean:                  1:20:00\n\tMost common values:    1:00:00 (2x)\n\t                       2:00:00 (1x)\n\t                       None (1x)\n\nRow count: 4\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,n,t,d,dt,delta\nyes,2.50,cat,2020-01-02,2020-01-02T12:00:00,1 hour\nno,4.25,😀ab,2021-03-04,2021-03-04T15:00:00,2 hours\nnull,null,null,null,null,null\nyes,2.5,cat,2020-01-02,2020-01-02T12:00:00,1 hour\n",
+      "argv": [
+        "-y0",
+        "--blanks",
+        "-I"
+      ],
+      "stdout": "  1. \"b\"\n\n\tType of data:          Text\n\tContains null values:  False\n\tNon-null values:       4\n\tUnique values:         3\n\tLongest value:         4 characters\n\tMost common values:    yes (2x)\n\t                       no (1x)\n\t                       null (1x)\n\n  2. \"n\"\n\n\tType of data:          Text\n\tContains null values:  False\n\tNon-null values:       4\n\tUnique values:         4\n\tLongest value:         4 characters\n\tMost common values:    2.50 (1x)\n\t                       4.25 (1x)\n\t                       null (1x)\n\t                       2.5 (1x)\n\n  3. \"t\"\n\n\tType of data:          Text\n\tContains null values:  False\n\tNon-null values:       4\n\tUnique values:         3\n\tLongest value:         4 characters\n\tMost common values:    cat (2x)\n\t                       😀ab (1x)\n\t                       null (1x)\n\n  4. \"d\"\n\n\tType of data:          Text\n\tContains null values:  False\n\tNon-null values:       4\n\tUnique values:         3\n\tLongest value:         10 characters\n\tMost common values:    2020-01-02 (2x)\n\t                       2021-03-04 (1x)\n\t                       null (1x)\n\n  5. \"dt\"\n\n\tType of data:          Text\n\tContains null values:  False\n\tNon-null values:       4\n\tUnique values:         3\n\tLongest value:         19 characters\n\tMost common values:    2020-01-02T12:00:00 (2x)\n\t                       2021-03-04T15:00:00 (1x)\n\t                       null (1x)\n\n  6. \"delta\"\n\n\tType of data:          Text\n\tContains null values:  False\n\tNon-null values:       4\n\tUnique values:         3\n\tLongest value:         7 characters\n\tMost common values:    1 hour (2x)\n\t                       2 hours (1x)\n\t                       null (1x)\n\nRow count: 4\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,n,t,d,dt,delta\nyes,2.50,cat,2020-01-02,2020-01-02T12:00:00,1 hour\nno,4.25,😀ab,2021-03-04,2021-03-04T15:00:00,2 hours\nnull,null,null,null,null,null\nyes,2.5,cat,2020-01-02,2020-01-02T12:00:00,1 hour\n",
+      "argv": [
+        "-y0",
+        "--names",
+        "--count",
+        "--mean",
+        "--sum"
+      ],
+      "stdout": "  1: b\n  2: n\n  3: t\n  4: d\n  5: dt\n  6: delta\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "",
+      "argv": [
+        "--count"
+      ],
+      "stdout": "-1\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "",
+      "argv": [
+        "--count",
+        "-H"
+      ],
+      "stdout": "0\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "\n",
+      "argv": [
+        "--count"
+      ],
+      "stdout": "0\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "\n",
+      "argv": [
+        "--count",
+        "-H"
+      ],
+      "stdout": "1\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\n\n2\n",
+      "argv": [
+        "--count"
+      ],
+      "stdout": "2\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\n\n2\n",
+      "argv": [
+        "--count",
+        "-H"
+      ],
+      "stdout": "3\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\n2,3\n",
+      "argv": [
+        "--count"
+      ],
+      "stdout": "1\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a\n2,3\n",
+      "argv": [
+        "--count",
+        "-H"
+      ],
+      "stdout": "2\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a;b\n2;3\n",
+      "argv": [
+        "--count"
+      ],
+      "stdout": "1\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "a;b\n2;3\n",
+      "argv": [
+        "--count",
+        "-H"
+      ],
+      "stdout": "2\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n2020-01-01T00:00:00\n2020-01-01T00:00:00Z\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "  1. \"x\"\n\n\tType of data:          DateTime\n\tContains null values:  False\n\tNon-null values:       2\n\tUnique values:         2\n\tMost common values:    2020-01-01 00:00:00 (1x)\n\t                       2020-01-01 00:00:00+00:00 (1x)\n\nRow count: 2\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n2020-01-01T00:00:00\n2020-01-01T00:00:00Z\n",
+      "argv": [
+        "-y0",
+        "--json"
+      ],
+      "stdout": "[{\"column_id\": 1, \"column_name\": \"x\", \"type\": \"DateTime\", \"nulls\": false, \"nonnulls\": 2, \"unique\": 2, \"freq\": [{\"value\": \"2020-01-01T00:00:00\", \"count\": 1}, {\"value\": \"2020-01-01T00:00:00+00:00\", \"count\": 1}]}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n2020-01-01T00:00:00\n2020-01-01T00:00:00Z\n",
+      "argv": [
+        "-y0",
+        "--csv"
+      ],
+      "stdout": "column_id,column_name,type,nulls,nonnulls,unique,min,max,sum,mean,median,stdev,len,maxprecision,freq\n1,x,DateTime,False,2,2,,,,,,,,,\"2020-01-01 00:00:00, 2020-01-01 00:00:00+00:00\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n2020-01-01T00:00:00\n2020-01-01T00:00:00Z\n",
+      "argv": [
+        "-y0",
+        "--stdev"
+      ],
+      "stdout": "None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n2020-01-01T00:00:00\n2020-01-01T00:00:00Z\n",
+      "argv": [
+        "-y0",
+        "--max-precision"
+      ],
+      "stdout": "None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n2020-01-01T00:00:00Z\n2020-01-01T01:00:00+01:00\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "  1. \"x\"\n\n\tType of data:          DateTime\n\tContains null values:  False\n\tNon-null values:       2\n\tUnique values:         1\n\tSmallest value:        2020-01-01 00:00:00+00:00\n\tLargest value:         2020-01-01 00:00:00+00:00\n\tMost common values:    2020-01-01 00:00:00+00:00 (2x)\n\nRow count: 2\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n2020-01-01T00:00:00Z\n2020-01-01T01:00:00+01:00\n",
+      "argv": [
+        "-y0",
+        "--json"
+      ],
+      "stdout": "[{\"column_id\": 1, \"column_name\": \"x\", \"type\": \"DateTime\", \"nulls\": false, \"nonnulls\": 2, \"unique\": 1, \"min\": \"2020-01-01T00:00:00+00:00\", \"max\": \"2020-01-01T00:00:00+00:00\", \"freq\": [{\"value\": \"2020-01-01T00:00:00+00:00\", \"count\": 2}]}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n2020-01-01T00:00:00Z\n2020-01-01T01:00:00+01:00\n",
+      "argv": [
+        "-y0",
+        "--csv"
+      ],
+      "stdout": "column_id,column_name,type,nulls,nonnulls,unique,min,max,sum,mean,median,stdev,len,maxprecision,freq\n1,x,DateTime,False,2,1,2020-01-01 00:00:00+00:00,2020-01-01 00:00:00+00:00,,,,,,,2020-01-01 00:00:00+00:00\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n2020-01-01T00:00:00Z\n2020-01-01T01:00:00+01:00\n",
+      "argv": [
+        "-y0",
+        "--stdev"
+      ],
+      "stdout": "None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n2020-01-01T00:00:00Z\n2020-01-01T01:00:00+01:00\n",
+      "argv": [
+        "-y0",
+        "--max-precision"
+      ],
+      "stdout": "None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n0.000001 seconds\n0.000002 seconds\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "  1. \"x\"\n\n\tType of data:          TimeDelta\n\tContains null values:  False\n\tNon-null values:       2\n\tUnique values:         2\n\tSmallest value:        0:00:00.000001\n\tLargest value:         0:00:00.000002\n\tSum:                   0:00:00.000003\n\tMean:                  0:00:00.000002\n\tMost common values:    0:00:00.000001 (1x)\n\t                       0:00:00.000002 (1x)\n\nRow count: 2\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n0.000001 seconds\n0.000002 seconds\n",
+      "argv": [
+        "-y0",
+        "--json"
+      ],
+      "stdout": "[{\"column_id\": 1, \"column_name\": \"x\", \"type\": \"TimeDelta\", \"nulls\": false, \"nonnulls\": 2, \"unique\": 2, \"min\": 1e-06, \"max\": 2e-06, \"sum\": 3e-06, \"mean\": 2e-06, \"freq\": [{\"value\": 1e-06, \"count\": 1}, {\"value\": 2e-06, \"count\": 1}]}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n0.000001 seconds\n0.000002 seconds\n",
+      "argv": [
+        "-y0",
+        "--csv"
+      ],
+      "stdout": "column_id,column_name,type,nulls,nonnulls,unique,min,max,sum,mean,median,stdev,len,maxprecision,freq\n1,x,TimeDelta,False,2,2,0:00:00.000001,0:00:00.000002,0:00:00.000003,0:00:00.000002,,,,,\"0:00:00.000001, 0:00:00.000002\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n0.000001 seconds\n0.000002 seconds\n",
+      "argv": [
+        "-y0",
+        "--stdev"
+      ],
+      "stdout": "None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n0.000001 seconds\n0.000002 seconds\n",
+      "argv": [
+        "-y0",
+        "--max-precision"
+      ],
+      "stdout": "None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n-0.000001 seconds\n-0.000002 seconds\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "  1. \"x\"\n\n\tType of data:          TimeDelta\n\tContains null values:  False\n\tNon-null values:       2\n\tUnique values:         2\n\tSmallest value:        -1 day, 23:59:59.999998\n\tLargest value:         -1 day, 23:59:59.999999\n\tSum:                   -1 day, 23:59:59.999997\n\tMean:                  -1 day, 23:59:59.999998\n\tMost common values:    -1 day, 23:59:59.999999 (1x)\n\t                       -1 day, 23:59:59.999998 (1x)\n\nRow count: 2\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n-0.000001 seconds\n-0.000002 seconds\n",
+      "argv": [
+        "-y0",
+        "--json"
+      ],
+      "stdout": "[{\"column_id\": 1, \"column_name\": \"x\", \"type\": \"TimeDelta\", \"nulls\": false, \"nonnulls\": 2, \"unique\": 2, \"min\": -2e-06, \"max\": -1e-06, \"sum\": -3e-06, \"mean\": -2e-06, \"freq\": [{\"value\": -1e-06, \"count\": 1}, {\"value\": -2e-06, \"count\": 1}]}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n-0.000001 seconds\n-0.000002 seconds\n",
+      "argv": [
+        "-y0",
+        "--csv"
+      ],
+      "stdout": "column_id,column_name,type,nulls,nonnulls,unique,min,max,sum,mean,median,stdev,len,maxprecision,freq\n1,x,TimeDelta,False,2,2,\"-1 day, 23:59:59.999998\",\"-1 day, 23:59:59.999999\",\"-1 day, 23:59:59.999997\",\"-1 day, 23:59:59.999998\",,,,,\"-1 day, 23:59:59.999999, -1 day, 23:59:59.999998\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n-0.000001 seconds\n-0.000002 seconds\n",
+      "argv": [
+        "-y0",
+        "--stdev"
+      ],
+      "stdout": "None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n-0.000001 seconds\n-0.000002 seconds\n",
+      "argv": [
+        "-y0",
+        "--max-precision"
+      ],
+      "stdout": "None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n1e28\n0.01\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "  1. \"x\"\n\n\tType of data:          Number\n\tContains null values:  False\n\tNon-null values:       2\n\tUnique values:         2\n\tSmallest value:        0.01\n\tLargest value:         9999999999999999583119736832\n\tSum:                   9999999999999999583119736832\n\tMean:                  4999999999999999791559868416\n\tMedian:                4999999999999999791559868416\n\tStDev:                 7071067811865475636231405568\n\tMost decimal places:   -1\n\tMost common values:    9999999999999999583119736832 (1x)\n\t                       0.01 (1x)\n\nRow count: 2\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n1e28\n0.01\n",
+      "argv": [
+        "-y0",
+        "--json"
+      ],
+      "stdout": "[{\"column_id\": 1, \"column_name\": \"x\", \"type\": \"Number\", \"nulls\": false, \"nonnulls\": 2, \"unique\": 2, \"min\": 0.01, \"max\": 1e+28, \"sum\": 1e+28, \"mean\": 5e+27, \"median\": 5e+27, \"stdev\": 7.071067811865476e+27, \"maxprecision\": -1, \"freq\": [{\"value\": 1e+28, \"count\": 1}, {\"value\": 0.01, \"count\": 1}]}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n1e28\n0.01\n",
+      "argv": [
+        "-y0",
+        "--csv"
+      ],
+      "stdout": "column_id,column_name,type,nulls,nonnulls,unique,min,max,sum,mean,median,stdev,len,maxprecision,freq\n1,x,Number,False,2,2,0.01,9999999999999999583119736832,9999999999999999583119736832,4999999999999999791559868416,4999999999999999791559868416,7071067811865475636231405568,,-1,\"1E+28, 0.01\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n1e28\n0.01\n",
+      "argv": [
+        "-y0",
+        "--stdev"
+      ],
+      "stdout": "7071067811865475636231405568\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n1e28\n0.01\n",
+      "argv": [
+        "-y0",
+        "--max-precision"
+      ],
+      "stdout": "-1\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nInfinity\n-Infinity\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "  1. \"x\"\n\n\tType of data:          Number\n\tContains null values:  False\n\tNon-null values:       2\n\tUnique values:         2\n\tSmallest value:        -Infinity\n\tLargest value:         Infinity\n\tMost decimal places:   0\n\tMost common values:    Infinity (1x)\n\t                       -Infinity (1x)\n\nRow count: 2\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nInfinity\n-Infinity\n",
+      "argv": [
+        "-y0",
+        "--json"
+      ],
+      "stdout": "[{\"column_id\": 1, \"column_name\": \"x\", \"type\": \"Number\", \"nulls\": false, \"nonnulls\": 2, \"unique\": 2, \"min\": -Infinity, \"max\": Infinity, \"maxprecision\": 0, \"freq\": [{\"value\": Infinity, \"count\": 1}, {\"value\": -Infinity, \"count\": 1}]}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nInfinity\n-Infinity\n",
+      "argv": [
+        "-y0",
+        "--csv"
+      ],
+      "stdout": "column_id,column_name,type,nulls,nonnulls,unique,min,max,sum,mean,median,stdev,len,maxprecision,freq\n1,x,Number,False,2,2,-Infinity,Infinity,,,,,,0,\"Infinity, -Infinity\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nInfinity\n-Infinity\n",
+      "argv": [
+        "-y0",
+        "--stdev"
+      ],
+      "stdout": "None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nInfinity\n-Infinity\n",
+      "argv": [
+        "-y0",
+        "--max-precision"
+      ],
+      "stdout": "0\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nNaN\nNaN\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "  1. \"x\"\n\n\tType of data:          Number\n\tContains null values:  False\n\tNon-null values:       2\n\tUnique values:         2\n\tSum:                   NaN\n\tMean:                  NaN\n\tStDev:                 NaN\n\tMost decimal places:   0\n\tMost common values:    NaN (1x)\n\t                       NaN (1x)\n\nRow count: 2\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nNaN\nNaN\n",
+      "argv": [
+        "-y0",
+        "--json"
+      ],
+      "stdout": "[{\"column_id\": 1, \"column_name\": \"x\", \"type\": \"Number\", \"nulls\": false, \"nonnulls\": 2, \"unique\": 2, \"sum\": NaN, \"mean\": NaN, \"stdev\": NaN, \"maxprecision\": 0, \"freq\": [{\"value\": NaN, \"count\": 1}, {\"value\": NaN, \"count\": 1}]}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nNaN\nNaN\n",
+      "argv": [
+        "-y0",
+        "--csv"
+      ],
+      "stdout": "column_id,column_name,type,nulls,nonnulls,unique,min,max,sum,mean,median,stdev,len,maxprecision,freq\n1,x,Number,False,2,2,,,NaN,NaN,,NaN,,0,\"NaN, NaN\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nNaN\nNaN\n",
+      "argv": [
+        "-y0",
+        "--stdev"
+      ],
+      "stdout": "NaN\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\nNaN\nNaN\n",
+      "argv": [
+        "-y0",
+        "--max-precision"
+      ],
+      "stdout": "0\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n-0.0\n0.00\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "  1. \"x\"\n\n\tType of data:          Number\n\tContains null values:  False\n\tNon-null values:       2\n\tUnique values:         1\n\tSmallest value:        -0\n\tLargest value:         -0\n\tSum:                   0\n\tMean:                  0\n\tMedian:                0\n\tStDev:                 0\n\tMost decimal places:   0\n\tMost common values:    -0 (2x)\n\nRow count: 2\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n-0.0\n0.00\n",
+      "argv": [
+        "-y0",
+        "--json"
+      ],
+      "stdout": "[{\"column_id\": 1, \"column_name\": \"x\", \"type\": \"Number\", \"nulls\": false, \"nonnulls\": 2, \"unique\": 1, \"min\": -0.0, \"max\": -0.0, \"sum\": 0.0, \"mean\": 0.0, \"median\": 0.0, \"stdev\": 0.0, \"maxprecision\": 0, \"freq\": [{\"value\": -0.0, \"count\": 2}]}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n-0.0\n0.00\n",
+      "argv": [
+        "-y0",
+        "--csv"
+      ],
+      "stdout": "column_id,column_name,type,nulls,nonnulls,unique,min,max,sum,mean,median,stdev,len,maxprecision,freq\n1,x,Number,False,2,1,-0,-0,0,0,0,0,,0,-0.0\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n-0.0\n0.00\n",
+      "argv": [
+        "-y0",
+        "--stdev"
+      ],
+      "stdout": "0\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n-0.0\n0.00\n",
+      "argv": [
+        "-y0",
+        "--max-precision"
+      ],
+      "stdout": "0\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n2.0\n4.0\n6.0\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "  1. \"x\"\n\n\tType of data:          Number\n\tContains null values:  False\n\tNon-null values:       3\n\tUnique values:         3\n\tSmallest value:        2\n\tLargest value:         6\n\tSum:                   12\n\tMean:                  4\n\tMedian:                4\n\tStDev:                 2\n\tMost decimal places:   0\n\tMost common values:    2 (1x)\n\t                       4 (1x)\n\t                       6 (1x)\n\nRow count: 3\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n2.0\n4.0\n6.0\n",
+      "argv": [
+        "-y0",
+        "--json"
+      ],
+      "stdout": "[{\"column_id\": 1, \"column_name\": \"x\", \"type\": \"Number\", \"nulls\": false, \"nonnulls\": 3, \"unique\": 3, \"min\": 2.0, \"max\": 6.0, \"sum\": 12.0, \"mean\": 4.0, \"median\": 4.0, \"stdev\": 2.0, \"maxprecision\": 0, \"freq\": [{\"value\": 2.0, \"count\": 1}, {\"value\": 4.0, \"count\": 1}, {\"value\": 6.0, \"count\": 1}]}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n2.0\n4.0\n6.0\n",
+      "argv": [
+        "-y0",
+        "--csv"
+      ],
+      "stdout": "column_id,column_name,type,nulls,nonnulls,unique,min,max,sum,mean,median,stdev,len,maxprecision,freq\n1,x,Number,False,3,3,2,6,12,4,4,2,,0,\"2.0, 4.0, 6.0\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n2.0\n4.0\n6.0\n",
+      "argv": [
+        "-y0",
+        "--stdev"
+      ],
+      "stdout": "2\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n2.0\n4.0\n6.0\n",
+      "argv": [
+        "-y0",
+        "--max-precision"
+      ],
+      "stdout": "0\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n9999999999999999999999999999\n9999999999999999999999999998\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "  1. \"x\"\n\n\tType of data:          Number\n\tContains null values:  False\n\tNon-null values:       2\n\tUnique values:         2\n\tSmallest value:        9999999999999999583119736832\n\tLargest value:         9999999999999999583119736832\n\tSum:                   19999999999999999166239473664\n\tMean:                  9999999999999999583119736832\n\tMedian:                9999999999999999583119736832\n\tStDev:                 2.236\n\tMost decimal places:   0\n\tMost common values:    9999999999999999583119736832 (1x)\n\t                       9999999999999999583119736832 (1x)\n\nRow count: 2\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n9999999999999999999999999999\n9999999999999999999999999998\n",
+      "argv": [
+        "-y0",
+        "--json"
+      ],
+      "stdout": "[{\"column_id\": 1, \"column_name\": \"x\", \"type\": \"Number\", \"nulls\": false, \"nonnulls\": 2, \"unique\": 2, \"min\": 1e+28, \"max\": 1e+28, \"sum\": 2e+28, \"mean\": 1e+28, \"median\": 1e+28, \"stdev\": 2.23606797749979, \"maxprecision\": 0, \"freq\": [{\"value\": 1e+28, \"count\": 1}, {\"value\": 1e+28, \"count\": 1}]}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n9999999999999999999999999999\n9999999999999999999999999998\n",
+      "argv": [
+        "-y0",
+        "--csv"
+      ],
+      "stdout": "column_id,column_name,type,nulls,nonnulls,unique,min,max,sum,mean,median,stdev,len,maxprecision,freq\n1,x,Number,False,2,2,9999999999999999583119736832,9999999999999999583119736832,19999999999999999166239473664,9999999999999999583119736832,9999999999999999583119736832,2.236,,0,\"9999999999999999999999999999, 9999999999999999999999999998\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n9999999999999999999999999999\n9999999999999999999999999998\n",
+      "argv": [
+        "-y0",
+        "--stdev"
+      ],
+      "stdout": "2.236\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n9999999999999999999999999999\n9999999999999999999999999998\n",
+      "argv": [
+        "-y0",
+        "--max-precision"
+      ],
+      "stdout": "0\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n2.000000000000000000000000001\n2.000000000000000000000000002\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "  1. \"x\"\n\n\tType of data:          Number\n\tContains null values:  False\n\tNon-null values:       2\n\tUnique values:         2\n\tSmallest value:        2\n\tLargest value:         2\n\tSum:                   4\n\tMean:                  2\n\tMedian:                2\n\tStDev:                 0\n\tMost decimal places:   27\n\tMost common values:    2 (1x)\n\t                       2 (1x)\n\nRow count: 2\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n2.000000000000000000000000001\n2.000000000000000000000000002\n",
+      "argv": [
+        "-y0",
+        "--json"
+      ],
+      "stdout": "[{\"column_id\": 1, \"column_name\": \"x\", \"type\": \"Number\", \"nulls\": false, \"nonnulls\": 2, \"unique\": 2, \"min\": 2.0, \"max\": 2.0, \"sum\": 4.0, \"mean\": 2.0, \"median\": 2.0, \"stdev\": 1e-27, \"maxprecision\": 27, \"freq\": [{\"value\": 2.0, \"count\": 1}, {\"value\": 2.0, \"count\": 1}]}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n2.000000000000000000000000001\n2.000000000000000000000000002\n",
+      "argv": [
+        "-y0",
+        "--csv"
+      ],
+      "stdout": "column_id,column_name,type,nulls,nonnulls,unique,min,max,sum,mean,median,stdev,len,maxprecision,freq\n1,x,Number,False,2,2,2,2,4,2,2,0,,27,\"2.000000000000000000000000001, 2.000000000000000000000000002\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n2.000000000000000000000000001\n2.000000000000000000000000002\n",
+      "argv": [
+        "-y0",
+        "--stdev"
+      ],
+      "stdout": "0\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n2.000000000000000000000000001\n2.000000000000000000000000002\n",
+      "argv": [
+        "-y0",
+        "--max-precision"
+      ],
+      "stdout": "27\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n-100\n0.5\n99\nnull\n",
+      "argv": [
+        "-y0"
+      ],
+      "stdout": "  1. \"x\"\n\n\tType of data:          Number\n\tContains null values:  True (excluded from calculations)\n\tNon-null values:       3\n\tUnique values:         4\n\tSmallest value:        -100\n\tLargest value:         99\n\tSum:                   -0.5\n\tMean:                  -0.167\n\tMedian:                0.5\n\tStDev:                 99.502\n\tMost decimal places:   1\n\tMost common values:    -100 (1x)\n\t                       0.5 (1x)\n\t                       99 (1x)\n\t                       None (1x)\n\nRow count: 4\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n-100\n0.5\n99\nnull\n",
+      "argv": [
+        "-y0",
+        "--json"
+      ],
+      "stdout": "[{\"column_id\": 1, \"column_name\": \"x\", \"type\": \"Number\", \"nulls\": true, \"nonnulls\": 3, \"unique\": 4, \"min\": -100.0, \"max\": 99.0, \"sum\": -0.5, \"mean\": -0.16666666666666666, \"median\": 0.5, \"stdev\": 99.50167502777695, \"maxprecision\": 1, \"freq\": [{\"value\": -100.0, \"count\": 1}, {\"value\": 0.5, \"count\": 1}, {\"value\": 99.0, \"count\": 1}, {\"value\": null, \"count\": 1}]}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n-100\n0.5\n99\nnull\n",
+      "argv": [
+        "-y0",
+        "--csv"
+      ],
+      "stdout": "column_id,column_name,type,nulls,nonnulls,unique,min,max,sum,mean,median,stdev,len,maxprecision,freq\n1,x,Number,True,3,4,-100,99,-0.5,-0.167,0.5,99.502,,1,\"-100, 0.5, 99, None\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n-100\n0.5\n99\nnull\n",
+      "argv": [
+        "-y0",
+        "--stdev"
+      ],
+      "stdout": "99.502\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "x\n-100\n0.5\n99\nnull\n",
+      "argv": [
+        "-y0",
+        "--max-precision"
+      ],
+      "stdout": "1\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,n,t,d,dt,delta\nyes,2.50,cat,2020-01-02,2020-01-02T12:00:00,1 hour\nno,4.25,😀ab,2021-03-04,2021-03-04T15:00:00,2 hours\nnull,null,null,null,null,null\nyes,2.5,cat,2020-01-02,2020-01-02T12:00:00,1 hour\n",
+      "argv": [
+        "-y0",
+        "--mean",
+        "-c",
+        "n,n"
+      ],
+      "stdout": "  2. n: 3.083\n  2. n: 3.083\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,n,t,d,dt,delta\nyes,2.50,cat,2020-01-02,2020-01-02T12:00:00,1 hour\nno,4.25,😀ab,2021-03-04,2021-03-04T15:00:00,2 hours\nnull,null,null,null,null,null\nyes,2.5,cat,2020-01-02,2020-01-02T12:00:00,1 hour\n",
+      "argv": [
+        "-y0",
+        "--type",
+        "-c",
+        "n-t"
+      ],
+      "stdout": "",
+      "stderr": "ColumnIdentifierError: Invalid range %s. Ranges must be two integers separated by a - or : character.\n",
+      "status": 1
+    },
+    {
+      "stdin": "b,n,t,d,dt,delta\nyes,2.50,cat,2020-01-02,2020-01-02T12:00:00,1 hour\nno,4.25,😀ab,2021-03-04,2021-03-04T15:00:00,2 hours\nnull,null,null,null,null,null\nyes,2.5,cat,2020-01-02,2020-01-02T12:00:00,1 hour\n",
+      "argv": [
+        "-y0",
+        "--type",
+        "-c",
+        "2-3"
+      ],
+      "stdout": "  2. n: Number\n  3. t: Text\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,n,t,d,dt,delta\nyes,2.50,cat,2020-01-02,2020-01-02T12:00:00,1 hour\nno,4.25,😀ab,2021-03-04,2021-03-04T15:00:00,2 hours\nnull,null,null,null,null,null\nyes,2.5,cat,2020-01-02,2020-01-02T12:00:00,1 hour\n",
+      "argv": [
+        "-y0",
+        "--type",
+        "--zero",
+        "-c",
+        "1:2"
+      ],
+      "stdout": "  2. n: Number\n  3. t: Text\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,n,t,d,dt,delta\nyes,2.50,cat,2020-01-02,2020-01-02T12:00:00,1 hour\nno,4.25,😀ab,2021-03-04,2021-03-04T15:00:00,2 hours\nnull,null,null,null,null,null\nyes,2.5,cat,2020-01-02,2020-01-02T12:00:00,1 hour\n",
+      "argv": [
+        "-y0",
+        "--mean",
+        "-c",
+        "999"
+      ],
+      "stdout": "",
+      "stderr": "ColumnIdentifierError: Column 999 is invalid. The last column is 'delta' at index 6.\n",
+      "status": 1
+    },
+    {
+      "stdin": "b,n,t,d,dt,delta\nyes,2.50,cat,2020-01-02,2020-01-02T12:00:00,1 hour\nno,4.25,😀ab,2021-03-04,2021-03-04T15:00:00,2 hours\nnull,null,null,null,null,null\nyes,2.5,cat,2020-01-02,2020-01-02T12:00:00,1 hour\n",
+      "argv": [
+        "-y0",
+        "--csv",
+        "--no-header-row"
+      ],
+      "stdout": "column_id,column_name,type,nulls,nonnulls,unique,min,max,sum,mean,median,stdev,len,maxprecision,freq\n1,a,Text,True,4,4,,,,,,,3,,\"yes, b, no, None\"\n2,b,Text,True,4,5,,,,,,,4,,\"n, 2.50, 4.25, None, 2.5\"\n3,c,Text,True,4,4,,,,,,,3,,\"cat, t, 😀ab, None\"\n4,d,Text,True,4,4,,,,,,,10,,\"2020-01-02, d, 2021-03-04, None\"\n5,e,Text,True,4,4,,,,,,,19,,\"2020-01-02T12:00:00, dt, 2021-03-04T15:00:00, None\"\n6,f,Text,True,4,4,,,,,,,7,,\"1 hour, delta, 2 hours, None\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,n,t,d,dt,delta\nyes,2.50,cat,2020-01-02,2020-01-02T12:00:00,1 hour\nno,4.25,😀ab,2021-03-04,2021-03-04T15:00:00,2 hours\nnull,null,null,null,null,null\nyes,2.5,cat,2020-01-02,2020-01-02T12:00:00,1 hour\n",
+      "argv": [
+        "-y0",
+        "--json",
+        "--no-header-row"
+      ],
+      "stdout": "[{\"column_id\": 1, \"column_name\": \"a\", \"type\": \"Text\", \"nulls\": true, \"nonnulls\": 4, \"unique\": 4, \"len\": 3.0, \"freq\": [{\"value\": \"yes\", \"count\": 2}, {\"value\": \"b\", \"count\": 1}, {\"value\": \"no\", \"count\": 1}, {\"value\": null, \"count\": 1}]}, {\"column_id\": 2, \"column_name\": \"b\", \"type\": \"Text\", \"nulls\": true, \"nonnulls\": 4, \"unique\": 5, \"len\": 4.0, \"freq\": [{\"value\": \"n\", \"count\": 1}, {\"value\": \"2.50\", \"count\": 1}, {\"value\": \"4.25\", \"count\": 1}, {\"value\": null, \"count\": 1}, {\"value\": \"2.5\", \"count\": 1}]}, {\"column_id\": 3, \"column_name\": \"c\", \"type\": \"Text\", \"nulls\": true, \"nonnulls\": 4, \"unique\": 4, \"len\": 3.0, \"freq\": [{\"value\": \"cat\", \"count\": 2}, {\"value\": \"t\", \"count\": 1}, {\"value\": \"😀ab\", \"count\": 1}, {\"value\": null, \"count\": 1}]}, {\"column_id\": 4, \"column_name\": \"d\", \"type\": \"Text\", \"nulls\": true, \"nonnulls\": 4, \"unique\": 4, \"len\": 10.0, \"freq\": [{\"value\": \"2020-01-02\", \"count\": 2}, {\"value\": \"d\", \"count\": 1}, {\"value\": \"2021-03-04\", \"count\": 1}, {\"value\": null, \"count\": 1}]}, {\"column_id\": 5, \"column_name\": \"e\", \"type\": \"Text\", \"nulls\": true, \"nonnulls\": 4, \"unique\": 4, \"len\": 19.0, \"freq\": [{\"value\": \"2020-01-02T12:00:00\", \"count\": 2}, {\"value\": \"dt\", \"count\": 1}, {\"value\": \"2021-03-04T15:00:00\", \"count\": 1}, {\"value\": null, \"count\": 1}]}, {\"column_id\": 6, \"column_name\": \"f\", \"type\": \"Text\", \"nulls\": true, \"nonnulls\": 4, \"unique\": 4, \"len\": 7.0, \"freq\": [{\"value\": \"1 hour\", \"count\": 2}, {\"value\": \"delta\", \"count\": 1}, {\"value\": \"2 hours\", \"count\": 1}, {\"value\": null, \"count\": 1}]}]",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,n,t,d,dt,delta\nyes,2.50,cat,2020-01-02,2020-01-02T12:00:00,1 hour\nno,4.25,😀ab,2021-03-04,2021-03-04T15:00:00,2 hours\nnull,null,null,null,null,null\nyes,2.5,cat,2020-01-02,2020-01-02T12:00:00,1 hour\n",
+      "argv": [
+        "-y0",
+        "--type",
+        "--no-inference"
+      ],
+      "stdout": "  1. b: Text\n  2. n: Text\n  3. t: Text\n  4. d: Text\n  5. dt: Text\n  6. delta: Text\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "b,n,t,d,dt,delta\nyes,2.50,cat,2020-01-02,2020-01-02T12:00:00,1 hour\nno,4.25,😀ab,2021-03-04,2021-03-04T15:00:00,2 hours\nnull,null,null,null,null,null\nyes,2.5,cat,2020-01-02,2020-01-02T12:00:00,1 hour\n",
+      "argv": [
+        "-y0",
+        "--names",
+        "--no-header-row"
+      ],
+      "stdout": "",
+      "stderr": "RequiredHeaderError: You cannot use --no-header-row with the -n or --names options.\n",
+      "status": 1
+    }
+  ]
+}

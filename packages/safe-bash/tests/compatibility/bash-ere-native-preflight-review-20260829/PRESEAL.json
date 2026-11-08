@@ -1,0 +1,83 @@
+{
+  "schema": "ere12-independent-data-preseal-v1",
+  "createdAt": "2026-08-29T09:48:15.894Z",
+  "sourceCommit": "2d07f5921010fda988dcda36ac81a89831fbac55",
+  "executablePresealSha256": "211483cbe1b12ad505345da5396a227c7da9931743d035ed365f7cc74bb4d457",
+  "controlPresealSha256": "b73f207cb4dd7e5a8c903075f4219cd27635b03f3be16f947846c7ff42943b03",
+  "tool": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "mode": 493,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "helpers": [
+    {
+      "name": "prepare-review.mjs",
+      "bytes": 5636,
+      "sha256": "523bd04b6dc19d8be15cabc864a0442f29fe7adf0ac1c25571048cd00f308069"
+    },
+    {
+      "name": "independent-controls.mjs",
+      "bytes": 8486,
+      "sha256": "f727f72e182c7f177da97e83a2b94011541979e9af8f31504dafa12bb22dd3df"
+    },
+    {
+      "name": "run-review.mjs",
+      "bytes": 2839,
+      "sha256": "bd31fb9d773e6d341af089767481e555140b4be4a1d4c5b1aab14ea8a125abed"
+    }
+  ],
+  "compressedInputs": [
+    {
+      "name": "m02-INPUTS.json.gz.base64",
+      "encodedBytes": 88353,
+      "encodedSha256": "f157c78cb3a1d36d6dda09f286d6ad4892c2c49e5c54810896d23c4de46c4610",
+      "compressedBytes": 66264,
+      "compressedSha256": "efe35a88d14adcfd6a0545414dabf4cb928cb1e32524728634c275e27d61f926"
+    },
+    {
+      "name": "m04-INPUTS.json.gz.base64",
+      "encodedBytes": 8505,
+      "encodedSha256": "281d437c3df687f61a5def2848ca920126b6246190fb52f8a8ab260d1e62399a",
+      "compressedBytes": 6376,
+      "compressedSha256": "8940d25121352d6101e0d5fc1eb5c41b31cb3c4783e94d5690c8b04a4d9c3354"
+    },
+    {
+      "name": "m03-RAW.json.gz.base64",
+      "encodedBytes": 12445,
+      "encodedSha256": "27bc2943d65be073e0781ccccea4492838f9082e6e8644b8974cf5cefd9ff11b",
+      "compressedBytes": 9333,
+      "compressedSha256": "c0107422c246a716c04f52646f2f68429c93812d85cedce8706b63c1cc57f7a4"
+    }
+  ],
+  "author": {
+    "cases": 12,
+    "assertions": 196,
+    "unchanged": true
+  },
+  "independent": [
+    "I01-real-append-descriptors",
+    "I02-metadata-before-io",
+    "I03-inclusive-deadline-credit",
+    "I04-acyclic-binding-rejections",
+    "I05-two-capture-cleanup-failures",
+    "I06-raw-framing-no-participation-inference",
+    "I07-exact-approval-and-environment",
+    "I08-terminal-falsy-reasons-and-late-close"
+  ],
+  "allowedChildren": 2,
+  "children": "Node DATA only; author control and independent control, sequential",
+  "entryImported": false,
+  "nativeObservations": 0,
+  "limits": {
+    "deadline": "2026-08-29T10:03:51.594Z",
+    "perChildMs": 120000,
+    "streamBytes": 2097152,
+    "phaseKnownStarts": 48,
+    "peak": 3,
+    "capture": 67108864,
+    "work": 268435456
+  },
+  "capsule": "capsule",
+  "publication": "preseal committed before controls; no runtime native receipt or GO"
+}

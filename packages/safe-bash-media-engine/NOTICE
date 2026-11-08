@@ -1,0 +1,423 @@
+FFmpeg source-informed discovery metadata and parser
+
+Modified 2026-09-21: sequential unregistered slash options retain their
+argument-file read and defer subsequent predictions at opt_default's application
+boundary. Revision v46 uses the pinned cmdutils.c consumer under the existing
+combined GPL-3.0-or-later decision and retained original source notices. No new
+source tables or native assets are copied; native-valid inventory misses remain
+complete late-access obligations, with native diagnostics and status unchanged.
+
+Modified 2026-09-21: preset prediction stops at an unregistered option's
+fallback application boundary. Subsequent resources remain complete native
+late-access obligations, including native-valid inventory misses. Revision v45
+uses the registered ffmpeg_opt.c opt_preset and cmdutils.c sequential lookup
+under the existing combined GPL-3.0-or-later decision and retained original
+source notices. No additional source table or native asset is copied.
+
+Modified 2026-09-21: HLS key-read predictions follow registered hls.c's
+exact AES-128/SAMPLE-AES method selection. Missing, unknown and case-mismatched
+EXT-X-KEY methods retain KEY_NONE semantics. Existing original source notices
+and the combined-work licensing decision below apply. No native code or binaries
+are added; native access diagnostics are independent qualification evidence.
+
+Modified 2026-09-21: tee slave output predictions follow tee.c,
+tee_common.c, mux_utils.c and options.c's AVIO filename reader. A slave named '-' is a
+literal file; explicit pipe/fd operands remain descriptors. Revision v44
+pins these registered implementations. The existing GPL-3.0-or-later
+combined-work licensing decision below applies before deriving this rule;
+original LGPL notices remain in source-notices.json. No additional source
+tables, native binaries or assets are copied. Native reads, diagnostics,
+streams and partial effects remain authoritative.
+
+Modified 2026-09-20: DNN filter label predictions derive from registered
+vf_dnn_detect.c and vf_dnn_classify.c literal fopen readers. Child-class model
+options retain backend-dependent runtime lookup obligations, including companion
+files, instead of asserting an AVIO or literal transfer namespace. Revision v43
+pins the registered option and implementation identities. Original notices in
+source-notices.json and the existing GPL-3.0-or-later combined-work licensing
+decision below apply before deriving these entries. No model, native binary or
+backend library is copied. Native availability, reads and errors remain native.
+
+Modified 2026-09-20: showcqt axis image and font file predictions derive from
+the registered avf_showcqt.c AVOptions and implementation, including positional
+offset aliases. Copyright (c) 2014-2015 Muhammad Faiz <mfcc64@gmail.com>.
+Original LGPL-2.1-or-later notices are retained in source-notices.json. The
+existing combined GPL-3.0-or-later licensing decision below applies before
+deriving these tables. Revision v42 pins the implementation digest; AVIO image
+reads, literal FreeType font reads, fallback rendering and diagnostics remain
+native-owned. No native binaries, fonts or image assets are copied.
+
+Modified 2026-09-20: unsuffixed codec AVOptions retain deferred stream
+matching from cmdutils.c opt_default and filter_codec_opts. Revision v41
+uses the existing registered codec option inventory and combined
+GPL-3.0-or-later licensing decision below; original source notices remain
+in source-notices.json. No additional source tables or native assets are
+copied. Native stream matching, reads, errors and effects remain authoritative.
+
+Modified 2026-09-20: fsync frame-map hints follow vf_fsync.c's AVIO reader,
+including positional file/f aliases and slash-loaded values. Revision v40 pins
+the complete implementation and checks the registered option fields. Copyright
+(c) 2023 Thilo Borgmann. Original LGPL-2.1-or-later notice is retained in
+source-notices.json. The existing combined GPL-3.0-or-later licensing decision
+below applies before deriving these entries. No native assets are copied;
+frame-map validation, processing, late reads and failures remain native.
+
+Modified 2026-09-20: unsuffixed OPT_PERSTREAM options retain runtime stream
+selection obligations, including generated pass logs and encoding statistics.
+Revision v39 derives the flag from the registered OptionDef tables under the
+existing combined GPL-3.0-or-later licensing decision and retained source
+notices. No native assets are copied and no speculative probe is introduced.
+
+Modified 2026-09-20: empty and slash-loaded dump_attachment operands defer
+filename selection from stream metadata even without a stream suffix. Revision v38 follows
+the registered fftools/ffmpeg_demux.c dump_attachment reader. Existing retained
+source notices and the combined GPL-3.0-or-later licensing decision apply before
+this advisory grammar change. No source table or native asset is copied, and no
+speculative ffprobe invocation is introduced.
+
+Modified 2026-09-20: operand-free stream-specific boolean options retain
+stream-metadata deferrals. Grammar revision v37 corrects this advisory hint
+without changing native argv, validation or resource access. The existing
+combined GPL-3.0-or-later licensing decision and source notices apply; no
+source-derived table or native asset is added.
+
+Modified 2026-09-20: slash-loaded maps and stream-specific options retain
+stream-metadata deferrals before their option-file content is available.
+Grammar revision v35 records this advisory correction. The registered
+cmdutils.c write_option and split_commandline semantics, retained source notices
+and existing combined GPL-3.0-or-later licensing decision apply. No source table
+or native asset is added; no speculative ffprobe invocation is introduced.
+
+Modified 2026-09-19: stabilization input/output hints derive positional fields
+from registered vf_vidstabdetect.c and vf_vidstabtransform.c AVOptions. Grammar
+revision v33 pins their implementation digests and follows literal
+avpriv_fopen_utf8 access, including the transforms.trf default. Copyright (c)
+2013 Georg Martius. Original LGPL-2.1-or-later notices remain in
+source-notices.json; the combined GPL-3.0-or-later licensing decision below
+applies before deriving these entries. No native assets or libvidstab source
+are copied. Processing, debug side effects, validity and errors remain native.
+
+Modified 2026-09-19: sofalizer SOFA input hints derive positional fields from
+registered af_sofalizer.c AVOptions and pin its implementation SHA-256
+3386922633040d16929a6e3f2875ffbc3aa168e9a4497d26f007f892b1de7272.
+Grammar revision v32 follows its mysofa_load filename reader. Copyright (C)
+2013-2015 Andreas Fuchs, Wolfgang Hrauda, Acoustics Research Institute (ARI),
+Vienna, Austria. Original LGPL-2.1-or-later notices remain in source-notices.json.
+The existing combined GPL-3.0-or-later licensing decision below applies before
+deriving these entries. No native assets or library source are copied. Loading,
+model validity, processing and errors remain native decisions.
+
+Modified 2026-09-19: paletteuse debug_kdtree output hints follow literal
+avpriv_fopen_utf8 writes during palette loading, including empty, dash, percent
+and protocol-looking filenames. Grammar revision v31 derives shorthand fields
+from registered vf_paletteuse.c AVOptions and pins its implementation digest.
+Copyright (c) 2015 Stupeflix; (c) 2022 Clément Bœsch. Original LGPL-2.1-or-later notices remain in
+source-notices.json. The existing combined GPL-3.0-or-later licensing decision
+below applies before deriving these entries. No native assets copied; frame-time
+access and optional diagnostic writer failures remain native decisions.
+
+Modified 2026-09-19: filter dependency hints distinguish every slash value-file
+read from the final filename used at initialization, including resource offset
+aliases. Grammar revision v30 pins avfilter.c and ffmpeg_filter.c implementation
+digests in the generator. avfilter.c: Copyright (c) 2007 Bobby Bingham.
+Original source notices
+remain in source-notices.json. The existing combined GPL-3.0-or-later licensing
+decision below applies before deriving alias metadata. No native binary copied.
+Prediction never suppresses native setters, value-file reads or their errors.
+
+Modified 2026-09-19: firequalizer dumpfile hints retain literal filename writes,
+including empty, dash, percent and protocol-looking names and slash-loaded values.
+Grammar revision v29 derives positional fields from the registered AVOptions and
+checks af_firequalizer.c SHA-256
+44e7049da6afe7fc664220547cc51940e54a2222722ef2594882f2d1b3f8e0c8.
+Copyright (c) 2016 Muhammad Faiz <mfcc64@gmail.com>.
+Original LGPL-2.1-or-later notices remain in source-notices.json; the existing
+combined GPL-3.0-or-later licensing decision applies before deriving these entries.
+Optional dump failures, processing and runtime commands remain native decisions.
+No native binary or additional upstream implementation body is copied.
+
+Modified 2026-09-19: rectangle bitmap predictions derive positional and named
+fields from registered vf_find_rect.c and vf_cover_rect.c tables, excluding CONST
+enum entries. Both use the registered lavfutils.c ff_load_image AVIO reader.
+Mode/frame-dependent access remains deferred native access. Grammar revision v28
+records this addition. Copyright (c) 2014-2015 Michael Niedermayer; original
+GPL-2.0-or-later headers retained in source-notices.json. The existing combined
+GPL-3.0-or-later licensing decision applies before deriving these tables. No
+native binaries, bitmap assets or additional source files are copied.
+
+Modified 2026-09-19: libvmaf log_path hints retain literal filename writes,
+including dash and protocol-looking names, and selected slash-loaded values.
+Grammar revision v27 derives positional fields from the registered AVOptions
+and checks vf_libvmaf.c SHA-256
+6c6fa0392255074a2cfbd8bf0264ce53f442f66cb892ea154845eb735b7ea5c9.
+Copyright (c) 2017 Ronald S. Bultje and Ashish Pratap Singh. Original
+LGPL-2.1-or-later notices remain
+in source-notices.json; the existing combined GPL-3.0-or-later decision applies
+before deriving these entries. No native assets or libvmaf source are copied.
+Model selection, frame-time behavior and optional log writer failures remain
+native decisions, independently of these advisory predictions.
+
+Modified 2026-09-19: deshake motion log hints follow literal
+avpriv_fopen_utf8(filename, "w") writes, without a dash-to-stdout special case.
+Grammar revision v26 derives positional fields from the registered AVOptions
+and checks vf_deshake.c SHA-256
+77697979ce315a319b403577a69f26d5c70017cf62c1efaaaa5293e22b388e8e.
+The existing combined GPL-3.0-or-later licensing decision applies before deriving
+these entries. Original LGPL-2.1-or-later notices remain in source-notices.json.
+No native assets copied; optional log open failures remain native decisions.
+
+Modified 2026-09-18: arnndn model hints follow literal avpriv_fopen_utf8
+reads at initialization and runtime reload. Grammar revision v25 pins
+af_arnndn.c SHA-256
+8d5653f74040c2c1044988ebde999850aef0b559ce6456518b9c9465cc702e2a
+and derives model/m aliases and positional fields from its registered AVOptions.
+Original BSD-2-Clause copyright, conditions and disclaimer remain in
+source-notices.json; the existing
+combined GPL-3.0-or-later licensing decision applies before deriving these entries.
+No native assets or additional upstream source tables copied.
+
+Modified 2026-09-18: duplicate ffprobe slash-loaded filename values remain
+option-file reads but do not predict accesses to discarded filenames. Grammar
+revision v24 retains callback disposition across content observations, following
+the registered fftools/ffprobe.c implementation digest
+8c8b5ab6d34bb2b6fde8ce7411bb8f7beef708a436883b2da9f3acbb1986d0de.
+Existing source-notices.json attribution and the combined GPL-3.0-or-later
+licensing decision apply. No native assets or new source tables copied.
+
+Modified 2026-09-18: vmafmotion statistics output hints follow literal
+avpriv_fopen_utf8 writes and the exact dash-to-stdout special case. Optional
+unset outputs remain absent; slash-loaded destinations retain AVIO reads before
+the observed value selects its writer. Grammar revision v23 checks the registered
+vf_vmafmotion.c implementation digest
+bce67432a1e1cda81716b4fb0bd63412fabeabb3dcf7c7b7d797bb919e53ac51.
+Copyright (c) 2017 Ronald S. Bultje and Ashish Pratap Singh; original
+LGPL-2.1-or-later notice retained in source-notices.json. The existing combined
+GPL-3.0-or-later licensing decision applies before deriving these table entries.
+No native assets copied.
+
+Modified 2026-09-18: removelogo bitmap dependency hints follow filename/f
+offset aliases and ff_load_image's AVIO reader, including literal dash filenames.
+Grammar revision v22 pins vf_removelogo.c and lavfutils.c implementation digests.
+Movie/amovie and subtitle AVIO hints also retain literal dash filenames;
+src_movie.c's reader digest is checked alongside the bitmap implementation.
+Copyright (c) 2005 Robert Edele and (c) 2012 Stefano Sabatini for removelogo;
+its retained LGPL-2.1-or-later notice applies.
+Original notices are retained in source-notices.json; the existing combined
+GPL-3.0-or-later licensing decision applies before deriving this metadata.
+No native assets copied.
+
+Modified 2026-09-18: ffprobe filename predictions retain the first input and
+follow opt_input_file_i's discarded error versus propagated positional/output
+callback errors. Grammar revision v21 records this change. Registered ffprobe.c
+SHA-256 8c8b5ab6d34bb2b6fde8ce7411bb8f7beef708a436883b2da9f3acbb1986d0de
+and retained source-notices.json apply under the existing combined
+GPL-3.0-or-later licensing decision. No native assets or tables copied.
+
+Modified 2026-09-18: curves psfile dependencies follow av_file_map's literal
+filename reads, including selected slash-loaded values; plot outputs follow
+avpriv_fopen_utf8. Positional shorthand skips adjacent offset aliases from the
+registered vf_curves.c source (SHA-256
+aac8933aee9ee5939b997da31d321205c98dbc9e06c37d826574fc888d3e753a).
+Grammar revision v20 records this addition. Copyright (c) 2013 Clément Bœsch;
+the retained LGPL-2.1-or-later notice in source-notices.json and the existing
+combined GPL-3.0-or-later licensing decision apply. No native assets copied.
+
+Modified 2026-09-17: command-line AVOption arity hints exclude explicitly
+zero-flag entries, following fftools/cmdutils.c opt_find. Empty register fields
+remain advisory because designated initializers may carry flags separately.
+Grammar revision v19 records this correction. Existing registered source notices
+and combined GPL-3.0-or-later licensing apply; no new source tables or assets copied.
+
+Modified 2026-09-17: advisory DASH filename templates accept only the registered
+dash.c single-digit %0[width]d format. Unsupported tags remain live and make
+discovery incomplete without rewriting native literal fallback content. Source
+identity d23c296324d32845048db639c48237d9575de9157532291ce0f78f6217c6f068;
+Copyright (c) 2014 Martin Storsjo, LGPL-2.1-or-later. Existing combined
+GPL-3.0-or-later licensing applies; no native assets or source tables copied.
+
+Modified 2026-09-17: preset resource hints stop at sequential exit handlers,
+including no-prefix/slash/specifier lookup, before opt_preset's fallback to
+opt_default_new. Successful fallback and subsequent accesses remain runtime
+reads. Grammar revision v18 records this advisory boundary. Existing registered
+cmdutils.c/ffmpeg_opt.c notices and GPL/LGPL terms apply; no tables or assets copied.
+
+Modified 2026-09-17: generated metadata is recursively frozen at module load so
+runtime callers cannot change the pinned executable identity, option arity/scope
+or path-reader grammar. No grammar rules, source tables or native assets added;
+the source/register identities and licensing decision below remain unchanged.
+
+Modified 2026-09-17: grouped boolean negation follows cmdutils.c's second
+find_option lookup, including its single slash stripping. No/slash spellings
+remain boolean options rather than argument-file reads. Grammar revision v17
+records this correction. Existing source-notices.json and GPL/LGPL licensing
+decision below apply; no new source-derived tables or native assets copied.
+
+Modified 2026-09-17: file protocol hints strip one prefix and resolve its literal
+filename suffix in cwd, without selecting another protocol. Grammar revision v16
+records this reader distinction. Registered libavformat/file.c source identity
+and its retained LGPL notice apply; the existing GPL-3.0-or-later licensing
+decision remains. No native assets copied.
+
+Modified 2026-09-17: signature filter output hints retain literal fopen filenames,
+including dash and protocol spellings, and defer input-count-dependent expansion
+to native runtime access. Grammar revision v15 derives positional fields from the
+registered vf_signature.c AVOptions. Copyright (c) 2017 Gerion Entrup; original
+GPL-2.0-or-later notice retained in source-notices.json. The existing combined
+GPL-3.0-or-later licensing decision applies; no native assets copied.
+
+Modified 2026-09-16: preset sequential parsing excludes split_commandline's
+named group separators and optional exit arguments. parse_option/write_option
+exit handlers stop predictions without replacing native execution or effects.
+Grammar revision v14 records this change. Registered cmdutils.c and ffmpeg_opt.c
+notices and existing GPL/LGPL terms apply; no new tables or native assets copied.
+
+Modified 2026-09-16: sequential no/slash lookup follows cmdutils.c parse_option
+and find_option without treating the original no-prefixed spelling as argument
+file indirection. Grammar revision v13 records this change. Existing source
+notices and GPL/LGPL terms apply; no new tables or native assets copied.
+
+Modified 2026-09-16: image2 output predictions follow registered img2enc.c
+write_packet precedence: literal update names, then runtime clock expansion,
+then PTS/frame numbering. Unparsed switch values remain native decisions.
+Grammar revision v12 records the resolver change. img2enc.c: Copyright (c)
+2000-2003 Fabrice Bellard. Existing LGPL-2.1-or-later notices, source-notices.json
+and combined GPL-3.0-or-later package terms apply. No new tables or assets copied.
+
+Modified 2026-09-16: preset advisory lookup follows cmdutils.c parse_option's
+non-boolean no-prefixed definitions. ffmpeg_opt.c opt_preset's original handler
+spelling selects explicit paths versus deferred preset searches. Grammar revision
+v11 records this change. Existing source-notices.json and GPL/LGPL terms apply;
+no additional source-derived tables or native assets copied.
+
+Modified 2026-09-16: advisory protocol-member discovery follows the registered
+concat.c separator/list token grammar and concat/cache/async/crypto direct nested
+operand bases. avio.c nested-scheme selection preserves crypto+ URL spelling and
+protocol policy. No native execution, source-derived tables or assets are added.
+concat.c: Copyright (c) 2006 Steve Lhomme; 2007 Wolfram Gloger;
+2010 Michele Orrù. cache.c: Copyright (c) 2011,2014 Michael Niedermayer,
+based on file.c by Fabrice Bellard. async.c: Copyright (c) 2015 Zhang Rui,
+based on cache.c by Michael Niedermayer. crypto.c: Copyright (c) 2011
+Martin Storsjo. avio.c: Copyright (c) 2001 Fabrice Bellard.
+These upstream files retain LGPL-2.1-or-later terms; see COPYING.LGPLv2.1.
+Existing package GPL-3.0-or-later terms and distribution obligations remain.
+
+Modified 2026-09-16: public concat observations and access graphs share the
+registered concatdec.c keyword and aviobuf.c CR/LF/NUL line grammar. Predictive
+syntax stops remain advisory; native validation, late reads and effects are
+unchanged. Demuxer grammar lookup excludes inherited JavaScript properties.
+Grammar revision v10 records these changes. Existing GPL/LGPL notices apply;
+no additional source-derived tables or native assets copied.
+
+Modified 2026-09-16: preset predictions follow opt_preset's 999-byte fgets reads,
+per-read C-string termination and av_strtok '=' then CR/LF delimiters. ffprobe
+predictions retain parse_option's no-prefixed non-boolean lookup. All dictionary
+lookups exclude inherited JavaScript properties, preserving native-owned invalid
+option/filter diagnostics. Grammar revision v9 records these changes. Source
+notices and the existing GPL-3.0-or-later/LGPL terms apply; no new tables copied.
+
+Modified 2026-09-15: retain selected filter/AVOption identity for slash-loaded
+filter-value buffers. Source-informed fftools/ffmpeg_filter.c filter_opt_apply
+semantics apply observed C-string values directly to existing resource metadata,
+without parsing filename content as another graph or performing native reads.
+Existing source-notices.json notices and LGPL/GPL package terms apply.
+
+Modified 2026-09-15: command splitting and preset/ffprobe sequential application
+retain distinct slash-passthrough rules from the registered cmdutils.c. Codec
+child option names are inventoried separately so stream-suffix stripping does
+not broaden format/scaler/resampler lookup. Grammar revision v8 records this
+change; source/register drift checks and the existing combined GPL terms apply.
+
+Modified 2026-09-15: observed option-file values use cmdutils.c write_option and
+read_file_to_string reader semantics, retaining whitespace and byte values until
+C-string termination. Advisory dependencies keep the selected option's stream
+specifier and original argument index; no additional native read is performed.
+
+Upstream: FFmpeg contributors, https://ffmpeg.org/ ; release 9.0.1.
+cmdutils.c: Copyright (c) 2000-2003 Fabrice Bellard.
+ffprobe.c: Copyright (c) 2007-2010 Stefano Sabatini.
+Individual source notices are retained in source-notices.json.
+
+Modified 2026-09-14: option inventory converted into TypeScript arity/scope
+metadata; independent byte-oriented advisory discovery and execution boundary
+added. This is not an upstream FFmpeg product or an endorsed implementation.
+
+Modified 2026-09-15: versioned path-reader syntax metadata distinguishes AVIO
+filenames, explicit stdio aliases, literal fopen paths and generated passlog
+prefixes. Source evidence: fftools/cmdutils.c, ffmpeg_opt.c, ffmpeg_mux_init.c,
+ffmpeg_demux.c, ffmpeg_mux.c and ffmpeg_enc.c; libavformat/hlsenc.c and segment.c.
+
+Licensing decision: this private package is GPL-3.0-or-later because its metadata
+includes mixed LGPL/GPL library option inventories. Original LGPL-covered material
+retains its LGPL-2.1-or-later notices; the combined work is offered under GPL v3 or
+later. See COPYING and COPYING.LGPLv2.1. Source and generator are included; no native
+binary, runtime library, codec, font or model is copied or distributed here.
+Native redistribution and a production image's transitive license closure remain
+separate requirements. Do not relicense these generated tables as root-package MIT.
+
+ImageMagick 7.1.2-31 source-informed advisory discovery
+Modified 2026-09-15: passkey and color decision list dependency hints follow
+MagickWand/operation.c and MagickCore/string.c/blob.c file reader distinctions.
+Original notices and registered hashes retained in imagemagick-source-notices.json.
+Copyright ImageMagick Studio LLC. Script token grammar credited to Anthony
+Thyssen / Dragon Computing. See COPYING.ImageMagick and NOTICE.ImageMagick.
+Modified 2026-09-14: signed option metadata and installed aliases converted to
+TypeScript; independent advisory operand/script discovery and native invocation
+boundary added. Native image lists, operations and expressions are not translated.
+
+Modified 2026-09-14: added advisory dependency access graphs, byte-preserving
+resolution, explicit budgets and source-informed manifest/filter/script/filename
+parsers. FFmpeg contributors' concat/HLS/DASH/filter source and ImageMagick's
+script/utility/draw/XML source informed the grammar boundaries; see
+../../docs/remote-media/dependency-resolver.md and the existing source/attribution
+registers. Native diagnostic traces are qualification evidence only. No native
+execution, delegate execution or native replay is used by the JS resolver.
+
+Modified 2026-09-15: generic codec option names extracted separately from the
+registered libavcodec/options_table.h for cmdutils.c opt_default's legacy v/a/s
+prefix lookup. Zero-flag options, private child classes and stream suffixes are
+excluded from that fallback. Existing LGPL/GPL terms and notices apply.
+
+Modified 2026-09-15: advisory tee slave destination/options grammar follows the
+registered libavformat/tee.c and tee_common.c. Copyright (c) 2012 Nicolas George;
+the original LGPL-2.1-or-later notices are retained in source-notices.json.
+Slash-loaded command and filter option values retain native AVIO semantics.
+Literal reader dependencies remain eligible for filesystem transfer even when
+their filename spelling resembles a URL or descriptor. No native assets copied.
+
+Modified 2026-09-15: filter output option metadata and positional fields derived
+from registered f_metadata.c, vf_psnr.c and vf_ssim.c tables. Native implementation
+determines AVIO write vs literal fopen write semantics and stdout special cases.
+Observed filter scripts and presets retain access direction and lookup identity.
+Original notices in source-notices.json and existing LGPL/GPL terms apply.
+
+Modified 2026-09-15: COMMON_OPTIONS fields and offset aliases from the registered
+libavfilter/vf_subtitles.c are retained in filter-macros.json with source digest.
+Generated advisory metadata covers ass/subtitles filename aliases and positional
+font directories. avfilter.c owns shorthand offset skipping; libass reads literal
+ass filenames/font directories, while subtitles uses avformat_open_input.
+Existing source-notices.json notices and GPL-3.0-or-later package terms apply.
+Modified 2026-09-18: advisory ImageMagick discovery preserves literal quote
+bytes and skips argv wildcard expansion for quote-leading operands, including
+raw concatenate deletion candidates. This follows the registered release
+MagickCore/utility.c (SHA-256
+9f95d7514f6ad01b87acd0bd9025da40b20c9da1ef33255eaa4a3a0f268e2148).
+ImageMagick Studio LLC copyright and COPYING.ImageMagick/NOTICE.ImageMagick
+terms apply. Native processing and observed effects remain stock CLI owned.
+Modified 2026-09-20: image2 sequence predictions retain AVIO file/network operands
+for input and output expansion; clock-derived outputs remain deferred and local
+glob semantics remain separate. Grammar revision v34 checks the registered
+img2dec.c and img2enc.c implementation digests. This uses the existing combined
+GPL-3.0-or-later licensing decision below and retained source-notices.json notices.
+No source table, native binary or media resource is copied by this change.
+Modified 2026-09-20: simple filter predictions retain only the last value for
+identical stream selectors within each output group. vf/af handlers select
+filter:v/filter:a; other selector overlaps remain metadata-dependent native
+decisions. Replaced slash-loaded values still require their option-file reads,
+without predicting initialization of the discarded graph. Grammar revision v36
+checks fftools/ffmpeg_opt.c SHA-256
+9b452dd88d471954e745fa9b74e4d501ae7438e4dde0228b0031bd9e4b08940b
+and fftools/ffmpeg_mux_init.c SHA-256
+cc55fac3a9e6d37bc2ad682ddd01716e4e79d15f16e53bad7e347886b74c6c8c.
+Existing GPL-3.0-or-later combined-work terms and original LGPL-2.1-or-later
+source notices in source-notices.json apply before this source-informed change.
+No additional upstream table, native binary or resource is copied.

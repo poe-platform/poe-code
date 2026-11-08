@@ -1,0 +1,6 @@
+tree 64ba44c38cefcd0ffc04871cebbcb3c3ab26f209
+parent 1193d9c4ef8690c1433a579e301a41a8cbf3ee96
+author Kamil Jopek <kjopek@quora.com> 1787943804 -0500
+committer Kamil Jopek <kjopek@quora.com> 1787943804 -0500
+
+docs(node): propose bounded Worker resource and retirement profile

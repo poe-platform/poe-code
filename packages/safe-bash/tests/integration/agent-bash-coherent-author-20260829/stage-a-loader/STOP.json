@@ -1,0 +1,9 @@
+{
+  "started": "2026-08-29T09:55:50.707Z",
+  "finished": "2026-08-29T09:55:50.788Z",
+  "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n5387 !== 3620\n\n    at read (file:///Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/probe.mjs:8:172)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/probe.mjs:41:12\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)",
+  "spawnCount": 0,
+  "captureBytes": 0,
+  "completed": [],
+  "automaticRetry": false
+}

@@ -1,0 +1,21 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: file:///private/tmp/safe-bash-time-env-packed-review-a9i4D2/dist/index.js
+    at resolve (file:///private/tmp/safe-bash-time-env-packed-review-a9i4D2/consumer/guard.mjs:11:12)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveWithHooks (node:internal/modules/customization_hooks:395:10)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:787:14)
+    at ModuleLoader.resolve (node:internal/modules/esm/loader:703:19)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:310:38)
+    at ModuleJob._link (node:internal/modules/esm/module_job:182:49) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v22.22.2

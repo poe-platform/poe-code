@@ -1,0 +1,106 @@
+{
+  "sourceRevision": "04879692a66d88eee129b8ffd6e7ca93c7a9476a",
+  "sourceHash": "4fd795e7c72a92f6791b502fc6e094cf80a8181531bb3f2560329c790d06e932",
+  "results": [
+    {
+      "name": "archived-build",
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+        "-p",
+        "tsconfig.build.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/remote-rmdir/combined-shell/.frozen-lBF2JY",
+      "startedAt": "2026-08-27T07:24:46.382Z",
+      "elapsedMs": 1800.06875,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "counts": {
+        "tests": -1,
+        "pass": -1,
+        "fail": -1,
+        "cancelled": -1,
+        "skipped": -1,
+        "todo": -1
+      },
+      "sourceHash": "4fd795e7c72a92f6791b502fc6e094cf80a8181531bb3f2560329c790d06e932",
+      "originalInputHash": "1eb1f97daa3e1125199cdf14c1e31d9cb9cd50a66bcd947b4bbf866a4e132a30",
+      "testSha256": "1a0cfacea4533e3307f0801aa728a2ed2a898b43b671450c3274d7ebf4ced25c",
+      "unchangedInputs": true
+    },
+    {
+      "name": "new6",
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/integration/adapter-tools/remote-rmdir/combined-shell/snapshot.test.ts"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/remote-rmdir/combined-shell/.frozen-lBF2JY",
+      "startedAt": "2026-08-27T07:24:48.192Z",
+      "elapsedMs": 316.26995799999986,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "counts": {
+        "tests": 6,
+        "pass": 6,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "sourceHash": "4fd795e7c72a92f6791b502fc6e094cf80a8181531bb3f2560329c790d06e932",
+      "originalInputHash": "1eb1f97daa3e1125199cdf14c1e31d9cb9cd50a66bcd947b4bbf866a4e132a30",
+      "testSha256": "1a0cfacea4533e3307f0801aa728a2ed2a898b43b671450c3274d7ebf4ced25c",
+      "unchangedInputs": true
+    },
+    {
+      "name": "scoped-types",
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--target",
+        "ES2023",
+        "--lib",
+        "ES2023",
+        "--module",
+        "NodeNext",
+        "--moduleResolution",
+        "NodeNext",
+        "--strict",
+        "--noUncheckedIndexedAccess",
+        "--exactOptionalPropertyTypes",
+        "--verbatimModuleSyntax",
+        "--forceConsistentCasingInFileNames",
+        "--skipLibCheck",
+        "--types",
+        "node",
+        "tests/integration/adapter-tools/remote-rmdir/combined-shell/snapshot.test.ts"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/remote-rmdir/combined-shell/.frozen-lBF2JY",
+      "startedAt": "2026-08-27T07:24:48.520Z",
+      "elapsedMs": 1285.592166,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "counts": {
+        "tests": -1,
+        "pass": -1,
+        "fail": -1,
+        "cancelled": -1,
+        "skipped": -1,
+        "todo": -1
+      },
+      "sourceHash": "4fd795e7c72a92f6791b502fc6e094cf80a8181531bb3f2560329c790d06e932",
+      "originalInputHash": "1eb1f97daa3e1125199cdf14c1e31d9cb9cd50a66bcd947b4bbf866a4e132a30",
+      "testSha256": "1a0cfacea4533e3307f0801aa728a2ed2a898b43b671450c3274d7ebf4ced25c",
+      "unchangedInputs": true
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "version": 1,
+  "scope": "disposable-container qualification; not a production media admission receipt",
+  "identity": {
+    "digest": "85134eed660a2a83db4c29c16b6cab6a4fbf3cd28e3b9321dc72fc9d45fc67ac",
+    "imageDigest": "sha256:fe31def1f437bddb0026516deb23c39c46b69b815aea45b90b538f551873b0b6",
+    "os": "linux",
+    "architecture": "x86_64",
+    "grammarRevision": "ffmpeg-9.0+imagemagick-7.1.2-31-unqualified",
+    "sourceRevision": "container-lock-v1",
+    "launcherRevision": "9354e2de5b18f8bb3d8d39ac3aa28eb775b3b82f138ab6948117391f5366f7f2",
+    "bridgeRevision": "unqualified",
+    "runtimeRequirements": [],
+    "runtimeEnvironment": {
+      "PATH": "/usr/local/bin:/usr/bin:/bin",
+      "HOME": "/scratch",
+      "LC_ALL": "C"
+    },
+    "policyDifferences": [
+      "Container networking and devices explicitly denied.",
+      "All filesystem accesses are container-native; canonical live mediation is NOT qualified.",
+      "Configured delegates are inventoried; delegate execution and external dependencies are NOT qualified.",
+      "Fonts/profiles reflect packaged runtime assets; external host assets are absent.",
+      "JS frontend/native contract mismatch; this inventory cannot qualify the shipped frontend."
+    ],
+    "executables": {
+      "ffmpeg": "693997243e25684ab5976522d97111f44dbc14cfb47f968c2e2283b8fe070a17",
+      "ffprobe": "91dae15342bcbd3b8b3935d0fa0299ae47c5b59ef9cbd80f9d34547adb10fc9d",
+      "magick": "ebe8030aa93f0ef778c3d0cb773169b63e0342f31141901492a030968068399c"
+    },
+    "librariesDigest": "493b26a1a9f97aadc28a4f8fc74ffed9e3bfc9f83bd5d17a956cb921c7209b80",
+    "inventoryDigest": "7019533e9eca58a5efb42f4abff55a33c1267ae452cbaa097980d67d52377989",
+    "assetsDigest": "8670c55b8abe72d6de9093d20e9ad43ded1a91b4cd8b67616253d97e4d8dedf1",
+    "policyDigest": "f23ceb845c766a1f5fdf0bf0855d883926b6de067beefb739d6307d35209419f",
+    "configDigest": "b27e91dd85b12d467ac8290e38f78bf97a3625039e6c39363b77be0510371116"
+  },
+  "inventoryReference": "native-inventory.json",
+  "inventoryComparison": {
+    "codecsCodersDelegatesFonts": "inventoryDigest matches the referenced receipt",
+    "profilesAndAssets": "assetsDigest matches the referenced receipt",
+    "libraries": "librariesDigest matches the referenced receipt",
+    "policyAndConfiguration": "policyDigest and configDigest match the referenced receipt"
+  },
+  "processTests": {
+    "passed": 2,
+    "failed": 0,
+    "cases": [
+      "FFmpeg native PCM stdout separated from diagnostics",
+      "ImageMagick early output survives a later native error"
+    ]
+  },
+  "installedAssetVerification": "verifyMediaExecutableAssets and verifyMediaDeploymentAssets completed successfully inside the isolated image",
+  "isolation": {
+    "platform": "linux/amd64",
+    "readOnly": true,
+    "network": "none",
+    "pids": 64,
+    "memory": "512m",
+    "cpus": 2,
+    "capabilities": "ALL dropped",
+    "security": "no-new-privileges",
+    "scratch": "64m tmpfs"
+  },
+  "qualifiedFeatures": [],
+  "blockingRequirements": [
+    "Native build differs from the shipped JS frontend; media admission must reject before side effects.",
+    "No qualified NativeIsolationBackend installs canonical live file access and effect hooks.",
+    "Configured delegate inventory is not evidence of admitted delegate execution."
+  ]
+}

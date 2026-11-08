@@ -1,0 +1,220 @@
+import { xlsxDateText } from "./xlsx-dates.js";
+import { RetainedSpans } from "./retained-spans.js";
+import type { RetainedOfficeBlocks } from "./retained-office-blocks.js";
+import { createZipCodec } from "@poe-code/office-package/zip";
+import { openRetainedXml, resolveOfficeResources, type RetainedXml, type XmlLexicalToken, type XmlRange } from "@poe-code/office-xml";
+import { IntegerTable, type PagedStorage } from "@poe-code/safe-fs/storage";
+import { retainXmlText } from "./retained-xml-text.js";
+import type { RetainedSofficeContext, SofficeSnapshot } from "./retained-input.js";
+
+
+class Cursor {
+  readonly tokens: AsyncGenerator<XmlLexicalToken>;
+  constructor(readonly xml: RetainedXml, private readonly storage: PagedStorage, private readonly signal: AbortSignal) { this.tokens = xml.tokens(); }
+  async name(range: XmlRange): Promise<string> {
+    if (range.length > 16) return "";
+    let text = "";
+    for await (const bytes of this.xml.read(range)) text += new TextDecoder().decode(bytes);
+    return text;
+  }
+  async open(attribute?: (name: string, range: XmlRange, doubleQuoted: boolean) => Promise<void>): Promise<number | undefined> {
+    let name = "";
+    for (;;) {
+      this.signal.throwIfAborted();
+      const next = await this.tokens.next(); if (next.done) return undefined;
+      if (next.value.kind === "attribute-name") name = await this.name(next.value.range);
+      else if (next.value.kind === "attribute-value" && attribute) {
+        let doubleQuoted = false;
+        for await (const bytes of this.xml.read({ start: next.value.range.start - 1, length: 1 })) doubleQuoted = bytes[0] === 34;
+        await attribute(name, next.value.range, doubleQuoted);
+      }
+      else if (next.value.kind === "start-end") return next.value.empty ? undefined : next.value.range.start;
+    }
+  }
+  async field(tag: string, exact?: XmlRange): Promise<SofficeSnapshot | undefined> {
+    const start = await this.open(); if (start === undefined) return undefined;
+    for (;;) {
+      this.signal.throwIfAborted();
+      const next = await this.tokens.next(); if (next.done) return undefined;
+      if (next.value.kind === "end-name" && await this.name(next.value.range) === tag)
+        return exact && start !== exact.start + exact.length + 1 ? undefined : retainXmlText(this.storage, this.xml.read({ start, length: next.value.range.start - 2 - start }), this.signal, false);
+    }
+  }
+}
+
+/** XLSX cat keeps shared strings, cells and output spans in caller-owned storage. */
+export async function retainXlsxText(storage: PagedStorage, source: SofficeSnapshot, context: RetainedSofficeContext, document?: RetainedOfficeBlocks, displayDates = false): Promise<SofficeSnapshot> {
+  const { signal } = context, codec = createZipCodec(), limits = resolveOfficeResources({ archiveLimits: { chunkSize: 16384 } }).archiveLimits;
+  let shared: SofficeSnapshot | undefined, sheet: SofficeSnapshot | undefined, fallback: SofficeSnapshot | undefined, fallbackName: string | undefined;
+  let stylesXml: SofficeSnapshot | undefined, workbookXml: SofficeSnapshot | undefined;
+  await codec.readZipArchive({ size: source.size, read: (offset, maximum) => storage.read(source.position + offset, Math.min(16384, maximum, source.size - offset)) }, limits, signal, {
+    storage, async onEntry(entry) {
+      if (fallbackName === undefined && entry.name.startsWith("xl/worksheets/sheet")) fallbackName = entry.name;
+      const selected = displayDates && ["xl/styles.xml", "xl/workbook.xml"].includes(entry.name) || entry.name === "xl/sharedStrings.xml" || entry.name === "xl/worksheets/sheet1.xml" || entry.name === fallbackName;
+      const position = storage.allocate(0); let size = 0;
+      for await (const bytes of codec.decodeZipEntry(entry, limits, signal)) {
+        signal.throwIfAborted(); if (selected) { await storage.append(bytes); size += bytes.length; }
+      }
+      if (entry.name === "xl/styles.xml") stylesXml = { position, size };
+      if (entry.name === "xl/workbook.xml") workbookXml = { position, size };
+      if (entry.name === "xl/sharedStrings.xml") shared = { position, size };
+      if (entry.name === "xl/worksheets/sheet1.xml") sheet = { position, size };
+      if (entry.name === fallbackName) fallback = { position, size };
+    }
+  });
+  const strings = new IntegerTable(storage); let stringCount = 0;
+  const open = async (snapshot: SofficeSnapshot) => openRetainedXml((async function* () {
+    for (let offset = 0; offset < snapshot.size; offset += 16384) {
+      signal.throwIfAborted(); yield new Uint8Array(await storage.read(snapshot.position + offset, Math.min(16384, snapshot.size - offset)));
+    }
+  })(), { signal, workingStorage: { fs: context.fs, directory: context.cwd } });
+  const parse = async (snapshot: SofficeSnapshot, run: (cursor: Cursor) => Promise<void>) => {
+    const xml = await open(snapshot), cursor = new Cursor(xml, storage, signal); let failed = true;
+    try { await run(cursor); failed = false; }
+    finally { try { await cursor.tokens.return(undefined); } finally { await xml.close().catch(error => { if (!failed) throw error; }); } }
+  };
+  const formats = new IntegerTable(storage), styles = new IntegerTable(storage);
+  let date1904 = false;
+  if (displayDates && workbookXml) await parse(workbookXml, async cursor => {
+    for await (const token of cursor.tokens) if (token.kind === "start-name" && await cursor.name(token.range) === "workbookPr")
+      await cursor.open(async (name, range) => { if (name === "date1904") date1904 = ["1", "true", "on"].includes(await cursor.name(range)); });
+  });
+  if (displayDates && stylesXml) await parse(stylesXml, async cursor => {
+    let inCells = false, count = 0;
+    for await (const token of cursor.tokens) {
+      const name = await cursor.name(token.range);
+      if (name === "cellXfs") { inCells = token.kind === "start-name" && await cursor.open() !== undefined; continue; }
+      if (token.kind !== "start-name") continue;
+      if (name === "numFmt") {
+        let id = NaN, value: SofficeSnapshot | undefined;
+        await cursor.open(async (name, range) => {
+          if (name === "numFmtId") id = Number(await cursor.name(range));
+          else if (name === "formatCode") value = await retainXmlText(storage, cursor.xml.read(range), signal, false);
+        });
+        if (value && Number.isSafeInteger(id) && id >= 0) {
+          await formats.set(BigInt(id) * 2n, BigInt(value.position));
+          await formats.set(BigInt(id) * 2n + 1n, BigInt(value.size));
+        }
+      } else if (name === "xf" && inCells) {
+        let id = 0;
+        await cursor.open(async (name, range) => { if (name === "numFmtId") id = Number(await cursor.name(range)); });
+        if (Number.isSafeInteger(id) && id >= 0) await styles.set(BigInt(count), BigInt(id));
+        count++;
+      }
+    }
+  });
+  if (shared) await parse(shared, async cursor => {
+    const spans = new RetainedSpans(storage, signal);
+    for (;;) {
+      const next = await cursor.tokens.next(); if (next.done) break;
+      if (next.value.kind !== "start-name" || await cursor.name(next.value.range) !== "si" || await cursor.open() === undefined) continue;
+      const first = spans.count;
+      for (;;) {
+        const token = await cursor.tokens.next(); if (token.done) break;
+        const name = await cursor.name(token.value.range);
+        if (token.value.kind === "end-name" && name === "si") break;
+        if (token.value.kind === "start-name" && name === "t") { const value = await cursor.field("t"); if (value) await spans.add(value); }
+      }
+      const value = await spans.finish(first);
+      await strings.set(BigInt(stringCount * 2), BigInt(value.position)); await strings.set(BigInt(stringCount * 2 + 1), BigInt(value.size)); stringCount++;
+    }
+  });
+  document?.beginTable();
+  const empty = { position: 0, size: 0 };
+  const output = new RetainedSpans(storage, signal, !document), tab = { position: await storage.append(Uint8Array.of(9)), size: 1 }, newline = { position: await storage.append(Uint8Array.of(10)), size: 1 };
+  let rows = 0;
+  const selected = sheet ?? fallback;
+  if (selected) await parse(selected, async cursor => {
+    for (;;) {
+      const next = await cursor.tokens.next(); if (next.done) break;
+      if (next.value.kind !== "start-name" || await cursor.name(next.value.range) !== "row" || await cursor.open() === undefined) continue;
+      let columns = 0;
+      for (;;) {
+        const next = await cursor.tokens.next(); if (next.done) break;
+        const name = await cursor.name(next.value.range);
+        if (next.value.kind === "end-name" && name === "row") break;
+        if (next.value.kind !== "start-name" || name !== "c") continue;
+        let style = 0;
+        let type = "", typed = false, column: number | undefined;
+        const start = await cursor.open(async (name, range, doubleQuoted) => {
+          if (name === "s") style = Number(await cursor.name(range));
+          if (!doubleQuoted) return;
+          const local = name.split(":").at(-1);
+          if (local === "t" && !typed && range.length) { type = await cursor.name(range); typed = true; }
+          else if (local?.toLowerCase() === "r" && column === undefined) column = await columnIndex(cursor.xml, range);
+        });
+        let value: SofficeSnapshot | undefined, inline: SofficeSnapshot | undefined;
+        if (start !== undefined) for (;;) {
+          const next = await cursor.tokens.next(); if (next.done) break;
+          const name = await cursor.name(next.value.range);
+          if (next.value.kind === "end-name" && name === "c") break;
+          if (next.value.kind === "start-name" && name === "v" && !value) value = await cursor.field("v", next.value.range);
+          else if (next.value.kind === "start-name" && name === "t" && !inline) inline = await cursor.field("t");
+        }
+        if (!columns) { if (rows) await output.add(newline); rows++; }
+        while (column !== undefined && columns < column) { if (columns++) await output.add(tab); await document?.cell(empty); signal.throwIfAborted(); }
+        if (columns++) await output.add(tab);
+        if (type === "inlineStr") value = inline;
+        else if (type === "s" && value) {
+          const index = await sharedIndex(storage, value, signal);
+          value = Number.isSafeInteger(index) && index >= 0 && index < stringCount ? { position: Number(await strings.get(BigInt(index * 2))), size: Number(await strings.get(BigInt(index * 2 + 1))) } : undefined;
+        }
+        if (displayDates && value && (type === "" || type === "n") && value.size <= 64 && Number.isSafeInteger(style) && style >= 0) {
+          const id = await styles.get(BigInt(style)) ?? 0n, size = Number(await formats.get(id * 2n + 1n) ?? 0n);
+          let format: string | number = Number(id);
+          if (size) {
+            const position = Number(await formats.get(id * 2n)), decoder = new TextDecoder();
+            format = "";
+            for (let offset = 0; offset < size; offset += 16384) {
+              signal.throwIfAborted();
+              format += decoder.decode(await storage.read(position + offset, Math.min(16384, size - offset)), { stream: true });
+            }
+            format += decoder.decode();
+          }
+          const raw = new TextDecoder().decode(await storage.read(value.position, value.size));
+          const text = xlsxDateText(raw, format, date1904);
+          if (text !== raw) { const bytes = new TextEncoder().encode(text); value = { position: await storage.append(bytes), size: bytes.length }; }
+        }
+        if (type === "b" && value && value.size <= 5) {
+          const raw = new TextDecoder().decode(await storage.read(value.position, value.size));
+          const bytes = new TextEncoder().encode(raw === "1" || raw === "true" ? "TRUE" : "FALSE");
+          value = { position: await storage.append(bytes), size: bytes.length };
+        }
+        if (value) await output.add(value);
+        await document?.cell(value ?? empty);
+      }
+      await document?.endRow();
+    }
+  });
+  await document?.endTable(true);
+  return output.finish();
+}
+
+async function columnIndex(xml: RetainedXml, range: XmlRange): Promise<number | undefined> {
+  let column = 0, digits = 0, letters = 0;
+  for await (const bytes of xml.read(range)) for (const byte of bytes) {
+    const upper = byte >= 97 && byte <= 122 ? byte - 32 : byte;
+    if (upper >= 65 && upper <= 90 && !digits) { column = column * 26 + upper - 64; letters++; }
+    else if (byte >= 48 && byte <= 57 && letters) digits++;
+    else return undefined;
+  }
+  if (!letters || !digits) return undefined;
+  if (!Number.isSafeInteger(column)) throw new RangeError("Column index exceeds safe storage addressing");
+  return column - 1;
+}
+
+async function sharedIndex(storage: PagedStorage, source: SofficeSnapshot, signal: AbortSignal): Promise<number> {
+  let value = 0, sign = 1, started = false, digits = false;
+  const decoder = new TextDecoder("utf-8", { ignoreBOM: true });
+  for (let offset = 0; offset < source.size; offset += 16384) {
+    signal.throwIfAborted();
+    for (const character of decoder.decode(await storage.read(source.position + offset, Math.min(16384, source.size - offset)), { stream: true })) {
+      if (!started && !character.trim()) continue;
+      if (!started && (character === "+" || character === "-")) { started = true; sign = character === "-" ? -1 : 1; continue; }
+      started = true;
+      if (character < "0" || character > "9") return digits ? sign * value : NaN;
+      digits = true; value = value * 10 + Number(character);
+    }
+  }
+  return digits ? sign * value : NaN;
+}

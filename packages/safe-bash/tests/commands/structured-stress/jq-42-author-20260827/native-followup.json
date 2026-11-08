@@ -1,0 +1,222 @@
+{
+  "capturedAt": "2026-08-27T00:44:11.318Z",
+  "phase": "after initial 42 fix, before followup root-cause fix",
+  "sourceHashes": {
+    "README.md": "5fecf1186d9004e378d77a1e9ad297af94b4f4f9070d9b620d70cd179a7e1b00",
+    "index.ts": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415",
+    "input.ts": "9227e29c2fbba19ebb6533048797612da5f220411b71fdd1fe2e79c2bf96d03b",
+    "interpreter.ts": "8239b8342f57a2f30a5c71c9207955e545fdd2af52e04dd3db11508187a0da37",
+    "jq.ts": "4163e50f8a6469d609fa52837faa98fbd5492bca29d8c78d1a398876d7fe9d50",
+    "limits.ts": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe",
+    "numbers.ts": "f2f18b3f201b22f560b9022304235ca26084319ca103a954f1aabb5f0f74be7d",
+    "parser.ts": "5673072aa6512c4fcbc6b008ab9ee595a9b0555c6c35ccf93fc3bb45c57d0ff8",
+    "split.ts": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6",
+    "values.ts": "b7764b6333525b44875aa76f4e9bb546f1b655b91a7dda52360498574c4c6222"
+  },
+  "cases": [
+    {
+      "id": "failed-prefix-true-none",
+      "argv": [
+        "-ce",
+        "if . == 0 then (true,1/0) elif . == 1 then empty else . end"
+      ],
+      "inputHex": "300a31",
+      "inputSha256": "1e9987e996a1c529f61f4339797481b7b1138b15f18a44e06dde45eabbc67921",
+      "expected": {
+        "status": 4,
+        "signal": null,
+        "stdoutHex": "747275650a",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a31293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a",
+        "stdoutSha256": "a17fcf0a2f50e2d495e4f90ce263410edc183add6c62699a2facbccf60410f74",
+        "stderrSha256": "0ddcd1f3e0e30429e4d78c256c425d9330a967649e5cd03f648eb8f8e54dc5fc"
+      }
+    },
+    {
+      "id": "failed-prefix-true-prior",
+      "argv": [
+        "-ce",
+        "if . == 0 then (true,1/0) elif . == 1 then empty else . end"
+      ],
+      "inputHex": "320a300a31",
+      "inputSha256": "1a42d6d078476ff3b3caad5bf101235e3cda04df3ee92c7a451bd26430b71237",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "320a747275650a",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a32293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a",
+        "stdoutSha256": "2d968004dd1156b9d6684ff8674ce8a40d2c2b01805bde5dc17ac9f1d2f02563",
+        "stderrSha256": "889d82cc554cd6a5b9d45ff2411efa773daf2313f5b0dbe6580809ae2dfceaa3"
+      }
+    },
+    {
+      "id": "failed-prefix-false-none",
+      "argv": [
+        "-ce",
+        "if . == 0 then (false,1/0) elif . == 1 then empty else . end"
+      ],
+      "inputHex": "300a31",
+      "inputSha256": "1e9987e996a1c529f61f4339797481b7b1138b15f18a44e06dde45eabbc67921",
+      "expected": {
+        "status": 4,
+        "signal": null,
+        "stdoutHex": "66616c73650a",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a31293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a",
+        "stdoutSha256": "2ed27c1421e6928dbe13dbfdb5c59e1045b30341fe7ebe05700006bc5ac572c0",
+        "stderrSha256": "0ddcd1f3e0e30429e4d78c256c425d9330a967649e5cd03f648eb8f8e54dc5fc"
+      }
+    },
+    {
+      "id": "failed-prefix-false-prior",
+      "argv": [
+        "-ce",
+        "if . == 0 then (false,1/0) elif . == 1 then empty else . end"
+      ],
+      "inputHex": "320a300a31",
+      "inputSha256": "1a42d6d078476ff3b3caad5bf101235e3cda04df3ee92c7a451bd26430b71237",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "320a66616c73650a",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a32293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a",
+        "stdoutSha256": "9e5f34cdac37eccda61206f27e08e2033995d741d4b32eb4b2b58469077aadfa",
+        "stderrSha256": "889d82cc554cd6a5b9d45ff2411efa773daf2313f5b0dbe6580809ae2dfceaa3"
+      }
+    },
+    {
+      "id": "failed-prefix-null-none",
+      "argv": [
+        "-ce",
+        "if . == 0 then (null,1/0) elif . == 1 then empty else . end"
+      ],
+      "inputHex": "300a31",
+      "inputSha256": "1e9987e996a1c529f61f4339797481b7b1138b15f18a44e06dde45eabbc67921",
+      "expected": {
+        "status": 4,
+        "signal": null,
+        "stdoutHex": "6e756c6c0a",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a31293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a",
+        "stdoutSha256": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed",
+        "stderrSha256": "0ddcd1f3e0e30429e4d78c256c425d9330a967649e5cd03f648eb8f8e54dc5fc"
+      }
+    },
+    {
+      "id": "failed-prefix-null-prior",
+      "argv": [
+        "-ce",
+        "if . == 0 then (null,1/0) elif . == 1 then empty else . end"
+      ],
+      "inputHex": "320a300a31",
+      "inputSha256": "1a42d6d078476ff3b3caad5bf101235e3cda04df3ee92c7a451bd26430b71237",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "320a6e756c6c0a",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a32293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a",
+        "stdoutSha256": "d54d1be55b40221aef7469deceabcc499166de9dad1bccc8ca89a97d7da7a8f0",
+        "stderrSha256": "889d82cc554cd6a5b9d45ff2411efa773daf2313f5b0dbe6580809ae2dfceaa3"
+      }
+    },
+    {
+      "id": "nul-string-next-line",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "22610062220a226e657874220a",
+      "inputSha256": "9ff5b440673d45ad8b601097fff1d4f82d631a2c92c9f10cad556c535ff2fb09",
+      "expected": {
+        "status": 5,
+        "signal": null,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c696420737472696e673a20636f6e74726f6c20636861726163746572732066726f6d20552b30303030207468726f75676820552b30303146206d7573742062652065736361706564206174206c696e6520312c20636f6c756d6e20350a",
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "ba2de24221b642c19070fcbbeb2963ce625f2ac45506e07e6dd541105c419df6"
+      }
+    },
+    {
+      "id": "nul-between-values",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "6e756c6c0069676e6f7265640a747275650a",
+      "inputSha256": "fc39ef915d5d6774abb81540a9e420d3f363cf428d07669f5f43015a735dfdaa",
+      "expected": {
+        "status": 5,
+        "signal": null,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206c69746572616c206174206c696e6520322c20636f6c756d6e20300a",
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "236b29dabec673cf73244ee6e09b1531307f64096bbdafaf3c7e42d02e3e197a"
+      }
+    },
+    {
+      "id": "nul-before-newline",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "0069676e6f7265640a747275650a",
+      "inputSha256": "6e1560c14e732f7aece297c90c7789d679b08957eddf4dcac999246aff89d056",
+      "expected": {
+        "status": 5,
+        "signal": null,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520322c20636f6c756d6e20300a",
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e933b737909be2b75c5ca19b9ebac7c613f4086133d385cb2599659ab42b0353"
+      }
+    },
+    {
+      "id": "two-errors-one-line",
+      "argv": [
+        "-c",
+        "join(\"/\")"
+      ],
+      "inputHex": "5b7b7d5d205b7b7d5d0a",
+      "inputSha256": "18260ee4d09bbc0028933f05a5418948f619d5240b816509c828fb3894d2a4da",
+      "expected": {
+        "status": 5,
+        "signal": null,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a31293a20737472696e67202822222920616e64206f626a65637420287b7d292063616e6e6f742062652061646465640a6a713a206572726f7220286174203c737464696e3e3a31293a20737472696e67202822222920616e64206f626a65637420287b7d292063616e6e6f742062652061646465640a",
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "5be4775e6ab12eba8d05adfe5c21bf2ab6a295b95fd20439dd86e7f5afb3d1e0"
+      }
+    },
+    {
+      "id": "two-errors-no-newline",
+      "argv": [
+        "-c",
+        "join(\"/\")"
+      ],
+      "inputHex": "5b7b7d5d205b7b7d5d",
+      "inputSha256": "e60fdaca707c104ec0191a97656ac1f9c759f034f312c490648eecc401e688b2",
+      "expected": {
+        "status": 5,
+        "signal": null,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a30293a20737472696e67202822222920616e64206f626a65637420287b7d292063616e6e6f742062652061646465640a6a713a206572726f7220286174203c737464696e3e3a30293a20737472696e67202822222920616e64206f626a65637420287b7d292063616e6e6f742062652061646465640a",
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "815627d3b3cb067c0bb3f0e0a4608a428c8b51aa168d3009d1f7a13ec6d1925c"
+      }
+    },
+    {
+      "id": "errors-across-blank-lines",
+      "argv": [
+        "-c",
+        "join(\"/\")"
+      ],
+      "inputHex": "5b7b7d5d0a0a0a5b7b7d5d0a",
+      "inputSha256": "4f2ead75cbdcb7e9d14440dbe1f56fc7427cc5c6c54f65eda235cc8d3aacdc41",
+      "expected": {
+        "status": 5,
+        "signal": null,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a31293a20737472696e67202822222920616e64206f626a65637420287b7d292063616e6e6f742062652061646465640a6a713a206572726f7220286174203c737464696e3e3a34293a20737472696e67202822222920616e64206f626a65637420287b7d292063616e6e6f742062652061646465640a",
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "25d814d8f0339cc40f2a2baeb570a58d5842850d6f4fd30896f75ab49a98dad4"
+      }
+    }
+  ]
+}

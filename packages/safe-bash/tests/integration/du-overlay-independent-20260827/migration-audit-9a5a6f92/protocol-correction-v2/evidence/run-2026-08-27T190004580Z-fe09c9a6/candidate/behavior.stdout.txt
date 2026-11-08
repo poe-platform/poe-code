@@ -1,0 +1,16 @@
+TAP version 13
+# Subtest: invalid arguments fail before filesystem calls; selected invalid environment falls back
+ok 1 - invalid arguments fail before filesystem calls; selected invalid environment falls back
+  ---
+  duration_ms: 4.867125
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 246.646

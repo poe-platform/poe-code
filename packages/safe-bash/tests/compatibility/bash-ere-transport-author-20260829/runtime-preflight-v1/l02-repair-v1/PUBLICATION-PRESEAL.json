@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "role": "third permitted PURE DATA helper, zero extra controls; file-based exact owned census/archive",
+  "helper": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/publication-data.mjs",
+    "size": 3032,
+    "sha256": "160deaebe1e23828f244cb758e9d6f5ad6555c9cf21e80a8f70769421dde45b8"
+  },
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "imports": [
+    "node:fs",
+    "node:path",
+    "node:crypto",
+    "node:zlib"
+  ],
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1"
+  ],
+  "limits": {
+    "milliseconds": 20000,
+    "files": 1200,
+    "workingBytes": 402653184,
+    "archiveDecodedBytes": 8388608,
+    "knownProcesses": 1,
+    "actualWorkers": 0,
+    "matching": 0
+  },
+  "capture": {
+    "stdout": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/publication-data.stdout",
+    "stderr": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/publication-data.stderr",
+    "exclusive": true
+  },
+  "status": "NO_PRODUCT_IMPORTS_NO_COMPILER_RETRY_NO_WORKER"
+}

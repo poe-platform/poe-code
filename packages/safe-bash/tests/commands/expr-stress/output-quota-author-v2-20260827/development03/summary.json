@@ -1,0 +1,22 @@
+{
+  "candidate": "51fb6b4056456ed264924aade9b6baaf07b8f23d",
+  "mode": "--development",
+  "startedAt": "2026-08-27T20:49:59.765Z",
+  "finishedAt": "2026-08-27T20:50:14.394Z",
+  "archiveSha256": "ae74b00b97168ba85839ea134cae92b374136fb509ad25b6074693ef8bc47b43",
+  "sourceSha256": "b1ad46e35f4077659aee2d148ab30a1ac6ba4032a877669ae2c5bfb27447c7fa",
+  "build": 0,
+  "types": 0,
+  "regressionStatus": 0,
+  "adjacentStatus": 1,
+  "passed": 46,
+  "total": 47,
+  "failed": [
+    "stdout-rejection-normal-quota"
+  ],
+  "archiveAndBuiltAppendAwareUnchanged": true,
+  "historicalAppendAwareUnchanged": true,
+  "dependenciesAppendAwareUnchanged": true,
+  "controlsUnchanged": true,
+  "meaning": "Capture success is not acceptance. Development overlays exactly source and new regression; --capture uses immutable committed selected inputs only. All legacy failures retained."
+}

@@ -1,0 +1,12 @@
+{
+  "classification": "author-owned generated scratch cleanup after durable receipt/input-delta retention",
+  "completedAt": "2026-08-28T00:14:10.880Z",
+  "removed": [
+    "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/which-author-v2-AlT7H9",
+    "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/which-author-v2-qdQ5kT",
+    "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/which-author-v2-0c5Mcq"
+  ],
+  "oldCoordinationReceiptsUnchanged": true,
+  "childProcesses": "All owned exec sessions exited and all spawnSync/execFileSync children were reaped; no background workers, SIGSTOP or dormant sessions introduced",
+  "scope": "Only the three listed unique author scratch directories removed. Foreign worktrees, staging, native artifacts and old /tmp coordination receipts preserved."
+}

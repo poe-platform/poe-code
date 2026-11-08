@@ -1,0 +1,18 @@
+{
+  "verifiedAt": "2026-08-28T00:46:13.680Z",
+  "archivedObjects": 107,
+  "candidateOnlyChangedHelper": true,
+  "ownFreezeChangedOnlySixOwnedFiles": true,
+  "historicalMembershipReconstructed": true,
+  "authenticatedHelperLoads": 11,
+  "naturalPrimaryProcesses": 26,
+  "naturalSupplementalTypeProcesses": 4,
+  "sourceBuildRemovedBeforeMovedReplay": true,
+  "scratchAbsent": true,
+  "extension": "11/12 in each mode; E07 fails",
+  "original12": "12/12 in each mode",
+  "nearby4": "4/4 in each mode",
+  "mutants": "4/4 targeted behavioral kills",
+  "verdict": "REJECT candidate helper extension: B01",
+  "stage2Authorized": false
+}

@@ -1,0 +1,611 @@
+import type { DirectoryEntry, CreateStagedFileOptions, FileStaging, FileStagingEntry, FileStagingResolution, PrepareStagingResolutionOptions, FileStat, FileReadHandle, FileResizeHandle, FileSystem, FsOptions, OpenResizeFileOptions, PublishStagedFileOptions, PublishStagedFileSetOptions, RenameOptions } from "../contracts/filesystem.js";
+import type { FileDescriptor, OpenFileOptions } from "../contracts/descriptor.js";
+import { FsError, toFsError } from "../contracts/errors.js";
+import { validatePath } from "../contracts/virtual-path.js";
+import type { ByteSource } from "../contracts/io.js";
+import { finishCleanup } from "../contracts/cleanup.js";
+import { registerEntryView } from "./mount/comparison.js";
+import { getScopedTransportBudget, runScopedTransportBudget, withScopedTransportBudget } from "#safe-fs-platform";
+import { hasRegisteredS3FileSystem, scopeTransportOptions } from "../platform/transport-budget.js";
+import { openRetainedResizeFile, retainedResizeCapabilities, ownedMutationCapabilities, requireOwnedMutation } from "./capabilities.js";
+import { createStagingCleanup, snapshotStagingCreation } from "./staging-cleanup.js";
+import { inspectStagingBindings, runStagingGuard, snapshotDirectoryAncestry, snapshotStagingResolution } from "./staging-ancestry.js";
+
+const originals = new WeakMap<FileSystem, { filesystem: FileSystem; signal: AbortSignal; cleanupCharge: () => void; creationMask: number | undefined; maxPathComponents: number | undefined }>();
+const retainedCleanupSymbol = Symbol.for("safe-fs.retainedCleanup");
+interface RetainedCleanupBinding {
+  readonly filesystem: FileSystem;
+  readonly retain: typeof retainFileSystemCleanup;
+}
+const retargeters = new WeakMap<
+  FileSystem,
+  (charge: () => void, signal: AbortSignal, cleanupCharge: () => void, maxPathComponents?: number) => void
+>();
+
+export function retargetScopedFileSystem(
+  scoped: FileSystem,
+  charge: () => void,
+  signal: AbortSignal,
+  cleanupCharge = charge,
+  maxPathComponents?: number,
+): boolean {
+  const fn = retargeters.get(scoped);
+  if (!fn) return false;
+  fn(charge, signal, cleanupCharge, maxPathComponents);
+  return true;
+}
+const operations = new Set<keyof FileSystem>([
+  "prepareDirectoryAncestry", "prepareStagingResolution", "publishStagedFileSet",
+  "publishFileConditional", "removeEntryConditional", "removeTreeConditional", "writeFileConditional", "removeFileConditional", "createStagedFile", "publishStagedFile", "removeStagedFile", "prepareDirectory",
+  "confineExtraction", "confineTrustedExtraction", "access", "appendFile", "canonicalizeMissingTarget", "capabilitiesFor", "chmod", "compareEntry",
+  "copyFile", "link", "lstat", "mkdir", "openReadFile", "openResizeFile", "readFile", "readStream", "readdir", "iterateDirectory",
+  "readlink", "realpath", "rename", "resizeFile", "rm", "rmdir", "unlink", "stat", "symlink", "truncate", "utimes",
+  "writeFile", "writeStream",
+]);
+
+export function scopeFileSystem(filesystem: FileSystem, charge: () => void, signal: AbortSignal, cleanupCharge = charge,
+  options: { readonly preserveDescriptorWriteReceipt?: boolean; readonly creationMask?: number; readonly maxPathComponents?: number } = {}): FileSystem {
+  const original = originals.get(filesystem)?.filesystem ?? filesystem;
+  const creationMask = options.creationMask ?? originals.get(filesystem)?.creationMask;
+  let maxPathComponents = options.maxPathComponents ?? originals.get(filesystem)?.maxPathComponents;
+  if (creationMask !== undefined && (!Number.isInteger(creationMask) || creationMask < 0 || creationMask > 0o777)) throw new RangeError("creationMask must be a permission mask between 0 and 0777");
+  const creationOptions = <Options extends FsOptions & { readonly mode?: number }>(settings: Options, directory = false): Options => {
+    // Explicit directory modes (mkdir -m) are independent of the shell mask.
+    // Modes remain advisory on adapters that do not enforce permissions.
+    if (creationMask === undefined || directory && settings.mode !== undefined) return settings;
+    const mode = settings.mode ?? (directory ? 0o777 : 0o666);
+    if (!Number.isSafeInteger(mode) || mode < 0 || mode > 0o7777) throw new FsError("EINVAL");
+    return { ...settings, mode: mode & ~creationMask };
+  };
+  const methods = new Map<PropertyKey, { original: unknown; scoped: unknown }>();
+  const assertOpen = (options?: FsOptions): void => {
+    signal.throwIfAborted();
+    options?.signal?.throwIfAborted();
+  };
+  const admit = (options?: FsOptions): void => {
+    assertOpen(options);
+    charge();
+  };
+  const wrapHandle = (handle: FileReadHandle): FileReadHandle => {
+    let closed = false;
+    const close = handle.close.bind(handle);
+    return {
+      async stat(options) { admit(options); return handle.stat(options); },
+      async read(position, maxBytes, options) { admit(options); return handle.read(position, maxBytes, options); },
+      get seekEnd() {
+        const seek = handle.seekEnd;
+        if (typeof seek !== "function") return undefined;
+        return async (options: FsOptions = {}) => {
+          assertOpen(options);
+          if (closed) throw new FsError("EBADF");
+          admit(options);
+          assertOpen(options);
+          if (closed) throw new FsError("EBADF");
+          try {
+            const result = await Reflect.apply(seek, handle, [resizeOptions(options)]);
+            assertOpen(options);
+            return result;
+          } catch (error) { assertOpen(options); throw error; }
+        };
+      },
+      close() { closed = true; return close(); },
+    };
+  };
+  let combinedSignals = new WeakMap<AbortSignal, AbortSignal>();
+  const combineSignal = (callerSignal: AbortSignal | undefined): AbortSignal => {
+    if (!callerSignal || callerSignal === signal) return signal;
+    let combined = combinedSignals.get(callerSignal);
+    if (!combined) {
+      combined = AbortSignal.any([signal, callerSignal]);
+      combinedSignals.set(callerSignal, combined);
+    }
+    return combined;
+  };
+  const resizeOptions = <Options extends FsOptions>(options: Options): Options => {
+    const scopedOptions = {
+      ...options, signal: combineSignal(options.signal),
+    };
+    scopedOptions.signal.throwIfAborted();
+    return scopedOptions;
+  };
+  const wrapResizeHandle = (handle: FileResizeHandle): FileResizeHandle => {
+    let closing: Promise<void> | undefined;
+    const admitOperation = (options: FsOptions): FsOptions => {
+      assertOpen(options);
+      if (closing) throw new FsError("EBADF");
+      admit(options);
+      assertOpen(options);
+      if (closing) throw new FsError("EBADF");
+      return resizeOptions(options);
+    };
+    return {
+      async stat(options = {}) {
+        try {
+          const result = await handle.stat(admitOperation(options));
+          assertOpen(options);
+          return result;
+        } catch (error) { assertOpen(options); throw error; }
+      },
+      async truncate(length, options = {}) {
+        try {
+          await handle.truncate(length, admitOperation(options));
+          assertOpen(options);
+        } catch (error) { assertOpen(options); throw error; }
+      },
+      get seekEnd() {
+        const seek = handle.seekEnd;
+        if (typeof seek !== "function") return undefined;
+        return async (options: FsOptions = {}) => {
+          try {
+            const result = await Reflect.apply(seek, handle, [admitOperation(options)]);
+            assertOpen(options);
+            return result;
+          } catch (error) { assertOpen(options); throw error; }
+        };
+      },
+      close: () => closing ??= Promise.resolve().then(() => handle.close()),
+    };
+  };
+  const wrapDescriptor = (descriptor: FileDescriptor): FileDescriptor => {
+    let closing: Promise<void> | undefined;
+    const invoke = async <Result>(options: FsOptions, action: (options: FsOptions) => Promise<Result>, preserveReceipt = false): Promise<Result> => {
+      assertOpen(options);
+      if (closing) throw new FsError("EBADF");
+      admit(options);
+      assertOpen(options);
+      if (closing) throw new FsError("EBADF");
+      try {
+        const result = await action(resizeOptions(options));
+        if (!preserveReceipt) assertOpen(options);
+        return result;
+      } catch (error) { assertOpen(options); throw error; }
+    };
+    const getPosition = descriptor.getPosition;
+    const probeRead = descriptor.probeRead;
+    return {
+      capabilities: Object.freeze({ ...descriptor.capabilities }),
+      ...(getPosition === undefined ? {} : { getPosition: (options: FsOptions = {}) => invoke(options, scoped => getPosition.call(descriptor, scoped)) }),
+      ...(probeRead === undefined ? {} : { probeRead: (options: FsOptions = {}) => invoke(options, scoped => probeRead.call(descriptor, scoped)) }),
+      stat: (options = {}) => invoke(options, scoped => descriptor.stat(scoped)),
+      read: (buffer, position, options = {}) => invoke(options, scoped => descriptor.read(buffer, position, scoped)),
+      write: (buffer, position, forwarded = {}) => invoke(forwarded, scoped => descriptor.write(buffer, position, scoped), options.preserveDescriptorWriteReceipt === true),
+      truncate: (length, options = {}) => invoke(options, scoped => descriptor.truncate(length, scoped)),
+      sync: (dataOnly, options = {}) => invoke(options, scoped => descriptor.sync(dataOnly, scoped)),
+      close: (options = {}) => closing ??= Promise.resolve().then(() => descriptor.close(options)),
+    };
+  };
+  const wrapStream = <T>(source: AsyncIterable<T>, options?: FsOptions, chargeNext = false): AsyncIterable<T> => {
+    const budgetFrames = getScopedTransportBudget();
+    return {
+    [Symbol.asyncIterator]() {
+      assertOpen(options);
+      const iterator = source[Symbol.asyncIterator]();
+      let closing: Promise<IteratorResult<T>> | undefined;
+      const close = (value?: unknown): Promise<IteratorResult<T>> => closing ??= Promise.resolve().then(
+        () => iterator.return ? iterator.return(value) : { done: true, value: undefined },
+      );
+      const advance = async (operation: () => Promise<IteratorResult<T>>): Promise<IteratorResult<T>> => {
+        try {
+          assertOpen(options);
+          if (closing) { await closing; return { done: true, value: undefined }; }
+          if (chargeNext) admit(options);
+          const result = await withScopedTransportBudget(budgetFrames, operation);
+          assertOpen(options);
+          if (closing) { await closing; return { done: true, value: undefined }; }
+          return result;
+        } catch (error) {
+          await finishCleanup(close, true);
+          throw error;
+        }
+      };
+      return {
+        next: () => advance(() => iterator.next()),
+        return: close,
+        ...(iterator.throw ? { throw: (error?: unknown) => advance(() => iterator.throw!(error)) } : {}),
+      };
+    },
+  };
+  };
+  let cachedRawCaps: FileSystem["capabilities"] | undefined;
+  let cachedCreateStaged: unknown;
+  let cachedOpenResize: unknown;
+  let cachedComputedCaps: FileSystem["capabilities"] | undefined;
+  const view: FileSystem = new Proxy(Object.create(original) as FileSystem, {
+    set(_target, property, value) {
+      cachedComputedCaps = undefined;
+      return Reflect.set(original, property, value, original);
+    },
+    get(_target, property) {
+      if (property === retainedCleanupSymbol) return cleanupBinding;
+      if (property === "capabilities") {
+        const rawCaps = original.capabilities;
+        if (
+          cachedComputedCaps !== undefined &&
+          cachedRawCaps === rawCaps &&
+          cachedCreateStaged === original.createStagedFile &&
+          cachedOpenResize === original.openResizeFile
+        ) {
+          return cachedComputedCaps;
+        }
+        const computed = ownedMutationCapabilities(original, retainedResizeCapabilities(original, rawCaps));
+        cachedRawCaps = rawCaps;
+        cachedCreateStaged = original.createStagedFile;
+        cachedOpenResize = original.openResizeFile;
+        cachedComputedCaps = computed;
+        return computed;
+      }
+      const method: unknown = Reflect.get(original, property, original);
+      if (typeof method !== "function") return method;
+      const cached = methods.get(property);
+      if (cached?.original === method) return cached.scoped;
+      const credit = operations.has(property as keyof FileSystem) ? 1 : 0;
+      const executeDispatch = (args: unknown[]): unknown => {
+        if (property === "removeEntryConditional") args[1] = resizeOptions({ ...args[1] as FsOptions });
+        let stagingSignal: AbortSignal | undefined;
+        if (property === "createStagedFile" || property === "publishStagedFile" || property === "publishStagedFileSet") {
+          signal.throwIfAborted();
+          if (property === "createStagedFile") args[3] = snapshotStagingCreation(args[3] as CreateStagedFileOptions, args[0] as string);
+          const callerSignal = (args[property === "createStagedFile" ? 3 : 2] as FsOptions | undefined)?.signal;
+          stagingSignal = combineSignal(callerSignal);
+          stagingSignal.throwIfAborted();
+        }
+        if (operations.has(property as keyof FileSystem)) {
+          const options = args.at(-1);
+          admit(stagingSignal ? { signal: stagingSignal }
+            : options && typeof options === "object" && "signal" in options ? options as FsOptions : undefined);
+          if (property !== "symlink" && typeof args[0] === "string") validatePath(args[0], maxPathComponents);
+          if (["copyFile", "rename", "link", "compareEntry"].includes(String(property)) && typeof args[1] === "string") validatePath(args[1], maxPathComponents);
+          if (property === "symlink" && typeof args[1] === "string") validatePath(args[1], maxPathComponents);
+        }
+        if (property === "publishStagedFileSet") {
+          if (original.capabilities.readOnly === true) throw new FsError("EROFS", { path: args[1] as string });
+          const supplied = args[2] as PublishStagedFileSetOptions;
+          const callerGuard = supplied.commitGuard;
+          const entry = (value: FileStagingEntry): FileStagingEntry => ({ path: value.path, stat: { ...value.stat } });
+          const input = args[0] as FileStaging;
+          const staging = { ...input, parent: entry(input.parent), directory: entry(input.directory), file: entry(input.file) };
+          const controls: PublishStagedFileSetOptions = {
+            ...supplied,
+            signal: stagingSignal!,
+            parent: { ...supplied.parent },
+            destination: supplied.destination === null ? null : { ...supplied.destination },
+            companions: supplied.companions.map(value => ({ ...value, expected: value.expected === null ? null : { ...value.expected } })),
+            ...(supplied.ancestors === undefined ? {} : { ancestors: snapshotDirectoryAncestry(supplied.ancestors) }),
+            commitGuard: () => {
+              assertOpen({ signal: stagingSignal! });
+              if (callerGuard !== undefined) runStagingGuard(callerGuard);
+              assertOpen({ signal: stagingSignal! });
+              return true;
+            },
+          };
+          for (const path of [staging.parent.path, staging.directory.path, staging.file.path, args[1] as string,
+            ...controls.companions.map(value => value.path), ...(controls.ancestors ?? []).map(value => value.path)]) {
+            validatePath(path, maxPathComponents);
+          }
+          assertOpen(controls);
+          return Reflect.apply(method, original, [staging, args[1], controls]);
+        }
+        if (["writeFile", "appendFile", "writeStream", "mkdir"].includes(String(property))) {
+          const index = property === "mkdir" ? 1 : 2;
+          args[index] = creationOptions((args[index] ?? {}) as FsOptions & { mode?: number }, property === "mkdir");
+        }
+        if (["publishFileConditional", "removeEntryConditional", "removeTreeConditional", "writeFileConditional", "removeFileConditional", "createStagedFile", "publishStagedFile", "removeStagedFile", "prepareDirectory"].includes(String(property))) return (async () => {
+          const path = typeof args[0] === "string" ? args[0] : (args[0] as FileStaging).directory.path;
+          const optionIndex = property === "createStagedFile" ? 3 : property === "publishFileConditional" || property === "publishStagedFile" || property === "writeFileConditional" ? 2 : 1;
+          const supplied = args[optionIndex] as FsOptions | undefined;
+          const removalReceipt = property === "removeEntryConditional" && supplied !== undefined && "returnRemainingStat" in supplied && supplied.returnRemainingStat === true;
+          const options = stagingSignal ? { ...supplied, signal: stagingSignal } : supplied;
+          if (property === "createStagedFile" || property === "removeEntryConditional") args[optionIndex] = options;
+          const assertReady = (): void => {
+            if (property === "createStagedFile" || property === "publishStagedFile") options?.signal?.throwIfAborted();
+            assertOpen(options);
+          };
+          const callerGuard = property === "publishStagedFile" ? (supplied as PublishStagedFileOptions | undefined)?.commitGuard : undefined;
+          try {
+            const create = property === "createStagedFile" || (property === "publishFileConditional" || property === "writeFileConditional" || property === "prepareDirectory") && options !== undefined && "expected" in options && options.expected === null;
+            await requireOwnedMutation(original, path, property === "publishFileConditional" ? "atomicFilePublication" : property === "removeEntryConditional" ? "atomicEntryRemoval" : property === "removeTreeConditional" ? "atomicTreeRemoval" : property === "prepareDirectory" ? "atomicDirectoryMetadata" : property === "writeFileConditional" || property === "removeFileConditional" ? "atomicFileMutation" : "atomicFileStaging", options ?? {}, create);
+            if (removalReceipt) await requireOwnedMutation(original, path, "atomicEntryRemovalReceipt", options!);
+            if (property === "createStagedFile" && options && "retainCleanup" in options && options.retainCleanup === true) {
+              await requireOwnedMutation(original, path, "retainedStagingCleanup", options, true);
+            }
+            if (property === "publishStagedFile") {
+              const publishOptions = (options ?? {}) as PublishStagedFileOptions;
+              await requireOwnedMutation(original, args[1] as string, "atomicFileStaging", publishOptions, publishOptions.destination === null);
+              if (publishOptions.preserveIdentity) await requireOwnedMutation(original, args[1] as string, "atomicStagedFileMutation", publishOptions);
+              const query = (options as PublishStagedFileOptions).destination === null ? { ...options, create: true } : options;
+              const declared = ownedMutationCapabilities(original, await original.capabilitiesFor?.(args[1] as string, query) ?? original.capabilities);
+              assertReady();
+              if (callerGuard !== undefined && declared.guardedStagingPublication !== true) throw new FsError("ENOTSUP", { path: args[1] as string, syscall: "guardedStagingPublication" });
+              // Guarded publication preserves the caller signal and observes scope
+              // cancellation at commit. Unguarded backends need a composed signal.
+              if (declared.guardedStagingPublication === true) args[optionIndex] = {
+                ...supplied,
+                commitGuard: () => {
+                  assertReady();
+                  if (callerGuard !== undefined) runStagingGuard(callerGuard);
+                  assertReady();
+                  return true as const;
+                },
+              };
+              else args[optionIndex] = options;
+            }
+            if (property === "publishStagedFile" && options && "ancestors" in options && options.ancestors !== undefined) await requireOwnedMutation(original, args[1] as string, "atomicStagingAncestry", options, (options as PublishStagedFileOptions).destination === null);
+            assertReady();
+            if (property === "publishFileConditional") {
+              args[1] = wrapStream(args[1] as ByteSource, options);
+              args[2] = resizeOptions(options ?? {});
+            }
+          } catch (error) {
+            assertReady();
+            if (property === "publishStagedFile" && supplied && "ancestors" in supplied && supplied.ancestors !== undefined
+              && ["ENOTSUP", "ENOENT", "ENOTDIR", "ELOOP"].includes(toFsError(error).code)) {
+              await inspectStagingBindings(path => original.lstat(path, options), args[1] as string, options as PublishStagedFileOptions);
+            }
+            throw error;
+          }
+          if (property === "removeEntryConditional") {
+            const receipt: FileStat | void = await Reflect.apply(method, original, args);
+            return removalReceipt && receipt !== undefined ? Object.freeze({ ...receipt }) : undefined;
+          }
+          if (property !== "createStagedFile") return Reflect.apply(method, original, args);
+          const staging: FileStaging = await Reflect.apply(method, original, args);
+          if (!staging.cleanup) return staging;
+          const backendCleanup = staging.cleanup;
+          try {
+            const cleanup = createStagingCleanup(staging.directory.path, controls => {
+              controls.signal?.throwIfAborted();
+              cleanupCharge();
+              controls.signal?.throwIfAborted();
+              return backendCleanup.remove(controls);
+            }, () => backendCleanup.close());
+            const backendWriter = staging.writer;
+            const writer = backendWriter && Object.freeze({
+              write: async (bytes: Uint8Array, settings: FsOptions = {}) => {
+                const controls = resizeOptions(settings); admit(controls);
+                await backendWriter.write(bytes, controls);
+              },
+              finish: async (settings: FsOptions = {}) => {
+                const controls = resizeOptions(settings); admit(controls);
+                return backendWriter.finish(controls);
+              },
+            });
+            return Object.freeze({ ...staging, cleanup, ...(writer ? { writer } : {}) });
+          } catch (error) {
+            await finishCleanup(() => backendCleanup.close(), true);
+            throw error;
+          }
+        })();
+        if (property === "compareEntry") {
+          const peer = args[1] as FileSystem;
+          args[1] = originals.get(peer)?.filesystem ?? peer;
+        }
+        if (property === "rename" && (args[2] as RenameOptions | undefined)?.noReplace) return (async () => {
+          const options = args[2] as RenameOptions;
+          const capabilities = await original.capabilitiesFor?.(args[1] as string, options) ?? original.capabilities;
+          assertOpen(options);
+          if (capabilities.atomicRenameNoReplace !== true) throw new FsError("ENOTSUP", {
+            syscall: "rename", path: args[0] as string, dest: args[1] as string,
+          });
+          return Reflect.apply(method, original, args);
+        })();
+        if (property === "iterateDirectory") args[1] = { ...args[1] as FsOptions, signal: combineSignal((args[1] as FsOptions | undefined)?.signal) };
+        const result: unknown = Reflect.apply(method, original, args);
+        if (property === "iterateDirectory") return wrapStream(result as AsyncIterable<DirectoryEntry>, args[1] as FsOptions, true);
+        return property === "readStream" ? wrapStream(result as ByteSource, args[1] as FsOptions | undefined) : result;
+      };
+      const dispatch = (...args: unknown[]): unknown => {
+        if (!hasRegisteredS3FileSystem) return executeDispatch(args);
+        if (operations.has(property as keyof FileSystem)) {
+          const optionIndex = ["compareEntry", "createStagedFile", "utimes"].includes(String(property)) ? 3
+            : ["writeFile", "appendFile", "writeStream", "rename", "copyFile", "link", "symlink", "access", "chmod", "truncate", "resizeFile", "publishFileConditional", "writeFileConditional", "publishStagedFile", "publishStagedFileSet"].includes(String(property)) ? 2 : 1;
+          args[optionIndex] = scopeTransportOptions((args[optionIndex] ?? {}) as FsOptions, admit, credit);
+        }
+        return runScopedTransportBudget(admit, () => executeDispatch(args), credit);
+      };
+      const scoped = property === "prepareStagingResolution"
+        ? async (path: string, options: PrepareStagingResolutionOptions = {}) => {
+          const controls = resizeOptions({ ...options });
+          controls.signal?.throwIfAborted();
+          admit(controls);
+          try {
+            const declared = ownedMutationCapabilities(original,
+              await original.capabilitiesFor?.(path, { ...controls, stagingResolution: true }) ?? original.capabilities);
+            controls.signal?.throwIfAborted();
+            if (declared.synchronousStagingResolution !== true || controls.followFinalSymlink === true && declared.synchronousFollowedStagingResolution !== true) throw new FsError("ENOTSUP", { path });
+            const resolution = snapshotStagingResolution(await Reflect.apply(method, original, [path, controls]) as FileStagingResolution);
+            controls.signal?.throwIfAborted();
+            return snapshotStagingResolution({ ...resolution, validate: () => {
+              controls.signal?.throwIfAborted();
+              admit(controls);
+              controls.signal?.throwIfAborted();
+              runStagingGuard(resolution.validate);
+              return true;
+            } });
+          } catch (error) { controls.signal?.throwIfAborted(); throw error; }
+        }
+        : property === "prepareDirectoryAncestry"
+        ? async (...args: unknown[]) => {
+          const options = (args[1] ?? {}) as FsOptions;
+          const controls = resizeOptions(options);
+          admit(controls);
+          controls.signal?.throwIfAborted();
+          const entries = snapshotDirectoryAncestry(args[0] as readonly FileStagingEntry[]);
+          try {
+            for (const entry of entries) {
+              const declared = await original.capabilitiesFor?.(entry.path, { ...controls, stagingAncestry: true }) ?? original.capabilities;
+              controls.signal?.throwIfAborted();
+              if (declared.synchronousDirectoryValidation !== true) throw new FsError("ENOTSUP", { path: entry.path });
+            }
+            const guard: unknown = await Reflect.apply(method, original, [entries, controls]);
+            controls.signal?.throwIfAborted();
+            if (typeof guard !== "function") throw new FsError("ENOTSUP", { syscall: "prepareDirectoryAncestry" });
+            return () => {
+              controls.signal?.throwIfAborted();
+              admit(controls);
+              controls.signal?.throwIfAborted();
+              runStagingGuard(guard as () => true);
+              return true as const;
+            };
+          } catch (error) { controls.signal?.throwIfAborted(); throw error; }
+        }
+        : (property === "confineExtraction" || property === "confineTrustedExtraction")
+        ? async (...args: unknown[]) => scopeFileSystem(await dispatch(...args) as FileSystem, charge, signal, cleanupCharge, options)
+        : property === "open"
+        ? async (path: string, options: OpenFileOptions) => {
+          admit(options);
+          const selected = resizeOptions(creationOptions(options));
+          let descriptor: FileDescriptor | undefined;
+          try {
+            descriptor = await Reflect.apply(method, original, [path, selected]) as FileDescriptor;
+            assertOpen(options);
+            return wrapDescriptor(descriptor);
+          } catch (error) {
+            if (descriptor) await finishCleanup(() => descriptor!.close(), true);
+            assertOpen(options);
+            throw error;
+          }
+        }
+        : property === "openResizeFile"
+        ? async (path: string, options: OpenResizeFileOptions = {}) => {
+          admit(options);
+          assertOpen(options);
+          return wrapResizeHandle(await openRetainedResizeFile(original, path, resizeOptions(creationOptions(options))));
+        }
+        : property === "capabilitiesFor"
+          ? async (...args: unknown[]) => ownedMutationCapabilities(original, retainedResizeCapabilities(original, await dispatch(...args) as FileSystem["capabilities"]))
+          : property === "openReadFile"
+            ? async (...args: unknown[]) => wrapHandle(await dispatch(...args) as FileReadHandle)
+            : operations.has(property as keyof FileSystem) && property !== "canonicalizeMissingTarget" && property !== "readStream" && property !== "iterateDirectory"
+                ? (...args: unknown[]) => {
+                    try {
+                      const res = dispatch(...args);
+                      return res instanceof Promise ? res : Promise.resolve(res);
+                    } catch (error) {
+                      return Promise.reject(error);
+                    }
+                  }
+                : dispatch;
+      methods.set(property, { original: method, scoped });
+      return scoped;
+    },
+  });
+  const cleanupBinding: RetainedCleanupBinding = Object.freeze({ filesystem: view, retain: retainFileSystemCleanup });
+  const originalRecord = { filesystem: original, signal, cleanupCharge, creationMask, maxPathComponents };
+  originals.set(view, originalRecord);
+  retargeters.set(view, (nextCharge, nextSignal, nextCleanupCharge, nextMaxPathComponents) => {
+    charge = nextCharge;
+    if (signal !== nextSignal) {
+      combinedSignals = new WeakMap();
+    }
+    signal = nextSignal;
+    cleanupCharge = nextCleanupCharge;
+    maxPathComponents = nextMaxPathComponents ?? originals.get(filesystem)?.maxPathComponents;
+    originalRecord.signal = nextSignal;
+    originalRecord.cleanupCharge = nextCleanupCharge;
+    originalRecord.maxPathComponents = maxPathComponents;
+  });
+  registerEntryView(view, async (path, options) => {
+    assertOpen(options);
+    return { filesystem: original, path };
+  });
+  return view;
+}
+
+export interface RetainedFileSystemCleanupView {
+  readonly removeFileConditional?: NonNullable<FileSystem["removeFileConditional"]>;
+  readonly removeTreeConditional?: NonNullable<FileSystem["removeTreeConditional"]>;
+  readonly removeStagedFile?: NonNullable<FileSystem["removeStagedFile"]>;
+  readonly lstat: FileSystem["lstat"];
+  readonly realpath: FileSystem["realpath"];
+  readonly rm: (path: string, options?: FsOptions) => Promise<void>;
+  readonly rmdir?: NonNullable<FileSystem["rmdir"]>;
+}
+
+export interface RetainedFileSystemCleanupOptions {
+  readonly maxOperations?: number;
+}
+
+export function retainFileSystemCleanup(
+  filesystem: FileSystem,
+  cleanupCallback: (view: RetainedFileSystemCleanupView) => void | PromiseLike<void>,
+  options?: RetainedFileSystemCleanupOptions,
+): () => Promise<void> {
+  const maximum = options?.maxOperations ?? Infinity;
+  if (maximum !== Infinity && (!Number.isSafeInteger(maximum) || maximum < 0)) throw new RangeError("cleanup maxOperations must be a nonnegative safe integer or Infinity");
+  if (typeof cleanupCallback !== "function") throw new TypeError("cleanup callback must be a function");
+  const scope = originals.get(filesystem);
+  if (!scope) {
+    // Bundled commands can hold another module copy. Delegate only for this
+    // exact view, never through a wrapper that happens to forward its symbols.
+    const binding = Reflect.get(filesystem, retainedCleanupSymbol) as RetainedCleanupBinding | undefined;
+    if (binding?.filesystem === filesystem && typeof binding.retain === "function" && binding.retain !== retainFileSystemCleanup)
+      return binding.retain(filesystem, cleanupCallback, options);
+  }
+  scope?.signal.throwIfAborted();
+  const backing = scope?.filesystem ?? filesystem;
+  const pending = new Set<Promise<PromiseSettledResult<void>>>();
+  let operations = 0;
+  let active = false;
+  let closing: Promise<void> | undefined;
+  const invoke = (method: keyof RetainedFileSystemCleanupView, input: string | FileStaging, settings?: FsOptions | Parameters<NonNullable<FileSystem["removeTreeConditional"]>>[1]): Promise<unknown> => {
+    const path = typeof input === "string" ? input : input.directory.path;
+    if (!active) {
+      const rejected = Promise.reject(new FsError("EBADF", { syscall: method, path, message: "cleanup callback is not active" }));
+      void rejected.catch(() => {});
+      return rejected;
+    }
+    let result: Promise<unknown>;
+    try {
+      settings?.signal?.throwIfAborted();
+      if (operations >= maximum) throw new FsError("EFBIG", { syscall: method, path, message: "cleanup operation limit exceeded" });
+      operations++;
+      scope?.cleanupCharge();
+      settings?.signal?.throwIfAborted();
+      const operation = backing[method];
+      if (typeof operation !== "function") throw new FsError("ENOTSUP", { syscall: method, path });
+      const parameters = method === "rm" ? { ...settings, recursive: false, force: false } : settings;
+      result = method === "removeStagedFile" || method === "removeFileConditional" || method === "removeTreeConditional"
+        ? requireOwnedMutation(backing, path, method === "removeFileConditional" ? "atomicFileMutation" : method === "removeTreeConditional" ? "atomicTreeRemoval" : "atomicFileStaging", settings ?? {}).then(() => Reflect.apply(operation, backing, [input, parameters]))
+        : Promise.resolve(Reflect.apply(operation, backing, [input, parameters]));
+    } catch (error) {
+      result = Promise.reject(error);
+      void result.catch(() => {});
+      return result;
+    }
+    const completion = result.then<PromiseSettledResult<void>, PromiseSettledResult<void>>(
+      () => { pending.delete(completion); return { status: "fulfilled", value: undefined }; },
+      error => { pending.delete(completion); return { status: "rejected", reason: error }; },
+    );
+    pending.add(completion);
+    return result;
+  };
+  const view = Object.create(null) as RetainedFileSystemCleanupView;
+  for (const method of ["removeFileConditional", "removeStagedFile", "removeTreeConditional", "lstat", "realpath", "rm", "rmdir"] as const) {
+    if (method === "lstat" || method === "realpath" || method === "rm" || typeof backing[method] === "function")
+      Object.defineProperty(view, method, { value: invoke.bind(undefined, method), enumerable: true });
+  }
+  Object.freeze(view);
+  scope?.signal.throwIfAborted();
+  return () => {
+    if (!closing) {
+      closing = Promise.resolve().then(async () => {
+        active = true;
+        let callbackFailed = false;
+        let callbackFailure: unknown;
+        try {
+          const result = cleanupCallback(view);
+          if (result !== undefined) await result;
+        } catch (error) { callbackFailed = true; callbackFailure = error; }
+        finally { active = false; }
+        const outcomes = await Promise.all(pending);
+        if (callbackFailed) throw callbackFailure;
+        const failures: unknown[] = [];
+        for (const outcome of outcomes) if (outcome.status === "rejected") failures.push(outcome.reason);
+        if (failures.length === 1) throw failures[0];
+        if (failures.length > 1) throw new AggregateError(failures, "retained filesystem cleanup failed");
+      });
+      void closing.catch(() => {});
+    }
+    return closing;
+  };
+}

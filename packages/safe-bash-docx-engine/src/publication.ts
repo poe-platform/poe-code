@@ -1,0 +1,465 @@
+import { parseMediaType } from "./media-type.js";
+import { documentPartRole, signatureContentTypes, signatureRelationshipTypes } from "./document-part-roles.js";
+import { dirname, basename, type FileStat, type FileSystem } from "@poe-code/safe-fs/core";
+import { documentSession, archiveSettings, CancellationError, InputTypeError, ResourceLimitError, type ArchiveContext, type DocumentArchive } from "./archive.js";
+import type { ArchiveSink, ArchiveWriteOptions } from "./archive-write.js";
+import { DocumentPackage } from "./package.js";
+import { parseDocumentXml, type XmlElement } from "./package-xml.js";
+import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
+import { writeDocumentArchive } from "./document-write.js";
+import { readDocumentArchive } from "./admission.js";
+import { SemanticValidationError, validateDocumentArchive } from "./validation.js";
+import { MarkupCompatibility } from "./compatibility.js";
+import { activeControlLocks, activeSettingsProtection } from "./protection.js";
+import { PublicationError, PermissionError, asPermissionError, type PublishedFile } from "./io-errors.js";
+export { PublicationError, type PublishedFile } from "./io-errors.js";
+
+/** Caller-granted transactional output. Only the acquired stage is owned by save. */
+export interface ByteSink {
+  stage(signal?: AbortSignal): Promise<StagedByteSink>;
+}
+export interface StagedByteSink {
+  write(chunk: Uint8Array): Promise<void>;
+  /** Optional final flush before commit; failure must leave the destination unchanged. */
+  close?(): Promise<void>;
+  /** Atomically publishes and releases the stage. Rejection must not publish. */
+  commit(): Promise<void>;
+  /** Releases only acquired staging; never removes the destination. */
+  abort(): Promise<void>;
+}
+
+function captureSink(sink: ByteSink | ArchiveSink): ByteSink | ArchiveSink {
+  const stage = sinkMethod<ByteSink["stage"]>(sink, "stage"), write = sinkMethod<ArchiveSink["write"]>(sink, "write");
+  if (stage && !write) return { stage };
+  if (write && !stage) return { write };
+  throw new InputTypeError("Expected one explicit staged or borrowed byte sink.");
+}
+
+/** Preserve class capabilities while capturing data methods without running accessors. */
+function sinkMethod<T>(sink: object, key: string): T | undefined {
+  if (!sink || (typeof sink !== "object" && typeof sink !== "function"))
+    throw new InputTypeError("Expected an explicit byte sink capability.");
+  let owner: object | null = sink;
+  for (let depth = 0; owner !== null && depth < 64; depth++, owner = Object.getPrototypeOf(owner)) {
+    const descriptor = Object.getOwnPropertyDescriptor(owner, key);
+    if (!descriptor) continue;
+    if (!("value" in descriptor) || (descriptor.value !== undefined && typeof descriptor.value !== "function"))
+      throw new InputTypeError("Expected byte sink data methods.");
+    return descriptor.value === undefined ? undefined : Function.prototype.bind.call(descriptor.value, sink) as T;
+  }
+  if (owner !== null) throw new InputTypeError("Byte sink prototype depth exceeded.");
+  return undefined;
+}
+
+export interface PublicationInput { readonly path: string; readonly stat: FileStat }
+export interface PublicationOptions {
+  readonly input?: PublicationInput;
+  readonly output?: string;
+  readonly inPlace?: boolean;
+  readonly force?: boolean;
+  readonly dryRun?: boolean;
+  readonly creation?: boolean;
+  readonly json?: boolean;
+}
+/** Internal live-model commit precondition; never supplied through operation JSON. */
+export const publicationGenerationGuard = Symbol("publication-generation-guard");
+export interface PublicationContext extends ArchiveContext {
+  readonly [publicationGenerationGuard]?: () => (() => void);
+  readonly filesystem?: FileSystem;
+  readonly stdout?: ArchiveSink | ByteSink;
+  readonly encoding: ArchiveWriteOptions;
+}
+export interface PublicationResult { readonly published: readonly PublishedFile[]; readonly archiveSha256?: string }
+class PublicationCancellationError extends CancellationError {
+  cleanupError?: unknown;
+  constructor(readonly published: readonly PublishedFile[], readonly stdoutMayBePartial: boolean, options: ErrorOptions) {
+    super("Document publication cancelled.", options);
+  }
+}
+export interface ExtractionPublicationOptions {
+  readonly input?: PublicationInput;
+  readonly force?: boolean;
+  readonly dryRun?: boolean;
+  readonly allowPartialOutput?: boolean;
+}
+export interface PublicationFile { readonly path: string; readonly bytes: Uint8Array }
+
+function ownedOptions<T extends PublicationOptions | ExtractionPublicationOptions>(options: T, names: readonly string[]): T {
+  if (!options || typeof options !== "object" || Array.isArray(options)) throw new InputTypeError("Expected publication options.");
+  for (const key of Reflect.ownKeys(options)) {
+    const descriptor = Object.getOwnPropertyDescriptor(options, key)!;
+    if (typeof key !== "string" || !names.includes(key) || !("value" in descriptor))
+      throw new InputTypeError("Unknown publication option.");
+    if (key !== "input" && key !== "output" && descriptor.value !== undefined && typeof descriptor.value !== "boolean")
+      throw new InputTypeError("Publication flags require boolean values.");
+  }
+  if (options.input && (typeof options.input !== "object" || typeof options.input.path !== "string"
+    || !options.input.stat || typeof options.input.stat !== "object")) throw new InputTypeError("Expected admitted file identity.");
+  return { ...options, ...(options.input ? { input: { path: options.input.path, stat: { ...options.input.stat } } } : {}) };
+}
+function pathValue(path: string): void {
+  if (typeof path !== "string" || !path.startsWith("/") || path === "/" || path.includes("\0")
+    || path.slice(1).split("/").some(part => !part || part === "." || part === ".."))
+    throw new InputTypeError("Publication requires a normalized absolute VFS path.");
+}
+function identity(stat: FileStat, file: boolean): void {
+  if (!stat.identityScope || !Number.isSafeInteger(stat.ino) || !Number.isSafeInteger(stat.dev)
+    || (file && (!Number.isSafeInteger(stat.revision) || stat.revision! < 0)))
+    throw new PublicationError("unsupported-publication", "Publication requires scoped identity and file revision guarantees.");
+}
+function cancelled(signal: AbortSignal): void {
+  if (signal.aborted) throw new CancellationError("Document publication cancelled.", { cause: signal.reason });
+}
+function failure(error: unknown, published: readonly PublishedFile[], signal: AbortSignal): PublicationError | PublicationCancellationError {
+  const code = error && typeof error === "object" && "code" in error ? error.code : undefined;
+  const previous = error instanceof PublicationError || error instanceof PublicationCancellationError ? error : undefined;
+  const category = code === "EAGAIN" || code === "EEXIST" || code === "conflict" ? "conflict"
+    : code === "ENOTSUP" || code === "unsupported-publication" ? "unsupported-publication"
+    : code === "EACCES" || code === "EPERM" || code === "EROFS" || code === "permission" ? "permission"
+    : "sink-failure";
+  const options = { cause: previous?.cause ?? error };
+  const result = signal.aborted || code === "cancelled"
+    ? new PublicationCancellationError([...published], false, options)
+    : category === "permission" ? new PermissionError("Document publication access denied.", options, [...published])
+    : new PublicationError(category, "Document publication did not complete.", [...published], false, options);
+  if (previous?.cleanupError !== undefined) result.cleanupError = previous.cleanupError;
+  return result;
+}
+interface Destination { path: string; parent: FileStat; expected: FileStat | null }
+async function destination(fs: FileSystem, path: string, options: PublicationOptions, signal: AbortSignal): Promise<Destination> {
+  pathValue(path);
+  cancelled(signal);
+  const capabilities = fs.capabilitiesFor ? await fs.capabilitiesFor(path, { signal, create: true }) : fs.capabilities;
+  if (capabilities.readOnly === true || capabilities.write === false)
+    throw new PermissionError("Destination is not writable.");
+  if (capabilities.atomicFileStaging !== true || !fs.createStagedFile || !fs.publishStagedFile || !fs.removeStagedFile)
+    throw new PublicationError("unsupported-publication", "Destination lacks atomic owned staging.");
+  const parent = await fs.lstat(dirname(path), { signal });
+  if (parent.type !== "directory") throw new PublicationError("unsupported-publication", "Destination parent must be an identified directory.");
+  identity(parent, false);
+  let expected: FileStat | null = null;
+  try { expected = await fs.lstat(path, { signal }); }
+  catch (error) { if (!(error && typeof error === "object" && "code" in error && error.code === "ENOENT")) throw error; }
+  if (expected) {
+    if (expected.type !== "file") throw new PublicationError("conflict", "Destination must be a regular file.");
+    identity(expected, true);
+    if (!options.inPlace && !options.force) throw new PublicationError("conflict", "Existing output requires force.");
+  }
+  if (options.input && !options.inPlace) {
+    pathValue(options.input.path);
+    // A proven absent final entry is exclusively created; existing entries need adapter alias evidence.
+    if (path === options.input.path) throw new PublicationError("conflict", "Input replacement requires in-place intent.");
+    if (expected) {
+      // The input pathname may now name another file; retain the admitted identity too.
+      const admitted = options.input.stat;
+      if (admitted.type === "file" && admitted.identityScope === expected.identityScope
+        && admitted.ino === expected.ino && admitted.dev === expected.dev)
+        throw new PublicationError("conflict", "Input replacement requires in-place intent.");
+      const comparison = await fs.compareEntry?.(path, fs, options.input.path, { signal }) ?? "unknown";
+      if (comparison === "same") throw new PublicationError("conflict", "Input replacement requires in-place intent.");
+      if (admitted.type !== "file")
+        throw new PublicationError("unsupported-publication", "Input alias checks require an admitted regular file identity.");
+      identity(admitted, false);
+      if (comparison !== "distinct") throw new PublicationError("unsupported-publication", "Input alias identity is unknown.");
+    }
+  }
+  if (options.inPlace) {
+    const input = options.input!;
+    identity(input.stat, true);
+    if (input.stat.type !== "file") throw new PublicationError("conflict", "In-place input must be a regular file.");
+    if (!expected || (["identityScope", "ino", "dev", "type", "revision", "size", "mode", "nlink", "mtimeMs", "ctimeMs"] as const)
+      .some(field => expected![field] !== input.stat[field]))
+      throw new PublicationError("conflict", "Input changed since admission.");
+    expected = { ...input.stat };
+  }
+  cancelled(signal);
+  return { path, parent, expected };
+}
+let stagingSequence = 0;
+async function publish(fs: FileSystem, target: Destination, bytes: Uint8Array, signal: AbortSignal, published: PublishedFile[], guard?: () => (() => void)): Promise<void> {
+  cancelled(signal);
+  // Staging acquisition is exclusive; a collision refuses without guessing ownership.
+  const directory = `${dirname(target.path) === "/" ? "" : dirname(target.path)}/.docx-stage-${++stagingSequence}`;
+  const stage = await fs.createStagedFile!(directory, basename(target.path), { type: "file", data: bytes }, { parent: target.parent, signal });
+  let error: unknown;
+  let failed = false;
+  try {
+    cancelled(signal);
+    const release = guard?.();
+    try { await fs.publishStagedFile!(stage, target.path, { parent: target.parent, destination: target.expected, signal }); }
+    finally { release?.(); }
+    // The adapter receipt wins over cancellation arriving after commit.
+    published.push({ path: target.path, bytes: bytes.length });
+  } catch (cause) { failed = true; error = cause; }
+  try { await fs.removeStagedFile!(stage); }
+  catch (cause) {
+    if (failed) {
+      const result = failure(error, published, signal);
+      result.cleanupError = cause;
+      throw result;
+    }
+    failed = true; error = cause;
+  }
+  if (failed) throw error;
+}
+
+export function assertDocumentEditable(archive: DocumentArchive, { limits, budget }: ReturnType<typeof archiveSettings>, controlSource?: DocumentArchive): void {
+  // Until feature-specific authorization is implemented, protected packages fail closed.
+  const packageView = new DocumentPackage(archive, limits, budget);
+  const sourcePackage = controlSource ? new DocumentPackage(controlSource, limits, budget) : undefined;
+  if (sourcePackage) {
+    if (sourcePackage.parts.some(part => signatureContentTypes.includes(part.content_type.toLowerCase()))) throw new UnsupportedEditError("Signed package publication requires separate explicit signature removal.");
+    for (const owner of ["/", ...sourcePackage.parts.filter(part => part.content_type.toLowerCase() !== "application/vnd.openxmlformats-package.relationships+xml").map(part => part.partname)])
+      if (sourcePackage.relationships(owner).some(edge => signatureRelationshipTypes.includes(edge.reltype))) throw new UnsupportedEditError("Signed package publication requires separate explicit signature removal.");
+  }
+  // A protection check is read-only. Reuse each owned view within this check,
+  // including an unchanged source/candidate pair, without retaining caller bytes.
+  const sourceEditors = new Map<string, DocumentXmlEditor>();
+  const currentEditors = new Map<string, DocumentXmlEditor>();
+  if (controlSource) for (const sourcePart of sourcePackage!.parts) {
+    const sourceType = parseMediaType(sourcePart.content_type);
+    if (!sourceType.startsWith("application/vnd.openxmlformats-officedocument.wordprocessingml.") || !sourceType.endsWith("+xml")) continue;
+    const source = new DocumentXmlEditor(sourcePart.bytes, {}, undefined, budget);
+    sourceEditors.set(sourcePart.partname, source);
+    const role = documentPartRole(sourcePart.content_type, source.root);
+    if (role === "settings" && activeSettingsProtection(source.root, source.compatibility, budget).size) throw new UnsupportedEditError("Protected document settings do not authorize publication.");
+    if (role !== "story" && role !== "glossary") continue;
+    const candidate = archive.members.find(part => part.name === sourcePart.name);
+    const unchanged = candidate && candidate.bytes.length === sourcePart.bytes.length
+      && candidate.bytes.every((byte, index) => byte === sourcePart.bytes[index]);
+    if (candidate) budget.charge("work", candidate.bytes.length);
+    const current = unchanged ? source : candidate ? new DocumentXmlEditor(candidate.bytes, {}, undefined, budget) : undefined;
+    if (current) currentEditors.set(sourcePart.partname, current);
+    const sourceLocks = activeControlLocks(source.root, source.compatibility, budget);
+    const lockedOwners = new Set([...sourceLocks].filter(([lock]) => lock.attributes.find(attribute => attribute.namespace === lock.namespace && attribute.localName === "val")?.value !== "unlocked").map(([, binding]) => binding.owner));
+    const currentOwners = new Set(current ? [...activeControlLocks(current.root, current.compatibility, budget).values()].map(binding => binding.owner) : []);
+    if (!lockedOwners.size) continue;
+    const pending: { node: XmlElement; target: XmlElement | undefined }[] = [{ node: source.root, target: current?.root }];
+    while (pending.length) {
+      const { node, target } = pending.pop()!;
+      budget.charge("work", 1);
+      if (lockedOwners.has(node)) {
+        if (!target || !current || !currentOwners.has(target) || current.sourceXml(target) !== source.sourceXml(node)) throw new UnsupportedEditError("Protected content controls must remain unchanged.");
+      }
+      for (let i = node.children.length - 1; i >= 0; i--) {
+        budget.charge("retainedBytes", 32);
+        pending.push({ node: node.children[i]!, target: target?.children[i] });
+      }
+    }
+  }
+  for (const owner of ["/", ...packageView.parts.filter(part => part.content_type.toLowerCase() !== "application/vnd.openxmlformats-package.relationships+xml").map(part => part.partname)]) for (const edge of packageView.relationships(owner)) if (signatureRelationshipTypes.includes(edge.reltype)) throw new UnsupportedEditError("Signed package publication is not supported.");
+  for (const part of packageView.parts) {
+    const type = parseMediaType(part.content_type);
+    if (signatureContentTypes.includes(type)) throw new UnsupportedEditError("Signed package publication is not supported.");
+    if (!type.endsWith("+xml") && type !== "application/xml" && type !== "text/xml") continue;
+    const current = controlSource ? currentEditors.get(part.partname) ?? new DocumentXmlEditor(part.bytes, {}, undefined, budget) : undefined;
+    const originalPart = sourcePackage?.parts.find(member => member.partname === part.partname);
+    const original = originalPart ? sourceEditors.get(part.partname) ?? new DocumentXmlEditor(originalPart.bytes, {}, undefined, budget) : undefined;
+    const root = current?.root ?? parseDocumentXml(part.bytes, {}, budget).root;
+    const role = documentPartRole(type, root); if (role !== "story" && role !== "glossary" && role !== "settings") continue;
+    if (role === "settings") {
+      if (activeSettingsProtection(root, current?.compatibility ?? new MarkupCompatibility(root, undefined, budget), budget).size) throw new UnsupportedEditError("Protected document settings do not authorize publication.");
+      continue;
+    }
+    const controlLocks = activeControlLocks(root, current?.compatibility ?? new MarkupCompatibility(root, undefined, budget), budget);
+    if (!controlLocks.size) continue;
+    const originalLocks = original ? activeControlLocks(original.root, original.compatibility, budget) : undefined;
+    const stack = [{ node: root, path: [] as number[], ancestors: [root] }];
+    while (stack.length) {
+      const { node, path, ancestors } = stack.pop()!;
+      let preservedControlLock = false;
+      const binding = controlLocks.get(node);
+      if (original && current && binding) {
+        let source: XmlElement | undefined = original.root; const sourceAncestors = [source];
+        for (const index of path) { source = source?.children[index]; if (!source) break; sourceAncestors.push(source); }
+        const { properties, owner } = binding, oldBinding = source && originalLocks?.get(source), oldProperties = oldBinding?.properties, oldOwner = oldBinding?.owner;
+        const inherited = (chain: readonly XmlElement[], owner: XmlElement) => JSON.stringify(chain.slice(0, chain.indexOf(owner)).map(ancestor => ancestor.attributes.filter(attribute => ["http://www.w3.org/XML/1998/namespace", "http://schemas.openxmlformats.org/markup-compatibility/2006"].includes(attribute.namespace)).map(attribute => [attribute.namespace, attribute.localName, attribute.value])));
+        if (source && oldProperties && oldOwner && source.namespace === node.namespace &&
+          current.sourceXml(properties) === original.sourceXml(oldProperties) && inherited(ancestors, owner) === inherited(sourceAncestors, oldOwner) && owner.namespaces.size === oldOwner.namespaces.size && [...owner.namespaces].every(([prefix, uri]) => oldOwner.namespaces.get(prefix) === uri)) {
+          const lock = node.attributes.find(attribute => attribute.namespace === node.namespace && attribute.localName === "val")?.value;
+          preservedControlLock = lock === "unlocked" || current.sourceXml(owner) === original.sourceXml(oldOwner);
+        }
+      }
+      if (binding && !preservedControlLock)
+        throw new UnsupportedEditError("Protected or signed package publication is not supported.");
+      node.children.forEach((child, index) => stack.push({ node: child, path: [...path, index], ancestors: [...ancestors, child] }));
+    }
+  }
+}
+
+export async function publishDocumentArchive(archive: DocumentArchive, options: PublicationOptions, context: PublicationContext, controlSource?: DocumentArchive, originalInput?: Uint8Array): Promise<PublicationResult> {
+  options = ownedOptions(options, ["input", "output", "inPlace", "force", "dryRun", "creation", "json"]);
+  context = { ...context, encoding: { ...context.encoding } };
+  if (context.stdout !== undefined) context = { ...context, stdout: captureSink(context.stdout) };
+  const settings = archiveSettings(context);
+  const { signal, budget, limits } = settings;
+  if (settings[documentSession]) {
+    cancelled(signal);
+    const release = context[publicationGenerationGuard]?.();
+    try { await settings[documentSession].stage(archive); cancelled(signal); }
+    finally { release?.(); }
+    return { published: [] };
+  }
+  let original: Uint8Array<ArrayBuffer> | undefined;
+  if (originalInput !== undefined) {
+    if (!(originalInput instanceof Uint8Array)) throw new InputTypeError("Expected original document bytes.");
+    budget.check("compressedInput", originalInput.length);
+    if (!options.dryRun) budget.check("serializedOutput", originalInput.length);
+    if (originalInput.length > limits.maxArchiveBytes) throw new ResourceLimitError("Document output byte limit exceeded.");
+    if (!archive || !Array.isArray(archive.members) || !(archive.comment instanceof Uint8Array)) throw new InputTypeError("Expected an owned document archive.");
+    budget.check("zipEntries", archive.members.length);
+    if (archive.members.length > limits.maxMembers || archive.comment.length > limits.maxCommentBytes) throw new ResourceLimitError("Document snapshot metadata limit exceeded.");
+    budget.charge("retainedBytes", archive.members.length * 128); budget.charge("work", archive.members.length);
+    let payload = 0, names = 0;
+    for (const member of archive.members) {
+      if (!member || !(member.bytes instanceof Uint8Array) || !(member.modified instanceof Date) || typeof member.name !== "string" || typeof member.directory !== "boolean") throw new InputTypeError("Expected typed document members.");
+      if (member.bytes.length > limits.maxEntryBytes || member.name.length > limits.maxPathBytes) throw new ResourceLimitError("Document snapshot member limit exceeded.");
+      payload += member.bytes.length; names += member.name.length;
+      if (payload > limits.maxTotalBytes) throw new ResourceLimitError("Document snapshot expanded byte limit exceeded.");
+    }
+    budget.check("expandedPackage", payload);
+    const copied = originalInput.length + archive.comment.length + payload + names * 2;
+    budget.charge("retainedBytes", copied); budget.charge("work", copied);
+    original = new Uint8Array(originalInput);
+    archive = { comment: new Uint8Array(archive.comment), members: archive.members.map(member => ({ name: member.name, directory: member.directory, bytes: new Uint8Array(member.bytes), modified: new Date(member.modified.getTime()) })) };
+  }
+  const { output, inPlace, force, dryRun, creation, json } = options;
+  if ((output !== undefined && (typeof output !== "string" || !output)) || (output !== undefined && inPlace)
+    || (!dryRun && output === undefined && !inPlace) || (creation && (inPlace || (!dryRun && output === undefined)))
+    || (force && (output === undefined || output === "-")) || (inPlace && (!options.input || options.input.path === "-"))
+    || (output === "-" && json && !dryRun)) throw new InputTypeError("Invalid document publication intent.");
+  const published: PublishedFile[] = [];
+  let target: Destination | undefined;
+  const path = inPlace ? options.input!.path : output;
+  assertDocumentEditable(archive, settings, controlSource);
+  if (original) {
+    const authenticated = await readDocumentArchive(original, settings);
+    const sameBytes = (left: Uint8Array, right: Uint8Array): boolean => left.length === right.length && left.every((value, index) => value === right[index]);
+    if (!sameBytes(archive.comment, authenticated.comment) || archive.members.length !== authenticated.members.length || archive.members.some((member, index) => {
+      const source = authenticated.members[index]!;
+      return member.name !== source.name || member.directory !== source.directory || member.modified.getTime() !== source.modified.getTime() || !sameBytes(member.bytes, source.bytes);
+    })) throw new PublicationError("unsupported-publication", "Original document bytes do not match the admitted publication archive.");
+    assertDocumentEditable(authenticated, settings, controlSource);
+  }
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  let stagingFailure: unknown;
+  try {
+    if (original) {
+      cancelled(signal);
+      const total = archive.members.reduce((sum, member) => sum + member.bytes.length, 0);
+      if (total * 32 + 65536 > limits.maxRetainedBytes) throw new ResourceLimitError("Document validation retained byte limit exceeded.");
+      const report = validateDocumentArchive(archive, { maxBytes: limits.maxTotalBytes, maxParts: limits.maxMembers, maxNodes: budget.limits.xmlNodes }, budget);
+      if (!report.valid) throw new SemanticValidationError(report.diagnostics);
+      if (!dryRun) budget.charge("serializedOutput", original.length);
+    } else await writeDocumentArchive(archive, { async write(bytes) {
+    try {
+      if (bytes.length > limits.maxArchiveBytes - size) throw new ResourceLimitError("Document output byte limit exceeded.");
+      budget.charge("retainedBytes", bytes.length * 2 + 64); chunks.push(new Uint8Array(bytes));
+      size += bytes.length;
+    } catch (error) { stagingFailure = error; throw error; }
+  } }, context.encoding, { ...context, budget });
+  } catch (error) { throw stagingFailure ?? error; }
+  if (original) size = original.length;
+  cancelled(signal);
+  if (path !== undefined && path !== "-") {
+    if (!context.filesystem) throw new InputTypeError("Publication requires an explicit filesystem.");
+    try { target = await destination(context.filesystem, path, options, signal); }
+    catch (error) { if (error instanceof InputTypeError) throw error; throw failure(error, published, signal); }
+  }
+  if (output === "-" && !dryRun && !context.stdout) throw new InputTypeError("Binary output requires an explicit stdout sink.");
+  if (dryRun) return { published };
+  if (!original) budget.charge("retainedBytes", size);
+  const bytes = original ?? new Uint8Array(size);
+  let offset = 0;
+  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
+  budget.charge("work", bytes.length);
+  const archiveSha256 = [...new Uint8Array(await crypto.subtle.digest("SHA-256", bytes))].map(n => n.toString(16).padStart(2, "0")).join("");
+  cancelled(signal);
+  if (output === "-") {
+    const release = context[publicationGenerationGuard]?.();
+    try {
+      const sink = context.stdout!;
+      if ("stage" in sink) {
+        let abort: StagedByteSink["abort"] | undefined;
+        try {
+          cancelled(signal);
+          budget.charge("retainedBytes", bytes.length);
+          const stage = await sink.stage(signal);
+          // Capture cleanup independently so malformed acquired stages can still settle.
+          abort = sinkMethod<StagedByteSink["abort"]>(stage, "abort");
+          const write = sinkMethod<StagedByteSink["write"]>(stage, "write"), commit = sinkMethod<StagedByteSink["commit"]>(stage, "commit"), close = sinkMethod<StagedByteSink["close"]>(stage, "close");
+          if (!abort || !write || !commit)
+            throw new InputTypeError("Expected an owned staged byte sink.");
+          const chunkSize = Math.min(limits.chunkSize, 65536);
+          for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+            cancelled(signal);
+            await write(new Uint8Array(bytes.subarray(offset, offset + chunkSize)));
+          }
+          cancelled(signal);
+          await close?.();
+          cancelled(signal);
+          await commit();
+          // A fulfilled commit is authoritative, including cancellation during commit.
+          return { published: [{ path: "-", bytes: size }], archiveSha256 };
+        } catch (error) {
+          const result = failure(error, [], signal);
+          if (abort) try { await abort(); } catch (cleanup) { result.cleanupError = cleanup; }
+          throw result;
+        }
+      }
+      await sink.write(bytes, signal);
+    }
+    catch (error) {
+      if ("stage" in context.stdout!) throw error;
+      if (signal.aborted || error instanceof CancellationError) throw new PublicationCancellationError([], true, { cause: error });
+      const permission = asPermissionError(error);
+      if (permission) throw new PermissionError("Binary stdout access denied; output may be partial.", { cause: permission.cause ?? error }, [], true);
+      throw new PublicationError("sink-failure", "Binary stdout may contain partial output.", [], true, { cause: error });
+    }
+    finally { release?.(); }
+    return { published: [{ path: "-", bytes: size }], archiveSha256 };
+  }
+  try { await publish(context.filesystem!, target!, bytes, signal, published, context[publicationGenerationGuard]); }
+  catch (error) { throw failure(error, published, signal); }
+  return { published, archiveSha256 };
+}
+
+export async function publishDocumentFiles(files: readonly PublicationFile[], options: ExtractionPublicationOptions, context: ArchiveContext & { readonly filesystem: FileSystem }): Promise<PublicationResult> {
+  options = ownedOptions(options, ["input", "force", "dryRun", "allowPartialOutput"]);
+  context = { ...context };
+  const { signal, limits, budget } = archiveSettings(context);
+  if (files.length > 1 && !options.allowPartialOutput)
+    throw new PublicationError("unsupported-publication", "Multiple files require explicit allowPartialOutput; this VFS has no transaction contract.");
+  if (files.length > limits.maxMembers) throw new ResourceLimitError("Extraction file count exceeded.");
+  const names = new Set<string>();
+  let size = 0;
+  const owned = files.map(file => {
+    pathValue(file.path);
+    if (names.has(file.path)) throw new InputTypeError("Duplicate extraction destination.");
+    names.add(file.path);
+    if (!(file.bytes instanceof Uint8Array)) throw new InputTypeError("Extraction requires byte arrays.");
+    if (file.bytes.length > limits.maxEntryBytes || file.bytes.length > limits.maxTotalBytes - size)
+      throw new ResourceLimitError("Extraction byte limit exceeded.");
+    budget.charge("retainedBytes", file.bytes.length + 64); size += file.bytes.length;
+    return { path: file.path, bytes: new Uint8Array(file.bytes) };
+  });
+  const published: PublishedFile[] = [];
+  try {
+    const targets: Destination[] = [];
+    for (const file of owned) {
+      targets.push(await destination(context.filesystem, file.path, options, signal));
+      for (const other of targets.slice(0, -1)) {
+        const current = targets[targets.length - 1]!;
+        if (current.expected && other.expected) {
+          const comparison = await context.filesystem.compareEntry?.(file.path, context.filesystem, other.path, { signal });
+          if (comparison !== "distinct") throw new PublicationError("unsupported-publication", "Extraction destination identities must be distinct.");
+        }
+      }
+    }
+    if (!options.dryRun) for (let index = 0; index < owned.length; index++) {
+      await publish(context.filesystem, targets[index]!, owned[index]!.bytes, signal, published);
+    }
+  } catch (error) { if (error instanceof InputTypeError) throw error; throw failure(error, published, signal); }
+  return { published };
+}

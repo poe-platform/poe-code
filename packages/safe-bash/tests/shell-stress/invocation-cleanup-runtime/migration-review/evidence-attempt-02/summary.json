@@ -1,0 +1,36 @@
+{
+  "accepted": true,
+  "scope": "only existing canonical ten and their migration binding; not whole-gate acceptance",
+  "candidate": "4bb4ad85d4554889cd6f59097af776f4172e34d1",
+  "candidateTree": "138d4d7fc33d2b716b1c5758f82692dece4bb082",
+  "canonical": {
+    "tests": 10,
+    "pass": 10,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "negativeEnvelopeRows": 50,
+  "independentControlAssertions": 14,
+  "mutantCanonical": {
+    "tests": 10,
+    "pass": 0,
+    "fail": 10,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "actualWorkers": 14,
+  "publicBoundaries": 30,
+  "emittedFileCount": 708,
+  "loadedModuleCount": 174,
+  "historicalFailedHooksPreserved": 10,
+  "historicalAndAuthorEvidenceUnchanged": true,
+  "otherCohortsNotAcceptance": [
+    "author026e20cf/evidence9167913d",
+    "original85e6d560/4c16d9c5",
+    "originalb494 ten failed hooks",
+    "all negative controls and mutant"
+  ]
+}

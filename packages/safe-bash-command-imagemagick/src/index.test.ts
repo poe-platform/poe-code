@@ -1,0 +1,1043 @@
+import { describe, expect, it } from "vitest";
+import sharp from "@poe-code/image-ast";
+import {
+  runCompareCli,
+  runConvertCli,
+  runMagickCli,
+  runMogrifyCli,
+  runCompositeCli,
+  runMontageCli,
+  parseMagickGeometry
+} from "./index.js";
+
+async function makeTestImage(width = 80, height = 40, r = 30, g = 140, b = 220): Promise<Uint8Array> {
+  return sharp({
+    create: {
+      width,
+      height,
+      channels: 4,
+      background: { r, g, b, alpha: 1 }
+    }
+  })
+    .png()
+    .toBuffer();
+}
+
+describe("safe-bash-command-imagemagick", () => {
+  it("parses ImageMagick geometry strings and modifiers", () => {
+    expect(parseMagickGeometry("120x80!")).toMatchObject({
+      width: 120,
+      height: 80,
+      forceExact: true
+    });
+    expect(parseMagickGeometry("200x100>")).toMatchObject({
+      width: 200,
+      height: 100,
+      shrinkOnly: true
+    });
+    expect(parseMagickGeometry("200x100<")).toMatchObject({
+      width: 200,
+      height: 100,
+      enlargeOnly: true
+    });
+    expect(parseMagickGeometry("100x100^")).toMatchObject({
+      width: 100,
+      height: 100,
+      fillArea: true
+    });
+    expect(parseMagickGeometry("50%")).toMatchObject({
+      percentX: 50,
+      percentY: 50,
+      isPercent: true
+    });
+    expect(parseMagickGeometry("1600@")).toMatchObject({
+      areaLimit: 1600
+    });
+    expect(parseMagickGeometry("40x30+10-5")).toMatchObject({
+      width: 40,
+      height: 30,
+      x: 10,
+      y: -5,
+      hasOffset: true
+    });
+  });
+
+  it("creates synthetic images via xc:, canvas:, and label: and converts formats", async () => {
+    const files = new Map<string, Uint8Array>();
+    const res = await runMagickCli(
+      ["-size", "60x30", "xc:#ff0000", "/red.webp"],
+      files
+    );
+    expect(res.exitCode).toBe(0);
+    const meta = await sharp(files.get("/red.webp")!).metadata();
+    expect(meta.format).toBe("webp");
+    expect(meta.width).toBe(60);
+    expect(meta.height).toBe(30);
+
+    const labelRes = await runConvertCli(
+      ["-size", "100x24", "-background", "#000000", "-fill", "#ffffff", "label:POE", "/label.png"],
+      files
+    );
+    expect(labelRes.exitCode).toBe(0);
+    const labelMeta = await sharp(files.get("/label.png")!).metadata();
+    expect(labelMeta.width).toBe(100);
+    expect(labelMeta.height).toBe(24);
+    const labelRaw = await sharp(files.get("/label.png")!).raw().toBuffer();
+    let whitePixels = 0;
+    for (let i = 0; i < labelRaw.length; i += 4) {
+      if (labelRaw[i]! > 200 && labelRaw[i + 1]! > 200 && labelRaw[i + 2]! > 200) whitePixels++;
+    }
+    expect(whitePixels).toBeGreaterThan(20);
+  });
+
+  it("applies resize modifiers (!, >, <, ^, %, @)", async () => {
+    const src = await makeTestImage(80, 40);
+    const files = new Map<string, Uint8Array>([["/in.png", src]]);
+
+    // Fit inside (default): 80x40 -> 40x40 becomes 40x20
+    await runConvertCli(["/in.png", "-resize", "40x40", "/fit.png"], files);
+    const fitMeta = await sharp(files.get("/fit.png")!).metadata();
+    expect(fitMeta.width).toBe(40);
+    expect(fitMeta.height).toBe(20);
+
+    // Exact (!): 80x40 -> 40x40! becomes 40x40
+    await runConvertCli(["/in.png", "-resize", "40x40!", "/exact.png"], files);
+    const exactMeta = await sharp(files.get("/exact.png")!).metadata();
+    expect(exactMeta.width).toBe(40);
+    expect(exactMeta.height).toBe(40);
+
+    // Shrink only (>): 80x40 with 200x200> stays 80x40
+    await runConvertCli(["/in.png", "-resize", "200x200>", "/shrink-noop.png"], files);
+    const shrinkMeta = await sharp(files.get("/shrink-noop.png")!).metadata();
+    expect(shrinkMeta.width).toBe(80);
+    expect(shrinkMeta.height).toBe(40);
+
+    // Enlarge only (<): 80x40 with 40x40< stays 80x40
+    await runConvertCli(["/in.png", "-resize", "40x40<", "/enlarge-noop.png"], files);
+    const enlargeMeta = await sharp(files.get("/enlarge-noop.png")!).metadata();
+    expect(enlargeMeta.width).toBe(80);
+    expect(enlargeMeta.height).toBe(40);
+
+    // Fill minimum (^): 80x40 into 60x60^ becomes 120x60
+    await runConvertCli(["/in.png", "-resize", "60x60^", "/cover.png"], files);
+    const coverMeta = await sharp(files.get("/cover.png")!).metadata();
+    expect(coverMeta.width).toBe(120);
+    expect(coverMeta.height).toBe(60);
+
+    // Percentage (%): 50% -> 40x20
+    await runConvertCli(["/in.png", "-resize", "50%", "/pct.png"], files);
+    const pctMeta = await sharp(files.get("/pct.png")!).metadata();
+    expect(pctMeta.width).toBe(40);
+    expect(pctMeta.height).toBe(20);
+
+    // Area (@): 800@ on 2:1 image -> 40x20 (area 800)
+    await runConvertCli(["/in.png", "-resize", "800@", "/area.png"], files);
+    const areaMeta = await sharp(files.get("/area.png")!).metadata();
+    expect(areaMeta.width).toBe(40);
+    expect(areaMeta.height).toBe(20);
+  });
+
+  it("supports crop, extent, border, shave, rotate, flip, flop, negate, grayscale, and filters", async () => {
+    const src = await makeTestImage(60, 40, 200, 100, 50);
+    const files = new Map<string, Uint8Array>([["/in.png", src]]);
+
+    const res = await runMagickCli(
+      [
+        "/in.png",
+        "-crop",
+        "40x20+10+10",
+        "-bordercolor",
+        "#00ff00",
+        "-border",
+        "5x5",
+        "-background",
+        "#ffffff",
+        "-gravity",
+        "center",
+        "-extent",
+        "60x40",
+        "-shave",
+        "5x5",
+        "-rotate",
+        "90",
+        "-flip",
+        "-flop",
+        "-negate",
+        "-colorspace",
+        "Gray",
+        "-blur",
+        "0x1",
+        "-sharpen",
+        "0x1",
+        "/out.png"
+      ],
+      files
+    );
+    expect(res.exitCode).toBe(0);
+    const outMeta = await sharp(files.get("/out.png")!).metadata();
+    // 40x20 + border 5x5 -> 50x30 -> extent 60x40 -> shave 5x5 -> 50x30 -> rotate 90 -> 30x50
+    expect(outMeta.width).toBe(30);
+    expect(outMeta.height).toBe(50);
+  });
+
+  it("evaluates multi-image stack ops: parentheses ( +clone ), +append, -append, -flatten, and -composite", async () => {
+    const left = await makeTestImage(30, 20, 255, 0, 0);
+    const right = await makeTestImage(40, 20, 0, 0, 255);
+    const files = new Map<string, Uint8Array>([
+      ["/left.png", left],
+      ["/right.png", right]
+    ]);
+
+    // Horizontal +append -> 70x20
+    const hRes = await runMagickCli(["/left.png", "/right.png", "+append", "/horiz.png"], files);
+    expect(hRes.exitCode).toBe(0);
+    const hMeta = await sharp(files.get("/horiz.png")!).metadata();
+    expect(hMeta.width).toBe(70);
+    expect(hMeta.height).toBe(20);
+
+    // Vertical -append -> 40x40
+    const vRes = await runMagickCli(["/left.png", "/right.png", "-append", "/vert.png"], files);
+    expect(vRes.exitCode).toBe(0);
+    const vMeta = await sharp(files.get("/vert.png")!).metadata();
+    expect(vMeta.width).toBe(40);
+    expect(vMeta.height).toBe(40);
+
+    // Substack with ( +clone -flop ) +append -> 60x20
+    const cloneRes = await runMagickCli(
+      ["/left.png", "(", "+clone", "-flop", ")", "+append", "/mirrored.png"],
+      files
+    );
+    expect(cloneRes.exitCode).toBe(0);
+    const cMeta = await sharp(files.get("/mirrored.png")!).metadata();
+    expect(cMeta.width).toBe(60);
+    expect(cMeta.height).toBe(20);
+
+    // -composite onto base
+    const compRes = await runMagickCli(
+      ["/right.png", "/left.png", "-gravity", "center", "-composite", "/comp.png"],
+      files
+    );
+    expect(compRes.exitCode).toBe(0);
+    const compMeta = await sharp(files.get("/comp.png")!).metadata();
+    expect(compMeta.width).toBe(40);
+    expect(compMeta.height).toBe(20);
+  });
+
+  it("draws vector primitives (-draw) and text annotations (-annotate)", async () => {
+    const files = new Map<string, Uint8Array>();
+    const res = await runMagickCli(
+      [
+        "-size",
+        "80x40",
+        "xc:#101010",
+        "-fill",
+        "#ff0000",
+        "-stroke",
+        "#ffffff",
+        "-strokewidth",
+        "2",
+        "-draw",
+        "rectangle 5,5 40,30 circle 60,20 60,30",
+        "-fill",
+        "#00ff00",
+        "-pointsize",
+        "12",
+        "-gravity",
+        "center",
+        "-annotate",
+        "+0+0",
+        "OK",
+        "/drawn.png"
+      ],
+      files
+    );
+    expect(res.exitCode).toBe(0);
+    const raw = await sharp(files.get("/drawn.png")!).raw().toBuffer();
+    // Pixel inside the red rectangle (20, 15) should have high red channel
+    const idx = (15 * 80 + 20) * 4;
+    expect(raw[idx]!).toBeGreaterThan(200);
+    // Annotated "OK" text in #00ff00 should produce visible green pixels
+    let greenTextPixels = 0;
+    for (let i = 0; i < raw.length; i += 4) {
+      if (raw[i + 1]! > 200 && raw[i]! < 80) greenTextPixels++;
+    }
+    expect(greenTextPixels).toBeGreaterThan(15);
+  });
+
+  it("runs mogrify in-place and with -format / -path", async () => {
+    const a = await makeTestImage(60, 40);
+    const files = new Map<string, Uint8Array>([["/a.png", a]]);
+
+    // In-place resize
+    const inPlace = await runMogrifyCli(["-resize", "50%", "/a.png"], files);
+    expect(inPlace.exitCode).toBe(0);
+    const aMeta = await sharp(files.get("/a.png")!).metadata();
+    expect(aMeta.width).toBe(30);
+    expect(aMeta.height).toBe(20);
+
+    // Format conversion with -path
+    const fmtRes = await runMogrifyCli(["-path", "/out", "-format", "webp", "/a.png"], files);
+    expect(fmtRes.exitCode).toBe(0);
+    const webpMeta = await sharp(files.get("/out/a.webp")!).metadata();
+    expect(webpMeta.format).toBe("webp");
+    expect(webpMeta.width).toBe(30);
+  });
+
+  it("runs composite and montage tools", async () => {
+    const tile1 = await makeTestImage(20, 20, 255, 0, 0);
+    const tile2 = await makeTestImage(20, 20, 0, 255, 0);
+    const tile3 = await makeTestImage(20, 20, 0, 0, 255);
+    const base = await makeTestImage(60, 60, 20, 20, 20);
+    const files = new Map<string, Uint8Array>([
+      ["/t1.png", tile1],
+      ["/t2.png", tile2],
+      ["/t3.png", tile3],
+      ["/base.png", base]
+    ]);
+
+    const compRes = await runCompositeCli(
+      ["-gravity", "southeast", "-geometry", "+5+5", "/t1.png", "/base.png", "/comp-out.png"],
+      files
+    );
+    expect(compRes.exitCode).toBe(0);
+    const compMeta = await sharp(files.get("/comp-out.png")!).metadata();
+    expect(compMeta.width).toBe(60);
+    expect(compMeta.height).toBe(60);
+
+    // Montage 2x2 grid with 20x20+2+2 geometry -> each cell is (20 + 2*2) x (20 + 2*2) = 24x24 -> 2x2 = 48x48
+    const monRes = await runMontageCli(
+      ["-tile", "2x2", "-geometry", "20x20+2+2", "-background", "#ffffff", "/t1.png", "/t2.png", "/t3.png", "/montage.png"],
+      files
+    );
+    expect(monRes.exitCode).toBe(0);
+    const monMeta = await sharp(files.get("/montage.png")!).metadata();
+    expect(monMeta.width).toBe(48);
+    expect(monMeta.height).toBe(48);
+  });
+
+  it("runs compare / magick compare with AE, RMSE, MAE, MSE, PSNR, SSIM metrics, -fuzz, and diff image output", async () => {
+    const imgA = await makeTestImage(20, 20, 100, 100, 100);
+    const imgB = await makeTestImage(20, 20, 100, 100, 100);
+    const files = new Map<string, Uint8Array>([
+      ["/a.png", imgA],
+      ["/b.png", imgB]
+    ]);
+
+    // Draw a 5x5 bright red patch on /b.png (25 pixels changed by delta 155,100,100)
+    await runConvertCli(
+      ["/b.png", "-fill", "#ff0000", "-draw", "rectangle 0,0 4,4", "/b-mod.png"],
+      files
+    );
+
+    // Identical images -> AE = 0, PSNR = 120 (1), SSIM distortion = 0
+    const idAe = await runCompareCli(["-metric", "AE", "/a.png", "/b.png", "null:"], files);
+    expect(idAe.exitCode).toBe(0);
+    expect((idAe.stderr || idAe.stdout).trim()).toBe("0 (0)");
+
+    const idPsnr = await runMagickCli(["compare", "-metric", "PSNR", "/a.png", "/b.png", "null:"], files);
+    expect(idPsnr.exitCode).toBe(1);
+    expect((idPsnr.stderr || idPsnr.stdout).trim()).toBe("120 (1)");
+
+    const idSsim = await runCompareCli(["-metric", "SSIM", "/a.png", "/b.png", "null:"], files);
+    expect(idSsim.stderr.trim()).toBe("0 (0)");
+
+    // Modified 5x5 rectangle contributes channel-weighted error magnitude.
+    const diffAe = await runCompareCli(
+      ["-metric", "AE", "-highlight-color", "#ff00ff", "/a.png", "/b-mod.png", "/diff.png"],
+      files
+    );
+    expect((diffAe.stderr || diffAe.stdout).trim()).toBe("8.70098 (0.0217525)");
+    expect(files.has("/diff.png")).toBe(true);
+    const diffRaw = await sharp(files.get("/diff.png")!).raw().toBuffer();
+    // Top-left pixel (0,0) was modified -> should be highlighted in #ff00ff
+    expect(diffRaw[0]).toBe(255);
+    expect(diffRaw[1]).toBe(0);
+    expect(diffRaw[2]).toBe(255);
+
+    // RMSE metric outputs "quantum (normalized)"
+    const diffRmse = await runCompareCli(["-metric", "RMSE", "/a.png", "/b-mod.png", "null:"], files);
+    expect((diffRmse.stderr || diffRmse.stdout).trim()).toMatch(/^\d+(\.\d+)?\s+\(\d+(\.\d+)?\)$/);
+
+    // With small color shift (100 -> 108) and -fuzz 10%, AE should be 0
+    const imgSlight = await makeTestImage(20, 20, 108, 100, 100);
+    files.set("/slight.png", imgSlight);
+    const noFuzz = await runCompareCli(["-metric", "AE", "/a.png", "/slight.png", "null:"], files);
+    expect((noFuzz.stderr || noFuzz.stdout).trim()).toBe("3.13725 (0.00784314)");
+    const withFuzz = await runCompareCli(
+      ["-metric", "AE", "-fuzz", "10%", "/a.png", "/slight.png", "null:"],
+      files
+    );
+    expect((withFuzz.stderr || withFuzz.stdout).trim()).toBe("0 (0)");
+  });
+
+  it("supports -opaque, +opaque, -transparent, -evaluate, -function, -clut, and -fx pixel expressions", async () => {
+    const src = await makeTestImage(10, 10, 250, 10, 10);
+    const files = new Map<string, Uint8Array>([["/red.png", src]]);
+
+    // 1. -fuzz 10% -fill #00ff00 -opaque #ff0000 replaces near-red (250,10,10) with green
+    await runMagickCli(
+      ["/red.png", "-fuzz", "10%", "-fill", "#00ff00", "-opaque", "#ff0000", "/green.png"],
+      files
+    );
+    const greenRaw = await sharp(files.get("/green.png")!).raw().toBuffer();
+    expect(greenRaw[0]).toBe(0);
+    expect(greenRaw[1]).toBe(255);
+    expect(greenRaw[2]).toBe(0);
+
+    // 2. -transparent #00ff00 makes green pixels transparent (alpha = 0)
+    await runMagickCli(["/green.png", "-fuzz", "5%", "-transparent", "#00ff00", "/trans.png"], files);
+    const transRaw = await sharp(files.get("/trans.png")!).raw().toBuffer();
+    expect(transRaw[3]).toBe(0);
+
+    // 3. -evaluate Multiply 0.5 halves pixel values
+    const gray = await makeTestImage(8, 8, 200, 100, 50);
+    files.set("/gray.png", gray);
+    await runMagickCli(["/gray.png", "-evaluate", "Multiply", "0.5", "/half.png"], files);
+    const halfRaw = await sharp(files.get("/half.png")!).raw().toBuffer();
+    expect(halfRaw[0]).toBeCloseTo(100, 0);
+    expect(halfRaw[1]).toBeCloseTo(50, 0);
+    expect(halfRaw[2]).toBeCloseTo(25, 0);
+
+    // 4. -function Polynomial "-1,1" inverts normalized values (1 - x)
+    await runMagickCli(["/gray.png", "-function", "Polynomial", "-1,1", "/poly.png"], files);
+    const polyRaw = await sharp(files.get("/poly.png")!).raw().toBuffer();
+    expect(polyRaw[0]).toBeCloseTo(55, 0);
+    expect(polyRaw[1]).toBeCloseTo(155, 0);
+    expect(polyRaw[2]).toBeCloseTo(205, 0);
+
+    // 5. -clut maps grayscale values through a lookup table image
+    const lut = await makeTestImage(256, 1, 12, 34, 56);
+    files.set("/lut.png", lut);
+    await runMagickCli(["/gray.png", "/lut.png", "-clut", "/clut-out.png"], files);
+    const clutRaw = await sharp(files.get("/clut-out.png")!).raw().toBuffer();
+    expect(clutRaw[0]).toBe(12);
+    expect(clutRaw[1]).toBe(34);
+    expect(clutRaw[2]).toBe(56);
+
+    // 6. -fx evaluates per-pixel math expressions with u, v, i, j, w, h, and variables
+    const imgU = await makeTestImage(10, 10, 100, 200, 50);
+    const imgV = await makeTestImage(10, 10, 50, 40, 150);
+    files.set("/u.png", imgU);
+    files.set("/v.png", imgV);
+    await runMagickCli(["/u.png", "/v.png", "-fx", "(u + v) / 2", "/fx-avg.png"], files);
+    const fxRaw = await sharp(files.get("/fx-avg.png")!).raw().toBuffer();
+    expect(fxRaw[0]).toBeCloseTo(75, 1);
+    expect(fxRaw[1]).toBeCloseTo(120, 1);
+    expect(fxRaw[2]).toBeCloseTo(100, 1);
+  });
+
+  it("supports geometric distortions (-distort SRT/Perspective, -shear, -swirl, -implode, -wave) and effects (-shadow, -vignette, -sepia-tone, -solarize, -posterize, -edge, -emboss, -charcoal)", async () => {
+    const src = await makeTestImage(40, 30, 200, 80, 40);
+    const files = new Map<string, Uint8Array>([["/src.png", src]]);
+
+    // 1. -shear 20x0 expands width
+    await runMagickCli(["/src.png", "-background", "#000000", "-shear", "20x0", "/sheared.png"], files);
+    const shearMeta = await sharp(files.get("/sheared.png")!).metadata();
+    expect(shearMeta.width).toBeGreaterThan(40);
+    expect(shearMeta.height).toBe(30);
+
+    // 2. -distort SRT "1.5 45" scales and rotates in-place
+    await runMagickCli(["/src.png", "-distort", "SRT", "1.5 45", "/srt.png"], files);
+    const srtMeta = await sharp(files.get("/srt.png")!).metadata();
+    expect(srtMeta.width).toBe(40);
+    expect(srtMeta.height).toBe(30);
+
+    // 3. -distort Perspective with 4 point pairs
+    await runMagickCli(
+      [
+        "/src.png",
+        "-distort",
+        "Perspective",
+        "0,0 2,2  39,0 37,4  39,29 38,28  0,29 1,27",
+        "/persp.png"
+      ],
+      files
+    );
+    const perspMeta = await sharp(files.get("/persp.png")!).metadata();
+    expect(perspMeta.width).toBe(40);
+    expect(perspMeta.height).toBe(30);
+
+    // 4. -swirl, -implode, -wave
+    await runMagickCli(
+      ["/src.png", "-swirl", "60", "-implode", "0.3", "-wave", "4x20", "/warped.png"],
+      files
+    );
+    const warpMeta = await sharp(files.get("/warped.png")!).metadata();
+    expect(warpMeta.width).toBe(40);
+    expect(warpMeta.height).toBe(38); // 30 + 2*4 amplitude
+
+    // 5. -shadow 80x2+4+4 expands canvas and creates soft drop shadow
+    await runMagickCli(["/src.png", "-background", "#000000", "-shadow", "80x2+4+4", "/shadow.png"], files);
+    const shadowMeta = await sharp(files.get("/shadow.png")!).metadata();
+    expect(shadowMeta.width).toBeGreaterThan(40);
+    expect(shadowMeta.height).toBeGreaterThan(30);
+
+    // 6. -sepia-tone, -solarize, -posterize, -vignette, -edge, -emboss, -charcoal
+    await runMagickCli(
+      [
+        "/src.png",
+        "-sepia-tone",
+        "80%",
+        "-solarize",
+        "50%",
+        "-posterize",
+        "4",
+        "-vignette",
+        "0x2",
+        "-edge",
+        "1",
+        "-emboss",
+        "1",
+        "-charcoal",
+        "1",
+        "/art.png"
+      ],
+      files
+    );
+    const artMeta = await sharp(files.get("/art.png")!).metadata();
+    expect(artMeta.width).toBe(40);
+    expect(artMeta.height).toBe(30);
+  });
+
+  it("supports gradient:/radial-gradient:/pattern:checkerboard, polygon/path/bezier -draw, -splice/-chop/-roll, -morph, and out-%d.png multi-frame output", async () => {
+    const files = new Map<string, Uint8Array>();
+
+    // 1. gradient: and radial-gradient: and pattern:checkerboard
+    await runMagickCli(["-size", "40x20", "gradient:#ff0000-#0000ff", "/grad.png"], files);
+    const gradRaw = await sharp(files.get("/grad.png")!).raw().toBuffer();
+    // Top row is red, bottom row is blue
+    expect(gradRaw[0]).toBeGreaterThan(240);
+    expect(gradRaw[2]).toBeLessThan(15);
+    const bottomIdx = (19 * 40 + 0) * 4;
+    expect(gradRaw[bottomIdx]).toBeLessThan(15);
+    expect(gradRaw[bottomIdx + 2]).toBeGreaterThan(240);
+
+    await runMagickCli(["-size", "30x30", "radial-gradient:#ffffff-#000000", "/rgrad.png"], files);
+    const rgradMeta = await sharp(files.get("/rgrad.png")!).metadata();
+    expect(rgradMeta.width).toBe(30);
+    expect(rgradMeta.height).toBe(30);
+
+    await runMagickCli(["-size", "32x32", "pattern:checkerboard", "/check.png"], files);
+    const checkMeta = await sharp(files.get("/check.png")!).metadata();
+    expect(checkMeta.width).toBe(32);
+
+    // 2. Advanced -draw: polygon, polyline, bezier, path
+    await runMagickCli(
+      [
+        "-size",
+        "50x50",
+        "xc:#000000",
+        "-fill",
+        "#00ff00",
+        "-draw",
+        "polygon 10,10 40,10 40,40 10,40 path 'M 5 5 L 15 5 L 10 15 Z' bezier 0,0 25,50 50,0",
+        "/poly-draw.png"
+      ],
+      files
+    );
+    const polyRaw = await sharp(files.get("/poly-draw.png")!).raw().toBuffer();
+    // Center (25, 25) is inside the green polygon
+    const centerIdx = (25 * 50 + 25) * 4;
+    expect(polyRaw[centerIdx + 1]).toBeGreaterThan(200);
+
+    // 3. -splice, -chop, -roll
+    await runMagickCli(
+      [
+        "-size",
+        "20x20",
+        "xc:#ff0000",
+        "-background",
+        "#0000ff",
+        "-splice",
+        "10x5+0+0",
+        "/spliced.png"
+      ],
+      files
+    );
+    const spliceMeta = await sharp(files.get("/spliced.png")!).metadata();
+    expect(spliceMeta.width).toBe(30);
+    expect(spliceMeta.height).toBe(25);
+
+    await runMagickCli(["/spliced.png", "-chop", "10x5+0+0", "-roll", "+5+5", "/chopped.png"], files);
+    const chopMeta = await sharp(files.get("/chopped.png")!).metadata();
+    expect(chopMeta.width).toBe(20);
+    expect(chopMeta.height).toBe(20);
+
+    // 4. -morph 2 between two images + multi-file scene pattern /frame-%02d.png -> 4 output files
+    const f0 = await makeTestImage(16, 16, 0, 0, 0);
+    const f1 = await makeTestImage(16, 16, 240, 240, 240);
+    files.set("/f0.png", f0);
+    files.set("/f1.png", f1);
+    const morphRes = await runMagickCli(["/f0.png", "/f1.png", "-morph", "2", "/frame-%02d.png"], files);
+    expect(morphRes.exitCode).toBe(0);
+    expect(files.has("/frame-00.png")).toBe(true);
+    expect(files.has("/frame-01.png")).toBe(true);
+    expect(files.has("/frame-02.png")).toBe(true);
+    expect(files.has("/frame-03.png")).toBe(true);
+    const mid1Raw = await sharp(files.get("/frame-01.png")!).raw().toBuffer();
+    expect(mid1Raw[0]).toBeCloseTo(80, 2);
+  });
+
+  it("survives hardcore stress testing: corrupted inputs, stack underflows, boundary geometries, and pathological -fx math", async () => {
+    const valid = await makeTestImage(24, 24, 120, 180, 240);
+    const garbage = new Uint8Array([0x00, 0xff, 0x13, 0x37, 0xde, 0xad, 0xbe, 0xef]);
+    const empty = new Uint8Array(0);
+    const files = new Map<string, Uint8Array>([
+      ["/valid.png", valid],
+      ["/garbage.png", garbage],
+      ["/empty.png", empty]
+    ]);
+
+    // 1. Corrupted & zero-byte inputs across all CLI entrypoints must never throw uncaught errors
+    const badConv = await runConvertCli(["/garbage.png", "/out.png"], files);
+    expect(badConv.exitCode).not.toBe(0);
+    const badId = await runMagickCli(["identify", "/empty.png"], files);
+    expect(badId.exitCode).not.toBe(0);
+    const badMog = await runMogrifyCli(["-resize", "50%", "/garbage.png"], files);
+    expect(badMog.exitCode).not.toBe(0);
+    const badMon = await runMontageCli(["/garbage.png", "/valid.png", "/mon.png"], files);
+    expect(badMon.exitCode).not.toBe(0);
+    const badCmp = await runCompareCli(["/garbage.png", "/valid.png", "null:"], files);
+    expect(badCmp.exitCode).not.toBe(0);
+
+    // 2. Reject stack underflow (+swap on a 1-item stack) without writing output.
+    const underflowRes = await runMagickCli(
+      [
+        "/valid.png",
+        "+swap",
+        "-swap",
+        "99,-99",
+        "-delete",
+        "999",
+        "(",
+        "-negate",
+        "/survived-stack.png"
+      ],
+      files
+    );
+    expect(underflowRes.exitCode).not.toBe(0);
+    expect(files.has("/survived-stack.png")).toBe(false);
+
+    // 3. Extreme boundary geometries (0x0, negative crop/shave/chop/roll larger than image)
+    const extremeGeom = await runMagickCli(
+      [
+        "/valid.png",
+        "-crop",
+        "0x0+9999+9999",
+        "-shave",
+        "999x999",
+        "-chop",
+        "999x999+500+500",
+        "-roll",
+        "-999999-888888",
+        "-resize",
+        "0x0!",
+        "/one-by-one.png"
+      ],
+      files
+    );
+    expect(extremeGeom.exitCode).toBe(0);
+    const oneMeta = await sharp(files.get("/one-by-one.png")!).metadata();
+    expect(oneMeta.width).toBe(1);
+    expect(oneMeta.height).toBe(1);
+
+    // 4. Pathological -fx division by zero, NaN, out-of-bounds p{-999,999}, sqrt(-1), log(-5), singular Perspective
+    const pathFx = await runMagickCli(
+      [
+        "/valid.png",
+        "-fx",
+        "a = 1/0; b = 0/0; c = sqrt(-9) + log(-5) + p{-999,9999}.r + u[0].g; clamp(c, 0, 1) * 0 + 0.5",
+        "-distort",
+        "Perspective",
+        "0,0 0,0  0,0 0,0  0,0 0,0  0,0 0,0",
+        "/path-fx.png"
+      ],
+      files
+    );
+    expect(pathFx.exitCode, pathFx.stderr).toBe(0);
+    const pathRaw = await sharp(files.get("/path-fx.png")!).raw().toBuffer();
+    expect(pathRaw[0]).toBeCloseTo(128, 1);
+  });
+
+  it("supports -floodfill, -evaluate-sequence, arbitrary -convolve/-morphology, -color-matrix, -equalize, -dither/-remap, -crop MxN@, rose:, txt:-, histogram:info:-, and %[fx:...]/%[pixel:...]", async () => {
+    const files = new Map<string, Uint8Array>();
+
+    // 1. Built-in rose: image + -crop 2x2@ grid subdivision into 4 equal tiles
+    await runMagickCli(["rose:", "-crop", "2x2@", "/tile-%d.png"], files);
+    expect(files.has("/tile-0.png")).toBe(true);
+    expect(files.has("/tile-3.png")).toBe(true);
+    const tile0Meta = await sharp(files.get("/tile-0.png")!).metadata();
+    expect(tile0Meta.width).toBe(35);
+    expect(tile0Meta.height).toBe(23);
+
+    // 2. Seed -floodfill on a hollow box: exterior (0,0) becomes blue, interior (15,15) stays black
+    await runMagickCli(
+      [
+        "-size",
+        "30x30",
+        "xc:#000000",
+        "-fill",
+        "none",
+        "-stroke",
+        "#ffffff",
+        "-strokewidth",
+        "2",
+        "-draw",
+        "rectangle 8,8 22,22",
+        "-fuzz",
+        "5%",
+        "-fill",
+        "#0000ff",
+        "-floodfill",
+        "+0+0",
+        "#000000",
+        "/flood.png"
+      ],
+      files
+    );
+    const floodRaw = await sharp(files.get("/flood.png")!).raw().toBuffer();
+    // (0,0) exterior pixel was flood-filled with blue (#0000ff)
+    expect(floodRaw[0]).toBe(0);
+    expect(floodRaw[2]).toBe(255);
+    // (15,15) inside the white ring was protected from the floodfill -> still black (#000000)
+    const insideIdx = (15 * 30 + 15) * 4;
+    expect(floodRaw[insideIdx]).toBe(0);
+    expect(floodRaw[insideIdx + 1]).toBe(0);
+    expect(floodRaw[insideIdx + 2]).toBe(0);
+
+    // 3. -evaluate-sequence Mean across 3 images (30, 90, 180 -> 100)
+    await runMagickCli(
+      [
+        "-size",
+        "10x10",
+        "xc:rgb(30,30,30)",
+        "xc:rgb(90,90,90)",
+        "xc:rgb(180,180,180)",
+        "-evaluate-sequence",
+        "Mean",
+        "/seq-mean.png"
+      ],
+      files
+    );
+    const meanRaw = await sharp(files.get("/seq-mean.png")!).raw().toBuffer();
+    expect(meanRaw[0]).toBeCloseTo(100, 1);
+
+    // 4. Arbitrary -convolve / -morphology Convolve, -color-matrix, -equalize, -dither FloydSteinberg -remap
+    await runMagickCli(["-size", "4x1", "gradient:#000000-#ffffff", "/palette.png"], files);
+    await runMagickCli(
+      [
+        "rose:",
+        "-convolve",
+        "0,-1,0 -1,5,-1 0,-1,0",
+        "-color-matrix",
+        "0,1,0 0,0,1 1,0,0",
+        "-equalize",
+        "-dither",
+        "FloydSteinberg",
+        "-remap",
+        "/palette.png",
+        "/remapped.png"
+      ],
+      files
+    );
+    const remapRaw = await sharp(files.get("/remapped.png")!).raw().toBuffer();
+    // Every pixel in /remapped.png must be grayscale (R === G === B) because /palette.png is pure grayscale
+    expect(remapRaw[0]).toBe(remapRaw[1]);
+    expect(remapRaw[1]).toBe(remapRaw[2]);
+
+    // 5. Computed format escapes %[fx:...], %[pixel:p{0,0}], %[mean], txt:-, and histogram:info:-
+    const fmtRes = await runMagickCli(
+      ["-size", "20x10", "xc:#ff0000", "-format", "%[fx:w/h] %[pixel:p{0,0}]", "info:"],
+      files
+    );
+    expect(fmtRes.exitCode).toBe(0);
+    expect(fmtRes.stdout).toContain("2 ");
+    expect(fmtRes.stdout.toLowerCase()).toContain("255,0,0");
+
+    const txtRes = await runMagickCli(["-size", "2x2", "xc:#123456", "txt:-"], files);
+    expect(txtRes.stdout).toContain("# ImageMagick pixel enumeration: 2,2");
+    expect(txtRes.stdout.toUpperCase()).toContain("#123456");
+
+    const histRes = await runMagickCli(["-size", "4x4", "xc:#abcdef", "-format", "%c", "histogram:info:-"], files);
+    expect(histRes.stdout).toContain("16:");
+    expect(histRes.stdout.toUpperCase()).toContain("#ABCDEF");
+  });
+
+  it("matches native ImageMagick 7 differential behavior for gravity offsets, 16-bit/CMYK/X11 colors, -level/+level gamma, -fx HSL/Rec709, -duplicate, and 22 -compose blend modes", async () => {
+    const files = new Map<string, Uint8Array>();
+
+    // 1. 16-bit hex, CMYK, gray(50%), percentage RGB, and X11 named colors
+    await runMagickCli(["-size", "4x4", "xc:#ffff80804040", "/c16.png"], files);
+    const c16 = await sharp(files.get("/c16.png")!).raw().toBuffer();
+    expect(c16[0]).toBe(255);
+    expect(c16[1]).toBe(128);
+    expect(c16[2]).toBe(64);
+
+    await runMagickCli(["-size", "4x4", "xc:cmyk(100%,0%,100%,0%)", "/cmyk.png"], files);
+    const cmyk = await sharp(files.get("/cmyk.png")!).raw().toBuffer();
+    expect(cmyk[0]).toBe(0);
+    expect(cmyk[1]).toBe(255);
+    expect(cmyk[2]).toBe(0);
+
+    await runMagickCli(["-size", "4x4", "xc:crimson", "/crimson.png"], files);
+    const crim = await sharp(files.get("/crimson.png")!).raw().toBuffer();
+    expect(crim[0]).toBe(220);
+    expect(crim[1]).toBe(20);
+    expect(crim[2]).toBe(60);
+
+    // 2. Shrinking -extent, negative-offset -crop, SouthEast gravity -crop/-chop/-splice, and -duplicate
+    await runMagickCli(
+      [
+        "-size",
+        "60x40",
+        "xc:#204080",
+        "-gravity",
+        "Center",
+        "-extent",
+        "30x20",
+        "+gravity",
+        "-crop",
+        "20x15-5-5",
+        "-duplicate",
+        "2",
+        "+append",
+        "/geom.png"
+      ],
+      files
+    );
+    const geomMeta = await sharp(files.get("/geom.png")!).metadata();
+    expect(geomMeta.width).toBe(45); // 15 * 3
+    expect(geomMeta.height).toBe(10);
+
+    // 3. -level with gamma, +level inverse, and -black-threshold intensity
+    await runMagickCli(
+      [
+        "-size",
+        "4x4",
+        "xc:rgb(100,150,200)",
+        "-level",
+        "10%,90%,2.0",
+        "/lvl.png"
+      ],
+      files
+    );
+    const lvlRaw = await sharp(files.get("/lvl.png")!).raw().toBuffer();
+    expect(lvlRaw[0]).toBeCloseTo(154, 1);
+    expect(lvlRaw[1]).toBeCloseTo(199, 1);
+    expect(lvlRaw[2]).toBeCloseTo(236, 1);
+
+    // 4. -fx Rec.709 intensity, hue, saturation, lightness, u[-1], trunc, and if()
+    await runMagickCli(
+      [
+        "-size",
+        "4x4",
+        "xc:rgb(255,64,32)",
+        "xc:rgb(0,128,64)",
+        "-fx",
+        "if(u[-1].g > 0.4, u.intensity, u.lightness)",
+        "/fx-rec.png"
+      ],
+      files
+    );
+    const fxRec = await sharp(files.get("/fx-rec.png")!).raw().toBuffer();
+    expect(fxRec[0]).toBeCloseTo(102, 1);
+
+    // 5. -compose CopyOpacity, CopyRed, Difference, Overlay, Exclusion, Darken, Lighten
+    await runMagickCli(
+      [
+        "-size",
+        "8x8",
+        "xc:rgba(200,100,50,0.8)",
+        "xc:rgba(50,150,250,0.6)",
+        "-compose",
+        "CopyOpacity",
+        "-composite",
+        "/copyop.png"
+      ],
+      files
+    );
+    const copyOp = await sharp(files.get("/copyop.png")!).ensureAlpha().raw().toBuffer();
+    expect(copyOp[0]).toBe(200);
+    expect(copyOp[1]).toBe(100);
+    expect(copyOp[2]).toBe(50);
+    expect(copyOp[3]).toBe(153);
+  });
+
+  it("supports channel-aware -separate/-combine, -alpha, -morphology, -statistic, -sigmoidal-contrast, -auto-gamma, -write, dissolve/blend, and mogrify/montage parity", async () => {
+    const files = new Map<string, Uint8Array>();
+    await runMagickCli(["-size", "8x8", "xc:rgba(200,100,50,0.5)", "/src.png"], files);
+    await runMagickCli(["-size", "8x8", "xc:rgb(40,200,80)", "/overlay.png"], files);
+
+    // 1. -separate and -combine roundtrip
+    await runMagickCli(["/src.png", "-channel", "RGBA", "-separate", "-combine", "/recombined.png"], files);
+    const recomb = await sharp(files.get("/recombined.png")!).ensureAlpha().raw().toBuffer();
+    expect(recomb[0]).toBe(200);
+    expect(recomb[1]).toBe(100);
+    expect(recomb[2]).toBe(50);
+
+    // 2. -alpha extract, shape, remove, off
+    await runMagickCli(["/src.png", "-alpha", "extract", "/alpha-ext.png"], files);
+    const alphaExt = await sharp(files.get("/alpha-ext.png")!).raw().toBuffer();
+    expect(alphaExt[0]).toBe(128);
+
+    await runMagickCli(["/src.png", "-background", "#ffffff", "-alpha", "remove", "/alpha-rem.png"], files);
+    const alphaRem = await sharp(files.get("/alpha-rem.png")!).ensureAlpha().raw().toBuffer();
+    expect(alphaRem[0]).toBe(227);
+    expect(alphaRem[3]).toBe(255);
+
+    // 3. -morphology Open/Close/EdgeIn/TopHat and -statistic Median/Minimum/Maximum
+    await runMagickCli(["/src.png", "-morphology", "Close", "Disk:1", "-statistic", "Median", "3x3", "/morph.png"], files);
+    expect(files.has("/morph.png")).toBe(true);
+
+    // 4. -sigmoidal-contrast and -auto-gamma
+    await runMagickCli(["/overlay.png", "-sigmoidal-contrast", "5x50%", "-auto-gamma", "/sig.png"], files);
+    expect(files.has("/sig.png")).toBe(true);
+
+    // 5. mid-pipeline -write, composite -dissolve/-blend, mogrify -format jpg, and montage -tile x1
+    await runMagickCli(["/overlay.png", "-write", "/mid.png", "-negate", "/fin.png"], files);
+    expect(files.has("/mid.png")).toBe(true);
+    expect(files.has("/fin.png")).toBe(true);
+
+    await runCompositeCli(["-dissolve", "50", "/overlay.png", "/src.png", "/dissolved.png"], files);
+    expect(files.has("/dissolved.png")).toBe(true);
+
+    await runMogrifyCli(["-path", "/out", "-format", "jpg", "-statistic", "Maximum", "3x3", "/overlay.png"], files);
+    expect(files.has("/out/overlay.jpg")).toBe(true);
+
+    await runMontageCli(["-tile", "x1", "-geometry", "8x8+0+0", "/src.png", "/overlay.png", "/src.png", "/row.png"], files);
+    const rowMeta = await sharp(files.get("/row.png")!).metadata();
+    expect(rowMeta.width).toBe(24);
+    expect(rowMeta.height).toBe(8);
+  });
+
+  it("supports inline read modifiers (rose:[20x20], rose:[20x15+10+5]), multi-frame GIF [-1]/[2-0] indexing, linked/independent -auto-level, +negate, and GravityAdjustGeometry crop/chop parity", async () => {
+    const files = new Map<string, Uint8Array>();
+
+    // 1. Inline read modifiers on pseudo-images
+    const rResize = await runMagickCli(["rose:[20x20]", "-format", "%wx%h", "info:"], files);
+    expect(rResize.stdout.trim()).toBe("20x13");
+    const rCrop = await runMagickCli(["rose:[20x15+10+5]", "-format", "%wx%h", "info:"], files);
+    expect(rCrop.stdout.trim()).toBe("20x15");
+
+    // 2. Multi-frame animated GIF creation and [-1] / [2-0] indexing
+    await runMagickCli(["-size", "8x8", "xc:#ff0000", "xc:#00ff00", "xc:#0000ff", "/anim.gif"], files);
+    const lastFrame = await runMagickCli(["/anim.gif[-1]", "-format", "%[pixel:p{0,0}]", "info:"], files);
+    expect(lastFrame.stdout.trim()).toBe("srgb(0,0,255)");
+    const revFrames = await runMagickCli(["/anim.gif[2-0]", "-format", "%s/%n:%[pixel:p{0,0}] ", "info:"], files);
+    expect(revFrames.stdout.trim()).toBe("0/3:srgb(0,0,255) 1/3:srgb(0,255,0) 2/3:srgb(255,0,0)");
+
+    // 3. -auto-level linked default vs -channel RGB independent
+    const linked = await runMagickCli(
+      ["-size", "10x10", "gradient:rgb(50,100,150)-rgb(150,200,220)", "-auto-level", "-format", "%[pixel:p{0,0}] -> %[pixel:p{9,9}]", "info:"],
+      files
+    );
+    expect(linked.stdout.trim()).toBe("srgb(0,75,150) -> srgb(150,225,255)");
+    const indep = await runMagickCli(
+      ["-size", "10x10", "gradient:rgb(50,100,150)-rgb(150,200,220)", "-channel", "RGB", "-auto-level", "-format", "%[pixel:p{0,0}] -> %[pixel:p{9,9}]", "info:"],
+      files
+    );
+    expect(indep.stdout.trim()).toBe("srgb(0,0,0) -> srgb(255,255,255)");
+
+    // 4. +negate grayscale-only and -channel R -negate
+    const plusNeg = await runMagickCli(
+      ["-size", "1x1", "xc:red", "xc:rgb(100,100,100)", "+append", "+negate", "-format", "%[pixel:p{0,0}] %[pixel:p{1,0}]", "info:"],
+      files
+    );
+    expect(plusNeg.stdout.trim()).toBe("srgb(255,0,0) srgb(155,155,155)");
+
+    // 5. GravityAdjustGeometry signed crop/chop intersections
+    const cropSouth = await runMagickCli(["-size", "20x14", "xc:red", "-gravity", "South", "-crop", "26x9+4-2", "-format", "%wx%h", "info:"], files);
+    expect(cropSouth.stdout.trim()).toBe("19x7");
+    const chopNorth = await runMagickCli(["-size", "22x11", "xc:red", "-gravity", "North", "-chop", "21x8-4+5", "-format", "%wx%h", "info:"], files);
+    expect(chopNorth.stdout.trim()).toBe("4x5");
+  });
+
+  it("supports -evaluate-sequence Median (IntensityCompare), -evaluate AddModulus/Mean, and range/list stack operators (-clone, -delete, +insert, -insert, -duplicate)", async () => {
+    const files = new Map<string, Uint8Array>();
+
+    // 1. -evaluate-sequence Median matches MagickCore IntensityCompare tuple ordering
+    const medRes = await runMagickCli(
+      ["-size", "2x2", "xc:rgb(40,100,200)", "xc:rgb(80,150,100)", "xc:rgb(120,50,150)", "-evaluate-sequence", "Median", "-format", "%[pixel:p{0,0}]", "info:"],
+      files
+    );
+    expect(medRes.stdout.trim()).toBe("srgb(80,150,100)");
+
+    // 2. -evaluate AddModulus and Mean
+    const evalMod = await runMagickCli(["-size", "1x1", "xc:rgb(200,100,50)", "-evaluate", "AddModulus", "100", "-format", "%[pixel:p{0,0}]", "info:"], files);
+    expect(evalMod.stdout.trim()).toBe("srgb(200,100,50)");
+
+    // 3. Stack operators: -clone 0,2 / -delete 1--1 / +insert / -insert / -duplicate 2,0
+    const cloneList = await runMagickCli(["-size", "1x1", "xc:red", "xc:lime", "xc:blue", "-clone", "0,2", "-format", "%[pixel:p{0,0}] ", "info:"], files);
+    expect(cloneList.stdout.trim()).toBe("srgb(255,0,0) srgb(0,255,0) srgb(0,0,255) srgb(255,0,0) srgb(0,0,255)");
+
+    const delRange = await runMagickCli(["-size", "1x1", "xc:red", "xc:lime", "xc:blue", "-delete", "1--1", "-format", "%[pixel:p{0,0}] ", "info:"], files);
+    expect(delRange.stdout.trim()).toBe("srgb(255,0,0)");
+
+    const insRes = await runMagickCli(["-size", "1x1", "xc:red", "xc:lime", "xc:blue", "+insert", "-format", "%[pixel:p{0,0}] ", "info:"], files);
+    expect(insRes.stdout.trim()).toBe("srgb(0,0,255) srgb(255,0,0) srgb(0,255,0)");
+
+    const dupRes = await runMagickCli(["-size", "1x1", "xc:red", "xc:lime", "xc:blue", "-duplicate", "2,0", "-format", "%[pixel:p{0,0}] ", "info:"], files);
+    expect(dupRes.stdout.trim()).toBe("srgb(255,0,0) srgb(0,255,0) srgb(0,0,255) srgb(255,0,0) srgb(255,0,0)");
+  });
+
+  it("handles 1-channel -contrast/-brightness-contrast after -alpha extract and matches ChopImage/247 and CropImage/599/653 boundaries", async () => {
+    const files = new Map<string, Uint8Array>();
+
+    // 1. 1-channel image from -alpha extract followed by -contrast and -brightness-contrast
+    const oneCh = await runMagickCli(
+      ["-size", "12x12", "xc:rgba(100,150,200,0.6)", "-alpha", "extract", "-contrast", "+contrast", "-brightness-contrast", "10x20", "/onech.png"],
+      files
+    );
+    expect(oneCh.exitCode).toBe(0);
+    expect(files.has("/onech.png")).toBe(true);
+
+    // 2. ChopImage/247: chopping >= 100% of width or height leaves original dimensions intact
+    const fullChop = await runMagickCli(
+      ["-size", "10x13", "xc:red", "-gravity", "SouthWest", "-chop", "17x17-6+2", "-format", "%wx%h", "info:"],
+      files
+    );
+    expect(fullChop.stdout.trim()).toBe("10x13");
+
+    // 3. CropImage/599 (x0 > width -> 1x1) vs CropImage/653 (x0 === width -> original image)
+    const crop599 = await runMagickCli(
+      ["-size", "10x16", "xc:red", "-gravity", "East", "-crop", "4x6-5+2", "-format", "%wx%h", "info:"],
+      files
+    );
+    expect(crop599.stdout.trim()).toBe("1x1");
+
+    const crop653 = await runMagickCli(
+      ["-size", "6x31", "xc:red", "-gravity", "NorthWest", "-crop", "13x12+6+5", "-format", "%wx%h", "info:"],
+      files
+    );
+    expect(crop653.stdout.trim()).toBe("6x31");
+  });
+  it("supports -list font, format, color, configure, and list in magick, convert, and identify", async () => {
+    const files = new Map<string, Uint8Array>();
+    const fontRes = await runMagickCli(["-list", "font"], files);
+    expect(fontRes.exitCode).toBe(0);
+    expect(fontRes.stderr).toBe("");
+    expect(fontRes.stdout).toContain("Font: DejaVu-Sans");
+
+    const formatRes = await runMagickCli(["convert", "-list", "format"], files);
+    expect(formatRes.exitCode).toBe(0);
+    expect(formatRes.stdout).toContain("PNG* PNG");
+
+    const idListRes = await runMagickCli(["identify", "-list", "color"], files);
+    expect(idListRes.exitCode).toBe(0);
+    expect(idListRes.stdout).toContain("transparent");
+  });
+  it("draws filled unstroked circles directly onto the raster buffer", async () => {
+    const files = new Map<string, Uint8Array>();
+    const drawRes = await runMagickCli(
+      ["-size", "32x32", "xc:#ffffff", "-fill", "#ff0000", "-draw", "circle 16,16 16,24", "circle.png"],
+      files
+    );
+    expect(drawRes.exitCode).toBe(0);
+    const pxRes = await runMagickCli(
+      ["circle.png", "-format", "%[pixel:p{16,16}]|%[pixel:p{0,0}]", "info:"],
+      files
+    );
+    expect(pxRes.exitCode).toBe(0);
+    expect(pxRes.stdout.trim()).toBe("srgb(255,0,0)|srgb(255,255,255)");
+  });
+});

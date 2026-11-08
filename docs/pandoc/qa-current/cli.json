@@ -1,0 +1,74 @@
+[
+  {
+    "command": "pandoc --help",
+    "status": 0,
+    "stdout": "Usage: pandoc -f FORMAT -t FORMAT [OPTIONS] [FILE|- ...]\n--from/-f --to/-t --output/-o PATH (use - for stdout) --yes --standalone/-s --wrap=none\n--metadata/-M KEY=VALUE --metadata-file FILE.json --lossy --fail-if-warnings\n--resource-path DIR[:DIR] --extract-media DIR --raw-content=reject|escape|retain\n--pdf-page-size a4|letter --pdf-orientation portrait|landscape --pdf-margin POINTS\n--pdf-font FAMILY|PATH --pdf-font-size POINTS --pdf-line-height MULTIPLIER\nPDF families: mono bundled; serif/sans unavailable (E_CAPABILITY). Font paths use only the admitted VFS.\n--epub-title TEXT --epub-language TEXT --epub-identifier TEXT --epub-chapter-level 1..6\n--list-input-formats --list-output-formats --list-extensions FORMAT --help/-h --version\nUse -- before literal filenames. No external PDF engines, ambient fonts, filters or network fetching.\nCapabilities (available directions):\nInput formats:\ncommonmark\ncsv\nepub\ngfm\nhtml\njson\nlatex\npptx\nrst\nrtf\ntsv\nOutput formats:\ncommonmark\nepub\nepub3\ngfm\nhtml\nhtml5\njson\nlatex\npdf\nplain\npptx\nrst\nrtf\n",
+    "stderr": ""
+  },
+  {
+    "command": "pandoc --version",
+    "status": 0,
+    "stdout": "pandoc TypeScript converter 0.0.1 (original bounded implementation)\n",
+    "stderr": ""
+  },
+  {
+    "command": "pandoc --list-input-formats",
+    "status": 0,
+    "stdout": "commonmark\ncsv\nepub\ngfm\nhtml\njson\nlatex\npptx\nrst\nrtf\ntsv\n",
+    "stderr": ""
+  },
+  {
+    "command": "pandoc --list-output-formats",
+    "status": 0,
+    "stdout": "commonmark\nepub\nepub3\ngfm\nhtml\nhtml5\njson\nlatex\npdf\nplain\npptx\nrst\nrtf\n",
+    "stderr": ""
+  },
+  {
+    "command": "pandoc --list-extensions gfm",
+    "status": 0,
+    "stdout": "+autolink_bare_uris\n+pipe_tables\n+raw_html\n+strikeout\n+task_lists\n",
+    "stderr": ""
+  },
+  {
+    "command": "pandoc -f invalid -t plain",
+    "status": 1,
+    "stdout": "│\n■  Error: Cannot find module '/Users/kjopek/Workspace/poe-code-5/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-code-5/dist/dist-QQ5MXLNA.js\n│\n●  See logs at /Users/kjopek/.poe-code/logs/errors.log for more details.\n",
+    "stderr": ""
+  },
+  {
+    "command": "pandoc --filter forbidden",
+    "status": 1,
+    "stdout": "│\n■  Error: Cannot find module '/Users/kjopek/Workspace/poe-code-5/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-code-5/dist/dist-QQ5MXLNA.js\n│\n●  See logs at /Users/kjopek/.poe-code/logs/errors.log for more details.\n",
+    "stderr": ""
+  },
+  {
+    "command": "pandoc -f gfm+unknown -t plain",
+    "status": 1,
+    "stdout": "│\n■  Error: Cannot find module '/Users/kjopek/Workspace/poe-code-5/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-code-5/dist/dist-QQ5MXLNA.js\n│\n●  See logs at /Users/kjopek/.poe-code/logs/errors.log for more details.\n",
+    "stderr": ""
+  },
+  {
+    "command": "pandoc",
+    "status": 1,
+    "stdout": "│\n■  Error: Cannot find module '/Users/kjopek/Workspace/poe-code-5/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-code-5/dist/dist-QQ5MXLNA.js\n│\n●  See logs at /Users/kjopek/.poe-code/logs/errors.log for more details.\n",
+    "stderr": ""
+  },
+  {
+    "command": "pandoc -f commonmark -t plain missing.md",
+    "status": 1,
+    "stdout": "│\n■  Error: Cannot find module '/Users/kjopek/Workspace/poe-code-5/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-code-5/dist/dist-QQ5MXLNA.js\n│\n●  See logs at /Users/kjopek/.poe-code/logs/errors.log for more details.\n",
+    "stderr": ""
+  },
+  {
+    "command": "printf \"# Heading\\n\" | pandoc -f commonmark -t plain",
+    "status": 1,
+    "stdout": "│\n■  Error: Cannot find module '/Users/kjopek/Workspace/poe-code-5/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-code-5/dist/dist-QQ5MXLNA.js\n│\n●  See logs at /Users/kjopek/.poe-code/logs/errors.log for more details.\n",
+    "stderr": ""
+  },
+  {
+    "command": "pandoc -f html -t plain original.html -o forbidden.txt",
+    "status": 1,
+    "stdout": "│\n■  Error: Cannot find module '/Users/kjopek/Workspace/poe-code-5/packages/safe-js/dist/safe-fs-core.js' imported from /Users/kjopek/Workspace/poe-code-5/dist/dist-QQ5MXLNA.js\n│\n●  See logs at /Users/kjopek/.poe-code/logs/errors.log for more details.\n",
+    "stderr": ""
+  }
+]

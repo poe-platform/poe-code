@@ -1,0 +1,9 @@
+{
+  "startedAt": "2026-08-27T09:28:21.230Z",
+  "pid": 59823,
+  "candidateCommit": "cd37ce07c1f41f3797e19e0f701b662823338843",
+  "runnerSha256": "de11b74f47288916cd7fd486e91754465e53963ae0bc63c9d4a309ee2e77e756",
+  "coordinatorSha256": "7d6484dbab75711a81fe232080b3584ace184ea4bcab606aa3adf1c09f6fe35e",
+  "admittedCases": 40,
+  "retriesAuthorized": false
+}

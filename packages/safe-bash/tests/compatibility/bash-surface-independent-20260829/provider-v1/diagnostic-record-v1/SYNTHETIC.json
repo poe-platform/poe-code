@@ -1,0 +1,29 @@
+{
+  "role": "DATA only; no diagnostic files or target launches",
+  "checks": [
+    {
+      "id": "synthetic-top-level-fields",
+      "pass": true
+    },
+    {
+      "id": "synthetic-drop-unknown",
+      "pass": true
+    },
+    {
+      "id": "synthetic-offset-time",
+      "pass": true
+    },
+    {
+      "id": "synthetic-partial-body",
+      "pass": true
+    },
+    {
+      "id": "synthetic-valid-escaped-token",
+      "pass": true
+    },
+    {
+      "id": "synthetic-incomplete-refused",
+      "pass": true
+    }
+  ]
+}

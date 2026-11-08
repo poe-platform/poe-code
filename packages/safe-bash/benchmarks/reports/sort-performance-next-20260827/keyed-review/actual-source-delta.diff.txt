@@ -1,0 +1,260 @@
+diff --git a/src/commands/column/column.ts b/src/commands/column/column.ts
+index 2031a970..75153536 100644
+--- a/src/commands/column/column.ts
++++ b/src/commands/column/column.ts
+@@ -103,7 +103,8 @@ export function createColumnCommand(options: ColumnCommandsOptions = {}): Comman
+     } finally {
+       if (inputs) {
+         try { await inputs.close(); }
+-        catch (error) { if (!failed) { context.signal.throwIfAborted(); throw error; } }
++        catch (error) { context.signal.throwIfAborted(); if (!failed) throw error; }
++        context.signal.throwIfAborted();
+       }
+     }
+   } };
+diff --git a/src/commands/column/internal.ts b/src/commands/column/internal.ts
+index 6c0f013f..513f6898 100644
+--- a/src/commands/column/internal.ts
++++ b/src/commands/column/internal.ts
+@@ -96,7 +96,13 @@ export class ColumnInputs {
+       return typeof value === "function" ? value.bind(target) : value;
+     } }) as FileSystem;
+     const stdin: ByteSource = { [Symbol.asyncIterator]: () => this.manage(context.stdin)[Symbol.asyncIterator]() };
+-    const scoped = { ...context, fs, stdin, signal: this.signal };
++    const scoped = new Proxy({ fs, stdin, signal: this.signal } as CommandContext, {
++      get(target, key) {
++        if (Object.hasOwn(target, key)) return Reflect.get(target, key, target);
++        const value: unknown = Reflect.get(context, key, context);
++        return typeof value === "function" ? value.bind(context) : value;
++      },
++    });
+     this.budget = new ColumnBudget(scoped, limits);
+     this.inputs = new Inputs(scoped, this.budget, 10);
+     context.registerCleanup?.(this.close);
+diff --git a/src/commands/text.ts b/src/commands/text.ts
+index 175ecac4..b28fc2e6 100644
+--- a/src/commands/text.ts
++++ b/src/commands/text.ts
+@@ -133,7 +133,7 @@ export function textCommands(): CommandDefinition[] {
+         };
+         compareNumeric = (left, right) => compareNumericValues(numericValue(left), numericValue(right));
+       }
+-      const keyCompare = simple ? (left: Uint8Array, right: Uint8Array) => compareBytes(left, right) * direction : (left: Uint8Array, right: Uint8Array) => {
++      let keyCompare = simple ? (left: Uint8Array, right: Uint8Array) => compareBytes(left, right) * direction : (left: Uint8Array, right: Uint8Array) => {
+         for (const key of keys.length ? keys : [undefined]) {
+           const flags = key?.flags.size ? key.flags : parsed.flags;
+           let first = key ? keyBytes(left, key, separator, flags.has("b")) : left;
+@@ -149,6 +149,28 @@ export function textCommands(): CommandDefinition[] {
+         }
+         return 0;
+       };
++      const numericKey = keys.length === 1 ? keys[0] : undefined;
++      const numericKeyFlags = numericKey?.flags.size ? numericKey.flags : parsed.flags;
++      if (numericKey && numericKeyFlags.has("n") && !["b", "f"].some(flag => numericKeyFlags.has(flag)) && !parsed.flags.has("c")) {
++        const keyedNumericValues = new Map<Uint8Array, NumericValue>();
++        let retainedKeyBytes = 0;
++        const keyedNumericValue = (record: Uint8Array): NumericValue => {
++          const cached = keyedNumericValues.get(record);
++          if (cached !== undefined) return cached;
++          context.signal.throwIfAborted();
++          const bytes = keyBytes(record, numericKey, separator, false);
++          const charge = 6 * bytes.length + 2;
++          if (keyedNumericValues.size >= 16_384 || charge > 1_048_576 - retainedKeyBytes) return parseNumeric(bytes);
++          const parsedValue = parseNumeric(bytes);
++          keyedNumericValues.set(record, parsedValue);
++          retainedKeyBytes += charge;
++          return parsedValue;
++        };
++        keyCompare = (left, right) => {
++          const result = compareNumericValues(keyedNumericValue(left), keyedNumericValue(right));
++          return numericKeyFlags.has("r") ? -result : result;
++        };
++      }
+       const compare = simple ? keyCompare : (left: Uint8Array, right: Uint8Array) => keyCompare(left, right)
+         || (parsed.flags.has("s") || parsed.flags.has("u") ? 0 : compareBytes(left, right) * (parsed.flags.has("r") ? -1 : 1));
+       const records: Uint8Array[] = [];
+diff --git a/src/shell/runtime.ts b/src/shell/runtime.ts
+index eceb6cb3..1eb39567 100644
+--- a/src/shell/runtime.ts
++++ b/src/shell/runtime.ts
+@@ -2,7 +2,7 @@ import {
+   ACCESS_MODES, composeMiddleware, createBytePipe, pipeBytes, resolvePath, toByteSource, validateExitCode, writeText,
+ } from "../contracts/index.js";
+ import type {
+-  ByteSink, ByteSource, CommandContext, CommandRegistry, FileSystem, Middleware,
++  ByteSink, ByteSource, CommandContext, CommandInvoker, CommandRegistry, CommandResult, FileSystem, Middleware,
+ } from "../contracts/index.js";
+ import type { Command, HereDocument, Pipeline, Redirect, Script, Word, WordPart } from "./parser.js";
+ import { HereDocumentSyntaxError, hereDocumentWords, parseShellInputUnit, parseShellUnit } from "./parser.js";
+@@ -1137,50 +1137,130 @@ export class Runtime {
+ 
+   private static readonly envShebangCommand = executionCommands(() => { throw new Error("Unreserved shebang invocation"); }).find(command => command.name === "env");
+ 
++  private shebangState(context: CommandContext, state: State): State {
++    const child = cloneState(state);
++    child.cwd = resolvePath("/", context.cwd);
++    for (const key of child.exported) delete child.variables[key];
++    for (const [key, value] of Object.entries(context.env)) {
++      if (key.includes("\0") || key.includes("=") || typeof value !== "string" || value.includes("\0")) throw new TypeError("Invalid middleware environment value");
++      child.variables[key] = value;
++    }
++    child.exported = new Set(Object.keys(context.env));
++    return child;
++  }
++
++  private async shebangStage(
++    incoming: CommandContext, state: State, io: IO,
++    terminal: (runtime: Runtime, context: ShellCommandContext, child: State, childIO: IO) => Promise<CommandResult>,
++    prepare?: (runtime: Runtime, context: ShellCommandContext, child: State, childIO: IO) => CommandInvoker,
++    replacementInput?: ByteSource,
++  ): Promise<number> {
++    const scope = io[invocationScope].child();
++    const runtime = new Runtime(this.fs, this.commands, this.middleware, this.budget, AbortSignal.any([this.signal, scope.signal]), this.fileWrites, this.outputFiles, this.commandSignal);
++    let input: ShellInput | undefined;
++    try {
++      scope.register(async () => {
++        try { await input?.close(); }
++        catch (error) { if (!this.signal.aborted || error !== this.signal.reason) throw error; }
++      });
++      if (replacementInput !== undefined) input = new ShellInput(replacementInput, this.budget, this.signal);
++      let invoke: CommandInvoker | undefined;
++      const context: ShellCommandContext = {
++        ...incoming, env: Object.assign(Object.create(null) as Record<string, string>, incoming.env),
++        stdin: input ?? incoming.stdin,
++        stdout: this.budget.sink(incoming.stdout, runtime.signal), stderr: this.budget.sink(incoming.stderr, runtime.signal),
++        signal: this.commandSignal, registerCleanup: cleanup => scope.register(cleanup),
++        invoke: (name, args, options) => {
++          const invocation = invoke ? invoke(name, args, options) : runtime.invoke(name, args, options, context, child, scope);
++          void invocation.catch(() => undefined);
++          return invocation;
++        },
++      };
++      const child = runtime.shebangState(context, state);
++      const childIO = { ...io, ...context, [invocationScope]: scope };
++      invoke = prepare?.(runtime, context, child, childIO);
++      const middleware = this.middleware.map<Middleware>(handler => (context, next) => {
++        scope.assertOpen();
++        return handler(context, next);
++      });
++      const execute = composeMiddleware(middleware, async () => {
++        scope.assertOpen();
++        const forwarded = runtime.shebangState(context, child);
++        context.cwd = forwarded.cwd;
++        return terminal(runtime, context, forwarded, { ...childIO, ...context });
++      });
++      const result = await interruptible(execute(context), runtime.signal);
++      runtime.signal.throwIfAborted();
++      return validateExitCode(result.exitCode);
++    } finally { await scope.close(); }
++  }
++
++  private async shebangTarget(context: CommandContext, state: State, io: IO, command: string, args: readonly string[], options: ShellInvokeOptions, target: string, loadedSource: { path: string; source: string }): Promise<CommandResult> {
++    this.signal.throwIfAborted();
++    io[invocationScope].assertOpen();
++    if (typeof command !== "string" || command.includes("\0") || !Array.isArray(args) || args.some(argument => typeof argument !== "string" || argument.includes("\0"))) throw new TypeError("invoke requires a command and literal string arguments without NUL");
++    this.budget.tick();
++    if (args.length + 1 > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
++    for (const argument of [command, ...args]) {
++      if (Buffer.byteLength(argument) > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
++    }
++    const reserved = command === "bash" || command === "sh";
++    const direct = command.includes("/");
++    const definition = this.commands.get(command);
++    const child = this.shebangState(context, state);
++    child.cwd = resolvePath(context.cwd, options.cwd ?? ".");
++    if (!reserved) {
++      if (child.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
++      child.depth++;
++      child.loopDepth = 0;
++      child.functionDepth = 0;
++      child.sourceDepth = 0;
++      child.locals = [];
++    }
++    const stdinIsDefault = options.stdin === undefined ? context.stdinIsDefault : options.stdinIsDefault ?? false;
++    const selected: CommandContext = {
++      ...context, command, args, cwd: child.cwd,
++      env: options.replaceEnv ? { ...options.env } : { ...context.env, ...options.env, PWD: child.cwd },
++      stdin: options.stdin ?? context.stdin,
++      stdout: options.stdout ?? context.stdout, stderr: options.stderr ?? context.stderr,
++      ...(stdinIsDefault === undefined ? {} : { stdinIsDefault }),
++    };
++    const exitCode = await this.shebangStage(selected, child, io, async (runtime, forwarded, state, childIO) => {
++      if (reserved) {
++        if (definition) {
++          await runtime.diagnostic(childIO, `${target}: unsupported interpreter override: ${command}`);
++          return { exitCode: 126 };
++        }
++        return { exitCode: await runtime.interpreter(forwarded, state, childIO, loadedSource) };
++      }
++      if (direct) return { exitCode: await runtime.scriptFile(forwarded, state, childIO, command, args, true) };
++      if (definition) return definition.execute(forwarded);
++      await writeText(forwarded.stderr, `env: ${command}: command not found\n`);
++      return { exitCode: 127 };
++    }, undefined, options.stdin !== context.stdin ? options.stdin : undefined);
++    return { exitCode };
++  }
++
+   private async envShebang(context: CommandContext, state: State, io: IO, optionalArgument: string | undefined, target: string, args: readonly string[], loadedSource: { path: string; source: string }): Promise<number> {
+     const definition = Runtime.envShebangCommand;
+     if (!definition) throw new CommandFailure(`${target}: env interpreter is unavailable`, 126);
+-    let failed = false;
+-    let failure: unknown;
+-    const result = await interruptible(Promise.resolve(definition.execute({
+-      ...context, command: "env", args: [...(optionalArgument === undefined ? [] : [optionalArgument]), target, ...args], signal: this.signal,
+-      invoke: async (command, arguments_, options = {}) => {
+-        try {
+-          this.signal.throwIfAborted();
+-          io[invocationScope].assertOpen();
+-          this.budget.tick();
+-          if (arguments_.length + 1 > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
+-          for (const argument of [command, ...arguments_]) {
+-            if (Buffer.byteLength(argument) > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
+-          }
+-          if (command !== "bash" && command !== "sh") {
+-            await writeText(context.stderr, `env: ${command}: command not found\n`);
+-            return { exitCode: 127 };
+-          }
+-          if (this.commands.has(command)) {
+-            await this.diagnostic({ ...io, ...context }, `${target}: unsupported interpreter override: ${command}`);
+-            return { exitCode: 126 };
+-          }
+-          const child = cloneState(state);
+-          child.cwd = resolvePath(context.cwd, options.cwd ?? ".");
+-          const interpreterContext: CommandContext = {
+-            ...context, command, args: arguments_, cwd: child.cwd,
+-            env: Object.assign(Object.create(null) as Record<string, string>, options.env),
+-            stdin: options.stdin ?? context.stdin,
+-            stdout: options.stdout ?? context.stdout, stderr: options.stderr ?? context.stderr,
+-            ...(options.stdinIsDefault === undefined ? {} : { stdinIsDefault: options.stdinIsDefault }),
+-          };
+-          return { exitCode: await this.interpreter(interpreterContext, child, io, loadedSource) };
+-        } catch (error) {
+-          failed = true;
+-          failure = error;
+-          return { exitCode: 1 };
+-        }
+-      },
+-    })), this.signal);
+-    this.signal.throwIfAborted();
+-    if (failed) throw failure;
+-    return validateExitCode(result.exitCode);
++    return this.shebangStage({
++      ...context, command: "env", args: [...(optionalArgument === undefined ? [] : [optionalArgument]), target, ...args],
++    }, state, io, async (runtime, forwarded) => {
++      let failed = false;
++      let failure: unknown;
++      const result = await interruptible(Promise.resolve(definition.execute({
++        ...forwarded,
++        invoke: async (command, arguments_, options) => {
++          try { return await forwarded.invoke(command, arguments_, options); }
++          catch (error) { failed = true; failure = error; return { exitCode: 1 }; }
++        },
++      })), runtime.signal);
++      runtime.signal.throwIfAborted();
++      if (failed) throw failure;
++      return { exitCode: validateExitCode(result.exitCode) };
++    }, (runtime, forwarded, child, childIO) => (command, arguments_, options = {}) =>
++      runtime.shebangTarget(forwarded, child, childIO, command, arguments_, options, target, loadedSource));
+   }
+ 
+   async scriptFile(context: CommandContext, state: State, io: IO, target: string, args: readonly string[], direct: boolean, errexit = false, loadedSource?: { path: string; source: string }): Promise<number> {

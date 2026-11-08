@@ -1,0 +1,14 @@
+{
+  "authority": "BENIGN_BENCHMARK_ONLY_NOT_DEFAULT_ACCEPTANCE",
+  "time": "2026-08-27T08:53:32.294Z",
+  "authorization": "Current explicit root-relayed user assignment authorizes only the prepared ordinary six-command benchmark and the archived 329eb272 baseline. It does not assert original benign green or authorize the risky dispatcher.",
+  "originalPrepared": "7/8 preserved, unrebaselined",
+  "riskyJobs": "four LOCKED; six additional UNUSED",
+  "commandsMaximum": 6,
+  "alternatingPairsMaximum": 3,
+  "retries": 0,
+  "watchdogMs": 30000,
+  "outputCapBytes": 16384,
+  "ipcCapBytes": 65536,
+  "defaultAcceptance": false
+}

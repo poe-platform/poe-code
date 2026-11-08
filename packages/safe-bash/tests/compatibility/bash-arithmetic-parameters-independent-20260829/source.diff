@@ -1,0 +1,46 @@
+diff --git a/src/shell/runtime.ts b/src/shell/runtime.ts
+index 4e5c0747a..39d776bf9 100644
+--- a/src/shell/runtime.ts
++++ b/src/shell/runtime.ts
+@@ -10,6 +10,7 @@ import { ShellLimitError, ShellSyntaxError } from "./types.js";
+ import type { ShellCommandContext, ShellInvokeOptions, ShellLimits } from "./types.js";
+ import { ShellInput } from "./input.js";
+ import { evaluateArithmetic, prepareArithmetic } from "./arithmetic.js";
++import { evaluatePositionalArithmetic } from "./arithmetic-parameters.js";
+ import { compilePattern, matchesPattern } from "./pattern.js";
+ import { byteLocale } from "./locale.js";
+ import { functionDisplay } from "./display.js";
+@@ -1697,7 +1698,15 @@ export class Runtime {
+         }
+       }
+       if (command.kind === "arithmetic") {
+-        try { return Number(evaluateArithmetic(command.expression, this.arithmeticVariables(state, io.diagnosticLine)) === 0n); }
++        try {
++          return Number(evaluatePositionalArithmetic(command.expression, {
++            positional: state.positional, arg0: state.arg0 ?? "virtual-bash", owner: arrayStore(state)?.owner,
++            maximumBytes: this.budget.limits.maxExpansionBytes,
++            checkpoint: () => this.signal.throwIfAborted(),
++            requireParameter: (name, value) => this.requireParameter(value, name, state, io),
++            limit: () => this.budget.fail("maxExpansionBytes"),
++          }, (prepared) => evaluateArithmetic(prepared, this.arithmeticVariables(state, io.diagnosticLine))) === 0n);
++        }
+         catch (error) { this.rethrowArithmeticControl(error); throw new Error(`((: ${message(error)}`); }
+       }
+       if (command.kind === "subshell") {
+@@ -3707,7 +3716,15 @@ export class Runtime {
+       return "";
+     }
+     if (part.kind === "arithmetic") {
+-      try { return String(evaluateArithmetic(part.expression, this.arithmeticVariables(state, io.diagnosticLine ?? part.line))); }
++      try {
++        return String(evaluatePositionalArithmetic(part.expression, {
++          positional: state.positional, arg0: state.arg0 ?? "virtual-bash", owner: arrayStore(state)?.owner,
++          maximumBytes: this.budget.limits.maxExpansionBytes,
++          checkpoint: () => this.signal.throwIfAborted(),
++          requireParameter: (name, value) => this.requireParameter(value, name, state, io, part.line),
++          limit: () => this.budget.fail("maxExpansionBytes"),
++        }, (prepared) => evaluateArithmetic(prepared, this.arithmeticVariables(state, io.diagnosticLine ?? part.line))));
++      }
+       catch (error) { this.rethrowArithmeticControl(error); throw new ExpansionFailure(message(error), io.diagnosticLine ?? part.line); }
+     }
+     if (part.kind === "substitution") {

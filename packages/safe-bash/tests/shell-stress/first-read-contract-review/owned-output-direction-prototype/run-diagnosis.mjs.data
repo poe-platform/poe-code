@@ -1,0 +1,6 @@
+import { capture } from './supervisor.mjs';
+const args = ['--unhandled-rejections=strict', '--import', 'tsx'];
+for (const scenario of ['first-read-local', 'first-read-s3', 'first-read-webdav', 'first-read-curl-body', 'first-read-curl-headers']) {
+  await capture(`v1-diagnosis-${scenario}`, process.execPath, [...args, 'tests/shell/first-read-probe.ts', scenario]);
+}
+await capture('v1-diagnosis-adapted-five', process.execPath, [...args, '--test', '--test-concurrency=1', '--test-name-pattern=pipeline close: first-read-(?!head-zero)', 'tests/shell/adapted-remote-close.test.ts']);

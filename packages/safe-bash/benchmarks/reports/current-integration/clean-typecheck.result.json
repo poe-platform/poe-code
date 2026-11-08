@@ -1,0 +1,17 @@
+{
+  "name": "clean-typecheck",
+  "command": [
+    "npm",
+    "run",
+    "typecheck"
+  ],
+  "cwd": "/tmp/safe-bash-current-integration-69dbdy0m/source-clean",
+  "startedAt": 1787788700.583992,
+  "durationSeconds": 3.4205210208892822,
+  "timeoutSeconds": 180,
+  "timedOut": false,
+  "returnCode": 0,
+  "signal": null,
+  "cleanup": [],
+  "observedChildCount": 2
+}

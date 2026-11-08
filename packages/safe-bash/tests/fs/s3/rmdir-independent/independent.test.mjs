@@ -1,0 +1,206 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { FsError, MemoryFileSystem, MountFileSystem, ReadOnlyFileSystem, createOverlayFileSystem } from "virtual-bash";
+import { MockS3Client, S3FileSystem, createS3Transport } from "virtual-bash/fs/s3";
+
+const bucket = "independent";
+const marker = "scope/target/";
+const bytes = new Uint8Array([0, 255, 128, 10]);
+const complete = { Contents: [{ Key: marker, Size: 0 }], IsTruncated: false };
+
+async function fixture(adapt = transport => transport, options = {}) {
+  const client = new MockS3Client({ buckets: [bucket], pageSize: 1 });
+  await client.putObject({ Bucket: bucket, Key: marker, Body: new Uint8Array() });
+  const base = createS3Transport(client, {});
+  const calls = [];
+  const watched = { ...base, deleteObject: async (input, requestOptions) => {
+    calls.push(structuredClone(input));
+    return base.deleteObject(input, requestOptions);
+  } };
+  const filesystem = new S3FileSystem({ bucket, prefix: "scope", transport: adapt(watched, client), pageSize: 1, ...options });
+  const put = (key, body = bytes) => client.putObject({ Bucket: bucket, Key: key, Body: body });
+  const untouched = async () => {
+    assert.deepEqual(calls, []);
+    assert.equal((await client.headObject({ Bucket: bucket, Key: marker })).ContentLength, 0);
+  };
+  const zeroChildDeletes = () => {
+    assert.ok(calls.every(input => input.Key === marker));
+    assert.equal(client.requests.filter(request => request.operation === "deleteObject" && request.input.Key !== marker).length, 0);
+  };
+  return { filesystem, client, calls, put, untouched, zeroChildDeletes };
+}
+
+function listing(transport, respond) {
+  return { ...transport, listObjectsV2: (input, options) => input.Prefix === marker && input.Delimiter === "/"
+    ? respond(input, options) : transport.listObjectsV2(input, options) };
+}
+
+for (const suffix of [".hidden", "nested/", "nested/.hidden"]) {
+  test(`hidden descendant ${suffix}: paginate and preserve every byte`, async () => {
+    const observed = [];
+    const state = await fixture(transport => listing(transport, (input, options) => {
+      observed.push(input);
+      return transport.listObjectsV2(input, options);
+    }));
+    const content = suffix.endsWith("/") ? new Uint8Array() : bytes;
+    await state.put(marker + suffix, content);
+    await assert.rejects(state.filesystem.rmdir("/target"), { code: "ENOTEMPTY", syscall: "rmdir", path: "/target" });
+    await state.untouched();
+    state.zeroChildDeletes();
+    assert.ok(observed.length >= 2);
+    assert.ok(observed.every(input => input.MaxKeys === 2));
+    assert.deepEqual((await state.client.getObject({ Bucket: bucket, Key: marker + suffix })).Body, content);
+  });
+}
+
+const invalidCases = [
+  ["missing completeness", [{ Contents: complete.Contents }], "EIO"],
+  ["string completeness", [{ ...complete, IsTruncated: "false" }], "EIO"],
+  ["missing token", [{ ...complete, IsTruncated: true }], "EIO"],
+  ["empty token", [{ ...complete, IsTruncated: true, NextContinuationToken: "" }], "EIO"],
+  ["cyclic token", [{ ...complete, IsTruncated: true, NextContinuationToken: "cycle" }, { Contents: [], IsTruncated: true, NextContinuationToken: "cycle" }], "EIO"],
+  ["second page lacks completeness", [{ ...complete, IsTruncated: true, NextContinuationToken: "next" }, { Contents: [] }], "EIO"],
+  ["foreign key", [{ Contents: [{ Key: "outside/", Size: 0 }], IsTruncated: false }], "EIO"],
+  ["missing size", [{ Contents: [{ Key: marker }], IsTruncated: false }], "EIO"],
+  ["noncanonical hidden key", [{ Contents: [{ Key: marker + "../hidden", Size: 4 }], IsTruncated: false }], "ENOTSUP"],
+  ["nonempty slash object", [{ Contents: [{ Key: marker, Size: 4 }], IsTruncated: false }], "ENOTSUP"],
+  ["self common prefix", [{ ...complete, CommonPrefixes: [{ Prefix: marker }] }], "EIO"],
+  ["marker absent from completed list", [{ Contents: [], IsTruncated: false }], "ENOENT"],
+];
+for (const [name, pages, code] of invalidCases) {
+  test(`fail closed: ${name}`, async () => {
+    let position = 0;
+    const state = await fixture(transport => listing(transport, async () => pages[Math.min(position++, pages.length - 1)]));
+    await assert.rejects(state.filesystem.rmdir("/target"), { code, syscall: "rmdir", path: "/target" });
+    await state.untouched();
+    state.zeroChildDeletes();
+  });
+}
+
+test("incomplete valid pages exhaust budget without mutation", async () => {
+  let sequence = 0;
+  const state = await fixture(transport => listing(transport, async () => ({
+    Contents: sequence === 0 ? complete.Contents : [], IsTruncated: true, NextContinuationToken: String(++sequence),
+  })), { maxListEntries: 3 });
+  await assert.rejects(state.filesystem.rmdir("/target"), { code: "EFBIG" });
+  await state.untouched();
+  state.zeroChildDeletes();
+});
+
+test("cancel after complete LIST, errno-shaped reason: no DELETE", async () => {
+  const controller = new AbortController();
+  const state = await fixture(transport => listing(transport, async (_input, options) => {
+    assert.equal(options.abortSignal, controller.signal);
+    controller.abort(new FsError("ENOENT"));
+    return complete;
+  }));
+  await assert.rejects(state.filesystem.rmdir("/target", { signal: controller.signal }), { code: "ECANCELED" });
+  await state.untouched();
+  state.zeroChildDeletes();
+});
+
+test("late child survives successful marker-only DELETE and directory remains", async () => {
+  const state = await fixture((transport, client) => ({ ...transport, deleteObject: async (input, options) => {
+    await client.putObject({ Bucket: bucket, Key: marker + "late/.binary", Body: bytes });
+    return transport.deleteObject(input, options);
+  } }));
+  await state.filesystem.rmdir("/target");
+  assert.deepEqual(state.calls, [{ Bucket: bucket, Key: marker }]);
+  state.zeroChildDeletes();
+  assert.deepEqual(await state.filesystem.readFile("/target/late/.binary"), bytes);
+  assert.equal((await state.filesystem.stat("/target")).type, "directory");
+  await assert.rejects(state.client.headObject({ Bucket: bucket, Key: marker }), { code: "NoSuchKey" });
+});
+
+test("same-content marker replacement is deleted: explicit ABA non-guarantee", async () => {
+  let replaced = false;
+  const state = await fixture((transport, client) => ({ ...transport, deleteObject: async (input, options) => {
+    const before = await client.headObject(input);
+    await client.putObject({ ...input, Body: new Uint8Array(), Metadata: { generation: "replacement" } });
+    const after = await client.headObject(input);
+    assert.equal(after.ETag, before.ETag);
+    assert.equal(after.Metadata.generation, "replacement");
+    replaced = true;
+    return transport.deleteObject(input, options);
+  } }));
+  await state.filesystem.rmdir("/target");
+  assert.equal(replaced, true);
+  assert.deepEqual(state.calls, [{ Bucket: bucket, Key: marker }]);
+  state.zeroChildDeletes();
+  await assert.rejects(state.client.headObject({ Bucket: bucket, Key: marker }), { code: "NoSuchKey" });
+});
+
+function routed(current) {
+  return new Proxy({}, { get(_target, property) {
+    const backend = current();
+    const value = Reflect.get(backend, property);
+    return typeof value === "function" ? value.bind(backend) : value;
+  } });
+}
+
+test("dynamic routed capability becomes snapshot; overlay refuses without whiteout", async () => {
+  const state = await fixture();
+  const strict = new MemoryFileSystem();
+  await strict.mkdir("/target");
+  let selected = strict;
+  const mount = new MountFileSystem({ root: routed(() => selected) });
+  const lower = new MemoryFileSystem();
+  await lower.mkdir("/target");
+  const overlay = createOverlayFileSystem({ lower, upper: mount });
+  assert.notEqual(mount.capabilities.snapshotRmdir, true);
+  selected = state.filesystem;
+  assert.equal(mount.capabilities.snapshotRmdir, true);
+  await assert.rejects(overlay.rmdir("/target"), { code: "ENOTSUP" });
+  await state.untouched();
+  state.zeroChildDeletes();
+  assert.equal((await overlay.stat("/target")).type, "directory");
+  assert.equal((await lower.stat("/target")).type, "directory");
+});
+
+test("capability changes during final readdir: overlay must recheck before DELETE", async () => {
+  const storage = new MemoryFileSystem();
+  await storage.mkdir("/target");
+  let enabled = false;
+  const removals = [];
+  const facade = new Proxy(storage, { get(target, property) {
+    if (property === "capabilities") return { ...target.capabilities, snapshotRmdir: enabled };
+    if (property === "rmdir" || property === "rm" || property === "unlink") return async path => { removals.push(path); assert.fail("unexpected removal"); };
+    if (property === "readdir") return async (...args) => {
+      const result = await target.readdir(...args);
+      enabled = true;
+      await storage.writeFile("/target/.late", bytes);
+      return result;
+    };
+    const value = Reflect.get(target, property);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+  const overlay = createOverlayFileSystem({ lower: new MemoryFileSystem(), upper: new MountFileSystem({ root: facade }) });
+  await assert.rejects(overlay.rmdir("/target"), { code: "ENOTSUP" });
+  assert.equal(enabled, true);
+  assert.deepEqual(removals, []);
+  assert.deepEqual(await overlay.readFile("/target/.late"), bytes);
+  assert.deepEqual(await storage.readFile("/target/.late"), bytes);
+});
+
+test("overlay lower-only refusal does not copy up or hide lower directory", async () => {
+  const state = await fixture();
+  const lower = new MemoryFileSystem();
+  await lower.mkdir("/lower-only");
+  const overlay = createOverlayFileSystem({ lower, upper: state.filesystem });
+  const before = state.client.requests.length;
+  await assert.rejects(overlay.rmdir("/lower-only"), { code: "ENOTSUP" });
+  assert.equal(state.client.requests.slice(before).filter(request => /^(putObject|deleteObject|copyObject)$/.test(request.operation)).length, 0);
+  assert.equal((await overlay.stat("/lower-only")).type, "directory");
+  await state.untouched();
+  state.zeroChildDeletes();
+});
+
+for (const mode of ["adapter", "wrapper"]) {
+  test(`readonly ${mode} refuses before transport mutation`, async () => {
+    const state = await fixture(undefined, mode === "adapter" ? { readOnly: true } : {});
+    const selected = mode === "wrapper" ? new ReadOnlyFileSystem(state.filesystem) : state.filesystem;
+    await assert.rejects(selected.rmdir("/target"), { code: "EROFS" });
+    await state.untouched();
+    state.zeroChildDeletes();
+  });
+}

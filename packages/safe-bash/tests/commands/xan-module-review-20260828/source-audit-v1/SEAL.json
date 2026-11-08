@@ -1,0 +1,32 @@
+{
+  "classification": "SOURCE_AUDIT_ARTIFACT_SEAL_NOT_PRODUCT_EVIDENCE",
+  "createdAtUTC": "2026-08-28T06:23:24.418Z",
+  "ownedDirectory": "tests/commands/xan-module-review-20260828/source-audit-v1",
+  "candidate": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+  "freeze": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+  "artifacts": [
+    {
+      "path": "AUDIT.json",
+      "bytes": 34163,
+      "sha256": "ef28591b7ccef180b50f75bc834d4fec76ff82519a5d38875acb715fd84217ba"
+    },
+    {
+      "path": "PINNED-INPUTS.json",
+      "bytes": 15018,
+      "sha256": "8aaac1c8562575ce03b217003b164c25a34554b3ccc223de4325f623a595c6c6"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 9393,
+      "sha256": "a6deb1a8de405468bcb8ec563cd653890015813093abcca408bb3e0dae231744"
+    },
+    {
+      "path": "verify.mjs",
+      "bytes": 7715,
+      "sha256": "08d42e84624af9ddcbcd4ac2f87dfb8467d73aff231461d8b4365f295ddfcbca"
+    }
+  ],
+  "verificationCommand": "node tests/commands/xan-module-review-20260828/source-audit-v1/verify.mjs",
+  "selfBinding": "This seal is bound by its Git blob and the final explicit-path commit, reported at handoff. No circular self-hash.",
+  "scope": "Static source conclusions, UNEXECUTED probes and read-only artifact verification only. No product/native/build/compile/network/dependency execution. Exact owned-directory enumeration detects new entries at verification; not a whole-worktree gate or concurrent-write sandbox."
+}

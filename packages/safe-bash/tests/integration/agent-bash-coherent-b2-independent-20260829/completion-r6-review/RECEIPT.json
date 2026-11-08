@@ -1,0 +1,203 @@
+{
+  "schema": "B2-r6-independent-preexecution-review-v1",
+  "decision": "ACCEPT",
+  "scope": "SOURCE_DATA_PURE_HARMLESS_ONLY_NO_ACTUAL_GO",
+  "utc": "2026-08-29T14:50:08.837Z",
+  "authorFinal": "0d452e85cbbac6358d76d791f035e5d16a9e223a",
+  "authorReceiptSha256": "1d93a608b41334b3f9582512ce08c609f7113bd81194998fc28d41a73550d81d",
+  "packet": {
+    "bytes": 6222,
+    "files": 30,
+    "sha256": "a2a5a6a23f4c30bd490b3a1db29f0cdc6e4e57a4f179ba0368489af7652fb554"
+  },
+  "independentPresealSha256": "d02ee1c965f4aa6d0128081a52126c3e87eefabb3858d3fcb422b7a463630511",
+  "coherentIdentity": "3adc676a0ab638c9788ef007e465931d65d2c6fe",
+  "packageSha256": "2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca",
+  "authenticatedBindings": 33,
+  "postguards": 33,
+  "fixtureOriginalGitBindings": 6,
+  "exactUniqueRetainedIds": 672,
+  "consumedPins": 10,
+  "wholeSourceRecensus": false,
+  "controls": {
+    "purePassed": 10,
+    "pureTotal": 10,
+    "harmlessPassed": 4,
+    "harmlessTotal": 4
+  },
+  "harmlessProcesses": [
+    {
+      "id": "H01",
+      "pid": 20158,
+      "exitCode": 0,
+      "exited": true,
+      "closed": true,
+      "signalCount": 0,
+      "stdoutBytes": 29,
+      "stderrBytes": 0
+    },
+    {
+      "id": "H02",
+      "pid": 20159,
+      "exitCode": 1,
+      "exited": true,
+      "closed": true,
+      "signalCount": 0,
+      "stdoutBytes": 0,
+      "stderrBytes": 482
+    },
+    {
+      "id": "H03",
+      "pid": 20160,
+      "exitCode": 1,
+      "exited": true,
+      "closed": true,
+      "signalCount": 0,
+      "stdoutBytes": 0,
+      "stderrBytes": 489
+    },
+    {
+      "id": "H04",
+      "pid": 20161,
+      "exitCode": 2,
+      "exited": true,
+      "closed": true,
+      "signalCount": 0,
+      "stdoutBytes": 112,
+      "stderrBytes": 0
+    }
+  ],
+  "retirement": {
+    "children": 4,
+    "attemptedBytes": 1112,
+    "storedBytes": 1112,
+    "elapsedMs": 208.67479200000002,
+    "failures": []
+  },
+  "fixtureArchive": {
+    "bytes": 18368,
+    "files": 24,
+    "ownedWorkRemoved": true
+  },
+  "loaderEvidence": "Direct actual exported resolve/load body in harmless Node process only; no --loader, async-loader Worker, product evaluation or real loaded mutants.",
+  "staticClosure": {
+    "relativeStatic": 13,
+    "literalDynamic": 1,
+    "hostBuiltins": "trusted Node delegation; requires ROOT acceptance, not hostile-host sandbox"
+  },
+  "actual": {
+    "product": 0,
+    "compiler": 0,
+    "install": 0,
+    "build": 0,
+    "Worker": 0,
+    "asyncLoader": 0,
+    "retained672": "UNRUN",
+    "types6": "UNRUN",
+    "mutants7": "UNRUN",
+    "restores7": "UNRUN",
+    "bindings2": "UNRUN"
+  },
+  "prospective": {
+    "knownOS": 64,
+    "peakOS": 3,
+    "supervised": 41,
+    "administration": 22,
+    "entry": 1,
+    "caps": {
+      "seconds": 1800,
+      "reserveSeconds": 180,
+      "knownOsStarts": 64,
+      "peakOs": 3,
+      "rawBytes": 100663296,
+      "childRawBytes": 67108864,
+      "workBytes": 536870912,
+      "terminalReserveBytes": 4194304,
+      "traceBytesPerRole": 524288,
+      "loaderAdmissions": 34,
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0,
+      "loaderThreads": 34,
+      "peakLoaderThreads": 1,
+      "decoderBytes": 67108864,
+      "maximumInventoryEntries": 16384
+    },
+    "actualRoleMeasurement": "UNKNOWN"
+  },
+  "review": {
+    "knownRolesConservative": 44,
+    "knownRoleCap": 48,
+    "peak": 3,
+    "budgetMilliseconds": 1200000,
+    "observedElapsedMilliseconds": 795010
+  },
+  "history": "r1-r5 and all author STOPs unchanged; reviewer Git-mode and optional origin-prefix metadata failures preserved; no runtime/control rescore.",
+  "artifacts": [
+    {
+      "path": "tests/integration/agent-bash-coherent-b2-independent-20260829/completion-r6-review/REPORT.md",
+      "bytes": 10542,
+      "sha256": "820af26c467f6d383133c91fd6f37fc1a612e39ec15e30de35c85ea1013da18e"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-b2-independent-20260829/completion-r6-review/PRESEAL.json",
+      "bytes": 14011,
+      "sha256": "d02ee1c965f4aa6d0128081a52126c3e87eefabb3858d3fcb422b7a463630511"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-b2-independent-20260829/completion-r6-review/RESULT.json",
+      "bytes": 4451,
+      "sha256": "7eb8c110a8408678ff395b834f1e2bb84a7092d03f267e09bfdc78136fcf9873"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-b2-independent-20260829/completion-r6-review/SOURCE-AND-RESULTS.json",
+      "bytes": 3544,
+      "sha256": "0b41fbc8c10c7bd9ef40cef830f092c6a6d26c605ef68b253a3a483212244f6a"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-b2-independent-20260829/completion-r6-review/MEMBERSHIP-AND-AUTHORITY.json",
+      "bytes": 563,
+      "sha256": "84c2e23caffc0b8f9101e9a19133d4f379e575e61216c75393d147d2f01b3fba"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-b2-independent-20260829/completion-r6-review/ORIGIN-GIT-BINDINGS.json",
+      "bytes": 1852,
+      "sha256": "19a3082c68108fce71eebe122499aca4c36266847f5232bbe3cd7a38b254edf0"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-b2-independent-20260829/completion-r6-review/FIXTURE-ARCHIVE.json",
+      "bytes": 28727,
+      "sha256": "8a7beef74455cd00e3b9bd2661ad50dce200e4a1de926ffa5082fb8582f623b3"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-b2-independent-20260829/completion-r6-review/PENDING-AUTHORITY.json",
+      "bytes": 1720,
+      "sha256": "eeceea420098a00abcaa55a0568c5e07b59706532fdeae76d91c03ae7407eb61"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-b2-independent-20260829/completion-r6-review/run.stdout",
+      "bytes": 80,
+      "sha256": "44835aa6f8ff5cccad974b2bbf812c69f0da59380d130666bf0fe322a90688b9"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-b2-independent-20260829/completion-r6-review/run.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-b2-independent-20260829/completion-r6-review/run.jsonl",
+      "bytes": 213,
+      "sha256": "2ab1bb45d2dfe22643f7ef19d5f57946fe9a2f497372eb54e99ee31684c4e509"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-b2-independent-20260829/completion-r6-review/prepare.stderr",
+      "bytes": 627,
+      "sha256": "c8179ead09ac8cef3c99e063cee084e56b0c6e9a15060fde266b2d1ce04f46af"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-b2-independent-20260829/completion-r6-review/prepare.jsonl",
+      "bytes": 178,
+      "sha256": "ea47eeae332a6e282ce306ad45280d348e89c6879aad0fc1eed3c20119e3e044"
+    }
+  ]
+}

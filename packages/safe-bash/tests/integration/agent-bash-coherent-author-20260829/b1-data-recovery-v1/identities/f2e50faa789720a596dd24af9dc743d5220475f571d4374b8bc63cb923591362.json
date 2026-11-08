@@ -1,0 +1,21 @@
+{
+  "source": {
+    "path": "/private/tmp/coherent-b1-r5-runtime/capture/02-workflow-installed.stdout",
+    "bytes": 4054,
+    "sha256": "05246a47c5d3b75daa37db3bdf100547b1faa3d546ebb0c2a29c97740c9b1f72",
+    "mode": 420,
+    "dev": 16777232,
+    "ino": 190027076,
+    "mtimeMs": 1788021744598.9043,
+    "origin": {
+      "finalSha256": "89f3c55c91dc664a94df815ef23d5ddbbe6fb7376a1ef5a8e490255c475dd72b",
+      "locator": "/private/tmp/coherent-b1-r5-runtime/capture/02-workflow-installed.stdout"
+    },
+    "role": "fixed-capture-directory-member"
+  },
+  "dataPath": "data/f2e50faa789720a596dd24af9dc743d5220475f571d4374b8bc63cb923591362.raw",
+  "identityPath": "identities/f2e50faa789720a596dd24af9dc743d5220475f571d4374b8bc63cb923591362.json",
+  "copiedBytes": 4054,
+  "copiedMode": 420,
+  "copiedSha256": "05246a47c5d3b75daa37db3bdf100547b1faa3d546ebb0c2a29c97740c9b1f72"
+}

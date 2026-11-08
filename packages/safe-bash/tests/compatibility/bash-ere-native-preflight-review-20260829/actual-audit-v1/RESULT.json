@@ -1,0 +1,19 @@
+{
+  "schema": "ere12-independent-native-observation-audit-v1",
+  "decision": "QUALIFIED_OBSERVATION_ORACLE_ACCEPT",
+  "at": "2026-08-29T10:32:11.681Z",
+  "observations": 12,
+  "semanticPasses": null,
+  "sourceOnlyModelComparisons": 6,
+  "designatedI23Witness": "N07 ba only; larger62-input property unqualified",
+  "observationManifestSha256": "d77e2767f6b36a9ec710224ef31faa53ec388304b5616a4818e18657bf1cb274",
+  "finalSealSha256": "1bb8ab78a65d8e85b7624b2dafb00fdc74ce19a7ed70a4cbe16ad72c96a604fc",
+  "auditBindingsSha256": "3ed12d50ee8b427334b903e89e065759eccb132335d46cbf0da51f1901f0b8bd",
+  "nativeExecutionsByAuditor": 0,
+  "productImports": 0,
+  "rawCapturesUnchanged": true,
+  "liveRuntimeExact": true,
+  "originalFailuresUnrescored": true,
+  "toolControlPlane": "ROOT attestation and agent-recorded metadata; independent artifacts cannot prove unobserved tool state",
+  "modelRecommendation": "ratify shell-visible reset reporting for these finite local Bash3.2.57 witnesses; retain hidden-span/internal-state and broader-family obligations"
+}

@@ -1,0 +1,11 @@
+{
+  "args": [
+    "cat-file",
+    "--batch"
+  ],
+  "closed": true,
+  "captureBytes": 9977,
+  "pid": 7967,
+  "code": 0,
+  "signal": null
+}

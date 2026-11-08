@@ -1,0 +1,2 @@
+import { createYqCommands } from "@@YQ@@";
+createYqCommands({ replace: true });

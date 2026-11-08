@@ -1,0 +1,2514 @@
+{
+  "kind": "Manual native temporary-disk capture, not unit tests. Raw output and final modes. Darwin unprivileged caller.",
+  "binary": "/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src/ginstall",
+  "rows": [
+    {
+      "args": [
+        "-m",
+        "0",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "virtualMode": 0,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "0",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "virtualMode": 0,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "0",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "virtualMode": 0,
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "1",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 1,
+      "virtualMode": 1,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "1",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 1,
+      "virtualMode": 1,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "1",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 1,
+      "virtualMode": 1,
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "400",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 256,
+      "virtualMode": 256,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "400",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 256,
+      "virtualMode": 256,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "400",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 256,
+      "virtualMode": 256,
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "644",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 420,
+      "virtualMode": 420,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "644",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 420,
+      "virtualMode": 420,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "644",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 420,
+      "virtualMode": 420,
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "755",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "virtualMode": 493,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "755",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "virtualMode": 493,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "755",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "virtualMode": 493,
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "1000",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 512,
+      "virtualMode": 512,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "1000",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 512,
+      "virtualMode": 512,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "1000",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 512,
+      "virtualMode": 512,
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "1700",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 960,
+      "virtualMode": 960,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "1700",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 960,
+      "virtualMode": 960,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "1700",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 960,
+      "virtualMode": 960,
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "2700",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot change permissions of 'target': Operation not permitted\n"
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 384,
+      "virtualMode": 1472,
+      "exact": false
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "2700",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 448,
+      "virtualMode": 1472,
+      "exact": false
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "2700",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 448,
+      "virtualMode": 1472,
+      "exact": false
+    },
+    {
+      "args": [
+        "-m",
+        "4700",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 2496,
+      "virtualMode": 2496,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "4700",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 2496,
+      "virtualMode": 2496,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "4700",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 2496,
+      "virtualMode": 2496,
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "7777",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot change permissions of 'target': Operation not permitted\n"
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 384,
+      "virtualMode": 4095,
+      "exact": false
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "7777",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 3071,
+      "virtualMode": 4095,
+      "exact": false
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "7777",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 3071,
+      "virtualMode": 4095,
+      "exact": false
+    },
+    {
+      "args": [
+        "-m",
+        "0755",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "virtualMode": 493,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "0755",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "virtualMode": 493,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "0755",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "virtualMode": 493,
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "00755",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "virtualMode": 493,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "00755",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "virtualMode": 493,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "00755",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "virtualMode": 493,
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "+755",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "virtualMode": 493,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "+755",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "virtualMode": 493,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "+755",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "virtualMode": 493,
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "-755",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "virtualMode": 0,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "-755",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "virtualMode": 0,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "-755",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "virtualMode": 0,
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "=755",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "virtualMode": 493,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "=755",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "virtualMode": 493,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "=755",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "virtualMode": 493,
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "u=rwx,g=rx,o=rx",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "virtualMode": 493,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "u=rwx,g=rx,o=rx",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "virtualMode": 493,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "u=rwx,g=rx,o=rx",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "virtualMode": 493,
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "a+X",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "virtualMode": 0,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "a+X",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 73,
+      "virtualMode": 73,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "a+X",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "virtualMode": 493,
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "u+x,g+X",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 72,
+      "virtualMode": 72,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "u+x,g+X",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 72,
+      "virtualMode": 72,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "u+x,g+X",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "virtualMode": 493,
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "u+rw,g=u,o=g",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 438,
+      "virtualMode": 438,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "u+rw,g=u,o=g",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 438,
+      "virtualMode": 438,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "u+rw,g=u,o=g",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 502,
+      "virtualMode": 502,
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "a=rw,u-x",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 438,
+      "virtualMode": 438,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "a=rw,u-x",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 438,
+      "virtualMode": 438,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "a=rw,u-x",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 438,
+      "virtualMode": 438,
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "g=u",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "virtualMode": 0,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "g=u",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "virtualMode": 0,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "g=u",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 453,
+      "virtualMode": 453,
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "u=",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "virtualMode": 0,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "u=",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "virtualMode": 0,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "u=",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 45,
+      "virtualMode": 45,
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "u+",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "virtualMode": 0,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "u+",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "virtualMode": 0,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "u+",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "virtualMode": 493,
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "u++x",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 64,
+      "virtualMode": 64,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "u++x",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 64,
+      "virtualMode": 64,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "u++x",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "virtualMode": 493,
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "a+s",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot change permissions of 'target': Operation not permitted\n"
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 384,
+      "virtualMode": 3072,
+      "exact": false
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "a+s",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot change permissions of 'target': Operation not permitted\n"
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "virtualMode": 3072,
+      "exact": false
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "a+s",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 2541,
+      "virtualMode": 3565,
+      "exact": false
+    },
+    {
+      "args": [
+        "-m",
+        "u+s",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 2048,
+      "virtualMode": 2048,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "u+s",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 2048,
+      "virtualMode": 2048,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "u+s",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 2541,
+      "virtualMode": 2541,
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "g+s",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot change permissions of 'target': Operation not permitted\n"
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 384,
+      "virtualMode": 1024,
+      "exact": false
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "g+s",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot change permissions of 'target': Operation not permitted\n"
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "virtualMode": 1024,
+      "exact": false
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "g+s",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "virtualMode": 1517,
+      "exact": false
+    },
+    {
+      "args": [
+        "-m",
+        "o+t",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 512,
+      "virtualMode": 512,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "o+t",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 512,
+      "virtualMode": 512,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "o+t",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 1005,
+      "virtualMode": 1005,
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "u+t",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "virtualMode": 0,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "u+t",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "virtualMode": 0,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "u+t",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "virtualMode": 493,
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "o+s",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "virtualMode": 0,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "o+s",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "virtualMode": 0,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "o+s",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "virtualMode": 493,
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "a+r-w+x",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 365,
+      "virtualMode": 365,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "a+r-w+x",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 365,
+      "virtualMode": 365,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "a+r-w+x",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 365,
+      "virtualMode": 365,
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "a=,u+X",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "virtualMode": 0,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "a=,u+X",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 64,
+      "virtualMode": 64,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "a=,u+X",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 64,
+      "virtualMode": 64,
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "u+r,g+u",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 288,
+      "virtualMode": 288,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "u+r,g+u",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 288,
+      "virtualMode": 288,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "u+r,g+u",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "virtualMode": 493,
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "u=r,g=u,o=g,u+w",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 420,
+      "virtualMode": 420,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "u=r,g=u,o=g,u+w",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 420,
+      "virtualMode": 420,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "u=r,g=u,o=g,u+w",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 420,
+      "virtualMode": 420,
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "ug=rw,o-rwx",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 432,
+      "virtualMode": 432,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "ug=rw,o-rwx",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 432,
+      "virtualMode": 432,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "ug=rw,o-rwx",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 432,
+      "virtualMode": 432,
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "+",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "virtualMode": 0,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "+",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "virtualMode": 0,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "+",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "virtualMode": 493,
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "-",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "virtualMode": 0,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "-",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "virtualMode": 0,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "-",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "virtualMode": 493,
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "=",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "virtualMode": 0,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "=",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "virtualMode": 0,
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "=",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "virtualMode": 0,
+      "exact": true
+    }
+  ]
+}

@@ -1,0 +1,486 @@
+TAP version 13
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoibWVtb3J5LXN1YmNsYXNzLWJlZm9yZS1idWZmZXIiLCJkYXRhIjp7ImFuc3dlciI6InVua25vd24iLCJlcnJvciI6IkVOT1RTVVAiLCJlZmZlY3RzIjpbXSwic291cmNlIjoiYzI5MWNtTmxJSE4xY25acGRtVnpBTysvdlE9PSIsInRhcmdldCI6ImFXNWtaWEJsYm1SbGJuUWdkR0Z5WjJWMElITjFjblpwZG1WeiJ9fQ==
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoibWVtb3J5LXByb3RvdHlwZS1iZWZvcmUtYnVmZmVyIiwiZGF0YSI6eyJhbnN3ZXIiOiJ1bmtub3duIiwiZXJyb3IiOiJFTk9UU1VQIiwiZWZmZWN0cyI6W10sInNvdXJjZSI6ImMyOTFjbU5sSUhOMWNuWnBkbVZ6QU8rL3ZRPT0iLCJ0YXJnZXQiOiJhVzVrWlhCbGJtUmxiblFnZEdGeVoyVjBJSE4xY25acGRtVnoifX0=
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoibWVtb3J5LW93bi1hZnRlci1idWZmZXIiLCJkYXRhIjp7ImFuc3dlciI6InVua25vd24iLCJlcnJvciI6IkVOT1RTVVAiLCJlZmZlY3RzIjpbXSwic291cmNlIjoiYzI5MWNtTmxJSE4xY25acGRtVnpBTysvdlE9PSIsInRhcmdldCI6ImFXNWtaWEJsYm1SbGJuUWdkR0Z5WjJWMElITjFjblpwZG1WeiJ9fQ==
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoibWVtb3J5LXByb3RvdHlwZS1hZnRlci1idWZmZXIiLCJkYXRhIjp7ImFuc3dlciI6InVua25vd24iLCJlcnJvciI6IkVOT1RTVVAiLCJlZmZlY3RzIjpbXSwic291cmNlIjoiYzI5MWNtTmxJSE4xY25acGRtVnpBTysvdlE9PSIsInRhcmdldCI6ImFXNWtaWEJsYm1SbGJuUWdkR0Z5WjJWMElITjFjblpwZG1WeiJ9fQ==
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoibWVtb3J5LXN1YmNsYXNzLWJlZm9yZS1zdHJlYW0iLCJkYXRhIjp7ImFuc3dlciI6InVua25vd24iLCJlcnJvciI6IkVOT1RTVVAiLCJlZmZlY3RzIjpbXSwic291cmNlIjoiYzI5MWNtTmxJSE4xY25acGRtVnpBTysvdlE9PSIsInRhcmdldCI6ImFXNWtaWEJsYm1SbGJuUWdkR0Z5WjJWMElITjFjblpwZG1WeiJ9fQ==
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoibWVtb3J5LXByb3RvdHlwZS1iZWZvcmUtc3RyZWFtIiwiZGF0YSI6eyJhbnN3ZXIiOiJ1bmtub3duIiwiZXJyb3IiOiJFTk9UU1VQIiwiZWZmZWN0cyI6W10sInNvdXJjZSI6ImMyOTFjbU5sSUhOMWNuWnBkbVZ6QU8rL3ZRPT0iLCJ0YXJnZXQiOiJhVzVrWlhCbGJtUmxiblFnZEdGeVoyVjBJSE4xY25acGRtVnoifX0=
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoibWVtb3J5LW93bi1hZnRlci1zdHJlYW0iLCJkYXRhIjp7ImFuc3dlciI6InVua25vd24iLCJlcnJvciI6IkVOT1RTVVAiLCJlZmZlY3RzIjpbXSwic291cmNlIjoiYzI5MWNtTmxJSE4xY25acGRtVnpBTysvdlE9PSIsInRhcmdldCI6ImFXNWtaWEJsYm1SbGJuUWdkR0Z5WjJWMElITjFjblpwZG1WeiJ9fQ==
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoibWVtb3J5LXByb3RvdHlwZS1hZnRlci1zdHJlYW0iLCJkYXRhIjp7ImFuc3dlciI6InVua25vd24iLCJlcnJvciI6IkVOT1RTVVAiLCJlZmZlY3RzIjpbXSwic291cmNlIjoiYzI5MWNtTmxJSE4xY25acGRtVnpBTysvdlE9PSIsInRhcmdldCI6ImFXNWtaWEJsYm1SbGJuUWdkR0Z5WjJWMElITjFjblpwZG1WeiJ9fQ==
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoiczMtc3ViY2xhc3MtYmVmb3JlLWJ1ZmZlciIsImRhdGEiOnsiYW5zd2VyIjoidW5rbm93biIsImVycm9yIjoiRU5PVFNVUCIsImVmZmVjdHMiOltdLCJzb3VyY2UiOiJjMjkxY21ObElITjFjblpwZG1WekFPKy92UT09IiwidGFyZ2V0IjoiYVc1a1pYQmxibVJsYm5RZ2RHRnlaMlYwSUhOMWNuWnBkbVZ6In19
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoiczMtcHJvdG90eXBlLWJlZm9yZS1idWZmZXIiLCJkYXRhIjp7ImFuc3dlciI6InVua25vd24iLCJlcnJvciI6IkVOT1RTVVAiLCJlZmZlY3RzIjpbXSwic291cmNlIjoiYzI5MWNtTmxJSE4xY25acGRtVnpBTysvdlE9PSIsInRhcmdldCI6ImFXNWtaWEJsYm1SbGJuUWdkR0Z5WjJWMElITjFjblpwZG1WeiJ9fQ==
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoiczMtb3duLWFmdGVyLWJ1ZmZlciIsImRhdGEiOnsiYW5zd2VyIjoidW5rbm93biIsImVycm9yIjoiRU5PVFNVUCIsImVmZmVjdHMiOltdLCJzb3VyY2UiOiJjMjkxY21ObElITjFjblpwZG1WekFPKy92UT09IiwidGFyZ2V0IjoiYVc1a1pYQmxibVJsYm5RZ2RHRnlaMlYwSUhOMWNuWnBkbVZ6In19
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoiczMtcHJvdG90eXBlLWFmdGVyLWJ1ZmZlciIsImRhdGEiOnsiYW5zd2VyIjoidW5rbm93biIsImVycm9yIjoiRU5PVFNVUCIsImVmZmVjdHMiOltdLCJzb3VyY2UiOiJjMjkxY21ObElITjFjblpwZG1WekFPKy92UT09IiwidGFyZ2V0IjoiYVc1a1pYQmxibVJsYm5RZ2RHRnlaMlYwSUhOMWNuWnBkbVZ6In19
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoiczMtc3ViY2xhc3MtYmVmb3JlLXN0cmVhbSIsImRhdGEiOnsiYW5zd2VyIjoidW5rbm93biIsImVycm9yIjoiRU5PVFNVUCIsImVmZmVjdHMiOltdLCJzb3VyY2UiOiJjMjkxY21ObElITjFjblpwZG1WekFPKy92UT09IiwidGFyZ2V0IjoiYVc1a1pYQmxibVJsYm5RZ2RHRnlaMlYwSUhOMWNuWnBkbVZ6In19
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoiczMtcHJvdG90eXBlLWJlZm9yZS1zdHJlYW0iLCJkYXRhIjp7ImFuc3dlciI6InVua25vd24iLCJlcnJvciI6IkVOT1RTVVAiLCJlZmZlY3RzIjpbXSwic291cmNlIjoiYzI5MWNtTmxJSE4xY25acGRtVnpBTysvdlE9PSIsInRhcmdldCI6ImFXNWtaWEJsYm1SbGJuUWdkR0Z5WjJWMElITjFjblpwZG1WeiJ9fQ==
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoiczMtb3duLWFmdGVyLXN0cmVhbSIsImRhdGEiOnsiYW5zd2VyIjoidW5rbm93biIsImVycm9yIjoiRU5PVFNVUCIsImVmZmVjdHMiOltdLCJzb3VyY2UiOiJjMjkxY21ObElITjFjblpwZG1WekFPKy92UT09IiwidGFyZ2V0IjoiYVc1a1pYQmxibVJsYm5RZ2RHRnlaMlYwSUhOMWNuWnBkbVZ6In19
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoiczMtcHJvdG90eXBlLWFmdGVyLXN0cmVhbSIsImRhdGEiOnsiYW5zd2VyIjoidW5rbm93biIsImVycm9yIjoiRU5PVFNVUCIsImVmZmVjdHMiOltdLCJzb3VyY2UiOiJjMjkxY21ObElITjFjblpwZG1WekFPKy92UT09IiwidGFyZ2V0IjoiYVc1a1pYQmxibVJsYm5RZ2RHRnlaMlYwSUhOMWNuWnBkbVZ6In19
+# Subtest: memory subclass-before buffered: changed writer cannot redirect qualified target into source
+ok 1 - memory subclass-before buffered: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 4.296333
+  type: 'test'
+  ...
+# Subtest: memory prototype-before buffered: changed writer cannot redirect qualified target into source
+ok 2 - memory prototype-before buffered: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 1.299125
+  type: 'test'
+  ...
+# Subtest: memory own-after buffered: changed writer cannot redirect qualified target into source
+ok 3 - memory own-after buffered: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 0.604833
+  type: 'test'
+  ...
+# Subtest: memory prototype-after buffered: changed writer cannot redirect qualified target into source
+ok 4 - memory prototype-after buffered: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 0.539625
+  type: 'test'
+  ...
+# Subtest: memory subclass-before streamed: changed writer cannot redirect qualified target into source
+ok 5 - memory subclass-before streamed: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 0.808125
+  type: 'test'
+  ...
+# Subtest: memory prototype-before streamed: changed writer cannot redirect qualified target into source
+ok 6 - memory prototype-before streamed: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 1.003667
+  type: 'test'
+  ...
+# Subtest: memory own-after streamed: changed writer cannot redirect qualified target into source
+ok 7 - memory own-after streamed: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 0.524958
+  type: 'test'
+  ...
+# Subtest: memory prototype-after streamed: changed writer cannot redirect qualified target into source
+ok 8 - memory prototype-after streamed: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 0.29725
+  type: 'test'
+  ...
+# Subtest: s3 subclass-before buffered: changed writer cannot redirect qualified target into source
+ok 9 - s3 subclass-before buffered: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 4.315
+  type: 'test'
+  ...
+# Subtest: s3 prototype-before buffered: changed writer cannot redirect qualified target into source
+ok 10 - s3 prototype-before buffered: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 2.653167
+  type: 'test'
+  ...
+# Subtest: s3 own-after buffered: changed writer cannot redirect qualified target into source
+ok 11 - s3 own-after buffered: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 2.361875
+  type: 'test'
+  ...
+# Subtest: s3 prototype-after buffered: changed writer cannot redirect qualified target into source
+ok 12 - s3 prototype-after buffered: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 1.792709
+  type: 'test'
+  ...
+# Subtest: s3 subclass-before streamed: changed writer cannot redirect qualified target into source
+ok 13 - s3 subclass-before streamed: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 2.432709
+  type: 'test'
+  ...
+# Subtest: s3 prototype-before streamed: changed writer cannot redirect qualified target into source
+ok 14 - s3 prototype-before streamed: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 1.58075
+  type: 'test'
+  ...
+# Subtest: s3 own-after streamed: changed writer cannot redirect qualified target into source
+ok 15 - s3 own-after streamed: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 1.039583
+  type: 'test'
+  ...
+# Subtest: s3 prototype-after streamed: changed writer cannot redirect qualified target into source
+ok 16 - s3 prototype-after streamed: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 1.03325
+  type: 'test'
+  ...
+# Subtest: memory changed content acquisition invalidates authority before opening source or target
+ok 17 - memory changed content acquisition invalidates authority before opening source or target
+  ---
+  duration_ms: 1.105084
+  type: 'test'
+  ...
+# Subtest: s3 changed content acquisition invalidates authority before opening source or target
+ok 18 - s3 changed content acquisition invalidates authority before opening source or target
+  ---
+  duration_ms: 0.689
+  type: 'test'
+  ...
+# Subtest: memory harmless subclass inherited: preserve real qualified workflows and explicit authority
+ok 19 - memory harmless subclass inherited: preserve real qualified workflows and explicit authority
+  ---
+  duration_ms: 1.370791
+  type: 'test'
+  ...
+# Subtest: memory harmless subclass explicit-distinct: preserve real qualified workflows and explicit authority
+ok 20 - memory harmless subclass explicit-distinct: preserve real qualified workflows and explicit authority
+  ---
+  duration_ms: 0.856083
+  type: 'test'
+  ...
+# Subtest: memory harmless subclass explicit-denial: preserve real qualified workflows and explicit authority
+ok 21 - memory harmless subclass explicit-denial: preserve real qualified workflows and explicit authority
+  ---
+  duration_ms: 1.016708
+  type: 'test'
+  ...
+# Subtest: s3 harmless subclass inherited: preserve real qualified workflows and explicit authority
+ok 22 - s3 harmless subclass inherited: preserve real qualified workflows and explicit authority
+  ---
+  duration_ms: 3.418334
+  type: 'test'
+  ...
+# Subtest: s3 harmless subclass explicit-distinct: preserve real qualified workflows and explicit authority
+ok 23 - s3 harmless subclass explicit-distinct: preserve real qualified workflows and explicit authority
+  ---
+  duration_ms: 0.824667
+  type: 'test'
+  ...
+# Subtest: s3 harmless subclass explicit-denial: preserve real qualified workflows and explicit authority
+ok 24 - s3 harmless subclass explicit-denial: preserve real qualified workflows and explicit authority
+  ---
+  duration_ms: 0.587291
+  type: 'test'
+  ...
+# Subtest: current core cp -P: unscoped source symlink across two aliases is never unlinked
+ok 25 - current core cp -P: unscoped source symlink across two aliases is never unlinked
+  ---
+  duration_ms: 3.713417
+  type: 'test'
+  ...
+# Subtest: current core EXDEV mv: a known hardlink alias returns GNU status1 without copy or unlink
+ok 26 - current core EXDEV mv: a known hardlink alias returns GNU status1 without copy or unlink
+  ---
+  duration_ms: 0.772458
+  type: 'test'
+  ...
+# Subtest: current core EXDEV mv known-distinct success: remove follows completed copy only
+ok 27 - current core EXDEV mv known-distinct success: remove follows completed copy only
+  ---
+  duration_ms: 1.044292
+  type: 'test'
+  ...
+# Subtest: current core EXDEV mv known-distinct partial-failure: remove follows completed copy only
+ok 28 - current core EXDEV mv known-distinct partial-failure: remove follows completed copy only
+  ---
+  duration_ms: 0.8135
+  type: 'test'
+  ...
+# Subtest: current core EXDEV mv known-distinct unknown: remove follows completed copy only
+ok 29 - current core EXDEV mv known-distinct unknown: remove follows completed copy only
+  ---
+  duration_ms: 0.443375
+  type: 'test'
+  ...
+# Subtest: public wrapper comparison over memory: independent stores are distinct, aliases follow backing entries
+ok 30 - public wrapper comparison over memory: independent stores are distinct, aliases follow backing entries
+  ---
+  duration_ms: 1.690833
+  type: 'test'
+  ...
+# Subtest: public wrapper comparison over real: different roots and clients preserve shared native identity
+ok 31 - public wrapper comparison over real: different roots and clients preserve shared native identity
+  ---
+  duration_ms: 10.543875
+  type: 'test'
+  ...
+# Subtest: public comparison resolves BOTH operands through nested mounts and readonly wrappers
+ok 32 - public comparison resolves BOTH operands through nested mounts and readonly wrappers
+  ---
+  duration_ms: 3.678084
+  type: 'test'
+  ...
+# Subtest: overlay public comparison follows current selection without copy-up; new selection is re-observed
+ok 33 - overlay public comparison follows current selection without copy-up; new selection is re-observed
+  ---
+  duration_ms: 1.85475
+  type: 'test'
+  ...
+# Subtest: unknown custom views remain unknown and public comparison acquires no content or mutation
+ok 34 - unknown custom views remain unknown and public comparison acquires no content or mutation
+  ---
+  duration_ms: 0.717625
+  type: 'test'
+  ...
+# Subtest: public comparison propagates source ENOENT, never unknown
+ok 35 - public comparison propagates source ENOENT, never unknown
+  ---
+  duration_ms: 0.154458
+  type: 'test'
+  ...
+# Subtest: public comparison propagates source EACCES, never unknown
+ok 36 - public comparison propagates source EACCES, never unknown
+  ---
+  duration_ms: 0.106584
+  type: 'test'
+  ...
+# Subtest: public comparison propagates source EIO, never unknown
+ok 37 - public comparison propagates source EIO, never unknown
+  ---
+  duration_ms: 0.12875
+  type: 'test'
+  ...
+# Subtest: public comparison propagates peer ENOENT, never unknown
+ok 38 - public comparison propagates peer ENOENT, never unknown
+  ---
+  duration_ms: 0.212208
+  type: 'test'
+  ...
+# Subtest: public comparison propagates peer EACCES, never unknown
+ok 39 - public comparison propagates peer EACCES, never unknown
+  ---
+  duration_ms: 0.146292
+  type: 'test'
+  ...
+# Subtest: public comparison propagates peer EIO, never unknown
+ok 40 - public comparison propagates peer EIO, never unknown
+  ---
+  duration_ms: 0.061833
+  type: 'test'
+  ...
+# Subtest: complete known aliases override incompatible callback answers without querying either callback
+ok 41 - complete known aliases override incompatible callback answers without querying either callback
+  ---
+  duration_ms: 0.433375
+  type: 'test'
+  ...
+# Subtest: public comparison rejects same/distinct before effects and queries each terminal at most once
+ok 42 - public comparison rejects same/distinct before effects and queries each terminal at most once
+  ---
+  duration_ms: 0.496167
+  type: 'test'
+  ...
+# Subtest: public comparison rejects unknown/invalid before effects and queries each terminal at most once
+ok 43 - public comparison rejects unknown/invalid before effects and queries each terminal at most once
+  ---
+  duration_ms: 0.372167
+  type: 'test'
+  ...
+# Subtest: one backend exposed twice negotiates once, not recursively through wrappers
+ok 44 - one backend exposed twice negotiates once, not recursively through wrappers
+  ---
+  duration_ms: 0.421167
+  type: 'test'
+  ...
+# Subtest: opaque forwarders of negotiating product methods return unknown without recursive metadata or duplicate calls
+ok 45 - opaque forwarders of negotiating product methods return unknown without recursive metadata or duplicate calls
+  ---
+  duration_ms: 0.331208
+  type: 'test'
+  ...
+# Subtest: ENOENT-shaped cancellation between terminal queries stops peer (return)
+ok 46 - ENOENT-shaped cancellation between terminal queries stops peer (return)
+  ---
+  duration_ms: 0.506875
+  type: 'test'
+  ...
+# Subtest: ENOENT-shaped cancellation between terminal queries stops peer (rejection)
+ok 47 - ENOENT-shaped cancellation between terminal queries stops peer (rejection)
+  ---
+  duration_ms: 0.25125
+  type: 'test'
+  ...
+# Subtest: exclusive insertion race preserves source and newly arrived target bytes
+ok 48 - exclusive insertion race preserves source and newly arrived target bytes
+  ---
+  duration_ms: 0.332291
+  type: 'test'
+  ...
+# Subtest: overlay future upper writer alias cannot be authorized by distinct selected lower read views
+ok 49 - overlay future upper writer alias cannot be authorized by distinct selected lower read views
+  ---
+  duration_ms: 0.540083
+  type: 'test'
+  ...
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoic3BsaXQtczMtY29weSIsImRhdGEiOnsicmVzdWx0IjoidW5rbm93biIsImNvZGUiOiJFTk9UU1VQIiwiZWZmZWN0cyI6W10sInNvdXJjZSI6InNvdXJjZSBzZW50aW5lbCJ9fQ==
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoic3BsaXQtZGF2LWNvbXBhcmlzb24iLCJkYXRhIjp7InJlc3VsdCI6InVua25vd24iLCJlZmZlY3RzIjpbXX19
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoic3BsaXQtZGF2LWNvcHkiLCJkYXRhIjp7ImNvZGUiOiJFTk9UU1VQIiwiZWZmZWN0cyI6W10sInNvdXJjZSI6InNvdXJjZSBzZW50aW5lbCJ9fQ==
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoic3ViY2xhc3MtZGF2LWNvcHkiLCJkYXRhIjp7InJlc3VsdCI6InVua25vd24iLCJjb2RlIjoiRU5PVFNVUCIsImVmZmVjdHMiOltdLCJzb3VyY2UiOiJzb3VyY2Ugc2VudGluZWwifX0=
+# Subtest: S3 actual shared store through different clients/prefixes: aliases and qualified copies
+ok 50 - S3 actual shared store through different clients/prefixes: aliases and qualified copies
+  ---
+  duration_ms: 10.3855
+  type: 'test'
+  ...
+# Subtest: independent private S3 stores are distinct without per-client invented identity tuples
+ok 51 - independent private S3 stores are distinct without per-client invented identity tuples
+  ---
+  duration_ms: 1.871791
+  type: 'test'
+  ...
+# Subtest: qualified distinct S3 copy preserves source on source failure
+ok 52 - qualified distinct S3 copy preserves source on source failure
+  ---
+  duration_ms: 3.029125
+  type: 'test'
+  ...
+# Subtest: qualified distinct S3 copy preserves source on target failure
+ok 53 - qualified distinct S3 copy preserves source on target failure
+  ---
+  duration_ms: 1.631375
+  type: 'test'
+  ...
+# Subtest: qualified distinct S3 copy preserves source on cancel failure
+ok 54 - qualified distinct S3 copy preserves source on cancel failure
+  ---
+  duration_ms: 1.779792
+  type: 'test'
+  ...
+# Subtest: S3 unrecognized custom transport aliasing local memory remains unknown before destructive copy
+ok 55 - S3 unrecognized custom transport aliasing local memory remains unknown before destructive copy
+  ---
+  duration_ms: 1.933292
+  type: 'test'
+  ...
+# Subtest: S3 metadata-forwarding client with unrelated data routing cannot inherit private-store authority
+ok 56 - S3 metadata-forwarding client with unrelated data routing cannot inherit private-store authority
+  ---
+  duration_ms: 1.139125
+  type: 'test'
+  ...
+# Subtest: S3 two custom clients returning private mock metadata cannot claim distinctness for shared local data
+ok 57 - S3 two custom clients returning private mock metadata cannot claim distinctness for shared local data
+  ---
+  duration_ms: 1.277166
+  type: 'test'
+  ...
+# Subtest: S3 metadata NoSuchKey propagates through public comparison with no content operations
+ok 58 - S3 metadata NoSuchKey propagates through public comparison with no content operations
+  ---
+  duration_ms: 0.315917
+  type: 'test'
+  ...
+# Subtest: S3 metadata AccessDenied propagates through public comparison with no content operations
+ok 59 - S3 metadata AccessDenied propagates through public comparison with no content operations
+  ---
+  duration_ms: 0.339375
+  type: 'test'
+  ...
+# Subtest: S3 metadata InternalError propagates through public comparison with no content operations
+ok 60 - S3 metadata InternalError propagates through public comparison with no content operations
+  ---
+  duration_ms: 0.144916
+  type: 'test'
+  ...
+# Subtest: WebDAV actual provider metadata: endpoint aliases, equal ETags, and qualified nested-wrapper copies
+ok 61 - WebDAV actual provider metadata: endpoint aliases, equal ETags, and qualified nested-wrapper copies
+  ---
+  duration_ms: 29.026167
+  type: 'test'
+  ...
+# Subtest: WebDAV protocol identity survives Response cloning without private mock provenance
+ok 62 - WebDAV protocol identity survives Response cloning without private mock provenance
+  ---
+  duration_ms: 2.580167
+  type: 'test'
+  ...
+# Subtest: WebDAV mock identity is stable through PUT/MOVE/COPY overwrite, fresh for COPY creation and recreation
+ok 63 - WebDAV mock identity is stable through PUT/MOVE/COPY overwrite, fresh for COPY creation and recreation
+  ---
+  duration_ms: 3.326542
+  type: 'test'
+  ...
+# Subtest: WebDAV cancellation after first protocol identity query prevents the peer query
+ok 64 - WebDAV cancellation after first protocol identity query prevents the peer query
+  ---
+  duration_ms: 1.474709
+  type: 'test'
+  ...
+# Subtest: WebDAV identity multistatus missing is not a distinctness shortcut
+ok 65 - WebDAV identity multistatus missing is not a distinctness shortcut
+  ---
+  duration_ms: 1.825708
+  type: 'test'
+  ...
+# Subtest: WebDAV identity multistatus foreign-namespace is not a distinctness shortcut
+ok 66 - WebDAV identity multistatus foreign-namespace is not a distinctness shortcut
+  ---
+  duration_ms: 6.0475
+  type: 'test'
+  ...
+# Subtest: WebDAV identity multistatus property-404 is not a distinctness shortcut
+ok 67 - WebDAV identity multistatus property-404 is not a distinctness shortcut
+  ---
+  duration_ms: 1.083125
+  type: 'test'
+  ...
+# Subtest: WebDAV identity multistatus duplicate-property is not a distinctness shortcut
+ok 68 - WebDAV identity multistatus duplicate-property is not a distinctness shortcut
+  ---
+  duration_ms: 0.955625
+  type: 'test'
+  ...
+# Subtest: WebDAV identity multistatus duplicate-response is not a distinctness shortcut
+ok 69 - WebDAV identity multistatus duplicate-response is not a distinctness shortcut
+  ---
+  duration_ms: 0.977708
+  type: 'test'
+  ...
+# Subtest: WebDAV identity multistatus wrong-response-href is not a distinctness shortcut
+ok 70 - WebDAV identity multistatus wrong-response-href is not a distinctness shortcut
+  ---
+  duration_ms: 0.913875
+  type: 'test'
+  ...
+# Subtest: WebDAV identity multistatus invalid-uri is not a distinctness shortcut
+ok 71 - WebDAV identity multistatus invalid-uri is not a distinctness shortcut
+  ---
+  duration_ms: 1.03225
+  type: 'test'
+  ...
+# Subtest: WebDAV identity multistatus property-403 is not a distinctness shortcut
+ok 72 - WebDAV identity multistatus property-403 is not a distinctness shortcut
+  ---
+  duration_ms: 0.895208
+  type: 'test'
+  ...
+# Subtest: WebDAV identity multistatus resource-404 is not a distinctness shortcut
+ok 73 - WebDAV identity multistatus resource-404 is not a distinctness shortcut
+  ---
+  duration_ms: 0.811625
+  type: 'test'
+  ...
+# Subtest: WebDAV custom fetch returning genuine MockDav metadata but local data is unrecognized, not disjoint
+ok 74 - WebDAV custom fetch returning genuine MockDav metadata but local data is unrecognized, not disjoint
+  ---
+  duration_ms: 0.529916
+  type: 'test'
+  ...
+# Subtest: WebDAV mixed metadata/data transport cannot authorize truncating an aliased local source
+ok 75 - WebDAV mixed metadata/data transport cannot authorize truncating an aliased local source
+  ---
+  duration_ms: 1.644625
+  type: 'test'
+  ...
+# Subtest: WebDAV pre-construction data-method overrides cannot inherit resource authority over another backing store
+ok 76 - WebDAV pre-construction data-method overrides cannot inherit resource authority over another backing store
+  ---
+  duration_ms: 1.589
+  type: 'test'
+  ...
+1..76
+# tests 76
+# suites 0
+# pass 76
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 276.666459

@@ -1,0 +1,20 @@
+{
+  "profile": "Mike Farah v4.53.3; LC_ALL=C; NO_COLOR=1; each case has a fresh private cwd",
+  "record": ["argv", "cwd", "status", "stdout bytes", "stderr bytes", "before and after bytes/mode/lstat type/readlink/nlink for every fixture path", "extra files in owned fixture cwd"],
+  "cases": [
+    { "id": "comment-style-mode", "args": ["-i", ".a = \"new\"", "input.yaml"], "files": { "input.yaml": "# heading\na: 'old' # inline\n" }, "modes": { "input.yaml": "0640" } },
+    { "id": "eval-first-file", "args": ["-i", ".", "first.yaml", "second.yaml"], "files": { "first.yaml": "a: 1\n", "second.yaml": "b: 2\n" } },
+    { "id": "eval-all-first-file", "args": ["ea", "-i", "select(fi == 0) * select(fi == 1)", "first.yaml", "second.yaml"], "files": { "first.yaml": "a: 1\n", "second.yaml": "b: 2\n" } },
+    { "id": "symlink", "args": ["-i", ".a = 2", "link.yaml"], "files": { "original.yaml": "a: 1\n" }, "symlinks": { "link.yaml": "original.yaml" } },
+    { "id": "hardlink", "args": ["-i", ".a = 2", "original.yaml"], "files": { "original.yaml": "a: 1\n" }, "hardlinks": { "other.yaml": "original.yaml" } },
+    { "id": "invalid-query", "args": ["-i", "[", "input.yaml"], "files": { "input.yaml": "a: 1\n" } },
+    { "id": "invalid-yaml", "args": ["-i", ".", "input.yaml"], "files": { "input.yaml": "a: [\n" } },
+    { "id": "no-match", "args": ["-i", "-e", "select(false)", "input.yaml"], "files": { "input.yaml": "a: 1\n" } },
+    { "id": "later-input-failure", "args": ["-i", ".", "first.yaml", "second.yaml"], "files": { "first.yaml": "a: 1\n", "second.yaml": "b: [\n" } },
+    { "id": "empty-assignment", "args": ["-i", ".a = 1", "input.yaml"], "files": { "input.yaml": "" } },
+    { "id": "empty-identity", "args": ["-i", ".", "input.yaml"], "files": { "input.yaml": "" } },
+    { "id": "no-match-without-exit-status", "args": ["-i", "select(false)", "input.yaml"], "files": { "input.yaml": "a: 1\n" } },
+    { "id": "later-document-failure", "args": ["-i", ".", "input.yaml"], "files": { "input.yaml": "a: 1\n---\nb: [\n" } },
+    { "id": "readonly-original-mode", "args": ["-i", ".a = 2", "input.yaml"], "files": { "input.yaml": "a: 1\n" }, "modes": { "input.yaml": "0444" } }
+  ]
+}

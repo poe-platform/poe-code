@@ -1,0 +1,17 @@
+{
+  "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4-final-binding/FINAL-BINDING.json",
+  "bytes": 29531,
+  "sha256": "3da56afc93588c0bdfa016d02341ed4d0e8e22cd3441d0ecea3f97651b97ccc1",
+  "issuedUTC": "2026-08-29T15:01:24.888Z",
+  "latestStartUTC": "2026-08-29T15:21:24.888Z",
+  "expiresUTC": "2026-08-29T15:51:24.888Z",
+  "review": {
+    "commit": "53ad11083d9e33fbcd5782672fde0d5dcb24180a",
+    "blob": "e8552d04ddeeb07c0d2fd64048f71ed1a2bd7333",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-independent-20260829/stage-b1-r4/RECEIPT.json",
+    "bytes": 1379,
+    "sha256": "cf206ca25a94fba2c8152b8105aa4eb558996555f4121cfdc48870c34146735d",
+    "authority": "ROOT scoped PREEXEC acceptance; no actual runtime"
+  },
+  "actualAuthority": false
+}

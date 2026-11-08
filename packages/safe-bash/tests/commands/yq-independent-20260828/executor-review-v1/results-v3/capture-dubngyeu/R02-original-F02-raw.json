@@ -1,0 +1,51 @@
+{
+  "returned": {
+    "primitives": [
+      {
+        "kind": "undefined"
+      },
+      {
+        "kind": "null"
+      },
+      {
+        "kind": "boolean",
+        "value": "false"
+      }
+    ],
+    "first": {
+      "kind": "object",
+      "identity": {
+        "scope": "fe710ba6-a797-412a-897c-28a810d6209e",
+        "token": 1
+      },
+      "name": "same",
+      "message": "same",
+      "code": "",
+      "stack": ""
+    },
+    "firstAgain": {
+      "kind": "object",
+      "identity": {
+        "scope": "fe710ba6-a797-412a-897c-28a810d6209e",
+        "token": 1
+      },
+      "name": "same",
+      "message": "same",
+      "code": "",
+      "stack": ""
+    },
+    "second": {
+      "kind": "object",
+      "identity": {
+        "scope": "fe710ba6-a797-412a-897c-28a810d6209e",
+        "token": 2
+      },
+      "name": "same",
+      "message": "same",
+      "code": "",
+      "stack": ""
+    }
+  },
+  "rejected": null,
+  "activeChildren": []
+}

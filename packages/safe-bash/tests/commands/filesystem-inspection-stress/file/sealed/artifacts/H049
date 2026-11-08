@@ -1,0 +1,94 @@
+{
+  "startedAt": "2026-08-27T08:02:39.050Z",
+  "source": "independent verifier PREP; no candidate imports or calls",
+  "upstream": [
+    {
+      "url": "https://raw.githubusercontent.com/file/file/FILE5_41/doc/file.man",
+      "observedAt": "2026-08-27T08:02:39.210Z",
+      "sha256": "16a088c4008045af89d69719fe684b08f7915f7b73033ca14965cc4614aaad35",
+      "bytes": 22083,
+      "etag": "W/\"31aaa613c81facf8964159ce8728a716e6316587485128e9717656be8a3bd499\"",
+      "lastModified": null
+    },
+    {
+      "url": "https://raw.githubusercontent.com/file/file/FILE5_41/doc/magic.man",
+      "observedAt": "2026-08-27T08:02:39.334Z",
+      "sha256": "2119f1307d38eb1627a6f364452bafccdd7a80de1a062dae996dd843777a7a40",
+      "bytes": 24287,
+      "etag": "W/\"58c180ae12a1800ced4a76a6f892755050b8da809bd4e19aa53ede055bdaecd4\"",
+      "lastModified": null
+    },
+    {
+      "url": "https://raw.githubusercontent.com/file/file/FILE5_41/doc/libmagic.man",
+      "observedAt": "2026-08-27T08:02:39.441Z",
+      "sha256": "943ac8d309895ba1c4491058eb05e49aad5914887ad27c77597f6d0057f4faed",
+      "bytes": 11240,
+      "etag": "W/\"b9a9a1c93e41d39d40a8cb4e953484efed024805ee933ee0cb3901f67644d51b\"",
+      "lastModified": null
+    }
+  ],
+  "contracts": [
+    {
+      "path": "src/contracts/filesystem.ts",
+      "sha256": "a11b016e6bac06e6e8cd26fabb3b56a30788c8f75091513f6bf01ab7d016909d",
+      "bytes": 3861
+    },
+    {
+      "path": "src/contracts/filesystem.md",
+      "sha256": "4c0c83ac7477776455055b32370844453ee7521467f02e5304bff23901df06b2",
+      "bytes": 17153
+    },
+    {
+      "path": "src/contracts/io.ts",
+      "sha256": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+      "bytes": 7383
+    },
+    {
+      "path": "src/contracts/command.ts",
+      "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+      "bytes": 2923
+    },
+    {
+      "path": "src/contracts/command.md",
+      "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+      "bytes": 8066
+    },
+    {
+      "path": "src/contracts/errors.ts",
+      "sha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "bytes": 3457
+    }
+  ],
+  "native": {
+    "/usr/bin/file": {
+      "bytes": 534480,
+      "sha256": "d1fee5edf3c39243cca0c4a0afc94816c55feb032ad5eaeb6d8170d8c7aa64ce",
+      "mode": 33261,
+      "mtime": "2026-04-06T08:10:57.000Z",
+      "readOnlyUse": true
+    },
+    "/usr/share/file/magic.mgc": {
+      "bytes": 7273344,
+      "sha256": "38fc8af9d342a3a1d32a626195314a913ee255d8cbd259067d665ea55735b7c0",
+      "mode": 33188,
+      "mtime": "2026-04-06T08:10:57.000Z",
+      "readOnlyUse": true
+    },
+    "version": "file-5.41\nmagic file from /usr/share/file/magic.mgc\n",
+    "platform": "Darwin m5mb-kjopek 25.4.0 Darwin Kernel Version 25.4.0: Thu Mar 19 19:33:50 PDT 2026; root:xnu-12377.101.15~1/RELEASE_ARM64_T6050 arm64\n",
+    "osVersion": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n",
+    "environment": {
+      "PATH": "/usr/bin:/bin",
+      "LC_ALL": "C",
+      "LANG": "C",
+      "HOME": "/private/tmp/safe-bash-file-holdout.KyVGrl0A",
+      "MAGIC": "/usr/share/file/magic.mgc"
+    },
+    "magicPolicy": "Explicit -m /usr/share/file/magic.mgc; isolated HOME; no ambient MAGIC/POSIXLY_CORRECT, no custom magic, no decompression, no native product calls."
+  },
+  "repoHead": "71515770018077c1ae511f41f49e3a39c615cce5",
+  "repoStatus": " M scripts/verify-qualified-release.mjs\n M tests/integration/stream-five-public/README.md\n?? scripts/verify-current-consumers.mjs\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/filesystem-inspection-stress/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/time-env-stress/\n?? tests/integration/stream-five-public/REPORT.md\n?? tests/plugins/qualified-current-release/\n?? tests/shell-stress/invocation-cleanup-holdout/acceptance-first-scratch.json\n?? tests/shell-stress/invocation-cleanup-holdout/acceptance-first.json\n?? tests/shell-stress/invocation-cleanup-holdout/acceptance-source-preflight.json\n",
+  "stagedPaths": "",
+  "node": "v22.22.2",
+  "finishedAt": "2026-08-27T08:02:39.671Z"
+}

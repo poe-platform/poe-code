@@ -1,0 +1,845 @@
+{
+  "version": 3,
+  "applied": false,
+  "files": [
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-native-v3.json",
+      "patch": "native",
+      "beforeSha256": null,
+      "afterSha256": "62ca039b1fb3bb517d21d5499e4cd8467a80349f597a1231e8380368530e9e62",
+      "beforeSnapshot": null,
+      "afterSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured-stress/jq-grammar-native-v3.json.txt",
+      "edits": [],
+      "preserved": [],
+      "newCanonicalFile": true
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-native-v3.ts",
+      "patch": "native",
+      "beforeSha256": null,
+      "afterSha256": "6882ecf1406ab085718b7da9cd1d90e448522c66039a3784c14a21f45fd1de2a",
+      "beforeSnapshot": null,
+      "afterSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured-stress/jq-grammar-native-v3.ts.txt",
+      "edits": [],
+      "preserved": [],
+      "newCanonicalFile": true
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-byte-assertions-v3.test.ts",
+      "patch": "native",
+      "beforeSha256": null,
+      "afterSha256": "0a97ec591a786bc68cee14168cc7d09af312faa50cc6ab259e6fced471fac4d7",
+      "beforeSnapshot": null,
+      "afterSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured-stress/jq-grammar-byte-assertions-v3.test.ts.txt",
+      "edits": [],
+      "preserved": [],
+      "newCanonicalFile": true
+    },
+    {
+      "path": "tests/commands/structured-stress/harness.ts",
+      "patch": "native",
+      "beforeSha256": "dabc50c83133b6927d987f4763b594e793a4374cec79e5a1eead9a2612a6d482",
+      "afterSha256": "47007ff2be4249e70a250084ca10f40ac2fe9108918326041169e658b7d26e1e",
+      "beforeSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/before/tests/commands/structured-stress/harness.ts.txt",
+      "afterSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured-stress/harness.ts.txt",
+      "edits": [
+        {
+          "start": 499,
+          "end": 530,
+          "oldText": "export async function execute(\n",
+          "newText": "export async function executeWithBytes(\n",
+          "reason": "opt-in raw helper; legacy wrapper retains original shape",
+          "startByte": 499,
+          "endByte": 530,
+          "oldSha256": "dc754dbb86f3242a37816f374eb7243d9dcc709435faf86c0582e21405044ed6",
+          "newSha256": "bee8599720c3726ed871e25bffe975232cba5ed137cc7353204e5b3a52efb40f"
+        },
+        {
+          "start": 1576,
+          "end": 1712,
+          "oldText": "  return { status: result.exitCode, stdout: Buffer.concat(output.stdout).toString(), stderr: Buffer.concat(output.stderr).toString() };\n",
+          "newText": "  const stdoutBytes = Buffer.concat(output.stdout);\n  const stderrBytes = Buffer.concat(output.stderr);\n  return { status: result.exitCode, stdout: stdoutBytes.toString(), stderr: stderrBytes.toString(), stdoutBytes, stderrBytes };\n",
+          "reason": "raw copied chunks exposed without decoded reconstruction",
+          "startByte": 1576,
+          "endByte": 1712,
+          "oldSha256": "47b03c240a075766bc8ff11e39679346ca3b57ed5d16a78e8529405eaab686fb",
+          "newSha256": "13776f07000287ce3cf2354f028dbbed74563f2e2b1d0226fb8f63de35f2aef2"
+        },
+        {
+          "start": 1715,
+          "end": 1763,
+          "oldText": "export async function check(fixture: Fixture) {\n",
+          "newText": "export async function execute(...args: Parameters<typeof executeWithBytes>) {\n  const { status, stdout, stderr } = await executeWithBytes(...args);\n  return { status, stdout, stderr };\n}\n\nexport async function check(fixture: Fixture) {\n",
+          "reason": "legacy return fields and default stdin unchanged",
+          "startByte": 1715,
+          "endByte": 1763,
+          "oldSha256": "19c8d5b1699168d5d9c69ba3d9dc5e01039ece8eaa07fbdfbc37daabb92c28b6",
+          "newSha256": "7c6aa0fef404d8a3374cce8f73ab50c76daba91fb124168872bfc6589c1d7ec9"
+        }
+      ],
+      "preserved": [
+        {
+          "beforeStartByte": 0,
+          "afterStartByte": 0,
+          "bytes": 499,
+          "sha256": "be670500fee3027e98efe839c5aa3acaaba16cb41d61455c1daad42d941ffe09"
+        },
+        {
+          "beforeStartByte": 530,
+          "afterStartByte": 539,
+          "bytes": 1046,
+          "sha256": "28e1022e19b68d6d62939272fd385677b545517bfc401154bf7e1ec5381a1937"
+        },
+        {
+          "beforeStartByte": 1712,
+          "afterStartByte": 1817,
+          "bytes": 3,
+          "sha256": "938de74be97bf3aba7872a61ba0e42084008c81e8a202a612134c755aaf7fa06"
+        },
+        {
+          "beforeStartByte": 1763,
+          "afterStartByte": 2056,
+          "bytes": 388,
+          "sha256": "ff3f63590e330859b77495a326b6a19d43a300fc37d7b1f091ef32f6c146c019"
+        }
+      ],
+      "newCanonicalFile": false
+    },
+    {
+      "path": "tests/commands/structured/helpers.ts",
+      "patch": "native",
+      "beforeSha256": "85810c3e66de2b343284ee9cc2bfc03a48cfb76125b4605fb797898f4dfe258c",
+      "afterSha256": "58f64bcaaedc766a7b13a77195a93dd0886770ea20f6b9c57fbe032d642950b2",
+      "beforeSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/before/tests/commands/structured/helpers.ts.txt",
+      "afterSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured/helpers.ts.txt",
+      "edits": [
+        {
+          "start": 289,
+          "end": 474,
+          "oldText": "export async function run(args: readonly string[], input: string | Uint8Array | ByteSource = \"null\", options: StructuredCommandsOptions = {}, overrides: Partial<CommandContext> = {}) {\n",
+          "newText": "export async function runWithBytes(args: readonly string[], input: string | Uint8Array | ByteSource = \"null\", options: StructuredCommandsOptions = {}, overrides: Partial<CommandContext> = {}) {\n",
+          "reason": "opt-in structured raw helper",
+          "startByte": 289,
+          "endByte": 474,
+          "oldSha256": "c0bd385e7a3e86f63015e77fca7040e6345771814358290abefd6833a48ea8e3",
+          "newSha256": "20bcb9e81198cf9e18f0555342b6b6b351f994e42c2912272781fba4996068fd"
+        },
+        {
+          "start": 700,
+          "end": 836,
+          "oldText": "    stdout: { async write(chunk) { stdout.push(chunk.slice()); } },\n    stderr: { async write(chunk) { stderr.push(chunk.slice()); } },\n",
+          "newText": "    stdout: { async write(chunk) { stdout.push(Buffer.from(chunk)); } },\n    stderr: { async write(chunk) { stderr.push(Buffer.from(chunk)); } },\n",
+          "reason": "copy raw Uint8Array/Buffer chunks before host reuse",
+          "startByte": 700,
+          "endByte": 836,
+          "oldSha256": "f8e6083270cb70cb6820c8eb1d9bd04aff64e506b84382f31738b5d90e7a041b",
+          "newSha256": "10d29739bba51c0eefe57a5fd3e206a1a415d8bbda14112af2d865760fd8d14d"
+        },
+        {
+          "start": 1023,
+          "end": 1140,
+          "oldText": "  return { ...result, stdout: Buffer.concat(stdout).toString(), stderr: Buffer.concat(stderr).toString(), context };\n",
+          "newText": "  const stdoutBytes = Buffer.concat(stdout);\n  const stderrBytes = Buffer.concat(stderr);\n  return { ...result, stdout: stdoutBytes.toString(), stderr: stderrBytes.toString(), context, stdoutBytes, stderrBytes };\n",
+          "reason": "retain command result/context and expose raw bytes",
+          "startByte": 1023,
+          "endByte": 1140,
+          "oldSha256": "3eb5d61e0c95c202df7d8b3a3dddb1a8d6fd7c1852397cbd041bd3e11b91f1d9",
+          "newSha256": "397863427ba4492336d006e8e227a74218ae92875eab1ce6be324518fdff7817"
+        },
+        {
+          "start": 1142,
+          "end": 1224,
+          "oldText": "export async function* chunks(input: string | Uint8Array, size = 1): ByteSource {\n",
+          "newText": "export async function run(...args: Parameters<typeof runWithBytes>) {\n  const { stdoutBytes: _stdoutBytes, stderrBytes: _stderrBytes, ...result } = await runWithBytes(...args);\n  return result;\n}\n\nexport async function* chunks(input: string | Uint8Array, size = 1): ByteSource {\n",
+          "reason": "legacy run shape preserved including context/result fields",
+          "startByte": 1142,
+          "endByte": 1224,
+          "oldSha256": "f307ecee3fad6dbf9e6ce215e21c495037a8d60912293609bfc84bafaabb5849",
+          "newSha256": "feb12d3876b4071753a561c0792c374f0a4852ae0100009737bb452827968d7a"
+        }
+      ],
+      "preserved": [
+        {
+          "beforeStartByte": 0,
+          "afterStartByte": 0,
+          "bytes": 289,
+          "sha256": "4957628b8e4ceddf0bd27be5691392daef3faf14e5e0538909a790dc7ec768e7"
+        },
+        {
+          "beforeStartByte": 474,
+          "afterStartByte": 483,
+          "bytes": 226,
+          "sha256": "efe1b2874bd35fab927a295d97f684cae5e97d0378cb1580ba78de3b57a605bf"
+        },
+        {
+          "beforeStartByte": 836,
+          "afterStartByte": 855,
+          "bytes": 187,
+          "sha256": "c09ad01e47690d9339b02ea40b76d6fbe7a02921dc7100f5197ba69e51a1cb48"
+        },
+        {
+          "beforeStartByte": 1140,
+          "afterStartByte": 1255,
+          "bytes": 2,
+          "sha256": "412ca345ccf75bf9c0806bce695be8de808b79984251a7a54d202cf6101dd451"
+        },
+        {
+          "beforeStartByte": 1224,
+          "afterStartByte": 1536,
+          "bytes": 505,
+          "sha256": "0db5aa20e9d0d4617b2a0a573f2c864b2666a723a36627d920dfb0500a9b68e7"
+        }
+      ],
+      "newCanonicalFile": false
+    },
+    {
+      "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+      "patch": "native",
+      "beforeSha256": "e46cdc464d16acdc1c6841d86dbb9b02274f7f22b2149751dcf1e8c44a8afcd1",
+      "afterSha256": "93337441d16dfe84004576b8ce7ee07f7cd4851715fd164cf18c2eb791b5161b",
+      "beforeSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/before/tests/commands/structured-stress/independent-increment/safety.test.ts.txt",
+      "afterSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured-stress/independent-increment/safety.test.ts.txt",
+      "edits": [
+        {
+          "start": 276,
+          "end": 348,
+          "oldText": "import { allVectors, executeBytes, expectedBytes } from \"./harness.js\";\n",
+          "newText": "import { allVectors, executeBytes, expectedBytes } from \"./harness.js\";\nimport { nativeExpected } from \"../jq-grammar-native-v3.js\";\n",
+          "reason": "test-only exact native assertion import",
+          "startByte": 276,
+          "endByte": 348,
+          "oldSha256": "6097fbe6c1ae4f9ca7c5638f836ce81226d4989e183f84c462dfe047506fa8a8",
+          "newSha256": "916828b54c6f3262f4ad00b4b6e001f0d422521ce54b55a6317ae3917397b787"
+        },
+        {
+          "start": 1706,
+          "end": 1804,
+          "oldText": "  test(`strict UTF-8 rejection remains chunk invariant (not native parity): ${id}`, async () => {\n",
+          "newText": "  test(`native UTF-8 replacement remains chunk invariant: ${id}`, async () => {\n",
+          "reason": "rows 1–4 explicit name correction",
+          "startByte": 1706,
+          "endByte": 1804,
+          "oldSha256": "ce50814d8dafe88eca3ec6cd5cd17f2d8a12470590517d46fd9c1a7568136b87",
+          "newSha256": "e00634571bcb11a6b99b23fa21fe290340ff94c4e48847fd2717d2670cd6df8e"
+        },
+        {
+          "start": 1955,
+          "end": 2080,
+          "oldText": "    assert.equal(baseline.status, 5);\n    assert.match(Buffer.from(baseline.stderrHex, \"hex\").toString(), /invalid UTF-8/u);\n",
+          "newText": "    assert.deepEqual(baseline, nativeExpected(vector.argv!, input));\n",
+          "reason": "baseline input remains bytes; every source() split remains identical",
+          "startByte": 1955,
+          "endByte": 2080,
+          "oldSha256": "6a5a708c41434736a93eb2fd2339c6101f00b35c3942151c381a3d64d219c568",
+          "newSha256": "7b29d828ee4cebca2b13c6bb1bcdd5c2d93333c0e6b55ab57b2057749eb77e13"
+        }
+      ],
+      "preserved": [
+        {
+          "beforeStartByte": 0,
+          "afterStartByte": 0,
+          "bytes": 276,
+          "sha256": "9c9a7402703100d13e76abea1797f530a830fc04837279ca5b63e5d9808418ca"
+        },
+        {
+          "beforeStartByte": 348,
+          "afterStartByte": 409,
+          "bytes": 1358,
+          "sha256": "02e4a7465ecaba7f8e73b68b2517c8e56394f5e8961dc5a0afcf08c11d1506c2"
+        },
+        {
+          "beforeStartByte": 1804,
+          "afterStartByte": 1847,
+          "bytes": 151,
+          "sha256": "ce9a3c16fa2797e213a473ef9704c0b7066f17fe593b0de11337dfb93477795d"
+        },
+        {
+          "beforeStartByte": 2080,
+          "afterStartByte": 2067,
+          "bytes": 6276,
+          "sha256": "11d9f8d521a85bc6aa5e829a32fd3c9fcbbf0400bc91d1c3ef18a0199ce16635"
+        }
+      ],
+      "newCanonicalFile": false
+    },
+    {
+      "path": "tests/commands/structured-stress/raw-input.test.ts",
+      "patch": "native",
+      "beforeSha256": "bdd6aa8c1aa330be5b161c5dc86e2ffa91a5efb1ee0e8748f2ebd131d09544bf",
+      "afterSha256": "11ada84fe790a81b335d43b9776c2f0ec6fe08ebe0e9fa2558695f3444ac268f",
+      "beforeSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/before/tests/commands/structured-stress/raw-input.test.ts.txt",
+      "afterSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured-stress/raw-input.test.ts.txt",
+      "edits": [
+        {
+          "start": 183,
+          "end": 223,
+          "oldText": "import { execute } from \"./harness.js\";\n",
+          "newText": "import { execute, executeWithBytes } from \"./harness.js\";\nimport { assertNative } from \"./jq-grammar-native-v3.js\";\n",
+          "reason": "raw selected-path helper import",
+          "startByte": 183,
+          "endByte": 223,
+          "oldSha256": "ebd8311aafe26f253f917e7c1a3edbc7b1db7129d4607b05e9a400b1a4162a1b",
+          "newSha256": "a06fe44e7ae1abd30b5f02e1e922fc6ec7587b7e9612a522f59139600d134223"
+        },
+        {
+          "start": 750,
+          "end": 834,
+          "oldText": "for (const fixture of corpus.cases) test(`raw native: ${fixture.id}`, async () => {\n",
+          "newText": "const nativeOverrides = new Set([\"record-error-prefix\",\"file-unicode:-Rc\",\"file-unicode:-Rsc\",\"invalid:0:-Rc\",\"invalid:0:-Rsc\",\"invalid:1:-Rc\",\"invalid:1:-Rsc\",\"invalid:2:-Rc\",\"invalid:2:-Rsc\",\"invalid:3:-Rc\",\"invalid:3:-Rsc\",\"invalid:4:-Rc\",\"invalid:4:-Rsc\"]);\nfor (const fixture of corpus.cases) test(`raw native: ${fixture.id}`, async () => {\n",
+          "reason": "exactly thirteen raw fixture overrides",
+          "startByte": 750,
+          "endByte": 834,
+          "oldSha256": "88649b13e52b5a2ed4577a732ac77d9cccb471d39e1d6e3803e6a8ab8e734e71",
+          "newSha256": "33b44c3a3cf468a8afa56db60a4ca46dbc526a5a457af65db1e6315e0a8707fb"
+        },
+        {
+          "start": 1100,
+          "end": 1167,
+          "oldText": "    const result = await execute(fixture.argv, input, {}, { fs });\n",
+          "newText": "    if (nativeOverrides.has(fixture.id)) {\n      const result = await executeWithBytes(fixture.argv, input, {}, { fs });\n      const files = Object.fromEntries((fixture.files ?? []).map(file => [file.path, file.inputHex]));\n      assertNative(result, fixture.argv, Buffer.from(fixture.inputHex, \"hex\"), files);\n      continue;\n    }\n    const result = await execute(fixture.argv, input, {}, { fs });\n",
+          "reason": "selected exact bytes; original unselected branch unchanged",
+          "startByte": 1100,
+          "endByte": 1167,
+          "oldSha256": "b106517a1d7d6f6ebb5b9e5cfb8d7fd9dae3edc6a444c4a7e158e0a243b894d4",
+          "newSha256": "ed09038ebd2a3634e4cd71938f5e0283c4608e7bfe65f05074bed975718b3fb5"
+        }
+      ],
+      "preserved": [
+        {
+          "beforeStartByte": 0,
+          "afterStartByte": 0,
+          "bytes": 183,
+          "sha256": "1a9d10ae5983d72adcffa7eebcf4b4f8b17def79e8c7a707f8713246437c69c4"
+        },
+        {
+          "beforeStartByte": 223,
+          "afterStartByte": 299,
+          "bytes": 527,
+          "sha256": "17dffd1cd74667ed4ed2c7075d4f5fac11f24f17d1564075e53e974b28285453"
+        },
+        {
+          "beforeStartByte": 834,
+          "afterStartByte": 1172,
+          "bytes": 266,
+          "sha256": "73a5da960f7c280620b4eacbb75d1c6dafa75d91dfe1d6e44fe1eba0f315d69d"
+        },
+        {
+          "beforeStartByte": 1167,
+          "afterStartByte": 1838,
+          "bytes": 538,
+          "sha256": "c058101ad662b80a7fb03184fb4fd7d5449c90a06a6ece106fbe48b537459cc7"
+        }
+      ],
+      "newCanonicalFile": false
+    },
+    {
+      "path": "tests/commands/structured-stress/safety.test.ts",
+      "patch": "native",
+      "beforeSha256": "e50489b15c9d3fc232ef20bbd00701d507870ca5e95189caac07f156e9617611",
+      "afterSha256": "ba9c576a8173a9aa5ff8545f88b7288faa4fee9fe2919648861a5286326b3fee",
+      "beforeSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/before/tests/commands/structured-stress/safety.test.ts.txt",
+      "afterSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured-stress/safety.test.ts.txt",
+      "edits": [
+        {
+          "start": 300,
+          "end": 340,
+          "oldText": "import { execute } from \"./harness.js\";\n",
+          "newText": "import { execute, executeWithBytes } from \"./harness.js\";\nimport { assertNative } from \"./jq-grammar-native-v3.js\";\n",
+          "reason": "selected safety assertions import",
+          "startByte": 300,
+          "endByte": 340,
+          "oldSha256": "ebd8311aafe26f253f917e7c1a3edbc7b1db7129d4607b05e9a400b1a4162a1b",
+          "newSha256": "a06fe44e7ae1abd30b5f02e1e922fc6ec7587b7e9612a522f59139600d134223"
+        },
+        {
+          "start": 796,
+          "end": 993,
+          "oldText": "for (const [index, input] of malformed.entries()) test(`${input === '1e9999' ? 'valid large exponent' : 'strict malformed JSON'} ${index} across chunk boundaries`, { timeout: 3000 }, async () => {\n",
+          "newText": "const nativeAcceptanceOverrides = new Set([5, 14, 15, 16, 21, 22]);\nfor (const [index, input] of malformed.entries()) test(`${nativeAcceptanceOverrides.has(index) ? 'native JSON acceptance' : input === '1e9999' ? 'valid large exponent' : 'strict malformed JSON'} ${index} across chunk boundaries`, { timeout: 3000 }, async () => {\n",
+          "reason": "six names only; native-success index20 and other seventeen branches untouched",
+          "startByte": 796,
+          "endByte": 993,
+          "oldSha256": "2a95adb1ef894e5c82ef737e8ae99a17bd11de3d592cdde322457128933c9654",
+          "newSha256": "4710547fc37480a1754ee2ba7360ca8b173287d3b90853549027f2decb1b4879"
+        },
+        {
+          "start": 1031,
+          "end": 1213,
+          "oldText": "    const result = await execute(['-c', '.'], split(Buffer.from(input), size));\n    assert.equal(result.status, input === '1e9999' ? 0 : 5, JSON.stringify({ input, size, result }));\n",
+          "newText": "    if (nativeAcceptanceOverrides.has(index)) {\n      const result = await executeWithBytes(['-c', '.'], split(Buffer.from(input), size));\n      assertNative(result, ['-c', '.'], input);\n      continue;\n    }\n    const result = await execute(['-c', '.'], split(Buffer.from(input), size));\n    assert.equal(result.status, input === '1e9999' ? 0 : 5, JSON.stringify({ input, size, result }));\n",
+          "reason": "six acceptance overrides, no expansion of neighboring failures",
+          "startByte": 1031,
+          "endByte": 1213,
+          "oldSha256": "f0f8cd4b5c94c0f3d73141f52e1aeb2360d7190dd890a2099da5874229ea9fd8",
+          "newSha256": "1903c0e75f4533a0f9aae133bf84b6da35a280bd2416bb862acd614148b4d316"
+        },
+        {
+          "start": 1861,
+          "end": 1928,
+          "oldText": "test('invalid UTF-8 never becomes replacement text', async () => {\n",
+          "newText": "test('invalid UTF-8 JSON tokens preserve prefix and native diagnostics', async () => {\n",
+          "reason": "row20 accurate name",
+          "startByte": 1861,
+          "endByte": 1928,
+          "oldSha256": "2d20a817990cfe29159998bb489186326c698fd00179286fe3df1810a71ac402",
+          "newSha256": "96bdcf73d906ed438ae958c81dbad9adfaeabc63bf9ecfd591cb5d547ef9b448"
+        },
+        {
+          "start": 2153,
+          "end": 2348,
+          "oldText": "      const result = await execute(['-c', '.'], split(bytes, size));\n      assert.equal(result.status, 5);\n      assert.equal(result.stdout, '{}\\n');\n      assert.match(result.stderr, /UTF-8/u);\n",
+          "newText": "      const result = await executeWithBytes(['-c', '.'], split(bytes, size));\n      assertNative(result, ['-c', '.'], bytes);\n",
+          "reason": "row20 only; stop before preflight and all unrelated safety",
+          "startByte": 2153,
+          "endByte": 2348,
+          "oldSha256": "b8d8078119db0b918c38b7acd1b0649104f7d9a50314ca6210667a1f8598562d",
+          "newSha256": "f6495651c836d2816a40fe86545721145f819b870bed2287140766058dfbc6ba"
+        }
+      ],
+      "preserved": [
+        {
+          "beforeStartByte": 0,
+          "afterStartByte": 0,
+          "bytes": 300,
+          "sha256": "51e35eac103a579cc5ce415ca0cb2f5828d7206c2731ba6bd3c73d2b89d55dfc"
+        },
+        {
+          "beforeStartByte": 340,
+          "afterStartByte": 416,
+          "bytes": 456,
+          "sha256": "841f0ec65ff0191411ad7c0e44438d1ea6d4a0cd7d2bb0d3f05ebfb6c3e443c6"
+        },
+        {
+          "beforeStartByte": 993,
+          "afterStartByte": 1203,
+          "bytes": 38,
+          "sha256": "abe31cb313e8a5f2ef528606e8c5c817db8eb0a5700e34a965f2bd43a58d7c97"
+        },
+        {
+          "beforeStartByte": 1213,
+          "afterStartByte": 1632,
+          "bytes": 648,
+          "sha256": "3dced96f6123019a4508b9e9e43dfa935f14b72485bfd96bde08f144820b04d3"
+        },
+        {
+          "beforeStartByte": 1928,
+          "afterStartByte": 2367,
+          "bytes": 225,
+          "sha256": "879c188a85315e2607c6db11d6638ef4e63c8379cb4e6218128aa3e91aa8c027"
+        },
+        {
+          "beforeStartByte": 2348,
+          "afterStartByte": 2718,
+          "bytes": 7032,
+          "sha256": "b2ad9aa8084a8d621916b2321148468f28f13eed94ff2030ce4fa8603d70937d"
+        }
+      ],
+      "newCanonicalFile": false
+    },
+    {
+      "path": "tests/commands/structured/cli.test.ts",
+      "patch": "native",
+      "beforeSha256": "61b291a521f4059b52dd7db90fedb82674bbf0046c2fbab4371b7d9478b30e5c",
+      "afterSha256": "b755f4d240d7c95f001e3a4aac6aeb8270242d694fb5db96ddbc4f7568e4afe2",
+      "beforeSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/before/tests/commands/structured/cli.test.ts.txt",
+      "afterSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured/cli.test.ts.txt",
+      "edits": [
+        {
+          "start": 367,
+          "end": 411,
+          "oldText": "import { chunks, run } from \"./helpers.js\";\n",
+          "newText": "import { runWithBytes, chunks, run } from \"./helpers.js\";\nimport { assertNative } from \"../structured-stress/jq-grammar-native-v3.js\";\n",
+          "reason": "CLI opt-in byte assertion imports",
+          "startByte": 367,
+          "endByte": 411,
+          "oldSha256": "12c1e374ae9fa8dc343270c7df2041acecc633d53fcbb924fdece496aa23d416",
+          "newSha256": "17f75682bb808a942bd365d6789f773b11b336b287d2d17c0c5d50de848550e3"
+        },
+        {
+          "start": 3421,
+          "end": 3530,
+          "oldText": "      const expected = prefix === '{}\\n' ? '{}\\n' : prefix.startsWith('\"😀\"') ? '\"😀\"\\n1\\n' : '{\"a\":[1]}\\n';\n",
+          "newText": "\n",
+          "reason": "native exact tuples contain completed prefixes",
+          "startByte": 3427,
+          "endByte": 3540,
+          "oldSha256": "0b72885b443f5cdc2e5ed5e462063b7133f07a826e224d8132056dfa0c9dea6b",
+          "newSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+        },
+        {
+          "start": 3702,
+          "end": 3912,
+          "oldText": "        const result = await run([\"-c\", \".\"], source);\n        assert.equal(result.exitCode, 5); assert.equal(result.stdout, expected, `${suffix} split ${split}`); assert.match(result.stderr, /invalid UTF-8/);\n",
+          "newText": "        const result = await runWithBytes([\"-c\", \".\"], source);\n        assertNative(result, [\"-c\", \".\"], bytes);\n",
+          "reason": "inclusive split source remains unchanged",
+          "startByte": 3712,
+          "endByte": 3922,
+          "oldSha256": "fb4a5c03d220384badb1b38c5075dbd23e12ccf48b6c6f92c773a4e79112aee1",
+          "newSha256": "781d83a2158a09e2ad8c8a3998829467a0908d3ee855916091ef64a96c454839"
+        },
+        {
+          "start": 3920,
+          "end": 4170,
+          "oldText": "      const single = await run([\"-c\", \".\"], chunks(bytes)); assert.equal(single.stdout, expected); assert.equal(single.exitCode, 5);\n      const slurp = await run([\"-sc\", \".\"], bytes); assert.equal(slurp.stdout, \"\"); assert.equal(slurp.exitCode, 5);\n",
+          "newText": "      const single = await runWithBytes([\"-c\", \".\"], chunks(bytes));\n      assertNative(single, [\"-c\", \".\"], bytes);\n      const slurp = await runWithBytes([\"-sc\", \".\"], bytes);\n      assertNative(slurp, [\"-sc\", \".\"], bytes);\n",
+          "reason": "exact single and slurp stderr as well as status/prefix",
+          "startByte": 3930,
+          "endByte": 4180,
+          "oldSha256": "bfe07917fe122a4c47cf96c2c48c07515bc3ccdf71a2368b965b29fe2ce4947b",
+          "newSha256": "12181c2735220e16c9b872329d6f526d60ff8d67e262332419fcc4a3906d1c75"
+        }
+      ],
+      "preserved": [
+        {
+          "beforeStartByte": 0,
+          "afterStartByte": 0,
+          "bytes": 367,
+          "sha256": "45aa26219418d100aa15a703cb2da58005a89242b2ea71dd7acc6c2b0d224a3d"
+        },
+        {
+          "beforeStartByte": 411,
+          "afterStartByte": 502,
+          "bytes": 3016,
+          "sha256": "b2697ed36432c315959375fc3dedbf3d97a891a8e154813ef8b3011b30611d83"
+        },
+        {
+          "beforeStartByte": 3540,
+          "afterStartByte": 3519,
+          "bytes": 172,
+          "sha256": "a53ad4c7bb6527f8831511073ac26ac5897d9250d53d7c296d2311485b3b9a7e"
+        },
+        {
+          "beforeStartByte": 3922,
+          "afterStartByte": 3805,
+          "bytes": 8,
+          "sha256": "9b62f60d8590a579cf46f8d67378c4c572b962ceccdb90c7a5f7b42b960782a4"
+        },
+        {
+          "beforeStartByte": 4180,
+          "afterStartByte": 4039,
+          "bytes": 4544,
+          "sha256": "2c37b95484ed294ead3b7da99c4705a7e9b548ba15673d972dd247dcf42a0d51"
+        }
+      ],
+      "newCanonicalFile": false
+    },
+    {
+      "path": "tests/commands/structured/resources.test.ts",
+      "patch": "native",
+      "beforeSha256": "18301807f1031dc0fd53bf0785730dbca3aff8608d646176d0f8509506371099",
+      "afterSha256": "c61d9f482fc8c76a432d962a134c7834e4fb381a9a501e94b92dc27f79012061",
+      "beforeSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/before/tests/commands/structured/resources.test.ts.txt",
+      "afterSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured/resources.test.ts.txt",
+      "edits": [
+        {
+          "start": 284,
+          "end": 328,
+          "oldText": "import { chunks, run } from \"./helpers.js\";\n",
+          "newText": "import { runWithBytes, chunks, run } from \"./helpers.js\";\nimport { assertNative } from \"../structured-stress/jq-grammar-native-v3.js\";\n",
+          "reason": "resource opt-in bytes import",
+          "startByte": 284,
+          "endByte": 328,
+          "oldSha256": "12c1e374ae9fa8dc343270c7df2041acecc633d53fcbb924fdece496aa23d416",
+          "newSha256": "17f75682bb808a942bd365d6789f773b11b336b287d2d17c0c5d50de848550e3"
+        },
+        {
+          "start": 1023,
+          "end": 1121,
+          "oldText": "test(\"valid large decimals survive while malformed JSON and division by zero fail\", async () => {\n",
+          "newText": "test(\"native JSON grammar, large decimals and division diagnostics\", async () => {\n",
+          "reason": "mixed resource test accurate name",
+          "startByte": 1028,
+          "endByte": 1126,
+          "oldSha256": "f27059d2f0ce29f82676454f95928920a82716fd4617d5404dcf231d88464cad",
+          "newSha256": "6c2f88ec9721f5fee8b1c1faac8dcb7a4dfe5c740694269dc6391e42175349c5"
+        },
+        {
+          "start": 1300,
+          "end": 1435,
+          "oldText": "    const result = await run([\"-c\", \".\"], input);\n    assert.equal(result.exitCode, 5, input); assert.equal(result.stdout, \"\", input);\n",
+          "newText": "    const result = await runWithBytes([\"-c\", \".\"], input);\n    assertNative(result, [\"-c\", \".\"], input);\n",
+          "reason": "all fifteen JSON constituents retained",
+          "startByte": 1305,
+          "endByte": 1440,
+          "oldSha256": "be63df36501b55204f705370ce4a03e554e2553fadeca1abb5618c11a748b465",
+          "newSha256": "062845013201fbac0744c835b0520ba3370113c244951a9e6ed101947047b0c9"
+        },
+        {
+          "start": 1514,
+          "end": 1648,
+          "oldText": "    const result = await run([\"-c\", \".\"], Uint8Array.from(bytes)); assert.equal(result.exitCode, 5); assert.equal(result.stdout, \"\");\n",
+          "newText": "    const result = await runWithBytes([\"-c\", \".\"], Uint8Array.from(bytes));\n    assertNative(result, [\"-c\", \".\"], Uint8Array.from(bytes));\n",
+          "reason": "all four byte inputs retained",
+          "startByte": 1519,
+          "endByte": 1653,
+          "oldSha256": "551b2a2bd2e629fa85ca44874dbceb8401a3259da9c9e521e35a72ad5b46202e",
+          "newSha256": "6ebdc90a19095653283030eb147af2688f759a8f827f22c5d7bf3b99e4aea461"
+        },
+        {
+          "start": 1700,
+          "end": 1822,
+          "oldText": "    const result = await run([\"-nc\", filter]); assert.equal(result.exitCode, 5, filter); assert.equal(result.stdout, \"\");\n",
+          "newText": "    const result = await runWithBytes([\"-nc\", filter]);\n    assertNative(result, [\"-nc\", filter], \"null\");\n",
+          "reason": "division filters keep implicit helper default null",
+          "startByte": 1705,
+          "endByte": 1827,
+          "oldSha256": "966daaecbc10ac03a0971dca831cdd8230ff958ec21583dcf6b8b80af91b342d",
+          "newSha256": "c63d9889f025a352548b58a7e3fcf13b9d8a9b968431960ce9d29c8b70332c44"
+        },
+        {
+          "start": 1890,
+          "end": 2059,
+          "oldText": "    const result = await run([\"-c\", \".\"], input);\n    assert.equal(result.exitCode, 0, result.stderr);\n    assert.equal(result.stdout, `${input.replace(\"e\", \"E+\")}\\n`);\n",
+          "newText": "    const result = await runWithBytes([\"-c\", \".\"], input);\n    assertNative(result, [\"-c\", \".\"], input);\n",
+          "reason": "all three large decimals retained",
+          "startByte": 1895,
+          "endByte": 2064,
+          "oldSha256": "12dc0f31feea85fc6eb65ab9c88bc7a48600240cd96461e75d48312e28fff5f9",
+          "newSha256": "062845013201fbac0744c835b0520ba3370113c244951a9e6ed101947047b0c9"
+        },
+        {
+          "start": 2218,
+          "end": 2365,
+          "oldText": "    const result = await run([\"-nc\", filter!]);\n    assert.equal(result.exitCode, 0, result.stderr); assert.equal(result.stdout, `${expected}\\n`);\n",
+          "newText": "    const result = await runWithBytes([\"-nc\", filter!]);\n    assertNative(result, [\"-nc\", filter!], \"null\");\n    assert.equal(result.stdout, `${expected}\\n`);\n",
+          "reason": "arithmetic and conversions retain filters, expected strings, implicit null",
+          "startByte": 2223,
+          "endByte": 2370,
+          "oldSha256": "26d6e3d72c1ef13deb1955f9e40ff7213e155732f411fb0f63927635425e77ce",
+          "newSha256": "018b248919b11d63040d88d082c8835c52de2505131f1e5920e4ce178819de61"
+        },
+        {
+          "start": 2369,
+          "end": 2448,
+          "oldText": "  assert.equal((await run([\"-c\", \".\"], '\"\\\\uD83D\\\\uDE00\"')).stdout, '\"😀\"\\n');\n",
+          "newText": "  const surrogate = await runWithBytes([\"-c\", \".\"], '\"\\\\uD83D\\\\uDE00\"');\n  assertNative(surrogate, [\"-c\", \".\"], '\"\\\\uD83D\\\\uDE00\"');\n",
+          "reason": "inline surrogate preserved as explicit captured invocation",
+          "startByte": 2374,
+          "endByte": 2455,
+          "oldSha256": "3ff53ce4accefb576898cac5d5f86b97ce9c4174b2c9456327a002ae47e06bb2",
+          "newSha256": "8ac0fd6ac46585ab5771d426f250dfb3f1b270a6a8f03f6d5c5a370a8a8f41e3"
+        }
+      ],
+      "preserved": [
+        {
+          "beforeStartByte": 0,
+          "afterStartByte": 0,
+          "bytes": 284,
+          "sha256": "dce6fbeb73039484bec2fb4cd093e8c2328bd88b8f8d416abc53bb5775a0ecdd"
+        },
+        {
+          "beforeStartByte": 328,
+          "afterStartByte": 419,
+          "bytes": 700,
+          "sha256": "fdb7a92ac381b175da000316c11a10ede5540a98e9b615535c2f10a3829dc750"
+        },
+        {
+          "beforeStartByte": 1126,
+          "afterStartByte": 1202,
+          "bytes": 179,
+          "sha256": "1c353f34aa54c7375dea004326e4131834cfd6aae9bb9b62311669dd05d4045e"
+        },
+        {
+          "beforeStartByte": 1440,
+          "afterStartByte": 1486,
+          "bytes": 79,
+          "sha256": "e99e89b1bf21d5c2beeb66608c79ba1661b1d7285f0e508b45c86d6e47318d38"
+        },
+        {
+          "beforeStartByte": 1653,
+          "afterStartByte": 1704,
+          "bytes": 52,
+          "sha256": "a5ed73090f2ddbe28bee2adf948e2e4bcec3254baa379b5b64d354581fd3887f"
+        },
+        {
+          "beforeStartByte": 1827,
+          "afterStartByte": 1863,
+          "bytes": 68,
+          "sha256": "20e078286f1e0b583c785d46b5ffc56761a24fbc67c3719310d24223d9893b02"
+        },
+        {
+          "beforeStartByte": 2064,
+          "afterStartByte": 2036,
+          "bytes": 159,
+          "sha256": "692235d34877b75b124dfa29cf96d4afe7d7cd0648caf5be6637eff9d8d2ca3d"
+        },
+        {
+          "beforeStartByte": 2370,
+          "afterStartByte": 2354,
+          "bytes": 4,
+          "sha256": "27e5788d5d9d73d24a81dbc0a5a74bfa82c9c3b3af99e52af796e90b468a8a3d"
+        },
+        {
+          "beforeStartByte": 2455,
+          "afterStartByte": 2491,
+          "bytes": 3538,
+          "sha256": "33f4169afef4b8aeed30d3b4da76bf95705e012ca5545df4ee700ea0b6bf6736"
+        }
+      ],
+      "newCanonicalFile": false
+    },
+    {
+      "path": "tests/commands/structured-stress/join.test.ts",
+      "patch": "native",
+      "beforeSha256": "4e5ec178e0d35818f27d062af5343dc0df8acba45ca35225555d0835aee81f1d",
+      "afterSha256": "91c700cc536e17fffcaa2818fe43639a0c4108ebf6d515fbff30afed18e48146",
+      "beforeSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/before/tests/commands/structured-stress/join.test.ts.txt",
+      "afterSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured-stress/join.test.ts.txt",
+      "edits": [
+        {
+          "start": 115,
+          "end": 169,
+          "oldText": "import { execute, type Fixture } from \"./harness.js\";\n",
+          "newText": "import { execute, executeWithBytes, type Fixture } from \"./harness.js\";\nimport { assertNative } from \"./jq-grammar-native-v3.js\";\n",
+          "reason": "join exact compiler diagnostics import",
+          "startByte": 115,
+          "endByte": 169,
+          "oldSha256": "f6afab3814dcd0f6f6e1587e5ed9c508368f99fe45f111251768186fdcfe7569",
+          "newSha256": "cfd6dcd0cd78eb0278911d6b604e16ce99064c853657d34ca1985b5646c455dc"
+        },
+        {
+          "start": 491,
+          "end": 552,
+          "oldText": "  const result = await execute(fixture.argv, fixture.input);\n",
+          "newText": "  if (fixture.id === \"join-zero-arity\" || fixture.id === \"join-two-arity\") {\n    const result = await executeWithBytes(fixture.argv, fixture.input);\n    assertNative(result, fixture.argv, fixture.input);\n    return;\n  }\n  const result = await execute(fixture.argv, fixture.input);\n",
+          "reason": "only join0/join2 compile diagnostics; others untouched",
+          "startByte": 491,
+          "endByte": 552,
+          "oldSha256": "306d77e63659f9488227784a172c3728b025bcab53aea35480d84a94360949d2",
+          "newSha256": "3e8369786b2672f6d2746310c7b6af5f9ce81f60f9ed8cf75c0d550381489900"
+        }
+      ],
+      "preserved": [
+        {
+          "beforeStartByte": 0,
+          "afterStartByte": 0,
+          "bytes": 115,
+          "sha256": "93a3d385e47c732b5e6e48601696720648bb433698bbd2746a3451479cad164c"
+        },
+        {
+          "beforeStartByte": 169,
+          "afterStartByte": 245,
+          "bytes": 322,
+          "sha256": "f8d8014e7cd8c658f2dbabce135b4315a24bb1265397ed215ad481d81ab1a457"
+        },
+        {
+          "beforeStartByte": 552,
+          "afterStartByte": 848,
+          "bytes": 286,
+          "sha256": "af694290f2343e05f4282cfbd294d9b2780a1c9d556205c059280156918ba9a1"
+        }
+      ],
+      "newCanonicalFile": false
+    },
+    {
+      "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+      "patch": "native",
+      "beforeSha256": "04c05dd3e9f65303ac9ba0d8962c7af1d29342b62282f163e53229f85e7225d3",
+      "afterSha256": "5c4d39cfff9622dd5712da540a278343f1262090753ea623ba336a21bb19c8f5",
+      "beforeSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/before/tests/commands/structured-stress/split-increment/command.test.ts.txt",
+      "afterSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured-stress/split-increment/command.test.ts.txt",
+      "edits": [
+        {
+          "start": 149,
+          "end": 190,
+          "oldText": "import { execute } from \"../harness.js\";\n",
+          "newText": "import { execute, executeWithBytes } from \"../harness.js\";\nimport { assertNative } from \"../jq-grammar-native-v3.js\";\n",
+          "reason": "split0 exact bytes helper import",
+          "startByte": 149,
+          "endByte": 190,
+          "oldSha256": "23bf6c4ddfa62e767895045027f15546bdeebf9643a9cb6c0c9dc616fbe967fa",
+          "newSha256": "53e21f99af291bedf43d30fa7e2c6e9920d2c6b922b06bf00bdf9bd3d2028338"
+        },
+        {
+          "start": 2238,
+          "end": 2374,
+          "oldText": "for (const filter of [\"split\", 'split(\",\"; \"g\")']) test(`split rejects out-of-scope arity: ${filter}`, { timeout: 3000 }, async () => {\n",
+          "newText": "for (const filter of [\"split\", 'split(\",\"; \"g\")']) test(`${filter === \"split\" ? \"split rejects undefined native arity\" : \"split rejects out-of-scope arity\"}: ${filter}`, { timeout: 3000 }, async () => {\n",
+          "reason": "rename split0 only; split2 name/guard unchanged",
+          "startByte": 2238,
+          "endByte": 2374,
+          "oldSha256": "a5cfce4e948469714e2c34ec745407fc421a753e3fd5328aef4d68a4e550b266",
+          "newSha256": "79839a938ea07c8f60240b064348b684c3314272f80a10559fda027d7ba135cc"
+        },
+        {
+          "start": 2398,
+          "end": 2538,
+          "oldText": "  const actual = await execute([filter], { [Symbol.asyncIterator]() { acquired = true; throw new Error(\"input must not be acquired\"); } });\n",
+          "newText": "  if (filter === \"split\") {\n    const actual = await executeWithBytes([filter], { [Symbol.asyncIterator]() { acquired = true; throw new Error(\"input must not be acquired\"); } });\n    assertNative(actual, [filter], \"\");\n    assert.equal(acquired, false);\n    return;\n  }\n  const actual = await execute([filter], { [Symbol.asyncIterator]() { acquired = true; throw new Error(\"input must not be acquired\"); } });\n",
+          "reason": "split0 exact compiler-only oracle; retain split2 branch bytewise",
+          "startByte": 2398,
+          "endByte": 2538,
+          "oldSha256": "591512a35a3b118415113fc0d3cc4bba54d1dab53d44ab7595b24426ca400991",
+          "newSha256": "e454a082618887075a1f69b2046acd8f537db84eb25cf366d433fa790d5f7f5c"
+        }
+      ],
+      "preserved": [
+        {
+          "beforeStartByte": 0,
+          "afterStartByte": 0,
+          "bytes": 149,
+          "sha256": "7ec3de1da2718a7538979414b2856d99baeecd2f9dbb22a44a2535eb99cf32ea"
+        },
+        {
+          "beforeStartByte": 190,
+          "afterStartByte": 267,
+          "bytes": 2048,
+          "sha256": "493afe32d9df657a7531c476ab488820b8f17bc7231b4b4059b41377d26e93a4"
+        },
+        {
+          "beforeStartByte": 2374,
+          "afterStartByte": 2518,
+          "bytes": 24,
+          "sha256": "8686ffbc61cf131a06806919e6ab93d741fba055464e6ceb5468304b4ec33fe6"
+        },
+        {
+          "beforeStartByte": 2538,
+          "afterStartByte": 2952,
+          "bytes": 2508,
+          "sha256": "8383175cc3a08a98a311650778aa446e3afeebb2a79e5bc9a5c36af828a74b2a"
+        }
+      ],
+      "newCanonicalFile": false
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-author-20260827/safety.test.ts",
+      "patch": "host",
+      "beforeSha256": "34d4a0d819eb5bcbdd7bf65b6d7daa370fe975545b960976e95f8f14086a8528",
+      "afterSha256": "6e5b793461e41c8b392c84db81bebb49340b7d3baea4946c68f8142d830157be",
+      "beforeSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/before/tests/commands/structured-stress/jq-42-author-20260827/safety.test.ts.txt",
+      "afterSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/after-host/tests/commands/structured-stress/jq-42-author-20260827/safety.test.ts.txt",
+      "edits": [
+        {
+          "start": 1949,
+          "end": 2205,
+          "oldText": "  const running = executeBytes([\"-c\", \".\"], source, {}, { stdout: { async write() { writes++; throw error; } } });\n  if (error instanceof FsError) await assert.rejects(running, failure => failure === error);\n  else assert.equal((await running).status, 5);\n",
+          "newText": "  let stderrWrites = 0;\n  const running = executeBytes([\"-c\", \".\"], source, {}, {\n    stdout: { async write() { writes++; throw error; } },\n    ...(error instanceof JqError ? { stderr: { async write() { stderrWrites++; } } } : {}),\n  });\n  await assert.rejects(running, failure => failure === error);\n  if (error instanceof JqError) assert.equal(stderrWrites, 0);\n",
+          "reason": "CONDITIONAL host JqError identity/no stderr; EPIPE behavior unchanged",
+          "startByte": 1949,
+          "endByte": 2205,
+          "oldSha256": "b866b94262dd8ff1f3aa9c54837862aeb219f2737c6fe6e7f3fcde4b2454371c",
+          "newSha256": "c6522e8c35f0ebc1c77d37ff6c0498a54beed7803f01342bb6d03f789b91af0e"
+        }
+      ],
+      "preserved": [
+        {
+          "beforeStartByte": 0,
+          "afterStartByte": 0,
+          "bytes": 1949,
+          "sha256": "16b0fe26e3c48171a11807610747a8d05efd7f9deb3dd3adf1063bf6785ab05b"
+        },
+        {
+          "beforeStartByte": 2205,
+          "afterStartByte": 2313,
+          "bytes": 1917,
+          "sha256": "23ca79536525a4f23116b5b41ea1be491c45cae62212da6d7097def31f7857fc"
+        }
+      ],
+      "newCanonicalFile": false
+    }
+  ],
+  "patches": {
+    "native": "c83cd9adabd99925007bb79332899913829166ac21a6a25353dcfd199196627d",
+    "host": "18abf8765ce8474b30b0704063743f2e93217a19810a568160b4c30736187f0b"
+  }
+}

@@ -1,0 +1,220 @@
+import path from "node:path";
+import { pathToFileURL } from "node:url";
+import { describe, expect, it } from "vitest";
+import { McpClient, createSdkTestPair } from "tiny-mcp-client";
+import { defineCommand, defineGroup, S } from "toolcraft";
+import { createMCPServer } from "toolcraft/mcp";
+
+const root = process.cwd();
+const tinyStdioEntry = pathToFileURL(
+  path.join(root, "packages/tiny-stdio-mcp-server/dist/index.js"),
+).href;
+async function connectToServerScript(source: string): Promise<{
+  client: McpClient;
+  cleanup: () => Promise<void>;
+}> {
+  const { default: server } = await import(`data:text/javascript;base64,${Buffer.from(source).toString("base64")}`);
+  return createSdkTestPair(server, () => new McpClient({
+    protocolVersion: "2026-07-28",
+    clientInfo: {
+      name: "typed-output-workflow-test",
+      version: "1.0.0",
+    },
+  }));
+}
+
+describe("MCP typed output SDK transport workflows", () => {
+  it("round-trips typed stdio tools and exposes non-happy paths over MCP", async () => {
+    const source = `
+      import { createServer, defineSchema } from ${JSON.stringify(tinyStdioEntry)};
+
+      const outputSchema = {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          displayName: { type: "string" }
+        },
+        required: ["id", "displayName"],
+        additionalProperties: false
+      };
+      const server = createServer({ name: "typed-stdio-workflow", version: "1.0.0" });
+      server.tool(
+        "lookup",
+        "Look up a user",
+        defineSchema({ id: { type: "string" } }),
+        ({ id }) => ({ id, displayName: "Alice" }),
+        outputSchema
+      );
+      server.tool(
+        "bad_output",
+        "Return an invalid typed result",
+        defineSchema({}),
+        () => ({ id: 123, displayName: "Alice" }),
+        outputSchema
+      );
+      server.tool(
+        "scalar_envelope",
+        "Return modern scalar structured content",
+        defineSchema({}),
+        () => ({ content: [], structuredContent: "not an object" })
+      );
+      export default { connect: server.connectSDK };
+    `;
+    const { client, cleanup } = await connectToServerScript(source);
+
+    try {
+      const { tools } = await client.listTools();
+      expect(tools.find((tool) => tool.name === "lookup")).toMatchObject({
+        outputSchema: {
+          type: "object",
+          properties: {
+            id: { type: "string" },
+            displayName: { type: "string" },
+          },
+          required: ["id", "displayName"],
+          additionalProperties: false,
+        },
+      });
+
+      const result = await client.callTool({
+        name: "lookup",
+        arguments: { id: "u1" },
+      });
+      expect(result.structuredContent).toEqual({
+        id: "u1",
+        displayName: "Alice",
+      });
+      expect(result.content).toEqual([
+        {
+          type: "text",
+          text: JSON.stringify({ id: "u1", displayName: "Alice" }),
+        },
+      ]);
+
+      await expect(
+        client.callTool({ name: "bad_output", arguments: {} }),
+      ).rejects.toMatchObject({
+        code: -32603,
+        message: expect.stringContaining("Invalid structured tool result:"),
+        data: [expect.objectContaining({ keyword: "type" })],
+      });
+      await expect(
+        client.callTool({ name: "scalar_envelope", arguments: {} }),
+      ).resolves.toMatchObject({
+        content: [],
+        structuredContent: "not an object",
+        resultType: "complete",
+      });
+    } finally {
+      await cleanup();
+    }
+  });
+
+  it("round-trips toolcraft result schemas through the MCP SDK transport, including invalid result failures", async () => {
+    const resultSchema = S.Object({
+      delivery: S.OneOf({
+        discriminator: "deliveryKind",
+        branches: {
+          pickup: S.Object({ pickupAt: S.String() }),
+          ship: S.Object({ streetAddress: S.String() })
+        }
+      }),
+      labels: S.Record(S.Object({ displayName: S.String() })),
+      contact: S.Union([
+        S.Object({ emailAddress: S.String() }),
+        S.Object({ phoneNumber: S.String() })
+      ])
+    });
+
+    const server = createMCPServer(
+      defineGroup({
+        name: "root",
+        children: [
+          defineCommand({
+            name: "route",
+            scope: ["mcp"],
+            params: S.Object({}),
+            result: resultSchema,
+            handler: async () => ({
+              delivery: { deliveryKind: "ship", streetAddress: "1 Main St" },
+              labels: { primary: { displayName: "Primary" } },
+              contact: { emailAddress: "ops@example.com" }
+            })
+          }),
+          defineCommand({
+            name: "broken_route",
+            scope: ["mcp"],
+            params: S.Object({}),
+            result: resultSchema,
+            handler: async () => ({
+              delivery: { deliveryKind: "ship" },
+              labels: { primary: { displayName: "Primary" } },
+              contact: { emailAddress: "ops@example.com" }
+            })
+          })
+        ]
+      }),
+      {
+        name: "typed-toolcraft-workflow",
+        version: "1.0.0",
+        omitRootToolNamePrefix: true,
+        casing: "snake"
+      }
+    );
+    const { client, cleanup } = await createSdkTestPair(server, () => new McpClient({
+      protocolVersion: "2026-07-28",
+      clientInfo: { name: "typed-output-workflow-test", version: "1.0.0" },
+    }));
+
+    try {
+      const { tools } = await client.listTools();
+      expect(tools.find((tool) => tool.name === "route")).toMatchObject({
+        outputSchema: {
+          properties: {
+            delivery: {
+              oneOf: expect.arrayContaining([
+                expect.objectContaining({
+                  properties: expect.objectContaining({
+                    delivery_kind: { type: "string", enum: ["ship"] },
+                    street_address: { type: "string" },
+                  }),
+                }),
+              ]),
+            },
+            labels: {
+              additionalProperties: {
+                properties: {
+                  display_name: { type: "string" },
+                },
+                required: ["display_name"],
+                type: "object",
+              },
+              type: "object",
+            },
+          },
+        },
+      });
+
+      const result = await client.callTool({ name: "route", arguments: {} });
+      const expected = {
+        delivery: { delivery_kind: "ship", street_address: "1 Main St" },
+        labels: { primary: { display_name: "Primary" } },
+        contact: { email_address: "ops@example.com" },
+      };
+      expect(result.structuredContent).toEqual(expected);
+      expect(
+        JSON.parse(
+          result.content[0]?.type === "text" ? result.content[0].text : "",
+        ),
+      ).toEqual(expected);
+
+      await expect(
+        client.callTool({ name: "broken_route", arguments: {} }),
+      ).rejects.toMatchObject({
+        code: -32603,
+      });
+    } finally {
+      await cleanup();
+    }
+  });
+});

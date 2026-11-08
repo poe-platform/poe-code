@@ -1,0 +1,27 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import {MemoryFileSystem} from '@poe-code/safe-fs/core';
+import {transactSqlite,withSqliteReadSession,withSqliteStatement} from 'safe-bash-sqlite-engine/storage';
+import {createLlmCommand} from './command.js';
+import {createLlmCollectionCommands} from './collections.js';
+import reference from './fixtures/sql-attachments-0.27.1.json' with {type:'json'};
+const limits={maxFileBytes:8*1024*1024,maxIndexBytes:1048576,maxOpenFiles:16},signal=new AbortController().signal;
+for(const fixture of reference)test('native attachment lifecycle: '+fixture.name,async()=>{
+ const fs=new MemoryFileSystem();await fs.mkdir('/work/directory',{recursive:true});await fs.writeFile('/work/broken.db',new TextEncoder().encode('not sqlite'));
+ await transactSqlite({fs,path:'/work/source.db',signal,...limits},s=>s.execute('CREATE TABLE data(content TEXT)'));
+ const original=await fs.readFile('/work/source.db');let called=false;
+ const command=createLlmCommand({collections:createLlmCollectionCommands(limits),providers:[{name:'fixture',models:[{id:'e',capabilities:['embed']}],async *complete(){},async embedSources(request){called=true;return {model:'e',vectors:request.inputs.map(()=>[1,1])};}}]});
+ const errors:Uint8Array[]=[],output:Uint8Array[]=[];
+ const result=await command.execute({command:'llm',args:['embed-multi','docs','-d','main.db',...('no_model' in fixture?[]:['-m','e']),...fixture.args],fs,cwd:'/work',env:{},signal,stdin:{async *[Symbol.asyncIterator](){yield new TextEncoder().encode('id,content\n1,ok\n');}},stdout:{async write(bytes){output.push(bytes.slice());}},stderr:{async write(bytes){errors.push(bytes.slice());}}});
+ const error=Buffer.concat(errors).toString();assert.equal(result.exitCode,fixture.code,error);assert.equal(Buffer.concat(output).toString(),fixture.out);
+ if(fixture.exception&&fixture.exception.type!=='SystemExit')assert.ok(error.includes(fixture.exception.message),error);
+ else assert.equal(error,fixture.err.replaceAll('cli embed-multi','llm embed-multi'));
+ assert.equal(called,fixture.code===0);
+ const files:Record<string,number>={};for(const entry of await fs.readdir('/work'))if(entry.type==='file')files[entry.name]=(await fs.stat('/work/'+entry.name)).size;
+ assert.deepEqual(Object.keys(files).sort(),Object.keys(fixture.files).sort());
+ for(const [name,size]of Object.entries(fixture.files))if(size===0)assert.equal(files[name],0);else assert.ok(files[name]!>0);
+ const tables:unknown[]=[];
+ if('main.db' in files)await withSqliteReadSession({fs,path:'/work/main.db',directory:'/work',signal,...limits},s=>withSqliteStatement(s.module,{...s,signal,sql:"SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"},async statement=>{for await(const [name]of statement.rows([],['text']))tables.push(name);}));
+ assert.deepEqual(tables,fixture.tables);assert.deepEqual(await fs.readFile('/work/source.db'),original);
+ assert.ok((await fs.readdir('/work')).every(e=>['directory',...Object.keys(fixture.files)].includes(e.name)));
+});

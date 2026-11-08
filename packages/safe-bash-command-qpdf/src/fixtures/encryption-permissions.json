@@ -1,0 +1,66 @@
+{
+  "source": "qpdf 12.4.2 --password=owner --show-encryption after --encrypt reader owner 256 FLAGS --",
+  "cases": [
+    {
+      "flags": [],
+      "report": "R = 6\nP = -4\nUser password = \nSupplied password is owner password\nextract for accessibility: allowed\nextract for any purpose: allowed\nprint low resolution: allowed\nprint high resolution: allowed\nmodify document assembly: allowed\nmodify forms: allowed\nmodify annotations: allowed\nmodify other: allowed\nmodify anything: allowed\nstream encryption method: AESv3\nstring encryption method: AESv3\nfile encryption method: AESv3\n"
+    },
+    {
+      "flags": [
+        "--print=none"
+      ],
+      "report": "R = 6\nP = -2056\nUser password = \nSupplied password is owner password\nextract for accessibility: allowed\nextract for any purpose: allowed\nprint low resolution: not allowed\nprint high resolution: not allowed\nmodify document assembly: allowed\nmodify forms: allowed\nmodify annotations: allowed\nmodify other: allowed\nmodify anything: allowed\nstream encryption method: AESv3\nstring encryption method: AESv3\nfile encryption method: AESv3\n"
+    },
+    {
+      "flags": [
+        "--print=low"
+      ],
+      "report": "R = 6\nP = -2052\nUser password = \nSupplied password is owner password\nextract for accessibility: allowed\nextract for any purpose: allowed\nprint low resolution: allowed\nprint high resolution: not allowed\nmodify document assembly: allowed\nmodify forms: allowed\nmodify annotations: allowed\nmodify other: allowed\nmodify anything: allowed\nstream encryption method: AESv3\nstring encryption method: AESv3\nfile encryption method: AESv3\n"
+    },
+    {
+      "flags": [
+        "--modify=none"
+      ],
+      "report": "R = 6\nP = -1324\nUser password = \nSupplied password is owner password\nextract for accessibility: allowed\nextract for any purpose: allowed\nprint low resolution: allowed\nprint high resolution: allowed\nmodify document assembly: not allowed\nmodify forms: not allowed\nmodify annotations: not allowed\nmodify other: not allowed\nmodify anything: not allowed\nstream encryption method: AESv3\nstring encryption method: AESv3\nfile encryption method: AESv3\n"
+    },
+    {
+      "flags": [
+        "--extract=n"
+      ],
+      "report": "R = 6\nP = -20\nUser password = \nSupplied password is owner password\nextract for accessibility: allowed\nextract for any purpose: not allowed\nprint low resolution: allowed\nprint high resolution: allowed\nmodify document assembly: allowed\nmodify forms: allowed\nmodify annotations: allowed\nmodify other: allowed\nmodify anything: allowed\nstream encryption method: AESv3\nstring encryption method: AESv3\nfile encryption method: AESv3\n"
+    },
+    {
+      "flags": [
+        "--annotate=n"
+      ],
+      "report": "R = 6\nP = -36\nUser password = \nSupplied password is owner password\nextract for accessibility: allowed\nextract for any purpose: allowed\nprint low resolution: allowed\nprint high resolution: allowed\nmodify document assembly: allowed\nmodify forms: allowed\nmodify annotations: not allowed\nmodify other: allowed\nmodify anything: not allowed\nstream encryption method: AESv3\nstring encryption method: AESv3\nfile encryption method: AESv3\n"
+    },
+    {
+      "flags": [
+        "--print=none",
+        "--modify=none",
+        "--extract=n",
+        "--annotate=n"
+      ],
+      "report": "R = 6\nP = -3392\nUser password = \nSupplied password is owner password\nextract for accessibility: allowed\nextract for any purpose: not allowed\nprint low resolution: not allowed\nprint high resolution: not allowed\nmodify document assembly: not allowed\nmodify forms: not allowed\nmodify annotations: not allowed\nmodify other: not allowed\nmodify anything: not allowed\nstream encryption method: AESv3\nstring encryption method: AESv3\nfile encryption method: AESv3\n"
+    },
+    {
+      "flags": [
+        "--modify=assembly"
+      ],
+      "report": "R = 6\nP = -300\nUser password = \nSupplied password is owner password\nextract for accessibility: allowed\nextract for any purpose: allowed\nprint low resolution: allowed\nprint high resolution: allowed\nmodify document assembly: allowed\nmodify forms: not allowed\nmodify annotations: not allowed\nmodify other: not allowed\nmodify anything: not allowed\nstream encryption method: AESv3\nstring encryption method: AESv3\nfile encryption method: AESv3\n"
+    },
+    {
+      "flags": [
+        "--form=n"
+      ],
+      "report": "R = 6\nP = -260\nUser password = \nSupplied password is owner password\nextract for accessibility: allowed\nextract for any purpose: allowed\nprint low resolution: allowed\nprint high resolution: allowed\nmodify document assembly: allowed\nmodify forms: not allowed\nmodify annotations: allowed\nmodify other: allowed\nmodify anything: not allowed\nstream encryption method: AESv3\nstring encryption method: AESv3\nfile encryption method: AESv3\n"
+    },
+    {
+      "flags": [
+        "--assemble=n"
+      ],
+      "report": "R = 6\nP = -1028\nUser password = \nSupplied password is owner password\nextract for accessibility: allowed\nextract for any purpose: allowed\nprint low resolution: allowed\nprint high resolution: allowed\nmodify document assembly: not allowed\nmodify forms: allowed\nmodify annotations: allowed\nmodify other: allowed\nmodify anything: not allowed\nstream encryption method: AESv3\nstring encryption method: AESv3\nfile encryption method: AESv3\n"
+    }
+  ]
+}

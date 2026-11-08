@@ -1,0 +1,12 @@
+{
+  "README.md": "acce05e5ed8a6be4def2c860a589262e60204452b0e2724166c43a2d4f104e5e",
+  "attempt-01": null,
+  "attempt-01/REPORT.json": "4e353c628f4b20757d90e197e86854988d76b4d790953907ac6bd1ff1c477e58",
+  "attempt-01/candidate-allocation.json": "404321843d1e1c333cd17a682c43786544317d3bfad4cae201b3eb50a4968abb",
+  "attempt-01/restored-allocation.json": "32bfa6027405def5b24f27fc9226cc2ff6afce20aa9e34fd83907abf8e0117d8",
+  "attempt-01/reverted-allocation.json": "f91c32f290c6c40a61e2edc058c4d9dd5cb0285520201e4fcce60eb7cf66c6bb",
+  "consumer.ts.data": "c8a54c958ddf3bc1240866f0b0c5c755b737ab773c5fcf56152c79d47c9443aa",
+  "require-noncollecting.mjs": "8fd5066f8e342e2a1e9c9856808190a4c6cff73068e69eed9e5c90aabe82a87f",
+  "run.mjs": "b57bb3c81906a889f37e55fb473ec312ef88caeb31b6cccb33e55b6f16048db8",
+  "verify.mjs": "0ead6ba8cb534804f4a9a2c5004f33df5e159728f93a927e27a9dc0adf7cae57"
+}

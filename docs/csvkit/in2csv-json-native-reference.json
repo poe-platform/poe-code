@@ -1,0 +1,548 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "sourceSha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+  "cases": [
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[{\"n\":12345678901234567890123456789012345}]",
+      "status": 0,
+      "stdout": "n\n12345678901234567890123456789012345\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[{\"n\":1.2345678901234567890123456789012345}]",
+      "status": 0,
+      "stdout": "n\n1.2345678901234567890123456789012345\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[{\"n\":1.00},{\"n\":0e5}]",
+      "status": 0,
+      "stdout": "n\nTrue\nFalse\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[{\"n\":true},{\"n\":2}]",
+      "status": 0,
+      "stdout": "n\n1\n2\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json",
+        "-L",
+        "de_DE"
+      ],
+      "stdin": "[{\"n\":2.50}]",
+      "status": 0,
+      "stdout": "n\n2.50\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json",
+        "-L",
+        "de_DE"
+      ],
+      "stdin": "[{\"n\":2},{\"n\":\"2,50\"}]",
+      "status": 0,
+      "stdout": "n\n2\n2.50\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[{\"n\":0.00},{\"n\":\"x\"}]",
+      "status": 0,
+      "stdout": "n\n0.00\nx\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json",
+        "--null-value",
+        "1.00"
+      ],
+      "stdin": "[{\"n\":1.00}]",
+      "status": 0,
+      "stdout": "n\nTrue\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json",
+        "-k",
+        "rows"
+      ],
+      "stdin": "{\"rows\":{}}",
+      "status": 0,
+      "stdout": "\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "\"\"",
+      "status": 0,
+      "stdout": "\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json",
+        "-k",
+        "rows"
+      ],
+      "stdin": "{\"rows\":\"\"}",
+      "status": 0,
+      "stdout": "\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[{\"n\":NaN},{\"n\":true}]",
+      "status": 0,
+      "stdout": "n\nNaN\n1\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[{\"n\":-0.00}]",
+      "status": 0,
+      "stdout": "n\nFalse\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[{\"n\":1e400}]",
+      "status": 0,
+      "stdout": "n\n1E+400\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[{\"n\":1e-400}]",
+      "status": 0,
+      "stdout": "n\n1E-400\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json",
+        "--null-value",
+        "true"
+      ],
+      "stdin": "[{\"n\":true},{\"n\":null}]",
+      "status": 0,
+      "stdout": "n\nTrue\n\"\"\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json",
+        "-I"
+      ],
+      "stdin": "[{\"n\":1.00}]",
+      "status": 0,
+      "stdout": "n\n1.00\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[1.00,0e5]",
+      "status": 0,
+      "stdout": "a\nTrue\nFalse\n",
+      "stderr": "/Users/kjopek/Workspace/poe-code-5/out/in2csv-json-reference-env/lib/python3.14/site-packages/agate/utils.py:272: UnnamedColumnWarning: Column 0 has no name. Using \"a\".\n  warn_unnamed_column(i, new_value)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "\"ab\"",
+      "status": 0,
+      "stdout": "a\na\nb\n",
+      "stderr": "/Users/kjopek/Workspace/poe-code-5/out/in2csv-json-reference-env/lib/python3.14/site-packages/agate/utils.py:272: UnnamedColumnWarning: Column 0 has no name. Using \"a\".\n  warn_unnamed_column(i, new_value)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json",
+        "-k",
+        "rows"
+      ],
+      "stdin": "{\"rows\":{\"a\":2,\"b\":3}}",
+      "status": 0,
+      "stdout": "a\na\nb\n",
+      "stderr": "/Users/kjopek/Workspace/poe-code-5/out/in2csv-json-reference-env/lib/python3.14/site-packages/agate/utils.py:272: UnnamedColumnWarning: Column 0 has no name. Using \"a\".\n  warn_unnamed_column(i, new_value)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[{\"a\":2},3,null,\"x\",[4],true]",
+      "status": 0,
+      "stdout": "a,b,0\n2,,\n,3,\n,,\n,x,\n,,4\n,True,\n",
+      "stderr": "/Users/kjopek/Workspace/poe-code-5/out/in2csv-json-reference-env/lib/python3.14/site-packages/agate/utils.py:272: UnnamedColumnWarning: Column 1 has no name. Using \"b\".\n  warn_unnamed_column(i, new_value)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[{\"\":2,\"a\":3}]",
+      "status": 0,
+      "stdout": "a,a_2\n2,3\n",
+      "stderr": "/Users/kjopek/Workspace/poe-code-5/out/in2csv-json-reference-env/lib/python3.14/site-packages/agate/utils.py:272: UnnamedColumnWarning: Column 0 has no name. Using \"a\".\n  warn_unnamed_column(i, new_value)\n/Users/kjopek/Workspace/poe-code-5/out/in2csv-json-reference-env/lib/python3.14/site-packages/agate/utils.py:288: DuplicateColumnWarning: Column name \"a\" already exists in Table. Column will be renamed to \"a_2\".\n  warn_duplicate_column(new_value, final_value)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json",
+        "-k",
+        "a.b"
+      ],
+      "stdin": "{\"a.b\":[{\"n\":2}]}",
+      "status": 0,
+      "stdout": "n\n2\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json",
+        "-k",
+        "a.b"
+      ],
+      "stdin": "{\"a\":{\"b\":[]}}",
+      "status": 1,
+      "stdout": "",
+      "stderr": "KeyError: 'a.b'\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "null",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: 'NoneType' object is not iterable\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "true",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: 'bool' object is not iterable\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "42",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: 'int' object is not iterable\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "1.2",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: 'decimal.Decimal' object is not iterable\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "NaN",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: 'float' object is not iterable\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "{}",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: When converting a JSON document with a top-level dictionary element, a key must be specified.\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[{\"b\":2,\"a\":3,\"b\":4},{\"c\":null,\"a\":5}]",
+      "status": 0,
+      "stdout": "b,a,c\n4,3,\n,5,\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json",
+        "--blanks"
+      ],
+      "stdin": "[{\"a\":\"missing\",\"b\":null},{\"a\":\"n/a\"},{\"b\":\".\"}]",
+      "status": 0,
+      "stdout": "a,b\nmissing,\nn/a,\n,.\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json",
+        "-H",
+        "-K99",
+        "-z1",
+        "-y0",
+        "-d",
+        ";",
+        "-u3",
+        "-s",
+        "ignored",
+        "--sheet",
+        "ignored",
+        "--encoding-xls",
+        "ignored"
+      ],
+      "stdin": "[{\"a\":\"long value\",\"b\":2.50}]",
+      "status": 0,
+      "stdout": "a,b\nlong value,2.50\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[{\"a\":\"x\"},]",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Illegal trailing comma before end of array: line 1 column 11 (char 10)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "{\"a\":}",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Expecting value: line 1 column 6 (char 5)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[{\"a\":\"x\n\"}]",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Invalid control character at: line 1 column 9 (char 8)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "ndjson"
+      ],
+      "stdin": "{\"a\":2}\n[3,4]\ntrue\nnull\n\"x\"\n",
+      "status": 0,
+      "stdout": "a,0,1,d\n2,,,\n,3,4,\n,,,True\n,,,\n,,,x\n",
+      "stderr": "/Users/kjopek/Workspace/poe-code-5/out/in2csv-json-reference-env/lib/python3.14/site-packages/agate/utils.py:272: UnnamedColumnWarning: Column 3 has no name. Using \"d\".\n  warn_unnamed_column(i, new_value)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "ndjson"
+      ],
+      "stdin": "{\"a\":2}\n\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Expecting value: line 2 column 1 (char 1)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "ndjson"
+      ],
+      "stdin": "{\"a\":2}\r\n\r\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Expecting value: line 2 column 1 (char 2)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "ndjson"
+      ],
+      "stdin": "{\"a\":2}\r{\"b\":3}\r",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Extra data: line 1 column 9 (char 8)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "ndjson"
+      ],
+      "stdin": "{\"a\":2}\n{\"a\":3",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Expecting ',' delimiter: line 1 column 7 (char 6)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "ndjson",
+        "-k",
+        ""
+      ],
+      "stdin": "{\"a\":2}\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "ValueError: key and newline may not be specified together.\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json",
+        "-k",
+        "ignored"
+      ],
+      "stdin": "[{\"a\":2}]",
+      "status": 0,
+      "stdout": "a\n2\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "-f",
+        "json",
+        "-k",
+        ""
+      ],
+      "stdin": "{\"\":[]}",
+      "status": 1,
+      "stdout": "",
+      "stderr": "TypeError: When converting a JSON document with a top-level dictionary element, a key must be specified.\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[{\"a\":2,}]",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Illegal trailing comma before end of object: line 1 column 8 (char 7)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[1, ]",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Illegal trailing comma before end of array: line 1 column 3 (char 2)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "[1,\n]",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Illegal trailing comma before end of array: line 1 column 3 (char 2)\n"
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "{\"a\":2, }",
+      "status": 1,
+      "stdout": "",
+      "stderr": "JSONDecodeError: Illegal trailing comma before end of object: line 1 column 7 (char 6)\n"
+    }
+  ],
+  "warningPath": "/Users/kjopek/Workspace/poe-code-5/out/in2csv-json-reference-env/lib/python3.14/site-packages/agate/utils.py",
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "PYTHONIOENCODING": "utf-8",
+    "COLUMNS": "80",
+    "LINES": "24"
+  },
+  "runtimeLock": "requirements-cpython-3.14.2.txt",
+  "capture": "Original in2csv executable from hash-locked isolated CPython 3.14.2 environment; native programs used for research only. Warning deployment identity explicitly injected in canonical memory-only tests.",
+  "qualification": "49 exact original CLI observations; measured shapes only. Nested serialization requirement unresolved. Zero-column Table warnings and other unmeasured cases are blockers."
+}

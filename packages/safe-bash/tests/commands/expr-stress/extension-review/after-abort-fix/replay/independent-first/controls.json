@@ -1,0 +1,1704 @@
+{
+  "candidate": "27a7793526830768484885afba5832bf8bb248b5",
+  "sourceSha256": "de4c32ccedc6fb4239e958331ae27b9cb6bc90499afc8ff3b9eb2b757134e10c",
+  "emittedSha256": "09b5a4b5ac2183ab2c8d1df64ff1d61746e9f856d630cdde49048118087cc593",
+  "subcases": 31,
+  "failed": [],
+  "rows": [
+    {
+      "id": "typed-synthetic-undefined-pre",
+      "payload": {
+        "mode": "synthetic",
+        "reason": "undefined",
+        "phase": "pre"
+      },
+      "outer": {
+        "state": "returned",
+        "value": {
+          "state": "fulfilled",
+          "value": {
+            "passed": true,
+            "mode": "synthetic",
+            "phase": "pre",
+            "requestedType": "undefined",
+            "rejectionType": "undefined",
+            "rejectionName": null,
+            "exactIdentity": true,
+            "syntheticNeverPassedToNativeAny": true,
+            "forwardedBeforeAbort": false,
+            "activeAtRejection": 0,
+            "replacementPositive": true,
+            "events": [
+              {
+                "type": "start",
+                "threadId": 2
+              },
+              {
+                "type": "forwarded-request"
+              },
+              {
+                "type": "exit"
+              }
+            ],
+            "activeBeforeSafetyCleanup": 0,
+            "phaseScope": "Real worker received postMessage and cancellation retired it; compiler-versus-matcher execution phase is not observed."
+          }
+        },
+        "terminationAwaited": true,
+        "terminationCode": 0,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 3,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "native-expr-pre-undefined",
+      "payload": {
+        "mode": "native-expr",
+        "reason": "undefined",
+        "phase": "pre"
+      },
+      "outer": {
+        "state": "returned",
+        "value": {
+          "state": "fulfilled",
+          "value": {
+            "passed": true,
+            "mode": "native-expr",
+            "phase": "pre",
+            "requestedType": "undefined",
+            "rejectionType": "object",
+            "rejectionName": "AbortError",
+            "exactIdentity": true,
+            "syntheticNeverPassedToNativeAny": true,
+            "forwardedBeforeAbort": false,
+            "activeAtRejection": 0,
+            "replacementPositive": true,
+            "events": [
+              {
+                "type": "start",
+                "threadId": 4
+              },
+              {
+                "type": "forwarded-request"
+              },
+              {
+                "type": "exit"
+              }
+            ],
+            "activeBeforeSafetyCleanup": 0,
+            "phaseScope": "Real worker received postMessage and cancellation retired it; compiler-versus-matcher execution phase is not observed."
+          }
+        },
+        "terminationAwaited": true,
+        "terminationCode": 0,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 3,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "native-expr-pre-zero",
+      "payload": {
+        "mode": "native-expr",
+        "reason": "zero",
+        "phase": "pre"
+      },
+      "outer": {
+        "state": "returned",
+        "value": {
+          "state": "fulfilled",
+          "value": {
+            "passed": true,
+            "mode": "native-expr",
+            "phase": "pre",
+            "requestedType": "number",
+            "rejectionType": "number",
+            "rejectionName": null,
+            "exactIdentity": true,
+            "syntheticNeverPassedToNativeAny": true,
+            "forwardedBeforeAbort": false,
+            "activeAtRejection": 0,
+            "replacementPositive": true,
+            "events": [
+              {
+                "type": "start",
+                "threadId": 6
+              },
+              {
+                "type": "forwarded-request"
+              },
+              {
+                "type": "exit"
+              }
+            ],
+            "activeBeforeSafetyCleanup": 0,
+            "phaseScope": "Real worker received postMessage and cancellation retired it; compiler-versus-matcher execution phase is not observed."
+          }
+        },
+        "terminationAwaited": true,
+        "terminationCode": 0,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 3,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "native-expr-pre-null",
+      "payload": {
+        "mode": "native-expr",
+        "reason": "null",
+        "phase": "pre"
+      },
+      "outer": {
+        "state": "returned",
+        "value": {
+          "state": "fulfilled",
+          "value": {
+            "passed": true,
+            "mode": "native-expr",
+            "phase": "pre",
+            "requestedType": "object",
+            "rejectionType": "object",
+            "rejectionName": null,
+            "exactIdentity": true,
+            "syntheticNeverPassedToNativeAny": true,
+            "forwardedBeforeAbort": false,
+            "activeAtRejection": 0,
+            "replacementPositive": true,
+            "events": [
+              {
+                "type": "start",
+                "threadId": 8
+              },
+              {
+                "type": "forwarded-request"
+              },
+              {
+                "type": "exit"
+              }
+            ],
+            "activeBeforeSafetyCleanup": 0,
+            "phaseScope": "Real worker received postMessage and cancellation retired it; compiler-versus-matcher execution phase is not observed."
+          }
+        },
+        "terminationAwaited": true,
+        "terminationCode": 0,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 3,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "native-expr-pre-false",
+      "payload": {
+        "mode": "native-expr",
+        "reason": "false",
+        "phase": "pre"
+      },
+      "outer": {
+        "state": "returned",
+        "value": {
+          "state": "fulfilled",
+          "value": {
+            "passed": true,
+            "mode": "native-expr",
+            "phase": "pre",
+            "requestedType": "boolean",
+            "rejectionType": "boolean",
+            "rejectionName": null,
+            "exactIdentity": true,
+            "syntheticNeverPassedToNativeAny": true,
+            "forwardedBeforeAbort": false,
+            "activeAtRejection": 0,
+            "replacementPositive": true,
+            "events": [
+              {
+                "type": "start",
+                "threadId": 10
+              },
+              {
+                "type": "forwarded-request"
+              },
+              {
+                "type": "exit"
+              }
+            ],
+            "activeBeforeSafetyCleanup": 0,
+            "phaseScope": "Real worker received postMessage and cancellation retired it; compiler-versus-matcher execution phase is not observed."
+          }
+        },
+        "terminationAwaited": true,
+        "terminationCode": 0,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 3,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "native-expr-pre-empty",
+      "payload": {
+        "mode": "native-expr",
+        "reason": "empty",
+        "phase": "pre"
+      },
+      "outer": {
+        "state": "returned",
+        "value": {
+          "state": "fulfilled",
+          "value": {
+            "passed": true,
+            "mode": "native-expr",
+            "phase": "pre",
+            "requestedType": "string",
+            "rejectionType": "string",
+            "rejectionName": null,
+            "exactIdentity": true,
+            "syntheticNeverPassedToNativeAny": true,
+            "forwardedBeforeAbort": false,
+            "activeAtRejection": 0,
+            "replacementPositive": true,
+            "events": [
+              {
+                "type": "start",
+                "threadId": 12
+              },
+              {
+                "type": "forwarded-request"
+              },
+              {
+                "type": "exit"
+              }
+            ],
+            "activeBeforeSafetyCleanup": 0,
+            "phaseScope": "Real worker received postMessage and cancellation retired it; compiler-versus-matcher execution phase is not observed."
+          }
+        },
+        "terminationAwaited": true,
+        "terminationCode": 0,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 3,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "native-expr-pre-error",
+      "payload": {
+        "mode": "native-expr",
+        "reason": "error",
+        "phase": "pre"
+      },
+      "outer": {
+        "state": "returned",
+        "value": {
+          "state": "fulfilled",
+          "value": {
+            "passed": true,
+            "mode": "native-expr",
+            "phase": "pre",
+            "requestedType": "object",
+            "rejectionType": "object",
+            "rejectionName": "Error",
+            "exactIdentity": true,
+            "syntheticNeverPassedToNativeAny": true,
+            "forwardedBeforeAbort": false,
+            "activeAtRejection": 0,
+            "replacementPositive": true,
+            "events": [
+              {
+                "type": "start",
+                "threadId": 14
+              },
+              {
+                "type": "forwarded-request"
+              },
+              {
+                "type": "exit"
+              }
+            ],
+            "activeBeforeSafetyCleanup": 0,
+            "phaseScope": "Real worker received postMessage and cancellation retired it; compiler-versus-matcher execution phase is not observed."
+          }
+        },
+        "terminationAwaited": true,
+        "terminationCode": 0,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 3,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "native-legacy-pre-undefined",
+      "payload": {
+        "mode": "native-legacy",
+        "reason": "undefined",
+        "phase": "pre"
+      },
+      "outer": {
+        "state": "returned",
+        "value": {
+          "state": "fulfilled",
+          "value": {
+            "passed": true,
+            "mode": "native-legacy",
+            "phase": "pre",
+            "requestedType": "undefined",
+            "rejectionType": "object",
+            "rejectionName": "AbortError",
+            "exactIdentity": true,
+            "syntheticNeverPassedToNativeAny": true,
+            "forwardedBeforeAbort": false,
+            "activeAtRejection": 0,
+            "replacementPositive": true,
+            "events": [
+              {
+                "type": "start",
+                "threadId": 16
+              },
+              {
+                "type": "forwarded-request"
+              },
+              {
+                "type": "exit"
+              }
+            ],
+            "activeBeforeSafetyCleanup": 0,
+            "phaseScope": "Real worker received postMessage and cancellation retired it; compiler-versus-matcher execution phase is not observed."
+          }
+        },
+        "terminationAwaited": true,
+        "terminationCode": 0,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 3,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "native-legacy-pre-zero",
+      "payload": {
+        "mode": "native-legacy",
+        "reason": "zero",
+        "phase": "pre"
+      },
+      "outer": {
+        "state": "returned",
+        "value": {
+          "state": "fulfilled",
+          "value": {
+            "passed": true,
+            "mode": "native-legacy",
+            "phase": "pre",
+            "requestedType": "number",
+            "rejectionType": "number",
+            "rejectionName": null,
+            "exactIdentity": true,
+            "syntheticNeverPassedToNativeAny": true,
+            "forwardedBeforeAbort": false,
+            "activeAtRejection": 0,
+            "replacementPositive": true,
+            "events": [
+              {
+                "type": "start",
+                "threadId": 18
+              },
+              {
+                "type": "forwarded-request"
+              },
+              {
+                "type": "exit"
+              }
+            ],
+            "activeBeforeSafetyCleanup": 0,
+            "phaseScope": "Real worker received postMessage and cancellation retired it; compiler-versus-matcher execution phase is not observed."
+          }
+        },
+        "terminationAwaited": true,
+        "terminationCode": 0,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 5,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "native-legacy-pre-null",
+      "payload": {
+        "mode": "native-legacy",
+        "reason": "null",
+        "phase": "pre"
+      },
+      "outer": {
+        "state": "returned",
+        "value": {
+          "state": "fulfilled",
+          "value": {
+            "passed": true,
+            "mode": "native-legacy",
+            "phase": "pre",
+            "requestedType": "object",
+            "rejectionType": "object",
+            "rejectionName": null,
+            "exactIdentity": true,
+            "syntheticNeverPassedToNativeAny": true,
+            "forwardedBeforeAbort": false,
+            "activeAtRejection": 0,
+            "replacementPositive": true,
+            "events": [
+              {
+                "type": "start",
+                "threadId": 20
+              },
+              {
+                "type": "forwarded-request"
+              },
+              {
+                "type": "exit"
+              }
+            ],
+            "activeBeforeSafetyCleanup": 0,
+            "phaseScope": "Real worker received postMessage and cancellation retired it; compiler-versus-matcher execution phase is not observed."
+          }
+        },
+        "terminationAwaited": true,
+        "terminationCode": 0,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 3,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "native-legacy-pre-false",
+      "payload": {
+        "mode": "native-legacy",
+        "reason": "false",
+        "phase": "pre"
+      },
+      "outer": {
+        "state": "returned",
+        "value": {
+          "state": "fulfilled",
+          "value": {
+            "passed": true,
+            "mode": "native-legacy",
+            "phase": "pre",
+            "requestedType": "boolean",
+            "rejectionType": "boolean",
+            "rejectionName": null,
+            "exactIdentity": true,
+            "syntheticNeverPassedToNativeAny": true,
+            "forwardedBeforeAbort": false,
+            "activeAtRejection": 0,
+            "replacementPositive": true,
+            "events": [
+              {
+                "type": "start",
+                "threadId": 22
+              },
+              {
+                "type": "forwarded-request"
+              },
+              {
+                "type": "exit"
+              }
+            ],
+            "activeBeforeSafetyCleanup": 0,
+            "phaseScope": "Real worker received postMessage and cancellation retired it; compiler-versus-matcher execution phase is not observed."
+          }
+        },
+        "terminationAwaited": true,
+        "terminationCode": 0,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 3,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "native-legacy-pre-empty",
+      "payload": {
+        "mode": "native-legacy",
+        "reason": "empty",
+        "phase": "pre"
+      },
+      "outer": {
+        "state": "returned",
+        "value": {
+          "state": "fulfilled",
+          "value": {
+            "passed": true,
+            "mode": "native-legacy",
+            "phase": "pre",
+            "requestedType": "string",
+            "rejectionType": "string",
+            "rejectionName": null,
+            "exactIdentity": true,
+            "syntheticNeverPassedToNativeAny": true,
+            "forwardedBeforeAbort": false,
+            "activeAtRejection": 0,
+            "replacementPositive": true,
+            "events": [
+              {
+                "type": "start",
+                "threadId": 24
+              },
+              {
+                "type": "forwarded-request"
+              },
+              {
+                "type": "exit"
+              }
+            ],
+            "activeBeforeSafetyCleanup": 0,
+            "phaseScope": "Real worker received postMessage and cancellation retired it; compiler-versus-matcher execution phase is not observed."
+          }
+        },
+        "terminationAwaited": true,
+        "terminationCode": 0,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 3,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "native-legacy-pre-error",
+      "payload": {
+        "mode": "native-legacy",
+        "reason": "error",
+        "phase": "pre"
+      },
+      "outer": {
+        "state": "returned",
+        "value": {
+          "state": "fulfilled",
+          "value": {
+            "passed": true,
+            "mode": "native-legacy",
+            "phase": "pre",
+            "requestedType": "object",
+            "rejectionType": "object",
+            "rejectionName": "Error",
+            "exactIdentity": true,
+            "syntheticNeverPassedToNativeAny": true,
+            "forwardedBeforeAbort": false,
+            "activeAtRejection": 0,
+            "replacementPositive": true,
+            "events": [
+              {
+                "type": "start",
+                "threadId": 26
+              },
+              {
+                "type": "forwarded-request"
+              },
+              {
+                "type": "exit"
+              }
+            ],
+            "activeBeforeSafetyCleanup": 0,
+            "phaseScope": "Real worker received postMessage and cancellation retired it; compiler-versus-matcher execution phase is not observed."
+          }
+        },
+        "terminationAwaited": true,
+        "terminationCode": 0,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 3,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "typed-synthetic-undefined-active",
+      "payload": {
+        "mode": "synthetic",
+        "reason": "undefined",
+        "phase": "active"
+      },
+      "outer": {
+        "state": "returned",
+        "value": {
+          "state": "fulfilled",
+          "value": {
+            "passed": true,
+            "mode": "synthetic",
+            "phase": "active",
+            "requestedType": "undefined",
+            "rejectionType": "undefined",
+            "rejectionName": null,
+            "exactIdentity": true,
+            "syntheticNeverPassedToNativeAny": true,
+            "forwardedBeforeAbort": true,
+            "activeAtRejection": 0,
+            "replacementPositive": true,
+            "events": [
+              {
+                "type": "start",
+                "threadId": 28
+              },
+              {
+                "type": "forwarded-request"
+              },
+              {
+                "type": "exit"
+              },
+              {
+                "type": "start",
+                "threadId": 29
+              },
+              {
+                "type": "forwarded-request"
+              },
+              {
+                "type": "exit"
+              }
+            ],
+            "activeBeforeSafetyCleanup": 0,
+            "phaseScope": "Real worker received postMessage and cancellation retired it; compiler-versus-matcher execution phase is not observed."
+          }
+        },
+        "terminationAwaited": true,
+        "terminationCode": 1,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 5,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "native-expr-active-undefined",
+      "payload": {
+        "mode": "native-expr",
+        "reason": "undefined",
+        "phase": "active"
+      },
+      "outer": {
+        "state": "returned",
+        "value": {
+          "state": "fulfilled",
+          "value": {
+            "passed": true,
+            "mode": "native-expr",
+            "phase": "active",
+            "requestedType": "undefined",
+            "rejectionType": "object",
+            "rejectionName": "AbortError",
+            "exactIdentity": true,
+            "syntheticNeverPassedToNativeAny": true,
+            "forwardedBeforeAbort": true,
+            "activeAtRejection": 0,
+            "replacementPositive": true,
+            "events": [
+              {
+                "type": "start",
+                "threadId": 31
+              },
+              {
+                "type": "forwarded-request"
+              },
+              {
+                "type": "exit"
+              },
+              {
+                "type": "start",
+                "threadId": 32
+              },
+              {
+                "type": "forwarded-request"
+              },
+              {
+                "type": "exit"
+              }
+            ],
+            "activeBeforeSafetyCleanup": 0,
+            "phaseScope": "Real worker received postMessage and cancellation retired it; compiler-versus-matcher execution phase is not observed."
+          }
+        },
+        "terminationAwaited": true,
+        "terminationCode": 0,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 5,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "native-expr-active-zero",
+      "payload": {
+        "mode": "native-expr",
+        "reason": "zero",
+        "phase": "active"
+      },
+      "outer": {
+        "state": "returned",
+        "value": {
+          "state": "fulfilled",
+          "value": {
+            "passed": true,
+            "mode": "native-expr",
+            "phase": "active",
+            "requestedType": "number",
+            "rejectionType": "number",
+            "rejectionName": null,
+            "exactIdentity": true,
+            "syntheticNeverPassedToNativeAny": true,
+            "forwardedBeforeAbort": true,
+            "activeAtRejection": 0,
+            "replacementPositive": true,
+            "events": [
+              {
+                "type": "start",
+                "threadId": 34
+              },
+              {
+                "type": "forwarded-request"
+              },
+              {
+                "type": "exit"
+              },
+              {
+                "type": "start",
+                "threadId": 35
+              },
+              {
+                "type": "forwarded-request"
+              },
+              {
+                "type": "exit"
+              }
+            ],
+            "activeBeforeSafetyCleanup": 0,
+            "phaseScope": "Real worker received postMessage and cancellation retired it; compiler-versus-matcher execution phase is not observed."
+          }
+        },
+        "terminationAwaited": true,
+        "terminationCode": 0,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 5,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "native-expr-active-null",
+      "payload": {
+        "mode": "native-expr",
+        "reason": "null",
+        "phase": "active"
+      },
+      "outer": {
+        "state": "returned",
+        "value": {
+          "state": "fulfilled",
+          "value": {
+            "passed": true,
+            "mode": "native-expr",
+            "phase": "active",
+            "requestedType": "object",
+            "rejectionType": "object",
+            "rejectionName": null,
+            "exactIdentity": true,
+            "syntheticNeverPassedToNativeAny": true,
+            "forwardedBeforeAbort": true,
+            "activeAtRejection": 0,
+            "replacementPositive": true,
+            "events": [
+              {
+                "type": "start",
+                "threadId": 37
+              },
+              {
+                "type": "forwarded-request"
+              },
+              {
+                "type": "exit"
+              },
+              {
+                "type": "start",
+                "threadId": 38
+              },
+              {
+                "type": "forwarded-request"
+              },
+              {
+                "type": "exit"
+              }
+            ],
+            "activeBeforeSafetyCleanup": 0,
+            "phaseScope": "Real worker received postMessage and cancellation retired it; compiler-versus-matcher execution phase is not observed."
+          }
+        },
+        "terminationAwaited": true,
+        "terminationCode": 0,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 5,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "native-expr-active-false",
+      "payload": {
+        "mode": "native-expr",
+        "reason": "false",
+        "phase": "active"
+      },
+      "outer": {
+        "state": "returned",
+        "value": {
+          "state": "fulfilled",
+          "value": {
+            "passed": true,
+            "mode": "native-expr",
+            "phase": "active",
+            "requestedType": "boolean",
+            "rejectionType": "boolean",
+            "rejectionName": null,
+            "exactIdentity": true,
+            "syntheticNeverPassedToNativeAny": true,
+            "forwardedBeforeAbort": true,
+            "activeAtRejection": 0,
+            "replacementPositive": true,
+            "events": [
+              {
+                "type": "start",
+                "threadId": 40
+              },
+              {
+                "type": "forwarded-request"
+              },
+              {
+                "type": "exit"
+              },
+              {
+                "type": "start",
+                "threadId": 41
+              },
+              {
+                "type": "forwarded-request"
+              },
+              {
+                "type": "exit"
+              }
+            ],
+            "activeBeforeSafetyCleanup": 0,
+            "phaseScope": "Real worker received postMessage and cancellation retired it; compiler-versus-matcher execution phase is not observed."
+          }
+        },
+        "terminationAwaited": true,
+        "terminationCode": 0,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 5,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "native-expr-active-empty",
+      "payload": {
+        "mode": "native-expr",
+        "reason": "empty",
+        "phase": "active"
+      },
+      "outer": {
+        "state": "returned",
+        "value": {
+          "state": "fulfilled",
+          "value": {
+            "passed": true,
+            "mode": "native-expr",
+            "phase": "active",
+            "requestedType": "string",
+            "rejectionType": "string",
+            "rejectionName": null,
+            "exactIdentity": true,
+            "syntheticNeverPassedToNativeAny": true,
+            "forwardedBeforeAbort": true,
+            "activeAtRejection": 0,
+            "replacementPositive": true,
+            "events": [
+              {
+                "type": "start",
+                "threadId": 43
+              },
+              {
+                "type": "forwarded-request"
+              },
+              {
+                "type": "exit"
+              },
+              {
+                "type": "start",
+                "threadId": 44
+              },
+              {
+                "type": "forwarded-request"
+              },
+              {
+                "type": "exit"
+              }
+            ],
+            "activeBeforeSafetyCleanup": 0,
+            "phaseScope": "Real worker received postMessage and cancellation retired it; compiler-versus-matcher execution phase is not observed."
+          }
+        },
+        "terminationAwaited": true,
+        "terminationCode": 0,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 5,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "native-expr-active-error",
+      "payload": {
+        "mode": "native-expr",
+        "reason": "error",
+        "phase": "active"
+      },
+      "outer": {
+        "state": "returned",
+        "value": {
+          "state": "fulfilled",
+          "value": {
+            "passed": true,
+            "mode": "native-expr",
+            "phase": "active",
+            "requestedType": "object",
+            "rejectionType": "object",
+            "rejectionName": "Error",
+            "exactIdentity": true,
+            "syntheticNeverPassedToNativeAny": true,
+            "forwardedBeforeAbort": true,
+            "activeAtRejection": 0,
+            "replacementPositive": true,
+            "events": [
+              {
+                "type": "start",
+                "threadId": 46
+              },
+              {
+                "type": "forwarded-request"
+              },
+              {
+                "type": "exit"
+              },
+              {
+                "type": "start",
+                "threadId": 47
+              },
+              {
+                "type": "forwarded-request"
+              },
+              {
+                "type": "exit"
+              }
+            ],
+            "activeBeforeSafetyCleanup": 0,
+            "phaseScope": "Real worker received postMessage and cancellation retired it; compiler-versus-matcher execution phase is not observed."
+          }
+        },
+        "terminationAwaited": true,
+        "terminationCode": 0,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 5,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "native-legacy-active-undefined",
+      "payload": {
+        "mode": "native-legacy",
+        "reason": "undefined",
+        "phase": "active"
+      },
+      "outer": {
+        "state": "returned",
+        "value": {
+          "state": "fulfilled",
+          "value": {
+            "passed": true,
+            "mode": "native-legacy",
+            "phase": "active",
+            "requestedType": "undefined",
+            "rejectionType": "object",
+            "rejectionName": "AbortError",
+            "exactIdentity": true,
+            "syntheticNeverPassedToNativeAny": true,
+            "forwardedBeforeAbort": true,
+            "activeAtRejection": 0,
+            "replacementPositive": true,
+            "events": [
+              {
+                "type": "start",
+                "threadId": 49
+              },
+              {
+                "type": "forwarded-request"
+              },
+              {
+                "type": "exit"
+              },
+              {
+                "type": "start",
+                "threadId": 50
+              },
+              {
+                "type": "forwarded-request"
+              },
+              {
+                "type": "exit"
+              }
+            ],
+            "activeBeforeSafetyCleanup": 0,
+            "phaseScope": "Real worker received postMessage and cancellation retired it; compiler-versus-matcher execution phase is not observed."
+          }
+        },
+        "terminationAwaited": true,
+        "terminationCode": 0,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 5,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "native-legacy-active-zero",
+      "payload": {
+        "mode": "native-legacy",
+        "reason": "zero",
+        "phase": "active"
+      },
+      "outer": {
+        "state": "returned",
+        "value": {
+          "state": "fulfilled",
+          "value": {
+            "passed": true,
+            "mode": "native-legacy",
+            "phase": "active",
+            "requestedType": "number",
+            "rejectionType": "number",
+            "rejectionName": null,
+            "exactIdentity": true,
+            "syntheticNeverPassedToNativeAny": true,
+            "forwardedBeforeAbort": true,
+            "activeAtRejection": 0,
+            "replacementPositive": true,
+            "events": [
+              {
+                "type": "start",
+                "threadId": 52
+              },
+              {
+                "type": "forwarded-request"
+              },
+              {
+                "type": "exit"
+              },
+              {
+                "type": "start",
+                "threadId": 53
+              },
+              {
+                "type": "forwarded-request"
+              },
+              {
+                "type": "exit"
+              }
+            ],
+            "activeBeforeSafetyCleanup": 0,
+            "phaseScope": "Real worker received postMessage and cancellation retired it; compiler-versus-matcher execution phase is not observed."
+          }
+        },
+        "terminationAwaited": true,
+        "terminationCode": 0,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 5,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "native-legacy-active-null",
+      "payload": {
+        "mode": "native-legacy",
+        "reason": "null",
+        "phase": "active"
+      },
+      "outer": {
+        "state": "returned",
+        "value": {
+          "state": "fulfilled",
+          "value": {
+            "passed": true,
+            "mode": "native-legacy",
+            "phase": "active",
+            "requestedType": "object",
+            "rejectionType": "object",
+            "rejectionName": null,
+            "exactIdentity": true,
+            "syntheticNeverPassedToNativeAny": true,
+            "forwardedBeforeAbort": true,
+            "activeAtRejection": 0,
+            "replacementPositive": true,
+            "events": [
+              {
+                "type": "start",
+                "threadId": 55
+              },
+              {
+                "type": "forwarded-request"
+              },
+              {
+                "type": "exit"
+              },
+              {
+                "type": "start",
+                "threadId": 56
+              },
+              {
+                "type": "forwarded-request"
+              },
+              {
+                "type": "exit"
+              }
+            ],
+            "activeBeforeSafetyCleanup": 0,
+            "phaseScope": "Real worker received postMessage and cancellation retired it; compiler-versus-matcher execution phase is not observed."
+          }
+        },
+        "terminationAwaited": true,
+        "terminationCode": 0,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 4,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "native-legacy-active-false",
+      "payload": {
+        "mode": "native-legacy",
+        "reason": "false",
+        "phase": "active"
+      },
+      "outer": {
+        "state": "returned",
+        "value": {
+          "state": "fulfilled",
+          "value": {
+            "passed": true,
+            "mode": "native-legacy",
+            "phase": "active",
+            "requestedType": "boolean",
+            "rejectionType": "boolean",
+            "rejectionName": null,
+            "exactIdentity": true,
+            "syntheticNeverPassedToNativeAny": true,
+            "forwardedBeforeAbort": true,
+            "activeAtRejection": 0,
+            "replacementPositive": true,
+            "events": [
+              {
+                "type": "start",
+                "threadId": 58
+              },
+              {
+                "type": "forwarded-request"
+              },
+              {
+                "type": "exit"
+              },
+              {
+                "type": "start",
+                "threadId": 59
+              },
+              {
+                "type": "forwarded-request"
+              },
+              {
+                "type": "exit"
+              }
+            ],
+            "activeBeforeSafetyCleanup": 0,
+            "phaseScope": "Real worker received postMessage and cancellation retired it; compiler-versus-matcher execution phase is not observed."
+          }
+        },
+        "terminationAwaited": true,
+        "terminationCode": 0,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 5,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "native-legacy-active-empty",
+      "payload": {
+        "mode": "native-legacy",
+        "reason": "empty",
+        "phase": "active"
+      },
+      "outer": {
+        "state": "returned",
+        "value": {
+          "state": "fulfilled",
+          "value": {
+            "passed": true,
+            "mode": "native-legacy",
+            "phase": "active",
+            "requestedType": "string",
+            "rejectionType": "string",
+            "rejectionName": null,
+            "exactIdentity": true,
+            "syntheticNeverPassedToNativeAny": true,
+            "forwardedBeforeAbort": true,
+            "activeAtRejection": 0,
+            "replacementPositive": true,
+            "events": [
+              {
+                "type": "start",
+                "threadId": 61
+              },
+              {
+                "type": "forwarded-request"
+              },
+              {
+                "type": "exit"
+              },
+              {
+                "type": "start",
+                "threadId": 62
+              },
+              {
+                "type": "forwarded-request"
+              },
+              {
+                "type": "exit"
+              }
+            ],
+            "activeBeforeSafetyCleanup": 0,
+            "phaseScope": "Real worker received postMessage and cancellation retired it; compiler-versus-matcher execution phase is not observed."
+          }
+        },
+        "terminationAwaited": true,
+        "terminationCode": 0,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 5,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "native-legacy-active-error",
+      "payload": {
+        "mode": "native-legacy",
+        "reason": "error",
+        "phase": "active"
+      },
+      "outer": {
+        "state": "returned",
+        "value": {
+          "state": "fulfilled",
+          "value": {
+            "passed": true,
+            "mode": "native-legacy",
+            "phase": "active",
+            "requestedType": "object",
+            "rejectionType": "object",
+            "rejectionName": "Error",
+            "exactIdentity": true,
+            "syntheticNeverPassedToNativeAny": true,
+            "forwardedBeforeAbort": true,
+            "activeAtRejection": 0,
+            "replacementPositive": true,
+            "events": [
+              {
+                "type": "start",
+                "threadId": 64
+              },
+              {
+                "type": "forwarded-request"
+              },
+              {
+                "type": "exit"
+              },
+              {
+                "type": "start",
+                "threadId": 65
+              },
+              {
+                "type": "forwarded-request"
+              },
+              {
+                "type": "exit"
+              }
+            ],
+            "activeBeforeSafetyCleanup": 0,
+            "phaseScope": "Real worker received postMessage and cancellation retired it; compiler-versus-matcher execution phase is not observed."
+          }
+        },
+        "terminationAwaited": true,
+        "terminationCode": 0,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 4,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "index-work-399505",
+      "payload": {
+        "mode": "index",
+        "maxSteps": 399505
+      },
+      "outer": {
+        "state": "returned",
+        "value": {
+          "state": "fulfilled",
+          "value": {
+            "passed": true,
+            "mode": "index",
+            "outcome": "fulfilled",
+            "result": {
+              "exitCode": 3
+            },
+            "exactCancellation": null,
+            "turns": 0,
+            "output": "",
+            "diagnostic": "expr: evaluation work limit exceeded\n",
+            "argumentBytes": 2117,
+            "subjectCharacters": 2048,
+            "acceptCharacters": 64,
+            "maxSteps": 399505,
+            "boundaryDerivation": "18 + 3*N + 2*M + 3*N*M = 399506 for no-match ASCII index, including output/LF/final yield",
+            "activeBeforeSafetyCleanup": 0
+          }
+        },
+        "terminationAwaited": true,
+        "terminationCode": 0,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 3,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "index-work-399506",
+      "payload": {
+        "mode": "index",
+        "maxSteps": 399506
+      },
+      "outer": {
+        "state": "returned",
+        "value": {
+          "state": "fulfilled",
+          "value": {
+            "passed": true,
+            "mode": "index",
+            "outcome": "fulfilled",
+            "result": {
+              "exitCode": 1
+            },
+            "exactCancellation": null,
+            "turns": 0,
+            "output": "0\n",
+            "diagnostic": "",
+            "argumentBytes": 2117,
+            "subjectCharacters": 2048,
+            "acceptCharacters": 64,
+            "maxSteps": 399506,
+            "boundaryDerivation": "18 + 3*N + 2*M + 3*N*M = 399506 for no-match ASCII index, including output/LF/final yield",
+            "activeBeforeSafetyCleanup": 0
+          }
+        },
+        "terminationAwaited": true,
+        "terminationCode": 0,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 3,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "index-work-399507",
+      "payload": {
+        "mode": "index",
+        "maxSteps": 399507
+      },
+      "outer": {
+        "state": "returned",
+        "value": {
+          "state": "fulfilled",
+          "value": {
+            "passed": true,
+            "mode": "index",
+            "outcome": "fulfilled",
+            "result": {
+              "exitCode": 1
+            },
+            "exactCancellation": null,
+            "turns": 0,
+            "output": "0\n",
+            "diagnostic": "",
+            "argumentBytes": 2117,
+            "subjectCharacters": 2048,
+            "acceptCharacters": 64,
+            "maxSteps": 399507,
+            "boundaryDerivation": "18 + 3*N + 2*M + 3*N*M = 399506 for no-match ASCII index, including output/LF/final yield",
+            "activeBeforeSafetyCleanup": 0
+          }
+        },
+        "terminationAwaited": true,
+        "terminationCode": 0,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 3,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "index-large-positive",
+      "payload": {
+        "mode": "index",
+        "positive": true
+      },
+      "outer": {
+        "state": "returned",
+        "value": {
+          "state": "fulfilled",
+          "value": {
+            "passed": true,
+            "mode": "index",
+            "outcome": "fulfilled",
+            "result": {
+              "exitCode": 0
+            },
+            "exactCancellation": null,
+            "turns": 0,
+            "output": "2048\n",
+            "diagnostic": "",
+            "argumentBytes": 2117,
+            "subjectCharacters": 2048,
+            "acceptCharacters": 64,
+            "maxSteps": 1000000,
+            "boundaryDerivation": "18 + 3*N + 2*M + 3*N*M = 399506 for no-match ASCII index, including output/LF/final yield",
+            "activeBeforeSafetyCleanup": 0
+          }
+        },
+        "terminationAwaited": true,
+        "terminationCode": 0,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 4,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "index-large-cancellation",
+      "payload": {
+        "mode": "index",
+        "cancel": true
+      },
+      "outer": {
+        "state": "returned",
+        "value": {
+          "state": "fulfilled",
+          "value": {
+            "passed": true,
+            "mode": "index",
+            "outcome": "rejected",
+            "result": null,
+            "exactCancellation": true,
+            "turns": 8,
+            "output": "",
+            "diagnostic": "",
+            "argumentBytes": 2117,
+            "subjectCharacters": 2048,
+            "acceptCharacters": 64,
+            "maxSteps": 1000000,
+            "boundaryDerivation": "18 + 3*N + 2*M + 3*N*M = 399506 for no-match ASCII index, including output/LF/final yield",
+            "activeBeforeSafetyCleanup": 0
+          }
+        },
+        "terminationAwaited": true,
+        "terminationCode": 0,
+        "output": [],
+        "outputBytes": 0,
+        "heartbeats": 2,
+        "deadlineMs": 2000,
+        "resourceLimits": {
+          "maxOldGenerationSizeMb": 64,
+          "stackSizeMb": 4
+        }
+      },
+      "passed": true
+    }
+  ],
+  "primaryReferences": [
+    "https://dom.spec.whatwg.org/#abortcontroller",
+    "https://nodejs.org/download/release/latest-jod/docs/api/globals.html#abortsignalreason"
+  ],
+  "independence": "New fully typed EventTarget consumer and five bounded index probes. Author111 archived tests are separate, not holdouts. Native AbortSignal.any gets only native signals."
+}

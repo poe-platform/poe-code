@@ -1,0 +1,587 @@
+TAP version 13
+# Subtest: sole cleanup rejection preserves undefined identity
+ok 1 - sole cleanup rejection preserves undefined identity
+  ---
+  duration_ms: 3.613291
+  type: 'test'
+  ...
+# Subtest: sole cleanup rejection preserves null identity
+ok 2 - sole cleanup rejection preserves null identity
+  ---
+  duration_ms: 1.140292
+  type: 'test'
+  ...
+# Subtest: sole cleanup rejection preserves Error: cleanup only identity
+ok 3 - sole cleanup rejection preserves Error: cleanup only identity
+  ---
+  duration_ms: 0.441209
+  type: 'test'
+  ...
+# Subtest: caller abort during drain wins over execution and cleanup: null
+ok 4 - caller abort during drain wins over execution and cleanup: null
+  ---
+  duration_ms: 0.613125
+  type: 'test'
+  ...
+# Subtest: caller abort during drain wins over execution and cleanup: 0
+ok 5 - caller abort during drain wins over execution and cleanup: 0
+  ---
+  duration_ms: 0.679958
+  type: 'test'
+  ...
+# Subtest: caller abort during drain wins over execution and cleanup: cancel
+ok 6 - caller abort during drain wins over execution and cleanup: cancel
+  ---
+  duration_ms: 0.559833
+  type: 'test'
+  ...
+# Subtest: caller abort during drain wins over execution and cleanup: [object Object]
+ok 7 - caller abort during drain wins over execution and cleanup: [object Object]
+  ---
+  duration_ms: 0.512041
+  type: 'test'
+  ...
+# Subtest: caller abort during drain wins over execution and cleanup: Error: caller
+ok 8 - caller abort during drain wins over execution and cleanup: Error: caller
+  ---
+  duration_ms: 0.902041
+  type: 'test'
+  ...
+# Subtest: execution rejection wins while every delayed cleanup failure is observed
+ok 9 - execution rejection wins while every delayed cleanup failure is observed
+  ---
+  duration_ms: 18.74625
+  type: 'test'
+  ...
+# Subtest: ordinary command throw keeps its diagnostic and status after cleanup
+ok 10 - ordinary command throw keeps its diagnostic and status after cleanup
+  ---
+  duration_ms: 15.477708
+  type: 'test'
+  ...
+# Subtest: noncallable registration and cleanup-time registration fail synchronously
+ok 11 - noncallable registration and cleanup-time registration fail synchronously
+  ---
+  duration_ms: 0.43875
+  type: 'test'
+  ...
+# Subtest: all hooks start while an earlier hook is pending; finally shares the owned close
+ok 12 - all hooks start while an earlier hook is pending; finally shares the owned close
+  ---
+  duration_ms: 0.7475
+  type: 'test'
+  ...
+# Subtest: normal parent closure seals detached descendants before iterator or FS acquisition
+ok 13 - normal parent closure seals detached descendants before iterator or FS acquisition
+  ---
+  duration_ms: 1.183958
+  type: 'test'
+  ...
+# Subtest: caller-aborted saved capabilities preserve exact admission reason
+ok 14 - caller-aborted saved capabilities preserve exact admission reason
+  ---
+  duration_ms: 0.747041
+  type: 'test'
+  ...
+# Subtest: late opaque rejection is observed after owned cleanup and public settlement
+ok 15 - late opaque rejection is observed after owned cleanup and public settlement
+  ---
+  duration_ms: 18.298334
+  type: 'test'
+  ...
+# Subtest: nested middleware overlays keep their cleanup closure and exact replacement environment
+ok 16 - nested middleware overlays keep their cleanup closure and exact replacement environment
+  ---
+  duration_ms: 0.718541
+  type: 'test'
+  ...
+# Subtest: dispose and cancellation isolate concurrent execs and another shell sharing an owner
+ok 17 - dispose and cancellation isolate concurrent execs and another shell sharing an owner
+  ---
+  duration_ms: 50.270708
+  type: 'test'
+  ...
+# Subtest: reentrant dispose returns the identical barrier and starts plugin disposal once
+ok 18 - reentrant dispose returns the identical barrier and starts plugin disposal once
+  ---
+  duration_ms: 15.272375
+  type: 'test'
+  ...
+# Subtest: dispose drains every owned failure before reverse plugin disposal
+ok 19 - dispose drains every owned failure before reverse plugin disposal
+  ---
+  duration_ms: 17.810625
+  type: 'test'
+  ...
+# Subtest: closed detached middleware cannot call later middleware through a saved next
+ok 20 - closed detached middleware cannot call later middleware through a saved next
+  ---
+  duration_ms: 0.522125
+  type: 'test'
+  ...
+# Subtest: each duplicate registration runs once without exposing closure authority
+ok 21 - each duplicate registration runs once without exposing closure authority
+  ---
+  duration_ms: 0.222958
+  type: 'test'
+  ...
+# Subtest: early downstream closure drains both owners; pipefail=false, failure=false
+ok 22 - early downstream closure drains both owners; pipefail=false, failure=false
+  ---
+  duration_ms: 41.14475
+  type: 'test'
+  ...
+# Subtest: early downstream closure drains both owners; pipefail=false, failure=true
+ok 23 - early downstream closure drains both owners; pipefail=false, failure=true
+  ---
+  duration_ms: 32.715
+  type: 'test'
+  ...
+# Subtest: early downstream closure drains both owners; pipefail=true, failure=false
+ok 24 - early downstream closure drains both owners; pipefail=true, failure=false
+  ---
+  duration_ms: 35.323875
+  type: 'test'
+  ...
+# Subtest: early downstream closure drains both owners; pipefail=true, failure=true
+ok 25 - early downstream closure drains both owners; pipefail=true, failure=true
+  ---
+  duration_ms: 34.276875
+  type: 'test'
+  ...
+# Subtest: pipeline abort drains nested owners even when every handler remains opaque
+ok 26 - pipeline abort drains nested owners even when every handler remains opaque
+  ---
+  duration_ms: 18.716708
+  type: 'test'
+  ...
+# Subtest: opaque pending input and iterator return do not delay owned cleanup on cancel
+ok 27 - opaque pending input and iterator return do not delay owned cleanup on cancel
+  ---
+  duration_ms: 17.808583
+  type: 'test'
+  ...
+# Subtest: opaque sink rejection is observed without skipping cleanup or altering captured bytes
+ok 28 - opaque sink rejection is observed without skipping cleanup or altering captured bytes
+  ---
+  duration_ms: 34.801292
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows owned | pass
+ok 29 - registered cleanup follows owned | pass
+  ---
+  duration_ms: 16.749209
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows (owned)
+ok 30 - registered cleanup follows (owned)
+  ---
+  duration_ms: 17.987875
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows f() { owned; }; f
+ok 31 - registered cleanup follows f() { owned; }; f
+  ---
+  duration_ms: 18.014875
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows eval owned
+ok 32 - registered cleanup follows eval owned
+  ---
+  duration_ms: 17.317417
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows . /owned.sh
+ok 33 - registered cleanup follows . /owned.sh
+  ---
+  duration_ms: 16.874958
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows source /owned.sh
+ok 34 - registered cleanup follows source /owned.sh
+  ---
+  duration_ms: 17.576083
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows say $(owned)
+ok 35 - registered cleanup follows say $(owned)
+  ---
+  duration_ms: 16.636583
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows bash -c owned
+ok 36 - registered cleanup follows bash -c owned
+  ---
+  duration_ms: 17.678875
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows command owned
+ok 37 - registered cleanup follows command owned
+  ---
+  duration_ms: 17.757834
+  type: 'test'
+  ...
+# Subtest: pipeline output and shared output accounting preserve exact bytes after delayed drain
+ok 38 - pipeline output and shared output accounting preserve exact bytes after delayed drain
+  ---
+  duration_ms: 34.933708
+  type: 'test'
+  ...
+# Subtest: R1 immediate dispose completes already-queued middleware plugin setup and releases its lease
+ok 39 - R1 immediate dispose completes already-queued middleware plugin setup and releases its lease
+  ---
+  duration_ms: 1.33575
+  type: 'test'
+  ...
+# Subtest: R1 async admitted setup can register after acquisition without reopening external admission
+ok 40 - R1 async admitted setup can register after acquisition without reopening external admission
+  ---
+  duration_ms: 2.342417
+  type: 'test'
+  ...
+# Subtest: R1 multiple queued asynchronous setups finish before reverse plugin disposal
+ok 41 - R1 multiple queued asynchronous setups finish before reverse plugin disposal
+  ---
+  duration_ms: 0.302875
+  type: 'test'
+  ...
+# Subtest: R1 saved completed setup hosts do not borrow another setup's disposal admission
+ok 42 - R1 saved completed setup hosts do not borrow another setup's disposal admission
+  ---
+  duration_ms: 5.963584
+  type: 'test'
+  ...
+# Subtest: R1 runtime-supported nested plugin setup remains tracked through asynchronous descendants
+ok 43 - R1 runtime-supported nested plugin setup remains tracked through asynchronous descendants
+  ---
+  duration_ms: 0.76425
+  type: 'test'
+  ...
+# Subtest: R1 preserves explicit setup rejection Error: explicit setup failure and successful prior disposal
+ok 44 - R1 preserves explicit setup rejection Error: explicit setup failure and successful prior disposal
+  ---
+  duration_ms: 0.614708
+  type: 'test'
+  ...
+# Subtest: R1 preserves explicit setup rejection undefined and successful prior disposal
+ok 45 - R1 preserves explicit setup rejection undefined and successful prior disposal
+  ---
+  duration_ms: 0.493417
+  type: 'test'
+  ...
+# Subtest: R1 preserves explicit setup rejection null and successful prior disposal
+ok 46 - R1 preserves explicit setup rejection null and successful prior disposal
+  ---
+  duration_ms: 0.601416
+  type: 'test'
+  ...
+# Subtest: R1 immediate dispose preserves explicit failure compatibility after a queued successful setup
+ok 47 - R1 immediate dispose preserves explicit failure compatibility after a queued successful setup
+  ---
+  duration_ms: 0.363333
+  type: 'test'
+  ...
+# Subtest: R1 completed setup disposal still drains reverse callbacks and aggregates exact failure
+ok 48 - R1 completed setup disposal still drains reverse callbacks and aggregates exact failure
+  ---
+  duration_ms: 0.743959
+  type: 'test'
+  ...
+# Subtest: cleanup is registered before acquisition and delays normal public settlement
+ok 49 - cleanup is registered before acquisition and delays normal public settlement
+  ---
+  duration_ms: 4.512667
+  type: 'test'
+  ...
+# Subtest: caller cancellation drains middleware hooks without waiting opaque next
+ok 50 - caller cancellation drains middleware hooks without waiting opaque next
+  ---
+  duration_ms: 1.707625
+  type: 'test'
+  ...
+# Subtest: normal completion seals saved registration and invoke before input acquisition
+ok 51 - normal completion seals saved registration and invoke before input acquisition
+  ---
+  duration_ms: 0.782792
+  type: 'test'
+  ...
+# Subtest: all cleanup failures survive undefined and null without hiding nonzero results
+ok 52 - all cleanup failures survive undefined and null without hiding nonzero results
+  ---
+  duration_ms: 0.987667
+  type: 'test'
+  ...
+# Subtest: dispose closes admissions and shares the active cleanup barrier before plugins
+ok 53 - dispose closes admissions and shares the active cleanup barrier before plugins
+  ---
+  duration_ms: 1.24875
+  type: 'test'
+  ...
+# Subtest: invoke preserves literal argv and uses fresh middleware resolution
+ok 54 - invoke preserves literal argv and uses fresh middleware resolution
+  ---
+  duration_ms: 5.312875
+  type: 'test'
+  ...
+# Subtest: invoke inherits stdin and supports byte sink overrides
+ok 55 - invoke inherits stdin and supports byte sink overrides
+  ---
+  duration_ms: 2.195208
+  type: 'test'
+  ...
+# Subtest: invoke isolates child cwd, environment, functions and exit flow
+ok 56 - invoke isolates child cwd, environment, functions and exit flow
+  ---
+  duration_ms: 3.567375
+  type: 'test'
+  ...
+# Subtest: invoke shares command and output budgets
+ok 57 - invoke shares command and output budgets
+  ---
+  duration_ms: 2.4985
+  type: 'test'
+  ...
+# Subtest: invoke propagates cancellation through nested commands
+ok 58 - invoke propagates cancellation through nested commands
+  ---
+  duration_ms: 0.608584
+  type: 'test'
+  ...
+# Subtest: invoke unknown commands and recursive hooks use normal statuses and limits
+ok 59 - invoke unknown commands and recursive hooks use normal statuses and limits
+  ---
+  duration_ms: 1.687291
+  type: 'test'
+  ...
+# Subtest: hard-timeout lifecycle regression: cleanup-abort
+ok 60 - hard-timeout lifecycle regression: cleanup-abort
+  ---
+  duration_ms: 207.967459
+  type: 'test'
+  ...
+# Subtest: hard-timeout lifecycle regression: cleanup-late-rejection
+ok 61 - hard-timeout lifecycle regression: cleanup-late-rejection
+  ---
+  duration_ms: 210.0875
+  type: 'test'
+  ...
+# Subtest: hard-timeout lifecycle regression: shared-delayed-generator
+ok 62 - hard-timeout lifecycle regression: shared-delayed-generator
+  ---
+  duration_ms: 163.412708
+  type: 'test'
+  ...
+# Subtest: hard-timeout lifecycle regression: shared-serialized
+ok 63 - hard-timeout lifecycle regression: shared-serialized
+  ---
+  duration_ms: 181.852084
+  type: 'test'
+  ...
+# Subtest: hard-timeout lifecycle regression: shared-repeated-cancellation
+ok 64 - hard-timeout lifecycle regression: shared-repeated-cancellation
+  ---
+  duration_ms: 176.894791
+  type: 'test'
+  ...
+# Subtest: hard-timeout lifecycle regression: shared-abandoned-rejection
+ok 65 - hard-timeout lifecycle regression: shared-abandoned-rejection
+  ---
+  duration_ms: 230.531875
+  type: 'test'
+  ...
+# Subtest: hard-timeout lifecycle regression: shared-retained-rejection
+ok 66 - hard-timeout lifecycle regression: shared-retained-rejection
+  ---
+  duration_ms: 235.539291
+  type: 'test'
+  ...
+# Subtest: hard-timeout lifecycle regression: owned-cleanup-abort
+ok 67 - hard-timeout lifecycle regression: owned-cleanup-abort
+  ---
+  duration_ms: 144.092417
+  type: 'test'
+  ...
+# Subtest: hard-timeout lifecycle regression: busy-loop-abort
+ok 68 - hard-timeout lifecycle regression: busy-loop-abort
+  ---
+  duration_ms: 145.552333
+  type: 'test'
+  ...
+# Subtest: write-only redirects never read and retain independent/duplicated offsets
+ok 69 - write-only redirects never read and retain independent/duplicated offsets
+  ---
+  duration_ms: 4.76575
+  type: 'test'
+  ...
+# Subtest: offset and append descriptors interleave correctly without reading files
+ok 70 - offset and append descriptors interleave correctly without reading files
+  ---
+  duration_ms: 2.855458
+  type: 'test'
+  ...
+# Subtest: cancelled queued readers cannot bypass an active shared read
+ok 71 - cancelled queued readers cannot bypass an active shared read
+  ---
+  duration_ms: 0.62325
+  type: 'test'
+  ...
+# Subtest: input errors still close their owned iterator exactly once
+ok 72 - input errors still close their owned iterator exactly once
+  ---
+  duration_ms: 0.3725
+  type: 'test'
+  ...
+# Subtest: pipeline completion preserves independent producer effects: { :; : >after; } | :
+ok 73 - pipeline completion preserves independent producer effects: { :; : >after; } | :
+  ---
+  duration_ms: 23.686959
+  type: 'test'
+  ...
+# Subtest: pipeline completion preserves independent producer effects: { :; : >after; } | : | :
+ok 74 - pipeline completion preserves independent producer effects: { :; : >after; } | : | :
+  ---
+  duration_ms: 12.074208
+  type: 'test'
+  ...
+# Subtest: pipeline completion preserves independent producer effects: printf abc >out | true
+ok 75 - pipeline completion preserves independent producer effects: printf abc >out | true
+  ---
+  duration_ms: 9.866417
+  type: 'test'
+  ...
+# Subtest: pipeline completion preserves independent producer effects: set -o pipefail; { true; false; } | true
+ok 76 - pipeline completion preserves independent producer effects: set -o pipefail; { true; false; } | true
+  ---
+  duration_ms: 9.154125
+  type: 'test'
+  ...
+# Subtest: downstream exit does not interrupt an upstream asynchronous effect
+ok 77 - downstream exit does not interrupt an upstream asynchronous effect
+  ---
+  duration_ms: 2.5125
+  type: 'test'
+  ...
+# Subtest: a producer that writes a broken pipe cannot continue later effects
+ok 78 - a producer that writes a broken pipe cannot continue later effects
+  ---
+  duration_ms: 1.087583
+  type: 'test'
+  ...
+# Subtest: signal-only upstream remains pending until the caller cancels
+ok 79 - signal-only upstream remains pending until the caller cancels
+  ---
+  duration_ms: 11.612542
+  type: 'test'
+  ...
+# Subtest: cooperative yielding preserves exact command budget 0
+ok 80 - cooperative yielding preserves exact command budget 0
+  ---
+  duration_ms: 0.834542
+  type: 'test'
+  ...
+# Subtest: cooperative yielding preserves exact command budget 127
+ok 81 - cooperative yielding preserves exact command budget 127
+  ---
+  duration_ms: 10.575334
+  type: 'test'
+  ...
+# Subtest: cooperative yielding preserves exact command budget 128
+ok 82 - cooperative yielding preserves exact command budget 128
+  ---
+  duration_ms: 6.6065
+  type: 'test'
+  ...
+# Subtest: cooperative yielding preserves exact command budget 129
+ok 83 - cooperative yielding preserves exact command budget 129
+  ---
+  duration_ms: 9.751291
+  type: 'test'
+  ...
+# Subtest: cooperative yielding preserves exact command budget 256
+ok 84 - cooperative yielding preserves exact command budget 256
+  ---
+  duration_ms: 9.6165
+  type: 'test'
+  ...
+# Subtest: cooperative yielding preserves the loop iteration budget
+ok 85 - cooperative yielding preserves the loop iteration budget
+  ---
+  duration_ms: 9.092708
+  type: 'test'
+  ...
+# Subtest: cancelling an active input view preserves its pending byte for the next reader
+ok 86 - cancelling an active input view preserves its pending byte for the next reader
+  ---
+  duration_ms: 0.35
+  type: 'test'
+  ...
+# Subtest: cancelled active input late rejection stays observed, retained=false
+ok 87 - cancelled active input late rejection stays observed, retained=false
+  ---
+  duration_ms: 0.436708
+  type: 'test'
+  ...
+# Subtest: cancelled active input late rejection stays observed, retained=true
+ok 88 - cancelled active input late rejection stays observed, retained=true
+  ---
+  duration_ms: 0.339584
+  type: 'test'
+  ...
+# Subtest: pipes preserve bytes and launch downstream before upstream completes
+ok 89 - pipes preserve bytes and launch downstream before upstream completes
+  ---
+  duration_ms: 10.816375
+  type: 'test'
+  ...
+# Subtest: early downstream exit and unused pipeline input do not deadlock
+ok 90 - early downstream exit and unused pipeline input do not deadlock
+  ---
+  duration_ms: 8.935458
+  type: 'test'
+  ...
+# Subtest: pipeline redirects replace endpoints without leaving blocked writers
+ok 91 - pipeline redirects replace endpoints without leaving blocked writers
+  ---
+  duration_ms: 2.427125
+  type: 'test'
+  ...
+# Subtest: streaming external sinks receive exact bytes and results retain captures
+ok 92 - streaming external sinks receive exact bytes and results retain captures
+  ---
+  duration_ms: 1.255917
+  type: 'test'
+  ...
+# Subtest: AbortSignal reaches commands and releases blocked pipelines
+ok 93 - AbortSignal reaches commands and releases blocked pipelines
+  ---
+  duration_ms: 1.800542
+  type: 'test'
+  ...
+# Subtest: output, command, loop, source and expansion budgets reject deterministically
+ok 94 - output, command, loop, source and expansion budgets reject deterministically
+  ---
+  duration_ms: 4.132542
+  type: 'test'
+  ...
+# Subtest: middleware, asynchronous plugins and filesystem factories compose
+ok 95 - middleware, asynchronous plugins and filesystem factories compose
+  ---
+  duration_ms: 0.695292
+  type: 'test'
+  ...
+# Subtest: parallel exec calls cannot leak environment, cwd or status
+ok 96 - parallel exec calls cannot leak environment, cwd or status
+  ---
+  duration_ms: 8.013333
+  type: 'test'
+  ...
+1..96
+# tests 96
+# suites 0
+# pass 96
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1942.537
+{"code":0,"signal":null,"timedOut":false,"deadlineMs":60000}

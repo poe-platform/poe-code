@@ -1,0 +1,29 @@
+{
+  "id": "strings-file-label-offsets",
+  "args": [
+    "-af",
+    "-t",
+    "x",
+    "one",
+    "two"
+  ],
+  "locale": "C",
+  "inputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "fileHashes": {
+    "one": "1007353d1896c149362573ee830fa417daa4bf1cd65b2bb52a233471bf8e0db6",
+    "two": "103ad10ff134bf884bee12d53a26728570c1ebe5c02d8cc1addb081c65789dc5"
+  },
+  "originalExpected": {
+    "stdoutHex": "6f6e653a20202020202020312048454c4c4f0a74776f3a202020202020203020574f524c440a",
+    "stderrHex": "",
+    "exitCode": 0
+  },
+  "expected": {
+    "stdoutHex": "6f6e653a20202020202020312048454c4c4f0a74776f3a202020202020203020574f524c440a",
+    "stderrHex": "",
+    "exitCode": 0
+  },
+  "differences": [],
+  "signal": null,
+  "error": null
+}

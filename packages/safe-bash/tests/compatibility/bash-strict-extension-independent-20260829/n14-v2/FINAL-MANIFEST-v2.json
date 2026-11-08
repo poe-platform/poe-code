@@ -1,0 +1,12 @@
+{
+  "priorManifestSha256": "c471ecf8d9582fb7fed677ef25e734b51ab8f988a9e55a2c853489016cbdcabb",
+  "priorManifestPath": "FINAL-MANIFEST.json",
+  "added": [
+    {
+      "path": "PUBLICATION-CONTINUATION.json",
+      "bytes": 571,
+      "sha256": "4b95f491376b9af586189f4cc23eb59c69768f4674b28409a97dc1bf637e95ec"
+    }
+  ],
+  "authority": "Additive evidence, originals unchanged"
+}

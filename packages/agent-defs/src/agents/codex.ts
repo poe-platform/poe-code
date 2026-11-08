@@ -1,0 +1,28 @@
+import type { AgentDefinition } from "../types.js";
+
+export const codexAgent: AgentDefinition = {
+  id: "codex",
+  name: "codex",
+  label: "Codex",
+  summary: "OpenAI's coding agent for the terminal.",
+  binaryName: "codex",
+  apiShapes: ["openai-responses"],
+  otelCapture: {
+    args: (endpoint, content) => [
+      "-c",
+      `otel.trace_exporter={"otlp-http"={endpoint=${JSON.stringify(`${endpoint}/v1/traces`)},protocol="json"}}`,
+      "-c",
+      `otel.exporter={"otlp-http"={endpoint=${JSON.stringify(`${endpoint}/v1/logs`)},protocol="json"}}`,
+      "-c",
+      `otel.log_user_prompt=${content}`
+    ]
+  },
+  configPath: "~/.codex/config.toml",
+  capabilities: ["spawn", "configure", "install", "test", "skill", "mcp"],
+  branding: {
+    colors: {
+      dark: "#D5D9DF",
+      light: "#7A7F86"
+    }
+  }
+};

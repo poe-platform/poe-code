@@ -1,0 +1,10 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+const home=path.dirname(fileURLToPath(import.meta.url));
+const rows=JSON.parse(fs.readFileSync(home+'/m01-INVENTORY.json'));
+const prefix='tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/';
+const selected=rows.filter(row=>row.path.startsWith(prefix)&&(!row.path.includes('/raw/')||/\/raw\/controls\.(stdout|stderr)$/u.test(row.path))&&!row.path.includes('/evidence/'));
+if(selected.length>80||selected.some(row=>row.mode!=='100644'||row.kind!=='blob'||row.bytes>1048576)||selected.reduce((sum,row)=>sum+row.bytes,0)>2097152)throw Error('selection cap');
+fs.writeFileSync(home+'/m02-SPECS.json',JSON.stringify(selected.map(row=>row.oid),null,2)+'\n',{flag:'wx'});
+fs.writeFileSync(home+'/SELECTED.json',JSON.stringify(selected,null,2)+'\n',{flag:'wx'});console.log(JSON.stringify({files:selected.length,bytes:selected.reduce((sum,row)=>sum+row.bytes,0)}));

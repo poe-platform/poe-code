@@ -1,0 +1,24 @@
+{
+  "schema": "node-abi-repair-reuse-v2",
+  "baselineCode": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+  "baselineHandoff": "5aeb915c39612a0e04021818af1251e8f3d78973",
+  "independentFailureCommit": "790a4412198cbe1a9b5b03fcc75aa8d1fcdfd1b9",
+  "changedExecutableFiles": [
+    "supervisor.mjs.data",
+    "child.mjs.data"
+  ],
+  "unchangedExecutableFiles": [
+    "loader.mjs.data",
+    "reference-entry.mjs.data"
+  ],
+  "changes": [
+    "child acquisition/listeners/containment/outer retirement",
+    "strict whole receipt composition and case reconciliation",
+    "raw stats artifact and nonexecuting observations for reconciliation"
+  ],
+  "guestSourcesChanged": false,
+  "plannedEvaluations": 8,
+  "F03F07OrderCasesAdded": 0,
+  "limitsChanged": false,
+  "priorReviewIsNotRepairApproval": true
+}

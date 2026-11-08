@@ -1,0 +1,32 @@
+{
+  "sealedAt": "2026-08-27T09:32:06.023Z",
+  "identity": {
+    "reviewer": "01a0426e-7ffc-75e2-97a7-2c875e1a0afb",
+    "migrationAuthor": "01a0427f-0535-7e03-83e8-eac693a4d417",
+    "role": "Independent semantics reviewer; not migration author or Curie; no delegation"
+  },
+  "candidate": "f5341340bcbc9e4c4d46d6eb3f1759da73713097",
+  "source": "c7823633ee99f711f1319ace59d4cf2b7f622ecc",
+  "verdict": "ACCEPT exact two canonical migrations only; not integration/default68 acceptance",
+  "files": {
+    "FREEZE.json": "9f7782eeea053d45f6feea27429f3fe2a5d2bf3343dcfd3ea00335e1cc57559d",
+    "README.md": "a45f036fba80a4f7badd145f7b0405e2fea60a4d01170273408e99a85b673b48",
+    "REFERENCES.json": "ea592c8498f654de093d433c2116212a71d16ccd8bbe6e295f3e120b8716081f",
+    "RESULTS.json": "7a15729f103ea176fc8a61eadc552982668fdb45dd11e88d81ac894d99435b99",
+    "candidate.patch": "bd1f5a6270e7c96e6c2a9f8cad0c254bb8619957117920634f0ee486d2518e07",
+    "canonical223.json": "77e8e150e59f6a0ca71177bb6d619941bca0c8a498775df2ee4c57edbf161067",
+    "canonical223.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "canonical223.stdout": "1a466eafb7e23f38951ce24f8965c155f74995de6261c371daf2cea08cd012da",
+    "guard.mjs": "7bd9c0e78123a277121a04912b8808825bf29a3327103245349fe9e8b553edd6",
+    "review.mjs": "e748e435e6acfb19386db0d0410cde3b7e01c66b2635da90557e1c86b245f8ff",
+    "runtime-imports.jsonl": "4227867b8475f1f4fed86264a1f42e096cc2c2238612c8b10eda5b69f17d2c0c",
+    "scoped-types.json": "54f7d6157d3e20f93ff79aac9f11ac0e2d13d2d37159aec57cdf7b3b30b5454f",
+    "scoped-types.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "scoped-types.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "seal.mjs": "b431177d05c95ce4d22a466c03b734c1ca8629f2c2ddb4025e8db3f99f513b56",
+    "ATTEMPTS.md": "ca8b2e954fefaee76bf652a90a210ef526d04a6cbe9f409f789c276b14b284fb"
+  },
+  "rawDataFiles": [
+    "candidate.patch"
+  ]
+}

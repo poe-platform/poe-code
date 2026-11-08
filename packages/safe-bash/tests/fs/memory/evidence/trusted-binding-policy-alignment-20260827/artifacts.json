@@ -1,0 +1,14 @@
+{
+  "algorithm": "sha256",
+  "artifacts": {
+    "REPORT.md": "8ff891bc4c7c15fab888a695a110225a16f21203201d4e5fc90a8e35a24fcb78",
+    "after.json": "50a60143e967a85b9c5bc9e849db731e1e6c210240f2a2856ffd860dfbbf9353",
+    "before.json": "f012a1b193abe36a66a00cd4b025b38238c7ff200200cb58c2992e39b40101ce",
+    "characterization-probe.tap": "1e5e08aa7d95ee16e6f4e491a76cdd8ac52a856208c99efe7d64e7c07a87e5b5",
+    "characterization-probe.ts.txt": "d06bb8d401a69f41f1a82e7e52b66036df0f11a08eb4953952828521d27de604",
+    "characterizations13.tap": "7fbe4cbe0d55deab7ddc2d9a1acf17cf6bfc1f2bd5a4edf4f6f4428ce338a910",
+    "compliant145.tap": "167dcea97eba7074f64052de6c2e639eeef823c25af07794274c53eb42f48234",
+    "types.txt": "180aec34bc4a4c6984c301dfc86ff9f298700656d43d94f84af434febf07253c",
+    "unchanged-guards53.tap": "d548b7af16d363e855c14c5217363d0c160ad0d74e3f1c0f31534a6ccf6e61a7"
+  }
+}

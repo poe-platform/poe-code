@@ -1,0 +1,89 @@
+{
+  "args": [
+    "bench",
+    "long-linear",
+    "worker",
+    "1"
+  ],
+  "pid": 69659,
+  "readyAt": 44.63654100000076,
+  "killed": false,
+  "events": [
+    {
+      "event": "disconnect",
+      "values": [],
+      "at": 87.72933300000022
+    },
+    {
+      "event": "stdout-close"
+    },
+    {
+      "event": "stderr-close"
+    },
+    {
+      "event": "exit",
+      "values": [
+        0,
+        null
+      ],
+      "at": 89.70737499999996
+    },
+    {
+      "event": "close",
+      "code": 0,
+      "signal": null,
+      "at": 89.71254100000078
+    }
+  ],
+  "messages": [
+    {
+      "type": "ready"
+    },
+    {
+      "type": "done",
+      "result": {
+        "id": "long-linear",
+        "engine": "worker",
+        "pass": true,
+        "workMs": 0.5634590000000088,
+        "startupMs": 13.864250000000006,
+        "cleanupMs": 0.6415000000000077,
+        "streamIncludesAutomaticDisposal": false,
+        "repetitions": 3,
+        "exactOutputGateBeforeTiming": true,
+        "inputUtf8Bytes": 262088,
+        "inputUtf16Bytes": 524176,
+        "rows": 8,
+        "batches": 4,
+        "protocolHitBytes": 628,
+        "hits": 8,
+        "execCalls": 16,
+        "captureValues": 16,
+        "selectedBytes": 80,
+        "selectedSha256": "4e6666657d99ddb9d3220ca2ec2729f0426ae29a6b7da6c8f3133bca4c1018fd",
+        "serializedBytes": 649,
+        "serializedSha256": "5748d54efbe0ecfeeaa5ddb74fbfc549e7fb2c530616b93d04ab473ac635b060",
+        "metrics": {
+          "created": 1,
+          "terminated": 1,
+          "requests": 5,
+          "execCalls": 16,
+          "inputBytes": 524176,
+          "responseBytes": 628,
+          "startupMs": 13.672749999999994,
+          "workMs": 0.6800429999999977,
+          "terminationMs": 0.6329999999999956,
+          "peakInflight": 1,
+          "listenersAfter": 0,
+          "exitCode": 1
+        },
+        "rssAfter": 61308928
+      }
+    }
+  ],
+  "stderr": "",
+  "ipcBytes": 889,
+  "streamBytes": 0,
+  "code": 0,
+  "signal": null
+}

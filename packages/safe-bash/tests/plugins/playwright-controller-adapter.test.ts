@@ -1,0 +1,81 @@
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
+import { createPlaywrightAdapter, type PlaywrightAcquireOptions, type PlaywrightContext } from '../../src/playwright/index.js';
+import type { PlaywrightConsoleMessage, PlaywrightDialog, PlaywrightNetworkRequest, PlaywrightNetworkResponse, PlaywrightPage } from '../../src/playwright/adapter.js';
+
+type ContextListenerArguments =
+  | [event: 'close', listener: () => void]
+  | [event: 'page', listener: (page: PlaywrightPage) => void]
+  | [event: 'dialog', listener: (dialog: PlaywrightDialog) => void]
+  | [event: 'request', listener: (request: PlaywrightNetworkRequest) => void]
+  | [event: 'response', listener: (response: PlaywrightNetworkResponse) => void]
+  | [event: 'console', listener: (message: PlaywrightConsoleMessage) => void];
+
+test('malformed acquisition options are rejected before invoking trusted sources', async () => {
+  let calls = 0;
+  const adapter = createPlaywrightAdapter({ chromium: { headed: true, async acquireBrowser() { calls++; throw new Error('effect'); } } });
+  const request = { acquisitionId: 'a1', session: 'demo', browser: 'chromium', headless: true, signal: new AbortController().signal };
+  for (const override of [{ headless: 'yes' }, { session: '' }, { acquisitionId: '' }, { channel: 'chrome' }, { signal: undefined }]) {
+    await assert.rejects(adapter.acquire({ ...request, ...override } as unknown as PlaywrightAcquireOptions));
+  }
+  assert.equal(calls, 0);
+});
+
+test('invalid capability declarations are refused rather than normalized', () => {
+  const acquireBrowser = async () => { throw new Error('unused'); };
+  for (const sources of [{ chromium: { headed: 'yes', acquireBrowser } }, { chrome: { acquireBrowser } }, { chromium: { acquireBrowser, channel: 'chrome' } }]) {
+    assert.throws(() => createPlaywrightAdapter(sources as unknown as Parameters<typeof createPlaywrightAdapter>[0]));
+  }
+});
+
+test('failed context retirement still detaches a released borrowed lease and preserves its cause', async () => {
+  const closeError = new Error('context retirement failed');
+  const browserListeners = new Set<() => void>();
+  const contextListeners = new Set<() => void>();
+  let releases = 0;
+  let notifications = 0;
+  const context: PlaywrightContext = {
+    newPage: async () => { throw new Error('unused'); }, pages: () => [],
+    close: async () => { throw closeError; },
+    on(...[event, listener]: ContextListenerArguments) { if (event === 'close') contextListeners.add(listener); },
+    off(...[event, listener]: ContextListenerArguments) { if (event === 'close') contextListeners.delete(listener); },
+  };
+  const adapter = createPlaywrightAdapter({ chromium: { async acquireBrowser() {
+    return {
+      browser: {
+        isConnected: () => true, newContext: async () => context,
+        on: (_event, listener) => { browserListeners.add(listener); },
+        off: (_event, listener) => { browserListeners.delete(listener); },
+      },
+      release: async () => { releases++; },
+    };
+  } } });
+  const lease = await adapter.acquire({ acquisitionId: 'a1', session: 'borrowed', browser: 'chromium', headless: true, signal: new AbortController().signal });
+  lease.onClosed(() => { notifications++; });
+  const retirement = lease.release();
+  assert.equal(lease.release(), retirement);
+  await assert.rejects(retirement, error => error === closeError);
+  assert.equal(releases, 1);
+  assert.equal(browserListeners.size, 0);
+  assert.equal(contextListeners.size, 0);
+  assert.equal(notifications, 1);
+  lease.onClosed(() => { notifications++; });
+  assert.equal(notifications, 2);
+});
+
+for (const maxPages of [Infinity, 65, 2]) test(`code execution forwards page limit ${maxPages}`, async () => {
+  let received: number | undefined;
+  const page = { url: () => 'about:blank' } as PlaywrightPage;
+  const context: PlaywrightContext = { newPage: async () => page, pages: () => [page], close: async () => {}, on() {}, off() {} };
+  const adapter = createPlaywrightAdapter({ chromium: { async acquireBrowser() {
+    return { browser: { isConnected: () => true, newContext: async () => context, on() {}, off() {} },
+      async executeCode(options) { received = options.maxPages; return 'complete'; }, async release() {} };
+  } } });
+  const signal = new AbortController().signal;
+  const lease = await adapter.acquire({ acquisitionId: 'page-limit', session: 'demo', browser: 'chromium', headless: true, signal });
+  try {
+    assert.equal(await lease.executeCode!({ page, source: 'async page => 1', signal, timeoutMs: Infinity, maxOutputBytes: 1024, maxPages }), 'complete');
+    assert.equal(received, maxPages);
+    for (const invalid of [0, -1, NaN, -Infinity, 1.5]) await assert.rejects(lease.executeCode!({ page, source: 'async page => 1', signal, timeoutMs: 1000, maxOutputBytes: 1024, maxPages: invalid }), /Invalid Playwright code execution options/);
+  } finally { await lease.release(); }
+});

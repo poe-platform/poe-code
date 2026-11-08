@@ -1,0 +1,1849 @@
+{
+  "task": "chart-rendering",
+  "status": "incomplete",
+  "source": {
+    "gnumericVersion": "1.12.61",
+    "gnumericArchiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+    "gofficeVersion": "0.10.61",
+    "gofficeArchiveSha256": "558597fd9ca59b93ff562750218d1e7ea8ec3c8d0ed6a5cc096aa715ef909a15",
+    "algorithms": [
+      {
+        "file": "goffice/graph/gog-axis.c",
+        "sha256": "8322dcc2942857284c81d21a1e7504fce03af56beebd97a4719bdf4a19ec6eac"
+      },
+      {
+        "file": "goffice/utils/go-geometry.c",
+        "sha256": "e430f7672379066e4672dbdef127ca2beb9c62ce51e14e7aac0863f597d12267"
+      },
+      {
+        "file": "plugins/plot_pie/gog-pie.c",
+        "sha256": "23dbca3ea8260bd07840b542c61fc5facf1ca2261371ca83cb44cc21898b0404"
+      },
+      {
+        "file": "goffice/utils/go-marker.c",
+        "sha256": "2e174f9c383dfda916eff91965dd8dd327d01e05cf2eaed228988dca1be9bb2c"
+      },
+      {
+        "file": "goffice/graph/gog-chart-map.c",
+        "sha256": "a4a324100b30ef43431a37c1b963109e5f9313a355820d13f3a2e8d674e7795b"
+      },
+      {
+        "file": "goffice/graph/gog-error-bar.c",
+        "sha256": "90f4db972d924781be90f294a01e18e2ac1af2f0c6a7eb8cb9a30306b491c570"
+      }
+    ],
+    "archiveMemberAuthentication": {
+      "files": 38,
+      "status": "all inventoried source/manifest bytes match authenticated archive members"
+    }
+  },
+  "nativeQaProfile": {
+    "role": "QA oracle only; no product dependency or fallback",
+    "container": "ssconvert-statistics-qa",
+    "dockerContext": "colima",
+    "platform": "Linux aarch64",
+    "binary": "/out/ssconvert-statistics-oracle/prefix/bin/ssconvert",
+    "binarySha256": "104f1e5500432c95ac3d46a679d476d05d2bf84e7483e991d212703cb0ed131c",
+    "gofficeLibrarySha256": "0625c2d6a8431f0065870aafcba752b01836e2c29293d6a2912b9f80215fab42",
+    "dependencies": {
+      "pangocairo": "1.56.3",
+      "cairo": "1.18.4",
+      "fontconfig": "2.15.0",
+      "freetype2PkgConfig": "26.2.20",
+      "glib": "2.84.4"
+    },
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "GSETTINGS_SCHEMA_DIR": "/out/ssconvert-statistics-oracle/prefix/share/glib-2.0/schemas",
+      "GSETTINGS_BACKEND": "memory",
+      "LD_LIBRARY_PATH": "/out/ssconvert-statistics-oracle/prefix/lib",
+      "HOME": "/out/ssconvert-chart-rendering/home",
+      "XDG_CONFIG_HOME": "/out/ssconvert-chart-rendering/config",
+      "XDG_DATA_HOME": "/out/ssconvert-chart-rendering/data",
+      "XDG_CACHE_HOME": "/out/ssconvert-chart-rendering/cache"
+    },
+    "fontMatch": "DejaVuSans.ttf: DejaVu Sans Book",
+    "qualification": "separate from reference-profile.json freshRuntime; host profile not interchangeable",
+    "fonts": [
+      {
+        "path": "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "sha256": "57f73e11f51999432bf7ab22ce55b6f945d5eca1bf824404cfa9ec2e3718c84e"
+      }
+    ],
+    "rounding": {
+      "HAVE_RINT": true,
+      "mode": "default FE_TONEAREST assumed; mutable floating environment unqualified"
+    },
+    "linkedLibraries": [
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/libspreadsheet-1.12.61.so",
+        "sha256": "b429e875c714d8eab593a878b0b2fb15e35a8bdec332301a9c63d4d9cc6009a0"
+      },
+      {
+        "path": "/out/ssconvert-statistics-oracle/prefix/lib/libgoffice-0.10.so.10",
+        "sha256": "0625c2d6a8431f0065870aafcba752b01836e2c29293d6a2912b9f80215fab42"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libgsf-1.so.114",
+        "sha256": "6e7e0fd425c4c794e6958a9476bb09104a87e1488e89410f55d27cb0f80e4c28"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libgtk-3.so.0",
+        "sha256": "7b26385c4944997b1eb1dde04112d50d3d113c87dc9b2e5191600c9fab1b62c4"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libgobject-2.0.so.0",
+        "sha256": "1e0f94a31513dc217b17aa995af65d19f938ef023648c8f22ccacb3f7d4def2f"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libglib-2.0.so.0",
+        "sha256": "a8458849feaa22469c20baf36917c3538bf75d52da710097b5829b6d4a95a6d1"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libc.so.6",
+        "sha256": "70fa4c4cf57eabeb96097cce47582d02379c4cd1de3db3e98ade4dd7089a1b13"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libxml2.so.2",
+        "sha256": "1729c2e360adc7a56b1358758234bca7395c2b990bb8cf5acb4218d06839602d"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libgmodule-2.0.so.0",
+        "sha256": "81469dcde80a41b2277563912d428ecbdd006694aa60d6d801d4b233a117cd08"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libgdk-3.so.0",
+        "sha256": "4e6c156bd76bf00ad727cdf5f9760e75da00b4c7f6798aeac97330f171c31be0"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libpangocairo-1.0.so.0",
+        "sha256": "0a2421f1c23b7b0456136f12d453e98888f5c8a26cfdba58e9bb697e2947ffa5"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libpango-1.0.so.0",
+        "sha256": "df07bdd25d01d963733956c0947a7ae717ff7b147987417d54acc95384a04233"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libatk-1.0.so.0",
+        "sha256": "256545424d7451824177845375f943428118036c3bdbba679f4888670cabe1d5"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libcairo.so.2",
+        "sha256": "b521e34150ccce3a2338197bcb399ea13b4ccef6d3e1e5ce406fd7eef1c35de6"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libgdk_pixbuf-2.0.so.0",
+        "sha256": "16d15168c69d4ad61862462da9fe811b5be3bef898b940a4023e15b039f5b43c"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libgio-2.0.so.0",
+        "sha256": "9d86f5b4be765956f050fc52a948c2c3fd47064a495f6bcdd44738c726bc6a77"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libm.so.6",
+        "sha256": "a8afb2d1f4a0c5e14c0fc82f794ec839eafe29738907aa92895410f57630bbe2"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libxslt.so.1",
+        "sha256": "6de387da6d8dc5c4d434e169ba156d87456bdcad52873869edd6e11deefeb042"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/librsvg-2.so.2",
+        "sha256": "86a4abcfbc9cecb695330afb5f5d7b45b6a265a6d82bcd4d05da136ec38626d7"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libz.so.1",
+        "sha256": "6fe00acadf8119ff245855e5dcc7f26c6c0ffaf4bfa2baa88feab58f23727d65"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libbz2.so.1.0",
+        "sha256": "810fa9b02adc39be4a7542bde79f1da0575e9bbdf8fc3c27deeb1ee97f59fe46"
+      },
+      {
+        "path": "/lib/ld-linux-aarch64.so.1",
+        "sha256": "1b882eddacd494b060413a8aa4f0a4754ee3f84775e68cecbf8a86092b59cca6"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libharfbuzz.so.0",
+        "sha256": "49fa0c14f82e02af0e147b86be18055f28b85539cf3f151adf552b1d9885458c"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libpangoft2-1.0.so.0",
+        "sha256": "732e5e0a7abb18cc4bb229248d3c4e5ab98682ebe9072333366ac87f878b7db2"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libfontconfig.so.1",
+        "sha256": "6a9db1b9262267a0c291de43c0e827263fed8d3f39138d1d7853d2a8d45ba8ad"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libfribidi.so.0",
+        "sha256": "9cfcdfa3bc7b3805923034a61d7e36b914251b2eb8e50bc6cd9621c10215a720"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libcairo-gobject.so.2",
+        "sha256": "8774fb4e40d1abef82eaa2a6f42b2be9f1340c62d0a8efa1171d42b988b96e13"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libepoxy.so.0",
+        "sha256": "353deaad528597e58b65eb9f7a321eb2a45cb775c7cd05f4c69bbd8da56de18e"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libXi.so.6",
+        "sha256": "9acd854a82b89ad8e5287655d1f6e853eb211dbcc5225b9cee0288f7710bf761"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libX11.so.6",
+        "sha256": "94938979e2e2030f3471823a186eec66f994b128125ea2f4b4c18b502444b0a0"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libatk-bridge-2.0.so.0",
+        "sha256": "1ffdc45101000def35ecf0ac8b19aaba459c6a76d56e75f4d53abe3976a290b3"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libcloudproviders.so.0",
+        "sha256": "cce1cc0c45dabcc886d39488fb9b4c22e74f68f58a6e808232ce32d4a82e105c"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libXfixes.so.3",
+        "sha256": "6d8be637030dca8c9438bbe08874f0e93ba0f561732f3b1882767d9ed8557ac5"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libffi.so.8",
+        "sha256": "f0527ef7efeaf85fc2f5855d68fddb63bf7b3b90f1228c6b49fb6020b0dca490"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libatomic.so.1",
+        "sha256": "6465c95aef505776652e9caf582d54c67b8e6314ae5a26973bd188b8f5d56c8e"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libpcre2-8.so.0",
+        "sha256": "97b4e0f33829849a806c2d322f2febcd06c0cd5b22bff8c9422bf238ec265f75"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/liblzma.so.5",
+        "sha256": "4b40b41d7f4f982c6e544f2ff1c82e4d49654711f50631faf60cae830aa14f84"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libxkbcommon.so.0",
+        "sha256": "5c0339c4f349659393c1650cedbddddce7112ca5b9b884bef1f94d3ccc201380"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libwayland-client.so.0",
+        "sha256": "0c9584043ee044fbd6e23b00c3e04ec05c195a60fcec689a275065f15cb96670"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libwayland-cursor.so.0",
+        "sha256": "5320a163cc70dadbd77b1cc52171030e3f4946aea97eab865d5738be41fb2d43"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libwayland-egl.so.1",
+        "sha256": "f9d701f18fe0cebf561da071e84fcdbd2387c21793f03233a64d72fceecb409c"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libXext.so.6",
+        "sha256": "1c169c283fde27467ad2dc72e7efafe99881c973bb32f8779e02718b6027b651"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libXcursor.so.1",
+        "sha256": "69a0a80908bbd066a8f28a771047e827645738c25d89a7ba1d1eef7e0aaddf43"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libXdamage.so.1",
+        "sha256": "032523eb33646cf6e1fad0f6c966cd86b33e3979db8c4901647d30854ca2779e"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libXcomposite.so.1",
+        "sha256": "e24cb3d98fb587d5258a882a2515eae167545a65a6e2b12095382a8346b20a48"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libXrandr.so.2",
+        "sha256": "6c7d7daf03a9152be52a0666ac379922605414d77a5b85b32803e907fd2dd2b2"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libXinerama.so.1",
+        "sha256": "74d25813efc70fe32a23f4253c8000d2098366306887b5eb415bb8c7c6627aa6"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libthai.so.0",
+        "sha256": "d43ce32ea48bfb639c884200ed0a69efc61defb6ad7af48d96ba2e25053a89f7"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libpng16.so.16",
+        "sha256": "7113982f81eef42c185f09262d20cd7024da0919df0b092f7918768bad7d6e1e"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libfreetype.so.6",
+        "sha256": "037c1e131385f08bf00cf6159b5f4a8063876312787d754407ca228d75dafc3e"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libXrender.so.1",
+        "sha256": "33fe5e2aefc2e3b63699cc856a6703a871b6f54f8d187ce0424fae64042af102"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libxcb.so.1",
+        "sha256": "e8ede627b1ff9101854931904ee57a7c19ed2a359fa7bc2fb9522cf923950210"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libxcb-render.so.0",
+        "sha256": "d950ba98a821169bab5e2331c62d9d318d75fe26e09669dbc85bf997c78e00d0"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libxcb-shm.so.0",
+        "sha256": "70176ec6e656846387f537996bd5fdfabfcc174da6ba815f579f0ec98cc5fca0"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libpixman-1.so.0",
+        "sha256": "65d35c86104c4eef92fa3a6cdab0bb9a15e981ea95c6cef2cee8e9cc92efc197"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libjpeg.so.62",
+        "sha256": "c16e513a19cbc9a5a296d71000cf59b0221c66ae3c0d0305110a44662a4b9b87"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libmount.so.1",
+        "sha256": "8ae95c5bf1823240c271243dc8f69a7a6f5788bf478e1953b1bc8297acee3538"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libselinux.so.1",
+        "sha256": "18a3d9b827b34c87c51cd5954868a8bf9aa206717b414987074b5fb11f74e952"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libgcc_s.so.1",
+        "sha256": "9a146967dc38c3820c5dc21c3209812655f66b6551264072b187bd0e787947e0"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libdav1d.so.7",
+        "sha256": "de01e4bfa4f37cff13fec31c310fdf115e7c1342900452e4ae6c1e56bf7c844b"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libgraphite2.so.3",
+        "sha256": "42e818b1b54b1aab4093206e99bc03a5f1b7d9bf60b0303acc504013f4e16402"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libexpat.so.1",
+        "sha256": "fce86854472200d93318ae3fa39333025381e769cd1980810f804e49529fed48"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libatspi.so.0",
+        "sha256": "465b3abc9c4033f60999f089dc3bf414e1c2ced553e6b5f82021d55e85796b52"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libdbus-1.so.3",
+        "sha256": "33dc83ad1eb603068542245eab12d67bca6c6f8323c08fe4600ef3b0868966af"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libdatrie.so.1",
+        "sha256": "ee763715bba3095402e1d5713c95acbc1efaf47081e8c01b21ad27c2aa877a45"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libbrotlidec.so.1",
+        "sha256": "3ac5116be503e51a11954f9b4dff0932319368501eb26be8ff06f0618eac624e"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libXau.so.6",
+        "sha256": "66ba1611449064d4beb81d33d9200eed4cfad41771dbbf38895774690c29bb26"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libXdmcp.so.6",
+        "sha256": "d2374e9168c2d221a527088b18781cd11da9735b8053b8231359f4fe11428298"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libblkid.so.1",
+        "sha256": "d7c45dbfe33b6d0067a9a1fa7f73f4401bb662bc9efdb31ca8ce52f0ace33741"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libsystemd.so.0",
+        "sha256": "e3ecd5cf99aa5a9aa88422ab21bde152e998be07b38ebed7ac20cc7d2dd6fe8f"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libbrotlicommon.so.1",
+        "sha256": "077a32bb1d3d9b50d74d03aec2758c6ef94a422f28baab5fa6f3c04f1a0bc69e"
+      },
+      {
+        "path": "/lib/aarch64-linux-gnu/libcap.so.2",
+        "sha256": "2d74e5a4d536311c2e84d1603edb4c8dd7cdfaa92f1305ec4e317edcd062ddec"
+      }
+    ]
+  },
+  "plugins": [
+    {
+      "id": "GOffice_lasem",
+      "manifest": "plugins/lasem/plugin.xml.in",
+      "manifestSha256": "db18e18b802ec7bee2090dcb275b430205aa9da3a57f8fdd2bdfb3f8248caab4",
+      "installed": false,
+      "installedManifestSha256": null,
+      "services": [
+        {
+          "type": "component_engine",
+          "id": "GoLasemComponent"
+        },
+        {
+          "type": "component_type",
+          "id": "GoLasemComponent"
+        }
+      ],
+      "status": "open blocker: component absent in this native profile; rendering unimplemented",
+      "sourcePlotDefinitions": [],
+      "sourceAlgorithms": []
+    },
+    {
+      "id": "GOffice_plot_barcol",
+      "manifest": "plugins/plot_barcol/plugin.xml.in",
+      "manifestSha256": "54a8b804599cbd9e451291ddb2e2019e7d9c87e10a4ae99a5e9d2d1f1a1bb9a4",
+      "installed": true,
+      "installedManifestSha256": "f48224671f251c9a5bd552c83880ee298c9d1e20cd5a6dd8eb283999607cc893",
+      "services": [
+        {
+          "type": "plot_engine",
+          "id": "GogLinePlot"
+        },
+        {
+          "type": "plot_engine",
+          "id": "GogAreaPlot"
+        },
+        {
+          "type": "plot_engine",
+          "id": "GogBarColPlot"
+        },
+        {
+          "type": "plot_engine",
+          "id": "GogDropBarPlot"
+        },
+        {
+          "type": "plot_engine",
+          "id": "GogMinMaxPlot"
+        },
+        {
+          "type": "plot_type",
+          "id": "1.5d"
+        }
+      ],
+      "status": "open blocker: rendering unimplemented",
+      "sourcePlotDefinitions": [
+        "plugins/plot_barcol/plot-types.xml.in"
+      ],
+      "sourceAlgorithms": [
+        {
+          "file": "plugins/plot_barcol/gog-barcol.c",
+          "sha256": "ae71f8f1e7fce3548d919102dbddf3fdafb97c82e1c2b167179854166613b0a3",
+          "symbols": [
+            "gog_barcol_view_render"
+          ],
+          "coverage": "unimplemented and unmeasured"
+        },
+        {
+          "file": "plugins/plot_barcol/gog-dropbar.c",
+          "sha256": "4d2036dbf730a7b0eb1a649484bd9ebad74f71261a263217016bb8121b3baa8e",
+          "symbols": [
+            "gog_dropbar_view_render"
+          ],
+          "coverage": "unimplemented and unmeasured"
+        },
+        {
+          "file": "plugins/plot_barcol/gog-line.c",
+          "sha256": "adda8f87f053d3abee70fa46827a81af929783b467bb49a4c3ac3eea96e994b4",
+          "symbols": [
+            "gog_line_series_view_render",
+            "gog_area_series_update",
+            "gog_line_view_render"
+          ],
+          "coverage": "unimplemented and unmeasured"
+        },
+        {
+          "file": "plugins/plot_barcol/gog-minmax.c",
+          "sha256": "a63c85cb8f0920e1d868fd6349ec2ed9ee9db64b12992d8652da21c08f37954e",
+          "symbols": [
+            "gog_minmax_view_render"
+          ],
+          "coverage": "unimplemented and unmeasured"
+        }
+      ]
+    },
+    {
+      "id": "GOffice_plot_distrib",
+      "manifest": "plugins/plot_distrib/plugin.xml.in",
+      "manifestSha256": "7b9e42cb19ff852f83433478c458f4a34f08fe44cea779ff48fad37b28465255",
+      "installed": true,
+      "installedManifestSha256": "543b4cf53cba8f99093f8db297318c2297ccfef4234260ee29428f335e812bc6",
+      "services": [
+        {
+          "type": "plot_engine",
+          "id": "GogBoxPlot"
+        },
+        {
+          "type": "plot_engine",
+          "id": "GogHistogramPlot"
+        },
+        {
+          "type": "plot_engine",
+          "id": "GogProbabilityPlot"
+        },
+        {
+          "type": "plot_type",
+          "id": "boxplot"
+        }
+      ],
+      "status": "open blocker: rendering unimplemented",
+      "sourcePlotDefinitions": [
+        "plugins/plot_distrib/plot-types.xml.in"
+      ],
+      "sourceAlgorithms": [
+        {
+          "file": "plugins/plot_distrib/gog-boxplot.c",
+          "sha256": "19d304fbc99990fcb03dd595c0b2b6fe03509795e223c35aedb01883a5d0debe",
+          "symbols": [
+            "gog_box_plot_update",
+            "gog_box_plot_view_render",
+            "gog_box_plot_series_update"
+          ],
+          "coverage": "unimplemented and unmeasured"
+        },
+        {
+          "file": "plugins/plot_distrib/gog-histogram.c",
+          "sha256": "8b9e0f0b5f7a746929196e49a00c352b39d86ca9fd530f59351596e363c7009a",
+          "symbols": [
+            "gog_histogram_plot_update",
+            "gog_histogram_plot_view_render",
+            "gog_histogram_series_view_render",
+            "gog_histogram_plot_series_update"
+          ],
+          "coverage": "unimplemented and unmeasured"
+        },
+        {
+          "file": "plugins/plot_distrib/gog-probability-plot.c",
+          "sha256": "3063e6016ac1e1ee9d264af4aed4f6e50677262a10fe314d28a550f813865ab3",
+          "symbols": [
+            "gog_probability_plot_update",
+            "gog_probability_plot_view_render",
+            "gog_probability_plot_series_view_render",
+            "gog_probability_plot_series_update"
+          ],
+          "coverage": "unimplemented and unmeasured"
+        }
+      ]
+    },
+    {
+      "id": "GOffice_plot_pie",
+      "manifest": "plugins/plot_pie/plugin.xml.in",
+      "manifestSha256": "1466c1c143e6fb127e57f7030ad30368532be8e482a9c2289ac068782d567a06",
+      "installed": true,
+      "installedManifestSha256": "78b0ae28b3356f21e1eb2961ac21d6e046fbb5b8c1f532362a812ef179e71516",
+      "services": [
+        {
+          "type": "plot_engine",
+          "id": "GogRingPlot"
+        },
+        {
+          "type": "plot_engine",
+          "id": "GogPiePlot"
+        },
+        {
+          "type": "plot_type",
+          "id": "pie"
+        }
+      ],
+      "status": "open blocker: full rendering unimplemented; resolved single-ring wedge stage only",
+      "sourcePlotDefinitions": [
+        "plugins/plot_pie/plot-types.xml.in"
+      ],
+      "sourceAlgorithms": [
+        {
+          "file": "plugins/plot_pie/gog-pie.c",
+          "sha256": "23dbca3ea8260bd07840b542c61fc5facf1ca2261371ca83cb44cc21898b0404",
+          "symbols": [
+            "gog_pie_plot_update",
+            "gog_pie_view_render",
+            "gog_pie_series_update"
+          ],
+          "coverage": "resolved single-ring wedge stage unit-tested; full allocation/layout/rendering and native differential unmeasured"
+        }
+      ]
+    },
+    {
+      "id": "GOffice_plot_radar",
+      "manifest": "plugins/plot_radar/plugin.xml.in",
+      "manifestSha256": "61b5262b70f96a6310739dffec74baf55d683ef98fe6294fba9f1eb5e6ee19a4",
+      "installed": true,
+      "installedManifestSha256": "d7dd65cc7729f5f48fb017fd74740547efcc3890f9bb35531fbf0f124b868f5d",
+      "services": [
+        {
+          "type": "plot_engine",
+          "id": "GogRadarPlot"
+        },
+        {
+          "type": "plot_engine",
+          "id": "GogRadarAreaPlot"
+        },
+        {
+          "type": "plot_engine",
+          "id": "GogPolarPlot"
+        },
+        {
+          "type": "plot_engine",
+          "id": "GogColorPolarPlot"
+        },
+        {
+          "type": "plot_type",
+          "id": "radar"
+        }
+      ],
+      "status": "open blocker: rendering unimplemented",
+      "sourcePlotDefinitions": [
+        "plugins/plot_radar/plot-types.xml.in"
+      ],
+      "sourceAlgorithms": [
+        {
+          "file": "plugins/plot_radar/gog-radar.c",
+          "sha256": "f52035755510e5f2b7009745edeb401d557a6c79d9c2ff8cdd8b35486f1498dc",
+          "symbols": [
+            "gog_rt_plot_update",
+            "gog_color_polar_plot_update",
+            "gog_rt_view_render",
+            "gog_rt_series_update",
+            "gog_color_polar_series_update"
+          ],
+          "coverage": "unimplemented and unmeasured"
+        }
+      ]
+    },
+    {
+      "id": "GOffice_plot_surface",
+      "manifest": "plugins/plot_surface/plugin.xml.in",
+      "manifestSha256": "910278a9e63c04cf521cf67cf8a771bed5ae6e0e80625698dfa2508c02215287",
+      "installed": true,
+      "installedManifestSha256": "08b9354e4d9ca8e6767b48a3bbe30505b11d023b57c145d15bf2856e26ba9bb3",
+      "services": [
+        {
+          "type": "plot_engine",
+          "id": "GogContourPlot"
+        },
+        {
+          "type": "plot_engine",
+          "id": "XLContourPlot"
+        },
+        {
+          "type": "plot_engine",
+          "id": "GogXYZContourPlot"
+        },
+        {
+          "type": "plot_engine",
+          "id": "GogXYContourPlot"
+        },
+        {
+          "type": "plot_engine",
+          "id": "GogSurfacePlot"
+        },
+        {
+          "type": "plot_engine",
+          "id": "XLSurfacePlot"
+        },
+        {
+          "type": "plot_engine",
+          "id": "GogXYZSurfacePlot"
+        },
+        {
+          "type": "plot_engine",
+          "id": "GogXYSurfacePlot"
+        },
+        {
+          "type": "plot_engine",
+          "id": "GogMatrixPlot"
+        },
+        {
+          "type": "plot_engine",
+          "id": "GogXYMatrixPlot"
+        },
+        {
+          "type": "plot_engine",
+          "id": "GogXYZMatrixPlot"
+        },
+        {
+          "type": "plot_type",
+          "id": "surface"
+        }
+      ],
+      "status": "open blocker: rendering unimplemented",
+      "sourcePlotDefinitions": [
+        "plugins/plot_surface/plot-types.xml.in"
+      ],
+      "sourceAlgorithms": [
+        {
+          "file": "plugins/plot_surface/gog-contour.c",
+          "sha256": "cc8fecf0d629caad19270e04fabbe2e0ca427ffbf562cbbf276d0e21923c996f",
+          "symbols": [
+            "gog_contour_view_render"
+          ],
+          "coverage": "unimplemented and unmeasured"
+        },
+        {
+          "file": "plugins/plot_surface/gog-matrix.c",
+          "sha256": "d6adfad8deaf66948575b2ebe06c34f80275debb5b6711e00802445b2c330140",
+          "symbols": [
+            "gog_matrix_view_render"
+          ],
+          "coverage": "unimplemented and unmeasured"
+        },
+        {
+          "file": "plugins/plot_surface/gog-surface.c",
+          "sha256": "fc2c527f2b96d7812c85bb358982a39f39475e8290fea38231d6a042e586f77f",
+          "symbols": [
+            "gog_surface_view_render"
+          ],
+          "coverage": "unimplemented and unmeasured"
+        },
+        {
+          "file": "plugins/plot_surface/gog-xyz-surface.c",
+          "sha256": "bd953cb5286024aa0fefb4762579e78e38fb92b903ae0108651b8d646399f422",
+          "symbols": [
+            "gog_xyz_surface_plot_update"
+          ],
+          "coverage": "unimplemented and unmeasured"
+        },
+        {
+          "file": "plugins/plot_surface/gog-xyz.c",
+          "sha256": "8a665712953697c555bd6141bc83b9a3eda8dd76a05de3223f41d2c3f37517bc",
+          "symbols": [
+            "gog_xyz_plot_update_3d",
+            "gog_xyz_plot_update",
+            "gog_xyz_series_update"
+          ],
+          "coverage": "unimplemented and unmeasured"
+        }
+      ]
+    },
+    {
+      "id": "GOffice_plot_xy",
+      "manifest": "plugins/plot_xy/plugin.xml.in",
+      "manifestSha256": "18c3295f5308549e4cc5d0a711e0e3ed91c3272f2830c78bf71bbd8639f992ed",
+      "installed": true,
+      "installedManifestSha256": "622c3cc07448c521d3fa1b5edf7df3d943a309550704e082a431a864514b1f79",
+      "services": [
+        {
+          "type": "plot_engine",
+          "id": "GogXYPlot"
+        },
+        {
+          "type": "plot_engine",
+          "id": "GogBubblePlot"
+        },
+        {
+          "type": "plot_engine",
+          "id": "GogXYColorPlot"
+        },
+        {
+          "type": "plot_type",
+          "id": "plot_xy"
+        },
+        {
+          "type": "plot_engine",
+          "id": "GogXYDropBarPlot"
+        },
+        {
+          "type": "plot_engine",
+          "id": "GogXYMinMaxPlot"
+        }
+      ],
+      "status": "open blocker: rendering unimplemented",
+      "sourcePlotDefinitions": [
+        "plugins/plot_xy/plot-types.xml.in"
+      ],
+      "sourceAlgorithms": [
+        {
+          "file": "plugins/plot_xy/gog-xy-dropbar.c",
+          "sha256": "02ea7370296b90b13913660b90e065b45c392539293d1126a7bd2f5e9b8f5999",
+          "symbols": [
+            "gog_xy_dropbar_plot_update",
+            "gog_xy_dropbar_view_render",
+            "gog_xy_dropbar_series_update"
+          ],
+          "coverage": "unimplemented and unmeasured"
+        },
+        {
+          "file": "plugins/plot_xy/gog-xy-minmax.c",
+          "sha256": "3fc898242f9a92afae95a929a3f498ba810bef0f3d4374509a3dce1e48d18359",
+          "symbols": [
+            "gog_xy_minmax_series_update",
+            "gog_xy_minmax_plot_update",
+            "gog_xy_minmax_view_render"
+          ],
+          "coverage": "unimplemented and unmeasured"
+        },
+        {
+          "file": "plugins/plot_xy/gog-xy.c",
+          "sha256": "6efe2d079dc84cc5e9e2d80560ca679dba3dc455a3a8fad9ab9738cfa13c3ad7",
+          "symbols": [
+            "gog_2d_plot_update",
+            "gog_xy_color_plot_update",
+            "gog_xy_view_render",
+            "gog_xy_series_view_render",
+            "gog_xy_series_update"
+          ],
+          "coverage": "unimplemented and unmeasured"
+        }
+      ]
+    },
+    {
+      "id": "GOffice_reg_linear",
+      "manifest": "plugins/reg_linear/plugin.xml.in",
+      "manifestSha256": "46ea7b5ecad7addbaf0f27ae44201eaff9628af9a94f562affe713958a6fe14d",
+      "installed": true,
+      "installedManifestSha256": "0d62886da479e604186f03b81a258e9e7ac7d4c021d8607395066d8bc27e5f28",
+      "services": [
+        {
+          "type": "trendline_engine",
+          "id": "GogLinRegCurve"
+        },
+        {
+          "type": "trendline_engine",
+          "id": "GogExpRegCurve"
+        },
+        {
+          "type": "trendline_engine",
+          "id": "GogPowerRegCurve"
+        },
+        {
+          "type": "trendline_engine",
+          "id": "GogLogRegCurve"
+        },
+        {
+          "type": "trendline_engine",
+          "id": "GogPolynomRegCurve"
+        },
+        {
+          "type": "trendline_type",
+          "id": "linreg"
+        }
+      ],
+      "status": "open blocker: rendering unimplemented",
+      "sourcePlotDefinitions": [
+        "plugins/reg_linear/reg-types.xml.in"
+      ],
+      "sourceAlgorithms": [
+        {
+          "file": "plugins/reg_linear/gog-lin-reg.c",
+          "sha256": "858dee4dad1a5030becc9f2dd60224c9160d0212859c51db867af41a7c7c2613",
+          "symbols": [
+            "gog_lin_reg_curve_update"
+          ],
+          "coverage": "unimplemented and unmeasured"
+        }
+      ]
+    },
+    {
+      "id": "GOffice_reg_logfit",
+      "manifest": "plugins/reg_logfit/plugin.xml.in",
+      "manifestSha256": "8a0d536cc4511f528041619734de9ba05055f567508c6ed0f535cf0e501d4b28",
+      "installed": true,
+      "installedManifestSha256": "956faddbdc7e8af08aadd3af0b9077edc213bfd2257ed0e885766987706c3b56",
+      "services": [
+        {
+          "type": "trendline_engine",
+          "id": "GogLogFitCurve"
+        },
+        {
+          "type": "trendline_type",
+          "id": "logfit"
+        }
+      ],
+      "status": "open blocker: rendering unimplemented",
+      "sourcePlotDefinitions": [
+        "plugins/reg_logfit/reg-types.xml.in"
+      ],
+      "sourceAlgorithms": [
+        {
+          "file": "plugins/reg_logfit/gog-logfit.c",
+          "sha256": "fc52b1ac5042b94bc9ebe2139b05ce03f37622ed230ae2a39275de2c2965899f",
+          "symbols": [
+            "gog_log_fit_curve_update"
+          ],
+          "coverage": "unimplemented and unmeasured"
+        }
+      ]
+    },
+    {
+      "id": "GOffice_smoothing",
+      "manifest": "plugins/smoothing/plugin.xml.in",
+      "manifestSha256": "535b07988c96e536a1c5a7e3b838b480fa75b4640e1f2c0ced0ed9bb5c057cfc",
+      "installed": true,
+      "installedManifestSha256": "6eca57428639edb9287c85cb1f7e7391db671cffe7fcaf65cba0cb0fb89b2b88",
+      "services": [
+        {
+          "type": "trendline_engine",
+          "id": "GogMovingAvg"
+        },
+        {
+          "type": "trendline_engine",
+          "id": "GogExpSmooth"
+        },
+        {
+          "type": "trendline_type",
+          "id": "smoothing"
+        }
+      ],
+      "status": "open blocker: rendering unimplemented",
+      "sourcePlotDefinitions": [
+        "plugins/smoothing/types.xml.in"
+      ],
+      "sourceAlgorithms": []
+    }
+  ],
+  "verifiedScope": [
+    "explicit-bound linear/category/logarithmic transforms, span and circular handling, inversion, inverse nearest-even rounding, derivatives, finite admission, invalid-bound fallbacks, baselines",
+    "centered rotated label bounding boxes, separating-axis overlap including projection arithmetic grouping, axis-relative label positioning",
+    "resolved single-ring pie totals/wedges with native data ordering, negative skip/absolute/white semantics, nonfinite and tiny-slice omission, element separation overrides, budget/cancellation",
+    "all 16 normalized marker path tables and controls, crossed square fills, ASCII name resolution with bounded work, transforms, closed-shape and stroke metadata; native pixel/surface effects unimplemented"
+  ],
+  "nativeImageQa": {
+    "fixture": "<g:Workbook xmlns:g=\"http://www.gnumeric.org/v10.dtd\"><g:Sheets><g:Sheet><g:Name>S</g:Name><g:Objects><g:SheetObjectGraph ObjectBound=\"B2:H16\" ObjectOffset=\"0 0 1 1\" Name=\"OriginalPie\"><GogObject type=\"GogGraph\"><GogObject role=\"Chart\" type=\"GogChart\"><GogObject role=\"Plot\" type=\"GogPiePlot\"><GogObject role=\"Series\" type=\"GogPieSeries\"><data><dimension id=\"1\" type=\"GnmGODataVector\">S!$A$1:$A$2</dimension></data></GogObject></GogObject></GogObject></GogObject></g:SheetObjectGraph></g:Objects><g:Cells><g:Cell Row=\"0\" Col=\"0\" ValueType=\"40\">1</g:Cell><g:Cell Row=\"1\" Col=\"0\" ValueType=\"40\">1</g:Cell></g:Cells></g:Sheet></g:Sheets></g:Workbook>",
+    "fixtureSha256": "a4d42f74409783a8db3cfd31a6dba52b0285a858d4fda48b5c79129e2befb158",
+    "format": "png",
+    "exitStatus": 0,
+    "stdoutLength": 0,
+    "stderrLength": 0,
+    "imageSha256": "9a6ad6a57fd93e7f4ff69b7d214b368e1f9d76c2772c987f2bf5da420b3ceb53",
+    "visualInspection": "two equal colored vertical semicircles, thin black outlines, white background and graph border; no product-image comparison",
+    "productParity": "unmeasured",
+    "initialAttempt": "Before schema directory configuration, native emitted GOConf critical/warning diagnostics (tool output truncated); exit 0 alone was not qualification. Corrected explicit schema profile emitted empty diagnostics."
+  },
+  "blockers": [
+    "No built-in RenderingCapability wired into engine or virtual command; graph export still requires explicit injected rendering capability",
+    "Every installed plot/curve plugin requires full port and native differential coverage; geometry helpers do not establish any complete plot pass",
+    "Automatic axis bounds/ticks; date/time/calendar/log/category label formatting and grid layout unimplemented",
+    "Series data/error/missing-value extraction for rendering, stacks, interpolation, markers, line/area/bar/radar/bubble/surface/contour/financial/distribution geometry unimplemented",
+    "Pie partial-span allocation, multiring fitting, outlines, themes, labels and path generation unimplemented",
+    "Legend, chart/axis titles, labels, grids, trendlines, error bars, theme/style auto resolution unimplemented",
+    "Pango shaping, bidi, markup, fallback fonts, glyph extents, wrapping and font/locale profiles need explicit host configuration; no guessed font metric substitution",
+    "Geometry-to-artifact codec and engine export integration unimplemented; namespace/ordering/exit/diagnostic/replay/budget guarantees not newly qualified by helpers",
+    "ECMAScript math rounding versus native libm unmeasured across hosts; category nearest-even assumes native HAVE_RINT/default FE_TONEAREST",
+    "Nonrenderable and unknown objects need explicit admission/diagnostic qualification; absent Lasem is not a pass",
+    "Marker source paths are implemented, but Cairo path quantization/raster effects, surface pixel rounding, colors/dashes, zero-scale Cairo error behavior and embedded-NUL C-string semantics are unmeasured"
+  ],
+  "verification": {
+    "chartTests": 71,
+    "independentAgent": "/root/chart_stress",
+    "tdd": "missing feature failures observed before implementation; independent edge-case failures observed before repairs",
+    "build": "npm run build:workspaces -- --workspace=@poe-platform/safe-bash --no-cache: final consumer dependency closure passed (includes ssconvert)",
+    "lint": "npm run lint --workspace=@poe-code/ssconvert: passed after final axis fallback stress repair",
+    "workspaceTests": "npm run test --workspace=@poe-code/ssconvert: 254 files, 5478 tests passed after final axis fallback repair",
+    "crossWorkspaceTests": "npm test -- --no-cache --affected=HEAD: exit 0, including native npm pre/post scripts and root posttest lint-stress; selection includes existing work, not isolated to this change; intentional skips/TODOs and workspaces without declared tests are not passes",
+    "independentRepairs": [
+      "hypot distance avoids overflow/underflow",
+      "native addition grouping admits touching rotated rectangle",
+      "cancellation checked after final yielded pie wedge",
+      "shape name resolution bounds work to native known names without copying an unbounded input",
+      "invalid-bound axis intercepts retain explicit native fallbacks for infinite circular viewport lengths"
+    ],
+    "chartUnitTestsHaveFileEffects": false,
+    "unitNativeOrLlmCalls": false,
+    "safeBashConsumerBuild": "final uncached selected closure passed after axis fallback repair; 18 dependency builds",
+    "candidateInputs": [
+      {
+        "file": "packages/ssconvert/src/rendering/chart/axis.test.ts",
+        "sha256": "f3577f3ed701697ca7e9cfc92736415662a5701be382545b81ef65bed548dbbb"
+      },
+      {
+        "file": "packages/ssconvert/src/rendering/chart/axis.ts",
+        "sha256": "79699440b7f0ad91bc8ef6c00741ddbb68a1da2d745726dd5ac39d15ff52628d"
+      },
+      {
+        "file": "packages/ssconvert/src/rendering/chart/layout.test.ts",
+        "sha256": "2bb1899338e5c3ef113e216b4d24cb4c58328fbc27c82d241d9fe4e018c38e5e"
+      },
+      {
+        "file": "packages/ssconvert/src/rendering/chart/layout.ts",
+        "sha256": "c4876dbfb1b9e1ea0552dae87f6f936b3adca36a9612ee6dc27d6ed970dd4a88"
+      },
+      {
+        "file": "packages/ssconvert/src/rendering/chart/marker.test.ts",
+        "sha256": "d0eb857558e0b9fef58c030adf3b8dfb5ebcc45ba7b171168cf2d857335edf67"
+      },
+      {
+        "file": "packages/ssconvert/src/rendering/chart/marker.ts",
+        "sha256": "ee79dae2068c7c21cda7ab55d519982e5281b1bbbbc7641abb8a6c64b6bafb84"
+      },
+      {
+        "file": "packages/ssconvert/src/rendering/chart/pie.test.ts",
+        "sha256": "df1fdc92cf86fb2fb833b0d0fea579a32defa34a93899911b3e43cc4d797befd"
+      },
+      {
+        "file": "packages/ssconvert/src/rendering/chart/pie.ts",
+        "sha256": "edef1d7a0ca0125e9a545a9a69490942f80fd2f7b4aa5cf2d7abd8c927e8a32f"
+      }
+    ],
+    "coverageQualification": "Source-specified unit coverage only except thirteen enumerated native differential cases and sixteen marker metadata cases. No full-renderer, all-input or frozen-repository gate claim.",
+    "broaderObservedExclusions": [
+      {
+        "case": "csvformat direct argv frozen case 9",
+        "disposition": "existing explicit todo in packages/safe-bash/tests/commands/csvkit-request-stress.test.ts",
+        "blocker": "numeric/null operation cells still differ from native float serialization",
+        "pass": false
+      },
+      {
+        "case": "XLSX named shell descriptor path",
+        "disposition": "existing explicit todo in packages/safe-bash/tests/commands/csvkit-request-workflows.test.ts",
+        "blocker": "shell /dev/fd descriptor paths unavailable; stdin dash and ordinary VFS paths are separate coverage",
+        "pass": false
+      },
+      {
+        "case": "isolated plugin-diff-patch comparator",
+        "disposition": "pending comparator profile",
+        "blocker": "isolated comparator is not installed",
+        "pass": false
+      },
+      {
+        "case": "file MIME native capture profile",
+        "disposition": "native comparison gaps retained by maintained suite",
+        "blocker": "MIME exact 24/26; combined exact 23/26; human category semantic 26/26; byte mismatches are not passes",
+        "pass": false
+      }
+    ],
+    "broaderOutput": "Multiple routine-output chunks were tool-truncated; no complete raw-transcript or aggregate test-count claim. Final runner exit 0 was observed. SafeJS reported 1467 files passed, 3 skipped; 31121 tests passed, 48 skipped. Safe-python reported 1153 files and 84610 tests passed. The cross-workspace ssconvert task reported 254 files and 5478 tests passed. Root posttest lint-stress reported 1 file and 2 tests passed. Maintained no-declared-test dispositions remain NO_DECLARED_TEST_NOT_A_PASS.",
+    "finalReview": "git diff --check passed; all 8 chart candidate hashes and 4 pinned behavioral source hashes authenticated after repairs",
+    "temporaryEvidence": "Task-owned out/ssconvert-chart-rendering removed after recording measurements, fixture bytes, profile/library hashes and image inspection evidence; inherited archives and source directories preserved"
+  },
+  "nativeDifferential": {
+    "profile": "pinned library, Linux aarch64 native vs Darwin Node JavaScript",
+    "cases": [
+      {
+        "kind": "bounds",
+        "angle": 0,
+        "native": [
+          16,
+          28,
+          8,
+          4
+        ],
+        "javascript": [
+          16,
+          28,
+          8,
+          4
+        ],
+        "exactBinary64Match": true
+      },
+      {
+        "kind": "label",
+        "angle": 0,
+        "native": [
+          12,
+          0,
+          -5
+        ],
+        "javascript": [
+          12,
+          0,
+          -5
+        ],
+        "exactBinary64Match": true
+      },
+      {
+        "kind": "bounds",
+        "angle": 0.3,
+        "native": [
+          15.587613630174896,
+          26.90724619510343,
+          8.824772739650205,
+          6.18550760979314
+        ],
+        "javascript": [
+          15.587613630174896,
+          26.90724619510343,
+          8.824772739650205,
+          6.18550760979314
+        ],
+        "exactBinary64Match": true
+      },
+      {
+        "kind": "label",
+        "angle": 0.3,
+        "native": [
+          12,
+          0.5910404133226791,
+          -6.092753804896571
+        ],
+        "javascript": [
+          12,
+          0.5910404133226791,
+          -6.092753804896571
+        ],
+        "exactBinary64Match": true
+      },
+      {
+        "kind": "bounds",
+        "angle": -0.75,
+        "native": [
+          15.709967004458047,
+          25.81006722215902,
+          8.580065991083904,
+          8.379865555681956
+        ],
+        "javascript": [
+          15.709967004458047,
+          25.81006722215902,
+          8.580065991083904,
+          8.379865555681956
+        ],
+        "exactBinary64Match": true
+      },
+      {
+        "kind": "label",
+        "angle": -0.75,
+        "native": [
+          3,
+          2.9267554754952836,
+          -7.189932777840978
+        ],
+        "javascript": [
+          3,
+          2.9267554754952836,
+          -7.189932777840978
+        ],
+        "exactBinary64Match": true
+      },
+      {
+        "kind": "bounds",
+        "angle": 2.2,
+        "native": [
+          16.02900272333944,
+          25.589012150210948,
+          7.941994553321127,
+          8.821975699578104
+        ],
+        "javascript": [
+          16.02900272333944,
+          25.589012150210948,
+          7.941994553321127,
+          8.821975699578104
+        ],
+        "exactBinary64Match": true
+      },
+      {
+        "kind": "label",
+        "angle": 2.2,
+        "native": [
+          3,
+          2.3540044690213833,
+          -7.410987849789052
+        ],
+        "javascript": [
+          3,
+          2.3540044690213833,
+          -7.410987849789052
+        ],
+        "exactBinary64Match": true
+      },
+      {
+        "kind": "effective-category-axis",
+        "native": [
+          true,
+          17.272727272727273,
+          50,
+          0.8080808080808082,
+          9.191919191919192
+        ],
+        "javascript": [
+          true,
+          17.272727272727273,
+          50,
+          0.8080808080808082,
+          9.191919191919192
+        ],
+        "exactBinary64Match": true
+      },
+      {
+        "kind": "overlap",
+        "input": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 4e+200,
+            "height": 4e+200,
+            "angle": 0
+          },
+          {
+            "x": 1e+200,
+            "y": 0,
+            "width": 4e+200,
+            "height": 4e+200,
+            "angle": 0
+          }
+        ],
+        "native": true,
+        "javascript": true,
+        "exactBinary64Match": true
+      },
+      {
+        "kind": "overlap",
+        "input": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 1e-200,
+            "height": 1e-200,
+            "angle": 0
+          },
+          {
+            "x": 2e-200,
+            "y": 0,
+            "width": 1e-200,
+            "height": 1e-200,
+            "angle": 0
+          }
+        ],
+        "native": false,
+        "javascript": false,
+        "exactBinary64Match": true
+      },
+      {
+        "kind": "overlap",
+        "input": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 5.759409982711077,
+            "height": 100,
+            "angle": 0
+          },
+          {
+            "x": 10.167900002690219,
+            "y": 0,
+            "width": 6.622831611894071,
+            "height": 13.510147435590625,
+            "angle": 0.864475782494992
+          }
+        ],
+        "native": true,
+        "javascript": true,
+        "exactBinary64Match": true
+      }
+    ],
+    "additionalCases": [
+      {
+        "kind": "circular-category-fallback",
+        "input": {
+          "scale": "category",
+          "minimum": 3,
+          "maximum": 3,
+          "offset": 7,
+          "length": "Infinity",
+          "circular": true,
+          "inverseInput": 50
+        },
+        "native": [
+          false,
+          0
+        ],
+        "javascript": [
+          false,
+          0
+        ],
+        "exactBinary64Match": true,
+        "probeStdout": "circular-category-fallback 0 0",
+        "nativeExitStatus": 0,
+        "nativeStderrLength": 0
+      }
+    ],
+    "matched": 13,
+    "total": 13,
+    "probeStdout": [
+      "bounds 0 16 28 8 4",
+      "label 0 12 0 -5",
+      "bounds 1 15.587613630174896 26.907246195103429 8.8247727396502054 6.1855076097931398",
+      "label 1 12 0.59104041332267909 -6.0927538048965708",
+      "bounds 2 15.709967004458047 25.81006722215902 8.5800659910839041 8.3798655556819561",
+      "label 2 3 2.9267554754952836 -7.1899327778409781",
+      "bounds 3 16.029002723339438 25.589012150210948 7.9419945533211269 8.821975699578104",
+      "label 3 3 2.3540044690213833 -7.410987849789052",
+      "axis 0 1 17.272727272727273 50 0.80808080808080818 9.191919191919192",
+      "axis 1 1 17.272727272727273 50 0.80808080808080818 9.191919191919192",
+      "overlap 0 1",
+      "overlap 1 0",
+      "overlap 2 1"
+    ],
+    "stderrLength": 0,
+    "qualification": "standalone axes without plot contributors resolve discrete; requested linear/log names did not qualify those transforms",
+    "failedAttempts": [
+      "initial C link omitted gobject-2.0 and failed; corrected explicit link",
+      "first library probe omitted LD_LIBRARY_PATH and resolved system GOffice; excluded from pinned qualification, no product repair",
+      "explicit requested linear/log names on standalone axes still resolve category; not counted as linear/log passes"
+    ],
+    "javascriptRuntime": "Node.js v22.22.2, Darwin arm64"
+  },
+  "sourceSubsystemInventory": [
+    {
+      "subsystem": "axis-bounds-ticks-formatting",
+      "source": "goffice/graph/gog-axis.c",
+      "sha256": "8322dcc2942857284c81d21a1e7504fce03af56beebd97a4719bdf4a19ec6eac",
+      "verifiedSymbols": [
+        "map_linear_auto_bound",
+        "map_log_auto_bound",
+        "map_discrete_auto_bound",
+        "map_time_auto_bound",
+        "map_date_auto_bound",
+        "map_linear_calc_ticks",
+        "map_log_calc_ticks",
+        "map_discrete_calc_ticks"
+      ],
+      "status": "open blocker: full behavioral port and differential coverage missing"
+    },
+    {
+      "subsystem": "chart-allocation",
+      "source": "goffice/graph/gog-chart.c",
+      "sha256": "6740bae4646881f98ce8e11294dd59361047e0048ffa20e70f294eae537badd5",
+      "verifiedSymbols": [
+        "gog_chart_view_size_allocate",
+        "gog_chart_view_render"
+      ],
+      "status": "open blocker: full behavioral port and differential coverage missing"
+    },
+    {
+      "subsystem": "legend",
+      "source": "goffice/graph/gog-legend.c",
+      "sha256": "6b53805c16ab1d267920de953a8e71902d036865e8c5115c90a95810ce5ed8c6",
+      "verifiedSymbols": [
+        "gog_legend_view_size_request",
+        "gog_legend_view_render"
+      ],
+      "status": "open blocker: full behavioral port and differential coverage missing"
+    },
+    {
+      "subsystem": "labels",
+      "source": "goffice/graph/gog-label.c",
+      "sha256": "3f6b834295fd36b3efd6e5382f700f9c4fa9d80431d3b131995c8f67aed6523a",
+      "verifiedSymbols": [
+        "gog_text_view_size_request",
+        "gog_text_view_render"
+      ],
+      "status": "open blocker: full behavioral port and differential coverage missing"
+    },
+    {
+      "subsystem": "native-text-metrics",
+      "source": "goffice/graph/gog-renderer.c",
+      "sha256": "6cb0bf2c8a28545f74d07f9564c538b8894a263f0f2ce91a3f3a2407ee41f613",
+      "verifiedSymbols": [
+        "gog_renderer_get_gostring_OBR",
+        "gog_renderer_get_text_OBR",
+        "gog_renderer_draw_text",
+        "gog_renderer_draw_data_label"
+      ],
+      "status": "open blocker: full behavioral port and differential coverage missing"
+    },
+    {
+      "subsystem": "styles",
+      "source": "goffice/utils/go-style.c",
+      "sha256": "79df5188703bb97d5487849f08b6025f8a97b3f63b361f2da38ad5d83712daaa",
+      "verifiedSymbols": [
+        "go_style_apply_theme",
+        "go_style_fill",
+        "go_style_set_cairo_line"
+      ],
+      "status": "open blocker: full behavioral port and differential coverage missing"
+    },
+    {
+      "subsystem": "markers",
+      "source": "goffice/utils/go-marker.c",
+      "sha256": "2e174f9c383dfda916eff91965dd8dd327d01e05cf2eaed228988dca1be9bb2c",
+      "verifiedSymbols": [
+        "go_marker_render",
+        "go_marker_create_cairo_surface"
+      ],
+      "status": "normalized path/scaling/name/closed-shape stage unit-tested; native surface/raster/color/dash effects and image differential remain blockers"
+    },
+    {
+      "subsystem": "error-bars",
+      "source": "goffice/graph/gog-error-bar.c",
+      "sha256": "90f4db972d924781be90f294a01e18e2ac1af2f0c6a7eb8cb9a30306b491c570",
+      "verifiedSymbols": [],
+      "status": "open blocker: full behavioral port and differential coverage missing"
+    }
+  ],
+  "implementationOwnership": {
+    "responsiblePackage": "packages/ssconvert",
+    "sharedEngine": "existing CLI/SDK engine remains unchanged; helpers are SDK exports, not yet connected to graph export",
+    "nativeCapabilities": "no product native process, file/font discovery, fallback, or dependency added",
+    "hostInputs": "axes, resolved pie geometry and measured text rectangles are explicit inputs; font/locale/profile selection not implemented by these helpers",
+    "git": "no commit, push or publication performed",
+    "readmes": "not edited"
+  },
+  "nativeMarkerQa": {
+    "role": "pinned native GOffice QA library only, not product rendering",
+    "fixture": {
+      "size": 30,
+      "scale": 1,
+      "centers": "x=60+(index%8)*120; y=45+(index/8)*120",
+      "surface": [
+        960,
+        240
+      ],
+      "font": "explicit DejaVu Sans 11 for QA names; font metrics not measured"
+    },
+    "exitStatus": 0,
+    "stderrLength": 0,
+    "metadata": [
+      {
+        "name": "none",
+        "closed": true,
+        "outlineWidth": 3
+      },
+      {
+        "name": "square",
+        "closed": true,
+        "outlineWidth": 3
+      },
+      {
+        "name": "diamond",
+        "closed": true,
+        "outlineWidth": 3
+      },
+      {
+        "name": "triangle-down",
+        "closed": true,
+        "outlineWidth": 3
+      },
+      {
+        "name": "triangle-up",
+        "closed": true,
+        "outlineWidth": 3
+      },
+      {
+        "name": "triangle-right",
+        "closed": true,
+        "outlineWidth": 3
+      },
+      {
+        "name": "triangle-left",
+        "closed": true,
+        "outlineWidth": 3
+      },
+      {
+        "name": "circle",
+        "closed": true,
+        "outlineWidth": 3
+      },
+      {
+        "name": "x",
+        "closed": false,
+        "outlineWidth": 3
+      },
+      {
+        "name": "cross",
+        "closed": false,
+        "outlineWidth": 3
+      },
+      {
+        "name": "asterisk",
+        "closed": false,
+        "outlineWidth": 3
+      },
+      {
+        "name": "bar",
+        "closed": true,
+        "outlineWidth": 3
+      },
+      {
+        "name": "half-bar",
+        "closed": true,
+        "outlineWidth": 3
+      },
+      {
+        "name": "butterfly",
+        "closed": true,
+        "outlineWidth": 3
+      },
+      {
+        "name": "hourglass",
+        "closed": true,
+        "outlineWidth": 3
+      },
+      {
+        "name": "lefthalf-bar",
+        "closed": true,
+        "outlineWidth": 3
+      }
+    ],
+    "imageSha256": "bb771a21776280c7fbbd4ee68c05b8fdb6e25afed109cc0794adefd64ab7c9f2",
+    "visualInspection": "blank none; outlined square, diamond, four triangles and circle; crossed x/cross/asterisk; bar/half-bar; butterfly/hourglass/lefthalf-bar. All native shapes inspected; product image comparison unmeasured.",
+    "metadataComparisons": [
+      {
+        "native": {
+          "name": "none",
+          "closed": true,
+          "outlineWidth": 3
+        },
+        "product": {
+          "name": "none",
+          "closed": true,
+          "outlineWidth": 3
+        },
+        "exactMatch": true
+      },
+      {
+        "native": {
+          "name": "square",
+          "closed": true,
+          "outlineWidth": 3
+        },
+        "product": {
+          "name": "square",
+          "closed": true,
+          "outlineWidth": 3
+        },
+        "exactMatch": true
+      },
+      {
+        "native": {
+          "name": "diamond",
+          "closed": true,
+          "outlineWidth": 3
+        },
+        "product": {
+          "name": "diamond",
+          "closed": true,
+          "outlineWidth": 3
+        },
+        "exactMatch": true
+      },
+      {
+        "native": {
+          "name": "triangle-down",
+          "closed": true,
+          "outlineWidth": 3
+        },
+        "product": {
+          "name": "triangle-down",
+          "closed": true,
+          "outlineWidth": 3
+        },
+        "exactMatch": true
+      },
+      {
+        "native": {
+          "name": "triangle-up",
+          "closed": true,
+          "outlineWidth": 3
+        },
+        "product": {
+          "name": "triangle-up",
+          "closed": true,
+          "outlineWidth": 3
+        },
+        "exactMatch": true
+      },
+      {
+        "native": {
+          "name": "triangle-right",
+          "closed": true,
+          "outlineWidth": 3
+        },
+        "product": {
+          "name": "triangle-right",
+          "closed": true,
+          "outlineWidth": 3
+        },
+        "exactMatch": true
+      },
+      {
+        "native": {
+          "name": "triangle-left",
+          "closed": true,
+          "outlineWidth": 3
+        },
+        "product": {
+          "name": "triangle-left",
+          "closed": true,
+          "outlineWidth": 3
+        },
+        "exactMatch": true
+      },
+      {
+        "native": {
+          "name": "circle",
+          "closed": true,
+          "outlineWidth": 3
+        },
+        "product": {
+          "name": "circle",
+          "closed": true,
+          "outlineWidth": 3
+        },
+        "exactMatch": true
+      },
+      {
+        "native": {
+          "name": "x",
+          "closed": false,
+          "outlineWidth": 3
+        },
+        "product": {
+          "name": "x",
+          "closed": false,
+          "outlineWidth": 3
+        },
+        "exactMatch": true
+      },
+      {
+        "native": {
+          "name": "cross",
+          "closed": false,
+          "outlineWidth": 3
+        },
+        "product": {
+          "name": "cross",
+          "closed": false,
+          "outlineWidth": 3
+        },
+        "exactMatch": true
+      },
+      {
+        "native": {
+          "name": "asterisk",
+          "closed": false,
+          "outlineWidth": 3
+        },
+        "product": {
+          "name": "asterisk",
+          "closed": false,
+          "outlineWidth": 3
+        },
+        "exactMatch": true
+      },
+      {
+        "native": {
+          "name": "bar",
+          "closed": true,
+          "outlineWidth": 3
+        },
+        "product": {
+          "name": "bar",
+          "closed": true,
+          "outlineWidth": 3
+        },
+        "exactMatch": true
+      },
+      {
+        "native": {
+          "name": "half-bar",
+          "closed": true,
+          "outlineWidth": 3
+        },
+        "product": {
+          "name": "half-bar",
+          "closed": true,
+          "outlineWidth": 3
+        },
+        "exactMatch": true
+      },
+      {
+        "native": {
+          "name": "butterfly",
+          "closed": true,
+          "outlineWidth": 3
+        },
+        "product": {
+          "name": "butterfly",
+          "closed": true,
+          "outlineWidth": 3
+        },
+        "exactMatch": true
+      },
+      {
+        "native": {
+          "name": "hourglass",
+          "closed": true,
+          "outlineWidth": 3
+        },
+        "product": {
+          "name": "hourglass",
+          "closed": true,
+          "outlineWidth": 3
+        },
+        "exactMatch": true
+      },
+      {
+        "native": {
+          "name": "lefthalf-bar",
+          "closed": true,
+          "outlineWidth": 3
+        },
+        "product": {
+          "name": "lefthalf-bar",
+          "closed": true,
+          "outlineWidth": 3
+        },
+        "exactMatch": true
+      }
+    ],
+    "metadataMatched": 16
+  },
+  "cartesianPathAndErrorBarExtension": {
+    "status": "incomplete chart parity; codec-independent Cartesian stage implemented",
+    "candidateFiles": {
+      "src/rendering/chart/error-bar.ts": "b4d1b0025bdac4246e49fa2b74654ba3ccb62a7af3faca7f6520d798f7c417d9",
+      "src/rendering/chart/error-bar.test.ts": "bfa5852bd29a700640c6939e5c4c23bf682d5b45f0a617dfc3b75436c00fd61d",
+      "src/rendering/chart/error-bar-independent.test.ts": "85c6594e861360c755f35ecf9173463ec659caef6ef76060dc14321b3ed31962",
+      "src/rendering/chart/line.ts": "1200aa45999f943390a4d4f01a2ddb78b6e33af47108e6087a567c6852c9a250",
+      "src/rendering/chart/line.test.ts": "9edfe0642504348dd3eaa56f0bd645996c068c13565f6e56c5c538c3d7662358",
+      "src/rendering/chart/line-independent.test.ts": "46550ff62df54c6d8d847bce5f2e00fe0c0e6eebe1f7f93757d81773d1bd39d8",
+      "src/index.ts": "5f26a7c7c37181cd18b6530539fa98bb722c87827a9f9fa11dfce1b82f93321e"
+    },
+    "geometry": {
+      "implemented": [
+        "gog_error_bar_get_bounds for resolved valid numeric series",
+        "gog_error_bar_render Cartesian horizontal/vertical segment branch",
+        "make_path_linear Cartesian branch",
+        "xy_make_path_step all four modes"
+      ],
+      "sourceSpecifiedTests": 23,
+      "nativePathModes": 5
+    },
+    "nativeProbe": {
+      "role": "QA only; original probe includes authenticated pinned gog-chart-map.c to access static path stages, using pinned native GOffice axis/path library",
+      "sourceArchiveMemberVerified": true,
+      "librarySha256": "0625c2d6a8431f0065870aafcba752b01836e2c29293d6a2912b9f80215fab42",
+      "effectiveScale": "standalone axes resolve category; linear continuous/log/date contributor behavior NOT qualified",
+      "fixture": {
+        "x": [
+          1,
+          3,
+          5,
+          7,
+          9
+        ],
+        "y": [
+          2,
+          4,
+          "NaN",
+          8,
+          3
+        ],
+        "xBounds": [
+          0,
+          10
+        ],
+        "yBounds": [
+          0,
+          10
+        ],
+        "xOffset": 20,
+        "xLength": 300,
+        "yOffset": 220,
+        "yLength": -200,
+        "skipInvalid": false
+      },
+      "exitStatus": 0,
+      "stderrBytes": 0,
+      "pathCommandsExactMatch": true,
+      "image": {
+        "size": [
+          340,
+          240
+        ],
+        "mode": "step-center-x",
+        "stroke": "black, width 2, white background",
+        "font": "none; no text/locale metric coverage",
+        "codec": "both QA SVGs converted through the same sharp/libvips codec; not native full-chart raster parity",
+        "pngSha256": "ca343c4fbeab9656dcde4fc58d8aaf31969d467333249ef4a3ac0be25afa64a6",
+        "rawPixelsExactMatch": true,
+        "visualInspection": "both show two separated center-X stair paths; missing middle value creates a gap"
+      },
+      "negativeControls": [
+        "same comparator rejects deliberate skipInvalid=true gap bridging",
+        "same comparator rejects first x coordinate changed from 1 to 1.01"
+      ]
+    },
+    "independentAgent": {
+      "task": "chart_stress",
+      "tests": 13,
+      "validatedFixes": [
+        "reject unknown/non-Cartesian runtime error-bar directions",
+        "use declared invalid-request diagnostic for point-count validation"
+      ],
+      "scope": "deterministic source-specified tests; no native differential by reviewer"
+    },
+    "checks": {
+      "build": {
+        "command": "npm run build:workspaces -- --workspace=@poe-code/ssconvert --no-cache",
+        "status": "pass",
+        "builds": 3
+      },
+      "lint": {
+        "command": "npm run lint --workspace=@poe-code/ssconvert",
+        "status": "pass"
+      },
+      "unit": {
+        "command": "POE_CHECK_CACHE=0 npm test --workspace=@poe-code/ssconvert",
+        "status": "pass",
+        "files": 258,
+        "tests": 5501
+      },
+      "command": {
+        "command": "node --import tsx --test packages/safe-bash/tests/commands/ssconvert-model.test.ts packages/safe-bash/tests/commands/ssconvert.test.ts",
+        "status": "pass",
+        "tests": 61,
+        "scope": "focused ad hoc integration; original/checkpoint/replay, existing shared graph dispatch and namespace/diagnostic controls; not full safe-bash maintained unit gate"
+      },
+      "priorFailures": [
+        "initial test imports failed before implementations existed",
+        "initial logarithmic coordinate expectations rounded away native-expression arithmetic; corrected from pinned expression order, native logarithmic differential still unmeasured",
+        "independent stress reproduced unknown direction treated as vertical",
+        "lint/independent test reproduced undeclared invalid-argument code, fixed to invalid-request",
+        "package test started during reviewer RED cycle: 1 failed/5499 passed; full package rerun after repair: 5501 passed",
+        "QA probe first compile missing source include path; second compile missing explicit Cairo linkage; corrected and native execution succeeded",
+        "native error-bound probe initially attempted abstract GogSeries and aborted; corrected with QA concrete subtype and rerun: 18 exact matches, zero stderr"
+      ],
+      "notRun": [
+        "full root npm test",
+        "repository-wide lint",
+        "full root npm run build",
+        "full safe-bash maintained unit/type/consumer gates",
+        "CLI screenshot: no visible CLI change",
+        "browser/workerd/foreign-realm runtime matrix"
+      ]
+    },
+    "blockers": [
+      "helpers are SDK exports; no built-in graph renderer or command graph rendering added",
+      "error-bar series validity admission, native data bounds expansion, polar angular/radial, clipping/paint/style remain unimplemented or unmeasured",
+      "spline/Bezier/cubic path modes, area fill closure, polar/radar paths remain unimplemented",
+      "native continuous/log/date automatic bounds/ticks and contributor profiles remain unmeasured by this probe",
+      "all prior plot/plugin/text/layout blockers remain open; installed plugin inventory retained unchanged",
+      "product full-chart screenshots, font shaping/metrics, explicit font profile capability and locale-layout parity remain open",
+      "new geometry stages not exercised through workbook graph export, budgets across stages, cancellation/cleanup or graph checkpoint/replay integration"
+    ],
+    "git": "no local commit, push, publication or README edits",
+    "evidenceCleanup": "only newly generated out/ssconvert-chart-candidate artifacts removed after inspection; existing source/oracle evidence preserved",
+    "nativeErrorBoundsProbe": {
+      "role": "separate pinned-library QA oracle; no product dependency",
+      "seriesAdmission": "QA concrete subtype of abstract GogSeries with explicit cached is_valid and original GOData vectors; does not qualify plugin/series validity admission",
+      "fixture": {
+        "values": [
+          10,
+          -20,
+          0
+        ],
+        "positive": [
+          3
+        ],
+        "negativeVariants": [
+          "absent",
+          [
+            1,
+            0,
+            "NaN"
+          ]
+        ],
+        "types": [
+          "absolute",
+          "relative",
+          "percent"
+        ]
+      },
+      "cases": 18,
+      "exactMatches": 18,
+      "exitStatus": 0,
+      "stderrBytes": 0,
+      "signedZeroMatch": true
+    }
+  }
+}

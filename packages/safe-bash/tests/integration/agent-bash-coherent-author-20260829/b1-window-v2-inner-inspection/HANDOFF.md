@@ -1,0 +1,5 @@
+# B1 inner STOP read-only inspection
+
+Retained RESULT: C10/C11/C15/C16/C18 PASS in source-built, installed and physically-moved:15P0F. Each layout records5 guestWorkerCreates/Exits, peak1, Regex0/internalLoaderThreads0. Worker exit events code1 are retained, not child-process exit0. Child exit/close0 does not prove separately unobserved stream EOF. Publication preimport stderr: Identity duplicate path at identity.mjs:29 -> combinedIdentities:38 -> preimport.mjs:9/30. FINAL publisherFiles and preimportFiles both contain admin-owner-r2/ledger.mjs,7144B SHA09ece69722255e24d469b2f16cf97d9ef1570fb315fd0d5afb260b9d2158c7fd. No repair/replay. Publication HOLD; runtime15PASS is not successful campaign publication/coherent acceptance. C16 remains controlled-release, not opaque-preemption. Runtime retirement records4 children,511541 attempted/stored bytes,failures[]; no full census claim.
+
+See REPORT.json for exact pre-parse hashes, retained raw capture paths, and qualifications. No runtime or publisher replay, signals, source edits, or Workers. Original seven-start ledger is unchanged.

@@ -1,0 +1,13 @@
+{
+  "name": "virtual-bash-comparison",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "compare": "node --import tsx run.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "just-bash": "3.4.2"
+  }
+}

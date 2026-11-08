@@ -1,0 +1,470 @@
+import { snapshotRemoteMcpCredentialOptions } from "./credential-options.js";
+import { snapshotRemoteMcpSchemaOptions } from "./schema-options.js";
+import { resolvePath } from "@poe-code/safe-fs/core";
+import { commandRuntimeIdentity, collectBytes, toByteSource, createOutputOperation, type CommandDefinition } from "safe-bash-contracts";
+import { argumentText, callerLimit, commandLimit, emit, errorDetails, positiveArgument, shellWord, textLine, validateCommandName } from "./commands.js";
+import { initRemoteMcpConfiguration, type ConfigurationOptions, type InitRemoteMcpServer } from "./configuration.js";
+import { generateRemoteMcpArtifact, type ArtifactGenerationOptions } from "./artifact.js";
+import { authenticateRemoteMcpServer, type RemoteMcpAuthenticationOptions, type RemoteMcpAuthenticationResult } from "./authentication.js";
+import { importRemoteMcpAuthentication, type RemoteMcpCredentialImportOptions, type RemoteMcpCredentialImportResult } from "./credential-import.js";
+import type { ConfigurationBindingOptions } from "./runtime-configuration.js";
+import { bindRemoteMcpConfiguration } from "./runtime-configuration.js";
+import { accessRemoteMcpResources, snapshotRemoteMcpResourceRequest, type RemoteMcpResourceRequest, type RemoteMcpResourceOptions } from "./resources.js";
+import { resetRemoteMcpAuthentication, type RemoteMcpCredentialResetOptions, type RemoteMcpCredentialResetResult } from "./credential-reset.js";
+
+export interface RemoteMcpManagementOptions extends ConfigurationOptions {
+  readonly name?: string;
+  readonly signal?: AbortSignal;
+  readonly maxInputBytes?: number;
+  readonly maxOutputBytes?: number;
+  readonly generation?: ArtifactGenerationOptions;
+  readonly authentication?: Omit<RemoteMcpAuthenticationOptions, "binding"> & { readonly binding?: ConfigurationBindingOptions };
+  readonly reset?: RemoteMcpCredentialResetOptions;
+  readonly credentialImport?: RemoteMcpCredentialImportOptions;
+  readonly resources?: RemoteMcpResourceOptions & { readonly binding?: ConfigurationBindingOptions };
+}
+
+const generationFlags = {
+  "--timeout-ms": "requestTimeoutMs",
+  "--max-pages": "maxPages",
+  "--max-tools": "maxTools",
+  "--max-response-bytes": "maxResponseBytes",
+  "--max-configuration-bytes": "maxConfigurationBytes",
+  "--max-artifact-bytes": "maxArtifactBytes"
+} as const;
+type GenerationPolicy = Partial<Record<typeof generationFlags[keyof typeof generationFlags], number>>;
+
+function resourceArguments(args: readonly string[], maxInputBytes: number): { name: string; request: RemoteMcpResourceRequest; requestTimeoutMs?: number; maxInputBytes?: number; maxResponseBytes?: number } {
+  const positional: string[] = [];
+  let cursor: string | undefined;
+  let templates = false;
+  const policy: Partial<Record<"requestTimeoutMs" | "maxInputBytes" | "maxResponseBytes", number>> = {};
+  let literal = false;
+  for (let index = 1; index < args.length; index++) {
+    const arg = args[index];
+    if (!literal && arg === "--") { literal = true; continue; }
+    const flag = arg.split("=", 1)[0];
+    if (!literal && ["--timeout-ms", "--max-input-bytes", "--max-response-bytes"].includes(flag)) {
+      const key = flag === "--timeout-ms" ? "requestTimeoutMs" : flag === "--max-input-bytes" ? "maxInputBytes" : "maxResponseBytes";
+      if (policy[key] !== undefined) throw new Error(`${flag} can only be supplied once`);
+      policy[key] = positiveArgument(arg === flag ? args[++index] : arg.slice(flag.length + 1), flag,
+        key === "requestTimeoutMs" ? 2_147_483_647 : Number.MAX_SAFE_INTEGER);
+    } else if (!literal && arg === "--templates") {
+      if (templates) throw new Error("--templates can only be supplied once");
+      templates = true;
+    } else if (!literal && (arg === "--cursor" || arg.startsWith("--cursor="))) {
+      if (cursor !== undefined) throw new Error("--cursor can only be supplied once");
+      cursor = arg === "--cursor" ? args[++index] : arg.slice("--cursor=".length);
+      if (cursor === undefined) throw new Error("--cursor requires a value");
+    } else {
+      if ((!literal && arg.startsWith("-")) || positional.length === 2) throw new Error(`Unknown resource argument '${arg}'`);
+      positional.push(arg);
+    }
+  }
+  const [name, uri] = positional;
+  if (name === undefined) throw new Error("resource requires a server name");
+  if (uri !== undefined && (templates || cursor !== undefined)) throw new Error("Resource reads cannot use --templates or --cursor");
+  const request: RemoteMcpResourceRequest = uri === undefined ? { operation: templates ? "templates" : "list", ...(cursor === undefined ? {} : { cursor }) }
+    : { operation: "read", uri };
+  return { name, request: snapshotRemoteMcpResourceRequest(request, Math.min(maxInputBytes, policy.maxInputBytes ?? maxInputBytes)), ...policy };
+}
+
+function credentialArguments(args: readonly string[]): { name: string; json: boolean; reset: boolean; noBrowser?: boolean; requestTimeoutMs?: number; maxResponseBytes?: number; file?: string; maxImportBytes?: number; timeoutMs?: number } {
+  const command = args[0];
+  let name: string | undefined;
+  let json = false;
+  let noBrowser: boolean | undefined;
+  let requestTimeoutMs: number | undefined;
+  let maxResponseBytes: number | undefined;
+  let reset = false;
+  let file: string | undefined;
+  let maxImportBytes: number | undefined;
+  let timeoutMs: number | undefined;
+  for (let index = 1; index < args.length; index++) {
+    const arg = args[index];
+    if (arg === "--json") {
+      if (json) throw new Error("--json can only be supplied once");
+      json = true;
+    } else if (command === "auth" && arg === "--reset") {
+      if (reset) throw new Error("--reset can only be supplied once");
+      reset = true;
+    } else if (command === "auth" && (arg === "--no-browser" || arg === "--browser" || arg.startsWith("--browser="))) {
+      if (noBrowser !== undefined) throw new Error("Browser selection can only be supplied once");
+      const mode = arg === "--no-browser" ? "none" : arg === "--browser" ? args[++index] : arg.slice("--browser=".length);
+      if (mode !== "none" && mode !== "host") throw new Error("--browser requires none or host");
+      noBrowser = mode === "none";
+    } else if (command === "import" && (arg === "--file" || arg.startsWith("--file="))) {
+      if (file !== undefined) throw new Error("--file can only be supplied once");
+      file = arg === "--file" ? args[++index] : arg.slice("--file=".length);
+      if (file === undefined || file === "") throw new Error("--file requires a virtual path or - for stdin");
+    } else if (command === "import" && (arg === "--max-import-bytes" || arg.startsWith("--max-import-bytes="))) {
+      if (maxImportBytes !== undefined) throw new Error("--max-import-bytes can only be supplied once");
+      maxImportBytes = positiveArgument(arg === "--max-import-bytes" ? args[++index] : arg.slice("--max-import-bytes=".length), "--max-import-bytes");
+    } else if (command === "import" && (arg === "--lock-timeout-ms" || arg.startsWith("--lock-timeout-ms="))) {
+      if (timeoutMs !== undefined) throw new Error("--lock-timeout-ms can only be supplied once");
+      timeoutMs = positiveArgument(arg === "--lock-timeout-ms" ? args[++index] : arg.slice("--lock-timeout-ms=".length), "--lock-timeout-ms", 2_147_483_647);
+    } else if (command === "auth" && (arg === "--max-response-bytes" || arg.startsWith("--max-response-bytes="))) {
+      if (maxResponseBytes !== undefined) throw new Error("--max-response-bytes can only be supplied once");
+      maxResponseBytes = positiveArgument(arg === "--max-response-bytes" ? args[++index] : arg.slice("--max-response-bytes=".length), "--max-response-bytes");
+    } else if (arg === "--timeout-ms" || arg.startsWith("--timeout-ms=")) {
+      if (requestTimeoutMs !== undefined) throw new Error("--timeout-ms can only be supplied once");
+      requestTimeoutMs = positiveArgument(arg === "--timeout-ms" ? args[++index] : arg.slice("--timeout-ms=".length), "--timeout-ms", 2_147_483_647);
+    } else if (arg === "--") {
+      if (name !== undefined || index + 2 !== args.length) throw new Error(`${command} requires exactly one server name`);
+      name = args[++index];
+    } else {
+      if (arg.startsWith("-") || name !== undefined) throw new Error(`Unknown ${command} argument '${arg}'`);
+      name = arg;
+    }
+  }
+  if (name === undefined) throw new Error(`${command} requires a server name`);
+  return { name, json, reset, noBrowser, requestTimeoutMs, maxResponseBytes, file, maxImportBytes, timeoutMs };
+}
+
+/** Create configuration and artifact commands for a host-owned static remote registry. */
+export interface McpCommandsOptions extends RemoteMcpManagementOptions {
+  readonly servers?: readonly InitRemoteMcpServer[];
+  readonly replace?: boolean;
+}
+
+export type McpLimits = Pick<RemoteMcpManagementOptions, "maxInputBytes" | "maxOutputBytes">;
+
+export function createMcpCommand(options?: McpCommandsOptions): CommandDefinition;
+export function createMcpCommand(servers: readonly InitRemoteMcpServer[], options?: RemoteMcpManagementOptions): CommandDefinition;
+export function createMcpCommand(configuration: McpCommandsOptions | readonly InitRemoteMcpServer[] = {}, legacyOptions: RemoteMcpManagementOptions = {}): CommandDefinition {
+  const options: McpCommandsOptions = Array.isArray(configuration) ? { ...legacyOptions, servers: configuration } : configuration as McpCommandsOptions;
+  const servers = options.servers ?? [];
+  const name = options.name ?? "mcp";
+  validateCommandName(name);
+  if (servers.some(server => server.name === name)) throw new Error(`Management command conflicts with generated command: ${name}`);
+  const initialization = initRemoteMcpConfiguration(servers, options);
+  const maxInputBytes = commandLimit(options.maxInputBytes ?? Infinity, "maxInputBytes");
+  const maxOutputBytes = commandLimit(options.maxOutputBytes ?? Infinity, "maxOutputBytes");
+  const factorySignal = options.signal;
+  const authenticationUsage = `Usage: ${textLine(shellWord(name))} auth <server> [--json] [--browser none|host] [--reset]`;
+  const authenticationGuidance = [
+    "Auth verifies access without listing or calling tools. Headless login prints",
+    "the complete authorization URL and exact redirect before waiting for consent.",
+    "Keep this command running while opening the URL. --json emits one JSON record",
+    "per authorization attempt. After URL output, connection status goes to stderr.",
+    "--no-browser (default) never launches a browser; --browser host uses the",
+    "host-configured opener. Cached credentials may connect without another URL.", "",
+    "--reset retires saved OAuth tokens and registrations before new consent.",
+    "--timeout-ms <milliseconds> bounds the complete authentication operation",
+    "(default Infinity). Host callback timeouts may impose a shorter limit.",
+    "--max-response-bytes <bytes> overrides the transport response limit",
+    "(default Infinity). OAuth metadata/token responses retain their own limits."
+  ];
+  const authenticationHelp = [authenticationUsage, "", ...authenticationGuidance, "", "  --help  Show this help.", ""].join("\n");
+  const resetHelp = [`Usage: ${textLine(shellWord(name))} reset <server> [--json] [--timeout-ms <milliseconds>]`, "",
+    "Retire saved OAuth tokens and registrations for this name/profile.",
+    "Reset needs no credential environment values or network connection. It can",
+    "recover corrupt native records and withholds stale environment-token imports.",
+    "Host-owned persistence requires a host reset hook. Update static bearer/header",
+    "values in the host environment. The default lock wait is unlimited.", "", "  --help  Show this help.", ""].join("\n");
+  const resourceHelp = [`Usage: ${textLine(shellWord(name))} resource <server> [uri] [--cursor <value>] [--templates]`, "",
+    "Without a URI, list one resource page; --templates lists URI templates.",
+    "With a URI, read remote text/blob contents. URIs are sent to the MCP server.",
+    "Complete results are JSON, including metadata and nextCursor; provide that",
+    "cursor explicitly to request the next page. No tools are discovered or called.",
+    "--timeout-ms <milliseconds> bounds the complete resource operation (default Infinity).",
+    "--max-input-bytes <bytes> bounds the UTF-8 request JSON (default Infinity).",
+    "--max-response-bytes <bytes> bounds transport responses (default Infinity).",
+    "CLI values override host resource settings; the host command input limit also applies.",
+    "  --help  Show this help.", ""].join("\n");
+  const importHelp = [`Usage: ${textLine(shellWord(name))} import <server> [--file <path>] [--json]`, "",
+    "Read OAuth credential JSON from stdin (default) or a virtual --file path.",
+    "Use --file - to select stdin explicitly.",
+    "Keep tokens with their original app; full DCR clientInfo is preserved.",
+    "Input: { \"tokens\": { \"access_token\": \"...\", \"token_type\": \"Bearer\" },",
+    "         \"clientInfo\": { \"client_id\": \"original-app\" } }", "",
+    "When clientInfo is absent, supply the original configured client ID/secret.",
+    "OAuth metadata validates the issuer before client and grant are saved together.",
+    "Import never initializes, lists or calls tools. Summaries contain no credentials.",
+    "expires_in uses seconds; absolute expires_at uses epoch seconds and expiresAt",
+    "uses epoch milliseconds. Optional top-level issuedAt uses epoch milliseconds",
+    "for delayed imports. Absolute expiry wins over remaining relative lifetime.", "",
+    "--timeout-ms <milliseconds> bounds input, discovery and persistence (default Infinity).",
+    "--lock-timeout-ms <milliseconds> sets the separate persistence lock wait (default Infinity).",
+    "--max-import-bytes <bytes> bounds credential input (default Infinity).",
+    "CLI values override host import settings; the host command input limit also applies.",
+    "Host-owned persistence requires an atomic import hook. Input is bounded by",
+    "the host input limit; malformed JSON is rejected without quoting credentials.", "", "  --help  Show this help.", ""].join("\n");
+  const help = [
+    `Usage: ${textLine(shellWord(name))} init [--format json|config|env]`,
+    `       ${textLine(shellWord(name))} generate [--format json|config|module]`,
+    `       ${textLine(shellWord(name))} auth <server> [--json] [--browser none|host] [--reset]`,
+    `       ${textLine(shellWord(name))} reset <server> [--json]`,
+    `       ${textLine(shellWord(name))} import <server> [--file <path>] [--json]`,
+    `       ${textLine(shellWord(name))} resource <server> [uri] [--cursor <value>] [--templates]`, "",
+    "Prepare configuration and an empty credential environment template for the remote registry.", "",
+    "Formats:", "  json    Configuration and environment template together (default).",
+    "  config  Versioned server configuration with credential references.", "  env     Empty dotenv entries with credential guidance.", "",
+    "OAuth entries include app/client ID, client secret, scopes, exact registered",
+    "redirect URI, access token, refresh token and expiry in Unix epoch milliseconds.",
+    "Optional relative lifetime uses seconds; original issuance time uses epoch",
+    "milliseconds for delayed imports. Absolute expiry takes precedence.",
+    "Public scope/redirect fallbacks are stored in configuration. Secrets remain",
+    "empty in the template; initialization does not read credentials or connect.", "",
+    "Generate resolves absent schemas and emits a reproducible artifact. Supplied",
+    "schemas are authoritative and require no credentials or discovery connection.",
+    "Generation formats:", "  json    Validated schema artifact with its content digest (default).",
+    "  config  Resolved configuration with every tool schema.",
+    "  module  Dependency-free ESM data module exporting the artifact as default.",
+    "Credentials remain environment references in every generated format.", "",
+    "Generation --timeout-ms <milliseconds> bounds each discovery request",
+    "(default Infinity). Supplied schemas remain offline.",
+    "Generation limits: --max-pages (Infinity), --max-tools (Infinity per server),",
+    "--max-response-bytes (Infinity), --max-configuration-bytes (Infinity),",
+    "--max-artifact-bytes (Infinity). Each accepts a positive integer or Infinity.",
+    "CLI values override the corresponding host generation settings.", "",
+    ...authenticationGuidance, "",
+    "  --help  Show this help.", ""
+  ].join("\n");
+  return {
+    name,
+    description: "Initialize, authenticate, import and generate remote MCP commands",
+    runtimeIdentity: commandRuntimeIdentity,
+    async execute(context) {
+      const signal = factorySignal === undefined ? context.signal : AbortSignal.any([context.signal, factorySignal]);
+      const operation = createOutputOperation({ signal, registerCleanup: context.registerCleanup }, context.stdout);
+      const errors = operation.child(context.stderr);
+      try {
+        operation.signal.throwIfAborted();
+        let output: string;
+        let generationFormat: string | undefined;
+        const generationPolicy: GenerationPolicy = {};
+        let authentication: ReturnType<typeof credentialArguments> | undefined;
+        let credentialImport: ReturnType<typeof credentialArguments> | undefined;
+        let credentialReset: ReturnType<typeof credentialArguments> | undefined;
+        let resource: ReturnType<typeof resourceArguments> | undefined;
+        try {
+          const args = argumentText(context, maxInputBytes);
+          if (args.length === 2 && args[0] === "auth" && args[1] === "--help") output = authenticationHelp;
+          else if (args.length === 2 && args[0] === "import" && args[1] === "--help") output = importHelp;
+          else if (args.length === 2 && args[0] === "reset" && args[1] === "--help") output = resetHelp;
+          else if (args.length === 2 && args[0] === "resource" && args[1] === "--help") output = resourceHelp;
+          else if (args.length === 0 || (args.length === 1 && args[0] === "--help") || (args.length === 2 && ["init", "generate"].includes(args[0]) && args[1] === "--help")) output = help;
+          else if (args[0] === "resource") {
+            const selected = resourceArguments(args, maxInputBytes);
+            if (!initialization.configuration.servers.some(server => server.name === selected.name)) throw new Error(`Unknown remote MCP server '${selected.name}'`);
+            resource = selected;
+            output = "";
+          }
+          else if (args[0] === "auth" || args[0] === "reset" || args[0] === "import") {
+            const selected = credentialArguments(args);
+            if (!initialization.configuration.servers.some(server => server.name === selected.name)) throw new Error(`Unknown remote MCP server '${selected.name}'`);
+            if (args[0] === "auth") authentication = selected;
+            else if (args[0] === "import") credentialImport = selected;
+            else credentialReset = selected;
+            output = "";
+          }
+          else {
+            if (args[0] !== "init" && args[0] !== "generate") throw new Error(`Unknown remote MCP management command '${args[0]}'`);
+            const command = args[0];
+            const formats = command === "init" ? ["json", "config", "env"] : ["json", "config", "module"];
+            let format: string | undefined;
+            for (let index = 1; index < args.length; index++) {
+              const arg = args[index];
+              const flag = arg.split("=", 1)[0];
+              if (command === "generate" && Object.hasOwn(generationFlags, flag)) {
+                const key = generationFlags[flag as keyof typeof generationFlags];
+                if (generationPolicy[key] !== undefined) throw new Error(`${flag} can only be supplied once`);
+                generationPolicy[key] = positiveArgument(arg === flag ? args[++index] : arg.slice(flag.length + 1), flag,
+                  key === "requestTimeoutMs" ? 2_147_483_647 : Number.MAX_SAFE_INTEGER);
+                continue;
+              }
+              if (arg !== "--format" && !arg.startsWith("--format=")) throw new Error(`Unknown ${command} argument '${arg}'`);
+              if (format !== undefined) throw new Error("--format can only be supplied once");
+              format = arg === "--format" ? args[++index] : arg.slice("--format=".length);
+              if (format === undefined) throw new Error(`--format requires ${formats.join(", ")}`);
+            }
+            if (format !== undefined && !formats.includes(format)) throw new Error(`--format requires ${formats.join(", ")}`);
+            if (command === "generate") { generationFormat = format ?? "json"; output = ""; }
+            else if (format === undefined || format === "json") output = `${JSON.stringify(initialization, null, 2)}\n`;
+            else if (format === "config") output = `${JSON.stringify(initialization.configuration, null, 2)}\n`;
+            else output = initialization.envTemplate;
+          }
+        } catch (error) {
+          operation.signal.throwIfAborted();
+          await emit(errors, `${JSON.stringify({ error: errorDetails(error) })}\n`, maxOutputBytes);
+          return { exitCode: 2 };
+        }
+        if (resource !== undefined) {
+          const selected = resource;
+          try {
+            const resourceOptions = options.resources ?? {};
+            const settings = { ...snapshotRemoteMcpSchemaOptions(resourceOptions),
+              binding: resourceOptions.binding, maxInputBytes: resourceOptions.maxInputBytes };
+            const resourceSignal = settings?.signal;
+            const signal = resourceSignal === undefined ? operation.signal : AbortSignal.any([operation.signal, resourceSignal]);
+            signal.throwIfAborted();
+            const maxResourceInputBytes = Math.min(maxInputBytes,
+              commandLimit(callerLimit(selected.maxInputBytes, settings.maxInputBytes, "maxInputBytes") ?? maxInputBytes, "maxInputBytes"));
+            const request = snapshotRemoteMcpResourceRequest(selected.request, maxResourceInputBytes);
+            const server = initialization.configuration.servers.find(server => server.name === selected.name)!;
+            const [bound] = bindRemoteMcpConfiguration({ version: 1, servers: [server] }, settings?.binding ?? { env: context.env });
+            const result = await accessRemoteMcpResources(bound, request, { ...settings,
+              requestTimeoutMs: callerLimit(selected.requestTimeoutMs, settings?.requestTimeoutMs, "requestTimeoutMs"),
+              maxResponseBytes: callerLimit(selected.maxResponseBytes, settings?.maxResponseBytes, "maxResponseBytes"),
+              maxInputBytes: maxResourceInputBytes, signal });
+            output = `${JSON.stringify(result)}\n`;
+          } catch (error) {
+            operation.signal.throwIfAborted();
+            await emit(errors, `${JSON.stringify({ error: errorDetails(error) })}\n`, maxOutputBytes);
+            return { exitCode: 1 };
+          }
+        }
+        if (credentialImport !== undefined) {
+          const selected = credentialImport;
+          const server = initialization.configuration.servers.find(server => server.name === selected.name)!;
+          const settings = options.credentialImport;
+          const importSignal = settings?.signal;
+          const parentSignal = importSignal === undefined ? operation.signal : AbortSignal.any([operation.signal, importSignal]);
+          let result: RemoteMcpCredentialImportResult;
+          try {
+            parentSignal.throwIfAborted();
+            const requestTimeoutMs = callerLimit(selected.requestTimeoutMs, settings?.requestTimeoutMs, "requestTimeoutMs") ?? Infinity;
+            if (requestTimeoutMs !== Infinity && (!Number.isSafeInteger(requestTimeoutMs) || requestTimeoutMs < 1 || requestTimeoutMs > 2_147_483_647))
+              throw new Error("Import requestTimeoutMs must be a positive supported timer interval");
+            const signal = requestTimeoutMs === Infinity ? parentSignal : AbortSignal.any([parentSignal, AbortSignal.timeout(requestTimeoutMs)]);
+            const maxImportBytes = Math.min(maxInputBytes, commandLimit(callerLimit(selected.maxImportBytes, settings?.maxImportBytes, "maxImportBytes") ?? maxInputBytes, "maxImportBytes"));
+            const file = selected.file;
+            let source = context.stdin;
+            if (file !== undefined && file !== "-") {
+              const path = resolvePath(context.cwd, file);
+              source = context.fs.readStream === undefined
+                ? toByteSource(await context.fs.readFile(path, { signal, ...(maxImportBytes === Infinity ? {} : { maxBytes: maxImportBytes }) }))
+                : context.fs.readStream(path, { signal });
+            }
+            const bytes = await collectBytes(source, { signal, maxBytes: maxImportBytes });
+            let json: string;
+            try { json = new TextDecoder("utf-8", { fatal: true }).decode(bytes); }
+            catch { throw new Error("OAuth credential input must be valid UTF-8"); }
+            result = await importRemoteMcpAuthentication(server, json, {
+              ...options, ...snapshotRemoteMcpCredentialOptions(settings ?? {}),
+              maxConfigurationBytes: settings?.maxConfigurationBytes ?? options.maxConfigurationBytes,
+              maxTools: settings?.maxTools ?? options.maxTools,
+              binding: settings?.binding ?? options.authentication?.binding ?? { env: context.env },
+              fetch: settings?.fetch ?? options.authentication?.fetch,
+              requestTimeoutMs,
+              timeoutMs: callerLimit(selected.timeoutMs, settings?.timeoutMs, "timeoutMs"),
+              maxImportBytes, signal
+            });
+          } catch (error) {
+            operation.signal.throwIfAborted();
+            await emit(errors, `${JSON.stringify({ error: errorDetails(error) })}\n`, maxOutputBytes);
+            return { exitCode: 1 };
+          }
+          await emit(operation, selected.json ? `${JSON.stringify(result)}\n` : `Imported OAuth credentials for ${textLine(shellWord(result.name))}.\n`, maxOutputBytes);
+          return { exitCode: 0 };
+        }
+        if (credentialReset !== undefined) {
+          const selected = credentialReset;
+          const server = initialization.configuration.servers.find(server => server.name === selected.name)!;
+          const settings = options.reset;
+          const resetSignal = settings?.signal;
+          let result: RemoteMcpCredentialResetResult;
+          try {
+            result = await resetRemoteMcpAuthentication(server, {
+              ...options, ...snapshotRemoteMcpCredentialOptions(settings ?? {}),
+              maxConfigurationBytes: settings?.maxConfigurationBytes ?? options.maxConfigurationBytes,
+              maxTools: settings?.maxTools ?? options.maxTools,
+              binding: settings?.binding ?? options.authentication?.binding,
+              timeoutMs: callerLimit(selected.requestTimeoutMs, settings?.timeoutMs, "timeoutMs"),
+              signal: resetSignal === undefined ? operation.signal : AbortSignal.any([operation.signal, resetSignal])
+            });
+          } catch (error) {
+            operation.signal.throwIfAborted();
+            await emit(errors, `${JSON.stringify({ error: errorDetails(error) })}\n`, maxOutputBytes);
+            return { exitCode: 1 };
+          }
+          await emit(operation, selected.json ? `${JSON.stringify(result)}\n` : `Reset OAuth credentials for ${textLine(shellWord(result.name))}.\n`, maxOutputBytes);
+          return { exitCode: 0 };
+        }
+        if (authentication !== undefined) {
+          const selected = authentication;
+          const server = initialization.configuration.servers.find(server => server.name === selected.name)!;
+          const settings = options.authentication;
+          const authSignal = settings?.signal;
+          const observer = settings?.onAuthorizationUrl;
+          let emittedBytes = 0;
+          let emittedUrl = false;
+          let outputFailure: unknown;
+          let result: RemoteMcpAuthenticationResult;
+          try {
+            result = await authenticateRemoteMcpServer(server, {
+              ...snapshotRemoteMcpSchemaOptions(settings ?? {}), binding: settings?.binding ?? { env: context.env },
+              noBrowser: selected.noBrowser ?? settings?.noBrowser ?? true,
+              reset: selected.reset || settings?.reset,
+              requestTimeoutMs: callerLimit(selected.requestTimeoutMs, settings?.requestTimeoutMs, "requestTimeoutMs"),
+              maxResponseBytes: callerLimit(selected.maxResponseBytes, settings?.maxResponseBytes, "maxResponseBytes"),
+              signal: authSignal === undefined ? operation.signal : AbortSignal.any([operation.signal, authSignal]),
+              async onAuthorizationUrl(request) {
+                const text = selected.json ? `${JSON.stringify(request)}\n` : `Authorization URL: ${textLine(request.authorizationUrl)}\nRedirect URI: ${textLine(request.redirectUri)}\n`;
+                try { await emit(operation, text, maxOutputBytes - emittedBytes); }
+                catch (error) { outputFailure = error; throw error; }
+                emittedBytes += new TextEncoder().encode(text).byteLength;
+                emittedUrl = true;
+                await observer?.call(settings, request);
+              }
+            });
+          } catch (error) {
+            if (outputFailure !== undefined) throw outputFailure;
+            operation.signal.throwIfAborted();
+            await emit(errors, `${JSON.stringify({ error: errorDetails(error) })}\n`, maxOutputBytes);
+            return { exitCode: 1 };
+          }
+          const summary = selected.json ? `${JSON.stringify({ name: result.name, url: result.url, connected: true })}\n` : `Connected to ${textLine(shellWord(result.name))}.\n`;
+          await emit(emittedUrl ? errors : operation, summary, emittedUrl ? maxOutputBytes : maxOutputBytes - emittedBytes);
+          return { exitCode: 0 };
+        }
+        if (generationFormat !== undefined) {
+          try {
+            const generation = options.generation;
+            const schemaSignal = generation?.schema?.signal;
+            const generated = await generateRemoteMcpArtifact(initialization.configuration, {
+              ...options, ...generation,
+              maxTools: callerLimit(generationPolicy.maxTools, generation?.maxTools ?? options.maxTools, "maxTools"),
+              maxConfigurationBytes: callerLimit(generationPolicy.maxConfigurationBytes, generation?.maxConfigurationBytes ?? options.maxConfigurationBytes, "maxConfigurationBytes"),
+              maxArtifactBytes: callerLimit(generationPolicy.maxArtifactBytes, generation?.maxArtifactBytes, "maxArtifactBytes"),
+              schemaRegistry: generation?.schemaRegistry,
+              binding: generation?.binding ?? { env: context.env },
+              schema: { ...snapshotRemoteMcpSchemaOptions(generation?.schema ?? {}),
+                requestTimeoutMs: callerLimit(generationPolicy.requestTimeoutMs, generation?.schema?.requestTimeoutMs, "requestTimeoutMs"),
+                maxPages: callerLimit(generationPolicy.maxPages, generation?.schema?.maxPages, "maxPages"),
+                maxTools: callerLimit(generationPolicy.maxTools, generation?.schema?.maxTools, "maxTools"),
+                maxResponseBytes: callerLimit(generationPolicy.maxResponseBytes, generation?.schema?.maxResponseBytes, "maxResponseBytes"),
+                signal: schemaSignal === undefined ? operation.signal : AbortSignal.any([operation.signal, schemaSignal]) }
+            });
+            output = generationFormat === "module" ? generated.module : generationFormat === "config" ? `${JSON.stringify(generated.artifact.configuration, null, 2)}\n` : generated.json;
+          } catch (error) {
+            operation.signal.throwIfAborted();
+            await emit(errors, `${JSON.stringify({ error: errorDetails(error) })}\n`, maxOutputBytes);
+            return { exitCode: 1 };
+          }
+        }
+        await emit(operation, output, maxOutputBytes);
+        return { exitCode: 0 };
+      } finally { await operation.close(); }
+    }
+  };
+}
+
+
+export function createMcpCommands(options: McpCommandsOptions = {}): readonly CommandDefinition[] {
+  return [createMcpCommand(options)];
+}
+
+export function mcpCommands(options: McpCommandsOptions = {}): import("safe-bash-contracts").VirtualShellPlugin {
+  const commands = createMcpCommands(options);
+  const replace = options.replace ?? false;
+  return { name: "mcp-commands", setup(host) {
+    if (!replace) for (const command of commands) {
+      if (host.commands.has(command.name)) throw new Error(`Command already registered: ${command.name}`);
+    }
+    for (const command of commands) host.commands.register(command, { replace });
+  } };
+}
+
+export { createMcpCommand as createRemoteMcpManagementCommand };

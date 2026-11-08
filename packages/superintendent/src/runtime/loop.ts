@@ -1,0 +1,844 @@
+import { posixPath as path } from "@poe-code/safe-fs";
+import { defaultCwd, defaultHome } from "#superintendent-filesystem";
+import { superintendentFileSystem } from "../filesystem.js";
+import type { FileSystem } from "@poe-code/safe-fs/contracts";
+import { makeRunLogFileName, resolveWorkflowPath } from "@poe-code/agent-harness-tools";
+import { resolveSuperintendentDoc, type SuperintendentDoc } from "../document/parse.js";
+import { parseTaskBoard } from "../document/tasks.js";
+import { updateStatus } from "../document/write.js";
+import { withDocumentStatusLock } from "../document/status-lock.js";
+import { createLoopState, type LoopState } from "../state/machine.js";
+import { type AutonomousRunner, type McpSpawnConfig } from "./agent-runner.js";
+import { runBuilder, type BuilderResult } from "./run-builder.js";
+import { runInspector, type InspectorResult } from "./run-inspector.js";
+import { runOwnerReview, type OwnerResult } from "./run-owner-review.js";
+import { runSuperintendent, type SuperintendentResult } from "./run-superintendent.js";
+import { collectReferencedInspectors } from "./templates.js";
+import { hasOwnErrorCode } from "../error-codes.js";
+
+export type SuperintendentStopReason =
+  | "completed"
+  | "dry_run"
+  | "max_rounds"
+  | "paused"
+  | "stopped"
+  | "aborted";
+
+export type SuperintendentRunResult = LoopState & {
+  stopReason: SuperintendentStopReason;
+};
+
+export interface SuperintendentFileStat {
+  isFile(): boolean;
+  isDirectory(): boolean;
+  mtimeMs: number;
+}
+
+export interface SuperintendentFileSystem {
+  readFile(path: string, encoding: BufferEncoding): Promise<string>;
+  writeFile(
+    path: string,
+    data: string,
+    options?: { encoding?: BufferEncoding; flag?: string }
+  ): Promise<void>;
+  realpath?(path: string): Promise<string>;
+  readdir(path: string): Promise<string[]>;
+  stat(path: string): Promise<SuperintendentFileStat>;
+  lstat(path: string): Promise<{ isSymbolicLink(): boolean }>;
+  mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
+  rmdir(path: string): Promise<void>;
+  rename(oldPath: string, newPath: string): Promise<void>;
+  unlink?(path: string): Promise<void>;
+}
+
+export interface AgentRunInput {
+  agent: string;
+  prompt: string;
+  cwd: string;
+  mode?: string;
+  mcpServers?: McpSpawnConfig;
+  runtime?: "host" | "docker";
+  runtimeImage?: string;
+  detach?: boolean;
+  mountPoeCode?: boolean;
+  runnerSync?: "both" | "upload" | "none";
+  signal?: AbortSignal;
+  logPath?: string;
+  onStdout?: (chunk: string) => void;
+  onStderr?: (chunk: string) => void;
+}
+
+export interface AgentRunResult {
+  stdout: string;
+  stderr: string;
+  exitCode: number;
+  summary?: string;
+  log?: string;
+  logFile?: string;
+  output?: string;
+  text?: string;
+  transition?: unknown;
+  toolCalls?: unknown;
+  sessionResult?: unknown;
+}
+
+export type LoopCallbacks = {
+  runRole?: <T>(
+    role: "builder" | "inspector" | "superintendent" | "owner",
+    name: string | undefined,
+    run: () => Promise<T>
+  ) => Promise<T>;
+  onBuilderStart?: () => void;
+  onBuilderComplete?: (result: BuilderResult) => void;
+  onBuilderFailed?: (error: Error) => void;
+  onInspectorStart?: (name: string) => void;
+  onInspectorComplete?: (result: InspectorResult) => void;
+  onInspectorFailed?: (name: string, error: Error) => void;
+  onSuperintendentStart?: () => void;
+  onSuperintendentComplete?: (result: SuperintendentResult) => void;
+  onOwnerStart?: () => void;
+  onOwnerComplete?: (result: OwnerResult) => void;
+  onRoundComplete?: (round: number) => void;
+  onLoopComplete?: (state: SuperintendentRunResult) => void;
+  onStateChange?: (state: LoopState) => void;
+  shouldPause?: () => boolean;
+  /** Await a live resume while retaining the current round's results and next role. */
+  onPause?: () => Promise<void>;
+  shouldStop?: () => boolean;
+};
+
+export type LoopRunners = {
+  builder?: typeof runBuilder;
+  inspector?: typeof runInspector;
+  superintendent?: typeof runSuperintendent;
+  ownerReview?: typeof runOwnerReview;
+};
+
+export type RunLoopOptions = {
+  docPath: string;
+  cwd: string;
+  homeDir: string;
+  fs?: SuperintendentFileSystem | FileSystem;
+  callbacks?: LoopCallbacks;
+  runAgent?: (input: AgentRunInput) => Promise<AgentRunResult>;
+  builderAgent?: string;
+  runners?: LoopRunners;
+  signal?: AbortSignal;
+  logDir?: string;
+};
+
+type ResolvedRunners = {
+  builder: typeof runBuilder;
+  inspector: typeof runInspector;
+  superintendent: typeof runSuperintendent;
+  ownerReview: typeof runOwnerReview;
+};
+
+type LoopRuntime = {
+  docPath: string;
+  cwd: string;
+  homeDir: string;
+  fs: SuperintendentFileSystem;
+  callbacks: LoopCallbacks;
+  runAgent?: (input: AgentRunInput) => Promise<AgentRunResult>;
+  builderAgent?: string;
+  runners: ResolvedRunners;
+  signal?: AbortSignal;
+  logDir?: string;
+};
+
+type TemplateLoopContext = {
+  builder?: BuilderResult;
+  inspectors: Record<string, string>;
+  inspectorLogs: Record<string, string>;
+  superintendentSummary?: string;
+  superintendentLogPath?: string;
+  ownerFeedback?: string;
+  ownerLogPath?: string;
+};
+
+class DocumentCompleted extends Error {
+  constructor(readonly state: LoopState) {
+    super("Superintendent document was completed while the loop was active.");
+  }
+}
+
+export async function runLoop(
+  docPath: string,
+  callbacks?: LoopCallbacks
+): Promise<SuperintendentRunResult>;
+export async function runLoop(options: RunLoopOptions): Promise<SuperintendentRunResult>;
+export async function runLoop(
+  input: string | RunLoopOptions,
+  callbacks?: LoopCallbacks
+): Promise<SuperintendentRunResult> {
+  const options = normalizeOptions(input, callbacks);
+  return (async () => {
+    let state = createLoopState(await readDocument(options.fs, options.docPath));
+    let context: TemplateLoopContext = {
+      inspectors: {},
+      inspectorLogs: {}
+    };
+
+    while (true) {
+      const stopReason = await readLoopStopReason(options, state);
+
+      if (stopReason) {
+        return finishLoop(options.callbacks, state, stopReason);
+      }
+
+      if (state.state === "in_progress") {
+        const roundStartState = { ...state };
+        const roundSnapshot = await readDocumentContent(options.fs, options.docPath);
+        state = beginRound(state);
+        await writeLoopState(options.fs, options.docPath, state);
+        emitStateChange(options.callbacks, state);
+
+        options.callbacks.onBuilderStart?.();
+
+        let builderResult: BuilderResult;
+        try {
+          const builderDoc = await readDocument(options.fs, options.docPath);
+          builderResult = await runRole(options, "builder", undefined, () =>
+            options.runners.builder(
+              options.builderAgent
+                ? {
+                    ...builderDoc,
+                    frontmatter: {
+                      ...builderDoc.frontmatter,
+                      builder: { ...builderDoc.frontmatter.builder, agent: options.builderAgent }
+                    }
+                  }
+                : builderDoc,
+              createTemplateContext(context),
+              buildRoleOptions(options, "builder")
+            )
+          );
+        } catch (error) {
+          const normalizedError = await preserveFailedRoleDocument(
+            options.fs,
+            options.docPath,
+            roundSnapshot,
+            error
+          );
+          options.callbacks.onBuilderFailed?.(normalizedError);
+          throw normalizedError;
+        }
+
+        options.callbacks.onBuilderComplete?.(builderResult);
+        context = {
+          ...context,
+          builder: builderResult,
+          inspectors: {},
+          inspectorLogs: {}
+        };
+        await writeLoopState(options.fs, options.docPath, state);
+
+        const stopReason = await readInterruptionReason(options, state);
+
+        if (stopReason) {
+          if (stopReason === "aborted") {
+            state = await rollbackRoundStatus(options, roundStartState);
+          }
+          return finishLoop(options.callbacks, state, stopReason);
+        }
+
+        const docForInspectors = await readDocument(options.fs, options.docPath);
+        const inspectorEntries = filterAutoRunInspectors(docForInspectors);
+
+        for (const [name, config] of inspectorEntries) {
+          options.callbacks.onInspectorStart?.(name);
+          const inspectorSnapshot = await readDocumentContent(options.fs, options.docPath);
+
+          let inspectorResult: InspectorResult;
+          try {
+            inspectorResult = await runRole(options, "inspector", name, async () =>
+              options.runners.inspector(
+                name,
+                config,
+                await readDocument(options.fs, options.docPath),
+                createTemplateContext(context),
+                buildRoleOptions(options, `inspector-${name}`)
+              )
+            );
+          } catch (error) {
+            const normalizedError = await preserveFailedRoleDocument(
+              options.fs,
+              options.docPath,
+              inspectorSnapshot,
+              error
+            );
+            options.callbacks.onInspectorFailed?.(name, normalizedError);
+            throw normalizedError;
+          }
+
+          options.callbacks.onInspectorComplete?.(inspectorResult);
+          context = {
+            ...context,
+            inspectors: {
+              ...context.inspectors,
+              [inspectorResult.name]: inspectorResult.summary
+            },
+            inspectorLogs: {
+              ...context.inspectorLogs,
+              ...(inspectorResult.log_path
+                ? { [inspectorResult.name]: inspectorResult.log_path }
+                : {})
+            }
+          };
+          await writeLoopState(options.fs, options.docPath, state);
+
+          const stopReason = await readInterruptionReason(options, state);
+
+          if (stopReason) {
+            if (stopReason === "aborted") {
+              state = await rollbackRoundStatus(options, roundStartState);
+            }
+            return finishLoop(options.callbacks, state, stopReason);
+          }
+        }
+
+        const superintendentResult = await executeSuperintendent(options, context);
+        context = {
+          ...context,
+          superintendentSummary: superintendentResult.summary,
+          ...(superintendentResult.log_path
+            ? { superintendentLogPath: superintendentResult.log_path }
+            : {})
+        };
+
+        if (superintendentResult.transition?.action === "request_review") {
+          context = {
+            ...context,
+            ownerFeedback: undefined
+          };
+          state = {
+            ...state,
+            state: "review",
+            reviewTurn: 0
+          };
+        }
+
+        await writeLoopState(options.fs, options.docPath, state);
+        if (superintendentResult.transition?.action === "request_review") {
+          emitStateChange(options.callbacks, state);
+        }
+
+        if (state.state === "in_progress") {
+          options.callbacks.onRoundComplete?.(state.round);
+        }
+
+        {
+          const stopReason = await readLoopStopReason(options, state);
+
+          if (stopReason) {
+            if (stopReason === "aborted" && state.state === "in_progress") {
+              state = await rollbackRoundStatus(options, roundStartState);
+            }
+            return finishLoop(options.callbacks, state, stopReason);
+          }
+        }
+
+        continue;
+      }
+
+      if (
+        context.ownerFeedback &&
+        shouldContinueReview(await readDocument(options.fs, options.docPath))
+      ) {
+        const superintendentResult = await executeSuperintendent(options, context);
+
+        if (superintendentResult.transition?.action !== "request_review") {
+          throw new Error("Superintendent must call request_review to continue a review exchange");
+        }
+
+        context = {
+          ...context,
+          superintendentSummary: superintendentResult.summary,
+          ...(superintendentResult.log_path
+            ? { superintendentLogPath: superintendentResult.log_path }
+            : {}),
+          ownerFeedback: undefined
+        };
+        await writeLoopState(options.fs, options.docPath, state);
+
+        {
+          const stopReason = await readInterruptionReason(options, state);
+
+          if (stopReason) {
+            return finishLoop(options.callbacks, state, stopReason);
+          }
+        }
+
+        continue;
+      }
+
+      options.callbacks.onOwnerStart?.();
+      const ownerSnapshot = await readDocumentContent(options.fs, options.docPath);
+      let ownerResult: OwnerResult;
+      try {
+        ownerResult = await runRole(options, "owner", undefined, async () =>
+          options.runners.ownerReview(
+            await readDocument(options.fs, options.docPath),
+            createTemplateContext(context),
+            buildRoleOptions(options, "owner")
+          )
+        );
+      } catch (error) {
+        throw await preserveFailedRoleDocument(options.fs, options.docPath, ownerSnapshot, error);
+      }
+      options.callbacks.onOwnerComplete?.(ownerResult);
+
+      {
+        const stopReason = await readInterruptionReason(options, state);
+
+        if (stopReason) {
+          return finishLoop(options.callbacks, state, stopReason);
+        }
+      }
+
+      if (ownerResult.transition.action === "approve_completion") {
+        context = {
+          ...context,
+          ...(ownerResult.log_path ? { ownerLogPath: ownerResult.log_path } : {})
+        };
+        state = {
+          ...state,
+          state: "completed"
+        };
+      } else {
+        context = {
+          ...context,
+          ownerFeedback: ownerResult.transition.feedback,
+          ...(ownerResult.log_path ? { ownerLogPath: ownerResult.log_path } : {})
+        };
+        state = applyOwnerFeedback(
+          state,
+          shouldContinueReview(await readDocument(options.fs, options.docPath))
+        );
+      }
+
+      await writeLoopState(options.fs, options.docPath, state);
+      emitStateChange(options.callbacks, state);
+
+      if (state.state !== "review") {
+        options.callbacks.onRoundComplete?.(state.round);
+      }
+
+      {
+        const stopReason = await readLoopStopReason(options, state);
+
+        if (stopReason) {
+          return finishLoop(options.callbacks, state, stopReason);
+        }
+      }
+    }
+  })().catch((error: unknown) => {
+    if (!(error instanceof DocumentCompleted)) throw error;
+    emitStateChange(options.callbacks, error.state);
+    return finishLoop(options.callbacks, error.state, "completed");
+  });
+}
+
+function normalizeOptions(input: string | RunLoopOptions, callbacks?: LoopCallbacks): LoopRuntime {
+  if (typeof input !== "string") {
+    return {
+      docPath: resolveWorkflowPath(input.docPath, input.cwd, input.homeDir),
+      cwd: input.cwd,
+      homeDir: input.homeDir,
+      fs: superintendentFileSystem(input.fs),
+      callbacks: input.callbacks ?? {},
+      runners: resolveRunners(input.runners),
+      ...(input.runAgent ? { runAgent: input.runAgent } : {}),
+      ...(input.builderAgent ? { builderAgent: input.builderAgent } : {}),
+      ...(input.signal ? { signal: input.signal } : {}),
+      ...(input.logDir ? { logDir: input.logDir } : {})
+    };
+  }
+
+  const cwd = defaultCwd();
+  const homeDir = defaultHome();
+
+  return {
+    docPath: resolveWorkflowPath(input, cwd, homeDir),
+    cwd,
+    homeDir,
+    fs: superintendentFileSystem(),
+    callbacks: callbacks ?? {},
+    runners: resolveRunners()
+  };
+}
+
+function resolveRunners(overrides?: LoopRunners): ResolvedRunners {
+  return {
+    builder: overrides?.builder ?? runBuilder,
+    inspector: overrides?.inspector ?? runInspector,
+    superintendent: overrides?.superintendent ?? runSuperintendent,
+    ownerReview: overrides?.ownerReview ?? runOwnerReview
+  };
+}
+
+
+
+async function readDocument(
+  fs: SuperintendentFileSystem,
+  docPath: string
+): Promise<SuperintendentDoc> {
+  const content = await readDocumentContent(fs, docPath);
+  return (await resolveSuperintendentDoc(docPath, content, fs)).document;
+}
+
+async function readDocumentContent(fs: SuperintendentFileSystem, docPath: string): Promise<string> {
+  return fs.readFile(docPath, "utf8");
+}
+
+async function writeLoopState(
+  fs: SuperintendentFileSystem,
+  docPath: string,
+  state: LoopState
+): Promise<void> {
+  await withDocumentStatusLock(docPath, fs, async () => {
+    const content = await fs.readFile(docPath, "utf8");
+    const { document } = await resolveSuperintendentDoc(docPath, content, fs);
+    if (document.frontmatter.status.state === "completed") {
+      throw new DocumentCompleted(createLoopState(document));
+    }
+    const updatedContent = updateStatus(docPath, content, {
+      state: state.state,
+      round: state.round,
+      review_turn: state.reviewTurn
+    });
+    await writeDocumentContent(fs, docPath, updatedContent);
+  });
+}
+
+async function preserveFailedRoleDocument(
+  fs: SuperintendentFileSystem,
+  docPath: string,
+  content: string,
+  error: unknown
+): Promise<Error> {
+  if (error instanceof DocumentCompleted) throw error;
+  const failure = toError(error);
+  const recoveryPath = `${docPath}.recovery-${crypto.randomUUID()}.bak`;
+  try {
+    await fs.writeFile(recoveryPath, content, { encoding: "utf8", flag: "wx" });
+  } catch (recoveryError) {
+    return new Error(
+      `${failure.message}\nDocument was not rolled back.\nCould not save the pre-role snapshot:\n${recoveryPath}\nSnapshot error: ${toError(recoveryError).message}`,
+      { cause: failure }
+    );
+  }
+  return new Error(
+    `${failure.message}\nDocument was not rolled back.\nPre-role snapshot saved to:\n${recoveryPath}\nCompare it with the current document before resuming.`,
+    { cause: failure }
+  );
+}
+
+async function writeDocumentContent(
+  fs: SuperintendentFileSystem,
+  docPath: string,
+  content: string
+): Promise<void> {
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    const tempPath = createDocumentTempPath(docPath);
+    let tempCreated = false;
+    try {
+      await fs.writeFile(tempPath, content, { encoding: "utf8", flag: "wx" });
+      tempCreated = true;
+      await fs.rename(tempPath, docPath);
+      tempCreated = false;
+      return;
+    } catch (error) {
+      const alreadyExists = isAlreadyExists(error);
+      if (alreadyExists && !tempCreated) {
+        continue;
+      }
+      if (tempCreated || !alreadyExists) {
+        await fs.unlink?.(tempPath).catch(() => undefined);
+      }
+      throw error;
+    }
+  }
+
+  throw new Error(`Unable to create temporary superintendent document for ${docPath}.`);
+}
+
+function createDocumentTempPath(docPath: string): string {
+  return path.join(
+    path.dirname(docPath),
+    `.${path.basename(docPath)}.${crypto.randomUUID()}.tmp`
+  );
+}
+
+function isAlreadyExists(error: unknown): boolean {
+  return hasOwnErrorCode(error, "EEXIST");
+}
+
+async function rollbackRoundStatus(
+  options: Pick<LoopRuntime, "callbacks" | "docPath" | "fs">,
+  state: LoopState
+): Promise<LoopState> {
+  await writeLoopState(options.fs, options.docPath, state);
+  emitStateChange(options.callbacks, state);
+  return state;
+}
+
+function createTemplateContext(context: TemplateLoopContext): {
+  builder?: BuilderResult;
+  inspectors: Record<string, string>;
+  inspector_logs: Record<string, string>;
+  superintendent?: { summary: string; log_path?: string };
+  owner?: { feedback: string; log_path?: string };
+} {
+  return {
+    ...(context.builder ? { builder: context.builder } : {}),
+    inspectors: { ...context.inspectors },
+    inspector_logs: { ...context.inspectorLogs },
+    ...(context.superintendentSummary
+      ? {
+          superintendent: {
+            summary: context.superintendentSummary,
+            ...(context.superintendentLogPath ? { log_path: context.superintendentLogPath } : {})
+          }
+        }
+      : {}),
+    ...(context.ownerFeedback
+      ? {
+          owner: {
+            feedback: context.ownerFeedback,
+            ...(context.ownerLogPath ? { log_path: context.ownerLogPath } : {})
+          }
+        }
+      : {})
+  };
+}
+
+function beginRound(state: LoopState): LoopState {
+  return {
+    ...state,
+    state: "in_progress",
+    round: state.round + 1,
+    reviewTurn: 0
+  };
+}
+
+function applyOwnerFeedback(state: LoopState, continueReview: boolean): LoopState {
+  const nextReviewTurn = state.reviewTurn + 1;
+
+  if (continueReview && nextReviewTurn < state.maxReviewTurns) {
+    return {
+      ...state,
+      state: "review",
+      reviewTurn: nextReviewTurn
+    };
+  }
+
+  return {
+    ...state,
+    state: "in_progress",
+    reviewTurn: 0
+  };
+}
+
+async function executeSuperintendent(
+  options: LoopRuntime,
+  context: TemplateLoopContext
+): Promise<SuperintendentResult> {
+  options.callbacks.onSuperintendentStart?.();
+  const snapshot = await readDocumentContent(options.fs, options.docPath);
+  try {
+    const doc = await readDocument(options.fs, options.docPath);
+    const result = await runRole(options, "superintendent", undefined, () =>
+      options.runners.superintendent(
+        doc,
+        createTemplateContext(context),
+        buildRoleOptions(options, "superintendent")
+      )
+    );
+    options.callbacks.onSuperintendentComplete?.(result);
+    return result;
+  } catch (error) {
+    throw await preserveFailedRoleDocument(options.fs, options.docPath, snapshot, error);
+  }
+}
+
+async function runRole<T>(
+  options: LoopRuntime,
+  role: "builder" | "inspector" | "superintendent" | "owner",
+  name: string | undefined,
+  run: () => Promise<T>
+): Promise<T> {
+  const start = async () => {
+    const { pending } = await withDocumentStatusLock(options.docPath, options.fs, async () => {
+      await assertDocumentActive(options);
+      return {
+        pending: run().then(
+          (value) => ({ value }),
+          (error: unknown) => ({ error })
+        )
+      };
+    });
+    const outcome = await pending;
+    if ("error" in outcome) throw outcome.error;
+    return outcome.value;
+  };
+  try {
+    await assertDocumentActive(options);
+    const result = await (options.callbacks.runRole?.(role, name, start) ?? start());
+    await assertDocumentActive(options);
+    return result;
+  } catch (error) {
+    try {
+      await assertDocumentActive(options);
+    } catch (completionError) {
+      if (completionError instanceof DocumentCompleted) throw completionError;
+    }
+    throw error;
+  }
+}
+
+async function assertDocumentActive(options: Pick<LoopRuntime, "fs" | "docPath">): Promise<void> {
+  const document = await readDocument(options.fs, options.docPath);
+  if (document.frontmatter.status.state === "completed") {
+    throw new DocumentCompleted(createLoopState(document));
+  }
+}
+
+function buildRoleOptions(
+  options: LoopRuntime,
+  role: string
+): { defaultCwd: string; logPath?: string; signal?: AbortSignal; runner?: AutonomousRunner } {
+  return {
+    defaultCwd: options.cwd,
+    ...(options.runAgent ? { runner: createAgentRunner(options) } : {}),
+    ...(options.logDir ? { logPath: path.join(options.logDir, makeRunLogFileName(role)) } : {}),
+    ...(options.signal ? { signal: options.signal } : {})
+  };
+}
+
+function shouldContinueReview(doc: SuperintendentDoc): boolean {
+  return parseTaskBoard(doc.body).allDone;
+}
+
+function emitStateChange(callbacks: LoopCallbacks, state: LoopState): void {
+  callbacks.onStateChange?.({ ...state });
+}
+
+async function readLoopStopReason(
+  options: Pick<LoopRuntime, "callbacks" | "signal" | "fs" | "docPath">,
+  state: LoopState
+): Promise<SuperintendentStopReason | undefined> {
+  if (state.state === "completed") {
+    return "completed";
+  }
+
+  await assertDocumentActive(options);
+
+  if (state.state === "in_progress" && state.round >= state.maxRounds) {
+    return "max_rounds";
+  }
+
+  return readInterruptionReason(options, state);
+}
+
+async function readInterruptionReason(
+  options: Pick<LoopRuntime, "callbacks" | "signal" | "fs" | "docPath">,
+  _state: LoopState
+): Promise<SuperintendentStopReason | undefined> {
+  await assertDocumentActive(options);
+  if (options.signal?.aborted) {
+    return "aborted";
+  }
+
+  if (options.callbacks.shouldStop?.() === true) {
+    return "stopped";
+  }
+
+  if (options.callbacks.shouldPause?.() === true) {
+    if (!options.callbacks.onPause) return "paused";
+    await options.callbacks.onPause();
+    await assertDocumentActive(options);
+    if (options.signal?.aborted) return "aborted";
+    if (options.callbacks.shouldStop?.() === true) return "stopped";
+  }
+
+  return undefined;
+}
+
+function finishLoop(
+  callbacks: LoopCallbacks,
+  state: LoopState,
+  stopReason: SuperintendentStopReason
+): SuperintendentRunResult {
+  const snapshot = {
+    ...state,
+    stopReason
+  };
+  callbacks.onLoopComplete?.(snapshot);
+  return snapshot;
+}
+
+function toError(error: unknown): Error {
+  return error instanceof Error ? error : new Error(String(error));
+}
+
+function filterAutoRunInspectors(
+  doc: SuperintendentDoc
+): Array<[string, NonNullable<SuperintendentDoc["frontmatter"]["inspectors"]>[string]]> {
+  const inspectors = doc.frontmatter.inspectors ?? {};
+  const configuredNames = new Set(Object.keys(inspectors));
+  const selected = new Set<string>();
+  const queue = [...collectReferencedInspectors(doc.frontmatter.superintendent.prompt)].filter(
+    (name) => configuredNames.has(name)
+  );
+
+  while (queue.length > 0) {
+    const name = queue.shift() as string;
+
+    if (selected.has(name)) {
+      continue;
+    }
+
+    selected.add(name);
+    const inspectorPrompt = inspectors[name]?.prompt ?? "";
+
+    for (const referenced of collectReferencedInspectors(inspectorPrompt)) {
+      if (configuredNames.has(referenced) && !selected.has(referenced)) {
+        queue.push(referenced);
+      }
+    }
+  }
+
+  return Object.entries(inspectors).filter(([name]) => selected.has(name));
+}
+
+function createAgentRunner(
+  options: Pick<LoopRuntime, "runAgent" | "signal" | "cwd">
+): AutonomousRunner {
+  return async (agent, input) => {
+    const result = await options.runAgent?.({
+      agent,
+      prompt: input.prompt,
+      cwd: input.cwd ?? options.cwd,
+      ...(input.mode ? { mode: input.mode } : {}),
+      ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
+      ...(input.logPath ? { logPath: input.logPath } : {}),
+      ...(options.signal ? { signal: options.signal } : {})
+    });
+
+    if (!result) {
+      throw new Error(`Agent \`${agent}\` returned no result.`);
+    }
+
+    if (result.exitCode !== 0) {
+      throw new Error(
+        result.stderr ||
+          result.stdout ||
+          `Agent \`${agent}\` failed with exit code ${result.exitCode}`
+      );
+    }
+
+    return result;
+  };
+}

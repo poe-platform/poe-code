@@ -1,0 +1,21 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
++ actual - expected
+
++ 'virtual-bash-wrong'
+- 'virtual-bash'
+               ^
+
+    at file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-length-author-nvkj5M/candidate-consumer-installed/worker.mjs:17:8 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 'virtual-bash-wrong',
+  expected: 'virtual-bash',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.2

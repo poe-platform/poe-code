@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "status": "PREINSPECTION_CAPTURE_HOLD",
+  "files": [
+    {
+      "path": "HOLD.md",
+      "bytes": 2804,
+      "sha256": "2edcc0cb39d17ad71733278c07c455fdd8589ffced2a2723f73354c62241a2ff"
+    },
+    {
+      "path": "START.json",
+      "bytes": 346,
+      "sha256": "51c88e3e04617449085a724c2b304b19c9305e728c50a4741db04c2107104d1f"
+    },
+    {
+      "path": "capture/initial-events.json",
+      "bytes": 255,
+      "sha256": "1133515d7568ad869f78df4cc23ec64df76f1a003719b93dbfb4f0f48bdca252"
+    },
+    {
+      "path": "capture/initial.stderr.raw",
+      "bytes": 61,
+      "sha256": "b1fab1b67618c955ef326f9ae6d8554ecf33fe45998b3cb02b80fac89d1de75b"
+    },
+    {
+      "path": "capture/initial.stdout.raw",
+      "bytes": 2162688,
+      "sha256": "a1f636633c608d3e940e9358931ffaaf5fd711f0766c95d49c3784d93d3a1bd4"
+    }
+  ],
+  "ordering": "UTF-8 relative pathname byte order; manifest excluded",
+  "publicationCapture": "/tmp/ere-direct-profile-hold-publication-ZdJPr8",
+  "actualControls": 0,
+  "productCalls": 0,
+  "workers": 0,
+  "loaders": 0,
+  "knownPrepublicationRoles": {
+    "instructionReaders": 2,
+    "metadataOwner": 1,
+    "metadataGit": 1,
+    "errorDataReader": 1,
+    "patchShell": 1,
+    "patchTool": 1
+  },
+  "publicationPlan": {
+    "owner": 1,
+    "gitCommands": 6
+  },
+  "qualification": "Known direct roles, not a full transitive census. Initial metadata capture partial after ENOBUFS; preserved without retry."
+}

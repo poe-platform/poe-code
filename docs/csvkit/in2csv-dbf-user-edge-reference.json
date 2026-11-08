@@ -1,0 +1,983 @@
+{
+  "schemaVersion": 1,
+  "target": "csvkit 2.2.0",
+  "profileId": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "sourceSha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+  "pythonVersion": "3.14.2",
+  "environment": {
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "PYTHONIOENCODING": "utf-8",
+    "COLUMNS": "80",
+    "LINES": "24"
+  },
+  "cases": [
+    {
+      "name": "character records version 0",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AAAAAAIAAABBAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYWxwaGEgb21lZ2Ea"
+      },
+      "stdout": "v\nalpha\nomega\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "character records version 2",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AgAAAAIAAABBAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYWxwaGEgb21lZ2Ea"
+      },
+      "stdout": "v\nalpha\nomega\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "character records version 4",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "BAAAAAIAAABBAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYWxwaGEgb21lZ2Ea"
+      },
+      "stdout": "v\nalpha\nomega\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "character records version 5",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "BQAAAAIAAABBAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYWxwaGEgb21lZ2Ea"
+      },
+      "stdout": "v\nalpha\nomega\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "character records version 48",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "MAAAAAIAAABBAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYWxwaGEgb21lZ2Ea"
+      },
+      "stdout": "v\nalpha\nomega\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "character records version 49",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "MQAAAAIAAABBAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYWxwaGEgb21lZ2Ea"
+      },
+      "stdout": "v\nalpha\nomega\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "character records version 50",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "MgAAAAIAAABBAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYWxwaGEgb21lZ2Ea"
+      },
+      "stdout": "v\nalpha\nomega\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "character records version 67",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "QwAAAAIAAABBAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYWxwaGEgb21lZ2Ea"
+      },
+      "stdout": "v\nalpha\nomega\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "character records version 99",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "YwAAAAIAAABBAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYWxwaGEgb21lZ2Ea"
+      },
+      "stdout": "v\nalpha\nomega\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "character records version 131",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "gwAAAAIAAABBAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYWxwaGEgb21lZ2Ea"
+      },
+      "stdout": "v\nalpha\nomega\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "character records version 139",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "iwAAAAIAAABBAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYWxwaGEgb21lZ2Ea"
+      },
+      "stdout": "v\nalpha\nomega\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "character records version 203",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "ywAAAAIAAABBAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYWxwaGEgb21lZ2Ea"
+      },
+      "stdout": "v\nalpha\nomega\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "character records version 245",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "9QAAAAIAAABBAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYWxwaGEgb21lZ2Ea"
+      },
+      "stdout": "v\nalpha\nomega\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "character records version 255",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "/wAAAAIAAABBAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYWxwaGEgb21lZ2Ea"
+      },
+      "stdout": "v\nalpha\nomega\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "declared record width 1",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAABBAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYWxwaGEgb21lZ2Ea"
+      },
+      "stdout": "v\nalpha\nomega\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "declared record width 2",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAABBAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYWxwaGEgb21lZ2Ea"
+      },
+      "stdout": "v\nalpha\nomega\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "declared record width 5",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAABBAAUAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYWxwaGEgb21lZ2Ea"
+      },
+      "stdout": "v\nalpha\nomega\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "declared record width 6",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAABBAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYWxwaGEgb21lZ2Ea"
+      },
+      "stdout": "v\nalpha\nomega\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "declared record width 7",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAABBAAcAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYWxwaGEgb21lZ2Ea"
+      },
+      "stdout": "v\nalpha\nomega\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "declared record width 255",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAABBAP8AAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYWxwaGEgb21lZ2Ea"
+      },
+      "stdout": "v\nalpha\nomega\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "declared record width 65535",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAABBAP//AAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYWxwaGEgb21lZ2Ea"
+      },
+      "stdout": "v\nalpha\nomega\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "record start 32",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAAAgAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYWxwaGEgb21lZ2Ea"
+      },
+      "stdout": "v\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "record start 33",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAAAhAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYWxwaGEgb21lZ2Ea"
+      },
+      "stdout": "v\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "record start 64",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAABAAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYWxwaGEgb21lZ2Ea"
+      },
+      "stdout": "v\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "record start 65",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAABBAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYWxwaGEgb21lZ2Ea"
+      },
+      "stdout": "v\nalpha\nomega\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "record start 66",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAABCAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYWxwaGEgb21lZ2Ea"
+      },
+      "stdout": "v\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "record start 70",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAABGAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYWxwaGEgb21lZ2Ea"
+      },
+      "stdout": "v\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "record start 77",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAABNAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYWxwaGEgb21lZ2Ea"
+      },
+      "stdout": "v\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "record start 65535",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAAD//wYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYWxwaGEgb21lZ2Ea"
+      },
+      "stdout": "v\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "record marker 65 0",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAABBAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0AYWxwaGEgb21lZ2Ea"
+      },
+      "stdout": "v\nomega\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "record marker 65 10",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAABBAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0KYWxwaGEgb21lZ2Ea"
+      },
+      "stdout": "v\nomega\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "record marker 65 13",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAABBAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0NYWxwaGEgb21lZ2Ea"
+      },
+      "stdout": "v\nomega\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "record marker 65 42",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAABBAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0qYWxwaGEgb21lZ2Ea"
+      },
+      "stdout": "v\nomega\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "record marker 65 63",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAABBAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0/YWxwaGEgb21lZ2Ea"
+      },
+      "stdout": "v\nomega\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "record marker 65 255",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAABBAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA3/YWxwaGEgb21lZ2Ea"
+      },
+      "stdout": "v\nomega\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "record marker 71 0",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAABBAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYWxwaGEAb21lZ2Ea"
+      },
+      "stdout": "v\nalpha\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "record marker 71 10",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAABBAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYWxwaGEKb21lZ2Ea"
+      },
+      "stdout": "v\nalpha\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "record marker 71 13",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAABBAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYWxwaGENb21lZ2Ea"
+      },
+      "stdout": "v\nalpha\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "record marker 71 42",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAABBAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYWxwaGEqb21lZ2Ea"
+      },
+      "stdout": "v\nalpha\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "record marker 71 63",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAABBAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYWxwaGE/b21lZ2Ea"
+      },
+      "stdout": "v\nalpha\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "record marker 71 255",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAABBAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYWxwaGH/b21lZ2Ea"
+      },
+      "stdout": "v\nalpha\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "character record truncated 65",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAABBAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0="
+      },
+      "stdout": "v\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "character record truncated 66",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAABBAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0g"
+      },
+      "stdout": "v\n\"\"\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "character record truncated 67",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAABBAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYQ=="
+      },
+      "stdout": "v\na\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "character record truncated 70",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAABBAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYWxwaA=="
+      },
+      "stdout": "v\nalph\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "character record truncated 71",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAABBAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYWxwaGE="
+      },
+      "stdout": "v\nalpha\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "character record truncated 72",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAABBAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYWxwaGEg"
+      },
+      "stdout": "v\nalpha\n\"\"\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "character record truncated 75",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAABBAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYWxwaGEgb21l"
+      },
+      "stdout": "v\nalpha\nome\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "character record truncated 76",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAABBAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYWxwaGEgb21lZw=="
+      },
+      "stdout": "v\nalpha\nomeg\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "character record truncated 77",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAABBAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYWxwaGEgb21lZ2E="
+      },
+      "stdout": "v\nalpha\nomega\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "empty-width C",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAABBAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAAAAAAAAAAAAAAAAAAAAAAAA0gIBo="
+      },
+      "stdout": "v\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "empty-width N",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAABBAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAE4AAAAAAAAAAAAAAAAAAAAAAAAAAA0gIBo="
+      },
+      "stdout": "v\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "empty-width F",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAABBAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEYAAAAAAAAAAAAAAAAAAAAAAAAAAA0gIBo="
+      },
+      "stdout": "v\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "empty-width D",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAABBAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEQAAAAAAAAAAAAAAAAAAAAAAAAAAA0gIBo="
+      },
+      "stdout": "v\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "empty-width 0",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAABBAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAADAAAAAAAAAAAAAAAAAAAAAAAAAAAA0gIBo="
+      },
+      "stdout": "v\nb''\nb''\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "empty-width V",
+      "argv": [
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAABBAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAFYAAAAAAAAAAAAAAAAAAAAAAAAAAA0gIBo="
+      },
+      "stdout": "v\n\"\"\n\"\"\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "ignored flags -I --no-leading-zeroes --no-header-row --skip-lines 999",
+      "argv": [
+        "-I",
+        "--no-leading-zeroes",
+        "--no-header-row",
+        "--skip-lines",
+        "999",
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAABBAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYWxwaGEgb21lZ2Ea"
+      },
+      "stdout": "v\nalpha\nomega\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "ignored flags --date-format bogus --datetime-format bogus --locale bogus",
+      "argv": [
+        "--date-format",
+        "bogus",
+        "--datetime-format",
+        "bogus",
+        "--locale",
+        "bogus",
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAABBAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYWxwaGEgb21lZ2Ea"
+      },
+      "stdout": "v\nalpha\nomega\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    },
+    {
+      "name": "ignored flags --encoding utf-16",
+      "argv": [
+        "--encoding",
+        "utf-16",
+        "sample.dbf"
+      ],
+      "files": {
+        "sample.dbf": "AwAAAAIAAABBAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAB2AAAAAAAAAAAAAEMAAAAABQAAAAAAAAAAAAAAAAAAAA0gYWxwaGEgb21lZ2Ea"
+      },
+      "stdout": "v\nalpha\nomega\n",
+      "stderr": "",
+      "status": 0,
+      "effects": {
+        "unchangedFiles": true,
+        "createdFiles": []
+      }
+    }
+  ],
+  "executableSha256": "3d6400b63b150164e89a690d9813af8b0eb420af9f336ef1f6c5102c6da60eae",
+  "dependencyLock": "docs/csvkit/requirements-cpython-3.14.2.txt",
+  "versions": {
+    "csvkit": "2.2.0",
+    "agate": "1.14.2",
+    "agate-dbf": "0.2.4",
+    "dbfread": "2.0.7",
+    "SQLAlchemy": "2.0.54"
+  }
+}

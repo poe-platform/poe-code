@@ -1,0 +1,849 @@
+{
+  "schema_version": 1,
+  "review_kind": "static source and documentation inventory; not a test harness",
+  "scope": [
+    "jq",
+    "core grep",
+    "rg",
+    "sed",
+    "awk",
+    "shell"
+  ],
+  "evidence": {
+    "dynamic_probes_executed": 0,
+    "dynamic_probes_verified": 0,
+    "product_imports": 0,
+    "product_command_executions": 0,
+    "native_tool_probes": 0,
+    "test_runs": 0,
+    "empirical_findings": [],
+    "preceding_task": "Stopped by a tool safety check immediately after instructions were read. No harness or regex tests ran and no dynamic finding exists. Not repeated.",
+    "claims_excluded": [
+      "measured deadline violation",
+      "hard runtime safety",
+      "full parity",
+      "superiority",
+      "verified remediation"
+    ]
+  },
+  "snapshots": {
+    "initial_head": "e64ce50e1e45c6cf5e3e3686ce7424cbf0fa50df",
+    "before_hashes_captured_at": "2026-08-27T03:11:51.127Z",
+    "initial_status_porcelain": " M src/commands/streams.ts\n M src/commands/text.ts\n?? tests/commands/core-regression-stress/env-accounting.mjs\n?? tests/commands/core-regression-stress/performance.mjs\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/table-text-stress/shared-stdin-review/\n?? tests/fs/authority-trust-review/\n?? tests/shell-stress/expanded-gaps/\n?? tests/shell/expanded-gaps-parameter.test.ts",
+    "after_head": "280815c7b7106abf9bdca8b9294c811eb80b1846",
+    "after_hashes_captured_at": "2026-08-27T03:14:47.812Z",
+    "after_status_porcelain": " M src/shell/parser.ts\n M src/shell/runtime.ts\n M tests/shell-stress/expanded-gaps/product.mjs\n M tests/shell/expanded-gaps-env.test.ts\n M tests/shell/expanded-gaps-fallback.test.ts\n?? tests/commands/core-regression-stress/env-accounting.mjs\n?? tests/commands/core-regression-stress/performance.mjs\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/fs/authority-trust-review/\n?? tests/shell-stress/expanded-gaps/pre-ready-current.json\n?? tests/shell/expanded-gaps-bounds.test.ts\n?? tests/shell/expanded-gaps-bounds.ts\n?? tests/shell/expanded-gaps-parameter.test.ts\n?? tests/shell/expanded-gaps-verify.mjs",
+    "atomic": false,
+    "changed_hashed_paths": [
+      "src/shell/parser.ts",
+      "src/shell/runtime.ts"
+    ],
+    "notes": [
+      "Initial hashes followed narrow discovery reads and preceded detailed review; supplemental internal.ts timestamp is recorded separately.",
+      "Hashes cover inventory scope, not a claim that every line of every file was audited.",
+      "Status is a working-tree observation; commits and dirty changes by other workers occurred.",
+      "No repeated snapshot chase. Later edits are outside this observation window.",
+      "Initial runtime hash was checked against the initial HEAD blob by text hashing only."
+    ]
+  },
+  "contracts": {
+    "context": "src/contracts/command.ts:20",
+    "invocation_document": "src/contracts/command.md:15",
+    "async_io": [
+      "src/contracts/io.ts:132",
+      "src/contracts/io.ts:173",
+      "src/contracts/io.ts:200"
+    ],
+    "shell_limits": "src/shell/types.ts:17",
+    "interpretation": "Required signal and byte I/O; optional literal invocation. No common regex CPU/deadline contract. Async abort observation is not synchronous preemption or effect rollback."
+  },
+  "tools": [
+    {
+      "tool": "jq",
+      "engine": "Literal prefix-table split; fixed lexical native regexes only in inspected structured subtree",
+      "paths": [
+        "src/commands/structured/parser.ts:27",
+        "src/commands/structured/parser.ts:169",
+        "src/commands/structured/interpreter.ts:249",
+        "src/commands/structured/split.ts:3",
+        "src/commands/structured/values.ts:127"
+      ],
+      "accepted_profile_docs": [
+        "src/commands/structured/README.md:264",
+        "src/commands/structured/README.md:535",
+        "RESEARCH.md:R6"
+      ],
+      "current_checks": [
+        "src/commands/structured/limits.ts:20: defaults input 64 MiB, value 8 MiB, output 16 MiB, source 64 KiB, depth 128, AST depth 64, steps 1000000, results/collection 100000",
+        "src/commands/structured/limits.ts:53: step checks signal; tick yields about every 1024 steps",
+        "src/commands/structured/split.ts:3: preprocessing/scanning ticks and aggregate value/collection charges",
+        "src/commands/structured/input.ts:219: input byte accounting",
+        "src/commands/structured/jq.ts:171: result and output limits"
+      ],
+      "unverified": [
+        "split/2 explicitly unsupported, not a dynamic result",
+        "No native user regex path found; no general regex library compatibility established",
+        "Synchronous validation, allocation and string-division literal splitting are not interruptible mid-call",
+        "Unicode, zero-width, flags, generator and error semantics for a future regex overload remain undecided"
+      ]
+    },
+    {
+      "tool": "grep",
+      "engine": "Native JavaScript RegExp, translated BRE/ERE or escaped fixed strings, byte-view text",
+      "paths": [
+        "src/commands/grep.ts:4",
+        "src/commands/grep.ts:48",
+        "src/commands/grep.ts:51",
+        "src/commands/grep.ts:59",
+        "src/commands/grep.ts:82"
+      ],
+      "accepted_profile_docs": [
+        "src/commands/README.md:83",
+        "src/commands/README.md:97",
+        "RESEARCH.md:R7"
+      ],
+      "current_checks": [
+        "Expression translator source cap 65536 and special-group rejection; -F bypasses translator cap",
+        "src/commands/internal.ts:8: bufferLimit 32 MiB",
+        "src/commands/internal.ts:151: pattern-file collection limit",
+        "src/commands/internal.ts:165: line accumulation limit",
+        "src/commands/internal.ts:96: abort-aware writes",
+        "Abort checked per record; no inner matcher-loop steps/yield",
+        "Shell output sink limit applies only when hosted by Shell"
+      ],
+      "unverified": [
+        "Native compilation/exec duration",
+        "No matcher CPU quota or direct-command aggregate output cap seen",
+        "Fixed strings still use RegExp",
+        "POSIX leftmost-longest, locale and accepted-syntax completeness"
+      ]
+    },
+    {
+      "tool": "rg",
+      "engine": "Native Unicode RegExp for search and generated glob/ignore regexes; empty-pattern special enumeration",
+      "paths": [
+        "src/commands/search/rg.ts:17",
+        "src/commands/search/rg.ts:54",
+        "src/commands/search/rg.ts:59",
+        "src/commands/search/rg.ts:132",
+        "src/commands/search/matcher.ts:38",
+        "src/commands/search/matcher.ts:53",
+        "src/commands/search/matcher.ts:70",
+        "src/commands/search/matcher.ts:88",
+        "src/commands/search/glob.ts:51",
+        "src/commands/search/glob.ts:61",
+        "src/commands/search/walk.ts:12"
+      ],
+      "accepted_profile_docs": [
+        "src/commands/search/README.md:173",
+        "RESEARCH.md:R8"
+      ],
+      "current_checks": [
+        "Pattern count 1024, UTF-8 pattern bytes 8192, matches/line 100000",
+        "Pattern-file reads maxBytes 1 MiB; glob count 1024, source length 8192",
+        "src/commands/search/shared.ts:23: default line 1 MiB/file 64 MiB/output 16 MiB/files 100000",
+        "src/commands/search/shared.ts:31: signal and every-128-tick event-loop yield",
+        "src/commands/search/shared.ts:47: output bytes",
+        "src/commands/search/shared.ts:70: file/line accounting",
+        "No signal/step argument in Matcher.matches or Glob.matches"
+      ],
+      "unverified": [
+        "Native compile/exec/test duration",
+        "Syntactic exclusions do not establish a linear engine",
+        "Unicode, invalid-byte and empty-match behavior not executed",
+        "No hard deadline; local docs explicitly disclaim regex safety"
+      ]
+    },
+    {
+      "tool": "sed",
+      "engine": "Existing custom byte-oriented instruction matcher, synchronous and step-accounted",
+      "paths": [
+        "src/commands/text-programs/sed.ts:64",
+        "src/commands/text-programs/sed.ts:141",
+        "src/commands/text-programs/sed.ts:249",
+        "src/commands/text-programs/sed.ts:314",
+        "src/commands/text-programs/regex.ts:51",
+        "src/commands/text-programs/regex.ts:197",
+        "src/commands/text-programs/regex.ts:295"
+      ],
+      "accepted_profile_docs": [
+        "src/commands/text-programs/README.md:16",
+        "src/commands/text-programs/README.md:26",
+        "src/commands/text-programs/README.md:50",
+        "RESEARCH.md:R10"
+      ],
+      "current_checks": [
+        "regex.ts:57 source 8192; :102 nesting 64; :138 repetition 1000; :160 instruction count 16384",
+        "regex.ts:217,234 matching steps; :249 backreference-byte steps; :231,240 state-buffer checks",
+        "shared.ts:12 Budget defaults 5000000 steps and 32 MiB per buffer",
+        "shared.ts:23 step observes abort; :31 checkpoint yields every 256 calls",
+        "sed.ts:24 source 1 MiB; :251 statement step/checkpoint",
+        "shared.ts:47,52 signal-aware output/input; no aggregate output limit declared"
+      ],
+      "unverified": [
+        "Bounded logical instructions are not a measured wall-clock bound",
+        "Compilation and each find call are synchronous; no in-find event-loop yield",
+        "Capture-state and helper/allocation costs do not establish linear complexity or exact memory",
+        "No new GNU/BSD parity verification; preserve existing dialect evidence"
+      ]
+    },
+    {
+      "tool": "awk",
+      "engine": "Same custom Pattern for literal/dynamic ERE; special literal/whitespace separator paths",
+      "paths": [
+        "src/commands/text-programs/awk-syntax.ts:99",
+        "src/commands/text-programs/awk-runtime.ts:104",
+        "src/commands/text-programs/awk-runtime.ts:113",
+        "src/commands/text-programs/awk-runtime.ts:114",
+        "src/commands/text-programs/awk-runtime.ts:296",
+        "src/commands/text-programs/awk-runtime.ts:315"
+      ],
+      "accepted_profile_docs": [
+        "src/commands/text-programs/README.md:26",
+        "src/commands/text-programs/README.md:134",
+        "src/commands/text-programs/README.md:157",
+        "RESEARCH.md:R11"
+      ],
+      "current_checks": [
+        "Shared Pattern/Budget checks as sed",
+        "awk-runtime.ts:108 cache 256",
+        "awk-runtime.ts:133 fields 100000",
+        "awk-runtime.ts:346 statement step/checkpoint",
+        "awk-syntax.ts:51 source 1 MiB",
+        "Input and output helpers carry signal; buffers checked, Shell aggregate output is separate"
+      ],
+      "unverified": [
+        "No Unicode or Oniguruma profile equivalence",
+        "Regex RS documented unsupported",
+        "Fixed whitespace split and literal separator paths are synchronous",
+        "No cancellation-latency or exhaustive ERE/capture evidence here"
+      ]
+    },
+    {
+      "tool": "shell",
+      "engine": "Custom wildcard token/retry matcher with native one-character bracket tests; parameter matching drifted",
+      "paths": [
+        "src/shell/pattern.ts:12",
+        "src/shell/pattern.ts:59",
+        "src/shell/pattern.ts:69",
+        "src/shell/pattern.ts:79",
+        "src/shell/pattern.ts:95",
+        "src/shell/runtime.ts:417",
+        "src/shell/runtime.ts:1551",
+        "src/shell/runtime.ts:1696"
+      ],
+      "accepted_profile_docs": [
+        "README.md:112",
+        "AGENTS.md:143",
+        "src/shell/types.ts:17",
+        "RESEARCH.md:R9"
+      ],
+      "current_checks": [
+        "pattern.ts:18,88 debit shared remaining work",
+        "pattern.ts:19,89 yield every 1024 steps and observe signal",
+        "runtime.ts:47 shared source/output/command/loop budgets",
+        "runtime.ts:94 interruptible Promise race does not preempt synchronous operations",
+        "Observed moving parameterPattern charges slices and yields every 256 attempts; maxExpansionBytes-derived work budget"
+      ],
+      "unverified": [
+        "Initial parameter removal uses globExpression RegExp at runtime.ts:1538,1544,1682; final dirty source uses compilePattern instead",
+        "Line anchors for drifted sources describe inspected reads, not an atomic stable snapshot",
+        "Parser initial :618 rejects [[; no supported =~ path found",
+        "No acceptance of concurrent parameter replacements, character-class semantics or deadline behavior"
+      ]
+    }
+  ],
+  "reuse": {
+    "existing_candidates": [
+      "src/commands/text-programs/regex.ts:51",
+      "src/commands/structured/split.ts:3",
+      "src/shell/pattern.ts:69"
+    ],
+    "constraints": [
+      "Different regex/glob/literal languages and byte/Unicode representations",
+      "Text-program budget/error coupling, capture selection, backreferences, empty matches and flags",
+      "Do not silently turn a constrained subset into claimed jq split/2 or rg/GNU compatibility"
+    ],
+    "design_status": "Conditional zero-runtime-dependency choices only; no implementation or validated recommendation"
+  },
+  "source_files": [
+    {
+      "path": "AGENTS.md",
+      "before": {
+        "sha256": "23dc7a2bb8299e61a9553c93799a33b43ec4fd1c272e536e8fadd3e4d19b3009",
+        "lines": 330
+      },
+      "after": {
+        "sha256": "23dc7a2bb8299e61a9553c93799a33b43ec4fd1c272e536e8fadd3e4d19b3009",
+        "lines": 330
+      },
+      "changed": false
+    },
+    {
+      "path": "README.md",
+      "before": {
+        "sha256": "7b522c6a6e113ca595248d158ad9fb76f33d0ae61afc36d0083d12c79a5d80a3",
+        "lines": 312
+      },
+      "after": {
+        "sha256": "7b522c6a6e113ca595248d158ad9fb76f33d0ae61afc36d0083d12c79a5d80a3",
+        "lines": 312
+      },
+      "changed": false
+    },
+    {
+      "path": "package.json",
+      "before": {
+        "sha256": "216554f6115e7254b471b1e3b91319e516a80682b59a0b7fe6d8df16b2cb164b",
+        "lines": 77
+      },
+      "after": {
+        "sha256": "216554f6115e7254b471b1e3b91319e516a80682b59a0b7fe6d8df16b2cb164b",
+        "lines": 77
+      },
+      "changed": false
+    },
+    {
+      "path": "src/contracts/command.ts",
+      "before": {
+        "sha256": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+        "lines": 98
+      },
+      "after": {
+        "sha256": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+        "lines": 98
+      },
+      "changed": false
+    },
+    {
+      "path": "src/contracts/command.md",
+      "before": {
+        "sha256": "8201518b283448f6cc038b8a4c7239b28fd495738493179d6f4708cd848e3e2e",
+        "lines": 28
+      },
+      "after": {
+        "sha256": "8201518b283448f6cc038b8a4c7239b28fd495738493179d6f4708cd848e3e2e",
+        "lines": 28
+      },
+      "changed": false
+    },
+    {
+      "path": "src/contracts/io.ts",
+      "before": {
+        "sha256": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+        "lines": 228
+      },
+      "after": {
+        "sha256": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+        "lines": 228
+      },
+      "changed": false
+    },
+    {
+      "path": "src/commands/grep.ts",
+      "before": {
+        "sha256": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+        "lines": 118
+      },
+      "after": {
+        "sha256": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+        "lines": 118
+      },
+      "changed": false
+    },
+    {
+      "path": "src/commands/streams.ts",
+      "before": {
+        "sha256": "8966dd770c11731e5256a1e42aaec4b07ae7f0508a3e89a3efc956d27109098d",
+        "lines": 338
+      },
+      "after": {
+        "sha256": "8966dd770c11731e5256a1e42aaec4b07ae7f0508a3e89a3efc956d27109098d",
+        "lines": 338
+      },
+      "changed": false
+    },
+    {
+      "path": "src/commands/README.md",
+      "before": {
+        "sha256": "9097c69fa577369b5afda3589a496639c7a594cbd1766d331f17ebc4e642daac",
+        "lines": 158
+      },
+      "after": {
+        "sha256": "9097c69fa577369b5afda3589a496639c7a594cbd1766d331f17ebc4e642daac",
+        "lines": 158
+      },
+      "changed": false
+    },
+    {
+      "path": "src/commands/structured/README.md",
+      "before": {
+        "sha256": "a86d20662bc2f7f5f7c807533b732de1775be88e0884fa912fcd0dce9f0b0d2b",
+        "lines": 574
+      },
+      "after": {
+        "sha256": "a86d20662bc2f7f5f7c807533b732de1775be88e0884fa912fcd0dce9f0b0d2b",
+        "lines": 574
+      },
+      "changed": false
+    },
+    {
+      "path": "src/commands/structured/index.ts",
+      "before": {
+        "sha256": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415",
+        "lines": 22
+      },
+      "after": {
+        "sha256": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415",
+        "lines": 22
+      },
+      "changed": false
+    },
+    {
+      "path": "src/commands/structured/input.ts",
+      "before": {
+        "sha256": "fa83e47ea3f0dfbb388f509cd748b733886171c16b10c536a5efa05fa7a9e5ca",
+        "lines": 317
+      },
+      "after": {
+        "sha256": "fa83e47ea3f0dfbb388f509cd748b733886171c16b10c536a5efa05fa7a9e5ca",
+        "lines": 317
+      },
+      "changed": false
+    },
+    {
+      "path": "src/commands/structured/interpreter.ts",
+      "before": {
+        "sha256": "bac1cf5325eff5bfa69f1c8bec5d3d8a80bb452fd61cdc802d55a26788acaffc",
+        "lines": 399
+      },
+      "after": {
+        "sha256": "bac1cf5325eff5bfa69f1c8bec5d3d8a80bb452fd61cdc802d55a26788acaffc",
+        "lines": 399
+      },
+      "changed": false
+    },
+    {
+      "path": "src/commands/structured/jq.ts",
+      "before": {
+        "sha256": "feca27d38a096931faabe5a5449ecc65c39c8b0abbcf69d3ea73a31f729fdbac",
+        "lines": 216
+      },
+      "after": {
+        "sha256": "feca27d38a096931faabe5a5449ecc65c39c8b0abbcf69d3ea73a31f729fdbac",
+        "lines": 216
+      },
+      "changed": false
+    },
+    {
+      "path": "src/commands/structured/limits.ts",
+      "before": {
+        "sha256": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe",
+        "lines": 150
+      },
+      "after": {
+        "sha256": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe",
+        "lines": 150
+      },
+      "changed": false
+    },
+    {
+      "path": "src/commands/structured/numbers.ts",
+      "before": {
+        "sha256": "1ef4803e8311e554c8b11a590e75f4c9a96fb81614872587f534514fadfc7ae2",
+        "lines": 114
+      },
+      "after": {
+        "sha256": "1ef4803e8311e554c8b11a590e75f4c9a96fb81614872587f534514fadfc7ae2",
+        "lines": 114
+      },
+      "changed": false
+    },
+    {
+      "path": "src/commands/structured/parser.ts",
+      "before": {
+        "sha256": "a7bcafcd6a3676ed8e344dcaa1293d4593652c9c343172c5184c8c826d042b51",
+        "lines": 221
+      },
+      "after": {
+        "sha256": "a7bcafcd6a3676ed8e344dcaa1293d4593652c9c343172c5184c8c826d042b51",
+        "lines": 221
+      },
+      "changed": false
+    },
+    {
+      "path": "src/commands/structured/split.ts",
+      "before": {
+        "sha256": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6",
+        "lines": 60
+      },
+      "after": {
+        "sha256": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6",
+        "lines": 60
+      },
+      "changed": false
+    },
+    {
+      "path": "src/commands/structured/values.ts",
+      "before": {
+        "sha256": "8d4e7cf5e9182f2c0487be2fba1dd3585c406cc0cfd73c1a38dcb2c95198e46a",
+        "lines": 145
+      },
+      "after": {
+        "sha256": "8d4e7cf5e9182f2c0487be2fba1dd3585c406cc0cfd73c1a38dcb2c95198e46a",
+        "lines": 145
+      },
+      "changed": false
+    },
+    {
+      "path": "src/commands/search/README.md",
+      "before": {
+        "sha256": "99385bcf106ecbe66185c285cc10626a487f748b8dc14562e7d47451aa9bca72",
+        "lines": 224
+      },
+      "after": {
+        "sha256": "99385bcf106ecbe66185c285cc10626a487f748b8dc14562e7d47451aa9bca72",
+        "lines": 224
+      },
+      "changed": false
+    },
+    {
+      "path": "src/commands/search/glob.ts",
+      "before": {
+        "sha256": "d6fc574fbfde82b459426875801a36aaaf5ec9536ce25d1f5876215396094425",
+        "lines": 88
+      },
+      "after": {
+        "sha256": "d6fc574fbfde82b459426875801a36aaaf5ec9536ce25d1f5876215396094425",
+        "lines": 88
+      },
+      "changed": false
+    },
+    {
+      "path": "src/commands/search/index.ts",
+      "before": {
+        "sha256": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf",
+        "lines": 22
+      },
+      "after": {
+        "sha256": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf",
+        "lines": 22
+      },
+      "changed": false
+    },
+    {
+      "path": "src/commands/search/matcher.ts",
+      "before": {
+        "sha256": "499848186cde72bd696cba1fc7d53af39354ba74ea63c42acd92d5eb1cda1cfb",
+        "lines": 109
+      },
+      "after": {
+        "sha256": "499848186cde72bd696cba1fc7d53af39354ba74ea63c42acd92d5eb1cda1cfb",
+        "lines": 109
+      },
+      "changed": false
+    },
+    {
+      "path": "src/commands/search/options.ts",
+      "before": {
+        "sha256": "828d97d930dc615089a29efd3fe463293d4f61bf4dd33c81c2ceb6b910eb6ef8",
+        "lines": 170
+      },
+      "after": {
+        "sha256": "828d97d930dc615089a29efd3fe463293d4f61bf4dd33c81c2ceb6b910eb6ef8",
+        "lines": 170
+      },
+      "changed": false
+    },
+    {
+      "path": "src/commands/search/output.ts",
+      "before": {
+        "sha256": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1",
+        "lines": 56
+      },
+      "after": {
+        "sha256": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1",
+        "lines": 56
+      },
+      "changed": false
+    },
+    {
+      "path": "src/commands/search/rg.ts",
+      "before": {
+        "sha256": "c677f831e8e9dcc5051713d894d277ffa9646d2de358c1970b2dd0a9dfb44417",
+        "lines": 156
+      },
+      "after": {
+        "sha256": "c677f831e8e9dcc5051713d894d277ffa9646d2de358c1970b2dd0a9dfb44417",
+        "lines": 156
+      },
+      "changed": false
+    },
+    {
+      "path": "src/commands/search/shared.ts",
+      "before": {
+        "sha256": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724",
+        "lines": 93
+      },
+      "after": {
+        "sha256": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724",
+        "lines": 93
+      },
+      "changed": false
+    },
+    {
+      "path": "src/commands/search/walk.ts",
+      "before": {
+        "sha256": "474b87aa10e7daf0506edd7408d3a1b48c2bf7e644e8f585f1f5930bb658686a",
+        "lines": 119
+      },
+      "after": {
+        "sha256": "474b87aa10e7daf0506edd7408d3a1b48c2bf7e644e8f585f1f5930bb658686a",
+        "lines": 119
+      },
+      "changed": false
+    },
+    {
+      "path": "src/commands/text-programs/README.md",
+      "before": {
+        "sha256": "b39d89bf294fecc3da6d9ecff88aa07e8d7b0d12e0471d3c7974538907d1552a",
+        "lines": 199
+      },
+      "after": {
+        "sha256": "b39d89bf294fecc3da6d9ecff88aa07e8d7b0d12e0471d3c7974538907d1552a",
+        "lines": 199
+      },
+      "changed": false
+    },
+    {
+      "path": "src/commands/text-programs/awk-runtime.ts",
+      "before": {
+        "sha256": "30821e08780042b3382ceedb4b133a89475938a1212ed607782e2d0e592bd35e",
+        "lines": 485
+      },
+      "after": {
+        "sha256": "30821e08780042b3382ceedb4b133a89475938a1212ed607782e2d0e592bd35e",
+        "lines": 485
+      },
+      "changed": false
+    },
+    {
+      "path": "src/commands/text-programs/awk-syntax.ts",
+      "before": {
+        "sha256": "179754bbb74643f57f8e19b0a87c43a8793130aa4b4f8d07a4cc14cae871d4d7",
+        "lines": 383
+      },
+      "after": {
+        "sha256": "179754bbb74643f57f8e19b0a87c43a8793130aa4b4f8d07a4cc14cae871d4d7",
+        "lines": 383
+      },
+      "changed": false
+    },
+    {
+      "path": "src/commands/text-programs/awk-values.ts",
+      "before": {
+        "sha256": "6824c5348221d98f9d94c058bbe119eaa6aa1e7ca7775af8d460f358436c2d7c",
+        "lines": 121
+      },
+      "after": {
+        "sha256": "6824c5348221d98f9d94c058bbe119eaa6aa1e7ca7775af8d460f358436c2d7c",
+        "lines": 121
+      },
+      "changed": false
+    },
+    {
+      "path": "src/commands/text-programs/awk.ts",
+      "before": {
+        "sha256": "af422696809543efb470ae219774e32819124035d51a756d5761f41fa4607dc3",
+        "lines": 36
+      },
+      "after": {
+        "sha256": "af422696809543efb470ae219774e32819124035d51a756d5761f41fa4607dc3",
+        "lines": 36
+      },
+      "changed": false
+    },
+    {
+      "path": "src/commands/text-programs/index.ts",
+      "before": {
+        "sha256": "6df5a7c5c242e71e18d8a15ea87d1c6c5bcd90aa57edb529af64e147135ea9e2",
+        "lines": 23
+      },
+      "after": {
+        "sha256": "6df5a7c5c242e71e18d8a15ea87d1c6c5bcd90aa57edb529af64e147135ea9e2",
+        "lines": 23
+      },
+      "changed": false
+    },
+    {
+      "path": "src/commands/text-programs/regex.ts",
+      "before": {
+        "sha256": "23df19386627659c3a5175562a2f8eeda873b81e3dc3e78d3cf51aafa7b3b06f",
+        "lines": 316
+      },
+      "after": {
+        "sha256": "23df19386627659c3a5175562a2f8eeda873b81e3dc3e78d3cf51aafa7b3b06f",
+        "lines": 316
+      },
+      "changed": false
+    },
+    {
+      "path": "src/commands/text-programs/sed.ts",
+      "before": {
+        "sha256": "38fceb4869a0db8197a050de3430d5b9c5017e1606a4348d17d8004745c645a9",
+        "lines": 415
+      },
+      "after": {
+        "sha256": "38fceb4869a0db8197a050de3430d5b9c5017e1606a4348d17d8004745c645a9",
+        "lines": 415
+      },
+      "changed": false
+    },
+    {
+      "path": "src/commands/text-programs/shared.ts",
+      "before": {
+        "sha256": "fec28a956be858e725811f9e83a7f325d99d3152da0231af0d619847e8e6206e",
+        "lines": 102
+      },
+      "after": {
+        "sha256": "fec28a956be858e725811f9e83a7f325d99d3152da0231af0d619847e8e6206e",
+        "lines": 102
+      },
+      "changed": false
+    },
+    {
+      "path": "src/shell/arithmetic.ts",
+      "before": {
+        "sha256": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+        "lines": 217
+      },
+      "after": {
+        "sha256": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+        "lines": 217
+      },
+      "changed": false
+    },
+    {
+      "path": "src/shell/display.ts",
+      "before": {
+        "sha256": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+        "lines": 39
+      },
+      "after": {
+        "sha256": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+        "lines": 39
+      },
+      "changed": false
+    },
+    {
+      "path": "src/shell/index.ts",
+      "before": {
+        "sha256": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+        "lines": 4
+      },
+      "after": {
+        "sha256": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+        "lines": 4
+      },
+      "changed": false
+    },
+    {
+      "path": "src/shell/input.ts",
+      "before": {
+        "sha256": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+        "lines": 240
+      },
+      "after": {
+        "sha256": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+        "lines": 240
+      },
+      "changed": false
+    },
+    {
+      "path": "src/shell/locale.ts",
+      "before": {
+        "sha256": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+        "lines": 4
+      },
+      "after": {
+        "sha256": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+        "lines": 4
+      },
+      "changed": false
+    },
+    {
+      "path": "src/shell/parser.ts",
+      "before": {
+        "sha256": "cd31afa92e6e54a3e3fceb328064e1e2421e0461529c354794d7b7198c80e4ec",
+        "lines": 693
+      },
+      "after": {
+        "sha256": "28492059750ba7f11fad563dfc03dba049f232b3f2212186cf3553e4559ae905",
+        "lines": 698
+      },
+      "changed": true
+    },
+    {
+      "path": "src/shell/pattern.ts",
+      "before": {
+        "sha256": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+        "lines": 103
+      },
+      "after": {
+        "sha256": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+        "lines": 103
+      },
+      "changed": false
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "before": {
+        "sha256": "c26cb2035f76ced93319bbe50fc59c37de15eaad7285d49aa027c21a3f433101",
+        "lines": 1701
+      },
+      "after": {
+        "sha256": "e8c61eb96c76999b0ac61a956312fce7d2e6077f1b2c55fcd9c15d4d50b40123",
+        "lines": 1738
+      },
+      "changed": true
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "before": {
+        "sha256": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+        "lines": 148
+      },
+      "after": {
+        "sha256": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+        "lines": 148
+      },
+      "changed": false
+    },
+    {
+      "path": "src/shell/types.ts",
+      "before": {
+        "sha256": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+        "lines": 67
+      },
+      "after": {
+        "sha256": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+        "lines": 67
+      },
+      "changed": false
+    },
+    {
+      "path": "src/commands/internal.ts",
+      "before": {
+        "sha256": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+        "lines": 211,
+        "captured_at": "2026-08-27T03:13:04.962Z"
+      },
+      "after": {
+        "sha256": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+        "lines": 211
+      },
+      "changed": false
+    }
+  ],
+  "preservation": "Only three new owned documentation files are written; no existing structured source, historical results, production or test file changes."
+}

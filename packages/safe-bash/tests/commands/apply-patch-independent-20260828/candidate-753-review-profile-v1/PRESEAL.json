@@ -1,0 +1,17 @@
+{
+  "schema": "candidate753-profile-data-preseal-not-executable",
+  "at": "2026-08-28T22:05:33.748Z",
+  "files": {
+    "PROFILE.json": {
+      "bytes": 146186,
+      "mode": 420,
+      "sha256": "9d15f9e04875c2fa1255003fd91cc9f7192a698490ff2459103ee4f48392d86e"
+    }
+  },
+  "phase": "SOURCE/DATA only",
+  "candidate": "753f33d2fa1a2ccd86089c563d4ad66b9a1ae26d",
+  "selectedTree": "6a59ca403c5411344dea2ee057909ba179bf7043",
+  "executionReady": false,
+  "command": null,
+  "rootGoRequiredAfterConcreteImplementation": true
+}

@@ -1,0 +1,434 @@
+{
+  "version": 1,
+  "status": "review-draft",
+  "scope": "Shape examples only; valid means schema-admissible, not authorized or native-qualified. Semantic admission remains mandatory.",
+  "cases": [
+    {
+      "name": "generic live job preserves empty and non-UTF8 argv",
+      "schema": "streaming-profile.schema.json#/$defs/GenericJobRequest",
+      "valid": true,
+      "value": {
+        "buildDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "toolId": "example-tool",
+        "args": [
+          [],
+          [
+            255,
+            128,
+            65
+          ]
+        ],
+        "namespaceId": "namespace-example",
+        "materializationRevision": null,
+        "cwd": "/work",
+        "env": {
+          "EMPTY": ""
+        },
+        "stdin": {
+          "kind": "stream",
+          "seekable": false
+        },
+        "descriptors": [],
+        "grants": [],
+        "freshness": "live",
+        "limits": {
+          "maxJobs": 1024,
+          "maxHandles": 1024,
+          "maxArgvBytes": 1024,
+          "maxManifestEntries": 1024,
+          "maxFrameBytes": 1024,
+          "maxInflightBytes": 1024,
+          "maxBlobBytes": 1024,
+          "maxReplayBytes": 1024,
+          "maxCallbacks": 1024,
+          "maxNativeMemoryBytes": 1024,
+          "maxNativeProcesses": 1024,
+          "maxJobDurationMs": 1024
+        }
+      }
+    },
+    {
+      "name": "octet overflow",
+      "schema": "streaming-profile.schema.json#/$defs/GenericJobRequest",
+      "valid": false,
+      "value": {
+        "buildDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "toolId": "example-tool",
+        "args": [
+          [
+            256
+          ]
+        ],
+        "namespaceId": "namespace-example",
+        "materializationRevision": null,
+        "cwd": "/work",
+        "env": {
+          "EMPTY": ""
+        },
+        "stdin": {
+          "kind": "stream",
+          "seekable": false
+        },
+        "descriptors": [],
+        "grants": [],
+        "freshness": "live",
+        "limits": {
+          "maxJobs": 1024,
+          "maxHandles": 1024,
+          "maxArgvBytes": 1024,
+          "maxManifestEntries": 1024,
+          "maxFrameBytes": 1024,
+          "maxInflightBytes": 1024,
+          "maxBlobBytes": 1024,
+          "maxReplayBytes": 1024,
+          "maxCallbacks": 1024,
+          "maxNativeMemoryBytes": 1024,
+          "maxNativeProcesses": 1024,
+          "maxJobDurationMs": 1024
+        }
+      }
+    },
+    {
+      "name": "text argv is not byte argv",
+      "schema": "streaming-profile.schema.json#/$defs/GenericJobRequest",
+      "valid": false,
+      "value": {
+        "buildDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "toolId": "example-tool",
+        "args": [
+          "input.png"
+        ],
+        "namespaceId": "namespace-example",
+        "materializationRevision": null,
+        "cwd": "/work",
+        "env": {
+          "EMPTY": ""
+        },
+        "stdin": {
+          "kind": "stream",
+          "seekable": false
+        },
+        "descriptors": [],
+        "grants": [],
+        "freshness": "live",
+        "limits": {
+          "maxJobs": 1024,
+          "maxHandles": 1024,
+          "maxArgvBytes": 1024,
+          "maxManifestEntries": 1024,
+          "maxFrameBytes": 1024,
+          "maxInflightBytes": 1024,
+          "maxBlobBytes": 1024,
+          "maxReplayBytes": 1024,
+          "maxCallbacks": 1024,
+          "maxNativeMemoryBytes": 1024,
+          "maxNativeProcesses": 1024,
+          "maxJobDurationMs": 1024
+        }
+      }
+    },
+    {
+      "name": "ready revision requires binding",
+      "schema": "streaming-profile.schema.json#/$defs/GenericJobRequest",
+      "valid": false,
+      "value": {
+        "buildDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "toolId": "example-tool",
+        "args": [
+          [],
+          [
+            255,
+            128,
+            65
+          ]
+        ],
+        "namespaceId": "namespace-example",
+        "materializationRevision": "1",
+        "cwd": "/work",
+        "env": {
+          "EMPTY": ""
+        },
+        "stdin": {
+          "kind": "stream",
+          "seekable": false
+        },
+        "descriptors": [],
+        "grants": [],
+        "freshness": "live",
+        "limits": {
+          "maxJobs": 1024,
+          "maxHandles": 1024,
+          "maxArgvBytes": 1024,
+          "maxManifestEntries": 1024,
+          "maxFrameBytes": 1024,
+          "maxInflightBytes": 1024,
+          "maxBlobBytes": 1024,
+          "maxReplayBytes": 1024,
+          "maxCallbacks": 1024,
+          "maxNativeMemoryBytes": 1024,
+          "maxNativeProcesses": 1024,
+          "maxJobDurationMs": 1024
+        }
+      }
+    },
+    {
+      "name": "ready revision with operation and root",
+      "schema": "streaming-profile.schema.json#/$defs/GenericJobRequest",
+      "valid": true,
+      "value": {
+        "buildDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "toolId": "example-tool",
+        "args": [
+          [],
+          [
+            255,
+            128,
+            65
+          ]
+        ],
+        "namespaceId": "namespace-example",
+        "materializationRevision": "1",
+        "cwd": "/work",
+        "env": {
+          "EMPTY": ""
+        },
+        "stdin": {
+          "kind": "stream",
+          "seekable": false
+        },
+        "descriptors": [],
+        "grants": [],
+        "freshness": "live",
+        "limits": {
+          "maxJobs": 1024,
+          "maxHandles": 1024,
+          "maxArgvBytes": 1024,
+          "maxManifestEntries": 1024,
+          "maxFrameBytes": 1024,
+          "maxInflightBytes": 1024,
+          "maxBlobBytes": 1024,
+          "maxReplayBytes": 1024,
+          "maxCallbacks": 1024,
+          "maxNativeMemoryBytes": 1024,
+          "maxNativeProcesses": 1024,
+          "maxJobDurationMs": 1024
+        },
+        "materializationBinding": {
+          "operationId": "materialization-example",
+          "root": "/work"
+        }
+      }
+    },
+    {
+      "name": "live null revision forbids binding",
+      "schema": "streaming-profile.schema.json#/$defs/GenericJobRequest",
+      "valid": false,
+      "value": {
+        "buildDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "toolId": "example-tool",
+        "args": [
+          [],
+          [
+            255,
+            128,
+            65
+          ]
+        ],
+        "namespaceId": "namespace-example",
+        "materializationRevision": null,
+        "cwd": "/work",
+        "env": {
+          "EMPTY": ""
+        },
+        "stdin": {
+          "kind": "stream",
+          "seekable": false
+        },
+        "descriptors": [],
+        "grants": [],
+        "freshness": "live",
+        "limits": {
+          "maxJobs": 1024,
+          "maxHandles": 1024,
+          "maxArgvBytes": 1024,
+          "maxManifestEntries": 1024,
+          "maxFrameBytes": 1024,
+          "maxInflightBytes": 1024,
+          "maxBlobBytes": 1024,
+          "maxReplayBytes": 1024,
+          "maxCallbacks": 1024,
+          "maxNativeMemoryBytes": 1024,
+          "maxNativeProcesses": 1024,
+          "maxJobDurationMs": 1024
+        },
+        "materializationBinding": {
+          "operationId": "materialization-example",
+          "root": "/work"
+        }
+      }
+    },
+    {
+      "name": "stream output is not a job return field",
+      "schema": "streaming-profile.schema.json#/$defs/GenericJobRequest",
+      "valid": false,
+      "value": {
+        "buildDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "toolId": "example-tool",
+        "args": [
+          [],
+          [
+            255,
+            128,
+            65
+          ]
+        ],
+        "namespaceId": "namespace-example",
+        "materializationRevision": null,
+        "cwd": "/work",
+        "env": {
+          "EMPTY": ""
+        },
+        "stdin": {
+          "kind": "stream",
+          "seekable": false
+        },
+        "descriptors": [],
+        "grants": [],
+        "freshness": "live",
+        "limits": {
+          "maxJobs": 1024,
+          "maxHandles": 1024,
+          "maxArgvBytes": 1024,
+          "maxManifestEntries": 1024,
+          "maxFrameBytes": 1024,
+          "maxInflightBytes": 1024,
+          "maxBlobBytes": 1024,
+          "maxReplayBytes": 1024,
+          "maxCallbacks": 1024,
+          "maxNativeMemoryBytes": 1024,
+          "maxNativeProcesses": 1024,
+          "maxJobDurationMs": 1024
+        },
+        "stdout": [
+          1,
+          2
+        ]
+      }
+    },
+    {
+      "name": "metadata-only effect",
+      "schema": "streaming-profile.schema.json#/$defs/Effect",
+      "valid": true,
+      "value": {
+        "operationId": "effect-example",
+        "sequence": "1",
+        "operation": "write",
+        "state": "applied",
+        "namespaceId": "namespace-example",
+        "acknowledgedBytes": "2"
+      }
+    },
+    {
+      "name": "inline effect payload forbidden",
+      "schema": "streaming-profile.schema.json#/$defs/Effect",
+      "valid": false,
+      "value": {
+        "operationId": "effect-example",
+        "sequence": "1",
+        "operation": "write",
+        "state": "applied",
+        "namespaceId": "namespace-example",
+        "acknowledgedBytes": "2",
+        "bytes": [
+          1,
+          2
+        ]
+      }
+    },
+    {
+      "name": "CONTROL cannot bypass streaming effect admission",
+      "schema": "control-streaming.schema.json#/$defs/Control",
+      "valid": false,
+      "value": {
+        "type": "Effect",
+        "effect": {
+          "operationId": "effect-example",
+          "sequence": "1",
+          "operation": "write",
+          "state": "applied",
+          "namespaceId": "namespace-example",
+          "acknowledgedBytes": "2",
+          "bytes": [
+            1,
+            2
+          ]
+        }
+      }
+    },
+    {
+      "name": "retained append channel",
+      "schema": "urn:poe:remote-execution:canonical-filesystem:v1#/$defs/Operation",
+      "valid": true,
+      "value": {
+        "operation": "append",
+        "handle": "handle-example",
+        "length": "2",
+        "channelId": 4
+      }
+    },
+    {
+      "name": "append cannot choose offset",
+      "schema": "urn:poe:remote-execution:canonical-filesystem:v1#/$defs/Operation",
+      "valid": false,
+      "value": {
+        "operation": "append",
+        "handle": "handle-example",
+        "length": "2",
+        "channelId": 4,
+        "position": "0"
+      }
+    },
+    {
+      "name": "reserved stdout channel cannot carry retained append",
+      "schema": "urn:poe:remote-execution:canonical-filesystem:v1#/$defs/Operation",
+      "valid": false,
+      "value": {
+        "operation": "append",
+        "handle": "handle-example",
+        "length": "2",
+        "channelId": 2
+      }
+    },
+    {
+      "name": "byte namespace preserves non-UTF8 path",
+      "schema": "urn:poe:remote-execution:canonical-filesystem:v1#/$defs/Operation",
+      "valid": true,
+      "value": {
+        "operation": "open",
+        "path": [
+          47,
+          119,
+          111,
+          114,
+          107,
+          47,
+          255
+        ],
+        "access": "read"
+      }
+    },
+    {
+      "name": "byte namespace rejects NUL",
+      "schema": "urn:poe:remote-execution:canonical-filesystem:v1#/$defs/Operation",
+      "valid": false,
+      "value": {
+        "operation": "open",
+        "path": [
+          47,
+          0
+        ],
+        "access": "read"
+      }
+    }
+  ]
+}

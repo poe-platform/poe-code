@@ -1,0 +1,135 @@
+{
+  "verdict": "QUALIFIED_DATA_AUTHORITY_COMPLETION_ACCEPT",
+  "receiptCommit": "2e6d59787df9d1949d9e342fbd2769cb76240651",
+  "authorBinding": "5a2e4a11c647cffcfbfd8d77122f467e9e28f12d",
+  "bound": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-l02-followup-independent-20260829/r4/REVIEW-ACCEPTANCE.json",
+      "bytes": 1250,
+      "sha256": "39244351bc27769439f7f881cdeb6b68b92f694eb9f21c316a9f0eff44acea69",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/activation.mjs",
+      "bytes": 2798,
+      "sha256": "0bc77686e66fb33eddf6624ba9f7110c63dded99bcb4ea3db7a7035403a1433d",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/binding-v2/PENDING-GRANT.json",
+      "bytes": 523,
+      "sha256": "b0cf01197a9ab3fdf5439540759541b04c923f10004b16e1620f17f9534ecc78",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/EXECUTION-PRESEAL.json",
+      "bytes": 11163,
+      "sha256": "dbb576cdb97945543ef15cb02548f3cbe12875cbeab4bb01af2d60addf5dbffa",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/binding-v2/ACTIVATION-COMMAND.sh.data",
+      "bytes": 1739,
+      "sha256": "7c13045d3b06de10486ce29a3c7160cae665c4fed1f7b8eb62bb155f2f0a0d95",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/ROOT-GRANT.json",
+      "bytes": 523,
+      "sha256": "b0cf01197a9ab3fdf5439540759541b04c923f10004b16e1620f17f9534ecc78",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/preservation-v1/DATA/FUTURE-ACTUAL-01/ACTIVATION.json",
+      "bytes": 287,
+      "sha256": "c69f61ffb6c553d4adc395ef40aec044412939ab945e5c4068cefdb4153c8417",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-l02-followup-independent-20260829/r4/REVIEW-ACCEPTANCE.json",
+      "bytes": 1250,
+      "sha256": "39244351bc27769439f7f881cdeb6b68b92f694eb9f21c316a9f0eff44acea69",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/activation.mjs",
+      "bytes": 2798,
+      "sha256": "0bc77686e66fb33eddf6624ba9f7110c63dded99bcb4ea3db7a7035403a1433d",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/binding-v2/PENDING-GRANT.json",
+      "bytes": 523,
+      "sha256": "b0cf01197a9ab3fdf5439540759541b04c923f10004b16e1620f17f9534ecc78",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/EXECUTION-PRESEAL.json",
+      "bytes": 11163,
+      "sha256": "dbb576cdb97945543ef15cb02548f3cbe12875cbeab4bb01af2d60addf5dbffa",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/binding-v2/ACTIVATION-COMMAND.sh.data",
+      "bytes": 1739,
+      "sha256": "7c13045d3b06de10486ce29a3c7160cae665c4fed1f7b8eb62bb155f2f0a0d95",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/ROOT-GRANT.json",
+      "bytes": 523,
+      "sha256": "b0cf01197a9ab3fdf5439540759541b04c923f10004b16e1620f17f9534ecc78",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/preservation-v1/DATA/FUTURE-ACTUAL-01/ACTIVATION.json",
+      "bytes": 287,
+      "sha256": "c69f61ffb6c553d4adc395ef40aec044412939ab945e5c4068cefdb4153c8417",
+      "mode": 420
+    }
+  ],
+  "consumed": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/ROOT-GRANT.json",
+    "read": true,
+    "bytes": 523,
+    "sha256": "b0cf01197a9ab3fdf5439540759541b04c923f10004b16e1620f17f9534ecc78",
+    "qualification": "Fresh present-byte observation only, not proof of continuous immutability since runtime."
+  },
+  "grant": {
+    "schema": 2,
+    "authorized": true,
+    "profileSha256": "dbb576cdb97945543ef15cb02548f3cbe12875cbeab4bb01af2d60addf5dbffa",
+    "runId": "ERE-L02-FOLLOWUP-r4",
+    "reviewCommit": "2e6d59787df9d1949d9e342fbd2769cb76240651",
+    "reviewReceiptSha256": "39244351bc27769439f7f881cdeb6b68b92f694eb9f21c316a9f0eff44acea69",
+    "issuedAt": "2026-08-29T17:00:00.000Z",
+    "latestStartAt": "2026-08-29T17:15:00.000Z",
+    "expiresAt": "2026-08-29T17:25:00.000Z",
+    "cases": 13,
+    "Workers": 10,
+    "wallMilliseconds": 600000,
+    "knownOS": 27,
+    "captureBytes": 67108864,
+    "workingBytes": 268435456
+  },
+  "activation": {
+    "schema": 2,
+    "pid": 84282,
+    "startedEpoch": 1788023129232,
+    "deadlineEpoch": 1788023729232,
+    "grantSha256": "b0cf01197a9ab3fdf5439540759541b04c923f10004b16e1620f17f9534ecc78",
+    "profileSha256": "dbb576cdb97945543ef15cb02548f3cbe12875cbeab4bb01af2d60addf5dbffa",
+    "expiresAt": "2026-08-29T17:25:00.000Z"
+  },
+  "authority": "ROOT message explicitly authorized exact1739-byte command/523-byte grant before the one actual attempt; not inferred solely from authorized:true and no invented rootReceipt field.",
+  "inherited": "dc3333e2d finite62-file retention/4+3 controls; original binding HOLD preserved, no replay",
+  "retirement": "UNKNOWN unchanged; no new cleanup/retirement credit",
+  "actual": {
+    "helpers": 1,
+    "gitMetadataChildren": 2,
+    "product": 0,
+    "workers": 0,
+    "runtime": 0
+  },
+  "atUTC": "2026-08-29T17:27:45.473Z"
+}

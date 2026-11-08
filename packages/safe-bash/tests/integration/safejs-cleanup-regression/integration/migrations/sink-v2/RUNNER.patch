@@ -1,0 +1,188 @@
+diff --git a/tests/integration/safejs-cleanup-regression/integration/run.mjs b/tests/integration/safejs-cleanup-regression/integration/migrations/sink-v2/run.mjs
+index 623f3499..adb3343f 100644
+--- a/tests/integration/safejs-cleanup-regression/integration/run.mjs
++++ b/tests/integration/safejs-cleanup-regression/integration/migrations/sink-v2/run.mjs
+@@ -4,14 +4,22 @@ import { createHash } from "node:crypto";
+ import { chmodSync, closeSync, existsSync, lstatSync, mkdirSync, mkdtempSync, openSync, readFileSync, readdirSync, readSync, realpathSync, rmSync, writeFileSync } from "node:fs";
+ import { dirname, join, relative, resolve } from "node:path";
+ import { fileURLToPath, pathToFileURL } from "node:url";
+-import { cases } from "./cases.mjs";
++import { cases } from "../../cases.mjs";
+ 
+ const pin = "f44958bf48778737a58535e2bc9b37c292ac28c4";
+-const harness = dirname(fileURLToPath(import.meta.url));
++const versionedRunner = fileURLToPath(import.meta.url);
++const harness = resolve(dirname(versionedRunner), "../..");
+ const repository = resolve(harness, "../../../..");
++const acceptedDirectory = join(harness, "evidence/attempt-08");
++const accepted = JSON.parse(readFileSync(join(acceptedDirectory, "report.json"), "utf8"));
++const acceptedInventory = JSON.parse(readFileSync(join(acceptedDirectory, "runtime-inventory.json"), "utf8"));
++const originalProfile = process.argv.slice(3).includes("--original");
+ assert.equal(repository, "/Users/kjopek/Workspace/safe-bash");
+ assert.equal(Number(process.versions.node.split(".")[0]), 22, "Use plain Node 22 for this cohort");
+-assert.ok(process.argv[2], "Usage: node run.mjs NEW_OWNED_EVIDENCE_DIRECTORY [case-id ...]");
++assert.equal(process.version, accepted.node);
++assert.equal(process.platform, accepted.platform);
++assert.equal(process.arch, accepted.arch);
++assert.ok(process.argv[2], "Usage: node migrations/sink-v2/run.mjs NEW_OWNED_EVIDENCE_DIRECTORY [--original] [case-id ...]");
+ const output = resolve(process.argv[2]);
+ assert.ok(output.startsWith(`${harness}/evidence/`), "Evidence belongs to this owned subtree");
+ assert.equal(existsSync(output), false, "Never overwrite original evidence");
+@@ -134,11 +142,48 @@ function sourceClosure(root) {
+   return files;
+ }
+ 
++function differences(before, after) {
++  return [...new Set([...Object.keys(before), ...Object.keys(after)])].sort()
++    .filter(filename => before[filename] !== after[filename])
++    .map(filename => ({ filename, before: before[filename] ?? null, after: after[filename] ?? null }));
++}
++
++let archiveTree;
++let fullInventory;
++function verifyArchive(phase) {
++  assert.equal(git(repository, "rev-parse", `${pin}^{tree}`), report.archive.tree);
++  assert.equal(fileHash(join(temporary, "product.tar")), report.archive.sha256);
++  const current = inventory(product);
++  const committedFiles = Object.fromEntries(Object.entries(current).filter(([filename]) => !filename.startsWith("dist/")));
++  assert.deepEqual(committedFiles, fullInventory, `Archived file set or bytes changed: ${phase}`);
++  for (const entry of archiveTree) {
++    const bytes = readFileSync(join(product, entry.filename));
++    assert.equal(createHash("sha1").update(`blob ${bytes.length}\0`).update(bytes).digest("hex"), entry.oid,
++      `Pinned blob changed at ${phase}: ${entry.filename}`);
++    assert.equal(Boolean(current[entry.filename].mode & 0o111), entry.mode === "100755");
++  }
++  assert.deepEqual(sourceClosure(product), accepted.sourceClosure);
++  if (report.emittedDist) assert.deepEqual(inventory(join(product, "dist")), report.emittedDist);
++  report.archiveChecks.push({ phase, at: new Date().toISOString(), tree: report.archive.tree,
++    blobsVerified: archiveTree.length, inventorySha256: sha(JSON.stringify(committedFiles)), emittedDistUnchanged: !!report.emittedDist });
++  save("archive-checks.json", report.archiveChecks);
++}
++
+ let audited;
+ try {
+   report.publicBefore = repositoryState(repository);
++  report.liveBefore = sourceClosure(repository);
++  save("live-before.json", { repository: report.publicBefore, inventory: report.liveBefore });
++  report.migration = { version: "sink-v2", fixtureProfile: originalProfile ? "original-5009ba8" : "sole-sink-assertion",
++    originalReview: "5009ba8146c73bd5628147707e733384e5cd4aee", originalAccepted: 18, originalCases: 19,
++    originalRunnerSha256: fileHash(join(harness, "run.mjs")), versionedRunnerSha256: fileHash(versionedRunner),
++    identityRule: "Authenticate full archived f44958b and emitted package; live inventory is separate read-only provenance" };
++  assert.equal(report.migration.originalRunnerSha256, accepted.harnessFreeze["run.mjs"]);
+   report.privateBefore = privateState();
+   save("private-before.json", report.privateBefore);
++  assert.equal(report.privateBefore.head, "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e");
++  assert.deepEqual(report.privateBefore.engine, accepted.engineCopy, "Actual engine differs from accepted run");
++  assert.equal(report.privateBefore.metadata["tsconfig.json"], accepted.privateBefore.metadata["tsconfig.json"]);
+   report.instructions = Object.fromEntries([join(repository, "AGENTS.md"), "/Users/kjopek/Workspace/AGENTS.md", join(privateRoot, "AGENTS.md")].map(filename => [filename, fileHash(filename)]));
+   assert.equal(git(repository, "rev-parse", `${pin}^{commit}`), pin);
+   const tree = git(repository, "ls-tree", "-r", pin).split("\n").map(line => {
+@@ -147,11 +192,14 @@ try {
+     assert.ok(mode === "100644" || mode === "100755", `No archive links: ${filename}`);
+     return { mode, oid, filename };
+   });
++  archiveTree = tree;
+   const archive = join(temporary, "product.tar");
+   success(run("archive-product", "git", ["archive", "--format=tar", `--output=${archive}`, pin], repository));
+-  report.archive = { sha256: fileHash(archive), bytes: lstatSync(archive).size, fullCommit: true, entries: tree.length };
++  report.archive = { sha256: fileHash(archive), bytes: lstatSync(archive).size, fullCommit: true, entries: tree.length,
++    tree: git(repository, "rev-parse", `${pin}^{tree}`) };
++  assert.equal(report.archive.sha256, accepted.archive.sha256);
+   success(run("extract-product", "tar", ["-xf", archive, "-C", product]));
+-  const fullInventory = inventory(product);
++  fullInventory = inventory(product);
+   assert.equal(Object.keys(fullInventory).length, tree.length);
+   for (const entry of tree) {
+     const bytes = readFileSync(join(product, entry.filename));
+@@ -160,18 +208,28 @@ try {
+   report.archive.allBlobIdsVerified = true;
+   report.archive.inventorySha256 = sha(JSON.stringify(fullInventory));
+   report.sourceClosure = sourceClosure(product);
+-  assert.deepEqual(sourceClosure(repository), report.sourceClosure, "Live source/config differs at capture; refuse hidden overlay");
++  assert.deepEqual(report.sourceClosure, accepted.sourceClosure, "Pinned archived source differs from accepted run");
++  report.archiveChecks = [];
++  verifyArchive("before-build");
+   save("source-closure.json", report.sourceClosure);
+   report.engineCopy = copyRegular(join(privateRoot, "packages/safejs"), engine);
+   writeFileSync(join(consumer, "tsconfig.json"), readFileSync(join(privateRoot, "tsconfig.json")));
+   report.privateAfterCopy = privateState();
+   assert.deepEqual(report.privateAfterCopy.engine, report.privateBefore.engine, "Private engine changed while copied");
+   for (const name of ["typescript", "tsx", "@types/node", "undici-types"]) copyTool(name);
++  assert.deepEqual(report.tooling, accepted.tooling, "Cached tool profile differs from accepted run");
+   success(run("build-product", process.execPath, [join(tools, "typescript/bin/tsc"), "-p", "tsconfig.build.json"], product));
++  report.emittedDist = inventory(join(product, "dist"));
++  const acceptedDist = Object.fromEntries(Object.entries(acceptedInventory)
++    .filter(([filename]) => filename.startsWith("consumer/node_modules/virtual-bash/dist/"))
++    .map(([filename, info]) => [filename.slice("consumer/node_modules/virtual-bash/dist/".length), info]));
++  assert.deepEqual(report.emittedDist, acceptedDist, "Emitted product differs from accepted package");
++  verifyArchive("after-build");
+   const packed = run("pack-product", "npm", ["pack", "--offline", "--ignore-scripts", "--json", "--pack-destination", temporary], product);
+   success(packed);
+   const artifact = JSON.parse(packed.stdout)[0];
+   report.package = { name: artifact.name, version: artifact.version, sha256: fileHash(join(temporary, artifact.filename)) };
++  assert.equal(report.package.sha256, accepted.package.sha256);
+   writeFileSync(join(consumer, "package.json"), JSON.stringify({ name: "owned-cleanup-consumer", private: true, type: "module" }));
+   success(run("install-packed-product", "npm", ["install", "--offline", "--ignore-scripts", "--omit=dev", "--no-package-lock", "--no-audit", "--no-fund", join(temporary, artifact.filename)]));
+   const installed = join(consumer, "node_modules/virtual-bash");
+@@ -184,9 +242,14 @@ try {
+   report.package.zeroRuntimeDependencies = true;
+   report.harnessFreeze = {};
+   mkdirSync(join(output, "harness"));
++  save("harness/versioned-runner.mjs.fixture", readFileSync(versionedRunner, "utf8"));
+   for (const filename of ["cases.mjs", "child.mjs", "guard.mjs", "loader.mjs", "audit.mjs", "run.mjs"]) {
+-    const bytes = readFileSync(join(harness, filename));
++    const source = originalProfile ? join(acceptedDirectory, "harness", `${filename}.fixture`) : join(harness, filename);
++    const bytes = readFileSync(source);
+     report.harnessFreeze[filename] = sha(bytes);
++    const expected = filename === "child.mjs" && !originalProfile
++      ? "528234e9127066607a87ffde499e462189fd092513c9e08f6770f29536ecb7b9" : accepted.harnessFreeze[filename];
++    assert.equal(sha(bytes), expected, `Unapproved fixture or guard change: ${filename}`);
+     writeFileSync(join(output, "harness", `${filename}.fixture`), bytes);
+     if (filename !== "run.mjs") writeFileSync(join(copiedHarness, filename), bytes);
+   }
+@@ -197,6 +260,7 @@ try {
+   save("runtime-inventory.json", audited);
+   const manifestPath = join(temporary, "runtime-manifest.json");
+   writeFileSync(manifestPath, JSON.stringify(audited));
++  verifyArchive("before-execution");
+   const guard = pathToFileURL(join(copiedHarness, "guard.mjs")).href;
+   const runtimeEnvironment = { ...environment, INTEGRATION_ROOT: temporary, INTEGRATION_MANIFEST: manifestPath };
+   const boundary = [
+@@ -213,7 +277,7 @@ try {
+     { ...runtimeEnvironment, INTEGRATION_IMPORTS: join(output, "public-boundary.imports.ndjson"), INTEGRATION_TOOLS: join(output, "public-boundary.tools.ndjson") });
+   success(control);
+   report.boundary = JSON.parse(control.stdout);
+-  const requested = process.argv.slice(3);
++  const requested = process.argv.slice(3).filter(argument => argument !== "--original");
+   const cohort = requested.length ? cases.filter(entry => requested.includes(entry.id)) : cases;
+   assert.equal(cohort.length, requested.length || cases.length, "Unknown or duplicate case selection");
+   save("freeze.json", { pin, privateHead: report.privateBefore.head, harness: report.harnessFreeze, cases: cohort, archive: report.archive, package: report.package });
+@@ -253,7 +317,12 @@ try {
+     report.privateUnchanged = JSON.stringify(report.privateBefore) === JSON.stringify(report.privateAfter);
+     report.privateEngineUnchanged = JSON.stringify(report.privateBefore.engine) === JSON.stringify(report.privateAfter.engine);
+     report.publicAfter = repositoryState(repository);
+-    report.publicSourceUnchanged = JSON.stringify(sourceClosure(repository)) === JSON.stringify(report.sourceClosure);
++    report.liveAfter = sourceClosure(repository);
++    report.liveObservations = { beforeVsPin: differences(report.sourceClosure ?? {}, report.liveBefore),
++      afterVsPin: differences(report.sourceClosure ?? {}, report.liveAfter), duringCapture: differences(report.liveBefore, report.liveAfter),
++      attribution: "Live checkout is not the product under test. Changes are external concurrent state; no reset, overlay, or authorship attribution." };
++    save("live-after.json", { repository: report.publicAfter, inventory: report.liveAfter, observations: report.liveObservations });
++    if (fullInventory && report.archiveChecks) verifyArchive("after-execution");
+     if (audited) {
+       report.runtimeFilesUnchanged = Object.entries(audited).every(([filename, info]) => fileHash(join(temporary, filename)) === info.sha256);
+       assert.equal(report.runtimeFilesUnchanged, true);
+@@ -261,6 +330,8 @@ try {
+     if (existsSync(engine)) assert.deepEqual(inventory(engine, omitted), report.engineCopy);
+     report.toolSourcesUnchanged = Object.values(report.tooling).every(tool => JSON.stringify(inventory(tool.source, new Set(["node_modules", ".git", ".cache"]))) === JSON.stringify(tool.files));
+     report.privateCaptureQualification = report.privateUnchanged ? "unchanged" : "private state changed outside reviewer control; before/after preserved, no reset or attribution";
++    report.strictFinalGuards = report.privateUnchanged && report.privateEngineUnchanged && report.toolSourcesUnchanged && report.runtimeFilesUnchanged;
++    if (!report.strictFinalGuards) report.status = "infrastructure-failure";
+     report.finishedAt = new Date().toISOString();
+     report.cleanup = { ownedTemporary: temporary, allChildrenReaped: report.commands.filter(entry => cases.some(test => test.id === entry.label)).every(entry => entry.status !== undefined), removed: false };
+     save("report.json", report);
+@@ -273,4 +344,4 @@ try {
+     console.error(error);
+   }
+ }
+-process.exitCode = report.status === "pass" && report.cleanup?.removed && !report.finalizationError ? 0 : 1;
++process.exitCode = report.status === "pass" && report.strictFinalGuards && report.cleanup?.removed && !report.finalizationError ? 0 : 1;

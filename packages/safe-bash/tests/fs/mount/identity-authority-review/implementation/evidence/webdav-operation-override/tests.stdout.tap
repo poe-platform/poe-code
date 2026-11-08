@@ -1,0 +1,333 @@
+TAP version 13
+# Subtest: public wrapper comparison over memory: independent stores are distinct, aliases follow backing entries
+ok 1 - public wrapper comparison over memory: independent stores are distinct, aliases follow backing entries
+  ---
+  duration_ms: 1.081916
+  type: 'test'
+  ...
+# Subtest: public wrapper comparison over real: different roots and clients preserve shared native identity
+ok 2 - public wrapper comparison over real: different roots and clients preserve shared native identity
+  ---
+  duration_ms: 13.828584
+  type: 'test'
+  ...
+# Subtest: public comparison resolves BOTH operands through nested mounts and readonly wrappers
+ok 3 - public comparison resolves BOTH operands through nested mounts and readonly wrappers
+  ---
+  duration_ms: 2.501375
+  type: 'test'
+  ...
+# Subtest: overlay public comparison follows current selection without copy-up; new selection is re-observed
+ok 4 - overlay public comparison follows current selection without copy-up; new selection is re-observed
+  ---
+  duration_ms: 2.24275
+  type: 'test'
+  ...
+# Subtest: unknown custom views remain unknown and public comparison acquires no content or mutation
+ok 5 - unknown custom views remain unknown and public comparison acquires no content or mutation
+  ---
+  duration_ms: 0.882708
+  type: 'test'
+  ...
+# Subtest: public comparison propagates source ENOENT, never unknown
+ok 6 - public comparison propagates source ENOENT, never unknown
+  ---
+  duration_ms: 0.229083
+  type: 'test'
+  ...
+# Subtest: public comparison propagates source EACCES, never unknown
+ok 7 - public comparison propagates source EACCES, never unknown
+  ---
+  duration_ms: 0.085333
+  type: 'test'
+  ...
+# Subtest: public comparison propagates source EIO, never unknown
+ok 8 - public comparison propagates source EIO, never unknown
+  ---
+  duration_ms: 0.143375
+  type: 'test'
+  ...
+# Subtest: public comparison propagates peer ENOENT, never unknown
+ok 9 - public comparison propagates peer ENOENT, never unknown
+  ---
+  duration_ms: 0.320375
+  type: 'test'
+  ...
+# Subtest: public comparison propagates peer EACCES, never unknown
+ok 10 - public comparison propagates peer EACCES, never unknown
+  ---
+  duration_ms: 0.304875
+  type: 'test'
+  ...
+# Subtest: public comparison propagates peer EIO, never unknown
+ok 11 - public comparison propagates peer EIO, never unknown
+  ---
+  duration_ms: 0.150625
+  type: 'test'
+  ...
+# Subtest: complete known aliases override incompatible callback answers without querying either callback
+ok 12 - complete known aliases override incompatible callback answers without querying either callback
+  ---
+  duration_ms: 0.579916
+  type: 'test'
+  ...
+# Subtest: public comparison rejects same/distinct before effects and queries each terminal at most once
+ok 13 - public comparison rejects same/distinct before effects and queries each terminal at most once
+  ---
+  duration_ms: 0.396042
+  type: 'test'
+  ...
+# Subtest: public comparison rejects unknown/invalid before effects and queries each terminal at most once
+ok 14 - public comparison rejects unknown/invalid before effects and queries each terminal at most once
+  ---
+  duration_ms: 0.452
+  type: 'test'
+  ...
+# Subtest: one backend exposed twice negotiates once, not recursively through wrappers
+ok 15 - one backend exposed twice negotiates once, not recursively through wrappers
+  ---
+  duration_ms: 0.388625
+  type: 'test'
+  ...
+# Subtest: opaque forwarders of negotiating product methods return unknown without recursive metadata or duplicate calls
+ok 16 - opaque forwarders of negotiating product methods return unknown without recursive metadata or duplicate calls
+  ---
+  duration_ms: 0.466792
+  type: 'test'
+  ...
+# Subtest: ENOENT-shaped cancellation between terminal queries stops peer (return)
+ok 17 - ENOENT-shaped cancellation between terminal queries stops peer (return)
+  ---
+  duration_ms: 0.531541
+  type: 'test'
+  ...
+# Subtest: ENOENT-shaped cancellation between terminal queries stops peer (rejection)
+ok 18 - ENOENT-shaped cancellation between terminal queries stops peer (rejection)
+  ---
+  duration_ms: 0.227542
+  type: 'test'
+  ...
+# Subtest: exclusive insertion race preserves source and newly arrived target bytes
+ok 19 - exclusive insertion race preserves source and newly arrived target bytes
+  ---
+  duration_ms: 0.414
+  type: 'test'
+  ...
+# Subtest: overlay future upper writer alias cannot be authorized by distinct selected lower read views
+ok 20 - overlay future upper writer alias cannot be authorized by distinct selected lower read views
+  ---
+  duration_ms: 0.696084
+  type: 'test'
+  ...
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoic3BsaXQtczMtY29weSIsImRhdGEiOnsicmVzdWx0IjoidW5rbm93biIsImNvZGUiOiJFTk9UU1VQIiwiZWZmZWN0cyI6W10sInNvdXJjZSI6InNvdXJjZSBzZW50aW5lbCJ9fQ==
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoic3BsaXQtZGF2LWNvbXBhcmlzb24iLCJkYXRhIjp7InJlc3VsdCI6InVua25vd24iLCJlZmZlY3RzIjpbXX19
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoic3BsaXQtZGF2LWNvcHkiLCJkYXRhIjp7ImNvZGUiOiJFTk9UU1VQIiwiZWZmZWN0cyI6W10sInNvdXJjZSI6InNvdXJjZSBzZW50aW5lbCJ9fQ==
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoic3ViY2xhc3MtZGF2LWNvcHkiLCJkYXRhIjp7InJlc3VsdCI6ImRpc3RpbmN0IiwiY29kZSI6IkVJTyIsImVmZmVjdHMiOlsid3JpdGVTdHJlYW0iXSwic291cmNlIjoic3ViY2xhc3MgZGVzdGluYXRpb24gZGFtYWdlZCBzb3VyY2UifX0=
+# Subtest: S3 actual shared store through different clients/prefixes: aliases and qualified copies
+ok 21 - S3 actual shared store through different clients/prefixes: aliases and qualified copies
+  ---
+  duration_ms: 11.673625
+  type: 'test'
+  ...
+# Subtest: independent private S3 stores are distinct without per-client invented identity tuples
+ok 22 - independent private S3 stores are distinct without per-client invented identity tuples
+  ---
+  duration_ms: 1.560792
+  type: 'test'
+  ...
+# Subtest: qualified distinct S3 copy preserves source on source failure
+ok 23 - qualified distinct S3 copy preserves source on source failure
+  ---
+  duration_ms: 2.780208
+  type: 'test'
+  ...
+# Subtest: qualified distinct S3 copy preserves source on target failure
+ok 24 - qualified distinct S3 copy preserves source on target failure
+  ---
+  duration_ms: 1.545333
+  type: 'test'
+  ...
+# Subtest: qualified distinct S3 copy preserves source on cancel failure
+ok 25 - qualified distinct S3 copy preserves source on cancel failure
+  ---
+  duration_ms: 1.417542
+  type: 'test'
+  ...
+# Subtest: S3 unrecognized custom transport aliasing local memory remains unknown before destructive copy
+ok 26 - S3 unrecognized custom transport aliasing local memory remains unknown before destructive copy
+  ---
+  duration_ms: 1.066791
+  type: 'test'
+  ...
+# Subtest: S3 metadata-forwarding client with unrelated data routing cannot inherit private-store authority
+ok 27 - S3 metadata-forwarding client with unrelated data routing cannot inherit private-store authority
+  ---
+  duration_ms: 1.761875
+  type: 'test'
+  ...
+# Subtest: S3 two custom clients returning private mock metadata cannot claim distinctness for shared local data
+ok 28 - S3 two custom clients returning private mock metadata cannot claim distinctness for shared local data
+  ---
+  duration_ms: 1.135333
+  type: 'test'
+  ...
+# Subtest: S3 metadata NoSuchKey propagates through public comparison with no content operations
+ok 29 - S3 metadata NoSuchKey propagates through public comparison with no content operations
+  ---
+  duration_ms: 0.313542
+  type: 'test'
+  ...
+# Subtest: S3 metadata AccessDenied propagates through public comparison with no content operations
+ok 30 - S3 metadata AccessDenied propagates through public comparison with no content operations
+  ---
+  duration_ms: 0.335
+  type: 'test'
+  ...
+# Subtest: S3 metadata InternalError propagates through public comparison with no content operations
+ok 31 - S3 metadata InternalError propagates through public comparison with no content operations
+  ---
+  duration_ms: 0.137083
+  type: 'test'
+  ...
+# Subtest: WebDAV actual provider metadata: endpoint aliases, equal ETags, and qualified nested-wrapper copies
+ok 32 - WebDAV actual provider metadata: endpoint aliases, equal ETags, and qualified nested-wrapper copies
+  ---
+  duration_ms: 26.902042
+  type: 'test'
+  ...
+# Subtest: WebDAV protocol identity survives Response cloning without private mock provenance
+ok 33 - WebDAV protocol identity survives Response cloning without private mock provenance
+  ---
+  duration_ms: 2.840958
+  type: 'test'
+  ...
+# Subtest: WebDAV mock identity is stable through PUT/MOVE/COPY overwrite, fresh for COPY creation and recreation
+ok 34 - WebDAV mock identity is stable through PUT/MOVE/COPY overwrite, fresh for COPY creation and recreation
+  ---
+  duration_ms: 5.947292
+  type: 'test'
+  ...
+# Subtest: WebDAV cancellation after first protocol identity query prevents the peer query
+ok 35 - WebDAV cancellation after first protocol identity query prevents the peer query
+  ---
+  duration_ms: 1.751917
+  type: 'test'
+  ...
+# Subtest: WebDAV identity multistatus missing is not a distinctness shortcut
+ok 36 - WebDAV identity multistatus missing is not a distinctness shortcut
+  ---
+  duration_ms: 2.912708
+  type: 'test'
+  ...
+# Subtest: WebDAV identity multistatus foreign-namespace is not a distinctness shortcut
+ok 37 - WebDAV identity multistatus foreign-namespace is not a distinctness shortcut
+  ---
+  duration_ms: 1.1825
+  type: 'test'
+  ...
+# Subtest: WebDAV identity multistatus property-404 is not a distinctness shortcut
+ok 38 - WebDAV identity multistatus property-404 is not a distinctness shortcut
+  ---
+  duration_ms: 1.04875
+  type: 'test'
+  ...
+# Subtest: WebDAV identity multistatus duplicate-property is not a distinctness shortcut
+ok 39 - WebDAV identity multistatus duplicate-property is not a distinctness shortcut
+  ---
+  duration_ms: 1.089625
+  type: 'test'
+  ...
+# Subtest: WebDAV identity multistatus duplicate-response is not a distinctness shortcut
+ok 40 - WebDAV identity multistatus duplicate-response is not a distinctness shortcut
+  ---
+  duration_ms: 1.182541
+  type: 'test'
+  ...
+# Subtest: WebDAV identity multistatus wrong-response-href is not a distinctness shortcut
+ok 41 - WebDAV identity multistatus wrong-response-href is not a distinctness shortcut
+  ---
+  duration_ms: 0.926083
+  type: 'test'
+  ...
+# Subtest: WebDAV identity multistatus invalid-uri is not a distinctness shortcut
+ok 42 - WebDAV identity multistatus invalid-uri is not a distinctness shortcut
+  ---
+  duration_ms: 0.923084
+  type: 'test'
+  ...
+# Subtest: WebDAV identity multistatus property-403 is not a distinctness shortcut
+ok 43 - WebDAV identity multistatus property-403 is not a distinctness shortcut
+  ---
+  duration_ms: 0.861625
+  type: 'test'
+  ...
+# Subtest: WebDAV identity multistatus resource-404 is not a distinctness shortcut
+ok 44 - WebDAV identity multistatus resource-404 is not a distinctness shortcut
+  ---
+  duration_ms: 1.919584
+  type: 'test'
+  ...
+# Subtest: WebDAV custom fetch returning genuine MockDav metadata but local data is unrecognized, not disjoint
+ok 45 - WebDAV custom fetch returning genuine MockDav metadata but local data is unrecognized, not disjoint
+  ---
+  duration_ms: 0.639542
+  type: 'test'
+  ...
+# Subtest: WebDAV mixed metadata/data transport cannot authorize truncating an aliased local source
+ok 46 - WebDAV mixed metadata/data transport cannot authorize truncating an aliased local source
+  ---
+  duration_ms: 0.82825
+  type: 'test'
+  ...
+# Subtest: WebDAV pre-construction data-method overrides cannot inherit resource authority over another backing store
+not ok 47 - WebDAV pre-construction data-method overrides cannot inherit resource authority over another backing store
+  ---
+  duration_ms: 3.300542
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-kB7boX/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:1:17913'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+    +   code: 'EIO',
+    +   effects: [
+    +     'writeStream'
+    +   ],
+    +   result: 'distinct',
+    +   source: 'subclass destination damaged source'
+    -   code: 'ENOTSUP',
+    -   effects: [],
+    -   result: 'unknown',
+    -   source: 'source sentinel'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    result: 'unknown'
+    code: 'ENOTSUP'
+    effects:
+    source: 'source sentinel'
+  actual:
+    result: 'distinct'
+    code: 'EIO'
+    effects:
+      0: 'writeStream'
+    source: 'subclass destination damaged source'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-kB7boX/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:339:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..47
+# tests 47
+# suites 0
+# pass 46
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 242.457

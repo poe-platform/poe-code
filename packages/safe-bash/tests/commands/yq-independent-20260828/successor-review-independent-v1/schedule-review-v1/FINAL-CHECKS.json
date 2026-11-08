@@ -1,0 +1,15 @@
+{
+  "classification": "STATIC_PUBLICATION_VALIDATION_ONLY",
+  "jsonFilesParsed": 7,
+  "duplicateKeysRejected": true,
+  "ownPythonSyntax": "VALID",
+  "finalReadOnlyAuditorExit": 0,
+  "finalReadOnlyAuditorStderr": "",
+  "finalReadOnlyAuditorStdoutSha256": "b6e5e6dca8d5b344928f18f910f8fcf24c0235c311a89b0c690c26014b949223",
+  "correctedArtifactByteEqualFinalAuditorOutput": true,
+  "rawFirstAuditRetained": true,
+  "prior36aReviewUnchanged": true,
+  "authorValidatorExecutions": 0,
+  "productControlBuildTypeLoaderExecutions": 0,
+  "auditorSha256": "ae8b1f46ff43dd78a09d5884126ccec98867624b1a14a7207989754901e984e1"
+}

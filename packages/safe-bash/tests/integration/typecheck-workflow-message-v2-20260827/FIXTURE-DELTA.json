@@ -1,0 +1,14 @@
+{
+  "previousCommit": "39116ae1da80261d1a55df363f615430eab6609a",
+  "fixtureCommit": "c7f2abab5e11539c69f890e617a461cbd5ec4a08",
+  "candidate": "a01310c5571dfda2aae4c6c8cc185e2530a01e89",
+  "previousSha256": "05ce4842f7881260792cb072b73765c7b97db7fd1a1881cf2a3ab926324ad488",
+  "v2Sha256": "850579bc359b4fd2f8fa7f1decdffe7e021b52cd7f8dc787cd347a3be5df767d",
+  "changes": [
+    {
+      "line": 248,
+      "before": "      assert.match(result.details.result.groups[0].error, /candidate build/u);",
+      "after": "      assert.equal(result.details.result.groups[0].error, `foreign candidate declaration/source fallback: virtual-bash -> ${join(snapshot, 'src/index.ts')}`);"
+    }
+  ]
+}

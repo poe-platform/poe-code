@@ -1,0 +1,70 @@
+[
+  {
+    "id": "local-numeric-replaces-global-reverse",
+    "actual": {
+      "status": 0,
+      "stdout": "YjoxMAphOjIKYzotMQo=",
+      "stderr": "",
+      "files": {}
+    },
+    "input": {
+      "bytes": 14,
+      "sha256": "698ac68d953b309033e6c0a4a816d46f70506dca13cae31ec73d79298ea5ee8c"
+    },
+    "stdout": {
+      "bytes": 14,
+      "sha256": "698ac68d953b309033e6c0a4a816d46f70506dca13cae31ec73d79298ea5ee8c"
+    },
+    "finalized": false,
+    "counters": {
+      "keyedConstructions": 1,
+      "sortComparisons": 2,
+      "keyedRequests": 4,
+      "extractions": 3,
+      "fieldObjects": 6,
+      "parses": 3,
+      "keyedAdmissions": 3,
+      "charged": 36,
+      "independentBackingCharge": 36,
+      "existingRecordBytes": 11,
+      "entriesPeak": 3,
+      "retainedPeak": 36,
+      "numericComparisons": 2,
+      "keyedHits": 1
+    }
+  },
+  {
+    "id": "local-reverse-end-flags",
+    "actual": {
+      "status": 0,
+      "stdout": "YzotMQphOjIKYjoxMAo=",
+      "stderr": "",
+      "files": {}
+    },
+    "input": {
+      "bytes": 14,
+      "sha256": "698ac68d953b309033e6c0a4a816d46f70506dca13cae31ec73d79298ea5ee8c"
+    },
+    "stdout": {
+      "bytes": 14,
+      "sha256": "29410e44b4ec7ee3135492ee6dbc9b3687ea8cf43e0db952c4db8de1fa37e3cb"
+    },
+    "finalized": false,
+    "counters": {
+      "keyedConstructions": 1,
+      "sortComparisons": 2,
+      "keyedRequests": 4,
+      "extractions": 3,
+      "fieldObjects": 6,
+      "parses": 3,
+      "keyedAdmissions": 3,
+      "charged": 36,
+      "independentBackingCharge": 36,
+      "existingRecordBytes": 11,
+      "entriesPeak": 3,
+      "retainedPeak": 36,
+      "numericComparisons": 2,
+      "keyedHits": 1
+    }
+  }
+]

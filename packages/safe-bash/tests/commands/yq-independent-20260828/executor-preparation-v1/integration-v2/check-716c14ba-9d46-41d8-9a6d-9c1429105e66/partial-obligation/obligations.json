@@ -1,0 +1,1 @@
+{"schemaVersion":2,"status":"INCOMPLETE","unfulfilled":[{"path":"fullRecordEligibleAfterProjection","value":false,"reason":"Frozen partial record remains incomplete"}],"semanticFullRecordPass":false}

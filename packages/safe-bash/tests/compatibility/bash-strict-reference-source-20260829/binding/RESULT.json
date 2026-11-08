@@ -1,0 +1,100 @@
+{
+  "records": [
+    {
+      "name": "accepted",
+      "argv": [
+        "show",
+        "be284b6f799e7501c793daff4d7bffc36ce4090b:tests/compatibility/bash-strict-mode-independent-20260829/ROOT-ACCEPTANCE.md"
+      ],
+      "status": {
+        "code": 0,
+        "signal": null
+      },
+      "lengths": [
+        4194,
+        0
+      ],
+      "sha256": "ff9709e87b140e7149e601e795b96eaa4ca2aef15ca31055ddec531d7d95beb0",
+      "closed": true,
+      "failure": null
+    },
+    {
+      "name": "design-0",
+      "argv": [
+        "show",
+        "90c109913cf2a1ec5b39ba0c4eb0518caca01147:tests/compatibility/bash-strict-mode-design-20260829/CASES.json"
+      ],
+      "status": {
+        "code": 0,
+        "signal": null
+      },
+      "lengths": [
+        9222,
+        0
+      ],
+      "sha256": "99468cfc96e56130fa65ce12835f4d8a3740002ec9519ea306d4e120cbe5adff",
+      "closed": true,
+      "failure": null
+    },
+    {
+      "name": "design-1",
+      "argv": [
+        "show",
+        "90c109913cf2a1ec5b39ba0c4eb0518caca01147:tests/compatibility/bash-strict-mode-design-20260829/BINDING.json"
+      ],
+      "status": {
+        "code": 0,
+        "signal": null
+      },
+      "lengths": [
+        8373,
+        0
+      ],
+      "sha256": "fad6ae4d5b7bb2332356505eb58077dee3c749f07409ed964e2c82be0b785bec",
+      "closed": true,
+      "failure": null
+    },
+    {
+      "name": "paths",
+      "argv": [
+        "ls-tree",
+        "-r",
+        "-z",
+        "be284b6f799e7501c793daff4d7bffc36ce4090b",
+        "--",
+        "tests/compatibility/bash-strict-mode-author-20260829",
+        "tests/compatibility/bash-strict-mode-independent-20260829"
+      ],
+      "status": {
+        "code": 0,
+        "signal": null
+      },
+      "lengths": [
+        8673,
+        0
+      ],
+      "sha256": "155b3c41645f6200face381501ca53a6fe01ac120239a037b2a150a99fdf1c0d",
+      "closed": true,
+      "failure": null
+    },
+    {
+      "name": "gnu-inventory",
+      "argv": [
+        "show",
+        "efcd8b49a63ceb4276ae9d075da59bfb027b3510:tests/compatibility/bash-reference-preparation-20260829/source-preparation-v1/RUN-01/FINAL-SOURCE-INVENTORY.json"
+      ],
+      "status": {
+        "code": 0,
+        "signal": null
+      },
+      "lengths": [
+        365787,
+        0
+      ],
+      "sha256": "a09a69e158ef9bd277f39e05688d9b4f44a708d61f7e6d164d8463a8c3162cc6",
+      "closed": true,
+      "failure": null
+    }
+  ],
+  "childrenClosed": 5
+}

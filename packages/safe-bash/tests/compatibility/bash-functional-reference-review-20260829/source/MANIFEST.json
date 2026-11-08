@@ -1,0 +1,134 @@
+{
+  "revision": "9afc9c5a321711fb566817916a281fe4776935fd",
+  "selected": "tests/compatibility/bash-surface-independent-20260829/functional-reference-v1",
+  "rows": [
+    {
+      "mode": "100644",
+      "blob": "a463f6ae163f5a43c5f239a8bcd81e3988b32542",
+      "path": "tests/compatibility/bash-surface-independent-20260829/functional-reference-v1/AUDIT.json",
+      "bytes": 40103,
+      "sha256": "2547adf1c6a71bc6868263ee5de469248ae98402fc076e865f202dcfbd0e59c6",
+      "capture": "0.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "c390d8793495081b86bf8dee9999e453098ad4a0",
+      "path": "tests/compatibility/bash-surface-independent-20260829/functional-reference-v1/AUTHENTICATION.json",
+      "bytes": 8212,
+      "sha256": "b7a6bf1d229465c82ab7e80c717e44e31aac1ff57a7c4ef36e544660fc02340f",
+      "capture": "1.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "2663fa4084fbb7727df7920bc571cabf1098e86b",
+      "path": "tests/compatibility/bash-surface-independent-20260829/functional-reference-v1/DATA-PRESEAL.json",
+      "bytes": 909,
+      "sha256": "cc018edf5b1023bce976ce3c2ba0ed6ca1931a844ba1e8abb88d774a60c3698f",
+      "capture": "2.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "f650109793761303f56fdea29d5ebe13c9dc0d58",
+      "path": "tests/compatibility/bash-surface-independent-20260829/functional-reference-v1/DATA-RESULTS.json",
+      "bytes": 1868,
+      "sha256": "3404d6b14d843d00adef951f411a351094fff3cf218bd4ef72d9f8cf8a50b3fb",
+      "capture": "3.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "d4f0b7a9eb9fe6ee9ae6d8774be459eaef850011",
+      "path": "tests/compatibility/bash-surface-independent-20260829/functional-reference-v1/PROTOCOL.json",
+      "bytes": 3557,
+      "sha256": "5a34622851e1c03ab4acaf857c5767e0c689903ae826212c1288fec61c9bea10",
+      "capture": "4.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "9202dad93412a1cc817c7296291f0e7a937ff066",
+      "path": "tests/compatibility/bash-surface-independent-20260829/functional-reference-v1/README.md",
+      "bytes": 7139,
+      "sha256": "13327b45830859231a7c6f3acba42052e7f4fc8a494515ccdabdcb86251edf36",
+      "capture": "5.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "bad9d823e984647a3f32354512d9e3e38b0ef1b7",
+      "path": "tests/compatibility/bash-surface-independent-20260829/functional-reference-v1/REFERENCES.md",
+      "bytes": 2364,
+      "sha256": "d2623f32db82e673ae985a50080238520efe61df80556cfc935e68d3bdb1f8ae",
+      "capture": "6.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "c562a7baf0339053e8ceabddb8a591d2d5923cf5",
+      "path": "tests/compatibility/bash-surface-independent-20260829/functional-reference-v1/REQUESTS.json",
+      "bytes": 29287,
+      "sha256": "86d26ebc5f92857d5917f7c28f4d8648490b98cf5c37177dc13af4b74e1f93fd",
+      "capture": "7.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "14ffc3b4753bf51d04fc442ec0556c9cadfe5752",
+      "path": "tests/compatibility/bash-surface-independent-20260829/functional-reference-v1/SOURCE-REVIEW.json",
+      "bytes": 1267,
+      "sha256": "40bd89bd876785e91566fd92e04ab22ab475f678d8ea85cae32eedb02d8b4f88",
+      "capture": "8.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "5dff32f80013d9257aad201a64d013572b0fb59e",
+      "path": "tests/compatibility/bash-surface-independent-20260829/functional-reference-v1/TOOLS.json",
+      "bytes": 2657,
+      "sha256": "77da774f9aae8e1409c6a8dd0425387d435c01842164abe47ce3f6e4f7bfbcc6",
+      "capture": "9.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "cbddd16ae0187160af05130cf27fd816081ccb10",
+      "path": "tests/compatibility/bash-surface-independent-20260829/functional-reference-v1/VERSION-PROVENANCE.json",
+      "bytes": 1323,
+      "sha256": "e9f0e3ca2c0b8c7570092d2ecebae33e7713d78e17639088a0f48a74e93ff7cb",
+      "capture": "10.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "1da2d0451f7134506902fc3976cfa25d9c19936b",
+      "path": "tests/compatibility/bash-surface-independent-20260829/functional-reference-v1/data-controls.mjs",
+      "bytes": 1958,
+      "sha256": "517f0d5d7b685c880e27e918e4d11a1c5efde19d9a2ef3527d76e42234877128",
+      "capture": "11.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "60aa2f0e43a3a31f3ad23826bc3727dbd6fa0841",
+      "path": "tests/compatibility/bash-surface-independent-20260829/functional-reference-v1/group-observer.mjs",
+      "bytes": 759,
+      "sha256": "ba7ec9ff06c8b0867b9183b1242ade0f4b1ca1d9d6bb0c6b1abdbb574d830417",
+      "capture": "12.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "f1ab6d6668e5d6c062d6941631bcd41063215b39",
+      "path": "tests/compatibility/bash-surface-independent-20260829/functional-reference-v1/launch.mjs",
+      "bytes": 12619,
+      "sha256": "c93248b64eb33cd2c363351ba393a42f7858210b95537fdd6bbef257d1664147",
+      "capture": "13.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "76e7ca6f25fd21f40105afbf6ab7a96e59eec6e7",
+      "path": "tests/compatibility/bash-surface-independent-20260829/functional-reference-v1/observer-state.mjs",
+      "bytes": 1240,
+      "sha256": "14ad6fd00f476722676fd590b2fc0774d7c1eb242d6525e885b1bfb53d3bce74",
+      "capture": "14.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "95fcdd1771e3ca2c1006e8f76e3ef4cb021df71e",
+      "path": "tests/compatibility/bash-surface-independent-20260829/functional-reference-v1/publication-admin.mjs",
+      "bytes": 4011,
+      "sha256": "f4228dc8c6f2f3124270504fed369cb5bb300cf726bc66e9c03b3c2147992d57",
+      "capture": "15.data"
+    }
+  ]
+}

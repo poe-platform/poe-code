@@ -1,0 +1,33 @@
+{
+  "outer": "/tmp/strict-extension-launch-aUwe2j",
+  "started": "2026-08-29T06:43:14.165Z",
+  "signals": [],
+  "bytes": 341,
+  "role": "ONE_AUTHOR_VALIDATION_NOT_NATIVE_ORACLE",
+  "runnerSha256": "e4801087fc609fecbe3b8728465872a47c7459644252a81c6ee061ead0540741",
+  "sourceSha256": "9924773241f116d4cd5008fa7cd7f7fc3d95521f5e57b33299dbf2ed7cc2bf69",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "bounds": {
+    "totalSeconds": 2700,
+    "children": 100,
+    "peak": 4,
+    "serial": true,
+    "caseSeconds": 30,
+    "childSeconds": 120,
+    "cleanupSeconds": 5,
+    "captureBytes": 188743680,
+    "scratchBytes": 1006632960,
+    "childCaptureBytes": 8388608,
+    "loaderAdmissions": 40,
+    "regexWorkers": 8
+  },
+  "pid": 3267,
+  "code": 1,
+  "signal": null,
+  "closed": true,
+  "finished": "2026-08-29T06:43:56.111Z"
+}

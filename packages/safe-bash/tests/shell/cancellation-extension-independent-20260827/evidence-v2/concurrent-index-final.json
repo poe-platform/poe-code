@@ -1,0 +1,9 @@
+{
+  "beforeHead": "0902f3c541c8e9a79771f55cb5c9b78c6b6eb09b",
+  "afterHead": "0902f3c541c8e9a79771f55cb5c9b78c6b6eb09b",
+  "stagedForeignBefore": "",
+  "stagedForeignAfter": "",
+  "fullIndexMatchesEachHead": true,
+  "rawIndexIdentical": true,
+  "concurrentCommittedChanges": ""
+}

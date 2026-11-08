@@ -1,0 +1,11 @@
+{
+  "id": "F05",
+  "expected": "Seven natural/failures/signals/capture-count/base64 counterexamples refuse actual composed receipt.",
+  "pass": true,
+  "started": "2026-08-28T15:01:02.231Z",
+  "finished": "2026-08-28T15:01:02.231Z",
+  "detail": {
+    "negativeControls": 7,
+    "sourceReceipt": "F01"
+  }
+}

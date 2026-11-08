@@ -1,0 +1,8 @@
+umask 022
+set -o pipefail
+producer() { printf 'diagnostic\n' >&2; printf ready > prepared; for attempt in {1..100}; do [[ -f closed ]] && break; /bin/sleep 0.01; done; [[ -f closed ]] || exit 98; /bin/sleep 0.05; printf 'payload\n'; }
+consumer() { for attempt in {1..100}; do [[ -f prepared ]] && break; /bin/sleep 0.01; done; [[ -f prepared ]] || exit 99; printf closed > closed; :; }
+producer | consumer
+outcome=( "$?" "${PIPESTATUS[@]}" )
+printf '%s\n' "${outcome[*]}" > statuses
+exit "${outcome[0]}"

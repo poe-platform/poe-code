@@ -1,0 +1,347 @@
+{
+  "createdAt": "2026-08-27T04:54:41.693Z",
+  "freeze": "/private/tmp/safe-bash-comparison-replay-20260827-EuLV2d",
+  "sourceHead": "c2902a6016dd4a42818e27d055895c0dc29f73f2",
+  "dirtySource": [
+    {
+      "path": "src/commands/safejs/README.md",
+      "headSha256": "7c182e72770fd7c4a9e98624c04d4e09770c3f8bc9d42a55890019f7fedc405c",
+      "frozenSha256": "d914f984a176f4bc5f2e1f101ad57329782a3ea5d1362f69d0b198d22a015102"
+    },
+    {
+      "path": "src/commands/safejs/index.ts",
+      "headSha256": "479c111291e2e181b3ab1a8a41905592ff71b968a691e25f21970eee089d8f29",
+      "frozenSha256": "3978b1f876a3651034a56e793313d54bc5031c650f82d23bc59f40a73545fceb"
+    },
+    {
+      "path": "src/shell/parser.ts",
+      "headSha256": "f8a76103ccc3e0f981bdb8cf391f48a8864dbf895c39e459d5f5da7b6ec77b0c",
+      "frozenSha256": "feb6cbb2f03ec0c409adeb816bec506788fb3014a23c8dd02f4002362dc4b9f2"
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "headSha256": "f307642e52c3bfeb5df64057fb26af6645135bb5bdc307f399de6ce1541c0ddb",
+      "frozenSha256": "e8f1edb842d04498050d314091269974df157b11ab13cabba41d9c84a0191538"
+    }
+  ],
+  "untrackedSource": [
+    "src/commands/stream-inspection/README.md",
+    "src/commands/stream-inspection/expand.ts",
+    "src/commands/stream-inspection/fold.ts",
+    "src/commands/stream-inspection/index.ts",
+    "src/commands/stream-inspection/shared.ts",
+    "src/commands/stream-inspection/strings.ts",
+    "src/commands/stream-inspection/tac.ts"
+  ],
+  "sourceManifestDigest": "76deb591783ac168ca5daef04c4351d7e80b159c003cd27d3a445190ca6fd74c",
+  "sourceManifestFileSha256": "9ae15b38d567d8e45fee927c275600783e35c1181c890f5e06dbfe7f6fbbc2f2",
+  "sourceFiles": 176,
+  "frozenFiles": 4046,
+  "scores": {
+    "original": {
+      "virtual-bash": {
+        "pass": 222,
+        "fail": 2,
+        "timeout": 0,
+        "harness-or-engine-error": 0,
+        "invalid-oracle": 0
+      },
+      "just-bash": {
+        "pass": 155,
+        "fail": 69,
+        "timeout": 0,
+        "harness-or-engine-error": 0,
+        "invalid-oracle": 0
+      },
+      "lifecycle": "PASS",
+      "importWorkers": 26,
+      "loadedModules": 310,
+      "registeredDefault": 56,
+      "unshadowedRequired": 53,
+      "unshadowedReached": 53,
+      "curlCases": 8,
+      "bothPass": 154,
+      "bothNonPass": [
+        "command/patch/dry-run"
+      ],
+      "instrumentation": {
+        "total": 24,
+        "pass": 24
+      }
+    },
+    "scratch-aligned": {
+      "virtual-bash": {
+        "pass": 223,
+        "fail": 1,
+        "timeout": 0,
+        "harness-or-engine-error": 0,
+        "invalid-oracle": 0
+      },
+      "just-bash": {
+        "pass": 155,
+        "fail": 69,
+        "timeout": 0,
+        "harness-or-engine-error": 0,
+        "invalid-oracle": 0
+      },
+      "lifecycle": "PASS",
+      "importWorkers": 26,
+      "loadedModules": 310,
+      "registeredDefault": 56,
+      "unshadowedRequired": 53,
+      "unshadowedReached": 53,
+      "curlCases": 8,
+      "bothPass": 154,
+      "bothNonPass": [],
+      "instrumentation": {
+        "total": 24,
+        "pass": 24
+      }
+    }
+  },
+  "histories": {
+    "authorCommit": "8e09db96b51248137648cd5fd6093e4bc08f2b59",
+    "docsCommit": "d484f98745494099e57740c8c0ad673b65e0a2aa",
+    "productCommit": "bd2cacb3a20403302fd0a49441932d5522793e56",
+    "harnessCommit": "0294afb6e690433aed994868e5ed437ecf58ae48",
+    "functionalSha256": "7e2b4bdfbbe64917ff88d94c9b97438aa6a1a709cff83b2a3c860d788b522b2e",
+    "counts": {
+      "virtual-bash": {
+        "pass": 206,
+        "fail": 18
+      },
+      "just-bash": {
+        "pass": 155,
+        "fail": 69
+      }
+    }
+  },
+  "preservedSetupFailure": "prepare-attempt-1.json",
+  "functionalRuns": {
+    "original": 1,
+    "scratch-aligned": 1
+  },
+  "rawObservationRows": 448,
+  "engineObservations": 896,
+  "functionalRetries": 0,
+  "performanceRuns": 0,
+  "controlResults": {
+    "harness": "15/15",
+    "neutralityPerProfile": "24/24",
+    "transportPerProfile": "8/9; intentional observed baseline invalid-UTF8 terminal API mismatch retained, internal pipe and file controls pass"
+  },
+  "profileScoreDelta": [
+    {
+      "id": "command/patch/dry-run",
+      "engine": "virtual-bash",
+      "original": "fail",
+      "aligned": "pass"
+    }
+  ],
+  "actualProfileObservationDeltaCount": 0,
+  "historicalDelta": [
+    {
+      "id": "command/realpath/relative",
+      "engine": "virtual-bash",
+      "historicalStatus": "fail",
+      "currentOriginalStatus": "pass",
+      "changedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ]
+    },
+    {
+      "id": "command/wc/words-lines",
+      "engine": "virtual-bash",
+      "historicalStatus": "fail",
+      "currentOriginalStatus": "pass",
+      "changedFields": [
+        "stdout"
+      ]
+    },
+    {
+      "id": "command/wc/unicode",
+      "engine": "virtual-bash",
+      "historicalStatus": "fail",
+      "currentOriginalStatus": "pass",
+      "changedFields": [
+        "stdout"
+      ]
+    },
+    {
+      "id": "command/env/clean",
+      "engine": "virtual-bash",
+      "historicalStatus": "fail",
+      "currentOriginalStatus": "pass",
+      "changedFields": [
+        "stdout"
+      ]
+    },
+    {
+      "id": "command/env/unset",
+      "engine": "virtual-bash",
+      "historicalStatus": "fail",
+      "currentOriginalStatus": "pass",
+      "changedFields": [
+        "stdout"
+      ]
+    },
+    {
+      "id": "command/cksum/algorithm",
+      "engine": "virtual-bash",
+      "historicalStatus": "fail",
+      "currentOriginalStatus": "pass",
+      "changedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ]
+    },
+    {
+      "id": "command/patch/apply",
+      "engine": "virtual-bash",
+      "historicalStatus": "fail",
+      "currentOriginalStatus": "pass",
+      "changedFields": [
+        "stderr",
+        "exitCode",
+        "entries"
+      ]
+    },
+    {
+      "id": "command/patch/dry-run",
+      "engine": "virtual-bash",
+      "historicalStatus": "fail",
+      "currentOriginalStatus": "fail",
+      "changedFields": [
+        "stderr",
+        "exitCode"
+      ]
+    },
+    {
+      "id": "command/patch/reverse",
+      "engine": "virtual-bash",
+      "historicalStatus": "fail",
+      "currentOriginalStatus": "pass",
+      "changedFields": [
+        "stderr",
+        "exitCode",
+        "entries"
+      ]
+    },
+    {
+      "id": "command/stat/timestamp",
+      "engine": "virtual-bash",
+      "historicalStatus": "fail",
+      "currentOriginalStatus": "pass",
+      "changedFields": [
+        "stdout"
+      ]
+    },
+    {
+      "id": "kernel/executable-file/executable-file",
+      "engine": "virtual-bash",
+      "historicalStatus": "fail",
+      "currentOriginalStatus": "pass",
+      "changedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ]
+    },
+    {
+      "id": "kernel/env-shebang/env-shebang",
+      "engine": "virtual-bash",
+      "historicalStatus": "fail",
+      "currentOriginalStatus": "pass",
+      "changedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ]
+    },
+    {
+      "id": "kernel/source/source",
+      "engine": "virtual-bash",
+      "historicalStatus": "fail",
+      "currentOriginalStatus": "pass",
+      "changedFields": [
+        "stdout",
+        "stderr"
+      ]
+    },
+    {
+      "id": "kernel/dot/dot",
+      "engine": "virtual-bash",
+      "historicalStatus": "fail",
+      "currentOriginalStatus": "pass",
+      "changedFields": [
+        "stdout",
+        "stderr"
+      ]
+    },
+    {
+      "id": "kernel/eval/eval",
+      "engine": "virtual-bash",
+      "historicalStatus": "fail",
+      "currentOriginalStatus": "pass",
+      "changedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ]
+    },
+    {
+      "id": "kernel/parameter/parameter",
+      "engine": "virtual-bash",
+      "historicalStatus": "fail",
+      "currentOriginalStatus": "pass",
+      "changedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ]
+    },
+    {
+      "id": "composition/patch-hash/patch-hash",
+      "engine": "virtual-bash",
+      "historicalStatus": "fail",
+      "currentOriginalStatus": "pass",
+      "changedFields": [
+        "stdout",
+        "stderr",
+        "entries"
+      ]
+    }
+  ],
+  "sourceArchive": {
+    "path": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-integration/comparison-replay-20260827/source-harness-goldens.tar.gz",
+    "sha256": "47b9a6d61ac3b26cf93c5e59c805406cc07395c5b08d8ded8945e820954d0f73",
+    "includesDependencies": false,
+    "dependencyCopiesRetained": "/private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/node_modules and /private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/benchmarks/node_modules"
+  },
+  "runtime": {
+    "node": "v22.22.2",
+    "platform": "darwin",
+    "arch": "arm64",
+    "osRelease": "25.4.0",
+    "cpu": "Apple M5 Pro",
+    "auditTimeLoadOnlyNotBenchmarkControl": [
+      15.2197265625,
+      6.54052734375,
+      4.94677734375
+    ]
+  },
+  "caveats": [
+    "Exact 224-case native profile comparison, not full-product parity, backend interoperability, performance or superiority evidence.",
+    "Source current at freeze only; dirty tracked SafeJS public adapter files included alongside parser/runtime, but SafeJS plugin/tests/private runtime never invoked. Untracked stream-inspection files copied but not registered or credited by this 56-default aggregate.",
+    "Native provenance is GNU Bash5.3/coreutils9.7 on Darwin plus mixed individually hashed utilities, not uniformly GNU/Linux.",
+    "Do not relabel registered commands as builtins to satisfy the type profile. Original patch scratch directory mismatch stays a failure; corrected profile delta is separately sealed.",
+    "Read-only copied dependencies verified by per-file hashes, installed versions and lock/hidden-lock metadata; no registry tarball redownload, no fresh supply-chain certification.",
+    "ESM loader load URLs and disk hashes cover actually loaded modules; process group plus child event logs cover observed child lifecycle. This is not an OS-wide sandbox/network confinement proof.",
+    "Native executable availability not needed for committed byte-exact gold replay; no native oracle was recaptured.",
+    "Performance not run. Existing expanded CLI automatically repeats functional224 and performance matrix; sort-review hardcodes old derived sources. A separately approved bounded adapter could reuse existing performance recipes once, but no such run is claimed.",
+    "Baseline-only union fairness and primary manifest assessment belong to the other leaf; independent final reviewer should inspect artifacts without rerunning224."
+  ]
+}

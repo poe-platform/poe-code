@@ -1,0 +1,23 @@
+{
+  "schema": "FINAL_SOURCE_ONLY_DIAGNOSIS_SCOPE",
+  "started": "2026-08-29T09:58:33.223Z",
+  "deadline": "2026-08-29T10:13:33.223Z",
+  "limits": {
+    "knownOS": 32,
+    "peakOS": 2,
+    "captureBytes": 33554432,
+    "workingBytes": 134217728
+  },
+  "actual": {
+    "NodeChildStarts": 0,
+    "WorkerStarts": 0,
+    "fixtureControls": 0,
+    "targetImports": 0,
+    "comparatorImports": 0,
+    "WasmOrHTTPProbes": 0,
+    "sourceEditsToHarness": 0
+  },
+  "primarySources": "official web SOURCE retrieval only",
+  "noSubagents": true,
+  "afterPublication": "PAUSE; not goal abandonment or blocked-goal declaration"
+}

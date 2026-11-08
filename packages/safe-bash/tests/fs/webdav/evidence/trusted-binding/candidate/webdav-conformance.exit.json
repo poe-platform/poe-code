@@ -1,0 +1,16 @@
+{
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-name-pattern=^webdav:|^independent conformance source provenance$|^conformance source state remained stable during suite$",
+    "tests/fs/conformance/shared.test.ts"
+  ],
+  "cwd": "/private/tmp/safe-bash-webdav-trusted-X6BqzZ/candidate/archive",
+  "start": "2026-08-27T02:20:02.992Z",
+  "end": "2026-08-27T02:20:03.594Z",
+  "status": 0,
+  "signal": null
+}

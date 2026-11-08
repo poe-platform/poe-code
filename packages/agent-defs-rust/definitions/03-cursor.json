@@ -1,0 +1,97 @@
+{
+  "exportName": "cursorAgent",
+  "definition": {
+    "id": "cursor",
+    "aliases": [
+      "cursor-agent"
+    ],
+    "label": "Cursor",
+    "summary": "Cursor's CLI coding agent.",
+    "binaryName": "cursor-agent",
+    "configPath": "~/.cursor/mcp.json",
+    "capabilities": [
+      "spawn",
+      "configure",
+      "install",
+      "test",
+      "skill",
+      "mcp"
+    ],
+    "branding": {
+      "colors": {
+        "dark": "#FFFFFF",
+        "light": "#000000"
+      }
+    }
+  },
+  "mcpConfig": {
+    "configFile": "~/.cursor/mcp.json",
+    "configKey": "mcpServers",
+    "format": "json",
+    "shape": "standard"
+  },
+  "skillConfig": {
+    "globalSkillDir": "~/.cursor/skills-cursor",
+    "localSkillDir": ".cursor/skills"
+  },
+  "spawnConfig": {
+    "kind": "cli",
+    "adapter": "cursor",
+    "promptFlag": "-p",
+    "modelFlag": "--model",
+    "modelStripProviderPrefix": true,
+    "defaultArgs": [
+      "--output-format",
+      "stream-json",
+      "--trust",
+      "--approve-mcps"
+    ],
+    "defaultArgsPosition": "beforePrompt",
+    "modes": {
+      "yolo": [
+        "--force",
+        "--sandbox",
+        "disabled"
+      ],
+      "edit": [
+        "--force"
+      ],
+      "read": [
+        "--mode",
+        "plan"
+      ]
+    },
+    "stdinMode": {
+      "omitPrompt": true,
+      "extraArgs": []
+    },
+    "interactive": {
+      "defaultArgs": []
+    },
+    "order": 2,
+    "mcp": {
+      "channel": "file",
+      "format": "json",
+      "relativePath": ".cursor/mcp.json"
+    },
+    "modelTransforms": [
+      {
+        "operation": "replace",
+        "from": ".",
+        "to": "-",
+        "prefixes": [
+          "claude-opus-",
+          "claude-sonnet-",
+          "claude-haiku-"
+        ]
+      }
+    ],
+    "resume": {
+      "position": "beforePrompt",
+      "argsTemplate": [
+        "--resume",
+        "{{threadId}}"
+      ]
+    }
+  }
+}

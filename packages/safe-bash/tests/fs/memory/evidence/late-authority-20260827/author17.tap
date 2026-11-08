@@ -1,0 +1,112 @@
+TAP version 13
+# Subtest: late Memory source authority same precedes content effects
+ok 1 - late Memory source authority same precedes content effects
+  ---
+  duration_ms: 6.731333
+  type: 'test'
+  ...
+# Subtest: late Memory source authority distinct precedes content effects
+ok 2 - late Memory source authority distinct precedes content effects
+  ---
+  duration_ms: 2.939417
+  type: 'test'
+  ...
+# Subtest: late Memory source authority unknown precedes content effects
+ok 3 - late Memory source authority unknown precedes content effects
+  ---
+  duration_ms: 1.381292
+  type: 'test'
+  ...
+# Subtest: late Memory source authority error precedes content effects
+ok 4 - late Memory source authority error precedes content effects
+  ---
+  duration_ms: 1.28275
+  type: 'test'
+  ...
+# Subtest: late Memory source authority invalid precedes content effects
+ok 5 - late Memory source authority invalid precedes content effects
+  ---
+  duration_ms: 2.361667
+  type: 'test'
+  ...
+# Subtest: late Memory source authority cancel precedes content effects
+ok 6 - late Memory source authority cancel precedes content effects
+  ---
+  duration_ms: 2.028875
+  type: 'test'
+  ...
+# Subtest: late Memory target authority same precedes content effects
+ok 7 - late Memory target authority same precedes content effects
+  ---
+  duration_ms: 1.196292
+  type: 'test'
+  ...
+# Subtest: late Memory target authority distinct precedes content effects
+ok 8 - late Memory target authority distinct precedes content effects
+  ---
+  duration_ms: 1.583917
+  type: 'test'
+  ...
+# Subtest: late Memory target authority unknown precedes content effects
+ok 9 - late Memory target authority unknown precedes content effects
+  ---
+  duration_ms: 1.317958
+  type: 'test'
+  ...
+# Subtest: late Memory target authority error precedes content effects
+ok 10 - late Memory target authority error precedes content effects
+  ---
+  duration_ms: 1.675541
+  type: 'test'
+  ...
+# Subtest: late Memory target authority invalid precedes content effects
+ok 11 - late Memory target authority invalid precedes content effects
+  ---
+  duration_ms: 0.821042
+  type: 'test'
+  ...
+# Subtest: late Memory target authority cancel precedes content effects
+ok 12 - late Memory target authority cancel precedes content effects
+  ---
+  duration_ms: 0.8965
+  type: 'test'
+  ...
+# Subtest: complete Memory tuples still win over late explicit callbacks
+ok 13 - complete Memory tuples still win over late explicit callbacks
+  ---
+  duration_ms: 0.443959
+  type: 'test'
+  ...
+# Subtest: shared Memory authority conflict queries each operand at most once
+ok 14 - shared Memory authority conflict queries each operand at most once
+  ---
+  duration_ms: 0.249792
+  type: 'test'
+  ...
+# Subtest: shared Memory authority cancel queries each operand at most once
+ok 15 - shared Memory authority cancel queries each operand at most once
+  ---
+  duration_ms: 0.121125
+  type: 'test'
+  ...
+# Subtest: shared Memory authority preconstruction-peer queries each operand at most once
+ok 16 - shared Memory authority preconstruction-peer queries each operand at most once
+  ---
+  duration_ms: 0.1495
+  type: 'test'
+  ...
+# Subtest: late forwarding of the base comparator remains bounded and unknown
+ok 17 - late forwarding of the base comparator remains bounded and unknown
+  ---
+  duration_ms: 0.469083
+  type: 'test'
+  ...
+1..17
+# tests 17
+# suites 0
+# pass 17
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 172.906541

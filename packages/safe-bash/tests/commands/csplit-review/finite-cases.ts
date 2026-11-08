@@ -1,0 +1,16 @@
+import type { NativeCase } from "./native-cases.js";
+
+export const finiteCases: readonly NativeCase[] = [
+  {"name":"late-fixed-nullable","locale":"C","pattern":"z\\(a*\\)\\{2\\}\\1$","subjectBase64":"cXphYWE=","inputBase64":"cXphYWEK","status":1,"stdout":"6\n","stderr":"csplit: '/z\\\\(a*\\\\)\\\\{2\\\\}\\\\1$/': match not found\n","files":{"xx00":"cXphYWEK"}},
+  {"name":"late-fixed-nullable","locale":"C.UTF-8","pattern":"z\\(a*\\)\\{2\\}\\1$","subjectBase64":"cXphYWE=","inputBase64":"cXphYWEK","status":1,"stdout":"6\n","stderr":"csplit: ‘/z\\\\(a*\\\\)\\\\{2\\\\}\\\\1$/’: match not found\n","files":{"xx00":"cXphYWEK"}},
+  {"name":"late-ranged-nullable","locale":"C","pattern":"z\\(a*\\)\\{1,3\\}\\1$","subjectBase64":"cXphYWE=","inputBase64":"cXphYWEK","status":1,"stdout":"6\n","stderr":"csplit: '/z\\\\(a*\\\\)\\\\{1,3\\\\}\\\\1$/': match not found\n","files":{"xx00":"cXphYWEK"}},
+  {"name":"late-ranged-nullable","locale":"C.UTF-8","pattern":"z\\(a*\\)\\{1,3\\}\\1$","subjectBase64":"cXphYWE=","inputBase64":"cXphYWEK","status":1,"stdout":"6\n","stderr":"csplit: ‘/z\\\\(a*\\\\)\\\\{1,3\\\\}\\\\1$/’: match not found\n","files":{"xx00":"cXphYWEK"}},
+  {"name":"late-fixed-positive","locale":"C","pattern":"z\\(a\\)\\{2\\}\\1$","subjectBase64":"cXphYWE=","inputBase64":"cXphYWEK","status":0,"stdout":"0\n6\n","stderr":"","files":{"xx00":"","xx01":"cXphYWEK"}},
+  {"name":"late-fixed-positive","locale":"C.UTF-8","pattern":"z\\(a\\)\\{2\\}\\1$","subjectBase64":"cXphYWE=","inputBase64":"cXphYWEK","status":0,"stdout":"0\n6\n","stderr":"","files":{"xx00":"","xx01":"cXphYWEK"}},
+  {"name":"late-ranged-positive","locale":"C","pattern":"z\\(a\\)\\{1,3\\}\\1$","subjectBase64":"cXphYWE=","inputBase64":"cXphYWEK","status":1,"stdout":"6\n","stderr":"csplit: '/z\\\\(a\\\\)\\\\{1,3\\\\}\\\\1$/': match not found\n","files":{"xx00":"cXphYWEK"}},
+  {"name":"late-ranged-positive","locale":"C.UTF-8","pattern":"z\\(a\\)\\{1,3\\}\\1$","subjectBase64":"cXphYWE=","inputBase64":"cXphYWEK","status":1,"stdout":"6\n","stderr":"csplit: ‘/z\\\\(a\\\\)\\\\{1,3\\\\}\\\\1$/’: match not found\n","files":{"xx00":"cXphYWEK"}},
+  {"name":"nested-fixed-nullable","locale":"C","pattern":"z\\(\\(a*\\)\\{2\\}\\)\\2b$","subjectBase64":"cXphYWFi","inputBase64":"cXphYWFiCg==","status":1,"stdout":"7\n","stderr":"csplit: '/z\\\\(\\\\(a*\\\\)\\\\{2\\\\}\\\\)\\\\2b$/': match not found\n","files":{"xx00":"cXphYWFiCg=="}},
+  {"name":"nested-fixed-nullable","locale":"C.UTF-8","pattern":"z\\(\\(a*\\)\\{2\\}\\)\\2b$","subjectBase64":"cXphYWFi","inputBase64":"cXphYWFiCg==","status":1,"stdout":"7\n","stderr":"csplit: ‘/z\\\\(\\\\(a*\\\\)\\\\{2\\\\}\\\\)\\\\2b$/’: match not found\n","files":{"xx00":"cXphYWFiCg=="}},
+  {"name":"fixed-empty-positive","locale":"C","pattern":"z\\(a*\\)\\{2\\}\\1$","subjectBase64":"cXo=","inputBase64":"cXoK","status":1,"stdout":"3\n","stderr":"csplit: '/z\\\\(a*\\\\)\\\\{2\\\\}\\\\1$/': match not found\n","files":{"xx00":"cXoK"}},
+  {"name":"fixed-empty-positive","locale":"C.UTF-8","pattern":"z\\(a*\\)\\{2\\}\\1$","subjectBase64":"cXo=","inputBase64":"cXoK","status":1,"stdout":"3\n","stderr":"csplit: ‘/z\\\\(a*\\\\)\\\\{2\\\\}\\\\1$/’: match not found\n","files":{"xx00":"cXoK"}},
+];

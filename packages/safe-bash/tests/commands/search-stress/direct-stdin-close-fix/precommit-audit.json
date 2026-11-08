@@ -1,0 +1,121 @@
+{
+  "at": "2026-08-27T13:36:04.866Z",
+  "head": "e055878b7a2bfe6de7f8d6e11e350d5ddafb874f",
+  "index": "",
+  "status": " M src/commands/search/rg.ts\n?? benchmarks/reports/current-comparison-20260827/next-handoff/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/search-stress/direct-stdin-close-fix/\n?? tests/commands/search-stress/direct-stdin-close-review/runs/baseline-02/\n?? tests/commands/search-stress/direct-stdin-close.test.ts\n",
+  "owned": [
+    {
+      "path": "src/commands/search/rg.ts",
+      "sha256": "1c38e14b811a46795af958a99b9fae6b02b415b6ff8363e5755ecd15bfdd9d5f"
+    },
+    {
+      "path": "tests/commands/search-stress/direct-stdin-close.test.ts",
+      "sha256": "d9cb40c6c1dc53365486ffab1492d4fa0e865d48b5ea8fa0deeac600c7c58c5b"
+    }
+  ],
+  "currentDrift": [],
+  "allRunGroups": [
+    {
+      "label": "after-author-search",
+      "pid": 76737,
+      "status": 0,
+      "signal": null,
+      "closed": true,
+      "survivors": [],
+      "signals": []
+    },
+    {
+      "label": "after-build",
+      "pid": 76460,
+      "status": 0,
+      "signal": null,
+      "closed": true,
+      "survivors": [],
+      "signals": []
+    },
+    {
+      "label": "after-focused-typecheck",
+      "pid": 76465,
+      "status": 0,
+      "signal": null,
+      "closed": true,
+      "survivors": [],
+      "signals": []
+    },
+    {
+      "label": "after-focused",
+      "pid": 76258,
+      "status": 0,
+      "signal": null,
+      "closed": true,
+      "survivors": [],
+      "signals": []
+    },
+    {
+      "label": "after-original-safety-nested",
+      "pid": 78353,
+      "status": 0,
+      "signal": null,
+      "closed": true,
+      "survivors": [],
+      "signals": []
+    },
+    {
+      "label": "after-original-safety",
+      "pid": 76269,
+      "status": 0,
+      "signal": null,
+      "closed": true,
+      "survivors": [],
+      "signals": []
+    },
+    {
+      "label": "before-build",
+      "pid": 68336,
+      "status": 0,
+      "signal": null,
+      "closed": true,
+      "survivors": [],
+      "signals": []
+    },
+    {
+      "label": "before-focused-corrected",
+      "pid": 74913,
+      "status": 1,
+      "signal": null,
+      "closed": true,
+      "survivors": [],
+      "signals": []
+    },
+    {
+      "label": "before-focused-typecheck",
+      "pid": 72022,
+      "status": 0,
+      "signal": null,
+      "closed": true,
+      "survivors": [],
+      "signals": []
+    },
+    {
+      "label": "before-focused",
+      "pid": 72025,
+      "status": 1,
+      "signal": null,
+      "closed": true,
+      "survivors": [],
+      "signals": []
+    },
+    {
+      "label": "before-original-safety",
+      "pid": 68385,
+      "status": 1,
+      "signal": null,
+      "closed": true,
+      "survivors": [],
+      "signals": []
+    }
+  ],
+  "finalSurvivors": [],
+  "nativeArtifactPreserved": true,
+  "rootNotePresent": false
+}

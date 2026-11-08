@@ -1,0 +1,17 @@
+node:internal/fs/promises:639
+  return new FileHandle(await PromisePrototypeThen(
+                        ^
+
+Error: ENOENT: no such file or directory, open 'file:///private/tmp/safe-bash-tree-native-replay.kffYq0/install-moved/node_modules/virtual-bash/dist/index.js'
+    at async open (node:internal/fs/promises:639:25)
+    at async readFile (node:internal/fs/promises:1249:14)
+    at async hashFile (file:///private/tmp/safe-bash-tree-native-replay.kffYq0/install-moved/worker-core-v1.mjs:6:59)
+    at async runBoundary (file:///private/tmp/safe-bash-tree-native-replay.kffYq0/install-moved/worker-core-v1.mjs:50:22)
+    at async file:///private/tmp/safe-bash-tree-native-replay.kffYq0/install-moved/replay-consumer-v1.mjs:9:40 {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'file:///private/tmp/safe-bash-tree-native-replay.kffYq0/install-moved/node_modules/virtual-bash/dist/index.js'
+}
+
+Node.js v22.22.2

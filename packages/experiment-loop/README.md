@@ -1,0 +1,166 @@
+# @poe-code/experiment-loop
+
+Karpathy-style autonomous experiment loop. An agent makes a change, a metric script scores it, the loop keeps or discards via git, logs to a journal, and repeats.
+
+For Workers without `nodejs_compat`, pass a SafeFS `FileSystem` as `fs` to `runExperimentLoop`, with explicit `cwd`, `homeDir`, `exec`, `git`, and `runAgent` capabilities. Journals accept the same filesystem. Simulations run entirely in portable memory storage; default prompts are bundled with the runtime. Node callers can omit `fs` to use the host filesystem.
+
+## Quickstart
+
+```bash
+# 1. Install the experiment skill
+poe-code experiment install
+
+# 2. Create an experiment doc using /poe-code-experiment-plan
+#    e.g. "create experiment to optimize test duration"
+
+# 3. Run the loop
+poe-code experiment run
+
+# 4. Check results
+poe-code experiment journal
+```
+
+## Example Experiment Doc
+
+A markdown file with YAML frontmatter. The body is the agent's research brief.
+
+```yaml
+---
+agent: claude-code
+metric:
+  name: tests
+  direction: maximize
+baseline: null
+status:
+  state: open
+  experiment: 0
+  kept: 0
+---
+# Make the test suite faster
+
+Reduce test execution time without removing coverage.
+Focus on parallelization and removing unnecessary setup/teardown.
+```
+
+### Multiple agents
+
+Agents cycle round-robin across experiments:
+
+```yaml
+agent:
+  - claude-code
+  - codex
+```
+
+From the CLI: `poe-code experiment run --agent claude-code,codex`
+
+### Specifying a model
+
+Use `agent:provider/model` notation:
+
+```yaml
+agent: "claude-code:<provider>/<model>"
+```
+
+## Metric Scripts
+
+Metric scripts decide what "better" means. Each must exit 0 on success and print a single number to stdout.
+
+## Environment Variables
+
+- `SHELL`: shell used when the runner needs a system shell. Defaults to `sh`.
+- `POE_PLAN_DIRECTORY`: overrides the shared plan directory used to discover experiment docs.
+- `POE_EXPERIMENT_TUI`: enables or disables the live terminal dashboard.
+
+## Configuration Options
+
+Experiment docs use YAML frontmatter. Main fields are `agent`, `metric`, `baseline`, and `status`. Runtime config can also come from `.poe-code/config.json`: `plan.plan_directory` changes doc discovery, and `experiment.tui` sets the dashboard default.
+
+Register them as `metric:*` npm scripts:
+
+```json
+{
+  "scripts": {
+    "metric:tests": "node scripts/metric-test-count.mjs",
+    "metric:test_duration": "node scripts/metric-test-duration.mjs"
+  }
+}
+```
+
+### Direction
+
+- `maximize` — higher is better (test count, coverage)
+- `minimize` — lower is better (duration, bundle size)
+- `stable` — must not change (test count during optimization)
+
+Experiment documents validate prompt text, metric directions, baseline numbers,
+agent frontmatter, supported document versions, and stable-metric deltas before
+the loop runs. Completion callbacks are awaited before the run command returns.
+
+### Metric chains
+
+All metrics must pass, scores are tracked independently:
+
+```yaml
+metric:
+  - name: tests
+    direction: maximize
+  - name: test_duration
+    direction: minimize
+```
+
+## How It Works
+
+```
+measure baseline -> loop:
+  agent makes a change -> commit -> run metrics -> keep or discard -> journal -> repeat
+```
+
+The agent learns from past attempts through the journal — it sees what worked and what didn't.
+
+## Custom Experiment Directory
+
+By default experiment docs are discovered from the shared plan directory, `docs/plans`.
+To use a different directory:
+
+```bash
+# Set plan directory in project config (.poe-code/config.json)
+# { "plan": { "plan_directory": "docs/experiments" } }
+
+# Or via env
+POE_PLAN_DIRECTORY=docs/experiments poe-code experiment run
+
+# Or point to a specific doc directly
+poe-code experiment run docs/experiments/optimize-tests.md
+```
+
+## Dashboard Configuration
+
+The live dashboard shows experiment progress and the plan sequence. Type a message and press Enter to queue it after the selected experiment plan, using its agent and model. Alt+Up/Down changes the target. Ctrl+P switches to appending another experiment plan; Esc then `v` shows the full ordered queue.
+
+```bash
+# One-off flags
+poe-code experiment run --tui
+poe-code experiment run docs/plans/first.md docs/plans/second.md --tui --after-plan "Review the winning change"
+poe-code experiment run --no-tui
+
+# Config default (.poe-code/config.json)
+# { "experiment": { "tui": true } }
+
+# Env override
+POE_EXPERIMENT_TUI=true poe-code experiment run
+```
+
+## CLI
+
+```bash
+poe-code experiment run [docs...]  [--agent <name>] [--max-experiments <n>] [--tui|--no-tui] [--after-plan <message>] [--worktree]
+poe-code experiment validate [doc]
+poe-code experiment journal [doc]
+poe-code experiment plan-path
+poe-code experiment install
+```
+
+Pass `--worktree` to the `poe-code experiment run` CLI to run the whole experiment loop in one managed git worktree and reconcile successful output afterward. Worktree mode requires a clean source checkout before the run starts. Worktree execution is provided by the CLI and root `poe-code` SDK wrapper, not an option on this package's runner.
+
+`runExperimentSequence({ docs, afterEachPlan, ...options })` provides the same sequence through the SDK. Repeatable `--after-plan` messages and SDK `afterEachPlan` apply to every initial or subsequently added plan. Supply a `queue` from `createRunQueue` in `poe-code` instead to append plans and targeted messages during execution. `onQueueChange` observes progress, and results include `plans`, `messages`, and the final queue. Selected plans and their journals are kept outside experiment Git scopes.

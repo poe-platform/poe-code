@@ -1,0 +1,26 @@
+[
+  {
+    "id": "grant-git-add",
+    "role": "grant-git-add",
+    "pid": 51395,
+    "startedUTC": "2026-08-29T14:17:08.163Z",
+    "startObserved": true,
+    "exitObserved": true,
+    "closeObserved": true,
+    "status": 0,
+    "signal": null,
+    "qualification": "synchronous Git return/drained stdio"
+  },
+  {
+    "id": "grant-git-commit",
+    "role": "grant-git-commit",
+    "pid": 51409,
+    "startedUTC": "2026-08-29T14:17:08.302Z",
+    "startObserved": true,
+    "exitObserved": true,
+    "closeObserved": true,
+    "status": 0,
+    "signal": null,
+    "qualification": "synchronous Git return/drained stdio"
+  }
+]

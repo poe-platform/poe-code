@@ -1,0 +1,369 @@
+# Playwright sessions and host capabilities
+
+`createPlaywrightCli` implements the `@playwright/cli@0.1.20` command surface.
+The injected adapter owns browser allocation; commands and their help use the
+standard syntax. Standard `-s`, `--session`, and `PLAYWRIGHT_CLI_SESSION` values
+select an alias, not a provider session or a tenant identity.
+
+`playwright-cli --help`, `playwright-cli attach --help`, and JSON help report
+whether an authenticated attachment broker is configured. Without one, attach
+is unsupported: after a provider failure, do not retry attach. Use
+`playwright-cli list` to discover owned aliases, then explicitly select an existing
+alias with `playwright-cli -s=<existing-alias> snapshot`, `tab-list`, or `goto <url>`.
+Listing saved profiles does not verify live connectivity; an explicitly selected
+command may still fail while the provider is unavailable. Hosts supplying an
+authenticated `attach` ability retain their attachment command.
+
+General help and `playwright-cli show --help`, including JSON output, also
+report whether the host supplies a dashboard `show` ability. Without it, the
+Playwright dashboard and interactive local browser login are unavailable;
+agents must use only an authentication flow explicitly provided by the host
+application. The Cloudflare adapter does not supply a dashboard. An attachment
+broker or named-session attachment alone does not enable `show`. The standard
+command vocabulary remains available in help, and capability discovery does
+not acquire a browser or invoke a host ability.
+
+WebMCP discovery for `webmcp-list` and `webmcp-call` treats page tool metadata as
+untrusted. Across all visited frames, metadata is capped at 128 KiB (or the
+smaller command byte limit), 32 container levels, and 4096 structural markers
+(container openings, property colons, and element separators). These limits
+are checked before host JSON parsing and schema rendering. Input schemas must
+be JSON objects or booleans; annotations must contain boolean values. Pages
+exceeding the budgets fail with a resource-limit error.
+
+General help and `playwright-cli show --help` also report whether the host has a
+configured dashboard ability. When `show` is unsupported, agents must not direct
+the user to a dashboard or login window through that command. The standard
+command vocabulary is retained; a configured dashboard ability is reported as
+supported without implying an authenticated website profile.
+
+Snapshot bytes are unlimited by default. Explicit `limits.maxSnapshotBytes` budgets
+apply to UTF-8 output, including automatic snapshots after navigation; refusal
+preserves the healthy browser session. Reference counts are unlimited
+by default; `limits.maxSnapshotRefs` remains an optional reference cap. Other
+controller and provider resource limits still apply.
+
+The session and tab admission limits are also opt-in: omitted `maxSessions` and
+`maxTabs` do not impose a controller count cap. Explicit values remain positive
+safe integers. Code executors receive `maxPages: Infinity` when no tab limit is
+configured and must preserve that sentinel; independent provider transport and
+creation budgets remain in effect.
+
+An explicit snapshot reference cap rejects the capture without publishing partial refs or
+closing a healthy browser. Inspection and navigation remain available in the same
+context. A failed automatic snapshot can follow a completed navigation or click;
+inspect that page before repeating the action. Cancellation, provider loss, and
+snapshot cleanup failures still require retirement. Persistence failures retain
+their existing checkpoint semantics.
+
+The host must isolate each controller and its persistence callbacks by trusted
+owner identity. Never use an untrusted alias to select another owner's browser,
+filesystem, or storage namespace. Browser networking follows the selected native
+provider and explicit caller configuration. Any application-specific network
+policy must come from that host's documented requirements, not from the presence
+of arbitrary browser JavaScript or an isolated code runner.
+
+Both `createPlaywrightController` and `createPlaywrightCli` expose host-only
+`renewSession({ name, context }): boolean`. It synchronously renews the configured
+idle deadline only when the alias retains that exact context object and is open,
+healthy, and unexpired. Missing, acquiring, closing, closed, failed, replaced, or
+disposed sessions return `false`; renewal never allocates, restores, checkpoints,
+or calls the browser. Disabled idle expiry stays disabled. Hosts remain responsible
+for authenticating activity and renewing any independent owner or provider leases.
+While native command work pauses idle expiry, `inspectSessions()` still reports
+the retained session even past its previous deadline. Renewal preserves that pause
+without arming an expiry timer; command completion establishes the final deadline.
+Renewal is in-memory activity metadata, not a persistence acknowledgement.
+
+Both hosts also expose `selectSessionPage({ name, context, page, signal? })`,
+returning `Promise<boolean>`. It selects an existing public page by object identity
+through the command queue, invalidates previous snapshot refs, and checkpoints
+the selected page. The session must already be live when called and retain
+the same session, context, and page when selection runs; stale or unavailable
+identities return `false`. With persistence enabled, an open dialog or file chooser
+on any context page also returns `false`, preserving the prior live selection
+without dismissing the modal. Retry after the modal is resolved or its page closes.
+It never allocates, restores, or revives a session.
+Cancellation preserves its reason and leaves a healthy session open; it cannot
+undo a selection already applied. Ordinary initialization, snapshot cleanup, and
+persistence errors retain their retirement/checkpoint behavior, including an
+independent persistence failure racing cancellation. An applied selection counts
+as activity even if the target closes during checkpointing and selection returns
+`false`; a stale target rejected before publication does not renew idle expiry.
+Hosts must map
+authenticated client requests to these retained objects, not accept raw objects
+or provider identifiers from clients.
+
+`bindSessionPage({ name, context, page })` binds trusted host operations to the
+currently selected live page. It returns `undefined` for an unavailable identity,
+or a frozen binding with `run(callback, { signal? })`. Retain that same binding
+across separate capture/commit calls: it never follows a replacement session,
+even if its alias, context, and page objects are reused. Each call enters the
+existing per-session command queue and checks the original session and selected
+page again. It never allocates, restores, selects, focuses, or checkpoints a page.
+Successful calls renew configured idle activity; queue-held work pauses idle expiry.
+
+The callback receives a cancellation `signal` and a synchronous `check()` for
+revalidating lifecycle and selection before effects and after awaited work.
+Session retirement and native page-close events also abort the signal so a
+cooperative callback can settle without waiting for its caller's deadline.
+`{ status: 'unavailable' }` means the callback was not entered; this includes a
+pending native action or modal that requires human attention. Otherwise success
+returns `{ status: 'completed', value }`. An entered operation can have effects
+before cancellation, page loss, or failure, so rejection never establishes a
+no-op and must not trigger an automatic replay of non-idempotent work. Cancellation
+does not release the queue before the underlying callback settles. If the callback
+opens a native modal, its queue entry yields so modal-handling commands can run,
+and idle expiry resumes. The binding call and disposal still await the original
+callback, including failures after modal dismissal. Other host calls decline
+while it remains pending. Cancellation never accepts or dismisses the modal.
+
+Hosts must bound work, obey cancellation, authenticate the displayed session,
+and validate native document/element/selection identities inside their operation.
+The queue does not serialize other controllers, sessions, or page JavaScript.
+Wait for clipboard permissions or other human input between `run` calls, outside
+the queue; do not await another queued controller method from inside a callback.
+This host API does not redact callback arguments from native provider tracing.
+
+Private CDP target/session capacity counts active identities. Only native target
+destruction or session detach confirmations release that identity's capacity.
+Bounded recent retirement tombstones suppress late messages; active private
+identities never age out or get evicted to admit another target/session.
+
+The trusted control supplied to `createPlaywrightStorageOriginPreparer` must
+report whole-control disconnection as `Inspector.detached` without `sessionId`,
+including when its socket reaches EOF. This rejects loading and pending private
+target retirement with `Native storage control disconnected`, removes control
+and abort subscriptions, and blocks new native lease work. It does not
+confirm target destruction or release private target capacity. Session-scoped
+`Inspector.detached` is not whole-control loss; during expected target closure,
+retirement still joins the owned `Target.targetDestroyed` confirmation. Hosts
+must settle outstanding control requests; disconnect notification does not
+preempt an opaque, uncooperative `send` promise.
+
+Bound storage contexts enumerate IndexedDB through the owned reader, which
+closes its database connections. They retain visited frame origins after tabs
+close and seed origins from initial storage state. Public
+`readPlaywrightStorageState` uses this route with `PlaywrightStorageOperationOptions`;
+restoration clears IndexedDB through the verified same-context native target,
+including connections held by provider census or application code. Native
+blocked database requests fail explicitly without reloading live tabs.
+
+Browser-realm read and restore expressions use generated string literals from
+the typed functions in `native-storage-realm.ts`. Consumer naming preservation
+or minification must not introduce bundle-scope dependencies into these strings.
+After changing either canonical function, run
+`node scripts/generate-native-storage-sources.mjs` from the package directory;
+the guarded package build rejects missing or stale literals before emission.
+
+## Native browser adapter
+
+`createPlaywrightAdapter` accepts native browser capabilities. It forwards
+validated context options, uses native page and locator methods, observes
+browser events, and retires resources on cancellation or a failed lease.
+Canonical device descriptors are bundled; injected descriptors override them.
+
+Acquired resources may expose these additional trusted host operations:
+
+- `captureArtifact` reads a generated native file into bounded bytes. The host
+  supplies the temporary path and cleans it up after success or failure.
+- `captureDownload` retrieves the original native download bytes. A remote
+  provider must supply a real transport; replaying the source URL is not an
+  equivalent download.
+- `captureTrace` flushes and reads the current recording's native trace,
+  network, and referenced resource files. Returned paths are relative and
+  validated before the CLI writes standard live trace files into its VFS.
+- `prepareFileBytes` supplies the provider's binary input representation.
+- `generateActionCode` renders validated native actions with the provider's
+  Playwright language generators, using the selected standard codegen language.
+- `captureSnapshotJSON` returns the native accessibility tree with its actionable
+  refs. The host bounds frames and serialized bytes before transport and honors
+  cancellation; a failed capture retires the lease before another command.
+- `executeCode` runs a standard Playwright function with the selected native
+  Page. The host must isolate arbitrary JavaScript from its own process,
+  credentials, bindings, and other owners. Source and output bounds, browser
+  creation limits, cancellation, and late-side-effect revocation remain host
+  responsibilities. A caller timeout alone does not terminate guest code.
+  `limits.codeExecutionTimeoutMs` bounds startup plus execution independently of
+  configured native action/navigation timeouts; its default is 30 seconds.
+
+Resource operations participate in lease cleanup. Hosts should use idempotent
+provider retirement, including a separate interrupt path for stalled browser
+protocol work. `PlaywrightResourceLimitError` tells the controller that the
+operation exceeded an ownership or resource boundary and requires retirement.
+Ordinary command errors preserve a healthy session.
+
+## Persistence
+
+Hosts opt into owner-scoped named attachment with
+`createPlaywrightCli({ adapter, persistence, namedSessionAttachment: true })`
+or the same option on `createPlaywrightController`. Enable it only when the
+controller and every persistence callback are bound to the current authenticated
+owner, for example one agent Durable Object. Guest aliases never authorize
+access to another owner. The capability performs no global provider discovery
+and never accepts a CDP URL, endpoint, or extension connection.
+
+`playwright-cli attach NAME` reuses that controller's live named session,
+preserving its context, selected tab, snapshot references, and browser state.
+If no live lease remains, it calls owner-scoped persistence to restore the last
+committed resumable profile. With `list` configured, the name must be present in
+its unexpired resumable metadata before restoration. Without `list`, `restore`
+must itself refuse missing, closed, deleted, or expired profiles before acquiring
+a browser. Missing targets fail; attachment never invokes the adapter to open a
+new blank session as a fallback. A reconstructed profile may contain inert blank
+tabs by the existing profile policy and must report `livePageStateLost: true`.
+
+Attachment changes the controller's default selection across shell invocations
+that share the same `PLAYWRIGHT_CLI_SESSION` value (or the implicit `default`).
+The environment default may be an authenticated agent ID different from the
+target name. Changing that environment value bypasses the attachment.
+Explicit `-s=NAME` or `--session=NAME` overrides selection for a command. When
+supplied on `attach`, the explicit session must equal the target name.
+Selection creates no additional session entry or lease owner. Multiple
+attachments to one name share its existing restore/action/close queue, and
+pending restorations count against the session limit before host allocation.
+
+`detach` clears the default attachment while retaining the owned live session
+and profile; explicit commands can still use it. Detaching another name leaves
+the current attachment selected. `close` and `delete-data` clear an attachment
+to that name and suppress restoration. `close-all` and `kill-all` clear selection
+and retire all owned sessions. Cancellation during restoration drains and retires
+a late acquired lease without publishing selection. Cancelling selection of an
+already live session does not retire that session. Attachment does not replay
+interrupted operations, reset live contexts, or checkpoint completed actions.
+It leaves the previous operation receipt intact, so interrupted work remains
+inspectable. Hosts retain responsibility for durable profile validation and must
+choose inert recovery when initialization or saved URLs could repeat effects.
+
+CDP, endpoint, extension, config, and idle-timeout attachment options fail before
+persistence or browser I/O. Existing custom attachment abilities retain their
+own behavior; the named capability governs built-in attachment only. Hosts that
+omit the capability continue to receive the unsupported broker diagnostic.
+
+Hosts can set `persistence.resumeAfterIdle: true` to retain logical sessions
+across live-browser expiry. Ordinary commands restore the last checkpoint and
+renew its idle deadline. Explicit close and deletion still suppress restoration.
+The controller checkpoints a new blank session before its first navigation,
+so a failed first page load does not discard the session. On reconstructed pages,
+`snapshot` can inspect the blank recovery page; other page actions still require
+a known document. Invalid old references return a fresh snapshot without replaying
+the element action. Host-authorized profile initialization can restore saved URLs.
+
+`persistence.selection.read/write` can persist `{ name, selection }` within the
+same authenticated owner, where `selection` is the environment default. The
+controller reads selection before dispatch and persists attach/detach/close
+changes. This metadata does not acquire a browser or transfer ownership.
+
+Optional persistence callbacks operate within the host's trusted owner scope:
+
+- `checkpoint` receives the current context, selected page, validated context
+  settings, effective configuration, and idle/expiry metadata. It commits
+  atomically after a complete read and returns `void` or `{ status: 'committed' }`.
+  A trusted reader may throw `PlaywrightStorageReadError`, or return
+  `{ status: 'storage-read-failed', error }`, only after confirmed owned-target
+  destruction with healthy control. Cancellation, uncertain ownership,
+  disconnection, and failed cleanup remain fatal. The native origin preparer
+  bounds load and retirement waits (10 seconds by default).
+- `restore` returns a newly owned lease and selected page. Its optional
+  `initialize` callback runs after controller observers attach and startup
+  scripts are registered, before the restored session is published.
+- `list` returns bounded metadata for resumable saved sessions without opening
+  browsers. The host excludes deleted, intentionally closed, or expired data.
+  CLI listing reports persisted profiles as `saved` and retained live sessions
+  as `open`, in both standard text and JSON output. `saved` does not establish
+  browser connectivity or successful restoration. A later browser command may
+  attempt restoration and fail if the provider is unavailable. Diagnose that
+  failure before retrying; listing never restores, navigates, or consumes a
+  one-time URL. Explicitly closed sessions remain absent until explicitly opened.
+- `close` suppresses automatic restoration without requiring storage deletion.
+  An undefined name closes all saved aliases for that owner.
+- `delete` removes the named profile and its operation receipt before returning
+  successfully. Once deletion succeeds, the controller forgets its local receipt
+  and sends no terminal `recordOperation` callback, even if later output or
+  cleanup fails. Failed deletion still records `unknown`.
+
+Host-only `inspectRecovery({ name, signal? })` returns `live-page`,
+`saved-storage`, or `unavailable`, with `livePageStateLost` and optional
+`operation: { operationId, status }`. It reads the optional persistence
+`inspectRecovery` callback's `{ hasStorage, operation? }` metadata without calling
+`restore`, acquiring a browser, navigating, submitting forms, or executing code.
+When the persistence inspection callback is installed, its receipts are
+authoritative: eviction or expiry cannot be bypassed by a controller cache.
+Without that callback, local operation receipts retain at most 16 aliases for
+24 hours from running admission, replacing repeated aliases. The controller
+option `operationClock` defaults to `Date.now` and lets hosts supply a
+deterministic millisecond clock for this fallback retention.
+It copies only validated correlation fields; URLs, cookies, provider objects,
+and exception messages are absent. `unavailable` means no retained page or
+confirmed saved storage, not proof that an interrupted effect did not happen.
+
+Hosts can import `parsePlaywrightOperationOutcome` and
+`validatePlaywrightSessionName` from `@poe-platform/safe-bash/playwright`
+to validate durable receipts and aliases. The parser returns a frozen copy of
+only `operationId` and `status`; identifiers use 1–128 ASCII letters, digits,
+underscores or hyphens. URLs, scripts and credentials are excluded.
+
+The optional `recordOperation({ name, operation }, signal)` callback must durably
+commit `running` before returning. It runs before session-command effects,
+including automatic restoration. Hosts may provide an opaque `operationId` on
+SDK invocations; otherwise a UUID is generated when recording is enabled.
+Successful commands record `completed`; errors and cancellation record `unknown`.
+A lost-page refusal also records `completed`: the controller proved that no page
+action ran. This does not resolve any preceding uncertain operation.
+Successful `delete-data` retires its running receipt instead. Terminal updates
+must atomically match an existing receipt's `operationId`: ignore them if the
+receipt was deleted or replaced by a newer running admission. Never upsert a
+terminal update. This check belongs to the host's durable store, since separate
+controllers can share an alias and local serialization cannot order their writes.
+A process killed during an effect can leave `running`; inspection reports it as
+`unknown` when no page is retained. These records are correlation, not an exactly-once protocol:
+the host must reserve effects and refuse automatic replay of uncertain work.
+
+For interrupted-owner recovery, call `restoreBrowserProfile` with
+`recovery: true`. It imports saved storage into a new context and creates one
+blank page, omitting saved navigation, configuration modules, and provider runtime
+scripts. Adopt its result through `restoreSession`; the returned
+`recovery: 'saved-storage'` marker suppresses initializers and keeps loss of the
+original live page explicit in subsequent inspection. The host can also supply
+that marker directly on `restoreSession`. This does not reattach the original
+provider session or restore its DOM, JavaScript heap, or outstanding operation.
+Ordinary profile restoration defaults to `tabRestoration: 'blank'`: it restores
+storage, configuration, provider settings, tab count, and selection without
+navigating saved URLs. Hosts may explicitly authorize `tabRestoration: 'navigate'`
+to replay saved URLs, which can repeat consumed login links or other actions.
+Select inert recovery after interruption when configuration and provider scripts
+must also be suppressed. Both profile restoration modes return
+`livePageStateLost: true`, so adopting a reconstructed profile cannot imply that
+the original live page survived. The next page action reports an ordinary command
+error rather than returning the reconstructed page as the surviving DOM. The
+restored context stays owned; each restored tab requires main-document navigation
+before actions resume. Explicit `goto`, viewer navigation, or host-authorized
+initializer navigation establishes that new document. Old snapshot refs remain
+invalid. Commands do not replay the interrupted
+action or require the guest to inspect receipts. Recovery metadata has no guest
+CLI command.
+Completed tab selection and closure are reported and checkpointed even when the
+selected tab has no available document; their results omit a replacement snapshot.
+
+After a recoverable checkpoint failure, the completed action and live session
+remain usable. The SDK throws `PlaywrightCheckpointError` with
+`actionCompleted: true` and `profileCommitted: false`. The CLI keeps the completed
+result on stdout, reports persistence failure on stderr, and exits 1. Retry
+persistence with a later command; do not replay the completed action. The last
+committed profile stays unchanged. Cold restore resumes that older committed
+state; it cannot recover changes from the failed checkpoint. Hosts must not mark
+the old profile as newly saved. Explicit close, disposal, cancellation, and
+expiration still retire the live session.
+
+The controller checkpoints before graceful disposal. Explicit close is
+distinct from disposal: later explicit open may reuse saved storage, while
+ordinary commands must not silently reopen an intentionally closed session.
+Forceful cleanup must not wait on a new checkpoint.
+
+Use `parsePlaywrightStorageState`, `parsePlaywrightContextOptions`, and
+`parsePlaywrightSessionConfiguration` when accepting persisted data. A host
+must additionally bound and validate its own envelope, navigation URLs,
+retention policy, and storage publication. Playwright storage state does not
+include arbitrary DOM/JavaScript heap state or sessionStorage. Automatic host
+checkpoints may include IndexedDB; standard explicit state commands retain
+the upstream behavior.

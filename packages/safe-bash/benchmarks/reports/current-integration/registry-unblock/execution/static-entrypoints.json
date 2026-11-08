@@ -1,0 +1,10 @@
+[
+  "tests/integration/adapter-tools/matrix.test.ts",
+  "tests/integration/adapter-tools-diagnostics/eight-cases.test.ts",
+  "tests/commands/structured-stress/final-increment/fresh-interop.test.ts",
+  "tests/commands/structured-stress/split-increment/interop.test.ts",
+  "tests/plugins/agent-commands.test.ts",
+  "tests/commands/metadata/integration.test.ts",
+  "tests/integration/adapter-tools/preflight-review/preflight.test.ts",
+  "src/index.ts"
+]

@@ -1,0 +1,22 @@
+{
+  "pid": 24857,
+  "childPid": 24859,
+  "primaryPresent": false,
+  "primary": null,
+  "result": {
+    "code": 0,
+    "signal": null,
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "natural": true
+  },
+  "captureBytes": 3438,
+  "limits": {
+    "seconds": 90,
+    "cleanupSeconds": 5,
+    "captureBytes": 8388608
+  },
+  "productImports": 0
+}

@@ -1,0 +1,12 @@
+{
+  "source": "d1174e2db9f4a4c92403842dee6fb3d4ff57ec96",
+  "failure": {
+    "message": "Error: /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node: consumer/example.mts(34,32): error TS7006: Parameter 'input' implicitly has an 'any' type.\nconsumer/example.mts(39,24): error TS7006: Parameter 'part' implicitly has an 'any' type.\n",
+    "stack": "Error: /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node: consumer/example.mts(34,32): error TS7006: Parameter 'input' implicitly has an 'any' type.\nconsumer/example.mts(39,24): error TS7006: Parameter 'part' implicitly has an 'any' type.\n\n    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension/run.mjs:30:34)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension/run.mjs:58:3"
+  },
+  "cleanup": {
+    "closureError": "Error: ENOENT: no such file or directory, open '/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension/evidence/provider-first/module-resolution.jsonl'",
+    "workspace": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension/.service-8MkBBi",
+    "removed": true
+  }
+}

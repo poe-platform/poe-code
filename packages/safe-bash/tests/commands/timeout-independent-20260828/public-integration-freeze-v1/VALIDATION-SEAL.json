@@ -1,0 +1,16 @@
+{
+  "schema": "timeout-public-freeze-validation-seal/1",
+  "manifestSha256": "18e3c23c425065f79c92ff6a17e7853c643e316db3e38d5806c3450a63448991",
+  "files": [
+    {
+      "path": "validation.lock",
+      "sha256": "c85c59a54f1f4453e0ff5359c211d521a024dd57cf644c24fe7dfd5099a021a7",
+      "bytes": 131
+    },
+    {
+      "path": "VALIDATION.json",
+      "sha256": "ccf244a13f06719ab643a3f008dccb9c94c0f7a575b80b9ad7c1a18eecf33634",
+      "bytes": 4877
+    }
+  ]
+}

@@ -1,0 +1,303 @@
+{
+  "purpose": "Targeted native dialect investigation, not a compatibility score or permission to change oracle expectations",
+  "createdAt": "2026-08-26T20:10:52.393Z",
+  "node": "v22.22.2",
+  "platform": "darwin",
+  "gnuSed": {
+    "version": "/tmp/safe-bash-gnu-sed-4.9.oqztSn/sed-4.9/sed/sed (GNU sed) 4.9",
+    "executable": "/tmp/safe-bash-gnu-sed-4.9.oqztSn/sed-4.9/sed/sed",
+    "sourceArchive": "https://ftp.gnu.org/gnu/sed/sed-4.9.tar.xz",
+    "sourceArchiveSha256": "6e226b732e1cd739464ad6862bd1a1aba42d7982922da7a53519631d24975181"
+  },
+  "hashes": {
+    "/usr/bin/sed": "5b74ed702abbb642a7bf39335aa6716ecbf2312084cf2249ca4e59f93c559360",
+    "/tmp/safe-bash-gnu-sed-4.9.oqztSn/sed-4.9/sed/sed": "6902b31ee223e6a4ef6c6bd9ee010c96bad43d7b39d808866fa59595d3b3cfa1",
+    "src/commands/text-programs/regex.ts": "23df19386627659c3a5175562a2f8eeda873b81e3dc3e78d3cf51aafa7b3b06f",
+    "src/commands/text-programs/sed.ts": "38fceb4869a0db8197a050de3430d5b9c5017e1606a4348d17d8004745c645a9"
+  },
+  "backgroundErrors": [],
+  "results": [
+    {
+      "fixture": {
+        "name": "sed-regex-67",
+        "tool": "sed",
+        "feature": "sed.regex",
+        "args": [
+          "-E",
+          "s/((a|aa)*)/[\\1][\\2]/"
+        ],
+        "stdin": "YWFhYQo=",
+        "files": {}
+      },
+      "bsd": {
+        "name": "sed-regex-67",
+        "tool": "sed",
+        "feature": "sed.regex",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "W2FhYWFdW2FhXQo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 11.037833000000006
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "W2FhYWFdW2FhXQo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 2.068125000000009
+        },
+        "status": "pass",
+        "differences": []
+      },
+      "gnu": {
+        "name": "sed-regex-67",
+        "tool": "sed",
+        "feature": "sed.regex",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "W2FhYWFdW2FdCg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 12.475291999999996
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "W2FhYWFdW2FhXQo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 2.068125000000009
+        },
+        "status": "fail",
+        "differences": [
+          "stdout"
+        ]
+      }
+    },
+    {
+      "fixture": {
+        "name": "sed-regex-70",
+        "tool": "sed",
+        "feature": "sed.regex",
+        "args": [
+          "-E",
+          "s/^|$/X/g"
+        ],
+        "stdin": "YWJjCgo=",
+        "files": {}
+      },
+      "bsd": {
+        "name": "sed-regex-70",
+        "tool": "sed",
+        "feature": "sed.regex",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "WGFiYwpYCg==",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 10.504833999999988
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "WGFiY1gKWAo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.4898330000000328
+        },
+        "status": "fail",
+        "differences": [
+          "stdout"
+        ]
+      },
+      "gnu": {
+        "name": "sed-regex-70",
+        "tool": "sed",
+        "feature": "sed.regex",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "WGFiY1gKWAo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 12.527750000000026
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "WGFiY1gKWAo=",
+            "stderr": "",
+            "files": {}
+          },
+          "durationMs": 0.4898330000000328
+        },
+        "status": "pass",
+        "differences": []
+      }
+    },
+    {
+      "fixture": {
+        "name": "sed-inplace-quit-per-file",
+        "tool": "sed",
+        "feature": "sed.in-place",
+        "args": [
+          "-i.bak",
+          "1q",
+          "first",
+          "last"
+        ],
+        "stdin": "",
+        "files": {
+          "first": "YQpiCg==",
+          "last": "YwpkCg=="
+        }
+      },
+      "bsd": {
+        "name": "sed-inplace-quit-per-file",
+        "tool": "sed",
+        "feature": "sed.in-place",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {
+              "first": {
+                "type": "file",
+                "bytes": "YQo=",
+                "mode": 420
+              },
+              "first.bak": {
+                "type": "file",
+                "bytes": "YQpiCg==",
+                "mode": 420
+              },
+              "last": {
+                "type": "file",
+                "bytes": "",
+                "mode": 420
+              },
+              "last.bak": {
+                "type": "file",
+                "bytes": "YwpkCg==",
+                "mode": 420
+              }
+            }
+          },
+          "durationMs": 15.539125000000013
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {
+              "first": {
+                "type": "file",
+                "bytes": "YQo=",
+                "mode": 420
+              },
+              "first.bak": {
+                "type": "file",
+                "bytes": "YQpiCg==",
+                "mode": 420
+              },
+              "last": {
+                "type": "file",
+                "bytes": "YwpkCg==",
+                "mode": 420
+              }
+            }
+          },
+          "durationMs": 1.2764169999999808
+        },
+        "status": "fail",
+        "differences": [
+          "file:last",
+          "file:last.bak"
+        ]
+      },
+      "gnu": {
+        "name": "sed-inplace-quit-per-file",
+        "tool": "sed",
+        "feature": "sed.in-place",
+        "native": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {
+              "first": {
+                "type": "file",
+                "bytes": "YQo=",
+                "mode": 420
+              },
+              "first.bak": {
+                "type": "file",
+                "bytes": "YQpiCg==",
+                "mode": 420
+              },
+              "last": {
+                "type": "file",
+                "bytes": "YwpkCg==",
+                "mode": 420
+              }
+            }
+          },
+          "durationMs": 15.619374999999991
+        },
+        "virtual": {
+          "status": "completed",
+          "observation": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "files": {
+              "first": {
+                "type": "file",
+                "bytes": "YQo=",
+                "mode": 420
+              },
+              "first.bak": {
+                "type": "file",
+                "bytes": "YQpiCg==",
+                "mode": 420
+              },
+              "last": {
+                "type": "file",
+                "bytes": "YwpkCg==",
+                "mode": 420
+              }
+            }
+          },
+          "durationMs": 1.2764169999999808
+        },
+        "status": "pass",
+        "differences": []
+      }
+    }
+  ]
+}

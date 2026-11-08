@@ -1,0 +1,19 @@
+{
+  "scope": "Fresh invocation-local file-based helper snapshots; not historical peak/RSS",
+  "snapshots": [
+    {
+      "root": "/private/tmp/safe-bash-k08-archive-v3-6g2j3q",
+      "at": 1788019051330,
+      "bytes": 36198,
+      "entries": 27,
+      "qualification": "fresh sampled logical owned files, not RSS/continuous quota"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3",
+      "at": 1788019051331,
+      "bytes": 523084,
+      "entries": 33,
+      "qualification": "fresh sampled logical owned files, not RSS/continuous quota"
+    }
+  ]
+}

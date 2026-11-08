@@ -1,0 +1,23 @@
+READY: GNU strings (GNU Binutils) 2.44; test-only native reference, NOT product fallback.
+Executable: /tmp/safe-bash-gnu-strings-20260827-YJqPHf/build-system-zlib/binutils/strings
+Resolved executable: /private/tmp/safe-bash-gnu-strings-20260827-YJqPHf/build-system-zlib/binutils/strings
+Executable SHA256: 90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f
+Platform: Mach-O arm64, aarch64-apple-darwin25.4.0, macOS 26.4.1 build 25E253; actual GNU on Darwin, NOT GNU/Linux.
+Profile: LC_ALL=C TZ=UTC; explicitly configured --enable-default-strings-all (DEFAULT_STRINGS_ALL=1). Use -a for raw scans. Native Mach-O BFD target; other object-format/locale behavior not smoke-accepted.
+Run: LC_ALL=C TZ=UTC /tmp/safe-bash-gnu-strings-20260827-YJqPHf/build-system-zlib/binutils/strings -a -n 4 -t x FILE
+LD requirements: no LD_LIBRARY_PATH or DYLD_LIBRARY_PATH, install, wrapper, or bundled shared library required. Existing macOS system /usr/lib/libz.1.dylib and /usr/lib/libSystem.B.dylib are direct dynamic dependencies. Bundled libbfd/libiberty/libsframe are statically linked.
+System dylib link metadata: libz current 1.2.12, compatibility 1.0.0; libSystem current 1356.0.0, compatibility 1.0.0. Actual loaded UUIDs: libz 25DC8186-B2D8-3839-9F10-D89BC289ECFF; libSystem E05F5341-06B7-365E-8014-E9CD64C352FE.
+Individual system dylibs are unavailable as standalone filesystem files (dyld shared cache); no fabricated individual SHA256. Runtime capture records UUIDs and backing shared-cache-file hashes separately in runtime-run.json.
+Bundled archive SHA256: libbfd.a 6aaca8b8d005d79482126999d5f45675e053199987153fa907e7b6a825facbc8; libiberty.a 120e047e35b2867f33d05e0078f8221893a5698abe2a7d95e0fee62a1d9b41a4; libsframe.a 606db2567892faffa089a01920af805f584b578de83e590f2f78dab60b1f425e. Exact paths in smoke-run.json.
+Source archive: /tmp/safe-bash-gnu-strings-20260827-YJqPHf/binutils-2.44.tar.xz
+Exact source URL: https://ftp.gnu.org/gnu/binutils/binutils-2.44.tar.xz
+Archive SHA256: ce2017e059d63e67ddb9240e9d4ec49c2893605035cd60e92ad53177f4377237 (27,285,788 bytes, HTTP 200, effective URL unchanged).
+Official release provenance verified via web.run before curl: https://mail.gnu.org/archive/html/info-gnu/2025-02/msg00001.html and https://ftp.gnu.org/gnu/binutils/.
+Authenticity boundary: official HTTPS source retrieval and locally calculated byte-identity checksum; signature NOT fetched/validated. No third-party mirror/scripts or upstream source patches.
+Provider-only public smoke: --version, -a -n 4 -t x on one ASCII/tab/binary fixture, and -a -n 4 via stdin all exit 0 with EMPTY stderr and exact expected bytes. Fixture hex 0048656c6c6f09576f726c6400014142434400; offsets 1 and e. Not author tests, private holdouts, native-holdout acceptance, superiority, or full completion.
+Successful clean build: 39.75 seconds, existing Apple clang 21.0.0/GNU make 3.81, max -j2 and 600-second runner timeout; no make install, package installs, new ambient dependency installations, repository edits, commits, private checkout, or product fallback.
+Build caveats retained: initial explicit-target ordering omissions and bundled-zlib fdopen/Xcode incompatibility failed; final clean build uses supported --with-system-zlib against already installed SDK/runtime. Original failures, stdout/stderr and process-group records are preserved. Full command/env recipe in build-reference.py and build-system-zlib-run.json.
+Evidence directory: /tmp/safe-bash-gnu-strings-20260827-YJqPHf (PROVENANCE.md, smoke-run.json, runtime-run.json, build*-run.json, complete source/build/download/log artifacts).
+Retention: keep the whole owned directory for evidence and authorized author/verifier reuse; executable alone plus this host's system runtime suffice to execute. Do not move/delete/rebuild the frozen artifact or replace its dependencies during reuse.
+Runtime hashing completed: runtime-run.json records all 15 arm64e dyld shared-cache backing/metadata SHA256 values and exact paths/sizes; these are NOT per-library file hashes. Actual system zlibVersion() is 1.2.12. No system files modified/copied. Final read-only/process cleanup status is recorded in the companion status file.
+Finalized: whole owned artifact tree read-only; final-cleanup.json verifies all 13 tracked build groups absent, aggregate actual build-attempt time 88.13 seconds. All compile/smoke/capture sessions exited; normal provider worker exit. No blocker. Final repository/index read-only inspection saw concurrent owners' changes, left untouched.

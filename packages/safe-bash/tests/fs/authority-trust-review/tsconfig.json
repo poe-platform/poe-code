@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "noEmit": true },
+  "include": [
+    "src/fs/**/*.ts",
+    "src/contracts/**/*.ts",
+    "tests/fs/mount/identity-compatibility-review/compatibility.test.ts",
+    "tests/fs/authority-trust-review/*.test.ts"
+  ],
+  "exclude": []
+}

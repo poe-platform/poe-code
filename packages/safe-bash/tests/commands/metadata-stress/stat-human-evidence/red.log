@@ -1,0 +1,915 @@
+TAP version 13
+# Subtest: stat human numeric timestamp 0
+not ok 1 - stat human numeric timestamp 0
+  ---
+  duration_ms: 3.624917
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:1:2493'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000'
+    - '1970-01-01 00:00:00.000000000 +0000|1970-01-01 00:00:00.000000000 +0000|1970-01-01 00:00:00.000000000 +0000|1970-01-01 00:00:00.000000000 +0000'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '1970-01-01 00:00:00.000000000 +0000|1970-01-01 00:00:00.000000000 +0000|1970-01-01 00:00:00.000000000 +0000|1970-01-01 00:00:00.000000000 +0000'
+  actual: '1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:63:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: stat human numeric timestamp -0
+not ok 2 - stat human numeric timestamp -0
+  ---
+  duration_ms: 0.534208
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:1:2493'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000'
+    - '1970-01-01 00:00:00.000000000 +0000|1970-01-01 00:00:00.000000000 +0000|1970-01-01 00:00:00.000000000 +0000|1970-01-01 00:00:00.000000000 +0000'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '1970-01-01 00:00:00.000000000 +0000|1970-01-01 00:00:00.000000000 +0000|1970-01-01 00:00:00.000000000 +0000|1970-01-01 00:00:00.000000000 +0000'
+  actual: '1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:63:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat human numeric timestamp 1000
+not ok 3 - stat human numeric timestamp 1000
+  ---
+  duration_ms: 0.327625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:1:2493'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '1970-01-01 00:00:01.000 +0000|1970-01-01 00:00:01.000 +0000|1970-01-01 00:00:01.000 +0000|1970-01-01 00:00:01.000 +0000'
+    - '1970-01-01 00:00:01.000000000 +0000|1970-01-01 00:00:01.000000000 +0000|1970-01-01 00:00:01.000000000 +0000|1970-01-01 00:00:01.000000000 +0000'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '1970-01-01 00:00:01.000000000 +0000|1970-01-01 00:00:01.000000000 +0000|1970-01-01 00:00:01.000000000 +0000|1970-01-01 00:00:01.000000000 +0000'
+  actual: '1970-01-01 00:00:01.000 +0000|1970-01-01 00:00:01.000 +0000|1970-01-01 00:00:01.000 +0000|1970-01-01 00:00:01.000 +0000'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:63:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat human numeric timestamp -1000
+not ok 4 - stat human numeric timestamp -1000
+  ---
+  duration_ms: 0.154
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:1:2493'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '1969-12-31 23:59:59.000 +0000|1969-12-31 23:59:59.000 +0000|1969-12-31 23:59:59.000 +0000|1969-12-31 23:59:59.000 +0000'
+    - '1969-12-31 23:59:59.000000000 +0000|1969-12-31 23:59:59.000000000 +0000|1969-12-31 23:59:59.000000000 +0000|1969-12-31 23:59:59.000000000 +0000'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '1969-12-31 23:59:59.000000000 +0000|1969-12-31 23:59:59.000000000 +0000|1969-12-31 23:59:59.000000000 +0000|1969-12-31 23:59:59.000000000 +0000'
+  actual: '1969-12-31 23:59:59.000 +0000|1969-12-31 23:59:59.000 +0000|1969-12-31 23:59:59.000 +0000|1969-12-31 23:59:59.000 +0000'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:63:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat human numeric timestamp 1
+not ok 5 - stat human numeric timestamp 1
+  ---
+  duration_ms: 0.260042
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:1:2493'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '1970-01-01 00:00:00.001 +0000|1970-01-01 00:00:00.001 +0000|1970-01-01 00:00:00.001 +0000|1970-01-01 00:00:00.001 +0000'
+    - '1970-01-01 00:00:00.001000000 +0000|1970-01-01 00:00:00.001000000 +0000|1970-01-01 00:00:00.001000000 +0000|1970-01-01 00:00:00.001000000 +0000'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '1970-01-01 00:00:00.001000000 +0000|1970-01-01 00:00:00.001000000 +0000|1970-01-01 00:00:00.001000000 +0000|1970-01-01 00:00:00.001000000 +0000'
+  actual: '1970-01-01 00:00:00.001 +0000|1970-01-01 00:00:00.001 +0000|1970-01-01 00:00:00.001 +0000|1970-01-01 00:00:00.001 +0000'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:63:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat human numeric timestamp -1
+not ok 6 - stat human numeric timestamp -1
+  ---
+  duration_ms: 0.44375
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:1:2493'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '1969-12-31 23:59:59.999 +0000|1969-12-31 23:59:59.999 +0000|1969-12-31 23:59:59.999 +0000|1969-12-31 23:59:59.999 +0000'
+    - '1969-12-31 23:59:59.999000000 +0000|1969-12-31 23:59:59.999000000 +0000|1969-12-31 23:59:59.999000000 +0000|1969-12-31 23:59:59.999000000 +0000'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '1969-12-31 23:59:59.999000000 +0000|1969-12-31 23:59:59.999000000 +0000|1969-12-31 23:59:59.999000000 +0000|1969-12-31 23:59:59.999000000 +0000'
+  actual: '1969-12-31 23:59:59.999 +0000|1969-12-31 23:59:59.999 +0000|1969-12-31 23:59:59.999 +0000|1969-12-31 23:59:59.999 +0000'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:63:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat human numeric timestamp 1001
+not ok 7 - stat human numeric timestamp 1001
+  ---
+  duration_ms: 0.221417
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:1:2493'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '1970-01-01 00:00:01.001 +0000|1970-01-01 00:00:01.001 +0000|1970-01-01 00:00:01.001 +0000|1970-01-01 00:00:01.001 +0000'
+    - '1970-01-01 00:00:01.001000000 +0000|1970-01-01 00:00:01.001000000 +0000|1970-01-01 00:00:01.001000000 +0000|1970-01-01 00:00:01.001000000 +0000'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '1970-01-01 00:00:01.001000000 +0000|1970-01-01 00:00:01.001000000 +0000|1970-01-01 00:00:01.001000000 +0000|1970-01-01 00:00:01.001000000 +0000'
+  actual: '1970-01-01 00:00:01.001 +0000|1970-01-01 00:00:01.001 +0000|1970-01-01 00:00:01.001 +0000|1970-01-01 00:00:01.001 +0000'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:63:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat human numeric timestamp -1001
+not ok 8 - stat human numeric timestamp -1001
+  ---
+  duration_ms: 0.156958
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:1:2493'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '1969-12-31 23:59:58.999 +0000|1969-12-31 23:59:58.999 +0000|1969-12-31 23:59:58.999 +0000|1969-12-31 23:59:58.999 +0000'
+    - '1969-12-31 23:59:58.999000000 +0000|1969-12-31 23:59:58.999000000 +0000|1969-12-31 23:59:58.999000000 +0000|1969-12-31 23:59:58.999000000 +0000'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '1969-12-31 23:59:58.999000000 +0000|1969-12-31 23:59:58.999000000 +0000|1969-12-31 23:59:58.999000000 +0000|1969-12-31 23:59:58.999000000 +0000'
+  actual: '1969-12-31 23:59:58.999 +0000|1969-12-31 23:59:58.999 +0000|1969-12-31 23:59:58.999 +0000|1969-12-31 23:59:58.999 +0000'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:63:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat human numeric timestamp 0.125
+not ok 9 - stat human numeric timestamp 0.125
+  ---
+  duration_ms: 0.537
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:1:2493'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000'
+    - '1970-01-01 00:00:00.000125000 +0000|1970-01-01 00:00:00.000125000 +0000|1970-01-01 00:00:00.000125000 +0000|1970-01-01 00:00:00.000125000 +0000'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '1970-01-01 00:00:00.000125000 +0000|1970-01-01 00:00:00.000125000 +0000|1970-01-01 00:00:00.000125000 +0000|1970-01-01 00:00:00.000125000 +0000'
+  actual: '1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:63:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat human numeric timestamp -0.125
+not ok 10 - stat human numeric timestamp -0.125
+  ---
+  duration_ms: 0.350125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:1:2493'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000'
+    - '1969-12-31 23:59:59.999875000 +0000|1969-12-31 23:59:59.999875000 +0000|1969-12-31 23:59:59.999875000 +0000|1969-12-31 23:59:59.999875000 +0000'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '1969-12-31 23:59:59.999875000 +0000|1969-12-31 23:59:59.999875000 +0000|1969-12-31 23:59:59.999875000 +0000|1969-12-31 23:59:59.999875000 +0000'
+  actual: '1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:63:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat human numeric timestamp 123.456789
+not ok 11 - stat human numeric timestamp 123.456789
+  ---
+  duration_ms: 0.115833
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:1:2493'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '1970-01-01 00:00:00.123 +0000|1970-01-01 00:00:00.123 +0000|1970-01-01 00:00:00.123 +0000|1970-01-01 00:00:00.123 +0000'
+    - '1970-01-01 00:00:00.123456789 +0000|1970-01-01 00:00:00.123456789 +0000|1970-01-01 00:00:00.123456789 +0000|1970-01-01 00:00:00.123456789 +0000'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '1970-01-01 00:00:00.123456789 +0000|1970-01-01 00:00:00.123456789 +0000|1970-01-01 00:00:00.123456789 +0000|1970-01-01 00:00:00.123456789 +0000'
+  actual: '1970-01-01 00:00:00.123 +0000|1970-01-01 00:00:00.123 +0000|1970-01-01 00:00:00.123 +0000|1970-01-01 00:00:00.123 +0000'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:63:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat human numeric timestamp -123.456789
+not ok 12 - stat human numeric timestamp -123.456789
+  ---
+  duration_ms: 0.097916
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:1:2493'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '1969-12-31 23:59:59.877 +0000|1969-12-31 23:59:59.877 +0000|1969-12-31 23:59:59.877 +0000|1969-12-31 23:59:59.877 +0000'
+    - '1969-12-31 23:59:59.876543211 +0000|1969-12-31 23:59:59.876543211 +0000|1969-12-31 23:59:59.876543211 +0000|1969-12-31 23:59:59.876543211 +0000'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '1969-12-31 23:59:59.876543211 +0000|1969-12-31 23:59:59.876543211 +0000|1969-12-31 23:59:59.876543211 +0000|1969-12-31 23:59:59.876543211 +0000'
+  actual: '1969-12-31 23:59:59.877 +0000|1969-12-31 23:59:59.877 +0000|1969-12-31 23:59:59.877 +0000|1969-12-31 23:59:59.877 +0000'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:63:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat human numeric timestamp 0.000001
+not ok 13 - stat human numeric timestamp 0.000001
+  ---
+  duration_ms: 0.090542
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:1:2493'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000'
+    - '1970-01-01 00:00:00.000000001 +0000|1970-01-01 00:00:00.000000001 +0000|1970-01-01 00:00:00.000000001 +0000|1970-01-01 00:00:00.000000001 +0000'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '1970-01-01 00:00:00.000000001 +0000|1970-01-01 00:00:00.000000001 +0000|1970-01-01 00:00:00.000000001 +0000|1970-01-01 00:00:00.000000001 +0000'
+  actual: '1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:63:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat human numeric timestamp -0.000001
+not ok 14 - stat human numeric timestamp -0.000001
+  ---
+  duration_ms: 0.090458
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:1:2493'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000'
+    - '1969-12-31 23:59:59.999999999 +0000|1969-12-31 23:59:59.999999999 +0000|1969-12-31 23:59:59.999999999 +0000|1969-12-31 23:59:59.999999999 +0000'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '1969-12-31 23:59:59.999999999 +0000|1969-12-31 23:59:59.999999999 +0000|1969-12-31 23:59:59.999999999 +0000|1969-12-31 23:59:59.999999999 +0000'
+  actual: '1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:63:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat human numeric timestamp 4.9e-7
+not ok 15 - stat human numeric timestamp 4.9e-7
+  ---
+  duration_ms: 0.077208
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:1:2493'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000'
+    - '1970-01-01 00:00:00.000000000 +0000|1970-01-01 00:00:00.000000000 +0000|1970-01-01 00:00:00.000000000 +0000|1970-01-01 00:00:00.000000000 +0000'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '1970-01-01 00:00:00.000000000 +0000|1970-01-01 00:00:00.000000000 +0000|1970-01-01 00:00:00.000000000 +0000|1970-01-01 00:00:00.000000000 +0000'
+  actual: '1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:63:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat human numeric timestamp -4.9e-7
+not ok 16 - stat human numeric timestamp -4.9e-7
+  ---
+  duration_ms: 0.122958
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:1:2493'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000'
+    - '1970-01-01 00:00:00.000000000 +0000|1970-01-01 00:00:00.000000000 +0000|1970-01-01 00:00:00.000000000 +0000|1970-01-01 00:00:00.000000000 +0000'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '1970-01-01 00:00:00.000000000 +0000|1970-01-01 00:00:00.000000000 +0000|1970-01-01 00:00:00.000000000 +0000|1970-01-01 00:00:00.000000000 +0000'
+  actual: '1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:63:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat human numeric timestamp 5e-7
+not ok 17 - stat human numeric timestamp 5e-7
+  ---
+  duration_ms: 0.079583
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:1:2493'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000'
+    - '1970-01-01 00:00:00.000000001 +0000|1970-01-01 00:00:00.000000001 +0000|1970-01-01 00:00:00.000000001 +0000|1970-01-01 00:00:00.000000001 +0000'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '1970-01-01 00:00:00.000000001 +0000|1970-01-01 00:00:00.000000001 +0000|1970-01-01 00:00:00.000000001 +0000|1970-01-01 00:00:00.000000001 +0000'
+  actual: '1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:63:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat human numeric timestamp -5e-7
+not ok 18 - stat human numeric timestamp -5e-7
+  ---
+  duration_ms: 0.083375
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:1:2493'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000'
+    - '1969-12-31 23:59:59.999999999 +0000|1969-12-31 23:59:59.999999999 +0000|1969-12-31 23:59:59.999999999 +0000|1969-12-31 23:59:59.999999999 +0000'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '1969-12-31 23:59:59.999999999 +0000|1969-12-31 23:59:59.999999999 +0000|1969-12-31 23:59:59.999999999 +0000|1969-12-31 23:59:59.999999999 +0000'
+  actual: '1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:63:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat human numeric timestamp 5e-324
+not ok 19 - stat human numeric timestamp 5e-324
+  ---
+  duration_ms: 0.102375
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:1:2493'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000'
+    - '1970-01-01 00:00:00.000000000 +0000|1970-01-01 00:00:00.000000000 +0000|1970-01-01 00:00:00.000000000 +0000|1970-01-01 00:00:00.000000000 +0000'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '1970-01-01 00:00:00.000000000 +0000|1970-01-01 00:00:00.000000000 +0000|1970-01-01 00:00:00.000000000 +0000|1970-01-01 00:00:00.000000000 +0000'
+  actual: '1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:63:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat human numeric timestamp -5e-324
+not ok 20 - stat human numeric timestamp -5e-324
+  ---
+  duration_ms: 0.084542
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:1:2493'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000'
+    - '1970-01-01 00:00:00.000000000 +0000|1970-01-01 00:00:00.000000000 +0000|1970-01-01 00:00:00.000000000 +0000|1970-01-01 00:00:00.000000000 +0000'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '1970-01-01 00:00:00.000000000 +0000|1970-01-01 00:00:00.000000000 +0000|1970-01-01 00:00:00.000000000 +0000|1970-01-01 00:00:00.000000000 +0000'
+  actual: '1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:63:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat human numeric timestamp 999.99999949
+not ok 21 - stat human numeric timestamp 999.99999949
+  ---
+  duration_ms: 0.081083
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:1:2493'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '1970-01-01 00:00:00.999 +0000|1970-01-01 00:00:00.999 +0000|1970-01-01 00:00:00.999 +0000|1970-01-01 00:00:00.999 +0000'
+    - '1970-01-01 00:00:00.999999999 +0000|1970-01-01 00:00:00.999999999 +0000|1970-01-01 00:00:00.999999999 +0000|1970-01-01 00:00:00.999999999 +0000'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '1970-01-01 00:00:00.999999999 +0000|1970-01-01 00:00:00.999999999 +0000|1970-01-01 00:00:00.999999999 +0000|1970-01-01 00:00:00.999999999 +0000'
+  actual: '1970-01-01 00:00:00.999 +0000|1970-01-01 00:00:00.999 +0000|1970-01-01 00:00:00.999 +0000|1970-01-01 00:00:00.999 +0000'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:63:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat human numeric timestamp 999.9999995
+not ok 22 - stat human numeric timestamp 999.9999995
+  ---
+  duration_ms: 0.595125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:1:2493'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '1970-01-01 00:00:00.999 +0000|1970-01-01 00:00:00.999 +0000|1970-01-01 00:00:00.999 +0000|1970-01-01 00:00:00.999 +0000'
+    - '1970-01-01 00:00:01.000000000 +0000|1970-01-01 00:00:01.000000000 +0000|1970-01-01 00:00:01.000000000 +0000|1970-01-01 00:00:01.000000000 +0000'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '1970-01-01 00:00:01.000000000 +0000|1970-01-01 00:00:01.000000000 +0000|1970-01-01 00:00:01.000000000 +0000|1970-01-01 00:00:01.000000000 +0000'
+  actual: '1970-01-01 00:00:00.999 +0000|1970-01-01 00:00:00.999 +0000|1970-01-01 00:00:00.999 +0000|1970-01-01 00:00:00.999 +0000'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:63:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat human numeric timestamp -999.99999949
+not ok 23 - stat human numeric timestamp -999.99999949
+  ---
+  duration_ms: 0.130666
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:1:2493'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '1969-12-31 23:59:59.001 +0000|1969-12-31 23:59:59.001 +0000|1969-12-31 23:59:59.001 +0000|1969-12-31 23:59:59.001 +0000'
+    - '1969-12-31 23:59:59.000000001 +0000|1969-12-31 23:59:59.000000001 +0000|1969-12-31 23:59:59.000000001 +0000|1969-12-31 23:59:59.000000001 +0000'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '1969-12-31 23:59:59.000000001 +0000|1969-12-31 23:59:59.000000001 +0000|1969-12-31 23:59:59.000000001 +0000|1969-12-31 23:59:59.000000001 +0000'
+  actual: '1969-12-31 23:59:59.001 +0000|1969-12-31 23:59:59.001 +0000|1969-12-31 23:59:59.001 +0000|1969-12-31 23:59:59.001 +0000'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:63:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat human numeric timestamp -999.9999995
+not ok 24 - stat human numeric timestamp -999.9999995
+  ---
+  duration_ms: 0.093917
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:1:2493'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '1969-12-31 23:59:59.001 +0000|1969-12-31 23:59:59.001 +0000|1969-12-31 23:59:59.001 +0000|1969-12-31 23:59:59.001 +0000'
+    - '1969-12-31 23:59:59.000000000 +0000|1969-12-31 23:59:59.000000000 +0000|1969-12-31 23:59:59.000000000 +0000|1969-12-31 23:59:59.000000000 +0000'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '1969-12-31 23:59:59.000000000 +0000|1969-12-31 23:59:59.000000000 +0000|1969-12-31 23:59:59.000000000 +0000|1969-12-31 23:59:59.000000000 +0000'
+  actual: '1969-12-31 23:59:59.001 +0000|1969-12-31 23:59:59.001 +0000|1969-12-31 23:59:59.001 +0000|1969-12-31 23:59:59.001 +0000'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:63:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat human numeric timestamp 86399999.9999995
+not ok 25 - stat human numeric timestamp 86399999.9999995
+  ---
+  duration_ms: 0.086625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:1:2493'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '1970-01-01 23:59:59.999 +0000|1970-01-01 23:59:59.999 +0000|1970-01-01 23:59:59.999 +0000|1970-01-01 23:59:59.999 +0000'
+    - '1970-01-02 00:00:00.000000000 +0000|1970-01-02 00:00:00.000000000 +0000|1970-01-02 00:00:00.000000000 +0000|1970-01-02 00:00:00.000000000 +0000'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '1970-01-02 00:00:00.000000000 +0000|1970-01-02 00:00:00.000000000 +0000|1970-01-02 00:00:00.000000000 +0000|1970-01-02 00:00:00.000000000 +0000'
+  actual: '1970-01-01 23:59:59.999 +0000|1970-01-01 23:59:59.999 +0000|1970-01-01 23:59:59.999 +0000|1970-01-01 23:59:59.999 +0000'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:63:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat human numeric timestamp -86399999.9999995
+not ok 26 - stat human numeric timestamp -86399999.9999995
+  ---
+  duration_ms: 0.080125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:1:2493'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '1969-12-31 00:00:00.001 +0000|1969-12-31 00:00:00.001 +0000|1969-12-31 00:00:00.001 +0000|1969-12-31 00:00:00.001 +0000'
+    - '1969-12-31 00:00:00.000000000 +0000|1969-12-31 00:00:00.000000000 +0000|1969-12-31 00:00:00.000000000 +0000|1969-12-31 00:00:00.000000000 +0000'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '1969-12-31 00:00:00.000000000 +0000|1969-12-31 00:00:00.000000000 +0000|1969-12-31 00:00:00.000000000 +0000|1969-12-31 00:00:00.000000000 +0000'
+  actual: '1969-12-31 00:00:00.001 +0000|1969-12-31 00:00:00.001 +0000|1969-12-31 00:00:00.001 +0000|1969-12-31 00:00:00.001 +0000'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:63:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat human numeric timestamp 0.30000000000000004
+not ok 27 - stat human numeric timestamp 0.30000000000000004
+  ---
+  duration_ms: 0.075958
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:1:2493'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000'
+    - '1970-01-01 00:00:00.000300000 +0000|1970-01-01 00:00:00.000300000 +0000|1970-01-01 00:00:00.000300000 +0000|1970-01-01 00:00:00.000300000 +0000'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '1970-01-01 00:00:00.000300000 +0000|1970-01-01 00:00:00.000300000 +0000|1970-01-01 00:00:00.000300000 +0000|1970-01-01 00:00:00.000300000 +0000'
+  actual: '1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000|1970-01-01 00:00:00.000 +0000'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:63:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat human numeric timestamp 946684800123
+not ok 28 - stat human numeric timestamp 946684800123
+  ---
+  duration_ms: 0.081375
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:1:2493'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '2000-01-01 00:00:00.123 +0000|2000-01-01 00:00:00.123 +0000|2000-01-01 00:00:00.123 +0000|2000-01-01 00:00:00.123 +0000'
+    - '2000-01-01 00:00:00.123000000 +0000|2000-01-01 00:00:00.123000000 +0000|2000-01-01 00:00:00.123000000 +0000|2000-01-01 00:00:00.123000000 +0000'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '2000-01-01 00:00:00.123000000 +0000|2000-01-01 00:00:00.123000000 +0000|2000-01-01 00:00:00.123000000 +0000|2000-01-01 00:00:00.123000000 +0000'
+  actual: '2000-01-01 00:00:00.123 +0000|2000-01-01 00:00:00.123 +0000|2000-01-01 00:00:00.123 +0000|2000-01-01 00:00:00.123 +0000'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:63:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat human numeric timestamp 1700000000000
+not ok 29 - stat human numeric timestamp 1700000000000
+  ---
+  duration_ms: 0.073583
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:1:2493'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '2023-11-14 22:13:20.000 +0000|2023-11-14 22:13:20.000 +0000|2023-11-14 22:13:20.000 +0000|2023-11-14 22:13:20.000 +0000'
+    - '2023-11-14 22:13:20.000000000 +0000|2023-11-14 22:13:20.000000000 +0000|2023-11-14 22:13:20.000000000 +0000|2023-11-14 22:13:20.000000000 +0000'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '2023-11-14 22:13:20.000000000 +0000|2023-11-14 22:13:20.000000000 +0000|2023-11-14 22:13:20.000000000 +0000|2023-11-14 22:13:20.000000000 +0000'
+  actual: '2023-11-14 22:13:20.000 +0000|2023-11-14 22:13:20.000 +0000|2023-11-14 22:13:20.000 +0000|2023-11-14 22:13:20.000 +0000'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:63:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat human numeric timestamp 1700000000123
+not ok 30 - stat human numeric timestamp 1700000000123
+  ---
+  duration_ms: 0.073833
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:1:2493'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '2023-11-14 22:13:20.123 +0000|2023-11-14 22:13:20.123 +0000|2023-11-14 22:13:20.123 +0000|2023-11-14 22:13:20.123 +0000'
+    - '2023-11-14 22:13:20.123000000 +0000|2023-11-14 22:13:20.123000000 +0000|2023-11-14 22:13:20.123000000 +0000|2023-11-14 22:13:20.123000000 +0000'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '2023-11-14 22:13:20.123000000 +0000|2023-11-14 22:13:20.123000000 +0000|2023-11-14 22:13:20.123000000 +0000|2023-11-14 22:13:20.123000000 +0000'
+  actual: '2023-11-14 22:13:20.123 +0000|2023-11-14 22:13:20.123 +0000|2023-11-14 22:13:20.123 +0000|2023-11-14 22:13:20.123 +0000'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:63:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat human numeric timestamp 1700000000123.456
+not ok 31 - stat human numeric timestamp 1700000000123.456
+  ---
+  duration_ms: 0.072583
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:1:2493'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '2023-11-14 22:13:20.123 +0000|2023-11-14 22:13:20.123 +0000|2023-11-14 22:13:20.123 +0000|2023-11-14 22:13:20.123 +0000'
+    - '2023-11-14 22:13:20.123456000 +0000|2023-11-14 22:13:20.123456000 +0000|2023-11-14 22:13:20.123456000 +0000|2023-11-14 22:13:20.123456000 +0000'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '2023-11-14 22:13:20.123456000 +0000|2023-11-14 22:13:20.123456000 +0000|2023-11-14 22:13:20.123456000 +0000|2023-11-14 22:13:20.123456000 +0000'
+  actual: '2023-11-14 22:13:20.123 +0000|2023-11-14 22:13:20.123 +0000|2023-11-14 22:13:20.123 +0000|2023-11-14 22:13:20.123 +0000'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:63:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat human numeric timestamp 1700000000123.4568
+not ok 32 - stat human numeric timestamp 1700000000123.4568
+  ---
+  duration_ms: 0.0765
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:1:2493'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '2023-11-14 22:13:20.123 +0000|2023-11-14 22:13:20.123 +0000|2023-11-14 22:13:20.123 +0000|2023-11-14 22:13:20.123 +0000'
+    - '2023-11-14 22:13:20.123456800 +0000|2023-11-14 22:13:20.123456800 +0000|2023-11-14 22:13:20.123456800 +0000|2023-11-14 22:13:20.123456800 +0000'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '2023-11-14 22:13:20.123456800 +0000|2023-11-14 22:13:20.123456800 +0000|2023-11-14 22:13:20.123456800 +0000|2023-11-14 22:13:20.123456800 +0000'
+  actual: '2023-11-14 22:13:20.123 +0000|2023-11-14 22:13:20.123 +0000|2023-11-14 22:13:20.123 +0000|2023-11-14 22:13:20.123 +0000'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:63:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat human numeric timestamp -1700000000123.456
+not ok 33 - stat human numeric timestamp -1700000000123.456
+  ---
+  duration_ms: 0.073834
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:1:2493'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '1916-02-18 01:46:39.877 +0000|1916-02-18 01:46:39.877 +0000|1916-02-18 01:46:39.877 +0000|1916-02-18 01:46:39.877 +0000'
+    - '1916-02-18 01:46:39.876544000 +0000|1916-02-18 01:46:39.876544000 +0000|1916-02-18 01:46:39.876544000 +0000|1916-02-18 01:46:39.876544000 +0000'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '1916-02-18 01:46:39.876544000 +0000|1916-02-18 01:46:39.876544000 +0000|1916-02-18 01:46:39.876544000 +0000|1916-02-18 01:46:39.876544000 +0000'
+  actual: '1916-02-18 01:46:39.877 +0000|1916-02-18 01:46:39.877 +0000|1916-02-18 01:46:39.877 +0000|1916-02-18 01:46:39.877 +0000'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:63:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat human numeric timestamp 8640000000000000
+not ok 34 - stat human numeric timestamp 8640000000000000
+  ---
+  duration_ms: 0.08
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:1:2493'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '+275760-09-13 00:00:00.000 +0000|+275760-09-13 00:00:00.000 +0000|+275760-09-13 00:00:00.000 +0000|+275760-09-13 00:00:00.000 +0000'
+    - '+275760-09-13 00:00:00.000000000 +0000|+275760-09-13 00:00:00.000000000 +0000|+275760-09-13 00:00:00.000000000 +0000|+275760-09-13 00:00:00.000000000 +0000'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '+275760-09-13 00:00:00.000000000 +0000|+275760-09-13 00:00:00.000000000 +0000|+275760-09-13 00:00:00.000000000 +0000|+275760-09-13 00:00:00.000000000 +0000'
+  actual: '+275760-09-13 00:00:00.000 +0000|+275760-09-13 00:00:00.000 +0000|+275760-09-13 00:00:00.000 +0000|+275760-09-13 00:00:00.000 +0000'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:63:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat human numeric timestamp -8640000000000000
+not ok 35 - stat human numeric timestamp -8640000000000000
+  ---
+  duration_ms: 0.072667
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:1:2493'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '-271821-04-20 00:00:00.000 +0000|-271821-04-20 00:00:00.000 +0000|-271821-04-20 00:00:00.000 +0000|-271821-04-20 00:00:00.000 +0000'
+    - '-271821-04-20 00:00:00.000000000 +0000|-271821-04-20 00:00:00.000000000 +0000|-271821-04-20 00:00:00.000000000 +0000|-271821-04-20 00:00:00.000000000 +0000'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '-271821-04-20 00:00:00.000000000 +0000|-271821-04-20 00:00:00.000000000 +0000|-271821-04-20 00:00:00.000000000 +0000|-271821-04-20 00:00:00.000000000 +0000'
+  actual: '-271821-04-20 00:00:00.000 +0000|-271821-04-20 00:00:00.000 +0000|-271821-04-20 00:00:00.000 +0000|-271821-04-20 00:00:00.000 +0000'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:63:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat routed whole-second %Y:%y and historical author timestamps use GNU nine columns
+not ok 36 - stat routed whole-second %Y:%y and historical author timestamps use GNU nine columns
+  ---
+  duration_ms: 0.228625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:1:2927'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '1700000000:2023-11-14 22:13:20.000 +0000\n'
+    - '1700000000:2023-11-14 22:13:20.000000000 +0000\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    1700000000:2023-11-14 22:13:20.000000000 +0000
+    
+  actual: |-
+    1700000000:2023-11-14 22:13:20.000 +0000
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:71:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat human missing birth remains a dash; missing required time is unsupported
+ok 37 - stat human missing birth remains a dash; missing required time is unsupported
+  ---
+  duration_ms: 0.423208
+  type: 'test'
+  ...
+# Subtest: stat human invalid and out-of-Date-range timestamps fail before operand output
+ok 38 - stat human invalid and out-of-Date-range timestamps fail before operand output
+  ---
+  duration_ms: 1.523042
+  type: 'test'
+  ...
+# Subtest: stat human width, string precision, and exact output byte limits remain bounded
+not ok 39 - stat human width, string precision, and exact output byte limits remain bounded
+  ---
+  duration_ms: 0.297417
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:1:4536'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '1970-01-01 00:00:00.000 +0000'
+    - '1970-01-01 00:00:00.000125000 +0000'
+                              ^
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '1970-01-01 00:00:00.000125000 +0000'
+  actual: '1970-01-01 00:00:00.000 +0000'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human.test.ts:104:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..39
+# tests 39
+# suites 0
+# pass 2
+# fail 37
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 165.57175

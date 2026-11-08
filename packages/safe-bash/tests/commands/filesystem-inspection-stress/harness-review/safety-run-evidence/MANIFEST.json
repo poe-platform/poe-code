@@ -1,0 +1,161 @@
+{
+  "classification": "Hash-only source/tool provenance and actual owned virtual-command run evidence; no source/compiler/native fixtures",
+  "files": [
+    {
+      "source": "/tmp/safe-bash-inspection-final-proof-detail.txt",
+      "path": "final-proof-detail.txt",
+      "bytes": 25382,
+      "sha256": "152e4763a2f34eace88afe192c895773616b6cc890f44f86e35ae1cad4a98e7c"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-final-YZxhi8/provenance.json",
+      "path": "final-source-provenance.json",
+      "bytes": 108772,
+      "sha256": "2b30576b2fa5474ca9054c6802705e69116e1f663e663ad0f3613302b5755027"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-final-YZxhi8/static-accounting.json",
+      "path": "final-static-accounting.json",
+      "bytes": 18645,
+      "sha256": "aea29869d75711f9a9ee1ad57aefb1f59850e077cef7ce5073adc7983cc36ac6"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-final-proof-authorization.proposed.json",
+      "path": "original-proposal.json",
+      "bytes": 210163,
+      "sha256": "4f096db838c296579e52811c5d3a349cd0ecdae0278fe4045219e895c205c11f"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-safety-root-approved.json",
+      "path": "original-root-approved.json",
+      "bytes": 210196,
+      "sha256": "e4d048afb4784f802047de589212519465bb7589ccdb99e10ba677add39cee1c"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-safety-run-preflight.json",
+      "path": "original-preflight.json",
+      "bytes": 4609,
+      "sha256": "71473096035da87052f553422a7806320822a5bdc5b5948e8babb186e7916488"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-safety-original-run-stdout.txt",
+      "path": "original-controller-stdout.txt",
+      "bytes": 319,
+      "sha256": "419fb0230bc904a071be880c092cb543d4beceec81acafd8453b0de1bb813c85"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-safety-original-run-stderr.txt",
+      "path": "original-controller-stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-safety-original-run-exit.txt",
+      "path": "original-controller-exit.txt",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-safety-original-run-20260827-01/F-JSON-cumulative.json",
+      "path": "original-run/F-JSON-cumulative.json",
+      "bytes": 3079,
+      "sha256": "1a1a98546e58054aa3d8fca1a506bce8dffcf768a125df816d6e946207dc7047"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-safety-original-run-20260827-01/F-JSON-cumulative.modules.jsonl",
+      "path": "original-run/F-JSON-cumulative.modules.jsonl",
+      "bytes": 3499,
+      "sha256": "5a009e07c58e6e298b2a5ab8e0080dc6135b20da56af001342010b5af2abcb4b"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-safety-original-run-20260827-01/F-JSON-cumulative.stderr.txt",
+      "path": "original-run/F-JSON-cumulative.stderr.txt",
+      "bytes": 448,
+      "sha256": "987ac9cd1e9abbdc38c5966b90a89875a7f774f63964af145a9a41f9adb6166e"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-safety-original-run-20260827-01/F-JSON-cumulative.stdout.txt",
+      "path": "original-run/F-JSON-cumulative.stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-safety-original-run-20260827-01/F-header-many.json",
+      "path": "original-run/F-header-many.json",
+      "bytes": 20190,
+      "sha256": "1dd6cd2527356ea2986e7166fbae704a4252f669d3c1261822784534382c6d52"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-safety-original-run-20260827-01/F-header-many.modules.jsonl",
+      "path": "original-run/F-header-many.modules.jsonl",
+      "bytes": 3499,
+      "sha256": "ad50b0e477c89f2f2d3ad199b7b5e004eb6a0b7e6298ad2923202aacbdb4137c"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-safety-original-run-20260827-01/F-header-many.stderr.txt",
+      "path": "original-run/F-header-many.stderr.txt",
+      "bytes": 448,
+      "sha256": "4837af4f3898c988cc1d10d8d8c1e10bff9041e5891f555f428353bb7671c050"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-safety-original-run-20260827-01/F-header-many.stdout.txt",
+      "path": "original-run/F-header-many.stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-safety-original-run-20260827-01/F-metadata-many.json",
+      "path": "original-run/F-metadata-many.json",
+      "bytes": 2538,
+      "sha256": "58c2283ac8c26d39aa8c38561dcc4efda9a95ba31ae85248414959ed68eb96df"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-safety-original-run-20260827-01/F-metadata-many.modules.jsonl",
+      "path": "original-run/F-metadata-many.modules.jsonl",
+      "bytes": 3499,
+      "sha256": "2299089960d3ec61bccf1c53a0e0f769c21dea474c6f583fa87598b9ec856062"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-safety-original-run-20260827-01/F-metadata-many.stderr.txt",
+      "path": "original-run/F-metadata-many.stderr.txt",
+      "bytes": 448,
+      "sha256": "b7e59330fc955781b0e20afc7ff2825d061fc127b6a3a9ff6143710fcbc4dbcc"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-safety-original-run-20260827-01/F-metadata-many.stdout.txt",
+      "path": "original-run/F-metadata-many.stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-safety-original-run-20260827-01/T-empty-many.json",
+      "path": "original-run/T-empty-many.json",
+      "bytes": 38657,
+      "sha256": "5f993475c8d05e937774cc744ac91521e3aebbda18471e76666db09ec5e59edc"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-safety-original-run-20260827-01/T-empty-many.modules.jsonl",
+      "path": "original-run/T-empty-many.modules.jsonl",
+      "bytes": 4186,
+      "sha256": "f186dbb191fed3146e23a9413e9b3cf499c5abdd05a98cf436b40bd5078ea1c1"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-safety-original-run-20260827-01/T-empty-many.stderr.txt",
+      "path": "original-run/T-empty-many.stderr.txt",
+      "bytes": 448,
+      "sha256": "a6b81c5ae35a63c236038623a518ad01263a330106a902d2dd7ebb4dcb4f1044"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-safety-original-run-20260827-01/T-empty-many.stdout.txt",
+      "path": "original-run/T-empty-many.stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/tmp/safe-bash-inspection-safety-original-run-20260827-01/summary.json",
+      "path": "original-run/summary.json",
+      "bytes": 75086,
+      "sha256": "67eb07af4da1452bce7f7751882d4ed6195fbf91aee016510850f3bc8dcd4465"
+    }
+  ]
+}

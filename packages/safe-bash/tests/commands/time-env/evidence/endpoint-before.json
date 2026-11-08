@@ -1,0 +1,47 @@
+{
+  "sourceCommit": "df780f6ddb6292283114461ff4f9ebacfb269205",
+  "rows": [
+    {
+      "args": [
+        "-d",
+        "0000-01-01T12:00:00",
+        "+%F %T %z"
+      ],
+      "env": {
+        "TZ": "America/New_York",
+        "LC_ALL": "C"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "0000-01-01 12:00:00 -0456\n",
+        "stderr": ""
+      },
+      "virtual": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "date: invalid calendar date or time\n"
+      }
+    },
+    {
+      "args": [
+        "-d",
+        "9999-12-31T12:00:00",
+        "+%F %T %z"
+      ],
+      "env": {
+        "TZ": "America/New_York",
+        "LC_ALL": "C"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "9999-12-31 12:00:00 -0500\n",
+        "stderr": ""
+      },
+      "virtual": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "date: invalid calendar date or time\n"
+      }
+    }
+  ]
+}

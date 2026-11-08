@@ -1,0 +1,89 @@
+{
+  "args": [
+    "bench",
+    "small-many-line",
+    "worker-stream",
+    "0"
+  ],
+  "pid": 70959,
+  "readyAt": 42.463250000000016,
+  "killed": false,
+  "events": [
+    {
+      "event": "disconnect",
+      "values": [],
+      "at": 100.258959
+    },
+    {
+      "event": "stdout-close"
+    },
+    {
+      "event": "stderr-close"
+    },
+    {
+      "event": "exit",
+      "values": [
+        0,
+        null
+      ],
+      "at": 102.49733400000014
+    },
+    {
+      "event": "close",
+      "code": 0,
+      "signal": null,
+      "at": 102.5066670000001
+    }
+  ],
+  "messages": [
+    {
+      "type": "ready"
+    },
+    {
+      "type": "done",
+      "result": {
+        "id": "small-many-line",
+        "engine": "worker-stream",
+        "pass": true,
+        "workMs": 3.01016700000001,
+        "startupMs": 12.545958999999996,
+        "cleanupMs": 0.001084000000005858,
+        "streamIncludesAutomaticDisposal": true,
+        "repetitions": 3,
+        "exactOutputGateBeforeTiming": true,
+        "inputUtf8Bytes": 1938,
+        "inputUtf16Bytes": 3876,
+        "rows": 128,
+        "batches": 128,
+        "protocolHitBytes": 10276,
+        "hits": 128,
+        "execCalls": 256,
+        "captureValues": 384,
+        "selectedBytes": 2066,
+        "selectedSha256": "3e582f1edcc7f5e13007e86d16eb0b31ce6ad725d76dc98d6c6651699bf2029b",
+        "serializedBytes": 10174,
+        "serializedSha256": "8ae7b6b5ba17b753dbb88df057a866f8889c6ab6f7304b373c9786db56c216ea",
+        "metrics": {
+          "created": 1,
+          "terminated": 1,
+          "requests": 129,
+          "execCalls": 256,
+          "inputBytes": 3876,
+          "responseBytes": 10276,
+          "startupMs": 12.409750000000003,
+          "workMs": 1.9826199999999972,
+          "terminationMs": 0.6054159999999911,
+          "peakInflight": 1,
+          "listenersAfter": 0,
+          "exitCode": 1
+        },
+        "rssAfter": 63291392
+      }
+    }
+  ],
+  "stderr": "",
+  "ipcBytes": 912,
+  "streamBytes": 0,
+  "code": 0,
+  "signal": null
+}

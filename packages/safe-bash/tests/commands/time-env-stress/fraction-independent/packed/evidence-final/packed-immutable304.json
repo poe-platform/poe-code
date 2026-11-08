@@ -1,0 +1,70 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "./guard.mjs",
+    "holdout.mjs"
+  ],
+  "cwd": "/tmp/safe-bash-fraction-independent-packed-3n2Cyg/consumer",
+  "pid": 80169,
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 565,
+  "timeoutMs": 120000,
+  "outputBytes": 599,
+  "observed": [
+    {
+      "pid": 80169,
+      "parent": 78599,
+      "group": 80169,
+      "born": "Thu Aug 27 04:05:26 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import ./guard.mjs holdout.mjs"
+    },
+    {
+      "pid": 80174,
+      "parent": 80169,
+      "group": 80169,
+      "born": "Thu Aug 27 04:05:26 2026",
+      "command": "(date)"
+    },
+    {
+      "pid": 80187,
+      "parent": 80169,
+      "group": 80169,
+      "born": "Thu Aug 27 04:05:26 2026",
+      "command": "(date)"
+    },
+    {
+      "pid": 80202,
+      "parent": 80169,
+      "group": 80169,
+      "born": "Thu Aug 27 04:05:26 2026",
+      "command": "(date)"
+    },
+    {
+      "pid": 80221,
+      "parent": 80169,
+      "group": 80169,
+      "born": "Thu Aug 27 04:05:26 2026",
+      "command": "(date)"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "stdout": {
+    "bytes": 599,
+    "sha256": "1b84348bcefc31be5096e4f2636c1a742af6cab9cf257ab915562267ed3f7d8b"
+  },
+  "stderr": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "counts": {}
+}

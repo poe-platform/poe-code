@@ -1,0 +1,73 @@
+name: Release terminal-png + terminal-png-mcp
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "packages/terminal-png/**"
+      - "packages/terminal-png-mcp/**"
+concurrency:
+  # Finish the active release; accumulate newer changes in one pending run.
+  queue: single
+  group: release-terminal-png
+  cancel-in-progress: false
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          filter: blob:none
+          ref: ${{ github.sha }}
+      - name: Check release tree admission
+        id: release-admission
+        uses: ./.github/actions/release-tree-admission
+        with:
+          paths: |
+            packages/terminal-png
+            packages/terminal-png-mcp
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.14.0
+          registry-url: https://registry.npmjs.org
+      - name: Upgrade npm for trusted publishing
+        run: npm install --global npm@^11.5.1
+      - name: Install dependencies
+        run: npm clean-install
+      - name: Build terminal-png packages and dependencies
+        run: npm run build:workspaces -- --workspace=terminal-png-mcp
+      - name: Compute next version
+        id: version
+        run: |
+          TERMINAL_PNG_REMOTE=$(npm view terminal-png version 2>/dev/null || true)
+          TERMINAL_PNG_MCP_REMOTE=$(npm view terminal-png-mcp version 2>/dev/null || true)
+          NEXT=$(node -e "const semver = require('semver'); const versions = process.argv.slice(1).filter((version) => semver.valid(version)); if (versions.length === 0) { console.log('0.1.0'); process.exit(0); } if (versions.length === 1) { console.log(versions[0]); process.exit(0); } const newest = versions.sort(semver.rcompare)[0]; const next = semver.inc(newest, 'patch'); if (!next) process.exit(1); console.log(next);" "${TERMINAL_PNG_REMOTE}" "${TERMINAL_PNG_MCP_REMOTE}")
+          echo "next=${NEXT}" >> "$GITHUB_OUTPUT"
+      - name: Prepare lockstep package versions
+        uses: ./.github/actions/prepare-lockstep-release
+        with:
+          version: ${{ steps.version.outputs.next }}
+          packages: '["packages/terminal-png", "packages/terminal-png-mcp"]'
+      - name: Publish terminal-png
+        working-directory: packages/terminal-png
+        run: |
+          if npm view "terminal-png@${{ steps.version.outputs.next }}" version >/dev/null 2>&1; then
+            echo "terminal-png@${{ steps.version.outputs.next }} is already published"
+            exit 0
+          fi
+          npm publish --provenance --access public
+        if: steps.release-admission.outputs.publish == 'true'
+      - name: Publish terminal-png-mcp
+        working-directory: packages/terminal-png-mcp
+        run: |
+          if npm view "terminal-png-mcp@${{ steps.version.outputs.next }}" version >/dev/null 2>&1; then
+            echo "terminal-png-mcp@${{ steps.version.outputs.next }} is already published"
+            exit 0
+          fi
+          npm publish --provenance --access public
+        if: steps.release-admission.outputs.publish == 'true'

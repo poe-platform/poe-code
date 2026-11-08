@@ -1,0 +1,65 @@
+import { PassThrough,Writable } from 'node:stream';
+import { expect,it,vi } from 'vitest';
+import { createMediaHttpHandler } from './http-server.js';
+import type {IncomingMessage,ServerResponse} from 'node:http';
+it.each(['/v1/jobs/../sessions', '/v1/%2e%2e/sessions', '/v1/jobs#ignored', '/v1\\sessions', '/v1/jobs\t'])('refuses request target normalization before authenticated dispatch: %j',async target=>{
+ const input=new PassThrough() as PassThrough & {method:string;url:string;headers:Record<string,string>};
+ input.method='GET';input.url=target;input.headers={authorization:'Bearer secret'};
+ const output=new Writable({write(_chunk,_encoding,done){done();}}) as Writable & {writeHead:(status:number)=>void;statusCode:number};
+ output.writeHead=status=>{output.statusCode=status;};
+ const fetch=vi.fn(async()=>new Response());
+ const handler=createMediaHttpHandler({origin:'https://media.test',maxConnections:1,fetch});
+ input.end();await handler(input as unknown as IncomingMessage,output as unknown as ServerResponse);
+ expect(fetch).not.toHaveBeenCalled();expect(output.statusCode).toBe(400);
+});
+it('preserves escaped opaque IDs and range queries at authenticated dispatch',async()=>{
+ const input=new PassThrough() as PassThrough & {method:string;url:string;headers:Record<string,string>};
+ input.method='GET';input.url='/v1/sessions/a%2Fb/files/%FF/bytes?offset=7&length=9';input.headers={authorization:'Bearer secret'};
+ const output=new Writable({write(_chunk,_encoding,done){done();}}) as Writable & {writeHead:(status:number)=>void};
+ output.writeHead=vi.fn();const fetch=vi.fn(async(_request:Request)=>new Response());
+ const handler=createMediaHttpHandler({origin:'https://media.test',maxConnections:1,fetch});
+ input.end();await handler(input as unknown as IncomingMessage,output as unknown as ServerResponse);
+ expect(fetch.mock.calls[0]?.[0].url).toBe('https://media.test'+input.url);
+ expect(output.writeHead).toHaveBeenCalledWith(200,{});
+});
+it('retires an undelivered response body when the authenticated connection closes during dispatch',async()=>{
+ const input=new PassThrough() as PassThrough & {method:string;url:string;headers:Record<string,string>};
+ input.method='GET';input.url='/v1/jobs/job/attach';input.headers={authorization:'Bearer secret'};
+ const output=new Writable({write(_chunk,_encoding,done){done();}}) as Writable & {writeHead:(status:number)=>void};
+ output.writeHead=vi.fn();
+ let retire!:()=>void;const retirement=new Promise<void>(resolve=>{retire=resolve;});
+ let cancelling!:()=>void;const cancellation=new Promise<void>(resolve=>{cancelling=resolve;});
+ const cancel=vi.fn(()=>{cancelling();return retirement;});
+ const body=new ReadableStream<Uint8Array>({cancel});
+ let dispatched!:()=>void;const ready=new Promise<void>(resolve=>{dispatched=resolve;});
+ let respond!:(response:Response)=>void;const response=new Promise<Response>(resolve=>{respond=resolve;});
+ const handler=createMediaHttpHandler({origin:'https://media.test',maxConnections:1,fetch:async()=>{dispatched();return response;}});
+ const pending=handler(input as unknown as IncomingMessage,output as unknown as ServerResponse);
+ await ready;const closed=new Promise<void>(resolve=>output.once('close',resolve));output.destroy();await closed;
+ respond(new Response(body));await cancellation;
+ let settled=false;void pending.then(()=>{settled=true;});
+ await new Promise<void>(resolve=>setImmediate(resolve));expect(settled).toBe(false);
+ retire();await pending;
+ expect(cancel).toHaveBeenCalledOnce();expect(body.locked).toBe(false);
+ expect(output.writeHead).not.toHaveBeenCalled();
+});
+it('passes authenticated streaming request bytes and streams response bytes separately with backpressure',async()=>{
+ const input=new PassThrough() as PassThrough & {method:string;url:string;headers:Record<string,string>};input.method='POST';input.url='/v1/input';input.headers={authorization:'Bearer secret'};
+ const chunks:Uint8Array[]=[];const output=new Writable({write(chunk,_encoding,done){chunks.push(new Uint8Array(chunk));done();}}) as Writable & {writeHead:(status:number,headers:Record<string,string>)=>void;statusCode:number};output.statusCode=0;output.writeHead=(status)=>{output.statusCode=status;};
+ const handler=createMediaHttpHandler({origin:'https://media.test',maxConnections:2,async fetch(request){expect(request.headers.get('Authorization')).toBe('Bearer secret');expect(request.url).toBe('https://media.test/v1/input');const reader=request.body!.getReader();expect((await reader.read()).value).toEqual(new Uint8Array([0,255]));expect((await reader.read()).done).toBe(true);return new Response(new ReadableStream({start(c){c.enqueue(new Uint8Array([128,0]));c.close();}}),{headers:{'Content-Type':'application/octet-stream'}});}});
+ const pending=handler(input as unknown as IncomingMessage,output as unknown as ServerResponse);input.end(new Uint8Array([0,255]));await pending;expect(output.statusCode).toBe(200);expect(chunks).toEqual([new Uint8Array([128,0])]);
+});
+it('rejects configured non-HTTPS origins before opening a listener',()=>{expect(()=>createMediaHttpHandler({origin:'http://media.test',maxConnections:2,async fetch(){return new Response();}})).toThrow();});
+it('retains the configured request authority before serving authenticated requests', async () => {
+ const input=new PassThrough() as PassThrough & {method:string;url:string;headers:Record<string,string>};
+ input.method='GET';input.url='/v1/capabilities';input.headers={authorization:'Bearer secret'};
+ const output=new Writable({write(_chunk,_encoding,done){done();}}) as Writable & {writeHead:(status:number)=>void;statusCode:number};
+ output.writeHead=status=>{output.statusCode=status;};
+ const admitted=vi.fn(async(_request:Request)=>new Response());const replacement=vi.fn(async(_request:Request)=>new Response());
+ const options={origin:'https://media.test',maxConnections:1,fetch:admitted};
+ const handler=createMediaHttpHandler(options);
+ options.fetch=replacement;options.maxConnections=0;
+ input.end();await handler(input as unknown as IncomingMessage,output as unknown as ServerResponse);
+ expect(output.statusCode).toBe(200);expect(admitted).toHaveBeenCalledOnce();expect(replacement).not.toHaveBeenCalled();
+ expect(admitted.mock.calls[0]?.[0]).toBeDefined();
+});

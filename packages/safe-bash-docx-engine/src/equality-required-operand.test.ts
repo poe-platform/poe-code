@@ -1,0 +1,12 @@
+import {Volume} from "memfs";
+import {expect,it} from "vitest";
+import * as api from "./index.js";
+import {textFixture,textContext,w} from "../tests/fixtures/text.js";
+import {readPackage} from "../tests/assertions.js";
+const names=["Document","Paragraph","Run","Font","ColorFormat","ParagraphFormat","TabStops","TabStop","RGBColor","Styles","BaseStyle","CharacterStyle","ParagraphStyle","_TableStyle","_NumberingStyle","LatentStyles","_LatentStyle","Settings","Section","Comment"];
+for(const strict of [false,true])for(const name of names)for(const omitted of [false,true])
+it(`native ${name} rejects ${omitted?"omitted":"undefined"} required equality operand; strict=${strict}`,async()=>{
+ const styles=`<w:styles xmlns:w="${w}"><w:latentStyles><w:lsdException w:name="Latent"/></w:latentStyles>${[["ParagraphStyle","paragraph"],["CharacterStyle","character"],["_TableStyle","table"],["_NumberingStyle","numbering"]].map(([n,t])=>`<w:style w:type="${t}" w:styleId="${n}"><w:name w:val="${n}"/></w:style>`).join("")}</w:styles>`,input=await textFixture('<w:p><w:pPr><w:tabs><w:tab w:val="left" w:pos="720"/></w:tabs></w:pPr><w:r><w:t>Keep 日本 é עברית 🌊</w:t></w:r></w:p><w:sectPr/>',{styles:{kind:"styles",xml:styles},settings:{kind:"settings",xml:`<w:settings xmlns:w="${w}"/>`},comments:{kind:"comments",xml:`<w:comments xmlns:w="${w}"><w:comment w:id="7" w:author="Original"><w:p><w:r><w:t>Retained</w:t></w:r></w:p></w:comment></w:comments>`}},strict),d=await api.Document(input,textContext),p=d.paragraphs[0]!,font=p.runs[0]!.font,format=p.paragraph_format,s=d.styles,values:Record<string,{equals(other:unknown):boolean}>={Document:d,Paragraph:p,Run:p.runs[0]!,Font:font,ColorFormat:font.color,ParagraphFormat:format,TabStops:format.tab_stops,TabStop:format.tab_stops[0]!,RGBColor:new api.RGBColor(1,2,3),Styles:s,BaseStyle:s.at("ParagraphStyle"),CharacterStyle:s.at("CharacterStyle"),ParagraphStyle:s.at("ParagraphStyle"),_TableStyle:s.at("_TableStyle"),_NumberingStyle:s.at("_NumberingStyle"),LatentStyles:s.latent_styles,_LatentStyle:s.latent_styles.at("Latent"),Settings:d.settings,Section:d.sections[0]!,Comment:d.comments.get(7)!},v=values[name]!;
+ expect(()=>Reflect.apply(v.equals,v,omitted?[]:[undefined])).toThrowError(api.InputTypeError);
+ const memory=Volume.fromJSON({"/out":""});await d.save({async write(bytes){memory.appendFileSync("/out",bytes);}});expect(readPackage(new Uint8Array(memory.readFileSync("/out") as Buffer))).toEqual(readPackage(input));
+});

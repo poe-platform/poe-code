@@ -1,0 +1,290 @@
+{
+  "schema": 1,
+  "candidate": "e422ad06b3470477b7f9323c89289d2963a00407",
+  "preparationCommit": "591d2c20d08987bb0829ec91db7cc5cf333842ec",
+  "executionHarnessCommit": "aa7541ee437de93b6bc1f80b9861f795c1e35b1f",
+  "rawSha256": "a13c093f89e3e90c02cfc11759bed611973d6adcb20ce0444e66cc738d75d46b",
+  "archiveSha256": "bbc93c64225fb2b0f972d21a10bd963f1f10f71e8edbef669b6185be744c5e3e",
+  "rawBytes": 724099,
+  "archiveBytes": 505168,
+  "entries": [
+    {
+      "name": "REPORT.json",
+      "bytes": 22716,
+      "sha256": "3c04de10eaeab4854ade51dae81b1e95a32a683897b0a75df31c9329a7d26318"
+    },
+    {
+      "name": "AUDIT.json",
+      "bytes": 15979,
+      "sha256": "e68e5d7e6f3134f6653529ece400138a23e0acb0ec0e6850584e778119c187a2"
+    },
+    {
+      "name": "history-bindings.json",
+      "bytes": 3113,
+      "sha256": "79dc6bb1a03d28b6abc7db1bd332a495302ed813faabbc272ef1725addb66b68"
+    },
+    {
+      "name": "candidate-node22.json.gz",
+      "bytes": 52853,
+      "sha256": "36d237a2da28b87dea51ca80f41ca73267f332a934902ff746b9af254430c8ca"
+    },
+    {
+      "name": "candidate-node24.json.gz",
+      "bytes": 63961,
+      "sha256": "8dd59e96a1b8db60516b3eb05f32ae5d03bf5eb24426140dd52074c15c830d93"
+    },
+    {
+      "name": "remove-current-tap-node24.json.gz",
+      "bytes": 22654,
+      "sha256": "b31cc8bbf4727935f225b91edd403d460d574039b5312fb12b1dc2806b33e02e"
+    },
+    {
+      "name": "historical-tap-after-glob-node24.json.gz",
+      "bytes": 39815,
+      "sha256": "0d2c715708dda7cdf511f132449d8bece3b7b8543e58d4fea38c56040d9cf245"
+    },
+    {
+      "name": "historical-forced-spec-node24.json.gz",
+      "bytes": 39494,
+      "sha256": "cb14bd7932c9707a99a0a2c0cc7db8bdb2506072acbe3bbda0046db85b2a1fd3"
+    },
+    {
+      "name": "guard-controls.json.gz",
+      "bytes": 270,
+      "sha256": "63dd904f1a648cb0e29101d9a6b12ef03ef1a715412798e325d70bf319c26b67"
+    },
+    {
+      "name": "tool-guards.json.gz",
+      "bytes": 253083,
+      "sha256": "0b25fa563f6a93654d89b79de73d4a46b05d39a7f49a0f2d3aeb55b00b4ef5a0"
+    },
+    {
+      "name": "audit-attempt-01.json.gz",
+      "bytes": 6824,
+      "sha256": "4bb7f5f2be03220a6b04a45cafe1830aa3ff2bd82f26866b9dc3e435ee5644a4"
+    },
+    {
+      "name": "executed-replay.mjs",
+      "bytes": 18156,
+      "sha256": "74a6e71bf8137ae60cca21d001e0fd9c4df062dd5f36e4c792a240212a1d2f5f"
+    },
+    {
+      "name": "executed-observe.mjs",
+      "bytes": 2789,
+      "sha256": "23598f2d7ab7f8e9f2ad31a80b9ffca9a44384d4f10ab416eec0a9b1b960e84d"
+    }
+  ],
+  "verdict": "qualified-pass",
+  "canonical": [
+    {
+      "name": "candidate-node22",
+      "counts": {
+        "tests": 8,
+        "pass": 8,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "status": 0
+    },
+    {
+      "name": "candidate-node24",
+      "counts": {
+        "tests": 8,
+        "pass": 8,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "status": 0
+    }
+  ],
+  "negativeControls": [
+    {
+      "name": "remove-current-tap-node24",
+      "counts": {
+        "tests": 1,
+        "pass": 0,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "status": 1
+    },
+    {
+      "name": "historical-tap-after-glob-node24",
+      "counts": {
+        "tests": 1,
+        "pass": 0,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "status": 1,
+      "observation": "After-glob flag did not select TAP: tests still execute, local default SPEC emits 7 tests/5 pass/2 intentional failures; canonical TAP7 assertion detects mismatch. No option-parser rejection fabricated."
+    },
+    {
+      "name": "historical-forced-spec-node24",
+      "counts": {
+        "tests": 1,
+        "pass": 0,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "status": 1
+    }
+  ],
+  "originalHarnessStatus": "fail",
+  "originalHarnessPassingChecks": 23,
+  "originalHarnessTotalChecks": 28,
+  "offlineAuditChecks": 28,
+  "fixtureExecutionsRepeated": false,
+  "authorAndPrior": {
+    "authorCommit": "6bc7a360beb98264044932a838c3d8763b746d25",
+    "priorCommit": "397894e0833a84fcd86d34102548faa78e9d988d",
+    "authenticatedAuthorEntries": 31,
+    "authorRows": [
+      {
+        "name": "baseline-node22",
+        "commit": "647f42b9abf9f5abc4de3e36c74410b3bb63df3c",
+        "sha256": "4f47f4b93c5e73455059e14c64905a2e45e65dc8b10c76007b7a564a0b5d2283",
+        "inputs": 13,
+        "status": 0,
+        "counts": {
+          "tests": 8,
+          "pass": 8,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node"
+      },
+      {
+        "name": "baseline-node24",
+        "commit": "647f42b9abf9f5abc4de3e36c74410b3bb63df3c",
+        "sha256": "a0644919846f3b33d418d62a0505f90e68fa9e1426800d7f8514bfead2f1de88",
+        "inputs": 13,
+        "status": 1,
+        "counts": {
+          "tests": 8,
+          "pass": 7,
+          "fail": 1,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node"
+      },
+      {
+        "name": "candidate-node22",
+        "commit": "e422ad06b3470477b7f9323c89289d2963a00407",
+        "sha256": "4e6146a8cb1a8eca79c5627b4b8e1df85f281818af1ce991436a646c1517a96b",
+        "inputs": 13,
+        "status": 0,
+        "counts": {
+          "tests": 8,
+          "pass": 8,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node"
+      },
+      {
+        "name": "candidate-node24",
+        "commit": "e422ad06b3470477b7f9323c89289d2963a00407",
+        "sha256": "34d4c2057d6c822446484da3e5ab6193c9352a5c5ccdc07069fd7ea15b892cd2",
+        "inputs": 13,
+        "status": 0,
+        "counts": {
+          "tests": 8,
+          "pass": 8,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node"
+      }
+    ],
+    "prior": {
+      "commit": "397894e0833a84fcd86d34102548faa78e9d988d",
+      "path": "tests/integration/du-type-workflow-independent-20260827/receipts/commands/unchanged-canonical-fixture-node24.json.gz",
+      "sha256": "1282101926b5b4565bf90bf3b718a344ea0784a5c7b271ac1661d4fe65d8bac6",
+      "historicalNode24": "7/8; not rescored",
+      "receiptKeys": [
+        "name",
+        "executable",
+        "args",
+        "cwd",
+        "startedAt",
+        "finishedAt",
+        "status",
+        "signal",
+        "stdout",
+        "stderr"
+      ],
+      "status": 1,
+      "args": [
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/plugins/qualified-current-release-native-data/controls.test.ts"
+      ],
+      "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "stdoutSha256": "2256b0366229fb1849bf487b770bd231025089ef435367595814d1b25ba12b10",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "distinction": "Authenticated old/author receipt content is historical evidence only; no author score substitutes for the independently executed captures."
+  },
+  "hygiene": {
+    "ownedTypeScriptFiles": 0,
+    "ownedCanonicalTestFiles": 0,
+    "ownedAgentsCopies": 0,
+    "nativeArchivesCopied": false,
+    "note": "Only explicit JSON/gzip/.mjs/Markdown evidence; no discovery exclusions/configuration changes"
+  },
+  "harnessFiles": [
+    {
+      "path": "common.mjs",
+      "sha256": "09d6ec6894058632a768fb3a036ed53680c3c87524b27b1d8b8970ac34099e01"
+    },
+    {
+      "path": "policy.json",
+      "sha256": "6877f7f1ed87e18a7d1f21e5d05d178a9b91ae30340d5dd82df3a4865a1fbec7"
+    },
+    {
+      "path": "prepare.mjs",
+      "sha256": "ff9946d444600defb31a86669d6dcff1695f203ebbc7c545fea5d6f8117051d2"
+    },
+    {
+      "path": "replay.mjs",
+      "sha256": "dd92e7ef3532ff6fc973a06d10880246c038aea419e5c33500791c700d1ba445"
+    },
+    {
+      "path": "observe.mjs",
+      "sha256": "23598f2d7ab7f8e9f2ad31a80b9ffca9a44384d4f10ab416eec0a9b1b960e84d"
+    },
+    {
+      "path": "audit.mjs",
+      "sha256": "eda49f8df3e3d04ff62b51199f8b2227a54583b1924cd75db38b3c7b896eeeb5"
+    },
+    {
+      "path": "seal.mjs",
+      "sha256": "bc235ea85b07adfc58151b573c653b30f2e5d791b307b6903194bef777ef37dc"
+    },
+    {
+      "path": "verify.mjs",
+      "sha256": "0198d51921d12c7ab0ba5ce60300ddf3b005c0bf15c61abe26d691334da51771"
+    }
+  ]
+}

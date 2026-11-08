@@ -1,0 +1,854 @@
+{
+  "profile": "darwin-cpython-3.9.6-csvkit-2.2.0",
+  "sourceSha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+  "csvjoinSourceSha256": "197d34b3ebb611a6ac38cdbac60bb4e62df2ed16d8844d375554faf5ca7affd1",
+  "warningUtilsPath": "/Users/kjopek/Workspace/poe-code-5/out/csvjoin-user-reference/lib/python3.9/site-packages/agate/utils.py",
+  "cases": [
+    {
+      "files": {
+        "/a": "v,k\nA,x\nB,x\n",
+        "/b": "w,j\nC,x\nD,x\n"
+      },
+      "argv": [
+        "-y0",
+        "-I",
+        "-c",
+        "2,2",
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "v,k,w\nA,x,C\nA,x,D\nB,x,C\nB,x,D\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "v,k\nA,x\nB,x\n",
+        "/b": "w,j\nC,x\nD,x\n"
+      },
+      "argv": [
+        "-y0",
+        "-I",
+        "-c",
+        "2,2",
+        "--left",
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "v,k,w\nA,x,C\nA,x,D\nB,x,C\nB,x,D\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "v,k\nA,x\nB,x\n",
+        "/b": "w,j\nC,x\nD,x\n"
+      },
+      "argv": [
+        "-y0",
+        "-I",
+        "-c",
+        "2,2",
+        "--right",
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "w,j,v\nC,x,A\nC,x,B\nD,x,A\nD,x,B\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "v,k\nA,x\nB,x\n",
+        "/b": "w,j\nC,x\nD,x\n"
+      },
+      "argv": [
+        "-y0",
+        "-I",
+        "-c",
+        "2,2",
+        "--outer",
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "v,k,w,j\nA,x,C,x\nA,x,D,x\nB,x,C,x\nB,x,D,x\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "v,k\nA,x\nB,x\n",
+        "/b": "w,j\nC,x\nD,x\n"
+      },
+      "argv": [
+        "-y0",
+        "-I",
+        "-c",
+        "2,2",
+        "--outer",
+        "--left",
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "v,k,w\nA,x,C\nA,x,D\nB,x,C\nB,x,D\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "v,k\nA,x\nB,x\n",
+        "/b": "w,j\nC,x\nD,x\n"
+      },
+      "argv": [
+        "-y0",
+        "-I",
+        "-c",
+        "2,2",
+        "--outer",
+        "--right",
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "w,j,v\nC,x,A\nC,x,B\nD,x,A\nD,x,B\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "v,k\n",
+        "/b": "w,j\nC,x\n"
+      },
+      "argv": [
+        "-y0",
+        "-I",
+        "-c",
+        "2,2",
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "v,k,w\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "v,k\n",
+        "/b": "w,j\nC,x\n"
+      },
+      "argv": [
+        "-y0",
+        "-I",
+        "-c",
+        "2,2",
+        "--left",
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "v,k,w\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "v,k\n",
+        "/b": "w,j\nC,x\n"
+      },
+      "argv": [
+        "-y0",
+        "-I",
+        "-c",
+        "2,2",
+        "--right",
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "w,j,k\nC,x,\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "v,k\n",
+        "/b": "w,j\nC,x\n"
+      },
+      "argv": [
+        "-y0",
+        "-I",
+        "-c",
+        "2,2",
+        "--outer",
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "v,k,w,j\n,,C,x\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "v,k\n",
+        "/b": "w,j\nC,x\n"
+      },
+      "argv": [
+        "-y0",
+        "-I",
+        "-c",
+        "2,2",
+        "--outer",
+        "--left",
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "v,k,w\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "v,k\n",
+        "/b": "w,j\nC,x\n"
+      },
+      "argv": [
+        "-y0",
+        "-I",
+        "-c",
+        "2,2",
+        "--outer",
+        "--right",
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "w,j,k\nC,x,\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "v,k\nA,x\n",
+        "/b": "w,j\n"
+      },
+      "argv": [
+        "-y0",
+        "-I",
+        "-c",
+        "2,2",
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "v,k,j\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "v,k\nA,x\n",
+        "/b": "w,j\n"
+      },
+      "argv": [
+        "-y0",
+        "-I",
+        "-c",
+        "2,2",
+        "--left",
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "v,k,j\nA,x,\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "v,k\nA,x\n",
+        "/b": "w,j\n"
+      },
+      "argv": [
+        "-y0",
+        "-I",
+        "-c",
+        "2,2",
+        "--right",
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "w,j,v\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "v,k\nA,x\n",
+        "/b": "w,j\n"
+      },
+      "argv": [
+        "-y0",
+        "-I",
+        "-c",
+        "2,2",
+        "--outer",
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "v,k,w,j\nA,x,,\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "v,k\nA,x\n",
+        "/b": "w,j\n"
+      },
+      "argv": [
+        "-y0",
+        "-I",
+        "-c",
+        "2,2",
+        "--outer",
+        "--left",
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "v,k,j\nA,x,\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "v,k\nA,x\n",
+        "/b": "w,j\n"
+      },
+      "argv": [
+        "-y0",
+        "-I",
+        "-c",
+        "2,2",
+        "--outer",
+        "--right",
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "w,j,v\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "v,k\n",
+        "/b": "w,j\n"
+      },
+      "argv": [
+        "-y0",
+        "-I",
+        "-c",
+        "2,2",
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "v,k,j\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "v,k\n",
+        "/b": "w,j\n"
+      },
+      "argv": [
+        "-y0",
+        "-I",
+        "-c",
+        "2,2",
+        "--left",
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "v,k,j\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "v,k\n",
+        "/b": "w,j\n"
+      },
+      "argv": [
+        "-y0",
+        "-I",
+        "-c",
+        "2,2",
+        "--right",
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "w,j,k\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "v,k\n",
+        "/b": "w,j\n"
+      },
+      "argv": [
+        "-y0",
+        "-I",
+        "-c",
+        "2,2",
+        "--outer",
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "v,k,w,j\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "v,k\n",
+        "/b": "w,j\n"
+      },
+      "argv": [
+        "-y0",
+        "-I",
+        "-c",
+        "2,2",
+        "--outer",
+        "--left",
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "v,k,j\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "v,k\n",
+        "/b": "w,j\n"
+      },
+      "argv": [
+        "-y0",
+        "-I",
+        "-c",
+        "2,2",
+        "--outer",
+        "--right",
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "w,j,k\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "v,k\nA,x\nB,y\n",
+        "/b": "w,j\nC,x\nD,z\n",
+        "/c": "last,h\nE,z\nF,x\n"
+      },
+      "argv": [
+        "-y0",
+        "-I",
+        "-c",
+        "2,2,2",
+        "a",
+        "b",
+        "c"
+      ],
+      "stdin": "",
+      "stdout": "v,k,w,last\nA,x,C,F\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "v,k\nA,x\nB,y\n",
+        "/b": "w,j\nC,x\nD,z\n",
+        "/c": "last,h\nE,z\nF,x\n"
+      },
+      "argv": [
+        "-y0",
+        "-I",
+        "-c",
+        "2,2,2",
+        "--left",
+        "a",
+        "b",
+        "c"
+      ],
+      "stdin": "",
+      "stdout": "v,k,w,last\nA,x,C,F\nB,y,,\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "v,k\nA,x\nB,y\n",
+        "/b": "w,j\nC,x\nD,z\n",
+        "/c": "last,h\nE,z\nF,x\n"
+      },
+      "argv": [
+        "-y0",
+        "-I",
+        "-c",
+        "2,2,2",
+        "--right",
+        "a",
+        "b",
+        "c"
+      ],
+      "stdin": "",
+      "stdout": "last,h,w,v\nE,z,D,\nF,x,C,A\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "v,k\nA,x\nB,y\n",
+        "/b": "w,j\nC,x\nD,z\n",
+        "/c": "last,h\nE,z\nF,x\n"
+      },
+      "argv": [
+        "-y0",
+        "-I",
+        "-c",
+        "2,2,2",
+        "--outer",
+        "a",
+        "b",
+        "c"
+      ],
+      "stdin": "",
+      "stdout": "v,k,w,j,last,h\nA,x,C,x,F,x\nB,y,,,,\n,,D,z,,\n,,,,E,z\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "v,k\nA,x\n",
+        "/b": "w,j\nC,x\n"
+      },
+      "argv": [
+        "-y0",
+        "-I",
+        "-c",
+        "0",
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "",
+      "stderr": "ColumnIdentifierError: Column 0 is invalid. Columns are 1-based.\n",
+      "status": 1
+    },
+    {
+      "files": {
+        "/a": "v,k\nA,x\n",
+        "/b": "w,j\nC,x\n"
+      },
+      "argv": [
+        "-y0",
+        "-I",
+        "-c",
+        "-1",
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "",
+      "stderr": "ColumnIdentifierError: Column -1 is invalid. Columns are 1-based.\n",
+      "status": 1
+    },
+    {
+      "files": {
+        "/a": "v,k\nA,x\n",
+        "/b": "w,j\nC,x\n"
+      },
+      "argv": [
+        "-y0",
+        "-I",
+        "-c",
+        "3",
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "",
+      "stderr": "ColumnIdentifierError: Column 3 is invalid. The last column is 'k' at index 2.\n",
+      "status": 1
+    },
+    {
+      "files": {
+        "/a": "v,k\nA,x\n",
+        "/b": "w,j\nC,x\n"
+      },
+      "argv": [
+        "-y0",
+        "-I",
+        "-c",
+        "missing",
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "",
+      "stderr": "ColumnIdentifierError: Column 'missing' is invalid. It is neither an integer nor a column name. Column names are: 'v', 'k'\n",
+      "status": 1
+    },
+    {
+      "files": {
+        "/a": "v,k\nA,x\n",
+        "/b": "w,j\nC,x\n"
+      },
+      "argv": [
+        "-y0",
+        "-I",
+        "-c",
+        "2,",
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "",
+      "stderr": "ColumnIdentifierError: Column '' is invalid. It is neither an integer nor a column name. Column names are: 'w', 'j'\n",
+      "status": 1
+    },
+    {
+      "files": {
+        "/a": "v,k\nA,x\n",
+        "/b": "w,j\nC,x\n"
+      },
+      "argv": [
+        "-y0",
+        "-I",
+        "-c",
+        " 2 , 2 ",
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "v,k,w\nA,x,C\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "v,k\nA,x\n",
+        "/b": "w,j\nC,x\n"
+      },
+      "argv": [
+        "-y0",
+        "-I",
+        "-c",
+        "1-2",
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "",
+      "stderr": "ColumnIdentifierError: Column '1-2' is invalid. It is neither an integer nor a column name. Column names are: 'v', 'k'\n",
+      "status": 1
+    },
+    {
+      "files": {
+        "/a": "v,k\nA,x\n",
+        "/b": "w,j\nC,x\n"
+      },
+      "argv": [
+        "-y0",
+        "-I",
+        "-c",
+        "\u00b2",
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "",
+      "stderr": "ColumnIdentifierError: Column '\u00b2' is invalid. It is neither an integer nor a column name. Column names are: 'v', 'k'\n",
+      "status": 1
+    },
+    {
+      "files": {
+        "/a": "k,v,v2,v2_2\nx,A,B,C\n",
+        "/b": "k,v,v2\nx,D,E\n"
+      },
+      "argv": [
+        "-y0",
+        "-I",
+        "-c",
+        "k",
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "k,v,v2,v2_2,v2_3,v22\nx,A,B,C,D,E\n",
+      "stderr": "/Users/kjopek/Workspace/poe-code-5/out/csvjoin-user-reference/lib/python3.9/site-packages/agate/utils.py:288: DuplicateColumnWarning: Column name \"v2\" already exists in Table. Column will be renamed to \"v2_3\".\n  warn_duplicate_column(new_value, final_value)\n",
+      "status": 0
+    },
+    {
+      "files": {},
+      "argv": [
+        "-y0",
+        "-I",
+        "-",
+        "-"
+      ],
+      "stdin": "k,v\nx,A\n",
+      "stdout": "",
+      "stderr": "ValueError: I/O operation on closed file.\n",
+      "status": 1
+    },
+    {
+      "files": {},
+      "argv": [
+        "-y0",
+        "-c",
+        "1",
+        "--zero"
+      ],
+      "stdin": "001\n02\n03\n",
+      "stdout": "001\n2\n3\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {},
+      "argv": [
+        "-y0",
+        "-l",
+        "--add-bom"
+      ],
+      "stdin": "n\n02\n03\n",
+      "stdout": "\ufeffline_number,n\n1,2\n2,3\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "v,k\nx,x\ny,y\n",
+        "/b": "w,j\nx,x\ny,y\n"
+      },
+      "argv": [
+        "-y0",
+        "-I",
+        "-c",
+        "2,2",
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "v,k,j\nx,x,x\ny,y,y\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "v,k\nx,x\ny,y\n",
+        "/b": "w,j\nx,x\ny,y\n"
+      },
+      "argv": [
+        "-y0",
+        "-I",
+        "-c",
+        "2,2",
+        "--left",
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "v,k,j\nx,x,x\ny,y,y\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "v,k\nx,x\ny,y\n",
+        "/b": "w,j\nx,x\ny,y\n"
+      },
+      "argv": [
+        "-y0",
+        "-I",
+        "-c",
+        "2,2",
+        "--right",
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "w,j,k\nx,x,x\ny,y,y\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "v,k\nx,x\ny,y\n",
+        "/b": "w,j\nx,x\ny,y\n"
+      },
+      "argv": [
+        "-y0",
+        "-I",
+        "-c",
+        "2,2",
+        "--outer",
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "v,k,w,j\nx,x,x,x\ny,y,y,y\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "v,k\nA,1\nB,0\n",
+        "/b": "w,j\nyes,1.0\nno,0.0\n"
+      },
+      "argv": [
+        "-y0",
+        "-c",
+        "2,2",
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "v,k,j\nA,True,1.0\nB,False,0.0\n",
+      "stderr": "",
+      "status": 0
+    }
+  ],
+  "captureEnvironment": {
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "PYTHONIOENCODING": "utf-8",
+    "COLUMNS": "80",
+    "LINES": "24",
+    "PATH": "/usr/bin:/bin"
+  },
+  "stdio": "Non-TTY pipes, UTF-8 exact output bytes decoded for JSON; no inherited environment.",
+  "qualification": "45 additional observations on the secondary frozen profile only; not exhaustive compatibility."
+}

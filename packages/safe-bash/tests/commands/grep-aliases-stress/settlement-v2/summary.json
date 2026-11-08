@@ -1,0 +1,262 @@
+{
+  "classification": "fixture-v2-author-result-awaiting-independent-review",
+  "decision": "AUTHOR REPLAY PASS; independent acceptance and root public integration HOLD",
+  "candidate": "0123c83d3aae72a15621acbb29a165b97b2c6ab6",
+  "preparationCommit": "8b89c0e76dfe581ce57418b391e74ce299686af7",
+  "previousImmutableReplayCommit": "154a8d227b79e1f86566e9a98ea353239b8dddc8",
+  "previousReplayRemains": {
+    "cases": 82,
+    "pass": 80,
+    "fail": 2,
+    "unchanged": true
+  },
+  "fixture": {
+    "originalSha256": "d454002f97fa37b6546bad238feec5472774646a6bf0d766fea32c2c0c32977b",
+    "patchSha256": "9af570eb8126652e26ddd7ed1d3ac88dcad646cb822e0eca12fc89c0538aa36a",
+    "derivedSha256": "41fb87e021e9d851905e889e26beaad4a779336b787e665b21c76bbace5f8850",
+    "unchangedRemainderSha256": "f034cbd3570f36d1dc968123d5c3f8bafc72cab73687bc31ed67b85de7e9e9d5",
+    "reversibleByteExactOutsideTwoHunks": true,
+    "spans": [
+      {
+        "id": "S07",
+        "label": "borrowed-external-Shell-stdin-return-rejection-not-waived",
+        "start": 27760,
+        "originalBytes": 343,
+        "derivedBytes": 727,
+        "beforeSha256": "c38e9aa3afa7ffd8d3d4dc93fae39988d606582b92059a64bd25fb0d6e365b98",
+        "afterSha256": "57a8f1b9dd4e2fdb8e4d36a2c254f0ff7a360a643772ecf2751976062b7679f6"
+      },
+      {
+        "id": "ROOT-CONTROL",
+        "label": "public-registered-grep-reproduces-external-return-failure",
+        "start": 42699,
+        "originalBytes": 409,
+        "derivedBytes": 775,
+        "beforeSha256": "37c6b3a65db0e7c256fa2d44ce97ee5c348298dde0c334176223b52e1b0c2c2d",
+        "afterSha256": "ef8cb66ee6f517b943b517393bd2c804e502b9cda27487077aa74d5b992fe64b"
+      }
+    ]
+  },
+  "soleExpectationDeltas": [
+    {
+      "id": "S07",
+      "label": "borrowed-external-Shell-stdin-return-rejection-not-waived"
+    },
+    {
+      "id": "ROOT-CONTROL",
+      "label": "public-registered-grep-reproduces-external-return-failure"
+    }
+  ],
+  "otherCasesBytesAndAssertionsUnchanged": 80,
+  "productSourceChanges": 0,
+  "packageSha256": "62228b67ca6793544f0f4374ca00fbbb6e627f514f184d5880fd7723ccf179c6",
+  "archiveSha256": "64fac38e43ce89009e03d24b8b3dffb8425dd98a313bea4d4133d6db8030cccf",
+  "base": {
+    "cases": 77,
+    "pass": 77,
+    "fail": 0
+  },
+  "supplement": {
+    "cases": 5,
+    "pass": 5,
+    "fail": 0
+  },
+  "combined": {
+    "cases": 82,
+    "pass": 82,
+    "fail": 0
+  },
+  "originalGroups": {
+    "cases": 38,
+    "pass": 38,
+    "fail": 0
+  },
+  "correctedCases": [
+    {
+      "id": "S07",
+      "label": "borrowed-external-Shell-stdin-return-rejection-not-waived",
+      "status": "pass",
+      "details": {
+        "settlement": "rejected",
+        "rejection": {
+          "name": "Error",
+          "message": "external-return-sentinel",
+          "stack": "Error: external-return-sentinel\n    at file:///private/tmp/safe-bash-alias-settlement-v2-20260827T1655-01/physically-moved-consumer/run/holdouts.mjs:579:29\n    at observe (file:///private/tmp/safe-bash-alias-settlement-v2-20260827T1655-01/physically-moved-consumer/run/holdouts.mjs:113:15)\n    at TestContext.<anonymous> (file:///private/tmp/safe-bash-alias-settlement-v2-20260827T1655-01/physically-moved-consumer/run/holdouts.mjs:130:63)\n    at Test.runInAsyncScope (node:async_hooks:214:14)\n    at Test.run (node:internal/test_runner/test:1047:25)\n    at Test.start (node:internal/test_runner/test:944:17)\n    at TestContext.test (node:internal/test_runner/test:373:20)\n    at TestContext.<anonymous> (file:///private/tmp/safe-bash-alias-settlement-v2-20260827T1655-01/physically-moved-consumer/run/holdouts.mjs:130:26)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async Test.run (node:internal/test_runner/test:1054:7)",
+          "identicalSentinel": true
+        },
+        "returns": 1,
+        "nextCalls": 1
+      },
+      "activeWorkersAfter": 0
+    },
+    {
+      "id": "ROOT-CONTROL",
+      "label": "public-registered-grep-reproduces-external-return-failure",
+      "status": "pass",
+      "details": {
+        "settlement": "rejected",
+        "rejection": {
+          "name": "Error",
+          "message": "shared-grep-return-sentinel",
+          "stack": "Error: shared-grep-return-sentinel\n    at file:///private/tmp/safe-bash-alias-settlement-v2-20260827T1655-01/physically-moved-consumer/run/holdouts.mjs:933:29\n    at observe (file:///private/tmp/safe-bash-alias-settlement-v2-20260827T1655-01/physically-moved-consumer/run/holdouts.mjs:113:15)\n    at TestContext.<anonymous> (file:///private/tmp/safe-bash-alias-settlement-v2-20260827T1655-01/physically-moved-consumer/run/holdouts.mjs:130:63)\n    at Test.runInAsyncScope (node:async_hooks:214:14)\n    at Test.run (node:internal/test_runner/test:1047:25)\n    at Test.start (node:internal/test_runner/test:944:17)\n    at TestContext.test (node:internal/test_runner/test:373:20)\n    at TestContext.<anonymous> (file:///private/tmp/safe-bash-alias-settlement-v2-20260827T1655-01/physically-moved-consumer/run/holdouts.mjs:130:26)\n    at Test.runInAsyncScope (node:async_hooks:214:14)\n    at Test.run (node:internal/test_runner/test:1047:25)",
+          "identicalSentinel": true
+        },
+        "returns": 1,
+        "aliasesRegistered": false
+      },
+      "activeWorkersAfter": 0
+    }
+  ],
+  "controls": {
+    "negative": 8,
+    "negativeRejected": 8,
+    "positive": 2,
+    "positiveAccepted": 2,
+    "productPasses": 0,
+    "productMutants": false,
+    "firstCapture": "Process status preserved; raw assertion rows were overwritten by a process-receipt filename collision. Exact controls recaptured separately, no product retry."
+  },
+  "workers": {
+    "base": {
+      "created": 86,
+      "exited": 86,
+      "actualWorkerUrl": "file:///private/tmp/safe-bash-alias-settlement-v2-20260827T1655-01/physically-moved-consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+      "actualWorkerSha256": "bb568433f1194d957dd14d1eb8229e9733bd13cd42db7ca5f2ac77b5f739b8f7"
+    },
+    "supplement": {
+      "created": 5,
+      "exited": 5,
+      "actualWorkerUrl": "file:///private/tmp/safe-bash-alias-settlement-v2-20260827T1655-01/physically-moved-consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+      "actualWorkerSha256": "bb568433f1194d957dd14d1eb8229e9733bd13cd42db7ca5f2ac77b5f739b8f7"
+    },
+    "totalCreated": 91,
+    "totalExited": 91,
+    "active": 0,
+    "lateUnhandled": 0,
+    "verifierForcedTermination": 0
+  },
+  "processes": {
+    "base": [
+      {
+        "name": "strict-types",
+        "status": 0,
+        "signal": null,
+        "error": null
+      },
+      {
+        "name": "candidate-tests",
+        "status": 0,
+        "signal": null,
+        "error": null
+      }
+    ],
+    "supplement": [
+      {
+        "name": "strict-types",
+        "status": 0,
+        "signal": null,
+        "error": null
+      },
+      {
+        "name": "pipeline-supplement",
+        "status": 0,
+        "signal": null,
+        "error": null
+      }
+    ],
+    "forcedCleanup": false
+  },
+  "nativeProfiles": {
+    "executed": 26,
+    "bsdExact": 16,
+    "gnuExact": 0,
+    "gnuPayloadProjectionOnly": 26,
+    "stderrStripped": false,
+    "newNativeOracleExecutions": 0
+  },
+  "packageBindings": [
+    {
+      "path": "dist/index.js",
+      "sha256": "77b771a6066aa32f82b903f7a80c578132388d6d9cec9fbde15485915859df5d",
+      "actualResolvedUrl": "file:///private/tmp/safe-bash-alias-settlement-v2-20260827T1655-01/physically-moved-consumer/node_modules/virtual-bash/dist/index.js"
+    },
+    {
+      "path": "dist/commands/grep-aliases/index.js",
+      "sha256": "7ea22cf33cc164d19018bcce4c78e4e519bfc593336a7f5d22459e936e5e94ee",
+      "actualResolvedUrl": "file:///private/tmp/safe-bash-alias-settlement-v2-20260827T1655-01/physically-moved-consumer/node_modules/virtual-bash/dist/commands/grep-aliases/index.js"
+    },
+    {
+      "path": "dist/commands/grep.js",
+      "sha256": "66b0887afb752a686484da1c7d6d20e80894fe15e9a515dcbd36c8d6640ffafd",
+      "actualResolvedUrl": "file:///private/tmp/safe-bash-alias-settlement-v2-20260827T1655-01/physically-moved-consumer/node_modules/virtual-bash/dist/commands/grep.js"
+    },
+    {
+      "path": "dist/commands/regex-execution/client.js",
+      "sha256": "92416db354410d84172a13d53a2fd757d61d9979745a38bd0c297a06309e17f5",
+      "actualResolvedUrl": "file:///private/tmp/safe-bash-alias-settlement-v2-20260827T1655-01/physically-moved-consumer/node_modules/virtual-bash/dist/commands/regex-execution/client.js"
+    },
+    {
+      "path": "dist/commands/regex-execution/protocol.js",
+      "sha256": "05ead3047ea08e9ef673d0ab008e23cdb81af34e33cdd33f41a47fe6d9fbbc65",
+      "actualResolvedUrl": "file:///private/tmp/safe-bash-alias-settlement-v2-20260827T1655-01/physically-moved-consumer/node_modules/virtual-bash/dist/commands/regex-execution/protocol.js"
+    },
+    {
+      "path": "dist/commands/regex-execution/matching.js",
+      "sha256": "2f97a68fce0ab504676afe31b4c4fd5eea1edde87ffb28bea9f55c8422693791",
+      "actualResolvedUrl": "file:///private/tmp/safe-bash-alias-settlement-v2-20260827T1655-01/physically-moved-consumer/node_modules/virtual-bash/dist/commands/regex-execution/matching.js"
+    },
+    {
+      "path": "dist/commands/regex-execution/worker.js",
+      "sha256": "bb568433f1194d957dd14d1eb8229e9733bd13cd42db7ca5f2ac77b5f739b8f7",
+      "actualResolvedUrl": "file:///private/tmp/safe-bash-alias-settlement-v2-20260827T1655-01/physically-moved-consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js"
+    },
+    {
+      "path": "dist/shell/input.js",
+      "sha256": "f8b984b6fc338ff3d1ca60e10283ab100d8e62a697f4b7f8e691819c28ea7c4a",
+      "actualResolvedUrl": "file:///private/tmp/safe-bash-alias-settlement-v2-20260827T1655-01/physically-moved-consumer/node_modules/virtual-bash/dist/shell/input.js"
+    },
+    {
+      "path": "package.json",
+      "sha256": "2127bbfed020aeb7873462ae65224e6ee73069425c878aa2ceee9816b2191245",
+      "actualResolvedUrl": "file:///private/tmp/safe-bash-alias-settlement-v2-20260827T1655-01/physically-moved-consumer/node_modules/virtual-bash/package.json"
+    }
+  ],
+  "completeSourceInventory": {
+    "entries": 30613,
+    "files": 28411,
+    "symlinks": 15,
+    "sha256": "78671eef333edaacef7f1383468c57d92bac6ad124df5df093291bbe1e0ec100"
+  },
+  "completePackageInventory": {
+    "entries": 776,
+    "files": 738,
+    "symlinks": 0,
+    "sha256": "65ed138a4b9be0310000f4bb224bae49136bf0b21fcdf9b5fe4a809ca8458ac1"
+  },
+  "allGitBlobsAndAddedEntriesCheckedBeforeAfter": true,
+  "readonlyDependenciesVerifiedBeforeAfter": true,
+  "historicalSealsUnchanged": true,
+  "noNewBuildOrPackClaimed": true,
+  "reusedAuthenticatedBuildAndPack": true,
+  "strictConsumerCompilations": 2,
+  "publicAliasSubpathClaimed": false,
+  "inputs": [
+    {
+      "compiled": "run/holdouts.mjs",
+      "sha256": "d8e2504180af1e38436e5db2f0402256e2e1660c5b7c61ddd2b4f4d315092e8a"
+    },
+    {
+      "compiled": "run/public-consumer.mjs",
+      "sha256": "baeff2c9a263991783565cffd319a176d810dec2728ff3b6868931822f1d78b5"
+    },
+    {
+      "compiled": "run-supplement/pipeline-holdouts.mjs",
+      "sha256": "5e0f8d1f62f905f99a50f3c43c6e681850c2f4a90164a606fd9a97576b118fb2"
+    }
+  ],
+  "startedAt": "2026-08-27T16:52:49.371Z",
+  "endedAt": "2026-08-27T16:54:00.839Z",
+  "temporarySnapshot": "/tmp/safe-bash-alias-settlement-v2-20260827T1655-01",
+  "threadId": "01a04392-fd24-7870-a9d4-abfdce728e4d",
+  "nextAuthority": "Different reviewer inspects the two-hunk patch and this replay. Root retains Arch-v2/public-integration/73-wiring authority."
+}

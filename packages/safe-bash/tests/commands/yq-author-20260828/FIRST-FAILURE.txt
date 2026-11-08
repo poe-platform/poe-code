@@ -1,0 +1,23 @@
+TAP version 13
+# Subtest: block chomping, indentation indicators, and folded indentation
+not ok 23 - block chomping, indentation indicators, and folded indentation
+  ---
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+
+    + '"red blue\\n\\ngreen\\n  inset\\ngold"\n'
+    - '"red blue\\ngreen\\n  inset\\ngold"\n'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  ...
+1..26
+# tests 26
+# pass 25
+# fail 1
+
+This was the first run after adding the sealed B04-derived control. The fixture
+was not changed. Commit 35da18547ca82a67be9ca22b4adc21e3b8060780 fixed
+folded-scalar empty-line composition; the complete rerun is preserved in
+evidence-v4/raw/author-runtime.stdout.txt.

@@ -1,0 +1,16 @@
+[
+  { "id": "N01", "sealedRecipe": "N01", "args": ["-t"], "input": " z\t9  \nalpha  1 tail\n b\t22\n" },
+  { "id": "N03", "sealedRecipe": "N03", "args": ["-t", "-s", ",:"], "input": "a,b:c\nd::e,\n" },
+  { "id": "multiple-absent", "args": ["-t", "-s", ":"], "input": "a:b:c\nd\n" },
+  { "id": "explicit-empty", "args": ["-t", "-s", ":"], "input": "a:b:c\nd:\ne::\n" },
+  { "id": "visible-separator", "args": ["-t", "-s", ":", "-o", "|"], "input": "a:b:c\nd\n" },
+  { "id": "empty-separator", "args": ["-t", "-s", ":", "-o", ""], "input": "a:b:c\nd\n" },
+  { "id": "multibyte-separator", "args": ["-t", "-s", ":", "-o", "界·"], "input": "a:b:c\nd\n" },
+  { "id": "zero-empty-cells", "args": ["-t", "-s", ":", "-o", ""], "input": "::\nx\n" },
+  { "id": "zero-width-cells", "args": ["-t", "-s", ":", "-o", ""], "input": "a:́:́\nx\n" },
+  { "id": "empty-middle", "args": ["-t", "-s", ":"], "input": "x::z\ny\n" },
+  { "id": "selected-wide-cell", "args": ["-t", "-s", ":"], "input": "界:a:b\nx\n" },
+  { "id": "narrow-table-width", "args": ["-t", "-c", "1"], "input": "a b c\nx\n" },
+  { "id": "fill-down-unchanged", "args": ["-c", "16"], "input": "a\nb\nc\nd\ne\n" },
+  { "id": "fill-across-unchanged", "args": ["-x", "-c", "16"], "input": "a\nb\nc\nd\ne\n" }
+]

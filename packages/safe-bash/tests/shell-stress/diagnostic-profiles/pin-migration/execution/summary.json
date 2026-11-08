@@ -1,0 +1,230 @@
+{
+  "candidate": "e192662d2fda90104ab5a7e59c9b5c88bf5838c3",
+  "startedAt": "2026-08-27T12:06:51.271Z",
+  "finishedAt": "2026-08-27T12:07:39.071Z",
+  "failure": {
+    "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    cancelled: 0,\n+   fail: 3,\n+   pass: 3,\n-   fail: 0,\n-   pass: 6,\n    skipped: 0,\n    tests: 6,\n    todo: 0\n  }\n",
+    "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    cancelled: 0,\n+   fail: 3,\n+   pass: 3,\n-   fail: 0,\n-   pass: 6,\n    skipped: 0,\n    tests: 6,\n    todo: 0\n  }\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/shell-stress/diagnostic-profiles/pin-migration/run.mjs:132:10\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)"
+  },
+  "runs": [
+    {
+      "label": "primary-5.3",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/shell-stress/diagnostic-profiles/compatibility.test.ts"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-oGyQdU/source",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-oGyQdU/tmp",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-oGyQdU/tmp",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "TSX_DISABLE_CACHE": "1",
+        "VIRTUAL_BASH_DIAGNOSTIC_PROFILE": "primary-5.3"
+      },
+      "timeout": 240000,
+      "maxBuffer": 16777216,
+      "pid": 14839,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 21529,
+      "counts": {
+        "tests": 89,
+        "pass": 89,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "cohortCounts": {
+        "original-differential": {
+          "tests": 72,
+          "pass": 72,
+          "fail": 0
+        },
+        "original-syntax": {
+          "tests": 5,
+          "pass": 5,
+          "fail": 0
+        },
+        "current-gaps": {
+          "tests": 11,
+          "pass": 11,
+          "fail": 0
+        },
+        "identity": {
+          "tests": 1,
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "hookFailures": 0,
+      "failures": [],
+      "stdoutSha256": "f2b3b19ae34304900c430149411d98cf27c6f2e81ecd693f61d66fd28fa233a3",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "processGroupClosed": true
+    },
+    {
+      "label": "historical-3.2",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/shell-stress/diagnostic-profiles/compatibility.test.ts"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-oGyQdU/source",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-oGyQdU/tmp",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-oGyQdU/tmp",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "TSX_DISABLE_CACHE": "1",
+        "VIRTUAL_BASH_DIAGNOSTIC_PROFILE": "historical-3.2"
+      },
+      "timeout": 240000,
+      "maxBuffer": 16777216,
+      "pid": 15376,
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 20862,
+      "counts": {
+        "tests": 89,
+        "pass": 75,
+        "fail": 14,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "cohortCounts": {
+        "original-differential": {
+          "tests": 72,
+          "pass": 67,
+          "fail": 5
+        },
+        "original-syntax": {
+          "tests": 5,
+          "pass": 0,
+          "fail": 5
+        },
+        "current-gaps": {
+          "tests": 11,
+          "pass": 7,
+          "fail": 4
+        },
+        "identity": {
+          "tests": 1,
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "hookFailures": 0,
+      "failures": [
+        "historical-3.2: original-differential: nested-substitution-syntax-error-does-not-prevent-earlier-effects",
+        "historical-3.2: original-differential: fatal-parameter-expansion-prevents-following-file-effect",
+        "historical-3.2: original-differential: fatal-arithmetic-expansion-prevents-following-file-effect",
+        "historical-3.2: original-differential: fatal-expansion-in-substitution-stops-substitution-only",
+        "historical-3.2: original-differential: command-substitution-removes-nul-bytes",
+        "historical-3.2: original-syntax: unterminated-quote-after-write",
+        "historical-3.2: original-syntax: missing-pipeline-command-after-write",
+        "historical-3.2: original-syntax: missing-conditional-operand-after-write",
+        "historical-3.2: original-syntax: missing-group-terminator-after-write",
+        "historical-3.2: original-syntax: missing-if-fi-after-write",
+        "historical-3.2: current-gaps: move-output-really-closes-source",
+        "historical-3.2: current-gaps: move-input-really-closes-source",
+        "historical-3.2: current-gaps: prevalidation-prior-output-and-file",
+        "historical-3.2: current-gaps: fatal-parameter-preserves-only-earlier-effects"
+      ],
+      "stdoutSha256": "b45b54efca835d3ee350e0713957dfc34f2562f72abf2f7d4030a9628767e4d1",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "processGroupClosed": true
+    },
+    {
+      "label": "binding-controls",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/shell-stress/diagnostic-profiles/pin-migration/binding.test.ts"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-oGyQdU/tmp",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-oGyQdU/tmp",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "TSX_DISABLE_CACHE": "1",
+        "TSX_TSCONFIG_PATH": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-oGyQdU/source/tsconfig.json"
+      },
+      "timeout": 240000,
+      "maxBuffer": 16777216,
+      "pid": 15948,
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 237,
+      "counts": {
+        "tests": 6,
+        "pass": 3,
+        "fail": 3,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "cohortCounts": {
+        "original-differential": {
+          "tests": 0,
+          "pass": 0,
+          "fail": 0
+        },
+        "original-syntax": {
+          "tests": 0,
+          "pass": 0,
+          "fail": 0
+        },
+        "current-gaps": {
+          "tests": 0,
+          "pass": 0,
+          "fail": 0
+        },
+        "identity": {
+          "tests": 0,
+          "pass": 0,
+          "fail": 0
+        }
+      },
+      "hookFailures": 0,
+      "failures": [
+        "changed driver rejected before case effects: tests/shell-stress/differential.test.ts",
+        "changed driver rejected before case effects: tests/shell-stress/current-gaps/compatibility.test.ts",
+        "unchanged fixture pin still rejects mutation"
+      ],
+      "stdoutSha256": "b33251225a02501cbf8431693f5d18d786324515ea5dc7736a9c58e68ceb9694",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "processGroupClosed": true
+    }
+  ],
+  "cleanup": {
+    "scratch": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-oGyQdU",
+    "removed": true,
+    "runnerGroupsClosed": true,
+    "nativeAndVirtualChildrenUseOriginalBoundedIsolatedSpawn": true
+  },
+  "authorValidationOnly": true,
+  "independentAcceptance": false
+}

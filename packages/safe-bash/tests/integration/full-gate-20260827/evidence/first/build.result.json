@@ -1,0 +1,40 @@
+{
+  "executable": "npm",
+  "args": [
+    "run",
+    "build"
+  ],
+  "cwd": "/private/tmp/full-gate-execution-1tkDXu/source",
+  "pid": 95617,
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 2027,
+  "timeoutMs": 180000,
+  "outputBytes": 58,
+  "observed": [
+    {
+      "pid": 95617,
+      "parent": 94682,
+      "group": 95617,
+      "born": "Thu Aug 27 00:41:40 2026",
+      "command": "npm"
+    },
+    {
+      "pid": 95630,
+      "parent": 95617,
+      "group": 95617,
+      "born": "Thu Aug 27 00:41:40 2026",
+      "command": "node /private/tmp/full-gate-execution-1tkDXu/source/node_modules/typescript/bin/tsc -p tsconfig.build.json"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "label": "build",
+  "sourceChanges": []
+}

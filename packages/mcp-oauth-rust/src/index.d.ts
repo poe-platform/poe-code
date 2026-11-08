@@ -1,0 +1,407 @@
+import type { CreateSecretStoreInput, SecretStoreLockOptions } from "./auth-store-types.js";
+export declare function snapshotOAuthPersistenceOptions(
+  options: CreateSecretStoreInput
+): CreateSecretStoreInput;
+export type OAuthTokenEndpointAuthMethod = "none" | "client_secret_post" | "client_secret_basic";
+export interface StoredOAuthTokens {
+  accessToken: string;
+  refreshToken?: string;
+  tokenType: "Bearer";
+  expiresAt: number | null;
+  scope?: string;
+}
+export interface StoredOAuthSession {
+  resource: string;
+  authorizationServer: string;
+  client: StoredOAuthClient;
+  tokens?: StoredOAuthTokens;
+  refreshState?: "pending";
+  requestedScope?: string;
+  discovery: {
+    resourceMetadataUrl: string;
+    resourceMetadata: Record<string, unknown>;
+    authorizationServerMetadata: Record<string, unknown>;
+  };
+}
+export interface OAuthSessionStore {
+  load(resource: string): Promise<StoredOAuthSession | null>;
+  save(resource: string, session: StoredOAuthSession): Promise<void>;
+  clear(resource: string): Promise<void>;
+  withLock?<T>(
+    resource: string,
+    operation: () => Promise<T>,
+    options: { signal?: AbortSignal; timeoutMs: number }
+  ): Promise<T>;
+}
+export type OAuthMetadataFetch = (input: string | URL, init?: RequestInit) => Promise<Response>;
+export interface OAuthProtectedResourceMetadata extends Record<string, unknown> {
+  resource: string;
+  authorization_servers: string[];
+}
+export interface OAuthAuthorizationServerMetadata extends Record<string, unknown> {
+  issuer: string;
+  authorization_endpoint: string;
+  token_endpoint: string;
+  registration_endpoint?: string;
+  response_types_supported: string[];
+  code_challenge_methods_supported: string[];
+  authorization_response_iss_parameter_supported?: boolean;
+}
+export interface OAuthDiscoveryResult {
+  resource: string;
+  resourceMetadataUrl: string;
+  resourceMetadata: OAuthProtectedResourceMetadata;
+  authorizationServer: string;
+  authorizationServerMetadataUrl: string;
+  authorizationServerMetadata: OAuthAuthorizationServerMetadata;
+}
+export interface OAuthUnauthorizedChallenge {
+  scheme: "Bearer";
+  params: Record<string, string>;
+  raw: string;
+}
+export interface OAuthClientMetadata {
+  clientName?: string;
+  scope?: string;
+  softwareId?: string;
+  softwareVersion?: string;
+}
+export interface OAuthClientProvider {
+  authenticate?(input: {
+    requestUrl: URL;
+    fetch: OAuthMetadataFetch;
+    discover?: () => Promise<OAuthDiscoveryResult>;
+    signal?: AbortSignal;
+  }): Promise<StoredOAuthTokens | void>;
+  authorizeRequest?(input: {
+    requestUrl: URL;
+    headers: Headers;
+    fetch: OAuthMetadataFetch;
+    signal?: AbortSignal;
+  }): Promise<StoredOAuthTokens | void> | StoredOAuthTokens | void;
+  handleUnauthorized(input: {
+    requestUrl: URL;
+    response: Response;
+    challenge: OAuthUnauthorizedChallenge | null;
+    discovery?: OAuthDiscoveryResult;
+    discover?: () => Promise<OAuthDiscoveryResult>;
+    requestHeaders?: Headers;
+    presentedTokens?: StoredOAuthTokens | null;
+    fetch: OAuthMetadataFetch;
+    signal?: AbortSignal;
+  }):
+    | Promise<{ action: "retry" } | { action: "fail"; error?: Error }>
+    | { action: "retry" }
+    | { action: "fail"; error?: Error };
+}
+export interface DefaultOAuthClientProviderOptions {
+  resourceIdentity?: string;
+  client:
+    | {
+        mode: "dynamic";
+        clientId?: string;
+        clientSecret?: string;
+        metadata?: OAuthClientMetadata;
+        registration?: OAuthClientRegistration;
+        tokenEndpointAuthMethod?: OAuthTokenEndpointAuthMethod;
+      }
+    | {
+        mode: "static";
+        clientId: string;
+        clientSecret?: string;
+        metadata?: OAuthClientMetadata;
+        registration?: OAuthClientRegistration;
+        tokenEndpointAuthMethod?: OAuthTokenEndpointAuthMethod;
+      };
+  allowInteractive?: boolean;
+  sessionLockTimeoutMs?: number;
+  persistenceNamespace?: string;
+  initialGrant?: {
+    resource: string;
+    tokens: ImportedOAuthTokens;
+  };
+  browser: LoopbackAuthorizationOptions;
+  sessionStore?: OAuthSessionStore;
+  authStore?: CreateSecretStoreInput;
+  now?: () => number;
+}
+export type OAuthClientProviderOptions =
+  { provider: OAuthClientProvider } | DefaultOAuthClientProviderOptions;
+export declare function createOAuthClientProvider(
+  options: OAuthClientProviderOptions
+): OAuthClientProvider;
+export declare function createDefaultOAuthClientProvider(
+  options: DefaultOAuthClientProviderOptions
+): OAuthClientProvider;
+export interface JwksTokenVerifierOptions {
+  jwksUrl: string | URL;
+  clockSkewSeconds?: number;
+  allowedAlgorithms?: readonly string[];
+  jwksCacheTtlMs?: number;
+  jwksFetchTimeoutMs?: number;
+  jwksRefreshCooldownMs?: number;
+  allowInsecureJwks?: boolean;
+  requireAccessTokenType?: boolean;
+  fetch?: typeof fetch;
+}
+export interface JwksVerifiedAccessToken {
+  token: string;
+  issuer: string;
+  audience: string[];
+  scopes: string[];
+  expiresAt: number;
+  claims: Record<string, unknown>;
+  subject?: string;
+  clientId?: string;
+}
+export interface JwksTokenVerifier {
+  verify(input: {
+    token: string;
+    resource: string;
+    authorizationServers: readonly string[];
+    requiredScopes: readonly string[];
+  }): Promise<JwksVerifiedAccessToken>;
+}
+export declare function createJwksTokenVerifier(
+  options: JwksTokenVerifierOptions
+): JwksTokenVerifier;
+export declare function createAuthStoreSessionStore(
+  options?: CreateSecretStoreInput,
+  namespace?: string
+): OAuthSessionStore;
+export declare function canonicalizeResourceIndicator(value: string | URL): string;
+export declare function generateCodeVerifier(): string;
+export declare function generateCodeChallenge(verifier: string): string;
+export declare class OAuthError extends Error {
+  readonly error: string;
+  readonly errorDescription: string | undefined;
+  readonly errorUri: string | undefined;
+  readonly error_description: string | undefined;
+  readonly error_uri: string | undefined;
+  readonly status: number;
+  readonly retryable: boolean;
+  readonly terminal: boolean;
+  readonly outcomeKnown: boolean;
+  constructor(
+    shape: { error: string; error_description?: string; error_uri?: string },
+    status: number,
+    outcomeKnown?: boolean
+  );
+}
+export declare function isRetryableOAuthError(error: unknown): error is OAuthError;
+export interface OAuthLandingPage {
+  title: string;
+  body: string;
+}
+export interface LoopbackAuthorizationOptions {
+  /** Return the full hosted HTTPS callback URL for client validation. */
+  waitForCallback?: (request: { authorizationUrl: string; redirectUri: string; signal: AbortSignal }) => Promise<string>;
+  openBrowser?: (url: string) => Promise<void>;
+  readLine?: () => Promise<string>;
+  createServer?: () => import("node:http").Server;
+  landingPage?: OAuthLandingPage;
+  callbackPath?: string;
+  redirectUri?: string;
+  signal?: AbortSignal;
+  /** Bounds listener setup and authorization; defaults to Infinity (unlimited). */
+  timeoutMs?: number;
+}
+export interface LoopbackAuthorizationSession {
+  redirectUri: string;
+  waitForCode(authorizationUrl: string): Promise<string>;
+  close(): void;
+}
+export declare function buildSuccessPage(landingPage?: OAuthLandingPage): string;
+export declare function extractCodeFromInput(input: string): string | null;
+export declare class OAuthAuthorizationError extends Error {
+  readonly error: string;
+  readonly errorDescription: string;
+  constructor(error: string, errorDescription: string);
+  static is(value: unknown): value is OAuthAuthorizationError;
+}
+export declare function createLoopbackAuthorizationSession(
+  options?: LoopbackAuthorizationOptions
+): Promise<LoopbackAuthorizationSession>;
+export declare function fetchMcpResponse(
+  fetchImplementation: (input: string | URL, init?: RequestInit) => Promise<Response>,
+  input: string | URL,
+  init?: RequestInit
+): Promise<Response>;
+export declare function readBoundedResponseText(
+  response: Response,
+  maxBytes: number,
+  readers?: Set<ReadableStreamDefaultReader<Uint8Array>>,
+  signal?: AbortSignal
+): Promise<string>;
+
+export interface OAuthClientRegistration extends Record<string, unknown> {
+  client_id: string;
+  client_secret?: string | null;
+  redirect_uris?: string[] | null;
+  grant_types?: string[] | null;
+  response_types?: string[] | null;
+  contacts?: string[] | null;
+  client_id_issued_at?: number | null;
+  client_secret_expires_at?: number | null;
+  token_endpoint_auth_method?: string | null;
+}
+export declare function parseOAuthClientRegistration(value: unknown): OAuthClientRegistration;
+
+export interface StoredOAuthClient {
+  registrationOwnership?: "caller";
+  requestedRedirectUri?: string;
+  clientId: string;
+  clientSecret?: string;
+  registration?: OAuthClientRegistration;
+  tokenEndpointAuthMethod?: OAuthTokenEndpointAuthMethod;
+}
+export declare function normalizeStoredOAuthClient(value: unknown): StoredOAuthClient | null;
+
+export declare function withOAuthSessionTransaction<T>(
+  store: OAuthSessionStore,
+  resource: string,
+  operation: () => Promise<T>,
+  options?: { signal?: AbortSignal; timeoutMs?: number }
+): Promise<T>;
+
+export interface OAuthTokenGrantImportOptions {
+  readonly expiresAt?: number | null;
+  readonly issuedAt?: number;
+  readonly now?: () => number;
+}
+export declare function parseOAuthTokenGrant(
+  value: unknown,
+  options?: OAuthTokenGrantImportOptions
+): StoredOAuthTokens;
+
+export interface ResourceBoundOAuthStores {
+  importSession(
+    session: StoredOAuthSession,
+    options?: { signal?: AbortSignal; timeoutMs?: number }
+  ): Promise<void>;
+  readonly sessionStore: OAuthSessionStore;
+  readonly clientStore: {
+    load(issuer: string): Promise<StoredOAuthClient | null>;
+    save(issuer: string, client: StoredOAuthClient): Promise<void>;
+    clear(issuer: string): Promise<void>;
+  };
+  readonly initialGrantAllowed: boolean;
+  reset(resource: string, options?: { signal?: AbortSignal; timeoutMs?: number }): Promise<void>;
+}
+export declare function createResourceBoundOAuthStores(
+  options: CreateSecretStoreInput,
+  namespace: string | undefined,
+  identity: string
+): ResourceBoundOAuthStores;
+
+export interface ImportedOAuthTokens extends Omit<StoredOAuthTokens, "expiresAt"> {
+  expiresAt?: number | null;
+  expiresIn?: number;
+  issuedAt?: number;
+}
+export declare function normalizeOAuthScope(value: unknown): string | undefined;
+export declare function waitForOAuthOperation<T>(
+  operation: Promise<T>,
+  signal?: AbortSignal
+): Promise<T>;
+
+
+
+/** Sensitive, JSON-serializable record. Store only in private, authenticated host storage. */
+export interface RemoteMcpAuthorizationTransaction {
+  readonly state: string;
+  readonly expiresAt: number;
+  readonly redirectUri: string;
+  readonly codeVerifier: string;
+  readonly requireIssuer: boolean;
+  readonly session: StoredOAuthSession;
+}
+
+
+/** Bind each store instance to the authenticated user and logical server. */
+export interface RemoteMcpAuthorizationStore {
+  /** Atomically insert a unique state and capture the current credential generation. Never overwrite a state. */
+  create(transaction: RemoteMcpAuthorizationTransaction): Promise<void>;
+  /** Atomically remove/mark consumed, returning at most once across all workers. Preserve the commit fence. */
+  consume(state: string): Promise<RemoteMcpAuthorizationTransaction | null>;
+  /** Atomically persist only if the consumed transaction's generation is still current.
+   * Reset, deletion, reconfiguration and a superseding grant must invalidate the fence.
+   * Return false if stale. Never implement as an unconditional credential save.
+   */
+  commit(transaction: RemoteMcpAuthorizationTransaction, session: StoredOAuthSession): Promise<boolean>;
+}
+
+
+export interface PrepareRemoteMcpAuthorizationOptions {
+  readonly resource: string;
+  readonly redirectUri: string;
+  readonly client: StoredOAuthClient;
+  readonly scope?: string;
+  readonly statePrefix?: string;
+  /** Host-validated discovery, including issuer trust and network policy. No implicit network access. */
+  readonly discover: (resource: string, signal?: AbortSignal) => Promise<OAuthDiscoveryResult>;
+  readonly signal?: AbortSignal;
+  readonly now?: () => number;
+  /** Transaction lifetime, at most ten minutes. */
+  readonly ttlMs?: number;
+}
+
+export interface BeginRemoteMcpAuthorizationOptions extends PrepareRemoteMcpAuthorizationOptions {
+  readonly store: RemoteMcpAuthorizationStore;
+}
+export declare function prepareRemoteMcpAuthorization(options: PrepareRemoteMcpAuthorizationOptions): Promise<{ authorizationUrl: string; transaction: RemoteMcpAuthorizationTransaction }>;
+
+export interface CompleteRemoteMcpAuthorizationOptions {
+  readonly callbackUrl: string;
+  readonly store: RemoteMcpAuthorizationStore;
+  /** Required host network policy. Redirects are rejected, including at the token endpoint. */
+  readonly fetch: OAuthMetadataFetch;
+  readonly signal?: AbortSignal;
+  readonly now?: () => number;
+}
+
+export declare function beginRemoteMcpAuthorization(options: BeginRemoteMcpAuthorizationOptions): Promise<{ authorizationUrl: string; expiresAt: number }>;
+export declare function completeRemoteMcpAuthorization(options: CompleteRemoteMcpAuthorizationOptions): Promise<{ resource: string }>;
+
+interface OAuthTokenRequestOptions {
+  tokenEndpoint: string;
+  clientId: string;
+  clientSecret?: string;
+  tokenEndpointAuthMethod?: OAuthTokenEndpointAuthMethod;
+  resource: string;
+  fetch: OAuthMetadataFetch;
+  signal?: AbortSignal;
+  now: () => number;
+}
+export declare function exchangeAuthorizationCode(input: OAuthTokenRequestOptions & {
+  code: string; codeVerifier: string; redirectUri: string;
+}): Promise<StoredOAuthTokens>;
+export declare function refreshAccessToken(input: OAuthTokenRequestOptions & {
+  refreshToken: string;
+}): Promise<StoredOAuthTokens>;
+export declare function revokeOAuthToken(input: {
+  revocationEndpoint: string;
+  clientId: string;
+  clientSecret?: string;
+  tokenEndpointAuthMethod?: OAuthTokenEndpointAuthMethod;
+  token: string;
+  tokenTypeHint?: "access_token" | "refresh_token";
+  fetch: OAuthMetadataFetch;
+  signal?: AbortSignal;
+}): Promise<void>;
+
+export type RegisterOAuthClientOptions = {
+  registrationEndpoint: string;
+  metadata?: OAuthClientMetadata;
+  tokenEndpointAuthMethod?: OAuthTokenEndpointAuthMethod;
+  fetch: OAuthMetadataFetch;
+  signal?: AbortSignal;
+} & (
+  | { redirectUri: string; redirectUris?: never }
+  | {
+      redirectUri?: never;
+      /** One to 32 distinct redirects, transmitted exactly as supplied. */
+      redirectUris: readonly string[];
+    }
+);
+export declare function registerOAuthClient(input: RegisterOAuthClientOptions): Promise<OAuthClientRegistration>;

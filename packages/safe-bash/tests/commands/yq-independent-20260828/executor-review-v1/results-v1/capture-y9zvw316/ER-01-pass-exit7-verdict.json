@@ -1,0 +1,9 @@
+{
+  "family": "ER-01",
+  "name": "pass-exit7",
+  "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+  "outcome": "CONTROL_PASS",
+  "failure": null,
+  "input": "ER-01-pass-exit7-input.json",
+  "raw": "ER-01-pass-exit7-raw.json"
+}

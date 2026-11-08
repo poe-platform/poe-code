@@ -1,0 +1,7 @@
+{"seq":1,"at":22402,"kind":"case-entry","detail":"","attemptId":0}
+{"seq":2,"at":31082,"kind":"attempt","detail":"","attemptId":1}
+{"seq":3,"at":31815,"kind":"execute-settled","detail":"rejected","attemptId":1}
+{"seq":4,"at":32027,"kind":"close-settled","detail":"session:rejected","attemptId":1}
+{"seq":5,"at":32095,"kind":"close-settled","detail":"root:rejected","attemptId":1}
+{"seq":6,"at":32210,"kind":"owner-retired","detail":"","attemptId":1}
+{"seq":7,"at":32272,"kind":"receipt-publication","detail":"","attemptId":1}

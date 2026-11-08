@@ -1,0 +1,12 @@
+{
+  "control": "timeout",
+  "outcome": "unexpected-control-failure",
+  "error": {
+    "name": "AssertionError",
+    "code": "ERR_ASSERTION",
+    "message": "Expected values to be strictly equal:\n\nnull !== 'SIGTERM'\n",
+    "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\nnull !== 'SIGTERM'\n\n    at controlRun (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.1/recipe/coordinator.mjs:219:16)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.1/recipe/coordinator.mjs:249:15",
+    "process": null
+  },
+  "productPass": false
+}

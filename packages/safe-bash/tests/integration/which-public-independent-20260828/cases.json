@@ -1,0 +1,331 @@
+{
+  "version": 1,
+  "classification": "Independent public77 pre-wiring fixture freeze; future public candidate NOT YET BOUND",
+  "publicCandidate": null,
+  "rootPolicy": "Root-approved WHICH public integration: three factories/two types, aggregate which Omit replace, top-level replace wins; preserve fixed76 gate separately",
+  "moduleCandidate": "0902f3c541c8e9a79771f55cb5c9b78c6b6eb09b",
+  "moduleReview": "ea7e6cf31636779226455c89b09a617e7b5459a0",
+  "amendedB18Qualification": "c40bc5fa2716ba59f20cbda73e74737f5310258e",
+  "moduleOriginal": "25/26 source and moved retained; only amended B18 replayed1/1 each",
+  "layouts": [
+    "installed",
+    "moved"
+  ],
+  "factories": [
+    "createWhichCommand",
+    "createWhichCommands",
+    "whichCommands"
+  ],
+  "types": [
+    "WhichCommandsOptions",
+    "WhichLimits"
+  ],
+  "imports": [
+    "virtual-bash",
+    "virtual-bash/commands/which"
+  ],
+  "expected76": [
+    "[",
+    "awk",
+    "base32",
+    "base64",
+    "basename",
+    "cat",
+    "chmod",
+    "cksum",
+    "column",
+    "comm",
+    "cp",
+    "cut",
+    "date",
+    "diff",
+    "dirname",
+    "du",
+    "echo",
+    "egrep",
+    "env",
+    "expand",
+    "expr",
+    "false",
+    "fgrep",
+    "file",
+    "find",
+    "fold",
+    "grep",
+    "gunzip",
+    "gzip",
+    "head",
+    "html-to-markdown",
+    "join",
+    "jq",
+    "ln",
+    "ls",
+    "md5sum",
+    "mkdir",
+    "mktemp",
+    "mv",
+    "nl",
+    "od",
+    "paste",
+    "patch",
+    "printenv",
+    "printf",
+    "pwd",
+    "readlink",
+    "realpath",
+    "rev",
+    "rg",
+    "rm",
+    "rmdir",
+    "sed",
+    "seq",
+    "sha1sum",
+    "sha256sum",
+    "sleep",
+    "sort",
+    "split",
+    "stat",
+    "strings",
+    "tac",
+    "tail",
+    "tar",
+    "tee",
+    "test",
+    "touch",
+    "tr",
+    "tree",
+    "true",
+    "unexpand",
+    "uniq",
+    "wc",
+    "xargs",
+    "xxd",
+    "zcat"
+  ],
+  "expected77": [
+    "[",
+    "awk",
+    "base32",
+    "base64",
+    "basename",
+    "cat",
+    "chmod",
+    "cksum",
+    "column",
+    "comm",
+    "cp",
+    "cut",
+    "date",
+    "diff",
+    "dirname",
+    "du",
+    "echo",
+    "egrep",
+    "env",
+    "expand",
+    "expr",
+    "false",
+    "fgrep",
+    "file",
+    "find",
+    "fold",
+    "grep",
+    "gunzip",
+    "gzip",
+    "head",
+    "html-to-markdown",
+    "join",
+    "jq",
+    "ln",
+    "ls",
+    "md5sum",
+    "mkdir",
+    "mktemp",
+    "mv",
+    "nl",
+    "od",
+    "paste",
+    "patch",
+    "printenv",
+    "printf",
+    "pwd",
+    "readlink",
+    "realpath",
+    "rev",
+    "rg",
+    "rm",
+    "rmdir",
+    "sed",
+    "seq",
+    "sha1sum",
+    "sha256sum",
+    "sleep",
+    "sort",
+    "split",
+    "stat",
+    "strings",
+    "tac",
+    "tail",
+    "tar",
+    "tee",
+    "test",
+    "touch",
+    "tr",
+    "tree",
+    "true",
+    "unexpand",
+    "uniq",
+    "wc",
+    "which",
+    "xargs",
+    "xxd",
+    "zcat"
+  ],
+  "expected76Provenance": {
+    "file": "tests/plugins/agent-commands.test.ts",
+    "sha256": "545abe3256596949f0c6e0bf4aac0d218b425cf0bd568187430ae2366df9dd92",
+    "observation": "read-only source fixture extraction, not an executed76 or77 cohort"
+  },
+  "families": {
+    "runtime": 18,
+    "types": 4,
+    "total": 22
+  },
+  "cases": [
+    {
+      "id": "R01",
+      "name": "Actual root/subpath exports and installed artifact boundary",
+      "binding": "three identical factories; compiled paths inside authenticated package; no src; zero runtime deps; subpath import/types entries",
+      "stage": "runtime"
+    },
+    {
+      "id": "R02",
+      "name": "Public singular/plural factory functionality",
+      "binding": "root and subpath definitions execute virtual discovery, not name-only registration",
+      "stage": "runtime"
+    },
+    {
+      "id": "R03",
+      "name": "Exact77 aggregate membership",
+      "binding": "definitions and plugin registry equal preserved76 plus which, no duplicates",
+      "stage": "runtime"
+    },
+    {
+      "id": "R04",
+      "name": "Builtin/optional boundaries",
+      "binding": "getopts remains builtin outside registry; curl and safejs absent; no optional network/runtime autoenable",
+      "stage": "runtime"
+    },
+    {
+      "id": "R05",
+      "name": "Standalone family plugin",
+      "binding": "root and subpath whichCommands install only which",
+      "stage": "runtime"
+    },
+    {
+      "id": "R06",
+      "name": "Atomic aggregate collision preflight",
+      "binding": "existing which collision prevents all registration and preserves custom handler",
+      "stage": "runtime"
+    },
+    {
+      "id": "R07",
+      "name": "Top-level replacement authority",
+      "binding": "top-level false rejects nested true; top-level true replaces despite nested false; deliberate untyped JS extra field, TS forbids nested replace",
+      "stage": "runtime"
+    },
+    {
+      "id": "R08",
+      "name": "Aggregate limits propagated",
+      "binding": "maxProbes1 reaches which through definitions/plugin; first hit survives then status1 and exact diagnostic",
+      "stage": "runtime"
+    },
+    {
+      "id": "R09",
+      "name": "Invalid config admits no partial registry",
+      "binding": "invalid which maxProbes fails eagerly at setup/createDefinitions with exact RangeError",
+      "stage": "runtime"
+    },
+    {
+      "id": "R10",
+      "name": "Actual readonly delegated X_OK",
+      "binding": "regular stat then access1 through ReadOnly(Memory) despite permissionsfalse; no content/mutation/entry effects",
+      "stage": "runtime"
+    },
+    {
+      "id": "R11",
+      "name": "Public FsError identity and authority",
+      "binding": "access EACCES is quiet miss; ENOTSUP is exact diagnostic1, no mode/capability fallback",
+      "stage": "runtime"
+    },
+    {
+      "id": "R12",
+      "name": "Nested aggregate executor fallback",
+      "binding": "env invokes which without CommandContext.invoke for definitions and plugin hosts",
+      "stage": "runtime"
+    },
+    {
+      "id": "R13",
+      "name": "No host/registry executable fallback",
+      "binding": "virtual missing paths do not find sh/pwd/registry-only; absent PATH suppresses explicit-slash probe",
+      "stage": "runtime"
+    },
+    {
+      "id": "R14",
+      "name": "Actual public Shell flows",
+      "binding": "prefix PATH isolation, redirect bytes, literal invocation cwd/env, head pipe and following command, live caller",
+      "stage": "runtime"
+    },
+    {
+      "id": "R15",
+      "name": "Cancellation propagation",
+      "binding": "direct public factory preabort admits no metadata; abort after successful stat prevents access/output; exact object/zero reason",
+      "stage": "runtime"
+    },
+    {
+      "id": "R16",
+      "name": "Sink error identity",
+      "binding": "stdout/stderr object rejection remains exact with no retry or extra diagnostic",
+      "stage": "runtime"
+    },
+    {
+      "id": "R17",
+      "name": "Cooperative cleanup before public settlement",
+      "binding": "host middleware enrolls cleanup before which; public exec waits held cleanup; callback once; caller not aborted",
+      "stage": "runtime"
+    },
+    {
+      "id": "R18",
+      "name": "Backpressure/ownership",
+      "binding": "await first write; preserve retained bytes; never inspect stdin/invoke/cleanup/ownedOutput or close borrowed sinks",
+      "stage": "runtime"
+    },
+    {
+      "id": "T01",
+      "name": "Root/subpath signatures and types",
+      "binding": "all three factories plus both type exports structurally compatible through actual package declarations",
+      "stage": "type"
+    },
+    {
+      "id": "T02",
+      "name": "Aggregate exact optional which type",
+      "binding": "NonNullable<AgentCommandsOptions.which> equals Omit<WhichCommandsOptions,replace>; nested replace rejected; top-level accepted",
+      "stage": "type"
+    },
+    {
+      "id": "T03",
+      "name": "Strict limits and readonly type negatives",
+      "binding": "all seven fields, partial overrides, readonly mutation and unknown/wrong-type fields rejected",
+      "stage": "type"
+    },
+    {
+      "id": "T04",
+      "name": "Existing context byte/signal contract",
+      "binding": "root/subpath definitions accept public CommandContext; readonly signal and byte sink reject invalid writes; no new invoke API assumed",
+      "stage": "type"
+    }
+  ],
+  "publicExecutionsAtFreeze": 0,
+  "typeCompilationsAtFreeze": 0,
+  "nativeWhichRuns": 0
+}

@@ -1,0 +1,76 @@
+[
+  {
+    "id": "entry-above",
+    "actual": {
+      "status": 0,
+      "stdout": {
+        "bytes": 185514,
+        "sha256": "7b1ad4e308fa0ccca1e1110c55740dc913895270761f43ce399ebd51f62b08d6"
+      },
+      "stderr": "",
+      "files": {}
+    },
+    "input": {
+      "bytes": 185514,
+      "sha256": "fb962e03adbc5050a32100566fd5cdc6e23665179b87a7cb07c3796620f18cd3"
+    },
+    "stdout": {
+      "bytes": 185514,
+      "sha256": "7b1ad4e308fa0ccca1e1110c55740dc913895270761f43ce399ebd51f62b08d6"
+    },
+    "finalized": false,
+    "counters": {
+      "keyedConstructions": 1,
+      "sortComparisons": 16384,
+      "keyedRequests": 32768,
+      "extractions": 16385,
+      "fieldObjects": 32770,
+      "parses": 16385,
+      "keyedAdmissions": 16385,
+      "charged": 457684,
+      "independentBackingCharge": 457684,
+      "existingRecordBytes": 169129,
+      "entriesPeak": 16385,
+      "retainedPeak": 457684,
+      "numericComparisons": 16384,
+      "keyedHits": 16383
+    }
+  },
+  {
+    "id": "empty-keys-entry-cap",
+    "actual": {
+      "status": 0,
+      "stdout": {
+        "bytes": 185510,
+        "sha256": "28e5787888e6d5b7bf0d84f5a81e96a5c2dc34655c0e00bdd29384bc29cd6db1"
+      },
+      "stderr": "",
+      "files": {}
+    },
+    "input": {
+      "bytes": 185510,
+      "sha256": "28e5787888e6d5b7bf0d84f5a81e96a5c2dc34655c0e00bdd29384bc29cd6db1"
+    },
+    "stdout": {
+      "bytes": 185510,
+      "sha256": "28e5787888e6d5b7bf0d84f5a81e96a5c2dc34655c0e00bdd29384bc29cd6db1"
+    },
+    "finalized": false,
+    "counters": {
+      "keyedConstructions": 1,
+      "sortComparisons": 16384,
+      "keyedRequests": 32768,
+      "extractions": 16385,
+      "fieldObjects": 16385,
+      "parses": 16385,
+      "keyedAdmissions": 16385,
+      "charged": 32770,
+      "independentBackingCharge": 32770,
+      "existingRecordBytes": 169125,
+      "entriesPeak": 16385,
+      "retainedPeak": 32770,
+      "numericComparisons": 16384,
+      "keyedHits": 16383
+    }
+  }
+]

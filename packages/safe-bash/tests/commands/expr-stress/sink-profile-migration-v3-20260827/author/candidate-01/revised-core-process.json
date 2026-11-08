@@ -1,0 +1,17 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/sink-profile-migration-v3-20260827/author/support/core-bound.mjs",
+    "candidate-01-revised"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/sink-profile-migration-v3-20260827/author/node_modules/candidate-01/relocated",
+  "started": "2026-08-27T21:35:19.644Z",
+  "finished": "2026-08-27T21:35:30.673Z",
+  "timeout": 180000,
+  "maxBuffer": 33554432,
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "stdout": "{\"subcases\":146,\"failed\":[],\"destination\":\"/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/sink-profile-migration-v3-20260827/author/revised/core/candidate-01-revised\"}\n",
+  "stderr": ""
+}

@@ -1,0 +1,18 @@
+Runner v1 failed before spawning any case child. Raw stderr from the invoking Node process:
+
+node:path:1354
+      validateString(arg, 'path');
+      ^
+
+TypeError [ERR_INVALID_ARG_TYPE]: The "path" argument must be of type string. Received undefined
+    at join (node:path:1354:7)
+    at main (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v1.mjs:100:29)
+    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/replay-v1.mjs:207:1 {
+  code: 'ERR_INVALID_ARG_TYPE'
+}
+
+Node.js v22.22.2
+
+Cause: parseArguments retained the hyphenated keys `source-root` and `installed-root`,
+while main referenced camel-case properties. Runner v2 corrected only that mapping.
+The output directory and raw-children directory had been created, but no child spawned.

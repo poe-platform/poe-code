@@ -1,0 +1,37 @@
+{
+  "phase": "REVIEWER_C09_CORRECTION_PURE_ONLY",
+  "results": [
+    {
+      "id": "C09-every-cleanup-attempted",
+      "status": "PASS"
+    },
+    {
+      "id": "X01-cross-realm-exact-keys-and-descriptors",
+      "status": "PASS"
+    },
+    {
+      "id": "X02-cross-realm-accessor-rejection-without-invocation",
+      "status": "PASS"
+    },
+    {
+      "id": "X03-cross-realm-primitive-types-values-and-order",
+      "status": "PASS"
+    }
+  ],
+  "pass": 4,
+  "fail": 0,
+  "sourceUnmodified": true,
+  "c09LineSha256": "898c2dc87ebc5e4c833c074608b82765e90509e4b1c6192ce949a2c00408ea92",
+  "generatedControlSha256": "fb4cf2ca1ccd1e113e65afb61c476900d50f5e0792ae3aaeb3d2548742f0f556",
+  "comparatorSha256": "9fcd2014fc0284f32cbcb035c4e69767cec611ec867967900d27786e34ead2b4",
+  "realmPolicy": "VM author C09 plus unchanged main-realm writer/finalizer; only deepEqual replaced with explicit own-key/data-descriptor/finite-primitive comparison; no prototype identity or JSON coercion",
+  "inherited": {
+    "otherAuthorControls": 11,
+    "novelGroups": 8,
+    "rerun": false,
+    "originalReplayUnchanged": true
+  },
+  "products": 0,
+  "Workers": 0,
+  "native": 0
+}

@@ -1,0 +1,76 @@
+{
+  "schema": 1,
+  "decision": "ACCEPT_FINAL_SLOT_ONLY",
+  "utc": "2026-08-29T16:16:42.197Z",
+  "binding": "463b17b4df4430555f72b2c358ba94e747fa50b6",
+  "qualification": "4989e28151ab3b384871455af0660ec8ac88b5aa",
+  "priorIndependent": "5aa383ae63e20ef8df3fa0bd2c2e06871976fe76",
+  "actualAuthorization": false,
+  "helperRuns": 1,
+  "bindingChecks": 53,
+  "postguards": 53,
+  "knownRolesThroughThisPublisher": 11,
+  "publicationReservedRoles": 3,
+  "peakBound": 3,
+  "files": [
+    {
+      "path": "START.json",
+      "bytes": 153,
+      "sha256": "139c44da2b367f81ba42723118507fecb1a7329cb0e58908e49f86f581d60cd0"
+    },
+    {
+      "path": "locator.stdout",
+      "bytes": 7656,
+      "sha256": "989410db3c299504451940256c3051cdba37d25bb02d21fc3c88af07d2726541"
+    },
+    {
+      "path": "locator.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "LOCATOR.json",
+      "bytes": 39,
+      "sha256": "5747012853ded9b7fe3ec32e159be3d4c8990ec6599d25c121448a31e3e06aad"
+    },
+    {
+      "path": "check.mjs",
+      "bytes": 6390,
+      "sha256": "0f9b8d95aa2ea334325b0925f0d68858a43a9c56c3aea6c4acf994bccd7b4ebb"
+    },
+    {
+      "path": "PRESEAL.json",
+      "bytes": 767,
+      "sha256": "614b3c4ef95ef4f37ad340c7e740c5f1b4ad2cf6424c9924004c9bd512b4e3a1"
+    },
+    {
+      "path": "check.stdout",
+      "bytes": 124,
+      "sha256": "060c533ddc6634a27866921411fa35ee01a8d1f6bb99be66bc7dfad28eb0aafd"
+    },
+    {
+      "path": "check.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "RESULT.json",
+      "bytes": 2393,
+      "sha256": "d51f6dee1df65bb561d89b6e6667218cd031c4c1ac825681989442319a9017ad"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 2618,
+      "sha256": "a0468fcd0f61aef5514f407035c4d689959fa950be7fd173a21bd8c9813211ef"
+    }
+  ],
+  "productCalls": 0,
+  "workers": 0,
+  "archiveDecodes": 0,
+  "limitations": [
+    "No full old census replay",
+    "No actual activation or measured runtime role count",
+    "One-LF copy preserved; original empty raw intact",
+    "Final publication child exit observed externally"
+  ]
+}

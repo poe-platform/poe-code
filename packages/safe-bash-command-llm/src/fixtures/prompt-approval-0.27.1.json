@@ -1,0 +1,50 @@
+[
+  {
+    "input": "yes\n",
+    "stdout": "Approve tool call? [y/N]: thinkinganswer:found one\n",
+    "stderr": "Tool call: lookup({'q': 'one'})\n",
+    "exitCode": 0
+  },
+  {
+    "input": "no\n",
+    "stdout": "Approve tool call? [y/N]: thinkinganswer:Cancelled: User cancelled tool call\n",
+    "stderr": "Tool call: lookup({'q': 'one'})\n",
+    "exitCode": 0
+  },
+  {
+    "input": "\n",
+    "stdout": "Approve tool call? [y/N]: thinkinganswer:Cancelled: User cancelled tool call\n",
+    "stderr": "Tool call: lookup({'q': 'one'})\n",
+    "exitCode": 0
+  },
+  {
+    "input": "bad\ny\n",
+    "stdout": "Approve tool call? [y/N]: Error: invalid input\nApprove tool call? [y/N]: thinkinganswer:found one\n",
+    "stderr": "Tool call: lookup({'q': 'one'})\n",
+    "exitCode": 0
+  },
+  {
+    "input": "",
+    "stdout": "Approve tool call? [y/N]: ",
+    "stderr": "Tool call: lookup({'q': 'one'})\nError: \n",
+    "exitCode": 1
+  },
+  {
+    "input": "yes",
+    "stdout": "Approve tool call? [y/N]: thinkinganswer:found one\n",
+    "stderr": "Tool call: lookup({'q': 'one'})\n",
+    "exitCode": 0
+  },
+  {
+    "input": "  YES \n",
+    "stdout": "Approve tool call? [y/N]: thinkinganswer:found one\n",
+    "stderr": "Tool call: lookup({'q': 'one'})\n",
+    "exitCode": 0
+  },
+  {
+    "input": "\u001cyes\u001c\n",
+    "stdout": "Approve tool call? [y/N]: thinkinganswer:found one\n",
+    "stderr": "Tool call: lookup({'q': 'one'})\n",
+    "exitCode": 0
+  }
+]

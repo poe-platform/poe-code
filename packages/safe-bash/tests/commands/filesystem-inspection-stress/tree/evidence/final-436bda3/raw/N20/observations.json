@@ -1,0 +1,184 @@
+{
+  "candidate": "/tmp/safe-bash-tree-final-436bda3-k1mKIO/candidate",
+  "api": "standalone src/commands/tree/index.ts",
+  "invocations": [
+    {
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "-J",
+        "--noreport",
+        "controls"
+      ],
+      "limits": {},
+      "cwd": "/",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TERM": "dumb",
+        "TZ": "UTC"
+      },
+      "stdout": [
+        {
+          "attemptedBase64": "Wwo=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "ICB7InR5cGUiOiJkaXJlY3RvcnkiLCJuYW1lIjoiY29udHJvbHMi",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "LCJjb250ZW50cyI6Wwo=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "ICAgIHsidHlwZSI6ImZpbGUiLCJuYW1lIjoiLWxlYWRpbmci",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fQ==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "LAo=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "ICAgIHsidHlwZSI6ImZpbGUiLCJuYW1lIjoiYmFja1xcc2xhc2gi",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fQ==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "LAo=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "ICAgIHsidHlwZSI6ImZpbGUiLCJuYW1lIjoiY2FycmlhZ2VccnJldHVybiI=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fQ==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "LAo=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "ICAgIHsidHlwZSI6ImZpbGUiLCJuYW1lIjoiZXNjYXBlXHUwMDFiWzMxbSI=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fQ==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "LAo=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "ICAgIHsidHlwZSI6ImZpbGUiLCJuYW1lIjoibGluZVxuYnJlYWsudHh0Ig==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fQ==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "LAo=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "ICAgIHsidHlwZSI6ImZpbGUiLCJuYW1lIjoicXVvdGVcIm5hbWUi",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fQ==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "LAo=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "ICAgIHsidHlwZSI6ImZpbGUiLCJuYW1lIjoidGFiXHRuYW1lIg==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fQ==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "LAo=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "ICAgIHsidHlwZSI6ImZpbGUiLCJuYW1lIjoiei1sYXN0Ig==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fQ==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "LAo=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "ICAgIHsidHlwZSI6ImZpbGUiLCJuYW1lIjoiw6ljbGFpci50eHQi",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fQ==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "LAo=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "ICAgIHsidHlwZSI6ImZpbGUiLCJuYW1lIjoi6ZuqLnR4dCI=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fQ==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "LAo=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "ICAgIHsidHlwZSI6ImZpbGUiLCJuYW1lIjoi8J+YgC50eHQi",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fQ==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "CiAgXQ==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fQ==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "Cl0K",
+          "state": "fulfilled"
+        }
+      ],
+      "stderr": [],
+      "startedAt": "2026-08-27T09:27:30.395Z",
+      "result": {
+        "exitCode": 0
+      },
+      "finishedAt": "2026-08-27T09:27:30.398Z"
+    }
+  ],
+  "shells": []
+}

@@ -1,0 +1,58 @@
+{
+  "schema": "functional-source-data-controls-v1",
+  "noNative": true,
+  "noChildLaunches": true,
+  "noLaunchModuleImport": true,
+  "identities": [
+    [
+      "C01",
+      "all40 exact decoded programs and fixtures",
+      true
+    ],
+    [
+      "C02",
+      "roundtrip serialized full proposal",
+      true
+    ],
+    [
+      "C03",
+      "changed program",
+      false
+    ],
+    [
+      "C04",
+      "changed stdin",
+      false
+    ],
+    [
+      "C05",
+      "fixture traversal pathname",
+      false
+    ],
+    [
+      "C06",
+      "changed source fixture bytes",
+      false
+    ],
+    [
+      "C07",
+      "withheld heredoc selected",
+      false
+    ],
+    [
+      "C08",
+      "ambient-style environment key",
+      false
+    ],
+    [
+      "C09",
+      "duplicate case replacing missing",
+      false
+    ],
+    [
+      "C10",
+      "diagnostic normalization requested",
+      false
+    ]
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "schema": "root-exact-parent-edge-authority-v1",
+  "date": "2026-08-28",
+  "authority": "ROOT explicit approval in current task; one actual continuation only",
+  "sourceCommit": "1afe801c1ce898b44ae202a63dfab81946958a59",
+  "reviewCommit": "498805a4a0999598ad1af9cedfdd476076cce936",
+  "edge": {
+    "importer": "diagnostic-publication.mjs",
+    "importerSha256": "7fd093905541561d6112b13f7ac224dec43caaaed6bfcb2124294ac3b88baa07",
+    "specifier": "node:util",
+    "target": "node:util",
+    "roles": [
+      "parent"
+    ]
+  },
+  "noOtherAuthority": [
+    "no guest builtin access",
+    "no global importer admission",
+    "no host native FS/process exposed to guest",
+    "no private source",
+    "no compiler retry",
+    "no network",
+    "no product node command"
+  ]
+}

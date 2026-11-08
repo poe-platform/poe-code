@@ -1,0 +1,2464 @@
+{
+  "format": "frozen-getopts-scanner-facts-v1",
+  "target": "Bash 5.3.0(1)-release Darwin C locale; scanner projections only",
+  "nativeCaseInvocations": 124,
+  "scriptsPerProfile": 62,
+  "historicalProfile": "All Bash3.2 raw observations retained, none counted as helper expectations",
+  "selectedNativeScriptCases": 17,
+  "projectedScanObservations": 76,
+  "phase2Notice": "Numeric index events and resolved reportErrors are explicit helper inputs, NOT proof of assignment/OPTERR runtime hooks",
+  "fixtures": [
+    {
+      "id": "explicit-versus-selected-positionals",
+      "operations": [
+        {
+          "operation": "scan",
+          "optstring": "ab:",
+          "args": [
+            "-b",
+            "explicit"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "initial-and-explicit",
+            "profile": "bash53",
+            "label": "explicit",
+            "line": "explicit rc=0 opt=b I=3 Iset=yes A=explicit Aset=yes E=1 pos=0,explicit,"
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "b",
+            "optind": 3,
+            "argument": {
+              "kind": "set",
+              "value": "explicit"
+            },
+            "diagnostic": null
+          }
+        },
+        {
+          "operation": "index",
+          "value": 1
+        },
+        {
+          "operation": "scan",
+          "optstring": "ab:",
+          "args": [
+            "-a",
+            "-b",
+            "positional"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "initial-and-explicit",
+            "profile": "bash53",
+            "label": "positional",
+            "line": "positional rc=0 opt=a I=2 Iset=yes A=UNSET Aset= E=1 pos=0,positional,"
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "a",
+            "optind": 2,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "clusters-and-required-values",
+      "operations": [
+        {
+          "operation": "scan",
+          "optstring": "ab:c:",
+          "args": [
+            "-abcVALUE",
+            "-b",
+            "separate",
+            "-a"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "clusters-arguments",
+            "profile": "bash53",
+            "label": "1",
+            "line": "1 rc=0 opt=a I=1 Iset=yes A=UNSET Aset= E=1 pos=0,1,"
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "a",
+            "optind": 1,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        },
+        {
+          "operation": "scan",
+          "optstring": "ab:c:",
+          "args": [
+            "-abcVALUE",
+            "-b",
+            "separate",
+            "-a"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "clusters-arguments",
+            "profile": "bash53",
+            "label": "2",
+            "line": "2 rc=0 opt=b I=2 Iset=yes A=cVALUE Aset=yes E=1 pos=0,2,"
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "b",
+            "optind": 2,
+            "argument": {
+              "kind": "set",
+              "value": "cVALUE"
+            },
+            "diagnostic": null
+          }
+        },
+        {
+          "operation": "scan",
+          "optstring": "ab:c:",
+          "args": [
+            "-abcVALUE",
+            "-b",
+            "separate",
+            "-a"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "clusters-arguments",
+            "profile": "bash53",
+            "label": "3",
+            "line": "3 rc=0 opt=b I=4 Iset=yes A=separate Aset=yes E=1 pos=0,3,"
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "b",
+            "optind": 4,
+            "argument": {
+              "kind": "set",
+              "value": "separate"
+            },
+            "diagnostic": null
+          }
+        },
+        {
+          "operation": "scan",
+          "optstring": "ab:c:",
+          "args": [
+            "-abcVALUE",
+            "-b",
+            "separate",
+            "-a"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "clusters-arguments",
+            "profile": "bash53",
+            "label": "4",
+            "line": "4 rc=0 opt=a I=5 Iset=yes A=UNSET Aset= E=1 pos=0,4,"
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "a",
+            "optind": 5,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        },
+        {
+          "operation": "scan",
+          "optstring": "ab:c:",
+          "args": [
+            "-abcVALUE",
+            "-b",
+            "separate",
+            "-a"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "clusters-arguments",
+            "profile": "bash53",
+            "label": "5",
+            "line": "5 rc=1 opt=\\? I=5 Iset=yes A=UNSET Aset= E=1 pos=1,5,"
+          },
+          "expected": {
+            "kind": "end",
+            "status": 1,
+            "option": "?",
+            "optind": 5,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        },
+        {
+          "operation": "scan",
+          "optstring": "ab:c:",
+          "args": [
+            "-abcVALUE",
+            "-b",
+            "separate",
+            "-a"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "clusters-arguments",
+            "profile": "bash53",
+            "label": "6",
+            "line": "6 rc=1 opt=\\? I=5 Iset=yes A=UNSET Aset= E=1 pos=1,6,"
+          },
+          "expected": {
+            "kind": "end",
+            "status": 1,
+            "option": "?",
+            "optind": 5,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "marker-\"--\"",
+      "operations": [
+        {
+          "operation": "scan",
+          "optstring": "a1",
+          "args": [
+            "--",
+            "-a"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "markers",
+            "profile": "bash53",
+            "label": "token:--",
+            "line": "token:-- rc=1 opt=\\? I=2 Iset=yes A=UNSET Aset= E=1 pos=1,token:--,"
+          },
+          "expected": {
+            "kind": "end",
+            "status": 1,
+            "option": "?",
+            "optind": 2,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        },
+        {
+          "operation": "scan",
+          "optstring": "a1",
+          "args": [
+            "--",
+            "-a"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "markers",
+            "profile": "bash53",
+            "label": "again",
+            "line": "again rc=0 opt=a I=3 Iset=yes A=UNSET Aset= E=1 pos=0,again,",
+            "occurrence": 0
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "a",
+            "optind": 3,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "marker-\"-\"",
+      "operations": [
+        {
+          "operation": "scan",
+          "optstring": "a1",
+          "args": [
+            "-",
+            "-a"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "markers",
+            "profile": "bash53",
+            "label": "token:-",
+            "line": "token:- rc=1 opt=\\? I=1 Iset=yes A=UNSET Aset= E=1 pos=1,token:-,"
+          },
+          "expected": {
+            "kind": "end",
+            "status": 1,
+            "option": "?",
+            "optind": 1,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        },
+        {
+          "operation": "scan",
+          "optstring": "a1",
+          "args": [
+            "-",
+            "-a"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "markers",
+            "profile": "bash53",
+            "label": "again",
+            "line": "again rc=1 opt=\\? I=1 Iset=yes A=UNSET Aset= E=1 pos=1,again,",
+            "occurrence": 1
+          },
+          "expected": {
+            "kind": "end",
+            "status": 1,
+            "option": "?",
+            "optind": 1,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "marker-\"+\"",
+      "operations": [
+        {
+          "operation": "scan",
+          "optstring": "a1",
+          "args": [
+            "+",
+            "-a"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "markers",
+            "profile": "bash53",
+            "label": "token:+",
+            "line": "token:+ rc=1 opt=\\? I=1 Iset=yes A=UNSET Aset= E=1 pos=1,token:+,"
+          },
+          "expected": {
+            "kind": "end",
+            "status": 1,
+            "option": "?",
+            "optind": 1,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        },
+        {
+          "operation": "scan",
+          "optstring": "a1",
+          "args": [
+            "+",
+            "-a"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "markers",
+            "profile": "bash53",
+            "label": "again",
+            "line": "again rc=1 opt=\\? I=1 Iset=yes A=UNSET Aset= E=1 pos=1,again,",
+            "occurrence": 2
+          },
+          "expected": {
+            "kind": "end",
+            "status": 1,
+            "option": "?",
+            "optind": 1,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "marker-\"-1\"",
+      "operations": [
+        {
+          "operation": "scan",
+          "optstring": "a1",
+          "args": [
+            "-1",
+            "-a"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "markers",
+            "profile": "bash53",
+            "label": "token:-1",
+            "line": "token:-1 rc=0 opt=1 I=2 Iset=yes A=UNSET Aset= E=1 pos=0,token:-1,"
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "1",
+            "optind": 2,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        },
+        {
+          "operation": "scan",
+          "optstring": "a1",
+          "args": [
+            "-1",
+            "-a"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "markers",
+            "profile": "bash53",
+            "label": "again",
+            "line": "again rc=0 opt=a I=3 Iset=yes A=UNSET Aset= E=1 pos=0,again,",
+            "occurrence": 3
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "a",
+            "optind": 3,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "marker-\"plain\"",
+      "operations": [
+        {
+          "operation": "scan",
+          "optstring": "a1",
+          "args": [
+            "plain",
+            "-a"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "markers",
+            "profile": "bash53",
+            "label": "token:plain",
+            "line": "token:plain rc=1 opt=\\? I=1 Iset=yes A=UNSET Aset= E=1 pos=1,token:plain,"
+          },
+          "expected": {
+            "kind": "end",
+            "status": 1,
+            "option": "?",
+            "optind": 1,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        },
+        {
+          "operation": "scan",
+          "optstring": "a1",
+          "args": [
+            "plain",
+            "-a"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "markers",
+            "profile": "bash53",
+            "label": "again",
+            "line": "again rc=1 opt=\\? I=1 Iset=yes A=UNSET Aset= E=1 pos=1,again,",
+            "occurrence": 4
+          },
+          "expected": {
+            "kind": "end",
+            "status": 1,
+            "option": "?",
+            "optind": 1,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "marker-\"\"",
+      "operations": [
+        {
+          "operation": "scan",
+          "optstring": "a1",
+          "args": [
+            "",
+            "-a"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "markers",
+            "profile": "bash53",
+            "label": "token:",
+            "line": "token: rc=1 opt=\\? I=1 Iset=yes A=UNSET Aset= E=1 pos=1,token:,"
+          },
+          "expected": {
+            "kind": "end",
+            "status": 1,
+            "option": "?",
+            "optind": 1,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        },
+        {
+          "operation": "scan",
+          "optstring": "a1",
+          "args": [
+            "",
+            "-a"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "markers",
+            "profile": "bash53",
+            "label": "again",
+            "line": "again rc=1 opt=\\? I=1 Iset=yes A=UNSET Aset= E=1 pos=1,again,",
+            "occurrence": 5
+          },
+          "expected": {
+            "kind": "end",
+            "status": 1,
+            "option": "?",
+            "optind": 1,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "a:/-a",
+      "operations": [
+        {
+          "operation": "scan",
+          "optstring": "a:",
+          "args": [
+            "-a"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "missing-silent-errors",
+            "profile": "bash53",
+            "label": "a:/-a",
+            "line": "a:/-a rc=0 opt=\\? I=2 Iset=yes A=UNSET Aset= E=1 pos=0,a:/-a,"
+          },
+          "expected": {
+            "kind": "missing-argument",
+            "status": 0,
+            "option": "?",
+            "optind": 2,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": {
+              "kind": "missing-argument",
+              "option": "a"
+            }
+          }
+        },
+        {
+          "operation": "scan",
+          "optstring": "a:",
+          "args": [
+            "-a"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "missing-silent-errors",
+            "profile": "bash53",
+            "label": "end",
+            "line": "end rc=1 opt=\\? I=2 Iset=yes A=UNSET Aset= E=1 pos=1,end,"
+          },
+          "expected": {
+            "kind": "end",
+            "status": 1,
+            "option": "?",
+            "optind": 2,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "a:/-z",
+      "operations": [
+        {
+          "operation": "scan",
+          "optstring": "a:",
+          "args": [
+            "-z"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "missing-silent-errors",
+            "profile": "bash53",
+            "label": "a:/-z",
+            "line": "a:/-z rc=0 opt=\\? I=2 Iset=yes A=UNSET Aset= E=1 pos=0,a:/-z,"
+          },
+          "expected": {
+            "kind": "unknown-option",
+            "status": 0,
+            "option": "?",
+            "optind": 2,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": {
+              "kind": "unknown-option",
+              "option": "z"
+            }
+          }
+        },
+        {
+          "operation": "scan",
+          "optstring": "a:",
+          "args": [
+            "-z"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "missing-silent-errors",
+            "profile": "bash53",
+            "label": "end",
+            "line": "end rc=1 opt=\\? I=2 Iset=yes A=UNSET Aset= E=1 pos=1,end,"
+          },
+          "expected": {
+            "kind": "end",
+            "status": 1,
+            "option": "?",
+            "optind": 2,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        }
+      ]
+    },
+    {
+      "id": ":a:/-a",
+      "operations": [
+        {
+          "operation": "scan",
+          "optstring": ":a:",
+          "args": [
+            "-a"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "missing-silent-errors",
+            "profile": "bash53",
+            "label": ":a:/-a",
+            "line": ":a:/-a rc=0 opt=: I=2 Iset=yes A=a Aset=yes E=1 pos=0,:a:/-a,"
+          },
+          "expected": {
+            "kind": "missing-argument",
+            "status": 0,
+            "option": ":",
+            "optind": 2,
+            "argument": {
+              "kind": "set",
+              "value": "a"
+            },
+            "diagnostic": null
+          }
+        },
+        {
+          "operation": "scan",
+          "optstring": ":a:",
+          "args": [
+            "-a"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "missing-silent-errors",
+            "profile": "bash53",
+            "label": "end",
+            "line": "end rc=1 opt=\\? I=2 Iset=yes A=UNSET Aset= E=1 pos=1,end,"
+          },
+          "expected": {
+            "kind": "end",
+            "status": 1,
+            "option": "?",
+            "optind": 2,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        }
+      ]
+    },
+    {
+      "id": ":a:/-z",
+      "operations": [
+        {
+          "operation": "scan",
+          "optstring": ":a:",
+          "args": [
+            "-z"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "missing-silent-errors",
+            "profile": "bash53",
+            "label": ":a:/-z",
+            "line": ":a:/-z rc=0 opt=\\? I=2 Iset=yes A=z Aset=yes E=1 pos=0,:a:/-z,"
+          },
+          "expected": {
+            "kind": "unknown-option",
+            "status": 0,
+            "option": "?",
+            "optind": 2,
+            "argument": {
+              "kind": "set",
+              "value": "z"
+            },
+            "diagnostic": null
+          }
+        },
+        {
+          "operation": "scan",
+          "optstring": ":a:",
+          "args": [
+            "-z"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "missing-silent-errors",
+            "profile": "bash53",
+            "label": "end",
+            "line": "end rc=1 opt=\\? I=2 Iset=yes A=UNSET Aset= E=1 pos=1,end,"
+          },
+          "expected": {
+            "kind": "end",
+            "status": 1,
+            "option": "?",
+            "optind": 2,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "required-\"--\"",
+      "operations": [
+        {
+          "operation": "scan",
+          "optstring": "a:",
+          "args": [
+            "-a",
+            "--"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "argument-token-values",
+            "profile": "bash53",
+            "label": "arg:--",
+            "line": "arg:-- rc=0 opt=a I=3 Iset=yes A=-- Aset=yes E=1 pos=0,arg:--,"
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "a",
+            "optind": 3,
+            "argument": {
+              "kind": "set",
+              "value": "--"
+            },
+            "diagnostic": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "required-\"-\"",
+      "operations": [
+        {
+          "operation": "scan",
+          "optstring": "a:",
+          "args": [
+            "-a",
+            "-"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "argument-token-values",
+            "profile": "bash53",
+            "label": "arg:-",
+            "line": "arg:- rc=0 opt=a I=3 Iset=yes A=- Aset=yes E=1 pos=0,arg:-,"
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "a",
+            "optind": 3,
+            "argument": {
+              "kind": "set",
+              "value": "-"
+            },
+            "diagnostic": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "required-\"-a\"",
+      "operations": [
+        {
+          "operation": "scan",
+          "optstring": "a:",
+          "args": [
+            "-a",
+            "-a"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "argument-token-values",
+            "profile": "bash53",
+            "label": "arg:-a",
+            "line": "arg:-a rc=0 opt=a I=3 Iset=yes A=-a Aset=yes E=1 pos=0,arg:-a,"
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "a",
+            "optind": 3,
+            "argument": {
+              "kind": "set",
+              "value": "-a"
+            },
+            "diagnostic": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "required-\"\"",
+      "operations": [
+        {
+          "operation": "scan",
+          "optstring": "a:",
+          "args": [
+            "-a",
+            ""
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "argument-token-values",
+            "profile": "bash53",
+            "label": "arg:",
+            "line": "arg: rc=0 opt=a I=3 Iset=yes A='' Aset=yes E=1 pos=0,arg:,"
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "a",
+            "optind": 3,
+            "argument": {
+              "kind": "set",
+              "value": ""
+            },
+            "diagnostic": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "reset-same-visible-one",
+      "operations": [
+        {
+          "operation": "scan",
+          "optstring": "abc",
+          "args": [
+            "-abc"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "same-index-reset",
+            "profile": "bash53",
+            "label": "first",
+            "line": "first rc=0 opt=a I=1 Iset=yes A=UNSET Aset= E=1 pos=0,first,"
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "a",
+            "optind": 1,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        },
+        {
+          "operation": "index",
+          "value": 1
+        },
+        {
+          "operation": "scan",
+          "optstring": "abc",
+          "args": [
+            "-abc"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "same-index-reset",
+            "profile": "bash53",
+            "label": "same",
+            "line": "same rc=0 opt=a I=1 Iset=yes A=UNSET Aset= E=1 pos=0,same,"
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "a",
+            "optind": 1,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        },
+        {
+          "operation": "scan",
+          "optstring": "abc",
+          "args": [
+            "-abc"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "same-index-reset",
+            "profile": "bash53",
+            "label": "following",
+            "line": "following rc=0 opt=b I=1 Iset=yes A=UNSET Aset= E=1 pos=0,following,"
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "b",
+            "optind": 1,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        },
+        {
+          "operation": "index",
+          "value": 1
+        },
+        {
+          "operation": "scan",
+          "optstring": "abc",
+          "args": [
+            "-abc"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "same-index-reset",
+            "profile": "bash53",
+            "label": "explicitreset",
+            "line": "explicitreset rc=0 opt=a I=1 Iset=yes A=UNSET Aset= E=1 pos=0,explicitreset,"
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "a",
+            "optind": 1,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "larger-index-keeps-active-slot",
+      "operations": [
+        {
+          "operation": "scan",
+          "optstring": "abcd",
+          "args": [
+            "-a",
+            "-bcd",
+            "-a"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "index-two-midcluster",
+            "profile": "bash53",
+            "label": "first",
+            "line": "first rc=0 opt=a I=2 Iset=yes A=UNSET Aset= E=1 pos=0,first,"
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "a",
+            "optind": 2,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        },
+        {
+          "operation": "scan",
+          "optstring": "abcd",
+          "args": [
+            "-a",
+            "-bcd",
+            "-a"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "index-two-midcluster",
+            "profile": "bash53",
+            "label": "second",
+            "line": "second rc=0 opt=b I=2 Iset=yes A=UNSET Aset= E=1 pos=0,second,"
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "b",
+            "optind": 2,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        },
+        {
+          "operation": "index",
+          "value": 2
+        },
+        {
+          "operation": "scan",
+          "optstring": "abcd",
+          "args": [
+            "-a",
+            "-bcd",
+            "-a"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "index-two-midcluster",
+            "profile": "bash53",
+            "label": "same2",
+            "line": "same2 rc=0 opt=c I=2 Iset=yes A=UNSET Aset= E=1 pos=0,same2,"
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "c",
+            "optind": 2,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        },
+        {
+          "operation": "index",
+          "value": 3
+        },
+        {
+          "operation": "scan",
+          "optstring": "abcd",
+          "args": [
+            "-a",
+            "-bcd",
+            "-a"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "index-two-midcluster",
+            "profile": "bash53",
+            "label": "jump3",
+            "line": "jump3 rc=0 opt=d I=4 Iset=yes A=UNSET Aset= E=1 pos=0,jump3,"
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "d",
+            "optind": 4,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "changed-explicit-vector",
+      "operations": [
+        {
+          "operation": "scan",
+          "optstring": "abcxyz",
+          "args": [
+            "-abc"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "changed-argv-cursor",
+            "profile": "bash53",
+            "label": "old",
+            "line": "old rc=0 opt=a I=1 Iset=yes A=UNSET Aset= E=1 pos=0,old,"
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "a",
+            "optind": 1,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        },
+        {
+          "operation": "scan",
+          "optstring": "abcxyz",
+          "args": [
+            "-xyz"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "changed-argv-cursor",
+            "profile": "bash53",
+            "label": "new",
+            "line": "new rc=0 opt=y I=1 Iset=yes A=UNSET Aset= E=1 pos=0,new,"
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "y",
+            "optind": 1,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        },
+        {
+          "operation": "scan",
+          "optstring": "abcxyz",
+          "args": [
+            "-xyz"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "changed-argv-cursor",
+            "profile": "bash53",
+            "label": "last",
+            "line": "last rc=0 opt=z I=2 Iset=yes A=UNSET Aset= E=1 pos=0,last,"
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "z",
+            "optind": 2,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "changed-selected-positionals",
+      "operations": [
+        {
+          "operation": "scan",
+          "optstring": "abcxyz",
+          "args": [
+            "-abc",
+            "-xyz"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "set-shift-cursor",
+            "profile": "bash53",
+            "label": "old",
+            "line": "old rc=0 opt=a I=1 Iset=yes A=UNSET Aset= E=1 pos=0,old,"
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "a",
+            "optind": 1,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        },
+        {
+          "operation": "scan",
+          "optstring": "abcxyz",
+          "args": [
+            "-xyz"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "set-shift-cursor",
+            "profile": "bash53",
+            "label": "shifted",
+            "line": "shifted rc=0 opt=y I=1 Iset=yes A=UNSET Aset= E=1 pos=0,shifted,"
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "y",
+            "optind": 1,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        },
+        {
+          "operation": "scan",
+          "optstring": "abcxyz",
+          "args": [
+            "-abc"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "set-shift-cursor",
+            "profile": "bash53",
+            "label": "replaced",
+            "line": "replaced rc=0 opt=c I=2 Iset=yes A=UNSET Aset= E=1 pos=0,replaced,"
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "c",
+            "optind": 2,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "shorter-active-token",
+      "operations": [
+        {
+          "operation": "scan",
+          "optstring": "abcxyz",
+          "args": [
+            "-abc"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "followup-raw.json",
+            "caseId": "argv-shorter-than-cursor",
+            "profile": "bash53",
+            "label": "a",
+            "line": "a rc=0 opt=a I=1 Iset=yes A=UNSET Aset= E=1 pos=0,a,"
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "a",
+            "optind": 1,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        },
+        {
+          "operation": "scan",
+          "optstring": "abcxyz",
+          "args": [
+            "-x"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "followup-raw.json",
+            "caseId": "argv-shorter-than-cursor",
+            "profile": "bash53",
+            "label": "shorter",
+            "line": "shorter rc=0 opt=x I=2 Iset=yes A=UNSET Aset= E=1 pos=0,shorter,"
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "x",
+            "optind": 2,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        },
+        {
+          "operation": "scan",
+          "optstring": "abcxyz",
+          "args": [
+            "-x"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "followup-raw.json",
+            "caseId": "argv-shorter-than-cursor",
+            "profile": "bash53",
+            "label": "end",
+            "line": "end rc=1 opt=\\? I=2 Iset=yes A=UNSET Aset= E=1 pos=1,end,"
+          },
+          "expected": {
+            "kind": "end",
+            "status": 1,
+            "option": "?",
+            "optind": 2,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "active-slot-independent-from-index",
+      "operations": [
+        {
+          "operation": "scan",
+          "optstring": "abcdxyz",
+          "args": [
+            "-abc",
+            "-xyz",
+            "-d"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "followup-raw.json",
+            "caseId": "jump-keeps-active-slot",
+            "profile": "bash53",
+            "label": "a",
+            "line": "a rc=0 opt=a I=1 Iset=yes A=UNSET Aset= E=1 pos=0,a,"
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "a",
+            "optind": 1,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        },
+        {
+          "operation": "index",
+          "value": 2
+        },
+        {
+          "operation": "scan",
+          "optstring": "abcdxyz",
+          "args": [
+            "-abc",
+            "-xyz",
+            "-d"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "followup-raw.json",
+            "caseId": "jump-keeps-active-slot",
+            "profile": "bash53",
+            "label": "jump",
+            "line": "jump rc=0 opt=b I=2 Iset=yes A=UNSET Aset= E=1 pos=0,jump,"
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "b",
+            "optind": 2,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        },
+        {
+          "operation": "scan",
+          "optstring": "abcdxyz",
+          "args": [
+            "-abc",
+            "-xyz",
+            "-d"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "followup-raw.json",
+            "caseId": "jump-keeps-active-slot",
+            "profile": "bash53",
+            "label": "c",
+            "line": "c rc=0 opt=c I=3 Iset=yes A=UNSET Aset= E=1 pos=0,c,"
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "c",
+            "optind": 3,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        },
+        {
+          "operation": "scan",
+          "optstring": "abcdxyz",
+          "args": [
+            "-abc",
+            "-xyz",
+            "-d"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "followup-raw.json",
+            "caseId": "jump-keeps-active-slot",
+            "profile": "bash53",
+            "label": "next",
+            "line": "next rc=0 opt=d I=4 Iset=yes A=UNSET Aset= E=1 pos=0,next,"
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "d",
+            "optind": 4,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "bounded-long-token",
+      "operations": [
+        {
+          "operation": "scan",
+          "optstring": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbba",
+          "args": [
+            "-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "long-bounded",
+            "profile": "bash53",
+            "label": "first",
+            "line": "first rc=0 opt=a I=1 Iset=yes A=UNSET Aset= E=1 pos=0,first,"
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "a",
+            "optind": 1,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        },
+        {
+          "operation": "scan",
+          "optstring": "a",
+          "args": [
+            "-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "long-bounded",
+            "profile": "bash53",
+            "label": "next",
+            "line": "next rc=0 opt=a I=1 Iset=yes A=UNSET Aset= E=1 pos=0,next,"
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "a",
+            "optind": 1,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "resolved-opterr-\"0\"",
+      "operations": [
+        {
+          "operation": "scan",
+          "optstring": "a",
+          "args": [
+            "-z"
+          ],
+          "reportErrors": false,
+          "source": {
+            "rawFile": "followup-raw.json",
+            "caseId": "opterr-marked",
+            "profile": "bash53",
+            "label": "0",
+            "line": "0 rc=0 opt=\\? I=2 Iset=yes A=UNSET Aset= E=0 pos=0,0,"
+          },
+          "expected": {
+            "kind": "unknown-option",
+            "status": 0,
+            "option": "?",
+            "optind": 2,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "resolved-opterr-\"1\"",
+      "operations": [
+        {
+          "operation": "scan",
+          "optstring": "a",
+          "args": [
+            "-z"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "followup-raw.json",
+            "caseId": "opterr-marked",
+            "profile": "bash53",
+            "label": "1",
+            "line": "1 rc=0 opt=\\? I=2 Iset=yes A=UNSET Aset= E=1 pos=0,1,"
+          },
+          "expected": {
+            "kind": "unknown-option",
+            "status": 0,
+            "option": "?",
+            "optind": 2,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": {
+              "kind": "unknown-option",
+              "option": "z"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "resolved-opterr-\"2\"",
+      "operations": [
+        {
+          "operation": "scan",
+          "optstring": "a",
+          "args": [
+            "-z"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "followup-raw.json",
+            "caseId": "opterr-marked",
+            "profile": "bash53",
+            "label": "2",
+            "line": "2 rc=0 opt=\\? I=2 Iset=yes A=UNSET Aset= E=2 pos=0,2,"
+          },
+          "expected": {
+            "kind": "unknown-option",
+            "status": 0,
+            "option": "?",
+            "optind": 2,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": {
+              "kind": "unknown-option",
+              "option": "z"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "resolved-opterr-\"-1\"",
+      "operations": [
+        {
+          "operation": "scan",
+          "optstring": "a",
+          "args": [
+            "-z"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "followup-raw.json",
+            "caseId": "opterr-marked",
+            "profile": "bash53",
+            "label": "-1",
+            "line": "-1 rc=0 opt=\\? I=2 Iset=yes A=UNSET Aset= E=-1 pos=0,-1,"
+          },
+          "expected": {
+            "kind": "unknown-option",
+            "status": 0,
+            "option": "?",
+            "optind": 2,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": {
+              "kind": "unknown-option",
+              "option": "z"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "resolved-opterr-\"\"",
+      "operations": [
+        {
+          "operation": "scan",
+          "optstring": "a",
+          "args": [
+            "-z"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "followup-raw.json",
+            "caseId": "opterr-marked",
+            "profile": "bash53",
+            "label": "",
+            "line": " rc=0 opt=\\? I=2 Iset=yes A=UNSET Aset= E='' pos=0,'',"
+          },
+          "expected": {
+            "kind": "unknown-option",
+            "status": 0,
+            "option": "?",
+            "optind": 2,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": {
+              "kind": "unknown-option",
+              "option": "z"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "resolved-opterr-\"word\"",
+      "operations": [
+        {
+          "operation": "scan",
+          "optstring": "a",
+          "args": [
+            "-z"
+          ],
+          "reportErrors": false,
+          "source": {
+            "rawFile": "followup-raw.json",
+            "caseId": "opterr-marked",
+            "profile": "bash53",
+            "label": "word",
+            "line": "word rc=0 opt=\\? I=2 Iset=yes A=UNSET Aset= E=word pos=0,word,"
+          },
+          "expected": {
+            "kind": "unknown-option",
+            "status": 0,
+            "option": "?",
+            "optind": 2,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "resolved-opterr-\"00\"",
+      "operations": [
+        {
+          "operation": "scan",
+          "optstring": "a",
+          "args": [
+            "-z"
+          ],
+          "reportErrors": false,
+          "source": {
+            "rawFile": "followup-raw.json",
+            "caseId": "opterr-marked",
+            "profile": "bash53",
+            "label": "00",
+            "line": "00 rc=0 opt=\\? I=2 Iset=yes A=UNSET Aset= E=00 pos=0,00,"
+          },
+          "expected": {
+            "kind": "unknown-option",
+            "status": 0,
+            "option": "?",
+            "optind": 2,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "resolved-opterr-\"1+1\"",
+      "operations": [
+        {
+          "operation": "scan",
+          "optstring": "a",
+          "args": [
+            "-z"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "followup-raw.json",
+            "caseId": "opterr-marked",
+            "profile": "bash53",
+            "label": "1+1",
+            "line": "1+1 rc=0 opt=\\? I=2 Iset=yes A=UNSET Aset= E=1+1 pos=0,1+1,"
+          },
+          "expected": {
+            "kind": "unknown-option",
+            "status": 0,
+            "option": "?",
+            "optind": 2,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": {
+              "kind": "unknown-option",
+              "option": "z"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "resolved-opterr-\"unset\"",
+      "operations": [
+        {
+          "operation": "scan",
+          "optstring": "a",
+          "args": [
+            "-z"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "followup-raw.json",
+            "caseId": "opterr-marked",
+            "profile": "bash53",
+            "label": "unset",
+            "line": "unset rc=0 opt=\\? I=2 Iset=yes A=UNSET Aset= E=UNSET pos=0,unset,"
+          },
+          "expected": {
+            "kind": "unknown-option",
+            "status": 0,
+            "option": "?",
+            "optind": 2,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": {
+              "kind": "unknown-option",
+              "option": "z"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "numeric-index-primitive-0",
+      "operations": [
+        {
+          "operation": "scan",
+          "optstring": "abc",
+          "args": [
+            "-abc",
+            "-b"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "index-value-0",
+            "profile": "bash53",
+            "label": "first",
+            "line": "first rc=0 opt=a I=1 Iset=yes A=UNSET Aset= E=1 pos=0,first,"
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "a",
+            "optind": 1,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        },
+        {
+          "operation": "index",
+          "value": 0
+        },
+        {
+          "operation": "scan",
+          "optstring": "abc",
+          "args": [
+            "-abc",
+            "-b"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "index-value-0",
+            "profile": "bash53",
+            "label": "next",
+            "line": "next rc=0 opt=a I=1 Iset=yes A=UNSET Aset= E=1 pos=0,next,"
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "a",
+            "optind": 1,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        },
+        {
+          "operation": "scan",
+          "optstring": "abc",
+          "args": [
+            "-abc",
+            "-b"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "index-value-0",
+            "profile": "bash53",
+            "label": "again",
+            "line": "again rc=0 opt=b I=1 Iset=yes A=UNSET Aset= E=1 pos=0,again,"
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "b",
+            "optind": 1,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "numeric-index-primitive--1",
+      "operations": [
+        {
+          "operation": "scan",
+          "optstring": "abc",
+          "args": [
+            "-abc",
+            "-b"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "index-value--1",
+            "profile": "bash53",
+            "label": "first",
+            "line": "first rc=0 opt=a I=1 Iset=yes A=UNSET Aset= E=1 pos=0,first,"
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "a",
+            "optind": 1,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        },
+        {
+          "operation": "index",
+          "value": -1
+        },
+        {
+          "operation": "scan",
+          "optstring": "abc",
+          "args": [
+            "-abc",
+            "-b"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "index-value--1",
+            "profile": "bash53",
+            "label": "next",
+            "line": "next rc=0 opt=a I=1 Iset=yes A=UNSET Aset= E=1 pos=0,next,"
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "a",
+            "optind": 1,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        },
+        {
+          "operation": "scan",
+          "optstring": "abc",
+          "args": [
+            "-abc",
+            "-b"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "index-value--1",
+            "profile": "bash53",
+            "label": "again",
+            "line": "again rc=0 opt=b I=1 Iset=yes A=UNSET Aset= E=1 pos=0,again,"
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "b",
+            "optind": 1,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "numeric-index-primitive-2",
+      "operations": [
+        {
+          "operation": "scan",
+          "optstring": "abc",
+          "args": [
+            "-abc",
+            "-b"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "index-value-2",
+            "profile": "bash53",
+            "label": "first",
+            "line": "first rc=0 opt=a I=1 Iset=yes A=UNSET Aset= E=1 pos=0,first,"
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "a",
+            "optind": 1,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        },
+        {
+          "operation": "index",
+          "value": 2
+        },
+        {
+          "operation": "scan",
+          "optstring": "abc",
+          "args": [
+            "-abc",
+            "-b"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "index-value-2",
+            "profile": "bash53",
+            "label": "next",
+            "line": "next rc=0 opt=b I=2 Iset=yes A=UNSET Aset= E=1 pos=0,next,"
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "b",
+            "optind": 2,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        },
+        {
+          "operation": "scan",
+          "optstring": "abc",
+          "args": [
+            "-abc",
+            "-b"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "index-value-2",
+            "profile": "bash53",
+            "label": "again",
+            "line": "again rc=0 opt=c I=3 Iset=yes A=UNSET Aset= E=1 pos=0,again,"
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "c",
+            "optind": 3,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "numeric-index-primitive-99",
+      "operations": [
+        {
+          "operation": "scan",
+          "optstring": "abc",
+          "args": [
+            "-abc",
+            "-b"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "index-value-99",
+            "profile": "bash53",
+            "label": "first",
+            "line": "first rc=0 opt=a I=1 Iset=yes A=UNSET Aset= E=1 pos=0,first,"
+          },
+          "expected": {
+            "kind": "option",
+            "status": 0,
+            "option": "a",
+            "optind": 1,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        },
+        {
+          "operation": "index",
+          "value": 99
+        },
+        {
+          "operation": "scan",
+          "optstring": "abc",
+          "args": [
+            "-abc",
+            "-b"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "index-value-99",
+            "profile": "bash53",
+            "label": "next",
+            "line": "next rc=1 opt=\\? I=3 Iset=yes A=UNSET Aset= E=1 pos=1,next,"
+          },
+          "expected": {
+            "kind": "end",
+            "status": 1,
+            "option": "?",
+            "optind": 3,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        },
+        {
+          "operation": "scan",
+          "optstring": "abc",
+          "args": [
+            "-abc",
+            "-b"
+          ],
+          "reportErrors": true,
+          "source": {
+            "rawFile": "raw.json",
+            "caseId": "index-value-99",
+            "profile": "bash53",
+            "label": "again",
+            "line": "again rc=1 opt=\\? I=3 Iset=yes A=UNSET Aset= E=1 pos=1,again,"
+          },
+          "expected": {
+            "kind": "end",
+            "status": 1,
+            "option": "?",
+            "optind": 3,
+            "argument": {
+              "kind": "unset"
+            },
+            "diagnostic": null
+          }
+        }
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "caseId": "opterr-values",
+      "rawFile": "raw.json",
+      "reason": "Variable coercion/binding, readonly ordering, function or shell execution scope; stage 2, not helper acceptance."
+    },
+    {
+      "caseId": "usage-invalidnames",
+      "rawFile": "raw.json",
+      "reason": "Builtin usage/name binding, not scanner input validation."
+    },
+    {
+      "caseId": "optionstring-edges",
+      "rawFile": "raw.json",
+      "reason": "Mixed builtin operand parsing and scanner cases; retained, not counted in this cohort."
+    },
+    {
+      "caseId": "unset-index",
+      "rawFile": "raw.json",
+      "reason": "Variable coercion/binding, readonly ordering, function or shell execution scope; stage 2, not helper acceptance."
+    },
+    {
+      "caseId": "index-value-empty",
+      "rawFile": "raw.json",
+      "reason": "Variable coercion/binding, readonly ordering, function or shell execution scope; stage 2, not helper acceptance."
+    },
+    {
+      "caseId": "index-value-word",
+      "rawFile": "raw.json",
+      "reason": "Variable coercion/binding, readonly ordering, function or shell execution scope; stage 2, not helper acceptance."
+    },
+    {
+      "caseId": "index-value-1+1",
+      "rawFile": "raw.json",
+      "reason": "Variable coercion/binding, readonly ordering, function or shell execution scope; stage 2, not helper acceptance."
+    },
+    {
+      "caseId": "index-value-08",
+      "rawFile": "raw.json",
+      "reason": "Variable coercion/binding, readonly ordering, function or shell execution scope; stage 2, not helper acceptance."
+    },
+    {
+      "caseId": "index-value-0x2",
+      "rawFile": "raw.json",
+      "reason": "Variable coercion/binding, readonly ordering, function or shell execution scope; stage 2, not helper acceptance."
+    },
+    {
+      "caseId": "index-value-4294967297",
+      "rawFile": "raw.json",
+      "reason": "Variable coercion/binding, readonly ordering, function or shell execution scope; stage 2, not helper acceptance."
+    },
+    {
+      "caseId": "index-arithmetic-writes",
+      "rawFile": "raw.json",
+      "reason": "Variable coercion/binding, readonly ordering, function or shell execution scope; stage 2, not helper acceptance."
+    },
+    {
+      "caseId": "readonly-index",
+      "rawFile": "raw.json",
+      "reason": "Variable coercion/binding, readonly ordering, function or shell execution scope; stage 2, not helper acceptance."
+    },
+    {
+      "caseId": "readonly-optarg",
+      "rawFile": "raw.json",
+      "reason": "Native readonly removal conflicts with stronger root policy; deferred binding divergence."
+    },
+    {
+      "caseId": "readonly-name",
+      "rawFile": "raw.json",
+      "reason": "Variable coercion/binding, readonly ordering, function or shell execution scope; stage 2, not helper acceptance."
+    },
+    {
+      "caseId": "invalid-name-state-order",
+      "rawFile": "raw.json",
+      "reason": "Variable coercion/binding, readonly ordering, function or shell execution scope; stage 2, not helper acceptance."
+    },
+    {
+      "caseId": "name-optind",
+      "rawFile": "raw.json",
+      "reason": "Variable coercion/binding, readonly ordering, function or shell execution scope; stage 2, not helper acceptance."
+    },
+    {
+      "caseId": "name-optarg",
+      "rawFile": "raw.json",
+      "reason": "Variable coercion/binding, readonly ordering, function or shell execution scope; stage 2, not helper acceptance."
+    },
+    {
+      "caseId": "nested-no-local",
+      "rawFile": "raw.json",
+      "reason": "Variable coercion/binding, readonly ordering, function or shell execution scope; stage 2, not helper acceptance."
+    },
+    {
+      "caseId": "local-index-init",
+      "rawFile": "raw.json",
+      "reason": "Variable coercion/binding, readonly ordering, function or shell execution scope; stage 2, not helper acceptance."
+    },
+    {
+      "caseId": "local-index-unset",
+      "rawFile": "raw.json",
+      "reason": "Variable coercion/binding, readonly ordering, function or shell execution scope; stage 2, not helper acceptance."
+    },
+    {
+      "caseId": "local-index-same2",
+      "rawFile": "raw.json",
+      "reason": "Variable coercion/binding, readonly ordering, function or shell execution scope; stage 2, not helper acceptance."
+    },
+    {
+      "caseId": "dynamic-optarg-opterr",
+      "rawFile": "raw.json",
+      "reason": "Variable coercion/binding, readonly ordering, function or shell execution scope; stage 2, not helper acceptance."
+    },
+    {
+      "caseId": "scope-isolation",
+      "rawFile": "raw.json",
+      "reason": "Variable coercion/binding, readonly ordering, function or shell execution scope; stage 2, not helper acceptance."
+    },
+    {
+      "caseId": "prefix-index",
+      "rawFile": "raw.json",
+      "reason": "Variable coercion/binding, readonly ordering, function or shell execution scope; stage 2, not helper acceptance."
+    },
+    {
+      "caseId": "read-for-param-reset",
+      "rawFile": "raw.json",
+      "reason": "Variable coercion/binding, readonly ordering, function or shell execution scope; stage 2, not helper acceptance."
+    },
+    {
+      "caseId": "environment-startup",
+      "rawFile": "raw.json",
+      "reason": "Variable coercion/binding, readonly ordering, function or shell execution scope; stage 2, not helper acceptance."
+    },
+    {
+      "caseId": "readonly-all",
+      "rawFile": "raw.json",
+      "reason": "Variable coercion/binding, readonly ordering, function or shell execution scope; stage 2, not helper acceptance."
+    },
+    {
+      "caseId": "return-positionals",
+      "rawFile": "raw.json",
+      "reason": "Variable coercion/binding, readonly ordering, function or shell execution scope; stage 2, not helper acceptance."
+    },
+    {
+      "caseId": "errexit-end",
+      "rawFile": "raw.json",
+      "reason": "Runtime errexit behavior, not pure scan result."
+    },
+    {
+      "caseId": "readonly-optarg-set-first",
+      "rawFile": "raw.json",
+      "reason": "Native readonly removal conflicts with stronger root policy; deferred binding divergence."
+    },
+    {
+      "caseId": "local-snapshot-timing",
+      "rawFile": "followup-raw.json",
+      "reason": "Variable coercion/binding, readonly ordering, function or shell execution scope; stage 2, not helper acceptance."
+    },
+    {
+      "caseId": "inner-shadows-outer-local",
+      "rawFile": "followup-raw.json",
+      "reason": "Variable coercion/binding, readonly ordering, function or shell execution scope; stage 2, not helper acceptance."
+    },
+    {
+      "caseId": "local-no-integer",
+      "rawFile": "followup-raw.json",
+      "reason": "Variable coercion/binding, readonly ordering, function or shell execution scope; stage 2, not helper acceptance."
+    },
+    {
+      "caseId": "unset-coercion",
+      "rawFile": "followup-raw.json",
+      "reason": "Variable coercion/binding, readonly ordering, function or shell execution scope; stage 2, not helper acceptance."
+    },
+    {
+      "caseId": "readonly-invalid-end",
+      "rawFile": "followup-raw.json",
+      "reason": "Variable coercion/binding, readonly ordering, function or shell execution scope; stage 2, not helper acceptance."
+    },
+    {
+      "caseId": "collision-index-binding",
+      "rawFile": "followup-raw.json",
+      "reason": "Variable coercion/binding, readonly ordering, function or shell execution scope; stage 2, not helper acceptance."
+    },
+    {
+      "caseId": "readonly-index-assignment-failure",
+      "rawFile": "followup-raw.json",
+      "reason": "Variable coercion/binding, readonly ordering, function or shell execution scope; stage 2, not helper acceptance."
+    },
+    {
+      "caseId": "source-eval-no-new-process",
+      "rawFile": "followup-raw.json",
+      "reason": "Variable coercion/binding, readonly ordering, function or shell execution scope; stage 2, not helper acceptance."
+    },
+    {
+      "caseId": "utf8-byte-profile",
+      "rawFile": "followup-raw.json",
+      "reason": "Native non-ASCII byte options intentionally refused by the approved profile."
+    },
+    {
+      "caseId": "name-optind-no-hook",
+      "rawFile": "ordering-raw.json",
+      "reason": "Variable coercion/binding, readonly ordering, function or shell execution scope; stage 2, not helper acceptance."
+    },
+    {
+      "caseId": "readonly-export-without-value",
+      "rawFile": "ordering-raw.json",
+      "reason": "Variable coercion/binding, readonly ordering, function or shell execution scope; stage 2, not helper acceptance."
+    },
+    {
+      "caseId": "readonly-read-failure",
+      "rawFile": "ordering-raw.json",
+      "reason": "Variable coercion/binding, readonly ordering, function or shell execution scope; stage 2, not helper acceptance."
+    },
+    {
+      "caseId": "readonly-local-failure",
+      "rawFile": "ordering-raw.json",
+      "reason": "Variable coercion/binding, readonly ordering, function or shell execution scope; stage 2, not helper acceptance."
+    },
+    {
+      "caseId": "readonly-prefix-failure",
+      "rawFile": "ordering-raw.json",
+      "reason": "Variable coercion/binding, readonly ordering, function or shell execution scope; stage 2, not helper acceptance."
+    },
+    {
+      "caseId": "fresh-interpreter",
+      "rawFile": "ordering-raw.json",
+      "reason": "Variable coercion/binding, readonly ordering, function or shell execution scope; stage 2, not helper acceptance."
+    }
+  ]
+}

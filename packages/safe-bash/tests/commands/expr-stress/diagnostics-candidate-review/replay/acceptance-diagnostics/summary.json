@@ -1,0 +1,99 @@
+{
+  "candidate": {
+    "commit": "21220b465537bf45ffcfb36740956a69f43bf75e",
+    "sourceTreeSha256": "82481e3b4a44aa72d1f2b314b0d0ab6be41978a70af23928b8f3153613306f03",
+    "adapterSha256": "5ae25ca13f47fcf2715ca0336149b41faf3d70fafa83ef42c667c9be054ca686",
+    "installedArtifactSha256": "cc3d0df2f3a8a42d74cdda21a2ece6f2f7817cfe2326bee9a186344709e23f72",
+    "dirty": false
+  },
+  "summaries": [
+    {
+      "cohort": "original95",
+      "profiles": [
+        {
+          "id": "gnu-9.7-darwin-C",
+          "denominator": 95,
+          "semanticMatches": 95,
+          "diagnosticMatches": 95,
+          "strictMatches": 95
+        },
+        {
+          "id": "gnu-9.7-darwin-en_US.UTF-8",
+          "denominator": 9,
+          "semanticMatches": 2,
+          "diagnosticMatches": 2,
+          "strictMatches": 2
+        },
+        {
+          "id": "apple-darwin-C",
+          "denominator": 95,
+          "semanticMatches": 61,
+          "diagnosticMatches": 46,
+          "strictMatches": 42
+        },
+        {
+          "id": "apple-darwin-en_US.UTF-8",
+          "denominator": 9,
+          "semanticMatches": 5,
+          "diagnosticMatches": 0,
+          "strictMatches": 0
+        }
+      ]
+    },
+    {
+      "cohort": "extension-original20",
+      "profiles": [
+        {
+          "id": "gnu-9.7-darwin-C",
+          "denominator": 20,
+          "semanticMatches": 20,
+          "diagnosticMatches": 20,
+          "strictMatches": 20
+        },
+        {
+          "id": "gnu-9.7-darwin-en_US.UTF-8",
+          "denominator": 3,
+          "semanticMatches": 0,
+          "diagnosticMatches": 0,
+          "strictMatches": 0
+        },
+        {
+          "id": "apple-darwin-C",
+          "denominator": 20,
+          "semanticMatches": 16,
+          "diagnosticMatches": 19,
+          "strictMatches": 15
+        },
+        {
+          "id": "apple-darwin-en_US.UTF-8",
+          "denominator": 3,
+          "semanticMatches": 0,
+          "diagnosticMatches": 0,
+          "strictMatches": 0
+        }
+      ]
+    },
+    {
+      "cohort": "extension-correction1",
+      "profiles": [
+        {
+          "id": "gnu-9.7-darwin-C",
+          "denominator": 1,
+          "semanticMatches": 1,
+          "diagnosticMatches": 1,
+          "strictMatches": 1
+        },
+        {
+          "id": "apple-darwin-C",
+          "denominator": 1,
+          "semanticMatches": 0,
+          "diagnosticMatches": 0,
+          "strictMatches": 0
+        }
+      ]
+    }
+  ],
+  "strictFailures": 81,
+  "acceptance": "FAIL: frozen mismatches retained",
+  "frozenIntegrityAfter": true
+}

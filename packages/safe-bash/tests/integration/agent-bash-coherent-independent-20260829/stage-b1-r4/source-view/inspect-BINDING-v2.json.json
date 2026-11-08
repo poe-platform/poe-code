@@ -1,0 +1,6 @@
+{
+  "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-publication-v2/BINDING-v2.json",
+  "bytes": 3923,
+  "sha256": "022ff1fc4ec15f25ef937419062a69ade7a0b3e3df482a0dcea7318e802fce56",
+  "inheritedRuntimeBinding": false
+}

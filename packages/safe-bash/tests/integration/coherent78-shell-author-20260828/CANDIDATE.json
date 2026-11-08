@@ -1,0 +1,287 @@
+{
+  "version": 2,
+  "status": "author-qualified; different review required; not release or whole gate",
+  "presealCommit": "186804b7ae9d8280aac3ee78e556bfd7c8bba7d3",
+  "executorSealCommit": "2512822b834ccb0843386b9558d372f654cd142f",
+  "originalCheckpoint": "bf9f585b24fc9f92007a2c5ef0c584f4f639ab6e",
+  "composition": "8437e4eda904e1248c25eeef0d9d455b1d251495",
+  "base": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+  "overrides": [
+    {
+      "path": "src/commands/structured/interpreter.ts",
+      "revision": "74361026502d76b8c2b696f9c60e410ac9b78d95",
+      "blob": "d3ba11f0057b07d5ad307c5dfbb5f0612a87a047",
+      "mode": "100644",
+      "bytes": 21632,
+      "sha256": "e32ad45efe69544ed95b43b97f191006f10d3beea9ca9e2a3327843dffd45a74",
+      "role": "explicit accepted override"
+    },
+    {
+      "path": "src/fs/webdav/README.md",
+      "revision": "ca1d33424b94a21ae0f40a36412fd8191611e2df",
+      "blob": "94f6f2e6d83d76cbf5f0bd8b38994ca3f4e81e78",
+      "mode": "100644",
+      "bytes": 43172,
+      "sha256": "b931ac0545c709d3be2bd7d8e328fe9b1137cdb6514dfd8e9975c64c1fecb7bd",
+      "role": "explicit accepted override"
+    },
+    {
+      "path": "src/fs/webdav/webdav.ts",
+      "revision": "ca1d33424b94a21ae0f40a36412fd8191611e2df",
+      "blob": "cb5454597ff3ee2d87f55b18c467d947020ed677",
+      "mode": "100644",
+      "bytes": 54400,
+      "sha256": "cf65b82429bd92ca52b73490e1d6c1070545b5912fbddaba7037e01c57cc21f5",
+      "role": "explicit accepted override"
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "revision": "d2502aae3c8458e0ac92662f2af07e7f9fc3923a",
+      "blob": "69125acc1d3afefcaeba642e71539ab0cc40e055",
+      "mode": "100644",
+      "bytes": 154603,
+      "sha256": "100361256ee71d7a263c92fa607de31ec1d3be9b1fb5c601b337c19e700ac4b3",
+      "role": "explicit accepted override"
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "revision": "d2502aae3c8458e0ac92662f2af07e7f9fc3923a",
+      "blob": "220d6c28a6e50f459a48aaee2030f24a841f4ab7",
+      "mode": "100644",
+      "bytes": 15081,
+      "sha256": "126438b132a9f1863bf25b20f02ca6473cb24aa86e0a91869ab98bcbf3309cba",
+      "role": "explicit accepted override"
+    }
+  ],
+  "inputs": 268,
+  "productionTsFiles": 214,
+  "manifestSha256": "4ecaed8c6fc04a90320482531ea50cc729a4ac52bcb88782922d0225417dc18e",
+  "executorSha256": "262dfcc51eaf433d967ebcb36ee229f12e60acf170c5f822e411ee52a1e818d9",
+  "overlaySha256": "a9aba608d1e30b24b8b3e4c70ca27bd4af8cca2dfac8df45fa460a15d052194d",
+  "package": {
+    "sha256": "6b5863d51ecd6484b79b7141a2004c04b775f9894d5b80bb016a02ffbefed40e",
+    "bytes": 759089,
+    "regularFiles": 858,
+    "fullInstalledManifestSha256": "484c1dd76c63f126376cff810b445c8185e791825ec83fd94e996691b2b1eb5d",
+    "emittedManifestSha256": "b398adcba9cda07b0ca9d53d42f891ba9110ac54d872a9b98af085cbeda49db7",
+    "declarationsManifestSha256": "10fe5b48b753bdceb8dc74cc65932ef6e59a5c60e439200e3c1ba8daa19a28f3",
+    "declarations": 214,
+    "bindings": {
+      "dist/index.js": {
+        "kind": "file",
+        "bytes": 1586,
+        "mode": 420,
+        "sha256": "0c068042244a0a885db69a1790bdcb79ba2853b9b76cfd5e3554fec95d27b108"
+      },
+      "dist/index.d.ts": {
+        "kind": "file",
+        "bytes": 1673,
+        "mode": 420,
+        "sha256": "de8dde4ceeee70c6b0069473454387ccda60aebe13b2532089698d9dea75bed0"
+      },
+      "dist/shell/runtime.js": {
+        "kind": "file",
+        "bytes": 171277,
+        "mode": 420,
+        "sha256": "1220ea47db173a6af1f98c11526c75e9182e0fbc1f99fb1461458b4ea1dc4a33"
+      },
+      "dist/shell/runtime.d.ts": {
+        "kind": "file",
+        "bytes": 10968,
+        "mode": 420,
+        "sha256": "24f851483c2626872c911d8af4ba540c1e6ed344a4d4415ac963d7f9cb45a8f6"
+      },
+      "dist/shell/shell.js": {
+        "kind": "file",
+        "bytes": 15404,
+        "mode": 420,
+        "sha256": "e69be22e76a307071a708cf3fc5d16d075748ab9e6ef60668bde51a4058b57a8"
+      },
+      "dist/shell/shell.d.ts": {
+        "kind": "file",
+        "bytes": 923,
+        "mode": 420,
+        "sha256": "a5000b8a9d94806a5ae826a393fab48d561c506c9d78943c6b0468aae243b72a"
+      },
+      "dist/fs/webdav/webdav.js": {
+        "kind": "file",
+        "bytes": 57277,
+        "mode": 420,
+        "sha256": "073d8491c5ada497fb050bfa570af1d598bedd2bfa1a23011e14cd8fdc80d83d"
+      },
+      "dist/fs/webdav/webdav.d.ts": {
+        "kind": "file",
+        "bytes": 4633,
+        "mode": 420,
+        "sha256": "a681c5caafe50994dc4016f492f742fa910e3f2108f995896b7855df18364116"
+      },
+      "dist/commands/structured/interpreter.js": {
+        "kind": "file",
+        "bytes": 27750,
+        "mode": 420,
+        "sha256": "cc86b7c89e05046aa989c9828444f30907c2d67b00d587c73469108ac2057540"
+      },
+      "dist/commands/structured/interpreter.d.ts": {
+        "kind": "file",
+        "bytes": 957,
+        "mode": 420,
+        "sha256": "29a0c46494f52502b7794d5d201041279ccf2403cd31eb6c056fafe387230509"
+      },
+      "dist/commands/timeout/index.js": {
+        "kind": "file",
+        "bytes": 9974,
+        "mode": 420,
+        "sha256": "79abde4c819538dbbec2f51f80c287b2af526ecec9c721afccb46f6c0821a60e"
+      },
+      "dist/commands/timeout/index.d.ts": {
+        "kind": "file",
+        "bytes": 941,
+        "mode": 420,
+        "sha256": "a000373867787f858207e21578ff5390390ea5ec52277e45e235257e554c6f4d"
+      },
+      "README.md": {
+        "kind": "file",
+        "bytes": 36273,
+        "mode": 420,
+        "sha256": "87e92b73c7339b104212a9fb11006d339694f65575a7b79debfaa902ef9cf9d1"
+      },
+      "package.json": {
+        "kind": "file",
+        "bytes": 4979,
+        "mode": 420,
+        "sha256": "b8475443860bfb0513a87cf6970ce2953e1858f27911ad3854e55f69ff22aa12"
+      }
+    }
+  },
+  "capture": {
+    "path": "captures/coherent78-author-ZpMIyO.json.gz.base64",
+    "sha256": "0b785f60c85992a4c73647120492c9ea2f4c8463f96a8fd7f1163d862c040435",
+    "encoding": "base64(gzip(JSON)); JSON.pack.base64 contains complete npm tgz"
+  },
+  "layouts": [
+    {
+      "layout": "source-build-v2-affected",
+      "profile": "root-approved-v2",
+      "cases": 3,
+      "positives": 2,
+      "positivePass": 2,
+      "refusalControls": 1,
+      "refusalPass": 1,
+      "pass": 3,
+      "failed": [],
+      "created": 3,
+      "disposed": 3,
+      "forbiddenNetwork": 0,
+      "nativeRuns": 0,
+      "privateSafeJsRuns": 0,
+      "modules": 210
+    },
+    {
+      "layout": "installed",
+      "profile": "root-approved-v2",
+      "cases": 19,
+      "positives": 18,
+      "positivePass": 18,
+      "refusalControls": 1,
+      "refusalPass": 1,
+      "pass": 19,
+      "failed": [],
+      "created": 21,
+      "disposed": 21,
+      "forbiddenNetwork": 0,
+      "nativeRuns": 0,
+      "privateSafeJsRuns": 0,
+      "modules": 210
+    },
+    {
+      "layout": "moved",
+      "profile": "root-approved-v2",
+      "cases": 19,
+      "positives": 18,
+      "positivePass": 18,
+      "refusalControls": 1,
+      "refusalPass": 1,
+      "pass": 19,
+      "failed": [],
+      "created": 21,
+      "disposed": 21,
+      "forbiddenNetwork": 0,
+      "nativeRuns": 0,
+      "privateSafeJsRuns": 0,
+      "modules": 210
+    }
+  ],
+  "types": {
+    "layouts": 3,
+    "positiveFamiliesPerLayout": 2,
+    "expectedNegativeFamiliesPerLayout": 4,
+    "positiveInversionsPerLayout": 4,
+    "matched": 30,
+    "actualPackageDeclarationsPerCompile": 86
+  },
+  "controls": [
+    {
+      "name": "manifest-tamper",
+      "rejectedBeforeMaterialization": true
+    },
+    {
+      "name": "emitted-tamper",
+      "rejected": true
+    },
+    {
+      "name": "outside-fallback",
+      "rejected": true
+    },
+    {
+      "name": "assertion-inversion",
+      "rejected": true
+    },
+    {
+      "name": "missing-entry",
+      "rejected": true
+    }
+  ],
+  "cleanup": {
+    "shellsCreated": 45,
+    "shellsDisposed": 45,
+    "directCommands": 40,
+    "allDirectCommandsNatural": true,
+    "temporaryRootAbsent": true,
+    "activeOwnedCommands": 0
+  },
+  "stability": {
+    "appendedEntriesChecked": true,
+    "fullInstalled": true,
+    "selectedSource": true,
+    "selectedMetadata": true
+  },
+  "tools": {
+    "node": "v22.22.2",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "nodeSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "typescript": "5.9.3",
+    "compilerSha256": "e8f349eabd48486bdb2bf9dc1a00c89d58297270c54b745838879e2859194419",
+    "npmSha256": "8e5f6f3429f8cdbe693cdc29904e9d5a7b127a494bd15c804bd54c7403bfcbe7",
+    "platform": "darwin",
+    "architecture": "arm64"
+  },
+  "originalResults": {
+    "preImportDarwinPathFailurePreserved": true,
+    "source": {
+      "pass": 16,
+      "total": 18,
+      "failed": [
+        "C14",
+        "C15"
+      ],
+      "rescored": false
+    }
+  },
+  "limitations": [
+    "Mocked HTTP/WebDAV, not actual service",
+    "Fresh source affected checks only; original18 not rescored",
+    "No whole gate/native/private SafeJS/timing claim",
+    "Root README and unselected docs remain historical base67",
+    "Different independent review pending"
+  ]
+}

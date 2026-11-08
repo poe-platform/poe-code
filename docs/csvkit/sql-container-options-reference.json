@@ -1,0 +1,98 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "sourceSha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+  "cases": [
+    {
+      "raw": "()",
+      "kind": "tuple",
+      "value": "()"
+    },
+    {
+      "raw": "(1,)",
+      "kind": "tuple",
+      "value": "(1,)"
+    },
+    {
+      "raw": "(1)",
+      "kind": "int",
+      "value": "1"
+    },
+    {
+      "raw": "(True, [None], {\"a\": (2, 3)},)",
+      "kind": "tuple",
+      "value": "(True, [None], {'a': (2, 3)})"
+    },
+    {
+      "raw": "{1, 2, 1, True}",
+      "kind": "set",
+      "value": "{1, 2}"
+    },
+    {
+      "raw": "set()",
+      "kind": "set",
+      "value": "set()"
+    },
+    {
+      "raw": "{1: \"first\", True: \"last\", None: 3}",
+      "kind": "dict",
+      "value": "{1: 'last', None: 3}"
+    },
+    {
+      "raw": "foo/bar",
+      "kind": "raw",
+      "value": "foo/bar"
+    },
+    {
+      "raw": "call()",
+      "kind": "raw",
+      "value": "call()"
+    },
+    {
+      "raw": "[unbound]",
+      "kind": "raw",
+      "value": "[unbound]"
+    },
+    {
+      "raw": "{name: 1}",
+      "kind": "raw",
+      "value": "{name: 1}"
+    },
+    {
+      "raw": "1 + 2",
+      "kind": "raw",
+      "value": "1 + 2"
+    },
+    {
+      "raw": "False or True",
+      "kind": "raw",
+      "value": "False or True"
+    },
+    {
+      "raw": "[",
+      "kind": "SyntaxError",
+      "value": "'[' was never closed (<unknown>, line 1)"
+    },
+    {
+      "raw": "1 +",
+      "kind": "SyntaxError",
+      "value": "invalid syntax (<unknown>, line 1)"
+    },
+    {
+      "raw": "{[]: 1}",
+      "kind": "TypeError",
+      "value": "cannot use 'list' as a dict key (unhashable type: 'list')"
+    },
+    {
+      "raw": "{[1]}",
+      "kind": "TypeError",
+      "value": "cannot use 'list' as a set element (unhashable type: 'list')"
+    },
+    {
+      "raw": "{9007199254740992, 9007199254740993}",
+      "kind": "set",
+      "value": "{9007199254740992, 9007199254740993}"
+    }
+  ],
+  "source": "def parse_list(pairs):\n    options = {}\n    for key, value in pairs:\n        try:\n            value = ast.literal_eval(value)\n        except ValueError:\n            pass\n        options[key] = value\n    return options\n",
+  "pythonVersion": "3.14.2"
+}

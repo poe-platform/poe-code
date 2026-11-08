@@ -1,0 +1,217 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "sourceSha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+  "cases": [
+    {
+      "command": "csvclean",
+      "argv": [],
+      "stdin": "a,b\nx\n",
+      "status": 2,
+      "stdout": "",
+      "stderr": "usage: csvclean [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}]\n                [-b] [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-S]\n                [-H] [-K SKIP_LINES] [-v] [-l] [--add-bom] [--zero] [-V]\n                [--length-mismatch] [--empty-columns] [-a] [--omit-error-rows]\n                [--label LABEL] [--header-normalize-space] [--join-short-rows]\n                [--separator SEPARATOR] [--fill-short-rows]\n                [--fillvalue FILLVALUE]\n                [FILE]\ncsvclean: error: No checks or fixes were enabled. See available options with: csvclean --help\n"
+    },
+    {
+      "command": "csvclean",
+      "argv": [
+        "--length-mismatch"
+      ],
+      "stdin": "a,b\nx\ny,z,w\n",
+      "status": 1,
+      "stdout": "a,b\nx\ny,z,w\n",
+      "stderr": "line_number,msg,a,b\n1,\"Expected 2 columns, found 1 columns\",x\n2,\"Expected 2 columns, found 3 columns\",y,z,w\n"
+    },
+    {
+      "command": "csvclean",
+      "argv": [
+        "--length-mismatch",
+        "--omit-error-rows",
+        "--label",
+        "-"
+      ],
+      "stdin": "a,b\nx\ny,z\n",
+      "status": 1,
+      "stdout": "a,b\ny,z\n",
+      "stderr": "label,line_number,msg,a,b\nstdin,1,\"Expected 2 columns, found 1 columns\",x\n"
+    },
+    {
+      "command": "csvclean",
+      "argv": [
+        "-a",
+        "--fill-short-rows",
+        "--fillvalue",
+        "?"
+      ],
+      "stdin": "a,b\nx\ny,z,w\n",
+      "status": 1,
+      "stdout": "a,b\nx,?\ny,z,w\n",
+      "stderr": "line_number,msg,a,b\n2,\"Expected 2 columns, found 3 columns\",y,z,w\n"
+    },
+    {
+      "command": "csvclean",
+      "argv": [
+        "--header-normalize-space"
+      ],
+      "stdin": " a  b , c \nx,y\n",
+      "status": 0,
+      "stdout": "a b,c\nx,y\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvclean",
+      "argv": [
+        "--empty-columns",
+        "--zero",
+        "-l"
+      ],
+      "stdin": "a,b\nx,\ny,\n",
+      "status": 1,
+      "stdout": "line_number,a,b\n1,x,\n2,y,\n",
+      "stderr": "line_number,line_number,msg,a,b\n1,1,Empty columns named 'b'! Try: csvcut -C 1,,\n"
+    },
+    {
+      "command": "csvclean",
+      "argv": [
+        "--join-short-rows",
+        "--length-mismatch"
+      ],
+      "stdin": "a,b,c\nx,y\nz,w\nq,r,s\n",
+      "status": 1,
+      "stdout": "a,b,c\nx,y\n",
+      "stderr": "ValueError: list.remove(x): x not in list\n"
+    },
+    {
+      "command": "csvclean",
+      "argv": [
+        "--join-short-rows",
+        "--fill-short-rows"
+      ],
+      "stdin": "a,b\n",
+      "status": 2,
+      "stdout": "",
+      "stderr": "usage: csvclean [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}]\n                [-b] [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-S]\n                [-H] [-K SKIP_LINES] [-v] [-l] [--add-bom] [--zero] [-V]\n                [--length-mismatch] [--empty-columns] [-a] [--omit-error-rows]\n                [--label LABEL] [--header-normalize-space] [--join-short-rows]\n                [--separator SEPARATOR] [--fill-short-rows]\n                [--fillvalue FILLVALUE]\n                [FILE]\ncsvclean: error: The --join-short-rows and --fill-short-rows options are mutually exclusive.\n"
+    },
+    {
+      "command": "csvclean",
+      "argv": [
+        "--length-mismatch"
+      ],
+      "stdin": "",
+      "status": 0,
+      "stdout": "\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvjson",
+      "argv": [
+        "--stream",
+        "-I",
+        "-y",
+        "0"
+      ],
+      "stdin": "a,b\nx,y\nz\n",
+      "status": 0,
+      "stdout": "{\"a\": \"x\", \"b\": \"y\"}\n{\"a\": \"z\", \"b\": null}\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvjson",
+      "argv": [
+        "--stream",
+        "-I",
+        "-y",
+        "0"
+      ],
+      "stdin": "2,1,2,__proto__\na,b,c,d\n",
+      "status": 0,
+      "stdout": "{\"2\": \"c\", \"1\": \"b\", \"__proto__\": \"d\"}\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvjson",
+      "argv": [
+        "--stream",
+        "-I",
+        "-y",
+        "0",
+        "-i",
+        "2"
+      ],
+      "stdin": "a,b\nx,y\n",
+      "status": 0,
+      "stdout": "{\n  \"a\": \"x\",\n  \"b\": \"y\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvjson",
+      "argv": [
+        "--stream",
+        "-I",
+        "-y",
+        "0",
+        "-H"
+      ],
+      "stdin": "a,b\nx,y\n",
+      "status": 0,
+      "stdout": "{\"a\": \"x\", \"b\": \"y\"}\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvjson",
+      "argv": [
+        "--stream",
+        "-I",
+        "-y",
+        "0"
+      ],
+      "stdin": "",
+      "status": 1,
+      "stdout": "",
+      "stderr": "StopIteration: \n"
+    },
+    {
+      "command": "csvjson",
+      "argv": [
+        "--lat",
+        "1"
+      ],
+      "stdin": "a,b\nx,y\n",
+      "status": 2,
+      "stdout": "",
+      "stderr": "usage: csvjson [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n               [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n               [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n               [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n               [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l]\n               [--add-bom] [--zero] [-V] [-i INDENT] [-k KEY] [--lat LAT]\n               [--lon LON] [--type TYPE] [--geometry GEOMETRY] [--crs CRS]\n               [--no-bbox] [--stream] [-y SNIFF_LIMIT] [-I]\n               [FILE]\ncsvjson: error: --lon is required whenever --lat is specified.\n"
+    },
+    {
+      "command": "in2csv",
+      "argv": [
+        "-f",
+        "csv",
+        "-I",
+        "-y",
+        "0"
+      ],
+      "stdin": "a,b\nx,y,z\n",
+      "status": 0,
+      "stdout": "a,b\nx,y,z\n",
+      "stderr": ""
+    },
+    {
+      "command": "in2csv",
+      "argv": [],
+      "stdin": "a,b\nx,y\n",
+      "status": 2,
+      "stdout": "",
+      "stderr": "usage: in2csv [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n              [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n              [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n              [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n              [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l] [--add-bom]\n              [--zero] [-V] [-f {csv,dbf,fixed,geojson,json,ndjson,xls,xlsx}]\n              [-s SCHEMA] [-k KEY] [-n] [--sheet SHEET]\n              [--write-sheets WRITE_SHEETS] [--use-sheet-names]\n              [--reset-dimensions] [--encoding-xls ENCODING_XLS]\n              [-y SNIFF_LIMIT] [-I]\n              [FILE]\nin2csv: error: You must specify a format when providing input as piped data via STDIN.\n"
+    },
+    {
+      "command": "in2csv",
+      "argv": [
+        "-f",
+        "csv",
+        "-n"
+      ],
+      "stdin": "a,b\n",
+      "status": 2,
+      "stdout": "",
+      "stderr": "usage: in2csv [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n              [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n              [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n              [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n              [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l] [--add-bom]\n              [--zero] [-V] [-f {csv,dbf,fixed,geojson,json,ndjson,xls,xlsx}]\n              [-s SCHEMA] [-k KEY] [-n] [--sheet SHEET]\n              [--write-sheets WRITE_SHEETS] [--use-sheet-names]\n              [--reset-dimensions] [--encoding-xls ENCODING_XLS]\n              [-y SNIFF_LIMIT] [-I]\n              [FILE]\nin2csv: error: You cannot use the -n or --names options with non-Excel files.\n"
+    }
+  ]
+}

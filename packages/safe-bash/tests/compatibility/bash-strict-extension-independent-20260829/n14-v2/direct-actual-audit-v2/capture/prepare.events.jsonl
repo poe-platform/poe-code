@@ -1,0 +1,7 @@
+{"at":"2026-08-29T11:54:27.883Z","event":"owner-start","pid":56041,"mode":"prepare"}
+{"at":"2026-08-29T11:54:27.892Z","event":"capture-open","label":"old-index-git"}
+{"at":"2026-08-29T11:54:27.897Z","event":"enrolled","label":"old-index-git","pid":56043,"executable":"/usr/bin/git","args":["-c","gc.auto=0","-c","maintenance.auto=false","-c","core.hooksPath=/dev/null","-c","commit.gpgsign=false","-c","core.abbrev=40","show","05707e3b0011864154707266f2375d88cf80c6a1:tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v1/AUDIT.json"]}
+{"at":"2026-08-29T11:54:27.941Z","event":"exit","label":"old-index-git","pid":56043,"code":0,"signal":null}
+{"at":"2026-08-29T11:54:27.949Z","event":"close","label":"old-index-git","pid":56043,"code":0,"signal":null,"exitSeen":true,"timedOut":false,"spawnErrorPresent":false}
+{"at":"2026-08-29T11:54:27.952Z","event":"capture-closed","label":"old-index-git"}
+{"at":"2026-08-29T11:54:28.069Z","event":"owner-complete","pid":56041,"code":0}

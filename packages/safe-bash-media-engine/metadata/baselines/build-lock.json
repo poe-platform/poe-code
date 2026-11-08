@@ -1,0 +1,2459 @@
+{
+  "platform": "macOS-15.7.7-arm64-arm-64bit",
+  "environment": {
+    "PATH": "/opt/homebrew/bin:/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "HOME": "/tmp/remote-media-inventory/empty-home",
+    "MAGICK_THREAD_LIMIT": "1"
+  },
+  "binaries_and_dylibs": {
+    "/opt/homebrew/Cellar/imagemagick/7.1.2-31/bin/magick": {
+      "sha256": "d5a0dee6582f6843bf30fcf567febe993ad45eb53dcba108a0572d5f0d454a73",
+      "dependencies": [
+        "/opt/homebrew/Cellar/imagemagick/7.1.2-31/lib/libMagickCore-7.Q16HDRI.10.dylib",
+        "/opt/homebrew/Cellar/imagemagick/7.1.2-31/lib/libMagickWand-7.Q16HDRI.10.dylib",
+        "/opt/homebrew/opt/little-cms2/lib/liblcms2.2.dylib",
+        "/opt/homebrew/opt/freetype/lib/libfreetype.6.dylib",
+        "/usr/lib/libxml2.2.dylib",
+        "/usr/lib/libbz2.1.0.dylib",
+        "/usr/lib/libz.1.dylib",
+        "/opt/homebrew/opt/libtool/lib/libltdl.7.dylib",
+        "/usr/lib/libSystem.B.dylib",
+        "/usr/lib/libc++.1.dylib"
+      ]
+    },
+    "/opt/homebrew/Cellar/libtool/2.6.2/lib/libltdl.7.dylib": {
+      "sha256": "af13f20c8a3b8083ae706cff644c7f68c1d13aa22bf74afcb5b821ded9eca518",
+      "dependencies": [
+        "/opt/homebrew/opt/libtool/lib/libltdl.7.dylib",
+        "/usr/lib/libSystem.B.dylib"
+      ]
+    },
+    "/opt/homebrew/Cellar/freetype/2.14.3/lib/libfreetype.6.dylib": {
+      "sha256": "b34df0bb8bff625ba07d7b646a2b65d0faebbbdd72051fc372569ddf5359175d",
+      "dependencies": [
+        "/opt/homebrew/opt/freetype/lib/libfreetype.6.dylib",
+        "/usr/lib/libz.1.dylib",
+        "/usr/lib/libbz2.1.0.dylib",
+        "/opt/homebrew/opt/libpng/lib/libpng16.16.dylib",
+        "/usr/lib/libSystem.B.dylib"
+      ]
+    },
+    "/opt/homebrew/Cellar/libpng/1.6.58/lib/libpng16.16.dylib": {
+      "sha256": "be4debc05dcb84f11d797a79750cd77a06ae5545d2f64361af09ba5f45d93d7f",
+      "dependencies": [
+        "/opt/homebrew/opt/libpng/lib/libpng16.16.dylib",
+        "/usr/lib/libz.1.dylib",
+        "/usr/lib/libSystem.B.dylib"
+      ]
+    },
+    "/opt/homebrew/Cellar/little-cms2/2.19.1/lib/liblcms2.2.dylib": {
+      "sha256": "ee7ae735ed415d98567cfa1964949febdeef110a33ea3cf9c29d7c61c6a043c6",
+      "dependencies": [
+        "/opt/homebrew/opt/little-cms2/lib/liblcms2.2.dylib",
+        "/usr/lib/libSystem.B.dylib"
+      ]
+    },
+    "/opt/homebrew/Cellar/imagemagick/7.1.2-31/lib/libMagickWand-7.Q16HDRI.10.dylib": {
+      "sha256": "510becfbdc65607bf7c96fa6fe6de375863757213cd5db8c29e115ee06eab9e2",
+      "dependencies": [
+        "/opt/homebrew/opt/imagemagick/lib/libMagickWand-7.Q16HDRI.10.dylib",
+        "/opt/homebrew/Cellar/imagemagick/7.1.2-31/lib/libMagickCore-7.Q16HDRI.10.dylib",
+        "/opt/homebrew/opt/little-cms2/lib/liblcms2.2.dylib",
+        "/opt/homebrew/opt/freetype/lib/libfreetype.6.dylib",
+        "/usr/lib/libxml2.2.dylib",
+        "/usr/lib/libbz2.1.0.dylib",
+        "/usr/lib/libz.1.dylib",
+        "/opt/homebrew/opt/libtool/lib/libltdl.7.dylib",
+        "/usr/lib/libSystem.B.dylib"
+      ]
+    },
+    "/opt/homebrew/Cellar/imagemagick/7.1.2-31/lib/libMagickCore-7.Q16HDRI.10.dylib": {
+      "sha256": "a900af85517c72fb62407eef9f3408cf39f08015e73aa549aeb8c988761bca9f",
+      "dependencies": [
+        "/opt/homebrew/opt/imagemagick/lib/libMagickCore-7.Q16HDRI.10.dylib",
+        "/opt/homebrew/opt/little-cms2/lib/liblcms2.2.dylib",
+        "/opt/homebrew/opt/freetype/lib/libfreetype.6.dylib",
+        "/usr/lib/libxml2.2.dylib",
+        "/usr/lib/libbz2.1.0.dylib",
+        "/usr/lib/libz.1.dylib",
+        "/opt/homebrew/opt/libtool/lib/libltdl.7.dylib",
+        "/usr/lib/libSystem.B.dylib"
+      ]
+    },
+    "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/bin/ffprobe": {
+      "sha256": "860eadc7b01d86126a208601c83602feb8eab952da232ce603066fb2f65471d8",
+      "dependencies": [
+        "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/lib/libavdevice.63.dylib",
+        "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/lib/libavfilter.12.dylib",
+        "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/lib/libavformat.63.dylib",
+        "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/lib/libavcodec.63.dylib",
+        "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/lib/libswresample.7.dylib",
+        "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/lib/libswscale.10.dylib",
+        "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/lib/libavutil.61.dylib",
+        "/System/Library/Frameworks/Foundation.framework/Versions/C/Foundation",
+        "/System/Library/Frameworks/AudioToolbox.framework/Versions/A/AudioToolbox",
+        "/System/Library/Frameworks/CoreAudio.framework/Versions/A/CoreAudio",
+        "/usr/lib/libSystem.B.dylib",
+        "/System/Library/Frameworks/AVFoundation.framework/Versions/A/AVFoundation",
+        "/System/Library/Frameworks/CoreVideo.framework/Versions/A/CoreVideo",
+        "/System/Library/Frameworks/CoreMedia.framework/Versions/A/CoreMedia",
+        "/System/Library/Frameworks/CoreGraphics.framework/Versions/A/CoreGraphics",
+        "/System/Library/Frameworks/OpenGL.framework/Versions/A/OpenGL",
+        "/usr/lib/libz.1.dylib",
+        "/opt/homebrew/opt/libvmaf/lib/libvmaf.3.dylib",
+        "/System/Library/Frameworks/Metal.framework/Versions/A/Metal",
+        "/System/Library/Frameworks/VideoToolbox.framework/Versions/A/VideoToolbox",
+        "/System/Library/Frameworks/CoreImage.framework/Versions/A/CoreImage",
+        "/System/Library/Frameworks/AppKit.framework/Versions/C/AppKit",
+        "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+        "/System/Library/Frameworks/CoreServices.framework/Versions/A/CoreServices",
+        "/usr/lib/libbz2.1.0.dylib",
+        "/opt/homebrew/opt/openssl@3/lib/libssl.3.dylib",
+        "/opt/homebrew/opt/openssl@3/lib/libcrypto.3.dylib",
+        "/opt/homebrew/opt/libvpx/lib/libvpx.12.dylib",
+        "/usr/lib/libiconv.2.dylib",
+        "/opt/homebrew/opt/xz/lib/liblzma.5.dylib",
+        "/opt/homebrew/opt/dav1d/lib/libdav1d.7.dylib",
+        "/opt/homebrew/opt/lame/lib/libmp3lame.0.dylib",
+        "/opt/homebrew/opt/opus/lib/libopus.0.dylib",
+        "/opt/homebrew/opt/svt-av1/lib/libSvtAv1Enc.4.dylib",
+        "/opt/homebrew/opt/x264/lib/libx264.165.dylib",
+        "/opt/homebrew/opt/x265/lib/libx265.217.dylib"
+      ]
+    },
+    "/opt/homebrew/Cellar/x265/4.3/lib/libx265.217.dylib": {
+      "sha256": "987017f52966c7a1b8401de33ffadf4efc06c58ed99e231745998890ab5afd3f",
+      "dependencies": [
+        "/opt/homebrew/opt/x265/lib/libx265.217.dylib",
+        "/usr/lib/libSystem.B.dylib",
+        "/usr/lib/libc++.1.dylib"
+      ]
+    },
+    "/opt/homebrew/Cellar/x264/r3222/lib/libx264.165.dylib": {
+      "sha256": "b0e1a1bcfc1ca6ac85fb4086d5a33aad30acecd9f75f9f08b4424ef3c17a289d",
+      "dependencies": [
+        "/opt/homebrew/opt/x264/lib/libx264.165.dylib",
+        "/usr/lib/libSystem.B.dylib"
+      ]
+    },
+    "/opt/homebrew/Cellar/svt-av1/4.2.0/lib/libSvtAv1Enc.4.2.0.dylib": {
+      "sha256": "9d4f99e94fd9fc7278aa5ef5bc2aebcbdf50d4e3cdff3a67f5fcb70d758f11bd",
+      "dependencies": [
+        "/opt/homebrew/opt/svt-av1/lib/libSvtAv1Enc.4.dylib",
+        "/usr/lib/libSystem.B.dylib"
+      ]
+    },
+    "/opt/homebrew/Cellar/opus/1.6.1/lib/libopus.0.dylib": {
+      "sha256": "d555add3bcf3df0522d0fdc9bb4754901f76a92f49571c8756be7c43058c6028",
+      "dependencies": [
+        "/opt/homebrew/opt/opus/lib/libopus.0.dylib",
+        "/usr/lib/libSystem.B.dylib"
+      ]
+    },
+    "/opt/homebrew/Cellar/lame/4.0/lib/libmp3lame.0.dylib": {
+      "sha256": "a3881f1f0a3620f03e63e086abeb0af1fe7adcd9c7ce77fc5801309b96f60ba3",
+      "dependencies": [
+        "/opt/homebrew/opt/lame/lib/libmp3lame.0.dylib",
+        "/opt/homebrew/opt/mpg123/lib/libmpg123.0.dylib",
+        "/usr/lib/libSystem.B.dylib"
+      ]
+    },
+    "/opt/homebrew/Cellar/mpg123/1.33.7/lib/libmpg123.0.dylib": {
+      "sha256": "d72d9a0a4cd6e2007d9f0b8c357444fe198b349ea1153ccafc91e31b47e774fc",
+      "dependencies": [
+        "/opt/homebrew/opt/mpg123/lib/libmpg123.0.dylib",
+        "/usr/lib/libSystem.B.dylib"
+      ]
+    },
+    "/opt/homebrew/Cellar/dav1d/1.5.4/lib/libdav1d.7.dylib": {
+      "sha256": "9116c6baf136d46fbe3172eea84b8a5b795f687e2b69ab0aa47ee46266fbc8a3",
+      "dependencies": [
+        "/opt/homebrew/opt/dav1d/lib/libdav1d.7.dylib",
+        "/usr/lib/libSystem.B.dylib"
+      ]
+    },
+    "/opt/homebrew/Cellar/xz/5.8.3/lib/liblzma.5.dylib": {
+      "sha256": "701b6dd5c9cf5864ae39121d6b7218a2ed6a24f36d82cb8d79947cb220c0e2cc",
+      "dependencies": [
+        "/opt/homebrew/opt/xz/lib/liblzma.5.dylib",
+        "/usr/lib/libSystem.B.dylib"
+      ]
+    },
+    "/opt/homebrew/Cellar/libvpx/1.17.0/lib/libvpx.12.dylib": {
+      "sha256": "70b45d43337984bde0a847d8e2ddd2fde99805f2aca157dc4b3bbe978001e531",
+      "dependencies": [
+        "/opt/homebrew/opt/libvpx/lib/libvpx.12.dylib",
+        "/usr/lib/libSystem.B.dylib",
+        "/usr/lib/libc++.1.dylib"
+      ]
+    },
+    "/opt/homebrew/Cellar/openssl@3/3.6.4/lib/libcrypto.3.dylib": {
+      "sha256": "48c160c3aaa46cb69e5874370d820c2bc8be0712f6ee690fa10581ad966474a7",
+      "dependencies": [
+        "/opt/homebrew/opt/openssl@3/lib/libcrypto.3.dylib",
+        "/usr/lib/libSystem.B.dylib"
+      ]
+    },
+    "/opt/homebrew/Cellar/openssl@3/3.6.4/lib/libssl.3.dylib": {
+      "sha256": "a53b324db78c1146ff9ce68700f952e3997f4a1965ee6c6a802f6d3bdcd625ad",
+      "dependencies": [
+        "/opt/homebrew/opt/openssl@3/lib/libssl.3.dylib",
+        "/opt/homebrew/Cellar/openssl@3/3.6.4/lib/libcrypto.3.dylib",
+        "/usr/lib/libSystem.B.dylib"
+      ]
+    },
+    "/opt/homebrew/Cellar/libvmaf/3.2.0/lib/libvmaf.3.dylib": {
+      "sha256": "21d41f2858e056f41b59dc09e2e42ad4ce6239afcb395597a3e996e05ce5ede9",
+      "dependencies": [
+        "/opt/homebrew/opt/libvmaf/lib/libvmaf.3.dylib",
+        "/usr/lib/libSystem.B.dylib",
+        "/usr/lib/libc++.1.dylib"
+      ]
+    },
+    "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/lib/libavutil.61.1.101.dylib": {
+      "sha256": "f4b7356a8d9bb0aba0a69bb90df759c89e9e83c824a0870ab9796dbd4fa53dd2",
+      "dependencies": [
+        "/opt/homebrew/opt/ffmpeg/lib/libavutil.61.dylib",
+        "/usr/lib/libSystem.B.dylib",
+        "/usr/lib/libz.1.dylib",
+        "/opt/homebrew/opt/openssl@3/lib/libssl.3.dylib",
+        "/opt/homebrew/opt/openssl@3/lib/libcrypto.3.dylib",
+        "/System/Library/Frameworks/VideoToolbox.framework/Versions/A/VideoToolbox",
+        "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+        "/System/Library/Frameworks/CoreMedia.framework/Versions/A/CoreMedia",
+        "/System/Library/Frameworks/CoreVideo.framework/Versions/A/CoreVideo",
+        "/System/Library/Frameworks/CoreServices.framework/Versions/A/CoreServices"
+      ]
+    },
+    "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/lib/libswscale.10.1.101.dylib": {
+      "sha256": "60e530575bd6d8ab7d6546a87472af447055bf66bf662acb29e3b7c7dc02f28d",
+      "dependencies": [
+        "/opt/homebrew/opt/ffmpeg/lib/libswscale.10.dylib",
+        "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/lib/libavutil.61.dylib",
+        "/usr/lib/libSystem.B.dylib",
+        "/usr/lib/libz.1.dylib",
+        "/opt/homebrew/opt/openssl@3/lib/libssl.3.dylib",
+        "/opt/homebrew/opt/openssl@3/lib/libcrypto.3.dylib",
+        "/System/Library/Frameworks/VideoToolbox.framework/Versions/A/VideoToolbox",
+        "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+        "/System/Library/Frameworks/CoreMedia.framework/Versions/A/CoreMedia",
+        "/System/Library/Frameworks/CoreVideo.framework/Versions/A/CoreVideo",
+        "/System/Library/Frameworks/CoreServices.framework/Versions/A/CoreServices"
+      ]
+    },
+    "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/lib/libswresample.7.1.101.dylib": {
+      "sha256": "28711803ee73c0bba30741b8fb60f33d45772497b768ee636d0e834e930eb95d",
+      "dependencies": [
+        "/opt/homebrew/opt/ffmpeg/lib/libswresample.7.dylib",
+        "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/lib/libavutil.61.dylib",
+        "/usr/lib/libSystem.B.dylib",
+        "/usr/lib/libz.1.dylib",
+        "/opt/homebrew/opt/openssl@3/lib/libssl.3.dylib",
+        "/opt/homebrew/opt/openssl@3/lib/libcrypto.3.dylib",
+        "/System/Library/Frameworks/VideoToolbox.framework/Versions/A/VideoToolbox",
+        "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+        "/System/Library/Frameworks/CoreMedia.framework/Versions/A/CoreMedia",
+        "/System/Library/Frameworks/CoreVideo.framework/Versions/A/CoreVideo",
+        "/System/Library/Frameworks/CoreServices.framework/Versions/A/CoreServices"
+      ]
+    },
+    "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/lib/libavcodec.63.1.101.dylib": {
+      "sha256": "c290eda6a6c49cffa966e406a0db0debbff44c10163aa5a881669e525535a185",
+      "dependencies": [
+        "/opt/homebrew/opt/ffmpeg/lib/libavcodec.63.dylib",
+        "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/lib/libswresample.7.dylib",
+        "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/lib/libavutil.61.dylib",
+        "/opt/homebrew/opt/libvpx/lib/libvpx.12.dylib",
+        "/usr/lib/libSystem.B.dylib",
+        "/usr/lib/libiconv.2.dylib",
+        "/opt/homebrew/opt/xz/lib/liblzma.5.dylib",
+        "/opt/homebrew/opt/dav1d/lib/libdav1d.7.dylib",
+        "/System/Library/Frameworks/AudioToolbox.framework/Versions/A/AudioToolbox",
+        "/opt/homebrew/opt/lame/lib/libmp3lame.0.dylib",
+        "/opt/homebrew/opt/opus/lib/libopus.0.dylib",
+        "/opt/homebrew/opt/svt-av1/lib/libSvtAv1Enc.4.dylib",
+        "/opt/homebrew/opt/x264/lib/libx264.165.dylib",
+        "/opt/homebrew/opt/x265/lib/libx265.217.dylib",
+        "/usr/lib/libz.1.dylib",
+        "/System/Library/Frameworks/VideoToolbox.framework/Versions/A/VideoToolbox",
+        "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+        "/System/Library/Frameworks/CoreMedia.framework/Versions/A/CoreMedia",
+        "/System/Library/Frameworks/CoreVideo.framework/Versions/A/CoreVideo",
+        "/System/Library/Frameworks/CoreServices.framework/Versions/A/CoreServices",
+        "/opt/homebrew/opt/openssl@3/lib/libssl.3.dylib",
+        "/opt/homebrew/opt/openssl@3/lib/libcrypto.3.dylib"
+      ]
+    },
+    "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/lib/libavformat.63.1.101.dylib": {
+      "sha256": "d829181495767deb6ae63308b86fdd14d40cbb5c5079b29cc37ce9b94b45eee6",
+      "dependencies": [
+        "/opt/homebrew/opt/ffmpeg/lib/libavformat.63.dylib",
+        "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/lib/libavcodec.63.dylib",
+        "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/lib/libswresample.7.dylib",
+        "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/lib/libavutil.61.dylib",
+        "/usr/lib/libSystem.B.dylib",
+        "/usr/lib/libbz2.1.0.dylib",
+        "/usr/lib/libz.1.dylib",
+        "/opt/homebrew/opt/openssl@3/lib/libssl.3.dylib",
+        "/opt/homebrew/opt/openssl@3/lib/libcrypto.3.dylib",
+        "/opt/homebrew/opt/libvpx/lib/libvpx.12.dylib",
+        "/usr/lib/libiconv.2.dylib",
+        "/opt/homebrew/opt/xz/lib/liblzma.5.dylib",
+        "/opt/homebrew/opt/dav1d/lib/libdav1d.7.dylib",
+        "/System/Library/Frameworks/AudioToolbox.framework/Versions/A/AudioToolbox",
+        "/opt/homebrew/opt/lame/lib/libmp3lame.0.dylib",
+        "/opt/homebrew/opt/opus/lib/libopus.0.dylib",
+        "/opt/homebrew/opt/svt-av1/lib/libSvtAv1Enc.4.dylib",
+        "/opt/homebrew/opt/x264/lib/libx264.165.dylib",
+        "/opt/homebrew/opt/x265/lib/libx265.217.dylib",
+        "/System/Library/Frameworks/VideoToolbox.framework/Versions/A/VideoToolbox",
+        "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+        "/System/Library/Frameworks/CoreMedia.framework/Versions/A/CoreMedia",
+        "/System/Library/Frameworks/CoreVideo.framework/Versions/A/CoreVideo",
+        "/System/Library/Frameworks/CoreServices.framework/Versions/A/CoreServices"
+      ]
+    },
+    "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/lib/libavfilter.12.1.101.dylib": {
+      "sha256": "630d6d956240f7ac311b23fab97ef3ce78870d8e2de1c1fef3999d0cef7f21e9",
+      "dependencies": [
+        "/opt/homebrew/opt/ffmpeg/lib/libavfilter.12.dylib",
+        "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/lib/libswscale.10.dylib",
+        "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/lib/libavformat.63.dylib",
+        "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/lib/libavcodec.63.dylib",
+        "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/lib/libswresample.7.dylib",
+        "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/lib/libavutil.61.dylib",
+        "/System/Library/Frameworks/OpenGL.framework/Versions/A/OpenGL",
+        "/usr/lib/libSystem.B.dylib",
+        "/usr/lib/libz.1.dylib",
+        "/opt/homebrew/opt/libvmaf/lib/libvmaf.3.dylib",
+        "/System/Library/Frameworks/Metal.framework/Versions/A/Metal",
+        "/System/Library/Frameworks/VideoToolbox.framework/Versions/A/VideoToolbox",
+        "/System/Library/Frameworks/CoreImage.framework/Versions/A/CoreImage",
+        "/System/Library/Frameworks/AppKit.framework/Versions/C/AppKit",
+        "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+        "/System/Library/Frameworks/CoreMedia.framework/Versions/A/CoreMedia",
+        "/System/Library/Frameworks/CoreVideo.framework/Versions/A/CoreVideo",
+        "/System/Library/Frameworks/CoreServices.framework/Versions/A/CoreServices",
+        "/usr/lib/libbz2.1.0.dylib",
+        "/opt/homebrew/opt/openssl@3/lib/libssl.3.dylib",
+        "/opt/homebrew/opt/openssl@3/lib/libcrypto.3.dylib",
+        "/opt/homebrew/opt/libvpx/lib/libvpx.12.dylib",
+        "/usr/lib/libiconv.2.dylib",
+        "/opt/homebrew/opt/xz/lib/liblzma.5.dylib",
+        "/opt/homebrew/opt/dav1d/lib/libdav1d.7.dylib",
+        "/System/Library/Frameworks/AudioToolbox.framework/Versions/A/AudioToolbox",
+        "/opt/homebrew/opt/lame/lib/libmp3lame.0.dylib",
+        "/opt/homebrew/opt/opus/lib/libopus.0.dylib",
+        "/opt/homebrew/opt/svt-av1/lib/libSvtAv1Enc.4.dylib",
+        "/opt/homebrew/opt/x264/lib/libx264.165.dylib",
+        "/opt/homebrew/opt/x265/lib/libx265.217.dylib",
+        "/System/Library/Frameworks/CoreGraphics.framework/Versions/A/CoreGraphics",
+        "/System/Library/Frameworks/Foundation.framework/Versions/C/Foundation",
+        "/usr/lib/libobjc.A.dylib"
+      ]
+    },
+    "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/lib/libavdevice.63.1.101.dylib": {
+      "sha256": "4c2bdbc82903862ec5b236bf24a3dad2ec1b931e7e85143be01d25e4be1b34d3",
+      "dependencies": [
+        "/opt/homebrew/opt/ffmpeg/lib/libavdevice.63.dylib",
+        "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/lib/libavfilter.12.dylib",
+        "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/lib/libswscale.10.dylib",
+        "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/lib/libavformat.63.dylib",
+        "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/lib/libavcodec.63.dylib",
+        "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/lib/libswresample.7.dylib",
+        "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/lib/libavutil.61.dylib",
+        "/System/Library/Frameworks/Foundation.framework/Versions/C/Foundation",
+        "/System/Library/Frameworks/AudioToolbox.framework/Versions/A/AudioToolbox",
+        "/System/Library/Frameworks/CoreAudio.framework/Versions/A/CoreAudio",
+        "/usr/lib/libSystem.B.dylib",
+        "/System/Library/Frameworks/AVFoundation.framework/Versions/A/AVFoundation",
+        "/System/Library/Frameworks/CoreVideo.framework/Versions/A/CoreVideo",
+        "/System/Library/Frameworks/CoreMedia.framework/Versions/A/CoreMedia",
+        "/System/Library/Frameworks/CoreGraphics.framework/Versions/A/CoreGraphics",
+        "/System/Library/Frameworks/OpenGL.framework/Versions/A/OpenGL",
+        "/usr/lib/libz.1.dylib",
+        "/opt/homebrew/opt/libvmaf/lib/libvmaf.3.dylib",
+        "/System/Library/Frameworks/Metal.framework/Versions/A/Metal",
+        "/System/Library/Frameworks/VideoToolbox.framework/Versions/A/VideoToolbox",
+        "/System/Library/Frameworks/CoreImage.framework/Versions/A/CoreImage",
+        "/System/Library/Frameworks/AppKit.framework/Versions/C/AppKit",
+        "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+        "/System/Library/Frameworks/CoreServices.framework/Versions/A/CoreServices",
+        "/usr/lib/libbz2.1.0.dylib",
+        "/opt/homebrew/opt/openssl@3/lib/libssl.3.dylib",
+        "/opt/homebrew/opt/openssl@3/lib/libcrypto.3.dylib",
+        "/opt/homebrew/opt/libvpx/lib/libvpx.12.dylib",
+        "/usr/lib/libiconv.2.dylib",
+        "/opt/homebrew/opt/xz/lib/liblzma.5.dylib",
+        "/opt/homebrew/opt/dav1d/lib/libdav1d.7.dylib",
+        "/opt/homebrew/opt/lame/lib/libmp3lame.0.dylib",
+        "/opt/homebrew/opt/opus/lib/libopus.0.dylib",
+        "/opt/homebrew/opt/svt-av1/lib/libSvtAv1Enc.4.dylib",
+        "/opt/homebrew/opt/x264/lib/libx264.165.dylib",
+        "/opt/homebrew/opt/x265/lib/libx265.217.dylib",
+        "/usr/lib/libobjc.A.dylib"
+      ]
+    },
+    "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/bin/ffmpeg": {
+      "sha256": "733eab555d50593370ae810b20405d22ed255748ee39a76b53c1fe3b6aaaa5f0",
+      "dependencies": [
+        "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/lib/libavdevice.63.dylib",
+        "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/lib/libavfilter.12.dylib",
+        "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/lib/libavformat.63.dylib",
+        "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/lib/libavcodec.63.dylib",
+        "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/lib/libswresample.7.dylib",
+        "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/lib/libswscale.10.dylib",
+        "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/lib/libavutil.61.dylib",
+        "/System/Library/Frameworks/Foundation.framework/Versions/C/Foundation",
+        "/System/Library/Frameworks/AudioToolbox.framework/Versions/A/AudioToolbox",
+        "/System/Library/Frameworks/CoreAudio.framework/Versions/A/CoreAudio",
+        "/usr/lib/libSystem.B.dylib",
+        "/System/Library/Frameworks/AVFoundation.framework/Versions/A/AVFoundation",
+        "/System/Library/Frameworks/CoreVideo.framework/Versions/A/CoreVideo",
+        "/System/Library/Frameworks/CoreMedia.framework/Versions/A/CoreMedia",
+        "/System/Library/Frameworks/CoreGraphics.framework/Versions/A/CoreGraphics",
+        "/System/Library/Frameworks/OpenGL.framework/Versions/A/OpenGL",
+        "/usr/lib/libz.1.dylib",
+        "/opt/homebrew/opt/libvmaf/lib/libvmaf.3.dylib",
+        "/System/Library/Frameworks/Metal.framework/Versions/A/Metal",
+        "/System/Library/Frameworks/VideoToolbox.framework/Versions/A/VideoToolbox",
+        "/System/Library/Frameworks/CoreImage.framework/Versions/A/CoreImage",
+        "/System/Library/Frameworks/AppKit.framework/Versions/C/AppKit",
+        "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+        "/System/Library/Frameworks/CoreServices.framework/Versions/A/CoreServices",
+        "/usr/lib/libbz2.1.0.dylib",
+        "/opt/homebrew/opt/openssl@3/lib/libssl.3.dylib",
+        "/opt/homebrew/opt/openssl@3/lib/libcrypto.3.dylib",
+        "/opt/homebrew/opt/libvpx/lib/libvpx.12.dylib",
+        "/usr/lib/libiconv.2.dylib",
+        "/opt/homebrew/opt/xz/lib/liblzma.5.dylib",
+        "/opt/homebrew/opt/dav1d/lib/libdav1d.7.dylib",
+        "/opt/homebrew/opt/lame/lib/libmp3lame.0.dylib",
+        "/opt/homebrew/opt/opus/lib/libopus.0.dylib",
+        "/opt/homebrew/opt/svt-av1/lib/libSvtAv1Enc.4.dylib",
+        "/opt/homebrew/opt/x264/lib/libx264.165.dylib",
+        "/opt/homebrew/opt/x265/lib/libx265.217.dylib"
+      ]
+    }
+  },
+  "config_and_font_hashes": {
+    "/opt/homebrew/opt/imagemagick/etc/ImageMagick-7/colors.xml": "df4296cef99a22b5f64eff137b5201ff0394c7805bf3105d5f97f65336867997",
+    "/opt/homebrew/opt/imagemagick/etc/ImageMagick-7/delegates.xml": "42b858c2e3f867f51e0b379af3cc692c01af50659f6f92d11d3a68cec76ae12f",
+    "/opt/homebrew/opt/imagemagick/etc/ImageMagick-7/log.xml": "d119b3cb996120ea9e3215e0bac7a54a702b858b5662acc67945ac2f35f66872",
+    "/opt/homebrew/opt/imagemagick/etc/ImageMagick-7/mime.xml": "39b3cf4f5b64ab6807aae6b0861c12d611f3dc8ed54df676b1bf469563df6fb7",
+    "/opt/homebrew/opt/imagemagick/etc/ImageMagick-7/policy.xml": "78ebc651b3a03b857e68693feffecc5f688f384edb4e51ebe9c258c4dcaa36a6",
+    "/opt/homebrew/opt/imagemagick/etc/ImageMagick-7/quantization-table.xml": "067c2f58003d417c9a36a79602cfe90fab33cc2f658ef82ab39d3e296a20bcd2",
+    "/opt/homebrew/opt/imagemagick/etc/ImageMagick-7/thresholds.xml": "9a1c096ad1955bf83a84424ba4a1f351ee640e6ba942eab5cdc633c0e3362f06",
+    "/opt/homebrew/opt/imagemagick/etc/ImageMagick-7/type-apple.xml": "d91c4b68c64dc662508c75eedda1aa5b53d85a4990b2a3d2191626382ec8e62e",
+    "/opt/homebrew/opt/imagemagick/etc/ImageMagick-7/type-dejavu.xml": "ce5266e04688664ae24bfc08b68528ec424bd71633087202349660af1fcaae90",
+    "/opt/homebrew/opt/imagemagick/etc/ImageMagick-7/type-ghostscript.xml": "a5190e3063efd211986f1398c8c9a1ad8238c94d3f4007ef9cf93a23f823d214",
+    "/opt/homebrew/opt/imagemagick/etc/ImageMagick-7/type-urw-base35-type1.xml": "c545481f658568bfeb8baffa392b113b4a3c1fe083fdf005eb3d2857d0ec223d",
+    "/opt/homebrew/opt/imagemagick/etc/ImageMagick-7/type-urw-base35.xml": "8bb12f2202a012304941ee2a9b164db25668f8e2cb588e60c8773e50d89ad50a",
+    "/opt/homebrew/opt/imagemagick/etc/ImageMagick-7/type-windows.xml": "809f45edaddcd904008f428ed9e6d7b5f38abd651741f4e6969b11ab3468e309",
+    "/opt/homebrew/opt/imagemagick/etc/ImageMagick-7/type.xml": "2644fa3f84ea54b3908f503e1462d6a8cd3f17dd4638e767d4b061475587bdc5",
+    "/opt/homebrew/etc/ImageMagick-7/colors.xml": "df4296cef99a22b5f64eff137b5201ff0394c7805bf3105d5f97f65336867997",
+    "/opt/homebrew/etc/ImageMagick-7/delegates.xml": "42b858c2e3f867f51e0b379af3cc692c01af50659f6f92d11d3a68cec76ae12f",
+    "/opt/homebrew/etc/ImageMagick-7/log.xml": "d119b3cb996120ea9e3215e0bac7a54a702b858b5662acc67945ac2f35f66872",
+    "/opt/homebrew/etc/ImageMagick-7/mime.xml": "39b3cf4f5b64ab6807aae6b0861c12d611f3dc8ed54df676b1bf469563df6fb7",
+    "/opt/homebrew/etc/ImageMagick-7/policy.xml": "78ebc651b3a03b857e68693feffecc5f688f384edb4e51ebe9c258c4dcaa36a6",
+    "/opt/homebrew/etc/ImageMagick-7/quantization-table.xml": "067c2f58003d417c9a36a79602cfe90fab33cc2f658ef82ab39d3e296a20bcd2",
+    "/opt/homebrew/etc/ImageMagick-7/thresholds.xml": "9a1c096ad1955bf83a84424ba4a1f351ee640e6ba942eab5cdc633c0e3362f06",
+    "/opt/homebrew/etc/ImageMagick-7/type-apple.xml": "d91c4b68c64dc662508c75eedda1aa5b53d85a4990b2a3d2191626382ec8e62e",
+    "/opt/homebrew/etc/ImageMagick-7/type-dejavu.xml": "ce5266e04688664ae24bfc08b68528ec424bd71633087202349660af1fcaae90",
+    "/opt/homebrew/etc/ImageMagick-7/type-ghostscript.xml": "a5190e3063efd211986f1398c8c9a1ad8238c94d3f4007ef9cf93a23f823d214",
+    "/opt/homebrew/etc/ImageMagick-7/type-urw-base35-type1.xml": "c545481f658568bfeb8baffa392b113b4a3c1fe083fdf005eb3d2857d0ec223d",
+    "/opt/homebrew/etc/ImageMagick-7/type-urw-base35.xml": "8bb12f2202a012304941ee2a9b164db25668f8e2cb588e60c8773e50d89ad50a",
+    "/opt/homebrew/etc/ImageMagick-7/type-windows.xml": "809f45edaddcd904008f428ed9e6d7b5f38abd651741f4e6969b11ab3468e309",
+    "/opt/homebrew/etc/ImageMagick-7/type.xml": "2644fa3f84ea54b3908f503e1462d6a8cd3f17dd4638e767d4b061475587bdc5",
+    "/opt/homebrew/etc/fonts/conf.d/10-hinting-slight.conf": "d138eca2bac3f78d45ff7cfb649ad792caa4a6e61f73cea7cf0ea54b091f1ef4",
+    "/opt/homebrew/etc/fonts/conf.d/10-scale-bitmap-fonts.conf": "df8e99abb6f82384c61978906a45a95794940545da95790d87f01d9391e0894b",
+    "/opt/homebrew/etc/fonts/conf.d/10-sub-pixel-none.conf": "0f00b5cf0ce07062ec65b9b340aa888f6c5fbc215aafebd26781be2d5a13ff6a",
+    "/opt/homebrew/etc/fonts/conf.d/10-yes-antialias.conf": "e6d82a642d1b37f7d24dc37f938b999f00ff7aa4303b2602d04164d53f221005",
+    "/opt/homebrew/etc/fonts/conf.d/11-lcdfilter-default.conf": "76aec9d8dac48faabe1bbde9e887cfb09fa45f30be5f8826e945a394a0097e48",
+    "/opt/homebrew/etc/fonts/conf.d/20-unhint-small-vera.conf": "278732c68c16177f2aa3c7e4ea318b9f720aee13a433c32eb15ba626806c609d",
+    "/opt/homebrew/etc/fonts/conf.d/30-metric-aliases.conf": "3baf25c82e1a14c606d45c212296852be06ae9795d60e84aab573226151450a2",
+    "/opt/homebrew/etc/fonts/conf.d/40-nonlatin.conf": "5c3f7d62a44258d5d9e81a93b1685bee5ab78acb8688b25a43c4c1e749312a84",
+    "/opt/homebrew/etc/fonts/conf.d/45-generic.conf": "24de9f68189d544bb4cc084d9bd8f3a59d8b988a9dc44b11e9877d5add5fc948",
+    "/opt/homebrew/etc/fonts/conf.d/45-latin.conf": "b46e539c25dfd5531c8fcf4f22c3d156b09272ffbc6f8a83a8eeb7431c09aee5",
+    "/opt/homebrew/etc/fonts/conf.d/48-spacing.conf": "99d839cd8aa28854e8f54f26e7200b6e57951f39f56791a0ed473662488bcef6",
+    "/opt/homebrew/etc/fonts/conf.d/49-sansserif.conf": "7849a11ce5243e8bb3d06bcad558737a8682e5122e73c8e427f4c011a2054818",
+    "/opt/homebrew/etc/fonts/conf.d/50-user.conf": "bc6e31684e4f5e0176200e558a250ff63e9ab0773300f47071223edc320c4c5e",
+    "/opt/homebrew/etc/fonts/conf.d/51-local.conf": "dca9d917e1f66f73bfa495943b4d1eaab2d93810a51bc8e600cf4d4e9df03e67",
+    "/opt/homebrew/etc/fonts/conf.d/60-generic.conf": "195bc8605dd23289d42c10d79cc13a5ce4a4b3cf965df5b30ecc0b7149bb951f",
+    "/opt/homebrew/etc/fonts/conf.d/60-latin.conf": "5c2c410bc584ba16a5e2ca5830311b0efaba9bdba3261d3247e880f6ea9d5220",
+    "/opt/homebrew/etc/fonts/conf.d/65-fonts-persian.conf": "c675fab143a3638346874798be45f51f6878ebec591b4362d83cfffb828ec4ca",
+    "/opt/homebrew/etc/fonts/conf.d/65-nonlatin.conf": "77ad64b2838b880377e54fd1a634adbfa67a73d2cb49b46c10117ec6c64b2b19",
+    "/opt/homebrew/etc/fonts/conf.d/69-unifont.conf": "fa97c0cf5f79d70e2dc3dc48155d4c9220cd7c6a8bc95b89c4ebcc517f97479e",
+    "/opt/homebrew/etc/fonts/conf.d/70-no-bitmaps-except-emoji.conf": "bb5df65896bf3011b2f2935b63ab12db1ecf078674ff73a533123445f122a92b",
+    "/opt/homebrew/etc/fonts/conf.d/80-delicious.conf": "34f27b7fe9cd83b2b6d46f16ef9c477412f2d7ef63634f86b9b38b79bc4f81ad",
+    "/opt/homebrew/etc/fonts/conf.d/90-synthetic.conf": "cdd0aac7840c664a7127b64db66bdfe8dc22be3774d10bc22f4a41c98de5d85e",
+    "/opt/homebrew/etc/fonts/conf.d/README": "58e4d6d4b83dbd2761fdbaebce1dd1a6b95d5e247ca846c1d298a0539f76f284",
+    "/opt/homebrew/etc/fonts/fonts.conf": "937b8475b6f686b52521e6d7ec9f65303893ff3dd032ce4a1f6d2b811c9b20f7",
+    "/System/Library/Fonts/Supplemental/Arial.ttf": "525979822591a3447cfc49d943d6f7683508e25543407871c0ed8fed05fd2bd9"
+  },
+  "formulae": [
+    {
+      "name": "ffmpeg",
+      "full_name": "ffmpeg",
+      "tap": "homebrew/core",
+      "oldnames": [],
+      "aliases": [
+        "ffmpeg@9"
+      ],
+      "versioned_formulae": [
+        "ffmpeg@8",
+        "ffmpeg@7",
+        "ffmpeg@6",
+        "ffmpeg@5",
+        "ffmpeg@4",
+        "ffmpeg@2.8"
+      ],
+      "desc": "Play, record, convert, and stream select audio and video codecs",
+      "license": "GPL-3.0-or-later",
+      "homepage": "https://ffmpeg.org/",
+      "versions": {
+        "stable": "9.0.1",
+        "head": "HEAD",
+        "bottle": true
+      },
+      "urls": {
+        "stable": {
+          "url": "https://ffmpeg.org/releases/ffmpeg-9.0.1.tar.xz",
+          "tag": null,
+          "revision": null,
+          "using": null,
+          "checksum": "cf38e0e28c7e5605942c4a77755349b0145804a397af37eb1fb4c77cb237f635"
+        },
+        "head": {
+          "url": "https://github.com/FFmpeg/FFmpeg.git",
+          "branch": "master",
+          "using": null
+        }
+      },
+      "patches": [],
+      "revision": 1,
+      "version_scheme": 0,
+      "compatibility_version": null,
+      "autobump": true,
+      "no_autobump_message": null,
+      "skip_livecheck": false,
+      "bottle": {
+        "stable": {
+          "rebuild": 0,
+          "root_url": "https://ghcr.io/v2/homebrew/core",
+          "files": {
+            "arm64_sequoia": {
+              "cellar": "/opt/homebrew/Cellar",
+              "url": "https://ghcr.io/v2/homebrew/core/ffmpeg/blobs/sha256:fe7b941dedd14ad289206c8c53fa16cc18c38e18cc63487f2d2aa98b6217f442",
+              "sha256": "fe7b941dedd14ad289206c8c53fa16cc18c38e18cc63487f2d2aa98b6217f442"
+            }
+          }
+        }
+      },
+      "pour_bottle_only_if": null,
+      "keg_only": false,
+      "keg_only_reason": null,
+      "options": [],
+      "build_dependencies": [
+        "pkgconf"
+      ],
+      "dependencies": [
+        "dav1d",
+        "lame",
+        "libvmaf",
+        "libvpx",
+        "openssl@3",
+        "opus",
+        "sdl2-compat",
+        "svt-av1",
+        "x264",
+        "x265",
+        "xz"
+      ],
+      "test_dependencies": [],
+      "recommended_dependencies": [],
+      "optional_dependencies": [],
+      "uses_from_macos": [
+        "bzip2",
+        "libxml2"
+      ],
+      "uses_from_macos_bounds": [
+        {},
+        {}
+      ],
+      "requirements": [],
+      "conflicts_with": [],
+      "conflicts_with_reasons": [],
+      "link_overwrite": [],
+      "caveats": "ffmpeg-full includes additional tools and libraries that are not included in the regular ffmpeg formula.\n",
+      "installed": [
+        {
+          "version": "9.0.1_1",
+          "used_options": [],
+          "built_as_bottle": true,
+          "poured_from_bottle": true,
+          "time": 1789410158,
+          "runtime_dependencies": [
+            {
+              "full_name": "dav1d",
+              "version": "1.5.4",
+              "revision": 0,
+              "bottle_rebuild": 0,
+              "pkg_version": "1.5.4",
+              "declared_directly": true
+            },
+            {
+              "full_name": "mpg123",
+              "version": "1.33.7",
+              "revision": 0,
+              "bottle_rebuild": 0,
+              "pkg_version": "1.33.7",
+              "declared_directly": false
+            },
+            {
+              "full_name": "lame",
+              "version": "4.0",
+              "revision": 0,
+              "bottle_rebuild": 0,
+              "pkg_version": "4.0",
+              "declared_directly": true
+            },
+            {
+              "full_name": "libvmaf",
+              "version": "3.2.0",
+              "revision": 0,
+              "bottle_rebuild": 0,
+              "pkg_version": "3.2.0",
+              "declared_directly": true
+            },
+            {
+              "full_name": "libvpx",
+              "version": "1.17.0",
+              "revision": 0,
+              "bottle_rebuild": 0,
+              "pkg_version": "1.17.0",
+              "declared_directly": true
+            },
+            {
+              "full_name": "ca-certificates",
+              "version": "2026-08-13",
+              "revision": 0,
+              "bottle_rebuild": 1,
+              "pkg_version": "2026-08-13",
+              "declared_directly": false
+            },
+            {
+              "full_name": "openssl@3",
+              "version": "3.6.4",
+              "revision": 0,
+              "bottle_rebuild": 0,
+              "pkg_version": "3.6.4",
+              "declared_directly": true
+            },
+            {
+              "full_name": "opus",
+              "version": "1.6.1",
+              "revision": 0,
+              "bottle_rebuild": 0,
+              "pkg_version": "1.6.1",
+              "declared_directly": true
+            },
+            {
+              "full_name": "sdl3",
+              "version": "3.4.16",
+              "revision": 0,
+              "bottle_rebuild": 0,
+              "pkg_version": "3.4.16",
+              "declared_directly": false
+            },
+            {
+              "full_name": "sdl2-compat",
+              "version": "2.32.72",
+              "revision": 0,
+              "bottle_rebuild": 0,
+              "pkg_version": "2.32.72",
+              "declared_directly": true
+            },
+            {
+              "full_name": "svt-av1",
+              "version": "4.2.0",
+              "revision": 0,
+              "bottle_rebuild": 0,
+              "pkg_version": "4.2.0",
+              "declared_directly": true
+            },
+            {
+              "full_name": "x264",
+              "version": "r3222",
+              "revision": 0,
+              "bottle_rebuild": 0,
+              "pkg_version": "r3222",
+              "declared_directly": true
+            },
+            {
+              "full_name": "x265",
+              "version": "4.3",
+              "revision": 0,
+              "bottle_rebuild": 0,
+              "pkg_version": "4.3",
+              "declared_directly": true
+            },
+            {
+              "full_name": "xz",
+              "version": "5.8.4",
+              "revision": 0,
+              "bottle_rebuild": 0,
+              "pkg_version": "5.8.4",
+              "declared_directly": true
+            }
+          ],
+          "installed_on_request": true
+        }
+      ],
+      "linked_keg": "9.0.1_1",
+      "pinned": false,
+      "outdated": false,
+      "deprecated": false,
+      "deprecation_date": null,
+      "deprecation_reason": null,
+      "deprecation_replacement_formula": null,
+      "deprecation_replacement_cask": null,
+      "deprecate_args": null,
+      "disabled": false,
+      "disable_date": null,
+      "disable_reason": null,
+      "disable_replacement_formula": null,
+      "disable_replacement_cask": null,
+      "disable_args": null,
+      "post_install_steps": [],
+      "post_install_defined": false,
+      "service": null,
+      "tap_git_head": "571bcc674ba5750d306dd6d749e18f21a340179a",
+      "ruby_source_path": "Formula/f/ffmpeg.rb",
+      "ruby_source_checksum": {
+        "sha256": "01e0a801f43538a11a9d2274e2dc15bd0f16cab82798a2d78d6b9d9a57f46cf6"
+      }
+    },
+    {
+      "name": "imagemagick",
+      "full_name": "imagemagick",
+      "tap": "homebrew/core",
+      "oldnames": [],
+      "aliases": [
+        "imagemagick@7"
+      ],
+      "versioned_formulae": [
+        "imagemagick@6"
+      ],
+      "desc": "Tools and libraries to manipulate images in select formats",
+      "license": "ImageMagick",
+      "homepage": "https://imagemagick.org",
+      "versions": {
+        "stable": "7.1.2-31",
+        "head": "HEAD",
+        "bottle": true
+      },
+      "urls": {
+        "stable": {
+          "url": "https://github.com/ImageMagick/ImageMagick/releases/download/7.1.2-31/ImageMagick-7.1.2-31.7z",
+          "tag": null,
+          "revision": null,
+          "using": null,
+          "checksum": "a050a1f6b632cf3a5b326fe6fb863790ce4d52d55fba9c6a7645b42599660e18"
+        },
+        "head": {
+          "url": "https://github.com/ImageMagick/ImageMagick.git",
+          "branch": "main",
+          "using": null
+        }
+      },
+      "patches": [],
+      "revision": 0,
+      "version_scheme": 0,
+      "compatibility_version": null,
+      "autobump": true,
+      "no_autobump_message": null,
+      "skip_livecheck": false,
+      "bottle": {
+        "stable": {
+          "rebuild": 0,
+          "root_url": "https://ghcr.io/v2/homebrew/core",
+          "files": {
+            "arm64_sequoia": {
+              "cellar": "/opt/homebrew/Cellar",
+              "url": "https://ghcr.io/v2/homebrew/core/imagemagick/blobs/sha256:035185eb153f354021cf8aa54022ec42a2064f07c0de5118424066a8eed98755",
+              "sha256": "035185eb153f354021cf8aa54022ec42a2064f07c0de5118424066a8eed98755"
+            }
+          }
+        }
+      },
+      "pour_bottle_only_if": null,
+      "keg_only": false,
+      "keg_only_reason": null,
+      "options": [],
+      "build_dependencies": [
+        "pkgconf"
+      ],
+      "dependencies": [
+        "freetype",
+        "jpeg-turbo",
+        "libheif",
+        "libpng",
+        "libtiff",
+        "libtool",
+        "little-cms2",
+        "webp",
+        "xz"
+      ],
+      "test_dependencies": [],
+      "recommended_dependencies": [],
+      "optional_dependencies": [],
+      "uses_from_macos": [
+        "bzip2",
+        "libxml2"
+      ],
+      "uses_from_macos_bounds": [
+        {},
+        {}
+      ],
+      "requirements": [],
+      "conflicts_with": [],
+      "conflicts_with_reasons": [],
+      "link_overwrite": [],
+      "caveats": "imagemagick-full includes additional tools and libraries that are not included in the regular imagemagick formula.\n",
+      "installed": [
+        {
+          "version": "7.1.2-31",
+          "used_options": [],
+          "built_as_bottle": true,
+          "poured_from_bottle": true,
+          "time": 1789410159,
+          "runtime_dependencies": [
+            {
+              "full_name": "libpng",
+              "version": "1.6.58",
+              "revision": 0,
+              "bottle_rebuild": 0,
+              "pkg_version": "1.6.58",
+              "declared_directly": true
+            },
+            {
+              "full_name": "freetype",
+              "version": "2.14.3",
+              "revision": 0,
+              "bottle_rebuild": 0,
+              "pkg_version": "2.14.3",
+              "declared_directly": true
+            },
+            {
+              "full_name": "jpeg-turbo",
+              "version": "3.2.0",
+              "revision": 0,
+              "bottle_rebuild": 1,
+              "pkg_version": "3.2.0",
+              "declared_directly": true
+            },
+            {
+              "full_name": "libvmaf",
+              "version": "3.2.0",
+              "revision": 0,
+              "bottle_rebuild": 0,
+              "pkg_version": "3.2.0",
+              "declared_directly": false
+            },
+            {
+              "full_name": "aom",
+              "version": "3.15.0",
+              "revision": 0,
+              "bottle_rebuild": 0,
+              "pkg_version": "3.15.0",
+              "declared_directly": false
+            },
+            {
+              "full_name": "libde265",
+              "version": "1.1.2",
+              "revision": 0,
+              "bottle_rebuild": 0,
+              "pkg_version": "1.1.2",
+              "declared_directly": false
+            },
+            {
+              "full_name": "giflib",
+              "version": "6.1.3",
+              "revision": 0,
+              "bottle_rebuild": 0,
+              "pkg_version": "6.1.3",
+              "declared_directly": false
+            },
+            {
+              "full_name": "webp",
+              "version": "1.6.0",
+              "revision": 0,
+              "bottle_rebuild": 0,
+              "pkg_version": "1.6.0",
+              "declared_directly": true
+            },
+            {
+              "full_name": "xz",
+              "version": "5.8.4",
+              "revision": 0,
+              "bottle_rebuild": 0,
+              "pkg_version": "5.8.4",
+              "declared_directly": true
+            },
+            {
+              "full_name": "lz4",
+              "version": "1.10.0",
+              "revision": 0,
+              "bottle_rebuild": 2,
+              "pkg_version": "1.10.0",
+              "declared_directly": false
+            },
+            {
+              "full_name": "zstd",
+              "version": "1.5.7",
+              "revision": 1,
+              "bottle_rebuild": 0,
+              "pkg_version": "1.5.7_1",
+              "declared_directly": false
+            },
+            {
+              "full_name": "libtiff",
+              "version": "4.7.2",
+              "revision": 0,
+              "bottle_rebuild": 2,
+              "pkg_version": "4.7.2",
+              "declared_directly": true
+            },
+            {
+              "full_name": "x265",
+              "version": "4.3",
+              "revision": 0,
+              "bottle_rebuild": 0,
+              "pkg_version": "4.3",
+              "declared_directly": false
+            },
+            {
+              "full_name": "libheif",
+              "version": "1.23.4",
+              "revision": 0,
+              "bottle_rebuild": 0,
+              "pkg_version": "1.23.4",
+              "declared_directly": true
+            },
+            {
+              "full_name": "m4",
+              "version": "1.4.21",
+              "revision": 0,
+              "bottle_rebuild": 0,
+              "pkg_version": "1.4.21",
+              "declared_directly": false
+            },
+            {
+              "full_name": "libtool",
+              "version": "2.6.2",
+              "revision": 0,
+              "bottle_rebuild": 0,
+              "pkg_version": "2.6.2",
+              "declared_directly": true
+            },
+            {
+              "full_name": "little-cms2",
+              "version": "2.19.1",
+              "revision": 0,
+              "bottle_rebuild": 1,
+              "pkg_version": "2.19.1",
+              "declared_directly": true
+            }
+          ],
+          "installed_on_request": true
+        }
+      ],
+      "linked_keg": "7.1.2-31",
+      "pinned": false,
+      "outdated": false,
+      "deprecated": false,
+      "deprecation_date": null,
+      "deprecation_reason": null,
+      "deprecation_replacement_formula": null,
+      "deprecation_replacement_cask": null,
+      "deprecate_args": null,
+      "disabled": false,
+      "disable_date": null,
+      "disable_reason": null,
+      "disable_replacement_formula": null,
+      "disable_replacement_cask": null,
+      "disable_args": null,
+      "post_install_steps": [],
+      "post_install_defined": false,
+      "service": null,
+      "tap_git_head": "571bcc674ba5750d306dd6d749e18f21a340179a",
+      "ruby_source_path": "Formula/i/imagemagick.rb",
+      "ruby_source_checksum": {
+        "sha256": "931f92fc83fb406e2f2f7568dfd304277e3e1fddbf0c34fe32b0f67f42230fc1"
+      }
+    }
+  ],
+  "production_linux_status": "not built or qualified; macOS oracle artifacts only",
+  "os_build": "ProductName:\t\tmacOS\nProductVersion:\t\t15.7.7\nBuildVersion:\t\t24G720\n",
+  "install_receipts": {
+    "/opt/homebrew/Cellar/imagemagick/7.1.2-31": {
+      "homebrew_version": "6.0.21-70-g2316567",
+      "used_options": [],
+      "unused_options": [],
+      "built_as_bottle": true,
+      "built_prefix": "/opt/homebrew",
+      "poured_from_bottle": true,
+      "loaded_from_api": true,
+      "loaded_from_internal_api": true,
+      "installed_on_request": true,
+      "changed_files": [
+        "bin/Magick++-config",
+        "bin/MagickCore-config",
+        "bin/MagickWand-config",
+        "include/ImageMagick-7/MagickCore/magick-baseconfig.h",
+        "include/ImageMagick-7/MagickCore/version.h",
+        "lib/ImageMagick/config-Q16HDRI/configure.xml",
+        "lib/ImageMagick/modules-Q16HDRI/coders/aai.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/art.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/ase.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/ashlar.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/avs.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/bayer.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/bgr.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/bmp.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/braille.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/c2pa.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/cals.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/caption.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/cin.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/cip.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/clip.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/cmyk.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/cube.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/cut.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/dcm.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/dds.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/debug.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/dib.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/dng.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/dot.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/dpx.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/ept.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/farbfeld.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/fax.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/fits.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/fl32.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/ftxt.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/gif.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/gradient.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/gray.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/hald.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/hdr.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/heic.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/histogram.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/hrz.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/html.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/icon.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/info.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/inline.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/ipl.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/jnx.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/jpeg.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/json.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/kernel.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/label.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/mac.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/magick.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/map.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/mask.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/mat.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/matte.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/meta.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/miff.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/mono.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/mpc.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/mpr.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/msl.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/mtv.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/mvg.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/null.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/ora.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/otb.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/palm.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/pango.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/pattern.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/pcd.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/pcl.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/pcx.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/pdb.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/pdf.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/pes.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/pgx.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/pict.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/pix.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/plasma.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/png.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/pnm.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/ps.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/ps2.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/ps3.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/psd.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/pwp.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/qoi.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/raw.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/rgb.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/rgf.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/rla.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/rle.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/scr.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/sct.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/sf3.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/sfw.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/sgi.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/sixel.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/stegano.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/strimg.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/sun.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/svg.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/tga.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/thumbnail.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/tiff.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/tile.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/tim.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/tim2.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/ttf.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/txt.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/uil.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/url.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/uyvy.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/vicar.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/vid.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/video.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/viff.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/vips.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/wbinfo.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/wbmp.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/webp.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/wpg.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/xbm.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/xc.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/xcf.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/xpm.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/xps.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/yaml.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/ycbcr.la",
+        "lib/ImageMagick/modules-Q16HDRI/coders/yuv.la",
+        "lib/ImageMagick/modules-Q16HDRI/filters/analyze.la",
+        "lib/libMagick++-7.Q16HDRI.la",
+        "lib/libMagickCore-7.Q16HDRI.la",
+        "lib/libMagickWand-7.Q16HDRI.la",
+        "lib/pkgconfig/ImageMagick-7.Q16HDRI.pc",
+        "lib/pkgconfig/ImageMagick.pc",
+        "lib/pkgconfig/Magick++-7.Q16HDRI.pc",
+        "lib/pkgconfig/Magick++.pc",
+        "lib/pkgconfig/MagickCore-7.Q16HDRI.pc",
+        "lib/pkgconfig/MagickCore.pc",
+        "lib/pkgconfig/MagickWand-7.Q16HDRI.pc",
+        "lib/pkgconfig/MagickWand.pc",
+        "share/man/man1/ImageMagick.1",
+        "share/man/man1/animate.1",
+        "share/man/man1/compare.1",
+        "share/man/man1/composite.1",
+        "share/man/man1/conjure.1",
+        "share/man/man1/convert.1",
+        "share/man/man1/display.1",
+        "share/man/man1/identify.1",
+        "share/man/man1/import.1",
+        "share/man/man1/magick-script.1",
+        "share/man/man1/magick.1",
+        "share/man/man1/mogrify.1",
+        "share/man/man1/montage.1",
+        "share/man/man1/stream.1"
+      ],
+      "linkage_files": [
+        "bin/magick",
+        "lib/ImageMagick/modules-Q16HDRI/coders/aai.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/art.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/ase.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/ashlar.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/avs.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/bayer.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/bgr.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/bmp.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/braille.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/c2pa.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/cals.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/caption.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/cin.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/cip.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/clip.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/cmyk.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/cube.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/cut.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/dcm.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/dds.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/debug.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/dib.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/dng.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/dot.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/dpx.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/ept.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/farbfeld.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/fax.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/fits.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/fl32.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/ftxt.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/gif.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/gradient.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/gray.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/hald.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/hdr.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/heic.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/histogram.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/hrz.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/html.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/icon.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/info.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/inline.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/ipl.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/jnx.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/jpeg.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/json.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/kernel.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/label.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/mac.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/magick.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/map.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/mask.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/mat.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/matte.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/meta.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/miff.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/mono.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/mpc.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/mpr.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/msl.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/mtv.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/mvg.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/null.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/ora.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/otb.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/palm.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/pango.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/pattern.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/pcd.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/pcl.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/pcx.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/pdb.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/pdf.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/pes.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/pgx.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/pict.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/pix.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/plasma.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/png.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/pnm.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/ps.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/ps2.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/ps3.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/psd.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/pwp.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/qoi.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/raw.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/rgb.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/rgf.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/rla.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/rle.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/scr.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/sct.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/sf3.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/sfw.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/sgi.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/sixel.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/stegano.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/strimg.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/sun.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/svg.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/tga.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/thumbnail.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/tiff.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/tile.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/tim.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/tim2.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/ttf.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/txt.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/uil.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/url.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/uyvy.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/vicar.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/vid.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/video.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/viff.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/vips.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/wbinfo.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/wbmp.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/webp.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/wpg.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/xbm.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/xc.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/xcf.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/xpm.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/xps.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/yaml.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/ycbcr.so",
+        "lib/ImageMagick/modules-Q16HDRI/coders/yuv.so",
+        "lib/ImageMagick/modules-Q16HDRI/filters/analyze.so",
+        "lib/libMagick++-7.Q16HDRI.5.dylib",
+        "lib/libMagickCore-7.Q16HDRI.10.dylib",
+        "lib/libMagickWand-7.Q16HDRI.10.dylib"
+      ],
+      "binary_relocation_files": [
+        "lib/libMagickCore-7.Q16HDRI.10.dylib",
+        "lib/libMagickCore-7.Q16HDRI.a"
+      ],
+      "time": 1789410159,
+      "source_modified_time": 1788469900,
+      "compiler": "clang",
+      "aliases": [
+        "imagemagick@7"
+      ],
+      "runtime_dependencies": [
+        {
+          "full_name": "libpng",
+          "version": "1.6.58",
+          "revision": 0,
+          "bottle_rebuild": 0,
+          "pkg_version": "1.6.58",
+          "declared_directly": true
+        },
+        {
+          "full_name": "freetype",
+          "version": "2.14.3",
+          "revision": 0,
+          "bottle_rebuild": 0,
+          "pkg_version": "2.14.3",
+          "declared_directly": true
+        },
+        {
+          "full_name": "jpeg-turbo",
+          "version": "3.2.0",
+          "revision": 0,
+          "bottle_rebuild": 1,
+          "pkg_version": "3.2.0",
+          "declared_directly": true
+        },
+        {
+          "full_name": "libvmaf",
+          "version": "3.2.0",
+          "revision": 0,
+          "bottle_rebuild": 0,
+          "pkg_version": "3.2.0",
+          "declared_directly": false
+        },
+        {
+          "full_name": "aom",
+          "version": "3.15.0",
+          "revision": 0,
+          "bottle_rebuild": 0,
+          "pkg_version": "3.15.0",
+          "declared_directly": false
+        },
+        {
+          "full_name": "libde265",
+          "version": "1.1.2",
+          "revision": 0,
+          "bottle_rebuild": 0,
+          "pkg_version": "1.1.2",
+          "declared_directly": false
+        },
+        {
+          "full_name": "giflib",
+          "version": "6.1.3",
+          "revision": 0,
+          "bottle_rebuild": 0,
+          "pkg_version": "6.1.3",
+          "declared_directly": false
+        },
+        {
+          "full_name": "webp",
+          "version": "1.6.0",
+          "revision": 0,
+          "bottle_rebuild": 0,
+          "pkg_version": "1.6.0",
+          "declared_directly": true
+        },
+        {
+          "full_name": "xz",
+          "version": "5.8.4",
+          "revision": 0,
+          "bottle_rebuild": 0,
+          "pkg_version": "5.8.4",
+          "declared_directly": true
+        },
+        {
+          "full_name": "lz4",
+          "version": "1.10.0",
+          "revision": 0,
+          "bottle_rebuild": 2,
+          "pkg_version": "1.10.0",
+          "declared_directly": false
+        },
+        {
+          "full_name": "zstd",
+          "version": "1.5.7",
+          "revision": 1,
+          "bottle_rebuild": 0,
+          "pkg_version": "1.5.7_1",
+          "declared_directly": false
+        },
+        {
+          "full_name": "libtiff",
+          "version": "4.7.2",
+          "revision": 0,
+          "bottle_rebuild": 2,
+          "pkg_version": "4.7.2",
+          "declared_directly": true
+        },
+        {
+          "full_name": "x265",
+          "version": "4.3",
+          "revision": 0,
+          "bottle_rebuild": 0,
+          "pkg_version": "4.3",
+          "declared_directly": false
+        },
+        {
+          "full_name": "libheif",
+          "version": "1.23.4",
+          "revision": 0,
+          "bottle_rebuild": 0,
+          "pkg_version": "1.23.4",
+          "declared_directly": true
+        },
+        {
+          "full_name": "m4",
+          "version": "1.4.21",
+          "revision": 0,
+          "bottle_rebuild": 0,
+          "pkg_version": "1.4.21",
+          "declared_directly": false
+        },
+        {
+          "full_name": "libtool",
+          "version": "2.6.2",
+          "revision": 0,
+          "bottle_rebuild": 0,
+          "pkg_version": "2.6.2",
+          "declared_directly": true
+        },
+        {
+          "full_name": "little-cms2",
+          "version": "2.19.1",
+          "revision": 0,
+          "bottle_rebuild": 1,
+          "pkg_version": "2.19.1",
+          "declared_directly": true
+        }
+      ],
+      "source": {
+        "spec": "stable",
+        "versions": {
+          "stable": "7.1.2-31",
+          "head": null,
+          "version_scheme": 0,
+          "compatibility_version": null
+        },
+        "path": "/Users/kjopek/Library/Caches/Homebrew/api/internal/packages.arm64_sequoia.jws.json",
+        "tap_git_head": null,
+        "tap": "homebrew/core"
+      },
+      "arch": "arm64",
+      "built_on": {
+        "os": "Macintosh",
+        "os_version": "macOS 15.7",
+        "cpu_family": "dunno",
+        "xcode": "26.3",
+        "clt": "26.3.0.0.1.1771626560",
+        "preferred_perl": "5.34"
+      }
+    },
+    "/opt/homebrew/Cellar/libtool/2.6.2": {
+      "homebrew_version": "6.0.11-49-g3488a8c",
+      "used_options": [],
+      "unused_options": [],
+      "built_as_bottle": true,
+      "poured_from_bottle": true,
+      "loaded_from_api": true,
+      "loaded_from_internal_api": true,
+      "installed_on_request": false,
+      "changed_files": [
+        "bin/glibtoolize"
+      ],
+      "time": 1789410159,
+      "source_modified_time": 1784218031,
+      "compiler": "clang",
+      "aliases": [],
+      "runtime_dependencies": [
+        {
+          "full_name": "m4",
+          "version": "1.4.21",
+          "revision": 0,
+          "bottle_rebuild": 0,
+          "pkg_version": "1.4.21",
+          "declared_directly": true
+        }
+      ],
+      "source": {
+        "spec": "stable",
+        "versions": {
+          "stable": "2.6.2",
+          "head": null,
+          "version_scheme": 0,
+          "compatibility_version": null
+        },
+        "path": "/Users/kjopek/Library/Caches/Homebrew/api/internal/packages.arm64_sequoia.jws.json",
+        "tap_git_head": null,
+        "tap": "homebrew/core"
+      },
+      "arch": "arm64",
+      "built_on": {
+        "os": "Macintosh",
+        "os_version": "macOS 15.7",
+        "cpu_family": "dunno",
+        "xcode": "26.3",
+        "clt": "26.3.0.0.1.1771626560",
+        "preferred_perl": "5.34"
+      }
+    },
+    "/opt/homebrew/Cellar/freetype/2.14.3": {
+      "homebrew_version": "5.1.0-149-g71bb136",
+      "used_options": [],
+      "unused_options": [],
+      "built_as_bottle": true,
+      "poured_from_bottle": true,
+      "loaded_from_api": true,
+      "loaded_from_internal_api": false,
+      "installed_as_dependency": true,
+      "installed_on_request": false,
+      "changed_files": [
+        "bin/freetype-config",
+        "lib/pkgconfig/freetype2.pc"
+      ],
+      "time": 1777225232,
+      "source_modified_time": 1774192254,
+      "compiler": "clang",
+      "aliases": [
+        "freetype2"
+      ],
+      "runtime_dependencies": [
+        {
+          "full_name": "libpng",
+          "version": "1.6.58",
+          "revision": 0,
+          "bottle_rebuild": 0,
+          "pkg_version": "1.6.58",
+          "declared_directly": true
+        }
+      ],
+      "source": {
+        "spec": "stable",
+        "versions": {
+          "stable": "2.14.3",
+          "head": null,
+          "version_scheme": 0,
+          "compatibility_version": null
+        },
+        "path": "/Users/kjopek/Library/Caches/Homebrew/api/formula.jws.json",
+        "tap_git_head": null,
+        "tap": "homebrew/core"
+      },
+      "arch": "arm64",
+      "built_on": {
+        "os": "Macintosh",
+        "os_version": "macOS 15.7",
+        "cpu_family": "dunno",
+        "xcode": "26.3",
+        "clt": "26.3.0.0.1.1771626560",
+        "preferred_perl": "5.34"
+      }
+    },
+    "/opt/homebrew/Cellar/libpng/1.6.58": {
+      "homebrew_version": "5.1.6-70-g0269fbf",
+      "used_options": [],
+      "unused_options": [],
+      "built_as_bottle": true,
+      "poured_from_bottle": true,
+      "loaded_from_api": true,
+      "loaded_from_internal_api": false,
+      "installed_as_dependency": true,
+      "installed_on_request": false,
+      "changed_files": [
+        "bin/libpng16-config",
+        "lib/pkgconfig/libpng.pc",
+        "lib/pkgconfig/libpng16.pc"
+      ],
+      "time": 1777225230,
+      "source_modified_time": 1776273806,
+      "compiler": "clang",
+      "aliases": [],
+      "runtime_dependencies": [],
+      "source": {
+        "spec": "stable",
+        "versions": {
+          "stable": "1.6.58",
+          "head": null,
+          "version_scheme": 0,
+          "compatibility_version": null
+        },
+        "path": "/Users/kjopek/Library/Caches/Homebrew/api/formula.jws.json",
+        "tap_git_head": null,
+        "tap": "homebrew/core"
+      },
+      "arch": "arm64",
+      "built_on": {
+        "os": "Macintosh",
+        "os_version": "macOS 15.7",
+        "cpu_family": "dunno",
+        "xcode": "26.3",
+        "clt": "26.3.0.0.1.1771626560",
+        "preferred_perl": "5.34"
+      }
+    },
+    "/opt/homebrew/Cellar/little-cms2/2.19.1": {
+      "homebrew_version": "6.0.21-52-g27d05ae",
+      "used_options": [],
+      "unused_options": [],
+      "built_as_bottle": true,
+      "poured_from_bottle": true,
+      "loaded_from_api": true,
+      "loaded_from_internal_api": true,
+      "installed_on_request": false,
+      "changed_files": [
+        "lib/pkgconfig/lcms2.pc"
+      ],
+      "linkage_files": [
+        "bin/jpgicc",
+        "bin/linkicc",
+        "bin/psicc",
+        "bin/tificc",
+        "bin/transicc",
+        "lib/liblcms2.2.dylib"
+      ],
+      "binary_relocation_files": [],
+      "time": 1789410159,
+      "source_modified_time": 1778055531,
+      "compiler": "clang",
+      "aliases": [
+        "lcms2"
+      ],
+      "runtime_dependencies": [
+        {
+          "full_name": "jpeg-turbo",
+          "version": "3.2.0",
+          "revision": 0,
+          "bottle_rebuild": 1,
+          "pkg_version": "3.2.0",
+          "declared_directly": true
+        },
+        {
+          "full_name": "giflib",
+          "version": "6.1.3",
+          "revision": 0,
+          "bottle_rebuild": 0,
+          "pkg_version": "6.1.3",
+          "declared_directly": false
+        },
+        {
+          "full_name": "libpng",
+          "version": "1.6.58",
+          "revision": 0,
+          "bottle_rebuild": 0,
+          "pkg_version": "1.6.58",
+          "declared_directly": false
+        },
+        {
+          "full_name": "webp",
+          "version": "1.6.0",
+          "revision": 0,
+          "bottle_rebuild": 0,
+          "pkg_version": "1.6.0",
+          "declared_directly": false
+        },
+        {
+          "full_name": "xz",
+          "version": "5.8.4",
+          "revision": 0,
+          "bottle_rebuild": 0,
+          "pkg_version": "5.8.4",
+          "declared_directly": false
+        },
+        {
+          "full_name": "lz4",
+          "version": "1.10.0",
+          "revision": 0,
+          "bottle_rebuild": 2,
+          "pkg_version": "1.10.0",
+          "declared_directly": false
+        },
+        {
+          "full_name": "zstd",
+          "version": "1.5.7",
+          "revision": 1,
+          "bottle_rebuild": 0,
+          "pkg_version": "1.5.7_1",
+          "declared_directly": false
+        },
+        {
+          "full_name": "libtiff",
+          "version": "4.7.2",
+          "revision": 0,
+          "bottle_rebuild": 2,
+          "pkg_version": "4.7.2",
+          "declared_directly": true
+        }
+      ],
+      "source": {
+        "spec": "stable",
+        "versions": {
+          "stable": "2.19.1",
+          "head": null,
+          "version_scheme": 1,
+          "compatibility_version": null
+        },
+        "path": "/Users/kjopek/Library/Caches/Homebrew/api/internal/packages.arm64_sequoia.jws.json",
+        "tap_git_head": null,
+        "tap": "homebrew/core"
+      },
+      "arch": "arm64",
+      "built_on": {
+        "os": "Macintosh",
+        "os_version": "macOS 15.7",
+        "cpu_family": "dunno",
+        "xcode": "26.3",
+        "clt": "26.3.0.0.1.1771626560",
+        "preferred_perl": "5.34"
+      }
+    },
+    "/opt/homebrew/Cellar/ffmpeg/9.0.1_1": {
+      "homebrew_version": "6.0.18-187-g0942cac",
+      "used_options": [],
+      "unused_options": [],
+      "built_as_bottle": true,
+      "built_prefix": "/opt/homebrew",
+      "poured_from_bottle": true,
+      "loaded_from_api": true,
+      "loaded_from_internal_api": true,
+      "installed_on_request": true,
+      "changed_files": [
+        "lib/pkgconfig/libavcodec.pc",
+        "lib/pkgconfig/libavdevice.pc",
+        "lib/pkgconfig/libavfilter.pc",
+        "lib/pkgconfig/libavformat.pc",
+        "lib/pkgconfig/libavutil.pc",
+        "lib/pkgconfig/libswresample.pc",
+        "lib/pkgconfig/libswscale.pc"
+      ],
+      "linkage_files": [
+        "bin/aviocat",
+        "bin/crypto_bench",
+        "bin/enc_recon_frame_test",
+        "bin/enum_options",
+        "bin/ffescape",
+        "bin/ffeval",
+        "bin/ffhash",
+        "bin/ffmpeg",
+        "bin/ffplay",
+        "bin/ffprobe",
+        "bin/fourcc2pixfmt",
+        "bin/graph2dot",
+        "bin/ismindex",
+        "bin/pktdumper",
+        "bin/probetest",
+        "bin/scale_slice_test",
+        "bin/seek_print",
+        "bin/sidxindex",
+        "bin/uncoded_frame",
+        "bin/venc_data_dump",
+        "lib/libavcodec.63.1.101.dylib",
+        "lib/libavdevice.63.1.101.dylib",
+        "lib/libavfilter.12.1.101.dylib",
+        "lib/libavformat.63.1.101.dylib",
+        "lib/libavutil.61.1.101.dylib",
+        "lib/libswresample.7.1.101.dylib",
+        "lib/libswscale.10.1.101.dylib"
+      ],
+      "binary_relocation_files": [
+        "bin/ffmpeg",
+        "bin/ffplay",
+        "bin/ffprobe"
+      ],
+      "time": 1789410158,
+      "source_modified_time": 1786505734,
+      "compiler": "clang",
+      "aliases": [
+        "ffmpeg@9"
+      ],
+      "runtime_dependencies": [
+        {
+          "full_name": "dav1d",
+          "version": "1.5.4",
+          "revision": 0,
+          "bottle_rebuild": 0,
+          "pkg_version": "1.5.4",
+          "declared_directly": true
+        },
+        {
+          "full_name": "mpg123",
+          "version": "1.33.7",
+          "revision": 0,
+          "bottle_rebuild": 0,
+          "pkg_version": "1.33.7",
+          "declared_directly": false
+        },
+        {
+          "full_name": "lame",
+          "version": "4.0",
+          "revision": 0,
+          "bottle_rebuild": 0,
+          "pkg_version": "4.0",
+          "declared_directly": true
+        },
+        {
+          "full_name": "libvmaf",
+          "version": "3.2.0",
+          "revision": 0,
+          "bottle_rebuild": 0,
+          "pkg_version": "3.2.0",
+          "declared_directly": true
+        },
+        {
+          "full_name": "libvpx",
+          "version": "1.17.0",
+          "revision": 0,
+          "bottle_rebuild": 0,
+          "pkg_version": "1.17.0",
+          "declared_directly": true
+        },
+        {
+          "full_name": "ca-certificates",
+          "version": "2026-08-13",
+          "revision": 0,
+          "bottle_rebuild": 1,
+          "pkg_version": "2026-08-13",
+          "declared_directly": false
+        },
+        {
+          "full_name": "openssl@3",
+          "version": "3.6.4",
+          "revision": 0,
+          "bottle_rebuild": 0,
+          "pkg_version": "3.6.4",
+          "declared_directly": true
+        },
+        {
+          "full_name": "opus",
+          "version": "1.6.1",
+          "revision": 0,
+          "bottle_rebuild": 0,
+          "pkg_version": "1.6.1",
+          "declared_directly": true
+        },
+        {
+          "full_name": "sdl3",
+          "version": "3.4.16",
+          "revision": 0,
+          "bottle_rebuild": 0,
+          "pkg_version": "3.4.16",
+          "declared_directly": false
+        },
+        {
+          "full_name": "sdl2-compat",
+          "version": "2.32.72",
+          "revision": 0,
+          "bottle_rebuild": 0,
+          "pkg_version": "2.32.72",
+          "declared_directly": true
+        },
+        {
+          "full_name": "svt-av1",
+          "version": "4.2.0",
+          "revision": 0,
+          "bottle_rebuild": 0,
+          "pkg_version": "4.2.0",
+          "declared_directly": true
+        },
+        {
+          "full_name": "x264",
+          "version": "r3222",
+          "revision": 0,
+          "bottle_rebuild": 0,
+          "pkg_version": "r3222",
+          "declared_directly": true
+        },
+        {
+          "full_name": "x265",
+          "version": "4.3",
+          "revision": 0,
+          "bottle_rebuild": 0,
+          "pkg_version": "4.3",
+          "declared_directly": true
+        },
+        {
+          "full_name": "xz",
+          "version": "5.8.4",
+          "revision": 0,
+          "bottle_rebuild": 0,
+          "pkg_version": "5.8.4",
+          "declared_directly": true
+        }
+      ],
+      "source": {
+        "spec": "stable",
+        "versions": {
+          "stable": "9.0.1",
+          "head": null,
+          "version_scheme": 0,
+          "compatibility_version": null
+        },
+        "path": "/Users/kjopek/Library/Caches/Homebrew/api/internal/packages.arm64_sequoia.jws.json",
+        "tap_git_head": null,
+        "tap": "homebrew/core"
+      },
+      "arch": "arm64",
+      "built_on": {
+        "os": "Macintosh",
+        "os_version": "macOS 15.7",
+        "cpu_family": "dunno",
+        "xcode": "26.3",
+        "clt": "26.3.0.0.1.1771626560",
+        "preferred_perl": "5.34"
+      }
+    },
+    "/opt/homebrew/Cellar/x265/4.3": {
+      "homebrew_version": "6.0.18-187-g0942cac",
+      "used_options": [],
+      "unused_options": [],
+      "built_as_bottle": true,
+      "poured_from_bottle": true,
+      "loaded_from_api": true,
+      "loaded_from_internal_api": true,
+      "installed_on_request": false,
+      "changed_files": [
+        "lib/pkgconfig/x265.pc"
+      ],
+      "linkage_files": [
+        "lib/libx265.217.dylib"
+      ],
+      "binary_relocation_files": [],
+      "time": 1789410158,
+      "source_modified_time": 1785496604,
+      "compiler": "clang",
+      "aliases": [],
+      "runtime_dependencies": [],
+      "source": {
+        "spec": "stable",
+        "versions": {
+          "stable": "4.3",
+          "head": null,
+          "version_scheme": 0,
+          "compatibility_version": null
+        },
+        "path": "/Users/kjopek/Library/Caches/Homebrew/api/internal/packages.arm64_sequoia.jws.json",
+        "tap_git_head": null,
+        "tap": "homebrew/core"
+      },
+      "arch": "arm64",
+      "built_on": {
+        "os": "Macintosh",
+        "os_version": "macOS 15.7",
+        "cpu_family": "dunno",
+        "xcode": "26.3",
+        "clt": "26.3.0.0.1.1771626560",
+        "preferred_perl": "5.34"
+      }
+    },
+    "/opt/homebrew/Cellar/x264/r3222": {
+      "homebrew_version": "4.6.7-81-ge6711c5",
+      "used_options": [],
+      "unused_options": [],
+      "built_as_bottle": true,
+      "poured_from_bottle": true,
+      "loaded_from_api": true,
+      "loaded_from_internal_api": true,
+      "installed_on_request": false,
+      "changed_files": [
+        "lib/pkgconfig/x264.pc"
+      ],
+      "time": 1789410158,
+      "source_modified_time": 1749399863,
+      "compiler": "clang",
+      "aliases": [],
+      "runtime_dependencies": [],
+      "source": {
+        "spec": "stable",
+        "versions": {
+          "stable": "r3222",
+          "head": null,
+          "version_scheme": 0,
+          "compatibility_version": null
+        },
+        "path": "/Users/kjopek/Library/Caches/Homebrew/api/internal/packages.arm64_sequoia.jws.json",
+        "tap_git_head": null,
+        "tap": "homebrew/core"
+      },
+      "arch": "arm64",
+      "built_on": {
+        "os": "Macintosh",
+        "os_version": "macOS 15.4",
+        "cpu_family": "dunno",
+        "xcode": "16.3",
+        "clt": "16.3.0.0.1.1742442376",
+        "preferred_perl": "5.34"
+      }
+    },
+    "/opt/homebrew/Cellar/svt-av1/4.2.0": {
+      "homebrew_version": "6.0.10-83-g945b48c",
+      "used_options": [],
+      "unused_options": [],
+      "built_as_bottle": true,
+      "poured_from_bottle": true,
+      "loaded_from_api": true,
+      "loaded_from_internal_api": true,
+      "installed_on_request": false,
+      "changed_files": [
+        "lib/pkgconfig/SvtAv1Enc.pc"
+      ],
+      "time": 1789410158,
+      "source_modified_time": 1783965993,
+      "compiler": "clang",
+      "aliases": [],
+      "runtime_dependencies": [],
+      "source": {
+        "spec": "stable",
+        "versions": {
+          "stable": "4.2.0",
+          "head": null,
+          "version_scheme": 0,
+          "compatibility_version": null
+        },
+        "path": "/Users/kjopek/Library/Caches/Homebrew/api/internal/packages.arm64_sequoia.jws.json",
+        "tap_git_head": null,
+        "tap": "homebrew/core"
+      },
+      "arch": "arm64",
+      "built_on": {
+        "os": "Macintosh",
+        "os_version": "macOS 15.7",
+        "cpu_family": "dunno",
+        "xcode": "26.3",
+        "clt": "26.3.0.0.1.1771626560",
+        "preferred_perl": "5.34"
+      }
+    },
+    "/opt/homebrew/Cellar/opus/1.6.1": {
+      "homebrew_version": "5.0.10-35-gf7d42ae",
+      "used_options": [],
+      "unused_options": [],
+      "built_as_bottle": true,
+      "poured_from_bottle": true,
+      "loaded_from_api": true,
+      "loaded_from_internal_api": true,
+      "installed_on_request": false,
+      "changed_files": [
+        "lib/pkgconfig/opus.pc"
+      ],
+      "time": 1789410157,
+      "source_modified_time": 1768437048,
+      "compiler": "clang",
+      "aliases": [],
+      "runtime_dependencies": [],
+      "source": {
+        "spec": "stable",
+        "versions": {
+          "stable": "1.6.1",
+          "head": null,
+          "version_scheme": 0,
+          "compatibility_version": null
+        },
+        "path": "/Users/kjopek/Library/Caches/Homebrew/api/internal/packages.arm64_sequoia.jws.json",
+        "tap_git_head": null,
+        "tap": "homebrew/core"
+      },
+      "arch": "arm64",
+      "built_on": {
+        "os": "Macintosh",
+        "os_version": "macOS 15.7",
+        "cpu_family": "dunno",
+        "xcode": "26.2",
+        "clt": "26.2.0.0.1.1764812424",
+        "preferred_perl": "5.34"
+      }
+    },
+    "/opt/homebrew/Cellar/lame/4.0": {
+      "homebrew_version": "6.0.9-112-g34c40c1",
+      "used_options": [],
+      "unused_options": [],
+      "built_as_bottle": true,
+      "poured_from_bottle": true,
+      "loaded_from_api": true,
+      "loaded_from_internal_api": true,
+      "installed_on_request": false,
+      "changed_files": [
+        "lib/pkgconfig/lame.pc"
+      ],
+      "time": 1789410157,
+      "source_modified_time": 1783755826,
+      "compiler": "clang",
+      "aliases": [],
+      "runtime_dependencies": [
+        {
+          "full_name": "mpg123",
+          "version": "1.33.7",
+          "revision": 0,
+          "bottle_rebuild": 0,
+          "pkg_version": "1.33.7",
+          "declared_directly": true
+        }
+      ],
+      "source": {
+        "spec": "stable",
+        "versions": {
+          "stable": "4.0",
+          "head": null,
+          "version_scheme": 0,
+          "compatibility_version": null
+        },
+        "path": "/Users/kjopek/Library/Caches/Homebrew/api/internal/packages.arm64_sequoia.jws.json",
+        "tap_git_head": null,
+        "tap": "homebrew/core"
+      },
+      "arch": "arm64",
+      "built_on": {
+        "os": "Macintosh",
+        "os_version": "macOS 15.7",
+        "cpu_family": "dunno",
+        "xcode": "26.3",
+        "clt": "26.3.0.0.1.1771626560",
+        "preferred_perl": "5.34"
+      }
+    },
+    "/opt/homebrew/Cellar/mpg123/1.33.7": {
+      "homebrew_version": "6.0.14-50-g7b0f22a",
+      "used_options": [],
+      "unused_options": [],
+      "built_as_bottle": true,
+      "built_prefix": "/opt/homebrew",
+      "poured_from_bottle": true,
+      "loaded_from_api": true,
+      "loaded_from_internal_api": true,
+      "installed_on_request": false,
+      "changed_files": [
+        "lib/pkgconfig/libmpg123.pc",
+        "lib/pkgconfig/libout123.pc",
+        "lib/pkgconfig/libsyn123.pc"
+      ],
+      "time": 1789410157,
+      "source_modified_time": 1785706166,
+      "compiler": "clang",
+      "aliases": [],
+      "runtime_dependencies": [],
+      "source": {
+        "spec": "stable",
+        "versions": {
+          "stable": "1.33.7",
+          "head": null,
+          "version_scheme": 0,
+          "compatibility_version": null
+        },
+        "path": "/Users/kjopek/Library/Caches/Homebrew/api/internal/packages.arm64_sequoia.jws.json",
+        "tap_git_head": null,
+        "tap": "homebrew/core"
+      },
+      "arch": "arm64",
+      "built_on": {
+        "os": "Macintosh",
+        "os_version": "macOS 15.7",
+        "cpu_family": "dunno",
+        "xcode": "26.3",
+        "clt": "26.3.0.0.1.1771626560",
+        "preferred_perl": "5.34"
+      }
+    },
+    "/opt/homebrew/Cellar/dav1d/1.5.4": {
+      "homebrew_version": "6.0.10-51-gf40cb3e",
+      "used_options": [],
+      "unused_options": [],
+      "built_as_bottle": true,
+      "poured_from_bottle": true,
+      "loaded_from_api": true,
+      "loaded_from_internal_api": true,
+      "installed_on_request": false,
+      "changed_files": [
+        "lib/pkgconfig/dav1d.pc"
+      ],
+      "time": 1789410157,
+      "source_modified_time": 1784011149,
+      "compiler": "clang",
+      "aliases": [],
+      "runtime_dependencies": [],
+      "source": {
+        "spec": "stable",
+        "versions": {
+          "stable": "1.5.4",
+          "head": null,
+          "version_scheme": 0,
+          "compatibility_version": null
+        },
+        "path": "/Users/kjopek/Library/Caches/Homebrew/api/internal/packages.arm64_sequoia.jws.json",
+        "tap_git_head": null,
+        "tap": "homebrew/core"
+      },
+      "arch": "arm64",
+      "built_on": {
+        "os": "Macintosh",
+        "os_version": "macOS 15.7",
+        "cpu_family": "dunno",
+        "xcode": "26.3",
+        "clt": "26.3.0.0.1.1771626560",
+        "preferred_perl": "5.34"
+      }
+    },
+    "/opt/homebrew/Cellar/xz/5.8.3": {
+      "homebrew_version": "5.1.3-4-g8fbdcb7",
+      "used_options": [],
+      "unused_options": [],
+      "built_as_bottle": true,
+      "poured_from_bottle": true,
+      "loaded_from_api": true,
+      "loaded_from_internal_api": false,
+      "installed_as_dependency": true,
+      "installed_on_request": false,
+      "changed_files": [
+        "lib/pkgconfig/liblzma.pc"
+      ],
+      "time": 1776912072,
+      "source_modified_time": 1774970846,
+      "compiler": "clang",
+      "aliases": [],
+      "runtime_dependencies": [],
+      "source": {
+        "spec": "stable",
+        "versions": {
+          "stable": "5.8.3",
+          "head": null,
+          "version_scheme": 1,
+          "compatibility_version": null
+        },
+        "path": "/Users/kjopek/Library/Caches/Homebrew/api/formula.jws.json",
+        "tap_git_head": null,
+        "tap": "homebrew/core"
+      },
+      "arch": "arm64",
+      "built_on": {
+        "os": "Macintosh",
+        "os_version": "macOS 15.7",
+        "cpu_family": "dunno",
+        "xcode": "26.3",
+        "clt": "26.3.0.0.1.1771626560",
+        "preferred_perl": "5.34"
+      }
+    },
+    "/opt/homebrew/Cellar/libvpx/1.17.0": {
+      "homebrew_version": "6.0.19-35-g9574410",
+      "used_options": [],
+      "unused_options": [],
+      "built_as_bottle": true,
+      "poured_from_bottle": true,
+      "loaded_from_api": true,
+      "loaded_from_internal_api": true,
+      "installed_on_request": false,
+      "changed_files": [
+        "lib/pkgconfig/vpx.pc"
+      ],
+      "linkage_files": [
+        "lib/libvpx.12.dylib"
+      ],
+      "binary_relocation_files": [],
+      "time": 1789410157,
+      "source_modified_time": 1787252795,
+      "compiler": "clang",
+      "aliases": [],
+      "runtime_dependencies": [],
+      "source": {
+        "spec": "stable",
+        "versions": {
+          "stable": "1.17.0",
+          "head": null,
+          "version_scheme": 0,
+          "compatibility_version": null
+        },
+        "path": "/Users/kjopek/Library/Caches/Homebrew/api/internal/packages.arm64_sequoia.jws.json",
+        "tap_git_head": null,
+        "tap": "homebrew/core"
+      },
+      "arch": "arm64",
+      "built_on": {
+        "os": "Macintosh",
+        "os_version": "macOS 15.7",
+        "cpu_family": "dunno",
+        "xcode": "26.3",
+        "clt": "26.3.0.0.1.1771626560",
+        "preferred_perl": "5.34"
+      }
+    },
+    "/opt/homebrew/Cellar/openssl@3/3.6.4": {
+      "homebrew_version": "6.0.19-35-g9574410",
+      "used_options": [],
+      "unused_options": [],
+      "built_as_bottle": true,
+      "built_prefix": "/opt/homebrew",
+      "poured_from_bottle": true,
+      "loaded_from_api": true,
+      "loaded_from_internal_api": true,
+      "installed_on_request": false,
+      "changed_files": [
+        "bin/c_rehash",
+        "lib/pkgconfig/libcrypto.pc",
+        "lib/pkgconfig/libssl.pc",
+        "lib/pkgconfig/openssl.pc"
+      ],
+      "linkage_files": [
+        "bin/openssl",
+        "lib/engines-3/capi.dylib",
+        "lib/engines-3/loader_attic.dylib",
+        "lib/engines-3/padlock.dylib",
+        "lib/libcrypto.3.dylib",
+        "lib/libssl.3.dylib",
+        "lib/ossl-modules/legacy.dylib"
+      ],
+      "binary_relocation_files": [
+        "lib/libcrypto.3.dylib",
+        "lib/libcrypto.a"
+      ],
+      "time": 1789407712,
+      "source_modified_time": 1787658514,
+      "compiler": "clang",
+      "aliases": [
+        "openssl",
+        "openssl@3.6"
+      ],
+      "runtime_dependencies": [
+        {
+          "full_name": "ca-certificates",
+          "version": "2026-08-13",
+          "revision": 0,
+          "bottle_rebuild": 1,
+          "pkg_version": "2026-08-13",
+          "declared_directly": true
+        }
+      ],
+      "source": {
+        "spec": "stable",
+        "versions": {
+          "stable": "3.6.4",
+          "head": null,
+          "version_scheme": 0,
+          "compatibility_version": null
+        },
+        "path": "/Users/kjopek/Library/Caches/Homebrew/api/internal/packages.arm64_sequoia.jws.json",
+        "tap_git_head": null,
+        "tap": "homebrew/core"
+      },
+      "arch": "arm64",
+      "built_on": {
+        "os": "Macintosh",
+        "os_version": "macOS 15.7",
+        "cpu_family": "dunno",
+        "xcode": "26.3",
+        "clt": "26.3.0.0.1.1771626560",
+        "preferred_perl": "5.34"
+      }
+    },
+    "/opt/homebrew/Cellar/libvmaf/3.2.0": {
+      "homebrew_version": "6.0.2-103-g7219f3f",
+      "used_options": [],
+      "unused_options": [],
+      "built_as_bottle": true,
+      "poured_from_bottle": true,
+      "loaded_from_api": true,
+      "loaded_from_internal_api": true,
+      "installed_on_request": false,
+      "changed_files": [
+        "lib/pkgconfig/libvmaf.pc"
+      ],
+      "time": 1789410157,
+      "source_modified_time": 1781916669,
+      "compiler": "clang",
+      "aliases": [],
+      "runtime_dependencies": [],
+      "source": {
+        "spec": "stable",
+        "versions": {
+          "stable": "3.2.0",
+          "head": null,
+          "version_scheme": 0,
+          "compatibility_version": null
+        },
+        "path": "/Users/kjopek/Library/Caches/Homebrew/api/internal/packages.arm64_sequoia.jws.json",
+        "tap_git_head": null,
+        "tap": "homebrew/core"
+      },
+      "arch": "arm64",
+      "built_on": {
+        "os": "Macintosh",
+        "os_version": "macOS 15.7",
+        "cpu_family": "dunno",
+        "xcode": "26.3",
+        "clt": "26.3.0.0.1.1771626560",
+        "preferred_perl": "5.34"
+      }
+    }
+  },
+  "capture_process_umask": "0o22",
+  "capture_resource_limits": {
+    "RLIMIT_AS": [
+      9223372036854775807,
+      9223372036854775807
+    ],
+    "RLIMIT_CORE": [
+      0,
+      9223372036854775807
+    ],
+    "RLIMIT_CPU": [
+      9223372036854775807,
+      9223372036854775807
+    ],
+    "RLIMIT_DATA": [
+      9223372036854775807,
+      9223372036854775807
+    ],
+    "RLIMIT_FSIZE": [
+      9223372036854775807,
+      9223372036854775807
+    ],
+    "RLIMIT_MEMLOCK": [
+      9223372036854775807,
+      9223372036854775807
+    ],
+    "RLIMIT_NOFILE": [
+      1048575,
+      9223372036854775807
+    ],
+    "RLIMIT_NPROC": [
+      2666,
+      4000
+    ],
+    "RLIMIT_RSS": [
+      9223372036854775807,
+      9223372036854775807
+    ],
+    "RLIMIT_STACK": [
+      8372224,
+      67092480
+    ]
+  }
+}

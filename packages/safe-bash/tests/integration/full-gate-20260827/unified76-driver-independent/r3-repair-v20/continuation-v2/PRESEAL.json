@@ -1,0 +1,1418 @@
+{
+  "schema": 1,
+  "preparedAt": "2026-08-28T16:24:16.663131+00:00",
+  "role": "SYNTAX_ONLY_CONTINUATION_PRESEAL_NOT_COHORT_RESULTS",
+  "originalFreeze": "bc60e57b246bf2be853004bd7b5a301e3ee4a339",
+  "originalFindings": "2434ae624c8241d835cb08cf21c2c75591c070a9",
+  "sourceCommit": "437778996f60109e212e20b1b242455866fda285",
+  "sourceEvidenceCommit": "2ae74702def6b06f1519c9a88c12d6f748611250",
+  "toolRecipeCommit": "adcb1467caad7165361f035f110b40dd1bbdf07d",
+  "toolEvidenceCommit": "26de751f7c1e2e39edfe38c976dc52ce9516fac3",
+  "originalProtectedFiles": [
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/review.mjs",
+      "bytes": 38204,
+      "mode": 420,
+      "sha256": "ad7b10b01f61bc37ec6d4365ee42f4a48a471f4886e9bc8f5cd4108e3854fbe2",
+      "blob": "38b3d83a4744ca29e5797d36882dd03fdffc97b3",
+      "commit": "2434ae624c8241d835cb08cf21c2c75591c070a9"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/CRITERIA.md",
+      "bytes": 7108,
+      "mode": 420,
+      "sha256": "d96e7652494e0361af1afcace0da9d52833c63035964ba003ffcd911092f307a",
+      "blob": "34328aaa51e63a747b36fcae3aef27f788524da5",
+      "commit": "2434ae624c8241d835cb08cf21c2c75591c070a9"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/BINDINGS.json",
+      "bytes": 7159,
+      "mode": 420,
+      "sha256": "601d0a17fe8e840cde80e5da5f35a37eb98d4c3c1197ec46b498c8ef8991cc80",
+      "blob": "97ccf1d1260b02922a8d2a9b7ba60c75dc1ba9a6",
+      "commit": "2434ae624c8241d835cb08cf21c2c75591c070a9"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/COMMANDS.md",
+      "bytes": 3780,
+      "mode": 420,
+      "sha256": "78d57c106994870612a9ab7817884114e401a3a9295dc1f49630025e020b9def",
+      "blob": "6e156c532a81ec89b21ea5c12565ee60b81f0dc5",
+      "commit": "2434ae624c8241d835cb08cf21c2c75591c070a9"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/ATTEMPT.json",
+      "bytes": 3127,
+      "mode": 420,
+      "sha256": "18ecc53b1fe4a632923201e3d983bf3e3c2f6882b29a2ad3bb3ae1fd75daa55c",
+      "blob": "6144d547ad6f9900cdcefbb81a4e3587d5237211",
+      "commit": "2434ae624c8241d835cb08cf21c2c75591c070a9"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/HANDOFF.md",
+      "bytes": 10109,
+      "mode": 420,
+      "sha256": "48f80471288b6f6e7dcb76b0495f8eec7547ba94ba92d7044ec865c235cdbc35",
+      "blob": "f5c71e3121381ab5489cbfd414b6892e2331ead1",
+      "commit": "2434ae624c8241d835cb08cf21c2c75591c070a9"
+    }
+  ],
+  "originalFailure": {
+    "exit": 1,
+    "executed": 0,
+    "unexecuted": 53,
+    "harnessFailures": 1
+  },
+  "patch": {
+    "path": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/continuation-v2/RUNNER.patch",
+    "sha256": "e146f4c2556ebe14425cd5e927ac4f765cbb52568cb08ca8ea9f72c75a4ae72b",
+    "originalSha256": "ad7b10b01f61bc37ec6d4365ee42f4a48a471f4886e9bc8f5cd4108e3854fbe2",
+    "newSha256": "93279ff3f4723f43e48423a84f52dcf52a597d834a6942c096680d33729a3f44",
+    "syntaxOnlySha256": "a799d7f508846a6c8bd8440dec81b1ff49fbb20856aea70a07d7408b0aa57341",
+    "syntaxChange": {
+      "line": 402,
+      "before": "    }}});",
+      "after": "    }}}});"
+    },
+    "outputMetadataChange": {
+      "line": 11,
+      "before": "const owned = 'tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/';",
+      "after": "const owned = 'tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/continuation-v2/';"
+    },
+    "exactReconstructionEqual": true,
+    "normalizedToOriginalEqual": true,
+    "unchangedControlDefinitionsInputsAssertionsExpectedErrors": true,
+    "normalizedEntireCohortSha256": "f20481d081e1d02156bcf566bc1312ea83519706324b831419d807fe9329286b",
+    "originalCriteriaCopyEqual": true
+  },
+  "syntaxCheck": {
+    "argv": [
+      "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "--check",
+      "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/continuation-v2/review.mjs"
+    ],
+    "observedExit": 0,
+    "cohortChecksExecuted": 0,
+    "stdout": {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/continuation-v2/syntax.stdout.raw",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "stderr": {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/continuation-v2/syntax.stderr.raw",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "status": {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/continuation-v2/syntax.exit.txt",
+      "bytes": 2,
+      "mode": 420,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "blob": "573541ac9702dd3969c9bc859d2b91ec1f7e6e56"
+    }
+  },
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0",
+    "bytes": 117591472,
+    "mode": 493,
+    "versionExpected": "v24.11.1",
+    "runtimeImageClosureProved": false
+  },
+  "environment": {
+    "changes": [],
+    "NODE_OPTIONS": null,
+    "NODE_PATH": null
+  },
+  "cohort": {
+    "argv": [
+      "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "--experimental-vm-modules",
+      "--disable-warning=ExperimentalWarning",
+      "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/continuation-v2/review.mjs"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "attemptLimit": 1,
+    "retryAllowed": false,
+    "stdout": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/continuation-v2/cohort.stdout.raw",
+    "stderr": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/continuation-v2/cohort.stderr.raw",
+    "observedExitReceipt": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/continuation-v2/cohort.exit.txt",
+    "subjectChildren": 0,
+    "realScratchRoots": 0,
+    "watchdogMs": 15000,
+    "vmTimeoutMs": 1000
+  },
+  "plannedRoles": {
+    "DATA": 3,
+    "SOURCE": 1,
+    "SYNTHETIC": 10,
+    "STUB": 39
+  },
+  "plannedChecks": [
+    {
+      "id": "D01-committed-seals-and-selected-source",
+      "role": "DATA"
+    },
+    {
+      "id": "D02-five-tools-calls-aliases-OS-pairs",
+      "role": "DATA"
+    },
+    {
+      "id": "S01-source-overlay-route-and-cleanup-boundaries",
+      "role": "SOURCE"
+    },
+    {
+      "id": "V01-cross-realm-exact-data",
+      "role": "SYNTHETIC"
+    },
+    {
+      "id": "V02-reject-malformed-role",
+      "role": "SYNTHETIC"
+    },
+    {
+      "id": "V03-reject-malformed-role",
+      "role": "SYNTHETIC"
+    },
+    {
+      "id": "V04-reject-malformed-role",
+      "role": "SYNTHETIC"
+    },
+    {
+      "id": "V05-reject-malformed-role",
+      "role": "SYNTHETIC"
+    },
+    {
+      "id": "V06-reject-malformed-role",
+      "role": "SYNTHETIC"
+    },
+    {
+      "id": "V07-reject-malformed-role",
+      "role": "SYNTHETIC"
+    },
+    {
+      "id": "V08-reject-malformed-role",
+      "role": "SYNTHETIC"
+    },
+    {
+      "id": "V09-reject-malformed-role",
+      "role": "SYNTHETIC"
+    },
+    {
+      "id": "V10-reject-malformed-role",
+      "role": "SYNTHETIC"
+    },
+    {
+      "id": "T01-table71-call-env-input-owned-cleanup",
+      "role": "STUB"
+    },
+    {
+      "id": "T02-write",
+      "role": "STUB"
+    },
+    {
+      "id": "T02-spawn",
+      "role": "STUB"
+    },
+    {
+      "id": "T02-cleanup-only",
+      "role": "STUB"
+    },
+    {
+      "id": "T02-primary-plus-cleanup",
+      "role": "STUB"
+    },
+    {
+      "id": "T02-late-cleanup",
+      "role": "STUB"
+    },
+    {
+      "id": "T03-shared-success",
+      "role": "STUB"
+    },
+    {
+      "id": "T03-shared-foreign-parent",
+      "role": "STUB"
+    },
+    {
+      "id": "T03-shared-child-acquisition",
+      "role": "STUB"
+    },
+    {
+      "id": "T03-shared-primary-plus-foreign",
+      "role": "STUB"
+    },
+    {
+      "id": "P01-patch-scratch-success",
+      "role": "STUB"
+    },
+    {
+      "id": "P01-patch-scratch-throw",
+      "role": "STUB"
+    },
+    {
+      "id": "P01-patch-scratch-outside",
+      "role": "STUB"
+    },
+    {
+      "id": "P01-patch-scratch-primary-plus-cleanup",
+      "role": "STUB"
+    },
+    {
+      "id": "H01-shell-success-canary",
+      "role": "STUB"
+    },
+    {
+      "id": "H01-shell-outside",
+      "role": "STUB"
+    },
+    {
+      "id": "H01-shell-primary-plus-cleanup",
+      "role": "STUB"
+    },
+    {
+      "id": "H02-stream-success",
+      "role": "STUB"
+    },
+    {
+      "id": "H02-stream-primary-plus-cleanup",
+      "role": "STUB"
+    },
+    {
+      "id": "R01-git-positive",
+      "role": "STUB"
+    },
+    {
+      "id": "R01-git-wrong-hash",
+      "role": "STUB"
+    },
+    {
+      "id": "R01-git-wrong-realpath",
+      "role": "STUB"
+    },
+    {
+      "id": "R01-npm-positive",
+      "role": "STUB"
+    },
+    {
+      "id": "R01-npm-wrong-hash",
+      "role": "STUB"
+    },
+    {
+      "id": "R01-npm-wrong-realpath",
+      "role": "STUB"
+    },
+    {
+      "id": "C01-root-compiler-positive",
+      "role": "STUB"
+    },
+    {
+      "id": "C01-root-compiler-missing",
+      "role": "STUB"
+    },
+    {
+      "id": "C01-root-compiler-wrong-hash",
+      "role": "STUB"
+    },
+    {
+      "id": "C01-root-compiler-wrong-version",
+      "role": "STUB"
+    },
+    {
+      "id": "C02-build-counter-benchmark",
+      "role": "STUB"
+    },
+    {
+      "id": "C02-build-counter-production",
+      "role": "STUB"
+    },
+    {
+      "id": "R02-reporter-10-success",
+      "role": "STUB"
+    },
+    {
+      "id": "R02-reporter-10-wrong-output",
+      "role": "STUB"
+    },
+    {
+      "id": "R02-reporter-10-nonzero-with-pass",
+      "role": "STUB"
+    },
+    {
+      "id": "R02-reporter-10-late-pass-timeout",
+      "role": "STUB"
+    },
+    {
+      "id": "R02-reporter-6-success",
+      "role": "STUB"
+    },
+    {
+      "id": "R02-reporter-6-wrong-output",
+      "role": "STUB"
+    },
+    {
+      "id": "R02-reporter-6-nonzero-with-pass",
+      "role": "STUB"
+    },
+    {
+      "id": "R02-reporter-6-late-pass-timeout",
+      "role": "STUB"
+    },
+    {
+      "id": "D03-protected-read-set-postcheck",
+      "role": "DATA"
+    }
+  ],
+  "tableFixtureCount": 71,
+  "protectedReadset": [
+    {
+      "path": "tests/commands/table-text-stress/support.ts",
+      "bytes": 6786,
+      "mode": 420,
+      "sha256": "b6e4793cac4c3670de36e6c47de6b0d8126de73cab469b6370257e116e39ea92",
+      "blob": "d7c1ec255b0371bbf2fe25f3cf3705d16c9017b1",
+      "commit": "437778996f60109e212e20b1b242455866fda285"
+    },
+    {
+      "path": "tests/commands/table-text-stress/shared-stdin-fix/support.ts",
+      "bytes": 6565,
+      "mode": 420,
+      "sha256": "7aa2fd7b61583a94668b4cd0d2bedf48846087eb623345875eec27c468c69c7b",
+      "blob": "dcdc48f4006f6094ddd8eeb19cbb5a863f328e12",
+      "commit": "437778996f60109e212e20b1b242455866fda285"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts",
+      "bytes": 13020,
+      "mode": 420,
+      "sha256": "1f81d9226a09c22221a7faacb5f794e81726626b4ac438ee526a2877aec7b342",
+      "blob": "264df9589e4c9b1cf76b7f70a2b934c168e50bf6",
+      "commit": "437778996f60109e212e20b1b242455866fda285"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/execute.mjs",
+      "bytes": 22844,
+      "mode": 420,
+      "sha256": "e8702db260de5d5117ac86ed48e6e1a5bae0a428e397310b7b404402ed91a55a",
+      "blob": "7f75b66d3446e1b6f4cfd00567051393928cc450",
+      "commit": "437778996f60109e212e20b1b242455866fda285"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/editflows/helpers.ts",
+      "bytes": 4595,
+      "mode": 420,
+      "sha256": "d2ba19c9387a60b0e218d676d6f44f388ccf0f759615ac26df5e682098b5ee78",
+      "blob": "b6d1c11c733d204b14d7ff91695817cb98ba920c",
+      "commit": "437778996f60109e212e20b1b242455866fda285"
+    },
+    {
+      "path": "tests/integration/s3-http-exports/verify.mjs",
+      "bytes": 11293,
+      "mode": 420,
+      "sha256": "ae9f72b2114076c92901043f0748c5525ea7cad264994c21b04f17ca3e8c72f9",
+      "blob": "8b03c107a001880f0c870fc06e3eeb01bec0edf3",
+      "commit": "437778996f60109e212e20b1b242455866fda285"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release-native-data/helpers.ts",
+      "bytes": 2817,
+      "mode": 420,
+      "sha256": "fd55635268b461f69d50bf7403f1ca94f00f27210337303f3352f97ee7b68f05",
+      "blob": "192112e71c099f0463be4f80a910a51cc4d057e1",
+      "commit": "437778996f60109e212e20b1b242455866fda285"
+    },
+    {
+      "path": "tests/commands/search-stress/safety.test.ts",
+      "bytes": 2634,
+      "mode": 420,
+      "sha256": "8ae3afb363a07e8905006346ce8cdc6318d8227ce0668443381504d54ec731ce",
+      "blob": "f05ad807bf78bdb0fa185bd7abe383a0c2e86a14",
+      "commit": "437778996f60109e212e20b1b242455866fda285"
+    },
+    {
+      "path": "tests/commands/search-stress/streaming.test.ts",
+      "bytes": 685,
+      "mode": 420,
+      "sha256": "8ce5213a4a5cd277628e83dad3390e05c05527f1269001736e64ae9ac7de5f82",
+      "blob": "928c73ce7da9ba19cd383be51bd7f8d35ba03657",
+      "commit": "437778996f60109e212e20b1b242455866fda285"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/gnu-target/oracle.ts",
+      "bytes": 3677,
+      "mode": 420,
+      "sha256": "fa393338c0d4f6f1769a560d40e468ed165f196add6da7e9c55b5592212b4726",
+      "blob": "aa5bff6001dac716be5f50c8fbea8490eebf41fd",
+      "commit": "437778996f60109e212e20b1b242455866fda285"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/gnu-auxiliary/helpers.ts",
+      "bytes": 8725,
+      "mode": 420,
+      "sha256": "d1c019640fabd954808dcc2f092a6fd80de5fad8674d56e2f37cf7f75f25ad91",
+      "blob": "269d5aa6a8af48cbfb9c8423d3a6ea13fd2feac1",
+      "commit": "437778996f60109e212e20b1b242455866fda285"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/gnu-target-followup/helpers.ts",
+      "bytes": 4452,
+      "mode": 420,
+      "sha256": "3ed6929afc27bda15ecd9732fbd446428be30eb4c4bf24ed99a620312b319e48",
+      "blob": "80653b8e7b3eb91e323756d397f089afc5affbbd",
+      "commit": "437778996f60109e212e20b1b242455866fda285"
+    },
+    {
+      "path": "tests/commands/stream-inspection/oracle.ts",
+      "bytes": 4449,
+      "mode": 420,
+      "sha256": "144a0ab22228978c68a4b89d137ff48f27cf20cfb69ec9784f73976ad7fc9ee7",
+      "blob": "6f71cd1303fc6a4f1c6a751e96afd3b1d24263a5",
+      "commit": "437778996f60109e212e20b1b242455866fda285"
+    },
+    {
+      "path": "tests/shell-stress/helpers.ts",
+      "bytes": 6282,
+      "mode": 420,
+      "sha256": "a32a59b7ea7efb057837b759fdf30d60c87902f31ed0135d35fcb860f19d1718",
+      "blob": "102489c0e62e2d338bb76ae85fca35c4569d3035",
+      "commit": "437778996f60109e212e20b1b242455866fda285"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/DRIVER.json",
+      "bytes": 4689,
+      "mode": 420,
+      "sha256": "b933c447efda4438266f40190eecc00d9e00e195d854eb4a254cfb0e2783306f",
+      "blob": "d40bfeafda550a3a69e630f8368eaff262c6d9dd",
+      "commit": "437778996f60109e212e20b1b242455866fda285"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-repair-v1/EVIDENCE-SEAL.json",
+      "bytes": 2287,
+      "mode": 420,
+      "sha256": "8d6824c66c92b52fffe7a4f94fd0ce60273482c368d0989fc626b00ff41869fd",
+      "blob": "407f8ef6f96c16b62d15a441fef058eb4d4d350b",
+      "commit": "2ae74702def6b06f1519c9a88c12d6f748611250"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-repair-v1/BASELINE.json",
+      "bytes": 3858,
+      "mode": 420,
+      "sha256": "c14f53a633191c2db854f8726f7784ed60f0c9dc5efc231d0efa71a19dc516d9",
+      "blob": "96450b6fd885c71ec76382f76055c17b629c6ef5",
+      "commit": "2ae74702def6b06f1519c9a88c12d6f748611250"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-repair-v1/CONTROL-RECIPE.md",
+      "bytes": 7097,
+      "mode": 420,
+      "sha256": "8e6e57890f16fcf3aaa0cf6374f0425139e6051e6158f132866876536a2e389a",
+      "blob": "65f7047aee23aa0a647d65163e229a972011d7f6",
+      "commit": "2ae74702def6b06f1519c9a88c12d6f748611250"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-repair-v1/SOURCE-CANDIDATE.json",
+      "bytes": 6245,
+      "mode": 420,
+      "sha256": "47741f284b1593aa96b012d6e2ab9e9f6b64f38d69034b17554dc52544b59e71",
+      "blob": "52ce672369a0b37f515fc37b7c6bd5b6a2933bc4",
+      "commit": "2ae74702def6b06f1519c9a88c12d6f748611250"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-repair-v1/controls.mjs",
+      "bytes": 23657,
+      "mode": 420,
+      "sha256": "384d100194ffc51f7356774666051aeb5ca662972c4de33bba6b0914c9638036",
+      "blob": "e2776ccd3552c4058a3392a5bf04d3ee2f2d694c",
+      "commit": "2ae74702def6b06f1519c9a88c12d6f748611250"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-repair-v1/RESULTS-v1.json",
+      "bytes": 8220,
+      "mode": 420,
+      "sha256": "34295f734e91519013a6217b014b878350602c35de8679e89564e849c184e8b5",
+      "blob": "23eef63281ec77a319c535bb0ebdfa55936c30fe",
+      "commit": "2ae74702def6b06f1519c9a88c12d6f748611250"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-repair-v1/HANDOFF.md",
+      "bytes": 9964,
+      "mode": 420,
+      "sha256": "269f5b4224f539ae58f75549afdebefb205b02afe0d7be95dea99ba9c984d4de",
+      "blob": "bb17d28cb0fc9cbf6c65445231c80d7aa9179b08",
+      "commit": "2ae74702def6b06f1519c9a88c12d6f748611250"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-repair-v1/PRESERVATION.json",
+      "bytes": 2356,
+      "mode": 420,
+      "sha256": "48e1b4c9d73a84e50291b772eb92a012dbaf739fe765d6534671760408964fad",
+      "blob": "1e5d56c4c226fadd97db7cfe81eb1ed5b04c44b3",
+      "commit": "2ae74702def6b06f1519c9a88c12d6f748611250"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-tool-closure-v1/SEAL.json",
+      "bytes": 2987,
+      "mode": 420,
+      "sha256": "c66488ba05758c58acc858b68865e64523611a634bce08a6e8f7ffb315ab411b",
+      "blob": "458f43129ef2bed20ff396720e805e9c823f6775",
+      "commit": "26de751f7c1e2e39edfe38c976dc52ce9516fac3"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-tool-closure-v1/inspect.mjs",
+      "bytes": 8924,
+      "mode": 420,
+      "sha256": "19f75326b0a51f9977def75cf01f07bf1429a606e19d0d299afb0d5e6b164d00",
+      "blob": "70855e425ee098ae9141edbcc80541624d0d100d",
+      "commit": "26de751f7c1e2e39edfe38c976dc52ce9516fac3"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-tool-closure-v1/README.md",
+      "bytes": 2334,
+      "mode": 420,
+      "sha256": "b1d3fa1b362cff9cb4ce4a67daa07219d605970d502920d2f9c5ae311c48575a",
+      "blob": "2a9dcf17d119d5a6579fecb4af8b92a4509f7207",
+      "commit": "26de751f7c1e2e39edfe38c976dc52ce9516fac3"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-tool-closure-v1/CALLS.json",
+      "bytes": 4276,
+      "mode": 420,
+      "sha256": "8efa968397a1cc0f7f44e2f0a54c8f1388752517ebdd2004f3645a82bfc533b1",
+      "blob": "aa7830e658d21dcf7a2add0887f8fa189004dc79",
+      "commit": "26de751f7c1e2e39edfe38c976dc52ce9516fac3"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-tool-closure-v1/FUTURE-CONTROLS.md",
+      "bytes": 3092,
+      "mode": 420,
+      "sha256": "14a0a61c03273965b5199ee9d894bcee1ea9450f7e257718aa84ddd9eb450ff1",
+      "blob": "e259a231bdfce958e6c5ab1ba5f6ffbb9d9d249b",
+      "commit": "26de751f7c1e2e39edfe38c976dc52ce9516fac3"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-tool-closure-v1/INSPECTION.json",
+      "bytes": 60545,
+      "mode": 420,
+      "sha256": "02803cbedd0e067624923a6b5cf3986a9f354a5ee806d1f70a13746133193c2d",
+      "blob": "fda3190e61ef8216a0daf969bc1f659151edfaea",
+      "commit": "26de751f7c1e2e39edfe38c976dc52ce9516fac3"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-tool-closure-v1/SUCCESSOR-PROFILE.json",
+      "bytes": 13356,
+      "mode": 420,
+      "sha256": "71ba31dea9594c3eee23c054a40b0fa09de4a78eb129a44018103c21a5dfb36c",
+      "blob": "85ddef9ea9e15a740c083c2aaf9e2a6994e87201",
+      "commit": "26de751f7c1e2e39edfe38c976dc52ce9516fac3"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-tool-closure-v1/CHANGESET.json",
+      "bytes": 6344,
+      "mode": 420,
+      "sha256": "4184b31197b7e1ea47523f8a30505c5c45c59dd783356b1db8e31013d7f80772",
+      "blob": "3d9d463f66b5ffeec46b52531b10535bbf988322",
+      "commit": "26de751f7c1e2e39edfe38c976dc52ce9516fac3"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-tool-closure-v1/HANDOFF.md",
+      "bytes": 5581,
+      "mode": 420,
+      "sha256": "f73f049dcc12e50f357bd34916085e41aa1e72c4b60b9fe0745fa0a76d9a3ded",
+      "blob": "f49b6716b773d91da232636e693fcf44db09da77",
+      "commit": "26de751f7c1e2e39edfe38c976dc52ce9516fac3"
+    },
+    {
+      "path": "tests/commands/table-text-stress/frozen-corpus.json",
+      "bytes": 68660,
+      "mode": 420,
+      "sha256": "65702ba5bb31442e24f4c0b00ce9ec052bf64f37c48d8a428a68c45fed82a166",
+      "blob": "a75ee5c4a12f9c83ffb92841365191a9de34f5b5",
+      "commit": "437778996f60109e212e20b1b242455866fda285"
+    },
+    {
+      "path": "tests/commands/search-stress/harness.ts",
+      "bytes": 3916,
+      "mode": 420,
+      "sha256": "4e431d4e46096c75d34c759ff0ba7674cc0067cd93df89a3e480fabe0e0279d1",
+      "blob": "f3d35ec00766263a804fc4b52abfb4ce8c0c45e7",
+      "commit": "437778996f60109e212e20b1b242455866fda285"
+    },
+    {
+      "path": "tests/commands/search-stress/pipelines.test.ts",
+      "bytes": 1125,
+      "mode": 420,
+      "sha256": "d28a72f4a1bfb7a6ea600c2698d544ea7e5e375ae99f0d301ed0cde65261f2c6",
+      "blob": "6b949c63f57f0f8596447d099fd5a96a5cd7d9e3",
+      "commit": "437778996f60109e212e20b1b242455866fda285"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/build-audit.mjs",
+      "bytes": 1239,
+      "mode": 420,
+      "sha256": "57eefea8f3efb22e70ffce47c001f9a71d916b15dba288bd44668a95d201141f",
+      "blob": "1f7389579d9cb04812b81a05b238387c7736ed66",
+      "commit": "437778996f60109e212e20b1b242455866fda285"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/build-types.mjs",
+      "bytes": 4115,
+      "mode": 420,
+      "sha256": "35ef0abb6d917131fc17dc989ff8bca5adf706539e2e344aedc8d31f3635eb9a",
+      "blob": "f9cf36f20696032c607910df66922a0674ec300d",
+      "commit": "437778996f60109e212e20b1b242455866fda285"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/TOOL-ROUTES.json",
+      "bytes": 2520,
+      "mode": 420,
+      "sha256": "01bbe980528bacee75b89571746763bb92f8990bfa4f426f20307c82a25251c7",
+      "blob": "5836669cb9ef9929977ad2b05c6fb5091c92e293",
+      "commit": "437778996f60109e212e20b1b242455866fda285"
+    }
+  ],
+  "readsetChecks": "Every live file equals named committed bytes; seal members SHA256 verified. No subject modules imported by this administrative data audit.",
+  "admittedModuleImports": [
+    {
+      "path": "tests/commands/table-text-stress/support.ts",
+      "sha256": "b6e4793cac4c3670de36e6c47de6b0d8126de73cab469b6370257e116e39ea92",
+      "runtimeImports": [
+        {
+          "specifier": "node:assert/strict",
+          "binding": "pure-or-synthetic-special"
+        },
+        {
+          "specifier": "node:child_process",
+          "binding": "whole-module synthetic; unused exports throw"
+        },
+        {
+          "specifier": "node:crypto",
+          "binding": "pure-or-synthetic-special"
+        },
+        {
+          "specifier": "node:fs",
+          "binding": "whole-module synthetic; unused exports throw"
+        },
+        {
+          "specifier": "node:fs/promises",
+          "binding": "whole-module synthetic; unused exports throw"
+        },
+        {
+          "specifier": "node:os",
+          "binding": "pure-or-synthetic-special"
+        },
+        {
+          "specifier": "node:path",
+          "binding": "pure-or-synthetic-special"
+        },
+        {
+          "specifier": "../../../src/shell/index.js",
+          "binding": "whole-module synthetic; unused exports throw"
+        },
+        {
+          "specifier": "../../../src/commands/index.js",
+          "binding": "whole-module synthetic; unused exports throw"
+        },
+        {
+          "specifier": "../../../src/fs/memory/index.js",
+          "binding": "whole-module synthetic; unused exports throw"
+        },
+        {
+          "specifier": "../../../src/commands/table-text/index.js",
+          "binding": "whole-module synthetic; unused exports throw"
+        }
+      ],
+      "erasedTypeOnlyImports": [],
+      "originalSourceUnchanged": true
+    },
+    {
+      "path": "tests/commands/table-text-stress/shared-stdin-fix/support.ts",
+      "sha256": "7aa2fd7b61583a94668b4cd0d2bedf48846087eb623345875eec27c468c69c7b",
+      "runtimeImports": [
+        {
+          "specifier": "node:assert/strict",
+          "binding": "pure-or-synthetic-special"
+        },
+        {
+          "specifier": "node:child_process",
+          "binding": "whole-module synthetic; unused exports throw"
+        },
+        {
+          "specifier": "node:crypto",
+          "binding": "pure-or-synthetic-special"
+        },
+        {
+          "specifier": "node:fs",
+          "binding": "whole-module synthetic; unused exports throw"
+        },
+        {
+          "specifier": "node:fs/promises",
+          "binding": "whole-module synthetic; unused exports throw"
+        },
+        {
+          "specifier": "node:os",
+          "binding": "pure-or-synthetic-special"
+        },
+        {
+          "specifier": "node:path",
+          "binding": "pure-or-synthetic-special"
+        },
+        {
+          "specifier": "node:url",
+          "binding": "pure-or-synthetic-special"
+        },
+        {
+          "specifier": "../../table-text/helpers.js",
+          "binding": "whole-module synthetic; unused exports throw"
+        },
+        {
+          "specifier": "../support.js",
+          "binding": "whole-module synthetic; unused exports throw"
+        }
+      ],
+      "erasedTypeOnlyImports": [
+        "../../table-text/cases.js"
+      ],
+      "originalSourceUnchanged": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/execute.mjs",
+      "sha256": "e8702db260de5d5117ac86ed48e6e1a5bae0a428e397310b7b404402ed91a55a",
+      "runtimeImports": [
+        {
+          "specifier": "node:assert/strict",
+          "binding": "pure-or-synthetic-special"
+        },
+        {
+          "specifier": "node:child_process",
+          "binding": "whole-module synthetic; unused exports throw"
+        },
+        {
+          "specifier": "node:fs",
+          "binding": "whole-module synthetic; unused exports throw"
+        },
+        {
+          "specifier": "node:stream/promises",
+          "binding": "whole-module synthetic; unused exports throw"
+        },
+        {
+          "specifier": "node:path",
+          "binding": "pure-or-synthetic-special"
+        },
+        {
+          "specifier": "node:os",
+          "binding": "pure-or-synthetic-special"
+        },
+        {
+          "specifier": "node:url",
+          "binding": "pure-or-synthetic-special"
+        },
+        {
+          "specifier": "./common.mjs",
+          "binding": "whole-module synthetic; unused exports throw"
+        },
+        {
+          "specifier": "./profile.mjs",
+          "binding": "whole-module synthetic; unused exports throw"
+        },
+        {
+          "specifier": "./admission.mjs",
+          "binding": "whole-module synthetic; unused exports throw"
+        },
+        {
+          "specifier": "./inventory.mjs",
+          "binding": "whole-module synthetic; unused exports throw"
+        },
+        {
+          "specifier": "./policy.mjs",
+          "binding": "whole-module synthetic; unused exports throw"
+        },
+        {
+          "specifier": "./transport.mjs",
+          "binding": "whole-module synthetic; unused exports throw"
+        },
+        {
+          "specifier": "./external-admission.mjs",
+          "binding": "whole-module synthetic; unused exports throw"
+        },
+        {
+          "specifier": "./tool-routing.mjs",
+          "binding": "whole-module synthetic; unused exports throw"
+        },
+        {
+          "specifier": "./external.mjs",
+          "binding": "whole-module synthetic; unused exports throw"
+        },
+        {
+          "specifier": "./built-consumers.mjs",
+          "binding": "whole-module synthetic; unused exports throw"
+        },
+        {
+          "specifier": "./tap.mjs",
+          "binding": "whole-module synthetic; unused exports throw"
+        },
+        {
+          "specifier": "./supervise.mjs",
+          "binding": "whole-module synthetic; unused exports throw"
+        },
+        {
+          "specifier": "./consumer-admission.mjs",
+          "binding": "whole-module synthetic; unused exports throw"
+        },
+        {
+          "specifier": "./build-types.mjs",
+          "binding": "whole-module synthetic; unused exports throw"
+        },
+        {
+          "specifier": "./phase-runner.mjs",
+          "binding": "whole-module synthetic; unused exports throw"
+        },
+        {
+          "specifier": "./projection.mjs",
+          "binding": "whole-module synthetic; unused exports throw"
+        },
+        {
+          "specifier": "./maintained-prerequisites.mjs",
+          "binding": "whole-module synthetic; unused exports throw"
+        }
+      ],
+      "erasedTypeOnlyImports": [],
+      "originalSourceUnchanged": true
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/editflows/helpers.ts",
+      "sha256": "d2ba19c9387a60b0e218d676d6f44f388ccf0f759615ac26df5e682098b5ee78",
+      "runtimeImports": [
+        {
+          "specifier": "node:assert/strict",
+          "binding": "pure-or-synthetic-special"
+        },
+        {
+          "specifier": "node:child_process",
+          "binding": "whole-module synthetic; unused exports throw"
+        },
+        {
+          "specifier": "node:crypto",
+          "binding": "pure-or-synthetic-special"
+        },
+        {
+          "specifier": "node:fs",
+          "binding": "whole-module synthetic; unused exports throw"
+        },
+        {
+          "specifier": "node:fs/promises",
+          "binding": "whole-module synthetic; unused exports throw"
+        },
+        {
+          "specifier": "node:path",
+          "binding": "pure-or-synthetic-special"
+        },
+        {
+          "specifier": "node:url",
+          "binding": "pure-or-synthetic-special"
+        },
+        {
+          "specifier": "../../../../src/contracts/index.js",
+          "binding": "whole-module synthetic; unused exports throw"
+        },
+        {
+          "specifier": "../../../../src/commands/diff-patch/index.js",
+          "binding": "whole-module synthetic; unused exports throw"
+        },
+        {
+          "specifier": "../../../../src/fs/memory/index.js",
+          "binding": "whole-module synthetic; unused exports throw"
+        },
+        {
+          "specifier": "../gnu-target/oracle.js",
+          "binding": "whole-module synthetic; unused exports throw"
+        }
+      ],
+      "erasedTypeOnlyImports": [],
+      "originalSourceUnchanged": true
+    },
+    {
+      "path": "tests/plugins/qualified-current-release-native-data/helpers.ts",
+      "sha256": "fd55635268b461f69d50bf7403f1ca94f00f27210337303f3352f97ee7b68f05",
+      "runtimeImports": [
+        {
+          "specifier": "node:assert/strict",
+          "binding": "pure-or-synthetic-special"
+        },
+        {
+          "specifier": "node:child_process",
+          "binding": "whole-module synthetic; unused exports throw"
+        },
+        {
+          "specifier": "node:crypto",
+          "binding": "pure-or-synthetic-special"
+        },
+        {
+          "specifier": "node:fs",
+          "binding": "whole-module synthetic; unused exports throw"
+        },
+        {
+          "specifier": "node:path",
+          "binding": "pure-or-synthetic-special"
+        },
+        {
+          "specifier": "node:url",
+          "binding": "pure-or-synthetic-special"
+        }
+      ],
+      "erasedTypeOnlyImports": [],
+      "originalSourceUnchanged": true
+    },
+    {
+      "path": "tests/commands/search-stress/safety.test.ts",
+      "sha256": "8ae3afb363a07e8905006346ce8cdc6318d8227ce0668443381504d54ec731ce",
+      "runtimeImports": [
+        {
+          "specifier": "node:assert/strict",
+          "binding": "pure-or-synthetic-special"
+        },
+        {
+          "specifier": "node:path",
+          "binding": "pure-or-synthetic-special"
+        },
+        {
+          "specifier": "node:test",
+          "binding": "pure-or-synthetic-special"
+        },
+        {
+          "specifier": "./harness.js",
+          "binding": "whole-module synthetic; unused exports throw"
+        }
+      ],
+      "erasedTypeOnlyImports": [],
+      "originalSourceUnchanged": true
+    },
+    {
+      "path": "tests/commands/search-stress/streaming.test.ts",
+      "sha256": "8ce5213a4a5cd277628e83dad3390e05c05527f1269001736e64ae9ac7de5f82",
+      "runtimeImports": [
+        {
+          "specifier": "node:assert/strict",
+          "binding": "pure-or-synthetic-special"
+        },
+        {
+          "specifier": "node:path",
+          "binding": "pure-or-synthetic-special"
+        },
+        {
+          "specifier": "node:test",
+          "binding": "pure-or-synthetic-special"
+        },
+        {
+          "specifier": "./harness.js",
+          "binding": "whole-module synthetic; unused exports throw"
+        }
+      ],
+      "erasedTypeOnlyImports": [],
+      "originalSourceUnchanged": true
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/gnu-target/oracle.ts",
+      "sha256": "fa393338c0d4f6f1769a560d40e468ed165f196add6da7e9c55b5592212b4726",
+      "runtimeImports": [
+        {
+          "specifier": "node:assert/strict",
+          "binding": "pure-or-synthetic-special"
+        },
+        {
+          "specifier": "node:child_process",
+          "binding": "whole-module synthetic; unused exports throw"
+        },
+        {
+          "specifier": "node:crypto",
+          "binding": "pure-or-synthetic-special"
+        },
+        {
+          "specifier": "node:fs",
+          "binding": "whole-module synthetic; unused exports throw"
+        },
+        {
+          "specifier": "node:os",
+          "binding": "pure-or-synthetic-special"
+        },
+        {
+          "specifier": "node:path",
+          "binding": "pure-or-synthetic-special"
+        }
+      ],
+      "erasedTypeOnlyImports": [],
+      "originalSourceUnchanged": true
+    },
+    {
+      "path": "tests/commands/stream-inspection/oracle.ts",
+      "sha256": "144a0ab22228978c68a4b89d137ff48f27cf20cfb69ec9784f73976ad7fc9ee7",
+      "runtimeImports": [
+        {
+          "specifier": "node:assert/strict",
+          "binding": "pure-or-synthetic-special"
+        },
+        {
+          "specifier": "node:crypto",
+          "binding": "pure-or-synthetic-special"
+        },
+        {
+          "specifier": "node:child_process",
+          "binding": "whole-module synthetic; unused exports throw"
+        },
+        {
+          "specifier": "node:fs",
+          "binding": "whole-module synthetic; unused exports throw"
+        },
+        {
+          "specifier": "node:os",
+          "binding": "pure-or-synthetic-special"
+        },
+        {
+          "specifier": "node:path",
+          "binding": "pure-or-synthetic-special"
+        },
+        {
+          "specifier": "node:url",
+          "binding": "pure-or-synthetic-special"
+        },
+        {
+          "specifier": "./cases.js",
+          "binding": "whole-module synthetic; unused exports throw"
+        }
+      ],
+      "erasedTypeOnlyImports": [
+        "./helpers.js"
+      ],
+      "originalSourceUnchanged": true
+    },
+    {
+      "path": "tests/shell-stress/helpers.ts",
+      "sha256": "a32a59b7ea7efb057837b759fdf30d60c87902f31ed0135d35fcb860f19d1718",
+      "runtimeImports": [
+        {
+          "specifier": "node:assert/strict",
+          "binding": "pure-or-synthetic-special"
+        },
+        {
+          "specifier": "node:child_process",
+          "binding": "whole-module synthetic; unused exports throw"
+        },
+        {
+          "specifier": "node:crypto",
+          "binding": "pure-or-synthetic-special"
+        },
+        {
+          "specifier": "node:fs",
+          "binding": "whole-module synthetic; unused exports throw"
+        },
+        {
+          "specifier": "node:os",
+          "binding": "pure-or-synthetic-special"
+        },
+        {
+          "specifier": "node:path",
+          "binding": "pure-or-synthetic-special"
+        },
+        {
+          "specifier": "node:url",
+          "binding": "pure-or-synthetic-special"
+        },
+        {
+          "specifier": "./process.js",
+          "binding": "whole-module synthetic; unused exports throw"
+        }
+      ],
+      "erasedTypeOnlyImports": [
+        "./model.js"
+      ],
+      "originalSourceUnchanged": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/build-audit.mjs",
+      "sha256": "57eefea8f3efb22e70ffce47c001f9a71d916b15dba288bd44668a95d201141f",
+      "runtimeImports": [
+        {
+          "specifier": "node:fs",
+          "binding": "whole-module synthetic; unused exports throw"
+        },
+        {
+          "specifier": "node:path",
+          "binding": "pure-or-synthetic-special"
+        },
+        {
+          "specifier": "node:crypto",
+          "binding": "pure-or-synthetic-special"
+        }
+      ],
+      "erasedTypeOnlyImports": [],
+      "originalSourceUnchanged": true
+    }
+  ],
+  "importAllowlist": {
+    "node:fs": [
+      "existsSync",
+      "mkdtempSync",
+      "mkdirSync",
+      "readFileSync",
+      "readdirSync",
+      "writeFileSync",
+      "rmSync",
+      "realpathSync",
+      "lstatSync",
+      "statSync",
+      "accessSync",
+      "constants",
+      "copyFileSync",
+      "cpSync",
+      "symlinkSync",
+      "renameSync"
+    ],
+    "node:fs/promises": [
+      "mkdtemp",
+      "mkdir",
+      "readFile",
+      "readdir",
+      "rm",
+      "rmdir",
+      "writeFile"
+    ],
+    "node:child_process": [
+      "spawnSync",
+      "spawn",
+      "execFileSync"
+    ],
+    "../../../src/shell/index.js": [
+      "Shell"
+    ],
+    "../../../src/commands/index.js": [
+      "standardCommands"
+    ],
+    "../../../src/fs/memory/index.js": [
+      "createMemoryFileSystem"
+    ],
+    "../../../src/commands/table-text/index.js": [
+      "tableTextCommands"
+    ],
+    "../../table-text/helpers.js": [
+      "runTable"
+    ],
+    "../support.js": [
+      "product"
+    ],
+    "../../../../src/contracts/index.js": [
+      "toByteSource"
+    ],
+    "../../../../src/commands/diff-patch/index.js": [
+      "createDiffPatchCommands"
+    ],
+    "../../../../src/fs/memory/index.js": [
+      "MemoryFileSystem"
+    ],
+    "../gnu-target/oracle.js": [
+      "oraclePath"
+    ],
+    "./cases.js": [
+      "nativeCases",
+      "appleDifferenceCases"
+    ],
+    "./process.js": [
+      "isolatedSpawn"
+    ],
+    "./harness.js": [
+      "bounded",
+      "directory",
+      "native",
+      "text",
+      "virtual"
+    ],
+    "./common.mjs": [
+      "candidate",
+      "directory",
+      "repository",
+      "copyDependencies",
+      "blob",
+      "sha",
+      "save",
+      "node24",
+      "npm",
+      "git",
+      "copySelection"
+    ],
+    "./profile.mjs": [
+      "readProfile"
+    ],
+    "./admission.mjs": [
+      "admission",
+      "requireRelease",
+      "verifyDriverSeal",
+      "requireOrdered",
+      "canonicalArguments",
+      "requireCanonicalArguments"
+    ],
+    "./inventory.mjs": [
+      "capture",
+      "createTreeGuard",
+      "requireBuildDelta",
+      "verifyArchive"
+    ],
+    "./policy.mjs": [
+      "BOUNDS",
+      "gateVerdict",
+      "enforceCharge"
+    ],
+    "./transport.mjs": [
+      "extractCommitted",
+      "transferHistory",
+      "cleanGitEnvironment"
+    ],
+    "./external-admission.mjs": [
+      "verifyExternal",
+      "externalReceipt"
+    ],
+    "./tool-routing.mjs": [
+      "createToolPath",
+      "verifyToolPath",
+      "createInheritedHelperRoute"
+    ],
+    "./external.mjs": [
+      "fileIdentity"
+    ],
+    "./built-consumers.mjs": [
+      "renderBuiltConsumerRunner",
+      "renderConsumerEntry"
+    ],
+    "./tap.mjs": [
+      "accountFile"
+    ],
+    "./supervise.mjs": [
+      "supervise"
+    ],
+    "./consumer-admission.mjs": [
+      "verifyConsumerSelection"
+    ],
+    "./build-types.mjs": [
+      "createBuildAudit",
+      "runBuildTypes",
+      "readBuildAudit"
+    ],
+    "./phase-runner.mjs": [
+      "createPhaseRunner"
+    ],
+    "./projection.mjs": [
+      "assertNoInstructionCopyTree"
+    ],
+    "./maintained-prerequisites.mjs": [
+      "createPrerequisiteReceipt",
+      "prerequisites"
+    ],
+    "node:stream/promises": [
+      "pipeline"
+    ]
+  },
+  "staticOnlySelectedPaths": [
+    "tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts",
+    "tests/integration/s3-http-exports/verify.mjs",
+    "tests/commands/diff-patch-stress/gnu-auxiliary/helpers.ts",
+    "tests/commands/diff-patch-stress/gnu-target-followup/helpers.ts",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/DRIVER.json"
+  ],
+  "oldImmediateDirectoryEntries": {
+    "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20": [
+      "ATTEMPT.json",
+      "BINDINGS.json",
+      "COMMANDS.md",
+      "CRITERIA.md",
+      "HANDOFF.md",
+      "review.mjs"
+    ],
+    "tests/integration/full-gate-20260827/unified76-driver/r3-repair-v1": [
+      "BASELINE.json",
+      "CONTROL-RECIPE.md",
+      "EVIDENCE-SEAL.json",
+      "HANDOFF.md",
+      "PRESERVATION.json",
+      "RESULTS-v1.json",
+      "SOURCE-CANDIDATE.json",
+      "controls.mjs"
+    ],
+    "tests/integration/full-gate-20260827/unified76-driver/r3-tool-closure-v1": [
+      "CALLS.json",
+      "CHANGESET.json",
+      "FUTURE-CONTROLS.md",
+      "HANDOFF.md",
+      "INSPECTION.json",
+      "README.md",
+      "SEAL.json",
+      "SUCCESSOR-PROFILE.json",
+      "inspect.mjs"
+    ]
+  },
+  "protectedCommittedTrees": {
+    "tests/integration/full-gate-20260827/unified76-driver/r3-repair-v1": "040000 tree 93a2c4ee9b9e5ea2524f227966dd1440097ed511\ttests/integration/full-gate-20260827/unified76-driver/r3-repair-v1",
+    "tests/integration/full-gate-20260827/unified76-driver/r3-tool-closure-v1": "040000 tree 5debad61e8741dc892424ed238750e0dee37ee49\ttests/integration/full-gate-20260827/unified76-driver/r3-tool-closure-v1",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/r3-diagnosis-v19": "040000 tree 5c531f639f66d3eecc8fd28e7d8a593d680e0b94\ttests/integration/full-gate-20260827/unified76-driver-independent/r3-diagnosis-v19",
+    "tests/integration/full-gate-20260827/unified76-driver/r3-diagnosis-v1": "040000 tree 495c69e9dc0d3d73595b11c5ad8853aebb6b7547\ttests/integration/full-gate-20260827/unified76-driver/r3-diagnosis-v1",
+    "tests/integration/full-gate-20260827/unified76-driver/released-run-v3-qualified-h11": "040000 tree 4b156253a988091d46fb4cee60e9e416c06ec0bc\ttests/integration/full-gate-20260827/unified76-driver/released-run-v3-qualified-h11"
+  },
+  "historicalMetadataOnly": {
+    "captures": 928,
+    "retainedAdditions": 286,
+    "pass": 19425,
+    "fail": 132,
+    "skip": 7,
+    "phasesExecuted": 6,
+    "phasesDeclared": 14
+  },
+  "toolMetadataQualification": {
+    "profileSha256BoundFromSeal": "71ba31dea9594c3eee23c054a40b0fa09de4a78eb129a44018103c21a5dfb36c",
+    "inspectionSha256BoundFromSeal": "02803cbedd0e067624923a6b5cf3986a9f354a5ee806d1f70a13746133193c2d",
+    "callsSha256BoundFromSeal": "8efa968397a1cc0f7f44e2f0a54c8f1388752517ebdd2004f3645a82bfc533b1",
+    "rootRatifiedPairs": [
+      [
+        "/usr/bin/cut",
+        "/usr/lib/libSystem.B.dylib",
+        "ENOENT"
+      ],
+      [
+        "/usr/bin/sort",
+        "/usr/lib/libSystem.B.dylib",
+        "ENOENT"
+      ],
+      [
+        "/usr/bin/tee",
+        "/usr/lib/libSystem.B.dylib",
+        "ENOENT"
+      ],
+      [
+        "/usr/bin/xargs",
+        "/usr/lib/libSystem.B.dylib",
+        "ENOENT"
+      ],
+      [
+        "/bin/cat",
+        "/usr/lib/libSystem.B.dylib",
+        "ENOENT"
+      ]
+    ],
+    "qualification": "OS-METADATA ONLY; old proposal pending wording is historical, superseded only by ROOT's exact pair decision.",
+    "missingImageActualHash": null,
+    "dyldActualRuntimeClosure": false,
+    "newRuntimeAdmission": false,
+    "future20Actual": "UNRUN"
+  },
+  "foreignIndex": {
+    "cachedRawHex": "",
+    "empty": true,
+    "indexContentNotRewrittenByAudit": true
+  },
+  "limitations": [
+    "VM is not a hostile host-JavaScript sandbox",
+    "No actual tools, compiler, build, product, gate, private module or retained-root cleanup",
+    "Existing caught() conflates undefined throw and absence; original53 do not establish arbitrary-thrown-value preservation",
+    "No expanded controls, no distinct simultaneous cleanup-error identity controls",
+    "No append-proof historical tree or runtime-image closure claim"
+  ]
+}

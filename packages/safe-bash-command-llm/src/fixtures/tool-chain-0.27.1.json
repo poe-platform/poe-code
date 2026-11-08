@@ -1,0 +1,8 @@
+[
+  {"limit":null,"text":"stepstep","events":["before","after"],"error":null},
+  {"limit":0,"text":"stepstep","events":["before","after"],"error":null},
+  {"limit":1,"text":"step","events":[],"error":"Chain limit of 1 exceeded."},
+  {"limit":2,"text":"stepstep","events":["before","after"],"error":"Chain limit of 2 exceeded."},
+  {"limit":3,"text":"stepstep","events":["before","after"],"error":null},
+  {"limit":-1,"text":"step","events":[],"error":"Chain limit of -1 exceeded."}
+]

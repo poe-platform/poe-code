@@ -1,0 +1,4 @@
+if grep -qi "co-authored-by" "$1"; then
+  echo "Error: Commits with Co-Authored-By are not allowed."
+  exit 1
+fi

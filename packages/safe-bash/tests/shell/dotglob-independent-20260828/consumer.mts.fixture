@@ -1,0 +1,11 @@
+import { Shell, MemoryFileSystem, agentCommands } from 'virtual-bash';
+import type { ShellCommandContext, ShellOptions, ShellResult } from 'virtual-bash';
+const options: ShellOptions = { fs: new MemoryFileSystem(), env: { LC_ALL: 'C' } };
+const shell = new Shell(options).use(agentCommands());
+shell.register({ name: 'relay', async execute(context: ShellCommandContext) {
+  return context.invoke('shopt', ['-q', 'dotglob'], { signal: context.signal });
+} });
+const result: ShellResult = await shell.exec('shopt -s dotglob; shopt -q dotglob');
+const status: number = result.exitCode;
+void status;
+await shell.dispose();

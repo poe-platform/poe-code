@@ -1,0 +1,22 @@
+{
+  "schema": "timeout-f22-wrong-binding-controls/1",
+  "oldCandidateScheduler": {
+    "commit": "9ed9a0f14d12758713a8dc42be1ff75f0c87a36f",
+    "blob": "d49ef949bc6189b5b32536b8750c34db85a7f909",
+    "sha256": "b6ba0e2bf22051f4032686a58821bddcdb211faa918beac4ec004f4d46ca00e8"
+  },
+  "repairedScheduler": {
+    "commit": "a23867d6a42e1cb2f2e7278cf22061737a4bea9d",
+    "blob": "a5839e09b810b88dd340e4b36ff4b100533e481b",
+    "sha256": "fa542007183e5f097c105c70b7a9502f2fa26bd801430e899f9f1bddd7962af3"
+  },
+  "oldSchedulerRejectedForRepairedSource": true,
+  "oldSourceArchive": {
+    "sha256": "1a7f280f4f309af3dcc8f3a7ec629b95dddbc65d180bc45c9911ff64523d6ded",
+    "rejectedForRepair": true
+  },
+  "oldPackage": {
+    "sha256": "32e2bef5eafbb00e9b6704e2765f55e36514eda0da0fe84ea78367813c756630",
+    "rejectedForRepair": true
+  }
+}

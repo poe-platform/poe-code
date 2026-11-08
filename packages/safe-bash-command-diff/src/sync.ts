@@ -1,0 +1,125 @@
+import { flags } from "./diff-options.js";
+import { expandTabs } from "./diff-output.js";
+
+export type { DiffPatchOptions } from "safe-bash-diff-engine/shared";
+
+const syncDiffDecoder = new TextDecoder("utf-8", { fatal: true });
+
+function normalizeSyncDiffLines(text: string, opts: ReturnType<typeof flags>): string[] {
+  const rawLines: string[] = [];
+  let start = 0;
+  for (let i = 0; i < text.length; i++) {
+    if (text.charCodeAt(i) === 10) {
+      rawLines.push(text.slice(start, i + 1));
+      start = i + 1;
+    }
+  }
+  if (start < text.length) rawLines.push(text.slice(start));
+  const out: string[] = [];
+  for (let i = 0; i < rawLines.length; i++) {
+    let line = rawLines[i]!;
+    if (opts.stripTrailingCr && line.endsWith("\r\n")) {
+      line = line.slice(0, -2) + "\n";
+    }
+    let body = line.endsWith("\n") ? line.slice(0, -1) : line;
+    if (opts.ignoreBlank && (body === "" || (opts.whitespace !== "exact" && /^[ \t\v\f\r]*$/u.test(body)))) continue;
+    if (opts.ignoreTabs) body = expandTabs(body);
+    if (opts.whitespace !== "exact") {
+      body = body.replace(/[ \t\v\f\r]+/gu, opts.whitespace === "all" ? "" : " ");
+    }
+    if (opts.ignoreTrailing || opts.whitespace !== "exact") {
+      body = body.replace(/[ \t\v\f\r]+$/u, "");
+    }
+    if (opts.ignoreCase) {
+      body = body.replace(/[A-Z]/gu, letter => letter.toLowerCase());
+    }
+    const suffix = (opts.whitespace !== "exact" || opts.ignoreTrailing || opts.ignoreTabs) ? "" : (line.endsWith("\n") ? "\n" : "");
+    out.push(body + suffix);
+  }
+  return out;
+}
+
+export function evalSyncDiff(
+  stdinBytes: Uint8Array | undefined,
+  args: readonly string[],
+  readFile?: (path: string) => Uint8Array | undefined,
+): string | undefined {
+  let opts: ReturnType<typeof flags>;
+  try {
+    opts = flags(args);
+  } catch {
+    return undefined;
+  }
+  const pairFiles =
+    opts.fromFile !== undefined && opts.toFile === undefined && opts.files.length === 1
+      ? [opts.fromFile, opts.files[0]!]
+      : opts.toFile !== undefined && opts.fromFile === undefined && opts.files.length === 1
+        ? [opts.files[0]!, opts.toFile]
+        : opts.fromFile === undefined && opts.toFile === undefined && opts.files.length === 2
+          ? [opts.files[0]!, opts.files[1]!]
+          : undefined;
+  if (
+    !pairFiles ||
+    opts.recursive ||
+    opts.paginate ||
+    opts.noDereference ||
+    (opts.format === "side" && !opts.suppressCommon) ||
+    opts.format === "ifdef"
+  ) {
+    return undefined;
+  }
+  const left = pairFiles[0]!;
+  const right = pairFiles[1]!;
+  const isStdinName = (op: string) => op === "-" || op === "/dev/stdin" || op === "/dev/fd/0";
+  if (isStdinName(left) && isStdinName(right) && left !== right) return undefined;
+  const resolveOperand = (op: string): Uint8Array | undefined => {
+    if (op === "-" || op === "/dev/stdin" || op === "/dev/fd/0") return stdinBytes ?? new Uint8Array(0);
+    if (!readFile) return undefined;
+    return readFile(op);
+  };
+  const b1 = resolveOperand(left);
+  const b2 = resolveOperand(right);
+  if (!b1 || !b2) return undefined;
+  if (opts.format === "ed" && !opts.brief) {
+    if ((b1.byteLength > 0 && b1[b1.byteLength - 1] !== 10) || (b2.byteLength > 0 && b2[b2.byteLength - 1] !== 10)) {
+      return undefined;
+    }
+  }
+  if (left === "-" && right === "-") return opts.reportSame ? `Files ${opts.labels[0] ?? left} and ${opts.labels[1] ?? right} are identical\n` : "";
+
+  let same = false;
+  if (b1.byteLength === b2.byteLength) {
+    same = true;
+    for (let i = 0; i < b1.byteLength; i++) {
+      if (b1[i] !== b2[i]) {
+        same = false;
+        break;
+      }
+    }
+  }
+  if (!same) {
+    // Ignore patterns apply to change groups through the command's bounded BRE
+    // matcher. Filtering entire inputs here can hide differences between them.
+    if (opts.ignorePatterns.length > 0) return undefined;
+    if (!opts.ignoreCase && !opts.ignoreTrailing && !opts.ignoreBlank && !opts.ignoreTabs && !opts.stripTrailingCr && opts.whitespace === "exact") {
+      return undefined;
+    }
+    for (let i = 0; i < b1.byteLength; i++) if (b1[i] === 0) return undefined;
+    for (let i = 0; i < b2.byteLength; i++) if (b2[i] === 0) return undefined;
+    let t1: string, t2: string;
+    try {
+      t1 = syncDiffDecoder.decode(b1);
+      t2 = syncDiffDecoder.decode(b2);
+    } catch {
+      return undefined;
+    }
+    const l1 = normalizeSyncDiffLines(t1, opts);
+    const l2 = normalizeSyncDiffLines(t2, opts);
+    if (l1.length !== l2.length) return undefined;
+    for (let i = 0; i < l1.length; i++) {
+      if (l1[i] !== l2[i]) return undefined;
+    }
+    same = true;
+  }
+  return opts.reportSame ? `Files ${opts.labels[0] ?? left} and ${opts.labels[1] ?? right} are identical\n` : "";
+}

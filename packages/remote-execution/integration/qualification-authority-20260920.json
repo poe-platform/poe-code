@@ -1,0 +1,12 @@
+{
+  "kind": "disposable-byte-argv-qualification",
+  "imageDigest": "sha256:4e83b653969a8f730e34212df02dc59dea67b1823b213bd3e1c5e8b10f7a3d45",
+  "helperDigest": "07fedf62d8d75a7984994413e596007626a01919bb5746d91a3cbe1fccb12c64",
+  "launcherRevision": "posix-execve-v1:07fedf62d8d75a7984994413e596007626a01919bb5746d91a3cbe1fccb12c64",
+  "runtimeFiles": {
+    "/app/native-process.js": "46e7bbfb2139b41a7bc1c7d2aae43f8a6d1abb468bfcf8f91508a71c02cb4284",
+    "/app/native-driver.js": "a514195927fb962d1fb72ab0713c56c5ae40f582aedc4eb0672e0ff0c35ef26f",
+    "/app/byte-argv-launcher.js": "1d8b27bf4860b14480e018ceddc6f686ac6da54b118c84fd852e96b2459058f2"
+  },
+  "productionCanonicalMediation": false
+}

@@ -1,0 +1,3 @@
+{"kind":"startup-env","stage":"positive","pid":46985,"ppid":46983,"env":{"__CF_USER_TEXT_ENCODING":"0x1F5:0x0:0x0"}}
+{"kind":"control","id":"R01","detail":{"physicalRename":true,"oldEEXIST":5,"distinctMovedWx":5,"variants":["positive","bad-value","bad-value-repair","root-negative","root-repair"],"intendedBodiesUnchanged":true}}
+{"kind":"control","id":"R02","detail":{"exactExisting":5,"noWrites":true}}

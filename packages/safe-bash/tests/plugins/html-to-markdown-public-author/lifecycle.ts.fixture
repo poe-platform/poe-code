@@ -1,0 +1,110 @@
+import assert from "node:assert/strict";
+import { setImmediate as turn } from "node:timers/promises";
+import { Shell, FsError, agentCommands, createAgentCommands, createMemoryFileSystem, createHtmlToMarkdownCommand, networkCommands, toByteSource, type CommandContext, type InvocationCleanup, type HttpRequest } from "virtual-bash";
+
+function deferred<Value>() {
+  let resolve!: (value: Value) => void;
+  const promise = new Promise<Value>(complete => { resolve = complete; });
+  return { promise, resolve };
+}
+async function deadline<Value>(promise: Promise<Value>): Promise<Value> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try { return await Promise.race([promise, new Promise<never>((_resolve, reject) => { timer = setTimeout(() => reject(new Error("packed author observation deadline exceeded")), 3000); })]); }
+  finally { clearTimeout(timer); }
+}
+const observations: unknown[] = [];
+for (const headers of [false, true]) {
+  const caller = new AbortController(), started = deferred<void>();
+  let reads = 0, returned = 0, disposed = 0, active = 0, request: HttpRequest | undefined;
+  const authorized: string[] = [], fs = createMemoryFileSystem();
+  const shell = new Shell({ fs }).use(agentCommands()).use(networkCommands({
+    authorize: incoming => { authorized.push(incoming.url); return incoming.url === "https://page.test/document"; },
+    transport: async incoming => {
+      request = incoming;
+      const pending = deferred<IteratorResult<Uint8Array>>();
+      const release = () => pending.resolve({ done: true, value: undefined });
+      incoming.signal.addEventListener("abort", release, { once: true });
+      return { status: 200, statusText: "OK", headers: [["content-type", "text/html"]], body: { [Symbol.asyncIterator]() { return {
+        async next() { reads++; active++; started.resolve(); try { return await pending.promise; } finally { active--; } },
+        async return() { returned++; release(); return { done: true, value: undefined }; },
+      }; } }, async dispose() { disposed++; incoming.signal.removeEventListener("abort", release); release(); } };
+    },
+  }));
+  await shell.exec(":");
+  const head = createAgentCommands().find(command => command.name === "head")!;
+  shell.register({ name: "head", async execute(context) { await started.promise; return head.execute(context); } }, { replace: true });
+  try {
+    const result = await deadline(shell.exec(`curl ${headers ? "-D /headers " : ""}https://page.test/document | html-to-markdown | head -n0`, { signal: caller.signal }));
+    assert.equal(result.exitCode, 0, result.stderr); assert.equal(result.stdout, ""); assert.equal(result.stderr, "");
+    assert.deepEqual(authorized, ["https://page.test/document"]);
+    assert.deepEqual({ reads, returned, disposed, active }, { reads: 1, returned: 1, disposed: 1, active: 0 });
+    assert.equal(caller.signal.aborted, false); assert.equal(request?.signal.aborted, !headers);
+    if (headers) assert.match(Buffer.from(await fs.readFile("/headers")).toString(), /content-type: text\/html/iu);
+    observations.push({ case: "before-first-write", headers, reads, returned, disposed, active, requestAborted: request?.signal.aborted, callerAborted: caller.signal.aborted });
+  } finally { caller.abort(new Error("packed fixture cleanup")); await shell.dispose(); }
+}
+
+const fs = createMemoryFileSystem(), caller = new AbortController();
+let disposals = 0;
+const redirected = new Shell({ fs }).use(agentCommands()).use(networkCommands({
+  authorize: request => request.url === "https://page.test/document",
+  transport: async () => ({ status: 200, statusText: "OK", headers: [], body: toByteSource("<h1>Required</h1>"), async dispose() { disposals++; } }),
+}));
+try {
+  const result = await deadline(redirected.exec("curl https://page.test/document | html-to-markdown > /required.md | head -n0", { signal: caller.signal }));
+  assert.equal(result.exitCode, 0, result.stderr); assert.equal(result.stderr, ""); assert.equal(result.stdout, "");
+  assert.equal(Buffer.from(await fs.readFile("/required.md")).toString(), "# Required\n");
+  assert.equal(disposals, 1); assert.equal(caller.signal.aborted, false);
+  observations.push({ case: "required-file", disposals, callerAborted: false });
+} finally { await redirected.dispose(); }
+
+function context(overrides: Partial<CommandContext> = {}) {
+  const cleanup: InvocationCleanup[] = [], stderr: Uint8Array[] = [], stdout: Uint8Array[] = [];
+  const value: CommandContext = { command: "html-to-markdown", args: [], stdin: toByteSource(""),
+    stdout: { async write(bytes) { stdout.push(new Uint8Array(bytes)); } },
+    stderr: { async write(bytes) { stderr.push(new Uint8Array(bytes)); } },
+    cwd: "/", env: Object.create(null) as Record<string, string>, fs,
+    signal: caller.signal, registerCleanup: callback => { cleanup.push(callback); }, ...overrides };
+  return { value, cleanup, stderr, stdout, async close() { for (const callback of cleanup) await callback(); } };
+}
+const closed = new AbortController(); closed.abort(new FsError("EPIPE"));
+let acquired = 0;
+const invalid = context({ args: ["--invalid"], stdin: { [Symbol.asyncIterator]() { acquired++; throw new Error("unexpected acquisition"); } },
+  stdout: { async write() { throw new Error("unexpected output"); }, ownedOutput: { consumerClosed: closed.signal, async write() { throw new Error("unexpected output"); } } } });
+try {
+  const result = await createHtmlToMarkdownCommand().execute(invalid.value);
+  assert.equal(result.exitCode, 2); assert.match(Buffer.concat(invalid.stderr).toString(), /^html-to-markdown: /u);
+  assert.equal(acquired, 0); assert.equal(caller.signal.aborted, false);
+  observations.push({ case: "closed-output-required-stderr", status: result.exitCode, acquired });
+} finally { await invalid.close(); }
+
+let reads = 0, returned = 0;
+const limited = context();
+limited.value = { ...limited.value, stdin: { [Symbol.asyncIterator]() {
+  assert.ok(limited.cleanup.length > 0, "cleanup must precede input acquisition");
+  return { async next() { reads++; return { done: false, value: Buffer.from("<p>too long</p>") }; }, async return() { returned++; return { done: true, value: undefined }; } };
+} } };
+try {
+  const result = await createHtmlToMarkdownCommand({ limits: { maxInputBytes: 4 } }).execute(limited.value);
+  assert.equal(result.exitCode, 1); assert.equal(Buffer.concat(limited.stderr).toString(), "html-to-markdown: EFBIG: html-to-markdown input limit exceeded\n");
+  assert.equal(reads, 1); assert.equal(returned, 1); assert.equal(caller.signal.aborted, false);
+  observations.push({ case: "limit-cleanup", status: result.exitCode, reads, returned });
+} finally { await limited.close(); }
+
+const release = deferred<void>(), started = deferred<void>(), outputClosed = new AbortController();
+let opaqueReturns = 0, settled = false;
+const opaque = context({ stdin: { [Symbol.asyncIterator]() { return {
+  async next() { started.resolve(); await release.promise; return { done: true, value: undefined }; },
+  async return() { opaqueReturns++; await release.promise; return { done: true, value: undefined }; },
+}; } }, stdout: { async write() {}, ownedOutput: { consumerClosed: outputClosed.signal, async write() {} } } });
+const reason = new FsError("EPIPE");
+const execution = Promise.resolve(createHtmlToMarkdownCommand().execute(opaque.value)).then(result => { settled = true; return result; }, error => { settled = true; throw error; });
+void execution.catch(() => {});
+try {
+  await started.promise; outputClosed.abort(reason); await turn();
+  assert.equal(settled, false); assert.equal(caller.signal.aborted, false);
+  release.resolve(); await assert.rejects(deadline(execution), error => error === reason);
+  assert.equal(opaqueReturns, 1); observations.push({ case: "opaque-pending-until-release", opaqueReturns });
+} finally { release.resolve(); await opaque.close(); }
+assert.equal(observations.length, 6);
+console.log(JSON.stringify({ lifecycle: observations, runtime: process.version, execPath: process.execPath, publicRoot: import.meta.resolve("virtual-bash") }));

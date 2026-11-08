@@ -1,0 +1,1242 @@
+{
+  "version": 1,
+  "role": "expectation editor/author; independent review pending",
+  "evidence": "/tmp/safe-bash-diff-revised-full-T6lPmg",
+  "snapshot": "/private/tmp/safe-bash-diff-revised-full-T6lPmg/snapshot-1",
+  "originalCheckpoint": "371df76 with cd80ea1 correction",
+  "consumerCommit": "4009efeef1ab909b4a5c8ffa7dbebc335dd9325c",
+  "originalManifestSha256": "9f33adce0d68795bc0620938e438e2c376cfbed6f2addfa58b4fc599b6034ec1",
+  "deltaFileSha256": "dab23166e15d2bc9bbb59ba0441ef7989221ff7e302a994a56c1a5ff5cfba8dc",
+  "proofSha256": "c23323e412724c4c415290998eb1d0e577b76a81079d8968103da8420e47a0e4",
+  "original3758": {
+    "rerun": false,
+    "tests": 3758,
+    "pass": 3750,
+    "fail": 8,
+    "skipped": 0,
+    "cancelled": 0,
+    "todo": 0,
+    "archived": "/tmp/safe-bash-diff-rmdir-final-PRIFIp"
+  },
+  "original30": {
+    "rerun": false,
+    "pass": 14,
+    "fail": 16,
+    "report": "tests/commands/diff-patch-stress/original-thirty-replay/REPORT.md"
+  },
+  "cases": [
+    {
+      "name": "quoted-path security: quoted ancestor symlink",
+      "file": "tests/commands/diff-patch-stress/editflows/quoted-safety.test.ts",
+      "originalFileSha256": "cca653100a9d18de485e26ed8ed33c2b820cbb6c60ffbdf2b741efa537c40d75",
+      "revisedFileSha256": "6e9efa710d489ad09226e1aeacc973f103c49c4d2de983c00272731968f44c96",
+      "deltaFileSha256": "dab23166e15d2bc9bbb59ba0441ef7989221ff7e302a994a56c1a5ff5cfba8dc",
+      "beforeAssertions": "  assert.equal(result.status, 2, result.stderr.toString());\n  assert.deepEqual(result.stdout, Buffer.alloc(0));\n  assert.deepEqual(await fileBytes(filesystem, Object.keys(files)), expectedBytes(files));\n  assert.deepEqual(await filesystem.lstat(linkPath), originalLink);",
+      "afterAssertions": "  assert.equal(result.status, name === \"quoted ancestor symlink\" ? 0 : 2, result.stderr.toString());\n  assert.deepEqual(result.stdout, name === \"quoted ancestor symlink\" ? Buffer.from(\"patching file first\\npatching file target\\n\") : Buffer.alloc(0));\n  assert.deepEqual(await fileBytes(filesystem, Object.keys(files)), expectedBytes(name === \"quoted ancestor symlink\" ? { ...files, first: \"new\\n\", target: \"new\\n\" } : files));\n  assert.deepEqual(await filesystem.lstat(linkPath), originalLink);",
+      "proofRecordSha256": "14f8bd18eac0165f4722a1e7f16730da1200ffab629e0431e4b68bbe9e4058b8"
+    },
+    {
+      "name": "atomic extension malformed backward-second-hunk is not swallowed after a valid file section",
+      "file": "tests/commands/diff-patch-stress/fuzz/edits.test.ts",
+      "originalFileSha256": "18d204a74b8c8783eb807859e3a1f10d7fa7f2fea8c6387f71a7deedcf27ff0f",
+      "revisedFileSha256": "d30d2188f408ac65653a3523fb079d9718763c9966476005e6fcbad9329ac4c5",
+      "deltaFileSha256": "dab23166e15d2bc9bbb59ba0441ef7989221ff7e302a994a56c1a5ff5cfba8dc",
+      "beforeAssertions": "  assert.equal(result.exitCode, 2, result.stderr);\n  assert.equal(await contents(filesystem, \"first\"), \"keep\\n\");",
+      "afterAssertions": "  assert.equal(result.exitCode, name === \"backward-second-hunk\" ? 1 : 2, result.stderr);\n  assert.equal(await contents(filesystem, \"first\"), \"keep\\n\");",
+      "proofRecordSha256": "5ee63ad49c720464fefd23f65410f1f8da399c57151b56f2ec3b18c6d66bf114"
+    },
+    {
+      "name": "GNU default: normal/-E/apply",
+      "file": "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+      "originalFileSha256": "ecc0a342be9bc6a8a47fe8a216ea46dfcd6a8c7d349474e419ca0cf17ba25571",
+      "revisedFileSha256": "4a8df779884129b16dc0b021105b0f584f9ed78b69e45c287f61a2f707792bb0",
+      "deltaFileSha256": "dab23166e15d2bc9bbb59ba0441ef7989221ff7e302a994a56c1a5ff5cfba8dc",
+      "beforeAssertions": "  if (prunedParent) delete before[\"/authorized\"];\n  assert.deepEqual(after, before, \"no decoys, reject files, backup files, or unrelated paths changed\");\n  if (vector.args.includes(\"--dry-run\") || vector.status !== 0) assert.deepEqual(observed.mutations, []);\n  else assert.deepEqual(observed.mutations.map(({ method, path }) => ({ method, path })),\n    [{ method: vector.expected === null ? \"rm\" : \"writeFile\", path: target(vector) }, ...(prunedParent ? [{ method: \"rm\", path: \"/authorized\" }] : [])]);",
+      "afterAssertions": "  if (prunedParent) {\n    delete before[\"/authorized\"];\n    const root = before[\"/\"];\n    assert(root !== null && typeof root === \"object\" && \"nlink\" in root && typeof root.nlink === \"number\");\n    root.nlink -= 1;\n  }\n  assert.deepEqual(after, before, \"no decoys, reject files, backup files, or unrelated paths changed\");\n  if (vector.args.includes(\"--dry-run\") || vector.status !== 0) assert.deepEqual(observed.mutations, []);\n  else assert.deepEqual(observed.mutations.map(({ method, path }) => ({ method, path })),\n    [{ method: vector.expected === null ? \"rm\" : \"writeFile\", path: target(vector) }]);",
+      "proofRecordSha256": "ece8b3713c6a3b77377c10e61099b38069f8b136f79f93b9182a40b311ed8a17"
+    },
+    {
+      "name": "GNU default: normal/--remove-empty-files/apply",
+      "file": "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+      "originalFileSha256": "ecc0a342be9bc6a8a47fe8a216ea46dfcd6a8c7d349474e419ca0cf17ba25571",
+      "revisedFileSha256": "4a8df779884129b16dc0b021105b0f584f9ed78b69e45c287f61a2f707792bb0",
+      "deltaFileSha256": "dab23166e15d2bc9bbb59ba0441ef7989221ff7e302a994a56c1a5ff5cfba8dc",
+      "beforeAssertions": "  if (prunedParent) delete before[\"/authorized\"];\n  assert.deepEqual(after, before, \"no decoys, reject files, backup files, or unrelated paths changed\");\n  if (vector.args.includes(\"--dry-run\") || vector.status !== 0) assert.deepEqual(observed.mutations, []);\n  else assert.deepEqual(observed.mutations.map(({ method, path }) => ({ method, path })),\n    [{ method: vector.expected === null ? \"rm\" : \"writeFile\", path: target(vector) }, ...(prunedParent ? [{ method: \"rm\", path: \"/authorized\" }] : [])]);",
+      "afterAssertions": "  if (prunedParent) {\n    delete before[\"/authorized\"];\n    const root = before[\"/\"];\n    assert(root !== null && typeof root === \"object\" && \"nlink\" in root && typeof root.nlink === \"number\");\n    root.nlink -= 1;\n  }\n  assert.deepEqual(after, before, \"no decoys, reject files, backup files, or unrelated paths changed\");\n  if (vector.args.includes(\"--dry-run\") || vector.status !== 0) assert.deepEqual(observed.mutations, []);\n  else assert.deepEqual(observed.mutations.map(({ method, path }) => ({ method, path })),\n    [{ method: vector.expected === null ? \"rm\" : \"writeFile\", path: target(vector) }]);",
+      "proofRecordSha256": "79105b39ae51f16fd895250e3bd173b75320faeb7f183524e1a3bfeb0f747b92"
+    },
+    {
+      "name": "GNU default: context/-E/apply",
+      "file": "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+      "originalFileSha256": "ecc0a342be9bc6a8a47fe8a216ea46dfcd6a8c7d349474e419ca0cf17ba25571",
+      "revisedFileSha256": "4a8df779884129b16dc0b021105b0f584f9ed78b69e45c287f61a2f707792bb0",
+      "deltaFileSha256": "dab23166e15d2bc9bbb59ba0441ef7989221ff7e302a994a56c1a5ff5cfba8dc",
+      "beforeAssertions": "  if (prunedParent) delete before[\"/authorized\"];\n  assert.deepEqual(after, before, \"no decoys, reject files, backup files, or unrelated paths changed\");\n  if (vector.args.includes(\"--dry-run\") || vector.status !== 0) assert.deepEqual(observed.mutations, []);\n  else assert.deepEqual(observed.mutations.map(({ method, path }) => ({ method, path })),\n    [{ method: vector.expected === null ? \"rm\" : \"writeFile\", path: target(vector) }, ...(prunedParent ? [{ method: \"rm\", path: \"/authorized\" }] : [])]);",
+      "afterAssertions": "  if (prunedParent) {\n    delete before[\"/authorized\"];\n    const root = before[\"/\"];\n    assert(root !== null && typeof root === \"object\" && \"nlink\" in root && typeof root.nlink === \"number\");\n    root.nlink -= 1;\n  }\n  assert.deepEqual(after, before, \"no decoys, reject files, backup files, or unrelated paths changed\");\n  if (vector.args.includes(\"--dry-run\") || vector.status !== 0) assert.deepEqual(observed.mutations, []);\n  else assert.deepEqual(observed.mutations.map(({ method, path }) => ({ method, path })),\n    [{ method: vector.expected === null ? \"rm\" : \"writeFile\", path: target(vector) }]);",
+      "proofRecordSha256": "6947bf9e6284073d0c4da45d844e45f332f762f5eaeb7731e4aaa6bb432ff18c"
+    },
+    {
+      "name": "GNU default: context/--remove-empty-files/apply",
+      "file": "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+      "originalFileSha256": "ecc0a342be9bc6a8a47fe8a216ea46dfcd6a8c7d349474e419ca0cf17ba25571",
+      "revisedFileSha256": "4a8df779884129b16dc0b021105b0f584f9ed78b69e45c287f61a2f707792bb0",
+      "deltaFileSha256": "dab23166e15d2bc9bbb59ba0441ef7989221ff7e302a994a56c1a5ff5cfba8dc",
+      "beforeAssertions": "  if (prunedParent) delete before[\"/authorized\"];\n  assert.deepEqual(after, before, \"no decoys, reject files, backup files, or unrelated paths changed\");\n  if (vector.args.includes(\"--dry-run\") || vector.status !== 0) assert.deepEqual(observed.mutations, []);\n  else assert.deepEqual(observed.mutations.map(({ method, path }) => ({ method, path })),\n    [{ method: vector.expected === null ? \"rm\" : \"writeFile\", path: target(vector) }, ...(prunedParent ? [{ method: \"rm\", path: \"/authorized\" }] : [])]);",
+      "afterAssertions": "  if (prunedParent) {\n    delete before[\"/authorized\"];\n    const root = before[\"/\"];\n    assert(root !== null && typeof root === \"object\" && \"nlink\" in root && typeof root.nlink === \"number\");\n    root.nlink -= 1;\n  }\n  assert.deepEqual(after, before, \"no decoys, reject files, backup files, or unrelated paths changed\");\n  if (vector.args.includes(\"--dry-run\") || vector.status !== 0) assert.deepEqual(observed.mutations, []);\n  else assert.deepEqual(observed.mutations.map(({ method, path }) => ({ method, path })),\n    [{ method: vector.expected === null ? \"rm\" : \"writeFile\", path: target(vector) }]);",
+      "proofRecordSha256": "555c63bf7ebb96c9a6653daa42c6bd07b9e2a4143f4c82f5565e520e2770eab1"
+    },
+    {
+      "name": "GNU default: unified/-E/apply",
+      "file": "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+      "originalFileSha256": "ecc0a342be9bc6a8a47fe8a216ea46dfcd6a8c7d349474e419ca0cf17ba25571",
+      "revisedFileSha256": "4a8df779884129b16dc0b021105b0f584f9ed78b69e45c287f61a2f707792bb0",
+      "deltaFileSha256": "dab23166e15d2bc9bbb59ba0441ef7989221ff7e302a994a56c1a5ff5cfba8dc",
+      "beforeAssertions": "  if (prunedParent) delete before[\"/authorized\"];\n  assert.deepEqual(after, before, \"no decoys, reject files, backup files, or unrelated paths changed\");\n  if (vector.args.includes(\"--dry-run\") || vector.status !== 0) assert.deepEqual(observed.mutations, []);\n  else assert.deepEqual(observed.mutations.map(({ method, path }) => ({ method, path })),\n    [{ method: vector.expected === null ? \"rm\" : \"writeFile\", path: target(vector) }, ...(prunedParent ? [{ method: \"rm\", path: \"/authorized\" }] : [])]);",
+      "afterAssertions": "  if (prunedParent) {\n    delete before[\"/authorized\"];\n    const root = before[\"/\"];\n    assert(root !== null && typeof root === \"object\" && \"nlink\" in root && typeof root.nlink === \"number\");\n    root.nlink -= 1;\n  }\n  assert.deepEqual(after, before, \"no decoys, reject files, backup files, or unrelated paths changed\");\n  if (vector.args.includes(\"--dry-run\") || vector.status !== 0) assert.deepEqual(observed.mutations, []);\n  else assert.deepEqual(observed.mutations.map(({ method, path }) => ({ method, path })),\n    [{ method: vector.expected === null ? \"rm\" : \"writeFile\", path: target(vector) }]);",
+      "proofRecordSha256": "ca6fe7a8875d3437a72462ffebd37e58bd41a6113dd6691c6c4c3c7dd7956e68"
+    },
+    {
+      "name": "GNU default: unified/--remove-empty-files/apply",
+      "file": "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+      "originalFileSha256": "ecc0a342be9bc6a8a47fe8a216ea46dfcd6a8c7d349474e419ca0cf17ba25571",
+      "revisedFileSha256": "4a8df779884129b16dc0b021105b0f584f9ed78b69e45c287f61a2f707792bb0",
+      "deltaFileSha256": "dab23166e15d2bc9bbb59ba0441ef7989221ff7e302a994a56c1a5ff5cfba8dc",
+      "beforeAssertions": "  if (prunedParent) delete before[\"/authorized\"];\n  assert.deepEqual(after, before, \"no decoys, reject files, backup files, or unrelated paths changed\");\n  if (vector.args.includes(\"--dry-run\") || vector.status !== 0) assert.deepEqual(observed.mutations, []);\n  else assert.deepEqual(observed.mutations.map(({ method, path }) => ({ method, path })),\n    [{ method: vector.expected === null ? \"rm\" : \"writeFile\", path: target(vector) }, ...(prunedParent ? [{ method: \"rm\", path: \"/authorized\" }] : [])]);",
+      "afterAssertions": "  if (prunedParent) {\n    delete before[\"/authorized\"];\n    const root = before[\"/\"];\n    assert(root !== null && typeof root === \"object\" && \"nlink\" in root && typeof root.nlink === \"number\");\n    root.nlink -= 1;\n  }\n  assert.deepEqual(after, before, \"no decoys, reject files, backup files, or unrelated paths changed\");\n  if (vector.args.includes(\"--dry-run\") || vector.status !== 0) assert.deepEqual(observed.mutations, []);\n  else assert.deepEqual(observed.mutations.map(({ method, path }) => ({ method, path })),\n    [{ method: vector.expected === null ? \"rm\" : \"writeFile\", path: target(vector) }]);",
+      "proofRecordSha256": "d38d59e301025f0c4f1fd5e2bba51cf4caecf6af7c47d3179c152749ac8d5156"
+    }
+  ],
+  "changedFiles": [
+    "tests/commands/diff-patch-stress/editflows/quoted-safety.test.ts",
+    "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+    "tests/commands/diff-patch-stress/fuzz/edits.test.ts"
+  ],
+  "original237": {
+    "tests/commands/diff-patch-stress/absolute-target/README.md": {
+      "original": "df0e41f2e75f46b0d53b4cecf894e9ff4dfd9a11c5945452ce0a0339ad3320a3",
+      "snapshot": "df0e41f2e75f46b0d53b4cecf894e9ff4dfd9a11c5945452ce0a0339ad3320a3"
+    },
+    "tests/commands/diff-patch-stress/absolute-target/absolute-target.test.ts": {
+      "original": "779a5b283f1f1734834b0962928579513b1568f7e43da11c05554fdd6391007a",
+      "snapshot": "779a5b283f1f1734834b0962928579513b1568f7e43da11c05554fdd6391007a"
+    },
+    "tests/commands/diff-patch-stress/absolute-target/evidence.json": {
+      "original": "4612070c5f8580f81427d9b35ee915abe3e166cdf3512767bca33ba7cf248b99",
+      "snapshot": "4612070c5f8580f81427d9b35ee915abe3e166cdf3512767bca33ba7cf248b99"
+    },
+    "tests/commands/diff-patch-stress/absolute-target/native.test.ts": {
+      "original": "d738d8123ab6df15f68b8327835708519ae4e382622874a78177a91bb714d2c3",
+      "snapshot": "d738d8123ab6df15f68b8327835708519ae4e382622874a78177a91bb714d2c3"
+    },
+    "tests/commands/diff-patch-stress/absolute-target/tsconfig.json": {
+      "original": "9f603a6399351b4416e13f03b8a0401be61e99df4aba0a569f60a14faf2e6b88",
+      "snapshot": "9f603a6399351b4416e13f03b8a0401be61e99df4aba0a569f60a14faf2e6b88"
+    },
+    "tests/commands/diff-patch-stress/checkpoint/REPORT.md": {
+      "original": "101ab1fc528574d2fce833f26dc7981b74613280ff9408994a932d8f718984b8",
+      "snapshot": "101ab1fc528574d2fce833f26dc7981b74613280ff9408994a932d8f718984b8"
+    },
+    "tests/commands/diff-patch-stress/checkpoint/checkpoint.json": {
+      "original": "ef851fe5b65edd09db52012519c6523f90c69f8c31c0f48d1bb02aee19308683",
+      "snapshot": "ef851fe5b65edd09db52012519c6523f90c69f8c31c0f48d1bb02aee19308683"
+    },
+    "tests/commands/diff-patch-stress/compatibility/README.md": {
+      "original": "f8090db4d6860c7e9c978f1fb5081650c0bb5781d2598b5248dc5e0b2022fd82",
+      "snapshot": "f8090db4d6860c7e9c978f1fb5081650c0bb5781d2598b5248dc5e0b2022fd82"
+    },
+    "tests/commands/diff-patch-stress/compatibility/RECONCILIATION.md": {
+      "original": "dba3aa58d7d2fddf5211545150fe18c004e170be92f755efab631ad7e1d7c576",
+      "snapshot": "dba3aa58d7d2fddf5211545150fe18c004e170be92f755efab631ad7e1d7c576"
+    },
+    "tests/commands/diff-patch-stress/compatibility/diff.test.ts": {
+      "original": "6d8d29ead2664adcc2f692b69a45bcbae5af6fac362e4a842764452e3c7e7828",
+      "snapshot": "6d8d29ead2664adcc2f692b69a45bcbae5af6fac362e4a842764452e3c7e7828"
+    },
+    "tests/commands/diff-patch-stress/compatibility/fixtures.ts": {
+      "original": "c9a54948cd95b3c319d140dfa53d884930c10b56b803ce388f1f5df222a51e00",
+      "snapshot": "c9a54948cd95b3c319d140dfa53d884930c10b56b803ce388f1f5df222a51e00"
+    },
+    "tests/commands/diff-patch-stress/compatibility/flag-evidence.json": {
+      "original": "34e39372383ba121d8a025d731f32abb21d6c6029f68c5d128f572a0c5a7681e",
+      "snapshot": "34e39372383ba121d8a025d731f32abb21d6c6029f68c5d128f572a0c5a7681e"
+    },
+    "tests/commands/diff-patch-stress/compatibility/gaps.test.ts": {
+      "original": "f732ff3665c685eb2dd1978499448555965c43a01caf244484a39dabafd04aef",
+      "snapshot": "f732ff3665c685eb2dd1978499448555965c43a01caf244484a39dabafd04aef"
+    },
+    "tests/commands/diff-patch-stress/compatibility/helpers.ts": {
+      "original": "8251d2ec017050accfe2d1c7e0e1a023ba89a5ad74edc2ea6184a34d66fcdcd1",
+      "snapshot": "8251d2ec017050accfe2d1c7e0e1a023ba89a5ad74edc2ea6184a34d66fcdcd1"
+    },
+    "tests/commands/diff-patch-stress/compatibility/oracle.test.ts": {
+      "original": "65a9bfe191abe2b5ab972898bf35d0728e792127172fdea7dfe9785b0ced8298",
+      "snapshot": "65a9bfe191abe2b5ab972898bf35d0728e792127172fdea7dfe9785b0ced8298"
+    },
+    "tests/commands/diff-patch-stress/compatibility/oracle.ts": {
+      "original": "f7dfb91866b313a2188d91e08584d5ac3dc68457d77712f563f2579eb163d5d0",
+      "snapshot": "f7dfb91866b313a2188d91e08584d5ac3dc68457d77712f563f2579eb163d5d0"
+    },
+    "tests/commands/diff-patch-stress/compatibility/patch.test.ts": {
+      "original": "aa70691e3353f60f3b3ee1134f3bf4999f4db7cf5bb61592b2e92c2fb54636cf",
+      "snapshot": "aa70691e3353f60f3b3ee1134f3bf4999f4db7cf5bb61592b2e92c2fb54636cf"
+    },
+    "tests/commands/diff-patch-stress/compatibility/reconciliation-apple.json": {
+      "original": "1ea84d79ddd456c7acfb98548ec025c647a5cc19b26906c735f4e4c6edcc71c1",
+      "snapshot": "1ea84d79ddd456c7acfb98548ec025c647a5cc19b26906c735f4e4c6edcc71c1"
+    },
+    "tests/commands/diff-patch-stress/compatibility/reconciliation-baseline.json": {
+      "original": "34332bd1c4ed3afbb453477f0d4450a90576491c5b1584e0d94c3f895a913fa2",
+      "snapshot": "34332bd1c4ed3afbb453477f0d4450a90576491c5b1584e0d94c3f895a913fa2"
+    },
+    "tests/commands/diff-patch-stress/compatibility/reconciliation-gnu-repeat.json": {
+      "original": "19e059e0f743a405097e72938f9e3124f996422c656422577de71b2780e528ed",
+      "snapshot": "19e059e0f743a405097e72938f9e3124f996422c656422577de71b2780e528ed"
+    },
+    "tests/commands/diff-patch-stress/compatibility/reconciliation-gnu.json": {
+      "original": "3a37e98b3c3c82cb20e56745d4b304f26e40eceac5051002cf2ced6b89b5e0d6",
+      "snapshot": "3a37e98b3c3c82cb20e56745d4b304f26e40eceac5051002cf2ced6b89b5e0d6"
+    },
+    "tests/commands/diff-patch-stress/compatibility/run.mjs": {
+      "original": "4ec8cb03837ec68c7f42a3a181bd17be9517dca4bd83bbbae9c49509c32f8007",
+      "snapshot": "4ec8cb03837ec68c7f42a3a181bd17be9517dca4bd83bbbae9c49509c32f8007"
+    },
+    "tests/commands/diff-patch-stress/compatibility/shell.test.ts": {
+      "original": "6daaed81d8b795c3bead1b7a1b0aa1b68cb33ac17b9d2ea565ca64ca83e46228",
+      "snapshot": "6daaed81d8b795c3bead1b7a1b0aa1b68cb33ac17b9d2ea565ca64ca83e46228"
+    },
+    "tests/commands/diff-patch-stress/editflows/README.md": {
+      "original": "c3beb49ca502759aab9656ca99caf9f4aac30b543e3a370aad6507f8f91657b2",
+      "snapshot": "c3beb49ca502759aab9656ca99caf9f4aac30b543e3a370aad6507f8f91657b2"
+    },
+    "tests/commands/diff-patch-stress/editflows/fixtures.ts": {
+      "original": "55c5357835760b779b40b1be4b8888ba76eda677b0a1b4daa7004536ac40569e",
+      "snapshot": "55c5357835760b779b40b1be4b8888ba76eda677b0a1b4daa7004536ac40569e"
+    },
+    "tests/commands/diff-patch-stress/editflows/helpers.ts": {
+      "original": "b444f194bca7b32612c4770314c5ad34075bcf63702e9a423920fc95d234228c",
+      "snapshot": "b444f194bca7b32612c4770314c5ad34075bcf63702e9a423920fc95d234228c"
+    },
+    "tests/commands/diff-patch-stress/editflows/oracles.test.ts": {
+      "original": "c32be8917d29821f26ae3eabacb48d440977a420b0bdcad70a853874a45e8e9d",
+      "snapshot": "c32be8917d29821f26ae3eabacb48d440977a420b0bdcad70a853874a45e8e9d"
+    },
+    "tests/commands/diff-patch-stress/editflows/parity.test.ts": {
+      "original": "97617c7c1668971fc7ea38784b6c6acc43d10d4c130a0d127904927f3fdf5592",
+      "snapshot": "97617c7c1668971fc7ea38784b6c6acc43d10d4c130a0d127904927f3fdf5592"
+    },
+    "tests/commands/diff-patch-stress/editflows/quoted-safety.test.ts": {
+      "original": "cca653100a9d18de485e26ed8ed33c2b820cbb6c60ffbdf2b741efa537c40d75",
+      "snapshot": "6e9efa710d489ad09226e1aeacc973f103c49c4d2de983c00272731968f44c96"
+    },
+    "tests/commands/diff-patch-stress/editflows/tsconfig.json": {
+      "original": "9f603a6399351b4416e13f03b8a0401be61e99df4aba0a569f60a14faf2e6b88",
+      "snapshot": "9f603a6399351b4416e13f03b8a0401be61e99df4aba0a569f60a14faf2e6b88"
+    },
+    "tests/commands/diff-patch-stress/emptyfile-delta/README.md": {
+      "original": "aafa140dfc50a2929ee4725c0876323f1dc92218e5427ca62ae9e1ca2c01e5b8",
+      "snapshot": "aafa140dfc50a2929ee4725c0876323f1dc92218e5427ca62ae9e1ca2c01e5b8"
+    },
+    "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts": {
+      "original": "ecc0a342be9bc6a8a47fe8a216ea46dfcd6a8c7d349474e419ca0cf17ba25571",
+      "snapshot": "4a8df779884129b16dc0b021105b0f584f9ed78b69e45c287f61a2f707792bb0"
+    },
+    "tests/commands/diff-patch-stress/emptyfile-delta/helpers.ts": {
+      "original": "bfd6ed6e38e340a2cb8a6705791e10cccdcfd6a3ea7e82a7425fa784fbef46f2",
+      "snapshot": "bfd6ed6e38e340a2cb8a6705791e10cccdcfd6a3ea7e82a7425fa784fbef46f2"
+    },
+    "tests/commands/diff-patch-stress/emptyfile-delta/native-evidence.json": {
+      "original": "577bd8f1a1f9aa958e93b4cf4fa134a4a141eecb17f9cff930fcb8e1b2708331",
+      "snapshot": "577bd8f1a1f9aa958e93b4cf4fa134a4a141eecb17f9cff930fcb8e1b2708331"
+    },
+    "tests/commands/diff-patch-stress/emptyfile-delta/native.ts": {
+      "original": "1ff5846fcbda25d94007d8f1cbbd54a1743864311664cc12b7e6fd926867e5a4",
+      "snapshot": "1ff5846fcbda25d94007d8f1cbbd54a1743864311664cc12b7e6fd926867e5a4"
+    },
+    "tests/commands/diff-patch-stress/emptyfile-delta/validation.json": {
+      "original": "009b80e36d30e3e9da963d13028219f6a8f4a55c0efa5d96ee49e27500397d62",
+      "snapshot": "009b80e36d30e3e9da963d13028219f6a8f4a55c0efa5d96ee49e27500397d62"
+    },
+    "tests/commands/diff-patch-stress/emptyfile-delta/vectors.ts": {
+      "original": "f71fc72f84dcc8a18b2b520fc006ecb6f1851ca8e83ee15784704b7d566aa4bb",
+      "snapshot": "f71fc72f84dcc8a18b2b520fc006ecb6f1851ca8e83ee15784704b7d566aa4bb"
+    },
+    "tests/commands/diff-patch-stress/formats/FINDINGS.md": {
+      "original": "30dc152371c9a79160721858f33afb46542a02743f4592d5c1d136f7a18eb2c9",
+      "snapshot": "30dc152371c9a79160721858f33afb46542a02743f4592d5c1d136f7a18eb2c9"
+    },
+    "tests/commands/diff-patch-stress/formats/README.md": {
+      "original": "89db84bf3c664593e87e5097f1b783baea31598b4f4bd07cf4d12b88eba9f5aa",
+      "snapshot": "89db84bf3c664593e87e5097f1b783baea31598b4f4bd07cf4d12b88eba9f5aa"
+    },
+    "tests/commands/diff-patch-stress/formats/boundaries.test.ts": {
+      "original": "fbaba6b954f71d41fa17c0b1961f0a309064db1529ac78553807acb4834b16ff",
+      "snapshot": "fbaba6b954f71d41fa17c0b1961f0a309064db1529ac78553807acb4834b16ff"
+    },
+    "tests/commands/diff-patch-stress/formats/editflows.test.ts": {
+      "original": "09ca7f0d427a0d0705a5158ad9f503b735323a28d9b984d54d55b4954de9364d",
+      "snapshot": "09ca7f0d427a0d0705a5158ad9f503b735323a28d9b984d54d55b4954de9364d"
+    },
+    "tests/commands/diff-patch-stress/formats/fixtures.ts": {
+      "original": "4c7142528cbdcb8247e30dba4929ed595c215359fc7ff5ccb80357218ac05273",
+      "snapshot": "4c7142528cbdcb8247e30dba4929ed595c215359fc7ff5ccb80357218ac05273"
+    },
+    "tests/commands/diff-patch-stress/formats/helpers.ts": {
+      "original": "693ef5c95f4495ba2619cef05114daaa37678c982e1a3cd744f676e073a60261",
+      "snapshot": "693ef5c95f4495ba2619cef05114daaa37678c982e1a3cd744f676e073a60261"
+    },
+    "tests/commands/diff-patch-stress/formats/regressions.test.ts": {
+      "original": "19bf929b2128a21f0ad5a225ae7e614adfe558cdea456463b0acf215662e9e45",
+      "snapshot": "19bf929b2128a21f0ad5a225ae7e614adfe558cdea456463b0acf215662e9e45"
+    },
+    "tests/commands/diff-patch-stress/formats/run.mjs": {
+      "original": "e40aea14a44de63963515e5fc57bbcfd11e6a262308b6f4bc7bb6cd5bc6809b3",
+      "snapshot": "e40aea14a44de63963515e5fc57bbcfd11e6a262308b6f4bc7bb6cd5bc6809b3"
+    },
+    "tests/commands/diff-patch-stress/formats/tsconfig.json": {
+      "original": "9f603a6399351b4416e13f03b8a0401be61e99df4aba0a569f60a14faf2e6b88",
+      "snapshot": "9f603a6399351b4416e13f03b8a0401be61e99df4aba0a569f60a14faf2e6b88"
+    },
+    "tests/commands/diff-patch-stress/formats/whitespace.test.ts": {
+      "original": "b9fbd5cf49743dbaf94589879eeac1bd5ef59130bb527ea0c847319ad8ab9b4b",
+      "snapshot": "b9fbd5cf49743dbaf94589879eeac1bd5ef59130bb527ea0c847319ad8ab9b4b"
+    },
+    "tests/commands/diff-patch-stress/fuzz/README.md": {
+      "original": "ca08d5a5987e0ac53cec9e051d9897b38499a4eac7349a11a9a767f90e64b71a",
+      "snapshot": "ca08d5a5987e0ac53cec9e051d9897b38499a4eac7349a11a9a767f90e64b71a"
+    },
+    "tests/commands/diff-patch-stress/fuzz/budgets.test.ts": {
+      "original": "33314e56c20c285c3c749ab779789758b94e6083e370470d934763a00b898290",
+      "snapshot": "33314e56c20c285c3c749ab779789758b94e6083e370470d934763a00b898290"
+    },
+    "tests/commands/diff-patch-stress/fuzz/edits.test.ts": {
+      "original": "18d204a74b8c8783eb807859e3a1f10d7fa7f2fea8c6387f71a7deedcf27ff0f",
+      "snapshot": "d30d2188f408ac65653a3523fb079d9718763c9966476005e6fcbad9329ac4c5"
+    },
+    "tests/commands/diff-patch-stress/fuzz/helpers.ts": {
+      "original": "4ed0e720a0b016bdec9b14c7943416a2a9930dbb292140efb79047c7e106c6a9",
+      "snapshot": "4ed0e720a0b016bdec9b14c7943416a2a9930dbb292140efb79047c7e106c6a9"
+    },
+    "tests/commands/diff-patch-stress/fuzz/properties.test.ts": {
+      "original": "1154e94b75c49840a75aceff5fc3368d723a8d4360076c54773aae61dfee7718",
+      "snapshot": "1154e94b75c49840a75aceff5fc3368d723a8d4360076c54773aae61dfee7718"
+    },
+    "tests/commands/diff-patch-stress/fuzz/regressions.test.ts": {
+      "original": "9729be3cfbaab2ea6554f10d9d6f47fe0746490720b957202e37361127237c6d",
+      "snapshot": "9729be3cfbaab2ea6554f10d9d6f47fe0746490720b957202e37361127237c6d"
+    },
+    "tests/commands/diff-patch-stress/fuzz/report.json": {
+      "original": "1d55126c087c620682c41f2e6af24a82b467a8459f5e7bf18e231648ae29c023",
+      "snapshot": "1d55126c087c620682c41f2e6af24a82b467a8459f5e7bf18e231648ae29c023"
+    },
+    "tests/commands/diff-patch-stress/fuzz/run.mjs": {
+      "original": "caa36fc9bf82b8c31b7f063e987806742cbbdf4f3e54059f16da9094d3c9d516",
+      "snapshot": "caa36fc9bf82b8c31b7f063e987806742cbbdf4f3e54059f16da9094d3c9d516"
+    },
+    "tests/commands/diff-patch-stress/gnu-auxiliary/REPORT.md": {
+      "original": "eb6b3ffdb3d87480b7e89e2a118ffbbedcd8e1463f1e11bb636444854ec7c017",
+      "snapshot": "eb6b3ffdb3d87480b7e89e2a118ffbbedcd8e1463f1e11bb636444854ec7c017"
+    },
+    "tests/commands/diff-patch-stress/gnu-auxiliary/authorization.test.ts": {
+      "original": "c379b53d9b818fc4aeaf32829c993d370a71348c0e01a7af894313d0ab4e83c5",
+      "snapshot": "c379b53d9b818fc4aeaf32829c993d370a71348c0e01a7af894313d0ab4e83c5"
+    },
+    "tests/commands/diff-patch-stress/gnu-auxiliary/capture.ts": {
+      "original": "b27b8886612d07b25786580c18cfef7b38eb30404af18f57d65a39e8f1d93f34",
+      "snapshot": "b27b8886612d07b25786580c18cfef7b38eb30404af18f57d65a39e8f1d93f34"
+    },
+    "tests/commands/diff-patch-stress/gnu-auxiliary/evidence-checkpoint-1.json": {
+      "original": "104382c33cbde5dd139191b1050ff8c696252c3e0110320f6a3dda82d44c9876",
+      "snapshot": "104382c33cbde5dd139191b1050ff8c696252c3e0110320f6a3dda82d44c9876"
+    },
+    "tests/commands/diff-patch-stress/gnu-auxiliary/fixtures.ts": {
+      "original": "1bbc91fe12c27e554812a1baa5798077356a0b92bd806a4df841b7a40992d5b7",
+      "snapshot": "1bbc91fe12c27e554812a1baa5798077356a0b92bd806a4df841b7a40992d5b7"
+    },
+    "tests/commands/diff-patch-stress/gnu-auxiliary/helpers.ts": {
+      "original": "5b778681b523a7b0e5d55c8796a177a15037f727796e30585d0e0abb9aabffa3",
+      "snapshot": "5b778681b523a7b0e5d55c8796a177a15037f727796e30585d0e0abb9aabffa3"
+    },
+    "tests/commands/diff-patch-stress/gnu-auxiliary/tsconfig.json": {
+      "original": "0994e0d38e00ccb35421693ef4ae639e19cd93d3dcbb6b3ded8aa3b3a329b12e",
+      "snapshot": "0994e0d38e00ccb35421693ef4ae639e19cd93d3dcbb6b3ded8aa3b3a329b12e"
+    },
+    "tests/commands/diff-patch-stress/gnu-candidate-followup/FINAL_LOG.md": {
+      "original": "dad90371538efb367ac2090219e832084241a8d3cdc12e479b05653f1737c77f",
+      "snapshot": "dad90371538efb367ac2090219e832084241a8d3cdc12e479b05653f1737c77f"
+    },
+    "tests/commands/diff-patch-stress/gnu-candidate-followup/README.md": {
+      "original": "611a55577e2dfd441547d5fbb1b7c9b8a805c73db6b340a8b23d85d8133058da",
+      "snapshot": "611a55577e2dfd441547d5fbb1b7c9b8a805c73db6b340a8b23d85d8133058da"
+    },
+    "tests/commands/diff-patch-stress/gnu-candidate-followup/candidates.test.ts": {
+      "original": "851bf6f6a9cc17b78cd65ae482fd27226ab5bc71c49829f25813698b7bd77d89",
+      "snapshot": "851bf6f6a9cc17b78cd65ae482fd27226ab5bc71c49829f25813698b7bd77d89"
+    },
+    "tests/commands/diff-patch-stress/gnu-candidate-followup/evidence-2026-08-26T22-08-16.201Z-validation.json": {
+      "original": "9921913e19f41145c5163c95acc206a5c0e270a7117ad85ad18a0b819a553998",
+      "snapshot": "9921913e19f41145c5163c95acc206a5c0e270a7117ad85ad18a0b819a553998"
+    },
+    "tests/commands/diff-patch-stress/gnu-candidate-followup/evidence-2026-08-26T22-08-16.201Z.json": {
+      "original": "1814b9aa6da0d03c5c03ae2414a0b00b14fc48b4b1591cff03c9e05d0bda0fe0",
+      "snapshot": "1814b9aa6da0d03c5c03ae2414a0b00b14fc48b4b1591cff03c9e05d0bda0fe0"
+    },
+    "tests/commands/diff-patch-stress/gnu-candidate-followup/evidence-2026-08-26T22-09-24.800Z-validation.json": {
+      "original": "c1dae97117cedc55f5177b37c084905ac9da3d3f90f651f8d3d9b5904a41ed2d",
+      "snapshot": "c1dae97117cedc55f5177b37c084905ac9da3d3f90f651f8d3d9b5904a41ed2d"
+    },
+    "tests/commands/diff-patch-stress/gnu-candidate-followup/evidence-2026-08-26T22-09-24.800Z.json": {
+      "original": "25a9548ee85903cecc2746bdd7d3c4d402adf74a560ce178cd1b094549fab2fd",
+      "snapshot": "25a9548ee85903cecc2746bdd7d3c4d402adf74a560ce178cd1b094549fab2fd"
+    },
+    "tests/commands/diff-patch-stress/gnu-candidate-followup/evidence-2026-08-26T22-10-22.097Z-validation.json": {
+      "original": "0b65bb720de397cd60bf6ac1ac8495bda22eacee6897981fb0d099e3b69ef9e7",
+      "snapshot": "0b65bb720de397cd60bf6ac1ac8495bda22eacee6897981fb0d099e3b69ef9e7"
+    },
+    "tests/commands/diff-patch-stress/gnu-candidate-followup/evidence-2026-08-26T22-10-22.097Z.json": {
+      "original": "b4733bad440a16dd8d0a6251c3a3b63f0cb464dfbe61b6161b71b2e27cd0864e",
+      "snapshot": "b4733bad440a16dd8d0a6251c3a3b63f0cb464dfbe61b6161b71b2e27cd0864e"
+    },
+    "tests/commands/diff-patch-stress/gnu-candidate-followup/fixtures.ts": {
+      "original": "c4183602a85cd66fb12fa2952a620900495c294ac545f3f37a83eaa4c2b0be5a",
+      "snapshot": "c4183602a85cd66fb12fa2952a620900495c294ac545f3f37a83eaa4c2b0be5a"
+    },
+    "tests/commands/diff-patch-stress/gnu-candidate-followup/helpers.ts": {
+      "original": "cea6124d683f45a59efed172f5163641114105398ef6cdc4bbf9669f4d4f3815",
+      "snapshot": "cea6124d683f45a59efed172f5163641114105398ef6cdc4bbf9669f4d4f3815"
+    },
+    "tests/commands/diff-patch-stress/gnu-candidate-followup/run.mjs": {
+      "original": "5167030eb24ee0c0e009a2f67863951620bbb49f7017da75d3d68ac2c5128178",
+      "snapshot": "5167030eb24ee0c0e009a2f67863951620bbb49f7017da75d3d68ac2c5128178"
+    },
+    "tests/commands/diff-patch-stress/gnu-candidate-followup/tsconfig.json": {
+      "original": "0994e0d38e00ccb35421693ef4ae639e19cd93d3dcbb6b3ded8aa3b3a329b12e",
+      "snapshot": "0994e0d38e00ccb35421693ef4ae639e19cd93d3dcbb6b3ded8aa3b3a329b12e"
+    },
+    "tests/commands/diff-patch-stress/gnu-editflows/README.md": {
+      "original": "05fde19490fca89a555842f0397a29f5b2618ab247671331106be23d1981b84a",
+      "snapshot": "05fde19490fca89a555842f0397a29f5b2618ab247671331106be23d1981b84a"
+    },
+    "tests/commands/diff-patch-stress/gnu-editflows/baseline-tap.json": {
+      "original": "593eb2fc28157e77bd69821acb743c8b617863bc12332c2cd8c12a7c885dac62",
+      "snapshot": "593eb2fc28157e77bd69821acb743c8b617863bc12332c2cd8c12a7c885dac62"
+    },
+    "tests/commands/diff-patch-stress/gnu-editflows/capture.ts": {
+      "original": "949e0e68763636a7583c45259f15fb02a32ce803ee0657a014bc45479a8b8267",
+      "snapshot": "949e0e68763636a7583c45259f15fb02a32ce803ee0657a014bc45479a8b8267"
+    },
+    "tests/commands/diff-patch-stress/gnu-editflows/controls.test.ts": {
+      "original": "6941f094a7746e4925f96b60c349dbb2c4e7542eb9938444b16852d7a1835484",
+      "snapshot": "6941f094a7746e4925f96b60c349dbb2c4e7542eb9938444b16852d7a1835484"
+    },
+    "tests/commands/diff-patch-stress/gnu-editflows/fixtures.ts": {
+      "original": "17b7f5eb6858dac0d95484e60967fa404b399d08207f200fef62e82ede889ab7",
+      "snapshot": "17b7f5eb6858dac0d95484e60967fa404b399d08207f200fef62e82ede889ab7"
+    },
+    "tests/commands/diff-patch-stress/gnu-editflows/native-evidence.json": {
+      "original": "1eddde21e2cb87ca8041fba9bb354b58aaa4d33d79c8ea18b908e7849de7d9fd",
+      "snapshot": "1eddde21e2cb87ca8041fba9bb354b58aaa4d33d79c8ea18b908e7849de7d9fd"
+    },
+    "tests/commands/diff-patch-stress/gnu-editflows/native.ts": {
+      "original": "bc2672a13a2d882aafe79dfb770bb3bbd97b7b9e314d5a7a921a793299cfe790",
+      "snapshot": "bc2672a13a2d882aafe79dfb770bb3bbd97b7b9e314d5a7a921a793299cfe790"
+    },
+    "tests/commands/diff-patch-stress/gnu-editflows/parity.test.ts": {
+      "original": "086a06b132bb48e9f7f6c9c07ebcb7a8b49ec85e3b8688e71e6f8d8725cb923b",
+      "snapshot": "086a06b132bb48e9f7f6c9c07ebcb7a8b49ec85e3b8688e71e6f8d8725cb923b"
+    },
+    "tests/commands/diff-patch-stress/gnu-editflows/support.ts": {
+      "original": "b5f9b0193d398498c9d8f1f3146de9ed9509b1b34570b1dc88ee1f08c2156bed",
+      "snapshot": "b5f9b0193d398498c9d8f1f3146de9ed9509b1b34570b1dc88ee1f08c2156bed"
+    },
+    "tests/commands/diff-patch-stress/gnu-editflows/tsconfig.json": {
+      "original": "9f603a6399351b4416e13f03b8a0401be61e99df4aba0a569f60a14faf2e6b88",
+      "snapshot": "9f603a6399351b4416e13f03b8a0401be61e99df4aba0a569f60a14faf2e6b88"
+    },
+    "tests/commands/diff-patch-stress/gnu-editflows/validate.ts": {
+      "original": "0cf2fafaf5da9d17449ac20f623e0134f5eeefa5b5c162f8e140e99e2026ddd6",
+      "snapshot": "0cf2fafaf5da9d17449ac20f623e0134f5eeefa5b5c162f8e140e99e2026ddd6"
+    },
+    "tests/commands/diff-patch-stress/gnu-editflows/validation.json": {
+      "original": "50db7fa45f5f79469257179c96009066b0365c531383b898c60152eafbad2970",
+      "snapshot": "50db7fa45f5f79469257179c96009066b0365c531383b898c60152eafbad2970"
+    },
+    "tests/commands/diff-patch-stress/gnu-followup-checkpoint/CHECKPOINT.json": {
+      "original": "f8953840f90fea7da64702dbdffa4c3790adb837e6c61cdadd89383eb4e356b8",
+      "snapshot": "f8953840f90fea7da64702dbdffa4c3790adb837e6c61cdadd89383eb4e356b8"
+    },
+    "tests/commands/diff-patch-stress/gnu-followup-checkpoint/REPORT.md": {
+      "original": "e319d6b705a6bd12af6c36d8158cdf1733070cb01a83e6a06578b22d2cf9910b",
+      "snapshot": "e319d6b705a6bd12af6c36d8158cdf1733070cb01a83e6a06578b22d2cf9910b"
+    },
+    "tests/commands/diff-patch-stress/gnu-followup-checkpoint/failure-probe.mjs": {
+      "original": "c287ccca68e06334f66811bb2798bda64dfdef7105b44ead3edcfe6b609e1b1f",
+      "snapshot": "c287ccca68e06334f66811bb2798bda64dfdef7105b44ead3edcfe6b609e1b1f"
+    },
+    "tests/commands/diff-patch-stress/gnu-followup-checkpoint/fixture-probe.mjs": {
+      "original": "d1f1c35100b49757f853d64122f2ea66f82fb830d25f5f94c56666bb6963759a",
+      "snapshot": "d1f1c35100b49757f853d64122f2ea66f82fb830d25f5f94c56666bb6963759a"
+    },
+    "tests/commands/diff-patch-stress/gnu-followup-checkpoint/pruning-probe.mjs": {
+      "original": "2b154e792d814d9129a8993a166f39a991f9c03e8ecaf432dde06f453a2363eb",
+      "snapshot": "2b154e792d814d9129a8993a166f39a991f9c03e8ecaf432dde06f453a2363eb"
+    },
+    "tests/commands/diff-patch-stress/gnu-followup-checkpoint/public-probe.mjs": {
+      "original": "24c4d2ed6d352d9dff5db508451a3a703205d773ee0c84271e0d1e9f50eb1f02",
+      "snapshot": "24c4d2ed6d352d9dff5db508451a3a703205d773ee0c84271e0d1e9f50eb1f02"
+    },
+    "tests/commands/diff-patch-stress/gnu-followup-checkpoint/reporter.mjs": {
+      "original": "cfd1923aa9bc81ebc13e955b8efb5fa07041f31c024b8a6e667e81dce84b0c36",
+      "snapshot": "cfd1923aa9bc81ebc13e955b8efb5fa07041f31c024b8a6e667e81dce84b0c36"
+    },
+    "tests/commands/diff-patch-stress/gnu-followup-checkpoint/run.mjs": {
+      "original": "668558ff0d081713af45c81dac095adedb3ea426c60b92d8658094cb351c1d39",
+      "snapshot": "668558ff0d081713af45c81dac095adedb3ea426c60b92d8658094cb351c1d39"
+    },
+    "tests/commands/diff-patch-stress/gnu-followup-checkpoint/summarize.mjs": {
+      "original": "39cf48e75b627b7810191d7f97e2fdce6e3242f349795ac183045e1d2f964f2e",
+      "snapshot": "39cf48e75b627b7810191d7f97e2fdce6e3242f349795ac183045e1d2f964f2e"
+    },
+    "tests/commands/diff-patch-stress/gnu-safety-strip-followup/README.md": {
+      "original": "47f8313577eb3c5a1b9c53484e8372797c557f1605d3dc939b732e202e5e1ceb",
+      "snapshot": "47f8313577eb3c5a1b9c53484e8372797c557f1605d3dc939b732e202e5e1ceb"
+    },
+    "tests/commands/diff-patch-stress/gnu-safety-strip-followup/capture.ts": {
+      "original": "0421e4f097441dd90df439528c39283e7a32bd046c71baa6b7bac64ebb142878",
+      "snapshot": "0421e4f097441dd90df439528c39283e7a32bd046c71baa6b7bac64ebb142878"
+    },
+    "tests/commands/diff-patch-stress/gnu-safety-strip-followup/controls.test.ts": {
+      "original": "ae9f9dbddba6b702ccb877ccb5fab2b3c51f28b92b4447fb62558a25e3cc09c0",
+      "snapshot": "ae9f9dbddba6b702ccb877ccb5fab2b3c51f28b92b4447fb62558a25e3cc09c0"
+    },
+    "tests/commands/diff-patch-stress/gnu-safety-strip-followup/evidence.json": {
+      "original": "a17d80b6f3a3b27065efa9acc27658e595b080e962ebdb65748dbd41bcd7a314",
+      "snapshot": "a17d80b6f3a3b27065efa9acc27658e595b080e962ebdb65748dbd41bcd7a314"
+    },
+    "tests/commands/diff-patch-stress/gnu-safety-strip-followup/evidence.ts": {
+      "original": "5b73d890d18f15579b705ad7466b9d0839fd129770a3c3b3da79f37ff817544c",
+      "snapshot": "5b73d890d18f15579b705ad7466b9d0839fd129770a3c3b3da79f37ff817544c"
+    },
+    "tests/commands/diff-patch-stress/gnu-target-classification/REPORT.md": {
+      "original": "9e325b58411f2c7207c5032b7ad013db0ddf382f3f6f9a57eb7fbec914ea692b",
+      "snapshot": "9e325b58411f2c7207c5032b7ad013db0ddf382f3f6f9a57eb7fbec914ea692b"
+    },
+    "tests/commands/diff-patch-stress/gnu-target-classification/evidence.json": {
+      "original": "2fc042df35c04c46d6883c7bd3f213c80a439969ad1e422da791311baf7ab955",
+      "snapshot": "2fc042df35c04c46d6883c7bd3f213c80a439969ad1e422da791311baf7ab955"
+    },
+    "tests/commands/diff-patch-stress/gnu-target-classification/evidence.test.ts": {
+      "original": "916fb58af5d95771d61a9f2a55773f6a868d73f7ee7e629b7bf88fdeaea15eae",
+      "snapshot": "916fb58af5d95771d61a9f2a55773f6a868d73f7ee7e629b7bf88fdeaea15eae"
+    },
+    "tests/commands/diff-patch-stress/gnu-target-classification/probe.ts": {
+      "original": "8bc4c13bc1fc064e27bcecae616bfbdaa84c0c0a279ccaf7d35ee96e03acf0de",
+      "snapshot": "8bc4c13bc1fc064e27bcecae616bfbdaa84c0c0a279ccaf7d35ee96e03acf0de"
+    },
+    "tests/commands/diff-patch-stress/gnu-target-classification/tsconfig.json": {
+      "original": "9f603a6399351b4416e13f03b8a0401be61e99df4aba0a569f60a14faf2e6b88",
+      "snapshot": "9f603a6399351b4416e13f03b8a0401be61e99df4aba0a569f60a14faf2e6b88"
+    },
+    "tests/commands/diff-patch-stress/gnu-target-followup/README.md": {
+      "original": "8bb960262b34ea0f940a1b78846aca7dda67487e89977aae971cfe8d92c63248",
+      "snapshot": "8bb960262b34ea0f940a1b78846aca7dda67487e89977aae971cfe8d92c63248"
+    },
+    "tests/commands/diff-patch-stress/gnu-target-followup/before.tap": {
+      "original": "d7446da5d26a83d7b4d4cb743410fce289a155e3445ae9ddce1bf00d09c0b00e",
+      "snapshot": "d7446da5d26a83d7b4d4cb743410fce289a155e3445ae9ddce1bf00d09c0b00e"
+    },
+    "tests/commands/diff-patch-stress/gnu-target-followup/capture-overlap.ts": {
+      "original": "0331a281488d91fdeadc92ec3bf516ce2d38412df1a3246723972859ab128adf",
+      "snapshot": "0331a281488d91fdeadc92ec3bf516ce2d38412df1a3246723972859ab128adf"
+    },
+    "tests/commands/diff-patch-stress/gnu-target-followup/capture.ts": {
+      "original": "96d20fba88d7d62888a9a1a5ffb1ea8dd39b40b6ac8f47c67f80dde10886d125",
+      "snapshot": "96d20fba88d7d62888a9a1a5ffb1ea8dd39b40b6ac8f47c67f80dde10886d125"
+    },
+    "tests/commands/diff-patch-stress/gnu-target-followup/checkpoint-2026-08-26-gnu-target-followup.tap": {
+      "original": "e397490ac8a1c75b2ae6279ba0c7df663a9999a957a4ef416258652feb3f75b5",
+      "snapshot": "e397490ac8a1c75b2ae6279ba0c7df663a9999a957a4ef416258652feb3f75b5"
+    },
+    "tests/commands/diff-patch-stress/gnu-target-followup/checkpoint-2026-08-26-parser-regressions.tap": {
+      "original": "738f999a3624cfecbcfb1210a6a54c47b4a946e13e36f5a19aa65d78f05e231c",
+      "snapshot": "738f999a3624cfecbcfb1210a6a54c47b4a946e13e36f5a19aa65d78f05e231c"
+    },
+    "tests/commands/diff-patch-stress/gnu-target-followup/checkpoint-2026-08-26-path-regressions.tap": {
+      "original": "464effc1c374bda30a2595d9ada8ae4f33358562a87e5eb236ee4a1490962b00",
+      "snapshot": "464effc1c374bda30a2595d9ada8ae4f33358562a87e5eb236ee4a1490962b00"
+    },
+    "tests/commands/diff-patch-stress/gnu-target-followup/checkpoint-2026-08-26-safety.tap": {
+      "original": "53fafa6c4c07fa14c6091dc6290a7eacb94e0741e4fa1204c3dc6efcdcdc2416",
+      "snapshot": "53fafa6c4c07fa14c6091dc6290a7eacb94e0741e4fa1204c3dc6efcdcdc2416"
+    },
+    "tests/commands/diff-patch-stress/gnu-target-followup/checkpoint-2026-08-26-typecheck.txt": {
+      "original": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "snapshot": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "tests/commands/diff-patch-stress/gnu-target-followup/checkpoint-2026-08-26-validation.json": {
+      "original": "2d8cf3318a42ae386ed74644fef09089d5c3608665f52b8a9a9d71589d02665d",
+      "snapshot": "2d8cf3318a42ae386ed74644fef09089d5c3608665f52b8a9a9d71589d02665d"
+    },
+    "tests/commands/diff-patch-stress/gnu-target-followup/evidence.ts": {
+      "original": "d7f27a3a151fc00ce292a3b324c1daa0af96a62a21033b6a1b7b515b63f5cb1c",
+      "snapshot": "d7f27a3a151fc00ce292a3b324c1daa0af96a62a21033b6a1b7b515b63f5cb1c"
+    },
+    "tests/commands/diff-patch-stress/gnu-target-followup/fixtures.ts": {
+      "original": "e62f2ca7e5c20e3a171b3c62429eddbd38adc201cba0d1bdad67f3eea964af41",
+      "snapshot": "e62f2ca7e5c20e3a171b3c62429eddbd38adc201cba0d1bdad67f3eea964af41"
+    },
+    "tests/commands/diff-patch-stress/gnu-target-followup/helpers.ts": {
+      "original": "4aa2380cdb73984442b1e3db0c44adc0580029db618027ffd9d58bc31c9ba454",
+      "snapshot": "4aa2380cdb73984442b1e3db0c44adc0580029db618027ffd9d58bc31c9ba454"
+    },
+    "tests/commands/diff-patch-stress/gnu-target-followup/metadata-safety.test.ts": {
+      "original": "0b7b565434c827b6479f45a1dee322700f0349350426a289780bc74c4a79dd2f",
+      "snapshot": "0b7b565434c827b6479f45a1dee322700f0349350426a289780bc74c4a79dd2f"
+    },
+    "tests/commands/diff-patch-stress/gnu-target-followup/native-2026-08-26.json": {
+      "original": "f8c0a24126d16e72bcf520cd85914c466454c76472d8fded634fbb4ab1bc1f07",
+      "snapshot": "f8c0a24126d16e72bcf520cd85914c466454c76472d8fded634fbb4ab1bc1f07"
+    },
+    "tests/commands/diff-patch-stress/gnu-target-followup/native-controls.test.ts": {
+      "original": "d40336ea4f059a0aeaba037d8a6fef6fcd6876675de2f8902a8f5700fb05aedd",
+      "snapshot": "d40336ea4f059a0aeaba037d8a6fef6fcd6876675de2f8902a8f5700fb05aedd"
+    },
+    "tests/commands/diff-patch-stress/gnu-target-followup/native-overlap-default-2026-08-26.json": {
+      "original": "d278925c7c6311baad23c740f8170588d42627de680ca35379cb94450c6e97c4",
+      "snapshot": "d278925c7c6311baad23c740f8170588d42627de680ca35379cb94450c6e97c4"
+    },
+    "tests/commands/diff-patch-stress/gnu-target-followup/overlap-default.test.ts": {
+      "original": "718addc0eb5879d06e956528e3e1b1647ef76b52f090a16c38e7582ac6f0a566",
+      "snapshot": "718addc0eb5879d06e956528e3e1b1647ef76b52f090a16c38e7582ac6f0a566"
+    },
+    "tests/commands/diff-patch-stress/gnu-target-followup/reconciliation-first.tap": {
+      "original": "baed4ce6191a6720ee1527a0616f96d9d266a2983c5117508743bfa626845abd",
+      "snapshot": "baed4ce6191a6720ee1527a0616f96d9d266a2983c5117508743bfa626845abd"
+    },
+    "tests/commands/diff-patch-stress/gnu-target-followup/tsconfig.json": {
+      "original": "66cdd6cc263f7cc92a2d9838df98f1092d31929e4f8052d0100763d787e07450",
+      "snapshot": "66cdd6cc263f7cc92a2d9838df98f1092d31929e4f8052d0100763d787e07450"
+    },
+    "tests/commands/diff-patch-stress/gnu-target-followup/typecheck-first.txt": {
+      "original": "b84b36d3b8e2a09e61b66098b57ba6df13d2d9c3dd685f0c657881f50a59ac28",
+      "snapshot": "b84b36d3b8e2a09e61b66098b57ba6df13d2d9c3dd685f0c657881f50a59ac28"
+    },
+    "tests/commands/diff-patch-stress/gnu-target-followup/validate.mjs": {
+      "original": "3eb468f41081ad77bef5bf308a96cbca882db34be6bb22fa8660d4e5b1d9bd05",
+      "snapshot": "3eb468f41081ad77bef5bf308a96cbca882db34be6bb22fa8660d4e5b1d9bd05"
+    },
+    "tests/commands/diff-patch-stress/gnu-target/ATOMIC-REVISION-2026-08-26.md": {
+      "original": "f9e53969ccb2e99def1567affc32798be5c3a529d3e1124704b0b6eaf97cbb8e",
+      "snapshot": "f9e53969ccb2e99def1567affc32798be5c3a529d3e1124704b0b6eaf97cbb8e"
+    },
+    "tests/commands/diff-patch-stress/gnu-target/REVISION-2026-08-26.md": {
+      "original": "cf7f05e017738e4862003c21cacff8755074666b4d0899b5558ab9b87673ab48",
+      "snapshot": "cf7f05e017738e4862003c21cacff8755074666b4d0899b5558ab9b87673ab48"
+    },
+    "tests/commands/diff-patch-stress/gnu-target/atomic-after-migration-2026-08-26.tap": {
+      "original": "7ec2d5782f5017b82963dbf1034fda897169c534530353355f516be86bd2aead",
+      "snapshot": "7ec2d5782f5017b82963dbf1034fda897169c534530353355f516be86bd2aead"
+    },
+    "tests/commands/diff-patch-stress/gnu-target/atomic-before-migration-2026-08-26.tap": {
+      "original": "fdc5122bfd6c5f8f9a243583f9a42f4cf4a17d42e110c5ea63312d9770a4a1f2",
+      "snapshot": "fdc5122bfd6c5f8f9a243583f9a42f4cf4a17d42e110c5ea63312d9770a4a1f2"
+    },
+    "tests/commands/diff-patch-stress/gnu-target/binding-first-2026-08-26.tap": {
+      "original": "391427bdfb9718d0cf1298d6b18d87e1e3826c0ad8a7b3bdddace9708ce8f992",
+      "snapshot": "391427bdfb9718d0cf1298d6b18d87e1e3826c0ad8a7b3bdddace9708ce8f992"
+    },
+    "tests/commands/diff-patch-stress/gnu-target/calibration-2026-08-26.json": {
+      "original": "f10b84f6000f7c68eaae12fc726c828b913c97cc5c0e49d5108bee1a49774c28",
+      "snapshot": "f10b84f6000f7c68eaae12fc726c828b913c97cc5c0e49d5108bee1a49774c28"
+    },
+    "tests/commands/diff-patch-stress/gnu-target/calibration-first-2026-08-26.tap": {
+      "original": "6eabd5fb2a6bcc252bd30958b65a3f870cd1ed4a3f03fb3036f5cb0756eb9d93",
+      "snapshot": "6eabd5fb2a6bcc252bd30958b65a3f870cd1ed4a3f03fb3036f5cb0756eb9d93"
+    },
+    "tests/commands/diff-patch-stress/gnu-target/calibration.test.ts": {
+      "original": "e54e8b202f86005293b24d6fddc7318efc17d0ee84ebca439ced9d16c9442c2f",
+      "snapshot": "e54e8b202f86005293b24d6fddc7318efc17d0ee84ebca439ced9d16c9442c2f"
+    },
+    "tests/commands/diff-patch-stress/gnu-target/calibration.ts": {
+      "original": "99ecb994180dc122a201a966c9bb2218fea6107d8d8c85fa9f7318b35a7f5c84",
+      "snapshot": "99ecb994180dc122a201a966c9bb2218fea6107d8d8c85fa9f7318b35a7f5c84"
+    },
+    "tests/commands/diff-patch-stress/gnu-target/coordinates-2026-08-26.json": {
+      "original": "214884ec60d782c3d16286c78b36269b32dccde35fe7cca315adf431ebdef246",
+      "snapshot": "214884ec60d782c3d16286c78b36269b32dccde35fe7cca315adf431ebdef246"
+    },
+    "tests/commands/diff-patch-stress/gnu-target/edit-correctness.test.ts": {
+      "original": "48fc42ba7d4b7d032a690e412a504271734b77acb304286add54861936119058",
+      "snapshot": "48fc42ba7d4b7d032a690e412a504271734b77acb304286add54861936119058"
+    },
+    "tests/commands/diff-patch-stress/gnu-target/edit-correctness.ts": {
+      "original": "a7d97c63447d8ab08ebefa7f6d86fedbf7eda91a773e12e1b6d84773f9d42a3a",
+      "snapshot": "a7d97c63447d8ab08ebefa7f6d86fedbf7eda91a773e12e1b6d84773f9d42a3a"
+    },
+    "tests/commands/diff-patch-stress/gnu-target/oracle.ts": {
+      "original": "ad9920197aa38291dfff5d04170c5e1b87cd225bf590c8073a8ebba8c68181cc",
+      "snapshot": "ad9920197aa38291dfff5d04170c5e1b87cd225bf590c8073a8ebba8c68181cc"
+    },
+    "tests/commands/diff-patch-stress/gnu-target/policy-baseline-2026-08-26.tap": {
+      "original": "962b708f938cb2291dbc0f5b26d036d526e74d9bfc2c8ed882f0d0307bf63bdb",
+      "snapshot": "962b708f938cb2291dbc0f5b26d036d526e74d9bfc2c8ed882f0d0307bf63bdb"
+    },
+    "tests/commands/diff-patch-stress/gnu-target/policy-mirrors.test.ts": {
+      "original": "9e8d311240adb9e126d58b386efe19434e85b555d4526343a50dcb41e0b46ceb",
+      "snapshot": "9e8d311240adb9e126d58b386efe19434e85b555d4526343a50dcb41e0b46ceb"
+    },
+    "tests/commands/diff-patch-stress/gnu-target/remaining-gates-2026-08-26.json": {
+      "original": "418f1f0280136a341fab442fa2814fcc7d5893d574f607dfc03b5741b5229d94",
+      "snapshot": "418f1f0280136a341fab442fa2814fcc7d5893d574f607dfc03b5741b5229d94"
+    },
+    "tests/commands/diff-patch-stress/gnu-target/revision2-2026-08-26-absolute-target.tap": {
+      "original": "5e77620534ba76907daad1fb9620cf5fb8fbb8ce12541618ef30252e839f7def",
+      "snapshot": "5e77620534ba76907daad1fb9620cf5fb8fbb8ce12541618ef30252e839f7def"
+    },
+    "tests/commands/diff-patch-stress/gnu-target/revision2-2026-08-26-compatibility.tap": {
+      "original": "93c526a88f51ba2ff594c7765474f7c9b830f69fa47a5ab5d8bd022123ee4ed6",
+      "snapshot": "93c526a88f51ba2ff594c7765474f7c9b830f69fa47a5ab5d8bd022123ee4ed6"
+    },
+    "tests/commands/diff-patch-stress/gnu-target/revision2-2026-08-26-editflows.tap": {
+      "original": "41dc47afd89897dcedc88c647cd535b945d6bebba326679fdfd0e09a806c1d8b",
+      "snapshot": "41dc47afd89897dcedc88c647cd535b945d6bebba326679fdfd0e09a806c1d8b"
+    },
+    "tests/commands/diff-patch-stress/gnu-target/revision2-2026-08-26-emptyfile-delta.tap": {
+      "original": "e75758ce3b694057bf1032ae45c1c9fbef2aefb08b05706643ab6df2a0ce4656",
+      "snapshot": "e75758ce3b694057bf1032ae45c1c9fbef2aefb08b05706643ab6df2a0ce4656"
+    },
+    "tests/commands/diff-patch-stress/gnu-target/revision2-2026-08-26-formats.tap": {
+      "original": "0bf10289ac446600bf33e0a18b0cb8be75210577ac1432964eb4edfa766d6d15",
+      "snapshot": "0bf10289ac446600bf33e0a18b0cb8be75210577ac1432964eb4edfa766d6d15"
+    },
+    "tests/commands/diff-patch-stress/gnu-target/revision2-2026-08-26-fuzz.tap": {
+      "original": "e82d9bc11218b85737c95100b4d724ef00876b1a34b78ba7467cca9664d06988",
+      "snapshot": "e82d9bc11218b85737c95100b4d724ef00876b1a34b78ba7467cca9664d06988"
+    },
+    "tests/commands/diff-patch-stress/gnu-target/revision2-2026-08-26-gnu-target.tap": {
+      "original": "4c20a867b5566c66cbc1cdae35788ab8ba05cf6bd019c976dddc4b9c592cd4cb",
+      "snapshot": "4c20a867b5566c66cbc1cdae35788ab8ba05cf6bd019c976dddc4b9c592cd4cb"
+    },
+    "tests/commands/diff-patch-stress/gnu-target/revision2-2026-08-26-parser-regressions.tap": {
+      "original": "c10314ae6f52b22442149849d3fac408582382503df9f04ff733caf59881395a",
+      "snapshot": "c10314ae6f52b22442149849d3fac408582382503df9f04ff733caf59881395a"
+    },
+    "tests/commands/diff-patch-stress/gnu-target/revision2-2026-08-26-path-regressions.tap": {
+      "original": "8f4983f91af68510a5340c71e3c0aa3378935598f5e1fce44a2a85f8d1cffaf1",
+      "snapshot": "8f4983f91af68510a5340c71e3c0aa3378935598f5e1fce44a2a85f8d1cffaf1"
+    },
+    "tests/commands/diff-patch-stress/gnu-target/revision2-2026-08-26-safety.tap": {
+      "original": "5089b3a96b3dc58dea29fc94865141c3de22f849034b544e96eb099c14db7a05",
+      "snapshot": "5089b3a96b3dc58dea29fc94865141c3de22f849034b544e96eb099c14db7a05"
+    },
+    "tests/commands/diff-patch-stress/gnu-target/revision2-2026-08-26-typecheck.txt": {
+      "original": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "snapshot": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "tests/commands/diff-patch-stress/gnu-target/revision2-2026-08-26-validation.json": {
+      "original": "2165966d8f23e5f4396cf9186b183ef0caaf96b6726d7f88e1be3a3626c9e9ee",
+      "snapshot": "2165966d8f23e5f4396cf9186b183ef0caaf96b6726d7f88e1be3a3626c9e9ee"
+    },
+    "tests/commands/diff-patch-stress/gnu-target/revision3-focused-2026-08-26.tap": {
+      "original": "8b85eb52e8bf3add5a19c9c9b72d2bfbf24428ef362a94ec1df7ffa61a947e0a",
+      "snapshot": "8b85eb52e8bf3add5a19c9c9b72d2bfbf24428ef362a94ec1df7ffa61a947e0a"
+    },
+    "tests/commands/diff-patch-stress/gnu-target/tsconfig.json": {
+      "original": "636bfa5e1b86704f4c7acf798671f5e73f4c783633cdad2dc26f724a2fe095bd",
+      "snapshot": "636bfa5e1b86704f4c7acf798671f5e73f4c783633cdad2dc26f724a2fe095bd"
+    },
+    "tests/commands/diff-patch-stress/gnu-target/typecheck-first-2026-08-26.txt": {
+      "original": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "snapshot": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "tests/commands/diff-patch-stress/gnu-target/validate.mjs": {
+      "original": "1a8aa21ff585af26bf6561b3660a8191392dedffad230311217c135b4a7c3da1",
+      "snapshot": "1a8aa21ff585af26bf6561b3660a8191392dedffad230311217c135b4a7c3da1"
+    },
+    "tests/commands/diff-patch-stress/oracle/README.md": {
+      "original": "66524c2afcbde41bd9e7c88489605de721f1ed8e3ced03af2dbe4c041e31ed7c",
+      "snapshot": "66524c2afcbde41bd9e7c88489605de721f1ed8e3ced03af2dbe4c041e31ed7c"
+    },
+    "tests/commands/diff-patch-stress/oracle/build-oracles.mjs": {
+      "original": "9ac27a1c971984ecde0caaa0aa427953d52cc45d43a949fee530327915209a87",
+      "snapshot": "9ac27a1c971984ecde0caaa0aa427953d52cc45d43a949fee530327915209a87"
+    },
+    "tests/commands/diff-patch-stress/oracle/capture.json": {
+      "original": "4c47c20760aef82c29dae4a3fc8169ef45cad1649fd17b1d84fc489b05cfd261",
+      "snapshot": "4c47c20760aef82c29dae4a3fc8169ef45cad1649fd17b1d84fc489b05cfd261"
+    },
+    "tests/commands/diff-patch-stress/oracle/capture.mjs": {
+      "original": "27752dcfe6b93b5249e6c50a1b37a3427ffea30004fe51212dcbdbc4151473cf",
+      "snapshot": "27752dcfe6b93b5249e6c50a1b37a3427ffea30004fe51212dcbdbc4151473cf"
+    },
+    "tests/commands/diff-patch-stress/oracle/evidence.test.mjs": {
+      "original": "538430c0eb8bcc48cc8867a5c1172e71ea2c77b6f80f5f4e358df4977d10f33c",
+      "snapshot": "538430c0eb8bcc48cc8867a5c1172e71ea2c77b6f80f5f4e358df4977d10f33c"
+    },
+    "tests/commands/diff-patch-stress/oracle/provenance.json": {
+      "original": "45c6f01b1cf31e4c66c34bf553300f6bbb293f48d600e7d784227a9cae7d92ff",
+      "snapshot": "45c6f01b1cf31e4c66c34bf553300f6bbb293f48d600e7d784227a9cae7d92ff"
+    },
+    "tests/commands/diff-patch-stress/original-thirty-replay/REPORT.md": {
+      "original": "c92916a8ffc954349d6d04a3dfb6f12e75f650a591cd2df8934d277101418767",
+      "snapshot": "c92916a8ffc954349d6d04a3dfb6f12e75f650a591cd2df8934d277101418767"
+    },
+    "tests/commands/diff-patch-stress/original-thirty-replay/manifest.json": {
+      "original": "8de8eebd16c86500002bf22ccb9fd65b1c1902a024d3102ce65720d9dc981a0d",
+      "snapshot": "8de8eebd16c86500002bf22ccb9fd65b1c1902a024d3102ce65720d9dc981a0d"
+    },
+    "tests/commands/diff-patch-stress/original-thirty-replay/replay.mjs": {
+      "original": "5461a7496b705c6dddc9df3eedd2133b119d7e1b2de50af551ccffd04a1df0a7",
+      "snapshot": "5461a7496b705c6dddc9df3eedd2133b119d7e1b2de50af551ccffd04a1df0a7"
+    },
+    "tests/commands/diff-patch-stress/parser-regressions/README.md": {
+      "original": "ff7894c3e3f7574765789cba8821376a45ee8c4726497e5bd59d7c84d8c5d69e",
+      "snapshot": "ff7894c3e3f7574765789cba8821376a45ee8c4726497e5bd59d7c84d8c5d69e"
+    },
+    "tests/commands/diff-patch-stress/parser-regressions/evidence-2026-08-26T20-51-07-530Z-validation.json": {
+      "original": "edef51902ede261f3812ac7186f57d61d74a4151ca4d6c897b37fdc7907aaf9a",
+      "snapshot": "edef51902ede261f3812ac7186f57d61d74a4151ca4d6c897b37fdc7907aaf9a"
+    },
+    "tests/commands/diff-patch-stress/parser-regressions/evidence-2026-08-26T20-51-07-530Z.json": {
+      "original": "0d3b50f4602c07d506a06db6a0f3b01f4bea8c3b38156c65ee00d3e33065651a",
+      "snapshot": "0d3b50f4602c07d506a06db6a0f3b01f4bea8c3b38156c65ee00d3e33065651a"
+    },
+    "tests/commands/diff-patch-stress/parser-regressions/evidence-2026-08-26T20-51-07-530Z.tap": {
+      "original": "057a2a5304e8998f3028e4da096af929153ed725df99b97fd0187c03d4d4bae5",
+      "snapshot": "057a2a5304e8998f3028e4da096af929153ed725df99b97fd0187c03d4d4bae5"
+    },
+    "tests/commands/diff-patch-stress/parser-regressions/evidence-2026-08-26T20-53-08-818Z-validation.json": {
+      "original": "3e3ac51f38aa90bf8754a541f5728d564d10057c2deb557380379483c4eeb4b7",
+      "snapshot": "3e3ac51f38aa90bf8754a541f5728d564d10057c2deb557380379483c4eeb4b7"
+    },
+    "tests/commands/diff-patch-stress/parser-regressions/evidence-2026-08-26T20-53-08-818Z.json": {
+      "original": "e7719e054bcd717c8ffbd550d25e3661ac0ce47c15c6eec35777a45bea356440",
+      "snapshot": "e7719e054bcd717c8ffbd550d25e3661ac0ce47c15c6eec35777a45bea356440"
+    },
+    "tests/commands/diff-patch-stress/parser-regressions/evidence-2026-08-26T20-53-08-818Z.tap": {
+      "original": "02ffa25315203eb7a9c26c539fbffa253f1cbe8d3220df073a7dd8d8d4a47a1b",
+      "snapshot": "02ffa25315203eb7a9c26c539fbffa253f1cbe8d3220df073a7dd8d8d4a47a1b"
+    },
+    "tests/commands/diff-patch-stress/parser-regressions/evidence-2026-08-26T20-54-00-971Z-validation.json": {
+      "original": "5367353a2768ba41c354ce09b21d3c2e6827e695191d6e3dc643b231f5c9f5e0",
+      "snapshot": "5367353a2768ba41c354ce09b21d3c2e6827e695191d6e3dc643b231f5c9f5e0"
+    },
+    "tests/commands/diff-patch-stress/parser-regressions/evidence-2026-08-26T20-54-00-971Z.json": {
+      "original": "70bbf56a0672c54e64d81e180d453e63aae738c9eea89f00715261bc555b3021",
+      "snapshot": "70bbf56a0672c54e64d81e180d453e63aae738c9eea89f00715261bc555b3021"
+    },
+    "tests/commands/diff-patch-stress/parser-regressions/evidence-2026-08-26T20-54-00-971Z.tap": {
+      "original": "28993cf61559cca5d59af9e4527a6c71e0f9f47e637161f834282de808135aef",
+      "snapshot": "28993cf61559cca5d59af9e4527a6c71e0f9f47e637161f834282de808135aef"
+    },
+    "tests/commands/diff-patch-stress/parser-regressions/fixtures.ts": {
+      "original": "093d5ea1ae34de581dc65e459dd5644cee09feae72b79c01b91a499e16c12778",
+      "snapshot": "093d5ea1ae34de581dc65e459dd5644cee09feae72b79c01b91a499e16c12778"
+    },
+    "tests/commands/diff-patch-stress/parser-regressions/helpers.ts": {
+      "original": "f4737da1871b12c0b00ca54f93f7b6c6c2593a378ca851871b3e3cf3534d443b",
+      "snapshot": "f4737da1871b12c0b00ca54f93f7b6c6c2593a378ca851871b3e3cf3534d443b"
+    },
+    "tests/commands/diff-patch-stress/parser-regressions/parser.test.ts": {
+      "original": "5d72897bd9ff2281dfb8d18459de809463953decff9bfefb54ff9d0afe6a4c2d",
+      "snapshot": "5d72897bd9ff2281dfb8d18459de809463953decff9bfefb54ff9d0afe6a4c2d"
+    },
+    "tests/commands/diff-patch-stress/parser-regressions/run.mjs": {
+      "original": "395dc4c17f57d995b79c50ab3bc9d51e7268fa61b5fe4dff157c097cec638e32",
+      "snapshot": "395dc4c17f57d995b79c50ab3bc9d51e7268fa61b5fe4dff157c097cec638e32"
+    },
+    "tests/commands/diff-patch-stress/parser-regressions/tsconfig.json": {
+      "original": "9f603a6399351b4416e13f03b8a0401be61e99df4aba0a569f60a14faf2e6b88",
+      "snapshot": "9f603a6399351b4416e13f03b8a0401be61e99df4aba0a569f60a14faf2e6b88"
+    },
+    "tests/commands/diff-patch-stress/path-regressions/README.md": {
+      "original": "09be205110c9fb4339aef84e787a812a35938fe16433924e10b3ebdca86fd7d8",
+      "snapshot": "09be205110c9fb4339aef84e787a812a35938fe16433924e10b3ebdca86fd7d8"
+    },
+    "tests/commands/diff-patch-stress/path-regressions/bounds-shell.test.ts": {
+      "original": "7a6fbab9aa4c3c6dcb681d1bc1eeb94d705693ae6366821ab50e326ea5c18efa",
+      "snapshot": "7a6fbab9aa4c3c6dcb681d1bc1eeb94d705693ae6366821ab50e326ea5c18efa"
+    },
+    "tests/commands/diff-patch-stress/path-regressions/capture-native.mjs": {
+      "original": "78223eb51926b8b6f4dbe0c9aa49b9a522f1298e986a1b06a8d61fd82e74ced5",
+      "snapshot": "78223eb51926b8b6f4dbe0c9aa49b9a522f1298e986a1b06a8d61fd82e74ced5"
+    },
+    "tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts": {
+      "original": "37f384b9e4b4e3c980f2682bd3f30e3249466a09696fee7dab10969753d851b9",
+      "snapshot": "37f384b9e4b4e3c980f2682bd3f30e3249466a09696fee7dab10969753d851b9"
+    },
+    "tests/commands/diff-patch-stress/path-regressions/helpers.ts": {
+      "original": "1d38b3b731818688b9031f8a3d0624ad65f96610cf1fa287d578d156ee8a5114",
+      "snapshot": "1d38b3b731818688b9031f8a3d0624ad65f96610cf1fa287d578d156ee8a5114"
+    },
+    "tests/commands/diff-patch-stress/path-regressions/malformed.test.ts": {
+      "original": "fdccabc5566c4c4c7b8b19a41dbad464653535e1ab908cd10f52c0cc5ab8bdbc",
+      "snapshot": "fdccabc5566c4c4c7b8b19a41dbad464653535e1ab908cd10f52c0cc5ab8bdbc"
+    },
+    "tests/commands/diff-patch-stress/path-regressions/names.test.ts": {
+      "original": "5287684c65b56ce39db3a247ccb7686e0a335629f4464f1892ab2bf5a1b36fc6",
+      "snapshot": "5287684c65b56ce39db3a247ccb7686e0a335629f4464f1892ab2bf5a1b36fc6"
+    },
+    "tests/commands/diff-patch-stress/path-regressions/native-evidence.json": {
+      "original": "72d7ff6ca007fc72b29c2c9d3fad23dace3ab7f48907e8ff7458ce6b8024160e",
+      "snapshot": "72d7ff6ca007fc72b29c2c9d3fad23dace3ab7f48907e8ff7458ce6b8024160e"
+    },
+    "tests/commands/diff-patch-stress/path-regressions/postfix-checkpoint.json": {
+      "original": "30268a022cd51e3ce2b0bc135e1d66c1ba50ae10aac62897c8e7dd6cbfa90088",
+      "snapshot": "30268a022cd51e3ce2b0bc135e1d66c1ba50ae10aac62897c8e7dd6cbfa90088"
+    },
+    "tests/commands/diff-patch-stress/path-regressions/run.mjs": {
+      "original": "068a7303e1f67d85129c0414ad7b8cf0d7fbf3cc2106646b1a4df11f18b8c46d",
+      "snapshot": "068a7303e1f67d85129c0414ad7b8cf0d7fbf3cc2106646b1a4df11f18b8c46d"
+    },
+    "tests/commands/diff-patch-stress/path-regressions/sequences.test.ts": {
+      "original": "c49d774047f38af73e625a45fe700bd64c40084d261e6c647c82f60c28fb685b",
+      "snapshot": "c49d774047f38af73e625a45fe700bd64c40084d261e6c647c82f60c28fb685b"
+    },
+    "tests/commands/diff-patch-stress/path-regressions/tsconfig.json": {
+      "original": "9f603a6399351b4416e13f03b8a0401be61e99df4aba0a569f60a14faf2e6b88",
+      "snapshot": "9f603a6399351b4416e13f03b8a0401be61e99df4aba0a569f60a14faf2e6b88"
+    },
+    "tests/commands/diff-patch-stress/path-regressions/validation.json": {
+      "original": "43a76906c6cf610f458f98149b735d8f40584a4032a053a200e480fa434f9b33",
+      "snapshot": "43a76906c6cf610f458f98149b735d8f40584a4032a053a200e480fa434f9b33"
+    },
+    "tests/commands/diff-patch-stress/safety/README.md": {
+      "original": "d6b2a0080375bacd1d741d82d243714dc9242fa48efb7374da3665d75f1bc929",
+      "snapshot": "d6b2a0080375bacd1d741d82d243714dc9242fa48efb7374da3665d75f1bc929"
+    },
+    "tests/commands/diff-patch-stress/safety/bounds.test.ts": {
+      "original": "c1cedefecd7dd64bd28edec8286e693ed6d952f84449ccc671dbc2ba2a641735",
+      "snapshot": "c1cedefecd7dd64bd28edec8286e693ed6d952f84449ccc671dbc2ba2a641735"
+    },
+    "tests/commands/diff-patch-stress/safety/cancellation.test.ts": {
+      "original": "5098ab3dfa67b3024dcd83654524b0a8c205d4504736a022e2052d17777a0be2",
+      "snapshot": "5098ab3dfa67b3024dcd83654524b0a8c205d4504736a022e2052d17777a0be2"
+    },
+    "tests/commands/diff-patch-stress/safety/encoding-gaps.test.ts": {
+      "original": "9744a4ba8fe9f6f71455cb5c8beed80aae31b17bbe4c6f897a9124cc422bf225",
+      "snapshot": "9744a4ba8fe9f6f71455cb5c8beed80aae31b17bbe4c6f897a9124cc422bf225"
+    },
+    "tests/commands/diff-patch-stress/safety/failures.test.ts": {
+      "original": "94c9c4794d92a6e34d724b2e25310744d2b0444c6e22cccca1499bb92a912fb1",
+      "snapshot": "94c9c4794d92a6e34d724b2e25310744d2b0444c6e22cccca1499bb92a912fb1"
+    },
+    "tests/commands/diff-patch-stress/safety/helpers.ts": {
+      "original": "b995fa07df8355fa593da3b38cde5453ac47b170e2dda6ba610c14993b1b7d53",
+      "snapshot": "b995fa07df8355fa593da3b38cde5453ac47b170e2dda6ba610c14993b1b7d53"
+    },
+    "tests/commands/diff-patch-stress/safety/integration.test.ts": {
+      "original": "82b68d937490550f4962e3a793c6199ef7bc423c8739a1125997732dd1a4bf16",
+      "snapshot": "82b68d937490550f4962e3a793c6199ef7bc423c8739a1125997732dd1a4bf16"
+    },
+    "tests/commands/diff-patch-stress/safety/paths.test.ts": {
+      "original": "944b94310ee093bf4694483776274d0438933dbdc1230a916bbfa4175df72041",
+      "snapshot": "944b94310ee093bf4694483776274d0438933dbdc1230a916bbfa4175df72041"
+    },
+    "tests/commands/diff-patch/DIFF-GNU-TESTS.md": {
+      "original": "7a7411e9a061f11a82bbd106dbd62f050beb9e6795a92ea9778e2cafce8c80da",
+      "snapshot": "7a7411e9a061f11a82bbd106dbd62f050beb9e6795a92ea9778e2cafce8c80da"
+    },
+    "tests/commands/diff-patch/cancellation.test.ts": {
+      "original": "a89c8ff6695cbaf04a367da0f99af8f456fe062ab6871b165b9c8d7e8f9f3ae0",
+      "snapshot": "a89c8ff6695cbaf04a367da0f99af8f456fe062ab6871b165b9c8d7e8f9f3ae0"
+    },
+    "tests/commands/diff-patch/diff-formats.test.ts": {
+      "original": "b4cdc5907e82abb90d690a495de3c98cd0223df1d8672b472943ed8d65df8e8e",
+      "snapshot": "b4cdc5907e82abb90d690a495de3c98cd0223df1d8672b472943ed8d65df8e8e"
+    },
+    "tests/commands/diff-patch/diff-gnu-options.test.ts": {
+      "original": "5a33c0409a0b9264f9026c0b4bf7a396a7110da963c5cd313bf209db30e0dc4f",
+      "snapshot": "5a33c0409a0b9264f9026c0b4bf7a396a7110da963c5cd313bf209db30e0dc4f"
+    },
+    "tests/commands/diff-patch/diff.test.ts": {
+      "original": "49c8cc5606237fa1fea4c2aedf9b9b896d6fdcffe5331bfca99ff9944cb82dd5",
+      "snapshot": "49c8cc5606237fa1fea4c2aedf9b9b896d6fdcffe5331bfca99ff9944cb82dd5"
+    },
+    "tests/commands/diff-patch/helpers.ts": {
+      "original": "9a8244aabef7fcdb13747ae85dd7c05f4f99dd512a64c198931ac33c129e4991",
+      "snapshot": "9a8244aabef7fcdb13747ae85dd7c05f4f99dd512a64c198931ac33c129e4991"
+    },
+    "tests/commands/diff-patch/hunk-regressions.test.ts": {
+      "original": "6a9a5fbf7ef96c90341ddba90698b240d99e20670e65e1f94a50430e84264975",
+      "snapshot": "6a9a5fbf7ef96c90341ddba90698b240d99e20670e65e1f94a50430e84264975"
+    },
+    "tests/commands/diff-patch/native-helper.test.ts": {
+      "original": "acf15f4f3028be1c6bc6fb4596655ff421a6a49e98170eb4cbfe9745e71b11a9",
+      "snapshot": "acf15f4f3028be1c6bc6fb4596655ff421a6a49e98170eb4cbfe9745e71b11a9"
+    },
+    "tests/commands/diff-patch/options-regressions.test.ts": {
+      "original": "efdf8195cd39783916b3a070746102f1253606fed801d3f4ba8c1d56a6f6497d",
+      "snapshot": "efdf8195cd39783916b3a070746102f1253606fed801d3f4ba8c1d56a6f6497d"
+    },
+    "tests/commands/diff-patch/parser-reference-evidence.json": {
+      "original": "54558b7e2c4380f424777a617d7548a03ffc6e612bbf366a5a0b8552532d5e34",
+      "snapshot": "54558b7e2c4380f424777a617d7548a03ffc6e612bbf366a5a0b8552532d5e34"
+    },
+    "tests/commands/diff-patch/patch-absolute.test.ts": {
+      "original": "5f4f3ff1337cddbd99dd0b878e306221406b97be1c391fef99b668ae309ef46f",
+      "snapshot": "5f4f3ff1337cddbd99dd0b878e306221406b97be1c391fef99b668ae309ef46f"
+    },
+    "tests/commands/diff-patch/patch-authorization-followup.test.ts": {
+      "original": "ff631df5c0f1a6b2dadbc0b35266e39c95fe6f8d99db4cc8cdb7eeaf59dc22a5",
+      "snapshot": "ff631df5c0f1a6b2dadbc0b35266e39c95fe6f8d99db4cc8cdb7eeaf59dc22a5"
+    },
+    "tests/commands/diff-patch/patch-candidate-errors-followup.test.ts": {
+      "original": "6cce68187f8871c28908788cde48d8fb530be8b2deee459171b1f57dd3cf2c12",
+      "snapshot": "6cce68187f8871c28908788cde48d8fb530be8b2deee459171b1f57dd3cf2c12"
+    },
+    "tests/commands/diff-patch/patch-commit-followup.test.ts": {
+      "original": "fb13bc9e57fd28a57f2f5b24d9ea8ca6012149bc238e6e13f55297c7e25e7b33",
+      "snapshot": "fb13bc9e57fd28a57f2f5b24d9ea8ca6012149bc238e6e13f55297c7e25e7b33"
+    },
+    "tests/commands/diff-patch/patch-editflows.test.ts": {
+      "original": "2cf78494ab4bc246cf1fd16351e3299cb6285a8095e75e847437ce1237a11696",
+      "snapshot": "2cf78494ab4bc246cf1fd16351e3299cb6285a8095e75e847437ce1237a11696"
+    },
+    "tests/commands/diff-patch/patch-empty.test.ts": {
+      "original": "61025c5581605cfad4d57187b0faf9d38a938fad4a516ed1bd07f12220736874",
+      "snapshot": "61025c5581605cfad4d57187b0faf9d38a938fad4a516ed1bd07f12220736874"
+    },
+    "tests/commands/diff-patch/patch-epoch.test.ts": {
+      "original": "722a21bde6b3c88feada4f1ecbabca66808918abc4f994ca1d059e243bc177a1",
+      "snapshot": "722a21bde6b3c88feada4f1ecbabca66808918abc4f994ca1d059e243bc177a1"
+    },
+    "tests/commands/diff-patch/patch-formats.test.ts": {
+      "original": "ebb0f8a075139c8eb10d756d52ac75ac679a7a9ee6b9b5081e5254917e8b05d8",
+      "snapshot": "ebb0f8a075139c8eb10d756d52ac75ac679a7a9ee6b9b5081e5254917e8b05d8"
+    },
+    "tests/commands/diff-patch/patch-gnu-coordinates.test.ts": {
+      "original": "eb3ef7724673d188965c1a7581b041bb32ea702f13731f47d1c5e5238e3edf7f",
+      "snapshot": "eb3ef7724673d188965c1a7581b041bb32ea702f13731f47d1c5e5238e3edf7f"
+    },
+    "tests/commands/diff-patch/patch-gnu-native.ts": {
+      "original": "fa754e3d45c5da0e9dbb4af6d87515638c007616daf98ae38ea910405d4a9bb5",
+      "snapshot": "fa754e3d45c5da0e9dbb4af6d87515638c007616daf98ae38ea910405d4a9bb5"
+    },
+    "tests/commands/diff-patch/patch-gnu-publication.test.ts": {
+      "original": "aa2f94416542c1f494b0805b33ae3b38342088ad0cc04f019c9de800ab3a957e",
+      "snapshot": "aa2f94416542c1f494b0805b33ae3b38342088ad0cc04f019c9de800ab3a957e"
+    },
+    "tests/commands/diff-patch/patch-gnu-reference.ts": {
+      "original": "ab035c7e43640020e456b93bea30a2bc7476f325a7906582a978aa5193e74494",
+      "snapshot": "ab035c7e43640020e456b93bea30a2bc7476f325a7906582a978aa5193e74494"
+    },
+    "tests/commands/diff-patch/patch-hunk-diagnostics-followup.test.ts": {
+      "original": "492437e8867cc68addf224992f5b716e59d933f96aad5c2232b22944ecf49943",
+      "snapshot": "492437e8867cc68addf224992f5b716e59d933f96aad5c2232b22944ecf49943"
+    },
+    "tests/commands/diff-patch/patch-interstitial-followup.test.ts": {
+      "original": "2f3b8593104989c29e95a21d3befd71a36cc8d847b59cd70eb610cb8cad24598",
+      "snapshot": "2f3b8593104989c29e95a21d3befd71a36cc8d847b59cd70eb610cb8cad24598"
+    },
+    "tests/commands/diff-patch/patch-metadata-boundary-followup.test.ts": {
+      "original": "3290c9bc775303a24fb449d84ee777d5ef8ae3174992a1cc680d137c656d3e05",
+      "snapshot": "3290c9bc775303a24fb449d84ee777d5ef8ae3174992a1cc680d137c656d3e05"
+    },
+    "tests/commands/diff-patch/patch-namespace-followup.test.ts": {
+      "original": "586abd7e74a60b4dfedacc1074a9ba19bafe88215fd2e34009796f4f45668517",
+      "snapshot": "586abd7e74a60b4dfedacc1074a9ba19bafe88215fd2e34009796f4f45668517"
+    },
+    "tests/commands/diff-patch/patch-parser.test.ts": {
+      "original": "9c2fd583cba0d57c29fb0f4bac869f03c13befd2a277226245cef2d50022a3b5",
+      "snapshot": "9c2fd583cba0d57c29fb0f4bac869f03c13befd2a277226245cef2d50022a3b5"
+    },
+    "tests/commands/diff-patch/patch-reject-orientation-followup.test.ts": {
+      "original": "b3d367e3c0eb0b92eaea338b948d0bf541fee6934c557cacf42a57c7cb5f213e",
+      "snapshot": "b3d367e3c0eb0b92eaea338b948d0bf541fee6934c557cacf42a57c7cb5f213e"
+    },
+    "tests/commands/diff-patch/patch-strip-followup.test.ts": {
+      "original": "dd47ea6fd15d471ccc8051b172b1ff077ae1584362d4f1534365b0560d9f9c51",
+      "snapshot": "dd47ea6fd15d471ccc8051b172b1ff077ae1584362d4f1534365b0560d9f9c51"
+    },
+    "tests/commands/diff-patch/patch.test.ts": {
+      "original": "0de44c6c3c3ddc48eb88fb87e3a68b2cbcea58a6934c2898531b185e9efe9920",
+      "snapshot": "0de44c6c3c3ddc48eb88fb87e3a68b2cbcea58a6934c2898531b185e9efe9920"
+    },
+    "tests/commands/diff-patch/safety.test.ts": {
+      "original": "ca3bc6adadf3ad8d17714e7ecfbb69f5e90810c4fe56f9de7a80f3eda83e15cd",
+      "snapshot": "ca3bc6adadf3ad8d17714e7ecfbb69f5e90810c4fe56f9de7a80f3eda83e15cd"
+    },
+    "tests/commands/diff-patch/shell.test.ts": {
+      "original": "8a3e90195ae0f9044d3d9bb052dbde1014065f0f54900c3580b2e730c8ae11f9",
+      "snapshot": "8a3e90195ae0f9044d3d9bb052dbde1014065f0f54900c3580b2e730c8ae11f9"
+    }
+  },
+  "original70": {
+    "tests/commands/diff-patch-stress/absolute-target/absolute-target.test.ts": "779a5b283f1f1734834b0962928579513b1568f7e43da11c05554fdd6391007a",
+    "tests/commands/diff-patch-stress/absolute-target/native.test.ts": "d738d8123ab6df15f68b8327835708519ae4e382622874a78177a91bb714d2c3",
+    "tests/commands/diff-patch-stress/compatibility/diff.test.ts": "6d8d29ead2664adcc2f692b69a45bcbae5af6fac362e4a842764452e3c7e7828",
+    "tests/commands/diff-patch-stress/compatibility/gaps.test.ts": "f732ff3665c685eb2dd1978499448555965c43a01caf244484a39dabafd04aef",
+    "tests/commands/diff-patch-stress/compatibility/oracle.test.ts": "65a9bfe191abe2b5ab972898bf35d0728e792127172fdea7dfe9785b0ced8298",
+    "tests/commands/diff-patch-stress/compatibility/patch.test.ts": "aa70691e3353f60f3b3ee1134f3bf4999f4db7cf5bb61592b2e92c2fb54636cf",
+    "tests/commands/diff-patch-stress/compatibility/shell.test.ts": "6daaed81d8b795c3bead1b7a1b0aa1b68cb33ac17b9d2ea565ca64ca83e46228",
+    "tests/commands/diff-patch-stress/editflows/oracles.test.ts": "c32be8917d29821f26ae3eabacb48d440977a420b0bdcad70a853874a45e8e9d",
+    "tests/commands/diff-patch-stress/editflows/parity.test.ts": "97617c7c1668971fc7ea38784b6c6acc43d10d4c130a0d127904927f3fdf5592",
+    "tests/commands/diff-patch-stress/editflows/quoted-safety.test.ts": "cca653100a9d18de485e26ed8ed33c2b820cbb6c60ffbdf2b741efa537c40d75",
+    "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts": "ecc0a342be9bc6a8a47fe8a216ea46dfcd6a8c7d349474e419ca0cf17ba25571",
+    "tests/commands/diff-patch-stress/formats/boundaries.test.ts": "fbaba6b954f71d41fa17c0b1961f0a309064db1529ac78553807acb4834b16ff",
+    "tests/commands/diff-patch-stress/formats/editflows.test.ts": "09ca7f0d427a0d0705a5158ad9f503b735323a28d9b984d54d55b4954de9364d",
+    "tests/commands/diff-patch-stress/formats/regressions.test.ts": "19bf929b2128a21f0ad5a225ae7e614adfe558cdea456463b0acf215662e9e45",
+    "tests/commands/diff-patch-stress/formats/whitespace.test.ts": "b9fbd5cf49743dbaf94589879eeac1bd5ef59130bb527ea0c847319ad8ab9b4b",
+    "tests/commands/diff-patch-stress/fuzz/budgets.test.ts": "33314e56c20c285c3c749ab779789758b94e6083e370470d934763a00b898290",
+    "tests/commands/diff-patch-stress/fuzz/edits.test.ts": "18d204a74b8c8783eb807859e3a1f10d7fa7f2fea8c6387f71a7deedcf27ff0f",
+    "tests/commands/diff-patch-stress/fuzz/properties.test.ts": "1154e94b75c49840a75aceff5fc3368d723a8d4360076c54773aae61dfee7718",
+    "tests/commands/diff-patch-stress/fuzz/regressions.test.ts": "9729be3cfbaab2ea6554f10d9d6f47fe0746490720b957202e37361127237c6d",
+    "tests/commands/diff-patch-stress/gnu-auxiliary/authorization.test.ts": "c379b53d9b818fc4aeaf32829c993d370a71348c0e01a7af894313d0ab4e83c5",
+    "tests/commands/diff-patch-stress/gnu-candidate-followup/candidates.test.ts": "851bf6f6a9cc17b78cd65ae482fd27226ab5bc71c49829f25813698b7bd77d89",
+    "tests/commands/diff-patch-stress/gnu-editflows/controls.test.ts": "6941f094a7746e4925f96b60c349dbb2c4e7542eb9938444b16852d7a1835484",
+    "tests/commands/diff-patch-stress/gnu-editflows/parity.test.ts": "086a06b132bb48e9f7f6c9c07ebcb7a8b49ec85e3b8688e71e6f8d8725cb923b",
+    "tests/commands/diff-patch-stress/gnu-safety-strip-followup/controls.test.ts": "ae9f9dbddba6b702ccb877ccb5fab2b3c51f28b92b4447fb62558a25e3cc09c0",
+    "tests/commands/diff-patch-stress/gnu-target-classification/evidence.test.ts": "916fb58af5d95771d61a9f2a55773f6a868d73f7ee7e629b7bf88fdeaea15eae",
+    "tests/commands/diff-patch-stress/gnu-target-followup/metadata-safety.test.ts": "0b7b565434c827b6479f45a1dee322700f0349350426a289780bc74c4a79dd2f",
+    "tests/commands/diff-patch-stress/gnu-target-followup/native-controls.test.ts": "d40336ea4f059a0aeaba037d8a6fef6fcd6876675de2f8902a8f5700fb05aedd",
+    "tests/commands/diff-patch-stress/gnu-target-followup/overlap-default.test.ts": "718addc0eb5879d06e956528e3e1b1647ef76b52f090a16c38e7582ac6f0a566",
+    "tests/commands/diff-patch-stress/gnu-target/calibration.test.ts": "e54e8b202f86005293b24d6fddc7318efc17d0ee84ebca439ced9d16c9442c2f",
+    "tests/commands/diff-patch-stress/gnu-target/edit-correctness.test.ts": "48fc42ba7d4b7d032a690e412a504271734b77acb304286add54861936119058",
+    "tests/commands/diff-patch-stress/gnu-target/policy-mirrors.test.ts": "9e8d311240adb9e126d58b386efe19434e85b555d4526343a50dcb41e0b46ceb",
+    "tests/commands/diff-patch-stress/parser-regressions/parser.test.ts": "5d72897bd9ff2281dfb8d18459de809463953decff9bfefb54ff9d0afe6a4c2d",
+    "tests/commands/diff-patch-stress/path-regressions/bounds-shell.test.ts": "7a6fbab9aa4c3c6dcb681d1bc1eeb94d705693ae6366821ab50e326ea5c18efa",
+    "tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts": "37f384b9e4b4e3c980f2682bd3f30e3249466a09696fee7dab10969753d851b9",
+    "tests/commands/diff-patch-stress/path-regressions/malformed.test.ts": "fdccabc5566c4c4c7b8b19a41dbad464653535e1ab908cd10f52c0cc5ab8bdbc",
+    "tests/commands/diff-patch-stress/path-regressions/names.test.ts": "5287684c65b56ce39db3a247ccb7686e0a335629f4464f1892ab2bf5a1b36fc6",
+    "tests/commands/diff-patch-stress/path-regressions/sequences.test.ts": "c49d774047f38af73e625a45fe700bd64c40084d261e6c647c82f60c28fb685b",
+    "tests/commands/diff-patch-stress/safety/bounds.test.ts": "c1cedefecd7dd64bd28edec8286e693ed6d952f84449ccc671dbc2ba2a641735",
+    "tests/commands/diff-patch-stress/safety/cancellation.test.ts": "5098ab3dfa67b3024dcd83654524b0a8c205d4504736a022e2052d17777a0be2",
+    "tests/commands/diff-patch-stress/safety/encoding-gaps.test.ts": "9744a4ba8fe9f6f71455cb5c8beed80aae31b17bbe4c6f897a9124cc422bf225",
+    "tests/commands/diff-patch-stress/safety/failures.test.ts": "94c9c4794d92a6e34d724b2e25310744d2b0444c6e22cccca1499bb92a912fb1",
+    "tests/commands/diff-patch-stress/safety/integration.test.ts": "82b68d937490550f4962e3a793c6199ef7bc423c8739a1125997732dd1a4bf16",
+    "tests/commands/diff-patch-stress/safety/paths.test.ts": "944b94310ee093bf4694483776274d0438933dbdc1230a916bbfa4175df72041",
+    "tests/commands/diff-patch/cancellation.test.ts": "a89c8ff6695cbaf04a367da0f99af8f456fe062ab6871b165b9c8d7e8f9f3ae0",
+    "tests/commands/diff-patch/diff-formats.test.ts": "b4cdc5907e82abb90d690a495de3c98cd0223df1d8672b472943ed8d65df8e8e",
+    "tests/commands/diff-patch/diff-gnu-options.test.ts": "5a33c0409a0b9264f9026c0b4bf7a396a7110da963c5cd313bf209db30e0dc4f",
+    "tests/commands/diff-patch/diff.test.ts": "49c8cc5606237fa1fea4c2aedf9b9b896d6fdcffe5331bfca99ff9944cb82dd5",
+    "tests/commands/diff-patch/hunk-regressions.test.ts": "6a9a5fbf7ef96c90341ddba90698b240d99e20670e65e1f94a50430e84264975",
+    "tests/commands/diff-patch/native-helper.test.ts": "acf15f4f3028be1c6bc6fb4596655ff421a6a49e98170eb4cbfe9745e71b11a9",
+    "tests/commands/diff-patch/options-regressions.test.ts": "efdf8195cd39783916b3a070746102f1253606fed801d3f4ba8c1d56a6f6497d",
+    "tests/commands/diff-patch/patch-absolute.test.ts": "5f4f3ff1337cddbd99dd0b878e306221406b97be1c391fef99b668ae309ef46f",
+    "tests/commands/diff-patch/patch-authorization-followup.test.ts": "ff631df5c0f1a6b2dadbc0b35266e39c95fe6f8d99db4cc8cdb7eeaf59dc22a5",
+    "tests/commands/diff-patch/patch-candidate-errors-followup.test.ts": "6cce68187f8871c28908788cde48d8fb530be8b2deee459171b1f57dd3cf2c12",
+    "tests/commands/diff-patch/patch-commit-followup.test.ts": "fb13bc9e57fd28a57f2f5b24d9ea8ca6012149bc238e6e13f55297c7e25e7b33",
+    "tests/commands/diff-patch/patch-editflows.test.ts": "2cf78494ab4bc246cf1fd16351e3299cb6285a8095e75e847437ce1237a11696",
+    "tests/commands/diff-patch/patch-empty.test.ts": "61025c5581605cfad4d57187b0faf9d38a938fad4a516ed1bd07f12220736874",
+    "tests/commands/diff-patch/patch-epoch.test.ts": "722a21bde6b3c88feada4f1ecbabca66808918abc4f994ca1d059e243bc177a1",
+    "tests/commands/diff-patch/patch-formats.test.ts": "ebb0f8a075139c8eb10d756d52ac75ac679a7a9ee6b9b5081e5254917e8b05d8",
+    "tests/commands/diff-patch/patch-gnu-coordinates.test.ts": "eb3ef7724673d188965c1a7581b041bb32ea702f13731f47d1c5e5238e3edf7f",
+    "tests/commands/diff-patch/patch-gnu-publication.test.ts": "aa2f94416542c1f494b0805b33ae3b38342088ad0cc04f019c9de800ab3a957e",
+    "tests/commands/diff-patch/patch-hunk-diagnostics-followup.test.ts": "492437e8867cc68addf224992f5b716e59d933f96aad5c2232b22944ecf49943",
+    "tests/commands/diff-patch/patch-interstitial-followup.test.ts": "2f3b8593104989c29e95a21d3befd71a36cc8d847b59cd70eb610cb8cad24598",
+    "tests/commands/diff-patch/patch-metadata-boundary-followup.test.ts": "3290c9bc775303a24fb449d84ee777d5ef8ae3174992a1cc680d137c656d3e05",
+    "tests/commands/diff-patch/patch-namespace-followup.test.ts": "586abd7e74a60b4dfedacc1074a9ba19bafe88215fd2e34009796f4f45668517",
+    "tests/commands/diff-patch/patch-parser.test.ts": "9c2fd583cba0d57c29fb0f4bac869f03c13befd2a277226245cef2d50022a3b5",
+    "tests/commands/diff-patch/patch-reject-orientation-followup.test.ts": "b3d367e3c0eb0b92eaea338b948d0bf541fee6934c557cacf42a57c7cb5f213e",
+    "tests/commands/diff-patch/patch-strip-followup.test.ts": "dd47ea6fd15d471ccc8051b172b1ff077ae1584362d4f1534365b0560d9f9c51",
+    "tests/commands/diff-patch/patch.test.ts": "0de44c6c3c3ddc48eb88fb87e3a68b2cbcea58a6934c2898531b185e9efe9920",
+    "tests/commands/diff-patch/safety.test.ts": "ca3bc6adadf3ad8d17714e7ecfbb69f5e90810c4fe56f9de7a80f3eda83e15cd",
+    "tests/commands/diff-patch/shell.test.ts": "8a3e90195ae0f9044d3d9bb052dbde1014065f0f54900c3580b2e730c8ae11f9"
+  },
+  "groups": {
+    "absolute-target": [
+      "tests/commands/diff-patch-stress/absolute-target/absolute-target.test.ts",
+      "tests/commands/diff-patch-stress/absolute-target/native.test.ts"
+    ],
+    "compatibility": [
+      "tests/commands/diff-patch-stress/compatibility/diff.test.ts",
+      "tests/commands/diff-patch-stress/compatibility/gaps.test.ts",
+      "tests/commands/diff-patch-stress/compatibility/oracle.test.ts",
+      "tests/commands/diff-patch-stress/compatibility/patch.test.ts",
+      "tests/commands/diff-patch-stress/compatibility/shell.test.ts"
+    ],
+    "editflows": [
+      "tests/commands/diff-patch-stress/editflows/oracles.test.ts",
+      "tests/commands/diff-patch-stress/editflows/parity.test.ts",
+      "tests/commands/diff-patch-stress/editflows/quoted-safety.test.ts"
+    ],
+    "emptyfile-delta": [
+      "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts"
+    ],
+    "formats": [
+      "tests/commands/diff-patch-stress/formats/boundaries.test.ts",
+      "tests/commands/diff-patch-stress/formats/editflows.test.ts",
+      "tests/commands/diff-patch-stress/formats/regressions.test.ts",
+      "tests/commands/diff-patch-stress/formats/whitespace.test.ts"
+    ],
+    "fuzz": [
+      "tests/commands/diff-patch-stress/fuzz/budgets.test.ts",
+      "tests/commands/diff-patch-stress/fuzz/edits.test.ts",
+      "tests/commands/diff-patch-stress/fuzz/properties.test.ts",
+      "tests/commands/diff-patch-stress/fuzz/regressions.test.ts"
+    ],
+    "gnu-auxiliary": [
+      "tests/commands/diff-patch-stress/gnu-auxiliary/authorization.test.ts"
+    ],
+    "gnu-candidate-followup": [
+      "tests/commands/diff-patch-stress/gnu-candidate-followup/candidates.test.ts"
+    ],
+    "gnu-editflows": [
+      "tests/commands/diff-patch-stress/gnu-editflows/controls.test.ts",
+      "tests/commands/diff-patch-stress/gnu-editflows/parity.test.ts"
+    ],
+    "gnu-safety-strip-followup": [
+      "tests/commands/diff-patch-stress/gnu-safety-strip-followup/controls.test.ts"
+    ],
+    "gnu-target-classification": [
+      "tests/commands/diff-patch-stress/gnu-target-classification/evidence.test.ts"
+    ],
+    "gnu-target-followup": [
+      "tests/commands/diff-patch-stress/gnu-target-followup/metadata-safety.test.ts",
+      "tests/commands/diff-patch-stress/gnu-target-followup/native-controls.test.ts",
+      "tests/commands/diff-patch-stress/gnu-target-followup/overlap-default.test.ts"
+    ],
+    "gnu-target": [
+      "tests/commands/diff-patch-stress/gnu-target/calibration.test.ts",
+      "tests/commands/diff-patch-stress/gnu-target/edit-correctness.test.ts",
+      "tests/commands/diff-patch-stress/gnu-target/policy-mirrors.test.ts"
+    ],
+    "parser-regressions": [
+      "tests/commands/diff-patch-stress/parser-regressions/parser.test.ts"
+    ],
+    "path-regressions": [
+      "tests/commands/diff-patch-stress/path-regressions/bounds-shell.test.ts",
+      "tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts",
+      "tests/commands/diff-patch-stress/path-regressions/malformed.test.ts",
+      "tests/commands/diff-patch-stress/path-regressions/names.test.ts",
+      "tests/commands/diff-patch-stress/path-regressions/sequences.test.ts"
+    ],
+    "safety": [
+      "tests/commands/diff-patch-stress/safety/bounds.test.ts",
+      "tests/commands/diff-patch-stress/safety/cancellation.test.ts",
+      "tests/commands/diff-patch-stress/safety/encoding-gaps.test.ts",
+      "tests/commands/diff-patch-stress/safety/failures.test.ts",
+      "tests/commands/diff-patch-stress/safety/integration.test.ts",
+      "tests/commands/diff-patch-stress/safety/paths.test.ts"
+    ],
+    "author": [
+      "tests/commands/diff-patch/cancellation.test.ts",
+      "tests/commands/diff-patch/diff-formats.test.ts",
+      "tests/commands/diff-patch/diff-gnu-options.test.ts",
+      "tests/commands/diff-patch/diff.test.ts",
+      "tests/commands/diff-patch/hunk-regressions.test.ts",
+      "tests/commands/diff-patch/native-helper.test.ts",
+      "tests/commands/diff-patch/options-regressions.test.ts",
+      "tests/commands/diff-patch/patch-absolute.test.ts",
+      "tests/commands/diff-patch/patch-authorization-followup.test.ts",
+      "tests/commands/diff-patch/patch-candidate-errors-followup.test.ts",
+      "tests/commands/diff-patch/patch-commit-followup.test.ts",
+      "tests/commands/diff-patch/patch-editflows.test.ts",
+      "tests/commands/diff-patch/patch-empty.test.ts",
+      "tests/commands/diff-patch/patch-epoch.test.ts",
+      "tests/commands/diff-patch/patch-formats.test.ts",
+      "tests/commands/diff-patch/patch-gnu-coordinates.test.ts",
+      "tests/commands/diff-patch/patch-gnu-publication.test.ts",
+      "tests/commands/diff-patch/patch-hunk-diagnostics-followup.test.ts",
+      "tests/commands/diff-patch/patch-interstitial-followup.test.ts",
+      "tests/commands/diff-patch/patch-metadata-boundary-followup.test.ts",
+      "tests/commands/diff-patch/patch-namespace-followup.test.ts",
+      "tests/commands/diff-patch/patch-parser.test.ts",
+      "tests/commands/diff-patch/patch-reject-orientation-followup.test.ts",
+      "tests/commands/diff-patch/patch-strip-followup.test.ts",
+      "tests/commands/diff-patch/patch.test.ts",
+      "tests/commands/diff-patch/safety.test.ts",
+      "tests/commands/diff-patch/shell.test.ts"
+    ]
+  }
+}

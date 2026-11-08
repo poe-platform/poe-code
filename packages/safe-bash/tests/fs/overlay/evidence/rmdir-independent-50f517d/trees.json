@@ -1,0 +1,36 @@
+{
+  "pin": "50f517d4e28281ccba8c7580d017fe65a4bf8e20",
+  "src": "2004411f4d8c67812c56369306917754bbce95fa",
+  "fs": "d819224f37042b624034a0b55615bc8dc9ec41d1",
+  "backends": {
+    "memory": {
+      "source": "d68380993f8c10ac326065a6933fe654e5d24b2f",
+      "tests": "e96f846b62e4366d85ab6ead0d94fc667956fbe5"
+    },
+    "real": {
+      "source": "e87962a8a9069720d911636994291e00a7df35a5",
+      "tests": "d61e256ec8ea264872a97a073427b36ad80a74be"
+    },
+    "s3": {
+      "source": "91e2b77e50f14d6f734c015dd3260dfc37abf496",
+      "tests": "bf59a4be7b1bc2045a37573f29b86bbbf3c2b94f"
+    },
+    "webdav": {
+      "source": "b22a78112af678c0d4f7a0323c9251a7f64fc4e8",
+      "tests": "3abfccf8ea40249d7c080a7872b3f2e9a06c096c"
+    },
+    "readonly": {
+      "source": "e386568bded0ed5c8de25d17b811d369dba86193",
+      "tests": "8ed16a37beb7d1c9e6ff48b6f038a5a4cf901bbf"
+    },
+    "mount": {
+      "source": "538fe996e51ddd6c9e295ed84ebf6b9f84694c9b",
+      "tests": "c0ac5499aaa463bcdb049c24f0fd111c5e5630a0"
+    },
+    "overlay": {
+      "source": "4c0acb23fc3c5af0e32d999788e44b2e50ac3afe",
+      "tests": "539ef764117de45d44273a2e4a4dcd2613a189c6"
+    }
+  },
+  "sourceTarSha256": "0c4dda6cd3e00184725edd422ee65d9e4fb8d310a9e831cf4c2e346309d06151"
+}

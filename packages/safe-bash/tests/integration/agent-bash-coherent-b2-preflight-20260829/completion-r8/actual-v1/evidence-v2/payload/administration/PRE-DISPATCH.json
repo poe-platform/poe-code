@@ -1,0 +1,27 @@
+{
+  "checkedUTC": "2026-08-29T17:00:25.604Z",
+  "timer": {
+    "session": 78967,
+    "terminalExit": 0,
+    "pid": 79339,
+    "rows": [
+      {
+        "role": "ROOT-authorized-owned-scheduling-timer",
+        "pid": 79339,
+        "started": "2026-08-29T16:58:17.799Z",
+        "target": "2026-08-29T17:00:00.000Z"
+      },
+      {
+        "reached": "2026-08-29T17:00:00.005Z",
+        "withinWindow": true
+      }
+    ],
+    "stdoutBytes": 194,
+    "stdoutSha256": "e2dc94e14b97ad82d8178644a92ef712206fec8e5864b87099a903550af0978d",
+    "stderrBytes": 0,
+    "qualification": "owned timer terminal observed through exec session; no unobserved descendant claim"
+  },
+  "packetPins": 32,
+  "command": "/bin/zsh /Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/new/launch.sh /private/tmp/B2-R8-ROOT-GO.json 6945",
+  "runtimeDispatch": "NEXT_EXACT_TOOL_CALL_ONLY"
+}

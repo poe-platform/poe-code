@@ -1,0 +1,19 @@
+{
+  "started": "2026-08-27T06:20:35.055Z",
+  "finished": "2026-08-27T06:20:35.974Z",
+  "command": "node",
+  "args": [
+    "--import",
+    "tsx",
+    "--test",
+    "tests/commands/regex-execution/followup/messageerror.test.ts",
+    "tests/commands/regex-execution/executor.test.ts",
+    "tests/commands/regex-execution/commands.test.ts"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdoutSha256": "03260d131b2092291bd46dd78279044ba9460d67249d36d8238224cf58cf4f40",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "sourceChangedDuringRun": [],
+  "afterHead": "cf1d1f0a5eb3e63022132b3414dc6b8b9624b760"
+}

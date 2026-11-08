@@ -1,0 +1,13 @@
+{
+  "captured": "2026-08-27",
+  "phase": "AUTHOR native-only source-path capture before implementing virtual parent-source handling",
+  "command": "node --import tsx tests/commands/archive/capture-source.ts",
+  "gnuSha256": "49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66",
+  "nativeBehaviorInvocations": 7,
+  "fixtures": "input/file=input, other/file=other, input/alias -> ../other/child; input/sub and other/child exist",
+  "observations": [
+    { "create": ["--format=ustar", "-cf", "parents.tar", "-C", "input/sub", "../file"], "diagnostic": "Removing leading `../' from member names", "list": "file\n" },
+    { "create": ["--format=ustar", "-cf", "symlink-parent.tar", "-C", "input", "alias/../file"], "diagnostic": "Removing leading `alias/../' from member names", "list": "file\n", "xOfPayload": "other" },
+    { "create": ["--format=ustar", "-cf", "directory.tar", "-C", "input/alias/..", "file"], "xOfPayload": "other" }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "name": "archived-build",
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+    "-p",
+    "tsconfig.build.json"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/remote-rmdir/.archive-YhduEE",
+  "startedAt": "2026-08-27T06:50:30.007Z",
+  "elapsedMs": 1560.2961249999998,
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "counts": {
+    "tests": null,
+    "pass": null,
+    "fail": null,
+    "cancelled": null,
+    "skipped": null,
+    "todo": null
+  },
+  "cases": [],
+  "failures": [],
+  "unchangedInputsAfter": true
+}

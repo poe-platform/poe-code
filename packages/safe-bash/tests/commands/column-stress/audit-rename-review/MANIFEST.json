@@ -1,0 +1,25 @@
+{
+  "classification": "independent-tiny-historical-audit-rename-review",
+  "authorCommit": "219790c55c0214e6d46524bbdced63c18c360f62",
+  "actualParent": "3f6db4dd29950d92410a4d4f9871ba18a5b56e89",
+  "decision": "PASS_RENAME_ONLY",
+  "publicIntegration": "HOLD_OUTSIDE_SCOPE",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 5157,
+      "sha256": "40fe8f0382bd829b6ea1576c5fcf1f515df372879c54fab579ca8fedb7ae6e4c"
+    },
+    {
+      "path": "review.json",
+      "bytes": 90284,
+      "sha256": "ff6cd96185f1566e7a05a4c55f34fa9bb912e58d3ab3dee6e860acc1e4fba10f"
+    },
+    {
+      "path": "verify.mjs",
+      "bytes": 16842,
+      "sha256": "224bb9ea4c6efe5caddff3a459af0adf63c2547d984484e73e3c23e87fecbb62"
+    }
+  ],
+  "selfAuthentication": "Enclosing explicit-owned-file commit authenticates this manifest."
+}

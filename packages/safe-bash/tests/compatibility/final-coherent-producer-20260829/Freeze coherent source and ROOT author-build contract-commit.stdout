@@ -1,0 +1,18 @@
+[main 949b0a8400254fa5e287a2752a4899edac1777cd] Freeze coherent source and ROOT author-build contract
+ Committer: Kamil Jopek <kjopek@bamboo.quora.net>
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly:
+
+    git config --global user.name "Your Name"
+    git config --global user.email you@example.com
+
+After doing this, you may fix the identity used for this commit with:
+
+    git commit --amend --reset-author
+
+ 4 files changed, 23623 insertions(+)
+ create mode 100644 tests/compatibility/final-coherent-producer-20260829/PRESEAL.json
+ create mode 100644 tests/compatibility/final-coherent-producer-20260829/SOURCE-INPUTS.json
+ create mode 100644 tests/compatibility/final-coherent-producer-20260829/TOOLS.json
+ create mode 100644 tests/compatibility/final-coherent-producer-20260829/produce.mjs

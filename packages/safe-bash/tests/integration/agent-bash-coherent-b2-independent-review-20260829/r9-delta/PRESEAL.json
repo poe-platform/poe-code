@@ -1,0 +1,23 @@
+{
+  "packet": "5b4a12e14081d6c95f7805358737d32008b0b7f5844413b485e77a81fb1b807d",
+  "controlsSource": "7f46c99dcaa4d01a3fc3ccb984a4f9d29e9f574b0321b16631f16acafff6337e",
+  "controlsSeal": "393f721e41393248df030477a9900cb72445bbddfb4bf1042a79550991dabd49",
+  "groups": [
+    "author-eligible",
+    "author-mode",
+    "author-hash",
+    "author-umask",
+    "author-archive",
+    "author-source",
+    "novel-extra-member",
+    "novel-renamed-member",
+    "novel-archive-executable"
+  ],
+  "imports": "whole authenticated shipping coordinator; no main dispatch",
+  "prospectiveWindow": {
+    "notBefore": "2026-08-29T17:22:00.000Z",
+    "latest": "2026-08-29T17:27:00.000Z",
+    "activeEnd": "2026-08-29T17:49:00.000Z",
+    "expiry": "2026-08-29T17:52:00.000Z"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "date": "2026-08-27T23:16:51.542Z",
+  "all81LiveFrozenArtifactFilesMatchCandidate": true,
+  "protectedPaths": [
+    "src/commands/expr",
+    "src/commands/regex-execution",
+    "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze",
+    "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/review",
+    "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype"
+  ],
+  "scopedProtectedGitStatus": "",
+  "independent95": true,
+  "preparedMatrices": {
+    "frozenMatrices": 20,
+    "passedMatrices": 20,
+    "pairCells": 124,
+    "newCases": 0,
+    "newPlans": 0,
+    "derivedOrChangedExpectations": 0
+  },
+  "syntaxChecked": [
+    "replay.mjs",
+    "bind-and-controls.mjs",
+    "bind-api.mjs",
+    "replay-matrices.mjs"
+  ],
+  "uniqueScratchAbsent": true,
+  "ownedChildrenClosed": true,
+  "fullRepositoryCleanClaim": false
+}

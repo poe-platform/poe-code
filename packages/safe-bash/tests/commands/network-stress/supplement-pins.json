@@ -1,0 +1,8 @@
+{
+  "frozenBeforeSupplementaryProductExecution": true,
+  "hashes": {
+    "tests/commands/network-stress/supplement-native.json": "95e2c8b3b17ef41250d3a44ea00a27871ed007fed2f3fbe56f999d7319fbb3fa",
+    "tests/commands/network/tls/cert.pem": "073a4fb398e08fee1a757651f8de94b0e222b45073eb2bf5e0441679f020244d",
+    "tests/commands/network/tls/key.pem": "246b515a17d5940e973f46ffbb94f27e693e6411bc61c14b5467ade21ff9cc08"
+  }
+}

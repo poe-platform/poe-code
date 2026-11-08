@@ -1,0 +1,1129 @@
+{
+  "timestamp": "2026-08-27T02:35:11.445Z",
+  "runtimeHash": "e886b64536c7496769fdbe856aafb0e73ee88ace47c2a3ca9cb3cc71f11f8c4a",
+  "phases": [
+    {
+      "label": "independent43-transport-fixed",
+      "endpointDrift": [
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/commands/execution.ts",
+          "tested": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de",
+          "current": "48f7c66074049ee4b4afc9a1b009102cab07a663b67ba5e52ab47c4cae4c0865"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/command.ts",
+          "tested": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+          "current": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa"
+        }
+      ]
+    },
+    {
+      "label": "native64",
+      "endpointDrift": []
+    },
+    {
+      "label": "legacy72",
+      "endpointDrift": [
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/commands/execution.ts",
+          "tested": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de",
+          "current": "48f7c66074049ee4b4afc9a1b009102cab07a663b67ba5e52ab47c4cae4c0865"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/command.ts",
+          "tested": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+          "current": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa"
+        }
+      ]
+    },
+    {
+      "label": "legacy132",
+      "endpointDrift": [
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/commands/execution.ts",
+          "tested": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de",
+          "current": "48f7c66074049ee4b4afc9a1b009102cab07a663b67ba5e52ab47c4cae4c0865"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/command.ts",
+          "tested": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+          "current": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa"
+        }
+      ]
+    },
+    {
+      "label": "source-eval86",
+      "endpointDrift": [
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/commands/execution.ts",
+          "tested": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de",
+          "current": "48f7c66074049ee4b4afc9a1b009102cab07a663b67ba5e52ab47c4cae4c0865"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/command.ts",
+          "tested": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+          "current": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa"
+        }
+      ]
+    },
+    {
+      "label": "diagnostics48",
+      "endpointDrift": [
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/commands/execution.ts",
+          "tested": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de",
+          "current": "48f7c66074049ee4b4afc9a1b009102cab07a663b67ba5e52ab47c4cae4c0865"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/command.ts",
+          "tested": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+          "current": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa"
+        }
+      ]
+    },
+    {
+      "label": "prior211",
+      "endpointDrift": [
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/commands/execution.ts",
+          "tested": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de",
+          "current": "48f7c66074049ee4b4afc9a1b009102cab07a663b67ba5e52ab47c4cae4c0865"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/command.ts",
+          "tested": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+          "current": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa"
+        }
+      ]
+    },
+    {
+      "label": "raw57",
+      "endpointDrift": []
+    },
+    {
+      "label": "global",
+      "endpointDrift": [
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/commands/execution.ts",
+          "tested": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de",
+          "current": "48f7c66074049ee4b4afc9a1b009102cab07a663b67ba5e52ab47c4cae4c0865"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/command.ts",
+          "tested": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+          "current": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/contracts/invoke.test.ts",
+          "tested": "bd3a63db93559cd1f13977662a10eb9936a0cbb02b037468221289f00e2edefc",
+          "current": "59602d002a642f6a45bd01b55733bde8c1c02b9ec929527ef6784b81aff14a31"
+        }
+      ]
+    },
+    {
+      "label": "build",
+      "endpointDrift": [
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/commands/execution.ts",
+          "tested": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de",
+          "current": "48f7c66074049ee4b4afc9a1b009102cab07a663b67ba5e52ab47c4cae4c0865"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/command.ts",
+          "tested": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+          "current": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa"
+        }
+      ]
+    },
+    {
+      "label": "benchmark",
+      "endpointDrift": [
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/commands/execution.ts",
+          "tested": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de",
+          "current": "48f7c66074049ee4b4afc9a1b009102cab07a663b67ba5e52ab47c4cae4c0865"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/command.ts",
+          "tested": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+          "current": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa"
+        }
+      ]
+    }
+  ],
+  "processes": [
+    {
+      "pid": 24587,
+      "visible": []
+    },
+    {
+      "pid": 24612,
+      "visible": []
+    },
+    {
+      "pid": 24641,
+      "visible": []
+    },
+    {
+      "pid": 24703,
+      "visible": []
+    },
+    {
+      "pid": 24789,
+      "visible": []
+    },
+    {
+      "pid": 24875,
+      "visible": []
+    },
+    {
+      "pid": 24949,
+      "visible": []
+    },
+    {
+      "pid": 25029,
+      "visible": []
+    },
+    {
+      "pid": 25055,
+      "visible": []
+    },
+    {
+      "pid": 25130,
+      "visible": []
+    },
+    {
+      "pid": 25204,
+      "visible": []
+    },
+    {
+      "pid": 25218,
+      "visible": []
+    },
+    {
+      "pid": 25281,
+      "visible": []
+    },
+    {
+      "pid": 25356,
+      "visible": []
+    },
+    {
+      "pid": 25382,
+      "visible": []
+    },
+    {
+      "pid": 25468,
+      "visible": []
+    },
+    {
+      "pid": 25531,
+      "visible": []
+    },
+    {
+      "pid": 25594,
+      "visible": []
+    },
+    {
+      "pid": 25667,
+      "visible": []
+    },
+    {
+      "pid": 25730,
+      "visible": []
+    },
+    {
+      "pid": 25806,
+      "visible": []
+    },
+    {
+      "pid": 25893,
+      "visible": []
+    },
+    {
+      "pid": 25980,
+      "visible": []
+    },
+    {
+      "pid": 26055,
+      "visible": []
+    },
+    {
+      "pid": 26131,
+      "visible": []
+    },
+    {
+      "pid": 26217,
+      "visible": []
+    },
+    {
+      "pid": 26314,
+      "visible": []
+    },
+    {
+      "pid": 26364,
+      "visible": []
+    },
+    {
+      "pid": 26455,
+      "visible": []
+    },
+    {
+      "pid": 26494,
+      "visible": []
+    },
+    {
+      "pid": 26560,
+      "visible": []
+    },
+    {
+      "pid": 26635,
+      "visible": []
+    },
+    {
+      "pid": 26722,
+      "visible": []
+    },
+    {
+      "pid": 26810,
+      "visible": []
+    },
+    {
+      "pid": 26888,
+      "visible": []
+    },
+    {
+      "pid": 26915,
+      "visible": []
+    },
+    {
+      "pid": 26918,
+      "visible": []
+    },
+    {
+      "pid": 26969,
+      "visible": []
+    },
+    {
+      "pid": 27056,
+      "visible": []
+    },
+    {
+      "pid": 27071,
+      "visible": []
+    },
+    {
+      "pid": 27073,
+      "visible": []
+    },
+    {
+      "pid": 27079,
+      "visible": []
+    },
+    {
+      "pid": 27164,
+      "visible": []
+    },
+    {
+      "pid": 27168,
+      "visible": []
+    },
+    {
+      "pid": 27275,
+      "visible": []
+    },
+    {
+      "pid": 28070,
+      "visible": []
+    },
+    {
+      "pid": 28115,
+      "visible": []
+    },
+    {
+      "pid": 28180,
+      "visible": []
+    },
+    {
+      "pid": 28244,
+      "visible": []
+    },
+    {
+      "pid": 28283,
+      "visible": []
+    },
+    {
+      "pid": 28359,
+      "visible": []
+    },
+    {
+      "pid": 28408,
+      "visible": []
+    },
+    {
+      "pid": 28484,
+      "visible": []
+    },
+    {
+      "pid": 28546,
+      "visible": []
+    },
+    {
+      "pid": 28620,
+      "visible": []
+    },
+    {
+      "pid": 28683,
+      "visible": []
+    },
+    {
+      "pid": 28733,
+      "visible": []
+    },
+    {
+      "pid": 28795,
+      "visible": []
+    },
+    {
+      "pid": 28858,
+      "visible": []
+    },
+    {
+      "pid": 28887,
+      "visible": []
+    },
+    {
+      "pid": 28892,
+      "visible": []
+    },
+    {
+      "pid": 28893,
+      "visible": []
+    },
+    {
+      "pid": 28894,
+      "visible": []
+    },
+    {
+      "pid": 28895,
+      "visible": []
+    },
+    {
+      "pid": 28896,
+      "visible": []
+    },
+    {
+      "pid": 28897,
+      "visible": []
+    },
+    {
+      "pid": 28898,
+      "visible": []
+    },
+    {
+      "pid": 28900,
+      "visible": []
+    },
+    {
+      "pid": 28901,
+      "visible": []
+    },
+    {
+      "pid": 28902,
+      "visible": []
+    },
+    {
+      "pid": 28904,
+      "visible": []
+    },
+    {
+      "pid": 28911,
+      "visible": []
+    },
+    {
+      "pid": 28912,
+      "visible": []
+    },
+    {
+      "pid": 28913,
+      "visible": []
+    },
+    {
+      "pid": 28914,
+      "visible": []
+    },
+    {
+      "pid": 28915,
+      "visible": []
+    },
+    {
+      "pid": 28916,
+      "visible": []
+    },
+    {
+      "pid": 28917,
+      "visible": []
+    },
+    {
+      "pid": 28918,
+      "visible": []
+    },
+    {
+      "pid": 28919,
+      "visible": []
+    },
+    {
+      "pid": 28932,
+      "visible": []
+    },
+    {
+      "pid": 28933,
+      "visible": []
+    },
+    {
+      "pid": 28935,
+      "visible": []
+    },
+    {
+      "pid": 28936,
+      "visible": []
+    },
+    {
+      "pid": 28937,
+      "visible": []
+    },
+    {
+      "pid": 28938,
+      "visible": []
+    },
+    {
+      "pid": 28939,
+      "visible": []
+    },
+    {
+      "pid": 28940,
+      "visible": []
+    },
+    {
+      "pid": 28941,
+      "visible": []
+    },
+    {
+      "pid": 28942,
+      "visible": []
+    },
+    {
+      "pid": 28943,
+      "visible": []
+    },
+    {
+      "pid": 28944,
+      "visible": []
+    },
+    {
+      "pid": 28945,
+      "visible": []
+    },
+    {
+      "pid": 28946,
+      "visible": []
+    },
+    {
+      "pid": 28952,
+      "visible": []
+    },
+    {
+      "pid": 28967,
+      "visible": []
+    },
+    {
+      "pid": 28974,
+      "visible": []
+    },
+    {
+      "pid": 28976,
+      "visible": []
+    },
+    {
+      "pid": 28977,
+      "visible": []
+    },
+    {
+      "pid": 28978,
+      "visible": []
+    },
+    {
+      "pid": 28979,
+      "visible": []
+    },
+    {
+      "pid": 28980,
+      "visible": []
+    },
+    {
+      "pid": 28981,
+      "visible": []
+    },
+    {
+      "pid": 28982,
+      "visible": []
+    },
+    {
+      "pid": 28983,
+      "visible": []
+    },
+    {
+      "pid": 28984,
+      "visible": []
+    },
+    {
+      "pid": 28985,
+      "visible": []
+    },
+    {
+      "pid": 28986,
+      "visible": []
+    },
+    {
+      "pid": 28987,
+      "visible": []
+    },
+    {
+      "pid": 28988,
+      "visible": []
+    },
+    {
+      "pid": 28989,
+      "visible": []
+    },
+    {
+      "pid": 28991,
+      "visible": []
+    },
+    {
+      "pid": 28993,
+      "visible": []
+    },
+    {
+      "pid": 28994,
+      "visible": []
+    },
+    {
+      "pid": 28995,
+      "visible": []
+    },
+    {
+      "pid": 28996,
+      "visible": []
+    },
+    {
+      "pid": 28997,
+      "visible": []
+    },
+    {
+      "pid": 28998,
+      "visible": []
+    },
+    {
+      "pid": 29102,
+      "visible": []
+    },
+    {
+      "pid": 29103,
+      "visible": []
+    },
+    {
+      "pid": 29190,
+      "visible": []
+    },
+    {
+      "pid": 29195,
+      "visible": []
+    },
+    {
+      "pid": 29265,
+      "visible": []
+    },
+    {
+      "pid": 29338,
+      "visible": []
+    },
+    {
+      "pid": 29339,
+      "visible": []
+    },
+    {
+      "pid": 29425,
+      "visible": []
+    },
+    {
+      "pid": 29426,
+      "visible": []
+    },
+    {
+      "pid": 29433,
+      "visible": []
+    },
+    {
+      "pid": 29438,
+      "visible": []
+    },
+    {
+      "pid": 29524,
+      "visible": []
+    },
+    {
+      "pid": 29623,
+      "visible": []
+    },
+    {
+      "pid": 29722,
+      "visible": []
+    },
+    {
+      "pid": 29814,
+      "visible": []
+    },
+    {
+      "pid": 19939,
+      "visible": []
+    },
+    {
+      "pid": 19940,
+      "visible": []
+    },
+    {
+      "pid": 19942,
+      "visible": []
+    },
+    {
+      "pid": 19943,
+      "visible": []
+    },
+    {
+      "pid": 19944,
+      "visible": []
+    },
+    {
+      "pid": 19946,
+      "visible": []
+    },
+    {
+      "pid": 19948,
+      "visible": []
+    },
+    {
+      "pid": 19951,
+      "visible": []
+    },
+    {
+      "pid": 19958,
+      "visible": []
+    },
+    {
+      "pid": 19959,
+      "visible": []
+    },
+    {
+      "pid": 19960,
+      "visible": []
+    },
+    {
+      "pid": 19964,
+      "visible": []
+    },
+    {
+      "pid": 19965,
+      "visible": []
+    },
+    {
+      "pid": 19966,
+      "visible": []
+    },
+    {
+      "pid": 19974,
+      "visible": []
+    },
+    {
+      "pid": 20005,
+      "visible": []
+    },
+    {
+      "pid": 20031,
+      "visible": []
+    },
+    {
+      "pid": 20033,
+      "visible": []
+    },
+    {
+      "pid": 20034,
+      "visible": []
+    },
+    {
+      "pid": 20040,
+      "visible": []
+    },
+    {
+      "pid": 20043,
+      "visible": []
+    },
+    {
+      "pid": 20045,
+      "visible": []
+    },
+    {
+      "pid": 20051,
+      "visible": []
+    },
+    {
+      "pid": 20055,
+      "visible": []
+    },
+    {
+      "pid": 20056,
+      "visible": []
+    },
+    {
+      "pid": 20058,
+      "visible": []
+    },
+    {
+      "pid": 20068,
+      "visible": []
+    },
+    {
+      "pid": 20069,
+      "visible": []
+    },
+    {
+      "pid": 20070,
+      "visible": []
+    },
+    {
+      "pid": 20072,
+      "visible": []
+    },
+    {
+      "pid": 20073,
+      "visible": []
+    },
+    {
+      "pid": 20074,
+      "visible": []
+    },
+    {
+      "pid": 20075,
+      "visible": []
+    },
+    {
+      "pid": 20079,
+      "visible": []
+    },
+    {
+      "pid": 20080,
+      "visible": []
+    },
+    {
+      "pid": 20081,
+      "visible": []
+    },
+    {
+      "pid": 20082,
+      "visible": []
+    },
+    {
+      "pid": 20084,
+      "visible": []
+    },
+    {
+      "pid": 20087,
+      "visible": []
+    },
+    {
+      "pid": 20088,
+      "visible": []
+    },
+    {
+      "pid": 20089,
+      "visible": []
+    },
+    {
+      "pid": 20091,
+      "visible": []
+    },
+    {
+      "pid": 20094,
+      "visible": []
+    },
+    {
+      "pid": 20096,
+      "visible": []
+    },
+    {
+      "pid": 27276,
+      "visible": []
+    },
+    {
+      "pid": 27278,
+      "visible": []
+    },
+    {
+      "pid": 27280,
+      "visible": []
+    },
+    {
+      "pid": 27285,
+      "visible": []
+    },
+    {
+      "pid": 27295,
+      "visible": []
+    },
+    {
+      "pid": 27297,
+      "visible": []
+    },
+    {
+      "pid": 27298,
+      "visible": []
+    },
+    {
+      "pid": 27300,
+      "visible": []
+    },
+    {
+      "pid": 27301,
+      "visible": []
+    },
+    {
+      "pid": 27302,
+      "visible": []
+    },
+    {
+      "pid": 27304,
+      "visible": []
+    },
+    {
+      "pid": 27305,
+      "visible": []
+    },
+    {
+      "pid": 27319,
+      "visible": []
+    },
+    {
+      "pid": 27320,
+      "visible": []
+    },
+    {
+      "pid": 27333,
+      "visible": []
+    },
+    {
+      "pid": 27335,
+      "visible": []
+    },
+    {
+      "pid": 27336,
+      "visible": []
+    },
+    {
+      "pid": 27349,
+      "visible": []
+    },
+    {
+      "pid": 27363,
+      "visible": []
+    },
+    {
+      "pid": 27365,
+      "visible": []
+    },
+    {
+      "pid": 27377,
+      "visible": []
+    },
+    {
+      "pid": 27391,
+      "visible": []
+    },
+    {
+      "pid": 27404,
+      "visible": []
+    },
+    {
+      "pid": 27417,
+      "visible": []
+    },
+    {
+      "pid": 27419,
+      "visible": []
+    },
+    {
+      "pid": 27432,
+      "visible": []
+    },
+    {
+      "pid": 27455,
+      "visible": []
+    },
+    {
+      "pid": 27475,
+      "visible": []
+    },
+    {
+      "pid": 27477,
+      "visible": []
+    },
+    {
+      "pid": 27479,
+      "visible": []
+    },
+    {
+      "pid": 27508,
+      "visible": []
+    },
+    {
+      "pid": 27510,
+      "visible": []
+    },
+    {
+      "pid": 27512,
+      "visible": []
+    },
+    {
+      "pid": 27525,
+      "visible": []
+    },
+    {
+      "pid": 27526,
+      "visible": []
+    },
+    {
+      "pid": 27540,
+      "visible": []
+    },
+    {
+      "pid": 27555,
+      "visible": []
+    },
+    {
+      "pid": 27569,
+      "visible": []
+    },
+    {
+      "pid": 27582,
+      "visible": []
+    },
+    {
+      "pid": 27595,
+      "visible": []
+    },
+    {
+      "pid": 27608,
+      "visible": []
+    },
+    {
+      "pid": 27610,
+      "visible": []
+    },
+    {
+      "pid": 27624,
+      "visible": []
+    },
+    {
+      "pid": 27637,
+      "visible": []
+    },
+    {
+      "pid": 27650,
+      "visible": []
+    },
+    {
+      "pid": 27651,
+      "visible": []
+    },
+    {
+      "pid": 27652,
+      "visible": []
+    },
+    {
+      "pid": 27654,
+      "visible": []
+    },
+    {
+      "pid": 27656,
+      "visible": []
+    },
+    {
+      "pid": 27658,
+      "visible": []
+    },
+    {
+      "pid": 27659,
+      "visible": []
+    },
+    {
+      "pid": 27660,
+      "visible": []
+    },
+    {
+      "pid": 27661,
+      "visible": []
+    },
+    {
+      "pid": 27675,
+      "visible": []
+    },
+    {
+      "pid": 27678,
+      "visible": []
+    },
+    {
+      "pid": 27690,
+      "visible": []
+    },
+    {
+      "pid": 27691,
+      "visible": []
+    },
+    {
+      "pid": 27692,
+      "visible": []
+    },
+    {
+      "pid": 27705,
+      "visible": []
+    },
+    {
+      "pid": 27722,
+      "visible": []
+    },
+    {
+      "pid": 27737,
+      "visible": []
+    },
+    {
+      "pid": 27752,
+      "visible": []
+    },
+    {
+      "pid": 27766,
+      "visible": []
+    },
+    {
+      "pid": 27784,
+      "visible": []
+    },
+    {
+      "pid": 27798,
+      "visible": []
+    },
+    {
+      "pid": 27812,
+      "visible": []
+    }
+  ],
+  "visible": []
+}

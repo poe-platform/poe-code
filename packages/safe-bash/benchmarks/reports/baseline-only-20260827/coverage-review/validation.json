@@ -1,0 +1,42 @@
+{
+  "capturedAt": "2026-08-27T03:47:20.508Z",
+  "type": "static-validation-only",
+  "workloadsExecuted": 0,
+  "preparedDeclarationsMatch": true,
+  "staticAuditStatuses": [
+    0,
+    0
+  ],
+  "syntaxCheck": "passed",
+  "cohortNamesMissing": [],
+  "sourceDrift": {
+    "before": {
+      "path": "src",
+      "entries": 165,
+      "bytes": 1626147,
+      "manifestSha256": "793997b875dbdc9e61606dd5502869b2c8e875951e3fe57ceeb217c168e5710d",
+      "symlinks": []
+    },
+    "after": {
+      "path": "src",
+      "entries": 165,
+      "bytes": 1626130,
+      "manifestSha256": "8c30a64838399bc319dfe56558cfd5d995bb6377233c388a2af51fc8239c723f",
+      "symlinks": []
+    },
+    "interveningCommittedSourcePaths": [
+      "src/fs/s3/http/request.ts"
+    ],
+    "individuallyRecordedRelevantFileChanges": []
+  },
+  "dependencyTreesUnchanged": true,
+  "casesUnchanged": true,
+  "releaseGate": {
+    "path": "/tmp/safe-bash-baseline-coverage-review.ready",
+    "exists": false
+  },
+  "authorSnapshot": null,
+  "staticHarnessSha256": "3f299ce49b2effb4933cec365cecbe6fa67c217c0bd8e5d2dd1b853563094765",
+  "processCleanup": "No product/native workload children or fixture servers created. Static Node subprocesses exited status 0 / signal null. No resource deletion needed.",
+  "measurementVerdict": "BLOCKED; runtime availability, functional parity and observed breadth conclusions remain unmeasured."
+}

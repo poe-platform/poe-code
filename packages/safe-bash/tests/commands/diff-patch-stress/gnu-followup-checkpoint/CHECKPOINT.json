@@ -1,0 +1,2080 @@
+{
+  "schemaVersion": 1,
+  "decision": "NOT ACCEPTED: all 36 raw failures remain in the denominator",
+  "evidenceDirectory": "/private/tmp/safe-bash-diff-gnu-final-3X0YYP",
+  "snapshot": "/private/tmp/safe-bash-diff-gnu-final-3X0YYP/snapshot-1",
+  "startedAt": "2026-08-26T22:32:16.555Z",
+  "finishedAt": "2026-08-26T22:33:32.723Z",
+  "head": "695eb079c223077da2010872d59effdff15b17f3",
+  "readiness": {
+    "path": "/tmp/safe-bash-diff-source-checkpoint.ready",
+    "sha256": "1b196953bdedaa714ebb5455b300885ab0540de01f298bcc6d8efe55f20e4faf",
+    "contents": "All diff-patch source and safety-test writers are closed; final frozen capture may begin.\nLatest owned source fix: 695eb07 (failed-deletion reject orientation).\nSafety reconciliation: 6c9e5e0; candidate regression corpus: e6f2e64.\nLatest patch.ts SHA-256: b344c6f7b0f6afaccdab75778a12c11c868d7f8bccd5d453c56e552039e619fe.\nKnown external pruning blocker remains. Recheck global TypeScript; prior network WIP errors were unowned.\nNo live source edits or test expectation changes during final capture. Every typecheck must use --noEmit.\n"
+  },
+  "sourceCommits": [
+    "d05c582",
+    "05dee32",
+    "3c4a1b0",
+    "7f7fe63",
+    "cccf34c",
+    "bb74849",
+    "15159dd",
+    "7822b5f",
+    "efa56b3",
+    "87085fd",
+    "56e2c63",
+    "695eb07"
+  ],
+  "testAndHandoffCommits": [
+    "e6f2e64",
+    "6982d43",
+    "2206a92",
+    "6c9e5e0"
+  ],
+  "inputs": {
+    "roots": [
+      "src",
+      "tests",
+      "benchmarks",
+      "package.json",
+      "package-lock.json",
+      "tsconfig.json",
+      "tsconfig.build.json",
+      "AGENTS.md",
+      "README.md"
+    ],
+    "exclusions": [
+      "node_modules at any level (separately fingerprinted root dependency tree)",
+      "benchmarks/reports (historical comparator output)",
+      "native temporary directories matching .native-*, .hunk-native-* or patch-gnu-native-*",
+      "root .git (selected state/proof captured externally), dist, docs and other paths outside declared roots"
+    ],
+    "count": 833,
+    "aggregate": "9642a76c15522d246a93223633d19788864f23a73684f4dcb95e384332e0b49f",
+    "manifest": "inputs.json",
+    "copyAttempts": [
+      {
+        "attempt": 1,
+        "candidate": "/tmp/safe-bash-diff-gnu-final-3X0YYP/snapshot-1",
+        "before": "9642a76c15522d246a93223633d19788864f23a73684f4dcb95e384332e0b49f",
+        "after": "9642a76c15522d246a93223633d19788864f23a73684f4dcb95e384332e0b49f",
+        "copied": "9642a76c15522d246a93223633d19788864f23a73684f4dcb95e384332e0b49f",
+        "headBefore": "695eb079c223077da2010872d59effdff15b17f3",
+        "headAfter": "695eb079c223077da2010872d59effdff15b17f3",
+        "stable": true
+      }
+    ],
+    "workingState": "identity.json.workingState",
+    "uncommittedInputPaths": [
+      "AGENTS.md",
+      "src/commands/network/args.ts",
+      "src/commands/network/body.ts",
+      "src/commands/network/curl.ts",
+      "src/commands/network/index.ts",
+      "src/commands/network/output.ts",
+      "src/commands/network/shared.ts",
+      "src/commands/network/transport.ts",
+      "src/commands/network/types.ts",
+      "src/shell/runtime.ts",
+      "tests/commands/diff-patch-stress/gnu-followup-checkpoint/fixture-probe.mjs",
+      "tests/commands/diff-patch-stress/gnu-followup-checkpoint/pruning-probe.mjs",
+      "tests/commands/diff-patch-stress/gnu-followup-checkpoint/public-probe.mjs",
+      "tests/commands/diff-patch-stress/gnu-followup-checkpoint/reporter.mjs",
+      "tests/commands/diff-patch-stress/gnu-followup-checkpoint/run.mjs",
+      "tests/commands/network/helpers.ts",
+      "tests/commands/network/http.test.ts",
+      "tests/commands/network-stress/evidence.ts",
+      "tests/commands/network-stress/freeze.ts",
+      "tests/commands/network-stress/lab.ts",
+      "tests/commands/network-stress/native.ts",
+      "tests/commands/network-stress/oracle.json",
+      "tests/commands/network-stress/oracle.test.ts",
+      "tests/commands/network-stress/product.ts",
+      "tests/commands/network-stress/rows.ts",
+      "tests/commands/network-stress/transport.ts",
+      "tests/commands/network-stress/tsconfig.json",
+      "tests/commands/network-stress/watchdog.mjs",
+      "tests/commands/safejs-stress/README.md",
+      "tests/commands/safejs-stress/UPSTREAM_PATCH_PROPOSAL.md",
+      "tests/commands/safejs-stress/action-abort.child.mjs",
+      "tests/commands/safejs-stress/action-abort.probe.ts",
+      "tests/commands/safejs-stress/artifact-guards.probe.mjs",
+      "tests/commands/safejs-stress/import-proof.mjs",
+      "tests/commands/safejs-stress/promise-observation.child.mjs",
+      "tests/commands/safejs-stress/reason-contract.probe.mjs",
+      "tests/commands/safejs-stress/wrapper-invariants.probe.mjs",
+      "tests/shell/remote-close-probe.ts",
+      "tests/shell/remote-close.test.ts"
+    ],
+    "sourceHashes": {
+      "src/commands/diff-patch/diff-format.ts": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24",
+      "src/commands/diff-patch/diff.ts": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e",
+      "src/commands/diff-patch/index.ts": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17",
+      "src/commands/diff-patch/patch-envelope.ts": "f6a15e78d7cea41d503f5352206efeb9fa950871c820af730cf27ea06ade99e8",
+      "src/commands/diff-patch/patch-formats.ts": "a78045ac43900582bdb19f0476414e8566c4e1e2edc86b654bc760cf86de3aa4",
+      "src/commands/diff-patch/patch-gnu-paths.ts": "688b9fa1950cda3560abc4fcdd3b81dd383f683c3c378b8a191de9b58732025e",
+      "src/commands/diff-patch/patch-gnu-reject.ts": "5df12efd994c0187998f0112a5fac595f376142f2cd187a5e0b40738f7b6cf02",
+      "src/commands/diff-patch/patch-path.ts": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94",
+      "src/commands/diff-patch/patch.ts": "b344c6f7b0f6afaccdab75778a12c11c868d7f8bccd5d453c56e552039e619fe",
+      "src/commands/diff-patch/shared.ts": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+      "src/commands/diff-patch/unified.ts": "a8659f40aeb9d1cac3548ffd24950e652eeace92cef1339de9e3a5e5ed7e10fb"
+    },
+    "compiledSiblingsBefore": [],
+    "compiledSiblingsAfter": [],
+    "immutable": true,
+    "undeclaredOutputs": [],
+    "changedAfterDiagnostics": []
+  },
+  "runtime": {
+    "node": {
+      "version": "v22.22.2",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "platform": "darwin",
+      "arch": "arm64",
+      "release": "25.4.0"
+    },
+    "packages": {
+      "typescript": "5.9.3",
+      "tsx": "4.23.12",
+      "@types/node": "22.20.1"
+    },
+    "dependencyRoot": "/Users/kjopek/Workspace/safe-bash/node_modules",
+    "dependencyCount": 318,
+    "dependencyAggregate": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+    "dependenciesStable": true
+  },
+  "oracle": {
+    "beforeAfterStable": true,
+    "identities": [
+      {
+        "profile": "gnu",
+        "tool": "diff",
+        "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+        "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+        "version": "diff (GNU diffutils) 3.12\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Paul Eggert, Mike Haertel, David Hayes,\nRichard Stallman, and Len Tower.",
+        "dialect": "gnu",
+        "sha256": "f13ef516c397b0281818ffe8685aa763100b56a6549295c91849c6af937a83c9"
+      },
+      {
+        "profile": "gnu",
+        "tool": "patch",
+        "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+        "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+        "version": "GNU patch 2.8\nCopyright 1989-2025 Free Software Foundation, Inc.\nCopyright 1984-1988 Larry Wall\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Larry Wall and Paul Eggert",
+        "dialect": "gnu",
+        "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00"
+      },
+      {
+        "profile": "apple-calibration",
+        "tool": "diff",
+        "path": "/usr/bin/diff",
+        "realpath": "/usr/bin/diff",
+        "version": "Apple diff (based on FreeBSD diff)",
+        "dialect": "bsd",
+        "sha256": "214a0d91e39424b15e1e3540edf6b33ee3dd2bbccb0c6dd3a9571dae754edede"
+      },
+      {
+        "profile": "apple-calibration",
+        "tool": "patch",
+        "path": "/usr/bin/patch",
+        "realpath": "/usr/bin/patch",
+        "version": "patch 2.0-12u11-Apple",
+        "dialect": "apple-patch-2.0-12u11",
+        "sha256": "ca8aaa5fa4bd9dfaf4b3be251b18372f25f07483946e7d06b505e5a5fb0a6a84"
+      }
+    ],
+    "supplementalGit": {
+      "timing": "supplemental after-capture identity, not a before/after pin",
+      "version": "git version 2.50.1 (Apple Git-155)",
+      "binaries": [
+        {
+          "path": "/usr/bin/git",
+          "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba",
+          "mtime": "2026-04-06T08:10:57.000Z"
+        },
+        {
+          "path": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9",
+          "mtime": "2026-06-16T07:58:10.000Z"
+        }
+      ]
+    }
+  },
+  "totals": {
+    "tests": 3758,
+    "pass": 3722,
+    "fail": 36,
+    "skipped": 0,
+    "cancelled": 0,
+    "todo": 0
+  },
+  "testFiles": 70,
+  "suites": [
+    {
+      "suite": "absolute-target",
+      "files": [
+        "tests/commands/diff-patch-stress/absolute-target/absolute-target.test.ts",
+        "tests/commands/diff-patch-stress/absolute-target/native.test.ts"
+      ],
+      "tests": 30,
+      "pass": 30,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "todo": 0,
+      "exitCode": 0,
+      "signal": null
+    },
+    {
+      "suite": "compatibility",
+      "files": [
+        "tests/commands/diff-patch-stress/compatibility/diff.test.ts",
+        "tests/commands/diff-patch-stress/compatibility/gaps.test.ts",
+        "tests/commands/diff-patch-stress/compatibility/oracle.test.ts",
+        "tests/commands/diff-patch-stress/compatibility/patch.test.ts",
+        "tests/commands/diff-patch-stress/compatibility/shell.test.ts"
+      ],
+      "tests": 110,
+      "pass": 110,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "todo": 0,
+      "exitCode": 0,
+      "signal": null
+    },
+    {
+      "suite": "editflows",
+      "files": [
+        "tests/commands/diff-patch-stress/editflows/oracles.test.ts",
+        "tests/commands/diff-patch-stress/editflows/parity.test.ts",
+        "tests/commands/diff-patch-stress/editflows/quoted-safety.test.ts"
+      ],
+      "tests": 31,
+      "pass": 30,
+      "fail": 1,
+      "skipped": 0,
+      "cancelled": 0,
+      "todo": 0,
+      "exitCode": 1,
+      "signal": null
+    },
+    {
+      "suite": "emptyfile-delta",
+      "files": [
+        "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts"
+      ],
+      "tests": 89,
+      "pass": 83,
+      "fail": 6,
+      "skipped": 0,
+      "cancelled": 0,
+      "todo": 0,
+      "exitCode": 1,
+      "signal": null
+    },
+    {
+      "suite": "formats",
+      "files": [
+        "tests/commands/diff-patch-stress/formats/boundaries.test.ts",
+        "tests/commands/diff-patch-stress/formats/editflows.test.ts",
+        "tests/commands/diff-patch-stress/formats/regressions.test.ts",
+        "tests/commands/diff-patch-stress/formats/whitespace.test.ts"
+      ],
+      "tests": 1069,
+      "pass": 1069,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "todo": 0,
+      "exitCode": 0,
+      "signal": null
+    },
+    {
+      "suite": "fuzz",
+      "files": [
+        "tests/commands/diff-patch-stress/fuzz/budgets.test.ts",
+        "tests/commands/diff-patch-stress/fuzz/edits.test.ts",
+        "tests/commands/diff-patch-stress/fuzz/properties.test.ts",
+        "tests/commands/diff-patch-stress/fuzz/regressions.test.ts"
+      ],
+      "tests": 38,
+      "pass": 37,
+      "fail": 1,
+      "skipped": 0,
+      "cancelled": 0,
+      "todo": 0,
+      "exitCode": 1,
+      "signal": null
+    },
+    {
+      "suite": "gnu-auxiliary",
+      "files": [
+        "tests/commands/diff-patch-stress/gnu-auxiliary/authorization.test.ts"
+      ],
+      "tests": 56,
+      "pass": 56,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "todo": 0,
+      "exitCode": 0,
+      "signal": null
+    },
+    {
+      "suite": "gnu-candidate-followup",
+      "files": [
+        "tests/commands/diff-patch-stress/gnu-candidate-followup/candidates.test.ts"
+      ],
+      "tests": 21,
+      "pass": 21,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "todo": 0,
+      "exitCode": 0,
+      "signal": null
+    },
+    {
+      "suite": "gnu-editflows",
+      "files": [
+        "tests/commands/diff-patch-stress/gnu-editflows/controls.test.ts",
+        "tests/commands/diff-patch-stress/gnu-editflows/parity.test.ts"
+      ],
+      "tests": 75,
+      "pass": 70,
+      "fail": 5,
+      "skipped": 0,
+      "cancelled": 0,
+      "todo": 0,
+      "exitCode": 1,
+      "signal": null
+    },
+    {
+      "suite": "gnu-safety-strip-followup",
+      "files": [
+        "tests/commands/diff-patch-stress/gnu-safety-strip-followup/controls.test.ts"
+      ],
+      "tests": 6,
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "todo": 0,
+      "exitCode": 0,
+      "signal": null
+    },
+    {
+      "suite": "gnu-target-classification",
+      "files": [
+        "tests/commands/diff-patch-stress/gnu-target-classification/evidence.test.ts"
+      ],
+      "tests": 7,
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "todo": 0,
+      "exitCode": 0,
+      "signal": null
+    },
+    {
+      "suite": "gnu-target-followup",
+      "files": [
+        "tests/commands/diff-patch-stress/gnu-target-followup/metadata-safety.test.ts",
+        "tests/commands/diff-patch-stress/gnu-target-followup/native-controls.test.ts",
+        "tests/commands/diff-patch-stress/gnu-target-followup/overlap-default.test.ts"
+      ],
+      "tests": 23,
+      "pass": 23,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "todo": 0,
+      "exitCode": 0,
+      "signal": null
+    },
+    {
+      "suite": "gnu-target",
+      "files": [
+        "tests/commands/diff-patch-stress/gnu-target/calibration.test.ts",
+        "tests/commands/diff-patch-stress/gnu-target/edit-correctness.test.ts",
+        "tests/commands/diff-patch-stress/gnu-target/policy-mirrors.test.ts"
+      ],
+      "tests": 27,
+      "pass": 27,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "todo": 0,
+      "exitCode": 0,
+      "signal": null
+    },
+    {
+      "suite": "parser-regressions",
+      "files": [
+        "tests/commands/diff-patch-stress/parser-regressions/parser.test.ts"
+      ],
+      "tests": 80,
+      "pass": 80,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "todo": 0,
+      "exitCode": 0,
+      "signal": null
+    },
+    {
+      "suite": "path-regressions",
+      "files": [
+        "tests/commands/diff-patch-stress/path-regressions/bounds-shell.test.ts",
+        "tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts",
+        "tests/commands/diff-patch-stress/path-regressions/malformed.test.ts",
+        "tests/commands/diff-patch-stress/path-regressions/names.test.ts",
+        "tests/commands/diff-patch-stress/path-regressions/sequences.test.ts"
+      ],
+      "tests": 619,
+      "pass": 619,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "todo": 0,
+      "exitCode": 0,
+      "signal": null
+    },
+    {
+      "suite": "safety",
+      "files": [
+        "tests/commands/diff-patch-stress/safety/bounds.test.ts",
+        "tests/commands/diff-patch-stress/safety/cancellation.test.ts",
+        "tests/commands/diff-patch-stress/safety/encoding-gaps.test.ts",
+        "tests/commands/diff-patch-stress/safety/failures.test.ts",
+        "tests/commands/diff-patch-stress/safety/integration.test.ts",
+        "tests/commands/diff-patch-stress/safety/paths.test.ts"
+      ],
+      "tests": 152,
+      "pass": 152,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "todo": 0,
+      "exitCode": 0,
+      "signal": null
+    },
+    {
+      "suite": "author",
+      "files": [
+        "tests/commands/diff-patch/cancellation.test.ts",
+        "tests/commands/diff-patch/diff-formats.test.ts",
+        "tests/commands/diff-patch/diff-gnu-options.test.ts",
+        "tests/commands/diff-patch/diff.test.ts",
+        "tests/commands/diff-patch/hunk-regressions.test.ts",
+        "tests/commands/diff-patch/native-helper.test.ts",
+        "tests/commands/diff-patch/options-regressions.test.ts",
+        "tests/commands/diff-patch/patch-absolute.test.ts",
+        "tests/commands/diff-patch/patch-authorization-followup.test.ts",
+        "tests/commands/diff-patch/patch-candidate-errors-followup.test.ts",
+        "tests/commands/diff-patch/patch-commit-followup.test.ts",
+        "tests/commands/diff-patch/patch-editflows.test.ts",
+        "tests/commands/diff-patch/patch-empty.test.ts",
+        "tests/commands/diff-patch/patch-epoch.test.ts",
+        "tests/commands/diff-patch/patch-formats.test.ts",
+        "tests/commands/diff-patch/patch-gnu-coordinates.test.ts",
+        "tests/commands/diff-patch/patch-gnu-publication.test.ts",
+        "tests/commands/diff-patch/patch-hunk-diagnostics-followup.test.ts",
+        "tests/commands/diff-patch/patch-interstitial-followup.test.ts",
+        "tests/commands/diff-patch/patch-metadata-boundary-followup.test.ts",
+        "tests/commands/diff-patch/patch-namespace-followup.test.ts",
+        "tests/commands/diff-patch/patch-parser.test.ts",
+        "tests/commands/diff-patch/patch-reject-orientation-followup.test.ts",
+        "tests/commands/diff-patch/patch-strip-followup.test.ts",
+        "tests/commands/diff-patch/patch.test.ts",
+        "tests/commands/diff-patch/safety.test.ts",
+        "tests/commands/diff-patch/shell.test.ts"
+      ],
+      "tests": 1325,
+      "pass": 1302,
+      "fail": 23,
+      "skipped": 0,
+      "cancelled": 0,
+      "todo": 0,
+      "exitCode": 1,
+      "signal": null
+    }
+  ],
+  "failures": [
+    {
+      "suite": "editflows",
+      "name": "quoted-path security: quoted ancestor symlink",
+      "file": "tests/commands/diff-patch-stress/editflows/quoted-safety.test.ts",
+      "ordinal": 31,
+      "classification": "expectation-conflict-default-stripping",
+      "diagnostic": "Expected values to be strictly equal:\n0 !== 2",
+      "rawEvidence": "editflows.events.jsonl"
+    },
+    {
+      "suite": "emptyfile-delta",
+      "name": "GNU default: normal/-E/apply",
+      "file": "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+      "ordinal": 2,
+      "classification": "external-empty-directory-removal-contract",
+      "diagnostic": "patch: EISDIR: illegal operation on a directory, rm '/authorized'\n2 !== 0",
+      "rawEvidence": "emptyfile-delta.events.jsonl"
+    },
+    {
+      "suite": "emptyfile-delta",
+      "name": "GNU default: normal/--remove-empty-files/apply",
+      "file": "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+      "ordinal": 5,
+      "classification": "external-empty-directory-removal-contract",
+      "diagnostic": "patch: EISDIR: illegal operation on a directory, rm '/authorized'\n2 !== 0",
+      "rawEvidence": "emptyfile-delta.events.jsonl"
+    },
+    {
+      "suite": "emptyfile-delta",
+      "name": "GNU default: context/-E/apply",
+      "file": "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+      "ordinal": 9,
+      "classification": "external-empty-directory-removal-contract",
+      "diagnostic": "patch: EISDIR: illegal operation on a directory, rm '/authorized'\n2 !== 0",
+      "rawEvidence": "emptyfile-delta.events.jsonl"
+    },
+    {
+      "suite": "emptyfile-delta",
+      "name": "GNU default: context/--remove-empty-files/apply",
+      "file": "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+      "ordinal": 12,
+      "classification": "external-empty-directory-removal-contract",
+      "diagnostic": "patch: EISDIR: illegal operation on a directory, rm '/authorized'\n2 !== 0",
+      "rawEvidence": "emptyfile-delta.events.jsonl"
+    },
+    {
+      "suite": "emptyfile-delta",
+      "name": "GNU default: unified/-E/apply",
+      "file": "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+      "ordinal": 16,
+      "classification": "external-empty-directory-removal-contract",
+      "diagnostic": "patch: EISDIR: illegal operation on a directory, rm '/authorized'\n2 !== 0",
+      "rawEvidence": "emptyfile-delta.events.jsonl"
+    },
+    {
+      "suite": "emptyfile-delta",
+      "name": "GNU default: unified/--remove-empty-files/apply",
+      "file": "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+      "ordinal": 19,
+      "classification": "external-empty-directory-removal-contract",
+      "diagnostic": "patch: EISDIR: illegal operation on a directory, rm '/authorized'\n2 !== 0",
+      "rawEvidence": "emptyfile-delta.events.jsonl"
+    },
+    {
+      "suite": "fuzz",
+      "name": "atomic extension malformed backward-second-hunk is not swallowed after a valid file section",
+      "file": "tests/commands/diff-patch-stress/fuzz/edits.test.ts",
+      "ordinal": 21,
+      "classification": "expectation-conflict-atomic-status",
+      "diagnostic": "patch: hunk 2 does not match target\n1 !== 2",
+      "rawEvidence": "fuzz.events.jsonl"
+    },
+    {
+      "suite": "gnu-editflows",
+      "name": "GNU default: null/delete-prunes-to-cwd",
+      "file": "tests/commands/diff-patch-stress/gnu-editflows/parity.test.ts",
+      "ordinal": 62,
+      "classification": "external-empty-directory-removal-contract",
+      "diagnostic": "null/delete-prunes-to-cwd, invocation 1: {\"args\":[\"-p0\"],\"input\":\"--- tree/deep/target\\t2026-08-26 00:00:00 +0000\\n+++ /dev/null\\n@@ -1 +0,0 @@\\n-old\\n\"}\nproduct stdout=patching file tree/deep/target\nproduct stderr=patch: EISDIR: illegal operation on a directory, rm '/fixture/work/tree/deep'",
+      "rawEvidence": "gnu-editflows.events.jsonl"
+    },
+    {
+      "suite": "gnu-editflows",
+      "name": "GNU default: null/delete-stops-at-nonempty-parent",
+      "file": "tests/commands/diff-patch-stress/gnu-editflows/parity.test.ts",
+      "ordinal": 63,
+      "classification": "external-empty-directory-removal-contract",
+      "diagnostic": "null/delete-stops-at-nonempty-parent, invocation 1: {\"args\":[\"-p0\"],\"input\":\"--- tree/deep/target\\t2026-08-26 00:00:00 +0000\\n+++ /dev/null\\n@@ -1 +0,0 @@\\n-old\\n\"}\nproduct stdout=patching file tree/deep/target\nproduct stderr=patch: EISDIR: illegal operation on a directory, rm '/fixture/work/tree/deep'",
+      "rawEvidence": "gnu-editflows.events.jsonl"
+    },
+    {
+      "suite": "gnu-editflows",
+      "name": "GNU default: null/delete-preserves-unrelated-empty-directory",
+      "file": "tests/commands/diff-patch-stress/gnu-editflows/parity.test.ts",
+      "ordinal": 64,
+      "classification": "external-empty-directory-removal-contract",
+      "diagnostic": "null/delete-preserves-unrelated-empty-directory, invocation 1: {\"args\":[\"-p0\"],\"input\":\"--- tree/deep/target\\t2026-08-26 00:00:00 +0000\\n+++ /dev/null\\n@@ -1 +0,0 @@\\n-old\\n\"}\nproduct stdout=patching file tree/deep/target\nproduct stderr=patch: EISDIR: illegal operation on a directory, rm '/fixture/work/tree/deep'",
+      "rawEvidence": "gnu-editflows.events.jsonl"
+    },
+    {
+      "suite": "gnu-editflows",
+      "name": "GNU default: null/reverse-create-deletes-and-prunes",
+      "file": "tests/commands/diff-patch-stress/gnu-editflows/parity.test.ts",
+      "ordinal": 65,
+      "classification": "external-empty-directory-removal-contract",
+      "diagnostic": "null/reverse-create-deletes-and-prunes, invocation 1: {\"args\":[\"-R\",\"-p0\"],\"input\":\"--- /dev/null\\n+++ tree/deep/target\\t2026-08-26 00:00:00 +0000\\n@@ -0,0 +1 @@\\n+old\\n\"}\nproduct stdout=patching file tree/deep/target\nproduct stderr=patch: EISDIR: illegal operation on a directory, rm '/fixture/work/tree/deep'",
+      "rawEvidence": "gnu-editflows.events.jsonl"
+    },
+    {
+      "suite": "gnu-editflows",
+      "name": "GNU default: empty/E-removes-and-prunes",
+      "file": "tests/commands/diff-patch-stress/gnu-editflows/parity.test.ts",
+      "ordinal": 74,
+      "classification": "external-empty-directory-removal-contract",
+      "diagnostic": "empty/E-removes-and-prunes, invocation 1: {\"args\":[\"-E\",\"-p0\"],\"input\":\"--- tree/target\\n+++ tree/target\\n@@ -1 +0,0 @@\\n-old\\n\"}\nproduct stdout=patching file tree/target\nproduct stderr=patch: EISDIR: illegal operation on a directory, rm '/fixture/work/tree'",
+      "rawEvidence": "gnu-editflows.events.jsonl"
+    },
+    {
+      "suite": "author",
+      "name": "authorized absolute target preserves dev-null creation and reverse deletion",
+      "file": "tests/commands/diff-patch/patch-absolute.test.ts",
+      "ordinal": 806,
+      "classification": "external-empty-directory-removal-contract",
+      "diagnostic": "Expected values to be strictly equal:\n2 !== 0",
+      "rawEvidence": "author.events.jsonl"
+    },
+    {
+      "suite": "author",
+      "name": "normal -E removes empty results but dry-run preserves existence",
+      "file": "tests/commands/diff-patch/patch-empty.test.ts",
+      "ordinal": 887,
+      "classification": "external-empty-directory-removal-contract",
+      "diagnostic": "patch: EISDIR: illegal operation on a directory, rm '/work'\n2 !== 0",
+      "rawEvidence": "author.events.jsonl"
+    },
+    {
+      "suite": "author",
+      "name": "normal --remove-empty-files removes empty results but dry-run preserves existence",
+      "file": "tests/commands/diff-patch/patch-empty.test.ts",
+      "ordinal": 888,
+      "classification": "external-empty-directory-removal-contract",
+      "diagnostic": "patch: EISDIR: illegal operation on a directory, rm '/work'\n2 !== 0",
+      "rawEvidence": "author.events.jsonl"
+    },
+    {
+      "suite": "author",
+      "name": "context -E removes empty results but dry-run preserves existence",
+      "file": "tests/commands/diff-patch/patch-empty.test.ts",
+      "ordinal": 889,
+      "classification": "external-empty-directory-removal-contract",
+      "diagnostic": "patch: EISDIR: illegal operation on a directory, rm '/work'\n2 !== 0",
+      "rawEvidence": "author.events.jsonl"
+    },
+    {
+      "suite": "author",
+      "name": "context --remove-empty-files removes empty results but dry-run preserves existence",
+      "file": "tests/commands/diff-patch/patch-empty.test.ts",
+      "ordinal": 890,
+      "classification": "external-empty-directory-removal-contract",
+      "diagnostic": "patch: EISDIR: illegal operation on a directory, rm '/work'\n2 !== 0",
+      "rawEvidence": "author.events.jsonl"
+    },
+    {
+      "suite": "author",
+      "name": "unified -E removes empty results but dry-run preserves existence",
+      "file": "tests/commands/diff-patch/patch-empty.test.ts",
+      "ordinal": 891,
+      "classification": "external-empty-directory-removal-contract",
+      "diagnostic": "patch: EISDIR: illegal operation on a directory, rm '/work'\n2 !== 0",
+      "rawEvidence": "author.events.jsonl"
+    },
+    {
+      "suite": "author",
+      "name": "unified --remove-empty-files removes empty results but dry-run preserves existence",
+      "file": "tests/commands/diff-patch/patch-empty.test.ts",
+      "ordinal": 892,
+      "classification": "external-empty-directory-removal-contract",
+      "diagnostic": "patch: EISDIR: illegal operation on a directory, rm '/work'\n2 !== 0",
+      "rawEvidence": "author.events.jsonl"
+    },
+    {
+      "suite": "author",
+      "name": "unified epoch 1970-01-01 00:00:00 +0000 /work/target creates and reverses deletion",
+      "file": "tests/commands/diff-patch/patch-epoch.test.ts",
+      "ordinal": 904,
+      "classification": "external-empty-directory-removal-contract",
+      "diagnostic": "patch: EISDIR: illegal operation on a directory, rm '/work'\n2 !== 0",
+      "rawEvidence": "author.events.jsonl"
+    },
+    {
+      "suite": "author",
+      "name": "unified epoch 1970-01-01 00:00:00.000000000 +0000 /work/target creates and reverses deletion",
+      "file": "tests/commands/diff-patch/patch-epoch.test.ts",
+      "ordinal": 906,
+      "classification": "external-empty-directory-removal-contract",
+      "diagnostic": "patch: EISDIR: illegal operation on a directory, rm '/work'\n2 !== 0",
+      "rawEvidence": "author.events.jsonl"
+    },
+    {
+      "suite": "author",
+      "name": "unified epoch 1969-12-31 19:00:00 -0500 /work/target creates and reverses deletion",
+      "file": "tests/commands/diff-patch/patch-epoch.test.ts",
+      "ordinal": 908,
+      "classification": "external-empty-directory-removal-contract",
+      "diagnostic": "patch: EISDIR: illegal operation on a directory, rm '/work'\n2 !== 0",
+      "rawEvidence": "author.events.jsonl"
+    },
+    {
+      "suite": "author",
+      "name": "unified epoch 1970-01-01 01:00:00 +01:00 /work/target creates and reverses deletion",
+      "file": "tests/commands/diff-patch/patch-epoch.test.ts",
+      "ordinal": 910,
+      "classification": "external-empty-directory-removal-contract",
+      "diagnostic": "patch: EISDIR: illegal operation on a directory, rm '/work'\n2 !== 0",
+      "rawEvidence": "author.events.jsonl"
+    },
+    {
+      "suite": "author",
+      "name": "unified epoch Thu Jan  1 00:00:00 1970 /work/target creates and reverses deletion",
+      "file": "tests/commands/diff-patch/patch-epoch.test.ts",
+      "ordinal": 912,
+      "classification": "external-empty-directory-removal-contract",
+      "diagnostic": "patch: EISDIR: illegal operation on a directory, rm '/work'\n2 !== 0",
+      "rawEvidence": "author.events.jsonl"
+    },
+    {
+      "suite": "author",
+      "name": "unified epoch 1970-01-01 00:00:00 /work/target creates and reverses deletion",
+      "file": "tests/commands/diff-patch/patch-epoch.test.ts",
+      "ordinal": 914,
+      "classification": "external-empty-directory-removal-contract",
+      "diagnostic": "patch: EISDIR: illegal operation on a directory, rm '/work'\n2 !== 0",
+      "rawEvidence": "author.events.jsonl"
+    },
+    {
+      "suite": "author",
+      "name": "unified epoch 1970-01-01 00:00:00.900000000 +0000 /work/target creates and reverses deletion",
+      "file": "tests/commands/diff-patch/patch-epoch.test.ts",
+      "ordinal": 916,
+      "classification": "external-empty-directory-removal-contract",
+      "diagnostic": "patch: EISDIR: illegal operation on a directory, rm '/work'\n2 !== 0",
+      "rawEvidence": "author.events.jsonl"
+    },
+    {
+      "suite": "author",
+      "name": "unified epoch 1970-01-01 00:00:01 +0000 /work/target creates and reverses deletion",
+      "file": "tests/commands/diff-patch/patch-epoch.test.ts",
+      "ordinal": 918,
+      "classification": "external-empty-directory-removal-contract",
+      "diagnostic": "patch: EISDIR: illegal operation on a directory, rm '/work'\n2 !== 0",
+      "rawEvidence": "author.events.jsonl"
+    },
+    {
+      "suite": "author",
+      "name": "context epoch 1970-01-01 00:00:00 +0000 /work/target creates and reverses deletion",
+      "file": "tests/commands/diff-patch/patch-epoch.test.ts",
+      "ordinal": 920,
+      "classification": "external-empty-directory-removal-contract",
+      "diagnostic": "patch: EISDIR: illegal operation on a directory, rm '/work'\n2 !== 0",
+      "rawEvidence": "author.events.jsonl"
+    },
+    {
+      "suite": "author",
+      "name": "context epoch 1970-01-01 00:00:00.000000000 +0000 /work/target creates and reverses deletion",
+      "file": "tests/commands/diff-patch/patch-epoch.test.ts",
+      "ordinal": 922,
+      "classification": "external-empty-directory-removal-contract",
+      "diagnostic": "patch: EISDIR: illegal operation on a directory, rm '/work'\n2 !== 0",
+      "rawEvidence": "author.events.jsonl"
+    },
+    {
+      "suite": "author",
+      "name": "context epoch 1969-12-31 19:00:00 -0500 /work/target creates and reverses deletion",
+      "file": "tests/commands/diff-patch/patch-epoch.test.ts",
+      "ordinal": 924,
+      "classification": "external-empty-directory-removal-contract",
+      "diagnostic": "patch: EISDIR: illegal operation on a directory, rm '/work'\n2 !== 0",
+      "rawEvidence": "author.events.jsonl"
+    },
+    {
+      "suite": "author",
+      "name": "context epoch 1970-01-01 01:00:00 +01:00 /work/target creates and reverses deletion",
+      "file": "tests/commands/diff-patch/patch-epoch.test.ts",
+      "ordinal": 926,
+      "classification": "external-empty-directory-removal-contract",
+      "diagnostic": "patch: EISDIR: illegal operation on a directory, rm '/work'\n2 !== 0",
+      "rawEvidence": "author.events.jsonl"
+    },
+    {
+      "suite": "author",
+      "name": "context epoch Thu Jan  1 00:00:00 1970 /work/target creates and reverses deletion",
+      "file": "tests/commands/diff-patch/patch-epoch.test.ts",
+      "ordinal": 928,
+      "classification": "external-empty-directory-removal-contract",
+      "diagnostic": "patch: EISDIR: illegal operation on a directory, rm '/work'\n2 !== 0",
+      "rawEvidence": "author.events.jsonl"
+    },
+    {
+      "suite": "author",
+      "name": "context epoch 1970-01-01 00:00:00 /work/target creates and reverses deletion",
+      "file": "tests/commands/diff-patch/patch-epoch.test.ts",
+      "ordinal": 930,
+      "classification": "external-empty-directory-removal-contract",
+      "diagnostic": "patch: EISDIR: illegal operation on a directory, rm '/work'\n2 !== 0",
+      "rawEvidence": "author.events.jsonl"
+    },
+    {
+      "suite": "author",
+      "name": "context epoch 1970-01-01 00:00:00.900000000 +0000 /work/target creates and reverses deletion",
+      "file": "tests/commands/diff-patch/patch-epoch.test.ts",
+      "ordinal": 932,
+      "classification": "external-empty-directory-removal-contract",
+      "diagnostic": "patch: EISDIR: illegal operation on a directory, rm '/work'\n2 !== 0",
+      "rawEvidence": "author.events.jsonl"
+    },
+    {
+      "suite": "author",
+      "name": "context epoch 1970-01-01 00:00:01 +0000 /work/target creates and reverses deletion",
+      "file": "tests/commands/diff-patch/patch-epoch.test.ts",
+      "ordinal": 934,
+      "classification": "external-empty-directory-removal-contract",
+      "diagnostic": "patch: EISDIR: illegal operation on a directory, rm '/work'\n2 !== 0",
+      "rawEvidence": "author.events.jsonl"
+    }
+  ],
+  "classificationCounts": {
+    "externalEmptyDirectoryPrimitive": 34,
+    "quotedDefaultStripExpectation": 1,
+    "atomicConflictStatusExpectation": 1
+  },
+  "original30": [
+    {
+      "historicalName": "golden diff flags: short explicit context then short format",
+      "historicalOrdinal": 1,
+      "category": "gnu-selector-defect",
+      "disposition": "GNU product regression passes",
+      "checks": [
+        {
+          "suite": "compatibility",
+          "name": "golden diff flags: short explicit context then short format",
+          "outcome": "pass"
+        }
+      ]
+    },
+    {
+      "historicalName": "native diff flags: short explicit context then short format",
+      "historicalOrdinal": 2,
+      "category": "gnu-selector-defect",
+      "disposition": "GNU product regression passes",
+      "checks": [
+        {
+          "suite": "compatibility",
+          "name": "native diff flags: short explicit context then short format",
+          "outcome": "pass"
+        }
+      ]
+    },
+    {
+      "historicalName": "golden diff flags: short explicit context then long format",
+      "historicalOrdinal": 3,
+      "category": "gnu-selector-defect",
+      "disposition": "GNU product regression passes",
+      "checks": [
+        {
+          "suite": "compatibility",
+          "name": "golden diff flags: short explicit context then long format",
+          "outcome": "pass"
+        }
+      ]
+    },
+    {
+      "historicalName": "native diff flags: short explicit context then long format",
+      "historicalOrdinal": 4,
+      "category": "gnu-selector-defect",
+      "disposition": "GNU product regression passes",
+      "checks": [
+        {
+          "suite": "compatibility",
+          "name": "native diff flags: short explicit context then long format",
+          "outcome": "pass"
+        }
+      ]
+    },
+    {
+      "historicalName": "golden diff flags: long explicit context then grouped format",
+      "historicalOrdinal": 5,
+      "category": "gnu-selector-defect",
+      "disposition": "GNU product regression passes",
+      "checks": [
+        {
+          "suite": "compatibility",
+          "name": "golden diff flags: long explicit context then grouped format",
+          "outcome": "pass"
+        }
+      ]
+    },
+    {
+      "historicalName": "native diff flags: long explicit context then grouped format",
+      "historicalOrdinal": 6,
+      "category": "gnu-selector-defect",
+      "disposition": "GNU product regression passes",
+      "checks": [
+        {
+          "suite": "compatibility",
+          "name": "native diff flags: long explicit context then grouped format",
+          "outcome": "pass"
+        }
+      ]
+    },
+    {
+      "historicalName": "golden diff flags: format then explicit context control",
+      "historicalOrdinal": 7,
+      "category": "gnu-selector-defect",
+      "disposition": "GNU product regression passes",
+      "checks": [
+        {
+          "suite": "compatibility",
+          "name": "golden diff flags: format then explicit context control",
+          "outcome": "pass"
+        }
+      ]
+    },
+    {
+      "historicalName": "native diff flags: format then explicit context control",
+      "historicalOrdinal": 8,
+      "category": "gnu-selector-defect",
+      "disposition": "GNU product regression passes",
+      "checks": [
+        {
+          "suite": "compatibility",
+          "name": "native diff flags: format then explicit context control",
+          "outcome": "pass"
+        }
+      ]
+    },
+    {
+      "historicalName": "Shell+Memory repeated format options retain GNU maximum context",
+      "historicalOrdinal": 110,
+      "category": "gnu-selector-defect",
+      "disposition": "GNU product regression passes",
+      "checks": [
+        {
+          "suite": "compatibility",
+          "name": "Shell+Memory repeated format options retain GNU maximum context",
+          "outcome": "pass"
+        }
+      ]
+    },
+    {
+      "historicalName": "GAP-01 raw selected-oracle Apple-range compatibility reverse",
+      "historicalOrdinal": 31,
+      "category": "gnu-patch-defect",
+      "disposition": "GNU product regression passes",
+      "checks": [
+        {
+          "suite": "fuzz",
+          "name": "GAP-01 raw selected-oracle Apple-range compatibility reverse",
+          "outcome": "pass"
+        }
+      ]
+    },
+    {
+      "historicalName": "GNU boundary anchoring: asymmetric non-EOF rejection",
+      "historicalOrdinal": 33,
+      "category": "gnu-patch-defect",
+      "disposition": "GNU product regression passes",
+      "checks": [
+        {
+          "suite": "fuzz",
+          "name": "GNU boundary anchoring: asymmetric non-EOF rejection",
+          "outcome": "pass"
+        }
+      ]
+    },
+    {
+      "historicalName": "option interactions -C0 -c/labels=false",
+      "historicalOrdinal": 45,
+      "category": "gnu-selector-defect",
+      "disposition": "GNU product regression passes",
+      "checks": [
+        {
+          "suite": "formats",
+          "name": "option interactions -C0 -c/labels=false",
+          "outcome": "pass"
+        }
+      ]
+    },
+    {
+      "historicalName": "option interactions -C0 -c/labels=true",
+      "historicalOrdinal": 46,
+      "category": "gnu-selector-defect",
+      "disposition": "GNU product regression passes",
+      "checks": [
+        {
+          "suite": "formats",
+          "name": "option interactions -C0 -c/labels=true",
+          "outcome": "pass"
+        }
+      ]
+    },
+    {
+      "historicalName": "native-native control context/delete-3/C0",
+      "historicalOrdinal": 243,
+      "category": "gnu-native-native-control",
+      "disposition": "exact GNU negative calibration plus independent product correctness",
+      "checks": [
+        {
+          "suite": "formats",
+          "name": "GNU C0 calibration only context/delete-3/C0",
+          "outcome": "pass"
+        },
+        {
+          "suite": "formats",
+          "name": "independent formatter context/delete-3/C0",
+          "outcome": "pass"
+        }
+      ]
+    },
+    {
+      "historicalName": "independent formatter context/delete-3/C0",
+      "historicalOrdinal": 244,
+      "category": "apple-reverse-control",
+      "disposition": "exact Apple corruption calibration; independent product correctness passes",
+      "checks": [
+        {
+          "suite": "gnu-target",
+          "name": "Apple alternate calibration only: exact reverse corruption delete-3",
+          "outcome": "pass"
+        },
+        {
+          "suite": "formats",
+          "name": "independent formatter context/delete-3/C0",
+          "outcome": "pass"
+        }
+      ]
+    },
+    {
+      "historicalName": "native-native control context/delete-7/C0",
+      "historicalOrdinal": 435,
+      "category": "gnu-native-native-control",
+      "disposition": "exact GNU negative calibration plus independent product correctness",
+      "checks": [
+        {
+          "suite": "formats",
+          "name": "GNU C0 calibration only context/delete-7/C0",
+          "outcome": "pass"
+        },
+        {
+          "suite": "formats",
+          "name": "independent formatter context/delete-7/C0",
+          "outcome": "pass"
+        }
+      ]
+    },
+    {
+      "historicalName": "independent formatter context/delete-7/C0",
+      "historicalOrdinal": 436,
+      "category": "apple-reverse-control",
+      "disposition": "exact Apple corruption calibration; independent product correctness passes",
+      "checks": [
+        {
+          "suite": "gnu-target",
+          "name": "Apple alternate calibration only: exact reverse corruption delete-7",
+          "outcome": "pass"
+        },
+        {
+          "suite": "formats",
+          "name": "independent formatter context/delete-7/C0",
+          "outcome": "pass"
+        }
+      ]
+    },
+    {
+      "historicalName": "native-native control context/delete-11/C0",
+      "historicalOrdinal": 627,
+      "category": "gnu-native-native-control",
+      "disposition": "exact GNU negative calibration plus independent product correctness",
+      "checks": [
+        {
+          "suite": "formats",
+          "name": "GNU C0 calibration only context/delete-11/C0",
+          "outcome": "pass"
+        },
+        {
+          "suite": "formats",
+          "name": "independent formatter context/delete-11/C0",
+          "outcome": "pass"
+        }
+      ]
+    },
+    {
+      "historicalName": "independent formatter context/delete-11/C0",
+      "historicalOrdinal": 628,
+      "category": "apple-reverse-control",
+      "disposition": "exact Apple corruption calibration; independent product correctness passes",
+      "checks": [
+        {
+          "suite": "gnu-target",
+          "name": "Apple alternate calibration only: exact reverse corruption delete-11",
+          "outcome": "pass"
+        },
+        {
+          "suite": "formats",
+          "name": "independent formatter context/delete-11/C0",
+          "outcome": "pass"
+        }
+      ]
+    },
+    {
+      "historicalName": "native-native control context/repeated-alignment-0/C0",
+      "historicalOrdinal": 777,
+      "category": "gnu-native-native-control",
+      "disposition": "exact GNU negative calibration plus independent product correctness",
+      "checks": [
+        {
+          "suite": "formats",
+          "name": "GNU C0 calibration only context/repeated-alignment-0/C0",
+          "outcome": "pass"
+        },
+        {
+          "suite": "formats",
+          "name": "independent formatter context/repeated-alignment-0/C0",
+          "outcome": "pass"
+        }
+      ]
+    },
+    {
+      "historicalName": "native-native control context/repeated-alignment-7/C0",
+      "historicalOrdinal": 819,
+      "category": "gnu-native-native-control",
+      "disposition": "exact GNU negative calibration plus independent product correctness",
+      "checks": [
+        {
+          "suite": "formats",
+          "name": "GNU C0 calibration only context/repeated-alignment-7/C0",
+          "outcome": "pass"
+        },
+        {
+          "suite": "formats",
+          "name": "independent formatter context/repeated-alignment-7/C0",
+          "outcome": "pass"
+        }
+      ]
+    },
+    {
+      "historicalName": "independent formatter context/repeated-alignment-7/C0",
+      "historicalOrdinal": 820,
+      "category": "apple-reverse-control",
+      "disposition": "exact Apple corruption calibration; independent product correctness passes",
+      "checks": [
+        {
+          "suite": "gnu-target",
+          "name": "Apple alternate calibration only: exact reverse corruption repeated-alignment-7",
+          "outcome": "pass"
+        },
+        {
+          "suite": "formats",
+          "name": "independent formatter context/repeated-alignment-7/C0",
+          "outcome": "pass"
+        }
+      ]
+    },
+    {
+      "historicalName": "native-native control context/repeated-alignment-11/C0",
+      "historicalOrdinal": 843,
+      "category": "gnu-native-native-control",
+      "disposition": "exact GNU negative calibration plus independent product correctness",
+      "checks": [
+        {
+          "suite": "formats",
+          "name": "GNU C0 calibration only context/repeated-alignment-11/C0",
+          "outcome": "pass"
+        },
+        {
+          "suite": "formats",
+          "name": "independent formatter context/repeated-alignment-11/C0",
+          "outcome": "pass"
+        }
+      ]
+    },
+    {
+      "historicalName": "independent formatter context/repeated-alignment-11/C0",
+      "historicalOrdinal": 844,
+      "category": "apple-reverse-control",
+      "disposition": "exact Apple corruption calibration; independent product correctness passes",
+      "checks": [
+        {
+          "suite": "gnu-target",
+          "name": "Apple alternate calibration only: exact reverse corruption repeated-alignment-11",
+          "outcome": "pass"
+        },
+        {
+          "suite": "formats",
+          "name": "independent formatter context/repeated-alignment-11/C0",
+          "outcome": "pass"
+        }
+      ]
+    },
+    {
+      "historicalName": "GNU selector regression: -C0 followed by -c resets to three lines",
+      "historicalOrdinal": 858,
+      "category": "gnu-selector-defect",
+      "disposition": "GNU product regression passes",
+      "checks": [
+        {
+          "suite": "formats",
+          "name": "GNU selector regression: -C0 followed by -c resets to three lines",
+          "outcome": "pass"
+        }
+      ]
+    },
+    {
+      "historicalName": "normal-tab-prefix",
+      "historicalOrdinal": 6,
+      "category": "parser-native-control",
+      "disposition": "exact GNU negative/timeout calibration plus independent product parser result",
+      "checks": [
+        {
+          "suite": "gnu-target",
+          "name": "GNU parser calibration only: normal-tab-prefix",
+          "outcome": "pass"
+        },
+        {
+          "suite": "parser-regressions",
+          "name": "normal-tab-prefix",
+          "outcome": "pass"
+        }
+      ]
+    },
+    {
+      "historicalName": "normal-suppress-blank-empty",
+      "historicalOrdinal": 9,
+      "category": "parser-native-control",
+      "disposition": "exact GNU negative/timeout calibration plus independent product parser result",
+      "checks": [
+        {
+          "suite": "gnu-target",
+          "name": "GNU parser calibration only: normal-suppress-blank-empty",
+          "outcome": "pass"
+        },
+        {
+          "suite": "parser-regressions",
+          "name": "normal-suppress-blank-empty",
+          "outcome": "pass"
+        }
+      ]
+    },
+    {
+      "historicalName": "normal-unsafe-integer",
+      "historicalOrdinal": 39,
+      "category": "parser-native-control",
+      "disposition": "exact GNU negative/timeout calibration plus independent product parser result",
+      "checks": [
+        {
+          "suite": "gnu-target",
+          "name": "GNU parser calibration only: normal-unsafe-integer",
+          "outcome": "pass"
+        },
+        {
+          "suite": "parser-regressions",
+          "name": "normal-unsafe-integer",
+          "outcome": "pass"
+        }
+      ]
+    },
+    {
+      "historicalName": "GNU-normal-suppress-blank-empty",
+      "historicalOrdinal": 77,
+      "category": "parser-native-control",
+      "disposition": "exact GNU negative/timeout calibration plus independent product parser result",
+      "checks": [
+        {
+          "suite": "gnu-target",
+          "name": "GNU parser calibration only: GNU-normal-suppress-blank-empty",
+          "outcome": "pass"
+        },
+        {
+          "suite": "parser-regressions",
+          "name": "GNU-normal-suppress-blank-empty",
+          "outcome": "pass"
+        }
+      ]
+    },
+    {
+      "historicalName": "GNU-context-zero-middle-deletion",
+      "historicalOrdinal": 79,
+      "category": "parser-native-control",
+      "disposition": "exact GNU negative/timeout calibration plus independent product parser result",
+      "checks": [
+        {
+          "suite": "gnu-target",
+          "name": "GNU parser calibration only: GNU-context-zero-middle-deletion",
+          "outcome": "pass"
+        },
+        {
+          "suite": "parser-regressions",
+          "name": "GNU-context-zero-middle-deletion",
+          "outcome": "pass"
+        }
+      ]
+    }
+  ],
+  "globalChecks": [
+    {
+      "name": "typecheck",
+      "command": [
+        "npm",
+        "run",
+        "typecheck",
+        "--",
+        "--pretty",
+        "false"
+      ],
+      "cwd": "/tmp/safe-bash-diff-gnu-final-3X0YYP/snapshot-1",
+      "startedAt": "2026-08-26T22:33:24.259Z",
+      "finishedAt": "2026-08-26T22:33:29.055Z",
+      "exitCode": 0,
+      "signal": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-gnu-final-3X0YYP/typecheck.stdout",
+        "sha256": "8280f32853afae17978b944f80601f42266a1951c344c111205fae4c433844eb"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-gnu-final-3X0YYP/typecheck.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "build",
+      "command": [
+        "npm",
+        "run",
+        "build",
+        "--",
+        "--pretty",
+        "false",
+        "--outDir",
+        "/tmp/safe-bash-diff-gnu-final-3X0YYP/snapshot-1/dist"
+      ],
+      "cwd": "/tmp/safe-bash-diff-gnu-final-3X0YYP/snapshot-1",
+      "startedAt": "2026-08-26T22:33:29.057Z",
+      "finishedAt": "2026-08-26T22:33:31.593Z",
+      "exitCode": 0,
+      "signal": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-gnu-final-3X0YYP/build.stdout",
+        "sha256": "e39c7538681a1a589168d7b7fbeb4575cc1b90e636cc73f3b147f851f94001e5"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-gnu-final-3X0YYP/build.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "fixture-probe",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "tests/commands/diff-patch-stress/gnu-followup-checkpoint/fixture-probe.mjs"
+      ],
+      "cwd": "/tmp/safe-bash-diff-gnu-final-3X0YYP/snapshot-1",
+      "startedAt": "2026-08-26T22:33:31.593Z",
+      "finishedAt": "2026-08-26T22:33:31.734Z",
+      "exitCode": 0,
+      "signal": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-gnu-final-3X0YYP/fixture-probe.stdout",
+        "sha256": "9d13e427a4b965bd88c610826f4f6750d5269c7119bbc15b0415282fa2a78d22"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-gnu-final-3X0YYP/fixture-probe.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "public-probe",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "tests/commands/diff-patch-stress/gnu-followup-checkpoint/public-probe.mjs",
+        "/tmp/safe-bash-diff-gnu-final-3X0YYP/fixture-probe.stdout"
+      ],
+      "cwd": "/tmp/safe-bash-diff-gnu-final-3X0YYP/snapshot-1",
+      "startedAt": "2026-08-26T22:33:31.734Z",
+      "finishedAt": "2026-08-26T22:33:31.827Z",
+      "exitCode": 0,
+      "signal": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-gnu-final-3X0YYP/public-probe.stdout",
+        "sha256": "798f4d47763a9c6ff34849e85216132c16268d7c678ecd3b5a21d113d60f4605"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-gnu-final-3X0YYP/public-probe.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ],
+  "liveTypecheck": {
+    "startedAt": "2026-08-26T22:37:07.724Z",
+    "finishedAt": "2026-08-26T22:37:10.406Z",
+    "command": [
+      "npm",
+      "run",
+      "typecheck",
+      "--",
+      "--pretty",
+      "false"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "headBefore": "6854a6b56b47f2449a4b26f5d012975b252a4c33",
+    "headAfter": "6854a6b56b47f2449a4b26f5d012975b252a4c33",
+    "exitCode": 0,
+    "signal": null,
+    "beforeSha256": "f2848435ee1dfc2d41e70898b311487c720674e6650b3da75893c81d4bf4756a",
+    "afterSha256": "f2848435ee1dfc2d41e70898b311487c720674e6650b3da75893c81d4bf4756a",
+    "changed": [],
+    "stdoutSha256": "8280f32853afae17978b944f80601f42266a1951c344c111205fae4c433844eb",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "publicPackage": {
+    "publicEntry": "/private/tmp/safe-bash-diff-gnu-final-3X0YYP/snapshot-1/dist/index.js",
+    "fixtureCount": 115,
+    "probeCount": 3,
+    "taskCount": 118,
+    "fixture": {
+      "name": "plugin-diff-patch-roundtrip",
+      "tier": "plugin-integration",
+      "tags": [
+        "diff",
+        "patch",
+        "files"
+      ],
+      "source": "plugin-integration",
+      "script": "diff -u --label old --label new old new > change; patch /fixture/old < change; cat old",
+      "initialFiles": {
+        "old": "YQpiCg==",
+        "new": "YQpjCg=="
+      },
+      "stdin": "",
+      "env": {},
+      "expected": {
+        "stdout": "cGF0Y2hpbmcgZmlsZSAvZml4dHVyZS9vbGQKYQpjCg==",
+        "stderr": "",
+        "exitCode": 0,
+        "files": {
+          "old": "YQpjCg==",
+          "new": "YQpjCg==",
+          "change": "LS0tIG9sZAorKysgbmV3CkBAIC0xLDIgKzEsMiBAQAogYQotYgorYwo="
+        }
+      }
+    },
+    "directFactory": {
+      "exitCode": 1,
+      "stdoutBase64": "LS0tIG9sZAorKysgbmV3CkBAIC0xLDIgKzEsMiBAQAogYQotYgorYwo="
+    },
+    "result": {
+      "stdout": "patching file /fixture/old\na\nc\n",
+      "stderr": "",
+      "stdoutBytes": {
+        "0": 112,
+        "1": 97,
+        "2": 116,
+        "3": 99,
+        "4": 104,
+        "5": 105,
+        "6": 110,
+        "7": 103,
+        "8": 32,
+        "9": 102,
+        "10": 105,
+        "11": 108,
+        "12": 101,
+        "13": 32,
+        "14": 47,
+        "15": 102,
+        "16": 105,
+        "17": 120,
+        "18": 116,
+        "19": 117,
+        "20": 114,
+        "21": 101,
+        "22": 47,
+        "23": 111,
+        "24": 108,
+        "25": 100,
+        "26": 10,
+        "27": 97,
+        "28": 10,
+        "29": 99,
+        "30": 10
+      },
+      "stderrBytes": {},
+      "exitCode": 0
+    },
+    "namespace": {
+      "/": {
+        "type": "directory"
+      },
+      "/fixture": {
+        "type": "directory"
+      },
+      "/fixture/change": {
+        "type": "file",
+        "base64": "LS0tIG9sZAorKysgbmV3CkBAIC0xLDIgKzEsMiBAQAogYQotYgorYwo="
+      },
+      "/fixture/new": {
+        "type": "file",
+        "base64": "YQpjCg=="
+      },
+      "/fixture/old": {
+        "type": "file",
+        "base64": "YQpjCg=="
+      }
+    },
+    "hostFallback": false,
+    "typescriptLoader": false
+  },
+  "pruningBoundary": {
+    "rmdir": "undefined",
+    "nonrecursiveRm": {
+      "typed": true,
+      "code": "EISDIR",
+      "message": "EISDIR: illegal operation on a directory, rm '/empty'"
+    },
+    "emptyRemains": true
+  },
+  "diagnosticProbe": {
+    "command": [
+      "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "--unhandled-rejections=strict",
+      "/tmp/safe-bash-diff-gnu-final-3X0YYP/diagnostics/failure-probe.mjs",
+      "/tmp/safe-bash-diff-gnu-final-3X0YYP"
+    ],
+    "cwd": "/tmp/safe-bash-diff-gnu-final-3X0YYP/snapshot-1",
+    "exitCode": 0,
+    "signal": null,
+    "scriptSha256": "c287ccca68e06334f66811bb2798bda64dfdef7105b44ead3edcfe6b609e1b1f",
+    "sourceSha256": "c287ccca68e06334f66811bb2798bda64dfdef7105b44ead3edcfe6b609e1b1f",
+    "stdoutSha256": "617beecf16fe1f856ef96087ed598091788c214262d22f219137262d2563593b",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "diagnosticCases": [
+    {
+      "name": "quoted ancestor exact original default",
+      "args": [],
+      "input": "--- first\n+++ first\n@@ -1 +1 @@\n-old\n+new\n--- \"alias/target\"\n+++ \"alias/target\"\n@@ -1 +1 @@\n-old\n+new\n",
+      "files": {
+        "first": "old\n",
+        "target": "old\n",
+        "dir/target": "old\n"
+      },
+      "links": {
+        "alias": "dir"
+      },
+      "product": {
+        "exitCode": 0,
+        "stdout": "patching file first\npatching file target\n",
+        "stderr": "",
+        "mutations": [
+          {
+            "method": "writeFile",
+            "path": "/work/first"
+          },
+          {
+            "method": "writeFile",
+            "path": "/work/target"
+          }
+        ]
+      },
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file first\npatching file target\n",
+        "stderr": ""
+      },
+      "fullNamespaces": "failure-probe.stdout"
+    },
+    {
+      "name": "quoted ancestor retained-path safety control",
+      "args": [
+        "-p0"
+      ],
+      "input": "--- first\n+++ first\n@@ -1 +1 @@\n-old\n+new\n--- \"alias/target\"\n+++ \"alias/target\"\n@@ -1 +1 @@\n-old\n+new\n",
+      "files": {
+        "first": "old\n",
+        "target": "old\n",
+        "dir/target": "old\n"
+      },
+      "links": {
+        "alias": "dir"
+      },
+      "product": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "patch: symlink paths are unsupported: /work/alias\n",
+        "mutations": []
+      },
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file first\npatching file alias/target\n",
+        "stderr": ""
+      },
+      "fullNamespaces": "failure-probe.stdout"
+    },
+    {
+      "name": "backwards hunk exact original atomic",
+      "args": [
+        "--atomic"
+      ],
+      "input": "--- first\n+++ first\n@@ -1 +1 @@\n-keep\n+changed\n--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n@@ -1 +1 @@\n-old\n+other\n",
+      "files": {
+        "first": "keep\n",
+        "target": "old\nmiddle\ntail\n"
+      },
+      "product": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "patch: hunk 2 does not match target\n",
+        "mutations": []
+      },
+      "native": {
+        "exitCode": 1,
+        "stdout": "patching file first\npatching file target\nmisordered hunks! output would be garbled\nHunk #2 FAILED at 1.\n1 out of 2 hunks FAILED -- saving rejects to file target.rej\n",
+        "stderr": ""
+      },
+      "fullNamespaces": "failure-probe.stdout"
+    },
+    {
+      "name": "backwards hunk default GNU parity",
+      "args": [],
+      "input": "--- first\n+++ first\n@@ -1 +1 @@\n-keep\n+changed\n--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n@@ -1 +1 @@\n-old\n+other\n",
+      "files": {
+        "first": "keep\n",
+        "target": "old\nmiddle\ntail\n"
+      },
+      "product": {
+        "exitCode": 1,
+        "stdout": "patching file first\npatching file target\nmisordered hunks! output would be garbled\nHunk #2 FAILED at 1.\n1 out of 2 hunks FAILED -- saving rejects to file target.rej\n",
+        "stderr": "",
+        "mutations": [
+          {
+            "method": "writeFile",
+            "path": "/work/first"
+          },
+          {
+            "method": "writeFile",
+            "path": "/work/target.orig"
+          },
+          {
+            "method": "writeFile",
+            "path": "/work/target"
+          },
+          {
+            "method": "writeFile",
+            "path": "/work/target.rej"
+          }
+        ]
+      },
+      "native": {
+        "exitCode": 1,
+        "stdout": "patching file first\npatching file target\nmisordered hunks! output would be garbled\nHunk #2 FAILED at 1.\n1 out of 2 hunks FAILED -- saving rejects to file target.rej\n",
+        "stderr": ""
+      },
+      "fullNamespaces": "failure-probe.stdout"
+    },
+    {
+      "name": "truncated hunk malformed atomic control",
+      "args": [
+        "--atomic"
+      ],
+      "input": "--- first\n+++ first\n@@ -1 +1 @@\n-keep\n+changed\n--- target\n+++ target\n@@ -1 +1,2 @@\n-old\n+new\n",
+      "files": {
+        "first": "keep\n",
+        "target": "old\nmiddle\ntail\n"
+      },
+      "product": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "patch: truncated or malformed hunk body\n",
+        "mutations": []
+      },
+      "native": {
+        "exitCode": 2,
+        "stdout": "patching file first\npatching file target\n",
+        "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** malformed patch at line 10:  \n\n"
+      },
+      "fullNamespaces": "failure-probe.stdout"
+    },
+    {
+      "name": "author absolute dev-null reverse deletion",
+      "args": [
+        "-R",
+        "/work/target"
+      ],
+      "input": "--- /dev/null\n+++ /ignored/label\n@@ -0,0 +1 @@\n+new\n",
+      "files": {
+        "target": "new\n"
+      },
+      "product": {
+        "exitCode": 2,
+        "stdout": "patching file /work/target\n",
+        "stderr": "patch: EISDIR: illegal operation on a directory, rm '/work'\n",
+        "mutations": [
+          {
+            "method": "rm",
+            "path": "/work/target"
+          },
+          {
+            "method": "rm",
+            "path": "/work",
+            "recursive": false,
+            "error": {
+              "typed": true,
+              "code": "EISDIR",
+              "message": "EISDIR: illegal operation on a directory, rm '/work'"
+            }
+          }
+        ]
+      },
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file /private/tmp/safe-bash-diff-gnu-final-3X0YYP/failure-native-nkgH0u/work/target\n",
+        "stderr": ""
+      },
+      "fullNamespaces": "failure-probe.stdout"
+    }
+  ],
+  "activeSnapshotProcesses": 0,
+  "artifacts": {
+    "absolute-target.events.jsonl": {
+      "bytes": 10661,
+      "sha256": "180031736a0b074253252fbeabe6b185d3190bf63aad2e99360400ee76824d98"
+    },
+    "absolute-target.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "absolute-target.stdout": {
+      "bytes": 11384,
+      "sha256": "2b09f15e07499e1df5d91b02bc384789fca4e7c52886329adc8afcee841ef511"
+    },
+    "author.events.jsonl": {
+      "bytes": 450766,
+      "sha256": "5470385fbf9c4563ff44025792fb8956f6a4b73bc43ae7c1a585dd83f3d557f4"
+    },
+    "author.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "author.stdout": {
+      "bytes": 276372,
+      "sha256": "5a0704b77bdcac1b2f91c874738b56b3566c4bfd91da8c62c201f1087f8f8520"
+    },
+    "build.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "build.stdout": {
+      "bytes": 135,
+      "sha256": "e39c7538681a1a589168d7b7fbeb4575cc1b90e636cc73f3b147f851f94001e5"
+    },
+    "compatibility.events.jsonl": {
+      "bytes": 37204,
+      "sha256": "d4b5d72214c517d97b13fadc202f162937dd2b71dfc864711e945fc9a9ba8acd"
+    },
+    "compatibility.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "compatibility.stdout": {
+      "bytes": 220890,
+      "sha256": "b54a397e4b40397d5abbe169a9957f9878149d9b8d3070d1a9c0a9609dd0ffa8"
+    },
+    "copy-attempt-1.json": {
+      "bytes": 474465,
+      "sha256": "75e02660a5404c482316ccd96ecb316dd41fb2e737bc8dd94965e995277c4b26"
+    },
+    "dependencies-after.json": {
+      "bytes": 50445,
+      "sha256": "72f6064065f28a64c32445ccce3a2859290f9aad276905bbcdf3f2c21209a1db"
+    },
+    "dependencies-before.json": {
+      "bytes": 50445,
+      "sha256": "72f6064065f28a64c32445ccce3a2859290f9aad276905bbcdf3f2c21209a1db"
+    },
+    "diff-emission-cleanup-proof.json": {
+      "bytes": 153516,
+      "sha256": "6edae98ca2305211d4f79c310870046bdfc8b65711b7c7c52626d8be2a085ed5"
+    },
+    "diff-emission-cleanup-verification.json": {
+      "bytes": 2014,
+      "sha256": "4d3b5ed0579204cfad154093a343ece5ae05887408e808e78532f77c15661be1"
+    },
+    "editflows.events.jsonl": {
+      "bytes": 11692,
+      "sha256": "58b961109e86e5ab609f8d79c2eee9573cdbd48be4ef484123701c813e54c156"
+    },
+    "editflows.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "editflows.stdout": {
+      "bytes": 8210,
+      "sha256": "474e9fb15fc6cd3ca85990a51135681a14d9083944468f776826e62aef4f9922"
+    },
+    "emptyfile-delta.events.jsonl": {
+      "bytes": 35398,
+      "sha256": "aab8078163f2fa81240fb96dab523888ae2f54dcac174753abb7831d126e4fcd"
+    },
+    "emptyfile-delta.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "emptyfile-delta.stdout": {
+      "bytes": 20722,
+      "sha256": "19c49d1d1d187b0a3d5013f170570518d204c4ad38caaf0d51ddb4d4cd9bd499"
+    },
+    "failure-probe-run.json": {
+      "bytes": 674,
+      "sha256": "23410a2307dcbf438a3fdc9adfa728c7f2dee27ba104e41888951d386627c454"
+    },
+    "failure-probe.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "failure-probe.stdout": {
+      "bytes": 35830,
+      "sha256": "617beecf16fe1f856ef96087ed598091788c214262d22f219137262d2563593b"
+    },
+    "fixture-probe.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "fixture-probe.stdout": {
+      "bytes": 761,
+      "sha256": "9d13e427a4b965bd88c610826f4f6750d5269c7119bbc15b0415282fa2a78d22"
+    },
+    "formats.events.jsonl": {
+      "bytes": 331306,
+      "sha256": "a8ab98a67ea148781c513b9fb62f3003bd80e61d357c88f34fd4e3cd8fa2f9d9"
+    },
+    "formats.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "formats.stdout": {
+      "bytes": 175972,
+      "sha256": "ca4a0bb4179178a8711e31455541242a5f5bec582f47994999714cc19434cc8d"
+    },
+    "fuzz.events.jsonl": {
+      "bytes": 15033,
+      "sha256": "85a4a2bf5c733a5cee38a768a416cf1bb78136d0406351b36025728ab0e42a79"
+    },
+    "fuzz.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "fuzz.stdout": {
+      "bytes": 14921,
+      "sha256": "7ce7b5acb4d759d3af6459981ae8e98d1c1c7d8f2b89a4b361c27eaf68f4d2f3"
+    },
+    "gnu-auxiliary.events.jsonl": {
+      "bytes": 18319,
+      "sha256": "bbf3e5d494a2c648d1fc014ddf009504f946cff18de8334a0da29753b9cc3352"
+    },
+    "gnu-auxiliary.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "gnu-auxiliary.stdout": {
+      "bytes": 9203,
+      "sha256": "94e438bdd63cda8b63ddee6759e32f6024c5fafd5b6211668bca5ce883ddd3d0"
+    },
+    "gnu-candidate-followup.events.jsonl": {
+      "bytes": 7680,
+      "sha256": "dfeeef48f1c6fe4c79073795ee3d85fdb7c517614d28b5ef066bde11b169b448"
+    },
+    "gnu-candidate-followup.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "gnu-candidate-followup.stdout": {
+      "bytes": 4326,
+      "sha256": "76b1d5f0001e372c71826bcd0dca44365e9f209ca9d834e9ab8a99a3ac3598c5"
+    },
+    "gnu-editflows.events.jsonl": {
+      "bytes": 43975,
+      "sha256": "8ee02ef988d78bb7b50d8a4faed4596d62417a740940b26aaaa92ecf24cdfeb3"
+    },
+    "gnu-editflows.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "gnu-editflows.stdout": {
+      "bytes": 22731,
+      "sha256": "682b24de7cbf3b953665f1ceb3df29033ec67b615fad7097a36243c079ad2417"
+    },
+    "gnu-safety-strip-followup.events.jsonl": {
+      "bytes": 2674,
+      "sha256": "6382ecd83e0d9a5edc1c951ebc6be7084ce1b50d4b2e18980594ace8a98b1f5d"
+    },
+    "gnu-safety-strip-followup.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "gnu-safety-strip-followup.stdout": {
+      "bytes": 1557,
+      "sha256": "7d534d51090300ff698119e5add99cf7215004dc1cf9f155b4d85f1bc0ec35b8"
+    },
+    "gnu-target-classification.events.jsonl": {
+      "bytes": 2967,
+      "sha256": "445e4300748c7b49dd66a7a91fca5090a30227962450a0f4a599dfd2155603cc"
+    },
+    "gnu-target-classification.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "gnu-target-classification.stdout": {
+      "bytes": 1661,
+      "sha256": "7be3a5674df25e2df519fe35fd6439d2ad590d1e8e917fc70fe978e2fe99d542"
+    },
+    "gnu-target-followup.events.jsonl": {
+      "bytes": 9230,
+      "sha256": "92deb4402b4703f5f823f47922430855fea5563ffb7cb1838604c6306cbffeae"
+    },
+    "gnu-target-followup.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "gnu-target-followup.stdout": {
+      "bytes": 5040,
+      "sha256": "0a6c5f3597b22fb4f1e2545f560e6bda39a0ecf79efe4eb38a427cd63e9d1518"
+    },
+    "gnu-target.events.jsonl": {
+      "bytes": 10151,
+      "sha256": "88d0a6098871854a2054feb4fb76f3f34d2b9925ccdafc3f422962dd2bc38cd0"
+    },
+    "gnu-target.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "gnu-target.stdout": {
+      "bytes": 6643,
+      "sha256": "7cbee01a02abdabecc91525313becbc178af4472e843e951839522f125d6a188"
+    },
+    "identity.json": {
+      "bytes": 90601,
+      "sha256": "abe7b9c6834d8e6c71fe71b3f7ff67390c0fb9371dbc50dd1d6b68cca60eed85"
+    },
+    "inputs-after.json": {
+      "bytes": 147131,
+      "sha256": "4d8bba5108910675d90129563a04745102f4fd435b3e83c076c22f55084de162"
+    },
+    "inputs.json": {
+      "bytes": 147131,
+      "sha256": "4d8bba5108910675d90129563a04745102f4fd435b3e83c076c22f55084de162"
+    },
+    "live-typecheck.json": {
+      "bytes": 747,
+      "sha256": "126b961e3cf6e27739f2933c6ca0f471c4ae6fc56d777cbfc270328a8234dbfe"
+    },
+    "live-typecheck.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "live-typecheck.stdout": {
+      "bytes": 63,
+      "sha256": "8280f32853afae17978b944f80601f42266a1951c344c111205fae4c433844eb"
+    },
+    "oracle-after.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "oracle-after.stdout": {
+      "bytes": 1939,
+      "sha256": "c3b03470d8c0f2fad0bed630ddfbeebdf51727f095949e4b4e76aa4bbe5ec727"
+    },
+    "oracle-before.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "oracle-before.stdout": {
+      "bytes": 1939,
+      "sha256": "c3b03470d8c0f2fad0bed630ddfbeebdf51727f095949e4b4e76aa4bbe5ec727"
+    },
+    "parser-regressions.events.jsonl": {
+      "bytes": 24257,
+      "sha256": "de733d8ab0ec260329c673025428fc3eeadce4aadb90d3dbdd4d25603b2cac54"
+    },
+    "parser-regressions.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "parser-regressions.stdout": {
+      "bytes": 10059,
+      "sha256": "981e12cbeac379382e33ee5a924f3c3ae221a48461982d53db48d9d4ad5bc44e"
+    },
+    "path-audit.json": {
+      "bytes": 5411,
+      "sha256": "918e5376fcc904400c11ea2db05c13e94faf799f04242656afb5665931de8dd4"
+    },
+    "path-regressions.events.jsonl": {
+      "bytes": 204893,
+      "sha256": "3ad1d8f34137c1147fb79ddb4c969a85e9c4cae8716ae040cef381a5d8a5fb97"
+    },
+    "path-regressions.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "path-regressions.stdout": {
+      "bytes": 113129,
+      "sha256": "b93ceb463ceff9efd48c1b29fc3649b51e2ee0918ee3a719726673a9238972f6"
+    },
+    "pruning-probe.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "pruning-probe.stdout": {
+      "bytes": 8897,
+      "sha256": "89d022618b332a84d30e46ef53f06a609933137dc8ef17ed37a6ba27ec0fd496"
+    },
+    "public-probe.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "public-probe.stdout": {
+      "bytes": 2093,
+      "sha256": "798f4d47763a9c6ff34849e85216132c16268d7c678ecd3b5a21d113d60f4605"
+    },
+    "result.json": {
+      "bytes": 120898,
+      "sha256": "7f4e72b55d769d6502e5e921f5a5d48404d01facacdb32357c887aef50c37061"
+    },
+    "safety.events.jsonl": {
+      "bytes": 53744,
+      "sha256": "3897493f7efe6092f67da3b4e5b6e3db4376f2ca12b34c33be8ffccc9be484ac"
+    },
+    "safety.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "safety.stdout": {
+      "bytes": 35158,
+      "sha256": "d5cbe165c25bb15446793547166c431d07e4bfb207d96321aaba4a460cdbb2a9"
+    },
+    "snapshot-outputs.json": {
+      "bytes": 68453,
+      "sha256": "065e725c6390b01b5203a602fcea24dd92aeaa982bb3d65a45f8bb82b4d62ef4"
+    },
+    "supplemental-verification.json": {
+      "bytes": 1008,
+      "sha256": "857f7afeef1256a5d8ee15754aa49bcc35844b22fde54cf360423b2f73254833"
+    },
+    "test-census.json": {
+      "bytes": 5110,
+      "sha256": "3ed8aeb760ebf8990035f3be9bb64ae5943cabc5ff3685f086808fb06ac0247a"
+    },
+    "typecheck.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "typecheck.stdout": {
+      "bytes": 63,
+      "sha256": "8280f32853afae17978b944f80601f42266a1951c344c111205fae4c433844eb"
+    }
+  },
+  "limits": [
+    "Not a full-repository runtime test or universal GNU/Bash compatibility claim",
+    "Historical native failures remain explicit calibrations, not native successes",
+    "No comparator rerun, remote filesystem acceptance, superiority or 72-hour completion claim",
+    "Supplemental diagnostic script is separately hash-frozen outside the snapshot; original inputs and built outputs rechecked unchanged"
+  ]
+}

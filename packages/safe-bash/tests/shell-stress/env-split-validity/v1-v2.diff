@@ -1,0 +1,89 @@
+--- tests/shell-stress/env-split-validity/consumer-v1.mjs
++++ tests/shell-stress/env-split-validity/consumer-v2.mjs
+@@ -64,7 +64,7 @@
+     for (const name of ['parentbefore', 'parentafter']) host.commands.register({ name, execute: async context => {
+       boundaries.push({ command: name, args: [...context.args], env: { ...context.env } });
+       assert.deepEqual(context.args.slice(0, 2), ['parent-local', 'parent-public']);
+-      assert.deepEqual(context.env, parentEnv);
++      assert.deepEqual({ ...context.env }, parentEnv);
+       return { exitCode: name === 'parentafter' ? Number(context.args[2]) : 0 };
+     } });
+     host.commands.register({ name: 'entry', execute: async context => {
+@@ -76,7 +76,7 @@
+       try { return await context.invoke('env', fixture.args ?? ['-S', fixture.split]); }
+       finally {
+         entryBoundaries.push({ before, after: { ...context.env } });
+-        assert.deepEqual(context.env, before); assert.deepEqual(before, parentEnv);
++        assert.deepEqual({ ...context.env }, before); assert.deepEqual(before, parentEnv);
+         await complete();
+       }
+     } });
+@@ -118,8 +118,8 @@
+     if (fixture.kind === 'cancel' || fixture.kind === 'budget') {
+       assert.equal(boundaries.length, 1);
+       assert.deepEqual(calls.map(call => call.command), fixture.kind === 'budget'
+-        ? ['parentbefore', 'entry', 'env', 'forward', 'tick']
+-        : ['parentbefore', 'entry', 'env', 'forward', 'waiter']);
++        ? ['export', 'parentbefore', 'entry', 'env', 'forward', 'tick']
++        : ['export', 'parentbefore', 'entry', 'env', 'forward', 'waiter']);
+     } else {
+       assert.deepEqual(boundaries[1], { command: 'parentafter', args: ['parent-local', 'parent-public', String(tuple.status)], env: parentEnv });
+       assert.equal(boundaries.length, 2);
+--- tests/shell-stress/env-split-validity/run-v1.mjs
++++ tests/shell-stress/env-split-validity/run-v2.mjs
+@@ -15,14 +15,14 @@
+ assert.equal(root, '/Users/kjopek/Workspace/safe-bash');
+ const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
+ const git = args => execFileSync('git', args, { cwd: root, maxBuffer: 128 * 1024 * 1024 });
+-const freeze = JSON.parse(await readFile(resolve(owned, 'freeze-v1.json')));
+-const fixtureCommit = git(['log', '-1', '--format=%H', '--', relative(root, resolve(owned, 'freeze-v1.json'))]).toString().trim();
++const freeze = JSON.parse(await readFile(resolve(owned, 'freeze-v2.json')));
++const fixtureCommit = git(['log', '-1', '--format=%H', '--', relative(root, resolve(owned, 'freeze-v2.json'))]).toString().trim();
+ assert.ok(fixtureCommit, 'Commit the complete fixture revision BEFORE execution');
+-for (const name of [...Object.keys(freeze.fixtureFiles), 'freeze-v1.json']) assert.deepEqual(await readFile(resolve(owned, name)), git(['show', fixtureCommit + ':' + relative(root, resolve(owned, name))]));
+-const output = resolve(process.argv[2] ?? resolve(owned, 'author-run-v1.json'));
++for (const name of [...Object.keys(freeze.fixtureFiles), 'freeze-v2.json']) assert.deepEqual(await readFile(resolve(owned, name)), git(['show', fixtureCommit + ':' + relative(root, resolve(owned, name))]));
++const output = resolve(process.argv[2] ?? resolve(owned, 'author-run-v2.json'));
+ assert.ok(output.startsWith(owned + '/') || output.startsWith('/tmp/'), 'Owned or regular /tmp output only');
+ assert.equal(existsSync(output), false, 'Never overwrite an author/reviewer attempt');
+-const scratch = await realpath(await mkdtemp('/tmp/safe-bash-env-validity-v1-'));
++const scratch = await realpath(await mkdtemp('/tmp/safe-bash-env-validity-v2-'));
+ const archive = resolve(scratch, 'archive');
+ const beforeMove = resolve(scratch, 'installation');
+ const consumer = resolve(scratch, 'moved-consumer');
+@@ -49,7 +49,7 @@
+ async function frozenGuard() {
+   for (const [path, expected] of Object.entries(freeze.originalFiles)) assert.equal(sha256(await readFile(resolve(root, path))), expected.sha256, 'Original changed: ' + path);
+   for (const [path, expected] of Object.entries(freeze.fixtureFiles)) assert.equal(sha256(await readFile(resolve(owned, path))), expected, 'Frozen revision changed: ' + path);
+-  assert.deepEqual(await readFile(resolve(owned, 'freeze-v1.json')), git(['show', fixtureCommit + ':' + relative(root, resolve(owned, 'freeze-v1.json'))]));
++  assert.deepEqual(await readFile(resolve(owned, 'freeze-v2.json')), git(['show', fixtureCommit + ':' + relative(root, resolve(owned, 'freeze-v2.json'))]));
+   return true;
+ }
+ const environment = { PATH: dirname(process.execPath), HOME: resolve(scratch, 'home'), LANG: 'C', LC_ALL: 'C', TZ: 'UTC', npm_config_cache: resolve(scratch, 'cache'), npm_config_userconfig: resolve(scratch, 'user.npmrc'), npm_config_globalconfig: resolve(scratch, 'global.npmrc'), npm_config_offline: 'true', npm_config_audit: 'false', npm_config_fund: 'false', npm_config_ignore_scripts: 'true', npm_config_update_notifier: 'false' };
+@@ -165,7 +165,7 @@
+   await rename(beforeMove, consumer); assert.equal(existsSync(beforeMove), false);
+   report.move = { from: beforeMove, to: consumer, oldPathAbsent: true, packageRoot: await realpath(installed), packageIsRealDirectory: (await lstat(installed)).isDirectory() };
+   report.installedBefore = await packageGuard();
+-  for (const name of ['cases.mjs', 'consumer-v1.mjs', 'hidden-v1.mjs', 'hosts-v1.mjs', 'product-row-v1.mjs', 'controls-v1.mjs', 'public-types.mts', 'invalid-binding.mts']) await writeFile(resolve(consumer, name), await readFile(resolve(owned, name)));
++  for (const name of ['cases.mjs', 'consumer-v2.mjs', 'hidden-v1.mjs', 'hosts-v1.mjs', 'product-row-v1.mjs', 'controls-v1.mjs', 'public-types.mts', 'invalid-binding.mts']) await writeFile(resolve(consumer, name), await readFile(resolve(owned, name)));
+   const typeOptions = historical.phases.find(phase => phase.id === 'public-types').args.slice(1, -1);
+   const types = await phase('moved-installed-public-types', process.execPath, [compiler, ...typeOptions, resolve(consumer, 'public-types.mts')], consumer); success(types); assert.equal(types.run.stderrHex, '');
+   const typeFiles = Buffer.from(types.run.stdoutHex, 'hex').toString().trim().split('\n');
+@@ -196,7 +196,7 @@
+     report.hosts.push(actual); assert.equal(actual.result.result.passed, true);
+   }
+   for (const fixture of [...nativeCases, ...hostCases]) {
+-    const actual = await product('consumer:' + fixture.id, 'consumer-v1.mjs', [fixture.id]);
++    const actual = await product('consumer:' + fixture.id, 'consumer-v2.mjs', [fixture.id]);
+     const record = { id: fixture.id, kind: fixture.kind ?? 'native', supportedCore: !fixture.kind && !fixture.header, actual };
+     report.consumer.push(record);
+     assert.equal(actual.observations.length, fixture.variants?.length ?? 1);
+@@ -220,7 +220,7 @@
+   for (const [path, hash] of Object.entries(toolInputs)) assert.equal(sha256(await readFile(path)), hash);
+   assert.equal(sha256(await readFile(tarPath)), tarball.sha256);
+   assert.deepEqual(await filesAt(dirname(dirname(npm)), true), npmBefore);
+-  for (const name of ['cases.mjs', 'consumer-v1.mjs', 'hidden-v1.mjs', 'hosts-v1.mjs', 'product-row-v1.mjs', 'controls-v1.mjs', 'public-types.mts', 'invalid-binding.mts']) assert.deepEqual(await readFile(resolve(consumer, name)), await readFile(resolve(owned, name)));
++  for (const name of ['cases.mjs', 'consumer-v2.mjs', 'hidden-v1.mjs', 'hosts-v1.mjs', 'product-row-v1.mjs', 'controls-v1.mjs', 'public-types.mts', 'invalid-binding.mts']) assert.deepEqual(await readFile(resolve(consumer, name)), await readFile(resolve(owned, name)));
+   report.summary = {
+     hidden: nativeHidden.profiles.map(profile => { const rows = report.hidden.filter(row => row.profile === profile.id); return { profile: profile.id, total: rows.length, strictExact: rows.filter(row => row.exact).length, command: { total: 42, strictExact: rows.filter(row => row.category === 'command' && row.exact).length }, protocol: { total: 6, strictExact: rows.filter(row => row.category === 'single-optional' && row.exact).length, supportedCoreCredit: 0 }, additionalVirtualDiagnosticChecks: rows.filter(row => row.additionalVirtualDiagnosticProfile).length }; }),
+     hiddenHosts: { total: 7, passed: report.hosts.length },

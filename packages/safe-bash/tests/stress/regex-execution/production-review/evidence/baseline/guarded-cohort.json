@@ -1,0 +1,271 @@
+{
+  "claim": {
+    "snapshotName": "baseline",
+    "job": "cohort",
+    "label": "guarded-cohort",
+    "time": "2026-08-27T05:46:27.337Z",
+    "risky": false,
+    "watchdogAfterReadyMs": 15000,
+    "outputCap": 65536,
+    "oldSpaceMb": 128,
+    "historical": "12 archived, prior revision 0/6; not rerun",
+    "reservation": "benign; no risk reservation consumed",
+    "harnessSha256": "1638151093e494240cdf341c2a65b109b4c1e22ff35baed39eaa46581b0bf9e7"
+  },
+  "pid": 35154,
+  "events": [
+    {
+      "kind": "ready",
+      "at": 1787809587445
+    },
+    {
+      "kind": "disconnect"
+    },
+    {
+      "kind": "output-close"
+    },
+    {
+      "kind": "error-close"
+    },
+    {
+      "kind": "exit",
+      "code": 0,
+      "signal": null
+    }
+  ],
+  "output": "",
+  "error": "",
+  "result": {
+    "kind": "result",
+    "pass": true,
+    "summary": {
+      "passed": 24,
+      "total": 24,
+      "active": 0,
+      "peak": 0,
+      "workers": 0
+    },
+    "observations": [
+      {
+        "name": "grep-basic",
+        "pass": true,
+        "details": {
+          "code": 0,
+          "stdout": "MTphK2IK",
+          "stderr": ""
+        }
+      },
+      {
+        "name": "grep-extended",
+        "pass": true,
+        "details": {
+          "code": 0,
+          "stdout": "YWJhYgphYgo=",
+          "stderr": ""
+        }
+      },
+      {
+        "name": "grep-fixed",
+        "pass": true,
+        "details": {
+          "code": 0,
+          "stdout": "YS5iCg==",
+          "stderr": ""
+        }
+      },
+      {
+        "name": "grep-word",
+        "pass": true,
+        "details": {
+          "code": 0,
+          "stdout": "Y2F0CmNhdAo=",
+          "stderr": ""
+        }
+      },
+      {
+        "name": "grep-empty",
+        "pass": true,
+        "details": {
+          "code": 0,
+          "stdout": "MTphCjI6CjM6Ygo=",
+          "stderr": ""
+        }
+      },
+      {
+        "name": "grep-invert",
+        "pass": true,
+        "details": {
+          "code": 0,
+          "stdout": "Mgo=",
+          "stderr": ""
+        }
+      },
+      {
+        "name": "grep-case",
+        "pass": true,
+        "details": {
+          "code": 0,
+          "stdout": "QmV0YQpCRVRBCg==",
+          "stderr": ""
+        }
+      },
+      {
+        "name": "grep-patterns",
+        "pass": true,
+        "details": {
+          "code": 0,
+          "stdout": "YWJjCmFiCg==",
+          "stderr": ""
+        }
+      },
+      {
+        "name": "grep-invalid",
+        "pass": true,
+        "details": {
+          "code": 2,
+          "stdout": "",
+          "stderr": "Z3JlcDogaW52YWxpZCByZWd1bGFyIGV4cHJlc3Npb24gJ1snCg=="
+        }
+      },
+      {
+        "name": "grep-nomatch",
+        "pass": true,
+        "details": {
+          "code": 1,
+          "stdout": "",
+          "stderr": ""
+        }
+      },
+      {
+        "name": "rg-unicode",
+        "pass": true,
+        "details": {
+          "code": 0,
+          "stdout": "MTozOmNhdAoxOjc6Y2F0CjI6MTU6Y2F0Cg==",
+          "stderr": ""
+        }
+      },
+      {
+        "name": "rg-fixed",
+        "pass": true,
+        "details": {
+          "code": 0,
+          "stdout": "YS5iCg==",
+          "stderr": ""
+        }
+      },
+      {
+        "name": "rg-case",
+        "pass": true,
+        "details": {
+          "code": 0,
+          "stdout": "awpLCuKEqgo=",
+          "stderr": ""
+        }
+      },
+      {
+        "name": "rg-empty",
+        "pass": true,
+        "details": {
+          "code": 0,
+          "stdout": "MTphCjI6CjM6Ygo=",
+          "stderr": ""
+        }
+      },
+      {
+        "name": "rg-onlyempty",
+        "pass": true,
+        "details": {
+          "code": 0,
+          "stdout": "CmFhCgo=",
+          "stderr": ""
+        }
+      },
+      {
+        "name": "rg-word",
+        "pass": true,
+        "details": {
+          "code": 0,
+          "stdout": "Y2F0CmNhdCEK",
+          "stderr": ""
+        }
+      },
+      {
+        "name": "rg-patterns",
+        "pass": true,
+        "details": {
+          "code": 0,
+          "stdout": "YWIKYWIK",
+          "stderr": ""
+        }
+      },
+      {
+        "name": "rg-crlf",
+        "pass": true,
+        "details": {
+          "code": 0,
+          "stdout": "YQ0K",
+          "stderr": ""
+        }
+      },
+      {
+        "name": "rg-namedbackref",
+        "pass": true,
+        "details": {
+          "code": 0,
+          "stdout": "YWEK",
+          "stderr": ""
+        }
+      },
+      {
+        "name": "rg-lookahead",
+        "pass": true,
+        "details": {
+          "code": 2,
+          "stdout": "",
+          "stderr": "cmc6IGJhY2tyZWZlcmVuY2VzIGFuZCBsb29rLWFyb3VuZCBhcmUgbm90IHN1cHBvcnRlZAo="
+        }
+      },
+      {
+        "name": "rg-invalid",
+        "pass": true,
+        "details": {
+          "code": 2,
+          "stdout": "",
+          "stderr": "cmc6IGludmFsaWQgb3IgdW5zdXBwb3J0ZWQgcmVndWxhciBleHByZXNzaW9uOiBJbnZhbGlkIHJlZ3VsYXIgZXhwcmVzc2lvbjogLyg/OlspL2d1OiBVbnRlcm1pbmF0ZWQgY2hhcmFjdGVyIGNsYXNzCg=="
+        }
+      },
+      {
+        "name": "rg-nomatch",
+        "pass": true,
+        "details": {
+          "code": 1,
+          "stdout": "",
+          "stderr": ""
+        }
+      },
+      {
+        "name": "pipe-regex",
+        "pass": true,
+        "details": {
+          "code": 0,
+          "stdout": "YWIKYWIK",
+          "stderr": ""
+        }
+      },
+      {
+        "name": "pipe-early",
+        "pass": true,
+        "details": {
+          "code": 0,
+          "stdout": "YWIK",
+          "stderr": ""
+        }
+      }
+    ],
+    "metrics": []
+  },
+  "killed": false,
+  "code": 0,
+  "signal": null
+}

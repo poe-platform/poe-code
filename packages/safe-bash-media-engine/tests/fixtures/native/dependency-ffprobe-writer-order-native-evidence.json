@@ -1,0 +1,405 @@
+{
+  "captured_utc": "2026-09-18T20:44:49.530036+00:00",
+  "executable": "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/bin/ffprobe",
+  "executableSha256": "860eadc7b01d86126a208601c83602feb8eab952da232ce603066fb2f65471d8",
+  "cwd": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-probe-order-td0n3w92",
+  "tracer_source": "#include <fcntl.h>\n#include <stdarg.h>\n#include <stdio.h>\n#include <unistd.h>\nstatic void record(const char *operation,const char *path,int flags) {\n char line[16384]; int n=snprintf(line,sizeof(line),\"ACCESS %s %d \",operation,flags);\n for(const unsigned char *p=(const unsigned char *)path;*p && n+3<sizeof(line);p++) n+=snprintf(line+n,sizeof(line)-n,\"%02x\",*p);\n line[n++]='\\n'; write(2,line,n);\n}\nstatic int observed_open(const char *path,int flags,...) {\n mode_t mode=0; if(flags&O_CREAT){va_list ap;va_start(ap,flags);mode=va_arg(ap,int);va_end(ap);}\n record(\"open\",path,flags);return open(path,flags,mode);\n}\nstatic FILE *observed_fopen(const char *path,const char *mode) {\n record(\"fopen\",path,mode[0]=='r'?O_RDONLY:O_WRONLY);return fopen(path,mode);\n}\n__attribute__((used)) static struct {const void *replacement;const void *original;} hooks[]\n__attribute__((section(\"__DATA,__interpose\"))) = {{(const void *)observed_open,(const void *)open},{(const void *)observed_fopen,(const void *)fopen}};\n",
+  "tracer_build_argv": [
+    "clang",
+    "-dynamiclib",
+    "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-probe-order-td0n3w92/observer.c",
+    "-o",
+    "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-probe-order-td0n3w92/observer.dylib"
+  ],
+  "fixtures": {
+    "Case雪\n.ppm": "UDYKMSAxCjI1NQoXU5E=",
+    "case.ppm": "UDYKMiAxCjI1NQoBAgMEBQY=",
+    "options/雪\nentries": "c3RyZWFtPXdpZHRoLGhlaWdodA==",
+    "Case.json": "b3JpZ2luYWwgcmVwb3J0IHNlbnRpbmVs"
+  },
+  "results": [
+    {
+      "id": "separate",
+      "runs": [
+        {
+          "traced": false,
+          "argv": [
+            "-v",
+            "error",
+            "-show_entries",
+            "stream=width,height",
+            "-i",
+            "Case雪\n.ppm",
+            "-o",
+            "Case.json"
+          ],
+          "status": 0,
+          "stdout_base64": "",
+          "stderr_base64": "",
+          "accesses": [],
+          "final": {
+            "Case雪\n.ppm": "UDYKMSAxCjI1NQoXU5E=",
+            "case.ppm": "UDYKMiAxCjI1NQoBAgMEBQY=",
+            "options/雪\nentries": "c3RyZWFtPXdpZHRoLGhlaWdodA==",
+            "Case.json": "W1NUUkVBTV0Kd2lkdGg9MQpoZWlnaHQ9MQpbL1NUUkVBTV0K"
+          }
+        },
+        {
+          "traced": true,
+          "argv": [
+            "-v",
+            "error",
+            "-show_entries",
+            "stream=width,height",
+            "-i",
+            "Case雪\n.ppm",
+            "-o",
+            "Case.json"
+          ],
+          "status": 0,
+          "stdout_base64": "",
+          "stderr_base64": "QUNDRVNTIG9wZW4gMCAyZjZmNzA3NDJmNjg2ZjZkNjU2MjcyNjU3NzJmNDM2NTZjNmM2MTcyMmY2NjY2NmQ3MDY1NjcyZjM5MmUzMDJlMzE1ZjMxMmY2MjY5NmUKQUNDRVNTIG9wZW4gMCAyZjZmNzA3NDJmNjg2ZjZkNjU2MjcyNjU3NzJmNDM2NTZjNmM2MTcyMmY2NjY2NmQ3MDY1NjcyZjM5MmUzMDJlMzE1ZjMxMmY2MjY5NmUyZjQ5NmU2NjZmMmU3MDZjNjk3Mzc0CkFDQ0VTUyBvcGVuIDE2Nzc4NzUzIDQzNjE3MzY1MmU2YTczNmY2ZQpBQ0NFU1Mgb3BlbiAxNjc3NzIxNiA0MzYxNzM2NWU5OWJhYTBhMmU3MDcwNmQK",
+          "accesses": [
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374"
+            },
+            {
+              "operation": "open",
+              "flags": 16778753,
+              "path_hex": "436173652e6a736f6e"
+            },
+            {
+              "operation": "open",
+              "flags": 16777216,
+              "path_hex": "43617365e99baa0a2e70706d"
+            }
+          ],
+          "final": {
+            "Case雪\n.ppm": "UDYKMSAxCjI1NQoXU5E=",
+            "case.ppm": "UDYKMiAxCjI1NQoBAgMEBQY=",
+            "options/雪\nentries": "c3RyZWFtPXdpZHRoLGhlaWdodA==",
+            "Case.json": "W1NUUkVBTV0Kd2lkdGg9MQpoZWlnaHQ9MQpbL1NUUkVBTV0K"
+          }
+        }
+      ],
+      "paired_equal": true
+    },
+    {
+      "id": "alias-input-first",
+      "runs": [
+        {
+          "traced": false,
+          "argv": [
+            "-v",
+            "error",
+            "-show_entries",
+            "stream=width,height",
+            "-i",
+            "Case雪\n.ppm",
+            "-o",
+            "Case雪\n.ppm"
+          ],
+          "status": 1,
+          "stdout_base64": "",
+          "stderr_base64": "Q2FzZembqgoucHBtOiBJbnZhbGlkIGRhdGEgZm91bmQgd2hlbiBwcm9jZXNzaW5nIGlucHV0Cg==",
+          "accesses": [],
+          "final": {
+            "Case雪\n.ppm": "",
+            "case.ppm": "UDYKMiAxCjI1NQoBAgMEBQY=",
+            "options/雪\nentries": "c3RyZWFtPXdpZHRoLGhlaWdodA==",
+            "Case.json": "b3JpZ2luYWwgcmVwb3J0IHNlbnRpbmVs"
+          }
+        },
+        {
+          "traced": true,
+          "argv": [
+            "-v",
+            "error",
+            "-show_entries",
+            "stream=width,height",
+            "-i",
+            "Case雪\n.ppm",
+            "-o",
+            "Case雪\n.ppm"
+          ],
+          "status": 1,
+          "stdout_base64": "",
+          "stderr_base64": "QUNDRVNTIG9wZW4gMCAyZjZmNzA3NDJmNjg2ZjZkNjU2MjcyNjU3NzJmNDM2NTZjNmM2MTcyMmY2NjY2NmQ3MDY1NjcyZjM5MmUzMDJlMzE1ZjMxMmY2MjY5NmUKQUNDRVNTIG9wZW4gMCAyZjZmNzA3NDJmNjg2ZjZkNjU2MjcyNjU3NzJmNDM2NTZjNmM2MTcyMmY2NjY2NmQ3MDY1NjcyZjM5MmUzMDJlMzE1ZjMxMmY2MjY5NmUyZjQ5NmU2NjZmMmU3MDZjNjk3Mzc0CkFDQ0VTUyBvcGVuIDE2Nzc4NzUzIDQzNjE3MzY1ZTk5YmFhMGEyZTcwNzA2ZApBQ0NFU1Mgb3BlbiAxNjc3NzIxNiA0MzYxNzM2NWU5OWJhYTBhMmU3MDcwNmQKQ2FzZembqgoucHBtOiBJbnZhbGlkIGRhdGEgZm91bmQgd2hlbiBwcm9jZXNzaW5nIGlucHV0Cg==",
+          "accesses": [
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374"
+            },
+            {
+              "operation": "open",
+              "flags": 16778753,
+              "path_hex": "43617365e99baa0a2e70706d"
+            },
+            {
+              "operation": "open",
+              "flags": 16777216,
+              "path_hex": "43617365e99baa0a2e70706d"
+            }
+          ],
+          "final": {
+            "Case雪\n.ppm": "",
+            "case.ppm": "UDYKMiAxCjI1NQoBAgMEBQY=",
+            "options/雪\nentries": "c3RyZWFtPXdpZHRoLGhlaWdodA==",
+            "Case.json": "b3JpZ2luYWwgcmVwb3J0IHNlbnRpbmVs"
+          }
+        }
+      ],
+      "paired_equal": true
+    },
+    {
+      "id": "alias-output-first",
+      "runs": [
+        {
+          "traced": false,
+          "argv": [
+            "-v",
+            "error",
+            "-show_entries",
+            "stream=width,height",
+            "-o",
+            "Case雪\n.ppm",
+            "-i",
+            "Case雪\n.ppm"
+          ],
+          "status": 1,
+          "stdout_base64": "",
+          "stderr_base64": "Q2FzZembqgoucHBtOiBJbnZhbGlkIGRhdGEgZm91bmQgd2hlbiBwcm9jZXNzaW5nIGlucHV0Cg==",
+          "accesses": [],
+          "final": {
+            "Case雪\n.ppm": "",
+            "case.ppm": "UDYKMiAxCjI1NQoBAgMEBQY=",
+            "options/雪\nentries": "c3RyZWFtPXdpZHRoLGhlaWdodA==",
+            "Case.json": "b3JpZ2luYWwgcmVwb3J0IHNlbnRpbmVs"
+          }
+        },
+        {
+          "traced": true,
+          "argv": [
+            "-v",
+            "error",
+            "-show_entries",
+            "stream=width,height",
+            "-o",
+            "Case雪\n.ppm",
+            "-i",
+            "Case雪\n.ppm"
+          ],
+          "status": 1,
+          "stdout_base64": "",
+          "stderr_base64": "QUNDRVNTIG9wZW4gMCAyZjZmNzA3NDJmNjg2ZjZkNjU2MjcyNjU3NzJmNDM2NTZjNmM2MTcyMmY2NjY2NmQ3MDY1NjcyZjM5MmUzMDJlMzE1ZjMxMmY2MjY5NmUKQUNDRVNTIG9wZW4gMCAyZjZmNzA3NDJmNjg2ZjZkNjU2MjcyNjU3NzJmNDM2NTZjNmM2MTcyMmY2NjY2NmQ3MDY1NjcyZjM5MmUzMDJlMzE1ZjMxMmY2MjY5NmUyZjQ5NmU2NjZmMmU3MDZjNjk3Mzc0CkFDQ0VTUyBvcGVuIDE2Nzc4NzUzIDQzNjE3MzY1ZTk5YmFhMGEyZTcwNzA2ZApBQ0NFU1Mgb3BlbiAxNjc3NzIxNiA0MzYxNzM2NWU5OWJhYTBhMmU3MDcwNmQKQ2FzZembqgoucHBtOiBJbnZhbGlkIGRhdGEgZm91bmQgd2hlbiBwcm9jZXNzaW5nIGlucHV0Cg==",
+          "accesses": [
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374"
+            },
+            {
+              "operation": "open",
+              "flags": 16778753,
+              "path_hex": "43617365e99baa0a2e70706d"
+            },
+            {
+              "operation": "open",
+              "flags": 16777216,
+              "path_hex": "43617365e99baa0a2e70706d"
+            }
+          ],
+          "final": {
+            "Case雪\n.ppm": "",
+            "case.ppm": "UDYKMiAxCjI1NQoBAgMEBQY=",
+            "options/雪\nentries": "c3RyZWFtPXdpZHRoLGhlaWdodA==",
+            "Case.json": "b3JpZ2luYWwgcmVwb3J0IHNlbnRpbmVs"
+          }
+        }
+      ],
+      "paired_equal": true
+    },
+    {
+      "id": "option-file",
+      "runs": [
+        {
+          "traced": false,
+          "argv": [
+            "-v",
+            "error",
+            "-show_entries",
+            "stream=width,height",
+            "-i",
+            "Case雪\n.ppm",
+            "-o",
+            "Case.json",
+            "-/show_entries",
+            "options/雪\nentries"
+          ],
+          "status": 0,
+          "stdout_base64": "",
+          "stderr_base64": "",
+          "accesses": [],
+          "final": {
+            "Case雪\n.ppm": "UDYKMSAxCjI1NQoXU5E=",
+            "case.ppm": "UDYKMiAxCjI1NQoBAgMEBQY=",
+            "options/雪\nentries": "c3RyZWFtPXdpZHRoLGhlaWdodA==",
+            "Case.json": "W1NUUkVBTV0Kd2lkdGg9MQpoZWlnaHQ9MQpbL1NUUkVBTV0K"
+          }
+        },
+        {
+          "traced": true,
+          "argv": [
+            "-v",
+            "error",
+            "-show_entries",
+            "stream=width,height",
+            "-i",
+            "Case雪\n.ppm",
+            "-o",
+            "Case.json",
+            "-/show_entries",
+            "options/雪\nentries"
+          ],
+          "status": 0,
+          "stdout_base64": "",
+          "stderr_base64": "QUNDRVNTIG9wZW4gMCAyZjZmNzA3NDJmNjg2ZjZkNjU2MjcyNjU3NzJmNDM2NTZjNmM2MTcyMmY2NjY2NmQ3MDY1NjcyZjM5MmUzMDJlMzE1ZjMxMmY2MjY5NmUKQUNDRVNTIG9wZW4gMCAyZjZmNzA3NDJmNjg2ZjZkNjU2MjcyNjU3NzJmNDM2NTZjNmM2MTcyMmY2NjY2NmQ3MDY1NjcyZjM5MmUzMDJlMzE1ZjMxMmY2MjY5NmUyZjQ5NmU2NjZmMmU3MDZjNjk3Mzc0CkFDQ0VTUyBvcGVuIDE2Nzc3MjE2IDZmNzA3NDY5NmY2ZTczMmZlOTliYWEwYTY1NmU3NDcyNjk2NTczCkFDQ0VTUyBvcGVuIDE2Nzc4NzUzIDQzNjE3MzY1MmU2YTczNmY2ZQpBQ0NFU1Mgb3BlbiAxNjc3NzIxNiA0MzYxNzM2NWU5OWJhYTBhMmU3MDcwNmQK",
+          "accesses": [
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374"
+            },
+            {
+              "operation": "open",
+              "flags": 16777216,
+              "path_hex": "6f7074696f6e732fe99baa0a656e7472696573"
+            },
+            {
+              "operation": "open",
+              "flags": 16778753,
+              "path_hex": "436173652e6a736f6e"
+            },
+            {
+              "operation": "open",
+              "flags": 16777216,
+              "path_hex": "43617365e99baa0a2e70706d"
+            }
+          ],
+          "final": {
+            "Case雪\n.ppm": "UDYKMSAxCjI1NQoXU5E=",
+            "case.ppm": "UDYKMiAxCjI1NQoBAgMEBQY=",
+            "options/雪\nentries": "c3RyZWFtPXdpZHRoLGhlaWdodA==",
+            "Case.json": "W1NUUkVBTV0Kd2lkdGg9MQpoZWlnaHQ9MQpbL1NUUkVBTV0K"
+          }
+        }
+      ],
+      "paired_equal": true
+    },
+    {
+      "id": "late-missing",
+      "runs": [
+        {
+          "traced": false,
+          "argv": [
+            "-v",
+            "error",
+            "-show_entries",
+            "stream=width,height",
+            "-i",
+            "optional-absent.ppm",
+            "-o",
+            "Case.json"
+          ],
+          "status": 1,
+          "stdout_base64": "",
+          "stderr_base64": "b3B0aW9uYWwtYWJzZW50LnBwbTogTm8gc3VjaCBmaWxlIG9yIGRpcmVjdG9yeQo=",
+          "accesses": [],
+          "final": {
+            "Case雪\n.ppm": "UDYKMSAxCjI1NQoXU5E=",
+            "case.ppm": "UDYKMiAxCjI1NQoBAgMEBQY=",
+            "options/雪\nentries": "c3RyZWFtPXdpZHRoLGhlaWdodA==",
+            "Case.json": ""
+          }
+        },
+        {
+          "traced": true,
+          "argv": [
+            "-v",
+            "error",
+            "-show_entries",
+            "stream=width,height",
+            "-i",
+            "optional-absent.ppm",
+            "-o",
+            "Case.json"
+          ],
+          "status": 1,
+          "stdout_base64": "",
+          "stderr_base64": "QUNDRVNTIG9wZW4gMCAyZjZmNzA3NDJmNjg2ZjZkNjU2MjcyNjU3NzJmNDM2NTZjNmM2MTcyMmY2NjY2NmQ3MDY1NjcyZjM5MmUzMDJlMzE1ZjMxMmY2MjY5NmUKQUNDRVNTIG9wZW4gMCAyZjZmNzA3NDJmNjg2ZjZkNjU2MjcyNjU3NzJmNDM2NTZjNmM2MTcyMmY2NjY2NmQ3MDY1NjcyZjM5MmUzMDJlMzE1ZjMxMmY2MjY5NmUyZjQ5NmU2NjZmMmU3MDZjNjk3Mzc0CkFDQ0VTUyBvcGVuIDE2Nzc4NzUzIDQzNjE3MzY1MmU2YTczNmY2ZQpBQ0NFU1Mgb3BlbiAxNjc3NzIxNiA2ZjcwNzQ2OTZmNmU2MTZjMmQ2MTYyNzM2NTZlNzQyZTcwNzA2ZApvcHRpb25hbC1hYnNlbnQucHBtOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5Cg==",
+          "accesses": [
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374"
+            },
+            {
+              "operation": "open",
+              "flags": 16778753,
+              "path_hex": "436173652e6a736f6e"
+            },
+            {
+              "operation": "open",
+              "flags": 16777216,
+              "path_hex": "6f7074696f6e616c2d616273656e742e70706d"
+            }
+          ],
+          "final": {
+            "Case雪\n.ppm": "UDYKMSAxCjI1NQoXU5E=",
+            "case.ppm": "UDYKMiAxCjI1NQoBAgMEBQY=",
+            "options/雪\nentries": "c3RyZWFtPXdpZHRoLGhlaWdodA==",
+            "Case.json": ""
+          }
+        }
+      ],
+      "paired_equal": true
+    }
+  ],
+  "limitations": "Attempted macOS libc open/fopen calls only; not exhaustive syscalls or remote mediation. Linux Docker daemon unavailable. No network, delegate or live frame-time qualification.",
+  "source": {
+    "url": "https://raw.githubusercontent.com/FFmpeg/FFmpeg/ad500d59cb6e0126add4fcb95afb4e2557c4292c/fftools/ffprobe.c",
+    "sha256": "8c8b5ab6d34bb2b6fde8ce7411bb8f7beef708a436883b2da9f3acbb1986d0de",
+    "filenameCallbackLine": 3021,
+    "writerCreationLine": 3471,
+    "inputProbeLine": 3510
+  },
+  "checkedNamedAccesses": 11
+}

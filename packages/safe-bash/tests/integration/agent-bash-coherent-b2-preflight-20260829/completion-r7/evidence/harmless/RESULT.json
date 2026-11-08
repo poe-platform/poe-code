@@ -1,0 +1,172 @@
+{
+  "controls": [
+    {
+      "id": "T01-short-complete",
+      "pass": true,
+      "caughtPresent": false,
+      "closeCalls": 1,
+      "syntheticOnly": true
+    },
+    {
+      "id": "T02-zero-write",
+      "pass": true,
+      "caughtPresent": true,
+      "closeCalls": 1,
+      "syntheticOnly": true
+    },
+    {
+      "id": "T03-oversize-write",
+      "pass": true,
+      "caughtPresent": true,
+      "closeCalls": 1,
+      "syntheticOnly": true
+    },
+    {
+      "id": "T04-write-false",
+      "pass": true,
+      "caughtPresent": true,
+      "closeCalls": 1,
+      "syntheticOnly": true
+    },
+    {
+      "id": "T05-write-undefined",
+      "pass": true,
+      "caughtPresent": true,
+      "closeCalls": 1,
+      "syntheticOnly": true
+    },
+    {
+      "id": "T06-close-zero",
+      "pass": true,
+      "caughtPresent": true,
+      "closeCalls": 1,
+      "syntheticOnly": true
+    },
+    {
+      "id": "T07-close-undefined",
+      "pass": true,
+      "caughtPresent": true,
+      "closeCalls": 1,
+      "syntheticOnly": true
+    },
+    {
+      "id": "T08-primary-before-close",
+      "pass": true,
+      "caughtPresent": true,
+      "closeCalls": 1,
+      "syntheticOnly": true
+    }
+  ],
+  "children": [
+    {
+      "id": "H01",
+      "args": [
+        "--experimental-permission",
+        "--allow-fs-read=/private/tmp/safe-bash-b2-r7-harmless",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged",
+        "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--allow-fs-write=/private/tmp/safe-bash-b2-r7-harmless/H01",
+        "--allow-fs-write=/private/tmp/safe-bash-b2-r7-harmless/tmp",
+        "--allow-fs-write=/private/tmp/safe-bash-b2-r7-harmless/H01/trace.jsonl",
+        "--allow-worker",
+        "--loader",
+        "file:///Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/new/loader.mjs",
+        "/private/tmp/safe-bash-b2-r7-harmless/H01/entry.mjs"
+      ],
+      "exitPresent": true,
+      "closePresent": true,
+      "signals": [],
+      "started": "2026-08-29T15:32:43.868Z",
+      "pid": 19226,
+      "exitCode": 0,
+      "exitSignal": null,
+      "closeCode": 0,
+      "closeSignal": null,
+      "closedAt": "2026-08-29T15:32:43.952Z",
+      "stdout": {
+        "bytes": 10,
+        "sha256": "c1a4280b371237a8d19e47cb65eefd0eef66e91f28dc78510bad27978308e340"
+      },
+      "stderr": {
+        "bytes": 807,
+        "sha256": "08113bee805ddff6d8ac5089d7eb5ae2d974eb1b37af1bd25c83c5abbbfe365c"
+      },
+      "trace": {
+        "bytes": 205,
+        "sha256": "cc95932498187c41fe1514e28c25ec6372ddc630dfe721e91765eb658401a525",
+        "records": [
+          {
+            "kind": "authenticated-source-prepared",
+            "url": "file:///private/tmp/safe-bash-b2-r7-harmless/H01/entry.mjs",
+            "member": "entry.mjs",
+            "sha256": "2db7cc97a36f4fbada2f85568374d2c7cc6d3e0f545a2856fe5670978a8d4055"
+          }
+        ],
+        "afterExitAndClose": true,
+        "crashDurability": false
+      },
+      "expectedLiteralObserved": true
+    },
+    {
+      "id": "H02",
+      "args": [
+        "--experimental-permission",
+        "--allow-fs-read=/private/tmp/safe-bash-b2-r7-harmless",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged",
+        "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--allow-fs-write=/private/tmp/safe-bash-b2-r7-harmless/H02",
+        "--allow-fs-write=/private/tmp/safe-bash-b2-r7-harmless/tmp",
+        "--allow-fs-write=/private/tmp/safe-bash-b2-r7-harmless/H02/trace.jsonl",
+        "--allow-worker",
+        "--loader",
+        "file:///Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/new/loader.mjs",
+        "/private/tmp/safe-bash-b2-r7-harmless/H02/entry.mjs"
+      ],
+      "exitPresent": true,
+      "closePresent": true,
+      "signals": [],
+      "started": "2026-08-29T15:32:43.955Z",
+      "pid": 19230,
+      "exitCode": 0,
+      "exitSignal": null,
+      "closeCode": 0,
+      "closeSignal": null,
+      "closedAt": "2026-08-29T15:32:44.044Z",
+      "stdout": {
+        "bytes": 10,
+        "sha256": "8e5b2687ddcd46841353bae8b41ebafb3553d9e87db1006ece9ad3d8645a96e9"
+      },
+      "stderr": {
+        "bytes": 807,
+        "sha256": "91a3e0d5f05b1779ca234b95345d81409a85e52d220adffb9110fdfd72e28b9f"
+      },
+      "trace": {
+        "bytes": 414,
+        "sha256": "fea837a382a21ea414e9de7e3a00cf75cfe6d8fc0edc2a0f9561c2b79978eb15",
+        "records": [
+          {
+            "kind": "authenticated-source-prepared",
+            "url": "file:///private/tmp/safe-bash-b2-r7-harmless/H02/entry.mjs",
+            "member": "entry.mjs",
+            "sha256": "399075c3312377eae2a2e5ed43b75fd6645069617ce887e22bfa85123218d56a"
+          },
+          {
+            "kind": "authenticated-source-prepared",
+            "url": "file:///private/tmp/safe-bash-b2-r7-harmless/H02/literal.mjs",
+            "member": "literal.mjs",
+            "sha256": "4c37cf2542553fc25802d59efa94f8056f1342b22e7a510fc711d719065c9773"
+          }
+        ],
+        "afterExitAndClose": true,
+        "crashDurability": false
+      },
+      "expectedLiteralObserved": true
+    }
+  ],
+  "loaderAdmissions": 2,
+  "guestEntries": 0,
+  "productRuns": 0,
+  "started": "2026-08-29T15:32:43.865Z",
+  "status": "PASS",
+  "ended": "2026-08-29T15:32:44.044Z"
+}

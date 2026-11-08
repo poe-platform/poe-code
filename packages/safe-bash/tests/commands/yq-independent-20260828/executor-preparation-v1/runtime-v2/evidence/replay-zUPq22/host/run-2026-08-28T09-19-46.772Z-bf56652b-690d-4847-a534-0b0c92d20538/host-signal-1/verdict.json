@@ -1,0 +1,21 @@
+{
+  "jobId": "host-signal-1",
+  "admitted": true,
+  "outcome": "PASS",
+  "failures": [],
+  "integrity": true,
+  "reapProof": true,
+  "metadata": {
+    "pid": 14175,
+    "group": 14175,
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "overflow": false,
+    "spawnError": null,
+    "closed": true,
+    "reaped": true,
+    "kills": [],
+    "elapsedMs": 43
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "kind": "independent-tap-dispatch-closure",
+  "entries": {
+    "README.md": "6cfd0e75a289af1b161b00dab014642ec925fa3181f56303f9b4e82af4b01e79",
+    "REPORTER-NEIGHBOR.json": "2783a08067b07b9c3e430412be81b6b96354aa526a3835c05f875510389f639c",
+    "closure/": "directory",
+    "closure/RESULT.json": "3375458d9244be71b57cbd5036df1293968527dc0206e2c98a81a76699979c21",
+    "closure/UNCHANGED-AUTHOR24.json": "9163892877c73a832ca986a7dc1c99058cc7ded9aaff8fb9dff62114f552782e",
+    "closure.mjs": "e2fefed0a3838ed10e2850147a6675e2c72eed5117af47c9303baaa6188a4348",
+    "replay-30/": "directory",
+    "replay-30/FRESH-DIST.json": "0fb68723688e3fe046aee56119add5f000ebfbffc3803beea8dc7225e4e27514",
+    "replay-30/RESULT.json": "ddc659706bced24fc2fb267913988dc8ecfd84d6f252b708fb46c2220b7919d2",
+    "replay-30/UNCHANGED-AUTHOR.json": "d2dd1053430794e88c1e7173edd46489b63fbbe03827a084b714349c75faf146",
+    "replay30.mjs": "2df54463f821abb432b7aefebb89b7c4a27977852e6906297d0d3e85ddb64287",
+    "verify.mjs": "4e9a948bbfa59c03802742d7c030a71e2249aaf209c1e19f8f859af573365482"
+  }
+}

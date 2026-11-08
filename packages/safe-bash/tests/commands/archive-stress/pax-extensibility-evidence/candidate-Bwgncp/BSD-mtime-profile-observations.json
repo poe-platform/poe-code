@@ -1,0 +1,48 @@
+{
+  "family": "BSD",
+  "label": "mtime-profile",
+  "temporary": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-pax-native-rhamwF",
+  "removed": true,
+  "observations": [
+    {
+      "args": [
+        "--version"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "e7cce3d387120ee09a085cb3cafba70e9031c5f497229c6d60846a7b2c1e4241",
+      "stdout": "bsdtar 3.5.3 - libarchive 3.7.4 zlib/1.2.12 liblzma/5.4.3 bz2lib/1.0.8 \n",
+      "stderr": "",
+      "cleanup": "owned group absent",
+      "timedOut": false,
+      "exceeded": false
+    },
+    {
+      "family": "BSD",
+      "executable": "/usr/bin/bsdtar",
+      "sha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9",
+      "version": "bsdtar 3.5.3 - libarchive 3.7.4 zlib/1.2.12 liblzma/5.4.3 bz2lib/1.0.8 \n",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      }
+    },
+    {
+      "args": [
+        "-xf",
+        "control.tar",
+        "-C",
+        "output"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "",
+      "stderr": "",
+      "cleanup": "owned group absent",
+      "timedOut": false,
+      "exceeded": false
+    }
+  ]
+}

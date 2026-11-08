@@ -1,0 +1,307 @@
+{
+  "head": "0e1448ff4b9dcbedc06dfb1a654f649eef0bb9eb",
+  "captured": "2026-08-27T02:24:36.918Z",
+  "hashes": {
+    "src/commands/filesystem.ts": "74fb5fdd66c2eaf7a8f31d2be8c6be0e94c09ff65892c561bbc0c6bc6f875a8f",
+    "src/contracts/command.ts": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+    "src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+    "src/contracts/filesystem.ts": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+    "src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+    "src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+    "src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+    "src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+    "src/fs/memory/index.ts": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+    "src/fs/mount/comparison.ts": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+    "src/fs/s3/authority.ts": "a89587089b0d059d44393e04822ff8f3481faa0aedb8101449d087100f8e30a8",
+    "src/fs/s3/filesystem.ts": "b34d766829184cf73ff6e8712d0bcb60216c35250234a0b80475f8d91d4f1a9e",
+    "src/fs/s3/index.ts": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+    "src/fs/s3/mock.ts": "99655664c7a52c595dc1ec4e5d461e4c002a0c9ba60d222ded078e5b9780841e",
+    "src/fs/s3/transport.ts": "185895f1b939370903c9a896df47a1066647a50eb3022e1d0387918996ccd51c",
+    "src/fs/webdav/index.ts": "9a19fb0e61bf9ef07d97881bb93e30ba21491e580ef5e58ab0e80bb5f398d5e4",
+    "src/fs/webdav/resource-id.ts": "91c91a336e6256bfb824aacec79d0aa31111796c347de91bf2bc0dad47c1e0f5",
+    "src/fs/webdav/webdav.ts": "799b7d501c112ec26171e6abee88e516199e4b087caeb21903909171bf94aba8",
+    "src/fs/webdav/xml.ts": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+    "tests/fs/memory/comparison.test.ts": "a5f25f3e6423d8e1961e4c456a31f5ae01a6b604dccedd3af42034ed8d208fae",
+    "tests/fs/memory/faithful-binding.test.ts": "235c5a9a622d3626c8ddad6329eb8448c860285630913a7c769cf52ea5c98f9b",
+    "tests/fs/memory/late-authority.test.ts": "b55b0941fa56ca56bf16b96413acd6f52af70b0d1012d17676c6f6771de10ad5",
+    "tests/fs/mount/copy-identity-guards.test.ts": "bd8074c17c5e0fc418a5408028b409946b2178e64fad29bfa87c5f8aa1eb8027",
+    "tests/fs/mount/copy-identity.test.ts": "e752e633abc902025670c09305c09e7319b171549350ddec7573b6644d29d115",
+    "tests/fs/overlay/copy-identity.test.ts": "d877488ecc76799552313b55db0119c83ecf433ad17ceb88079fa0d9bddd872e",
+    "tests/fs/webdav/mock.ts": "177f79ee640460822cfe0486c87f7cc61ac7c8b84389abe32b48ef27f4b4ef36"
+  },
+  "changedSinceBaseline": [
+    "src/fs/memory/index.ts",
+    "tests/fs/memory/late-authority.test.ts",
+    "src/fs/s3/authority.ts",
+    "src/fs/s3/filesystem.ts"
+  ],
+  "sourceStatus": " M src/fs/memory/index.ts\n M src/fs/s3/authority.ts\n M src/fs/s3/filesystem.ts\n M src/fs/webdav/README.md\n M src/fs/webdav/resource-id.ts\n M src/fs/webdav/webdav.ts\n",
+  "results": {
+    "faithfulBefore": {
+      "pass": 2,
+      "total": 15
+    },
+    "faithfulAndLateAfter": {
+      "pass": 32,
+      "total": 32
+    },
+    "ownedBefore": {
+      "pass": 141,
+      "total": 158,
+      "fail": 17
+    },
+    "ownedAfter": {
+      "pass": 143,
+      "total": 158,
+      "fail": 15,
+      "exit": 1
+    },
+    "unchangedGuards": {
+      "pass": 53,
+      "total": 53
+    },
+    "types": {
+      "exit": 0,
+      "stdout": ""
+    }
+  },
+  "policyCases": [
+    {
+      "id": 8,
+      "name": "qualified s3 cannot bless altered or copied Memory observations",
+      "file": "tests/fs/memory/comparison.test.ts",
+      "classification": "superseded rejection of faithful method decorator; copied/path-mismatched checks remain valid"
+    },
+    {
+      "id": 10,
+      "name": "genuine s3 metadata with Memory-alias content mapping stays unknown to-remote",
+      "file": "tests/fs/memory/comparison.test.ts",
+      "classification": "out-of-contract remote metadata assertion forwarded while content accesses different local backing; already red before Memory edit"
+    },
+    {
+      "id": 11,
+      "name": "genuine s3 metadata with Memory-alias content mapping stays unknown from-remote",
+      "file": "tests/fs/memory/comparison.test.ts",
+      "classification": "out-of-contract remote metadata assertion forwarded while content accesses different local backing; already red before Memory edit"
+    },
+    {
+      "id": 19,
+      "name": "qualified webdav cannot bless altered or copied Memory observations",
+      "file": "tests/fs/memory/comparison.test.ts",
+      "classification": "superseded rejection of faithful method decorator; copied/path-mismatched checks remain valid"
+    },
+    {
+      "id": 21,
+      "name": "genuine webdav metadata with Memory-alias content mapping stays unknown to-remote",
+      "file": "tests/fs/memory/comparison.test.ts",
+      "classification": "out-of-contract remote metadata assertion forwarded while content accesses different local backing; already red before Memory edit"
+    },
+    {
+      "id": 22,
+      "name": "genuine webdav metadata with Memory-alias content mapping stays unknown from-remote",
+      "file": "tests/fs/memory/comparison.test.ts",
+      "classification": "out-of-contract remote metadata assertion forwarded while content accesses different local backing; already red before Memory edit"
+    },
+    {
+      "id": 30,
+      "name": "Memory subclass data overrides cannot certify an alias to memory",
+      "file": "tests/fs/memory/comparison.test.ts",
+      "classification": "out-of-contract content remapping while retaining inherited backing assertion; original nine checks retained unchanged"
+    },
+    {
+      "id": 31,
+      "name": "Memory instance data overrides cannot certify an alias to memory",
+      "file": "tests/fs/memory/comparison.test.ts",
+      "classification": "out-of-contract content remapping while retaining inherited backing assertion; original nine checks retained unchanged"
+    },
+    {
+      "id": 32,
+      "name": "Memory prototype-before-construction data overrides cannot certify an alias to memory",
+      "file": "tests/fs/memory/comparison.test.ts",
+      "classification": "out-of-contract content remapping while retaining inherited backing assertion; original nine checks retained unchanged"
+    },
+    {
+      "id": 33,
+      "name": "Memory subclass data overrides cannot certify an alias to s3",
+      "file": "tests/fs/memory/comparison.test.ts",
+      "classification": "out-of-contract content remapping while retaining inherited backing assertion; original nine checks retained unchanged"
+    },
+    {
+      "id": 34,
+      "name": "Memory instance data overrides cannot certify an alias to s3",
+      "file": "tests/fs/memory/comparison.test.ts",
+      "classification": "out-of-contract content remapping while retaining inherited backing assertion; original nine checks retained unchanged"
+    },
+    {
+      "id": 35,
+      "name": "Memory prototype-before-construction data overrides cannot certify an alias to s3",
+      "file": "tests/fs/memory/comparison.test.ts",
+      "classification": "out-of-contract content remapping while retaining inherited backing assertion; original nine checks retained unchanged"
+    },
+    {
+      "id": 36,
+      "name": "Memory subclass data overrides cannot certify an alias to webdav",
+      "file": "tests/fs/memory/comparison.test.ts",
+      "classification": "out-of-contract content remapping while retaining inherited backing assertion; original nine checks retained unchanged"
+    },
+    {
+      "id": 37,
+      "name": "Memory instance data overrides cannot certify an alias to webdav",
+      "file": "tests/fs/memory/comparison.test.ts",
+      "classification": "out-of-contract content remapping while retaining inherited backing assertion; original nine checks retained unchanged"
+    },
+    {
+      "id": 38,
+      "name": "Memory prototype-before-construction data overrides cannot certify an alias to webdav",
+      "file": "tests/fs/memory/comparison.test.ts",
+      "classification": "out-of-contract content remapping while retaining inherited backing assertion; original nine checks retained unchanged"
+    }
+  ],
+  "violationObservations": [
+    {
+      "kind": "memory",
+      "phase": "subclass",
+      "code": "EIO",
+      "effects": 1,
+      "source": [
+        17,
+        18,
+        19
+      ],
+      "target": [
+        4,
+        0,
+        253
+      ]
+    },
+    {
+      "kind": "memory",
+      "phase": "instance",
+      "code": "EIO",
+      "effects": 1,
+      "source": [
+        17,
+        18,
+        19
+      ],
+      "target": [
+        4,
+        0,
+        253
+      ]
+    },
+    {
+      "kind": "memory",
+      "phase": "prototype-before-construction",
+      "code": "EIO",
+      "effects": 1,
+      "source": [
+        17,
+        18,
+        19
+      ],
+      "target": [
+        4,
+        0,
+        253
+      ]
+    },
+    {
+      "kind": "s3",
+      "phase": "subclass",
+      "code": "EIO",
+      "effects": 1,
+      "source": [
+        17,
+        18,
+        19
+      ],
+      "target": [
+        4,
+        0,
+        253
+      ]
+    },
+    {
+      "kind": "s3",
+      "phase": "instance",
+      "code": "EIO",
+      "effects": 1,
+      "source": [
+        17,
+        18,
+        19
+      ],
+      "target": [
+        4,
+        0,
+        253
+      ]
+    },
+    {
+      "kind": "s3",
+      "phase": "prototype-before-construction",
+      "code": "EIO",
+      "effects": 1,
+      "source": [
+        17,
+        18,
+        19
+      ],
+      "target": [
+        4,
+        0,
+        253
+      ]
+    },
+    {
+      "kind": "webdav",
+      "phase": "subclass",
+      "code": "EIO",
+      "effects": 1,
+      "source": [
+        17,
+        18,
+        19
+      ],
+      "target": [
+        4,
+        0,
+        253
+      ]
+    },
+    {
+      "kind": "webdav",
+      "phase": "instance",
+      "code": "EIO",
+      "effects": 1,
+      "source": [
+        17,
+        18,
+        19
+      ],
+      "target": [
+        4,
+        0,
+        253
+      ]
+    },
+    {
+      "kind": "webdav",
+      "phase": "prototype-before-construction",
+      "code": "EIO",
+      "effects": 1,
+      "source": [
+        17,
+        18,
+        19
+      ],
+      "target": [
+        4,
+        0,
+        253
+      ]
+    }
+  ],
+  "note": "Remote-owner working-tree source hashes unchanged across this bounded run; not a clean committed whole-product validation. No original positive-gate rerun."
+}

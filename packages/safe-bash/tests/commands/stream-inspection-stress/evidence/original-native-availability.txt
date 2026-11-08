@@ -1,0 +1,23 @@
+Independent verifier native availability, 2026-08-27T04:38Z (actual host clock).
+PRIVATE HOLDOUTS: author must not read /tmp/safe-bash-stream-verifier-20260827-A until normal author closure/source freeze. No hidden inputs in this coordination file.
+Runtime: Node v22.22.2, macOS 26.4.1 build25E253. Native GNU on Darwin, NOT GNU/Linux.
+Retained primary GNU9.7 oracle directory (all three --version executed successfully):
+/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src
+tac SHA256 14f76420b6798d90c684ca9407ccde81881251ab9667fa16116f6b41567edea6
+expand SHA256 f19115d8c05e065d11cb0bfc7fb46470f00c815f8d44a6d2c3575bd8da4363b3
+fold SHA256 72ffc0170ff95860c249b1f721298d8ebf570fdf65125ad9943330cc68436113
+Separate retained working GNU9.7 build:
+/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src
+tac SHA256 5fad8c461c2583b9fc9052b943a87eba6dba6b271ff51d811e5cdc21e722ad41
+expand SHA256 158dccaca888f3187291f4f4ede9b3715ccee15e8e441f82030dc09d25a2648b
+fold SHA256 8cfe2de684b57136dcb7040d529289b610f4f15a4f8696cded679d56a5361559
+PATH finds Darwin /usr/bin/expand and /usr/bin/fold; no tac/gtac/gexpand/gfold.
+/usr/bin/expand SHA256 dbd3b0cd2a186fce021164e4e95efd050c7027a5ce7bd7f348f28a559a741e78
+/usr/bin/fold SHA256 0eea78dff161682f185f0cba9a5711b6cbcb92b8758adaa3655727606ae0b035
+/usr/bin/strings SHA256 12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba
+strings --version reports Apple Xcode strings, no GNU version support, actual dispatcher target:
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/strings
+Actual Xcode strings SHA256 52ddfe491e72485fa7425f7e0f7447d99764cb584b1aec72633b18e70d8714e9
+No GNU strings found in PATH, Homebrew opt/bin, /usr/local/bin, or inspected committed metadata/diff/table evidence. GNU strings runtime UNAVAILABLE within checked locations; Apple raw -a reference available. No install/build requested/performed.
+Explicit native profile LC_ALL=C,TZ=UTC; installed additional en_US.UTF-8 locale available (locale -a). Ambient LC_ALL=C.UTF-8 is NOT used for C captures.
+Primary retained source/manual is adjacent coreutils-9.7/{src,doc/coreutils.texi}; official GNU online manuals also consulted. Coreutils executable availability is not established merely by PATH aliases.

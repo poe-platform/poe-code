@@ -1,0 +1,99 @@
+import type { Rule, Violation } from "../model.js";
+
+const id = "exports-subpath-resolvable";
+
+/** The subpath keys a package's `exports` field allows, or null when it is not gated. */
+function exportedSubpaths(exportsField: unknown): string[] | null {
+  if (typeof exportsField === "string") return ["."];
+  if (Array.isArray(exportsField)) return ["."];
+  if (exportsField && typeof exportsField === "object" && !Array.isArray(exportsField)) {
+    return Object.keys(exportsField as Record<string, unknown>);
+  }
+  return null; // no `exports` (legacy: any path importable)
+}
+
+/** The exports subpath a specifier targets, e.g. ("toolcraft/cli", "toolcraft") -> "./cli". */
+function subpathOf(specifier: string, packageName: string): string | null {
+  if (specifier === packageName) return ".";
+  if (!specifier.startsWith(`${packageName}/`)) return null;
+  return `.${specifier.slice(packageName.length)}`;
+}
+
+/** Whether `subpath` matches any exports key, honoring a single `*` pattern. */
+function matchesExport(subpath: string, keys: string[]): boolean {
+  for (const key of keys) {
+    if (key === subpath) return true;
+    const star = key.indexOf("*");
+    if (star < 0) continue;
+    const prefix = key.slice(0, star);
+    const suffix = key.slice(star + 1);
+    if (
+      subpath.startsWith(prefix) &&
+      subpath.endsWith(suffix) &&
+      subpath.length >= prefix.length + suffix.length
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
+interface Offender {
+  file: string;
+  target: string;
+  isTest: boolean;
+  specifiers: Set<string>;
+}
+
+/**
+ * A bare subpath import of a workspace package (e.g. `toolcraft/cli`) must be a
+ * subpath the target's `exports` map actually exposes. Node gates `exports`:
+ * importing an unlisted subpath is `ERR_PACKAGE_PATH_NOT_EXPORTED`. In-repo this
+ * is masked by test/bundle aliases, so it only surfaces once published — exactly
+ * the kind of bug a static check catches.
+ */
+export const exportsSubpathResolvable: Rule = {
+  id,
+  run(model) {
+    const violations: Violation[] = [];
+    for (const pkg of model.packages) {
+      const offenders = new Map<string, Offender>();
+      for (const ref of model.sourceImports.get(pkg.dir) ?? []) {
+        if (ref.kind !== "bare" || !ref.packageName) continue;
+        const target = model.byName.get(ref.packageName);
+        if (!target) continue; // only workspace targets
+        const keys = exportedSubpaths(target.exports);
+        if (!keys) continue; // target not gated by `exports`
+        const subpath = subpathOf(ref.specifier, target.name);
+        if (!subpath || subpath === "." || matchesExport(subpath, keys)) continue;
+
+        const key = `${ref.file}::${target.name}`;
+        const offender = offenders.get(key) ?? {
+          file: ref.file,
+          target: target.name,
+          isTest: ref.isTest,
+          specifiers: new Set<string>()
+        };
+        offender.specifiers.add(ref.specifier);
+        offenders.set(key, offender);
+      }
+
+      for (const offender of offenders.values()) {
+        violations.push({
+          rule: id,
+          package: pkg.name,
+          severity: offender.isTest ? "warning" : "error",
+          via: offender.file,
+          detail: {
+            file: offender.file,
+            target: offender.target,
+            specifiers: [...offender.specifiers].sort()
+          },
+          message: `${offender.file} imports a subpath of ${offender.target} that its "exports" map does not expose`,
+          fix: `Add the subpath to ${offender.target}'s "exports", or import an entry point it exposes.`
+        });
+      }
+    }
+    return violations;
+  }
+};

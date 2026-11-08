@@ -1,0 +1,10 @@
+[package]
+name = "agent-defs-rust"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.88"
+license = "MIT"
+description = "Declarative coding-agent catalog and capability policy"
+
+[dependencies]
+mcp-protocol-rust = { path = "../mcp-protocol-rust" }

@@ -1,0 +1,680 @@
+{
+  "scope": "Original paired untraced/debug diagnostic qualification; not exhaustive kernel accesses or exact timing. Native executables are evidence only.",
+  "root": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92",
+  "executable": "/opt/homebrew/bin/ffprobe",
+  "executableSha256": "860eadc7b01d86126a208601c83602feb8eab952da232ce603066fb2f65471d8",
+  "sourceUrl": "https://raw.githubusercontent.com/FFmpeg/FFmpeg/639ee849526cfe61ceb312776335c245b98bd9d4/libavformat/concatdec.c",
+  "sourceSha256": "b739c121b0280ed45b94fee82163773640ca99d01cf51e93e24efbfe06d4bdae",
+  "before": {
+    "lists/file-context": "244fb40afe01cd670a273c3ed32f45736a2ac137c73bdf13dc5c34a82bc892a6",
+    "lists/shared": "c019e9d57cec9a7068e9c5940d6333cbd20012c83c704f66f4c8d8e95f8ceba3",
+    "lists/version": "95ed412a85bacb906307ae463ae15408488b7e8b17ca2adbafcf473b216438bb",
+    "lists/雪 clip.wav": "86b5f5a4a69b226cef532cb4019df8ff0c08a804fa919af5d116e6e257cd9eac",
+    "lists/stream-context": "1b23ad89f664b057e470f37f29b9a2095f637d0a9f5962ebfcbde8402d2613e4",
+    "lists/string": "71a2d5f496719e70ed3cb112e191f6615f43489a2639a8d97f029a2e56647274",
+    "lists/quoted-version": "d3c580568a53465e81ab0400a70d6d4be2c2efcc1f389af474036c71c9ed77e2"
+  },
+  "after": {
+    "lists/file-context": "244fb40afe01cd670a273c3ed32f45736a2ac137c73bdf13dc5c34a82bc892a6",
+    "lists/shared": "c019e9d57cec9a7068e9c5940d6333cbd20012c83c704f66f4c8d8e95f8ceba3",
+    "lists/version": "95ed412a85bacb906307ae463ae15408488b7e8b17ca2adbafcf473b216438bb",
+    "lists/雪 clip.wav": "86b5f5a4a69b226cef532cb4019df8ff0c08a804fa919af5d116e6e257cd9eac",
+    "lists/stream-context": "1b23ad89f664b057e470f37f29b9a2095f637d0a9f5962ebfcbde8402d2613e4",
+    "lists/string": "71a2d5f496719e70ed3cb112e191f6615f43489a2639a8d97f029a2e56647274",
+    "lists/quoted-version": "d3c580568a53465e81ab0400a70d6d4be2c2efcc1f389af474036c71c9ed77e2"
+  },
+  "cases": [
+    {
+      "name": "shared",
+      "manifest": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/shared",
+      "content": "ffconcat version 1.0 ignored\nfile '雪 clip.wav'\nfile '雪 clip.wav'\n",
+      "runs": [
+        {
+          "argv": [
+            "-v",
+            "error",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/shared"
+          ],
+          "status": 0,
+          "stdout": "MAo4Cg==",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "-v",
+            "debug",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/shared"
+          ],
+          "status": 0,
+          "stdout": "MAo4Cg==",
+          "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'pts' to the entries to show in section 'packet'\n'packet' matches section with unique name 'packet'\n[concat @ 0x139705d60] Opening '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/shared' for reading\n[file @ 0x600003f7c0e0] Setting default whitelist 'file,crypto,data'\n[AVFormatContext @ 0x139705fc0] Opening '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/雪 clip.wav' for reading\n[wav @ 0x139705fc0] Format wav probed with size=2048 and score=99\n[wav @ 0x139705fc0] Before avformat_find_stream_info() pos: 44 bytes read:60 seeks:0 nb_streams:1\n[wav @ 0x139705fc0] probing stream 0 pp:32\n[wav @ 0x139705fc0] probing stream 0 pp:31\n[wav @ 0x139705fc0] probed stream 0\n[wav @ 0x139705fc0] parser not found for codec pcm_s16le, packets or times may be invalid.\n[wav @ 0x139705fc0] After avformat_find_stream_info() pos: 60 bytes read:60 seeks:0 frames:1\n[concat @ 0x139705d60] Before avformat_find_stream_info() pos: 69 bytes read:69 seeks:0 nb_streams:1\n[concat @ 0x139705d60] file:0 stream:0 pts:0 pts_time:0 dts:0 dts_time:0 -> pts:0 pts_time:0 dts:0 dts_time:0\n[concat @ 0x139705d60] All info found\n[concat @ 0x139705d60] After avformat_find_stream_info() pos: 69 bytes read:69 seeks:0 frames:1\nInput #0, concat, from '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/shared':\n  Duration: N/A, start: 0.000000, bitrate: 128 kb/s\n  Stream #0:0, 1, 1/8000: Audio: pcm_s16le ([1][0][0][0] / 0x0001), 8000 Hz, 1 channels, s16, 128 kb/s\nProcessing read interval id:0 start:N/A end:N/A\n[AVIOContext @ 0x139604780] Statistics: 60 bytes read, 0 seeks\n[AVFormatContext @ 0x139604780] Opening '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/雪 clip.wav' for reading\n[wav @ 0x139604780] Format wav probed with size=2048 and score=99\n[wav @ 0x139604780] Before avformat_find_stream_info() pos: 44 bytes read:60 seeks:0 nb_streams:1\n[wav @ 0x139604780] probing stream 0 pp:32\n[wav @ 0x139604780] probing stream 0 pp:31\n[wav @ 0x139604780] probed stream 0\n[wav @ 0x139604780] parser not found for codec pcm_s16le, packets or times may be invalid.\n[wav @ 0x139604780] After avformat_find_stream_info() pos: 60 bytes read:60 seeks:0 frames:1\n[concat @ 0x139705d60] file:1 stream:0 pts:0 pts_time:0 dts:0 dts_time:0 -> pts:8 pts_time:0.001 dts:8 dts_time:0.001\n[AVIOContext @ 0x1396049e0] Statistics: 60 bytes read, 0 seeks\n[AVIOContext @ 0x139705500] Statistics: 69 bytes read, 0 seeks\n"
+        }
+      ],
+      "graph": {
+        "status": "live",
+        "nodes": [
+          {
+            "id": 0,
+            "original": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/shared",
+            "location": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/shared",
+            "access": "read",
+            "live": true,
+            "upload": false,
+            "timing": {
+              "order": 0,
+              "stage": "runtime",
+              "certainty": "predicted"
+            }
+          },
+          {
+            "id": 1,
+            "parent": 0,
+            "original": "雪 clip.wav",
+            "location": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/雪 clip.wav",
+            "access": "read",
+            "live": true,
+            "upload": false,
+            "timing": {
+              "order": 1,
+              "stage": "runtime",
+              "certainty": "predicted"
+            }
+          },
+          {
+            "id": 2,
+            "parent": 0,
+            "original": "雪 clip.wav",
+            "location": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/雪 clip.wav",
+            "access": "read",
+            "live": true,
+            "upload": false,
+            "timing": {
+              "order": 2,
+              "stage": "runtime",
+              "certainty": "predicted"
+            }
+          }
+        ],
+        "edges": [
+          {
+            "from": 0,
+            "to": 1,
+            "kind": "depends-on"
+          },
+          {
+            "from": 0,
+            "to": 2,
+            "kind": "depends-on"
+          },
+          {
+            "from": 1,
+            "to": 2,
+            "kind": "before"
+          }
+        ],
+        "issues": []
+      },
+      "diagnosticReads": [
+        "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/shared",
+        "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/雪 clip.wav",
+        "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/雪 clip.wav"
+      ],
+      "checkedReadCoverage": [
+        {
+          "path": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/shared",
+          "covered": true
+        },
+        {
+          "path": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/雪 clip.wav",
+          "covered": true
+        },
+        {
+          "path": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/雪 clip.wav",
+          "covered": true
+        }
+      ]
+    },
+    {
+      "name": "version",
+      "manifest": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/version",
+      "content": "file '雪 clip.wav'\nffconcat version 2.0\nfile absent.wav\n",
+      "runs": [
+        {
+          "argv": [
+            "-v",
+            "error",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/version"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "[concat @ 0x123f05d60] Line 2: invalid version\n/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/version: Invalid data found when processing input\n"
+        },
+        {
+          "argv": [
+            "-v",
+            "debug",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/version"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'pts' to the entries to show in section 'packet'\n'packet' matches section with unique name 'packet'\n[concat @ 0x13bf05e60] Opening '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/version' for reading\n[file @ 0x600003ee40e0] Setting default whitelist 'file,crypto,data'\n[concat @ 0x13bf05e60] Line 2: invalid version\n[AVIOContext @ 0x13bf05740] Statistics: 57 bytes read, 0 seeks\n/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/version: Invalid data found when processing input\n"
+        }
+      ],
+      "graph": {
+        "status": "incomplete",
+        "nodes": [
+          {
+            "id": 0,
+            "original": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/version",
+            "location": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/version",
+            "access": "read",
+            "live": true,
+            "upload": false,
+            "timing": {
+              "order": 0,
+              "stage": "runtime",
+              "certainty": "predicted"
+            }
+          },
+          {
+            "id": 1,
+            "parent": 0,
+            "original": "雪 clip.wav",
+            "location": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/雪 clip.wav",
+            "access": "read",
+            "live": true,
+            "upload": false,
+            "timing": {
+              "order": 1,
+              "stage": "runtime",
+              "certainty": "predicted"
+            }
+          }
+        ],
+        "edges": [
+          {
+            "from": 0,
+            "to": 1,
+            "kind": "depends-on"
+          }
+        ],
+        "issues": [
+          {
+            "node": 0,
+            "reason": "syntax",
+            "detail": "Invalid concat version"
+          }
+        ]
+      },
+      "diagnosticReads": [
+        "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/version"
+      ],
+      "checkedReadCoverage": [
+        {
+          "path": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/version",
+          "covered": true
+        }
+      ]
+    },
+    {
+      "name": "quoted-version",
+      "manifest": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/quoted-version",
+      "content": "ffconcat 'version' 1.0\nfile absent.wav\n",
+      "runs": [
+        {
+          "argv": [
+            "-v",
+            "error",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/quoted-version"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "[concat @ 0x145e06230] Line 1: invalid version\n/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/quoted-version: Invalid data found when processing input\n"
+        },
+        {
+          "argv": [
+            "-v",
+            "debug",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/quoted-version"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'pts' to the entries to show in section 'packet'\n'packet' matches section with unique name 'packet'\n[concat @ 0x131705d60] Opening '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/quoted-version' for reading\n[file @ 0x6000033740e0] Setting default whitelist 'file,crypto,data'\n[concat @ 0x131705d60] Line 1: invalid version\n[AVIOContext @ 0x131705500] Statistics: 39 bytes read, 0 seeks\n/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/quoted-version: Invalid data found when processing input\n"
+        }
+      ],
+      "graph": {
+        "status": "incomplete",
+        "nodes": [
+          {
+            "id": 0,
+            "original": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/quoted-version",
+            "location": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/quoted-version",
+            "access": "read",
+            "live": true,
+            "upload": false,
+            "timing": {
+              "order": 0,
+              "stage": "runtime",
+              "certainty": "predicted"
+            }
+          }
+        ],
+        "edges": [],
+        "issues": [
+          {
+            "node": 0,
+            "reason": "syntax",
+            "detail": "Invalid concat version"
+          }
+        ]
+      },
+      "diagnosticReads": [
+        "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/quoted-version"
+      ],
+      "checkedReadCoverage": [
+        {
+          "path": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/quoted-version",
+          "covered": true
+        }
+      ]
+    },
+    {
+      "name": "file-context",
+      "manifest": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/file-context",
+      "content": "option key value\nfile absent.wav\n",
+      "runs": [
+        {
+          "argv": [
+            "-v",
+            "error",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/file-context"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "[concat @ 0x151e06230] Line 1: option without file\n/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/file-context: Invalid data found when processing input\n"
+        },
+        {
+          "argv": [
+            "-v",
+            "debug",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/file-context"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'pts' to the entries to show in section 'packet'\n'packet' matches section with unique name 'packet'\n[concat @ 0x127705d60] Opening '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/file-context' for reading\n[file @ 0x6000025640e0] Setting default whitelist 'file,crypto,data'\n[concat @ 0x127705d60] Line 1: option without file\n[AVIOContext @ 0x127705500] Statistics: 33 bytes read, 0 seeks\n/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/file-context: Invalid data found when processing input\n"
+        }
+      ],
+      "graph": {
+        "status": "incomplete",
+        "nodes": [
+          {
+            "id": 0,
+            "original": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/file-context",
+            "location": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/file-context",
+            "access": "read",
+            "live": true,
+            "upload": false,
+            "timing": {
+              "order": 0,
+              "stage": "runtime",
+              "certainty": "predicted"
+            }
+          }
+        ],
+        "edges": [],
+        "issues": [
+          {
+            "node": 0,
+            "reason": "syntax",
+            "detail": "Concat option without file"
+          }
+        ]
+      },
+      "diagnosticReads": [
+        "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/file-context"
+      ],
+      "checkedReadCoverage": [
+        {
+          "path": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/file-context",
+          "covered": true
+        }
+      ]
+    },
+    {
+      "name": "stream-context",
+      "manifest": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/stream-context",
+      "content": "stream_meta key value\nfile absent.wav\n",
+      "runs": [
+        {
+          "argv": [
+            "-v",
+            "error",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/stream-context"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "[concat @ 0x141f05d60] Line 1: stream_meta without stream\n/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/stream-context: Invalid data found when processing input\n"
+        },
+        {
+          "argv": [
+            "-v",
+            "debug",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/stream-context"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'pts' to the entries to show in section 'packet'\n'packet' matches section with unique name 'packet'\n[concat @ 0x12f705d60] Opening '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/stream-context' for reading\n[file @ 0x6000010bc0e0] Setting default whitelist 'file,crypto,data'\n[concat @ 0x12f705d60] Line 1: stream_meta without stream\n[AVIOContext @ 0x12f705500] Statistics: 38 bytes read, 0 seeks\n/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/stream-context: Invalid data found when processing input\n"
+        }
+      ],
+      "graph": {
+        "status": "incomplete",
+        "nodes": [
+          {
+            "id": 0,
+            "original": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/stream-context",
+            "location": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/stream-context",
+            "access": "read",
+            "live": true,
+            "upload": false,
+            "timing": {
+              "order": 0,
+              "stage": "runtime",
+              "certainty": "predicted"
+            }
+          }
+        ],
+        "edges": [],
+        "issues": [
+          {
+            "node": 0,
+            "reason": "syntax",
+            "detail": "Concat stream_meta without stream"
+          }
+        ]
+      },
+      "diagnosticReads": [
+        "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/stream-context"
+      ],
+      "checkedReadCoverage": [
+        {
+          "path": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/stream-context",
+          "covered": true
+        }
+      ]
+    },
+    {
+      "name": "string",
+      "manifest": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/string",
+      "content": "file '雪 clip.wav'\noption key\nfile absent.wav\n",
+      "runs": [
+        {
+          "argv": [
+            "-v",
+            "error",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/string"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "[concat @ 0x133e06230] Line 2: string required\n/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/string: Invalid data found when processing input\n"
+        },
+        {
+          "argv": [
+            "-v",
+            "debug",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/string"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'pts' to the entries to show in section 'packet'\n'packet' matches section with unique name 'packet'\n[concat @ 0x156f05d60] Opening '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/string' for reading\n[file @ 0x6000035f00e0] Setting default whitelist 'file,crypto,data'\n[concat @ 0x156f05d60] Line 2: string required\n[AVIOContext @ 0x156f05500] Statistics: 47 bytes read, 0 seeks\n/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/string: Invalid data found when processing input\n"
+        }
+      ],
+      "graph": {
+        "status": "incomplete",
+        "nodes": [
+          {
+            "id": 0,
+            "original": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/string",
+            "location": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/string",
+            "access": "read",
+            "live": true,
+            "upload": false,
+            "timing": {
+              "order": 0,
+              "stage": "runtime",
+              "certainty": "predicted"
+            }
+          },
+          {
+            "id": 1,
+            "parent": 0,
+            "original": "雪 clip.wav",
+            "location": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/雪 clip.wav",
+            "access": "read",
+            "live": true,
+            "upload": false,
+            "timing": {
+              "order": 1,
+              "stage": "runtime",
+              "certainty": "predicted"
+            }
+          }
+        ],
+        "edges": [
+          {
+            "from": 0,
+            "to": 1,
+            "kind": "depends-on"
+          }
+        ],
+        "issues": [
+          {
+            "node": 0,
+            "reason": "syntax",
+            "detail": "Empty concat string argument"
+          }
+        ]
+      },
+      "diagnosticReads": [
+        "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/string"
+      ],
+      "checkedReadCoverage": [
+        {
+          "path": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/string",
+          "covered": true
+        }
+      ]
+    },
+    {
+      "name": "no-file",
+      "manifest": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/no-file",
+      "content": "ffconcat version 1.0\nstream\n",
+      "runs": [
+        {
+          "argv": [
+            "-v",
+            "error",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/no-file"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/no-file: Invalid data found when processing input\n"
+        },
+        {
+          "argv": [
+            "-v",
+            "debug",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/no-file"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'pts' to the entries to show in section 'packet'\n'packet' matches section with unique name 'packet'\n[concat @ 0x1420057a0] Opening '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/no-file' for reading\n[file @ 0x6000031c40e0] Setting default whitelist 'file,crypto,data'\n[AVIOContext @ 0x1417044e0] Statistics: 28 bytes read, 0 seeks\n/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/no-file: Invalid data found when processing input\n"
+        }
+      ],
+      "graph": {
+        "status": "incomplete",
+        "nodes": [
+          {
+            "id": 0,
+            "original": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/no-file",
+            "location": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/no-file",
+            "access": "read",
+            "live": true,
+            "upload": false,
+            "timing": {
+              "order": 0,
+              "stage": "runtime",
+              "certainty": "predicted"
+            }
+          }
+        ],
+        "edges": [],
+        "issues": [
+          {
+            "node": 0,
+            "reason": "syntax",
+            "detail": "Concat manifest requires a file directive"
+          }
+        ]
+      },
+      "diagnosticReads": [
+        "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/no-file"
+      ],
+      "checkedReadCoverage": [
+        {
+          "path": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-directive-qualification-os78sc92/lists/no-file",
+          "covered": true
+        }
+      ],
+      "beforeSha256": "894dda186e38e82cb29f2075de984c1e33280a1bf83427cdee604419703f3398",
+      "afterSha256": "894dda186e38e82cb29f2075de984c1e33280a1bf83427cdee604419703f3398"
+    }
+  ],
+  "matchesExistingRegisteredExecutable": true,
+  "executableIdentityReference": "dependency-invocation-admission-native-evidence.json"
+}

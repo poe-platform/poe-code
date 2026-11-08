@@ -1,0 +1,1402 @@
+diff --git a/src/commands/archive/README.md b/src/commands/archive/README.md
+index e184c6c..cdeeb16 100644
+--- a/src/commands/archive/README.md
++++ b/src/commands/archive/README.md
+@@ -138,9 +138,11 @@ unsupported and produce failure. No option or archive data executes code.
+   creation, including `file` versus `./file` aliases.
+ - Extraction hardlinks require a previously extracted regular file at the
+   transformed target path in the same selected root. Forward, self, unselected,
+-  preexisting-only, or changed targets fail. Unsupported backend links fail;
+-  there is no copy fallback. Replacing a regular file unlinks and exclusively
+-  creates it, leaving earlier hardlinked versions untouched.
++  preexisting-only, or non-regular targets fail. Observed changes in complete
++  backing identity fail; identity-unknown targets cannot be checked for same-type
++  replacement. Unsupported backend links fail; there is no copy fallback.
++  Replacing a regular file unlinks and exclusively creates it, leaving earlier
++  hardlinked versions untouched.
+ - Headers record numeric UID/GID when provided, ordinary/special permission
+   bits, mtime, and (PAX) atime. Missing UID/GID become zero; no owner names are
+   invented. There is no FS ownership API: extraction does **not** chown, restore
+@@ -153,8 +155,10 @@ unsupported and produce failure. No option or archive data executes code.
+   fractional-second digits. Verbose listing uses numeric IDs/seconds, not
+   byte-for-byte GNU date/locale formatting.
+ - Directory metadata is deferred until successful archive validation, children
+-  before parents. New intermediate directories without an explicit directory
+-  member stay private `0700`; newly opened files/archives start at `0600`.
++  before parents. Tar requests `0700` for new intermediate directories without
++  an explicit directory member and `0600` for newly opened files/archives.
++  Actual enforcement requires backend permission support; these modes may be
++  advisory or ignored on other backends.
+   There is no ambient host umask, user database, filesystem, or process lookup.
+ 
+ ## Extraction and publication safety
+diff --git a/src/commands/archive/format.ts b/src/commands/archive/format.ts
+index 09846f3..580834d 100644
+--- a/src/commands/archive/format.ts
++++ b/src/commands/archive/format.ts
+@@ -117,7 +117,7 @@ export function encodeEntry(entry: Entry, limits: ArchiveLimits): Uint8Array[] {
+   const records: Uint8Array[] = [];
+   if (!splitName(base.name)) { records.push(paxRecord("path", base.name)); base.name = "PaxEntry"; }
+   if (Buffer.byteLength(base.linkname) > 100 || /[^\x01-\x7f]/u.test(base.linkname)) {
+-    records.push(paxRecord("linkpath", base.linkname)); base.linkname = "";
++    records.push(paxRecord("linkpath", base.linkname)); base.linkname = "PaxLink";
+   }
+   for (const key of ["uid", "gid", "size", "mtime"] as const) {
+     const value = base[key];
+diff --git a/src/commands/filesystem.ts b/src/commands/filesystem.ts
+index 3b9ccd2..3498ebc 100644
+--- a/src/commands/filesystem.ts
++++ b/src/commands/filesystem.ts
+@@ -74,12 +74,18 @@ async function copy(
+     }
+   } else if (preserveLink) {
+     needCapability(context, "symlink"); needCapability(context, "readlink");
++    const linkTarget = await context.fs.readlink!(source, { signal: context.signal });
+     const existing = await maybeStat(context, target, false);
+     if (existing) {
+       if (existing.type === "directory") throw new FsError("EISDIR", { path: target });
+-      await context.fs.rm(target, { signal: context.signal });
++      const sourceEntry = await context.fs.lstat(source, { signal: context.signal });
++      const identity = compareCopyIdentity(sourceEntry, existing);
++      if (identity === "same") throw new FsError("EINVAL", { path: source, dest: target, message: "source and destination are the same file" });
++      if (identity === "unknown") throw new FsError("ENOTSUP", { path: source, dest: target, message: "symbolic link copy unlink lacks authoritative distinctness" });
++      context.signal.throwIfAborted();
++      await context.fs.rm(target, { recursive: false, signal: context.signal });
+     }
+-    await context.fs.symlink!(await context.fs.readlink!(source, { signal: context.signal }), target, { signal: context.signal });
++    await context.fs.symlink!(linkTarget, target, { signal: context.signal });
+   } else {
+     if (targetStat?.type === "directory") throw new FsError("EISDIR", { path: target });
+     try { await context.fs.copyFile(source, target, { signal: context.signal }); }
+@@ -172,7 +178,10 @@ export function filesystemCommands(): CommandDefinition[] {
+         catch (error) {
+           context.signal.throwIfAborted();
+           if (codeOf(error) !== "EXDEV") throw error;
+-          if (!await moveAcrossDevices(context, source, target, parsed.flags.has("n"), budget)) return;
++          if (!await moveAcrossDevices(context, source, target, parsed.flags.has("n"), budget)) {
++            if (!parsed.flags.has("n")) throw new FsError("EINVAL", { path: source, dest: target, message: "source and destination are the same file" });
++            return;
++          }
+         }
+         if (parsed.flags.has("v")) await output(context, `'${operand}' -> '${target}'\n`);
+       });
+diff --git a/src/fs/s3/COMPARISON.md b/src/fs/s3/COMPARISON.md
+new file mode 100644
+index 0000000..1a703c1
+--- /dev/null
++++ b/src/fs/s3/COMPARISON.md
+@@ -0,0 +1,85 @@
++# Qualified S3 entry comparison
++
++`S3FileSystem.compareEntry` implements the optional contract from `5076b32`
++through the shared internal `src/fs/mount/comparison.ts` helper. It resolves fresh
++followed views and propagates metadata errors and cancellation. It does not read
++object contents, open destinations, lock, copy, publish, or delete. Complete
++scoped identities take precedence; unknown remains unknown. The shared helper
++owns one-shot authority negotiation and invalid/conflicting answer validation.
++
++## Provider qualification
++
++The shipped mock really owns its bucket maps and stored entries. Its original
++implementation and actual bucket map references are privately registered. All
++buffered and streaming provider operations must retain their recognized method
++references. The existing `createS3Transport(client, capabilities)` factory
++preserves qualification only through an intact chain ending in this registered
++provider. Wrapping an arbitrary injected client does not qualify it. No new
++public registry, permission/trust capability, client token, root export, or
++dependency is introduced.
++
++Full-operation binding is required because genuine Mock HEAD responses can be
++combined with custom GET/PUT implementations addressing a local source file.
++Such a client is **unknown**, not a disjoint remote store. Even a genuinely
++transparent hand-written Proxy or method forwarder is unqualified: metadata-only
++queries cannot distinguish it from adversarial mixed routing. New distinct client
++objects, class/protocol differences, URLs, credentials, bucket names, ETags and
++content digests never establish distinctness.
++
++In addition to the full binding, the actual Mock HEAD result receives a private
++query-scoped proof referring to the actual bucket map and key. Only the exact
++result from the current query qualifies, not manufactured, copied, wrong-key or
++replayed earlier-query metadata. The resulting fresh FileStat is privately bound
++to its filesystem and normalized path. Method bindings are rechecked after both
++peer observations. No identity fields or secret-looking serialized tokens are
++added to public metadata. `createS3Transport` naturally preserves the actual
++response object. Metadata provenance alone is deliberately insufficient.
++
++For qualified observations, equal actual bucket map plus key means same; different
++keys or genuinely separate owned maps mean distinct. Prefixes are incorporated
++in the actual queried key, not compared as local filenames. Unknown/unmarked
++implicit directory observations remain unknown rather than inventing a backing
++marker. The proof is point-in-time evidence, not a cached lease or guarantee about
++later pathname changes, ABA, malicious host monkeypatching after observation,
++provider authentication, snapshot isolation or atomicity.
++
++## Private wrapper handoff
++
++`getOwnedS3Entry(view)` in the internal `src/fs/s3/authority.ts` returns
++`{ storage: object, key: string } | undefined`. `storage` is the actual qualified
++mock bucket map, never an invented per-client identity. It accepts only a
++filesystem/path-bound fresh stat observation with intact full provider mapping.
++The shared resolver must obtain fresh metadata on each public comparison; this
++helper is not a reusable authorization lease.
++
++A Memory-owned terminal authority may compare its own truly private backing store
++against this qualified closed mock store. That owner must establish actual memory
++ownership; S3 does not infer it from a complete-looking tuple or another class.
++There is no S3-vs-Memory/S3-vs-WebDAV/native-vs-remote blanket distinctness rule.
++Arbitrary transports can address local storage, including the source itself.
++
++Public S3 comparison delegates to the common helper. Its registered terminal
++callback never calls the peer's compareEntry or recursively negotiates. Wrappers,
++their private Memory authority, opaque-wrapper fallback and destination policy
++remain the wrapper lead's scope. S3 does not override complete tuples, known
++aliases, readonly policies or the conditional copy/PUT/delete protections.
++
++## Acceptance limits and required decision
++
++The original compatibility fixture at SHA256
++`9d11741fd9b37757046c1278fdaa00c734633bfd9a1fc58ae479415c2f5a6734`
++uses arbitrary opaque clients. Their full operation routing cannot be proved
++under the metadata-only contract. No original positive assertion is relaxed or
++fixture edited by this leaf. The proposed minimal input qualification is the
++already-shipped provider-owned `createS3Transport(service, service.capabilities)`
++factory. Root must explicitly approve any positive-fixture input delta, preserving
++all required operations and the old fixture/raw denominator; separate qualified
++positives are not closure of the original unqualified acceptance gate.
++
++Arbitrary real S3 clients remain usable for ordinary supported operations but
++unqualified for this cross-view distinctness proof. A future generic-provider
++integration would need provider-owned complete operation mapping and actual
++storage/key authority, with independent review; no new public hook is approved
++or added here. Same limitations on non-atomic rename, ETag ABA and partial effects
++continue unchanged. `tests/fs/s3/comparison.test.ts` includes a genuine-HEAD/local
++Memory GET/PUT/stream adversary that must remain unknown with zero content effects.
+diff --git a/src/fs/s3/README.md b/src/fs/s3/README.md
+index 43e046f..fc4c090 100644
+--- a/src/fs/s3/README.md
++++ b/src/fs/s3/README.md
+@@ -374,8 +374,11 @@ Supported alternatives for **different, explicitly chosen workflows** are:
+ The executable examples and exact preservation checks are in
+ `tests/stress/adapters/remote-safe-workflows.test.ts`. They use the repository
+ mock, not live IAM/provider validation. Modes remain advisory metadata, not an
+-authorization boundary; the shared creation-mode/X_OK contract question remains
+-open in `tests/stress/adapters/evidence/four-reds-b2d202a`.
++authorization boundary. Contract `5076b32` permits this creation-mode/X_OK profile;
++`d25cb3f` applies the intentional test-expectation delta, not a source fix. The
++earlier RED evidence in `tests/stress/adapters/evidence/four-reds-b2d202a` and
++`tests/stress/adapters/s3-permission-profile/REPORT.md` remains historical and
++unchanged.
+ 
+ An S3 DeleteObject `If-Match` guards the named object's ETag, not the emptiness
+ of its prefix. A future safe provider integration would need an authoritative
+diff --git a/src/fs/s3/authority.ts b/src/fs/s3/authority.ts
+new file mode 100644
+index 0000000..1fb0973
+--- /dev/null
++++ b/src/fs/s3/authority.ts
+@@ -0,0 +1,106 @@
++import { AsyncLocalStorage } from "node:async_hooks";
++import type { EntryComparison, FileStat, FileSystem, FsOptions } from "../../contracts/filesystem.js";
++import type { EntryView } from "../mount/comparison.js";
++import type { S3Client, S3HeadOutput, S3ObjectInput } from "./transport.js";
++
++export interface OwnedS3Entry {
++  readonly storage: object;
++  readonly key: string;
++}
++
++interface HeadProof {
++  readonly query: S3ObjectInput;
++  readonly entry: OwnedS3Entry;
++}
++
++const queries = new AsyncLocalStorage<S3ObjectInput>();
++const providerHeads = new WeakMap<S3HeadOutput, HeadProof>();
++const acceptedHeads = new WeakMap<S3HeadOutput, OwnedS3Entry>();
++const observedStats = new WeakMap<FileStat, { filesystem: FileSystem; path: string; entry: OwnedS3Entry }>();
++const entries = new WeakMap<FileSystem, (view: EntryView) => OwnedS3Entry | undefined>();
++interface ProviderOwner {
++  readonly unchanged: () => boolean;
++  readonly bucket?: (name: string) => object | undefined;
++  readonly forwarded?: S3Client;
++}
++const providers = new WeakMap<S3Client, ProviderOwner>();
++const operations = ["headObject", "getObject", "putObject", "deleteObject", "copyObject", "listObjectsV2", "getObjectStream", "putObjectStream"] as const;
++
++function unchangedClient(client: S3Client): () => boolean {
++  const methods = operations.map(name => client[name]);
++  return () => operations.every((name, index) => client[name] === methods[index]);
++}
++
++export function registerMockS3Owner(client: S3Client, bucket: (name: string) => object | undefined, intact: () => boolean): void {
++  const unchanged = unchangedClient(client);
++  providers.set(client, { unchanged: () => unchanged() && intact(), bucket });
++}
++
++export function forwardS3Owner(client: S3Client, transport: S3Client): void {
++  providers.set(transport, { unchanged: unchangedClient(transport), forwarded: client });
++}
++
++function ownedS3Bucket(client: S3Client, name: string): object | undefined {
++  const visited = new Set<S3Client>();
++  let current: S3Client | undefined = client;
++  while (current !== undefined && !visited.has(current)) {
++    visited.add(current);
++    const owner: ProviderOwner | undefined = providers.get(current);
++    if (!owner?.unchanged()) return undefined;
++    if (owner.bucket) return owner.bucket(name);
++    current = owner.forwarded;
++  }
++  return undefined;
++}
++
++export function recordMockS3Head(output: S3HeadOutput, input: S3ObjectInput, storage: object): void {
++  const query = queries.getStore();
++  if (query && query.Bucket === input.Bucket && query.Key === input.Key) {
++    providerHeads.set(output, { query, entry: { storage, key: input.Key } });
++  }
++}
++
++export async function queryS3Head(input: S3ObjectInput, action: () => Promise<S3HeadOutput>): Promise<S3HeadOutput> {
++  const query = { ...input };
++  return queries.run(query, async () => {
++    const output = await action();
++    acceptedHeads.delete(output);
++    const proof = providerHeads.get(output);
++    if (proof?.query === query) acceptedHeads.set(output, proof.entry);
++    return output;
++  });
++}
++
++export function recordS3Stat(filesystem: FileSystem, path: string, stat: FileStat, metadata: S3HeadOutput | undefined): void {
++  if (!metadata) return;
++  const entry = acceptedHeads.get(metadata);
++  acceptedHeads.delete(metadata);
++  if (entry) observedStats.set(stat, { filesystem, path, entry });
++}
++
++export function registerS3EntryOwner(filesystem: FileSystem, normalize: (path: string) => string, client: S3Client, bucket: string): void {
++  const names = ["stat", "lstat", "realpath", "readFile", "writeFile", "copyFile", "rename", "readStream", "writeStream"] as const;
++  const methods = names.map(name => filesystem[name]);
++  entries.set(filesystem, view => {
++    if (!names.every((name, index) => filesystem[name] === methods[index])) return undefined;
++    const storage = ownedS3Bucket(client, bucket);
++    if (!storage) return undefined;
++    const observation = observedStats.get(view.stat);
++    return observation?.filesystem === filesystem && observation.path === normalize(view.path)
++      && observation.entry.storage === storage ? observation.entry : undefined;
++  });
++}
++
++export function getOwnedS3Entry(view: EntryView): OwnedS3Entry | undefined {
++  return entries.get(view.filesystem)?.(view);
++}
++
++export async function compareOwnedS3Entries(own: EntryView, peer: EntryView, options: FsOptions): Promise<EntryComparison> {
++  options.signal?.throwIfAborted();
++  const left = getOwnedS3Entry(own);
++  options.signal?.throwIfAborted();
++  const right = getOwnedS3Entry(peer);
++  options.signal?.throwIfAborted();
++  if (!left || !right) return "unknown";
++  return left.storage === right.storage && left.key === right.key ? "same" : "distinct";
++}
+diff --git a/src/fs/s3/filesystem.ts b/src/fs/s3/filesystem.ts
+index cdd6a15..ce7d130 100644
+--- a/src/fs/s3/filesystem.ts
++++ b/src/fs/s3/filesystem.ts
+@@ -2,11 +2,13 @@ import { posix } from "node:path";
+ import { FsError, isFsError } from "../../contracts/errors.js";
+ import type { ErrnoCode } from "../../contracts/errors.js";
+ import type {
+-  AppendFileOptions, CopyFileOptions, DirectoryEntry, FileStat, FileSystem,
++  AppendFileOptions, CopyFileOptions, DirectoryEntry, EntryComparison, FileStat, FileSystem,
+   FsOptions, MkdirOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions, WriteFileOptions,
+ } from "../../contracts/filesystem.js";
+ import { collectBytes, readBytes } from "../../contracts/io.js";
+ import type { ByteSource } from "../../contracts/io.js";
++import { compareEntries, registerEntryAuthority } from "../mount/comparison.js";
++import { compareOwnedS3Entries, queryS3Head, recordS3Stat, registerS3EntryOwner } from "./authority.js";
+ import { encodeCopySource } from "./transport.js";
+ import type {
+   S3GetOutput, S3HeadOutput, S3ListOutput, S3ObjectSummary, S3RequestOptions, S3Transport,
+@@ -131,6 +133,14 @@ export class S3FileSystem implements FileSystem {
+     });
+     if (this.capabilities.streamingRead) this.readStream = this.streamRead.bind(this);
+     if (this.capabilities.streamingWrite) this.writeStream = this.streamWrite.bind(this);
++    if (Object.getPrototypeOf(this) === S3FileSystem.prototype) {
++      registerS3EntryOwner(this, path => this.path(path), this.transport, this.bucket);
++    }
++    registerEntryAuthority(this, compareOwnedS3Entries);
++  }
++
++  async compareEntry(path: string, peer: FileSystem, peerPath: string, options: FsOptions = {}): Promise<EntryComparison> {
++    return compareEntries(this, path, peer, peerPath, options);
+   }
+ 
+   private path(input: string): string {
+@@ -202,7 +212,8 @@ export class S3FileSystem implements FileSystem {
+ 
+   private async head(key: string, path: string, options: FsOptions): Promise<S3HeadOutput | undefined> {
+     try {
+-      return await this.call("headObject", path, options, () => this.transport.headObject({ Bucket: this.bucket, Key: key }, this.requestOptions(options)));
++      const input = { Bucket: this.bucket, Key: key };
++      return await this.call("headObject", path, options, () => queryS3Head(input, () => this.transport.headObject(input, this.requestOptions(options))));
+     } catch (error) {
+       if (isFsError(error, "ENOENT") && serviceCode(error.cause) !== "NoSuchBucket") return undefined;
+       throw error;
+@@ -332,6 +343,7 @@ export class S3FileSystem implements FileSystem {
+     const info = await this.lookup(path, options);
+     this.requireDirectorySuffix(input, info);
+     if (!info) fail("ENOENT", "stat", input);
++    recordS3Stat(this, path, info.stat, info.metadata);
+     return info.stat;
+   }
+ 
+diff --git a/src/fs/s3/mock.ts b/src/fs/s3/mock.ts
+index a5a63a1..0a714a5 100644
+--- a/src/fs/s3/mock.ts
++++ b/src/fs/s3/mock.ts
+@@ -1,5 +1,6 @@
+ import { createHash } from "node:crypto";
+ import { collectBytes } from "../../contracts/io.js";
++import { recordMockS3Head, registerMockS3Owner } from "./authority.js";
+ import type { S3StreamGetInput, S3StreamGetOutput, S3StreamPutInput } from "./transport.js";
+ import { S3ServiceError } from "./transport.js";
+ import type {
+@@ -57,6 +58,11 @@ export class MockS3Client implements S3Transport {
+     this.now = options.now ?? (() => new Date());
+     this.authorize = options.authorize;
+     for (const bucket of options.buckets) this.buckets.set(bucket, new Map());
++    if (Object.getPrototypeOf(this) === MockS3Client.prototype) {
++      const buckets = this.buckets;
++      registerMockS3Owner(this, name => buckets.get(name), () => this.buckets === buckets
++        && Object.entries(mockImplementation).every(([name, descriptor]) => descriptor.value === undefined || Reflect.get(this, name) === descriptor.value));
++    }
+   }
+ 
+   get requests(): readonly MockS3Request[] {
+@@ -109,7 +115,9 @@ export class MockS3Client implements S3Transport {
+ 
+   async headObject(input: S3ObjectInput, options?: S3RequestOptions): Promise<S3HeadOutput> {
+     await this.begin("headObject", input, options);
+-    return this.head(this.object(input));
++    const output = this.head(this.object(input));
++    recordMockS3Head(output, input, this.bucket(input.Bucket));
++    return output;
+   }
+ 
+   async getObject(input: S3ObjectInput, options?: S3RequestOptions): Promise<S3GetOutput> {
+@@ -254,3 +262,5 @@ export class MockS3Client implements S3Transport {
+     };
+   }
+ }
++
++const mockImplementation = Object.getOwnPropertyDescriptors(MockS3Client.prototype);
+diff --git a/src/fs/s3/transport.ts b/src/fs/s3/transport.ts
+index 35a9d63..3993f00 100644
+--- a/src/fs/s3/transport.ts
++++ b/src/fs/s3/transport.ts
+@@ -1,3 +1,5 @@
++import { forwardS3Owner } from "./authority.js";
++
+ export interface S3RequestOptions {
+   readonly abortSignal?: AbortSignal;
+ }
+@@ -112,7 +114,7 @@ export function createS3Transport(
+   client: S3Client,
+   capabilities: S3TransportCapabilities = {},
+ ): S3Transport {
+-  return {
++  const transport: S3Transport = {
+     capabilities: Object.freeze({ ...capabilities }),
+     ...(client.getObjectStream ? { getObjectStream: (input: S3StreamGetInput, options?: S3RequestOptions) => client.getObjectStream!(input, options) } : {}),
+     ...(client.putObjectStream ? { putObjectStream: (input: S3StreamPutInput, options?: S3RequestOptions) => client.putObjectStream!(input, options) } : {}),
+@@ -123,6 +125,8 @@ export function createS3Transport(
+     copyObject: (input, options) => client.copyObject(input, options),
+     listObjectsV2: (input, options) => client.listObjectsV2(input, options),
+   };
++  forwardS3Owner(client, transport);
++  return transport;
+ }
+ 
+ export class S3ServiceError extends Error {
+diff --git a/src/fs/webdav/README.md b/src/fs/webdav/README.md
+index 9d124c7..2fdaa5c 100644
+--- a/src/fs/webdav/README.md
++++ b/src/fs/webdav/README.md
+@@ -349,6 +349,66 @@ as `cause`. Earlier server-side changes may already have happened; there is no
+ rollback. A mutation multistatus without a reported failure is also rejected
+ rather than guessing that the operation completed.
+ 
++## Optional resource comparison authority
++
++`compareEntry(path, peer, peerPath, options?)` uses the approved metadata-only
++comparison contract and the shared internal wrapper resolver. For two recognized
++WebDAV adapter views it explicitly requests `DAV:resource-id` with Depth-0
++PROPFIND. Both requested resources must return a valid successful property.
++Missing properties return `unknown`; missing resources, authorization, malformed
++or conflicting metadata, transport errors and cancellation do not become proof.
++The existing XML/depth/entry/byte limits and rooted response-URL validation apply.
++Only the requested resource's correctly namespaced, single successful property
++is accepted. HTTP207 alone is insufficient. IDs are not dereferenced or fetched.
++
++RFC5842 resource IDs identify backing resources across bindings and endpoint
++aliases; endpoint strings, credentials and ETags do not. Full identifiers are
++compared, not numeric hashes; UUID hexadecimal case is normalized. The guarantee
++depends on a compliant provider preserving resource IDs across its actual
++operations, not merely returning arbitrary property text. Base WebDAV/LOCK/COPY
++support does not imply RFC5842 support. This Experimental extension is not server
++authentication, a lease, an ABA defense or a pathname snapshot. Comparison sends
++no GET, PUT, COPY, MOVE, DELETE or LOCK and cannot authorize an unknown existing
++target, an unknown final symlink unlink, or a later overlay copy-up target.
++
++Protocol resource IDs do **not** prove disjointness from local Memory/Real storage
++or other protocols. The internal `getOwnedWebDavEntry` helper exposes closed-store
++provenance only for the actual owned mock provider's registered whole fetch
++function or its `MockDav.createFetch()` forwarding factory. It binds the actual
++files Map/resource record, validates unchanged map-operation and adapter-method
++references, and associates only validated metadata observations with that store.
++Nothing is published as a FileStat inode/scope or a public registry/trust flag.
++Other backend owners still must recognize their own actual closed storage before
++using this descriptor; its presence does not automatically authorize mixed copies.
++
++A genuine mock PROPFIND Response is **not enough**: a custom fetch can forward
++that Response while directing GET/PUT into an aliased local file. Such arbitrary
++manual wrappers remain unqualified even if their metadata is genuine. HTTP and
++Response cloning do not transmit private closed-store provenance; real HTTP uses
++only the separate protocol comparison path. The approved provider factory captures
++the qualified complete fetch mapping rather than guessing bound functions or
++trusting client/URL names. Unrecognized custom transports stay unknown.
++
++The owned `tests/fs/webdav/mock.ts` intentionally gains resource-id capability.
++Its files remain an ordinary Map with existing byte/namespace behavior. Resource
++records survive PUT and MOVE; COPY to a new target creates a distinct record,
++COPY updating an existing target preserves that target's record, and deletion
++retires it. Old mock source/raw evidence and new hashes are retained separately
++in the resource-authority evidence directory; this is a provider capability delta,
++not silently weakening the independent original compatibility assertions.
++
++The original compatibility fixture manually forwards `service.fetch`. Its two
++mixed-memory existing-target cases therefore still need root approval for an
++explicit input capability delta to `service.createFetch()` and a qualified
++Memory-owner callback. This leaf does not edit that independent fixture. The
++resource-id feature improves its WebDAV-only existing-copy/move cases without
++claiming original mixed acceptance or universal provider interoperability.
++
++Primary basis: RFC5842 sections2.7 and3.1 (immutable unique resource IDs and
++explicit property discovery), and RFC4918 propstat/status processing. References:
++`https://www.rfc-editor.org/rfc/rfc5842.html` and
++`https://www.rfc-editor.org/rfc/rfc4918.html`.
++
+ ## Safe cleanup workflows and the empty-collection gap
+ 
+ Safe empty-only `rmdir` remains unsupported for an empty remote collection, under
+diff --git a/src/fs/webdav/resource-id.ts b/src/fs/webdav/resource-id.ts
+new file mode 100644
+index 0000000..d5dc3c5
+--- /dev/null
++++ b/src/fs/webdav/resource-id.ts
+@@ -0,0 +1,99 @@
++import type { EntryComparison, FileStat, FileSystem, FsOptions } from "../../contracts/filesystem.js";
++import type { EntryAuthority, EntryView } from "../mount/comparison.js";
++import { FsError } from "../../contracts/errors.js";
++import type { WebDavFetch } from "./webdav.js";
++
++export interface OwnedWebDavEntry {
++  readonly storage: object;
++  readonly resource: object;
++}
++
++export interface OwnedWebDavResource extends OwnedWebDavEntry {
++  readonly identifier: string;
++}
++
++const responses = new WeakMap<Response, ReadonlyMap<string, OwnedWebDavResource>>();
++const observations = new WeakMap<FileStat, { filesystem: FileSystem; path: string; entry: OwnedWebDavResource }>();
++const unchanged = new WeakMap<FileSystem, () => boolean>();
++const providers = new WeakMap<WebDavFetch, { storage: object; unchanged: () => boolean }>();
++const transports = new WeakMap<FileSystem, WebDavFetch>();
++
++export function registerMockWebDavFetch(fetch: WebDavFetch, storage: object, valid: () => boolean): void {
++  if (providers.has(fetch)) throw new TypeError("fetch already registered");
++  providers.set(fetch, { storage, unchanged: valid });
++}
++
++export function forwardOwnedWebDavFetch(fetch: WebDavFetch): WebDavFetch {
++  const forward: WebDavFetch = (url, init) => fetch(url, init);
++  const provider = providers.get(fetch);
++  if (provider) providers.set(forward, provider);
++  return forward;
++}
++
++export function registerOwnedResourceResponse(response: Response, entries: ReadonlyMap<string, OwnedWebDavResource>): void {
++  if (responses.has(response)) throw new TypeError("resource response already registered");
++  responses.set(response, new Map(entries));
++}
++
++export function recordOwnedResourceStat(response: Response, filesystem: FileSystem, path: string, stat: FileStat): void {
++  const entry = responses.get(response)?.get(path);
++  if (entry) observations.set(stat, { filesystem, path, entry });
++}
++
++export function getOwnedWebDavEntry(view: EntryView): OwnedWebDavEntry | undefined {
++  const observation = observations.get(view.stat);
++  const fetch = transports.get(view.filesystem);
++  const provider = fetch && providers.get(fetch);
++  return observation?.filesystem === view.filesystem && observation.path === view.path && unchanged.get(view.filesystem)?.()
++    && provider?.storage === observation.entry.storage && provider.unchanged()
++    ? observation.entry : undefined;
++}
++
++export function ownedResponseIdentifier(response: Response, path: string): string | undefined {
++  return responses.get(response)?.get(path)?.identifier;
++}
++
++type ResourceQuery = (path: string, options: FsOptions) => Promise<string | undefined>;
++const queries = new WeakMap<FileSystem, ResourceQuery>();
++
++export function registerResourceQuery(filesystem: FileSystem, query: ResourceQuery, transport: WebDavFetch): void {
++  const names = ["stat", "lstat", "realpath", "readFile", "writeFile", "copyFile", "rename", "readStream", "writeStream"] as const;
++  const methods = names.map(name => filesystem[name]);
++  const valid = () => names.every((name, index) => filesystem[name] === methods[index]);
++  unchanged.set(filesystem, valid);
++  transports.set(filesystem, transport);
++  queries.set(filesystem, (path, options) => valid() ? query(path, options) : Promise.resolve(undefined));
++}
++
++export function resourceIdentifier(value: string): string {
++  if (!/^[A-Za-z][A-Za-z0-9+.-]*:[^\s<>"{}|\\^`]+$/.test(value) || /%(?![0-9A-Fa-f]{2})/.test(value)
++    || /[^\x21-\x7e]/.test(value)) throw new Error("invalid DAV:resource-id URI");
++  new URL(value);
++  if (/^urn:uuid:/i.test(value)) {
++    if (!/^urn:uuid:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)) {
++      throw new Error("invalid DAV:resource-id UUID");
++    }
++    return value.toLowerCase();
++  }
++  return value;
++}
++
++export const compareWebDavResources: EntryAuthority = async (own, peer, options): Promise<EntryComparison> => {
++  options.signal?.throwIfAborted();
++  const left = getOwnedWebDavEntry(own);
++  const right = getOwnedWebDavEntry(peer);
++  const ownQuery = queries.get(own.filesystem);
++  const peerQuery = queries.get(peer.filesystem);
++  if (!ownQuery || !peerQuery) return "unknown";
++  options.signal?.throwIfAborted();
++  const ownId = await ownQuery(own.path, options);
++  options.signal?.throwIfAborted();
++  const peerId = await peerQuery(peer.path, options);
++  options.signal?.throwIfAborted();
++  if (ownId === undefined || peerId === undefined) return "unknown";
++  if (left && right) {
++    const same = left.storage === right.storage && left.resource === right.resource;
++    if (same !== (ownId === peerId)) throw new FsError("EIO", { path: own.path, dest: peer.path, message: "conflicting owned and protocol WebDAV identities" });
++  }
++  return ownId === peerId ? "same" : "distinct";
++};
+diff --git a/src/fs/webdav/webdav.ts b/src/fs/webdav/webdav.ts
+index f2e79f2..96bd123 100644
+--- a/src/fs/webdav/webdav.ts
++++ b/src/fs/webdav/webdav.ts
+@@ -3,11 +3,13 @@ import type { ErrnoCode } from "../../contracts/errors.js";
+ import { readBytes } from "../../contracts/io.js";
+ import type { ByteSource } from "../../contracts/io.js";
+ import type {
+-  AppendFileOptions, CopyFileOptions, DirectoryEntry, FileStat, FileSystem,
++  AppendFileOptions, CopyFileOptions, DirectoryEntry, EntryComparison, FileStat, FileSystem,
+   FsOptions, MkdirOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions, WriteFileOptions,
+ } from "../../contracts/filesystem.js";
+ import { davChild, davChildren, parseXml, scalar } from "./xml.js";
+ import type { XmlElement } from "./xml.js";
++import { compareEntries, registerEntryAuthority } from "../mount/comparison.js";
++import { compareWebDavResources, ownedResponseIdentifier, recordOwnedResourceStat, registerResourceQuery, resourceIdentifier } from "./resource-id.js";
+ 
+ export type WebDavFetch = (url: string, init: RequestInit) => Promise<Response>;
+ 
+@@ -30,6 +32,9 @@ const propfindBody = '<?xml version="1.0" encoding="utf-8"?>'
+ const lockBody = '<d:lockinfo xmlns:d="DAV:"><d:lockscope><d:exclusive/></d:lockscope>'
+   + '<d:locktype><d:write/></d:locktype></d:lockinfo>';
+ 
++const resourceIdBody = '<?xml version="1.0" encoding="utf-8"?>'
++  + '<d:propfind xmlns:d="DAV:"><d:prop><d:resource-id/></d:prop></d:propfind>';
++
+ function fail(code: ErrnoCode, syscall: string, path: string, message?: string): never {
+   throw new FsError(code, { syscall, path, ...(message === undefined ? {} : { message }) });
+ }
+@@ -140,6 +145,56 @@ export class WebDavFileSystem implements FileSystem {
+     this.overwritePolicy = options.overwritePolicy ?? "lock";
+     if (!["lock", "etag"].includes(this.overwritePolicy)) throw new FsError("EINVAL", { message: "invalid overwritePolicy" });
+     if (this.timeoutMs > 2_147_483_647) throw new FsError("EINVAL", { message: "timeoutMs exceeds timer range" });
++    registerResourceQuery(this, (path, settings) => this.resourceId(path, settings), this.transport);
++    registerEntryAuthority(this, compareWebDavResources);
++  }
++
++  compareEntry(path: string, peer: FileSystem, peerPath: string, options: FsOptions = {}): Promise<EntryComparison> {
++    return compareEntries(this, path, peer, peerPath, options);
++  }
++
++  private async resourceId(input: string, options: FsOptions): Promise<string | undefined> {
++    const path = normalize(input);
++    return this.request("PROPFIND", path, options, {
++      headers: { Depth: "0", "Content-Type": "application/xml; charset=utf-8" }, body: resourceIdBody,
++    }, async (response, signal) => {
++      if (response.status !== 207) this.httpError(response.status, "PROPFIND", path);
++      const responses = await this.multistatus(response, signal, "PROPFIND", path);
++      if (responses.length !== 1) throw new Error("resource identity requires exactly one DAV:response");
++      const entry = responses[0]!;
++      const href = davChild(entry, "href");
++      if (!href) throw new Error("missing resource identity response href");
++      if (this.hrefPath(scalar(href)) !== path) fail("EACCES", "PROPFIND", path, "resource identity response addresses another resource");
++      const wholeStatus = davChild(entry, "status");
++      const propstats = davChildren(entry, "propstat");
++      if (wholeStatus) {
++        if (propstats.length) throw new Error("conflicting response status and propstat");
++        this.httpError(statusCode(wholeStatus), "PROPFIND", path);
++      }
++      if (propstats.length === 0) throw new Error("missing resource identity propstat");
++      let seen = false;
++      let identifier: string | undefined;
++      for (const propstat of propstats) {
++        const status = davChild(propstat, "status");
++        const prop = davChild(propstat, "prop");
++        if (!status || !prop) throw new Error("incomplete resource identity propstat");
++        const code = statusCode(status);
++        if (code !== 200 && code !== 404) this.httpError(code, "PROPFIND", path);
++        for (const property of davChildren(prop, "resource-id")) {
++          if (seen) throw new Error("duplicate or conflicting resource identity property");
++          seen = true;
++          if (code === 404) continue;
++          const value = davChild(property, "href");
++          if (!value || property.children.length !== 1 || property.text.trim()) throw new Error("invalid resource identity property");
++          identifier = resourceIdentifier(scalar(value));
++        }
++      }
++      const owned = ownedResponseIdentifier(response, path);
++      if (owned !== undefined && identifier !== undefined && resourceIdentifier(owned) !== identifier) {
++        throw new Error("resource identity contradicts provider provenance");
++      }
++      return identifier;
++    });
+   }
+ 
+   private url(path: string, collection = false): string {
+@@ -445,7 +500,9 @@ export class WebDavFileSystem implements FileSystem {
+           fail("EACCES", "PROPFIND", path, "response member is outside requested depth");
+         }
+         if (result.has(member)) throw new Error("duplicate response href");
+-        result.set(member, this.entryStat(element, member));
++        const stat = this.entryStat(element, member);
++        recordOwnedResourceStat(response, this, member, stat);
++        result.set(member, stat);
+       }
+       if (!result.has(path)) throw new Error("response omitted requested resource");
+       return result;
+diff --git a/src/shell/input.ts b/src/shell/input.ts
+index 96c7ccf..5af0daa 100644
+--- a/src/shell/input.ts
++++ b/src/shell/input.ts
+@@ -133,10 +133,12 @@ export class ShellInput implements ByteSource {
+     let escaping = false;
+     let escapedCharacter = false;
+     let units = 0;
++    let pulls = 0;
+     let terminated = options.count === 0;
+     try {
+       while (!terminated) {
+         if (offset === chunk.length) {
++          if (++pulls % 128 === 0) await interruptible(new Promise<void>(resolve => setImmediate(resolve)), this.signal);
+           const result = await this.#cursor.take(this.signal);
+           if (result.done) {
+             break;
+diff --git a/src/shell/runtime.ts b/src/shell/runtime.ts
+index 551a528..8b7fa37 100644
+--- a/src/shell/runtime.ts
++++ b/src/shell/runtime.ts
+@@ -27,10 +27,11 @@ export const defaultLimits: Required<ShellLimits> = {
+ 
+ const shellBuiltinNames = new Set([
+   ":", "true", "false", "pwd", "cd", "set", "shift", "export", "local", "unset", "read",
+-  "exit", "return", "break", "continue", "command", "type", "echo", "printf", "test", "[",
++  "exit", "return", "break", "continue", "command", "type", "readonly", "echo", "printf", "test", "[",
+ ]);
+ 
+ const implementedBuiltins = new Set([...shellBuiltinNames].filter(name => !["echo", "printf", "test", "["].includes(name)));
++const specialBuiltinNames = new Set([":", "break", "continue", "exit", "export", "readonly", "return", "set", "shift", "unset"]);
+ type Discovery = { kind: "function" | "builtin" | "command" | "interpreter" | "file"; name: string };
+ 
+ export function resolveLimits(...limits: (ShellLimits | undefined)[]): Required<ShellLimits> {
+@@ -132,13 +133,14 @@ export interface State {
+   positional: string[];
+   arg0?: string;
+   profile?: "bash" | "sh";
++  readonlyVariables?: Set<string>;
+   pathUnset?: boolean;
+   status: number;
+   substitutionStatus: number;
+   depth: number;
+   loopDepth: number;
+   functionDepth: number;
+-  locals: Map<string, { value: string | undefined; exported: boolean }>[];
++  locals: Map<string, { value: string | undefined; exported: boolean; readOnly?: boolean }>[];
+   pipefail: boolean;
+   isolated?: boolean;
+   redirectAssignments?: ReadonlyMap<string, string>;
+@@ -202,6 +204,8 @@ class CommandFailure extends Error {
+   constructor(message: string, readonly status: number) { super(message); }
+ }
+ 
++class FatalCommandFailure extends CommandFailure {}
++
+ class ParameterExpansionFailure extends ExpansionFailure {}
+ 
+ class PipelineClosed extends Error {
+@@ -218,6 +222,7 @@ function cloneState(state: State): State {
+     ...state,
+     variables: Object.assign(Object.create(null) as Record<string, string>, state.variables),
+     exported: new Set(state.exported), functions: new Map(state.functions), positional: [...state.positional],
++    readonlyVariables: new Set(state.readonlyVariables),
+     locals: state.locals.map((scope) => new Map(scope)),
+   };
+ }
+@@ -248,6 +253,20 @@ export class Runtime {
+     readonly outputFiles = new Map<string, OutputFile>(),
+   ) {}
+ 
++  diagnostic(io: IO, text: string): Promise<void> {
++    return writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${io.diagnosticLine ?? 1}: ${text}\n`);
++  }
++
++  writeVariable(state: State, name: string, value: string): void {
++    if (state.readonlyVariables?.has(name)) throw new Error(`${name}: readonly variable`);
++    state.variables[name] = value;
++  }
++
++  arithmeticVariables(state: State): Record<string, string> {
++    if (!state.readonlyVariables?.size) return state.variables;
++    return new Proxy(state.variables, { set: (_target, key, value: string) => { this.writeVariable(state, String(key), value); return true; } });
++  }
++
+   async run(script: Script, state: State, io: IO): Promise<number> {
+     return (await this.runUnit(script, state, io)).exitCode;
+   }
+@@ -365,13 +384,17 @@ export class Runtime {
+     let io = originalIO;
+     try {
+       if (command.kind === "function") {
++        if (state.profile === "sh" && specialBuiltinNames.has(command.name)) {
++          await this.diagnostic(io, `\`${command.name}': is a special builtin`);
++          throw new Flow("exit", 2);
++        }
+         state.functions.set(command.name, command.body);
+         return 0;
+       }
+       if (command.kind === "simple") return await this.simple(command, state, originalIO, inputs, outputs, fileShortcut);
+       io = await this.redirect(command.redirects, state, io, inputs, outputs, command.kind === "subshell", command.kind !== "subshell");
+       if (command.kind === "arithmetic") {
+-        try { return Number(evaluateArithmetic(command.expression, state.variables) === 0n); }
++        try { return Number(evaluateArithmetic(command.expression, this.arithmeticVariables(state)) === 0n); }
+         catch (error) { throw new Error(`((: ${message(error)}`); }
+       }
+       if (command.kind === "subshell") {
+@@ -414,7 +437,7 @@ export class Runtime {
+           const values = command.words ? await this.words(command.words, state, io) : state.positional;
+           for (const value of values) {
+             this.budget.loop();
+-            state.variables[command.name] = value;
++            this.writeVariable(state, command.name, value);
+             const result = await this.loopBody(command.body, state, io);
+             status = result.status;
+             if (result.stop) break;
+@@ -445,6 +468,7 @@ export class Runtime {
+       try { await writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${line}: ${diagnostic ?? message(error)}\n`); }
+       catch { this.signal.throwIfAborted(); }
+       if (error instanceof ExpansionFailure) throw new Flow("exit", error instanceof ParameterExpansionFailure && !state.isolated ? 127 : 1);
++      if (error instanceof FatalCommandFailure) throw new Flow("exit", error.status);
+       if (error instanceof CommandFailure) return error.status;
+       return 1;
+     } finally {
+@@ -650,7 +674,8 @@ export class Runtime {
+       declarationIndex++;
+       if (commandWords[declarationIndex]?.plain === "--") declarationIndex++;
+     }
+-    const words = await this.words(commandWords, state, originalIO, ["export", "local"].includes(commandWords[declarationIndex]?.plain ?? ""));
++    const words = await this.words(commandWords, state, originalIO, ["export", "local", "readonly"].includes(commandWords[declarationIndex]?.plain ?? ""));
++    const special = state.profile === "sh" && specialBuiltinNames.has(words[0] ?? "");
+     const inlineInput = command.redirects.some((redirect) => redirect.document || redirect.operator === "<<<");
+     const functionCommand = words.length > 0 && state.functions.has(words[0]!);
+     const isolatedInlineInput = inlineInput && words.length > 0 && !shellBuiltinNames.has(words[0]!) && !functionCommand;
+@@ -659,13 +684,19 @@ export class Runtime {
+     const previous = new Map<string, { value: string | undefined; exported: boolean }>();
+     const assign = async () => {
+       for (const assignment of assignments) {
++        const value = (await this.word(assignment.value, state, io, false)).join("");
++        if (state.readonlyVariables?.has(assignment.name)) {
++          await this.diagnostic(io, `${assignment.name}: readonly variable`);
++          if (state.profile === "sh" || !words.length) throw new Flow("exit", state.profile === "sh" && (special || !words.length) ? 127 : 1);
++          continue;
++        }
+         if (!previous.has(assignment.name)) previous.set(assignment.name, { value: state.variables[assignment.name], exported: state.exported.has(assignment.name) });
+-        state.variables[assignment.name] = (await this.word(assignment.value, state, io, false)).join("");
++        state.variables[assignment.name] = value;
+         if (words.length) state.exported.add(assignment.name);
+       }
+     };
+     try {
+-      if (inlineInput) await assign();
++      if (inlineInput || (state.profile === "sh" || !words.length) && assignments.some(assignment => state.readonlyVariables?.has(assignment.name))) await assign();
+       if (inlineInput && functionCommand && previous.size) {
+         const variables = Object.assign(Object.create(null) as Record<string, string>, state.variables);
+         const redirectAssignments = new Map<string, string>();
+@@ -693,7 +724,13 @@ export class Runtime {
+       }
+       return words.length ? await this.dispatch(words[0]!, words.slice(1), state, io, previous) : state.substitutionStatus;
+     } catch (error) {
+-      if (error instanceof ExecutionFailure || error instanceof Flow) throw error;
++      if (error instanceof Flow) throw error;
++      this.signal.throwIfAborted();
++      const original = error instanceof ExecutionFailure ? error.original : error;
++      if (special && !(original instanceof ShellLimitError) && !(original instanceof ExpansionFailure) && !(original instanceof Flow) && !(original instanceof ShellSyntaxError)) {
++        throw new ExecutionFailure(new FatalCommandFailure(message(original), 1), error instanceof ExecutionFailure ? error.io : io, error instanceof ExecutionFailure ? error.diagnostic : undefined);
++      }
++      if (error instanceof ExecutionFailure) throw error;
+       throw new ExecutionFailure(error, io);
+     } finally {
+       if (words.length) for (const [key, saved] of previous) {
+@@ -738,7 +775,7 @@ export class Runtime {
+           state.positional = [...context.args];
+           state.functionDepth++;
+           state.depth++;
+-          const locals = new Map<string, { value: string | undefined; exported: boolean }>();
++          const locals = new Map<string, { value: string | undefined; exported: boolean; readOnly?: boolean }>();
+           state.locals.push(locals);
+           try { return { exitCode: await this.command(body, state, context) }; }
+           catch (error) {
+@@ -754,13 +791,19 @@ export class Runtime {
+               else state.variables[name] = previous.value;
+               if (previous.exported) state.exported.add(name);
+               else state.exported.delete(name);
++              if (!previous.readOnly) state.readonlyVariables?.delete(name);
+             }
+           }
+         }
+         if (selected?.kind === "builtin") {
+           if (context.command === "command" || context.command === "type") return { exitCode: await this.discoveryBuiltin(context, state, io, assignments) };
+-          const builtin = await this.builtin(context, state, assignments, (error, diagnostic) => { builtinFailure = { error, diagnostic }; });
+-          if (builtin !== undefined) return { exitCode: builtin };
++          const special = state.profile === "sh" && !bypassFunctions && specialBuiltinNames.has(context.command);
++          if (special) assignments.clear();
++          const builtin = await this.builtin(context, state, assignments, (error, diagnostic) => { builtinFailure = { error, diagnostic }; }, bypassFunctions);
++          if (builtin !== undefined) {
++            if (special && builtin !== 0 && context.command !== "shift") throw new Flow("exit", builtin);
++            return { exitCode: builtin };
++          }
+         }
+         const definition = this.commands.get(context.command);
+         if (!definition) {
+@@ -797,6 +840,7 @@ export class Runtime {
+     if (implementedBuiltins.has(name)) matches.push({ kind: "builtin", name });
+     else if (this.commands.has(name)) matches.push({ kind: "command", name });
+     else if (name === "bash" || name === "sh") matches.push({ kind: "interpreter", name });
++    if (state.profile === "sh" && specialBuiltinNames.has(name)) matches.sort((left, right) => Number(right.kind === "builtin") - Number(left.kind === "builtin"));
+     return matches;
+   }
+ 
+@@ -1096,7 +1140,7 @@ export class Runtime {
+     finally { await input?.close(); }
+   }
+ 
+-  async builtin(context: CommandContext, state: State, assignments: Map<string, { value: string | undefined; exported: boolean }>, diagnose?: (error: unknown, diagnostic: string) => void): Promise<number | undefined> {
++  async builtin(context: CommandContext, state: State, assignments: Map<string, { value: string | undefined; exported: boolean }>, diagnose?: (error: unknown, diagnostic: string) => void, suppressSpecial = false): Promise<number | undefined> {
+     const { command, args, stdout, stderr } = context;
+     if (command === ":" || command === "true") return 0;
+     if (command === "false") return 1;
+@@ -1118,9 +1162,9 @@ export class Runtime {
+         if (diagnostic) diagnose?.(error, diagnostic);
+         throw error;
+       }
+-      state.variables.OLDPWD = state.cwd;
++      this.writeVariable(state, "OLDPWD", state.cwd);
+       state.cwd = path;
+-      state.variables.PWD = path;
++      this.writeVariable(state, "PWD", path);
+       state.exported.add("PWD");
+       state.exported.add("OLDPWD");
+       if (args[0] === "-") await writeText(stdout, `${path}\n`);
+@@ -1134,6 +1178,7 @@ export class Runtime {
+       }
+       if (args.some((arg) => /^[+-]/u.test(arg))) {
+         await writeText(stderr, "set: unsupported shell option; supported forms are -- arguments, -o pipefail, +o pipefail\n");
++        if (state.profile === "sh" && suppressSpecial) return 2;
+         throw new Flow("exit", 2);
+       }
+       await writeText(stderr, "set: supported forms are -- arguments, -o pipefail, +o pipefail\n");
+@@ -1145,23 +1190,37 @@ export class Runtime {
+       state.positional = state.positional.slice(count);
+       return 0;
+     }
+-    if (command === "export" || command === "local") {
++    if (command === "export" || command === "local" || command === "readonly") {
++      const declarationArgs = [...args];
++      if (command === "readonly") {
++        while (declarationArgs[0]?.startsWith("-")) {
++          const option = declarationArgs.shift();
++          if (option === "--") break;
++          if (option !== "-p") { await writeText(stderr, `readonly: ${option}: unsupported option\n`); return 2; }
++        }
++      }
+       const locals = state.locals.at(-1);
+       if (command === "local" && !locals) { await writeText(stderr, "local: not in a function\n"); return 1; }
+       let status = 0;
+-      if (!args.length) {
+-        for (const name of [...state.exported].sort()) await writeText(stdout, `declare -x ${name}=${JSON.stringify(state.variables[name] ?? "")}\n`);
++      if (!declarationArgs.length) {
++        const names = command === "readonly" ? state.readonlyVariables ?? [] : state.exported;
++        const prefix = state.profile === "sh" ? command : command === "readonly" ? "declare -r" : "declare -x";
++        for (const name of [...names].sort()) await writeText(stdout, `${prefix} ${name}=${JSON.stringify(state.variables[name] ?? "")}\n`);
+       }
+-      for (const arg of args) {
++      for (const arg of declarationArgs) {
+         const match = /^([a-zA-Z_][a-zA-Z_0-9]*)(?:=(.*))?$/su.exec(arg);
+-        if (!match) { await writeText(stderr, `${command}: ${arg}: not a valid identifier\n`); status = 1; continue; }
++        if (!match) { await this.diagnostic(context, `${command}: \`${arg}': not a valid identifier`); status = 1; continue; }
+         const name = match[1]!;
++        if (state.readonlyVariables?.has(name) && (match[2] !== undefined || command === "local")) {
++          await this.diagnostic(context, `${name}: readonly variable`); status = 1; continue;
++        }
+         if (command === "local" && !locals!.has(name)) {
+           locals!.set(name, assignments.get(name) ?? { value: state.variables[name], exported: state.exported.has(name) });
+           if (!assignments.has(name) && match[2] === undefined) delete state.variables[name];
+         }
+         if (match[2] !== undefined) state.variables[name] = match[2];
+         if (command === "export") state.exported.add(name);
++        if (command === "readonly") { state.readonlyVariables ??= new Set(); state.readonlyVariables.add(name); }
+         assignments.delete(name);
+       }
+       return status;
+@@ -1170,9 +1229,11 @@ export class Runtime {
+       let status = 0;
+       for (const name of args) {
+         if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name)) { await writeText(stderr, `unset: ${name}: not a valid identifier\n`); status = 1; continue; }
++        if (state.readonlyVariables?.has(name)) { await this.diagnostic(context, `unset: ${name}: cannot unset: readonly variable`); status = 1; continue; }
+         if (name === "PATH") state.pathUnset = true;
+         delete state.variables[name];
+         state.exported.delete(name);
++        if (state.profile === "sh") assignments.delete(name);
+       }
+       return status;
+     }
+@@ -1220,7 +1281,10 @@ export class Runtime {
+         : await input.line(raw, count === undefined && delimiter === undefined ? undefined : {
+           ...(count === undefined ? {} : { count }), ...(delimiter === undefined ? {} : { delimiter }), byteCount: byteLocale(state.variables), exact,
+         });
+-      if (!names.length) state.variables.REPLY = line.value;
++      if (!names.length) {
++        if (state.readonlyVariables?.has("REPLY")) { await this.diagnostic(context, "REPLY: readonly variable"); return 1; }
++        state.variables.REPLY = line.value;
++      }
+       else {
+         const separators = exact ? "" : state.variables.IFS ?? " \t\n";
+         const characters = Array.from(line.value);
+@@ -1240,6 +1304,10 @@ export class Runtime {
+           while (position < end && whitespace(position)) position++;
+         }
+         for (let index = 0; index < names.length; index++) {
++          if (state.readonlyVariables?.has(names[index]!)) {
++            await this.diagnostic(context, `${names[index]}: readonly variable`);
++            return index === names.length - 1 ? 1 : 2;
++          }
+           const field = fields[index];
+           state.variables[names[index]!] = field ? characters.slice(field.start, index === names.length - 1 && fields.length > names.length ? end : field.end).join("") : "";
+         }
+@@ -1282,7 +1350,7 @@ export class Runtime {
+       return "";
+     }
+     if (part.kind === "arithmetic") {
+-      try { return String(evaluateArithmetic(part.expression, state.variables)); }
++      try { return String(evaluateArithmetic(part.expression, this.arithmeticVariables(state))); }
+       catch (error) { throw new ExpansionFailure(message(error), io.diagnosticLine ?? part.line); }
+     }
+     if (part.kind === "substitution") {
+@@ -1335,7 +1403,7 @@ export class Runtime {
+         if (operator === "?") throw new ParameterExpansionFailure(`${part.name}: ${alternate || (part.operator.startsWith(":") ? "parameter null or not set" : "parameter not set")}`, io.diagnosticLine ?? part.line);
+         if (operator === "=") {
+           if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(part.name)) throw new Error("Cannot assign special parameter");
+-          state.variables[part.name] = alternate;
++          this.writeVariable(state, part.name, alternate);
+         }
+         value = alternate;
+       } else if (operator === "+") value = "";
+diff --git a/src/shell/shell.ts b/src/shell/shell.ts
+index 190d991..d2f74bc 100644
+--- a/src/shell/shell.ts
++++ b/src/shell/shell.ts
+@@ -97,7 +97,7 @@ export class Shell implements PluginHost {
+       }
+       const state: State = {
+         cwd, variables, exported: new Set(Object.keys(variables)), functions: new Map(), positional: [],
+-        status: 0, substitutionStatus: 0, depth: 0, loopDepth: 0, functionDepth: 0, locals: [], pipefail: false,
++        status: 0, substitutionStatus: 0, depth: 0, loopDepth: 0, functionDepth: 0, locals: [], pipefail: false, profile: "bash",
+       };
+       const runtime = new Runtime(options.fs ?? this.#options.fs, this.commands, [...this.#middleware], budget);
+       exitCode = 0;
+diff --git a/tests/fs/webdav/mock.ts b/tests/fs/webdav/mock.ts
+index cccbd82..66899a4 100644
+--- a/tests/fs/webdav/mock.ts
++++ b/tests/fs/webdav/mock.ts
+@@ -1,5 +1,34 @@
+ import { createHash, randomUUID } from "node:crypto";
+ import type { WebDavFetch } from "../../../src/fs/webdav/index.js";
++import { forwardOwnedWebDavFetch, registerMockWebDavFetch, registerOwnedResourceResponse } from "../../../src/fs/webdav/resource-id.js";
++
++function resourceMap() {
++  const files = new Map<string, Uint8Array | null>();
++  const identities = new Map<string, { readonly identifier: string }>();
++  Object.defineProperties(files, {
++    set: { configurable: true, writable: true, value(path: string, value: Uint8Array | null) {
++      if (!files.has(path)) identities.set(path, Object.freeze({ identifier: `urn:uuid:${randomUUID()}` }));
++      Map.prototype.set.call(files, path, value);
++      return files;
++    } },
++    delete: { configurable: true, writable: true, value(path: string) {
++      identities.delete(path);
++      return Map.prototype.delete.call(files, path);
++    } },
++    clear: { configurable: true, writable: true, value() { identities.clear(); Map.prototype.clear.call(files); } },
++  });
++  return {
++    files,
++    identity(path: string) { return identities.get(path); },
++    restoreIdentity(path: string, identity: { readonly identifier: string }): void {
++      identities.set(path, identity);
++    },
++    preserveIdentity(source: string, destination: string) {
++      const identity = identities.get(source);
++      if (identity) identities.set(destination, identity);
++    },
++  };
++}
+ 
+ export function escapeXml(text: string): string {
+   return text.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&apos;");
+@@ -30,9 +59,20 @@ export interface MockRequest {
+ }
+ 
+ export class MockDav {
+-  readonly files = new Map<string, Uint8Array | null>([["/", null]]);
++  private readonly resources = resourceMap();
++  readonly files = this.resources.files.set("/", null);
+   readonly requests: MockRequest[] = [];
+   readonly locks = new Map<string, { token: string; expires: number }>();
++  constructor() {
++    const files = this.files;
++    const names = ["get", "set", "has", "delete", "clear", "entries", "keys", Symbol.iterator] as const;
++    const methods = names.map(name => files[name]);
++    registerMockWebDavFetch(this.fetch, files, () => this.files === files && names.every((name, index) => files[name] === methods[index]));
++  }
++
++  createFetch(): WebDavFetch {
++    return forwardOwnedWebDavFetch(this.fetch);
++  }
+   etag(path: string): string | undefined {
+     const data = this.files.get(path);
+     return data === undefined ? undefined : `"${createHash("sha256").update(data === null ? "directory" : "file").update(data ?? "").digest("hex")}"`;
+@@ -100,10 +140,17 @@ export class MockDav {
+       if (!exists) return new Response(null, { status: 404 });
+       const entries = [...this.files].filter(([name]) => name === path || (headers.get("Depth") === "1"
+         && (name.slice(0, name.lastIndexOf("/")) || "/") === path && name !== "/"));
+-      return xmlResponse(multistatus(...entries.map(([name, data]) => resource(
++      const resourceIds = (init.body instanceof Uint8Array ? new TextDecoder().decode(init.body) : String(init.body)).includes("resource-id");
++      const result = xmlResponse(multistatus(...entries.map(([name, data]) => resource(
+         `/dav${name === "/" ? "/" : name.split("/").map(encodeURIComponent).join("/")}${data === null && name !== "/" ? "/" : ""}`,
+-        data === null, data?.byteLength ?? 0, "", this.etag(name),
++        data === null, data?.byteLength ?? 0, resourceIds
++          ? `<z:propstat><z:prop><z:resource-id><z:href>${this.resources.identity(name)!.identifier}</z:href></z:resource-id></z:prop><z:status>HTTP/1.1 200 OK</z:status></z:propstat>`
++          : "", this.etag(name),
+       ))));
++      registerOwnedResourceResponse(result, new Map(entries.map(([name]) => [name, {
++        storage: this.files, resource: this.resources.identity(name)!, identifier: this.resources.identity(name)!.identifier,
++      }])));
++      return result;
+     }
+     if (method === "GET") {
+       if (!exists) return new Response(null, { status: 404 });
+@@ -135,11 +182,18 @@ export class MockDav {
+       const destinationExists = this.files.has(target);
+       if (destinationExists && headers.get("Overwrite") === "F") return new Response(null, { status: 412 });
+       if (this.files.get(target.slice(0, target.lastIndexOf("/")) || "/") !== null) return new Response(null, { status: 409 });
++      const destinationIdentities = new Map([...this.files.keys()].filter(name => name === target || name.startsWith(`${target}/`))
++        .map(name => [name, this.resources.identity(name)!]));
+       for (const name of this.files.keys()) if (name === target || name.startsWith(`${target}/`)) this.files.delete(name);
+       for (const [name, data] of [...this.files]) {
+         if (name === path || name.startsWith(`${path}/`)) {
+           this.files.set(target + name.slice(path.length), data === null ? null : new Uint8Array(data));
+-          if (method === "MOVE") this.files.delete(name);
++          const priorIdentity = destinationIdentities.get(target + name.slice(path.length));
++          if (method === "COPY" && priorIdentity) this.resources.restoreIdentity(target + name.slice(path.length), priorIdentity);
++          if (method === "MOVE") {
++            this.resources.preserveIdentity(name, target + name.slice(path.length));
++            this.files.delete(name);
++          }
+         }
+       }
+       return new Response(null, { status: destinationExists ? 204 : 201 });
+diff --git a/tests/fs/webdav/resource-id.test.ts b/tests/fs/webdav/resource-id.test.ts
+new file mode 100644
+index 0000000..ac13f92
+--- /dev/null
++++ b/tests/fs/webdav/resource-id.test.ts
+@@ -0,0 +1,251 @@
++import assert from "node:assert/strict";
++import test from "node:test";
++import { FsError } from "../../../src/contracts/errors.js";
++import type { ErrnoCode } from "../../../src/contracts/errors.js";
++import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
++import { createMountFileSystem } from "../../../src/fs/mount/index.js";
++import { resolveEntryView } from "../../../src/fs/mount/comparison.js";
++import { WebDavFileSystem } from "../../../src/fs/webdav/index.js";
++import type { WebDavFetch } from "../../../src/fs/webdav/index.js";
++import { getOwnedWebDavEntry, resourceIdentifier } from "../../../src/fs/webdav/resource-id.js";
++import { escapeXml, MockDav, multistatus, xmlResponse } from "./mock.js";
++import { withLoopbackDav } from "./property-fixture.js";
++
++const bytes = new Uint8Array([0, 255, 128, 13, 10, 7]);
++const old = new Uint8Array([79, 76, 68]);
++const identifier = "urn:uuid:2f816de0-c84b-43c8-8650-d3e92bfe6d8d";
++const baseUrl = "https://example.test/dav/";
++const bodyText = (init: RequestInit) => init.body instanceof Uint8Array ? new TextDecoder().decode(init.body) : String(init.body);
++const identityRequest = (init: RequestInit) => init.method === "PROPFIND" && bodyText(init).includes("resource-id");
++const propstat = (value: string, status = 200) => `<z:propstat><z:prop>${value}</z:prop><z:status>HTTP/1.1 ${status} Status</z:status></z:propstat>`;
++const property = (value = identifier) => `<z:resource-id><z:href>${escapeXml(value)}</z:href></z:resource-id>`;
++const response = (value: string, href = "/dav/source") => `<z:response><z:href>${href}</z:href>${value}</z:response>`;
++
++function rejected(code: ErrnoCode) {
++  return (error: unknown) => { assert.ok(error instanceof FsError); assert.equal(error.code, code); return true; };
++}
++
++function seed() {
++  const mock = new MockDav();
++  mock.files.set("/source", bytes.slice());
++  mock.files.set("/target", bytes.slice());
++  return mock;
++}
++
++test("resource-id comparison is metadata-only, full-ID based, and deduplicates one protocol authority", async () => {
++  const mock = seed();
++  const left = new WebDavFileSystem({ baseUrl, fetch: (url, init) => mock.fetch(url, init) });
++  const right = new WebDavFileSystem({ baseUrl: "https://endpoint-alias.test/dav/", fetch: (url, init) => mock.fetch(url, init) });
++  assert.equal(mock.etag("/source"), mock.etag("/target"));
++  const before = structuredClone(mock.files);
++  assert.equal(await left.compareEntry("/source", right, "/target"), "distinct");
++  assert.equal(mock.requests.filter(request => identityRequest(request.init)).length, 2);
++  assert.equal(await left.compareEntry("/source", right, "/source"), "same");
++  assert.ok(mock.requests.every(request => request.init.method === "PROPFIND" && request.headers.get("Depth") === "0"));
++  assert.deepEqual(mock.files, before);
++  assert.equal((await left.stat("/source")).identityScope, undefined);
++});
++
++test("resource IDs survive overwrite and MOVE, change on COPY and delete/recreate", async () => {
++  const mock = seed();
++  const fs = new WebDavFileSystem({ baseUrl, fetch: mock.fetch });
++  const original = getOwnedWebDavEntry(await resolveEntryView(fs, "/source"))!;
++  await fs.writeFile("/source", old);
++  assert.equal(getOwnedWebDavEntry(await resolveEntryView(fs, "/source"))!.resource, original.resource);
++  await fs.rename("/source", "/moved");
++  assert.equal(getOwnedWebDavEntry(await resolveEntryView(fs, "/moved"))!.resource, original.resource);
++  await fs.copyFile("/moved", "/copy");
++  assert.notEqual(getOwnedWebDavEntry(await resolveEntryView(fs, "/copy"))!.resource, original.resource);
++  const destination = getOwnedWebDavEntry(await resolveEntryView(fs, "/target"))!;
++  await fs.copyFile("/moved", "/target");
++  assert.equal(getOwnedWebDavEntry(await resolveEntryView(fs, "/target"))!.resource, destination.resource);
++  await fs.rm("/moved");
++  await fs.writeFile("/moved", old);
++  assert.notEqual(getOwnedWebDavEntry(await resolveEntryView(fs, "/moved"))!.resource, original.resource);
++  assert.deepEqual(await fs.readFile("/copy"), old);
++});
++
++test("actual HTTP negotiates resource identity without receiving private-store provenance", async () => {
++  const mock = seed();
++  await withLoopbackDav(mock.fetch, async endpoint => {
++    const left = new WebDavFileSystem({ baseUrl: endpoint, fetch: globalThis.fetch });
++    const right = new WebDavFileSystem({ baseUrl: endpoint, fetch: globalThis.fetch });
++    assert.equal(await left.compareEntry("/source", right, "/target"), "distinct");
++    assert.equal(await left.compareEntry("/source", right, "/source"), "same");
++    assert.equal(getOwnedWebDavEntry(await resolveEntryView(left, "/source")), undefined);
++    assert.ok(mock.requests.every(request => request.init.method === "PROPFIND"));
++  });
++});
++
++test("provider-owned factories retain the actual store; manual fetch wrappers do not", async () => {
++  const mock = seed();
++  const firstFetch = mock.createFetch(), secondFetch = mock.createFetch();
++  assert.notEqual(firstFetch, secondFetch);
++  const first = new WebDavFileSystem({ baseUrl, fetch: firstFetch });
++  const second = new WebDavFileSystem({ baseUrl, fetch: secondFetch });
++  const wrapped = new WebDavFileSystem({ baseUrl, fetch: (url, init) => mock.fetch(url, init) });
++  const firstEntry = getOwnedWebDavEntry(await resolveEntryView(first, "/source"))!;
++  const secondEntry = getOwnedWebDavEntry(await resolveEntryView(second, "/source"))!;
++  assert.equal(firstEntry.storage, mock.files);
++  assert.equal(firstEntry.resource, secondEntry.resource);
++  assert.equal(getOwnedWebDavEntry(await resolveEntryView(wrapped, "/source")), undefined);
++  const changed = mock.files.get.bind(mock.files);
++  mock.files.get = path => changed(path);
++  assert.equal(getOwnedWebDavEntry(await resolveEntryView(first, "/source")), undefined);
++});
++
++for (const direction of ["to-remote", "from-remote"] as const) {
++  test(`mixed-routing genuine PROPFIND plus local-memory GET/PUT alias stays unknown ${direction}`, async () => {
++    const memory = createMemoryFileSystem();
++    await memory.writeFile("/source", bytes);
++    const mock = seed();
++    let dataCalls = 0;
++    const fetch: WebDavFetch = async (url, init) => {
++      if (init.method === "GET") { dataCalls++; return new Response(await memory.readFile("/source")); }
++      if (init.method === "PUT") { dataCalls++; await memory.writeFile("/source", new Uint8Array(await new Response(init.body).arrayBuffer())); return new Response(null, { status: 204 }); }
++      return mock.fetch(url, init);
++    };
++    const remote = new WebDavFileSystem({ baseUrl, fetch });
++    assert.equal(getOwnedWebDavEntry(await resolveEntryView(remote, "/source")), undefined);
++    assert.equal(await remote.compareEntry("/source", memory, "/source"), "unknown");
++    const mount = createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/local": memory, "/remote": remote } });
++    const paths = direction === "to-remote" ? ["/local/source", "/remote/source"] : ["/remote/source", "/local/source"];
++    await assert.rejects(mount.copyFile(paths[0]!, paths[1]!), rejected("ENOTSUP"));
++    assert.equal(dataCalls, 0);
++    assert.deepEqual(await memory.readFile("/source"), bytes);
++    assert.deepEqual(await memory.readdir("/"), [{ name: "source", type: "file" }]);
++    assert.deepEqual(mock.files.get("/source"), bytes);
++  });
++}
++
++const malformed: readonly [string, string, ErrnoCode | "unknown"][] = [
++  ["absent property", response(propstat("<z:getetag/>")), "unknown"],
++  ["property404", response(propstat("<z:resource-id/>", 404)), "unknown"],
++  ["wrong property namespace", response(propstat('<v:resource-id xmlns:v="urn:other"><z:href>urn:uuid:other</z:href></v:resource-id>')), "unknown"],
++  ["duplicate property", response(propstat(property() + property())), "EIO"],
++  ["conflicting statuses", response(propstat(property()) + propstat("<z:resource-id/>", 404)), "EIO"],
++  ["missing property href", response(propstat("<z:resource-id/>")), "EIO"],
++  ["duplicate property href", response(propstat(`<z:resource-id><z:href>${identifier}</z:href><z:href>${identifier}</z:href></z:resource-id>`)), "EIO"],
++  ["nested property href", response(propstat("<z:resource-id><z:href><z:href/></z:href></z:resource-id>")), "EIO"],
++  ["mixed property text", response(propstat(`<z:resource-id>bad<z:href>${identifier}</z:href></z:resource-id>`)), "EIO"],
++  ["relative identifier", response(propstat(property("relative/resource"))), "EIO"],
++  ["bad percent escape", response(propstat(property("urn:example:bad%GG"))), "EIO"],
++  ["invalid UUID", response(propstat(property("urn:uuid:bad"))), "EIO"],
++  ["wrong requested href", response(propstat(property()), "/dav/target"), "EACCES"],
++  ["escaped root", response(propstat(property()), "/other/source"), "EACCES"],
++  ["case-changed requested href", response(propstat(property()), "/dav/SOURCE"), "EACCES"],
++  ["extra response", response(propstat(property())) + response(propstat(property()), "/dav/target"), "EIO"],
++  ["whole resource404", response("<z:status>HTTP/1.1 404 Missing</z:status>"), "ENOENT"],
++  ["denied property", response(propstat(property(), 403)), "EACCES"],
++  ["locked property", response(propstat(property(), 423)), "EBUSY"],
++  ["invalid success status", response(propstat(property(), 201)), "EIO"],
++];
++
++for (const [name, xml, code] of malformed) {
++  test(`resource-id ${name} never authorizes data effects`, async () => {
++    const mock = seed();
++    const before = structuredClone(mock.files);
++    const fs = new WebDavFileSystem({ baseUrl, fetch: (url, init) => identityRequest(init)
++      ? Promise.resolve(xmlResponse(multistatus(xml))) : mock.fetch(url, init) });
++    if (code === "unknown") assert.equal(await fs.compareEntry("/source", fs, "/source"), "unknown");
++    else await assert.rejects(fs.compareEntry("/source", fs, "/source"), rejected(code));
++    assert.deepEqual(mock.files, before);
++    assert.ok(mock.requests.every(request => request.init.method === "PROPFIND"));
++  });
++}
++
++test("full non-UUID URIs are retained; UUID hex case is canonical, URI paths are not folded", () => {
++  assert.equal(resourceIdentifier(identifier.toUpperCase()), identifier);
++  assert.equal(resourceIdentifier("https://identity.example/Resource/A"), "https://identity.example/Resource/A");
++  assert.notEqual(resourceIdentifier("urn:example:Entry-A"), resourceIdentifier("urn:example:entry-a"));
++});
++
++test("property-missing HTTP provider stays unknown and mounted existing target stays untouched", async () => {
++  const mock = seed();
++  const before = structuredClone(mock.files);
++  await withLoopbackDav((url, init) => identityRequest(init)
++    ? Promise.resolve(xmlResponse(multistatus(response(propstat("<z:resource-id/>", 404), new URL(url).pathname))))
++    : mock.fetch(url, init), async endpoint => {
++    const fs = new WebDavFileSystem({ baseUrl: endpoint, fetch: globalThis.fetch });
++    const mount = createMountFileSystem({ root: fs });
++    await assert.rejects(mount.copyFile("/source", "/target"), rejected("ENOTSUP"));
++    assert.deepEqual(mock.files, before);
++    assert.ok(mock.requests.every(request => request.init.method === "PROPFIND"));
++  });
++});
++
++test("mounted protocol proof permits ordinary overwrite but aliases and exclusive targets never mutate", async () => {
++  const mock = seed();
++  mock.files.set("/target", old.slice());
++  const remote = new WebDavFileSystem({ baseUrl, fetch: mock.createFetch() });
++  const mount = createMountFileSystem({ root: remote });
++  await mount.copyFile("/source", "/target");
++  assert.deepEqual(mock.files.get("/source"), bytes);
++  assert.deepEqual(mock.files.get("/target"), bytes);
++  const before = structuredClone(mock.files), count = mock.requests.length;
++  await assert.rejects(mount.copyFile("/source", "/source"), rejected("EINVAL"));
++  await assert.rejects(mount.copyFile("/source", "/target", { exclusive: true }), rejected("EEXIST"));
++  assert.deepEqual(mock.files, before);
++  assert.ok(mock.requests.slice(count).every(request => request.init.method === "PROPFIND"));
++});
++
++test("comparison checks cancellation between ID queries and does not issue the peer request", async () => {
++  const mock = seed(), controller = new AbortController();
++  let identities = 0;
++  const reason = new FsError("ENOENT", { message: "caller abort" });
++  const fs = new WebDavFileSystem({ baseUrl, fetch: async (url, init) => {
++    const result = await mock.fetch(url, init);
++    if (identityRequest(init)) { identities++; controller.abort(reason); }
++    return result;
++  } });
++  await assert.rejects(fs.compareEntry("/source", fs, "/target", { signal: controller.signal }), error => error === reason);
++  assert.equal(identities, 1);
++  const count = mock.requests.length;
++  await assert.rejects(fs.compareEntry("/source", fs, "/target", { signal: controller.signal }), error => error === reason);
++  assert.equal(mock.requests.length, count);
++});
++
++test("resource-id XML budget and missing-path errors remain typed", async () => {
++  const mock = seed();
++  const fs = new WebDavFileSystem({ baseUrl, fetch: (url, init) => identityRequest(init)
++    ? Promise.resolve(xmlResponse(multistatus(response(propstat(property("urn:example:" + "x".repeat(5000))))))) : mock.fetch(url, init), maxXmlBytes: 2048 });
++  await assert.rejects(fs.compareEntry("/source", fs, "/target"), rejected("EFBIG"));
++  await assert.rejects(fs.compareEntry("/absent", fs, "/source"), rejected("ENOENT"));
++  assert.ok(mock.requests.every(request => request.init.method === "PROPFIND"));
++});
++
++test("case-binding aliases with the same protocol resource-id reject before COPY despite distinct hrefs", async () => {
++  const mock = seed();
++  const before = structuredClone(mock.files);
++  const fs = new WebDavFileSystem({ baseUrl, fetch: async (url, init) => {
++    const requested = new URL(url);
++    const alias = requested.pathname === "/dav/SOURCE";
++    if (alias) requested.pathname = "/dav/source";
++    const result = await mock.fetch(requested.href, init);
++    if (!alias || init.method !== "PROPFIND") return result;
++    return new Response((await result.text()).replaceAll("/dav/source", "/dav/SOURCE"), { status: result.status, headers: result.headers });
++  } });
++  assert.equal(await fs.compareEntry("/source", fs, "/SOURCE"), "same");
++  const mount = createMountFileSystem({ root: fs });
++  await assert.rejects(mount.copyFile("/source", "/SOURCE"), rejected("EINVAL"));
++  assert.deepEqual(mock.files, before);
++  assert.ok(mock.requests.every(request => request.init.method === "PROPFIND"));
++});
++
++test("comparison never weakens missing-target exclusive COPY against a concurrent winner", async () => {
++  const mock = seed();
++  mock.files.delete("/target");
++  let raced = false;
++  const fs = new WebDavFileSystem({ baseUrl, fetch: async (url, init) => {
++    if (init.method === "COPY") {
++      assert.equal(new Headers(init.headers).get("Overwrite"), "F");
++      raced = true;
++      mock.files.set("/target", old.slice());
++    }
++    return mock.fetch(url, init);
++  } });
++  await assert.rejects(createMountFileSystem({ root: fs }).copyFile("/source", "/target"), rejected("EEXIST"));
++  assert.equal(raced, true);
++  assert.deepEqual(mock.files.get("/source"), bytes);
++  assert.deepEqual(mock.files.get("/target"), old);
++});

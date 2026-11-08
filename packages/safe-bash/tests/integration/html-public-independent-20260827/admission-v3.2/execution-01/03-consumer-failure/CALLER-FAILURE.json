@@ -1,0 +1,9 @@
+{
+  "token": "cacdfe0b-6714-44bf-afa9-a742df1fd8e5",
+  "control": "consumer-failure",
+  "consumerPid": 89311,
+  "producerPid": 89312,
+  "chunks": 16,
+  "code": "V3_CONSUMER_FAILURE",
+  "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+}

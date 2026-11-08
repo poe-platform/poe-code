@@ -1,0 +1,215 @@
+{
+  "schema": "b35-author-preexec-v2",
+  "sourceCommit": "52b6711e888361015acc38017be2a6b08509d8a7",
+  "composition": "1f4c5f4e25e0302146cf2735e4164ee09eb73a390a98d56ac33b94e6e57c16fd",
+  "sourceCandidateQualifier": "Unaccepted bf293+ERE4/engine72187/transport46611 composition plus B35 parser, not HEAD",
+  "packet": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v2",
+  "work": "/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future",
+  "files": {
+    "CASES-v2.json": {
+      "bytes": 11343,
+      "sha256": "f05d92840cfa259b5f5327b9ae9bd448fde70835800ede33fbda6436352af7a5"
+    },
+    "SOURCE-MEMBERS.json": {
+      "bytes": 107278,
+      "sha256": "f877aa2a5c9fe2413d28e37464fb40b458ab90436b4ecf63821463069cffd0a7"
+    },
+    "SOURCE-CAPSULE.json.gz.base64": {
+      "bytes": 1561281,
+      "sha256": "6a49ded4f95a77ae394f418dc8a055c7d8b85cabe2861cc3c27e967f145b1af1"
+    },
+    "TOOLS.json": {
+      "bytes": 51333,
+      "sha256": "cddc3188fdf926a9387039c3878a0e8e537e80c1332f48160242dd01458c4b1d"
+    },
+    "case-driver.mjs": {
+      "bytes": 2559,
+      "sha256": "96f54c1f4192726c2531ee57be5ec1bafd1080c3f79707fb45ac2165ebc975c1"
+    },
+    "package.mjs": {
+      "bytes": 3509,
+      "sha256": "915bab186e4f53bf640c897ff5cab77d569d8ba93193b7479cb41ca38ef768b2"
+    },
+    "consumer.mts.data": {
+      "bytes": 275,
+      "sha256": "6c30f1f41d3823236b7a5f5bde0abcb3484db15eda91b2b17b3918233f48ed84"
+    },
+    "auth.mjs": {
+      "bytes": 3951,
+      "sha256": "da5f0fa015cf56acfe86a1be24a50ea1a767320fc5bb2e3c814ef0b327f6f5d9"
+    },
+    "direct-child.mjs": {
+      "bytes": 4583,
+      "sha256": "7542288b4cae1649d80851785aa6369f36f8d57f4ca497cab6829443f70974ec"
+    },
+    "guard.mjs": {
+      "bytes": 2245,
+      "sha256": "2459d87f4447024f6e622d38407cd72310cc95ecf914dc81a74839f47eb0b9a9"
+    },
+    "profile.mjs": {
+      "bytes": 2114,
+      "sha256": "731f3425f48c20b0c027de45f0df79739b63bba22a07faf9e71fe93f46e896cc"
+    },
+    "case-adapter.mjs": {
+      "bytes": 4448,
+      "sha256": "19fa37788d57472a67ca699f70d59abcb08aa8222b1ff45c6e204bbf3ba27b2e"
+    },
+    "package-admission.mjs": {
+      "bytes": 3896,
+      "sha256": "cacedbfb580e92a15d3761ce3885e4080866b8ca624ca4020903cee716b0c8c7"
+    },
+    "parse-manifest.mjs": {
+      "bytes": 2862,
+      "sha256": "9d0dcb72429b36dbbb5555e06b7a645d4c415bc7a68ad953aa728f2eea085708"
+    },
+    "supervisor.mjs": {
+      "bytes": 14881,
+      "sha256": "c39ac7c7a9608aaed8d70b8780fd4d637178e6d7bdbe39b064bd26704abc36ee"
+    },
+    "finalization.mjs": {
+      "bytes": 850,
+      "sha256": "d65f1c5f70069828b8c6417186b6d0abd76c3e27f48e9053b091c495f7a550b6"
+    },
+    "canonical.mjs": {
+      "bytes": 867,
+      "sha256": "6a173a0c5929ca28cbed2199878155b3006148ca194c0529616275356d3b9ba9"
+    },
+    "owner-finalization.mjs": {
+      "bytes": 1999,
+      "sha256": "816e01ab2995247531d2c1fb194aaac0f16ff9056e7fd91177335c9a899ce6d8"
+    },
+    "outer.mjs": {
+      "bytes": 3005,
+      "sha256": "132597383fc3df48d804de6151933796a75598e6fd45193727fa5ad983985a14"
+    },
+    "COMMAND-PLAN.json": {
+      "bytes": 82922,
+      "sha256": "ab4ee83e38d4e2b07deb01bf3f47bfdb728e586d1b40aecedd738698e9e53317"
+    },
+    "PROVENANCE.json": {
+      "bytes": 1920,
+      "sha256": "1068f8899fa3b602f8e14089e9da2cd312ade111ac39349636415fda6473702a"
+    },
+    "FRESH-REAUTH.json": {
+      "bytes": 64962,
+      "sha256": "12a1339b2ac89605080eda0b760691cf24c975ce7cbc679952a140f7d35a53a5"
+    },
+    "ROOT-SCOPE.md": {
+      "bytes": 1124,
+      "sha256": "98b77a09ad3b9ba522e17841a516137b6c8b3a5ff078a89414d130d996425530"
+    }
+  },
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "mode": 493,
+    "version": "v22.22.2",
+    "qualification": "Version inherited; executable freshly hash-authenticated without running"
+  },
+  "envExecutable": {
+    "path": "/usr/bin/env",
+    "bytes": 102368,
+    "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776",
+    "mode": 493,
+    "executed": false
+  },
+  "builtins": [
+    "node:async_hooks",
+    "node:buffer",
+    "node:crypto",
+    "node:events",
+    "node:fs",
+    "node:fs/promises",
+    "node:http",
+    "node:https",
+    "node:net",
+    "node:path",
+    "node:perf_hooks",
+    "node:stream",
+    "node:stream/promises",
+    "node:stream/web",
+    "node:timers",
+    "node:timers/promises",
+    "node:url",
+    "node:util",
+    "node:worker_threads",
+    "node:zlib"
+  ],
+  "capsule": {
+    "compressedBytes": 1170959,
+    "compressedSha256": "e29e2b4974b5791d6f89591d6a58bc7d4d66a445e558d3d096b67d1a27b128a0",
+    "decodedBytes": 3789485,
+    "decodedSha256": "c3e13faeff5587b8a890792535c65528b2a71a15b9f4a20adcbb431a26221210"
+  },
+  "sourceInputs": 305,
+  "shippingFiles": 1002,
+  "roles": {
+    "owner": 1,
+    "build": 1,
+    "strictTypes": 3,
+    "primaryCases": 54,
+    "mutants": 3,
+    "bindingRefusals": 2,
+    "totalRuntimeKnownStarts": 64,
+    "extraSyntaxMetadataPublication": 8,
+    "maximumAllKnownStarts": 72,
+    "peakMaximum": 3,
+    "sourceDerivedInternalChildForks": 0,
+    "caseChildProcessPermission": 0,
+    "caseWorkerPermission": 0,
+    "asyncLoaders": 0
+  },
+  "limits": {
+    "durationMs": 1500000,
+    "finalizationTailMs": 60000,
+    "captureBytes": 100663296,
+    "workBytes": 536870912,
+    "streamBytes": 65536,
+    "ownerCaptureReservation": 65536,
+    "caseMs": 30000,
+    "buildMs": 120000
+  },
+  "caseOrder": [
+    "K01",
+    "K02",
+    "K03",
+    "K04",
+    "K05",
+    "K06",
+    "K07",
+    "K08",
+    "K09",
+    "K10",
+    "K11",
+    "K12",
+    "K13",
+    "K14",
+    "R01",
+    "R02",
+    "R03",
+    "R04"
+  ],
+  "qualifications": [
+    "Only SOURCE-level preseal so far, zero product results",
+    "Old campaign accounting HOLD and native records unchanged",
+    "Hash-before-decode uses same admitted archive buffer",
+    "Fresh sampled file census before terminal publication; not RSS, no universal child/group census",
+    "Initial tool-shell startup trusted; env-i before Node owner; fresh child environments",
+    "Fixed 64KiB owner capture reservation; observed child bytes and publications separately counted"
+  ],
+  "rootDecision": "PENDING",
+  "reviewDecision": "PENDING",
+  "originalPackage": {
+    "path": "/private/tmp/safe-bash-b35-author-xSdFBJ/virtual-bash-b35.tgz",
+    "bytes": 978812,
+    "sha256": "275a6c1006a5986d9d878a2344b95158fc320187a07a1d7f25584c10d7e7959d",
+    "mode": 384,
+    "at": 1788007626111
+  },
+  "controlSeal": {
+    "bytes": 11857,
+    "sha256": "bb0771c8bc25f3de389e592322696730d76540cd58415fa07d103930b49c943a"
+  },
+  "qualification": "Harness readiness only; no B35 product calls in this grant"
+}

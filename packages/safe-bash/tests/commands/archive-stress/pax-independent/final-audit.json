@@ -1,0 +1,136 @@
+{
+  "checkedAt": "2026-08-27T02:40:36.619Z",
+  "frozenHead": "1b0cbb96bebadb915809014207999799f4e9aa0c",
+  "currentHead": "d506d040024bf6d47e6dd0946a2a183f8e18bb70",
+  "gateEvidenceSha256": "b7cbe9c7eccd5a8fd09fbfb33ae7fe9df9a0fca1f6892fcb66599fba736898d6",
+  "author167Verified": true,
+  "historical90Verified": true,
+  "priorCheckpoint88Verified": true,
+  "protectedMismatches": [],
+  "oldReportSha256": "aad80f8f9e48068b29b64877521c7608c3b2e4eda3116db7a60358690bde811a",
+  "laterSelectedInputDrift": [
+    {
+      "path": "AGENTS.md",
+      "frozenSourceSha256": "39a07e132108ae4d723d17537d9a725e0da42a8a9d4e5c80bf279fd023bfea66",
+      "currentSha256": "9fa158f8a64c2b18c833b48dcf83c5967bdd7e8793bc847fe6079b1af1378a90"
+    },
+    {
+      "path": "docs/PROJECT_LEDGER.md",
+      "frozenSourceSha256": "1dd702ec55d5c56f10eff12bb4d34f63004c84527bb2d0ea9f8b2d01de5d5227",
+      "currentSha256": "229ae1f47a19589909fbba9ae431d38f7d1494b2aa441edcbcbb5fd3c7a4a8c9"
+    },
+    {
+      "path": "src/commands/execution.ts",
+      "frozenSourceSha256": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de",
+      "currentSha256": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700"
+    },
+    {
+      "path": "src/commands/README.md",
+      "frozenSourceSha256": "94bf62a61bdd5706e19494a8b5cac85860282e3bc315bcb23d6101482bb27290",
+      "currentSha256": "9097c69fa577369b5afda3589a496639c7a594cbd1766d331f17ebc4e642daac"
+    },
+    {
+      "path": "src/contracts/command.ts",
+      "frozenSourceSha256": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+      "currentSha256": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa"
+    },
+    {
+      "path": "tests/commands/core-expanded/README.md",
+      "frozenSourceSha256": "c16aeb6e36caa5990b84b4113cca624fb403e7f8058026069d90d614af690a0b",
+      "currentSha256": "b1277795a554eca5d4c8b8731fed7a1399d7e91a81af9bef7518f57becd90b10"
+    },
+    {
+      "path": "tests/commands/core-expanded/regressions.test.ts",
+      "frozenSourceSha256": "d5c00e1642dcdff17f36eee94ec96800b7a0ddde488c2e360814ed5c6a5e3849",
+      "currentSha256": "59e234d6e605cc583263193765e0e9006bee3a6d4b7bb2286b3c63b546c7abc4"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/routed-five-review/review.test.ts",
+      "frozenSourceSha256": "376ae6aa0715caa1cbd9bfa919fd67e7f5eaa81755ccbb69873f9982b80101ae",
+      "currentSha256": "2e173d1d4bd4f32940dae8cf7bf3a86a731830caba44d5be67f6d8a2582b36ab"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/routed-five-review/scripts/safe-bash-five-review-archive.mjs",
+      "frozenSourceSha256": "096626aecc1a702046309ce16b6048763d28aee40f52d25e54a74fffe568c696",
+      "currentSha256": "ac5eacc85e1643188ee3ed7d5c406f0490e28b9af96f3b67d14779c4b43bf572"
+    },
+    {
+      "path": "tests/commands/execution.test.ts",
+      "frozenSourceSha256": "29e15366eb888381b611be28936dc00dd4c86dca236ec0c647dff0a9fd225782",
+      "currentSha256": "03ddae21929bc2d4966e170a35434b4412386873a36eb99760d0c075c12ae2f1"
+    },
+    {
+      "path": "tests/commands/structured-stress/harness.ts",
+      "frozenSourceSha256": "dabc50c83133b6927d987f4763b594e793a4374cec79e5a1eead9a2612a6d482",
+      "currentSha256": "47007ff2be4249e70a250084ca10f40ac2fe9108918326041169e658b7d26e1e"
+    },
+    {
+      "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+      "frozenSourceSha256": "e46cdc464d16acdc1c6841d86dbb9b02274f7f22b2149751dcf1e8c44a8afcd1",
+      "currentSha256": "93337441d16dfe84004576b8ce7ee07f7cd4851715fd164cf18c2eb791b5161b"
+    },
+    {
+      "path": "tests/commands/structured-stress/join.test.ts",
+      "frozenSourceSha256": "4e5ec178e0d35818f27d062af5343dc0df8acba45ca35225555d0835aee81f1d",
+      "currentSha256": "91c700cc536e17fffcaa2818fe43639a0c4108ebf6d515fbff30afed18e48146"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-author-20260827/safety.test.ts",
+      "frozenSourceSha256": "34d4a0d819eb5bcbdd7bf65b6d7daa370fe975545b960976e95f8f14086a8528",
+      "currentSha256": "6e5b793461e41c8b392c84db81bebb49340b7d3baea4946c68f8142d830157be"
+    },
+    {
+      "path": "tests/commands/structured-stress/raw-input.test.ts",
+      "frozenSourceSha256": "bdd6aa8c1aa330be5b161c5dc86e2ffa91a5efb1ee0e8748f2ebd131d09544bf",
+      "currentSha256": "11ada84fe790a81b335d43b9776c2f0ec6fe08ebe0e9fa2558695f3444ac268f"
+    },
+    {
+      "path": "tests/commands/structured-stress/safety.test.ts",
+      "frozenSourceSha256": "e50489b15c9d3fc232ef20bbd00701d507870ca5e95189caac07f156e9617611",
+      "currentSha256": "ba9c576a8173a9aa5ff8545f88b7288faa4fee9fe2919648861a5286326b3fee"
+    },
+    {
+      "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+      "frozenSourceSha256": "04c05dd3e9f65303ac9ba0d8962c7af1d29342b62282f163e53229f85e7225d3",
+      "currentSha256": "5c4d39cfff9622dd5712da540a278343f1262090753ea623ba336a21bb19c8f5"
+    },
+    {
+      "path": "tests/commands/structured/cli.test.ts",
+      "frozenSourceSha256": "61b291a521f4059b52dd7db90fedb82674bbf0046c2fbab4371b7d9478b30e5c",
+      "currentSha256": "b755f4d240d7c95f001e3a4aac6aeb8270242d694fb5db96ddbc4f7568e4afe2"
+    },
+    {
+      "path": "tests/commands/structured/helpers.ts",
+      "frozenSourceSha256": "85810c3e66de2b343284ee9cc2bfc03a48cfb76125b4605fb797898f4dfe258c",
+      "currentSha256": "58f64bcaaedc766a7b13a77195a93dd0886770ea20f6b9c57fbe032d642950b2"
+    },
+    {
+      "path": "tests/commands/structured/resources.test.ts",
+      "frozenSourceSha256": "18301807f1031dc0fd53bf0785730dbca3aff8608d646176d0f8509506371099",
+      "currentSha256": "c61d9f482fc8c76a432d962a134c7834e4fb381a9a501e94b92dc27f79012061"
+    },
+    {
+      "path": "tests/contracts/invoke.test.ts",
+      "frozenSourceSha256": "bd3a63db93559cd1f13977662a10eb9936a0cbb02b037468221289f00e2edefc",
+      "currentSha256": "59602d002a642f6a45bd01b55733bde8c1c02b9ec929527ef6784b81aff14a31"
+    }
+  ],
+  "historicalControl": {
+    "script": "/tmp/safe-bash-pax-historical-control.mjs",
+    "scriptSha256": "e80df43f651fbd2e8692cca1ad8a75549e56aebe4d515e1c6351b25862388ad4",
+    "result": "/tmp/safe-bash-pax-historical-control-result.json",
+    "resultSha256": "f6a97430cea1ed86a66878897563b6fb4097bd7c464b3afa005d0e0af278002d",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--import",
+      "/tmp/safe-bash-pax-independent-YKSbHc/tree/node_modules/tsx/dist/loader.mjs",
+      "/tmp/safe-bash-pax-historical-control.mjs"
+    ],
+    "cwd": "/tmp/safe-bash-pax-independent-YKSbHc/tree",
+    "status": 0,
+    "signal": null,
+    "stdout": "{\"phase\":\"no-tar-before-archive-import\",\"memorySourceSha256\":\"57a6148aec90c7a1db058e59bd2586e7c162c74498309e7173443096cb8906ad\",\"scopeOmitted\":true,\"sameScopeAfterOriginalReferenceRestoration\":true,\"fullStatEqualityBeforeAnyProofRead\":true,\"publications\":0}\n{\"phase\":\"over-limit-operation\",\"exitCode\":2,\"stderr\":\"tar: entry byte limit exceeded\\n\",\"pulls\":1,\"returns\":1,\"publications\":0,\"forwarderRetainedUntilAllOperationCounts\":true,\"exactExposedStatUnchanged\":true,\"restoredFullStatEqualBeforeReads\":true,\"bytesAndNamespacesPreserved\":true}\n{\"phase\":\"publication-positive-witness\",\"exitCode\":0,\"publications\":1,\"counterObservedRealPublicationBeforeAnyRestoration\":true,\"exactBytes\":true}\n{\"historicalProfileOnly\":true,\"source\":\"/tmp/safe-bash-pax-independent-YKSbHc/tree\",\"inputFilesVerifiedBeforeAndAfter\":1629,\"identicalAssertionCode\":true,\"relocationOnly\":true}\n",
+    "stderr": ""
+  }
+}

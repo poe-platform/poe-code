@@ -1,0 +1,504 @@
+{
+  "schemaVersion": 1,
+  "oracle": {
+    "name": "5.3.0",
+    "executableSHA256": "a0cfc1af0ff50f6b6e67c638979e2604f1c276c90116937fbaafcabb62ee2b40",
+    "platform": "darwin",
+    "architecture": "arm64",
+    "environment": {
+      "LC_ALL": "C",
+      "PATH": "/__readonly_sidecar_no_native_path__"
+    }
+  },
+  "provenance": {
+    "captureDirectory": "/tmp/readonly-indexed-primary53.w5xYlX",
+    "captureManifest": "capture-manifest-v2.json",
+    "captureManifestSHA256": "adec1b5094ae0e82c5f4c4bedd2ec69f9a3e26bc6ecffda15f40190c4584ae6d",
+    "fixturesSHA256": "1f96a74c444b519a94360b25c93257d08a5516f873802c2ef8d6e4a38d05e6fd",
+    "nativeCaptureSHA256": "4f45f2de542d61fa7445da189426b887785dc159f7e000ef8466c3b8c3579a93",
+    "partitionSHA256": "6aa37f521a636d46f818613217931e68bcaec5055c26256241a409a4921d027f",
+    "policy": "All 24 original programs, argv, stdin, native status, signal and raw output bytes are unchanged. Expected values come only from authenticated primary GNU Bash 5.3.0 captures. Current implementation hashes and native executable availability are not canonical test prerequisites."
+  },
+  "records": [
+    {
+      "id": "RI01",
+      "category": "indexed-declaration",
+      "name": "existing indexed array",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "printf 'CASE=RI01\\n'; a=(OLD TAIL); readonly -a a; printf 'declaration-status=%s\\n' \"$?\"; printf 'after:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"; (a[1]=MUTATED); printf 'mutation-status=%s\\n' \"$?\"; printf 'retained:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "434153453d524930310a6465636c61726174696f6e2d7374617475733d300a61667465723a636f756e743d323b6b6579733d3c303e3c313e3b76616c7565733d3c4f4c443e3c5441494c3e3b7363616c61723d3c4f4c443e0a6d75746174696f6e2d7374617475733d310a72657461696e65643a636f756e743d323b6b6579733d3c303e3c313e3b76616c7565733d3c4f4c443e3c5441494c3e3b7363616c61723d3c4f4c443e0a",
+        "stderrHex": "7368656c6c3a206c696e6520313a20613a20726561646f6e6c79207661726961626c650a"
+      }
+    },
+    {
+      "id": "RI02",
+      "category": "indexed-declaration",
+      "name": "new unset name",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "printf 'CASE=RI02\\n';  readonly -a a; printf 'declaration-status=%s\\n' \"$?\"; printf 'after:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"; (a[1]=MUTATED); printf 'mutation-status=%s\\n' \"$?\"; printf 'retained:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "434153453d524930320a6465636c61726174696f6e2d7374617475733d300a61667465723a636f756e743d303b6b6579733d3c3e3b76616c7565733d3c3e3b7363616c61723d3c3e0a6d75746174696f6e2d7374617475733d310a72657461696e65643a636f756e743d303b6b6579733d3c3e3b76616c7565733d3c3e3b7363616c61723d3c3e0a",
+        "stderrHex": "7368656c6c3a206c696e6520313a20613a20726561646f6e6c79207661726961626c650a"
+      }
+    },
+    {
+      "id": "RI03",
+      "category": "indexed-declaration",
+      "name": "scalar promotion without assignment",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "printf 'CASE=RI03\\n'; a=SCALAR; readonly -a a; printf 'declaration-status=%s\\n' \"$?\"; printf 'after:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"; (a[1]=MUTATED); printf 'mutation-status=%s\\n' \"$?\"; printf 'retained:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "434153453d524930330a6465636c61726174696f6e2d7374617475733d300a61667465723a636f756e743d313b6b6579733d3c303e3b76616c7565733d3c5343414c41523e3b7363616c61723d3c5343414c41523e0a6d75746174696f6e2d7374617475733d310a72657461696e65643a636f756e743d313b6b6579733d3c303e3b76616c7565733d3c5343414c41523e3b7363616c61723d3c5343414c41523e0a",
+        "stderrHex": "7368656c6c3a206c696e6520313a20613a20726561646f6e6c79207661726961626c650a"
+      }
+    },
+    {
+      "id": "RI04",
+      "category": "assignment",
+      "name": "scalar assignment to existing indexed target",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "printf 'CASE=RI04\\n'; a=(OLD TAIL); readonly -a a=NEW; printf 'declaration-status=%s\\n' \"$?\"; printf 'after:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"; (a[1]=MUTATED); printf 'mutation-status=%s\\n' \"$?\"; printf 'retained:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "434153453d524930340a6465636c61726174696f6e2d7374617475733d300a61667465723a636f756e743d323b6b6579733d3c303e3c313e3b76616c7565733d3c4e45573e3c5441494c3e3b7363616c61723d3c4e45573e0a6d75746174696f6e2d7374617475733d310a72657461696e65643a636f756e743d323b6b6579733d3c303e3c313e3b76616c7565733d3c4e45573e3c5441494c3e3b7363616c61723d3c4e45573e0a",
+        "stderrHex": "7368656c6c3a206c696e6520313a20613a20726561646f6e6c79207661726961626c650a"
+      }
+    },
+    {
+      "id": "RI05",
+      "category": "assignment",
+      "name": "scalar assignment to new indexed name",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "printf 'CASE=RI05\\n';  readonly -a a=NEW; printf 'declaration-status=%s\\n' \"$?\"; printf 'after:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"; (a[1]=MUTATED); printf 'mutation-status=%s\\n' \"$?\"; printf 'retained:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "434153453d524930350a6465636c61726174696f6e2d7374617475733d300a61667465723a636f756e743d313b6b6579733d3c303e3b76616c7565733d3c4e45573e3b7363616c61723d3c4e45573e0a6d75746174696f6e2d7374617475733d310a72657461696e65643a636f756e743d313b6b6579733d3c303e3b76616c7565733d3c4e45573e3b7363616c61723d3c4e45573e0a",
+        "stderrHex": "7368656c6c3a206c696e6520313a20613a20726561646f6e6c79207661726961626c650a"
+      }
+    },
+    {
+      "id": "RI06",
+      "category": "assignment",
+      "name": "direct compound assignment",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "printf 'CASE=RI06\\n';  readonly -a a=(ONE \"TWO THREE\"); printf 'declaration-status=%s\\n' \"$?\"; printf 'after:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"; (a[1]=MUTATED); printf 'mutation-status=%s\\n' \"$?\"; printf 'retained:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "434153453d524930360a6465636c61726174696f6e2d7374617475733d300a61667465723a636f756e743d323b6b6579733d3c303e3c313e3b76616c7565733d3c4f4e453e3c54574f2054485245453e3b7363616c61723d3c4f4e453e0a6d75746174696f6e2d7374617475733d310a72657461696e65643a636f756e743d323b6b6579733d3c303e3c313e3b76616c7565733d3c4f4e453e3c54574f2054485245453e3b7363616c61723d3c4f4e453e0a",
+        "stderrHex": "7368656c6c3a206c696e6520313a20613a20726561646f6e6c79207661726961626c650a"
+      }
+    },
+    {
+      "id": "RI07",
+      "category": "assignment",
+      "name": "quoted compound assignment operand",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "printf 'CASE=RI07\\n'; a=(OLD TAIL); readonly -a a='(ONE \"TWO THREE\")'; printf 'declaration-status=%s\\n' \"$?\"; printf 'after:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"; (a[1]=MUTATED); printf 'mutation-status=%s\\n' \"$?\"; printf 'retained:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "434153453d524930370a6465636c61726174696f6e2d7374617475733d300a61667465723a636f756e743d323b6b6579733d3c303e3c313e3b76616c7565733d3c4f4e453e3c54574f2054485245453e3b7363616c61723d3c4f4e453e0a6d75746174696f6e2d7374617475733d310a72657461696e65643a636f756e743d323b6b6579733d3c303e3c313e3b76616c7565733d3c4f4e453e3c54574f2054485245453e3b7363616c61723d3c4f4e453e0a",
+        "stderrHex": "7368656c6c3a206c696e6520313a20613a20726561646f6e6c79207661726961626c650a"
+      }
+    },
+    {
+      "id": "RI08",
+      "category": "readonly-existing",
+      "name": "idempotent existing readonly array",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "printf 'CASE=RI08\\n'; a=(OLD TAIL); readonly a; readonly -a a; printf 'declaration-status=%s\\n' \"$?\"; printf 'after:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"; (a[1]=MUTATED); printf 'mutation-status=%s\\n' \"$?\"; printf 'retained:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "434153453d524930380a6465636c61726174696f6e2d7374617475733d300a61667465723a636f756e743d323b6b6579733d3c303e3c313e3b76616c7565733d3c4f4c443e3c5441494c3e3b7363616c61723d3c4f4c443e0a6d75746174696f6e2d7374617475733d310a72657461696e65643a636f756e743d323b6b6579733d3c303e3c313e3b76616c7565733d3c4f4c443e3c5441494c3e3b7363616c61723d3c4f4c443e0a",
+        "stderrHex": "7368656c6c3a206c696e6520313a20613a20726561646f6e6c79207661726961626c650a"
+      }
+    },
+    {
+      "id": "RI09",
+      "category": "readonly-existing",
+      "name": "promotion of readonly scalar",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "printf 'CASE=RI09\\n'; a=SCALAR; readonly a; readonly -a a; printf 'declaration-status=%s\\n' \"$?\"; printf 'after:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"; (a[1]=MUTATED); printf 'mutation-status=%s\\n' \"$?\"; printf 'retained:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "434153453d524930390a6465636c61726174696f6e2d7374617475733d300a61667465723a636f756e743d313b6b6579733d3c303e3b76616c7565733d3c5343414c41523e3b7363616c61723d3c5343414c41523e0a6d75746174696f6e2d7374617475733d310a72657461696e65643a636f756e743d313b6b6579733d3c303e3b76616c7565733d3c5343414c41523e3b7363616c61723d3c5343414c41523e0a",
+        "stderrHex": "7368656c6c3a206c696e6520313a20613a20726561646f6e6c79207661726961626c650a"
+      }
+    },
+    {
+      "id": "RI10",
+      "category": "readonly-existing",
+      "name": "assignment to readonly indexed target",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "printf 'CASE=RI10\\n'; a=(OLD TAIL); readonly a; readonly -a a=NEW; printf 'declaration-status=%s\\n' \"$?\"; printf 'after:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"; (a[1]=MUTATED); printf 'mutation-status=%s\\n' \"$?\"; printf 'retained:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "434153453d524931300a6465636c61726174696f6e2d7374617475733d310a61667465723a636f756e743d323b6b6579733d3c303e3c313e3b76616c7565733d3c4f4c443e3c5441494c3e3b7363616c61723d3c4f4c443e0a6d75746174696f6e2d7374617475733d310a72657461696e65643a636f756e743d323b6b6579733d3c303e3c313e3b76616c7565733d3c4f4c443e3c5441494c3e3b7363616c61723d3c4f4c443e0a",
+        "stderrHex": "7368656c6c3a206c696e6520313a20726561646f6e6c793a20613a20726561646f6e6c79207661726961626c650a7368656c6c3a206c696e6520313a20613a20726561646f6e6c79207661726961626c650a"
+      }
+    },
+    {
+      "id": "RI11",
+      "category": "option-parsing",
+      "name": "repeated grouped -aa",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "printf 'CASE=RI11\\n'; a=(OLD TAIL); readonly -aa a; printf 'declaration-status=%s\\n' \"$?\"; printf 'after:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"; (a[1]=MUTATED); printf 'mutation-status=%s\\n' \"$?\"; printf 'retained:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "434153453d524931310a6465636c61726174696f6e2d7374617475733d300a61667465723a636f756e743d323b6b6579733d3c303e3c313e3b76616c7565733d3c4f4c443e3c5441494c3e3b7363616c61723d3c4f4c443e0a6d75746174696f6e2d7374617475733d310a72657461696e65643a636f756e743d323b6b6579733d3c303e3c313e3b76616c7565733d3c4f4c443e3c5441494c3e3b7363616c61723d3c4f4c443e0a",
+        "stderrHex": "7368656c6c3a206c696e6520313a20613a20726561646f6e6c79207661726961626c650a"
+      }
+    },
+    {
+      "id": "RI12",
+      "category": "option-parsing",
+      "name": "grouped -ap with explicit target",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "printf 'CASE=RI12\\n'; a=(OLD TAIL); readonly -ap a; printf 'declaration-status=%s\\n' \"$?\"; printf 'after:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"; (a[1]=MUTATED); printf 'mutation-status=%s\\n' \"$?\"; printf 'retained:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "434153453d524931320a6465636c61726174696f6e2d7374617475733d300a61667465723a636f756e743d323b6b6579733d3c303e3c313e3b76616c7565733d3c4f4c443e3c5441494c3e3b7363616c61723d3c4f4c443e0a6d75746174696f6e2d7374617475733d310a72657461696e65643a636f756e743d323b6b6579733d3c303e3c313e3b76616c7565733d3c4f4c443e3c5441494c3e3b7363616c61723d3c4f4c443e0a",
+        "stderrHex": "7368656c6c3a206c696e6520313a20613a20726561646f6e6c79207661726961626c650a"
+      }
+    },
+    {
+      "id": "RI13",
+      "category": "option-parsing",
+      "name": "grouped -pa with explicit target",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "printf 'CASE=RI13\\n'; a=(OLD TAIL); readonly -pa a; printf 'declaration-status=%s\\n' \"$?\"; printf 'after:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"; (a[1]=MUTATED); printf 'mutation-status=%s\\n' \"$?\"; printf 'retained:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "434153453d524931330a6465636c61726174696f6e2d7374617475733d300a61667465723a636f756e743d323b6b6579733d3c303e3c313e3b76616c7565733d3c4f4c443e3c5441494c3e3b7363616c61723d3c4f4c443e0a6d75746174696f6e2d7374617475733d310a72657461696e65643a636f756e743d323b6b6579733d3c303e3c313e3b76616c7565733d3c4f4c443e3c5441494c3e3b7363616c61723d3c4f4c443e0a",
+        "stderrHex": "7368656c6c3a206c696e6520313a20613a20726561646f6e6c79207661726961626c650a"
+      }
+    },
+    {
+      "id": "RI14",
+      "category": "option-parsing",
+      "name": "-a followed by --",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "printf 'CASE=RI14\\n'; a=(OLD TAIL); readonly -a -- a; printf 'declaration-status=%s\\n' \"$?\"; printf 'after:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"; (a[1]=MUTATED); printf 'mutation-status=%s\\n' \"$?\"; printf 'retained:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "434153453d524931340a6465636c61726174696f6e2d7374617475733d300a61667465723a636f756e743d323b6b6579733d3c303e3c313e3b76616c7565733d3c4f4c443e3c5441494c3e3b7363616c61723d3c4f4c443e0a6d75746174696f6e2d7374617475733d310a72657461696e65643a636f756e743d323b6b6579733d3c303e3c313e3b76616c7565733d3c4f4c443e3c5441494c3e3b7363616c61723d3c4f4c443e0a",
+        "stderrHex": "7368656c6c3a206c696e6520313a20613a20726561646f6e6c79207661726961626c650a"
+      }
+    },
+    {
+      "id": "RI15",
+      "category": "option-parsing",
+      "name": "invalid grouped -aq",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "printf 'CASE=RI15\\n'; a=(OLD TAIL); readonly -aq a; printf 'declaration-status=%s\\n' \"$?\"; printf 'after:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"; (a[1]=MUTATED); printf 'mutation-status=%s\\n' \"$?\"; printf 'retained:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "434153453d524931350a6465636c61726174696f6e2d7374617475733d320a61667465723a636f756e743d323b6b6579733d3c303e3c313e3b76616c7565733d3c4f4c443e3c5441494c3e3b7363616c61723d3c4f4c443e0a6d75746174696f6e2d7374617475733d300a72657461696e65643a636f756e743d323b6b6579733d3c303e3c313e3b76616c7565733d3c4f4c443e3c5441494c3e3b7363616c61723d3c4f4c443e0a",
+        "stderrHex": "7368656c6c3a206c696e6520313a20726561646f6e6c793a202d713a20696e76616c6964206f7074696f6e0a726561646f6e6c793a2075736167653a20726561646f6e6c79205b2d6141665d205b6e616d655b3d76616c75655d202e2e2e5d206f7220726561646f6e6c79202d700a"
+      }
+    },
+    {
+      "id": "RI16",
+      "category": "option-parsing",
+      "name": "option-looking operand after target",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "printf 'CASE=RI16\\n'; a=(OLD TAIL); readonly -a a -Q; printf 'declaration-status=%s\\n' \"$?\"; printf 'after:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"; (a[1]=MUTATED); printf 'mutation-status=%s\\n' \"$?\"; printf 'retained:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "434153453d524931360a6465636c61726174696f6e2d7374617475733d310a61667465723a636f756e743d323b6b6579733d3c303e3c313e3b76616c7565733d3c4f4c443e3c5441494c3e3b7363616c61723d3c4f4c443e0a6d75746174696f6e2d7374617475733d310a72657461696e65643a636f756e743d323b6b6579733d3c303e3c313e3b76616c7565733d3c4f4c443e3c5441494c3e3b7363616c61723d3c4f4c443e0a",
+        "stderrHex": "7368656c6c3a206c696e6520313a20726561646f6e6c793a20602d51273a206e6f7420612076616c6964206964656e7469666965720a7368656c6c3a206c696e6520313a20613a20726561646f6e6c79207661726961626c650a"
+      }
+    },
+    {
+      "id": "RI17",
+      "category": "function-scope",
+      "name": "local indexed binding and restoration",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "printf 'CASE=RI17\\n'; a=(OUTER KEEP); run() { local -a a; a=(INNER TAIL); readonly -a a; printf 'local-declaration-status=%s\\n' \"$?\"; printf 'local:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"; (a[1]=MUTATED); printf 'local-mutation-status=%s\\n' \"$?\"; printf 'local-retained:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"; }; run; printf 'function-status=%s\\n' \"$?\"; printf 'outer-restored:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"; a[1]=AFTER; printf 'outer-assignment-status=%s\\n' \"$?\"; printf 'outer-final:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "434153453d524931370a6c6f63616c2d6465636c61726174696f6e2d7374617475733d300a6c6f63616c3a636f756e743d323b6b6579733d3c303e3c313e3b76616c7565733d3c494e4e45523e3c5441494c3e3b7363616c61723d3c494e4e45523e0a6c6f63616c2d6d75746174696f6e2d7374617475733d310a6c6f63616c2d72657461696e65643a636f756e743d323b6b6579733d3c303e3c313e3b76616c7565733d3c494e4e45523e3c5441494c3e3b7363616c61723d3c494e4e45523e0a66756e6374696f6e2d7374617475733d300a6f757465722d726573746f7265643a636f756e743d323b6b6579733d3c303e3c313e3b76616c7565733d3c4f555445523e3c4b4545503e3b7363616c61723d3c4f555445523e0a6f757465722d61737369676e6d656e742d7374617475733d300a6f757465722d66696e616c3a636f756e743d323b6b6579733d3c303e3c313e3b76616c7565733d3c4f555445523e3c41465445523e3b7363616c61723d3c4f555445523e0a",
+        "stderrHex": "7368656c6c3a206c696e6520313a20613a20726561646f6e6c79207661726961626c650a"
+      }
+    },
+    {
+      "id": "RI18",
+      "category": "function-scope",
+      "name": "local scalar promoted indexed and restored",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "printf 'CASE=RI18\\n'; a=(OUTER KEEP); run() { local a=INNER; readonly -a a; printf 'local-declaration-status=%s\\n' \"$?\"; printf 'local:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"; (a[1]=MUTATED); printf 'local-mutation-status=%s\\n' \"$?\"; printf 'local-retained:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"; }; run; printf 'function-status=%s\\n' \"$?\"; printf 'outer-restored:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"; a[1]=AFTER; printf 'outer-assignment-status=%s\\n' \"$?\"; printf 'outer-final:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "434153453d524931380a6c6f63616c2d6465636c61726174696f6e2d7374617475733d300a6c6f63616c3a636f756e743d313b6b6579733d3c303e3b76616c7565733d3c494e4e45523e3b7363616c61723d3c494e4e45523e0a6c6f63616c2d6d75746174696f6e2d7374617475733d310a6c6f63616c2d72657461696e65643a636f756e743d313b6b6579733d3c303e3b76616c7565733d3c494e4e45523e3b7363616c61723d3c494e4e45523e0a66756e6374696f6e2d7374617475733d300a6f757465722d726573746f7265643a636f756e743d323b6b6579733d3c303e3c313e3b76616c7565733d3c4f555445523e3c4b4545503e3b7363616c61723d3c4f555445523e0a6f757465722d61737369676e6d656e742d7374617475733d300a6f757465722d66696e616c3a636f756e743d323b6b6579733d3c303e3c313e3b76616c7565733d3c4f555445523e3c41465445523e3b7363616c61723d3c4f555445523e0a",
+        "stderrHex": "7368656c6c3a206c696e6520313a20613a20726561646f6e6c79207661726961626c650a"
+      }
+    },
+    {
+      "id": "RI19",
+      "category": "function-scope",
+      "name": "function marks nonlocal indexed binding",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "printf 'CASE=RI19\\n'; a=(GLOBAL TAIL); run() { readonly -a a; printf 'function-declaration-status=%s\\n' \"$?\"; printf 'inside:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"; }; run; printf 'function-status=%s\\n' \"$?\"; (a[1]=MUTATED); printf 'outer-mutation-status=%s\\n' \"$?\"; printf 'outside:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "434153453d524931390a66756e6374696f6e2d6465636c61726174696f6e2d7374617475733d300a696e736964653a636f756e743d323b6b6579733d3c303e3c313e3b76616c7565733d3c474c4f42414c3e3c5441494c3e3b7363616c61723d3c474c4f42414c3e0a66756e6374696f6e2d7374617475733d300a6f757465722d6d75746174696f6e2d7374617475733d310a6f7574736964653a636f756e743d323b6b6579733d3c303e3c313e3b76616c7565733d3c474c4f42414c3e3c5441494c3e3b7363616c61723d3c474c4f42414c3e0a",
+        "stderrHex": "7368656c6c3a206c696e6520313a20613a20726561646f6e6c79207661726961626c650a"
+      }
+    },
+    {
+      "id": "RI20",
+      "category": "raw-values",
+      "name": "invalid UTF-8 in scalar assignment",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "printf 'CASE=RI20\\n';  readonly -a a=$'\\xff\\047\\xfe\\\\\\n'; printf 'declaration-status=%s\\n' \"$?\"; printf 'after:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"; (a[1]=MUTATED); printf 'mutation-status=%s\\n' \"$?\"; printf 'retained:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "434153453d524932300a6465636c61726174696f6e2d7374617475733d300a61667465723a636f756e743d313b6b6579733d3c303e3b76616c7565733d3cff27fe5c0a3e3b7363616c61723d3cff27fe5c0a3e0a6d75746174696f6e2d7374617475733d310a72657461696e65643a636f756e743d313b6b6579733d3c303e3b76616c7565733d3cff27fe5c0a3e3b7363616c61723d3cff27fe5c0a3e0a",
+        "stderrHex": "7368656c6c3a206c696e6520313a20613a20726561646f6e6c79207661726961626c650a"
+      }
+    },
+    {
+      "id": "RI21",
+      "category": "raw-values",
+      "name": "existing indexed invalid UTF-8 values",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "printf 'CASE=RI21\\n'; a=($'\\xff' $'\\xfe\\047\\\\'); readonly -a a; printf 'declaration-status=%s\\n' \"$?\"; printf 'after:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"; (a[1]=MUTATED); printf 'mutation-status=%s\\n' \"$?\"; printf 'retained:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "434153453d524932310a6465636c61726174696f6e2d7374617475733d300a61667465723a636f756e743d323b6b6579733d3c303e3c313e3b76616c7565733d3cff3e3cfe275c3e3b7363616c61723d3cff3e0a6d75746174696f6e2d7374617475733d310a72657461696e65643a636f756e743d323b6b6579733d3c303e3c313e3b76616c7565733d3cff3e3cfe275c3e3b7363616c61723d3cff3e0a",
+        "stderrHex": "7368656c6c3a206c696e6520313a20613a20726561646f6e6c79207661726961626c650a"
+      }
+    },
+    {
+      "id": "RI22",
+      "category": "supporting-control",
+      "name": "plain readonly NAME indexed control",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "printf 'CASE=RI22\\n'; a=(OLD TAIL); readonly a; printf 'declaration-status=%s\\n' \"$?\"; printf 'after:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"; (a[1]=MUTATED); printf 'mutation-status=%s\\n' \"$?\"; printf 'retained:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "434153453d524932320a6465636c61726174696f6e2d7374617475733d300a61667465723a636f756e743d323b6b6579733d3c303e3c313e3b76616c7565733d3c4f4c443e3c5441494c3e3b7363616c61723d3c4f4c443e0a6d75746174696f6e2d7374617475733d310a72657461696e65643a636f756e743d323b6b6579733d3c303e3c313e3b76616c7565733d3c4f4c443e3c5441494c3e3b7363616c61723d3c4f4c443e0a",
+        "stderrHex": "7368656c6c3a206c696e6520313a20613a20726561646f6e6c79207661726961626c650a"
+      }
+    },
+    {
+      "id": "RI23",
+      "category": "supporting-control",
+      "name": "plain readonly -- NAME scalar control",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "printf 'CASE=RI23\\n'; a=SCALAR; readonly -- a; printf 'declaration-status=%s\\n' \"$?\"; printf 'after:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"; (a[1]=MUTATED); printf 'mutation-status=%s\\n' \"$?\"; printf 'retained:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "434153453d524932330a6465636c61726174696f6e2d7374617475733d300a61667465723a636f756e743d313b6b6579733d3c303e3b76616c7565733d3c5343414c41523e3b7363616c61723d3c5343414c41523e0a6d75746174696f6e2d7374617475733d310a72657461696e65643a636f756e743d313b6b6579733d3c303e3b76616c7565733d3c5343414c41523e3b7363616c61723d3c5343414c41523e0a",
+        "stderrHex": "7368656c6c3a206c696e6520313a20613a20726561646f6e6c79207661726961626c650a"
+      }
+    },
+    {
+      "id": "RI24",
+      "category": "supporting-control",
+      "name": "plain local readonly NAME restores parent",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "printf 'CASE=RI24\\n'; a=(OUTER KEEP); run() { local -a a; a=(INNER TAIL); readonly a; printf 'local-declaration-status=%s\\n' \"$?\"; printf 'local:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"; (a[1]=MUTATED); printf 'local-mutation-status=%s\\n' \"$?\"; printf 'local-retained:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"; }; run; printf 'function-status=%s\\n' \"$?\"; printf 'outer-restored:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"; a[1]=AFTER; printf 'outer-assignment-status=%s\\n' \"$?\"; printf 'outer-final:count=%s;keys=' \"${#a[@]}\"; printf '<%s>' \"${!a[@]}\"; printf ';values='; printf '<%s>' \"${a[@]}\"; printf ';scalar=<%s>\\n' \"$a\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "",
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "434153453d524932340a6c6f63616c2d6465636c61726174696f6e2d7374617475733d300a6c6f63616c3a636f756e743d323b6b6579733d3c303e3c313e3b76616c7565733d3c494e4e45523e3c5441494c3e3b7363616c61723d3c494e4e45523e0a6c6f63616c2d6d75746174696f6e2d7374617475733d310a6c6f63616c2d72657461696e65643a636f756e743d323b6b6579733d3c303e3c313e3b76616c7565733d3c494e4e45523e3c5441494c3e3b7363616c61723d3c494e4e45523e0a66756e6374696f6e2d7374617475733d300a6f757465722d726573746f7265643a636f756e743d323b6b6579733d3c303e3c313e3b76616c7565733d3c4f555445523e3c4b4545503e3b7363616c61723d3c4f555445523e0a6f757465722d61737369676e6d656e742d7374617475733d300a6f757465722d66696e616c3a636f756e743d323b6b6579733d3c303e3c313e3b76616c7565733d3c4f555445523e3c41465445523e3b7363616c61723d3c4f555445523e0a",
+        "stderrHex": "7368656c6c3a206c696e6520313a20613a20726561646f6e6c79207661726961626c650a"
+      }
+    }
+  ]
+}

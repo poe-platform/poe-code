@@ -1,0 +1,115 @@
+{
+  "schema": 1,
+  "classification": "SYNTHETIC_DATA_COMPOSITION_ONLY",
+  "records": [
+    {
+      "id": "missing-root-authorization",
+      "outcome": "PASS"
+    },
+    {
+      "id": "wrong-purpose",
+      "outcome": "PASS"
+    },
+    {
+      "id": "wrong-author-source",
+      "outcome": "PASS"
+    },
+    {
+      "id": "wrong-recipe-hash",
+      "outcome": "PASS"
+    },
+    {
+      "id": "wrong-package-artifact",
+      "outcome": "PASS"
+    },
+    {
+      "id": "selected-source-origin-not-composite",
+      "outcome": "PASS"
+    },
+    {
+      "id": "distinct-source-views",
+      "outcome": "PASS"
+    },
+    {
+      "id": "runtime-tree-translation",
+      "outcome": "PASS"
+    },
+    {
+      "id": "runtime-authorization-translation",
+      "outcome": "PASS"
+    },
+    {
+      "id": "missing-baseline-readme",
+      "outcome": "PASS"
+    },
+    {
+      "id": "package-count-not-870",
+      "outcome": "PASS"
+    },
+    {
+      "id": "source-addition-mismatch",
+      "outcome": "PASS"
+    },
+    {
+      "id": "negative-type-diagnostic-match",
+      "outcome": "PASS"
+    },
+    {
+      "id": "negative-type-wrong-diagnostic",
+      "outcome": "PASS"
+    },
+    {
+      "id": "nonzero-worker-even-pass-receipt",
+      "outcome": "PASS"
+    },
+    {
+      "id": "timeout-always-fail",
+      "outcome": "PASS"
+    },
+    {
+      "id": "timeout-continue-only-intact-and-reaped",
+      "outcome": "PASS"
+    },
+    {
+      "id": "integrity-failure-stops",
+      "outcome": "PASS"
+    },
+    {
+      "id": "reap-failure-stops",
+      "outcome": "PASS"
+    },
+    {
+      "id": "all-194-routes",
+      "outcome": "PASS"
+    },
+    {
+      "id": "149-jobs-no-rescoring",
+      "outcome": "PASS"
+    },
+    {
+      "id": "public-gap-retained",
+      "outcome": "PASS"
+    },
+    {
+      "id": "unknown-assertion-incomplete-after-raw-capture",
+      "outcome": "PASS"
+    },
+    {
+      "id": "partial-projection-never-full-record-pass",
+      "outcome": "PASS"
+    },
+    {
+      "id": "command-cleanup-shared-child-identity",
+      "outcome": "PASS"
+    }
+  ],
+  "aggregate": "PASS",
+  "activeChildren": [],
+  "childExecutions": 0,
+  "productImports": 0,
+  "productExecutions": 0,
+  "builds": 0,
+  "typeCompiles": 0,
+  "independentFrameworkAcceptance": false,
+  "sourceFixtureBeforeAfterSha256": "caf8be935cdc3794e14483be4d446f129be66353d4c7b38efe0050e18638ae4b"
+}

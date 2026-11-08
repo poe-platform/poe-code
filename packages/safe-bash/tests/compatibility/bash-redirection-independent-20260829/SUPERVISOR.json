@@ -1,0 +1,15 @@
+{
+  "startedAt": "2026-08-29T04:32:06.793Z",
+  "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "argv": [
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/launch.mjs",
+    "--run"
+  ],
+  "closed": true,
+  "sealSha256": "a8c363254cfdacdcfeff270d5d14028b799295674d37949c0c5710bb23352266",
+  "capture": 159,
+  "pid": 70830,
+  "code": 1,
+  "signal": null,
+  "elapsedMs": 11390
+}

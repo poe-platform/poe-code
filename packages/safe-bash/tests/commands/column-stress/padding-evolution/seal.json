@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "classification": "frozen-independent-preparation-no-candidate",
+  "sealedAt": "2026-08-27T15:41:08.499Z",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 6875,
+      "sha256": "b4bb6789269dcd670d228476a51195c3cdef43f2f9c10fbf6503f4dc64ec795e"
+    },
+    {
+      "path": "capture.mjs",
+      "bytes": 2082,
+      "sha256": "76de5d2581db20719746a1e5ac6e0a202cd36b5d8f2c1cfedd6677bf621d413d"
+    },
+    {
+      "path": "expectations.json",
+      "bytes": 8379,
+      "sha256": "9d324e6895268e2e46a4a655ef01e107d6379034abd8e8f95349c86b28b18faf"
+    },
+    {
+      "path": "native-observations.json",
+      "bytes": 38450,
+      "sha256": "9bc0d0e0d63b91c3e277a3309927bea1e2f718aeb4cd6bf9314e11ca272f5244"
+    },
+    {
+      "path": "provenance.json",
+      "bytes": 14992,
+      "sha256": "a84290693cea3812174a49af9419857d5362e5111229ce1bfc695d1f96387572"
+    },
+    {
+      "path": "recipes.json",
+      "bytes": 4337,
+      "sha256": "7d4dd9969efaaf4abd246aa0498917a6dccbf9415f501f9dedf087379bba0ba2"
+    },
+    {
+      "path": "safety-schedules.json",
+      "bytes": 13790,
+      "sha256": "cb1b017e5b66f9cb8ae927f03c6ae4b10226a129bcfb90dbb0445a3ab01257b5"
+    },
+    {
+      "path": "validate.mjs",
+      "bytes": 8996,
+      "sha256": "ee798ea35d21a88dc276206fec15bf479467f117005f9bfc1f46137a2daf1932"
+    }
+  ],
+  "selfAuthentication": "The explicit owned-file Git commit authenticates this seal; no recursive self-hash."
+}

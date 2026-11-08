@@ -1,0 +1,31 @@
+{
+  "name": "archive",
+  "command": [
+    "git",
+    "--no-replace-objects",
+    "archive",
+    "--format=tar",
+    "--output=/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-filesystem-inspection-public-7szCnu/source.tar",
+    "b494675c34dc289f4ad4b10a9201e1211eb0a7d8",
+    "src",
+    "README.md",
+    "package.json",
+    "package-lock.json",
+    "tsconfig.json",
+    "tsconfig.build.json",
+    "tests/plugins/filesystem-inspection-public",
+    "tests/plugins/agent-commands.test.ts",
+    "tests/plugins/stream-five-fixture-migration",
+    "tests/commands/tree",
+    "tests/commands/file",
+    "tests/integration/stream-inspection-public-author",
+    "tests/commands/split",
+    "tests/commands/stream-format-author-stress",
+    "tests/commands/stream-format/helpers.ts"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "status": 0,
+  "signal": null,
+  "stdout": "",
+  "stderr": ""
+}

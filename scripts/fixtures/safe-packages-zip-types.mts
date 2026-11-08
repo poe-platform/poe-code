@@ -1,0 +1,10 @@
+import { Shell, createMemoryFileSystem, agentCommands } from "@poe-platform/safe-bash";
+import { createZipCommand, createZipCommands, zipCommands, type ZipCommandsOptions, type ZipLimits } from "@poe-platform/safe-bash/commands/zip";
+import type { CommandDefinition, VirtualShellPlugin } from "@poe-platform/safe-bash/contracts";
+const limits: Partial<ZipLimits> = { maxArchiveBytes: 1024 };
+const options: ZipCommandsOptions = { limits, replace: true };
+const command: CommandDefinition = createZipCommand(options);
+const commands: readonly CommandDefinition[] = createZipCommands(options);
+const plugin: VirtualShellPlugin = zipCommands(options);
+const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands()).use(plugin);
+void [command, commands, shell];

@@ -1,0 +1,18 @@
+{
+  "label": "extract-candidate",
+  "executable": "tar",
+  "args": [
+    "-xf",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/native-data-config-review/.scratch/candidate.tar",
+    "-C",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/native-data-config-review/.scratch/candidate"
+  ],
+  "cwd": ".",
+  "started": "2026-08-27T08:56:09.835Z",
+  "ended": "2026-08-27T08:56:13.398Z",
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "stdout": "",
+  "stderr": ""
+}

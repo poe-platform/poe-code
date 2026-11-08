@@ -1,0 +1,168 @@
+{
+  "schema": "wrq-v12-l04v2-exact-eight",
+  "status": "HELD-FRESH-ROOT-GO-REQUIRED",
+  "scheduleAuthority": "7b7a54ef5f1710d78297402a531a1fed63266cca:tests/commands/node-worker-independent-20260828/v2/MINIMUM-EXPERIMENT-PRESEAL.md",
+  "versionDelta": "Exact old9 unrun slots plus separately versioned L02 repeat; L01 excluded. Same guest fixture source; no historic rescore.",
+  "maximumWorkers": 8,
+  "maximumGuestEvaluations": 7,
+  "peakWorkers": 1,
+  "retries": 0,
+  "candidateWorkers": 8,
+  "candidateGuestEvaluations": 7,
+  "admissibleNow": 0,
+  "instances": [
+    {
+      "instance": "WRQ04-L04v2-v12",
+      "wrq": "WRQ04",
+      "root": "L04",
+      "fixture": "L04",
+      "reason": "none",
+      "workers": 1,
+      "guestEvaluations": 1,
+      "candidateImplemented": true,
+      "schedule": "Unawaited Promise.race([]); exact entry-return newline; public run normal return then confirmed lifetime retirement. Admission deadline is NONPASS. Pending queue SOURCE is not all-jobs-settled.",
+      "expectedStdout": "entry-return\n",
+      "expectedStderr": "",
+      "expectedStatus": 0,
+      "expectedEffects": {},
+      "unqualified": [
+        "original constructor fixture unsupported; original failures preserved",
+        "pending engine queue existence SOURCE-only, not all jobs settled"
+      ]
+    },
+    {
+      "instance": "WRQ05-L05-undefined-v3",
+      "wrq": "WRQ05",
+      "root": "L05",
+      "fixture": "L05",
+      "reason": "undefined",
+      "workers": 1,
+      "guestEvaluations": 1,
+      "candidateImplemented": true,
+      "schedule": "blocked read admitted; explicit own present:true/value:undefined caller channel; abort cooperative work with separate internal signal reason; wake and request terminate immediately; actual exit plus parent cleanup",
+      "expectedStdout": "",
+      "expectedStderr": "",
+      "expectedStatus": null,
+      "expectedEffects": {},
+      "unqualified": [
+        "not AbortController.abort(undefined) raw delivery",
+        "actual Shell mapping and early-notify/upload/peer-owned variants deferred"
+      ]
+    },
+    {
+      "instance": "WRQ05-L05-false-v3",
+      "wrq": "WRQ05",
+      "root": "L05",
+      "fixture": "L05",
+      "reason": "false",
+      "workers": 1,
+      "guestEvaluations": 1,
+      "candidateImplemented": true,
+      "schedule": "same blocked-read barrier; raw false caller value retained in parent; zero grace; actual exit plus parent cleanup",
+      "expectedStdout": "",
+      "expectedStderr": "",
+      "expectedStatus": null,
+      "expectedEffects": {},
+      "unqualified": [
+        "actual Shell mapping and versioned alternate barriers deferred"
+      ]
+    },
+    {
+      "instance": "WRQ05-L05-object-v3",
+      "wrq": "WRQ05",
+      "root": "L05",
+      "fixture": "L05",
+      "reason": "object",
+      "workers": 1,
+      "guestEvaluations": 1,
+      "candidateImplemented": true,
+      "schedule": "same blocked-read barrier; exact parent object retained, never cloned; zero grace; actual exit plus parent cleanup",
+      "expectedStdout": "",
+      "expectedStderr": "",
+      "expectedStatus": null,
+      "expectedEffects": {},
+      "unqualified": [
+        "actual Shell mapping and versioned alternate barriers deferred"
+      ]
+    },
+    {
+      "instance": "WRQ06-L06a-v3",
+      "wrq": "WRQ06",
+      "root": "L06",
+      "fixture": "L06a",
+      "reason": "object",
+      "workers": 1,
+      "guestEvaluations": 1,
+      "candidateImplemented": true,
+      "schedule": "complete write payload; publish X; hold operation cleanup; cancel caller; immediate termination request; real exit releases cleanup barrier; settle only after cleanup",
+      "expectedStdout": "",
+      "expectedStderr": "",
+      "expectedStatus": null,
+      "expectedEffects": {
+        "/data/effect": "X"
+      },
+      "unqualified": [
+        "secondary cleanup failure subvariant not implemented here",
+        "not original async guest overlap"
+      ]
+    },
+    {
+      "instance": "WRQ06-L06b-v3",
+      "wrq": "WRQ06",
+      "root": "L06",
+      "fixture": "L06b",
+      "reason": "none",
+      "workers": 1,
+      "guestEvaluations": 1,
+      "candidateImplemented": true,
+      "schedule": "complete X write and sync return; failed stdout sink; invocation cleanup preenrolled and held; actual exit releases cleanup then distinct cleanup rejection; retain raw sink and cleanup values",
+      "expectedStdout": "",
+      "expectedStderr": "",
+      "expectedStatus": null,
+      "expectedEffects": {
+        "/data/effect": "X"
+      },
+      "unqualified": [
+        "actual parent/Shell priority mapping not implemented",
+        "completed write plus later failed output, NOT simultaneous guest fs/output"
+      ]
+    },
+    {
+      "instance": "WRQ07-L07-v3",
+      "wrq": "WRQ07",
+      "root": "L07",
+      "fixture": "L07",
+      "reason": "none",
+      "workers": 1,
+      "guestEvaluations": 1,
+      "candidateImplemented": true,
+      "schedule": "computed unsupported require caught locally; separately denied complete write request causes no effect; bridge binding shadowed; no process.exit; output and actual exit",
+      "expectedStdout": "ERR_VNODE_UNSUPPORTED\nERR_VNODE_DENIED\nundefined:undefined\n",
+      "expectedStderr": "",
+      "expectedStatus": 0,
+      "expectedEffects": {},
+      "unqualified": [
+        "literal unsupported original remains preflight failure",
+        "protocol controls listed in CONTROL.json are unrun, not additional guest cases"
+      ]
+    },
+    {
+      "instance": "WRQ08-L08-v3",
+      "wrq": "WRQ08",
+      "root": "L08",
+      "fixture": "L08",
+      "reason": "none",
+      "workers": 1,
+      "guestEvaluations": 0,
+      "candidateImplemented": true,
+      "schedule": "only after independently accepted parent containment: at most32 arrays of262144 numeric elements, old32/young8/code8/stack4; no engine; confirmed exit/capture close",
+      "expectedStdout": "",
+      "expectedStderr": "",
+      "expectedStatus": null,
+      "expectedEffects": {},
+      "unqualified": [
+        "Source branch only; actual compiler/provider/heap observations remain unrun; K1–K4 not accepted."
+      ]
+    }
+  ]
+}

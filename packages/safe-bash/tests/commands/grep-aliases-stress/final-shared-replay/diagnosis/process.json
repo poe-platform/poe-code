@@ -1,0 +1,19 @@
+{
+  "classification": "diagnostic-only-not-cohort-pass",
+  "candidate": "0123c83d3aae72a15621acbb29a165b97b2c6ab6",
+  "packageSha256": "62228b67ca6793544f0f4374ca00fbbb6e627f514f184d5880fd7723ccf179c6",
+  "sourceSha256": "f4ed0b4b1a0bd34bfc71e26ceb5699a7c21808e260526c2326bae66cd52db157",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/tmp/safe-bash-alias-final-0123-20260827T1634-02/physically-moved-offline-consumer/run-diagnosis/diagnose-return.mjs",
+    "/tmp/safe-bash-alias-final-0123-20260827T1634-02/diagnosis-results.json"
+  ],
+  "cwd": "/tmp/safe-bash-alias-final-0123-20260827T1634-02/physically-moved-offline-consumer",
+  "pid": 68669,
+  "timeoutMs": 15000,
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "stdoutHex": "",
+  "stderrHex": ""
+}

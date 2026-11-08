@@ -1,0 +1,17 @@
+{
+  "id": "C08",
+  "expected": "accessor rejected without invocation",
+  "observation": {
+    "rejected": true,
+    "reason": {
+      "type": "object",
+      "name": "AssertionError",
+      "message": "RECORD_ACCESSOR"
+    },
+    "accessorCalls": 0,
+    "actualChildren": 0,
+    "scope": "exact reconciler structural control, not composed engine proof",
+    "expectedObserved": true
+  },
+  "safeToContinue": true
+}

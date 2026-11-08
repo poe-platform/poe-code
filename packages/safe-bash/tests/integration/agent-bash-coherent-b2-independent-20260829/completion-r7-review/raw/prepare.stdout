@@ -1,0 +1,16 @@
+{
+  "created": "2026-08-29T15:40:38.052Z",
+  "packetSha256": "f97901065a7803f72edb92c19f219e66f35dc2f050917d10dd25cb411ba5f65a",
+  "receiptSha256": "89df82217c7c39437f8b10bc3ede094012759d77c154031cc3f579ee8e246d26",
+  "files": 34,
+  "tool": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "sealSha256": "dd905a64e082c513a7710b49517df7ece6c6cf88d331e5869dc47ffea1488abf",
+  "runnerSha256": "d27a32d792b20c74ac7cb1dd32f6b7447af8b63c9584afe67fe556896d996c7c",
+  "syntax": "SourceTextModule construction only",
+  "sourceOnly": true
+}
+

@@ -1,0 +1,24 @@
+{
+  "returned": [
+    {
+      "url": "node:path"
+    },
+    {
+      "url": "node:util"
+    },
+    {
+      "url": "node:buffer"
+    },
+    {
+      "url": "node:stream"
+    },
+    {
+      "url": "node:stream/web"
+    },
+    {
+      "url": "node:timers/promises"
+    }
+  ],
+  "rejected": null,
+  "activeChildren": []
+}

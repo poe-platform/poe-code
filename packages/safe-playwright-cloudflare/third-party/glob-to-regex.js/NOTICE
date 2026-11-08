@@ -1,0 +1,5 @@
+glob-to-regex.js 1.2.0
+Source: https://github.com/streamich/glob-to-regex
+License: Apache-2.0
+Copyright: streamich (attribution from the package README).
+The package declares Apache-2.0 but omits its LICENSE file; LICENSE contains the standard Apache License 2.0 text.

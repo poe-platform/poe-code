@@ -1,0 +1,35 @@
+{
+  "finishedAt": "2026-08-27T07:50:58.109Z",
+  "totals": {
+    "positive": {
+      "passed": 3,
+      "failed": 1
+    },
+    "guard": {
+      "passed": 19,
+      "failed": 0
+    },
+    "refusal": {
+      "passed": 1,
+      "failed": 0
+    },
+    "limitation": {
+      "passed": 2,
+      "failed": 0
+    }
+  },
+  "rows": 26,
+  "requests": 37,
+  "cleanup": {
+    "serverChildrenSpawned": 0,
+    "server": {
+      "listening": false,
+      "pending": 0
+    },
+    "ownedRoot": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-atomic-extension/.native-oB00c0",
+    "rootRemoved": true
+  },
+  "frozenInputsUnchanged": true,
+  "noProductionImplementation": true,
+  "notOriginalWebDavMatrix": true
+}

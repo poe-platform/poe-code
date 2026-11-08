@@ -1,0 +1,3917 @@
+{
+  "startedAt": "2026-08-27T02:15:14.003Z",
+  "endedAt": "2026-08-27T02:15:14.917Z",
+  "executable": "/usr/bin/jq",
+  "executableSha256": "1625910a3f99fbd11c3ad58cc16ebc359507e6e19c21e91d8ab7da2116c8429f",
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "NO_COLOR": "1"
+  },
+  "host": {
+    "platform": "darwin",
+    "release": "25.4.0",
+    "arch": "arm64",
+    "node": "v22.22.2"
+  },
+  "version": {
+    "argv": [
+      "--version"
+    ],
+    "inputHex": "",
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+    "status": 0,
+    "stdoutHex": "6a712d312e372e312d6170706c650a",
+    "stderrHex": ""
+  },
+  "build": {
+    "argv": [
+      "--build-configuration"
+    ],
+    "inputHex": "",
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+    "status": 0,
+    "stdoutHex": "2d2d776974682d6f6e69677572756d613d6275696c74696e0a",
+    "stderrHex": ""
+  },
+  "captureSha256": "3ba99ad215a6560c763c85987260049d947faeab22e4d1b3edf698f568633215",
+  "timeoutMs": 5000,
+  "maxBuffer": 262144,
+  "invocations": 178,
+  "results": [
+    {
+      "ids": [
+        "strict-raw-lone-continuation"
+      ],
+      "argv": [
+        "-Rc",
+        "--",
+        "."
+      ],
+      "inputHex": "6f6b0a8061667465720a",
+      "files": {},
+      "expected": {
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd6166746572220a",
+        "stderrHex": ""
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-Rc",
+          "--",
+          "."
+        ],
+        "inputHex": "6f6b0a8061667465720a",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd6166746572220a",
+        "stderrHex": ""
+      },
+      "second": {
+        "argv": [
+          "-Rc",
+          "--",
+          "."
+        ],
+        "inputHex": "6f6b0a8061667465720a",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd6166746572220a",
+        "stderrHex": ""
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "strict-raw-truncated"
+      ],
+      "argv": [
+        "-Rj",
+        "--",
+        "."
+      ],
+      "inputHex": "6f6b0af09f",
+      "files": {},
+      "expected": {
+        "status": 0,
+        "stdoutHex": "6f6befbfbd",
+        "stderrHex": ""
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-Rj",
+          "--",
+          "."
+        ],
+        "inputHex": "6f6b0af09f",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "6f6befbfbd",
+        "stderrHex": ""
+      },
+      "second": {
+        "argv": [
+          "-Rj",
+          "--",
+          "."
+        ],
+        "inputHex": "6f6b0af09f",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "6f6befbfbd",
+        "stderrHex": ""
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "strict-raw-bad-continuation"
+      ],
+      "argv": [
+        "-Rc",
+        "--",
+        "."
+      ],
+      "inputHex": "e282410a",
+      "files": {},
+      "expected": {
+        "status": 0,
+        "stdoutHex": "22efbfbd41220a",
+        "stderrHex": ""
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-Rc",
+          "--",
+          "."
+        ],
+        "inputHex": "e282410a",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "22efbfbd41220a",
+        "stderrHex": ""
+      },
+      "second": {
+        "argv": [
+          "-Rc",
+          "--",
+          "."
+        ],
+        "inputHex": "e282410a",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "22efbfbd41220a",
+        "stderrHex": ""
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "strict-json-bad-string"
+      ],
+      "argv": [
+        "-c",
+        "--",
+        "."
+      ],
+      "inputHex": "226f6b220a2280220a226166746572220a",
+      "files": {},
+      "expected": {
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd220a226166746572220a",
+        "stderrHex": ""
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "--",
+          "."
+        ],
+        "inputHex": "226f6b220a2280220a226166746572220a",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd220a226166746572220a",
+        "stderrHex": ""
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "--",
+          "."
+        ],
+        "inputHex": "226f6b220a2280220a226166746572220a",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd220a226166746572220a",
+        "stderrHex": ""
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "record-error-prefix"
+      ],
+      "argv": [
+        "-Rc",
+        ".,1/0"
+      ],
+      "inputHex": "780a790a",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "2278220a2279220a",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a31293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a6a713a206572726f7220286174203c737464696e3e3a32293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-Rc",
+          ".,1/0"
+        ],
+        "inputHex": "780a790a",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "2278220a2279220a",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a31293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a6a713a206572726f7220286174203c737464696e3e3a32293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+      },
+      "second": {
+        "argv": [
+          "-Rc",
+          ".,1/0"
+        ],
+        "inputHex": "780a790a",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "2278220a2279220a",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a31293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a6a713a206572726f7220286174203c737464696e3e3a32293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "file-unicode:-Rc"
+      ],
+      "argv": [
+        "-Rc",
+        ".",
+        "unicode-start",
+        "-"
+      ],
+      "inputHex": "98800a",
+      "files": {
+        "unicode-start": "f09f"
+      },
+      "expected": {
+        "status": 0,
+        "stdoutHex": "22efbfbdefbfbdefbfbd220a",
+        "stderrHex": ""
+      },
+      "executed": false,
+      "reason": "Required literal unicode-start (f09f) absent in immutable author/native-files; no fd substitution or fixture creation.",
+      "exactByteCandidates": []
+    },
+    {
+      "ids": [
+        "file-unicode:-Rsc"
+      ],
+      "argv": [
+        "-Rsc",
+        ".",
+        "unicode-start",
+        "-"
+      ],
+      "inputHex": "98800a",
+      "files": {
+        "unicode-start": "f09f"
+      },
+      "expected": {
+        "status": 0,
+        "stdoutHex": "22efbfbdefbfbdefbfbd5c6e220a",
+        "stderrHex": ""
+      },
+      "executed": false,
+      "reason": "Required literal unicode-start (f09f) absent in immutable author/native-files; no fd substitution or fixture creation.",
+      "exactByteCandidates": []
+    },
+    {
+      "ids": [
+        "invalid:0:-Rc"
+      ],
+      "argv": [
+        "-Rc",
+        "."
+      ],
+      "inputHex": "6f6b0ac0af",
+      "files": {},
+      "expected": {
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbdefbfbd220a",
+        "stderrHex": ""
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-Rc",
+          "."
+        ],
+        "inputHex": "6f6b0ac0af",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbdefbfbd220a",
+        "stderrHex": ""
+      },
+      "second": {
+        "argv": [
+          "-Rc",
+          "."
+        ],
+        "inputHex": "6f6b0ac0af",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbdefbfbd220a",
+        "stderrHex": ""
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "invalid:0:-Rsc"
+      ],
+      "argv": [
+        "-Rsc",
+        "."
+      ],
+      "inputHex": "6f6b0ac0af",
+      "files": {},
+      "expected": {
+        "status": 0,
+        "stdoutHex": "226f6b5c6eefbfbdefbfbd220a",
+        "stderrHex": ""
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-Rsc",
+          "."
+        ],
+        "inputHex": "6f6b0ac0af",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "226f6b5c6eefbfbdefbfbd220a",
+        "stderrHex": ""
+      },
+      "second": {
+        "argv": [
+          "-Rsc",
+          "."
+        ],
+        "inputHex": "6f6b0ac0af",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "226f6b5c6eefbfbdefbfbd220a",
+        "stderrHex": ""
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "invalid:1:-Rc"
+      ],
+      "argv": [
+        "-Rc",
+        "."
+      ],
+      "inputHex": "6f6b0aeda080",
+      "files": {},
+      "expected": {
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd220a",
+        "stderrHex": ""
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-Rc",
+          "."
+        ],
+        "inputHex": "6f6b0aeda080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd220a",
+        "stderrHex": ""
+      },
+      "second": {
+        "argv": [
+          "-Rc",
+          "."
+        ],
+        "inputHex": "6f6b0aeda080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd220a",
+        "stderrHex": ""
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "invalid:1:-Rsc"
+      ],
+      "argv": [
+        "-Rsc",
+        "."
+      ],
+      "inputHex": "6f6b0aeda080",
+      "files": {},
+      "expected": {
+        "status": 0,
+        "stdoutHex": "226f6b5c6eefbfbd220a",
+        "stderrHex": ""
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-Rsc",
+          "."
+        ],
+        "inputHex": "6f6b0aeda080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "226f6b5c6eefbfbd220a",
+        "stderrHex": ""
+      },
+      "second": {
+        "argv": [
+          "-Rsc",
+          "."
+        ],
+        "inputHex": "6f6b0aeda080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "226f6b5c6eefbfbd220a",
+        "stderrHex": ""
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "invalid:2:-Rc"
+      ],
+      "argv": [
+        "-Rc",
+        "."
+      ],
+      "inputHex": "6f6b0af4908080",
+      "files": {},
+      "expected": {
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd220a",
+        "stderrHex": ""
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-Rc",
+          "."
+        ],
+        "inputHex": "6f6b0af4908080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd220a",
+        "stderrHex": ""
+      },
+      "second": {
+        "argv": [
+          "-Rc",
+          "."
+        ],
+        "inputHex": "6f6b0af4908080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd220a",
+        "stderrHex": ""
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "invalid:2:-Rsc"
+      ],
+      "argv": [
+        "-Rsc",
+        "."
+      ],
+      "inputHex": "6f6b0af4908080",
+      "files": {},
+      "expected": {
+        "status": 0,
+        "stdoutHex": "226f6b5c6eefbfbd220a",
+        "stderrHex": ""
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-Rsc",
+          "."
+        ],
+        "inputHex": "6f6b0af4908080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "226f6b5c6eefbfbd220a",
+        "stderrHex": ""
+      },
+      "second": {
+        "argv": [
+          "-Rsc",
+          "."
+        ],
+        "inputHex": "6f6b0af4908080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "226f6b5c6eefbfbd220a",
+        "stderrHex": ""
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "invalid:3:-Rc"
+      ],
+      "argv": [
+        "-Rc",
+        "."
+      ],
+      "inputHex": "6f6b0af09f",
+      "files": {},
+      "expected": {
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd220a",
+        "stderrHex": ""
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-Rc",
+          "."
+        ],
+        "inputHex": "6f6b0af09f",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd220a",
+        "stderrHex": ""
+      },
+      "second": {
+        "argv": [
+          "-Rc",
+          "."
+        ],
+        "inputHex": "6f6b0af09f",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd220a",
+        "stderrHex": ""
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "invalid:3:-Rsc"
+      ],
+      "argv": [
+        "-Rsc",
+        "."
+      ],
+      "inputHex": "6f6b0af09f",
+      "files": {},
+      "expected": {
+        "status": 0,
+        "stdoutHex": "226f6b5c6eefbfbd220a",
+        "stderrHex": ""
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-Rsc",
+          "."
+        ],
+        "inputHex": "6f6b0af09f",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "226f6b5c6eefbfbd220a",
+        "stderrHex": ""
+      },
+      "second": {
+        "argv": [
+          "-Rsc",
+          "."
+        ],
+        "inputHex": "6f6b0af09f",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "226f6b5c6eefbfbd220a",
+        "stderrHex": ""
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "invalid:4:-Rc"
+      ],
+      "argv": [
+        "-Rc",
+        "."
+      ],
+      "inputHex": "6f6b0a80",
+      "files": {},
+      "expected": {
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd220a",
+        "stderrHex": ""
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-Rc",
+          "."
+        ],
+        "inputHex": "6f6b0a80",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd220a",
+        "stderrHex": ""
+      },
+      "second": {
+        "argv": [
+          "-Rc",
+          "."
+        ],
+        "inputHex": "6f6b0a80",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd220a",
+        "stderrHex": ""
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "invalid:4:-Rsc"
+      ],
+      "argv": [
+        "-Rsc",
+        "."
+      ],
+      "inputHex": "6f6b0a80",
+      "files": {},
+      "expected": {
+        "status": 0,
+        "stdoutHex": "226f6b5c6eefbfbd220a",
+        "stderrHex": ""
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-Rsc",
+          "."
+        ],
+        "inputHex": "6f6b0a80",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "226f6b5c6eefbfbd220a",
+        "stderrHex": ""
+      },
+      "second": {
+        "argv": [
+          "-Rsc",
+          "."
+        ],
+        "inputHex": "6f6b0a80",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "226f6b5c6eefbfbd220a",
+        "stderrHex": ""
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "malformed-14",
+        "resource-json-4"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "225c754443303022",
+      "files": {},
+      "expected": {
+        "status": 0,
+        "stdoutHex": "22efbfbd220a",
+        "stderrHex": ""
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "225c754443303022",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "22efbfbd220a",
+        "stderrHex": ""
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "225c754443303022",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "22efbfbd220a",
+        "stderrHex": ""
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "malformed-16"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "6e756c6c00",
+      "files": {},
+      "expected": {
+        "status": 0,
+        "stdoutHex": "6e756c6c0a",
+        "stderrHex": ""
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "6e756c6c00",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "6e756c6c0a",
+        "stderrHex": ""
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "6e756c6c00",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "6e756c6c0a",
+        "stderrHex": ""
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "outside-string-0"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "7b7d0ac0af",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "7b7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20320a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0ac0af",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "7b7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20320a"
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0ac0af",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "7b7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20320a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "outside-string-1",
+        "prefix-0-3--c"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "7b7d0aeda080",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "7b7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20330a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0aeda080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "7b7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20330a"
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0aeda080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "7b7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20330a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "outside-string-2",
+        "prefix-0-5--c"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "7b7d0af4908080",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "7b7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0af4908080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "7b7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0af4908080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "7b7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "outside-string-3"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "7b7d0af09f",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "7b7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20320a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0af09f",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "7b7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20320a"
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0af09f",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "7b7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20320a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "outside-string-4"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "7b7d0a80",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "7b7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0a80",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "7b7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0a80",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "7b7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "prefix-0-0--c"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "7b7d0aff",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "7b7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0aff",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "7b7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0aff",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "7b7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "prefix-0-0--sc"
+      ],
+      "argv": [
+        "-sc",
+        "."
+      ],
+      "inputHex": "7b7d0aff",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b7d0aff",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+      },
+      "second": {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b7d0aff",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "prefix-1-0--c"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "22f09f9880220a310aff",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "22f09f9880220a310a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20310a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310aff",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "22f09f9880220a310a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20310a"
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310aff",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "22f09f9880220a310a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20310a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "prefix-1-0--sc"
+      ],
+      "argv": [
+        "-sc",
+        "."
+      ],
+      "inputHex": "22f09f9880220a310aff",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20310a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310aff",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20310a"
+      },
+      "second": {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310aff",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20310a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "prefix-2-0--c"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465ff",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "7b2261223a5b315d7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031320a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465ff",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "7b2261223a5b315d7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031320a"
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465ff",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "7b2261223a5b315d7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031320a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "prefix-2-0--sc"
+      ],
+      "argv": [
+        "-sc",
+        "."
+      ],
+      "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465ff",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031320a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465ff",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031320a"
+      },
+      "second": {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465ff",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031320a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "prefix-0-1--c"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "7b7d0ac3",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "7b7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0ac3",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "7b7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0ac3",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "7b7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "prefix-0-1--sc"
+      ],
+      "argv": [
+        "-sc",
+        "."
+      ],
+      "inputHex": "7b7d0ac3",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b7d0ac3",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+      },
+      "second": {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b7d0ac3",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "prefix-1-1--c"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "22f09f9880220a310ac3",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "22f09f9880220a310a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20310a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310ac3",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "22f09f9880220a310a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20310a"
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310ac3",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "22f09f9880220a310a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20310a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "prefix-1-1--sc"
+      ],
+      "argv": [
+        "-sc",
+        "."
+      ],
+      "inputHex": "22f09f9880220a310ac3",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20310a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310ac3",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20310a"
+      },
+      "second": {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310ac3",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20310a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "prefix-2-1--c"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "7b2261223a5b315d7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031320a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "7b2261223a5b315d7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031320a"
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "7b2261223a5b315d7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031320a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "prefix-2-1--sc"
+      ],
+      "argv": [
+        "-sc",
+        "."
+      ],
+      "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031320a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031320a"
+      },
+      "second": {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031320a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "prefix-0-2--c"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "7b7d0ac328",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "7b7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20320a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0ac328",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "7b7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20320a"
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0ac328",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "7b7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20320a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "prefix-0-2--sc"
+      ],
+      "argv": [
+        "-sc",
+        "."
+      ],
+      "inputHex": "7b7d0ac328",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20320a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b7d0ac328",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20320a"
+      },
+      "second": {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b7d0ac328",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20320a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "prefix-1-2--c"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "22f09f9880220a310ac328",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "22f09f9880220a310a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20320a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310ac328",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "22f09f9880220a310a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20320a"
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310ac328",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "22f09f9880220a310a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20320a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "prefix-1-2--sc"
+      ],
+      "argv": [
+        "-sc",
+        "."
+      ],
+      "inputHex": "22f09f9880220a310ac328",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20320a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310ac328",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20320a"
+      },
+      "second": {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310ac328",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20320a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "prefix-2-2--c"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "7b2261223a5b315d7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031330a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "7b2261223a5b315d7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031330a"
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "7b2261223a5b315d7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031330a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "prefix-2-2--sc"
+      ],
+      "argv": [
+        "-sc",
+        "."
+      ],
+      "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031330a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031330a"
+      },
+      "second": {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031330a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "prefix-0-3--sc"
+      ],
+      "argv": [
+        "-sc",
+        "."
+      ],
+      "inputHex": "7b7d0aeda080",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20330a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b7d0aeda080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20330a"
+      },
+      "second": {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b7d0aeda080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20330a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "prefix-1-3--c"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "22f09f9880220a310aeda080",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "22f09f9880220a310a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20330a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310aeda080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "22f09f9880220a310a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20330a"
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310aeda080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "22f09f9880220a310a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20330a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "prefix-1-3--sc"
+      ],
+      "argv": [
+        "-sc",
+        "."
+      ],
+      "inputHex": "22f09f9880220a310aeda080",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20330a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310aeda080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20330a"
+      },
+      "second": {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310aeda080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20330a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "prefix-2-3--c"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "7b2261223a5b315d7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031340a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "7b2261223a5b315d7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031340a"
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "7b2261223a5b315d7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031340a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "prefix-2-3--sc"
+      ],
+      "argv": [
+        "-sc",
+        "."
+      ],
+      "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031340a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031340a"
+      },
+      "second": {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031340a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "prefix-0-4--c"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "7b7d0af0808080",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "7b7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0af0808080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "7b7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0af0808080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "7b7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "prefix-0-4--sc"
+      ],
+      "argv": [
+        "-sc",
+        "."
+      ],
+      "inputHex": "7b7d0af0808080",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b7d0af0808080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+      },
+      "second": {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b7d0af0808080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "prefix-1-4--c"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "22f09f9880220a310af0808080",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "22f09f9880220a310a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20340a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af0808080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "22f09f9880220a310a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20340a"
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af0808080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "22f09f9880220a310a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20340a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "prefix-1-4--sc"
+      ],
+      "argv": [
+        "-sc",
+        "."
+      ],
+      "inputHex": "22f09f9880220a310af0808080",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20340a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af0808080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20340a"
+      },
+      "second": {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af0808080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20340a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "prefix-2-4--c"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "7b2261223a5b315d7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031350a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "7b2261223a5b315d7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031350a"
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "7b2261223a5b315d7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031350a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "prefix-2-4--sc"
+      ],
+      "argv": [
+        "-sc",
+        "."
+      ],
+      "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031350a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031350a"
+      },
+      "second": {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031350a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "prefix-0-5--sc"
+      ],
+      "argv": [
+        "-sc",
+        "."
+      ],
+      "inputHex": "7b7d0af4908080",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b7d0af4908080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+      },
+      "second": {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b7d0af4908080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "prefix-1-5--c"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "22f09f9880220a310af4908080",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "22f09f9880220a310a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20340a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af4908080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "22f09f9880220a310a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20340a"
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af4908080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "22f09f9880220a310a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20340a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "prefix-1-5--sc"
+      ],
+      "argv": [
+        "-sc",
+        "."
+      ],
+      "inputHex": "22f09f9880220a310af4908080",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20340a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af4908080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20340a"
+      },
+      "second": {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af4908080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20340a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "prefix-2-5--c"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "7b2261223a5b315d7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031350a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "7b2261223a5b315d7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031350a"
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "7b2261223a5b315d7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031350a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "prefix-2-5--sc"
+      ],
+      "argv": [
+        "-sc",
+        "."
+      ],
+      "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031350a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031350a"
+      },
+      "second": {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031350a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "resource-json-0",
+        "token-0"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "4e614e",
+      "files": {},
+      "expected": {
+        "status": 0,
+        "stdoutHex": "6e756c6c0a",
+        "stderrHex": ""
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "4e614e",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "6e756c6c0a",
+        "stderrHex": ""
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "4e614e",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "6e756c6c0a",
+        "stderrHex": ""
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "resource-json-1"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "496e66696e697479",
+      "files": {},
+      "expected": {
+        "status": 0,
+        "stdoutHex": "312e37393736393331333438363233313537652b3330380a",
+        "stderrHex": ""
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "496e66696e697479",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "312e37393736393331333438363233313537652b3330380a",
+        "stderrHex": ""
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "496e66696e697479",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "312e37393736393331333438363233313537652b3330380a",
+        "stderrHex": ""
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "resource-json-2",
+        "token-176"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "2d496e66696e697479",
+      "files": {},
+      "expected": {
+        "status": 0,
+        "stdoutHex": "2d312e37393736393331333438363233313537652b3330380a",
+        "stderrHex": ""
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "2d496e66696e697479",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "2d312e37393736393331333438363233313537652b3330380a",
+        "stderrHex": ""
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "2d496e66696e697479",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "2d312e37393736393331333438363233313537652b3330380a",
+        "stderrHex": ""
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "resource-json-3"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "225c754438303022",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964205c75585858585c755858585820737572726f67617465207061697220657363617065206174206c696e6520312c20636f6c756d6e20380a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "225c754438303022",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964205c75585858585c755858585820737572726f67617465207061697220657363617065206174206c696e6520312c20636f6c756d6e20380a"
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "225c754438303022",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964205c75585858585c755858585820737572726f67617465207061697220657363617065206174206c696e6520312c20636f6c756d6e20380a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "resource-json-5"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "5b7d",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20556e6d61746368656420277d27206174206c696e6520312c20636f6c756d6e20320a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "5b7d",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20556e6d61746368656420277d27206174206c696e6520312c20636f6c756d6e20320a"
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "5b7d",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20556e6d61746368656420277d27206174206c696e6520312c20636f6c756d6e20320a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "resource-json-6"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "7b2261223a7d",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20556e6d61746368656420277d27206174206c696e6520312c20636f6c756d6e20360a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a7d",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20556e6d61746368656420277d27206174206c696e6520312c20636f6c756d6e20360a"
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a7d",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20556e6d61746368656420277d27206174206c696e6520312c20636f6c756d6e20360a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "resource-json-7"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "3031",
+      "files": {},
+      "expected": {
+        "status": 0,
+        "stdoutHex": "310a",
+        "stderrHex": ""
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "3031",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "310a",
+        "stderrHex": ""
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "3031",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "310a",
+        "stderrHex": ""
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "resource-json-8"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "312e",
+      "files": {},
+      "expected": {
+        "status": 0,
+        "stdoutHex": "310a",
+        "stderrHex": ""
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "312e",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "310a",
+        "stderrHex": ""
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "312e",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "310a",
+        "stderrHex": ""
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "resource-json-9"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "3165",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20320a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "3165",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20320a"
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "3165",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20320a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "resource-json-10"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "7472756566616c7365",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20390a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7472756566616c7365",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20390a"
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7472756566616c7365",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20390a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "resource-json-11"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "226261640a737472696e6722",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c696420737472696e673a20636f6e74726f6c20636861726163746572732066726f6d20552b30303030207468726f75676820552b30303146206d7573742062652065736361706564206174206c696e6520322c20636f6c756d6e20370a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "226261640a737472696e6722",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c696420737472696e673a20636f6e74726f6c20636861726163746572732066726f6d20552b30303030207468726f75676820552b30303146206d7573742062652065736361706564206174206c696e6520322c20636f6c756d6e20370a"
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "226261640a737472696e6722",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c696420737472696e673a20636f6e74726f6c20636861726163746572732066726f6d20552b30303030207468726f75676820552b30303146206d7573742062652065736361706564206174206c696e6520322c20636f6c756d6e20370a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "resource-json-12"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "5b312c5d",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20457870656374656420616e6f7468657220617272617920656c656d656e74206174206c696e6520312c20636f6c756d6e20340a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "5b312c5d",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20457870656374656420616e6f7468657220617272617920656c656d656e74206174206c696e6520312c20636f6c756d6e20340a"
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "5b312c5d",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20457870656374656420616e6f7468657220617272617920656c656d656e74206174206c696e6520312c20636f6c756d6e20340a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "resource-json-13"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "7b2261223a302c7d",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20457870656374656420616e6f74686572206b65792d76616c75652070616972206174206c696e6520312c20636f6c756d6e20380a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a302c7d",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20457870656374656420616e6f74686572206b65792d76616c75652070616972206174206c696e6520312c20636f6c756d6e20380a"
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a302c7d",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20457870656374656420616e6f74686572206b65792d76616c75652070616972206174206c696e6520312c20636f6c756d6e20380a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "resource-json-14",
+        "bom-737"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "efbbbf30",
+      "files": {},
+      "expected": {
+        "status": 0,
+        "stdoutHex": "300a",
+        "stderrHex": ""
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "efbbbf30",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "300a",
+        "stderrHex": ""
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "efbbbf30",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "300a",
+        "stderrHex": ""
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "resource-large-0"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "316539393939",
+      "files": {},
+      "expected": {
+        "status": 0,
+        "stdoutHex": "31452b393939390a",
+        "stderrHex": ""
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "316539393939",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "31452b393939390a",
+        "stderrHex": ""
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "316539393939",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "31452b393939390a",
+        "stderrHex": ""
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "resource-large-1"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "5b3165393939395d",
+      "files": {},
+      "expected": {
+        "status": 0,
+        "stdoutHex": "5b31452b393939395d0a",
+        "stderrHex": ""
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "5b3165393939395d",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "5b31452b393939395d0a",
+        "stderrHex": ""
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "5b3165393939395d",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "5b31452b393939395d0a",
+        "stderrHex": ""
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "resource-large-2"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "7b2261223a3165393939397d",
+      "files": {},
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7b2261223a31452b393939397d0a",
+        "stderrHex": ""
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a3165393939397d",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "7b2261223a31452b393939397d0a",
+        "stderrHex": ""
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a3165393939397d",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "7b2261223a31452b393939397d0a",
+        "stderrHex": ""
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "resource-utf8-0"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "ff",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20310a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "ff",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20310a"
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "ff",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20310a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "resource-utf8-1"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "c3",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20310a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "c3",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20310a"
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "c3",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20310a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "resource-utf8-2"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "c328",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20320a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "c328",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20320a"
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "c328",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20320a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "resource-utf8-3"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "eda080",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20330a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "eda080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20330a"
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "eda080",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20330a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "resource-filter-0"
+      ],
+      "argv": [
+        "-nc",
+        "1/0"
+      ],
+      "inputHex": "6e756c6c",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f7220286174203c756e6b6e6f776e3e293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-nc",
+          "1/0"
+        ],
+        "inputHex": "6e756c6c",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f7220286174203c756e6b6e6f776e3e293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+      },
+      "second": {
+        "argv": [
+          "-nc",
+          "1/0"
+        ],
+        "inputHex": "6e756c6c",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f7220286174203c756e6b6e6f776e3e293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "resource-filter-1"
+      ],
+      "argv": [
+        "-nc",
+        "0/0"
+      ],
+      "inputHex": "6e756c6c",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f7220286174203c756e6b6e6f776e3e293a206e756d6265722028302920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-nc",
+          "0/0"
+        ],
+        "inputHex": "6e756c6c",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f7220286174203c756e6b6e6f776e3e293a206e756d6265722028302920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+      },
+      "second": {
+        "argv": [
+          "-nc",
+          "0/0"
+        ],
+        "inputHex": "6e756c6c",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f7220286174203c756e6b6e6f776e3e293a206e756d6265722028302920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "resource-filter-2"
+      ],
+      "argv": [
+        "-nc",
+        "1%0"
+      ],
+      "inputHex": "6e756c6c",
+      "files": {},
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f7220286174203c756e6b6e6f776e3e293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f742062652064697669646564202872656d61696e646572292062656361757365207468652064697669736f72206973207a65726f0a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-nc",
+          "1%0"
+        ],
+        "inputHex": "6e756c6c",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f7220286174203c756e6b6e6f776e3e293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f742062652064697669646564202872656d61696e646572292062656361757365207468652064697669736f72206973207a65726f0a"
+      },
+      "second": {
+        "argv": [
+          "-nc",
+          "1%0"
+        ],
+        "inputHex": "6e756c6c",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f7220286174203c756e6b6e6f776e3e293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f742062652064697669646564202872656d61696e646572292062656361757365207468652064697669736f72206973207a65726f0a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "resource-filter-3"
+      ],
+      "argv": [
+        "-nc",
+        "1e308*1e308"
+      ],
+      "inputHex": "6e756c6c",
+      "files": {},
+      "expected": {
+        "status": 0,
+        "stdoutHex": "312e37393736393331333438363233313537652b3330380a",
+        "stderrHex": ""
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-nc",
+          "1e308*1e308"
+        ],
+        "inputHex": "6e756c6c",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "312e37393736393331333438363233313537652b3330380a",
+        "stderrHex": ""
+      },
+      "second": {
+        "argv": [
+          "-nc",
+          "1e308*1e308"
+        ],
+        "inputHex": "6e756c6c",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "312e37393736393331333438363233313537652b3330380a",
+        "stderrHex": ""
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "resource-filter-4"
+      ],
+      "argv": [
+        "-nc",
+        "\"1e9999\"|tonumber"
+      ],
+      "inputHex": "6e756c6c",
+      "files": {},
+      "expected": {
+        "status": 0,
+        "stdoutHex": "31452b393939390a",
+        "stderrHex": ""
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-nc",
+          "\"1e9999\"|tonumber"
+        ],
+        "inputHex": "6e756c6c",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "31452b393939390a",
+        "stderrHex": ""
+      },
+      "second": {
+        "argv": [
+          "-nc",
+          "\"1e9999\"|tonumber"
+        ],
+        "inputHex": "6e756c6c",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "31452b393939390a",
+        "stderrHex": ""
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "resource-filter-5"
+      ],
+      "argv": [
+        "-nc",
+        "\"[1e9999]\"|fromjson"
+      ],
+      "inputHex": "6e756c6c",
+      "files": {},
+      "expected": {
+        "status": 0,
+        "stdoutHex": "5b31452b393939395d0a",
+        "stderrHex": ""
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-nc",
+          "\"[1e9999]\"|fromjson"
+        ],
+        "inputHex": "6e756c6c",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "5b31452b393939395d0a",
+        "stderrHex": ""
+      },
+      "second": {
+        "argv": [
+          "-nc",
+          "\"[1e9999]\"|fromjson"
+        ],
+        "inputHex": "6e756c6c",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "5b31452b393939395d0a",
+        "stderrHex": ""
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "resource-large-3"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "225c75443833445c754445303022",
+      "files": {},
+      "expected": {
+        "status": 0,
+        "stdoutHex": "22f09f9880220a",
+        "stderrHex": ""
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "225c75443833445c754445303022",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "22f09f9880220a",
+        "stderrHex": ""
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "225c75443833445c754445303022",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "22f09f9880220a",
+        "stderrHex": ""
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "token-282"
+      ],
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "5b30315d",
+      "files": {},
+      "expected": {
+        "status": 0,
+        "stdoutHex": "5b315d0a",
+        "stderrHex": ""
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "5b30315d",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "5b315d0a",
+        "stderrHex": ""
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "5b30315d",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 0,
+        "stdoutHex": "5b315d0a",
+        "stderrHex": ""
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "join-zero-arity"
+      ],
+      "argv": [
+        "-c",
+        "--",
+        "join"
+      ],
+      "inputHex": "5b5d",
+      "files": {},
+      "expected": {
+        "status": 3,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f723a206a6f696e2f30206973206e6f7420646566696e6564206174203c746f702d6c6576656c3e2c206c696e6520313a0a6a6f696e0a6a713a203120636f6d70696c65206572726f720a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "--",
+          "join"
+        ],
+        "inputHex": "5b5d",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 3,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f723a206a6f696e2f30206973206e6f7420646566696e6564206174203c746f702d6c6576656c3e2c206c696e6520313a0a6a6f696e0a6a713a203120636f6d70696c65206572726f720a"
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "--",
+          "join"
+        ],
+        "inputHex": "5b5d",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 3,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f723a206a6f696e2f30206973206e6f7420646566696e6564206174203c746f702d6c6576656c3e2c206c696e6520313a0a6a6f696e0a6a713a203120636f6d70696c65206572726f720a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "join-two-arity"
+      ],
+      "argv": [
+        "-c",
+        "--",
+        "join(\"-\";\":\")"
+      ],
+      "inputHex": "5b5d",
+      "files": {},
+      "expected": {
+        "status": 3,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f723a206a6f696e2f32206973206e6f7420646566696e6564206174203c746f702d6c6576656c3e2c206c696e6520313a0a6a6f696e28222d223b223a22290a6a713a203120636f6d70696c65206572726f720a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "-c",
+          "--",
+          "join(\"-\";\":\")"
+        ],
+        "inputHex": "5b5d",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 3,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f723a206a6f696e2f32206973206e6f7420646566696e6564206174203c746f702d6c6576656c3e2c206c696e6520313a0a6a6f696e28222d223b223a22290a6a713a203120636f6d70696c65206572726f720a"
+      },
+      "second": {
+        "argv": [
+          "-c",
+          "--",
+          "join(\"-\";\":\")"
+        ],
+        "inputHex": "5b5d",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 3,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f723a206a6f696e2f32206973206e6f7420646566696e6564206174203c746f702d6c6576656c3e2c206c696e6520313a0a6a6f696e28222d223b223a22290a6a713a203120636f6d70696c65206572726f720a"
+      },
+      "matchesFrozen": true
+    },
+    {
+      "ids": [
+        "canonical-split-zero"
+      ],
+      "argv": [
+        "split"
+      ],
+      "inputHex": "",
+      "files": {},
+      "expected": {
+        "status": 3,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f723a2073706c69742f30206973206e6f7420646566696e6564206174203c746f702d6c6576656c3e2c206c696e6520313a0a73706c69740a6a713a203120636f6d70696c65206572726f720a"
+      },
+      "executed": true,
+      "first": {
+        "argv": [
+          "split"
+        ],
+        "inputHex": "",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 3,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f723a2073706c69742f30206973206e6f7420646566696e6564206174203c746f702d6c6576656c3e2c206c696e6520313a0a73706c69740a6a713a203120636f6d70696c65206572726f720a"
+      },
+      "second": {
+        "argv": [
+          "split"
+        ],
+        "inputHex": "",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+        "status": 3,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f723a2073706c69742f30206973206e6f7420646566696e6564206174203c746f702d6c6576656c3e2c206c696e6520313a0a73706c69740a6a713a203120636f6d70696c65206572726f720a"
+      },
+      "matchesFrozen": true
+    }
+  ],
+  "beforeCwd": {
+    "path": "tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+    "namespaceAndContentSha256": "9aaa876158c8d28bb66d9d1c119e9eb6726eedde2995d46c0f1cf7b03802234b",
+    "entries": {
+      ".": {
+        "kind": "directory",
+        "mode": 493
+      },
+      ".keep": {
+        "kind": "file",
+        "size": 48,
+        "mode": 420,
+        "sha256": "9ce54631a930b5f22d37f40b18d6b577a928392b13fa742d775afa870945cea7"
+      }
+    }
+  },
+  "afterCwd": {
+    "path": "tests/commands/structured-stress/jq-grammar-canonical-plan/native-cwd",
+    "namespaceAndContentSha256": "9aaa876158c8d28bb66d9d1c119e9eb6726eedde2995d46c0f1cf7b03802234b",
+    "entries": {
+      ".": {
+        "kind": "directory",
+        "mode": 493
+      },
+      ".keep": {
+        "kind": "file",
+        "size": 48,
+        "mode": 420,
+        "sha256": "9ce54631a930b5f22d37f40b18d6b577a928392b13fa742d775afa870945cea7"
+      }
+    }
+  },
+  "literalFileInventory": [
+    {
+      "path": "bom.json",
+      "kind": "file",
+      "size": 7,
+      "mode": 420,
+      "sha256": "342278e1039b3d8e960025e8f9944d79c94a135b606cf699afa09072a163952d",
+      "hex": "efbbbf4e614e0a"
+    },
+    {
+      "path": "close.json",
+      "kind": "file",
+      "size": 2,
+      "mode": 420,
+      "sha256": "f9416e09f78ba316c032568213b855ee756e41565d918f09519c81fd620f4060",
+      "hex": "5d0a"
+    },
+    {
+      "path": "continuation.json",
+      "kind": "file",
+      "size": 2,
+      "mode": 420,
+      "sha256": "53c234e5e8472b6ac51c1ae1cab3fe06fad053beb8ebfd8977b010655bfdd3c3",
+      "hex": "320a"
+    },
+    {
+      "path": "end-string.json",
+      "kind": "file",
+      "size": 5,
+      "mode": 420,
+      "sha256": "a528de20f16a4889e2ee5544124af50d39b31dbcf84ce2e1ce8b92ccb4bf58b1",
+      "hex": "697479220a"
+    },
+    {
+      "path": "filter.jq",
+      "kind": "file",
+      "size": 15,
+      "mode": 420,
+      "sha256": "5e29dc3edcdcb3b6c30c1d5913ffd8050992b0f4b87479f4d40ddd8e14f2d6a9",
+      "hex": "0a6a6f696e28222d223b223a22290a"
+    },
+    {
+      "path": "first.json",
+      "kind": "file",
+      "size": 6,
+      "mode": 420,
+      "sha256": "030099ea83b8057de02a6a2d527143e8fde9515954f80603a585dcdcc70ce169",
+      "hex": "efbbbf30310a"
+    },
+    {
+      "path": "invalid.json",
+      "kind": "file",
+      "size": 3,
+      "mode": 420,
+      "sha256": "6d1284edd0a0f7cc21683123033b2f5e733160e20edd910c2416e6631de4a1cc",
+      "hex": "5b7d0a"
+    },
+    {
+      "path": "records.json",
+      "kind": "file",
+      "size": 17,
+      "mode": 420,
+      "sha256": "0aa4db369ac5e42e547faab0d5f9ebf47ea2e28eb219ce9702596600bd10232b",
+      "hex": "4e614e0a496e66696e6974790a5b395d0a"
+    },
+    {
+      "path": "second.json",
+      "kind": "file",
+      "size": 7,
+      "mode": 420,
+      "sha256": "342278e1039b3d8e960025e8f9944d79c94a135b606cf699afa09072a163952d",
+      "hex": "efbbbf4e614e0a"
+    },
+    {
+      "path": "unicode.json",
+      "kind": "file",
+      "size": 9,
+      "mode": 420,
+      "sha256": "a017ad144aa4e06b609b86d4fa7a36b5a981999ce60ad0fa90dd38b2fb5b7377",
+      "hex": "22c3a9f09f9880220a"
+    },
+    {
+      "path": "word.json",
+      "kind": "file",
+      "size": 2,
+      "mode": 420,
+      "sha256": "28312e346b76a3f91e8283519baab5f103d79547dedff5fb7ccc0dc3c5119bbe",
+      "hex": "4e0a"
+    }
+  ],
+  "filesBefore": {
+    "path": "tests/commands/structured-stress/jq-grammar-author-20260827/native-files",
+    "namespaceAndContentSha256": "e44318d085c906c539d3889590bd3ceeb047dea4c7f11c393fcaca9e1d06d88d",
+    "entries": {
+      ".": {
+        "kind": "directory",
+        "mode": 493
+      },
+      "bom.json": {
+        "kind": "file",
+        "size": 7,
+        "mode": 420,
+        "sha256": "342278e1039b3d8e960025e8f9944d79c94a135b606cf699afa09072a163952d"
+      },
+      "close.json": {
+        "kind": "file",
+        "size": 2,
+        "mode": 420,
+        "sha256": "f9416e09f78ba316c032568213b855ee756e41565d918f09519c81fd620f4060"
+      },
+      "continuation.json": {
+        "kind": "file",
+        "size": 2,
+        "mode": 420,
+        "sha256": "53c234e5e8472b6ac51c1ae1cab3fe06fad053beb8ebfd8977b010655bfdd3c3"
+      },
+      "end-string.json": {
+        "kind": "file",
+        "size": 5,
+        "mode": 420,
+        "sha256": "a528de20f16a4889e2ee5544124af50d39b31dbcf84ce2e1ce8b92ccb4bf58b1"
+      },
+      "filter.jq": {
+        "kind": "file",
+        "size": 15,
+        "mode": 420,
+        "sha256": "5e29dc3edcdcb3b6c30c1d5913ffd8050992b0f4b87479f4d40ddd8e14f2d6a9"
+      },
+      "first.json": {
+        "kind": "file",
+        "size": 6,
+        "mode": 420,
+        "sha256": "030099ea83b8057de02a6a2d527143e8fde9515954f80603a585dcdcc70ce169"
+      },
+      "invalid.json": {
+        "kind": "file",
+        "size": 3,
+        "mode": 420,
+        "sha256": "6d1284edd0a0f7cc21683123033b2f5e733160e20edd910c2416e6631de4a1cc"
+      },
+      "records.json": {
+        "kind": "file",
+        "size": 17,
+        "mode": 420,
+        "sha256": "0aa4db369ac5e42e547faab0d5f9ebf47ea2e28eb219ce9702596600bd10232b"
+      },
+      "second.json": {
+        "kind": "file",
+        "size": 7,
+        "mode": 420,
+        "sha256": "342278e1039b3d8e960025e8f9944d79c94a135b606cf699afa09072a163952d"
+      },
+      "unicode.json": {
+        "kind": "file",
+        "size": 9,
+        "mode": 420,
+        "sha256": "a017ad144aa4e06b609b86d4fa7a36b5a981999ce60ad0fa90dd38b2fb5b7377"
+      },
+      "word.json": {
+        "kind": "file",
+        "size": 2,
+        "mode": 420,
+        "sha256": "28312e346b76a3f91e8283519baab5f103d79547dedff5fb7ccc0dc3c5119bbe"
+      }
+    }
+  },
+  "filesAfter": {
+    "path": "tests/commands/structured-stress/jq-grammar-author-20260827/native-files",
+    "namespaceAndContentSha256": "e44318d085c906c539d3889590bd3ceeb047dea4c7f11c393fcaca9e1d06d88d",
+    "entries": {
+      ".": {
+        "kind": "directory",
+        "mode": 493
+      },
+      "bom.json": {
+        "kind": "file",
+        "size": 7,
+        "mode": 420,
+        "sha256": "342278e1039b3d8e960025e8f9944d79c94a135b606cf699afa09072a163952d"
+      },
+      "close.json": {
+        "kind": "file",
+        "size": 2,
+        "mode": 420,
+        "sha256": "f9416e09f78ba316c032568213b855ee756e41565d918f09519c81fd620f4060"
+      },
+      "continuation.json": {
+        "kind": "file",
+        "size": 2,
+        "mode": 420,
+        "sha256": "53c234e5e8472b6ac51c1ae1cab3fe06fad053beb8ebfd8977b010655bfdd3c3"
+      },
+      "end-string.json": {
+        "kind": "file",
+        "size": 5,
+        "mode": 420,
+        "sha256": "a528de20f16a4889e2ee5544124af50d39b31dbcf84ce2e1ce8b92ccb4bf58b1"
+      },
+      "filter.jq": {
+        "kind": "file",
+        "size": 15,
+        "mode": 420,
+        "sha256": "5e29dc3edcdcb3b6c30c1d5913ffd8050992b0f4b87479f4d40ddd8e14f2d6a9"
+      },
+      "first.json": {
+        "kind": "file",
+        "size": 6,
+        "mode": 420,
+        "sha256": "030099ea83b8057de02a6a2d527143e8fde9515954f80603a585dcdcc70ce169"
+      },
+      "invalid.json": {
+        "kind": "file",
+        "size": 3,
+        "mode": 420,
+        "sha256": "6d1284edd0a0f7cc21683123033b2f5e733160e20edd910c2416e6631de4a1cc"
+      },
+      "records.json": {
+        "kind": "file",
+        "size": 17,
+        "mode": 420,
+        "sha256": "0aa4db369ac5e42e547faab0d5f9ebf47ea2e28eb219ce9702596600bd10232b"
+      },
+      "second.json": {
+        "kind": "file",
+        "size": 7,
+        "mode": 420,
+        "sha256": "342278e1039b3d8e960025e8f9944d79c94a135b606cf699afa09072a163952d"
+      },
+      "unicode.json": {
+        "kind": "file",
+        "size": 9,
+        "mode": 420,
+        "sha256": "a017ad144aa4e06b609b86d4fa7a36b5a981999ce60ad0fa90dd38b2fb5b7377"
+      },
+      "word.json": {
+        "kind": "file",
+        "size": 2,
+        "mode": 420,
+        "sha256": "28312e346b76a3f91e8283519baab5f103d79547dedff5fb7ccc0dc3c5119bbe"
+      }
+    }
+  },
+  "provenance": [
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-author-20260827/freeze-files.mjs",
+      "sha256": "e6f8d397c883d35e0da7f8c57346bddcddb6b4698f88baa4e79cce51ad838dee"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-author-20260827/artifacts.mjs",
+      "sha256": "262f8b9c8e31351b1753c232a6baac66d979a34ceacb3e1e79b31f533d0f5a32"
+    }
+  ],
+  "limits": "No product imports, source certification, VFS effects, actual product chunks, cancellation, resource or shell guarantees. Two unavailable literal-file checks remain a blocker, not fd parity."
+}

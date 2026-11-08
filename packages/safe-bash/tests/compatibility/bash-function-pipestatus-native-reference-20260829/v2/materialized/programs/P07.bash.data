@@ -1,0 +1,1 @@
+! [[ x = y ]]; printf "%s:<%s>\n" "$?" "${PIPESTATUS[*]}"

@@ -1,0 +1,13 @@
+{
+  "status": "PARTIAL_PREEXECUTION_PACKET_NOT_READY",
+  "independentReview": "PENDING",
+  "rootRuntimeGo": "PENDING",
+  "preparationOnly": true,
+  "actualRetainedCalls": "UNRUN",
+  "actualTypes": "UNRUN",
+  "actualMutants": "UNRUN",
+  "actualRestores": "UNRUN",
+  "actualBindings": "UNRUN",
+  "actualWorkers": "UNRUN",
+  "guestEngines": 0
+}

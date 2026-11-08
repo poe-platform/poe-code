@@ -1,0 +1,16 @@
+{
+  "role": "one-scheduling-timer",
+  "pid": 68311,
+  "started": "2026-08-29T15:07:17.771Z",
+  "children": 0,
+  "runtimeLaunched": false,
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  },
+  "ended": "2026-08-29T15:15:12.266Z"
+}

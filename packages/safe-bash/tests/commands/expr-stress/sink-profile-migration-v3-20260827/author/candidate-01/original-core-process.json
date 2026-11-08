@@ -1,0 +1,17 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/sink-profile-migration-v3-20260827/author/support/core-bound.mjs",
+    "candidate-01-original"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/sink-profile-migration-v3-20260827/author/node_modules/candidate-01/relocated",
+  "started": "2026-08-27T21:35:08.279Z",
+  "finished": "2026-08-27T21:35:19.635Z",
+  "timeout": 180000,
+  "maxBuffer": 33554432,
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "stdout": "FAILED sink-rejection: Expected \"actual\" to be reference-equal to \"expected\":\n+ actual - expected\n\n  {\n+   sentinel: 'stdout'\n-   sentinel: 'stderr'\n  }\n\n{\"subcases\":146,\"failed\":[\"sink-rejection\"],\"destination\":\"/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/sink-profile-migration-v3-20260827/author/original/core/candidate-01-original\"}\n",
+  "stderr": ""
+}

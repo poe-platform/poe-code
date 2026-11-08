@@ -1,0 +1,24 @@
+TAP version 13
+1..0
+# Subtest: tests/commands/table-text-stress/corpus.test.ts
+ok 1 - tests/commands/table-text-stress/corpus.test.ts
+  ---
+  duration_ms: 132.329542
+  type: 'test'
+  ...
+1..0
+# Subtest: tests/commands/table-text/contracts.test.ts
+ok 2 - tests/commands/table-text/contracts.test.ts
+  ---
+  duration_ms: 127.943875
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 136.133541

@@ -1,0 +1,11 @@
+import * as native from '../dist/index.js';
+import * as sdk from '@poe-code/config-extends';
+const parse:typeof sdk.parseDocument=native.parseDocument;
+const merge:typeof sdk.mergeLayers=native.mergeLayers;
+const discovery:typeof sdk.findBase=native.findBase;
+const resolution:typeof sdk.resolve=native.resolve;
+const prompt:typeof sdk.resolvePromptDocument=native.resolvePromptDocument;
+const nativeDiscovery:typeof native.findBase=sdk.findBase;
+const nativeResolution:typeof native.resolve=sdk.resolve;
+const nativePrompt:typeof native.resolvePromptDocument=sdk.resolvePromptDocument;
+void [parse,merge,discovery,resolution,prompt,nativeDiscovery,nativeResolution,nativePrompt];

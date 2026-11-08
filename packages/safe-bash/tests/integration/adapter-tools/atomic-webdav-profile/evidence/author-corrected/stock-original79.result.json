@@ -1,0 +1,28 @@
+{
+  "name": "stock-original79",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-reporter=tap",
+    "tests/integration/adapter-tools/matrix.test.ts"
+  ],
+  "cwd": "source",
+  "startedAt": "2026-08-27T09:02:29.172Z",
+  "durationMs": 1746.127708,
+  "status": 1,
+  "signal": null,
+  "counts": {
+    "tests": 79,
+    "pass": 78,
+    "fail": 1,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failedRows": [
+    "webdav: create, copy, append, inspect and remove files"
+  ]
+}

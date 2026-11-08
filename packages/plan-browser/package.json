@@ -1,0 +1,30 @@
+{
+  "name": "@poe-code/plan-browser",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "test:unit": "cd ../.. && vitest run packages/plan-browser/src"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@poe-code/agent-harness-tools": "*",
+    "toolcraft-design": "*",
+    "@poe-code/experiment-loop": "*",
+    "@poe-code/pipeline": "*",
+    "@poe-code/poe-code-config": "*",
+    "@poe-code/ralph": "*",
+    "@poe-code/superintendent": "*"
+  }
+}

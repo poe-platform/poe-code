@@ -1,0 +1,54 @@
+{
+  "recordedAt": "2026-08-27T16:06:03.283Z",
+  "candidate": "f8819e9d6b6d535b0626e0aa004bb10a7bc36785",
+  "candidateCommittedAt": "2026-08-27T10:52:09-05:00",
+  "priorRunnerCommit": "7b983a73e9e484befe703246c1d170baf86c2a3f",
+  "priorRunnerSha256": "24d97bc984b5fa08928570fe18b1bf8c528d5b48aead3b5abb093fe2ee964f36",
+  "candidateSourceInspected": false,
+  "timing": "Adapter frozen before this verifier first inspects candidate source; original/provisional fixture commits are AFTER candidate commit, not precommit holdouts.",
+  "cohorts": [
+    {
+      "name": "original32",
+      "fixtureCommit": "0ec75ef320ecaea9fc66e1ba952f3961c917685c",
+      "count": 32,
+      "committedAt": "2026-08-27T10:53:31-05:00",
+      "files": [
+        {
+          "path": "cases.mjs",
+          "sha256": "1d9a68c0fe35486fe8dfab9a6674a9e6a09029688b5087097c322bb00e1802bc"
+        },
+        {
+          "path": "probe.mjs",
+          "sha256": "34d98008d646a95fc47069c381e51ef1a0410f89786e26807815d12298e9ec25"
+        },
+        {
+          "path": "loader.mjs",
+          "sha256": "8008029a4d0771c217f96c617dd7f781acbbc52e3f0f74bed1e60b8e9873ca9e"
+        }
+      ]
+    },
+    {
+      "name": "provisional35",
+      "fixtureCommit": "92f7626200d1509cf0efe17e4ee6c3d558f3a277",
+      "count": 35,
+      "committedAt": "2026-08-27T10:58:10-05:00",
+      "files": [
+        {
+          "path": "cases.mjs",
+          "sha256": "5bcaeaea781111d067df0041f7948a48d578c955c2c5d32f2859f4ce9ccc2bea"
+        },
+        {
+          "path": "probe.mjs",
+          "sha256": "1bc6421bf27e5dc6a32a162e7f02ab6d4c324c0a666bd31fca6ace95ef9123a9"
+        },
+        {
+          "path": "loader.mjs",
+          "sha256": "8008029a4d0771c217f96c617dd7f781acbbc52e3f0f74bed1e60b8e9873ca9e"
+        }
+      ]
+    }
+  ],
+  "adapterSha256": "d739d6db7834ddbe60b26c56b09cb251f7a4191c692ec7d878f8b3e6ee0f35cc",
+  "expectations": "Replay exact unchanged fixture bytes; retain every failure and both negative controls per cohort; no automatic rebaseline.",
+  "scope": "One committed candidate archive/build/npm-pack/moved bare public module; full pre/post inventory including new entries; no baseline rebuild or live dist."
+}

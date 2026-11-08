@@ -1,0 +1,22 @@
+{"url":"https://savannah.gnu.org/people/viewgpg.php?user_id=2590","bytes":2200,"status":200,"headers":{"date":"Sat, 29 Aug 2026 05:05:50 GMT","content-type":"application/pgp-keys","content-length":null,"location":null},"sha256":"db4041b4d3896b9f21250e6c29861958bd5d4781f521f06beda849a9ed79fae8","capture":"maintainer-public-key.data","role":"PUBLISHER_LINKED_MAINTAINER_RESPONSE_NOT_YET_VALIDATED_KEY"}
+{
+  "publisher": {
+    "url": "https://savannah.gnu.org/users/chet",
+    "bytes": 9654,
+    "status": 200,
+    "headers": {
+      "date": "Sat, 29 Aug 2026 05:03:24 GMT",
+      "content-type": "text/html; charset=utf-8",
+      "content-length": null,
+      "location": null
+    },
+    "sha256": "56b89c2bfb00f86ca518661d5addd5e3d0d1f7bfe14060be3e610d9035eab177",
+    "capture": "chet.html.data"
+  },
+  "cacheFiles": 15,
+  "total": 5792334959,
+  "elapsedMs": 15158.420958,
+  "status": "METADATA_COMPLETE",
+  "children": 0
+}
+

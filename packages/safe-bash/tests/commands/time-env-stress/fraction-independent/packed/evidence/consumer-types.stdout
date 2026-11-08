@@ -1,0 +1,8 @@
+controls.mts(125,24): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(block: Promise<unknown> | (() => Promise<unknown>), message?: string | Error | undefined): Promise<void>', gave the following error.
+    Argument of type 'CommandResult | Promise<CommandResult>' is not assignable to parameter of type 'Promise<unknown> | (() => Promise<unknown>)'.
+      Type 'CommandResult' is not assignable to type 'Promise<unknown> | (() => Promise<unknown>)'.
+  Overload 2 of 2, '(block: Promise<unknown> | (() => Promise<unknown>), error: AssertPredicate, message?: string | Error | undefined): Promise<void>', gave the following error.
+    Argument of type 'CommandResult | Promise<CommandResult>' is not assignable to parameter of type 'Promise<unknown> | (() => Promise<unknown>)'.
+      Type 'CommandResult' is not assignable to type 'Promise<unknown> | (() => Promise<unknown>)'.
+controls.mts(125,53): error TS7006: Parameter 'error' implicitly has an 'any' type.

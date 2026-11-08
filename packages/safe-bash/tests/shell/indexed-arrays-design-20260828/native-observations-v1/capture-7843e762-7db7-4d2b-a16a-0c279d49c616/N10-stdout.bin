@@ -1,0 +1,1 @@
+declare -a a=([0]="new0" [2]="old2" [3]="old0")

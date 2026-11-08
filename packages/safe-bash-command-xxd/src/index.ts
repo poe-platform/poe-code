@@ -1,0 +1,739 @@
+import { openCommandFile } from "safe-bash-contracts/filesystem-descriptor";
+import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
+import { isAbsolutePath, validatePath } from "@poe-code/safe-fs/core";
+import {
+  CommandArgumentIdentityError,
+  FsError,
+  readBytes,
+  shellValueByteLength,
+  writeBytes,
+  type ByteSink,
+  type ByteSource,
+  type CommandContext,
+  type CommandDefinition,
+  type CommandHandler,
+  type CommandResult,
+  type InternalErrorHandler,
+  type VirtualShellPlugin,
+} from "safe-bash-contracts";
+import { PublicDiagnostic } from "safe-bash-contracts/public-diagnostic";
+import { yieldTurn } from "safe-bash-contracts/yield";
+
+const encoder = new TextEncoder();
+const blockSize = 8192;
+const controls: Readonly<Record<number, string>> = { 8: "\\b", 9: "\\t", 10: "\\n", 11: "\\v", 12: "\\f", 13: "\\r", 92: "\\\\" };
+
+class UsageError extends PublicDiagnostic {}
+class SeekError extends PublicDiagnostic {}
+
+function publicDiagnosticMessage(error: unknown, onInternalError?: InternalErrorHandler): string {
+  if (error instanceof FsError || error instanceof CommandArgumentIdentityError) return error.message;
+  if (error instanceof PublicDiagnostic && !Object.hasOwn(error, "cause")) return error.message;
+  const original: unknown = error instanceof PublicDiagnostic ? error.cause : error;
+  const detail = error instanceof PublicDiagnostic ? error.message : "internal error";
+  try {
+    const pending = onInternalError?.(original);
+    if (pending !== undefined) void Promise.resolve(pending).catch(() => undefined);
+  } catch {
+    return detail;
+  }
+  return detail;
+}
+
+function pathOf(context: Pick<CommandContext, "cwd">, path: string): string {
+  if (!path) throw new FsError("ENOENT", { path });
+  validatePath(path);
+  validatePath(context.cwd);
+  if (!isAbsolutePath(context.cwd)) throw new FsError("EINVAL", { path: context.cwd, message: "cwd must be absolute" });
+  return isAbsolutePath(path) ? path : `${context.cwd.replace(/\/$/u, "")}/${path}`;
+}
+
+async function writeDiagnostic(sink: ByteSink, value: string, signal?: AbortSignal): Promise<void> {
+  signal?.throwIfAborted();
+  let chunk = "", bytes = 0, work = 0;
+  for (const character of value) {
+    signal?.throwIfAborted();
+    const point = character.codePointAt(0)!;
+    const parts = (point === 9 || point === 10 || (point >= 32 && (point < 127 || point > 159)))
+      ? [character]
+      : Array.from(encoder.encode(character), byte => controls[byte] ?? (byte >= 32 && byte < 127 ? String.fromCharCode(byte) : `\\${byte.toString(8).padStart(3, "0")}`));
+    for (const part of parts) {
+      const size = shellValueByteLength(part);
+      if (bytes + size > 16_384) {
+        await writeBytes(sink, encoder.encode(chunk), signal);
+        chunk = ""; bytes = 0;
+      }
+      chunk += part; bytes += size;
+      if (++work % 1024 === 0) await yieldTurn(signal);
+    }
+  }
+  if (bytes) await writeBytes(sink, encoder.encode(chunk), signal);
+  signal?.throwIfAborted();
+}
+
+export interface XxdLimits {
+  readonly maxInputBytes: number;
+}
+
+export interface XxdCommandOptions {
+  readonly limits?: Partial<XxdLimits>;
+  readonly maxInputBytes?: number;
+}
+
+export interface XxdCommandsOptions extends XxdCommandOptions {
+  readonly replace?: boolean;
+}
+
+interface ParsedOptions {
+  readonly flags: Set<string>;
+  readonly values: Map<string, string[]>;
+  readonly operands: string[];
+}
+
+function resolveMaxInputBytes(optionsOrLimit: number | XxdCommandOptions | undefined): number {
+  if (typeof optionsOrLimit === "number") return optionsOrLimit;
+  const maxInputBytes = optionsOrLimit?.limits?.maxInputBytes ?? optionsOrLimit?.maxInputBytes;
+  if (maxInputBytes === undefined) return Infinity;
+  if (maxInputBytes !== Infinity && (!Number.isSafeInteger(maxInputBytes) || maxInputBytes < 0)) {
+    throw new RangeError("maxInputBytes must be a nonnegative safe integer or Infinity");
+  }
+  return maxInputBytes;
+}
+
+function parseOptions(
+  args: readonly string[],
+  short: string,
+  long: Readonly<Record<string, string | false>> = {},
+): ParsedOptions {
+  const flags = new Set<string>();
+  const values = new Map<string, string[]>();
+  const operands: string[] = [];
+  const specifications = new Map<string, boolean>();
+  for (let index = 0; index < short.length; index++) {
+    const key = short[index]!;
+    specifications.set(key, short[index + 1] === ":");
+    if (short[index + 1] === ":") index++;
+  }
+  let ended = false;
+  for (let index = 0; index < args.length; index++) {
+    const argument = args[index]!;
+    if (ended || argument === "-" || !argument.startsWith("-")) {
+      operands.push(argument);
+      continue;
+    }
+    if (argument === "--") {
+      ended = true;
+      continue;
+    }
+    if (argument.startsWith("--")) {
+      const equals = argument.indexOf("=");
+      const name = argument.slice(2, equals < 0 ? undefined : equals);
+      const alias = long[name];
+      const longValue = typeof alias === "string" && alias.endsWith(":");
+      const key = alias === false ? name : longValue ? alias.slice(0, -1) : alias;
+      if (!key || (alias !== false && !longValue && !specifications.has(key))) throw new UsageError(`unrecognized option '${argument}'`);
+      if (longValue || specifications.get(key)) {
+        const value = equals >= 0 ? argument.slice(equals + 1) : args[++index];
+        if (value === undefined) throw new UsageError(`option '--${name}' requires an argument`);
+        const list = values.get(key);
+        if (list) list.push(value);
+        else values.set(key, [value]);
+      } else if (equals >= 0) throw new UsageError(`option '--${name}' does not take an argument`);
+      flags.add(key);
+      continue;
+    }
+    for (let offset = 1; offset < argument.length; offset++) {
+      const key = argument[offset]!;
+      if (!specifications.has(key)) throw new UsageError(`invalid option -- '${key}'`);
+      if (specifications.get(key)) {
+        const value = argument.slice(offset + 1) || args[++index];
+        if (value === undefined) throw new UsageError(`option requires an argument -- '${key}'`);
+        const list = values.get(key);
+        if (list) list.push(value);
+        else values.set(key, [value]);
+        offset = argument.length;
+      }
+      if (key === "a" && flags.has(key)) flags.delete(key);
+      else flags.add(key);
+    }
+  }
+  return { flags, values, operands };
+}
+
+function requireOperands(operands: readonly string[], minimum = 1, maximum = Infinity): void {
+  if (operands.length < minimum) throw new UsageError("missing operand");
+  if (operands.length > maximum) throw new UsageError(`extra operand '${operands[maximum]}'`);
+}
+
+function validatedOption<Value>(parsed: ParsedOptions, key: string, parse: (text: string) => Value, fallback: Value): Value {
+  let result = fallback;
+  for (const text of parsed.values.get(key) ?? []) result = parse(text);
+  return result;
+}
+
+function output(context: CommandContext, text: string | Uint8Array): Promise<void> {
+  context.signal.throwIfAborted();
+  const bytes = typeof text === "string" ? encoder.encode(text) : text;
+  const stdout = context.stdout as { isPipeStage?: boolean; writeSync?: (chunk: Uint8Array) => boolean };
+  if (!stdout.isPipeStage && typeof stdout.writeSync === "function" && stdout.writeSync(bytes) !== false) {
+    return Promise.resolve();
+  }
+  return writeBytes(context.stdout, bytes, context.signal);
+}
+
+class ByteInputBudget {
+  #bytes = 0;
+  #failure: FsError | undefined;
+
+  constructor(readonly maxInputBytes: number, readonly inputBudget: CommandContext["inputBudget"]) {}
+
+  assertOpen(signal: AbortSignal): void {
+    signal.throwIfAborted();
+    if (this.#failure) throw this.#failure;
+  }
+
+  async *read(source: ByteSource, signal: AbortSignal): ByteSource {
+    this.assertOpen(signal);
+    for await (const chunk of readBytes(source, signal)) {
+      this.assertOpen(signal);
+      if (chunk.byteLength > this.maxInputBytes - this.#bytes) {
+        this.#failure = new FsError("EFBIG", { message: "byte command input limit exceeded" });
+        throw this.#failure;
+      }
+      this.#bytes += chunk.byteLength;
+      this.inputBudget?.check(this.#bytes);
+      yield chunk;
+      this.assertOpen(signal);
+    }
+  }
+}
+
+async function* sources(context: CommandContext, operands: readonly string[], maxInputBytes: number): ByteSource {
+  const budget = new ByteInputBudget(maxInputBytes, context.inputBudget);
+  let usedStdin = false;
+  let emptyChunks = 0;
+  for (const operand of operands.length ? operands : ["-"]) {
+    budget.assertOpen(context.signal);
+    let source: ByteSource;
+    if (operand === "-") {
+      if (usedStdin) continue;
+      usedStdin = true;
+      source = context.stdin;
+    } else {
+      const path = pathOf(context, operand);
+      if (context.fs.readStream && context.fs.capabilities?.streamingRead !== false) {
+        source = context.fs.readStream(path, { signal: context.signal, chunkSize: blockSize });
+      } else {
+        const bytes = await context.fs.readFile(path, { signal: context.signal });
+        source = (async function* () { yield bytes; })();
+      }
+    }
+    let slicesSinceYield = 0;
+    for await (const chunk of budget.read(source, context.signal)) {
+      if (chunk.length === 0 && ++emptyChunks % 64 === 0) {
+        await yieldTurn();
+        context.signal.throwIfAborted();
+      }
+      for (let offset = 0; offset < chunk.length; offset += blockSize) {
+        if (++slicesSinceYield >= 32) {
+          slicesSinceYield = 0;
+          await yieldTurn();
+        }
+        context.signal.throwIfAborted();
+        yield chunk.subarray(offset, offset + blockSize);
+      }
+    }
+  }
+}
+
+async function* range(source: ByteSource, skip: number, count: number, seekable: boolean): ByteSource {
+  if (!skip && !count) return;
+  for await (const chunk of source) {
+    const skipped = Math.min(skip, chunk.length);
+    skip -= skipped;
+    const length = Math.min(count, chunk.length - skipped);
+    if (length) {
+      yield chunk.subarray(skipped, skipped + length);
+      count -= length;
+    }
+    if (!skip && !count) return;
+  }
+  if (skip && !seekable) throw new SeekError("Sorry, cannot seek.");
+}
+
+async function* rows(source: ByteSource, width: number): ByteSource {
+  const row = new Uint8Array(width);
+  let used = 0;
+  for await (const chunk of source) {
+    let offset = 0;
+    if (used > 0) {
+      const length = Math.min(width - used, chunk.length);
+      row.set(chunk.subarray(0, length), used);
+      offset += length;
+      used += length;
+      if (used === width) {
+        yield row.slice();
+        used = 0;
+      }
+    }
+    const available = chunk.length - offset;
+    if (available >= width) {
+      const fullBytes = available - (available % width);
+      yield chunk.subarray(offset, offset + fullBytes);
+      offset += fullBytes;
+    }
+    if (offset < chunk.length) {
+      const rem = chunk.length - offset;
+      row.set(chunk.subarray(offset), 0);
+      used = rem;
+    }
+  }
+  if (used) yield row.slice(0, used);
+}
+
+function numeric(text: string): number {
+  let parsed: number;
+  if (/^0[xX][0-9a-fA-F]+$/u.test(text)) parsed = Number.parseInt(text.slice(2), 16);
+  else if (/^0[0-7]*$/u.test(text)) parsed = Number.parseInt(text, 8);
+  else if (/^[1-9][0-9]*$/u.test(text)) parsed = Number(text);
+  else throw new UsageError(`invalid number '${text}'`);
+  if (!Number.isSafeInteger(parsed)) throw new UsageError(`number out of range '${text}'`);
+  return parsed;
+}
+
+function addOffset(offset: number, length: number): number {
+  const result = offset + length;
+  if (!Number.isSafeInteger(result)) throw new PublicDiagnostic("input address exceeds safe integer range");
+  return result;
+}
+
+const HEX_LOWER = Array.from({ length: 256 }, (_, i) => i.toString(16).padStart(2, "0"));
+const HEX_UPPER = HEX_LOWER.map(s => s.toUpperCase());
+const BIN_TABLE = Array.from({ length: 256 }, (_, i) => i.toString(2).padStart(8, "0"));
+const ASCII_CHAR = Array.from({ length: 256 }, (_, i) => (i >= 32 && i <= 126 ? String.fromCharCode(i) : "."));
+
+function hexDigit(byte: number): number {
+  if (byte >= 48 && byte <= 57) return byte - 48;
+  if (byte >= 65 && byte <= 70) return byte - 55;
+  if (byte >= 97 && byte <= 102) return byte - 87;
+  return -1;
+}
+
+async function padToAddress(context: CommandContext, start: number, address: number, seekOutput?: (address: number) => void): Promise<void> {
+  if (seekOutput) {
+    if (!Number.isSafeInteger(address) || address < 0) throw new SeekError("Sorry, cannot seek.");
+    seekOutput(address);
+    return;
+  }
+  if (!Number.isSafeInteger(address) || address < start) throw new PublicDiagnostic("invalid input: cannot seek backwards on output stream");
+  while (start < address) {
+    const length = Math.min(blockSize, address - start);
+    await output(context, new Uint8Array(length));
+    start += length;
+    await yieldTurn(context.signal);
+  }
+}
+
+async function reversePlain(context: CommandContext, files: readonly string[], maxInputBytes: number, seek: number, seekOutput?: (address: number) => void): Promise<void> {
+  await padToAddress(context, 0, seek, seekOutput);
+  let high = -1;
+  for await (const chunk of sources(context, files, maxInputBytes)) {
+    const pending: number[] = [];
+    for (const byte of chunk) {
+      if (byte === 32 || (byte >= 9 && byte <= 13)) continue;
+      const digit = hexDigit(byte);
+      if (digit < 0) {
+        high = -1;
+        continue;
+      }
+      if (high < 0) high = digit;
+      else {
+        pending.push((high << 4) | digit);
+        high = -1;
+      }
+    }
+    if (pending.length) await output(context, Uint8Array.from(pending));
+  }
+}
+
+async function reverseNormal(context: CommandContext, files: readonly string[], columns: number, maxInputBytes: number, seek: number, seekOutput?: (address: number) => void): Promise<void> {
+  let line = "";
+  let offset = 0;
+  const outBuf = new Uint8Array(Math.max(8192, columns));
+  let outUsed = 0;
+  let flushedFirst = false;
+  const flushOut = async () => {
+    if (outUsed > 0) {
+      flushedFirst = true;
+      const chunk = outBuf.slice(0, outUsed);
+      outUsed = 0;
+      await output(context, chunk);
+    }
+  };
+  const rowScratch = new Uint8Array(Math.max(columns, 256));
+  const parseLineBytesInto = async (buf: Uint8Array, startPos: number, endPos: number): Promise<number> => {
+    let nonSpace = false;
+    for (let i = startPos; i < endPos; i++) {
+      const c = buf[i]!;
+      if (c !== 32 && !(c >= 9 && c <= 13)) { nonSpace = true; break; }
+    }
+    if (!nonSpace || (endPos - startPos === 1 && buf[startPos] === 42)) return 0;
+    const colonAbs = buf.indexOf(58, startPos);
+    const colon = colonAbs >= 0 && colonAbs < endPos ? colonAbs - startPos : -1;
+    if (colon < 1 || colon > 14) throw new PublicDiagnostic("invalid input: expected hexadecimal address and colon");
+    let address = 0;
+    for (let index = 0; index < colon; index++) {
+      const digit = hexDigit(buf[startPos + index]!);
+      if (digit < 0) throw new PublicDiagnostic("invalid input: expected hexadecimal address and colon");
+      address = address * 16 + digit;
+    }
+    address = addOffset(address, seek);
+    await flushOut();
+    await padToAddress(context, offset, address, seekOutput);
+    offset = address;
+    let count = 0;
+    let high = -1;
+    let spaces = 0;
+    for (let index = startPos + colon + 1; index < endPos; index++) {
+      const byte = buf[index]!;
+      if (byte === 32 || byte === 9 || byte === 13) {
+        spaces++;
+        if (count > 0 && spaces >= 2) break;
+        continue;
+      }
+      const digit = hexDigit(byte);
+      if (digit < 0) break;
+      spaces = 0;
+      if (high < 0) high = digit;
+      else {
+        rowScratch[count++] = (high << 4) | digit;
+        high = -1;
+        if (count === columns) break;
+      }
+    }
+    if (count === 0) throw new PublicDiagnostic("invalid input: malformed hexadecimal data field");
+    offset = addOffset(offset, count);
+    return count;
+  };
+  try {
+    for await (const chunk of sources(context, files, maxInputBytes)) {
+      let start = 0;
+      while (start < chunk.length) {
+        const nl = chunk.indexOf(10, start);
+        if (nl < 0) {
+          for (let i = start; i < chunk.length; i++) line += String.fromCharCode(chunk[i]!);
+          break;
+        }
+        let count = 0;
+        if (line.length === 0) {
+          count = await parseLineBytesInto(chunk, start, nl);
+        } else {
+          for (let i = start; i < nl; i++) line += String.fromCharCode(chunk[i]!);
+          const lineBytes = new Uint8Array(line.length);
+          for (let i = 0; i < line.length; i++) lineBytes[i] = line.charCodeAt(i);
+          line = "";
+          count = await parseLineBytesInto(lineBytes, 0, lineBytes.length);
+        }
+        start = nl + 1;
+        if (count > 0) {
+          if (outUsed + count > outBuf.length) await flushOut();
+          outBuf.set(rowScratch.subarray(0, count), outUsed);
+          outUsed += count;
+          if (!flushedFirst || outUsed >= outBuf.length) await flushOut();
+        }
+      }
+      if (outUsed > 0) await flushOut();
+    }
+    if (line) {
+      const lineBytes = new Uint8Array(line.length);
+      for (let i = 0; i < line.length; i++) lineBytes[i] = line.charCodeAt(i);
+      const count = await parseLineBytesInto(lineBytes, 0, lineBytes.length);
+      if (count > 0) {
+        if (outUsed + count > outBuf.length) await flushOut();
+        outBuf.set(rowScratch.subarray(0, count), outUsed);
+        outUsed += count;
+      }
+    }
+  } finally {
+    await flushOut();
+  }
+}
+
+function defineCommand(name: string, handler: CommandHandler): CommandDefinition {
+  return {
+    name,
+    async execute(context): Promise<CommandResult> {
+      try {
+        context.signal.throwIfAborted();
+        return await handler(context);
+      } catch (error) {
+        context.signal.throwIfAborted();
+        if (error instanceof Error && (error.name === "BudgetExceededError" || error.name === "AbortError")) throw error;
+        await writeDiagnostic(
+          context.stderr,
+          `${context.command}: ${publicDiagnosticMessage(error, context.onInternalError)}\n`,
+          context.signal,
+        );
+        return { exitCode: error instanceof UsageError || error instanceof FsError && error.code === "ENOENT" ? 2 : error instanceof SeekError ? 4 : 1 };
+      }
+    },
+  };
+}
+
+export function createXxdCommand(optionsOrMaxBytes?: number | XxdCommandOptions): CommandDefinition {
+  const maxInputBytes = resolveMaxInputBytes(optionsOrMaxBytes);
+  return defineCommand("xxd", async context => {
+    const aliases: Record<string, string> = {
+      "-ps": "-p",
+      "-plain": "-p",
+      "-postscript": "-p",
+      "-revert": "-r",
+      "-cols": "-c",
+      "-groupsize": "-g",
+      "-len": "-l",
+      "-bits": "-b",
+      "-include": "-i",
+      "-name": "-n",
+      "-autoskip": "-a",
+      "-capitalize": "-C",
+    };
+    let ended = false;
+    const args = context.args.map(argument => {
+      if (ended) return argument;
+      if (argument === "--") ended = true;
+      return aliases[argument] ?? argument;
+    });
+    const parsed = parseOptions(args, "aCprdubiec:g:l:s:o:n:");
+    requireOperands(parsed.operands, 0, 2);
+    if (!parsed.flags.has("r") && parsed.operands[1] !== undefined && parsed.operands[1] !== "-") {
+      const original = context;
+      const path = pathOf(context, parsed.operands[1]);
+      let started = false;
+      context = { ...original, stdout: { async write(bytes) {
+        await writeFileOutput(original, bytes, data => started
+          ? original.fs.appendFile(path, data, { signal: original.signal })
+          : original.fs.writeFile(path, data, { signal: original.signal }));
+        started = true;
+      } } };
+      await writeBytes(context.stdout, new Uint8Array(), context.signal);
+    }
+    const files = parsed.operands.slice(0, 1);
+    const plain = parsed.flags.has("p");
+    const reverse = parsed.flags.has("r");
+    const binary = parsed.flags.has("b");
+    const include = parsed.flags.has("i");
+    const littleEndian = parsed.flags.has("e");
+    if ((plain && (binary || include || littleEndian)) || (littleEndian && (binary || include)) || (binary && include)) {
+      throw new UsageError("incompatible display modes");
+    }
+    if (reverse && (binary || include || littleEndian)) throw new UsageError("cannot revert this type of hexdump");
+    const columns = validatedOption(
+      parsed,
+      "c",
+      text => {
+        const number = numeric(text);
+        if (!plain && number === 0) return include ? 12 : binary ? 6 : 16;
+        return number;
+      },
+      plain ? 30 : include ? 12 : binary ? 6 : 16,
+    );
+    const group = validatedOption(
+      parsed,
+      "g",
+      text => {
+        const number = numeric(text);
+        return number;
+      },
+      littleEndian ? 4 : binary ? 1 : 2,
+    );
+    if (littleEndian && group && !Number.isInteger(Math.log2(group))) {
+      throw new UsageError("number of octets per group must be a power of 2 with -e");
+    }
+    let skip = validatedOption(parsed, "s", text => {
+      const relative = text.startsWith("+") ? text.slice(1) : text;
+      return relative.startsWith("-") ? -numeric(relative.slice(1)) : numeric(relative);
+    }, 0);
+    const count = validatedOption(parsed, "l", numeric, Infinity);
+    const displacement = validatedOption(parsed, "o", numeric, 0);
+    if (reverse && ["l", "o", "d"].some(flag => parsed.flags.has(flag))) {
+      throw new UsageError("reverse does not support seek, length, displacement, or decimal addresses");
+    }
+    if (reverse) {
+      const outfile = parsed.operands[1];
+      const descriptor = outfile !== undefined && outfile !== "-"
+        ? await openCommandFile(context, pathOf(context, outfile), { access: "write", creation: "ifMissing" })
+        : undefined;
+      try {
+        let position = 0;
+        let seekOutput: ((address: number) => void) | undefined;
+        if (descriptor) {
+          if (descriptor.capabilities.positionedWrite) seekOutput = address => { position = address; };
+          context = { ...context, stdout: { async write(bytes) {
+            for (let offset = 0; offset < bytes.length;) {
+              const count = await descriptor.write(bytes.subarray(offset), seekOutput ? position : null);
+              if (!Number.isSafeInteger(count) || count <= 0 || count > bytes.length - offset) {
+                throw new FsError("EIO", { syscall: "write", message: "invalid descriptor write count" });
+              }
+              position = addOffset(position, count);
+              offset += count;
+            }
+          } } };
+        }
+        if (plain) await reversePlain(context, files, maxInputBytes, skip, seekOutput);
+        else await reverseNormal(context, files, columns, maxInputBytes, skip, seekOutput);
+        return { exitCode: 0 };
+      } finally {
+        await descriptor?.close();
+      }
+    }
+    const input = sources(context, files, maxInputBytes);
+    if (skip < 0) {
+      if (!files[0] || files[0] === "-") throw new UsageError("negative seek requires an input file");
+      const size = (await context.fs.stat(pathOf(context, files[0]), { signal: context.signal })).size;
+      skip = size + skip;
+      if (skip < 0) throw new SeekError("Sorry, cannot seek.");
+    }
+    let offset = addOffset(skip, displacement);
+    const source = range(input, skip, count, files.length > 0 && files[0] !== "-");
+    let any = false;
+    let includeLength = 0;
+    let includeRow = "";
+    const includeName = parsed.values.get("n")?.at(-1) ?? (files[0] !== "-" ? files[0] : undefined);
+    let identifier = "";
+    if (includeName !== undefined) {
+      for (const character of includeName) {
+        const code = character.charCodeAt(0);
+        identifier += (code >= 48 && code <= 57) || (code >= 65 && code <= 90) || (code >= 97 && code <= 122) ? character : "_";
+      }
+      if (identifier[0] && identifier[0] >= "0" && identifier[0] <= "9") identifier = "__" + identifier;
+    }
+    if (parsed.flags.has("C")) identifier = identifier.toUpperCase();
+    const upper = parsed.flags.has("u");
+    const hexTable = upper ? HEX_UPPER : HEX_LOWER;
+    const byteTable = binary ? BIN_TABLE : hexTable;
+    const decimalAddress = parsed.flags.has("d");
+    const octets = Math.min(group || columns, columns);
+    const width = littleEndian
+      ? Math.ceil(columns / octets) * (octets * 2 + 1) - 1
+      : columns * (binary ? 8 : 2) + (group ? Math.floor((columns - 1) / group) : 0);
+    let outBuf = "";
+    let flushedFirst = false;
+    const flushOut = async () => {
+      if (outBuf) {
+        flushedFirst = true;
+        const chunk = outBuf;
+        outBuf = "";
+        await output(context, chunk);
+      }
+    };
+    const writeOut = async (text: string) => {
+      outBuf += text;
+      if (!flushedFirst || outBuf.length >= 16384) await flushOut();
+    };
+    if (include && includeName !== undefined) outBuf = `unsigned char ${identifier}[] = {\n`;
+    const rowWidth = plain && !columns ? 4096 : columns;
+    let zeroRun = 0;
+    let zeroSecond = "", zeroLast = "";
+    const finishZeros = (atEnd: boolean) => {
+      if (zeroRun >= (atEnd ? 4 : 3)) outBuf += "*\n" + (atEnd ? zeroLast : "");
+      else if (zeroRun === 3) outBuf += zeroSecond + zeroLast;
+      else if (zeroRun === 2) outBuf += zeroLast;
+      zeroRun = 0;
+    };
+    try {
+      for await (const batch of rows(source, rowWidth)) {
+        any = true;
+        for (let rowStart = 0; rowStart < batch.length; rowStart += rowWidth) {
+          const row = batch.subarray(rowStart, Math.min(batch.length, rowStart + rowWidth));
+          if (include) {
+            if (includeRow) outBuf += includeRow + ",\n";
+            const includePrefix = upper ? "0X" : "0x";
+            includeRow = "  " + Array.from(row, byte => includePrefix + hexTable[byte]!).join(", ");
+            includeLength = addOffset(includeLength, row.length);
+            if (!flushedFirst && outBuf || outBuf.length >= 16384) await flushOut();
+            continue;
+          }
+          if (!parsed.flags.has("a") && !plain && !littleEndian && !binary && columns === 16 && group === 2 && row.length === 16) {
+            const b0 = row[0]!, b1 = row[1]!, b2 = row[2]!, b3 = row[3]!;
+            const b4 = row[4]!, b5 = row[5]!, b6 = row[6]!, b7 = row[7]!;
+            const b8 = row[8]!, b9 = row[9]!, b10 = row[10]!, b11 = row[11]!;
+            const b12 = row[12]!, b13 = row[13]!, b14 = row[14]!, b15 = row[15]!;
+            const address = offset.toString(decimalAddress ? 10 : 16).padStart(8, "0");
+            outBuf += `${address}: ${hexTable[b0]}${hexTable[b1]} ${hexTable[b2]}${hexTable[b3]} ${hexTable[b4]}${hexTable[b5]} ${hexTable[b6]}${hexTable[b7]} ${hexTable[b8]}${hexTable[b9]} ${hexTable[b10]}${hexTable[b11]} ${hexTable[b12]}${hexTable[b13]} ${hexTable[b14]}${hexTable[b15]}  ${ASCII_CHAR[b0]}${ASCII_CHAR[b1]}${ASCII_CHAR[b2]}${ASCII_CHAR[b3]}${ASCII_CHAR[b4]}${ASCII_CHAR[b5]}${ASCII_CHAR[b6]}${ASCII_CHAR[b7]}${ASCII_CHAR[b8]}${ASCII_CHAR[b9]}${ASCII_CHAR[b10]}${ASCII_CHAR[b11]}${ASCII_CHAR[b12]}${ASCII_CHAR[b13]}${ASCII_CHAR[b14]}${ASCII_CHAR[b15]}\n`;
+            offset = addOffset(offset, 16);
+            if (!flushedFirst || outBuf.length >= 16384) await flushOut();
+            continue;
+          }
+          let data = "";
+          let ascii = "";
+          for (let index = 0; index < row.length; index++) {
+            if (!plain && !littleEndian && group && index && index % group === 0) data += " ";
+            const byte = row[index]!;
+            if (!littleEndian) data += byteTable[byte]!;
+            if (!plain) ascii += ASCII_CHAR[byte]!;
+          }
+          if (littleEndian) {
+            for (let start = 0; start < row.length; start += octets) {
+              if (start) data += " ";
+              for (let index = start + octets - 1; index >= start; index--) {
+                data += index < row.length ? hexTable[row[index]!]! : "  ";
+              }
+            }
+          }
+          if (plain) outBuf += data + (columns ? "\n" : "");
+          else {
+            const address = offset.toString(decimalAddress ? 10 : 16).padStart(8, "0");
+            const formatted = `${address}: ${data.padEnd(width)}  ${ascii}\n`;
+            if (parsed.flags.has("a") && row.length === columns && row.every(byte => byte === 0)) {
+              if (zeroRun === 0) outBuf += formatted;
+              if (zeroRun === 1) zeroSecond = formatted;
+              zeroRun++;
+              zeroLast = formatted;
+            } else {
+              finishZeros(false);
+              outBuf += formatted;
+            }
+          }
+          offset = addOffset(offset, row.length);
+          if (!flushedFirst || outBuf.length >= 16384) await flushOut();
+        }
+        // Publish completed rows before waiting for another input batch.
+        await flushOut();
+      }
+    } catch (error) {
+      if (!any) throw error;
+      finishZeros(true);
+      if (includeRow) outBuf += includeRow + "\n";
+      await flushOut();
+      throw error;
+    }
+    finishZeros(true);
+    if (include) {
+      if (includeRow) await writeOut(includeRow + "\n");
+      if (includeName !== undefined) await writeOut(`};\nunsigned int ${identifier}${parsed.flags.has("C") ? "_LEN" : "_len"} = ${includeLength};\n`);
+    }
+    if (plain && !columns && any) await writeOut("\n");
+    if (outBuf) await output(context, outBuf);
+    return { exitCode: 0 };
+  });
+}
+
+export function createXxdCommands(options: XxdCommandsOptions = {}): readonly CommandDefinition[] {
+  return [createXxdCommand(options)];
+}
+
+export function xxdCommands(options: XxdCommandsOptions = {}): VirtualShellPlugin {
+  const commands = createXxdCommands(options);
+  const replace = options.replace ?? false;
+  return {
+    name: "xxd-commands",
+    setup(host) {
+      if (!replace) {
+        for (const command of commands) {
+          if (host.commands.has(command.name)) throw new Error(`Command already registered: ${command.name}`);
+        }
+      }
+      for (const command of commands) host.commands.register(command, { replace });
+    },
+  };
+}

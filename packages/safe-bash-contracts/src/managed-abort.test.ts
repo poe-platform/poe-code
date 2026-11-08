@@ -1,0 +1,290 @@
+import { getEventListeners } from "node:events";
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { createBytePipe } from "./io.js";
+import { subscribeAbort, addManagedAbortWaiter, notifyManagedAbortWaiters, removeManagedAbortWaiter } from "./managed-abort.js";
+import { createOutputOperation } from "./output.js";
+
+const waitersSymbol = Symbol.for("safe-bash.managedWaiters");
+const discard = { async write() {} };
+
+test("managed waiters deduplicate objects and share a set with callbacks", () => {
+  const { signal } = new AbortController();
+  const object = { onAbort() {} };
+  const callback = () => {};
+  addManagedAbortWaiter(signal, object);
+  addManagedAbortWaiter(signal, object);
+  assert.equal(Reflect.get(signal, waitersSymbol), object);
+  addManagedAbortWaiter(signal, callback);
+  addManagedAbortWaiter(signal, object);
+  addManagedAbortWaiter(signal, callback);
+  assert.deepEqual(Reflect.get(signal, waitersSymbol), new Set([object, callback]));
+  removeManagedAbortWaiter(signal, object);
+  assert.deepEqual(Reflect.get(signal, waitersSymbol), new Set([callback]));
+  addManagedAbortWaiter(signal, object);
+  removeManagedAbortWaiter(signal, callback);
+  assert.deepEqual(Reflect.get(signal, waitersSymbol), new Set([object]));
+});
+
+test("removing a managed singleton object preserves unrelated waiters", () => {
+  const { signal } = new AbortController();
+  const object = { onAbort() {} };
+  const unrelated = () => {};
+  removeManagedAbortWaiter(signal, unrelated);
+  Reflect.set(signal, waitersSymbol, object);
+  removeManagedAbortWaiter(signal, unrelated);
+  assert.equal(Reflect.get(signal, waitersSymbol), object);
+  removeManagedAbortWaiter(signal, object);
+  assert.equal(Reflect.get(signal, waitersSymbol), undefined);
+  removeManagedAbortWaiter(signal, object);
+});
+
+for (const multiple of [false, true]) {
+  for (const reason of [false, null, 0, "", new Error("cancelled")]) {
+    test(`managed ${multiple ? "mixed set" : "singleton object"} notification preserves receiver and reason ${String(reason)}`, () => {
+      const controller = new AbortController();
+      const object = {
+        received: [] as unknown[],
+        onAbort(value: unknown) { this.received.push(value); },
+      };
+      const received: unknown[] = [];
+      const callback = (value: unknown) => { received.push(value); };
+      Reflect.set(controller.signal, waitersSymbol, multiple ? new Set([object, callback]) : object);
+      controller.abort(reason);
+      notifyManagedAbortWaiters(controller.signal);
+      notifyManagedAbortWaiters(controller.signal);
+      assert.deepEqual(object.received, [reason]);
+      assert.deepEqual(received, multiple ? [reason] : []);
+    });
+  }
+
+  test(`pipe and output cancellation share a preexisting ${multiple ? "set of objects" : "singleton object"}`, async () => {
+    const upstream = createOutputOperation({ signal: new AbortController().signal }, discard);
+    const received: unknown[] = [];
+    const object = { onAbort(reason: unknown) { received.push(reason); } };
+    Reflect.set(upstream.signal, waitersSymbol, multiple ? new Set([object]) : object);
+    const pipe = createBytePipe({ signal: upstream.signal });
+    const output = createOutputOperation({ signal: upstream.signal }, discard);
+    try {
+      const reading = pipe.endpoints!.read.readable[Symbol.asyncIterator]().next();
+      const rejected = assert.rejects(reading, reason => Object.is(reason, false));
+      await upstream.abort(false);
+      await rejected;
+      assert.equal(output.signal.aborted, true);
+      assert.equal(output.signal.reason, false);
+      assert.deepEqual(received, [false]);
+    } finally {
+      await pipe.abort(false);
+      await output.close();
+      await upstream.close();
+    }
+  });
+
+  test(`pipe and output cleanup preserve a preexisting ${multiple ? "set of objects" : "singleton object"}`, async () => {
+    const upstream = createOutputOperation({ signal: new AbortController().signal }, discard);
+    const received: unknown[] = [];
+    const object = { onAbort(reason: unknown) { received.push(reason); } };
+    Reflect.set(upstream.signal, waitersSymbol, multiple ? new Set([object]) : object);
+    try {
+      const pipe = createBytePipe({ signal: upstream.signal });
+      const output = createOutputOperation({ signal: upstream.signal }, discard);
+      await pipe.endpoints!.read.close();
+      await pipe.close();
+      await output.close();
+      const current: unknown = Reflect.get(upstream.signal, waitersSymbol);
+      assert.deepEqual(current instanceof Set ? [...current] : [current], [object]);
+      await upstream.abort(null);
+      assert.deepEqual(received, [null]);
+    } finally { await upstream.close(); }
+  });
+}
+
+function seed(signal: AbortSignal, waiter: ((reason: unknown) => void) | { onAbort(reason: unknown): void }, multiple = false): void {
+  Reflect.set(signal, waitersSymbol, multiple ? new Set([waiter]) : waiter);
+}
+
+test("managed callbacks promote object waiters without losing identity", () => {
+  const signal = new AbortController().signal;
+  const object = { onAbort() {} };
+  const callback = () => {};
+  seed(signal, object);
+  addManagedAbortWaiter(signal, object);
+  assert.equal(Reflect.get(signal, waitersSymbol), object);
+  addManagedAbortWaiter(signal, callback);
+  assert.deepEqual([...Reflect.get(signal, waitersSymbol)], [object, callback]);
+  removeManagedAbortWaiter(signal, callback);
+  assert.deepEqual([...Reflect.get(signal, waitersSymbol)], [object]);
+});
+
+test("managed cleanup preserves an unrelated singleton object waiter", () => {
+  const signal = new AbortController().signal;
+  const object = { onAbort() {} };
+  seed(signal, object);
+  removeManagedAbortWaiter(signal, () => {});
+  assert.equal(Reflect.get(signal, waitersSymbol), object);
+  removeManagedAbortWaiter(signal, object);
+  assert.equal(Reflect.get(signal, waitersSymbol), undefined);
+});
+
+for (const reason of [false, null, 0, ""]) {
+  for (const multiple of [false, true]) {
+    test(`output cancellation shares ${multiple ? "mixed Set" : "singleton object"} shell waiters: ${String(reason)}`, async () => {
+      const upstream = createOutputOperation({ signal: new AbortController().signal }, discard);
+      const object = {
+        received: [] as unknown[],
+        onAbort(value: unknown) { this.received.push(value); },
+      };
+      const received: unknown[] = [];
+      seed(upstream.signal, object, multiple);
+      if (multiple) addManagedAbortWaiter(upstream.signal, value => { received.push(value); });
+      try {
+        const operation = multiple ? createOutputOperation({ signal: upstream.signal }, discard) : undefined;
+        await upstream.abort(reason);
+        assert.equal((operation?.signal ?? upstream.signal).aborted, true);
+        assert.equal((operation?.signal ?? upstream.signal).reason, reason);
+        assert.deepEqual(object.received, [reason], "object notification retains its receiver and exact reason");
+        assert.deepEqual(received, multiple ? [reason] : []);
+        await operation?.close();
+      } finally { await upstream.close(); }
+    });
+  }
+}
+
+for (const reason of [false, null, 0, ""]) {
+  test(`active pipe listener shares cancellation storage with shell waiters: ${String(reason)}`, async () => {
+    const upstream = createOutputOperation({ signal: new AbortController().signal }, discard);
+    const pipe = createBytePipe({ signal: upstream.signal });
+    try {
+      const reading = pipe.endpoints!.read.readable[Symbol.asyncIterator]().next();
+      assert.equal(Reflect.get(upstream.signal, waitersSymbol), pipe, "first pipe waiter retains the pipe as a singleton object");
+      const received: unknown[] = [];
+      addManagedAbortWaiter(upstream.signal, value => { received.push(value); });
+      const waiters: unknown = Reflect.get(upstream.signal, waitersSymbol);
+      assert.ok(waiters instanceof Set, "a second listener shares the waiter Set");
+      assert.equal(waiters.size, 2);
+      assert.equal(waiters.has(pipe), true, "promotion preserves the original pipe waiter");
+      const rejected = assert.rejects(reading, error => Object.is(error, reason));
+      await upstream.abort(reason);
+      await rejected;
+      assert.deepEqual(received, [reason]);
+      assert.equal(Reflect.get(upstream.signal, waitersSymbol), waiters);
+      assert.equal(waiters.size, 0);
+    } finally { await pipe.abort(reason); await upstream.close(); }
+  });
+}
+
+for (const multiple of [false, true]) {
+  test(`pipe cancellation preserves preexisting ${multiple ? "set" : "singleton"} waiters`, async () => {
+    const upstream = createOutputOperation({ signal: new AbortController().signal }, discard);
+    const received: unknown[] = [];
+    seed(upstream.signal, reason => received.push(reason), multiple);
+    try {
+      const pipe = createBytePipe({ signal: upstream.signal });
+      const reading = pipe.endpoints!.read.readable[Symbol.asyncIterator]().next();
+      const rejected = assert.rejects(reading, reason => Object.is(reason, false));
+      await upstream.abort(false);
+      await rejected;
+      assert.deepEqual(received, [false]);
+      await pipe.abort(false);
+    } finally { await upstream.close(); }
+  });
+
+  test(`closing a pipe detaches only its own ${multiple ? "set" : "singleton"} subscription`, async () => {
+    const upstream = createOutputOperation({ signal: new AbortController().signal }, discard);
+    const received: unknown[] = [];
+    const peer = (reason: unknown): void => { received.push(reason); };
+    seed(upstream.signal, peer, multiple);
+    try {
+      const pipe = createBytePipe({ signal: upstream.signal });
+      await pipe.endpoints!.read.close();
+      await pipe.close();
+      const current: unknown = Reflect.get(upstream.signal, waitersSymbol);
+      assert.deepEqual(current instanceof Set ? [...current] : [current], [peer]);
+      await upstream.abort(null);
+      assert.deepEqual(received, [null]);
+    } finally { await upstream.close(); }
+  });
+
+  for (const reason of [false, 0, "", null]) {
+    test(`output cancellation preserves ${multiple ? "set" : "singleton"} waiter reason ${String(reason)}`, async () => {
+      const upstream = createOutputOperation({ signal: new AbortController().signal }, discard);
+      const received: unknown[] = [];
+      seed(upstream.signal, value => received.push(value), multiple);
+      try {
+        const operation = createOutputOperation({ signal: upstream.signal }, discard);
+        await upstream.abort(reason);
+        assert.equal(operation.signal.aborted, true);
+        assert.equal(operation.signal.reason, reason);
+        assert.deepEqual(received, [reason]);
+        await operation.close();
+      } finally { await upstream.close(); }
+    });
+  }
+}
+
+test("output abort notifies a singleton waiter with its exact reason", async () => {
+  const operation = createOutputOperation({ signal: new AbortController().signal }, discard);
+  const received: unknown[] = [];
+  seed(operation.signal, reason => received.push(reason));
+  await operation.abort(false);
+  assert.deepEqual(received, [false]);
+});
+
+test("pipe consumer closure notifies a singleton and cancels its owned output", async () => {
+  const pipe = createBytePipe();
+  const signal = pipe.writable.ownedOutput!.consumerClosed;
+  const received: unknown[] = [];
+  seed(signal, reason => received.push(reason));
+  const operation = createOutputOperation({ signal: new AbortController().signal }, pipe.writable);
+  try {
+    await pipe.endpoints!.read.close();
+    await operation.close();
+    assert.equal(operation.signal.reason, signal.reason);
+    assert.deepEqual(received, [signal.reason]);
+    assert.equal((signal.reason as { code: string }).code, "EPIPE");
+  } finally { await pipe.close(); await operation.close(); }
+});
+
+test("output acquisition promotes an existing singleton and drains after cancellation", async () => {
+  const operation = createOutputOperation({ signal: new AbortController().signal }, discard);
+  const pending = Promise.withResolvers<number>();
+  const received: unknown[] = [];
+  const released: number[] = [];
+  const acquired = operation.acquire(signal => {
+    seed(signal, reason => received.push(reason));
+    return pending.promise;
+  }, value => { released.push(value); });
+  const rejected = assert.rejects(acquired, reason => Object.is(reason, 0));
+  void rejected.catch(() => {});
+  const closing = operation.abort(0);
+  try {
+    await rejected;
+    assert.deepEqual(received, [0]);
+    pending.resolve(7);
+    await closing;
+    assert.deepEqual(released, [7]);
+  } finally { pending.resolve(7); await closing; }
+});
+
+
+test("abort subscriptions multiplex, release, and resubscribe without retaining listeners", () => {
+  const controller = new AbortController();
+  const { signal } = controller;
+  let calls = 0;
+  const first = subscribeAbort(signal, () => calls++);
+  const second = subscribeAbort(signal, () => calls++);
+  assert.equal(getEventListeners(signal, "abort").length, 1);
+  first();
+  assert.equal(getEventListeners(signal, "abort").length, 1);
+  second();
+  assert.equal(getEventListeners(signal, "abort").length, 0);
+  const third = subscribeAbort(signal, () => calls++);
+  first(); // An old release cannot detach a later subscription.
+  assert.equal(getEventListeners(signal, "abort").length, 1);
+  const reason = new Error("cancelled");
+  controller.abort(reason);
+  assert.equal(calls, 1);
+  assert.equal(getEventListeners(signal, "abort").length, 0);
+  third();
+  assert.throws(() => subscribeAbort(signal, () => calls++), error => error === reason);
+});

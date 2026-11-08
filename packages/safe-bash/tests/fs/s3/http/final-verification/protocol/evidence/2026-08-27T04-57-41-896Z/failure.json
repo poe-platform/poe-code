@@ -1,0 +1,10 @@
+{
+  "message": "Expected values to be strictly equal:\n\n3 !== 2\n",
+  "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n3 !== 2\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/http/final-verification/protocol/run.mjs:121:12\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)",
+  "retainedTemporary": "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/http/final-verification/protocol/.tmp/protocol-ZTYC8l",
+  "commandLabels": [
+    "fixed-prepare",
+    "fixed-validate",
+    "fixed-mutants"
+  ]
+}

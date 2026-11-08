@@ -1,0 +1,27 @@
+{
+  "role": "SOURCE-only exact literal import enumeration, not dynamic loader observation",
+  "edges": {
+    "supervisor.mjs": [
+      "node:fs",
+      "node:crypto",
+      "node:url",
+      "node:path",
+      "node:zlib"
+    ],
+    "owned-process.mjs": [
+      "node:child_process",
+      "node:fs"
+    ],
+    "receipt-gate.mjs": [
+      "node:util"
+    ],
+    "data-support.mjs": [
+      "node:fs",
+      "node:crypto",
+      "node:path",
+      "node:zlib"
+    ]
+  },
+  "candidate": "ba1721a99fdfe4954e187c57ae36d77fafac3a5a",
+  "at": "2026-08-29T13:58:53.182Z"
+}

@@ -1,0 +1,7 @@
+{
+  "classification": "Additive capture pointer; historical native observations unchanged",
+  "path": "captures/native-tMviSP/observations.json",
+  "sha256": "63830152f45f2e743b0d2ec0457d447983327af579ec4568be4297d494454e41",
+  "exactSelectedCases": 14,
+  "notClaimed": "No full util-linux/BSD/locale parity; old 37/40 belongs to its old source snapshot."
+}

@@ -1,0 +1,124 @@
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import test from 'node:test';
+import { fixtures, cases, policy } from './corpus.mjs';
+import { deadline, deferred, fileEntry, probeFs, sourceProbe, turn } from './probes.mjs';
+
+const root = dirname(fileURLToPath(import.meta.url));
+const hash = (bytes) => createHash('sha256').update(bytes).digest('hex');
+const json = async (filename) => JSON.parse(await readFile(join(root, filename), 'utf8'));
+const makeError = (code, details) => Object.assign(new Error(`${code}: ${details.path}`), { code, ...details });
+
+test('independent corpus is exactly 40 scenarios, not expanded by views', async () => {
+  assert.equal(cases.length, 40);
+  assert.equal(fixtures.length, 20);
+  assert.deepEqual(cases.map((entry) => entry.id), Array.from({ length: 40 }, (_, index) => `F${String(index + 1).padStart(2, '0')}`));
+  const recorded = await json('cases.json');
+  assert.deepEqual(recorded, { policy, cases });
+  assert.equal(policy.candidateExecutions, 0);
+});
+
+test('all 20 generated fixture bytes match frozen files and manifest', async () => {
+  const manifest = await json('fixture-manifest.json');
+  assert.equal(manifest.length, 20);
+  let total = 0;
+  for (const entry of manifest) {
+    const bytes = await readFile(join(root, 'native-fixtures', entry.filename));
+    assert.equal(hash(bytes), entry.sha256);
+    assert.equal(bytes.length, entry.bytes);
+    assert.equal(bytes.toString('base64'), entry.base64);
+    assert.deepEqual(bytes, fixtures.find((value) => value.id === entry.id).bytes);
+    total += bytes.length;
+  }
+  assert.equal(total, 1394);
+});
+
+test('80 exact native content observations are preserved separately from semantics', async () => {
+  const recorded = await json('native-observations.json');
+  const expected = await json('expectations.json');
+  assert.equal(recorded.observations.length, 109);
+  for (const entry of expected) {
+    const observations = recorded.observations.filter((value) => value.id === entry.id);
+    assert.equal(observations.length, 4);
+    for (const observation of observations) {
+      assert.equal(entry.nativeExact[observation.view].stdout, observation.stdout);
+      assert.equal(entry.nativeExact[observation.view].stderr, observation.stderr);
+      assert.equal(entry.nativeExact[observation.view].status, observation.status);
+      assert.equal(observation.error, null);
+      assert.equal(observation.signal, null);
+    }
+    assert.equal(entry.status, 'not-run');
+  }
+});
+
+test('preseal corrections retain original expectations and do not alter native oracle', async () => {
+  const original = await json('preseal-original-expectations.json');
+  const current = await json('expectations.json');
+  for (let index = 0; index < original.length; index++) assert.deepEqual(original[index].nativeExact, current[index].nativeExact);
+  assert.deepEqual(original.find((entry) => entry.id === 'F18').semantic.mime, ['application/octet-stream']);
+  assert(current.find((entry) => entry.id === 'F18').semantic.mime.includes('text/plain'));
+  const correction = await json('preseal-corrections.json');
+  assert.equal(hash(await readFile(join(root, 'preseal-original-expectations.json'))), correction.originalExpectationsSha256);
+  assert.equal(hash(await readFile(join(root, 'preseal-original-cases.json'))), correction.originalCasesSha256);
+  assert.equal(correction.candidateRuns, 0);
+});
+
+test('primary references and contract snapshots retain captured hashes', async () => {
+  const references = await json('references.json');
+  for (const entry of references.upstream) {
+    const filename = entry.url.split('/').at(-1);
+    assert.equal(hash(await readFile(join(root, 'references', filename))), entry.sha256);
+  }
+  for (const entry of references.contracts) {
+    assert.equal(hash(await readFile(join(root, 'references', `contract-${entry.path.split('/').at(-1)}`))), entry.sha256);
+  }
+});
+
+test('source probe records useful bytes, poison next and return once', async () => {
+  const probe = sourceProbe([Uint8Array.of(0, 255, 137)], { poisonTail: true });
+  const first = await probe.source.next();
+  assert.deepEqual(first.value, Uint8Array.of(0, 255, 137));
+  await assert.rejects(probe.source.next(), /Forbidden read/u);
+  await probe.source.return();
+  assert.deepEqual(probe.trace, { next: 2, returned: 1, bytes: 3 });
+});
+
+test('readFile-only probe enforces full-file size guard rather than prefix slicing', async () => {
+  const controller = new AbortController();
+  const rig = probeFs(makeError, { '/input': fileEntry(Uint8Array.of(1, 2, 3)) }, { readFileOnly: true });
+  assert.equal(rig.fs.readStream, undefined);
+  await assert.rejects(rig.fs.readFile('/input', { maxBytes: 2, signal: controller.signal }), (error) => error.code === 'EFBIG');
+  assert.deepEqual(await rig.fs.readFile('/input', { maxBytes: 3, signal: controller.signal }), Uint8Array.of(1, 2, 3));
+  assert.equal(rig.trace[0].options.signal, controller.signal);
+});
+
+test('filesystem probe follows only virtual links and reports dangling/cyclic entries', async () => {
+  const rig = probeFs(makeError, {
+    '/link': { type: 'symlink', target: '/tmp/test-only-virtual' },
+    '/tmp/test-only-virtual': fileEntry(Uint8Array.of(9)),
+    '/bad': { type: 'symlink', target: '/missing' },
+    '/cycle-a': { type: 'symlink', target: '/cycle-b' },
+    '/cycle-b': { type: 'symlink', target: '/cycle-a' },
+  });
+  assert.equal((await rig.fs.lstat('/link')).type, 'symlink');
+  assert.equal((await rig.fs.stat('/link')).type, 'file');
+  assert.deepEqual(await rig.fs.readFile('/link'), Uint8Array.of(9));
+  await assert.rejects(rig.fs.stat('/bad'), (error) => error.code === 'ENOENT');
+  await assert.rejects(rig.fs.stat('/cycle-a'), (error) => error.code === 'ELOOP');
+});
+
+test('deferred cleanup fixture can remain pending without inventing completion', async () => {
+  const gate = deferred();
+  const probe = sourceProbe([], { returnGate: gate });
+  let settled = false;
+  const cleanup = probe.source.return().then(() => { settled = true; });
+  await turn();
+  assert.equal(settled, false);
+  gate.resolve({ done: true, value: undefined });
+  await deadline(cleanup, 'selfcheck cleanup');
+  assert.equal(settled, true);
+  assert.equal(probe.trace.returned, 1);
+});

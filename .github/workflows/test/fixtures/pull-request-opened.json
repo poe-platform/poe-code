@@ -1,0 +1,26 @@
+{
+  "action": "opened",
+  "number": 301,
+  "pull_request": {
+    "number": 301,
+    "title": "Fixture pull request opened event",
+    "head": {
+      "ref": "feature/fixture-pr",
+      "sha": "1111111111111111111111111111111111111111"
+    },
+    "base": {
+      "ref": "main"
+    },
+    "user": {
+      "login": "pr-author"
+    },
+    "draft": false
+  },
+  "repository": {
+    "full_name": "test-org/test-repo",
+    "name": "test-repo",
+    "owner": {
+      "login": "test-org"
+    }
+  }
+}

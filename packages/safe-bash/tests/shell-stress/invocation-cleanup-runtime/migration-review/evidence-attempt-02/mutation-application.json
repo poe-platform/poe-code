@@ -1,0 +1,6 @@
+{
+  "status": 0,
+  "error": null,
+  "stdout": "Success. Updated the following files:\nM src/commands/regex-execution/client.ts\n",
+  "stderr": ""
+}

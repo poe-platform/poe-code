@@ -1,0 +1,26 @@
+{
+  "schema": "combined77-stage2-independent-semantic-freeze-v1",
+  "candidate": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+  "timing": "After candidate existed and root supplied its identity/counts; before reading its README, implementation blobs, verifier or raw author execution. Reviewer authored neither component candidate. Existing separately accepted Stage2 and WHICH public evidence was already reviewed.",
+  "policy": "Ten bounded interaction families, not reruns/rescores of previous26+18+25. No production changes. Exact binding code and any unresolved CLI spelling must be sealed before candidate execution; semantic changes require a separate explicit amendment.",
+  "cases": [
+    {"id":"C01","name":"Public combined package admission","expect":"Installed root and which subpath expose the same three factories; aggregate has exact77 default commands, getopts remains builtin not registry, curl and safejs absent unless opted in; copied/moved package self-contained with no source fallback."},
+    {"id":"C02","name":"Local invocation cancellation during WHICH stat","expect":"A custom parent invokes which with local signal; after FS stat has begun, local abort rejects that invoke with exact reason; provider sees child signal; parent context/root caller remain live and following ordinary command succeeds; no host fallback."},
+    {"id":"C03","name":"Concurrent WHICH sibling isolation","expect":"Blocked which child canceled with local reason does not cancel simultaneously dispatched successful which sibling; sibling returns0 with its exact virtual executable path; each sink remains independently owned and root settles normally."},
+    {"id":"C04","name":"Caller cancellation while WHICH metadata awaits","expect":"Root caller abort cancels all outstanding which children with the exact caller reason and outer exec rejects with that reason; all gates/listeners settle and shell disposal completes without orphan rejection."},
+    {"id":"C05","name":"Invalid invocation signal before WHICH admission","expect":"Invalid non-AbortSignal input rejects before any WHICH metadata/probe/write; caught parent failure does not poison subsequent valid invocation or public exec. Omitted/explicitundefined remain accepted."},
+    {"id":"C06","name":"WHICH permission authority after runtime composition","expect":"Regular-file stat precedes delegated X_OK; provider-reported permission success is honored despite mode000/readonly mutation capability, and typed denied candidate continues to later PATH match. No mode fallback/host UID/executable discovery."},
+    {"id":"C07","name":"Getopts cursor across child cancellation","expect":"Parent consumes -ab optiona, dispatches child which that locally cancels, then consumes optionb with the original parent OPTIND/cursor intact; child env overrides do not rewrite parent OPTIND/local bindings."},
+    {"id":"C08","name":"DU stdout consumer close on combined runtime","expect":"Actual aggregate du apparent-size metadata traversal through an early-closing head pipeline settles, emits exactly the first complete expected line, preserves filesystem bytes and lets a following command run; no whole-caller cancellation/content reads/copyup."},
+    {"id":"C09","name":"HTML stdout consumer close on combined runtime","expect":"Actual aggregate HTML text extraction through an early-closing head pipeline settles, emits first complete line, preserves original input and independent following file/stderr effects; caller not canceled. Exact documented CLI spelling will be bound before execution, not guessed or treated as negative usage success."},
+    {"id":"C10","name":"Aggregate WHICH configuration through invoke","expect":"which limits supplied through agentCommands actually reach invoked which; a deliberately too-small probe/path budget produces the declared bounded failure, not host fallback or unbounded metadata calls; replacing a registered command obeys top-level aggregate replace rather than a nested override."}
+  ],
+  "types": [
+    {"id":"T01","expect":"Three WHICH factories/two types import from built root and built which subpath; declared values typecheck under strict NodeNext/exactOptionalPropertyTypes."},
+    {"id":"T02","expect":"CommandInvokeOptions and internal public ShellInvokeOptions accept omitted/signalundefined and AbortSignal; invalid signal type is rejected."},
+    {"id":"T03","expect":"signal property is readonly; aggregate which configuration permits approved limits but not nested replace under Omit."},
+    {"id":"T04","expect":"Module option/limit types and aggregate invocation context remain composable with explicit async ByteSink, VFS metadata and cleanup without private runtime imports."}
+  ],
+  "negativeControlClasses": ["Wrong candidate/blob or package hash rejected before load", "Source fallback/unlisted import rejected by loader", "Remove invoke signal composition: C02/C03/C04 must detect", "Ignore nested WHICH limits or skip access: C06/C10 must detect"],
+  "excludedClaims": ["Full77/76 gate", "New native FreeBSD WHICH proof", "Universal cancellation of uncooperative host work", "New SafeJS guest-signal proof", "Replayed component26/18/SafeJS25 cohorts"]
+}

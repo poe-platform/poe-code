@@ -1,0 +1,2698 @@
+import {isStoredOutputFormat} from "./image-encode.js";
+import {tryImageStream,type RetainedImageOutput} from "./image-stream.js";
+import {RetainedStreamInput} from "./streams/input.js";
+import type {FileSystem} from "@poe-code/safe-fs/contracts";
+import {JoinLayout} from "./ops/join-layout.js";
+import {prepareRawOutput} from "./codecs/raw-storage.js";
+import {tryInspectImageMetadata,transformedImageMetadata} from "./image-metadata.js";
+import {tryImageStats} from "./image-stats.js";
+import {prepareClaheImage} from "./ops/clahe.js";
+import {orderImageNodes,splitPostScaleNodes,imageAlphaStages} from "./ops/order.js";
+import {tryImageFile} from "./image-file.js";
+import { EventEmitter, Duplex, outputBytes } from "./streams/web.js";
+import { dirname, extname, normalizePath } from "@poe-code/safe-fs/contracts";
+import {
+  parseColor,
+  type ColorInput,
+  type ColorSpace,
+  type CompositeLayer,
+  type ImageAstNode,
+  type ImageFormat,
+  type ImageMetadata,
+  type RetainedImageMetadata,
+  type ImageStats,
+  type OutputEncodeOptions,
+  type OutputInfo,
+  type ResizeOptions,
+  type RgbaImage,
+  type SharpInputOptions
+} from "./ast.js";
+import { decodeImage, encodeImage, readImageMetadata } from "./codecs/index.js";
+import { resizeImage } from "./ops/resize.js";
+import {
+  affineImage,
+  applyExifOrientation,
+  bandboolImage,
+  booleanImage,
+  blurImage,
+  claheImage,
+  compositeImage,
+  computeImageStats,
+  convolveImage,
+  dilateImage,
+  erodeImage,
+  ensureAlphaImage,
+  extendImage,
+  extractChannelImage,
+  extractImage,
+  flattenImage,
+  flipImage,
+  flopImage,
+  gammaImage,
+  grayscaleImage,
+  joinChannelImage,
+  linearImage,
+  medianImage,
+  modulateImage,
+  negateImage,
+  normalizeImage,
+  premultiplyRgbaImage,
+  recombImage,
+  removeAlphaImage,
+  rotateImage,
+  sharpenImage,
+  thresholdImage,
+  tintImage,
+  toColorspaceImage,
+  trimImage,
+  unflattenImage,
+  unpremultiplyRgbaImage
+} from "./ops/transform.js";
+
+function inferTypedArrayDepth(input: unknown): "uchar" | "char" | "ushort" | "short" | "uint" | "int" | "float" | "double" | undefined {
+  if (!input || !ArrayBuffer.isView(input)) return undefined;
+  if (input instanceof Int8Array) return "char";
+  if (input instanceof Uint16Array) return "ushort";
+  if (input instanceof Int16Array) return "short";
+  if (input instanceof Uint32Array) return "uint";
+  if (input instanceof Int32Array) return "int";
+  if (input instanceof Float32Array) return "float";
+  if (input instanceof Float64Array) return "double";
+  return "uchar";
+}
+
+function validateInputOptions(opts: SharpInputOptions | undefined): void {
+  if (!opts || typeof opts !== "object") return;
+  const anyOpts = opts as Record<string, unknown>;
+  if(opts.workingDirectory!==undefined && (typeof opts.workingDirectory!=="string" || !opts.workingDirectory)) throw new Error("Expected non-empty string for workingDirectory");
+  if (anyOpts.failOnError !== undefined && typeof anyOpts.failOnError !== "boolean") {
+    throw new Error(`Expected boolean for failOnError but received ${anyOpts.failOnError} of type ${typeof anyOpts.failOnError}`);
+  }
+  if (opts.failOn !== undefined && !["none", "truncated", "error", "warning"].includes(opts.failOn)) {
+    throw new Error(`Expected one of: none, truncated, error, warning for failOn but received ${opts.failOn} of type ${typeof opts.failOn}`);
+  }
+  for (const boolKey of ["animated", "autoOrient", "sequentialRead", "unlimited", "ignoreIcc"] as const) {
+    if (anyOpts[boolKey] !== undefined && typeof anyOpts[boolKey] !== "boolean") {
+      throw new Error(`Expected boolean for ${boolKey} but received ${anyOpts[boolKey]} of type ${typeof anyOpts[boolKey]}`);
+    }
+  }
+  if (opts.density !== undefined && (typeof opts.density !== "number" || Number.isNaN(opts.density) || opts.density < 1 || opts.density > 100000)) {
+    throw new Error(`Expected number between 1 and 100000 for density but received ${opts.density} of type ${typeof opts.density}`);
+  }
+  if (
+    opts.limitInputPixels !== undefined &&
+    opts.limitInputPixels !== Infinity &&
+    typeof opts.limitInputPixels !== "boolean" &&
+    (!Number.isInteger(opts.limitInputPixels) || opts.limitInputPixels < 0 || opts.limitInputPixels > Number.MAX_SAFE_INTEGER)
+  ) {
+    throw new Error(
+      `Expected positive integer for limitInputPixels but received ${opts.limitInputPixels} of type ${typeof opts.limitInputPixels}`
+    );
+  }
+  if (opts.page !== undefined && (!Number.isInteger(opts.page) || opts.page < 0 || opts.page > 100000)) {
+    throw new Error(`Expected integer between 0 and 100000 for page but received ${opts.page} of type ${typeof opts.page}`);
+  }
+  if (opts.pages !== undefined && (!Number.isInteger(opts.pages) || opts.pages < -1 || opts.pages > 100000)) {
+    throw new Error(`Expected integer between -1 and 100000 for pages but received ${opts.pages} of type ${typeof opts.pages}`);
+  }
+  if (opts.raw !== undefined) {
+    const raw = opts.raw;
+    if (
+      !raw ||
+      typeof raw !== "object" ||
+      !Number.isInteger(raw.width) ||
+      raw.width <= 0 ||
+      !Number.isInteger(raw.height) ||
+      raw.height <= 0 ||
+      !Number.isInteger(raw.channels) ||
+      raw.channels < 1 ||
+      raw.channels > 4
+    ) {
+      throw new Error("Expected width, height and channels for raw pixel input");
+    }
+    if (raw.premultiplied !== undefined && typeof raw.premultiplied !== "boolean") {
+      throw new Error(`Expected boolean for raw.premultiplied but received ${raw.premultiplied}`);
+    }
+    if (raw.pageHeight !== undefined) {
+      if (!Number.isInteger(raw.pageHeight) || raw.pageHeight <= 0 || raw.pageHeight > raw.height) {
+        throw new Error(`Expected positive integer for raw.pageHeight but received ${raw.pageHeight}`);
+      }
+      if (raw.height % raw.pageHeight !== 0) {
+        throw new Error(`Expected raw.height ${raw.height} to be a multiple of raw.pageHeight ${raw.pageHeight}`);
+      }
+    }
+  }
+  const validAlignments = ["left", "top", "low", "center", "centre", "right", "bottom", "high"];
+  if (opts.join !== undefined) {
+    const join = opts.join;
+    if (join && typeof join === "object") {
+      if (join.across !== undefined && (!Number.isInteger(join.across) || join.across < 1 || join.across > 100000)) {
+        throw new Error(`Expected integer between 1 and 100000 for join.across but received ${join.across} of type ${typeof join.across}`);
+      }
+      if (join.shim !== undefined && (!Number.isInteger(join.shim) || join.shim < 0 || join.shim > 100000)) {
+        throw new Error(`Expected integer between 0 and 100000 for join.shim but received ${join.shim} of type ${typeof join.shim}`);
+      }
+      if (join.halign !== undefined && !validAlignments.includes(join.halign)) {
+        throw new Error(`Expected valid alignment for join.halign but received ${join.halign} of type ${typeof join.halign}`);
+      }
+      if (join.valign !== undefined && !validAlignments.includes(join.valign)) {
+        throw new Error(`Expected valid alignment for join.valign but received ${join.valign} of type ${typeof join.valign}`);
+      }
+      if (join.animated !== undefined && typeof join.animated !== "boolean") {
+        throw new Error(`Expected boolean for join.animated but received ${join.animated} of type ${typeof join.animated}`);
+      }
+      if (join.background !== undefined) {
+        parseColor(join.background, 255);
+      }
+    }
+  }
+  if (opts.text !== undefined) {
+    const text = opts.text;
+    if (!text || typeof text !== "object" || typeof text.text !== "string" || text.text.trim().length === 0) {
+      throw new Error("Expected a valid string to create an image with text.");
+    }
+    if (text.width !== undefined && (!Number.isInteger(text.width) || text.width <= 0)) {
+      throw new Error(`Expected positive integer for text.width but received ${text.width} of type ${typeof text.width}`);
+    }
+    if (text.height !== undefined && (!Number.isInteger(text.height) || text.height <= 0)) {
+      throw new Error(`Expected positive integer for text.height but received ${text.height} of type ${typeof text.height}`);
+    }
+    if (text.dpi !== undefined && (!Number.isInteger(text.dpi) || text.dpi < 1 || text.dpi > 1000000)) {
+      throw new Error(`Expected integer between 1 and 1000000 for text.dpi but received ${text.dpi} of type ${typeof text.dpi}`);
+    }
+    if (text.align !== undefined && !validAlignments.includes(text.align)) {
+      throw new Error(`Expected valid alignment for text.align but received ${text.align} of type ${typeof text.align}`);
+    }
+    if (text.justify !== undefined && typeof text.justify !== "boolean") {
+      throw new Error(`Expected boolean for text.justify but received ${text.justify} of type ${typeof text.justify}`);
+    }
+    if (text.rgba !== undefined && typeof text.rgba !== "boolean") {
+      throw new Error(`Expected bool for text.rgba but received ${text.rgba} of type ${typeof text.rgba}`);
+    }
+    if (text.wrap !== undefined && !["word", "char", "word-char", "none"].includes(text.wrap)) {
+      throw new Error(`Expected one of: word, char, word-char, none for text.wrap but received ${text.wrap} of type ${typeof text.wrap}`);
+    }
+  }
+  if (opts.create !== undefined) {
+    const create = opts.create;
+    if (
+      !create ||
+      typeof create !== "object" ||
+      !Number.isInteger(create.width) ||
+      create.width <= 0 ||
+      !Number.isInteger(create.height) ||
+      create.height <= 0 ||
+      !Number.isInteger(create.channels)
+    ) {
+      throw new Error("Expected valid width, height and channels to create a new input image");
+    }
+    if (create.pageHeight !== undefined) {
+      if (!Number.isInteger(create.pageHeight) || create.pageHeight <= 0 || create.pageHeight > create.height) {
+        throw new Error(`Expected positive integer for create.pageHeight but received ${create.pageHeight}`);
+      }
+      if (create.height % create.pageHeight !== 0) {
+        throw new Error(`Expected create.height ${create.height} to be a multiple of create.pageHeight ${create.pageHeight}`);
+      }
+    }
+    if (create.noise !== undefined) {
+      if (!create.noise || typeof create.noise !== "object") {
+        throw new Error("Expected noise to be an object");
+      }
+      if (create.noise.type !== "gaussian") {
+        throw new Error("Only gaussian noise is supported at the moment");
+      }
+      if (create.channels < 1 || create.channels > 4) {
+        throw new Error(
+          `Expected number between 1 and 4 for create.channels but received ${create.channels} of type ${typeof create.channels}`
+        );
+      }
+    } else if (create.background !== undefined) {
+      if (create.channels < 3 || create.channels > 4) {
+        throw new Error(
+          `Expected number between 3 and 4 for create.channels but received ${create.channels} of type ${typeof create.channels}`
+        );
+      }
+    } else {
+      throw new Error("Expected valid noise or background to create a new input image");
+    }
+  }
+}
+
+function toBytes(input: Uint8Array | ArrayBuffer | ArrayBufferView | string | undefined, readFile?: (path: string) => Uint8Array): Uint8Array | undefined {
+  if (!input) return undefined;
+  if (ArrayBuffer.isView(input)) {
+    if (input.byteLength === 0) {
+      throw new Error("Input Bit Array is empty");
+    }
+    return new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
+  }
+  if (input instanceof ArrayBuffer) {
+    if (input.byteLength === 0) {
+      throw new Error("Input bit Array is empty");
+    }
+    return new Uint8Array(input);
+  }
+  if (typeof input === "string") {
+    if (input.trimStart().startsWith("<")) {
+      return new TextEncoder().encode(input);
+    }
+    if (!readFile) throw new Error("File inputs require an explicit filesystem and an asynchronous output method");
+    return readFile(input);
+  }
+  return undefined;
+}
+
+function inferFormatFromPath(fileOut: string): ImageFormat | undefined {
+  const ext = extname(fileOut).toLowerCase().slice(1);
+  switch (ext) {
+    case "png":
+      return "png";
+    case "jpg":
+    case "jpeg":
+    case "jpe":
+      return "jpeg";
+    case "webp":
+      return "webp";
+    case "gif":
+      return "gif";
+    case "mng":
+      return "mng";
+    case "tif":
+    case "tiff":
+      return "tiff";
+    case "avif":
+      return "avif";
+    case "heic":
+      return "heic";
+    case "heif":
+      return "heif";
+    case "pdf":
+      return "pdf";
+    case "pam":
+      return "pam";
+    case "ppm":
+      return "ppm";
+    case "pgm":
+      return "pgm";
+    case "pbm":
+      return "pbm";
+    case "bmp":
+      return "bmp";
+    case "raw":
+      return "raw";
+    default:
+      return undefined;
+  }
+}
+
+export class SharpInstance extends Duplex {
+  private inputBytes: Uint8Array | undefined;
+  private inputFilePath: string | undefined;
+  private readonly joinInputs: readonly (Uint8Array | ArrayBuffer | string | SharpInputOptions)[] | undefined;
+  private readonly inputOptions: SharpInputOptions | undefined;
+  private readonly nodes: ImageAstNode[] = [];
+  private outputOptions: OutputEncodeOptions = {};
+  private streamIn = false;
+  private streamInFinished = false;
+  private streamFailure?: Error;
+  private readonly streamChunks: Uint8Array[] = [];
+  private streamBacking:RetainedStreamInput|undefined;
+  private readonly abortStream=()=>{const reason=this.inputOptions?.signal?.reason;this.destroy(reason instanceof Error?reason:new Error(String(reason)));};
+  private readonly fileInputs = new Map<string, Uint8Array>();
+  private readonly fileLoads = new Map<string, Promise<void>>();
+  private readonly clonedStreams: SharpInstance[] = [];
+  private streamOutStarted = false;
+  private readonly outputAbort=new AbortController();
+  private outputTask:Promise<RetainedImageOutput|undefined>|undefined;
+  private retainedOutput:RetainedImageOutput|undefined;
+  private outputSpool:RetainedStreamInput|undefined;
+  private outputPosition=0;
+  private outputInfo:OutputInfo|undefined;
+
+  constructor(
+    input?: Uint8Array | ArrayBuffer | string | SharpInputOptions | readonly (Uint8Array | ArrayBuffer | string | SharpInputOptions)[],
+    options?: SharpInputOptions
+  ) {
+    super();
+    if (Array.isArray(input)) {
+      if (input.length < 2) {
+        throw new Error("Expected at least two images to join");
+      }
+      if (input.some(item => Array.isArray(item))) {
+        throw new Error("Recursive join is unsupported");
+      }
+      this.inputBytes = undefined;
+      this.joinInputs = input;
+      this.inputOptions = options;
+    } else if (
+      input &&
+      typeof input === "object" &&
+      !ArrayBuffer.isView(input) &&
+      !(input instanceof ArrayBuffer)
+    ) {
+      this.inputBytes = undefined;
+      this.joinInputs = undefined;
+      this.inputOptions = input as SharpInputOptions;
+      if (this.inputOptions.join !== undefined) {
+        throw new Error("Expected input to be an array of images to join");
+      }
+      validateInputOptions(this.inputOptions);
+      if (!this.inputOptions.create && !this.inputOptions.text && Object.keys(this.inputOptions).length > 0) {
+        this.streamIn = true;
+      }
+    } else {
+      if (options?.join !== undefined) {
+        throw new Error("Expected input to be an array of images to join");
+      }
+      this.inputFilePath =
+        typeof input === "string" && !input.trimStart().startsWith("<") ? input : undefined;
+      const inferredDepth = inferTypedArrayDepth(input);
+      let effectiveOptions = options;
+      if (effectiveOptions?.raw && inferredDepth && !effectiveOptions.raw.depth) {
+        effectiveOptions = {
+          ...effectiveOptions,
+          raw: {
+            ...effectiveOptions.raw,
+            depth: inferredDepth
+          }
+        };
+      }
+      validateInputOptions(effectiveOptions);
+      this.inputBytes = this.inputFilePath ? undefined : toBytes(input as Uint8Array | ArrayBuffer | ArrayBufferView | string | undefined);
+      this.joinInputs = undefined;
+      this.inputOptions = effectiveOptions;
+      if (input === undefined && (!effectiveOptions || (!effectiveOptions.create && !effectiveOptions.text))) {
+        this.streamIn = true;
+      }
+    }
+    validateInputOptions(this.inputOptions);
+    this.on("error", (error: Error) => {
+      this.streamFailure = error;
+      for (const child of this.streamInFinished?[]:this.clonedStreams) { child.streamFailure = error; child.destroy(error); }
+    });
+    if (this.streamIn) {
+      this.inputOptions?.signal?.addEventListener("abort",this.abortStream,{once:true});
+      this.on("finish", () => {
+        this.flattenStreamInput();
+      });
+    }
+    if (this.inputOptions?.autoOrient) {
+      this.nodes.push({ kind: "autoOrient" });
+    }
+  }
+
+  private flattenStreamInput(): void {
+    if (this.streamIn && !this.streamInFinished) {
+      if(this.streamBacking){this.receiveStreamInput(undefined);return;}
+      const merged = new Uint8Array(this.streamChunks.reduce((total, bytes) => total + bytes.length, 0));
+      let offset = 0;
+      for (const bytes of this.streamChunks) { merged.set(bytes, offset); offset += bytes.length; }
+      this.streamChunks.length=0;
+      this.receiveStreamInput(merged);
+    }
+  }
+
+  private receiveStreamInput(merged: Uint8Array|undefined): void {
+    this.inputBytes = merged;
+    this.streamInFinished = true;
+    for (const child of this.clonedStreams) {
+      child.receiveStreamInput(merged);
+    }
+    this.emit("streamReady");
+  }
+
+  private async waitForStreamInput(buffer=true): Promise<void> {
+    if (this.streamFailure) throw this.streamFailure;
+    this.inputOptions?.signal?.throwIfAborted();
+    if(buffer)await this.loadFileInputs();
+    if (this.streamFailure) throw this.streamFailure;
+    if (!this.streamIn || this.streamInFinished) {
+      if(buffer&&this.streamBacking&&!this.inputBytes)this.inputBytes=await this.streamBacking.bytes();
+      return;
+    }
+    if (this.writableFinished) {
+      this.flattenStreamInput();
+      if (this.streamInFinished) {if(buffer&&this.streamBacking&&!this.inputBytes)this.inputBytes=await this.streamBacking.bytes();return;}
+    }
+    await new Promise<void>((resolve, reject) => {
+      const onReady = () => {
+        this.removeListener("finish", onReady);
+        this.removeListener("streamReady", onReady);
+        this.removeListener("error", onError);
+        this.flattenStreamInput();
+        resolve();
+      };
+      const onError = (err: Error) => {
+        this.removeListener("finish", onReady);
+        this.removeListener("streamReady", onReady);
+        reject(err);
+      };
+      this.once("finish", onReady);
+      this.once("streamReady", onReady);
+      this.once("error", onError);
+    });
+    if(buffer&&this.streamBacking&&!this.inputBytes)this.inputBytes=await this.streamBacking.bytes();
+  }
+
+  private operationInput(input: Uint8Array | ArrayBuffer | ArrayBufferView | string): Uint8Array | string | undefined {
+    if (typeof input !== "string" || input.trimStart().startsWith("<")) return toBytes(input);
+    return input;
+  }
+
+  private loadedFile(path: string): Uint8Array {
+    const bytes = this.fileInputs.get(path);
+    if (!bytes) throw new Error("File inputs require an explicit filesystem and an asynchronous output method");
+    return bytes;
+  }
+
+  private async loadFileInputs(): Promise<void> {
+    const paths = new Set<string>();
+    if (this.inputFilePath) paths.add(this.inputFilePath);
+    for (const input of this.joinInputs ?? []) {
+      if (typeof input === "string" && !input.trimStart().startsWith("<")) paths.add(input);
+    }
+    for (const node of this.nodes) {
+      if (node.kind === "boolean" && typeof node.operand === "string") paths.add(node.operand);
+      if (node.kind === "joinChannel") {
+        for (const input of node.inputs) if (typeof input.data === "string") paths.add(input.data);
+      }
+      if (node.kind !== "composite") continue;
+      for (const layer of node.layers) {
+        if (typeof layer.input === "string" && !layer.input.trimStart().startsWith("<")) paths.add(layer.input);
+      }
+    }
+    await Promise.all([...paths].map(path => {
+      if (this.fileInputs.has(path)) return;
+      let pending = this.fileLoads.get(path);
+      if (!pending) {
+        if (!this.inputOptions?.filesystem) throw new Error("File inputs require an explicit filesystem");
+        pending = this.inputOptions.filesystem.readFile(path).then(bytes => { this.fileInputs.set(path, new Uint8Array(bytes)); });
+        this.fileLoads.set(path, pending);
+      }
+      return pending;
+    }));
+    if (this.inputFilePath) this.inputBytes = this.loadedFile(this.inputFilePath);
+  }
+
+  private retainedStream():RetainedStreamInput|undefined {
+    const fs=this.inputOptions?.filesystem;
+    if(!this.streamBacking&&fs?.capabilities&&fs.open&&fs.removeFileConditional&&fs.stat)
+      this.streamBacking=new RetainedStreamInput(fs as FileSystem,this.inputOptions?.workingDirectory??".",this.inputOptions?.signal??new AbortController().signal);
+    return this.streamBacking;
+  }
+
+  override async _destroy():Promise<void>{
+    this.inputOptions?.signal?.removeEventListener("abort",this.abortStream);
+    this.outputAbort.abort(new Error("Stream cancelled"));
+    await this.outputTask?.catch(()=>{});
+    const streamResult=await Promise.allSettled([this.retainedOutput?.stream.return(undefined)]);
+    const outcomes=[...streamResult,...await Promise.allSettled([this.retainedOutput?.close(),this.outputSpool?.release(),this.streamBacking?.release(),...(!this.streamInFinished?this.clonedStreams.map(child=>child.dispose()):[])])];
+    const failure=outcomes.find(result=>result.status==="rejected");
+    if(failure?.status==="rejected")throw failure.reason;
+  }
+
+  override _write(chunk: unknown, _encoding: string, callback: (error?: Error | null) => void): void {
+    if(this.streamFailure){callback(this.streamFailure);return;}
+    if (this.streamIn && !this.streamInFinished) {
+      if (chunk instanceof Uint8Array) {
+        try {
+          const backing=this.retainedStream();
+          if(backing){void backing.append(chunk).then(()=>callback(),error=>callback(error instanceof Error?error:new Error(String(error))));return;}
+          this.streamChunks.push(new Uint8Array(chunk));callback();
+        }catch(error){callback(error instanceof Error?error:new Error(String(error)));}
+      } else {
+        callback(new Error("Expected Uint8Array data on Writable Stream"));
+      }
+    } else {
+      callback(new Error("Unexpected data on Writable Stream"));
+    }
+  }
+
+  private async prepareStreamOutput():Promise<RetainedImageOutput|undefined>{
+    await this.waitForStreamInput(false);
+    const signal=AbortSignal.any([this.outputAbort.signal,...(this.inputOptions?.signal?[this.inputOptions.signal]:[])]);
+    signal.throwIfAborted();
+    const input=this.streamBacking?{source:this.streamBacking}:this.joinInputs?{inputs:this.joinInputs}:this.inputFilePath?(this.fileInputs.get(this.inputFilePath)??this.inputFilePath):this.inputBytes;
+    return tryImageStream(input,{...this.inputOptions,signal},this.outputOptions,this.nodes,this.fileInputs);
+  }
+
+  override async _read():Promise<void>{
+    if(!this.streamOutStarted){
+      this.streamOutStarted=true;
+      this.outputTask=this.prepareStreamOutput();
+      this.retainedOutput=await this.outputTask;
+      this.outputAbort.signal.throwIfAborted();
+      if(!this.retainedOutput){
+        await this.waitForStreamInput();const result=this.toBufferWithObjectSync();
+        this.emit("info",result.info);this.push(result.data);this.push(null);return;
+      }
+      // Exact pre-data info requires knowing the encoded size. Retain that
+      // output only for info subscribers; ordinary streams pull the encoder.
+      if(this.listenerCount("info")){
+        const signal=AbortSignal.any([this.outputAbort.signal,...(this.inputOptions?.signal?[this.inputOptions.signal]:[])]);
+        this.outputSpool=new RetainedStreamInput(this.inputOptions!.filesystem as FileSystem,this.inputOptions?.workingDirectory??(this.inputFilePath?dirname(this.inputFilePath):"."),signal);
+        while(true){const next=await this.retainedOutput.stream.next();if(next.done){this.outputInfo=next.value;break;}await this.outputSpool.append(next.value);}
+        await this.retainedOutput.close();this.emit("info",this.outputInfo);
+      }
+    }
+    this.outputAbort.signal.throwIfAborted();
+    if(this.outputSpool){
+      if(this.outputPosition<this.outputSpool.size){const bytes=await this.outputSpool.read(this.outputPosition,Math.min(16384,this.outputSpool.size-this.outputPosition));this.outputPosition+=bytes.length;this.push(bytes);return;}
+      const spool=this.outputSpool;this.outputSpool=undefined;await spool.release();this.push(null);return;
+    }
+    if(this.retainedOutput){
+      const next=await this.retainedOutput.stream.next();this.outputAbort.signal.throwIfAborted();
+      if(!next.done){this.push(next.value);return;}
+      await this.retainedOutput.close();this.push(null);
+    }
+  }
+
+  clone(): SharpInstance {
+    if (this.streamIn && (!this.streamInFinished || this.streamBacking)) {
+      const copy = new SharpInstance(undefined, this.inputOptions);
+      copy.nodes.length = 0;
+      copy.nodes.push(...this.nodes);
+      copy.outputOptions = { ...this.outputOptions };
+      copy.streamBacking=this.retainedStream()?.retain();
+      if(this.streamInFinished)copy.receiveStreamInput(this.inputBytes);
+      else this.clonedStreams.push(copy);
+      if (this.streamFailure) { copy.streamFailure = this.streamFailure; copy.destroy(this.streamFailure); }
+      return copy;
+    }
+    const copy =
+      this.joinInputs !== undefined
+        ? new SharpInstance(this.joinInputs, this.inputOptions)
+        : this.inputFilePath !== undefined
+          ? new SharpInstance(this.inputFilePath, this.inputOptions)
+          : this.inputBytes !== undefined
+            ? new SharpInstance(this.inputBytes, this.inputOptions)
+            : new SharpInstance(this.inputOptions);
+    copy.inputFilePath = this.inputFilePath;
+    for (const [path, bytes] of this.fileInputs) copy.fileInputs.set(path, bytes);
+    copy.nodes.length = 0;
+    copy.nodes.push(...this.nodes);
+    copy.outputOptions = { ...this.outputOptions };
+    return copy;
+  }
+
+  private decodeInitialImage(): RgbaImage {
+    if (!this.joinInputs) {
+      return decodeImage(this.inputFilePath ? this.loadedFile(this.inputFilePath) : this.inputBytes, this.inputOptions);
+    }
+    const imgs = this.joinInputs.map(item => {
+      if (item && typeof item === "object" && !(item instanceof Uint8Array) && !(item instanceof ArrayBuffer)) {
+        return decodeImage(undefined, item as SharpInputOptions);
+      }
+      return decodeImage(toBytes(item as Uint8Array | ArrayBuffer | string | undefined, path => this.loadedFile(path)), this.inputOptions);
+    });
+    const layout=new JoinLayout(imgs,this.inputOptions),{width,height}=layout.metadata;
+    const out=new Uint8Array(width*height*4);new Uint32Array(out.buffer,out.byteOffset,width*height).fill(layout.background);
+    for(let index=0;index<imgs.length;index++){
+      const image=imgs[index]!,{left,top}=layout.placement(index,image);
+      for(let row=0;row<image.height;row++)out.set(image.data.subarray(row*image.width*4,(row+1)*image.width*4),((top+row)*width+left)*4);
+    }
+    return {...layout.metadata,data:out};
+  }
+
+  getAst(): readonly ImageAstNode[] {
+    return this.nodes;
+  }
+
+  private upsertNode(nextNode: ImageAstNode, beforeGrayscale = false): void {
+    const idx = this.nodes.findIndex(n => n.kind === nextNode.kind);
+    if (idx !== -1) {
+      this.nodes[idx] = nextNode;
+      return;
+    }
+    if (nextNode.kind === "removeAlpha" || nextNode.kind === "flatten") {
+      const ensureIdx = this.nodes.findIndex(n => n.kind === "ensureAlpha");
+      if (ensureIdx !== -1) {
+        this.nodes.splice(ensureIdx, 0, nextNode);
+        return;
+      }
+    }
+    if (beforeGrayscale) {
+      const grayIdx = this.nodes.findIndex(n => n.kind === "grayscale");
+      if (grayIdx !== -1) {
+        this.nodes.splice(grayIdx, 0, nextNode);
+        return;
+      }
+    }
+    this.nodes.push(nextNode);
+  }
+
+  private evaluateImage(): RgbaImage {
+    let img = this.decodeInitialImage();
+    const {nodes:preScaleNodes,postScale:postScaleNodes}=splitPostScaleNodes(this.nodes);
+    const postScaleTransform =
+      postScaleNodes.length > 0
+        ? (scaled: RgbaImage): RgbaImage => {
+            let cur = scaled;
+            for (const pNode of postScaleNodes) {
+              if (pNode.kind === "rotate") {
+                cur = rotateImage(cur, pNode.angle, pNode.background);
+              } else if (pNode.kind === "flip") {
+                cur = flipImage(cur);
+              } else if (pNode.kind === "flop") {
+                cur = flopImage(cur);
+              }
+            }
+            return cur;
+          }
+        : undefined;
+
+    const gammaNode = this.nodes.find((n): n is Extract<ImageAstNode, { kind: "gamma" }> => n.kind === "gamma");
+    const splitGamma =
+      gammaNode !== undefined &&
+      this.nodes.some(
+        n =>
+          n.kind === "resize" ||
+          n.kind === "blur" ||
+          n.kind === "convolve" ||
+          n.kind === "recomb" ||
+          n.kind === "modulate" ||
+          n.kind === "sharpen" ||
+          n.kind === "composite"
+      );
+
+    const orderedNodes = orderImageNodes(preScaleNodes);
+
+    const {first:firstPremulIdx,last:lastPremulIdx,count:premulStageCount}=imageAlphaStages(orderedNodes);
+    let gammaInApplied = false;
+    let gammaOutApplied = false;
+
+    for (let i = 0; i < orderedNodes.length; i++) {
+      const node = orderedNodes[i]!;
+      if (splitGamma && gammaNode && !gammaInApplied && (i === firstPremulIdx || node.kind === "recomb" || node.kind === "modulate" || node.kind === "composite")) {
+        img = gammaImage(img, gammaNode.gamma, 1.0);
+        gammaInApplied = true;
+      }
+      if (i === firstPremulIdx && img.hasAlpha) {
+        if (premulStageCount > 1) {
+          img = premultiplyRgbaImage(img);
+        } else {
+          img = { ...img, wasPremultiplied: true };
+        }
+      }
+      switch (node.kind) {
+        case "autoOrient":
+          img = applyExifOrientation(img);
+          break;
+        case "rotate":
+          img = rotateImage(img, node.angle, node.background);
+          break;
+        case "flip":
+          img = flipImage(img);
+          break;
+        case "flop":
+          img = flopImage(img);
+          break;
+        case "extract":
+          img = extractImage(img, node);
+          break;
+        case "trim":
+          img = trimImage(img, {
+            threshold: node.threshold,
+            ...(node.background !== undefined ? { background: node.background } : {}),
+            ...(node.lineArt !== undefined ? { lineArt: node.lineArt } : {})
+          });
+          break;
+        case "resize":
+          img = resizeImage(img, node, postScaleTransform);
+          if (img.hasAlpha && !img.isPremultiplied) {
+            if (i < lastPremulIdx) {
+              img = premultiplyRgbaImage(img);
+            } else {
+              img = { ...img, wasPremultiplied: true };
+            }
+          }
+          break;
+        case "extend":
+          img = extendImage(img, node);
+          break;
+        case "composite":
+          img = compositeImage(img, node.layers, path => this.loadedFile(path));
+          break;
+        case "grayscale":
+          img = grayscaleImage(img);
+          break;
+        case "flatten":
+          img = flattenImage(img, node.background);
+          break;
+        case "unflatten":
+          img = unflattenImage(img);
+          break;
+        case "negate":
+          img = negateImage(img, { alpha: node.alpha });
+          break;
+        case "modulate":
+          img = modulateImage(img, node);
+          break;
+        case "tint":
+          img = tintImage(img, node.color);
+          break;
+        case "gamma":
+          if (splitGamma) {
+            img = gammaImage(img, 1.0, node.gammaOut);
+            gammaOutApplied = true;
+          } else {
+            img = gammaImage(img, node.gamma, node.gammaOut);
+          }
+          break;
+        case "linear":
+          img = linearImage(img, node.a, node.b);
+          break;
+        case "normalize":
+          img = normalizeImage(img, { lower: node.lower, upper: node.upper });
+          break;
+        case "threshold":
+          img = thresholdImage(img, node.value, node.grayscale);
+          break;
+        case "blur":
+          img = blurImage(img, node.sigma, node.minAmplitude, node.precision);
+          break;
+        case "sharpen":
+          img = sharpenImage(img, node.sigma, node.m1, node.m2, node.x1, node.y2, node.y3);
+          break;
+        case "median":
+          img = medianImage(img, node.size);
+          break;
+        case "dilate":
+          img = dilateImage(img, node.width);
+          break;
+        case "erode":
+          img = erodeImage(img, node.width);
+          break;
+        case "convolve":
+          img = convolveImage(img, node);
+          break;
+        case "ensureAlpha":
+          img = ensureAlphaImage(img, node.alpha);
+          break;
+        case "removeAlpha":
+          img = removeAlphaImage(img);
+          break;
+        case "extractChannel":
+          img = extractChannelImage(img, node.channel);
+          break;
+        case "recomb":
+          img = recombImage(img, node.matrix);
+          break;
+        case "toColorspace":
+          img = toColorspaceImage(img, node.space);
+          break;
+        case "bandbool":
+          img = bandboolImage(img, node.op);
+          break;
+        case "boolean": {
+          const opImg = decodeImage(typeof node.operand === "string" ? this.loadedFile(node.operand) : node.operand, node.options);
+          img = booleanImage(img, opImg, node.op);
+          break;
+        }
+        case "joinChannel": {
+          const extras = node.inputs.map(item => decodeImage(typeof item.data === "string" ? this.loadedFile(item.data) : item.data, item.options));
+          img = joinChannelImage(img, extras);
+          break;
+        }
+        case "clahe": {
+          img = prepareClaheImage(img,this.nodes);
+          img = claheImage(img, node);
+          break;
+        }
+        case "affine":
+          img = affineImage(img, node);
+          break;
+        case "withMetadata":
+          img = {
+            ...img,
+            ...(node.density !== undefined ? { density: node.density } : {}),
+            ...(node.orientation !== undefined ? { orientation: node.orientation } : {})
+          };
+          break;
+      }
+      if (i === lastPremulIdx && img.isPremultiplied) {
+        img = unpremultiplyRgbaImage(img);
+      }
+    }
+    if (splitGamma && gammaNode && gammaInApplied && !gammaOutApplied) {
+      img = gammaImage(img, 1.0, gammaNode.gammaOut);
+    }
+    return img;
+  }
+
+  metadataSync(): ImageMetadata {
+    const computeAutoOrient = (w: number, h: number, orient?: number) =>
+      orient !== undefined && orient >= 5 && orient <= 8
+        ? { width: h, height: w }
+        : { width: w, height: h };
+    const rawMeta = this.joinInputs
+      ? (() => {
+          const joined = this.decodeInitialImage();
+          return {
+            format: joined.format,
+            width: joined.width,
+            height: joined.height,
+            space: joined.space,
+            channels: joined.channels,
+            depth: joined.depth,
+            density: joined.density,
+            hasAlpha: joined.hasAlpha,
+            ...(joined.pages !== undefined ? { pages: joined.pages } : {}),
+            ...(joined.pageHeight !== undefined ? { pageHeight: joined.pageHeight } : {}),
+            size: joined.data.byteLength
+          } as ImageMetadata;
+        })()
+      : readImageMetadata(this.inputFilePath ? this.loadedFile(this.inputFilePath) : this.inputBytes, this.inputOptions);
+    if (this.nodes.length === 0) {
+      return {
+        ...rawMeta,
+        autoOrient: computeAutoOrient(rawMeta.width, rawMeta.height, rawMeta.orientation)
+      };
+    }
+    const evaluated = this.evaluateImage();
+    return transformedImageMetadata(rawMeta,evaluated,this.outputOptions);
+  }
+
+  /** Inspect retained metadata within the lifetime of its caller-backed resources. */
+  async inspectMetadata<T>(read:(metadata:RetainedImageMetadata)=>T|Promise<T>):Promise<T> {
+    const consume=async(metadata:RetainedImageMetadata):Promise<T>=>{
+      this.inputOptions?.signal?.throwIfAborted();
+      const rotated=metadata.orientation!==undefined && metadata.orientation>=5 && metadata.orientation<=8;
+      const value=await read({...metadata,autoOrient:{width:rotated?metadata.height:metadata.width,height:rotated?metadata.width:metadata.height}});
+      this.inputOptions?.signal?.throwIfAborted();return value;
+    };
+    await this.waitForStreamInput(false);
+    if(this.inputOptions?.filesystem){
+      if(this.streamFailure)throw this.streamFailure;
+      const input=this.streamBacking?{source:this.streamBacking}:this.joinInputs?{inputs:this.joinInputs}:this.inputFilePath?(this.fileInputs.get(this.inputFilePath)??this.inputFilePath):this.inputBytes;
+      const result=await tryInspectImageMetadata(input,this.inputOptions,this.nodes,this.outputOptions,this.fileInputs,consume);
+      if(result)return result.value;
+    }
+    await this.waitForStreamInput();return consume(this.metadataSync());
+  }
+
+  async metadata(callback?: (err: Error | null, metadata?: ImageMetadata) => void): Promise<ImageMetadata> {
+    try {
+      const result=await this.inspectMetadata(async retained=>{
+        const {storedDelay,...metadata}=retained;
+        if(!storedDelay)return metadata;
+        const delay:number[]=[];for(let i=0;i<storedDelay.length;i++)delay.push((await storedDelay.at(i))!);
+        return {...metadata,delay};
+      });
+      if(callback)callback(null,result);return result;
+    } catch(error){if(callback)callback(error as Error);throw error;}
+  }
+
+  statsSync(): ImageStats {
+    const img = this.evaluateImage();
+    return computeImageStats(img);
+  }
+
+  async stats(callback?: (err: Error | null, stats?: ImageStats) => void): Promise<ImageStats> {
+    try {
+      await this.waitForStreamInput(false);
+      if(this.inputOptions?.filesystem) {
+        if(this.streamFailure) throw this.streamFailure;
+        const result=await tryImageStats(this.streamBacking?{source:this.streamBacking}:this.joinInputs?{inputs:this.joinInputs}:this.inputFilePath??this.inputBytes,this.inputOptions,this.nodes,this.fileInputs);
+        if(result) {if(callback) callback(null,result);return result;}
+      }
+      await this.waitForStreamInput();
+      const res = this.statsSync();
+      if (callback) callback(null, res);
+      return res;
+    } catch (err) {
+      if (callback) callback(err as Error);
+      throw err;
+    }
+  }
+
+  autoOrient(): this {
+    return this.rotate();
+  }
+
+  rotate(angle?: number, options?: { readonly background?: ColorInput }): this {
+    if (angle === undefined) {
+      if (!this.nodes.some(n => n.kind === "autoOrient")) {
+        const insertIdx = this.nodes.findIndex(
+          n => n.kind === "rotate" || n.kind === "flip" || n.kind === "flop" || n.kind === "resize"
+        );
+        if (insertIdx !== -1) {
+          this.nodes.splice(insertIdx, 0, { kind: "autoOrient" });
+        } else {
+          this.nodes.push({ kind: "autoOrient" });
+        }
+      }
+    } else {
+      if (typeof angle !== "number" || Number.isNaN(angle)) {
+        throw new Error(`Expected numeric for angle but received ${angle} of type ${typeof angle}`);
+      }
+      const isOrthogonal = Number.isInteger(angle) && angle % 90 === 0;
+      const nextNode: ImageAstNode = {
+        kind: "rotate",
+        angle,
+        background: isOrthogonal ? { r: 0, g: 0, b: 0, a: 255 } : parseColor(options?.background, 255)
+      };
+      const existingIdx = this.nodes.findIndex(n => n.kind === "rotate");
+      if (existingIdx !== -1) {
+        this.nodes[existingIdx] = nextNode;
+      } else {
+        this.nodes.push(nextNode);
+      }
+    }
+    return this;
+  }
+
+  flip(flip = true): this {
+    const existingIdx = this.nodes.findIndex(n => n.kind === "flip");
+    if (flip) {
+      if (existingIdx !== -1) return this;
+      const rotIdx = this.nodes.findIndex(n => n.kind === "rotate");
+      if (rotIdx !== -1) this.nodes.splice(rotIdx, 0, { kind: "flip" });
+      else this.nodes.push({ kind: "flip" });
+    } else if (existingIdx !== -1) {
+      this.nodes.splice(existingIdx, 1);
+    }
+    return this;
+  }
+
+  flop(flop = true): this {
+    const existingIdx = this.nodes.findIndex(n => n.kind === "flop");
+    if (flop) {
+      if (existingIdx !== -1) return this;
+      const rotIdx = this.nodes.findIndex(n => n.kind === "rotate");
+      if (rotIdx !== -1) this.nodes.splice(rotIdx, 0, { kind: "flop" });
+      else this.nodes.push({ kind: "flop" });
+    } else if (existingIdx !== -1) {
+      this.nodes.splice(existingIdx, 1);
+    }
+    return this;
+  }
+
+  extract(region: {
+    readonly left: number;
+    readonly top: number;
+    readonly width: number;
+    readonly height: number;
+  }): this {
+    if (!region || typeof region !== "object") {
+      throw new Error("Expected object for extract region");
+    }
+    for (const name of ["left", "top", "width", "height"] as const) {
+      const val = region[name];
+      if (!Number.isInteger(val) || val < 0) {
+        throw new Error(`Expected integer for ${name} but received ${val}`);
+      }
+    }
+    const nextNode: ImageAstNode = {
+      kind: "extract",
+      left: region.left,
+      top: region.top,
+      width: region.width,
+      height: region.height
+    };
+    const resizeIdx = this.nodes.findIndex(n => n.kind === "resize");
+    const extractIndices: number[] = [];
+    for (let i = 0; i < this.nodes.length; i++) {
+      if (this.nodes[i]!.kind === "extract") extractIndices.push(i);
+    }
+    if (resizeIdx !== -1) {
+      const postIdx = extractIndices.find(idx => idx > resizeIdx);
+      if (postIdx !== undefined) {
+        this.nodes[postIdx] = nextNode;
+        return this;
+      }
+    } else if (extractIndices.length >= 2) {
+      this.nodes[extractIndices[1]!] = nextNode;
+      return this;
+    }
+    const extIdx = this.nodes.findIndex(n => n.kind === "extend");
+    if (extIdx !== -1) this.nodes.splice(extIdx, 0, nextNode);
+    else this.nodes.push(nextNode);
+    return this;
+  }
+
+  trim(options?: number | { readonly threshold?: number; readonly background?: ColorInput }): this {
+    if (
+      options !== undefined &&
+      typeof options !== "number" &&
+      (typeof options !== "object" || options === null || Array.isArray(options))
+    ) {
+      throw new Error(`Expected object or number for trim but received ${options} of type ${typeof options}`);
+    }
+    if (
+      typeof options === "object" &&
+      options !== null &&
+      (options as Record<string, unknown>).lineArt !== undefined &&
+      typeof (options as Record<string, unknown>).lineArt !== "boolean"
+    ) {
+      throw new Error(
+        `Expected boolean for trimLineArt but received ${(options as Record<string, unknown>).lineArt} of type ${typeof (options as Record<string, unknown>).lineArt}`
+      );
+    }
+    const threshold = typeof options === "number" ? options : (options?.threshold ?? 10);
+    if (typeof threshold !== "number" || Number.isNaN(threshold) || threshold < 0) {
+      throw new Error(`Expected positive number for threshold but received ${threshold} of type ${typeof threshold}`);
+    }
+    const background =
+      typeof options === "object" && options?.background
+        ? parseColor(options.background)
+        : undefined;
+    const lineArt =
+      typeof options === "object" && typeof (options as Record<string, unknown>)?.lineArt === "boolean"
+        ? ((options as Record<string, unknown>).lineArt as boolean)
+        : undefined;
+    const nextNode: ImageAstNode = {
+      kind: "trim",
+      threshold,
+      ...(background ? { background } : {}),
+      ...(lineArt !== undefined ? { lineArt } : {})
+    };
+    const existingIdx = this.nodes.findIndex(n => n.kind === "trim");
+    if (existingIdx !== -1) {
+      this.nodes[existingIdx] = nextNode;
+      return this;
+    }
+    const geomIdx = this.nodes.findIndex(
+      n => n.kind === "resize" || n.kind === "extend" || n.kind === "extract" || n.kind === "rotate"
+    );
+    if (geomIdx !== -1) this.nodes.splice(geomIdx, 0, nextNode);
+    else this.nodes.push(nextNode);
+    return this;
+  }
+
+  resize(
+    widthOrOptions?: number | null | ResizeOptions,
+    height?: number | null,
+    options?: ResizeOptions
+  ): this {
+    let w: number | null = null;
+    let h: number | null = null;
+    let wProvided = false;
+    let hProvided = false;
+    let opts: ResizeOptions = {};
+    if (typeof widthOrOptions === "object" && widthOrOptions !== null) {
+      opts = widthOrOptions;
+      w = opts.width ?? null;
+      h = opts.height ?? null;
+      wProvided = opts.width !== undefined;
+      hProvided = true;
+    } else {
+      opts = options ?? {};
+      w = widthOrOptions !== undefined ? widthOrOptions : (opts.width ?? null);
+      h = height !== undefined ? height : (opts.height ?? null);
+      wProvided = true;
+      hProvided = true;
+    }
+    if (w !== null && (!Number.isInteger(w) || w <= 0)) {
+      throw new Error(`Expected positive integer for width but received ${w}`);
+    }
+    if (h !== null && (!Number.isInteger(h) || h <= 0)) {
+      throw new Error(`Expected positive integer for height but received ${h}`);
+    }
+    if (opts.fit !== undefined && !["contain", "cover", "fill", "inside", "outside"].includes(opts.fit)) {
+      throw new Error(`Expected valid fit for fit but received ${opts.fit} of type ${typeof opts.fit}`);
+    }
+    if (
+      opts.kernel !== undefined &&
+      !["nearest", "linear", "cubic", "mitchell", "lanczos2", "lanczos3", "mks2013", "mks2021"].includes(opts.kernel)
+    ) {
+      throw new Error(`Expected valid kernel name for kernel but received ${opts.kernel} of type ${typeof opts.kernel}`);
+    }
+    if (opts.position !== undefined) {
+      const validPosStrings = [
+        "top",
+        "right",
+        "bottom",
+        "left",
+        "right top",
+        "right bottom",
+        "left bottom",
+        "left top",
+        "north",
+        "northeast",
+        "east",
+        "southeast",
+        "south",
+        "southwest",
+        "west",
+        "northwest",
+        "center",
+        "centre",
+        "entropy",
+        "attention"
+      ];
+      const isValidPos =
+        typeof opts.position === "string"
+          ? validPosStrings.includes(opts.position)
+          : typeof opts.position === "number" &&
+            Number.isInteger(opts.position) &&
+            ((opts.position >= 0 && opts.position <= 8) || opts.position === 16 || opts.position === 17);
+      if (!isValidPos) {
+        throw new Error(
+          `Expected valid position/gravity/strategy for position but received ${opts.position} of type ${typeof opts.position}`
+        );
+      }
+    }
+    const anyResizeOpts = opts as Record<string, unknown>;
+    for (const boolKey of ["withoutEnlargement", "withoutReduction", "fastShrinkOnLoad"] as const) {
+      if (anyResizeOpts[boolKey] !== undefined && typeof anyResizeOpts[boolKey] !== "boolean") {
+        throw new Error(
+          `Expected boolean for ${boolKey} but received ${anyResizeOpts[boolKey]} of type ${typeof anyResizeOpts[boolKey]}`
+        );
+      }
+    }
+    const existingIdx = this.nodes.findIndex(n => n.kind === "resize");
+    if (existingIdx !== -1) {
+      const prev = this.nodes[existingIdx] as Extract<ImageAstNode, { readonly kind: "resize" }>;
+      this.nodes[existingIdx] = {
+        kind: "resize",
+        width: wProvided ? w : prev.width,
+        height: hProvided ? h : prev.height,
+        fit: opts.fit ?? prev.fit,
+        position: opts.position ?? prev.position,
+        kernel: opts.kernel ?? prev.kernel,
+        background: opts.background !== undefined ? parseColor(opts.background, 255) : prev.background,
+        withoutEnlargement: opts.withoutEnlargement ?? prev.withoutEnlargement,
+        withoutReduction: opts.withoutReduction ?? prev.withoutReduction
+      };
+      return this;
+    }
+    const nextResizeNode: ImageAstNode = {
+      kind: "resize",
+      width: w,
+      height: h,
+      fit: opts.fit ?? "cover",
+      position: opts.position ?? "centre",
+      kernel: opts.kernel ?? "lanczos3",
+      background: parseColor(opts.background, 255),
+      withoutEnlargement: opts.withoutEnlargement ?? false,
+      withoutReduction: opts.withoutReduction ?? false
+    };
+    const extIdx = this.nodes.findIndex(n => n.kind === "extend");
+    if (extIdx !== -1) this.nodes.splice(extIdx, 0, nextResizeNode);
+    else this.nodes.push(nextResizeNode);
+    return this;
+  }
+
+  extend(
+    edges:
+      | number
+      | {
+          readonly top?: number;
+          readonly bottom?: number;
+          readonly left?: number;
+          readonly right?: number;
+          readonly background?: ColorInput;
+          readonly extendWith?: "background" | "copy" | "repeat" | "mirror";
+        }
+  ): this {
+    if (typeof edges === "number") {
+      if (!Number.isInteger(edges) || edges <= 0) {
+        throw new Error(`Expected positive integer for extend but received ${edges}`);
+      }
+    } else if (edges && typeof edges === "object") {
+      for (const side of ["top", "bottom", "left", "right"] as const) {
+        const val = edges[side];
+        if (val !== undefined && (!Number.isInteger(val) || val < 0)) {
+          throw new Error(`Expected positive integer for ${side} but received ${val}`);
+        }
+      }
+      if (
+        edges.extendWith !== undefined &&
+        edges.extendWith !== "background" &&
+        edges.extendWith !== "copy" &&
+        edges.extendWith !== "repeat" &&
+        edges.extendWith !== "mirror"
+      ) {
+        throw new Error(`Expected one of: background, copy, repeat, mirror for extendWith but received ${edges.extendWith}`);
+      }
+    } else {
+      throw new Error(`Expected integer or object for extend but received ${edges}`);
+    }
+    const nextNode: ImageAstNode =
+      typeof edges === "number"
+        ? {
+            kind: "extend",
+            top: edges,
+            bottom: edges,
+            left: edges,
+            right: edges,
+            background: { r: 0, g: 0, b: 0, a: 255 },
+            extendWith: "background"
+          }
+        : {
+            kind: "extend",
+            top: edges.top ?? 0,
+            bottom: edges.bottom ?? 0,
+            left: edges.left ?? 0,
+            right: edges.right ?? 0,
+            background: parseColor(edges.background, 255),
+            extendWith: edges.extendWith ?? "background"
+          };
+    const existingIdx = this.nodes.findIndex(n => n.kind === "extend");
+    if (existingIdx !== -1) {
+      this.nodes[existingIdx] = nextNode;
+    } else {
+      this.nodes.push(nextNode);
+    }
+    return this;
+  }
+
+  composite(images: readonly CompositeLayer[]): this {
+    if (!Array.isArray(images)) {
+      throw new Error("Expected array for images to composite");
+    }
+    const validBlends = [
+      "clear",
+      "source",
+      "over",
+      "in",
+      "out",
+      "atop",
+      "dest",
+      "dest-over",
+      "dest-in",
+      "dest-out",
+      "dest-atop",
+      "xor",
+      "add",
+      "saturate",
+      "multiply",
+      "screen",
+      "overlay",
+      "darken",
+      "lighten",
+      "colour-dodge",
+      "color-dodge",
+      "colour-burn",
+      "color-burn",
+      "hard-light",
+      "soft-light",
+      "difference",
+      "exclusion"
+    ];
+    const validGravities = [
+      "center",
+      "centre",
+      "north",
+      "east",
+      "south",
+      "west",
+      "northeast",
+      "southeast",
+      "southwest",
+      "northwest"
+    ];
+    for (const img of images) {
+      if (!img || typeof img !== "object") {
+        throw new Error("Expected object for image to composite");
+      }
+      if (img.input === undefined) {
+        throw new Error(`Unsupported input '${img.input}' of type ${typeof img.input}`);
+      }
+      validateInputOptions(img as unknown as SharpInputOptions);
+      if (img.blend !== undefined && !validBlends.includes(img.blend)) {
+        throw new Error(`Expected valid blend name for blend but received ${img.blend} of type ${typeof img.blend}`);
+      }
+      if (img.tile !== undefined && typeof img.tile !== "boolean") {
+        throw new Error(`Expected boolean for tile but received ${img.tile} of type ${typeof img.tile}`);
+      }
+      if (img.premultiplied !== undefined && typeof img.premultiplied !== "boolean") {
+        throw new Error(`Expected boolean for premultiplied but received ${img.premultiplied} of type ${typeof img.premultiplied}`);
+      }
+      if (img.gravity !== undefined) {
+        const validG =
+          typeof img.gravity === "string"
+            ? validGravities.includes(img.gravity)
+            : typeof img.gravity === "number" && Number.isInteger(img.gravity) && img.gravity >= 0 && img.gravity <= 8;
+        if (!validG) {
+          throw new Error(`Expected valid gravity for gravity but received ${img.gravity} of type ${typeof img.gravity}`);
+        }
+      }
+      if ((img.top !== undefined) !== (img.left !== undefined)) {
+        throw new Error("Expected both left and top to be set");
+      }
+      if (img.top !== undefined && !Number.isInteger(img.top)) {
+        throw new Error(`Expected integer for top but received ${img.top}`);
+      }
+      if (img.left !== undefined && !Number.isInteger(img.left)) {
+        throw new Error(`Expected integer for left but received ${img.left}`);
+      }
+    }
+    const existingIdx = this.nodes.findIndex(n => n.kind === "composite");
+    if (existingIdx !== -1) {
+      this.nodes[existingIdx] = { kind: "composite", layers: [...images] };
+    } else {
+      this.nodes.push({ kind: "composite", layers: [...images] });
+    }
+    return this;
+  }
+
+  grayscale(grayscale = true): this {
+    if (grayscale === false) {
+      const idx = this.nodes.findIndex(n => n.kind === "grayscale");
+      if (idx !== -1) this.nodes.splice(idx, 1);
+      return this;
+    }
+    this.upsertNode({ kind: "grayscale" });
+    return this;
+  }
+
+  greyscale(greyscale = true): this {
+    return this.grayscale(greyscale);
+  }
+
+  flatten(options?: boolean | { readonly background?: ColorInput }): this {
+    if (options === false) {
+      const idx = this.nodes.findIndex(n => n.kind === "flatten");
+      if (idx !== -1) this.nodes.splice(idx, 1);
+      return this;
+    }
+    const bg = typeof options === "object" ? options?.background : undefined;
+    this.upsertNode({
+      kind: "flatten",
+      background: parseColor(bg ?? "#000000", 255)
+    });
+    return this;
+  }
+
+  unflatten(): this {
+    this.upsertNode({ kind: "unflatten" }, true);
+    return this;
+  }
+
+  negate(options?: boolean | { readonly alpha?: boolean }): this {
+    if (options === false) {
+      const idx = this.nodes.findIndex(n => n.kind === "negate");
+      if (idx !== -1) this.nodes.splice(idx, 1);
+      return this;
+    }
+    if (typeof options === "object" && options !== null && options.alpha !== undefined && typeof options.alpha !== "boolean") {
+      throw new Error(`Expected should be boolean value for alpha but received ${options.alpha} of type ${typeof options.alpha}`);
+    }
+    const alpha = typeof options === "object" ? (options.alpha ?? true) : true;
+    this.upsertNode({ kind: "negate", alpha });
+    return this;
+  }
+
+  modulate(options: {
+    readonly brightness?: number;
+    readonly saturation?: number;
+    readonly hue?: number;
+    readonly lightness?: number;
+  }): this {
+    if (!options || typeof options !== "object") {
+      throw new Error(`Expected plain object for modulate options but received ${options}`);
+    }
+    if (options.brightness !== undefined && (typeof options.brightness !== "number" || Number.isNaN(options.brightness) || options.brightness < 0)) {
+      throw new Error(`Expected number above zero for brightness but received ${options.brightness} of type ${typeof options.brightness}`);
+    }
+    if (options.saturation !== undefined && (typeof options.saturation !== "number" || Number.isNaN(options.saturation) || options.saturation < 0)) {
+      throw new Error(`Expected number above zero for saturation but received ${options.saturation} of type ${typeof options.saturation}`);
+    }
+    if (options.hue !== undefined && (typeof options.hue !== "number" || Number.isNaN(options.hue))) {
+      throw new Error(`Expected number for hue but received ${options.hue} of type ${typeof options.hue}`);
+    }
+    if (options.lightness !== undefined && (typeof options.lightness !== "number" || Number.isNaN(options.lightness))) {
+      throw new Error(`Expected number for lightness but received ${options.lightness} of type ${typeof options.lightness}`);
+    }
+    const idx = this.nodes.findIndex(n => n.kind === "modulate");
+    if (idx !== -1) {
+      const prev = this.nodes[idx] as Extract<ImageAstNode, { readonly kind: "modulate" }>;
+      this.nodes[idx] = {
+        kind: "modulate",
+        brightness: options.brightness ?? prev.brightness,
+        saturation: options.saturation ?? prev.saturation,
+        hue: options.hue ?? prev.hue,
+        lightness: options.lightness ?? prev.lightness
+      };
+      return this;
+    }
+    this.nodes.push({
+      kind: "modulate",
+      brightness: options.brightness ?? 1,
+      saturation: options.saturation ?? 1,
+      hue: options.hue ?? 0,
+      lightness: options.lightness ?? 0
+    });
+    return this;
+  }
+
+  tint(rgb: ColorInput): this {
+    this.upsertNode({ kind: "tint", color: parseColor(rgb, 255) }, true);
+    return this;
+  }
+
+  gamma(gamma = 2.2, gammaOut = gamma): this {
+    if (typeof gamma !== "number" || Number.isNaN(gamma) || gamma < 1 || gamma > 3) {
+      throw new Error(`Expected number between 1.0 and 3.0 for gamma but received ${gamma}`);
+    }
+    if (typeof gammaOut !== "number" || Number.isNaN(gammaOut) || gammaOut < 1 || gammaOut > 3) {
+      throw new Error(`Expected number between 1.0 and 3.0 for gammaOut but received ${gammaOut}`);
+    }
+    this.upsertNode({ kind: "gamma", gamma, gammaOut });
+    return this;
+  }
+
+  linear(a?: number | readonly number[] | null, b?: number | readonly number[] | null): this {
+    if (a == null && b == null) {
+      const idx = this.nodes.findIndex(n => n.kind === "linear");
+      if (idx !== -1) this.nodes.splice(idx, 1);
+      return this;
+    }
+    let effA = a;
+    let effB = b;
+    if (effA == null && typeof effB === "number") {
+      effA = 1.0;
+    } else if (typeof effA === "number" && effB == null) {
+      effB = 0.0;
+    }
+    const aArr = effA == null ? [] : typeof effA === "number" ? [effA] : Array.isArray(effA) ? [...effA] : [];
+    const bArr = effB == null ? [] : typeof effB === "number" ? [effB] : Array.isArray(effB) ? [...effB] : [];
+    if (aArr.length !== bArr.length) {
+      throw new Error("Expected a and b to be arrays of the same length");
+    }
+    this.upsertNode({ kind: "linear", a: aArr, b: bArr });
+    return this;
+  }
+
+  normalize(
+    lowerOrOptions?: number | boolean | { readonly lower?: number; readonly upper?: number },
+    upperArg?: number
+  ): this {
+    if (lowerOrOptions === false) {
+      const idx = this.nodes.findIndex(n => n.kind === "normalize");
+      if (idx !== -1) this.nodes.splice(idx, 1);
+      return this;
+    }
+    if (lowerOrOptions === true) {
+      this.upsertNode({ kind: "normalize", lower: 1, upper: 99 });
+      return this;
+    }
+    const lower = typeof lowerOrOptions === "number" ? lowerOrOptions : (lowerOrOptions?.lower ?? 1);
+    const upper = typeof lowerOrOptions === "number" ? (upperArg ?? 99) : (lowerOrOptions?.upper ?? 99);
+    if (typeof lower !== "number" || Number.isNaN(lower) || lower < 0 || lower > 99) {
+      throw new Error(`Expected number between 0 and 99 for lower but received ${lower} of type ${typeof lower}`);
+    }
+    if (typeof upper !== "number" || Number.isNaN(upper) || upper < 1 || upper > 100) {
+      throw new Error(`Expected number between 1 and 100 for upper but received ${upper} of type ${typeof upper}`);
+    }
+    if (lower >= upper) {
+      throw new Error(`Expected lower to be less than upper for range but received ${lower} >= ${upper} of type string`);
+    }
+    this.upsertNode({ kind: "normalize", lower, upper });
+    return this;
+  }
+
+  normalise(
+    lowerOrOptions?: number | boolean | { readonly lower?: number; readonly upper?: number },
+    upperArg?: number
+  ): this {
+    return this.normalize(lowerOrOptions, upperArg);
+  }
+
+  threshold(
+    threshold: number | boolean = 128,
+    options?: { readonly grayscale?: boolean; readonly greyscale?: boolean }
+  ): this {
+    if (threshold === false || threshold === 0) {
+      const idx = this.nodes.findIndex(n => n.kind === "threshold");
+      if (idx !== -1) this.nodes.splice(idx, 1);
+      return this;
+    }
+    if (typeof threshold === "number" && (!Number.isInteger(threshold) || threshold < 0 || threshold > 255)) {
+      throw new Error(`Expected integer between 0 and 255 for threshold but received ${threshold}`);
+    }
+    const val = typeof threshold === "number" ? threshold : 128;
+    const gs = options?.grayscale ?? options?.greyscale ?? true;
+    this.upsertNode({ kind: "threshold", value: val, grayscale: gs });
+    return this;
+  }
+
+  blur(
+    options?:
+      | number
+      | boolean
+      | {
+          readonly sigma?: number;
+          readonly precision?: "integer" | "float" | "approximate";
+          readonly minAmplitude?: number;
+        }
+  ): this {
+    if (options === false) {
+      const idx = this.nodes.findIndex(n => n.kind === "blur");
+      if (idx !== -1) this.nodes.splice(idx, 1);
+      return this;
+    }
+    let sigma: number | undefined;
+    let precision: "integer" | "float" | "approximate" | undefined;
+    let minAmplitude: number | undefined;
+    if (typeof options === "number") {
+      sigma = options;
+    } else if (options !== null && typeof options === "object" && !Array.isArray(options)) {
+      if (typeof options.sigma !== "number" || Number.isNaN(options.sigma)) {
+        throw new Error(
+          `Expected number between 0.3 and 1000 for options.sigma but received ${options.sigma} of type ${typeof options.sigma}`
+        );
+      }
+      sigma = options.sigma;
+      if ("precision" in options && options.precision !== undefined) {
+        if (
+          options.precision !== "integer" &&
+          options.precision !== "float" &&
+          options.precision !== "approximate"
+        ) {
+          throw new Error(
+            `Expected one of: integer, float, approximate for precision but received ${options.precision} of type ${typeof options.precision}`
+          );
+        }
+        precision = options.precision;
+      }
+      if ("minAmplitude" in options && options.minAmplitude !== undefined) {
+        if (
+          typeof options.minAmplitude !== "number" ||
+          Number.isNaN(options.minAmplitude) ||
+          options.minAmplitude < 0.001 ||
+          options.minAmplitude > 1
+        ) {
+          throw new Error(
+            `Expected number between 0.001 and 1 for minAmplitude but received ${options.minAmplitude} of type ${typeof options.minAmplitude}`
+          );
+        }
+        minAmplitude = options.minAmplitude;
+      }
+    }
+    if (options === undefined || options === true) {
+      this.upsertNode({ kind: "blur", sigma: -1 });
+      return this;
+    }
+    if (typeof sigma !== "number" || Number.isNaN(sigma) || sigma < 0.3 || sigma > 1000) {
+      throw new Error(
+        `Expected number between 0.3 and 1000 for sigma but received ${sigma} of type ${typeof sigma}`
+      );
+    }
+    this.upsertNode({
+      kind: "blur",
+      sigma,
+      ...(precision ? { precision } : {}),
+      ...(minAmplitude !== undefined ? { minAmplitude } : {})
+    });
+    return this;
+  }
+
+  sharpen(
+    options?:
+      | number
+      | boolean
+      | {
+          readonly sigma?: number;
+          readonly m1?: number;
+          readonly m2?: number;
+          readonly x1?: number;
+          readonly y2?: number;
+          readonly y3?: number;
+        },
+    flat?: number,
+    jagged?: number
+  ): this {
+    if (options === false) {
+      const idx = this.nodes.findIndex(n => n.kind === "sharpen");
+      if (idx !== -1) this.nodes.splice(idx, 1);
+      return this;
+    }
+    if (options === undefined || options === true) {
+      this.upsertNode({ kind: "sharpen", sigma: -1, m1: 1.0, m2: 2.0, x1: 2.0, y2: 10.0, y3: 20.0 });
+      return this;
+    }
+    if (typeof options === "number") {
+      if (Number.isNaN(options) || options < 0.01 || options > 10000) {
+        throw new Error(`Expected number between 0.01 and 10000 for sigma but received ${options}`);
+      }
+      this.upsertNode({ kind: "sharpen",
+        sigma: options,
+        m1: flat ?? 1.0,
+        m2: jagged ?? 2.0,
+        x1: 2.0,
+        y2: 10.0,
+        y3: 20.0
+      });
+      return this;
+    }
+    if (
+      options.sigma !== undefined &&
+      (typeof options.sigma !== "number" || Number.isNaN(options.sigma) || options.sigma < 0.000001 || options.sigma > 10)
+    ) {
+      throw new Error(`Expected number between 0.000001 and 10 for options.sigma but received ${options.sigma}`);
+    }
+    this.upsertNode({ kind: "sharpen",
+      sigma: options.sigma ?? -1,
+      m1: options.m1 ?? 1.0,
+      m2: options.m2 ?? 2.0,
+      x1: options.x1 ?? 2.0,
+      y2: options.y2 ?? 10.0,
+      y3: options.y3 ?? 20.0
+    });
+    return this;
+  }
+
+  median(size: number | boolean = 3): this {
+    if (size === false) {
+      const idx = this.nodes.findIndex(n => n.kind === "median");
+      if (idx !== -1) this.nodes.splice(idx, 1);
+      return this;
+    }
+    const effSize = size === true ? 3 : size;
+    if (!Number.isInteger(effSize) || effSize < 1 || effSize > 1000) {
+      throw new Error(`Expected integer between 1 and 1000 for size but received ${size}`);
+    }
+    this.upsertNode({ kind: "median", size: effSize });
+    return this;
+  }
+
+  dilate(width = 1): this {
+    if (!Number.isInteger(width) || width <= 0) {
+      throw new Error(`Expected positive integer for dilate but received ${width}`);
+    }
+    this.upsertNode({ kind: "dilate", width });
+    return this;
+  }
+
+  erode(width = 1): this {
+    if (!Number.isInteger(width) || width <= 0) {
+      throw new Error(`Expected positive integer for erode but received ${width}`);
+    }
+    this.upsertNode({ kind: "erode", width });
+    return this;
+  }
+
+  convolve(kernelSpec: {
+    readonly width: number;
+    readonly height: number;
+    readonly kernel: readonly number[];
+    readonly scale?: number;
+    readonly offset?: number;
+  }): this {
+    if (
+      !kernelSpec ||
+      typeof kernelSpec !== "object" ||
+      !Array.isArray(kernelSpec.kernel) ||
+      !Number.isInteger(kernelSpec.width) ||
+      !Number.isInteger(kernelSpec.height) ||
+      kernelSpec.width < 3 ||
+      kernelSpec.width > 1001 ||
+      kernelSpec.height < 3 ||
+      kernelSpec.height > 1001 ||
+      kernelSpec.width * kernelSpec.height !== kernelSpec.kernel.length
+    ) {
+      throw new Error("Invalid convolution kernel");
+    }
+    const defaultScale = kernelSpec.kernel.reduce((s, v) => s + v, 0) || 1;
+    this.upsertNode({ kind: "convolve",
+      width: kernelSpec.width,
+      height: kernelSpec.height,
+      kernel: [...kernelSpec.kernel],
+      scale: kernelSpec.scale ?? defaultScale,
+      offset: kernelSpec.offset ?? 0
+    });
+    return this;
+  }
+
+  ensureAlpha(alpha = 1): this {
+    if (typeof alpha !== "number" || Number.isNaN(alpha) || alpha < 0 || alpha > 1) {
+      throw new Error(`Expected number between 0 and 1 for alpha but received ${alpha}`);
+    }
+    this.upsertNode({ kind: "ensureAlpha", alpha }, true);
+    return this;
+  }
+
+  removeAlpha(): this {
+    this.upsertNode({ kind: "removeAlpha" }, true);
+    return this;
+  }
+
+  extractChannel(channel: 0 | 1 | 2 | 3 | "red" | "green" | "blue" | "alpha"): this {
+    const ch: number =
+      channel === "red"
+        ? 0
+        : channel === "green"
+          ? 1
+          : channel === "blue"
+            ? 2
+            : channel === "alpha"
+              ? 3
+              : channel;
+    if (!Number.isInteger(ch) || ch < 0 || ch > 3) {
+      throw new Error(`Expected integer or one of: red, green, blue, alpha for channel but received ${channel}`);
+    }
+    this.upsertNode({ kind: "extractChannel", channel: ch as 0 | 1 | 2 | 3 });
+    return this;
+  }
+
+  recomb(matrix: readonly (readonly number[])[]): this {
+    if (!Array.isArray(matrix) || (matrix.length !== 3 && matrix.length !== 4)) {
+      throw new Error(`Expected 3x3 or 4x4 array for inputMatrix but received ${matrix?.length}`);
+    }
+    const flatLen = matrix.reduce((acc, row) => acc + (Array.isArray(row) ? row.length : 0), 0);
+    if (flatLen !== 9 && flatLen !== 16) {
+      throw new Error(`Expected 3x3 or 4x4 array with cardinality of 9 or 16 for inputMatrix`);
+    }
+    this.upsertNode({ kind: "recomb",
+      matrix: matrix.map(row => [...row])
+    });
+    return this;
+  }
+
+  toColorspace(colorspace: string): this {
+    if (typeof colorspace !== "string") {
+      throw new Error(`Expected string for colourspace but received ${colorspace}`);
+    }
+    const norm = colorspace.toLowerCase();
+    const space: ColorSpace =
+      norm === "grey16"
+        ? "grey16"
+        : norm === "rgb16"
+          ? "rgb16"
+          : norm === "b-w" || norm === "bw" || norm === "gray"
+            ? "b-w"
+            : norm === "cmyk"
+              ? "cmyk"
+              : "srgb";
+    if (space === "srgb" && this.nodes.some(n => n.kind === "grayscale")) {
+      const idx = this.nodes.findIndex(n => n.kind === "toColorspace");
+      if (idx !== -1) this.nodes.splice(idx, 1);
+      return this;
+    }
+    this.upsertNode({ kind: "toColorspace", space });
+    return this;
+  }
+
+  toColourspace(colourspace: string): this {
+    return this.toColorspace(colourspace);
+  }
+
+  pipelineColorspace(colorspace: string): this {
+    return this.toColorspace(colorspace);
+  }
+
+  pipelineColourspace(colourspace: string): this {
+    return this.toColorspace(colourspace);
+  }
+
+  bandbool(boolOp: "and" | "or" | "eor"): this {
+    if (boolOp !== "and" && boolOp !== "or" && boolOp !== "eor") {
+      throw new Error(`Expected one of: and, or, eor for boolOp but received ${boolOp}`);
+    }
+    this.upsertNode({ kind: "bandbool", op: boolOp });
+    return this;
+  }
+
+  boolean(
+    operand: Uint8Array | ArrayBuffer | string,
+    op: "and" | "or" | "eor",
+    options?: SharpInputOptions
+  ): this {
+    if (op !== "and" && op !== "or" && op !== "eor") {
+      throw new Error(`Expected one of: and, or, eor for operator but received ${op}`);
+    }
+    const data = this.operationInput(operand);
+    if (data) {
+      this.nodes.push({
+        kind: "boolean",
+        operand: data,
+        op,
+        ...(options?.raw !== undefined ? { options: { raw: options.raw } } : {})
+      });
+    }
+    return this;
+  }
+
+  joinChannel(
+    images: Uint8Array | ArrayBuffer | ArrayBufferView | string | readonly (Uint8Array | ArrayBuffer | ArrayBufferView | string)[],
+    options?: SharpInputOptions
+  ): this {
+    const list = Array.isArray(images) ? images : [images];
+    this.nodes.push({
+      kind: "joinChannel",
+      inputs: list.map(buf => {
+        const data = this.operationInput(buf as Uint8Array | ArrayBuffer | ArrayBufferView | string);
+        if (!data) {
+          throw new Error(`Unsupported joinChannel input: ${typeof buf}`);
+        }
+        return {
+          data,
+          ...(options !== undefined ? { options } : {})
+        };
+      })
+    });
+    return this;
+  }
+
+  clahe(options: {
+    readonly width: number;
+    readonly height: number;
+    readonly maxSlope?: number;
+  }): this {
+    if (!options || typeof options !== "object") {
+      throw new Error("Expected plain object for clahe options");
+    }
+    if (!Number.isInteger(options.width) || options.width <= 0) {
+      throw new Error(`Expected integer greater than zero for width but received ${options.width}`);
+    }
+    if (!Number.isInteger(options.height) || options.height <= 0) {
+      throw new Error(`Expected integer greater than zero for height but received ${options.height}`);
+    }
+    if (options.maxSlope !== undefined && (!Number.isInteger(options.maxSlope) || options.maxSlope < 0 || options.maxSlope > 100)) {
+      throw new Error(`Expected integer between 0 and 100 for maxSlope but received ${options.maxSlope}`);
+    }
+    this.upsertNode({ kind: "clahe",
+      width: options.width,
+      height: options.height,
+      maxSlope: options.maxSlope ?? 3
+    });
+    return this;
+  }
+
+  affine(
+    matrix: readonly [number, number, number, number] | readonly (readonly number[])[],
+    options?: {
+      readonly background?: ColorInput;
+      readonly idx?: number;
+      readonly idy?: number;
+      readonly odx?: number;
+      readonly ody?: number;
+      readonly interpolator?: string;
+    }
+  ): this {
+    const rawFlat = Array.isArray(matrix)
+      ? Array.isArray(matrix[0])
+        ? [...(matrix[0] as readonly number[]), ...((matrix[1] as readonly number[]) ?? [])]
+        : [...(matrix as readonly number[])]
+      : [];
+    if (rawFlat.length !== 4 || rawFlat.some(v => typeof v !== "number" || Number.isNaN(v))) {
+      throw new Error(`Expected 1x4 or 2x2 array for matrix but received ${matrix} of type ${typeof matrix}`);
+    }
+    if (
+      options?.interpolator !== undefined &&
+      !["nearest", "bilinear", "bicubic", "lbb", "nohalo", "vsqbs"].includes(options.interpolator)
+    ) {
+      throw new Error(
+        `Expected valid interpolator name for options.interpolator but received ${options.interpolator} of type ${typeof options.interpolator}`
+      );
+    }
+    for (const key of ["idx", "idy", "odx", "ody"] as const) {
+      const val = options?.[key];
+      if (val !== undefined && (typeof val !== "number" || Number.isNaN(val))) {
+        throw new Error(`Expected number for options.${key} but received ${val} of type ${typeof val}`);
+      }
+    }
+    const flat: [number, number, number, number] = [rawFlat[0]!, rawFlat[1]!, rawFlat[2]!, rawFlat[3]!];
+    this.upsertNode({ kind: "affine",
+      matrix: flat,
+      background: parseColor(options?.background ?? "#000000", 255),
+      idx: options?.idx ?? 0,
+      idy: options?.idy ?? 0,
+      odx: options?.odx ?? 0,
+      ody: options?.ody ?? 0,
+      ...(options?.interpolator !== undefined ? { interpolator: options.interpolator } : {})
+    });
+    return this;
+  }
+
+  withMetadata(options?: { readonly density?: number; readonly orientation?: number }): this {
+    if (options && typeof options === "object") {
+      if (options.orientation !== undefined && (!Number.isInteger(options.orientation) || options.orientation < 1 || options.orientation > 8)) {
+        throw new Error(`Expected integer between 1 and 8 for orientation but received ${options.orientation}`);
+      }
+      if (options.density !== undefined && (typeof options.density !== "number" || Number.isNaN(options.density) || options.density <= 0)) {
+        throw new Error(`Expected positive number for density but received ${options.density}`);
+      }
+    }
+    const existingIdx = this.nodes.findIndex(n => n.kind === "withMetadata");
+    const prev = existingIdx !== -1 ? (this.nodes[existingIdx] as Extract<ImageAstNode, { readonly kind: "withMetadata" }>) : undefined;
+    const density = options?.density ?? prev?.density;
+    const orientation = options?.orientation ?? prev?.orientation;
+    this.upsertNode({
+      kind: "withMetadata",
+      ...(density !== undefined ? { density } : {}),
+      ...(orientation !== undefined ? { orientation } : {})
+    });
+    this.outputOptions = {
+      ...this.outputOptions,
+      ...(density !== undefined ? { density } : {}),
+      ...(orientation !== undefined ? { orientation } : {})
+    };
+    return this;
+  }
+
+  keepExif(): this {
+    return this.withMetadata();
+  }
+
+  withExif(exif: Record<string, Record<string, string>>): this {
+    if (!exif || typeof exif !== "object" || Array.isArray(exif)) {
+      throw new Error(`Expected object for exif but received ${exif}`);
+    }
+    const orientStr = exif?.IFD0?.Orientation;
+    const orientNum = orientStr !== undefined ? Number(orientStr) : undefined;
+    return this.withMetadata(orientNum !== undefined && Number.isFinite(orientNum) ? { orientation: orientNum } : undefined);
+  }
+
+  withExifMerge(exif: Record<string, Record<string, string>>): this {
+    return this.withExif(exif);
+  }
+
+  keepIccProfile(): this {
+    return this;
+  }
+
+  withIccProfile(profile: string, _options?: { readonly attach?: boolean }): this {
+    if (typeof profile !== "string") {
+      throw new Error(`Expected string for icc but received ${profile}`);
+    }
+    return this;
+  }
+
+  timeout(options?: { readonly seconds?: number }): this {
+    if (!options || typeof options !== "object" || Array.isArray(options)) {
+      throw new Error(`Expected object for options but received ${options}`);
+    }
+    if (!Number.isInteger(options.seconds) || options.seconds! < 0 || options.seconds! > 3600) {
+      throw new Error(`Expected integer between 0 and 3600 for seconds but received ${options.seconds}`);
+    }
+    return this;
+  }
+
+  keepXmp(): this {
+    return this;
+  }
+
+  withXmp(xmp: string): this {
+    if (typeof xmp !== "string" || xmp.length === 0) {
+      throw new Error(`Expected non-empty string for xmp but received ${xmp}`);
+    }
+    return this;
+  }
+
+  keepMetadata(): this {
+    return this.withMetadata();
+  }
+
+  private validateQuality(q?: number): void {
+    if (q !== undefined && (!Number.isInteger(q) || q < 1 || q > 100)) {
+      throw new Error(`Expected integer between 1 and 100 for quality but received ${q}`);
+    }
+  }
+
+  private validateCompressionLevel(level?: number): void {
+    if (level !== undefined && (!Number.isInteger(level) || level < 0 || level > 9)) {
+      throw new Error(`Expected integer between 0 and 9 for compressionLevel but received ${level}`);
+    }
+  }
+
+  jp2(options?: { readonly quality?: number; readonly lossless?: boolean; readonly force?: boolean }): this {
+    this.validateQuality(options?.quality);
+    return this.png(options);
+  }
+
+  jxl(options?: { readonly quality?: number; readonly lossless?: boolean; readonly force?: boolean }): this {
+    this.validateQuality(options?.quality);
+    return this.png(options);
+  }
+
+  tile(_options?: Record<string, unknown>): this {
+    return this;
+  }
+
+  png(options?: { readonly compressionLevel?: number; readonly palette?: boolean; readonly quality?: number; readonly force?: boolean }): this {
+    this.validateCompressionLevel(options?.compressionLevel);
+    this.validateQuality(options?.quality);
+    const anyOpts = options as Record<string, unknown> | undefined;
+    for (const [k, label] of [
+      ["progressive", "pngProgressive"],
+      ["adaptiveFiltering", "pngAdaptiveFiltering"],
+      ["palette", "pngPalette"]
+    ] as const) {
+      if (anyOpts?.[k] !== undefined && typeof anyOpts[k] !== "boolean") {
+        throw new Error(`Expected boolean for ${label} but received ${anyOpts[k]} of type ${typeof anyOpts[k]}`);
+      }
+    }
+    if (anyOpts?.effort !== undefined && (!Number.isInteger(anyOpts.effort) || (anyOpts.effort as number) < 1 || (anyOpts.effort as number) > 10)) {
+      throw new Error(`Expected integer between 1 and 10 for effort but received ${anyOpts.effort} of type ${typeof anyOpts.effort}`);
+    }
+    const colours = anyOpts?.colours ?? anyOpts?.colors;
+    if (colours !== undefined && (!Number.isInteger(colours) || (colours as number) < 2 || (colours as number) > 256)) {
+      throw new Error(`Expected integer between 2 and 256 for colours but received ${colours} of type ${typeof colours}`);
+    }
+    if (anyOpts?.dither !== undefined && (typeof anyOpts.dither !== "number" || Number.isNaN(anyOpts.dither) || anyOpts.dither < 0 || anyOpts.dither > 1)) {
+      throw new Error(`Expected number between 0.0 and 1.0 for dither but received ${anyOpts.dither} of type ${typeof anyOpts.dither}`);
+    }
+    if (anyOpts?.bitdepth !== undefined && ![1, 2, 4, 8, 16].includes(anyOpts.bitdepth as number)) {
+      throw new Error(`Expected 1, 2, 4, 8 or 16 for bitdepth but received ${anyOpts.bitdepth} of type ${typeof anyOpts.bitdepth}`);
+    }
+    this.outputOptions = {
+      ...this.outputOptions,
+      ...(options?.force === false ? {} : { format: "png" }),
+      ...(options?.compressionLevel !== undefined
+        ? { compressionLevel: options.compressionLevel }
+        : {}),
+      ...(options?.palette !== undefined ? { palette: options.palette } : {})
+    };
+    return this;
+  }
+
+  jpeg(options?: { readonly quality?: number; readonly force?: boolean; readonly progressive?: boolean }): this {
+    this.validateQuality(options?.quality);
+    const anyOpts = options as Record<string, unknown> | undefined;
+    for (const [k, label] of [
+      ["progressive", "jpegProgressive"],
+      ["trellisQuantisation", "jpegTrellisQuantisation"],
+      ["overshootDeringing", "jpegOvershootDeringing"],
+      ["optimiseScans", "jpegOptimiseScans"],
+      ["optimiseCoding", "jpegOptimiseCoding"],
+      ["mozjpeg", "mozjpeg"]
+    ] as const) {
+      if (anyOpts?.[k] !== undefined && typeof anyOpts[k] !== "boolean") {
+        throw new Error(`Expected boolean for ${label} but received ${anyOpts[k]} of type ${typeof anyOpts[k]}`);
+      }
+    }
+    if (anyOpts?.chromaSubsampling !== undefined && typeof anyOpts.chromaSubsampling !== "string") {
+      throw new Error(`Expected one of: 4:2:0, 4:4:4 for chromaSubsampling but received ${anyOpts.chromaSubsampling} of type ${typeof anyOpts.chromaSubsampling}`);
+    }
+    const qTable = anyOpts?.quantisationTable ?? anyOpts?.quantizationTable;
+    if (qTable !== undefined && (!Number.isInteger(qTable) || (qTable as number) < 0 || (qTable as number) > 8)) {
+      throw new Error(`Expected integer between 0 and 8 for quantisationTable but received ${qTable} of type ${typeof qTable}`);
+    }
+    this.outputOptions = {
+      ...this.outputOptions,
+      ...(options?.force === false ? {} : { format: "jpeg" }),
+      ...(options?.progressive === undefined ? {} : { jpegProgressive: options.progressive }),
+      ...(options?.quality !== undefined ? { quality: options.quality } : {})
+    };
+    return this;
+  }
+
+  webp(options?: { readonly smartSubsample?: boolean; readonly alphaCompression?: 0 | 1; readonly alphaQuality?: number; readonly effort?: number; readonly quality?: number; readonly lossless?: boolean; readonly force?: boolean }): this {
+    this.validateQuality(options?.quality);
+    const anyOpts = options as Record<string, unknown> | undefined;
+    for (const [k, label] of [
+      ["lossless", "webpLossless"],
+      ["nearLossless", "webpNearLossless"],
+      ["smartSubsample", "webpSmartSubsample"],
+      ["smartDeblock", "webpSmartDeblock"],
+      ["minSize", "webpMinSize"],
+      ["mixed", "webpMixed"]
+    ] as const) {
+      if (anyOpts?.[k] !== undefined && typeof anyOpts[k] !== "boolean") {
+        throw new Error(`Expected boolean for ${label} but received ${anyOpts[k]} of type ${typeof anyOpts[k]}`);
+      }
+    }
+    if (anyOpts?.alphaCompression !== undefined && anyOpts.alphaCompression !== 0 && anyOpts.alphaCompression !== 1) {
+      throw new Error("WebP alpha compression must be 0 or 1");
+    }
+    if (
+      anyOpts?.alphaQuality !== undefined &&
+      (!Number.isInteger(anyOpts.alphaQuality) || (anyOpts.alphaQuality as number) < 0 || (anyOpts.alphaQuality as number) > 100)
+    ) {
+      throw new Error(
+        `Expected integer between 0 and 100 for alphaQuality but received ${anyOpts.alphaQuality} of type ${typeof anyOpts.alphaQuality}`
+      );
+    }
+    if (anyOpts?.effort !== undefined && (!Number.isInteger(anyOpts.effort) || (anyOpts.effort as number) < 0 || (anyOpts.effort as number) > 6)) {
+      throw new Error(`Expected integer between 0 and 6 for effort but received ${anyOpts.effort} of type ${typeof anyOpts.effort}`);
+    }
+    if (anyOpts?.preset !== undefined && !["default", "photo", "picture", "drawing", "icon", "text"].includes(anyOpts.preset as string)) {
+      throw new Error(
+        `Expected one of: default, photo, picture, drawing, icon, text for preset but received ${anyOpts.preset} of type ${typeof anyOpts.preset}`
+      );
+    }
+    this.outputOptions = {
+      ...this.outputOptions,
+      ...(options?.alphaCompression === undefined ? {} : { alphaCompression: options.alphaCompression }),
+      ...(options?.smartSubsample === undefined ? {} : { smartSubsample: options.smartSubsample }),
+      ...(options?.alphaQuality === undefined ? {} : { alphaQuality: options.alphaQuality }),
+      ...(options?.effort === undefined ? {} : { effort: options.effort }),
+      ...(options?.force === false ? {} : { format: "webp" }),
+      ...(options?.quality !== undefined ? { quality: options.quality } : {}),
+      ...(options?.lossless !== undefined ? { lossless: options.lossless } : {})
+    };
+    return this;
+  }
+
+  heif(options?: {
+    readonly quality?: number;
+    readonly compression?: "hevc" | "av1";
+    readonly lossless?: boolean;
+    readonly force?: boolean;
+  }): this {
+    this.validateQuality(options?.quality);
+    if (options?.compression !== undefined && !["av1", "hevc"].includes(options.compression)) {
+      throw new Error(`Expected one of: av1, hevc for compression but received ${options.compression} of type ${typeof options.compression}`);
+    }
+    const anyOpts = options as Record<string, unknown> | undefined;
+    if (anyOpts?.lossless !== undefined && typeof anyOpts.lossless !== "boolean") {
+      throw new Error(`Expected boolean for lossless but received ${anyOpts.lossless} of type ${typeof anyOpts.lossless}`);
+    }
+    if (anyOpts?.chromaSubsampling !== undefined && typeof anyOpts.chromaSubsampling !== "string") {
+      throw new Error(`Expected one of: 4:2:0, 4:4:4 for chromaSubsampling but received ${anyOpts.chromaSubsampling} of type ${typeof anyOpts.chromaSubsampling}`);
+    }
+    if (anyOpts?.bitdepth !== undefined && ![8, 10, 12].includes(anyOpts.bitdepth as number)) {
+      throw new Error(`Expected 8, 10 or 12 for bitdepth but received ${anyOpts.bitdepth} of type ${typeof anyOpts.bitdepth}`);
+    }
+    if (anyOpts?.effort !== undefined && (!Number.isInteger(anyOpts.effort) || (anyOpts.effort as number) < 0 || (anyOpts.effort as number) > 9)) {
+      throw new Error(`Expected integer between 0 and 9 for effort but received ${anyOpts.effort} of type ${typeof anyOpts.effort}`);
+    }
+    this.outputOptions = {
+      ...this.outputOptions,
+      ...(options?.force === false ? {} : { format: "heif" }),
+      ...(options?.quality !== undefined ? { quality: options.quality } : {}),
+      ...(options?.compression !== undefined ? { compression: options.compression } : {}),
+      ...(options?.lossless !== undefined ? { lossless: options.lossless } : {})
+    };
+    return this;
+  }
+
+  heic(options?: {
+    readonly quality?: number;
+    readonly compression?: "hevc" | "av1";
+    readonly lossless?: boolean;
+    readonly force?: boolean;
+  }): this {
+    this.validateQuality(options?.quality);
+    this.outputOptions = {
+      ...this.outputOptions,
+      ...(options?.force === false ? {} : { format: "heic" }),
+      compression: options?.compression ?? "hevc",
+      ...(options?.quality !== undefined ? { quality: options.quality } : {}),
+      ...(options?.lossless !== undefined ? { lossless: options.lossless } : {})
+    };
+    return this;
+  }
+
+  avif(options?: { readonly quality?: number; readonly lossless?: boolean; readonly force?: boolean }): this {
+    this.validateQuality(options?.quality);
+    const anyOpts = options as Record<string, unknown> | undefined;
+    if (anyOpts?.lossless !== undefined && typeof anyOpts.lossless !== "boolean") {
+      throw new Error(`Expected boolean for lossless but received ${anyOpts.lossless} of type ${typeof anyOpts.lossless}`);
+    }
+    if (anyOpts?.chromaSubsampling !== undefined && typeof anyOpts.chromaSubsampling !== "string") {
+      throw new Error(`Expected one of: 4:2:0, 4:4:4 for chromaSubsampling but received ${anyOpts.chromaSubsampling} of type ${typeof anyOpts.chromaSubsampling}`);
+    }
+    if (anyOpts?.bitdepth !== undefined && ![8, 10, 12].includes(anyOpts.bitdepth as number)) {
+      throw new Error(`Expected 8, 10 or 12 for bitdepth but received ${anyOpts.bitdepth} of type ${typeof anyOpts.bitdepth}`);
+    }
+    if (anyOpts?.effort !== undefined && (!Number.isInteger(anyOpts.effort) || (anyOpts.effort as number) < 0 || (anyOpts.effort as number) > 9)) {
+      throw new Error(`Expected integer between 0 and 9 for effort but received ${anyOpts.effort} of type ${typeof anyOpts.effort}`);
+    }
+    this.outputOptions = {
+      ...this.outputOptions,
+      ...(options?.force === false ? {} : { format: "avif" }),
+      compression: "av1",
+      ...(options?.quality !== undefined ? { quality: options.quality } : {}),
+      ...(options?.lossless !== undefined ? { lossless: options.lossless } : {})
+    };
+    return this;
+  }
+
+  gif(options?: {
+    readonly pageHeight?: number;
+    readonly delay?: number | readonly number[];
+    readonly loop?: number;
+    readonly force?: boolean;
+  }): this {
+    const anyOpts = options as Record<string, unknown> | undefined;
+    if (anyOpts?.reuse !== undefined && typeof anyOpts.reuse !== "boolean") {
+      throw new Error(`Expected boolean for gifReuse but received ${anyOpts.reuse} of type ${typeof anyOpts.reuse}`);
+    }
+    const prog = anyOpts?.progressive;
+    if (prog !== undefined && typeof prog !== "boolean") {
+      throw new Error(`Expected boolean for gifProgressive but received ${prog} of type ${typeof prog}`);
+    }
+    const colours = anyOpts?.colours ?? anyOpts?.colors;
+    if (colours !== undefined && (!Number.isInteger(colours) || (colours as number) < 2 || (colours as number) > 256)) {
+      throw new Error(`Expected integer between 2 and 256 for colours but received ${colours} of type ${typeof colours}`);
+    }
+    if (anyOpts?.effort !== undefined && (!Number.isInteger(anyOpts.effort) || (anyOpts.effort as number) < 1 || (anyOpts.effort as number) > 10)) {
+      throw new Error(`Expected integer between 1 and 10 for effort but received ${anyOpts.effort} of type ${typeof anyOpts.effort}`);
+    }
+    if (anyOpts?.dither !== undefined && (typeof anyOpts.dither !== "number" || Number.isNaN(anyOpts.dither) || anyOpts.dither < 0 || anyOpts.dither > 1)) {
+      throw new Error(`Expected number between 0.0 and 1.0 for dither but received ${anyOpts.dither} of type ${typeof anyOpts.dither}`);
+    }
+    if (
+      anyOpts?.interFrameMaxError !== undefined &&
+      (typeof anyOpts.interFrameMaxError !== "number" || Number.isNaN(anyOpts.interFrameMaxError) || anyOpts.interFrameMaxError < 0 || anyOpts.interFrameMaxError > 32)
+    ) {
+      throw new Error(`Expected number between 0.0 and 32.0 for interFrameMaxError but received ${anyOpts.interFrameMaxError} of type ${typeof anyOpts.interFrameMaxError}`);
+    }
+    if (
+      anyOpts?.interPaletteMaxError !== undefined &&
+      (typeof anyOpts.interPaletteMaxError !== "number" || Number.isNaN(anyOpts.interPaletteMaxError) || anyOpts.interPaletteMaxError < 0 || anyOpts.interPaletteMaxError > 256)
+    ) {
+      throw new Error(`Expected number between 0.0 and 256.0 for interPaletteMaxError but received ${anyOpts.interPaletteMaxError} of type ${typeof anyOpts.interPaletteMaxError}`);
+    }
+    if (options?.loop !== undefined && (!Number.isInteger(options.loop) || options.loop < 0 || options.loop > 65535)) {
+      throw new Error(`Expected integer between 0 and 65535 for loop but received ${options.loop} of type ${typeof options.loop}`);
+    }
+    if (options?.delay !== undefined) {
+      const isValidDelay =
+        (Number.isInteger(options.delay) && (options.delay as number) >= 0 && (options.delay as number) <= 65535) ||
+        (Array.isArray(options.delay) &&
+          options.delay.every(d => Number.isInteger(d) && d >= 0 && d <= 65535));
+      if (!isValidDelay) {
+        throw new Error(
+          `Expected integer or an array of integers between 0 and 65535 for delay but received ${options.delay} of type ${typeof options.delay}`
+        );
+      }
+    }
+    this.outputOptions = {
+      ...this.outputOptions,
+      ...(options?.force === false ? {} : { format: "gif" }),
+      ...(options?.pageHeight !== undefined ? { pageHeight: options.pageHeight } : {}),
+      ...(options?.delay !== undefined ? { delay: options.delay } : {}),
+      ...(options?.loop !== undefined ? { loop: options.loop } : {})
+    };
+    return this;
+  }
+
+  ppm(): this {
+    this.outputOptions = { ...this.outputOptions, format: "ppm" };
+    return this;
+  }
+
+  pgm(): this {
+    this.outputOptions = { ...this.outputOptions, format: "pgm" };
+    return this;
+  }
+
+  pbm(): this {
+    this.outputOptions = { ...this.outputOptions, format: "pbm" };
+    return this;
+  }
+
+  bmp(): this {
+    this.outputOptions = { ...this.outputOptions, format: "bmp" };
+    return this;
+  }
+
+  tiff(options?: { readonly quality?: number; readonly force?: boolean; readonly compression?: OutputEncodeOptions["tiffCompression"] }): this {
+    this.validateQuality(options?.quality);
+    const anyOpts = options as Record<string, unknown> | undefined;
+    if (anyOpts?.predictor !== undefined && !["none", "horizontal", "float"].includes(anyOpts.predictor as string)) {
+      throw new Error(`Expected one of: none, horizontal, float for predictor but received ${anyOpts.predictor} of type ${typeof anyOpts.predictor}`);
+    }
+    for (const [k, label] of [
+      ["pyramid", "tiffPyramid"],
+      ["tile", "tiffTile"],
+      ["miniswhite", "tiffMiniswhite"]
+    ] as const) {
+      if (anyOpts?.[k] !== undefined && typeof anyOpts[k] !== "boolean") {
+        throw new Error(`Expected boolean for ${label} but received ${anyOpts[k]} of type ${typeof anyOpts[k]}`);
+      }
+    }
+    if (anyOpts?.tileWidth !== undefined && (!Number.isInteger(anyOpts.tileWidth) || (anyOpts.tileWidth as number) <= 0)) {
+      throw new Error(`Expected integer greater than zero for tileWidth but received ${anyOpts.tileWidth} of type ${typeof anyOpts.tileWidth}`);
+    }
+    if (anyOpts?.tileHeight !== undefined && (!Number.isInteger(anyOpts.tileHeight) || (anyOpts.tileHeight as number) <= 0)) {
+      throw new Error(`Expected integer greater than zero for tileHeight but received ${anyOpts.tileHeight} of type ${typeof anyOpts.tileHeight}`);
+    }
+    if (anyOpts?.xres !== undefined && (typeof anyOpts.xres !== "number" || Number.isNaN(anyOpts.xres) || anyOpts.xres <= 0)) {
+      throw new Error(`Expected number greater than zero for xres but received ${anyOpts.xres} of type ${typeof anyOpts.xres}`);
+    }
+    if (anyOpts?.yres !== undefined && (typeof anyOpts.yres !== "number" || Number.isNaN(anyOpts.yres) || anyOpts.yres <= 0)) {
+      throw new Error(`Expected number greater than zero for yres but received ${anyOpts.yres} of type ${typeof anyOpts.yres}`);
+    }
+    if (anyOpts?.resolutionUnit !== undefined && !["inch", "cm"].includes(anyOpts.resolutionUnit as string)) {
+      throw new Error(`Expected one of: inch, cm for resolutionUnit but received ${anyOpts.resolutionUnit} of type ${typeof anyOpts.resolutionUnit}`);
+    }
+    if (
+      anyOpts?.compression !== undefined &&
+      !["none", "jpeg", "deflate", "packbits", "ccittfax4", "lzw", "webp", "zstd", "jp2k"].includes(anyOpts.compression as string)
+    ) {
+      throw new Error(
+        `Expected one of: none, jpeg, deflate, packbits, ccittfax4, lzw, webp, zstd, jp2k for compression but received ${anyOpts.compression} of type ${typeof anyOpts.compression}`
+      );
+    }
+    if (anyOpts?.bitdepth !== undefined && ![1, 2, 4, 8].includes(anyOpts.bitdepth as number)) {
+      throw new Error(`Expected 1, 2, 4 or 8 for bitdepth but received ${anyOpts.bitdepth} of type ${typeof anyOpts.bitdepth}`);
+    }
+    this.outputOptions = {
+      ...this.outputOptions,
+      ...(options?.force === false ? {} : { format: "tiff" }),
+      ...(options?.compression === undefined ? {} : { tiffCompression: options.compression }),
+      ...(options?.quality !== undefined ? { quality: options.quality } : {})
+    };
+    return this;
+  }
+
+  raw(options?: { readonly depth?: string }): this {
+    if (
+      options?.depth !== undefined &&
+      !["char", "uchar", "short", "ushort", "int", "uint", "float", "complex", "double", "dpcomplex"].includes(options.depth)
+    ) {
+      throw new Error(
+        `Expected one of: char, uchar, short, ushort, int, uint, float, complex, double, dpcomplex for depth but received ${options.depth} of type ${typeof options.depth}`
+      );
+    }
+    this.outputOptions = {
+      ...this.outputOptions,
+      format: "raw",
+      ...(options?.depth !== undefined ? { rawDepth: options.depth } : {})
+    };
+    return this;
+  }
+
+  toFormat(
+    format: ImageFormat | "jpg" | "tif" | "jpe" | { readonly id: string },
+    options?: {
+      readonly quality?: number;
+      readonly compression?: "hevc" | "av1";
+      readonly compressionLevel?: number;
+      readonly lossless?: boolean;
+    }
+  ): this {
+    const rawFmt = typeof format === "object" && format !== null ? format.id : String(format);
+    const lower = rawFmt.toLowerCase();
+    const norm: ImageFormat =
+      lower === "jpg" || lower === "jpe"
+        ? "jpeg"
+        : lower === "tif"
+          ? "tiff"
+          : (lower as ImageFormat);
+    const validFormats = [
+      "jpeg",
+      "png",
+      "webp",
+      "tiff",
+      "heif",
+      "heic",
+      "avif",
+      "gif",
+      "mng",
+      "svg",
+      "pdf",
+      "pam",
+      "ppm",
+      "pgm",
+      "pbm",
+      "bmp",
+      "raw",
+      "jp2",
+      "jxl"
+    ];
+    if (!validFormats.includes(norm)) {
+      throw new Error(`Expected one of: ${validFormats.join(", ")} for format but received ${rawFmt}`);
+    }
+    this.validateQuality(options?.quality);
+    this.validateCompressionLevel(options?.compressionLevel);
+    this.outputOptions = {
+      ...this.outputOptions,
+      ...((options as any)?.force === false ? {} : { format: norm }),
+      ...(options?.quality !== undefined ? { quality: options.quality } : {}),
+      ...(options?.compression !== undefined ? { compression: options.compression } : {}),
+      ...(options?.compressionLevel !== undefined
+        ? { compressionLevel: options.compressionLevel }
+        : {}),
+      ...(options?.lossless !== undefined ? { lossless: options.lossless } : {})
+    };
+    return this;
+  }
+
+  toBufferWithObjectSync(): { readonly data: Uint8Array; readonly info: OutputInfo } {
+    let img = this.evaluateImage();
+    if(this.outputOptions.format === "raw")img=prepareRawOutput(img,this.nodes);
+    const encoded = encodeImage(img, this.outputOptions);
+    const outBuf = outputBytes(encoded.data);
+    return {
+      data: outBuf,
+      info: {
+        format: encoded.format,
+        width: img.width,
+        height: img.height,
+        channels: encoded.channels,
+        ...(encoded.format === "raw" ? { depth: this.outputOptions.rawDepth ?? img.depth } : {}),
+        premultiplied: Boolean(img.wasPremultiplied),
+        ...(img.pageHeight !== undefined ? { pageHeight: img.pageHeight } : {}),
+        ...(img.pageHeight !== undefined && (img.sourcePages ?? img.pages) !== undefined
+          ? { pages: img.sourcePages ?? img.pages }
+          : {}),
+        ...(img.trimOffsetLeft !== undefined ? { trimOffsetLeft: img.trimOffsetLeft } : {}),
+        ...(img.trimOffsetTop !== undefined ? { trimOffsetTop: img.trimOffsetTop } : {}),
+        ...(img.textAutofitDpi !== undefined ? { textAutofitDpi: img.textAutofitDpi } : {}),
+        size: encoded.data.byteLength
+      }
+    };
+  }
+
+  toBufferSync(): Uint8Array {
+    return this.toBufferWithObjectSync().data;
+  }
+
+  async toFile(
+    fileOut: string,
+    callback?: (err: Error | null, info?: OutputInfo) => void
+  ): Promise<OutputInfo> {
+    try {
+      if (!fileOut || typeof fileOut !== "string") {
+        throw new Error("Missing output file path");
+      }
+      if (this.inputFilePath && normalizePath(fileOut) === normalizePath(this.inputFilePath)) {
+        throw new Error("Cannot use same file for input and output");
+      }
+      const filesystem = this.inputOptions?.filesystem;
+      if (!filesystem) throw new Error("File outputs require an explicit filesystem");
+      const prevFormat = this.outputOptions.format;
+      const inferred = prevFormat ?? inferFormatFromPath(fileOut);
+      if (!prevFormat && inferred) {
+        this.outputOptions = { ...this.outputOptions, format: inferred };
+      }
+      try {
+        await this.waitForStreamInput(false);
+        if (isStoredOutputFormat(this.outputOptions.format??"png")) {
+          if(this.streamFailure) throw this.streamFailure;
+          const input=this.streamBacking?{source:this.streamBacking}:this.joinInputs?{inputs:this.joinInputs}:this.inputFilePath?(this.fileInputs.get(this.inputFilePath)??this.inputFilePath):this.inputBytes;
+          const streamed = await tryImageFile(input, fileOut, this.inputOptions!, this.outputOptions, this.nodes,this.fileInputs);
+          if (streamed) {if (callback) callback(null, streamed); return streamed;}
+        }
+        await this.waitForStreamInput();
+        const res = this.toBufferWithObjectSync();
+        await filesystem.writeFile(fileOut, res.data);
+        if (callback) callback(null, res.info);
+        return res.info;
+      } finally {
+        if (!prevFormat && inferred) {
+          const { format: _omit, ...rest } = this.outputOptions;
+          this.outputOptions = rest;
+        }
+      }
+    } catch (err) {
+      if (callback) callback(err as Error);
+      throw err;
+    }
+  }
+
+  toBuffer(callback?: (err: Error | null, data?: Uint8Array, info?: OutputInfo) => void): Promise<Uint8Array>;
+  toBuffer(options: { readonly resolveWithObject: true }): Promise<{ readonly data: Uint8Array; readonly info: OutputInfo }>;
+  toBuffer(options: { readonly resolveWithObject: false }): Promise<Uint8Array>;
+  async toBuffer(
+    optionsOrCallback?:
+      | { readonly resolveWithObject?: boolean }
+      | ((err: Error | null, data?: Uint8Array, info?: OutputInfo) => void)
+  ): Promise<Uint8Array | { readonly data: Uint8Array; readonly info: OutputInfo }> {
+    const cb = typeof optionsOrCallback === "function" ? optionsOrCallback : undefined;
+    const options = typeof optionsOrCallback === "object" && optionsOrCallback !== null ? optionsOrCallback : undefined;
+    try {
+      await this.waitForStreamInput();
+      const res = this.toBufferWithObjectSync();
+      if (cb) cb(null, res.data, res.info);
+      if (options?.resolveWithObject) {
+        return res;
+      }
+      return res.data;
+    } catch (err) {
+      if (cb) cb(err as Error);
+      throw err;
+    }
+  }
+}
+
+export function sharp(
+  input?: Uint8Array | ArrayBuffer | string | SharpInputOptions | readonly (Uint8Array | ArrayBuffer | string | SharpInputOptions)[],
+  options?: SharpInputOptions
+): SharpInstance {
+  return new SharpInstance(input, options);
+}
+
+Object.assign(sharp, {
+  align: {
+    left: "low",
+    top: "low",
+    low: "low",
+    center: "centre",
+    centre: "centre",
+    right: "high",
+    bottom: "high",
+    high: "high"
+  },
+  position: {
+    top: 1,
+    right: 2,
+    bottom: 3,
+    left: 4,
+    "right top": 5,
+    "right bottom": 6,
+    "left bottom": 7,
+    "left top": 8
+  },
+  blend: {
+    clear: "clear",
+    source: "source",
+    over: "over",
+    in: "in",
+    out: "out",
+    atop: "atop",
+    dest: "dest",
+    "dest-over": "dest-over",
+    "dest-in": "dest-in",
+    "dest-out": "dest-out",
+    "dest-atop": "dest-atop",
+    xor: "xor",
+    add: "add",
+    saturate: "saturate",
+    multiply: "multiply",
+    screen: "screen",
+    overlay: "overlay",
+    darken: "darken",
+    lighten: "lighten",
+    "colour-dodge": "colour-dodge",
+    "color-dodge": "colour-dodge",
+    "colour-burn": "colour-burn",
+    "color-burn": "colour-burn",
+    "hard-light": "hard-light",
+    "soft-light": "soft-light",
+    difference: "difference",
+    exclusion: "exclusion"
+  },
+  queue: new EventEmitter(),
+  gravity: {
+    center: 0,
+    centre: 0,
+    north: 1,
+    east: 2,
+    south: 3,
+    west: 4,
+    northeast: 5,
+    southeast: 6,
+    southwest: 7,
+    northwest: 8
+  },
+  fit: {
+    contain: "contain",
+    cover: "cover",
+    fill: "fill",
+    inside: "inside",
+    outside: "outside"
+  },
+  kernel: {
+    nearest: "nearest",
+    linear: "linear",
+    cubic: "cubic",
+    mitchell: "mitchell",
+    lanczos2: "lanczos2",
+    lanczos3: "lanczos3",
+    mks2013: "mks2013",
+    mks2021: "mks2021"
+  },
+  bool: {
+    and: "and",
+    or: "or",
+    eor: "eor"
+  },
+  strategy: {
+    entropy: 16,
+    attention: 17
+  },
+  colourspace: {
+    multiband: "multiband",
+    "b-w": "b-w",
+    bw: "b-w",
+    cmyk: "cmyk",
+    srgb: "srgb"
+  },
+  colorspace: {
+    multiband: "multiband",
+    "b-w": "b-w",
+    bw: "b-w",
+    cmyk: "cmyk",
+    srgb: "srgb"
+  },
+  interpolators: {
+    nearest: "nearest",
+    bilinear: "bilinear",
+    bicubic: "bicubic",
+    locallyBoundedBicubic: "lbb",
+    nohalo: "nohalo",
+    vertexSplitQuadraticBasisSpline: "vsqbs"
+  },
+  format: Object.fromEntries(
+    (["jpeg", "png", "webp", "tiff", "heif", "heic", "avif", "gif", "mng", "svg", "pdf", "pam", "ppm", "pgm", "pbm", "bmp", "raw"] as const).map(
+      id => [
+        id,
+        {
+          id,
+          input: { file: true, buffer: true, stream: true },
+          output: { file: true, buffer: true, stream: true }
+        }
+      ]
+    )
+  ) as Record<
+    "jpeg" | "png" | "webp" | "tiff" | "heif" | "heic" | "avif" | "gif" | "mng" | "svg" | "pdf" | "pam" | "ppm" | "pgm" | "pbm" | "bmp" | "raw",
+    { readonly id: string; readonly input: { readonly file: boolean; readonly buffer: boolean; readonly stream: boolean }; readonly output: { readonly file: boolean; readonly buffer: boolean; readonly stream: boolean } }
+  >,
+  cache: (() => {
+    let memMax = 50;
+    let filesMax = 20;
+    let itemsMax = 100;
+    return (options?: boolean | { readonly memory?: number; readonly files?: number; readonly items?: number }) => {
+      if (options === false) {
+        memMax = 0;
+        filesMax = 0;
+        itemsMax = 0;
+      } else if (options === true) {
+        memMax = 50;
+        filesMax = 20;
+        itemsMax = 100;
+      } else if (options && typeof options === "object") {
+        if (typeof options.memory === "number") memMax = options.memory;
+        if (typeof options.files === "number") filesMax = options.files;
+        if (typeof options.items === "number") itemsMax = options.items;
+      }
+      return {
+        memory: { current: 0, high: 0, max: memMax },
+        files: { current: 0, max: filesMax },
+        items: { current: 0, max: itemsMax }
+      };
+    };
+  })(),
+  concurrency: (() => {
+    let threads = 4;
+    return (n?: number) => {
+      if (typeof n === "number" && n > 0) threads = Math.floor(n);
+      return threads;
+    };
+  })(),
+  counters: () => ({ queue: 0, process: 0 }),
+  simd: (() => {
+    let enabled = true;
+    return (enable?: boolean) => {
+      if (typeof enable === "boolean") enabled = enable;
+      return enabled;
+    };
+  })(),
+  block: (_options?: { readonly operation?: readonly string[] }) => {},
+  unblock: (_options?: { readonly operation?: readonly string[] }) => {},
+  versions: {
+    vips: "8.16.1",
+    sharp: "0.34.5"
+  }
+});
+
+export default sharp;

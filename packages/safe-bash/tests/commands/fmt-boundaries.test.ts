@@ -1,0 +1,121 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { CommandRegistry } from '../../src/contracts/index.js';
+import { fmt, fmtCommand } from '../../src/commands/fmt/index.js';
+import { MemoryFileSystem } from '../../src/fs/memory/index.js';
+import { Shell } from '../../src/shell/index.js';
+import { agentCommands } from '../../src/index.js';
+
+const encode = (value: string) => new TextEncoder().encode(value);
+
+test('fmt VFS script pipelines and typed SDK publish identical redirect bytes', async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile('/input', encode('aa bb cc dd ee'));
+  await fs.writeFile('/run.sh', encode('cat /input | fmt -w8 > /cli; fmt-sdk > /sdk'));
+  const shell = new Shell({ fs, env: { LC_ALL: 'C' } }).use(agentCommands());
+  shell.commands.register({ name: 'fmt-sdk', execute(context) { return fmt(context, { width: 8, files: ['/input'] }); } });
+  try {
+    const result = await shell.exec('sh /run.sh');
+    assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, '', '']);
+    assert.deepEqual(await fs.readFile('/cli'), encode('aa bb cc\ndd ee\n'));
+    assert.deepEqual(await fs.readFile('/sdk'), await fs.readFile('/cli'));
+    assert.deepEqual(await fs.readFile('/input'), encode('aa bb cc dd ee'));
+    assert.deepEqual((await fs.readdir('/')).map(entry => entry.name).sort(), ['cli', 'input', 'run.sh', 'sdk']);
+  } finally { await shell.dispose(); }
+});
+
+for (const destination of ['/input', '/alias']) test(`fmt redirect to source ${destination} has explicit Shell truncation semantics`, async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile('/input', encode('original words'));
+  await fs.symlink('/input', '/alias');
+  const shell = new Shell({ fs, commands: new CommandRegistry([fmtCommand()]) });
+  try {
+    const result = await shell.exec(`fmt /input > ${destination}`);
+    assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, '', '']);
+    assert.deepEqual(await fs.readFile('/input'), new Uint8Array());
+    assert.equal((await fs.lstat('/alias')).type, 'symlink');
+  } finally { await shell.dispose(); }
+});
+
+for (const destination of ['/input', '/alias']) test(`noclobber refuses fmt publication through existing ${destination} before input acquisition`, async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile('/input', encode('original words'));
+  await fs.symlink('/input', '/alias');
+  let acquired = 0;
+  const original = fs.readStream.bind(fs);
+  fs.readStream = (path, options) => { acquired++; return original(path, options); };
+  const shell = new Shell({ fs, commands: new CommandRegistry([fmtCommand()]) });
+  try {
+    const result = await shell.exec(`set -o noclobber && fmt /input > ${destination}`);
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout, '');
+    assert.equal(result.stderr, `shell: line 1: ${destination}: cannot overwrite existing file\n`);
+    assert.equal(acquired, 0);
+    assert.deepEqual(await fs.readFile('/input'), encode('original words'));
+    assert.equal((await fs.lstat('/alias')).type, 'symlink');
+    assert.equal(await fs.readlink('/alias'), '/input');
+  } finally { await shell.dispose(); }
+});
+
+test('fmt output quota leaves bounded partial redirect output, without rollback or temporary files', async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile('/input', encode('A'.repeat(10001) + ' end'));
+  const shell = new Shell({ fs, commands: new CommandRegistry([fmtCommand({ limits: { outputBytes: 1500 } })]) });
+  try {
+    const result = await shell.exec('fmt -w20 /input > /output');
+    assert.equal(result.exitCode, 1);
+    assert.match(result.stderr, /limit exceeded/);
+    const bytes = await fs.readFile('/output');
+    assert.ok(bytes.length > 0 && bytes.length <= 1500);
+    assert.deepEqual(bytes, encode('A'.repeat(bytes.length)));
+    assert.deepEqual(await fs.readFile('/input'), encode('A'.repeat(10001) + ' end'));
+    assert.deepEqual((await fs.readdir('/')).map(entry => entry.name).sort(), ['input', 'output']);
+  } finally { await shell.dispose(); }
+});
+
+test('fmt keeps operands in the VFS and executable paths in the registry', async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile('/input', encode('aa bb cc dd ee'));
+  const shell = new Shell({ fs, env: { LC_ALL: 'C', PATH: '/usr/bin:/bin' }, commands: new CommandRegistry([fmtCommand()]) });
+  const unregistered = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry() });
+  try {
+    const registered = await shell.exec('/usr/bin/fmt -w8 /input');
+    assert.deepEqual([registered.exitCode, registered.stdout, registered.stderr], [0, 'aa bb cc\ndd ee\n', '']);
+    for (const command of ['fmt /etc/passwd', 'fmt /proc/self/environ', 'fmt https://example.invalid/credentials', '/usr/bin/fmt /etc/passwd', '/bin/fmt /proc/self/environ']) {
+      const result = await shell.exec(command);
+      assert.equal(result.exitCode, 1);
+      assert.equal(result.stdout, '');
+      assert.match(result.stderr, /No such file or directory/);
+    }
+    for (const command of ['/bin/fmt', '/usr/bin/fmt']) {
+      const result = await shell.exec(`${command} -w8`, { stdin: encode('aa bb cc dd ee') });
+      assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, 'aa bb cc\ndd ee\n', '']);
+      const missing = await unregistered.exec(command);
+      assert.equal(missing.exitCode, 127);
+      assert.equal(missing.stdout, '');
+    }
+    for (const command of ['/usr/local/bin/fmt', '/usr/bin/curl https://example.invalid/', 'curl https://example.invalid/', 'node -e process.env']) {
+      const result = await shell.exec(command);
+      assert.equal(result.exitCode, 127);
+      assert.equal(result.stdout, '');
+    }
+  } finally { await Promise.all([shell.dispose(), unregistered.dispose()]); }
+});
+
+for (const limits of [{ inputBytes: 5 }, { work: 0 }, { retainedBytes: 1 }]) test(`fmt Shell rejects ${JSON.stringify(limits)} and remains usable after cleanup`, async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile('/first', encode('one'));
+  await fs.writeFile('/second', encode('two'));
+  const shell = new Shell({ fs, commands: new CommandRegistry([fmtCommand({ limits })]) });
+  try {
+    const result = await shell.exec('fmt /first /second');
+    assert.equal(result.exitCode, 1);
+    assert.match(result.stderr, /limit|retention/i);
+    assert.deepEqual(await fs.readFile('/first'), encode('one'));
+    assert.deepEqual(await fs.readFile('/second'), encode('two'));
+    const help = await shell.exec('fmt --help');
+    assert.equal(help.exitCode, 0);
+    assert.equal(help.stderr, '');
+    assert.match(help.stdout, /^Usage: fmt/);
+  } finally { await shell.dispose(); }
+});

@@ -1,0 +1,47 @@
+import assert from 'node:assert/strict';
+import { readFileSync, writeFileSync, readdirSync, cpSync, existsSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { gunzipSync } from 'node:zlib';
+import { join } from 'node:path';
+const task = '/tmp/safe-bash-search-stdin-close-fix-20260827';
+const repo = '/Users/kjopek/Workspace/safe-bash';
+const evidence = `${repo}/tests/commands/search-stress/direct-stdin-close-fix`;
+const sourceCommit = 'c27249c8f6085d6d8366ae348b2b93aa0e377369';
+const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+const git = (...args) => execFileSync('git',args,{cwd:repo,maxBuffer:32*1024*1024});
+const save = (name,data) => writeFileSync(`${evidence}/${name}`,JSON.stringify(data,null,2)+'\n');
+const candidate = JSON.parse(readFileSync(`${task}/candidate.json`));
+const owned = ['src/commands/search/rg.ts','tests/commands/search-stress/direct-stdin-close.test.ts'];
+assert.deepEqual(git('diff-tree','--no-commit-id','--name-only','-r',sourceCommit).toString().trim().split('\n'),owned);
+for (const entry of candidate.files) {
+  assert.equal(hash(git('show',`${sourceCommit}:${entry.path}`)),entry.sha256,`committed candidate mismatch ${entry.path}`);
+  assert.equal(hash(readFileSync(`${repo}/${entry.path}`)),entry.sha256,`STOP live candidate drift ${entry.path}`);
+}
+assert.deepEqual(git('ls-tree','-r','--name-only',sourceCommit,'src').toString().trim().split('\n'),candidate.files.filter(entry=>entry.path.startsWith('src/')).map(entry=>entry.path));
+const declarations = ['dist/index.d.ts','dist/commands/search/index.d.ts','dist/commands/search/rg.d.ts','dist/contracts/command.d.ts','dist/contracts/io.d.ts'].map(path=> {
+  const before = hash(readFileSync(`${task}/before/${path}`)); const after = hash(readFileSync(`${task}/after/${path}`));
+  assert.equal(before,after,path); return {path,before,after,unchanged:true};
+});
+save('source-commit.json',{at:new Date().toISOString(),sourceCommit,parent:git('rev-parse',`${sourceCommit}^`).toString().trim(),paths:owned.map(path=>({path,gitBlob:git('rev-parse',`${sourceCommit}:${path}`).toString().trim(),sha256:hash(readFileSync(`${repo}/${path}`))})),allCandidatePathsMatchCommit:true,completeSrcInventoryMatches:true,publicDeclarations:declarations});
+const archiveChecks = ['before-source-snapshot','after-source-snapshot'].map(name=> {
+  const file = readFileSync(`${evidence}/${name}.json.gz.data`);
+  const entries = JSON.parse(gunzipSync(file));
+  for (const entry of entries) { const bytes = Buffer.from(entry.base64,'base64'); assert.equal(bytes.length,entry.bytes); assert.equal(hash(bytes),entry.sha256); }
+  return {name,sha256:hash(file),authenticatedFiles:entries.length};
+});
+const runs = readdirSync(`${task}/logs`).filter(name=>name.endsWith('.json')).map(name=>JSON.parse(readFileSync(`${task}/logs/${name}`)));
+const processes = execFileSync('/bin/ps',['-axo','pid=,ppid=,pgid=,comm=']).toString();
+const survivors = processes.split('\n').filter(line=>runs.some(run=>Number(line.trim().split(/\s+/)[2])===run.pid));
+assert.deepEqual(survivors,[]);
+save('final-audit.json',{at:new Date().toISOString(),head:git('rev-parse','HEAD').toString().trim(),sourceCommit,ownedStatus:git('status','--short','--',...owned).toString(),index:git('diff','--cached','--name-status').toString(),status:git('status','--short').toString(),allCandidatePathsStillMatch:true,archives:archiveChecks,runGroups:runs.map(run=>run.pid),survivors,rootNote:existsSync('/tmp/safe-bash-search-stdin-close-fix-root-note.txt')?readFileSync('/tmp/safe-bash-search-stdin-close-fix-root-note.txt','utf8'):null,nativeArtifactPreserved:existsSync(`${repo}/tests/commands/search-stress/.native-1m4O1e`),independentReview:'not performed/claimed; root verifies actual leaf exit'});
+cpSync(`${task}/seal.mjs`,`${evidence}/code/seal.mjs.data`);
+const inventory = (prefix='') => readdirSync(join(evidence,prefix),{withFileTypes:true}).sort((left,right)=>left.name.localeCompare(right.name)).flatMap(entry=> {
+  const path = prefix?`${prefix}/${entry.name}`:entry.name;
+  if(path==='evidence-manifest.json') return [];
+  if(entry.isDirectory()) return inventory(path);
+  const bytes=readFileSync(join(evidence,path)); return [{path,bytes:bytes.length,sha256:hash(bytes)}];
+});
+const files = inventory();
+save('evidence-manifest.json',{at:new Date().toISOString(),excludes:['evidence-manifest.json'],files});
+console.log(JSON.stringify({sourceCommit,manifestFiles:files.length,archiveChecks,survivors}));

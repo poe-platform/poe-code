@@ -1,0 +1,23 @@
+{
+  "jobId": "obligation-malformed-bytes-0",
+  "admitted": true,
+  "outcome": "FAIL",
+  "failures": [
+    "assertion: AssertionError [ERR_ASSERTION]: UNFULFILLED_OBLIGATIONS: see obligations.json; no full-record or semantic PASS\n\n1 !== 0\n"
+  ],
+  "integrity": true,
+  "reapProof": true,
+  "metadata": {
+    "pid": 14163,
+    "group": 14163,
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "overflow": false,
+    "spawnError": null,
+    "closed": true,
+    "reaped": true,
+    "kills": [],
+    "elapsedMs": 43
+  }
+}

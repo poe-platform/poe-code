@@ -1,0 +1,180 @@
+{
+  "capturedAt": "2026-08-27T02:22:41.111Z",
+  "movingWorktreeHead": "d1b10a375a13f031f9f604a64395cd507f21a071",
+  "scope": "metadata human timestamp renderer, targeted tests and separate historical SGID archive",
+  "inputs": {
+    "src/commands/metadata/stat.ts": "fab291cc4e5668526fc1247e155f5878e1235d9d95a5096d34bcfa9f022d7f3b",
+    "src/commands/metadata/README.md": "36e299c06fc251233f0e46d994ac8bfe1d8607d10382d834ed4f1aeae83eb1ce",
+    "tests/commands/metadata-stress/README.md": "1a36115aae50d1bdb6f737e321c5cc63649d68f9fedb1a7784b6b5250eaeaac4",
+    "tests/commands/metadata-stress/stat-human.test.ts": "5f88037fd18cb35f96af7f3a6f4249bea7db7470397baab2bf17e08386632b94",
+    "tests/commands/metadata-stress/stat-human-native.test.ts": "0e9a4d4b4f30c24d2c119e50b45ba89359e85129018fd8e915de7c0e27aecf0d",
+    "tests/commands/metadata-stress/epoch-regression.test.ts": "a234fc1336d0f2bf943526d7fdd3857f55a3581c3393dd1a1418cc6c16df3f74",
+    "src/contracts/filesystem.ts": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009"
+  },
+  "priorStatSource": {
+    "revision": "2dd947265a31e804ab0b8b07b1352a4fcbb7c3a3",
+    "sha256": "21f4e1bd5f938f33f41ea9976fbd5b2e00fbe3a7b80cb99c8ecc03131900d860"
+  },
+  "epochAndFollowingSourceByteIdentical": true,
+  "originalAuthorFilesSha256": {
+    "AUTHOR_CHECKPOINT.md": "3ce30d2cc83f3fd457626529ebf854345a103c550f4419307d34593d2b56546a",
+    "chmod.test.ts": "b1a9885fd32616fa04cae521e8c1bd1e7ac4c52f8134ce5887182df34b92f701",
+    "gnu-mode-evidence.json": "aed3e93e79b9a031176fc954866981cb06e730ae7e59ff553ffff317e6c8696d",
+    "helpers.ts": "d12870ee140276217aa414076b9242ea42712fe52910bc819139d10f685401db",
+    "integration.test.ts": "dec27f85016672d84fe0961cbe91cfa627d72d2d8f39b7fcbd11c37e23164634",
+    "mktemp.test.ts": "a129fd7d69dccd848227083f19bb14de513d224accfc91865701791cd495522b",
+    "stat.test.ts": "a3597699eadbcfa3b48a7a2cb9830428d6fc98c70f197c6f6c97011219e0b3aa"
+  },
+  "allSevenOriginalAuthorHashesUnchanged": true,
+  "artifacts": {
+    "red.log": {
+      "source": "/tmp/safe-bash-stat-human-red.log",
+      "bytes": 47935,
+      "sha256": "4dadb750dc71187252a0573e2b9af5953510cd573e2614301d7876e4b26c8e72"
+    },
+    "green.log": {
+      "source": "/tmp/safe-bash-stat-human-green.log",
+      "bytes": 6235,
+      "sha256": "4aaf4ae24133e396e454a57d5c68124f688455b947ede1e833069bbf215473a6"
+    },
+    "native-initial-classification-failure.log": {
+      "source": "/tmp/safe-bash-stat-human-native.log",
+      "bytes": 1119,
+      "sha256": "ffaa863cd0894915003136998519b0403a8e6fea007571957e983f8b7bf4eefc"
+    },
+    "native-initial-birth-failure.log": {
+      "source": "/tmp/safe-bash-stat-human-native-fields-failure.log",
+      "bytes": 1571,
+      "sha256": "fe4e5a4d7e5b85a8abcbb2b8a0fce10e269e4b422c7f68214f20bbb7c74d9af4"
+    },
+    "native-final.log": {
+      "source": "/tmp/safe-bash-stat-human-native-final.log",
+      "bytes": 34341,
+      "sha256": "e355b85f63742162e88984c6457715a624aef25f33c785b00f9af133754104bb"
+    },
+    "stress.log": {
+      "source": "/tmp/safe-bash-stat-human-stress.log",
+      "bytes": 55983,
+      "sha256": "eada27b16993a5ad8daa9101bfad64673f4847c6e9c4161ec2919b8407b9ff3a"
+    },
+    "author.log": {
+      "source": "/tmp/safe-bash-stat-human-author.log",
+      "bytes": 9777,
+      "sha256": "7d5609b82761fd63d95ec05c8972a0ced41b2afcb0e84699c4ed7aece102612e"
+    },
+    "native.json": {
+      "derivedFrom": "native-final.log diagnostic JSON, no expectation changes",
+      "sha256": "543c45228815e4bc6cbdc3e2d156866c2fcd2ddb9f3dae0496ee186d2ffc77ee"
+    },
+    "native-freeze.log": {
+      "source": "/tmp/safe-bash-stat-human-native-freeze.log",
+      "bytes": 48555,
+      "sha256": "f4324330cdde430eb7974586630f703f27c1d0512ec165b8c1f7076dcbd4f592"
+    },
+    "stress-freeze.log": {
+      "source": "/tmp/safe-bash-stat-human-stress-freeze.log",
+      "bytes": 70198,
+      "sha256": "fdbe3f0a14bccacb0474cfd3719a780ae10751bd720311791ebdc1ac171860d3"
+    },
+    "native-freeze.json": {
+      "derivedFrom": "native-freeze.log diagnostic JSON",
+      "sha256": "6a70ab106198f34a4fe5cd6db3430cde3f911f6bc59d1bec85071bd345d30545"
+    }
+  },
+  "commands": [
+    {
+      "command": "node --import tsx --test tests/commands/metadata-stress/stat-human.test.ts",
+      "phase": "before source fix",
+      "exitCode": 1,
+      "tests": 39,
+      "pass": 2,
+      "fail": 37
+    },
+    {
+      "command": "node --import tsx --test tests/commands/metadata-stress/stat-human.test.ts",
+      "phase": "after source fix",
+      "exitCode": 0,
+      "tests": 39,
+      "pass": 39,
+      "fail": 0
+    },
+    {
+      "command": "node --import tsx --test tests/commands/metadata-stress/stat-human-native.test.ts",
+      "exitCode": 0,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "measuredNativeFixtures": 19,
+      "exactNumericAndBytes": 15,
+      "numericResidualButRoundedBytesMatch": 2,
+      "nativePrecisionUnavailableNonexact": 2
+    },
+    {
+      "command": "node --import tsx --test 'tests/commands/metadata-stress/*.test.ts'",
+      "exitCode": 0,
+      "tests": 93,
+      "pass": 93,
+      "fail": 0,
+      "preexistingTests": 51,
+      "newHumanTests": 40,
+      "archiveIntegrityTests": 2
+    },
+    {
+      "command": "node --import tsx --test 'tests/commands/metadata/*.test.ts'",
+      "exitCode": 1,
+      "tests": 43,
+      "pass": 42,
+      "fail": 1,
+      "unchangedConflict": "stat prints common mode, type, size, name and UTC millisecond timestamps"
+    },
+    {
+      "command": "node_modules/.bin/tsc --noEmit -p tests/commands/metadata-stress/stat-human-evidence/tsconfig.json",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "unresolvedSGID": 6,
+  "originalExpectationsEdited": false,
+  "cleanWholeHeadValidation": false,
+  "fullBenchmarkOrTableTextOrGlobalTestsRun": false,
+  "preFreezeNativeTestSha256": "63781c48df81c5f657a214863087b7f309f0ec19dbf1a2ffdc62bde80bde1ba4",
+  "finalCaptureNotes": "Full argv/cwd; shared-field numeric values captured before sentinel reads. Earlier native.json has post-read shared-field numeric atime and remains preliminary. Nineteen fixture comparisons unchanged.",
+  "sgidArchiveCommit": "277a63577aa03bbac1ff5c68eac0b04842ff5cd6",
+  "freezeValidationHead": "0e1448ff4b9dcbedc06dfb1a654f649eef0bb9eb",
+  "freezeValidatedAt": "2026-08-27T02:24:30.603Z",
+  "finalRepeatedCommands": [
+    {
+      "command": "node --import tsx --test tests/commands/metadata-stress/stat-human-native.test.ts",
+      "exitCode": 0,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0
+    },
+    {
+      "command": "node --import tsx --test 'tests/commands/metadata-stress/*.test.ts'",
+      "exitCode": 0,
+      "tests": 93,
+      "pass": 93,
+      "fail": 0
+    },
+    {
+      "command": "node_modules/.bin/tsc --noEmit -p tests/commands/metadata-stress/stat-human-evidence/tsconfig.json",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "whitespaceChecks": {
+    "allArtifactsExit": 2,
+    "rawLogTrailingWhitespaceDiagnostics": 80,
+    "files": [
+      "tests/commands/metadata-stress/stat-human-evidence/author.log",
+      "tests/commands/metadata-stress/stat-human-evidence/red.log"
+    ],
+    "sourceTestsDocsJsonExit": 0,
+    "reason": "Exact original Node assertion output retained byte-for-byte; no source/test expectation change"
+  }
+}

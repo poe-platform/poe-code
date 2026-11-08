@@ -1,0 +1,103 @@
+{
+  "capturedAt": "2026-08-27T01:06:34.920Z",
+  "sourceCommit": "e8d308a11bf562efcfba1d8a861503883b4952a3",
+  "initialApiCommit": "745eaa62eebbe07b7fd30dccad4a73a1669f7124",
+  "observedHead": "e8d308a11bf562efcfba1d8a861503883b4952a3",
+  "contractDecision": "5076b32",
+  "contractBlob": "c865ae257df37e2002227580c450df453fba7621",
+  "sourceSha256": {
+    "src/fs/memory/index.ts": "98704037c57bae8bd5c3782c65aceb98e967837df375b33eda52a00ce762b1a0",
+    "src/fs/real/index.ts": "d3e79b80a5a48984e1f7f7dd9a79254c2db1faf8142e287a43792180874f77da",
+    "src/fs/readonly/index.ts": "384f940196dc572f677541daa9c420da2e013324d66576004c1a2730e7899067",
+    "src/fs/mount/index.ts": "290e22e36016bf206badff86e55047e8311c3c4feb1c525b9ae0807c568333ee",
+    "src/fs/overlay/index.ts": "6442f61ab61aee52a321ef91892ec4c0dc73674bb40ca9a732ffa69f7e73495e",
+    "src/fs/mount/identity.ts": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+    "src/fs/mount/comparison.ts": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c"
+  },
+  "frozenOracleSha256": {
+    "tests/fs/mount/copy-identity.test.ts": "e752e633abc902025670c09305c09e7319b171549350ddec7573b6644d29d115",
+    "tests/fs/mount/copy-identity-guards.test.ts": "bd8074c17c5e0fc418a5408028b409946b2178e64fad29bfa87c5f8aa1eb8027",
+    "tests/fs/overlay/copy-identity.test.ts": "d877488ecc76799552313b55db0119c83ecf433ad17ceb88079fa0d9bddd872e"
+  },
+  "originalCompatibilityFixture": {
+    "file": "tests/fs/mount/identity-compatibility-review/compatibility.test.ts",
+    "sha256": "9d11741fd9b37757046c1278fdaa00c734633bfd9a1fc58ae479415c2f5a6734",
+    "modified": false
+  },
+  "remoteWorkingTreeObservation": {
+    "meaning": "Post-run hash observation only. Remote source was concurrently edited; S3 gate logs are not a frozen remote-source certification or secure qualification.",
+    "sha256": {
+      "src/fs/s3/index.ts": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+      "src/fs/webdav/resource-id.ts": "bb1ad5de415ce3f4369aaccef3a3869162bc81a8f6eb66104df4e5c7db452916",
+      "src/fs/s3/transport.ts": "df111b273073bcbebc8be0648027211e545af7fcd00561057f4da0665683b9fe",
+      "src/fs/s3/filesystem.ts": "7544d066ea75125279b6e29f82110c326d75fd04b44648a80a358603d2296f88",
+      "src/fs/s3/authority.ts": "2487b9daba77d7c0a560b5d719508055c427e1c0a0befa05b5d894990ac72b49",
+      "src/fs/s3/mock.ts": "f80eb6ac65477d7cbfd1083a00cb8c5043ba594b0fd07cf167d698b7c6905821",
+      "src/fs/webdav/index.ts": "9a19fb0e61bf9ef07d97881bb93e30ba21491e580ef5e58ab0e80bb5f398d5e4",
+      "src/fs/webdav/xml.ts": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+      "src/fs/webdav/webdav.ts": "b03c53d4fd1e5c7da4d665d532dbf25b39e9555dc1cb47890edd2ffd2d9fa51b"
+    }
+  },
+  "runs": [
+    {
+      "cohort": "frozen53 + helper18 + identity-scope9",
+      "command": "node --unhandled-rejections=strict --import tsx --test tests/fs/mount/comparison.test.ts tests/fs/mount/identity-scope.test.ts tests/fs/mount/copy-identity.test.ts tests/fs/mount/copy-identity-guards.test.ts tests/fs/overlay/copy-identity.test.ts",
+      "pass": 80,
+      "fail": 0,
+      "exit": 0
+    },
+    {
+      "cohort": "scoped source/test types",
+      "command": "node_modules/.bin/tsc --noEmit --target ES2023 --lib ES2023 --module NodeNext --moduleResolution NodeNext --strict --noUncheckedIndexedAccess --exactOptionalPropertyTypes --verbatimModuleSyntax --forceConsistentCasingInFileNames --skipLibCheck --types node src/fs/{memory,real,mount,readonly,overlay}/*.ts tests/fs/{memory,real,mount,readonly,overlay}/*.ts",
+      "exit": 0
+    },
+    {
+      "cohort": "isolated six source mutants",
+      "command": "node --unhandled-rejections=strict --import tsx tests/fs/mount/mutation-identity.probe.ts",
+      "killed": 6,
+      "total": 6,
+      "exit": 0
+    },
+    {
+      "cohort": "unchanged original S3 subset before recursion fix",
+      "command": "node --unhandled-rejections=strict --import tsx --test --test-name-pattern=s3 tests/fs/mount/identity-compatibility-review/compatibility.test.ts",
+      "pass": 12,
+      "fail": 3,
+      "exit": 1
+    },
+    {
+      "cohort": "unchanged original S3 subset after recursion fix",
+      "command": "same exact command as before",
+      "pass": 13,
+      "fail": 2,
+      "exit": 1
+    },
+    {
+      "cohort": "historical intermediate full five-owned",
+      "command": "node --unhandled-rejections=strict --import tsx --test tests/fs/{memory,real,mount,readonly,overlay}/*.test.ts",
+      "pass": 665,
+      "fail": 12,
+      "exit": 1
+    },
+    {
+      "cohort": "historical intermediate shared conformance",
+      "command": "node --unhandled-rejections=strict --import tsx --test tests/fs/conformance/shared.test.ts",
+      "pass": 202,
+      "fail": 0,
+      "exit": 0
+    }
+  ],
+  "artifactSha256": {
+    "internal-handoff.txt": "e382a949763525fffcea43396211c584f6145ce7fdb354825071b9e83a365468",
+    "focused80.stdout": "1fd4a3a965794b898bcdc24aba8e96f953855fb9c27e8e753f1794ab97a54fce",
+    "scoped-types.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "mutants.json": "939c3bedba1ffc3d83e24aa6aa7c4aaa28d9a1286d79018501dadd7172825b2d",
+    "mutants.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "initial-owned677.stdout": "54d52595464f2453029d80570fc77bcc9eee2fa97ac0f0a1155d3db78ed51237",
+    "initial-shared202.stdout": "0db12ba2e160024672b9eba5eab244793da8c1f7550bb49457d5554ea6f843d3",
+    "original-s3-before.stdout": "51b6a94bfacd5e1ac7d0c935af5e99bd02671c467da837828224a9107e7818db",
+    "original-s3-after.stdout": "4e5a7956dfaf6593fbd860e8d1106575eb3edd54ae98626d18b1425ae452cdd0",
+    "first-mutation-anchor-failure.stderr": "87e09a437773feae6cfad386f2182398b4a9129ef2a545707ac9f423df17b405",
+    "second-mutation-anchor-failure.stderr": "684f1da89567599ca75a2ee42156935a44d7179e0e217337d31b4d45616c3813"
+  }
+}

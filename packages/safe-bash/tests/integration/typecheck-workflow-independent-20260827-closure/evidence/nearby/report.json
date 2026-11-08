@@ -1,0 +1,1400 @@
+{
+  "candidate": "a01310c5571dfda2aae4c6c8cc185e2530a01e89",
+  "harnessSha256": "73edc5bf0e8bca896ef119e8fc90a740138570bf5b800e4070a9ae40a9385450",
+  "startedAt": "2026-08-27T13:02:14.463Z",
+  "node": "v22.22.2",
+  "nodeExecutableSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "platform": "darwin",
+  "arch": "arm64",
+  "checks": [
+    {
+      "name": "fresh-complete-qualified-typing",
+      "status": "pass"
+    },
+    {
+      "name": "changed-source-fallback-message-still-denies-real-src-resolution",
+      "status": "pass"
+    },
+    {
+      "name": "same-candidate-authentication-neighbors",
+      "status": "pass"
+    },
+    {
+      "name": "missing-new-import-without-alias-remains-TS2305",
+      "status": "pass"
+    },
+    {
+      "name": "unchanged-mixed-package-mutation-full-warm-command-now-exits2",
+      "status": "pass"
+    },
+    {
+      "name": "unchanged-source-tools-build-after-neighbors",
+      "status": "pass"
+    }
+  ],
+  "commands": [
+    {
+      "label": "resolve-candidate",
+      "executable": "git",
+      "args": [
+        "--no-replace-objects",
+        "rev-parse",
+        "a01310c5571dfda2aae4c6c8cc185e2530a01e89"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": {
+        "path": "resolve-candidate.stdout.gz.base64",
+        "bytes": 41,
+        "sha256": "92807913677f9de35aae715dcd2c41efedadb9a5e5b7d0ca78cda32b89c3e83a"
+      },
+      "stderr": {
+        "path": "resolve-candidate.stderr.gz.base64",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "label": "resolve-tree",
+      "executable": "git",
+      "args": [
+        "--no-replace-objects",
+        "rev-parse",
+        "a01310c5571dfda2aae4c6c8cc185e2530a01e89^{tree}"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": {
+        "path": "resolve-tree.stdout.gz.base64",
+        "bytes": 41,
+        "sha256": "91e763c5ce3946f97e7138c1ea36f5f5052fd766919da3e738cf17fc12fb3a04"
+      },
+      "stderr": {
+        "path": "resolve-tree.stderr.gz.base64",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "label": "extract",
+      "executable": "tar",
+      "args": [
+        "-xf",
+        "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-hm4YDw/source.tar",
+        "-C",
+        "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-hm4YDw/candidate"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": {
+        "path": "extract.stdout.gz.base64",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "extract.stderr.gz.base64",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "label": "isolated-git-init",
+      "executable": "git",
+      "args": [
+        "init",
+        "-q"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": {
+        "path": "isolated-git-init.stdout.gz.base64",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "isolated-git-init.stderr.gz.base64",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "label": "isolated-index",
+      "executable": "git",
+      "args": [
+        "read-tree",
+        "a01310c5571dfda2aae4c6c8cc185e2530a01e89"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": {
+        "path": "isolated-index.stdout.gz.base64",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "isolated-index.stderr.gz.base64",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "label": "tracked-inputs",
+      "executable": "git",
+      "args": [
+        "ls-files",
+        "-z"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": {
+        "path": "tracked-inputs.stdout.gz.base64",
+        "bytes": 2021778,
+        "sha256": "91b13f4246e4b56f76c3e75221bec8fd960565a4d3cf778f1e9551ac8458d5c1"
+      },
+      "stderr": {
+        "path": "tracked-inputs.stderr.gz.base64",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "label": "combined",
+      "executable": "npm",
+      "args": [
+        "run",
+        "typecheck:all",
+        "--",
+        "--report",
+        "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-hm4YDw/combined"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": {
+        "path": "combined.stdout.gz.base64",
+        "bytes": 1643,
+        "sha256": "06554dfdc24084eced2fc4c882ec2363e12d61591888fd7f56cce9054df6dfde"
+      },
+      "stderr": {
+        "path": "combined.stderr.gz.base64",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "label": "source-fallback",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--input-type=module",
+        "-e",
+        "\n    import assert from 'node:assert/strict';\n    import { spawnSync } from 'node:child_process';\n    import { writeFileSync } from 'node:fs';\n    import { consumerGroups, currentSourceConsumerGroups, negativeGroups } from './tests/plugins/qualified-current-release/consumers.mjs';\n    import { checkCurrentConsumerTypes, checkSourceConsumerTypes } from './scripts/typecheck-consumers.mjs';\n    const source = true;\n    const groups = source ? currentSourceConsumerGroups : consumerGroups;\n    const selected = groups.find(group => group.name === \"env-split-public-source\");\n    assert.ok(selected); groups.splice(0, groups.length, selected); negativeGroups.splice(0);\n    const phases = [];\n    const compile = (label, args) => {\n      const result = spawnSync(process.execPath, ['node_modules/typescript/bin/tsc', ...args], { encoding: 'utf8', timeout: 120000, maxBuffer: 32 * 1024 * 1024 });\n      assert.equal(result.error, undefined); assert.equal(result.signal, null);\n      phases.push({ label, status: result.status, stdout: result.stdout, stderr: result.stderr }); return result;\n    };\n    const result = (source ? checkSourceConsumerTypes : checkCurrentConsumerTypes)(process.cwd(), \"/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-hm4YDw/source-fallback\", compile);\n    writeFileSync(\"/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-hm4YDw/source-fallback/result.json\", JSON.stringify({ result, phases }, null, 2));\n    process.exitCode = result.passed ? 0 : 2;\n  "
+      ],
+      "status": 2,
+      "signal": null,
+      "stdout": {
+        "path": "source-fallback.stdout.gz.base64",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "source-fallback.stderr.gz.base64",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "label": "nearby-bindings",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/typecheck-workflow-independent-20260827-closure/binding-cases.mjs",
+        "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-hm4YDw/nearby",
+        "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-hm4YDw/nearby-report.json"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": {
+        "path": "nearby-bindings.stdout.gz.base64",
+        "bytes": 4924,
+        "sha256": "1eb0118b7f5500d0208167edde6475ac372c8eb3cd6974e47c951b32d1e3e283"
+      },
+      "stderr": {
+        "path": "nearby-bindings.stderr.gz.base64",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "label": "missing-export",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--input-type=module",
+        "-e",
+        "\n    import assert from 'node:assert/strict';\n    import { spawnSync } from 'node:child_process';\n    import { writeFileSync } from 'node:fs';\n    import { consumerGroups, currentSourceConsumerGroups, negativeGroups } from './tests/plugins/qualified-current-release/consumers.mjs';\n    import { checkCurrentConsumerTypes, checkSourceConsumerTypes } from './scripts/typecheck-consumers.mjs';\n    const source = false;\n    const groups = source ? currentSourceConsumerGroups : consumerGroups;\n    const selected = groups.find(group => group.name === \"env-split-public-types\");\n    assert.ok(selected); groups.splice(0, groups.length, selected); negativeGroups.splice(0);\n    const phases = [];\n    const compile = (label, args) => {\n      const result = spawnSync(process.execPath, ['node_modules/typescript/bin/tsc', ...args], { encoding: 'utf8', timeout: 120000, maxBuffer: 32 * 1024 * 1024 });\n      assert.equal(result.error, undefined); assert.equal(result.signal, null);\n      phases.push({ label, status: result.status, stdout: result.stdout, stderr: result.stderr }); return result;\n    };\n    const result = (source ? checkSourceConsumerTypes : checkCurrentConsumerTypes)(process.cwd(), \"/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-hm4YDw/missing-export\", compile);\n    writeFileSync(\"/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-hm4YDw/missing-export/result.json\", JSON.stringify({ result, phases }, null, 2));\n    process.exitCode = result.passed ? 0 : 2;\n  "
+      ],
+      "status": 2,
+      "signal": null,
+      "stdout": {
+        "path": "missing-export.stdout.gz.base64",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "missing-export.stderr.gz.base64",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "label": "mixed-full-warm",
+      "executable": "npm",
+      "args": [
+        "run",
+        "typecheck",
+        "--",
+        "--report",
+        "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-hm4YDw/mixed-full-warm"
+      ],
+      "status": 2,
+      "signal": null,
+      "stdout": {
+        "path": "mixed-full-warm.stdout.gz.base64",
+        "bytes": 1536,
+        "sha256": "4db6c913dfc7c89b5c202ff6b5d9bdf74e67481d3af5e25ebd2bb6278a0e97f2"
+      },
+      "stderr": {
+        "path": "mixed-full-warm.stderr.gz.base64",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "label": "mixed-binding-mutant",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--input-type=module",
+        "-e",
+        "\n    import assert from 'node:assert/strict';\n    import { spawnSync } from 'node:child_process';\n    import { writeFileSync } from 'node:fs';\n    import { consumerGroups, currentSourceConsumerGroups, negativeGroups } from './tests/plugins/qualified-current-release/consumers.mjs';\n    import { checkCurrentConsumerTypes, checkSourceConsumerTypes } from './scripts/typecheck-consumers.mjs';\n    const source = false;\n    const groups = source ? currentSourceConsumerGroups : consumerGroups;\n    const selected = groups.find(group => group.name === \"env-split-public-types\");\n    assert.ok(selected); groups.splice(0, groups.length, selected); negativeGroups.splice(0);\n    const phases = [];\n    const compile = (label, args) => {\n      const result = spawnSync(process.execPath, ['node_modules/typescript/bin/tsc', ...args], { encoding: 'utf8', timeout: 120000, maxBuffer: 32 * 1024 * 1024 });\n      assert.equal(result.error, undefined); assert.equal(result.signal, null);\n      phases.push({ label, status: result.status, stdout: result.stdout, stderr: result.stderr }); return result;\n    };\n    const result = (source ? checkSourceConsumerTypes : checkCurrentConsumerTypes)(process.cwd(), \"/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-hm4YDw/mixed-binding-mutant\", compile);\n    writeFileSync(\"/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-hm4YDw/mixed-binding-mutant/result.json\", JSON.stringify({ result, phases }, null, 2));\n    process.exitCode = result.passed ? 0 : 2;\n  "
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": {
+        "path": "mixed-binding-mutant.stdout.gz.base64",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "mixed-binding-mutant.stderr.gz.base64",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ],
+  "captures": [
+    {
+      "path": "resolve-candidate.stdout.gz.base64",
+      "bytes": 41,
+      "sha256": "92807913677f9de35aae715dcd2c41efedadb9a5e5b7d0ca78cda32b89c3e83a"
+    },
+    {
+      "path": "resolve-candidate.stderr.gz.base64",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "resolve-tree.stdout.gz.base64",
+      "bytes": 41,
+      "sha256": "91e763c5ce3946f97e7138c1ea36f5f5052fd766919da3e738cf17fc12fb3a04"
+    },
+    {
+      "path": "resolve-tree.stderr.gz.base64",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "extract.stdout.gz.base64",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "extract.stderr.gz.base64",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "isolated-git-init.stdout.gz.base64",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "isolated-git-init.stderr.gz.base64",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "isolated-index.stdout.gz.base64",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "isolated-index.stderr.gz.base64",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tracked-inputs.stdout.gz.base64",
+      "bytes": 2021778,
+      "sha256": "91b13f4246e4b56f76c3e75221bec8fd960565a4d3cf778f1e9551ac8458d5c1"
+    },
+    {
+      "path": "tracked-inputs.stderr.gz.base64",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "source-before.gz.base64",
+      "bytes": 5361465,
+      "sha256": "fd829634e2076360b305ab170dd78a5e4fb1229540ece02072629f14bdf6d543"
+    },
+    {
+      "path": "tools.gz.base64",
+      "bytes": 60939,
+      "sha256": "cd1e8c47d74fc98c31975adec71792fef3515c503fbb330ef9b6c64c7d5f5bc2"
+    },
+    {
+      "path": "combined.stdout.gz.base64",
+      "bytes": 1643,
+      "sha256": "06554dfdc24084eced2fc4c882ec2363e12d61591888fd7f56cce9054df6dfde"
+    },
+    {
+      "path": "combined.stderr.gz.base64",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "combined.report.gz.base64",
+      "bytes": 22565434,
+      "sha256": "6e9455e88e49fad2e0377bdac6be677e1383821792cacfe04f8fe449c6fbce30"
+    },
+    {
+      "path": "emitted.gz.base64",
+      "bytes": 124680,
+      "sha256": "12801a0b1723648ebab6826d4bb5ee1f06e388ca948f86b5e0b303223251f1f1"
+    },
+    {
+      "path": "source-fallback.stdout.gz.base64",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "source-fallback.stderr.gz.base64",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "source-fallback.report.gz.base64",
+      "bytes": 1443632,
+      "sha256": "b275c1b8d35d5c840b28e76ceb627e919b2f0fa07981e240448367a736610052"
+    },
+    {
+      "path": "nearby-bindings.stdout.gz.base64",
+      "bytes": 4924,
+      "sha256": "1eb0118b7f5500d0208167edde6475ac372c8eb3cd6974e47c951b32d1e3e283"
+    },
+    {
+      "path": "nearby-bindings.stderr.gz.base64",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "nearby-bindings.report.gz.base64",
+      "bytes": 12064844,
+      "sha256": "a5a946b9fda2d89f277aaefb2aa219d127047636d0e75796e1dfb17a4da796b8"
+    },
+    {
+      "path": "missing-export.stdout.gz.base64",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "missing-export.stderr.gz.base64",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "missing-export.report.gz.base64",
+      "bytes": 1131094,
+      "sha256": "55742d845badcf0c1f3c4280e6375828fd86ae1a85c85cc051eaa4df52919a12"
+    },
+    {
+      "path": "mixed-full-warm.stdout.gz.base64",
+      "bytes": 1536,
+      "sha256": "4db6c913dfc7c89b5c202ff6b5d9bdf74e67481d3af5e25ebd2bb6278a0e97f2"
+    },
+    {
+      "path": "mixed-full-warm.stderr.gz.base64",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "mixed-full-warm.report.gz.base64",
+      "bytes": 22813309,
+      "sha256": "e07aba12f63d1a343a5f90bafcfb622dd635faf12f2c07d25c46df703cdf4e9d"
+    },
+    {
+      "path": "mixed-binding-mutant.stdout.gz.base64",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "mixed-binding-mutant.stderr.gz.base64",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "mixed-binding-mutant.report.gz.base64",
+      "bytes": 1168862,
+      "sha256": "65a3ed6c77f633ae60eb78077f3e722aeac3c741a660313dd487e43101a6e4cf"
+    },
+    {
+      "path": "source-after.gz.base64",
+      "bytes": 5361465,
+      "sha256": "fd829634e2076360b305ab170dd78a5e4fb1229540ece02072629f14bdf6d543"
+    }
+  ],
+  "findings": [],
+  "runtimeAcceptance": false,
+  "tree": "967d01659604e3c6bd6dd6098306903f4aa18cda",
+  "archiveSha256": "4045e51d97657dcda475f4034f9ba50896e151040138c5eec22e52daae959f60",
+  "sourceBefore": {
+    "path": "source-before.gz.base64",
+    "bytes": 5361465,
+    "sha256": "fd829634e2076360b305ab170dd78a5e4fb1229540ece02072629f14bdf6d543"
+  },
+  "tools": {
+    "path": "tools.gz.base64",
+    "bytes": 60939,
+    "sha256": "cd1e8c47d74fc98c31975adec71792fef3515c503fbb330ef9b6c64c7d5f5bc2"
+  },
+  "typescript": "5.9.3",
+  "nodeTypes": "22.20.1",
+  "baseline": {
+    "metadataSha256": "2127bbfed020aeb7873462ae65224e6ee73069425c878aa2ceee9816b2191245",
+    "declarations": [
+      {
+        "path": "dist/commands/archive/create.d.ts",
+        "sha256": "3969cf41e2d2895819fe1ff52093661af82f317921bca565ed006940129ed0d8"
+      },
+      {
+        "path": "dist/commands/archive/extract.d.ts",
+        "sha256": "daebfb1431887dded07482d20424a3332a6c6dee094219e3e1396920d3c3aa6a"
+      },
+      {
+        "path": "dist/commands/archive/format.d.ts",
+        "sha256": "90efed2b216912f30193a13495165fc0063190f9be83a27a965fde5f82cac629"
+      },
+      {
+        "path": "dist/commands/archive/index.d.ts",
+        "sha256": "5915c7ed406a26ae776af185693b79fd3a6e2904fc09204ffa88046965fcebcd"
+      },
+      {
+        "path": "dist/commands/archive/internal.d.ts",
+        "sha256": "53180a2ea873fbd5d8a44002cc432252c008eec5663a65b4f84e68f24adbcca3"
+      },
+      {
+        "path": "dist/commands/archive/options.d.ts",
+        "sha256": "0fea889255fc81436130fb905c6875a2406f7e09ffc2677d3ef094011812c2ea"
+      },
+      {
+        "path": "dist/commands/archive/stream.d.ts",
+        "sha256": "0b947ab3dd4b08d5e5c04234ee3408f413bd2714bc9977bad9a82bffdac0bacc"
+      },
+      {
+        "path": "dist/commands/basic.d.ts",
+        "sha256": "524d620b7ed26b3f5f2f96fb13afe562dc517b81737cae4375060b547787909a"
+      },
+      {
+        "path": "dist/commands/bytes/checksums/index.d.ts",
+        "sha256": "af966e8c947c488a6f3878e9199ba7083cb7bf3a9ea26630e0798499384c403d"
+      },
+      {
+        "path": "dist/commands/bytes/compression/files.d.ts",
+        "sha256": "24060cdffcf7088e19920ebaccfb15622522e7d406fd218c10664240030d7bfd"
+      },
+      {
+        "path": "dist/commands/bytes/compression/gunzip.d.ts",
+        "sha256": "cc95b4139299cf0ad102a56c2d26dd90f462fc3fd858025883ff11b0104971fc"
+      },
+      {
+        "path": "dist/commands/bytes/compression/index.d.ts",
+        "sha256": "30fbeed686a10d77bf5e137a25340a770dd68d1e6d33a9ec22e627f2ac2c57fb"
+      },
+      {
+        "path": "dist/commands/bytes/compression/options.d.ts",
+        "sha256": "a80ccac745c0ac3a948a5a5b170b2db41c05ef33f7e5d5bdffe3a4fed9e6447c"
+      },
+      {
+        "path": "dist/commands/bytes/compression/stream.d.ts",
+        "sha256": "52c3e3131e06223daaf1a1e7343dea087819b06900223f3f87af99a412b37540"
+      },
+      {
+        "path": "dist/commands/bytes/encoding/base.d.ts",
+        "sha256": "7a22b977626ced8e1312cc132c7b2c9636a0ee388d9dbf04ddebdc97e5524295"
+      },
+      {
+        "path": "dist/commands/bytes/encoding/index.d.ts",
+        "sha256": "b5040e1e2fbfc152337ab88cafd4dbb24b97ef0462e0a917af278baf07197daa"
+      },
+      {
+        "path": "dist/commands/bytes/encoding/od.d.ts",
+        "sha256": "57a352e9d091866504de470544cb174741e1ffa05f8c86af2b71f857c27ffc2b"
+      },
+      {
+        "path": "dist/commands/bytes/encoding/shared.d.ts",
+        "sha256": "35a59725d16b14e86a1d6d644ffffb9d6c6b292f447a1ce33265dcff2a54d5e0"
+      },
+      {
+        "path": "dist/commands/bytes/encoding/xxd.d.ts",
+        "sha256": "dc54e96bd5503fe514ecf9d9ca2a35fc82708d611359ac3032472c25bd6c2511"
+      },
+      {
+        "path": "dist/commands/bytes/index.d.ts",
+        "sha256": "b7dc95a863dfd9222d03ff2a84ae9499722849a754eec591b5ef891b8aecd78e"
+      },
+      {
+        "path": "dist/commands/copy-identity.d.ts",
+        "sha256": "bf4bd25f33a53f6be09cbd5d197e23128f9138e88120ac010b5d0150a802d486"
+      },
+      {
+        "path": "dist/commands/diff-patch/diff-format.d.ts",
+        "sha256": "c0b9b2abdb19c56b556cac2ff354278c28476aa3f9eefa59747cbba193493963"
+      },
+      {
+        "path": "dist/commands/diff-patch/diff.d.ts",
+        "sha256": "e4819e10e4a647fb92c9b3e9e4a5b768b6a3ae0c2fdd27ad047e5485fba815bc"
+      },
+      {
+        "path": "dist/commands/diff-patch/index.d.ts",
+        "sha256": "c53f04e49bcb83f71719987ca6af81aa9806375703cd6f2f7e98e2fd4e40bf00"
+      },
+      {
+        "path": "dist/commands/diff-patch/patch-envelope.d.ts",
+        "sha256": "5fd9d874f67d625837542a0ff1fecab80cc7e7f66e663ed9e3c38c66245b46f2"
+      },
+      {
+        "path": "dist/commands/diff-patch/patch-formats.d.ts",
+        "sha256": "2dd7de02e6e77d14419a8a36f9a09149f2058716ca263c402e6e7d4730d56782"
+      },
+      {
+        "path": "dist/commands/diff-patch/patch-gnu-paths.d.ts",
+        "sha256": "0468dba2a3847c0e1df716a7e7bca39a1d55e122de6fa8531109a7008b7ad72f"
+      },
+      {
+        "path": "dist/commands/diff-patch/patch-gnu-reject.d.ts",
+        "sha256": "3bb3c7ef619097c6fb7efd031187c4b755cf37b77c9ec2971379389d430941fb"
+      },
+      {
+        "path": "dist/commands/diff-patch/patch-path.d.ts",
+        "sha256": "8755ef40146f7eba914bd7e06444722b91e446d7eeceefb2f5ebb1591b07551c"
+      },
+      {
+        "path": "dist/commands/diff-patch/patch.d.ts",
+        "sha256": "167c329a88ad643b0561cadbd07aab3e660bdabac6cb9c80c901b5cafdb22c1f"
+      },
+      {
+        "path": "dist/commands/diff-patch/shared.d.ts",
+        "sha256": "8da59d0ddf0c34ac03f0377c36921f49f4a035ca9240acc48b6359b65807a66e"
+      },
+      {
+        "path": "dist/commands/diff-patch/unified.d.ts",
+        "sha256": "e30b90a1c2e4c57e7af48c8f1c843d0adfe312b77b753cf8da3821a24268848e"
+      },
+      {
+        "path": "dist/commands/env-split.d.ts",
+        "sha256": "3f6a449581fd58588363546114f409c1147e80917b332875856d21ff623ea48d"
+      },
+      {
+        "path": "dist/commands/execution.d.ts",
+        "sha256": "8600b4de53c669d370c9e26419640e26ea7ce63cf10849907ffd47347b01bf8e"
+      },
+      {
+        "path": "dist/commands/file/classify.d.ts",
+        "sha256": "ade21bae61c38e0d511ecc4bbea090b7d8d93d6bc3dfd3cf9c99afe7c09afbb1"
+      },
+      {
+        "path": "dist/commands/file/index.d.ts",
+        "sha256": "82cbaf66cfc7ab1908387b9c7e3ec05fb87b66d5835dcad0575cebdfdcfc08e7"
+      },
+      {
+        "path": "dist/commands/file/shared.d.ts",
+        "sha256": "41219db9290c5092d89f0501e2eb81fe8f9e9ff3e5e5d13d6101675897254bee"
+      },
+      {
+        "path": "dist/commands/filesystem.d.ts",
+        "sha256": "483bf9845f4f72b6f0a2ff18592947c19d578003e379fe9ae7b44e10d2ceefbe"
+      },
+      {
+        "path": "dist/commands/find.d.ts",
+        "sha256": "48735b69f4a2695b51d51e82a295885d947d37374dae5cb2f6220954625c187a"
+      },
+      {
+        "path": "dist/commands/grep.d.ts",
+        "sha256": "317c0b39d5bf700f34f468bbe02db6c3249af92c0f29b86799a8347852471c2a"
+      },
+      {
+        "path": "dist/commands/index.d.ts",
+        "sha256": "93573ae92635854b4f60de0cab4543879473a82b3e288ed9cea433352ee65959"
+      },
+      {
+        "path": "dist/commands/internal.d.ts",
+        "sha256": "571a15a5ded1f8349c59b7966134362cc5ac1dfd182493fa2e89cf584426ae76"
+      },
+      {
+        "path": "dist/commands/metadata/chmod.d.ts",
+        "sha256": "2e53e2246085558fef469962943b87a8f02aec005e3608ea1df2131f6503f696"
+      },
+      {
+        "path": "dist/commands/metadata/index.d.ts",
+        "sha256": "18403dc5805350396912f6e5e2c097ffb4bc1c3a1a134ff0f9674413b8d92ef8"
+      },
+      {
+        "path": "dist/commands/metadata/internal.d.ts",
+        "sha256": "7c5d9c7bc23eaa1073779c457ca1ba461d5c61dc20574cd7e0eb19b690c05e38"
+      },
+      {
+        "path": "dist/commands/metadata/mktemp.d.ts",
+        "sha256": "6b2509aec483e23ac696be6ace6cc4db0ac3541d6c586071af4449a0b2c5b1c8"
+      },
+      {
+        "path": "dist/commands/metadata/stat.d.ts",
+        "sha256": "6dd10dd5cc1cd72bf8a88546e02da0848a052b943532acbf83c91103c25f8b36"
+      },
+      {
+        "path": "dist/commands/move.d.ts",
+        "sha256": "115cf8aa86c8e9681cf98c6ceadb940413896e30f76d42d907d6c326ea816b82"
+      },
+      {
+        "path": "dist/commands/network/args.d.ts",
+        "sha256": "2713c3fc4fb454205d043be5dde8c8f97e5571f793a74892661a04d47c0d42f9"
+      },
+      {
+        "path": "dist/commands/network/body.d.ts",
+        "sha256": "c96c53c7f96e608382432b827e4433b8b5f82e91333b88ef0b8673646e749e48"
+      },
+      {
+        "path": "dist/commands/network/curl.d.ts",
+        "sha256": "08a25441a54f8e94938682e78e5041cdcf2c02f234461a929fca145bc2f6c586"
+      },
+      {
+        "path": "dist/commands/network/index.d.ts",
+        "sha256": "08f1489b65845afccbfff8a509b6c1223c4b232f8d568421454e2ddd3dc771fa"
+      },
+      {
+        "path": "dist/commands/network/output.d.ts",
+        "sha256": "493d542eab62544f5b2f1759ec4a1787adf39ba4ec17e5f8f2291e76234c5474"
+      },
+      {
+        "path": "dist/commands/network/shared.d.ts",
+        "sha256": "d703c80934beffd1b377669a092c0f7d8e6028551bd987a3d5ebb0953b354574"
+      },
+      {
+        "path": "dist/commands/network/transport.d.ts",
+        "sha256": "b5492b1a8475e56fe15ab7c5fcec0357bcd50411df2e029eebeacd8828299ecb"
+      },
+      {
+        "path": "dist/commands/network/types.d.ts",
+        "sha256": "19642fe743d7e4ca82153934cc72baa3fa52c81d310ed513a6a13a8683738732"
+      },
+      {
+        "path": "dist/commands/predicates.d.ts",
+        "sha256": "32319d3d0287bccfc9ed4f087df4306a30d0b7d01774f39020e4ade996d06154"
+      },
+      {
+        "path": "dist/commands/regex-execution/client.d.ts",
+        "sha256": "f48734b7a138f8e0162a17ebabe55d89f658943c98f6d33ddf2c449dd5136bed"
+      },
+      {
+        "path": "dist/commands/regex-execution/matching.d.ts",
+        "sha256": "a88b00c9e4e7dde42ff2204d809e3f0bd5920a890150ae2398c6fa2c0d344c53"
+      },
+      {
+        "path": "dist/commands/regex-execution/protocol.d.ts",
+        "sha256": "1eb58cf955971f55704c45bf96b0cd194f79fb6e111165affcd8f13d572409e6"
+      },
+      {
+        "path": "dist/commands/regex-execution/worker.d.ts",
+        "sha256": "14e7397ad7aab084b1c5b23b9f101c079611e43e872d5b4250f2be5499a6a273"
+      },
+      {
+        "path": "dist/commands/safejs/index.d.ts",
+        "sha256": "83938a9d51a41a96a1e9532e1650312eec655d79ddcb2a8562dfe28f5b7ed2da"
+      },
+      {
+        "path": "dist/commands/safejs/io.d.ts",
+        "sha256": "816f2f7dd249e284b25576fba2b401e2cf3a93cf5ad3c99e74dad8280eee5df8"
+      },
+      {
+        "path": "dist/commands/safejs/options.d.ts",
+        "sha256": "4b9bf9bf19a9b2f11f0ce9a6476076be98676f3d25f59c7d075c397f008e5dc3"
+      },
+      {
+        "path": "dist/commands/safejs/render.d.ts",
+        "sha256": "8a2422f6f434ae8f11d585a9ccc76cf98da042fbf1cfc0cf2bb4786c161a4ab7"
+      },
+      {
+        "path": "dist/commands/safejs/types.d.ts",
+        "sha256": "109f0995a241787f66e563c213f03e176f0509c8fff9c1b2586ff144fd554800"
+      },
+      {
+        "path": "dist/commands/search/glob.d.ts",
+        "sha256": "5a790ac522472f3b82e0aa5a1b601fa80aed1322283464b482d721a78fa0ba82"
+      },
+      {
+        "path": "dist/commands/search/index.d.ts",
+        "sha256": "280c17bfe0589b0a038cbec3eba1e8d68be345f665bfa3344542df3d3323f7c1"
+      },
+      {
+        "path": "dist/commands/search/matcher.d.ts",
+        "sha256": "f8cfe990fe5e4e47b8052bacfa3394beaca91313f406c42de18711d9c64eb073"
+      },
+      {
+        "path": "dist/commands/search/options.d.ts",
+        "sha256": "6f2a6683f1044ee62f71775e63d4c59b2e6216a270f934842c4e141aab41ae20"
+      },
+      {
+        "path": "dist/commands/search/output.d.ts",
+        "sha256": "51ffae90db8dccf1380bd97e7ce9427f30e8b9964b2712193834e64c77bfedf6"
+      },
+      {
+        "path": "dist/commands/search/rg.d.ts",
+        "sha256": "d98507a145a1b75423a34d1e591c164b2f4495aed1abc815b2c1cb1089a8a6ab"
+      },
+      {
+        "path": "dist/commands/search/shared.d.ts",
+        "sha256": "cd76280af0cbe13d9a63dd987c8ea177c96c3e824222806aed65e756faa6e8b4"
+      },
+      {
+        "path": "dist/commands/search/walk.d.ts",
+        "sha256": "dbf474d6e59467565b8ff049897b6095548566c94fad0ab91baa78b40b136f95"
+      },
+      {
+        "path": "dist/commands/split/index.d.ts",
+        "sha256": "ccf030388097964f6cd8c9a65105cff756fbdc165888c4a81c8682fdaaadef31"
+      },
+      {
+        "path": "dist/commands/split/io.d.ts",
+        "sha256": "7109872ed3f63fcf6b26e21c6cd2a91b887558f6da2af971e98a3f81deb03379"
+      },
+      {
+        "path": "dist/commands/split/names.d.ts",
+        "sha256": "8cba289606c41c3a6749473fd4873ec23ae9a280762e8794af896207e9dfab96"
+      },
+      {
+        "path": "dist/commands/split/options.d.ts",
+        "sha256": "579b02a0737e5b2a33110d7d45de32aa0ecdcc423a58823dea9f8c966f364782"
+      },
+      {
+        "path": "dist/commands/split/outputs.d.ts",
+        "sha256": "665c038935619c769c5167088151d0e25b3798b752e0ef4779fb46ca954999cc"
+      },
+      {
+        "path": "dist/commands/split/split.d.ts",
+        "sha256": "bd202e91db0d3312c136d894c37252df1f804abc39f09e9d48dd9840fc2000cf"
+      },
+      {
+        "path": "dist/commands/stream-format/index.d.ts",
+        "sha256": "68405695710d84cb7a9cd0b4f61a88d646e784c6fdf369960165e34c07f677cc"
+      },
+      {
+        "path": "dist/commands/stream-format/nl.d.ts",
+        "sha256": "8937c259e5c61d2dc586e07ccc736bcd9ae78350defeea00b436199983532af3"
+      },
+      {
+        "path": "dist/commands/stream-format/rev.d.ts",
+        "sha256": "ec0d99ece253e9945f8107d6d52a97979b4e07b95da150aa30db8cfd876f0cc2"
+      },
+      {
+        "path": "dist/commands/stream-format/seq.d.ts",
+        "sha256": "cfc6fb1c072bf15bdc4b0712a990420ccef5a1b441f6470094fcfafea39f50e4"
+      },
+      {
+        "path": "dist/commands/stream-format/shared.d.ts",
+        "sha256": "7da5113105d4e41b36f6eda256aae9497f9729928f3f548885b0664e0e3b3e8c"
+      },
+      {
+        "path": "dist/commands/stream-format/unexpand.d.ts",
+        "sha256": "375c356346a1e96c1aea75e126ddad9d515a39dec94ca763ab4045bfa638540b"
+      },
+      {
+        "path": "dist/commands/stream-inspection/expand.d.ts",
+        "sha256": "c867d44b5764f412d744c6bd8ed1f62c3673f0a35ed60556d73ba678eee5a0b7"
+      },
+      {
+        "path": "dist/commands/stream-inspection/fold.d.ts",
+        "sha256": "5b54bbd4afc57062b1066a7953b34430983bd1d3148403b2573fb7e10bef0a88"
+      },
+      {
+        "path": "dist/commands/stream-inspection/index.d.ts",
+        "sha256": "9507449bb1b4636d631cb9d65470618a3405e2cf0082e34bbf1c35af03fa3234"
+      },
+      {
+        "path": "dist/commands/stream-inspection/numeric-options.d.ts",
+        "sha256": "06a7acae416a87d230c012bb9229cc4224f8137535dd047695e45a0a06ac3bd3"
+      },
+      {
+        "path": "dist/commands/stream-inspection/shared.d.ts",
+        "sha256": "aabeb716aa228a809acd59a7d9c8e1a5d7e04d16408517af5b59b2275e0def6d"
+      },
+      {
+        "path": "dist/commands/stream-inspection/strings.d.ts",
+        "sha256": "ae74d1e8dfe4e83945d7904daeef836c649b2efce8ca347d3cfa1391310fc72a"
+      },
+      {
+        "path": "dist/commands/stream-inspection/tac.d.ts",
+        "sha256": "df95fa5be6fb3ef10916d3698e0776879212b09c5c83aa7363a2e24edc05f4d6"
+      },
+      {
+        "path": "dist/commands/streams.d.ts",
+        "sha256": "c48e3ec4a3aaf6d4e1860fc7476edadc925347bf0aba7239707be0fdf1b4f9e8"
+      },
+      {
+        "path": "dist/commands/structured/index.d.ts",
+        "sha256": "0d58f75fdabe696aea62c9b88a7f5edc086e26d084027fdef44a19864811da87"
+      },
+      {
+        "path": "dist/commands/structured/input.d.ts",
+        "sha256": "7c094df06aa786a4e12862ac4cb0ca835f87abafd5994615d0d833c70bfb2990"
+      },
+      {
+        "path": "dist/commands/structured/interpreter.d.ts",
+        "sha256": "29a0c46494f52502b7794d5d201041279ccf2403cd31eb6c056fafe387230509"
+      },
+      {
+        "path": "dist/commands/structured/jq.d.ts",
+        "sha256": "2e68416651f1df81060e2546c6277ec43fc00931e6ec73b0ce1af392f942e324"
+      },
+      {
+        "path": "dist/commands/structured/limits.d.ts",
+        "sha256": "4ad314de749a20880754430b148ff3c9fc0ee10908a47dba7afa110b1a83e352"
+      },
+      {
+        "path": "dist/commands/structured/numbers.d.ts",
+        "sha256": "aeed890779f8364639111c755c952159db4a4437f818a8f73b114726daa6b41f"
+      },
+      {
+        "path": "dist/commands/structured/parser.d.ts",
+        "sha256": "7c3ad50f4dc80455131ed529ab0f0f47f1b4bd075127b360a3ab9e469f119167"
+      },
+      {
+        "path": "dist/commands/structured/split.d.ts",
+        "sha256": "25750d2a6028828b6fb1bbb058d23b4efeab3c4051414a011fd2082697424683"
+      },
+      {
+        "path": "dist/commands/structured/values.d.ts",
+        "sha256": "4b51f596bbe262fdeced245cb2dda622ccea5bb543151ccd9d6e2b88505f3a37"
+      },
+      {
+        "path": "dist/commands/table-text/comm.d.ts",
+        "sha256": "4145ace02fb93a5f52cb7060fe831abc59f8668e307e3a3352ccaf4f02c1ef30"
+      },
+      {
+        "path": "dist/commands/table-text/index.d.ts",
+        "sha256": "1915d898ee80fe130464e20c842e689ec555dca22db3e29b0c5e778678c75985"
+      },
+      {
+        "path": "dist/commands/table-text/internal.d.ts",
+        "sha256": "3b0e5eb7846be58ab8998f5742d56d86b053698e3a8b839ae02ec9977a164ad6"
+      },
+      {
+        "path": "dist/commands/table-text/join.d.ts",
+        "sha256": "06f5e52260efdb0be8c0f004fea338247ac6b42b5bb26886652909cb5bd37b57"
+      },
+      {
+        "path": "dist/commands/table-text/paste.d.ts",
+        "sha256": "beef279b5a775c720627df07d1b4e746c9d6e6acd4cff8ea2528ad7a7a587db2"
+      },
+      {
+        "path": "dist/commands/text-programs/awk-runtime.d.ts",
+        "sha256": "01267fa9e2e0200a0b7263654193134c62f283bb35d8ec9dc217e3bc554bbc22"
+      },
+      {
+        "path": "dist/commands/text-programs/awk-syntax.d.ts",
+        "sha256": "45edf5814045359f5d2ed34dd37a1238a12df7177ed39e42301c3b8d36842a43"
+      },
+      {
+        "path": "dist/commands/text-programs/awk-values.d.ts",
+        "sha256": "3badcb633555e1c6ab30e514a52c88301cbe99e1d0a072979c4aaa5227f4fa96"
+      },
+      {
+        "path": "dist/commands/text-programs/awk.d.ts",
+        "sha256": "bf909ef3c0aae1c47ba8e3d787b256f7756bead188a49b24611e5ed11b1d7808"
+      },
+      {
+        "path": "dist/commands/text-programs/index.d.ts",
+        "sha256": "41c59a4cdf0d39754a94725e47694048ebbd472c935dfd1d053100c418dd59ef"
+      },
+      {
+        "path": "dist/commands/text-programs/regex.d.ts",
+        "sha256": "16b06d4c7aca6938e87c6a720ee20cabb5252bc7ef1adc9f17fe253df78b5fd3"
+      },
+      {
+        "path": "dist/commands/text-programs/sed.d.ts",
+        "sha256": "d34337e77c9a8c87ed8ca7231e3c1a817a481dcaa95bd4a348326cff2b239472"
+      },
+      {
+        "path": "dist/commands/text-programs/shared.d.ts",
+        "sha256": "a6cc39cc468b97c24fce90f3467455c24ddc68cfaf072d67b3130653564ba243"
+      },
+      {
+        "path": "dist/commands/text.d.ts",
+        "sha256": "82bfd4267f13dc080125c83f6ad9610d419a1228395581f2075a7a285430c3d3"
+      },
+      {
+        "path": "dist/commands/time-env/calendar.d.ts",
+        "sha256": "ee5c771ba7809761be834ada61b67ce8e081d5c193c88bf6d84dfcbe440b19a5"
+      },
+      {
+        "path": "dist/commands/time-env/date.d.ts",
+        "sha256": "6f2e64e7e2a34de784f631ad9929b5fc77634829e1decd164775aea35e05266c"
+      },
+      {
+        "path": "dist/commands/time-env/format.d.ts",
+        "sha256": "343f7ad50d8ee30a839e4958da606012c25c970c6f30762dbc2219ec12753b29"
+      },
+      {
+        "path": "dist/commands/time-env/index.d.ts",
+        "sha256": "b7bdc7e4b40b6d39378c3cab3184b43f67243bb7cb0ce3a75b1ec8c78e4d1ba4"
+      },
+      {
+        "path": "dist/commands/time-env/printenv.d.ts",
+        "sha256": "728e624d7a37789790c6a72c15e64347e2a8d12fcb60d5cc7a6b012b7c9e4234"
+      },
+      {
+        "path": "dist/commands/time-env/shared.d.ts",
+        "sha256": "46e0dd3ad8240e625aa92c205e34154620fb6eec817593b08683b4cfc06a0587"
+      },
+      {
+        "path": "dist/commands/time-env/sleep.d.ts",
+        "sha256": "72ffafb919d77c0d618f29e85212390fdd24f132ad4f19e3c1af6ef716a3c6db"
+      },
+      {
+        "path": "dist/commands/tree/arguments.d.ts",
+        "sha256": "3729070c16c5757f7bbbe9af28ae0bddf87354ec6977c52de73365e80315c3e2"
+      },
+      {
+        "path": "dist/commands/tree/index.d.ts",
+        "sha256": "29cef61ca31995ef8c2c0ccbcaf8f2149902bf4000ae44d09a4cae856518119a"
+      },
+      {
+        "path": "dist/commands/tree/io.d.ts",
+        "sha256": "38747476b7b3aa1d13b3eb3deb5f9accf384be74e0e5df95848648713e277b6c"
+      },
+      {
+        "path": "dist/commands/tree/options.d.ts",
+        "sha256": "6cd4145544773cdd7592ea71096064af1a6d18999eeee647332d6f0b34a6469c"
+      },
+      {
+        "path": "dist/commands/tree/pattern.d.ts",
+        "sha256": "3f9f095bf9963c3493e155b8231240ac6e8869e892e3a6f81c7f8c42296dbe18"
+      },
+      {
+        "path": "dist/commands/tree/tree.d.ts",
+        "sha256": "ed2a37862328c39bccba7f5d21e020e802889358761df4f4052e5f90ea340524"
+      },
+      {
+        "path": "dist/contracts/command.d.ts",
+        "sha256": "c3e34fdeb0cb84c61efe2d294af94a8082484decba6466d4e73848be8b31526f"
+      },
+      {
+        "path": "dist/contracts/errors.d.ts",
+        "sha256": "b0771794e6ff1d92c0b259fdf68015474f4b8009e6102995846f56e17839c1b9"
+      },
+      {
+        "path": "dist/contracts/filesystem.d.ts",
+        "sha256": "d021ebe6f7f5bb11801ee255c80a822b6b1c80065e13489b7383fedc6450867d"
+      },
+      {
+        "path": "dist/contracts/index.d.ts",
+        "sha256": "bfaa9d5faf0382dcae880d38e6dc8273b54da723573ad0a8268fa620885599b9"
+      },
+      {
+        "path": "dist/contracts/io.d.ts",
+        "sha256": "462c630e7a00c37f2440d4773ce4393a2ac9abea2d9f8819fd6e356993abd162"
+      },
+      {
+        "path": "dist/contracts/path.d.ts",
+        "sha256": "1a1f13de7c072f5323be1f1d1e7a602b377c2a887730e6af2e92ad1d5bdbdc5f"
+      },
+      {
+        "path": "dist/contracts/plugin.d.ts",
+        "sha256": "23c31a917e681f99d0ff846c8e03e591cb0e19a5359ec79ffa570ca3a83680a0"
+      },
+      {
+        "path": "dist/fs/memory/index.d.ts",
+        "sha256": "b0a3f7beb8ec86e489b05331bb481d543d38b6a127c6d68b2c0aec8f89c0581b"
+      },
+      {
+        "path": "dist/fs/mount/comparison.d.ts",
+        "sha256": "baa2c6bcdb575ee54a0e892e3e39259d85a75dbfe8ba8c6ffeb449f2a72985f1"
+      },
+      {
+        "path": "dist/fs/mount/identity.d.ts",
+        "sha256": "c82f3c8f82648691b1574693a274c79c757ed6599506fad682ba96ce52fe2a96"
+      },
+      {
+        "path": "dist/fs/mount/index.d.ts",
+        "sha256": "f7c75fa6cb814e4dcc04657ab693fe69d736e27a0d1a0f96f3ca950caa90e6b7"
+      },
+      {
+        "path": "dist/fs/overlay/index.d.ts",
+        "sha256": "ae279f6375346f8c2b2f7322869e8684387332ce87594b0f8d97266ddef32fe7"
+      },
+      {
+        "path": "dist/fs/readonly/index.d.ts",
+        "sha256": "71d3a85b7450a04f684f65ed382c71451591f90f20c3360520e9f60ffc642550"
+      },
+      {
+        "path": "dist/fs/real/index.d.ts",
+        "sha256": "10a3bbcb42aa82e74e26cf3ebf3bd60414122d39988c3b5620677f32365b48d8"
+      },
+      {
+        "path": "dist/fs/s3/authority.d.ts",
+        "sha256": "91f6e77dc5d097dfcc461d53799d6277e62649278a611d52606b5e8d198532b1"
+      },
+      {
+        "path": "dist/fs/s3/filesystem.d.ts",
+        "sha256": "f8956e33ff69d7d5401ad62ec385890ab511902e7ae5658a75a7f6156b37bb8d"
+      },
+      {
+        "path": "dist/fs/s3/http/index.d.ts",
+        "sha256": "a5f7f9275fcfad498a946b7f2bb34996f4fa1e32db010d22bb101f6a3ea096fb"
+      },
+      {
+        "path": "dist/fs/s3/http/request.d.ts",
+        "sha256": "b4823b29a3333504fbbce5567192979098e1f2ea0ebbfec3695a0a0fad8240ef"
+      },
+      {
+        "path": "dist/fs/s3/http/signature.d.ts",
+        "sha256": "4bd90e31183201abdb7418b99b439ca20f472367c0d2a505a9e107c24c6897ae"
+      },
+      {
+        "path": "dist/fs/s3/http/transport.d.ts",
+        "sha256": "28686407eb1bb3fc7dbf1254fc98bd9d8c272e3aeaf8a231de6a9861917f8ac9"
+      },
+      {
+        "path": "dist/fs/s3/http/types.d.ts",
+        "sha256": "de39302003cfd9c28ebb27e3cf5f15ccd1b5704c47f84282fccf8ff37a8c5330"
+      },
+      {
+        "path": "dist/fs/s3/http/xml.d.ts",
+        "sha256": "e1a41d3c5d64f45d8aea26a6450929d160f8357d0d11f8e0219e3529acdef9ce"
+      },
+      {
+        "path": "dist/fs/s3/index.d.ts",
+        "sha256": "b6e4c85cafae50b5fdfd09566aa843fc7809ce3a500559a6bf294d2b32612918"
+      },
+      {
+        "path": "dist/fs/s3/mock.d.ts",
+        "sha256": "fd983ea8d33133cea05f15328973c7b9c6f9efa41b07e12fdc3d543f23911354"
+      },
+      {
+        "path": "dist/fs/s3/transport.d.ts",
+        "sha256": "ec154e2eb64d8768e8a1115ea15d4f5b971d0fcdfef7e11e579a870ee156ca1d"
+      },
+      {
+        "path": "dist/fs/webdav/index.d.ts",
+        "sha256": "69a206d350b76c726ec132910aa2d19111b07eb69b997f7c60309667d3ba1263"
+      },
+      {
+        "path": "dist/fs/webdav/resource-id.d.ts",
+        "sha256": "9791d6980f57614624c0e639ea9d3dbf0d472f887127e6a8efe0739e763b7083"
+      },
+      {
+        "path": "dist/fs/webdav/webdav.d.ts",
+        "sha256": "a681c5caafe50994dc4016f492f742fa910e3f2108f995896b7855df18364116"
+      },
+      {
+        "path": "dist/fs/webdav/xml.d.ts",
+        "sha256": "c3cf39332d7c37a4965aad8e340ee3849982728a2ad532a42f44c0960205f52b"
+      },
+      {
+        "path": "dist/index.d.ts",
+        "sha256": "ee6c684912bfe559e9eb704bc83f249bca3fcf09b7d9576860bab13f4d3dc553"
+      },
+      {
+        "path": "dist/integrations/safejs/filesystem.d.ts",
+        "sha256": "72f3404c94040d1d96b3d7157cc5dca6ecfc97d9d359eb289ace969de7d7d54c"
+      },
+      {
+        "path": "dist/integrations/safejs/index.d.ts",
+        "sha256": "6956833539abb195454e4471036a995e85b21fef721e6cb4853da31f3aafe541"
+      },
+      {
+        "path": "dist/integrations/safejs/shell.d.ts",
+        "sha256": "a9eca7e38be42cc6f8d4705921800465caaf265c6dc311f18203008422d7c220"
+      },
+      {
+        "path": "dist/integrations/safejs/stats.d.ts",
+        "sha256": "b598286ff34bf5fdf20558c4f64ae93a2abd0cf0229b4042ea517bd98ffe7120"
+      },
+      {
+        "path": "dist/integrations/safejs/values.d.ts",
+        "sha256": "d3ca3ea8f72e21dcf8f8755cbcb38e4ba6605879e327bdc2f15e0581ec1e9d6b"
+      },
+      {
+        "path": "dist/plugins/index.d.ts",
+        "sha256": "2982ec3ec05647a4f1af36c91de8e57c9aa7bf404cc425630acca1a8fc696860"
+      },
+      {
+        "path": "dist/shell/arithmetic.d.ts",
+        "sha256": "4649302322cb7d65e5562bc825ab841aab4205fa43b03dba5f12cdebdb34eaf1"
+      },
+      {
+        "path": "dist/shell/cleanup.d.ts",
+        "sha256": "69b7821030594705e4aa5285d7d1f43a5fc136700b847d8c3696d6fb1e09fe39"
+      },
+      {
+        "path": "dist/shell/display.d.ts",
+        "sha256": "79b7959b75d493e3345422fcce8d5535bc3c88399ef030fca685e1b4eaf2bc6a"
+      },
+      {
+        "path": "dist/shell/index.d.ts",
+        "sha256": "c7d3b2a67d63d73bbe2c8bea0d549828c30476e6f0ba093a736423972dad5772"
+      },
+      {
+        "path": "dist/shell/input.d.ts",
+        "sha256": "53ab49f4afa72aecd70fe2eb5c76a3a1b725fded1e00f4a6afdfbf98000ba5bb"
+      },
+      {
+        "path": "dist/shell/locale.d.ts",
+        "sha256": "3d7f0c95c2cc971c0bdfc196a4944f183ec0dd4256a82b04e741c22baa7feed6"
+      },
+      {
+        "path": "dist/shell/parser.d.ts",
+        "sha256": "350a5753d55bdeddc29e50630e317c9440a8f44996794635e9c51c86a14a75f7"
+      },
+      {
+        "path": "dist/shell/pattern.d.ts",
+        "sha256": "6b4f6e7184ac442d78d661a22fbf96f57c38ef4c97888491149be61cf7b3690f"
+      },
+      {
+        "path": "dist/shell/runtime.d.ts",
+        "sha256": "2feb476dc746e1aee15ab5d876f7774d2aa1b7784fe5678337c16edf18c734df"
+      },
+      {
+        "path": "dist/shell/shell.d.ts",
+        "sha256": "a5000b8a9d94806a5ae826a393fab48d561c506c9d78943c6b0468aae243b72a"
+      },
+      {
+        "path": "dist/shell/types.d.ts",
+        "sha256": "983ec4067a45d672ed4db6c6a42ad9225d5dc1b242e6f983cb6358c574fe56b8"
+      }
+    ]
+  },
+  "emitted": {
+    "path": "emitted.gz.base64",
+    "bytes": 124680,
+    "sha256": "12801a0b1723648ebab6826d4bb5ee1f06e388ca948f86b5e0b303223251f1f1"
+  },
+  "neighborDriverSha256": "ab0635f4968dbbb7616b21614c4f577dd36f4c907cbc9c72ace7ca251afb89ac",
+  "neighbors": [
+    {
+      "name": "root-subpath-wildcard-and-external-node-types",
+      "status": "pass",
+      "compiler": 0
+    },
+    {
+      "name": "explicit-paths-to-authenticated-export",
+      "status": "pass",
+      "compiler": 0
+    },
+    {
+      "name": "same-package-wrong-export",
+      "status": "pass",
+      "guardError": "public subpath resolved to the wrong candidate export: virtual-bash/contracts\n+ actual - expected\n\n+ '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-hm4YDw/nearby/same-package-wrong-export/node_modules/virtual-bash/dist/contracts/command.d.ts'\n- '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-hm4YDw/nearby/same-package-wrong-export/node_modules/virtual-bash/dist/contracts/index.d.ts'\n",
+      "compiler": 0
+    },
+    {
+      "name": "undeclared-public-subpath",
+      "status": "pass",
+      "guardError": "public subpath has no candidate types export: virtual-bash/not-exported\n+ actual - expected\n\n+ 'undefined'\n- 'string'\n",
+      "compiler": 0
+    },
+    {
+      "name": "foreign-identical-declaration",
+      "status": "pass",
+      "guardError": "foreign candidate declaration/source fallback: virtual-bash/contracts -> /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-hm4YDw/nearby/foreign-identical-declaration/decoy-dist/contracts/index.d.ts",
+      "compiler": 0
+    },
+    {
+      "name": "changed-candidate-declaration-after-compile",
+      "status": "pass",
+      "guardError": "candidate declaration bytes or file set changed\n+ actual - expected\n... Skipped lines\n\n  Map(177) {\n    'dist/commands/archive/create.d.ts' => '3969cf41e2d2895819fe1ff52093661af82f317921bca565ed006940129ed0d8',\n    'dist/commands/archive/extract.d.ts' => 'daebfb1431887dded07482d20424a3332a6c6dee094219e3e1396920d3c3aa6a',\n    'dist/commands/archive/format.d.ts' => '90efed2b216912f30193a13495165fc0063190f9be83a27a965fde5f82cac629',\n    'dist/commands/archive/index.d.ts' => '5915c7ed406a26ae776af185693b79fd3a6e2904fc09204ffa88046965fcebcd',\n...\n    'dist/commands/tree/tree.d.ts' => 'ed2a37862328c39bccba7f5d21e020e802889358761df4f4052e5f90ea340524',\n+   'dist/contracts/command.d.ts' => '1b977faa06369f01924295d71b3832bd3301a819bef4ffcc9824369e54300e35',\n-   'dist/contracts/command.d.ts' => 'c3e34fdeb0cb84c61efe2d294af94a8082484decba6466d4e73848be8b31526f',\n    'dist/contracts/errors.d.ts' => 'b0771794e6ff1d92c0b259fdf68015474f4b8009e6102995846f56e17839c1b9',\n    'dist/contracts/filesystem.d.ts' => 'd021ebe6f7f5bb11801ee255c80a822b6b1c80065e13489b7383fedc6450867d',\n    'dist/contracts/index.d.ts' => 'bfaa9d5faf0382dcae880d38e6dc8273b54da723573ad0a8268fa620885599b9',\n    'dist/contracts/io.d.ts' => '462c630e7a00c37f2440d4773ce4393a2ac9abea2d9f8819fd6e356993abd162',\n    'dist/contracts/path.d.ts' => '1a1f13de7c072f5323be1f1d1e7a602b377c2a887730e6af2e92ad1d5bdbdc5f',\n",
+      "compiler": 0
+    },
+    {
+      "name": "changed-package-metadata-after-compile",
+      "status": "pass",
+      "guardError": "candidate package metadata changed\n+ actual - expected\n\n+ 'e000f37fa79cf8c699e096fcb78aed6082a4848d05cfadf279b36229e2467b8b'\n- '2127bbfed020aeb7873462ae65224e6ee73069425c878aa2ceee9816b2191245'\n",
+      "compiler": 0
+    },
+    {
+      "name": "deleted-unimported-declaration-after-compile",
+      "status": "pass",
+      "guardError": "candidate declaration bytes or file set changed\n+ actual - expected\n... Skipped lines\n\n+ Map(176) {\n- Map(177) {\n    'dist/commands/archive/create.d.ts' => '3969cf41e2d2895819fe1ff52093661af82f317921bca565ed006940129ed0d8',\n    'dist/commands/archive/extract.d.ts' => 'daebfb1431887dded07482d20424a3332a6c6dee094219e3e1396920d3c3aa6a',\n    'dist/commands/archive/format.d.ts' => '90efed2b216912f30193a13495165fc0063190f9be83a27a965fde5f82cac629',\n    'dist/commands/archive/index.d.ts' => '5915c7ed406a26ae776af185693b79fd3a6e2904fc09204ffa88046965fcebcd',\n    'dist/commands/archive/internal.d.ts' => '53180a2ea873fbd5d8a44002cc432252c008eec5663a65b4f84e68f24adbcca3',\n...\n    'dist/commands/time-env/index.d.ts' => 'b7bdc7e4b40b6d39378c3cab3184b43f67243bb7cb0ce3a75b1ec8c78e4d1ba4',\n-   'dist/commands/time-env/printenv.d.ts' => '728e624d7a37789790c6a72c15e64347e2a8d12fcb60d5cc7a6b012b7c9e4234',\n    'dist/commands/time-env/shared.d.ts' => '46e0dd3ad8240e625aa92c205e34154620fb6eec817593b08683b4cfc06a0587',\n    'dist/commands/time-env/sleep.d.ts' => '72ffafb919d77c0d618f29e85212390fdd24f132ad4f19e3c1af6ef716a3c6db',\n    'dist/commands/tree/arguments.d.ts' => '3729070c16c5757f7bbbe9af28ae0bddf87354ec6977c52de73365e80315c3e2',\n    'dist/commands/tree/index.d.ts' => '29cef61ca31995ef8c2c0ccbcaf8f2149902bf4000ae44d09a4cae856518119a',\n    'dist/commands/tree/io.d.ts' => '38747476b7b3aa1d13b3eb3deb5f9accf384be74e0e5df95848648713e277b6c',\n",
+      "compiler": 0
+    },
+    {
+      "name": "identical-declaration-symlink-after-compile",
+      "status": "pass",
+      "guardError": "candidate build must use regular files: dist/contracts/command.d.ts\n\ntrue !== false\n",
+      "compiler": 0
+    },
+    {
+      "name": "dist-directory-symlink-after-compile",
+      "status": "pass",
+      "guardError": "candidate dist must not redirect to another build\n\ntrue !== false\n",
+      "compiler": 0
+    },
+    {
+      "name": "missing-real-public-import",
+      "status": "pass",
+      "compiler": 2
+    }
+  ],
+  "mixedWarm": {
+    "status": 2,
+    "builds": 0,
+    "rejected": [
+      {
+        "name": "env-split-public-types",
+        "files": [
+          "tests/shell-stress/env-split-validity/public-types.mts"
+        ],
+        "status": "fail",
+        "runtime": "not executed: typecheck-only route",
+        "error": "foreign candidate declaration/source fallback: virtual-bash/contracts -> /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-hm4YDw/decoy-dist/contracts/index.d.ts"
+      }
+    ],
+    "phases": [
+      {
+        "label": "source-and-tests",
+        "status": 0
+      },
+      {
+        "label": "historical-build-first-consumer",
+        "status": 0
+      },
+      {
+        "label": "source-consumer-atomic-webdav-profile-source",
+        "status": 0
+      },
+      {
+        "label": "source-consumer-atomic-webdav-independent-source",
+        "status": 0
+      },
+      {
+        "label": "source-consumer-env-split-public-source",
+        "status": 0
+      },
+      {
+        "label": "consumer-regex",
+        "status": 0
+      },
+      {
+        "label": "consumer-regex-continuation",
+        "status": 0
+      },
+      {
+        "label": "consumer-regex-followup",
+        "status": 0
+      },
+      {
+        "label": "consumer-regex-production",
+        "status": 0
+      },
+      {
+        "label": "consumer-regex-production-continuation",
+        "status": 0
+      },
+      {
+        "label": "consumer-s3-constructor",
+        "status": 0
+      },
+      {
+        "label": "consumer-s3-http-author",
+        "status": 0
+      },
+      {
+        "label": "consumer-s3-http-independent",
+        "status": 0
+      },
+      {
+        "label": "consumer-s3-rmdir",
+        "status": 0
+      },
+      {
+        "label": "consumer-webdav-loopback",
+        "status": 0
+      },
+      {
+        "label": "consumer-webdav-services",
+        "status": 0
+      },
+      {
+        "label": "consumer-stream-inspection",
+        "status": 0
+      },
+      {
+        "label": "consumer-stream-five",
+        "status": 0
+      },
+      {
+        "label": "consumer-time-env-public",
+        "status": 0
+      },
+      {
+        "label": "consumer-time-env-leaf",
+        "status": 0
+      },
+      {
+        "label": "consumer-env-split-public-types",
+        "status": 0
+      },
+      {
+        "label": "consumer-webdav-atomic",
+        "status": 0
+      },
+      {
+        "label": "consumer-webdav-atomic-independent",
+        "status": 0
+      },
+      {
+        "label": "consumer-webdav-timestamp-independent",
+        "status": 0
+      },
+      {
+        "label": "negative-time-env-public-negative",
+        "status": 2
+      },
+      {
+        "label": "negative-time-env-leaf-negative",
+        "status": 2
+      }
+    ]
+  },
+  "guardMutant": {
+    "observedForbiddenAcceptance": true,
+    "killedByOriginalStatus2Assertion": true
+  },
+  "sourceAfter": {
+    "path": "source-after.gz.base64",
+    "bytes": 5361465,
+    "sha256": "fd829634e2076360b305ab170dd78a5e4fb1229540ece02072629f14bdf6d543"
+  },
+  "cleaned": true,
+  "finishedAt": "2026-08-27T13:03:32.605Z",
+  "counts": {
+    "pass": 6,
+    "fail": 0,
+    "skip": 0
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "assignmentStartHead": "9982b9c8810f13d4a2d8dc6c4a70fca9154e4bc1",
+  "recordedAt": "2026-08-27T00:32:39.264Z",
+  "headImmediatelyBeforeRun": "f06f2886300885c51a90cac0794a6a6d53be53fd",
+  "ownedStatusBeforeRun": "",
+  "relevantSourceStatusBeforeRun": "",
+  "sourceDifferenceFromPinBeforeRun": "",
+  "leafProcesses": {
+    "capturePid": 82039,
+    "captureParentPid": 78280,
+    "preexistingBackgroundSessionsOwnedByThisLeaf": [],
+    "controlledCommand": [
+      "node",
+      "tests/fs/mount/identity-compatibility-review/run.mjs",
+      "revision",
+      "current-cause-map-9982b9c",
+      "9982b9c8810f13d4a2d8dc6c4a70fca9154e4bc1"
+    ],
+    "processInspectionScope": "Only this capture process and synchronously launched descendants; no other workers inspected.",
+    "backgroundSessionsOwnedAfterSynchronousRun": []
+  },
+  "finishedAt": "2026-08-27T00:32:40.855Z",
+  "runExitCode": 1,
+  "runSignal": null,
+  "runLaunchError": null,
+  "ownedStatusAfterRun": "?? tests/fs/mount/identity-compatibility-review/evidence/current-cause-map-9982b9c/\n"
+}

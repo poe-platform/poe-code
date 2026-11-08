@@ -1,0 +1,11 @@
+{
+  "id": "F07",
+  "expected": "Nonzero real stub probe stops body with ADMISSION_PROBE_STOP and a closed child.",
+  "pass": true,
+  "started": "2026-08-28T15:01:02.350Z",
+  "finished": "2026-08-28T15:01:02.402Z",
+  "detail": {
+    "probeStatus": "UNSAFE_STOP",
+    "childReaped": true
+  }
+}

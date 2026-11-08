@@ -1,0 +1,6 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": { "outDir": "./.temporary/js" },
+  "files": ["../client.ts", "../protocol.ts", "../matching.ts", "../worker.ts"],
+  "include": [], "exclude": []
+}

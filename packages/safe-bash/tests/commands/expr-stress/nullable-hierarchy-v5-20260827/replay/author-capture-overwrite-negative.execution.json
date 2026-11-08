@@ -1,0 +1,18 @@
+{
+  "started": "2026-08-27T23:09:55.139Z",
+  "ended": "2026-08-27T23:09:55.217Z",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "node": "v22.22.2",
+  "args": [
+    "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-v5-final-replay-kSGdP4/sealed/run-prototype.mjs",
+    "--capture",
+    "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-v5-final-replay-kSGdP4/exclusive-capture.data"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "status": 1,
+  "signal": null,
+  "error": null,
+  "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderrSha256": "d7c84d3fbb9da509b96ff52c2a49a4d06427bb1383dd12deabe606a5e64630bd",
+  "synchronousChildSettled": true
+}

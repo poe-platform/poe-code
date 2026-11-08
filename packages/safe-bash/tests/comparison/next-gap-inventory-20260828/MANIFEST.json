@@ -1,0 +1,61 @@
+{
+  "schema": "readonly-next-gap-sidecar-seal-v1",
+  "sealedAt": "2026-08-28T06:46:34.334Z",
+  "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+  "pinnedComparator": "just-bash3.4.2; not a latest claim",
+  "productExecutions": 0,
+  "comparatorExecutions": 0,
+  "nativeExecutions": 0,
+  "thirdPartyDownloads": 0,
+  "privateRepoAccess": 0,
+  "files": [
+    {
+      "path": "ARCHIVE-AUDIT.json",
+      "bytes": 347528,
+      "mode": 420,
+      "sha256": "1c286a351f72ddf91ea06e31094d028230e539292346de487c83d67bd7334505"
+    },
+    {
+      "path": "BREADTH.json",
+      "bytes": 188263,
+      "mode": 420,
+      "sha256": "1fa3d5c30a1c4aa3106d5b794b9dcca7b17eba95510aedfad26093406a99d7bd"
+    },
+    {
+      "path": "ENGINE-METRIC.json",
+      "bytes": 38271,
+      "mode": 420,
+      "sha256": "db54efef8dc1571eceef8a467ec6e553ebf1bc33fb35d03f47b7865ca7eb1ca9"
+    },
+    {
+      "path": "HANDOFF.md",
+      "bytes": 3690,
+      "mode": 420,
+      "sha256": "baafd4f04871c40d8bda8267026cced17625be583cf40fca8b19bc60a64e543e"
+    },
+    {
+      "path": "INPUTS.json",
+      "bytes": 5594,
+      "mode": 420,
+      "sha256": "d31f05159460e383c3a39102306ca1edc5ec06897aca0ce7ad9788b481e798d2"
+    },
+    {
+      "path": "PRIORITIES.json",
+      "bytes": 6487,
+      "mode": 420,
+      "sha256": "e9e4c34055df3d0247822e66260ed99d2f7bfc43263c91344e45c388dea13f10"
+    },
+    {
+      "path": "SOURCE-INVENTORY.json",
+      "bytes": 55912,
+      "mode": 420,
+      "sha256": "5176390a7c3d95c5672fb976c32b2ba48aa5067e9b94188d6287f1c51d210da1"
+    },
+    {
+      "path": "VALIDATION.json",
+      "bytes": 657,
+      "mode": 420,
+      "sha256": "c75bdc0c80b225fde7ec36c0b9f89d3e72ae7bd6c4e77cd623e69798c995ec6e"
+    }
+  ]
+}

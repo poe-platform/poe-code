@@ -1,0 +1,24 @@
+{
+  "label": "phase-a",
+  "sourceCommit": "01aa1bffe0568cc6787d5ff8e0331e024a787385",
+  "time": "2026-08-27T07:50:33.903Z",
+  "node": "v22.22.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "sourceFiles": 196,
+  "emittedFiles": 636,
+  "approvedContractAndHistorical": 15,
+  "differences": [
+    "src/commands/grep.ts",
+    "src/commands/regex-execution/README.md",
+    "src/commands/regex-execution/client.ts",
+    "src/commands/search/rg.ts"
+  ],
+  "rootDelta": [],
+  "baselineMatchesPriorRegex": true,
+  "unchangedDefaultPolicy": true,
+  "mismatches": [],
+  "riskConsumed": 0,
+  "additionalSix": "UNUSED",
+  "defaultAcceptance": false
+}

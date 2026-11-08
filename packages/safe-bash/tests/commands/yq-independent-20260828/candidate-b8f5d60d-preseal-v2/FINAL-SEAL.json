@@ -1,0 +1,208 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "status": "SUCCESSOR_DATA_BOUND_DENY_PENDING_MODE_AUTHORITY_AND_FRESH_ROOT_GO",
+  "purpose": "Immutable data bindings, exact additive mode correction and preserved historical denial; no execution grant",
+  "presealCommit": "60773512b1985f6bc631d153b1be87b289342070",
+  "dataPresealSha256": "ffaef9992296c1bfc422f0c71da9b584b458be4e4a12d11e355b322a50ff8f83",
+  "rootMode": 493,
+  "selfEntry": {
+    "path": "FINAL-SEAL.json",
+    "kind": "file",
+    "mode": 420,
+    "rawSha256Authority": "Independently routed evidence commit/readiness raw digest; self bytes excluded to avoid circular hash"
+  },
+  "files": {
+    "API-BINDING-REVIEW.json": {
+      "sha256": "c76d13ee0cd443bbbf1eab292eb46bef9b332e1527a7119e47e7735b5c24c737",
+      "bytes": 4864,
+      "mode": 420
+    },
+    "AUTHOR-ARTIFACT-RECEIPT.json": {
+      "sha256": "0bfeeed2c879a882941239506199c07ef6d93bb8d91085c61576af8df3abccb5",
+      "bytes": 1368,
+      "mode": 420
+    },
+    "COMPOSITION.json": {
+      "sha256": "11ed97c58bc06b5bdce88fb6b423d2693742e054cf11df6de49aebd029230b4f",
+      "bytes": 25587,
+      "mode": 420
+    },
+    "DATA-PRESEAL.json": {
+      "sha256": "ffaef9992296c1bfc422f0c71da9b584b458be4e4a12d11e355b322a50ff8f83",
+      "bytes": 3392,
+      "mode": 420
+    },
+    "EXPECTED-HASHES.json": {
+      "sha256": "19ebe2c49cf3f27810d54ee5101e3f1fc02b2b8981990de42ea8961b7aec52d4",
+      "bytes": 2739,
+      "mode": 420
+    },
+    "FULL-RECEIPT.proposed.json": {
+      "sha256": "4187da231bb328cc2bead131ca67d9527beb0ecf7d8a6cf9b26d4d0b16d34b02",
+      "bytes": 7455,
+      "mode": 420
+    },
+    "GIT-IDENTITIES.json": {
+      "sha256": "7502886ae594a13b1c8d1c358b7925ce6376463c84608489a1dac7744bd93528",
+      "bytes": 13993,
+      "mode": 420
+    },
+    "HISTORY-PRESERVATION.json": {
+      "sha256": "3ed4d53f010eb04165f711b758fd8d5c117887d95db4f207413e0ff1619b9621",
+      "bytes": 15621,
+      "mode": 420
+    },
+    "INSPECTION-PLAN.md": {
+      "sha256": "e51603089f28b4445a70e32041b020f5a95b938ad0fd3587155b61a251714ef6",
+      "bytes": 2075,
+      "mode": 420
+    },
+    "INSPECTOR-V1-V2.diff": {
+      "sha256": "ad82e22e2666015eef9380f244f4d9e27cd982537e48b74cbed20591e89562a1",
+      "bytes": 13645,
+      "mode": 420
+    },
+    "MODE-AUTHORITY.json": {
+      "sha256": "b1d05bb9ad80a8bc432742dba561fadead341bb74bdab8940d2ad16e7721aacd",
+      "bytes": 4927,
+      "mode": 420
+    },
+    "MODE-CORRECTION-SPEC.md": {
+      "sha256": "62e9b10322ae7be9b365020448a77abc6f2ea23d6798c59c6480f595b4b71a84",
+      "bytes": 6447,
+      "mode": 420
+    },
+    "PLAN-BINDINGS.proposed.json": {
+      "sha256": "5e7645fc007b75dfbae22f7207c3c0c3a4b8fd62d1f3a23a773b2a4aff8cfd49",
+      "bytes": 12716,
+      "mode": 420
+    },
+    "PREPARATION-HISTORY.md": {
+      "sha256": "d83cfc69b0a04c96bbea092b11b31bead2401be34d3d6b7da3d6e43b418bf3fd",
+      "bytes": 1178,
+      "mode": 420
+    },
+    "PROOF-QUALIFICATIONS.md": {
+      "sha256": "aa261efd7331c6a962c2197541c852accd44e36cd339ef17ef3863612aaaaedd",
+      "bytes": 3834,
+      "mode": 420
+    },
+    "README.md": {
+      "sha256": "e982649aa511882e04902c6c73a0e1b4f7b8d7217999b63afcac9af816f70378",
+      "bytes": 4189,
+      "mode": 420
+    },
+    "RESULT.json": {
+      "sha256": "d3c93c27d5b1a86dff0a9a62426294e6b9b15132e2eb958ab3b614a19ce1d988",
+      "bytes": 8460,
+      "mode": 420
+    },
+    "ROUTING-INDEX.json": {
+      "sha256": "4928d5d874b42f41cf625f32355aa6fefe7965b90842183ed744d08ac472b5dd",
+      "bytes": 7945,
+      "mode": 420
+    },
+    "SOURCE-AUTHORITY.proposed.json": {
+      "sha256": "55bb4e289f13e4ed6df1ab442df5ff7c9c7278c7293f90f72463cd5b6f01b752",
+      "bytes": 3766,
+      "mode": 420
+    },
+    "SOURCE-RECEIPT.proposed.json": {
+      "sha256": "a501a598f6b6245e5faef02e1aa195a2d664e1fc0627e42ac5349237263385f5",
+      "bytes": 1408,
+      "mode": 420
+    },
+    "STATIC-CAPTURE.json": {
+      "sha256": "4063664a551c20359963f4d9f373f23e5cd859029615c72210414e50a282c473",
+      "bytes": 2053,
+      "mode": 420
+    },
+    "TOOLCHAIN-AND-PROOF-ROLES.json": {
+      "sha256": "b5ef3247d489bfc5edcc78f98b597711598e203a1601f56fa431a9fc801c849b",
+      "bytes": 4800,
+      "mode": 420
+    },
+    "historical-modes.mjs": {
+      "sha256": "38af50832e4b0ee5f14ae5632a5ec7ad32526dce019aae70c8a15b5d29a0c164",
+      "bytes": 6573,
+      "mode": 420
+    },
+    "inspect-data.mjs": {
+      "sha256": "d09345f4f78891e690e3ca0e0df4834e3e49fb3276eb688fd5a88dcf6b5da7a0",
+      "bytes": 34204,
+      "mode": 420
+    }
+  },
+  "fileCountExcludingSelf": 24,
+  "completeFileMembershipSha256": "b683f36d862582974182b88827a25756526f053da4c550a1278c55f3478fa8bf",
+  "sourceCommit": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+  "evidenceCommit": "644460b932feb6fa87222b7042d705da1219cf0c",
+  "handoffCommit": "065f824d06e36de3fafaee1b7a5baa278f40407c",
+  "counts": {
+    "authorManifest": 281,
+    "excludedAuthorData": 8,
+    "sourceProjection": 271,
+    "sourceBase": 264,
+    "selectedAdditions": 7,
+    "changedSourcePaths": 5,
+    "archive": 273,
+    "baselinePackage": 846,
+    "packageAdditions": 24,
+    "fullPackage": 870,
+    "changedPackageFiles": 17,
+    "wholeProductScope": 301
+  },
+  "sourceMapSha256": "9b0e0d62ea50eea55ef9ff4bff9e4bcef9cba6b73e416793bee6956666171002",
+  "packageMapSha256": "aef2daaca66d3e18487903b79693fbf6a5126b0fda481f1e96ed4e33e08db321",
+  "staticDataProcess": {
+    "exit": 0,
+    "elapsedMs": 5332,
+    "reaped": true
+  },
+  "modeControls": 10,
+  "historicalBeforeAfterUnchanged": true,
+  "goldenHistoricalModeAuthorityComplete": false,
+  "historicalModeAuthorityDenials": [
+    {
+      "revision": "90a633e89d35085183a1d57716451438335b93f3",
+      "scope": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v1",
+      "path": "FINAL-SEAL.json",
+      "reason": "MODE_AUTHORITY_MISSING",
+      "goldenPosixModeVerified": false
+    }
+  ],
+  "priorV1Failure": {
+    "exit": 1,
+    "elapsedMs": 922,
+    "reaped": true,
+    "artifactAuthenticationReached": false,
+    "classification": "IMMUTABLE_V1_FAIL_NOT_RESCORED"
+  },
+  "execution": {
+    "productImports": 0,
+    "productRuns": 0,
+    "builds": 0,
+    "compilerRuns": 0,
+    "typeConsumers": 0,
+    "loadedMutants": 0,
+    "nativeYaml": 0,
+    "authorScripts": 0,
+    "harnessCohorts": 0,
+    "syntheticCases": 0,
+    "staticModeDataControls": 10,
+    "materializations": 0,
+    "repacks": 0,
+    "dependencies": 0
+  },
+  "admission": "DENY",
+  "independentlyCompiled": false,
+  "semanticAcceptance": false,
+  "checks": {
+    "ownedJsonSyntax": true,
+    "presealByteModeUnchanged": true,
+    "ownScriptSyntax": "PASS_BEFORE_PRESEAL",
+    "writeSpecLint": "PASS_0_WARNINGS_BEFORE_PRESEAL",
+    "dataReceiptSchema": "OWN_STATIC_CHECK_ONLY_NO_GUARD_INVOCATION"
+  }
+}

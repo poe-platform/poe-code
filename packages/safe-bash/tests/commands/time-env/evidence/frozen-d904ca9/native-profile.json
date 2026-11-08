@@ -1,0 +1,71 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--import",
+    "tsx",
+    "tests/commands/time-env/capture-native.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/time-env/evidence/frozen-d904ca9/dialect-profile.json"
+  ],
+  "cwd": "/tmp/safe-bash-time-env-frozen-FgDvzh",
+  "pid": 93613,
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 697,
+  "timeoutMs": 120000,
+  "outputBytes": 0,
+  "observed": [
+    {
+      "pid": 93613,
+      "parent": 93300,
+      "group": 93613,
+      "born": "Thu Aug 27 02:43:55 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx tests/commands/time-env/capture-native.mjs /Users/kjopek/Workspace/safe-bash/tests/commands/time-env/evidence/frozen-d904ca9/dialect-profile.json"
+    },
+    {
+      "pid": 93615,
+      "parent": 93613,
+      "group": 93613,
+      "born": "Thu Aug 27 02:43:55 2026",
+      "command": "/private/tmp/safe-bash-time-env-frozen-FgDvzh/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    },
+    {
+      "pid": 93630,
+      "parent": 93613,
+      "group": 93613,
+      "born": "Thu Aug 27 02:43:55 2026",
+      "command": "(date)"
+    },
+    {
+      "pid": 93648,
+      "parent": 93613,
+      "group": 93613,
+      "born": "Thu Aug 27 02:43:55 2026",
+      "command": "(date)"
+    },
+    {
+      "pid": 93666,
+      "parent": 93613,
+      "group": 93613,
+      "born": "Thu Aug 27 02:43:55 2026",
+      "command": "(date)"
+    },
+    {
+      "pid": 93685,
+      "parent": 93613,
+      "group": 93613,
+      "born": "Thu Aug 27 02:43:56 2026",
+      "command": "(sleep)"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "counts": {},
+  "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

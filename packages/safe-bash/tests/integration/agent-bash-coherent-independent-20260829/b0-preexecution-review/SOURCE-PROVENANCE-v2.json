@@ -1,0 +1,26 @@
+{
+  "at": "2026-08-29T11:17:17.524Z",
+  "role": "DATA only; versioned helper correction, not product correction",
+  "sourceTree": "3adc676a0ab638c9788ef007e465931d65d2c6fe",
+  "selectedInputCount": 309,
+  "bytesChecked": 2835689,
+  "selectedProjection": "c5e49e70c295d7e354eba53d1a91141ad701e3f6",
+  "wholeTreeWitnesses": [
+    {
+      "oid": "f23e026fbafe1b8e3fea07d08576f4418e19f7ec",
+      "bytes": 567
+    },
+    {
+      "oid": "1dddba003fc16429efe896479d180bcb4d2d44b3",
+      "bytes": 241
+    },
+    {
+      "oid": "3adc676a0ab638c9788ef007e465931d65d2c6fe",
+      "bytes": 449
+    }
+  ],
+  "acceptedPriorUnchangedSubtreesReused": true,
+  "notWholeHistoryReconstruction": true,
+  "allRetainedSourceMatched": true,
+  "unchangedNodeFiles": 16
+}

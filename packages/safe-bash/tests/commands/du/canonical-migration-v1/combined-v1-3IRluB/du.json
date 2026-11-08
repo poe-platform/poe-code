@@ -1,0 +1,29 @@
+{
+  "name": "du",
+  "args": [
+    "--import",
+    "tsx",
+    "--test",
+    "--test-concurrency=1",
+    "tests/commands/du/backends.test.ts",
+    "tests/commands/du/behavior.test.ts",
+    "tests/commands/du/functional-v1/environment.test.ts",
+    "tests/commands/du/functional-v1/native.test.ts",
+    "tests/commands/du/native.test.ts",
+    "tests/commands/du/overlay-purity.test.ts",
+    "tests/commands/du/safety.test.ts"
+  ],
+  "startedAt": "2026-08-27T18:32:18.976Z",
+  "finishedAt": "2026-08-27T18:32:20.694Z",
+  "status": 0,
+  "signal": null,
+  "counts": {
+    "tests": 191,
+    "suites": 0,
+    "pass": 191,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  }
+}

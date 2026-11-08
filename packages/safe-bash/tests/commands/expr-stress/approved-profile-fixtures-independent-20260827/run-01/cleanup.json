@@ -1,0 +1,6 @@
+{
+  "ownedWork": "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/run-01/.work",
+  "absent": true,
+  "childPolicy": "Every child spawnSync awaited; normal completion required by command receipts. No shared child/process killing.",
+  "removedOnlyOwnedWork": true
+}

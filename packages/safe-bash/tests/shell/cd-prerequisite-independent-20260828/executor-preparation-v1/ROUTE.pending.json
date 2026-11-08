@@ -1,0 +1,11 @@
+{
+  "authorization": "PENDING_NOT_AUTHORIZED",
+  "reference": null,
+  "candidateCommit": null,
+  "bindingSha256": null,
+  "modes": ["source", "installed", "moved"],
+  "outputDirectory": null,
+  "authorizedWriteRoot": null,
+  "tools": { "manifestPath": null, "manifestSha256": null },
+  "note": "No candidate is supplied or inferred. ROOT must supply a separately approved full execution route; author implementation release alone is insufficient."
+}

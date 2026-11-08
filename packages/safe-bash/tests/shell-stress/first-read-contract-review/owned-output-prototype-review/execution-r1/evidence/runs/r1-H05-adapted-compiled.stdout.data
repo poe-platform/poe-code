@@ -1,0 +1,2 @@
+first-read-curl-headers: passed
+{"scenario":"first-read-curl-headers","active":0,"reads":1,"returned":1,"writes":0,"stageAborted":false,"operationAborted":true,"abortedBeforeTeardown":false,"events":["http.socket.open","http.request:GET:/dav/input","http.GET:pending-before-first-byte","command.settled:head:0","command.settled:curl:141","command.settled:true:0","http.request.aborted:GET","http.socket.close","http.response.close:GET:finished=false"]}

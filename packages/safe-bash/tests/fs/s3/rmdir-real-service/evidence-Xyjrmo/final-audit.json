@@ -1,0 +1,9 @@
+{
+  "headBefore": "9ba94f5d000eb846f5be51c2405448904047917c",
+  "headAfter": "9ba94f5d000eb846f5be51c2405448904047917c",
+  "changedLiveInputs": [],
+  "frozenChanged": [],
+  "sourcePatch": "",
+  "success": false,
+  "serviceOutput": "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/evidence-Xyjrmo/service-epfGgr"
+}

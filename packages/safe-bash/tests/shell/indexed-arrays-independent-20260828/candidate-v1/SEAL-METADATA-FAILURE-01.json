@@ -1,0 +1,11 @@
+{
+  "role": "metadata sealing failure, not a product retry",
+  "command": "/usr/bin/git ls-tree -r d6c17f62d2d3062b5ab074044a86b8a455820373",
+  "code": 128,
+  "stderr": "fatal: not a tree object\n",
+  "coordinatorCode": 1,
+  "classification": "Reviewer incorrectly treated author-documented computed tree identity as a stored Git object. FOUNDATION-HANDOFF.md explicitly disclaims loose-object storage.",
+  "effects": "No capsule publication or owned work cleanup reached; no build, type or runtime rerun.",
+  "correction": "Compute Git tree hash recursively from the exact selected mode/path/blob entries without creating or reading an assumed tree object.",
+  "captureQualification": "Structured transcription of observed tool output, not a raw stderr-file hash claim."
+}

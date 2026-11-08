@@ -1,0 +1,628 @@
+TAP version 13
+# Subtest: memory conformance: binary reads, directories, metadata, links, and access
+ok 1 - memory conformance: binary reads, directories, metadata, links, and access
+  ---
+  duration_ms: 2.306916
+  type: 'test'
+  ...
+# Subtest: memory conformance: delegate limits, streaming ranges, and missing paths
+ok 2 - memory conformance: delegate limits, streaming ranges, and missing paths
+  ---
+  duration_ms: 0.804417
+  type: 'test'
+  ...
+# Subtest: memory conformance: denied writes cannot mutate files through hard or symbolic aliases
+ok 3 - memory conformance: denied writes cannot mutate files through hard or symbolic aliases
+  ---
+  duration_ms: 1.155709
+  type: 'test'
+  ...
+# Subtest: memory conformance: read results are detached, while external writes remain visible
+ok 4 - memory conformance: read results are detached, while external writes remain visible
+  ---
+  duration_ms: 0.283417
+  type: 'test'
+  ...
+# Subtest: memory conformance: nested wrappers retain readonly behavior and streaming
+ok 5 - memory conformance: nested wrappers retain readonly behavior and streaming
+  ---
+  duration_ms: 0.275542
+  type: 'test'
+  ...
+# Subtest: stat snapshots all named fields from prototype-accessors without aliases
+ok 6 - stat snapshots all named fields from prototype-accessors without aliases
+  ---
+  duration_ms: 1.311667
+  type: 'test'
+  ...
+# Subtest: stat preserves optional absence for prototype-accessors
+ok 7 - stat preserves optional absence for prototype-accessors
+  ---
+  duration_ms: 0.130042
+  type: 'test'
+  ...
+# Subtest: stat preserves all 64 optional-field permutations for prototype-accessors
+ok 8 - stat preserves all 64 optional-field permutations for prototype-accessors
+  ---
+  duration_ms: 3.079667
+  type: 'test'
+  ...
+# Subtest: lstat snapshots all named fields from prototype-accessors without aliases
+ok 9 - lstat snapshots all named fields from prototype-accessors without aliases
+  ---
+  duration_ms: 0.234583
+  type: 'test'
+  ...
+# Subtest: lstat preserves optional absence for prototype-accessors
+ok 10 - lstat preserves optional absence for prototype-accessors
+  ---
+  duration_ms: 0.087291
+  type: 'test'
+  ...
+# Subtest: lstat preserves all 64 optional-field permutations for prototype-accessors
+ok 11 - lstat preserves all 64 optional-field permutations for prototype-accessors
+  ---
+  duration_ms: 1.910875
+  type: 'test'
+  ...
+# Subtest: readdir snapshots named fields from prototype-accessors without aliases
+ok 12 - readdir snapshots named fields from prototype-accessors without aliases
+  ---
+  duration_ms: 0.18825
+  type: 'test'
+  ...
+# Subtest: stat snapshots all named fields from nonenumerable-own without aliases
+ok 13 - stat snapshots all named fields from nonenumerable-own without aliases
+  ---
+  duration_ms: 0.187125
+  type: 'test'
+  ...
+# Subtest: stat preserves optional absence for nonenumerable-own
+ok 14 - stat preserves optional absence for nonenumerable-own
+  ---
+  duration_ms: 0.196084
+  type: 'test'
+  ...
+# Subtest: stat preserves all 64 optional-field permutations for nonenumerable-own
+ok 15 - stat preserves all 64 optional-field permutations for nonenumerable-own
+  ---
+  duration_ms: 1.106042
+  type: 'test'
+  ...
+# Subtest: lstat snapshots all named fields from nonenumerable-own without aliases
+ok 16 - lstat snapshots all named fields from nonenumerable-own without aliases
+  ---
+  duration_ms: 0.082292
+  type: 'test'
+  ...
+# Subtest: lstat preserves optional absence for nonenumerable-own
+ok 17 - lstat preserves optional absence for nonenumerable-own
+  ---
+  duration_ms: 0.041542
+  type: 'test'
+  ...
+# Subtest: lstat preserves all 64 optional-field permutations for nonenumerable-own
+ok 18 - lstat preserves all 64 optional-field permutations for nonenumerable-own
+  ---
+  duration_ms: 1.8235
+  type: 'test'
+  ...
+# Subtest: readdir snapshots named fields from nonenumerable-own without aliases
+ok 19 - readdir snapshots named fields from nonenumerable-own without aliases
+  ---
+  duration_ms: 0.061666
+  type: 'test'
+  ...
+# Subtest: class and synchronous factory satisfy FileSystem and compose
+ok 20 - class and synchronous factory satisfy FileSystem and compose
+  ---
+  duration_ms: 1.357709
+  type: 'test'
+  ...
+# Subtest: writeFile rejects without delegation; optional methods absent
+ok 21 - writeFile rejects without delegation; optional methods absent
+  ---
+  duration_ms: 0.463292
+  type: 'test'
+  ...
+# Subtest: appendFile rejects without delegation; optional methods absent
+ok 22 - appendFile rejects without delegation; optional methods absent
+  ---
+  duration_ms: 0.195042
+  type: 'test'
+  ...
+# Subtest: writeStream rejects without delegation; optional methods absent
+ok 23 - writeStream rejects without delegation; optional methods absent
+  ---
+  duration_ms: 0.174583
+  type: 'test'
+  ...
+# Subtest: mkdir rejects without delegation; optional methods absent
+ok 24 - mkdir rejects without delegation; optional methods absent
+  ---
+  duration_ms: 0.4005
+  type: 'test'
+  ...
+# Subtest: rm rejects without delegation; optional methods absent
+ok 25 - rm rejects without delegation; optional methods absent
+  ---
+  duration_ms: 0.255042
+  type: 'test'
+  ...
+# Subtest: unlink rejects without delegation; optional methods absent
+ok 26 - unlink rejects without delegation; optional methods absent
+  ---
+  duration_ms: 0.12125
+  type: 'test'
+  ...
+# Subtest: rmdir rejects without delegation; optional methods absent
+ok 27 - rmdir rejects without delegation; optional methods absent
+  ---
+  duration_ms: 0.092333
+  type: 'test'
+  ...
+# Subtest: rename rejects without delegation; optional methods absent
+ok 28 - rename rejects without delegation; optional methods absent
+  ---
+  duration_ms: 0.327084
+  type: 'test'
+  ...
+# Subtest: copyFile rejects without delegation; optional methods absent
+ok 29 - copyFile rejects without delegation; optional methods absent
+  ---
+  duration_ms: 0.3585
+  type: 'test'
+  ...
+# Subtest: symlink rejects without delegation; optional methods absent
+ok 30 - symlink rejects without delegation; optional methods absent
+  ---
+  duration_ms: 0.106
+  type: 'test'
+  ...
+# Subtest: link rejects without delegation; optional methods absent
+ok 31 - link rejects without delegation; optional methods absent
+  ---
+  duration_ms: 0.0765
+  type: 'test'
+  ...
+# Subtest: chmod rejects without delegation; optional methods absent
+ok 32 - chmod rejects without delegation; optional methods absent
+  ---
+  duration_ms: 0.142458
+  type: 'test'
+  ...
+# Subtest: utimes rejects without delegation; optional methods absent
+ok 33 - utimes rejects without delegation; optional methods absent
+  ---
+  duration_ms: 0.072125
+  type: 'test'
+  ...
+# Subtest: truncate rejects without delegation; optional methods absent
+ok 34 - truncate rejects without delegation; optional methods absent
+  ---
+  duration_ms: 0.060875
+  type: 'test'
+  ...
+# Subtest: writeFile rejects without delegation; optional methods present
+ok 35 - writeFile rejects without delegation; optional methods present
+  ---
+  duration_ms: 0.061333
+  type: 'test'
+  ...
+# Subtest: appendFile rejects without delegation; optional methods present
+ok 36 - appendFile rejects without delegation; optional methods present
+  ---
+  duration_ms: 0.058375
+  type: 'test'
+  ...
+# Subtest: writeStream rejects without delegation; optional methods present
+ok 37 - writeStream rejects without delegation; optional methods present
+  ---
+  duration_ms: 0.050792
+  type: 'test'
+  ...
+# Subtest: mkdir rejects without delegation; optional methods present
+ok 38 - mkdir rejects without delegation; optional methods present
+  ---
+  duration_ms: 0.055667
+  type: 'test'
+  ...
+# Subtest: rm rejects without delegation; optional methods present
+ok 39 - rm rejects without delegation; optional methods present
+  ---
+  duration_ms: 0.058458
+  type: 'test'
+  ...
+# Subtest: unlink rejects without delegation; optional methods present
+ok 40 - unlink rejects without delegation; optional methods present
+  ---
+  duration_ms: 0.055417
+  type: 'test'
+  ...
+# Subtest: rmdir rejects without delegation; optional methods present
+ok 41 - rmdir rejects without delegation; optional methods present
+  ---
+  duration_ms: 0.057208
+  type: 'test'
+  ...
+# Subtest: rename rejects without delegation; optional methods present
+ok 42 - rename rejects without delegation; optional methods present
+  ---
+  duration_ms: 0.053917
+  type: 'test'
+  ...
+# Subtest: copyFile rejects without delegation; optional methods present
+ok 43 - copyFile rejects without delegation; optional methods present
+  ---
+  duration_ms: 0.074958
+  type: 'test'
+  ...
+# Subtest: symlink rejects without delegation; optional methods present
+ok 44 - symlink rejects without delegation; optional methods present
+  ---
+  duration_ms: 0.065209
+  type: 'test'
+  ...
+# Subtest: link rejects without delegation; optional methods present
+ok 45 - link rejects without delegation; optional methods present
+  ---
+  duration_ms: 0.052125
+  type: 'test'
+  ...
+# Subtest: chmod rejects without delegation; optional methods present
+ok 46 - chmod rejects without delegation; optional methods present
+  ---
+  duration_ms: 0.051958
+  type: 'test'
+  ...
+# Subtest: utimes rejects without delegation; optional methods present
+ok 47 - utimes rejects without delegation; optional methods present
+  ---
+  duration_ms: 0.835458
+  type: 'test'
+  ...
+# Subtest: truncate rejects without delegation; optional methods present
+ok 48 - truncate rejects without delegation; optional methods present
+  ---
+  duration_ms: 0.070334
+  type: 'test'
+  ...
+# Subtest: all write APIs deny adversarial flag undefined
+ok 49 - all write APIs deny adversarial flag undefined
+  ---
+  duration_ms: 0.076375
+  type: 'test'
+  ...
+# Subtest: all write APIs deny adversarial flag "w"
+ok 50 - all write APIs deny adversarial flag "w"
+  ---
+  duration_ms: 0.03725
+  type: 'test'
+  ...
+# Subtest: all write APIs deny adversarial flag "wx"
+ok 51 - all write APIs deny adversarial flag "wx"
+  ---
+  duration_ms: 0.03575
+  type: 'test'
+  ...
+# Subtest: all write APIs deny adversarial flag "a"
+ok 52 - all write APIs deny adversarial flag "a"
+  ---
+  duration_ms: 0.035125
+  type: 'test'
+  ...
+# Subtest: all write APIs deny adversarial flag "ax"
+ok 53 - all write APIs deny adversarial flag "ax"
+  ---
+  duration_ms: 0.032458
+  type: 'test'
+  ...
+# Subtest: all write APIs deny adversarial flag "r"
+ok 54 - all write APIs deny adversarial flag "r"
+  ---
+  duration_ms: 0.046333
+  type: 'test'
+  ...
+# Subtest: all write APIs deny adversarial flag "r+"
+ok 55 - all write APIs deny adversarial flag "r+"
+  ---
+  duration_ms: 0.031542
+  type: 'test'
+  ...
+# Subtest: all write APIs deny adversarial flag "w+"
+ok 56 - all write APIs deny adversarial flag "w+"
+  ---
+  duration_ms: 0.030167
+  type: 'test'
+  ...
+# Subtest: all write APIs deny adversarial flag "a+"
+ok 57 - all write APIs deny adversarial flag "a+"
+  ---
+  duration_ms: 0.0305
+  type: 'test'
+  ...
+# Subtest: all write APIs deny adversarial flag "as"
+ok 58 - all write APIs deny adversarial flag "as"
+  ---
+  duration_ms: 0.036958
+  type: 'test'
+  ...
+# Subtest: all write APIs deny adversarial flag ""
+ok 59 - all write APIs deny adversarial flag ""
+  ---
+  duration_ms: 0.034083
+  type: 'test'
+  ...
+# Subtest: all write APIs deny adversarial flag "invalid"
+ok 60 - all write APIs deny adversarial flag "invalid"
+  ---
+  duration_ms: 0.031416
+  type: 'test'
+  ...
+# Subtest: all write APIs deny adversarial flag 0
+ok 61 - all write APIs deny adversarial flag 0
+  ---
+  duration_ms: 0.036542
+  type: 'test'
+  ...
+# Subtest: all write APIs deny adversarial flag 1
+ok 62 - all write APIs deny adversarial flag 1
+  ---
+  duration_ms: 0.0315
+  type: 'test'
+  ...
+# Subtest: all write APIs deny adversarial flag 2
+ok 63 - all write APIs deny adversarial flag 2
+  ---
+  duration_ms: 0.128375
+  type: 'test'
+  ...
+# Subtest: all write APIs deny adversarial flag 64
+ok 64 - all write APIs deny adversarial flag 64
+  ---
+  duration_ms: 0.031541
+  type: 'test'
+  ...
+# Subtest: all write APIs deny adversarial flag null
+ok 65 - all write APIs deny adversarial flag null
+  ---
+  duration_ms: 0.032458
+  type: 'test'
+  ...
+# Subtest: mutation policy ignores poisoned options, source getters, and optional delegate getters
+ok 66 - mutation policy ignores poisoned options, source getters, and optional delegate getters
+  ---
+  duration_ms: 0.166084
+  type: 'test'
+  ...
+# Subtest: writeStream never starts or closes an async generator
+ok 67 - writeStream never starts or closes an async generator
+  ---
+  duration_ms: 0.165917
+  type: 'test'
+  ...
+# Subtest: empty writes, missing and invalid paths, and self-copies remain denied
+ok 68 - empty writes, missing and invalid paths, and self-copies remain denied
+  ---
+  duration_ms: 0.444667
+  type: 'test'
+  ...
+# Subtest: reads preserve exact paths, option identity, limits, receiver, and results
+ok 69 - reads preserve exact paths, option identity, limits, receiver, and results
+  ---
+  duration_ms: 0.290292
+  type: 'test'
+  ...
+# Subtest: readFile returns owned Uint8Array storage even for Buffer subviews
+ok 70 - readFile returns owned Uint8Array storage even for Buffer subviews
+  ---
+  duration_ms: 0.075834
+  type: 'test'
+  ...
+# Subtest: stat, lstat, and directory entries cannot mutate delegate metadata
+ok 71 - stat, lstat, and directory entries cannot mutate delegate metadata
+  ---
+  duration_ms: 0.061167
+  type: 'test'
+  ...
+# Subtest: access mode 0 delegates unchanged
+ok 72 - access mode 0 delegates unchanged
+  ---
+  duration_ms: 0.067333
+  type: 'test'
+  ...
+# Subtest: access mode 1 delegates unchanged
+ok 73 - access mode 1 delegates unchanged
+  ---
+  duration_ms: 0.10775
+  type: 'test'
+  ...
+# Subtest: access mode 4 delegates unchanged
+ok 74 - access mode 4 delegates unchanged
+  ---
+  duration_ms: 0.074625
+  type: 'test'
+  ...
+# Subtest: access mode 5 delegates unchanged
+ok 75 - access mode 5 delegates unchanged
+  ---
+  duration_ms: 0.037833
+  type: 'test'
+  ...
+# Subtest: access defaults to F_OK and denies every W_OK combination before delegation
+ok 76 - access defaults to F_OK and denies every W_OK combination before delegation
+  ---
+  duration_ms: 0.284917
+  type: 'test'
+  ...
+# Subtest: underlying read errors including arbitrary abort reasons retain their identity
+ok 77 - underlying read errors including arbitrary abort reasons retain their identity
+  ---
+  duration_ms: 0.441166
+  type: 'test'
+  ...
+# Subtest: supported reads preserve cancellation identity without starting pre-aborted streams
+ok 78 - supported reads preserve cancellation identity without starting pre-aborted streams
+  ---
+  duration_ms: 0.25975
+  type: 'test'
+  ...
+# Subtest: missing optional reads reject with ENOTSUP, including pre-aborted requests
+ok 79 - missing optional reads reject with ENOTSUP, including pre-aborted requests
+  ---
+  duration_ms: 0.126
+  type: 'test'
+  ...
+# Subtest: readStream is lazy, preserves options, copies reused chunks, and closes on return
+ok 80 - readStream is lazy, preserves options, copies reused chunks, and closes on return
+  ---
+  duration_ms: 0.173959
+  type: 'test'
+  ...
+# Subtest: readStream closes the delegate when the consumer stops or cancellation arrives
+ok 81 - readStream closes the delegate when the consumer stops or cancellation arrives
+  ---
+  duration_ms: 0.152083
+  type: 'test'
+  ...
+# Subtest: readStream transfers synchronous method throws into next() rejection
+ok 82 - readStream transfers synchronous method throws into next() rejection
+  ---
+  duration_ms: 0.067958
+  type: 'test'
+  ...
+# Subtest: optional read capability permutation: link=false, stream=false, advertised=undefined
+ok 83 - optional read capability permutation: link=false, stream=false, advertised=undefined
+  ---
+  duration_ms: 0.100708
+  type: 'test'
+  ...
+# Subtest: optional read capability permutation: link=false, stream=false, advertised=false
+ok 84 - optional read capability permutation: link=false, stream=false, advertised=false
+  ---
+  duration_ms: 0.060458
+  type: 'test'
+  ...
+# Subtest: optional read capability permutation: link=false, stream=false, advertised=true
+ok 85 - optional read capability permutation: link=false, stream=false, advertised=true
+  ---
+  duration_ms: 0.174083
+  type: 'test'
+  ...
+# Subtest: optional read capability permutation: link=false, stream=true, advertised=undefined
+ok 86 - optional read capability permutation: link=false, stream=true, advertised=undefined
+  ---
+  duration_ms: 0.115375
+  type: 'test'
+  ...
+# Subtest: optional read capability permutation: link=false, stream=true, advertised=false
+ok 87 - optional read capability permutation: link=false, stream=true, advertised=false
+  ---
+  duration_ms: 0.085583
+  type: 'test'
+  ...
+# Subtest: optional read capability permutation: link=false, stream=true, advertised=true
+ok 88 - optional read capability permutation: link=false, stream=true, advertised=true
+  ---
+  duration_ms: 0.073042
+  type: 'test'
+  ...
+# Subtest: optional read capability permutation: link=true, stream=false, advertised=undefined
+ok 89 - optional read capability permutation: link=true, stream=false, advertised=undefined
+  ---
+  duration_ms: 0.056459
+  type: 'test'
+  ...
+# Subtest: optional read capability permutation: link=true, stream=false, advertised=false
+ok 90 - optional read capability permutation: link=true, stream=false, advertised=false
+  ---
+  duration_ms: 0.114625
+  type: 'test'
+  ...
+# Subtest: optional read capability permutation: link=true, stream=false, advertised=true
+ok 91 - optional read capability permutation: link=true, stream=false, advertised=true
+  ---
+  duration_ms: 0.099375
+  type: 'test'
+  ...
+# Subtest: optional read capability permutation: link=true, stream=true, advertised=undefined
+ok 92 - optional read capability permutation: link=true, stream=true, advertised=undefined
+  ---
+  duration_ms: 0.075542
+  type: 'test'
+  ...
+# Subtest: optional read capability permutation: link=true, stream=true, advertised=false
+ok 93 - optional read capability permutation: link=true, stream=true, advertised=false
+  ---
+  duration_ms: 0.059375
+  type: 'test'
+  ...
+# Subtest: optional read capability permutation: link=true, stream=true, advertised=true
+ok 94 - optional read capability permutation: link=true, stream=true, advertised=true
+  ---
+  duration_ms: 0.055667
+  type: 'test'
+  ...
+# Subtest: capabilities are immutable, detached, conservative, and omit unknown extensions
+ok 95 - capabilities are immutable, detached, conservative, and omit unknown extensions
+  ---
+  duration_ms: 0.13325
+  type: 'test'
+  ...
+# Subtest: no delegate references or unknown convenience/native execution APIs are exposed
+ok 96 - no delegate references or unknown convenience/native execution APIs are exposed
+  ---
+  duration_ms: 0.063791
+  type: 'test'
+  ...
+# Subtest: readonly rmdir always rejects before delegate access, path checks, or options access
+ok 97 - readonly rmdir always rejects before delegate access, path checks, or options access
+  ---
+  duration_ms: 0.942292
+  type: 'test'
+  ...
+# Subtest: readonly real streams preserve 0 binary bytes and ranges without readFile
+ok 98 - readonly real streams preserve 0 binary bytes and ranges without readFile
+  ---
+  duration_ms: 8.063666
+  type: 'test'
+  ...
+# Subtest: readonly real streams preserve 4099 binary bytes and ranges without readFile
+ok 99 - readonly real streams preserve 4099 binary bytes and ranges without readFile
+  ---
+  duration_ms: 20.086875
+  type: 'test'
+  ...
+# Subtest: readonly preserves conditional mounted streaming without claiming universal support
+ok 100 - readonly preserves conditional mounted streaming without claiming universal support
+  ---
+  duration_ms: 1.703083
+  type: 'test'
+  ...
+# Subtest: readonly abort closes a blocked iterator and observes late next and cleanup rejections
+ok 101 - readonly abort closes a blocked iterator and observes late next and cleanup rejections
+  ---
+  duration_ms: 0.722
+  type: 'test'
+  ...
+# Subtest: readonly preserves original stream errors even when cleanup also fails
+ok 102 - readonly preserves original stream errors even when cleanup also fails
+  ---
+  duration_ms: 0.24125
+  type: 'test'
+  ...
+# Subtest: readonly consumer return reports cleanup failure without reading ahead
+ok 103 - readonly consumer return reports cleanup failure without reading ahead
+  ---
+  duration_ms: 0.188875
+  type: 'test'
+  ...
+1..103
+# tests 103
+# suites 0
+# pass 103
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 212.73225

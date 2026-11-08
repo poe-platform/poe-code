@@ -1,0 +1,9 @@
+{
+  "startedAt": "2026-08-27T17:49:01.331Z",
+  "head": "1ebc9d71607b8b9f73bd65bd75ca91fed430ae89",
+  "status": "M src/commands/regex-execution/client.ts\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/expr-author/abort-reason-fix/\n?? tests/commands/expr-stress/extension-review/execution/\n?? tests/commands/expr/abort-reason-regression.test.ts\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/tree-charset-independent-20260827/mutation-controls/\n?? tests/commands/tree-charset-independent-20260827/validation-chain/\n?? tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/independent/inspection-v1/",
+  "node": "v22.22.2",
+  "platform": "darwin",
+  "profile": "current source, original reviewer callback only, memory-only fixtures; not a build/archive/full gate",
+  "originalFrozenCandidate": "877144ea3a5223bbdf3e7ebfd50a8f8caaa474f3"
+}

@@ -1,0 +1,21 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "noEmit": true,
+    "skipLibCheck": false,
+    "types": [
+      "node"
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "poe-code/safe-fs/core": [
+        "../safe-fs/dist/core.d.ts"
+      ]
+    }
+  },
+  "include": [
+    "test/public-types.ts"
+  ],
+  "exclude": []
+}

@@ -1,0 +1,1104 @@
+{
+  "base": "https://127.0.0.1:63944/dav",
+  "rows": [
+    {
+      "name": "PROPFIND namespace/base/trailing slash",
+      "kind": "positive",
+      "result": "pass",
+      "events": [
+        0,
+        1
+      ],
+      "hostWitnessesBase64": {}
+    },
+    {
+      "name": "conditional PUT accepted and stale/exclusive PUT preserved",
+      "kind": "guard",
+      "result": "fail",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n412 !== 204\n",
+      "events": [
+        1,
+        7
+      ],
+      "hostWitnessesBase64": {
+        "put": "b25l"
+      }
+    },
+    {
+      "name": "COPY source If-Match with distinct destination ETag",
+      "kind": "positive",
+      "result": "fail",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n412 !== 204\n",
+      "events": [
+        7,
+        12
+      ],
+      "hostWitnessesBase64": {
+        "COPY-source": "c291cmNlIGJ5dGVz",
+        "COPY-target": "T0xE",
+        "put": "b25l"
+      }
+    },
+    {
+      "name": "COPY absent target source If-Match",
+      "kind": "positive",
+      "result": "fail",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n412 !== 201\n",
+      "events": [
+        12,
+        15
+      ],
+      "hostWitnessesBase64": {
+        "COPY-new-source": "bmV3IGJ5dGVz",
+        "COPY-source": "c291cmNlIGJ5dGVz",
+        "COPY-target": "T0xE",
+        "put": "b25l"
+      }
+    },
+    {
+      "name": "COPY Overwrite F and stale destination tagged If",
+      "kind": "guard",
+      "result": "pass",
+      "events": [
+        15,
+        21
+      ],
+      "hostWitnessesBase64": {
+        "COPY-guard-source": "c291cmNl",
+        "COPY-guard-target": "dGFyZ2V0",
+        "COPY-new-source": "bmV3IGJ5dGVz",
+        "COPY-source": "c291cmNlIGJ5dGVz",
+        "COPY-target": "T0xE",
+        "put": "b25l"
+      }
+    },
+    {
+      "name": "COPY destination LOCK token and unlock after overwrite",
+      "kind": "positive",
+      "result": "pass",
+      "events": [
+        21,
+        28
+      ],
+      "hostWitnessesBase64": {
+        "COPY-guard-source": "c291cmNl",
+        "COPY-guard-target": "dGFyZ2V0",
+        "COPY-lock-source": "c291cmNl",
+        "COPY-lock-target": "c291cmNl",
+        "COPY-new-source": "bmV3IGJ5dGVz",
+        "COPY-source": "c291cmNlIGJ5dGVz",
+        "COPY-target": "T0xE",
+        "put": "b25l"
+      }
+    },
+    {
+      "name": "MOVE source If-Match with distinct destination ETag",
+      "kind": "positive",
+      "result": "fail",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n412 !== 204\n",
+      "events": [
+        28,
+        33
+      ],
+      "hostWitnessesBase64": {
+        "COPY-guard-source": "c291cmNl",
+        "COPY-guard-target": "dGFyZ2V0",
+        "COPY-lock-source": "c291cmNl",
+        "COPY-lock-target": "c291cmNl",
+        "COPY-new-source": "bmV3IGJ5dGVz",
+        "COPY-source": "c291cmNlIGJ5dGVz",
+        "COPY-target": "T0xE",
+        "MOVE-source": "c291cmNlIGJ5dGVz",
+        "MOVE-target": "T0xE",
+        "put": "b25l"
+      }
+    },
+    {
+      "name": "MOVE absent target source If-Match",
+      "kind": "positive",
+      "result": "fail",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n412 !== 201\n",
+      "events": [
+        33,
+        36
+      ],
+      "hostWitnessesBase64": {
+        "COPY-guard-source": "c291cmNl",
+        "COPY-guard-target": "dGFyZ2V0",
+        "COPY-lock-source": "c291cmNl",
+        "COPY-lock-target": "c291cmNl",
+        "COPY-new-source": "bmV3IGJ5dGVz",
+        "COPY-source": "c291cmNlIGJ5dGVz",
+        "COPY-target": "T0xE",
+        "MOVE-new-source": "bmV3IGJ5dGVz",
+        "MOVE-source": "c291cmNlIGJ5dGVz",
+        "MOVE-target": "T0xE",
+        "put": "b25l"
+      }
+    },
+    {
+      "name": "MOVE Overwrite F and stale destination tagged If",
+      "kind": "guard",
+      "result": "pass",
+      "events": [
+        36,
+        42
+      ],
+      "hostWitnessesBase64": {
+        "COPY-guard-source": "c291cmNl",
+        "COPY-guard-target": "dGFyZ2V0",
+        "COPY-lock-source": "c291cmNl",
+        "COPY-lock-target": "c291cmNl",
+        "COPY-new-source": "bmV3IGJ5dGVz",
+        "COPY-source": "c291cmNlIGJ5dGVz",
+        "COPY-target": "T0xE",
+        "MOVE-guard-source": "c291cmNl",
+        "MOVE-guard-target": "dGFyZ2V0",
+        "MOVE-new-source": "bmV3IGJ5dGVz",
+        "MOVE-source": "c291cmNlIGJ5dGVz",
+        "MOVE-target": "T0xE",
+        "put": "b25l"
+      }
+    },
+    {
+      "name": "MOVE destination LOCK token and unlock after overwrite",
+      "kind": "positive",
+      "result": "pass",
+      "events": [
+        42,
+        49
+      ],
+      "hostWitnessesBase64": {
+        "COPY-guard-source": "c291cmNl",
+        "COPY-guard-target": "dGFyZ2V0",
+        "COPY-lock-source": "c291cmNl",
+        "COPY-lock-target": "c291cmNl",
+        "COPY-new-source": "bmV3IGJ5dGVz",
+        "COPY-source": "c291cmNlIGJ5dGVz",
+        "COPY-target": "T0xE",
+        "MOVE-guard-source": "c291cmNl",
+        "MOVE-guard-target": "dGFyZ2V0",
+        "MOVE-lock-target": "c291cmNl",
+        "MOVE-new-source": "bmV3IGJ5dGVz",
+        "MOVE-source": "c291cmNlIGJ5dGVz",
+        "MOVE-target": "T0xE",
+        "put": "b25l"
+      }
+    },
+    {
+      "name": "LOCK header is RFC coded-URL",
+      "kind": "positive",
+      "result": "pass",
+      "events": [
+        49,
+        52
+      ],
+      "hostWitnessesBase64": {
+        "COPY-guard-source": "c291cmNl",
+        "COPY-guard-target": "dGFyZ2V0",
+        "COPY-lock-source": "c291cmNl",
+        "COPY-lock-target": "c291cmNl",
+        "COPY-new-source": "bmV3IGJ5dGVz",
+        "COPY-source": "c291cmNlIGJ5dGVz",
+        "COPY-target": "T0xE",
+        "MOVE-guard-source": "c291cmNl",
+        "MOVE-guard-target": "dGFyZ2V0",
+        "MOVE-lock-target": "c291cmNl",
+        "MOVE-new-source": "bmV3IGJ5dGVz",
+        "MOVE-source": "c291cmNlIGJ5dGVz",
+        "MOVE-target": "T0xE",
+        "lock-syntax": "b3JpZ2luYWw=",
+        "put": "b25l"
+      }
+    }
+  ],
+  "events": [
+    {
+      "method": "PROPFIND",
+      "path": "/",
+      "requestHeaders": {
+        "Depth": "0",
+        "Content-Type": "application/xml"
+      },
+      "requestBody": "<d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getetag/></d:prop></d:propfind>",
+      "status": 207,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "content-length": "402",
+        "connection": "close",
+        "content-type": "text/xml; charset=\"utf-8\""
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<D:multistatus xmlns:D=\"DAV:\" xmlns:ns0=\"DAV:\">\n<D:response xmlns:lp1=\"DAV:\" xmlns:lp2=\"http://apache.org/dav/props/\">\n<D:href>/dav/</D:href>\n<D:propstat>\n<D:prop>\n<lp1:resourcetype><D:collection/></lp1:resourcetype>\n<lp1:getetag>\"a313a9d-40-65a006b3e2a80\"</lp1:getetag>\n</D:prop>\n<D:status>HTTP/1.1 200 OK</D:status>\n</D:propstat>\n</D:response>\n</D:multistatus>\n"
+    },
+    {
+      "method": "PUT",
+      "path": "/put",
+      "requestHeaders": {
+        "If-None-Match": "*"
+      },
+      "requestBody": "one",
+      "status": 201,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "location": "https://127.0.0.1:63944/dav/put",
+        "content-length": "221",
+        "connection": "close",
+        "content-type": "text/html; charset=ISO-8859-1"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n<html>\n<head>\n<title>201 Created</title>\n</head><body>\n<h1>Created</h1>\n<p>Resource /dav/put has been created.</p>\n</body></html>\n"
+    },
+    {
+      "method": "GET",
+      "path": "/put",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "last-modified": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "etag": "W/\"a313b8b-3-65a006b4d6cc0\"",
+        "accept-ranges": "bytes",
+        "content-length": "3",
+        "connection": "close"
+      },
+      "body": "one"
+    },
+    {
+      "method": "PUT",
+      "path": "/put",
+      "requestHeaders": {
+        "If-None-Match": "*"
+      },
+      "requestBody": "bad",
+      "status": 412,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "content-length": "273",
+        "connection": "close",
+        "content-type": "text/html; charset=iso-8859-1"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n<html><head>\n<title>412 Precondition Failed</title>\n</head><body>\n<h1>Precondition Failed</h1>\n<p>The precondition on the request for this URL evaluated to false.</p>\n</body></html>\n"
+    },
+    {
+      "method": "PUT",
+      "path": "/put",
+      "requestHeaders": {
+        "If-Match": "\"wrong\""
+      },
+      "requestBody": "bad",
+      "status": 412,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "content-length": "273",
+        "connection": "close",
+        "content-type": "text/html; charset=iso-8859-1"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n<html><head>\n<title>412 Precondition Failed</title>\n</head><body>\n<h1>Precondition Failed</h1>\n<p>The precondition on the request for this URL evaluated to false.</p>\n</body></html>\n"
+    },
+    {
+      "method": "GET",
+      "path": "/put",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "last-modified": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "etag": "W/\"a313b8b-3-65a006b4d6cc0\"",
+        "accept-ranges": "bytes",
+        "content-length": "3",
+        "connection": "close"
+      },
+      "body": "one"
+    },
+    {
+      "method": "PUT",
+      "path": "/put",
+      "requestHeaders": {
+        "If-Match": "W/\"a313b8b-3-65a006b4d6cc0\""
+      },
+      "requestBody": "two-new",
+      "status": 412,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "content-length": "273",
+        "connection": "close",
+        "content-type": "text/html; charset=iso-8859-1"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n<html><head>\n<title>412 Precondition Failed</title>\n</head><body>\n<h1>Precondition Failed</h1>\n<p>The precondition on the request for this URL evaluated to false.</p>\n</body></html>\n"
+    },
+    {
+      "method": "PUT",
+      "path": "/COPY-source",
+      "requestHeaders": {},
+      "requestBody": "source bytes",
+      "status": 201,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "location": "https://127.0.0.1:63944/dav/COPY-source",
+        "content-length": "229",
+        "connection": "close",
+        "content-type": "text/html; charset=ISO-8859-1"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n<html>\n<head>\n<title>201 Created</title>\n</head><body>\n<h1>Created</h1>\n<p>Resource /dav/COPY-source has been created.</p>\n</body></html>\n"
+    },
+    {
+      "method": "PUT",
+      "path": "/COPY-target",
+      "requestHeaders": {},
+      "requestBody": "OLD",
+      "status": 201,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "location": "https://127.0.0.1:63944/dav/COPY-target",
+        "content-length": "229",
+        "connection": "close",
+        "content-type": "text/html; charset=ISO-8859-1"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n<html>\n<head>\n<title>201 Created</title>\n</head><body>\n<h1>Created</h1>\n<p>Resource /dav/COPY-target has been created.</p>\n</body></html>\n"
+    },
+    {
+      "method": "GET",
+      "path": "/COPY-source",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "last-modified": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "etag": "W/\"a313b8c-c-65a006b4d6cc0\"",
+        "accept-ranges": "bytes",
+        "content-length": "12",
+        "connection": "close"
+      },
+      "body": "source bytes"
+    },
+    {
+      "method": "GET",
+      "path": "/COPY-target",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "last-modified": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "etag": "W/\"a313b8d-3-65a006b4d6cc0\"",
+        "accept-ranges": "bytes",
+        "content-length": "3",
+        "connection": "close"
+      },
+      "body": "OLD"
+    },
+    {
+      "method": "COPY",
+      "path": "/COPY-source",
+      "requestHeaders": {
+        "Destination": "https://127.0.0.1:63944/dav/COPY-target",
+        "Overwrite": "T",
+        "If-Match": "W/\"a313b8c-c-65a006b4d6cc0\"",
+        "If": "<https://127.0.0.1:63944/dav/COPY-target> ([W/\"a313b8d-3-65a006b4d6cc0\"])"
+      },
+      "requestBody": "",
+      "status": 412,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "content-length": "273",
+        "connection": "close",
+        "content-type": "text/html; charset=iso-8859-1"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n<html><head>\n<title>412 Precondition Failed</title>\n</head><body>\n<h1>Precondition Failed</h1>\n<p>The precondition on the request for this URL evaluated to false.</p>\n</body></html>\n"
+    },
+    {
+      "method": "PUT",
+      "path": "/COPY-new-source",
+      "requestHeaders": {},
+      "requestBody": "new bytes",
+      "status": 201,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "location": "https://127.0.0.1:63944/dav/COPY-new-source",
+        "content-length": "233",
+        "connection": "close",
+        "content-type": "text/html; charset=ISO-8859-1"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n<html>\n<head>\n<title>201 Created</title>\n</head><body>\n<h1>Created</h1>\n<p>Resource /dav/COPY-new-source has been created.</p>\n</body></html>\n"
+    },
+    {
+      "method": "GET",
+      "path": "/COPY-new-source",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "last-modified": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "etag": "W/\"a313b8e-9-65a006b4d6cc0\"",
+        "accept-ranges": "bytes",
+        "content-length": "9",
+        "connection": "close"
+      },
+      "body": "new bytes"
+    },
+    {
+      "method": "COPY",
+      "path": "/COPY-new-source",
+      "requestHeaders": {
+        "Destination": "https://127.0.0.1:63944/dav/COPY-new-target",
+        "Overwrite": "F",
+        "If-Match": "W/\"a313b8e-9-65a006b4d6cc0\""
+      },
+      "requestBody": "",
+      "status": 412,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "content-length": "273",
+        "connection": "close",
+        "content-type": "text/html; charset=iso-8859-1"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n<html><head>\n<title>412 Precondition Failed</title>\n</head><body>\n<h1>Precondition Failed</h1>\n<p>The precondition on the request for this URL evaluated to false.</p>\n</body></html>\n"
+    },
+    {
+      "method": "PUT",
+      "path": "/COPY-guard-source",
+      "requestHeaders": {},
+      "requestBody": "source",
+      "status": 201,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "location": "https://127.0.0.1:63944/dav/COPY-guard-source",
+        "content-length": "235",
+        "connection": "close",
+        "content-type": "text/html; charset=ISO-8859-1"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n<html>\n<head>\n<title>201 Created</title>\n</head><body>\n<h1>Created</h1>\n<p>Resource /dav/COPY-guard-source has been created.</p>\n</body></html>\n"
+    },
+    {
+      "method": "PUT",
+      "path": "/COPY-guard-target",
+      "requestHeaders": {},
+      "requestBody": "target",
+      "status": 201,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "location": "https://127.0.0.1:63944/dav/COPY-guard-target",
+        "content-length": "235",
+        "connection": "close",
+        "content-type": "text/html; charset=ISO-8859-1"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n<html>\n<head>\n<title>201 Created</title>\n</head><body>\n<h1>Created</h1>\n<p>Resource /dav/COPY-guard-target has been created.</p>\n</body></html>\n"
+    },
+    {
+      "method": "COPY",
+      "path": "/COPY-guard-source",
+      "requestHeaders": {
+        "Destination": "https://127.0.0.1:63944/dav/COPY-guard-target",
+        "Overwrite": "F"
+      },
+      "requestBody": "",
+      "status": 412,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "content-length": "259",
+        "connection": "close",
+        "content-type": "text/html; charset=ISO-8859-1"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n<html>\n<head>\n<title>412 Precondition Failed</title>\n</head><body>\n<h1>Precondition Failed</h1>\n<p>Destination is not empty and Overwrite is not \"T\"</p>\n</body></html>\n"
+    },
+    {
+      "method": "COPY",
+      "path": "/COPY-guard-source",
+      "requestHeaders": {
+        "Destination": "https://127.0.0.1:63944/dav/COPY-guard-target",
+        "Overwrite": "T",
+        "If": "<https://127.0.0.1:63944/dav/COPY-guard-target> ([\"stale\"])"
+      },
+      "requestBody": "",
+      "status": 412,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "content-length": "273",
+        "connection": "close",
+        "content-type": "text/html; charset=iso-8859-1"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n<html><head>\n<title>412 Precondition Failed</title>\n</head><body>\n<h1>Precondition Failed</h1>\n<p>The precondition on the request for this URL evaluated to false.</p>\n</body></html>\n"
+    },
+    {
+      "method": "GET",
+      "path": "/COPY-guard-target",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "last-modified": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "etag": "W/\"a313b90-6-65a006b4d6cc0\"",
+        "accept-ranges": "bytes",
+        "content-length": "6",
+        "connection": "close"
+      },
+      "body": "target"
+    },
+    {
+      "method": "GET",
+      "path": "/COPY-guard-source",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "last-modified": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "etag": "W/\"a313b8f-6-65a006b4d6cc0\"",
+        "accept-ranges": "bytes",
+        "content-length": "6",
+        "connection": "close"
+      },
+      "body": "source"
+    },
+    {
+      "method": "PUT",
+      "path": "/COPY-lock-source",
+      "requestHeaders": {},
+      "requestBody": "source",
+      "status": 201,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "location": "https://127.0.0.1:63944/dav/COPY-lock-source",
+        "content-length": "234",
+        "connection": "close",
+        "content-type": "text/html; charset=ISO-8859-1"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n<html>\n<head>\n<title>201 Created</title>\n</head><body>\n<h1>Created</h1>\n<p>Resource /dav/COPY-lock-source has been created.</p>\n</body></html>\n"
+    },
+    {
+      "method": "PUT",
+      "path": "/COPY-lock-target",
+      "requestHeaders": {},
+      "requestBody": "target",
+      "status": 201,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "location": "https://127.0.0.1:63944/dav/COPY-lock-target",
+        "content-length": "234",
+        "connection": "close",
+        "content-type": "text/html; charset=ISO-8859-1"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n<html>\n<head>\n<title>201 Created</title>\n</head><body>\n<h1>Created</h1>\n<p>Resource /dav/COPY-lock-target has been created.</p>\n</body></html>\n"
+    },
+    {
+      "method": "LOCK",
+      "path": "/COPY-lock-target",
+      "requestHeaders": {
+        "Depth": "infinity",
+        "Timeout": "Second-60",
+        "Content-Type": "application/xml"
+      },
+      "requestBody": "<d:lockinfo xmlns:d=\"DAV:\"><d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype></d:lockinfo>",
+      "status": 200,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "lock-token": "<opaquelocktoken:3e199f45-c1f3-4a09-99d3-7316b0eceafb>",
+        "content-length": "379",
+        "connection": "close",
+        "content-type": "text/xml; charset=\"utf-8\""
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<D:prop xmlns:D=\"DAV:\">\n<D:lockdiscovery>\n<D:activelock>\n<D:locktype><D:write/></D:locktype>\n<D:lockscope><D:exclusive/></D:lockscope>\n<D:depth>infinity</D:depth>\n<D:timeout>Second-60</D:timeout>\n<D:locktoken>\n<D:href>opaquelocktoken:3e199f45-c1f3-4a09-99d3-7316b0eceafb</D:href>\n</D:locktoken>\n</D:activelock>\n\n</D:lockdiscovery>\n</D:prop>"
+    },
+    {
+      "method": "PUT",
+      "path": "/COPY-lock-target",
+      "requestHeaders": {},
+      "requestBody": "blocked",
+      "status": 423,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "content-length": "317",
+        "connection": "close",
+        "content-type": "text/html; charset=iso-8859-1"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n<html><head>\n<title>423 Locked</title>\n</head><body>\n<h1>Locked</h1>\n<p>The requested resource is currently locked.\nThe lock must be released or proper identification\ngiven before the method can be applied.</p>\n</body></html>\n"
+    },
+    {
+      "method": "COPY",
+      "path": "/COPY-lock-source",
+      "requestHeaders": {
+        "Destination": "https://127.0.0.1:63944/dav/COPY-lock-target",
+        "Overwrite": "T",
+        "If": "<https://127.0.0.1:63944/dav/COPY-lock-target> (<opaquelocktoken:3e199f45-c1f3-4a09-99d3-7316b0eceafb>)"
+      },
+      "requestBody": "",
+      "status": 204,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "connection": "close"
+      },
+      "body": ""
+    },
+    {
+      "method": "GET",
+      "path": "/COPY-lock-target",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "last-modified": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "etag": "W/\"a313b93-6-65a006b4d6cc0\"",
+        "accept-ranges": "bytes",
+        "content-length": "6",
+        "connection": "close"
+      },
+      "body": "source"
+    },
+    {
+      "method": "UNLOCK",
+      "path": "/COPY-lock-target",
+      "requestHeaders": {
+        "Lock-Token": "<opaquelocktoken:3e199f45-c1f3-4a09-99d3-7316b0eceafb>"
+      },
+      "requestBody": "",
+      "status": 204,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "connection": "close"
+      },
+      "body": ""
+    },
+    {
+      "method": "PUT",
+      "path": "/MOVE-source",
+      "requestHeaders": {},
+      "requestBody": "source bytes",
+      "status": 201,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "location": "https://127.0.0.1:63944/dav/MOVE-source",
+        "content-length": "229",
+        "connection": "close",
+        "content-type": "text/html; charset=ISO-8859-1"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n<html>\n<head>\n<title>201 Created</title>\n</head><body>\n<h1>Created</h1>\n<p>Resource /dav/MOVE-source has been created.</p>\n</body></html>\n"
+    },
+    {
+      "method": "PUT",
+      "path": "/MOVE-target",
+      "requestHeaders": {},
+      "requestBody": "OLD",
+      "status": 201,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "location": "https://127.0.0.1:63944/dav/MOVE-target",
+        "content-length": "229",
+        "connection": "close",
+        "content-type": "text/html; charset=ISO-8859-1"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n<html>\n<head>\n<title>201 Created</title>\n</head><body>\n<h1>Created</h1>\n<p>Resource /dav/MOVE-target has been created.</p>\n</body></html>\n"
+    },
+    {
+      "method": "GET",
+      "path": "/MOVE-source",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "last-modified": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "etag": "W/\"a313b94-c-65a006b4d6cc0\"",
+        "accept-ranges": "bytes",
+        "content-length": "12",
+        "connection": "close"
+      },
+      "body": "source bytes"
+    },
+    {
+      "method": "GET",
+      "path": "/MOVE-target",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "last-modified": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "etag": "W/\"a313b95-3-65a006b4d6cc0\"",
+        "accept-ranges": "bytes",
+        "content-length": "3",
+        "connection": "close"
+      },
+      "body": "OLD"
+    },
+    {
+      "method": "MOVE",
+      "path": "/MOVE-source",
+      "requestHeaders": {
+        "Destination": "https://127.0.0.1:63944/dav/MOVE-target",
+        "Overwrite": "T",
+        "If-Match": "W/\"a313b94-c-65a006b4d6cc0\"",
+        "If": "<https://127.0.0.1:63944/dav/MOVE-target> ([W/\"a313b95-3-65a006b4d6cc0\"])"
+      },
+      "requestBody": "",
+      "status": 412,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "content-length": "273",
+        "connection": "close",
+        "content-type": "text/html; charset=iso-8859-1"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n<html><head>\n<title>412 Precondition Failed</title>\n</head><body>\n<h1>Precondition Failed</h1>\n<p>The precondition on the request for this URL evaluated to false.</p>\n</body></html>\n"
+    },
+    {
+      "method": "PUT",
+      "path": "/MOVE-new-source",
+      "requestHeaders": {},
+      "requestBody": "new bytes",
+      "status": 201,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "location": "https://127.0.0.1:63944/dav/MOVE-new-source",
+        "content-length": "233",
+        "connection": "close",
+        "content-type": "text/html; charset=ISO-8859-1"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n<html>\n<head>\n<title>201 Created</title>\n</head><body>\n<h1>Created</h1>\n<p>Resource /dav/MOVE-new-source has been created.</p>\n</body></html>\n"
+    },
+    {
+      "method": "GET",
+      "path": "/MOVE-new-source",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "last-modified": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "etag": "W/\"a313b96-9-65a006b4d6cc0\"",
+        "accept-ranges": "bytes",
+        "content-length": "9",
+        "connection": "close"
+      },
+      "body": "new bytes"
+    },
+    {
+      "method": "MOVE",
+      "path": "/MOVE-new-source",
+      "requestHeaders": {
+        "Destination": "https://127.0.0.1:63944/dav/MOVE-new-target",
+        "Overwrite": "F",
+        "If-Match": "W/\"a313b96-9-65a006b4d6cc0\""
+      },
+      "requestBody": "",
+      "status": 412,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "content-length": "273",
+        "connection": "close",
+        "content-type": "text/html; charset=iso-8859-1"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n<html><head>\n<title>412 Precondition Failed</title>\n</head><body>\n<h1>Precondition Failed</h1>\n<p>The precondition on the request for this URL evaluated to false.</p>\n</body></html>\n"
+    },
+    {
+      "method": "PUT",
+      "path": "/MOVE-guard-source",
+      "requestHeaders": {},
+      "requestBody": "source",
+      "status": 201,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "location": "https://127.0.0.1:63944/dav/MOVE-guard-source",
+        "content-length": "235",
+        "connection": "close",
+        "content-type": "text/html; charset=ISO-8859-1"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n<html>\n<head>\n<title>201 Created</title>\n</head><body>\n<h1>Created</h1>\n<p>Resource /dav/MOVE-guard-source has been created.</p>\n</body></html>\n"
+    },
+    {
+      "method": "PUT",
+      "path": "/MOVE-guard-target",
+      "requestHeaders": {},
+      "requestBody": "target",
+      "status": 201,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "location": "https://127.0.0.1:63944/dav/MOVE-guard-target",
+        "content-length": "235",
+        "connection": "close",
+        "content-type": "text/html; charset=ISO-8859-1"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n<html>\n<head>\n<title>201 Created</title>\n</head><body>\n<h1>Created</h1>\n<p>Resource /dav/MOVE-guard-target has been created.</p>\n</body></html>\n"
+    },
+    {
+      "method": "MOVE",
+      "path": "/MOVE-guard-source",
+      "requestHeaders": {
+        "Destination": "https://127.0.0.1:63944/dav/MOVE-guard-target",
+        "Overwrite": "F"
+      },
+      "requestBody": "",
+      "status": 412,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "content-length": "259",
+        "connection": "close",
+        "content-type": "text/html; charset=ISO-8859-1"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n<html>\n<head>\n<title>412 Precondition Failed</title>\n</head><body>\n<h1>Precondition Failed</h1>\n<p>Destination is not empty and Overwrite is not \"T\"</p>\n</body></html>\n"
+    },
+    {
+      "method": "MOVE",
+      "path": "/MOVE-guard-source",
+      "requestHeaders": {
+        "Destination": "https://127.0.0.1:63944/dav/MOVE-guard-target",
+        "Overwrite": "T",
+        "If": "<https://127.0.0.1:63944/dav/MOVE-guard-target> ([\"stale\"])"
+      },
+      "requestBody": "",
+      "status": 412,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "content-length": "273",
+        "connection": "close",
+        "content-type": "text/html; charset=iso-8859-1"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n<html><head>\n<title>412 Precondition Failed</title>\n</head><body>\n<h1>Precondition Failed</h1>\n<p>The precondition on the request for this URL evaluated to false.</p>\n</body></html>\n"
+    },
+    {
+      "method": "GET",
+      "path": "/MOVE-guard-target",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "last-modified": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "etag": "W/\"a313b98-6-65a006b4d6cc0\"",
+        "accept-ranges": "bytes",
+        "content-length": "6",
+        "connection": "close"
+      },
+      "body": "target"
+    },
+    {
+      "method": "GET",
+      "path": "/MOVE-guard-source",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "last-modified": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "etag": "W/\"a313b97-6-65a006b4d6cc0\"",
+        "accept-ranges": "bytes",
+        "content-length": "6",
+        "connection": "close"
+      },
+      "body": "source"
+    },
+    {
+      "method": "PUT",
+      "path": "/MOVE-lock-source",
+      "requestHeaders": {},
+      "requestBody": "source",
+      "status": 201,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "location": "https://127.0.0.1:63944/dav/MOVE-lock-source",
+        "content-length": "234",
+        "connection": "close",
+        "content-type": "text/html; charset=ISO-8859-1"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n<html>\n<head>\n<title>201 Created</title>\n</head><body>\n<h1>Created</h1>\n<p>Resource /dav/MOVE-lock-source has been created.</p>\n</body></html>\n"
+    },
+    {
+      "method": "PUT",
+      "path": "/MOVE-lock-target",
+      "requestHeaders": {},
+      "requestBody": "target",
+      "status": 201,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "location": "https://127.0.0.1:63944/dav/MOVE-lock-target",
+        "content-length": "234",
+        "connection": "close",
+        "content-type": "text/html; charset=ISO-8859-1"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n<html>\n<head>\n<title>201 Created</title>\n</head><body>\n<h1>Created</h1>\n<p>Resource /dav/MOVE-lock-target has been created.</p>\n</body></html>\n"
+    },
+    {
+      "method": "LOCK",
+      "path": "/MOVE-lock-target",
+      "requestHeaders": {
+        "Depth": "infinity",
+        "Timeout": "Second-60",
+        "Content-Type": "application/xml"
+      },
+      "requestBody": "<d:lockinfo xmlns:d=\"DAV:\"><d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype></d:lockinfo>",
+      "status": 200,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "lock-token": "<opaquelocktoken:f162fbb4-5ce0-444c-a600-35c0fbe268bc>",
+        "content-length": "379",
+        "connection": "close",
+        "content-type": "text/xml; charset=\"utf-8\""
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<D:prop xmlns:D=\"DAV:\">\n<D:lockdiscovery>\n<D:activelock>\n<D:locktype><D:write/></D:locktype>\n<D:lockscope><D:exclusive/></D:lockscope>\n<D:depth>infinity</D:depth>\n<D:timeout>Second-60</D:timeout>\n<D:locktoken>\n<D:href>opaquelocktoken:f162fbb4-5ce0-444c-a600-35c0fbe268bc</D:href>\n</D:locktoken>\n</D:activelock>\n\n</D:lockdiscovery>\n</D:prop>"
+    },
+    {
+      "method": "PUT",
+      "path": "/MOVE-lock-target",
+      "requestHeaders": {},
+      "requestBody": "blocked",
+      "status": 423,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "content-length": "317",
+        "connection": "close",
+        "content-type": "text/html; charset=iso-8859-1"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n<html><head>\n<title>423 Locked</title>\n</head><body>\n<h1>Locked</h1>\n<p>The requested resource is currently locked.\nThe lock must be released or proper identification\ngiven before the method can be applied.</p>\n</body></html>\n"
+    },
+    {
+      "method": "MOVE",
+      "path": "/MOVE-lock-source",
+      "requestHeaders": {
+        "Destination": "https://127.0.0.1:63944/dav/MOVE-lock-target",
+        "Overwrite": "T",
+        "If": "<https://127.0.0.1:63944/dav/MOVE-lock-target> (<opaquelocktoken:f162fbb4-5ce0-444c-a600-35c0fbe268bc>)"
+      },
+      "requestBody": "",
+      "status": 204,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "connection": "close"
+      },
+      "body": ""
+    },
+    {
+      "method": "GET",
+      "path": "/MOVE-lock-target",
+      "requestHeaders": {},
+      "requestBody": "",
+      "status": 200,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "last-modified": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "etag": "W/\"a313b99-6-65a006b4d6cc0\"",
+        "accept-ranges": "bytes",
+        "content-length": "6",
+        "connection": "close"
+      },
+      "body": "source"
+    },
+    {
+      "method": "UNLOCK",
+      "path": "/MOVE-lock-target",
+      "requestHeaders": {
+        "Lock-Token": "<opaquelocktoken:f162fbb4-5ce0-444c-a600-35c0fbe268bc>"
+      },
+      "requestBody": "",
+      "status": 204,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "connection": "close"
+      },
+      "body": ""
+    },
+    {
+      "method": "PUT",
+      "path": "/lock-syntax",
+      "requestHeaders": {},
+      "requestBody": "original",
+      "status": 201,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "location": "https://127.0.0.1:63944/dav/lock-syntax",
+        "content-length": "229",
+        "connection": "close",
+        "content-type": "text/html; charset=ISO-8859-1"
+      },
+      "body": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n<html>\n<head>\n<title>201 Created</title>\n</head><body>\n<h1>Created</h1>\n<p>Resource /dav/lock-syntax has been created.</p>\n</body></html>\n"
+    },
+    {
+      "method": "LOCK",
+      "path": "/lock-syntax",
+      "requestHeaders": {
+        "Depth": "infinity",
+        "Timeout": "Second-60",
+        "Content-Type": "application/xml"
+      },
+      "requestBody": "<d:lockinfo xmlns:d=\"DAV:\"><d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype></d:lockinfo>",
+      "status": 200,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "lock-token": "<opaquelocktoken:de58cfe6-7451-4e25-a18b-7daf0d318a6f>",
+        "content-length": "379",
+        "connection": "close",
+        "content-type": "text/xml; charset=\"utf-8\""
+      },
+      "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<D:prop xmlns:D=\"DAV:\">\n<D:lockdiscovery>\n<D:activelock>\n<D:locktype><D:write/></D:locktype>\n<D:lockscope><D:exclusive/></D:lockscope>\n<D:depth>infinity</D:depth>\n<D:timeout>Second-60</D:timeout>\n<D:locktoken>\n<D:href>opaquelocktoken:de58cfe6-7451-4e25-a18b-7daf0d318a6f</D:href>\n</D:locktoken>\n</D:activelock>\n\n</D:lockdiscovery>\n</D:prop>"
+    },
+    {
+      "method": "UNLOCK",
+      "path": "/lock-syntax",
+      "requestHeaders": {
+        "Lock-Token": "<opaquelocktoken:de58cfe6-7451-4e25-a18b-7daf0d318a6f>"
+      },
+      "requestBody": "",
+      "status": 204,
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:15:07 GMT",
+        "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6",
+        "connection": "close"
+      },
+      "body": ""
+    }
+  ],
+  "inputSha256": "a8401988333d096800ff0015f004eec6962884d82cb26fc8992a8431a1b7a309"
+}

@@ -1,0 +1,146 @@
+--- approved-v2/controls/child.mjs
++++ zero-overlay/controls/child.mjs
+@@ -9,6 +9,9 @@
+ const cases = JSON.parse(readFileSync(join(root, "consumer/harness/CASES.json"), "utf8"));
+ const row = cases.rows.find(entry => entry.id === process.env.LIFECYCLE_ROW);
+ assert.ok(row);
++const curlInputs = row.curlInputs;
++assert.equal(curlInputs.limits.maxRedirects, 0);
++assert.equal(curlInputs.limits.maxRetries, 0);
+ const revision = JSON.parse(readFileSync(join(root, "consumer/harness/REVISION.json"), "utf8"));
+ const variant = revision.variants[row.id];
+ const variantId = variant?.variantId ?? row.id;
+@@ -65,6 +68,9 @@
+ let transportCalls = 0;
+ let transportCleanupCalls = 0;
+ let responseDisposeCalls = 0;
++let responseBodyStarts = 0;
++let responseBodyChunks = 0;
++let uploadSourceStarts = 0;
+ const authorizationJournal = [];
+ const transportJournal = [];
+ const uploadBytes = [];
+@@ -155,6 +161,7 @@
+   const { declareHostOperation } = await engineLoad("interp/host-bridge.ts");
+   const fs = new MemoryFileSystem();
+   await fs.mkdir("/work");
++  for (const [filename, text] of Object.entries(row.initialFiles)) await fs.writeFile(filename, Buffer.from(text));
+   outer = new Shell({ fs, cwd: "/work", env: {} });
+   const limits = { ...cases.defaultSafeJsLimits, ...(row.maxSteps === undefined ? {} : { maxSteps: row.maxSteps }) };
+   const runtime = { createBudget(options) {
+@@ -300,12 +307,12 @@
+         const closeTransport = () => cleanupPromise ??= Promise.resolve().then(() => {
+           transportCleanupCalls += 1; uploadGate.resolve(); transportClosed = true; mark("transport-cleanup-done", { count: transportCleanupCalls });
+         });
+-        inner.use(curlCommands({ limits: cases.curlInputs.limits, authorize(request) {
++        inner.use(curlCommands({ limits: curlInputs.limits, authorize(request) {
+           authorizeCalls += 1;
+           const entry = { call: authorizeCalls, url: request.url, method: request.method, attempt: request.attempt,
+             hasRedirectFrom: Object.hasOwn(request, "redirectFrom"), redirectFrom: request.redirectFrom, signalAborted: request.signal.aborted };
+           authorizationJournal.push(entry); mark("authorization-entry", entry);
+-          const allowed = authorizeCalls === 1 && request.url === cases.curlInputs.authorizedUrl && request.method === cases.curlInputs.method
++          const allowed = authorizeCalls === 1 && request.url === curlInputs.authorizedUrl && request.method === curlInputs.method
+             && request.attempt === 0 && request.redirectFrom === undefined && !request.signal.aborted;
+           entry.allowed = allowed; mark("authorization-decision", { call: authorizeCalls, allowed });
+           if (allowed) mark("transport-authorized");
+@@ -314,12 +321,12 @@
+           transportCalls += 1;
+           const entry = { call: transportCalls, url: request.url, method: request.method, signalAborted: request.signal.aborted };
+           transportJournal.push(entry); mark("transport-entry", entry);
+-          const allowed = transportCalls === 1 && request.url === cases.curlInputs.authorizedUrl && request.method === cases.curlInputs.method && !request.signal.aborted;
++          const allowed = transportCalls === 1 && request.url === curlInputs.authorizedUrl && request.method === curlInputs.method && !request.signal.aborted;
+           entry.allowed = allowed; mark("transport-decision", { call: transportCalls, allowed });
+           if (!allowed) throw new Error("Fixture transport denied unexpected admission");
+           assert.equal(typeof request.registerCleanup, "function");
+           request.registerCleanup(closeTransport); transportCleanupRegistered = true; mark("transport-cleanup-registered");
+-          assert.equal(request.url, cases.curlInputs.authorizedUrl); assert.equal(request.method, cases.curlInputs.method);
++          assert.equal(request.url, curlInputs.authorizedUrl); assert.equal(request.method, curlInputs.method);
+           assert.ok(request.body); mark("transport-enter");
+           for await (const chunk of request.body) {
+             uploadBytes.push(Buffer.from(chunk)); mark("transport-upload-received", { hex: Buffer.from(chunk).toString("hex") });
+@@ -332,8 +339,8 @@
+           }
+           assert.equal(uploadEof, true);
+           let disposePromise;
+-          const response = { status: 200, statusText: "OK", httpVersion: "1.1", headers: cases.curlInputs.responseHeaders,
+-            body: (async function* () { for (const hex of cases.curlInputs.responseChunksHex) yield Buffer.from(hex, "hex"); })(),
++          const response = { status: curlInputs.responseStatus, statusText: curlInputs.responseStatusText, httpVersion: curlInputs.responseHttpVersion, headers: curlInputs.responseHeaders,
++            body: (async function* () { responseBodyStarts += 1; for (const hex of curlInputs.responseChunksHex) { responseBodyChunks += 1; yield Buffer.from(hex, "hex"); } })(),
+             dispose() { return disposePromise ??= Promise.resolve().then(async () => { responseDisposeCalls += 1; responseDisposed = true; mark("response-disposed", { count: responseDisposeCalls }); await closeTransport(); }); } };
+           mark("transport-response-created", { status: response.status, statusText: response.statusText, httpVersion: response.httpVersion, headers: response.headers, signalAborted: request.signal.aborted });
+           return response;
+@@ -341,18 +348,19 @@
+         inner.commands.register({ name: "owned-curl", async execute(current) {
+           mark("owned-curl-enter");
+           const input = (async function* () {
++            uploadSourceStarts += 1;
+             const buffer = Buffer.alloc(3);
+-            buffer.set(Buffer.from(cases.curlInputs.uploadChunksHex[0], "hex")); yield buffer;
++            buffer.set(Buffer.from(curlInputs.uploadChunksHex[0], "hex")); yield buffer;
+             await uploadGate.promise;
+-            buffer.set(Buffer.from(cases.curlInputs.uploadChunksHex[1], "hex")); yield buffer;
++            buffer.set(Buffer.from(curlInputs.uploadChunksHex[1], "hex")); yield buffer;
+             uploadEof = true; mark("upload-eof");
+           })();
+           const sink = { async write(bytes) { await current.stdout.write(bytes); }, ownedOutput: { consumerClosed: curlConsumer.signal, async write(bytes) {
+             curlWriteoutCalls += 1; mark("curl-accounted-write", { hex: Buffer.from(bytes).toString("hex") }); await current.stdout.write(bytes);
+           } } };
+-          const result = await current.invoke("curl", cases.curlInputs.args, { stdin: input, stdinIsDefault: false, stdout: sink, stderr: current.stderr });
++          const result = await current.invoke("curl", curlInputs.args, { stdin: input, stdinIsDefault: false, stdout: sink, stderr: current.stderr });
+           curlStatus = result.exitCode; mark("curl-invoke-settled", { status: curlStatus, transportClosed, responseDisposed });
+-          await current.stderr.write(Buffer.from(cases.curlInputs.independentStderr));
++          await current.stderr.write(Buffer.from(curlInputs.independentStderr));
+           return result;
+         } });
+       }
+@@ -477,12 +485,12 @@
+   });
+   if (row.workflow === "L06") check("streaming transport and independent required effects", () => {
+     assert.equal(authorizeCalls, 1); assert.equal(uploadBeforeEof, true); assert.equal(uploadEof, true);
+-    assert.equal(Buffer.concat(uploadBytes).toString("hex"), cases.curlInputs.uploadChunksHex.join(""));
++    assert.equal(Buffer.concat(uploadBytes).toString("hex"), curlInputs.uploadChunksHex.join(""));
+     assert.equal(report.atSettlement.transportCleanupRegistered, true); assert.equal(report.atSettlement.transportClosed, true); assert.equal(report.atSettlement.responseDisposed, true);
+     assert.equal(events.find(entry => entry.event === "curl-invoke-settled").transportClosed, true);
+     assert.equal(events.find(entry => entry.event === "curl-invoke-settled").responseDisposed, true);
+     assert.equal(transportAbortedByConsumer, false); assert.equal(curlStatus, row.expect.curlStatus); assert.equal(curlWriteoutCalls, row.expect.writeoutAccountedCalls);
+-    for (const [filename, text] of Object.entries(cases.curlInputs.requiredFiles)) assert.equal(report.files[filename].hex, Buffer.from(text).toString("hex"));
++    for (const [filename, text] of Object.entries(curlInputs.requiredFiles)) assert.equal(report.files[filename].hex, Buffer.from(text).toString("hex"));
+   });
+   if (variant?.variantId === "L05-S1-selected-after-command") check("new exact source-selected rejection after nested status and cleanup", () => {
+     assert.equal(report.publicSource, "owned-guest\n)"); assert.equal(report.publicSourceBytes, 13);
+@@ -505,9 +513,9 @@
+     assert.deepEqual(events.filter(entry => entry.event === "public-diagnostic-rejected").map(entry => Buffer.from(entry.attemptedHex, "hex").toString()), variant.expectedDiagnosticAttempts);
+   });
+   if (row.workflow === "L06") check("single admitted authorization and transport with exact lifetime order", () => {
+-    assert.deepEqual(authorizationJournal, [{ call: 1, url: cases.curlInputs.authorizedUrl, method: "PUT", attempt: 0,
++    assert.deepEqual(authorizationJournal, [{ call: 1, url: curlInputs.authorizedUrl, method: "PUT", attempt: 0,
+       hasRedirectFrom: false, redirectFrom: undefined, signalAborted: false, allowed: true }]);
+-    assert.deepEqual(transportJournal, [{ call: 1, url: cases.curlInputs.authorizedUrl, method: "PUT", signalAborted: false, allowed: true }]);
++    assert.deepEqual(transportJournal, [{ call: 1, url: curlInputs.authorizedUrl, method: "PUT", signalAborted: false, allowed: true }]);
+     assert.equal(transportCalls, 1); assert.equal(transportCleanupCalls, 1); assert.equal(responseDisposeCalls, 1);
+     assert.equal(report.network.authorizationCallsForRetry, 0); assert.equal(report.network.authorizationCallsWithRedirectFrom, 0); assert.equal(report.network.additionalTransportEntries, 0);
+     const authorization = events.find(entry => entry.event === "authorization-entry");
+@@ -523,13 +531,20 @@
+     assert.ok(authorization.order < transport.order && transport.order < registered.order && registered.order < uploads[0].order);
+     assert.ok(uploads[0].order < uploads[1].order && uploads[1].order < response.order);
+     assert.ok(response.order < disposed.order && response.order < closed.order && disposed.order < nested.order && closed.order < nested.order && nested.order < settled.order);
+-    assert.deepEqual(uploads.map(entry => entry.hex), cases.curlInputs.uploadChunksHex);
+-    assert.equal(response.status, 200); assert.equal(response.statusText, "OK"); assert.equal(response.httpVersion, "1.1");
+-    assert.deepEqual(response.headers, cases.curlInputs.responseHeaders); assert.equal(response.headers.some(([name]) => name.toLowerCase() === "location"), false);
++    assert.deepEqual(uploads.map(entry => entry.hex), curlInputs.uploadChunksHex);
++    assert.equal(response.status, curlInputs.responseStatus); assert.equal(response.statusText, curlInputs.responseStatusText); assert.equal(response.httpVersion, curlInputs.responseHttpVersion);
++    assert.deepEqual(response.headers, curlInputs.responseHeaders); assert.equal(response.headers.some(([name]) => name.toLowerCase() === "location"), curlInputs.responseStatus === 307);
+     assert.equal(response.signalAborted, false);
+     const consumerEvents = events.filter(entry => entry.event === "curl-consumer-closed");
+     assert.equal(consumerEvents.length, row.closeCurlConsumer ? 1 : 0);
+     if (row.closeCurlConsumer) { assert.ok(uploads[0].order < consumerEvents[0].order && consumerEvents[0].order < uploads[1].order); assert.equal(consumerEvents[0].reasonIdentity, true); }
++  });
++  check("zero-policy no replay, no retry timer and exact body suppression", () => {
++    report.zeroPolicy = { responseBodyStarts, responseBodyChunks, uploadSourceStarts, timerRequests: guardState().timerRequests };
++    assert.equal(responseBodyStarts, row.expect.responseBodyStarts);
++    assert.equal(responseBodyChunks, row.expect.responseBodyChunks);
++    assert.equal(uploadSourceStarts, row.expect.uploadSourceStarts);
++    assert.equal(report.zeroPolicy.timerRequests.filter(entry => entry.operation === "setTimeout" && entry.delay === 1000).length, row.expect.retryDelay1000msRequests);
+   });
+   report.classification = report.assertions.every(entry => entry.pass) ? "PASS" : "FAIL";
+   if (observedEngineError?.name === "ParseError" || report.engineRuns === 0) report.classification = "INVALID_FIXTURE";

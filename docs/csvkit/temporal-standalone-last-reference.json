@@ -1,0 +1,12 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "argv": [
+    "-f",
+    "csv",
+    "-y0"
+  ],
+  "stdin": "value\nlast\n",
+  "stdout": "value\nlast\n",
+  "stderr": "",
+  "status": 0
+}

@@ -1,0 +1,7078 @@
+[
+  {
+    "case": "positive overwrite: independent-memory, distinct backing files",
+    "original": {
+      "status": "success"
+    },
+    "qualifiedDiagnostic": {
+      "status": "success"
+    },
+    "originalOperations": [],
+    "diagnosticOperations": []
+  },
+  {
+    "case": "positive overwrite: shared-memory, distinct backing files",
+    "original": {
+      "status": "success"
+    },
+    "qualifiedDiagnostic": {
+      "status": "success"
+    },
+    "originalOperations": [],
+    "diagnosticOperations": []
+  },
+  {
+    "case": "positive overwrite: readonly, distinct backing files",
+    "original": {
+      "status": "success"
+    },
+    "qualifiedDiagnostic": {
+      "status": "success"
+    },
+    "originalOperations": [],
+    "diagnosticOperations": []
+  },
+  {
+    "case": "positive overwrite: overlay, distinct backing files",
+    "original": {
+      "status": "success"
+    },
+    "qualifiedDiagnostic": {
+      "status": "success"
+    },
+    "originalOperations": [],
+    "diagnosticOperations": []
+  },
+  {
+    "case": "positive overwrite: opaque, distinct backing files",
+    "original": {
+      "status": "success"
+    },
+    "qualifiedDiagnostic": {
+      "status": "success"
+    },
+    "originalOperations": [],
+    "diagnosticOperations": []
+  },
+  {
+    "case": "positive overwrite: real-shared-root, distinct backing files",
+    "original": {
+      "status": "success"
+    },
+    "qualifiedDiagnostic": {
+      "status": "success"
+    },
+    "originalOperations": [],
+    "diagnosticOperations": []
+  },
+  {
+    "case": "paired alias control: opaque does not manufacture disjoint scopes",
+    "original": {
+      "status": "guard-passed",
+      "expectedCode": "EINVAL"
+    },
+    "qualifiedDiagnostic": {
+      "status": "guard-passed",
+      "expectedCode": "EINVAL"
+    },
+    "originalOperations": [],
+    "diagnosticOperations": []
+  },
+  {
+    "case": "paired alias control: real-shared-root does not manufacture disjoint scopes",
+    "original": {
+      "status": "guard-passed",
+      "expectedCode": "EINVAL"
+    },
+    "qualifiedDiagnostic": {
+      "status": "guard-passed",
+      "expectedCode": "EINVAL"
+    },
+    "originalOperations": [],
+    "diagnosticOperations": []
+  },
+  {
+    "case": "positive same-mount memory rename replaces a distinct file",
+    "original": {
+      "status": "success"
+    },
+    "qualifiedDiagnostic": {
+      "status": "success"
+    },
+    "originalOperations": [],
+    "diagnosticOperations": []
+  },
+  {
+    "case": "REQUIRED shared memory backend mounted twice: distinct-file mv overwrite",
+    "original": {
+      "status": "success"
+    },
+    "qualifiedDiagnostic": {
+      "status": "success"
+    },
+    "originalOperations": [],
+    "diagnosticOperations": []
+  },
+  {
+    "case": "REQUIRED cross-mount memory mv, target missing",
+    "original": {
+      "status": "success"
+    },
+    "qualifiedDiagnostic": {
+      "status": "success"
+    },
+    "originalOperations": [],
+    "diagnosticOperations": []
+  },
+  {
+    "case": "REQUIRED cross-mount memory mv, target existing",
+    "original": {
+      "status": "success"
+    },
+    "qualifiedDiagnostic": {
+      "status": "success"
+    },
+    "originalOperations": [],
+    "diagnosticOperations": []
+  },
+  {
+    "case": "REQUIRED s3 direct copy, target missing",
+    "original": {
+      "status": "success"
+    },
+    "qualifiedDiagnostic": {
+      "status": "success"
+    },
+    "originalOperations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "copyObject",
+        "key": "same-prefix/target"
+      }
+    ],
+    "diagnosticOperations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "copyObject",
+        "key": "same-prefix/target"
+      }
+    ]
+  },
+  {
+    "case": "REQUIRED s3 direct copy, target existing",
+    "original": {
+      "status": "success"
+    },
+    "qualifiedDiagnostic": {
+      "status": "success"
+    },
+    "originalOperations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "copyObject",
+        "key": "same-prefix/target"
+      }
+    ],
+    "diagnosticOperations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "copyObject",
+        "key": "same-prefix/target"
+      }
+    ]
+  },
+  {
+    "case": "REQUIRED s3 one-mount copy, target missing",
+    "original": {
+      "status": "success"
+    },
+    "qualifiedDiagnostic": {
+      "status": "success"
+    },
+    "originalOperations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "copyObject",
+        "key": "same-prefix/target"
+      }
+    ],
+    "diagnosticOperations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "copyObject",
+        "key": "same-prefix/target"
+      }
+    ]
+  },
+  {
+    "case": "REQUIRED s3 one-mount copy, target existing",
+    "original": {
+      "status": "filesystem-error",
+      "code": "ENOTSUP",
+      "syscall": "copyFile",
+      "path": "/source",
+      "dest": "/target",
+      "cause": "ENOTSUP: operation not supported"
+    },
+    "qualifiedDiagnostic": {
+      "status": "success"
+    },
+    "originalOperations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      }
+    ],
+    "diagnosticOperations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "copyObject",
+        "key": "same-prefix/target"
+      }
+    ],
+    "phase": "mount existing-target unknown-identity guard",
+    "classification": "required ordinary overwrite unresolved for original unqualified transport; not old core EXDEV defect",
+    "expected": "success with exact target payload; move also removes source",
+    "originalBefore": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "originalAfter": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "diagnosticAfter": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "case": "REQUIRED s3 separate-clients copy, target missing",
+    "original": {
+      "status": "success"
+    },
+    "qualifiedDiagnostic": {
+      "status": "success"
+    },
+    "originalOperations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "putObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "getObject",
+        "key": "same-prefix/source"
+      }
+    ],
+    "diagnosticOperations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "putObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "getObject",
+        "key": "same-prefix/source"
+      }
+    ]
+  },
+  {
+    "case": "REQUIRED s3 separate-clients copy, target existing",
+    "original": {
+      "status": "filesystem-error",
+      "code": "ENOTSUP",
+      "syscall": "copyFile",
+      "path": "/left/source",
+      "dest": "/right/target",
+      "cause": "ENOTSUP: operation not supported"
+    },
+    "qualifiedDiagnostic": {
+      "status": "success"
+    },
+    "originalOperations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      }
+    ],
+    "diagnosticOperations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "putObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "getObject",
+        "key": "same-prefix/source"
+      }
+    ],
+    "phase": "mount existing-target unknown-identity guard",
+    "classification": "required ordinary overwrite unresolved for original unqualified transport; not old core EXDEV defect",
+    "expected": "success with exact target payload; move also removes source",
+    "originalBefore": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "originalAfter": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "diagnosticAfter": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "case": "positive s3 direct existing-target rename (non-atomic opt-in)",
+    "original": {
+      "status": "success"
+    },
+    "qualifiedDiagnostic": {
+      "status": "success"
+    },
+    "originalOperations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "copyObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "deleteObject",
+        "key": "same-prefix/source"
+      }
+    ],
+    "diagnosticOperations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "copyObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "deleteObject",
+        "key": "same-prefix/source"
+      }
+    ]
+  },
+  {
+    "case": "positive s3 one-mount existing-target rename (non-atomic opt-in)",
+    "original": {
+      "status": "success"
+    },
+    "qualifiedDiagnostic": {
+      "status": "success"
+    },
+    "originalOperations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "copyObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "deleteObject",
+        "key": "same-prefix/source"
+      }
+    ],
+    "diagnosticOperations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "copyObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "deleteObject",
+        "key": "same-prefix/source"
+      }
+    ]
+  },
+  {
+    "case": "REQUIRED s3 separate-clients cross-mount mv, target missing",
+    "original": {
+      "status": "success"
+    },
+    "qualifiedDiagnostic": {
+      "status": "success"
+    },
+    "originalOperations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "putObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "getObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "copyObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "deleteObject",
+        "key": "same-prefix/source"
+      }
+    ],
+    "diagnosticOperations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "putObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "getObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "copyObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "deleteObject",
+        "key": "same-prefix/source"
+      }
+    ]
+  },
+  {
+    "case": "REQUIRED s3 separate-clients cross-mount mv, target existing",
+    "original": {
+      "status": "command-error",
+      "exitCode": 1,
+      "stderr": "mv: ENOTSUP: existing move destination lacks authoritative distinctness '/left/source' -> '/right/target'\\n"
+    },
+    "qualifiedDiagnostic": {
+      "status": "success"
+    },
+    "originalOperations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      }
+    ],
+    "diagnosticOperations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "putObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "getObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "copyObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "deleteObject",
+        "key": "same-prefix/source"
+      }
+    ],
+    "phase": "core existing-target authoritative-distinctness guard",
+    "classification": "required ordinary overwrite unresolved for original unqualified transport; not old core EXDEV defect",
+    "expected": "success with exact target payload; move also removes source",
+    "originalBefore": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "originalAfter": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "diagnosticAfter": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "case": "paired s3 opaque separate-client alias stays unchanged (traversal may reject first)",
+    "original": {
+      "status": "guard-passed",
+      "expectedCode": "ENOTSUP"
+    },
+    "qualifiedDiagnostic": {
+      "status": "guard-passed",
+      "expectedCode": "ENOTSUP"
+    },
+    "originalOperations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      }
+    ],
+    "diagnosticOperations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      }
+    ]
+  },
+  {
+    "case": "REQUIRED memory to-remote s3 copy, target missing",
+    "original": {
+      "status": "success"
+    },
+    "qualifiedDiagnostic": {
+      "status": "success"
+    },
+    "originalOperations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "putObject",
+        "key": "same-prefix/target"
+      }
+    ],
+    "diagnosticOperations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "putObject",
+        "key": "same-prefix/target"
+      }
+    ]
+  },
+  {
+    "case": "REQUIRED memory to-remote s3 copy, target existing",
+    "original": {
+      "status": "filesystem-error",
+      "code": "ENOTSUP",
+      "syscall": "copyFile",
+      "path": "/left/source",
+      "dest": "/right/target",
+      "cause": "ENOTSUP: operation not supported"
+    },
+    "qualifiedDiagnostic": {
+      "status": "success"
+    },
+    "originalOperations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      }
+    ],
+    "diagnosticOperations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "putObject",
+        "key": "same-prefix/target"
+      }
+    ],
+    "phase": "mount existing-target unknown-identity guard",
+    "classification": "required ordinary overwrite unresolved for original unqualified transport; not old core EXDEV defect",
+    "expected": "success with exact target payload; move also removes source",
+    "originalBefore": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "originalAfter": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "diagnosticAfter": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "case": "REQUIRED memory from-remote s3 copy, target missing",
+    "original": {
+      "status": "success"
+    },
+    "qualifiedDiagnostic": {
+      "status": "success"
+    },
+    "originalOperations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "getObject",
+        "key": "same-prefix/source"
+      }
+    ],
+    "diagnosticOperations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "getObject",
+        "key": "same-prefix/source"
+      }
+    ]
+  },
+  {
+    "case": "REQUIRED memory from-remote s3 copy, target existing",
+    "original": {
+      "status": "filesystem-error",
+      "code": "ENOTSUP",
+      "syscall": "copyFile",
+      "path": "/left/source",
+      "dest": "/right/target",
+      "cause": "ENOTSUP: operation not supported"
+    },
+    "qualifiedDiagnostic": {
+      "status": "success"
+    },
+    "originalOperations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      }
+    ],
+    "diagnosticOperations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "getObject",
+        "key": "same-prefix/source"
+      }
+    ],
+    "phase": "mount existing-target unknown-identity guard",
+    "classification": "required ordinary overwrite unresolved for original unqualified transport; not old core EXDEV defect",
+    "expected": "success with exact target payload; move also removes source",
+    "originalBefore": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "originalAfter": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "diagnosticAfter": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "case": "REQUIRED webdav direct copy, target missing",
+    "original": {
+      "status": "success"
+    },
+    "qualifiedDiagnostic": {
+      "status": "success"
+    },
+    "originalOperations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "COPY",
+        "key": "/dav/source"
+      }
+    ],
+    "diagnosticOperations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "COPY",
+        "key": "/dav/source"
+      }
+    ]
+  },
+  {
+    "case": "REQUIRED webdav direct copy, target existing",
+    "original": {
+      "status": "success"
+    },
+    "qualifiedDiagnostic": {
+      "status": "success"
+    },
+    "originalOperations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "LOCK",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "COPY",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "UNLOCK",
+        "key": "/dav/target"
+      }
+    ],
+    "diagnosticOperations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "LOCK",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "COPY",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "UNLOCK",
+        "key": "/dav/target"
+      }
+    ]
+  },
+  {
+    "case": "REQUIRED webdav one-mount copy, target missing",
+    "original": {
+      "status": "success"
+    },
+    "qualifiedDiagnostic": {
+      "status": "success"
+    },
+    "originalOperations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "COPY",
+        "key": "/dav/source"
+      }
+    ],
+    "diagnosticOperations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "COPY",
+        "key": "/dav/source"
+      }
+    ]
+  },
+  {
+    "case": "REQUIRED webdav one-mount copy, target existing",
+    "original": {
+      "status": "success"
+    },
+    "qualifiedDiagnostic": {
+      "status": "success"
+    },
+    "originalOperations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "LOCK",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "COPY",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "UNLOCK",
+        "key": "/dav/target"
+      }
+    ],
+    "diagnosticOperations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "LOCK",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "COPY",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "UNLOCK",
+        "key": "/dav/target"
+      }
+    ]
+  },
+  {
+    "case": "REQUIRED webdav separate-clients copy, target missing",
+    "original": {
+      "status": "success"
+    },
+    "qualifiedDiagnostic": {
+      "status": "success"
+    },
+    "originalOperations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PUT",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "GET",
+        "key": "/dav/source"
+      }
+    ],
+    "diagnosticOperations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PUT",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "GET",
+        "key": "/dav/source"
+      }
+    ]
+  },
+  {
+    "case": "REQUIRED webdav separate-clients copy, target existing",
+    "original": {
+      "status": "success"
+    },
+    "qualifiedDiagnostic": {
+      "status": "success"
+    },
+    "originalOperations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PUT",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "GET",
+        "key": "/dav/source"
+      }
+    ],
+    "diagnosticOperations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PUT",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "GET",
+        "key": "/dav/source"
+      }
+    ]
+  },
+  {
+    "case": "positive webdav direct existing-target rename (default lock policy)",
+    "original": {
+      "status": "success"
+    },
+    "qualifiedDiagnostic": {
+      "status": "success"
+    },
+    "originalOperations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "LOCK",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "MOVE",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "UNLOCK",
+        "key": "/dav/target"
+      }
+    ],
+    "diagnosticOperations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "LOCK",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "MOVE",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "UNLOCK",
+        "key": "/dav/target"
+      }
+    ]
+  },
+  {
+    "case": "positive webdav one-mount existing-target rename (default lock policy)",
+    "original": {
+      "status": "success"
+    },
+    "qualifiedDiagnostic": {
+      "status": "success"
+    },
+    "originalOperations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "LOCK",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "MOVE",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "UNLOCK",
+        "key": "/dav/target"
+      }
+    ],
+    "diagnosticOperations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "LOCK",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "MOVE",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "UNLOCK",
+        "key": "/dav/target"
+      }
+    ]
+  },
+  {
+    "case": "REQUIRED webdav separate-clients cross-mount mv, target missing",
+    "original": {
+      "status": "success"
+    },
+    "qualifiedDiagnostic": {
+      "status": "success"
+    },
+    "originalOperations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PUT",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "GET",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPPATCH",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "DELETE",
+        "key": "/dav/source"
+      }
+    ],
+    "diagnosticOperations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PUT",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "GET",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPPATCH",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "DELETE",
+        "key": "/dav/source"
+      }
+    ]
+  },
+  {
+    "case": "REQUIRED webdav separate-clients cross-mount mv, target existing",
+    "original": {
+      "status": "success"
+    },
+    "qualifiedDiagnostic": {
+      "status": "success"
+    },
+    "originalOperations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PUT",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "GET",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPPATCH",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "DELETE",
+        "key": "/dav/source"
+      }
+    ],
+    "diagnosticOperations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PUT",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "GET",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPPATCH",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "DELETE",
+        "key": "/dav/source"
+      }
+    ]
+  },
+  {
+    "case": "paired webdav opaque separate-client alias stays unchanged (traversal may reject first)",
+    "original": {
+      "status": "guard-passed",
+      "expectedCode": "ENOTSUP"
+    },
+    "qualifiedDiagnostic": {
+      "status": "guard-passed",
+      "expectedCode": "ENOTSUP"
+    },
+    "originalOperations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      }
+    ],
+    "diagnosticOperations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      }
+    ]
+  },
+  {
+    "case": "REQUIRED memory to-remote webdav copy, target missing",
+    "original": {
+      "status": "success"
+    },
+    "qualifiedDiagnostic": {
+      "status": "success"
+    },
+    "originalOperations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PUT",
+        "key": "/dav/target"
+      }
+    ],
+    "diagnosticOperations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PUT",
+        "key": "/dav/target"
+      }
+    ]
+  },
+  {
+    "case": "REQUIRED memory to-remote webdav copy, target existing",
+    "original": {
+      "status": "filesystem-error",
+      "code": "ENOTSUP",
+      "syscall": "copyFile",
+      "path": "/left/source",
+      "dest": "/right/target",
+      "cause": "ENOTSUP: operation not supported"
+    },
+    "qualifiedDiagnostic": {
+      "status": "success"
+    },
+    "originalOperations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      }
+    ],
+    "diagnosticOperations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PUT",
+        "key": "/dav/target"
+      }
+    ],
+    "phase": "mount existing-target unknown-identity guard",
+    "classification": "required ordinary overwrite unresolved for original unqualified transport; not old core EXDEV defect",
+    "expected": "success with exact target payload; move also removes source",
+    "originalBefore": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "originalAfter": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "diagnosticAfter": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "case": "REQUIRED memory from-remote webdav copy, target missing",
+    "original": {
+      "status": "success"
+    },
+    "qualifiedDiagnostic": {
+      "status": "success"
+    },
+    "originalOperations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "GET",
+        "key": "/dav/source"
+      }
+    ],
+    "diagnosticOperations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "GET",
+        "key": "/dav/source"
+      }
+    ]
+  },
+  {
+    "case": "REQUIRED memory from-remote webdav copy, target existing",
+    "original": {
+      "status": "filesystem-error",
+      "code": "ENOTSUP",
+      "syscall": "copyFile",
+      "path": "/left/source",
+      "dest": "/right/target",
+      "cause": "ENOTSUP: operation not supported"
+    },
+    "qualifiedDiagnostic": {
+      "status": "success"
+    },
+    "originalOperations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      }
+    ],
+    "diagnosticOperations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "GET",
+        "key": "/dav/source"
+      }
+    ],
+    "phase": "mount existing-target unknown-identity guard",
+    "classification": "required ordinary overwrite unresolved for original unqualified transport; not old core EXDEV defect",
+    "expected": "success with exact target payload; move also removes source",
+    "originalBefore": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "originalAfter": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "diagnosticAfter": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "case": "declared S3 default rename limit remains typed ENOTSUP and effect-free",
+    "original": {
+      "status": "guard-passed",
+      "expectedCode": "ENOTSUP"
+    },
+    "qualifiedDiagnostic": {
+      "status": "guard-passed",
+      "expectedCode": "ENOTSUP"
+    },
+    "originalOperations": [],
+    "diagnosticOperations": []
+  }
+]

@@ -1,0 +1,20 @@
+{
+  "frozenAt": "2026-08-27T07:53:38.424Z",
+  "sourceContractCommit": "07acb1a4d30b7592cf247a0220250317be4e2038",
+  "contractSha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+  "files": {
+    "README.md": "d17a42ab64a828e9877d1487c9563d73f7a73ffd41d5bdeaf1acc4ce73aa7235",
+    "cases.mjs": "8b146a6bea9f1f27d7d8d7f4463d839b8ff9f7a8cb0eff2ec8d3d5a13a5ed843",
+    "child.mjs": "83d4ed3c571b415ce451112232ccd16ec35df31f342805456df8af6aef9babf6",
+    "contract-source.json": "0cf142736a28c4ccafd7cf9b3483dceb5d484e6303bbeebf1b4af3a623fb2c4a",
+    "inventory.json": "c9bc780d791b6c9adb07e60fbfcb2101c98b8c05cc417967f25173b99941a963",
+    "preparation-validation.json": "6038bbaedc647289351f89865f6ee1dbdf033e61a3dae14f5be17f168c205887",
+    "run.mjs": "ad078123a6a5e38a1a60ee4a439539240498760a535af6fe1997fcd6999a5eef",
+    "support.mjs": "7f73a76e74e88092bba37878beab6ce5b64170a396069f7ecae8f816ce9d5e84",
+    "trace.mjs": "5ae9834cfa6abd613a79472f7c609e58942fdaf9021f3abb88386bb3960def33"
+  },
+  "assertionInventory": "22 named unexecuted compound cases; 21 public Shell plus 1 direct optional-host control",
+  "noCandidateOrLiveSourceInspection": true,
+  "baselineExecutions": 0,
+  "scope": "Preparation only. Immutable until ROOT candidate handoff; any later correction requires a disclosed separate proof, never silently changing frozen assertions."
+}

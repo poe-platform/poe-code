@@ -1,0 +1,134 @@
+{
+  "format": "safejs-getopts-g2-correction-freeze-v1",
+  "candidate": "618d8967009117547ab476256bc6eb0a9463309a",
+  "accepted": "6133b2714602d1fd8a08dce26b17b74370754bbc",
+  "frozenAt": "2026-08-27T22:32:33.797Z",
+  "productExecutionsBeforeFreeze": 0,
+  "engineExecutionsBeforeFreeze": 0,
+  "chronology": "Existing component and guest API inspected first; dependencies copied but not executed",
+  "inputs": {
+    "PROTOCOL.md": "42cc8ddc92e12a7a943b6699b15df154e0fe8ebdc850eb358766d0e7e20f310b",
+    "G2.guest.txt": "9cee7f5958902a4a37f180c623f9e1e12469d6555eb72f426dbb0584b9dd27df",
+    "G2-CORRECTION.diff": "ad10060596153c672ff153c66f93ce1c9ed11a9837508e0ae76d8313ed65757e",
+    "witness-loader.mjs": "590e6b001a365e030f72b41e2ee05adb0562a522b7244352d219b5ecad29f1c3",
+    "child.mjs": "407b5412c53d159af21baafd925ee3ccf3988fa14231232b413695fe93545815",
+    "common.mjs": "fcacabaa1d6f02c205de4c1f602625c14d641d1e5b44f222b75d8e8c8204d7ec",
+    "prepare.mjs": "96af08e97626896622b4c006525c98cc202316a02545bd562a734b46d697b24c",
+    "run.mjs": "44ff7f08bc8de81ff15ad589009bf698d062f5aee5e0b8f9fd37e9440db41b28",
+    "finish.mjs": "30a232f7776a82acd13906c61034533e2ee501056032f8384a3e1d7ae36b0d05",
+    "verify.mjs": "00939748de6e17194494e5b92d7ef0a223304f3355ef1a20c9eb9e4d5cb625f4"
+  },
+  "boundary": {
+    "accepted": "6133b2714602d1fd8a08dce26b17b74370754bbc",
+    "files": 302,
+    "entries": 314,
+    "inventorySHA256": "eec98044b2535c39d582cacc47d490a11a7b7eb3c3edbecb3ebf55c4f7f59723",
+    "onlyAuthorizedExclusion": "stage2/safejs-getopts-g2-correction-618d8967",
+    "additionsChecked": true,
+    "layers": [
+      {
+        "name": "review-618d8967",
+        "commit": "2dcefd4f26588f6dc662148e3713e41b09537333",
+        "files": 52,
+        "manifestSHA256": "5b113fecacc9baef67d6ca88195758e480dc4500749b7b23be7f1184c83d3e49"
+      },
+      {
+        "name": "safejs-getopts-followup-618d8967",
+        "commit": "6133b2714602d1fd8a08dce26b17b74370754bbc",
+        "files": 45,
+        "manifestSHA256": "8e8e714e86e42f43367c71919997f32335e75a3c088660267e1ae46ae3e4d8db"
+      }
+    ],
+    "oldVerifiersModifiedOrInvoked": false
+  },
+  "protection": {
+    "protectedPaths": 243,
+    "sourcePaths": 2,
+    "currentLivePreservationPaths": 245,
+    "currentLiveHashInventorySHA256": "0b97b5b3cce63f8dbc708dbff9e8339ead8c9015bf8dd6ea519241986af2bdec",
+    "candidateProtectedHashesMatchBaseline": true,
+    "liveCandidateEqualityRequired": false,
+    "wholeLiveTreeClaim": false
+  },
+  "dependencies": {
+    "harness/common.mjs": {
+      "originalSHA256": "d7d8854d727391f0971d63c8672218bca8f089f4ec66e0da8dea1dbd957a464f",
+      "copiedSHA256": "d7d8854d727391f0971d63c8672218bca8f089f4ec66e0da8dea1dbd957a464f",
+      "commit": "618d8967009117547ab476256bc6eb0a9463309a"
+    },
+    "harness/safejs-binding.mjs": {
+      "originalSHA256": "bea4e85e8acacdcde834a884ed5b76c6b7c3facfbd01144673856986b68dbad4",
+      "copiedSHA256": "612686e5fe82eafb67bc2adef5269a581c1d602e2a8b9d1ef46078ba463800a5",
+      "commit": "618d8967009117547ab476256bc6eb0a9463309a"
+    },
+    "profiles/REFERENCES.json": {
+      "originalSHA256": "0d434ce8e2e5bcedddfa00b4303e1def6a2580b3cecb7c03ff42b4993ba5d201",
+      "copiedSHA256": "0d434ce8e2e5bcedddfa00b4303e1def6a2580b3cecb7c03ff42b4993ba5d201",
+      "commit": "618d8967009117547ab476256bc6eb0a9463309a"
+    },
+    "profiles/SAFEJS.json": {
+      "originalSHA256": "70a24c49808a134f2ad7f9ab9a4f57a96971fc7c6c7e90a879b60ef8a2bd1ef9",
+      "copiedSHA256": "70a24c49808a134f2ad7f9ab9a4f57a96971fc7c6c7e90a879b60ef8a2bd1ef9",
+      "commit": "618d8967009117547ab476256bc6eb0a9463309a"
+    },
+    "safejs-execution-v1/private-guard.mjs": {
+      "originalSHA256": "9fa263adb1839d4c6dc6d2b51d1d19d22abc029ee833a96310ced8d2e525e17a",
+      "copiedSHA256": "9fa263adb1839d4c6dc6d2b51d1d19d22abc029ee833a96310ced8d2e525e17a",
+      "commit": "618d8967009117547ab476256bc6eb0a9463309a"
+    },
+    "safejs-execution-v1/loader.mjs": {
+      "originalSHA256": "5e5d2a09a29eebba1e5fe4033a9b888cbd0a352736c43bdc80123b956841f6e7",
+      "copiedSHA256": "5e5d2a09a29eebba1e5fe4033a9b888cbd0a352736c43bdc80123b956841f6e7",
+      "commit": "618d8967009117547ab476256bc6eb0a9463309a"
+    },
+    "npm": {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js",
+      "sha256": "8e5f6f3429f8cdbe693cdc29904e9d5a7b127a494bd15c804bd54c7403bfcbe7",
+      "use": "Offline pre-execution install only; not engine dependency"
+    },
+    "capabilityGuard": {
+      "path": "tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/author/lifecycle/guard.mjs",
+      "sha256": "a9b0aac6323730370bd70cc0932d15883653536d187fb934e16e22341d7e54e8",
+      "unchanged": true
+    }
+  },
+  "candidateTree": "8cadf30519a179418fb2f7a859d6cf64ef1c8049",
+  "sourceArchiveSHA256": "00a1ef503829314de31eace327535c309e3eadbbbdc89d6e825a4ac1396877b6",
+  "sourceFiles": 988,
+  "packageSHA256": "08667ba7a67c5e9342c062007265279965138afe99c700f756df3e8ec97533f3",
+  "packageInventorySHA256": "ab5aa402fae184c1aed1093d76c1ff2cad38267409a6a7e87e9a78bf156e2d3b",
+  "compilerInventorySHA256": "21c5947bfe4aed4f6178e384731ce253adf1878a6ac31c3134e3c4676f62514e",
+  "nodeSHA256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0",
+  "privateSnapshotSHA256": "7fe0a52991ff9b30289a4d5e8f535cbbfe0c9f4b6b6f0217ef94739c618c951f",
+  "privateShapeSHA256": "23e8b430468d2538196f0e93a894be3cafbd91a676f1eb50717019f87f07ffd3",
+  "immutableSHA256": "09bfd499614e4a6ca6155d85e3a8c801f953848cbe2e16f4104dec73939fcdb2",
+  "immutableEntries": 2462,
+  "importBindingSHA256": "b70dae154be4b66f5cdd45c2d0dcd47d6678732f620a1345ece94fe856289d6e",
+  "probes": [
+    {
+      "id": "G2",
+      "guestAssertions": 7,
+      "builtinCalls": 5,
+      "bridgeCalls": 2
+    }
+  ],
+  "scope": "Exactly one corrected G2 execution; previous G1/G2 outcomes untouched; no G1 replay, third case or generic25",
+  "fixture": {
+    "originalCommit": "6133b2714602d1fd8a08dce26b17b74370754bbc",
+    "originalGuestSHA256": "234394738ffee2ae4581ccf33d7bb7d2af54c722de24ec10aa7942037a594cab",
+    "correctedGuestSHA256": "9cee7f5958902a4a37f180c623f9e1e12469d6555eb72f426dbb0584b9dd27df",
+    "originalScripts": [
+      "f762134d22092da242701aa511daf7d9b0b9d4774734007e919d001fae9c2ef4",
+      "b8db876b3ff28c0a8c6db3472692dd5ac6f87a4e092242866a2fceb5d5609ce9"
+    ],
+    "correctedScripts": [
+      "d109c08a99b32d59fa5bb2f8fb7c3102ae1f0c9434594d75ea9a267d265dfcbf",
+      "c837ddad5810994e47b6ccc29dd36224de6ea80cb006e1317712a2bdd18b4237"
+    ],
+    "guestAssertionsUnchanged": 7,
+    "childAndWitnessByteIdentical": true,
+    "syntaxChanges": 2,
+    "originalRuntimeSHA256": "d37b761457b45ef523546cdad614981c7b5e3ac7665cc486721878195fb3a04a",
+    "transformedRuntimeSHA256": "de5ef818085c83e5fbbd209e9ed08740211663116209b05b01e4d295c1e60631"
+  }
+}

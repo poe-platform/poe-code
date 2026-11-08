@@ -1,0 +1,2 @@
+tests/commands/regex-execution/continuation/glob.test.ts(86,7): error TS2322: Type 'Promise<ExprMatchResult>' is not assignable to type 'Promise<Match[][]>'.
+  Type 'ExprMatchResult' is missing the following properties from type 'Match[][]': length, pop, push, concat, and 35 more.

@@ -1,0 +1,25 @@
+{
+  "negativeControl": {
+    "executable": true,
+    "admitted": false,
+    "syntheticOnly": true,
+    "createdProhibitedFile": false,
+    "message": "negative control: prohibited basename rejected before archive or write: synthetic/AGENTS.md",
+    "countersBefore": {
+      "filesystemWrites": 0,
+      "archiveCreations": 0,
+      "extractionAttempts": 0
+    },
+    "countersAfter": {
+      "filesystemWrites": 0,
+      "archiveCreations": 0,
+      "extractionAttempts": 0
+    }
+  },
+  "actualInventoriesAdmittedBeforeArchive": true,
+  "selectedPathCount": 245,
+  "prohibitedSelectedPaths": [],
+  "filesystemWritesBeforeAdmissionCompleted": 0,
+  "archiveCreationsBeforeAdmissionCompleted": 0,
+  "extractionAttemptsBeforeAdmissionCompleted": 0
+}

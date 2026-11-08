@@ -1,0 +1,118 @@
+TAP version 13
+# Subtest: upper same-path: overlay copy rejects before staging or reading source
+ok 1 - upper same-path: overlay copy rejects before staging or reading source
+  ---
+  duration_ms: 1.499166
+  type: 'test'
+  ...
+# Subtest: upper hardlink: overlay copy rejects before staging or reading source
+not ok 2 - upper hardlink: overlay copy rejects before staging or reading source
+  ---
+  duration_ms: 1.483416
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/copy-identity.test.ts:1:564'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'ENOSPC'
+    -   code: 'EINVAL'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'EINVAL'
+  actual:
+  error: 'ENOSPC: no space left on device'
+  stack: |-
+    forbidden (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/copy-identity.test.ts:27:15)
+    Proxy.readFile (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/copy-identity.test.ts:36:37)
+    OverlayFileSystem.bytes (/Users/kjopek/Workspace/safe-bash/src/fs/overlay/index.ts:345:40)
+    <anonymous> (/Users/kjopek/Workspace/safe-bash/src/fs/overlay/index.ts:670:32)
+    async OverlayFileSystem.run (/Users/kjopek/Workspace/safe-bash/src/fs/overlay/index.ts:151:14)
+    async waitForActual (node:assert:644:5)
+    async Function.rejects (node:assert:767:25)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/copy-identity.test.ts:44:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/copy-identity.test.ts:44:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: upper symlink: overlay copy rejects before staging or reading source
+ok 3 - upper symlink: overlay copy rejects before staging or reading source
+  ---
+  duration_ms: 0.392833
+  type: 'test'
+  ...
+# Subtest: lower same-path: overlay copy rejects before staging or reading source
+ok 4 - lower same-path: overlay copy rejects before staging or reading source
+  ---
+  duration_ms: 0.31
+  type: 'test'
+  ...
+# Subtest: lower hardlink: overlay copy rejects before staging or reading source
+not ok 5 - lower hardlink: overlay copy rejects before staging or reading source
+  ---
+  duration_ms: 0.4025
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/copy-identity.test.ts:1:564'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'ENOSPC'
+    -   code: 'EINVAL'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'EINVAL'
+  actual:
+  error: 'ENOSPC: no space left on device'
+  stack: |-
+    forbidden (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/copy-identity.test.ts:27:15)
+    Proxy.readFile (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/copy-identity.test.ts:40:37)
+    OverlayFileSystem.bytes (/Users/kjopek/Workspace/safe-bash/src/fs/overlay/index.ts:345:40)
+    <anonymous> (/Users/kjopek/Workspace/safe-bash/src/fs/overlay/index.ts:670:32)
+    async OverlayFileSystem.run (/Users/kjopek/Workspace/safe-bash/src/fs/overlay/index.ts:151:14)
+    async waitForActual (node:assert:644:5)
+    async Function.rejects (node:assert:767:25)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/copy-identity.test.ts:44:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/copy-identity.test.ts:44:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: lower symlink: overlay copy rejects before staging or reading source
+ok 6 - lower symlink: overlay copy rejects before staging or reading source
+  ---
+  duration_ms: 0.320125
+  type: 'test'
+  ...
+# Subtest: overlay distinct lower/upper files with colliding local inode numbers remain copyable
+ok 7 - overlay distinct lower/upper files with colliding local inode numbers remain copyable
+  ---
+  duration_ms: 0.607375
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 5
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 113.339292

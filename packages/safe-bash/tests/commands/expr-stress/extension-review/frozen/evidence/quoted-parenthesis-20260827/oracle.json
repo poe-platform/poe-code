@@ -1,0 +1,72 @@
+{
+  "schema": 1,
+  "capturedAt": "2026-08-27T17:11:42.955Z",
+  "initialManifestSha256": "e31f164aed21209e194b78b424cd70314cf8479d343958a06f686fcc0b755198",
+  "initialReceiptSha256": "43f2f8c37004c91022c387ac88afd7ce15334ddabd30a1996c1606f89ff9dd08",
+  "inputSha256": "5274c5c39857f0ff3e601aa35fee93ae7108309f3f2063598414adf7e063e8d5",
+  "argvUtf8Hex": [
+    "2b",
+    "28",
+    "3a",
+    "5b285d"
+  ],
+  "limits": {
+    "timeoutMs": 2000,
+    "combinedOutputBytes": 65536,
+    "argumentBytes": 8192,
+    "argumentCount": 128
+  },
+  "host": {
+    "type": "Darwin",
+    "release": "25.4.0",
+    "arch": "arm64",
+    "node": "v22.22.2",
+    "macOS": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n"
+  },
+  "profileAuthentication": "Same pinned executables/environment/host as initial capture; version/library observations retained there, not a second build claim.",
+  "profiles": [
+    {
+      "id": "gnu-9.7-darwin-C",
+      "actualExecutedPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+      "binarySha256": "e8a4e2b58a33d2ad6bfa9eb8a4ed5f62775ab9ceac4b9421680c98973fd9109c",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "LANGUAGE": "C",
+        "TZ": "UTC"
+      },
+      "result": {
+        "id": "class-parenthesis-quoted-correction",
+        "status": 0,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "MQo=",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "apple-darwin-C",
+      "actualExecutedPath": "/bin/expr",
+      "binarySha256": "584ea6af503bdb3cc647c128a16a1aa9d22d3eeab136671f746a209bfef7db9f",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "LANGUAGE": "C",
+        "TZ": "UTC"
+      },
+      "result": {
+        "id": "class-parenthesis-quoted-correction",
+        "status": 2,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "",
+        "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yCg=="
+      }
+    }
+  ],
+  "candidate": null,
+  "scratchRemoved": true,
+  "effects": []
+}

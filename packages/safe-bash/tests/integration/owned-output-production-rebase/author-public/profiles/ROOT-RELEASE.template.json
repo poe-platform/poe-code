@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "phase": "PREPARATION_ONLY",
+  "authorCommit": null,
+  "candidateCommit": null,
+  "candidateTree": null,
+  "rootAuthorization": null,
+  "allowPublicBuildAndConsumer": false,
+  "allowPrivateCohorts": false,
+  "maintainedTypecheck": false,
+  "qualification": "AUTHOR_ONLY_NOT_INDEPENDENT_ACCEPTANCE"
+}

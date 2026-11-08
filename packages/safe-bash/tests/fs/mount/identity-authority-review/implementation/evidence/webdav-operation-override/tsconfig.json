@@ -1,0 +1,10 @@
+{
+  "extends": "/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-kB7boX/tsconfig.json",
+  "include": [
+    "/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-kB7boX/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts",
+    "/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-kB7boX/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts"
+  ],
+  "compilerOptions": {
+    "noEmit": true
+  }
+}

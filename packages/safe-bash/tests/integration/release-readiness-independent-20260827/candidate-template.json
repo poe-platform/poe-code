@@ -1,0 +1,16 @@
+{
+  "mode": "candidate-verification",
+  "rootDeclaration": null,
+  "fixtureFreezeCommit": null,
+  "patchCommit": null,
+  "sourceCommit": null,
+  "sourceTree": null,
+  "gateEntry": {"path": null, "sha256": null, "revision": null},
+  "package": {"name": "virtual-bash", "sourceRevision": null, "manifestSha256": null, "tarballSha256": null},
+  "nativeAssets": null,
+  "classifications": {"revision": null, "path": null, "sha256": null, "individual": null},
+  "cleanupManifest": {"revision": null, "path": null, "sha256": null, "tree": null, "files": null},
+  "runtime": {"profileRevision": null, "executableSha256": null, "guardSha256": null},
+  "cases": null,
+  "skippedCases": []
+}

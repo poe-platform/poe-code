@@ -1,0 +1,15 @@
+{
+  "sourceCommit": "2a3eb6b58422bcd83bafb4bdc8962c2f1a2d2764",
+  "unchanged": [
+    "bootstrap.mjs",
+    "runtime.mjs",
+    "consumer-entry.mjs"
+  ],
+  "changed": [
+    "policy.mjs: ROOT latest/expiry only",
+    "finish.mjs: matching controls/window and output namespace",
+    "launch.sh: new namespace only"
+  ],
+  "oldSTOPsUnchanged": true,
+  "syntaxChecks": "PENDING_BEFORE_READY"
+}

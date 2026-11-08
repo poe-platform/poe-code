@@ -1,0 +1,33 @@
+{
+  "originalSha256": "9d11741fd9b37757046c1278fdaa00c734633bfd9a1fc58ae479415c2f5a6734",
+  "diagnosticSha256": "0921c03b90733b163327888cf54b491207dd7d266bb911ec00fcf77dc88280fd",
+  "assertionsByteIdentical": true,
+  "assertionCallCount": 30,
+  "replacements": [
+    [
+      "import { MockS3Client, S3FileSystem }",
+      "import { createS3Transport, MockS3Client, S3FileSystem, type S3Client }"
+    ],
+    [
+      "const make = (transport: typeof service)",
+      "const make = (transport: S3Client)"
+    ],
+    [
+      "const firstClient = opaque(service);",
+      "const firstClient = createS3Transport(service, service.capabilities);"
+    ],
+    [
+      "const secondClient = opaque(service);",
+      "const secondClient = createS3Transport(service, service.capabilities);"
+    ],
+    [
+      "const firstClient = { fetch: (url: string, init: RequestInit) => service.fetch(url, init) };",
+      "const firstClient = { fetch: service.createFetch() };"
+    ],
+    [
+      "const secondClient = { fetch: (url: string, init: RequestInit) => service.fetch(url, init) };",
+      "const secondClient = { fetch: service.createFetch() };"
+    ]
+  ],
+  "interpretation": "Diagnostic only; no original acceptance replacement. User-approved helper typing changes typeof service to the exported S3Client interface; no cast or assertion changes."
+}

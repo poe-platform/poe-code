@@ -1,0 +1,37 @@
+{
+  "schema": "b35-runtime-grant-v3",
+  "decision": "GO",
+  "preseal": "b4b562d5ce6673aea3f9d91c50b6697ebaf01f9b92ca8107265a84ff652edfa3",
+  "work": "/private/tmp/safe-bash-b35-v4-PLN3cC/future",
+  "calls": 54,
+  "issuedAtEpochMs": 1788012006737,
+  "latestStartEpochMs": 1788013206737,
+  "expiresEpochMs": 1788014706737,
+  "limits": {
+    "durationMs": 1500000,
+    "finalizationTailMs": 60000,
+    "captureBytes": 100663296,
+    "workBytes": 536870912,
+    "streamBytes": 65536,
+    "ownerCaptureReservation": 196608,
+    "caseMs": 30000,
+    "buildMs": 120000
+  },
+  "roles": {
+    "owner": 1,
+    "build": 1,
+    "strictTypes": 3,
+    "primaryCases": 54,
+    "mutants": 3,
+    "bindingRefusals": 2,
+    "totalRuntimeKnownStarts": 65,
+    "extraSyntaxMetadataPublication": 7,
+    "maximumAllKnownStarts": 72,
+    "peakMaximum": 3,
+    "sourceDerivedInternalChildForks": 0,
+    "caseChildProcessPermission": 0,
+    "caseWorkerPermission": 0,
+    "asyncLoaders": 0,
+    "collector": 1
+  }
+}

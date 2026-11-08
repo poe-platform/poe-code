@@ -1,0 +1,166 @@
+{
+  "schema": "timeout-development-support-controls/1",
+  "startedAt": "2026-08-28T02:50:12.752Z",
+  "recipeCommit": "598dd5d76b4607312a891738c2dc82cdbe95bf89",
+  "manifestSha256": "7524701d3629f488298cb94c8fcf8132d948e1e9348459db7fb889ee77f793a5",
+  "controls": [
+    {
+      "id": "D01",
+      "name": "pending observation then fulfilled124 remains a value",
+      "classification": "development-only-synthetic-control",
+      "status": "PASS"
+    },
+    {
+      "id": "D02",
+      "name": "undefined rejection preserved and observed",
+      "classification": "development-only-synthetic-control",
+      "status": "PASS"
+    },
+    {
+      "id": "D03",
+      "name": "same identity preserved across promise observation",
+      "classification": "development-only-synthetic-control",
+      "status": "PASS"
+    },
+    {
+      "id": "D04",
+      "name": "synthetic PC01 exact collision matches receipt only",
+      "classification": "development-only-synthetic-control",
+      "status": "PASS"
+    },
+    {
+      "id": "D05",
+      "name": "PC01 rejects raw handler124 despite outer rejection",
+      "classification": "development-only-synthetic-control",
+      "status": "PASS"
+    },
+    {
+      "id": "D06",
+      "name": "PC01 rejects same-shaped different caller reason",
+      "classification": "development-only-synthetic-control",
+      "status": "PASS"
+    },
+    {
+      "id": "D07",
+      "name": "PC01 rejects shared caller and local signal",
+      "classification": "development-only-synthetic-control",
+      "status": "PASS"
+    },
+    {
+      "id": "D08",
+      "name": "PC01 rejects early handler settlement",
+      "classification": "development-only-synthetic-control",
+      "status": "PASS"
+    },
+    {
+      "id": "D09",
+      "name": "PC01 rejects fulfilled outer124",
+      "classification": "development-only-synthetic-control",
+      "status": "PASS"
+    },
+    {
+      "id": "D10",
+      "name": "PC01 rejects remaining resources",
+      "classification": "development-only-synthetic-control",
+      "status": "PASS"
+    },
+    {
+      "id": "D11",
+      "name": "synthetic direct PC02 matches but not Shell or activation proof",
+      "classification": "development-only-synthetic-control",
+      "status": "PASS"
+    },
+    {
+      "id": "D12",
+      "name": "PC02 no retirement entry is held, never passed",
+      "classification": "development-only-synthetic-control",
+      "status": "PASS"
+    },
+    {
+      "id": "D13",
+      "name": "PC02 substituted child provenance is held",
+      "classification": "development-only-synthetic-control",
+      "status": "PASS"
+    },
+    {
+      "id": "D14",
+      "name": "PC02 rejects retirement reason clone",
+      "classification": "development-only-synthetic-control",
+      "status": "PASS"
+    },
+    {
+      "id": "D15",
+      "name": "PC02 rejects retirement mapped to124",
+      "classification": "development-only-synthetic-control",
+      "status": "PASS"
+    },
+    {
+      "id": "D16",
+      "name": "PC02 rejects same-shaped handler rejection",
+      "classification": "development-only-synthetic-control",
+      "status": "PASS"
+    },
+    {
+      "id": "D17",
+      "name": "PC02 rejects unsettled cleanup",
+      "classification": "development-only-synthetic-control",
+      "status": "PASS"
+    },
+    {
+      "id": "D18",
+      "name": "PC02 rejects unobserved rejection paths",
+      "classification": "development-only-synthetic-control",
+      "status": "PASS"
+    },
+    {
+      "id": "D19",
+      "name": "metadata-only toy passes partial factory probes",
+      "classification": "development-only-synthetic-control",
+      "status": "PASS"
+    },
+    {
+      "id": "D20",
+      "name": "factory surface rejects mutable definition",
+      "classification": "development-only-synthetic-control",
+      "status": "PASS"
+    },
+    {
+      "id": "D21",
+      "name": "factory surface rejects reused definition",
+      "classification": "development-only-synthetic-control",
+      "status": "PASS"
+    },
+    {
+      "id": "D22",
+      "name": "factory surface rejects undeclared runtime export",
+      "classification": "development-only-synthetic-control",
+      "status": "PASS"
+    },
+    {
+      "id": "D23",
+      "name": "factory container probe rejects permissive toy",
+      "classification": "development-only-synthetic-control",
+      "status": "PASS"
+    },
+    {
+      "id": "D24",
+      "name": "factory container probe detects unknown-key enumeration",
+      "classification": "development-only-synthetic-control",
+      "status": "PASS"
+    }
+  ],
+  "expected": 24,
+  "productExecuted": 0,
+  "nativeExecuted": 0,
+  "sourceInspected": false,
+  "candidateIdentitySuppliedByRootOnly": "9ed9a0f14d12758713a8dc42be1ff75f0c87a36f",
+  "gitSynchronousNaturalReturns": 6,
+  "productAcceptance": false,
+  "status": "DEVELOPMENT_SUPPORT_VALIDATED_NOT_PRODUCT_REVIEW",
+  "finishedAt": "2026-08-28T02:50:12.816Z",
+  "unhandled": [],
+  "passed": 24,
+  "unexecuted": [],
+  "controlBodyChildren": 0,
+  "controlBodyTimerHandles": 0
+}

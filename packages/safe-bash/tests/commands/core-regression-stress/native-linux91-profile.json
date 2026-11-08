@@ -1,0 +1,179 @@
+{
+  "schemaVersion": 1,
+  "profile": "GNU coreutils 9.1 / Debian 12 / glibc 2.36 / x64",
+  "selection": "Only wc uses this native capture in the current canonical replay; all other tools retain native.json.",
+  "nativeCaptureSha256": "5b26ed159b45553f2bb564ab524dc71f96a1511f303c7f2b92af9b6153f2f63b",
+  "run": {
+    "url": "https://github.com/poe-platform/poe-code/actions/runs/35893815154",
+    "id": "35893815154",
+    "attempt": "1",
+    "event": "workflow_dispatch",
+    "conclusion": "success",
+    "headSha": "c07d3f50e917da168e7f07601bb338c0e796ce50"
+  },
+  "artifact": {
+    "id": 10766500246,
+    "node_id": "MDg6QXJ0aWZhY3QxMDc2NjUwMDI0Ng==",
+    "name": "safe-bash-coreutils91-c07d3f50e917da168e7f07601bb338c0e796ce50-35893815154-1",
+    "size_in_bytes": 17911,
+    "url": "https://api.github.com/repos/poe-platform/poe-code/actions/artifacts/10766500246",
+    "archive_download_url": "https://api.github.com/repos/poe-platform/poe-code/actions/artifacts/10766500246/zip",
+    "expired": false,
+    "digest": "sha256:fdcce0caa4e2a0d057aad571662a170aa43139f8b9fa455f5332fcb0b076ed11",
+    "created_at": "2026-09-23T17:11:32Z",
+    "updated_at": "2026-09-23T17:11:32Z",
+    "expires_at": "2026-09-30T17:11:31Z",
+    "workflow_run": {
+      "id": 35893815154,
+      "repository_id": 1078492326,
+      "head_repository_id": 1078492326,
+      "head_branch": "main",
+      "head_sha": "c07d3f50e917da168e7f07601bb338c0e796ce50"
+    }
+  },
+  "identity": {
+    "capturedAt": "2026-09-23T17:11:28.912Z",
+    "sourceRevision": "c07d3f50e917da168e7f07601bb338c0e796ce50",
+    "runId": "35893815154",
+    "runAttempt": "1",
+    "containerImage": "node:22-bookworm",
+    "platform": "linux",
+    "architecture": "x64",
+    "kernel": "6.17.0-1022-azure",
+    "osRelease": "PRETTY_NAME=\"Debian GNU/Linux 12 (bookworm)\"\nNAME=\"Debian GNU/Linux\"\nVERSION_ID=\"12\"\nVERSION=\"12 (bookworm)\"\nVERSION_CODENAME=bookworm\nID=debian\nHOME_URL=\"https://www.debian.org/\"\nSUPPORT_URL=\"https://www.debian.org/support\"\nBUG_REPORT_URL=\"https://bugs.debian.org/\"\n",
+    "libc": "glibc 2.36",
+    "locales": [
+      "C",
+      "C.utf8",
+      "POSIX",
+      "en_US.utf8"
+    ],
+    "node": "v22.23.2",
+    "npm": "10.9.8",
+    "packages": "coreutils\t9.1-1\nlibc6:amd64\t2.36-9+deb12u14\nlocales\t2.36-9+deb12u14",
+    "binaries": {
+      "wc": {
+        "path": "/usr/bin/wc",
+        "version": "wc (GNU coreutils) 9.1",
+        "sha256": "7480f7cb7110af0f45b6e04b50f8d1fb2c6392cf911cb3a28c516ef1b725823e",
+        "size": 52280
+      },
+      "realpath": {
+        "path": "/usr/bin/realpath",
+        "version": "realpath (GNU coreutils) 9.1",
+        "sha256": "54dfbffc86d9c0933f4ab4434915562c43d1d0a194efe128642fdef34cf11490",
+        "size": 52144
+      },
+      "cksum": {
+        "path": "/usr/bin/cksum",
+        "version": "cksum (GNU coreutils) 9.1",
+        "sha256": "d9b1aa09d173192d3324cf4be0e27b2119d035785d4c83e58f06538694f24470",
+        "size": 142384
+      },
+      "sort": {
+        "path": "/usr/bin/sort",
+        "version": "sort (GNU coreutils) 9.1",
+        "sha256": "26d29d4f3f2a9537f9104b0e496c6110ec266682bfd5f00b312a8fff723ffc00",
+        "size": 118456
+      }
+    },
+    "captureEnvironment": {
+      "CORE_GNU_BIN": "/usr/bin",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    },
+    "tsx": "4.22.4"
+  },
+  "sourceInputs": [
+    {
+      "path": "packages/safe-bash/tests/commands/core-regression-stress/capture-native.ts",
+      "sha256": "989838437c16ceebe1d09508cd7e827c72dbdf657ea44e658e927df5d14140b6"
+    },
+    {
+      "path": "packages/safe-bash/tests/commands/core-regression-stress/vectors.ts",
+      "sha256": "146836e761b1205e6a98bbe4ea0359ae204852b62287b0510d08a5b9a8c7d003"
+    },
+    {
+      "path": "packages/safe-bash/tests/commands/core-regression-stress/native.json",
+      "sha256": "a6dd7d352291bdce5a022d5528a9bc3b56d6b21c8f11e741345a8c0b14ca7bbc"
+    }
+  ],
+  "validation": {
+    "candidateRevision": "c07d3f50e917da168e7f07601bb338c0e796ce50",
+    "wcSourceSha256": "cda2cd544944d198af231f3737cba8bd64a36e03e2c7ebaf9ab4f3bf89485ede",
+    "nativeVectors": 77,
+    "wcVectors": 39,
+    "wcExecutions": 117,
+    "chunkWidths": [
+      1,
+      3,
+      65536
+    ],
+    "exactFields": [
+      "exitCode",
+      "stdout",
+      "stderr",
+      "files"
+    ],
+    "matches": 117,
+    "artifactDigestVerified": true,
+    "sourceInputsMatchDispatchedGitObjectsAndCurrentCheckout": true,
+    "sourceBeforeAfterChecksPassed": true
+  },
+  "historicalDifferences": [
+    {
+      "name": "wc/C/unicode-spaces/-w",
+      "vectorSha256": "06c298824d9f43a19f48a735132d86328a6182efacf29b9a6d770e1e63473fb4",
+      "historicalStdout": "Mwo=",
+      "linuxStdout": "MQo="
+    },
+    {
+      "name": "wc/C/unicode-spaces/-lwmc",
+      "vectorSha256": "df7c69f3fb7c848de0ccba18b97ff6b96fb150683536622538c731f5d28503aa",
+      "historicalStdout": "ICAgICAgMSAgICAgICAzICAgICAgMjQgICAgICAyNAo=",
+      "linuxStdout": "ICAgICAgMSAgICAgICAxICAgICAgMjQgICAgICAyNAo="
+    },
+    {
+      "name": "wc/C/invalid/-w",
+      "vectorSha256": "71faaba9775f967c7b7ba99bf5049474854b75ffeef0689c463a83ae32f16f60",
+      "historicalStdout": "Mwo=",
+      "linuxStdout": "MQo="
+    },
+    {
+      "name": "wc/C/invalid/-lwmc",
+      "vectorSha256": "dbe3d3317e46256d20995d4b5da59d2c6e018579b9897a52a1df00882e9f769d",
+      "historicalStdout": "ICAgICAgMSAgICAgICAzICAgICAgIDggICAgICAgOAo=",
+      "linuxStdout": "ICAgICAgMSAgICAgICAxICAgICAgIDggICAgICAgOAo="
+    },
+    {
+      "name": "wc/en_US.UTF-8/invalid/-w",
+      "vectorSha256": "5645fe271f6b6e58530472749bf244489351451e140e94821e89c90e7d1db29e",
+      "historicalStdout": "Mwo=",
+      "linuxStdout": "Mgo="
+    },
+    {
+      "name": "wc/en_US.UTF-8/invalid/-lwmc",
+      "vectorSha256": "6153039eafea18cd35694ea892a6d3de10e34e626754c871d3aaef3a7e8a4551",
+      "historicalStdout": "ICAgICAgMSAgICAgICAzICAgICAgIDQgICAgICAgOAo=",
+      "linuxStdout": "ICAgICAgMSAgICAgICAyICAgICAgIDQgICAgICAgOAo="
+    },
+    {
+      "name": "wc/posix-spaces",
+      "vectorSha256": "a67009a9620f0a34e4701543cff90566be0bbd523815af0a6990e0dd556c1aaa",
+      "historicalStdout": "Mgo=",
+      "linuxStdout": "MQo="
+    },
+    {
+      "name": "wc/invalid-only",
+      "vectorSha256": "2318b44c0c77a2bd5859adee6896b063c410831884a6d627dfa3252bbb150bf4",
+      "historicalStdout": "ICAgICAgMSAgICAgICAwCg==",
+      "linuxStdout": "ICAgICAgMCAgICAgICAwCg=="
+    }
+  ],
+  "retainedFailure": {
+    "runId": "35893020734",
+    "url": "https://github.com/poe-platform/poe-code/actions/runs/35893020734",
+    "headSha": "d263bb2493c81e6e587007ed592143ecf42cc4d1",
+    "reason": "Git dubious ownership during revision identity read; native capture did not execute."
+  }
+}

@@ -1,0 +1,390 @@
+{
+  "commit": "72187e5abc1179883f85a63e1ef558f2e141c542",
+  "startedProcessCount": 2,
+  "processes": [
+    {
+      "label": "candidate-tree",
+      "pid": 95405,
+      "status": 0,
+      "signal": null
+    },
+    {
+      "label": "candidate-blobs",
+      "pid": 95420,
+      "status": 0,
+      "signal": null
+    }
+  ],
+  "rows": [
+    {
+      "mode": "100644",
+      "blob": "8dcdc8591d330c3edcc7bdb2cf2de407be45f375",
+      "size": 1003,
+      "path": "src/commands/regex-execution/ere/errors.ts",
+      "sha256": "9496bc26dbe7866451fedf13ea2c25de9837f88331f208bf27f4f6edff1ec38c",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/engine-errors.ts.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "a4a31f8789a61ecf0ca138ab15567b8f76e6a14d",
+      "size": 3471,
+      "path": "src/commands/regex-execution/ere/limits.ts",
+      "sha256": "ab7a87c37449dc7184ce530840f90c25ae3f48fb60204a3f6bd3d07c5d2146af",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/engine-limits.ts.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "c2b1e086b61c92a740dbb7f0bdf43b5be0bf27cf",
+      "size": 9759,
+      "path": "src/commands/regex-execution/ere/matcher.ts",
+      "sha256": "89aa1e08536cd30ea77b5a488a5e1374813a55787d4738aca80d4f4fa341362a",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/engine-matcher.ts.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "774190ace771a0fd13555f72699430649d00e1cd",
+      "size": 13070,
+      "path": "src/commands/regex-execution/ere/syntax.ts",
+      "sha256": "9136451259d3dfafe7aca8ffd592d43414ef4995fbe6811d7d8719f3085ee105",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/engine-syntax.ts.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "a3cca12f1cfd38d18ad7650e3d18228438184319",
+      "size": 1554,
+      "path": "src/commands/regex-execution/ere/types.ts",
+      "sha256": "b8401fe06db29726ce989390d445138b26912c946eb64cac013f8ff2a2e91f2b",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/engine-types.ts.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "38fa5b07b3fe7f148eea081d0eed347b6a11819f",
+      "size": 1089,
+      "path": "tests/compatibility/bash-ere-engine-author-20260829/r01-v1/BASELINE-SOURCE.json",
+      "sha256": "262a62195cac50b862b57f8c46fde397c68aeaddaf2922f5171c991322b5799b",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/BASELINE-SOURCE.json.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "4a94aaf3b8b4270934564bfb7ebb24c7221403a3",
+      "size": 89,
+      "path": "tests/compatibility/bash-ere-engine-author-20260829/r01-v1/INSPECTION.outer.jsonl",
+      "sha256": "8d1fc564c7fbede2dce32c053a31df2033abe3bd152a9107932337df678e5956",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/INSPECTION.outer.jsonl.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "size": 0,
+      "path": "tests/compatibility/bash-ere-engine-author-20260829/r01-v1/PREINDEX.nul",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/PREINDEX.nul.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "874b033ff65420646480ea133218295c273863e6",
+      "size": 61,
+      "path": "tests/compatibility/bash-ere-engine-author-20260829/r01-v1/READ-01.log",
+      "sha256": "5cade5c93fef1ca7757174871d720ba9dfc12838e0035c61b4503e0a5d0ddab7",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/READ-01.log.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "631c1477bca023282887ccd6b8117b2546992ca2",
+      "size": 61,
+      "path": "tests/compatibility/bash-ere-engine-author-20260829/r01-v1/READ-02.log",
+      "sha256": "a0d190b92e2173498c3792b04968bfe0cca88e41905ce2fd1e450cbd9a102283",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/READ-02.log.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "79be0628108752ae687b06e949e98e3bcdc16a25",
+      "size": 61,
+      "path": "tests/compatibility/bash-ere-engine-author-20260829/r01-v1/READ-03.log",
+      "sha256": "d938e348c37050e1c469de000742b309a5b77e1cc99a26a2646cab1d6a6452d0",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/READ-03.log.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "076db42fe9facc4075a6a8e5ef4c16ccd8bda783",
+      "size": 61,
+      "path": "tests/compatibility/bash-ere-engine-author-20260829/r01-v1/READ-04.log",
+      "sha256": "1f968c896608ac4155a9c229acd3d530ccd833f4dff638561d1b88c37452e725",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/READ-04.log.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "e85b1ff155d6685721c0ae19c84d3d013b38dc30",
+      "size": 61,
+      "path": "tests/compatibility/bash-ere-engine-author-20260829/r01-v1/READ-05.log",
+      "sha256": "dc2dacf6b3b7a1d654452e2da008eb094eb65f8099a0df41437edf553abc0cdf",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/READ-05.log.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "d1cf40a499295f5114cc57fc3836621f2ce350ab",
+      "size": 61,
+      "path": "tests/compatibility/bash-ere-engine-author-20260829/r01-v1/READ-06.log",
+      "sha256": "552401522af5690ba3318dd7e58d331f44e15888e8cc0f0a92c292af01305b6b",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/READ-06.log.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "9b11f18a196c94fc5fd2dae12c28b2e757fe6323",
+      "size": 4400,
+      "path": "tests/compatibility/bash-ere-engine-author-20260829/r01-v1/RECIPE.md",
+      "sha256": "9c6e9c44a24fbabbb283acdf938d0f8abd316cd2b58a6f8d4ecf5f2bd6a4562e",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/RECIPE.md.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "8c424bab54cd1aeec9635d277d8cc0a4bf998a16",
+      "size": 66104,
+      "path": "tests/compatibility/bash-ere-engine-author-20260829/r01-v1/SEAL.json",
+      "sha256": "c87cadc0ca841bc3c07bd4110fbce3419b696ecae331ed433bc7bb1a0f5945b0",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/SEAL.json.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "e76e9193259ea21c0a0007b5dd77e39217f50b20",
+      "size": 6934,
+      "path": "tests/compatibility/bash-ere-engine-author-20260829/r01-v1/cases-v2.json",
+      "sha256": "2cac8b286ed5b2a68d13224792ed7bfb3732ef871f81ffa32d52f75229815e07",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/cases-v2.json.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "2f760d124b7a3d90694dfb4c284686995c2094eb",
+      "size": 1696,
+      "path": "tests/compatibility/bash-ere-engine-author-20260829/r01-v1/inspect.mjs",
+      "sha256": "f0e809462e08e87b9d593824682b7efdac1eb045f850fb663e1110fd29c0815f",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/inspect.mjs.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "cc210d748dc76ae7a9360b147a324b2b77912a75",
+      "size": 3125,
+      "path": "tests/compatibility/bash-ere-engine-author-20260829/r01-v1/native-visible.json",
+      "sha256": "b8c2dda97b09bdac254b61ba340cd48947e5f50f4f265ee403cef1062a58a9e4",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/native-visible.json.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "932e0333a6d898cd95f71234ee861c6e23b7423a",
+      "size": 661,
+      "path": "tests/compatibility/bash-ere-engine-author-20260829/r01-v1/policy.mjs",
+      "sha256": "47a59cf67dc92217e17d4d9f406d4430fe4610d240edf96693f2149adf88f768",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/policy.mjs.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "60dbde0240f3f075fdfce02de7656b64e1553479",
+      "size": 4121,
+      "path": "tests/compatibility/bash-ere-engine-author-20260829/r01-v1/reporting.mjs",
+      "sha256": "2046bebcb8b7f4894c87cb58eff66ee4d20710c9c22b4a241de2f91ccf4c06e7",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/reporting.mjs.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "10731ba78b16ea552b4c0d87ad5700e1d56ca4f6",
+      "size": 16265,
+      "path": "tests/compatibility/bash-ere-engine-author-20260829/r01-v1/runner.mjs",
+      "sha256": "50520d3ad39ae6367649fffdb9585e5cb89f99ed3f2e7cf953f59cd2a02d4d47",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/runner.mjs.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "a822acdccd9a0903d2f060a34189249059791385",
+      "size": 596,
+      "path": "tests/compatibility/bash-ere-engine-author-20260829/r01-v1/seal-PRESEAL-01.outer.jsonl",
+      "sha256": "9c6abeaa07718ae5b28b1fc073e5d3b775bc4a4bac6d457e56bb83ac6be15eb0",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/seal-PRESEAL-01.outer.jsonl.data"
+    }
+  ],
+  "selected": [
+    {
+      "mode": "100644",
+      "blob": "8dcdc8591d330c3edcc7bdb2cf2de407be45f375",
+      "size": 1003,
+      "path": "src/commands/regex-execution/ere/errors.ts",
+      "sha256": "9496bc26dbe7866451fedf13ea2c25de9837f88331f208bf27f4f6edff1ec38c",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/engine-errors.ts.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "a4a31f8789a61ecf0ca138ab15567b8f76e6a14d",
+      "size": 3471,
+      "path": "src/commands/regex-execution/ere/limits.ts",
+      "sha256": "ab7a87c37449dc7184ce530840f90c25ae3f48fb60204a3f6bd3d07c5d2146af",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/engine-limits.ts.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "c2b1e086b61c92a740dbb7f0bdf43b5be0bf27cf",
+      "size": 9759,
+      "path": "src/commands/regex-execution/ere/matcher.ts",
+      "sha256": "89aa1e08536cd30ea77b5a488a5e1374813a55787d4738aca80d4f4fa341362a",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/engine-matcher.ts.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "774190ace771a0fd13555f72699430649d00e1cd",
+      "size": 13070,
+      "path": "src/commands/regex-execution/ere/syntax.ts",
+      "sha256": "9136451259d3dfafe7aca8ffd592d43414ef4995fbe6811d7d8719f3085ee105",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/engine-syntax.ts.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "a3cca12f1cfd38d18ad7650e3d18228438184319",
+      "size": 1554,
+      "path": "src/commands/regex-execution/ere/types.ts",
+      "sha256": "b8401fe06db29726ce989390d445138b26912c946eb64cac013f8ff2a2e91f2b",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/engine-types.ts.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "38fa5b07b3fe7f148eea081d0eed347b6a11819f",
+      "size": 1089,
+      "path": "tests/compatibility/bash-ere-engine-author-20260829/r01-v1/BASELINE-SOURCE.json",
+      "sha256": "262a62195cac50b862b57f8c46fde397c68aeaddaf2922f5171c991322b5799b",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/BASELINE-SOURCE.json.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "4a94aaf3b8b4270934564bfb7ebb24c7221403a3",
+      "size": 89,
+      "path": "tests/compatibility/bash-ere-engine-author-20260829/r01-v1/INSPECTION.outer.jsonl",
+      "sha256": "8d1fc564c7fbede2dce32c053a31df2033abe3bd152a9107932337df678e5956",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/INSPECTION.outer.jsonl.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "size": 0,
+      "path": "tests/compatibility/bash-ere-engine-author-20260829/r01-v1/PREINDEX.nul",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/PREINDEX.nul.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "874b033ff65420646480ea133218295c273863e6",
+      "size": 61,
+      "path": "tests/compatibility/bash-ere-engine-author-20260829/r01-v1/READ-01.log",
+      "sha256": "5cade5c93fef1ca7757174871d720ba9dfc12838e0035c61b4503e0a5d0ddab7",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/READ-01.log.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "631c1477bca023282887ccd6b8117b2546992ca2",
+      "size": 61,
+      "path": "tests/compatibility/bash-ere-engine-author-20260829/r01-v1/READ-02.log",
+      "sha256": "a0d190b92e2173498c3792b04968bfe0cca88e41905ce2fd1e450cbd9a102283",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/READ-02.log.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "79be0628108752ae687b06e949e98e3bcdc16a25",
+      "size": 61,
+      "path": "tests/compatibility/bash-ere-engine-author-20260829/r01-v1/READ-03.log",
+      "sha256": "d938e348c37050e1c469de000742b309a5b77e1cc99a26a2646cab1d6a6452d0",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/READ-03.log.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "076db42fe9facc4075a6a8e5ef4c16ccd8bda783",
+      "size": 61,
+      "path": "tests/compatibility/bash-ere-engine-author-20260829/r01-v1/READ-04.log",
+      "sha256": "1f968c896608ac4155a9c229acd3d530ccd833f4dff638561d1b88c37452e725",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/READ-04.log.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "e85b1ff155d6685721c0ae19c84d3d013b38dc30",
+      "size": 61,
+      "path": "tests/compatibility/bash-ere-engine-author-20260829/r01-v1/READ-05.log",
+      "sha256": "dc2dacf6b3b7a1d654452e2da008eb094eb65f8099a0df41437edf553abc0cdf",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/READ-05.log.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "d1cf40a499295f5114cc57fc3836621f2ce350ab",
+      "size": 61,
+      "path": "tests/compatibility/bash-ere-engine-author-20260829/r01-v1/READ-06.log",
+      "sha256": "552401522af5690ba3318dd7e58d331f44e15888e8cc0f0a92c292af01305b6b",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/READ-06.log.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "9b11f18a196c94fc5fd2dae12c28b2e757fe6323",
+      "size": 4400,
+      "path": "tests/compatibility/bash-ere-engine-author-20260829/r01-v1/RECIPE.md",
+      "sha256": "9c6e9c44a24fbabbb283acdf938d0f8abd316cd2b58a6f8d4ecf5f2bd6a4562e",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/RECIPE.md.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "8c424bab54cd1aeec9635d277d8cc0a4bf998a16",
+      "size": 66104,
+      "path": "tests/compatibility/bash-ere-engine-author-20260829/r01-v1/SEAL.json",
+      "sha256": "c87cadc0ca841bc3c07bd4110fbce3419b696ecae331ed433bc7bb1a0f5945b0",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/SEAL.json.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "e76e9193259ea21c0a0007b5dd77e39217f50b20",
+      "size": 6934,
+      "path": "tests/compatibility/bash-ere-engine-author-20260829/r01-v1/cases-v2.json",
+      "sha256": "2cac8b286ed5b2a68d13224792ed7bfb3732ef871f81ffa32d52f75229815e07",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/cases-v2.json.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "2f760d124b7a3d90694dfb4c284686995c2094eb",
+      "size": 1696,
+      "path": "tests/compatibility/bash-ere-engine-author-20260829/r01-v1/inspect.mjs",
+      "sha256": "f0e809462e08e87b9d593824682b7efdac1eb045f850fb663e1110fd29c0815f",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/inspect.mjs.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "cc210d748dc76ae7a9360b147a324b2b77912a75",
+      "size": 3125,
+      "path": "tests/compatibility/bash-ere-engine-author-20260829/r01-v1/native-visible.json",
+      "sha256": "b8c2dda97b09bdac254b61ba340cd48947e5f50f4f265ee403cef1062a58a9e4",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/native-visible.json.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "932e0333a6d898cd95f71234ee861c6e23b7423a",
+      "size": 661,
+      "path": "tests/compatibility/bash-ere-engine-author-20260829/r01-v1/policy.mjs",
+      "sha256": "47a59cf67dc92217e17d4d9f406d4430fe4610d240edf96693f2149adf88f768",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/policy.mjs.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "60dbde0240f3f075fdfce02de7656b64e1553479",
+      "size": 4121,
+      "path": "tests/compatibility/bash-ere-engine-author-20260829/r01-v1/reporting.mjs",
+      "sha256": "2046bebcb8b7f4894c87cb58eff66ee4d20710c9c22b4a241de2f91ccf4c06e7",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/reporting.mjs.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "10731ba78b16ea552b4c0d87ad5700e1d56ca4f6",
+      "size": 16265,
+      "path": "tests/compatibility/bash-ere-engine-author-20260829/r01-v1/runner.mjs",
+      "sha256": "50520d3ad39ae6367649fffdb9585e5cb89f99ed3f2e7cf953f59cd2a02d4d47",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/runner.mjs.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "a822acdccd9a0903d2f060a34189249059791385",
+      "size": 596,
+      "path": "tests/compatibility/bash-ere-engine-author-20260829/r01-v1/seal-PRESEAL-01.outer.jsonl",
+      "sha256": "9c6abeaa07718ae5b28b1fc073e5d3b775bc4a4bac6d457e56bb83ac6be15eb0",
+      "copy": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/inputs/seal-PRESEAL-01.outer.jsonl.data"
+    }
+  ]
+}

@@ -1,0 +1,318 @@
+{
+  "source": "0d452e85cbbac6358d76d791f035e5d16a9e223a",
+  "packetSha256": "a2a5a6a23f4c30bd490b3a1db29f0cdc6e4e57a4f179ba0368489af7652fb554",
+  "bindings": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/staged/PACKET.json",
+      "bytes": 6222,
+      "sha256": "a2a5a6a23f4c30bd490b3a1db29f0cdc6e4e57a4f179ba0368489af7652fb554",
+      "mode": 384,
+      "gitMode": 420,
+      "oid": "da143c91ffbe8b89f6d2353548428fdf07fe76be"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/RECEIPT.json",
+      "bytes": 4821,
+      "sha256": "1d93a608b41334b3f9582512ce08c609f7113bd81194998fc28d41a73550d81d",
+      "mode": 420,
+      "gitMode": 420,
+      "oid": "950496376e93b0285b444795e270f1128d6f0def"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/staged/legacy/harness/ARRAY-CASES.json",
+      "bytes": 3019,
+      "sha256": "37b39949691b09c665c63e4d81babfebcbcfeb7b6b1c96f6bf2e154c91ab20b2",
+      "mode": 384,
+      "gitMode": 420,
+      "oid": "4928c2331f264a7b4b8389c791c4d1c0f6298fb2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/staged/legacy/harness/arrays.mjs",
+      "bytes": 2507,
+      "sha256": "ac91a9c48b30e3a186468d2a22f44cfecdcf7b3adf54584cf270749f66448f24",
+      "mode": 384,
+      "gitMode": 420,
+      "oid": "f689e2ceb93ec4484f6a1da9bf9840b3f10eddac"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/staged/legacy/harness/close-observer.mjs",
+      "bytes": 957,
+      "sha256": "06d716ab762a6800b031a8fa50b4f5bee3295978822f29039403825c88680840",
+      "mode": 384,
+      "gitMode": 420,
+      "oid": "59ae1e639274455401c0457fe67b88858330f2d5"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/staged/legacy/harness/conditional.mjs",
+      "bytes": 14524,
+      "sha256": "0c8216e79aeaadd22bededaf2cc72a8daf83e296584c4b31efa2fed0b5c917e7",
+      "mode": 384,
+      "gitMode": 420,
+      "oid": "cb41a2556e3ddf4662b2be40fb10756d61838180"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/staged/legacy/harness/extension-design.json",
+      "bytes": 14968,
+      "sha256": "ba0e51037a4026f8bc1fe4783e334e466347cf0ebc5883fa65be5c6b9f2bdf0f",
+      "mode": 384,
+      "gitMode": 420,
+      "oid": "a811a09c755637dcee37abbbdecbd0a5db35c634"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/staged/legacy/harness/extension.mjs",
+      "bytes": 14101,
+      "sha256": "3e04a9e35f303fad76b3dc05f5e70c1b6e40dd2f6827bc82defe696d12ea7edc",
+      "mode": 384,
+      "gitMode": 420,
+      "oid": "196e4520d979918b145d0560cfa49892ad9c575a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/staged/legacy/harness/loader.mjs",
+      "bytes": 1180,
+      "sha256": "a16e8d37942478cf9dc876e360cf7e7085c590515bdca82bf90be421df7cf6b3",
+      "mode": 384,
+      "gitMode": 420,
+      "oid": "9d2747828f958687f0ab5c2b93977c3988bf7ed6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/staged/legacy/harness/n14.mjs",
+      "bytes": 5599,
+      "sha256": "5dc5c979b280349944692856d87dca20c9a475e51bb9051fadd3ae0554a102a3",
+      "mode": 384,
+      "gitMode": 420,
+      "oid": "488675434a6f547839c5a5fa73ce56fecbd69ed1"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/staged/legacy/harness/names.mjs",
+      "bytes": 879,
+      "sha256": "7a098b1ff37d04e10096ba9db55880025dd39bca542f81a3407288685faed377",
+      "mode": 384,
+      "gitMode": 420,
+      "oid": "c9723f7471f3e14309db432a55e9befa6aebd42b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/staged/legacy/harness/redirection-cases.json",
+      "bytes": 2790,
+      "sha256": "ac48ca9999caef45a1f08ea3ae5e9a189864f41e5e96069e63ac06c092d156dc",
+      "mode": 384,
+      "gitMode": 420,
+      "oid": "aa0becf7144cdfc4efa32b5cc030d530364bfb33"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/staged/legacy/harness/redirections.mjs",
+      "bytes": 9613,
+      "sha256": "5d22e251da75541bc23a5b786dca6340586cf7bc426801f219f539b73a3e2561",
+      "mode": 384,
+      "gitMode": 420,
+      "oid": "c0e93cc3e644a2c92a681490c5a59fd2a4aa1103"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/staged/legacy/harness/resources.mjs",
+      "bytes": 1978,
+      "sha256": "ee5d6c8ec02a2784232a04a9ca01e07a232bb8bc36a1d39b8e9f463c0ad49e92",
+      "mode": 384,
+      "gitMode": 420,
+      "oid": "f57ddbeecc878698bc03a5f265f3f76386107fbb"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/staged/legacy/harness/strict-design.json",
+      "bytes": 9222,
+      "sha256": "99468cfc96e56130fa65ce12835f4d8a3740002ec9519ea306d4e120cbe5adff",
+      "mode": 384,
+      "gitMode": 420,
+      "oid": "4d0fe40653cf150cf790dacf0418da8b15072eba"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/staged/legacy/harness/strict.mjs",
+      "bytes": 11148,
+      "sha256": "c571a8977ac6553622493d743e18bdba9d23d17355a2f0d625e8fef8e1993ee8",
+      "mode": 384,
+      "gitMode": 420,
+      "oid": "f73b632fb607e8fe0c0067656cf5a1cf29026503"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/staged/legacy/stage-a-r2/common.mjs",
+      "bytes": 7095,
+      "sha256": "e56e611e245a3582a4b562e646b5f1186c455b31360766c4bea0b92b7b8d2bac",
+      "mode": 384,
+      "gitMode": 420,
+      "oid": "75e3393531a74ddbe426b7bf8af855006a10fcd3"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/staged/legacy/types/consumer-negative.mts.fixture",
+      "bytes": 1744,
+      "sha256": "01a2ed9b7b6eb42e03e163d6da2e762bf5a3663ebf548495c5788ffc385fe7ff",
+      "mode": 384,
+      "gitMode": 420,
+      "oid": "3b9651828290137af6b524350e9c0b4e54a888c8"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/staged/legacy/types/consumer-positive.mts.fixture",
+      "bytes": 1736,
+      "sha256": "c735d61e010e7f8e6528181d800c3e9e9aac6c22d20b03d1e4bcf68e3222b6ff",
+      "mode": 384,
+      "gitMode": 420,
+      "oid": "20a2a77db43a66a9445661a0f740b30b39ee752b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/staged/metadata/FROZEN-BINDINGS.json",
+      "bytes": 617256,
+      "sha256": "3e4ace73b6ef5f47a3f8eb7330cb22f5d8b51742e484032ae8f2a1864f35b0e9",
+      "mode": 384,
+      "gitMode": 420,
+      "oid": "32798f1a677d6f10fce3001c967f47f886faca8f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/staged/metadata/RECIPE.json",
+      "bytes": 593493,
+      "sha256": "487065c4454c01102b578a4d7ef1524514bf74d90e3a6d8dc1d9bde513b2a091",
+      "mode": 384,
+      "gitMode": 420,
+      "oid": "3cc38f7e789fb85399f7981b415f275c0b7f3795"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/staged/metadata/REGEX-CLOSURE.json",
+      "bytes": 101812,
+      "sha256": "2d074a0fa78e95e5d16ede088bc2725ae9b5e7a3ed2a3c11a5bae428b4b4b4c4",
+      "mode": 384,
+      "gitMode": 420,
+      "oid": "21e191fe96f7dd4763000cf69113e5a4b3b5e57e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/staged/new/classify.mjs",
+      "bytes": 4288,
+      "sha256": "52cf66342b7353bdb516ebe9fd35984f3c704d26c0eee5733727c6f6df7492fa",
+      "mode": 384,
+      "gitMode": 420,
+      "oid": "de36c95ad3d80339b813ce4faccaffe7c73e3c9a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/staged/new/controls.mjs",
+      "bytes": 3703,
+      "sha256": "afe8841b1eed95050373a04e3c8031eaf78d08cb54a07f3516c184f854d23c17",
+      "mode": 384,
+      "gitMode": 420,
+      "oid": "4775f183a2db1d68ebb0a38fd1c1c41c1f13f6ff"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/staged/new/coordinator.mjs",
+      "bytes": 13181,
+      "sha256": "a391f4242ee549209dcd81c04634a3307e81843084565c45512aa1a4f30690ac",
+      "mode": 384,
+      "gitMode": 420,
+      "oid": "f69dedc0a703cb80abf9db371313705709a68d74"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/staged/new/fixture.mjs",
+      "bytes": 861,
+      "sha256": "9bc2c8d6b7d25eebbcc74a5d8560efa097ba8b88c101c2d89ba998227b1a565e",
+      "mode": 384,
+      "gitMode": 420,
+      "oid": "24a959336b6a521cb5863277f504a527a8fa171d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/staged/new/launch.sh",
+      "bytes": 418,
+      "sha256": "ce212c221a637cdd06b30e0a298b4bde08b85424b6e86d1db6597e08fd8be329",
+      "mode": 384,
+      "gitMode": 420,
+      "oid": "917185e6c93cea529c1da60b9e3f702cdab3420e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/staged/new/loader.mjs",
+      "bytes": 3058,
+      "sha256": "d4648aea3fe1f391e4fda437d62f0ce3d5de0e756f87146db1c60769d43b6e2b",
+      "mode": 384,
+      "gitMode": 420,
+      "oid": "a2a7dda0042822e3bd698f18395059f691e11257"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/staged/new/outer.mjs",
+      "bytes": 1210,
+      "sha256": "531b4b1bcc3786e9feb1065afd894d133792e3ab389cb6c93f4028fba3cafe00",
+      "mode": 384,
+      "gitMode": 420,
+      "oid": "b674686cd86fc3b782c8b5ac861957d739f23caa"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/staged/new/owner.mjs",
+      "bytes": 9152,
+      "sha256": "1e9c95b612145717bf3dbb74fa119c1abd83f44e67cec5fde233e985decc64c5",
+      "mode": 384,
+      "gitMode": 420,
+      "oid": "71cc304f2bebdc55bdd39bb4cd8adf648bfebe82"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/staged/new/support.mjs",
+      "bytes": 6852,
+      "sha256": "cf8b33e7d61d0249d8cfb9fa31c5ef861c7d9d240019d11afedbb441bd2cf305",
+      "mode": 384,
+      "gitMode": 420,
+      "oid": "5effd52719a92c9c2e199ab10d544eef4121e298"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/staged/new/tar.mjs",
+      "bytes": 2436,
+      "sha256": "ab62ab9627e69558b8291f90fc92dee40cf12172c289187918a0da42bdc51865",
+      "mode": 384,
+      "gitMode": 420,
+      "oid": "1cc3afcc812876862a3679a95244864d92535d9a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/SOURCE-QUALIFICATION.json",
+      "bytes": 549883,
+      "sha256": "a9459f7ba69aaa53a3c471573212f733b434fe2a65dadbb72d4257dfb111ccf2",
+      "mode": 384,
+      "gitMode": 420,
+      "oid": "5c48d30b39b172597b5a766d9b68271b4fe288f4"
+    }
+  ],
+  "locals": {
+    "review.mjs": {
+      "bytes": 8124,
+      "sha256": "9b6ef29136184eb5bb2945bc94d44177805c2692f0d7e7cc84bd50bf47720d48"
+    },
+    "controls.mjs": {
+      "bytes": 8178,
+      "sha256": "faddc15515c2ac044d95bd55f80cfecd4e83c5a8aee572a75583342635137a30"
+    },
+    "fixture.mjs": {
+      "bytes": 928,
+      "sha256": "0da844e1de04aa6ec92e271c079d2f2c298b4e6ca71503ab4c785313bb24a071"
+    }
+  },
+  "node": {
+    "filename": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "work": "/private/tmp/b2-r6-independent-IhkGEU",
+  "fixtureSourceSha256": "0da844e1de04aa6ec92e271c079d2f2c298b4e6ca71503ab4c785313bb24a071",
+  "originCount": 6,
+  "fixtureOrigins": 672,
+  "consumedPins": 10,
+  "controls": [
+    "N01-diagnostic-code",
+    "N02-diagnostic-path-and-exit",
+    "N03-mutant-missing-load",
+    "N04-mutant-wrong-hash",
+    "N05-restore-status",
+    "N06-falsy-cleanup-presence",
+    "N07-grant-time-and-caps",
+    "N08-raw-falsy-publication",
+    "N09-partial-open-primary",
+    "N10-auth-before-decode"
+  ],
+  "harmless": [
+    "H01-moved-loader-body",
+    "H02-missing-binding",
+    "H03-changed-binding",
+    "H04-type-diagnostic"
+  ],
+  "pureHelpers": 1,
+  "harmlessChildren": 4,
+  "parentTimeoutMs": 90000,
+  "childSeconds": 10,
+  "captureBytes": 1048576,
+  "qualification": "Actual exported loader bodies called directly; no --loader, loader Worker, product module or compiler. Prior snapshots/source origins not a whole HEAD census."
+}

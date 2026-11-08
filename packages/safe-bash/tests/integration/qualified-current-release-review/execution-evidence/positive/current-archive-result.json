@@ -1,0 +1,20 @@
+{
+  "tests": [
+    {
+      "path": "tests/commands/archive/native.test.ts",
+      "sha256": "a7bde7f866349006aa5fce9f8615a4190ee279212e88fdd2a8568f45b88f3e45"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/controls.test.ts",
+      "sha256": "1e64cbc1953b50846b5af1448cbe2dcb3d578b82d124e6e8e0967dd938befa56"
+    }
+  ],
+  "counts": {
+    "tests": 11,
+    "pass": 11,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  }
+}

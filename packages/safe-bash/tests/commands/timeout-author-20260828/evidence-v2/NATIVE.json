@@ -1,0 +1,19 @@
+{
+  "schema": "timeout-native-author-hold/1",
+  "expected": {
+    "profile": "GNU coreutils 9.7 Darwin arm64 Mach-O",
+    "bytes": 95240,
+    "sha256": "36fc11afeb227c7ea50054de958b80de954088139f1d5ef4c03df95ef811a55e"
+  },
+  "actual": {
+    "present": true,
+    "regular": true,
+    "mode": 493,
+    "bytes": 95240,
+    "sha256": "36fc11afeb227c7ea50054de958b80de954088139f1d5ef4c03df95ef811a55e",
+    "executed": 0
+  },
+  "prospectiveRows": 12,
+  "executed": 0,
+  "reason": "native protocol remained held; read-only identity check only"
+}

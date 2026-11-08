@@ -1,0 +1,89 @@
+import assert from "node:assert/strict";
+import { execFileSync, spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import { copyFile, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { dirname, join, relative, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const owned = dirname(fileURLToPath(import.meta.url));
+const repository = resolve(owned, "../../../..");
+const mode = process.argv[2] ?? "pinned";
+const label = process.argv[3] ?? `${mode}-${Date.now()}`;
+assert.ok(["pinned", "worktree"].includes(mode));
+assert.match(label, /^[a-z0-9-]+$/);
+const output = join(owned, "evidence", label);
+await mkdir(join(owned, "evidence"), { recursive: true });
+await mkdir(output);
+await mkdir(join(owned, ".runs"), { recursive: true });
+const scratch = await mkdtemp(join(owned, ".runs", `${mode}-`));
+const git = (...args) => execFileSync("git", args, { cwd: repository, maxBuffer: 16 * 1024 * 1024 });
+const hash = data => createHash("sha256").update(data).digest("hex");
+const revision = "4fa4ba9502dac843bd13aa5031d128a3171f597d";
+const paths = ["src", "package.json", "tsconfig.json", "tests/fs/webdav/mock.ts"];
+const manifest = {
+  mode, revision, capturedAt: new Date().toISOString(), node: process.version,
+  worktreeHead: git("rev-parse", "HEAD").toString().trim(),
+  worktreeStatusBefore: git("status", "--short").toString(),
+  sourceHashes: {}, changedFrom4fa: [], unstableDuringCapture: [],
+};
+const filesBelow = async directory => (await readdir(directory, { recursive: true, withFileTypes: true }))
+  .filter(entry => entry.isFile()).map(entry => join(entry.parentPath, entry.name)).sort();
+if (mode === "pinned") {
+  const archive = git("archive", "--format=tar.gz", revision, ...paths);
+  await writeFile(join(output, "source.tar.gz"), archive);
+  execFileSync("tar", ["-xzf", join(output, "source.tar.gz"), "-C", scratch]);
+} else {
+  const sourceFiles = [...(await filesBelow(join(repository, "src"))).map(file => relative(repository, file)), ...paths.slice(1)];
+  for (const file of sourceFiles) {
+    const data = await readFile(join(repository, file));
+    await mkdir(dirname(join(scratch, file)), { recursive: true });
+    await writeFile(join(scratch, file), data);
+    manifest.sourceHashes[file] = hash(data);
+  }
+  for (const file of sourceFiles) {
+    if (hash(await readFile(join(repository, file))) !== manifest.sourceHashes[file]) manifest.unstableDuringCapture.push(file);
+  }
+  assert.deepEqual(manifest.unstableDuringCapture, [], "source changed while capturing; rerun with a fresh label");
+  execFileSync("tar", ["-czf", join(output, "source.tar.gz"), "-C", scratch, ...paths]);
+}
+for (const file of [...(await filesBelow(join(scratch, "src"))).map(file => relative(scratch, file)), ...paths.slice(1)].sort()) {
+  manifest.sourceHashes[file] = hash(await readFile(join(scratch, file)));
+  const baseline = spawnSync("git", ["show", `${revision}:${file}`], { cwd: repository });
+  const baselineHash = baseline.status === 0 ? hash(baseline.stdout) : null;
+  if (baselineHash !== manifest.sourceHashes[file]) manifest.changedFrom4fa.push({ file, baselineHash, capturedHash: manifest.sourceHashes[file] });
+}
+assert.equal(manifest.sourceHashes["src/contracts/filesystem.md"], hash(git("show", "fa539de:src/contracts/filesystem.md")));
+manifest.sourceSetHash = hash(JSON.stringify(manifest.sourceHashes));
+manifest.archiveHash = hash(await readFile(join(output, "source.tar.gz")));
+manifest.reproductionHashes = {};
+for (const file of ["proposal.ts", "authority.test.ts", "run.mjs"]) {
+  const path = relative(repository, join(owned, file));
+  await mkdir(dirname(join(scratch, path)), { recursive: true });
+  await copyFile(join(owned, file), join(scratch, path));
+  await copyFile(join(owned, file), join(output, `${file}.txt`));
+  manifest.reproductionHashes[file] = hash(await readFile(join(owned, file)));
+}
+const testPath = relative(repository, join(owned, "authority.test.ts"));
+manifest.command = ["node", "--import", "tsx", "--test", "--test-reporter=tap", testPath];
+const tests = spawnSync(process.execPath, manifest.command.slice(1), { cwd: scratch, encoding: "utf8", timeout: 60000, maxBuffer: 8 * 1024 * 1024 });
+await writeFile(join(output, "tests.stdout.tap"), tests.stdout ?? "");
+await writeFile(join(output, "tests.stderr.txt"), tests.stderr ?? "");
+manifest.testExit = tests.status;
+manifest.launchError = tests.error?.message ?? null;
+manifest.counts = Object.fromEntries(["tests", "pass", "fail", "cancelled", "skipped", "todo"].map(name => [name, Number(new RegExp(`^# ${name} (\\d+)$`, "m").exec(tests.stdout ?? "")?.[1] ?? -1)]));
+const observations = (tests.stdout ?? "").split("\n").filter(line => line.startsWith("# AUTHORITY_OBSERVATION "))
+  .map(line => JSON.parse(Buffer.from(line.slice("# AUTHORITY_OBSERVATION ".length), "base64").toString()));
+await writeFile(join(output, "observations.json"), `${JSON.stringify(observations, null, 2)}\n`);
+const config = { extends: join(scratch, "tsconfig.json"), include: [join(scratch, testPath)], compilerOptions: { noEmit: true } };
+await writeFile(join(output, "tsconfig.json"), `${JSON.stringify(config, null, 2)}\n`);
+const types = spawnSync(process.execPath, [join(repository, "node_modules/typescript/bin/tsc"), "--noEmit", "-p", join(output, "tsconfig.json")], { cwd: scratch, encoding: "utf8", timeout: 60000 });
+await writeFile(join(output, "types.stdout.txt"), types.stdout ?? "");
+await writeFile(join(output, "types.stderr.txt"), types.stderr ?? "");
+manifest.typecheckExit = types.status;
+manifest.finishedAt = new Date().toISOString();
+manifest.artifactHashes = {};
+for (const file of await filesBelow(output)) manifest.artifactHashes[relative(output, file)] = hash(await readFile(file));
+await writeFile(join(output, "manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`);
+await rm(scratch, { recursive: true });
+console.log(JSON.stringify({ output, counts: manifest.counts, testExit: tests.status, typecheckExit: types.status, changedFrom4fa: manifest.changedFrom4fa }, null, 2));
+process.exitCode = tests.status === 0 && types.status === 0 ? 0 : 1;

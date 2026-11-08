@@ -1,0 +1,10 @@
+{
+  "name": "authority-error-swallowed",
+  "path": "src/fs/mount/comparison.ts",
+  "before": "} catch (error) {\n        options.signal?.throwIfAborted();\n        throw error;\n      }",
+  "after": "} catch (error) {\n        options.signal?.throwIfAborted();\n        answer = \"unknown\";\n      }",
+  "catches": "post-construction explicit comparison error",
+  "beforeSha256": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+  "afterSha256": "22df9aae5712450e27d94717747fc1231c5efb1e56f5690151daa0b1bf0162ee",
+  "temporarySnapshotOnly": true
+}

@@ -1,0 +1,251 @@
+import { ACCESS_MODES } from "../../contracts/filesystem.js";
+import { FsError } from "../../contracts/errors.js";
+import { readBytes } from "../../contracts/io.js";
+import { finishCleanup } from "../../contracts/cleanup.js";
+import type { ByteSource } from "../../contracts/io.js";
+import type {
+  AppendFileOptions, CapabilityQueryOptions, CopyFileOptions, DirectoryEntry, FileResizeHandle, FileStat, OpenReadFileOptions, OpenResizeFileOptions,
+  FileSystem, FileSystemCapabilities, FsOptions, RenameOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions,
+  ReadStreamOptions, RemoveOptions, WriteFileOptions,
+} from "../../contracts/filesystem.js";
+import { compareEntries, registerEntryView } from "../mount/comparison.js";
+import { openRetainedReadFile, readOnlyCapabilities, retainedReadCapabilities } from "../capabilities.js";
+import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
+import { forwardFileDescriptor, openFileDescriptor } from "../descriptor.js";
+import type { FileDescriptor, OpenFileOptions } from "../../contracts/descriptor.js";
+import { pathNamespace, readOnlyPathNamespace } from "../path-namespace.js";
+import { memoryAtomicView, registerMemoryAtomicView } from "../memory/atomic-view.js";
+
+function readOnly(syscall: string, path: string, dest?: string): never {
+  throw new FsError("EROFS", { syscall, path, ...(dest === undefined ? {} : { dest }) });
+}
+
+function snapshotStat(stat: FileStat): FileStat {
+  const { type, filesystemType, size, allocatedBytes, ioBlockSize, preferredIoBlockSize, mode, mtimeMs, atimeMs, ctimeMs, birthtimeMs, revision, identityScope, opaqueIdentity, opaqueVersion, ino, dev, rdevMajor, rdevMinor, nlink, uid, gid } = stat;
+  return {
+    type, size, mode, mtimeMs, atimeMs, ctimeMs,
+    ...(filesystemType === undefined ? {} : { filesystemType }),
+    ...(revision === undefined ? {} : { revision }),
+    ...(allocatedBytes === undefined ? {} : { allocatedBytes }),
+    ...(ioBlockSize === undefined ? {} : { ioBlockSize }),
+    ...(preferredIoBlockSize === undefined ? {} : { preferredIoBlockSize }),
+    ...(birthtimeMs === undefined ? {} : { birthtimeMs }),
+    ...(identityScope === undefined ? {} : { identityScope }),
+    ...(opaqueIdentity === undefined ? {} : { opaqueIdentity }),
+    ...(opaqueVersion === undefined ? {} : { opaqueVersion }),
+    ...(ino === undefined ? {} : { ino }),
+    ...(dev === undefined ? {} : { dev }),
+    ...(rdevMajor === undefined ? {} : { rdevMajor }),
+    ...(rdevMinor === undefined ? {} : { rdevMinor }),
+    ...(nlink === undefined ? {} : { nlink }),
+    ...(uid === undefined ? {} : { uid }),
+    ...(gid === undefined ? {} : { gid }),
+  };
+}
+
+export class ReadOnlyFileSystem implements FileSystem {
+  declare readonly removeEntryConditional?: NonNullable<FileSystem["removeEntryConditional"]>;
+  readonly #filesystem: FileSystem;
+  readonly #capabilities: FileSystemCapabilities;
+
+  constructor(filesystem: FileSystem) {
+    this.#filesystem = filesystem;
+    const atomic = memoryAtomicView(filesystem);
+    if (atomic) registerMemoryAtomicView(this, atomic, () => {
+      if (Object.getPrototypeOf(this) !== ReadOnlyFileSystem.prototype || memoryAtomicView(filesystem) !== atomic) return false;
+      return Object.entries(readOnlyImplementation).every(([name, expected]) => {
+        const actual = Object.getOwnPropertyDescriptor(this, name)
+          ?? Object.getOwnPropertyDescriptor(ReadOnlyFileSystem.prototype, name);
+        return actual?.value === expected.value && actual?.get === expected.get && actual?.set === expected.set;
+      });
+    });
+    if (Reflect.has(filesystem, pathNamespace)) Object.defineProperty(this, pathNamespace, {
+      get: () => readOnlyPathNamespace(Reflect.get(filesystem, pathNamespace)),
+    });
+    registerEntryView(this, async (path) => ({ filesystem: this.#filesystem, path, readOnly: true }));
+    const streamingRead = typeof filesystem.readStream === "function" ? filesystem.capabilities.streamingRead : false;
+    this.#capabilities = readOnlyCapabilities({
+      ...retainedReadCapabilities(filesystem),
+      ...(typeof filesystem.open === "function" ? {} : { open: false }),
+      readOnly: true,
+      append: false,
+      symlinks: filesystem.capabilities.symlinks === true && typeof filesystem.readlink === "function",
+      hardlinks: false,
+      permissions: false,
+      timestamps: false,
+      atomicRename: false,
+      ...(streamingRead === undefined ? {} : { streamingRead }),
+      streamingWrite: false,
+    });
+  }
+
+  get capabilities(): FileSystemCapabilities {
+    return this.#capabilities;
+  }
+
+  async capabilitiesFor(path: string, options?: CapabilityQueryOptions): Promise<FileSystemCapabilities> {
+    options?.signal?.throwIfAborted();
+    if (options?.create !== undefined) readOnly("capabilitiesFor", path);
+    const capabilities = await this.#filesystem.capabilitiesFor?.(path, options) ?? this.#filesystem.capabilities;
+    return readOnlyCapabilities({ ...retainedReadCapabilities(this.#filesystem, capabilities), ...(typeof this.#filesystem.open === "function" ? {} : { open: false }) });
+  }
+
+  async open(path: string, options: OpenFileOptions): Promise<FileDescriptor> {
+    options?.signal?.throwIfAborted();
+    if (options && (options.access === "write" || options.access === "readwrite" || options.truncate === true || options.append === true
+      || options.creation === "ifMissing" || options.creation === "exclusive")) readOnly("open", path);
+    return openFileDescriptor(path, options, {
+      noFollow: true, positionedRead: true, positionedWrite: false, truncate: false, synchronization: "none",
+    }, async admitted => {
+      const capabilities = admitted.noFollow ? this.#filesystem.capabilities
+        : await this.#filesystem.capabilitiesFor?.(path, admitted) ?? this.#filesystem.capabilities;
+      if (!this.#filesystem.open || capabilities.open === false) throw new FsError("ENOTSUP", { syscall: "open", path });
+      admitted.signal?.throwIfAborted();
+      const descriptor = await this.#filesystem.open(path, admitted);
+      try {
+        return forwardFileDescriptor(descriptor, async (_syscall, forwarded, action) => {
+          forwarded.signal?.throwIfAborted();
+          return action();
+        }, { ...descriptor.capabilities,
+          ...(descriptor.capabilities.openTruncate === undefined ? {} : { openTruncate: false }),
+          positionedWrite: false, truncate: false, synchronization: "none" }, snapshotStat);
+      } catch (error) {
+        await finishCleanup(() => descriptor.close(), true);
+        throw error;
+      }
+    });
+  }
+
+  openReadFile(path: string, options: OpenReadFileOptions = {}) {
+    return openRetainedReadFile(this.#filesystem, path, options);
+  }
+
+  async readFile(path: string, options?: ReadFileOptions): Promise<Uint8Array> {
+    return new Uint8Array(await this.#filesystem.readFile(path, options));
+  }
+
+  async stat(path: string, options?: FsOptions): Promise<FileStat> {
+    return snapshotStat(await this.#filesystem.stat(path, options));
+  }
+
+  async lstat(path: string, options?: FsOptions): Promise<FileStat> {
+    return snapshotStat(await this.#filesystem.lstat(path, options));
+  }
+
+  compareEntry(path: string, peer: FileSystem, peerPath: string, options: FsOptions = {}) {
+    return compareEntries(this, path, peer, peerPath, options);
+  }
+
+  async *iterateDirectory(path: string, options: FsOptions = {}): AsyncIterable<DirectoryEntry> {
+    options.signal?.throwIfAborted();
+    if (!this.#filesystem.iterateDirectory) throw new FsError("ENOTSUP", { syscall: "iterateDirectory", path });
+    for await (const entry of this.#filesystem.iterateDirectory(path, options)) {
+      options.signal?.throwIfAborted();
+      yield { name: entry.name, type: entry.type };
+    }
+    options.signal?.throwIfAborted();
+  }
+
+  async readdir(path: string, options?: ReadDirectoryOptions): Promise<DirectoryEntry[]> {
+    const limit = options?.maxEntries === undefined ? undefined : directoryEntryLimit(options, path);
+    const entries = await this.#filesystem.readdir(path, options);
+    if (limit !== undefined) options?.signal?.throwIfAborted();
+    admitDirectoryEntries(entries.length, limit, path);
+    return entries.map((entry) => ({ name: entry.name, type: entry.type }));
+  }
+
+  async realpath(path: string, options?: FsOptions): Promise<string> {
+    return this.#filesystem.realpath(path, options);
+  }
+
+  async access(path: string, mode: number = ACCESS_MODES.F_OK, options?: FsOptions): Promise<void> {
+    if (!Number.isInteger(mode) || mode < 0 || mode > 7) {
+      throw new FsError("EINVAL", { syscall: "access", path });
+    }
+    if ((mode & ACCESS_MODES.W_OK) !== 0) readOnly("access", path);
+    return this.#filesystem.access(path, mode, options);
+  }
+
+  async readlink(path: string, options?: FsOptions): Promise<string> {
+    if (typeof this.#filesystem.readlink !== "function") {
+      throw new FsError("ENOTSUP", { syscall: "readlink", path });
+    }
+    return this.#filesystem.readlink(path, options);
+  }
+
+  async *readStream(path: string, options?: ReadStreamOptions): ByteSource {
+    if (typeof this.#filesystem.readStream !== "function") {
+      throw new FsError("ENOTSUP", { syscall: "readStream", path });
+    }
+    for await (const chunk of readBytes(this.#filesystem.readStream(path, options), options?.signal)) {
+      yield new Uint8Array(chunk);
+    }
+  }
+
+  async writeFile(path: string, _data: Uint8Array, _options?: WriteFileOptions): Promise<void> {
+    readOnly("writeFile", path);
+  }
+
+  async appendFile(path: string, _data: Uint8Array, _options?: AppendFileOptions): Promise<void> {
+    readOnly("appendFile", path);
+  }
+
+  async writeStream(path: string, _source: ByteSource, _options?: WriteFileOptions): Promise<void> {
+    readOnly("writeStream", path);
+  }
+
+  async mkdir(path: string, _options?: MkdirOptions): Promise<void> {
+    readOnly("mkdir", path);
+  }
+
+  async rm(path: string, _options?: RemoveOptions): Promise<void> {
+    readOnly("rm", path);
+  }
+
+  async unlink(path: string, _options?: FsOptions): Promise<void> {
+    readOnly("unlink", path);
+  }
+
+  async rmdir(path: string, _options?: FsOptions): Promise<void> {
+    readOnly("rmdir", path);
+  }
+
+  async rename(source: string, destination: string, _options?: RenameOptions): Promise<void> {
+    readOnly("rename", source, destination);
+  }
+
+  async copyFile(source: string, destination: string, _options?: CopyFileOptions): Promise<void> {
+    readOnly("copyFile", source, destination);
+  }
+
+  async symlink(target: string, path: string, _options?: FsOptions): Promise<void> {
+    readOnly("symlink", target, path);
+  }
+
+  async link(existingPath: string, newPath: string, _options?: FsOptions): Promise<void> {
+    readOnly("link", existingPath, newPath);
+  }
+
+  async chmod(path: string, _mode: number, _options?: FsOptions): Promise<void> {
+    readOnly("chmod", path);
+  }
+
+  async utimes(path: string, _atimeMs: number, _mtimeMs: number, _options?: FsOptions): Promise<void> {
+    readOnly("utimes", path);
+  }
+
+  async truncate(path: string, _length?: number, _options?: FsOptions): Promise<void> {
+    readOnly("truncate", path);
+  }
+
+  async openResizeFile(path: string, options: OpenResizeFileOptions = {}): Promise<FileResizeHandle> {
+    options.signal?.throwIfAborted();
+    readOnly("openResizeFile", path);
+  }
+}
+
+const readOnlyImplementation = /* @__PURE__ */ Object.getOwnPropertyDescriptors(ReadOnlyFileSystem.prototype);
+
+export function createReadOnlyFileSystem(filesystem: FileSystem): ReadOnlyFileSystem {
+  return new ReadOnlyFileSystem(filesystem);
+}

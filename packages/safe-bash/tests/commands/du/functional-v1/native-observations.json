@@ -1,0 +1,538 @@
+{
+  "profile": "GNU coreutils 9.7 on Darwin; controlled environment; no inherited credentials",
+  "created": "2026-08-27T18:11:15.329Z",
+  "platform": "darwin",
+  "node": "v22.22.2",
+  "oracle": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/du",
+  "binarySha256": "f1df033deed07d208d80128568404c1043b283c59f294164f1240789bfadcf2b",
+  "binaryAfterSha256": "f1df033deed07d208d80128568404c1043b283c59f294164f1240789bfadcf2b",
+  "sourceHead": "7f3ad2f53433e6944260659c8d3904108e5a5a6a",
+  "sourceHashes": {
+    "src/commands/du/arguments.ts": "a777c2575100dbe305dd7376b525727cc213039eda90b659d323841ed05bf041",
+    "src/commands/du/du.ts": "6954f5f86f69ec9aca39f464198d200b0895b6b286df9a5bd08c44444f9b8ca2",
+    "tests/commands/du/functional-v1/native-cases.ts": "1ec47b655d5a1300edbd1cc6665962d8492ffa65ca7b2accfd7ea49cff10c5aa",
+    "tests/commands/du/functional-v1/capture-native.mjs": "30bb7b8d3dbc393a3447a27a755369cd26a1faeddd0c847019851970f4e5aa4b"
+  },
+  "fixtureRoot": "/Users/kjopek/Workspace/safe-bash/tests/commands/du/functional-v1/.native-v1-hqiHBb",
+  "fixture": {
+    "fileBytes": 1025,
+    "content": "all zero bytes"
+  },
+  "emptyFsObservations": [
+    {
+      "provider": "memory",
+      "input": "",
+      "outcome": "rejected",
+      "code": "ENOENT",
+      "message": "ENOENT: no such file or directory, lstat ''"
+    },
+    {
+      "provider": "rooted-real",
+      "input": "",
+      "outcome": "rejected",
+      "code": "ENOENT",
+      "message": "ENOENT: no such file or directory, lstat ''"
+    }
+  ],
+  "results": [
+    {
+      "id": "env-01",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {},
+      "status": 0,
+      "stdout": "2\tfile\n",
+      "stderr": ""
+    },
+    {
+      "id": "env-02",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "POSIXLY_CORRECT": ""
+      },
+      "status": 0,
+      "stdout": "3\tfile\n",
+      "stderr": ""
+    },
+    {
+      "id": "env-03",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "POSIXLY_CORRECT": "1"
+      },
+      "status": 0,
+      "stdout": "3\tfile\n",
+      "stderr": ""
+    },
+    {
+      "id": "env-04",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "DU_BLOCK_SIZE": "bad"
+      },
+      "status": 0,
+      "stdout": "2\tfile\n",
+      "stderr": ""
+    },
+    {
+      "id": "env-05",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "DU_BLOCK_SIZE": ""
+      },
+      "status": 0,
+      "stdout": "2\tfile\n",
+      "stderr": ""
+    },
+    {
+      "id": "env-06",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "DU_BLOCK_SIZE": "bad",
+        "POSIXLY_CORRECT": ""
+      },
+      "status": 0,
+      "stdout": "3\tfile\n",
+      "stderr": ""
+    },
+    {
+      "id": "env-07",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "DU_BLOCK_SIZE": "",
+        "POSIXLY_CORRECT": "1"
+      },
+      "status": 0,
+      "stdout": "3\tfile\n",
+      "stderr": ""
+    },
+    {
+      "id": "env-08",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "DU_BLOCK_SIZE": "bad",
+        "BLOCK_SIZE": "1",
+        "BLOCKSIZE": "2K"
+      },
+      "status": 0,
+      "stdout": "2\tfile\n",
+      "stderr": ""
+    },
+    {
+      "id": "env-09",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "DU_BLOCK_SIZE": "",
+        "BLOCK_SIZE": "1",
+        "BLOCKSIZE": "2K"
+      },
+      "status": 0,
+      "stdout": "2\tfile\n",
+      "stderr": ""
+    },
+    {
+      "id": "env-10",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "DU_BLOCK_SIZE": "bad",
+        "BLOCK_SIZE": "1",
+        "POSIXLY_CORRECT": ""
+      },
+      "status": 0,
+      "stdout": "3\tfile\n",
+      "stderr": ""
+    },
+    {
+      "id": "env-11",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "DU_BLOCK_SIZE": "",
+        "BLOCK_SIZE": "1",
+        "POSIXLY_CORRECT": ""
+      },
+      "status": 0,
+      "stdout": "3\tfile\n",
+      "stderr": ""
+    },
+    {
+      "id": "env-12",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "BLOCK_SIZE": "bad",
+        "BLOCKSIZE": "1"
+      },
+      "status": 0,
+      "stdout": "2\tfile\n",
+      "stderr": ""
+    },
+    {
+      "id": "env-13",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "BLOCK_SIZE": "",
+        "BLOCKSIZE": "1"
+      },
+      "status": 0,
+      "stdout": "2\tfile\n",
+      "stderr": ""
+    },
+    {
+      "id": "env-14",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "BLOCK_SIZE": "bad",
+        "BLOCKSIZE": "1",
+        "POSIXLY_CORRECT": ""
+      },
+      "status": 0,
+      "stdout": "3\tfile\n",
+      "stderr": ""
+    },
+    {
+      "id": "env-15",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "BLOCK_SIZE": "",
+        "BLOCKSIZE": "1",
+        "POSIXLY_CORRECT": ""
+      },
+      "status": 0,
+      "stdout": "3\tfile\n",
+      "stderr": ""
+    },
+    {
+      "id": "env-16",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "BLOCKSIZE": "bad"
+      },
+      "status": 0,
+      "stdout": "2\tfile\n",
+      "stderr": ""
+    },
+    {
+      "id": "env-17",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "BLOCKSIZE": ""
+      },
+      "status": 0,
+      "stdout": "2\tfile\n",
+      "stderr": ""
+    },
+    {
+      "id": "env-18",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "BLOCKSIZE": "bad",
+        "POSIXLY_CORRECT": ""
+      },
+      "status": 0,
+      "stdout": "3\tfile\n",
+      "stderr": ""
+    },
+    {
+      "id": "env-19",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "BLOCKSIZE": "",
+        "POSIXLY_CORRECT": ""
+      },
+      "status": 0,
+      "stdout": "3\tfile\n",
+      "stderr": ""
+    },
+    {
+      "id": "env-20",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "DU_BLOCK_SIZE": "1",
+        "BLOCK_SIZE": "bad",
+        "BLOCKSIZE": "bad"
+      },
+      "status": 0,
+      "stdout": "1025\tfile\n",
+      "stderr": ""
+    },
+    {
+      "id": "env-21",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "DU_BLOCK_SIZE": "K",
+        "BLOCK_SIZE": "1"
+      },
+      "status": 0,
+      "stdout": "2K\tfile\n",
+      "stderr": ""
+    },
+    {
+      "id": "env-22",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "BLOCK_SIZE": "1",
+        "BLOCKSIZE": "bad"
+      },
+      "status": 0,
+      "stdout": "1025\tfile\n",
+      "stderr": ""
+    },
+    {
+      "id": "env-23",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "BLOCKSIZE": "1"
+      },
+      "status": 0,
+      "stdout": "1025\tfile\n",
+      "stderr": ""
+    },
+    {
+      "id": "env-24",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "DU_BLOCK_SIZE": "0"
+      },
+      "status": 0,
+      "stdout": "2\tfile\n",
+      "stderr": ""
+    },
+    {
+      "id": "env-25",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "DU_BLOCK_SIZE": "-1"
+      },
+      "status": 0,
+      "stdout": "2\tfile\n",
+      "stderr": ""
+    },
+    {
+      "id": "explicit-bytes-over-invalid",
+      "args": [
+        "-b",
+        "file"
+      ],
+      "env": {
+        "DU_BLOCK_SIZE": "bad",
+        "POSIXLY_CORRECT": ""
+      },
+      "status": 0,
+      "stdout": "1025\tfile\n",
+      "stderr": ""
+    },
+    {
+      "id": "explicit-k-over-empty",
+      "args": [
+        "--apparent-size",
+        "-k",
+        "file"
+      ],
+      "env": {
+        "DU_BLOCK_SIZE": "",
+        "BLOCK_SIZE": "1",
+        "POSIXLY_CORRECT": ""
+      },
+      "status": 0,
+      "stdout": "2\tfile\n",
+      "stderr": ""
+    },
+    {
+      "id": "explicit-unit-over-invalid",
+      "args": [
+        "--apparent-size",
+        "-B1",
+        "file"
+      ],
+      "env": {
+        "DU_BLOCK_SIZE": "bad"
+      },
+      "status": 0,
+      "stdout": "1025\tfile\n",
+      "stderr": ""
+    },
+    {
+      "id": "explicit-invalid-1",
+      "args": [
+        "--apparent-size",
+        "-B",
+        "",
+        "file"
+      ],
+      "env": {
+        "DU_BLOCK_SIZE": "1"
+      },
+      "status": 1,
+      "stdout": "",
+      "stderr": "du: invalid -B argument ''\n"
+    },
+    {
+      "id": "explicit-invalid-2",
+      "args": [
+        "--apparent-size",
+        "-B",
+        "bad",
+        "file"
+      ],
+      "env": {
+        "DU_BLOCK_SIZE": "1"
+      },
+      "status": 1,
+      "stdout": "",
+      "stderr": "du: invalid -B argument 'bad'\n"
+    },
+    {
+      "id": "explicit-invalid-3",
+      "args": [
+        "--apparent-size",
+        "-B",
+        "0",
+        "file"
+      ],
+      "env": {
+        "DU_BLOCK_SIZE": "1"
+      },
+      "status": 1,
+      "stdout": "",
+      "stderr": "du: invalid -B argument '0'\n"
+    },
+    {
+      "id": "explicit-invalid-4",
+      "args": [
+        "--apparent-size",
+        "-B",
+        "-1",
+        "file"
+      ],
+      "env": {
+        "DU_BLOCK_SIZE": "1"
+      },
+      "status": 1,
+      "stdout": "",
+      "stderr": "du: invalid -B argument '-1'\n"
+    },
+    {
+      "id": "explicit-invalid-5",
+      "args": [
+        "--apparent-size",
+        "-B",
+        "1.5K",
+        "file"
+      ],
+      "env": {
+        "DU_BLOCK_SIZE": "1"
+      },
+      "status": 1,
+      "stdout": "",
+      "stderr": "du: invalid suffix in -B argument '1.5K'\n"
+    },
+    {
+      "id": "empty-only",
+      "args": [
+        "-b",
+        ""
+      ],
+      "env": {},
+      "status": 1,
+      "stdout": "",
+      "stderr": "du: invalid zero-length file name\n"
+    },
+    {
+      "id": "empty-then-file",
+      "args": [
+        "-b",
+        "",
+        "file"
+      ],
+      "env": {},
+      "status": 1,
+      "stdout": "1025\tfile\n",
+      "stderr": "du: invalid zero-length file name\n"
+    },
+    {
+      "id": "file-then-empty",
+      "args": [
+        "-b",
+        "file",
+        ""
+      ],
+      "env": {},
+      "status": 1,
+      "stdout": "1025\tfile\n",
+      "stderr": "du: invalid zero-length file name\n"
+    }
+  ]
+}

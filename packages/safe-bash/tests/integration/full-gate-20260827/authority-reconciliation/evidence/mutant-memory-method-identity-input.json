@@ -1,0 +1,10 @@
+{
+  "name": "memory-method-identity",
+  "path": "src/fs/memory/index.ts",
+  "before": "intact: () => this.root === root,",
+  "after": "intact: () => this.root === root && this.writeFile === memoryImplementation.writeFile?.value && this.writeStream === memoryImplementation.writeStream?.value,",
+  "catches": "memory subclass-before buffered: faithful writer",
+  "beforeSha256": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+  "afterSha256": "61bff4066e1d42821913dbdea506c295c540732b3f29e4699a5ef01fe9432a9c",
+  "temporarySnapshotOnly": true
+}

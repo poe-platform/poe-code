@@ -1,0 +1,3342 @@
+{
+  "kind": "Manual native temporary-disk capture, not a unit test. Raw diagnostics; no normalization.",
+  "binary": "/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src/ginstall",
+  "sha256": "efd5c3373a8b3d8fdc4edc7c506bc1cc3ee215ed27fdd8eca151e70e8fa1893a",
+  "platform": "darwin",
+  "arch": "arm64",
+  "locale": "C",
+  "rows": [
+    {
+      "args": [],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "source"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing destination file operand after 'source'\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing destination file operand after 'source'\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "-z"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: invalid option -- 'z'\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: invalid option -- 'z'\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--bad"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: unrecognized option '--bad'\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: unrecognized option '--bad'\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "-m"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option requires an argument -- 'm'\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option requires an argument -- 'm'\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--mode"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--mode' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--mode' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-s"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: the strip option may not be used when installing a directory\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: the strip option may not be used when installing a directory\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-t",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: target directory not allowed when installing a directory\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: target directory not allowed when installing a directory\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "-T",
+        "-t",
+        "target",
+        "source"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot combine --target-directory (-t) and --no-target-directory (-T)\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot combine --target-directory (-t) and --no-target-directory (-T)\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "-t",
+        "a",
+        "-t",
+        "b",
+        "source"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: multiple target directories specified\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: multiple target directories specified\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "-Cp",
+        "source",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: options --compare (-C) and --preserve-timestamps are mutually exclusive\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: options --compare (-C) and --preserve-timestamps are mutually exclusive\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "-Cs",
+        "source",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: options --compare (-C) and --strip are mutually exclusive\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: options --compare (-C) and --strip are mutually exclusive\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--backup=n",
+        "source",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: ambiguous argument 'n' for 'backup type'\nValid arguments are:\n  - 'none', 'off'\n  - 'simple', 'never'\n  - 'existing', 'nil'\n  - 'numbered', 't'\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: ambiguous argument 'n' for 'backup type'\nValid arguments are:\n  - 'none', 'off'\n  - 'simple', 'never'\n  - 'existing', 'nil'\n  - 'numbered', 't'\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--b"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--ba"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--bac"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--back"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--backu"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--backup"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--c"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--c' is ambiguous; possibilities: '--compare' '--context'\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--c' is ambiguous; possibilities: '--compare' '--context'\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--co"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--co' is ambiguous; possibilities: '--compare' '--context'\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--co' is ambiguous; possibilities: '--compare' '--context'\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--com"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--comp"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--compa"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--compar"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--compare"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--c"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--c' is ambiguous; possibilities: '--compare' '--context'\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--c' is ambiguous; possibilities: '--compare' '--context'\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--co"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--co' is ambiguous; possibilities: '--compare' '--context'\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--co' is ambiguous; possibilities: '--compare' '--context'\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--con"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--cont"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--conte"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--contex"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--context"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--d"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--d' is ambiguous; possibilities: '--debug' '--directory'\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--d' is ambiguous; possibilities: '--debug' '--directory'\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--de"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--deb"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--debu"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--debug"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--d"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--d' is ambiguous; possibilities: '--debug' '--directory'\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--d' is ambiguous; possibilities: '--debug' '--directory'\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--di"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--dir"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--dire"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--direc"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--direct"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--directo"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--director"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--directory"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--g"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--group' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--group' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--gr"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--group' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--group' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--gro"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--group' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--group' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--grou"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--group' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--group' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--group"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--group' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--group' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--m"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--mode' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--mode' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--mo"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--mode' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--mode' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--mod"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--mode' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--mode' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--mode"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--mode' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--mode' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--n"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--no"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--no-"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--no-t"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--no-ta"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--no-tar"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--no-targ"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--no-targe"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--no-target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--no-target-"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--no-target-d"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--no-target-di"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--no-target-dir"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--no-target-dire"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--no-target-direc"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--no-target-direct"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--no-target-directo"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--no-target-director"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--no-target-directory"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--o"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--owner' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--owner' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--ow"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--owner' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--owner' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--own"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--owner' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--owner' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--owne"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--owner' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--owner' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--owner"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--owner' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--owner' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--p"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--p' is ambiguous; possibilities: '--preserve-timestamps' '--preserve-context'\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--p' is ambiguous; possibilities: '--preserve-timestamps' '--preserve-context'\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--pr"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--pr' is ambiguous; possibilities: '--preserve-timestamps' '--preserve-context'\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--pr' is ambiguous; possibilities: '--preserve-timestamps' '--preserve-context'\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--pre"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--pre' is ambiguous; possibilities: '--preserve-timestamps' '--preserve-context'\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--pre' is ambiguous; possibilities: '--preserve-timestamps' '--preserve-context'\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--pres"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--pres' is ambiguous; possibilities: '--preserve-timestamps' '--preserve-context'\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--pres' is ambiguous; possibilities: '--preserve-timestamps' '--preserve-context'\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--prese"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--prese' is ambiguous; possibilities: '--preserve-timestamps' '--preserve-context'\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--prese' is ambiguous; possibilities: '--preserve-timestamps' '--preserve-context'\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--preser"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--preser' is ambiguous; possibilities: '--preserve-timestamps' '--preserve-context'\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--preser' is ambiguous; possibilities: '--preserve-timestamps' '--preserve-context'\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--preserv"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--preserv' is ambiguous; possibilities: '--preserve-timestamps' '--preserve-context'\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--preserv' is ambiguous; possibilities: '--preserve-timestamps' '--preserve-context'\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--preserve"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--preserve' is ambiguous; possibilities: '--preserve-timestamps' '--preserve-context'\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--preserve' is ambiguous; possibilities: '--preserve-timestamps' '--preserve-context'\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--preserve-"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--preserve-' is ambiguous; possibilities: '--preserve-timestamps' '--preserve-context'\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--preserve-' is ambiguous; possibilities: '--preserve-timestamps' '--preserve-context'\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--preserve-t"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--preserve-ti"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--preserve-tim"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--preserve-time"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--preserve-times"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--preserve-timest"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--preserve-timesta"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--preserve-timestam"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--preserve-timestamp"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--preserve-timestamps"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--p"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--p' is ambiguous; possibilities: '--preserve-timestamps' '--preserve-context'\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--p' is ambiguous; possibilities: '--preserve-timestamps' '--preserve-context'\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--pr"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--pr' is ambiguous; possibilities: '--preserve-timestamps' '--preserve-context'\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--pr' is ambiguous; possibilities: '--preserve-timestamps' '--preserve-context'\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--pre"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--pre' is ambiguous; possibilities: '--preserve-timestamps' '--preserve-context'\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--pre' is ambiguous; possibilities: '--preserve-timestamps' '--preserve-context'\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--pres"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--pres' is ambiguous; possibilities: '--preserve-timestamps' '--preserve-context'\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--pres' is ambiguous; possibilities: '--preserve-timestamps' '--preserve-context'\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--prese"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--prese' is ambiguous; possibilities: '--preserve-timestamps' '--preserve-context'\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--prese' is ambiguous; possibilities: '--preserve-timestamps' '--preserve-context'\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--preser"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--preser' is ambiguous; possibilities: '--preserve-timestamps' '--preserve-context'\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--preser' is ambiguous; possibilities: '--preserve-timestamps' '--preserve-context'\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--preserv"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--preserv' is ambiguous; possibilities: '--preserve-timestamps' '--preserve-context'\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--preserv' is ambiguous; possibilities: '--preserve-timestamps' '--preserve-context'\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--preserve"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--preserve' is ambiguous; possibilities: '--preserve-timestamps' '--preserve-context'\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--preserve' is ambiguous; possibilities: '--preserve-timestamps' '--preserve-context'\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--preserve-"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--preserve-' is ambiguous; possibilities: '--preserve-timestamps' '--preserve-context'\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--preserve-' is ambiguous; possibilities: '--preserve-timestamps' '--preserve-context'\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--preserve-c"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: WARNING: ignoring --preserve-context; this kernel is not SELinux-enabled\ninstall: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: WARNING: ignoring --preserve-context; this kernel is not SELinux-enabled\ninstall: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--preserve-co"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: WARNING: ignoring --preserve-context; this kernel is not SELinux-enabled\ninstall: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: WARNING: ignoring --preserve-context; this kernel is not SELinux-enabled\ninstall: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--preserve-con"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: WARNING: ignoring --preserve-context; this kernel is not SELinux-enabled\ninstall: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: WARNING: ignoring --preserve-context; this kernel is not SELinux-enabled\ninstall: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--preserve-cont"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: WARNING: ignoring --preserve-context; this kernel is not SELinux-enabled\ninstall: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: WARNING: ignoring --preserve-context; this kernel is not SELinux-enabled\ninstall: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--preserve-conte"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: WARNING: ignoring --preserve-context; this kernel is not SELinux-enabled\ninstall: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: WARNING: ignoring --preserve-context; this kernel is not SELinux-enabled\ninstall: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--preserve-contex"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: WARNING: ignoring --preserve-context; this kernel is not SELinux-enabled\ninstall: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: WARNING: ignoring --preserve-context; this kernel is not SELinux-enabled\ninstall: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--preserve-context"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: WARNING: ignoring --preserve-context; this kernel is not SELinux-enabled\ninstall: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: WARNING: ignoring --preserve-context; this kernel is not SELinux-enabled\ninstall: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--s"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--s' is ambiguous; possibilities: '--strip' '--strip-program' '--suffix'\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--s' is ambiguous; possibilities: '--strip' '--strip-program' '--suffix'\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--st"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--st' is ambiguous; possibilities: '--strip' '--strip-program'\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--st' is ambiguous; possibilities: '--strip' '--strip-program'\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--str"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--str' is ambiguous; possibilities: '--strip' '--strip-program'\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--str' is ambiguous; possibilities: '--strip' '--strip-program'\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--stri"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--stri' is ambiguous; possibilities: '--strip' '--strip-program'\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--stri' is ambiguous; possibilities: '--strip' '--strip-program'\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--strip"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--s"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--s' is ambiguous; possibilities: '--strip' '--strip-program' '--suffix'\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--s' is ambiguous; possibilities: '--strip' '--strip-program' '--suffix'\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--st"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--st' is ambiguous; possibilities: '--strip' '--strip-program'\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--st' is ambiguous; possibilities: '--strip' '--strip-program'\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--str"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--str' is ambiguous; possibilities: '--strip' '--strip-program'\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--str' is ambiguous; possibilities: '--strip' '--strip-program'\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--stri"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--stri' is ambiguous; possibilities: '--strip' '--strip-program'\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--stri' is ambiguous; possibilities: '--strip' '--strip-program'\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--strip"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--strip-"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--strip-program' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--strip-program' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--strip-p"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--strip-program' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--strip-program' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--strip-pr"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--strip-program' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--strip-program' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--strip-pro"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--strip-program' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--strip-program' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--strip-prog"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--strip-program' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--strip-program' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--strip-progr"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--strip-program' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--strip-program' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--strip-progra"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--strip-program' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--strip-program' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--strip-program"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--strip-program' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--strip-program' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--s"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--s' is ambiguous; possibilities: '--strip' '--strip-program' '--suffix'\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--s' is ambiguous; possibilities: '--strip' '--strip-program' '--suffix'\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--su"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--suffix' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--suffix' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--suf"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--suffix' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--suffix' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--suff"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--suffix' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--suffix' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--suffi"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--suffix' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--suffix' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--suffix"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--suffix' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--suffix' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--t"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--target-directory' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--target-directory' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--ta"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--target-directory' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--target-directory' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--tar"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--target-directory' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--target-directory' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--targ"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--target-directory' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--target-directory' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--targe"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--target-directory' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--target-directory' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--target-directory' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--target-directory' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--target-"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--target-directory' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--target-directory' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--target-d"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--target-directory' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--target-directory' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--target-di"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--target-directory' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--target-directory' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--target-dir"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--target-directory' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--target-directory' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--target-dire"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--target-directory' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--target-directory' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--target-direc"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--target-directory' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--target-directory' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--target-direct"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--target-directory' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--target-directory' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--target-directo"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--target-directory' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--target-directory' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--target-director"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--target-directory' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--target-directory' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--target-directory"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--target-directory' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--target-directory' requires an argument\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--v"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--v' is ambiguous; possibilities: '--verbose' '--version'\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--v' is ambiguous; possibilities: '--verbose' '--version'\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--ve"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--ve' is ambiguous; possibilities: '--verbose' '--version'\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--ve' is ambiguous; possibilities: '--verbose' '--version'\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--ver"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--ver' is ambiguous; possibilities: '--verbose' '--version'\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: option '--ver' is ambiguous; possibilities: '--verbose' '--version'\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--verb"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--verbo"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--verbos"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--verbose"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: missing file operand\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "",
+        "missing",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: invalid mode ''\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: invalid mode ''\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "8",
+        "missing",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: invalid mode '8'\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: invalid mode '8'\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "888",
+        "missing",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: invalid mode '888'\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: invalid mode '888'\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "77777",
+        "missing",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: invalid mode '77777'\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: invalid mode '77777'\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "u",
+        "missing",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: invalid mode 'u'\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: invalid mode 'u'\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "a",
+        "missing",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: invalid mode 'a'\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: invalid mode 'a'\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "u+q",
+        "missing",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: invalid mode 'u+q'\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: invalid mode 'u+q'\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "u+rw,g=u,o=g",
+        "missing",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "u+r+w-x",
+        "missing",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "u=rwX",
+        "missing",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "g=u",
+        "missing",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "+7",
+        "missing",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "-7",
+        "missing",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "=7",
+        "missing",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "00000755",
+        "missing",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "u++x",
+        "missing",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "u+ug",
+        "missing",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: invalid mode 'u+ug'\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: invalid mode 'u+ug'\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "u+t",
+        "missing",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "o+s",
+        "missing",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        ",",
+        "missing",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: invalid mode ','\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: invalid mode ','\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "a+r,",
+        "missing",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: invalid mode 'a+r,'\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: invalid mode 'a+r,'\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "u+",
+        "missing",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "u=",
+        "missing",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "-m",
+        "a+X",
+        "missing",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--backup=",
+        "missing",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--backup=n",
+        "missing",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: ambiguous argument 'n' for 'backup type'\nValid arguments are:\n  - 'none', 'off'\n  - 'simple', 'never'\n  - 'existing', 'nil'\n  - 'numbered', 't'\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: ambiguous argument 'n' for 'backup type'\nValid arguments are:\n  - 'none', 'off'\n  - 'simple', 'never'\n  - 'existing', 'nil'\n  - 'numbered', 't'\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--backup=no",
+        "missing",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--backup=none",
+        "missing",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--backup=off",
+        "missing",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--backup=ne",
+        "missing",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--backup=never",
+        "missing",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--backup=simple",
+        "missing",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--backup=nil",
+        "missing",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--backup=existing",
+        "missing",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--backup=t",
+        "missing",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--backup=numbered",
+        "missing",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--backup=wat",
+        "missing",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: invalid argument 'wat' for 'backup type'\nValid arguments are:\n  - 'none', 'off'\n  - 'simple', 'never'\n  - 'existing', 'nil'\n  - 'numbered', 't'\nTry 'install --help' for more information.\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: invalid argument 'wat' for 'backup type'\nValid arguments are:\n  - 'none', 'off'\n  - 'simple', 'never'\n  - 'existing', 'nil'\n  - 'numbered', 't'\nTry 'install --help' for more information.\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--backup=s",
+        "missing",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "exact": true
+    },
+    {
+      "args": [
+        "--backup=e",
+        "missing",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot stat 'missing': No such file or directory\n"
+      },
+      "exact": true
+    }
+  ]
+}

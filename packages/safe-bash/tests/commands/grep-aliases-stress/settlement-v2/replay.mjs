@@ -1,0 +1,94 @@
+import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import { copyFileSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { audit, candidate, historical, retained, repository, packageSha256 } from './audit.mjs';
+import { applyToNewDirectory, sha256 } from './fixture.mjs';
+
+const root = dirname(fileURLToPath(import.meta.url));
+const destination = resolve(process.argv[2]);
+const applyPatch = process.env.SAFE_BASH_APPLY_PATCH;
+assert.ok(applyPatch && process.argv[2]);
+mkdirSync(destination, { recursive: false });
+const consumer = join(destination, 'physically-moved-consumer');
+const fixtureRoot = join(destination, 'derived-fixtures');
+const originalRoot = join(retained, 'source/tests/commands/grep-aliases-stress');
+const environment = { PATH: `${dirname(process.execPath)}:/usr/bin:/bin`, HOME: join(destination, 'home'), TMPDIR: destination, LANG: 'C', LC_ALL: 'C', TZ: 'UTC' };
+mkdirSync(environment.HOME);
+const receipt = { classification: 'separate-author-fixture-v2-replay-not-relabelled-historical-results', preparationCommit: '8b89c0e76dfe581ce57418b391e74ce299686af7', candidate, packageSha256, startedAt: new Date().toISOString(), destination, consumer, commands: [], copies: [], driverBindings: [], audits: [], cohorts: [], status: 'in-progress', forcedCleanup: false, newProductBuild: false, newNpmPack: false, sourceOverlay: false };
+const save = (path, value) => writeFileSync(join(destination, path), `${JSON.stringify(value, null, 2)}\n`);
+function run(name, executable, args, cwd = destination, timeout = 30000, input, allowFailure = false) {
+  const child = spawnSync(executable, args, { cwd, env: environment, timeout, maxBuffer: 8 * 1024 * 1024, killSignal: 'SIGKILL', input });
+  const captured = { name, executable, args, cwd, timeout, pid: child.pid, status: child.status, signal: child.signal, error: child.error?.message ?? null, stdoutHex: (child.stdout ?? Buffer.alloc(0)).toString('hex'), stderrHex: (child.stderr ?? Buffer.alloc(0)).toString('hex') };
+  receipt.commands.push(captured); save(`${name}.json`, captured);
+  if (child.signal || child.error) receipt.forcedCleanup = true;
+  assert.equal(child.error, undefined, name); assert.equal(child.signal, null, name);
+  if (!allowFailure) assert.equal(child.status, 0, `${name}: ${child.stderr?.toString()} ${child.stdout?.toString()}`);
+  return child;
+}
+function copy(from, to) {
+  copyFileSync(from, to); assert.deepEqual(readFileSync(from), readFileSync(to));
+  receipt.copies.push({ original: from, copy: to, sha256: sha256(readFileSync(to)), byteForByte: true });
+}
+try {
+  const freeze = JSON.parse(readFileSync(join(root, 'freeze.json')));
+  for (const entry of freeze.preparationSources) assert.equal(sha256(readFileSync(join(root, entry.path))), entry.sha256);
+  for (const path of ['BOUNDARY.md', 'fixture.patch', 'fixture.mjs', 'audit.mjs', 'freeze.json']) {
+    const committed = run(`prep-${path.replaceAll('.', '-')}`, 'git', ['show', `${receipt.preparationCommit}:tests/commands/grep-aliases-stress/settlement-v2/${path}`], repository).stdout;
+    assert.deepEqual(committed, readFileSync(join(root, path)), path);
+  }
+  receipt.verifierSources = ['replay.mjs', 'assertion-controls.mjs'].map(path => ({ path, sha256: sha256(readFileSync(join(root, path))) }));
+  receipt.audits.push(audit('before-any-replay-product-import'));
+  save('before.json', receipt.audits[0]);
+  const pack = JSON.parse(readFileSync(join(retained, 'receipt.json')));
+  assert.equal(pack.commands.find(row => row.name === 'build').status, 0);
+  assert.equal(pack.commands.find(row => row.name === 'pack-offline').status, 0);
+  receipt.reusedBuildAndPackPrerequisites = { retainedReceiptSha256: sha256(readFileSync(join(retained, 'receipt.json'))), completeCommittedSourceReauthenticated: true, newBuildClaimed: false, newPackClaimed: false };
+  mkdirSync(join(destination, 'staging'));
+  run('extract-exact-package', '/usr/bin/tar', ['-xzf', join(retained, pack.packageFilename), '-C', join(destination, 'staging')]);
+  mkdirSync(join(consumer, 'node_modules'), { recursive: true });
+  renameSync(join(destination, 'staging/package'), join(consumer, 'node_modules/virtual-bash'));
+  mkdirSync(join(fixtureRoot, 'verification/gnu'), { recursive: true });
+  mkdirSync(join(fixtureRoot, 'verification/coverage-supplement'), { recursive: true });
+  mkdirSync(join(fixtureRoot, 'data'));
+  receipt.fixture = applyToNewDirectory(readFileSync(join(originalRoot, 'verification/holdouts.mts'), 'utf8'), join(fixtureRoot, 'verification'), applyPatch);
+  const { applyPatchSteps, ...derivation } = receipt.fixture; assert.deepEqual(derivation, freeze.fixture);
+  copy(join(originalRoot, 'verification/public-consumer.mts'), join(fixtureRoot, 'verification/public-consumer.mts'));
+  copy(join(originalRoot, 'verification/coverage-supplement/pipeline-holdouts.mts'), join(fixtureRoot, 'verification/coverage-supplement/pipeline-holdouts.mts'));
+  copy(join(originalRoot, 'verification/gnu/captures.json'), join(fixtureRoot, 'verification/gnu/captures.json'));
+  for (const name of ['corpus.json', 'native-goldens.json', 'safety-holdouts.json', 'candidate-profiles.json']) copy(join(originalRoot, 'data', name), join(fixtureRoot, 'data', name));
+  save('fixture-binding.json', { fixture: receipt.fixture, copies: receipt.copies });
+  run('assertion-controls', process.execPath, [join(root, 'assertion-controls.mjs'), join(destination, 'assertion-control-results.json')], destination, 10000);
+  receipt.audits.push(audit('moved-package-before-first-product-import', consumer));
+  save('before-product.json', receipt.audits.at(-1));
+  const resolved = run('resolve-public-root', process.execPath, ['--input-type=module', '-e', "console.log(import.meta.resolve('virtual-bash'))"], consumer).stdout.toString().trim();
+  assert.equal(resolved, receipt.audits.at(-1).consumers.at(-1).bindings.find(row => row.path === 'dist/index.js').actualResolvedUrl);
+  receipt.publicRootResolutionBeforeImport = resolved;
+  for (const cohort of ['base', 'supplement']) {
+    const originalPath = join(originalRoot, cohort === 'base' ? 'verification/run-standalone.mjs' : 'verification/coverage-supplement/run-supplement.mjs');
+    const original = readFileSync(originalPath, 'utf8');
+    const changes = cohort === 'base'
+      ? [["const root = fileURLToPath(new URL('./', import.meta.url));", `const root = ${JSON.stringify(`${join(fixtureRoot, 'verification')}/`)};`], ['const consumer = receipt.consumer;', `const consumer = ${JSON.stringify(consumer)};`]]
+      : [["const base = fileURLToPath(new URL('./', import.meta.url));", `const base = ${JSON.stringify(`${join(fixtureRoot, 'verification/coverage-supplement')}/`)};`], ['const consumer = receipt.consumer;', `const consumer = ${JSON.stringify(consumer)};`], ["candidate: '04644bc2c15d67155f5f4b170a66fc9bef3f6e3d'", 'candidate: receipt.candidate']];
+    let bound = original; for (const [before, after] of changes) { assert.equal(bound.split(before).length, 2); bound = bound.replace(before, after); }
+    const driver = join(destination, `bound-${cohort}.mjs`);
+    run(`bind-${cohort}`, applyPatch, [], destination, 30000, `*** Begin Patch\n*** Add File: ${driver}\n${bound.trimEnd().split('\n').map(line => `+${line}`).join('\n')}\n*** End Patch\n`);
+    assert.equal(readFileSync(driver, 'utf8'), bound);
+    receipt.driverBindings.push({ cohort, originalPath, originalSha256: sha256(original), boundDriver: driver, boundSha256: sha256(bound), changes, runnerAssertionChanges: false });
+    const attempt = join(destination, `${cohort}-01`);
+    const child = run(`run-${cohort}`, process.execPath, [driver, retained, attempt], destination, 180000, undefined, true);
+    receipt.cohorts.push({ cohort, processStatus: child.status, receipt: JSON.parse(readFileSync(join(attempt, 'receipt.json'))) });
+    receipt.audits.push(audit(`after-${cohort}`, consumer));
+    save(`after-${cohort}.json`, receipt.audits.at(-1));
+  }
+  assert.equal(sha256(readFileSync(join(consumer, 'holdouts.mts'))), freeze.fixture.derivedSha256);
+  for (const entry of receipt.copies) assert.equal(sha256(readFileSync(entry.copy)), entry.sha256);
+  receipt.status = receipt.cohorts.every(row => row.processStatus === 0) ? 'passed-fixture-v2-author-replay-awaits-different-reviewer' : 'candidate-tests-failed';
+  if (receipt.cohorts.some(row => row.processStatus !== 0)) process.exitCode = 1;
+} catch (error) {
+  receipt.status = 'failed'; receipt.failure = { message: error.message, stack: error.stack }; process.exitCode = 1;
+} finally {
+  receipt.endedAt = new Date().toISOString(); save('execution.json', receipt);
+  console.log(JSON.stringify({ status: receipt.status, candidate, packageSha256, destination, cohorts: receipt.cohorts.map(row => ({ cohort: row.cohort, status: row.processStatus })), failure: receipt.failure }, null, 2));
+}

@@ -1,0 +1,23 @@
+{
+  "schema": "PRESERVED_PREPARATION_ERRORS",
+  "errors": [
+    {
+      "stage": "source-helper",
+      "message": "functional.text(...).slice is not a function",
+      "childLaunched": false
+    },
+    {
+      "stage": "following-context",
+      "message": "functional is not defined",
+      "qualification": "Unsaved draft lost. Reset trigger not established. Durable journal showed sole launched child already closed."
+    },
+    {
+      "stage": "publication-source-helper",
+      "message": "[1:569-1:570]: Expected ')'",
+      "childLaunched": false,
+      "corrected": "Missing initialValue close in local reduce expression; next DATA-only attempt succeeded."
+    }
+  ],
+  "originalControlsRetried": false,
+  "actualCohortAttempted": false
+}

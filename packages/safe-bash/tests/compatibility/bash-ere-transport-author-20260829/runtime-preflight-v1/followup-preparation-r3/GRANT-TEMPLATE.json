@@ -1,0 +1,17 @@
+{
+  "schema": 2,
+  "authorized": false,
+  "profileSha256": "1c2b19a7b8a8b2d91bae89045d6077e81b4b0f10af359da44d89d8b469fe808e",
+  "runId": "ERE-L02-FOLLOWUP-r3",
+  "reviewCommit": "UNASSIGNED",
+  "reviewReceiptSha256": "UNASSIGNED",
+  "issuedAt": "UNASSIGNED",
+  "latestStartAt": "UNASSIGNED",
+  "expiresAt": "UNASSIGNED",
+  "cases": 13,
+  "Workers": 10,
+  "wallMilliseconds": 600000,
+  "knownOS": 27,
+  "captureBytes": 67108864,
+  "workingBytes": 268435456
+}

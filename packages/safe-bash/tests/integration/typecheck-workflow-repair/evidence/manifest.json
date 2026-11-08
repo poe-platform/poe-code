@@ -1,0 +1,77 @@
+{
+  "schema": 1,
+  "date": "2026-08-27",
+  "sourceCommit": "b9559de5c62fb679c8558fc2444ecb99f1d9eee1",
+  "scope": "Frozen committed base plus exactly ten tested owned workflow overlays; no product source delta, runtime/service or whole-product acceptance.",
+  "attempts": [
+    {
+      "name": "v1",
+      "path": "tests/integration/typecheck-workflow-repair/evidence/v1.json",
+      "sha256": "6da27c44e553365014f9f48475ebe5967fa41f38caf7cb218a35a71b98121196",
+      "candidate": "106e2951da6c8a0ea033eb7626e167400c5b19da",
+      "archiveSha256": "a0d2df47830a6fb47376d258a7686ec4c9eee7feaa5150c3534f2ba18a033024",
+      "checks": 14,
+      "passed": true,
+      "cleaned": true,
+      "builds": 1,
+      "phaseCount": 25,
+      "sourceConsumerGroups": 0,
+      "movedConsumerGroups": 19,
+      "negativeDiagnostics": [
+        1,
+        2,
+        5
+      ],
+      "qualification": "Initial passing typing cohort; source-resolution string guard subsequently normalized for directory-URL trailing slash."
+    },
+    {
+      "name": "v2",
+      "path": "tests/integration/typecheck-workflow-repair/evidence/v2.json",
+      "sha256": "954769488bab43be84c3622118af3dbab4199b8eca589bd591461d29974aef41",
+      "candidate": "e0aa2d2314de815dcf2773889c5a46ae2d04ed8e",
+      "archiveSha256": "567d7248a9a9b6c417a5a93289619687bce21c2c0c59874d2a9c801bbc43940b",
+      "checks": 15,
+      "passed": true,
+      "cleaned": true,
+      "builds": 1,
+      "phaseCount": 25,
+      "sourceConsumerGroups": 0,
+      "movedConsumerGroups": 19,
+      "negativeDiagnostics": [
+        1,
+        2,
+        5
+      ],
+      "qualification": "Added normalized source-resolution guard/control; before explicit extra strict .ts consumer groups."
+    },
+    {
+      "name": "v3",
+      "path": "tests/integration/typecheck-workflow-repair/evidence/v3.json",
+      "sha256": "003bce60c6868b650cf7ddc168138d2a615cb69a486a720136c9a3f640776964",
+      "candidate": "026e20cf38ddbb695d82de3f30cf7a1a7c88f088",
+      "archiveSha256": "06d0ca9d906dd46f7299f873e08b38a04166fe696c7445397cf8a3ffde692d48",
+      "checks": 15,
+      "passed": true,
+      "cleaned": true,
+      "builds": 1,
+      "phaseCount": 28,
+      "sourceConsumerGroups": 3,
+      "movedConsumerGroups": 19,
+      "negativeDiagnostics": [
+        1,
+        2,
+        5
+      ],
+      "qualification": "Final tested repair; three strict source-consumer groups added without dropping root coverage."
+    }
+  ],
+  "harness": {
+    "path": "tests/integration/typecheck-workflow-repair/run.mjs",
+    "sha256": "4985b0a104955f28006b590370c6162a8b40f785e678191f757a2511debe7fea"
+  },
+  "tooling": {
+    "node": "v22.22.2",
+    "typescript": "5.9.3",
+    "nodeTypes": "22.20.1"
+  }
+}

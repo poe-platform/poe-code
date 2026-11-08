@@ -1,0 +1,30 @@
+{
+  "at": "2026-08-29T15:58:16.199Z",
+  "sourceCommit": "6dfff45db6b24d0118721a905ca7f7a058a7c3ec",
+  "seal": {
+    "bytes": 200923,
+    "sha256": "db262c234c02526f2864ef66d8e137e9cd9817645431d944ff3459ad3c89d9d9"
+  },
+  "knownStartsThroughThisSnapshot": 16,
+  "knownOutstanding": 0,
+  "pureHelpers": 2,
+  "groupResult": "8/8 DATA; initial helper syntax failure separate",
+  "captureBytes": 28475,
+  "files": [
+    {
+      "root": "/private/tmp/safe-bash-k08-archive-v3-6g2j3q",
+      "at": 1788019096199,
+      "bytes": 46752,
+      "entries": 35,
+      "qualification": "fresh sampled logical owned files, not RSS/continuous quota"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3",
+      "at": 1788019096200,
+      "bytes": 538121,
+      "entries": 36,
+      "qualification": "fresh sampled logical owned files, not RSS/continuous quota"
+    }
+  ],
+  "qualification": "Fresh file-based invocation-local snapshots, not historical peak/RSS; publication Git processes follow and remain in external ledger; no self-authenticating terminal count claim"
+}

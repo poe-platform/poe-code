@@ -1,0 +1,6 @@
+import { Shell, createMemoryFileSystem, structuredCommands } from "virtual-bash";
+
+const fileSystem = createMemoryFileSystem();
+const shell: Shell = new Shell({ fs: fileSystem }).use(structuredCommands());
+void shell;
+

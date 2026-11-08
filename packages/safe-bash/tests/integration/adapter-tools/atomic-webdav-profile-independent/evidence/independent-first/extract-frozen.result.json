@@ -1,0 +1,15 @@
+{
+  "name": "extract-frozen",
+  "executable": "tar",
+  "args": [
+    "-xzf",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/frozen-inputs.tar.gz",
+    "-C",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-LoFht8/source"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-LoFht8",
+  "startedAt": "2026-08-27T09:13:15.732Z",
+  "finishedAt": "2026-08-27T09:13:15.858Z",
+  "status": 0,
+  "signal": null
+}

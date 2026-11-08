@@ -1,0 +1,3 @@
+{"name":"status","pid":20123,"status":0,"signal":null,"stdoutBase64":"Pz8gdGVzdHMvaW50ZWdyYXRpb24vYWdlbnQtYmFzaC1jb2hlcmVudC1iMi1pbmRlcGVuZGVudC0yMDI2MDgyOS9jb21wbGV0aW9uLXI2LXJldmlldy8A","stderrBase64":""}
+{"name":"add","pid":20124,"status":0,"signal":null,"stdoutBase64":"","stderrBase64":""}
+{"name":"commit","pid":20125,"status":0,"signal":null,"stdoutBase64":"","stderrBase64":""}

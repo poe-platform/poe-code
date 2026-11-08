@@ -1,0 +1,18 @@
+{
+  "action": "opened",
+  "issue": {
+    "number": 201,
+    "state": "open",
+    "title": "Fixture issue opened event",
+    "user": {
+      "login": "issue-author"
+    }
+  },
+  "repository": {
+    "full_name": "test-org/test-repo",
+    "name": "test-repo",
+    "owner": {
+      "login": "test-org"
+    }
+  }
+}

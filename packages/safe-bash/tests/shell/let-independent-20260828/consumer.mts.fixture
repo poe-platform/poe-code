@@ -1,0 +1,10 @@
+import { Shell, MemoryFileSystem, agentCommands, type ShellCommandContext, type ShellLimits, type ShellResult } from 'virtual-bash';
+
+const limits: ShellLimits = { maxCommands: 32, maxExpansionFields: 128, maxExpansionBytes: 1024 };
+const shell = new Shell({ fs: new MemoryFileSystem(), limits }).use(agentCommands());
+const pending: Promise<ShellResult> = shell.exec("let 'value=3'", { signal: new AbortController().signal });
+declare const context: ShellCommandContext;
+const child: Promise<{ readonly exitCode: number }> = context.invoke('let', ['value=4'], { replaceEnv: false, signal: undefined });
+void pending;
+void child;
+await shell.dispose();

@@ -1,0 +1,9 @@
+{
+  "extends": "/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/.runs/pinned-YBWbr2/tsconfig.json",
+  "include": [
+    "/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/.runs/pinned-YBWbr2/tests/fs/mount/identity-authority-review/authority.test.ts"
+  ],
+  "compilerOptions": {
+    "noEmit": true
+  }
+}

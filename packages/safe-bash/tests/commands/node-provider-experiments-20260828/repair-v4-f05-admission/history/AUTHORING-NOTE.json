@@ -1,0 +1,1 @@
+{"classification":"PRESEAL AUTHORING TOOL PATH FAILURE, NOT CONTROL RUN","reason":"spawnSync /Users/kjopek/.codex/tmp/arg0/codex-arg07WQKmb/apply_patch ENOENT","response":"Resolved the current apply_patch executable with command -v; the failed helper did not start. No controller/subject/probe/syntax execution occurred."}

@@ -1,0 +1,11 @@
+import { createAwkCommand, createAwkCommands, awkCommands, type AwkCommandsOptions, type AwkLimits } from "@poe-platform/safe-bash/commands/awk";
+import { createTextProgramCommands, textProgramCommands, type TextProgramOptions } from "@poe-platform/safe-bash";
+import type { CommandDefinition, VirtualShellPlugin } from "@poe-platform/safe-bash/contracts";
+const limits: AwkLimits = { maxSteps: 1000, maxFields: 16, maxRetainedBytes: 4096 };
+const options: AwkCommandsOptions & TextProgramOptions = { ...limits, replace: true };
+const command: CommandDefinition = createAwkCommand(options);
+const commands: readonly CommandDefinition[] = createAwkCommands(options);
+const plugin: VirtualShellPlugin = awkCommands(options);
+const legacyPlugin: VirtualShellPlugin = textProgramCommands(options);
+const legacyCommands: readonly CommandDefinition[] = createTextProgramCommands(options);
+void [command, commands, plugin, legacyPlugin, legacyCommands];

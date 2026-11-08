@@ -1,0 +1,165 @@
+import type {
+  JSONRPCRequest,
+  JSONRPCResponse,
+  JSONRPCError,
+  JSONRPCNotification
+} from "./types.js";
+import { JSON_RPC_ERROR_CODES } from "./types.js";
+import { MODERN_PROTOCOL_VERSION } from "./protocol.js";
+
+export function isRequestId(value: unknown): value is string | number {
+  return typeof value === "string" || (typeof value === "number" && Number.isSafeInteger(value));
+}
+
+export interface ParseResult {
+  success: true;
+  request: JSONRPCRequest | JSONRPCNotification;
+  isNotification: boolean;
+}
+
+export interface ParseError {
+  success: false;
+  error: JSONRPCError;
+  id: string | number | null;
+}
+
+export function parseMessage(line: string): ParseResult | ParseError {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(line);
+  } catch {
+    return {
+      success: false,
+      error: {
+        code: JSON_RPC_ERROR_CODES.PARSE_ERROR,
+        message: "Parse error"
+      },
+      id: null
+    };
+  }
+
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+    return {
+      success: false,
+      error: {
+        code: JSON_RPC_ERROR_CODES.INVALID_REQUEST,
+        message: "Invalid Request"
+      },
+      id: null
+    };
+  }
+
+  const obj = parsed as Record<string, unknown>;
+  const metadata = (obj.params as Record<string, unknown> | undefined)?._meta;
+  if (
+    typeof metadata === "object" &&
+    metadata !== null &&
+    (metadata as Record<string, unknown>)["io.modelcontextprotocol/protocolVersion"] ===
+      MODERN_PROTOCOL_VERSION &&
+    "id" in obj &&
+    !isRequestId(obj.id)
+  ) {
+    return {
+      success: false,
+      error: { code: JSON_RPC_ERROR_CODES.INVALID_REQUEST, message: "Invalid Request ID" },
+      id: null
+    };
+  }
+  const hasId = "id" in obj;
+  const id =
+    typeof obj.id === "string"
+      ? obj.id
+      : typeof obj.id === "number" && Number.isFinite(obj.id)
+        ? obj.id
+        : obj.id === null
+          ? null
+          : null;
+
+  if (
+    "params" in obj &&
+    (typeof obj.params !== "object" || obj.params === null || Array.isArray(obj.params))
+  ) {
+    return {
+      success: false,
+      error: {
+        code: JSON_RPC_ERROR_CODES.INVALID_REQUEST,
+        message: "Invalid Request"
+      },
+      id
+    };
+  }
+
+  if (obj.jsonrpc !== "2.0") {
+    return {
+      success: false,
+      error: {
+        code: JSON_RPC_ERROR_CODES.INVALID_REQUEST,
+        message: "Invalid Request"
+      },
+      id
+    };
+  }
+
+  if (typeof obj.method !== "string") {
+    return {
+      success: false,
+      error: {
+        code: JSON_RPC_ERROR_CODES.INVALID_REQUEST,
+        message: "Invalid Request"
+      },
+      id
+    };
+  }
+
+  if (!hasId) {
+    return {
+      success: true,
+      isNotification: true,
+      request: {
+        jsonrpc: "2.0",
+        method: obj.method,
+        params: obj.params as Record<string, unknown> | undefined
+      }
+    };
+  }
+
+  if (obj.id !== null && id === null) {
+    return {
+      success: false,
+      error: {
+        code: JSON_RPC_ERROR_CODES.INVALID_REQUEST,
+        message: "Invalid Request"
+      },
+      id: null
+    };
+  }
+
+  return {
+    success: true,
+    isNotification: false,
+    request: {
+      jsonrpc: "2.0",
+      id,
+      method: obj.method,
+      params: obj.params as Record<string, unknown> | undefined
+    }
+  };
+}
+
+export function formatSuccessResponse(id: string | number | null, result: unknown): string {
+  const response: JSONRPCResponse = {
+    jsonrpc: "2.0",
+    id,
+    result
+  };
+  return JSON.stringify(response);
+}
+
+export function formatErrorResponse(id: string | number | null, error: JSONRPCError): string {
+  const response: JSONRPCResponse = {
+    jsonrpc: "2.0",
+    id,
+    error
+  };
+  return JSON.stringify(response);
+}

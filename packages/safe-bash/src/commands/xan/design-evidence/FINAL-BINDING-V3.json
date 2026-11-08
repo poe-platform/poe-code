@@ -1,0 +1,286 @@
+{
+  "classification": "docs-only-final-policy-binding-not-independent-acceptance",
+  "recordedAt": "2026-08-28T02:59:01.402Z",
+  "hostZone": "America/Chicago",
+  "acceptedCandidate": "b9ce9e61115c7d99dfa6a76591b3dcfdaee9ce21",
+  "headAtValidation": "76d19835b2e576cdae4a78e1f1e68f2f5a7afca3",
+  "originalEvidence": [
+    {
+      "path": "tests/commands/xan-oracle-prep-20260828/LICENSE-NOTICES.md",
+      "sha256": "25879e19f4eae96c155ad38ab5dae9c27152d66ddb9133db02b275e6a5bfd1db",
+      "gitBlob": "cfff35d4ea4152c24e8d0a207713e46aa172431f",
+      "bytes": 10810
+    },
+    {
+      "path": "tests/commands/xan-oracle-prep-20260828/OBSERVATIONS.md",
+      "sha256": "beeb74a4930b0695450b3cd3357e5e3370aa51827578890d9f822fc701aa99f2",
+      "gitBlob": "21e69debe88c818bd3e90b90dc8d9e80b7f44272",
+      "bytes": 3139
+    },
+    {
+      "path": "tests/commands/xan-oracle-prep-20260828/PROTOCOL.md",
+      "sha256": "ad03e7126c841358e812e6b4be38a44bceb530bc8dfb5e56420e39ee6591fd80",
+      "gitBlob": "81350b03cc009f3332c75336a1389b1bd27250f2",
+      "bytes": 3473
+    },
+    {
+      "path": "tests/commands/xan-oracle-prep-20260828/RESULTS.json",
+      "sha256": "402fcdc93732d32ca87cdcb2b9bc4e896568f6763c5162c1dae4924771fc987a",
+      "gitBlob": "28fa4395d627c2520e13f4621ad7a8c8a4ef3d45",
+      "bytes": 54174
+    },
+    {
+      "path": "tests/commands/xan-oracle-prep-20260828/ROWS.json",
+      "sha256": "7a019c039971f45e612a1bfffd17fc940bf425f326d19f84036cb68ed9d69db2",
+      "gitBlob": "e794aaf4e1359ff9ad91b0f498aeea288e7eb67f",
+      "bytes": 2809
+    },
+    {
+      "path": "tests/commands/xan-oracle-prep-20260828/additional-v2/BINDING.json",
+      "sha256": "b9277c1454901c67b07ff6c875aea14942885c2f86dc5a96c693f293aaf0426a",
+      "gitBlob": "f9a1fadfb3cf9c83c843f5d9171989cb75fa038e",
+      "bytes": 10704
+    },
+    {
+      "path": "tests/commands/xan-oracle-prep-20260828/additional-v2/OBSERVATIONS.md",
+      "sha256": "bf308fdf24c6cc29d562556df9558c566b730055f5a0ddd61438204d2eaf1854",
+      "gitBlob": "b4804f84bc44f9eef2df2298023169a2d7adc6f9",
+      "bytes": 2376
+    },
+    {
+      "path": "tests/commands/xan-oracle-prep-20260828/additional-v2/PROTOCOL.md",
+      "sha256": "7cb17627355e1d119bfdb24be955afb14f0ebe021656452a84e1a367a19e30be",
+      "gitBlob": "04a781f9b8b5318e775888acf8cd4ca0af51603e",
+      "bytes": 2872
+    },
+    {
+      "path": "tests/commands/xan-oracle-prep-20260828/additional-v2/RESULTS.json",
+      "sha256": "d7cc5e04d2dd860cce0fd9fa8ad4261b490d195088cd352b7d8bb31c86a71e32",
+      "gitBlob": "1389f719011546a9047702e5b8d751f52feefbb3",
+      "bytes": 21713
+    },
+    {
+      "path": "tests/commands/xan-oracle-prep-20260828/additional-v2/ROWS.json",
+      "sha256": "ec4f684cd436cba42173cb065a0b0bacb12be120e6f1fb0ddd7befcdf422ed0a",
+      "gitBlob": "7dea0665eedca0441bfc8e1e656cd39a4b1ed2d4",
+      "bytes": 3909
+    },
+    {
+      "path": "tests/commands/xan-oracle-prep-20260828/additional-v2/run.mjs",
+      "sha256": "7f7be7b0ec52e4edeb145541485e17c6ca87195d14e00be9cd7ba3b2b4c8a0cd",
+      "gitBlob": "58de2a186def15d2fbd53dfb3c7ae874d3d734a4",
+      "bytes": 6111
+    },
+    {
+      "path": "tests/commands/xan-oracle-prep-20260828/provenance.json",
+      "sha256": "30b3343ea7c99a8168a366dd5e11b04dd87a472dddf2210db5f61684cef17aa4",
+      "gitBlob": "e234fc710afc8551167019eb96836a83ce230cad",
+      "bytes": 13191
+    },
+    {
+      "path": "tests/commands/xan-oracle-prep-20260828/run.mjs",
+      "sha256": "57460aabc8a0863c7073c34d5d0bfbdea7f9dd9e9a20d0f170a182b672f027ca",
+      "gitBlob": "4c51716c9b006e357a38ed61ff19dd63d06e5898",
+      "bytes": 5549
+    }
+  ],
+  "historicalDocs": [
+    {
+      "path": "src/commands/xan/design-evidence/PROFILE-V2.md",
+      "sha256": "e9084f0074cd4e13ac3f9406bb6ea3d9f1764903004716a1e94840d626a8595d"
+    },
+    {
+      "path": "src/commands/xan/design-evidence/BYTE-TABLE-V2.md",
+      "sha256": "bb098e841cd62791066432ae74f6b8368f99fbb1d9083d63583bc201cbeb2172"
+    },
+    {
+      "path": "src/commands/xan/design-evidence/HANDOFF-V2.md",
+      "sha256": "36457c0a546af45c3fb05a6ee64283d54f7b16ad8002481ca21bde79e218fa75"
+    },
+    {
+      "path": "src/commands/xan/design-evidence/REVIEW-BINDING-V2.json",
+      "sha256": "e18eeb25d599c139cd325dc1e6961a47b0753b86225360db50033054cecf8bb0"
+    },
+    {
+      "path": "src/commands/xan/design-evidence/LOCAL-BINDING.json",
+      "sha256": "23c95d7ce93839e9314302304c1782d1bf533d97e733bf97bba5272f2ada7633"
+    },
+    {
+      "path": "src/commands/xan/design-evidence/RECEIPT.md",
+      "sha256": "99cfe1c2da8aa09b055113134cb48700685752411d9df18664cbe8c8292c1869"
+    },
+    {
+      "path": "src/commands/xan/design-evidence/SOURCE-MAP.md",
+      "sha256": "7bef1e1e9815441dd396c65cc99207fc14d6a64746f3e2aea577e3a99a9f85c7"
+    }
+  ],
+  "acceptedDesignSha256": "eab4712dd4a62081995626c642f833bce75d5cfce5e101cdfbb2b881a970228f",
+  "currentDocs": [
+    {
+      "path": "src/commands/xan/DESIGN.md",
+      "sha256": "a91220c4b62c15e89e88e54d488d8b58534907a8197d71a97748b6f7e945e5ea"
+    },
+    {
+      "path": "src/commands/xan/design-evidence/PROFILE-V3.md",
+      "sha256": "8ec63164310e818b670bbafc01780356ffb83adea409e7273c456165c2e7bb44"
+    },
+    {
+      "path": "src/commands/xan/design-evidence/BYTE-TABLE-V3.md",
+      "sha256": "5a46a960ebf9709e3e2373984cf0ae44e9ae66821263c347b35168f5bab1f6a2"
+    },
+    {
+      "path": "src/commands/xan/design-evidence/HANDOFF-V3.md",
+      "sha256": "30bc8d219a35ce7d4cc9fd6c71ffd206d920cb457057d3a8dc60dabf5f8a3238"
+    }
+  ],
+  "localSources": [
+    {
+      "path": "src/contracts/io.ts",
+      "previousSha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809",
+      "currentSha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809",
+      "unchanged": true
+    },
+    {
+      "path": "src/contracts/output.ts",
+      "previousSha256": "5e262bda9541a5b70fcb23d4950e92844d404f9029f02c32c889b90d7c92d83e",
+      "currentSha256": "5e262bda9541a5b70fcb23d4950e92844d404f9029f02c32c889b90d7c92d83e",
+      "unchanged": true
+    },
+    {
+      "path": "src/contracts/command.ts",
+      "previousSha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c",
+      "currentSha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c",
+      "unchanged": true
+    },
+    {
+      "path": "src/contracts/command.md",
+      "previousSha256": "ace3670c3820fff94055c6a9d6bee7ac1206a06bcb7607fdafe30f340c0234c6",
+      "currentSha256": "ace3670c3820fff94055c6a9d6bee7ac1206a06bcb7607fdafe30f340c0234c6",
+      "unchanged": true
+    },
+    {
+      "path": "src/contracts/filesystem.ts",
+      "previousSha256": "e2343faf818a15ad7afc06618b3f8856cf14f36c86574cc49c85d51a13e7e522",
+      "currentSha256": "e2343faf818a15ad7afc06618b3f8856cf14f36c86574cc49c85d51a13e7e522",
+      "unchanged": true
+    },
+    {
+      "path": "src/contracts/filesystem.md",
+      "previousSha256": "fb74e8fc3841c06f89e8fa93fad55cdfac20788de4eee13db6b8a8072b963d2a",
+      "currentSha256": "fb74e8fc3841c06f89e8fa93fad55cdfac20788de4eee13db6b8a8072b963d2a",
+      "unchanged": true
+    },
+    {
+      "path": "src/commands/copy-identity.ts",
+      "previousSha256": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe",
+      "currentSha256": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe",
+      "unchanged": true
+    },
+    {
+      "path": "src/commands/network/output.ts",
+      "previousSha256": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab",
+      "currentSha256": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab",
+      "unchanged": true
+    },
+    {
+      "path": "src/commands/metadata/mktemp.ts",
+      "previousSha256": "1165d822477e68f6b4dfac3db6a7fa43247226137122c0d980e1490b80bc34d4",
+      "currentSha256": "1165d822477e68f6b4dfac3db6a7fa43247226137122c0d980e1490b80bc34d4",
+      "unchanged": true
+    },
+    {
+      "path": "src/commands/diff-patch/patch.ts",
+      "previousSha256": "4676d745a02a739f403025c5c1867de44052a5be4c7e29f8e59a899244330606",
+      "currentSha256": "4676d745a02a739f403025c5c1867de44052a5be4c7e29f8e59a899244330606",
+      "unchanged": true
+    },
+    {
+      "path": "src/fs/mount/index.ts",
+      "previousSha256": "5b7c81d0bf6e7bcd491c401fd3d0fc185f4767f15c81faaa4fddded14e53aaf6",
+      "currentSha256": "5b7c81d0bf6e7bcd491c401fd3d0fc185f4767f15c81faaa4fddded14e53aaf6",
+      "unchanged": true
+    },
+    {
+      "path": "src/fs/s3/filesystem.ts",
+      "previousSha256": "9ac11951d681db45cee474568ca46d227cfb5bbd9b0d5ce2d6c176d0c4f94833",
+      "currentSha256": "9ac11951d681db45cee474568ca46d227cfb5bbd9b0d5ce2d6c176d0c4f94833",
+      "unchanged": true
+    },
+    {
+      "path": "src/fs/webdav/webdav.ts",
+      "previousSha256": "e66a66e2745852c6bd12be12a18c855df069152cf6b8089d2ecee8880c62de94",
+      "currentSha256": "e66a66e2745852c6bd12be12a18c855df069152cf6b8089d2ecee8880c62de94",
+      "unchanged": true
+    },
+    {
+      "path": "src/fs/memory/index.ts",
+      "previousSha256": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+      "currentSha256": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+      "unchanged": true
+    },
+    {
+      "path": "src/fs/real/index.ts",
+      "previousSha256": "ab139aa429c2705c7d5ec13a20d1583bacb182e3e2347fcdee2f169704c0bc9a",
+      "currentSha256": "ab139aa429c2705c7d5ec13a20d1583bacb182e3e2347fcdee2f169704c0bc9a",
+      "unchanged": true
+    },
+    {
+      "path": "src/commands/split/outputs.ts",
+      "previousSha256": "3a46de1948b16b5c8e8917967e17d4e6bffdc1f07d0433e33c01ed36ebf15ee3",
+      "currentSha256": "3a46de1948b16b5c8e8917967e17d4e6bffdc1f07d0433e33c01ed36ebf15ee3",
+      "unchanged": true
+    },
+    {
+      "path": "src/commands/split/split.ts",
+      "previousSha256": "4c7d2988862e4ab979de6b8d9ee630bbf3823c2bbf7f1d0f049b7541f3ab50f0",
+      "currentSha256": "4c7d2988862e4ab979de6b8d9ee630bbf3823c2bbf7f1d0f049b7541f3ab50f0",
+      "unchanged": true
+    },
+    {
+      "path": "src/commands/split/io.ts",
+      "previousSha256": "83b42d0087270bb2e365c51b2f5bbf847c749dd1aebf39e15c97b5b068a34879",
+      "currentSha256": "83b42d0087270bb2e365c51b2f5bbf847c749dd1aebf39e15c97b5b068a34879",
+      "unchanged": true
+    }
+  ],
+  "exactLimitRows": [
+    "| maxArgs | 128 | 4096 |",
+    "| maxArgumentBytes | 64 KiB | 1 MiB |",
+    "| maxInputFiles | 16 | 256 |",
+    "| maxInputBytes | 256 MiB | 4 GiB |",
+    "| maxChunks | 262144 | 4194304 |",
+    "| maxChunkBytes | 8 MiB | 64 MiB |",
+    "| maxRecordBytes | 8 MiB | 64 MiB |",
+    "| maxCellBytes | 4 MiB | 32 MiB |",
+    "| maxColumns | 16384 | 65536 |",
+    "| maxRecords | 1000000 | 16000000 |",
+    "| maxSelectorBytes | 16 KiB | 256 KiB |",
+    "| maxSelectorNodes | 4096 | 65536 |",
+    "| maxSelectorDepth | 2 | 2 |",
+    "| maxSelectedColumns | 16384 | 65536 |",
+    "| maxLastRows | 4096 | 65536 |",
+    "| maxWork | 1000000000 | 16000000000 |",
+    "| maxOutputBytes | 256 MiB | 4 GiB |",
+    "| maxRetainedBytes | 32 MiB | 256 MiB |"
+  ],
+  "validation": {
+    "originalTrackedEvidenceFilesUnchanged": 13,
+    "historicalDocsUnchanged": 7,
+    "originalObservations": 28,
+    "additionalObservations": 16,
+    "tableFamilies": 11,
+    "parsedByteExamples": 55,
+    "exactLimitRowsUnchanged": 18,
+    "selectSliceLogicalSerializationAndReparse": true,
+    "movedBomAndEofRepairExamples": true,
+    "crossDelimiterHex": true,
+    "zeroTail": "documentation policy only; no execution",
+    "sourceBuildTypegate": false,
+    "nativeExecutions": 0,
+    "downloads": 0,
+    "hiddenFixturesRead": 0,
+    "workersSpawned": 0,
+    "appendProof": false,
+    "scope": "Original listed paths only; no hidden fixtures or cached upstream/binary reads; Node doc consistency is not product acceptance"
+  }
+}

@@ -1,0 +1,11 @@
+AssertionError [ERR_ASSERTION]: strict-build failed; exact receipt preserved
+    at Object.run (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v2/io.mjs:75:7)
+    at async main (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v2/producer.mjs:108:3)
+    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v2/producer.mjs:127:7 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}

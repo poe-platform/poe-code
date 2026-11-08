@@ -1,0 +1,30 @@
+{
+  "sequence": 2,
+  "command": "git",
+  "args": [
+    "rev-parse",
+    "cea13e21b26e3bf85c60e56e7a846e28b6f68720^{commit}"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "status": 0,
+  "signal": null,
+  "pid": 13992,
+  "pgid": 13992,
+  "timedOut": false,
+  "termination": {
+    "termSent": false,
+    "killSent": false,
+    "groupGone": true
+  },
+  "closure": {
+    "descendantGroupDetected": false,
+    "rootPidGone": true,
+    "groupGone": true
+  },
+  "timeoutMs": 120000,
+  "startedAt": "2026-08-27T19:49:52.954Z",
+  "finishedAt": "2026-08-27T19:49:52.977Z",
+  "durationMs": 23.458792,
+  "stdoutSha256": "6cafe5cdbc0b5fe76d5ac67be0a2428ea9dfc97bd1d327e7098a2e31b633d525",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

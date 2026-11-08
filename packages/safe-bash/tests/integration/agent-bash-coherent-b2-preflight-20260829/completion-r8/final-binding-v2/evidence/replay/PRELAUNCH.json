@@ -1,0 +1,19 @@
+{
+  "sourceInspected": true,
+  "previousFailure": "653c245152a39ef60435e50cff7a65851a5cf011",
+  "helper": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/final-binding-v2/bind.mjs",
+    "bytes": 7079,
+    "sha256": "121c23306d471b4b3a4580081fed1460ffabfbd59ce045168451ce54c95121bb"
+  },
+  "checksReviewed": [
+    "Array.isArray before three length assertions",
+    "absolute filename overrides manifest path",
+    "postchecks do not append to pins",
+    "wx exclusive output; full writes and close",
+    "template caps unchanged; same existing keys",
+    "fixed UTC notBefore17:00/latest17:05/active17:27/expiry17:30",
+    "no source/runtime imports; Node builtins only"
+  ],
+  "checkedUTC": "2026-08-29T16:50:59.245Z"
+}

@@ -1,0 +1,11 @@
+{
+  "id": "C18-source-original271",
+  "expected": "ACCEPT",
+  "value": {
+    "path": "/private/tmp/yq-candidate-admission-35da1854-BAdsoU/source-271-original",
+    "files": 271,
+    "sourceMapSha256": "e01d63d8e782cba59597da7c970cbd364a35582e4956ab04759064c756df1284"
+  },
+  "error": null,
+  "role": "DATA_OR_SYNTHETIC_NOT_YQ"
+}

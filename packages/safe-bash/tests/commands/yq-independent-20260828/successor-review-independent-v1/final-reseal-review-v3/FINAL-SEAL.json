@@ -1,0 +1,140 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "role": "DIFFERENT_POST_CANDIDATE_STATIC_REVIEW_ONLY",
+  "verdict": "STATIC_READY_FOR_ROOT_GO_CONSIDERATION",
+  "scope": "tests/commands/yq-independent-20260828/successor-review-independent-v1/final-reseal-review-v3",
+  "criteriaCommit": "0d7d7a0024002db1aa9dde1e24e00e140b653d1a",
+  "liveAgentsSha256": "64fde885fd30edd6751f95603defac1d15defb6a33dedca2049a82f9aace379c",
+  "inspected": {
+    "correctionCommit": "30c38df6a8ee526392fc59850475dfad679cfd59",
+    "correctionFinalSha256": "3abd40dc8b40cc079e12f4a74cebaed825a0c0de9006741910efdc1253621665",
+    "intermediateCommit": "c175839a69f4c352c5f8fcfb405ead06782e8684",
+    "intermediateStatus": "EXACT_BINDINGS_REVIEWED_BUT_DEFECTIVE_PARENT_NOT_ACCEPTED",
+    "finalCommit": "0e8ee2900e7810b911f1335b0d3f05f23ce740c5",
+    "finalScope": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v4",
+    "finalHashes": {
+      "FINAL-SEAL.json": "05c3f93e650d2b26e88f793af89c90a52872ce5a5475bdf251df3afcb3c2574d",
+      "ASSEMBLY-SEAL.json": "5496ce256fbd2f69798b52ffc11f0ebf0e4d0bcbf37e356ce25722d57a6f3014",
+      "ASSEMBLY-ORIGINS.json": "ba848d2d06e655e0b1e4098dd22efdc5e87a4debe5889f1b82fb65dc3be0347c",
+      "RECIPE.json": "92b4c7b958b9f07b75c2f55fa719e83093317a506bb41f74526a4df09eed7c90",
+      "PHYSICAL-INPUT-SEAL.json": "d977b6e68190077c9bb7a231465e91f3d459374361736d0f8e9fd5a07167afe0",
+      "LOAD-AND-TOOL-SEAL.json": "c4a4646f273ee7e5dd2fdfed192614b11e8dca7d61812453b87c2ded0d9331b4",
+      "ROOT-RECEIPT-SCHEMA.json": "01823fa351319a2b5aeda501698c110fa42134b4da21fd7ca3a860cd07f4123f"
+    },
+    "singleCorrectedTarget": "core/supervisor.mjs",
+    "singleCorrectedSha256": "49c7c7050769e2c2edf71a27edd26790ac786e05dc6afbc02c93eba372d361a0"
+  },
+  "newFindings": {
+    "sourceIntegrity": 0,
+    "code": 0
+  },
+  "counts": {
+    "correctionFiles": 10,
+    "finalScopeFiles": 85,
+    "finalDirectories": 8,
+    "activeFiles": 72,
+    "mjsBodies": 33,
+    "unchangedParentFiles": 71,
+    "replacementTargets": 1,
+    "unknownExecutableDeltas": 0,
+    "toolFiles": 249,
+    "rawArchives": 2,
+    "physicalFiles": 251,
+    "physicalBytes": 150255368,
+    "hostSyntaxParses": 1,
+    "deferredCorrectionConditions": 13,
+    "deferredCorrectionConditionsExecuted": 0,
+    "reviewPreparationCommandFailuresRetained": 3,
+    "authoredImportsOrExecutions": 0,
+    "candidateExecutions": 0,
+    "controlPasses": 0,
+    "runtimePasses": 0,
+    "semanticPasses": 0,
+    "activeOwnedExecutionChildren": 0
+  },
+  "matrixAuthority": "Exact336-job/fixed-phase recipe and immutable active data; see REPORT.md and INTERMEDIATE-BINDINGS.json for profile counts and permanent known gaps",
+  "stillRequired": [
+    "Separate fresh root decision and exact0600 authorization receipt/hash with this independent final-union review binding",
+    "Actual authorized build/type/move/loaded-mutant/runtime/control/timing/saturation/reap evidence; all UNRUN",
+    "Retain public5, four loaded gaps,80 records/135 missing bindings and source/public-cap qualifications"
+  ],
+  "history": {
+    "originalReview": "cac8ebacb329927c7dc6d2cd769a3d2e8c7f8672",
+    "originalFindingAndParentFailuresRescored": false,
+    "reviewAndAuthorReaderFailuresRetained": true,
+    "allStaticCommandsClaimedGreen": false
+  },
+  "files": [
+    {
+      "path": "CRITERIA.md",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 5198,
+      "sha256": "f598329aebd138db50ae05341eb083430e856d05e1d73c2bd5ad2603c2017147"
+    },
+    {
+      "path": "INPUTS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1709,
+      "sha256": "b555595f2d103205d23ace55b6c4cdc47fc88cf5b69a60b4bb6d4594d8518b6f"
+    },
+    {
+      "path": "SOURCE-UNION-AUTHENTICATION.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 49566,
+      "sha256": "552d77e28c2f3a8a68be059f7007d2e7523804e0d3a37d7110be690315e7b117"
+    },
+    {
+      "path": "INTERMEDIATE-BINDINGS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 6399,
+      "sha256": "0fa549ff9fb6277afe7285fdcfb260f783f58f7de62b381539a20bbe28f192b6"
+    },
+    {
+      "path": "PREPARATION-ERROR.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 3235,
+      "sha256": "171124cfc5efd610d75bcf98cd9abae2ebf8974aec3cbf78210ae3e17f08ed9b"
+    },
+    {
+      "path": "FINAL-UNION-AUTHENTICATION.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 48564,
+      "sha256": "3273ef2e5208d34751ee6fbc130eb5ee97b787677859382fcc81520155474c2a"
+    },
+    {
+      "path": "REPORT.md",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 10254,
+      "sha256": "79323f14862803e0ea5df024ff2966507d284f390b8a5aead134d7001fd45532"
+    }
+  ],
+  "exactMembership": [
+    "CRITERIA.md",
+    "FINAL-SEAL.json",
+    "FINAL-UNION-AUTHENTICATION.json",
+    "INPUTS.json",
+    "INTERMEDIATE-BINDINGS.json",
+    "PREPARATION-ERROR.json",
+    "REPORT.md",
+    "SOURCE-UNION-AUTHENTICATION.json"
+  ],
+  "self": {
+    "path": "FINAL-SEAL.json",
+    "kind": "file",
+    "mode": 420,
+    "sha256": "EXTERNAL_HANDOFF_REQUIRED_NO_CIRCULAR_SELF_HASH"
+  },
+  "rootGORequested": false,
+  "rootGOGranted": false,
+  "rootGOReceiptCreated": false,
+  "candidateExecutionLayoutsCreated": false,
+  "yamlOrShellAcceptance": false
+}

@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "jobId": "source-admission",
+  "outcome": "CAPTURED",
+  "mode": "source-admission",
+  "rootHash": "74afb45f09d1a7189f816ec09a68fe1727a4cab3a285ba844f05d7a7e3afdce9",
+  "sealHash": "47c3874f520efee18062d4b2e687159a52039a86d35945a7f5371e85eb00fdff",
+  "movement": null,
+  "capture": null,
+  "sourceMapSha256": "e01d63d8e782cba59597da7c970cbd364a35582e4956ab04759064c756df1284",
+  "packageMapSha256": "4ce4908953986584ae50f61976796d9ee7c1259e7c0d009afa4b675225496088",
+  "sourceFiles": 271,
+  "packageFiles": 870,
+  "publicStatus": "PUBLIC_EXPORT_GAP",
+  "proofRole": "SOURCE_PACKAGE_IDENTITY_NOT_BUILD_REPRODUCTION",
+  "failure": null
+}

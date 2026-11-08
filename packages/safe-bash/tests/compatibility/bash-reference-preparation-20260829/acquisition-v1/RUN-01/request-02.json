@@ -1,0 +1,21 @@
+{
+  "url": "https://ftp.gnu.org/gnu/bash/bash-5.3.tar.gz.sig",
+  "name": "bash-5.3.tar.gz.sig",
+  "maxBytes": 4096,
+  "role": "OPAQUE_DETACHED_SIGNATURE",
+  "startedAt": "2026-08-29T04:42:40.207Z",
+  "bytes": 95,
+  "status": 200,
+  "headers": {
+    "date": "Sat, 29 Aug 2026 04:42:39 GMT",
+    "last-modified": "Wed, 30 Jul 2025 14:07:21 GMT",
+    "etag": "\"5f-63b260b178a00\"",
+    "content-length": "95",
+    "content-type": "application/pgp-signature",
+    "location": null
+  },
+  "sha256": "bd32023612c9554182393b10d9db909fc5e35e2f07b38e327ff65e500288a9ad",
+  "path": "downloads/bash-5.3.tar.gz.sig.data",
+  "disposition": "OPAQUE_ACQUIRED_NOT_SIGNATURE_VERIFIED",
+  "endedAt": "2026-08-29T04:42:40.326Z"
+}

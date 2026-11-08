@@ -1,0 +1,28 @@
+TAP version 13
+# Subtest: GNU chmod directory setid controls compare actual host preservation
+ok 1 - GNU chmod directory setid controls compare actual host preservation
+  ---
+  duration_ms: 696.22225
+  type: 'test'
+  ...
+# Subtest: GNU chmod verbose/changes/reference/error controls preserve bytes and aliases
+ok 2 - GNU chmod verbose/changes/reference/error controls preserve bytes and aliases
+  ---
+  duration_ms: 99.112375
+  type: 'test'
+  ...
+# Subtest: chmod root and unsupported traversal controls fail without namespace effects
+ok 3 - chmod root and unsupported traversal controls fail without namespace effects
+  ---
+  duration_ms: 0.996042
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 921.5115

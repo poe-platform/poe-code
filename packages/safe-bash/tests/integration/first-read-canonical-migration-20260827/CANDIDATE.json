@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "classification": "canonical test-only candidate and targeted author evidence; different review still required",
+  "freezeCommit": "b891af93b1e710e1910b5dad8f72854c5930da05",
+  "freezeTree": "c6f24eadc3b8fb75b668faacf4510d641e34ab4b",
+  "candidateCommit": "073d39c6c49d5ee24172706e02179dd6da484483",
+  "candidateTree": "081c57d60950b35e796dd2c1baeb55b29a39576f",
+  "candidateParent": "f561bd9fa33afdf8285154237f856ebfd8495ce4",
+  "candidateFiles": {
+    "tests/shell/first-read-probe.ts": "909d31076ed80e28bcb55819273ac8b52077a1373b93e3e9cdf2c137e8ff3b5f",
+    "tests/shell/remote-close.test.ts": "df8b0057e07aee50ff1072edab156c5b72ee54412524d6d3d1e3c76abdc49986",
+    "tests/shell/first-read-owned-fixtures.ts": "5b62d9f4313d4db35b298c1e63847f10ec16f5f7bd5446d9c0a61d1690cfd0e4"
+  },
+  "validatedRelevantInputsAtCandidateParent": {
+    "src/contracts/output.ts": "5e262bda9541a5b70fcb23d4950e92844d404f9029f02c32c889b90d7c92d83e",
+    "src/commands/network/transport.ts": "c9f3302aac3bba8fc1cd9c72571adb062dbc2e336da1a403c5c2d6207c2c0e05",
+    "src/fs/webdav/webdav.ts": "e66a66e2745852c6bd12be12a18c855df069152cf6b8089d2ecee8880c62de94",
+    "src/shell/runtime.ts": "c746e4cee0f5245d94bba2082ce72b62fdc3b251fd400ee247371fa44dfed722",
+    "src/shell/shell.ts": "2c704d4934889d12836e441112b11f41a4e3cdf6cf1ce96f9db42b4b70cdb332",
+    "tests/stress/remote-cancellation/helpers.ts": "9e76ecf9ba6604fc2c4b94a96cf5b46ffed97de5e7d0c2524e138b4410e17678",
+    "tests/fs/webdav/mock.ts": "177f79ee640460822cfe0486c87f7cc61ac7c8b84389abe32b48ef27f4b4ef36"
+  },
+  "interveningForeignAncestry": {
+    "qualification": "Concurrent commits landed between the observed baseline/freeze and the candidate commit. The candidate commit itself changes only the three authorized TS paths. The listed lifecycle product/support hashes are unchanged from the freeze observation, but src/index.ts and src/plugins/index.ts gained unrelated DU registration/exports and were loaded by live validation.",
+    "betweenFreezeAndCandidateParent": [
+      "b2b4604f feat: expose DU75 with scoped owned stdout and caller-bound diagnostics",
+      "9cccda89 test: migrate exact current default registry fixtures from HTML74 to DU75",
+      "e0f16316 test: freeze DU75 moved package author lifecycle and public type checks",
+      "17284b9b test: use existing DU conflict diagnostic in new public fixture",
+      "f561bd9f test(expr): freeze v5 hierarchy contradiction and bounded history predictions"
+    ],
+    "candidateParentIndexSHA256": "5910051012bf55afb22ab120a6204cb34785e02695a35196b01cd29ef5bf81e7",
+    "candidateParentPluginsIndexSHA256": "13bab0981353ff5e3e49b9b153df2932f7f0b2d42cf7c457acea079021fa29b2"
+  },
+  "runtime": {
+    "node": "v22.22.2",
+    "tsx": "4.23.12"
+  },
+  "authorValidation": {
+    "canonicalCommand": "node --unhandled-rejections=strict --import tsx --test --test-name-pattern='pipeline close: first-read-' tests/shell/remote-close.test.ts",
+    "canonicalResult": { "status": 0, "tests": 10, "pass": 10, "fail": 0, "cancelled": 0, "skipped": 0, "todo": 0 },
+    "strictTypeRoots": [
+      "tests/shell/first-read-owned-fixtures.ts",
+      "tests/shell/first-read-probe.ts",
+      "tests/shell/remote-close.test.ts"
+    ],
+    "strictTypeResult": { "status": 0 },
+    "curieEvidenceVerification": { "status": 0, "authenticatedFiles": 108, "observerExecutions": 24, "originalCanonicalScore": "unchanged historical 2/6; not rerun/rescored here" }
+  },
+  "limits": [
+    "Validation used the live candidate-parent checkout plus exact candidate TS bytes, not an isolated committed archive installation.",
+    "Loopback HTTP, injected S3 and MemoryFileSystem are targeted lifecycle tests, not deployed-provider interoperability evidence.",
+    "The future negative-control expansion and Stage2 cancellation remain unauthorized and unexecuted.",
+    "No full gate, native cohort, performance comparison or historical 8670 rescore was run.",
+    "Different review of the exact candidate commit is still required."
+  ]
+}

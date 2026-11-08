@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "kind": "native-oracle-identity-only-pre-freeze",
+  "readAtUtc": "2026-08-27T19:22:08Z",
+  "requestedPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/du",
+  "realpath": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/du",
+  "sha256": "f1df033deed07d208d80128568404c1043b283c59f294164f1240789bfadcf2b",
+  "versionFirstLine": "du (GNU coreutils) 9.7",
+  "historicalEvidenceCommit": "2dd6d631f1862487b0874e03f07301769c3a4271",
+  "semanticCasesExecutedByV5Author": false
+}

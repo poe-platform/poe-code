@@ -1,0 +1,170 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import {MemoryFileSystem} from '@poe-code/safe-fs/core';
+import {transactSqlite} from './sqlite-transaction.js';
+import {withSqliteQueryRecords} from './sqlite-query-records.js';
+const limits={maxFileBytes:8*1024*1024,maxIndexBytes:1024*1024,maxOpenFiles:16};
+const signal=new AbortController().signal;
+test('query results stream large mixed fields from caller storage and preserve attached sources',async()=>{
+ const fs=new MemoryFileSystem();
+ for(const path of ['/main','/other'])await transactSqlite({fs,path,signal,...limits},s=>s.execute("CREATE TABLE sample(id INTEGER,content TEXT); INSERT INTO sample VALUES(7,'original')"));
+ const before=await Promise.all(['/main','/other'].map(path=>fs.readFile(path)));
+ let rows=0;
+ await withSqliteQueryRecords({fs,path:'/main',directory:'/',signal,...limits,attachments:[{alias:'other',path:'/other'}],sql:"SELECT a.id,b.content,zeroblob(1048577),NULL,1.5 FROM sample a JOIN other.sample b"},async values=>{
+  for await(const row of values){
+   rows++;assert.equal(row[0],7n);assert.equal(row[3],null);assert.equal(row[4],1.5);
+   for(const [index,expected]of [[1,8],[2,1048577]]){
+    const value=row[index!]!;assert.equal(typeof value,'object');assert.ok(value&&typeof value==='object');
+    assert.equal(value.size,expected);let size=0;
+    for await(const part of value.bytes){assert.ok(part.length<=65536);size+=part.length;}
+    assert.equal(size,expected);
+   }
+  }
+ });
+ assert.equal(rows,1);assert.deepEqual(await Promise.all(['/main','/other'].map(path=>fs.readFile(path))),before);
+ assert.deepEqual((await fs.readdir('/')).map(e=>e.name),['main','other']);
+});
+test('early query consumer failure preserves its reason and cleans private results',async()=>{
+ const fs=new MemoryFileSystem();await transactSqlite({fs,path:'/main',signal,...limits},s=>s.execute('CREATE TABLE sample(id INTEGER)'));
+ const reason=new Error('consumer stopped');
+ await assert.rejects(withSqliteQueryRecords({fs,path:'/main',directory:'/',signal,...limits,sql:'SELECT 1'},async rows=>{for await(const ignored of rows)throw reason;}),error=>error===reason);
+ assert.deepEqual((await fs.readdir('/')).map(e=>e.name),['main']);
+});
+for(const sql of ['SELECT 1); SELECT 2 --','SELECT 1); --','DELETE FROM sample RETURNING id'])test('query input cannot escape its SELECT: '+sql,async()=>{
+ const fs=new MemoryFileSystem();await transactSqlite({fs,path:'/main',signal,...limits},s=>s.execute('CREATE TABLE sample(id INTEGER)'));
+ let admitted=false;
+ await assert.rejects(withSqliteQueryRecords({fs,path:'/main',directory:'/',signal,...limits,sql},async()=>{admitted=true;}));
+ assert.equal(admitted,false);
+ assert.deepEqual((await fs.readdir('/')).map(e=>e.name),['main']);
+});
+test('query metadata preserves duplicate names and original column order',async()=>{
+ const fs=new MemoryFileSystem();await transactSqlite({fs,path:'/main',signal,...limits},s=>s.execute('CREATE TABLE sample(id INTEGER)'));
+ await withSqliteQueryRecords({fs,path:'/main',directory:'/',signal,...limits,sql:'SELECT 1 AS id,2 AS content,3 AS content'},async(rows,columns)=>{
+  assert.deepEqual(columns,['id','content','content']);
+  for await(const row of rows)assert.deepEqual(row,[1n,2n,3n]);
+ });
+});
+test('computed queries yield to cancellation and retire snapshots before rejection',async()=>{
+ const fs=new MemoryFileSystem();await transactSqlite({fs,path:'/main',signal,...limits},s=>s.execute('CREATE TABLE sample(id INTEGER)'));
+ const controller=new AbortController(),reason=new Error('stop computed query');
+ const timer=setTimeout(()=>controller.abort(reason),25);
+ try{
+  await assert.rejects(withSqliteQueryRecords({fs,path:'/main',directory:'/',signal:controller.signal,...limits,sql:'WITH RECURSIVE numbers(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM numbers WHERE n<1000000000) SELECT sum(n) FROM numbers'},async()=>{}),error=>error===reason);
+ }finally{clearTimeout(timer);}
+ assert.deepEqual((await fs.readdir('/')).map(e=>e.name),['main']);
+});
+test('escaped query field sources fail after the callback returns',async()=>{
+ const fs=new MemoryFileSystem();await transactSqlite({fs,path:'/main',signal,...limits},s=>s.execute('CREATE TABLE sample(id INTEGER)'));
+ let escaped:AsyncIterable<Uint8Array>|undefined;
+ await withSqliteQueryRecords({fs,path:'/main',directory:'/',signal,...limits,sql:"SELECT 'borrowed'"},async rows=>{for await(const row of rows){const field=row[0];assert.ok(field&&typeof field==='object');escaped=field.bytes;break;}});
+ await assert.rejects(async()=>{for await(const ignored of escaped!)assert.fail('escaped bytes');},{code:'EBADF'});
+});
+test('querying the source schema does not observe the result table',async()=>{
+ const fs=new MemoryFileSystem();await transactSqlite({fs,path:'/main',signal,...limits},s=>s.execute('CREATE TABLE sample(id INTEGER)'));
+ const names:string[]=[];
+ await withSqliteQueryRecords({fs,path:'/main',directory:'/',signal,...limits,sql:'SELECT name FROM sqlite_schema'},async rows=>{for await(const row of rows){const field=row[0];assert.ok(field&&typeof field==='object');let name='';for await(const bytes of field.bytes)name+=new TextDecoder().decode(bytes);names.push(name);}});
+ assert.deepEqual(names,['sample']);
+});
+for(const encoding of ['UTF-16le','UTF-16be'])test('query fields from '+encoding+' databases are exposed as UTF-8',async()=>{
+ const fs=new MemoryFileSystem();await transactSqlite({fs,path:'/main',signal,...limits},s=>s.execute("PRAGMA encoding='"+encoding+"'; CREATE TABLE sample(content TEXT); INSERT INTO sample VALUES ('界🙂')"));
+ let value='';
+ await withSqliteQueryRecords({fs,path:'/main',directory:'/',signal,...limits,sql:'SELECT content FROM sample'},async rows=>{for await(const row of rows){const field=row[0];assert.ok(field&&typeof field==='object');let size=0;for await(const bytes of field.bytes){size+=bytes.length;value+=new TextDecoder().decode(bytes);}assert.equal(size,field.size);}});
+ assert.equal(value,'界🙂');
+});
+test('query diagnostics retain SQLite syntax and missing-table explanations',async()=>{
+ const fs=new MemoryFileSystem();await transactSqlite({fs,path:'/main',signal,...limits},s=>s.execute('CREATE TABLE sample(id INTEGER)'));
+ for(const [sql,message]of [['SELECT * FROM missing','no such table: missing'],['SELECT FROM sample','syntax error']])await assert.rejects(withSqliteQueryRecords({fs,path:'/main',directory:'/',signal,...limits,sql:sql!},async()=>{}),error=>error instanceof Error&&error.message.includes(message!));
+});
+test('result staging preserves query value types without inferred column affinity',async()=>{
+ const fs=new MemoryFileSystem();await transactSqlite({fs,path:'/main',signal,...limits},s=>s.execute("CREATE TABLE sample(id INTEGER); INSERT INTO sample VALUES(7)"));
+ const values:unknown[]=[];
+ await withSqliteQueryRecords({fs,path:'/main',directory:'/',signal,...limits,sql:"SELECT id FROM sample UNION ALL SELECT '001'"},async rows=>{for await(const row of rows){const field=row[0];if(field&&typeof field==='object'){let text='';for await(const bytes of field.bytes)text+=new TextDecoder().decode(bytes);values.push(text);}else values.push(field);}});
+ assert.deepEqual(values,[7n,'001']);
+});
+
+test('query staging is absent from the native attachment namespace',async()=>{
+ const fs=new MemoryFileSystem();await transactSqlite({fs,path:'/main',signal,...limits},s=>s.execute('CREATE TABLE sample(id INTEGER)'));
+ const names:string[]=[];
+ await withSqliteQueryRecords({fs,path:'/main',directory:'/',signal,...limits,sql:'SELECT name FROM pragma_database_list'},async rows=>{for await(const row of rows){const field=row[0];assert.ok(field&&typeof field==='object');let name='';for await(const bytes of field.bytes)name+=new TextDecoder().decode(bytes);names.push(name);}});
+ assert.deepEqual(names,['main']);
+});
+test('query staging preserves all ten native attachment slots',async()=>{
+ const fs=new MemoryFileSystem();await transactSqlite({fs,path:'/main',signal,...limits},s=>s.execute('CREATE TABLE sample(id INTEGER)'));
+ const attachments=Array.from({length:10},(_,index)=>({alias:'db'+index,path:'/main'}));
+ const values:unknown[]=[];
+ await withSqliteQueryRecords({fs,path:'/main',directory:'/',signal,...limits,attachments,sql:'SELECT count(*) FROM pragma_database_list'},async rows=>{for await(const row of rows)values.push(row[0]);});
+ assert.deepEqual(values,[11n]);
+});
+test('result spool budget failure precedes the consumer and retires caller files',async()=>{
+ const fs=new MemoryFileSystem();await transactSqlite({fs,path:'/main',signal,...limits},s=>s.execute('CREATE TABLE sample(id INTEGER)'));
+ let admitted=false;
+ await assert.rejects(withSqliteQueryRecords({fs,path:'/main',directory:'/',signal,...limits,maxFileBytes:16384,sql:'SELECT zeroblob(16384)'},async()=>{admitted=true;}),{code:'EFBIG'});
+ assert.equal(admitted,false);assert.deepEqual((await fs.readdir('/')).map(e=>e.name),['main']);
+});
+test('late native query failure does not publish partial staged results',async()=>{
+ const fs=new MemoryFileSystem();await transactSqlite({fs,path:'/main',signal,...limits},s=>s.execute('CREATE TABLE sample(id INTEGER)'));
+ let admitted=false;
+ await assert.rejects(withSqliteQueryRecords({fs,path:'/main',directory:'/',signal,...limits,sql:'SELECT 1 UNION ALL SELECT abs(-9223372036854775808)'},async()=>{admitted=true;}),/integer overflow/);
+ assert.equal(admitted,false);assert.deepEqual((await fs.readdir('/')).map(e=>e.name),['main']);
+});
+test('staged query fields reject changes to their retained caller snapshot',async()=>{
+ const fs=new MemoryFileSystem();await transactSqlite({fs,path:'/main',signal,...limits},s=>s.execute('CREATE TABLE sample(id INTEGER)'));
+ await withSqliteQueryRecords({fs,path:'/main',directory:'/',signal,...limits,sql:"SELECT 'unchanged'"},async rows=>{
+  for await(const row of rows){
+   const field=row[0];assert.ok(field&&typeof field==='object');
+   const directory=(await fs.readdir('/')).find(entry=>entry.name.startsWith('.sqlite-'))!.name;
+   const file=await fs.open('/'+directory+'/results',{access:'readwrite',creation:'never',signal});
+   try{const stat=await file.stat({signal});await file.write(Uint8Array.of(120),stat.size-1,{signal});}finally{await file.close();}
+   await assert.rejects(async()=>{for await(const ignored of field.bytes){ /* Observe the retained version before exposing bytes. */ }},{code:'EBUSY'});
+  }
+ });
+ assert.deepEqual((await fs.readdir('/')).map(e=>e.name),['main']);
+});
+test('database filenames preserve caller paths, including repeated attached sources',async()=>{
+ const fs=new MemoryFileSystem();await transactSqlite({fs,path:'/main',signal,...limits},s=>s.execute('CREATE TABLE sample(id INTEGER)'));
+ await fs.mkdir('/nested');await transactSqlite({fs,path:'/nested/界.db',signal,...limits},s=>s.execute('CREATE TABLE sample(id INTEGER)'));
+ const actual:string[][]=[];
+ await withSqliteQueryRecords({fs,path:'/main',directory:'/',signal,...limits,attachments:[{alias:'other',path:'/nested/界.db'},{alias:'again',path:'/main'}],sql:'SELECT name,file FROM pragma_database_list'},async rows=>{
+  for await(const row of rows){const values:string[]=[];for(const field of row){assert.ok(field&&typeof field==='object');let value='';for await(const bytes of field.bytes)value+=new TextDecoder().decode(bytes);values.push(value);}actual.push(values);}
+ });
+ assert.deepEqual(actual,[['main','/main'],['other','/nested/界.db'],['again','/main']]);
+});
+test('database filenames use the retained source resolution through symlinked directories',async()=>{
+ const fs=new MemoryFileSystem();await fs.mkdir('/actual');await transactSqlite({fs,path:'/actual/main',signal,...limits},s=>s.execute('CREATE TABLE sample(id INTEGER)'));
+ await fs.symlink('/actual','/alias');let filename='';
+ await withSqliteQueryRecords({fs,path:'/alias/main',directory:'/',signal,...limits,sql:'SELECT file FROM pragma_database_list'},async rows=>{for await(const row of rows){const field=row[0];assert.ok(field&&typeof field==='object');for await(const bytes of field.bytes)filename+=new TextDecoder().decode(bytes);}});
+ assert.equal(filename,'/actual/main');
+});
+test('query sources follow final symlinks with canonical filenames',async()=>{
+ const fs=new MemoryFileSystem();await transactSqlite({fs,path:'/actual',signal,...limits},s=>s.execute("CREATE TABLE sample(value); INSERT INTO sample VALUES ('original')"));
+ await fs.symlink('/actual','/link');const before=await fs.readFile('/actual');
+ const values:string[]=[];
+ await withSqliteQueryRecords({fs,path:'/link',directory:'/',signal,...limits,attachments:[{alias:'again',path:'/link'}],sql:'SELECT file FROM pragma_database_list UNION ALL SELECT value FROM again.sample'},async rows=>{for await(const row of rows){const field=row[0];assert.ok(field&&typeof field==='object');let value='';for await(const bytes of field.bytes)value+=new TextDecoder().decode(bytes);values.push(value);}});
+ assert.deepEqual(values,['/actual','/actual','original']);assert.equal(await fs.readlink('/link'),'/actual');assert.deepEqual(await fs.readFile('/actual'),before);
+});
+test('retargeted final source symlinks fail before copying bytes or exposing rows',async()=>{
+ const fs=new MemoryFileSystem();for(const path of ['/actual','/other'])await transactSqlite({fs,path,signal,...limits},s=>s.execute('CREATE TABLE sample(value)'));
+ await fs.symlink('/actual','/link');let changed=false,reads=0,admitted=false;
+ const view=new Proxy(fs,{get(target,key){
+  if(key==='openReadFile')return async(...args:Parameters<typeof fs.openReadFile>)=>{
+   const file=await target.openReadFile(...args);
+   if(!changed){changed=true;await target.unlink('/link');await target.symlink('/other','/link');}
+   return {...file,async read(...args:Parameters<typeof file.read>){reads++;return file.read(...args);}};
+  };
+  const value:unknown=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;
+ }});
+ await assert.rejects(withSqliteQueryRecords({fs:view,path:'/link',directory:'/',signal,...limits,sql:'SELECT 1'},async()=>{admitted=true;}));
+ assert.equal(changed,true);assert.equal(reads,0);assert.equal(admitted,false);assert.deepEqual((await fs.readdir('/')).map(entry=>entry.name),['actual','link','other']);
+});
+test('final source symlinks require synchronous followed resolution guards',async()=>{
+ const fs=new MemoryFileSystem();await transactSqlite({fs,path:'/actual',signal,...limits},s=>s.execute('CREATE TABLE sample(value)'));
+ await fs.symlink('/actual','/link');let followed=false;
+ const view=new Proxy(fs,{get(target,key){
+  if(key==='capabilitiesFor')return async(_path:string,options?:{followFinalSymlink?:boolean})=>{
+   followed||=options?.followFinalSymlink===true;return {...target.capabilities,synchronousFollowedStagingResolution:false};
+  };
+  const value:unknown=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;
+ }});
+ await assert.rejects(withSqliteQueryRecords({fs:view,path:'/link',directory:'/',signal,...limits,sql:'SELECT 1'},async()=>{assert.fail('unguarded source');}),{code:'ENOTSUP'});
+ assert.equal(followed,true);assert.deepEqual((await fs.readdir('/')).map(entry=>entry.name),['actual','link']);
+});

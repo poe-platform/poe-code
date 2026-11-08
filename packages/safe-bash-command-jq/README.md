@@ -1,0 +1,38 @@
+# safe-bash-command-jq
+
+Portable Safe Bash command for virtual filesystems.
+
+Run jq filters against JSON in the virtual filesystem, including unary-minus
+filters such as `jq -c '-.a'` without an extra `--`. `env` and `$ENV` expose the
+Safe Bash command environment, never the host process environment. Use
+`jq -Rn '[inputs | split(",")]'` to collect raw input lines; `inputs` consumes
+the remaining values from the same input stream, including virtual files.
+`input` reads just the next value from that stream and raises `"break"` at end of input.
+`input_filename` returns the current file operand, `"<stdin>"` for standard input,
+or `null` before reading an input source. `input_line_number` returns the current
+input line count, or `0` before reading input.
+`debug` writes `["DEBUG:", value]` as compact JSON to stderr and passes the value through.
+Use `jq -cn 'builtins'` to list supported functions as `name/arity` strings.
+
+This private implementation ships inside Safe Bash; no separate installation is
+needed. Use the public command export to register jq explicitly:
+
+```ts
+import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";
+import { jqCommands } from "@poe-platform/safe-bash/commands/jq";
+
+const shell = new Shell({ fs: createMemoryFileSystem() }).use(jqCommands({
+  limits: { maxSteps: 10000, maxOutputBytes: 4096 }
+}));
+try {
+  const result = await shell.exec("jq -c '.items[]'", { stdin: '{"items":[1,2]}' });
+  console.log(result.stdout); // 1\n2\n
+} finally {
+  await shell.dispose();
+}
+```
+
+Streaming JSON, raw/slurped input, variables, virtual filter/module files and
+compact, sorted or raw output use the existing bounded jq profile. This is a jq
+subset. The public facade also exports `createJqCommand`, `createJqCommands`,
+`JqCommandsOptions` and `JqLimits`; legacy structured-command imports remain valid.

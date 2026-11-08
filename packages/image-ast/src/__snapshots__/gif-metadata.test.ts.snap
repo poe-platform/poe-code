@@ -1,0 +1,463 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`preserves GIF metadata 0/0/{"animated":true} 1`] = `
+{
+  "channels": 4,
+  "density": 72,
+  "depth": "uchar",
+  "format": "gif",
+  "hasAlpha": true,
+  "height": 5,
+  "loop": 0,
+  "pages": 1,
+  "size": 33,
+  "space": "srgb",
+  "width": 3,
+}
+`;
+
+exports[`preserves GIF metadata 0/0/{"page":1,"pages":2} 1`] = `
+{
+  "channels": 4,
+  "density": 72,
+  "depth": "uchar",
+  "format": "gif",
+  "hasAlpha": true,
+  "height": 5,
+  "loop": 0,
+  "pages": 1,
+  "size": 33,
+  "space": "srgb",
+  "width": 3,
+}
+`;
+
+exports[`preserves GIF metadata 0/0/{"page":2,"pages":-1} 1`] = `
+{
+  "channels": 4,
+  "density": 72,
+  "depth": "uchar",
+  "format": "gif",
+  "hasAlpha": true,
+  "height": 5,
+  "loop": 0,
+  "pages": 1,
+  "size": 33,
+  "space": "srgb",
+  "width": 3,
+}
+`;
+
+exports[`preserves GIF metadata 0/0/{} 1`] = `
+{
+  "channels": 4,
+  "density": 72,
+  "depth": "uchar",
+  "format": "gif",
+  "hasAlpha": true,
+  "height": 5,
+  "loop": 0,
+  "pages": 1,
+  "size": 33,
+  "space": "srgb",
+  "width": 3,
+}
+`;
+
+exports[`preserves GIF metadata 0/7/{"animated":true} 1`] = `
+{
+  "channels": 4,
+  "density": 72,
+  "depth": "uchar",
+  "format": "gif",
+  "hasAlpha": true,
+  "height": 5,
+  "loop": 8,
+  "pages": 1,
+  "size": 33,
+  "space": "srgb",
+  "width": 3,
+}
+`;
+
+exports[`preserves GIF metadata 0/7/{"page":1,"pages":2} 1`] = `
+{
+  "channels": 4,
+  "density": 72,
+  "depth": "uchar",
+  "format": "gif",
+  "hasAlpha": true,
+  "height": 5,
+  "loop": 8,
+  "pages": 1,
+  "size": 33,
+  "space": "srgb",
+  "width": 3,
+}
+`;
+
+exports[`preserves GIF metadata 0/7/{"page":2,"pages":-1} 1`] = `
+{
+  "channels": 4,
+  "density": 72,
+  "depth": "uchar",
+  "format": "gif",
+  "hasAlpha": true,
+  "height": 5,
+  "loop": 8,
+  "pages": 1,
+  "size": 33,
+  "space": "srgb",
+  "width": 3,
+}
+`;
+
+exports[`preserves GIF metadata 0/7/{} 1`] = `
+{
+  "channels": 4,
+  "density": 72,
+  "depth": "uchar",
+  "format": "gif",
+  "hasAlpha": true,
+  "height": 5,
+  "loop": 8,
+  "pages": 1,
+  "size": 33,
+  "space": "srgb",
+  "width": 3,
+}
+`;
+
+exports[`preserves GIF metadata 1/0/{"animated":true} 1`] = `
+{
+  "channels": 4,
+  "delay": [
+    0,
+  ],
+  "density": 72,
+  "depth": "uchar",
+  "format": "gif",
+  "hasAlpha": true,
+  "height": 5,
+  "loop": 0,
+  "pages": 1,
+  "size": 56,
+  "space": "srgb",
+  "width": 3,
+}
+`;
+
+exports[`preserves GIF metadata 1/0/{"page":1,"pages":2} 1`] = `
+{
+  "channels": 4,
+  "delay": [
+    0,
+  ],
+  "density": 72,
+  "depth": "uchar",
+  "format": "gif",
+  "hasAlpha": true,
+  "height": 5,
+  "loop": 0,
+  "pages": 1,
+  "size": 56,
+  "space": "srgb",
+  "width": 3,
+}
+`;
+
+exports[`preserves GIF metadata 1/0/{"page":2,"pages":-1} 1`] = `
+{
+  "channels": 4,
+  "delay": [
+    0,
+  ],
+  "density": 72,
+  "depth": "uchar",
+  "format": "gif",
+  "hasAlpha": true,
+  "height": 5,
+  "loop": 0,
+  "pages": 1,
+  "size": 56,
+  "space": "srgb",
+  "width": 3,
+}
+`;
+
+exports[`preserves GIF metadata 1/0/{} 1`] = `
+{
+  "channels": 4,
+  "delay": [
+    0,
+  ],
+  "density": 72,
+  "depth": "uchar",
+  "format": "gif",
+  "hasAlpha": true,
+  "height": 5,
+  "loop": 0,
+  "pages": 1,
+  "size": 56,
+  "space": "srgb",
+  "width": 3,
+}
+`;
+
+exports[`preserves GIF metadata 1/7/{"animated":true} 1`] = `
+{
+  "channels": 4,
+  "delay": [
+    0,
+  ],
+  "density": 72,
+  "depth": "uchar",
+  "format": "gif",
+  "hasAlpha": true,
+  "height": 5,
+  "loop": 8,
+  "pages": 1,
+  "size": 56,
+  "space": "srgb",
+  "width": 3,
+}
+`;
+
+exports[`preserves GIF metadata 1/7/{"page":1,"pages":2} 1`] = `
+{
+  "channels": 4,
+  "delay": [
+    0,
+  ],
+  "density": 72,
+  "depth": "uchar",
+  "format": "gif",
+  "hasAlpha": true,
+  "height": 5,
+  "loop": 8,
+  "pages": 1,
+  "size": 56,
+  "space": "srgb",
+  "width": 3,
+}
+`;
+
+exports[`preserves GIF metadata 1/7/{"page":2,"pages":-1} 1`] = `
+{
+  "channels": 4,
+  "delay": [
+    0,
+  ],
+  "density": 72,
+  "depth": "uchar",
+  "format": "gif",
+  "hasAlpha": true,
+  "height": 5,
+  "loop": 8,
+  "pages": 1,
+  "size": 56,
+  "space": "srgb",
+  "width": 3,
+}
+`;
+
+exports[`preserves GIF metadata 1/7/{} 1`] = `
+{
+  "channels": 4,
+  "delay": [
+    0,
+  ],
+  "density": 72,
+  "depth": "uchar",
+  "format": "gif",
+  "hasAlpha": true,
+  "height": 5,
+  "loop": 8,
+  "pages": 1,
+  "size": 56,
+  "space": "srgb",
+  "width": 3,
+}
+`;
+
+exports[`preserves GIF metadata 4/0/{"animated":true} 1`] = `
+{
+  "channels": 4,
+  "delay": [
+    0,
+    10,
+    20,
+    30,
+  ],
+  "density": 72,
+  "depth": "uchar",
+  "format": "gif",
+  "hasAlpha": true,
+  "height": 20,
+  "loop": 0,
+  "pageHeight": 5,
+  "pages": 4,
+  "size": 125,
+  "space": "srgb",
+  "width": 3,
+}
+`;
+
+exports[`preserves GIF metadata 4/0/{"page":1,"pages":2} 1`] = `
+{
+  "channels": 4,
+  "delay": [
+    0,
+    10,
+    20,
+    30,
+  ],
+  "density": 72,
+  "depth": "uchar",
+  "format": "gif",
+  "hasAlpha": true,
+  "height": 10,
+  "loop": 0,
+  "pageHeight": 5,
+  "pages": 4,
+  "size": 125,
+  "space": "srgb",
+  "width": 3,
+}
+`;
+
+exports[`preserves GIF metadata 4/0/{"page":2,"pages":-1} 1`] = `
+{
+  "channels": 4,
+  "delay": [
+    0,
+    10,
+    20,
+    30,
+  ],
+  "density": 72,
+  "depth": "uchar",
+  "format": "gif",
+  "hasAlpha": true,
+  "height": 10,
+  "loop": 0,
+  "pageHeight": 5,
+  "pages": 4,
+  "size": 125,
+  "space": "srgb",
+  "width": 3,
+}
+`;
+
+exports[`preserves GIF metadata 4/0/{} 1`] = `
+{
+  "channels": 4,
+  "delay": [
+    0,
+    10,
+    20,
+    30,
+  ],
+  "density": 72,
+  "depth": "uchar",
+  "format": "gif",
+  "hasAlpha": true,
+  "height": 5,
+  "loop": 0,
+  "pages": 4,
+  "size": 125,
+  "space": "srgb",
+  "width": 3,
+}
+`;
+
+exports[`preserves GIF metadata 4/7/{"animated":true} 1`] = `
+{
+  "channels": 4,
+  "delay": [
+    0,
+    10,
+    20,
+    30,
+  ],
+  "density": 72,
+  "depth": "uchar",
+  "format": "gif",
+  "hasAlpha": true,
+  "height": 20,
+  "loop": 8,
+  "pageHeight": 5,
+  "pages": 4,
+  "size": 125,
+  "space": "srgb",
+  "width": 3,
+}
+`;
+
+exports[`preserves GIF metadata 4/7/{"page":1,"pages":2} 1`] = `
+{
+  "channels": 4,
+  "delay": [
+    0,
+    10,
+    20,
+    30,
+  ],
+  "density": 72,
+  "depth": "uchar",
+  "format": "gif",
+  "hasAlpha": true,
+  "height": 10,
+  "loop": 8,
+  "pageHeight": 5,
+  "pages": 4,
+  "size": 125,
+  "space": "srgb",
+  "width": 3,
+}
+`;
+
+exports[`preserves GIF metadata 4/7/{"page":2,"pages":-1} 1`] = `
+{
+  "channels": 4,
+  "delay": [
+    0,
+    10,
+    20,
+    30,
+  ],
+  "density": 72,
+  "depth": "uchar",
+  "format": "gif",
+  "hasAlpha": true,
+  "height": 10,
+  "loop": 8,
+  "pageHeight": 5,
+  "pages": 4,
+  "size": 125,
+  "space": "srgb",
+  "width": 3,
+}
+`;
+
+exports[`preserves GIF metadata 4/7/{} 1`] = `
+{
+  "channels": 4,
+  "delay": [
+    0,
+    10,
+    20,
+    30,
+  ],
+  "density": 72,
+  "depth": "uchar",
+  "format": "gif",
+  "hasAlpha": true,
+  "height": 5,
+  "loop": 8,
+  "pages": 4,
+  "size": 125,
+  "space": "srgb",
+  "width": 3,
+}
+`;

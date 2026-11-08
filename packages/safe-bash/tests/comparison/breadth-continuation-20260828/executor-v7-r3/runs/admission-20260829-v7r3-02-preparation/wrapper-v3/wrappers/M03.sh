@@ -1,0 +1,10 @@
+set -eu
+set -C
+umask 077
+cd '/Users/kjopek/Workspace/safe-bash'
+printf '%s\n' "$$" > '/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/tails-01/M03/EXEC-PID.data'
+( exec -c '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' --unhandled-rejections=strict --max-old-space-size=256 '/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/prepare-captures.mjs' '/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/tails-01/M03' 'none' )
+exec 1>>'/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/tails-01/M03/stdout.raw'
+exec 2>>'/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/tails-01/M03/stderr.raw'
+( exec -c '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' --unhandled-rejections=strict --max-old-space-size=256 '/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/verify-fds-v3.mjs' '/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/tails-01/M03' )
+exec -c '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' --unhandled-rejections=strict --max-old-space-size=256 '/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/mode-stub-v3.mjs' '/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/tails-01/M03'

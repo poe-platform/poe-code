@@ -1,0 +1,17 @@
+{
+  "authorOnly": true,
+  "codeAndDocumentWhitespaceCheckExit": 0,
+  "rawEvidenceWhitespaceCheckExit": 2,
+  "rawDiagnosticCount": 5960,
+  "rawDiagnosticClasses": [
+    "HTTP CRLF and header terminators",
+    "curl trace CRLF",
+    "MinIO stderr trailing spaces"
+  ],
+  "unexpectedRawDiagnosticPaths": [],
+  "rawEvidencePreserved": true,
+  "testedRunnerMatchesCommitted": true,
+  "testedChecksMatchCommitted": true,
+  "runnerSha256": "73ab8ee5322489dad55c32bcc9abe518ceed09bc71a4e57440f69fd426adc6ee",
+  "checksSha256": "65fc9ef75a15b5b0865bef339dd0b95b3f624ad0de0a8c87a9a8a3d83be4b73b"
+}

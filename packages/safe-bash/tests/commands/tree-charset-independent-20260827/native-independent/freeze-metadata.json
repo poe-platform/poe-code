@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "scope": "tests/commands/tree-charset-independent-20260827/native-independent/**",
+  "captureAt": "2026-08-27T17:32:48.856Z",
+  "preAddIndexSnapshotAt": "2026-08-27T17:34:15Z",
+  "preAddForeignStagedPathCount": 0,
+  "preAddCachedBinaryDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "concurrencyNote": "The initial status preflight observed 44 unrelated staged du evidence paths. Before any freezer staging command, the pre-add snapshot was empty, consistent with a concurrent owner committing its work. The freezer did not inspect those files and will compare the empty pre-add cached diff after commit --only.",
+  "chronology": "supplementary independent post-source freeze during concurrent review; no independent pre-source freeze exists",
+  "candidateInspected": false,
+  "candidateExecuted": false,
+  "siblingEvidenceInspected": false,
+  "nativeCasesCompleted": 20,
+  "nativeCloseEventsObserved": 20
+}

@@ -1,0 +1,27 @@
+{
+  "pip": "21.2.4",
+  "rows": [
+    {
+      "exitCode": 0,
+      "versions": {
+        "replace-root": "1.0"
+      }
+    },
+    {
+      "exitCode": 0,
+      "versions": {
+        "replace-root": "2.0"
+      }
+    },
+    {
+      "exitCode": 1,
+      "versions": {}
+    },
+    {
+      "exitCode": 0,
+      "versions": {
+        "replace-root": "1.0"
+      }
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "phase": "ACTUAL_CONTINUATION",
+  "originalPreparationMinutesAtCommit": 18.071066666666667,
+  "oldHelperRefusal": "prep deadline: obsolete preparation-clock check rejected continuation commit before spawn; no child or candidate dispatch",
+  "actualElapsedSeconds": 499.335,
+  "policy": "PREP completed before actual GO; continuation uses original actual epoch, unchanged60min ceiling. No resource budget raised/reset."
+}

@@ -1,0 +1,66 @@
+{
+  "schema": "W05-only-preexecution-seal-v1",
+  "sealedAt": "2026-08-28T06:34:09.847Z",
+  "productExecutionsBeforeSeal": 0,
+  "selected": [
+    "installed-W05",
+    "moved-W05"
+  ],
+  "originalEvidenceSHA256": "5198c32b5c9793396c8db534419413168d6929d52baceaffea3fd5d7bc86da40",
+  "files": [
+    {
+      "path": "AMENDMENT.json",
+      "mode": 420,
+      "bytes": 8915,
+      "sha256": "6236be7a8ad0049885af7ade6b99d55f03443dc8128db3eb4af5ce14ca4f9fcd"
+    },
+    {
+      "path": "CASES.json",
+      "mode": 420,
+      "bytes": 3305,
+      "sha256": "2e4673e31cd32067a12b6345b0b4a5720f0b833da89a53686d823f1543e44329"
+    },
+    {
+      "path": "README.md",
+      "mode": 420,
+      "bytes": 3146,
+      "sha256": "f5ba2114db1c1584138fd6dff7168c41214b748b5afadbe1e93cde35e4d2b88d"
+    },
+    {
+      "path": "controls.mjs",
+      "mode": 420,
+      "bytes": 1810,
+      "sha256": "4ac592e9ce4d64989b33e66ee1d7b4783a4cd69949b6671b8cf52ac68a4c9c22"
+    },
+    {
+      "path": "execute.mjs",
+      "mode": 420,
+      "bytes": 1494,
+      "sha256": "3adc829adaab02af1077d2237b5f6106cb794e6f8cc0645786207960b57db1d2"
+    },
+    {
+      "path": "finalize.mjs",
+      "mode": 420,
+      "bytes": 7233,
+      "sha256": "15b57505f29e013519e916d22e88a11e459b726828bc58b7098315f0d41550e9"
+    },
+    {
+      "path": "prepare.mjs",
+      "mode": 420,
+      "bytes": 6114,
+      "sha256": "84df6fb9c823a03f282ed1cf999f08879d1eb70d999ac1979956265fbfb6ec91"
+    },
+    {
+      "path": "run.mjs",
+      "mode": 420,
+      "bytes": 13606,
+      "sha256": "d4cfd044eb564f443ad1dfc159971b0b49b8886fd91a8386897c7cf5861376d3"
+    },
+    {
+      "path": "verification.mjs",
+      "mode": 420,
+      "bytes": 775,
+      "sha256": "bdf993c4df1256c6e923f75ab60db67c48eaa0a90cdef5f16d57f576aefcc5ef"
+    }
+  ]
+}

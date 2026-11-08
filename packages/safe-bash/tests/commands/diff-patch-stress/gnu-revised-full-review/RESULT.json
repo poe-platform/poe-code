@@ -1,0 +1,1413 @@
+{
+  "author": "independent reviewer72352, distinct from editor93986",
+  "editorCommit": "5ddce1b0550ad7de8f2a8082f0402fae7aa001b7",
+  "startedAt": "2026-08-27T00:04:02.019Z",
+  "finishedAt": "2026-08-27T00:06:46.065Z",
+  "evidence": "/tmp/safe-bash-diff-revised-full-WB04o4",
+  "snapshot": "/private/tmp/safe-bash-diff-revised-full-WB04o4/snapshot-1",
+  "original": {
+    "tests": 3758,
+    "pass": 3750,
+    "fail": 8,
+    "skipped": 0,
+    "cancelled": 0,
+    "todo": 0
+  },
+  "originalRawExitCode": 1,
+  "revised": {
+    "tests": 3758,
+    "pass": 3758,
+    "fail": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "todo": 0
+  },
+  "revisedRawExitCode": 0,
+  "original30": {
+    "pass": 14,
+    "fail": 16,
+    "historical": true,
+    "rerun": false
+  },
+  "exactFiles": 70,
+  "suites": 17,
+  "sourceBefore": "a1c82c6caac9b8703757d6448dd77da6e23667c99eef01661ed781677662e5f5",
+  "sourceAfter": "a1c82c6caac9b8703757d6448dd77da6e23667c99eef01661ed781677662e5f5",
+  "dependenciesBefore": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+  "dependenciesAfter": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+  "inputOriginalAggregate": "3d6ddf2afbba4174a79f4048881f888596e1ed061d0179bdb0ea39df35f24c8e",
+  "original237Preserved": true,
+  "original70Preserved": true,
+  "inputsRestoredExceptDeclaredScopedConfig": true,
+  "sourceWorkingTreeAfter": "ece9446d969974de4c006efb107cca2857fdea8408bb2841ef93a5360345b48d",
+  "scopedNoEmit": 0,
+  "wholeNoEmit": 2,
+  "snapshotBuild": 2,
+  "publicFixture": 0,
+  "independentNativeProduct": 1,
+  "buildOutputAggregate": "0a7c0c331e2509b71aa95eccc29d8b575a32f7d503d39e2a5c2f00f11cdc27ac",
+  "imports": 357,
+  "deltaAuditSha256": "a7d2646550db6f4cfc4bbe08a97cca8fa822067936775dce579f8a546fb7b9d5",
+  "runs": [
+    {
+      "name": "original-absolute-target",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "--test-reporter-destination=stdout",
+        "--test-reporter=./tests/commands/diff-patch-stress/gnu-followup-checkpoint/reporter.mjs",
+        "--test-reporter-destination=/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-absolute-target.events.jsonl",
+        "tests/commands/diff-patch-stress/absolute-target/absolute-target.test.ts",
+        "tests/commands/diff-patch-stress/absolute-target/native.test.ts"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-revised-full-WB04o4/snapshot-1",
+      "startedAt": "2026-08-27T00:04:02.508Z",
+      "finishedAt": "2026-08-27T00:04:03.202Z",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-absolute-target.stdout",
+        "sha256": "2ccdcedd8e7cf19d8820fa5a79634a08a96e9b421dc17be9c01e806232d1bd76"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-absolute-target.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "original-compatibility",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "--test-reporter-destination=stdout",
+        "--test-reporter=./tests/commands/diff-patch-stress/gnu-followup-checkpoint/reporter.mjs",
+        "--test-reporter-destination=/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-compatibility.events.jsonl",
+        "tests/commands/diff-patch-stress/compatibility/diff.test.ts",
+        "tests/commands/diff-patch-stress/compatibility/gaps.test.ts",
+        "tests/commands/diff-patch-stress/compatibility/oracle.test.ts",
+        "tests/commands/diff-patch-stress/compatibility/patch.test.ts",
+        "tests/commands/diff-patch-stress/compatibility/shell.test.ts"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-revised-full-WB04o4/snapshot-1",
+      "startedAt": "2026-08-27T00:04:03.675Z",
+      "finishedAt": "2026-08-27T00:04:06.394Z",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-compatibility.stdout",
+        "sha256": "34a007579b46275586221855ab7f9587a40ef9672417b30384f12edd34c93419"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-compatibility.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "original-editflows",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "--test-reporter-destination=stdout",
+        "--test-reporter=./tests/commands/diff-patch-stress/gnu-followup-checkpoint/reporter.mjs",
+        "--test-reporter-destination=/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-editflows.events.jsonl",
+        "tests/commands/diff-patch-stress/editflows/oracles.test.ts",
+        "tests/commands/diff-patch-stress/editflows/parity.test.ts",
+        "tests/commands/diff-patch-stress/editflows/quoted-safety.test.ts"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-revised-full-WB04o4/snapshot-1",
+      "startedAt": "2026-08-27T00:04:06.900Z",
+      "finishedAt": "2026-08-27T00:04:08.161Z",
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-editflows.stdout",
+        "sha256": "1747ad43c22c02114396bf4183e60fbd6c45e1d4d14e4c852f5399ca92ee52d5"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-editflows.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "original-emptyfile-delta",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "--test-reporter-destination=stdout",
+        "--test-reporter=./tests/commands/diff-patch-stress/gnu-followup-checkpoint/reporter.mjs",
+        "--test-reporter-destination=/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-emptyfile-delta.events.jsonl",
+        "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-revised-full-WB04o4/snapshot-1",
+      "startedAt": "2026-08-27T00:04:08.513Z",
+      "finishedAt": "2026-08-27T00:04:08.860Z",
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-emptyfile-delta.stdout",
+        "sha256": "c3235f9060b0496281d3fa21466fb7b978a95c423a9362bfc932a6c032998dfc"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-emptyfile-delta.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "original-formats",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "--test-reporter-destination=stdout",
+        "--test-reporter=./tests/commands/diff-patch-stress/gnu-followup-checkpoint/reporter.mjs",
+        "--test-reporter-destination=/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-formats.events.jsonl",
+        "tests/commands/diff-patch-stress/formats/boundaries.test.ts",
+        "tests/commands/diff-patch-stress/formats/editflows.test.ts",
+        "tests/commands/diff-patch-stress/formats/regressions.test.ts",
+        "tests/commands/diff-patch-stress/formats/whitespace.test.ts"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-revised-full-WB04o4/snapshot-1",
+      "startedAt": "2026-08-27T00:04:09.224Z",
+      "finishedAt": "2026-08-27T00:04:25.026Z",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-formats.stdout",
+        "sha256": "6a91c661d4c8933d169cc1e826ca005f48082d64c0c7f7a190cb646e4de53a41"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-formats.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "original-fuzz",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "--test-reporter-destination=stdout",
+        "--test-reporter=./tests/commands/diff-patch-stress/gnu-followup-checkpoint/reporter.mjs",
+        "--test-reporter-destination=/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-fuzz.events.jsonl",
+        "tests/commands/diff-patch-stress/fuzz/budgets.test.ts",
+        "tests/commands/diff-patch-stress/fuzz/edits.test.ts",
+        "tests/commands/diff-patch-stress/fuzz/properties.test.ts",
+        "tests/commands/diff-patch-stress/fuzz/regressions.test.ts"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-revised-full-WB04o4/snapshot-1",
+      "startedAt": "2026-08-27T00:04:25.388Z",
+      "finishedAt": "2026-08-27T00:04:47.906Z",
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-fuzz.stdout",
+        "sha256": "bb0d76a6b018d1e9d3ef76197cdd47d7d549cc537eb11c9cd7254fb9fc331542"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-fuzz.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "original-gnu-auxiliary",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "--test-reporter-destination=stdout",
+        "--test-reporter=./tests/commands/diff-patch-stress/gnu-followup-checkpoint/reporter.mjs",
+        "--test-reporter-destination=/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-gnu-auxiliary.events.jsonl",
+        "tests/commands/diff-patch-stress/gnu-auxiliary/authorization.test.ts"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-revised-full-WB04o4/snapshot-1",
+      "startedAt": "2026-08-27T00:04:48.437Z",
+      "finishedAt": "2026-08-27T00:04:49.292Z",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-gnu-auxiliary.stdout",
+        "sha256": "debb9d06f09250e1d9d509bfee631ba75c743b799631c5f21470a9b8e3ecedf7"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-gnu-auxiliary.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "original-gnu-candidate-followup",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "--test-reporter-destination=stdout",
+        "--test-reporter=./tests/commands/diff-patch-stress/gnu-followup-checkpoint/reporter.mjs",
+        "--test-reporter-destination=/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-gnu-candidate-followup.events.jsonl",
+        "tests/commands/diff-patch-stress/gnu-candidate-followup/candidates.test.ts"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-revised-full-WB04o4/snapshot-1",
+      "startedAt": "2026-08-27T00:04:49.632Z",
+      "finishedAt": "2026-08-27T00:04:50.058Z",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-gnu-candidate-followup.stdout",
+        "sha256": "70bc9978c8cfdf45380f2b17abf01b6add524df0ad2d95589bfb27329bdc8419"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-gnu-candidate-followup.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "original-gnu-editflows",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "--test-reporter-destination=stdout",
+        "--test-reporter=./tests/commands/diff-patch-stress/gnu-followup-checkpoint/reporter.mjs",
+        "--test-reporter-destination=/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-gnu-editflows.events.jsonl",
+        "tests/commands/diff-patch-stress/gnu-editflows/controls.test.ts",
+        "tests/commands/diff-patch-stress/gnu-editflows/parity.test.ts"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-revised-full-WB04o4/snapshot-1",
+      "startedAt": "2026-08-27T00:04:50.398Z",
+      "finishedAt": "2026-08-27T00:04:51.225Z",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-gnu-editflows.stdout",
+        "sha256": "2c82ff825731f795107706f13a3024a32e028841cf5ac10c1e45ec6375e9b3ef"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-gnu-editflows.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "original-gnu-safety-strip-followup",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "--test-reporter-destination=stdout",
+        "--test-reporter=./tests/commands/diff-patch-stress/gnu-followup-checkpoint/reporter.mjs",
+        "--test-reporter-destination=/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-gnu-safety-strip-followup.events.jsonl",
+        "tests/commands/diff-patch-stress/gnu-safety-strip-followup/controls.test.ts"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-revised-full-WB04o4/snapshot-1",
+      "startedAt": "2026-08-27T00:04:51.570Z",
+      "finishedAt": "2026-08-27T00:04:51.831Z",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-gnu-safety-strip-followup.stdout",
+        "sha256": "62e7c9dd534375c2ca1238a9e03e2a5cc31f0fac65230a9af116d0969477d71b"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-gnu-safety-strip-followup.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "original-gnu-target-classification",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "--test-reporter-destination=stdout",
+        "--test-reporter=./tests/commands/diff-patch-stress/gnu-followup-checkpoint/reporter.mjs",
+        "--test-reporter-destination=/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-gnu-target-classification.events.jsonl",
+        "tests/commands/diff-patch-stress/gnu-target-classification/evidence.test.ts"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-revised-full-WB04o4/snapshot-1",
+      "startedAt": "2026-08-27T00:04:52.170Z",
+      "finishedAt": "2026-08-27T00:04:52.317Z",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-gnu-target-classification.stdout",
+        "sha256": "7fecefb5b5a1f23e2b65e3eb7374cd7dc48dded8d96b748ed0c3ae940d5a3f47"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-gnu-target-classification.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "original-gnu-target-followup",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "--test-reporter-destination=stdout",
+        "--test-reporter=./tests/commands/diff-patch-stress/gnu-followup-checkpoint/reporter.mjs",
+        "--test-reporter-destination=/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-gnu-target-followup.events.jsonl",
+        "tests/commands/diff-patch-stress/gnu-target-followup/metadata-safety.test.ts",
+        "tests/commands/diff-patch-stress/gnu-target-followup/native-controls.test.ts",
+        "tests/commands/diff-patch-stress/gnu-target-followup/overlap-default.test.ts"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-revised-full-WB04o4/snapshot-1",
+      "startedAt": "2026-08-27T00:04:52.659Z",
+      "finishedAt": "2026-08-27T00:04:53.361Z",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-gnu-target-followup.stdout",
+        "sha256": "d03f32bb0cca96b38405c64d55e9fab7cdee001ccb93ab1e9672c99827d2a67f"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-gnu-target-followup.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "original-gnu-target",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "--test-reporter-destination=stdout",
+        "--test-reporter=./tests/commands/diff-patch-stress/gnu-followup-checkpoint/reporter.mjs",
+        "--test-reporter-destination=/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-gnu-target.events.jsonl",
+        "tests/commands/diff-patch-stress/gnu-target/calibration.test.ts",
+        "tests/commands/diff-patch-stress/gnu-target/edit-correctness.test.ts",
+        "tests/commands/diff-patch-stress/gnu-target/policy-mirrors.test.ts"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-revised-full-WB04o4/snapshot-1",
+      "startedAt": "2026-08-27T00:04:53.702Z",
+      "finishedAt": "2026-08-27T00:04:57.750Z",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-gnu-target.stdout",
+        "sha256": "2479879a95aa6850ee90d4d058ca1c705750cca389d6ba74f09ba47b10043094"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-gnu-target.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "original-parser-regressions",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "--test-reporter-destination=stdout",
+        "--test-reporter=./tests/commands/diff-patch-stress/gnu-followup-checkpoint/reporter.mjs",
+        "--test-reporter-destination=/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-parser-regressions.events.jsonl",
+        "tests/commands/diff-patch-stress/parser-regressions/parser.test.ts"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-revised-full-WB04o4/snapshot-1",
+      "startedAt": "2026-08-27T00:04:58.523Z",
+      "finishedAt": "2026-08-27T00:05:00.562Z",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-parser-regressions.stdout",
+        "sha256": "81a86eb10d33e9c2dca4c24ce7136c78a28d973b8255b13a7e8e8b126249c8e9"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-parser-regressions.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "original-path-regressions",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "--test-reporter-destination=stdout",
+        "--test-reporter=./tests/commands/diff-patch-stress/gnu-followup-checkpoint/reporter.mjs",
+        "--test-reporter-destination=/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-path-regressions.events.jsonl",
+        "tests/commands/diff-patch-stress/path-regressions/bounds-shell.test.ts",
+        "tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts",
+        "tests/commands/diff-patch-stress/path-regressions/malformed.test.ts",
+        "tests/commands/diff-patch-stress/path-regressions/names.test.ts",
+        "tests/commands/diff-patch-stress/path-regressions/sequences.test.ts"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-revised-full-WB04o4/snapshot-1",
+      "startedAt": "2026-08-27T00:05:01.279Z",
+      "finishedAt": "2026-08-27T00:05:03.387Z",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-path-regressions.stdout",
+        "sha256": "bbebe68a7d8b6642d604cb6f31846e9be87b7083717afe9216406b1a43619953"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-path-regressions.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "original-safety",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "--test-reporter-destination=stdout",
+        "--test-reporter=./tests/commands/diff-patch-stress/gnu-followup-checkpoint/reporter.mjs",
+        "--test-reporter-destination=/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-safety.events.jsonl",
+        "tests/commands/diff-patch-stress/safety/bounds.test.ts",
+        "tests/commands/diff-patch-stress/safety/cancellation.test.ts",
+        "tests/commands/diff-patch-stress/safety/encoding-gaps.test.ts",
+        "tests/commands/diff-patch-stress/safety/failures.test.ts",
+        "tests/commands/diff-patch-stress/safety/integration.test.ts",
+        "tests/commands/diff-patch-stress/safety/paths.test.ts"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-revised-full-WB04o4/snapshot-1",
+      "startedAt": "2026-08-27T00:05:04.143Z",
+      "finishedAt": "2026-08-27T00:05:06.358Z",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-safety.stdout",
+        "sha256": "b1b8c7315a2537f1080af2ea81ffbe9e08c7c3fd984028db3b6150f1edc4e925"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-safety.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "original-author",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "--test-reporter-destination=stdout",
+        "--test-reporter=./tests/commands/diff-patch-stress/gnu-followup-checkpoint/reporter.mjs",
+        "--test-reporter-destination=/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-author.events.jsonl",
+        "tests/commands/diff-patch/cancellation.test.ts",
+        "tests/commands/diff-patch/diff-formats.test.ts",
+        "tests/commands/diff-patch/diff-gnu-options.test.ts",
+        "tests/commands/diff-patch/diff.test.ts",
+        "tests/commands/diff-patch/hunk-regressions.test.ts",
+        "tests/commands/diff-patch/native-helper.test.ts",
+        "tests/commands/diff-patch/options-regressions.test.ts",
+        "tests/commands/diff-patch/patch-absolute.test.ts",
+        "tests/commands/diff-patch/patch-authorization-followup.test.ts",
+        "tests/commands/diff-patch/patch-candidate-errors-followup.test.ts",
+        "tests/commands/diff-patch/patch-commit-followup.test.ts",
+        "tests/commands/diff-patch/patch-editflows.test.ts",
+        "tests/commands/diff-patch/patch-empty.test.ts",
+        "tests/commands/diff-patch/patch-epoch.test.ts",
+        "tests/commands/diff-patch/patch-formats.test.ts",
+        "tests/commands/diff-patch/patch-gnu-coordinates.test.ts",
+        "tests/commands/diff-patch/patch-gnu-publication.test.ts",
+        "tests/commands/diff-patch/patch-hunk-diagnostics-followup.test.ts",
+        "tests/commands/diff-patch/patch-interstitial-followup.test.ts",
+        "tests/commands/diff-patch/patch-metadata-boundary-followup.test.ts",
+        "tests/commands/diff-patch/patch-namespace-followup.test.ts",
+        "tests/commands/diff-patch/patch-parser.test.ts",
+        "tests/commands/diff-patch/patch-reject-orientation-followup.test.ts",
+        "tests/commands/diff-patch/patch-strip-followup.test.ts",
+        "tests/commands/diff-patch/patch.test.ts",
+        "tests/commands/diff-patch/safety.test.ts",
+        "tests/commands/diff-patch/shell.test.ts"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-revised-full-WB04o4/snapshot-1",
+      "startedAt": "2026-08-27T00:05:06.886Z",
+      "finishedAt": "2026-08-27T00:05:23.220Z",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-author.stdout",
+        "sha256": "4f0cd983cf276e4ebefe8cb0f15610e610ce1f1e5c6f24147b24d8c7549bbba3"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/original-author.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "revised-absolute-target",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "--test-reporter-destination=stdout",
+        "--test-reporter=./tests/commands/diff-patch-stress/gnu-followup-checkpoint/reporter.mjs",
+        "--test-reporter-destination=/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-absolute-target.events.jsonl",
+        "tests/commands/diff-patch-stress/absolute-target/absolute-target.test.ts",
+        "tests/commands/diff-patch-stress/absolute-target/native.test.ts"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-revised-full-WB04o4/snapshot-1",
+      "startedAt": "2026-08-27T00:05:23.686Z",
+      "finishedAt": "2026-08-27T00:05:24.193Z",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-absolute-target.stdout",
+        "sha256": "61e0d44665c98896a8ae5555965b443574a950fdcb3d2ccd1f436d147c3ea835"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-absolute-target.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "revised-compatibility",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "--test-reporter-destination=stdout",
+        "--test-reporter=./tests/commands/diff-patch-stress/gnu-followup-checkpoint/reporter.mjs",
+        "--test-reporter-destination=/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-compatibility.events.jsonl",
+        "tests/commands/diff-patch-stress/compatibility/diff.test.ts",
+        "tests/commands/diff-patch-stress/compatibility/gaps.test.ts",
+        "tests/commands/diff-patch-stress/compatibility/oracle.test.ts",
+        "tests/commands/diff-patch-stress/compatibility/patch.test.ts",
+        "tests/commands/diff-patch-stress/compatibility/shell.test.ts"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-revised-full-WB04o4/snapshot-1",
+      "startedAt": "2026-08-27T00:05:24.535Z",
+      "finishedAt": "2026-08-27T00:05:26.875Z",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-compatibility.stdout",
+        "sha256": "59d1a76951c089fafda3fffb5a279f457a6953f31a26e41108a7260577094ae5"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-compatibility.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "revised-editflows",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "--test-reporter-destination=stdout",
+        "--test-reporter=./tests/commands/diff-patch-stress/gnu-followup-checkpoint/reporter.mjs",
+        "--test-reporter-destination=/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-editflows.events.jsonl",
+        "tests/commands/diff-patch-stress/editflows/oracles.test.ts",
+        "tests/commands/diff-patch-stress/editflows/parity.test.ts",
+        "tests/commands/diff-patch-stress/editflows/quoted-safety.test.ts"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-revised-full-WB04o4/snapshot-1",
+      "startedAt": "2026-08-27T00:05:27.228Z",
+      "finishedAt": "2026-08-27T00:05:28.206Z",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-editflows.stdout",
+        "sha256": "48111a4347a15ee9a456d4d396f1a5991943a706af62bbe3e509ab74ece70844"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-editflows.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "revised-emptyfile-delta",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "--test-reporter-destination=stdout",
+        "--test-reporter=./tests/commands/diff-patch-stress/gnu-followup-checkpoint/reporter.mjs",
+        "--test-reporter-destination=/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-emptyfile-delta.events.jsonl",
+        "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-revised-full-WB04o4/snapshot-1",
+      "startedAt": "2026-08-27T00:05:28.545Z",
+      "finishedAt": "2026-08-27T00:05:28.843Z",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-emptyfile-delta.stdout",
+        "sha256": "d8c798a5462c7c5fec7c9b257176c5cd1710a45e88a6f17c14b4c88a1be18efc"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-emptyfile-delta.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "revised-formats",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "--test-reporter-destination=stdout",
+        "--test-reporter=./tests/commands/diff-patch-stress/gnu-followup-checkpoint/reporter.mjs",
+        "--test-reporter-destination=/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-formats.events.jsonl",
+        "tests/commands/diff-patch-stress/formats/boundaries.test.ts",
+        "tests/commands/diff-patch-stress/formats/editflows.test.ts",
+        "tests/commands/diff-patch-stress/formats/regressions.test.ts",
+        "tests/commands/diff-patch-stress/formats/whitespace.test.ts"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-revised-full-WB04o4/snapshot-1",
+      "startedAt": "2026-08-27T00:05:29.193Z",
+      "finishedAt": "2026-08-27T00:05:47.518Z",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-formats.stdout",
+        "sha256": "015eb9afc82d2e4e858c1b4a1d32b034ef8b99f06ad9fe3a45519b51f936b2fd"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-formats.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "revised-fuzz",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "--test-reporter-destination=stdout",
+        "--test-reporter=./tests/commands/diff-patch-stress/gnu-followup-checkpoint/reporter.mjs",
+        "--test-reporter-destination=/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-fuzz.events.jsonl",
+        "tests/commands/diff-patch-stress/fuzz/budgets.test.ts",
+        "tests/commands/diff-patch-stress/fuzz/edits.test.ts",
+        "tests/commands/diff-patch-stress/fuzz/properties.test.ts",
+        "tests/commands/diff-patch-stress/fuzz/regressions.test.ts"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-revised-full-WB04o4/snapshot-1",
+      "startedAt": "2026-08-27T00:05:47.993Z",
+      "finishedAt": "2026-08-27T00:06:11.326Z",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-fuzz.stdout",
+        "sha256": "d33519f501c9328cbed69d1dda135c175db7991158a26fa83eeafefca5709b0a"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-fuzz.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "revised-gnu-auxiliary",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "--test-reporter-destination=stdout",
+        "--test-reporter=./tests/commands/diff-patch-stress/gnu-followup-checkpoint/reporter.mjs",
+        "--test-reporter-destination=/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-gnu-auxiliary.events.jsonl",
+        "tests/commands/diff-patch-stress/gnu-auxiliary/authorization.test.ts"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-revised-full-WB04o4/snapshot-1",
+      "startedAt": "2026-08-27T00:06:11.675Z",
+      "finishedAt": "2026-08-27T00:06:12.521Z",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-gnu-auxiliary.stdout",
+        "sha256": "eef3254d6106f8acd45d87545ff3e8771f5d22c7ad23bef8f93f72f67de29339"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-gnu-auxiliary.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "revised-gnu-candidate-followup",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "--test-reporter-destination=stdout",
+        "--test-reporter=./tests/commands/diff-patch-stress/gnu-followup-checkpoint/reporter.mjs",
+        "--test-reporter-destination=/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-gnu-candidate-followup.events.jsonl",
+        "tests/commands/diff-patch-stress/gnu-candidate-followup/candidates.test.ts"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-revised-full-WB04o4/snapshot-1",
+      "startedAt": "2026-08-27T00:06:12.859Z",
+      "finishedAt": "2026-08-27T00:06:13.264Z",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-gnu-candidate-followup.stdout",
+        "sha256": "ddb1c11c4251903c5f5c72b9bb5cdcf53aa7f4dcd3ec7999fd945b6598b3df98"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-gnu-candidate-followup.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "revised-gnu-editflows",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "--test-reporter-destination=stdout",
+        "--test-reporter=./tests/commands/diff-patch-stress/gnu-followup-checkpoint/reporter.mjs",
+        "--test-reporter-destination=/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-gnu-editflows.events.jsonl",
+        "tests/commands/diff-patch-stress/gnu-editflows/controls.test.ts",
+        "tests/commands/diff-patch-stress/gnu-editflows/parity.test.ts"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-revised-full-WB04o4/snapshot-1",
+      "startedAt": "2026-08-27T00:06:13.611Z",
+      "finishedAt": "2026-08-27T00:06:14.416Z",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-gnu-editflows.stdout",
+        "sha256": "a01a1b44937a2032ada3f2024f1c1c9749f6ef852c7951fc676172fc86ef9ba4"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-gnu-editflows.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "revised-gnu-safety-strip-followup",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "--test-reporter-destination=stdout",
+        "--test-reporter=./tests/commands/diff-patch-stress/gnu-followup-checkpoint/reporter.mjs",
+        "--test-reporter-destination=/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-gnu-safety-strip-followup.events.jsonl",
+        "tests/commands/diff-patch-stress/gnu-safety-strip-followup/controls.test.ts"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-revised-full-WB04o4/snapshot-1",
+      "startedAt": "2026-08-27T00:06:14.752Z",
+      "finishedAt": "2026-08-27T00:06:15.006Z",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-gnu-safety-strip-followup.stdout",
+        "sha256": "5877017606b4ba3728466488d2ce59c7926d4b28d6ac63b449bdf3f24998893b"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-gnu-safety-strip-followup.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "revised-gnu-target-classification",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "--test-reporter-destination=stdout",
+        "--test-reporter=./tests/commands/diff-patch-stress/gnu-followup-checkpoint/reporter.mjs",
+        "--test-reporter-destination=/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-gnu-target-classification.events.jsonl",
+        "tests/commands/diff-patch-stress/gnu-target-classification/evidence.test.ts"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-revised-full-WB04o4/snapshot-1",
+      "startedAt": "2026-08-27T00:06:15.341Z",
+      "finishedAt": "2026-08-27T00:06:15.487Z",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-gnu-target-classification.stdout",
+        "sha256": "ee8447415604fb29508a3b1fe8a3ee8e2e18d9886e7f05ca1a06a8ad3a2581f6"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-gnu-target-classification.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "revised-gnu-target-followup",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "--test-reporter-destination=stdout",
+        "--test-reporter=./tests/commands/diff-patch-stress/gnu-followup-checkpoint/reporter.mjs",
+        "--test-reporter-destination=/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-gnu-target-followup.events.jsonl",
+        "tests/commands/diff-patch-stress/gnu-target-followup/metadata-safety.test.ts",
+        "tests/commands/diff-patch-stress/gnu-target-followup/native-controls.test.ts",
+        "tests/commands/diff-patch-stress/gnu-target-followup/overlap-default.test.ts"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-revised-full-WB04o4/snapshot-1",
+      "startedAt": "2026-08-27T00:06:15.834Z",
+      "finishedAt": "2026-08-27T00:06:16.491Z",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-gnu-target-followup.stdout",
+        "sha256": "56397f46fa17f461f32c3fc98a5ea3afac61e32441763bbd9c59bf54dff1f8c3"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-gnu-target-followup.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "revised-gnu-target",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "--test-reporter-destination=stdout",
+        "--test-reporter=./tests/commands/diff-patch-stress/gnu-followup-checkpoint/reporter.mjs",
+        "--test-reporter-destination=/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-gnu-target.events.jsonl",
+        "tests/commands/diff-patch-stress/gnu-target/calibration.test.ts",
+        "tests/commands/diff-patch-stress/gnu-target/edit-correctness.test.ts",
+        "tests/commands/diff-patch-stress/gnu-target/policy-mirrors.test.ts"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-revised-full-WB04o4/snapshot-1",
+      "startedAt": "2026-08-27T00:06:16.836Z",
+      "finishedAt": "2026-08-27T00:06:20.853Z",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-gnu-target.stdout",
+        "sha256": "87755df48043011bec2101decf5a81198610eaab3d371b6c92ccd4138f432509"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-gnu-target.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "revised-parser-regressions",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "--test-reporter-destination=stdout",
+        "--test-reporter=./tests/commands/diff-patch-stress/gnu-followup-checkpoint/reporter.mjs",
+        "--test-reporter-destination=/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-parser-regressions.events.jsonl",
+        "tests/commands/diff-patch-stress/parser-regressions/parser.test.ts"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-revised-full-WB04o4/snapshot-1",
+      "startedAt": "2026-08-27T00:06:21.197Z",
+      "finishedAt": "2026-08-27T00:06:21.908Z",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-parser-regressions.stdout",
+        "sha256": "7144df0ff281bab877a18b79dbfa136173cced6a9dd5a32dc0b5548dd1740124"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-parser-regressions.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "revised-path-regressions",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "--test-reporter-destination=stdout",
+        "--test-reporter=./tests/commands/diff-patch-stress/gnu-followup-checkpoint/reporter.mjs",
+        "--test-reporter-destination=/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-path-regressions.events.jsonl",
+        "tests/commands/diff-patch-stress/path-regressions/bounds-shell.test.ts",
+        "tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts",
+        "tests/commands/diff-patch-stress/path-regressions/malformed.test.ts",
+        "tests/commands/diff-patch-stress/path-regressions/names.test.ts",
+        "tests/commands/diff-patch-stress/path-regressions/sequences.test.ts"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-revised-full-WB04o4/snapshot-1",
+      "startedAt": "2026-08-27T00:06:22.252Z",
+      "finishedAt": "2026-08-27T00:06:23.391Z",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-path-regressions.stdout",
+        "sha256": "924b7faede703e9f40656e71e4dbe95e2da7c970bf4d54b829aeb4f4f3a910c6"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-path-regressions.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "revised-safety",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "--test-reporter-destination=stdout",
+        "--test-reporter=./tests/commands/diff-patch-stress/gnu-followup-checkpoint/reporter.mjs",
+        "--test-reporter-destination=/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-safety.events.jsonl",
+        "tests/commands/diff-patch-stress/safety/bounds.test.ts",
+        "tests/commands/diff-patch-stress/safety/cancellation.test.ts",
+        "tests/commands/diff-patch-stress/safety/encoding-gaps.test.ts",
+        "tests/commands/diff-patch-stress/safety/failures.test.ts",
+        "tests/commands/diff-patch-stress/safety/integration.test.ts",
+        "tests/commands/diff-patch-stress/safety/paths.test.ts"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-revised-full-WB04o4/snapshot-1",
+      "startedAt": "2026-08-27T00:06:23.744Z",
+      "finishedAt": "2026-08-27T00:06:25.028Z",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-safety.stdout",
+        "sha256": "dd29aad6fb23094cd0ea77b90d0cdc52497f854b0d2ba1e23f6cc398a085694f"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-safety.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "revised-author",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "--test-reporter-destination=stdout",
+        "--test-reporter=./tests/commands/diff-patch-stress/gnu-followup-checkpoint/reporter.mjs",
+        "--test-reporter-destination=/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-author.events.jsonl",
+        "tests/commands/diff-patch/cancellation.test.ts",
+        "tests/commands/diff-patch/diff-formats.test.ts",
+        "tests/commands/diff-patch/diff-gnu-options.test.ts",
+        "tests/commands/diff-patch/diff.test.ts",
+        "tests/commands/diff-patch/hunk-regressions.test.ts",
+        "tests/commands/diff-patch/native-helper.test.ts",
+        "tests/commands/diff-patch/options-regressions.test.ts",
+        "tests/commands/diff-patch/patch-absolute.test.ts",
+        "tests/commands/diff-patch/patch-authorization-followup.test.ts",
+        "tests/commands/diff-patch/patch-candidate-errors-followup.test.ts",
+        "tests/commands/diff-patch/patch-commit-followup.test.ts",
+        "tests/commands/diff-patch/patch-editflows.test.ts",
+        "tests/commands/diff-patch/patch-empty.test.ts",
+        "tests/commands/diff-patch/patch-epoch.test.ts",
+        "tests/commands/diff-patch/patch-formats.test.ts",
+        "tests/commands/diff-patch/patch-gnu-coordinates.test.ts",
+        "tests/commands/diff-patch/patch-gnu-publication.test.ts",
+        "tests/commands/diff-patch/patch-hunk-diagnostics-followup.test.ts",
+        "tests/commands/diff-patch/patch-interstitial-followup.test.ts",
+        "tests/commands/diff-patch/patch-metadata-boundary-followup.test.ts",
+        "tests/commands/diff-patch/patch-namespace-followup.test.ts",
+        "tests/commands/diff-patch/patch-parser.test.ts",
+        "tests/commands/diff-patch/patch-reject-orientation-followup.test.ts",
+        "tests/commands/diff-patch/patch-strip-followup.test.ts",
+        "tests/commands/diff-patch/patch.test.ts",
+        "tests/commands/diff-patch/safety.test.ts",
+        "tests/commands/diff-patch/shell.test.ts"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-revised-full-WB04o4/snapshot-1",
+      "startedAt": "2026-08-27T00:06:25.377Z",
+      "finishedAt": "2026-08-27T00:06:36.978Z",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-author.stdout",
+        "sha256": "3149fd405443877302d190e832759c08fc10256acfff5d6df6fb2b5c45a02cc0"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/revised-author.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "scoped-noEmit",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "/private/tmp/safe-bash-diff-revised-full-WB04o4/snapshot-1/tests/commands/diff-patch-stress/gnu-revised-full-review/scoped.generated.json",
+        "--pretty",
+        "false"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-revised-full-WB04o4/snapshot-1",
+      "startedAt": "2026-08-27T00:06:37.442Z",
+      "finishedAt": "2026-08-27T00:06:38.835Z",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/scoped-noEmit.stdout",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/scoped-noEmit.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "whole-noEmit",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "tsconfig.json",
+        "--pretty",
+        "false"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-revised-full-WB04o4/snapshot-1",
+      "startedAt": "2026-08-27T00:06:39.175Z",
+      "finishedAt": "2026-08-27T00:06:41.978Z",
+      "status": 2,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/whole-noEmit.stdout",
+        "sha256": "7ca2824a82e8c4fe685bf7ff934ffd02ab360321f2817725c8a093309d88aa29"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/whole-noEmit.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "snapshot-build",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "node_modules/typescript/bin/tsc",
+        "-p",
+        "tsconfig.build.json",
+        "--outDir",
+        "/private/tmp/safe-bash-diff-revised-full-WB04o4/snapshot-1/dist",
+        "--pretty",
+        "false"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-revised-full-WB04o4/snapshot-1",
+      "startedAt": "2026-08-27T00:06:42.323Z",
+      "finishedAt": "2026-08-27T00:06:43.788Z",
+      "status": 2,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/snapshot-build.stdout",
+        "sha256": "7b20f104df927f4b7cb650695227d9ed38d53f69286956a44edea8dff4837837"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/snapshot-build.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "fixture-probe",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "--import",
+        "tsx",
+        "tests/commands/diff-patch-stress/gnu-followup-checkpoint/fixture-probe.mjs"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-revised-full-WB04o4/snapshot-1",
+      "startedAt": "2026-08-27T00:06:44.121Z",
+      "finishedAt": "2026-08-27T00:06:44.253Z",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/fixture-probe.stdout",
+        "sha256": "9d13e427a4b965bd88c610826f4f6750d5269c7119bbc15b0415282fa2a78d22"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/fixture-probe.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "plain-node-public-probe",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "tests/commands/diff-patch-stress/gnu-followup-checkpoint/public-probe.mjs",
+        "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/fixture-probe.stdout"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-revised-full-WB04o4/snapshot-1",
+      "startedAt": "2026-08-27T00:06:44.620Z",
+      "finishedAt": "2026-08-27T00:06:44.704Z",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/plain-node-public-probe.stdout",
+        "sha256": "7fc7e35d0864a2c687b4358d533e44a6945465344ecb2eadb73f39156f0ec8f1"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/plain-node-public-probe.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "independent-native-product",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+        "tests/commands/diff-patch-stress/gnu-revised-full-review/probe.mjs",
+        "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/native-product.json",
+        "--product"
+      ],
+      "cwd": "/private/tmp/safe-bash-diff-revised-full-WB04o4/snapshot-1",
+      "startedAt": "2026-08-27T00:06:45.056Z",
+      "finishedAt": "2026-08-27T00:06:45.363Z",
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/independent-native-product.stdout",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-review/independent-native-product.stderr",
+        "sha256": "7199a34d1c0643fdbf81233bde39105f4dbee649d7fca69408a79cd4861c96e6"
+      }
+    }
+  ],
+  "allValidationPassed": false
+}

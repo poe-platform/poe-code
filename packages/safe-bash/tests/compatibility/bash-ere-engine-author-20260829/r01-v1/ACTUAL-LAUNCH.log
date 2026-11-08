@@ -1,0 +1,4 @@
+A01 shell pid=90937; exec-replaced by Node coordinator; fresh conditional 35min/96knownOS/peak4/128MiBcapture/768MiBwork authority
+source=72187e5abc1179883f85a63e1ef558f2e141c542
+seal=c87cadc0ca841bc3c07bd4110fbce3419b696ecae331ed433bc7bb1a0f5945b0
+expected28executionchildren; no Worker/transport/native/Shell activation; safety failure stops

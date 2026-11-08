@@ -1,0 +1,54 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/tmp/safe-bash-fraction-independent-packed-3n2Cyg/archive/node_modules/typescript/bin/tsc",
+    "--strict",
+    "--noUncheckedIndexedAccess",
+    "--exactOptionalPropertyTypes",
+    "--module",
+    "NodeNext",
+    "--moduleResolution",
+    "NodeNext",
+    "--target",
+    "ES2023",
+    "--types",
+    "node",
+    "--typeRoots",
+    "/tmp/safe-bash-fraction-independent-packed-3n2Cyg/archive/node_modules/@types",
+    "--noEmit",
+    "public-time-env-unavailable.mts"
+  ],
+  "cwd": "/tmp/safe-bash-fraction-independent-packed-3n2Cyg/consumer",
+  "pid": 79593,
+  "status": 2,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 992,
+  "timeoutMs": 120000,
+  "outputBytes": 278,
+  "observed": [
+    {
+      "pid": 79593,
+      "parent": 78599,
+      "group": 79593,
+      "born": "Thu Aug 27 04:05:18 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node /tmp/safe-bash-fraction-independent-packed-3n2Cyg/archive/node_modules/typescript/bin/tsc --strict --noUncheckedIndexedAccess --exactOptionalPropertyTypes --module NodeNext --moduleResolution NodeNext --target ES2023 --types node --typeRoots /tmp/safe-bash-fraction-independent-packed-3n2Cyg/archive/node_modules/@types --noEmit public-time-env-unavailable.mts"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "stdout": {
+    "bytes": 278,
+    "sha256": "0544d98aa4cafea75619fc56258e1fbedce090035ff740cb6f5d339f46a360e7"
+  },
+  "stderr": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "counts": {}
+}

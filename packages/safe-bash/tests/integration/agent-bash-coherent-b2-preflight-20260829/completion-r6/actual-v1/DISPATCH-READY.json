@@ -1,0 +1,16 @@
+{
+  "status": "READY_FOR_EXACT_ONE_DISPATCH",
+  "entered": "2026-08-29T15:07:17.813Z",
+  "ready": "2026-08-29T15:15:12.253Z",
+  "schedulerMilliseconds": 474440,
+  "remainingActiveMilliseconds": 1619856,
+  "remainingInclusiveMilliseconds": 1799856,
+  "packetMembersAuthenticated": 30,
+  "consumedPins": 10,
+  "tools": 4,
+  "unusedRuntimeRoot": true,
+  "unusedRuntimeCapture": true,
+  "runtimeLaunched": false,
+  "children": 0,
+  "sourceCodeChanges": false
+}

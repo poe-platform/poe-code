@@ -1,0 +1,18 @@
+{
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "/private/tmp/yq-composition-independent-aoq9aj85/replay.mjs"
+  ],
+  "pid": 41041,
+  "group": 41041,
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "overflow": false,
+  "reaped": true,
+  "groupAbsent": true,
+  "signalsSent": [],
+  "elapsedMs": 928,
+  "stdoutBytes": 190,
+  "stderrBytes": 0
+}

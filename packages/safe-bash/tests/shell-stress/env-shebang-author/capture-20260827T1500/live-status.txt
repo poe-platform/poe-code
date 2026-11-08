@@ -1,0 +1,16 @@
+ M src/commands/column/column.ts
+ M src/commands/column/internal.ts
+ M src/commands/text.ts
+ M src/shell/runtime.ts
+ M tests/commands/grep-aliases-stress/verification/ATTEMPTS.md
+ M tests/commands/grep-aliases-stress/verification/holdouts.mts
+?? tests/commands/column-stress/handoff-20260827/
+?? tests/commands/column-stress/owned-regressions.test.ts
+?? tests/commands/core-sort/unkeyed-numeric-cache.test.ts
+?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/
+?? tests/commands/search-stress/.native-1m4O1e/
+?? tests/integration/safejs-owned-output-prototype-review/lifecycle/
+?? tests/integration/safejs-owned-output-prototype-review/receipt-review/
+?? tests/shell-stress/env-shebang-author/
+?? tests/shell/env-shebang-host.test.ts
+?? tests/shell/env-shebang.test.ts

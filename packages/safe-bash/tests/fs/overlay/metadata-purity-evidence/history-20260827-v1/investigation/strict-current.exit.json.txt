@@ -1,0 +1,1 @@
+{"executable":"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","args":["--import","tsx","/tmp/safe-bash-overlay-readpurity-JuB9ca/strict-current.mjs"],"status":1,"signal":null}

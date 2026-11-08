@@ -1,0 +1,300 @@
+{
+  "schemaVersion": 1,
+  "classification": "independent-literal-input-data-not-typescript-not-test-discovery",
+  "state": "prepared-only-no-candidate-observed",
+  "limits": { "maxRecipes": 40, "maxNativeInvocationsPerProfile": 64, "maxInputBytesPerInvocation": 4096, "maxNativeOutputBytesPerStream": 65536, "nativeDeadlineMs": 2000 },
+  "nativeRecipes": [
+    {
+      "id": "N01", "name": "whitespace-ragged-no-sorting", "oracleUse": "common-options-raw-comparison",
+      "variants": [{ "name": "literal", "argv": ["-t"], "stdinUtf8": " z\t9  \nalpha  1 tail\n b\t22\n" }],
+      "productExpectation": ["Whitespace separates fields; surrounding whitespace is not a field.", "Rows remain z, alpha, b: no implicit sorting.", "Ragged rows are aligned without inventing data cells."]
+    },
+    {
+      "id": "N02", "name": "explicit-adjacent-leading-trailing-empty-fields", "oracleUse": "qualified-separator-dialect",
+      "variants": [{ "name": "colon", "argv": ["-t", "-s", ":"], "stdinUtf8": ":a::\nb::c:\n:::\n" }],
+      "productExpectation": ["Explicit separators preserve all four fields, including leading, adjacent and trailing empties.", "Expected logical rows: ['', 'a', '', '']; ['b', '', 'c', '']; ['', '', '', ''].", "Do not adopt BSD greedy splitting if captured."]
+    },
+    {
+      "id": "N03", "name": "separator-character-set-not-substring", "oracleUse": "qualified-separator-dialect",
+      "variants": [{ "name": "two-delimiters", "argv": ["-t", "-s", ",:"], "stdinUtf8": "a,b:c\nd::e,\n" }],
+      "productExpectation": ["Both comma and colon delimit fields independently.", "The second record has four fields: d, empty, e, empty."]
+    },
+    {
+      "id": "N04", "name": "custom-output-separator", "oracleUse": "util-linux-option-bsd-unsupported-retained",
+      "variants": [{ "name": "visible-bars", "argv": ["-t", "-s", ":", "-o", " | "], "stdinUtf8": "a:bb\nlong:c\n" }],
+      "productExpectation": ["Output separator is a literal string, not an input delimiter.", "Successful table output retains a, bb, long, c in original order; -o must not be treated as unsupported in the proposed product profile."]
+    },
+    {
+      "id": "N05", "name": "empty-output-separator", "oracleUse": "util-linux-option-bsd-unsupported-retained",
+      "variants": [{ "name": "zero-bytes", "argv": ["-t", "-s", ":", "-o", ""], "stdinUtf8": "a:b\nx:y\n" }],
+      "productExpectation": ["Empty output separator is distinct from omission and inserts zero delimiter bytes."],
+      "independentExpectedStdoutUtf8": "ab\nxy\n"
+    },
+    {
+      "id": "N06", "name": "default-fill-width-80", "oracleUse": "common-options-raw-comparison",
+      "variants": [{ "name": "eleven-items", "argv": [], "stdinUtf8": "z\na\nq\nb\ny\nc\nx\nd\nw\ne\nv\n" }],
+      "productExpectation": ["Default fill goes down columns; default width is 80, independent of ambient terminal configuration.", "Layout may move display positions but never sorts the item sequence."]
+    },
+    {
+      "id": "N07", "name": "column-fill-remainder-rows", "oracleUse": "common-options-raw-comparison",
+      "variants": [{ "name": "seven-in-24", "argv": ["-c", "24"], "stdinUtf8": "z\na\nq\nb\ny\nc\nx\n" }],
+      "productExpectation": ["Default fill uses column-major placement with an incomplete final column.", "Use eight-column tab stops; preserve raw native tab bytes separately from visual equivalence."]
+    },
+    {
+      "id": "N08", "name": "row-fill-remainder", "oracleUse": "common-options-raw-comparison",
+      "variants": [{ "name": "seven-in-24", "argv": ["-x", "-c", "24"], "stdinUtf8": "z\na\nq\nb\ny\nc\nx\n" }],
+      "productExpectation": ["-x fills across rows; final row contains only the remaining items.", "No extra data item or sorting is permitted."]
+    },
+    {
+      "id": "N09", "name": "narrow-width-does-not-truncate", "oracleUse": "common-options-raw-comparison",
+      "variants": [{ "name": "width-one", "argv": ["-c", "1"], "stdinUtf8": "alphabet\nb\n" }],
+      "productExpectation": ["An item longer than the positive width is preserved, not truncated."],
+      "independentExpectedStdoutUtf8": "alphabet\nb\n"
+    },
+    {
+      "id": "N10", "name": "retained-tabs-in-fill-and-explicit-table", "oracleUse": "qualified-tab-profile",
+      "variants": [
+        { "name": "fill", "argv": ["-c", "24"], "stdinUtf8": "a\tb\n1234567\tc\nz\n" },
+        { "name": "explicit-table", "argv": ["-t", "-s", ":"], "stdinUtf8": "a\tb:c\nxx:d\n" }
+      ],
+      "productExpectation": ["Tabs inside retained text expand using deterministic eight-column stops.", "Native padding tabs are a separate byte-layout question; do not normalize either capture.", "Cell-relative versus record-relative tab origin must be confirmed in the handed-off profile, not inferred from candidate output."]
+    },
+    {
+      "id": "N11", "name": "empty-and-whitespace-only-records", "oracleUse": "qualified-empty-profile",
+      "variants": [
+        { "name": "empty-source", "argv": [], "stdinUtf8": "" },
+        { "name": "blank-table", "argv": ["-t"], "stdinUtf8": "\n \t\n\n" },
+        { "name": "blank-fill", "argv": ["-c", "16"], "stdinUtf8": "\nz\n\n \t\na\n" }
+      ],
+      "productExpectation": ["A truly empty source succeeds with no output.", "Record how whitespace-only records differ from truly empty lines; the proposed profile does not fully specify retained whitespace-only fill records."]
+    },
+    {
+      "id": "N12", "name": "partial-last-line", "oracleUse": "common-options-raw-comparison",
+      "variants": [{ "name": "no-final-lf", "argv": ["-t"], "stdinUtf8": "a b\ncc d" }],
+      "productExpectation": ["The unterminated final record is processed once; output records terminate normally."],
+      "independentExpectedStdoutUtf8": "a   b\ncc  d\n"
+    },
+    {
+      "id": "N13", "name": "multiple-files-partial-seams-global-alignment", "oracleUse": "common-options-raw-comparison",
+      "variants": [{ "name": "two-files", "argv": ["-t", "first.txt", "second.txt"], "stdinUtf8": "IGNORED\n", "files": { "first.txt": "a b", "second.txt": "long c\nx yy\n" } }],
+      "productExpectation": ["Files contribute records in operand order; a partial record at a file boundary is not byte-concatenated into the next file.", "Column widths account for all input files, and unused stdin is not read."]
+    },
+    {
+      "id": "N14", "name": "shared-stdin-repeated-dash", "oracleUse": "qualified-dash-operand-dialect",
+      "variants": [{ "name": "dash-file-dash", "argv": ["-t", "-", "middle.txt", "-"], "stdinUtf8": "s 1\nt 22\n", "files": { "middle.txt": "file 3\n" } }],
+      "productExpectation": ["The proposed shared-stdin profile consumes stdin once; the second dash sees its existing EOF, not a replay.", "Logical rows are s/1, t/22, file/3, with a single shared cursor.", "If native treats dash as a filename, preserve that error as a dialect difference."]
+    },
+    {
+      "id": "N15", "name": "missing-input-with-good-sibling", "oracleUse": "qualified-error-policy",
+      "variants": [{ "name": "missing-first", "argv": ["-t", "absent.txt", "good.txt"], "stdinUtf8": "", "files": { "good.txt": "ok value\n" } }],
+      "productExpectation": ["Missing-path failure must remain a failure with a meaningful diagnostic naming absent.txt.", "Retain any native partial stdout and continuation policy without promising identical product continuation before handoff."]
+    },
+    {
+      "id": "N16", "name": "end-of-options-literal-dash-name", "oracleUse": "common-options-raw-comparison",
+      "variants": [{ "name": "literal-file", "argv": ["-t", "--", "-odd"], "stdinUtf8": "", "files": { "-odd": "a b\nlong c\n" } }],
+      "productExpectation": ["After --, -odd names a VFS file rather than an option."]
+    },
+    {
+      "id": "N17", "name": "long-option-aliases", "oracleUse": "util-linux-option-bsd-unsupported-retained",
+      "variants": [
+        { "name": "separator-alias", "argv": ["--table", "--separator", ":", "--output-separator", "|"], "stdinUtf8": "a:b\nx:y\n" },
+        { "name": "input-separator-alias", "argv": ["--table", "--input-separator", ":"], "stdinUtf8": "a:b\nx:y\n" },
+        { "name": "fill-aliases", "argv": ["--fillrows", "--output-width", "16"], "stdinUtf8": "a\nb\nc\n" }
+      ],
+      "productExpectation": ["The proposed long aliases behave like their short forms, not like unsupported options."]
+    },
+    {
+      "id": "N18", "name": "invalid-or-nonpositive-width", "oracleUse": "qualified-width-policy",
+      "variants": [
+        { "name": "zero", "argv": ["-c", "0"], "stdinUtf8": "a\nb\n" },
+        { "name": "negative", "argv": ["-c", "-1"], "stdinUtf8": "a\nb\n" },
+        { "name": "not-number", "argv": ["-c", "nope"], "stdinUtf8": "a\nb\n" }
+      ],
+      "productExpectation": ["The proposal requires a positive width: all three invocations must fail boundedly.", "Upstream util-linux zero-width semantics differ; native success is not product authorization."]
+    },
+    {
+      "id": "N19", "name": "missing-option-values", "oracleUse": "common-error-inputs-raw-comparison",
+      "variants": [
+        { "name": "missing-width", "argv": ["-c"], "stdinUtf8": "" },
+        { "name": "missing-input-separator", "argv": ["-t", "-s"], "stdinUtf8": "" },
+        { "name": "missing-output-separator", "argv": ["-t", "-o"], "stdinUtf8": "" }
+      ],
+      "productExpectation": ["Missing required option values fail without reading files or emitting table output.", "Do not require identical BSD/util-linux diagnostic wording or invent an exact product errno serialization."]
+    },
+    {
+      "id": "N20", "name": "unsupported-option", "oracleUse": "qualified-supported-surface",
+      "variants": [{ "name": "json", "argv": ["-J"], "stdinUtf8": "a b\n" }],
+      "productExpectation": ["-J is outside the proposed product surface and must fail explicitly.", "Native availability or its additional prerequisites do not expand the product API."]
+    },
+    {
+      "id": "N21", "name": "combining-scalar-width", "oracleUse": "qualified-unicode-not-grapheme",
+      "variants": [{ "name": "combining-acute", "argv": ["-t"], "stdinUtf8": "é x\nab y\n" }],
+      "productExpectation": ["Retain decomposed UTF-8 bytes; never normalize text.", "Expected scalar widths must come from a frozen documented range table, not a locale's wcwidth or candidate-observed padding.", "The proposal does not enumerate ranges; exact product padding is an explicit handoff prerequisite."]
+    },
+    {
+      "id": "N22", "name": "cjk-scalar-width", "oracleUse": "qualified-unicode-not-grapheme",
+      "variants": [{ "name": "ideograph", "argv": ["-t"], "stdinUtf8": "界 x\na y\n" }],
+      "productExpectation": ["Retain input bytes and row order; preserve native locale identity.", "Pin documented scalar range membership before asserting exact product CJK padding."]
+    },
+    {
+      "id": "N23", "name": "emoji-and-zwj-not-grapheme-clusters", "oracleUse": "qualified-unicode-not-grapheme",
+      "variants": [{ "name": "emoji-zwj", "argv": ["-t"], "stdinUtf8": "😀 x\n👩‍💻 y\na z\n" }],
+      "productExpectation": ["No grapheme, terminal rendering, or native wcwidth equivalence is assumed.", "Retain exact UTF-8 input; resolve ZWJ and emoji scalar ranges from handed-off documentation without changing the frozen input."]
+    },
+    {
+      "id": "N24", "name": "invalid-utf8", "oracleUse": "qualified-strict-decoding",
+      "variants": [
+        { "name": "invalid-leading-byte", "argv": ["-t"], "stdinHex": "ff20780a" },
+        { "name": "truncated-multibyte", "argv": ["-t"], "stdinHex": "6120e282" },
+        { "name": "overlong", "argv": ["-t"], "stdinHex": "c0af20780a" }
+      ],
+      "productExpectation": ["Strict UTF-8 decoding rejects each malformed source; replacement or native escaping is not a pass.", "Native stdout/stderr remain hex bytes, never replacement-decoded expectations."]
+    },
+    {
+      "id": "N25", "name": "retained-controls", "oracleUse": "qualified-control-policy",
+      "variants": [
+        { "name": "nul", "argv": ["-t", "-s", ":"], "stdinHex": "6100623a780a" },
+        { "name": "ansi-escape", "argv": ["-t", "-s", ":"], "stdinHex": "1b5b33316d613a780a" },
+        { "name": "bell", "argv": ["-t", "-s", ":"], "stdinHex": "6107623a780a" },
+        { "name": "backspace", "argv": ["-t", "-s", ":"], "stdinHex": "6108623a780a" }
+      ],
+      "productExpectation": ["Retained NUL, ESC, BEL and BS are rejected under the proposal's control policy.", "Do not adopt native stripping, pass-through, truncation, ANSI interpretation, or escape rendering."]
+    },
+    {
+      "id": "N26", "name": "delimiter-whitespace-versus-retained-control", "oracleUse": "qualified-control-policy",
+      "variants": [
+        { "name": "default-whitespace", "argv": ["-t"], "stdinHex": "6109620b630c640d650a" },
+        { "name": "explicit-colon", "argv": ["-t", "-s", ":"], "stdinHex": "610b623a630a" }
+      ],
+      "productExpectation": ["Distinguish controls consumed as declared delimiter whitespace from controls retained inside a field.", "Pin the accepted whitespace set at handoff; do not silently extend it from a locale's classification.", "The explicit-colon case retains VT and must reject it under the proposal."]
+    },
+    {
+      "id": "N27", "name": "table-width-not-truncation", "oracleUse": "qualified-table-width-profile",
+      "variants": [{ "name": "table-width-one", "argv": ["-t", "-c", "1"], "stdinUtf8": "alphabet x\nbb y\n" }],
+      "productExpectation": ["The proposed table mode ignores fill width for truncation and retains all data."]
+    },
+    {
+      "id": "N28", "name": "help-and-table-only-output-option", "oracleUse": "qualified-supported-surface",
+      "variants": [
+        { "name": "help", "argv": ["--help"], "stdinUtf8": "" },
+        { "name": "output-separator-without-table", "argv": ["-o", "|"], "stdinUtf8": "a\nb\n" }
+      ],
+      "productExpectation": ["Help succeeds without consuming stdin or acquiring files; wording is not an exact fixture expectation.", "-o without -t fails under the proposal's table-only restriction, even if native accepts it."]
+    }
+  ],
+  "safetyRecipes": [
+    {
+      "id": "S29", "name": "cumulative-input-not-per-file", "basis": ["proposal:maxInputBytes", "contracts:command", "project:shared-budgets"],
+      "argv": ["-t", "one.txt", "two.txt"], "files": { "one.txt": "a b\n", "two.txt": "c d\n" },
+      "variants": [{ "limits": { "maxInputBytes": 8 }, "expect": "Both four-byte files fit exactly." }, { "limits": { "maxInputBytes": 7 }, "expect": "Reject cumulative eighth byte; do not reset the budget between files." }],
+      "assertions": ["All acquired resources close; input accounting is bytes, not decoded scalar count.", "Collect stderr separately under a bounded host sink; do not invent exact diagnostic text or zero-output guarantees not in the profile."]
+    },
+    {
+      "id": "S30", "name": "cumulative-row-cell-field-file-limits", "basis": ["proposal:maxRows,maxCells,maxFields,maxFiles"],
+      "argv": ["-t", "-s", ":", "one.txt", "two.txt"], "files": { "one.txt": "a::b\n", "two.txt": ":c:\n" },
+      "variants": [
+        { "limits": { "maxRows": 2, "maxCells": 6, "maxFields": 3, "maxFiles": 2 }, "expect": "Exact boundaries fit two rows, six logical cells, three fields per row, two files." },
+        { "limits": { "maxRows": 1 }, "expect": "Second file cannot reset cumulative rows." },
+        { "limits": { "maxCells": 5 }, "expect": "Preserved empty fields count as cells; the sixth logical cell exceeds budget." },
+        { "limits": { "maxFields": 2 }, "expect": "A three-field record exceeds its field bound before growth." },
+        { "limits": { "maxFiles": 1 }, "expect": "Second file is not admitted; record whether validation preflights all operands or stops at the admission boundary." }
+      ],
+      "assertions": ["Instrument admissions and finalization; do not assume a specific shared-table implementation.", "If handoff defines maxCells or maxFiles differently, preserve this original expectation and record the contract discrepancy rather than silently rewriting it."]
+    },
+    {
+      "id": "S31", "name": "record-chunk-byte-boundaries-and-decoder-carry", "basis": ["proposal:maxRecordBytes,maxChunkBytes", "project:owned-fragments"],
+      "argv": ["-t"],
+      "variants": [
+        { "chunksHex": ["c3", "a920", "780a"], "limits": { "maxRecordBytes": 4, "maxChunkBytes": 2 }, "expect": "A valid split UTF-8 scalar is decoded once; four content bytes fit if record budget excludes the line delimiter." },
+        { "chunksHex": ["c3", "a920", "780a"], "limits": { "maxRecordBytes": 3 }, "expect": "Four content bytes exceed the record limit independent of scalar count." },
+        { "chunksHex": ["6120780a"], "limits": { "maxChunkBytes": 3 }, "expect": "Reject four-byte chunk before retaining or splitting it; line size does not bypass the chunk bound." }
+      ],
+      "assertions": ["Newline accounting in maxRecordBytes is a named handoff prerequisite; exact-boundary interpretation must be documented, not learned from candidate success.", "No candidate read/run until that documentation exists; preserve all original chunks."]
+    },
+    {
+      "id": "S32", "name": "work-bound-and-zero-progress-source", "basis": ["proposal:maxSteps", "project:bounded-work"],
+      "argv": ["-t", "-s", ":"],
+      "variants": [
+        { "stdinUtf8": ":::::::\n:::::::\n", "limits": { "maxSteps": 1 }, "expect": "Reject boundedly; delimiter scanning, cell creation and padding cannot evade work accounting." },
+        { "sourceRecipe": { "emptyChunks": 32, "thenUtf8": "a:b\n" }, "limits": { "maxSteps": 4 }, "expect": "Bound zero-byte producer progress or abort after a deterministic pull ceiling; do not turn the probe into an infinite source." }
+      ],
+      "assertions": ["A success threshold for maxSteps is not invented: exact work units require the documented profile.", "Future watchdog is a harness safety bound, not a product performance claim; record pulls and admitted work rather than timing rankings."]
+    },
+    {
+      "id": "S33", "name": "output-prepadding-allocation-budget", "basis": ["proposal:maxOutputBytes,maxWidth", "project:bounded-output"],
+      "argv": ["-t", "-s", ":"],
+      "variants": [
+        { "stdinUtf8": "a:b\nc:d\n", "limits": { "maxOutputBytes": 10 }, "expect": "Exact output a-two-spaces-b-LF c-two-spaces-d-LF fits ten bytes." },
+        { "stdinUtf8": "a:b\nc:d\n", "limits": { "maxOutputBytes": 9 }, "expect": "Never write more than nine stdout bytes; preserve any written prefix rather than assuming transactional output." },
+        { "argv": ["-t", "-s", ":", "-o", "          "], "stdinUtf8": "a:b:c:d\nx:y:z:w\n", "limits": { "maxOutputBytes": 8 }, "expect": "Reject expansion before allocating/joining a complete oversized padded output; do not merely detect it at the final sink." },
+        { "argv": ["-c", "1000000000"], "stdinUtf8": "a\nb\n", "limits": { "maxWidth": 1000000000, "maxOutputBytes": 8 }, "expect": "Tiny input cannot trigger a width-sized array/string before output/work bounds; use isolated memory-capped candidate process only after handoff." }
+      ],
+      "assertions": ["Before/after RSS alone cannot prove preallocation order. At handoff inspect only the assigned column implementation or use scoped allocation instrumentation; route shared allocation flaws to Root.", "The enormous width is never submitted to a native oracle during preparation; no performance run is authorized."]
+    },
+    {
+      "id": "S34", "name": "argument-bytes-width-validation-before-input", "basis": ["proposal:maxArgumentBytes,maxWidth"],
+      "variants": [
+        { "argv": ["-t", "-o", "界界"], "stdinUtf8": "a b\n", "limits": { "maxArgumentBytes": 9 }, "expect": "Two two-byte ASCII options plus six separator bytes exceed nine aggregate argv bytes; byte counting must not use JS string length." },
+        { "argv": ["-c", "9007199254740992"], "stdinUtf8": "a\n", "expect": "Reject unsafe integer before input admission or padding allocation." },
+        { "argv": ["-c", "33"], "stdinUtf8": "a\n", "limits": { "maxWidth": 32 }, "expect": "Reject width above configured bound before input." },
+        { "argv": ["-c", "32"], "stdinUtf8": "a\n", "limits": { "maxWidth": 32 }, "expect": "The exact positive width boundary fits." }
+      ],
+      "assertions": ["Use poison stdin and acquisition counters for validation failures.", "Document whether maxArgumentBytes includes separators/command name at handoff; preserve the raw argv and original lower-bound expectation."]
+    },
+    {
+      "id": "S35", "name": "caller-cancellation-and-errno-shaped-reasons", "basis": ["contracts:command-cleanup-precedence", "contracts:io-signal"],
+      "argv": ["-t", "one.txt", "two.txt"], "files": { "one.txt": "a b\n", "two.txt": "c d\n" },
+      "variants": [
+        { "abortAt": "before-exec", "reason": { "type": "object", "code": "ENOENT", "marker": "caller-before" } },
+        { "abortAt": "after-first-chunk-before-next-resolves", "reason": { "type": "object", "code": "EACCES", "marker": "caller-middle" } },
+        { "abortAt": "during-awaited-sink-write", "reason": { "type": "primitive-string", "value": "caller-write" } }
+      ],
+      "assertions": ["Use actual Shell exec; rejection is the exact caller reason identity/value, not a nonzero exit result or wrapped FsError.", "No new file acquisition after cleanup closes admission; pass the supplied signal into owned filesystem work.", "Do not require rollback of completed writes or forcibly stop opaque uncooperative host promises.", "Explicit cooperative cleanup gates settle before public exec/dispose; release every controlled gate in harness finally."]
+    },
+    {
+      "id": "S36", "name": "async-sink-backpressure-and-late-write-errors", "basis": ["contracts:io-ByteSink", "contracts:command-cleanup-precedence"],
+      "argv": ["-t"], "stdinUtf8": "a b\ncc d\n",
+      "variants": [
+        { "sink": "retain-first-write-until-explicit-release", "expect": "No second write or successful handler settlement before the first awaited write resolves; copy bytes only after the gate to detect premature mutation." },
+        { "sink": "first-write-rejects-sentinel", "expect": "No successful execution; observe the rejection and perform owned cleanup. Exact sink-error wrapping at the command boundary is not invented." },
+        { "sink": "abort-then-reject-pending-write-sentinel", "expect": "Caller abort remains exact; delayed write rejection is observed with no unhandled rejection." }
+      ],
+      "assertions": ["Use deterministic gates and at most eight writes, not sleeps as the ordering oracle.", "Do not require multiple output writes from an implementation that legitimately uses one bounded write.", "Opaque sink completion alone is not a mandatory public abort-settlement barrier."]
+    },
+    {
+      "id": "S37", "name": "producer-reuse-next-and-return-mutation", "basis": ["project:owned-byte-fragments", "contracts:io-ByteSource"],
+      "argv": ["-t"],
+      "variants": [
+        { "backing": "Uint8Array", "chunksHex": ["6161", "2062", "0a63", "2064", "0a"], "mutation": "Overwrite the entire prior backing with 0x58 at the beginning of the next pull, then fill the same backing with the next literal chunk." },
+        { "backing": "Buffer-subarray", "chunksHex": ["616120620a", "6320640a"], "mutation": "Reuse a Buffer view for complete rows; overwrite after resumption before the next yielded value." },
+        { "backing": "Buffer-subarray", "chunksHex": ["616120620a632064"], "mutation": "On the EOF next() and on return(), fill the previously yielded backing with 0x58, including the partial final record." }
+      ],
+      "independentExpectedStdoutUtf8": "aa  b\nc   d\n",
+      "assertions": ["All three variants render identical original content, proving retained bytes were owned before advancing/finalizing the producer.", "No arbitrary concurrent mutation occurs while a read or awaited transient write owns the active chunk.", "Count next/return without requiring return after natural EOF; invoke return mutation only when a real early-close path calls it."]
+    },
+    {
+      "id": "S38", "name": "registered-return-cleanup-overlap-and-late-rejections", "basis": ["contracts:command-cleanup-admission", "contracts:command-cleanup-precedence"],
+      "argv": ["-t"], "chunksHex": ["6120620a"], "limits": { "maxInputBytes": 1 },
+      "variants": [
+        { "returnBehavior": "deferred-success", "schedule": ["Input limit forces early close.", "Invoke registered cleanup twice while command finally is closing.", "Release return gate only after verifying neither cooperative cleanup promise settles early."], "expect": "One owned release; overlapping cleanup paths await the same completion." },
+        { "returnBehavior": "deferred-reject-cleanup-sentinel", "schedule": ["Trigger a controlled nonzero command result rather than inventing a selected execution rejection.", "Reject return gate after cleanup begins."], "expect": "A registered cooperative cleanup rejection is observed and is not hidden by a completed nonzero CommandResult; preserve a previously selected execution rejection if one actually exists." },
+        { "returnBehavior": "deferred-reject-after-caller-abort", "schedule": ["Abort with unique object sentinel.", "Reject the cooperative return gate.", "Also reject a losing opaque next() promise."], "expect": "Public abort identity wins; await registered cooperative return cleanup, observe opaque late rejection without making it a settlement barrier." }
+      ],
+      "assertions": ["Actual Shell tests cover public settlement; direct/custom context without registerCleanup separately covers finally, not a public barrier promise.", "Use a bounded event journal and temporary unhandledRejection listener removed in finally.", "Shared readBytes/runtime defects are evidence for Root, never authorization to edit shared code."]
+    },
+    {
+      "id": "S39", "name": "admitted-acquisition-drain-and-closed-admission", "basis": ["contracts:command-cleanup-admission"],
+      "argv": ["-t", "first.txt", "second.txt"],
+      "schedule": ["Record synchronous registerCleanup before the first acquisition is admitted.", "Hold the first admitted cooperative acquisition on a gate.", "Start cleanup and caller abort while acquisition is pending.", "Resolve the already admitted acquisition with a counted releasable source.", "Verify it is retired before registered drain and public exec/dispose settle.", "Resume any losing handler continuation; second.txt must never acquire after closure."],
+      "assertions": ["No duplicate release across finally and registered cleanup; overlapping disposal cannot return early.", "Gate an explicitly owned cooperative acquisition, not arbitrary opaque filesystem work that the contract does not require waiting for.", "No global worker-zero assertion; unrelated invocations remain untouched."]
+    },
+    {
+      "id": "S40", "name": "actual-shell-pipeline-and-moved-packed-replay-plan", "basis": ["contracts:command-literal-invoke", "project:public-consumer-evidence", "proposal:internal-module-only"],
+      "inputUtf8": "a:b\nlong:c\n",
+      "literalArgv": ["-t", "-s", ":", "-o", "|"],
+      "independentExpectedStdoutUtf8": "a   |b\nlong|c\n",
+      "schedule": ["After explicit author handoff only, inspect root public Shell declarations and the owned column entrypoint.", "Register column using the proposed internal module only if confirmed; install tiny literal-byte producer and collector commands via inspected public APIs.", "Exercise producer | column -t -s : -o '|' | collector through the actual parser, pipes and registry.", "Exercise a literal ctx.invoke child with the same argv and actual Shell context, preserving signal, stdin provenance and shared budgets.", "Use VFS input/output redirection and the repeated-dash recipe to verify bytes and namespace effects.", "Pack the authenticated handed-off candidate with integration-owner coordination, extract it in isolated tmp, then move it to another directory and remove access to the original extraction.", "Import Shell by package root; resolve the extracted packed dist/commands/column/index.js by file URL, never claim it is an exported public subpath.", "Replay exact literal bytes in the moved standalone consumer with no checkout-relative imports, no workspace node_modules fallback and no package or lockfile edits."],
+      "assertions": ["Preparation runs none of these product steps and imports no candidate.", "Absent packed internal module or missing root column subpath is an explicit limitation, never a synthetic pass or a root export patch.", "No full gate, default-family registration change, comparator run or performance cohort is authorized."]
+    }
+  ]
+}

@@ -1,0 +1,103 @@
+import { FsError } from "../../contracts/errors.js";
+import type { MemoryFileSystemLimits } from "./limits.js";
+
+const MAX_SMI = 1073741823;
+
+export class MemoryLedger {
+  private retainedBytes = 0;
+  private metadataUnits = 0;
+  readonly maxFileBytesSmi: number;
+  readonly maxRetainedBytesSmi: number;
+  readonly maxMetadataUnitsSmi: number;
+  readonly hasInfiniteRetained: boolean;
+  declare readonly hasInfiniteFileBytes: boolean;
+
+  constructor(readonly limits: Readonly<MemoryFileSystemLimits>) {
+    this.maxFileBytesSmi = Math.min(limits.maxFileBytes, MAX_SMI) | 0;
+    this.maxRetainedBytesSmi = Math.min(limits.maxRetainedBytes, MAX_SMI) | 0;
+    this.maxMetadataUnitsSmi = Math.min(limits.maxMetadataUnits, MAX_SMI) | 0;
+    this.hasInfiniteRetained = limits.maxRetainedBytes === Infinity;
+    if (limits.maxFileBytes !== Infinity) (this as { hasInfiniteFileBytes: boolean }).hasInfiniteFileBytes = false;
+  }
+
+  get availableBytes(): number {
+    const max = this.limits.maxRetainedBytes;
+    return max === Infinity ? Infinity : max - this.retainedBytes;
+  }
+
+  canPreallocate64(nameBytes: number): boolean {
+    return this.maxFileBytesSmi >= 64 && (this.hasInfiniteRetained || this.maxRetainedBytesSmi - this.retainedBytes > 65536 + nameBytes);
+  }
+
+  fileSize(length: number, syscall: string, path: string): void {
+    if ((length | 0) === length && length >= 0 && length <= this.maxFileBytesSmi) return;
+    if (!Number.isSafeInteger(length) || length < 0 || length > this.limits.maxFileBytes) {
+      throw new FsError("EFBIG", { syscall, path });
+    }
+  }
+
+  private canReserve(bytes: number, units: number): boolean {
+    return (
+      (bytes | 0) === bytes && bytes >= 0 &&
+      (units | 0) === units && units >= 0 &&
+      this.retainedBytes <= this.maxRetainedBytesSmi - bytes &&
+      this.metadataUnits <= this.maxMetadataUnitsSmi - units
+    );
+  }
+
+  check(bytes: number, units: number, syscall: string, path: string): void {
+    if (this.canReserve(bytes, units)) return;
+    if (!Number.isSafeInteger(bytes) || bytes < 0 ||
+      bytes > this.limits.maxRetainedBytes - this.retainedBytes ||
+      !Number.isSafeInteger(units) || units < 0 ||
+      units > this.limits.maxMetadataUnits - this.metadataUnits) {
+      throw new FsError("ENOSPC", { syscall, path });
+    }
+  }
+
+  reserve(bytes: number, units: number, syscall: string, path: string): void {
+    if (this.canReserve(bytes, units)) {
+      this.retainedBytes = (this.retainedBytes + bytes) | 0;
+      this.metadataUnits = (this.metadataUnits + units) | 0;
+      return;
+    }
+    this.check(bytes, units, syscall, path);
+    this.retainedBytes += bytes;
+    this.metadataUnits += units;
+  }
+
+  release(bytes: number, units: number): void {
+    if (bytes < 0 || units < 0 || bytes > this.retainedBytes || units > this.metadataUnits) {
+      throw new Error("Invalid Memory filesystem reservation release");
+    }
+    this.retainedBytes -= bytes;
+    this.metadataUnits -= units;
+  }
+}
+
+export class MemoryAllocation {
+  declare private references: number;
+  declare readonly data: Uint8Array;
+  declare private ledger: MemoryLedger;
+
+  constructor(data: Uint8Array, ledger: MemoryLedger) {
+    this.references = 1;
+    this.data = data;
+    this.ledger = ledger;
+  }
+
+  retain(): void {
+    if (this.data.byteLength === 0) return;
+    this.references++;
+  }
+
+  release(): void {
+    if (this.data.byteLength === 0) return;
+    if (this.references <= 0) throw new Error("Memory allocation already released");
+    if (--this.references === 0) {
+      this.data.fill(0);
+      this.ledger.release(this.data.byteLength, 0);
+    }
+  }
+}
+Object.assign(MemoryLedger.prototype, { hasInfiniteFileBytes: true });

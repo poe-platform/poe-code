@@ -1,0 +1,172 @@
+{
+  "baseline": "c5d44262ecca11009df6ce32a180005d3f3cb574",
+  "freezeCommit": "3152f33005fbd6b85053a5c5990ce42011e663b1",
+  "total": 18,
+  "passed": 13,
+  "failed": 5,
+  "results": [
+    {
+      "name": "direct-first-pending-no-hook",
+      "pass": false,
+      "status": 1,
+      "signal": null,
+      "naturalExit": true,
+      "failures": [
+        "source-return-before-settlement",
+        "structural-resource-closed-before-settlement"
+      ]
+    },
+    {
+      "name": "direct-split-prefix-pending",
+      "pass": false,
+      "status": 1,
+      "signal": null,
+      "naturalExit": true,
+      "failures": [
+        "source-return-before-settlement",
+        "structural-resource-closed-before-settlement"
+      ]
+    },
+    {
+      "name": "shell-structural-pending",
+      "pass": true,
+      "status": 0,
+      "signal": null,
+      "naturalExit": true,
+      "failures": []
+    },
+    {
+      "name": "direct-opaque-pending",
+      "pass": false,
+      "status": 1,
+      "signal": null,
+      "naturalExit": true,
+      "failures": [
+        "source-return-before-settlement"
+      ]
+    },
+    {
+      "name": "shell-opaque-pending",
+      "pass": true,
+      "status": 0,
+      "signal": null,
+      "naturalExit": true,
+      "failures": []
+    },
+    {
+      "name": "quiet-awaits-cooperative-return",
+      "pass": true,
+      "status": 0,
+      "signal": null,
+      "naturalExit": true,
+      "failures": []
+    },
+    {
+      "name": "epipe-gated-return",
+      "pass": true,
+      "status": 0,
+      "signal": null,
+      "naturalExit": true,
+      "failures": []
+    },
+    {
+      "name": "abort-sink-return-error-identities",
+      "pass": true,
+      "status": 0,
+      "signal": null,
+      "naturalExit": true,
+      "failures": []
+    },
+    {
+      "name": "input-error-before-return-error",
+      "pass": false,
+      "status": 1,
+      "signal": null,
+      "naturalExit": true,
+      "failures": [
+        "source-return-count",
+        "source-resource-closed"
+      ]
+    },
+    {
+      "name": "limit-input",
+      "pass": true,
+      "status": 0,
+      "signal": null,
+      "naturalExit": true,
+      "failures": []
+    },
+    {
+      "name": "limit-line",
+      "pass": true,
+      "status": 0,
+      "signal": null,
+      "naturalExit": true,
+      "failures": []
+    },
+    {
+      "name": "limit-output",
+      "pass": true,
+      "status": 0,
+      "signal": null,
+      "naturalExit": true,
+      "failures": []
+    },
+    {
+      "name": "binary-exact-natural-eof",
+      "pass": true,
+      "status": 0,
+      "signal": null,
+      "naturalExit": true,
+      "failures": []
+    },
+    {
+      "name": "chunks-64",
+      "pass": true,
+      "status": 0,
+      "signal": null,
+      "naturalExit": true,
+      "failures": []
+    },
+    {
+      "name": "chunks-256",
+      "pass": true,
+      "status": 0,
+      "signal": null,
+      "naturalExit": true,
+      "failures": []
+    },
+    {
+      "name": "already-aborted-zero-active-workers",
+      "pass": true,
+      "status": 0,
+      "signal": null,
+      "naturalExit": true,
+      "failures": []
+    },
+    {
+      "name": "invalid-zero-maxworkers",
+      "pass": true,
+      "status": 0,
+      "signal": null,
+      "naturalExit": true,
+      "failures": []
+    },
+    {
+      "name": "shared-executor-sibling-isolation",
+      "pass": false,
+      "status": null,
+      "signal": "SIGKILL",
+      "naturalExit": false,
+      "failures": [
+        "no-json-outcome"
+      ]
+    }
+  ],
+  "packageUnchanged": true,
+  "sourceUnchanged": false,
+  "frozenUnchanged": true,
+  "allChildrenNaturalExit": false,
+  "finished": "2026-08-27T13:32:01.488Z",
+  "candidateRouted": false
+}

@@ -1,0 +1,13 @@
+{
+  "role": "DATA_BINDING_NOT_PRODUCT_TEST",
+  "inputs": 10,
+  "referenceBlobs": 2,
+  "identities": 28,
+  "executions": 0,
+  "rawRecords": 11,
+  "rawBytes": 474351,
+  "archiveBytes": 167378,
+  "archiveSha256": "12c44c495ed4cc8b24841109314cb1f38ae25e256127ba5b67c845009b18d794",
+  "applicableInstructionReads": "context only, no plaintext instruction snapshots",
+  "allInspectedFilesUnchanged": true
+}

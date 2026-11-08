@@ -1,0 +1,31 @@
+{
+  "provider": "apache",
+  "raw": {
+    "positive": {
+      "pass": 9,
+      "fail": 0
+    },
+    "guard": {
+      "pass": 7,
+      "fail": 0
+    },
+    "refusal": {
+      "pass": 0,
+      "fail": 0
+    }
+  },
+  "consumer": {
+    "positive": {
+      "pass": 14,
+      "fail": 3
+    },
+    "guard": {
+      "pass": 14,
+      "fail": 0
+    },
+    "refusal": {
+      "pass": 2,
+      "fail": 0
+    }
+  }
+}

@@ -1,0 +1,70 @@
+[
+  {
+    "id": "whitespace-blanks-transform",
+    "actual": {
+      "status": 0,
+      "stdout": "YyAgMTEKYgkxMwphIDIwCg==",
+      "stderr": "",
+      "files": {}
+    },
+    "input": {
+      "bytes": 16,
+      "sha256": "5b7ba937108daab40b42d7a00e91897ddee00c8a78150b28991923958235dd09"
+    },
+    "stdout": {
+      "bytes": 16,
+      "sha256": "0ba821118b8e082bf5e2043e4cb59005e4a7a3e95765a420e6529a1b9c221ffa"
+    },
+    "finalized": false,
+    "counters": {
+      "keyedConstructions": 1,
+      "sortComparisons": 2,
+      "keyedRequests": 4,
+      "extractions": 3,
+      "fieldObjects": 6,
+      "parses": 3,
+      "keyedAdmissions": 3,
+      "charged": 48,
+      "independentBackingCharge": 48,
+      "existingRecordBytes": 13,
+      "entriesPeak": 3,
+      "retainedPeak": 48,
+      "numericComparisons": 2,
+      "keyedHits": 1
+    }
+  },
+  {
+    "id": "guard-numeric-fold-transform",
+    "actual": {
+      "status": 0,
+      "stdout": "YjoxCmE6Mgp6OjEwCg==",
+      "stderr": "",
+      "files": {}
+    },
+    "input": {
+      "bytes": 13,
+      "sha256": "44107f27d7a5862517d1812f6763e4f8a4949aaa1edb1dae0bb87394977eb6f3"
+    },
+    "stdout": {
+      "bytes": 13,
+      "sha256": "c2e2a5f9b59a32765be49572ecb2b3b8ae0b931da617681a1f82afe4d74fa43a"
+    },
+    "finalized": false,
+    "counters": {
+      "keyedConstructions": 1,
+      "sortComparisons": 2,
+      "keyedRequests": 4,
+      "extractions": 3,
+      "fieldObjects": 6,
+      "parses": 3,
+      "keyedAdmissions": 3,
+      "charged": 30,
+      "independentBackingCharge": 30,
+      "existingRecordBytes": 10,
+      "entriesPeak": 3,
+      "retainedPeak": 30,
+      "numericComparisons": 2,
+      "keyedHits": 1
+    }
+  }
+]

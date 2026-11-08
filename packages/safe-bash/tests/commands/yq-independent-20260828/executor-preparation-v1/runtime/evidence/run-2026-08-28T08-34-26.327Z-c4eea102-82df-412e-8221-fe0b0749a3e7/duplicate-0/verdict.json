@@ -1,0 +1,23 @@
+{
+  "jobId": "duplicate-0",
+  "admitted": true,
+  "outcome": "FAIL",
+  "failures": [
+    "assertion: AssertionError [ERR_ASSERTION]: Exactly one receipt is required\n\n2 !== 1\n"
+  ],
+  "integrity": true,
+  "reapProof": true,
+  "metadata": {
+    "pid": 99210,
+    "group": 99210,
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "overflow": false,
+    "spawnError": null,
+    "closed": true,
+    "reaped": true,
+    "kills": [],
+    "elapsedMs": 54
+  }
+}

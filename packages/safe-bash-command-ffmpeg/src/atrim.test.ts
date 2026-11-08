@@ -1,0 +1,59 @@
+import assert from "node:assert/strict";
+import { it } from "node:test";
+import { Volume } from "memfs";
+import { encodeWav } from "@poe-code/audio-ast";
+import { parseWav } from "@poe-code/mp4-ast";
+import { createFfmpegCommand } from "./index.js";
+
+for (const channels of [1, 2]) {
+  for (const [filter, start, end] of [
+    ["atrim=start_sample=-1", -1, 0],
+    ["atrim=start_sample=1.5", -1, 0],
+    ["atrim=start=invalid", -1, 0],
+    ["atrim=end=", -1, 0],
+    ["atrim=unknown=1", -1, 0],
+    ["anull", 0, 16000],
+    ["atrim", 0, 16000],
+    ["atrim=start_sample=2025:end_sample=3123", 2025, 3123],
+    ["atrim=start=0.253:end=0.390", 2024, 3120],
+    ["atrim=start_sample=15999", 15999, 16000],
+    ["atrim=end_sample=1", 0, 1],
+    ["atrim=start_sample=10:end_sample=10", 10, 10],
+    ["atrim=start_sample=17000", 16000, 16000],
+    ["atrim=start=0.253:start_sample=2025:end=0.390:end_sample=3123", 2024, 3123],
+    ["atrim=start_sample=2000,atrim=start=0.253:end=0.390", 2024, 3120],
+    ["atrim=start_sample=2000,atrim=start_sample=25:end_sample=1123", 2025, 3123]
+  ] as const) {
+    it(`${filter} preserves exact PCM with ${channels} channels`, async () => {
+      const input = encodeWav({ sampleRate: 8000, channels: Array.from({ length: channels }, (_, c) =>
+        Float64Array.from({ length: 16000 }, (_, i) => (c ? -i : i) / 32768)) });
+      const volume = Volume.fromJSON({ "/in.wav": Buffer.from(input), "/out.wav": "existing" });
+      let stderr = "";
+      const result = await createFfmpegCommand().execute({
+        args: ["-v", "error", "-y", "-i", "/in.wav", "-af", filter, "-c:a", "pcm_s16le", "/out.wav"],
+        cwd: "/", env: {}, signal: new AbortController().signal,
+        fs: {
+          async readFile(path: string) { return volume.readFileSync(path); },
+          async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+          async stat(path: string) { return volume.statSync(path); }
+        },
+        stdin: (async function* () {})(), stdout: { async write() {} },
+        stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+      } as never);
+      if (start === -1) {
+        assert.equal(result.exitCode, 1, stderr);
+        assert.ok(stderr.includes("atrim:"), stderr);
+        assert.equal(volume.readFileSync("/out.wav", "utf8"), "existing");
+        return;
+      }
+      assert.equal(result.exitCode, 0, stderr);
+      const audio = parseWav(volume.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
+      const original = parseWav(input).tracks[0]!.decodedAudio!;
+      assert.equal(audio.sampleRate, 8000);
+      assert.equal(audio.channelData.length, channels);
+      for (let c = 0; c < channels; c++) {
+        assert.deepEqual(audio.channelData[c], original.channelData[c]!.slice(start, end));
+      }
+    });
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "id": "novel",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--max-old-space-size=256",
+    "/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/review-v2/novel-controls.mjs"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/review-v2",
+  "captureOpenedBeforeSpawn": true,
+  "pid": null,
+  "exit": null,
+  "close": null,
+  "errors": [],
+  "signals": [],
+  "observed": {
+    "stdout": 0,
+    "stderr": 0,
+    "records": 0
+  },
+  "retained": {
+    "stdout": 0,
+    "stderr": 0,
+    "records": 0
+  },
+  "globalAbsenceClaim": false
+}

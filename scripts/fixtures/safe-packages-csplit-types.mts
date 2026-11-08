@@ -1,0 +1,10 @@
+import { createCsplitCommand, createCsplitCommands, csplitCommands, createAgentCommands, type CsplitCommandsOptions, type CsplitLimits, type CommandDefinition } from "@poe-platform/safe-bash";
+import { createCsplitCommand as subpathCommand, createCsplitCommands as subpathCommands, csplitCommands as subpathPlugin, type CsplitCommandsOptions as SubpathOptions, type CsplitLimits as SubpathLimits } from "@poe-platform/safe-bash/commands/csplit";
+const limits: Partial<CsplitLimits & SubpathLimits> = { maxArgumentBytes: 1024, maxWork: 100000, maxOutputBytes: 4096 };
+const options: CsplitCommandsOptions & SubpathOptions = { limits, replace: true };
+const command: CommandDefinition = createCsplitCommand(options);
+const commands: readonly CommandDefinition[] = createCsplitCommands(options);
+const factory: typeof createCsplitCommand = subpathCommand;
+const factories: typeof createCsplitCommands = subpathCommands;
+const plugin: typeof csplitCommands = subpathPlugin;
+void [command, commands, factory, factories, plugin(options), createAgentCommands({ csplit: { limits } })];

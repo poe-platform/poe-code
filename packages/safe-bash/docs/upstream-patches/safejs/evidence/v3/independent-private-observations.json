@@ -1,0 +1,112 @@
+{
+  "evidenceOrigin": "/tmp/safejs-security-recheck-2XgUgs/",
+  "originalBeforeSHA256": "25523ca6807c44bb71a60404f14e3b57cd352e9cfbb62a1078751ff690cd3daf",
+  "originalAfterSHA256": "58f40b6841d47b1a1522379737ff46cff73478ff0814cc8e9ca77d6b27515fb3",
+  "before": {
+    "time": "2026-08-26T22:44:55.389Z",
+    "directory": "/tmp/safejs-security-recheck-2XgUgs",
+    "phase": "before",
+    "artifacts": {
+      "docs/upstream-patches/safejs/LICENSE.upstream": "0f5d2ae231c0461da14b21ac8594071bb51be33e6a3dcc2b105813c69e7f4a13",
+      "docs/upstream-patches/safejs/baseline-hashes.json": "e972ae842abbe52563f385965fc452f4f35fb988bd4c2e1fb1a65e252eb835c7",
+      "docs/upstream-patches/safejs/lifecycle.patch": "5a12e79d07fc9379c9a6a67897f8aa72767467cc775fac5ea88e55a5bcde95d3",
+      "docs/upstream-patches/safejs/patch-manifest.json": "207489161570fcf2ec9db00a8ede3aac5dfefef510b969274bc6d9a5b1ba98b3",
+      "docs/upstream-patches/safejs/snapshot.mjs": "a9780a952078d9d0f95b76eeba2fc87df1b4fcaaf3e49d0217ad22c14b77ff14",
+      "docs/upstream-patches/safejs/verify.mjs": "02ed074693fc54a1a3ba57118ee7286c9029aa21088327458a973f3b17e04554",
+      "tests/commands/safejs-stress/action-abort.child.mjs": "5101b9da6c6ce511241b3749e3a9a693977230e4d155244854106101648f072d",
+      "tests/commands/safejs-stress/action-abort.probe.ts": "83fdc5c16bc381b552285e73d4ef0048b6aa391e58f09607fa10b7a7fe16cf49",
+      "tests/commands/safejs-stress/actual-engine.test.ts": "4c857bad6d2c9b32f48109887390c2ed8f32a4c3890d4c09edfcdd1cd7a5a8c1",
+      "tests/commands/safejs-stress/artifact-guards.probe.mjs": "1bc9299de2ce5dfc4d9abbebb587a768fc4290f3fea0dcf640ccc3bab0aa4b18",
+      "tests/commands/safejs-stress/import-proof.mjs": "46450a7c42ad3845c4b7bbfd7cd19fd94448cc6f69f2f605ed4178969009f05f",
+      "tests/commands/safejs-stress/lifecycle.test.ts": "47199cb3fceb0fb3f2256b7a65a866bdee9a3303904234370fb486efce379e55",
+      "tests/commands/safejs-stress/promise-observation.child.mjs": "0e77ad2db46e0ee7b072c56b009e5c3764f52f7cfb005147d5ec4057cb48a451",
+      "tests/commands/safejs-stress/reason-contract.probe.mjs": "83ec16e7e559d8fcf7a24c72b6e278cf1cbb1a2c733d8fd58c8640a0609a7560",
+      "tests/commands/safejs-stress/safety.test.ts": "97fa723f551c40d44ac867453801d3cad11064978b669c2994a020facca0cc82",
+      "tests/commands/safejs-stress/upstream-desired.probe.ts": "7f8ebc44fdb3cc313439ec1f3a88c7df3dd3d894b8557daec6c0367fcb7611ab",
+      "tests/commands/safejs-stress/upstream-limitations.test.ts": "097865ec44d1bd75f675d12162cd678259725bc46e241358d7d22a47d63da741",
+      "tests/commands/safejs-stress/wrapper-invariants.probe.mjs": "8eeb6f698cdae6a45bf0c7cff62a74d5390ef4ee4f1284b5f910d9dc36604545",
+      "tests/commands/safejs/helpers.ts": "4a12b4e954710a313559e88ae2f99def8495c80f296101316ce255c80d870408",
+      "tests/commands/safejs/local-runtime.ts": "1baeb247650551fc5374f3d12fa3ae0b714d3427016639d66c741aa58c6d4704"
+    },
+    "revision": "3db0b0a0ed25278b2c1dee361d438891fa1e34fa",
+    "status": " M package-lock.json\n M package.json\n M packages/poe-agent/package.json\n M src/cli/commands/experiment-ralph.test.ts\n M src/cli/commands/experiment.ts\n M src/cli/commands/ralph.ts\n M src/cli/commands/worktree-command.test.ts\n M src/cli/commands/worktree.ts\n?? docs/plans/bugfix-shell-quote-parser-security.md\n?? docs/plans/bugfix-worktree-reconcile-dry-run.md\n?? packages/terminal-pilot/assets/",
+    "indexHash": "85699b3d1bdd5d678d1e6adbfb614892ec03ef0b5b3b80413083eef51f8075e8",
+    "sourceCount": 238,
+    "sourceHash": "f306b533263fe70bcafbe702a1fb213bfb39f337e567a6a079eca189a2fe3018",
+    "packageFileCount": 490,
+    "packageHash": "682fee1b42f073e8ccbe2ebe065555c0a0b95facd583e1605ec1bc9faa69a1ee",
+    "licenseHash": "0f5d2ae231c0461da14b21ac8594071bb51be33e6a3dcc2b105813c69e7f4a13",
+    "node": "v22.22.2",
+    "tsx": "4.23.12",
+    "vitest": "3.2.6",
+    "vite": "6.4.3"
+  },
+  "after": {
+    "time": "2026-08-26T22:47:01.175Z",
+    "directory": "/tmp/safejs-security-recheck-2XgUgs",
+    "phase": "after",
+    "artifacts": {
+      "docs/upstream-patches/safejs/LICENSE.upstream": "0f5d2ae231c0461da14b21ac8594071bb51be33e6a3dcc2b105813c69e7f4a13",
+      "docs/upstream-patches/safejs/baseline-hashes.json": "e972ae842abbe52563f385965fc452f4f35fb988bd4c2e1fb1a65e252eb835c7",
+      "docs/upstream-patches/safejs/lifecycle.patch": "5a12e79d07fc9379c9a6a67897f8aa72767467cc775fac5ea88e55a5bcde95d3",
+      "docs/upstream-patches/safejs/patch-manifest.json": "207489161570fcf2ec9db00a8ede3aac5dfefef510b969274bc6d9a5b1ba98b3",
+      "docs/upstream-patches/safejs/snapshot.mjs": "a9780a952078d9d0f95b76eeba2fc87df1b4fcaaf3e49d0217ad22c14b77ff14",
+      "docs/upstream-patches/safejs/verify.mjs": "02ed074693fc54a1a3ba57118ee7286c9029aa21088327458a973f3b17e04554",
+      "tests/commands/safejs-stress/action-abort.child.mjs": "5101b9da6c6ce511241b3749e3a9a693977230e4d155244854106101648f072d",
+      "tests/commands/safejs-stress/action-abort.probe.ts": "83fdc5c16bc381b552285e73d4ef0048b6aa391e58f09607fa10b7a7fe16cf49",
+      "tests/commands/safejs-stress/actual-engine.test.ts": "4c857bad6d2c9b32f48109887390c2ed8f32a4c3890d4c09edfcdd1cd7a5a8c1",
+      "tests/commands/safejs-stress/artifact-guards.probe.mjs": "1bc9299de2ce5dfc4d9abbebb587a768fc4290f3fea0dcf640ccc3bab0aa4b18",
+      "tests/commands/safejs-stress/import-proof.mjs": "46450a7c42ad3845c4b7bbfd7cd19fd94448cc6f69f2f605ed4178969009f05f",
+      "tests/commands/safejs-stress/lifecycle.test.ts": "47199cb3fceb0fb3f2256b7a65a866bdee9a3303904234370fb486efce379e55",
+      "tests/commands/safejs-stress/promise-observation.child.mjs": "0e77ad2db46e0ee7b072c56b009e5c3764f52f7cfb005147d5ec4057cb48a451",
+      "tests/commands/safejs-stress/reason-contract.probe.mjs": "83ec16e7e559d8fcf7a24c72b6e278cf1cbb1a2c733d8fd58c8640a0609a7560",
+      "tests/commands/safejs-stress/safety.test.ts": "97fa723f551c40d44ac867453801d3cad11064978b669c2994a020facca0cc82",
+      "tests/commands/safejs-stress/upstream-desired.probe.ts": "7f8ebc44fdb3cc313439ec1f3a88c7df3dd3d894b8557daec6c0367fcb7611ab",
+      "tests/commands/safejs-stress/upstream-limitations.test.ts": "097865ec44d1bd75f675d12162cd678259725bc46e241358d7d22a47d63da741",
+      "tests/commands/safejs-stress/wrapper-invariants.probe.mjs": "8eeb6f698cdae6a45bf0c7cff62a74d5390ef4ee4f1284b5f910d9dc36604545",
+      "tests/commands/safejs/helpers.ts": "4a12b4e954710a313559e88ae2f99def8495c80f296101316ce255c80d870408",
+      "tests/commands/safejs/local-runtime.ts": "1baeb247650551fc5374f3d12fa3ae0b714d3427016639d66c741aa58c6d4704"
+    },
+    "revision": "3db0b0a0ed25278b2c1dee361d438891fa1e34fa",
+    "status": " M package-lock.json\n M package.json\n M packages/poe-agent/package.json\n M src/cli/commands/experiment-ralph.test.ts\n M src/cli/commands/experiment.ts\n M src/cli/commands/ralph.ts\n M src/cli/commands/worktree-command.test.ts\n M src/cli/commands/worktree.ts\n?? docs/plans/bugfix-loop-agent-array-override.md\n?? docs/plans/bugfix-shell-quote-parser-security.md\n?? docs/plans/bugfix-worktree-reconcile-dry-run.md\n?? packages/terminal-pilot/assets/",
+    "indexHash": "85699b3d1bdd5d678d1e6adbfb614892ec03ef0b5b3b80413083eef51f8075e8",
+    "sourceCount": 238,
+    "sourceHash": "f306b533263fe70bcafbe702a1fb213bfb39f337e567a6a079eca189a2fe3018",
+    "packageFileCount": 490,
+    "packageHash": "682fee1b42f073e8ccbe2ebe065555c0a0b95facd583e1605ec1bc9faa69a1ee",
+    "licenseHash": "0f5d2ae231c0461da14b21ac8594071bb51be33e6a3dcc2b105813c69e7f4a13",
+    "node": "v22.22.2",
+    "tsx": "4.23.12",
+    "vitest": "3.2.6",
+    "vite": "6.4.3"
+  },
+  "comparison": {
+    "interval": [
+      "2026-08-26T22:44:55.389Z",
+      "2026-08-26T22:47:01.175Z"
+    ],
+    "artifactsUnchanged": true,
+    "privateFieldsUnchanged": {
+      "revision": true,
+      "status": false,
+      "indexHash": true,
+      "sourceHash": true,
+      "packageHash": true,
+      "licenseHash": true
+    },
+    "privateStatusHashBefore": "8447e8f4ddce27486710bfac403ba250da1edae55d3951f40cfc2fe0a6ab41fa",
+    "privateStatusHashAfter": "870bd36d16b7dd592c950e3054ec1a0cb1edb40c7f390d27d319a132abafd3fe"
+  },
+  "scriptInterval": {
+    "before": "2026-08-26T22:45:14.578Z",
+    "after": "2026-08-26T22:46:14.172Z",
+    "comparison": {
+      "engineUnchanged": true,
+      "revisionUnchanged": true,
+      "statusUnchanged": true,
+      "indexUnchanged": true,
+      "licenseUnchanged": true
+    }
+  },
+  "note": "Outer status changed externally; narrower script interval did not. Source hash lists omitted here; full digests/counts and statuses retained. This is not whole-assignment unchanged proof."
+}

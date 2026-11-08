@@ -1,0 +1,10 @@
+name: PR Checks (PR)
+on:
+  pull_request:
+    branches:
+      - main
+jobs:
+  pr:
+    uses: ./.github/workflows/pr-checks.yml
+    with:
+      ref: ${{ github.event.pull_request.head.sha }}

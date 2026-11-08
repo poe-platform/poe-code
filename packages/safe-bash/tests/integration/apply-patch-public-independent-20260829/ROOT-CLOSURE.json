@@ -1,0 +1,18 @@
+{
+  "packageOnlyExportAddition": {
+    "types": "./dist/commands/apply-patch/index.d.ts",
+    "import": "./dist/commands/apply-patch/index.js"
+  },
+  "rootOnlyAddedLine": "export * from \"./commands/apply-patch/index.js\";\n",
+  "pluginOnlyAddedLines": [
+    "import { createApplyPatchCommands, type ApplyPatchCommandsOptions } from \"../commands/apply-patch/index.js\";",
+    "  readonly applyPatch?: Omit<ApplyPatchCommandsOptions, \"replace\">;",
+    "  const applyPatchLimits = options.applyPatch?.limits;",
+    "    ...createApplyPatchCommands(applyPatchLimits === undefined ? {} : { limits: applyPatchLimits }),"
+  ],
+  "unchangedModuleFiles": 6,
+  "buildInputs": 278,
+  "baseInputs": 272,
+  "fixtureOnlySuccessorBuildEquality": true,
+  "limitsQualification": "unchanged module settings only permits lowering 14 fixed caps; no core limit or runtime dependency added"
+}

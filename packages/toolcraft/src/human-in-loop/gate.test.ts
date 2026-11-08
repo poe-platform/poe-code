@@ -1,0 +1,401 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { mockProvider } from "@poe-code/agent-human-in-loop";
+import type { TaskList, Tasks } from "@poe-code/task-list";
+import { S } from "toolcraft-schema";
+import type { HandlerContext } from "../index.js";
+import { defineCommand } from "../index.js";
+import { approvalStateMachine } from "./state-machine.js";
+import { invokeWithHumanInLoop } from "./gate.js";
+import { createHumanInLoop } from "./runtime.js";
+import { ApprovalDeclinedError } from "./types.js";
+
+const spawnApprovalRunnerMock = vi.hoisted(() => vi.fn());
+
+vi.mock("./spawn.js", () => ({
+  spawnApprovalRunner: spawnApprovalRunnerMock
+}));
+
+function createContext(params: { name: string } = { name: "production" }): HandlerContext {
+  return {
+    params,
+    secrets: {},
+    fetch: globalThis.fetch,
+    fs: {
+      readFile: vi.fn(),
+      writeFile: vi.fn(),
+      exists: vi.fn()
+    },
+    env: {
+      get: vi.fn()
+    },
+    diagnostics: { level: "silent", emit: vi.fn() },
+    progress: vi.fn()
+  };
+}
+
+function createSyncCommand(handler: ReturnType<typeof vi.fn>) {
+  return defineCommand({
+    name: "deploy",
+    params: S.Object({
+      name: S.String()
+    }),
+    humanInLoop: {
+      mode: "sync",
+      message: ({ params, commandPath }) => `Run ${commandPath} for ${params.name}?`,
+      declineInputPrompt: "Why not?"
+    },
+    handler
+  });
+}
+
+function createAsyncCommand(handler: ReturnType<typeof vi.fn>) {
+  return defineCommand({
+    name: "deploy",
+    params: S.Object({
+      name: S.String()
+    }),
+    humanInLoop: {
+      mode: "async",
+      message: ({ params, commandPath }) => `Queue ${commandPath} for ${params.name}?`,
+      declineInputPrompt: "Why not?"
+    },
+    handler
+  });
+}
+
+describe("invokeWithHumanInLoop", () => {
+  it("does not run an approved handler after its request was cancelled", async () => {
+    const handler = vi.fn(async () => "done");
+    const approval = Promise.withResolvers<{ outcome: "approved" }>();
+    const requestApproval = vi.fn(() => approval.promise);
+    const controller = new AbortController();
+    const context = { ...createContext(), signal: controller.signal };
+    const operation = invokeWithHumanInLoop(createSyncCommand(handler), context, {
+      provider: { id: "cancel-test", requestApproval }
+    }, "root.deploy");
+    expect(requestApproval).toHaveBeenCalledTimes(1);
+    controller.abort();
+    approval.resolve({ outcome: "approved" });
+    await expect(operation).rejects.toMatchObject({ name: "AbortError" });
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  it("does not open approval for an already cancelled request", async () => {
+    const handler = vi.fn(async () => "done");
+    const requestApproval = vi.fn(async () => ({ outcome: "approved" as const }));
+    const controller = new AbortController();
+    controller.abort();
+    await expect(invokeWithHumanInLoop(createSyncCommand(handler), {
+      ...createContext(), signal: controller.signal
+    }, { provider: { id: "cancel-test", requestApproval } }, "root.deploy"))
+      .rejects.toMatchObject({ name: "AbortError" });
+    expect(requestApproval).not.toHaveBeenCalled();
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  beforeEach(() => {
+    spawnApprovalRunnerMock.mockReset();
+  });
+
+  it("runs the handler directly when the command has no human-in-loop config", async () => {
+    const handler = vi.fn(async () => "done");
+    const command = defineCommand({
+      name: "deploy",
+      params: S.Object({
+        name: S.String()
+      }),
+      handler
+    });
+
+    await expect(
+      invokeWithHumanInLoop(
+        command,
+        createContext(),
+        { provider: mockProvider({ outcome: "approved" }) },
+        "deploy"
+      )
+    ).resolves.toBe("done");
+
+    expect(handler).toHaveBeenCalledTimes(1);
+  });
+
+  it("runs the handler after sync approval and passes the formatted message to the provider", async () => {
+    const handler = vi.fn(async () => "done");
+    const command = createSyncCommand(handler);
+    const provider = mockProvider({ outcome: "approved" });
+    const requestApprovalSpy = vi.spyOn(provider, "requestApproval");
+
+    await expect(
+      invokeWithHumanInLoop(command, createContext(), { provider }, "root.deploy")
+    ).resolves.toBe("done");
+
+    expect(requestApprovalSpy).toHaveBeenCalledWith({
+      message: "Run root.deploy for production?",
+      declineInputPrompt: "Why not?"
+    });
+    expect(handler).toHaveBeenCalledTimes(1);
+  });
+
+  it("prints and re-verifies a deterministic sync approval plan hash", async () => {
+    let revision = 1;
+    const handler = vi.fn(async () => "done");
+    const command = defineCommand({
+      name: "sync",
+      params: S.Object({ name: S.String() }),
+      humanInLoop: {
+        mode: "sync",
+        message: () => "Apply file changes?",
+        plan: () => ({ revision, files: ["flows/morning.json"] })
+      },
+      handler
+    });
+    const provider = mockProvider({ outcome: "approved" });
+    const requestApprovalSpy = vi.spyOn(provider, "requestApproval").mockImplementation(async () => {
+      revision = 2;
+      return { outcome: "approved" };
+    });
+
+    await expect(
+      invokeWithHumanInLoop(command, createContext(), { provider }, "sync")
+    ).rejects.toThrowError(/Approval plan changed after approval/);
+
+    expect(requestApprovalSpy).toHaveBeenCalledWith({
+      message: expect.stringMatching(/^Apply file changes\?\n\nPlan:\n\{\n[\s\S]+\n\}\n\nPlan hash: sha256:[0-9a-f]{64}$/),
+      declineInputPrompt: undefined
+    });
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  it("throws ApprovalDeclinedError without a reason when sync approval is declined", async () => {
+    const handler = vi.fn(async () => "done");
+    const command = createSyncCommand(handler);
+
+    await expect(
+      invokeWithHumanInLoop(
+        command,
+        createContext(),
+        { provider: mockProvider({ outcome: "declined" }) },
+        "deploy"
+      )
+    ).rejects.toBeInstanceOf(ApprovalDeclinedError);
+
+    await invokeWithHumanInLoop(
+      command,
+      createContext(),
+      { provider: mockProvider({ outcome: "declined" }) },
+      "deploy"
+    ).catch((error: unknown) => {
+      expect(error).toBeInstanceOf(ApprovalDeclinedError);
+      expect(error).toMatchObject({
+        commandPath: "deploy",
+        reason: undefined,
+        message: "Declined."
+      });
+    });
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  it("throws ApprovalDeclinedError carrying the decline reason", async () => {
+    const handler = vi.fn(async () => "done");
+    const command = createSyncCommand(handler);
+
+    await invokeWithHumanInLoop(
+      command,
+      createContext(),
+      { provider: mockProvider({ outcome: "declined", reason: "Need ticket" }) },
+      "deploy.production"
+    ).catch((error: unknown) => {
+      expect(error).toBeInstanceOf(ApprovalDeclinedError);
+      expect(error).toMatchObject({
+        commandPath: "deploy.production",
+        reason: "Need ticket",
+        message: "Declined: Need ticket"
+      });
+    });
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  it("createHumanInLoop requires a provider", () => {
+    expect(() => createHumanInLoop({} as Parameters<typeof createHumanInLoop>[0])).toThrowError(
+      'createHumanInLoop requires a provider — import one from "toolcraft/human-in-loop" (e.g. osascriptProvider) or pass your own'
+    );
+  });
+
+  it("createHumanInLoop routes invoke through the configured provider", async () => {
+    const handler = vi.fn(async () => "done");
+    const command = createSyncCommand(handler);
+    const requestApproval = vi.fn(async () => ({ outcome: "approved" as const }));
+    const runtime = createHumanInLoop({
+      provider: { id: "gate-test", requestApproval }
+    });
+
+    await expect(runtime.invoke(command, createContext(), "deploy")).resolves.toBe("done");
+    expect(requestApproval).toHaveBeenCalledTimes(1);
+    expect(handler).toHaveBeenCalledTimes(1);
+  });
+
+  it("throws when async mode is used without a configured task list", async () => {
+    const handler = vi.fn(async () => "done");
+    const command = createAsyncCommand(handler);
+
+    await expect(
+      invokeWithHumanInLoop(
+        command,
+        createContext(),
+        { provider: mockProvider({ outcome: "approved" }) },
+        "deploy"
+      )
+    ).rejects.toThrowError("humanInLoop.taskList required for async-mode commands");
+
+    expect(spawnApprovalRunnerMock).not.toHaveBeenCalled();
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  it("enqueues async approvals, spawns the runner, and returns the pending marker", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-04-26T13:22:09.000Z"));
+
+    const createdTasks: Array<{
+      id: string;
+      name: string;
+      metadata?: Record<string, unknown>;
+    }> = [];
+    const tasks: Tasks = {
+      name: "approvals",
+      stateMachine: approvalStateMachine,
+      all: vi.fn(async () => []),
+      get: vi.fn(async () => {
+        throw new Error("unused in test");
+      }),
+      create: vi.fn(async (input) => {
+        createdTasks.push(input);
+        return {
+          list: "approvals",
+          qualifiedId: `approvals/${input.id}`,
+          id: input.id,
+          name: input.name,
+          description: input.description ?? "",
+          state: "pending",
+          metadata: input.metadata ?? {}
+        };
+      }),
+      update: vi.fn(async () => {
+        throw new Error("unused in test");
+      }),
+      fire: vi.fn(async () => {
+        throw new Error("unused in test");
+      }),
+      canFire: vi.fn(async () => false),
+      events: vi.fn(async () => []),
+      delete: vi.fn(async () => undefined)
+    };
+    const taskList: TaskList = {
+      list: vi.fn(() => tasks),
+      lists: vi.fn(async () => ["approvals"]),
+      allTasks: vi.fn(async () => []),
+      get: vi.fn(async () => {
+        throw new Error("unused in test");
+      })
+    };
+    const handler = vi.fn(async () => "done");
+    const command = createAsyncCommand(handler);
+
+    const provider = mockProvider({ outcome: "approved" });
+    const result = await invokeWithHumanInLoop(
+      command,
+      createContext(),
+      { provider, taskList },
+      "root.deploy"
+    );
+
+    expect(result).toMatchObject({
+      status: "pending-approval",
+      message: "Queue root.deploy for production?",
+      enqueuedAt: "2026-04-26T13:22:09.000Z"
+    });
+    expect(result.approvalId).toMatch(/^2026-04-26T13-22-09-[0-9a-f]{6}$/);
+
+    expect(createdTasks).toHaveLength(1);
+    expect(createdTasks[0]).toEqual({
+      id: result.approvalId,
+      name: "root.deploy (2026-04-26T13:22:09.000Z)",
+      metadata: {
+        schemaVersion: 1,
+        approvalId: result.approvalId,
+        commandPath: "root.deploy",
+        params: { name: "production" },
+        message: "Queue root.deploy for production?",
+        declineInputPrompt: "Why not?",
+        enqueuedAt: "2026-04-26T13:22:09.000Z",
+        pid: null,
+        result: null,
+        error: null
+      }
+    });
+    expect(spawnApprovalRunnerMock).toHaveBeenCalledWith(result.approvalId, { provider, taskList });
+    expect(handler).not.toHaveBeenCalled();
+
+    vi.useRealTimers();
+  });
+
+  it("includes the deterministic plan hash in async structured output and records", async () => {
+    const tasks = {
+      name: "approvals",
+      stateMachine: approvalStateMachine,
+      all: vi.fn(async () => []),
+      get: vi.fn(async () => { throw new Error("unused in test"); }),
+      create: vi.fn(async (input) => ({
+        list: "approvals",
+        qualifiedId: `approvals/${input.id}`,
+        id: input.id,
+        name: input.name,
+        description: input.description ?? "",
+        state: "pending" as const,
+        metadata: input.metadata ?? {}
+      })),
+      update: vi.fn(async () => { throw new Error("unused in test"); }),
+      fire: vi.fn(async () => { throw new Error("unused in test"); }),
+      canFire: vi.fn(async () => false),
+      events: vi.fn(async () => []),
+      delete: vi.fn(async () => undefined)
+    } satisfies Tasks;
+    const taskList: TaskList = {
+      list: vi.fn(() => tasks),
+      lists: vi.fn(async () => ["approvals"]),
+      allTasks: vi.fn(async () => []),
+      get: vi.fn(async () => { throw new Error("unused in test"); })
+    };
+    const command = defineCommand({
+      name: "sync",
+      params: S.Object({ name: S.String() }),
+      humanInLoop: {
+        mode: "async",
+        message: () => "Apply file changes?",
+        plan: () => ({ updated: ["flows/morning.json"] })
+      },
+      handler: async () => "done"
+    });
+
+    const result = await invokeWithHumanInLoop(
+      command,
+      createContext(),
+      { provider: mockProvider({ outcome: "approved" }), taskList },
+      "sync"
+    );
+
+    expect(result).toMatchObject({
+      status: "pending-approval",
+      planHash: expect.stringMatching(/^sha256:[0-9a-f]{64}$/)
+    });
+    expect(tasks.create).toHaveBeenCalledWith(expect.objectContaining({
+      metadata: expect.objectContaining({
+        plan: { updated: ["flows/morning.json"] },
+        planHash: result.planHash
+      })
+    }));
+  });
+});

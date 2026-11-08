@@ -1,0 +1,11 @@
+{
+  "role": "r7-harmless-controller",
+  "pid": 19223,
+  "started": "2026-08-29T15:32:43.803Z",
+  "exitCode": 0,
+  "exitSignal": null,
+  "exitAt": "2026-08-29T15:32:44.050Z",
+  "closeCode": 0,
+  "closeSignal": null,
+  "closedAt": "2026-08-29T15:32:44.050Z"
+}

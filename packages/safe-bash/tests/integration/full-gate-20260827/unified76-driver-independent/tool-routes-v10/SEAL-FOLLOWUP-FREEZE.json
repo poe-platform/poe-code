@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "scope": "Artifact-only finalization correction; no runtime control/build rerun or oracle change",
+  "original": "seal.mjs",
+  "originalExit": 1,
+  "error": "TypeError reading row.events.filter at line61",
+  "diagnosis": "Inherited v9 sealer tail was accidentally retained by a failed source-slice boundary. The new probe emits records, not events; the stale eleven-attempt calculation is not a v10 control assertion and never yielded a result. Runtime evidence is unchanged:8 route groups,3 shipping phases,actual A10/duplicate passed.",
+  "completedBeforeFailure": ["runtime/typing/source/prior hash assertions", "PID-birth survivor check", "TOOL-CLOSURE.json", "FILESYSTEM.ndjson.gz", "RAW.ndjson.gz", "RAW-INDEX.json"],
+  "notPerformed": ["RESULTS.json creation", "plain A10 capture removal", "temporary root removal", "CLEANUP.json creation"],
+  "followup": "seal-v2.mjs preserves original sealer and complete captures byte-for-byte, revalidates captured compressed/decompressed/per-file hashes and current namespace, then writes only missing result/cleanup receipts and removes exact owned roots. Two actual v10 protected-target operations, not inherited eleven.",
+  "chronology": "After original artifact sealing failure and before corrected static finalization; no expected runtime results changed."
+}

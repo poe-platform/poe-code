@@ -1,0 +1,88 @@
+{
+  "role": "prospective PUBLIC apply_patch79 author closure, independent review required",
+  "date": "2026-08-29",
+  "base": "d111e5bf1f53aff16c5d4112e9ead2e025d6464f",
+  "baseSourceSha256": "fe906972d6e0d34c99b45930e584b6177c5780e2ceddc83ea48418c64ee4f465",
+  "baseEvidence": "a49b8a7055ac2902d1368ddb638d62c5a1896dc9ed25c18b025816a710077509",
+  "moduleCommit": "753f33d2fa1a2ccd86089c563d4ad66b9a1ae26d",
+  "moduleAcceptance": "c1fc3ee8a010289145959a05e8b088e51f21780a qualified, original7/9 plus legacy11/21 retained",
+  "integrationCommit": "83730c6085597d8480a25aa639793582984eebd0",
+  "fixtureCommit": "48b044c5617b7a03724c99617374d139ebc8ed82",
+  "rootOverrides": [
+    "src/index.ts",
+    "src/plugins/index.ts",
+    "package.json",
+    "README.md"
+  ],
+  "metadataOverrides": [
+    "docs/COMMAND_PRIORITIES.md"
+  ],
+  "defaultCount": 79,
+  "expectedInputs": 278,
+  "expectedPackageMembers": 898,
+  "aggregate": "applyPatch?: Omit<ApplyPatchCommandsOptions, \"replace\">; only limits forwarded; top-level replace authoritative including untyped nested overrides",
+  "subpath": "virtual-bash/commands/apply-patch",
+  "bounds": {
+    "totalSeconds": 1800,
+    "children": 64,
+    "peak": 4,
+    "serial": true,
+    "caseSeconds": 30,
+    "childSeconds": 120,
+    "cleanupSeconds": 5,
+    "captureBytes": 134217728,
+    "scratchBytes": 536870912,
+    "childCaptureBytes": 8388608
+  },
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "developmentGit": {
+    "path": "/usr/bin/git",
+    "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba",
+    "role": "development exact blob/tree reads, no native oracle"
+  },
+  "casePlan": {
+    "public": 28,
+    "arrays": 12,
+    "coherence": 18,
+    "coherenceSelection": "C02-C18 and separate R15, historical C01=78 immutable; new P02 exact79 instead",
+    "layouts": [
+      "source-build",
+      "installed",
+      "physically-moved"
+    ],
+    "types": "three strict positive plus three removed-directive four-diagnostic negatives",
+    "maintained": "all four TS fixture bodies compiled with exact import-only routing to candidate public root; native helper functions denied if called; current stream-five public consumer executed only moved (source/installed not newly claimed)",
+    "controls": [
+      "loaded aggregate registration omission mutant killed by P02",
+      "exact original restore P02",
+      "missing root binding rejection",
+      "changed apply-patch binding rejection",
+      "outside product source-fallback rejection",
+      "removed explicit apply-patch export refusal"
+    ]
+  },
+  "stop": "No retry on safety/capture/integrity/unknown retirement; safely closed ordinary assertions aggregate; no native/private/network/defaultGit/YQ/XAN/node/declare/mapfile or rawHEAD build",
+  "limitations": "No general module reacceptance, resource census, native oracle, whole suite, zero-RSS/preemption/parity claim. Only public composition closure; old7/9/11fails/21uncredited untouched.",
+  "executionsAtPreseal": 0,
+  "plannedChildren": {
+    "developmentBlobs": 1,
+    "productionBuild": 1,
+    "offlinePack": 1,
+    "offlineInstall": 1,
+    "public": 3,
+    "arrays": 3,
+    "coherence": 3,
+    "types": 6,
+    "maintainedCompile": 1,
+    "maintainedBodiesSingleProcess": 1,
+    "maintainedMovedStream": 1,
+    "controls": 6,
+    "total": 28,
+    "peakSupervised": 1,
+    "qualification": "direct owned subprocesses; no hard global native resource census or opaque host preemption claim"
+  }
+}

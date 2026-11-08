@@ -1,0 +1,24 @@
+import assert from 'node:assert/strict';
+import {execFileSync,spawnSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
+import {mkdirSync,existsSync,readFileSync,writeFileSync,cpSync,readdirSync,symlinkSync} from 'node:fs';
+import {dirname,join} from 'node:path';
+import {fileURLToPath} from 'node:url';
+const root=dirname(fileURLToPath(import.meta.url)), repo='/Users/kjopek/Workspace/safe-bash';
+const phase=process.argv[2], output=join(root,phase), archive=join(output,'archive');
+assert.match(phase,/^[a-z0-9-]+$/);assert.ok(!existsSync(output));mkdirSync(archive,{recursive:true});
+const git=(...args)=>execFileSync('git',args,{cwd:repo,maxBuffer:128*1024*1024});
+const pin=phase==='baseline'?'2cacd04614baaa6e95f8663b73ded023eafd2c19':git('rev-parse','HEAD').toString().trim();
+const tar=git('archive',pin,'src','tests/fs/webdav','tests/fs/conformance','tests/fs/mount/identity-compatibility-review','package.json','package-lock.json','tsconfig.json');
+assert.equal(spawnSync('tar',['-xf','-','-C',archive],{input:tar}).status,0);
+if(phase!=='baseline')for(const path of phase==='pinned'?['src/fs/webdav','tests/fs/webdav']:['src','tests/fs/webdav'])cpSync(join(repo,path),join(archive,path),{recursive:true});
+symlinkSync(join(repo,'node_modules'),join(archive,'node_modules'));
+const hash=data=>createHash('sha256').update(data).digest('hex');
+const walk=path=>readdirSync(join(archive,path),{withFileTypes:true}).flatMap(entry=>entry.isDirectory()?walk(join(path,entry.name)):[join(path,entry.name)]);
+const files=[...walk('src'),...walk('tests/fs/webdav'),...walk('tests/fs/conformance'),'tests/fs/mount/identity-compatibility-review/compatibility.test.ts','src/contracts/filesystem.md','package.json','package-lock.json'].filter(path=>!path.includes('/evidence/')).sort();
+const manifest=()=>files.map(path=>({path,sha256:hash(readFileSync(join(archive,path)))}));
+const save=(name,value)=>writeFileSync(join(output,name),JSON.stringify(value,null,2)+'\n');
+const before=manifest();save('manifest-before.json',before);save('provenance.json',{phase,pin,movingSnapshot:phase!=='baseline'&&phase!=='pinned',ownedOverlay:phase==='pinned',node:process.version,archiveBaseSha256:hash(tar),status:git('status','--short').toString()});
+const commands=JSON.parse(readFileSync(join(root,`${phase}.commands.json`),'utf8'));
+for(const command of commands){const start=new Date().toISOString();const result=spawnSync(process.execPath,command.args,{cwd:archive,encoding:'utf8',timeout:120000,maxBuffer:24*1024*1024,env:{...process.env,TMPDIR:output,TSX_DISABLE_CACHE:'1'}});writeFileSync(join(output,command.name+'.stdout'),result.stdout??'');writeFileSync(join(output,command.name+'.stderr'),result.stderr??'');save(command.name+'.exit.json',{argv:[process.execPath,...command.args],cwd:archive,start,end:new Date().toISOString(),status:result.status,signal:result.signal,error:result.error?.message});console.log(phase,command.name,result.status);}
+assert.deepEqual(manifest(),before);save('manifest-after.json',manifest());

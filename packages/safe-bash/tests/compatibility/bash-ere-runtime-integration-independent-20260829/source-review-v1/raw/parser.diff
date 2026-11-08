@@ -1,0 +1,88 @@
+diff --git a/27bcacc6c9a731ff02c6ef3700e96a7a1f8e4ebe b/c9065ec21a934b5ab4197e80c620b432f7b060cb
+index 27bcacc6c..c9065ec21 100644
+--- a/27bcacc6c9a731ff02c6ef3700e96a7a1f8e4ebe
++++ b/c9065ec21a934b5ab4197e80c620b432f7b060cb
+@@ -284,15 +284,20 @@ class Lexer {
+     const reduction = this.printedNewlineReduction;
+     const unprinted = this.unprintedWords;
+     const parts: WordPart[] = [];
+     let parentheses = 0;
+     let conditionals = 0;
+     let patternParentheses = 0;
++    let regexBracket = false;
++    let regexBracketFirst = false;
++    let regexBracketNegation = false;
++    let regexClass = "";
+     const conditionalPattern = terminator === undefined ? this.conditionalPattern : undefined;
+     let plain = true;
+     const text = (value: string, quoted: boolean, synthetic = false) => {
++      if (conditionalPattern === "regex" && regexBracket && quoted && value.length) { regexBracketFirst = false; regexBracketNegation = false; }
+       const previous = parts.at(-1);
+       if (previous?.kind === "text" && previous.quoted === quoted) {
+         previous.value += value;
+         if (!synthetic) setQuoteMarker(previous, false);
+       } else {
+         const part: WordPart = { kind: "text", value, quoted };
+@@ -301,13 +306,22 @@ class Lexer {
+       }
+     };
+     while (this.position < this.source.length) {
+       const current = this.source[this.position]!;
+       if (conditionalPattern) {
+         if (/[ \t\n;]/u.test(current)) break;
+-        if (current === "(" && (conditionalPattern === "regex" || patternParentheses > 0 || "?*+@!".includes(this.source[this.position - 1] ?? " "))) {
++        const bracketMaterial = conditionalPattern === "regex" && (regexBracket || current === "[");
++        if (bracketMaterial) {
++          if (!regexBracket) { regexBracket = true; regexBracketFirst = true; regexBracketNegation = true; }
++          else if (regexClass) {
++            if (current === "]" && this.source[this.position - 1] === regexClass) regexClass = "";
++          } else if (current === "[" && [":", ".", "="].includes(this.source[this.position + 1] ?? "")) { regexClass = this.source[this.position + 1]!; regexBracketFirst = false; }
++          else if (current === "]" && !regexBracketFirst) regexBracket = false;
++          else if (current === "^" && regexBracketFirst && regexBracketNegation) regexBracketNegation = false;
++          else { regexBracketFirst = false; regexBracketNegation = false; }
++        } else if (current === "(" && (conditionalPattern === "regex" || patternParentheses > 0 || "?*+@!".includes(this.source[this.position - 1] ?? " "))) {
+           if (++patternParentheses > 64) this.error("Conditional syntax nesting exceeds 64");
+         } else if (current === ")" && patternParentheses > 0) patternParentheses--;
+         else if (/[()<>]/u.test(current) || patternParentheses === 0 && (this.source.startsWith("&&", this.position) || this.source.startsWith("||", this.position))) break;
+       } else if (terminator ? terminator.includes(current) && (!arithmetic || current !== ":" || parentheses === 0 && conditionals === 0) : /[ \t\n;|&()<>]/u.test(current)) break;
+       if (current === "$" && this.source[this.position + 1] === "'" && !enclosingQuoted && !literal) {
+         plain = false;
+@@ -363,12 +377,13 @@ class Lexer {
+           else if (current === ":" && conditionals > 0) conditionals--;
+         }
+         text(current, false);
+         this.position++;
+       }
+     }
++    if (conditionalPattern === "regex" && patternParentheses > 0) this.error("Unterminated conditional regular expression group");
+     const printedNewlines = this.source.slice(offset, this.position).split("\n").length - 1 - (this.printedNewlineReduction - reduction);
+     return { parts, offset, ...(unprinted === this.unprintedWords ? { printedNewlines } : {}), ...(plain ? { plain: parts.map((part) => part.kind === "text" ? part.value : "").join("") } : {}) };
+   }
+ 
+   ansiWord(): string {
+     const quoteLine = this.lineAt(this.position);
+@@ -614,21 +629,22 @@ class Parser {
+     let command: Command;
+     if (this.is("[[")) {
+       const start = this.current.end;
+       this.lexer.conditional = true;
+       this.advance();
+       let nodes = 0;
++      const grouped = new WeakSet<ConditionalExpression>();
+       const admit = (): void => { if (nodes >= 4096) this.error("Conditional syntax exceeds 4096 nodes"); nodes++; };
+       const operand = (): Word => {
+         if (this.current.kind !== "word" || this.is("]]")) this.error("Expected conditional operand");
+         return this.advance().word!;
+       };
+       const primary = (depth: number): ConditionalExpression => {
+         if (depth > 64) this.error("Conditional syntax nesting exceeds 64");
+-        if (this.is("!")) { admit(); this.advance(); return { kind: "not", operand: primary(depth + 1) }; }
+-        if (this.is("(")) { this.advance(); const expression = disjunction(depth + 1); this.expect(")"); return expression; }
++        if (this.is("!")) { admit(); this.advance(); const expression = primary(depth + 1); return expression.kind === "not" && !grouped.has(expression) ? expression.operand : { kind: "not", operand: expression }; }
++        if (this.is("(")) { this.advance(); const expression = disjunction(depth + 1); this.expect(")"); grouped.add(expression); return expression; }
+         admit();
+         const first = operand();
+         if (conditionalBinary.has(this.current.value)) {
+           const operator = this.current.value;
+           this.lexer.conditionalPattern = operator === "=~" ? "regex" : ["=", "==", "!="].includes(operator) ? "pattern" : undefined;
+           this.advance();

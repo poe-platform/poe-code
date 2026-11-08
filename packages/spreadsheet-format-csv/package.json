@@ -1,0 +1,46 @@
+{
+  "name": "@poe-code/spreadsheet-format-csv",
+  "version": "0.0.1",
+  "private": true,
+  "license": "GPL-2.0-or-later",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "import": "./dist/*.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "test": "cd ../.. && vitest run packages/spreadsheet-format-csv",
+    "test:unit": "cd ../.. && vitest run packages/spreadsheet-format-csv",
+    "lint": "eslint src && tsc --noEmit && tsc -p tsconfig.test.json"
+  },
+  "dependencies": {
+    "@poe-code/spreadsheet-engine": "*",
+    "@poe-code/spreadsheet-ast": "*"
+  },
+  "poeCode": {
+    "safeLibraryExports": {
+      "safe-bash": {
+        "./ssconvert/formats/csv": "."
+      }
+    },
+    "safeLibraryNotices": {
+      "safe-bash": [
+        "./LICENSE"
+      ]
+    }
+  }
+}

@@ -1,0 +1,332 @@
+import type { FormatSelection } from "./formats.js";
+import type { Block, Inline, MetaValue } from "./ast-types.js";
+import type {PageBox, SuppliedFont} from "safe-bash-pdf-engine";
+export type Node = Block | Inline;
+export interface Resource {
+  readonly id: string;
+  readonly bytes: Uint8Array;
+}
+export interface Document {
+  readonly blocks: readonly Block[];
+  readonly metadata: Readonly<Record<string, MetaValue>>;
+  readonly resources: readonly Resource[];
+  readonly language?: string;
+  readonly direction?: "ltr" | "rtl" | "auto";
+}
+export interface Input {
+  readonly source?: string;
+  readonly bytes: Uint8Array;
+  /** Present for UTF-8 formats after per-input BOM/newline normalization. */
+  readonly text?: string;
+  /** VFS source directory for image resolution; source is the diagnostic identity. */
+  readonly base?: string;
+}
+export interface StreamingInput {
+  readonly source?: string;
+  readonly chunks: AsyncIterable<Uint8Array> | Iterable<Uint8Array>;
+  readonly base?: string;
+}
+export type InputSource = Input | StreamingInput;
+export type SerializedDocument =
+  | { readonly kind: "text"; readonly text: string }
+  | { readonly kind: "binary"; readonly bytes: Uint8Array };
+export type ConversionResult = SerializedDocument & { readonly diagnostics: readonly Diagnostic[] };
+export type Operation = "read" | "write" | "convert";
+export type DiagnosticCode =
+  | "E_FORMAT_REQUIRED"
+  | "E_FORMAT"
+  | "E_EXTENSION"
+  | "E_OPTION"
+  | "E_METADATA"
+  | "E_CAPABILITY"
+  | "E_UNSUPPORTED_FEATURE"
+  | "E_AST"
+  | "E_ENCODING"
+  | "E_PARSE"
+  | "E_LIMIT"
+  | "E_CANCELLED"
+  | "E_IO"
+  | "E_RESOURCE"
+  | "E_INTERNAL"
+  | "E_WARNINGS"
+  | "W_TABLE_LOSS"
+  | "W_PRESENTATION_LOSS"
+  | "W_LAYOUT_UNMEASURED"
+  | "W_RAW_CONTENT"
+  | "W_METADATA_CONFLICT"
+  | "W_RESOURCE_MISSING";
+export interface Diagnostic {
+  readonly code: DiagnosticCode;
+  readonly operation: Operation;
+  readonly message: string;
+  readonly format?: string | undefined;
+  readonly location?: string | undefined;
+}
+export interface Limits {
+  readonly inputBytes: number;
+  readonly resourceBytes: number;
+  readonly outputBytes: number;
+  readonly nodes: number;
+  readonly depth: number;
+  readonly work: number;
+  readonly retainedBytes: number;
+  readonly text: number;
+  readonly attributes: number;
+  readonly tableCells: number;
+  /** Delimited reader ceilings: decoded UTF-16 units per field, records including header, columns. */
+  readonly tableFieldText: number;
+  readonly tableRows: number;
+  readonly tableColumns: number;
+  readonly resources: number;
+  readonly diagnostics: number;
+  readonly references: number;
+  /** YAML defaults alias expansion budget; Infinity disables it. */
+  readonly yamlAliases: number;
+  readonly entities: number;
+  readonly entityBytes: number;
+  readonly compressedBytes: number;
+  readonly expandedBytes: number;
+  readonly parts: number;
+  readonly xmlDepth: number;
+  readonly xmlNodes: number;
+  readonly binaryBytes: number;
+  readonly macros: number;
+  readonly includes: number;
+  readonly directives: number;
+  readonly fonts: number;
+  readonly glyphs: number;
+  readonly pages: number;
+  readonly objects: number;
+  readonly images: number;
+  readonly layoutWork: number;
+}
+export interface ReadOptions {
+  readonly from: string;
+}
+export interface PdfOptions {
+  readonly pageSize?: "a4" | "letter";
+  readonly orientation?: "portrait" | "landscape";
+  readonly margin?: number;
+  /** Only mono is currently supplied; other named families fail E_CAPABILITY. */
+  readonly font?: "serif" | "sans" | "mono";
+  readonly fontSize?: number;
+  readonly lineHeight?: number;
+}
+export interface EpubOptions {
+  readonly title?: string;
+  readonly language?: string;
+  readonly identifier?: string;
+  /** Split before headings at this level or shallower; 1 through 6. */
+  readonly chapterLevel?: number;
+}
+export interface WriteOptions {
+  /** Embed supplied image resources in standalone HTML (CLI: --embed-resources). */
+  readonly embedResources?: boolean;
+  readonly template?: InputSource;
+  readonly variables?: Readonly<Record<string, MetadataValue>>;
+  readonly includeInHeader?: readonly InputSource[];
+  readonly includeBeforeBody?: readonly InputSource[];
+  readonly includeAfterBody?: readonly InputSource[];
+  readonly fileScope?: boolean;
+  /** Admits only existing explicit VFS capabilities; never a native sandbox guarantee. */
+  readonly sandbox?: boolean;
+  /** Accept defaults where supported; ordinary format inference and EPUB metadata need no opt-in. */
+  readonly yes?: boolean;
+  readonly pdf?: PdfOptions;
+  readonly epub?: EpubOptions;
+  /** PDF-only geometry in points, equivalent to --pdf-page WIDTH,HEIGHT,MARGIN. */
+  readonly pdfPage?: PageBox;
+  /** Ordered supplied sfnt sources; replaces the packaged font. CLI: repeat --pdf-font PATH. */
+  readonly pdfFonts?: readonly InputSource[];
+  /** Ordered VFS directories, replacing the source-directory search when present. */
+  readonly resourcePath?: readonly string[];
+  /** Extract image resources into this VFS directory; never download media implicitly. */
+  readonly extractMedia?: string;
+  readonly failIfWarnings?: boolean;
+  /** Ordered parsed JSON maps. Later values win; null deletes a key. */
+  readonly metadataJson?: readonly MetadataObject[];
+  /** Explicit JSON inputs only. No ambient files are loaded. */
+  readonly metadataFiles?: readonly InputSource[];
+  readonly wrap?: "none" | "auto" | "preserve";
+  readonly columns?: number;
+  readonly numberSections?: boolean;
+  readonly toc?: boolean;
+  readonly stripComments?: boolean;
+  readonly shiftHeadingLevelBy?: number;
+  readonly eol?: "lf" | "crlf" | "native";
+  readonly ascii?: boolean;
+  readonly to: string;
+  readonly standalone?: boolean;
+  readonly metadata?: Readonly<Record<string, MetaValue>>;
+  readonly rawContent?: "reject" | "escape" | "retain";
+  /** Strict by default; explicitly permit diagnosed table text projections. */
+  readonly lossy?: boolean;
+}
+export interface ConversionOptions extends ReadOptions, WriteOptions {
+  readonly filters?: readonly FilterRequest[];
+}
+export type FilterRequest =
+  | {readonly kind: "json" | "lua"; readonly path: string}
+  | {readonly kind: "citeproc"};
+/** Validated Pandoc wire input and a backpressured wire-output destination.
+ * The conversion owner validates the complete response before publication. */
+export interface JsonFilterStreams {
+  readonly stdin: AsyncIterable<Uint8Array>;
+  readonly stdout: {write(bytes: Uint8Array): Promise<void>};
+  readonly signal: AbortSignal;
+}
+/** Trusted host integration; no engine or host execution is enabled implicitly. */
+export interface FilterCapability {
+  /** Optional admission check for every request, before input acquisition or processing. */
+  supports?(request: FilterRequest): boolean | Promise<boolean>;
+  apply(document: Document, request: FilterRequest, context: AdapterContext & {readonly to: string}): Promise<Document>;
+  /** Optional retained-document boundary; never requires a whole protocol payload. */
+  applyJsonStream?(streams: JsonFilterStreams, request: FilterRequest, context: AdapterContext & {readonly to: string}): Promise<void>;
+}
+export interface MetadataObject { readonly [key: string]: MetadataValue }
+export type MetadataValue = string | number | boolean | null | readonly MetadataValue[] | MetadataObject;
+/** Explicit trusted adapters; their format conformance is not established by this seam. */
+export interface AdapterContext {
+  readonly workingFiles?: WorkingStorageOptions | undefined;
+  readonly sinceYield?: number | undefined;
+  readonly wrap?: WriteOptions["wrap"] | undefined;
+  readonly columns?: number | undefined;
+  readonly numberSections?: boolean | undefined;
+  readonly toc?: boolean | undefined;
+  readonly ascii?: boolean | undefined;
+  readonly yes?: boolean | undefined;
+  readonly pdf?: PdfOptions | undefined;
+  readonly epub?: EpubOptions | undefined;
+  readonly pdfPage?: PageBox | undefined;
+  readonly pdfFonts?: readonly SuppliedFont[] | undefined;
+  /** Parser origin sidecar; never serialized into the AST. */
+  resourceTarget?(target: object, line: number, origin?: {readonly base?: string; readonly source?: string}): void;
+  readonly operation?: Operation;
+  readonly lossy?: boolean;
+  readonly standalone?: boolean;
+  readonly rawContent?: "reject" | "escape" | "retain" | undefined;
+  readonly signal: AbortSignal | undefined;
+  readonly limits: Limits;
+  readonly resources: ResourceCapability | undefined;
+  /** Enroll capability cleanup in conversion completion, including cancellation. */
+  onClose?(cleanup: () => Promise<unknown>): () => void;
+  checkpoint(units?: number): void;
+  /** Reserve aggregate capacity before allocating or extending parser/writer data.
+   * Set retained=false only for expanded/binary bytes written to bounded backing storage. */
+  charge(key: keyof Limits, units: number, retained?: boolean): void;
+  /** Check a gauge (e.g. nesting depth) without accumulating it. */
+  bound(key: keyof Limits, actual: number): void;
+  cooperate(units?: number): Promise<void>;
+  decodeUtf8(chunks: AsyncIterable<Uint8Array> | Iterable<Uint8Array>): Promise<string>;
+  /** Reserve entity expansion before constructing its Unicode scalar. */
+  decodeEntity(code: number): string;
+  decodeCodepage(bytes: Uint8Array, codepage?: 1252 | 28591): Promise<string>;
+  retainBinaryBlock(bytes: Uint8Array): Uint8Array;
+  report(diagnostic: Diagnostic): void;
+  /** Strictly advancing cursor for pagination and other iterative layouts. */
+  progress(id: string, cursor: number): void;
+}
+/** Replayable UTF-16 identifier. Valid until the resolver's byte stream finishes.
+ * Chunks contain at most 4096 code units and may split a surrogate pair. */
+export interface ResourceIdentifier {
+  readonly length: number;
+  chunks(): AsyncIterable<string>;
+}
+/** Custom resolver that accepts a caller-backed identifier without collecting it. */
+export interface SourceResourceCapability {
+  resolveSource(id: ResourceIdentifier, base: string | undefined, signal: AbortSignal | undefined): AsyncIterable<Uint8Array>;
+  resolveStream?: StreamingResourceCapability["resolveStream"];
+  resolve?: ResourceCapability["resolve"];
+}
+/** Custom resource source for retained conversions. Yielded chunks are borrowed
+ * until the next pull; conversion awaits storage before advancing the producer. */
+export interface StreamingResourceCapability {
+  resolveSource?: SourceResourceCapability["resolveSource"];
+  resolveStream(
+    id: string,
+    base: string | undefined,
+    signal: AbortSignal | undefined
+  ): AsyncIterable<Uint8Array>;
+  /** Optional convenience resolver for adapters that require complete bytes. */
+  resolve?: ResourceCapability["resolve"];
+}
+export interface ResourceCapability {
+  /** Preferred by retained image writers; keeps identifiers in caller storage. */
+  resolveSource?: SourceResourceCapability["resolveSource"];
+  /** Streaming byte fallback when resolveSource is absent. */
+  resolveStream?: StreamingResourceCapability["resolveStream"];
+  resolve(
+    id: string,
+    base: string | undefined,
+    signal: AbortSignal | undefined
+  ): Promise<Uint8Array>;
+}
+export interface ReaderCapability {
+  readonly format: string;
+  readStream?(input: StreamingInput, context: AdapterContext, selection?: FormatSelection): Promise<Document>;
+  read(input: Input, context: AdapterContext, selection?: FormatSelection): Promise<Document>;
+}
+export interface WriterCapability {
+  /** Resolve local image bytes before writing an embedding format. */
+  readonly imageResources?: "embed";
+  readonly format: string;
+  readonly math?: "source";
+  write(
+    document: Document,
+    context: AdapterContext,
+    selection?: FormatSelection
+  ): Promise<SerializedDocument>;
+}
+/** publish must provide atomic publication; it receives owned bytes and must honor cancellation. */
+export interface OutputCapability {
+  publish(bytes: Uint8Array, signal: AbortSignal | undefined): Promise<void>;
+}
+/** Streaming hosts may expose partial output on failure; close must report commit failure. */
+export interface StreamingOutputCapability {
+  write(bytes: Uint8Array, signal: AbortSignal | undefined): Promise<void>;
+  close(signal: AbortSignal | undefined): Promise<void>;
+  abort(reason: unknown): Promise<void>;
+}
+/** Caller-authorized backing storage. MemoryFileSystem retains backing bytes in RAM;
+ * use an external safe-fs backend when the data can exceed Worker memory. */
+export interface WorkingStorageOptions {
+  readonly fs: import("@poe-code/safe-fs/core").FileSystem;
+  readonly directory: string;
+  /** Bounded page cache, in multiples of 16384. Defaults to one MiB. */
+  readonly cacheBytes?: number;
+}
+export interface OutputConversionContext extends ConversionContext {
+  readonly output: StreamingOutputCapability;
+}
+export interface ConversionSummary {
+  readonly kind: "output";
+  readonly diagnostics: readonly Diagnostic[];
+}
+export interface ConversionContext {
+  readonly workingFiles?: WorkingStorageOptions;
+  readonly filters?: FilterCapability;
+  /** Only this configured filesystem may supply/extract local image resources. */
+  readonly resourceFiles?: ResourceFileSystem;
+  readonly resourceCwd?: string;
+  readonly reader?: ReaderCapability;
+  readonly writer?: WriterCapability;
+  readonly resources?: ResourceCapability | StreamingResourceCapability | SourceResourceCapability;
+  readonly output?: OutputCapability | StreamingOutputCapability;
+  readonly limits?: Partial<Limits>;
+  readonly signal?: AbortSignal;
+  /** Trusted event-loop scheduler, chiefly for deterministic host/test integration. */
+  readonly yield?: () => Promise<void>;
+}
+
+/** Structural VFS subset. ENOENT alone permits search continuation. Providers
+ * retain authority over their namespace; lexical checks are not a sandbox.
+ * Without provider transactions, completed writes survive later failures. */
+export interface ResourceFileSystem {
+  lstat(path: string, options?: {signal?: AbortSignal}): Promise<{readonly type: string}>;
+  readStream?(path: string, options?: {signal?: AbortSignal}): AsyncIterable<Uint8Array> | Iterable<Uint8Array>;
+  readFile?(path: string, options?: {signal?: AbortSignal; maxBytes?: number}): Promise<Uint8Array>;
+  mkdir(path: string, options?: {recursive?: boolean; signal?: AbortSignal}): Promise<void>;
+  writeFile(path: string, bytes: Uint8Array, options?: {signal?: AbortSignal; flag?: "wx"}): Promise<void>;
+  /** Consume through EOF before returning; preserve exclusive creation and await each chunk. */
+  writeStream?(path: string, chunks: AsyncIterable<Uint8Array>, options?: {signal?: AbortSignal; flag?: "wx"}): Promise<void>;
+}

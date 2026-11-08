@@ -1,0 +1,13 @@
+import { execFile as execFileCallback } from "node:child_process";
+import { promisify } from "node:util";
+export { spawn } from "node:child_process";
+export { default as fsPromises } from "node:fs/promises";
+export { default as nativePath } from "node:path";
+export { default as hostEnvironment } from "node:os";
+export { default as fastGlob } from "fast-glob";
+export { createHostFileSystem } from "@poe-code/safe-fs/node";
+export { createSecretStore } from "auth-store";
+export { StdioTransport } from "tiny-mcp-client";
+export const hostProcess = process;
+export const execFile = promisify(execFileCallback);
+export { runCommand } from "@poe-code/agent-spawn";

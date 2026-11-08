@@ -1,0 +1,23 @@
+{
+  "schema": "timeout-author-regression-manifest/1",
+  "status": "PRECODE_RED_MISSING_MODULE_ONLY",
+  "filesExcludingThisManifest": {
+    "POLICY.json": "f3a3fc787faea24c23ce5956363b9e4e98c89520690bca0bc9b7f97a0e6c2f3b",
+    "PRECODE-RED.txt": "e10671aedeeab1489cbedfb1a8e6552639597789b9080ad1db220066034b66e7",
+    "README.md": "aee7595059ea137d693ede819b200823f8bed3031aa0fbb762a863e68bf9ccee",
+    "fixtures.ts": "93bbf4a05cb301e8f6fe12bd57dbcfbd94ffcb8afb24c2b373735d0ea3f7cfe2",
+    "timeout.test.ts": "6f2adac7f531dee779098a07d2d1698b02143e7d4c3ab435cd768e99c5982b67",
+    "types-negative.mts.fixture.data": "1361fba734e39736b95451e878c81d0367d6bb25f17cb1c81469cbd4d9ff5916",
+    "types-positive.mts.fixture.data": "e1aaa0d1f28786dfe62d7dbfe7eae2303601586dcd1643ed4e3603d3972eccbc"
+  },
+  "precodeReplay": {
+    "command": "node --import tsx --test tests/commands/timeout-author-20260828/timeout.test.ts",
+    "node": "v22.22.2",
+    "exit": 1,
+    "code": "ERR_MODULE_NOT_FOUND",
+    "semanticAssertionsExecuted": 0
+  },
+  "productSourcePresent": false,
+  "nativeExecuted": 0,
+  "independentCohortExecuted": 0
+}

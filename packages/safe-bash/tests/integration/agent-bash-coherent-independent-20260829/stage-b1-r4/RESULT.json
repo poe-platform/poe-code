@@ -1,0 +1,102 @@
+{
+  "status": "PASS",
+  "originalGroups": [
+    {
+      "id": "D01",
+      "status": "PASS",
+      "role": "PURE_SOURCE_DATA_NOT_PRODUCT"
+    },
+    {
+      "id": "D02",
+      "status": "PASS",
+      "role": "PURE_SOURCE_DATA_NOT_PRODUCT"
+    },
+    {
+      "id": "D03",
+      "status": "PASS",
+      "role": "PURE_SOURCE_DATA_NOT_PRODUCT"
+    },
+    {
+      "id": "D04",
+      "status": "PASS",
+      "role": "PURE_SOURCE_DATA_NOT_PRODUCT"
+    },
+    {
+      "id": "D05",
+      "status": "PASS",
+      "role": "PURE_SOURCE_DATA_NOT_PRODUCT"
+    },
+    {
+      "id": "D06",
+      "status": "PASS",
+      "role": "PURE_SOURCE_DATA_NOT_PRODUCT"
+    },
+    {
+      "id": "D07",
+      "status": "PASS",
+      "role": "PURE_SOURCE_DATA_NOT_PRODUCT"
+    },
+    {
+      "id": "D08",
+      "status": "PASS",
+      "role": "PURE_SOURCE_DATA_NOT_PRODUCT"
+    }
+  ],
+  "novelGroups": [
+    {
+      "id": "N01",
+      "status": "PASS",
+      "role": "DATA_NOT_PRODUCT"
+    },
+    {
+      "id": "N02",
+      "status": "PASS",
+      "role": "DATA_NOT_PRODUCT"
+    },
+    {
+      "id": "N03",
+      "status": "PASS",
+      "role": "DATA_NOT_PRODUCT"
+    },
+    {
+      "id": "N04",
+      "status": "PASS",
+      "role": "DATA_NOT_PRODUCT"
+    },
+    {
+      "id": "N05",
+      "status": "PASS",
+      "role": "DATA_NOT_PRODUCT"
+    },
+    {
+      "id": "N06",
+      "status": "PASS",
+      "role": "DATA_NOT_PRODUCT"
+    }
+  ],
+  "sourceBodies": [
+    {
+      "path": "src/contracts/command.ts",
+      "bytes": 2968,
+      "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c"
+    },
+    {
+      "path": "src/commands/node/index.ts",
+      "bytes": 9619,
+      "sha256": "b55193aceb8d2f960a444372166bfef598fc5bfec5f53159d49363035bb7b6ce"
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "bytes": 15081,
+      "sha256": "126438b132a9f1863bf25b20f02ca6473cb24aa86e0a91869ab98bcbf3309cba"
+    }
+  ],
+  "at": "2026-08-29T14:52:35.035Z",
+  "deadline": 1788015650224.0068,
+  "productCalls": 0,
+  "Workers": 0,
+  "native": 0,
+  "layoutFixtures": 1,
+  "childProcesses": 0,
+  "sourceProofRole": "frozen read only, not imported or executed"
+}

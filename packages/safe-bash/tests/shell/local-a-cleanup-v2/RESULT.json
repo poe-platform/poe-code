@@ -1,0 +1,64 @@
+{
+  "groups": 12,
+  "passed": 11,
+  "rows": [
+    {
+      "id": "C01-success",
+      "pass": true
+    },
+    {
+      "id": "C02-prepare-cut",
+      "pass": true
+    },
+    {
+      "id": "C03-create-cut",
+      "pass": true
+    },
+    {
+      "id": "C04-hold-cut",
+      "pass": true
+    },
+    {
+      "id": "C05-later-cuts",
+      "pass": false,
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n0 !== 1\n"
+    },
+    {
+      "id": "C06-independent-cleanups-falsy-primary",
+      "pass": true
+    },
+    {
+      "id": "C07-cleanup-only-first-error",
+      "pass": true
+    },
+    {
+      "id": "C08-existing-new-typed-preparation",
+      "pass": true
+    },
+    {
+      "id": "C09-existing-typed-borrowed",
+      "pass": true
+    },
+    {
+      "id": "C10-assignment-typed-borrowed",
+      "pass": true
+    },
+    {
+      "id": "C11-published-release-rejection",
+      "pass": true
+    },
+    {
+      "id": "C12-foreign-source-and-ledger-rules",
+      "pass": true
+    }
+  ],
+  "sourceSha256": "bff86fcfc7f59b4f0a42a304edf72b9b69027b508c532b1401bea0628d201d2b",
+  "sourceOnly": true,
+  "actualPrivateOwners": false,
+  "actualShellCalls": 0,
+  "Workers": 0,
+  "helperChildren": 1,
+  "gitRetired": true,
+  "started": 1788023554592,
+  "finished": 1788023554635
+}

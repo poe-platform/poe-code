@@ -1,0 +1,18 @@
+dist/shell/arithmetic.js
+                    value = operand;
+            }
+        }
+        else {
+            if (node.operator === "=")
+                value = evaluate(node.right);
+            else {
+                const left = evaluate(node.left);
+dist/shell/runtime.js
+            catch (error) {
+                this.signal.throwIfAborted();
+                if (error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError)
+                    throw error;
+                throw new Error(`let: ${message(error)}`);
+            }
+            if ((index - offset + 1) % 128 === 0)
+                await checkpoint();

@@ -1,0 +1,25 @@
+{
+  "frozenBeforeAuthorSource": true,
+  "sourceExposure": "No author implementation or author tests read; no module execution",
+  "stressIntents": [
+    "real Shell opt-in plugin and literal context.invoke dispatch",
+    "each native fixture replay with byte-precise stdout,status and relevant missing-path diagnostics",
+    "selected one-byte and reused-buffer replays",
+    "VFS directory,missing,EACCES,errno-shaped abort fidelity",
+    "invocation-local input/output/file/argument/record/chunk/work caps across operands",
+    "shell shared output and command limits remain composed",
+    "pre-abort,blocked stdin,blocked VFS read,blocked sink abort; observe late rejections",
+    "actual sink backpressure no concurrent writes or mutation",
+    "complex printf|expand|fold|tac pipeline with tee/sort/head/wc and VFS redirects",
+    "no process/host FS/dependency source fallback audit",
+    "strings raw synthetic object marker contrasts with data/encoding rejection; no full object parity claim"
+  ],
+  "diagnosticPolicy": "Exact output bytes and exitCode for native positives; nonzero invalid flags with nonempty command-named diagnostics; missing operand native status and surviving bytes plus meaningful path/no-such-file text. Native stderr retained unmodified, not universally exact GNU prose parity.",
+  "nonNativeStrings": "Independent raw byte scanner from primary GNU documented C/default7-bit+tab semantics; Apple captures separately classified. Numeric offsets width7 require primary source confirmation before treating formatting mismatch as product bug.",
+  "primarySources": [
+    "retained coreutils-9.7/doc/coreutils.texi",
+    "retained src/tac.c,expand.c,expand-common.c,fold.c",
+    "https://sourceware.org/binutils/docs/binutils/strings.html",
+    "https://raw.githubusercontent.com/apple-oss-distributions/cctools/main/misc/strings.c"
+  ]
+}

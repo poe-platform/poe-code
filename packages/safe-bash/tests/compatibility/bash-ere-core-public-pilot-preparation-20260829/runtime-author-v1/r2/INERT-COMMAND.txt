@@ -1,0 +1,4 @@
+NO ACTIVATION. Different delta review and qualified ROOT owner/window are still required.
+Executable: /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node
+Arguments: /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/coordinator.mjs /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/PROFILE.json bacc21fb126bb6e0b5441bee560cb0bad1f7ffda01d129b996c1cdd3e6312e05 <fresh-reviewed-grant-path> <fresh-grant-sha256> <trusted-outer-monotonic-start-ms>
+The prior explicit environment, startup capture, role graph, sampled-work and UNKNOWN ownership qualifications remain in force. This text is not an executable grant.

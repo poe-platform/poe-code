@@ -1,0 +1,27 @@
+{
+  "baselineNames": ["true", "false", "echo", "pwd", "basename", "dirname", "printf", "mkdir", "touch", "cp", "mv", "rm", "rmdir", "ln", "readlink", "realpath", "ls", "cat", "head", "tail", "wc", "tee", "tr", "sort", "uniq", "cut", "grep", "test", "[", "env", "xargs", "find", "sed", "awk", "jq", "rg", "base64", "base32", "xxd", "od", "sha256sum", "sha1sum", "md5sum", "cksum", "gzip", "gunzip", "zcat", "diff", "patch", "chmod", "stat", "mktemp", "tar", "paste", "comm", "join", "tac", "expand", "fold", "strings", "seq", "nl", "rev", "unexpand", "split", "date", "sleep", "printenv", "tree", "file"],
+  "addedNames": ["egrep", "fgrep", "column"],
+  "cases": [
+    {"id":"extended-alternation","script":"egrep '^(red|blue)$'","stdin":"red\ngreen\nblue\n","stdout":"red\nblue\n","stderr":"","exitCode":0},
+    {"id":"fixed-metacharacters","script":"fgrep 'a.b'","stdin":"axb\na.b\n","stdout":"a.b\n","stderr":"","exitCode":0},
+    {"id":"extended-conflicting-fixed-option","script":"egrep -F 'a|b'","stdin":"a\na|b\n","stdout":"","stderr":"egrep: conflicting matchers specified\n","exitCode":2},
+    {"id":"fixed-conflicting-extended-option","script":"fgrep -E 'a|b'","stdin":"a\nb\nx\n","stdout":"","stderr":"fgrep: conflicting matchers specified\n","exitCode":2},
+    {"id":"no-match-status","script":"egrep '^z$'","stdin":"a\n","stdout":"","stderr":"","exitCode":1},
+    {"id":"quiet-fixed","script":"fgrep -q hit","stdin":"hit\nmiss\n","stdout":"","stderr":"","exitCode":0},
+    {"id":"literal-invocation-env","script":"env fgrep '$(echo unsafe)'","stdin":"$(echo unsafe)\nunsafe\n","stdout":"$(echo unsafe)\n","stderr":"","exitCode":0},
+    {"id":"table-align","script":"column -t","stdin":"a b\nlong z\n","stdout":"a     b\nlong  z\n","stderr":"","exitCode":0},
+    {"id":"ragged-tail-current-profile","script":"column -t","stdin":"a b c\nd\n","stdout":"a  b  c\nd     \n","stderr":"","exitCode":0},
+    {"id":"empty-delimited-cells","script":"column -ts:","stdin":"a:b:c\n1::3\n","stdout":"a  b  c\n1     3\n","stderr":"","exitCode":0},
+    {"id":"long-options-output-delimiter","script":"column --table --separator=: --output-separator='|'","stdin":"a:b\nlong:z\n","stdout":"a   |b\nlong|z\n","stderr":"","exitCode":0},
+    {"id":"fill-down","script":"column -c16","stdin":"a\nb\nc\nd\ne\n","stdout":"a\td\nb\te\nc\n","stderr":"","exitCode":0},
+    {"id":"fill-across","script":"column -xc16","stdin":"a\nb\nc\nd\ne\n","stdout":"a\tb\nc\td\ne\n","stderr":"","exitCode":0},
+    {"id":"table-width-not-truncation","script":"column -tc1","stdin":"long z\na b\n","stdout":"long  z\na     b\n","stderr":"","exitCode":0},
+    {"id":"column-unsupported-option","script":"column --json","stdin":"a b\n","stdout":"","stderr":"column: EINVAL: unsupported option: --json\n","exitCode":1},
+    {"id":"pipeline-all-three","script":"printf 'a:1\\nx:2\\naa:3\\n' | egrep '^a' | fgrep ':' | column -ts:","stdin":"","stdout":"a   1\naa  3\n","stderr":"","exitCode":0},
+    {"id":"pipeline-vfs-output","script":"printf 'a:1\\nb:2\\n' | fgrep a | column -ts: > /result; cat /result","stdin":"","stdout":"a  1\n","stderr":"","exitCode":0,"file":"/result","fileText":"a  1\n"},
+    {"id":"column-shared-dash","script":"column -t - -","stdin":"a b\n","stdout":"a  b\n","stderr":"","exitCode":0},
+    {"id":"alias-shared-dash","script":"egrep --no-filename a - -","stdin":"a\nb\n","stdout":"a\n","stderr":"","exitCode":0},
+    {"id":"column-file-plus-stdin","script":"column -t /first -","stdin":"long z\n","files":{"/first":"a b\n"},"stdout":"a     b\nlong  z\n","stderr":"","exitCode":0},
+    {"id":"alias-pattern-file","script":"fgrep -f /patterns /input","stdin":"","files":{"/patterns":"a.b\n","/input":"axb\na.b\n"},"stdout":"a.b\n","stderr":"","exitCode":0}
+  ]
+}

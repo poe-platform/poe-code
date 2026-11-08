@@ -1,0 +1,16 @@
+{
+  "classification": "parameter schema only; NOT readiness or execution authorization",
+  "rootFreshExecutorAuthorization": null,
+  "authorActualClosedEvidence": null,
+  "streamingReady": null,
+  "sourceIdentity": null,
+  "sourceManifest": null,
+  "candidateEntry": null,
+  "historicalHelper": null,
+  "historicalProbe": null,
+  "historicalFacade": null,
+  "tsxImport": null,
+  "toolManifest": null,
+  "sourceTestsBuildPrerequisitesAuthenticated": false,
+  "publicProfiles": null
+}

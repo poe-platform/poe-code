@@ -1,0 +1,13 @@
+{
+  "startedAt": "2026-08-28T06:22:28.389Z",
+  "finishedAt": "2026-08-28T06:22:52.136Z",
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"mutants\":2,\"killed\":2,\"regression\":\"20/20\",\"privateHelperFixtures\":0,\"nativeRuns\":0,\"serviceRuns\":0}\n",
+  "stderr": "",
+  "bytes": 103,
+  "survivingGroup": false,
+  "groupStillPresent": false,
+  "naturalSettlement": true,
+  "cleanupClean": true
+}

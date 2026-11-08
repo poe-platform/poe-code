@@ -1,0 +1,1 @@
+throw new Error('UNLISTED_FIXTURE_MUST_NOT_EVALUATE');

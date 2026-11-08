@@ -1,0 +1,21 @@
+{
+  "url": "https://ftp.gnu.org/gnu/bash/bash-5.3-patches/bash53-012.sig",
+  "name": "bash53-012.sig",
+  "maxBytes": 4096,
+  "role": "OPAQUE_DETACHED_SIGNATURE",
+  "startedAt": "2026-08-29T04:42:41.755Z",
+  "bytes": 123,
+  "status": 200,
+  "headers": {
+    "date": "Sat, 29 Aug 2026 04:42:41 GMT",
+    "last-modified": "Tue, 02 Jun 2026 20:15:09 GMT",
+    "etag": "\"7b-6534af7b96680\"",
+    "content-length": "123",
+    "content-type": "application/pgp-signature",
+    "location": null
+  },
+  "sha256": "536ccbaff4fd28c95fb0394bea230b125d607821d12fee3f231f44682aa2c8af",
+  "path": "downloads/bash53-012.sig.data",
+  "disposition": "OPAQUE_ACQUIRED_NOT_SIGNATURE_VERIFIED",
+  "endedAt": "2026-08-29T04:42:41.854Z"
+}

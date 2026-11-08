@@ -1,0 +1,8 @@
+{
+  "from": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-capture-01/staging-package",
+  "to": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-capture-01/consumer/virtual-bash",
+  "sourceAbsentAfterMove": true,
+  "membershipAndHashesUnchanged": true,
+  "internalOnly": true,
+  "import": "file:///Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-capture-01/consumer/virtual-bash/dist/shell/getopts.js"
+}

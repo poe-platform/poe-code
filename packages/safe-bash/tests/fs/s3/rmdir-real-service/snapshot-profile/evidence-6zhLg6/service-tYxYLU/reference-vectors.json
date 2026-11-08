@@ -1,0 +1,13 @@
+{
+  "source": "https://docs.aws.amazon.com/AmazonS3/latest/developerguide/sig-v4-header-based-auth.html",
+  "cases": [
+    {
+      "name": "official GET object",
+      "signature": "f0e8bdb87c964420e857bd35b5d6ed310bd44f0170aba48dd91039c6036bdb41"
+    },
+    {
+      "name": "official PUT object",
+      "signature": "98ad721746da40c64f1a55b78f14c238d841ea1380cd77a1b5971af0ece108bd"
+    }
+  ]
+}

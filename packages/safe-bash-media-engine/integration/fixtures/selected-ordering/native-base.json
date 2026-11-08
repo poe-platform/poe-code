@@ -1,0 +1,3448 @@
+{
+  "captured_at": "2026-09-16T18:34:34.734197+00:00",
+  "scope": "Exact locked production artifact fixture reproduction in Linux arm64 VM with Rosetta x86_64 emulation. Not production/cloud/bridge qualification. No JS parser used.",
+  "host_platform": "macOS-15.7.7-arm64-arm-64bit",
+  "runner_sha256": "28ae7a8e8cece4c9701e2faad58e33ad8445adda62d7bfe75919d85be9b5eef5",
+  "corpus_sha256": "c27a18b647753434b91356065583f3b517e846abfbcba884093441996e376983",
+  "image": "sha256:fce0cb22c3832c4244a535556c2b0162608466bad3068e3861488421dcade2b6",
+  "results": [
+    {
+      "id": "ff-valid",
+      "runs": [
+        {
+          "argv": [
+            "/opt/ffmpeg/ffmpeg",
+            "-hide_banner",
+            "-nostdin",
+            "-y",
+            "-loop",
+            "1",
+            "-i",
+            "source.ppm",
+            "-frames:v",
+            "1",
+            "-c:v",
+            "ffv1",
+            "first.mkv"
+          ],
+          "cwd": "/scratch/fixture",
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC",
+            "MAGICK_THREAD_LIMIT": "1",
+            "HOME": "/scratch/fixture/home",
+            "TMPDIR": "/scratch/fixture/tmp",
+            "MAGICK_TEMPORARY_PATH": "/scratch/fixture/tmp"
+          },
+          "stdin_base64": "",
+          "native_process_started": true,
+          "spawn_error": null,
+          "status": {
+            "exit_code": 0,
+            "signal": null,
+            "timed_out": false
+          },
+          "stdout_base64": "",
+          "stderr_base64": "SW5wdXQgIzAsIHBwbV9waXBlLCBmcm9tICdzb3VyY2UucHBtJzoKICBEdXJhdGlvbjogTi9BLCBiaXRyYXRlOiBOL0EKICBTdHJlYW0gIzA6MDogVmlkZW86IHBwbSwgcmdiMjQsIDN4MSwgMjUgZnBzLCAyNSB0YnIsIDI1IHRibgpTdHJlYW0gbWFwcGluZzoKICBTdHJlYW0gIzA6MCAtPiAjMDowIChwcG0gKG5hdGl2ZSkgLT4gZmZ2MSAobmF0aXZlKSkKT3V0cHV0ICMwLCBtYXRyb3NrYSwgdG8gJ2ZpcnN0Lm1rdic6CiAgTWV0YWRhdGE6CiAgICBlbmNvZGVyICAgICAgICAgOiBMYXZmNjMuMS4xMDEKICBTdHJlYW0gIzA6MDogVmlkZW86IGZmdjEgKEZGVjEgLyAweDMxNTY0NjQ2KSwgYmdyMChwYywgZ2JyL3Vua25vd24vdW5rbm93biwgcHJvZ3Jlc3NpdmUpLCAzeDEsIHE9Mi0zMSwgMjAwIGtiL3MsIDI1IGZwcywgMWsgdGJuCiAgICBNZXRhZGF0YToKICAgICAgZW5jb2RlciAgICAgICAgIDogTGF2YzYzLjEuMTAxIGZmdjEKW291dCMwL21hdHJvc2thIEAgMHg1NTU1NjA2YmFkNDBdIHZpZGVvOjBLaUIgYXVkaW86MEtpQiBzdWJ0aXRsZTowS2lCIG90aGVyIHN0cmVhbXM6MEtpQiBnbG9iYWwgaGVhZGVyczowS2lCIG11eGluZyBvdmVyaGVhZDogMjM5Ni4xNTM4NDYlCmZyYW1lPSAgICAxIGZwcz0wLjAgcT0tMC4wIExzaXplPSAgICAgICAxS2lCIHRpbWU9MDA6MDA6MDAuMDQgYml0cmF0ZT0gMTI5LjhrYml0cy9zIHNwZWVkPTEuMjR4IGVsYXBzZWQ9MDowMDowMC4wMyAgICAK",
+          "executable_sha256": "693997243e25684ab5976522d97111f44dbc14cfb47f968c2e2283b8fe070a17",
+          "files_before": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "files_after": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 649,
+              "sha256": "263717bbb2dd7cbd9c84b284f0b4b69e8b5eb5aa32f743a886e8ce2e0e62ef2f",
+              "bytes_base64": "GkXfo6NChoEBQveBAULygQRC84EIQoKIbWF0cm9za2FCh4EEQoWBAhhTgGcBAAAAAAACVRFNm3TAv4QlDSMyTbuLU6uEFUmpZlOsgaFNu4tTq4QWVK5rU6yB7027jFOrhBJUw2dTrIIBiE27jFOrhBxTu2tTrIICOewBAAAAAAAAUwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFUmpZsm/hHLBDcIq17GDD0JATYCMTGF2ZjYzLjEuMTAxV0GMTGF2ZjYzLjEuMTAxc6SQnGgIp73n9Ze4MEwsu7kty0SJiEBEAAAAAAAAFlSua0CTv4RIXIX2rgEAAAAAAACE14EBc8WIVoEbyPsThx2cgQAitZyDdW5kiIEAhoZWX0ZGVjGDgQEj44OEAmJaAOCYsIEDuoEBmoECVLKBBFWwiFWxgQBVuYECVe6BAOwBAAAAAAAAAgAAY6KqVhnofbGCNW2SqSZ2a+HMceTIb9Oo855NgM9m4AZFVfjyDlG+pmWd8sN0ElTDZ/6/hASVGO9zc59jwIBnyJlFo4dFTkNPREVSRIeMTGF2ZjYzLjEuMTAxc3PTY8CLY8WIVoEbyPsThx1nyJ5Fo4dFTkNPREVSRIeRTGF2YzYzLjEuMTAxIGZmdjFnyKFFo4hEVVJBVElPTkSHkzAwOjAwOjAwLjA0MDAwMDAwMAAfQ7Z1qb+EiC6xVeeBAKOegQAAgPwoAAHEAA6kEAB9D99A6AB9AAAAEgCX3thGHFO7a5e/hCJWMai7j7OBALeK94EB8YICC/CBCQ=="
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "effects": {
+            "early.ppm": "preserved",
+            "final.ppm": "preserved",
+            "first.mkv": "modified",
+            "page.ps": "preserved",
+            "source.ppm": "preserved"
+          },
+          "stream_probe": {
+            "argv": [
+              "/opt/ffmpeg/ffprobe",
+              "-v",
+              "error",
+              "-show_entries",
+              "stream=codec_type",
+              "-of",
+              "json",
+              "first.mkv"
+            ],
+            "cwd": "/scratch/fixture",
+            "environment": {
+              "PATH": "/usr/bin:/bin",
+              "LC_ALL": "C",
+              "LANG": "C",
+              "TZ": "UTC",
+              "MAGICK_THREAD_LIMIT": "1",
+              "HOME": "/scratch/fixture/home",
+              "TMPDIR": "/scratch/fixture/tmp",
+              "MAGICK_TEMPORARY_PATH": "/scratch/fixture/tmp"
+            },
+            "stdin_base64": "",
+            "native_process_started": true,
+            "spawn_error": null,
+            "status": {
+              "exit_code": 0,
+              "signal": null,
+              "timed_out": false
+            },
+            "stdout_base64": "ewogICAgInByb2dyYW1zIjogWwoKICAgIF0sCiAgICAic3RyZWFtX2dyb3VwcyI6IFsKCiAgICBdLAogICAgInN0cmVhbXMiOiBbCiAgICAgICAgewogICAgICAgICAgICAiY29kZWNfdHlwZSI6ICJ2aWRlbyIKICAgICAgICB9CiAgICBdCn0K",
+            "stderr_base64": ""
+          },
+          "decoded_rgb": {
+            "argv": [
+              "/opt/ffmpeg/ffmpeg",
+              "-v",
+              "error",
+              "-i",
+              "first.mkv",
+              "-frames:v",
+              "1",
+              "-f",
+              "rawvideo",
+              "-pix_fmt",
+              "rgb24",
+              "pipe:1"
+            ],
+            "cwd": "/scratch/fixture",
+            "environment": {
+              "PATH": "/usr/bin:/bin",
+              "LC_ALL": "C",
+              "LANG": "C",
+              "TZ": "UTC",
+              "MAGICK_THREAD_LIMIT": "1",
+              "HOME": "/scratch/fixture/home",
+              "TMPDIR": "/scratch/fixture/tmp",
+              "MAGICK_TEMPORARY_PATH": "/scratch/fixture/tmp"
+            },
+            "stdin_base64": "",
+            "native_process_started": true,
+            "spawn_error": null,
+            "status": {
+              "exit_code": 0,
+              "signal": null,
+              "timed_out": false
+            },
+            "stdout_base64": "/wAAAP8AAAD/",
+            "stderr_base64": ""
+          },
+          "original_argv": [
+            "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/bin/ffmpeg",
+            "-hide_banner",
+            "-nostdin",
+            "-y",
+            "-loop",
+            "1",
+            "-i",
+            "source.ppm",
+            "-frames:v",
+            "1",
+            "-c:v",
+            "ffv1",
+            "first.mkv"
+          ]
+        },
+        {
+          "argv": [
+            "/opt/ffmpeg/ffmpeg",
+            "-hide_banner",
+            "-nostdin",
+            "-y",
+            "-loop",
+            "1",
+            "-i",
+            "source.ppm",
+            "-frames:v",
+            "1",
+            "-c:v",
+            "ffv1",
+            "first.mkv"
+          ],
+          "cwd": "/scratch/fixture",
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC",
+            "MAGICK_THREAD_LIMIT": "1",
+            "HOME": "/scratch/fixture/home",
+            "TMPDIR": "/scratch/fixture/tmp",
+            "MAGICK_TEMPORARY_PATH": "/scratch/fixture/tmp"
+          },
+          "stdin_base64": "",
+          "native_process_started": true,
+          "spawn_error": null,
+          "status": {
+            "exit_code": 0,
+            "signal": null,
+            "timed_out": false
+          },
+          "stdout_base64": "",
+          "stderr_base64": "SW5wdXQgIzAsIHBwbV9waXBlLCBmcm9tICdzb3VyY2UucHBtJzoKICBEdXJhdGlvbjogTi9BLCBiaXRyYXRlOiBOL0EKICBTdHJlYW0gIzA6MDogVmlkZW86IHBwbSwgcmdiMjQsIDN4MSwgMjUgZnBzLCAyNSB0YnIsIDI1IHRibgpTdHJlYW0gbWFwcGluZzoKICBTdHJlYW0gIzA6MCAtPiAjMDowIChwcG0gKG5hdGl2ZSkgLT4gZmZ2MSAobmF0aXZlKSkKT3V0cHV0ICMwLCBtYXRyb3NrYSwgdG8gJ2ZpcnN0Lm1rdic6CiAgTWV0YWRhdGE6CiAgICBlbmNvZGVyICAgICAgICAgOiBMYXZmNjMuMS4xMDEKICBTdHJlYW0gIzA6MDogVmlkZW86IGZmdjEgKEZGVjEgLyAweDMxNTY0NjQ2KSwgYmdyMChwYywgZ2JyL3Vua25vd24vdW5rbm93biwgcHJvZ3Jlc3NpdmUpLCAzeDEsIHE9Mi0zMSwgMjAwIGtiL3MsIDI1IGZwcywgMWsgdGJuCiAgICBNZXRhZGF0YToKICAgICAgZW5jb2RlciAgICAgICAgIDogTGF2YzYzLjEuMTAxIGZmdjEKW291dCMwL21hdHJvc2thIEAgMHg1NTU1NjA2YmFkNDBdIHZpZGVvOjBLaUIgYXVkaW86MEtpQiBzdWJ0aXRsZTowS2lCIG90aGVyIHN0cmVhbXM6MEtpQiBnbG9iYWwgaGVhZGVyczowS2lCIG11eGluZyBvdmVyaGVhZDogMjM5Ni4xNTM4NDYlCmZyYW1lPSAgICAxIGZwcz0wLjAgcT0tMC4wIExzaXplPSAgICAgICAxS2lCIHRpbWU9MDA6MDA6MDAuMDQgYml0cmF0ZT0gMTI5LjhrYml0cy9zIHNwZWVkPTEuMTR4IGVsYXBzZWQ9MDowMDowMC4wMyAgICAK",
+          "executable_sha256": "693997243e25684ab5976522d97111f44dbc14cfb47f968c2e2283b8fe070a17",
+          "files_before": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "files_after": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 649,
+              "sha256": "30ff889934f4cbc3b5e3d137f37fadd2ada537bf365cc893e94002d940a4b1ff",
+              "bytes_base64": "GkXfo6NChoEBQveBAULygQRC84EIQoKIbWF0cm9za2FCh4EEQoWBAhhTgGcBAAAAAAACVRFNm3TAv4QlDSMyTbuLU6uEFUmpZlOsgaFNu4tTq4QWVK5rU6yB7027jFOrhBJUw2dTrIIBiE27jFOrhBxTu2tTrIICOewBAAAAAAAAUwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFUmpZsm/hAmAv24q17GDD0JATYCMTGF2ZjYzLjEuMTAxV0GMTGF2ZjYzLjEuMTAxc6SQkIkZI6HiBktWZzz322Cnw0SJiEBEAAAAAAAAFlSua0CTv4TmLqdXrgEAAAAAAACE14EBc8WITj5Zzt5IvJycgQAitZyDdW5kiIEAhoZWX0ZGVjGDgQEj44OEAmJaAOCYsIEDuoEBmoECVLKBBFWwiFWxgQBVuYECVe6BAOwBAAAAAAAAAgAAY6KqVhnofbGCNW2SqSZ2a+HMceTIb9Oo855NgM9m4AZFVfjyDlG+pmWd8sN0ElTDZ/6/hBbH7qZzc59jwIBnyJlFo4dFTkNPREVSRIeMTGF2ZjYzLjEuMTAxc3PTY8CLY8WITj5Zzt5IvJxnyJ5Fo4dFTkNPREVSRIeRTGF2YzYzLjEuMTAxIGZmdjFnyKFFo4hEVVJBVElPTkSHkzAwOjAwOjAwLjA0MDAwMDAwMAAfQ7Z1qb+EiC6xVeeBAKOegQAAgPwoAAHEAA6kEAB9D99A6AB9AAAAEgCX3thGHFO7a5e/hCJWMai7j7OBALeK94EB8YICC/CBCQ=="
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "effects": {
+            "early.ppm": "preserved",
+            "final.ppm": "preserved",
+            "first.mkv": "modified",
+            "page.ps": "preserved",
+            "source.ppm": "preserved"
+          },
+          "stream_probe": {
+            "argv": [
+              "/opt/ffmpeg/ffprobe",
+              "-v",
+              "error",
+              "-show_entries",
+              "stream=codec_type",
+              "-of",
+              "json",
+              "first.mkv"
+            ],
+            "cwd": "/scratch/fixture",
+            "environment": {
+              "PATH": "/usr/bin:/bin",
+              "LC_ALL": "C",
+              "LANG": "C",
+              "TZ": "UTC",
+              "MAGICK_THREAD_LIMIT": "1",
+              "HOME": "/scratch/fixture/home",
+              "TMPDIR": "/scratch/fixture/tmp",
+              "MAGICK_TEMPORARY_PATH": "/scratch/fixture/tmp"
+            },
+            "stdin_base64": "",
+            "native_process_started": true,
+            "spawn_error": null,
+            "status": {
+              "exit_code": 0,
+              "signal": null,
+              "timed_out": false
+            },
+            "stdout_base64": "ewogICAgInByb2dyYW1zIjogWwoKICAgIF0sCiAgICAic3RyZWFtX2dyb3VwcyI6IFsKCiAgICBdLAogICAgInN0cmVhbXMiOiBbCiAgICAgICAgewogICAgICAgICAgICAiY29kZWNfdHlwZSI6ICJ2aWRlbyIKICAgICAgICB9CiAgICBdCn0K",
+            "stderr_base64": ""
+          },
+          "decoded_rgb": {
+            "argv": [
+              "/opt/ffmpeg/ffmpeg",
+              "-v",
+              "error",
+              "-i",
+              "first.mkv",
+              "-frames:v",
+              "1",
+              "-f",
+              "rawvideo",
+              "-pix_fmt",
+              "rgb24",
+              "pipe:1"
+            ],
+            "cwd": "/scratch/fixture",
+            "environment": {
+              "PATH": "/usr/bin:/bin",
+              "LC_ALL": "C",
+              "LANG": "C",
+              "TZ": "UTC",
+              "MAGICK_THREAD_LIMIT": "1",
+              "HOME": "/scratch/fixture/home",
+              "TMPDIR": "/scratch/fixture/tmp",
+              "MAGICK_TEMPORARY_PATH": "/scratch/fixture/tmp"
+            },
+            "stdin_base64": "",
+            "native_process_started": true,
+            "spawn_error": null,
+            "status": {
+              "exit_code": 0,
+              "signal": null,
+              "timed_out": false
+            },
+            "stdout_base64": "/wAAAP8AAAD/",
+            "stderr_base64": ""
+          },
+          "original_argv": [
+            "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/bin/ffmpeg",
+            "-hide_banner",
+            "-nostdin",
+            "-y",
+            "-loop",
+            "1",
+            "-i",
+            "source.ppm",
+            "-frames:v",
+            "1",
+            "-c:v",
+            "ffv1",
+            "first.mkv"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ff-unknown-later",
+      "runs": [
+        {
+          "argv": [
+            "/opt/ffmpeg/ffmpeg",
+            "-hide_banner",
+            "-nostdin",
+            "-y",
+            "-loop",
+            "1",
+            "-i",
+            "source.ppm",
+            "-frames:v",
+            "1",
+            "-c:v",
+            "ffv1",
+            "first.mkv",
+            "-ordering_unknown",
+            "1",
+            "second.mkv"
+          ],
+          "cwd": "/scratch/fixture",
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC",
+            "MAGICK_THREAD_LIMIT": "1",
+            "HOME": "/scratch/fixture/home",
+            "TMPDIR": "/scratch/fixture/tmp",
+            "MAGICK_TEMPORARY_PATH": "/scratch/fixture/tmp"
+          },
+          "stdin_base64": "",
+          "native_process_started": true,
+          "spawn_error": null,
+          "status": {
+            "exit_code": 8,
+            "signal": null,
+            "timed_out": false
+          },
+          "stdout_base64": "",
+          "stderr_base64": "VW5yZWNvZ25pemVkIG9wdGlvbiAnb3JkZXJpbmdfdW5rbm93bicuCkVycm9yIHNwbGl0dGluZyB0aGUgYXJndW1lbnQgbGlzdDogT3B0aW9uIG5vdCBmb3VuZAo=",
+          "executable_sha256": "693997243e25684ab5976522d97111f44dbc14cfb47f968c2e2283b8fe070a17",
+          "files_before": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "files_after": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "effects": {
+            "early.ppm": "preserved",
+            "final.ppm": "preserved",
+            "first.mkv": "preserved",
+            "page.ps": "preserved",
+            "source.ppm": "preserved"
+          },
+          "original_argv": [
+            "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/bin/ffmpeg",
+            "-hide_banner",
+            "-nostdin",
+            "-y",
+            "-loop",
+            "1",
+            "-i",
+            "source.ppm",
+            "-frames:v",
+            "1",
+            "-c:v",
+            "ffv1",
+            "first.mkv",
+            "-ordering_unknown",
+            "1",
+            "second.mkv"
+          ]
+        },
+        {
+          "argv": [
+            "/opt/ffmpeg/ffmpeg",
+            "-hide_banner",
+            "-nostdin",
+            "-y",
+            "-loop",
+            "1",
+            "-i",
+            "source.ppm",
+            "-frames:v",
+            "1",
+            "-c:v",
+            "ffv1",
+            "first.mkv",
+            "-ordering_unknown",
+            "1",
+            "second.mkv"
+          ],
+          "cwd": "/scratch/fixture",
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC",
+            "MAGICK_THREAD_LIMIT": "1",
+            "HOME": "/scratch/fixture/home",
+            "TMPDIR": "/scratch/fixture/tmp",
+            "MAGICK_TEMPORARY_PATH": "/scratch/fixture/tmp"
+          },
+          "stdin_base64": "",
+          "native_process_started": true,
+          "spawn_error": null,
+          "status": {
+            "exit_code": 8,
+            "signal": null,
+            "timed_out": false
+          },
+          "stdout_base64": "",
+          "stderr_base64": "VW5yZWNvZ25pemVkIG9wdGlvbiAnb3JkZXJpbmdfdW5rbm93bicuCkVycm9yIHNwbGl0dGluZyB0aGUgYXJndW1lbnQgbGlzdDogT3B0aW9uIG5vdCBmb3VuZAo=",
+          "executable_sha256": "693997243e25684ab5976522d97111f44dbc14cfb47f968c2e2283b8fe070a17",
+          "files_before": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "files_after": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "effects": {
+            "early.ppm": "preserved",
+            "final.ppm": "preserved",
+            "first.mkv": "preserved",
+            "page.ps": "preserved",
+            "source.ppm": "preserved"
+          },
+          "original_argv": [
+            "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/bin/ffmpeg",
+            "-hide_banner",
+            "-nostdin",
+            "-y",
+            "-loop",
+            "1",
+            "-i",
+            "source.ppm",
+            "-frames:v",
+            "1",
+            "-c:v",
+            "ffv1",
+            "first.mkv",
+            "-ordering_unknown",
+            "1",
+            "second.mkv"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ff-missing-lut",
+      "runs": [
+        {
+          "argv": [
+            "/opt/ffmpeg/ffmpeg",
+            "-hide_banner",
+            "-nostdin",
+            "-y",
+            "-loop",
+            "1",
+            "-i",
+            "source.ppm",
+            "-vf",
+            "lut3d=file=absent.cube",
+            "-frames:v",
+            "1",
+            "-c:v",
+            "ffv1",
+            "first.mkv"
+          ],
+          "cwd": "/scratch/fixture",
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC",
+            "MAGICK_THREAD_LIMIT": "1",
+            "HOME": "/scratch/fixture/home",
+            "TMPDIR": "/scratch/fixture/tmp",
+            "MAGICK_TEMPORARY_PATH": "/scratch/fixture/tmp"
+          },
+          "stdin_base64": "",
+          "native_process_started": true,
+          "spawn_error": null,
+          "status": {
+            "exit_code": 254,
+            "signal": null,
+            "timed_out": false
+          },
+          "stdout_base64": "",
+          "stderr_base64": "SW5wdXQgIzAsIHBwbV9waXBlLCBmcm9tICdzb3VyY2UucHBtJzoKICBEdXJhdGlvbjogTi9BLCBiaXRyYXRlOiBOL0EKICBTdHJlYW0gIzA6MDogVmlkZW86IHBwbSwgcmdiMjQsIDN4MSwgMjUgZnBzLCAyNSB0YnIsIDI1IHRibgpbUGFyc2VkX2x1dDNkXzAgQCAweDU1NTU2MDZhZjQ4MF0gYWJzZW50LmN1YmU6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkKW0FWRmlsdGVyR3JhcGggQCAweDU1NTU2MDZiZDIwMF0gRXJyb3IgaW5pdGlhbGl6aW5nIGZpbHRlcnMKRXJyb3Igb3BlbmluZyBvdXRwdXQgZmlsZSBmaXJzdC5ta3YuCkVycm9yIG9wZW5pbmcgb3V0cHV0IGZpbGVzOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5Cg==",
+          "executable_sha256": "693997243e25684ab5976522d97111f44dbc14cfb47f968c2e2283b8fe070a17",
+          "files_before": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "files_after": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "effects": {
+            "early.ppm": "preserved",
+            "final.ppm": "preserved",
+            "first.mkv": "preserved",
+            "page.ps": "preserved",
+            "source.ppm": "preserved"
+          },
+          "original_argv": [
+            "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/bin/ffmpeg",
+            "-hide_banner",
+            "-nostdin",
+            "-y",
+            "-loop",
+            "1",
+            "-i",
+            "source.ppm",
+            "-vf",
+            "lut3d=file=absent.cube",
+            "-frames:v",
+            "1",
+            "-c:v",
+            "ffv1",
+            "first.mkv"
+          ]
+        },
+        {
+          "argv": [
+            "/opt/ffmpeg/ffmpeg",
+            "-hide_banner",
+            "-nostdin",
+            "-y",
+            "-loop",
+            "1",
+            "-i",
+            "source.ppm",
+            "-vf",
+            "lut3d=file=absent.cube",
+            "-frames:v",
+            "1",
+            "-c:v",
+            "ffv1",
+            "first.mkv"
+          ],
+          "cwd": "/scratch/fixture",
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC",
+            "MAGICK_THREAD_LIMIT": "1",
+            "HOME": "/scratch/fixture/home",
+            "TMPDIR": "/scratch/fixture/tmp",
+            "MAGICK_TEMPORARY_PATH": "/scratch/fixture/tmp"
+          },
+          "stdin_base64": "",
+          "native_process_started": true,
+          "spawn_error": null,
+          "status": {
+            "exit_code": 254,
+            "signal": null,
+            "timed_out": false
+          },
+          "stdout_base64": "",
+          "stderr_base64": "SW5wdXQgIzAsIHBwbV9waXBlLCBmcm9tICdzb3VyY2UucHBtJzoKICBEdXJhdGlvbjogTi9BLCBiaXRyYXRlOiBOL0EKICBTdHJlYW0gIzA6MDogVmlkZW86IHBwbSwgcmdiMjQsIDN4MSwgMjUgZnBzLCAyNSB0YnIsIDI1IHRibgpbUGFyc2VkX2x1dDNkXzAgQCAweDU1NTU2MDZhZjQ4MF0gYWJzZW50LmN1YmU6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkKW0FWRmlsdGVyR3JhcGggQCAweDU1NTU2MDZiZDIwMF0gRXJyb3IgaW5pdGlhbGl6aW5nIGZpbHRlcnMKRXJyb3Igb3BlbmluZyBvdXRwdXQgZmlsZSBmaXJzdC5ta3YuCkVycm9yIG9wZW5pbmcgb3V0cHV0IGZpbGVzOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5Cg==",
+          "executable_sha256": "693997243e25684ab5976522d97111f44dbc14cfb47f968c2e2283b8fe070a17",
+          "files_before": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "files_after": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "effects": {
+            "early.ppm": "preserved",
+            "final.ppm": "preserved",
+            "first.mkv": "preserved",
+            "page.ps": "preserved",
+            "source.ppm": "preserved"
+          },
+          "original_argv": [
+            "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/bin/ffmpeg",
+            "-hide_banner",
+            "-nostdin",
+            "-y",
+            "-loop",
+            "1",
+            "-i",
+            "source.ppm",
+            "-vf",
+            "lut3d=file=absent.cube",
+            "-frames:v",
+            "1",
+            "-c:v",
+            "ffv1",
+            "first.mkv"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ff-second-parent",
+      "runs": [
+        {
+          "argv": [
+            "/opt/ffmpeg/ffmpeg",
+            "-hide_banner",
+            "-nostdin",
+            "-y",
+            "-loop",
+            "1",
+            "-i",
+            "source.ppm",
+            "-frames:v",
+            "1",
+            "-c:v",
+            "ffv1",
+            "first.mkv",
+            "-frames:v",
+            "1",
+            "-c:v",
+            "ffv1",
+            "absent/second.mkv"
+          ],
+          "cwd": "/scratch/fixture",
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC",
+            "MAGICK_THREAD_LIMIT": "1",
+            "HOME": "/scratch/fixture/home",
+            "TMPDIR": "/scratch/fixture/tmp",
+            "MAGICK_TEMPORARY_PATH": "/scratch/fixture/tmp"
+          },
+          "stdin_base64": "",
+          "native_process_started": true,
+          "spawn_error": null,
+          "status": {
+            "exit_code": 254,
+            "signal": null,
+            "timed_out": false
+          },
+          "stdout_base64": "",
+          "stderr_base64": "SW5wdXQgIzAsIHBwbV9waXBlLCBmcm9tICdzb3VyY2UucHBtJzoKICBEdXJhdGlvbjogTi9BLCBiaXRyYXRlOiBOL0EKICBTdHJlYW0gIzA6MDogVmlkZW86IHBwbSwgcmdiMjQsIDN4MSwgMjUgZnBzLCAyNSB0YnIsIDI1IHRibgpbb3V0IzEvbWF0cm9za2EgQCAweDU1NTU2MDc1N2E4MF0gRXJyb3Igb3BlbmluZyBvdXRwdXQgYWJzZW50L3NlY29uZC5ta3Y6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkKRXJyb3Igb3BlbmluZyBvdXRwdXQgZmlsZSBhYnNlbnQvc2Vjb25kLm1rdi4KRXJyb3Igb3BlbmluZyBvdXRwdXQgZmlsZXM6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkK",
+          "executable_sha256": "693997243e25684ab5976522d97111f44dbc14cfb47f968c2e2283b8fe070a17",
+          "files_before": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "files_after": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "bytes_base64": ""
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "effects": {
+            "early.ppm": "preserved",
+            "final.ppm": "preserved",
+            "first.mkv": "truncated",
+            "page.ps": "preserved",
+            "source.ppm": "preserved"
+          },
+          "original_argv": [
+            "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/bin/ffmpeg",
+            "-hide_banner",
+            "-nostdin",
+            "-y",
+            "-loop",
+            "1",
+            "-i",
+            "source.ppm",
+            "-frames:v",
+            "1",
+            "-c:v",
+            "ffv1",
+            "first.mkv",
+            "-frames:v",
+            "1",
+            "-c:v",
+            "ffv1",
+            "absent/second.mkv"
+          ]
+        },
+        {
+          "argv": [
+            "/opt/ffmpeg/ffmpeg",
+            "-hide_banner",
+            "-nostdin",
+            "-y",
+            "-loop",
+            "1",
+            "-i",
+            "source.ppm",
+            "-frames:v",
+            "1",
+            "-c:v",
+            "ffv1",
+            "first.mkv",
+            "-frames:v",
+            "1",
+            "-c:v",
+            "ffv1",
+            "absent/second.mkv"
+          ],
+          "cwd": "/scratch/fixture",
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC",
+            "MAGICK_THREAD_LIMIT": "1",
+            "HOME": "/scratch/fixture/home",
+            "TMPDIR": "/scratch/fixture/tmp",
+            "MAGICK_TEMPORARY_PATH": "/scratch/fixture/tmp"
+          },
+          "stdin_base64": "",
+          "native_process_started": true,
+          "spawn_error": null,
+          "status": {
+            "exit_code": 254,
+            "signal": null,
+            "timed_out": false
+          },
+          "stdout_base64": "",
+          "stderr_base64": "SW5wdXQgIzAsIHBwbV9waXBlLCBmcm9tICdzb3VyY2UucHBtJzoKICBEdXJhdGlvbjogTi9BLCBiaXRyYXRlOiBOL0EKICBTdHJlYW0gIzA6MDogVmlkZW86IHBwbSwgcmdiMjQsIDN4MSwgMjUgZnBzLCAyNSB0YnIsIDI1IHRibgpbb3V0IzEvbWF0cm9za2EgQCAweDU1NTU2MDc1N2E4MF0gRXJyb3Igb3BlbmluZyBvdXRwdXQgYWJzZW50L3NlY29uZC5ta3Y6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkKRXJyb3Igb3BlbmluZyBvdXRwdXQgZmlsZSBhYnNlbnQvc2Vjb25kLm1rdi4KRXJyb3Igb3BlbmluZyBvdXRwdXQgZmlsZXM6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkK",
+          "executable_sha256": "693997243e25684ab5976522d97111f44dbc14cfb47f968c2e2283b8fe070a17",
+          "files_before": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "files_after": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "bytes_base64": ""
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "effects": {
+            "early.ppm": "preserved",
+            "final.ppm": "preserved",
+            "first.mkv": "truncated",
+            "page.ps": "preserved",
+            "source.ppm": "preserved"
+          },
+          "original_argv": [
+            "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/bin/ffmpeg",
+            "-hide_banner",
+            "-nostdin",
+            "-y",
+            "-loop",
+            "1",
+            "-i",
+            "source.ppm",
+            "-frames:v",
+            "1",
+            "-c:v",
+            "ffv1",
+            "first.mkv",
+            "-frames:v",
+            "1",
+            "-c:v",
+            "ffv1",
+            "absent/second.mkv"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ff-refuse",
+      "runs": [
+        {
+          "argv": [
+            "/opt/ffmpeg/ffmpeg",
+            "-hide_banner",
+            "-nostdin",
+            "-loop",
+            "1",
+            "-i",
+            "source.ppm",
+            "-n",
+            "-frames:v",
+            "1",
+            "-c:v",
+            "ffv1",
+            "first.mkv"
+          ],
+          "cwd": "/scratch/fixture",
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC",
+            "MAGICK_THREAD_LIMIT": "1",
+            "HOME": "/scratch/fixture/home",
+            "TMPDIR": "/scratch/fixture/tmp",
+            "MAGICK_TEMPORARY_PATH": "/scratch/fixture/tmp"
+          },
+          "stdin_base64": "",
+          "native_process_started": true,
+          "spawn_error": null,
+          "status": {
+            "exit_code": 0,
+            "signal": null,
+            "timed_out": false
+          },
+          "stdout_base64": "",
+          "stderr_base64": "SW5wdXQgIzAsIHBwbV9waXBlLCBmcm9tICdzb3VyY2UucHBtJzoKICBEdXJhdGlvbjogTi9BLCBiaXRyYXRlOiBOL0EKICBTdHJlYW0gIzA6MDogVmlkZW86IHBwbSwgcmdiMjQsIDN4MSwgMjUgZnBzLCAyNSB0YnIsIDI1IHRibgpGaWxlICdmaXJzdC5ta3YnIGFscmVhZHkgZXhpc3RzLiBFeGl0aW5nLgpFcnJvciBvcGVuaW5nIG91dHB1dCBmaWxlIGZpcnN0Lm1rdi4K",
+          "executable_sha256": "693997243e25684ab5976522d97111f44dbc14cfb47f968c2e2283b8fe070a17",
+          "files_before": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "files_after": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "effects": {
+            "early.ppm": "preserved",
+            "final.ppm": "preserved",
+            "first.mkv": "preserved",
+            "page.ps": "preserved",
+            "source.ppm": "preserved"
+          },
+          "original_argv": [
+            "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/bin/ffmpeg",
+            "-hide_banner",
+            "-nostdin",
+            "-loop",
+            "1",
+            "-i",
+            "source.ppm",
+            "-n",
+            "-frames:v",
+            "1",
+            "-c:v",
+            "ffv1",
+            "first.mkv"
+          ]
+        },
+        {
+          "argv": [
+            "/opt/ffmpeg/ffmpeg",
+            "-hide_banner",
+            "-nostdin",
+            "-loop",
+            "1",
+            "-i",
+            "source.ppm",
+            "-n",
+            "-frames:v",
+            "1",
+            "-c:v",
+            "ffv1",
+            "first.mkv"
+          ],
+          "cwd": "/scratch/fixture",
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC",
+            "MAGICK_THREAD_LIMIT": "1",
+            "HOME": "/scratch/fixture/home",
+            "TMPDIR": "/scratch/fixture/tmp",
+            "MAGICK_TEMPORARY_PATH": "/scratch/fixture/tmp"
+          },
+          "stdin_base64": "",
+          "native_process_started": true,
+          "spawn_error": null,
+          "status": {
+            "exit_code": 0,
+            "signal": null,
+            "timed_out": false
+          },
+          "stdout_base64": "",
+          "stderr_base64": "SW5wdXQgIzAsIHBwbV9waXBlLCBmcm9tICdzb3VyY2UucHBtJzoKICBEdXJhdGlvbjogTi9BLCBiaXRyYXRlOiBOL0EKICBTdHJlYW0gIzA6MDogVmlkZW86IHBwbSwgcmdiMjQsIDN4MSwgMjUgZnBzLCAyNSB0YnIsIDI1IHRibgpGaWxlICdmaXJzdC5ta3YnIGFscmVhZHkgZXhpc3RzLiBFeGl0aW5nLgpFcnJvciBvcGVuaW5nIG91dHB1dCBmaWxlIGZpcnN0Lm1rdi4K",
+          "executable_sha256": "693997243e25684ab5976522d97111f44dbc14cfb47f968c2e2283b8fe070a17",
+          "files_before": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "files_after": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "effects": {
+            "early.ppm": "preserved",
+            "final.ppm": "preserved",
+            "first.mkv": "preserved",
+            "page.ps": "preserved",
+            "source.ppm": "preserved"
+          },
+          "original_argv": [
+            "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/bin/ffmpeg",
+            "-hide_banner",
+            "-nostdin",
+            "-loop",
+            "1",
+            "-i",
+            "source.ppm",
+            "-n",
+            "-frames:v",
+            "1",
+            "-c:v",
+            "ffv1",
+            "first.mkv"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ff-optional-map",
+      "runs": [
+        {
+          "argv": [
+            "/opt/ffmpeg/ffmpeg",
+            "-hide_banner",
+            "-nostdin",
+            "-y",
+            "-loop",
+            "1",
+            "-i",
+            "source.ppm",
+            "-map",
+            "0:a?",
+            "-frames:v",
+            "1",
+            "-c:v",
+            "ffv1",
+            "first.mkv"
+          ],
+          "cwd": "/scratch/fixture",
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC",
+            "MAGICK_THREAD_LIMIT": "1",
+            "HOME": "/scratch/fixture/home",
+            "TMPDIR": "/scratch/fixture/tmp",
+            "MAGICK_TEMPORARY_PATH": "/scratch/fixture/tmp"
+          },
+          "stdin_base64": "",
+          "native_process_started": true,
+          "spawn_error": null,
+          "status": {
+            "exit_code": 0,
+            "signal": null,
+            "timed_out": false
+          },
+          "stdout_base64": "",
+          "stderr_base64": "SW5wdXQgIzAsIHBwbV9waXBlLCBmcm9tICdzb3VyY2UucHBtJzoKICBEdXJhdGlvbjogTi9BLCBiaXRyYXRlOiBOL0EKICBTdHJlYW0gIzA6MDogVmlkZW86IHBwbSwgcmdiMjQsIDN4MSwgMjUgZnBzLCAyNSB0YnIsIDI1IHRibgpTdHJlYW0gbWFwcGluZzoKICBTdHJlYW0gIzA6MCAtPiAjMDowIChwcG0gKG5hdGl2ZSkgLT4gZmZ2MSAobmF0aXZlKSkKT3V0cHV0ICMwLCBtYXRyb3NrYSwgdG8gJ2ZpcnN0Lm1rdic6CiAgTWV0YWRhdGE6CiAgICBlbmNvZGVyICAgICAgICAgOiBMYXZmNjMuMS4xMDEKICBTdHJlYW0gIzA6MDogVmlkZW86IGZmdjEgKEZGVjEgLyAweDMxNTY0NjQ2KSwgYmdyMChwYywgZ2JyL3Vua25vd24vdW5rbm93biwgcHJvZ3Jlc3NpdmUpLCAzeDEsIHE9Mi0zMSwgMjAwIGtiL3MsIDI1IGZwcywgMWsgdGJuCiAgICBNZXRhZGF0YToKICAgICAgZW5jb2RlciAgICAgICAgIDogTGF2YzYzLjEuMTAxIGZmdjEKW291dCMwL21hdHJvc2thIEAgMHg1NTU1NjA2YmFjYzBdIHZpZGVvOjBLaUIgYXVkaW86MEtpQiBzdWJ0aXRsZTowS2lCIG90aGVyIHN0cmVhbXM6MEtpQiBnbG9iYWwgaGVhZGVyczowS2lCIG11eGluZyBvdmVyaGVhZDogMjM5Ni4xNTM4NDYlCmZyYW1lPSAgICAxIGZwcz0wLjAgcT0tMC4wIExzaXplPSAgICAgICAxS2lCIHRpbWU9MDA6MDA6MDAuMDQgYml0cmF0ZT0gMTI5LjhrYml0cy9zIHNwZWVkPTEuMDh4IGVsYXBzZWQ9MDowMDowMC4wMyAgICAK",
+          "executable_sha256": "693997243e25684ab5976522d97111f44dbc14cfb47f968c2e2283b8fe070a17",
+          "files_before": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "files_after": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 649,
+              "sha256": "7af1b6e4939f27d24c88bca8164b4da88a96acca4e1b8e7a27b9e5105353495d",
+              "bytes_base64": "GkXfo6NChoEBQveBAULygQRC84EIQoKIbWF0cm9za2FCh4EEQoWBAhhTgGcBAAAAAAACVRFNm3TAv4QlDSMyTbuLU6uEFUmpZlOsgaFNu4tTq4QWVK5rU6yB7027jFOrhBJUw2dTrIIBiE27jFOrhBxTu2tTrIICOewBAAAAAAAAUwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFUmpZsm/hFmPjnUq17GDD0JATYCMTGF2ZjYzLjEuMTAxV0GMTGF2ZjYzLjEuMTAxc6SQI0suarcf1liiNuW7E8WszESJiEBEAAAAAAAAFlSua0CTv4SKBe2ZrgEAAAAAAACE14EBc8WItBL/Ic5PWj2cgQAitZyDdW5kiIEAhoZWX0ZGVjGDgQEj44OEAmJaAOCYsIEDuoEBmoECVLKBBFWwiFWxgQBVuYECVe6BAOwBAAAAAAAAAgAAY6KqVhnofbGCNW2SqSZ2a+HMceTIb9Oo855NgM9m4AZFVfjyDlG+pmWd8sN0ElTDZ/6/hDDzaSxzc59jwIBnyJlFo4dFTkNPREVSRIeMTGF2ZjYzLjEuMTAxc3PTY8CLY8WItBL/Ic5PWj1nyJ5Fo4dFTkNPREVSRIeRTGF2YzYzLjEuMTAxIGZmdjFnyKFFo4hEVVJBVElPTkSHkzAwOjAwOjAwLjA0MDAwMDAwMAAfQ7Z1qb+EiC6xVeeBAKOegQAAgPwoAAHEAA6kEAB9D99A6AB9AAAAEgCX3thGHFO7a5e/hCJWMai7j7OBALeK94EB8YICC/CBCQ=="
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "effects": {
+            "early.ppm": "preserved",
+            "final.ppm": "preserved",
+            "first.mkv": "modified",
+            "page.ps": "preserved",
+            "source.ppm": "preserved"
+          },
+          "stream_probe": {
+            "argv": [
+              "/opt/ffmpeg/ffprobe",
+              "-v",
+              "error",
+              "-show_entries",
+              "stream=codec_type",
+              "-of",
+              "json",
+              "first.mkv"
+            ],
+            "cwd": "/scratch/fixture",
+            "environment": {
+              "PATH": "/usr/bin:/bin",
+              "LC_ALL": "C",
+              "LANG": "C",
+              "TZ": "UTC",
+              "MAGICK_THREAD_LIMIT": "1",
+              "HOME": "/scratch/fixture/home",
+              "TMPDIR": "/scratch/fixture/tmp",
+              "MAGICK_TEMPORARY_PATH": "/scratch/fixture/tmp"
+            },
+            "stdin_base64": "",
+            "native_process_started": true,
+            "spawn_error": null,
+            "status": {
+              "exit_code": 0,
+              "signal": null,
+              "timed_out": false
+            },
+            "stdout_base64": "ewogICAgInByb2dyYW1zIjogWwoKICAgIF0sCiAgICAic3RyZWFtX2dyb3VwcyI6IFsKCiAgICBdLAogICAgInN0cmVhbXMiOiBbCiAgICAgICAgewogICAgICAgICAgICAiY29kZWNfdHlwZSI6ICJ2aWRlbyIKICAgICAgICB9CiAgICBdCn0K",
+            "stderr_base64": ""
+          },
+          "decoded_rgb": {
+            "argv": [
+              "/opt/ffmpeg/ffmpeg",
+              "-v",
+              "error",
+              "-i",
+              "first.mkv",
+              "-frames:v",
+              "1",
+              "-f",
+              "rawvideo",
+              "-pix_fmt",
+              "rgb24",
+              "pipe:1"
+            ],
+            "cwd": "/scratch/fixture",
+            "environment": {
+              "PATH": "/usr/bin:/bin",
+              "LC_ALL": "C",
+              "LANG": "C",
+              "TZ": "UTC",
+              "MAGICK_THREAD_LIMIT": "1",
+              "HOME": "/scratch/fixture/home",
+              "TMPDIR": "/scratch/fixture/tmp",
+              "MAGICK_TEMPORARY_PATH": "/scratch/fixture/tmp"
+            },
+            "stdin_base64": "",
+            "native_process_started": true,
+            "spawn_error": null,
+            "status": {
+              "exit_code": 0,
+              "signal": null,
+              "timed_out": false
+            },
+            "stdout_base64": "/wAAAP8AAAD/",
+            "stderr_base64": ""
+          },
+          "original_argv": [
+            "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/bin/ffmpeg",
+            "-hide_banner",
+            "-nostdin",
+            "-y",
+            "-loop",
+            "1",
+            "-i",
+            "source.ppm",
+            "-map",
+            "0:a?",
+            "-frames:v",
+            "1",
+            "-c:v",
+            "ffv1",
+            "first.mkv"
+          ]
+        },
+        {
+          "argv": [
+            "/opt/ffmpeg/ffmpeg",
+            "-hide_banner",
+            "-nostdin",
+            "-y",
+            "-loop",
+            "1",
+            "-i",
+            "source.ppm",
+            "-map",
+            "0:a?",
+            "-frames:v",
+            "1",
+            "-c:v",
+            "ffv1",
+            "first.mkv"
+          ],
+          "cwd": "/scratch/fixture",
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC",
+            "MAGICK_THREAD_LIMIT": "1",
+            "HOME": "/scratch/fixture/home",
+            "TMPDIR": "/scratch/fixture/tmp",
+            "MAGICK_TEMPORARY_PATH": "/scratch/fixture/tmp"
+          },
+          "stdin_base64": "",
+          "native_process_started": true,
+          "spawn_error": null,
+          "status": {
+            "exit_code": 0,
+            "signal": null,
+            "timed_out": false
+          },
+          "stdout_base64": "",
+          "stderr_base64": "SW5wdXQgIzAsIHBwbV9waXBlLCBmcm9tICdzb3VyY2UucHBtJzoKICBEdXJhdGlvbjogTi9BLCBiaXRyYXRlOiBOL0EKICBTdHJlYW0gIzA6MDogVmlkZW86IHBwbSwgcmdiMjQsIDN4MSwgMjUgZnBzLCAyNSB0YnIsIDI1IHRibgpTdHJlYW0gbWFwcGluZzoKICBTdHJlYW0gIzA6MCAtPiAjMDowIChwcG0gKG5hdGl2ZSkgLT4gZmZ2MSAobmF0aXZlKSkKT3V0cHV0ICMwLCBtYXRyb3NrYSwgdG8gJ2ZpcnN0Lm1rdic6CiAgTWV0YWRhdGE6CiAgICBlbmNvZGVyICAgICAgICAgOiBMYXZmNjMuMS4xMDEKICBTdHJlYW0gIzA6MDogVmlkZW86IGZmdjEgKEZGVjEgLyAweDMxNTY0NjQ2KSwgYmdyMChwYywgZ2JyL3Vua25vd24vdW5rbm93biwgcHJvZ3Jlc3NpdmUpLCAzeDEsIHE9Mi0zMSwgMjAwIGtiL3MsIDI1IGZwcywgMWsgdGJuCiAgICBNZXRhZGF0YToKICAgICAgZW5jb2RlciAgICAgICAgIDogTGF2YzYzLjEuMTAxIGZmdjEKW291dCMwL21hdHJvc2thIEAgMHg1NTU1NjA2YmFjYzBdIHZpZGVvOjBLaUIgYXVkaW86MEtpQiBzdWJ0aXRsZTowS2lCIG90aGVyIHN0cmVhbXM6MEtpQiBnbG9iYWwgaGVhZGVyczowS2lCIG11eGluZyBvdmVyaGVhZDogMjM5Ni4xNTM4NDYlCmZyYW1lPSAgICAxIGZwcz0wLjAgcT0tMC4wIExzaXplPSAgICAgICAxS2lCIHRpbWU9MDA6MDA6MDAuMDQgYml0cmF0ZT0gMTI5LjhrYml0cy9zIHNwZWVkPTEuMTR4IGVsYXBzZWQ9MDowMDowMC4wMyAgICAK",
+          "executable_sha256": "693997243e25684ab5976522d97111f44dbc14cfb47f968c2e2283b8fe070a17",
+          "files_before": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "files_after": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 649,
+              "sha256": "e8360fc8d49693029f3bf6358ab95cf765bd5411f8f9b4334702c4b3a150b189",
+              "bytes_base64": "GkXfo6NChoEBQveBAULygQRC84EIQoKIbWF0cm9za2FCh4EEQoWBAhhTgGcBAAAAAAACVRFNm3TAv4QlDSMyTbuLU6uEFUmpZlOsgaFNu4tTq4QWVK5rU6yB7027jFOrhBJUw2dTrIIBiE27jFOrhBxTu2tTrIICOewBAAAAAAAAUwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFUmpZsm/hDexO2kq17GDD0JATYCMTGF2ZjYzLjEuMTAxV0GMTGF2ZjYzLjEuMTAxc6SQ0zbCaSVNWG7QHPveAYZT4ESJiEBEAAAAAAAAFlSua0CTv4QipaM7rgEAAAAAAACE14EBc8WI09VtaL4qVE2cgQAitZyDdW5kiIEAhoZWX0ZGVjGDgQEj44OEAmJaAOCYsIEDuoEBmoECVLKBBFWwiFWxgQBVuYECVe6BAOwBAAAAAAAAAgAAY6KqVhnofbGCNW2SqSZ2a+HMceTIb9Oo855NgM9m4AZFVfjyDlG+pmWd8sN0ElTDZ/6/hChVUuRzc59jwIBnyJlFo4dFTkNPREVSRIeMTGF2ZjYzLjEuMTAxc3PTY8CLY8WI09VtaL4qVE1nyJ5Fo4dFTkNPREVSRIeRTGF2YzYzLjEuMTAxIGZmdjFnyKFFo4hEVVJBVElPTkSHkzAwOjAwOjAwLjA0MDAwMDAwMAAfQ7Z1qb+EiC6xVeeBAKOegQAAgPwoAAHEAA6kEAB9D99A6AB9AAAAEgCX3thGHFO7a5e/hCJWMai7j7OBALeK94EB8YICC/CBCQ=="
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "effects": {
+            "early.ppm": "preserved",
+            "final.ppm": "preserved",
+            "first.mkv": "modified",
+            "page.ps": "preserved",
+            "source.ppm": "preserved"
+          },
+          "stream_probe": {
+            "argv": [
+              "/opt/ffmpeg/ffprobe",
+              "-v",
+              "error",
+              "-show_entries",
+              "stream=codec_type",
+              "-of",
+              "json",
+              "first.mkv"
+            ],
+            "cwd": "/scratch/fixture",
+            "environment": {
+              "PATH": "/usr/bin:/bin",
+              "LC_ALL": "C",
+              "LANG": "C",
+              "TZ": "UTC",
+              "MAGICK_THREAD_LIMIT": "1",
+              "HOME": "/scratch/fixture/home",
+              "TMPDIR": "/scratch/fixture/tmp",
+              "MAGICK_TEMPORARY_PATH": "/scratch/fixture/tmp"
+            },
+            "stdin_base64": "",
+            "native_process_started": true,
+            "spawn_error": null,
+            "status": {
+              "exit_code": 0,
+              "signal": null,
+              "timed_out": false
+            },
+            "stdout_base64": "ewogICAgInByb2dyYW1zIjogWwoKICAgIF0sCiAgICAic3RyZWFtX2dyb3VwcyI6IFsKCiAgICBdLAogICAgInN0cmVhbXMiOiBbCiAgICAgICAgewogICAgICAgICAgICAiY29kZWNfdHlwZSI6ICJ2aWRlbyIKICAgICAgICB9CiAgICBdCn0K",
+            "stderr_base64": ""
+          },
+          "decoded_rgb": {
+            "argv": [
+              "/opt/ffmpeg/ffmpeg",
+              "-v",
+              "error",
+              "-i",
+              "first.mkv",
+              "-frames:v",
+              "1",
+              "-f",
+              "rawvideo",
+              "-pix_fmt",
+              "rgb24",
+              "pipe:1"
+            ],
+            "cwd": "/scratch/fixture",
+            "environment": {
+              "PATH": "/usr/bin:/bin",
+              "LC_ALL": "C",
+              "LANG": "C",
+              "TZ": "UTC",
+              "MAGICK_THREAD_LIMIT": "1",
+              "HOME": "/scratch/fixture/home",
+              "TMPDIR": "/scratch/fixture/tmp",
+              "MAGICK_TEMPORARY_PATH": "/scratch/fixture/tmp"
+            },
+            "stdin_base64": "",
+            "native_process_started": true,
+            "spawn_error": null,
+            "status": {
+              "exit_code": 0,
+              "signal": null,
+              "timed_out": false
+            },
+            "stdout_base64": "/wAAAP8AAAD/",
+            "stderr_base64": ""
+          },
+          "original_argv": [
+            "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/bin/ffmpeg",
+            "-hide_banner",
+            "-nostdin",
+            "-y",
+            "-loop",
+            "1",
+            "-i",
+            "source.ppm",
+            "-map",
+            "0:a?",
+            "-frames:v",
+            "1",
+            "-c:v",
+            "ffv1",
+            "first.mkv"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ff-pipe-mp4",
+      "runs": [
+        {
+          "argv": [
+            "/opt/ffmpeg/ffmpeg",
+            "-hide_banner",
+            "-nostdin",
+            "-y",
+            "-loop",
+            "1",
+            "-i",
+            "source.ppm",
+            "-frames:v",
+            "1",
+            "-c:v",
+            "libx264",
+            "-f",
+            "mp4",
+            "pipe:1"
+          ],
+          "cwd": "/scratch/fixture",
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC",
+            "MAGICK_THREAD_LIMIT": "1",
+            "HOME": "/scratch/fixture/home",
+            "TMPDIR": "/scratch/fixture/tmp",
+            "MAGICK_TEMPORARY_PATH": "/scratch/fixture/tmp"
+          },
+          "stdin_base64": "",
+          "native_process_started": true,
+          "spawn_error": null,
+          "status": {
+            "exit_code": 234,
+            "signal": null,
+            "timed_out": false
+          },
+          "stdout_base64": "",
+          "stderr_base64": "SW5wdXQgIzAsIHBwbV9waXBlLCBmcm9tICdzb3VyY2UucHBtJzoKICBEdXJhdGlvbjogTi9BLCBiaXRyYXRlOiBOL0EKICBTdHJlYW0gIzA6MDogVmlkZW86IHBwbSwgcmdiMjQsIDN4MSwgMjUgZnBzLCAyNSB0YnIsIDI1IHRibgpTdHJlYW0gbWFwcGluZzoKICBTdHJlYW0gIzA6MCAtPiAjMDowIChwcG0gKG5hdGl2ZSkgLT4gaDI2NCAobGlieDI2NCkpCltsaWJ4MjY0IEAgMHg1NTU1NjA2YmM0YzBdIHVzaW5nIGNwdSBjYXBhYmlsaXRpZXM6IE1NWDIgU1NFMkZhc3QgU1NTRTMgU1NFNC4yCltsaWJ4MjY0IEAgMHg1NTU1NjA2YmM0YzBdIHByb2ZpbGUgSGlnaCA0OjQ6NCBQcmVkaWN0aXZlLCBsZXZlbCAxLjAsIDQ6NDo0LCA4LWJpdApbbGlieDI2NCBAIDB4NTU1NTYwNmJjNGMwXSAyNjQgLSBjb3JlIDE2NSAtIEguMjY0L01QRUctNCBBVkMgY29kZWMgLSBDb3B5bGVmdCAyMDAzLTIwMjUgLSBodHRwOi8vd3d3LnZpZGVvbGFuLm9yZy94MjY0Lmh0bWwgLSBvcHRpb25zOiBjYWJhYz0xIHJlZj0zIGRlYmxvY2s9MTowOjAgYW5hbHlzZT0weDM6MHgxMTMgbWU9aGV4IHN1Ym1lPTcgcHN5PTEgcHN5X3JkPTEuMDA6MC4wMCBtaXhlZF9yZWY9MSBtZV9yYW5nZT0xNiBjaHJvbWFfbWU9MSB0cmVsbGlzPTEgOHg4ZGN0PTEgY3FtPTAgZGVhZHpvbmU9MjEsMTEgZmFzdF9wc2tpcD0xIGNocm9tYV9xcF9vZmZzZXQ9NCB0aHJlYWRzPTEgbG9va2FoZWFkX3RocmVhZHM9MSBzbGljZWRfdGhyZWFkcz0wIG5yPTAgZGVjaW1hdGU9MSBpbnRlcmxhY2VkPTAgYmx1cmF5X2NvbXBhdD0wIGNvbnN0cmFpbmVkX2ludHJhPTAgYmZyYW1lcz0zIGJfcHlyYW1pZD0yIGJfYWRhcHQ9MSBiX2JpYXM9MCBkaXJlY3Q9MSB3ZWlnaHRiPTEgb3Blbl9nb3A9MCB3ZWlnaHRwPTIga2V5aW50PTI1MCBrZXlpbnRfbWluPTI1IHNjZW5lY3V0PTQwIGludHJhX3JlZnJlc2g9MCByY19sb29rYWhlYWQ9NDAgcmM9Y3JmIG1idHJlZT0xIGNyZj0yMy4wIHFjb21wPTAuNjAgcXBtaW49MCBxcG1heD02OSBxcHN0ZXA9NCBpcF9yYXRpbz0xLjQwIGFxPTE6MS4wMApbbXA0IEAgMHg1NTU1NjA2YmFlMDBdIG11eGVyIGRvZXMgbm90IHN1cHBvcnQgbm9uIHNlZWthYmxlIG91dHB1dApbb3V0IzAvbXA0IEAgMHg1NTU1NjA2YmFjYzBdIENvdWxkIG5vdCB3cml0ZSBoZWFkZXIgKGluY29ycmVjdCBjb2RlYyBwYXJhbWV0ZXJzID8pOiBJbnZhbGlkIGFyZ3VtZW50Clt2ZiMwOjAgQCAweDU1NTU2MDZhYmE0MF0gRXJyb3Igc2VuZGluZyBmcmFtZXMgdG8gY29uc3VtZXJzOiBJbnZhbGlkIGFyZ3VtZW50Clt2ZiMwOjAgQCAweDU1NTU2MDZhYmE0MF0gVGFzayBmaW5pc2hlZCB3aXRoIGVycm9yIGNvZGU6IC0yMiAoSW52YWxpZCBhcmd1bWVudCkKW3ZmIzA6MCBAIDB4NTU1NTYwNmFiYTQwXSBUZXJtaW5hdGluZyB0aHJlYWQgd2l0aCByZXR1cm4gY29kZSAtMjIgKEludmFsaWQgYXJndW1lbnQpCltvdXQjMC9tcDQgQCAweDU1NTU2MDZiYWNjMF0gTm90aGluZyB3YXMgd3JpdHRlbiBpbnRvIG91dHB1dCBmaWxlLCBiZWNhdXNlIGF0IGxlYXN0IG9uZSBvZiBpdHMgc3RyZWFtcyByZWNlaXZlZCBubyBwYWNrZXRzLgpmcmFtZT0gICAgMCBmcHM9MC4wIHE9MC4wIExzaXplPSAgICAgICAwS2lCIHRpbWU9Ti9BIGJpdHJhdGU9Ti9BIHNwZWVkPU4vQSBlbGFwc2VkPTA6MDA6MDAuMDMgICAgCkNvbnZlcnNpb24gZmFpbGVkIQo=",
+          "executable_sha256": "693997243e25684ab5976522d97111f44dbc14cfb47f968c2e2283b8fe070a17",
+          "files_before": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "files_after": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "effects": {
+            "early.ppm": "preserved",
+            "final.ppm": "preserved",
+            "first.mkv": "preserved",
+            "page.ps": "preserved",
+            "source.ppm": "preserved"
+          },
+          "original_argv": [
+            "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/bin/ffmpeg",
+            "-hide_banner",
+            "-nostdin",
+            "-y",
+            "-loop",
+            "1",
+            "-i",
+            "source.ppm",
+            "-frames:v",
+            "1",
+            "-c:v",
+            "libx264",
+            "-f",
+            "mp4",
+            "pipe:1"
+          ]
+        },
+        {
+          "argv": [
+            "/opt/ffmpeg/ffmpeg",
+            "-hide_banner",
+            "-nostdin",
+            "-y",
+            "-loop",
+            "1",
+            "-i",
+            "source.ppm",
+            "-frames:v",
+            "1",
+            "-c:v",
+            "libx264",
+            "-f",
+            "mp4",
+            "pipe:1"
+          ],
+          "cwd": "/scratch/fixture",
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC",
+            "MAGICK_THREAD_LIMIT": "1",
+            "HOME": "/scratch/fixture/home",
+            "TMPDIR": "/scratch/fixture/tmp",
+            "MAGICK_TEMPORARY_PATH": "/scratch/fixture/tmp"
+          },
+          "stdin_base64": "",
+          "native_process_started": true,
+          "spawn_error": null,
+          "status": {
+            "exit_code": 234,
+            "signal": null,
+            "timed_out": false
+          },
+          "stdout_base64": "",
+          "stderr_base64": "SW5wdXQgIzAsIHBwbV9waXBlLCBmcm9tICdzb3VyY2UucHBtJzoKICBEdXJhdGlvbjogTi9BLCBiaXRyYXRlOiBOL0EKICBTdHJlYW0gIzA6MDogVmlkZW86IHBwbSwgcmdiMjQsIDN4MSwgMjUgZnBzLCAyNSB0YnIsIDI1IHRibgpTdHJlYW0gbWFwcGluZzoKICBTdHJlYW0gIzA6MCAtPiAjMDowIChwcG0gKG5hdGl2ZSkgLT4gaDI2NCAobGlieDI2NCkpCltsaWJ4MjY0IEAgMHg1NTU1NjA2YmM0YzBdIHVzaW5nIGNwdSBjYXBhYmlsaXRpZXM6IE1NWDIgU1NFMkZhc3QgU1NTRTMgU1NFNC4yCltsaWJ4MjY0IEAgMHg1NTU1NjA2YmM0YzBdIHByb2ZpbGUgSGlnaCA0OjQ6NCBQcmVkaWN0aXZlLCBsZXZlbCAxLjAsIDQ6NDo0LCA4LWJpdApbbGlieDI2NCBAIDB4NTU1NTYwNmJjNGMwXSAyNjQgLSBjb3JlIDE2NSAtIEguMjY0L01QRUctNCBBVkMgY29kZWMgLSBDb3B5bGVmdCAyMDAzLTIwMjUgLSBodHRwOi8vd3d3LnZpZGVvbGFuLm9yZy94MjY0Lmh0bWwgLSBvcHRpb25zOiBjYWJhYz0xIHJlZj0zIGRlYmxvY2s9MTowOjAgYW5hbHlzZT0weDM6MHgxMTMgbWU9aGV4IHN1Ym1lPTcgcHN5PTEgcHN5X3JkPTEuMDA6MC4wMCBtaXhlZF9yZWY9MSBtZV9yYW5nZT0xNiBjaHJvbWFfbWU9MSB0cmVsbGlzPTEgOHg4ZGN0PTEgY3FtPTAgZGVhZHpvbmU9MjEsMTEgZmFzdF9wc2tpcD0xIGNocm9tYV9xcF9vZmZzZXQ9NCB0aHJlYWRzPTEgbG9va2FoZWFkX3RocmVhZHM9MSBzbGljZWRfdGhyZWFkcz0wIG5yPTAgZGVjaW1hdGU9MSBpbnRlcmxhY2VkPTAgYmx1cmF5X2NvbXBhdD0wIGNvbnN0cmFpbmVkX2ludHJhPTAgYmZyYW1lcz0zIGJfcHlyYW1pZD0yIGJfYWRhcHQ9MSBiX2JpYXM9MCBkaXJlY3Q9MSB3ZWlnaHRiPTEgb3Blbl9nb3A9MCB3ZWlnaHRwPTIga2V5aW50PTI1MCBrZXlpbnRfbWluPTI1IHNjZW5lY3V0PTQwIGludHJhX3JlZnJlc2g9MCByY19sb29rYWhlYWQ9NDAgcmM9Y3JmIG1idHJlZT0xIGNyZj0yMy4wIHFjb21wPTAuNjAgcXBtaW49MCBxcG1heD02OSBxcHN0ZXA9NCBpcF9yYXRpbz0xLjQwIGFxPTE6MS4wMApbbXA0IEAgMHg1NTU1NjA2YmFlMDBdIG11eGVyIGRvZXMgbm90IHN1cHBvcnQgbm9uIHNlZWthYmxlIG91dHB1dApbb3V0IzAvbXA0IEAgMHg1NTU1NjA2YmFjYzBdIENvdWxkIG5vdCB3cml0ZSBoZWFkZXIgKGluY29ycmVjdCBjb2RlYyBwYXJhbWV0ZXJzID8pOiBJbnZhbGlkIGFyZ3VtZW50Clt2ZiMwOjAgQCAweDU1NTU2MDZhYmE0MF0gRXJyb3Igc2VuZGluZyBmcmFtZXMgdG8gY29uc3VtZXJzOiBJbnZhbGlkIGFyZ3VtZW50Clt2ZiMwOjAgQCAweDU1NTU2MDZhYmE0MF0gVGFzayBmaW5pc2hlZCB3aXRoIGVycm9yIGNvZGU6IC0yMiAoSW52YWxpZCBhcmd1bWVudCkKW3ZmIzA6MCBAIDB4NTU1NTYwNmFiYTQwXSBUZXJtaW5hdGluZyB0aHJlYWQgd2l0aCByZXR1cm4gY29kZSAtMjIgKEludmFsaWQgYXJndW1lbnQpCltvdXQjMC9tcDQgQCAweDU1NTU2MDZiYWNjMF0gTm90aGluZyB3YXMgd3JpdHRlbiBpbnRvIG91dHB1dCBmaWxlLCBiZWNhdXNlIGF0IGxlYXN0IG9uZSBvZiBpdHMgc3RyZWFtcyByZWNlaXZlZCBubyBwYWNrZXRzLgpmcmFtZT0gICAgMCBmcHM9MC4wIHE9MC4wIExzaXplPSAgICAgICAwS2lCIHRpbWU9Ti9BIGJpdHJhdGU9Ti9BIHNwZWVkPU4vQSBlbGFwc2VkPTA6MDA6MDAuMDMgICAgCkNvbnZlcnNpb24gZmFpbGVkIQo=",
+          "executable_sha256": "693997243e25684ab5976522d97111f44dbc14cfb47f968c2e2283b8fe070a17",
+          "files_before": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "files_after": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "effects": {
+            "early.ppm": "preserved",
+            "final.ppm": "preserved",
+            "first.mkv": "preserved",
+            "page.ps": "preserved",
+            "source.ppm": "preserved"
+          },
+          "original_argv": [
+            "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/bin/ffmpeg",
+            "-hide_banner",
+            "-nostdin",
+            "-y",
+            "-loop",
+            "1",
+            "-i",
+            "source.ppm",
+            "-frames:v",
+            "1",
+            "-c:v",
+            "libx264",
+            "-f",
+            "mp4",
+            "pipe:1"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "im-late-option",
+      "runs": [
+        {
+          "argv": [
+            "/opt/imagemagick/AppRun",
+            "source.ppm",
+            "-write",
+            "early.ppm",
+            "-ordering_unknown",
+            "final.ppm"
+          ],
+          "cwd": "/scratch/fixture",
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC",
+            "MAGICK_THREAD_LIMIT": "1",
+            "HOME": "/scratch/fixture/home",
+            "TMPDIR": "/scratch/fixture/tmp",
+            "MAGICK_TEMPORARY_PATH": "/scratch/fixture/tmp"
+          },
+          "stdin_base64": "",
+          "native_process_started": true,
+          "spawn_error": null,
+          "status": {
+            "exit_code": 11,
+            "signal": null,
+            "timed_out": false
+          },
+          "stdout_base64": "",
+          "stderr_base64": "bWFnaWNrOiB1bnJlY29nbml6ZWQgb3B0aW9uIGAtb3JkZXJpbmdfdW5rbm93bicgYXQgQ0xJIGFyZyA0IEAgZmF0YWwvbWFnaWNrLWNsaS5jL1Byb2Nlc3NDb21tYW5kT3B0aW9ucy82NTguCg==",
+          "executable_sha256": "ebe8030aa93f0ef778c3d0cb773169b63e0342f31141901492a030968068399c",
+          "files_before": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "files_after": {
+            "early.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "effects": {
+            "early.ppm": "modified",
+            "final.ppm": "preserved",
+            "first.mkv": "preserved",
+            "page.ps": "preserved",
+            "source.ppm": "preserved"
+          },
+          "original_argv": [
+            "/opt/homebrew/Cellar/imagemagick/7.1.2-31/bin/magick",
+            "source.ppm",
+            "-write",
+            "early.ppm",
+            "-ordering_unknown",
+            "final.ppm"
+          ]
+        },
+        {
+          "argv": [
+            "/opt/imagemagick/AppRun",
+            "source.ppm",
+            "-write",
+            "early.ppm",
+            "-ordering_unknown",
+            "final.ppm"
+          ],
+          "cwd": "/scratch/fixture",
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC",
+            "MAGICK_THREAD_LIMIT": "1",
+            "HOME": "/scratch/fixture/home",
+            "TMPDIR": "/scratch/fixture/tmp",
+            "MAGICK_TEMPORARY_PATH": "/scratch/fixture/tmp"
+          },
+          "stdin_base64": "",
+          "native_process_started": true,
+          "spawn_error": null,
+          "status": {
+            "exit_code": 11,
+            "signal": null,
+            "timed_out": false
+          },
+          "stdout_base64": "",
+          "stderr_base64": "bWFnaWNrOiB1bnJlY29nbml6ZWQgb3B0aW9uIGAtb3JkZXJpbmdfdW5rbm93bicgYXQgQ0xJIGFyZyA0IEAgZmF0YWwvbWFnaWNrLWNsaS5jL1Byb2Nlc3NDb21tYW5kT3B0aW9ucy82NTguCg==",
+          "executable_sha256": "ebe8030aa93f0ef778c3d0cb773169b63e0342f31141901492a030968068399c",
+          "files_before": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "files_after": {
+            "early.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "effects": {
+            "early.ppm": "modified",
+            "final.ppm": "preserved",
+            "first.mkv": "preserved",
+            "page.ps": "preserved",
+            "source.ppm": "preserved"
+          },
+          "original_argv": [
+            "/opt/homebrew/Cellar/imagemagick/7.1.2-31/bin/magick",
+            "source.ppm",
+            "-write",
+            "early.ppm",
+            "-ordering_unknown",
+            "final.ppm"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "im-late-resource",
+      "runs": [
+        {
+          "argv": [
+            "/opt/imagemagick/AppRun",
+            "source.ppm",
+            "-write",
+            "early.ppm",
+            "absent.ppm",
+            "final.ppm"
+          ],
+          "cwd": "/scratch/fixture",
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC",
+            "MAGICK_THREAD_LIMIT": "1",
+            "HOME": "/scratch/fixture/home",
+            "TMPDIR": "/scratch/fixture/tmp",
+            "MAGICK_TEMPORARY_PATH": "/scratch/fixture/tmp"
+          },
+          "stdin_base64": "",
+          "native_process_started": true,
+          "spawn_error": null,
+          "status": {
+            "exit_code": 1,
+            "signal": null,
+            "timed_out": false
+          },
+          "stdout_base64": "",
+          "stderr_base64": "bWFnaWNrOiB1bmFibGUgdG8gb3BlbiBpbWFnZSAnYWJzZW50LnBwbSc6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkgQCBlcnJvci9ibG9iLmMvT3BlbkJsb2IvMzYzOC4K",
+          "executable_sha256": "ebe8030aa93f0ef778c3d0cb773169b63e0342f31141901492a030968068399c",
+          "files_before": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "files_after": {
+            "early.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "effects": {
+            "early.ppm": "modified",
+            "final.ppm": "preserved",
+            "first.mkv": "preserved",
+            "page.ps": "preserved",
+            "source.ppm": "preserved"
+          },
+          "original_argv": [
+            "/opt/homebrew/Cellar/imagemagick/7.1.2-31/bin/magick",
+            "source.ppm",
+            "-write",
+            "early.ppm",
+            "absent.ppm",
+            "final.ppm"
+          ]
+        },
+        {
+          "argv": [
+            "/opt/imagemagick/AppRun",
+            "source.ppm",
+            "-write",
+            "early.ppm",
+            "absent.ppm",
+            "final.ppm"
+          ],
+          "cwd": "/scratch/fixture",
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC",
+            "MAGICK_THREAD_LIMIT": "1",
+            "HOME": "/scratch/fixture/home",
+            "TMPDIR": "/scratch/fixture/tmp",
+            "MAGICK_TEMPORARY_PATH": "/scratch/fixture/tmp"
+          },
+          "stdin_base64": "",
+          "native_process_started": true,
+          "spawn_error": null,
+          "status": {
+            "exit_code": 1,
+            "signal": null,
+            "timed_out": false
+          },
+          "stdout_base64": "",
+          "stderr_base64": "bWFnaWNrOiB1bmFibGUgdG8gb3BlbiBpbWFnZSAnYWJzZW50LnBwbSc6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkgQCBlcnJvci9ibG9iLmMvT3BlbkJsb2IvMzYzOC4K",
+          "executable_sha256": "ebe8030aa93f0ef778c3d0cb773169b63e0342f31141901492a030968068399c",
+          "files_before": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "files_after": {
+            "early.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "effects": {
+            "early.ppm": "modified",
+            "final.ppm": "preserved",
+            "first.mkv": "preserved",
+            "page.ps": "preserved",
+            "source.ppm": "preserved"
+          },
+          "original_argv": [
+            "/opt/homebrew/Cellar/imagemagick/7.1.2-31/bin/magick",
+            "source.ppm",
+            "-write",
+            "early.ppm",
+            "absent.ppm",
+            "final.ppm"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "im-late-stack",
+      "runs": [
+        {
+          "argv": [
+            "/opt/imagemagick/AppRun",
+            "source.ppm",
+            "-write",
+            "early.ppm",
+            "(",
+            "source.ppm",
+            "final.ppm"
+          ],
+          "cwd": "/scratch/fixture",
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC",
+            "MAGICK_THREAD_LIMIT": "1",
+            "HOME": "/scratch/fixture/home",
+            "TMPDIR": "/scratch/fixture/tmp",
+            "MAGICK_TEMPORARY_PATH": "/scratch/fixture/tmp"
+          },
+          "stdin_base64": "",
+          "native_process_started": true,
+          "spawn_error": null,
+          "status": {
+            "exit_code": 1,
+            "signal": null,
+            "timed_out": false
+          },
+          "stdout_base64": "",
+          "stderr_base64": "bWFnaWNrOiB1bmJhbGFuY2VkIHBhcmVudGhlc2lzIGAoZW5kIG9mIGNsaSknIGF0IENMSSBhcmcgNiBAIGVycm9yL21hZ2ljay1jbGkuYy9Qcm9jZXNzQ29tbWFuZE9wdGlvbnMvNzM1Lgo=",
+          "executable_sha256": "ebe8030aa93f0ef778c3d0cb773169b63e0342f31141901492a030968068399c",
+          "files_before": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "files_after": {
+            "early.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "effects": {
+            "early.ppm": "modified",
+            "final.ppm": "preserved",
+            "first.mkv": "preserved",
+            "page.ps": "preserved",
+            "source.ppm": "preserved"
+          },
+          "original_argv": [
+            "/opt/homebrew/Cellar/imagemagick/7.1.2-31/bin/magick",
+            "source.ppm",
+            "-write",
+            "early.ppm",
+            "(",
+            "source.ppm",
+            "final.ppm"
+          ]
+        },
+        {
+          "argv": [
+            "/opt/imagemagick/AppRun",
+            "source.ppm",
+            "-write",
+            "early.ppm",
+            "(",
+            "source.ppm",
+            "final.ppm"
+          ],
+          "cwd": "/scratch/fixture",
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC",
+            "MAGICK_THREAD_LIMIT": "1",
+            "HOME": "/scratch/fixture/home",
+            "TMPDIR": "/scratch/fixture/tmp",
+            "MAGICK_TEMPORARY_PATH": "/scratch/fixture/tmp"
+          },
+          "stdin_base64": "",
+          "native_process_started": true,
+          "spawn_error": null,
+          "status": {
+            "exit_code": 1,
+            "signal": null,
+            "timed_out": false
+          },
+          "stdout_base64": "",
+          "stderr_base64": "bWFnaWNrOiB1bmJhbGFuY2VkIHBhcmVudGhlc2lzIGAoZW5kIG9mIGNsaSknIGF0IENMSSBhcmcgNiBAIGVycm9yL21hZ2ljay1jbGkuYy9Qcm9jZXNzQ29tbWFuZE9wdGlvbnMvNzM1Lgo=",
+          "executable_sha256": "ebe8030aa93f0ef778c3d0cb773169b63e0342f31141901492a030968068399c",
+          "files_before": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "files_after": {
+            "early.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "effects": {
+            "early.ppm": "modified",
+            "final.ppm": "preserved",
+            "first.mkv": "preserved",
+            "page.ps": "preserved",
+            "source.ppm": "preserved"
+          },
+          "original_argv": [
+            "/opt/homebrew/Cellar/imagemagick/7.1.2-31/bin/magick",
+            "source.ppm",
+            "-write",
+            "early.ppm",
+            "(",
+            "source.ppm",
+            "final.ppm"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "im-mogrify-resource",
+      "runs": [
+        {
+          "argv": [
+            "/opt/imagemagick/AppRun",
+            "mogrify",
+            "-negate",
+            "source.ppm",
+            "absent.ppm"
+          ],
+          "cwd": "/scratch/fixture",
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC",
+            "MAGICK_THREAD_LIMIT": "1",
+            "HOME": "/scratch/fixture/home",
+            "TMPDIR": "/scratch/fixture/tmp",
+            "MAGICK_TEMPORARY_PATH": "/scratch/fixture/tmp"
+          },
+          "stdin_base64": "",
+          "native_process_started": true,
+          "spawn_error": null,
+          "status": {
+            "exit_code": 1,
+            "signal": null,
+            "timed_out": false
+          },
+          "stdout_base64": "",
+          "stderr_base64": "bW9ncmlmeTogdW5hYmxlIHRvIG9wZW4gaW1hZ2UgJ2Fic2VudC5wcG0nOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5IEAgZXJyb3IvYmxvYi5jL09wZW5CbG9iLzM2MzguCg==",
+          "executable_sha256": "ebe8030aa93f0ef778c3d0cb773169b63e0342f31141901492a030968068399c",
+          "files_before": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "files_after": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "dd515765fdf647284dd856feca86194160ae19a1c797a600fbfa7bee371aaf3c",
+              "bytes_base64": "UDYKMyAxCjI1NQoA////AP///wA="
+            }
+          },
+          "effects": {
+            "early.ppm": "preserved",
+            "final.ppm": "preserved",
+            "first.mkv": "preserved",
+            "page.ps": "preserved",
+            "source.ppm": "modified"
+          },
+          "original_argv": [
+            "/opt/homebrew/Cellar/imagemagick/7.1.2-31/bin/magick",
+            "mogrify",
+            "-negate",
+            "source.ppm",
+            "absent.ppm"
+          ]
+        },
+        {
+          "argv": [
+            "/opt/imagemagick/AppRun",
+            "mogrify",
+            "-negate",
+            "source.ppm",
+            "absent.ppm"
+          ],
+          "cwd": "/scratch/fixture",
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC",
+            "MAGICK_THREAD_LIMIT": "1",
+            "HOME": "/scratch/fixture/home",
+            "TMPDIR": "/scratch/fixture/tmp",
+            "MAGICK_TEMPORARY_PATH": "/scratch/fixture/tmp"
+          },
+          "stdin_base64": "",
+          "native_process_started": true,
+          "spawn_error": null,
+          "status": {
+            "exit_code": 1,
+            "signal": null,
+            "timed_out": false
+          },
+          "stdout_base64": "",
+          "stderr_base64": "bW9ncmlmeTogdW5hYmxlIHRvIG9wZW4gaW1hZ2UgJ2Fic2VudC5wcG0nOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5IEAgZXJyb3IvYmxvYi5jL09wZW5CbG9iLzM2MzguCg==",
+          "executable_sha256": "ebe8030aa93f0ef778c3d0cb773169b63e0342f31141901492a030968068399c",
+          "files_before": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "files_after": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "dd515765fdf647284dd856feca86194160ae19a1c797a600fbfa7bee371aaf3c",
+              "bytes_base64": "UDYKMyAxCjI1NQoA////AP///wA="
+            }
+          },
+          "effects": {
+            "early.ppm": "preserved",
+            "final.ppm": "preserved",
+            "first.mkv": "preserved",
+            "page.ps": "preserved",
+            "source.ppm": "modified"
+          },
+          "original_argv": [
+            "/opt/homebrew/Cellar/imagemagick/7.1.2-31/bin/magick",
+            "mogrify",
+            "-negate",
+            "source.ppm",
+            "absent.ppm"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "im-mogrify-syntax",
+      "runs": [
+        {
+          "argv": [
+            "/opt/imagemagick/AppRun",
+            "mogrify",
+            "-negate",
+            "source.ppm",
+            "-ordering_unknown"
+          ],
+          "cwd": "/scratch/fixture",
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC",
+            "MAGICK_THREAD_LIMIT": "1",
+            "HOME": "/scratch/fixture/home",
+            "TMPDIR": "/scratch/fixture/tmp",
+            "MAGICK_TEMPORARY_PATH": "/scratch/fixture/tmp"
+          },
+          "stdin_base64": "",
+          "native_process_started": true,
+          "spawn_error": null,
+          "status": {
+            "exit_code": 1,
+            "signal": null,
+            "timed_out": false
+          },
+          "stdout_base64": "",
+          "stderr_base64": "bW9ncmlmeTogdW5yZWNvZ25pemVkIG9wdGlvbiBgLW9yZGVyaW5nX3Vua25vd24nIEAgZXJyb3IvbW9ncmlmeS5jL01vZ3JpZnlJbWFnZUNvbW1hbmQvNTYyNC4K",
+          "executable_sha256": "ebe8030aa93f0ef778c3d0cb773169b63e0342f31141901492a030968068399c",
+          "files_before": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "files_after": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "dd515765fdf647284dd856feca86194160ae19a1c797a600fbfa7bee371aaf3c",
+              "bytes_base64": "UDYKMyAxCjI1NQoA////AP///wA="
+            }
+          },
+          "effects": {
+            "early.ppm": "preserved",
+            "final.ppm": "preserved",
+            "first.mkv": "preserved",
+            "page.ps": "preserved",
+            "source.ppm": "modified"
+          },
+          "original_argv": [
+            "/opt/homebrew/Cellar/imagemagick/7.1.2-31/bin/magick",
+            "mogrify",
+            "-negate",
+            "source.ppm",
+            "-ordering_unknown"
+          ]
+        },
+        {
+          "argv": [
+            "/opt/imagemagick/AppRun",
+            "mogrify",
+            "-negate",
+            "source.ppm",
+            "-ordering_unknown"
+          ],
+          "cwd": "/scratch/fixture",
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC",
+            "MAGICK_THREAD_LIMIT": "1",
+            "HOME": "/scratch/fixture/home",
+            "TMPDIR": "/scratch/fixture/tmp",
+            "MAGICK_TEMPORARY_PATH": "/scratch/fixture/tmp"
+          },
+          "stdin_base64": "",
+          "native_process_started": true,
+          "spawn_error": null,
+          "status": {
+            "exit_code": 1,
+            "signal": null,
+            "timed_out": false
+          },
+          "stdout_base64": "",
+          "stderr_base64": "bW9ncmlmeTogdW5yZWNvZ25pemVkIG9wdGlvbiBgLW9yZGVyaW5nX3Vua25vd24nIEAgZXJyb3IvbW9ncmlmeS5jL01vZ3JpZnlJbWFnZUNvbW1hbmQvNTYyNC4K",
+          "executable_sha256": "ebe8030aa93f0ef778c3d0cb773169b63e0342f31141901492a030968068399c",
+          "files_before": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "files_after": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "dd515765fdf647284dd856feca86194160ae19a1c797a600fbfa7bee371aaf3c",
+              "bytes_base64": "UDYKMyAxCjI1NQoA////AP///wA="
+            }
+          },
+          "effects": {
+            "early.ppm": "preserved",
+            "final.ppm": "preserved",
+            "first.mkv": "preserved",
+            "page.ps": "preserved",
+            "source.ppm": "modified"
+          },
+          "original_argv": [
+            "/opt/homebrew/Cellar/imagemagick/7.1.2-31/bin/magick",
+            "mogrify",
+            "-negate",
+            "source.ppm",
+            "-ordering_unknown"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "im-delegate-after-write",
+      "runs": [
+        {
+          "argv": [
+            "/opt/imagemagick/AppRun",
+            "source.ppm",
+            "-write",
+            "early.ppm",
+            "page.ps",
+            "final.ppm"
+          ],
+          "cwd": "/scratch/fixture",
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC",
+            "MAGICK_THREAD_LIMIT": "1",
+            "HOME": "/scratch/fixture/home",
+            "TMPDIR": "/scratch/fixture/tmp",
+            "MAGICK_TEMPORARY_PATH": "/scratch/fixture/tmp"
+          },
+          "stdin_base64": "",
+          "native_process_started": true,
+          "spawn_error": null,
+          "status": {
+            "exit_code": 1,
+            "signal": null,
+            "timed_out": false
+          },
+          "stdout_base64": "",
+          "stderr_base64": "L2Jpbi9zaDogMTogZ3M6IG5vdCBmb3VuZAovYmluL3NoOiAxOiBnczogbm90IGZvdW5kCm1hZ2ljazogRmFpbGVkVG9FeGVjdXRlQ29tbWFuZCBgJ2dzJyAtc3N0ZG91dD0lc3RkZXJyIC1kUVVJRVQgLWRTQUZFUiAtZEJBVENIIC1kTk9QQVVTRSAtZE5PUFJPTVBUIC1kTWF4Qml0bWFwPTUwMDAwMDAwMCAtZEFsaWduVG9QaXhlbHM9MCAtZEdyaWRGaXRUVD0yICctc0RFVklDRT1wbmcxNm1hbHBoYScgLWRUZXh0QWxwaGFCaXRzPTQgLWRHcmFwaGljc0FscGhhQml0cz00ICctcjcyeDcyJyAtZzJ4MiAgJy1zT3V0cHV0RmlsZT0vc2NyYXRjaC9maXh0dXJlL3RtcC9tYWdpY2stRWt4VENIU1RuWEExVFJqbk0wNEFpNjZRaWJJVVppR0wlZCcgJy1mL3NjcmF0Y2gvZml4dHVyZS90bXAvbWFnaWNrLUdRUHgzQ1E1Sk45V3hJTUc3Vm4yd2ZHX3VYNmVwNmRKJyAnLWYvc2NyYXRjaC9maXh0dXJlL3RtcC9tYWdpY2stOXFXTUtUSm1mbGVFeE5mN3R4anhndU9DT01jTlRHVHMnJyAoMzI1MTIpIEAgZXJyb3IvZ2hvc3RzY3JpcHQtcHJpdmF0ZS5oL0V4ZWN1dGVHaG9zdHNjcmlwdENvbW1hbmQvNzguCm1hZ2ljazogRmFpbGVkVG9FeGVjdXRlQ29tbWFuZCBgJ2dzJyAtc3N0ZG91dD0lc3RkZXJyIC1kUVVJRVQgLWRTQUZFUiAtZEJBVENIIC1kTk9QQVVTRSAtZE5PUFJPTVBUIC1kTWF4Qml0bWFwPTUwMDAwMDAwMCAtZEFsaWduVG9QaXhlbHM9MCAtZEdyaWRGaXRUVD0yICctc0RFVklDRT1wbmcxNm1hbHBoYScgLWRUZXh0QWxwaGFCaXRzPTQgLWRHcmFwaGljc0FscGhhQml0cz00ICctcjcyeDcyJyAtZzJ4MiAgJy1zT3V0cHV0RmlsZT0vc2NyYXRjaC9maXh0dXJlL3RtcC9tYWdpY2stRWt4VENIU1RuWEExVFJqbk0wNEFpNjZRaWJJVVppR0wlZCcgJy1mL3NjcmF0Y2gvZml4dHVyZS90bXAvbWFnaWNrLUdRUHgzQ1E1Sk45V3hJTUc3Vm4yd2ZHX3VYNmVwNmRKJyAnLWYvc2NyYXRjaC9maXh0dXJlL3RtcC9tYWdpY2stOXFXTUtUSm1mbGVFeE5mN3R4anhndU9DT01jTlRHVHMnIC1jIHNob3dwYWdlJyAoMzI1MTIpIEAgZXJyb3IvZ2hvc3RzY3JpcHQtcHJpdmF0ZS5oL0V4ZWN1dGVHaG9zdHNjcmlwdENvbW1hbmQvNzguCg==",
+          "executable_sha256": "ebe8030aa93f0ef778c3d0cb773169b63e0342f31141901492a030968068399c",
+          "files_before": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "files_after": {
+            "early.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "effects": {
+            "early.ppm": "modified",
+            "final.ppm": "preserved",
+            "first.mkv": "preserved",
+            "page.ps": "preserved",
+            "source.ppm": "preserved"
+          },
+          "original_argv": [
+            "/opt/homebrew/Cellar/imagemagick/7.1.2-31/bin/magick",
+            "source.ppm",
+            "-write",
+            "early.ppm",
+            "page.ps",
+            "final.ppm"
+          ]
+        },
+        {
+          "argv": [
+            "/opt/imagemagick/AppRun",
+            "source.ppm",
+            "-write",
+            "early.ppm",
+            "page.ps",
+            "final.ppm"
+          ],
+          "cwd": "/scratch/fixture",
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC",
+            "MAGICK_THREAD_LIMIT": "1",
+            "HOME": "/scratch/fixture/home",
+            "TMPDIR": "/scratch/fixture/tmp",
+            "MAGICK_TEMPORARY_PATH": "/scratch/fixture/tmp"
+          },
+          "stdin_base64": "",
+          "native_process_started": true,
+          "spawn_error": null,
+          "status": {
+            "exit_code": 1,
+            "signal": null,
+            "timed_out": false
+          },
+          "stdout_base64": "",
+          "stderr_base64": "L2Jpbi9zaDogMTogZ3M6IG5vdCBmb3VuZAovYmluL3NoOiAxOiBnczogbm90IGZvdW5kCm1hZ2ljazogRmFpbGVkVG9FeGVjdXRlQ29tbWFuZCBgJ2dzJyAtc3N0ZG91dD0lc3RkZXJyIC1kUVVJRVQgLWRTQUZFUiAtZEJBVENIIC1kTk9QQVVTRSAtZE5PUFJPTVBUIC1kTWF4Qml0bWFwPTUwMDAwMDAwMCAtZEFsaWduVG9QaXhlbHM9MCAtZEdyaWRGaXRUVD0yICctc0RFVklDRT1wbmcxNm1hbHBoYScgLWRUZXh0QWxwaGFCaXRzPTQgLWRHcmFwaGljc0FscGhhQml0cz00ICctcjcyeDcyJyAtZzJ4MiAgJy1zT3V0cHV0RmlsZT0vc2NyYXRjaC9maXh0dXJlL3RtcC9tYWdpY2stQmpxVS1FOUg0M2phZFd6cW5WQlRwSEdTc01BbnplQzQlZCcgJy1mL3NjcmF0Y2gvZml4dHVyZS90bXAvbWFnaWNrLXZpaDRuY3hQSEVNMzZnUzBJbzFzSXlBQlZLS3hqbFM1JyAnLWYvc2NyYXRjaC9maXh0dXJlL3RtcC9tYWdpY2stSjdnZVNzM1RfbjhXOEpHeENfeHJCT2VOXy0xRWV4S0MnJyAoMzI1MTIpIEAgZXJyb3IvZ2hvc3RzY3JpcHQtcHJpdmF0ZS5oL0V4ZWN1dGVHaG9zdHNjcmlwdENvbW1hbmQvNzguCm1hZ2ljazogRmFpbGVkVG9FeGVjdXRlQ29tbWFuZCBgJ2dzJyAtc3N0ZG91dD0lc3RkZXJyIC1kUVVJRVQgLWRTQUZFUiAtZEJBVENIIC1kTk9QQVVTRSAtZE5PUFJPTVBUIC1kTWF4Qml0bWFwPTUwMDAwMDAwMCAtZEFsaWduVG9QaXhlbHM9MCAtZEdyaWRGaXRUVD0yICctc0RFVklDRT1wbmcxNm1hbHBoYScgLWRUZXh0QWxwaGFCaXRzPTQgLWRHcmFwaGljc0FscGhhQml0cz00ICctcjcyeDcyJyAtZzJ4MiAgJy1zT3V0cHV0RmlsZT0vc2NyYXRjaC9maXh0dXJlL3RtcC9tYWdpY2stQmpxVS1FOUg0M2phZFd6cW5WQlRwSEdTc01BbnplQzQlZCcgJy1mL3NjcmF0Y2gvZml4dHVyZS90bXAvbWFnaWNrLXZpaDRuY3hQSEVNMzZnUzBJbzFzSXlBQlZLS3hqbFM1JyAnLWYvc2NyYXRjaC9maXh0dXJlL3RtcC9tYWdpY2stSjdnZVNzM1RfbjhXOEpHeENfeHJCT2VOXy0xRWV4S0MnIC1jIHNob3dwYWdlJyAoMzI1MTIpIEAgZXJyb3IvZ2hvc3RzY3JpcHQtcHJpdmF0ZS5oL0V4ZWN1dGVHaG9zdHNjcmlwdENvbW1hbmQvNzguCg==",
+          "executable_sha256": "ebe8030aa93f0ef778c3d0cb773169b63e0342f31141901492a030968068399c",
+          "files_before": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "files_after": {
+            "early.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "effects": {
+            "early.ppm": "modified",
+            "final.ppm": "preserved",
+            "first.mkv": "preserved",
+            "page.ps": "preserved",
+            "source.ppm": "preserved"
+          },
+          "original_argv": [
+            "/opt/homebrew/Cellar/imagemagick/7.1.2-31/bin/magick",
+            "source.ppm",
+            "-write",
+            "early.ppm",
+            "page.ps",
+            "final.ppm"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "im-resource-limit-after-write",
+      "runs": [
+        {
+          "argv": [
+            "/opt/imagemagick/AppRun",
+            "source.ppm",
+            "-write",
+            "early.ppm",
+            "-limit",
+            "width",
+            "1",
+            "source.ppm",
+            "final.ppm"
+          ],
+          "cwd": "/scratch/fixture",
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC",
+            "MAGICK_THREAD_LIMIT": "1",
+            "HOME": "/scratch/fixture/home",
+            "TMPDIR": "/scratch/fixture/tmp",
+            "MAGICK_TEMPORARY_PATH": "/scratch/fixture/tmp"
+          },
+          "stdin_base64": "",
+          "native_process_started": true,
+          "spawn_error": null,
+          "status": {
+            "exit_code": 1,
+            "signal": null,
+            "timed_out": false
+          },
+          "stdout_base64": "",
+          "stderr_base64": "bWFnaWNrOiB3aWR0aCBvciBoZWlnaHQgZXhjZWVkcyBsaW1pdCBgc291cmNlLnBwbScgKDN4MSkgPiAoMXgzNjAyODc5NzAxODk2Mzk2OCkgQCBlcnJvci9jYWNoZS5jL09wZW5QaXhlbENhY2hlLzM4MDUuCg==",
+          "executable_sha256": "ebe8030aa93f0ef778c3d0cb773169b63e0342f31141901492a030968068399c",
+          "files_before": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "files_after": {
+            "early.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "effects": {
+            "early.ppm": "modified",
+            "final.ppm": "preserved",
+            "first.mkv": "preserved",
+            "page.ps": "preserved",
+            "source.ppm": "preserved"
+          },
+          "original_argv": [
+            "/opt/homebrew/Cellar/imagemagick/7.1.2-31/bin/magick",
+            "source.ppm",
+            "-write",
+            "early.ppm",
+            "-limit",
+            "width",
+            "1",
+            "source.ppm",
+            "final.ppm"
+          ]
+        },
+        {
+          "argv": [
+            "/opt/imagemagick/AppRun",
+            "source.ppm",
+            "-write",
+            "early.ppm",
+            "-limit",
+            "width",
+            "1",
+            "source.ppm",
+            "final.ppm"
+          ],
+          "cwd": "/scratch/fixture",
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC",
+            "MAGICK_THREAD_LIMIT": "1",
+            "HOME": "/scratch/fixture/home",
+            "TMPDIR": "/scratch/fixture/tmp",
+            "MAGICK_TEMPORARY_PATH": "/scratch/fixture/tmp"
+          },
+          "stdin_base64": "",
+          "native_process_started": true,
+          "spawn_error": null,
+          "status": {
+            "exit_code": 1,
+            "signal": null,
+            "timed_out": false
+          },
+          "stdout_base64": "",
+          "stderr_base64": "bWFnaWNrOiB3aWR0aCBvciBoZWlnaHQgZXhjZWVkcyBsaW1pdCBgc291cmNlLnBwbScgKDN4MSkgPiAoMXgzNjAyODc5NzAxODk2Mzk2OCkgQCBlcnJvci9jYWNoZS5jL09wZW5QaXhlbENhY2hlLzM4MDUuCg==",
+          "executable_sha256": "ebe8030aa93f0ef778c3d0cb773169b63e0342f31141901492a030968068399c",
+          "files_before": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "files_after": {
+            "early.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "effects": {
+            "early.ppm": "modified",
+            "final.ppm": "preserved",
+            "first.mkv": "preserved",
+            "page.ps": "preserved",
+            "source.ppm": "preserved"
+          },
+          "original_argv": [
+            "/opt/homebrew/Cellar/imagemagick/7.1.2-31/bin/magick",
+            "source.ppm",
+            "-write",
+            "early.ppm",
+            "-limit",
+            "width",
+            "1",
+            "source.ppm",
+            "final.ppm"
+          ]
+        }
+      ]
+    }
+  ]
+}

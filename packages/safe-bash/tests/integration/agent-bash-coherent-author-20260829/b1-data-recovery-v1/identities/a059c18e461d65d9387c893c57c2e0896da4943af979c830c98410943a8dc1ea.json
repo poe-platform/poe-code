@@ -1,0 +1,21 @@
+{
+  "source": {
+    "path": "/private/tmp/coherent-b1-r5-runtime/capture/00-offline-install.stderr",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "mode": 420,
+    "dev": 16777232,
+    "ino": 190023569,
+    "mtimeMs": 1788021735384.7102,
+    "origin": {
+      "finalSha256": "89f3c55c91dc664a94df815ef23d5ddbbe6fb7376a1ef5a8e490255c475dd72b",
+      "locator": "/private/tmp/coherent-b1-r5-runtime/capture/00-offline-install.stderr"
+    },
+    "role": "fixed-capture-directory-member"
+  },
+  "dataPath": "data/a059c18e461d65d9387c893c57c2e0896da4943af979c830c98410943a8dc1ea.raw",
+  "identityPath": "identities/a059c18e461d65d9387c893c57c2e0896da4943af979c830c98410943a8dc1ea.json",
+  "copiedBytes": 0,
+  "copiedMode": 420,
+  "copiedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

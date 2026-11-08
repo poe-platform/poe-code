@@ -1,0 +1,14 @@
+{
+  "harnessCommit": "f231144c9afb38c57fd57cd0bd5fa60d1915e29b",
+  "productCommit": "8670ebe8f0d39966c2de2638780437398e5f8490",
+  "verifierCommit": "c800c899114c6c83b3d3eb67231176d124abaf49",
+  "rawSha256": "3462b8ca6f006564a6ff5dd3f11c15007ad339807b07f32cac90afb0d843d046",
+  "files": {
+    "external-verifier-v2.mjs": "bdb30704c6c501436b9d673bb42e9630880b9d1e4a27b6db949754624e7227c7",
+    "run-v2.mjs": "d80a54eb564400831ae57bffc6513f28393f07ca8fe1086ce1eade0e88633347",
+    "overlay-controls.mjs": "4f51b11f3e5e64586c156e55d6d49acc884a6b0da55b129ac5ad2b4929a652c8"
+  },
+  "controls": 8,
+  "productExecutions": 0,
+  "packageFollowupExecuted": false
+}

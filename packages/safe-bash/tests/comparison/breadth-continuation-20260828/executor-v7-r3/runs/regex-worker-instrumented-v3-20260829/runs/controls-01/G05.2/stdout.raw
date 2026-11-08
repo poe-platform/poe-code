@@ -1,0 +1,2 @@
+{"event":"control-bootstrap","id":"G05.2","source":"harmless-only"}
+{"id":"G05.2","pass":false,"failures":["EXACT_WORKER_COUNT"],"created":0,"knownRetired":true,"resultBytes":3335,"resultSha256":"cc3702bb0839804168c4b7af45817c0b1e475a4a70c77931e00d1a32313bc95f"}

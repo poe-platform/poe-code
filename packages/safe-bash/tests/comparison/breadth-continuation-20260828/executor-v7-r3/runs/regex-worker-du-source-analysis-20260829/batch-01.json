@@ -1,0 +1,6 @@
+[
+  {"id":"scope-status","kind":"git","args":["status","--short","--","tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-du-source-analysis-20260829"]},
+  {"id":"references","kind":"git","args":["show","--no-patch","--format=%H%n%P%n%s","7b2a72e9","6b4d6c6f","af99d459","053c4e942c66928972af6aa227177726ca503eab","5fabc790","4088ee52","497c5660","8918f35b","0a942ed2"]},
+  {"id":"reference-packets","kind":"git","args":["show","--format=%H","--name-only","-z","7b2a72e9","6b4d6c6f","af99d459","053c4e942c66928972af6aa227177726ca503eab","5fabc790","4088ee52","497c5660","8918f35b","0a942ed2","--",":(glob)tests/**/README.md",":(glob)tests/**/REPORT.md",":(glob)tests/**/HANDOFF.md",":(glob)tests/**/POLICY.md",":(glob)tests/**/MANIFEST.json"]},
+  {"id":"target-source-paths","kind":"git","args":["ls-tree","-r","--name-only","-z","67eab12e315054907ef4ef435c6bbca2f59e0c36","--","src"]}
+]

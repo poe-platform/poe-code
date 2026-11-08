@@ -1,0 +1,23 @@
+{
+  "started": "2026-08-28T04:54:03.014Z",
+  "ended": "2026-08-28T04:54:03.189Z",
+  "pid": 34279,
+  "code": 7,
+  "signal": null,
+  "spawnError": null,
+  "reaped": true,
+  "timedOut": false,
+  "outputExceeded": false,
+  "logs": [
+    {
+      "delivered": 69,
+      "bytes": 69,
+      "sha256": "c0fac930aab5426d21faca38a87ce3d502458ea9587c4e0fbf4adf0b840db0ce"
+    },
+    {
+      "delivered": 0,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

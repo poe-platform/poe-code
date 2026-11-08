@@ -1,0 +1,16 @@
+{
+  "role": "SOURCE_ONLY_NO_PRODUCT_IMPORT",
+  "results": [
+    {
+      "file": "run.mjs",
+      "status": 0,
+      "signal": null
+    },
+    {
+      "file": "novel.mjs",
+      "status": 0,
+      "signal": null
+    }
+  ],
+  "changes": "Before any actual execution: N15 silent-command sentinel prevents later output from falsely proving diagnostic-limit propagation; exact raw-capture hash checks added. Old syntax receipt and pre-final executor preserved."
+}

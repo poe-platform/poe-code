@@ -1,0 +1,1 @@
+false | true | false; printf "%s:<%s>\n" "$?" "${PIPESTATUS[*]}"

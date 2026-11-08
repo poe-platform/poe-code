@@ -1,0 +1,131 @@
+{
+  "controls": [
+    {
+      "id": "T01-cache-lstat-race",
+      "pass": true
+    },
+    {
+      "id": "T02-cache-readdir-race",
+      "pass": true
+    },
+    {
+      "id": "T03-immutable-missing",
+      "pass": true
+    },
+    {
+      "id": "T04-other-falsy-errors",
+      "pass": true
+    },
+    {
+      "id": "T05-quiescent-strict",
+      "pass": true
+    },
+    {
+      "id": "T06-reservation-and-aggregate",
+      "pass": true
+    },
+    {
+      "id": "T07-cache-anchor-missing",
+      "pass": true
+    },
+    {
+      "id": "T08-publication-identities",
+      "pass": true
+    }
+  ],
+  "children": [
+    {
+      "id": "H01",
+      "samples": 637,
+      "snapshotRaces": 14,
+      "exited": true,
+      "closed": true,
+      "signals": [],
+      "started": "2026-08-29T16:09:01.688Z",
+      "pid": 53844,
+      "exitCode": 0,
+      "exitSignal": null,
+      "closeCode": 0,
+      "closeSignal": null,
+      "closedAt": "2026-08-29T16:09:02.460Z",
+      "reconciliation": {
+        "bytes": 19,
+        "observedBytes": 19,
+        "observedCacheBytes": 0,
+        "reservedCacheBytes": 0,
+        "entries": 5,
+        "rows": [
+          {
+            "path": "/private/tmp/safe-bash-b2-r8-controls/H01/immutable",
+            "bytes": 10,
+            "symlinkNotFollowed": false
+          },
+          {
+            "path": "/private/tmp/safe-bash-b2-r8-controls/H01/stderr.raw",
+            "bytes": 0,
+            "symlinkNotFollowed": false
+          },
+          {
+            "path": "/private/tmp/safe-bash-b2-r8-controls/H01/stdout.raw",
+            "bytes": 9,
+            "symlinkNotFollowed": false
+          }
+        ],
+        "snapshotRaceCount": 0,
+        "races": [],
+        "atomic": false,
+        "peakProof": false,
+        "cacheBoundSourceProved": false
+      }
+    },
+    {
+      "id": "H02",
+      "samples": 633,
+      "snapshotRaces": 9,
+      "exited": true,
+      "closed": true,
+      "signals": [],
+      "started": "2026-08-29T16:09:02.461Z",
+      "pid": 53846,
+      "exitCode": 0,
+      "exitSignal": null,
+      "closeCode": 0,
+      "closeSignal": null,
+      "closedAt": "2026-08-29T16:09:03.235Z",
+      "reconciliation": {
+        "bytes": 19,
+        "observedBytes": 19,
+        "observedCacheBytes": 0,
+        "reservedCacheBytes": 0,
+        "entries": 5,
+        "rows": [
+          {
+            "path": "/private/tmp/safe-bash-b2-r8-controls/H02/immutable",
+            "bytes": 10,
+            "symlinkNotFollowed": false
+          },
+          {
+            "path": "/private/tmp/safe-bash-b2-r8-controls/H02/stderr.raw",
+            "bytes": 0,
+            "symlinkNotFollowed": false
+          },
+          {
+            "path": "/private/tmp/safe-bash-b2-r8-controls/H02/stdout.raw",
+            "bytes": 9,
+            "symlinkNotFollowed": false
+          }
+        ],
+        "snapshotRaceCount": 0,
+        "races": [],
+        "atomic": false,
+        "peakProof": false,
+        "cacheBoundSourceProved": false
+      }
+    }
+  ],
+  "productRuns": 0,
+  "workers": 0,
+  "started": "2026-08-29T16:09:01.684Z",
+  "status": "PASS",
+  "ended": "2026-08-29T16:09:03.236Z"
+}

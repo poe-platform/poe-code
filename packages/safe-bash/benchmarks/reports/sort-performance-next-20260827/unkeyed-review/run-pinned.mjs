@@ -1,0 +1,92 @@
+import assert from 'node:assert/strict';
+import { execFileSync, spawn } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { cpSync, copyFileSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
+
+const directory = fileURLToPath(new URL('.', import.meta.url));
+const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+const commit = 'e090f29d9eb1aaf52eba08b2c2bf0aae53b9fb64';
+const candidate = '08a26051438f5c6bdde100a4fe724dbb84f6fca4';
+const baseline = 'dce6e3824d6de6d03490a531cf2bc7d2d279bb8c';
+const require = createRequire(import.meta.url);
+const compiler = require('/Users/kjopek/Workspace/safe-bash/node_modules/typescript');
+const scratch = realpathSync(mkdtempSync('/tmp/sort-unkeyed-review-pinned-'));
+const evidence = directory + 'pinned-v2';
+mkdirSync(evidence);
+const paths = {
+  'helpers.mjs': 'tests/commands/helpers.ts',
+  'regressions.mjs': 'tests/commands/core-sort/regressions.test.ts',
+  'borrowed.mjs': 'tests/commands/core-sort/borrowed-buffer.test.ts',
+  'io.mjs': 'tests/contracts/io.test.ts',
+  'hidden.mjs': 'benchmarks/reports/sort-performance-independent-20260827/hidden.mjs',
+  'native.json': 'tests/commands/core-sort/native.json',
+};
+const frozen = JSON.parse(readFileSync(directory + 'freeze.json'));
+const sources = Object.entries(paths).map(([output, path]) => {
+  const bytes = execFileSync('git', ['show', `${commit}:${path}`], { maxBuffer: 64 * 1024 * 1024, timeout: 30000 });
+  const pinned = frozen.pinned.find(file => file.path === path);
+  if (pinned) assert.equal(hash(bytes), pinned.sha256);
+  let adapted = bytes.toString();
+  if (path.endsWith('.ts')) {
+    adapted = adapted.replace(/from "(?:\.\.\/)+src\/[^"]+\.js"/gu, 'from "virtual-bash"');
+    adapted = adapted.replace('from "../helpers.js"', 'from "./helpers.mjs"');
+    adapted = compiler.transpileModule(adapted, { fileName: path, compilerOptions: { target: compiler.ScriptTarget.ES2023, module: compiler.ModuleKind.ES2022 } }).outputText;
+  } else if (output === 'hidden.mjs') {
+    const before = 'const library = await import(pathToFileURL(`${root}/${variant}/dist/index.js`));';
+    assert.equal(adapted.split(before).length - 1, 1);
+    adapted = adapted.replace(before, "const library = await import('virtual-bash');");
+    adapted = adapted.replace("import test from 'node:test';", "import { selectedTest as test } from './select-tests.mjs';");
+  }
+  writeFileSync(evidence + '/' + output + '.txt', adapted);
+  return { output, path, commit, originalSha256: hash(bytes), adaptedSha256: hash(adapted), adapted };
+});
+const pattern = '^(?!hidden)|^hidden (public stdin ownership|exact total-byte limit boundary|source error|missing later|pending input cancellation|empty-chunk cancellation)';
+writeFileSync(evidence + '/admission.json', JSON.stringify({ scratch, sources: sources.map(({ adapted, ...record }) => record), testNamePattern: pattern, adaptation: 'Only src import specifiers to public virtual-bash, helper relative path, TS transpilation, hidden public import. Assertions/test bodies and pinned native.json unchanged. Seven native-free hidden tests selected;23 native-dependent hidden tests are not executed. No fixture helper semantic changes.', nativePolicy: 'spawnSync fails closed; no native processes allowed', childHeapMiB: 512, wallSeconds: 90, outputCapBytes: 8388608, limitTests: 'Pinned exact32MiB streaming SHA256 boundary tests, not shell buffered output; explicit original limits preserved.', harnessSha256: hash(readFileSync(fileURLToPath(import.meta.url))), workerSha256: hash(readFileSync(directory + 'pinned-worker.mjs')) }, null, 2) + '\n');
+function inventory(root, prefix = '') {
+  return readdirSync(join(root, prefix), { withFileTypes: true }).flatMap(entry => {
+    const path = join(prefix, entry.name);
+    assert.equal(entry.isSymbolicLink(), false);
+    return entry.isDirectory() ? inventory(root, path) : [{ path, sha256: hash(readFileSync(join(root, path))) }];
+  });
+}
+const results = [];
+for (const [variant, productCommit] of [['baseline', baseline], ['candidate', candidate]]) {
+  const originalEvidence = directory + `${variant}-${productCommit.slice(0, 12)}-v2/`;
+  const admission = JSON.parse(readFileSync(originalEvidence + 'admission.json'));
+  const packageManifest = JSON.parse(readFileSync(originalEvidence + 'package-manifest.json'));
+  const originalPackage = join(admission.scratch, 'moved-public-consumer/node_modules/virtual-bash');
+  for (const file of packageManifest) assert.equal(hash(readFileSync(join(originalPackage, file.path))), file.sha256);
+  const root = join(scratch, variant);
+  mkdirSync(join(root, 'node_modules'), { recursive: true });
+  cpSync(originalPackage, join(root, 'node_modules/virtual-bash'), { recursive: true, errorOnExist: true });
+  for (const file of sources) writeFileSync(join(root, file.output), file.adapted);
+  writeFileSync(join(root, 'select-tests.mjs'), `import test from 'node:test';\nconst pattern = /^hidden (public stdin ownership|exact total-byte limit boundary|source error|missing later|pending input cancellation|empty-chunk cancellation)/u;\nexport const selectedTest = (name, body) => pattern.test(name) ? test(name, body) : test.skip(name, body);\n`);
+  copyFileSync(directory + 'pinned-worker.mjs', join(root, 'worker.mjs'));
+  writeFileSync(join(root, 'manifest.json'), JSON.stringify(inventory(root)));
+  const args = ['--max-old-space-size=512', '--test', '--experimental-test-isolation=none', '--test-reporter=tap', '--test-name-pattern=' + pattern, join(root, 'worker.mjs')];
+  const child = spawn(process.execPath, args, { cwd: root, env: { ...process.env, SORT_ROOT: root, SORT_VARIANT: 'unused' }, stdio: ['ignore', 'pipe', 'pipe'] });
+  const stdout = [];
+  const stderr = [];
+  let bytes = 0;
+  let killed;
+  const collect = target => chunk => { bytes += chunk.length; if (bytes > 8388608) { killed = 'output cap'; child.kill('SIGKILL'); } else target.push(chunk); };
+  child.stdout.on('data', collect(stdout));
+  child.stderr.on('data', collect(stderr));
+  const timer = setTimeout(() => { killed = 'wall watchdog'; child.kill('SIGKILL'); }, 90000);
+  const closed = await new Promise(resolve => child.on('close', (code, signal) => resolve({ code, signal })));
+  clearTimeout(timer);
+  const tap = Buffer.concat(stdout).toString();
+  writeFileSync(evidence + `/${variant}.tap.txt`, tap);
+  writeFileSync(evidence + `/${variant}.stderr.txt`, Buffer.concat(stderr));
+  const result = { variant, productCommit, args, pid: child.pid, ...closed, killed, bytes, exactChildClosed: true, passed: Number(/^# pass (\d+)$/mu.exec(tap)?.[1]), failed: Number(/^# fail (\d+)$/mu.exec(tap)?.[1]), skipped: Number(/^# skipped (\d+)$/mu.exec(tap)?.[1]) };
+  results.push(result);
+  writeFileSync(evidence + '/summary.json', JSON.stringify(results, null, 2) + '\n');
+  console.log(JSON.stringify(result));
+  assert.equal(killed, undefined);
+  assert.equal(closed.code, 0, tap + Buffer.concat(stderr));
+  copyFileSync(join(root, 'proof.json'), evidence + `/${variant}.proof.json`);
+  for (const file of packageManifest) assert.equal(hash(readFileSync(join(originalPackage, file.path))), file.sha256);
+}

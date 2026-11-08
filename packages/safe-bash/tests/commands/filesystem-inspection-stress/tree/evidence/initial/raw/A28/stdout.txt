@@ -1,0 +1,1 @@
+{"id":"A28","status":"pass","evidence":{"exitCode":1,"acceptedBytes":137,"diagnostics":"errors\n|-- a-good\n|   `-- visible-before-error.txt\n`-- z-denied  [input/output error, readdir '/errors/z-denied']\n\n3 directories, 1 file\ntree: errors/z-denied: input/output error, readdir '/errors/z-denied'\n"}}

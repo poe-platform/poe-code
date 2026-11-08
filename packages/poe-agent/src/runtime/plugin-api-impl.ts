@@ -1,0 +1,212 @@
+import { StdioTransport } from "#agent-platform";
+import { hostProcess } from "#agent-platform";
+import {
+  McpClient,
+  type CallToolResult,
+  type ContentItem,
+  type ResourceContents,
+  type Tool as McpTool
+} from "tiny-mcp-client";
+import { AbortError } from "./hooks.js";
+import { cloneMcpServerConfig } from "./config.js";
+import type { McpServerConfig, PluginApi } from "./plugin-types.js";
+import { toolResultPartToText } from "./tool-results.js";
+import { assertValidToolName } from "./tool-names.js";
+import type { Tool, ToolResult, ToolResultPart } from "./types.js";
+import type { RunContext } from "./run-context.js";
+import type { AgentRuntime } from "./filesystem.js";
+
+const DEFAULT_MCP_CLIENT_INFO = {
+  name: "poe-agent",
+  version: "0.0.1"
+};
+
+export class PluginApiImpl implements PluginApi {
+  readonly #runContext: RunContext;
+  readonly #pluginName?: string;
+  #setupQueue: Promise<void> = Promise.resolve();
+
+  constructor(runContext: RunContext, pluginName?: string) {
+    this.#runContext = runContext;
+    this.#pluginName = pluginName;
+  }
+
+  get runtime(): AgentRuntime { return this.#runContext.runtime; }
+  get fs(): AgentRuntime["fs"] { return this.runtime.fs; }
+  get cwd() { return this.runtime.cwd; }
+  get homeDir() { return this.runtime.homeDir; }
+  get signal() { return this.runtime.signal; }
+  get nodeFs(): AgentRuntime["nodeFs"] { return this.runtime.nodeFs; }
+  get customFs() { return this.runtime.customFs; }
+
+  addTool(tool: Tool): void {
+    assertValidToolName(tool.name, this.#pluginName);
+    this.#runContext.tools.register(tool);
+  }
+
+  getTool(name: string) {
+    return this.#runContext.tools.get(name);
+  }
+
+  addMcp(config: McpServerConfig): void {
+    if (this.runtime.customFs && config.trustedHost !== true) throw new Error("External MCP servers require an explicit host capability: set trustedHost on each trusted server.");
+    const clonedConfig = cloneMcpServerConfig(config);
+    this.#runContext.mcpServers.push(clonedConfig);
+    this.#setupQueue = this.#setupQueue.then(() => this.#setupMcp(clonedConfig));
+  }
+
+  async flushSetup(): Promise<void> {
+    await this.#setupQueue;
+  }
+
+  async #setupMcp(config: McpServerConfig): Promise<void> {
+    assertNotAborted(this.#runContext.abortController.signal);
+    const transport = new StdioTransport({
+      command: config.command,
+      args: config.args,
+      env:
+        config.env === undefined
+          ? undefined
+          : {
+              ...hostProcess.env,
+              ...config.env
+            }
+    });
+    const client = new McpClient({
+      clientInfo: DEFAULT_MCP_CLIENT_INFO,
+      ...(config.timeout === undefined ? {} : { requestTimeoutMs: config.timeout * 1_000 })
+    });
+
+    this.#runContext.registerDisposeHook(async () => {
+      await client.close?.();
+    });
+    const options = { signal: this.#runContext.abortController.signal };
+    await client.connect(transport, options);
+
+    let cursor: string | undefined;
+    const seenCursors = new Set<string>();
+    let pages = 0;
+
+    while (true) {
+      assertNotAborted(this.#runContext.abortController.signal);
+      const page =
+        await client.listTools(cursor === undefined ? undefined : { cursor }, options);
+
+      pages++;
+
+      for (const tool of page.tools) {
+        this.addTool(this.#toRuntimeTool(config, tool, client));
+      }
+
+      if (page.nextCursor === undefined) {
+        return;
+      }
+
+      if (seenCursors.has(page.nextCursor)) {
+        throw new Error(`MCP server "${config.name}" returned a repeated pagination cursor.`);
+      }
+      if (pages >= 128) {
+        throw new Error(`MCP server "${config.name}" exceeded the tool pagination limit (128 pages).`);
+      }
+      seenCursors.add(page.nextCursor);
+      cursor = page.nextCursor;
+    }
+  }
+
+  #toRuntimeTool(config: McpServerConfig, mcpTool: McpTool, client: McpClient): Tool {
+    return {
+      name: `${config.name}_${mcpTool.name}`,
+      description: mcpTool.description,
+      inputSchema: mcpTool.inputSchema,
+      visibility: config.visibility ?? "model",
+      policy: {
+        read: false,
+        edit: true
+      },
+      call: async (args, ctx) => {
+        const result = await client.callTool(
+          {
+            name: mcpTool.name,
+            arguments: toMcpArguments(args)
+          },
+          { signal: ctx.signal }
+        );
+
+        return callToolResultToToolResult(result);
+      }
+    };
+  }
+}
+
+function assertNotAborted(signal: AbortSignal): void {
+  if (!signal.aborted) {
+    return;
+  }
+
+  throw new AbortError("Run aborted.", signal.reason);
+}
+
+function toMcpArguments(args: unknown): Record<string, unknown> | undefined {
+  if (typeof args !== "object" || args === null || Array.isArray(args)) {
+    return undefined;
+  }
+
+  return args as Record<string, unknown>;
+}
+
+function callToolResultToToolResult(result: CallToolResult): ToolResult {
+  const content = result.content.map(contentItemToToolResultPart);
+
+  if (result.isError) {
+    return {
+      type: "error",
+      code: "mcp_tool_error",
+      message: content.map((part) => toolResultPartToText(part)).join("\n"),
+      retriable: false
+    };
+  }
+
+  if (content.length === 0) {
+    return "";
+  }
+
+  if (content.length === 1) {
+    const [single] = content;
+    return single.type === "text" ? single.text : single;
+  }
+
+  return content;
+}
+
+function contentItemToToolResultPart(item: ContentItem): ToolResultPart {
+  switch (item.type) {
+    case "text":
+      return { type: "text", text: item.text };
+    case "image":
+      return {
+        type: "image",
+        mimeType: item.mimeType,
+        data: item.data
+      };
+    case "audio":
+      return {
+        type: "text",
+        text: `[audio: ${item.mimeType}]`
+      };
+    case "resource":
+      return {
+        type: "text",
+        text: resourceToString(item.resource)
+      };
+    case "resource_link":
+      return { type: "text", text: `${item.title ?? item.name}: ${item.uri}` };
+  }
+}
+
+function resourceToString(resource: ResourceContents): string {
+  if ("text" in resource) {
+    return resource.text;
+  }
+
+  return `[blob: ${resource.uri}]`;
+}

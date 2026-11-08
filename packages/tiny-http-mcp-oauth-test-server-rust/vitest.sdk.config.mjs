@@ -1,0 +1,6 @@
+import {defineConfig} from 'vitest/config';
+import {fileURLToPath} from 'node:url';
+const root=new URL('./',import.meta.url),path=name=>fileURLToPath(new URL(name,root));
+const sources=['index','cli','lifecycle'].map(name=>path('../tiny-http-mcp-oauth-test-server/src/'+name+'.test.ts'));
+const mocks={'../../mcp-oauth/dist/index.js':path('dist/http/jwks.js'),'tiny-http-mcp-server':path('dist/http/auth.js'),'tiny-http-mcp-server/test-support':path('dist/http/test-support.js'),'tiny-oauth-test-server':path('dist/oauth/index.js')};
+export default defineConfig({plugins:[{name:'own-fixture-oracle',enforce:'pre',resolveId(name,importer){if(sources.includes(importer)&&name==='tiny-http-mcp-server/test-support')return path('dist/http/test-support.js');if(sources.includes(importer)&&name==='./index.js')return path('dist/index.js');if(importer===sources[1]&&name==='./cli.js')return path('dist/cli.js');},transform(code,id){if(id===sources[1])return code.replaceAll('tiny-http-mcp-oauth-test-server','tiny-http-mcp-oauth-test-server-rust');if(id===sources[2]){for(const [from,to]of Object.entries(mocks))code=code.replaceAll(JSON.stringify(from),JSON.stringify(to));return code;}}}],test:{include:[...sources,path('tests/transport.test.ts')],environment:'node',fileParallelism:false,maxWorkers:1,pool:'forks',testTimeout:3000,cache:false}});

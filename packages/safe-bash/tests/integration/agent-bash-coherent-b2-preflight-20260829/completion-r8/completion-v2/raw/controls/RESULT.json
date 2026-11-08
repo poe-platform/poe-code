@@ -1,0 +1,159 @@
+{
+  "groups": [
+    {
+      "id": "V2-01-legitimate-sidecar-name",
+      "pass": true,
+      "distinctPayloads": 2,
+      "verifiedExistingCopies": 2
+    },
+    {
+      "id": "V2-02-conflicts-and-reserved-namespace",
+      "pass": true,
+      "differentBytesRefused": true,
+      "differentSourceSameBytesRefused": true,
+      "overlappingRootsRefused": 3,
+      "reservedNamespaceRefused": true,
+      "tamperedDestinationNotOverwritten": true
+    }
+  ],
+  "publicationReceipts": [
+    {
+      "outcome": "created-copy",
+      "source": "/private/tmp/safe-bash-b2-r8-publication-v2/sources/copy",
+      "destination": "/private/tmp/safe-bash-b2-r8-publication-v2/payload/copy",
+      "bytes": 12,
+      "sha256": "0ea4714806a9b812be9880c4ff0e7aad6a8fd2393cff0cc8dc5778313c9a7903"
+    },
+    {
+      "outcome": "verified-existing-copy",
+      "source": "/private/tmp/safe-bash-b2-r8-publication-v2/sources/copy",
+      "destination": "/private/tmp/safe-bash-b2-r8-publication-v2/payload/copy",
+      "bytes": 12,
+      "sha256": "0ea4714806a9b812be9880c4ff0e7aad6a8fd2393cff0cc8dc5778313c9a7903"
+    },
+    {
+      "outcome": "created-copy",
+      "source": "/private/tmp/safe-bash-b2-r8-publication-v2/sources/copy.source.json",
+      "destination": "/private/tmp/safe-bash-b2-r8-publication-v2/payload/copy.source.json",
+      "bytes": 34,
+      "sha256": "02b9ee4f40bf94fe3a1890cff317558b54abed1dd51521a54572848ebff85294"
+    },
+    {
+      "outcome": "verified-existing-copy",
+      "source": "/private/tmp/safe-bash-b2-r8-publication-v2/sources/copy.source.json",
+      "destination": "/private/tmp/safe-bash-b2-r8-publication-v2/payload/copy.source.json",
+      "bytes": 34,
+      "sha256": "02b9ee4f40bf94fe3a1890cff317558b54abed1dd51521a54572848ebff85294"
+    },
+    {
+      "outcome": "created-copy",
+      "source": "/private/tmp/safe-bash-b2-r8-publication-v2/sources/copy",
+      "destination": "/private/tmp/safe-bash-b2-r8-publication-v2/payload/tamper-control",
+      "bytes": 12,
+      "sha256": "0ea4714806a9b812be9880c4ff0e7aad6a8fd2393cff0cc8dc5778313c9a7903"
+    }
+  ],
+  "sourcePostchecks": [
+    {
+      "name": "copy",
+      "filename": "/private/tmp/safe-bash-b2-r8-publication-v2/sources/copy",
+      "bytes": 12,
+      "sha256": "0ea4714806a9b812be9880c4ff0e7aad6a8fd2393cff0cc8dc5778313c9a7903",
+      "dev": 16777232,
+      "ino": 190007604,
+      "mtimeMs": 1788020479508.961,
+      "unchanged": true
+    },
+    {
+      "name": "copy.source.json",
+      "filename": "/private/tmp/safe-bash-b2-r8-publication-v2/sources/copy.source.json",
+      "bytes": 34,
+      "sha256": "02b9ee4f40bf94fe3a1890cff317558b54abed1dd51521a54572848ebff85294",
+      "dev": 16777232,
+      "ino": 190007605,
+      "mtimeMs": 1788020479509.1616,
+      "unchanged": true
+    },
+    {
+      "name": "different",
+      "filename": "/private/tmp/safe-bash-b2-r8-publication-v2/sources/different",
+      "bytes": 16,
+      "sha256": "78442dda3e5642ce405f6dc6a36797ab67d4c6bef4f46eb5e19d2c66d7f1595c",
+      "dev": 16777232,
+      "ino": 190007606,
+      "mtimeMs": 1788020479509.3364,
+      "unchanged": true
+    },
+    {
+      "name": "same-other-source",
+      "filename": "/private/tmp/safe-bash-b2-r8-publication-v2/sources/same-other-source",
+      "bytes": 12,
+      "sha256": "0ea4714806a9b812be9880c4ff0e7aad6a8fd2393cff0cc8dc5778313c9a7903",
+      "dev": 16777232,
+      "ino": 190007607,
+      "mtimeMs": 1788020479509.5083,
+      "unchanged": true
+    }
+  ],
+  "started": "2026-08-29T16:21:19.509Z",
+  "product": 0,
+  "workers": 0,
+  "npm": 0,
+  "compiler": 0,
+  "childSpawns": 0,
+  "logicalSnapshot": [
+    {
+      "path": "identities/0bbf207a692edcc1652b61813eb72e1cfdfb61109eabe41d9152774dc7efcee2.json",
+      "bytes": 188,
+      "sha256": "dd51364f059df471be5c101197e74b645213522abb87d02ac0faa910038cb16e"
+    },
+    {
+      "path": "identities/168352c19754df446752bfe4b5e2f1ccea496b7b449c78592479ffc0a8fe2e18.json",
+      "bytes": 200,
+      "sha256": "bdc06f131183a8a73ea87695cf01cfdbc84d1068ed2401c5499b42bc3f908128"
+    },
+    {
+      "path": "identities/69c2bd390097b129a412bb1590a24c122a78fdf51e881ff38c2b038673a30a34.json",
+      "bytes": 188,
+      "sha256": "dd51364f059df471be5c101197e74b645213522abb87d02ac0faa910038cb16e"
+    },
+    {
+      "path": "payload/copy",
+      "bytes": 12,
+      "sha256": "0ea4714806a9b812be9880c4ff0e7aad6a8fd2393cff0cc8dc5778313c9a7903"
+    },
+    {
+      "path": "payload/copy.source.json",
+      "bytes": 34,
+      "sha256": "02b9ee4f40bf94fe3a1890cff317558b54abed1dd51521a54572848ebff85294"
+    },
+    {
+      "path": "payload/tamper-control",
+      "bytes": 12,
+      "sha256": "dc7c8974cd58fbd2c57aefd45a4239d3be4c44aaa68bac4fe2cb49a4a485231b"
+    },
+    {
+      "path": "sources/copy",
+      "bytes": 12,
+      "sha256": "0ea4714806a9b812be9880c4ff0e7aad6a8fd2393cff0cc8dc5778313c9a7903"
+    },
+    {
+      "path": "sources/copy.source.json",
+      "bytes": 34,
+      "sha256": "02b9ee4f40bf94fe3a1890cff317558b54abed1dd51521a54572848ebff85294"
+    },
+    {
+      "path": "sources/different",
+      "bytes": 16,
+      "sha256": "78442dda3e5642ce405f6dc6a36797ab67d4c6bef4f46eb5e19d2c66d7f1595c"
+    },
+    {
+      "path": "sources/same-other-source",
+      "bytes": 12,
+      "sha256": "0ea4714806a9b812be9880c4ff0e7aad6a8fd2393cff0cc8dc5778313c9a7903"
+    }
+  ],
+  "logicalBytes": 708,
+  "status": "PASS",
+  "ended": "2026-08-29T16:21:19.526Z"
+}

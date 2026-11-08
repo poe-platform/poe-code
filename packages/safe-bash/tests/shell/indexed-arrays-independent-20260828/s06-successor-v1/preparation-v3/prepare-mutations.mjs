@@ -1,0 +1,60 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
+import { gunzipSync } from 'node:zlib';
+import { digest, tarInventory } from '../../candidate-v1/boundary-app.mjs';
+
+const here = path.dirname(fileURLToPath(import.meta.url)), repository = path.resolve(here, '../../../../..');
+const binding = JSON.parse(fs.readFileSync(path.join(here, '../SCOPE-BINDING-v2.json')));
+const capsule = execFileSync('/usr/bin/git', ['show', `${binding.evidence}:${binding.sourceCapsule.path}`], { cwd: repository, timeout: 10000, maxBuffer: 64 * 1024 * 1024 });
+assert.equal(digest(capsule), binding.sourceCapsule.encodedSha256);
+const decoded = gunzipSync(Buffer.from(capsule.toString(), 'base64'), { maxOutputLength: 64 * 1024 * 1024 }); assert.equal(digest(decoded), binding.sourceCapsule.decodedSha256);
+const tar = Buffer.from(JSON.parse(decoded).package.base64, 'base64'); assert.equal(digest(tar), binding.package.sha256);
+const inventory = tarInventory(tar), raw = gunzipSync(tar, { maxOutputLength: 64 * 1024 * 1024 }), files = new Map();
+for (let offset = 0; raw[offset];) {
+  const name = raw.subarray(offset, offset + 100).toString().split('\0')[0].slice(8), size = inventory[name].bytes;
+  files.set(name, raw.subarray(offset + 512, offset + 512 + size)); offset += 512 + Math.ceil(size / 512) * 512;
+}
+const prior = JSON.parse(fs.readFileSync(path.join(here, '../MUTATION-BYTES-v2.json')));
+const specs = prior.map(row => ({ id: row.id, member: row.member, replacements: row.replacements }));
+const add = (id, member, before, after) => specs.push({ id, member, replacements: [{ before, after }] });
+add('U03', 'dist/shell/arrays/bindings.js', 'watch.generation = tickets.generation;\n                watch.version = tickets.version;', '__arrayMutantHit();\n                watch.generation = watch.generation;\n                watch.version = watch.version;');
+add('U05', 'dist/shell/arrays/state.js', 'const tickets = monitor.mutation(name);\n                    const result = Reflect.set(target, key, entry);', 'if (key === "dotglob") __arrayMutantHit();\n                    const tickets = key === "dotglob" ? undefined : monitor.mutation(name);\n                    const result = Reflect.set(target, key, entry);');
+const state = files.get('dist/shell/arrays/state.js').toString();
+const snapshotStart = state.indexOf('export async function snapshotState('); assert.ok(snapshotStart >= 0);
+const snapshot = state.slice(snapshotStart);
+assert.equal(snapshot.split('const owner = ArrayOwner.create(store.owner.ledger, store.owner);').length, 2);
+assert.equal(snapshot.split('result = new StateMonitor(clone(), monitor.session);').length, 2);
+const reset = snapshot.replace('const owner = ArrayOwner.create(store.owner.ledger, store.owner);', '__arrayMutantHit();\n    const isolated = { ...monitor.session, ledger: new ArrayLedger(monitor.session.ledger.bytes, monitor.session.ledger.fields), owner: undefined };\n    isolated.scope.register(() => isolated.owner?.close());\n    isolated.owner = ArrayOwner.create(isolated.ledger);\n    const owner = ArrayOwner.create(isolated.ledger, isolated.owner);').replace('result = new StateMonitor(clone(), monitor.session);', 'result = new StateMonitor(clone(), isolated);');
+add('U06', 'dist/shell/arrays/state.js', snapshot, reset);
+const runtime = files.get('dist/shell/runtime.js').toString();
+const unsetStart = runtime.indexOf('    async unsetIndexed('), zeroStart = runtime.indexOf('    async arrayZero('), joinStart = runtime.indexOf('    async arrayJoin(');
+assert.ok(unsetStart >= 0 && zeroStart > unsetStart && joinStart > zeroStart);
+const unset = runtime.slice(unsetStart, zeroStart);
+const deletion = 'if (typeof index === "number")\n                    staged.values.get(index)?.slot.release();';
+assert.equal(unset.split(deletion).length, 2);
+const early = unset.replace(deletion, '').replace('let maximum = -1;', '__arrayMutantHit();\n                if (typeof index === "number") staged.values.get(index)?.slot.release();\n                let maximum = -1;');
+add('U07', 'dist/shell/runtime.js', unset, early);
+const zero = runtime.slice(zeroStart, joinStart);
+const pair = 'if (state.readonlyVariables?.has(name))\n                throw new ArrayFailure("readonly binding");\n            if (!watch.valid())\n                throw new ArrayFailure("stale binding");';
+assert.equal(zero.split(pair).length, 3);
+const staleFirst = zero.replaceAll(pair, '__arrayMutantHit();\n            if (!watch.valid())\n                throw new ArrayFailure("stale binding");\n            if (state.readonlyVariables?.has(name))\n                throw new ArrayFailure("readonly binding");');
+add('U08', 'dist/shell/runtime.js', zero, staleFirst);
+add('U09', 'dist/shell/runtime.js', 'const members = await this.arrayMembers(part.name, state);', '__arrayMutantHit();\n                    const members = [(await this.arrayMembers(part.name, state)).join("")];');
+add('U10', 'dist/shell/runtime.js', 'if (demanded && planned !== null && planned > 2147483647)\n                            throw new ArrayFailure("index outside 0..2147483647");', 'if (demanded && planned !== null && planned > 2147483647) __arrayMutantHit();');
+add('U11', 'dist/shell/runtime.js', 'state.variables[key] === saved.overlay && typed.watch.watch.typedVersion === typed.watch.typedVersion', '(__arrayMutantHit(), typed.watch.watch.version === typed.overlayVersion)');
+add('U13-S06', 'dist/shell/runtime.js', 'const quotedPresence = part.quoted && !(arrayOwned && isQuoteMarker(part));', '__arrayMutantHit();\n                const quotedPresence = part.quoted;');
+const cases = { U01: ['mechanical',['M01']], U02: ['mechanical',['M04']], U03: ['mechanical',['M05']], U04: ['mechanical',['M06']], U05: ['mechanical',['M17']], U06: ['mechanical',['M18']], U07: ['mechanical',['M16']], U08: ['mechanical',['M22']], U09: ['semantic',['S01','O15']], U10: ['holdouts',['H01']], U11: ['operations',['P06']], U12: ['mechanical',['M07']], 'U13-S06': ['semantic',['S06','S08']] };
+const declarations = specs.sort((left, right) => left.id < right.id ? -1 : left.id > right.id ? 1 : 0).map(specification => {
+  const original = files.get(specification.member); assert.notEqual(original.at(-1), 10); let text = original.toString();
+  for (const replacement of specification.replacements) { assert.equal(text.split(replacement.before).length, 2, `${specification.id}: exact unique site`); text = text.replace(replacement.before, () => replacement.after); }
+  const prefix = `import { createHash as __arrayHash } from 'node:crypto';\nimport { readFileSync as __arrayRead } from 'node:fs';\nimport { fileURLToPath as __arrayPath } from 'node:url';\nlet __arrayHits = 0;\nfunction __arrayMutantHit() { if (++__arrayHits === 1) process.stdout.write(JSON.stringify({ activation: { id: ${JSON.stringify(specification.id)}, path: __arrayPath(import.meta.url), sha256: __arrayHash('sha256').update(__arrayRead(new URL(import.meta.url))).digest('hex'), hits: 1 } }) + '\\n'); }\n`;
+  const changed = Buffer.from(prefix + text + '\n'); const [cohort, ids] = cases[specification.id];
+  return { ...specification, originalSha256: digest(original), originalBytes: original.length, mode: inventory[specification.member].mode, prefix, finalLF: true, changedSha256: digest(changed), changedBytes: changed.length, cohort, ids, requiredFailed: specification.id === 'U13-S06' ? ['S06'] : ids, requiredPassed: specification.id === 'U13-S06' ? ['S08'] : [], originalCandidateExecution: false };
+});
+assert.equal(declarations.length, 13);
+const output = JSON.stringify({ status: 'DATA-only exact variants, no mutant module executed', packageSha256: binding.package.sha256, declarations }, null, 2) + '\n';
+execFileSync('apply_patch', [], { cwd: repository, input: `*** Begin Patch\n*** Add File: ${path.join(here, 'MUTANTS.json')}\n${output.slice(0, -1).split('\n').map(line => '+' + line).join('\n')}\n*** End Patch\n`, timeout: 30000, maxBuffer: 1024 * 1024 });
+console.log(JSON.stringify({ variants: declarations.length, bytes: output.length, sha256: digest(Buffer.from(output)), productExecutions: 0 }));

@@ -1,0 +1,13 @@
+{
+  "name": "additional",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/output-quota-independent-v2-20260827/additional-probe.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/output-quota-independent-v2-20260827/.owned-9tRO1R",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/output-quota-independent-v2-20260827/candidate-02/additional-results.json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "",
+  "stderr": ""
+}

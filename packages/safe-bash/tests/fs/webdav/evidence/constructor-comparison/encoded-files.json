@@ -1,0 +1,12 @@
+[
+  {
+    "original": "review/safe-bash-sdk-constructor-source-review.txt",
+    "encoded": "review/safe-bash-sdk-constructor-source-review.txt.base64",
+    "sha256": "8b8b7fec9d25441f95f81e18b0b70c73716f2e8a898978c6322fce995705328a"
+  },
+  {
+    "original": "review/safe-bash-sdk-composition-review-aligned.txt",
+    "encoded": "review/safe-bash-sdk-composition-review-aligned.txt.base64",
+    "sha256": "5ef7e2887b777dd7aa3268d65fa5df3361b613f28e405b19eab8f23f4b063d9b"
+  }
+]

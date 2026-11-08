@@ -1,0 +1,23 @@
+{
+  "jobId": "PAR-13--whole",
+  "admitted": true,
+  "outcome": "FAIL",
+  "failures": [
+    "assertion: AssertionError [ERR_ASSERTION]: UNFULFILLED_OBLIGATIONS: see obligations.json; no full-record or semantic PASS\n\n3 !== 0\n"
+  ],
+  "integrity": true,
+  "reapProof": true,
+  "metadata": {
+    "pid": 88765,
+    "group": 88765,
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "overflow": false,
+    "spawnError": null,
+    "closed": true,
+    "reaped": true,
+    "kills": [],
+    "elapsedMs": 380
+  }
+}

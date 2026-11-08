@@ -1,0 +1,174 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "classification": "COMPLETE_STATIC_SUCCESSOR_PRESEAL_NO_EXECUTION_AUTHORITY",
+  "sourceCommit": "5b121e0c5e136a40bc4b277cab686ab0413af527",
+  "sourceSealSha256": "1f2a8f4670ddcfebf6a36d0c2d55ccf0666609d932de38145dbefc7798e8e891",
+  "sourceDiffSha256": "586b0c7299585bb2911bf3e522ea5d33c0dfd1dc03a4afe5abd75e232a75a2bd",
+  "entries": [
+    {
+      "path": ".",
+      "kind": "directory",
+      "mode": 493
+    },
+    {
+      "path": "BINDINGS-PENDING.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 2573,
+      "sha256": "ca9147bbe3fab847474c617c4c9abd763a58ae520067c7c722a8a794e689405b"
+    },
+    {
+      "path": "CANDIDATE-ADMISSION.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 9138,
+      "sha256": "17cbe2634b85b0d70067261882a60bbd485df802a52b6b35a97a3bcbd18bf448"
+    },
+    {
+      "path": "CONTROLS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 9247,
+      "sha256": "e13b7f31f9809bb61bd966576815d387958d326759973dfcc202413d4705a74f"
+    },
+    {
+      "path": "HISTORICAL-OBSERVATIONS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 67770,
+      "sha256": "f59dc21a586d9ebc62d47c83abd5bacc6578c9074f64095502ffc0874a08ba99"
+    },
+    {
+      "path": "INPUTS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 100600,
+      "sha256": "6a4dad232a7aacf1e2eb926f1806b8a32ae17602a608bd23784d6a8e4e2f988d"
+    },
+    {
+      "path": "INTEGRATION-DELTA.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 6141,
+      "sha256": "133091278d985b5c39b0aedf56aadde0d19946cd03dc3bf847d3668b91979ba7"
+    },
+    {
+      "path": "JOBS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 292256,
+      "sha256": "ae2969c22e1c3d5d955bf9edf460c9d59db006dd5134bd3b9e50c82a4b741e8f"
+    },
+    {
+      "path": "LEDGER-194.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 268342,
+      "sha256": "e7cafaa36105dd65501b2c8d35c802729c1da27abc03259eaad5257e1e6590e8"
+    },
+    {
+      "path": "LOADED-CONTROLS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 4983,
+      "sha256": "b581d27baa9d0eb996e0afdd5d80bfcf302b91757d18f2a88bd15ca620ecc269"
+    },
+    {
+      "path": "OBLIGATIONS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 290553,
+      "sha256": "03bddefe2f75af7e03345608aab69f47cdfeaeadb7213082d2f8722c15526df3"
+    },
+    {
+      "path": "PREPARATION-LOG.md",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 2151,
+      "sha256": "a39a87c1bfa56bf369cc7c1ac41cb1c61e895bd83d54e93f4b554659265bb36d"
+    },
+    {
+      "path": "PRESEAL.md",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 16657,
+      "sha256": "843e94a3eac98cc820166413857912d8c2f1834866f6addaf0f39b7c63bbe693"
+    },
+    {
+      "path": "README.md",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1883,
+      "sha256": "fc74eb5dfeea593836ef93fd701b440fadb9b73b34e9d0b62ebd776e5350e933"
+    },
+    {
+      "path": "REQUEST-ROUTING.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 6008,
+      "sha256": "aa33b1e1f8789d9b0067017d82d8a967ab36e02b1da9924316a3dd4aedb7de5e"
+    },
+    {
+      "path": "SCHEDULE.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 23015,
+      "sha256": "ff21793f53b42719b9e4bc764b6c00442a49ba75d489699c6dc69835e00a04dc"
+    },
+    {
+      "path": "SOURCE-PROOFS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 13072,
+      "sha256": "02d27ea317f1f4877279385097e3639892ee6be5d96c48c3b6a03ac5a3a6ca83"
+    },
+    {
+      "path": "SOURCE-SEAL.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 4760,
+      "sha256": "1f2a8f4670ddcfebf6a36d0c2d55ccf0666609d932de38145dbefc7798e8e891"
+    },
+    {
+      "path": "STATIC-CHECKS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 8479,
+      "sha256": "b95ba077dfddeb67060a55ca40e5905c4f2a2579a08c0ad7ad79d9b4d0c506da"
+    },
+    {
+      "path": "TOOLS-LOADER-GUARDS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 9881,
+      "sha256": "60ce4d385c98996773ae783b98310561491fe8d05ed4d95695262e6d9be83786"
+    },
+    {
+      "path": "TYPES.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 8088,
+      "sha256": "a3cd4c87b33622bc9511d28c74bf212929df66623dbc83735c3c1c5bd4289728"
+    },
+    {
+      "path": "validate-data.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 9190,
+      "sha256": "38750102aa95bb4f2a76a9bdd95269acbb12fc2eb3fc074f19c22af9aef0cb34"
+    }
+  ],
+  "files": 21,
+  "entryDigest": "b819c1f9949f9e3130efa68267826f43012b6eebbaabeb9eb927b0395f853d47",
+  "excludes": [
+    "FINAL-SEAL.json"
+  ],
+  "candidateAuthorization": "UNBOUND_DENY",
+  "runtimeImplementations": "PROPOSED_NOT_IMPLEMENTED",
+  "independentReview": "REQUIRED_NOT_CLAIMED",
+  "RootGO": false,
+  "productImports": 0,
+  "executorOrControlRuns": 0,
+  "semanticPasses": 0
+}

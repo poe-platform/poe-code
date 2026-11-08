@@ -1,0 +1,10 @@
+{
+  "sourceCommit": "d36449e8ac4ea35bf19c26adc7923b8629ca1014",
+  "exitCode": 1,
+  "result": "capture-01/RESULT.json",
+  "resultSha256": "5b758887f252c7c3de3d9d4ae72441c4dabaad5cdf3108ae604749611a4eb3c7",
+  "rawInvalidControl": "capture-01/parent-absent.json",
+  "rawInvalidControlSha256": "c8acdbce1bcd3fe6d177eafc45138c5a3b3c04e6f2c1b8dc584267c26736e124",
+  "classification": "Original15 15/15; added10 9 passes/1 invalid forwarding control; helper14 14/14; all26 closed. Raw result status FINDING preserved unchanged. Candidate observed correct fixed parent in invalid control, not an absent parent. One unexpected stub evaluation belongs to this invalid control.",
+  "correctiveAction": "Separately preseal two focused controls only; do not alter or rerun original capture."
+}

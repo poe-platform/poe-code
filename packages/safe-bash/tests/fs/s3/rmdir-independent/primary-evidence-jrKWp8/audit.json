@@ -1,0 +1,60 @@
+{
+  "independentlyVerified": true,
+  "sourceCommit": "07c3a429bfed433e49018cb0f78a52145d4bedeb",
+  "originalPath": "tests/fs/s3/rmdir-real-service/list-oracle-review/primary-sources.json",
+  "originalSha256": "cb47c52b9a24f53d1a82dac08183af1c9f9afe83455166ee53ec2161f18e6fd6",
+  "retainedBlobs": [
+    {
+      "path": "cmd/erasure-server-pool.go",
+      "sha256": "176714439b13be81f6dd19583cf956d320ccd7a9e7a40b5f88daa95e56a736e2",
+      "gitBlob": "3c301bef1a1efdec2c43a9cb059b9f3a9b0af74d"
+    },
+    {
+      "path": "cmd/bucket-listobjects-handlers.go",
+      "sha256": "c41881ae66979afeb1084836a688955b3083ce06f91cc0578e8c09ae995c4539",
+      "gitBlob": "d7664e220fc76747be057ee1557819b227ada07a"
+    },
+    {
+      "path": "cmd/api-response.go",
+      "sha256": "c028e255685fc4cae0c920ae11d12b9a1885900e6f6f73d8e4bac848305975d1",
+      "gitBlob": "28501b5b300ffc889bef8a3d9b69659f273de00c"
+    },
+    {
+      "path": "cmd/api-resources.go",
+      "sha256": "b81c56835a7ae5d2f2889bdc2e3e58888199f5bcec5285623ad2a2a35112377f",
+      "gitBlob": "b77d1a09c872eab2cdda6ee2060aca76a6b09548"
+    },
+    {
+      "path": "cmd/api-router.go",
+      "sha256": "601316848a4bc3e2bb695a91920d1e3fe44c4f72e192076ef7b4a267913fc91c",
+      "gitBlob": "896ca48b10bab13e6a3d6e5191cf2d211963a44d"
+    },
+    {
+      "path": "cmd/object-api-datatypes.go",
+      "sha256": "26b492e6bea71b0493ca3d24baea3cc9ebdf0ef806b8b26d8a436416549deb34",
+      "gitBlob": "d00e2be19f95ccfe081db06640f00ae1e9e6b0c6"
+    }
+  ],
+  "officialTreeSha256": "2f06f683361430efa14a9a6039720f47b9fe050a0f3593fa5c4346319a7156d4",
+  "fresh": [
+    {
+      "name": "pinned-erasure-server-pool.go",
+      "url": "https://raw.githubusercontent.com/minio/minio/07c3a429bfed433e49018cb0f78a52145d4bedeb/cmd/erasure-server-pool.go",
+      "retrievedAt": "2026-08-27T07:51:15.901Z",
+      "sha256": "176714439b13be81f6dd19583cf956d320ccd7a9e7a40b5f88daa95e56a736e2",
+      "bytes": 91268
+    },
+    {
+      "name": "aws-listobjects-v2.html",
+      "url": "https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjectsV2.html",
+      "retrievedAt": "2026-08-27T07:51:16.090Z",
+      "sha256": "ac2a136bd5963e063677017b93c3724f1be48af22783546cdbf7771ca54768b2",
+      "bytes": 68800
+    }
+  ],
+  "shortcutStartLine": 1674,
+  "shortcut": "if len(prefix) > 0 && maxKeys == 1 && marker == \"\" {\n\t\t// Optimization for certain applications like\n\t\t// - Cohesity\n\t\t// - Actifio, Splunk etc.\n\t\t// which send ListObjects requests where the actual object\n\t\t// itself is the prefix and max-keys=1 in such scenarios\n\t\t// we can simply verify locally if such an object exists\n\t\t// to avoid the need for ListObjects().\n\t\tobjInfo, err := z.GetObjectInfo(ctx, bucket, prefix, ObjectOptions{NoLock: true})\n\t\tif err == nil {\n\t\t\tif opts.Lifecycle != nil {\n\t\t\t\tevt := evalActionFromLifecycle(ctx, *opts.Lifecycle, opts.Retention, opts.Replication.Config, objInfo)\n\t\t\t\tif evt.Action.Delete() {\n\t\t\t\t\tglobalExpiryState.enqueueByDays(objInfo, evt, lcEventSrc_s3ListObjects)\n\t\t\t\t\tif !evt.Action.DeleteRestored() {\n\t\t\t\t\t\t// Skip entry if ILM action was DeleteVersionAction or DeleteAction\n\t\t\t\t\t\treturn loi, nil\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}\n\t\t\tloi.Objects = append(loi.Objects, objInfo)\n\t\t\treturn loi, nil",
+  "serviceDownloads": 0,
+  "serviceLaunches": 0,
+  "conclusion": "Exact-prefix, maxKeys=1, no-marker shortcut bypasses normal enumeration. max(2,pageSize) avoids this branch only; incomplete or malformed pagination must refuse mutation."
+}

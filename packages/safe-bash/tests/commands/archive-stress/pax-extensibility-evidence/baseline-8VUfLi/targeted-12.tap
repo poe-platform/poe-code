@@ -1,0 +1,216 @@
+TAP version 13
+# Subtest: P01 optional vendor metadata is opaque, not file data, paths, ownership or permissions
+not ok 1 - P01 optional vendor metadata is opaque, not file data, paths, ownership or permissions
+  ---
+  duration_ms: 4.077292
+  type: 'test'
+  location: '/private/tmp/safe-bash-pax-focused-VzYdub/snapshot-1/tests/commands/archive-stress/pax-extensibility.test.ts:1:1834'
+  failureType: 'testCodeFailure'
+  error: |-
+    tar: invalid UTF-8 archive name or metadata
+    
+    
+    2 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    success (/private/tmp/safe-bash-pax-focused-VzYdub/snapshot-1/tests/commands/archive-stress/helpers.ts:45:10)
+    TestContext.<anonymous> (/private/tmp/safe-bash-pax-focused-VzYdub/snapshot-1/tests/commands/archive-stress/pax-extensibility.test.ts:50:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: P02 ignored local/global metadata does not leak into supported PAX state
+not ok 2 - P02 ignored local/global metadata does not leak into supported PAX state
+  ---
+  duration_ms: 16.233208
+  type: 'test'
+  location: '/private/tmp/safe-bash-pax-focused-VzYdub/snapshot-1/tests/commands/archive-stress/pax-extensibility.test.ts:1:3029'
+  failureType: 'testCodeFailure'
+  error: |-
+    tar: invalid UTF-8 archive name or metadata
+    
+    
+    2 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    success (/private/tmp/safe-bash-pax-focused-VzYdub/snapshot-1/tests/commands/archive-stress/helpers.ts:45:10)
+    TestContext.<anonymous> (/private/tmp/safe-bash-pax-focused-VzYdub/snapshot-1/tests/commands/archive-stress/pax-extensibility.test.ts:72:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: P03 essential text remains strict UTF-8 with NUL and binary charset rejected
+ok 3 - P03 essential text remains strict UTF-8 with NUL and binary charset rejected
+  ---
+  duration_ms: 15.917208
+  type: 'test'
+  ...
+# Subtest: P04 opaque values never bypass malformed record framing, keys, checksum or truncation
+ok 4 - P04 opaque values never bypass malformed record framing, keys, checksum or truncation
+  ---
+  duration_ms: 9.446625
+  type: 'test'
+  ...
+# Subtest: P05 sparse, layout-changing and unclassified extensions remain fail-closed before publication
+not ok 5 - P05 sparse, layout-changing and unclassified extensions remain fail-closed before publication
+  ---
+  duration_ms: 0.593375
+  type: 'test'
+  location: '/private/tmp/safe-bash-pax-focused-VzYdub/snapshot-1/tests/commands/archive-stress/pax-extensibility.test.ts:1:5076'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /unsupported PAX keyword/. Input:
+    
+    'tar: invalid UTF-8 archive name or metadata\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    tar: invalid UTF-8 archive name or metadata
+    
+  operator: 'match'
+  stack: |-
+    rejected (/private/tmp/safe-bash-pax-focused-VzYdub/snapshot-1/tests/commands/archive-stress/pax-extensibility.test.ts:33:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async TestContext.<anonymous> (/private/tmp/safe-bash-pax-focused-VzYdub/snapshot-1/tests/commands/archive-stress/pax-extensibility.test.ts:101:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: P06 optional bytes retain extended-header, member and effective-size limits
+not ok 6 - P06 optional bytes retain extended-header, member and effective-size limits
+  ---
+  duration_ms: 1.335875
+  type: 'test'
+  location: '/private/tmp/safe-bash-pax-focused-VzYdub/snapshot-1/tests/commands/archive-stress/pax-extensibility.test.ts:1:5610'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /member.*limit/. Input:
+    
+    'tar: invalid UTF-8 archive name or metadata\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    tar: invalid UTF-8 archive name or metadata
+    
+  operator: 'match'
+  stack: |-
+    rejected (/private/tmp/safe-bash-pax-focused-VzYdub/snapshot-1/tests/commands/archive-stress/pax-extensibility.test.ts:33:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async TestContext.<anonymous> (/private/tmp/safe-bash-pax-focused-VzYdub/snapshot-1/tests/commands/archive-stress/pax-extensibility.test.ts:110:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: P07 optional metadata cannot bypass effective path, symlink or member-type controls
+not ok 7 - P07 optional metadata cannot bypass effective path, symlink or member-type controls
+  ---
+  duration_ms: 0.481125
+  type: 'test'
+  location: '/private/tmp/safe-bash-pax-focused-VzYdub/snapshot-1/tests/commands/archive-stress/pax-extensibility.test.ts:1:6283'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /unsafe parent/. Input:
+    
+    'tar: invalid UTF-8 archive name or metadata\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    tar: invalid UTF-8 archive name or metadata
+    
+  operator: 'match'
+  stack: |-
+    rejected (/private/tmp/safe-bash-pax-focused-VzYdub/snapshot-1/tests/commands/archive-stress/pax-extensibility.test.ts:33:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async TestContext.<anonymous> (/private/tmp/safe-bash-pax-focused-VzYdub/snapshot-1/tests/commands/archive-stress/pax-extensibility.test.ts:119:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: P08 virtual global/local mtime follows the deterministic POSIX fixture independently of native profiles
+ok 8 - P08 virtual global/local mtime follows the deterministic POSIX fixture independently of native profiles
+  ---
+  duration_ms: 1.565167
+  type: 'test'
+  ...
+# Subtest: P09 immutable formerly rejected BSD PAX archives now extract exact contents in both formats
+not ok 9 - P09 immutable formerly rejected BSD PAX archives now extract exact contents in both formats
+  ---
+  duration_ms: 0.886375
+  type: 'test'
+  location: '/private/tmp/safe-bash-pax-focused-VzYdub/snapshot-1/tests/commands/archive-stress/pax-extensibility.test.ts:1:7880'
+  failureType: 'testCodeFailure'
+  error: |-
+    tar: unsupported PAX keyword: LIBARCHIVE.xattr.com.apple.provenance
+    
+    
+    2 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    success (/private/tmp/safe-bash-pax-focused-VzYdub/snapshot-1/tests/commands/archive-stress/helpers.ts:45:10)
+    TestContext.<anonymous> (/private/tmp/safe-bash-pax-focused-VzYdub/snapshot-1/tests/commands/archive-stress/pax-extensibility.test.ts:148:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: P10 GNU default and PAX plain/gzip crossread both directions without metadata filters
+ok 10 - P10 GNU default and PAX plain/gzip crossread both directions without metadata filters
+  ---
+  duration_ms: 255.833708
+  type: 'test'
+  ...
+# Subtest: P11 BSD default and PAX plain/gzip crossread both directions without metadata filters
+not ok 11 - P11 BSD default and PAX plain/gzip crossread both directions without metadata filters
+  ---
+  duration_ms: 41.545875
+  type: 'test'
+  location: '/private/tmp/safe-bash-pax-focused-VzYdub/snapshot-1/tests/commands/archive-stress/pax-native.test.ts:2:88'
+  failureType: 'testCodeFailure'
+  error: |-
+    tar: unsupported PAX keyword: LIBARCHIVE.xattr.com.apple.provenance
+    
+    
+    2 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    success (/private/tmp/safe-bash-pax-focused-VzYdub/snapshot-1/tests/commands/archive-stress/helpers.ts:45:10)
+    <anonymous> (/private/tmp/safe-bash-pax-focused-VzYdub/snapshot-1/tests/commands/archive-stress/pax-native.test.ts:76:9)
+    async withOracle (/private/tmp/safe-bash-pax-focused-VzYdub/snapshot-1/tests/commands/archive-stress/pax-native.test.ts:44:5)
+    async TestContext.<anonymous> (/private/tmp/safe-bash-pax-focused-VzYdub/snapshot-1/tests/commands/archive-stress/pax-native.test.ts:53:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: P12 native-only global/local mtime profiles are explicit, not virtual acceptance expectations
+ok 12 - P12 native-only global/local mtime profiles are explicit, not virtual acceptance expectations
+  ---
+  duration_ms: 30.09175
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 5
+# fail 7
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 858.954584

@@ -1,0 +1,21 @@
+{
+  "schema": "node-public-author-execution-seal-v1",
+  "candidate": "a6d20781d3c099fb7b3d36c10696beb06615af1b",
+  "sourceSha256": "8371452bb024f99763c9240b42cb891cabe1311afafb32766e0ea24da09c6949",
+  "executorSha256": "1aca9347bab192c4488171be2838a65ca0115b5cf8a99a36fdce9087c4ffe03f",
+  "executorFiles": 90,
+  "conditionalGrant": "ROOT implementation GO latest accepted a2 module + accepted26215b99; actual only after this executable preseal committed",
+  "preparedAt": "2026-08-29T06:25:23.080Z",
+  "actualRuns": 0,
+  "namespace": "tests/integration/node-public-author-20260829/actual-v1",
+  "requiredUnused": true,
+  "presealSha256": "ad7fe257c74a9060160d4ae686eea4f3085c313f81c51d5141d5445258cfd14a",
+  "censusSha256": "c31e15903ee2f2e3f0cbbeec470a61c1c9fb59328378df6a2c66cc275b5b66d0",
+  "syntaxChecks": {
+    "files": 6,
+    "pass": 6,
+    "productImports": 0
+  },
+  "nativeRuns": 0,
+  "privateReads": 0
+}

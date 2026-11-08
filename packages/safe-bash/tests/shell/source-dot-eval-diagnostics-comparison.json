@@ -1,0 +1,2622 @@
+{
+  "source": {
+    "arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+    "display.ts": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+    "index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+    "input.ts": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+    "locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+    "parser.ts": "cd31afa92e6e54a3e3fceb328064e1e2421e0461529c354794d7b7198c80e4ec",
+    "pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+    "runtime.ts": "e886b64536c7496769fdbe856aafb0e73ee88ace47c2a3ca9cb3cc71f11f8c4a",
+    "shell.ts": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+    "types.ts": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874"
+  },
+  "results": [
+    {
+      "name": "GNU-5.3",
+      "passed": 48,
+      "total": 48,
+      "rows": [
+        {
+          "name": "root-missing",
+          "mode": "root",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "multiline-missing",
+          "mode": "root",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMjogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMjogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "command-missing",
+          "mode": "root",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "child-function-isolation",
+          "mode": "root",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogY2hpbGRfZnVuY3Rpb246IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogY2hpbGRfZnVuY3Rpb246IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "bash-default-name",
+          "mode": "root",
+          "expected": {
+            "stdout": "",
+            "stderr": "YmFzaDogbGluZSAxOiBhYnNlbnRfdG9vbDogY29tbWFuZCBub3QgZm91bmQK",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "YmFzaDogbGluZSAxOiBhYnNlbnRfdG9vbDogY29tbWFuZCBub3QgZm91bmQK",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "bash-explicit-name",
+          "mode": "root",
+          "expected": {
+            "stdout": "",
+            "stderr": "bmFtZWQ6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "bmFtZWQ6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "sh-default-name",
+          "mode": "root",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2g6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2g6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "sh-explicit-name",
+          "mode": "root",
+          "expected": {
+            "stdout": "",
+            "stderr": "bmFtZWQ6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "bmFtZWQ6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "eval-frame",
+          "mode": "root",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMjogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMjogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "source-frame",
+          "mode": "root",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9saWJyYXJ5OiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "Li9saWJyYXJ5OiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "bash-file-frame",
+          "mode": "root",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9wcm9ncmFtOiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "Li9wcm9ncmFtOiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "sh-file-frame",
+          "mode": "root",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9wcm9ncmFtOiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "Li9wcm9ncmFtOiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "dot-directory",
+          "mode": "root",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogLjogLi9kaXJlY3Rvcnk6IGlzIGEgZGlyZWN0b3J5Cg==",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogLjogLi9kaXJlY3Rvcnk6IGlzIGEgZGlyZWN0b3J5Cg==",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "source-directory",
+          "mode": "root",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogc291cmNlOiAuL2RpcmVjdG9yeTogaXMgYSBkaXJlY3RvcnkK",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogc291cmNlOiAuL2RpcmVjdG9yeTogaXMgYSBkaXJlY3RvcnkK",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "directory-symlink",
+          "mode": "root",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogLjogLi9kaXJsaW5rOiBpcyBhIGRpcmVjdG9yeQo=",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogLjogLi9kaXJsaW5rOiBpcyBhIGRpcmVjdG9yeQo=",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "file-source-directory",
+          "mode": "root",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9kaXJlY3RvcnktcHJvZ3JhbTogbGluZSAyOiAuOiAuL2RpcmVjdG9yeTogaXMgYSBkaXJlY3RvcnkK",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "Li9kaXJlY3RvcnktcHJvZ3JhbTogbGluZSAyOiAuOiAuL2RpcmVjdG9yeTogaXMgYSBkaXJlY3RvcnkK",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "root-missing",
+          "mode": "bash",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "multiline-missing",
+          "mode": "bash",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMjogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMjogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "command-missing",
+          "mode": "bash",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "child-function-isolation",
+          "mode": "bash",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogY2hpbGRfZnVuY3Rpb246IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogY2hpbGRfZnVuY3Rpb246IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "bash-default-name",
+          "mode": "bash",
+          "expected": {
+            "stdout": "",
+            "stderr": "YmFzaDogbGluZSAxOiBhYnNlbnRfdG9vbDogY29tbWFuZCBub3QgZm91bmQK",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "YmFzaDogbGluZSAxOiBhYnNlbnRfdG9vbDogY29tbWFuZCBub3QgZm91bmQK",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "bash-explicit-name",
+          "mode": "bash",
+          "expected": {
+            "stdout": "",
+            "stderr": "bmFtZWQ6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "bmFtZWQ6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "sh-default-name",
+          "mode": "bash",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2g6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2g6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "sh-explicit-name",
+          "mode": "bash",
+          "expected": {
+            "stdout": "",
+            "stderr": "bmFtZWQ6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "bmFtZWQ6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "eval-frame",
+          "mode": "bash",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMjogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMjogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "source-frame",
+          "mode": "bash",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9saWJyYXJ5OiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "Li9saWJyYXJ5OiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "bash-file-frame",
+          "mode": "bash",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9wcm9ncmFtOiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "Li9wcm9ncmFtOiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "sh-file-frame",
+          "mode": "bash",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9wcm9ncmFtOiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "Li9wcm9ncmFtOiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "dot-directory",
+          "mode": "bash",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogLjogLi9kaXJlY3Rvcnk6IGlzIGEgZGlyZWN0b3J5Cg==",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogLjogLi9kaXJlY3Rvcnk6IGlzIGEgZGlyZWN0b3J5Cg==",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "source-directory",
+          "mode": "bash",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogc291cmNlOiAuL2RpcmVjdG9yeTogaXMgYSBkaXJlY3RvcnkK",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogc291cmNlOiAuL2RpcmVjdG9yeTogaXMgYSBkaXJlY3RvcnkK",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "directory-symlink",
+          "mode": "bash",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogLjogLi9kaXJsaW5rOiBpcyBhIGRpcmVjdG9yeQo=",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogLjogLi9kaXJsaW5rOiBpcyBhIGRpcmVjdG9yeQo=",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "file-source-directory",
+          "mode": "bash",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9kaXJlY3RvcnktcHJvZ3JhbTogbGluZSAyOiAuOiAuL2RpcmVjdG9yeTogaXMgYSBkaXJlY3RvcnkK",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "Li9kaXJlY3RvcnktcHJvZ3JhbTogbGluZSAyOiAuOiAuL2RpcmVjdG9yeTogaXMgYSBkaXJlY3RvcnkK",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "root-missing",
+          "mode": "sh",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "multiline-missing",
+          "mode": "sh",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMjogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMjogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "command-missing",
+          "mode": "sh",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "child-function-isolation",
+          "mode": "sh",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogY2hpbGRfZnVuY3Rpb246IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogY2hpbGRfZnVuY3Rpb246IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "bash-default-name",
+          "mode": "sh",
+          "expected": {
+            "stdout": "",
+            "stderr": "YmFzaDogbGluZSAxOiBhYnNlbnRfdG9vbDogY29tbWFuZCBub3QgZm91bmQK",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "YmFzaDogbGluZSAxOiBhYnNlbnRfdG9vbDogY29tbWFuZCBub3QgZm91bmQK",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "bash-explicit-name",
+          "mode": "sh",
+          "expected": {
+            "stdout": "",
+            "stderr": "bmFtZWQ6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "bmFtZWQ6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "sh-default-name",
+          "mode": "sh",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2g6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2g6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "sh-explicit-name",
+          "mode": "sh",
+          "expected": {
+            "stdout": "",
+            "stderr": "bmFtZWQ6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "bmFtZWQ6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "eval-frame",
+          "mode": "sh",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMjogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMjogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "source-frame",
+          "mode": "sh",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9saWJyYXJ5OiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "Li9saWJyYXJ5OiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "bash-file-frame",
+          "mode": "sh",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9wcm9ncmFtOiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "Li9wcm9ncmFtOiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "sh-file-frame",
+          "mode": "sh",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9wcm9ncmFtOiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "Li9wcm9ncmFtOiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "dot-directory",
+          "mode": "sh",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogLjogLi9kaXJlY3Rvcnk6IGlzIGEgZGlyZWN0b3J5Cg==",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogLjogLi9kaXJlY3Rvcnk6IGlzIGEgZGlyZWN0b3J5Cg==",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "source-directory",
+          "mode": "sh",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogc291cmNlOiAuL2RpcmVjdG9yeTogaXMgYSBkaXJlY3RvcnkK",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogc291cmNlOiAuL2RpcmVjdG9yeTogaXMgYSBkaXJlY3RvcnkK",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "directory-symlink",
+          "mode": "sh",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogLjogLi9kaXJsaW5rOiBpcyBhIGRpcmVjdG9yeQo=",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogLjogLi9kaXJsaW5rOiBpcyBhIGRpcmVjdG9yeQo=",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "file-source-directory",
+          "mode": "sh",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9kaXJlY3RvcnktcHJvZ3JhbTogbGluZSAyOiAuOiAuL2RpcmVjdG9yeTogaXMgYSBkaXJlY3RvcnkK",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "Li9kaXJlY3RvcnktcHJvZ3JhbTogbGluZSAyOiAuOiAuL2RpcmVjdG9yeTogaXMgYSBkaXJlY3RvcnkK",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        }
+      ]
+    },
+    {
+      "name": "historical-3.2",
+      "passed": 12,
+      "total": 48,
+      "rows": [
+        {
+          "name": "root-missing",
+          "mode": "root",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": false
+        },
+        {
+          "name": "multiline-missing",
+          "mode": "root",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMjogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": false
+        },
+        {
+          "name": "command-missing",
+          "mode": "root",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": false
+        },
+        {
+          "name": "child-function-isolation",
+          "mode": "root",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGNoaWxkX2Z1bmN0aW9uOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogY2hpbGRfZnVuY3Rpb246IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": false
+        },
+        {
+          "name": "bash-default-name",
+          "mode": "root",
+          "expected": {
+            "stdout": "",
+            "stderr": "YmFzaDogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "YmFzaDogbGluZSAxOiBhYnNlbnRfdG9vbDogY29tbWFuZCBub3QgZm91bmQK",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": false
+        },
+        {
+          "name": "bash-explicit-name",
+          "mode": "root",
+          "expected": {
+            "stdout": "",
+            "stderr": "bmFtZWQ6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "bmFtZWQ6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": false
+        },
+        {
+          "name": "sh-default-name",
+          "mode": "root",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2g6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2g6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": false
+        },
+        {
+          "name": "sh-explicit-name",
+          "mode": "root",
+          "expected": {
+            "stdout": "",
+            "stderr": "bmFtZWQ6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "bmFtZWQ6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": false
+        },
+        {
+          "name": "eval-frame",
+          "mode": "root",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMjogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": false
+        },
+        {
+          "name": "source-frame",
+          "mode": "root",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9saWJyYXJ5OiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "Li9saWJyYXJ5OiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "bash-file-frame",
+          "mode": "root",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9wcm9ncmFtOiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "Li9wcm9ncmFtOiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "sh-file-frame",
+          "mode": "root",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9wcm9ncmFtOiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "Li9wcm9ncmFtOiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "dot-directory",
+          "mode": "root",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMDogLjogLi9kaXJlY3Rvcnk6IGlzIGEgZGlyZWN0b3J5Cg==",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogLjogLi9kaXJlY3Rvcnk6IGlzIGEgZGlyZWN0b3J5Cg==",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": false
+        },
+        {
+          "name": "source-directory",
+          "mode": "root",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMDogc291cmNlOiAuL2RpcmVjdG9yeTogaXMgYSBkaXJlY3RvcnkK",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogc291cmNlOiAuL2RpcmVjdG9yeTogaXMgYSBkaXJlY3RvcnkK",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": false
+        },
+        {
+          "name": "directory-symlink",
+          "mode": "root",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMDogLjogLi9kaXJsaW5rOiBpcyBhIGRpcmVjdG9yeQo=",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogLjogLi9kaXJsaW5rOiBpcyBhIGRpcmVjdG9yeQo=",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": false
+        },
+        {
+          "name": "file-source-directory",
+          "mode": "root",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9kaXJlY3RvcnktcHJvZ3JhbTogbGluZSAyOiAuOiAuL2RpcmVjdG9yeTogaXMgYSBkaXJlY3RvcnkK",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "Li9kaXJlY3RvcnktcHJvZ3JhbTogbGluZSAyOiAuOiAuL2RpcmVjdG9yeTogaXMgYSBkaXJlY3RvcnkK",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "root-missing",
+          "mode": "bash",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": false
+        },
+        {
+          "name": "multiline-missing",
+          "mode": "bash",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMjogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": false
+        },
+        {
+          "name": "command-missing",
+          "mode": "bash",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": false
+        },
+        {
+          "name": "child-function-isolation",
+          "mode": "bash",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGNoaWxkX2Z1bmN0aW9uOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogY2hpbGRfZnVuY3Rpb246IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": false
+        },
+        {
+          "name": "bash-default-name",
+          "mode": "bash",
+          "expected": {
+            "stdout": "",
+            "stderr": "YmFzaDogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "YmFzaDogbGluZSAxOiBhYnNlbnRfdG9vbDogY29tbWFuZCBub3QgZm91bmQK",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": false
+        },
+        {
+          "name": "bash-explicit-name",
+          "mode": "bash",
+          "expected": {
+            "stdout": "",
+            "stderr": "bmFtZWQ6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "bmFtZWQ6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": false
+        },
+        {
+          "name": "sh-default-name",
+          "mode": "bash",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2g6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2g6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": false
+        },
+        {
+          "name": "sh-explicit-name",
+          "mode": "bash",
+          "expected": {
+            "stdout": "",
+            "stderr": "bmFtZWQ6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "bmFtZWQ6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": false
+        },
+        {
+          "name": "eval-frame",
+          "mode": "bash",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMjogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": false
+        },
+        {
+          "name": "source-frame",
+          "mode": "bash",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9saWJyYXJ5OiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "Li9saWJyYXJ5OiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "bash-file-frame",
+          "mode": "bash",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9wcm9ncmFtOiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "Li9wcm9ncmFtOiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "sh-file-frame",
+          "mode": "bash",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9wcm9ncmFtOiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "Li9wcm9ncmFtOiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "dot-directory",
+          "mode": "bash",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMDogLjogLi9kaXJlY3Rvcnk6IGlzIGEgZGlyZWN0b3J5Cg==",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogLjogLi9kaXJlY3Rvcnk6IGlzIGEgZGlyZWN0b3J5Cg==",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": false
+        },
+        {
+          "name": "source-directory",
+          "mode": "bash",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMDogc291cmNlOiAuL2RpcmVjdG9yeTogaXMgYSBkaXJlY3RvcnkK",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogc291cmNlOiAuL2RpcmVjdG9yeTogaXMgYSBkaXJlY3RvcnkK",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": false
+        },
+        {
+          "name": "directory-symlink",
+          "mode": "bash",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMDogLjogLi9kaXJsaW5rOiBpcyBhIGRpcmVjdG9yeQo=",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogLjogLi9kaXJsaW5rOiBpcyBhIGRpcmVjdG9yeQo=",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": false
+        },
+        {
+          "name": "file-source-directory",
+          "mode": "bash",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9kaXJlY3RvcnktcHJvZ3JhbTogbGluZSAyOiAuOiAuL2RpcmVjdG9yeTogaXMgYSBkaXJlY3RvcnkK",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "Li9kaXJlY3RvcnktcHJvZ3JhbTogbGluZSAyOiAuOiAuL2RpcmVjdG9yeTogaXMgYSBkaXJlY3RvcnkK",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "root-missing",
+          "mode": "sh",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": false
+        },
+        {
+          "name": "multiline-missing",
+          "mode": "sh",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMjogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": false
+        },
+        {
+          "name": "command-missing",
+          "mode": "sh",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": false
+        },
+        {
+          "name": "child-function-isolation",
+          "mode": "sh",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGNoaWxkX2Z1bmN0aW9uOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogY2hpbGRfZnVuY3Rpb246IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": false
+        },
+        {
+          "name": "bash-default-name",
+          "mode": "sh",
+          "expected": {
+            "stdout": "",
+            "stderr": "YmFzaDogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "YmFzaDogbGluZSAxOiBhYnNlbnRfdG9vbDogY29tbWFuZCBub3QgZm91bmQK",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": false
+        },
+        {
+          "name": "bash-explicit-name",
+          "mode": "sh",
+          "expected": {
+            "stdout": "",
+            "stderr": "bmFtZWQ6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "bmFtZWQ6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": false
+        },
+        {
+          "name": "sh-default-name",
+          "mode": "sh",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2g6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2g6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": false
+        },
+        {
+          "name": "sh-explicit-name",
+          "mode": "sh",
+          "expected": {
+            "stdout": "",
+            "stderr": "bmFtZWQ6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "bmFtZWQ6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": false
+        },
+        {
+          "name": "eval-frame",
+          "mode": "sh",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMjogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": false
+        },
+        {
+          "name": "source-frame",
+          "mode": "sh",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9saWJyYXJ5OiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "Li9saWJyYXJ5OiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "bash-file-frame",
+          "mode": "sh",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9wcm9ncmFtOiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "Li9wcm9ncmFtOiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "sh-file-frame",
+          "mode": "sh",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9wcm9ncmFtOiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "Li9wcm9ncmFtOiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "dot-directory",
+          "mode": "sh",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMDogLjogLi9kaXJlY3Rvcnk6IGlzIGEgZGlyZWN0b3J5Cg==",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogLjogLi9kaXJlY3Rvcnk6IGlzIGEgZGlyZWN0b3J5Cg==",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": false
+        },
+        {
+          "name": "source-directory",
+          "mode": "sh",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMDogc291cmNlOiAuL2RpcmVjdG9yeTogaXMgYSBkaXJlY3RvcnkK",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogc291cmNlOiAuL2RpcmVjdG9yeTogaXMgYSBkaXJlY3RvcnkK",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": false
+        },
+        {
+          "name": "directory-symlink",
+          "mode": "sh",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMDogLjogLi9kaXJsaW5rOiBpcyBhIGRpcmVjdG9yeQo=",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogLjogLi9kaXJsaW5rOiBpcyBhIGRpcmVjdG9yeQo=",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": false
+        },
+        {
+          "name": "file-source-directory",
+          "mode": "sh",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9kaXJlY3RvcnktcHJvZ3JhbTogbGluZSAyOiAuOiAuL2RpcmVjdG9yeTogaXMgYSBkaXJlY3RvcnkK",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "Li9kaXJlY3RvcnktcHJvZ3JhbTogbGluZSAyOiAuOiAuL2RpcmVjdG9yeTogaXMgYSBkaXJlY3RvcnkK",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          },
+          "match": true
+        }
+      ]
+    }
+  ]
+}

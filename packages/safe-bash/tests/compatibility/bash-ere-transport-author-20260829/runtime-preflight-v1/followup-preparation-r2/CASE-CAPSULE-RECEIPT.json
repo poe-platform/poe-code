@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "files": 390,
+  "fileBytes": 1381586,
+  "format": "gzip JSON base64 files; authenticate text then gzip then decoded bytes",
+  "textBytes": 650133,
+  "textSha256": "ef426f733849c36e2d7889325a6df7b00a95ace44fd70bee5884649e59c8f02d",
+  "compressedBytes": 487599,
+  "compressedSha256": "965132a9a699de15e4129b6afaa1285f21cfe56e65b7586ded3aa7a1e483d307",
+  "decodedBytes": 1918022,
+  "decodedSha256": "cdfbc3c4780d2bca87265e2b3a40ea022884807a263f20cfc4ec9fa3937a4ece",
+  "maxDecodedBytes": 4194304,
+  "inventorySha256": "aa7ae40bdfe1821a2cd493cc5408be9662003eb02784d05171e6b89a3a0d3a15"
+}

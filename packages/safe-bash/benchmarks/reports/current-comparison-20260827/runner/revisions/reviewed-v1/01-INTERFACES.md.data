@@ -1,0 +1,130 @@
+# Read-only file interfaces and future approval contract
+
+This is a proposed adapter contract, not an instruction to other owners to change
+their files. ROOT can assemble the small manifest from their reviewed handoffs.
+This leaf neither writes sibling files nor signs a candidate. Any incompatible
+contract revision needs another reviewed runner version, not a permissive bypass.
+
+## Published sibling interfaces read during preparation
+
+All paths below are relative to `benchmarks/reports/current-comparison-20260827/`.
+They are read as JSON/text, never imported. Their existence is not candidate
+approval, and their integrity seals are not ROOT signatures.
+
+| Owner file | Data interface | Future use |
+| --- | --- | --- |
+| `cohorts/SEAL.json`, `manifest.json`, `artifact-manifest.json` | Whole-file SHA256/length; historical commit/blob/hash references and preserved attempts | Bind selected version and all dependencies, not a mutable path alone |
+| `cohorts/historical-224.json` | Ordered224 rows: `id`, `recipe`, `recipeCanonicalSha256`, `capturedRecipeHash`, `input`, `originalOracle`, `alignedOracle`, `historicalResults` | Same ordered recipes for both separate224 tables |
+| `cohorts/historical-breadth.json` | Ordered68 rows: `section`, `recipe`, `oracle`, `review`, `rawEvidence` | 61 primary/7 diagnostics, exact old predicates and failure history |
+| `cohorts/profiles.json` | `/original`, `/aligned`, `/breadth`, `/proposed` | Distinct cwd/env/PATH/scratch/budget/provider/byte profiles |
+| `cohorts/proposed-holdouts.json` | `/cases`:24 proposed cases, each `nativeExpected: null`; `/profile` | Unapproved holdouts; independent native capture still required |
+| `cohorts/overlap.json` | Mechanical match/disclosure maps | No semantic disjointness or additive score inferred |
+| `provenance/INPUTS.json` | Historical28 evidence references, native prerequisites, unresolved names, limits, mandatory future inputs | Preserve unknown/unavailable prerequisites; not new candidate authentication |
+
+These are observed interface shapes, not a frozen copy of the siblings. ROOT must
+read their final reports/seals and pin their final bytes after review. Do not run
+their `prepare.mjs`, `check-hashes.mjs` or `native-versions.mjs` through this runner;
+even a version probe is outside the current workload permission.
+
+## Manifest shape
+
+The root-level object has exactly the following required meanings. Extra fields
+may hold provenance, but never expand execution authority.
+
+- `schema`: `safe-bash.comparison-preflight.v1`; `mode`: `PREPARATION_ONLY`;
+  `executionEnabled: false`, `timingEnabled: false`, `unionScore: null`.
+- `candidate`: exact40-hex `commit`, exact64-hex `sourceTreeSha256`, and
+  `state: FUTURE_ROOT_FROZEN`. The referenced freeze document must distinguish
+  committed candidate inputs from any accepted dirty/untracked overlay. No claim
+  that a clean subset makes this concurrently edited entire repository clean.
+- `artifacts`: unique `{id,path,bytes,sha256}` regular files; <=8192 files,
+  <=256MiB/file, <=1GiB aggregate. Manifest <=1MiB, approval/key <=16KiB each.
+  Large reader caps admit the historical113MB Node binary without changing any
+  guest execution budget. Bytes are streamed in64KiB chunks. No globs, downloads,
+  directory walks, archive extraction or package installation.
+- `roles`: the12 independent role document IDs listed below. Every referenced
+  ID must be in `artifacts`; all role documents must have distinct IDs/paths.
+- `reviews.inventoryReview` and `reviews.packedReview`: `{artifact,reviewer,
+  decision:"ACCEPT",sourceTreeSha256,packManifestSha256}`. Both subject hashes must
+  match the candidate and the referenced pack manifest; reviewers must differ.
+  These are authenticated ROOT-bound claims, not independent reviewer discovery.
+- `engines`: exactly `virtual-bash` and `just-bash` (baseline `version:"3.4.2"`).
+  Each supplies artifact IDs for `entry`, `packageManifest`, `setup`,
+  `dispatchInventory`, `resolutionReceipt`, and nonempty `locks` IDs. The receipt
+  must distinguish declared resolution from actual future resolution/load events.
+- `cohorts`: four named rows with `id`, `recipeCount`, `diagnosticCount`,
+  `recipes`, `profile`, `expectations`, `predicate`, `overlapMap`. Exact names:
+  `expanded-original-224`, `expanded-aligned-224`, `baseline-only`,
+  `new-tool-holdouts`. Expanded rows each224/0; breadth61/7; holdout count is ROOT's
+  explicit selected version (currently proposed24), never derived from70-68.
+
+A cohort data reference is either an artifact ID or
+`{artifact:"id",pointer:"/json/pointer",rowField:"optionalFieldForEveryRow"}`.
+An empty pointer selects the whole JSON document. References are hash-bound and
+syntactically checked, **not evaluated by this preparation runner**. The future
+reader must verify every pointer, ID, row count, ordered recipe hash and byte
+payload. Nonexistent pointers or null native expectations cannot produce passes.
+
+For the existing sibling file layout, use these declarations without rewriting
+or extracting their bytes:
+
+```json
+{
+  "recipes": {"artifact":"historical224","pointer":"","rowField":"recipe"},
+  "originalProfile": {"artifact":"profiles","pointer":"/original"},
+  "alignedProfile": {"artifact":"profiles","pointer":"/aligned"},
+  "originalExpectations": {"artifact":"historical224","pointer":"","rowField":"originalOracle"},
+  "alignedExpectations": {"artifact":"historical224","pointer":"","rowField":"alignedOracle"}
+}
+```
+
+Expanded rows must select the same recipes and predicate, different profiles and
+different expectations. This is a structural check, not proof of unchanged recipe
+semantics. A signed hash mismatch, duplicate/aliased file, stale review, relaxed
+predicate or execution/timing flag fails preflight. Missing external files/freeze
+produce `WAITING_ROOT`. Neither path produces a success score.
+
+## Exact required candidate inputs
+
+| Role | Required content to be reviewed by ROOT/independent owners |
+| --- | --- |
+| `candidateFreeze` | Future commit/tree, every source/test/helper byte/mode/path, dirty-vs-committed scope, canonical TS vs captured/native data classification, exact command-name diff and optional plugin inventory |
+| `canonicalInventory` | Candidate-specific tracked consumer inventory, authenticated prerequisites, all canonical source/test/helper qualification including actual TS fixtures; no blanket exclusion or old-inventory substitution |
+| `inventoryReview` | Independent acceptance tied to candidate/inventory hashes, preserved failed controls and missing prerequisites |
+| `packManifest` | Exact candidate package tarball SHA256, byte length and complete membership/content hashes; public exports, Node version/executable hash, build/declaration and packed-consumer evidence; no implicit `src/index.ts` replacement for packed coverage |
+| `packedReview` | Different reviewer's acceptance of those exact tar/member/public-consumer/lock bytes after integration; explicit review order and independence |
+| `baselineAuthentication` | Pinned3.4.2 official compressed/payload hash/SRI/955-file proof from010411ef plus actual selected installation map and explicit transitive limits; retained package proof is not proof every dependency is authenticated |
+| `dependencyClosure` | Root/benchmark/hidden installed lock hashes, exact installed file inventory, actual resolution roots, ESM/CJS/worker/WASM/assets/plugins/native-dependency coverage and gaps; no ambient private SafeJS loading |
+| `nativeProfile` | Original/aligned captures and executable hashes, OS/architecture/libc/library/dialect/locale identities, role-bin mapping and version-capture statuses, outside-tree prerequisites and availability; new holdout oracle captures separately approved |
+| `cohortPlan` | Sibling seal, ordered recipes and decoded bytes, denominators, controls/diagnostics/call totals, approved holdout name binding, overlap/predicate maps and all historical failed/recovery attempts |
+| `executionProfile` | Exact scrubbed host env and actual guest exported env, cwd/PATH/default provenance, constructor/invoke settings, provider/VFS/scratch setup and expected effects, public entry and dispatch plan, network policy and per-case request ledger |
+| `budgetProfile` | Each engine's real internal API limits and the common external caps; cancellation/settlement/dispose/natural-close controls and cleanup-failure policy, no adaptive retry budget inflation |
+| `runnerSourceManifest` | Hashes for every runner/adapter/supervisor/observer/protocol file and approved execution graph, no import-time effects in data readers, reviewed real lifecycle counterchecks before any measurement |
+
+Every payload needed to resolve these references must be enumerated, not merely
+the manifest that claims it. Reading `packManifest` does not unpack or verify its
+tar entries here. The static output expressly does not claim semantic inventory,
+archive closure, complete installed membership or live module evaluation checks.
+No preflight result is itself a candidate freeze or execution authorization.
+
+## ROOT signature envelope
+
+Proposed format, requiring ROOT acceptance before use: an externally supplied
+Ed25519 public PEM, its SHA256 and the envelope SHA256 are trusted **only when
+ROOT supplies those exact pins through the coordination channel**. The manifest
+must not supply its own trusted key. A hash alone is integrity, not identity.
+Host JavaScript/CLI access is trusted, not sandboxed; arbitrary callers can supply
+their own key, which is not ROOT authority. The public selfcheck key is never a
+valid external ROOT pin. A different signature convention needs a reviewed adapter.
+
+Envelope fields are `statementBase64` and `signatureBase64` (canonical base64).
+The64-byte signature covers the exact decoded statement bytes, without reserializing
+JSON. The statement binds `schema:"safe-bash.root-approval.v1"`, `signer:"ROOT"`,
+the raw `manifestSha256`, `comparisonApproved:true`, `timingApproved:false`.
+ROOT may add a nonce/approval record identifier; its exact bytes remain signed.
+No signing or freeze-generation command is delivered. Mock signing stays inside
+`selfcheck.mjs`, is explicitly synthetic, and never writes an approval file.
+
+Even a valid envelope can only authenticate static preparation here. It cannot
+load an engine, start a server, execute a native tool, schedule timing, or erase
+the missing independently reviewed future executor gate.

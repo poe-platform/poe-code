@@ -1,0 +1,223 @@
+{
+  "status": "SCOPED_CONTROLS_PASS",
+  "parent": {
+    "pid": 95515,
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "close": {
+      "code": 0,
+      "signal": null
+    },
+    "observed": [
+      56,
+      0
+    ],
+    "retained": [
+      56,
+      0
+    ],
+    "failures": [],
+    "signals": []
+  },
+  "smallFixtures": {
+    "schema": "SMALL_DEFERRED_FIXTURES_V1",
+    "rows": [
+      {
+        "kind": "FALSE_PRIMARY",
+        "qualified": true,
+        "state": {
+          "kind": "FALSE_PRIMARY",
+          "pid": 95516,
+          "closed": true,
+          "status": 1,
+          "signal": null,
+          "observed": [
+            793,
+            203
+          ],
+          "retained": [
+            793,
+            203
+          ],
+          "captureClosed": [
+            true,
+            true
+          ],
+          "failures": [],
+          "signals": []
+        },
+        "durability": {
+          "schema": "PARENT_DEFERRED_DURABILITY_V1",
+          "qualified": true,
+          "rows": [
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/regex-worker-v4-review/composition/executor-v7-r3/runs/v4/small-fixtures-01/FALSE_PRIMARY/worker-1.jsonl",
+              "enrolled": true,
+              "opened": true,
+              "authenticated": true,
+              "fsynced": true,
+              "closed": true
+            },
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/regex-worker-v4-review/composition/executor-v7-r3/runs/v4/small-fixtures-01/FALSE_PRIMARY/EARLY.json",
+              "enrolled": true,
+              "opened": true,
+              "authenticated": true,
+              "fsynced": true,
+              "closed": true
+            },
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/regex-worker-v4-review/composition/executor-v7-r3/runs/v4/small-fixtures-01/FALSE_PRIMARY/RESULT.json",
+              "enrolled": true,
+              "opened": true,
+              "authenticated": true,
+              "fsynced": true,
+              "closed": true
+            }
+          ],
+          "primaryPresent": false,
+          "primary": null,
+          "cleanup": [],
+          "crashDurableBeforeAcquisition": false
+        },
+        "reason": {
+          "type": "boolean",
+          "value": false
+        },
+        "ordinaryFailurePreserved": true,
+        "workerCreated": 0
+      },
+      {
+        "kind": "UNDEFINED_PRIMARY",
+        "qualified": true,
+        "state": {
+          "kind": "UNDEFINED_PRIMARY",
+          "pid": 95517,
+          "closed": true,
+          "status": 1,
+          "signal": null,
+          "observed": [
+            805,
+            203
+          ],
+          "retained": [
+            805,
+            203
+          ],
+          "captureClosed": [
+            true,
+            true
+          ],
+          "failures": [],
+          "signals": []
+        },
+        "durability": {
+          "schema": "PARENT_DEFERRED_DURABILITY_V1",
+          "qualified": true,
+          "rows": [
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/regex-worker-v4-review/composition/executor-v7-r3/runs/v4/small-fixtures-01/UNDEFINED_PRIMARY/worker-1.jsonl",
+              "enrolled": true,
+              "opened": true,
+              "authenticated": true,
+              "fsynced": true,
+              "closed": true
+            },
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/regex-worker-v4-review/composition/executor-v7-r3/runs/v4/small-fixtures-01/UNDEFINED_PRIMARY/EARLY.json",
+              "enrolled": true,
+              "opened": true,
+              "authenticated": true,
+              "fsynced": true,
+              "closed": true
+            },
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/regex-worker-v4-review/composition/executor-v7-r3/runs/v4/small-fixtures-01/UNDEFINED_PRIMARY/RESULT.json",
+              "enrolled": true,
+              "opened": true,
+              "authenticated": true,
+              "fsynced": true,
+              "closed": true
+            }
+          ],
+          "primaryPresent": false,
+          "primary": null,
+          "cleanup": [],
+          "crashDurableBeforeAcquisition": false
+        },
+        "reason": {
+          "type": "undefined"
+        },
+        "ordinaryFailurePreserved": true,
+        "workerCreated": 0
+      }
+    ],
+    "unsafe": false,
+    "knownOsChildren": 2,
+    "workers": 0
+  },
+  "novel": {
+    "rows": [
+      {
+        "id": "N01",
+        "pass": true
+      },
+      {
+        "id": "N02",
+        "pass": true
+      },
+      {
+        "id": "N03",
+        "pass": true
+      },
+      {
+        "id": "N04",
+        "pass": true
+      },
+      {
+        "id": "N05",
+        "pass": true
+      },
+      {
+        "id": "N06",
+        "pass": true
+      },
+      {
+        "id": "N07",
+        "pass": true
+      },
+      {
+        "id": "N08",
+        "pass": true
+      },
+      {
+        "id": "N09",
+        "pass": true
+      },
+      {
+        "id": "N10",
+        "pass": true
+      },
+      {
+        "id": "N11",
+        "pass": true
+      },
+      {
+        "id": "N12",
+        "pass": true
+      }
+    ],
+    "passed": 12,
+    "total": 12,
+    "Workers": 0,
+    "children": 0
+  },
+  "Workers": 0,
+  "actualEngines": 0,
+  "fixtureNodeStarts": 4,
+  "controlPeak": 3,
+  "preflight": true,
+  "postflight": true
+}

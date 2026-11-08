@@ -1,0 +1,25 @@
+{
+  "action": "created",
+  "comment": {
+    "body": "poe-code-agent please review this issue",
+    "author_association": "MEMBER",
+    "user": {
+      "login": "prefix-user",
+      "type": "User"
+    }
+  },
+  "issue": {
+    "number": 102,
+    "state": "open",
+    "user": {
+      "login": "issue-author"
+    }
+  },
+  "repository": {
+    "full_name": "test-org/test-repo",
+    "name": "test-repo",
+    "owner": {
+      "login": "test-org"
+    }
+  }
+}

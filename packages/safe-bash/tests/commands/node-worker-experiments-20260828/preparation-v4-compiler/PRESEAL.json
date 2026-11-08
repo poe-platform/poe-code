@@ -1,0 +1,97 @@
+{
+  "schema": "compiler-preseal-v4",
+  "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "compilerArgv": [
+    "--permission",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v4-compiler",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v3/PUBLIC98.json.gz.base64",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v3/inputs/errors.ts.data",
+    "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/typescript.js",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/node_modules/typescript/package.json",
+    "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run",
+    "--max-old-space-size=128",
+    "--unhandled-rejections=strict",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/compile-entry.mjs"
+  ],
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "TZ": "UTC"
+  },
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v4-compiler",
+  "outerLaunch": {
+    "transport": "existing NodeREPL literal local ESM import, no data URL/eval/process builtin",
+    "module": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/outer-runner.mjs",
+    "export": "runCompiler",
+    "argument": "sha256(PRESEAL.json)",
+    "result": "await actual compiler close and capture descriptor closure"
+  },
+  "outerCapture": [],
+  "compilerCapture": [
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiler.stdout.raw",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiler.stderr.raw"
+  ],
+  "files": [
+    {
+      "path": "BUILTIN-AUTHORITY-REQUEST.json",
+      "bytes": 1754,
+      "sha256": "975b54e977665abeeeaea5b42c1e241f608a4609d0b0009ac1308528248b4d38"
+    },
+    {
+      "path": "COMPILE-GRANT.json",
+      "bytes": 376,
+      "sha256": "432d5b38b05b3cd0e4804a061ee5f3a6d808211e078b0c77ea31ffa8dc34dc31"
+    },
+    {
+      "path": "EMISSION-RECIPE.json",
+      "bytes": 23827,
+      "sha256": "edafdfa33c252ed1e34a661bc65c4fe691b370f48afcd678759d4c115ac66e5c"
+    },
+    {
+      "path": "PROFILE.json",
+      "bytes": 2725,
+      "sha256": "048f462afba0f9ae5f9502eeeb95509a5430ad7a9543dd7f8d7c8184de7b2a56"
+    },
+    {
+      "path": "README.md",
+      "bytes": 2734,
+      "sha256": "2ca77ac9e2702951d14ed63b8236bbbc0eed6090e3ff8a371093584ff109bfb6"
+    },
+    {
+      "path": "ROOT-GO.json",
+      "bytes": 425,
+      "sha256": "6cc0898e7a0050b9c217863446063c8fad7617297f94e457f36b03e62ac0087b"
+    },
+    {
+      "path": "TOOLS.json",
+      "bytes": 2386,
+      "sha256": "3eebd15cb228cf92930d51152642deacc3b468deafa9f30d330ae90a1fd195ce"
+    },
+    {
+      "path": "WORKER-PRESEAL.json",
+      "bytes": 1716,
+      "sha256": "7a1100eb4e1ebd1d8b3ff14332ead188bc7c505d2876efb14a8339ac5212344b"
+    },
+    {
+      "path": "compile-entry.mjs",
+      "bytes": 7140,
+      "sha256": "4e4f5ca886e24e98b62f3100ad740e4041d939aa3f64e3f8e06dca8c16d65b9d"
+    },
+    {
+      "path": "outcome-judge.mjs",
+      "bytes": 3648,
+      "sha256": "529c827a102f4ec662bf4678277baa0306f2d116d93a68a47a4c95605dc80b0c"
+    },
+    {
+      "path": "outer-runner.mjs",
+      "bytes": 3447,
+      "sha256": "9618c51ff9723ed93d82d6a7e630eaa2cb45f2ea3c8c87108c567e648d9c6d37"
+    },
+    {
+      "path": "parent-entry.mjs",
+      "bytes": 3392,
+      "sha256": "b8621335cc8fc37e3004e3f99c6806eb0532711b9b38c1e7c956db615517d5e9"
+    }
+  ]
+}

@@ -1,0 +1,1279 @@
+{
+  "before": {
+    "head": "e8d308a11bf562efcfba1d8a861503883b4952a3",
+    "files": {
+      "src/commands/README.md": "c541ca716302f6e59c2252ae2a0fcf6d999e93de9d187cc604a7f621e9ca0221",
+      "src/commands/archive/README.md": "a2dad5781d249f9a206739cb7ab36cf77c839abe8ea1222e16abdea953896069",
+      "src/commands/archive/create.ts": "cdddce8ccd1d53987fa1a314cdc6e04d48246fa59fd0880fb444c66bdca7199c",
+      "src/commands/archive/extract.ts": "db27fa691b839849b982fecd38eb1196d1c370dc08bae500905d8b62bd533212",
+      "src/commands/archive/format.ts": "30ba491fca428e91e11bc26802f6e69d05f94fdd30ab1c40f5812a4e92827719",
+      "src/commands/archive/index.ts": "6f23a98dbe89bb37f44799f47c365fb430e910f87363c50291f7b44293e416d0",
+      "src/commands/archive/internal.ts": "6e9a204384490607973f7e1109c51a082319b6eed2fecb8f410d9d51711367d9",
+      "src/commands/archive/options.ts": "1c2dc4e57c80901b402f8f08b1a5638b7acad9f882aca67ae4f9be73295bf956",
+      "src/commands/archive/stream.ts": "31a3b70bf7ce89f81e287cac09c6816637bd06dc398010dd82386ce5d93ceba4",
+      "src/commands/basic.ts": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+      "src/commands/bytes/README.md": "517a12a32591ea36e4d65954cd72f6f446b231414658249f115877b40b7e5053",
+      "src/commands/bytes/checksums/README.md": "f1fac999a988b48789368cf46105ef268d432a08fbc4be8f137a7eed90bb218d",
+      "src/commands/bytes/checksums/index.ts": "8aa42545dd80cc028bce529b0719b0af51d11bef5d7117d37ed2e773097834f4",
+      "src/commands/bytes/compression/README.md": "970ab6bf5c3c9fc97582d25b508513656aa265e5352ce3be5e77bc2d041c9dc7",
+      "src/commands/bytes/compression/files.ts": "1f8d8b243f10d63ae5cccea40d1d9cfc6cb841a46bea15cc61f4a5caa70572df",
+      "src/commands/bytes/compression/gunzip.ts": "6bf534778fa82558ae36bd96412662a8e4c4e864c0a93f15b40d1148a64f835f",
+      "src/commands/bytes/compression/index.ts": "cb0de2e91261eaf255491fe5dc2e62683ef002e07cddef5827b57527eaaf88f9",
+      "src/commands/bytes/compression/options.ts": "3218bbcba8d3c5c113eb7f4761f81e0919e380c6f3de76b26b6a52c44ba7cd95",
+      "src/commands/bytes/compression/stream.ts": "573157fda5382df052ea30011ff3094ac6c838618e1272689766819777a8c9e4",
+      "src/commands/bytes/encoding/README.md": "8b73fdf7a5ebc57fa44014a9449dcb767ba48030b29d36d5e37580cdbcdee886",
+      "src/commands/bytes/encoding/base.ts": "91e4309ca4947fbf3ac0dd9d0dc9431d3d22d29fb66e46706290922c9feb134d",
+      "src/commands/bytes/encoding/index.ts": "6df6b0d7393fd2abb82b476915fc48ae333730c1e9b323a11776a3b9c2607d5f",
+      "src/commands/bytes/encoding/od.ts": "dbe5312675e4ecf74d852e28ac8134be5586d8aa53d5b21a3cccc5d986213a03",
+      "src/commands/bytes/encoding/shared.ts": "8a0eb870513630296a7f28d7d6867d25aba9b785365b812d740c6d7b4da3d396",
+      "src/commands/bytes/encoding/xxd.ts": "1b78b95a9b0175e5297b988a1794310c03786df5a7aa90a4dd261e91ec765a78",
+      "src/commands/bytes/index.ts": "70643f22b1b47c1d6422b97d76cacf95e4e6337521f6f42e0f5f559bacbed84f",
+      "src/commands/copy-identity.ts": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe",
+      "src/commands/diff-patch/GNU-DIFF.md": "e0e1f1f8e27bc68c991dee2a9e80a230896a6140fa4408e9b7379713dc8b81cb",
+      "src/commands/diff-patch/GNU-PATCH.md": "5e194d1b6dd8481fb7631f56ca3c81fd1e98eb35988d0ea5b1ed7ddde1909605",
+      "src/commands/diff-patch/PARSER.md": "5d92f96bb67fdf4a284f6e2e7c802eeeb99d86cf0e4e71fb793c2f5405d66fa6",
+      "src/commands/diff-patch/README.md": "b4d2e1edcb0d333af11bca02970ffed3602c6516196cf768b785eb0d6a5ce787",
+      "src/commands/diff-patch/diff-format.ts": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24",
+      "src/commands/diff-patch/diff.ts": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e",
+      "src/commands/diff-patch/index.ts": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17",
+      "src/commands/diff-patch/patch-envelope.ts": "f6a15e78d7cea41d503f5352206efeb9fa950871c820af730cf27ea06ade99e8",
+      "src/commands/diff-patch/patch-formats.ts": "a78045ac43900582bdb19f0476414e8566c4e1e2edc86b654bc760cf86de3aa4",
+      "src/commands/diff-patch/patch-gnu-paths.ts": "3a06d5b33d3c0df12ff83b0bbf4396d90906d6fd61e3ca1bd5537f508c4282af",
+      "src/commands/diff-patch/patch-gnu-reject.ts": "5df12efd994c0187998f0112a5fac595f376142f2cd187a5e0b40738f7b6cf02",
+      "src/commands/diff-patch/patch-path.ts": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94",
+      "src/commands/diff-patch/patch.ts": "b344c6f7b0f6afaccdab75778a12c11c868d7f8bccd5d453c56e552039e619fe",
+      "src/commands/diff-patch/shared.ts": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+      "src/commands/diff-patch/unified.ts": "a8659f40aeb9d1cac3548ffd24950e652eeace92cef1339de9e3a5e5ed7e10fb",
+      "src/commands/execution.ts": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de",
+      "src/commands/filesystem.ts": "afcdeb2d4a581350dc266537f691f1e0a52f662cd4694a05bdd92e5bd351860c",
+      "src/commands/find.ts": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+      "src/commands/grep.ts": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+      "src/commands/index.ts": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2",
+      "src/commands/internal.ts": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+      "src/commands/metadata/README.md": "211ee5e45c207e3dd775fdbfd3a58ef4b676c5c9aed9a13086693e1f3f99be68",
+      "src/commands/metadata/chmod.ts": "9286ebc9bea074bf9dad58cb6197aa5e10d325c549187eefbc9203ac76b09cfd",
+      "src/commands/metadata/index.ts": "bc4ad8e3fb5474796ff326b1f53b8c1b84cf45647640f8246d4ccfb3b61d467e",
+      "src/commands/metadata/internal.ts": "bd26d6f4a098c565ce38da6bc269503469638837d3dce47e21ac9c1604a45cd7",
+      "src/commands/metadata/mktemp.ts": "1165d822477e68f6b4dfac3db6a7fa43247226137122c0d980e1490b80bc34d4",
+      "src/commands/metadata/stat.ts": "21f4e1bd5f938f33f41ea9976fbd5b2e00fbe3a7b80cb99c8ecc03131900d860",
+      "src/commands/move.ts": "31e1fe6a2c0fc9efb9efa44b636d9478d4cab273de4c4e809d4f572b28084042",
+      "src/commands/network/README.md": "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f",
+      "src/commands/network/args.ts": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c",
+      "src/commands/network/body.ts": "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf",
+      "src/commands/network/curl.ts": "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42",
+      "src/commands/network/index.ts": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329",
+      "src/commands/network/output.ts": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab",
+      "src/commands/network/shared.ts": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f",
+      "src/commands/network/transport.ts": "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844",
+      "src/commands/network/types.ts": "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9",
+      "src/commands/predicates.ts": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+      "src/commands/safejs/README.md": "7c182e72770fd7c4a9e98624c04d4e09770c3f8bc9d42a55890019f7fedc405c",
+      "src/commands/safejs/index.ts": "479c111291e2e181b3ab1a8a41905592ff71b968a691e25f21970eee089d8f29",
+      "src/commands/safejs/io.ts": "ef366f40b1d1d161ec0f2c18f1138daf75693ab416274bb92763ebf73899f2f1",
+      "src/commands/safejs/options.ts": "4009050c3a75daececeb2e75af46be8872d21a83c7a8132b6221b0b4d87c7a43",
+      "src/commands/safejs/render.ts": "10eabbdc8d3c1f2e7c40aeafd51b15484ece05de844fcb73f2ef1aed01fe5d6e",
+      "src/commands/safejs/types.ts": "edd5f7cf2ed473ca33105cfe1039c3fb36ae913112d0564ea3d9b163b3c08bf4",
+      "src/commands/search/README.md": "99385bcf106ecbe66185c285cc10626a487f748b8dc14562e7d47451aa9bca72",
+      "src/commands/search/glob.ts": "d6fc574fbfde82b459426875801a36aaaf5ec9536ce25d1f5876215396094425",
+      "src/commands/search/index.ts": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf",
+      "src/commands/search/matcher.ts": "499848186cde72bd696cba1fc7d53af39354ba74ea63c42acd92d5eb1cda1cfb",
+      "src/commands/search/options.ts": "828d97d930dc615089a29efd3fe463293d4f61bf4dd33c81c2ceb6b910eb6ef8",
+      "src/commands/search/output.ts": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1",
+      "src/commands/search/rg.ts": "c677f831e8e9dcc5051713d894d277ffa9646d2de358c1970b2dd0a9dfb44417",
+      "src/commands/search/shared.ts": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724",
+      "src/commands/search/walk.ts": "474b87aa10e7daf0506edd7408d3a1b48c2bf7e644e8f585f1f5930bb658686a",
+      "src/commands/streams.ts": "0b49e7f14ae8a399fcbea5454c48e930f047472f8631c2d5fe3ca385d14437d5",
+      "src/commands/structured/README.md": "5fecf1186d9004e378d77a1e9ad297af94b4f4f9070d9b620d70cd179a7e1b00",
+      "src/commands/structured/index.ts": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415",
+      "src/commands/structured/input.ts": "1ac8e520cf80237a45a275d6fa55ad035b6ec0b83dae91765a7d77818ab2d935",
+      "src/commands/structured/interpreter.ts": "8239b8342f57a2f30a5c71c9207955e545fdd2af52e04dd3db11508187a0da37",
+      "src/commands/structured/jq.ts": "59239e32576e8f88d5ef49980c713ddb070468518800f16b5e2aa16a0520fb02",
+      "src/commands/structured/limits.ts": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe",
+      "src/commands/structured/numbers.ts": "f2f18b3f201b22f560b9022304235ca26084319ca103a954f1aabb5f0f74be7d",
+      "src/commands/structured/parser.ts": "5673072aa6512c4fcbc6b008ab9ee595a9b0555c6c35ccf93fc3bb45c57d0ff8",
+      "src/commands/structured/split.ts": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6",
+      "src/commands/structured/values.ts": "b7764b6333525b44875aa76f4e9bb546f1b655b91a7dda52360498574c4c6222",
+      "src/commands/table-text/README.md": "96a3fc81954835657dcb7a88dbb073999aa12d857bdf5fb1228d00a77e4a2d66",
+      "src/commands/table-text/comm.ts": "7a9a3d591dd3fda338748019b8c3e6eeb7e77db2f15f18bf20e041a80b894b4f",
+      "src/commands/table-text/index.ts": "9003d5c6d85d283eca5a5e1e50750eae10639ce1830bf68427536c50d40848a9",
+      "src/commands/table-text/internal.ts": "fc43999fdddaccb282e2a6bb868421c395804092076ecf2645554a80f9a3b7a8",
+      "src/commands/table-text/join.ts": "83704c0da1bcd137fedf1e90e1d922af482bcfac290bc90f6b7ef3e36b6429b0",
+      "src/commands/table-text/paste.ts": "39b236794d5254d3e40471d9cb867d488ab4c57c236c2730bd2640ded84d1ba5",
+      "src/commands/text-programs/README.md": "b39d89bf294fecc3da6d9ecff88aa07e8d7b0d12e0471d3c7974538907d1552a",
+      "src/commands/text-programs/awk-runtime.ts": "30821e08780042b3382ceedb4b133a89475938a1212ed607782e2d0e592bd35e",
+      "src/commands/text-programs/awk-syntax.ts": "179754bbb74643f57f8e19b0a87c43a8793130aa4b4f8d07a4cc14cae871d4d7",
+      "src/commands/text-programs/awk-values.ts": "6824c5348221d98f9d94c058bbe119eaa6aa1e7ca7775af8d460f358436c2d7c",
+      "src/commands/text-programs/awk.ts": "af422696809543efb470ae219774e32819124035d51a756d5761f41fa4607dc3",
+      "src/commands/text-programs/index.ts": "6df5a7c5c242e71e18d8a15ea87d1c6c5bcd90aa57edb529af64e147135ea9e2",
+      "src/commands/text-programs/regex.ts": "23df19386627659c3a5175562a2f8eeda873b81e3dc3e78d3cf51aafa7b3b06f",
+      "src/commands/text-programs/sed.ts": "38fceb4869a0db8197a050de3430d5b9c5017e1606a4348d17d8004745c645a9",
+      "src/commands/text-programs/shared.ts": "fec28a956be858e725811f9e83a7f325d99d3152da0231af0d619847e8e6206e",
+      "src/commands/text.ts": "d9411fd868ad8ef04749937024c0f0ff77267c5db5a2cece1f0cdf80c9b48490",
+      "src/contracts/command.ts": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+      "src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "src/contracts/filesystem.md": "0f930c0413b3c2a57b333c6cb4b1f88cf3cc2c878a326626036fa520ff929c83",
+      "src/contracts/filesystem.ts": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+      "src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+      "src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+      "src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "src/fs/memory/index.ts": "98704037c57bae8bd5c3782c65aceb98e967837df375b33eda52a00ce762b1a0",
+      "src/fs/mount/COMPARISON.md": "bcab4b184d6e4b45b9bde3933496516441fde7365658e72a2ca6f6901b46a60f",
+      "src/fs/mount/README.md": "ac5d57b95f1276d7aa095f5c8177254be8fbb37b8d6271f34b5d86b0469e4f2b",
+      "src/fs/mount/comparison.ts": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+      "src/fs/mount/identity.ts": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+      "src/fs/mount/index.ts": "290e22e36016bf206badff86e55047e8311c3c4feb1c525b9ae0807c568333ee",
+      "src/fs/overlay/README.md": "58f8b4e1717af0de202c926af4541cfbea4be5650b624d8559a4e791279eabd5",
+      "src/fs/overlay/index.ts": "6442f61ab61aee52a321ef91892ec4c0dc73674bb40ca9a732ffa69f7e73495e",
+      "src/fs/readonly/README.md": "0a06e4740302f2e320d3bc7df70ff5190be34e135220a0a56409b31bc7541d64",
+      "src/fs/readonly/index.ts": "384f940196dc572f677541daa9c420da2e013324d66576004c1a2730e7899067",
+      "src/fs/real/index.ts": "d3e79b80a5a48984e1f7f7dd9a79254c2db1faf8142e287a43792180874f77da",
+      "src/fs/s3/README.md": "70b2aa1ed94a96ee1cde798496c63e9ca646b6f1f03f0339f5251a8f9e5a752f",
+      "src/fs/s3/authority.ts": "2487b9daba77d7c0a560b5d719508055c427e1c0a0befa05b5d894990ac72b49",
+      "src/fs/s3/filesystem.ts": "7544d066ea75125279b6e29f82110c326d75fd04b44648a80a358603d2296f88",
+      "src/fs/s3/index.ts": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+      "src/fs/s3/mock.ts": "f80eb6ac65477d7cbfd1083a00cb8c5043ba594b0fd07cf167d698b7c6905821",
+      "src/fs/s3/transport.ts": "df111b273073bcbebc8be0648027211e545af7fcd00561057f4da0665683b9fe",
+      "src/fs/webdav/PRODUCTION_CHECKPOINT.md": "ee00578d845be249d82cef70c999df1c92e30d1c5498d2da3a8e3191d5e1f6f2",
+      "src/fs/webdav/README.md": "d25f9ef4f5a79cc97b5325d88b42171b0c6fc5ffbeed7abd88f67e89f73a1095",
+      "src/fs/webdav/index.ts": "9a19fb0e61bf9ef07d97881bb93e30ba21491e580ef5e58ab0e80bb5f398d5e4",
+      "src/fs/webdav/resource-id.ts": "bb1ad5de415ce3f4369aaccef3a3869162bc81a8f6eb66104df4e5c7db452916",
+      "src/fs/webdav/webdav.ts": "b03c53d4fd1e5c7da4d665d532dbf25b39e9555dc1cb47890edd2ffd2d9fa51b",
+      "src/fs/webdav/xml.ts": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+      "src/index.ts": "76a17e2be09c743f8522a5f45868c1da84a80f107a2aae7e72b2e564bfff88b1",
+      "src/integrations/safejs/filesystem.ts": "c9ab864768e430bbfbea7590071646985c6374634124f62516ec09c13d9af578",
+      "src/integrations/safejs/index.ts": "b0866c13456991f05f30dd23cabcf895d92b8af89985eb88172ac3d76b3b8384",
+      "src/integrations/safejs/shell.ts": "5cb3e55c5e62adb540b41ac7ce39e8458a3a25ffb8422e6164419c1d22ef15da",
+      "src/integrations/safejs/stats.ts": "94bb724a7281296e08ac4465979e0f9cac585e28f91fc79382650a3c60ea4824",
+      "src/integrations/safejs/values.ts": "91ac3025b6420a7a908736f1d746077f27c9f045f6be22d82a37f4a07ff9111a",
+      "src/plugins/index.ts": "b42974c3208fda3c9e4378b235d6d5d955f1c753c8bfb5e5dd31e22355323f0d",
+      "src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "src/shell/display.ts": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+      "src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "src/shell/input.ts": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+      "src/shell/locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "src/shell/parser.ts": "cd31afa92e6e54a3e3fceb328064e1e2421e0461529c354794d7b7198c80e4ec",
+      "src/shell/pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "src/shell/runtime.ts": "8af9bb685fee68e6f199e1ebf9613ac8da50572f357fd98599e570d30810e820",
+      "src/shell/shell.ts": "f4be37e13e400fb1e0cf52e3ba9f16c4ef32c8ae1a2c3d09908369a680e4931e",
+      "src/shell/types.ts": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874",
+      "tests/commands/table-text/AUTHOR_HANDOFF.md": "d7dd954c96c2c26217e6c18c0f5885d4187305316805c775352e43fd74704d99",
+      "tests/commands/table-text/author-verification.json": "849bb4b6b901c59123c0f2b568e5f70c26cb8c85e85e539fc61217d6e6231476",
+      "tests/commands/table-text/buffer-ownership-regression.json": "e9bd14ba90f974983757f846a6be8df3407cbda1e9f7e9370d65441540210ca4",
+      "tests/commands/table-text/cases.ts": "17118aa95f15c8cd1d47d6aebf624b7013df965e87c39fb81bfebfa63b95070d",
+      "tests/commands/table-text/contracts.test.ts": "df0fea627ba8f15b1f2c2abd6ed3fb53a1758a82cf021f153adf2789603bb39c",
+      "tests/commands/table-text/differential.test.ts": "8534dd83c9b2c2e125027718ac336cc9ba4c3189e33a185e46c6482e98a55048",
+      "tests/commands/table-text/gnu-evidence.json": "42e8b27580243212a341edd8b8a106f4d52f81164f5ae56567dd3c738d6a8caa",
+      "tests/commands/table-text/helpers.ts": "5925232dc94a5b2badba373111198f6ef1b534d63a767fe8cfd22ed3f472d6e5",
+      "tests/commands/table-text/integration.test.ts": "e41520962e5c1906293f6a01723382cc589c791664251429f8f61df770665ec4",
+      "tests/commands/table-text/oracle.ts": "53b85ddb847ccd19b5a9111e652332dbaa4bc9a2a8d9c1b798e2233d454f34de",
+      "package.json": "216554f6115e7254b471b1e3b91319e516a80682b59a0b7fe6d8df16b2cb164b",
+      "package-lock.json": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b",
+      "tsconfig.json": "21c3c30b8995b180e079fa8516150f889950d648528de116a32f254f892301cd",
+      "node_modules/tsx/package.json": "96aee9fd252d0cc31f3c01468250961f5b338c797bc208700d7db926450c7659",
+      "node_modules/typescript/package.json": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6"
+    }
+  },
+  "after": {
+    "head": "e8d308a11bf562efcfba1d8a861503883b4952a3",
+    "files": {
+      "src/commands/README.md": "c541ca716302f6e59c2252ae2a0fcf6d999e93de9d187cc604a7f621e9ca0221",
+      "src/commands/archive/README.md": "a2dad5781d249f9a206739cb7ab36cf77c839abe8ea1222e16abdea953896069",
+      "src/commands/archive/create.ts": "cdddce8ccd1d53987fa1a314cdc6e04d48246fa59fd0880fb444c66bdca7199c",
+      "src/commands/archive/extract.ts": "db27fa691b839849b982fecd38eb1196d1c370dc08bae500905d8b62bd533212",
+      "src/commands/archive/format.ts": "30ba491fca428e91e11bc26802f6e69d05f94fdd30ab1c40f5812a4e92827719",
+      "src/commands/archive/index.ts": "6f23a98dbe89bb37f44799f47c365fb430e910f87363c50291f7b44293e416d0",
+      "src/commands/archive/internal.ts": "6e9a204384490607973f7e1109c51a082319b6eed2fecb8f410d9d51711367d9",
+      "src/commands/archive/options.ts": "1c2dc4e57c80901b402f8f08b1a5638b7acad9f882aca67ae4f9be73295bf956",
+      "src/commands/archive/stream.ts": "31a3b70bf7ce89f81e287cac09c6816637bd06dc398010dd82386ce5d93ceba4",
+      "src/commands/basic.ts": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+      "src/commands/bytes/README.md": "517a12a32591ea36e4d65954cd72f6f446b231414658249f115877b40b7e5053",
+      "src/commands/bytes/checksums/README.md": "f1fac999a988b48789368cf46105ef268d432a08fbc4be8f137a7eed90bb218d",
+      "src/commands/bytes/checksums/index.ts": "8aa42545dd80cc028bce529b0719b0af51d11bef5d7117d37ed2e773097834f4",
+      "src/commands/bytes/compression/README.md": "970ab6bf5c3c9fc97582d25b508513656aa265e5352ce3be5e77bc2d041c9dc7",
+      "src/commands/bytes/compression/files.ts": "1f8d8b243f10d63ae5cccea40d1d9cfc6cb841a46bea15cc61f4a5caa70572df",
+      "src/commands/bytes/compression/gunzip.ts": "6bf534778fa82558ae36bd96412662a8e4c4e864c0a93f15b40d1148a64f835f",
+      "src/commands/bytes/compression/index.ts": "cb0de2e91261eaf255491fe5dc2e62683ef002e07cddef5827b57527eaaf88f9",
+      "src/commands/bytes/compression/options.ts": "3218bbcba8d3c5c113eb7f4761f81e0919e380c6f3de76b26b6a52c44ba7cd95",
+      "src/commands/bytes/compression/stream.ts": "573157fda5382df052ea30011ff3094ac6c838618e1272689766819777a8c9e4",
+      "src/commands/bytes/encoding/README.md": "8b73fdf7a5ebc57fa44014a9449dcb767ba48030b29d36d5e37580cdbcdee886",
+      "src/commands/bytes/encoding/base.ts": "91e4309ca4947fbf3ac0dd9d0dc9431d3d22d29fb66e46706290922c9feb134d",
+      "src/commands/bytes/encoding/index.ts": "6df6b0d7393fd2abb82b476915fc48ae333730c1e9b323a11776a3b9c2607d5f",
+      "src/commands/bytes/encoding/od.ts": "dbe5312675e4ecf74d852e28ac8134be5586d8aa53d5b21a3cccc5d986213a03",
+      "src/commands/bytes/encoding/shared.ts": "8a0eb870513630296a7f28d7d6867d25aba9b785365b812d740c6d7b4da3d396",
+      "src/commands/bytes/encoding/xxd.ts": "1b78b95a9b0175e5297b988a1794310c03786df5a7aa90a4dd261e91ec765a78",
+      "src/commands/bytes/index.ts": "70643f22b1b47c1d6422b97d76cacf95e4e6337521f6f42e0f5f559bacbed84f",
+      "src/commands/copy-identity.ts": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe",
+      "src/commands/diff-patch/GNU-DIFF.md": "e0e1f1f8e27bc68c991dee2a9e80a230896a6140fa4408e9b7379713dc8b81cb",
+      "src/commands/diff-patch/GNU-PATCH.md": "5e194d1b6dd8481fb7631f56ca3c81fd1e98eb35988d0ea5b1ed7ddde1909605",
+      "src/commands/diff-patch/PARSER.md": "5d92f96bb67fdf4a284f6e2e7c802eeeb99d86cf0e4e71fb793c2f5405d66fa6",
+      "src/commands/diff-patch/README.md": "b4d2e1edcb0d333af11bca02970ffed3602c6516196cf768b785eb0d6a5ce787",
+      "src/commands/diff-patch/diff-format.ts": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24",
+      "src/commands/diff-patch/diff.ts": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e",
+      "src/commands/diff-patch/index.ts": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17",
+      "src/commands/diff-patch/patch-envelope.ts": "f6a15e78d7cea41d503f5352206efeb9fa950871c820af730cf27ea06ade99e8",
+      "src/commands/diff-patch/patch-formats.ts": "a78045ac43900582bdb19f0476414e8566c4e1e2edc86b654bc760cf86de3aa4",
+      "src/commands/diff-patch/patch-gnu-paths.ts": "3a06d5b33d3c0df12ff83b0bbf4396d90906d6fd61e3ca1bd5537f508c4282af",
+      "src/commands/diff-patch/patch-gnu-reject.ts": "5df12efd994c0187998f0112a5fac595f376142f2cd187a5e0b40738f7b6cf02",
+      "src/commands/diff-patch/patch-path.ts": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94",
+      "src/commands/diff-patch/patch.ts": "b344c6f7b0f6afaccdab75778a12c11c868d7f8bccd5d453c56e552039e619fe",
+      "src/commands/diff-patch/shared.ts": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+      "src/commands/diff-patch/unified.ts": "a8659f40aeb9d1cac3548ffd24950e652eeace92cef1339de9e3a5e5ed7e10fb",
+      "src/commands/execution.ts": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de",
+      "src/commands/filesystem.ts": "afcdeb2d4a581350dc266537f691f1e0a52f662cd4694a05bdd92e5bd351860c",
+      "src/commands/find.ts": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+      "src/commands/grep.ts": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+      "src/commands/index.ts": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2",
+      "src/commands/internal.ts": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+      "src/commands/metadata/README.md": "211ee5e45c207e3dd775fdbfd3a58ef4b676c5c9aed9a13086693e1f3f99be68",
+      "src/commands/metadata/chmod.ts": "9286ebc9bea074bf9dad58cb6197aa5e10d325c549187eefbc9203ac76b09cfd",
+      "src/commands/metadata/index.ts": "bc4ad8e3fb5474796ff326b1f53b8c1b84cf45647640f8246d4ccfb3b61d467e",
+      "src/commands/metadata/internal.ts": "bd26d6f4a098c565ce38da6bc269503469638837d3dce47e21ac9c1604a45cd7",
+      "src/commands/metadata/mktemp.ts": "1165d822477e68f6b4dfac3db6a7fa43247226137122c0d980e1490b80bc34d4",
+      "src/commands/metadata/stat.ts": "21f4e1bd5f938f33f41ea9976fbd5b2e00fbe3a7b80cb99c8ecc03131900d860",
+      "src/commands/move.ts": "31e1fe6a2c0fc9efb9efa44b636d9478d4cab273de4c4e809d4f572b28084042",
+      "src/commands/network/README.md": "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f",
+      "src/commands/network/args.ts": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c",
+      "src/commands/network/body.ts": "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf",
+      "src/commands/network/curl.ts": "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42",
+      "src/commands/network/index.ts": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329",
+      "src/commands/network/output.ts": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab",
+      "src/commands/network/shared.ts": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f",
+      "src/commands/network/transport.ts": "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844",
+      "src/commands/network/types.ts": "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9",
+      "src/commands/predicates.ts": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+      "src/commands/safejs/README.md": "7c182e72770fd7c4a9e98624c04d4e09770c3f8bc9d42a55890019f7fedc405c",
+      "src/commands/safejs/index.ts": "479c111291e2e181b3ab1a8a41905592ff71b968a691e25f21970eee089d8f29",
+      "src/commands/safejs/io.ts": "ef366f40b1d1d161ec0f2c18f1138daf75693ab416274bb92763ebf73899f2f1",
+      "src/commands/safejs/options.ts": "4009050c3a75daececeb2e75af46be8872d21a83c7a8132b6221b0b4d87c7a43",
+      "src/commands/safejs/render.ts": "10eabbdc8d3c1f2e7c40aeafd51b15484ece05de844fcb73f2ef1aed01fe5d6e",
+      "src/commands/safejs/types.ts": "edd5f7cf2ed473ca33105cfe1039c3fb36ae913112d0564ea3d9b163b3c08bf4",
+      "src/commands/search/README.md": "99385bcf106ecbe66185c285cc10626a487f748b8dc14562e7d47451aa9bca72",
+      "src/commands/search/glob.ts": "d6fc574fbfde82b459426875801a36aaaf5ec9536ce25d1f5876215396094425",
+      "src/commands/search/index.ts": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf",
+      "src/commands/search/matcher.ts": "499848186cde72bd696cba1fc7d53af39354ba74ea63c42acd92d5eb1cda1cfb",
+      "src/commands/search/options.ts": "828d97d930dc615089a29efd3fe463293d4f61bf4dd33c81c2ceb6b910eb6ef8",
+      "src/commands/search/output.ts": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1",
+      "src/commands/search/rg.ts": "c677f831e8e9dcc5051713d894d277ffa9646d2de358c1970b2dd0a9dfb44417",
+      "src/commands/search/shared.ts": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724",
+      "src/commands/search/walk.ts": "474b87aa10e7daf0506edd7408d3a1b48c2bf7e644e8f585f1f5930bb658686a",
+      "src/commands/streams.ts": "0b49e7f14ae8a399fcbea5454c48e930f047472f8631c2d5fe3ca385d14437d5",
+      "src/commands/structured/README.md": "5fecf1186d9004e378d77a1e9ad297af94b4f4f9070d9b620d70cd179a7e1b00",
+      "src/commands/structured/index.ts": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415",
+      "src/commands/structured/input.ts": "1ac8e520cf80237a45a275d6fa55ad035b6ec0b83dae91765a7d77818ab2d935",
+      "src/commands/structured/interpreter.ts": "8239b8342f57a2f30a5c71c9207955e545fdd2af52e04dd3db11508187a0da37",
+      "src/commands/structured/jq.ts": "59239e32576e8f88d5ef49980c713ddb070468518800f16b5e2aa16a0520fb02",
+      "src/commands/structured/limits.ts": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe",
+      "src/commands/structured/numbers.ts": "f2f18b3f201b22f560b9022304235ca26084319ca103a954f1aabb5f0f74be7d",
+      "src/commands/structured/parser.ts": "5673072aa6512c4fcbc6b008ab9ee595a9b0555c6c35ccf93fc3bb45c57d0ff8",
+      "src/commands/structured/split.ts": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6",
+      "src/commands/structured/values.ts": "b7764b6333525b44875aa76f4e9bb546f1b655b91a7dda52360498574c4c6222",
+      "src/commands/table-text/README.md": "96a3fc81954835657dcb7a88dbb073999aa12d857bdf5fb1228d00a77e4a2d66",
+      "src/commands/table-text/comm.ts": "7a9a3d591dd3fda338748019b8c3e6eeb7e77db2f15f18bf20e041a80b894b4f",
+      "src/commands/table-text/index.ts": "9003d5c6d85d283eca5a5e1e50750eae10639ce1830bf68427536c50d40848a9",
+      "src/commands/table-text/internal.ts": "fc43999fdddaccb282e2a6bb868421c395804092076ecf2645554a80f9a3b7a8",
+      "src/commands/table-text/join.ts": "83704c0da1bcd137fedf1e90e1d922af482bcfac290bc90f6b7ef3e36b6429b0",
+      "src/commands/table-text/paste.ts": "39b236794d5254d3e40471d9cb867d488ab4c57c236c2730bd2640ded84d1ba5",
+      "src/commands/text-programs/README.md": "b39d89bf294fecc3da6d9ecff88aa07e8d7b0d12e0471d3c7974538907d1552a",
+      "src/commands/text-programs/awk-runtime.ts": "30821e08780042b3382ceedb4b133a89475938a1212ed607782e2d0e592bd35e",
+      "src/commands/text-programs/awk-syntax.ts": "179754bbb74643f57f8e19b0a87c43a8793130aa4b4f8d07a4cc14cae871d4d7",
+      "src/commands/text-programs/awk-values.ts": "6824c5348221d98f9d94c058bbe119eaa6aa1e7ca7775af8d460f358436c2d7c",
+      "src/commands/text-programs/awk.ts": "af422696809543efb470ae219774e32819124035d51a756d5761f41fa4607dc3",
+      "src/commands/text-programs/index.ts": "6df5a7c5c242e71e18d8a15ea87d1c6c5bcd90aa57edb529af64e147135ea9e2",
+      "src/commands/text-programs/regex.ts": "23df19386627659c3a5175562a2f8eeda873b81e3dc3e78d3cf51aafa7b3b06f",
+      "src/commands/text-programs/sed.ts": "38fceb4869a0db8197a050de3430d5b9c5017e1606a4348d17d8004745c645a9",
+      "src/commands/text-programs/shared.ts": "fec28a956be858e725811f9e83a7f325d99d3152da0231af0d619847e8e6206e",
+      "src/commands/text.ts": "d9411fd868ad8ef04749937024c0f0ff77267c5db5a2cece1f0cdf80c9b48490",
+      "src/contracts/command.ts": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+      "src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "src/contracts/filesystem.md": "0f930c0413b3c2a57b333c6cb4b1f88cf3cc2c878a326626036fa520ff929c83",
+      "src/contracts/filesystem.ts": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+      "src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+      "src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+      "src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "src/fs/memory/index.ts": "98704037c57bae8bd5c3782c65aceb98e967837df375b33eda52a00ce762b1a0",
+      "src/fs/mount/COMPARISON.md": "bcab4b184d6e4b45b9bde3933496516441fde7365658e72a2ca6f6901b46a60f",
+      "src/fs/mount/README.md": "ac5d57b95f1276d7aa095f5c8177254be8fbb37b8d6271f34b5d86b0469e4f2b",
+      "src/fs/mount/comparison.ts": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+      "src/fs/mount/identity.ts": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+      "src/fs/mount/index.ts": "290e22e36016bf206badff86e55047e8311c3c4feb1c525b9ae0807c568333ee",
+      "src/fs/overlay/README.md": "58f8b4e1717af0de202c926af4541cfbea4be5650b624d8559a4e791279eabd5",
+      "src/fs/overlay/index.ts": "6442f61ab61aee52a321ef91892ec4c0dc73674bb40ca9a732ffa69f7e73495e",
+      "src/fs/readonly/README.md": "0a06e4740302f2e320d3bc7df70ff5190be34e135220a0a56409b31bc7541d64",
+      "src/fs/readonly/index.ts": "384f940196dc572f677541daa9c420da2e013324d66576004c1a2730e7899067",
+      "src/fs/real/index.ts": "d3e79b80a5a48984e1f7f7dd9a79254c2db1faf8142e287a43792180874f77da",
+      "src/fs/s3/README.md": "70b2aa1ed94a96ee1cde798496c63e9ca646b6f1f03f0339f5251a8f9e5a752f",
+      "src/fs/s3/authority.ts": "2487b9daba77d7c0a560b5d719508055c427e1c0a0befa05b5d894990ac72b49",
+      "src/fs/s3/filesystem.ts": "7544d066ea75125279b6e29f82110c326d75fd04b44648a80a358603d2296f88",
+      "src/fs/s3/index.ts": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+      "src/fs/s3/mock.ts": "f80eb6ac65477d7cbfd1083a00cb8c5043ba594b0fd07cf167d698b7c6905821",
+      "src/fs/s3/transport.ts": "df111b273073bcbebc8be0648027211e545af7fcd00561057f4da0665683b9fe",
+      "src/fs/webdav/PRODUCTION_CHECKPOINT.md": "ee00578d845be249d82cef70c999df1c92e30d1c5498d2da3a8e3191d5e1f6f2",
+      "src/fs/webdav/README.md": "d25f9ef4f5a79cc97b5325d88b42171b0c6fc5ffbeed7abd88f67e89f73a1095",
+      "src/fs/webdav/index.ts": "9a19fb0e61bf9ef07d97881bb93e30ba21491e580ef5e58ab0e80bb5f398d5e4",
+      "src/fs/webdav/resource-id.ts": "bb1ad5de415ce3f4369aaccef3a3869162bc81a8f6eb66104df4e5c7db452916",
+      "src/fs/webdav/webdav.ts": "b03c53d4fd1e5c7da4d665d532dbf25b39e9555dc1cb47890edd2ffd2d9fa51b",
+      "src/fs/webdav/xml.ts": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+      "src/index.ts": "76a17e2be09c743f8522a5f45868c1da84a80f107a2aae7e72b2e564bfff88b1",
+      "src/integrations/safejs/filesystem.ts": "c9ab864768e430bbfbea7590071646985c6374634124f62516ec09c13d9af578",
+      "src/integrations/safejs/index.ts": "b0866c13456991f05f30dd23cabcf895d92b8af89985eb88172ac3d76b3b8384",
+      "src/integrations/safejs/shell.ts": "5cb3e55c5e62adb540b41ac7ce39e8458a3a25ffb8422e6164419c1d22ef15da",
+      "src/integrations/safejs/stats.ts": "94bb724a7281296e08ac4465979e0f9cac585e28f91fc79382650a3c60ea4824",
+      "src/integrations/safejs/values.ts": "91ac3025b6420a7a908736f1d746077f27c9f045f6be22d82a37f4a07ff9111a",
+      "src/plugins/index.ts": "b42974c3208fda3c9e4378b235d6d5d955f1c753c8bfb5e5dd31e22355323f0d",
+      "src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "src/shell/display.ts": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+      "src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "src/shell/input.ts": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+      "src/shell/locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "src/shell/parser.ts": "cd31afa92e6e54a3e3fceb328064e1e2421e0461529c354794d7b7198c80e4ec",
+      "src/shell/pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "src/shell/runtime.ts": "8af9bb685fee68e6f199e1ebf9613ac8da50572f357fd98599e570d30810e820",
+      "src/shell/shell.ts": "f4be37e13e400fb1e0cf52e3ba9f16c4ef32c8ae1a2c3d09908369a680e4931e",
+      "src/shell/types.ts": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874",
+      "tests/commands/table-text/AUTHOR_HANDOFF.md": "d7dd954c96c2c26217e6c18c0f5885d4187305316805c775352e43fd74704d99",
+      "tests/commands/table-text/author-verification.json": "849bb4b6b901c59123c0f2b568e5f70c26cb8c85e85e539fc61217d6e6231476",
+      "tests/commands/table-text/buffer-ownership-regression.json": "e9bd14ba90f974983757f846a6be8df3407cbda1e9f7e9370d65441540210ca4",
+      "tests/commands/table-text/cases.ts": "17118aa95f15c8cd1d47d6aebf624b7013df965e87c39fb81bfebfa63b95070d",
+      "tests/commands/table-text/contracts.test.ts": "df0fea627ba8f15b1f2c2abd6ed3fb53a1758a82cf021f153adf2789603bb39c",
+      "tests/commands/table-text/differential.test.ts": "8534dd83c9b2c2e125027718ac336cc9ba4c3189e33a185e46c6482e98a55048",
+      "tests/commands/table-text/gnu-evidence.json": "42e8b27580243212a341edd8b8a106f4d52f81164f5ae56567dd3c738d6a8caa",
+      "tests/commands/table-text/helpers.ts": "5925232dc94a5b2badba373111198f6ef1b534d63a767fe8cfd22ed3f472d6e5",
+      "tests/commands/table-text/integration.test.ts": "e41520962e5c1906293f6a01723382cc589c791664251429f8f61df770665ec4",
+      "tests/commands/table-text/oracle.ts": "53b85ddb847ccd19b5a9111e652332dbaa4bc9a2a8d9c1b798e2233d454f34de",
+      "package.json": "216554f6115e7254b471b1e3b91319e516a80682b59a0b7fe6d8df16b2cb164b",
+      "package-lock.json": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b",
+      "tsconfig.json": "21c3c30b8995b180e079fa8516150f889950d648528de116a32f254f892301cd",
+      "node_modules/tsx/package.json": "96aee9fd252d0cc31f3c01468250961f5b338c797bc208700d7db926450c7659",
+      "node_modules/typescript/package.json": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6"
+    }
+  },
+  "nativeCalls": 71,
+  "productCases": 71,
+  "observed": [
+    {
+      "name": "comm shared original",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "0909610a0909620a630a",
+        "stderrHex": "",
+        "files": {
+          "left": "",
+          "right": ""
+        }
+      },
+      "match": false
+    },
+    {
+      "name": "paste shared alternating empty EOF",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "094c0961090a6c617374094d09090a094e09090a",
+        "stderrHex": "",
+        "files": {
+          "left": "4c0a4d0a4e0a",
+          "right": ""
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "paste serial shared cursor",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "31322c330a78792c7a0a0a",
+        "stderrHex": "",
+        "files": {
+          "left": "780a790a7a",
+          "right": ""
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "paste NUL shared invalid bytes",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "80ff3a610a62007461696c3a00",
+        "stderrHex": "",
+        "files": {
+          "left": "ff0000",
+          "right": ""
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "paste CR invalid bytes",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "ff0d0d800aff0d0a0d0a0a6c6173740d0a6c6173740a",
+        "stderrHex": "",
+        "files": {
+          "left": "ff0d0a0a6c617374",
+          "right": "800a"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "paste empty serial files",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "0a0a",
+        "stderrHex": "",
+        "files": {
+          "left": "",
+          "right": ""
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "comm C byte collation",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "000a0909410a800a09810a0909ff0a",
+        "stderrHex": "",
+        "files": {
+          "left": "000a410a800aff0a",
+          "right": "410a810aff"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "comm duplicate multiplicity totals",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3a3a3a3a610a610a610a3a3a3a3a620a3a3a620a323a3a313a3a323a3a746f74616c0a",
+        "stderrHex": "",
+        "files": {
+          "left": "610a610a610a620a",
+          "right": "610a620a620a"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "comm NUL empty delimiter",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "0000000000610061000062007a00",
+        "stderrHex": "",
+        "files": {
+          "left": "00610061007a",
+          "right": "0061006200"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "comm order ",
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "620a610a097a0a",
+        "stderrHex": "636f6d6d3a2066696c652031206973206e6f7420696e20736f72746564206f726465720a",
+        "files": {
+          "left": "620a610a",
+          "right": "7a0a"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "join first unpaired inversion ",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "6220420a6120410a",
+        "stderrHex": "",
+        "files": {
+          "left": "6220420a6120410a",
+          "right": "7a205a0a"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "join empty opposite inversion ",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "6220420a6120410a",
+        "stderrHex": "",
+        "files": {
+          "left": "6220420a6120410a",
+          "right": ""
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "comm order --check-order",
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "620a",
+        "stderrHex": "636f6d6d3a2045494e56414c3a2066696c652031206973206e6f7420696e20736f72746564206f726465720a",
+        "files": {
+          "left": "620a610a",
+          "right": "7a0a"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "join first unpaired inversion --check-order",
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "6220420a",
+        "stderrHex": "6a6f696e3a2045494e56414c3a2066696c652031206973206e6f7420696e20736f72746564206f726465720a",
+        "files": {
+          "left": "6220420a6120410a",
+          "right": "7a205a0a"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "join empty opposite inversion --check-order",
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "6220420a",
+        "stderrHex": "6a6f696e3a2045494e56414c3a2066696c652031206973206e6f7420696e20736f72746564206f726465720a",
+        "files": {
+          "left": "6220420a6120410a",
+          "right": ""
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "comm order --nocheck-order",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "620a610a097a0a",
+        "stderrHex": "",
+        "files": {
+          "left": "620a610a",
+          "right": "7a0a"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "join first unpaired inversion --nocheck-order",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "6220420a6120410a",
+        "stderrHex": "",
+        "files": {
+          "left": "6220420a6120410a",
+          "right": "7a205a0a"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "join empty opposite inversion --nocheck-order",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "6220420a6120410a",
+        "stderrHex": "",
+        "files": {
+          "left": "6220420a6120410a",
+          "right": ""
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "join header auto empty fields",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "6b65793a6c6566743a65787472613a72696768740a613a3f3a783a520a623a3f3a3f3a420a633a433a3f3a3f0a",
+        "stderrHex": "",
+        "files": {
+          "left": "6b65793a6c6566743a65787472610a613a3a780a633a433a0a",
+          "right": "6b65793a72696768740a613a520a623a420a"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "join NUL newline fields invalid bytes",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "61207820726967687400ff206c656674207900",
+        "stderrHex": "",
+        "files": {
+          "left": "610a7800ff206c65667400",
+          "right": "6120726967687400ff0a7900"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "join whole record empty key",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "0a610a610a620a",
+        "stderrHex": "",
+        "files": {
+          "left": "0a610a610a",
+          "right": "0a610a620a"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "join large Cartesian",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "61204c302052300a61204c302052310a61204c302052320a61204c302052330a61204c302052340a61204c302052350a61204c302052360a61204c302052370a61204c302052380a61204c302052390a61204c30205231300a61204c30205231310a61204c30205231320a61204c30205231330a61204c30205231340a61204c30205231350a61204c30205231360a61204c30205231370a61204c30205231380a61204c30205231390a61204c30205232300a61204c30205232310a61204c30205232320a61204c30205232330a61204c30205232340a61204c30205232350a61204c30205232360a61204c30205232370a61204c30205232380a61204c30205232390a61204c30205233300a61204c312052300a61204c312052310a61204c312052320a61204c312052330a61204c312052340a61204c312052350a61204c312052360a61204c312052370a61204c312052380a61204c312052390a61204c31205231300a61204c31205231310a61204c31205231320a61204c31205231330a61204c31205231340a61204c31205231350a61204c31205231360a61204c31205231370a61204c31205231380a61204c31205231390a61204c31205232300a61204c31205232310a61204c31205232320a61204c31205232330a61204c31205232340a61204c31205232350a61204c31205232360a61204c31205232370a61204c31205232380a61204c31205232390a61204c31205233300a61204c322052300a61204c322052310a61204c322052320a61204c322052330a61204c322052340a61204c322052350a61204c322052360a61204c322052370a61204c322052380a61204c322052390a61204c32205231300a61204c32205231310a61204c32205231320a61204c32205231330a61204c32205231340a61204c32205231350a61204c32205231360a61204c32205231370a61204c32205231380a61204c32205231390a61204c32205232300a61204c32205232310a61204c32205232320a61204c32205232330a61204c32205232340a61204c32205232350a61204c32205232360a61204c32205232370a61204c32205232380a61204c32205232390a61204c32205233300a61204c332052300a61204c332052310a61204c332052320a61204c332052330a61204c332052340a61204c332052350a61204c332052360a61204c332052370a61204c332052380a61204c332052390a61204c33205231300a61204c33205231310a61204c33205231320a61204c33205231330a61204c33205231340a61204c33205231350a61204c33205231360a61204c33205231370a61204c33205231380a61204c33205231390a61204c33205232300a61204c33205232310a61204c33205232320a61204c33205232330a61204c33205232340a61204c33205232350a61204c33205232360a61204c33205232370a61204c33205232380a61204c33205232390a61204c33205233300a61204c342052300a61204c342052310a61204c342052320a61204c342052330a61204c342052340a61204c342052350a61204c342052360a61204c342052370a61204c342052380a61204c342052390a61204c34205231300a61204c34205231310a61204c34205231320a61204c34205231330a61204c34205231340a61204c34205231350a61204c34205231360a61204c34205231370a61204c34205231380a61204c34205231390a61204c34205232300a61204c34205232310a61204c34205232320a61204c34205232330a61204c34205232340a61204c34205232350a61204c34205232360a61204c34205232370a61204c34205232380a61204c34205232390a61204c34205233300a61204c352052300a61204c352052310a61204c352052320a61204c352052330a61204c352052340a61204c352052350a61204c352052360a61204c352052370a61204c352052380a61204c352052390a61204c35205231300a61204c35205231310a61204c35205231320a61204c35205231330a61204c35205231340a61204c35205231350a61204c35205231360a61204c35205231370a61204c35205231380a61204c35205231390a61204c35205232300a61204c35205232310a61204c35205232320a61204c35205232330a61204c35205232340a61204c35205232350a61204c35205232360a61204c35205232370a61204c35205232380a61204c35205232390a61204c35205233300a61204c362052300a61204c362052310a61204c362052320a61204c362052330a61204c362052340a61204c362052350a61204c362052360a61204c362052370a61204c362052380a61204c362052390a61204c36205231300a61204c36205231310a61204c36205231320a61204c36205231330a61204c36205231340a61204c36205231350a61204c36205231360a61204c36205231370a61204c36205231380a61204c36205231390a61204c36205232300a61204c36205232310a61204c36205232320a61204c36205232330a61204c36205232340a61204c36205232350a61204c36205232360a61204c36205232370a61204c36205232380a61204c36205232390a61204c36205233300a61204c372052300a61204c372052310a61204c372052320a61204c372052330a61204c372052340a61204c372052350a61204c372052360a61204c372052370a61204c372052380a61204c372052390a61204c37205231300a61204c37205231310a61204c37205231320a61204c37205231330a61204c37205231340a61204c37205231350a61204c37205231360a61204c37205231370a61204c37205231380a61204c37205231390a61204c37205232300a61204c37205232310a61204c37205232320a61204c37205232330a61204c37205232340a61204c37205232350a61204c37205232360a61204c37205232370a61204c37205232380a61204c37205232390a61204c37205233300a61204c382052300a61204c382052310a61204c382052320a61204c382052330a61204c382052340a61204c382052350a61204c382052360a61204c382052370a61204c382052380a61204c382052390a61204c38205231300a61204c38205231310a61204c38205231320a61204c38205231330a61204c38205231340a61204c38205231350a61204c38205231360a61204c38205231370a61204c38205231380a61204c38205231390a61204c38205232300a61204c38205232310a61204c38205232320a61204c38205232330a61204c38205232340a61204c38205232350a61204c38205232360a61204c38205232370a61204c38205232380a61204c38205232390a61204c38205233300a61204c392052300a61204c392052310a61204c392052320a61204c392052330a61204c392052340a61204c392052350a61204c392052360a61204c392052370a61204c392052380a61204c392052390a61204c39205231300a61204c39205231310a61204c39205231320a61204c39205231330a61204c39205231340a61204c39205231350a61204c39205231360a61204c39205231370a61204c39205231380a61204c39205231390a61204c39205232300a61204c39205232310a61204c39205232320a61204c39205232330a61204c39205232340a61204c39205232350a61204c39205232360a61204c39205232370a61204c39205232380a61204c39205232390a61204c39205233300a61204c31302052300a61204c31302052310a61204c31302052320a61204c31302052330a61204c31302052340a61204c31302052350a61204c31302052360a61204c31302052370a61204c31302052380a61204c31302052390a61204c3130205231300a61204c3130205231310a61204c3130205231320a61204c3130205231330a61204c3130205231340a61204c3130205231350a61204c3130205231360a61204c3130205231370a61204c3130205231380a61204c3130205231390a61204c3130205232300a61204c3130205232310a61204c3130205232320a61204c3130205232330a61204c3130205232340a61204c3130205232350a61204c3130205232360a61204c3130205232370a61204c3130205232380a61204c3130205232390a61204c3130205233300a61204c31312052300a61204c31312052310a61204c31312052320a61204c31312052330a61204c31312052340a61204c31312052350a61204c31312052360a61204c31312052370a61204c31312052380a61204c31312052390a61204c3131205231300a61204c3131205231310a61204c3131205231320a61204c3131205231330a61204c3131205231340a61204c3131205231350a61204c3131205231360a61204c3131205231370a61204c3131205231380a61204c3131205231390a61204c3131205232300a61204c3131205232310a61204c3131205232320a61204c3131205232330a61204c3131205232340a61204c3131205232350a61204c3131205232360a61204c3131205232370a61204c3131205232380a61204c3131205232390a61204c3131205233300a61204c31322052300a61204c31322052310a61204c31322052320a61204c31322052330a61204c31322052340a61204c31322052350a61204c31322052360a61204c31322052370a61204c31322052380a61204c31322052390a61204c3132205231300a61204c3132205231310a61204c3132205231320a61204c3132205231330a61204c3132205231340a61204c3132205231350a61204c3132205231360a61204c3132205231370a61204c3132205231380a61204c3132205231390a61204c3132205232300a61204c3132205232310a61204c3132205232320a61204c3132205232330a61204c3132205232340a61204c3132205232350a61204c3132205232360a61204c3132205232370a61204c3132205232380a61204c3132205232390a61204c3132205233300a61204c31332052300a61204c31332052310a61204c31332052320a61204c31332052330a61204c31332052340a61204c31332052350a61204c31332052360a61204c31332052370a61204c31332052380a61204c31332052390a61204c3133205231300a61204c3133205231310a61204c3133205231320a61204c3133205231330a61204c3133205231340a61204c3133205231350a61204c3133205231360a61204c3133205231370a61204c3133205231380a61204c3133205231390a61204c3133205232300a61204c3133205232310a61204c3133205232320a61204c3133205232330a61204c3133205232340a61204c3133205232350a61204c3133205232360a61204c3133205232370a61204c3133205232380a61204c3133205232390a61204c3133205233300a61204c31342052300a61204c31342052310a61204c31342052320a61204c31342052330a61204c31342052340a61204c31342052350a61204c31342052360a61204c31342052370a61204c31342052380a61204c31342052390a61204c3134205231300a61204c3134205231310a61204c3134205231320a61204c3134205231330a61204c3134205231340a61204c3134205231350a61204c3134205231360a61204c3134205231370a61204c3134205231380a61204c3134205231390a61204c3134205232300a61204c3134205232310a61204c3134205232320a61204c3134205232330a61204c3134205232340a61204c3134205232350a61204c3134205232360a61204c3134205232370a61204c3134205232380a61204c3134205232390a61204c3134205233300a61204c31352052300a61204c31352052310a61204c31352052320a61204c31352052330a61204c31352052340a61204c31352052350a61204c31352052360a61204c31352052370a61204c31352052380a61204c31352052390a61204c3135205231300a61204c3135205231310a61204c3135205231320a61204c3135205231330a61204c3135205231340a61204c3135205231350a61204c3135205231360a61204c3135205231370a61204c3135205231380a61204c3135205231390a61204c3135205232300a61204c3135205232310a61204c3135205232320a61204c3135205232330a61204c3135205232340a61204c3135205232350a61204c3135205232360a61204c3135205232370a61204c3135205232380a61204c3135205232390a61204c3135205233300a61204c31362052300a61204c31362052310a61204c31362052320a61204c31362052330a61204c31362052340a61204c31362052350a61204c31362052360a61204c31362052370a61204c31362052380a61204c31362052390a61204c3136205231300a61204c3136205231310a61204c3136205231320a61204c3136205231330a61204c3136205231340a61204c3136205231350a61204c3136205231360a61204c3136205231370a61204c3136205231380a61204c3136205231390a61204c3136205232300a61204c3136205232310a61204c3136205232320a61204c3136205232330a61204c3136205232340a61204c3136205232350a61204c3136205232360a61204c3136205232370a61204c3136205232380a61204c3136205232390a61204c3136205233300a61204c31372052300a61204c31372052310a61204c31372052320a61204c31372052330a61204c31372052340a61204c31372052350a61204c31372052360a61204c31372052370a61204c31372052380a61204c31372052390a61204c3137205231300a61204c3137205231310a61204c3137205231320a61204c3137205231330a61204c3137205231340a61204c3137205231350a61204c3137205231360a61204c3137205231370a61204c3137205231380a61204c3137205231390a61204c3137205232300a61204c3137205232310a61204c3137205232320a61204c3137205232330a61204c3137205232340a61204c3137205232350a61204c3137205232360a61204c3137205232370a61204c3137205232380a61204c3137205232390a61204c3137205233300a61204c31382052300a61204c31382052310a61204c31382052320a61204c31382052330a61204c31382052340a61204c31382052350a61204c31382052360a61204c31382052370a61204c31382052380a61204c31382052390a61204c3138205231300a61204c3138205231310a61204c3138205231320a61204c3138205231330a61204c3138205231340a61204c3138205231350a61204c3138205231360a61204c3138205231370a61204c3138205231380a61204c3138205231390a61204c3138205232300a61204c3138205232310a61204c3138205232320a61204c3138205232330a61204c3138205232340a61204c3138205232350a61204c3138205232360a61204c3138205232370a61204c3138205232380a61204c3138205232390a61204c3138205233300a61204c31392052300a61204c31392052310a61204c31392052320a61204c31392052330a61204c31392052340a61204c31392052350a61204c31392052360a61204c31392052370a61204c31392052380a61204c31392052390a61204c3139205231300a61204c3139205231310a61204c3139205231320a61204c3139205231330a61204c3139205231340a61204c3139205231350a61204c3139205231360a61204c3139205231370a61204c3139205231380a61204c3139205231390a61204c3139205232300a61204c3139205232310a61204c3139205232320a61204c3139205232330a61204c3139205232340a61204c3139205232350a61204c3139205232360a61204c3139205232370a61204c3139205232380a61204c3139205232390a61204c3139205233300a61204c32302052300a61204c32302052310a61204c32302052320a61204c32302052330a61204c32302052340a61204c32302052350a61204c32302052360a61204c32302052370a61204c32302052380a61204c32302052390a61204c3230205231300a61204c3230205231310a61204c3230205231320a61204c3230205231330a61204c3230205231340a61204c3230205231350a61204c3230205231360a61204c3230205231370a61204c3230205231380a61204c3230205231390a61204c3230205232300a61204c3230205232310a61204c3230205232320a61204c3230205232330a61204c3230205232340a61204c3230205232350a61204c3230205232360a61204c3230205232370a61204c3230205232380a61204c3230205232390a61204c3230205233300a61204c32312052300a61204c32312052310a61204c32312052320a61204c32312052330a61204c32312052340a61204c32312052350a61204c32312052360a61204c32312052370a61204c32312052380a61204c32312052390a61204c3231205231300a61204c3231205231310a61204c3231205231320a61204c3231205231330a61204c3231205231340a61204c3231205231350a61204c3231205231360a61204c3231205231370a61204c3231205231380a61204c3231205231390a61204c3231205232300a61204c3231205232310a61204c3231205232320a61204c3231205232330a61204c3231205232340a61204c3231205232350a61204c3231205232360a61204c3231205232370a61204c3231205232380a61204c3231205232390a61204c3231205233300a61204c32322052300a61204c32322052310a61204c32322052320a61204c32322052330a61204c32322052340a61204c32322052350a61204c32322052360a61204c32322052370a61204c32322052380a61204c32322052390a61204c3232205231300a61204c3232205231310a61204c3232205231320a61204c3232205231330a61204c3232205231340a61204c3232205231350a61204c3232205231360a61204c3232205231370a61204c3232205231380a61204c3232205231390a61204c3232205232300a61204c3232205232310a61204c3232205232320a61204c3232205232330a61204c3232205232340a61204c3232205232350a61204c3232205232360a61204c3232205232370a61204c3232205232380a61204c3232205232390a61204c3232205233300a61204c32332052300a61204c32332052310a61204c32332052320a61204c32332052330a61204c32332052340a61204c32332052350a61204c32332052360a61204c32332052370a61204c32332052380a61204c32332052390a61204c3233205231300a61204c3233205231310a61204c3233205231320a61204c3233205231330a61204c3233205231340a61204c3233205231350a61204c3233205231360a61204c3233205231370a61204c3233205231380a61204c3233205231390a61204c3233205232300a61204c3233205232310a61204c3233205232320a61204c3233205232330a61204c3233205232340a61204c3233205232350a61204c3233205232360a61204c3233205232370a61204c3233205232380a61204c3233205232390a61204c3233205233300a61204c32342052300a61204c32342052310a61204c32342052320a61204c32342052330a61204c32342052340a61204c32342052350a61204c32342052360a61204c32342052370a61204c32342052380a61204c32342052390a61204c3234205231300a61204c3234205231310a61204c3234205231320a61204c3234205231330a61204c3234205231340a61204c3234205231350a61204c3234205231360a61204c3234205231370a61204c3234205231380a61204c3234205231390a61204c3234205232300a61204c3234205232310a61204c3234205232320a61204c3234205232330a61204c3234205232340a61204c3234205232350a61204c3234205232360a61204c3234205232370a61204c3234205232380a61204c3234205232390a61204c3234205233300a61204c32352052300a61204c32352052310a61204c32352052320a61204c32352052330a61204c32352052340a61204c32352052350a61204c32352052360a61204c32352052370a61204c32352052380a61204c32352052390a61204c3235205231300a61204c3235205231310a61204c3235205231320a61204c3235205231330a61204c3235205231340a61204c3235205231350a61204c3235205231360a61204c3235205231370a61204c3235205231380a61204c3235205231390a61204c3235205232300a61204c3235205232310a61204c3235205232320a61204c3235205232330a61204c3235205232340a61204c3235205232350a61204c3235205232360a61204c3235205232370a61204c3235205232380a61204c3235205232390a61204c3235205233300a61204c32362052300a61204c32362052310a61204c32362052320a61204c32362052330a61204c32362052340a61204c32362052350a61204c32362052360a61204c32362052370a61204c32362052380a61204c32362052390a61204c3236205231300a61204c3236205231310a61204c3236205231320a61204c3236205231330a61204c3236205231340a61204c3236205231350a61204c3236205231360a61204c3236205231370a61204c3236205231380a61204c3236205231390a61204c3236205232300a61204c3236205232310a61204c3236205232320a61204c3236205232330a61204c3236205232340a61204c3236205232350a61204c3236205232360a61204c3236205232370a61204c3236205232380a61204c3236205232390a61204c3236205233300a61204c32372052300a61204c32372052310a61204c32372052320a61204c32372052330a61204c32372052340a61204c32372052350a61204c32372052360a61204c32372052370a61204c32372052380a61204c32372052390a61204c3237205231300a61204c3237205231310a61204c3237205231320a61204c3237205231330a61204c3237205231340a61204c3237205231350a61204c3237205231360a61204c3237205231370a61204c3237205231380a61204c3237205231390a61204c3237205232300a61204c3237205232310a61204c3237205232320a61204c3237205232330a61204c3237205232340a61204c3237205232350a61204c3237205232360a61204c3237205232370a61204c3237205232380a61204c3237205232390a61204c3237205233300a61204c32382052300a61204c32382052310a61204c32382052320a61204c32382052330a61204c32382052340a61204c32382052350a61204c32382052360a61204c32382052370a61204c32382052380a61204c32382052390a61204c3238205231300a61204c3238205231310a61204c3238205231320a61204c3238205231330a61204c3238205231340a61204c3238205231350a61204c3238205231360a61204c3238205231370a61204c3238205231380a61204c3238205231390a61204c3238205232300a61204c3238205232310a61204c3238205232320a61204c3238205232330a61204c3238205232340a61204c3238205232350a61204c3238205232360a61204c3238205232370a61204c3238205232380a61204c3238205232390a61204c3238205233300a61204c32392052300a61204c32392052310a61204c32392052320a61204c32392052330a61204c32392052340a61204c32392052350a61204c32392052360a61204c32392052370a61204c32392052380a61204c32392052390a61204c3239205231300a61204c3239205231310a61204c3239205231320a61204c3239205231330a61204c3239205231340a61204c3239205231350a61204c3239205231360a61204c3239205231370a61204c3239205231380a61204c3239205231390a61204c3239205232300a61204c3239205232310a61204c3239205232320a61204c3239205232330a61204c3239205232340a61204c3239205232350a61204c3239205232360a61204c3239205232370a61204c3239205232380a61204c3239205232390a61204c3239205233300a61204c33302052300a61204c33302052310a61204c33302052320a61204c33302052330a61204c33302052340a61204c33302052350a61204c33302052360a61204c33302052370a61204c33302052380a61204c33302052390a61204c3330205231300a61204c3330205231310a61204c3330205231320a61204c3330205231330a61204c3330205231340a61204c3330205231350a61204c3330205231360a61204c3330205231370a61204c3330205231380a61204c3330205231390a61204c3330205232300a61204c3330205232310a61204c3330205232320a61204c3330205232330a61204c3330205232340a61204c3330205232350a61204c3330205232360a61204c3330205232370a61204c3330205232380a61204c3330205232390a61204c3330205233300a61204c33312052300a61204c33312052310a61204c33312052320a61204c33312052330a61204c33312052340a61204c33312052350a61204c33312052360a61204c33312052370a61204c33312052380a61204c33312052390a61204c3331205231300a61204c3331205231310a61204c3331205231320a61204c3331205231330a61204c3331205231340a61204c3331205231350a61204c3331205231360a61204c3331205231370a61204c3331205231380a61204c3331205231390a61204c3331205232300a61204c3331205232310a61204c3331205232320a61204c3331205232330a61204c3331205232340a61204c3331205232350a61204c3331205232360a61204c3331205232370a61204c3331205232380a61204c3331205232390a61204c3331205233300a61204c33322052300a61204c33322052310a61204c33322052320a61204c33322052330a61204c33322052340a61204c33322052350a61204c33322052360a61204c33322052370a61204c33322052380a61204c33322052390a61204c3332205231300a61204c3332205231310a61204c3332205231320a61204c3332205231330a61204c3332205231340a61204c3332205231350a61204c3332205231360a61204c3332205231370a61204c3332205231380a61204c3332205231390a61204c3332205232300a61204c3332205232310a61204c3332205232320a61204c3332205232330a61204c3332205232340a61204c3332205232350a61204c3332205232360a61204c3332205232370a61204c3332205232380a61204c3332205232390a61204c3332205233300a61204c33332052300a61204c33332052310a61204c33332052320a61204c33332052330a61204c33332052340a61204c33332052350a61204c33332052360a61204c33332052370a61204c33332052380a61204c33332052390a61204c3333205231300a61204c3333205231310a61204c3333205231320a61204c3333205231330a61204c3333205231340a61204c3333205231350a61204c3333205231360a61204c3333205231370a61204c3333205231380a61204c3333205231390a61204c3333205232300a61204c3333205232310a61204c3333205232320a61204c3333205232330a61204c3333205232340a61204c3333205232350a61204c3333205232360a61204c3333205232370a61204c3333205232380a61204c3333205232390a61204c3333205233300a61204c33342052300a61204c33342052310a61204c33342052320a61204c33342052330a61204c33342052340a61204c33342052350a61204c33342052360a61204c33342052370a61204c33342052380a61204c33342052390a61204c3334205231300a61204c3334205231310a61204c3334205231320a61204c3334205231330a61204c3334205231340a61204c3334205231350a61204c3334205231360a61204c3334205231370a61204c3334205231380a61204c3334205231390a61204c3334205232300a61204c3334205232310a61204c3334205232320a61204c3334205232330a61204c3334205232340a61204c3334205232350a61204c3334205232360a61204c3334205232370a61204c3334205232380a61204c3334205232390a61204c3334205233300a",
+        "stderrHex": "",
+        "files": {
+          "left": "61204c300a61204c310a61204c320a61204c330a61204c340a61204c350a61204c360a61204c370a61204c380a61204c390a61204c31300a61204c31310a61204c31320a61204c31330a61204c31340a61204c31350a61204c31360a61204c31370a61204c31380a61204c31390a61204c32300a61204c32310a61204c32320a61204c32330a61204c32340a61204c32350a61204c32360a61204c32370a61204c32380a61204c32390a61204c33300a61204c33310a61204c33320a61204c33330a61204c33340a",
+          "right": "612052300a612052310a612052320a612052330a612052340a612052350a612052360a612052370a612052380a612052390a61205231300a61205231310a61205231320a61205231330a61205231340a61205231350a61205231360a61205231370a61205231380a61205231390a61205232300a61205232310a61205232320a61205232330a61205232340a61205232350a61205232360a61205232370a61205232380a61205232390a61205233300a"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "join repeated format and delimiter",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "4c3a613a520a",
+        "stderrHex": "",
+        "files": {
+          "left": "613a4c0a",
+          "right": "613a520a"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "paste seed 0",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "6161620a630a",
+        "stderrHex": "",
+        "files": {
+          "left": "610a620a63",
+          "right": "61"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "comm seed 0",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "0909610a620a630a",
+        "stderrHex": "",
+        "files": {
+          "left": "610a620a63",
+          "right": "61"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "join seed 0",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "613a4c303a52300a623a4c313a3f0a633a4c323a3f0a",
+        "stderrHex": "",
+        "files": {
+          "left": "613a4c300a623a4c310a633a4c320a",
+          "right": "613a52300a"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "paste seed 1",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "613a626300803a62003a62003a63003a80003aff003aff003aff00",
+        "stderrHex": "",
+        "files": {
+          "left": "610063008000",
+          "right": "62006200620063008000ff00ff00ff00"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "comm seed 1",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "6100096300098000",
+        "stderrHex": "",
+        "files": {
+          "left": "610063008000",
+          "right": "62006200620063008000ff00ff00ff00"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "join seed 1",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "613a4c303a3f00623a3f3a523000623a3f3a523100623a3f3a523200633a4c313a523300803a4c323a523400ff3a3f3a523500ff3a3f3a523600ff3a3f3a523700",
+        "stderrHex": "",
+        "files": {
+          "left": "613a4c3000633a4c3100803a4c3200",
+          "right": "623a523000623a523100623a523200633a523300803a523400ff3a523500ff3a523600ff3a523700"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "paste seed 2",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "613a800a803a0a3a630a3aff0a",
+        "stderrHex": "",
+        "files": {
+          "left": "610a800a800a",
+          "right": "0a0a630aff0a"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "comm seed 2",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "610a800a800a",
+        "stderrHex": "",
+        "files": {
+          "left": "610a800a800a",
+          "right": "0a0a630aff0a"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "join seed 2",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3f3a3f3a52300a3f3a3f3a52310a613a4c303a3f0a633a3f3a52320a803a4c313a3f0a803a4c323a3f0aff3a3f3a52330a",
+        "stderrHex": "",
+        "files": {
+          "left": "613a4c300a803a4c310a803a4c320a",
+          "right": "3a52300a3a52310a633a52320aff3a52330a"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "paste seed 3",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "616100",
+        "stderrHex": "",
+        "files": {
+          "left": "61",
+          "right": "6100"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "comm seed 3",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "09096100",
+        "stderrHex": "",
+        "files": {
+          "left": "61",
+          "right": "6100"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "join seed 3",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "613a4c303a523000",
+        "stderrHex": "",
+        "files": {
+          "left": "613a4c3000",
+          "right": "613a523000"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "paste seed 4",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3a610a633a61800a803a62800aff3a62ff0a3aff0a",
+        "stderrHex": "",
+        "files": {
+          "left": "0a610a630a800a800a800aff0aff0a",
+          "right": "0a610a620a620aff"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "comm seed 4",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "090a09610a630a800a800a800a09ff0aff0a",
+        "stderrHex": "",
+        "files": {
+          "left": "0a610a630a800a800a800aff0aff0a",
+          "right": "0a610a620a620aff"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "join seed 4",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3f3a4c303a52300a613a4c313a52310a623a3f3a52320a623a3f3a52330a633a4c323a3f0a803a4c333a3f0a803a4c343a3f0a803a4c353a3f0aff3a4c363a52340aff3a4c373a52340a",
+        "stderrHex": "",
+        "files": {
+          "left": "3a4c300a613a4c310a633a4c320a803a4c330a803a4c340a803a4c350aff3a4c360aff3a4c370a",
+          "right": "3a52300a613a52310a623a52320a623a52330aff3a52340a"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "paste seed 5",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3a00613a616100613a6162003a61003a6200",
+        "stderrHex": "",
+        "files": {
+          "left": "00006100610061006200",
+          "right": "006100610061006200"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "comm seed 5",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "090000096100096100096100096200",
+        "stderrHex": "",
+        "files": {
+          "left": "00006100610061006200",
+          "right": "006100610061006200"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "join seed 5",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3f3a4c303a5230003f3a4c313a523000613a4c323a523100613a4c323a523200613a4c323a523300613a4c333a523100613a4c333a523200613a4c333a523300613a4c343a523100613a4c343a523200613a4c343a523300623a4c353a523400",
+        "stderrHex": "",
+        "files": {
+          "left": "3a4c30003a4c3100613a4c3200613a4c3300613a4c3400623a4c3500",
+          "right": "3a523000613a523100613a523200613a523300623a523400"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "paste seed 6",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "62630aff0a630aff0a",
+        "stderrHex": "",
+        "files": {
+          "left": "620a630aff",
+          "right": "0a0a630aff0a"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "comm seed 6",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "090a090a620a0909630a0909ff0a",
+        "stderrHex": "",
+        "files": {
+          "left": "620a630aff",
+          "right": "0a0a630aff0a"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "join seed 6",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3f3a3f3a52300a3f3a3f3a52310a623a4c303a3f0a633a4c313a52320aff3a4c323a52330a",
+        "stderrHex": "",
+        "files": {
+          "left": "623a4c300a633a4c310aff3a4c320a",
+          "right": "3a52300a3a52310a633a52320aff3a52330a"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "paste seed 7",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3a6200633a62ff003aff003aff00",
+        "stderrHex": "",
+        "files": {
+          "left": "0062006300ff00",
+          "right": "006200ff00ff00"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "comm seed 7",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "0900096200630009ff00",
+        "stderrHex": "",
+        "files": {
+          "left": "0062006300ff00",
+          "right": "006200ff00ff00"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "join seed 7",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3f3a4c303a523000623a4c313a523100633a4c323a3f00ff3a4c333a523200ff3a4c333a523300",
+        "stderrHex": "",
+        "files": {
+          "left": "3a4c3000623a4c3100633a4c3200ff3a4c3300",
+          "right": "3a523000623a523100ff3a523200ff3a523300"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "paste seed 8",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "623a61620a633a610a3a610a3a620a3a620a3a800a3a800a3aff0a",
+        "stderrHex": "",
+        "files": {
+          "left": "620a620a630a",
+          "right": "610a610a610a620a620a800a800aff"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "comm seed 8",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "09620a09620a630a",
+        "stderrHex": "",
+        "files": {
+          "left": "620a620a630a",
+          "right": "610a610a610a620a620a800a800aff"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "join seed 8",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "613a3f3a52300a613a3f3a52310a613a3f3a52320a623a4c303a52330a623a4c303a52340a623a4c313a52330a623a4c313a52340a633a4c323a3f0a803a3f3a52350a803a3f3a52360aff3a3f3a52370a",
+        "stderrHex": "",
+        "files": {
+          "left": "623a4c300a623a4c310a633a4c320a",
+          "right": "613a52300a613a52310a613a52320a623a52330a623a52340a803a52350a803a52360aff3a52370a"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "paste seed 9",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "62610062628000ff63ff00",
+        "stderrHex": "",
+        "files": {
+          "left": "00610062008000ff00ff",
+          "right": "620062006300"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "comm seed 9",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "006100090962000962000963008000ff00ff00",
+        "stderrHex": "",
+        "files": {
+          "left": "00610062008000ff00ff",
+          "right": "620062006300"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "join seed 9",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3f3a4c303a3f00613a4c313a3f00623a4c323a523000623a4c323a523100633a3f3a523200803a4c333a3f00ff3a4c343a3f00ff3a4c353a3f00",
+        "stderrHex": "",
+        "files": {
+          "left": "3a4c3000613a4c3100623a4c3200803a4c3300ff3a4c3400ff3a4c3500",
+          "right": "623a523000623a523100633a523200"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "paste seed 10",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3a62620a623a630aff3a0a",
+        "stderrHex": "",
+        "files": {
+          "left": "0a620a620a630aff0a",
+          "right": "620a"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "comm seed 10",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "0a09620a620a630aff0a",
+        "stderrHex": "",
+        "files": {
+          "left": "0a620a620a630aff0a",
+          "right": "620a"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "join seed 10",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3f3a4c303a3f0a623a4c313a52300a623a4c323a52300a633a4c333a3f0aff3a4c343a3f0a",
+        "stderrHex": "",
+        "files": {
+          "left": "3a4c300a623a4c310a623a4c320a633a4c330aff3a4c340a",
+          "right": "623a52300a"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "paste seed 11",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3a003a62003a62003a63003a63003aff00",
+        "stderrHex": "",
+        "files": {
+          "left": "00",
+          "right": "006200620063006300ff00"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "comm seed 11",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "0900",
+        "stderrHex": "",
+        "files": {
+          "left": "00",
+          "right": "006200620063006300ff00"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "join seed 11",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3f3a523000623a523100623a523200633a523300633a523400ff3a523500",
+        "stderrHex": "",
+        "files": {
+          "left": "",
+          "right": "3a523000623a523100623a523200633a523300633a523400ff3a523500"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "paste seed 12",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "61620a8061ff0a620a630a800aff0a",
+        "stderrHex": "",
+        "files": {
+          "left": "610a620a800aff",
+          "right": "0a610a620a630a800aff"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "comm seed 12",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "090a0909610a0909620a09630a0909800a0909ff0a",
+        "stderrHex": "",
+        "files": {
+          "left": "610a620a800aff",
+          "right": "0a610a620a630a800aff"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "join seed 12",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3f3a3f3a52300a613a4c303a52310a623a4c313a52320a633a3f3a52330a803a4c323a52340aff3a4c333a52350a",
+        "stderrHex": "",
+        "files": {
+          "left": "613a4c300a623a4c310a803a4c320aff3a4c330a",
+          "right": "3a52300a613a52310a623a52320a633a52330a803a52340aff3a52350a"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "paste seed 13",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3a6100623a6200ff3aff00",
+        "stderrHex": "",
+        "files": {
+          "left": "00610062006200ff00ff00",
+          "right": "00"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "comm seed 13",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "0900610062006200ff00ff00",
+        "stderrHex": "",
+        "files": {
+          "left": "00610062006200ff00ff00",
+          "right": "00"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "join seed 13",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3f3a4c3000613a4c3100623a4c3200623a4c3300ff3a4c3400ff3a4c3500",
+        "stderrHex": "",
+        "files": {
+          "left": "3a4c3000613a4c3100623a4c3200623a4c3300ff3a4c3400ff3a4c3500",
+          "right": ""
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "paste seed 14",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "613a620a623a620a633a0a3a610a3aff0a",
+        "stderrHex": "",
+        "files": {
+          "left": "610a620a620a620a630a",
+          "right": "0a0a0a610aff0a"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "comm seed 14",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "09610a620a620a620a630a",
+        "stderrHex": "",
+        "files": {
+          "left": "610a620a620a620a630a",
+          "right": "0a0a0a610aff0a"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "join seed 14",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3f3a3f3a52300a3f3a3f3a52310a3f3a3f3a52320a613a4c303a52330a623a4c313a3f0a623a4c323a3f0a623a4c333a3f0a633a4c343a3f0aff3a3f3a52340a",
+        "stderrHex": "",
+        "files": {
+          "left": "613a4c300a623a4c310a623a4c320a623a4c330a633a4c340a",
+          "right": "3a52300a3a52310a3a52320a613a52330aff3a52340a"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "paste seed 15",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "62630080630063008000",
+        "stderrHex": "",
+        "files": {
+          "left": "6200630080",
+          "right": "00630063008000"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "comm seed 15",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "090062000909630009630009098000",
+        "stderrHex": "",
+        "files": {
+          "left": "6200630080",
+          "right": "00630063008000"
+        }
+      },
+      "match": true
+    },
+    {
+      "name": "join seed 15",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "3f3a3f3a523000623a4c303a3f00633a4c313a523100633a4c313a523200803a4c323a523300",
+        "stderrHex": "",
+        "files": {
+          "left": "623a4c3000633a4c3100803a4c3200",
+          "right": "3a523000633a523100633a523200803a523300"
+        }
+      },
+      "match": true
+    }
+  ]
+}

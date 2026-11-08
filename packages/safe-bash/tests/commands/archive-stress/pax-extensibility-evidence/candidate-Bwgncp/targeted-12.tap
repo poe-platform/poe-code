@@ -1,0 +1,709 @@
+TAP version 13
+# Subtest: P01 optional vendor metadata is opaque, not file data, paths, ownership or permissions
+ok 1 - P01 optional vendor metadata is opaque, not file data, paths, ownership or permissions
+  ---
+  duration_ms: 10.174542
+  type: 'test'
+  ...
+# Subtest: P02 ignored local/global metadata does not leak into supported PAX state
+ok 2 - P02 ignored local/global metadata does not leak into supported PAX state
+  ---
+  duration_ms: 63.453542
+  type: 'test'
+  ...
+# Subtest: P03 essential text remains strict UTF-8 with NUL and binary charset rejected
+ok 3 - P03 essential text remains strict UTF-8 with NUL and binary charset rejected
+  ---
+  duration_ms: 11.683292
+  type: 'test'
+  ...
+# Subtest: P04 opaque values never bypass malformed record framing, keys, checksum or truncation
+ok 4 - P04 opaque values never bypass malformed record framing, keys, checksum or truncation
+  ---
+  duration_ms: 6.468667
+  type: 'test'
+  ...
+# Subtest: P05 sparse, layout-changing and unclassified extensions remain fail-closed before publication
+ok 5 - P05 sparse, layout-changing and unclassified extensions remain fail-closed before publication
+  ---
+  duration_ms: 21.61025
+  type: 'test'
+  ...
+# Subtest: P06 optional bytes retain extended-header, member and effective-size limits
+ok 6 - P06 optional bytes retain extended-header, member and effective-size limits
+  ---
+  duration_ms: 3.759167
+  type: 'test'
+  ...
+# Subtest: P07 optional metadata cannot bypass effective path, symlink or member-type controls
+not ok 7 - P07 optional metadata cannot bypass effective path, symlink or member-type controls
+  ---
+  duration_ms: 1.821208
+  type: 'test'
+  location: '/private/tmp/safe-bash-pax-focused-Z7mDms/snapshot-1/tests/commands/archive-stress/pax-extensibility.test.ts:1:6283'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /unsafe parent/. Input:
+    
+    'tar: symlink target escapes extraction root: /output/file\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    tar: symlink target escapes extraction root: /output/file
+    
+  operator: 'match'
+  stack: |-
+    rejected (/private/tmp/safe-bash-pax-focused-Z7mDms/snapshot-1/tests/commands/archive-stress/pax-extensibility.test.ts:33:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async TestContext.<anonymous> (/private/tmp/safe-bash-pax-focused-Z7mDms/snapshot-1/tests/commands/archive-stress/pax-extensibility.test.ts:120:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: P08 virtual global/local mtime follows the deterministic POSIX fixture independently of native profiles
+ok 8 - P08 virtual global/local mtime follows the deterministic POSIX fixture independently of native profiles
+  ---
+  duration_ms: 1.205209
+  type: 'test'
+  ...
+# Subtest: P09 immutable formerly rejected BSD PAX archives now extract exact contents in both formats
+ok 9 - P09 immutable formerly rejected BSD PAX archives now extract exact contents in both formats
+  ---
+  duration_ms: 37.673917
+  type: 'test'
+  ...
+# Subtest: P10 GNU default and PAX plain/gzip crossread both directions without metadata filters
+ok 10 - P10 GNU default and PAX plain/gzip crossread both directions without metadata filters
+  ---
+  duration_ms: 299.819
+  type: 'test'
+  ...
+# Subtest: P11 BSD default and PAX plain/gzip crossread both directions without metadata filters
+not ok 11 - P11 BSD default and PAX plain/gzip crossread both directions without metadata filters
+  ---
+  duration_ms: 40.505125
+  type: 'test'
+  location: '/private/tmp/safe-bash-pax-focused-Z7mDms/snapshot-1/tests/commands/archive-stress/pax-native.test.ts:2:88'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    ... Skipped lines
+    
+    + Buffer(280) [Uint8Array] [
+    +   46,
+    +   95,
+    - Buffer(136) [Uint8Array] [
+        108,
+        111,
+        110,
+        103,
+        45,
+    ...
+        10,
+    +   108,
+    +   111,
+    +   110,
+    +   103,
+    +   45,
+    +   97,
+    +   98,
+    +   99,
+    +   100,
+    +   97,
+    +   98,
+    +   99,
+    +   100,
+    +   97,
+    +   98,
+    +   99,
+    +   100,
+    +   97,
+    +   98,
+    +   99,
+    +   100,
+    +   97,
+    +   98,
+    +   99,
+    +   100,
+    +   97,
+    +   98,
+    +   99,
+    +   100,
+    +   97,
+    +   98,
+    +   99,
+    +   100,
+    +   97,
+    +   98,
+    +   99,
+    +   100,
+    +   97,
+    +   98,
+    +   99,
+    +   100,
+    +   97,
+    +   98,
+    +   99,
+    +   100,
+    +   97,
+    +   98,
+    +   99,
+    +   100,
+    +   97,
+    +   98,
+    +   99,
+    +   100,
+    +   97,
+    +   98,
+    +   99,
+    +   100,
+    +   97,
+    +   98,
+    +   99,
+    +   100,
+    +   97,
+    +   98,
+    +   99,
+    +   100,
+    +   97,
+    +   98,
+    +   99,
+    +   100,
+    +   97,
+    +   98,
+    +   99,
+    +   100,
+    +   97,
+    +   98,
+    +   99,
+    +   100,
+    +   97,
+    +   98,
+    +   99,
+    +   100,
+    +   97,
+    +   98,
+    +   99,
+    +   100,
+    +   97,
+    +   98,
+    +   99,
+    +   100,
+    +   97,
+    +   98,
+    +   99,
+    +   100,
+    +   97,
+    +   98,
+    +   99,
+    +   100,
+    +   97,
+    +   98,
+    +   99,
+    +   100,
+    +   97,
+    +   98,
+    +   99,
+    +   100,
+    +   97,
+    +   98,
+    +   99,
+    +   100,
+    +   97,
+    +   98,
+    +   99,
+    +   100,
+    +   97,
+    +   98,
+    +   99,
+    +   100,
+    +   10,
+    +   46,
+    +   95,
+        101,
+        109,
+        112,
+        116,
+        121,
+        10,
+    +   101,
+    +   109,
+    +   112,
+    +   116,
+    +   121,
+    +   10,
+    +   46,
+    +   95,
+        115,
+        121,
+        109,
+        98,
+        111,
+        108,
+        10,
+    +   115,
+    +   121,
+    +   109,
+    +   98,
+    +   111,
+    +   108,
+    +   10,
+    +   46,
+    +   95,
+        104,
+        97,
+        114,
+        100,
+        10,
+    +   104,
+    +   97,
+    +   114,
+    +   100,
+    +   10
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 108
+    1: 111
+    2: 110
+    3: 103
+    4: 45
+    5: 97
+    6: 98
+    7: 99
+    8: 100
+    9: 97
+    10: 98
+    11: 99
+    12: 100
+    13: 97
+    14: 98
+    15: 99
+    16: 100
+    17: 97
+    18: 98
+    19: 99
+    20: 100
+    21: 97
+    22: 98
+    23: 99
+    24: 100
+    25: 97
+    26: 98
+    27: 99
+    28: 100
+    29: 97
+    30: 98
+    31: 99
+    32: 100
+    33: 97
+    34: 98
+    35: 99
+    36: 100
+    37: 97
+    38: 98
+    39: 99
+    40: 100
+    41: 97
+    42: 98
+    43: 99
+    44: 100
+    45: 97
+    46: 98
+    47: 99
+    48: 100
+    49: 97
+    50: 98
+    51: 99
+    52: 100
+    53: 97
+    54: 98
+    55: 99
+    56: 100
+    57: 97
+    58: 98
+    59: 99
+    60: 100
+    61: 97
+    62: 98
+    63: 99
+    64: 100
+    65: 97
+    66: 98
+    67: 99
+    68: 100
+    69: 97
+    70: 98
+    71: 99
+    72: 100
+    73: 97
+    74: 98
+    75: 99
+    76: 100
+    77: 97
+    78: 98
+    79: 99
+    80: 100
+    81: 97
+    82: 98
+    83: 99
+    84: 100
+    85: 97
+    86: 98
+    87: 99
+    88: 100
+    89: 97
+    90: 98
+    91: 99
+    92: 100
+    93: 97
+    94: 98
+    95: 99
+    96: 100
+    97: 97
+    98: 98
+    99: 99
+    100: 100
+    101: 97
+    102: 98
+    103: 99
+    104: 100
+    105: 97
+    106: 98
+    107: 99
+    108: 100
+    109: 97
+    110: 98
+    111: 99
+    112: 100
+    113: 97
+    114: 98
+    115: 99
+    116: 100
+    117: 10
+    118: 101
+    119: 109
+    120: 112
+    121: 116
+    122: 121
+    123: 10
+    124: 115
+    125: 121
+    126: 109
+    127: 98
+    128: 111
+    129: 108
+    130: 10
+    131: 104
+    132: 97
+    133: 114
+    134: 100
+    135: 10
+  actual:
+    0: 46
+    1: 95
+    2: 108
+    3: 111
+    4: 110
+    5: 103
+    6: 45
+    7: 97
+    8: 98
+    9: 99
+    10: 100
+    11: 97
+    12: 98
+    13: 99
+    14: 100
+    15: 97
+    16: 98
+    17: 99
+    18: 100
+    19: 97
+    20: 98
+    21: 99
+    22: 100
+    23: 97
+    24: 98
+    25: 99
+    26: 100
+    27: 97
+    28: 98
+    29: 99
+    30: 100
+    31: 97
+    32: 98
+    33: 99
+    34: 100
+    35: 97
+    36: 98
+    37: 99
+    38: 100
+    39: 97
+    40: 98
+    41: 99
+    42: 100
+    43: 97
+    44: 98
+    45: 99
+    46: 100
+    47: 97
+    48: 98
+    49: 99
+    50: 100
+    51: 97
+    52: 98
+    53: 99
+    54: 100
+    55: 97
+    56: 98
+    57: 99
+    58: 100
+    59: 97
+    60: 98
+    61: 99
+    62: 100
+    63: 97
+    64: 98
+    65: 99
+    66: 100
+    67: 97
+    68: 98
+    69: 99
+    70: 100
+    71: 97
+    72: 98
+    73: 99
+    74: 100
+    75: 97
+    76: 98
+    77: 99
+    78: 100
+    79: 97
+    80: 98
+    81: 99
+    82: 100
+    83: 97
+    84: 98
+    85: 99
+    86: 100
+    87: 97
+    88: 98
+    89: 99
+    90: 100
+    91: 97
+    92: 98
+    93: 99
+    94: 100
+    95: 97
+    96: 98
+    97: 99
+    98: 100
+    99: 97
+    100: 98
+    101: 99
+    102: 100
+    103: 97
+    104: 98
+    105: 99
+    106: 100
+    107: 97
+    108: 98
+    109: 99
+    110: 100
+    111: 97
+    112: 98
+    113: 99
+    114: 100
+    115: 97
+    116: 98
+    117: 99
+    118: 100
+    119: 10
+    120: 108
+    121: 111
+    122: 110
+    123: 103
+    124: 45
+    125: 97
+    126: 98
+    127: 99
+    128: 100
+    129: 97
+    130: 98
+    131: 99
+    132: 100
+    133: 97
+    134: 98
+    135: 99
+    136: 100
+    137: 97
+    138: 98
+    139: 99
+    140: 100
+    141: 97
+    142: 98
+    143: 99
+    144: 100
+    145: 97
+    146: 98
+    147: 99
+    148: 100
+    149: 97
+    150: 98
+    151: 99
+    152: 100
+    153: 97
+    154: 98
+    155: 99
+    156: 100
+    157: 97
+    158: 98
+    159: 99
+    160: 100
+    161: 97
+    162: 98
+    163: 99
+    164: 100
+    165: 97
+    166: 98
+    167: 99
+    168: 100
+    169: 97
+    170: 98
+    171: 99
+    172: 100
+    173: 97
+    174: 98
+    175: 99
+    176: 100
+    177: 97
+    178: 98
+    179: 99
+    180: 100
+    181: 97
+    182: 98
+    183: 99
+    184: 100
+    185: 97
+    186: 98
+    187: 99
+    188: 100
+    189: 97
+    190: 98
+    191: 99
+    192: 100
+    193: 97
+    194: 98
+    195: 99
+    196: 100
+    197: 97
+    198: 98
+    199: 99
+    200: 100
+    201: 97
+    202: 98
+    203: 99
+    204: 100
+    205: 97
+    206: 98
+    207: 99
+    208: 100
+    209: 97
+    210: 98
+    211: 99
+    212: 100
+    213: 97
+    214: 98
+    215: 99
+    216: 100
+    217: 97
+    218: 98
+    219: 99
+    220: 100
+    221: 97
+    222: 98
+    223: 99
+    224: 100
+    225: 97
+    226: 98
+    227: 99
+    228: 100
+    229: 97
+    230: 98
+    231: 99
+    232: 100
+    233: 97
+    234: 98
+    235: 99
+    236: 100
+    237: 10
+    238: 46
+    239: 95
+    240: 101
+    241: 109
+    242: 112
+    243: 116
+    244: 121
+    245: 10
+    246: 101
+    247: 109
+    248: 112
+    249: 116
+    250: 121
+    251: 10
+    252: 46
+    253: 95
+    254: 115
+    255: 121
+    256: 109
+    257: 98
+    258: 111
+    259: 108
+    260: 10
+    261: 115
+    262: 121
+    263: 109
+    264: 98
+    265: 111
+    266: 108
+    267: 10
+    268: 46
+    269: 95
+    270: 104
+    271: 97
+    272: 114
+    273: 100
+    274: 10
+    275: 104
+    276: 97
+    277: 114
+    278: 100
+    279: 10
+  operator: 'deepStrictEqual'
+  stack: |-
+    <anonymous> (/private/tmp/safe-bash-pax-focused-Z7mDms/snapshot-1/tests/commands/archive-stress/pax-native.test.ts:102:16)
+    async withOracle (/private/tmp/safe-bash-pax-focused-Z7mDms/snapshot-1/tests/commands/archive-stress/pax-native.test.ts:69:5)
+    async TestContext.<anonymous> (/private/tmp/safe-bash-pax-focused-Z7mDms/snapshot-1/tests/commands/archive-stress/pax-native.test.ts:78:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: P12 native-only global/local mtime profiles are explicit, not virtual acceptance expectations
+ok 12 - P12 native-only global/local mtime profiles are explicit, not virtual acceptance expectations
+  ---
+  duration_ms: 49.814209
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 10
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1067.043792

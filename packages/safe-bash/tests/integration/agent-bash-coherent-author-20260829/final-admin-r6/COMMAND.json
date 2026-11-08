@@ -1,0 +1,17 @@
+{
+  "executable": "/bin/zsh",
+  "argv": [
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/launch.sh",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/FINAL.json",
+    "8bd385557c356994062d62fb10d9aef485e3c440dd509e68220425ae770e03a9",
+    "24620",
+    "ROOT_B1_R6_LIVE_ADMIN_20260829_ONE_ACTUAL_AFTER_FINAL_ACCEPTANCE"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "login": false,
+  "env": {
+    "B1_ADMIN_ROOT_GO": "ROOT_B1_R5_LIVE_ADMIN_EXPLICIT_AUTHORIZATION"
+  },
+  "actualGo": false,
+  "qualification": "Existing owner entry schema/token retained; authority string is prospective and ROOT actual GO is separate."
+}

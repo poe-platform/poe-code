@@ -1,0 +1,28 @@
+diff --git a/src/commands/text.ts b/src/commands/text.ts
+index 70bb169..9a7d606 100644
+--- a/src/commands/text.ts
++++ b/src/commands/text.ts
+@@ -2,6 +2,14 @@ import { FsError, type ByteSource, type CommandContext, type CommandDefinition }
+ import { bufferLimit, concatenate, define, diagnostic, encoder, input, integer, lines, options, output, pathOf, requireOperands, UsageError, value } from "./internal.js";
+ 
+ function compareBytes(left: Uint8Array, right: Uint8Array): number { return Buffer.compare(left, right); }
++function compareSortBytes(left: Uint8Array, right: Uint8Array): number {
++  const length = Math.min(left.length, right.length, 16);
++  for (let index = 0; index < length; index++) {
++    const difference = left[index]! - right[index]!;
++    if (difference) return difference;
++  }
++  return length < 16 ? left.length - right.length : compareBytes(left, right);
++}
+ function fold(bytes: Uint8Array): Uint8Array { return bytes.map(byte => byte >= 97 && byte <= 122 ? byte - 32 : byte); }
+ 
+ function numericCompare(left: Uint8Array, right: Uint8Array): number {
+@@ -88,7 +96,7 @@ export function textCommands(): CommandDefinition[] {
+       const keys = (parsed.values.get("k") ?? []).map(sortKey);
+       const simple = !keys.length && !["b", "f", "n"].some(flag => parsed.flags.has(flag));
+       const direction = parsed.flags.has("r") ? -1 : 1;
+-      const keyCompare = simple ? (left: Uint8Array, right: Uint8Array) => compareBytes(left, right) * direction : (left: Uint8Array, right: Uint8Array) => {
++      const keyCompare = simple ? (left: Uint8Array, right: Uint8Array) => compareSortBytes(left, right) * direction : (left: Uint8Array, right: Uint8Array) => {
+         for (const key of keys.length ? keys : [undefined]) {
+           const flags = key?.flags.size ? key.flags : parsed.flags;
+           let first = key ? keyBytes(left, key, separator, flags.has("b")) : left;

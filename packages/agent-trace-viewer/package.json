@@ -1,0 +1,29 @@
+{
+  "name": "@poe-code/agent-trace-viewer",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "test": "cd ../.. && vitest run packages/agent-trace-viewer/src/",
+    "test:unit": "cd ../.. && vitest run packages/agent-trace-viewer/src/"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@poe-code/agent-traces": "*",
+    "@poe-code/cached-resource": "*",
+    "@poe-code/user-error": "*",
+    "tokenfill": "*",
+    "toolcraft-design": "*"
+  }
+}

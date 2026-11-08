@@ -1,0 +1,280 @@
+# NPM Publishing
+
+Releases happen in GitHub Actions. Do not run `npm publish` locally. The only
+exception is the first publish of a new package (see Initial Publish).
+
+## Root Package
+
+The root `poe-code` package is released by `.github/workflows/release.yml`.
+
+Pushing to `main` publishes the `latest` dist tag.
+
+Use `.github/workflows/bump-version.yml` when GitHub should bump and release the
+root package. The release workflow runs semantic-release and publishes from
+GitHub.
+
+## Release Queues
+
+Automatic package releases use GitHub's native concurrency queue to accumulate
+pending changes independently for each publisher:
+
+```yaml
+concurrency:
+  queue: single
+  group: release-package-name
+  cancel-in-progress: false
+```
+
+Keep group names stable and unique to each publisher. Root validation and root
+publication retain separate groups, so validation can continue while a previous
+validated build publishes. Build-only validation has its own group. Each run
+continues using its triggering commit and its own verified build artifacts.
+
+The active run finishes even when `main` advances. While it runs, newer pushes
+replace the pending run for that publisher. The remaining run contains the
+accumulated commits, so a burst of package changes produces one follow-up release
+without a debounce delay or a backlog of one release per push. Package path
+filters and independent concurrency groups keep unrelated publishers parallel.
+SafeFS, SafeJS, and Safe Bash retain their existing shared-version release group.
+
+Running validation and builds are never discarded merely because a newer commit
+exists. Each run uses its triggering SHA, preserving the build and provenance
+identity. The root and scoped Safe publishers retain their ancestry guards
+against republishing changes already covered by a newer publication. The
+`pin_revision` input is no longer needed: every active run keeps its revision.
+
+GitHub schedules concurrency slots by arrival, which can differ from commit or
+dispatch order. Pending manual dispatches share the publisher's queue and can
+also be replaced; this queue does not promise a release for every requested SHA.
+The manual-only opencode-poe-auth publisher retains `queue: max`.
+
+Failed runs release their concurrency slot; inspect their errors and rerun them
+when appropriate. New pushes never cancel active releases. GitHub's ordinary
+workflow and job time limits still apply.
+
+Pages publishing uses `queue: single` in the stable `pages` group with
+`cancel-in-progress: false`. The active deployment finishes while newer pushes
+replace obsolete pending builds, leaving only the latest pending deployment.
+Pages publishes a current site snapshot rather than retaining every release.
+
+Run `npm run lint:workflows` after editing a queue. Until actionlint supports
+the new key, this route validates queue values and requires cancellation to be
+disabled for `max`, then suppresses only actionlint's unsupported `queue` key
+diagnostic. All other actionlint checks remain enabled.
+
+See [GitHub's concurrency documentation](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency)
+and [actionlint's pending support](https://github.com/rhysd/actionlint/pull/654).
+
+## Workspace Packages
+
+### Scoped Safe Libraries
+
+`@poe-platform/safe-fs`, `@poe-platform/safe-js`, and `@poe-platform/safe-bash`
+use `release-safe.yml`. Run `npm run build`, then
+`node scripts/package-safe.mjs --out-dir <empty-directory> --version <version>`
+to prepare the three standalone artifacts. The private workspace manifests are
+not publish manifests; publish only generated artifacts.
+
+Safe Bash includes explicit command imports such as `/yes`, `/dd`, `/install`,
+and `/yq`, plus `/devices` and shell-extension imports. These are shipped in the
+same tarball and stay outside the default entry's runtime graph. There is no
+separate optional npm package or package bootstrap. The default root package
+also exposes these through `poe-code/safe-bash/<name>`. Existing command paths
+remain unchanged. See `docs/safe-bash-command-imports.md` for usage and options.
+
+The workflow verifies actual tarballs with Node and Bun, including a consumer
+installed with optional dependencies omitted and a second consumer with exactly
+`yaml@2.9.0`. YAML is an optional peer of Safe Bash and is loaded only when using
+the explicit yq profile. The strict TypeScript fixture checks these public import
+paths. A second independent tarball installation verifies distinct core identities.
+Existing browser, historical-root coexistence and filesystem-only checks remain.
+The optional `/playwright/cloudflare` adapter is staged from the private
+safe-playwright-cloudflare workspace using its declared companion exports and
+optional provider peers. Releases verify the installed adapter's generated
+Worker/codegen assets, license notices, Worker host types, and native Chromium
+conformance. Portable profiles ship through `/playwright`.
+
+The next shared version is selected from the three existing registry versions.
+Registry failures stop version selection. After publishing, the workflow verifies
+each exact version before reporting successful publication. Publishing happens
+in GitHub Actions with the configured trusted publishers and provenance.
+
+The verifier binds both the provenance workflow ref and dependency ref to the
+exact dispatch ref, alongside the dispatch commit and archive digest. Its CLI
+and programmatic `sourceRef` option default to `refs/heads/main`; frozen branch
+or tag releases must explicitly supply their full ref.
+
+A running release retains its original workflow and verifier even after a fix
+lands on main. If an older run publishes successfully but rejects its frozen
+ref during verification, use the corrected verifier from main against the
+shared version selected by that same run, its original commit, and original ref:
+
+```sh
+node scripts/verify-safe-publication.mjs --cloudflare \
+  --version <exact-version-from-existing-run> \
+  --source <original-40-character-commit> \
+  --source-ref refs/heads/<original-frozen-branch>
+```
+
+This repeats the archive, provenance, fresh-install, import and Cloudflare
+artifact gates without publishing anything. Do not dispatch another release
+or substitute the current branch tip or registry latest version. Keep consumer
+publication work pending until these checks succeed; an older workflow run
+remains failed even if this independent verification succeeds.
+
+### Toolcraft Artifact Preparation
+
+The root build rewrites workspace declaration imports for the `poe-code`
+tarball layout. Those declarations are not the standalone package profile.
+`toolcraft` and `toolcraft-openapi` therefore run their maintained, uncached
+workspace build closures in `prepack`, before staging bundled dependencies.
+Normal `npm pack` prepares portable declarations even after a root build;
+do not bypass lifecycle scripts when creating these standalone artifacts.
+Installation of the completed tarballs does not require build scripts.
+
+Packing rebuilds the selected workspace and its declared build dependencies.
+Run packaging checks serially: build and packing hooks mutate workspace
+`dist` directories and temporarily stage bundled dependencies. Build output
+goes to stderr so `npm pack --json` retains machine-readable stdout. The root
+package retains its own `prepack` build and declaration-layout preparation.
+
+The Toolcraft prepack build and recursive workspace packs retain the invoking
+Node/npm executables instead of resolving npm again through lifecycle `PATH`.
+The maintained Toolcraft smoke launchers use the same manager-selection helper
+for packing, installation, and registry checks.
+Direct invocation of the bundle helper without npm lifecycle metadata retains
+its ordinary `PATH` fallback. The invoking npm still needs to support the
+selected runtime; an installed-package runtime check alone does not validate
+the package-building toolchain on that runtime.
+
+Use `npm run smoke:toolcraft-sdk-types` for strict packed SDK declarations,
+alongside `npm run smoke:toolcraft-standalone` and
+`npm run smoke:toolcraft-entrypoints` for standalone runtime and bundle checks.
+The standalone generator fixture uses `skipLibCheck: true`; it does not prove
+that all dependency declarations typecheck strictly.
+
+### Other Workspaces
+
+Workspace packages use dedicated release workflows, for example
+`release-toolcraft.yml`, `release-tokenfill.yml`, and `release-terminal-png.yml`.
+
+Before making a workspace package public:
+
+1. Remove `private: true` from the package manifest.
+2. Keep `files: ["dist"]` so source-only files are not published accidentally.
+3. Add repository metadata:
+
+   ```json
+   {
+     "repository": {
+       "type": "git",
+       "url": "git+https://github.com/poe-platform/poe-code.git",
+       "directory": "packages/<package-dir>"
+     }
+   }
+   ```
+
+4. Add or update a release workflow in `.github/workflows/`.
+5. Run `npm run lint:packages`.
+
+Release workflows should:
+
+- trigger from `main` with package-specific path filters when possible;
+- build the package before publishing;
+- publish with `npm publish --provenance --access public`;
+- use GitHub OIDC provenance instead of npm tokens.
+
+Required workflow permissions:
+
+```yaml
+permissions:
+  contents: read
+  id-token: write
+```
+
+Trusted publishing requires `npm >= 11.5.1` and `node >= 22.14.0`. In
+`actions/setup-node`, set the Node version, then upgrade npm before publishing:
+
+```sh
+npm install --global npm@^11.5.1
+npm publish --provenance --access public
+```
+
+## Initial Publish
+
+The legacy procedure used a local first publish before configuring the
+package's trusted publisher:
+
+1. `npm login` (browser + 2FA).
+2. From the package directory: `npm publish --access public`. Skip
+   `--provenance` — it only works in CI. The 2FA prompt prints a
+   `https://www.npmjs.com/auth/cli/...` URL to approve in the browser.
+3. Verify with `npm view <package-name>` and a scratch `npm install`.
+4. Configure trusted publishing for the package (see Trusted Publishing).
+5. All later releases run from GitHub Actions with provenance.
+
+### Automating steps 1–2 with terminal-pilot
+
+Both prompts block on a browser approval, not a code typed back into the
+terminal. Run them through the terminal-pilot MCP skill so the link opens
+automatically and the assistant can wait for completion instead of relaying
+a one-time code:
+
+```
+terminal_create_session  command="npm" args=["login"]
+terminal_wait_for         pattern="https://www\.npmjs\.com/login"
+open "<captured URL>"                          # plain `open`, not a specific browser
+terminal_wait_for         pattern="Logged in"
+terminal_close_session
+
+terminal_create_session  command="npx" args=["-y","npm@11.5.1","publish","--access","public"] cwd=<package dir>
+terminal_wait_for         pattern="https://www\.npmjs\.com/auth/cli"
+open "<captured URL>"
+terminal_wait_for         pattern="\+ <package-name>@"
+terminal_close_session
+```
+
+Use `npx npm@11.5.1` for publish (not the locally installed npm) so the
+prompt renders the browser-approval flow. Never pass `--otp=<code>` —
+approving the link satisfies the OTP check without a code changing hands.
+
+## Trusted Publishing
+
+Configure trusted publishing on npmjs.com for each public package:
+
+- Organization or user: `poe-platform`
+- Repository: `poe-code`
+- Workflow filename: the workflow that publishes the package
+- Environment: leave empty unless the workflow uses one
+
+After that, GitHub Actions can publish with provenance without `NPM_TOKEN` or
+`NODE_AUTH_TOKEN`.
+
+## Version Alignment
+
+Package release workflows that publish independent workspace packages should
+align with the current npm version before bumping:
+
+```sh
+set -eu
+REMOTE=$(npm view <package-name> version)
+npm version --no-git-tag-version --allow-same-version "$REMOTE"
+npm version --no-git-tag-version patch
+```
+
+Use `--allow-same-version` so the first workflow run after setup does not fail
+when the manifest already matches npm.
+Do not convert registry failures into version zero. A genuinely absent new
+package needs its separately approved bootstrap; an authentication or network
+failure must stop version selection.
+
+## Provenance Failures
+
+If publish fails with an error like:
+
+```text
+E422 ... Error verifying sigstore provenance bundle ... package.json: "repository.url" is "", expected to match "https://github.com/poe-platform/poe-code" from provenance
+```
+
+Fix the package `repository` metadata. The URL must point to this repo, and
+`repository.directory` must point to the workspace package directory.

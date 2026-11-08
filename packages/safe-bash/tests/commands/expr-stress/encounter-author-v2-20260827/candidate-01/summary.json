@@ -1,0 +1,112 @@
+{
+  "sourceCommit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+  "quotaCommit": "c25e682a7baa2f2abf70cebf8c01d11d0ad5daee",
+  "original": {
+    "passed": 61,
+    "total": 61,
+    "failures": []
+  },
+  "nativeSubset": {
+    "passed": 44,
+    "total": 44,
+    "failures": []
+  },
+  "projectSubset": {
+    "passed": 17,
+    "total": 17,
+    "failures": []
+  },
+  "shell": {
+    "passed": 5,
+    "total": 5,
+    "failures": []
+  },
+  "oldCapSeparate": {
+    "id": "old-syntax-output-one-separate",
+    "mode": "direct",
+    "observed": {
+      "exitCode": 3,
+      "stdout": "",
+      "stderr": "expr: output bytes limit exceeded\n"
+    },
+    "expected": {
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "expr: syntax error: unexpected argument 'x'\n"
+    },
+    "jobs": [],
+    "encodes": [
+      "1",
+      "x"
+    ],
+    "budgetCount": 1,
+    "budgetIncreases": 0,
+    "events": [
+      {
+        "kind": "cleanup-registered"
+      },
+      {
+        "kind": "session-close-start"
+      },
+      {
+        "kind": "session-close-end"
+      },
+      {
+        "kind": "execute-settled",
+        "activeWorkers": 0
+      }
+    ],
+    "failures": [
+      "exitCode",
+      "stderr"
+    ],
+    "passed": false
+  },
+  "nearby": {
+    "passed": 15,
+    "total": 16,
+    "failures": [
+      {
+        "id": "stdout-failure-no-regex-replay",
+        "failures": [
+          "exitCode",
+          "stderr"
+        ]
+      }
+    ]
+  },
+  "expr": {
+    "status": 1,
+    "counts": {
+      "tests": 587,
+      "suites": 0,
+      "pass": 586,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "failed": [
+      "not ok 135 - sink failure is status 3 and diagnostic failure is not swallowed"
+    ]
+  },
+  "shared": {
+    "status": 0,
+    "counts": {
+      "tests": 61,
+      "suites": 0,
+      "pass": 61,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "failed": []
+  },
+  "activeWorkers": {
+    "original": 0,
+    "nearby": 0
+  },
+  "build": "passed",
+  "strictTypes": "passed"
+}

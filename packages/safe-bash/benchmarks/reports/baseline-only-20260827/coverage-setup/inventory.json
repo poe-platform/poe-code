@@ -1,0 +1,2804 @@
+{
+  "capturedAt": "2026-08-27T03:27:52.713Z",
+  "head": "0a0f712b432fc804551ce409e28145a37a5c4c91",
+  "method": "Public definitions, constructor registration and read-only concrete dispatcher inspection; NO Bash.exec, Shell.exec or command handler invocation",
+  "historical": {
+    "commit": "20b889b",
+    "totals": {
+      "names": 53,
+      "namesWithPrimaryRecipes": 3,
+      "unmeasuredNames": 50,
+      "recipes": 3,
+      "virtualPass": 0,
+      "virtualFail": 3,
+      "baselinePass": 3,
+      "baselineFail": 0
+    },
+    "input": {
+      "path": "benchmarks/reports/expanded-20260827/baseline-only-frozen/matrix.json",
+      "bytes": 13337,
+      "sha256": "acb1867f74f60f6ebf9a5a28c9f6119a564ccca18d1936d1458f199ca7cf6a40"
+    }
+  },
+  "current": {
+    "virtual": {
+      "registered": [
+        "[",
+        "awk",
+        "base32",
+        "base64",
+        "basename",
+        "cat",
+        "chmod",
+        "cksum",
+        "comm",
+        "cp",
+        "cut",
+        "diff",
+        "dirname",
+        "echo",
+        "env",
+        "false",
+        "find",
+        "grep",
+        "gunzip",
+        "gzip",
+        "head",
+        "join",
+        "jq",
+        "ln",
+        "ls",
+        "md5sum",
+        "mkdir",
+        "mktemp",
+        "mv",
+        "od",
+        "paste",
+        "patch",
+        "printf",
+        "pwd",
+        "readlink",
+        "realpath",
+        "rg",
+        "rm",
+        "rmdir",
+        "sed",
+        "sha1sum",
+        "sha256sum",
+        "sort",
+        "stat",
+        "tail",
+        "tar",
+        "tee",
+        "test",
+        "touch",
+        "tr",
+        "true",
+        "uniq",
+        "wc",
+        "xargs",
+        "xxd",
+        "zcat"
+      ],
+      "classified": [
+        ":",
+        "true",
+        "false",
+        "pwd",
+        "cd",
+        "set",
+        "shift",
+        "export",
+        "local",
+        "unset",
+        "read",
+        "exit",
+        "return",
+        "break",
+        "continue",
+        "command",
+        "type",
+        "readonly",
+        "echo",
+        "printf",
+        "test",
+        "[",
+        ".",
+        "source",
+        "eval"
+      ],
+      "kernel": [
+        ".",
+        ":",
+        "break",
+        "cd",
+        "command",
+        "continue",
+        "eval",
+        "exit",
+        "export",
+        "false",
+        "local",
+        "pwd",
+        "read",
+        "readonly",
+        "return",
+        "set",
+        "shift",
+        "source",
+        "true",
+        "type",
+        "unset"
+      ],
+      "interpreterEntrypoints": [
+        "bash",
+        "sh"
+      ],
+      "union": [
+        ".",
+        ":",
+        "[",
+        "awk",
+        "base32",
+        "base64",
+        "basename",
+        "bash",
+        "break",
+        "cat",
+        "cd",
+        "chmod",
+        "cksum",
+        "comm",
+        "command",
+        "continue",
+        "cp",
+        "cut",
+        "diff",
+        "dirname",
+        "echo",
+        "env",
+        "eval",
+        "exit",
+        "export",
+        "false",
+        "find",
+        "grep",
+        "gunzip",
+        "gzip",
+        "head",
+        "join",
+        "jq",
+        "ln",
+        "local",
+        "ls",
+        "md5sum",
+        "mkdir",
+        "mktemp",
+        "mv",
+        "od",
+        "paste",
+        "patch",
+        "printf",
+        "pwd",
+        "read",
+        "readlink",
+        "readonly",
+        "realpath",
+        "return",
+        "rg",
+        "rm",
+        "rmdir",
+        "sed",
+        "set",
+        "sh",
+        "sha1sum",
+        "sha256sum",
+        "shift",
+        "sort",
+        "source",
+        "stat",
+        "tail",
+        "tar",
+        "tee",
+        "test",
+        "touch",
+        "tr",
+        "true",
+        "type",
+        "uniq",
+        "unset",
+        "wc",
+        "xargs",
+        "xxd",
+        "zcat"
+      ],
+      "optional": [
+        "curl",
+        "safejs"
+      ],
+      "shadowedRegistry": [
+        "false",
+        "pwd",
+        "true"
+      ],
+      "unshadowedRegistry": [
+        "[",
+        "awk",
+        "base32",
+        "base64",
+        "basename",
+        "cat",
+        "chmod",
+        "cksum",
+        "comm",
+        "cp",
+        "cut",
+        "diff",
+        "dirname",
+        "echo",
+        "env",
+        "find",
+        "grep",
+        "gunzip",
+        "gzip",
+        "head",
+        "join",
+        "jq",
+        "ln",
+        "ls",
+        "md5sum",
+        "mkdir",
+        "mktemp",
+        "mv",
+        "od",
+        "paste",
+        "patch",
+        "printf",
+        "readlink",
+        "realpath",
+        "rg",
+        "rm",
+        "rmdir",
+        "sed",
+        "sha1sum",
+        "sha256sum",
+        "sort",
+        "stat",
+        "tail",
+        "tar",
+        "tee",
+        "test",
+        "touch",
+        "tr",
+        "uniq",
+        "wc",
+        "xargs",
+        "xxd",
+        "zcat"
+      ]
+    },
+    "baseline": {
+      "registered": [
+        "alias",
+        "awk",
+        "base64",
+        "basename",
+        "bash",
+        "cat",
+        "chmod",
+        "clear",
+        "column",
+        "comm",
+        "cp",
+        "cut",
+        "date",
+        "diff",
+        "dirname",
+        "du",
+        "echo",
+        "egrep",
+        "env",
+        "expand",
+        "expr",
+        "false",
+        "fgrep",
+        "file",
+        "find",
+        "fold",
+        "grep",
+        "gunzip",
+        "gzip",
+        "head",
+        "help",
+        "history",
+        "hostname",
+        "html-to-markdown",
+        "join",
+        "jq",
+        "ln",
+        "ls",
+        "md5sum",
+        "mkdir",
+        "mv",
+        "nl",
+        "od",
+        "paste",
+        "printenv",
+        "printf",
+        "pwd",
+        "readlink",
+        "rev",
+        "rg",
+        "rm",
+        "rmdir",
+        "sed",
+        "seq",
+        "sh",
+        "sha1sum",
+        "sha256sum",
+        "sleep",
+        "sort",
+        "split",
+        "sqlite3",
+        "stat",
+        "strings",
+        "tac",
+        "tail",
+        "tar",
+        "tee",
+        "time",
+        "timeout",
+        "touch",
+        "tr",
+        "tree",
+        "true",
+        "unalias",
+        "unexpand",
+        "uniq",
+        "wc",
+        "which",
+        "whoami",
+        "xan",
+        "xargs",
+        "yq",
+        "zcat"
+      ],
+      "classified": [
+        ".",
+        ":",
+        "[",
+        "alias",
+        "bg",
+        "break",
+        "builtin",
+        "caller",
+        "cd",
+        "command",
+        "compgen",
+        "complete",
+        "compopt",
+        "continue",
+        "declare",
+        "dirs",
+        "disown",
+        "echo",
+        "enable",
+        "eval",
+        "exec",
+        "exit",
+        "export",
+        "false",
+        "fc",
+        "fg",
+        "getopts",
+        "hash",
+        "help",
+        "history",
+        "jobs",
+        "kill",
+        "let",
+        "local",
+        "mapfile",
+        "popd",
+        "printf",
+        "pushd",
+        "pwd",
+        "read",
+        "readarray",
+        "readonly",
+        "return",
+        "set",
+        "shift",
+        "shopt",
+        "source",
+        "suspend",
+        "test",
+        "times",
+        "trap",
+        "true",
+        "type",
+        "typeset",
+        "ulimit",
+        "umask",
+        "unalias",
+        "unset",
+        "wait"
+      ],
+      "kernel": [
+        ".",
+        ":",
+        "[",
+        "break",
+        "builtin",
+        "cd",
+        "command",
+        "compgen",
+        "complete",
+        "compopt",
+        "continue",
+        "declare",
+        "dirs",
+        "eval",
+        "exec",
+        "exit",
+        "export",
+        "false",
+        "getopts",
+        "hash",
+        "help",
+        "let",
+        "local",
+        "mapfile",
+        "popd",
+        "pushd",
+        "read",
+        "readarray",
+        "readonly",
+        "return",
+        "set",
+        "shift",
+        "shopt",
+        "source",
+        "test",
+        "true",
+        "type",
+        "typeset",
+        "unset",
+        "wait"
+      ],
+      "union": [
+        ".",
+        ":",
+        "[",
+        "alias",
+        "awk",
+        "base64",
+        "basename",
+        "bash",
+        "break",
+        "builtin",
+        "cat",
+        "cd",
+        "chmod",
+        "clear",
+        "column",
+        "comm",
+        "command",
+        "compgen",
+        "complete",
+        "compopt",
+        "continue",
+        "cp",
+        "cut",
+        "date",
+        "declare",
+        "diff",
+        "dirname",
+        "dirs",
+        "du",
+        "echo",
+        "egrep",
+        "env",
+        "eval",
+        "exec",
+        "exit",
+        "expand",
+        "export",
+        "expr",
+        "false",
+        "fgrep",
+        "file",
+        "find",
+        "fold",
+        "getopts",
+        "grep",
+        "gunzip",
+        "gzip",
+        "hash",
+        "head",
+        "help",
+        "history",
+        "hostname",
+        "html-to-markdown",
+        "join",
+        "jq",
+        "let",
+        "ln",
+        "local",
+        "ls",
+        "mapfile",
+        "md5sum",
+        "mkdir",
+        "mv",
+        "nl",
+        "od",
+        "paste",
+        "popd",
+        "printenv",
+        "printf",
+        "pushd",
+        "pwd",
+        "read",
+        "readarray",
+        "readlink",
+        "readonly",
+        "return",
+        "rev",
+        "rg",
+        "rm",
+        "rmdir",
+        "sed",
+        "seq",
+        "set",
+        "sh",
+        "sha1sum",
+        "sha256sum",
+        "shift",
+        "shopt",
+        "sleep",
+        "sort",
+        "source",
+        "split",
+        "sqlite3",
+        "stat",
+        "strings",
+        "tac",
+        "tail",
+        "tar",
+        "tee",
+        "test",
+        "time",
+        "timeout",
+        "touch",
+        "tr",
+        "tree",
+        "true",
+        "type",
+        "typeset",
+        "unalias",
+        "unexpand",
+        "uniq",
+        "unset",
+        "wait",
+        "wc",
+        "which",
+        "whoami",
+        "xan",
+        "xargs",
+        "yq",
+        "zcat"
+      ],
+      "optional": {
+        "network": [
+          "curl"
+        ],
+        "python": [
+          "python3",
+          "python"
+        ],
+        "javascript": [
+          "js-exec",
+          "node"
+        ]
+      }
+    },
+    "baselineOnlyNames": [
+      "alias",
+      "builtin",
+      "clear",
+      "column",
+      "compgen",
+      "complete",
+      "compopt",
+      "date",
+      "declare",
+      "dirs",
+      "du",
+      "egrep",
+      "exec",
+      "expand",
+      "expr",
+      "fgrep",
+      "file",
+      "fold",
+      "getopts",
+      "hash",
+      "help",
+      "history",
+      "hostname",
+      "html-to-markdown",
+      "let",
+      "mapfile",
+      "nl",
+      "popd",
+      "printenv",
+      "pushd",
+      "readarray",
+      "rev",
+      "seq",
+      "shopt",
+      "sleep",
+      "split",
+      "sqlite3",
+      "strings",
+      "tac",
+      "time",
+      "timeout",
+      "tree",
+      "typeset",
+      "unalias",
+      "unexpand",
+      "wait",
+      "which",
+      "whoami",
+      "xan",
+      "yq"
+    ],
+    "virtualOnlyNames": [
+      "base32",
+      "cksum",
+      "mktemp",
+      "patch",
+      "realpath",
+      "xxd"
+    ],
+    "caveat": "Registered names, aliases, classifier recognition and kernel dispatch are distinct; none establishes complete semantics. Kernel coverage is declared recipes plus virtual middleware events; baseline has no equivalent public kernel trace. Version-specific private registry wrapping is verified with uninstrumented controls."
+  },
+  "excludedClassifierOnlyNames": ["bg", "caller", "disown", "enable", "fc", "fg", "jobs", "kill", "suspend", "times", "trap", "ulimit", "umask"],
+  "excludedClassifierOnlyReason": "Recognized by baseline builtin classifier, but absent from inspected actual registry/concrete df dispatch union. No implementation or operational proof is inferred from these names; not added as phantom working baseline commands.",
+  "optionalEnabledNames": [
+    "alias",
+    "awk",
+    "base64",
+    "basename",
+    "bash",
+    "cat",
+    "chmod",
+    "clear",
+    "column",
+    "comm",
+    "cp",
+    "curl",
+    "cut",
+    "date",
+    "diff",
+    "dirname",
+    "du",
+    "echo",
+    "egrep",
+    "env",
+    "expand",
+    "expr",
+    "false",
+    "fgrep",
+    "file",
+    "find",
+    "fold",
+    "grep",
+    "gunzip",
+    "gzip",
+    "head",
+    "help",
+    "history",
+    "hostname",
+    "html-to-markdown",
+    "join",
+    "jq",
+    "js-exec",
+    "ln",
+    "ls",
+    "md5sum",
+    "mkdir",
+    "mv",
+    "nl",
+    "node",
+    "od",
+    "paste",
+    "printenv",
+    "printf",
+    "pwd",
+    "python",
+    "python3",
+    "readlink",
+    "rev",
+    "rg",
+    "rm",
+    "rmdir",
+    "sed",
+    "seq",
+    "sh",
+    "sha1sum",
+    "sha256sum",
+    "sleep",
+    "sort",
+    "split",
+    "sqlite3",
+    "stat",
+    "strings",
+    "tac",
+    "tail",
+    "tar",
+    "tee",
+    "time",
+    "timeout",
+    "touch",
+    "tr",
+    "tree",
+    "true",
+    "unalias",
+    "unexpand",
+    "uniq",
+    "wc",
+    "which",
+    "whoami",
+    "xan",
+    "xargs",
+    "yq",
+    "zcat"
+  ],
+  "counts": {
+    "defaultBaselineOnlyUnmeasured": 50,
+    "additionalOptionalBaselineOnlyUnmeasured": 4,
+    "inclusiveUnmeasuredNames": 54,
+    "inclusiveOperationalCandidatesExcludingNodeStub": 53
+  },
+  "exactDefaultUnmeasuredNames": [
+    "alias",
+    "builtin",
+    "clear",
+    "column",
+    "compgen",
+    "complete",
+    "compopt",
+    "date",
+    "declare",
+    "dirs",
+    "du",
+    "egrep",
+    "exec",
+    "expand",
+    "expr",
+    "fgrep",
+    "file",
+    "fold",
+    "getopts",
+    "hash",
+    "help",
+    "history",
+    "hostname",
+    "html-to-markdown",
+    "let",
+    "mapfile",
+    "nl",
+    "popd",
+    "printenv",
+    "pushd",
+    "readarray",
+    "rev",
+    "seq",
+    "shopt",
+    "sleep",
+    "split",
+    "sqlite3",
+    "strings",
+    "tac",
+    "time",
+    "timeout",
+    "tree",
+    "typeset",
+    "unalias",
+    "unexpand",
+    "wait",
+    "which",
+    "whoami",
+    "xan",
+    "yq"
+  ],
+  "exactInclusiveUnmeasuredNames": [
+    "alias",
+    "builtin",
+    "clear",
+    "column",
+    "compgen",
+    "complete",
+    "compopt",
+    "date",
+    "declare",
+    "dirs",
+    "du",
+    "egrep",
+    "exec",
+    "expand",
+    "expr",
+    "fgrep",
+    "file",
+    "fold",
+    "getopts",
+    "hash",
+    "help",
+    "history",
+    "hostname",
+    "html-to-markdown",
+    "js-exec",
+    "let",
+    "mapfile",
+    "nl",
+    "node",
+    "popd",
+    "printenv",
+    "pushd",
+    "python",
+    "python3",
+    "readarray",
+    "rev",
+    "seq",
+    "shopt",
+    "sleep",
+    "split",
+    "sqlite3",
+    "strings",
+    "tac",
+    "time",
+    "timeout",
+    "tree",
+    "typeset",
+    "unalias",
+    "unexpand",
+    "wait",
+    "which",
+    "whoami",
+    "xan",
+    "yq"
+  ],
+  "newlyOverlappingHistoricalNames": [
+    ".",
+    "eval",
+    "source"
+  ],
+  "rows": [
+    {
+      "name": ".",
+      "baselineRegistered": false,
+      "baselineKernel": true,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "bounded-primary-recipe",
+      "recipes": [
+        {
+          "id": "kernel/dot/dot",
+          "optionFamily": "dot",
+          "oracleValid": true,
+          "recipeHash": "f98c9431e2acb4d05f000772a4bd3030d1f5026ccc54ca23d96befcd49492ef0",
+          "virtual": "fail",
+          "baseline": "pass"
+        }
+      ],
+      "currentOurs": {
+        "classification": "concrete-kernel-handler-present-unexecuted",
+        "reference": "src/shell/runtime.ts:802",
+        "handler": "sourceBuiltin",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "kernel-handler-present-unexecuted",
+        "registry": null,
+        "kernel": {
+          "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "dispatcher": "df",
+          "byteOffset": 402531,
+          "handler": "Xo",
+          "handlerByteOffset": 370001,
+          "evidence": "Concrete branch and handler inspected; not an execution pass"
+        }
+      },
+      "currentBaselineOnly": false
+    },
+    {
+      "name": "alias",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 5223,
+          "lazyImport": "./chunks/alias-T5TO5GWK.js",
+          "export": "aliasCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/alias-T5TO5GWK.js",
+              "bytes": 279,
+              "sha256": "44c4f43551b5996f8c0e15a7211cf74882de31f6df8c366b0273631fd42810d0",
+              "exported": "aliasCommand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-FHC24QSK.js",
+              "bytes": 1641,
+              "sha256": "dcb558f15f21861e78d2d6afef29cafc7efdfa40a0c428a1c2af7d2e6cec680f",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "builtin",
+      "baselineRegistered": false,
+      "baselineKernel": true,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "kernel-handler-present-unexecuted",
+        "registry": null,
+        "kernel": {
+          "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "dispatcher": "df",
+          "byteOffset": 403544,
+          "handler": "bm",
+          "handlerByteOffset": 404393,
+          "evidence": "Concrete branch and handler inspected; not an execution pass"
+        }
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "clear",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 5751,
+          "lazyImport": "./chunks/clear-KPIUNI6K.js",
+          "export": "clearCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/clear-KPIUNI6K.js",
+              "bytes": 227,
+              "sha256": "50b4279f5cfea14a8624f58b77960de85485ef30c6034a6c7762e511c9bb094f",
+              "exported": "clearCommand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-7EUWTCWK.js",
+              "bytes": 413,
+              "sha256": "0fc4b75fe57a67a5f06abec16c114b182d573a18047c45ac86159098fb3de445",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "column",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 4375,
+          "lazyImport": "./chunks/column-LKMDIDCH.js",
+          "export": "column",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/column-LKMDIDCH.js",
+              "bytes": 333,
+              "sha256": "d3a018a4240bebc842f14a51fc692afca490a8b218a0326180a33daab84e0d9d",
+              "exported": "column"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-HW6ZCMM5.js",
+              "bytes": 4211,
+              "sha256": "04a28a5560fb94b4d2794124d0096b20919d5772de33424c47d56e396f87d3e2",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "compgen",
+      "baselineRegistered": false,
+      "baselineKernel": true,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "kernel-handler-present-unexecuted",
+        "registry": null,
+        "kernel": {
+          "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "dispatcher": "df",
+          "byteOffset": 402326,
+          "handler": "So",
+          "handlerByteOffset": 294286,
+          "evidence": "Concrete branch and handler inspected; not an execution pass"
+        }
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "complete",
+      "baselineRegistered": false,
+      "baselineKernel": true,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "kernel-handler-present-unexecuted",
+        "registry": null,
+        "kernel": {
+          "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "dispatcher": "df",
+          "byteOffset": 402358,
+          "handler": "ko",
+          "handlerByteOffset": 304501,
+          "evidence": "Concrete branch and handler inspected; not an execution pass"
+        }
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "compopt",
+      "baselineRegistered": false,
+      "baselineKernel": true,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "kernel-handler-present-unexecuted",
+        "registry": null,
+        "kernel": {
+          "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "dispatcher": "df",
+          "byteOffset": 402391,
+          "handler": "Po",
+          "handlerByteOffset": 307931,
+          "evidence": "Concrete branch and handler inspected; not an execution pass"
+        }
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "date",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 6254,
+          "lazyImport": "./chunks/date-FN2DXAEE.js",
+          "export": "dateCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/date-FN2DXAEE.js",
+              "bytes": 338,
+              "sha256": "298adab48cbf269688f60aeae3cfcee65e20af760b631e89297ff3c1e13c01c9",
+              "exported": "dateCommand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-5ATEFZLC.js",
+              "bytes": 3232,
+              "sha256": "68427d547cff789b30f867cbfdacadd62d7c1acee38c2e5e506c8adb4d272ef4",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "declare",
+      "baselineRegistered": false,
+      "baselineKernel": true,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "kernel-handler-present-unexecuted",
+        "registry": null,
+        "kernel": {
+          "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "dispatcher": "df",
+          "byteOffset": 402641,
+          "handler": "Do",
+          "handlerByteOffset": 313679,
+          "evidence": "Concrete branch and handler inspected; not an execution pass"
+        }
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "dirs",
+      "baselineRegistered": false,
+      "baselineKernel": true,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "kernel-handler-present-unexecuted",
+        "registry": null,
+        "kernel": {
+          "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "dispatcher": "df",
+          "byteOffset": 402488,
+          "handler": "Mo",
+          "handlerByteOffset": 324057,
+          "evidence": "Concrete branch and handler inspected; not an execution pass"
+        }
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "du",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 4973,
+          "lazyImport": "./chunks/du-PR3M44X6.js",
+          "export": "duCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/du-PR3M44X6.js",
+              "bytes": 392,
+              "sha256": "b119872235f1069abe77bdf0893307e6adb6267866d64dc770cf24ce2f4e1d3f",
+              "exported": "duCommand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-POIWRLUV.js",
+              "bytes": 2811,
+              "sha256": "dfdd750f2d5fb1fcc2fffa62d7315d53e599be57e869c18e60f233333bf196ff",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "egrep",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 2989,
+          "lazyImport": "./chunks/grep-5UPEO42U.js",
+          "export": "egrepCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/grep-5UPEO42U.js",
+              "bytes": 546,
+              "sha256": "934d2c479122e3b45d8a1c760f6403372f404f0df639d0b3e5e208923f091512",
+              "exported": "egrepCommand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-XMMV24SP.js",
+              "bytes": 12433,
+              "sha256": "127d4ee1ff683b8afcbbe8e50c794bd03183dbbce33123e6251922b33af188bc",
+              "exported": "c"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "eval",
+      "baselineRegistered": false,
+      "baselineKernel": true,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "bounded-primary-recipe",
+      "recipes": [
+        {
+          "id": "kernel/eval/eval",
+          "optionFamily": "eval",
+          "oracleValid": true,
+          "recipeHash": "6a2c30dc94bc450cea746bdc695646d470d3f45b73bd8fa8fa8d9fbbae73a3bb",
+          "virtual": "fail",
+          "baseline": "pass"
+        }
+      ],
+      "currentOurs": {
+        "classification": "concrete-kernel-handler-present-unexecuted",
+        "reference": "src/shell/runtime.ts:802",
+        "handler": "evalBuiltin",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "kernel-handler-present-unexecuted",
+        "registry": null,
+        "kernel": {
+          "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "dispatcher": "df",
+          "byteOffset": 402208,
+          "handler": "Is",
+          "handlerByteOffset": 324639,
+          "evidence": "Concrete branch and handler inspected; not an execution pass"
+        }
+      },
+      "currentBaselineOnly": false
+    },
+    {
+      "name": "exec",
+      "baselineRegistered": false,
+      "baselineKernel": true,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "kernel-handler-present-unexecuted",
+        "registry": null,
+        "kernel": {
+          "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "dispatcher": "df",
+          "byteOffset": 403610,
+          "handler": "af",
+          "handlerByteOffset": 394632,
+          "evidence": "Concrete branch and handler inspected; not an execution pass"
+        }
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "expand",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 4037,
+          "lazyImport": "./chunks/expand-2BPPGGSM.js",
+          "export": "expand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/expand-2BPPGGSM.js",
+              "bytes": 305,
+              "sha256": "f8dd72ea5d3bafe166ab577008f593ed7e60ae41a2df16ac19c4b9d200d40cbd",
+              "exported": "expand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-PPDMRIJ7.js",
+              "bytes": 3508,
+              "sha256": "6d78c8d5c2015351251c5449fe46794540102fa3709fb8fb0a54f7f76dfa6edb",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "expr",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 6683,
+          "lazyImport": "./chunks/expr-UMT2OHZ7.js",
+          "export": "exprCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/expr-UMT2OHZ7.js",
+              "bytes": 394,
+              "sha256": "0f985bcf8fd630ad94642a2039f0dd31148fe52920545507e9a1eeba83fe6846",
+              "exported": "exprCommand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-TVJ6JVK4.js",
+              "bytes": 2732,
+              "sha256": "30def56adb6c145c74cfef3b29a7e923b8372585b7c01da7d61f79554269da86",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "fgrep",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 2903,
+          "lazyImport": "./chunks/grep-5UPEO42U.js",
+          "export": "fgrepCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/grep-5UPEO42U.js",
+              "bytes": 546,
+              "sha256": "934d2c479122e3b45d8a1c760f6403372f404f0df639d0b3e5e208923f091512",
+              "exported": "fgrepCommand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-XMMV24SP.js",
+              "bytes": 12433,
+              "sha256": "127d4ee1ff683b8afcbbe8e50c794bd03183dbbce33123e6251922b33af188bc",
+              "exported": "b"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "file",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 7049,
+          "lazyImport": "./chunks/file-VEGKTTSF.js",
+          "export": "fileCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/file-VEGKTTSF.js",
+              "bytes": 366,
+              "sha256": "94aff2a71912ad0d2b9362c65d8aa4408c61d52d31dc67daf27a25e0b45d902f",
+              "exported": "fileCommand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-A3D7NRT6.js",
+              "bytes": 77252,
+              "sha256": "92ad6f70b83ef902267b972b1144d23d7698ce3da80accf5c33b2a1f20e07ac3",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "fold",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 3960,
+          "lazyImport": "./chunks/fold-QJBPHRFJ.js",
+          "export": "fold",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/fold-QJBPHRFJ.js",
+              "bytes": 247,
+              "sha256": "7ccdd9e8012939954fe09068c1dbbe12cb89f9e159594d6d7069aff3daabb5e3",
+              "exported": "fold"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-Y62SXZKJ.js",
+              "bytes": 3171,
+              "sha256": "b73528f7915999847b76057de5d86c863c33a27374605380907e7c94da968883",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "getopts",
+      "baselineRegistered": false,
+      "baselineKernel": true,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "kernel-handler-present-unexecuted",
+        "registry": null,
+        "kernel": {
+          "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "dispatcher": "df",
+          "byteOffset": 402294,
+          "handler": "_s",
+          "handlerByteOffset": 326548,
+          "evidence": "Concrete branch and handler inspected; not an execution pass"
+        }
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "hash",
+      "baselineRegistered": false,
+      "baselineKernel": true,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "kernel-handler-present-unexecuted",
+        "registry": null,
+        "kernel": {
+          "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "dispatcher": "df",
+          "byteOffset": 403822,
+          "handler": "Wo",
+          "handlerByteOffset": 328822,
+          "evidence": "Concrete branch and handler inspected; not an execution pass"
+        }
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "help",
+      "baselineRegistered": true,
+      "baselineKernel": true,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "kernel-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 7251,
+          "lazyImport": "./chunks/help-QDDMBDU7.js",
+          "export": "helpCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/help-QDDMBDU7.js",
+              "bytes": 226,
+              "sha256": "96ad493059810decd48e1075288fa4f58d3a83bce98c79b150fe1c094cba6016",
+              "exported": "helpCommand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-MQKGGNPS.js",
+              "bytes": 1601,
+              "sha256": "94fd53d03c8be0536f50b37ebeb9e776ea92d470618e86b2c0be604986162157",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": {
+          "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "dispatcher": "df",
+          "byteOffset": 403851,
+          "handler": "Vo",
+          "handlerByteOffset": 351947,
+          "evidence": "Concrete branch and handler inspected; not an execution pass"
+        }
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "history",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 5401,
+          "lazyImport": "./chunks/history-3N762S3K.js",
+          "export": "historyCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/history-3N762S3K.js",
+              "bytes": 229,
+              "sha256": "ed7e0c911fefa0e2ced47e4c8793550c51290c6bfcbd6570f9f04c380ca07531",
+              "exported": "historyCommand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-UIJUTQPH.js",
+              "bytes": 806,
+              "sha256": "e90054247b35764f78a22d0f6a2095754fe538ca1cf1398af065e3015caf0ab1",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "hostname",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 7496,
+          "lazyImport": "./chunks/hostname-CESD3CQR.js",
+          "export": "hostname",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/hostname-CESD3CQR.js",
+              "bytes": 195,
+              "sha256": "ac7e7cf7c434d8d010246b625ed69a6a2ecc36595d13667808c99f4ea51b9473",
+              "exported": "hostname"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-SBBYKIYU.js",
+              "bytes": 243,
+              "sha256": "16b972897934e6f6c1066ca06e9e7a00732c0e95ab5d018644ea4715182d97cb",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "html-to-markdown",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 7133,
+          "lazyImport": "./chunks/html-to-markdown-GGVR4YGL.js",
+          "export": "htmlToMarkdownCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/html-to-markdown-GGVR4YGL.js",
+              "bytes": 348,
+              "sha256": "1af7740573e4f5a868cc8fd6f3bfaea391f208597aeac0094973606c85fbe233",
+              "exported": "htmlToMarkdownCommand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-QE275OWT.js",
+              "bytes": 4464,
+              "sha256": "5c9e868f5c41a92f5fc71655fb1786fb109c388aa200c59d3fb02315d857b3f2",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "let",
+      "baselineRegistered": false,
+      "baselineKernel": true,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "kernel-handler-present-unexecuted",
+        "registry": null,
+        "kernel": {
+          "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "dispatcher": "df",
+          "byteOffset": 403480,
+          "handler": "zo",
+          "handlerByteOffset": 353269,
+          "evidence": "Concrete branch and handler inspected; not an execution pass"
+        }
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "mapfile",
+      "baselineRegistered": false,
+      "baselineKernel": true,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "kernel-handler-present-unexecuted",
+        "registry": null,
+        "kernel": {
+          "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "dispatcher": "df",
+          "byteOffset": 402590,
+          "handler": "jo",
+          "handlerByteOffset": 357052,
+          "evidence": "Concrete branch and handler inspected; not an execution pass"
+        }
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "nl",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 3889,
+          "lazyImport": "./chunks/nl-RFXH2GNX.js",
+          "export": "nl",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/nl-RFXH2GNX.js",
+              "bytes": 273,
+              "sha256": "cd6f1f37329d585d7b8934af1a3f95b02f20b3251bd5b2d091c6def32b33165b",
+              "exported": "nl"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-5VCAQBXL.js",
+              "bytes": 5028,
+              "sha256": "5df30c864c46fc2d740ac4351fdc536016576e97a0485fe0b5ed107e6376a910",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "popd",
+      "baselineRegistered": false,
+      "baselineKernel": true,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "kernel-handler-present-unexecuted",
+        "registry": null,
+        "kernel": {
+          "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "dispatcher": "df",
+          "byteOffset": 402459,
+          "handler": "Lo",
+          "handlerByteOffset": 323544,
+          "evidence": "Concrete branch and handler inspected; not an execution pass"
+        }
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "printenv",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 5132,
+          "lazyImport": "./chunks/env-VUUMB47B.js",
+          "export": "printenvCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/env-VUUMB47B.js",
+              "bytes": 335,
+              "sha256": "5a57e193c05cca34476722a1418a15dcd3fc2b0b696b71aab81c3aa71d731b96",
+              "exported": "printenvCommand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-A4R2GWRF.js",
+              "bytes": 2248,
+              "sha256": "239f2504c26ffe94e73f7c7a13296ec45b3b11ea907bbd1944de45cf1445ca8b",
+              "exported": "b"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "pushd",
+      "baselineRegistered": false,
+      "baselineKernel": true,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "kernel-handler-present-unexecuted",
+        "registry": null,
+        "kernel": {
+          "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "dispatcher": "df",
+          "byteOffset": 402423,
+          "handler": "To",
+          "handlerByteOffset": 322481,
+          "evidence": "Concrete branch and handler inspected; not an execution pass"
+        }
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "readarray",
+      "baselineRegistered": false,
+      "baselineKernel": true,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "kernel-handler-present-unexecuted",
+        "registry": null,
+        "kernel": {
+          "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "dispatcher": "df",
+          "byteOffset": 402605,
+          "handler": "jo",
+          "handlerByteOffset": 357052,
+          "evidence": "Concrete branch and handler inspected; not an execution pass"
+        }
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "rev",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 3815,
+          "lazyImport": "./chunks/rev-EPOS3MFH.js",
+          "export": "rev",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/rev-EPOS3MFH.js",
+              "bytes": 246,
+              "sha256": "41542d88626b49e6b3fc3fa2b4d18e2c66902994aa2f50e7f5fee51c33d16eda",
+              "exported": "rev"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-LVDUF74R.js",
+              "bytes": 1285,
+              "sha256": "33da8ba3bce20fb3845de011bd05a1183cd42f7fe74434fd8ff9e21c1fb7333c",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "seq",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 6602,
+          "lazyImport": "./chunks/seq-5R2GKXC6.js",
+          "export": "seqCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/seq-5R2GKXC6.js",
+              "bytes": 281,
+              "sha256": "08c21d83e124e9d3c5bf3234bdbd757e278509bfa69c443ced49f3cb34987c5f",
+              "exported": "seqCommand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-N4TGZ6H7.js",
+              "bytes": 2380,
+              "sha256": "6e09160aef3dec6622eb11bb3c9d97596c3c712fcb55e7728ba8e546aaeb4974",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "shopt",
+      "baselineRegistered": false,
+      "baselineKernel": true,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "kernel-handler-present-unexecuted",
+        "registry": null,
+        "kernel": {
+          "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "dispatcher": "df",
+          "byteOffset": 403580,
+          "handler": "Ku",
+          "handlerByteOffset": 377707,
+          "evidence": "Concrete branch and handler inspected; not an execution pass"
+        }
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "sleep",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 6338,
+          "lazyImport": "./chunks/sleep-PPRBTSVR.js",
+          "export": "sleepCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/sleep-PPRBTSVR.js",
+              "bytes": 311,
+              "sha256": "700062ddd83b6047aedc71d589caf1fc3579100387cd570825a2779b96823800",
+              "exported": "sleepCommand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-DMWNBCXJ.js",
+              "bytes": 1406,
+              "sha256": "7befeeee99089d013e871b352f0135d4cf7865ad68669205c1b82d8015f053a4",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "source",
+      "baselineRegistered": false,
+      "baselineKernel": true,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "bounded-primary-recipe",
+      "recipes": [
+        {
+          "id": "kernel/source/source",
+          "optionFamily": "source",
+          "oracleValid": true,
+          "recipeHash": "015ed7a630c4c22758ed6aebdbc33d677bf1aedcd021afc5579fd15f93e92bd0",
+          "virtual": "fail",
+          "baseline": "pass"
+        }
+      ],
+      "currentOurs": {
+        "classification": "concrete-kernel-handler-present-unexecuted",
+        "reference": "src/shell/runtime.ts:802",
+        "handler": "sourceBuiltin",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "kernel-handler-present-unexecuted",
+        "registry": null,
+        "kernel": {
+          "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "dispatcher": "df",
+          "byteOffset": 402517,
+          "handler": "Xo",
+          "handlerByteOffset": 370001,
+          "evidence": "Concrete branch and handler inspected; not an execution pass"
+        }
+      },
+      "currentBaselineOnly": false
+    },
+    {
+      "name": "split",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 4295,
+          "lazyImport": "./chunks/split-2SD6EP72.js",
+          "export": "split",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/split-2SD6EP72.js",
+              "bytes": 416,
+              "sha256": "a3cf1b8565668b53aafc8697cd64b9ab7f09d83f1667a0c908a825e83832fa0f",
+              "exported": "split"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-XPDOK3XY.js",
+              "bytes": 9314,
+              "sha256": "cd0ed810fed5c69b9e9b2cafa570a135ea0cf2010353f4130b16dd1112e1d814",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "sqlite3",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 8312,
+          "lazyImport": "./chunks/sqlite3-UVVRYDAL.js",
+          "export": "sqlite3Command",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/sqlite3-UVVRYDAL.js",
+              "bytes": 527,
+              "sha256": "617367dcdd7ae8cdcfc6b3343bf25b00d31b1ffeb9e7b8f11032dcddc1354d15",
+              "exported": "sqlite3Command"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-N3FZSEG7.js",
+              "bytes": 16814,
+              "sha256": "f2412dd9521b09d0441a209a2889a22cc359417586ea8870a107f60b1a912764",
+              "exported": "b"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "strings",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 4209,
+          "lazyImport": "./chunks/strings-WTD7Q2EF.js",
+          "export": "strings",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/strings-WTD7Q2EF.js",
+              "bytes": 278,
+              "sha256": "094f0377e56e2f3508a5645a609a4098f7aabaa8647001bd34dcafc855c2a560",
+              "exported": "strings"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-AFFAMSJT.js",
+              "bytes": 4941,
+              "sha256": "9522fc91e7552ed07df6d515ce0e452d6330a7db9e4e7264da4f4fbf3996e0e5",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "tac",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 7422,
+          "lazyImport": "./chunks/tac-YXC4HBTR.js",
+          "export": "tac",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/tac-YXC4HBTR.js",
+              "bytes": 218,
+              "sha256": "db0e560b8c81614acdc720b9c1ac88f66c81ea6a8d47434192d0ff96c64112b0",
+              "exported": "tac"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-LI6PTSPD.js",
+              "bytes": 681,
+              "sha256": "4c895df118afe1c48d3ab85b6d388ecaaaf673a344b7afe39742144cc514e978",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "time",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 6518,
+          "lazyImport": "./chunks/time-NERE2JJ2.js",
+          "export": "timeCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/time-NERE2JJ2.js",
+              "bytes": 338,
+              "sha256": "72dfe24742ea7338169ddebd03337cf355a45e724212ab318d810351c767cfc2",
+              "exported": "timeCommand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-R2FBRMDU.js",
+              "bytes": 2127,
+              "sha256": "6096adde8e9e0a18230b7dfbc29ab3e397792aaf85fa50e3f44d4afca815301f",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "timeout",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 6425,
+          "lazyImport": "./chunks/timeout-C6WDYPLV.js",
+          "export": "timeoutCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/timeout-C6WDYPLV.js",
+              "bytes": 397,
+              "sha256": "dbe5560df622b0807c3ec3ccb4181b6c412c8408e1d6a09d0a79c7a4acfe7dec",
+              "exported": "timeoutCommand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-XV2V56NQ.js",
+              "bytes": 2621,
+              "sha256": "49dcc3aec5015d4d8ebc96696e6889db9b5aee15bce617e5243760800b5b9273",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "tree",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 4889,
+          "lazyImport": "./chunks/tree-7OOL2MH6.js",
+          "export": "treeCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/tree-7OOL2MH6.js",
+              "bytes": 282,
+              "sha256": "9218838b33dbd376ab1022c940597954f5d8ed04cd03c2ae3a6f0aa0bd110413",
+              "exported": "treeCommand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-7AISL3XV.js",
+              "bytes": 3839,
+              "sha256": "6a5ff2ce6c57049f54e3b856181c3a3829dc8f04ec3ff2f2c5040167e4c4c48d",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "typeset",
+      "baselineRegistered": false,
+      "baselineKernel": true,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "kernel-handler-present-unexecuted",
+        "registry": null,
+        "kernel": {
+          "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "dispatcher": "df",
+          "byteOffset": 402656,
+          "handler": "Do",
+          "handlerByteOffset": 313679,
+          "evidence": "Concrete branch and handler inspected; not an execution pass"
+        }
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "unalias",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 5310,
+          "lazyImport": "./chunks/alias-T5TO5GWK.js",
+          "export": "unaliasCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/alias-T5TO5GWK.js",
+              "bytes": 279,
+              "sha256": "44c4f43551b5996f8c0e15a7211cf74882de31f6df8c366b0273631fd42810d0",
+              "exported": "unaliasCommand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-FHC24QSK.js",
+              "bytes": 1641,
+              "sha256": "dcb558f15f21861e78d2d6afef29cafc7efdfa40a0c428a1c2af7d2e6cec680f",
+              "exported": "b"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "unexpand",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 4120,
+          "lazyImport": "./chunks/unexpand-YD5BWFH4.js",
+          "export": "unexpand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/unexpand-YD5BWFH4.js",
+              "bytes": 251,
+              "sha256": "026129f24c5b906ca2dd5fdd4ddb16a7772385b8d4f9e1369e155049399c5bfa",
+              "exported": "unexpand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-2VWG4LDT.js",
+              "bytes": 3053,
+              "sha256": "344abd325f48da08d5b01b68333ce2043972a51401da37c319cb0f719ac21098",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "wait",
+      "baselineRegistered": false,
+      "baselineKernel": true,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "kernel-no-op-not-job-join-proof",
+        "registry": null,
+        "kernel": {
+          "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "dispatcher": "df",
+          "byteOffset": 403741,
+          "handler": "inline-return-empty-success",
+          "handlerByteOffset": null,
+          "evidence": "Concrete branch and handler inspected; not an execution pass"
+        }
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "which",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 7335,
+          "lazyImport": "./chunks/which-UWVKETYW.js",
+          "export": "whichCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/which-UWVKETYW.js",
+              "bytes": 255,
+              "sha256": "d247c38b38b61508492192562fe9c9b9ed65ed5bb25d96d7e7e460b06d5af327",
+              "exported": "whichCommand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-2SMD2AUA.js",
+              "bytes": 1090,
+              "sha256": "1a7b533dee0c37ffa11ed82b83cfc77080369e40d33719b4278032bfdea0dc6d",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "whoami",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 7585,
+          "lazyImport": "./chunks/whoami-KR6E7UIR.js",
+          "export": "whoami",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/whoami-KR6E7UIR.js",
+              "bytes": 193,
+              "sha256": "b7c14275d73c2d8c7581443fdff35b458565a5546663fda8c3ea0fee48b81496",
+              "exported": "whoami"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-4MZPEZTU.js",
+              "bytes": 229,
+              "sha256": "a135a0a8a0bdc8bb6ff22e5726e59b489ad673230a192a0df3fcaa2895803e3c",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "xan",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 8222,
+          "lazyImport": "./chunks/xan-HUOXKUQA.js",
+          "export": "xanCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/xan-HUOXKUQA.js",
+              "bytes": 645,
+              "sha256": "2a9510fd64c3aa732c94b3965cd776d5af2a765101d9bd799136be5b52f65ed8",
+              "exported": "xanCommand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ALOFNPKY.js",
+              "bytes": 66449,
+              "sha256": "2e301a13c7fdd181e045ccb59244818ac8473a188d41c76793ccec006b133af6",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "currentBaselineOnly": true
+    },
+    {
+      "name": "yq",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": [],
+      "currentOurs": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "currentBaseline": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 8135,
+          "lazyImport": "./chunks/yq-MI27NZ2U.js",
+          "export": "yqCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/yq-MI27NZ2U.js",
+              "bytes": 560,
+              "sha256": "4bd9afa1c2ee26c03046bbd12d75958a56933ffd2078c584ebbd76b19b4733c7",
+              "exported": "yqCommand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-6DTD75TR.js",
+              "bytes": 221573,
+              "sha256": "50e376e53da1abf5b7c6187d40502fe898136896cfa4325411e974e25e421b16",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "currentBaselineOnly": true
+    }
+  ],
+  "addedOptional": [
+    {
+      "name": "js-exec",
+      "coverage": "not-measured-in-frozen-cohort",
+      "historicalMembership": false,
+      "currentOurs": "no-public-handler; SafeJS is not a name-compatible replacement",
+      "baseline": {
+        "classification": "optional-runtime-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 8720,
+          "lazyImport": "./chunks/js-exec-XKF2B7C3.js",
+          "export": "jsExecCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/js-exec-XKF2B7C3.js",
+              "bytes": 9752,
+              "sha256": "3a238ea12066e1d2fce776ba8cc0cc0c14453b10a41cc28b2617e5bd4a1d7ed7",
+              "exported": "jsExecCommand"
+            }
+          ]
+        },
+        "setup": {
+          "javascript": true
+        }
+      }
+    },
+    {
+      "name": "node",
+      "coverage": "not-measured-in-frozen-cohort",
+      "historicalMembership": false,
+      "currentOurs": "no-public-handler; SafeJS is not a name-compatible replacement",
+      "baseline": {
+        "classification": "registered-diagnostic-stub-not-JavaScript-execution",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 8821,
+          "lazyImport": "./chunks/js-exec-XKF2B7C3.js",
+          "export": "nodeStubCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/js-exec-XKF2B7C3.js",
+              "bytes": 9752,
+              "sha256": "3a238ea12066e1d2fce776ba8cc0cc0c14453b10a41cc28b2617e5bd4a1d7ed7",
+              "exported": "nodeStubCommand"
+            }
+          ]
+        },
+        "setup": {
+          "javascript": true
+        }
+      }
+    },
+    {
+      "name": "python",
+      "coverage": "not-measured-in-frozen-cohort",
+      "historicalMembership": false,
+      "currentOurs": "no-public-handler; SafeJS is not a name-compatible replacement",
+      "baseline": {
+        "classification": "optional-runtime-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 8568,
+          "lazyImport": "./chunks/python3-F5S5TYGS.js",
+          "export": "pythonCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/python3-F5S5TYGS.js",
+              "bytes": 8221,
+              "sha256": "7a4b808a72e6dcb307293be5385052638181deb8b795d122f14ee7e7c7d7f295",
+              "exported": "pythonCommand"
+            }
+          ]
+        },
+        "setup": {
+          "python": true
+        }
+      }
+    },
+    {
+      "name": "python3",
+      "coverage": "not-measured-in-frozen-cohort",
+      "historicalMembership": false,
+      "currentOurs": "no-public-handler; SafeJS is not a name-compatible replacement",
+      "baseline": {
+        "classification": "optional-runtime-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 8466,
+          "lazyImport": "./chunks/python3-F5S5TYGS.js",
+          "export": "python3Command",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/python3-F5S5TYGS.js",
+              "bytes": 8221,
+              "sha256": "7a4b808a72e6dcb307293be5385052638181deb8b795d122f14ee7e7c7d7f295",
+              "exported": "python3Command"
+            }
+          ]
+        },
+        "setup": {
+          "python": true
+        }
+      }
+    }
+  ],
+  "caveats": [
+    "50 default names are unmeasured in the frozen primary comparison, not globally untested across all product tests.",
+    "Optional-inclusive 54 retains node as an unmeasured diagnostic-only name; no positive-runtime score is possible for its pinned stub.",
+    "Historical 53/3/50 and original three failures remain unchanged.",
+    "curl is optional on BOTH sides and is not baseline-only; safejs is optional ours-only.",
+    "No classifier-only name is promoted to a concrete command."
+  ]
+}

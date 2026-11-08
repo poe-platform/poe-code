@@ -1,0 +1,20 @@
+{
+  "HELD.json": "effc9a2fe3df1401abe045223bcf4d721d1ab944a414aebf6946a57f6355018c",
+  "README.md": "6f4ced0d6d0070a47fa137bc4641adfcc1a5924d9aa4eb176a73978714d6ec0b",
+  "admission.mjs": "bb21a2802c9e0dae1865c45940e1af4798e3befd8b6217fbf3325dff94140577",
+  "artifacts.mjs": "622cff096b5a551c9eb5f1ace6ae478a0284d2b69b49442dc1843d574a025d6f",
+  "cohorts.mjs": "03679b7e2cc4b49a2e9820f2d5f4aced1d55eb0104b889f6111affed33109088",
+  "fixture-mutant.mjs": "8d30e6fc194ee51e220b867ce25e47e15f0ee6f8d438ee34969bd63bddc1d828",
+  "fixture-value.mjs": "39ee7cbe06c03713a98a12e14058806a27295cb36eb3ab13dd18bac2d88fc51b",
+  "guard.mjs": "37dd4f79a6424018e9d50cfdd649ba90be0293369902ad3da83a0730edc7cd68",
+  "plan.mjs": "5a1479e98e8e23449d78684d8f06c132692cc38f4c1f274a7aa64dbe3f998f05",
+  "procedures.mjs": "731d3422836b7c50d08b5c756467a108b49952dafcb5a44b4cca88ebb14c67a2",
+  "protocol.mjs": "20356451ed758b1186c4401e1b34dc848bb119eefba4f5d2ea66134938889587",
+  "run.mjs": "ebd0b761e3b34de51e2d8335e927b2e364166cb2d711124faf64d6f39295d52d",
+  "selftest.mjs": "457e281624dde1a0c010173a52f9cb2ef9e9caa7e5f74b12ccd8aa974523d817",
+  "settlement.mjs": "e1b7fb5d31507b5e5115d26158576cd3def2a40e5f7daf08915c700933a00a08",
+  "synthetic-worker.mjs": "3f9edf481ce9b5ad347e8ca89a7f98504997f36daac08fa9d6c41de62b9cc6ae",
+  "types.mjs": "a6aa20099bc693367b368e58e57ce652ea273a3fc104bf47acd0e56c3b7f6211",
+  "verify-inputs.mjs": "c4639808113c54e2603f3459f3baab5af13cbd8a155e47f460dee4839bacf072",
+  "worker.mjs": "62b28a6eb7b89a3d6bcf0afb7efe5c551516f8ac165a6c14f9e1000a1e8efe90"
+}

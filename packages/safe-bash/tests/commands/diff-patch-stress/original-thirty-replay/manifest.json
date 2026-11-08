@@ -1,0 +1,1615 @@
+{
+  "capturedAt": "2026-08-26T22:38:51.070Z",
+  "baseline": "b92841a8ceaba9fb1f9c8c7915e218f880a9d1ed",
+  "sourceCommit": "695eb079c223077da2010872d59effdff15b17f3",
+  "classificationRevision": "476da9d6b26a91919cd36003bf8320eae30a11b6",
+  "reproducerSha256": "5461a7496b705c6dddc9df3eedd2133b119d7e1b2de50af551ccffd04a1df0a7",
+  "classificationSha256": "2fc042df35c04c46d6883c7bd3f213c80a439969ad1e422da791311baf7ab955",
+  "root": "/Users/kjopek/Workspace/safe-bash",
+  "snapshot": "/tmp/safe-bash-original-thirty-replay-0zooF0/snapshot",
+  "evidence": "/tmp/safe-bash-original-thirty-replay-0zooF0",
+  "node": "v22.22.2",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "platform": "darwin",
+  "arch": "arm64",
+  "nodeModules": "/Users/kjopek/Workspace/safe-bash/node_modules",
+  "environment": {
+    "GIT_PAGER": "cat",
+    "GIT_DIR": "/tmp/safe-bash-diff-checkpoint-Fpgf5L-evidence/frozen.git",
+    "GIT_WORK_TREE": "/tmp/safe-bash-diff-checkpoint-Fpgf5L",
+    "DIFF_WHITESPACE_ORACLE": "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+    "GNU_PATCH_BINARY": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+    "DIFF_PATCH_NATIVE_DIFF": "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+    "DIFF_PATCH_NATIVE_PATCH": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+    "SAFE_BASH_GNU_PATCH": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+    "PARSER_EVIDENCE": null
+  },
+  "environmentNotes": "Original corrected parser: PARSER_EVIDENCE unset. No fuzz index or NODE_OPTIONS. Historical GIT_DIR/WORK_TREE retained verbatim but unused: direct selected test invocations do not invoke git. Every test cwd is the new snapshot. Native child environments and flags unchanged in immutable helpers.",
+  "tooling": {
+    "tsx": "4.23.12",
+    "typescript": "5.9.3"
+  },
+  "oracles": [
+    {
+      "tool": "diff",
+      "binary": "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+      "sha256": "f13ef516c397b0281818ffe8685aa763100b56a6549295c91849c6af937a83c9",
+      "version": "diff (GNU diffutils) 3.12\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Paul Eggert, Mike Haertel, David Hayes,\nRichard Stallman, and Len Tower.",
+      "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff"
+    },
+    {
+      "tool": "patch",
+      "binary": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00",
+      "version": "GNU patch 2.8\nCopyright 1989-2025 Free Software Foundation, Inc.\nCopyright 1984-1988 Larry Wall\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Larry Wall and Paul Eggert",
+      "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch"
+    },
+    {
+      "tool": "appleDiff",
+      "binary": "/usr/bin/diff",
+      "sha256": "214a0d91e39424b15e1e3540edf6b33ee3dd2bbccb0c6dd3a9571dae754edede",
+      "version": "Apple diff (based on FreeBSD diff)",
+      "realpath": "/usr/bin/diff"
+    },
+    {
+      "tool": "applePatch",
+      "binary": "/usr/bin/patch",
+      "sha256": "ca8aaa5fa4bd9dfaf4b3be251b18372f25f07483946e7d06b505e5a5fb0a6a84",
+      "version": "patch 2.0-12u11-Apple",
+      "realpath": "/usr/bin/patch"
+    }
+  ],
+  "selected": 30,
+  "passed": 14,
+  "failed": 16,
+  "selectedSkipped": 0,
+  "selectedCancelled": 0,
+  "hashesUnchanged": true,
+  "historicalFilesVerified": 368,
+  "sourceFilesVerified": 117,
+  "sourceTree": "7060bce4a613c3645a466e739e63e852f9f14b5c",
+  "diffPatchTree": "c5002961f967306dbb37d2965bad24930e89528e",
+  "liveDiffPatchBefore": [
+    {
+      "path": "src/commands/diff-patch/GNU-DIFF.md",
+      "sha256": "e0e1f1f8e27bc68c991dee2a9e80a230896a6140fa4408e9b7379713dc8b81cb"
+    },
+    {
+      "path": "src/commands/diff-patch/GNU-PATCH.md",
+      "sha256": "3b6a4a17788f8ab3a42b22c5bcd384fc481facddaad913fd20a1bc71988fc207"
+    },
+    {
+      "path": "src/commands/diff-patch/PARSER.md",
+      "sha256": "5d92f96bb67fdf4a284f6e2e7c802eeeb99d86cf0e4e71fb793c2f5405d66fa6"
+    },
+    {
+      "path": "src/commands/diff-patch/README.md",
+      "sha256": "e06573d8cae3778acf8568abb342d616fb2d12e0e3a65845725090eb45c6a1a2"
+    },
+    {
+      "path": "src/commands/diff-patch/diff-format.ts",
+      "sha256": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24"
+    },
+    {
+      "path": "src/commands/diff-patch/diff.ts",
+      "sha256": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e"
+    },
+    {
+      "path": "src/commands/diff-patch/index.ts",
+      "sha256": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17"
+    },
+    {
+      "path": "src/commands/diff-patch/patch-envelope.ts",
+      "sha256": "f6a15e78d7cea41d503f5352206efeb9fa950871c820af730cf27ea06ade99e8"
+    },
+    {
+      "path": "src/commands/diff-patch/patch-formats.ts",
+      "sha256": "a78045ac43900582bdb19f0476414e8566c4e1e2edc86b654bc760cf86de3aa4"
+    },
+    {
+      "path": "src/commands/diff-patch/patch-gnu-paths.ts",
+      "sha256": "688b9fa1950cda3560abc4fcdd3b81dd383f683c3c378b8a191de9b58732025e"
+    },
+    {
+      "path": "src/commands/diff-patch/patch-gnu-reject.ts",
+      "sha256": "5df12efd994c0187998f0112a5fac595f376142f2cd187a5e0b40738f7b6cf02"
+    },
+    {
+      "path": "src/commands/diff-patch/patch-path.ts",
+      "sha256": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94"
+    },
+    {
+      "path": "src/commands/diff-patch/patch.ts",
+      "sha256": "b344c6f7b0f6afaccdab75778a12c11c868d7f8bccd5d453c56e552039e619fe"
+    },
+    {
+      "path": "src/commands/diff-patch/shared.ts",
+      "sha256": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e"
+    },
+    {
+      "path": "src/commands/diff-patch/unified.ts",
+      "sha256": "a8659f40aeb9d1cac3548ffd24950e652eeace92cef1339de9e3a5e5ed7e10fb"
+    }
+  ],
+  "liveDiffPatchAfter": [
+    {
+      "path": "src/commands/diff-patch/GNU-DIFF.md",
+      "sha256": "e0e1f1f8e27bc68c991dee2a9e80a230896a6140fa4408e9b7379713dc8b81cb"
+    },
+    {
+      "path": "src/commands/diff-patch/GNU-PATCH.md",
+      "sha256": "3b6a4a17788f8ab3a42b22c5bcd384fc481facddaad913fd20a1bc71988fc207"
+    },
+    {
+      "path": "src/commands/diff-patch/PARSER.md",
+      "sha256": "5d92f96bb67fdf4a284f6e2e7c802eeeb99d86cf0e4e71fb793c2f5405d66fa6"
+    },
+    {
+      "path": "src/commands/diff-patch/README.md",
+      "sha256": "e06573d8cae3778acf8568abb342d616fb2d12e0e3a65845725090eb45c6a1a2"
+    },
+    {
+      "path": "src/commands/diff-patch/diff-format.ts",
+      "sha256": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24"
+    },
+    {
+      "path": "src/commands/diff-patch/diff.ts",
+      "sha256": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e"
+    },
+    {
+      "path": "src/commands/diff-patch/index.ts",
+      "sha256": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17"
+    },
+    {
+      "path": "src/commands/diff-patch/patch-envelope.ts",
+      "sha256": "f6a15e78d7cea41d503f5352206efeb9fa950871c820af730cf27ea06ade99e8"
+    },
+    {
+      "path": "src/commands/diff-patch/patch-formats.ts",
+      "sha256": "a78045ac43900582bdb19f0476414e8566c4e1e2edc86b654bc760cf86de3aa4"
+    },
+    {
+      "path": "src/commands/diff-patch/patch-gnu-paths.ts",
+      "sha256": "688b9fa1950cda3560abc4fcdd3b81dd383f683c3c378b8a191de9b58732025e"
+    },
+    {
+      "path": "src/commands/diff-patch/patch-gnu-reject.ts",
+      "sha256": "5df12efd994c0187998f0112a5fac595f376142f2cd187a5e0b40738f7b6cf02"
+    },
+    {
+      "path": "src/commands/diff-patch/patch-path.ts",
+      "sha256": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94"
+    },
+    {
+      "path": "src/commands/diff-patch/patch.ts",
+      "sha256": "b344c6f7b0f6afaccdab75778a12c11c868d7f8bccd5d453c56e552039e619fe"
+    },
+    {
+      "path": "src/commands/diff-patch/shared.ts",
+      "sha256": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e"
+    },
+    {
+      "path": "src/commands/diff-patch/unified.ts",
+      "sha256": "a8659f40aeb9d1cac3548ffd24950e652eeace92cef1339de9e3a5e5ed7e10fb"
+    }
+  ],
+  "importGraph": {
+    "path": "/tmp/safe-bash-original-thirty-replay-0zooF0/import-graph.json",
+    "sha256": "d3d35a421df041867586c4f24b51fa76303e1b657dc4d6126fc23636eabb58c4",
+    "files": 50,
+    "escapes": 0,
+    "method": "TypeScript AST static/dynamic literal import closure; all non-builtin imports resolve within snapshot. No runtime loader instrumentation or test edits."
+  },
+  "artifacts": [
+    {
+      "path": "/tmp/safe-bash-original-thirty-replay-0zooF0/historical.tar",
+      "sha256": "14f21ad642968c45f9bab4336032ed9fec9a7cfa4df2fcf46a6d5cd28e47649c"
+    },
+    {
+      "path": "/tmp/safe-bash-original-thirty-replay-0zooF0/source.tar",
+      "sha256": "d37c60edc1f2eb82ede3cf1ef1ad92d25173b37d1b200c11e2f81eb4c42f0017"
+    },
+    {
+      "path": "/tmp/safe-bash-original-thirty-replay-0zooF0/manifest-before.json",
+      "sha256": "c18cf3816f17f7b7efd656d4d8f950156803e1b94b9257fdb311628e4f7c92d6"
+    },
+    {
+      "path": "/tmp/safe-bash-original-thirty-replay-0zooF0/manifest-after.json",
+      "sha256": "c18cf3816f17f7b7efd656d4d8f950156803e1b94b9257fdb311628e4f7c92d6"
+    }
+  ],
+  "manifest": {
+    "historical": [
+      {
+        "path": "package-lock.json",
+        "gitBlob": "5d6562da663aa1b363c5ce5f101ed8469cece4da",
+        "sha256": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b"
+      },
+      {
+        "path": "package.json",
+        "gitBlob": "7cc2e4f486565de2bef81f053a9657c4a5ee4da9",
+        "sha256": "fcd844888bf09a475b3b50b65ef429132abb0fb80ac082f46588588266dcd443"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/compatibility/README.md",
+        "gitBlob": "0b2ccc2e1323ffc5f28fae7129df924fe9a11c38",
+        "sha256": "f8090db4d6860c7e9c978f1fb5081650c0bb5781d2598b5248dc5e0b2022fd82"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/compatibility/RECONCILIATION.md",
+        "gitBlob": "cc593560ded83ccebefa5d0dc1bdd5fe5852b33d",
+        "sha256": "dba3aa58d7d2fddf5211545150fe18c004e170be92f755efab631ad7e1d7c576"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/compatibility/diff.test.ts",
+        "gitBlob": "80ace530ee810d62883174b03cddedc71a8314fd",
+        "sha256": "6d8d29ead2664adcc2f692b69a45bcbae5af6fac362e4a842764452e3c7e7828"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/compatibility/fixtures.ts",
+        "gitBlob": "2f6c3b823f3f17babe979a03c1a59d8b409c68f8",
+        "sha256": "c9a54948cd95b3c319d140dfa53d884930c10b56b803ce388f1f5df222a51e00"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/compatibility/flag-evidence.json",
+        "gitBlob": "a9a8e09f71b4c15b2ef6fe558a56785bcff1f88f",
+        "sha256": "34e39372383ba121d8a025d731f32abb21d6c6029f68c5d128f572a0c5a7681e"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/compatibility/gaps.test.ts",
+        "gitBlob": "98fa3c103b5126e7f6c59ab164737ae37276d408",
+        "sha256": "f732ff3665c685eb2dd1978499448555965c43a01caf244484a39dabafd04aef"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/compatibility/helpers.ts",
+        "gitBlob": "1649dfcf5e236d3c5828c38ab8b778a6cd1ed7b8",
+        "sha256": "8251d2ec017050accfe2d1c7e0e1a023ba89a5ad74edc2ea6184a34d66fcdcd1"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/compatibility/oracle.test.ts",
+        "gitBlob": "6167960cdb365b6178a8d6ee6690e127d89d9d9b",
+        "sha256": "65a9bfe191abe2b5ab972898bf35d0728e792127172fdea7dfe9785b0ced8298"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/compatibility/oracle.ts",
+        "gitBlob": "ea6f26842711ed2ed553ed97ee40b13c14b4cb0a",
+        "sha256": "c81482632ce9ee9e6259e48a3c61a81134dc3abe4bce8db3ae8e1dbf56a5e8ff"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/compatibility/patch.test.ts",
+        "gitBlob": "99bdd6a8a104b3e03f21e1940c484f3e5f002c43",
+        "sha256": "aa70691e3353f60f3b3ee1134f3bf4999f4db7cf5bb61592b2e92c2fb54636cf"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/compatibility/reconciliation-apple.json",
+        "gitBlob": "9363f952bef7cfde292c67e6f4bb507aedf94d53",
+        "sha256": "1ea84d79ddd456c7acfb98548ec025c647a5cc19b26906c735f4e4c6edcc71c1"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/compatibility/reconciliation-baseline.json",
+        "gitBlob": "426d75927b36ea7054be21608c9189b6bba90fb4",
+        "sha256": "34332bd1c4ed3afbb453477f0d4450a90576491c5b1584e0d94c3f895a913fa2"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/compatibility/reconciliation-gnu-repeat.json",
+        "gitBlob": "22fb1f19f1a4d636ca6cfddee153d5b3a2bb8597",
+        "sha256": "19e059e0f743a405097e72938f9e3124f996422c656422577de71b2780e528ed"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/compatibility/reconciliation-gnu.json",
+        "gitBlob": "106a703bd9cbdf5472f11d4daa6c212ba2be7b4b",
+        "sha256": "3a37e98b3c3c82cb20e56745d4b304f26e40eceac5051002cf2ced6b89b5e0d6"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/compatibility/run.mjs",
+        "gitBlob": "436f5db5320d25c03df703b73eafc6ff3731ae6d",
+        "sha256": "5128e70b9f534900ec6833df6c1d34f8478f0f19dab0ee3b631b25aa06726e9f"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/compatibility/shell.test.ts",
+        "gitBlob": "c8fc317ef582399d6ff97f875440d306d60c64eb",
+        "sha256": "6daaed81d8b795c3bead1b7a1b0aa1b68cb33ac17b9d2ea565ca64ca83e46228"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/formats/FINDINGS.md",
+        "gitBlob": "4e3353c991ca0afdbcbee0894f45378b28532f18",
+        "sha256": "30dc152371c9a79160721858f33afb46542a02743f4592d5c1d136f7a18eb2c9"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/formats/README.md",
+        "gitBlob": "7305ffd528171629051dd3f7eb4450fc3a3bd758",
+        "sha256": "89db84bf3c664593e87e5097f1b783baea31598b4f4bd07cf4d12b88eba9f5aa"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/formats/boundaries.test.ts",
+        "gitBlob": "e5176a2d2995d87dc7c8946fdc3da5dddd2938dd",
+        "sha256": "2d2728ea94e67fcfb88f78ff3d680dae508b228c5105e561d4dc7dc1a1eeee84"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/formats/editflows.test.ts",
+        "gitBlob": "7d29679676da3864db67be53b822da0c4c159334",
+        "sha256": "6cdd32ffd84d1f83d2556fa573d968e0636a3066cd3dbcec41fea1b2fd5c72ce"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/formats/fixtures.ts",
+        "gitBlob": "04c331a2507a0983966644c92c439d6953f741c9",
+        "sha256": "4c7142528cbdcb8247e30dba4929ed595c215359fc7ff5ccb80357218ac05273"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/formats/helpers.ts",
+        "gitBlob": "9d2e99c13a0d31c7fbce2d86a397973ad74473fd",
+        "sha256": "208191176d6daae29353cd32eef689dca90e2cea2ea3259d1ad1ae37b0a97952"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/formats/regressions.test.ts",
+        "gitBlob": "5ddf1c948f36396877b90b3ce70b2ae58ca7ff52",
+        "sha256": "19bf929b2128a21f0ad5a225ae7e614adfe558cdea456463b0acf215662e9e45"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/formats/run.mjs",
+        "gitBlob": "066797e87042fd15ea0541a76d028f8dc4d36623",
+        "sha256": "e40aea14a44de63963515e5fc57bbcfd11e6a262308b6f4bc7bb6cd5bc6809b3"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/formats/tsconfig.json",
+        "gitBlob": "0ce7dc81089e5d671ab3ea21565a4142e1956fc2",
+        "sha256": "9f603a6399351b4416e13f03b8a0401be61e99df4aba0a569f60a14faf2e6b88"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/formats/whitespace.test.ts",
+        "gitBlob": "dcddffcc823ba32bba5b6e8fa1b6fd30872074e1",
+        "sha256": "b9fbd5cf49743dbaf94589879eeac1bd5ef59130bb527ea0c847319ad8ab9b4b"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/fuzz/README.md",
+        "gitBlob": "9492d722e4748073cb0d486ef7cc2f34b4130fb7",
+        "sha256": "ca08d5a5987e0ac53cec9e051d9897b38499a4eac7349a11a9a767f90e64b71a"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/fuzz/budgets.test.ts",
+        "gitBlob": "ffe3751fe94782e3ec0a31a8ed21b114c4ea5a7e",
+        "sha256": "f5a073f4dee4b75476a4f07bd836299d1b4c530285d5f8f79cba9be0ad25dd65"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/fuzz/edits.test.ts",
+        "gitBlob": "50f1900039d5c890a1faa131618b10f09e2000c7",
+        "sha256": "cccb6f1f572ad688addae47bab28ae24abcf30f77decfe854c6141a0e1c8a827"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/fuzz/helpers.ts",
+        "gitBlob": "446a0140d496fb3c4b5e6dbd51b806a6a5c2d649",
+        "sha256": "4ed0e720a0b016bdec9b14c7943416a2a9930dbb292140efb79047c7e106c6a9"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/fuzz/properties.test.ts",
+        "gitBlob": "803b2f14eb697cda76f5c5334e1f373f623f70ff",
+        "sha256": "1154e94b75c49840a75aceff5fc3368d723a8d4360076c54773aae61dfee7718"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/fuzz/regressions.test.ts",
+        "gitBlob": "3ec16cbc4e9714bbd2954776854ea410c8211d12",
+        "sha256": "7abfda1dcb71881bae057dbab8cdd58baff84b71b85a13c7dc878a96acc47a35"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/fuzz/report.json",
+        "gitBlob": "211b04118d871e5a6d20d7f9ed2d87e8dc91462b",
+        "sha256": "1d55126c087c620682c41f2e6af24a82b467a8459f5e7bf18e231648ae29c023"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/fuzz/run.mjs",
+        "gitBlob": "b070c3dbb8f439b08e90c6b26c884e0d90a58952",
+        "sha256": "caa36fc9bf82b8c31b7f063e987806742cbbdf4f3e54059f16da9094d3c9d516"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/parser-regressions/README.md",
+        "gitBlob": "0a2b073a785360a03fe19703fb16db21503dd088",
+        "sha256": "ff7894c3e3f7574765789cba8821376a45ee8c4726497e5bd59d7c84d8c5d69e"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/parser-regressions/evidence-2026-08-26T20-51-07-530Z-validation.json",
+        "gitBlob": "a2418337b1385da72dab0d1bfbde6673340dd2ae",
+        "sha256": "edef51902ede261f3812ac7186f57d61d74a4151ca4d6c897b37fdc7907aaf9a"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/parser-regressions/evidence-2026-08-26T20-51-07-530Z.json",
+        "gitBlob": "56b4fc951756947588c4b3fdd2217d3ef64fb6fc",
+        "sha256": "0d3b50f4602c07d506a06db6a0f3b01f4bea8c3b38156c65ee00d3e33065651a"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/parser-regressions/evidence-2026-08-26T20-51-07-530Z.tap",
+        "gitBlob": "8fa85054043e11c1cc5a640398f60d8811ec2b6f",
+        "sha256": "057a2a5304e8998f3028e4da096af929153ed725df99b97fd0187c03d4d4bae5"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/parser-regressions/evidence-2026-08-26T20-53-08-818Z-validation.json",
+        "gitBlob": "28081d40aa258f805789dc62cbcc7af764a8100a",
+        "sha256": "3e3ac51f38aa90bf8754a541f5728d564d10057c2deb557380379483c4eeb4b7"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/parser-regressions/evidence-2026-08-26T20-53-08-818Z.json",
+        "gitBlob": "a557230dee5278edf3c722f5c427eb12a412c815",
+        "sha256": "e7719e054bcd717c8ffbd550d25e3661ac0ce47c15c6eec35777a45bea356440"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/parser-regressions/evidence-2026-08-26T20-53-08-818Z.tap",
+        "gitBlob": "bf03f3140f14b6eb322156fdb5beed2e742b3f2a",
+        "sha256": "02ffa25315203eb7a9c26c539fbffa253f1cbe8d3220df073a7dd8d8d4a47a1b"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/parser-regressions/evidence-2026-08-26T20-54-00-971Z-validation.json",
+        "gitBlob": "3460bed9be16babcac2e1950769db5a799ffd705",
+        "sha256": "5367353a2768ba41c354ce09b21d3c2e6827e695191d6e3dc643b231f5c9f5e0"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/parser-regressions/evidence-2026-08-26T20-54-00-971Z.json",
+        "gitBlob": "a976d85fcfdfbd2d21da27c2563129307ba183d8",
+        "sha256": "70bbf56a0672c54e64d81e180d453e63aae738c9eea89f00715261bc555b3021"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/parser-regressions/evidence-2026-08-26T20-54-00-971Z.tap",
+        "gitBlob": "864691ad6b115c7bbfc1e7ec39e5e21441f39f0b",
+        "sha256": "28993cf61559cca5d59af9e4527a6c71e0f9f47e637161f834282de808135aef"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/parser-regressions/fixtures.ts",
+        "gitBlob": "0288cfda668d8d326352be4bb15bd0405a1d4e9d",
+        "sha256": "8490ce10fbf3ae0ab07c27f5c6707b68ea521b68665453d23782cf373e7cac1d"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/parser-regressions/helpers.ts",
+        "gitBlob": "5869a50bc1aef17e542e8c124cfe8bdd39e54f6d",
+        "sha256": "15fd956c3e1172c09e6efd2d167e5ff82529b9af8db5e15c938d058ce9082778"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/parser-regressions/parser.test.ts",
+        "gitBlob": "9d4c76072ffaca66e224bf5139cc5454d74dc652",
+        "sha256": "9325de45d7d65ebbc15bb6fd509f835e162a6e2004b2130cea5f5ed89d95bf2b"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/parser-regressions/run.mjs",
+        "gitBlob": "603b3f71edaffe8e79e23b0d48c05243fc7396ff",
+        "sha256": "395dc4c17f57d995b79c50ab3bc9d51e7268fa61b5fe4dff157c097cec638e32"
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/parser-regressions/tsconfig.json",
+        "gitBlob": "0ce7dc81089e5d671ab3ea21565a4142e1956fc2",
+        "sha256": "9f603a6399351b4416e13f03b8a0401be61e99df4aba0a569f60a14faf2e6b88"
+      },
+      {
+        "path": "tsconfig.build.json",
+        "gitBlob": "89e6b5617b949858c6e90953b561b38089c78dd7",
+        "sha256": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e"
+      },
+      {
+        "path": "tsconfig.json",
+        "gitBlob": "a3a52ec6bfd9a01e756c7ef3ad26e7839072318b",
+        "sha256": "21c3c30b8995b180e079fa8516150f889950d648528de116a32f254f892301cd"
+      }
+    ],
+    "source": [
+      {
+        "path": "src/commands/README.md",
+        "gitBlob": "72d9597a55bebbbc8595d131e3d4a9d923a84406",
+        "sha256": "c541ca716302f6e59c2252ae2a0fcf6d999e93de9d187cc604a7f621e9ca0221"
+      },
+      {
+        "path": "src/commands/basic.ts",
+        "gitBlob": "4180a22e83a6246287b5a2d169cfbf039f6e4b37",
+        "sha256": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f"
+      },
+      {
+        "path": "src/commands/bytes/README.md",
+        "gitBlob": "cbede7ef862305eb4b6141066b75487e2c3a02d5",
+        "sha256": "517a12a32591ea36e4d65954cd72f6f446b231414658249f115877b40b7e5053"
+      },
+      {
+        "path": "src/commands/bytes/checksums/README.md",
+        "gitBlob": "2619a19c2ac614e2fd56d2ebf6900241957e42a2",
+        "sha256": "f1fac999a988b48789368cf46105ef268d432a08fbc4be8f137a7eed90bb218d"
+      },
+      {
+        "path": "src/commands/bytes/checksums/index.ts",
+        "gitBlob": "aecf4f0b771b3024495aaf5c7adc479ac9c58501",
+        "sha256": "8aa42545dd80cc028bce529b0719b0af51d11bef5d7117d37ed2e773097834f4"
+      },
+      {
+        "path": "src/commands/bytes/compression/README.md",
+        "gitBlob": "f524eafe82b1eea435310c2c4140dc095dc2863e",
+        "sha256": "970ab6bf5c3c9fc97582d25b508513656aa265e5352ce3be5e77bc2d041c9dc7"
+      },
+      {
+        "path": "src/commands/bytes/compression/files.ts",
+        "gitBlob": "d0351023bcf2374dd2fd7a37a8b8d6134bf66f93",
+        "sha256": "1f8d8b243f10d63ae5cccea40d1d9cfc6cb841a46bea15cc61f4a5caa70572df"
+      },
+      {
+        "path": "src/commands/bytes/compression/gunzip.ts",
+        "gitBlob": "f9f612b09588199a4f5ac8352b548505d3af41a7",
+        "sha256": "6bf534778fa82558ae36bd96412662a8e4c4e864c0a93f15b40d1148a64f835f"
+      },
+      {
+        "path": "src/commands/bytes/compression/index.ts",
+        "gitBlob": "6c2e773b5e76a45398e2ab68d0545a8793109911",
+        "sha256": "cb0de2e91261eaf255491fe5dc2e62683ef002e07cddef5827b57527eaaf88f9"
+      },
+      {
+        "path": "src/commands/bytes/compression/options.ts",
+        "gitBlob": "9d5b488692f35139be3c2dbf0480d98b9fa7732a",
+        "sha256": "3218bbcba8d3c5c113eb7f4761f81e0919e380c6f3de76b26b6a52c44ba7cd95"
+      },
+      {
+        "path": "src/commands/bytes/compression/stream.ts",
+        "gitBlob": "ad4faddb6372786fff00ea0a6f2666c46fb4827c",
+        "sha256": "573157fda5382df052ea30011ff3094ac6c838618e1272689766819777a8c9e4"
+      },
+      {
+        "path": "src/commands/bytes/encoding/README.md",
+        "gitBlob": "a92a3cb0df45e31ddb2288dd4d2b30e887d2bc56",
+        "sha256": "8b73fdf7a5ebc57fa44014a9449dcb767ba48030b29d36d5e37580cdbcdee886"
+      },
+      {
+        "path": "src/commands/bytes/encoding/base.ts",
+        "gitBlob": "e0cfec562cb54de156b7552fa202107532a42ceb",
+        "sha256": "91e4309ca4947fbf3ac0dd9d0dc9431d3d22d29fb66e46706290922c9feb134d"
+      },
+      {
+        "path": "src/commands/bytes/encoding/index.ts",
+        "gitBlob": "e0a457aa2a88f624eb412b405975ef7d902d907c",
+        "sha256": "6df6b0d7393fd2abb82b476915fc48ae333730c1e9b323a11776a3b9c2607d5f"
+      },
+      {
+        "path": "src/commands/bytes/encoding/od.ts",
+        "gitBlob": "6e711801c87fd1cd5a409cddb8817bac48837430",
+        "sha256": "dbe5312675e4ecf74d852e28ac8134be5586d8aa53d5b21a3cccc5d986213a03"
+      },
+      {
+        "path": "src/commands/bytes/encoding/shared.ts",
+        "gitBlob": "03f68f3a9b0a53745bc33c4d605cd4013b9bd0af",
+        "sha256": "8a0eb870513630296a7f28d7d6867d25aba9b785365b812d740c6d7b4da3d396"
+      },
+      {
+        "path": "src/commands/bytes/encoding/xxd.ts",
+        "gitBlob": "b09bc20594c33eef4a363b5346de110d1874c6c8",
+        "sha256": "1b78b95a9b0175e5297b988a1794310c03786df5a7aa90a4dd261e91ec765a78"
+      },
+      {
+        "path": "src/commands/bytes/index.ts",
+        "gitBlob": "7567da63d7acfc529db7dcd145ff55ed41b89b59",
+        "sha256": "70643f22b1b47c1d6422b97d76cacf95e4e6337521f6f42e0f5f559bacbed84f"
+      },
+      {
+        "path": "src/commands/diff-patch/GNU-DIFF.md",
+        "gitBlob": "e7079f5e49856057c1410aad6e470ece08368389",
+        "sha256": "e0e1f1f8e27bc68c991dee2a9e80a230896a6140fa4408e9b7379713dc8b81cb"
+      },
+      {
+        "path": "src/commands/diff-patch/GNU-PATCH.md",
+        "gitBlob": "bc17c31c648a88c7b14580362d107257eda22bc3",
+        "sha256": "3b6a4a17788f8ab3a42b22c5bcd384fc481facddaad913fd20a1bc71988fc207"
+      },
+      {
+        "path": "src/commands/diff-patch/PARSER.md",
+        "gitBlob": "4072ab11d446fce1e853a4659b43c5130c062bd9",
+        "sha256": "5d92f96bb67fdf4a284f6e2e7c802eeeb99d86cf0e4e71fb793c2f5405d66fa6"
+      },
+      {
+        "path": "src/commands/diff-patch/README.md",
+        "gitBlob": "50524bfef83aee263ec9b46a0eac6b6654b73b5e",
+        "sha256": "e06573d8cae3778acf8568abb342d616fb2d12e0e3a65845725090eb45c6a1a2"
+      },
+      {
+        "path": "src/commands/diff-patch/diff-format.ts",
+        "gitBlob": "ff3fd370362301cccd39322b643deb99b314b0fd",
+        "sha256": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24"
+      },
+      {
+        "path": "src/commands/diff-patch/diff.ts",
+        "gitBlob": "3df080754f641b8119f5e920022632aa00344409",
+        "sha256": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e"
+      },
+      {
+        "path": "src/commands/diff-patch/index.ts",
+        "gitBlob": "d7bc0c3c474ff420a0b8b431aaf3ed5764935512",
+        "sha256": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17"
+      },
+      {
+        "path": "src/commands/diff-patch/patch-envelope.ts",
+        "gitBlob": "fa5745894d0a060fef9ff1edb511c9079f7f47a7",
+        "sha256": "f6a15e78d7cea41d503f5352206efeb9fa950871c820af730cf27ea06ade99e8"
+      },
+      {
+        "path": "src/commands/diff-patch/patch-formats.ts",
+        "gitBlob": "454e9a55b7bf5f7eb029145cc31a6bda3a3dfb14",
+        "sha256": "a78045ac43900582bdb19f0476414e8566c4e1e2edc86b654bc760cf86de3aa4"
+      },
+      {
+        "path": "src/commands/diff-patch/patch-gnu-paths.ts",
+        "gitBlob": "37c50c080d6a5abff8d6165435ab0ab6b3f65292",
+        "sha256": "688b9fa1950cda3560abc4fcdd3b81dd383f683c3c378b8a191de9b58732025e"
+      },
+      {
+        "path": "src/commands/diff-patch/patch-gnu-reject.ts",
+        "gitBlob": "9513aa990e9845c0c5fccebae3807d82c1d83c9a",
+        "sha256": "5df12efd994c0187998f0112a5fac595f376142f2cd187a5e0b40738f7b6cf02"
+      },
+      {
+        "path": "src/commands/diff-patch/patch-path.ts",
+        "gitBlob": "418cba549e068658f587927bfc41430880656fcb",
+        "sha256": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94"
+      },
+      {
+        "path": "src/commands/diff-patch/patch.ts",
+        "gitBlob": "82ab67ce9dea426dfa012d1809c1305ba13459b6",
+        "sha256": "b344c6f7b0f6afaccdab75778a12c11c868d7f8bccd5d453c56e552039e619fe"
+      },
+      {
+        "path": "src/commands/diff-patch/shared.ts",
+        "gitBlob": "99d12adf757d03e779d180a1d027735bed88a6cb",
+        "sha256": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e"
+      },
+      {
+        "path": "src/commands/diff-patch/unified.ts",
+        "gitBlob": "981d2a227213ebece0a52d1ee52d33bb13480ae0",
+        "sha256": "a8659f40aeb9d1cac3548ffd24950e652eeace92cef1339de9e3a5e5ed7e10fb"
+      },
+      {
+        "path": "src/commands/execution.ts",
+        "gitBlob": "cd390a077cc4f67fa89852aec29aa06543499341",
+        "sha256": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de"
+      },
+      {
+        "path": "src/commands/filesystem.ts",
+        "gitBlob": "e58b1ef244ff1957e8525d59a66a761dfef47dff",
+        "sha256": "0d737f4527d8c4d584021c8cf1d4bf6ebdb893cdc92d9d764424938c2bb1fbdc"
+      },
+      {
+        "path": "src/commands/find.ts",
+        "gitBlob": "cc1854873f02be5a6ede00fa78283f3b80f647ee",
+        "sha256": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2"
+      },
+      {
+        "path": "src/commands/grep.ts",
+        "gitBlob": "c02bf09d02abfdbc61326d7fe0b26b9743011243",
+        "sha256": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d"
+      },
+      {
+        "path": "src/commands/index.ts",
+        "gitBlob": "f6b22a1443c1f608bc484d31188d83d448bdba41",
+        "sha256": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2"
+      },
+      {
+        "path": "src/commands/internal.ts",
+        "gitBlob": "6a72e6dd53e07d427bed3d40f760c42649fe1587",
+        "sha256": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5"
+      },
+      {
+        "path": "src/commands/predicates.ts",
+        "gitBlob": "4a7ce27295d6347a26bd9edf4c0d2769afec0297",
+        "sha256": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347"
+      },
+      {
+        "path": "src/commands/safejs/README.md",
+        "gitBlob": "9d14f6dec5dd14e1e638f3f0c41441f8ce07b9ea",
+        "sha256": "7c182e72770fd7c4a9e98624c04d4e09770c3f8bc9d42a55890019f7fedc405c"
+      },
+      {
+        "path": "src/commands/safejs/index.ts",
+        "gitBlob": "686228f5c98e4f3fb95525770b743bd496cead36",
+        "sha256": "479c111291e2e181b3ab1a8a41905592ff71b968a691e25f21970eee089d8f29"
+      },
+      {
+        "path": "src/commands/safejs/io.ts",
+        "gitBlob": "99df4659cdb585be82b177e4e40ea3102ea1b87c",
+        "sha256": "ef366f40b1d1d161ec0f2c18f1138daf75693ab416274bb92763ebf73899f2f1"
+      },
+      {
+        "path": "src/commands/safejs/options.ts",
+        "gitBlob": "d632015ceab0146605d271d6ea0b5557a26aea29",
+        "sha256": "4009050c3a75daececeb2e75af46be8872d21a83c7a8132b6221b0b4d87c7a43"
+      },
+      {
+        "path": "src/commands/safejs/render.ts",
+        "gitBlob": "1d8d9a59f4481881c6ad938859c0a64bee0f8ff0",
+        "sha256": "10eabbdc8d3c1f2e7c40aeafd51b15484ece05de844fcb73f2ef1aed01fe5d6e"
+      },
+      {
+        "path": "src/commands/safejs/types.ts",
+        "gitBlob": "99b00cbf92e062838ae253ff6f8649ff4b34985b",
+        "sha256": "edd5f7cf2ed473ca33105cfe1039c3fb36ae913112d0564ea3d9b163b3c08bf4"
+      },
+      {
+        "path": "src/commands/search/README.md",
+        "gitBlob": "379c81c50f45dbd9a33a46ab51b342644348393d",
+        "sha256": "99385bcf106ecbe66185c285cc10626a487f748b8dc14562e7d47451aa9bca72"
+      },
+      {
+        "path": "src/commands/search/glob.ts",
+        "gitBlob": "d546a687f9e3cafeecc2eb6da0efa14b58fa36c0",
+        "sha256": "d6fc574fbfde82b459426875801a36aaaf5ec9536ce25d1f5876215396094425"
+      },
+      {
+        "path": "src/commands/search/index.ts",
+        "gitBlob": "8d94d01e37eb91c4ef97da40775ccc097b2d44f5",
+        "sha256": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf"
+      },
+      {
+        "path": "src/commands/search/matcher.ts",
+        "gitBlob": "9b336abcc81a58237f841262716f802a072c0f22",
+        "sha256": "499848186cde72bd696cba1fc7d53af39354ba74ea63c42acd92d5eb1cda1cfb"
+      },
+      {
+        "path": "src/commands/search/options.ts",
+        "gitBlob": "f5c999a385bf3233cbcb65bcf79fc7e4a7d43802",
+        "sha256": "828d97d930dc615089a29efd3fe463293d4f61bf4dd33c81c2ceb6b910eb6ef8"
+      },
+      {
+        "path": "src/commands/search/output.ts",
+        "gitBlob": "97d266abe7aa2a93388dc9b24f989b2fd0865b10",
+        "sha256": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1"
+      },
+      {
+        "path": "src/commands/search/rg.ts",
+        "gitBlob": "29c065b11c21b524abbd0304df28bf405295f02e",
+        "sha256": "c677f831e8e9dcc5051713d894d277ffa9646d2de358c1970b2dd0a9dfb44417"
+      },
+      {
+        "path": "src/commands/search/shared.ts",
+        "gitBlob": "dd0c714274531b91c9196ff96d35b9e264e1189b",
+        "sha256": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724"
+      },
+      {
+        "path": "src/commands/search/walk.ts",
+        "gitBlob": "9c838aa4ba844d46c3715a0fc92b577e57d85760",
+        "sha256": "474b87aa10e7daf0506edd7408d3a1b48c2bf7e644e8f585f1f5930bb658686a"
+      },
+      {
+        "path": "src/commands/streams.ts",
+        "gitBlob": "14c0d3a74099eea23b3d5e4a4fac377ed50ab77c",
+        "sha256": "0b49e7f14ae8a399fcbea5454c48e930f047472f8631c2d5fe3ca385d14437d5"
+      },
+      {
+        "path": "src/commands/structured/README.md",
+        "gitBlob": "2c4da2dc8a3b2a2c67719cf8c6e0e3bb488b268f",
+        "sha256": "5fecf1186d9004e378d77a1e9ad297af94b4f4f9070d9b620d70cd179a7e1b00"
+      },
+      {
+        "path": "src/commands/structured/index.ts",
+        "gitBlob": "f2a68de1dd392442cafe407923f7eb336a4c58c5",
+        "sha256": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415"
+      },
+      {
+        "path": "src/commands/structured/input.ts",
+        "gitBlob": "a6e7e27aa1699d112734d688994ac224cfde5c9a",
+        "sha256": "6469818c00b516a1e041f797b1ea788064db48bc091e323958de7bebaa3b0161"
+      },
+      {
+        "path": "src/commands/structured/interpreter.ts",
+        "gitBlob": "c8e8697cf1a21407d06385678dce36d1d5c44c75",
+        "sha256": "e1fcea692d0775700408e42bbf5f27b527db3d5435e604bf329ebf9d71047b6a"
+      },
+      {
+        "path": "src/commands/structured/jq.ts",
+        "gitBlob": "80e054cdf8dd460f5dc4413750c71e45af3059e2",
+        "sha256": "05605084518711302c70721a9c7e8a9f3ce45bb0f157809cdc8024add6dfbd38"
+      },
+      {
+        "path": "src/commands/structured/limits.ts",
+        "gitBlob": "6091dc338b459cf00e662fcc9bed816a3351de56",
+        "sha256": "d0d8dabc84e9397edda5e93b93ab213b68d457b34f440be906833ca4986d6039"
+      },
+      {
+        "path": "src/commands/structured/numbers.ts",
+        "gitBlob": "fb62745e88aa9183ee04e69784ed8b808c86c337",
+        "sha256": "f2f18b3f201b22f560b9022304235ca26084319ca103a954f1aabb5f0f74be7d"
+      },
+      {
+        "path": "src/commands/structured/parser.ts",
+        "gitBlob": "c14797031dcd01495d42c8e33145babe0aba4e35",
+        "sha256": "4eae60e37c295ef2ef81bddd3778c57153acd5cccccf3d378be854ec6788426a"
+      },
+      {
+        "path": "src/commands/structured/split.ts",
+        "gitBlob": "e2d7bb6635e60e0a479399e97ca8ede386b67dc1",
+        "sha256": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6"
+      },
+      {
+        "path": "src/commands/structured/values.ts",
+        "gitBlob": "8f2617efd9830db9aec3dbda1f1a0ac10a4d7bde",
+        "sha256": "c2dfbab20d72c3f05c80c0efb12f5c3b2739dfffb0ea851bbe3c603010c7a164"
+      },
+      {
+        "path": "src/commands/text-programs/README.md",
+        "gitBlob": "548a18b852918e207708da604bfddcb1186fc9d8",
+        "sha256": "b39d89bf294fecc3da6d9ecff88aa07e8d7b0d12e0471d3c7974538907d1552a"
+      },
+      {
+        "path": "src/commands/text-programs/awk-runtime.ts",
+        "gitBlob": "8ec5cc780d46438c80ad2410cd1fa8dbb149f842",
+        "sha256": "30821e08780042b3382ceedb4b133a89475938a1212ed607782e2d0e592bd35e"
+      },
+      {
+        "path": "src/commands/text-programs/awk-syntax.ts",
+        "gitBlob": "46a9936adbbcc15a5228f5606814e4740687537c",
+        "sha256": "179754bbb74643f57f8e19b0a87c43a8793130aa4b4f8d07a4cc14cae871d4d7"
+      },
+      {
+        "path": "src/commands/text-programs/awk-values.ts",
+        "gitBlob": "0dd4f1b5193ab9548eb78a2199582730033a0f11",
+        "sha256": "6824c5348221d98f9d94c058bbe119eaa6aa1e7ca7775af8d460f358436c2d7c"
+      },
+      {
+        "path": "src/commands/text-programs/awk.ts",
+        "gitBlob": "6dbd8bc5125a821de27a70541a8590efeee56243",
+        "sha256": "af422696809543efb470ae219774e32819124035d51a756d5761f41fa4607dc3"
+      },
+      {
+        "path": "src/commands/text-programs/index.ts",
+        "gitBlob": "ffd06b0422a62d76d3d15c6a65ec2cc2805fe3fb",
+        "sha256": "6df5a7c5c242e71e18d8a15ea87d1c6c5bcd90aa57edb529af64e147135ea9e2"
+      },
+      {
+        "path": "src/commands/text-programs/regex.ts",
+        "gitBlob": "1cf3c49b631cf046ec0abdcf9879d162334c80e6",
+        "sha256": "23df19386627659c3a5175562a2f8eeda873b81e3dc3e78d3cf51aafa7b3b06f"
+      },
+      {
+        "path": "src/commands/text-programs/sed.ts",
+        "gitBlob": "9be29dd04a0c93934805fb27a76dbaee1e185e9a",
+        "sha256": "38fceb4869a0db8197a050de3430d5b9c5017e1606a4348d17d8004745c645a9"
+      },
+      {
+        "path": "src/commands/text-programs/shared.ts",
+        "gitBlob": "2eff6d5d3f142a6f10be7a081c0f4ac4b4a4d9e5",
+        "sha256": "fec28a956be858e725811f9e83a7f325d99d3152da0231af0d619847e8e6206e"
+      },
+      {
+        "path": "src/commands/text.ts",
+        "gitBlob": "a44fa11cc70372c3341ab3c7e7c9e6e7be832513",
+        "sha256": "d9411fd868ad8ef04749937024c0f0ff77267c5db5a2cece1f0cdf80c9b48490"
+      },
+      {
+        "path": "src/contracts/command.ts",
+        "gitBlob": "3d112e1b9a7fc38c434e57ea087eecf1412cdd4b",
+        "sha256": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd"
+      },
+      {
+        "path": "src/contracts/errors.ts",
+        "gitBlob": "d466866ce93c4feced56e2bd5fe4c41637e62226",
+        "sha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840"
+      },
+      {
+        "path": "src/contracts/filesystem.ts",
+        "gitBlob": "dbe86d5afa75c4013478b0a427654d5c086a273f",
+        "sha256": "7c63db5052a28014ac185f86e6b97d2c3ef00ce61b80638baa850a6933f57457"
+      },
+      {
+        "path": "src/contracts/index.ts",
+        "gitBlob": "778c289fc215e238a96880e9e64e04baed45e0d0",
+        "sha256": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50"
+      },
+      {
+        "path": "src/contracts/io.ts",
+        "gitBlob": "738e6bb2e1055d6e575f6b342b75ed3053710f70",
+        "sha256": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb"
+      },
+      {
+        "path": "src/contracts/path.ts",
+        "gitBlob": "4cbf95a4baa405a6fc5438c23511a9059b977201",
+        "sha256": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34"
+      },
+      {
+        "path": "src/contracts/plugin.ts",
+        "gitBlob": "69b685ebbf6cfb7d1068c419b7e4109e4f9179d4",
+        "sha256": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae"
+      },
+      {
+        "path": "src/fs/memory/index.ts",
+        "gitBlob": "7ea57b45de874d2a98f32a8851aaa98a3b2865aa",
+        "sha256": "21d4a366e3840d0d3c9e67b8a433cc0be341f7350b075fd6668aa4ad9a32d3fd"
+      },
+      {
+        "path": "src/fs/mount/README.md",
+        "gitBlob": "9f89f9668d7b998b727eec84283a666246fa73ab",
+        "sha256": "daa3c8f88bb48fed07353e024baedfef27ea9756185fca8f519565b2bea63164"
+      },
+      {
+        "path": "src/fs/mount/index.ts",
+        "gitBlob": "c19d8e25231c03b278c27a8c33872ef63d49eafc",
+        "sha256": "539f22e42f7505aaa20fa643ebeecf1a5b7a1e21f1fb2596fbd7e8fa2d7ae5e0"
+      },
+      {
+        "path": "src/fs/overlay/README.md",
+        "gitBlob": "fbb485523a53cf32c5762c08d718839558064172",
+        "sha256": "94fd398658d58d1ce203a8e69d84581967a091125a23f433f177cc6190472610"
+      },
+      {
+        "path": "src/fs/overlay/index.ts",
+        "gitBlob": "5e90204bfa11d2943ad2afcdaf3a20ca5bae9562",
+        "sha256": "2b91569d7f35380722cc3b9c8c15ba36e8e036ed9534632e7715d945288135f4"
+      },
+      {
+        "path": "src/fs/readonly/README.md",
+        "gitBlob": "20cec244e5b2344ac39d667dee2fe2b7ffe5f6e4",
+        "sha256": "27f1f095cdd39665d87bd0d6302c467710c5334c36489894f85d581a758a06b7"
+      },
+      {
+        "path": "src/fs/readonly/index.ts",
+        "gitBlob": "31c931f2374db803b6c82f8bcb3131bc6c328510",
+        "sha256": "5caf8deac8569444eb6e3e922f063b2ca4577d472329eacb3ec58ee501393dbc"
+      },
+      {
+        "path": "src/fs/real/index.ts",
+        "gitBlob": "7679350011cb547a60122fba2607659dd50239c9",
+        "sha256": "4977b7780b067cdd16bd8c128982758cd3401d2f72864f786981d2c315b74f82"
+      },
+      {
+        "path": "src/fs/s3/README.md",
+        "gitBlob": "ba4212b6ab2c56a6500470fc4165a1acd0783095",
+        "sha256": "e1ce290a69282e12a1ab293d18e190e405dcc98229dda7f5291d564b01646cb4"
+      },
+      {
+        "path": "src/fs/s3/filesystem.ts",
+        "gitBlob": "b31908bf5e94baccc0ac5437d2ac50bfcf917b0a",
+        "sha256": "4fa05c3868c16ac9c2c309f760b46aa0fc9f211674a5dc3b179992f3e9eaf34f"
+      },
+      {
+        "path": "src/fs/s3/index.ts",
+        "gitBlob": "4556d401259e31aff76d4cf871279f4462fc3136",
+        "sha256": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49"
+      },
+      {
+        "path": "src/fs/s3/mock.ts",
+        "gitBlob": "a5a63a1d87ebb2579139437f3992fe9bdbb9b312",
+        "sha256": "d2356f3917fed36524bf1d944b67af70e3f19b0956064b306e8680b974bf8b6d"
+      },
+      {
+        "path": "src/fs/s3/transport.ts",
+        "gitBlob": "35a9d63441e80fafa2644528b4941fa5f0ee1eb1",
+        "sha256": "df60945a4cd9e9416fe0fdd054460c16bab058d81831ce6526b9a88a0e150d8e"
+      },
+      {
+        "path": "src/fs/webdav/PRODUCTION_CHECKPOINT.md",
+        "gitBlob": "f17ff92101b5d62c79bd7cf55f082ad7f962eb0a",
+        "sha256": "ee00578d845be249d82cef70c999df1c92e30d1c5498d2da3a8e3191d5e1f6f2"
+      },
+      {
+        "path": "src/fs/webdav/README.md",
+        "gitBlob": "eb8bc580aa320a93080bd560d2388682dfd6daef",
+        "sha256": "7c957ec51b452f6725089cfcf2d3dcab4525a3caffa396a3a9d4ff5658f1786d"
+      },
+      {
+        "path": "src/fs/webdav/index.ts",
+        "gitBlob": "24e4c340865d3500ce42d1b129c1edb39a6b19b6",
+        "sha256": "9a19fb0e61bf9ef07d97881bb93e30ba21491e580ef5e58ab0e80bb5f398d5e4"
+      },
+      {
+        "path": "src/fs/webdav/webdav.ts",
+        "gitBlob": "c4555573c49c404670b1688958bdabcf06083197",
+        "sha256": "e63f010b99184df94c44f49fcbd52e84cc0d3137821637d030dee9651f60dd16"
+      },
+      {
+        "path": "src/fs/webdav/xml.ts",
+        "gitBlob": "53843cb7cb8b82664cf7a146e33228b53fd86833",
+        "sha256": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1"
+      },
+      {
+        "path": "src/index.ts",
+        "gitBlob": "3e3b4abbaadbe117f38b269708db311fa6860dd9",
+        "sha256": "f56f0757351fe35d189b22c45f8b8f0872e3e4bb7b73361ab215aca2f0ece07f"
+      },
+      {
+        "path": "src/integrations/safejs/filesystem.ts",
+        "gitBlob": "a1593368ebe58df7695bf6010e192bbbce9e9da6",
+        "sha256": "c9ab864768e430bbfbea7590071646985c6374634124f62516ec09c13d9af578"
+      },
+      {
+        "path": "src/integrations/safejs/index.ts",
+        "gitBlob": "52bb84f334e2749334f9eaadce17abe3344884ff",
+        "sha256": "b0866c13456991f05f30dd23cabcf895d92b8af89985eb88172ac3d76b3b8384"
+      },
+      {
+        "path": "src/integrations/safejs/shell.ts",
+        "gitBlob": "2d1b1bdf717670ad6652ca0742ab8f4ed58bf00d",
+        "sha256": "5cb3e55c5e62adb540b41ac7ce39e8458a3a25ffb8422e6164419c1d22ef15da"
+      },
+      {
+        "path": "src/integrations/safejs/stats.ts",
+        "gitBlob": "43769836bd8f8d611cebd031f3cc7d749b988a0f",
+        "sha256": "94bb724a7281296e08ac4465979e0f9cac585e28f91fc79382650a3c60ea4824"
+      },
+      {
+        "path": "src/integrations/safejs/values.ts",
+        "gitBlob": "d326d0a41a7145bae4f6f12d3774522c9c500d76",
+        "sha256": "91ac3025b6420a7a908736f1d746077f27c9f045f6be22d82a37f4a07ff9111a"
+      },
+      {
+        "path": "src/plugins/index.ts",
+        "gitBlob": "009a9c9ef4da508cbf104dccd7b7df1a4903852d",
+        "sha256": "675b297afd45bf4257cb891486d6db615aaebc0b8fbda61358de573322aa3f36"
+      },
+      {
+        "path": "src/shell/arithmetic.ts",
+        "gitBlob": "223101946d13ac9b44f4a898f58fd16004ba86b9",
+        "sha256": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd"
+      },
+      {
+        "path": "src/shell/index.ts",
+        "gitBlob": "0110bd9d5c0388dc6fe15abc27f27a18dd7a6b38",
+        "sha256": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383"
+      },
+      {
+        "path": "src/shell/input.ts",
+        "gitBlob": "876a6e4bf6675deee897456b5719f76ced9d50d6",
+        "sha256": "c7492bb41555d865a0dcda9e3c7e8b2b3f5c5a1e73dc6e1bdb9b3fe6e7ed9a6d"
+      },
+      {
+        "path": "src/shell/locale.ts",
+        "gitBlob": "5a2cda6417f2f28af38b33f2d32a56271c0f5a58",
+        "sha256": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2"
+      },
+      {
+        "path": "src/shell/parser.ts",
+        "gitBlob": "9ef32debb312ef1c123f0f09cb8cdad934765b8d",
+        "sha256": "73749cb5af6b6affe91014153aa4a6358bc8441807e8ad47fe09f74927c8c7b0"
+      },
+      {
+        "path": "src/shell/pattern.ts",
+        "gitBlob": "be8739ee6b6c9e9323c559aff15f2dd27ce8271c",
+        "sha256": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a"
+      },
+      {
+        "path": "src/shell/runtime.ts",
+        "gitBlob": "a2ed7db20467edcb08b2c2244f7d11b5e4387baf",
+        "sha256": "a5c71a123e3e2d1a3735e09fa2bfca9ce5c6a3def09ca300356bcd95fa273d96"
+      },
+      {
+        "path": "src/shell/shell.ts",
+        "gitBlob": "baaacc3f3b937587de03f7b6557d21e2c16f3d41",
+        "sha256": "ea1ae9136b6b5d2062a69c4307d6e31b6d4aada3947418c0e3dad66b13fcd127"
+      },
+      {
+        "path": "src/shell/types.ts",
+        "gitBlob": "8f7c766d5dd2d6b3ded4dedd3385b2bd2380cca4",
+        "sha256": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874"
+      }
+    ]
+  },
+  "runs": [
+    {
+      "suite": "compatibility",
+      "cwd": "/tmp/safe-bash-original-thirty-replay-0zooF0/snapshot",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "originalArgs": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/commands/diff-patch-stress/compatibility/diff.test.ts",
+        "tests/commands/diff-patch-stress/compatibility/gaps.test.ts",
+        "tests/commands/diff-patch-stress/compatibility/oracle.test.ts",
+        "tests/commands/diff-patch-stress/compatibility/patch.test.ts",
+        "tests/commands/diff-patch-stress/compatibility/shell.test.ts"
+      ],
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-name-pattern=^(?:golden diff flags: short explicit context then short format|native diff flags: short explicit context then short format|golden diff flags: short explicit context then long format|native diff flags: short explicit context then long format|golden diff flags: long explicit context then grouped format|native diff flags: long explicit context then grouped format|golden diff flags: format then explicit context control|native diff flags: format then explicit context control|Shell\\+Memory repeated format options retain GNU maximum context)$",
+        "tests/commands/diff-patch-stress/compatibility/diff.test.ts",
+        "tests/commands/diff-patch-stress/compatibility/gaps.test.ts",
+        "tests/commands/diff-patch-stress/compatibility/oracle.test.ts",
+        "tests/commands/diff-patch-stress/compatibility/patch.test.ts",
+        "tests/commands/diff-patch-stress/compatibility/shell.test.ts"
+      ],
+      "status": 0,
+      "durationMs": 371,
+      "selected": 9,
+      "harnessSkips": 0,
+      "emptyFileHarnessPasses": 3,
+      "summary": [
+        "# tests 12",
+        "# pass 12",
+        "# fail 0",
+        "# cancelled 0",
+        "# skipped 0",
+        "# todo 0",
+        "# duration_ms 336.319334"
+      ],
+      "logs": [
+        {
+          "path": "/tmp/safe-bash-original-thirty-replay-0zooF0/compatibility.stdout",
+          "sha256": "7e2ad642f7571832a158e9bed8e23d8fca56a889e00eb3d562f6f06f79946021"
+        },
+        {
+          "path": "/tmp/safe-bash-original-thirty-replay-0zooF0/compatibility.stderr",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    },
+    {
+      "suite": "fuzz",
+      "cwd": "/tmp/safe-bash-original-thirty-replay-0zooF0/snapshot",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "originalArgs": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/commands/diff-patch-stress/fuzz/budgets.test.ts",
+        "tests/commands/diff-patch-stress/fuzz/edits.test.ts",
+        "tests/commands/diff-patch-stress/fuzz/properties.test.ts",
+        "tests/commands/diff-patch-stress/fuzz/regressions.test.ts"
+      ],
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-name-pattern=^(?:GAP-01 raw selected-oracle Apple-range compatibility reverse|GNU boundary anchoring: asymmetric non-EOF rejection)$",
+        "tests/commands/diff-patch-stress/fuzz/budgets.test.ts",
+        "tests/commands/diff-patch-stress/fuzz/edits.test.ts",
+        "tests/commands/diff-patch-stress/fuzz/properties.test.ts",
+        "tests/commands/diff-patch-stress/fuzz/regressions.test.ts"
+      ],
+      "status": 0,
+      "durationMs": 261,
+      "selected": 2,
+      "harnessSkips": 0,
+      "emptyFileHarnessPasses": 3,
+      "summary": [
+        "# tests 5",
+        "# pass 5",
+        "# fail 0",
+        "# cancelled 0",
+        "# skipped 0",
+        "# todo 0",
+        "# duration_ms 220.458708"
+      ],
+      "logs": [
+        {
+          "path": "/tmp/safe-bash-original-thirty-replay-0zooF0/fuzz.stdout",
+          "sha256": "ff3c5f30c324df06528d3d97bef15ec9b4d75f88fd2d883854891bfdfe8872db"
+        },
+        {
+          "path": "/tmp/safe-bash-original-thirty-replay-0zooF0/fuzz.stderr",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    },
+    {
+      "suite": "formats",
+      "cwd": "/tmp/safe-bash-original-thirty-replay-0zooF0/snapshot",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "originalArgs": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "tests/commands/diff-patch-stress/formats/boundaries.test.ts",
+        "tests/commands/diff-patch-stress/formats/editflows.test.ts",
+        "tests/commands/diff-patch-stress/formats/regressions.test.ts",
+        "tests/commands/diff-patch-stress/formats/whitespace.test.ts"
+      ],
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "--test-name-pattern=^(?:option interactions -C0 -c/labels=false|option interactions -C0 -c/labels=true|native-native control context/delete-3/C0|independent formatter context/delete-3/C0|native-native control context/delete-7/C0|independent formatter context/delete-7/C0|native-native control context/delete-11/C0|independent formatter context/delete-11/C0|native-native control context/repeated-alignment-0/C0|native-native control context/repeated-alignment-7/C0|independent formatter context/repeated-alignment-7/C0|native-native control context/repeated-alignment-11/C0|independent formatter context/repeated-alignment-11/C0|GNU selector regression: -C0 followed by -c resets to three lines)$",
+        "tests/commands/diff-patch-stress/formats/boundaries.test.ts",
+        "tests/commands/diff-patch-stress/formats/editflows.test.ts",
+        "tests/commands/diff-patch-stress/formats/regressions.test.ts",
+        "tests/commands/diff-patch-stress/formats/whitespace.test.ts"
+      ],
+      "status": 1,
+      "durationMs": 1080,
+      "selected": 14,
+      "harnessSkips": 0,
+      "emptyFileHarnessPasses": 1,
+      "summary": [
+        "# tests 15",
+        "# pass 4",
+        "# fail 11",
+        "# cancelled 0",
+        "# skipped 0",
+        "# todo 0",
+        "# duration_ms 1047.404875"
+      ],
+      "logs": [
+        {
+          "path": "/tmp/safe-bash-original-thirty-replay-0zooF0/formats.stdout",
+          "sha256": "45e03877249be99c7fce2763620a713fe6ee1dbb89c692f8d9da51236a7ec354"
+        },
+        {
+          "path": "/tmp/safe-bash-original-thirty-replay-0zooF0/formats.stderr",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    },
+    {
+      "suite": "parser-regressions",
+      "cwd": "/tmp/safe-bash-original-thirty-replay-0zooF0/snapshot",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "originalArgs": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "tests/commands/diff-patch-stress/parser-regressions/parser.test.ts"
+      ],
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "--test-name-pattern=^(?:normal-tab-prefix|normal-suppress-blank-empty|normal-unsafe-integer|GNU-normal-suppress-blank-empty|GNU-context-zero-middle-deletion)$",
+        "tests/commands/diff-patch-stress/parser-regressions/parser.test.ts"
+      ],
+      "status": 1,
+      "durationMs": 3231,
+      "selected": 5,
+      "harnessSkips": 0,
+      "emptyFileHarnessPasses": 0,
+      "summary": [
+        "# tests 5",
+        "# pass 0",
+        "# fail 5",
+        "# cancelled 0",
+        "# skipped 0",
+        "# todo 0",
+        "# duration_ms 3200.410792"
+      ],
+      "logs": [
+        {
+          "path": "/tmp/safe-bash-original-thirty-replay-0zooF0/parser-regressions.stdout",
+          "sha256": "5ef7f2a416b5bd5681f4af4f23ab36a22127b181478a41b5bb2ebc2c777d3bc6"
+        },
+        {
+          "path": "/tmp/safe-bash-original-thirty-replay-0zooF0/parser-regressions.stderr",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    }
+  ],
+  "outcomes": [
+    {
+      "artifact": "compatibility.stdout",
+      "ordinal": 1,
+      "name": "golden diff flags: short explicit context then short format",
+      "category": "gnu-selector-defect",
+      "suite": "compatibility",
+      "status": "pass",
+      "reason": "Original assertion passes unchanged.",
+      "rawLog": "/tmp/safe-bash-original-thirty-replay-0zooF0/compatibility.stdout"
+    },
+    {
+      "artifact": "compatibility.stdout",
+      "ordinal": 2,
+      "name": "native diff flags: short explicit context then short format",
+      "category": "gnu-selector-defect",
+      "suite": "compatibility",
+      "status": "pass",
+      "reason": "Original assertion passes unchanged.",
+      "rawLog": "/tmp/safe-bash-original-thirty-replay-0zooF0/compatibility.stdout"
+    },
+    {
+      "artifact": "compatibility.stdout",
+      "ordinal": 3,
+      "name": "golden diff flags: short explicit context then long format",
+      "category": "gnu-selector-defect",
+      "suite": "compatibility",
+      "status": "pass",
+      "reason": "Original assertion passes unchanged.",
+      "rawLog": "/tmp/safe-bash-original-thirty-replay-0zooF0/compatibility.stdout"
+    },
+    {
+      "artifact": "compatibility.stdout",
+      "ordinal": 4,
+      "name": "native diff flags: short explicit context then long format",
+      "category": "gnu-selector-defect",
+      "suite": "compatibility",
+      "status": "pass",
+      "reason": "Original assertion passes unchanged.",
+      "rawLog": "/tmp/safe-bash-original-thirty-replay-0zooF0/compatibility.stdout"
+    },
+    {
+      "artifact": "compatibility.stdout",
+      "ordinal": 5,
+      "name": "golden diff flags: long explicit context then grouped format",
+      "category": "gnu-selector-defect",
+      "suite": "compatibility",
+      "status": "pass",
+      "reason": "Original assertion passes unchanged.",
+      "rawLog": "/tmp/safe-bash-original-thirty-replay-0zooF0/compatibility.stdout"
+    },
+    {
+      "artifact": "compatibility.stdout",
+      "ordinal": 6,
+      "name": "native diff flags: long explicit context then grouped format",
+      "category": "gnu-selector-defect",
+      "suite": "compatibility",
+      "status": "pass",
+      "reason": "Original assertion passes unchanged.",
+      "rawLog": "/tmp/safe-bash-original-thirty-replay-0zooF0/compatibility.stdout"
+    },
+    {
+      "artifact": "compatibility.stdout",
+      "ordinal": 7,
+      "name": "golden diff flags: format then explicit context control",
+      "category": "gnu-selector-defect",
+      "suite": "compatibility",
+      "status": "pass",
+      "reason": "Original assertion passes unchanged.",
+      "rawLog": "/tmp/safe-bash-original-thirty-replay-0zooF0/compatibility.stdout"
+    },
+    {
+      "artifact": "compatibility.stdout",
+      "ordinal": 8,
+      "name": "native diff flags: format then explicit context control",
+      "category": "gnu-selector-defect",
+      "suite": "compatibility",
+      "status": "pass",
+      "reason": "Original assertion passes unchanged.",
+      "rawLog": "/tmp/safe-bash-original-thirty-replay-0zooF0/compatibility.stdout"
+    },
+    {
+      "artifact": "compatibility.stdout",
+      "ordinal": 110,
+      "name": "Shell+Memory repeated format options retain GNU maximum context",
+      "category": "gnu-selector-defect",
+      "suite": "compatibility",
+      "status": "pass",
+      "reason": "Original assertion passes unchanged.",
+      "rawLog": "/tmp/safe-bash-original-thirty-replay-0zooF0/compatibility.stdout"
+    },
+    {
+      "artifact": "compatibility.stdout",
+      "ordinal": 31,
+      "name": "GAP-01 raw selected-oracle Apple-range compatibility reverse",
+      "category": "gnu-patch-defect",
+      "suite": "fuzz",
+      "status": "pass",
+      "reason": "Original assertion passes unchanged.",
+      "rawLog": "/tmp/safe-bash-original-thirty-replay-0zooF0/fuzz.stdout"
+    },
+    {
+      "artifact": "compatibility.stdout",
+      "ordinal": 33,
+      "name": "GNU boundary anchoring: asymmetric non-EOF rejection",
+      "category": "gnu-patch-defect",
+      "suite": "fuzz",
+      "status": "pass",
+      "reason": "Original assertion passes unchanged.",
+      "rawLog": "/tmp/safe-bash-original-thirty-replay-0zooF0/fuzz.stdout"
+    },
+    {
+      "artifact": "formats-full.stdout",
+      "ordinal": 45,
+      "name": "option interactions -C0 -c/labels=false",
+      "category": "gnu-selector-defect",
+      "suite": "formats",
+      "status": "pass",
+      "reason": "Original assertion passes unchanged.",
+      "rawLog": "/tmp/safe-bash-original-thirty-replay-0zooF0/formats.stdout"
+    },
+    {
+      "artifact": "formats-full.stdout",
+      "ordinal": 46,
+      "name": "option interactions -C0 -c/labels=true",
+      "category": "gnu-selector-defect",
+      "suite": "formats",
+      "status": "pass",
+      "reason": "Original assertion passes unchanged.",
+      "rawLog": "/tmp/safe-bash-original-thirty-replay-0zooF0/formats.stdout"
+    },
+    {
+      "artifact": "formats-full.stdout",
+      "ordinal": 243,
+      "name": "native-native control context/delete-3/C0",
+      "category": "gnu-native-native-control",
+      "suite": "formats",
+      "status": "fail",
+      "reason": "GNU patch exit 2: replacement text or line numbers mangled in hunk at line 4; native forward expected exit 0.",
+      "rawLog": "/tmp/safe-bash-original-thirty-replay-0zooF0/formats.stdout"
+    },
+    {
+      "artifact": "formats-full.stdout",
+      "ordinal": 244,
+      "name": "independent formatter context/delete-3/C0",
+      "category": "apple-reverse-control",
+      "suite": "formats",
+      "status": "fail",
+      "reason": "ORACLE BLOCKED: Apple reverse returned incorrect original bytes; product cross-check blocked by original native gate.",
+      "rawLog": "/tmp/safe-bash-original-thirty-replay-0zooF0/formats.stdout"
+    },
+    {
+      "artifact": "formats-full.stdout",
+      "ordinal": 435,
+      "name": "native-native control context/delete-7/C0",
+      "category": "gnu-native-native-control",
+      "suite": "formats",
+      "status": "fail",
+      "reason": "GNU patch exit 2: replacement text or line numbers mangled in hunk at line 4; native forward expected exit 0.",
+      "rawLog": "/tmp/safe-bash-original-thirty-replay-0zooF0/formats.stdout"
+    },
+    {
+      "artifact": "formats-full.stdout",
+      "ordinal": 436,
+      "name": "independent formatter context/delete-7/C0",
+      "category": "apple-reverse-control",
+      "suite": "formats",
+      "status": "fail",
+      "reason": "ORACLE BLOCKED: Apple reverse returned incorrect original bytes; product cross-check blocked by original native gate.",
+      "rawLog": "/tmp/safe-bash-original-thirty-replay-0zooF0/formats.stdout"
+    },
+    {
+      "artifact": "formats-full.stdout",
+      "ordinal": 627,
+      "name": "native-native control context/delete-11/C0",
+      "category": "gnu-native-native-control",
+      "suite": "formats",
+      "status": "fail",
+      "reason": "GNU patch exit 2: replacement text or line numbers mangled in hunk at line 4; native forward expected exit 0.",
+      "rawLog": "/tmp/safe-bash-original-thirty-replay-0zooF0/formats.stdout"
+    },
+    {
+      "artifact": "formats-full.stdout",
+      "ordinal": 628,
+      "name": "independent formatter context/delete-11/C0",
+      "category": "apple-reverse-control",
+      "suite": "formats",
+      "status": "fail",
+      "reason": "ORACLE BLOCKED: Apple reverse returned incorrect original bytes; product cross-check blocked by original native gate.",
+      "rawLog": "/tmp/safe-bash-original-thirty-replay-0zooF0/formats.stdout"
+    },
+    {
+      "artifact": "formats-full.stdout",
+      "ordinal": 777,
+      "name": "native-native control context/repeated-alignment-0/C0",
+      "category": "gnu-native-native-control",
+      "suite": "formats",
+      "status": "fail",
+      "reason": "GNU patch exit 2: replacement text or line numbers mangled in hunk at line 4; native forward expected exit 0.",
+      "rawLog": "/tmp/safe-bash-original-thirty-replay-0zooF0/formats.stdout"
+    },
+    {
+      "artifact": "formats-full.stdout",
+      "ordinal": 819,
+      "name": "native-native control context/repeated-alignment-7/C0",
+      "category": "gnu-native-native-control",
+      "suite": "formats",
+      "status": "fail",
+      "reason": "GNU patch exit 2: replacement text or line numbers mangled in hunk at line 9; native forward expected exit 0.",
+      "rawLog": "/tmp/safe-bash-original-thirty-replay-0zooF0/formats.stdout"
+    },
+    {
+      "artifact": "formats-full.stdout",
+      "ordinal": 820,
+      "name": "independent formatter context/repeated-alignment-7/C0",
+      "category": "apple-reverse-control",
+      "suite": "formats",
+      "status": "fail",
+      "reason": "ORACLE BLOCKED: Apple reverse returned incorrect original bytes; product cross-check blocked by original native gate.",
+      "rawLog": "/tmp/safe-bash-original-thirty-replay-0zooF0/formats.stdout"
+    },
+    {
+      "artifact": "formats-full.stdout",
+      "ordinal": 843,
+      "name": "native-native control context/repeated-alignment-11/C0",
+      "category": "gnu-native-native-control",
+      "suite": "formats",
+      "status": "fail",
+      "reason": "GNU patch exit 2: replacement text or line numbers mangled in hunk at line 9; native forward expected exit 0.",
+      "rawLog": "/tmp/safe-bash-original-thirty-replay-0zooF0/formats.stdout"
+    },
+    {
+      "artifact": "formats-full.stdout",
+      "ordinal": 844,
+      "name": "independent formatter context/repeated-alignment-11/C0",
+      "category": "apple-reverse-control",
+      "suite": "formats",
+      "status": "fail",
+      "reason": "ORACLE BLOCKED: Apple reverse returned incorrect original bytes; product cross-check blocked by original native gate.",
+      "rawLog": "/tmp/safe-bash-original-thirty-replay-0zooF0/formats.stdout"
+    },
+    {
+      "artifact": "formats-full.stdout",
+      "ordinal": 858,
+      "name": "GNU selector regression: -C0 followed by -c resets to three lines",
+      "category": "gnu-selector-defect",
+      "suite": "formats",
+      "status": "pass",
+      "reason": "Original assertion passes unchanged.",
+      "rawLog": "/tmp/safe-bash-original-thirty-replay-0zooF0/formats.stdout"
+    },
+    {
+      "artifact": "parser-regressions-corrected.stdout",
+      "ordinal": 6,
+      "name": "normal-tab-prefix",
+      "category": "parser-native-control",
+      "suite": "parser-regressions",
+      "status": "fail",
+      "reason": "GNU patch exit 2; expected new\\n, actual old\\n. productIssues: [].",
+      "rawLog": "/tmp/safe-bash-original-thirty-replay-0zooF0/parser-regressions.stdout"
+    },
+    {
+      "artifact": "parser-regressions-corrected.stdout",
+      "ordinal": 9,
+      "name": "normal-suppress-blank-empty",
+      "category": "parser-native-control",
+      "suite": "parser-regressions",
+      "status": "fail",
+      "reason": "GNU patch exit 2; expected \\n, actual old\\n. productIssues: [].",
+      "rawLog": "/tmp/safe-bash-original-thirty-replay-0zooF0/parser-regressions.stdout"
+    },
+    {
+      "artifact": "parser-regressions-corrected.stdout",
+      "ordinal": 39,
+      "name": "normal-unsafe-integer",
+      "category": "parser-native-control",
+      "suite": "parser-regressions",
+      "status": "fail",
+      "reason": "GNU oracle exceeded 3000 ms; caught as assertion failure, not a selected-test cancellation. productIssues: [].",
+      "rawLog": "/tmp/safe-bash-original-thirty-replay-0zooF0/parser-regressions.stdout"
+    },
+    {
+      "artifact": "parser-regressions-corrected.stdout",
+      "ordinal": 77,
+      "name": "GNU-normal-suppress-blank-empty",
+      "category": "parser-native-control",
+      "suite": "parser-regressions",
+      "status": "fail",
+      "reason": "Native-only GNU patch exit 2; expected \\n, actual old\\n.",
+      "rawLog": "/tmp/safe-bash-original-thirty-replay-0zooF0/parser-regressions.stdout"
+    },
+    {
+      "artifact": "parser-regressions-corrected.stdout",
+      "ordinal": 79,
+      "name": "GNU-context-zero-middle-deletion",
+      "category": "parser-native-control",
+      "suite": "parser-regressions",
+      "status": "fail",
+      "reason": "Native-only GNU patch exit 2; target remains left\\nremoved\\nright\\n instead of left\\nright\\n.",
+      "rawLog": "/tmp/safe-bash-original-thirty-replay-0zooF0/parser-regressions.stdout"
+    }
+  ],
+  "rawResult": {
+    "path": "/tmp/safe-bash-original-thirty-replay-0zooF0/result.json",
+    "sha256": "51222dfdfc86873a941221594b04504f4a409171e044fba5327fc581aabfd6b5"
+  },
+  "preliminaryCaptures": [
+    {
+      "path": "/tmp/safe-bash-original-thirty-replay-ytD1Na/result.json",
+      "sha256": "cdfe801b82ff4f05d55047e72a96182daa539ed3b3b43cceff89706fd468484c",
+      "selected": 30,
+      "passed": 14,
+      "failed": 16,
+      "note": "Same literal results; historical unused GIT_DIR/GIT_WORK_TREE were omitted in preliminary test environments. Final capture retains them verbatim."
+    },
+    {
+      "path": "/tmp/safe-bash-original-thirty-replay-6qP8D5/result.json",
+      "sha256": "9a43d3988094ee6b3ee8d841789557d2078dad77ff7d0eae4304c9ced70aa804",
+      "selected": 30,
+      "passed": 14,
+      "failed": 16,
+      "note": "Same literal results; historical unused GIT_DIR/GIT_WORK_TREE were omitted in preliminary test environments. Final capture retains them verbatim."
+    }
+  ],
+  "limits": [
+    "Exactly the original thirty failed names, not a replay of all original 2939 tests or current reconciled acceptance.",
+    "No claim that every previously passing historical test still passes; no bisect of intermediate source commits.",
+    "Complete committed src graph at 695eb07; excludes unrelated live shell/network worktree changes.",
+    "Import provenance is static AST closure plus immutable source hashes, not runtime loader tracing.",
+    "No compiler/build/global suite run. Existing original tests/helpers/oracles unchanged. No new .test.ts inventory entries.",
+    "Zero selected skips/cancellations. Seven empty-file harness passes excluded from thirty; name-filtered nonselected tests emit no skip rows on Node 22.22.2."
+  ]
+}

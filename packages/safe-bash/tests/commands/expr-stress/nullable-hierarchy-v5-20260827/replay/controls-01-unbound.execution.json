@@ -1,0 +1,18 @@
+{
+  "started": "2026-08-27T23:09:24.636Z",
+  "ended": "2026-08-27T23:09:24.673Z",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "node": "v22.22.2",
+  "args": [
+    "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-v5-final-replay-kSGdP4/candidate/tests/commands/expr-stress/nullable-hierarchy-v5-20260827/review/run-controls.mjs",
+    "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-v5-final-replay-kSGdP4/sealed/model.mjs",
+    "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-v5-final-replay-kSGdP4/candidate/tests/commands/expr-stress/nullable-hierarchy-v5-20260827/review/BINDING.json"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "status": 1,
+  "signal": null,
+  "error": null,
+  "stdoutSha256": "a2fc208c44af28a77edbae8933feebfaeb94bf15004ccdc784979b3ae0106deb",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "synchronousChildSettled": true
+}

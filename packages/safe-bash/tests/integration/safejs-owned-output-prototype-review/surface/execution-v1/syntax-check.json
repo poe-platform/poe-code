@@ -1,0 +1,22 @@
+{
+  "at": "2026-08-27T15:19:36.153Z",
+  "scope": "Native host scripts only; zero product/private engine imports or guest parse/execute",
+  "results": [
+    {
+      "name": "run.mjs",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "child.mjs",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": ""
+    }
+  ]
+}

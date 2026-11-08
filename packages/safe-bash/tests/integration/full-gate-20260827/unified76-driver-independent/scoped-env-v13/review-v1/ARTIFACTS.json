@@ -1,0 +1,190 @@
+{
+  "schema": "scoped-env-v13-artifact-index/1",
+  "at": "2026-08-28T10:21:04.329Z",
+  "files": [
+    {
+      "path": "RECIPE.json",
+      "bytes": 140882,
+      "sha256": "4225f050dc84d38c06a159efd6e6d66190555525f7d65b2f1b741c4a9c22bd11"
+    },
+    {
+      "path": "PREEXECUTION.md",
+      "bytes": 5562,
+      "sha256": "e1724f7b0bedf2e5fa248b801bf51eaf2a222eddd505875e0a45b4d05e1ae0a2"
+    },
+    {
+      "path": "review.mjs",
+      "bytes": 15203,
+      "sha256": "2b095e2b535866e23685479254f55064f26405c8327d933a5c84719740483e96"
+    },
+    {
+      "path": "worker.mjs",
+      "bytes": 20742,
+      "sha256": "58a9948acf73d9052864b006ed77d6b4e2f1a08c0794ddbe55f27f2225e5529e"
+    },
+    {
+      "path": "COHORT-START.json",
+      "bytes": 776,
+      "sha256": "e82db8b9803bd8d98b59fb0d18d778108eaf64c3427fea329e94061925920183"
+    },
+    {
+      "path": "RESULTS.json",
+      "bytes": 170154,
+      "sha256": "8181af4c97b8a01fc26c45ad9b3b4e53ba2ae167d2cd0c783d423030283a80b1"
+    },
+    {
+      "path": "TERMINAL.json",
+      "bytes": 235,
+      "sha256": "59516c9bb33cc3b06d66e7cddf5a3ea58aa7a5f9de27609a6e76a604732f36f9"
+    },
+    {
+      "path": "OUTER-CAPTURE.json",
+      "bytes": 2241,
+      "sha256": "a248cd4592cd849d90d9c7ebef7e0c870de2521c5232231c0d7ef219068f90cd"
+    },
+    {
+      "path": "FINAL.json",
+      "bytes": 22188,
+      "sha256": "9f5cee246dd9017b89f31ff20d8bb8dd88349a03d6a8a693409a9b6da76c26c7"
+    },
+    {
+      "path": "HANDOFF.md",
+      "bytes": 7197,
+      "sha256": "7dc8a520f06dbfbefbd131dfe6ed082a2d697f3cf5f83eb90508683043daf8e5"
+    },
+    {
+      "path": "raw/core-outer-OS-FENCE-RESULT.json.gz",
+      "bytes": 2086,
+      "sha256": "05e7e81b696adf04e639ecfcd61b30def4a7bc0fba8665e10e363240024fac89"
+    },
+    {
+      "path": "raw/core-outer-OS-FENCE.json.gz",
+      "bytes": 1343,
+      "sha256": "9c4abbaa7c2dd7f73d05e6dff51e56a1a987e9fdbc15176bab7bcaa73236a233"
+    },
+    {
+      "path": "raw/core-outer-stderr.gz",
+      "bytes": 20,
+      "sha256": "abfbb86f9f5ddfbd9fc1a72c43ab384702ce8bae86b60f3324748485e235e61e"
+    },
+    {
+      "path": "raw/core-outer-stdout.gz",
+      "bytes": 163,
+      "sha256": "e2820e18e0edc1a88f8d4c7d1bb66279a89473483d600347c7bf3be7fce15c8a"
+    },
+    {
+      "path": "raw/core-inner-worker.json.gz",
+      "bytes": 3400,
+      "sha256": "f531fca5bbab9c8bd8f9eb057b763a59a4bea265d5344d562afeecf02dfecdd4"
+    },
+    {
+      "path": "raw/compound-errors-outer-OS-FENCE-RESULT.json.gz",
+      "bytes": 2093,
+      "sha256": "9973aa1ec6b934f6ce7cc289699cf6cbed2df6939d9ddc5c9def7258ac0c5f7c"
+    },
+    {
+      "path": "raw/compound-errors-outer-OS-FENCE.json.gz",
+      "bytes": 1346,
+      "sha256": "0a68c3cd74cf926ce7782a4ca08efb0b4e9a61329d7553c52df781a95ac34012"
+    },
+    {
+      "path": "raw/compound-errors-outer-stderr.gz",
+      "bytes": 20,
+      "sha256": "abfbb86f9f5ddfbd9fc1a72c43ab384702ce8bae86b60f3324748485e235e61e"
+    },
+    {
+      "path": "raw/compound-errors-outer-stdout.gz",
+      "bytes": 105,
+      "sha256": "ec5d69ac96fd4e3d73eb146e3d5dfe055714a8695d8ec534df8eff87112d175c"
+    },
+    {
+      "path": "raw/compound-errors-inner-worker.json.gz",
+      "bytes": 1838,
+      "sha256": "52d5b17bf6323f394afc0eec1dfeb9a84f07a56d3ab500dc49a712979f43546f"
+    },
+    {
+      "path": "raw/poison-restoration-outer-OS-FENCE-RESULT.json.gz",
+      "bytes": 2092,
+      "sha256": "c97b0bb4345073bbd8a1a245754b0ce4d1c582edd02fe03a65693d2258bcde40"
+    },
+    {
+      "path": "raw/poison-restoration-outer-OS-FENCE.json.gz",
+      "bytes": 1348,
+      "sha256": "db72bc12942e6b205a7eca45314fffd9c5bb5a26701341226bc86c14b4b3aaf5"
+    },
+    {
+      "path": "raw/poison-restoration-outer-stderr.gz",
+      "bytes": 20,
+      "sha256": "abfbb86f9f5ddfbd9fc1a72c43ab384702ce8bae86b60f3324748485e235e61e"
+    },
+    {
+      "path": "raw/poison-restoration-outer-stdout.gz",
+      "bytes": 105,
+      "sha256": "6e15d5df95d9f04f2f0c101952a1bc2426cbf6613e757f938e8e0a50a19d89d8"
+    },
+    {
+      "path": "raw/poison-restoration-inner-worker.json.gz",
+      "bytes": 1785,
+      "sha256": "b76ccf14695bffbbbb9db1513ee6af4529a27a1ac0f94e8dbc76be64916bf492"
+    },
+    {
+      "path": "raw/partial-installation-outer-OS-FENCE-RESULT.json.gz",
+      "bytes": 2100,
+      "sha256": "f27be6dd7437b02a3efbf8890c6aeff47a8a23abb4b7c9a65790581f3720c7ec"
+    },
+    {
+      "path": "raw/partial-installation-outer-OS-FENCE.json.gz",
+      "bytes": 1352,
+      "sha256": "6d9e5e2f076c14806abededecbf01d6e4cf83fec8f84a912c3f5bf56184391e6"
+    },
+    {
+      "path": "raw/partial-installation-outer-stderr.gz",
+      "bytes": 20,
+      "sha256": "abfbb86f9f5ddfbd9fc1a72c43ab384702ce8bae86b60f3324748485e235e61e"
+    },
+    {
+      "path": "raw/partial-installation-outer-stdout.gz",
+      "bytes": 105,
+      "sha256": "987040a9153ef616ce4c96ff3c221fadc72212c9ee25eb3a2bbcdd817be3f5f3"
+    },
+    {
+      "path": "raw/partial-installation-inner-worker.json.gz",
+      "bytes": 1698,
+      "sha256": "db126e2907caf703c3f9418fd035cdadaa0a00a2be2e099eb6021c830b1b1dc3"
+    },
+    {
+      "path": "raw/authority-outer-OS-FENCE-RESULT.json.gz",
+      "bytes": 2092,
+      "sha256": "4c3138141bc2aa662f4c9130faaacd381f29bba540972b5bea8276aecf15dd8b"
+    },
+    {
+      "path": "raw/authority-outer-OS-FENCE.json.gz",
+      "bytes": 1348,
+      "sha256": "ea1af47b36da0aafdedc8a5830e30deb511d2386ede09fdc77a6b2418cad2e70"
+    },
+    {
+      "path": "raw/authority-outer-stderr.gz",
+      "bytes": 20,
+      "sha256": "abfbb86f9f5ddfbd9fc1a72c43ab384702ce8bae86b60f3324748485e235e61e"
+    },
+    {
+      "path": "raw/authority-outer-stdout.gz",
+      "bytes": 99,
+      "sha256": "fff75662c911223d84cfda27b35ff015f6f53df7d90b6257c5b7bc8b1a6618bf"
+    },
+    {
+      "path": "raw/authority-inner-worker.json.gz",
+      "bytes": 1993,
+      "sha256": "896ef2f5fc8f14310f28d845d568c11850145a99eea9216d5453cc0482d04d05"
+    }
+  ],
+  "preservation": {
+    "presealedRecipeAndCodeUnchanged": true,
+    "priorIndependentTrackedArtifactsUnchanged": true,
+    "allNewRootsAbsent": true,
+    "allWorkerRawHashesVerified": true,
+    "coordinatorClosed": true,
+    "coordinatorStatus": 1
+  },
+  "qualification": "JSON syntax/hash and preservation checks only; no rerun. Coordinator channel attribution remains qualified in OUTER-CAPTURE.json."
+}

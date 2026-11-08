@@ -1,0 +1,8 @@
+{
+  "schema": 3,
+  "role": "separate DATA reconciliation of retained C2 receipt, no normal child rerun",
+  "originalFailurePreserved": true,
+  "pass": true,
+  "pid": 34371,
+  "rawReceiptSha256": "9aefed73be3050238834b794a2c80de30e3a87c506bd9fcd2a451f6155d64f68"
+}

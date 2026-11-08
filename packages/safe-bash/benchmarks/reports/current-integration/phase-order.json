@@ -1,0 +1,32 @@
+[
+  [
+    "typecheck",
+    "npm run typecheck",
+    180
+  ],
+  [
+    "build",
+    "npm run build",
+    180
+  ],
+  [
+    "test",
+    "npm test",
+    900
+  ],
+  [
+    "contracts",
+    "npm run test:contracts",
+    180
+  ],
+  [
+    "benchmark-typecheck",
+    "npm --prefix benchmarks run typecheck",
+    180
+  ],
+  [
+    "comparison",
+    "npm run benchmark -- --output <owned-reportdir>/comparison.json",
+    300
+  ]
+]

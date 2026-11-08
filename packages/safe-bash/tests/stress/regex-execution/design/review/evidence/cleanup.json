@@ -1,0 +1,26 @@
+{
+  "utc": "2026-08-27T05:05:17.161Z",
+  "exactOwnedTemporary": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/design/review/.temporary/",
+  "removed": [
+    "src/commands/grep.js",
+    "src/commands/internal.js",
+    "src/commands/search/matcher.js",
+    "src/commands/search/options.js",
+    "src/commands/text-programs/regex.js",
+    "src/commands/text-programs/shared.js",
+    "src/contracts/command.js",
+    "src/contracts/errors.js",
+    "src/contracts/filesystem.js",
+    "src/contracts/index.js",
+    "src/contracts/io.js",
+    "src/contracts/path.js",
+    "src/contracts/plugin.js",
+    "tests/stress/regex-execution/design/client.js",
+    "tests/stress/regex-execution/design/matching.js",
+    "tests/stress/regex-execution/design/protocol.js",
+    "tests/stress/regex-execution/design/worker.js"
+  ],
+  "removedCount": 17,
+  "absent": true,
+  "childAndWorkerCleanupEvidence": "audit.json and per-scenario raw events; no PID search/process-group kill"
+}

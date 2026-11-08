@@ -1,0 +1,22 @@
+{
+  "frozenAt": "2026-08-27T21:34:45.024Z",
+  "captureLabel": "candidate-01",
+  "files": [
+    {
+      "path": "capture.mjs",
+      "sha256": "c922a4db5d2e80d57da539329088817d02da348658b8a879a3940cb02f0ff40d"
+    },
+    {
+      "path": "integrity.mjs",
+      "sha256": "3a546daa4b28d58d6eafa19f97eecd8ff74c3a8fe3fd63af3e7233179a775b5e"
+    }
+  ],
+  "selectedCohorts": [
+    "original/revised canonical focused (overlapping)",
+    "original/revised canonical six-file 237",
+    "original/revised nearby16",
+    "original/revised quota47",
+    "original/revised installed core146"
+  ],
+  "noFurtherRegressionOrMovedSmoke": true
+}

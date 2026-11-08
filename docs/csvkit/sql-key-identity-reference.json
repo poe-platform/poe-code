@@ -1,0 +1,106 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "sourceSha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+  "versions": {
+    "csvkit": "2.2.0",
+    "agate": "1.14.2",
+    "SQLAlchemy": "2.0.54",
+    "Babel": "2.18.0"
+  },
+  "cases": [
+    {
+      "raw": "{'2': 'first', '1': 'second'}",
+      "kind": "dict",
+      "orderedEntries": [
+        [
+          "2",
+          "first"
+        ],
+        [
+          "1",
+          "second"
+        ]
+      ]
+    },
+    {
+      "raw": "{'2': 'first', '1': 'second', '2': 'last'}",
+      "kind": "dict",
+      "orderedEntries": [
+        [
+          "2",
+          "last"
+        ],
+        [
+          "1",
+          "second"
+        ]
+      ]
+    },
+    {
+      "raw": "{'4294967294': 1, '0': 2, '4294967295': 3}",
+      "kind": "dict",
+      "orderedEntries": [
+        [
+          "4294967294",
+          1
+        ],
+        [
+          "0",
+          2
+        ],
+        [
+          "4294967295",
+          3
+        ]
+      ]
+    },
+    {
+      "raw": "{'01': 1, '1': 2, '-0': 3}",
+      "kind": "dict",
+      "orderedEntries": [
+        [
+          "01",
+          1
+        ],
+        [
+          "1",
+          2
+        ],
+        [
+          "-0",
+          3
+        ]
+      ]
+    },
+    {
+      "raw": "{'\\ud83d\\ude00': 1, '\\U0001f600': 2}",
+      "kind": "dict",
+      "size": 2,
+      "keyCodepoints": [
+        [
+          55357,
+          56832
+        ],
+        [
+          128512
+        ]
+      ],
+      "disposition": "blocker: JavaScript UTF-16 string key identity differs from Python codepoint identity; no compatibility pass"
+    },
+    {
+      "raw": "{'\\ud83d\\ude00', '\\U0001f600'}",
+      "kind": "set",
+      "size": 2,
+      "keyCodepoints": [
+        [
+          128512
+        ],
+        [
+          55357,
+          56832
+        ]
+      ],
+      "disposition": "blocker: JavaScript UTF-16 string key identity differs from Python codepoint identity; no compatibility pass"
+    }
+  ]
+}

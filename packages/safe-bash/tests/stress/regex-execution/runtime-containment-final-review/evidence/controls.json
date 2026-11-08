@@ -1,0 +1,146 @@
+{
+  "job": "controls",
+  "time": "2026-08-27T09:14:03.854Z",
+  "pass": true,
+  "preparedSha256": "276b972c3334f0452d26e20fcd0256445f3cbc2dcd43d5b815cbd6d607b1b3b3",
+  "claim": {
+    "job": "controls",
+    "time": "2026-08-27T09:14:03.606Z",
+    "preparedSha256": "276b972c3334f0452d26e20fcd0256445f3cbc2dcd43d5b815cbd6d607b1b3b3",
+    "targetSlotsReserved": 0,
+    "pathologicalRequestsReserved": 0,
+    "noRetry": true
+  },
+  "runs": [
+    {
+      "job": "success",
+      "pid": 13037,
+      "watchdogMs": 6000,
+      "events": [
+        "ready",
+        "disconnect",
+        "stdout-close",
+        "stderr-close",
+        {
+          "exit": 0,
+          "signal": null
+        }
+      ],
+      "stdout": "",
+      "stderr": "",
+      "result": {
+        "kind": "result",
+        "job": "success",
+        "pass": true,
+        "riskConsumed": 0
+      },
+      "killed": false,
+      "outputBytes": 0,
+      "ipcBytes": 94,
+      "readyMs": 33.759833999999955,
+      "code": 0,
+      "signal": null,
+      "closeAwaited": true,
+      "streamsAndIPCClosed": true,
+      "activeChildren": 0,
+      "childElapsedMs": 36.623083999999835,
+      "pass": true
+    },
+    {
+      "job": "already-aborted",
+      "pid": 13038,
+      "watchdogMs": 6000,
+      "events": [
+        "ready",
+        "disconnect",
+        "stdout-close",
+        "stderr-close",
+        {
+          "exit": 0,
+          "signal": null
+        }
+      ],
+      "stdout": "",
+      "stderr": "",
+      "result": {
+        "kind": "result",
+        "job": "already-aborted",
+        "pass": true,
+        "riskConsumed": 0
+      },
+      "killed": false,
+      "outputBytes": 0,
+      "ipcBytes": 110,
+      "readyMs": 33.19654100000025,
+      "code": 0,
+      "signal": null,
+      "closeAwaited": true,
+      "streamsAndIPCClosed": true,
+      "activeChildren": 0,
+      "childElapsedMs": 35.99866600000041,
+      "pass": true
+    },
+    {
+      "job": "owned-timeout",
+      "pid": 13039,
+      "watchdogMs": 6000,
+      "events": [
+        "ready",
+        "disconnect",
+        "stdout-close",
+        "stderr-close",
+        {
+          "exit": null,
+          "signal": "SIGKILL"
+        }
+      ],
+      "stdout": "",
+      "stderr": "",
+      "result": null,
+      "killed": true,
+      "outputBytes": 0,
+      "ipcBytes": 38,
+      "readyMs": 33.53891600000043,
+      "killReason": "benign owned timeout",
+      "killSent": true,
+      "code": null,
+      "signal": "SIGKILL",
+      "closeAwaited": true,
+      "streamsAndIPCClosed": true,
+      "activeChildren": 0,
+      "childElapsedMs": 111.85529099999985,
+      "pass": true
+    },
+    {
+      "job": "late-rejection",
+      "pid": 13040,
+      "watchdogMs": 6000,
+      "events": [
+        "ready",
+        "disconnect",
+        "stdout-close",
+        "stderr-close",
+        {
+          "exit": 1,
+          "signal": null
+        }
+      ],
+      "stdout": "",
+      "stderr": "uncaught: Error: standalone preserved late rejection\nfile:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/runtime-containment-final-review/.temporary/compiled/child.mjs:22\n        setTimeout(() => { void Promise.reject(new Error('standalone preserved late rejection')); }, 5);\n                                               ^\n\nError: standalone preserved late rejection\n    at Timeout._onTimeout (file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/runtime-containment-final-review/.temporary/compiled/child.mjs:22:48)\n    at listOnTimeout (node:internal/timers:585:17)\n    at process.processTimers (node:internal/timers:521:7)\n\nNode.js v22.22.2\n",
+      "result": null,
+      "killed": false,
+      "outputBytes": 681,
+      "ipcBytes": 39,
+      "readyMs": 41.29899999999998,
+      "code": 1,
+      "signal": null,
+      "closeAwaited": true,
+      "streamsAndIPCClosed": true,
+      "activeChildren": 0,
+      "childElapsedMs": 50.2997919999998,
+      "pass": true
+    }
+  ],
+  "targetSlotsConsumed": 0,
+  "activeChildren": 0
+}

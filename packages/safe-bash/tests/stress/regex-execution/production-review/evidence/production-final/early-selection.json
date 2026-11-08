@@ -1,0 +1,116 @@
+{
+  "claim": {
+    "snapshotName": "production-final",
+    "job": "early-selection",
+    "label": "early-selection",
+    "time": "2026-08-27T06:25:55.735Z",
+    "risky": false,
+    "watchdogAfterReadyMs": 15000,
+    "outputCap": 65536,
+    "oldSpaceMb": 128,
+    "historical": "12 archived, prior revision 0/6; not rerun",
+    "reservation": "benign; no risk reservation consumed",
+    "harnessSha256": "dea8e28027e968916729d2cd6d2c6364c2968ccc091c164ab2599e6a921db740"
+  },
+  "pid": 29888,
+  "events": [
+    {
+      "kind": "ready",
+      "at": 1787811955817
+    },
+    {
+      "kind": "disconnect"
+    },
+    {
+      "kind": "output-close"
+    },
+    {
+      "kind": "error-close"
+    },
+    {
+      "kind": "exit",
+      "code": 0,
+      "signal": null
+    }
+  ],
+  "output": "",
+  "error": "",
+  "result": {
+    "kind": "result",
+    "pass": true,
+    "summary": {
+      "passed": 2,
+      "total": 2,
+      "active": 0,
+      "peak": 1,
+      "workers": 2
+    },
+    "observations": [
+      {
+        "name": "early-selection-before-later-line-budget--q",
+        "pass": true,
+        "details": {
+          "code": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      },
+      {
+        "name": "early-selection-before-later-line-budget--m1",
+        "pass": true,
+        "details": {
+          "code": 0,
+          "stdout": "YQo=",
+          "stderr": ""
+        }
+      }
+    ],
+    "metrics": [
+      {
+        "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-review/snapshots/production-final/dist/commands/regex-execution/worker.js",
+        "options": {
+          "execArgv": [],
+          "resourceLimits": {
+            "maxOldGenerationSizeMb": 128,
+            "stackSizeMb": 4
+          }
+        },
+        "exited": true,
+        "terminationCalls": 1,
+        "refAtEnd": null,
+        "exitCode": 1,
+        "terminationAwaited": true,
+        "listeners": {
+          "message": 0,
+          "messageerror": 0,
+          "error": 0,
+          "exit": 0
+        }
+      },
+      {
+        "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-review/snapshots/production-final/dist/commands/regex-execution/worker.js",
+        "options": {
+          "execArgv": [],
+          "resourceLimits": {
+            "maxOldGenerationSizeMb": 128,
+            "stackSizeMb": 4
+          }
+        },
+        "exited": true,
+        "terminationCalls": 1,
+        "refAtEnd": null,
+        "exitCode": 1,
+        "terminationAwaited": true,
+        "listeners": {
+          "message": 0,
+          "messageerror": 0,
+          "error": 0,
+          "exit": 0
+        }
+      }
+    ]
+  },
+  "killed": false,
+  "code": 0,
+  "signal": null
+}

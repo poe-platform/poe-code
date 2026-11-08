@@ -1,0 +1,11 @@
+{
+  "pid": 87703,
+  "group": 87703,
+  "started": 1787912325821,
+  "bounds": {
+    "parentDeadlineMs": 660000,
+    "termGraceMs": 150,
+    "reapMs": 2500,
+    "combinedCaptureBytes": 16777216
+  }
+}

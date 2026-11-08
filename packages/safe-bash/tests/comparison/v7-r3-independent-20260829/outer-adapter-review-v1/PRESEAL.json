@@ -1,0 +1,123 @@
+{
+  "schema": "INDEPENDENT_OUTER_REVIEW_PRESEAL_V1",
+  "inputSha256": "a6a3f58de6ffb123125637adbb9610f7cb81fe6410bc78e5b65ca0923a423870",
+  "adapterSealSha256": "2c53f792822765e3ee582185996922eaf34301adec06bc82974a3f45d038d5c4",
+  "sourceCommit": "d32cc4d1a9abc9e4064243c3c9070d4df8a51b96",
+  "files": 32,
+  "expectedOriginalCases": 25,
+  "expectedAdditionalCases": 8,
+  "expectedTestRunners": 2,
+  "expectedHarmlessChildren": 23,
+  "spawnAttempts": 24,
+  "knownMetadataChildren": 4,
+  "capAllProcesses": 80,
+  "peakCap": 4,
+  "minutes": 30,
+  "captureBytes": 134217728,
+  "workBytes": 536870912,
+  "actualOwnerMayRun": false,
+  "admissionMayRun": false,
+  "metadata": [
+    {
+      "id": "final-outer-inventory",
+      "args": [
+        "ls-tree",
+        "-rz",
+        "--full-tree",
+        "88036591c32067ffe86a5950198f9f73fbb5cb63",
+        "--",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/",
+        "tests/comparison/v7-r3-independent-20260829/outer-adapter-review-v1",
+        "tests/AGENTS.md",
+        "tests/comparison/AGENTS.md",
+        "tests/comparison/v7-r3-independent-20260829/AGENTS.md"
+      ],
+      "pid": 84656,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "bytes": 30876,
+      "errors": [],
+      "stdoutSha256": "36ab40400a3c6f6168c53572233be84a8eee2106df32956aa501ee8a44bbac37"
+    },
+    {
+      "id": "source-preseal-inventory",
+      "args": [
+        "ls-tree",
+        "-rz",
+        "--full-tree",
+        "d32cc4d1a9abc9e4064243c3c9070d4df8a51b96",
+        "--",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/outer-adapter-v1/"
+      ],
+      "pid": 85288,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "bytes": 1519,
+      "errors": [],
+      "stdoutSha256": "4b77e43457788447cc726ffd08715b0be5af2ad329123a6086c77488f11231d0"
+    },
+    {
+      "id": "accepted-review-references",
+      "args": [
+        "ls-tree",
+        "-rz",
+        "--full-tree",
+        "d27fd9145ef27fa1f03e273fe0d4954e7680b147",
+        "--",
+        "tests/comparison/v7-r3-independent-20260829/review-v2/RESULT.json",
+        "tests/comparison/v7-r3-independent-20260829/review-v2/REVIEW-RECEIPT.json",
+        "tests/comparison/v7-r3-independent-20260829/review-v2/FUTURE-INTERFACE.json"
+      ],
+      "pid": 85289,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "bytes": 375,
+      "errors": [],
+      "stdoutSha256": "f3bd8f9ae09e9c89f1997dd321d3d44711d62288c2685af6773e791d4a3deaf9"
+    },
+    {
+      "id": "inert-preparation-references",
+      "args": [
+        "ls-tree",
+        "-rz",
+        "--full-tree",
+        "27fd896575280fa96100924cf4f2ecc110710b82",
+        "--",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/FRESH-PREPARATION-REPORT.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/SOURCE-AUTH.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/PROCESS-CENSUS.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/FRESH-MANIFEST.json"
+      ],
+      "pid": 85290,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "bytes": 723,
+      "errors": [],
+      "stdoutSha256": "794cc8c52830a10144ee31a8968733d47c665e0140726bc717a263cad9eb9081"
+    }
+  ]
+}

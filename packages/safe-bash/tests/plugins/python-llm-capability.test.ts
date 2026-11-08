@@ -1,0 +1,837 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { createPythonLlmCapability } from '../../src/commands/python/llm-capability.js';
+import { createLlmService } from '../../src/commands/llm/service.js';
+import { createLlmCommands } from '../../src/commands/llm/command.js';
+import { MemoryFileSystem } from '../../src/fs/memory/index.js';
+import { toByteSource } from '../../src/contracts/index.js';
+import type { CommandContext } from '../../src/contracts/index.js';
+import type { PythonHostValue } from '../../src/commands/python/host-capabilities.js';
+import type { LlmRequest, LlmProvider } from '../../src/commands/llm/types.js';
+
+const signal = new AbortController().signal;
+
+async function fixture(binary = false) {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir('/work');
+  await fs.writeFile('/work/note.txt', new TextEncoder().encode('canonical'));
+  const requests: LlmRequest[] = [];
+  let closed = 0;
+  const service = createLlmService({defaultModel:'alias', providers:[{
+    name:'fake', models:[{id:'model', aliases:['alias'], capabilities:['messages','schema','embed'], attachmentTypes:['text/plain'], outputType:binary ? 'application/octet-stream' : 'text/plain'}],
+    async *complete(request) {
+      requests.push(request);
+      try {
+        yield binary ? new Uint8Array([0,255]) : 'answer';
+        yield binary ? new Uint8Array([128]) : '!';
+        return {usage:{input:3}, metadata:{id:'response-1'}};
+      } finally {closed++;}
+    },
+    async *completeSources(request) {
+      const read = async (source: {bytes:AsyncIterable<Uint8Array>}) => {
+        const chunks:Uint8Array[] = [];
+        for await (const chunk of source.bytes) chunks.push(chunk);
+        return new Uint8Array(Buffer.concat(chunks));
+      };
+      const {prompt,system,messages,attachments,...fields} = request;
+      requests.push({...fields,prompt:new TextDecoder().decode(await read(prompt)),
+        ...(system ? {system:new TextDecoder().decode(await read(system))} : {}),
+        ...(messages ? {messages:await Promise.all(messages.map(async message => ({role:message.role,content:new TextDecoder().decode(await read(message.content))})))} : {}),
+        attachments:await Promise.all(attachments.map(async attachment => ({mimeType:attachment.mimeType,bytes:await read(attachment.source!)})))});
+      try { yield 'answer'; yield '!'; return {usage:{input:3},metadata:{id:'response-1'}}; }
+      finally {closed++;}
+    },
+    async embed(request) {return {model:request.model, vectors:request.inputs.map(() => [1,2]), usage:{input:request.inputs.length}};},
+  }]});
+  const capability = createPythonLlmCapability({fs,cwd:'/work'}, service);
+  return {fs, service, requests, capability, closed:() => closed};
+}
+
+test('Bash and Python reuse one shared service and reach the same provider with equivalent requests', async () => {
+  const {fs,service,requests,capability} = await fixture();
+  const output:Uint8Array[] = [], diagnostic:Uint8Array[] = [];
+  const cleanups:(() => void | Promise<void>)[] = [];
+  const context:CommandContext = {command:'llm',args:['-m','alias','-s','terse','-o','mode','exact','-a','note.txt','question'],fs,cwd:'/work',env:{},signal,
+    stdin:toByteSource(''), stdout:{async write(chunk) {output.push(chunk);}}, stderr:{async write(chunk) {diagnostic.push(chunk);}}, registerCleanup(cleanup) {cleanups.push(cleanup);}};
+  try {
+    const bash = await createLlmCommands({service})[0]!.execute(context);
+    assert.equal(bash.exitCode,0,Buffer.concat(diagnostic).toString());
+    const python = await capability.call!({operation:'complete', payload:{model:'alias',prompt:'question',system:'terse',options:{mode:'exact'},attachments:[{path:'note.txt'}]}}, {signal});
+    assert.deepEqual(python, {model:'model',text:'answer!',data:[],usage:{input:3},metadata:{id:'response-1'}});
+    const semantic = ({signal:_ignoredSignal,...request}: LlmRequest) => ({...request,options:{...request.options},messages:request.messages ?? []});
+    assert.deepEqual(semantic(requests[0]!),semantic(requests[1]!));
+    assert.equal(Buffer.concat(output).toString(),'answer!\n');
+  } finally {for (const cleanup of cleanups) await cleanup();}
+});
+
+test('native requests retain typed options, messages, schema and canonical attachment bytes', async () => {
+  const {requests,capability} = await fixture();
+  await capability.call!({operation:'complete',payload:{prompt:'q',options:{enabled:true,count:2,nullable:null},messages:[{role:'assistant',content:'prior'}],schema:{type:'object'},attachments:[{path:'note.txt'}]}},{signal});
+  const request = requests[0]!;
+  assert.deepEqual(request.options,{enabled:true,count:2,nullable:null});
+  assert.deepEqual(request.messages,[{role:'assistant',content:'prior'}]);
+  assert.deepEqual(request.schema,{type:'object'});
+  assert.deepEqual(request.attachments,[{mimeType:'text/plain',bytes:new TextEncoder().encode('canonical')}]);
+  assert.equal(request.model,'model');
+});
+
+test('native discovery and embeddings expose data while provider objects remain on the host', async () => {
+  const {capability} = await fixture();
+  const models = await capability.call!({operation:'models',payload:{}},{signal}) as {id:string;capabilities:string[];metadata:unknown}[];
+  assert.equal(models[0]!.id,'model');
+  assert.deepEqual(models[0]!.capabilities,['messages','schema','embed']);
+  assert.doesNotMatch(JSON.stringify(models),/complete|credentials/);
+  assert.deepEqual(await capability.call!({operation:'embed',payload:{inputs:['one','two'],options:{count:2}}},{signal}), {model:'model',vectors:[[1,2],[1,2]],usage:{input:2}});
+});
+
+test('binary complete and incremental streams preserve bytes and final metadata; early close releases provider', async () => {
+  const {capability,closed} = await fixture(true);
+  assert.deepEqual(await capability.call!({operation:'complete',payload:{prompt:'binary'}},{signal}), {model:'model',text:'',data:[0,255,128],usage:{input:3},metadata:{id:'response-1'}});
+  const events = [];
+  for await (const event of capability.stream!({prompt:'binary'},{signal})) events.push(event);
+  assert.deepEqual(events,[{type:'bytes',data:[0,255]},{type:'bytes',data:[128]},{type:'response',response:{model:'model',usage:{input:3},metadata:{id:'response-1'}}}]);
+  const iterator = capability.stream!({prompt:'binary'},{signal})[Symbol.asyncIterator]();
+  await iterator.next();
+  await iterator.return!();
+  assert.equal(closed(),3);
+});
+
+test('shared validation rejects rich unsupported features and finite output budgets', async () => {
+  const {capability} = await fixture();
+  for (const payload of [{template:'missing'},{conversation:'persisted'},{messages:[{role:'invalid',content:'x'}]},{max_response_bytes:1}]) {
+    await assert.rejects(capability.call!({operation:'complete',payload},{signal}));
+  }
+});
+
+test('canonical attachments inherit the parent invocation input budget before provider transport', async () => {
+  const {fs,service,requests} = await fixture();
+  const capability = createPythonLlmCapability({fs,cwd:'/work',inputBudget:{maxBytes:4,check(total) {
+    if (total > 4) throw new RangeError('parent input budget');
+  }}},service);
+  await assert.rejects(capability.call!({operation:'complete',payload:{prompt:'q',attachments:[{path:'note.txt'}]}},{signal}), /input.*(budget|limit)/);
+  assert.equal(requests.length,0);
+});
+
+test('large binary provider events split in order with one terminal metadata event and early-close cleanup', async () => {
+  const {fs} = await fixture();
+  const bytes = Uint8Array.from({length:16 * 1024 * 1024}, (_,index) => index % 256);
+  let closed = 0;
+  const service = createLlmService({providers:[{name:'image',models:[{id:'image',outputType:'application/octet-stream'}],async *complete() {
+    try {yield bytes; return {metadata:{id:'large-image'}};} finally {closed++;}
+  }}]});
+  const capability = createPythonLlmCapability({fs,cwd:'/work'},service,{maxStreamChunkBytes:4096});
+  let offset = 0, terminal = 0;
+  for await (const value of capability.stream!({prompt:'image',model:'image'},{signal})) {
+    const event = value as {type:string;data?:number[];response?:unknown};
+    if (event.type === 'bytes') {
+      assert.ok(event.data!.length <= 4096);
+      assert.deepEqual(Uint8Array.from(event.data!),bytes.subarray(offset,offset + event.data!.length));
+      offset += event.data!.length;
+    } else {terminal++; assert.equal(offset,bytes.length);}
+  }
+  assert.equal(offset,bytes.length);
+  assert.equal(terminal,1);
+  const early = capability.stream!({prompt:'image',model:'image'},{signal})[Symbol.asyncIterator]();
+  await early.next();
+  await early.return!();
+  assert.equal(closed,2);
+});
+
+test('canonical Python attachments do not require whole-file reads before provider admission', async () => {
+  const original = new MemoryFileSystem();
+  await original.writeFile('/attachment.txt', new TextEncoder().encode('canonical streamed input'));
+  let wholeReads = 0, admitted = false;
+  const fs = new Proxy(original, {get(target, property) {
+    if (property === 'readFile') return async () => { wholeReads++; throw new Error('Whole-file read forbidden for canonical attachment source'); };
+    const value = Reflect.get(target, property, target);
+    return typeof value === 'function' ? value.bind(target) : value;
+  }});
+  const service = createLlmService({defaultModel:'m', providers:[{name:'test', models:[{id:'m',attachmentTypes:['text/plain']}], async *complete() { yield 'buffered'; assert.fail('Buffered provider path forbidden'); }, async *completeSources(request) {
+    admitted = true;
+    assert.equal(request.attachments.length, 1);
+    yield 'accepted';
+  }}]});
+  const capability = createPythonLlmCapability({fs,cwd:'/'}, service);
+  const response = await capability.call!({operation:'complete',payload:{attachments:[{path:'/attachment.txt',mimeType:'text/plain'}]}},{signal:new AbortController().signal});
+  assert.equal((response as {text:string}).text,'accepted');
+  assert.equal(wholeReads,0);
+  assert.equal(admitted,true);
+});
+
+test('large canonical attachments stream bounded chunks with exact bytes and release on early close', async () => {
+  const original = new MemoryFileSystem();
+  const content = new Uint8Array(16 * 1024 * 1024 + 7).fill(173);
+  await original.writeFile('/large.bin',content);
+  let closed = 0, wholeReads = 0, observed = 0;
+  const fs = new Proxy(original,{get(target,property) {
+    if (property === 'readFile') return async () => { wholeReads++; throw new Error('Whole-file read forbidden'); };
+    if (property === 'openReadFile') return async (...args:Parameters<typeof original.openReadFile>) => {
+      const handle = await original.openReadFile(...args);
+      return {...handle,async close() {closed++; await handle.close();}};
+    };
+    const value = Reflect.get(target,property,target);
+    return typeof value === 'function' ? value.bind(target) : value;
+  }});
+  const service = createLlmService({defaultModel:'m',providers:[{name:'test',models:[{id:'m',attachmentTypes:['application/octet-stream']}],async *complete() {yield 'buffered'; assert.fail('Buffered path forbidden');},async *completeSources(request) {
+    for await (const chunk of request.attachments[0]!.source!.bytes) {
+      assert.ok(chunk.length <= 16384);
+      assert.ok(chunk.every(byte => byte === 173));
+      observed += chunk.length;
+      if (request.options.partial === true) { yield 'partial'; return; }
+    }
+    yield 'received'; yield 'more';
+  }}]});
+  const capability = createPythonLlmCapability({fs,cwd:'/',inputBudget:{maxBytes:32*1024*1024,check() {}}},service,{maxBufferedInputBytes:256});
+  const payload = {attachments:[{path:'/large.bin',mimeType:'application/octet-stream'}]};
+  const first = capability.stream!(payload,{signal})[Symbol.asyncIterator]();
+  await first.next();
+  await first.return!();
+  assert.equal(observed,content.length);
+  assert.equal(closed,1);
+  assert.equal(wholeReads,0);
+  const partial = capability.stream!({...payload,options:{partial:true}},{signal})[Symbol.asyncIterator]();
+  await partial.next();
+  await partial.return!();
+  assert.equal(observed,content.length + 16384);
+  assert.equal(closed,2);
+  await assert.rejects(createPythonLlmCapability({fs,cwd:'/',inputBudget:{maxBytes:8 + Buffer.byteLength(JSON.stringify(payload)),check() {}}},service).call!({operation:'complete',payload},{signal}),/input byte limit/);
+  assert.equal(closed,3);
+});
+
+test('cancellation during a retained attachment read closes its lease without a whole-file fallback', async () => {
+  const original = new MemoryFileSystem();
+  await original.writeFile('/pending.txt',new Uint8Array([1]));
+  let started!:() => void;
+  const entered = new Promise<void>(resolve => {started = resolve;});
+  let closed = 0;
+  const fs = new Proxy(original,{get(target,property) {
+    if (property === 'openReadFile') return async (...args:Parameters<typeof original.openReadFile>) => {
+      const handle = await original.openReadFile(...args);
+      return {...handle,async read(_offset:number,_size:number,options:{signal?:AbortSignal}) {
+        started();
+        const signal = options.signal!;
+        signal.throwIfAborted();
+        return await new Promise<Uint8Array>((_resolve,reject) => signal.addEventListener('abort',() => reject(signal.reason),{once:true}));
+      },async close() {closed++; await handle.close();}};
+    };
+    const value = Reflect.get(target,property,target);
+    return typeof value === 'function' ? value.bind(target) : value;
+  }});
+  const service = createLlmService({defaultModel:'m',providers:[{name:'test',models:[{id:'m',attachmentTypes:['text/plain']}],async *complete() {yield 'wrong path';},async *completeSources(request) {
+    for await (const ignoredChunk of request.attachments[0]!.source!.bytes) yield 'unexpected';
+  }}]});
+  const controller = new AbortController();
+  const operation = createPythonLlmCapability({fs,cwd:'/'},service).call!({operation:'complete',payload:{attachments:[{path:'/pending.txt',mimeType:'text/plain'}]}},{signal:controller.signal});
+  const rejected = assert.rejects(operation,/stop source/);
+  await entered;
+  controller.abort(new Error('stop source'));
+  await rejected;
+  assert.equal(closed,1);
+});
+
+test('streamed attachment admission also checks actual read bytes against the host input budget', async () => {
+  const original = new MemoryFileSystem();
+  await original.writeFile('/changed.txt',new Uint8Array([1]));
+  let closed = 0;
+  const fs = new Proxy(original,{get(target,property) {
+    if (property === 'openReadFile') return async (...args:Parameters<typeof original.openReadFile>) => {
+      const handle = await original.openReadFile(...args);
+      return {...handle,async read(_offset:number,maxBytes:number) {assert.equal(maxBytes,5); return new Uint8Array(5);},async close() {closed++; await handle.close();}};
+    };
+    const value = Reflect.get(target,property,target);
+    return typeof value === 'function' ? value.bind(target) : value;
+  }});
+  const service = createLlmService({defaultModel:'m',providers:[{name:'test',models:[{id:'m',attachmentTypes:['text/plain']}],async *complete() {yield 'wrong path';},async *completeSources(request) {
+    for await (const ignoredChunk of request.attachments[0]!.source!.bytes) yield 'unexpected';
+  }}]});
+  const payload = {attachments:[{path:'/changed.txt',mimeType:'text/plain'}]};
+  await assert.rejects(createPythonLlmCapability({fs,cwd:'/',inputBudget:{maxBytes:4 + Buffer.byteLength(JSON.stringify(payload)),check() {}}},service).call!({operation:'complete',payload},{signal}),/input byte limit/);
+  assert.equal(closed,1);
+});
+
+test('canonical source admission respects retained-read capability refusal', async () => {
+  const original = new MemoryFileSystem();
+  await original.writeFile('/private.txt',new Uint8Array([1]));
+  let opened = 0;
+  const fs = new Proxy(original,{get(target,property) {
+    if (property === 'capabilitiesFor') return async () => ({...original.capabilities,retainedRead:false});
+    if (property === 'openReadFile') return async (...args:Parameters<typeof original.openReadFile>) => {opened++; return await original.openReadFile(...args);};
+    const value = Reflect.get(target,property,target);
+    return typeof value === 'function' ? value.bind(target) : value;
+  }});
+  const {service} = await fixture();
+  await assert.rejects(createPythonLlmCapability({fs,cwd:'/'},service).call!({operation:'complete',payload:{model:'alias',attachments:[{path:'/private.txt',mimeType:'text/plain'}]}},{signal}),/retained read/i);
+  assert.equal(opened,0);
+});
+
+
+test('source admission rejects unsupported models before opening canonical files', async () => {
+  const original = new MemoryFileSystem();
+  let opened = 0;
+  const fs = new Proxy(original,{get(target,property) {
+    if (property === 'openReadFile') return async () => {opened++; throw new Error('canonical file opened before model admission');};
+    const value = Reflect.get(target,property,target);
+    return typeof value === 'function' ? value.bind(target) : value;
+  }});
+  const shared = createLlmService({defaultModel:'blocked',providers:[{
+    name:'test',models:[{id:'blocked',inputSources:false}],
+    async *complete() {yield 'buffered';}, async *completeSources() {yield 'unexpected';},
+  }]});
+  const service = {...shared,streamSources() {throw new Error('stream dispatch before model admission');}};
+  const capability = createPythonLlmCapability({fs,cwd:'/'},service);
+  await assert.rejects(capability.call!({operation:'complete',payload:{attachments:[{path:'/input.bin',mimeType:'application/octet-stream'}]}},{signal}),/Model blocked does not support streamed inputs/);
+  await assert.rejects(capability.call!({operation:'complete',payload:{model:'missing',attachments:[{path:'/input.bin',mimeType:'application/octet-stream'}]}},{signal}),/Unknown model: missing/);
+  assert.equal(opened,0);
+});
+
+test('named templates share Bash evaluation, defaults, model selection and canonical attachments', async () => {
+  const {fs,service,requests} = await fixture();
+  await fs.mkdir('/settings/templates',{recursive:true});
+  await fs.writeFile('/settings/templates/review.yaml',new TextEncoder().encode('prompt: "Review $topic: $input"\nsystem: "Be $style"\nmodel: alias\nschema_object:\n  type: object\ndefaults:\n  style: terse\noptions:\n  mode: exact\nattachments:\n  - note.txt\n'));
+  const env = {LLM_USER_PATH:'/settings'};
+  const cleanups:(() => void | Promise<void>)[] = [];
+  const context:CommandContext = {command:'llm',args:['-t','review','-p','topic','code','question'],fs,cwd:'/work',env,signal,
+    stdin:toByteSource(''),stdout:{async write() {}},stderr:{async write() {}},registerCleanup(cleanup) {cleanups.push(cleanup);}};
+  try {
+    const bash = await createLlmCommands({service})[0]!.execute(context);
+    assert.equal(bash.exitCode,0);
+    const capability = createPythonLlmCapability(context,service);
+    await capability.call!({operation:'complete',payload:{template:'review',prompt:'question',parameters:{topic:'code'}}},{signal});
+    const semantic = ({signal:_signal,...request}:LlmRequest) => ({...request,options:{...request.options},messages:request.messages ?? []});
+    assert.deepEqual(semantic(requests[1]!),semantic(requests[0]!));
+    assert.equal(requests[1]!.prompt,'Review code: question');
+    assert.equal(requests[1]!.system,'Be terse');
+    assert.deepEqual(requests[1]!.schema,{type:'object'});
+    assert.equal(new TextDecoder().decode(requests[1]!.attachments[0]!.bytes),'canonical');
+    await capability.call!({operation:'complete',payload:{template:'review',prompt:'other',system:'explicit',schema:{type:'string'},parameters:{topic:'tests',style:'full'},options:{mode:'override'}}},{signal});
+    assert.equal(requests[2]!.system,'explicit');
+    assert.deepEqual(requests[2]!.schema,{type:'string'});
+    assert.deepEqual(requests[2]!.options,{mode:'override'});
+    await assert.rejects(capability.call!({operation:'complete',payload:{template:'review',parameters:{}}},{signal}),/Missing variables: topic/);
+    assert.equal(requests.length,3);
+  } finally {for (const cleanup of cleanups) await cleanup();}
+});
+
+test('named template loading is included in the completion timeout', async () => {
+  const {fs,service,requests} = await fixture();
+  await fs.mkdir('/.config/io.datasette.llm/templates',{recursive:true});
+  await fs.writeFile('/.config/io.datasette.llm/templates/slow.yaml',new TextEncoder().encode('prompt: "$input"\n'));
+  const slow = new Proxy(fs,{get(target,property) {
+    if (property === 'readFile') return async (...args:Parameters<typeof fs.readFile>) => {
+      await new Promise(resolve => setTimeout(resolve,15));
+      args[1]?.signal?.throwIfAborted();
+      return target.readFile(...args);
+    };
+    const value = Reflect.get(target,property,target);
+    return typeof value === 'function' ? value.bind(target) : value;
+  }});
+  const capability = createPythonLlmCapability({fs:slow,cwd:'/work'},service);
+  await assert.rejects(capability.call!({operation:'complete',payload:{template:'slow',prompt:'q',timeout:0.001}},{signal}),{name:'TimeoutError'});
+  assert.equal(requests.length,0);
+});
+
+test('Python shares canonical saved model defaults aliases and option precedence with Bash', async () => {
+  const {fs,service,requests} = await fixture();
+  await fs.mkdir('/settings',{recursive:true});
+  await fs.writeFile('/settings/default_model.txt',new TextEncoder().encode('favorite'));
+  await fs.writeFile('/settings/aliases.json',new TextEncoder().encode(JSON.stringify({favorite:'alias'})));
+  await fs.writeFile('/settings/model_options.json',new TextEncoder().encode(JSON.stringify({model:{mode:'saved'}})));
+  const cleanups:(() => void | Promise<void>)[] = [];
+  const context:CommandContext = {command:'llm',args:['question'],fs,cwd:'/work',env:{LLM_USER_PATH:'/settings'},signal,
+    stdin:toByteSource(''),stdout:{async write() {}},stderr:{async write() {}},registerCleanup(cleanup) {cleanups.push(cleanup);}};
+  try {
+    assert.equal((await createLlmCommands({service})[0]!.execute(context)).exitCode,0);
+    const capability = createPythonLlmCapability(context,service);
+    await capability.call!({operation:'complete',payload:{prompt:'question'}},{signal});
+    assert.deepEqual(requests[1]!.options,requests[0]!.options);
+    assert.equal(requests[1]!.model,requests[0]!.model);
+    await capability.call!({operation:'complete',payload:{model:'favorite',prompt:'override',options:{mode:'direct',enabled:true,count:2}}},{signal});
+    assert.deepEqual(requests[2]!.options,{mode:'direct',enabled:true,count:2});
+    const result = await capability.call!({operation:'embed',payload:{model:'favorite',inputs:['one'],options:{mode:'embedding'}}},{signal});
+    assert.equal((result as {model:string}).model,'model');
+    const configuration = await capability.call!({operation:'configuration'},{signal});
+    assert.deepEqual(configuration,{default_model:'favorite',aliases:{favorite:'alias'},model_options:{model:{mode:'saved'}}});
+    const models = await capability.call!({operation:'models'},{signal}) as readonly {aliases:readonly string[]}[];
+    assert.deepEqual(models[0]!.aliases,['alias','favorite']);
+  } finally {for (const cleanup of cleanups) await cleanup();}
+});
+
+test('model discovery respects the host buffered ceiling for persisted aliases', async () => {
+  const {fs,service} = await fixture();
+  await fs.mkdir('/settings',{recursive:true});
+  await fs.writeFile('/settings/aliases.json',new TextEncoder().encode(JSON.stringify({['x'.repeat(5000)]:'model'})));
+  const capability = createPythonLlmCapability({fs,cwd:'/work',env:{LLM_USER_PATH:'/settings'}},service,{maxBufferedResponseBytes:512});
+  await assert.rejects(capability.call!({operation:'models'},{signal}),/response limit/);
+});
+
+test('direct template and configuration calls use current guest cwd and selected environment', async () => {
+  const {fs,service,requests} = await fixture();
+  await fs.mkdir('/guest',{recursive:true});
+  await fs.writeFile('/guest/note.txt',new TextEncoder().encode('guest-canonical'));
+  for (const [directory,prompt,mode] of [['/parent-settings','Parent','parent'],['/guest-settings','Guest','guest']] as const) {
+    await fs.mkdir(directory+'/templates',{recursive:true});
+    await fs.writeFile(directory+'/templates/review.yaml',new TextEncoder().encode(`prompt: "${prompt} $input"\nattachments:\n  - note.txt\n`));
+    await fs.writeFile(directory+'/model_options.json',new TextEncoder().encode(JSON.stringify({model:{mode}})));
+  }
+  await fs.writeFile('/guest-settings/default_model.txt',new TextEncoder().encode('guest-alias'));
+  await fs.writeFile('/guest-settings/aliases.json',new TextEncoder().encode(JSON.stringify({'guest-alias':'model'})));
+  const capability = createPythonLlmCapability({fs,cwd:'/work',env:{LLM_USER_PATH:'/parent-settings'}},service);
+  const current = {cwd:'/guest',configuration_env:{LLM_USER_PATH:'/guest-settings',HOME:null,XDG_CONFIG_HOME:null}};
+  await capability.call!({operation:'complete',payload:{...current,prompt:'q',template:'review'}},{signal});
+  assert.equal(requests[0]!.prompt,'Guest q');
+  assert.deepEqual(requests[0]!.options,{mode:'guest'});
+  assert.equal(new TextDecoder().decode(requests[0]!.attachments[0]!.bytes),'guest-canonical');
+  const configuration = await capability.call!({operation:'configuration',payload:current},{signal});
+  assert.deepEqual(configuration,{default_model:'guest-alias',aliases:{'guest-alias':'model'},model_options:{model:{mode:'guest'}}});
+  const models = await capability.call!({operation:'models',payload:current},{signal}) as readonly {aliases:readonly string[]}[];
+  assert.deepEqual(models[0]!.aliases,['alias','guest-alias']);
+  await assert.rejects(capability.call!({operation:'models',payload:{configuration_env:{OPENAI_API_KEY:'synthetic'}}},{signal}),/configuration environment/);
+});
+
+
+test('Python configuration mutations reuse canonical storage and reject malformed changes', async () => {
+  const {fs,service} = await fixture();
+  const capability = createPythonLlmCapability({fs,cwd:'/work',env:{LLM_USER_PATH:'/settings'}},service);
+  const change = (payload:Record<string,string>) => capability.call!({operation:'configure',payload},{signal});
+  await change({action:'set_alias',name:'favorite',model:'alias'});
+  await change({action:'set_default_model',model:'favorite'});
+  await change({action:'set_model_option',model:'favorite',name:'mode',value:'saved'});
+  assert.deepEqual(await capability.call!({operation:'configuration'},{signal}),{default_model:'model',aliases:{favorite:'model'},model_options:{model:{mode:'saved'}}});
+  await change({action:'clear_model_option',model:'favorite',name:'mode'});
+  await change({action:'remove_alias',name:'favorite'});
+  assert.deepEqual(await capability.call!({operation:'configuration'},{signal}),{default_model:'model',aliases:{},model_options:{}});
+  await assert.rejects(change({action:'set_alias',name:'bad',model:'missing'}),/Unknown model/);
+  await assert.rejects(change({action:'set_model_option',model:'model',name:'mode'}),/value/);
+  await assert.rejects(change({action:'unsupported'}),/configuration action/);
+});
+
+test('Python complete supports extract/extract_last and template extract fields with template loaders', async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir('/settings/templates',{recursive:true});
+  await fs.writeFile('/settings/templates/code.yaml',new TextEncoder().encode('prompt: "$input"\nextract_last: true\n'));
+  const modes:unknown[] = [];
+  const service = createLlmService({defaultModel:'model',providers:[{
+    name:'test',models:[{id:'model'}],
+    async *complete(request) {
+      modes.push(request.stream);
+      yield 'Intro\n```python\nfirst = 1\n```\nMiddle\n```python\nsecond = 2\n```\nOutro';
+    },
+  }]});
+  const loaders = new Map([['custom', async (remainder:string) => ({name:`custom:${remainder}`,prompt:`Loaded $input (${remainder})`,extract:true})]]);
+  const capability = createPythonLlmCapability({
+    fs,cwd:'/work',env:{LLM_USER_PATH:'/settings'},
+    async fetch() { return new Response('prompt: "Remote $input"\nextract: true\n', {status:200}); },
+  },service,{templateLoaders:loaders,maxRemoteTemplateBytes:4096});
+  const first = await capability.call!({operation:'complete',payload:{prompt:'q',extract:true}},{signal}) as {text:string};
+  assert.equal(first.text,'first = 1\n');
+  const last = await capability.call!({operation:'complete',payload:{prompt:'q',extract_last:true}},{signal}) as {text:string};
+  assert.equal(last.text,'second = 2\n');
+  const fromSaved = await capability.call!({operation:'complete',payload:{template:'code',prompt:'q'}},{signal}) as {text:string};
+  assert.equal(fromSaved.text,'second = 2\n');
+  const fromLoader = await capability.call!({operation:'complete',payload:{template:'custom:demo',prompt:'q'}},{signal}) as {text:string};
+  assert.equal(fromLoader.text,'first = 1\n');
+  const fromUrl = await capability.call!({operation:'complete',payload:{template:'https://templates.invalid/review.yaml',prompt:'q'}},{signal}) as {text:string};
+  assert.equal(fromUrl.text,'first = 1\n');
+  assert.deepEqual(modes,[false,false,false,false,false]);
+});
+
+test('resolves key aliases on the JavaScript host without exposing stored keys to Python', async () => {
+  const fsInstance = new MemoryFileSystem();
+  await fsInstance.mkdir('/home/user/.config/io.datasette.llm', { recursive: true });
+  await fsInstance.writeFile('/home/user/.config/io.datasette.llm/keys.json', new TextEncoder().encode(JSON.stringify({
+    '// Note': 'This file stores secret API credentials. Do not share!',
+    'team-openai': 'sk-host-only-secret',
+  })));
+  const seenKeys: (string | undefined)[] = [];
+  const embedKeys: (string | undefined)[] = [];
+  const provider: LlmProvider = {
+    name: 'mock',
+    models: [{ id: 'mock-1', capabilities: ['embed'], attachmentTypes: ['text/plain'] }],
+    async *complete(req) {
+      seenKeys.push(req.key);
+      yield 'ok';
+    },
+    async *completeSources(req) {
+      seenKeys.push(req.key);
+      yield 'ok';
+    },
+    async embed(req) {
+      embedKeys.push(req.key);
+      return { model: req.model, vectors: [[0.5, 0.25]] };
+    },
+  };
+  const service = createLlmService({ providers: [provider], defaultModel: 'mock-1' });
+  const capability = createPythonLlmCapability(
+    { fs: fsInstance, cwd: '/home/user', env: { HOME: '/home/user' } },
+    service,
+    { maxBufferedResponseBytes: 65536 },
+  );
+  const comp = await capability.call!(
+    { operation: 'complete', payload: { prompt: 'hello', key: 'team-openai' } },
+    { signal: new AbortController().signal },
+  ) as { text: string };
+  assert.equal(comp.text, 'ok');
+  assert.deepEqual(seenKeys, ['sk-host-only-secret']);
+  await fsInstance.writeFile('/home/user/note.txt', new TextEncoder().encode('canonical'));
+  const attached = {prompt:'hello',key:'team-openai',attachments:[{path:'/home/user/note.txt',mimeType:'text/plain'}]};
+  const completion = await capability.call!({operation:'complete',payload:attached},{signal}) as {text:string};
+  assert.equal(completion.text,'ok');
+  const streamed = [];
+  for await (const event of capability.stream!(attached,{signal})) streamed.push(event);
+  assert.equal(streamed.length,2);
+  assert.deepEqual(seenKeys, ['sk-host-only-secret','sk-host-only-secret','sk-host-only-secret']);
+
+  await capability.call!(
+    { operation: 'embed', payload: { inputs: ['hello'], key: 'team-openai' } },
+    { signal: new AbortController().signal },
+  );
+  assert.deepEqual(embedKeys, ['sk-host-only-secret']);
+  const config = await capability.call!(
+    { operation: 'configuration', payload: {} },
+    { signal: new AbortController().signal },
+  ) as Record<string, unknown>;
+  assert.equal('keys' in config, false);
+  assert.equal(JSON.stringify(config).includes('sk-host-only-secret'), false);
+});
+
+test('Python model queries reuse shared selection and canonical aliases without invoking providers', async () => {
+  const {fs} = await fixture();
+  const provider:LlmProvider = {name:'catalog',models:[{id:'long-model'},{id:'model'}],
+    complete() { throw new Error('Selection must not invoke provider'); }};
+  const service = createLlmService({providers:[provider]});
+  const capability = createPythonLlmCapability({fs,cwd:'/work',env:{LLM_USER_PATH:'/settings'}},service);
+  await capability.call!({operation:'configure',payload:{action:'set_alias',name:'preferred',model:'long-model'}},{signal});
+  assert.equal(await capability.call!({operation:'select_model',payload:{queries:['CATALOG','long']}},{signal}),'long-model');
+  assert.equal(await capability.call!({operation:'select_model',payload:{queries:['model']}},{signal}),'model');
+  assert.equal(await capability.call!({operation:'select_model',payload:{queries:['preferred']}},{signal}),'long-model');
+  await assert.rejects(capability.call!({operation:'select_model',payload:{queries:['missing']}},{signal}),/No model found/);
+  for (const queries of [[],[1],'quick']) {
+    await assert.rejects(capability.call!({operation:'select_model',payload:{queries}},{signal}),/queries/);
+  }
+});
+
+test('unlimited shell input budget retains the finite remote template default', async () => {
+  const {fs,service} = await fixture();
+  const capability = createPythonLlmCapability({fs,cwd:'/work',inputBudget:{maxBytes:Infinity,check() {}}},service);
+  const result = await capability.call!({operation:'complete',payload:{prompt:'q'}},{signal}) as {text:string};
+  assert.equal(typeof result.text,'string');
+  assert.throws(() => createPythonLlmCapability({fs,cwd:'/work'},service,{maxRemoteTemplateBytes:Infinity}),/remote template limit/);
+});
+
+test('Python rejects history lookup without creating or reading a history database', async () => {
+  const {fs,service} = await fixture();
+  await fs.mkdir('/settings');
+  const context = {fs,cwd:'/work',env:{LLM_USER_PATH:'/settings'}};
+  const capability = createPythonLlmCapability(context,service);
+  await assert.rejects(capability.call!({operation:'load_schema',payload:{schema_id:'saved'}},{signal}),/Unsupported Python LLM operation/);
+  assert.deepEqual(await fs.readdir('/settings'), []);
+});
+
+test('host materialization budget rejects oversized inputs and expanded templates before provider calls', async () => {
+  const {fs,service,requests} = await fixture();
+  await fs.mkdir('/settings/templates',{recursive:true});
+  await fs.writeFile('/settings/templates/large.yaml',new TextEncoder().encode('prompt: '+ 'x'.repeat(600)));
+  const context = {fs,cwd:'/work',env:{LLM_USER_PATH:'/settings'},inputBudget:{maxBytes:32*1024*1024,check() {}}};
+  const capability = createPythonLlmCapability(context,service,{maxBufferedInputBytes:256});
+  for (const payload of [{prompt:'x'.repeat(600)},{template:'large'},{schema:{description:'x'.repeat(600)}},{inputs:['x'.repeat(600)]}]) {
+    await assert.rejects(capability.call!({operation:'inputs' in payload ? 'embed' : 'complete',payload},{signal}),/input.*limit/);
+  }
+  const stream = capability.stream!({prompt:'x'.repeat(600)},{signal})[Symbol.asyncIterator]();
+  await assert.rejects(stream.next(),/input.*limit/);
+  assert.equal(requests.length,0);
+});
+
+test('Python model lookup resolves service defaults and persisted aliases without provider calls', async () => {
+  const { capability, requests } = await fixture();
+  assert.equal(await capability.call!({operation:'resolve_model',payload:{}},{signal}), 'model');
+  assert.equal(await capability.call!({operation:'resolve_model',payload:{model:'alias'}},{signal}), 'model');
+  await assert.rejects(capability.call!({operation:'resolve_model',payload:{model:'missing'}},{signal}), /Unknown model/);
+  await assert.rejects(capability.call!({operation:'resolve_model',payload:{model:42}},{signal}), /Model must be a string/);
+  assert.deepEqual(requests, []);
+});
+
+test('Python attachment type lookup reuses bounded shared MIME inference', async () => {
+  const { capability, requests } = await fixture();
+  assert.equal(await capability.call!({operation:'attachment_type',payload:{path:'note.txt',prefix:[97,98,99]}},{signal}), 'text/plain');
+  assert.equal(await capability.call!({operation:'attachment_type',payload:{path:'unknown',prefix:[137,80,78,71,13,10,26,10]}},{signal}), 'image/png');
+  await assert.rejects(capability.call!({operation:'attachment_type',payload:{path:'x',prefix:Array(4097).fill(0)}},{signal}), /attachment prefix/);
+  await assert.rejects(capability.call!({operation:'attachment_type',payload:{path:'x',prefix:[256]}},{signal}), /attachment prefix/);
+  assert.deepEqual(requests, []);
+});
+
+test('prompt, system and history source paths bypass buffered controls without whole-file reads', async () => {
+  const {fs} = await fixture();
+  await fs.writeFile('/work/large.txt',new Uint8Array(16 * 1024 * 1024 + 7).fill(120));
+  let open = 0, closed = 0, largest = 0, bytes = 0;
+  const retained = fs.openReadFile.bind(fs);
+  const files = new Proxy(fs, {get(target,key) {
+    if (key === 'openReadFile') return async (...args: Parameters<typeof retained>) => {
+      open++;
+      const handle = await retained(...args);
+      return {...handle, async read(position:number,maxBytes:number,options?: {signal?:AbortSignal}) {
+        largest = Math.max(largest,maxBytes);
+        return handle.read(position,maxBytes,options);
+      }, async close() { closed++; await handle.close(); }};
+    };
+    if (key === 'readFile') return (path:string,options?:{signal?:AbortSignal}) => {
+      assert.notEqual(path,'/work/large.txt','large source must not be buffered');
+      return target.readFile(path,options);
+    };
+    const value = Reflect.get(target,key,target);
+    return typeof value === 'function' ? value.bind(target) : value;
+  }});
+  const service = createLlmService({providers:[{name:'source',models:[{id:'source',capabilities:['messages']}],
+    complete() { assert.fail('source request reached buffered provider'); },
+    async *completeSources(request) {
+      for (const source of [request.prompt,request.system!,request.messages![0]!.content]) {
+        for await (const chunk of source.bytes) bytes += chunk.byteLength;
+      }
+      yield 'accepted';
+    },
+  }]});
+  const capability = createPythonLlmCapability({fs:files,cwd:'/work',inputBudget:{maxBytes:64*1024*1024,check(total) {assert.ok(total<=64*1024*1024);}}},service,{maxBufferedInputBytes:1024});
+  const response = await capability.call!({operation:'complete',payload:{
+    model:'source',prompt:{path:'large.txt'},system:{path:'large.txt'},messages:[{role:'user',content:{path:'large.txt'}}],
+  }},{signal}) as {text:string};
+  assert.equal(response.text,'accepted');
+  assert.equal(bytes,3*(16*1024*1024+7));
+  assert.equal(largest,16384);
+  assert.equal(open,3);
+  assert.equal(closed,3);
+});
+
+test('invocation-owned Python input spools stream and retire without guest unlink calls', async () => {
+  const {fs, service, requests} = await fixture();
+  const {createPythonHostBridge} = await import('../../src/commands/python/host-capabilities.js');
+  const controller = new AbortController();
+  const capability = createPythonLlmCapability({fs,cwd:'/work',inputBudget:{maxBytes:32768,check(bytes) {assert.ok(bytes <= 32768);}}},service,{maxBufferedInputBytes:131072});
+  const bridge = createPythonHostBridge({llm:capability},{signal:controller.signal,maxMessageBytes:131072});
+  const invoke = (operation:string,payload:Record<string,PythonHostValue> = {}) => bridge.request({version:1,operation:'call',capability:'llm',value:{operation,payload}});
+  const id = await invoke('input_open');
+  await invoke('input_write',{id,bytes:[104,101,108,108,111]});
+  const response = await invoke('complete',{prompt:{spool:id}});
+  assert.equal((response as {text:string}).text,'answer!');
+  assert.equal(requests[0]!.prompt,'hello');
+  assert.deepEqual((await fs.readdir('/work')).map(entry=>entry.name),['note.txt']);
+  // A second abandoned input has no Python finally block available after cancellation.
+  const abandoned = await invoke('input_open');
+  await invoke('input_write',{id:abandoned,bytes:[1,2,3]});
+  controller.abort(new Error('invocation cancelled'));
+  await bridge.close();
+  assert.deepEqual((await fs.readdir('/work')).map(entry=>entry.name),['note.txt']);
+});
+
+test('Python input spools bound chunk and live-byte admission before retaining data', async () => {
+  const {fs,service} = await fixture();
+  const capability = createPythonLlmCapability({fs,cwd:'/work',inputBudget:{maxBytes:5,check(bytes) {assert.ok(bytes <= 5);}}},service);
+  const invoke = (operation:string,payload:Record<string,PythonHostValue> = {}) => capability.call!({operation,payload},{signal});
+  const id = await invoke('input_open');
+  await invoke('input_write',{id,bytes:[1,2,3,4,5]});
+  await assert.rejects(invoke('input_write',{id,bytes:[6]}),/input.*limit/);
+  await assert.rejects(invoke('input_write',{id,bytes:Array(16385).fill(0)}),/chunk/);
+  await invoke('input_close',{id});
+  await invoke('input_close',{id});
+  assert.deepEqual((await fs.readdir('/work')).map(entry=>entry.name),['note.txt']);
+});
+
+test('Python input retirement waits for admitted staging before releasing its ownership', async () => {
+  const {fs:backing,service} = await fixture();
+  const {createPythonHostBridge} = await import('../../src/commands/python/host-capabilities.js');
+  let entered!:()=>void, release!:()=>void;
+  const started = new Promise<void>(resolve=>{entered=resolve;});
+  const held = new Promise<void>(resolve=>{release=resolve;});
+  const fs = new Proxy(backing,{get(target,key) {
+    if (key === 'createStagedFile') return async (...args:Parameters<typeof target.createStagedFile>) => {
+      const result=await target.createStagedFile(...args);
+      entered(); await held; return result;
+    };
+    const value=Reflect.get(target,key,target);
+    return typeof value === 'function' ? value.bind(target) : value;
+  }});
+  const controller = new AbortController();
+  const bridge=createPythonHostBridge({llm:createPythonLlmCapability({fs,cwd:'/work'},service)},{signal:controller.signal});
+  const opening=bridge.request({version:1,operation:'call',capability:'llm',value:{operation:'input_open'}}).catch(error=>error);
+  await started;
+  controller.abort(new Error('retire during staging'));
+  let settled=false;
+  const closing=bridge.close().then(()=>{settled=true;});
+  await Promise.resolve();
+  assert.equal(settled,false);
+  release();
+  await closing;
+  assert.match(String(await opening),/retire during staging/);
+  assert.deepEqual((await backing.readdir('/work')).map(entry=>entry.name),['note.txt']);
+});
+
+test('inline Python attachments preserve bytes and share aggregate attachment admission', async () => {
+  const {fs,service,requests,capability} = await fixture();
+  await capability.call!({operation:'complete',payload:{attachments:[{content:[0,255,128],mimeType:'text/plain'}]}},{signal});
+  assert.deepEqual(requests[0]!.attachments,[{mimeType:'text/plain',bytes:new Uint8Array([0,255,128])}]);
+  const bounded = createPythonLlmCapability({fs,cwd:'/work',inputBudget:{maxBytes:10,check(bytes) {if (bytes > 10) throw new RangeError('input budget');}}},service);
+  await assert.rejects(bounded.call!({operation:'complete',payload:{attachments:[{content:[1,2],mimeType:'text/plain'},{path:'note.txt'}]}},{signal}),/input.*(budget|limit)/);
+  assert.equal(requests.length,1);
+  for (const content of [[256],[-1],[0.5],['x']]) {
+    await assert.rejects(capability.call!({operation:'complete',payload:{attachments:[{content,mimeType:'text/plain'}]}},{signal}),/Invalid inline attachment/);
+  }
+  const controller = new AbortController();
+  controller.abort();
+  await assert.rejects(capability.call!({operation:'complete',payload:{attachments:[{content:[1],mimeType:'text/plain'}]}},{signal:controller.signal}),{name:'AbortError'});
+  assert.equal(requests.length,1);
+});
+
+
+test('Python schema DSL reuses shared parsing with bounded results and no provider call', async () => {
+  const {fs,service,requests,capability} = await fixture();
+  const schema = {type:'object',properties:{name:{type:'string'},age:{type:'integer',description:'in years'}},required:['name','age']};
+  const single = await capability.call!({operation:'schema_dsl',payload:{schema:'name, age int: in years',multi:false}},{signal});
+  assert.deepEqual(JSON.parse(JSON.stringify(single)),schema);
+  const multi = await capability.call!({operation:'schema_dsl',payload:{schema:'name\nage int: in years',multi:true}},{signal});
+  assert.deepEqual(JSON.parse(JSON.stringify(multi)),{type:'object',properties:{items:{type:'array',items:schema}},required:['items']});
+  const limited = createPythonLlmCapability({fs,cwd:'/work'},service,{maxBufferedResponseBytes:32});
+  await assert.rejects(limited.call!({operation:'schema_dsl',payload:{schema:'name',multi:false}},{signal}),/limit/);
+  assert.equal(requests.length,0);
+});
+
+test('Python discovery preserves canonical option declarations', async () => {
+  const options = {temperature:{type:'number' as const,minimum:0,maximum:2,description:'Sampling temperature'}};
+  const service = createLlmService({providers:[{name:'typed',models:[{id:'typed',options}],async *complete() {yield 'ok';}}]});
+  const capability = createPythonLlmCapability({fs:new MemoryFileSystem(),cwd:'/'},service);
+  const models = await capability.call!({operation:'models',payload:{}},{signal}) as {metadata:{options:unknown}}[];
+  assert.deepEqual(models[0]!.metadata.options,options);
+});
+
+test('reference defaults use canonical named files without exposing other configuration', async () => {
+  const {fs,service} = await fixture();
+  const capability = createPythonLlmCapability({fs,cwd:'/'},service);
+  const base = {configuration_env:{LLM_USER_PATH:'/settings'},filename:'profile.txt'};
+  assert.equal(await capability.call!({operation:'default_model',payload:{...base,action:'get'}},{signal}),null);
+  assert.equal(await capability.call!({operation:'default_model',payload:{...base,action:'set',model:' future-model \n'}},{signal}),null);
+  assert.equal(await capability.call!({operation:'default_model',payload:{...base,action:'get'}},{signal}),'future-model');
+  assert.equal(new TextDecoder().decode(await fs.readFile('/settings/profile.txt')),' future-model \n');
+  await capability.call!({operation:'default_model',payload:{...base,action:'set',model:null}},{signal});
+  assert.deepEqual(await capability.call!({operation:'default_model',payload:{...base,action:'set',model:null}},{signal}),{missing:true});
+  await assert.rejects(capability.call!({operation:'default_model',payload:{...base,action:'get',filename:'keys.json'}},{signal}),/default filename/);
+});
+
+test('embedding requests reject completion-only fields before acquiring attachment leases or invoking providers', async () => {
+  const {fs,service} = await fixture();
+  let opened = 0, embedded = 0;
+  const trackedFs = new Proxy(fs, {get(target, property) {
+    if (property === 'openReadFile') return async (...args:Parameters<NonNullable<typeof fs.openReadFile>>) => {
+      opened++;
+      return target.openReadFile!(...args);
+    };
+    const value = Reflect.get(target, property, target);
+    return typeof value === 'function' ? value.bind(target) : value;
+  }});
+  const trackedService = {...service, async embed(request:Parameters<typeof service.embed>[0]) {
+    embedded++;
+    return service.embed(request);
+  }};
+  const capability = createPythonLlmCapability({fs:trackedFs,cwd:'/work'}, trackedService);
+  for (const extra of [
+    {attachments:[{path:'note.txt'}]}, {template:'missing'}, {prompt:'ignored'},
+    {system:'ignored'}, {messages:[]}, {schema:{}}, {parameters:{}},
+    {stream:true}, {extract:true}, {extract_last:true}, {conversation:'ignored'},
+  ]) {
+    await assert.rejects(capability.call!({operation:'embed',payload:{inputs:['text'],...extra}},{signal}),
+      /Unsupported embedding field/);
+  }
+  assert.equal(opened,0);
+  assert.equal(embedded,0);
+  assert.deepEqual(await capability.call!({operation:'embed',payload:{inputs:['text'],model:'alias',options:{count:2}}},{signal}),
+    {model:'model',vectors:[[1,2]],usage:{input:1}});
+  assert.equal(embedded,1);
+});
+
+test('genuine Python URL attachments use explicit host HEAD and bounded retained GET input', async () => {
+  const {fs,service,requests} = await fixture();
+  const seen: string[] = [];
+  let disposed = 0;
+  const capability = createPythonLlmCapability({fs,cwd:'/work'},service,{
+    attachmentTransport: async request => {
+      seen.push(request.method + ' ' + request.url);
+      assert.deepEqual(request.headers,[['accept','*/*']]);
+      return {status:200,statusText:'OK',headers:[['content-type','text/plain']],body:(async function* () {
+        assert.equal(request.method,'GET','HEAD must not consume the response body');
+        const bytes = new Uint8Array(16384);
+        for (let n = 0; n < 4; n++) { bytes.fill(65+n); yield bytes; }
+      })(),async dispose() { disposed++; }};
+    },
+  });
+  assert.equal(await capability.call!({operation:'attachment_head',payload:{url:'https://files.example/note'}},{signal}),'text/plain');
+  const id = await capability.call!({operation:'input_url',payload:{url:'https://files.example/note'}},{signal});
+  await capability.call!({operation:'complete',payload:{prompt:'q',attachments:[{spool:id,mimeType:'text/plain'}]}},{signal});
+  const content = requests[0]!.attachments[0]!.bytes;
+  assert.ok(content);
+  assert.equal(content.length,65536);
+  for (let n = 0; n < 4; n++) assert.ok(content.subarray(n*16384,(n+1)*16384).every(byte => byte === 65+n));
+  assert.deepEqual(seen,['HEAD https://files.example/note','GET https://files.example/note']);
+  assert.equal(disposed,2);
+  await capability.close!();
+  assert.deepEqual((await fs.readdir('/work')).map(entry => entry.name),['note.txt']);
+});
+
+test('URL attachment admission rejects absent authority, credentials, redirects, oversized headers and retained bytes', async () => {
+  const {fs,service,capability:disabled} = await fixture();
+  await assert.rejects(disabled.call!({operation:'input_url',payload:{url:'https://files.example/note'}},{signal}),/attachment.*disabled/i);
+  let requests = 0, disposed = 0;
+  const capability = createPythonLlmCapability({fs,cwd:'/work',inputBudget:{maxBytes:20,check() {}}},service,{
+    attachmentTransport: async request => {
+      requests++;
+      const kind = new URL(request.url).pathname;
+      return {status:kind === '/redirect' ? 302 : 200,statusText:'fixture',
+        headers:kind === '/headers' ? [['content-type','a'.repeat(8193)]] : [['content-type','text/plain']],
+        body:(async function* () {yield new Uint8Array(13); yield new Uint8Array(8);})(),
+        async dispose() {disposed++;}};
+    },
+  });
+  for (const url of ['file:///etc/passwd','https://user:secret@files.example/a']) {
+    await assert.rejects(capability.call!({operation:'input_url',payload:{url}},{signal}),/attachment URL/);
+  }
+  assert.equal(requests,0);
+  await assert.rejects(capability.call!({operation:'input_url',payload:{url:'https://files.example/redirect'}},{signal}),/302/);
+  await assert.rejects(capability.call!({operation:'attachment_head',payload:{url:'https://files.example/headers'}},{signal}),/header.*limit/i);
+  await assert.rejects(capability.call!({operation:'input_url',payload:{url:'https://files.example/large'}},{signal}),/input byte limit/);
+  assert.equal(disposed,3);
+  await capability.close!();
+  assert.deepEqual((await fs.readdir('/work')).map(entry => entry.name),['note.txt']);
+});
+
+test('closing Python LLM capability aborts and drains a pending URL attachment', async () => {
+  const {fs,service} = await fixture();
+  let entered!: () => void;
+  const started = new Promise<void>(resolve => {entered=resolve;});
+  let disposed = false;
+  const capability = createPythonLlmCapability({fs,cwd:'/work'},service,{
+    attachmentTransport: async request => ({status:200,statusText:'OK',headers:[['content-type','text/plain']],
+      body:(async function* () {
+        entered();
+        await new Promise<void>((_resolve,reject) => {
+          request.signal.addEventListener('abort',()=>reject(request.signal.reason),{once:true});
+          if (request.signal.aborted) reject(request.signal.reason);
+        });
+        yield new Uint8Array(1);
+      })(),async dispose() {disposed=true;}}),
+  });
+  const pending = capability.call!({operation:'input_url',payload:{url:'https://files.example/wait'}},{signal});
+  const rejected = assert.rejects(pending,/retired/);
+  await started;
+  await capability.close!();
+  await rejected;
+  assert.equal(disposed,true);
+  assert.deepEqual((await fs.readdir('/work')).map(entry => entry.name),['note.txt']);
+});
+
+test('failed attachment transport cleanup releases unpublished input handles', async () => {
+  const {fs,service} = await fixture();
+  const failure = new Error('transport disposal failed');
+  const capability = createPythonLlmCapability({fs,cwd:'/work'},service,{
+    attachmentTransport: async () => ({status:200,statusText:'OK',headers:[],body:toByteSource('content'),
+      async dispose() {throw failure;}}),
+  });
+  await assert.rejects(capability.call!({operation:'input_url',payload:{url:'https://files.example/note'}},{signal}),
+    error => error instanceof AggregateError && error.errors.includes(failure));
+  assert.deepEqual((await fs.readdir('/work')).map(entry => entry.name),['note.txt']);
+  await capability.close!();
+});

@@ -1,0 +1,1104 @@
+import { tryExecFast } from "./sync-extra-evaluators.js";
+import { utf8ByteLength } from "safe-bash-byte-engine";
+import { writeDiagnostic } from "../escaping.js";
+import { createDeviceFileSystem } from "@poe-code/safe-fs/runtime-core";
+import { builtInDirectContextExecutors, CommandRegistry, resolvePath, toByteSource } from "../contracts/index.js";
+import type {
+  ByteSink, CommandDefinition, FileSystemFactory, Middleware, PluginHost,
+  RegisterCommandOptions, VirtualShellPlugin,
+} from "../contracts/index.js";
+import { warnIfHostProcessEnv } from "./env-warning.js";
+import { parseShellUnit } from "./parser.js";
+import { defaultPortableTrapExtension } from "./trap.js";
+import { jobsExtension } from "./extensions/jobs/index.js";
+import { captureShellExtensions, extensionState } from "./extensions.js";
+import type { ShellExtensionSession } from "./extensions.js";
+import { ShellInput } from "./input.js";
+import { SourceLineIndex } from "./source-line-index.js";
+import { byteLocale } from "./locale.js";
+const verifiedBuiltInRegistries = new WeakSet<CommandRegistry>();
+import { Budget, Capture, customRegisteredCommands, customRegisteredRegistries, interruptible, registerRuntimeBackingFileSystem, replacedBuiltinCommands, resolveLimits, RootShellState, Runtime, RuntimeCancellationState, warmDefaultRuntimeContextFs } from "./runtime.js";
+import { ensureStateMonitor } from "./arrays/state.js";
+import { combineManagedSignals, isSyncResolved } from "../fs/creation-mask.js";
+import { hasNativeAbortSignal } from "safe-bash-contracts/signals";
+import type { State } from "./runtime.js";
+import { captureShellSessionState, restoreShellSessionState } from "./session-state.js";
+import { ShellLimitError, ShellSyntaxError } from "./types.js";
+import type { ShellExecOptions, ShellOptions, ShellResult, ShellSession, ShellSessionState } from "./types.js";
+import { InvocationScope, invocationScope, throwCleanupFailures } from "./cleanup.js";
+import {
+  createRootCancellationLink, selectRuntimeCancellationOutcome, subscribeCancellationOwner, unsubscribeCancellationOwner,
+} from "./cancellation.js";
+import type {
+  CancellationBoundary, CancellationOrigin, CancellationOwnerSubscriber, CancellationSelection, CapturedCancellationOutcome,
+} from "./cancellation.js";
+
+const EMPTY_CAPTURED_EXTENSIONS = captureShellExtensions([]);
+const sharedUtf8Decoder = new TextDecoder("utf-8", { ignoreBOM: true });
+const sharedUtf8Encoder = new TextEncoder();
+const EMPTY_SHELL_BYTES = new Uint8Array(0);
+const SHARED_EMPTY_DONE = Promise.resolve({ done: true as const, value: undefined });
+const SHARED_EMPTY_ITERATOR: AsyncIterableIterator<Uint8Array> = {
+  next() { return SHARED_EMPTY_DONE; },
+  [Symbol.asyncIterator]() { return this; },
+};
+const SHARED_EMPTY_SOURCE = {
+  [Symbol.asyncIterator]() { return SHARED_EMPTY_ITERATOR; },
+};
+const EMPTY_STDIN_OPTIONS = Object.freeze({
+  provenance: "stream" as const,
+  initialEof: true,
+});
+const EMPTY_EXEC_OPTIONS: ShellExecOptions = Object.freeze({});
+const EMPTY_STDOUT_BYTES = new Uint8Array(0);
+const EMPTY_EXEC_RESULT: ShellResult = {
+  stdout: "",
+  stderr: "",
+  stdoutBytes: EMPTY_STDOUT_BYTES,
+  stderrBytes: EMPTY_STDOUT_BYTES,
+  exitCode: 0,
+};
+interface WarmedInvocation {
+  budget: Budget;
+  scope: InvocationScope;
+  cancellationState: RuntimeCancellationState;
+  owner: RootInvocationCancellationOwner;
+  admission: ReturnType<typeof Runtime.rootCancellationAdmission>;
+  boundary: CancellationBoundary;
+  stdout: Capture;
+  stderr: Capture;
+  stdin: ShellInput;
+  io: { -readonly [K in keyof Parameters<Runtime["runUnit"]>[2]]: Parameters<Runtime["runUnit"]>[2][K] };
+  currentState: State;
+  runtime: Runtime;
+}
+interface CachedParsedUnit {
+  readonly offset: number;
+  readonly unit: ReturnType<typeof parseShellUnit>;
+  readonly unitsCharged: number;
+  readonly locale: boolean;
+  readonly extglob: boolean;
+  nextCached?: CachedParsedUnit | undefined;
+}
+interface SourceParseCache {
+  readonly byteLength: number;
+  first0?: CachedParsedUnit | undefined;
+  first1?: CachedParsedUnit | undefined;
+  byOffset0?: Map<number, CachedParsedUnit> | undefined;
+  byOffset1?: Map<number, CachedParsedUnit> | undefined;
+}
+
+interface ParseUnitState {
+  lineIndex: SourceLineIndex | undefined;
+  lineIndexUnits: number;
+  currentCachedUnit: CachedParsedUnit | undefined;
+}
+
+export function syntaxDiagnostic(source: string, error: ShellSyntaxError): string {
+  const line = source.slice(0, error.offset).split("\n").length;
+  if (error.unclosedQuote) {
+    return `shell: -c: line ${error.unclosedQuote.line}: unexpected EOF while looking for matching \`${error.unclosedQuote.quote}'\n`;
+  }
+  if (error.exitCode === 127) {
+    const token = /^[;&|()<>]|^[^\s;&|()<>]+/u.exec(source.slice(error.offset))?.[0] ?? "newline";
+    return `shell: -c: line ${line}: syntax error near unexpected token \`${token}'\nshell: -c: line ${line}: \`${source.split("\n")[line - 1] ?? ""}'\n`;
+  }
+  if (error.offset >= source.length && !/Unterminated|nesting|Unsupported/u.test(error.reason)) {
+    const context = error.incompleteCommand ? ` from \`${error.incompleteCommand.name}' command on line ${error.incompleteCommand.line}` : "";
+    return `shell: -c: line ${source.split("\n").length + Number(!source.endsWith("\n"))}: syntax error: unexpected end of file${context}\n`;
+  }
+  return `shell: ${error.message}\n`;
+}
+
+export function getOrParseUnitFromCache(
+  source: string,
+  offset: number,
+  unitLocale: boolean,
+  sourceCache: SourceParseCache | undefined,
+  parseState: ParseUnitState,
+  budget: Budget,
+  syntax?: ReturnType<typeof captureShellExtensions>["syntax"],
+  aliases?: ReadonlyMap<string, string>,
+  extglob = false,
+): ReturnType<typeof parseShellUnit> {
+  if (aliases?.size) sourceCache = undefined;
+  let cached: CachedParsedUnit | undefined;
+  if (sourceCache !== undefined) {
+    if (offset === 0) {
+      cached = unitLocale ? sourceCache.first1 : sourceCache.first0;
+    } else if (parseState.currentCachedUnit && parseState.currentCachedUnit.locale === unitLocale && parseState.currentCachedUnit.nextCached?.offset === offset) {
+      cached = parseState.currentCachedUnit.nextCached;
+    } else {
+      const map = unitLocale ? sourceCache.byOffset1 : sourceCache.byOffset0;
+      cached = map?.get(offset);
+    }
+  }
+  if (cached?.extglob === extglob) {
+    if (parseState.currentCachedUnit && parseState.currentCachedUnit.locale === unitLocale && parseState.currentCachedUnit.unit.next === offset) {
+      parseState.currentCachedUnit.nextCached = cached;
+    }
+    parseState.currentCachedUnit = cached;
+    budget.parsing.admit(cached.unitsCharged);
+    return cached.unit;
+  }
+  const beforeLineIdx = budget.parsing.admittedUnits;
+  if (!parseState.lineIndex && source.includes("\n")) {
+    parseState.lineIndex = new SourceLineIndex(source, budget.parsing);
+    parseState.lineIndexUnits = budget.parsing.admittedUnits - beforeLineIdx;
+  }
+  const beforeParse = budget.parsing.admittedUnits;
+  const parsed = parseShellUnit(source, offset, unitLocale, budget.parsing, parseState.lineIndex, undefined, false, syntax, aliases, extglob);
+  const parseUnits = budget.parsing.admittedUnits - beforeParse;
+  const unitsCharged = (offset === 0 ? parseState.lineIndexUnits : 0) + parseUnits;
+  if (sourceCache !== undefined && (!parsed.script.warnings || parsed.script.warnings.length === 0)) {
+    const created: CachedParsedUnit = { offset, unit: parsed, unitsCharged, locale: unitLocale, extglob };
+    if (offset === 0) {
+      if (unitLocale) sourceCache.first1 = created;
+      else sourceCache.first0 = created;
+    } else {
+      const map = unitLocale ? (sourceCache.byOffset1 ??= new Map()) : (sourceCache.byOffset0 ??= new Map());
+      if (map.size < 512) map.set(offset, created);
+    }
+    if (parseState.currentCachedUnit && parseState.currentCachedUnit.locale === unitLocale && parseState.currentCachedUnit.unit.next === offset) {
+      parseState.currentCachedUnit.nextCached = created;
+    }
+    parseState.currentCachedUnit = created;
+  } else {
+    parseState.currentCachedUnit = undefined;
+  }
+  return parsed;
+}
+
+class RootInvocationCancellationOwner implements CancellationOwnerSubscriber {
+  declare readonly kind: "callback";
+  declare active: boolean;
+  declare readonly scope: InvocationScope;
+  declare private _finalized: Promise<void> | undefined;
+  declare private _resolveFinalized: (() => void) | undefined;
+  declare private _admissionOpen: boolean;
+  declare private _boundary: CancellationBoundary | undefined;
+  declare private _observedOrigin: CancellationOrigin | undefined;
+  declare private _resolveCapture: ((captured: CapturedCancellationOutcome<any>) => void) | undefined;
+  declare private _rawPromise: Promise<any> | undefined;
+  declare private _settled: boolean;
+  declare private _queuedOrigin: boolean;
+  declare private _finished: boolean;
+
+  constructor(scope: InvocationScope) {
+    this.scope = scope;
+    this.active = false;
+    this._admissionOpen = true;
+    this._boundary = undefined;
+    this._observedOrigin = undefined;
+    this._resolveCapture = undefined;
+    this._rawPromise = undefined;
+    this._settled = false;
+    this._queuedOrigin = false;
+    this._finished = false;
+    scope.setOwner(this);
+  }
+
+  closeAdmission(): void {
+    this._admissionOpen = false;
+  }
+
+  resetForReuse(): void {
+    this._settled = false;
+    this._rawPromise = undefined;
+    this._resolveCapture = undefined;
+    this._observedOrigin = undefined;
+    this._queuedOrigin = false;
+  }
+
+  closeWarmSync(): void {
+    this._finished = true;
+    this._admissionOpen = false;
+  }
+
+  closeSync(): void {
+    this._finished = true;
+    this._admissionOpen = false;
+    if (this._boundary && this.active) {
+      unsubscribeCancellationOwner(this._boundary, this);
+    }
+    this._boundary?.close();
+    this._resolveFinalized?.();
+  }
+
+  get finalized(): Promise<void> {
+    if (this._finished) return Promise.resolve();
+    return this._finalized ??= new Promise<void>(resolve => { this._resolveFinalized = resolve; });
+  }
+
+  activate(boundary: CancellationBoundary): void {
+    if (!this._admissionOpen) throw new Error("Root cancellation admission is closed");
+    this._boundary = boundary;
+    subscribeCancellationOwner(boundary, this);
+  }
+
+  assertAdmissionOpen(): void {
+    if (!this._admissionOpen) throw new Error("Root cancellation admission is closed");
+  }
+
+  callback(origin: CancellationOrigin): void {
+    if (!this._resolveCapture || this._settled || this._queuedOrigin) return;
+    this._queuedOrigin = true;
+    queueMicrotask(() => {
+      if (this._settled) return;
+      this._settled = true;
+      this._observedOrigin = origin;
+      const resolve = this._resolveCapture;
+      this._resolveCapture = undefined;
+      resolve?.({ kind: "throw", reason: origin.signal.reason });
+      void this._rawPromise?.catch(() => undefined);
+    });
+  }
+
+  private _settleReturn(value: unknown): void {
+    if (this._settled) return;
+    this._settled = true;
+    const resolve = this._resolveCapture;
+    this._resolveCapture = undefined;
+    resolve?.({ kind: "return", value });
+  }
+
+  private _settleThrow(reason: unknown): void {
+    if (this._settled) return;
+    this._settled = true;
+    const resolve = this._resolveCapture;
+    this._resolveCapture = undefined;
+    resolve?.({ kind: "throw", reason });
+  }
+
+  capture<Value>(raw: Promise<Value>): Promise<CapturedCancellationOutcome<Value>> {
+    this._rawPromise = raw;
+    return new Promise(resolve => {
+      this._resolveCapture = resolve;
+      void raw.then(
+        value => { this._settleReturn(value); },
+        reason => { this._settleThrow(reason); },
+      );
+      if (this._settled) void raw.catch(() => undefined);
+    });
+  }
+
+  finish<Value>(captured: CapturedCancellationOutcome<Value>): CancellationSelection<Value> {
+    if (this._finished) throw new Error("Root cancellation was already finalized");
+    this._finished = true;
+    this._admissionOpen = false;
+    try {
+      if (this._boundary && this.active) {
+        try { unsubscribeCancellationOwner(this._boundary, this); } catch (error) { this.scope.failures.push(error); }
+      }
+      const close = this._boundary!.close();
+      if (close.failures.length > 0) this.scope.failures.push(...close.failures);
+      return selectRuntimeCancellationOutcome(this._boundary!, captured, this._observedOrigin);
+    } finally { this._resolveFinalized?.(); }
+  }
+}
+Object.assign(RootInvocationCancellationOwner.prototype, {
+  kind: "callback",
+  active: false,
+  _finalized: undefined,
+  _resolveFinalized: undefined,
+  _admissionOpen: true,
+  _boundary: undefined,
+  _observedOrigin: undefined,
+  _resolveCapture: undefined,
+  _rawPromise: undefined,
+  _settled: false,
+  _queuedOrigin: false,
+  _finished: false,
+});
+
+const discardOutput: ByteSink = { async write() {} };
+
+function createInvocationSink(budget: Budget, capture: Capture | undefined, external?: ByteSink): ByteSink {
+  if (capture === undefined) return budget.sink(external ?? discardOutput);
+  if (external === undefined) return capture.budget === budget ? capture : budget.sink(capture);
+  return budget.sink({
+    ...(external.ownedOutput ? { ownedOutput: {
+      get consumerClosed() { return external.ownedOutput!.consumerClosed; },
+      write: async (chunk: Uint8Array) => {
+        await capture.write(chunk);
+        await external.ownedOutput!.write(chunk);
+      },
+    } } : {}),
+    write: async (chunk) => {
+      await capture.write(chunk);
+      await external.write(chunk);
+    },
+  });
+}
+
+export class Shell implements PluginHost {
+  readonly commands: CommandRegistry;
+  readonly #middleware: Middleware[] = [];
+  readonly #filesystems = new Map<string, FileSystemFactory>();
+  readonly #plugins: VirtualShellPlugin[] = [];
+  readonly #processSubstitutionIds = { next: 0 };
+  readonly #capabilities: Record<string, unknown> = {};
+  readonly _options: ShellOptions;
+  readonly _resolvedLimits: ReturnType<typeof resolveLimits>;
+  #ready: Promise<void> = Object.defineProperty(Promise.resolve(), Symbol.for("safe-bash.syncResolved"), { value: true });
+  _disposed = false;
+  #disposal: Promise<void> | undefined;
+  readonly #sessions = new Set<() => Promise<void>>();
+  readonly #sessionExecutions = new WeakMap<ShellExecOptions, ShellExtensionSession>();
+  #defaultIoCapabilities: Readonly<Record<string, unknown>> | undefined;
+  #defaultRuntimeFs: ShellOptions["fs"] | undefined;
+  #hasCustomCommands = false;
+  #hasInitialEnv = false;
+  _initialLocale = true;
+  _singleActiveScope: InvocationScope | undefined;
+  _singleActiveBudget: Budget | undefined;
+  _singleActiveOwner: RootInvocationCancellationOwner | undefined;
+  #active: Set<{ scope: InvocationScope; budget: Budget; owner: RootInvocationCancellationOwner }> | undefined;
+  _warmedInvocation: WarmedInvocation | undefined;
+  _execCount = 0;
+  readonly #parsedSourceCache = new Map<string, SourceParseCache>();
+
+  _getSourceParseCache(source: string): SourceParseCache {
+    let entry = this.#parsedSourceCache.get(source);
+    if (!entry) {
+      if (this.#parsedSourceCache.size >= 32) {
+        const oldest = this.#parsedSourceCache.keys().next().value;
+        if (oldest !== undefined) this.#parsedSourceCache.delete(oldest);
+      }
+      entry = { byteLength: utf8ByteLength(source) };
+      this.#parsedSourceCache.set(source, entry);
+    }
+    return entry;
+  }
+
+  constructor(options?: ShellOptions) {
+    if (!options?.fs) throw new TypeError("Shell requires an explicit filesystem");
+    if (options.deviceView !== undefined && options.deviceView !== "default" && options.deviceView !== "provided") throw new TypeError("deviceView must be default or provided");
+    const onRegister = (command: CommandDefinition): void => {
+      this.#clearWarmedInvocation();
+      if (!builtInDirectContextExecutors.has(command.execute)) {
+        this.#hasCustomCommands = true;
+        customRegisteredCommands.add(command.execute);
+      }
+    };
+    const commands = options.commands ?? new class extends CommandRegistry {
+      override register(command: CommandDefinition, options?: RegisterCommandOptions): this {
+        super.register(command, options);
+        onRegister(command);
+        return this;
+      }
+    }();
+    if (!(commands instanceof CommandRegistry)) throw new TypeError("CommandRegistry requires its matching shell runtime; do not mix source and compiled runtime modules");
+    if (options.commands) {
+      if (customRegisteredRegistries.has(commands)) {
+        this.#hasCustomCommands = true;
+      } else if (!verifiedBuiltInRegistries.has(commands)) {
+        if (
+          Object.getPrototypeOf(commands) !== CommandRegistry.prototype ||
+          commands.get !== CommandRegistry.prototype.get ||
+          commands.has !== CommandRegistry.prototype.has
+        ) {
+          this.#hasCustomCommands = true;
+          customRegisteredRegistries.add(commands);
+        } else {
+          for (const def of commands.list()) {
+            onRegister(def);
+            if (!builtInDirectContextExecutors.has(def.execute)) {
+              customRegisteredRegistries.add(commands);
+            }
+          }
+          if (!customRegisteredRegistries.has(commands)) {
+            verifiedBuiltInRegistries.add(commands);
+          }
+          const origRegister = commands.register.bind(commands);
+          commands.register = ((command: CommandDefinition, regOptions?: RegisterCommandOptions) => {
+            origRegister(command, regOptions);
+            onRegister(command);
+            if (regOptions?.replace && command && typeof command.execute === "function") {
+              replacedBuiltinCommands.add(command.execute);
+            }
+            if (!builtInDirectContextExecutors.has(command.execute)) {
+              verifiedBuiltInRegistries.delete(commands);
+              customRegisteredRegistries.add(commands);
+            }
+            return commands;
+          }) as typeof commands.register;
+        }
+      }
+    }
+    if (options.onInternalError !== undefined && typeof options.onInternalError !== "function") throw new TypeError("onInternalError must be callable");
+    warnIfHostProcessEnv(options.env);
+    if (options.env) {
+      for (const [name, value] of Object.entries(options.env)) {
+        if (name.includes("\0") || name.includes("=") || typeof value !== "string" || value.includes("\0")) throw new TypeError("Invalid environment entry");
+        this.#hasInitialEnv = true;
+      }
+    }
+    const resolvedLimits = resolveLimits(options.limits);
+    const { commandLimits } = resolvedLimits;
+    this._resolvedLimits = resolvedLimits;
+    const extensions = [...options.extensions ?? []];
+    if (options.backgroundJobs && !extensions.some(ext => ext.name === "jobs")) {
+      extensions.push(jobsExtension());
+    }
+    this._options = { ...options, extensions, cwd: resolvePath("/", options.cwd ?? "/"), env: { ...options.env }, limits: { ...options.limits, ...(commandLimits === undefined ? {} : { commandLimits }) } };
+    this._initialLocale = byteLocale(this._options.env ?? {});
+    this.commands = commands;
+  }
+
+  use(middleware: Middleware | VirtualShellPlugin): this {
+    if (this._disposed) throw new Error("Shell is disposed");
+    this.#clearWarmedInvocation();
+    this.#install(middleware);
+    return this;
+  }
+
+  #install(middleware: Middleware | VirtualShellPlugin): void {
+    if (typeof middleware === "function") this.#middleware.push(middleware);
+    else {
+      if (!middleware || typeof middleware.setup !== "function") throw new TypeError("Expected middleware or shell plugin");
+      const nextReady = this.#ready.then(async () => {
+        let active = true;
+        const admit = () => {
+          if (this._disposed && !active) throw new Error("Shell is disposed");
+        };
+        const host: PluginHost = {
+          provideCapabilities: capabilities => { admit(); Object.assign(this.#capabilities, capabilities); this.#defaultIoCapabilities = undefined; },
+          commands: this.commands,
+          use: (middleware) => { admit(); this.#install(middleware); },
+          registerFileSystem: (scheme, factory) => { admit(); this.#registerFileSystem(scheme, factory); },
+        };
+        try {
+          await middleware.setup(host);
+          this.#plugins.push(middleware);
+        } finally { active = false; }
+      });
+      this.#ready = nextReady;
+      void nextReady.then(() => { Object.defineProperty(nextReady, Symbol.for("safe-bash.syncResolved"), { value: true }); }, () => undefined);
+    }
+  }
+
+  register(command: CommandDefinition, options?: RegisterCommandOptions): this {
+    if (this._disposed) throw new Error("Shell is disposed");
+    this.#clearWarmedInvocation();
+    this.#hasCustomCommands = true;
+    if (command && typeof command.execute === "function") {
+      customRegisteredCommands.add(command.execute);
+      replacedBuiltinCommands.add(command.execute);
+    }
+    if (isSyncResolved(this.#ready)) this.commands.register(command, options);
+    else {
+      const nextReady = this.#ready.then(() => { this.commands.register(command, options); });
+      this.#ready = nextReady;
+      void nextReady.then(() => { Object.defineProperty(nextReady, Symbol.for("safe-bash.syncResolved"), { value: true }); }, () => undefined);
+    }
+    return this;
+  }
+
+  registerFileSystem(scheme: string, factory: FileSystemFactory): void {
+    if (this._disposed) throw new Error("Shell is disposed");
+    this.#registerFileSystem(scheme, factory);
+  }
+
+  #registerFileSystem(scheme: string, factory: FileSystemFactory): void {
+    if (!/^[a-z][a-z0-9+.-]*$/u.test(scheme)) throw new TypeError("Invalid filesystem scheme");
+    if (this.#filesystems.has(scheme)) throw new Error(`Filesystem already registered: ${scheme}`);
+    this.#filesystems.set(scheme, factory);
+  }
+
+  async createFileSystem(scheme: string, options: Readonly<Record<string, unknown>> = {}): Promise<Awaited<ReturnType<FileSystemFactory>>> {
+    if (this._disposed) throw new Error("Shell is disposed");
+    await this.#ready;
+    const factory = this.#filesystems.get(scheme);
+    if (!factory) throw new Error(`Unknown filesystem scheme: ${scheme}`);
+    return factory(options);
+  }
+
+  createSession(initialState?: ShellSessionState): ShellSession {
+    if (this._disposed) throw new Error("Shell is disposed");
+    let currentState = initialState;
+    const controller = new AbortController();
+    const background = new Set<Promise<unknown>>();
+    const executions = new Set<Promise<void>>();
+    const failures: unknown[] = [];
+    const owner: ShellExtensionSession = {
+      signal: controller.signal,
+      retain(completion) {
+        background.add(completion);
+        void completion.finally(() => background.delete(completion)).catch(() => undefined);
+      },
+    };
+    let tail = Promise.resolve();
+    let disposal: Promise<void> | undefined;
+    const dispose = (): Promise<void> => {
+      if (!disposal) {
+        controller.abort(new Error("Shell session is disposed"));
+        disposal = (async () => {
+          await tail;
+          await Promise.all(executions);
+          this.#sessions.delete(dispose);
+          throwCleanupFailures(failures);
+        })();
+      }
+      return disposal;
+    };
+    this.#sessions.add(dispose);
+    return {
+      get state() {
+        return currentState;
+      },
+      set state(value: ShellSessionState | undefined) {
+        currentState = value;
+      },
+      exec: (source: string, options: ShellExecOptions = {}): Promise<ShellResult> => {
+        const foreground = tail.then(() => {
+          controller.signal.throwIfAborted();
+          throwCleanupFailures(failures.splice(0));
+          return new Promise<ShellResult>((resolve, reject) => {
+            let returned = false;
+            const effectiveState = options.state ?? currentState;
+            const turn: ShellExecOptions = {
+              ...options,
+              signal: options.signal ? AbortSignal.any([options.signal, controller.signal]) : controller.signal,
+              ...(effectiveState === undefined ? {} : { state: effectiveState }),
+              onState: async (nextState, result) => {
+                currentState = nextState;
+                await options.onState?.(nextState, result);
+              },
+              hooks: {
+                ...options.hooks,
+                afterExec: async (nextState, result) => {
+                  await (options.hooks?.afterExec ?? this._options.hooks?.afterExec)?.(nextState, result);
+                  if (background.size) { returned = true; resolve(result); }
+                },
+              },
+            };
+            this.#sessionExecutions.set(turn, owner);
+            const execution = this.exec(source, turn).then(resolve, reason => {
+              if (!returned) reject(reason);
+              else if (!controller.signal.aborted || reason !== controller.signal.reason) failures.push(reason);
+            }).finally(() => executions.delete(execution));
+            executions.add(execution);
+          });
+        });
+        tail = foreground.then(() => undefined, () => undefined);
+        return foreground;
+      },
+      dispose,
+    };
+  }
+
+  #clearWarmedInvocation(): void {
+    const warm = this._warmedInvocation;
+    if (!warm) return;
+    this._warmedInvocation = undefined;
+    void warm.stdin.close();
+    warm.budget.close();
+    void warm.scope.close();
+    warm.owner.finish({ kind: "return", value: undefined });
+    warm.cancellationState.close();
+  }
+
+  #isDefaultExecOptions(options: ShellExecOptions, currentScope?: InvocationScope): boolean {
+    return (
+      options.captureOutput !== false &&
+      options.signal === undefined &&
+      options.limits === undefined &&
+      options.onInternalError === undefined &&
+      options.stdin === undefined &&
+      options.stdout === undefined &&
+      options.stderr === undefined &&
+      options.env === undefined &&
+      options.cwd === undefined &&
+      options.state === undefined &&
+      options.onState === undefined &&
+      options.hooks === undefined &&
+      options.capabilities === undefined &&
+      options.admittedHandles === undefined &&
+      options.processSignals === undefined &&
+      options.fs === undefined &&
+      !this.#hasCustomCommands &&
+      this.#middleware.length === 0 &&
+      (!this._options.extensions || this._options.extensions.length === 0) &&
+      this._options.hooks === undefined &&
+      !this.#hasInitialEnv &&
+      isSyncResolved(this.#ready) &&
+      (!this._singleActiveScope || this._singleActiveScope === currentScope) &&
+      !this.#active
+    );
+  }
+
+  exec(source: string, options: ShellExecOptions = EMPTY_EXEC_OPTIONS): Promise<ShellResult> {
+    if (!this._disposed && typeof source === "string" && (options === EMPTY_EXEC_OPTIONS || this.#isDefaultExecOptions(options))) {
+      const fast = tryExecFast(this, source, options);
+      if (fast !== undefined) return fast;
+    }
+    return this.#execAsync(source, options);
+  }
+
+  async #execAsync(source: string, options: ShellExecOptions = EMPTY_EXEC_OPTIONS): Promise<ShellResult> {
+    if (this._disposed) throw new Error("Shell is disposed");
+    if (options.onInternalError !== undefined && typeof options.onInternalError !== "function") throw new TypeError("onInternalError must be callable");
+    warnIfHostProcessEnv(options.env);
+    let warm: WarmedInvocation | undefined;
+    if (this._warmedInvocation) {
+      if (this.#isDefaultExecOptions(options)) {
+        warm = this._warmedInvocation;
+        this._warmedInvocation = undefined;
+      } else {
+        this.#clearWarmedInvocation();
+      }
+    }
+    const limits = options.limits === undefined ? this._resolvedLimits : resolveLimits(this._options.limits, options.limits);
+    const budget = warm ? warm.budget : new Budget(limits, options.signal, options.onInternalError ?? this._options.onInternalError);
+    const session = this.#sessionExecutions.get(options);
+    if (session) budget.session = session;
+    const scope = warm ? warm.scope : new InvocationScope(options.signal);
+    const cancellationState = warm ? warm.cancellationState : new RuntimeCancellationState();
+    const owner = warm ? warm.owner : new RootInvocationCancellationOwner(scope);
+    const admission = warm ? warm.admission : Runtime.rootCancellationAdmission(budget);
+    const boundary = warm ? warm.boundary : createRootCancellationLink({
+      admission,
+      callerSignal: options.signal,
+      budgetControlSignal: budget.controller.signal,
+      nativeDeliverySignal: this.#hasCustomCommands || this.#middleware.length > 0 || options.signal !== undefined,
+    });
+    if (!warm) {
+      try { owner.activate(boundary); }
+      catch (error) {
+        scope.failures.push(...boundary.close().failures);
+        await scope.close();
+        cancellationState.close();
+        throw error;
+      }
+    }
+    let activeEntry: { scope: InvocationScope; budget: Budget; owner: RootInvocationCancellationOwner } | undefined;
+    if (!this._singleActiveScope && !this.#active) {
+      this._singleActiveScope = scope;
+      this._singleActiveBudget = budget;
+      this._singleActiveOwner = owner;
+    } else {
+      if (!this.#active) {
+        this.#active = new Set();
+        if (this._singleActiveScope) {
+          this.#active.add({ scope: this._singleActiveScope, budget: this._singleActiveBudget!, owner: this._singleActiveOwner! });
+          this._singleActiveScope = undefined;
+          this._singleActiveBudget = undefined;
+          this._singleActiveOwner = undefined;
+        }
+      }
+      activeEntry = { scope, budget, owner };
+      this.#active.add(activeEntry);
+    }
+    let captured: CapturedCancellationOutcome<ShellResult>;
+    try {
+      captured = await owner.capture(this.#execute(source, options, scope, budget, boundary, cancellationState, owner, admission, warm));
+      if (captured.kind === "throw" && budget.hasExecutionCleanup) budget.executionCleanup.abort(captured.reason);
+    } finally {
+      if (this._warmedInvocation?.budget !== budget) {
+        if (budget.hasExecutionCleanup) {
+          const cleanupDrain = budget.executionCleanup.drain();
+          if (!isSyncResolved(cleanupDrain)) await cleanupDrain;
+          if (budget.executionCleanup.failures.length > 0) scope.failures.push(...budget.executionCleanup.failures);
+        }
+        budget.close();
+        const scopeClose = scope.close();
+        if (!isSyncResolved(scopeClose)) await scopeClose;
+      }
+    }
+    const selection = this._warmedInvocation?.budget === budget
+      ? (owner.resetForReuse(), { outcome: captured })
+      : owner.finish(captured);
+    if (this._warmedInvocation?.budget !== budget) {
+      cancellationState.close();
+    }
+    if (activeEntry) {
+      this.#active!.delete(activeEntry);
+    } else if (this._singleActiveScope === scope) {
+      this._singleActiveScope = undefined;
+      this._singleActiveBudget = undefined;
+      this._singleActiveOwner = undefined;
+    } else if (this.#active) {
+      for (const entry of this.#active) {
+        if (entry.scope !== scope) continue;
+        this.#active.delete(entry);
+        break;
+      }
+    }
+    if (selection.outcome.kind === "throw") throw selection.outcome.reason;
+    if (scope.hasFailures) throwCleanupFailures(scope.failures);
+    return selection.outcome.value;
+  }
+
+  async #execute(
+    source: string,
+    options: ShellExecOptions,
+    scope: InvocationScope,
+    budget: Budget,
+    cancellation: CancellationBoundary,
+    cancellationState: RuntimeCancellationState,
+    owner: RootInvocationCancellationOwner,
+    admission: ReturnType<typeof Runtime.rootCancellationAdmission>,
+    warm?: WarmedInvocation,
+  ): Promise<ShellResult> {
+    if (typeof source !== "string") throw new TypeError("Shell source must be a string");
+    const sourceByteLength = utf8ByteLength(source);
+    if (sourceByteLength > budget.limits.maxSourceBytes) throw new ShellLimitError("maxSourceBytes");
+    budget.source(sourceByteLength);
+    budget.signal.throwIfAborted();
+    if (!warm) scope.setActiveBudget(budget);
+    const captureSignal = !this.#hasCustomCommands && this.#middleware.length === 0 ? cancellation.deliverySignal : budget.signal;
+    const stdout = options.captureOutput === false ? undefined : warm ? warm.stdout : new Capture(options.stdout === undefined ? budget : undefined, captureSignal);
+    const stderr = options.captureOutput === false ? undefined : warm ? warm.stderr : new Capture(options.stderr === undefined ? budget : undefined, captureSignal);
+    let stdin: ShellInput | undefined = warm?.stdin;
+    let unregisterStdin: (() => void) | undefined;
+    if (options.stdin !== undefined && typeof options.stdin !== "string" && !(options.stdin instanceof Uint8Array)) {
+      unregisterStdin = scope.register(async () => {
+        try { await stdin?.close(); }
+        catch (error) { if (!budget.signal.aborted || !Object.is(error, budget.signal.reason)) throw error; }
+      });
+    }
+    const readySync = isSyncResolved(this.#ready);
+    const initialCapabilities = !readySync
+      ? undefined!
+      : options.capabilities === undefined && options.limits === undefined
+        ? (this.#defaultIoCapabilities ??= Object.freeze({ ...this.#capabilities, ...this._options.capabilities, ...(budget.limits.commandLimits === undefined ? {} : { commandLimits: budget.limits.commandLimits }) }))
+        : Object.freeze({ ...this.#capabilities, ...this._options.capabilities, ...options.capabilities, ...(budget.limits.commandLimits === undefined ? {} : { commandLimits: budget.limits.commandLimits }) });
+    const io: { -readonly [K in keyof Parameters<Runtime["runUnit"]>[2]]: Parameters<Runtime["runUnit"]>[2][K] } = warm ? warm.io : {
+      capabilities: initialCapabilities,
+      [invocationScope]: scope,
+      stdin: SHARED_EMPTY_SOURCE,
+      stdinIsDefault: options.stdin === undefined,
+      stdout: createInvocationSink(budget, stdout, options.stdout),
+      stderr: createInvocationSink(budget, stderr, options.stderr),
+    };
+    if (options.admittedHandles !== undefined) io.admittedHandles = options.admittedHandles;
+    if (options.processSignals !== undefined) io.processSignals = options.processSignals;
+    let exitCode: number;
+    let runtime: Runtime | undefined = warm?.runtime;
+    let state: State | undefined = warm?.currentState;
+    let failed = false;
+    try {
+      try {
+        const rawExtensions = this._options.extensions;
+        const extensions = !rawExtensions || rawExtensions.length === 0
+          ? EMPTY_CAPTURED_EXTENSIONS
+          : captureShellExtensions(rawExtensions);
+        const locale = options.env === undefined
+          ? this._initialLocale
+          : (!this.#hasInitialEnv ? byteLocale(options.env) : byteLocale({ ...this._options.env, ...options.env }));
+        const canCacheParse = extensions === EMPTY_CAPTURED_EXTENSIONS && source.length <= 16384;
+        const sourceCache = canCacheParse ? this._getSourceParseCache(source) : undefined;
+        let parseState: ParseUnitState | undefined;
+        let currentCachedUnit: CachedParsedUnit | undefined = sourceCache !== undefined
+          ? (locale ? sourceCache.first1 : sourceCache.first0)
+          : undefined;
+        let unit: ReturnType<typeof parseShellUnit>;
+        let currentState: State;
+        if (warm) {
+          currentState = warm.currentState;
+          currentState.shellStartedAt = Date.now();
+          runtime = warm.runtime;
+        } else {
+
+        if (!readySync) {
+          await interruptible(this.#ready, budget.signal);
+          io.capabilities = options.capabilities === undefined && options.limits === undefined
+            ? (this.#defaultIoCapabilities ??= Object.freeze({ ...this.#capabilities, ...this._options.capabilities, ...(budget.limits.commandLimits === undefined ? {} : { commandLimits: budget.limits.commandLimits }) }))
+            : Object.freeze({ ...this.#capabilities, ...this._options.capabilities, ...options.capabilities, ...(budget.limits.commandLimits === undefined ? {} : { commandLimits: budget.limits.commandLimits }) });
+        } else {
+          budget.signal.throwIfAborted();
+        }
+        const cwd = options.cwd !== undefined ? resolvePath("/", options.cwd) : (this._options.cwd ?? "/");
+        const variables = Object.create(null) as Record<string, string>;
+        let exported: Set<string> | undefined;
+        if (!this.#hasInitialEnv && options.env === undefined) {
+          variables.PWD = cwd;
+        } else {
+          Object.assign(variables, this._options.env, options.env, { PWD: cwd });
+          if (options.env !== undefined) {
+            for (const [name, value] of Object.entries(options.env)) {
+              if (name.includes("\0") || name.includes("=") || typeof value !== "string" || value.includes("\0")) throw new TypeError("Invalid environment entry");
+            }
+          }
+          exported = new Set(Object.keys(variables));
+        }
+        variables.OPTIND = "1";
+        variables.OPTERR = "1";
+        variables.IFS ??= " \t\n";
+        currentState = new RootShellState(
+          cwd,
+          variables,
+          exported,
+          undefined,
+        );
+        currentState.processSubstitutionIds = this.#processSubstitutionIds;
+        state = currentState;
+        const beforeExecHook = options.hooks?.beforeExec ?? this._options.hooks?.beforeExec;
+        const restoredSnapshot = options.state ?? (beforeExecHook ? await beforeExecHook({ source, options }) : undefined);
+        if (restoredSnapshot) {
+          currentState = await restoreShellSessionState(
+            currentState,
+            restoredSnapshot,
+            { cwd: options.cwd, env: options.env },
+            budget,
+            scope,
+            extensions.syntax,
+          );
+          state = currentState;
+        }
+        const filesystem = options.fs ?? this._options.fs;
+        let runtimeFs: typeof filesystem;
+        if (options.fs === undefined) {
+          if (!this.#defaultRuntimeFs) {
+            this.#defaultRuntimeFs = this._options.deviceView === "provided" ? filesystem : createDeviceFileSystem(filesystem);
+            registerRuntimeBackingFileSystem(this.#defaultRuntimeFs, filesystem);
+          }
+          runtimeFs = this.#defaultRuntimeFs;
+        } else {
+          runtimeFs = this._options.deviceView === "provided" ? filesystem : createDeviceFileSystem(filesystem);
+          registerRuntimeBackingFileSystem(runtimeFs, filesystem);
+        }
+        runtime = new Runtime(
+          runtimeFs,
+          this.commands,
+          this.#middleware,
+          budget,
+          this.#hasCustomCommands || this.#middleware.length > 0
+            ? combineManagedSignals(cancellation.deliverySignal, scope.signal)
+            : cancellation.deliverySignal,
+          undefined,
+          undefined,
+          cancellation.deliverySignal,
+          cancellation,
+          cancellationState,
+          owner,
+          0,
+          admission.maxDepth,
+          undefined,
+          filesystem,
+          true,
+        );
+        // Finalizers run after child scopes and cooperative cleanup, including cancellation.
+        scope.registerFinalizer(runtime.releaseAnchorResources.bind(runtime));
+        }
+        const aliases = currentState.expand_aliases ? currentState.aliases : undefined;
+        if (currentCachedUnit && currentCachedUnit.extglob === !!currentState.extglob && !aliases?.size) {
+          budget.parsing.admit(currentCachedUnit.unitsCharged);
+          unit = currentCachedUnit.unit;
+        } else {
+          parseState = { lineIndex: undefined, lineIndexUnits: 0, currentCachedUnit: undefined };
+          unit = getOrParseUnitFromCache(source, 0, byteLocale(currentState.variables), sourceCache, parseState, budget, extensions.syntax, aliases, !!currentState.extglob);
+          currentCachedUnit = parseState.currentCachedUnit;
+        }
+        // Capture syntax before parsing, but defer host extension getters and factories.
+        if (!warm) currentState.extensions = extensionState(extensions.definitions, undefined, undefined, defaultPortableTrapExtension, budget.session);
+        if (!warm) {
+          if (options.stdin === undefined || typeof options.stdin === "string" || options.stdin instanceof Uint8Array) {
+            const value = options.stdin ?? "";
+            const needsCopy = extensions !== EMPTY_CAPTURED_EXTENSIONS || this.#hasCustomCommands || this.#middleware.length > 0;
+            const inlineBytes = typeof value === "string"
+              ? (value.length > 0 ? sharedUtf8Encoder.encode(value) : undefined)
+              : (value.byteLength > 0 ? (needsCopy ? new Uint8Array(value) : value) : undefined);
+            stdin = inlineBytes
+              ? new ShellInput(SHARED_EMPTY_SOURCE, budget, budget.signal, {
+                  provenance: "stream",
+                  initialChunk: inlineBytes,
+                  initialChunkOwned: true,
+                })
+              : new ShellInput(SHARED_EMPTY_SOURCE, budget, budget.signal, EMPTY_STDIN_OPTIONS);
+            if (options.stdin !== undefined) scope.setActiveStdin(stdin);
+          } else stdin = new ShellInput(options.stdin as ConstructorParameters<typeof ShellInput>[0], budget);
+          io.stdin = stdin;
+        }
+        exitCode = 0;
+        while (true) {
+          if (unit.script.warnings) {
+            for (const warning of unit.script.warnings) await writeDiagnostic(io.stderr, `shell: warning: ${warning}\n`);
+          }
+          if (unit.script.lists.length) {
+            const unitResult = runtime.runUnit(unit.script, currentState, io);
+            const result = unitResult instanceof Promise
+              ? await interruptible(unitResult, budget.signal)
+              : unitResult;
+            budget.signal.throwIfAborted();
+            exitCode = result.exitCode;
+            if (result.terminated) break;
+          }
+          if (unit.next >= source.length) break;
+          budget.signal.throwIfAborted();
+          const vars = currentState.variables;
+          const nextLocale = (vars.LC_ALL || vars.LC_CTYPE || vars.LANG) ? byteLocale(vars) : false;
+          if (!currentState.expand_aliases && currentCachedUnit && currentCachedUnit.locale === nextLocale && currentCachedUnit.nextCached !== undefined && currentCachedUnit.nextCached.extglob === !!currentState.extglob) {
+            currentCachedUnit = currentCachedUnit.nextCached;
+            budget.parsing.admit(currentCachedUnit.unitsCharged);
+            unit = currentCachedUnit.unit;
+          } else {
+            parseState ??= { lineIndex: undefined, lineIndexUnits: 0, currentCachedUnit };
+            parseState.currentCachedUnit = currentCachedUnit;
+            unit = getOrParseUnitFromCache(source, unit.next, nextLocale, sourceCache, parseState, budget, extensions.syntax, currentState.expand_aliases ? currentState.aliases : undefined, !!currentState.extglob);
+            currentCachedUnit = parseState.currentCachedUnit;
+          }
+        }
+      } catch (error) {
+        if (!(error instanceof ShellSyntaxError)) throw error;
+        await writeDiagnostic(io.stderr, syntaxDiagnostic(source, error));
+        exitCode = error.exitCode;
+      }
+      if (runtime && state && !runtime.tryFinishShellSync(state)) {
+        exitCode = await runtime.finishShell(state, io, exitCode);
+      }
+    } catch (error) {
+      failed = true;
+      if (budget.hasExecutionCleanup) budget.executionCleanup.abort(error);
+      throw error;
+    }
+    finally {
+      const expectedCwd = this._options.cwd ?? "/";
+      if (
+        !failed &&
+        // A retained invocation keeps its parse admissions and clock origins.
+        // Bounded executions must create their own budget and deadline instead.
+        budget.limits.maxParseUnits === Infinity &&
+        budget.limits.maxCpuMs === Infinity &&
+        budget.limits.maxWallClockMs === Infinity &&
+        !this._warmedInvocation &&
+        stdout && stderr &&
+        !budget.hasExecutionCleanup &&
+        !scope.hasFailures &&
+        !budget.signal.aborted &&
+        scope.canReuseWarm() &&
+        stdin &&
+        stdin.canReuseWarmEmpty() &&
+        runtime &&
+        // Commands can materialize native signals even with a memory filesystem.
+        // Retire that request-bound state before returning to the host.
+        runtime._isMemoryBackingFs &&
+        !hasNativeAbortSignal(runtime.signal) &&
+        !hasNativeAbortSignal(runtime.commandSignal) &&
+        state &&
+        this.#isDefaultExecOptions(options, scope) &&
+        ((source === "" || source === "x=0" || ++this._execCount >= 2) && runtime.tryResetWarmInvocation(state, expectedCwd))
+      ) {
+        io.descriptors = undefined;
+        if (state.extensions) {
+          state.extensions.started = true;
+          state.extensions.exiting = false;
+        }
+        const rawVars = state.variables;
+        rawVars.__w0 = ""; rawVars.__w1 = ""; rawVars.__w2 = ""; rawVars.__w3 = ""; rawVars.__w4 = "";
+        delete rawVars.__w0; delete rawVars.__w1; delete rawVars.__w2; delete rawVars.__w3; delete rawVars.__w4;
+        const monitor = ensureStateMonitor(state, budget, scope);
+        monitor.values.prewarm();
+        stdout.enableScratchBuffer();
+        stderr.enableScratchBuffer();
+        void runtime.canFastMemoryRedirect;
+        this._warmedInvocation = {
+          budget,
+          scope,
+          cancellationState,
+          owner,
+          admission,
+          boundary: cancellation,
+          stdout,
+          stderr,
+          stdin,
+          io,
+          currentState: state,
+          runtime,
+        };
+      } else {
+        scope.clearActiveBudget();
+        scope.clearActiveStdin();
+        unregisterStdin?.();
+        // Session turns publish foreground results first; #execAsync still owns
+        // and drains this invocation before releasing its runtime and budget.
+        if (budget.hasExecutionCleanup && !budget.session) {
+          const cleanupDrain = budget.executionCleanup.drain();
+          if (!isSyncResolved(cleanupDrain)) await cleanupDrain;
+        }
+        const activeStdin = stdin;
+        stdin = undefined;
+        if (activeStdin) {
+          const closedStdin = activeStdin.close();
+          if (!isSyncResolved(closedStdin)) {
+            if (failed) await closedStdin.catch(() => {});
+            else await closedStdin;
+          }
+        }
+      }
+    }
+    if (budget.hasExecutionCleanup) throwCleanupFailures(budget.executionCleanup.failures);
+    const stdoutBytes = stdout?.takeBytes() ?? EMPTY_STDOUT_BYTES;
+    const stderrBytes = stderr?.takeBytes() ?? EMPTY_STDOUT_BYTES;
+    const afterExecHook = options.hooks?.afterExec ?? this._options.hooks?.afterExec;
+    const shouldCaptureState = Boolean(
+      state && (options.state !== undefined || options.onState !== undefined || options.hooks !== undefined || this._options.hooks !== undefined),
+    );
+    const capturedState = shouldCaptureState && state ? captureShellSessionState(state, exitCode) : undefined;
+    const stdoutStr = stdoutBytes.byteLength === 0 ? "" : sharedUtf8Decoder.decode(stdoutBytes);
+    const stderrStr = stderrBytes.byteLength === 0 ? "" : sharedUtf8Decoder.decode(stderrBytes);
+    if (capturedState === undefined) {
+      const fastResult: ShellResult = {
+        stdout: stdoutStr,
+        stderr: stderrStr,
+        stdoutBytes,
+        stderrBytes,
+        exitCode,
+      };
+      return fastResult;
+    }
+    const result: ShellResult = {
+      stdout: stdoutStr,
+      stderr: stderrStr,
+      stdoutBytes,
+      stderrBytes,
+      exitCode,
+      state: capturedState,
+    };
+    await options.onState?.(capturedState, result);
+    await afterExecHook?.(capturedState, result);
+    return result;
+  }
+
+  dispose(): Promise<void> {
+    if (this.#disposal) return this.#disposal;
+    this._disposed = true;
+    const sessionDrains = [...this.#sessions].map(dispose => dispose());
+    this.#sessions.clear();
+    this.#parsedSourceCache.clear();
+    Runtime.clearStaticPools();
+    (globalThis as { __safeBashClearRgPool?: () => void }).__safeBashClearRgPool?.();
+    this.#clearWarmedInvocation();
+    const active = this.#active
+      ? [...this.#active]
+      : (this._singleActiveScope ? [{ scope: this._singleActiveScope, budget: this._singleActiveBudget!, owner: this._singleActiveOwner! }] : []);
+    const drains: Promise<void>[] = sessionDrains;
+    this.#disposal = Promise.resolve().then(() => this.#dispose(active, drains));
+    for (const { scope, budget } of active) {
+      budget.abort(new Error("Shell is disposed"));
+      drains.push(budget.executionCleanup.drain().then(() => scope.close()));
+    }
+    return this.#disposal;
+  }
+
+  async #dispose(active: readonly { scope: InvocationScope; owner: RootInvocationCancellationOwner }[], drains: readonly Promise<void>[]): Promise<void> {
+    const drained = await Promise.allSettled(drains);
+    await Promise.all(active.map(({ owner }) => owner.finalized));
+    let ready: Promise<void>;
+    do {
+      ready = this.#ready;
+      await ready.catch(() => undefined);
+    } while (ready !== this.#ready);
+    const failures: unknown[] = [];
+    for (const plugin of [...this.#plugins].reverse()) {
+      try { await plugin.dispose?.(); } catch (error) { failures.push(error); }
+    }
+    const cleanupFailures = active.flatMap(({ scope }) => scope.failures);
+    for (const result of drained) {
+      if (result.status === "rejected" && !cleanupFailures.includes(result.reason)) cleanupFailures.push(result.reason);
+    }
+    if (failures.length) throw new AggregateError([...cleanupFailures, ...failures], "Plugin disposal failed");
+    throwCleanupFailures(cleanupFailures);
+  }
+}

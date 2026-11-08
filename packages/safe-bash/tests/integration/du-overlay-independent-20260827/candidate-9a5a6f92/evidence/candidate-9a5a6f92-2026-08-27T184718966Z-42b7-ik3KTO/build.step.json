@@ -1,0 +1,14 @@
+{
+  "name": "build",
+  "command": "/Users/kjopek/Workspace/safe-bash/node_modules/.bin/tsc",
+  "args": [
+    "-p",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-a4yR17/committed/tsconfig.build.json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdoutBytes": 0,
+  "stderrBytes": 0,
+  "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

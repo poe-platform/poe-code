@@ -1,0 +1,108 @@
+READ-ONLY handoff to root / Curie — 2026-08-26
+
+Production source remains byte-identical to4fa4ba9502dac843bd13aa5031d128a3171f597d.
+Observed HEAD5ddce1b0550ad7de8f2a8082f0402fae7aa001b7; src/fs tree
+0981cd1f9ba45150475f97d53f36f638dc08b9fc; contract blob
+232e441527547dcec45ca166c581166c2fd53411. No repository edits/commits.
+No positive-verifier tests duplicated or edited; no remote/contract source edits.
+
+FACTS / ROUTING
+1. Mount.copyFile rejects existing unknown tuples BEFORE same-mount delegation
+   (src/fs/mount/index.ts:414-430). S3/WebDAV publish no complete scoped tuple.
+   Thus legitimate native existing-target copies are blocked even on one mount.
+   Positive verifier is reproducing that compatibility failure; I did not rerun
+   or take over its remote workflow tests.
+2. Direct S3.copyFile uses server CopyObject, not a truncating writer; source
+   conditions are content validators, not cross-client entry identity. Equal
+   normalized paths currently return success. Direct WebDAV COPY uses its own
+   source/destination checks and destination ETag/lock policy. Neither ETags nor
+   locks prove that arbitrary different client views/URIs are distinct resources.
+3. Existing-target cross-backend mount streaming/readFile-writeFile needs actual
+   distinctness proof. Buffering does NOT make an aliased failed write safe.
+   Missing destinations can keep exclusive creation; same-backend native copies
+   require native exclusive support, not merely a prior absent stat.
+4. Core cp still compares bare dev/ino (src/commands/filesystem.ts:48), ignoring
+   identityScope. Curie must reconcile this independently: distinct memory
+   namespaces with colliding coordinates can be falsely rejected before FS copy.
+5. Core mv only invokes rename (filesystem.ts:146-155), without EXDEV copy/delete.
+   Mount.rename rejects different mount records before any backend call. This
+   cross-mount move limitation predates4fa; copy guard changes alone cannot fix it.
+   Same-mount S3/WebDAV native moves still delegate; S3 remains non-atomic with
+   documented conditional-delete/content-validator/partial-failure limits.
+
+SMALLEST NATIVE-DELEGATION CONTRACT OPTION (PROPOSAL, NOT APPROVED)
+  FileSystemCapabilities.guardedCopy?: boolean
+Meaning true: this backend's copyFile authoritatively rejects actual same-entry
+aliases with EINVAL (exclusive existing target EEXIST) BEFORE source acquisition,
+destructive writes or publication, for every supported pair in its own namespace;
+unsupported/unprovable pairs fail ENOTSUP before effects. It preserves the source
+on destination failure, forwards cancellation, and honors exclusive creation.
+It does NOT promise destination rollback, atomic rename, disjointness from another
+backend, or lease/ABA/pathname stability. Absence/false conveys no such guard.
+
+Mount may delegate unknown identity only when BOTH resolved paths use the exact
+same backend object AND that explicit native-operation promise is present; keep
+known-alias/exclusive checks first. Reference equality here routes one operation
+authority, NOT an assertion that different objects have disjoint storage. This
+also covers one backend mounted twice without streaming it through itself.
+Do NOT infer the promise from class/name/protocol/readOnly/atomicRename/method
+presence. Remote owners must verify native behavior before advertising it;
+S3's direct same-path success needs reconciliation, and arbitrary WebDAV servers
+must not acquire this promise merely because they implement COPY/LOCK.
+
+This option restores qualified same-backend native copies only. It is NOT full
+cross-backend compatibility closure. Blindly moving same-mount delegation above
+the unknown guard is source-only but lacks this explicit arbitrary-provider
+safety promise; I do not recommend presenting that as a universal repair.
+
+MINIMUM ADDITION IF CROSS-BACKEND REMOTE COMPARISON IS REQUIRED
+  type EntryComparison = "same" | "distinct" | "unknown";
+  FileSystem.compareEntry?(
+    path: string, peer: FileSystem, peerPath: string, options?: FsOptions
+  ): Promise<EntryComparison>;
+This is an alternative proof seam when providers cannot truthfully publish the
+already-approved complete tuple; it does not replace/redefine identityScope.
+Compare the actual followed entries (copy semantics) using native/provider/shared
+negotiated identity authority, metadata-only and before source/target effects.
+Unknown remains unknown; equal content/ETags, distinct clients, roots, URLs, or
+unrelated tokens NEVER establish distinctness. Peer recognition must use explicit
+shared authority/registration, not casts/private reflection/constructor tests.
+Wrappers route both operands to their actual selected backing views; readonly
+cannot erase its policy, and overlay must resolve its actual selected entry.
+The consumer can try either authority once; unknown does not authorize writing,
+and contradictory authoritative answers fail before effects. This seam can
+authorize distinct-key streaming without fabricated numeric inodes or per-client
+disjoint scopes. It cannot manufacture knowledge for unnegotiated arbitrary
+clients. Do not add both seams by default: Curie/root should choose the smallest
+native-operation or comparison proof actually available from remote owners.
+
+REQUIRED ACCEPTANCE / MOVE LIMITS
+Keep frozen original4+required49 pre-effect oracles unchanged. Add positive
+distinct-existing/missing/native copies; shared-storage two-client alias cases;
+unsupported native guard; unknown comparison; colliding numbers; wrappers;
+exclusive insertion races; source/target failure effects and cancellation.
+The positive verifier owns those compatibility tests; coordinate, do not duplicate.
+Default cross-mount mv needs separate Curie-approved routing/fallback semantics.
+Never implement move as successful/no-op alias copy followed by source rm. If a
+copy/delete fallback is approved, require proven distinctness, successful copy
+before any source deletion, no deletion on EINVAL/unknown/failure, and disclose
+that current path rm offers no conditional-incarnation/ABA guarantee. A native
+same-authority rename can avoid copy/delete but must be explicitly routed, not
+inferred from client identity or a claimed disjoint scope.
+
+BOUNDED MOVE OBSERVATION (inline in-memory probe, no new test files)
+Created /file containing "move alias sentinel" and hardlink /alias, then rename:
+- one mounted memory backend: success, one native rename, both names/bytes intact;
+- same backend at two mounts: EXDEV, zero backing mutation calls, names/bytes intact;
+- overlay with upper hardlinks: success, one upper rename, physical names/bytes intact;
+- overlay with lower hardlinks: ENOTSUP, zero lower mutations, names/bytes intact.
+Assertions passed; six owned implementation hashes matched before/after. No
+source-loss move was reproduced by this bounded probe. It does NOT establish
+arbitrary remote MOVE safety or rule out untested alias/provider cases.
+
+DECISION NEEDED
+Current fail-closed behavior preserves the tested unknown aliases but fails the
+new positive compatibility gate. No universal default success is possible for
+indistinguishable unknown-alias and unknown-distinct providers without additional
+authoritative information or a guaranteed native operation. Curie owns that exact
+ruling/typed seam; root must coordinate any source change after frozen review.

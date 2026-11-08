@@ -1,0 +1,1839 @@
+{
+  "capturedAt": "2026-08-26T20:57:53.289Z",
+  "primary": {
+    "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+    "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+    "stdout": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software; you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n",
+    "stderr": "",
+    "stdoutBase64": "R05VIGJhc2gsIHZlcnNpb24gNS4zLjAoMSktcmVsZWFzZSAoYWFyY2g2NC1hcHBsZS1kYXJ3aW4yNS40LjApCkNvcHlyaWdodCAoQykgMjAyNSBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb24sIEluYy4KTGljZW5zZSBHUEx2Mys6IEdOVSBHUEwgdmVyc2lvbiAzIG9yIGxhdGVyIDxodHRwOi8vZ251Lm9yZy9saWNlbnNlcy9ncGwuaHRtbD4KClRoaXMgaXMgZnJlZSBzb2Z0d2FyZTsgeW91IGFyZSBmcmVlIHRvIGNoYW5nZSBhbmQgcmVkaXN0cmlidXRlIGl0LgpUaGVyZSBpcyBOTyBXQVJSQU5UWSwgdG8gdGhlIGV4dGVudCBwZXJtaXR0ZWQgYnkgbGF3Lgo=",
+    "stderrBase64": ""
+  },
+  "legacy": {
+    "executable": "/bin/bash",
+    "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+    "stdout": "GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)\nCopyright (C) 2007 Free Software Foundation, Inc.\n",
+    "stderr": "",
+    "stdoutBase64": "R05VIGJhc2gsIHZlcnNpb24gMy4yLjU3KDEpLXJlbGVhc2UgKGFybTY0LWFwcGxlLWRhcndpbjI1KQpDb3B5cmlnaHQgKEMpIDIwMDcgRnJlZSBTb2Z0d2FyZSBGb3VuZGF0aW9uLCBJbmMuCg==",
+    "stderrBase64": ""
+  },
+  "platform": "darwin/arm64",
+  "node": "v22.22.2",
+  "caseSourceSha256": "7829b1528b38d8951692ea8fdbc9ad7bd9119284f5a772528f86d08c5c935714",
+  "safety": {
+    "literalArgv": true,
+    "shell": false,
+    "detached": true,
+    "deadlineMs": 2000,
+    "combinedOutputBytes": 65536,
+    "sanitizedEnvironment": true,
+    "isolatedTemporaryCwd": true,
+    "cleanup": "finally plus shared process-group cleanup",
+    "capturesPerBinaryPerCase": 2
+  },
+  "policy": "GNU Bash 5.3.0 is primary only for these NEW cases; all existing Bash3.2 references and expectations remain unchanged. Raw streams and file bytes are preserved without diagnostic normalization.",
+  "cases": [
+    {
+      "fixture": {
+        "group": "descriptor",
+        "name": "literal-builtin-move-source-stays-closed",
+        "script": "{ printf head >&3; printf body 4>&3- >&4; printf tail >&3; status=$?; printf \"end:%s\" \"$status\"; : >after; } 3>out"
+      },
+      "primary": {
+        "stdout": "end:1",
+        "stderr": "shell-stress: line 1: 3: Bad file descriptor\n",
+        "stdoutBase64": "ZW5kOjE=",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiBsaW5lIDE6IDM6IEJhZCBmaWxlIGRlc2NyaXB0b3IK",
+        "exitCode": 0,
+        "files": {
+          "after": {
+            "type": "file",
+            "base64": ""
+          },
+          "out": {
+            "type": "file",
+            "base64": "aGVhZGJvZHk="
+          }
+        }
+      },
+      "legacy": {
+        "stdout": "end:1",
+        "stderr": "shell-stress: 3: Bad file descriptor\n",
+        "stdoutBase64": "ZW5kOjE=",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiAzOiBCYWQgZmlsZSBkZXNjcmlwdG9yCg==",
+        "exitCode": 0,
+        "files": {
+          "after": {
+            "type": "file",
+            "base64": ""
+          },
+          "out": {
+            "type": "file",
+            "base64": "aGVhZGJvZHk="
+          }
+        }
+      },
+      "differs": true
+    },
+    {
+      "fixture": {
+        "group": "descriptor",
+        "name": "literal-function-move-source-stays-closed",
+        "script": "send() { printf body >&4; }; { printf head >&3; send 4>&3-; printf tail >&3; status=$?; printf \"end:%s\" \"$status\"; : >after; } 3>out"
+      },
+      "primary": {
+        "stdout": "end:1",
+        "stderr": "shell-stress: line 1: 3: Bad file descriptor\n",
+        "stdoutBase64": "ZW5kOjE=",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiBsaW5lIDE6IDM6IEJhZCBmaWxlIGRlc2NyaXB0b3IK",
+        "exitCode": 0,
+        "files": {
+          "after": {
+            "type": "file",
+            "base64": ""
+          },
+          "out": {
+            "type": "file",
+            "base64": "aGVhZGJvZHk="
+          }
+        }
+      },
+      "legacy": {
+        "stdout": "end:1",
+        "stderr": "shell-stress: 3: Bad file descriptor\n",
+        "stdoutBase64": "ZW5kOjE=",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiAzOiBCYWQgZmlsZSBkZXNjcmlwdG9yCg==",
+        "exitCode": 0,
+        "files": {
+          "after": {
+            "type": "file",
+            "base64": ""
+          },
+          "out": {
+            "type": "file",
+            "base64": "aGVhZGJvZHk="
+          }
+        }
+      },
+      "differs": true
+    },
+    {
+      "fixture": {
+        "group": "descriptor",
+        "name": "literal-group-move-source-stays-closed",
+        "script": "{ printf head >&3; { printf body >&4; } 4>&3-; printf tail >&3; status=$?; printf \"end:%s\" \"$status\"; : >after; } 3>out"
+      },
+      "primary": {
+        "stdout": "end:1",
+        "stderr": "shell-stress: line 1: 3: Bad file descriptor\n",
+        "stdoutBase64": "ZW5kOjE=",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiBsaW5lIDE6IDM6IEJhZCBmaWxlIGRlc2NyaXB0b3IK",
+        "exitCode": 0,
+        "files": {
+          "after": {
+            "type": "file",
+            "base64": ""
+          },
+          "out": {
+            "type": "file",
+            "base64": "aGVhZGJvZHk="
+          }
+        }
+      },
+      "legacy": {
+        "stdout": "end:1",
+        "stderr": "shell-stress: 3: Bad file descriptor\n",
+        "stdoutBase64": "ZW5kOjE=",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiAzOiBCYWQgZmlsZSBkZXNjcmlwdG9yCg==",
+        "exitCode": 0,
+        "files": {
+          "after": {
+            "type": "file",
+            "base64": ""
+          },
+          "out": {
+            "type": "file",
+            "base64": "aGVhZGJvZHk="
+          }
+        }
+      },
+      "differs": true
+    },
+    {
+      "fixture": {
+        "group": "descriptor",
+        "name": "literal-subshell-move-isolated",
+        "script": "{ printf head >&3; ( printf body >&4 ) 4>&3-; printf tail >&3; status=$?; printf \"end:%s\" \"$status\"; : >after; } 3>out"
+      },
+      "primary": {
+        "stdout": "end:0",
+        "stderr": "",
+        "stdoutBase64": "ZW5kOjA=",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {
+          "after": {
+            "type": "file",
+            "base64": ""
+          },
+          "out": {
+            "type": "file",
+            "base64": "aGVhZGJvZHl0YWls"
+          }
+        }
+      },
+      "legacy": {
+        "stdout": "end:0",
+        "stderr": "",
+        "stdoutBase64": "ZW5kOjA=",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {
+          "after": {
+            "type": "file",
+            "base64": ""
+          },
+          "out": {
+            "type": "file",
+            "base64": "aGVhZGJvZHl0YWls"
+          }
+        }
+      },
+      "differs": false
+    },
+    {
+      "fixture": {
+        "group": "descriptor",
+        "name": "external-cat-versus-plugin-move-scope",
+        "script": "{ printf head >&3; cat input 4>&3- >&4; printf tail >&3; status=$?; printf \"end:%s\" \"$status\"; : >after; } 3>out",
+        "initialFiles": {
+          "input": "body"
+        }
+      },
+      "primary": {
+        "stdout": "end:0",
+        "stderr": "",
+        "stdoutBase64": "ZW5kOjA=",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {
+          "after": {
+            "type": "file",
+            "base64": ""
+          },
+          "input": {
+            "type": "file",
+            "base64": "Ym9keQ=="
+          },
+          "out": {
+            "type": "file",
+            "base64": "aGVhZGJvZHl0YWls"
+          }
+        }
+      },
+      "legacy": {
+        "stdout": "end:0",
+        "stderr": "",
+        "stdoutBase64": "ZW5kOjA=",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {
+          "after": {
+            "type": "file",
+            "base64": ""
+          },
+          "input": {
+            "type": "file",
+            "base64": "Ym9keQ=="
+          },
+          "out": {
+            "type": "file",
+            "base64": "aGVhZGJvZHl0YWls"
+          }
+        }
+      },
+      "differs": false
+    },
+    {
+      "fixture": {
+        "group": "descriptor",
+        "name": "pipeline-move-isolated-from-parent",
+        "script": "{ printf head >&3; printf body | cat 4>&3- >&4; printf tail >&3; status=$?; printf \"end:%s\" \"$status\"; : >after; } 3>out"
+      },
+      "primary": {
+        "stdout": "end:0",
+        "stderr": "",
+        "stdoutBase64": "ZW5kOjA=",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {
+          "after": {
+            "type": "file",
+            "base64": ""
+          },
+          "out": {
+            "type": "file",
+            "base64": "aGVhZGJvZHl0YWls"
+          }
+        }
+      },
+      "legacy": {
+        "stdout": "end:0",
+        "stderr": "",
+        "stdoutBase64": "ZW5kOjA=",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {
+          "after": {
+            "type": "file",
+            "base64": ""
+          },
+          "out": {
+            "type": "file",
+            "base64": "aGVhZGJvZHl0YWls"
+          }
+        }
+      },
+      "differs": false
+    },
+    {
+      "fixture": {
+        "group": "descriptor",
+        "name": "expanded-output-move-is-not-literal",
+        "script": "target=3-; { printf wrong; } 3>out 4>&$target; printf \"status:%s\" \"$?\"; : >after"
+      },
+      "primary": {
+        "stdout": "status:1",
+        "stderr": "shell-stress: line 1: 3-: ambiguous redirect\n",
+        "stdoutBase64": "c3RhdHVzOjE=",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiBsaW5lIDE6IDMtOiBhbWJpZ3VvdXMgcmVkaXJlY3QK",
+        "exitCode": 0,
+        "files": {
+          "after": {
+            "type": "file",
+            "base64": ""
+          },
+          "out": {
+            "type": "file",
+            "base64": ""
+          }
+        }
+      },
+      "legacy": {
+        "stdout": "status:1",
+        "stderr": "shell-stress: 3-: ambiguous redirect\n",
+        "stdoutBase64": "c3RhdHVzOjE=",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiAzLTogYW1iaWd1b3VzIHJlZGlyZWN0Cg==",
+        "exitCode": 0,
+        "files": {
+          "after": {
+            "type": "file",
+            "base64": ""
+          },
+          "out": {
+            "type": "file",
+            "base64": ""
+          }
+        }
+      },
+      "differs": true
+    },
+    {
+      "fixture": {
+        "group": "descriptor",
+        "name": "quoted-expanded-input-move-is-not-literal",
+        "script": "target=3-; { cat <&4; } 3<input 4<&\"$target\"; printf \"status:%s\" \"$?\"",
+        "initialFiles": {
+          "input": "untouched"
+        }
+      },
+      "primary": {
+        "stdout": "status:1",
+        "stderr": "shell-stress: line 1: 3-: ambiguous redirect\n",
+        "stdoutBase64": "c3RhdHVzOjE=",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiBsaW5lIDE6IDMtOiBhbWJpZ3VvdXMgcmVkaXJlY3QK",
+        "exitCode": 0,
+        "files": {
+          "input": {
+            "type": "file",
+            "base64": "dW50b3VjaGVk"
+          }
+        }
+      },
+      "legacy": {
+        "stdout": "status:1",
+        "stderr": "shell-stress: 3-: ambiguous redirect\n",
+        "stdoutBase64": "c3RhdHVzOjE=",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiAzLTogYW1iaWd1b3VzIHJlZGlyZWN0Cg==",
+        "exitCode": 0,
+        "files": {
+          "input": {
+            "type": "file",
+            "base64": "dW50b3VjaGVk"
+          }
+        }
+      },
+      "differs": true
+    },
+    {
+      "fixture": {
+        "group": "descriptor",
+        "name": "moved-input-alias-shares-read-offset",
+        "script": "{ IFS= read -rn2 first <&4; IFS= read -rd: second <&5; printf \"<%s>|<%s>:\" \"$first\" \"$second\"; cat <&4; } 3<input 5<&3 4<&3-",
+        "initialFiles": {
+          "input": "abCD:tail"
+        }
+      },
+      "primary": {
+        "stdout": "<ab>|<CD>:tail",
+        "stderr": "",
+        "stdoutBase64": "PGFiPnw8Q0Q+OnRhaWw=",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {
+          "input": {
+            "type": "file",
+            "base64": "YWJDRDp0YWls"
+          }
+        }
+      },
+      "legacy": {
+        "stdout": "<ab>|<CD>:tail",
+        "stderr": "",
+        "stdoutBase64": "PGFiPnw8Q0Q+OnRhaWw=",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {
+          "input": {
+            "type": "file",
+            "base64": "YWJDRDp0YWls"
+          }
+        }
+      },
+      "differs": false
+    },
+    {
+      "fixture": {
+        "group": "descriptor",
+        "name": "move-chain-closes-original-before-later-redirect",
+        "script": "{ printf wrong; } 3>out 4>&3- 5>&3; printf \"status:%s\" \"$?\"; : >after"
+      },
+      "primary": {
+        "stdout": "status:1",
+        "stderr": "shell-stress: line 1: 3: Bad file descriptor\n",
+        "stdoutBase64": "c3RhdHVzOjE=",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiBsaW5lIDE6IDM6IEJhZCBmaWxlIGRlc2NyaXB0b3IK",
+        "exitCode": 0,
+        "files": {
+          "after": {
+            "type": "file",
+            "base64": ""
+          },
+          "out": {
+            "type": "file",
+            "base64": ""
+          }
+        }
+      },
+      "legacy": {
+        "stdout": "status:1",
+        "stderr": "shell-stress: 3: Bad file descriptor\n",
+        "stdoutBase64": "c3RhdHVzOjE=",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiAzOiBCYWQgZmlsZSBkZXNjcmlwdG9yCg==",
+        "exitCode": 0,
+        "files": {
+          "after": {
+            "type": "file",
+            "base64": ""
+          },
+          "out": {
+            "type": "file",
+            "base64": ""
+          }
+        }
+      },
+      "differs": true
+    },
+    {
+      "fixture": {
+        "group": "read",
+        "name": "count-wins-before-custom-delimiter",
+        "script": "IFS= read -n3 -d : first; status=$?; printf \"<%s>|<%s>:%s:\" \"$first\" \"$second\" \"$status\"; cat",
+        "stdin": "abcd:rest\n"
+      },
+      "primary": {
+        "stdout": "<abc>|<>:0:d:rest\n",
+        "stderr": "",
+        "stdoutBase64": "PGFiYz58PD46MDpkOnJlc3QK",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "legacy": {
+        "stdout": "<abc>|<>:0:d:rest\n",
+        "stderr": "",
+        "stdoutBase64": "PGFiYz58PD46MDpkOnJlc3QK",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "differs": false
+    },
+    {
+      "fixture": {
+        "group": "read",
+        "name": "escaped-delimiter-counts-as-data",
+        "script": "IFS= read -n3 -d : first; status=$?; printf \"<%s>|<%s>:%s:\" \"$first\" \"$second\" \"$status\"; cat",
+        "stdin": "a\\:b:tail"
+      },
+      "primary": {
+        "stdout": "<a:b>|<>:0::tail",
+        "stderr": "",
+        "stdoutBase64": "PGE6Yj58PD46MDo6dGFpbA==",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "legacy": {
+        "stdout": "<a:b>|<>:0::tail",
+        "stderr": "",
+        "stdoutBase64": "PGE6Yj58PD46MDo6dGFpbA==",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "differs": false
+    },
+    {
+      "fixture": {
+        "group": "read",
+        "name": "continuation-does-not-use-count",
+        "script": "IFS= read -n3 -d : first; status=$?; printf \"<%s>|<%s>:%s:\" \"$first\" \"$second\" \"$status\"; cat",
+        "stdin": "a\\\nbc:tail"
+      },
+      "primary": {
+        "stdout": "<abc>|<>:0::tail",
+        "stderr": "",
+        "stdoutBase64": "PGFiYz58PD46MDo6dGFpbA==",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "legacy": {
+        "stdout": "<abc>|<>:0::tail",
+        "stderr": "",
+        "stdoutBase64": "PGFiYz58PD46MDo6dGFpbA==",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "differs": false
+    },
+    {
+      "fixture": {
+        "group": "read",
+        "name": "raw-delimiter-after-backslash",
+        "script": "IFS= read -rn8 -d : first; status=$?; printf \"<%s>|<%s>:%s:\" \"$first\" \"$second\" \"$status\"; cat",
+        "stdin": "a\\:b:tail"
+      },
+      "primary": {
+        "stdout": "<a\\>|<>:0:b:tail",
+        "stderr": "",
+        "stdoutBase64": "PGFcPnw8PjowOmI6dGFpbA==",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "legacy": {
+        "stdout": "<a\\>|<>:0:b:tail",
+        "stderr": "",
+        "stdoutBase64": "PGFcPnw8PjowOmI6dGFpbA==",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "differs": false
+    },
+    {
+      "fixture": {
+        "group": "read",
+        "name": "nul-delimiter-beats-count",
+        "script": "IFS= read -rn8 -d \"\" first; status=$?; printf \"<%s>|<%s>:%s:\" \"$first\" \"$second\" \"$status\"; cat",
+        "stdin": "a\nb\u0000tail"
+      },
+      "primary": {
+        "stdout": "<a\nb>|<>:0:tail",
+        "stderr": "",
+        "stdoutBase64": "PGEKYj58PD46MDp0YWls",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "legacy": {
+        "stdout": "<a\nb>|<>:0:tail",
+        "stderr": "",
+        "stdoutBase64": "PGEKYj58PD46MDp0YWls",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "differs": false
+    },
+    {
+      "fixture": {
+        "group": "read",
+        "name": "non-delimiter-nul-is-not-counted-modern",
+        "script": "IFS= read -rn3 first; status=$?; printf \"<%s>|<%s>:%s:\" \"$first\" \"$second\" \"$status\"; cat",
+        "stdin": "a\u0000b\u0000cZ"
+      },
+      "primary": {
+        "stdout": "<abc>|<>:0:Z",
+        "stderr": "",
+        "stdoutBase64": "PGFiYz58PD46MDpa",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "legacy": {
+        "stdout": "<a>|<>:0:\u0000cZ",
+        "stderr": "",
+        "stdoutBase64": "PGE+fDw+OjA6AGNa",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "differs": true
+    },
+    {
+      "fixture": {
+        "group": "read",
+        "name": "eof-retains-escaped-partial-value",
+        "script": "IFS= read -n5 -d : first; status=$?; printf \"<%s>|<%s>:%s:\" \"$first\" \"$second\" \"$status\"; cat",
+        "stdin": "ab\\c"
+      },
+      "primary": {
+        "stdout": "<abc>|<>:1:",
+        "stderr": "",
+        "stdoutBase64": "PGFiYz58PD46MTo=",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "legacy": {
+        "stdout": "<abc>|<>:1:",
+        "stderr": "",
+        "stdoutBase64": "PGFiYz58PD46MTo=",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "differs": false
+    },
+    {
+      "fixture": {
+        "group": "read",
+        "name": "zero-count-resets-variables-leaves-input",
+        "script": "first=old; second=old; IFS= read -n0 -d : first second; status=$?; printf \"<%s>|<%s>:%s:\" \"$first\" \"$second\" \"$status\"; cat",
+        "stdin": "untouched:tail"
+      },
+      "primary": {
+        "stdout": "<>|<>:0:untouched:tail",
+        "stderr": "",
+        "stdoutBase64": "PD58PD46MDp1bnRvdWNoZWQ6dGFpbA==",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "legacy": {
+        "stdout": "<untouched>|<>:0:tail",
+        "stderr": "",
+        "stdoutBase64": "PHVudG91Y2hlZD58PD46MDp0YWls",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "differs": true
+    },
+    {
+      "fixture": {
+        "group": "read",
+        "name": "zero-count-still-rejects-closed-input",
+        "script": "first=old; read -n0 first 0<&-; status=$?; printf \"<%s>:%s:\" \"$first\" \"$status\"; cat",
+        "stdin": "untouched"
+      },
+      "primary": {
+        "stdout": "<>:1:untouched",
+        "stderr": "",
+        "stdoutBase64": "PD46MTp1bnRvdWNoZWQ=",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "legacy": {
+        "stdout": "<old>:1:untouched",
+        "stderr": "shell-stress: line 0: read: read error: 0: Bad file descriptor\n",
+        "stdoutBase64": "PG9sZD46MTp1bnRvdWNoZWQ=",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiBsaW5lIDA6IHJlYWQ6IHJlYWQgZXJyb3I6IDA6IEJhZCBmaWxlIGRlc2NyaXB0b3IK",
+        "exitCode": 0,
+        "files": {}
+      },
+      "differs": true
+    },
+    {
+      "fixture": {
+        "group": "read",
+        "name": "utf8-two-characters-keeps-byte-tail",
+        "script": "IFS= read -rn2 first; status=$?; printf \"<%s>|<%s>:%s:\" \"$first\" \"$second\" \"$status\"; cat",
+        "stdin": "é😀Z",
+        "locale": "en_US.UTF-8"
+      },
+      "primary": {
+        "stdout": "<é😀>|<>:0:Z",
+        "stderr": "",
+        "stdoutBase64": "PMOp8J+YgD58PD46MDpa",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "legacy": {
+        "stdout": "<é>|<>:0:😀Z",
+        "stderr": "",
+        "stdoutBase64": "PMOpPnw8PjowOvCfmIBa",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "differs": true
+    },
+    {
+      "fixture": {
+        "group": "read",
+        "name": "c-locale-two-bytes-not-two-unicode-characters",
+        "script": "IFS= read -rn2 first; status=$?; printf \"<%s>|<%s>:%s:\" \"$first\" \"$second\" \"$status\"; cat",
+        "stdin": "é😀Z",
+        "locale": "C"
+      },
+      "primary": {
+        "stdout": "<é>|<>:0:😀Z",
+        "stderr": "",
+        "stdoutBase64": "PMOpPnw8PjowOvCfmIBa",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "legacy": {
+        "stdout": "<é>|<>:0:😀Z",
+        "stderr": "",
+        "stdoutBase64": "PMOpPnw8PjowOvCfmIBa",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "differs": false
+    },
+    {
+      "fixture": {
+        "group": "read",
+        "name": "read-count-shared-with-next-delimited-read",
+        "script": "IFS=: read -rn4 first second; printf \"<%s>|<%s>:%s:\" \"$first\" \"$second\" \"$?\"; IFS= read -rd: first; printf \"<%s>:%s:\" \"$first\" \"$?\"; cat",
+        "stdin": "a:b:c:tail"
+      },
+      "primary": {
+        "stdout": "<a>|<b>:0:<c>:0:tail",
+        "stderr": "",
+        "stdoutBase64": "PGE+fDxiPjowOjxjPjowOnRhaWw=",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "legacy": {
+        "stdout": "<a>|<b>:0:<c>:0:tail",
+        "stderr": "",
+        "stdoutBase64": "PGE+fDxiPjowOjxjPjowOnRhaWw=",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "differs": false
+    },
+    {
+      "fixture": {
+        "group": "shortcut",
+        "name": "shortcut-stdin-after-partial-read",
+        "script": "IFS= read -rn2 first; value=$(<input); printf \"<%s>|<%s>:%s:\" \"$first\" \"$value\" \"$?\"; cat",
+        "stdin": "ABremaining",
+        "initialFiles": {
+          "input": "file\n\n"
+        }
+      },
+      "primary": {
+        "stdout": "<AB>|<file>:0:remaining",
+        "stderr": "",
+        "stdoutBase64": "PEFCPnw8ZmlsZT46MDpyZW1haW5pbmc=",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {
+          "input": {
+            "type": "file",
+            "base64": "ZmlsZQoK"
+          }
+        }
+      },
+      "legacy": {
+        "stdout": "<AB>|<file>:0:remaining",
+        "stderr": "",
+        "stdoutBase64": "PEFCPnw8ZmlsZT46MDpyZW1haW5pbmc=",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {
+          "input": {
+            "type": "file",
+            "base64": "ZmlsZQoK"
+          }
+        }
+      },
+      "differs": false
+    },
+    {
+      "fixture": {
+        "group": "shortcut",
+        "name": "shortcut-missing-file-assignment-status",
+        "script": "value=$(<missing); status=$?; printf \"<%s>:%s:\" \"$value\" \"$status\"; cat; : >after",
+        "stdin": "kept"
+      },
+      "primary": {
+        "stdout": "<>:1:kept",
+        "stderr": "shell-stress: line 1: missing: No such file or directory\n",
+        "stdoutBase64": "PD46MTprZXB0",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiBsaW5lIDE6IG1pc3Npbmc6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkK",
+        "exitCode": 0,
+        "files": {
+          "after": {
+            "type": "file",
+            "base64": ""
+          }
+        }
+      },
+      "legacy": {
+        "stdout": "<>:1:kept",
+        "stderr": "shell-stress: missing: No such file or directory\n",
+        "stdoutBase64": "PD46MTprZXB0",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5Cg==",
+        "exitCode": 0,
+        "files": {
+          "after": {
+            "type": "file",
+            "base64": ""
+          }
+        }
+      },
+      "differs": true
+    },
+    {
+      "fixture": {
+        "group": "shortcut",
+        "name": "shortcut-directory-read-failure-status",
+        "script": "value=$(<folder); status=$?; printf \"<%s>:%s:\" \"$value\" \"$status\"; : >after",
+        "initialFiles": {
+          "folder/child": "kept"
+        }
+      },
+      "primary": {
+        "stdout": "<>:0:",
+        "stderr": "",
+        "stdoutBase64": "PD46MDo=",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {
+          "after": {
+            "type": "file",
+            "base64": ""
+          },
+          "folder": {
+            "type": "directory"
+          },
+          "folder/child": {
+            "type": "file",
+            "base64": "a2VwdA=="
+          }
+        }
+      },
+      "legacy": {
+        "stdout": "<>:1:",
+        "stderr": "",
+        "stdoutBase64": "PD46MTo=",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {
+          "after": {
+            "type": "file",
+            "base64": ""
+          },
+          "folder": {
+            "type": "directory"
+          },
+          "folder/child": {
+            "type": "file",
+            "base64": "a2VwdA=="
+          }
+        }
+      },
+      "differs": true
+    },
+    {
+      "fixture": {
+        "group": "shortcut",
+        "name": "shortcut-nul-removal-warning-is-observable",
+        "script": "value=$(<input); printf \"<%s>:%s\" \"$value\" \"$?\"",
+        "initialFiles": {
+          "input": "a\u0000b\n"
+        }
+      },
+      "primary": {
+        "stdout": "<ab>:0",
+        "stderr": "shell-stress: line 1: warning: command substitution: ignored null byte in input\n",
+        "stdoutBase64": "PGFiPjow",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiBsaW5lIDE6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo=",
+        "exitCode": 0,
+        "files": {
+          "input": {
+            "type": "file",
+            "base64": "YQBiCg=="
+          }
+        }
+      },
+      "legacy": {
+        "stdout": "<ab>:0",
+        "stderr": "",
+        "stdoutBase64": "PGFiPjow",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {
+          "input": {
+            "type": "file",
+            "base64": "YQBiCg=="
+          }
+        }
+      },
+      "differs": true
+    },
+    {
+      "fixture": {
+        "group": "shortcut",
+        "name": "shortcut-only-last-input-redirect-is-read",
+        "script": "value=$(<first <second); printf \"<%s>:%s:\" \"$value\" \"$?\"; cat",
+        "stdin": "outer",
+        "initialFiles": {
+          "first": "one\n",
+          "second": "two\n\n"
+        }
+      },
+      "primary": {
+        "stdout": "<>:0:outer",
+        "stderr": "",
+        "stdoutBase64": "PD46MDpvdXRlcg==",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {
+          "first": {
+            "type": "file",
+            "base64": "b25lCg=="
+          },
+          "second": {
+            "type": "file",
+            "base64": "dHdvCgo="
+          }
+        }
+      },
+      "legacy": {
+        "stdout": "<>:0:outer",
+        "stderr": "",
+        "stdoutBase64": "PD46MDpvdXRlcg==",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {
+          "first": {
+            "type": "file",
+            "base64": "b25lCg=="
+          },
+          "second": {
+            "type": "file",
+            "base64": "dHdvCgo="
+          }
+        }
+      },
+      "differs": false
+    },
+    {
+      "fixture": {
+        "group": "shortcut",
+        "name": "shortcut-input-descriptor-failure-visible",
+        "script": "value=$(<input 0<&9); status=$?; printf \"<%s>:%s:\" \"$value\" \"$status\"; cat",
+        "stdin": "outer",
+        "initialFiles": {
+          "input": "file\n"
+        }
+      },
+      "primary": {
+        "stdout": "<>:1:outer",
+        "stderr": "shell-stress: line 1: 9: Bad file descriptor\n",
+        "stdoutBase64": "PD46MTpvdXRlcg==",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiBsaW5lIDE6IDk6IEJhZCBmaWxlIGRlc2NyaXB0b3IK",
+        "exitCode": 0,
+        "files": {
+          "input": {
+            "type": "file",
+            "base64": "ZmlsZQo="
+          }
+        }
+      },
+      "legacy": {
+        "stdout": "<>:1:outer",
+        "stderr": "shell-stress: 9: Bad file descriptor\n",
+        "stdoutBase64": "PD46MTpvdXRlcg==",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiA5OiBCYWQgZmlsZSBkZXNjcmlwdG9yCg==",
+        "exitCode": 0,
+        "files": {
+          "input": {
+            "type": "file",
+            "base64": "ZmlsZQo="
+          }
+        }
+      },
+      "differs": true
+    },
+    {
+      "fixture": {
+        "group": "ansi",
+        "name": "ansi-concatenation-preserves-quoted-wildcards",
+        "script": "printf '<%s>' pre$' a\\t*'post $'' end",
+        "initialFiles": {
+          "pre a\tMATCHpost": ""
+        }
+      },
+      "primary": {
+        "stdout": "<pre a\t*post><><end>",
+        "stderr": "",
+        "stdoutBase64": "PHByZSBhCSpwb3N0Pjw+PGVuZD4=",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {
+          "pre a\tMATCHpost": {
+            "type": "file",
+            "base64": ""
+          }
+        }
+      },
+      "legacy": {
+        "stdout": "<pre a\t*post><><end>",
+        "stderr": "",
+        "stdoutBase64": "PHByZSBhCSpwb3N0Pjw+PGVuZD4=",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {
+          "pre a\tMATCHpost": {
+            "type": "file",
+            "base64": ""
+          }
+        }
+      },
+      "differs": false
+    },
+    {
+      "fixture": {
+        "group": "ansi",
+        "name": "ansi-nul-truncates-word-segment-not-suffix",
+        "script": "printf '<%s>' pre$'a\\0hidden'suf $'\\x00hidden'"
+      },
+      "primary": {
+        "stdout": "<preasuf><>",
+        "stderr": "",
+        "stdoutBase64": "PHByZWFzdWY+PD4=",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "legacy": {
+        "stdout": "<preasuf><>",
+        "stderr": "",
+        "stdoutBase64": "PHByZWFzdWY+PD4=",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "differs": false
+    },
+    {
+      "fixture": {
+        "group": "ansi",
+        "name": "ansi-unicode-four-eight-hex-escapes",
+        "script": "printf '<%s>' $'\\u00e9\\U0001f600Z'",
+        "locale": "en_US.UTF-8"
+      },
+      "primary": {
+        "stdout": "<é😀Z>",
+        "stderr": "",
+        "stdoutBase64": "PMOp8J+YgFo+",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "legacy": {
+        "stdout": "<\\u00e9\\U0001f600Z>",
+        "stderr": "",
+        "stdoutBase64": "PFx1MDBlOVxVMDAwMWY2MDBaPg==",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "differs": true
+    },
+    {
+      "fixture": {
+        "group": "ansi",
+        "name": "ansi-c-locale-unicode-escape-bytes",
+        "script": "printf '<%s>' $'\\u00e9\\U0001f600Z'",
+        "locale": "C"
+      },
+      "primary": {
+        "stdout": "<\\u00E9\\U0001F600Z>",
+        "stderr": "",
+        "stdoutBase64": "PFx1MDBFOVxVMDAwMUY2MDBaPg==",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "legacy": {
+        "stdout": "<\\u00e9\\U0001f600Z>",
+        "stderr": "",
+        "stdoutBase64": "PFx1MDBlOVxVMDAwMWY2MDBaPg==",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "differs": true
+    },
+    {
+      "fixture": {
+        "group": "ansi",
+        "name": "ansi-unknown-and-incomplete-escapes-retained",
+        "script": "printf '<%s>' $'\\q\\x\\u\\U\\8\\9'"
+      },
+      "primary": {
+        "stdout": "<\\q\\x\\u\\U\\8\\9>",
+        "stderr": "",
+        "stdoutBase64": "PFxxXHhcdVxVXDhcOT4=",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "legacy": {
+        "stdout": "<\\q\\x\\u\\U\\8\\9>",
+        "stderr": "",
+        "stdoutBase64": "PFxxXHhcdVxVXDhcOT4=",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "differs": false
+    },
+    {
+      "fixture": {
+        "group": "ansi",
+        "name": "ansi-escaped-dollar-backtick-single-quote",
+        "script": "printf '<%s>' $'\\$\\`\\'\\\\'"
+      },
+      "primary": {
+        "stdout": "<\\$\\`'\\>",
+        "stderr": "",
+        "stdoutBase64": "PFwkXGAnXD4=",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "legacy": {
+        "stdout": "<\\$\\`'\\>",
+        "stderr": "",
+        "stdoutBase64": "PFwkXGAnXD4=",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "differs": false
+    },
+    {
+      "fixture": {
+        "group": "ansi",
+        "name": "ansi-octal-hex-width-and-control",
+        "script": "printf '<%s>' $'\\1012\\x414\\cA\\e'"
+      },
+      "primary": {
+        "stdout": "<A2A4\u0001\u001b>",
+        "stderr": "",
+        "stdoutBase64": "PEEyQTQBGz4=",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "legacy": {
+        "stdout": "<A2A4\u0001\u001b>",
+        "stderr": "",
+        "stdoutBase64": "PEEyQTQBGz4=",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "differs": false
+    },
+    {
+      "fixture": {
+        "group": "ansi",
+        "name": "ansi-syntax-inside-double-quotes-remains-literal",
+        "script": "printf '<%s>' \"pre$'a\\n*'post\""
+      },
+      "primary": {
+        "stdout": "<pre$'a\\n*'post>",
+        "stderr": "",
+        "stdoutBase64": "PHByZSQnYVxuKidwb3N0Pg==",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "legacy": {
+        "stdout": "<pre$'a\\n*'post>",
+        "stderr": "",
+        "stdoutBase64": "PHByZSQnYVxuKidwb3N0Pg==",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "differs": false
+    },
+    {
+      "fixture": {
+        "group": "pathname",
+        "name": "negated-digit-class-separate-path-segments",
+        "script": "printf '<%s>' [![:digit:]]/[[:digit:]].txt",
+        "initialFiles": {
+          "a/7.txt": "",
+          "b/8.txt": "",
+          "3/9.txt": "",
+          "a/x.txt": ""
+        }
+      },
+      "primary": {
+        "stdout": "<a/7.txt><b/8.txt>",
+        "stderr": "",
+        "stdoutBase64": "PGEvNy50eHQ+PGIvOC50eHQ+",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {
+          "3": {
+            "type": "directory"
+          },
+          "3/9.txt": {
+            "type": "file",
+            "base64": ""
+          },
+          "a": {
+            "type": "directory"
+          },
+          "a/7.txt": {
+            "type": "file",
+            "base64": ""
+          },
+          "a/x.txt": {
+            "type": "file",
+            "base64": ""
+          },
+          "b": {
+            "type": "directory"
+          },
+          "b/8.txt": {
+            "type": "file",
+            "base64": ""
+          }
+        }
+      },
+      "legacy": {
+        "stdout": "<a/7.txt><b/8.txt>",
+        "stderr": "",
+        "stdoutBase64": "PGEvNy50eHQ+PGIvOC50eHQ+",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {
+          "3": {
+            "type": "directory"
+          },
+          "3/9.txt": {
+            "type": "file",
+            "base64": ""
+          },
+          "a": {
+            "type": "directory"
+          },
+          "a/7.txt": {
+            "type": "file",
+            "base64": ""
+          },
+          "a/x.txt": {
+            "type": "file",
+            "base64": ""
+          },
+          "b": {
+            "type": "directory"
+          },
+          "b/8.txt": {
+            "type": "file",
+            "base64": ""
+          }
+        }
+      },
+      "differs": false
+    },
+    {
+      "fixture": {
+        "group": "pathname",
+        "name": "class-slash-boundary-and-hidden-path",
+        "script": "printf '<%s>' */[[:alpha:]][[:digit:]]",
+        "initialFiles": {
+          "a/A7": "",
+          "b/z9": "",
+          "b/77": "",
+          ".hidden/Q1": "",
+          "b/.A7": ""
+        }
+      },
+      "primary": {
+        "stdout": "<a/A7><b/z9>",
+        "stderr": "",
+        "stdoutBase64": "PGEvQTc+PGIvejk+",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {
+          ".hidden": {
+            "type": "directory"
+          },
+          ".hidden/Q1": {
+            "type": "file",
+            "base64": ""
+          },
+          "a": {
+            "type": "directory"
+          },
+          "a/A7": {
+            "type": "file",
+            "base64": ""
+          },
+          "b": {
+            "type": "directory"
+          },
+          "b/.A7": {
+            "type": "file",
+            "base64": ""
+          },
+          "b/77": {
+            "type": "file",
+            "base64": ""
+          },
+          "b/z9": {
+            "type": "file",
+            "base64": ""
+          }
+        }
+      },
+      "legacy": {
+        "stdout": "<a/A7><b/z9>",
+        "stderr": "",
+        "stdoutBase64": "PGEvQTc+PGIvejk+",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {
+          ".hidden": {
+            "type": "directory"
+          },
+          ".hidden/Q1": {
+            "type": "file",
+            "base64": ""
+          },
+          "a": {
+            "type": "directory"
+          },
+          "a/A7": {
+            "type": "file",
+            "base64": ""
+          },
+          "b": {
+            "type": "directory"
+          },
+          "b/.A7": {
+            "type": "file",
+            "base64": ""
+          },
+          "b/77": {
+            "type": "file",
+            "base64": ""
+          },
+          "b/z9": {
+            "type": "file",
+            "base64": ""
+          }
+        }
+      },
+      "differs": false
+    },
+    {
+      "fixture": {
+        "group": "pathname",
+        "name": "quoted-brackets-do-not-form-active-class",
+        "script": "printf '<%s>' '[[:digit:]]'.txt \"[\"[:digit:]].txt [[:digit:]].txt",
+        "initialFiles": {
+          "[[:digit:]].txt": "",
+          "4.txt": ""
+        }
+      },
+      "primary": {
+        "stdout": "<[[:digit:]].txt><[[:digit:]].txt><4.txt>",
+        "stderr": "",
+        "stdoutBase64": "PFtbOmRpZ2l0Ol1dLnR4dD48W1s6ZGlnaXQ6XV0udHh0Pjw0LnR4dD4=",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {
+          "4.txt": {
+            "type": "file",
+            "base64": ""
+          },
+          "[[:digit:]].txt": {
+            "type": "file",
+            "base64": ""
+          }
+        }
+      },
+      "legacy": {
+        "stdout": "<[[:digit:]].txt><[[:digit:]].txt><4.txt>",
+        "stderr": "",
+        "stdoutBase64": "PFtbOmRpZ2l0Ol1dLnR4dD48W1s6ZGlnaXQ6XV0udHh0Pjw0LnR4dD4=",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {
+          "4.txt": {
+            "type": "file",
+            "base64": ""
+          },
+          "[[:digit:]].txt": {
+            "type": "file",
+            "base64": ""
+          }
+        }
+      },
+      "differs": false
+    },
+    {
+      "fixture": {
+        "group": "pathname",
+        "name": "multiple-negated-posix-classes",
+        "script": "printf '<%s>' [![:alpha:][:digit:]].txt",
+        "initialFiles": {
+          "_.txt": "",
+          "-.txt": "",
+          "7.txt": "",
+          "A.txt": "",
+          ".txt": ""
+        }
+      },
+      "primary": {
+        "stdout": "<-.txt><_.txt>",
+        "stderr": "",
+        "stdoutBase64": "PC0udHh0PjxfLnR4dD4=",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {
+          "-.txt": {
+            "type": "file",
+            "base64": ""
+          },
+          ".txt": {
+            "type": "file",
+            "base64": ""
+          },
+          "7.txt": {
+            "type": "file",
+            "base64": ""
+          },
+          "A.txt": {
+            "type": "file",
+            "base64": ""
+          },
+          "_.txt": {
+            "type": "file",
+            "base64": ""
+          }
+        }
+      },
+      "legacy": {
+        "stdout": "<-.txt><_.txt>",
+        "stderr": "",
+        "stdoutBase64": "PC0udHh0PjxfLnR4dD4=",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {
+          "-.txt": {
+            "type": "file",
+            "base64": ""
+          },
+          ".txt": {
+            "type": "file",
+            "base64": ""
+          },
+          "7.txt": {
+            "type": "file",
+            "base64": ""
+          },
+          "A.txt": {
+            "type": "file",
+            "base64": ""
+          },
+          "_.txt": {
+            "type": "file",
+            "base64": ""
+          }
+        }
+      },
+      "differs": false
+    },
+    {
+      "fixture": {
+        "group": "fatal",
+        "name": "required-parameter-function-aborts-recovery-and-tail",
+        "script": "call() { : \"${missing:?holdout-stop}\"; printf wrong; }; : >before; call || printf recovered; : >after"
+      },
+      "primary": {
+        "stdout": "",
+        "stderr": "shell-stress: line 1: missing: holdout-stop\n",
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiBsaW5lIDE6IG1pc3Npbmc6IGhvbGRvdXQtc3RvcAo=",
+        "exitCode": 127,
+        "files": {
+          "before": {
+            "type": "file",
+            "base64": ""
+          }
+        }
+      },
+      "legacy": {
+        "stdout": "",
+        "stderr": "shell-stress: missing: holdout-stop\n",
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBob2xkb3V0LXN0b3AK",
+        "exitCode": 127,
+        "files": {
+          "before": {
+            "type": "file",
+            "base64": ""
+          }
+        }
+      },
+      "differs": true
+    },
+    {
+      "fixture": {
+        "group": "fatal",
+        "name": "required-parameter-subshell-modern-status-one",
+        "script": ": >before; ( : \"${missing:?holdout-stop}\"; : >wrong ); status=$?; printf \"status:%s\" \"$status\"; : >after"
+      },
+      "primary": {
+        "stdout": "status:1",
+        "stderr": "shell-stress: line 1: missing: holdout-stop\n",
+        "stdoutBase64": "c3RhdHVzOjE=",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiBsaW5lIDE6IG1pc3Npbmc6IGhvbGRvdXQtc3RvcAo=",
+        "exitCode": 0,
+        "files": {
+          "after": {
+            "type": "file",
+            "base64": ""
+          },
+          "before": {
+            "type": "file",
+            "base64": ""
+          }
+        }
+      },
+      "legacy": {
+        "stdout": "status:127",
+        "stderr": "shell-stress: missing: holdout-stop\n",
+        "stdoutBase64": "c3RhdHVzOjEyNw==",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBob2xkb3V0LXN0b3AK",
+        "exitCode": 0,
+        "files": {
+          "after": {
+            "type": "file",
+            "base64": ""
+          },
+          "before": {
+            "type": "file",
+            "base64": ""
+          }
+        }
+      },
+      "differs": true
+    },
+    {
+      "fixture": {
+        "group": "fatal",
+        "name": "required-parameter-substitution-only-inner-fatal",
+        "script": ": >before; value=$(printf inner; : \"${missing:?holdout-stop}\"; : >wrong); status=$?; printf \"<%s>:%s\" \"$value\" \"$status\"; : >after"
+      },
+      "primary": {
+        "stdout": "<inner>:1",
+        "stderr": "shell-stress: line 1: missing: holdout-stop\n",
+        "stdoutBase64": "PGlubmVyPjox",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiBsaW5lIDE6IG1pc3Npbmc6IGhvbGRvdXQtc3RvcAo=",
+        "exitCode": 0,
+        "files": {
+          "after": {
+            "type": "file",
+            "base64": ""
+          },
+          "before": {
+            "type": "file",
+            "base64": ""
+          }
+        }
+      },
+      "legacy": {
+        "stdout": "<inner>:1",
+        "stderr": "shell-stress: missing: holdout-stop\n",
+        "stdoutBase64": "PGlubmVyPjox",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBob2xkb3V0LXN0b3AK",
+        "exitCode": 0,
+        "files": {
+          "after": {
+            "type": "file",
+            "base64": ""
+          },
+          "before": {
+            "type": "file",
+            "base64": ""
+          }
+        }
+      },
+      "differs": true
+    },
+    {
+      "fixture": {
+        "group": "fatal",
+        "name": "arithmetic-expansion-group-aborts-whole-shell",
+        "script": ": >before; { printf \"%s\" \"$((7/0))\"; : >wrong; } || printf recovered; : >after"
+      },
+      "primary": {
+        "stdout": "",
+        "stderr": "shell-stress: line 1: 7/0: division by 0 (error token is \"0\")\n",
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiBsaW5lIDE6IDcvMDogZGl2aXNpb24gYnkgMCAoZXJyb3IgdG9rZW4gaXMgIjAiKQo=",
+        "exitCode": 1,
+        "files": {
+          "before": {
+            "type": "file",
+            "base64": ""
+          }
+        }
+      },
+      "legacy": {
+        "stdout": "",
+        "stderr": "shell-stress: 7/0: division by 0 (error token is \"0\")\n",
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiA3LzA6IGRpdmlzaW9uIGJ5IDAgKGVycm9yIHRva2VuIGlzICIwIikK",
+        "exitCode": 1,
+        "files": {
+          "before": {
+            "type": "file",
+            "base64": ""
+          }
+        }
+      },
+      "differs": true
+    },
+    {
+      "fixture": {
+        "group": "fatal",
+        "name": "arithmetic-command-failure-is-recoverable",
+        "script": ": >before; ((7/0)) || printf \"recovered:%s\" \"$?\"; : >after"
+      },
+      "primary": {
+        "stdout": "recovered:1",
+        "stderr": "shell-stress: line 1: ((: 7/0: division by 0 (error token is \"0\")\n",
+        "stdoutBase64": "cmVjb3ZlcmVkOjE=",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiBsaW5lIDE6ICgoOiA3LzA6IGRpdmlzaW9uIGJ5IDAgKGVycm9yIHRva2VuIGlzICIwIikK",
+        "exitCode": 0,
+        "files": {
+          "after": {
+            "type": "file",
+            "base64": ""
+          },
+          "before": {
+            "type": "file",
+            "base64": ""
+          }
+        }
+      },
+      "legacy": {
+        "stdout": "recovered:1",
+        "stderr": "shell-stress: ((: 7/0: division by 0 (error token is \"0\")\n",
+        "stdoutBase64": "cmVjb3ZlcmVkOjE=",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiAoKDogNy8wOiBkaXZpc2lvbiBieSAwIChlcnJvciB0b2tlbiBpcyAiMCIpCg==",
+        "exitCode": 0,
+        "files": {
+          "after": {
+            "type": "file",
+            "base64": ""
+          },
+          "before": {
+            "type": "file",
+            "base64": ""
+          }
+        }
+      },
+      "differs": true
+    },
+    {
+      "fixture": {
+        "group": "fatal",
+        "name": "arithmetic-substitution-isolated-fatal-status",
+        "script": ": >before; value=$(printf inner; printf \"%s\" \"$((7/0))\"; : >wrong); status=$?; printf \"<%s>:%s\" \"$value\" \"$status\"; : >after"
+      },
+      "primary": {
+        "stdout": "<inner>:1",
+        "stderr": "shell-stress: line 1: 7/0: division by 0 (error token is \"0\")\n",
+        "stdoutBase64": "PGlubmVyPjox",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiBsaW5lIDE6IDcvMDogZGl2aXNpb24gYnkgMCAoZXJyb3IgdG9rZW4gaXMgIjAiKQo=",
+        "exitCode": 0,
+        "files": {
+          "after": {
+            "type": "file",
+            "base64": ""
+          },
+          "before": {
+            "type": "file",
+            "base64": ""
+          }
+        }
+      },
+      "legacy": {
+        "stdout": "<inner>:1",
+        "stderr": "shell-stress: 7/0: division by 0 (error token is \"0\")\n",
+        "stdoutBase64": "PGlubmVyPjox",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiA3LzA6IGRpdmlzaW9uIGJ5IDAgKGVycm9yIHRva2VuIGlzICIwIikK",
+        "exitCode": 0,
+        "files": {
+          "after": {
+            "type": "file",
+            "base64": ""
+          },
+          "before": {
+            "type": "file",
+            "base64": ""
+          }
+        }
+      },
+      "differs": true
+    },
+    {
+      "fixture": {
+        "group": "prevalidation",
+        "name": "invalid-substitution-prevents-earlier-and-later-effects",
+        "script": "printf before >before; value=$(printf x |); printf \"<%s>:%s\" \"$value\" \"$?\"; : >after"
+      },
+      "primary": {
+        "stdout": "",
+        "stderr": "shell-stress: -c: line 1: syntax error near unexpected token `)'\nshell-stress: -c: line 1: `printf before >before; value=$(printf x |); printf \"<%s>:%s\" \"$value\" \"$?\"; : >after'\n",
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiAtYzogbGluZSAxOiBzeW50YXggZXJyb3IgbmVhciB1bmV4cGVjdGVkIHRva2VuIGApJwpzaGVsbC1zdHJlc3M6IC1jOiBsaW5lIDE6IGBwcmludGYgYmVmb3JlID5iZWZvcmU7IHZhbHVlPSQocHJpbnRmIHggfCk7IHByaW50ZiAiPCVzPjolcyIgIiR2YWx1ZSIgIiQ/IjsgOiA+YWZ0ZXInCg==",
+        "exitCode": 127,
+        "files": {}
+      },
+      "legacy": {
+        "stdout": "<>:1",
+        "stderr": "shell-stress: command substitution: line 1: syntax error: unexpected end of file\n",
+        "stdoutBase64": "PD46MQ==",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiBjb21tYW5kIHN1YnN0aXR1dGlvbjogbGluZSAxOiBzeW50YXggZXJyb3I6IHVuZXhwZWN0ZWQgZW5kIG9mIGZpbGUK",
+        "exitCode": 0,
+        "files": {
+          "after": {
+            "type": "file",
+            "base64": ""
+          },
+          "before": {
+            "type": "file",
+            "base64": "YmVmb3Jl"
+          }
+        }
+      },
+      "differs": true
+    },
+    {
+      "fixture": {
+        "group": "prevalidation",
+        "name": "invalid-unused-function-substitution-is-upfront",
+        "script": ": >before; never() { value=$(printf x |); }; : >after"
+      },
+      "primary": {
+        "stdout": "",
+        "stderr": "shell-stress: -c: line 1: syntax error near unexpected token `)'\nshell-stress: -c: line 1: `: >before; never() { value=$(printf x |); }; : >after'\n",
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiAtYzogbGluZSAxOiBzeW50YXggZXJyb3IgbmVhciB1bmV4cGVjdGVkIHRva2VuIGApJwpzaGVsbC1zdHJlc3M6IC1jOiBsaW5lIDE6IGA6ID5iZWZvcmU7IG5ldmVyKCkgeyB2YWx1ZT0kKHByaW50ZiB4IHwpOyB9OyA6ID5hZnRlcicK",
+        "exitCode": 127,
+        "files": {}
+      },
+      "legacy": {
+        "stdout": "",
+        "stderr": "",
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {
+          "after": {
+            "type": "file",
+            "base64": ""
+          },
+          "before": {
+            "type": "file",
+            "base64": ""
+          }
+        }
+      },
+      "differs": true
+    },
+    {
+      "fixture": {
+        "group": "prevalidation",
+        "name": "invalid-substitution-in-unselected-branch-is-upfront",
+        "script": ": >before; if false; then value=$(printf x |); fi; : >after"
+      },
+      "primary": {
+        "stdout": "",
+        "stderr": "shell-stress: -c: line 1: syntax error near unexpected token `)'\nshell-stress: -c: line 1: `: >before; if false; then value=$(printf x |); fi; : >after'\n",
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiAtYzogbGluZSAxOiBzeW50YXggZXJyb3IgbmVhciB1bmV4cGVjdGVkIHRva2VuIGApJwpzaGVsbC1zdHJlc3M6IC1jOiBsaW5lIDE6IGA6ID5iZWZvcmU7IGlmIGZhbHNlOyB0aGVuIHZhbHVlPSQocHJpbnRmIHggfCk7IGZpOyA6ID5hZnRlcicK",
+        "exitCode": 127,
+        "files": {}
+      },
+      "legacy": {
+        "stdout": "",
+        "stderr": "",
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {
+          "after": {
+            "type": "file",
+            "base64": ""
+          },
+          "before": {
+            "type": "file",
+            "base64": ""
+          }
+        }
+      },
+      "differs": true
+    }
+  ]
+}

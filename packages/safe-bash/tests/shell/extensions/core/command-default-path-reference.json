@@ -1,0 +1,18 @@
+{
+  "profile": "primary-5.3",
+  "locale": "C",
+  "oracle": {
+    "executable": "/tmp/safe-bash-gnu-5.3-adjudication.0zMRKT/bash-5.3/bash",
+    "sha256": "a0cfc1af0ff50f6b6e67c638979e2604f1c276c90116937fbaafcabb62ee2b40"
+  },
+  "capturedAt": "2026-09-05T06:30:44.288Z",
+  "records": [
+    {
+      "name": "nested command flags raw FF",
+      "source": "name=$'\\377'; command -p -- command -- \"$name\"",
+      "status": 127,
+      "stdoutHex": "",
+      "stderrHex": "7368656c6c3a206c696e6520313a2024275c333737273a20636f6d6d616e64206e6f7420666f756e640a"
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+import type { StreamFormatCommandsOptions } from 'virtual-bash';
+export const invalid: StreamFormatCommandsOptions = { limits: { maxInputBytes: '1024' } };

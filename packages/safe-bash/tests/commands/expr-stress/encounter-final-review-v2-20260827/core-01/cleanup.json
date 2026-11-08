@@ -1,0 +1,32 @@
+{
+  "scratch": "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-final-review-v2-20260827/node_modules/core-01",
+  "absent": true,
+  "processes": [
+    {
+      "name": "extract",
+      "status": 0,
+      "signal": null
+    },
+    {
+      "name": "build",
+      "status": 0,
+      "signal": null
+    },
+    {
+      "name": "pack",
+      "status": 0,
+      "signal": null
+    },
+    {
+      "name": "install",
+      "status": 0,
+      "signal": null
+    },
+    {
+      "name": "core",
+      "status": 0,
+      "signal": null
+    }
+  ],
+  "finished": "2026-08-27T21:01:19.811Z"
+}

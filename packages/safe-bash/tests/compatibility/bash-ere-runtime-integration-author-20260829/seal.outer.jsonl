@@ -1,0 +1,2 @@
+{"at":"2026-08-29T11:43:10.944Z","event":"startup","pid":39645,"execPath":"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","mode":"seal"}
+{"at":"2026-08-29T11:43:10.946Z","event":"STOP","message":"Error: ENOENT: no such file or directory, lstat '/Users/kjopek/Workspace/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/SEAL.json'","receipts":[],"starts":0,"capture":0}

@@ -1,0 +1,24 @@
+{
+  "kind": "ssconvert-canonical-reference-profile",
+  "version": 1,
+  "status": "blocked",
+  "sourceHash": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+  "executableHash": "104f1e5500432c95ac3d46a679d476d05d2bf84e7483e991d212703cb0ed131c",
+  "executableFormat": "Linux ELF ARM64; host Darwin ARM64",
+  "dependencies": [],
+  "plugins": [],
+  "locale": {
+    "LC_ALL": "C",
+    "TZ": "UTC"
+  },
+  "parentProfile": {
+    "path": "docs/ssconvert/reference-profile.json",
+    "sha256": "f5767a61ed1356d95600370135bf3afce808c17aabc0c633d881e14578a8347e"
+  },
+  "blockers": [
+    "Docker daemon unavailable at unix:///var/run/docker.sock",
+    "Retained native executable cannot execute on Darwin",
+    "Dependency and plugin files not requalified for this capture profile"
+  ],
+  "nativeParityPasses": 0
+}

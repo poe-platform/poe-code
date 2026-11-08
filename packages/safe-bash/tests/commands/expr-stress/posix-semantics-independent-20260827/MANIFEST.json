@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "inputFreeze": "3cbcdc1aefb4007f819e36610bbabdc41c913be4",
+  "scope": "Native design evidence only; manifest authenticates the listed files, not itself or arbitrary other repository entries",
+  "files": [
+    {
+      "name": "CASES.json",
+      "bytes": 3202,
+      "sha256": "b65207be5ea2b3fd5f6fe9dd33f0f9f21be538d8d4fb060df96cf997a67071d0"
+    },
+    {
+      "name": "libc-probe.c",
+      "bytes": 1133,
+      "sha256": "f96c0247daea57e265d10506a8e193bc8dc3758cf2cf18fa9a0c7db03d899ff8"
+    },
+    {
+      "name": "capture.mjs",
+      "bytes": 4845,
+      "sha256": "deeea7b50e5930bcee87b102c56baf4d7df4c598a6163abbd2fb1ea11a378277"
+    },
+    {
+      "name": "capture.json",
+      "bytes": 29141,
+      "sha256": "8cb70c60aedad21a5d5ec5350429afc0889e9fdf407d9e54de2edae92185837d"
+    },
+    {
+      "name": "SOURCES.json",
+      "bytes": 3543,
+      "sha256": "637bdb116effb522104541c1525d3769f01534d84f6939eebca14b71dad4c88d"
+    },
+    {
+      "name": "REPORT.md",
+      "bytes": 12705,
+      "sha256": "307a8a377a28c9c611ff73e8ad4b5d84c6eb253a12782cdf733e39cfc7fe33cf"
+    },
+    {
+      "name": "verify.mjs",
+      "bytes": 4990,
+      "sha256": "650974be3548b0e3d63dc7389a951adf3024361a9ce9aefcefb9ee3fb5a1435e"
+    }
+  ]
+}

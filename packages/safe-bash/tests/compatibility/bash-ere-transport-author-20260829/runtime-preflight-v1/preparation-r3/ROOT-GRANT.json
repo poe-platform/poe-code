@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "authorized": true,
+  "profileSha256": "8cfe3fc49116f9db553fa85a23683e711bc6766574780e6e33c25f5a6bf0e74a",
+  "runId": "ERE-PRIVATE-RUNTIME-v3",
+  "cases": 135,
+  "Workers": 111,
+  "wallMilliseconds": 2100000,
+  "knownOS": 146,
+  "captureBytes": 67108864,
+  "workingBytes": 268435456
+}

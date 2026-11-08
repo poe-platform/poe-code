@@ -1,0 +1,421 @@
+{
+  "source": {
+    "arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+    "display.ts": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+    "index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+    "input.ts": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+    "locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+    "parser.ts": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e",
+    "pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+    "runtime.ts": "2b2fc45a039fe784fbe7b4cac1ae990bb5389b533b30d3d006a229df52153eb3",
+    "shell.ts": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+    "types.ts": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d"
+  },
+  "fixtures": [
+    {
+      "name": "set-dash-positionals",
+      "source": "set -e - -arg; printf \"[%s]\" \"$1\"; false; printf BAD"
+    },
+    {
+      "name": "set-dash-no-positionals",
+      "source": "set -- kept; set -; printf \"[%s]\" \"$1\""
+    },
+    {
+      "name": "group-redirection-failure",
+      "source": "set -e; { true; } > missing/out; printf BAD"
+    },
+    {
+      "name": "tested-while-function",
+      "source": "f() { false; printf body; return 1; }; set -e; while f; do printf BAD; done; printf after"
+    },
+    {
+      "name": "read-eof",
+      "source": "set -e; read value; printf BAD"
+    },
+    {
+      "name": "empty-c",
+      "args": [
+        "-ec",
+        "",
+        "named",
+        ""
+      ]
+    }
+  ],
+  "profiles": [
+    {
+      "name": "GNU-5.3",
+      "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "rows": [
+        {
+          "name": "set-dash-positionals",
+          "mode": "bash",
+          "observation": {
+            "stdout": "Wy1hcmdd",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "set-dash-no-positionals",
+          "mode": "bash",
+          "observation": {
+            "stdout": "W2tlcHRd",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "group-redirection-failure",
+          "mode": "bash",
+          "observation": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogbWlzc2luZy9vdXQ6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkK",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "tested-while-function",
+          "mode": "bash",
+          "observation": {
+            "stdout": "Ym9keWFmdGVy",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "read-eof",
+          "mode": "bash",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "empty-c",
+          "mode": "bash",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "set-dash-positionals",
+          "mode": "sh",
+          "observation": {
+            "stdout": "Wy1hcmdd",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "set-dash-no-positionals",
+          "mode": "sh",
+          "observation": {
+            "stdout": "W2tlcHRd",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "group-redirection-failure",
+          "mode": "sh",
+          "observation": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogbWlzc2luZy9vdXQ6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkK",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "tested-while-function",
+          "mode": "sh",
+          "observation": {
+            "stdout": "Ym9keWFmdGVy",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "read-eof",
+          "mode": "sh",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "empty-c",
+          "mode": "sh",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "historical-3.2",
+      "executable": "/bin/bash",
+      "rows": [
+        {
+          "name": "set-dash-positionals",
+          "mode": "bash",
+          "observation": {
+            "stdout": "Wy1hcmdd",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "set-dash-no-positionals",
+          "mode": "bash",
+          "observation": {
+            "stdout": "W2tlcHRd",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "group-redirection-failure",
+          "mode": "bash",
+          "observation": {
+            "stdout": "QkFE",
+            "stderr": "c2hlbGw6IG1pc3Npbmcvb3V0OiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5Cg==",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "tested-while-function",
+          "mode": "bash",
+          "observation": {
+            "stdout": "Ym9keWFmdGVy",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "read-eof",
+          "mode": "bash",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "empty-c",
+          "mode": "bash",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "set-dash-positionals",
+          "mode": "sh",
+          "observation": {
+            "stdout": "Wy1hcmdd",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "set-dash-no-positionals",
+          "mode": "sh",
+          "observation": {
+            "stdout": "W2tlcHRd",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "group-redirection-failure",
+          "mode": "sh",
+          "observation": {
+            "stdout": "QkFE",
+            "stderr": "c2hlbGw6IG1pc3Npbmcvb3V0OiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5Cg==",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "tested-while-function",
+          "mode": "sh",
+          "observation": {
+            "stdout": "Ym9keWFmdGVy",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        },
+        {
+          "name": "read-eof",
+          "mode": "sh",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 1,
+            "marker": null
+          }
+        },
+        {
+          "name": "empty-c",
+          "mode": "sh",
+          "observation": {
+            "stdout": "",
+            "stderr": "",
+            "status": 0,
+            "marker": null
+          }
+        }
+      ]
+    }
+  ],
+  "initial": [
+    {
+      "name": "set-dash-positionals",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLWUsICtlLCAtLSBhcmd1bWVudHMgYW5kIC1vLytvIHBpcGVmYWlsIG9yIGVycmV4aXQK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "set-dash-no-positionals",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLWUsICtlLCAtLSBhcmd1bWVudHMgYW5kIC1vLytvIHBpcGVmYWlsIG9yIGVycmV4aXQK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "group-redirection-failure",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogbWlzc2luZy9vdXQ6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkK",
+        "status": 1,
+        "marker": null
+      }
+    },
+    {
+      "name": "tested-while-function",
+      "mode": "bash",
+      "observation": {
+        "stdout": "Ym9keWFmdGVy",
+        "stderr": "",
+        "status": 0,
+        "marker": null
+      }
+    },
+    {
+      "name": "read-eof",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "",
+        "status": 1,
+        "marker": null
+      }
+    },
+    {
+      "name": "empty-c",
+      "mode": "bash",
+      "observation": {
+        "stdout": "",
+        "stderr": "",
+        "status": 0,
+        "marker": null
+      }
+    },
+    {
+      "name": "set-dash-positionals",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLWUsICtlLCAtLSBhcmd1bWVudHMgYW5kIC1vLytvIHBpcGVmYWlsIG9yIGVycmV4aXQK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "set-dash-no-positionals",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2V0OiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb247IHN1cHBvcnRlZCBmb3JtcyBhcmUgLWUsICtlLCAtLSBhcmd1bWVudHMgYW5kIC1vLytvIHBpcGVmYWlsIG9yIGVycmV4aXQK",
+        "status": 2,
+        "marker": null
+      }
+    },
+    {
+      "name": "group-redirection-failure",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogbWlzc2luZy9vdXQ6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkK",
+        "status": 1,
+        "marker": null
+      }
+    },
+    {
+      "name": "tested-while-function",
+      "mode": "sh",
+      "observation": {
+        "stdout": "Ym9keWFmdGVy",
+        "stderr": "",
+        "status": 0,
+        "marker": null
+      }
+    },
+    {
+      "name": "read-eof",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "",
+        "status": 1,
+        "marker": null
+      }
+    },
+    {
+      "name": "empty-c",
+      "mode": "sh",
+      "observation": {
+        "stdout": "",
+        "stderr": "",
+        "status": 0,
+        "marker": null
+      }
+    }
+  ]
+}

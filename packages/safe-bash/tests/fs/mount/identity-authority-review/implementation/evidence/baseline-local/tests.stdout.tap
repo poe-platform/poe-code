@@ -1,0 +1,578 @@
+TAP version 13
+# Subtest: public memory comparison: independent stores are distinct, aliases follow backing entries
+not ok 1 - public memory comparison: independent stores are distinct, aliases follow backing entries
+  ---
+  duration_ms: 1.91
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:1:1461'
+  failureType: 'testCodeFailure'
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'function'
+  actual: 'undefined'
+  operator: 'strictEqual'
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:30:22)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: public real comparison: different roots and clients preserve shared native identity
+not ok 2 - public real comparison: different roots and clients preserve shared native identity
+  ---
+  duration_ms: 6.475208
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:1:1908'
+  failureType: 'testCodeFailure'
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'function'
+  actual: 'undefined'
+  operator: 'strictEqual'
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:46:22)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: public comparison resolves BOTH operands through nested mounts and readonly wrappers
+not ok 3 - public comparison resolves BOTH operands through nested mounts and readonly wrappers
+  ---
+  duration_ms: 0.499167
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:1:2697'
+  failureType: 'testCodeFailure'
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'function'
+  actual: 'undefined'
+  operator: 'strictEqual'
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:54:22)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: overlay public comparison follows current selection without copy-up; new selection is re-observed
+not ok 4 - overlay public comparison follows current selection without copy-up; new selection is re-observed
+  ---
+  duration_ms: 0.227917
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:1:3494'
+  failureType: 'testCodeFailure'
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'function'
+  actual: 'undefined'
+  operator: 'strictEqual'
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:65:22)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unknown custom views remain unknown and public comparison acquires no content or mutation
+not ok 5 - unknown custom views remain unknown and public comparison acquires no content or mutation
+  ---
+  duration_ms: 0.34425
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:1:4092'
+  failureType: 'testCodeFailure'
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'function'
+  actual: 'undefined'
+  operator: 'strictEqual'
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:78:22)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: public comparison propagates source ENOENT, never unknown
+not ok 6 - public comparison propagates source ENOENT, never unknown
+  ---
+  duration_ms: 0.830458
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:1:4764'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'ERR_ASSERTION'
+    -   code: 'ENOENT'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'ENOENT'
+  actual:
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:91:28)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:91:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: public comparison propagates source EACCES, never unknown
+not ok 7 - public comparison propagates source EACCES, never unknown
+  ---
+  duration_ms: 0.347125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:1:4764'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'ERR_ASSERTION'
+    -   code: 'EACCES'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'EACCES'
+  actual:
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:91:28)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:91:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: public comparison propagates source EIO, never unknown
+not ok 8 - public comparison propagates source EIO, never unknown
+  ---
+  duration_ms: 0.213875
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:1:4764'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'ERR_ASSERTION'
+    -   code: 'EIO'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'EIO'
+  actual:
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:91:28)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:91:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: public comparison propagates peer ENOENT, never unknown
+not ok 9 - public comparison propagates peer ENOENT, never unknown
+  ---
+  duration_ms: 0.397334
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:1:4764'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'ERR_ASSERTION'
+    -   code: 'ENOENT'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'ENOENT'
+  actual:
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:91:28)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:91:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: public comparison propagates peer EACCES, never unknown
+not ok 10 - public comparison propagates peer EACCES, never unknown
+  ---
+  duration_ms: 0.297125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:1:4764'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'ERR_ASSERTION'
+    -   code: 'EACCES'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'EACCES'
+  actual:
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:91:28)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:91:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: public comparison propagates peer EIO, never unknown
+not ok 11 - public comparison propagates peer EIO, never unknown
+  ---
+  duration_ms: 0.116
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:1:4764'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'ERR_ASSERTION'
+    -   code: 'EIO'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'EIO'
+  actual:
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:91:28)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:91:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: complete known aliases override incompatible callback answers without querying either callback
+not ok 12 - complete known aliases override incompatible callback answers without querying either callback
+  ---
+  duration_ms: 0.13675
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:1:5206'
+  failureType: 'testCodeFailure'
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'function'
+  actual: 'undefined'
+  operator: 'strictEqual'
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:104:22)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: public comparison rejects same/distinct before effects and queries each terminal at most once
+not ok 13 - public comparison rejects same/distinct before effects and queries each terminal at most once
+  ---
+  duration_ms: 0.256125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:1:5987'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'ERR_ASSERTION'
+    -   code: 'EIO'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'EIO'
+  actual:
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:118:26)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:118:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: public comparison rejects unknown/invalid before effects and queries each terminal at most once
+not ok 14 - public comparison rejects unknown/invalid before effects and queries each terminal at most once
+  ---
+  duration_ms: 0.112375
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:1:5987'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'ERR_ASSERTION'
+    -   code: 'EIO'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'EIO'
+  actual:
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:118:26)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:118:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: one backend exposed twice negotiates once, not recursively through wrappers
+not ok 15 - one backend exposed twice negotiates once, not recursively through wrappers
+  ---
+  duration_ms: 0.088083
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:1:6732'
+  failureType: 'testCodeFailure'
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'function'
+  actual: 'undefined'
+  operator: 'strictEqual'
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:133:22)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: ENOENT-shaped cancellation between terminal queries stops peer (return)
+not ok 16 - ENOENT-shaped cancellation between terminal queries stops peer (return)
+  ---
+  duration_ms: 0.123083
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:1:7415'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+    
+    Caught error:
+    
+    AssertionError [ERR_ASSERTION]: NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:151:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: ENOENT-shaped cancellation between terminal queries stops peer (rejection)
+not ok 17 - ENOENT-shaped cancellation between terminal queries stops peer (rejection)
+  ---
+  duration_ms: 0.104416
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:1:7415'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+    
+    Caught error:
+    
+    AssertionError [ERR_ASSERTION]: NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:151:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: exclusive insertion race preserves source and newly arrived target bytes
+ok 18 - exclusive insertion race preserves source and newly arrived target bytes
+  ---
+  duration_ms: 0.666667
+  type: 'test'
+  ...
+# Subtest: overlay future upper writer alias cannot be authorized by distinct selected lower read views
+not ok 19 - overlay future upper writer alias cannot be authorized by distinct selected lower read views
+  ---
+  duration_ms: 0.610458
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:1:9264'
+  failureType: 'testCodeFailure'
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'function'
+  actual: 'undefined'
+  operator: 'strictEqual'
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:192:22)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..19
+# tests 19
+# suites 0
+# pass 1
+# fail 18
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 162.286292

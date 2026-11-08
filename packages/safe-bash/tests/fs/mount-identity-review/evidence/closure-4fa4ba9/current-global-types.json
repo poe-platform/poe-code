@@ -1,0 +1,18 @@
+{
+  "command": [
+    "npm",
+    "run",
+    "typecheck"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/",
+  "started": "2026-08-26T23:57:26.542Z",
+  "ended": "2026-08-26T23:57:29.533Z",
+  "head": "5ddce1b0550ad7de8f2a8082f0402fae7aa001b7",
+  "statusBefore": "M src/shell/input.ts\n M src/shell/parser.ts\n M src/shell/runtime.ts\n M tests/shell/SCRIPT_ENTRYPOINTS.md\n M tests/shell/script-entrypoint.test.ts\n?? benchmarks/reports/current-integration/\n?? src/commands/archive/\n?? tests/commands/archive/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/diff-patch-stress/gnu-revised-full-review/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/fs/mount-identity-review/closure-capture.mjs\n?? tests/fs/mount-identity-review/closure-fs-tsconfig.json\n?? tests/fs/mount-identity-review/contract-edges.test.ts\n?? tests/fs/mount-identity-review/evidence/closure-4fa4ba9/\n?? tests/shell/invocation-modes-cases.ts\n?? tests/shell/invocation-modes-native.ts\n?? tests/shell/invocation-modes-probe.ts\n?? tests/shell/invocation-modes-reference.json\n?? tests/shell/invocation-modes.test.ts",
+  "statusAfter": "M src/shell/input.ts\n M src/shell/parser.ts\n M src/shell/runtime.ts\n M tests/shell/SCRIPT_ENTRYPOINTS.md\n M tests/shell/script-entrypoint.test.ts\n?? benchmarks/reports/current-integration/\n?? src/commands/archive/\n?? tests/commands/archive/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/diff-patch-stress/gnu-revised-full-review/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/fs/mount-identity-review/closure-capture.mjs\n?? tests/fs/mount-identity-review/closure-fs-tsconfig.json\n?? tests/fs/mount-identity-review/contract-edges.test.ts\n?? tests/fs/mount-identity-review/evidence/closure-4fa4ba9/\n?? tests/shell/invocation-modes-cases.ts\n?? tests/shell/invocation-modes-native.ts\n?? tests/shell/invocation-modes-probe.ts\n?? tests/shell/invocation-modes-reference.json\n?? tests/shell/invocation-modes.test.ts",
+  "exit": 2,
+  "signal": null,
+  "stdout": "\n> virtual-bash@0.0.0 typecheck\n> tsc --noEmit\n\nsrc/commands/archive/internal.ts(91,45): error TS2550: Property 'isWellFormed' does not exist on type 'string'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2024' or later.\nsrc/commands/archive/stream.ts(9,74): error TS2353: Object literal may only specify known properties, and 'highWaterMark' does not exist in type 'ZlibOptions'.\nsrc/commands/archive/stream.ts(10,49): error TS2353: Object literal may only specify known properties, and 'highWaterMark' does not exist in type 'ZlibOptions'.\n",
+  "stderr": "",
+  "cohort": "current worktree, not frozen source"
+}

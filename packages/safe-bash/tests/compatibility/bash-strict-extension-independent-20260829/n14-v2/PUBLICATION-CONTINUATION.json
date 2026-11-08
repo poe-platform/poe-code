@@ -1,0 +1,15 @@
+{
+  "date": "2026-08-29",
+  "first": {
+    "capture": "/private/tmp/n14-independent-publication-H5DGJA",
+    "stageExit": 128,
+    "stderrSha256": "eee9a9af427ec6c6f9889de975b299648d279ad2fdea5e266e30089858adf4b7",
+    "productRerun": false
+  },
+  "later": {
+    "lockAbsentBeforeNewStage": true,
+    "removedLock": false,
+    "capture": "/private/tmp/n14-independent-publication-continuation-UIn6eC"
+  },
+  "authority": "Ordinary captured retired administrative failure; separate publication-only continuation. No old helper rerun/no runtime retry/no budget renewal."
+}

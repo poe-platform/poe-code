@@ -1,0 +1,16 @@
+import {extractRtf, tokenizeRtf, UnrtfError, type UnrtfLimits, type UnrtfOptions, type RtfToken, type RtfEvent, type RtfFont} from '@poe-platform/safe-bash/commands/unrtf';
+const limits: UnrtfLimits = {inputBytes:10000,retainedBytes:10000,binaryBytes:10000,images:10,imageBytes:10000,tokenBytes:1024,tokens:10000,depth:100,decodedBytes:10000,outputBytes:10000,work:100000};
+const options: UnrtfOptions = {limits,signal:new AbortController().signal,profile:'standards-strict'};
+declare const source: AsyncIterable<Uint8Array>;
+const tokens: AsyncGenerator<RtfToken> = tokenizeRtf(source,options);
+const events: AsyncGenerator<RtfEvent> = extractRtf(source,options);
+const font: RtfFont = {id:0,name:'Arial',codePage:1252,charset:0};
+void tokens; void events; void font; void new UnrtfError('E_PARSE','parse',0);
+import { renderRtf, createUnrtfCommand, unrtfCommands, unrtf, type UnrtfRenderOptions, type UnrtfCommandOptions, type UnrtfResult } from '@poe-platform/safe-bash/commands/unrtf';
+const rendering:UnrtfRenderOptions = {...options,format:'html'};
+const configuration:UnrtfCommandOptions = {format:'text',file:'/document.rtf',limits};
+const bytes:AsyncGenerator<Uint8Array> = renderRtf(source,rendering);
+void bytes; void createUnrtfCommand(configuration); void unrtfCommands(configuration); void unrtf;
+declare const result: UnrtfResult;
+const status:0|1 = result.exitCode;
+void status;

@@ -1,0 +1,12 @@
+{
+  "at": "2026-08-29T11:20:57.544Z",
+  "pid": 10088,
+  "budget": {
+    "minutes": 5,
+    "knownOS": 12,
+    "peak": 2,
+    "captureBytes": 16777216,
+    "workBytes": 67108864
+  },
+  "scope": "resolved authorization slots DATA only; no execution grant"
+}

@@ -1,0 +1,18 @@
+{
+  "role": "EXECUTION_TOOL_SESSION_METADATA_NOT_SUPERVISOR_CHILD",
+  "sessionId": 96221,
+  "supervisorPid": 964,
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/future-supervisor.mjs",
+    "--grant",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/GO.json",
+    "--budget",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/PARENT-BUDGET.json"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "observedAt": "2026-08-28T20:41:08.956Z",
+  "stdout": "supervisor.stdout",
+  "stderr": "supervisor.stderr",
+  "status": "supervisor.status.json"
+}

@@ -1,0 +1,62 @@
+{
+  "decision": "ACCEPT_FINAL_SLOT_ONLY",
+  "utc": "2026-08-29T16:15:54.602Z",
+  "source": "463b17b4df4430555f72b2c358ba94e747fa50b6",
+  "qualification": "4989e28151ab3b384871455af0660ec8ac88b5aa",
+  "sourceFiles": 18,
+  "inheritedHelpers": 9,
+  "launchTools": [
+    {
+      "path": "/bin/zsh",
+      "bytes": 1361216,
+      "mode": 493,
+      "sha256": "450b2d89ac587adea6397bb67c8e909f692af9b8bf63a0fca8064347e8a0aa57",
+      "qualification": "fresh observed launch-tool metadata; trusted-host initial tool startup remains outside child qualification"
+    },
+    {
+      "path": "/usr/bin/env",
+      "bytes": 102368,
+      "mode": 493,
+      "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776",
+      "qualification": "fresh observed launch-tool metadata; trusted-host initial tool startup remains outside child qualification"
+    }
+  ],
+  "sourceBinding": {
+    "path": "/private/tmp/safe-bash-k08-author-RAvH2m/SOURCE-BINDING.json",
+    "bytes": 47625,
+    "sha256": "23719007f88f5414725cbb3806763c70d210d8a2433ec285c179b41c67e4fa17"
+  },
+  "originalChecks": 53,
+  "postguards": 53,
+  "gitBindings": 4,
+  "unusedPaths": 12,
+  "emptyCapture": true,
+  "grant": {
+    "bytes": 976,
+    "sha256": "1de03294f35b1c7f9d3d9aee1281250eec3771cfdc6aa2fbcee28a30f213c641",
+    "mode": "0600"
+  },
+  "review": {
+    "bytes": 211,
+    "sha256": "80f3ae8ed00a5dcc7ba597497352fcf4e94a21e427e53858b3fe6b8e970653d3",
+    "mode": "0600",
+    "commit": "5aa383ae63e20ef8df3fa0bd2c2e06871976fe76"
+  },
+  "command": {
+    "text": "exec /bin/zsh -f '/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/launch.sh' '200923' 'db262c234c02526f2864ef66d8e137e9cd9817645431d944ff3459ad3c89d9d9' '1de03294f35b1c7f9d3d9aee1281250eec3771cfdc6aa2fbcee28a30f213c641' '80f3ae8ed00a5dcc7ba597497352fcf4e94a21e427e53858b3fe6b8e970653d3'\n",
+    "bytes": 346,
+    "sha256": "7984588d150e52732e87063a045cc657d653463bf6eba765bc944f90eec5321d",
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "login": false
+  },
+  "window": {
+    "issued": "2026-08-29T16:08:30.357Z",
+    "latest": "2026-08-29T16:28:30.357Z",
+    "expiry": "2026-08-29T16:53:30.357Z"
+  },
+  "copyQualification": "original0B and exact derivative verified; retained1LF copy not raw loss or rescore",
+  "actualGo": false,
+  "productCalls": 0,
+  "decodeCalls": 0,
+  "workers": 0
+}

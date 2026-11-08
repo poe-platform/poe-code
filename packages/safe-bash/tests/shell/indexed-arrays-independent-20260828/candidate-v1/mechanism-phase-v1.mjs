@@ -1,0 +1,46 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
+import { gunzipSync } from 'node:zlib';
+import { admit, census, digest, verifyTree } from './boundary-app.mjs';
+import { supervise } from '../executor-v1/supervisor.mjs';
+import { verifyTool } from './npm-tool.mjs';
+
+const here = path.dirname(fileURLToPath(import.meta.url)), repository = path.resolve(here, '../../../..');
+const prefix = 'tests/shell/indexed-arrays-independent-20260828/candidate-v1';
+const git = (...args) => execFileSync('/usr/bin/git', args, { cwd: repository, timeout: 10000, maxBuffer: 4 * 1024 * 1024 });
+const preseal = git('log', '-1', '--format=%H', '--', `${prefix}/MECHANISMS-V1-PRESEAL.md`).toString().trim();
+for (const name of ['MECHANISMS-V1-PRESEAL.md', 'mechanism-adapter-v1.mjs', 'mechanism-phase-v1.mjs']) assert.equal(digest(fs.readFileSync(path.join(here, name))), digest(git('show', `${preseal}:${prefix}/${name}`)));
+const work = path.join(here, 'observer-v2-run-HzBTcw');
+assert.equal(digest(fs.readFileSync(path.join(work, 'RESULT.json'))), 'cfa98a0f8e14359cdd160fb316326d2ef88ada7cb2f096fa6bbd462868749dbc');
+const priorPath = path.join(work, 'MANIFEST.json'), priorGo = path.join(work, 'GO.json');
+const prior = admit(priorPath, digest(fs.readFileSync(priorPath)), priorGo, digest(fs.readFileSync(priorGo))).manifest;
+const encoded = fs.readFileSync(path.join(here, 'NPM-TOOL-INVENTORY.json.gz.base64'));
+assert.equal(digest(encoded), '5623653d01886efdbb55e5a4c6b387ba8af00e4b4673740caf23a482ce473af4');
+const decoded = gunzipSync(Buffer.from(encoded.toString(), 'base64'));
+assert.equal(digest(decoded), '1a09d4358a33e162bcc6fc260258d70089a0acdc463d0b0dac56f3f232dcf4ce');
+const npm = JSON.parse(decoded); verifyTool(npm);
+const put = (filename, bytes) => fs.writeFileSync(filename, bytes, { flag: 'wx', mode: 0o644 });
+const app = prior.harnessRoot, adapterPath = path.join(app, 'mechanism-adapter-v1.mjs');
+const source = fs.readFileSync(path.join(here, 'mechanism-adapter-v1.mjs'), 'utf8');
+assert.ok(source.endsWith('\n'));
+execFileSync('apply_patch', [`*** Begin Patch\n*** Add File: ${adapterPath}\n${source.trimEnd().split('\n').map(line => '+' + line).join('\n')}\n*** End Patch\n`], { cwd: repository, timeout: 10000 });
+const manifest = { ...prior, adapter: { path: adapterPath }, requiredFiles: [...prior.requiredFiles, adapterPath], trees: prior.trees.map(tree => tree.root === app ? { root: app, entries: census(app) } : tree) };
+const manifestPath = path.join(work, 'MECHANISMS-MANIFEST.json'), bytes = Buffer.from(JSON.stringify(manifest)); put(manifestPath, bytes);
+const manifestSha = digest(bytes), goPath = path.join(work, 'MECHANISMS-GO.json'), goBytes = Buffer.from(JSON.stringify({ action: 'execute-array-candidate', rootReceipt: preseal, candidate: manifest.candidate, manifestSha256: manifestSha })); put(goPath, goBytes);
+const ids = ['M01','M02','M03','M04','M05','M06','M07','M09','M10','M11','M12','M13','M14','M15','M18','M19','M20'];
+const report = { preseal, priorResultSha256: 'cfa98a0f8e14359cdd160fb316326d2ef88ada7cb2f096fa6bbd462868749dbc', ids, unsafeStop: false };
+try {
+  admit(manifestPath, manifestSha, goPath, digest(goBytes));
+  const output = path.join(work, 'MECHANISMS-RUN.json');
+  report.outer = await supervise(manifest.node.path, [path.join(app, 'run.mjs'), manifestPath, manifestSha, goPath, digest(goBytes), output, 'mechanical', JSON.stringify(ids)], { cwd: app, env: { PATH: path.dirname(manifest.node.path), LC_ALL: 'C', TZ: 'UTC' }, timeoutMs: 180000, maxBytes: 2 * 1024 * 1024 });
+  report.capture = fs.existsSync(output) ? JSON.parse(fs.readFileSync(output)) : undefined;
+  report.unsafeStop = !report.outer.closeObserved || !report.outer.groupAbsent || Boolean(report.outer.fault || report.outer.signal) || !report.capture || report.capture.unsafeStop;
+  assert.ok(report.unsafeStop || [0, 1].includes(report.outer.code));
+  for (const tree of manifest.trees) verifyTree(tree); verifyTool(npm); assert.equal(digest(fs.readFileSync(manifest.node.path)), manifest.node.sha256);
+} catch (error) { report.unsafeStop = true; report.error = String(error?.stack ?? error); }
+const result = Buffer.from(JSON.stringify(report)); put(path.join(work, 'MECHANISMS-RESULT.json'), result);
+console.log(JSON.stringify({ work, unsafeStop: report.unsafeStop, passed: report.capture?.verdict.observations.filter(row => row.pass).length, failed: report.capture?.verdict.failed, errors: report.capture?.verdict.errors, error: report.error, sha256: digest(result) }));
+process.exitCode = report.unsafeStop ? 78 : report.capture.verdict.accepted ? 0 : 1;

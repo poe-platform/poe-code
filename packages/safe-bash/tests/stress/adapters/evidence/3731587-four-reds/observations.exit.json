@@ -1,0 +1,13 @@
+{
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--import",
+    "tsx",
+    "../observe.mjs"
+  ],
+  "cwd": "/private/tmp/safe-bash-four-reds-3731587-gG2w3D/archive",
+  "start": "2026-08-26T22:43:06.305Z",
+  "end": "2026-08-26T22:43:06.471Z",
+  "status": 0,
+  "signal": null
+}

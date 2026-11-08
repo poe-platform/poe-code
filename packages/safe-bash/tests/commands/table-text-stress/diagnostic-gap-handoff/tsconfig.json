@@ -1,0 +1,6 @@
+{
+  "extends": "../../../../tsconfig.json",
+  "compilerOptions": { "noEmit": true },
+  "include": ["../corpus.test.ts", "../../table-text/differential.test.ts"],
+  "exclude": [".runtime"]
+}

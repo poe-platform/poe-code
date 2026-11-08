@@ -1,0 +1,847 @@
+{
+  "observedAt": "2026-09-04T23:39:11.994Z",
+  "platform": "darwin",
+  "architecture": "arm64",
+  "executable": "/tmp/safe-bash-scripting-oracles-20260904/yq-v4.53.3-darwin-arm64",
+  "executableSha256": "877de31753a4dd2401aa048937aa9a7fc4d5f6ce858cf31508c5802954297213",
+  "requestPath": "packages/safe-bash/tests/commands/yq-native/INPLACE_REQUEST.json",
+  "requestSha256": "c2636c1bddbbf2f0df3aa3844f3b1ac85b52efea7bc0910cc55953ef2406112f",
+  "profile": "Mike Farah v4.53.3; LC_ALL=C; NO_COLOR=1; each case has a fresh private cwd",
+  "cases": [
+    {
+      "id": "comment-style-mode",
+      "args": [
+        "-i",
+        ".a = \"new\"",
+        "input.yaml"
+      ],
+      "cwd": "/tmp/safe-bash-scripting-oracles-20260904/yq-inplace-root-hhxk41/comment-style-mode/work",
+      "before": {
+        "input.yaml": {
+          "type": "file",
+          "mode": 416,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "ino": 237282781,
+          "dev": 16777234,
+          "size": 28,
+          "atimeMs": 1788565151845.0999,
+          "mtimeMs": 1788565151845.237,
+          "bytesHex": "232068656164696e670a613a20276f6c6427202320696e6c696e650a"
+        }
+      },
+      "status": 0,
+      "stdoutHex": "",
+      "stderrHex": "",
+      "stdout": "",
+      "stderr": "",
+      "after": {
+        "input.yaml": {
+          "type": "file",
+          "mode": 416,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "ino": 237282782,
+          "dev": 16777234,
+          "size": 28,
+          "atimeMs": 1788565151855.3223,
+          "mtimeMs": 1788565151854.4192,
+          "bytesHex": "232068656164696e670a613a20276e657727202320696e6c696e650a"
+        }
+      },
+      "temporaryAfter": {}
+    },
+    {
+      "id": "eval-first-file",
+      "args": [
+        "-i",
+        ".",
+        "first.yaml",
+        "second.yaml"
+      ],
+      "cwd": "/tmp/safe-bash-scripting-oracles-20260904/yq-inplace-root-hhxk41/eval-first-file/work",
+      "before": {
+        "first.yaml": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "ino": 237282786,
+          "dev": 16777234,
+          "size": 5,
+          "atimeMs": 1788565151855.9238,
+          "mtimeMs": 1788565151855.9937,
+          "bytesHex": "613a20310a"
+        },
+        "second.yaml": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "ino": 237282787,
+          "dev": 16777234,
+          "size": 5,
+          "atimeMs": 1788565151856.1765,
+          "mtimeMs": 1788565151856.2532,
+          "bytesHex": "623a20320a"
+        }
+      },
+      "status": 0,
+      "stdoutHex": "",
+      "stderrHex": "",
+      "stdout": "",
+      "stderr": "",
+      "after": {
+        "first.yaml": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "ino": 237282788,
+          "dev": 16777234,
+          "size": 14,
+          "atimeMs": 1788565151866.147,
+          "mtimeMs": 1788565151865.2725,
+          "bytesHex": "613a20310a2d2d2d0a623a20320a"
+        },
+        "second.yaml": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "ino": 237282787,
+          "dev": 16777234,
+          "size": 5,
+          "atimeMs": 1788565151856.6687,
+          "mtimeMs": 1788565151856.2532,
+          "bytesHex": "623a20320a"
+        }
+      },
+      "temporaryAfter": {}
+    },
+    {
+      "id": "eval-all-first-file",
+      "args": [
+        "ea",
+        "-i",
+        "select(fi == 0) * select(fi == 1)",
+        "first.yaml",
+        "second.yaml"
+      ],
+      "cwd": "/tmp/safe-bash-scripting-oracles-20260904/yq-inplace-root-hhxk41/eval-all-first-file/work",
+      "before": {
+        "first.yaml": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "ino": 237282792,
+          "dev": 16777234,
+          "size": 5,
+          "atimeMs": 1788565151866.985,
+          "mtimeMs": 1788565151867.0493,
+          "bytesHex": "613a20310a"
+        },
+        "second.yaml": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "ino": 237282793,
+          "dev": 16777234,
+          "size": 5,
+          "atimeMs": 1788565151867.5757,
+          "mtimeMs": 1788565151867.209,
+          "bytesHex": "623a20320a"
+        }
+      },
+      "status": 0,
+      "stdoutHex": "",
+      "stderrHex": "",
+      "stdout": "",
+      "stderr": "",
+      "after": {
+        "first.yaml": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "ino": 237282794,
+          "dev": 16777234,
+          "size": 10,
+          "atimeMs": 1788565151875.4658,
+          "mtimeMs": 1788565151875.833,
+          "bytesHex": "613a20310a623a20320a"
+        },
+        "second.yaml": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "ino": 237282793,
+          "dev": 16777234,
+          "size": 5,
+          "atimeMs": 1788565151867.5757,
+          "mtimeMs": 1788565151867.209,
+          "bytesHex": "623a20320a"
+        }
+      },
+      "temporaryAfter": {}
+    },
+    {
+      "id": "symlink",
+      "args": [
+        "-i",
+        ".a = 2",
+        "link.yaml"
+      ],
+      "cwd": "/tmp/safe-bash-scripting-oracles-20260904/yq-inplace-root-hhxk41/symlink/work",
+      "before": {
+        "link.yaml": {
+          "type": "symlink",
+          "mode": 493,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "ino": 237282799,
+          "dev": 16777234,
+          "size": 13,
+          "atimeMs": 1788565151877.7783,
+          "mtimeMs": 1788565151877.7783,
+          "readlink": "original.yaml"
+        },
+        "original.yaml": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "ino": 237282798,
+          "dev": 16777234,
+          "size": 5,
+          "atimeMs": 1788565151877.55,
+          "mtimeMs": 1788565151877.616,
+          "bytesHex": "613a20310a"
+        }
+      },
+      "status": 0,
+      "stdoutHex": "",
+      "stderrHex": "",
+      "stdout": "",
+      "stderr": "",
+      "after": {
+        "link.yaml": {
+          "type": "symlink",
+          "mode": 493,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "ino": 237282799,
+          "dev": 16777234,
+          "size": 13,
+          "atimeMs": 1788565151877.7783,
+          "mtimeMs": 1788565151877.7783,
+          "readlink": "original.yaml"
+        },
+        "original.yaml": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "ino": 237282798,
+          "dev": 16777234,
+          "size": 5,
+          "atimeMs": 1788565151878.1958,
+          "mtimeMs": 1788565151886.562,
+          "bytesHex": "613a20320a"
+        }
+      },
+      "temporaryAfter": {}
+    },
+    {
+      "id": "hardlink",
+      "args": [
+        "-i",
+        ".a = 2",
+        "original.yaml"
+      ],
+      "cwd": "/tmp/safe-bash-scripting-oracles-20260904/yq-inplace-root-hhxk41/hardlink/work",
+      "before": {
+        "original.yaml": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "uid": 501,
+          "gid": 0,
+          "ino": 237282804,
+          "dev": 16777234,
+          "size": 5,
+          "atimeMs": 1788565151892.1895,
+          "mtimeMs": 1788565151892.2676,
+          "bytesHex": "613a20310a"
+        },
+        "other.yaml": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "uid": 501,
+          "gid": 0,
+          "ino": 237282804,
+          "dev": 16777234,
+          "size": 5,
+          "atimeMs": 1788565151892.8418,
+          "mtimeMs": 1788565151892.2676,
+          "bytesHex": "613a20310a"
+        }
+      },
+      "status": 0,
+      "stdoutHex": "",
+      "stderrHex": "",
+      "stdout": "",
+      "stderr": "",
+      "after": {
+        "original.yaml": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "ino": 237282807,
+          "dev": 16777234,
+          "size": 5,
+          "atimeMs": 1788565151900.9368,
+          "mtimeMs": 1788565151901.2073,
+          "bytesHex": "613a20320a"
+        },
+        "other.yaml": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "ino": 237282804,
+          "dev": 16777234,
+          "size": 5,
+          "atimeMs": 1788565151892.8418,
+          "mtimeMs": 1788565151892.2676,
+          "bytesHex": "613a20310a"
+        }
+      },
+      "temporaryAfter": {}
+    },
+    {
+      "id": "invalid-query",
+      "args": [
+        "-i",
+        "[",
+        "input.yaml"
+      ],
+      "cwd": "/tmp/safe-bash-scripting-oracles-20260904/yq-inplace-root-hhxk41/invalid-query/work",
+      "before": {
+        "input.yaml": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "ino": 237282811,
+          "dev": 16777234,
+          "size": 5,
+          "atimeMs": 1788565151902.7542,
+          "mtimeMs": 1788565151902.8132,
+          "bytesHex": "613a20310a"
+        }
+      },
+      "status": 1,
+      "stdoutHex": "",
+      "stderrHex": "4572726f723a206261642065787072657373696f6e2c20636f756c64206e6f742066696e64206d61746368696e6720605d600a",
+      "stdout": "",
+      "stderr": "Error: bad expression, could not find matching `]`\n",
+      "after": {
+        "input.yaml": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "ino": 237282811,
+          "dev": 16777234,
+          "size": 5,
+          "atimeMs": 1788565151903.1018,
+          "mtimeMs": 1788565151902.8132,
+          "bytesHex": "613a20310a"
+        }
+      },
+      "temporaryAfter": {
+        "temp2262827212": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "ino": 237282812,
+          "dev": 16777234,
+          "size": 0,
+          "atimeMs": 1788565151910.6177,
+          "mtimeMs": 1788565151910.6177,
+          "bytesHex": ""
+        }
+      }
+    },
+    {
+      "id": "invalid-yaml",
+      "args": [
+        "-i",
+        ".",
+        "input.yaml"
+      ],
+      "cwd": "/tmp/safe-bash-scripting-oracles-20260904/yq-inplace-root-hhxk41/invalid-yaml/work",
+      "before": {
+        "input.yaml": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "ino": 237282816,
+          "dev": 16777234,
+          "size": 5,
+          "atimeMs": 1788565151912.1458,
+          "mtimeMs": 1788565151912.2068,
+          "bytesHex": "613a205b0a"
+        }
+      },
+      "status": 1,
+      "stdoutHex": "",
+      "stderrHex": "4572726f723a206261642066696c652027696e7075742e79616d6c273a2079616d6c3a207768696c652070617273696e67206120666c6f77206e6f6465206174206c696e6520313a20646964206e6f742066696e64206578706563746564206e6f646520636f6e74656e740a",
+      "stdout": "",
+      "stderr": "Error: bad file 'input.yaml': yaml: while parsing a flow node at line 1: did not find expected node content\n",
+      "after": {
+        "input.yaml": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "ino": 237282816,
+          "dev": 16777234,
+          "size": 5,
+          "atimeMs": 1788565151912.5308,
+          "mtimeMs": 1788565151912.2068,
+          "bytesHex": "613a205b0a"
+        }
+      },
+      "temporaryAfter": {
+        "temp1263779227": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "ino": 237282817,
+          "dev": 16777234,
+          "size": 0,
+          "atimeMs": 1788565151920.4626,
+          "mtimeMs": 1788565151920.4626,
+          "bytesHex": ""
+        }
+      }
+    },
+    {
+      "id": "no-match",
+      "args": [
+        "-i",
+        "-e",
+        "select(false)",
+        "input.yaml"
+      ],
+      "cwd": "/tmp/safe-bash-scripting-oracles-20260904/yq-inplace-root-hhxk41/no-match/work",
+      "before": {
+        "input.yaml": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "ino": 237282821,
+          "dev": 16777234,
+          "size": 5,
+          "atimeMs": 1788565151922.0571,
+          "mtimeMs": 1788565151922.141,
+          "bytesHex": "613a20310a"
+        }
+      },
+      "status": 1,
+      "stdoutHex": "",
+      "stderrHex": "4572726f723a206e6f206d61746368657320666f756e640a",
+      "stdout": "",
+      "stderr": "Error: no matches found\n",
+      "after": {
+        "input.yaml": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "ino": 237282821,
+          "dev": 16777234,
+          "size": 5,
+          "atimeMs": 1788565151922.3916,
+          "mtimeMs": 1788565151922.141,
+          "bytesHex": "613a20310a"
+        }
+      },
+      "temporaryAfter": {
+        "temp2342316925": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "ino": 237282822,
+          "dev": 16777234,
+          "size": 0,
+          "atimeMs": 1788565151930.4995,
+          "mtimeMs": 1788565151930.4995,
+          "bytesHex": ""
+        }
+      }
+    },
+    {
+      "id": "later-input-failure",
+      "args": [
+        "-i",
+        ".",
+        "first.yaml",
+        "second.yaml"
+      ],
+      "cwd": "/tmp/safe-bash-scripting-oracles-20260904/yq-inplace-root-hhxk41/later-input-failure/work",
+      "before": {
+        "first.yaml": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "ino": 237282826,
+          "dev": 16777234,
+          "size": 5,
+          "atimeMs": 1788565151932.2458,
+          "mtimeMs": 1788565151932.3064,
+          "bytesHex": "613a20310a"
+        },
+        "second.yaml": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "ino": 237282827,
+          "dev": 16777234,
+          "size": 5,
+          "atimeMs": 1788565151932.418,
+          "mtimeMs": 1788565151932.4683,
+          "bytesHex": "623a205b0a"
+        }
+      },
+      "status": 1,
+      "stdoutHex": "",
+      "stderrHex": "4572726f723a206261642066696c6520277365636f6e642e79616d6c273a2079616d6c3a207768696c652070617273696e67206120666c6f77206e6f6465206174206c696e6520313a20646964206e6f742066696e64206578706563746564206e6f646520636f6e74656e740a",
+      "stdout": "",
+      "stderr": "Error: bad file 'second.yaml': yaml: while parsing a flow node at line 1: did not find expected node content\n",
+      "after": {
+        "first.yaml": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "ino": 237282826,
+          "dev": 16777234,
+          "size": 5,
+          "atimeMs": 1788565151932.673,
+          "mtimeMs": 1788565151932.3064,
+          "bytesHex": "613a20310a"
+        },
+        "second.yaml": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "ino": 237282827,
+          "dev": 16777234,
+          "size": 5,
+          "atimeMs": 1788565151932.797,
+          "mtimeMs": 1788565151932.4683,
+          "bytesHex": "623a205b0a"
+        }
+      },
+      "temporaryAfter": {
+        "temp2037032273": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "ino": 237282828,
+          "dev": 16777234,
+          "size": 5,
+          "atimeMs": 1788565151941.2732,
+          "mtimeMs": 1788565151941.488,
+          "bytesHex": "613a20310a"
+        }
+      }
+    },
+    {
+      "id": "empty-assignment",
+      "args": [
+        "-i",
+        ".a = 1",
+        "input.yaml"
+      ],
+      "cwd": "/tmp/safe-bash-scripting-oracles-20260904/yq-inplace-root-hhxk41/empty-assignment/work",
+      "before": {
+        "input.yaml": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "ino": 237282832,
+          "dev": 16777234,
+          "size": 0,
+          "atimeMs": 1788565151943.1306,
+          "mtimeMs": 1788565151943.1306,
+          "bytesHex": ""
+        }
+      },
+      "status": 0,
+      "stdoutHex": "",
+      "stderrHex": "",
+      "stdout": "",
+      "stderr": "",
+      "after": {
+        "input.yaml": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "ino": 237282833,
+          "dev": 16777234,
+          "size": 5,
+          "atimeMs": 1788565151951.3965,
+          "mtimeMs": 1788565151951.6206,
+          "bytesHex": "613a20310a"
+        }
+      },
+      "temporaryAfter": {}
+    },
+    {
+      "id": "empty-identity",
+      "args": [
+        "-i",
+        ".",
+        "input.yaml"
+      ],
+      "cwd": "/tmp/safe-bash-scripting-oracles-20260904/yq-inplace-root-hhxk41/empty-identity/work",
+      "before": {
+        "input.yaml": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "ino": 237282837,
+          "dev": 16777234,
+          "size": 0,
+          "atimeMs": 1788565151953.1191,
+          "mtimeMs": 1788565151953.1191,
+          "bytesHex": ""
+        }
+      },
+      "status": 0,
+      "stdoutHex": "",
+      "stderrHex": "",
+      "stdout": "",
+      "stderr": "",
+      "after": {
+        "input.yaml": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "ino": 237282838,
+          "dev": 16777234,
+          "size": 1,
+          "atimeMs": 1788565151961.8875,
+          "mtimeMs": 1788565151962.0767,
+          "bytesHex": "0a"
+        }
+      },
+      "temporaryAfter": {}
+    },
+    {
+      "id": "no-match-without-exit-status",
+      "args": [
+        "-i",
+        "select(false)",
+        "input.yaml"
+      ],
+      "cwd": "/tmp/safe-bash-scripting-oracles-20260904/yq-inplace-root-hhxk41/no-match-without-exit-status/work",
+      "before": {
+        "input.yaml": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "ino": 237282842,
+          "dev": 16777234,
+          "size": 5,
+          "atimeMs": 1788565151963.5264,
+          "mtimeMs": 1788565151963.5815,
+          "bytesHex": "613a20310a"
+        }
+      },
+      "status": 0,
+      "stdoutHex": "",
+      "stderrHex": "",
+      "stdout": "",
+      "stderr": "",
+      "after": {
+        "input.yaml": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "ino": 237282843,
+          "dev": 16777234,
+          "size": 0,
+          "atimeMs": 1788565151973.29,
+          "mtimeMs": 1788565151973.29,
+          "bytesHex": ""
+        }
+      },
+      "temporaryAfter": {}
+    },
+    {
+      "id": "later-document-failure",
+      "args": [
+        "-i",
+        ".",
+        "input.yaml"
+      ],
+      "cwd": "/tmp/safe-bash-scripting-oracles-20260904/yq-inplace-root-hhxk41/later-document-failure/work",
+      "before": {
+        "input.yaml": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "ino": 237282847,
+          "dev": 16777234,
+          "size": 14,
+          "atimeMs": 1788565151974.9773,
+          "mtimeMs": 1788565151975.0518,
+          "bytesHex": "613a20310a2d2d2d0a623a205b0a"
+        }
+      },
+      "status": 1,
+      "stdoutHex": "",
+      "stderrHex": "4572726f723a206261642066696c652027696e7075742e79616d6c273a2079616d6c3a207768696c652070617273696e67206120666c6f77206e6f6465206174206c696e6520333a20646964206e6f742066696e64206578706563746564206e6f646520636f6e74656e740a",
+      "stdout": "",
+      "stderr": "Error: bad file 'input.yaml': yaml: while parsing a flow node at line 3: did not find expected node content\n",
+      "after": {
+        "input.yaml": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "ino": 237282847,
+          "dev": 16777234,
+          "size": 14,
+          "atimeMs": 1788565151975.3157,
+          "mtimeMs": 1788565151975.0518,
+          "bytesHex": "613a20310a2d2d2d0a623a205b0a"
+        }
+      },
+      "temporaryAfter": {
+        "temp2323655332": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "ino": 237282848,
+          "dev": 16777234,
+          "size": 5,
+          "atimeMs": 1788565151983.2441,
+          "mtimeMs": 1788565151983.4377,
+          "bytesHex": "613a20310a"
+        }
+      }
+    },
+    {
+      "id": "readonly-original-mode",
+      "args": [
+        "-i",
+        ".a = 2",
+        "input.yaml"
+      ],
+      "cwd": "/tmp/safe-bash-scripting-oracles-20260904/yq-inplace-root-hhxk41/readonly-original-mode/work",
+      "before": {
+        "input.yaml": {
+          "type": "file",
+          "mode": 292,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "ino": 237282852,
+          "dev": 16777234,
+          "size": 5,
+          "atimeMs": 1788565151984.8936,
+          "mtimeMs": 1788565151984.9478,
+          "bytesHex": "613a20310a"
+        }
+      },
+      "status": 0,
+      "stdoutHex": "",
+      "stderrHex": "",
+      "stdout": "",
+      "stderr": "",
+      "after": {
+        "input.yaml": {
+          "type": "file",
+          "mode": 292,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "ino": 237282853,
+          "dev": 16777234,
+          "size": 5,
+          "atimeMs": 1788565151993.144,
+          "mtimeMs": 1788565151993.3523,
+          "bytesHex": "613a20320a"
+        }
+      },
+      "temporaryAfter": {}
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "args": [
+    "status",
+    "--porcelain=v1",
+    "-z",
+    "--untracked-files=no"
+  ],
+  "closed": true,
+  "pid": 57540,
+  "code": 0,
+  "signal": null
+}

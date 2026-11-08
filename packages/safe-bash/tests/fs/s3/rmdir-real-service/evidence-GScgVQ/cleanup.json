@@ -1,0 +1,14 @@
+{
+  "scratch": "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/.scratch-qUfR5n",
+  "scratchRemoved": true,
+  "ownedDownloadRemoved": true,
+  "serviceOutput": "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/evidence-GScgVQ/service-JDKbu8",
+  "serviceShutdown": {
+    "pid": 29903,
+    "code": 0,
+    "signal": null,
+    "ownedDataRemoved": true,
+    "ownedHomeRemoved": true,
+    "time": "2026-08-27T06:51:58.444Z"
+  }
+}

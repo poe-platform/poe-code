@@ -1,0 +1,8 @@
+{
+  "profile": "GNU coreutils9.7 Darwin25.4.0 arm64 LC_ALL=C",
+  "originalFixture": { "args": ["-l0"], "input": "", "failure": true },
+  "native": { "exitCode": 0, "stdout": "", "stderr": "" },
+  "virtualInitial": { "exitCode": 1, "stdout": "", "stderr": "nl: invalid number '0'\n" },
+  "initialRun": "28/29 tests passed; this fixture was wrong to classify native -l0 as failure. Subsequent source accepts the measured GNU zero-as-one policy and fixture is corrected to a positive nonempty blank control. The original failure is retained here, not erased.",
+  "earlierRun": "Before nl source creation, concurrent unrelated src/commands/search/rg.ts work caused esbuild Unexpected export at118, so discovery tests could not load. No search source edited. The transient error disappeared on the next run."
+}

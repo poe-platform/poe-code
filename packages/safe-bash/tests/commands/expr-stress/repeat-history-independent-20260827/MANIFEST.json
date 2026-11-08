@@ -1,0 +1,178 @@
+{
+  "schema": 1,
+  "inputFreeze": "6d6c00d8ca9d91d3f514b81752f7847be1acbc0a",
+  "workerSha256": "663b0b9010d939df16910c75d543f7a41cee832d6cd7cc2ab142996386206890",
+  "scope": "Exact owned evidence file/directory inventory excluding this manifest hash; Git commit and independent /tmp receipt anchor the manifest. No public acceptance.",
+  "entries": [
+    {
+      "path": "cancellation.mjs",
+      "kind": "file",
+      "bytes": 2760,
+      "sha256": "0817e41762b0cde350e1100240ccb9826dede99fad50f084c24fc84289fa3e7b"
+    },
+    {
+      "path": "candidate-01",
+      "kind": "directory"
+    },
+    {
+      "path": "candidate-01/abort-reason-regression.tap",
+      "kind": "file",
+      "bytes": 23513,
+      "sha256": "b9eeee3606e9719c6b90e6c7270a6cdd2b76158d0cf00f5ea3c2e714d395a6f0"
+    },
+    {
+      "path": "candidate-01/cancellation-final.json",
+      "kind": "file",
+      "bytes": 560,
+      "sha256": "396a16102a77d3a96de7b4b875009a5f241554ed0ee4d16c7af3e025057f07dc"
+    },
+    {
+      "path": "candidate-01/candidate.mjs.data",
+      "kind": "file",
+      "bytes": 12120,
+      "sha256": "36837ef7bd1803349421987b41405409d46d43626abe8ab36b246dea4911d425"
+    },
+    {
+      "path": "candidate-01/candidate.patch.data",
+      "kind": "file",
+      "bytes": 39362,
+      "sha256": "900d10baaaad15e6e428747ca5815b3c284f14a612d6752c9b7bdf91b2fed6de"
+    },
+    {
+      "path": "candidate-01/capture.json",
+      "kind": "file",
+      "bytes": 26186,
+      "sha256": "5f24d8be9a9fd7cf615abfb698633894a8e59b85a57518f3f8f3bb3aca158567"
+    },
+    {
+      "path": "candidate-01/controls-followup.json",
+      "kind": "file",
+      "bytes": 16862,
+      "sha256": "e22623f23696dd5e2b68286f43d11017c3458a155bb176bb14445a20b7e3d2fe"
+    },
+    {
+      "path": "candidate-01/controls.mjs.data",
+      "kind": "file",
+      "bytes": 6723,
+      "sha256": "a3abc13926a9e240b5960e543544de969ebc4c7c88fa69e604d0e1ebfa2be2e8"
+    },
+    {
+      "path": "candidate-01/provenance.json",
+      "kind": "file",
+      "bytes": 100869,
+      "sha256": "f2caebf03f84107a5aee114b0a5e18a51d2115e11c772133bad3407bdf7496d0"
+    },
+    {
+      "path": "candidate-01/qualification.json",
+      "kind": "file",
+      "bytes": 2426,
+      "sha256": "54899c1b31192878b8fa9af371e6fb913cf02ee240da04326daa2dca4c81226e"
+    },
+    {
+      "path": "candidate-01/receipt.txt",
+      "kind": "file",
+      "bytes": 8734,
+      "sha256": "c25cd57be1a573fde360d22e5c7bc3540caef18bddea2d1c152eec26f4063ecd"
+    },
+    {
+      "path": "candidate-01/regex-lifecycle.tap",
+      "kind": "file",
+      "bytes": 2609,
+      "sha256": "6fb67ea1be674c35297e9acda80eb849c359181ee7985b10c2b986c057edb21d"
+    },
+    {
+      "path": "candidate-01/regex-limits.tap",
+      "kind": "file",
+      "bytes": 1565,
+      "sha256": "35445a15d919553a2c57176f33fe16c451c04bcf4137e54fc04d5a7fdae6a73c"
+    },
+    {
+      "path": "candidate-01/regex-protocol.tap",
+      "kind": "file",
+      "bytes": 1163,
+      "sha256": "ccfdf672a479c008402b3084d2f33f5b5c3e29bd66be0c82202a5faeb13ead55"
+    },
+    {
+      "path": "candidate.mjs",
+      "kind": "file",
+      "bytes": 12144,
+      "sha256": "92884704ffbb0444f17977583d7cf115bbfb8317a00115a26f603b67de8c698b"
+    },
+    {
+      "path": "CASES.json",
+      "kind": "file",
+      "bytes": 11044,
+      "sha256": "8e2017cd35508eab72be745ab82f9354109e6bcd5932bab192fe525b75c1982d"
+    },
+    {
+      "path": "CONTROL-CORRECTION.md",
+      "kind": "file",
+      "bytes": 3103,
+      "sha256": "505ec7eb38d8237918ca864513c7dbce1c8ebef77f3130deef6de89c9aacb55a"
+    },
+    {
+      "path": "controls.mjs",
+      "kind": "file",
+      "bytes": 6725,
+      "sha256": "35b92a7cff50effadd68dc2e12a1ec2aedaf0fc173abfef54ae349ba532305e3"
+    },
+    {
+      "path": "HISTORICAL-REGRESSIONS.json",
+      "kind": "file",
+      "bytes": 4919,
+      "sha256": "201ee3f9a415f1e4792fd2331c40342dc3c63808933be166dc1583691a6c9e2f"
+    },
+    {
+      "path": "native-01",
+      "kind": "directory"
+    },
+    {
+      "path": "native-01/capture.json",
+      "kind": "file",
+      "bytes": 24298,
+      "sha256": "b5bd8fa518be13355412209a1b898eab8edb52372fb5bdf7284109a9c20c3644"
+    },
+    {
+      "path": "native.mjs",
+      "kind": "file",
+      "bytes": 4037,
+      "sha256": "9f6cc79bcba257d096cb7c915a840cc0692621c9169d1187b7f31891163b0e77"
+    },
+    {
+      "path": "PRE-EXECUTION-REVIEW.md",
+      "kind": "file",
+      "bytes": 4780,
+      "sha256": "d5903456e6286f3873cfeaae53ad3201bf96aa95c65e0c2acb7e81820bf045e2"
+    },
+    {
+      "path": "prepare.mjs",
+      "kind": "file",
+      "bytes": 5632,
+      "sha256": "b6d0c5c4a525adb9152dffd177aacaf048fec1b0588a0b4c13c7d342509dd2cb"
+    },
+    {
+      "path": "README.md",
+      "kind": "file",
+      "bytes": 2838,
+      "sha256": "21fe256d91ea1674b6025f50a8011d4dd8ccfed7d327e07b2ecc8b94dcdfea43"
+    },
+    {
+      "path": "REPORT.md",
+      "kind": "file",
+      "bytes": 11113,
+      "sha256": "2d6338b403dc6c1f1dd1082a72b64680b14c4c12796bb43587318d56a95e42d4"
+    },
+    {
+      "path": "SEAL-CHECK.json",
+      "kind": "file",
+      "bytes": 11652,
+      "sha256": "b9e0eb0edceac317d698ebf7e313e194c4e1b3828ca97eec1a3f8651189efebd"
+    },
+    {
+      "path": "verify.mjs",
+      "kind": "file",
+      "bytes": 5371,
+      "sha256": "fe6140f3102b86f9a4d8b4b6aed17af30c3f48312b4d04aa08ad07258c762633"
+    }
+  ]
+}

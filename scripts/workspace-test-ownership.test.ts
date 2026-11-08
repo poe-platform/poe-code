@@ -1,0 +1,236 @@
+import { fileURLToPath } from "node:url";
+import { createFsFromVolume, Volume } from "memfs";
+import fs from "node:fs";
+import { describe, expect, it } from "vitest";
+import { createWorkspaceBuildPlan } from "./build-workspaces.mjs";
+import { workspaceTestExclusions, workspaceUnitSelections } from "./workspace-test-ownership.mjs";
+
+function fixture(script?: string, files: Record<string, string> = {}) {
+  return createFsFromVolume(Volume.fromJSON({
+    "/repo/packages/example/package.json": JSON.stringify({ scripts: { "test:unit": script } }),
+    "/repo/packages/example/src/unit.test.ts": "",
+    "/repo/packages/example/src/nested/unit.spec.ts": "",
+    "/repo/packages/example/scripts/build.test.ts": "",
+    ...files
+  })) as unknown as typeof import("node:fs");
+}
+
+describe("workspace test ownership", () => {
+  it("retains declared Node test ownership without absorbing it into shared Vitest", () => {
+    const fileSystem = fixture("node --import tsx --test src/*.test.ts");
+    expect(workspaceTestExclusions("/repo", fileSystem)).toEqual(["packages/example/src/*.test.ts"]);
+    expect(workspaceUnitSelections("/repo", fileSystem)).toEqual([
+      { path: "packages/example", selectors: [], exclusions: ["packages/example/src/*.test.ts"], passWithNoTests: false, hasHooks: false, requiresNativePool: true }
+    ]);
+  });
+  for (const script of ["node --test ../foreign.test.ts", "node --import tsx --test src/*.test.ts && node other.mjs", "node --test '$TESTS'"]) {
+    it(`retains root discovery for ambiguous Node ownership: ${script}`, () => {
+      expect(workspaceTestExclusions("/repo", fixture(script))).toEqual([]);
+    });
+  }
+  it("retains recursive Node glob ownership only when the shell leaves it quoted", () => {
+    expect(workspaceTestExclusions("/repo", fixture('node --test "src/**/*.test.ts"')))
+      .toEqual(["packages/example/src/**/*.test.ts"]);
+    expect(workspaceTestExclusions("/repo", fixture("node --test src/**/*.test.ts"))).toEqual([]);
+  });
+
+  it("derives ownership from chained Node test phases", () => {
+    expect(workspaceTestExclusions("/repo", fixture("node --test scripts/*.test.mjs && node --import tsx --test src/*.test.ts")))
+      .toEqual(["packages/example/scripts/*.test.mjs", "packages/example/src/*.test.ts"]);
+  });
+
+  it.each([
+    "node --test src/*.test.ts scripts/*.test.mjs",
+    "node --expose-gc --test src/*.test.ts scripts/*.test.mjs",
+    "node --expose-gc --import tsx --test src/*.test.ts scripts/*.test.mjs",
+    "node --import tsx --test src/*.test.ts scripts/*.test.mjs",
+    'node --import tsx --test --test-concurrency=1 "src/*.test.ts" "scripts/*.test.mjs"'
+  ])("keeps declared Node suites in their native workspace task: %s", script => {
+    const fileSystem = fixture(script);
+    expect(workspaceUnitSelections("/repo", fileSystem)).toEqual([{
+      path: "packages/example", selectors: [],
+      exclusions: ["packages/example/src/*.test.ts", "packages/example/scripts/*.test.mjs"],
+      passWithNoTests: false, hasHooks: false, requiresNativePool: true
+    }]);
+  });
+
+  it.each([
+    "node --test src/*.test.ts && node after.mjs",
+    "node --test ../other/*.test.ts",
+    "node --test /repo/packages/other/*.test.ts",
+    "node --test ~/external.test.ts",
+    "node --test --test-name-pattern=selected src/*.test.ts",
+    "node --import unknown --test src/*.test.ts",
+    "node --unknown-runtime-flag --test src/*.test.ts",
+    "node --test --test-concurrency=0 src/*.test.ts",
+    "node --test $TEST_PATH",
+    'node --test "src/[ab].test.ts"'
+  ])("retains root coverage for ambiguous Node ownership: %s", script => {
+    expect(workspaceTestExclusions("/repo", fixture(script))).toEqual([]);
+  });
+
+  it("excludes package-local Vitest includes while retaining the native configuration route", () => {
+    const fileSystem = fixture("vitest run --config vitest.config.ts", {
+      "/repo/packages/example/vitest.config.ts": 'import { defineConfig } from "vitest/config"; export default defineConfig({ test: { include: ["src/**/*.test.ts"] } });'
+    });
+    expect(workspaceUnitSelections("/repo", fileSystem)).toEqual([{
+      path: "packages/example", selectors: [], exclusions: ["packages/example/src/**/*.test.ts"],
+      passWithNoTests: false, hasHooks: false, requiresNativePool: true
+    }]);
+  });
+
+  for (const config of [
+    'import { defineConfig } from "another-library"; export default defineConfig({ test: { include: ["src/**/*.test.ts"] } });',
+    'import { defineConfig } from "vitest/config"; export default defineConfig({ test: { include: ["src/**/*.test.ts"], ["include"]: external } });',
+    'import { defineConfig } from "vitest/config"; export default defineConfig({ test: { include: ["src/**/*.test.ts"] }, test: external });',
+    'export default defineConfig({ test: { include: ["src/**/*.test.ts"] } });',
+    'export default defineConfig({ root: "../other", test: { include: ["src/**/*.test.ts"] } });',
+    'export default defineConfig({ test: { dir: "../other", include: ["src/**/*.test.ts"] } });',
+    'export default defineConfig({ test: { include: importedPatterns } });',
+    'export default defineConfig({ test: { include: ["../other/**/*.test.ts"] } });'
+  ]) it("retains root coverage when a package-local configuration is ambiguous: " + config, () => {
+    expect(workspaceTestExclusions("/repo", fixture("vitest run --config vitest.config.ts", {
+      "/repo/packages/example/vitest.config.ts": config
+    }))).toEqual([]);
+  });
+
+  it("builds opt-in tools inside the canonical Safe Bash workspace", () => {
+    const manifest = JSON.parse(fs.readFileSync(new URL("../packages/safe-bash/package.json", import.meta.url), "utf8"));
+    expect(manifest.name).toBe("@poe-platform/safe-bash");
+    expect(manifest.private).toBe(true);
+    expect(manifest.scripts.postbuild).toContain("build-optional-cli.mjs");
+    expect(fs.existsSync(new URL("../packages/safe-bash-optional/package.json", import.meta.url))).toBe(false);
+    const fileSystem = createFsFromVolume(Volume.fromJSON({
+      "/repo/package.json": JSON.stringify({ workspaces: ["packages/*"] }),
+      "/repo/turbo.json": JSON.stringify({ tasks: { build: { dependsOn: ["^build"] } } }),
+      "/repo/packages/safe-fs/package.json": JSON.stringify({ name: "@poe-code/safe-fs", scripts: { build: "node build.mjs" } }),
+      "/repo/packages/safe-bash/package.json": JSON.stringify({ name: manifest.name, scripts: { build: "node build.mjs", "test:unit": "node scripts/test.mjs" }, devDependencies: { "@poe-code/safe-fs": "*" } })
+    })) as unknown as typeof import("node:fs");
+    expect(createWorkspaceBuildPlan("/repo", fileSystem).stages.map((stage: { name: string }) => stage.name))
+      .toEqual(["@poe-code/safe-fs", "@poe-platform/safe-bash"]);
+    expect(workspaceUnitSelections("/repo", fileSystem)).toEqual([]);
+  });
+
+  it("exposes literal selections without changing their exclusion boundaries", () => {
+    const fileSystem = fixture("cd ../.. && vitest run --config vitest.config.ts packages/example/src packages/example/scripts/build.test.ts");
+    expect(workspaceUnitSelections("/repo", fileSystem)).toEqual([{
+      path: "packages/example",
+      selectors: ["packages/example/src", "packages/example/scripts/build.test.ts"],
+      exclusions: ["packages/example/src/**", "packages/example/scripts/build.test.ts"],
+      passWithNoTests: false,
+      hasHooks: false,
+      requiresNativePool: false
+    }]);
+  });
+
+  for (const option of ["--pool=forks", "--pool forks", "--pool=threads", "--pool=vmThreads", "--pool=vmForks"]) {
+    it(`retains exact ownership with a native pool override: ${option}`, () => {
+      const fileSystem = fixture(`cd ../.. && vitest run packages/example/src/ ${option}`);
+      expect(workspaceTestExclusions("/repo", fileSystem)).toEqual(["packages/example/src/**"]);
+      expect(workspaceUnitSelections("/repo", fileSystem)[0]).toMatchObject({ requiresNativePool: true });
+    });
+  }
+
+  it("keeps the maintained terminal native selection out of root ownership", () => {
+    const root = fileURLToPath(new URL("../", import.meta.url));
+    const selection = workspaceUnitSelections(root).find(value => value.path === "packages/terminal-pilot");
+    expect(selection).toMatchObject({
+      selectors: ["packages/terminal-pilot/src/"],
+      exclusions: ["packages/terminal-pilot/src/**"],
+      hasHooks: true,
+      requiresNativePool: true
+    });
+    expect(workspaceTestExclusions(root)).toContain("packages/terminal-pilot/src/**");
+  });
+
+  it("preserves the declared empty-selection policy", () => {
+    expect(workspaceUnitSelections("/repo", fixture("cd ../.. && vitest run --passWithNoTests packages/example/src"))[0])
+      .toMatchObject({ passWithNoTests: true });
+  });
+
+  for (const hook of ["pretest:unit", "posttest:unit"]) {
+    it(`retains ownership but marks ${hook} as requiring its native lifecycle`, () => {
+      const fileSystem = fixture("cd ../.. && vitest run packages/example/src");
+      fileSystem.writeFileSync("/repo/packages/example/package.json", JSON.stringify({
+        scripts: { "test:unit": "cd ../.. && vitest run packages/example/src", [hook]: "node hook.mjs" }
+      }));
+      expect(workspaceUnitSelections("/repo", fileSystem)[0]).toMatchObject({ hasHooks: true });
+      expect(workspaceTestExclusions("/repo", fileSystem)).toEqual(["packages/example/src/**"]);
+    });
+  }
+
+  it("does not treat an unfiltered invocation as a reusable workspace selection", () => {
+    expect(workspaceUnitSelections("/repo", fixture("cd ../.. && vitest run"))).toEqual([]);
+  });
+
+  it("does not reuse custom configurations or shell side effects", () => {
+    for (const script of [
+      "cd ../.. && vitest run --config custom.config.ts packages/example/src",
+      "cd ../.. && vitest run packages/example/src && node after.mjs"
+    ]) expect(workspaceUnitSelections("/repo", fixture(script))).toEqual([]);
+  });
+
+  it("excludes only a declared literal directory, keeping sibling tests in root", () => {
+    expect(workspaceTestExclusions("/repo", fixture("cd ../.. && vitest run packages/example/src/")))
+      .toEqual(["packages/example/src/**"]);
+  });
+
+  it("recognizes the shared config and exact file selectors", () => {
+    expect(workspaceTestExclusions("/repo", fixture("cd ../.. && vitest run --config vitest.config.ts packages/example/src/unit.test.ts")))
+      .toEqual(["packages/example/src/unit.test.ts"]);
+  });
+
+  it("supports multiple owned directories and harmless no-tests option", () => {
+    expect(workspaceTestExclusions("/repo", fixture("cd ../.. && vitest run --passWithNoTests packages/example/src packages/example/scripts")))
+      .toEqual(["packages/example/src/**", "packages/example/scripts/**"]);
+  });
+
+  it("recognizes a whole-package literal selector", () => {
+    expect(workspaceTestExclusions("/repo", fixture("cd ../.. && vitest run packages/example")))
+      .toEqual(["packages/example/**"]);
+  });
+
+  for (const script of [
+    undefined,
+    "node --test",
+    "cd ../.. && vitest run packages/example/src --pool=custom",
+    "cd ../.. && vitest run packages/example/src --pool",
+    "vitest run --config vitest.config.ts",
+    "cd ../.. && vitest run --config custom.config.ts packages/example/src",
+    "cd ../.. && vitest run packages/example/src -t selected",
+    "cd ../.. && vitest run packages/example/src && echo done",
+    "cd ../.. && vitest run packages/example/src/*.test.ts",
+    "cd ../.. && vitest run packages/example/src/**/*.test.ts",
+    "cd ../.. && vitest run packages/example/missing",
+    "cd ../.. && vitest run packages/other/src",
+    "cd ../.. && vitest run packages/example/../other/src",
+    "cd ../.. && vitest run $TEST_PATH",
+    "cd ../.. && vitest run $(echo packages/example/src)"
+  ]) {
+    it(`keeps root coverage when ownership is not proven: ${script}`, () => {
+      expect(workspaceTestExclusions("/repo", fixture(script, {
+        "/repo/packages/other/src/other.test.ts": ""
+      }))).toEqual([]);
+    });
+  }
+
+  it("retains tests when a package stops declaring its unit task", () => {
+    const fileSystem = fixture("cd ../.. && vitest run packages/example/src");
+    expect(workspaceTestExclusions("/repo", fileSystem)).toHaveLength(1);
+    fileSystem.writeFileSync("/repo/packages/example/package.json", "{}");
+    expect(workspaceTestExclusions("/repo", fileSystem)).toEqual([]);
+  });
+
+  it("ignores directories without manifests", () => {
+    expect(workspaceTestExclusions("/repo", fixture(undefined, {
+      "/repo/packages/not-a-workspace/test.test.ts": ""
+    }))).toEqual([]);
+  });
+
+  it("does not reinterpret quoted literal filenames as exclusion globs", () => {
+    expect(workspaceTestExclusions("/repo", fixture('cd ../.. && vitest run "packages/example/src/[ab].test.ts"', {
+      "/repo/packages/example/src/[ab].test.ts": "",
+      "/repo/packages/example/src/a.test.ts": ""
+    }))).toEqual([]);
+  });
+});

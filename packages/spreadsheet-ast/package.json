@@ -1,0 +1,58 @@
+{
+  "name": "@poe-code/spreadsheet-ast",
+  "version": "0.0.1",
+  "private": true,
+  "license": "GPL-2.0-or-later",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./model": {
+      "types": "./dist/model.d.ts",
+      "import": "./dist/model.js"
+    },
+    "./byte-value": {
+      "types": "./dist/byte-value.d.ts",
+      "import": "./dist/byte-value.js"
+    },
+    "./case-fold": {
+      "types": "./dist/case-fold.d.ts",
+      "import": "./dist/case-fold.js"
+    },
+    "./errors": {
+      "types": "./dist/errors.d.ts",
+      "import": "./dist/errors.js"
+    },
+    "./limits": {
+      "types": "./dist/limits.d.ts",
+      "import": "./dist/limits.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "test": "cd ../.. && vitest run packages/spreadsheet-ast",
+    "test:unit": "cd ../.. && vitest run packages/spreadsheet-ast",
+    "lint": "eslint src && tsc --noEmit && tsc -p tsconfig.test.json"
+  },
+  "poeCode": {
+    "safeLibraryExports": {
+      "safe-bash": {
+        "./spreadsheet-ast": "."
+      }
+    },
+    "safeLibraryNotices": {
+      "safe-bash": [
+        "./LICENSE"
+      ]
+    }
+  }
+}

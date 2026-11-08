@@ -1,0 +1,676 @@
+TAP version 13
+# Subtest: grep handles fixed/basic/extended patterns, case, line numbers and counts
+ok 1 - grep handles fixed/basic/extended patterns, case, line numbers and counts
+  ---
+  duration_ms: 111.0875
+  type: 'test'
+  ...
+# Subtest: grep supports repeated/pattern-file expressions, word/whole-line and only-match selection
+ok 2 - grep supports repeated/pattern-file expressions, word/whole-line and only-match selection
+  ---
+  duration_ms: 67.105209
+  type: 'test'
+  ...
+# Subtest: grep uses match/no-match/error statuses and honors filename, quiet and max-count flags
+ok 3 - grep uses match/no-match/error statuses and honors filename, quiet and max-count flags
+  ---
+  duration_ms: 106.324833
+  type: 'test'
+  ...
+# Subtest: test and bracket support strings, integers, boolean operators, filesystem predicates and syntax errors
+ok 4 - test and bracket support strings, integers, boolean operators, filesystem predicates and syntax errors
+  ---
+  duration_ms: 0.875708
+  type: 'test'
+  ...
+# Subtest: agent finds TODO locations and derives sorted source file list
+ok 5 - agent finds TODO locations and derives sorted source file list
+  ---
+  duration_ms: 28.975583
+  type: 'test'
+  ...
+# Subtest: NUL file lists feed xargs without splitting spaces
+ok 6 - NUL file lists feed xargs without splitting spaces
+  ---
+  duration_ms: 20.076917
+  type: 'test'
+  ...
+# Subtest: file inventory and missing matches drive shell conditions
+ok 7 - file inventory and missing matches drive shell conditions
+  ---
+  duration_ms: 18.127333
+  type: 'test'
+  ...
+# Subtest: negative globs preserve repository ignore rules in file inventory pipelines
+ok 8 - negative globs preserve repository ignore rules in file inventory pipelines
+  ---
+  duration_ms: 1.139166
+  type: 'test'
+  ...
+# Subtest: rg native differential: stdin line numbers
+ok 9 - rg native differential: stdin line numbers
+  ---
+  duration_ms: 29.999792
+  type: 'test'
+  ...
+# Subtest: rg native differential: piped stdin inferred
+ok 10 - rg native differential: piped stdin inferred
+  ---
+  duration_ms: 23.26475
+  type: 'test'
+  ...
+# Subtest: rg native differential: single file omits filename
+ok 11 - rg native differential: single file omits filename
+  ---
+  duration_ms: 25.954292
+  type: 'test'
+  ...
+# Subtest: rg native differential: multiple files prefix names
+ok 12 - rg native differential: multiple files prefix names
+  ---
+  duration_ms: 22.364875
+  type: 'test'
+  ...
+# Subtest: rg native differential: recursive sorted traversal
+ok 13 - rg native differential: recursive sorted traversal
+  ---
+  duration_ms: 27.361458
+  type: 'test'
+  ...
+# Subtest: rg native differential: subdirectory preserves spelling
+ok 14 - rg native differential: subdirectory preserves spelling
+  ---
+  duration_ms: 25.986708
+  type: 'test'
+  ...
+# Subtest: rg native differential: combined flags
+ok 15 - rg native differential: combined flags
+  ---
+  duration_ms: 26.358833
+  type: 'test'
+  ...
+# Subtest: rg native differential: negative line selection
+ok 16 - rg native differential: negative line selection
+  ---
+  duration_ms: 26.02325
+  type: 'test'
+  ...
+# Subtest: rg native differential: whole lines
+ok 17 - rg native differential: whole lines
+  ---
+  duration_ms: 25.606
+  type: 'test'
+  ...
+# Subtest: rg native differential: word boundaries Unicode
+ok 18 - rg native differential: word boundaries Unicode
+  ---
+  duration_ms: 24.251917
+  type: 'test'
+  ...
+# Subtest: rg native differential: fixed metacharacters
+ok 19 - rg native differential: fixed metacharacters
+  ---
+  duration_ms: 24.824333
+  type: 'test'
+  ...
+# Subtest: rg native differential: multiple patterns
+ok 20 - rg native differential: multiple patterns
+  ---
+  duration_ms: 27.453417
+  type: 'test'
+  ...
+# Subtest: rg native differential: attached pattern options
+ok 21 - rg native differential: attached pattern options
+  ---
+  duration_ms: 24.57875
+  type: 'test'
+  ...
+# Subtest: rg native differential: pattern files
+ok 22 - rg native differential: pattern files
+  ---
+  duration_ms: 26.650084
+  type: 'test'
+  ...
+# Subtest: rg native differential: patterns from stdin
+ok 23 - rg native differential: patterns from stdin
+  ---
+  duration_ms: 25.8305
+  type: 'test'
+  ...
+# Subtest: rg native differential: empty pattern file never matches
+ok 24 - rg native differential: empty pattern file never matches
+  ---
+  duration_ms: 24.818083
+  type: 'test'
+  ...
+# Subtest: rg native differential: empty pattern file inverted
+ok 25 - rg native differential: empty pattern file inverted
+  ---
+  duration_ms: 24.665084
+  type: 'test'
+  ...
+# Subtest: rg native differential: empty pattern matches empty lines
+ok 26 - rg native differential: empty pattern matches empty lines
+  ---
+  duration_ms: 23.389042
+  type: 'test'
+  ...
+# Subtest: rg native differential: smart case lowercase
+ok 27 - rg native differential: smart case lowercase
+  ---
+  duration_ms: 24.526292
+  type: 'test'
+  ...
+# Subtest: rg native differential: smart case uppercase
+ok 28 - rg native differential: smart case uppercase
+  ---
+  duration_ms: 23.891875
+  type: 'test'
+  ...
+# Subtest: rg native differential: case flag last wins
+ok 29 - rg native differential: case flag last wins
+  ---
+  duration_ms: 22.48825
+  type: 'test'
+  ...
+# Subtest: rg native differential: only matches and columns
+ok 30 - rg native differential: only matches and columns
+  ---
+  duration_ms: 23.676459
+  type: 'test'
+  ...
+# Subtest: rg native differential: byte offsets Unicode
+ok 31 - rg native differential: byte offsets Unicode
+  ---
+  duration_ms: 20.06075
+  type: 'test'
+  ...
+# Subtest: rg native differential: inverted only matching prints selected lines
+ok 32 - rg native differential: inverted only matching prints selected lines
+  ---
+  duration_ms: 23.581334
+  type: 'test'
+  ...
+# Subtest: rg native differential: matching filename list
+ok 33 - rg native differential: matching filename list
+  ---
+  duration_ms: 22.739
+  type: 'test'
+  ...
+# Subtest: rg native differential: nonmatching filename list
+ok 34 - rg native differential: nonmatching filename list
+  ---
+  duration_ms: 25.858083
+  type: 'test'
+  ...
+# Subtest: rg native differential: nonmatching files exit one if absent
+ok 35 - rg native differential: nonmatching files exit one if absent
+  ---
+  duration_ms: 21.505375
+  type: 'test'
+  ...
+# Subtest: rg native differential: count lines suppresses zero
+ok 36 - rg native differential: count lines suppresses zero
+  ---
+  duration_ms: 19.978291
+  type: 'test'
+  ...
+# Subtest: rg native differential: count occurrences
+ok 37 - rg native differential: count occurrences
+  ---
+  duration_ms: 24.414833
+  type: 'test'
+  ...
+# Subtest: rg native differential: count plus only matching counts occurrences
+ok 38 - rg native differential: count plus only matching counts occurrences
+  ---
+  duration_ms: 23.283208
+  type: 'test'
+  ...
+# Subtest: rg native differential: count include zero
+ok 39 - rg native differential: count include zero
+  ---
+  duration_ms: 23.34875
+  type: 'test'
+  ...
+# Subtest: rg native differential: count inverted
+ok 40 - rg native differential: count inverted
+  ---
+  duration_ms: 23.304375
+  type: 'test'
+  ...
+# Subtest: rg native differential: count matches inverted counts selected lines
+ok 41 - rg native differential: count matches inverted counts selected lines
+  ---
+  duration_ms: 24.430625
+  type: 'test'
+  ...
+# Subtest: rg native differential: quiet without-match uses file selection status
+ok 42 - rg native differential: quiet without-match uses file selection status
+  ---
+  duration_ms: 24.911541
+  type: 'test'
+  ...
+# Subtest: rg native differential: quiet match
+ok 43 - rg native differential: quiet match
+  ---
+  duration_ms: 24.524625
+  type: 'test'
+  ...
+# Subtest: rg native differential: quiet miss
+ok 44 - rg native differential: quiet miss
+  ---
+  duration_ms: 25.016917
+  type: 'test'
+  ...
+# Subtest: rg native differential: max count
+ok 45 - rg native differential: max count
+  ---
+  duration_ms: 23.976959
+  type: 'test'
+  ...
+# Subtest: rg native differential: context adjacent groups merge
+ok 46 - rg native differential: context adjacent groups merge
+  ---
+  duration_ms: 24.657709
+  type: 'test'
+  ...
+# Subtest: rg native differential: context disjoint separator
+ok 47 - rg native differential: context disjoint separator
+  ---
+  duration_ms: 21.845416
+  type: 'test'
+  ...
+# Subtest: rg native differential: after context with match limit
+ok 48 - rg native differential: after context with match limit
+  ---
+  duration_ms: 24.055958
+  type: 'test'
+  ...
+# Subtest: rg native differential: custom separator
+ok 49 - rg native differential: custom separator
+  ---
+  duration_ms: 23.36225
+  type: 'test'
+  ...
+# Subtest: rg native differential: null filename list
+ok 50 - rg native differential: null filename list
+  ---
+  duration_ms: 28.504375
+  type: 'test'
+  ...
+# Subtest: rg native differential: null path prefix with line numbers
+ok 51 - rg native differential: null path prefix with line numbers
+  ---
+  duration_ms: 24.303667
+  type: 'test'
+  ...
+# Subtest: rg native differential: null data records
+ok 52 - rg native differential: null data records
+  ---
+  duration_ms: 21.735417
+  type: 'test'
+  ...
+# Subtest: rg native differential: CRLF mode
+ok 53 - rg native differential: CRLF mode
+  ---
+  duration_ms: 21.821625
+  type: 'test'
+  ...
+# Subtest: rg native differential: file listing ignores content
+ok 54 - rg native differential: file listing ignores content
+  ---
+  duration_ms: 10.714125
+  type: 'test'
+  ...
+# Subtest: rg native differential: file list with glob brace expansion
+ok 55 - rg native differential: file list with glob brace expansion
+  ---
+  duration_ms: 11.202292
+  type: 'test'
+  ...
+# Subtest: rg native differential: glob positive plus negative
+ok 56 - rg native differential: glob positive plus negative
+  ---
+  duration_ms: 24.743375
+  type: 'test'
+  ...
+# Subtest: rg native differential: glob last wins
+ok 57 - rg native differential: glob last wins
+  ---
+  duration_ms: 9.398375
+  type: 'test'
+  ...
+# Subtest: rg native differential: glob insensitive
+ok 58 - rg native differential: glob insensitive
+  ---
+  duration_ms: 8.5045
+  type: 'test'
+  ...
+# Subtest: rg native differential: glob stars across nested paths
+ok 59 - rg native differential: glob stars across nested paths
+  ---
+  duration_ms: 8.688292
+  type: 'test'
+  ...
+# Subtest: rg native differential: hidden default
+ok 60 - rg native differential: hidden default
+  ---
+  duration_ms: 9.464584
+  type: 'test'
+  ...
+# Subtest: rg native differential: hidden option
+ok 61 - rg native differential: hidden option
+  ---
+  duration_ms: 8.776458
+  type: 'test'
+  ...
+# Subtest: rg native differential: positive glob overrides hidden
+ok 62 - rg native differential: positive glob overrides hidden
+  ---
+  duration_ms: 7.928542
+  type: 'test'
+  ...
+# Subtest: rg native differential: positive glob overrides matching file ignore
+ok 63 - rg native differential: positive glob overrides matching file ignore
+  ---
+  duration_ms: 7.97825
+  type: 'test'
+  ...
+# Subtest: rg native differential: gitignore repository detection
+ok 64 - rg native differential: gitignore repository detection
+  ---
+  duration_ms: 8.197667
+  type: 'test'
+  ...
+# Subtest: rg native differential: gitignore requires git by default
+ok 65 - rg native differential: gitignore requires git by default
+  ---
+  duration_ms: 8.129542
+  type: 'test'
+  ...
+# Subtest: rg native differential: no require git
+ok 66 - rg native differential: no require git
+  ---
+  duration_ms: 8.1805
+  type: 'test'
+  ...
+# Subtest: rg native differential: ignore negation
+ok 67 - rg native differential: ignore negation
+  ---
+  duration_ms: 9.135209
+  type: 'test'
+  ...
+# Subtest: rg native differential: nested ignore negation
+ok 68 - rg native differential: nested ignore negation
+  ---
+  duration_ms: 8.292166
+  type: 'test'
+  ...
+# Subtest: rg native differential: ignored parent prevents child reinclude
+ok 69 - rg native differential: ignored parent prevents child reinclude
+  ---
+  duration_ms: 7.674959
+  type: 'test'
+  ...
+# Subtest: rg native differential: explicit parent reinclude
+ok 70 - rg native differential: explicit parent reinclude
+  ---
+  duration_ms: 7.487875
+  type: 'test'
+  ...
+# Subtest: rg native differential: ignore file precedence
+ok 71 - rg native differential: ignore file precedence
+  ---
+  duration_ms: 9.083083
+  type: 'test'
+  ...
+# Subtest: rg native differential: ignore escaped hash bang and spaces
+ok 72 - rg native differential: ignore escaped hash bang and spaces
+  ---
+  duration_ms: 7.350583
+  type: 'test'
+  ...
+# Subtest: rg native differential: explicit path overrides ignore and glob
+ok 73 - rg native differential: explicit path overrides ignore and glob
+  ---
+  duration_ms: 21.511
+  type: 'test'
+  ...
+# Subtest: rg native differential: no ignore preserves hidden filtering
+ok 74 - rg native differential: no ignore preserves hidden filtering
+  ---
+  duration_ms: 8.097667
+  type: 'test'
+  ...
+# Subtest: rg native differential: two unrestricted flags include hidden
+ok 75 - rg native differential: two unrestricted flags include hidden
+  ---
+  duration_ms: 8.372833
+  type: 'test'
+  ...
+# Subtest: rg native differential: maximum directory depth
+ok 76 - rg native differential: maximum directory depth
+  ---
+  duration_ms: 6.806959
+  type: 'test'
+  ...
+# Subtest: rg native differential: symlinks skipped recursively
+ok 77 - rg native differential: symlinks skipped recursively
+  ---
+  duration_ms: 7.619833
+  type: 'test'
+  ...
+# Subtest: rg native differential: follow symlinks
+ok 78 - rg native differential: follow symlinks
+  ---
+  duration_ms: 9.156792
+  type: 'test'
+  ...
+# Subtest: rg native differential: explicit symlink follows without L
+ok 79 - rg native differential: explicit symlink follows without L
+  ---
+  duration_ms: 20.615542
+  type: 'test'
+  ...
+# Subtest: rg native differential: binary skipped recursively
+ok 80 - rg native differential: binary skipped recursively
+  ---
+  duration_ms: 19.04625
+  type: 'test'
+  ...
+# Subtest: rg native differential: binary explicit reports match
+ok 81 - rg native differential: binary explicit reports match
+  ---
+  duration_ms: 18.135042
+  type: 'test'
+  ...
+# Subtest: rg native differential: binary mode recursive reports match
+ok 82 - rg native differential: binary mode recursive reports match
+  ---
+  duration_ms: 21.037125
+  type: 'test'
+  ...
+# Subtest: rg native differential: binary forced text preserves bytes
+ok 83 - rg native differential: binary forced text preserves bytes
+  ---
+  duration_ms: 21.157209
+  type: 'test'
+  ...
+# Subtest: rg native differential: binary count
+ok 84 - rg native differential: binary count
+  ---
+  duration_ms: 23.001042
+  type: 'test'
+  ...
+# Subtest: rg native differential: Unicode fixed matching
+ok 85 - rg native differential: Unicode fixed matching
+  ---
+  duration_ms: 23.52175
+  type: 'test'
+  ...
+# Subtest: rg native differential: JSON match offsets and totals
+ok 86 - rg native differential: JSON match offsets and totals
+  ---
+  duration_ms: 26.12675
+  type: 'test'
+  ...
+# Subtest: rg native differential: JSON context
+ok 87 - rg native differential: JSON context
+  ---
+  duration_ms: 24.476958
+  type: 'test'
+  ...
+# Subtest: rg native differential: JSON no matches only summary
+ok 88 - rg native differential: JSON no matches only summary
+  ---
+  duration_ms: 23.973292
+  type: 'test'
+  ...
+# Subtest: rg native differential: zero max-count suppresses even JSON summary
+ok 89 - rg native differential: zero max-count suppresses even JSON summary
+  ---
+  duration_ms: 24.576833
+  type: 'test'
+  ...
+# Subtest: rg native differential: JSON inverted selection
+ok 90 - rg native differential: JSON inverted selection
+  ---
+  duration_ms: 24.219625
+  type: 'test'
+  ...
+# Subtest: rg native differential: JSON binary record splitting
+ok 91 - rg native differential: JSON binary record splitting
+  ---
+  duration_ms: 23.86325
+  type: 'test'
+  ...
+# Subtest: rg native differential: JSON invalid UTF8 uses base64
+ok 92 - rg native differential: JSON invalid UTF8 uses base64
+  ---
+  duration_ms: 22.790042
+  type: 'test'
+  ...
+# Subtest: rg native differential: JSON Unicode byte submatches
+ok 93 - rg native differential: JSON Unicode byte submatches
+  ---
+  duration_ms: 23.856542
+  type: 'test'
+  ...
+# Subtest: rg native differential: JSON overridden by filename mode
+ok 94 - rg native differential: JSON overridden by filename mode
+  ---
+  duration_ms: 23.93625
+  type: 'test'
+  ...
+# Subtest: deterministic virtual results do not depend on native rg availability
+ok 95 - deterministic virtual results do not depend on native rg availability
+  ---
+  duration_ms: 12.260375
+  type: 'test'
+  ...
+# Subtest: JSON schema uses original invalid bytes and byte offsets
+ok 96 - JSON schema uses original invalid bytes and byte offsets
+  ---
+  duration_ms: 11.855459
+  type: 'test'
+  ...
+# Subtest: plugin installs rg and rejects collisions without replacement
+ok 97 - plugin installs rg and rejects collisions without replacement
+  ---
+  duration_ms: 0.857916
+  type: 'test'
+  ...
+# Subtest: invalid options and regexes fail before stdin consumption or stdout
+ok 98 - invalid options and regexes fail before stdin consumption or stdout
+  ---
+  duration_ms: 62.605041
+  type: 'test'
+  ...
+# Subtest: native invalid syntax also returns two without output
+ok 99 - native invalid syntax also returns two without output
+  ---
+  duration_ms: 19.569417
+  type: 'test'
+  ...
+# Subtest: no-match status is distinct from an error and quiet success wins prior errors
+ok 100 - no-match status is distinct from an error and quiet success wins prior errors
+  ---
+  duration_ms: 56.129958
+  type: 'test'
+  ...
+# Subtest: metadata selects supplied empty stdin while default input and overrides remain explicit
+ok 101 - metadata selects supplied empty stdin while default input and overrides remain explicit
+  ---
+  duration_ms: 67.5675
+  type: 'test'
+  ...
+# Subtest: nested explicit roots respect virtual ancestor ignore files
+ok 102 - nested explicit roots respect virtual ancestor ignore files
+  ---
+  duration_ms: 0.956541
+  type: 'test'
+  ...
+# Subtest: symlink loops and broken followed links are errors rather than infinite recursion
+ok 103 - symlink loops and broken followed links are errors rather than infinite recursion
+  ---
+  duration_ms: 0.486541
+  type: 'test'
+  ...
+# Subtest: input, line, filesystem-entry and output quotas fail predictably
+ok 104 - input, line, filesystem-entry and output quotas fail predictably
+  ---
+  duration_ms: 40.2315
+  type: 'test'
+  ...
+# Subtest: one-byte chunks retain UTF8 matches and offsets
+ok 105 - one-byte chunks retain UTF8 matches and offsets
+  ---
+  duration_ms: 13.77625
+  type: 'test'
+  ...
+# Subtest: rg cancels uncooperative stdin
+ok 106 - rg cancels uncooperative stdin
+  ---
+  duration_ms: 11.64525
+  type: 'test'
+  ...
+# Subtest: rg cancels uncooperative stdout
+ok 107 - rg cancels uncooperative stdout
+  ---
+  duration_ms: 10.319375
+  type: 'test'
+  ...
+# Subtest: rg cancels uncooperative stderr
+ok 108 - rg cancels uncooperative stderr
+  ---
+  duration_ms: 12.341791
+  type: 'test'
+  ...
+# Subtest: long ordinary record streams yield so timer cancellation can run
+ok 109 - long ordinary record streams yield so timer cancellation can run
+  ---
+  duration_ms: 10.647375
+  type: 'test'
+  ...
+# Subtest: quiet matching closes streaming input without draining it
+ok 110 - quiet matching closes streaming input without draining it
+  ---
+  duration_ms: 12.492833
+  type: 'test'
+  ...
+# Subtest: explicit paths do not consume unrelated stdin
+ok 111 - explicit paths do not consume unrelated stdin
+  ---
+  duration_ms: 25.480083
+  type: 'test'
+  ...
+1..111
+# tests 111
+# suites 0
+# pass 111
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1897.486666

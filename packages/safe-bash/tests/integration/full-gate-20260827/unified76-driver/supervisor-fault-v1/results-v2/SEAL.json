@@ -1,0 +1,101 @@
+{
+  "schema": 1,
+  "source": "f03c260269dfd8ee10666f7fd2560655f8e14a38",
+  "harness": "63aae753af1ce5d8fa26160b596d6203e264e970",
+  "coordinatorExit": 0,
+  "syntheticRerun": false,
+  "carriedSynthetic": {
+    "source": "results-v1/REPORT.json.gz.base64",
+    "sha256": "7cc5e7058a29f9c7424ec032b7a38c6ecb8ee24ecdeffac83cdd82162ebc3e99",
+    "pass": 13,
+    "rerun": false
+  },
+  "real": [
+    {
+      "id": "R01",
+      "status": "PASS",
+      "pid": 68152,
+      "actualStatus": 0,
+      "actualSignal": null,
+      "clean": true,
+      "captureClosed": true,
+      "observability": "FINAL_SNAPSHOT_OBSERVED"
+    },
+    {
+      "id": "R02",
+      "status": "PASS",
+      "pid": 68158,
+      "actualStatus": null,
+      "actualSignal": "SIGTERM",
+      "clean": false,
+      "captureClosed": true,
+      "observability": "UNKNOWN"
+    },
+    {
+      "id": "R03",
+      "status": "PASS",
+      "pid": 68161,
+      "actualStatus": 0,
+      "actualSignal": null,
+      "clean": false,
+      "captureClosed": true,
+      "observability": "UNKNOWN"
+    }
+  ],
+  "roleControls": {
+    "positive": 1,
+    "negative": 4,
+    "selection": "EXTERNAL.tools exact executable identities; linkage is not an executable record"
+  },
+  "originalV1": "13 synthetic PASS, actual0, coordinator1 manifest-role defect preserved",
+  "rawBytes": 13804,
+  "rawSha256": "890b6695038a6ffd7caa89e9b8582794445dc286feecbbc9292665535252d688",
+  "encodedSha256": "477c1708fe7faba0bf5115e7cce70e5cc8ce08ffc4e795dbd5df2df53ea56e01",
+  "captureRoot": "/tmp/supervisor-fault-author-20260828-f03c2602-v2",
+  "remainingOwnedChildren": [],
+  "qualification": "whole shipping module linked to injected observation dependency; three actual harmless direct Node children, not shipping OS-fence/private/setup/gate proof",
+  "childCaptures": [
+    {
+      "path": "/tmp/supervisor-fault-author-20260828-f03c2602-v2/R01/stdout",
+      "bytes": 15,
+      "mode": 420,
+      "sha256": "d7abc9eb87dc9c70d689a655e17953f2d4c834dcab2a490562671d4a95bbd1dc",
+      "base64": "b3duZWQtcG9zaXRpdmUK"
+    },
+    {
+      "path": "/tmp/supervisor-fault-author-20260828-f03c2602-v2/R01/stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "base64": ""
+    },
+    {
+      "path": "/tmp/supervisor-fault-author-20260828-f03c2602-v2/R02/stdout",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "base64": ""
+    },
+    {
+      "path": "/tmp/supervisor-fault-author-20260828-f03c2602-v2/R02/stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "base64": ""
+    },
+    {
+      "path": "/tmp/supervisor-fault-author-20260828-f03c2602-v2/R03/stdout",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "base64": ""
+    },
+    {
+      "path": "/tmp/supervisor-fault-author-20260828-f03c2602-v2/R03/stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "base64": ""
+    }
+  ]
+}

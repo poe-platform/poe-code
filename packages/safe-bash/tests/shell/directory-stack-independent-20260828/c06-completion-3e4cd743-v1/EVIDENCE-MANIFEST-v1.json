@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "path": "EVIDENCE-v1.json.gz.base64",
+  "bytes": 1105122,
+  "sha256": "6dbc287123dec7420622434d01639453b27dedca8404ee7a8fd58474442bef1c",
+  "rawRecords": 27,
+  "scratch": [
+    "raw-v1",
+    "work-v1"
+  ]
+}

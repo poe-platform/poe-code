@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "purpose": "fresh recoverable v5 provenance; not a reconstruction of unavailable pre-correction bytes",
+  "currentFixtureCommit": "66975ea8ffeedd7c1df510bac2b13e1767bef610",
+  "candidateCommit": "9a5a6f922beb1bc6ba84a0cd32ea7a12f8ce985d",
+  "originalBaselineEvidenceCommit": "82e97559330cff52f63f22c7d5fd80185fe65f44",
+  "approvedAtimeDiagnosticCommit": "75b39b40396e68a27121eea9ca2d31c67dee4e9e",
+  "guardedArchiveExampleCommit": "b1b5abe972bbfc2feffbf04b8c2c98f324391923",
+  "combinedEvidenceCommit": "c5fe1a68341b3a2ebbefd9fee6793a1e6c5df10b",
+  "nativeObservationEvidenceCommit": "2dd6d631f1862487b0874e03f07301769c3a4271",
+  "historicalFreezes": [
+    "510c621e1dfa8f7ffba1d796f5f7e55d967368e2",
+    "8c28d7c848311372cbef5ec3e4facff546baf0a8"
+  ],
+  "candidateRelevantSource": [
+    { "path": "src/fs/overlay/index.ts", "gitBlob": "fb6d3dc25b5ac29f3adf3b2078b5dbf2e9053d37", "sha256": "829352e34a662868ddac3385317bf2f7eea8f605ea55e995865a6dd95ddc0d17" },
+    { "path": "src/commands/du/arguments.ts", "gitBlob": "1b39e18e95d7b19df4c5e01aab8311905137c0e6", "sha256": "1c25d25f2c1464b2b47e9a574d8c786c032d2c5f80b231d15e444a7020a3c409" },
+    { "path": "src/commands/du/du.ts", "gitBlob": "dad87ea613a2c8973c26422c554b39d1826fff69", "sha256": "89a7e96bd08f72fd91a140841cf4dd362ba7e741374ec31e476b2db480cbaf03" },
+    { "path": "src/commands/du/index.ts", "gitBlob": "f017341290ee1b17eeb44c7a5c3b162fd82e1688", "sha256": "73a4ea414b6a6325fb8c4c507fc8f86e7b6b743cb2b94f13437ef42f4d545cd7" }
+  ],
+  "copiedAuthenticatedInputs": [
+    { "freshPath": "harness/verify-original.mjs", "originPath": "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/verify-original.mjs", "gitBlob": "14a93028c2c9dcb4ba9fee4a44d8acb18055dd6c", "sha256": "c08b96e73891995f329583b7d04d7837e1cd66953e13790b906d833f5fcc1c5a", "status": "byte-identical historical 24-case suite" },
+    { "freshPath": "harness/verify-v5.mjs", "originPath": "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/verify-refined-v2.mjs", "gitBlob": "3fdf528c593efbf88b154834291550cce6c81095", "sha256": "67f9854e10246f99cc9d2060e05ff51c1ce4be1a965a9e94f627c6ecaa487138", "status": "authenticated current-v3 starting bytes; intentionally revised as fresh v5" },
+    { "freshPath": "harness/attest-loader.mjs", "originPath": "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/attest-loader.mjs", "gitBlob": "f3ecf208359702d9946f13b5da8558fa0792bea2", "sha256": "856d860f818db6848388be87da7cd59ee4def1bf133abe582206bbd69b083d1d", "status": "byte-identical" },
+    { "freshPath": "consumer/consumer.ts", "originPath": "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/consumer-v2/consumer.ts", "gitBlob": "6544c8e7f1fb4df43d84ea6c8e1b812fa040ca9d", "sha256": "14e55e16f60f8262c2b299fcf48911d2789e3ec1c7b44674dd622f5dab4552b7", "status": "byte-identical" },
+    { "freshPath": "consumer/package.json", "originPath": "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/consumer-v2/package.json", "gitBlob": "58b3477b86fba4b5cf05ed7ac6715996ea6e9fce", "sha256": "52fe278e686f24c3992cd55042b2a5029bc3de967ab198821020c423fe85344f", "status": "byte-identical" },
+    { "freshPath": "consumer/runtime.mjs", "originPath": "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/consumer-v2/runtime.mjs", "gitBlob": "5d4b023c175da6084b26875a9431b0ea27ff20fe", "sha256": "61e13d86b50487bb6a768859e75d111d896c3502b9ce1b286637b43da2ad87b5", "status": "byte-identical" },
+    { "freshPath": "consumer/tsconfig.json", "originPath": "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/consumer-v2/tsconfig.json", "gitBlob": "9be38da0ab7fecf777ed8667dce8015956f9af16", "sha256": "1ece8865863403be31eb2601b88f1739c5412dfe495e7dba65b66e43a2fc607b", "status": "byte-identical strict NodeNext skipLibCheck false" }
+  ],
+  "unavailableOriginalVerifierBlob": "f127f231fe53392ed3635af1c255b66526b5c485",
+  "v2ToV3ExactDelta": "permanently unproved; bytes were unrecoverable and are neither guessed nor reconstructed"
+}

@@ -1,0 +1,8 @@
+{
+  "files": {
+    "independent-prior-47-of-48.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "independent-prior-47-of-48.tap": "fc412f2f0c42aff4a74a5f9e2615c7790f9f1c5b39e7d2be7593ea5cdef916bc",
+    "report.json": "f1cf8b1565d7861db80c2036d39deb83eaa4d5c3b2806a1b0987785307b2ed0e",
+    "test-only.patch": "27b29323bd128d95ecddce7988dd076055c83e9b291cdf3bd04768eb5c5259a9"
+  }
+}

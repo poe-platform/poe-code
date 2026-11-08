@@ -1,0 +1,26 @@
+{
+  "utc": "2026-08-29T15:01:11.230Z",
+  "helper": {
+    "path": "tests/integration/agent-bash-coherent-b2-independent-20260829/completion-r6-review/activation-review-v1/check.mjs",
+    "bytes": 5001,
+    "sha256": "0340d2994db4d28cd0fbaa81674c2ef3b8db71ac938ff16d654778bc75de50c6"
+  },
+  "binding": "f9534894b19085108ac042ff0f48805499d5c1dd",
+  "scope": "one pure data helper; no supervisor activation",
+  "checks": [
+    "30 packet",
+    "10 consumed",
+    "4 tools",
+    "grant receipt",
+    "absent work capture",
+    "early anchor latest active-end",
+    "postguards"
+  ],
+  "bounds": {
+    "seconds": 360,
+    "knownOs": 20,
+    "peak": 3,
+    "capture": 25165824,
+    "work": 100663296
+  }
+}

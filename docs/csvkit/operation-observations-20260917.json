@@ -1,0 +1,613 @@
+{
+  "schemaVersion": 1,
+  "scope": "36 isolated native research observations; no JavaScript or upstream test passes credited",
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "PYTHONIOENCODING": "utf-8",
+    "COLUMNS": "80",
+    "LINES": "24"
+  },
+  "sourceArchiveSha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+  "invocation": "isolated interpreter -m csvkit.utilities.NAME; cwd exclusively owned scratch; stdin/stdout/stderr pipes; no TTY",
+  "observations": [
+    {
+      "id": "empty-count",
+      "profile": "venv314",
+      "command": "csvstat",
+      "argv": [
+        "--count"
+      ],
+      "stdinHex": "",
+      "status": 0,
+      "stdoutHex": "2d310a",
+      "stderrHex": "",
+      "stdout": "-1\n",
+      "stderr": ""
+    },
+    {
+      "id": "names-before-pattern",
+      "profile": "venv314",
+      "command": "csvgrep",
+      "argv": [
+        "--names"
+      ],
+      "stdinHex": "612c620a782c790a",
+      "status": 0,
+      "stdoutHex": "2020313a20610a2020323a20620a",
+      "stderrHex": "",
+      "stdout": "  1: a\n  2: b\n",
+      "stderr": ""
+    },
+    {
+      "id": "names-no-header",
+      "profile": "venv314",
+      "command": "csvcut",
+      "argv": [
+        "--names",
+        "--no-header-row"
+      ],
+      "stdinHex": "612c620a",
+      "status": 1,
+      "stdoutHex": "",
+      "stderrHex": "52657175697265644865616465724572726f723a20596f752063616e6e6f7420757365202d2d6e6f2d6865616465722d726f77207769746820746865202d6e206f72202d2d6e616d6573206f7074696f6e732e0a",
+      "stdout": "",
+      "stderr": "RequiredHeaderError: You cannot use --no-header-row with the -n or --names options.\n"
+    },
+    {
+      "id": "empty-match",
+      "profile": "venv314",
+      "command": "csvgrep",
+      "argv": [
+        "-c",
+        "1",
+        "-m",
+        ""
+      ],
+      "stdinHex": "610a780a790a",
+      "status": 0,
+      "stdoutHex": "610a780a790a",
+      "stderrHex": "",
+      "stdout": "a\nx\ny\n",
+      "stderr": ""
+    },
+    {
+      "id": "empty-match-any",
+      "profile": "venv314",
+      "command": "csvgrep",
+      "argv": [
+        "-c",
+        "1",
+        "-m",
+        "",
+        "--any-match"
+      ],
+      "stdinHex": "610a780a790a",
+      "status": 0,
+      "stdoutHex": "610a",
+      "stderrHex": "",
+      "stdout": "a\n",
+      "stderr": ""
+    },
+    {
+      "id": "raw-stream-no-header",
+      "profile": "venv314",
+      "command": "csvjson",
+      "argv": [
+        "--stream",
+        "--no-inference",
+        "-y",
+        "0",
+        "-H"
+      ],
+      "stdinHex": "612c620a782c790a",
+      "status": 0,
+      "stdoutHex": "7b2261223a202278222c202262223a202279227d0a",
+      "stderrHex": "",
+      "stdout": "{\"a\": \"x\", \"b\": \"y\"}\n",
+      "stderr": ""
+    },
+    {
+      "id": "raw-stream-short",
+      "profile": "venv314",
+      "command": "csvjson",
+      "argv": [
+        "--stream",
+        "--no-inference",
+        "-y",
+        "0"
+      ],
+      "stdinHex": "612c620a780a",
+      "status": 0,
+      "stdoutHex": "7b2261223a202278222c202262223a206e756c6c7d0a",
+      "stderrHex": "",
+      "stdout": "{\"a\": \"x\", \"b\": null}\n",
+      "stderr": ""
+    },
+    {
+      "id": "geo-zero-no-bbox",
+      "profile": "venv314",
+      "command": "csvjson",
+      "argv": [
+        "--lat",
+        "lat",
+        "--lon",
+        "lon",
+        "--no-bbox",
+        "-y",
+        "0"
+      ],
+      "stdinHex": "6c61742c6c6f6e2c700a302c322c300a",
+      "status": 0,
+      "stdoutHex": "7b2274797065223a202246656174757265436f6c6c656374696f6e222c20226665617475726573223a205b7b2274797065223a202246656174757265222c202270726f70657274696573223a207b7d2c202267656f6d65747279223a206e756c6c7d5d7d",
+      "stderrHex": "",
+      "stdout": "{\"type\": \"FeatureCollection\", \"features\": [{\"type\": \"Feature\", \"properties\": {}, \"geometry\": null}]}",
+      "stderr": ""
+    },
+    {
+      "id": "geo-zero-bbox",
+      "profile": "venv314",
+      "command": "csvjson",
+      "argv": [
+        "--lat",
+        "lat",
+        "--lon",
+        "lon",
+        "-y",
+        "0"
+      ],
+      "stdinHex": "6c61742c6c6f6e2c700a302c322c300a",
+      "status": 1,
+      "stdoutHex": "",
+      "stderrHex": "547970654572726f723a20617267756d656e74206f66207479706520274e6f6e655479706527206973206e6f74206120636f6e7461696e6572206f72206974657261626c650a",
+      "stdout": "",
+      "stderr": "TypeError: argument of type 'NoneType' is not a container or iterable\n"
+    },
+    {
+      "id": "grouped-noheader-stdin",
+      "profile": "venv314",
+      "command": "csvstack",
+      "argv": [
+        "-H",
+        "-g",
+        "G"
+      ],
+      "stdinHex": "782c790a612c620a",
+      "status": 0,
+      "stdoutHex": "67726f75702c612c620a782c790a472c612c620a",
+      "stderrHex": "",
+      "stdout": "group,a,b\nx,y\nG,a,b\n",
+      "stderr": ""
+    },
+    {
+      "id": "fixed-schema-required",
+      "profile": "venv314",
+      "command": "in2csv",
+      "argv": [
+        "-f",
+        "fixed"
+      ],
+      "stdinHex": "6162630a",
+      "status": 1,
+      "stdoutHex": "",
+      "stderrHex": "56616c75654572726f723a20736368656d61206d757374206e6f74206265206e756c6c207768656e20666f726d617420697320226669786564220a",
+      "stdout": "",
+      "stderr": "ValueError: schema must not be null when format is \"fixed\"\n"
+    },
+    {
+      "id": "extension-ndjson",
+      "profile": "venv314",
+      "command": "in2csv",
+      "argv": [
+        "fixture.ndjson"
+      ],
+      "stdinHex": "",
+      "status": 2,
+      "stdoutHex": "",
+      "stderrHex": "75736167653a20696e32637376205b2d685d205b2d642044454c494d495445525d205b2d745d205b2d712051554f5445434841525d205b2d75207b302c312c322c332c342c357d5d205b2d625d0a20202020202020202020202020205b2d7020455343415045434841525d205b2d7a204649454c445f53495a455f4c494d49545d205b2d6520454e434f44494e475d205b2d4c204c4f43414c455d0a20202020202020202020202020205b2d535d205b2d2d626c616e6b735d205b2d2d6e756c6c2d76616c7565204e554c4c5f56414c554553205b4e554c4c5f56414c554553202e2e2e5d5d0a20202020202020202020202020205b2d2d646174652d666f726d617420444154455f464f524d41545d205b2d2d6461746574696d652d666f726d6174204441544554494d455f464f524d41545d0a20202020202020202020202020205b2d2d6e6f2d6c656164696e672d7a65726f65735d205b2d485d205b2d4b20534b49505f4c494e45535d205b2d765d205b2d6c5d205b2d2d6164642d626f6d5d0a20202020202020202020202020205b2d2d7a65726f5d205b2d565d205b2d66207b6373762c6462662c66697865642c67656f6a736f6e2c6a736f6e2c6e646a736f6e2c786c732c786c73787d5d0a20202020202020202020202020205b2d7320534348454d415d205b2d6b204b45595d205b2d6e5d205b2d2d73686565742053484545545d0a20202020202020202020202020205b2d2d77726974652d7368656574732057524954455f5348454554535d205b2d2d7573652d73686565742d6e616d65735d0a20202020202020202020202020205b2d2d72657365742d64696d656e73696f6e735d205b2d2d656e636f64696e672d786c7320454e434f44494e475f584c535d0a20202020202020202020202020205b2d7920534e4946465f4c494d49545d205b2d495d0a20202020202020202020202020205b46494c455d0a696e326373763a206572726f723a20556e61626c6520746f206175746f6d61746963616c6c792064657465726d696e652074686520666f726d6174206f662074686520696e7075742066696c652e205472792073706563696679696e67206120666f726d61742077697468202d2d666f726d61742e0a",
+      "stdout": "",
+      "stderr": "usage: in2csv [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n              [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n              [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n              [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n              [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l] [--add-bom]\n              [--zero] [-V] [-f {csv,dbf,fixed,geojson,json,ndjson,xls,xlsx}]\n              [-s SCHEMA] [-k KEY] [-n] [--sheet SHEET]\n              [--write-sheets WRITE_SHEETS] [--use-sheet-names]\n              [--reset-dimensions] [--encoding-xls ENCODING_XLS]\n              [-y SNIFF_LIMIT] [-I]\n              [FILE]\nin2csv: error: Unable to automatically determine the format of the input file. Try specifying a format with --format.\n"
+    },
+    {
+      "id": "write-sheets-csv",
+      "profile": "venv314",
+      "command": "in2csv",
+      "argv": [
+        "-f",
+        "csv",
+        "--write-sheets",
+        "Sheet1",
+        "-I",
+        "-y",
+        "0"
+      ],
+      "stdinHex": "610a780a",
+      "status": 1,
+      "stdoutHex": "610a780a",
+      "stderrHex": "56616c75654572726f723a2072656164206f6620636c6f7365642066696c650a",
+      "stdout": "a\nx\n",
+      "stderr": "ValueError: read of closed file\n"
+    },
+    {
+      "id": "blank-sql-query",
+      "profile": "venv314",
+      "command": "csvsql",
+      "argv": [
+        "--query",
+        " "
+      ],
+      "stdinHex": "",
+      "status": 1,
+      "stdoutHex": "",
+      "stderrHex": "2f55736572732f6b6a6f70656b2f576f726b73706163652f706f652d636f64652d352f6f75742f6373766b69742d666561747572652d61756469742d32303236303931372f76656e763331342f6c69622f707974686f6e332e31342f736974652d7061636b616765732f61676174652f7461626c652f66726f6d5f6373762e70793a38333a2052756e74696d655761726e696e673a204572726f7220736e696666696e6720435356206469616c6563743a20436f756c64206e6f742064657465726d696e652064656c696d697465720a20206b77617267735b276469616c656374275d203d206373762e536e696666657228292e736e6966662873616d706c65290a4174747269627574654572726f723a20274e6f6e655479706527206f626a65637420686173206e6f20617474726962757465202772657475726e735f726f7773270a",
+      "stdout": "",
+      "stderr": "/Users/kjopek/Workspace/poe-code-5/out/csvkit-feature-audit-20260917/venv314/lib/python3.14/site-packages/agate/table/from_csv.py:83: RuntimeWarning: Error sniffing CSV dialect: Could not determine delimiter\n  kwargs['dialect'] = csv.Sniffer().sniff(sample)\nAttributeError: 'NoneType' object has no attribute 'returns_rows'\n"
+    },
+    {
+      "id": "sql-calculator",
+      "profile": "venv314",
+      "command": "sql2csv",
+      "argv": [
+        "--query",
+        "SELECT 1 AS n"
+      ],
+      "stdinHex": "",
+      "status": 0,
+      "stdoutHex": "6e0a310a",
+      "stderrHex": "",
+      "stdout": "n\n1\n",
+      "stderr": ""
+    },
+    {
+      "id": "sql-header-omit",
+      "profile": "venv314",
+      "command": "sql2csv",
+      "argv": [
+        "--query",
+        "SELECT 1 AS n",
+        "-H"
+      ],
+      "stdinHex": "",
+      "status": 0,
+      "stdoutHex": "310a",
+      "stderrHex": "",
+      "stdout": "1\n",
+      "stderr": ""
+    },
+    {
+      "id": "csv-json-output-precedence",
+      "profile": "venv314",
+      "command": "csvstat",
+      "argv": [
+        "--csv",
+        "--json",
+        "-y",
+        "0"
+      ],
+      "stdinHex": "6e0a320a340a",
+      "status": 0,
+      "stdoutHex": "636f6c756d6e5f69642c636f6c756d6e5f6e616d652c747970652c6e756c6c732c6e6f6e6e756c6c732c756e697175652c6d696e2c6d61782c73756d2c6d65616e2c6d656469616e2c73746465762c6c656e2c6d6178707265636973696f6e2c667265710a312c6e2c4e756d6265722c46616c73652c322c322c322c342c362c332c332c312e3431343231333536323337333039353034383830313638383732342c2c302c22322c2034220a",
+      "stderrHex": "",
+      "stdout": "column_id,column_name,type,nulls,nonnulls,unique,min,max,sum,mean,median,stdev,len,maxprecision,freq\n1,n,Number,False,2,2,2,4,6,3,3,1.414213562373095048801688724,,0,\"2, 4\"\n",
+      "stderr": ""
+    },
+    {
+      "id": "repeated-null-values",
+      "profile": "venv314",
+      "command": "csvsort parser only",
+      "argv": [
+        "--null-value",
+        "first",
+        "--null-value",
+        "second",
+        "third"
+      ],
+      "stdinHex": "",
+      "status": 0,
+      "stdoutHex": "5b227365636f6e64222c20227468697264225d0a",
+      "stderrHex": "",
+      "stdout": "[\"second\", \"third\"]\n",
+      "stderr": ""
+    },
+    {
+      "id": "empty-count",
+      "profile": "venv39",
+      "command": "csvstat",
+      "argv": [
+        "--count"
+      ],
+      "stdinHex": "",
+      "status": 0,
+      "stdoutHex": "2d310a",
+      "stderrHex": "",
+      "stdout": "-1\n",
+      "stderr": ""
+    },
+    {
+      "id": "names-before-pattern",
+      "profile": "venv39",
+      "command": "csvgrep",
+      "argv": [
+        "--names"
+      ],
+      "stdinHex": "612c620a782c790a",
+      "status": 0,
+      "stdoutHex": "2020313a20610a2020323a20620a",
+      "stderrHex": "",
+      "stdout": "  1: a\n  2: b\n",
+      "stderr": ""
+    },
+    {
+      "id": "names-no-header",
+      "profile": "venv39",
+      "command": "csvcut",
+      "argv": [
+        "--names",
+        "--no-header-row"
+      ],
+      "stdinHex": "612c620a",
+      "status": 1,
+      "stdoutHex": "",
+      "stderrHex": "52657175697265644865616465724572726f723a20596f752063616e6e6f7420757365202d2d6e6f2d6865616465722d726f77207769746820746865202d6e206f72202d2d6e616d6573206f7074696f6e732e0a",
+      "stdout": "",
+      "stderr": "RequiredHeaderError: You cannot use --no-header-row with the -n or --names options.\n"
+    },
+    {
+      "id": "empty-match",
+      "profile": "venv39",
+      "command": "csvgrep",
+      "argv": [
+        "-c",
+        "1",
+        "-m",
+        ""
+      ],
+      "stdinHex": "610a780a790a",
+      "status": 0,
+      "stdoutHex": "610a780a790a",
+      "stderrHex": "",
+      "stdout": "a\nx\ny\n",
+      "stderr": ""
+    },
+    {
+      "id": "empty-match-any",
+      "profile": "venv39",
+      "command": "csvgrep",
+      "argv": [
+        "-c",
+        "1",
+        "-m",
+        "",
+        "--any-match"
+      ],
+      "stdinHex": "610a780a790a",
+      "status": 0,
+      "stdoutHex": "610a",
+      "stderrHex": "",
+      "stdout": "a\n",
+      "stderr": ""
+    },
+    {
+      "id": "raw-stream-no-header",
+      "profile": "venv39",
+      "command": "csvjson",
+      "argv": [
+        "--stream",
+        "--no-inference",
+        "-y",
+        "0",
+        "-H"
+      ],
+      "stdinHex": "612c620a782c790a",
+      "status": 0,
+      "stdoutHex": "7b2261223a202278222c202262223a202279227d0a",
+      "stderrHex": "",
+      "stdout": "{\"a\": \"x\", \"b\": \"y\"}\n",
+      "stderr": ""
+    },
+    {
+      "id": "raw-stream-short",
+      "profile": "venv39",
+      "command": "csvjson",
+      "argv": [
+        "--stream",
+        "--no-inference",
+        "-y",
+        "0"
+      ],
+      "stdinHex": "612c620a780a",
+      "status": 0,
+      "stdoutHex": "7b2261223a202278222c202262223a206e756c6c7d0a",
+      "stderrHex": "",
+      "stdout": "{\"a\": \"x\", \"b\": null}\n",
+      "stderr": ""
+    },
+    {
+      "id": "geo-zero-no-bbox",
+      "profile": "venv39",
+      "command": "csvjson",
+      "argv": [
+        "--lat",
+        "lat",
+        "--lon",
+        "lon",
+        "--no-bbox",
+        "-y",
+        "0"
+      ],
+      "stdinHex": "6c61742c6c6f6e2c700a302c322c300a",
+      "status": 0,
+      "stdoutHex": "7b2274797065223a202246656174757265436f6c6c656374696f6e222c20226665617475726573223a205b7b2274797065223a202246656174757265222c202270726f70657274696573223a207b7d2c202267656f6d65747279223a206e756c6c7d5d7d",
+      "stderrHex": "",
+      "stdout": "{\"type\": \"FeatureCollection\", \"features\": [{\"type\": \"Feature\", \"properties\": {}, \"geometry\": null}]}",
+      "stderr": ""
+    },
+    {
+      "id": "geo-zero-bbox",
+      "profile": "venv39",
+      "command": "csvjson",
+      "argv": [
+        "--lat",
+        "lat",
+        "--lon",
+        "lon",
+        "-y",
+        "0"
+      ],
+      "stdinHex": "6c61742c6c6f6e2c700a302c322c300a",
+      "status": 1,
+      "stdoutHex": "",
+      "stderrHex": "547970654572726f723a20617267756d656e74206f66207479706520274e6f6e655479706527206973206e6f74206974657261626c650a",
+      "stdout": "",
+      "stderr": "TypeError: argument of type 'NoneType' is not iterable\n"
+    },
+    {
+      "id": "grouped-noheader-stdin",
+      "profile": "venv39",
+      "command": "csvstack",
+      "argv": [
+        "-H",
+        "-g",
+        "G"
+      ],
+      "stdinHex": "782c790a612c620a",
+      "status": 0,
+      "stdoutHex": "67726f75702c612c620a782c790a472c612c620a",
+      "stderrHex": "",
+      "stdout": "group,a,b\nx,y\nG,a,b\n",
+      "stderr": ""
+    },
+    {
+      "id": "fixed-schema-required",
+      "profile": "venv39",
+      "command": "in2csv",
+      "argv": [
+        "-f",
+        "fixed"
+      ],
+      "stdinHex": "6162630a",
+      "status": 1,
+      "stdoutHex": "",
+      "stderrHex": "56616c75654572726f723a20736368656d61206d757374206e6f74206265206e756c6c207768656e20666f726d617420697320226669786564220a",
+      "stdout": "",
+      "stderr": "ValueError: schema must not be null when format is \"fixed\"\n"
+    },
+    {
+      "id": "extension-ndjson",
+      "profile": "venv39",
+      "command": "in2csv",
+      "argv": [
+        "fixture.ndjson"
+      ],
+      "stdinHex": "",
+      "status": 2,
+      "stdoutHex": "",
+      "stderrHex": "75736167653a20696e32637376205b2d685d205b2d642044454c494d495445525d205b2d745d205b2d712051554f5445434841525d205b2d75207b302c312c322c337d5d205b2d625d0a20202020202020202020202020205b2d7020455343415045434841525d205b2d7a204649454c445f53495a455f4c494d49545d205b2d6520454e434f44494e475d205b2d4c204c4f43414c455d0a20202020202020202020202020205b2d535d205b2d2d626c616e6b735d205b2d2d6e756c6c2d76616c7565204e554c4c5f56414c554553205b4e554c4c5f56414c554553202e2e2e5d5d0a20202020202020202020202020205b2d2d646174652d666f726d617420444154455f464f524d41545d205b2d2d6461746574696d652d666f726d6174204441544554494d455f464f524d41545d0a20202020202020202020202020205b2d2d6e6f2d6c656164696e672d7a65726f65735d205b2d485d205b2d4b20534b49505f4c494e45535d205b2d765d205b2d6c5d205b2d2d6164642d626f6d5d0a20202020202020202020202020205b2d2d7a65726f5d205b2d565d205b2d66207b6373762c6462662c66697865642c67656f6a736f6e2c6a736f6e2c6e646a736f6e2c786c732c786c73787d5d0a20202020202020202020202020205b2d7320534348454d415d205b2d6b204b45595d205b2d6e5d205b2d2d73686565742053484545545d0a20202020202020202020202020205b2d2d77726974652d7368656574732057524954455f5348454554535d205b2d2d7573652d73686565742d6e616d65735d0a20202020202020202020202020205b2d2d72657365742d64696d656e73696f6e735d205b2d2d656e636f64696e672d786c7320454e434f44494e475f584c535d0a20202020202020202020202020205b2d7920534e4946465f4c494d49545d205b2d495d0a20202020202020202020202020205b46494c455d0a696e326373763a206572726f723a20556e61626c6520746f206175746f6d61746963616c6c792064657465726d696e652074686520666f726d6174206f662074686520696e7075742066696c652e205472792073706563696679696e67206120666f726d61742077697468202d2d666f726d61742e0a",
+      "stdout": "",
+      "stderr": "usage: in2csv [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3}] [-b]\n              [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n              [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n              [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n              [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l] [--add-bom]\n              [--zero] [-V] [-f {csv,dbf,fixed,geojson,json,ndjson,xls,xlsx}]\n              [-s SCHEMA] [-k KEY] [-n] [--sheet SHEET]\n              [--write-sheets WRITE_SHEETS] [--use-sheet-names]\n              [--reset-dimensions] [--encoding-xls ENCODING_XLS]\n              [-y SNIFF_LIMIT] [-I]\n              [FILE]\nin2csv: error: Unable to automatically determine the format of the input file. Try specifying a format with --format.\n"
+    },
+    {
+      "id": "write-sheets-csv",
+      "profile": "venv39",
+      "command": "in2csv",
+      "argv": [
+        "-f",
+        "csv",
+        "--write-sheets",
+        "Sheet1",
+        "-I",
+        "-y",
+        "0"
+      ],
+      "stdinHex": "610a780a",
+      "status": 1,
+      "stdoutHex": "610a780a",
+      "stderrHex": "56616c75654572726f723a2072656164206f6620636c6f7365642066696c650a",
+      "stdout": "a\nx\n",
+      "stderr": "ValueError: read of closed file\n"
+    },
+    {
+      "id": "blank-sql-query",
+      "profile": "venv39",
+      "command": "csvsql",
+      "argv": [
+        "--query",
+        " "
+      ],
+      "stdinHex": "",
+      "status": 1,
+      "stdoutHex": "",
+      "stderrHex": "2f55736572732f6b6a6f70656b2f576f726b73706163652f706f652d636f64652d352f6f75742f6373766b69742d666561747572652d61756469742d32303236303931372f76656e7633392f6c69622f707974686f6e332e392f736974652d7061636b616765732f61676174652f7461626c652f66726f6d5f6373762e70793a38333a2052756e74696d655761726e696e673a204572726f7220736e696666696e6720435356206469616c6563743a20436f756c64206e6f742064657465726d696e652064656c696d697465720a20206b77617267735b276469616c656374275d203d206373762e536e696666657228292e736e6966662873616d706c65290a4174747269627574654572726f723a20274e6f6e655479706527206f626a65637420686173206e6f20617474726962757465202772657475726e735f726f7773270a",
+      "stdout": "",
+      "stderr": "/Users/kjopek/Workspace/poe-code-5/out/csvkit-feature-audit-20260917/venv39/lib/python3.9/site-packages/agate/table/from_csv.py:83: RuntimeWarning: Error sniffing CSV dialect: Could not determine delimiter\n  kwargs['dialect'] = csv.Sniffer().sniff(sample)\nAttributeError: 'NoneType' object has no attribute 'returns_rows'\n"
+    },
+    {
+      "id": "sql-calculator",
+      "profile": "venv39",
+      "command": "sql2csv",
+      "argv": [
+        "--query",
+        "SELECT 1 AS n"
+      ],
+      "stdinHex": "",
+      "status": 0,
+      "stdoutHex": "6e0a310a",
+      "stderrHex": "",
+      "stdout": "n\n1\n",
+      "stderr": ""
+    },
+    {
+      "id": "sql-header-omit",
+      "profile": "venv39",
+      "command": "sql2csv",
+      "argv": [
+        "--query",
+        "SELECT 1 AS n",
+        "-H"
+      ],
+      "stdinHex": "",
+      "status": 0,
+      "stdoutHex": "310a",
+      "stderrHex": "",
+      "stdout": "1\n",
+      "stderr": ""
+    },
+    {
+      "id": "csv-json-output-precedence",
+      "profile": "venv39",
+      "command": "csvstat",
+      "argv": [
+        "--csv",
+        "--json",
+        "-y",
+        "0"
+      ],
+      "stdinHex": "6e0a320a340a",
+      "status": 0,
+      "stdoutHex": "636f6c756d6e5f69642c636f6c756d6e5f6e616d652c747970652c6e756c6c732c6e6f6e6e756c6c732c756e697175652c6d696e2c6d61782c73756d2c6d65616e2c6d656469616e2c73746465762c6c656e2c6d6178707265636973696f6e2c667265710a312c6e2c4e756d6265722c46616c73652c322c322c322c342c362c332c332c312e3431343231333536323337333039353034383830313638383732342c2c302c22322c2034220a",
+      "stderrHex": "",
+      "stdout": "column_id,column_name,type,nulls,nonnulls,unique,min,max,sum,mean,median,stdev,len,maxprecision,freq\n1,n,Number,False,2,2,2,4,6,3,3,1.414213562373095048801688724,,0,\"2, 4\"\n",
+      "stderr": ""
+    },
+    {
+      "id": "repeated-null-values",
+      "profile": "venv39",
+      "command": "csvsort parser only",
+      "argv": [
+        "--null-value",
+        "first",
+        "--null-value",
+        "second",
+        "third"
+      ],
+      "stdinHex": "",
+      "status": 0,
+      "stdoutHex": "5b227365636f6e64222c20227468697264225d0a",
+      "stderrHex": "",
+      "stdout": "[\"second\", \"third\"]\n",
+      "stderr": ""
+    }
+  ]
+}

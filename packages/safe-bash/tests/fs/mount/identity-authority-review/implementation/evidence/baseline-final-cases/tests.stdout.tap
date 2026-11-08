@@ -1,0 +1,1278 @@
+TAP version 13
+# Subtest: public wrapper comparison over memory: independent stores are distinct, aliases follow backing entries
+not ok 1 - public wrapper comparison over memory: independent stores are distinct, aliases follow backing entries
+  ---
+  duration_ms: 3.1535
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:1:1461'
+  failureType: 'testCodeFailure'
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'function'
+  actual: 'undefined'
+  operator: 'strictEqual'
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:31:22)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: public wrapper comparison over real: different roots and clients preserve shared native identity
+not ok 2 - public wrapper comparison over real: different roots and clients preserve shared native identity
+  ---
+  duration_ms: 7.949625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:1:1979'
+  failureType: 'testCodeFailure'
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'function'
+  actual: 'undefined'
+  operator: 'strictEqual'
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:47:22)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: public comparison resolves BOTH operands through nested mounts and readonly wrappers
+not ok 3 - public comparison resolves BOTH operands through nested mounts and readonly wrappers
+  ---
+  duration_ms: 0.801625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:1:2833'
+  failureType: 'testCodeFailure'
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'function'
+  actual: 'undefined'
+  operator: 'strictEqual'
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:55:22)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: overlay public comparison follows current selection without copy-up; new selection is re-observed
+not ok 4 - overlay public comparison follows current selection without copy-up; new selection is re-observed
+  ---
+  duration_ms: 0.574291
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:1:3630'
+  failureType: 'testCodeFailure'
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'function'
+  actual: 'undefined'
+  operator: 'strictEqual'
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:66:22)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unknown custom views remain unknown and public comparison acquires no content or mutation
+not ok 5 - unknown custom views remain unknown and public comparison acquires no content or mutation
+  ---
+  duration_ms: 0.61925
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:1:4254'
+  failureType: 'testCodeFailure'
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'function'
+  actual: 'undefined'
+  operator: 'strictEqual'
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:79:22)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: public comparison propagates source ENOENT, never unknown
+not ok 6 - public comparison propagates source ENOENT, never unknown
+  ---
+  duration_ms: 1.319292
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:1:4926'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'ERR_ASSERTION'
+    -   code: 'ENOENT'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'ENOENT'
+  actual:
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:92:28)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:92:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: public comparison propagates source EACCES, never unknown
+not ok 7 - public comparison propagates source EACCES, never unknown
+  ---
+  duration_ms: 0.47625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:1:4926'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'ERR_ASSERTION'
+    -   code: 'EACCES'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'EACCES'
+  actual:
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:92:28)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:92:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: public comparison propagates source EIO, never unknown
+not ok 8 - public comparison propagates source EIO, never unknown
+  ---
+  duration_ms: 0.612834
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:1:4926'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'ERR_ASSERTION'
+    -   code: 'EIO'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'EIO'
+  actual:
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:92:28)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:92:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: public comparison propagates peer ENOENT, never unknown
+not ok 9 - public comparison propagates peer ENOENT, never unknown
+  ---
+  duration_ms: 0.69625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:1:4926'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'ERR_ASSERTION'
+    -   code: 'ENOENT'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'ENOENT'
+  actual:
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:92:28)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:92:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: public comparison propagates peer EACCES, never unknown
+not ok 10 - public comparison propagates peer EACCES, never unknown
+  ---
+  duration_ms: 0.345708
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:1:4926'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'ERR_ASSERTION'
+    -   code: 'EACCES'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'EACCES'
+  actual:
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:92:28)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:92:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: public comparison propagates peer EIO, never unknown
+not ok 11 - public comparison propagates peer EIO, never unknown
+  ---
+  duration_ms: 0.130125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:1:4926'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'ERR_ASSERTION'
+    -   code: 'EIO'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'EIO'
+  actual:
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:92:28)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:92:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: complete known aliases override incompatible callback answers without querying either callback
+not ok 12 - complete known aliases override incompatible callback answers without querying either callback
+  ---
+  duration_ms: 0.19775
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:1:5368'
+  failureType: 'testCodeFailure'
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'function'
+  actual: 'undefined'
+  operator: 'strictEqual'
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:105:22)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: public comparison rejects same/distinct before effects and queries each terminal at most once
+not ok 13 - public comparison rejects same/distinct before effects and queries each terminal at most once
+  ---
+  duration_ms: 0.509875
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:1:6149'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'ERR_ASSERTION'
+    -   code: 'EIO'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'EIO'
+  actual:
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:119:26)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:119:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: public comparison rejects unknown/invalid before effects and queries each terminal at most once
+not ok 14 - public comparison rejects unknown/invalid before effects and queries each terminal at most once
+  ---
+  duration_ms: 0.189208
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:1:6149'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'ERR_ASSERTION'
+    -   code: 'EIO'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'EIO'
+  actual:
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:119:26)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:119:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: one backend exposed twice negotiates once, not recursively through wrappers
+not ok 15 - one backend exposed twice negotiates once, not recursively through wrappers
+  ---
+  duration_ms: 0.138083
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:1:6894'
+  failureType: 'testCodeFailure'
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'function'
+  actual: 'undefined'
+  operator: 'strictEqual'
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:134:22)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: opaque forwarders of negotiating product methods return unknown without recursive metadata or duplicate calls
+not ok 16 - opaque forwarders of negotiating product methods return unknown without recursive metadata or duplicate calls
+  ---
+  duration_ms: 0.115125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:1:7544'
+  failureType: 'testCodeFailure'
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'function'
+  actual: 'undefined'
+  operator: 'strictEqual'
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:160:22)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: ENOENT-shaped cancellation between terminal queries stops peer (return)
+not ok 17 - ENOENT-shaped cancellation between terminal queries stops peer (return)
+  ---
+  duration_ms: 0.197667
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:1:8593'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+    
+    Caught error:
+    
+    AssertionError [ERR_ASSERTION]: NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:178:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: ENOENT-shaped cancellation between terminal queries stops peer (rejection)
+not ok 18 - ENOENT-shaped cancellation between terminal queries stops peer (rejection)
+  ---
+  duration_ms: 0.084084
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:1:8593'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+    
+    Caught error:
+    
+    AssertionError [ERR_ASSERTION]: NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:178:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: exclusive insertion race preserves source and newly arrived target bytes
+ok 19 - exclusive insertion race preserves source and newly arrived target bytes
+  ---
+  duration_ms: 1.542084
+  type: 'test'
+  ...
+# Subtest: overlay future upper writer alias cannot be authorized by distinct selected lower read views
+not ok 20 - overlay future upper writer alias cannot be authorized by distinct selected lower read views
+  ---
+  duration_ms: 0.155708
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:1:10442'
+  failureType: 'testCodeFailure'
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'function'
+  actual: 'undefined'
+  operator: 'strictEqual'
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:223:22)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoic3BsaXQtZGF2LWNvcHkiLCJkYXRhIjp7ImNvZGUiOiJFTk9UU1VQIiwiZWZmZWN0cyI6W10sInNvdXJjZSI6InNvdXJjZSBzZW50aW5lbCJ9fQ==
+# Subtest: S3 actual shared store through different clients/prefixes: aliases and qualified copies
+not ok 21 - S3 actual shared store through different clients/prefixes: aliases and qualified copies
+  ---
+  duration_ms: 5.39775
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:1:1473'
+  failureType: 'testCodeFailure'
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'function'
+  actual: 'undefined'
+  operator: 'strictEqual'
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:30:22)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: independent private S3 stores are distinct without per-client invented identity tuples
+not ok 22 - independent private S3 stores are distinct without per-client invented identity tuples
+  ---
+  duration_ms: 2.035917
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:1:2290'
+  failureType: 'testCodeFailure'
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'function'
+  actual: 'undefined'
+  operator: 'strictEqual'
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:44:22)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: S3 unrecognized custom transport aliasing local memory remains unknown before destructive copy
+not ok 23 - S3 unrecognized custom transport aliasing local memory remains unknown before destructive copy
+  ---
+  duration_ms: 0.526
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:1:2630'
+  failureType: 'testCodeFailure'
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'function'
+  actual: 'undefined'
+  operator: 'strictEqual'
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:59:22)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: S3 metadata-forwarding client with unrelated data routing cannot inherit private-store authority
+not ok 24 - S3 metadata-forwarding client with unrelated data routing cannot inherit private-store authority
+  ---
+  duration_ms: 0.400709
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:1:3806'
+  failureType: 'testCodeFailure'
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'function'
+  actual: 'undefined'
+  operator: 'strictEqual'
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:78:22)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: S3 two custom clients returning private mock metadata cannot claim distinctness for shared local data
+not ok 25 - S3 two custom clients returning private mock metadata cannot claim distinctness for shared local data
+  ---
+  duration_ms: 0.339583
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:1:4897'
+  failureType: 'testCodeFailure'
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'function'
+  actual: 'undefined'
+  operator: 'strictEqual'
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:101:24)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: S3 metadata NoSuchKey propagates through public comparison with no content operations
+not ok 26 - S3 metadata NoSuchKey propagates through public comparison with no content operations
+  ---
+  duration_ms: 0.844125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:1:6342'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'ERR_ASSERTION'
+    -   code: 'ENOENT'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'ENOENT'
+  actual:
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:119:26)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:119:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: S3 metadata AccessDenied propagates through public comparison with no content operations
+not ok 27 - S3 metadata AccessDenied propagates through public comparison with no content operations
+  ---
+  duration_ms: 1.123417
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:1:6342'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'ERR_ASSERTION'
+    -   code: 'EACCES'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'EACCES'
+  actual:
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:119:26)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:119:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: S3 metadata InternalError propagates through public comparison with no content operations
+not ok 28 - S3 metadata InternalError propagates through public comparison with no content operations
+  ---
+  duration_ms: 0.472625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:1:6342'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'ERR_ASSERTION'
+    -   code: 'EIO'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'EIO'
+  actual:
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:119:26)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:119:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: WebDAV actual provider metadata: endpoint aliases, equal ETags, and qualified nested-wrapper copies
+not ok 29 - WebDAV actual provider metadata: endpoint aliases, equal ETags, and qualified nested-wrapper copies
+  ---
+  duration_ms: 12.766417
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:1:7727'
+  failureType: 'testCodeFailure'
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'function'
+  actual: 'undefined'
+  operator: 'strictEqual'
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:141:22)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: WebDAV protocol identity survives Response cloning without private mock provenance
+not ok 30 - WebDAV protocol identity survives Response cloning without private mock provenance
+  ---
+  duration_ms: 1.528916
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:1:8535'
+  failureType: 'testCodeFailure'
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'function'
+  actual: 'undefined'
+  operator: 'strictEqual'
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:153:22)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: WebDAV mock resource identity is stable through PUT/MOVE, fresh for COPY and recreation
+not ok 31 - WebDAV mock resource identity is stable through PUT/MOVE, fresh for COPY and recreation
+  ---
+  duration_ms: 2.189541
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:1:9094'
+  failureType: 'testCodeFailure'
+  error: 'NOT_IMPLEMENTED: actual MockDav resource-id property'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  operator: 'fail'
+  stack: |-
+    identifier (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:174:12)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:176:20)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: WebDAV cancellation after first protocol identity query prevents the peer query
+not ok 32 - WebDAV cancellation after first protocol identity query prevents the peer query
+  ---
+  duration_ms: 1.17825
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:1:10648'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+    
+    Caught error:
+    
+    AssertionError [ERR_ASSERTION]: NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:206:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: WebDAV identity multistatus missing is not a distinctness shortcut
+not ok 33 - WebDAV identity multistatus missing is not a distinctness shortcut
+  ---
+  duration_ms: 0.809584
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:1:11902'
+  failureType: 'testCodeFailure'
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'function'
+  actual: 'undefined'
+  operator: 'strictEqual'
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:233:96)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: WebDAV identity multistatus foreign-namespace is not a distinctness shortcut
+not ok 34 - WebDAV identity multistatus foreign-namespace is not a distinctness shortcut
+  ---
+  duration_ms: 0.484333
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:1:11902'
+  failureType: 'testCodeFailure'
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'function'
+  actual: 'undefined'
+  operator: 'strictEqual'
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:233:96)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: WebDAV identity multistatus property-404 is not a distinctness shortcut
+not ok 35 - WebDAV identity multistatus property-404 is not a distinctness shortcut
+  ---
+  duration_ms: 0.367708
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:1:11902'
+  failureType: 'testCodeFailure'
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'function'
+  actual: 'undefined'
+  operator: 'strictEqual'
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:233:96)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: WebDAV identity multistatus duplicate-property is not a distinctness shortcut
+not ok 36 - WebDAV identity multistatus duplicate-property is not a distinctness shortcut
+  ---
+  duration_ms: 0.571542
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:1:11902'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'ERR_ASSERTION'
+    -   code: 'EIO'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'EIO'
+  actual:
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:234:31)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:234:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: WebDAV identity multistatus duplicate-response is not a distinctness shortcut
+not ok 37 - WebDAV identity multistatus duplicate-response is not a distinctness shortcut
+  ---
+  duration_ms: 0.6095
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:1:11902'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'ERR_ASSERTION'
+    -   code: 'EIO'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'EIO'
+  actual:
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:234:31)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:234:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: WebDAV identity multistatus wrong-response-href is not a distinctness shortcut
+not ok 38 - WebDAV identity multistatus wrong-response-href is not a distinctness shortcut
+  ---
+  duration_ms: 0.708666
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:1:11902'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'ERR_ASSERTION'
+    -   code: 'EACCES'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'EACCES'
+  actual:
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:234:31)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:234:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: WebDAV identity multistatus invalid-uri is not a distinctness shortcut
+not ok 39 - WebDAV identity multistatus invalid-uri is not a distinctness shortcut
+  ---
+  duration_ms: 2.0705
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:1:11902'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'ERR_ASSERTION'
+    -   code: 'EIO'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'EIO'
+  actual:
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:234:31)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:234:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: WebDAV identity multistatus property-403 is not a distinctness shortcut
+not ok 40 - WebDAV identity multistatus property-403 is not a distinctness shortcut
+  ---
+  duration_ms: 0.438
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:1:11902'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'ERR_ASSERTION'
+    -   code: 'EACCES'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'EACCES'
+  actual:
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:234:31)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:234:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: WebDAV identity multistatus resource-404 is not a distinctness shortcut
+not ok 41 - WebDAV identity multistatus resource-404 is not a distinctness shortcut
+  ---
+  duration_ms: 0.404542
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:1:11902'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'ERR_ASSERTION'
+    -   code: 'ENOENT'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'ENOENT'
+  actual:
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:234:31)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:234:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: WebDAV custom fetch returning genuine MockDav metadata but local data is unrecognized, not disjoint
+not ok 42 - WebDAV custom fetch returning genuine MockDav metadata but local data is unrecognized, not disjoint
+  ---
+  duration_ms: 0.441125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:1:14543'
+  failureType: 'testCodeFailure'
+  error: |-
+    NOT_IMPLEMENTED: approved public FileSystem.compareEntry
+    + actual - expected
+    
+    + 'undefined'
+    - 'function'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'function'
+  actual: 'undefined'
+  operator: 'strictEqual'
+  stack: |-
+    comparison (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/support.ts:32:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-iHi5BZ/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:261:24)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: WebDAV mixed metadata/data transport cannot authorize truncating an aliased local source
+ok 43 - WebDAV mixed metadata/data transport cannot authorize truncating an aliased local source
+  ---
+  duration_ms: 4.655708
+  type: 'test'
+  ...
+1..43
+# tests 43
+# suites 0
+# pass 2
+# fail 41
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 248.473417

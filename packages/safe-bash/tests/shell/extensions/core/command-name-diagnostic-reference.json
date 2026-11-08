@@ -1,0 +1,29 @@
+{
+  "profile": "primary-5.3",
+  "executable": "/tmp/safe-bash-gnu-5.3-adjudication.0zMRKT/bash-5.3/bash",
+  "executableSha256": "a0cfc1af0ff50f6b6e67c638979e2604f1c276c90116937fbaafcabb62ee2b40",
+  "version": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)",
+  "capturedAt": "2026-09-05T05:50:57.245Z",
+  "movedFrom": {
+    "file": "function-diagnostic-runtime-reference.json",
+    "sha256": "983a8342ea7b5e352f51fd48ad45ecf5b71a1539a8423e8f96f3c3a3a8eeb06f"
+  },
+  "records": [
+    {
+      "name": "function reprint layout \"origin_fn(){ 'origin_\\nmissing'; }; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(origin_fn(){ 'origin_\nmissing'; }; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(origin_fn(){ 'origin_\nmissing'; }; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgNTogJCdvcmlnaW5fXG5taXNzaW5nJzogY29tbWFuZCBub3QgZm91bmQK"
+    },
+    {
+      "name": "direct multiline unknown command",
+      "source": "'origin_\nmissing'",
+      "nativeSource": "'origin_\nmissing'",
+      "status": 127,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgMjogJCdvcmlnaW5fXG5taXNzaW5nJzogY29tbWFuZCBub3QgZm91bmQK"
+    }
+  ]
+}

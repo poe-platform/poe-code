@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "jobId": "CMD-01--whole",
+  "outcome": "CAPTURED",
+  "proofRole": "direct-compiled-factory-handler-not-public-package",
+  "binding": {
+    "candidateCommit": "wrong"
+  },
+  "capture": {}
+}

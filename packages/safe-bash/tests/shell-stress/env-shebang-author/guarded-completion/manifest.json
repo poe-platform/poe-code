@@ -1,0 +1,208 @@
+{
+  "candidate": "ea409a6b49d5c1523e3238f0384048218b559c4c",
+  "capturedUTC": "2026-08-27T15:23:07.363Z",
+  "profile": {
+    "node": "v22.22.2",
+    "platform": "darwin",
+    "arch": "arm64",
+    "typescript": "5.9.3"
+  },
+  "qualification": "Live scoped author runs; selected artifacts hashed after execution. Not an immutable before/after or append-proof gate.",
+  "independentHistorical": {
+    "candidate": "dc262a99",
+    "review": "fb10ee85",
+    "pass": 27,
+    "total": 30
+  },
+  "inputs": [
+    {
+      "path": "src/shell/runtime.ts",
+      "sha256": "4e937b71df3135d1262a616924b4173e982f236dd86415e0e75895eac9c85e06",
+      "gitBlob": "1eb395676cf2c3f22ed75dfdf4454f50f9614b75"
+    },
+    {
+      "path": "tests/shell/env-shebang.test.ts",
+      "sha256": "fa3920c0e09cf2c614540a0a804cc36d60d73da1e8bdf14d590c1e262de78129",
+      "gitBlob": "48e73a557ef54d351cd2a0cb9748042b8994d09f"
+    },
+    {
+      "path": "tests/shell/env-shebang-host.test.ts",
+      "sha256": "1d94c3d9bf4008915c85f373c0e14b1acc0818f4c0f7a850d4ddabb51d669537",
+      "gitBlob": "e00f80ec6e3d51a2153d4918dbba8fc73f31090f"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "tests/shell-stress/env-shebang-author/guarded-completion/README.md",
+      "bytes": 10129,
+      "sha256": "99ca9222c601ca7caf40778e4a239b4ab77aa2b81063e654d9c6fbe1b5a19b39",
+      "modifiedUTC": "2026-08-27T15:22:37.068Z"
+    },
+    {
+      "path": "tests/shell-stress/env-shebang-author/guarded-completion/candidate-build.log",
+      "bytes": 58,
+      "sha256": "192358b3fd3475b4bb505c07ba0b5608c6e4aa06624198bba950fe56e278e6f0",
+      "modifiedUTC": "2026-08-27T15:18:50.134Z"
+    },
+    {
+      "path": "tests/shell-stress/env-shebang-author/guarded-completion/core-controls.tap",
+      "bytes": 22434,
+      "sha256": "3ba2e72ea217b01c1dfffe28f325ffe947a1443d32e7ea1cee70659456288ec8",
+      "modifiedUTC": "2026-08-27T15:19:27.095Z",
+      "counts": {
+        "tests": 126,
+        "pass": 125,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "path": "tests/shell-stress/env-shebang-author/guarded-completion/first-author-runtime.patch",
+      "bytes": 10352,
+      "sha256": "13ceccd97cbe38032fc9cd311720b79a7c11167fead94052167d3062657b7cf0",
+      "modifiedUTC": "2026-08-27T15:16:13.039Z"
+    },
+    {
+      "path": "tests/shell-stress/env-shebang-author/guarded-completion/first-author-tests.patch",
+      "bytes": 13029,
+      "sha256": "54978f8254a9f7c9e89a3fb5d84fe231c0ddb7ea71c1e0e16f704e5f5707b836",
+      "modifiedUTC": "2026-08-27T15:16:13.060Z"
+    },
+    {
+      "path": "tests/shell-stress/env-shebang-author/guarded-completion/first-author.tap",
+      "bytes": 7678,
+      "sha256": "cb97b2c2c9fd480d7f2c80d44033149d1373769b7b39eaf5519eeaeacbfdf199",
+      "modifiedUTC": "2026-08-27T15:15:59.990Z",
+      "counts": {
+        "tests": 27,
+        "pass": 24,
+        "fail": 3,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "path": "tests/shell-stress/env-shebang-author/guarded-completion/first-build.log",
+      "bytes": 1450,
+      "sha256": "920c390005370bc2cd47e737fbd4a1d68389d14e3bbecafcaaefbbe731433fb9",
+      "modifiedUTC": "2026-08-27T15:13:37.380Z"
+    },
+    {
+      "path": "tests/shell-stress/env-shebang-author/guarded-completion/first-implementation.patch",
+      "bytes": 10149,
+      "sha256": "c0a8087d8744302509309fd8528b057a7d08c9f97f2ad700b4ef2a9dd469427c",
+      "modifiedUTC": "2026-08-27T15:13:35.435Z"
+    },
+    {
+      "path": "tests/shell-stress/env-shebang-author/guarded-completion/first-implementation.sha256",
+      "bytes": 87,
+      "sha256": "fb0f08a4c78cbc1111283b3e26e5f46eea7e32cee512cc1038de2c5d8bfd9a56",
+      "modifiedUTC": "2026-08-27T15:13:35.467Z"
+    },
+    {
+      "path": "tests/shell-stress/env-shebang-author/guarded-completion/first-strict.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "modifiedUTC": "2026-08-27T15:18:51.893Z"
+    },
+    {
+      "path": "tests/shell-stress/env-shebang-author/guarded-completion/fourth-author.tap",
+      "bytes": 10570,
+      "sha256": "142e51689305f298b15a00bc39b0239b5a827dd571482e3a7ec00f3967bb2833",
+      "modifiedUTC": "2026-08-27T15:18:56.825Z",
+      "counts": {
+        "tests": 48,
+        "pass": 47,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "path": "tests/shell-stress/env-shebang-author/guarded-completion/guarded-only.tap",
+      "bytes": 4246,
+      "sha256": "793872fa54fa0e6530d0aab75609039f58ef158824414d0c23792b3ba84fa10d",
+      "modifiedUTC": "2026-08-27T15:20:42.161Z",
+      "counts": {
+        "tests": 19,
+        "pass": 19,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "path": "tests/shell-stress/env-shebang-author/guarded-completion/lifecycle-controls.tap",
+      "bytes": 390936,
+      "sha256": "5e962adb8732d9158c5451a515292dbaab026e9b08685b0c0163e8ae7ed54c8a",
+      "modifiedUTC": "2026-08-27T15:19:36.455Z",
+      "counts": {
+        "tests": 125,
+        "pass": 125,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "path": "tests/shell-stress/env-shebang-author/guarded-completion/script-controls.tap",
+      "bytes": 41374,
+      "sha256": "d6e32a4b19ce6589733a4bdb4cf21f5faee9aed5fe63de61a1e5e9670926d5b4",
+      "modifiedUTC": "2026-08-27T15:19:29.626Z",
+      "counts": {
+        "tests": 210,
+        "pass": 203,
+        "fail": 7,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "path": "tests/shell-stress/env-shebang-author/guarded-completion/second-author.tap",
+      "bytes": 7371,
+      "sha256": "fe2638e3c84902b85284c875697faea427c9cf033a50ad620503a4dd5df71d2f",
+      "modifiedUTC": "2026-08-27T15:16:43.762Z",
+      "counts": {
+        "tests": 27,
+        "pass": 25,
+        "fail": 2,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "path": "tests/shell-stress/env-shebang-author/guarded-completion/second-build.log",
+      "bytes": 58,
+      "sha256": "192358b3fd3475b4bb505c07ba0b5608c6e4aa06624198bba950fe56e278e6f0",
+      "modifiedUTC": "2026-08-27T15:14:12.378Z"
+    },
+    {
+      "path": "tests/shell-stress/env-shebang-author/guarded-completion/third-author.tap",
+      "bytes": 9873,
+      "sha256": "a8a2724e2f19c3d873b6fa2faa291b2f48cc73c0ddec0b0dfd00039ddcbe5544",
+      "modifiedUTC": "2026-08-27T15:17:25.386Z",
+      "counts": {
+        "tests": 45,
+        "pass": 44,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "path": "tests/shell-stress/env-shebang-author/guarded-completion/tsconfig.scoped.json",
+      "bytes": 209,
+      "sha256": "2e0b576845fd0ef4fcfe06d156e69f4d99b77491fd42ba43fb94d9a5abbe235e",
+      "modifiedUTC": "2026-08-27T15:18:50.005Z"
+    }
+  ]
+}

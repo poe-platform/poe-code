@@ -1,0 +1,1 @@
+{"name":"zero-omit","command":"du -scB1 tree","result":{"stdout":"","stderr":"","stdoutBytes":{},"stderrBytes":{},"exitCode":0}}

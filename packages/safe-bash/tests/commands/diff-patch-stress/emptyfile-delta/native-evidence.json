@@ -1,0 +1,1001 @@
+{
+  "frozenSource": "6e1240ef82679996c2a6ba9a3566ec6a38f6e5a9",
+  "binary": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+  "binarySha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00",
+  "version": "GNU patch 2.8",
+  "execution": "literal argv, shell:false, isolated temporary cwd, 3000 ms, 65536-byte output/input bounds; no host fallback for virtual execution",
+  "comparison": "exit status and exact target bytes/existence; diagnostics and native auxiliary files recorded, not equated; all three decoys checked unchanged",
+  "total": 27,
+  "matching": 27,
+  "nativeExpectationMatches": 27,
+  "results": [
+    {
+      "name": "normal/without-E-retains-empty",
+      "args": [
+        "--batch",
+        "--no-backup-if-mismatch",
+        "<isolated-root>/authorized/target"
+      ],
+      "input": "1,2d0\n< alpha\n< beta\n",
+      "initial": "alpha\nbeta\n",
+      "expected": {
+        "status": 0,
+        "bytes": ""
+      },
+      "native": {
+        "status": 0,
+        "bytes": "",
+        "stdout": "patching file <isolated-root>/authorized/target\n",
+        "stderr": "",
+        "workEntries": [
+          "new-label",
+          "old-label",
+          "sentinel"
+        ],
+        "authorizedEntries": [
+          "target"
+        ]
+      },
+      "virtual": {
+        "status": 0,
+        "bytes": "",
+        "stdout": "patching file /authorized/target\n",
+        "stderr": ""
+      },
+      "sameStatusAndTarget": true,
+      "nativeMatchesIndependentExpectation": true
+    },
+    {
+      "name": "normal/-E/apply",
+      "args": [
+        "--batch",
+        "--no-backup-if-mismatch",
+        "-E",
+        "<isolated-root>/authorized/target"
+      ],
+      "input": "1,2d0\n< alpha\n< beta\n",
+      "initial": "alpha\nbeta\n",
+      "expected": {
+        "status": 0,
+        "bytes": null
+      },
+      "native": {
+        "status": 0,
+        "bytes": null,
+        "stdout": "patching file <isolated-root>/authorized/target\n",
+        "stderr": "",
+        "workEntries": [
+          "new-label",
+          "old-label",
+          "sentinel"
+        ],
+        "authorizedEntries": null
+      },
+      "virtual": {
+        "status": 0,
+        "bytes": null,
+        "stdout": "patching file /authorized/target\n",
+        "stderr": ""
+      },
+      "sameStatusAndTarget": true,
+      "nativeMatchesIndependentExpectation": true
+    },
+    {
+      "name": "normal/-E/dry",
+      "args": [
+        "--batch",
+        "--no-backup-if-mismatch",
+        "-E",
+        "--dry-run",
+        "<isolated-root>/authorized/target"
+      ],
+      "input": "1,2d0\n< alpha\n< beta\n",
+      "initial": "alpha\nbeta\n",
+      "expected": {
+        "status": 0,
+        "bytes": "alpha\nbeta\n"
+      },
+      "native": {
+        "status": 0,
+        "bytes": "alpha\nbeta\n",
+        "stdout": "checking file <isolated-root>/authorized/target\n",
+        "stderr": "",
+        "workEntries": [
+          "new-label",
+          "old-label",
+          "sentinel"
+        ],
+        "authorizedEntries": [
+          "target"
+        ]
+      },
+      "virtual": {
+        "status": 0,
+        "bytes": "alpha\nbeta\n",
+        "stdout": "checking file /authorized/target\n",
+        "stderr": ""
+      },
+      "sameStatusAndTarget": true,
+      "nativeMatchesIndependentExpectation": true
+    },
+    {
+      "name": "normal/-E/reverse",
+      "args": [
+        "--batch",
+        "--no-backup-if-mismatch",
+        "-E",
+        "-R",
+        "<isolated-root>/authorized/target"
+      ],
+      "input": "1,2d0\n< alpha\n< beta\n",
+      "initial": null,
+      "expected": {
+        "status": 0,
+        "bytes": "alpha\nbeta\n"
+      },
+      "native": {
+        "status": 0,
+        "bytes": "alpha\nbeta\n",
+        "stdout": "patching file <isolated-root>/authorized/target\n",
+        "stderr": "",
+        "workEntries": [
+          "new-label",
+          "old-label",
+          "sentinel"
+        ],
+        "authorizedEntries": [
+          "target"
+        ]
+      },
+      "virtual": {
+        "status": 0,
+        "bytes": "alpha\nbeta\n",
+        "stdout": "patching file /authorized/target\n",
+        "stderr": ""
+      },
+      "sameStatusAndTarget": true,
+      "nativeMatchesIndependentExpectation": true
+    },
+    {
+      "name": "normal/--remove-empty-files/apply",
+      "args": [
+        "--batch",
+        "--no-backup-if-mismatch",
+        "--remove-empty-files",
+        "<isolated-root>/authorized/target"
+      ],
+      "input": "1,2d0\n< alpha\n< beta\n",
+      "initial": "alpha\nbeta\n",
+      "expected": {
+        "status": 0,
+        "bytes": null
+      },
+      "native": {
+        "status": 0,
+        "bytes": null,
+        "stdout": "patching file <isolated-root>/authorized/target\n",
+        "stderr": "",
+        "workEntries": [
+          "new-label",
+          "old-label",
+          "sentinel"
+        ],
+        "authorizedEntries": null
+      },
+      "virtual": {
+        "status": 0,
+        "bytes": null,
+        "stdout": "patching file /authorized/target\n",
+        "stderr": ""
+      },
+      "sameStatusAndTarget": true,
+      "nativeMatchesIndependentExpectation": true
+    },
+    {
+      "name": "context/without-E-retains-empty",
+      "args": [
+        "--batch",
+        "--no-backup-if-mismatch",
+        "<isolated-root>/authorized/target"
+      ],
+      "input": "*** old-label\n--- new-label\n***************\n*** 1,2 ****\n- alpha\n- beta\n--- 0 ----\n",
+      "initial": "alpha\nbeta\n",
+      "expected": {
+        "status": 0,
+        "bytes": ""
+      },
+      "native": {
+        "status": 0,
+        "bytes": "",
+        "stdout": "patching file <isolated-root>/authorized/target\n",
+        "stderr": "",
+        "workEntries": [
+          "new-label",
+          "old-label",
+          "sentinel"
+        ],
+        "authorizedEntries": [
+          "target"
+        ]
+      },
+      "virtual": {
+        "status": 0,
+        "bytes": "",
+        "stdout": "patching file /authorized/target\n",
+        "stderr": ""
+      },
+      "sameStatusAndTarget": true,
+      "nativeMatchesIndependentExpectation": true
+    },
+    {
+      "name": "context/-E/apply",
+      "args": [
+        "--batch",
+        "--no-backup-if-mismatch",
+        "-E",
+        "<isolated-root>/authorized/target"
+      ],
+      "input": "*** old-label\n--- new-label\n***************\n*** 1,2 ****\n- alpha\n- beta\n--- 0 ----\n",
+      "initial": "alpha\nbeta\n",
+      "expected": {
+        "status": 0,
+        "bytes": null
+      },
+      "native": {
+        "status": 0,
+        "bytes": null,
+        "stdout": "patching file <isolated-root>/authorized/target\n",
+        "stderr": "",
+        "workEntries": [
+          "new-label",
+          "old-label",
+          "sentinel"
+        ],
+        "authorizedEntries": null
+      },
+      "virtual": {
+        "status": 0,
+        "bytes": null,
+        "stdout": "patching file /authorized/target\n",
+        "stderr": ""
+      },
+      "sameStatusAndTarget": true,
+      "nativeMatchesIndependentExpectation": true
+    },
+    {
+      "name": "context/-E/dry",
+      "args": [
+        "--batch",
+        "--no-backup-if-mismatch",
+        "-E",
+        "--dry-run",
+        "<isolated-root>/authorized/target"
+      ],
+      "input": "*** old-label\n--- new-label\n***************\n*** 1,2 ****\n- alpha\n- beta\n--- 0 ----\n",
+      "initial": "alpha\nbeta\n",
+      "expected": {
+        "status": 0,
+        "bytes": "alpha\nbeta\n"
+      },
+      "native": {
+        "status": 0,
+        "bytes": "alpha\nbeta\n",
+        "stdout": "checking file <isolated-root>/authorized/target\n",
+        "stderr": "",
+        "workEntries": [
+          "new-label",
+          "old-label",
+          "sentinel"
+        ],
+        "authorizedEntries": [
+          "target"
+        ]
+      },
+      "virtual": {
+        "status": 0,
+        "bytes": "alpha\nbeta\n",
+        "stdout": "checking file /authorized/target\n",
+        "stderr": ""
+      },
+      "sameStatusAndTarget": true,
+      "nativeMatchesIndependentExpectation": true
+    },
+    {
+      "name": "context/-E/reverse",
+      "args": [
+        "--batch",
+        "--no-backup-if-mismatch",
+        "-E",
+        "-R",
+        "<isolated-root>/authorized/target"
+      ],
+      "input": "*** old-label\n--- new-label\n***************\n*** 1,2 ****\n- alpha\n- beta\n--- 0 ----\n",
+      "initial": null,
+      "expected": {
+        "status": 0,
+        "bytes": "alpha\nbeta\n"
+      },
+      "native": {
+        "status": 0,
+        "bytes": "alpha\nbeta\n",
+        "stdout": "patching file <isolated-root>/authorized/target\n",
+        "stderr": "",
+        "workEntries": [
+          "new-label",
+          "old-label",
+          "sentinel"
+        ],
+        "authorizedEntries": [
+          "target"
+        ]
+      },
+      "virtual": {
+        "status": 0,
+        "bytes": "alpha\nbeta\n",
+        "stdout": "patching file /authorized/target\n",
+        "stderr": ""
+      },
+      "sameStatusAndTarget": true,
+      "nativeMatchesIndependentExpectation": true
+    },
+    {
+      "name": "context/--remove-empty-files/apply",
+      "args": [
+        "--batch",
+        "--no-backup-if-mismatch",
+        "--remove-empty-files",
+        "<isolated-root>/authorized/target"
+      ],
+      "input": "*** old-label\n--- new-label\n***************\n*** 1,2 ****\n- alpha\n- beta\n--- 0 ----\n",
+      "initial": "alpha\nbeta\n",
+      "expected": {
+        "status": 0,
+        "bytes": null
+      },
+      "native": {
+        "status": 0,
+        "bytes": null,
+        "stdout": "patching file <isolated-root>/authorized/target\n",
+        "stderr": "",
+        "workEntries": [
+          "new-label",
+          "old-label",
+          "sentinel"
+        ],
+        "authorizedEntries": null
+      },
+      "virtual": {
+        "status": 0,
+        "bytes": null,
+        "stdout": "patching file /authorized/target\n",
+        "stderr": ""
+      },
+      "sameStatusAndTarget": true,
+      "nativeMatchesIndependentExpectation": true
+    },
+    {
+      "name": "unified/without-E-retains-empty",
+      "args": [
+        "--batch",
+        "--no-backup-if-mismatch",
+        "<isolated-root>/authorized/target"
+      ],
+      "input": "--- old-label\n+++ new-label\n@@ -1,2 +0,0 @@\n-alpha\n-beta\n",
+      "initial": "alpha\nbeta\n",
+      "expected": {
+        "status": 0,
+        "bytes": ""
+      },
+      "native": {
+        "status": 0,
+        "bytes": "",
+        "stdout": "patching file <isolated-root>/authorized/target\n",
+        "stderr": "",
+        "workEntries": [
+          "new-label",
+          "old-label",
+          "sentinel"
+        ],
+        "authorizedEntries": [
+          "target"
+        ]
+      },
+      "virtual": {
+        "status": 0,
+        "bytes": "",
+        "stdout": "patching file /authorized/target\n",
+        "stderr": ""
+      },
+      "sameStatusAndTarget": true,
+      "nativeMatchesIndependentExpectation": true
+    },
+    {
+      "name": "unified/-E/apply",
+      "args": [
+        "--batch",
+        "--no-backup-if-mismatch",
+        "-E",
+        "<isolated-root>/authorized/target"
+      ],
+      "input": "--- old-label\n+++ new-label\n@@ -1,2 +0,0 @@\n-alpha\n-beta\n",
+      "initial": "alpha\nbeta\n",
+      "expected": {
+        "status": 0,
+        "bytes": null
+      },
+      "native": {
+        "status": 0,
+        "bytes": null,
+        "stdout": "patching file <isolated-root>/authorized/target\n",
+        "stderr": "",
+        "workEntries": [
+          "new-label",
+          "old-label",
+          "sentinel"
+        ],
+        "authorizedEntries": null
+      },
+      "virtual": {
+        "status": 0,
+        "bytes": null,
+        "stdout": "patching file /authorized/target\n",
+        "stderr": ""
+      },
+      "sameStatusAndTarget": true,
+      "nativeMatchesIndependentExpectation": true
+    },
+    {
+      "name": "unified/-E/dry",
+      "args": [
+        "--batch",
+        "--no-backup-if-mismatch",
+        "-E",
+        "--dry-run",
+        "<isolated-root>/authorized/target"
+      ],
+      "input": "--- old-label\n+++ new-label\n@@ -1,2 +0,0 @@\n-alpha\n-beta\n",
+      "initial": "alpha\nbeta\n",
+      "expected": {
+        "status": 0,
+        "bytes": "alpha\nbeta\n"
+      },
+      "native": {
+        "status": 0,
+        "bytes": "alpha\nbeta\n",
+        "stdout": "checking file <isolated-root>/authorized/target\n",
+        "stderr": "",
+        "workEntries": [
+          "new-label",
+          "old-label",
+          "sentinel"
+        ],
+        "authorizedEntries": [
+          "target"
+        ]
+      },
+      "virtual": {
+        "status": 0,
+        "bytes": "alpha\nbeta\n",
+        "stdout": "checking file /authorized/target\n",
+        "stderr": ""
+      },
+      "sameStatusAndTarget": true,
+      "nativeMatchesIndependentExpectation": true
+    },
+    {
+      "name": "unified/-E/reverse",
+      "args": [
+        "--batch",
+        "--no-backup-if-mismatch",
+        "-E",
+        "-R",
+        "<isolated-root>/authorized/target"
+      ],
+      "input": "--- old-label\n+++ new-label\n@@ -1,2 +0,0 @@\n-alpha\n-beta\n",
+      "initial": null,
+      "expected": {
+        "status": 0,
+        "bytes": "alpha\nbeta\n"
+      },
+      "native": {
+        "status": 0,
+        "bytes": "alpha\nbeta\n",
+        "stdout": "patching file <isolated-root>/authorized/target\n",
+        "stderr": "",
+        "workEntries": [
+          "new-label",
+          "old-label",
+          "sentinel"
+        ],
+        "authorizedEntries": [
+          "target"
+        ]
+      },
+      "virtual": {
+        "status": 0,
+        "bytes": "alpha\nbeta\n",
+        "stdout": "patching file /authorized/target\n",
+        "stderr": ""
+      },
+      "sameStatusAndTarget": true,
+      "nativeMatchesIndependentExpectation": true
+    },
+    {
+      "name": "unified/--remove-empty-files/apply",
+      "args": [
+        "--batch",
+        "--no-backup-if-mismatch",
+        "--remove-empty-files",
+        "<isolated-root>/authorized/target"
+      ],
+      "input": "--- old-label\n+++ new-label\n@@ -1,2 +0,0 @@\n-alpha\n-beta\n",
+      "initial": "alpha\nbeta\n",
+      "expected": {
+        "status": 0,
+        "bytes": null
+      },
+      "native": {
+        "status": 0,
+        "bytes": null,
+        "stdout": "patching file <isolated-root>/authorized/target\n",
+        "stderr": "",
+        "workEntries": [
+          "new-label",
+          "old-label",
+          "sentinel"
+        ],
+        "authorizedEntries": null
+      },
+      "virtual": {
+        "status": 0,
+        "bytes": null,
+        "stdout": "patching file /authorized/target\n",
+        "stderr": ""
+      },
+      "sameStatusAndTarget": true,
+      "nativeMatchesIndependentExpectation": true
+    },
+    {
+      "name": "context/null/forward/absolute/missing/apply",
+      "args": [
+        "--batch",
+        "--no-backup-if-mismatch",
+        "<isolated-root>/authorized/target"
+      ],
+      "input": "*** /dev/null\n--- new-label\n***************\n*** 0 ****\n--- 1,2 ----\n+ fresh\n+ record\n",
+      "initial": null,
+      "expected": {
+        "status": 0,
+        "bytes": "fresh\nrecord\n"
+      },
+      "native": {
+        "status": 0,
+        "bytes": "fresh\nrecord\n",
+        "stdout": "patching file <isolated-root>/authorized/target\n",
+        "stderr": "",
+        "workEntries": [
+          "new-label",
+          "old-label",
+          "sentinel"
+        ],
+        "authorizedEntries": [
+          "target"
+        ]
+      },
+      "virtual": {
+        "status": 0,
+        "bytes": "fresh\nrecord\n",
+        "stdout": "patching file /authorized/target\n",
+        "stderr": ""
+      },
+      "sameStatusAndTarget": true,
+      "nativeMatchesIndependentExpectation": true
+    },
+    {
+      "name": "context/null/forward/absolute/empty/apply",
+      "args": [
+        "--batch",
+        "--no-backup-if-mismatch",
+        "<isolated-root>/authorized/target"
+      ],
+      "input": "*** /dev/null\n--- new-label\n***************\n*** 0 ****\n--- 1,2 ----\n+ fresh\n+ record\n",
+      "initial": "",
+      "expected": {
+        "status": 0,
+        "bytes": "fresh\nrecord\n"
+      },
+      "native": {
+        "status": 0,
+        "bytes": "fresh\nrecord\n",
+        "stdout": "patching file <isolated-root>/authorized/target\n",
+        "stderr": "",
+        "workEntries": [
+          "new-label",
+          "old-label",
+          "sentinel"
+        ],
+        "authorizedEntries": [
+          "target"
+        ]
+      },
+      "virtual": {
+        "status": 0,
+        "bytes": "fresh\nrecord\n",
+        "stdout": "patching file /authorized/target\n",
+        "stderr": ""
+      },
+      "sameStatusAndTarget": true,
+      "nativeMatchesIndependentExpectation": true
+    },
+    {
+      "name": "context/null/forward/absolute/occupied/apply",
+      "args": [
+        "--batch",
+        "--no-backup-if-mismatch",
+        "<isolated-root>/authorized/target"
+      ],
+      "input": "*** /dev/null\n--- new-label\n***************\n*** 0 ****\n--- 1,2 ----\n+ fresh\n+ record\n",
+      "initial": "occupied\n",
+      "expected": {
+        "status": 1,
+        "bytes": "occupied\n"
+      },
+      "native": {
+        "status": 1,
+        "bytes": "occupied\n",
+        "stdout": "The next patch would create the file <isolated-root>/authorized/target,\nwhich already exists!  Assuming -R.\npatching file <isolated-root>/authorized/target\nHunk #1 FAILED at 1.\nNot deleting file <isolated-root>/authorized/target as content differs from patch\n1 out of 1 hunk FAILED -- saving rejects to file <isolated-root>/authorized/target.rej\n",
+        "stderr": "",
+        "workEntries": [
+          "new-label",
+          "old-label",
+          "sentinel"
+        ],
+        "authorizedEntries": [
+          "target",
+          "target.rej"
+        ]
+      },
+      "virtual": {
+        "status": 1,
+        "bytes": "occupied\n",
+        "stdout": "",
+        "stderr": "patch: creation target already exists: /authorized/target\n"
+      },
+      "sameStatusAndTarget": true,
+      "nativeMatchesIndependentExpectation": true
+    },
+    {
+      "name": "context/null/reverse/absolute/missing/apply",
+      "args": [
+        "--batch",
+        "--no-backup-if-mismatch",
+        "-R",
+        "<isolated-root>/authorized/target"
+      ],
+      "input": "*** old-label\n--- /dev/null\n***************\n*** 1,2 ****\n- alpha\n- beta\n--- 0 ----\n",
+      "initial": null,
+      "expected": {
+        "status": 0,
+        "bytes": "alpha\nbeta\n"
+      },
+      "native": {
+        "status": 0,
+        "bytes": "alpha\nbeta\n",
+        "stdout": "patching file <isolated-root>/authorized/target\n",
+        "stderr": "",
+        "workEntries": [
+          "new-label",
+          "old-label",
+          "sentinel"
+        ],
+        "authorizedEntries": [
+          "target"
+        ]
+      },
+      "virtual": {
+        "status": 0,
+        "bytes": "alpha\nbeta\n",
+        "stdout": "patching file /authorized/target\n",
+        "stderr": ""
+      },
+      "sameStatusAndTarget": true,
+      "nativeMatchesIndependentExpectation": true
+    },
+    {
+      "name": "context/null/reverse/absolute/empty/apply",
+      "args": [
+        "--batch",
+        "--no-backup-if-mismatch",
+        "-R",
+        "<isolated-root>/authorized/target"
+      ],
+      "input": "*** old-label\n--- /dev/null\n***************\n*** 1,2 ****\n- alpha\n- beta\n--- 0 ----\n",
+      "initial": "",
+      "expected": {
+        "status": 0,
+        "bytes": "alpha\nbeta\n"
+      },
+      "native": {
+        "status": 0,
+        "bytes": "alpha\nbeta\n",
+        "stdout": "patching file <isolated-root>/authorized/target\n",
+        "stderr": "",
+        "workEntries": [
+          "new-label",
+          "old-label",
+          "sentinel"
+        ],
+        "authorizedEntries": [
+          "target"
+        ]
+      },
+      "virtual": {
+        "status": 0,
+        "bytes": "alpha\nbeta\n",
+        "stdout": "patching file /authorized/target\n",
+        "stderr": ""
+      },
+      "sameStatusAndTarget": true,
+      "nativeMatchesIndependentExpectation": true
+    },
+    {
+      "name": "context/null/reverse/absolute/occupied/apply",
+      "args": [
+        "--batch",
+        "--no-backup-if-mismatch",
+        "-R",
+        "<isolated-root>/authorized/target"
+      ],
+      "input": "*** old-label\n--- /dev/null\n***************\n*** 1,2 ****\n- alpha\n- beta\n--- 0 ----\n",
+      "initial": "occupied\n",
+      "expected": {
+        "status": 1,
+        "bytes": "occupied\n"
+      },
+      "native": {
+        "status": 1,
+        "bytes": "occupied\n",
+        "stdout": "The next patch, when reversed, would create the file <isolated-root>/authorized/target,\nwhich already exists!  Ignoring -R.\npatching file <isolated-root>/authorized/target\nHunk #1 FAILED at 1.\nNot deleting file <isolated-root>/authorized/target as content differs from patch\n1 out of 1 hunk FAILED -- saving rejects to file <isolated-root>/authorized/target.rej\n",
+        "stderr": "",
+        "workEntries": [
+          "new-label",
+          "old-label",
+          "sentinel"
+        ],
+        "authorizedEntries": [
+          "target",
+          "target.rej"
+        ]
+      },
+      "virtual": {
+        "status": 1,
+        "bytes": "occupied\n",
+        "stdout": "",
+        "stderr": "patch: creation target already exists: /authorized/target\n"
+      },
+      "sameStatusAndTarget": true,
+      "nativeMatchesIndependentExpectation": true
+    },
+    {
+      "name": "unified/null/forward/absolute/missing/apply",
+      "args": [
+        "--batch",
+        "--no-backup-if-mismatch",
+        "<isolated-root>/authorized/target"
+      ],
+      "input": "--- /dev/null\n+++ new-label\n@@ -0,0 +1,2 @@\n+fresh\n+record\n",
+      "initial": null,
+      "expected": {
+        "status": 0,
+        "bytes": "fresh\nrecord\n"
+      },
+      "native": {
+        "status": 0,
+        "bytes": "fresh\nrecord\n",
+        "stdout": "patching file <isolated-root>/authorized/target\n",
+        "stderr": "",
+        "workEntries": [
+          "new-label",
+          "old-label",
+          "sentinel"
+        ],
+        "authorizedEntries": [
+          "target"
+        ]
+      },
+      "virtual": {
+        "status": 0,
+        "bytes": "fresh\nrecord\n",
+        "stdout": "patching file /authorized/target\n",
+        "stderr": ""
+      },
+      "sameStatusAndTarget": true,
+      "nativeMatchesIndependentExpectation": true
+    },
+    {
+      "name": "unified/null/forward/absolute/empty/apply",
+      "args": [
+        "--batch",
+        "--no-backup-if-mismatch",
+        "<isolated-root>/authorized/target"
+      ],
+      "input": "--- /dev/null\n+++ new-label\n@@ -0,0 +1,2 @@\n+fresh\n+record\n",
+      "initial": "",
+      "expected": {
+        "status": 0,
+        "bytes": "fresh\nrecord\n"
+      },
+      "native": {
+        "status": 0,
+        "bytes": "fresh\nrecord\n",
+        "stdout": "patching file <isolated-root>/authorized/target\n",
+        "stderr": "",
+        "workEntries": [
+          "new-label",
+          "old-label",
+          "sentinel"
+        ],
+        "authorizedEntries": [
+          "target"
+        ]
+      },
+      "virtual": {
+        "status": 0,
+        "bytes": "fresh\nrecord\n",
+        "stdout": "patching file /authorized/target\n",
+        "stderr": ""
+      },
+      "sameStatusAndTarget": true,
+      "nativeMatchesIndependentExpectation": true
+    },
+    {
+      "name": "unified/null/forward/absolute/occupied/apply",
+      "args": [
+        "--batch",
+        "--no-backup-if-mismatch",
+        "<isolated-root>/authorized/target"
+      ],
+      "input": "--- /dev/null\n+++ new-label\n@@ -0,0 +1,2 @@\n+fresh\n+record\n",
+      "initial": "occupied\n",
+      "expected": {
+        "status": 1,
+        "bytes": "occupied\n"
+      },
+      "native": {
+        "status": 1,
+        "bytes": "occupied\n",
+        "stdout": "The next patch would create the file <isolated-root>/authorized/target,\nwhich already exists!  Assuming -R.\npatching file <isolated-root>/authorized/target\nHunk #1 FAILED at 1.\nNot deleting file <isolated-root>/authorized/target as content differs from patch\n1 out of 1 hunk FAILED -- saving rejects to file <isolated-root>/authorized/target.rej\n",
+        "stderr": "",
+        "workEntries": [
+          "new-label",
+          "old-label",
+          "sentinel"
+        ],
+        "authorizedEntries": [
+          "target",
+          "target.rej"
+        ]
+      },
+      "virtual": {
+        "status": 1,
+        "bytes": "occupied\n",
+        "stdout": "",
+        "stderr": "patch: creation target already exists: /authorized/target\n"
+      },
+      "sameStatusAndTarget": true,
+      "nativeMatchesIndependentExpectation": true
+    },
+    {
+      "name": "unified/null/reverse/absolute/missing/apply",
+      "args": [
+        "--batch",
+        "--no-backup-if-mismatch",
+        "-R",
+        "<isolated-root>/authorized/target"
+      ],
+      "input": "--- old-label\n+++ /dev/null\n@@ -1,2 +0,0 @@\n-alpha\n-beta\n",
+      "initial": null,
+      "expected": {
+        "status": 0,
+        "bytes": "alpha\nbeta\n"
+      },
+      "native": {
+        "status": 0,
+        "bytes": "alpha\nbeta\n",
+        "stdout": "patching file <isolated-root>/authorized/target\n",
+        "stderr": "",
+        "workEntries": [
+          "new-label",
+          "old-label",
+          "sentinel"
+        ],
+        "authorizedEntries": [
+          "target"
+        ]
+      },
+      "virtual": {
+        "status": 0,
+        "bytes": "alpha\nbeta\n",
+        "stdout": "patching file /authorized/target\n",
+        "stderr": ""
+      },
+      "sameStatusAndTarget": true,
+      "nativeMatchesIndependentExpectation": true
+    },
+    {
+      "name": "unified/null/reverse/absolute/empty/apply",
+      "args": [
+        "--batch",
+        "--no-backup-if-mismatch",
+        "-R",
+        "<isolated-root>/authorized/target"
+      ],
+      "input": "--- old-label\n+++ /dev/null\n@@ -1,2 +0,0 @@\n-alpha\n-beta\n",
+      "initial": "",
+      "expected": {
+        "status": 0,
+        "bytes": "alpha\nbeta\n"
+      },
+      "native": {
+        "status": 0,
+        "bytes": "alpha\nbeta\n",
+        "stdout": "patching file <isolated-root>/authorized/target\n",
+        "stderr": "",
+        "workEntries": [
+          "new-label",
+          "old-label",
+          "sentinel"
+        ],
+        "authorizedEntries": [
+          "target"
+        ]
+      },
+      "virtual": {
+        "status": 0,
+        "bytes": "alpha\nbeta\n",
+        "stdout": "patching file /authorized/target\n",
+        "stderr": ""
+      },
+      "sameStatusAndTarget": true,
+      "nativeMatchesIndependentExpectation": true
+    },
+    {
+      "name": "unified/null/reverse/absolute/occupied/apply",
+      "args": [
+        "--batch",
+        "--no-backup-if-mismatch",
+        "-R",
+        "<isolated-root>/authorized/target"
+      ],
+      "input": "--- old-label\n+++ /dev/null\n@@ -1,2 +0,0 @@\n-alpha\n-beta\n",
+      "initial": "occupied\n",
+      "expected": {
+        "status": 1,
+        "bytes": "occupied\n"
+      },
+      "native": {
+        "status": 1,
+        "bytes": "occupied\n",
+        "stdout": "The next patch, when reversed, would create the file <isolated-root>/authorized/target,\nwhich already exists!  Ignoring -R.\npatching file <isolated-root>/authorized/target\nHunk #1 FAILED at 1.\nNot deleting file <isolated-root>/authorized/target as content differs from patch\n1 out of 1 hunk FAILED -- saving rejects to file <isolated-root>/authorized/target.rej\n",
+        "stderr": "",
+        "workEntries": [
+          "new-label",
+          "old-label",
+          "sentinel"
+        ],
+        "authorizedEntries": [
+          "target",
+          "target.rej"
+        ]
+      },
+      "virtual": {
+        "status": 1,
+        "bytes": "occupied\n",
+        "stdout": "",
+        "stderr": "patch: creation target already exists: /authorized/target\n"
+      },
+      "sameStatusAndTarget": true,
+      "nativeMatchesIndependentExpectation": true
+    }
+  ]
+}

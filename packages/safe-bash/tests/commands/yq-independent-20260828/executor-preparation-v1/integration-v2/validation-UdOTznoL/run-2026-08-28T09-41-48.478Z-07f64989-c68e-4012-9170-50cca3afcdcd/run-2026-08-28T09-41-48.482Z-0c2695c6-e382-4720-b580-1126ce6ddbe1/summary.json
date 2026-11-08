@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "aggregate": "PASS",
+  "requested": 1,
+  "admitted": 1,
+  "stop": null,
+  "results": [
+    {
+      "jobId": "materialize-runtime",
+      "admitted": true,
+      "outcome": "PASS",
+      "failures": [],
+      "integrity": true,
+      "reapProof": true,
+      "metadata": {
+        "pid": 28573,
+        "group": 28573,
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "spawnError": null,
+        "closed": true,
+        "reaped": true,
+        "kills": [],
+        "elapsedMs": 10677
+      }
+    }
+  ],
+  "activeChildren": [],
+  "evidence": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/validation-UdOTznoL/run-2026-08-28T09-41-48.478Z-07f64989-c68e-4012-9170-50cca3afcdcd/run-2026-08-28T09-41-48.482Z-0c2695c6-e382-4720-b580-1126ce6ddbe1"
+}

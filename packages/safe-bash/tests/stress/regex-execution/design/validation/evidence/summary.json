@@ -1,0 +1,8 @@
+{
+  "plannedChildren": 52,
+  "thisPhaseChildren": 15,
+  "thisPhaseFailures": 0,
+  "riskyExecutions": 0,
+  "activeChildren": 0,
+  "verification": "unchanged copied source plus live command/prototype source; original README drift retained; explicit adapter/harness hash overrides in repair.json"
+}

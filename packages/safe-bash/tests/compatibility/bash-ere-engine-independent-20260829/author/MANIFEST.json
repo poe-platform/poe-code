@@ -1,0 +1,21 @@
+{
+  "commit": "8bd170e5465c1253a52231c9cf08b5afef064d81",
+  "rows": [
+    {
+      "mode": "100644",
+      "blob": "3962838f338f1b0566a182fbe80c463ff27ef0f3",
+      "path": "tests/compatibility/bash-ere-engine-author-20260829/HANDOFF.md",
+      "bytes": 3618,
+      "sha256": "88d2aca4d30689c3cf4b3cdc96128283ca3e550c54d48bb32f870e139bd9d031",
+      "capture": "0.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "b375f15803a45e47ccb42a8fdf1ee158a8b7f13f",
+      "path": "tests/compatibility/bash-ere-engine-author-20260829/README.md",
+      "bytes": 8380,
+      "sha256": "e46b3d79a73c96bfcbb75a984329a40e6f43c581bedbf2a3cff2badc297b3292",
+      "capture": "1.data"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "schema": "ONE_PRESEALED_ENV_PROBE",
+  "attempts": 1,
+  "profile": "Exact wrapper-v2 M01 sequencing,parent077,child022,cwd same,spawn env PATH empty/LANG C/MODE_PARENT_MARKER,helpers and final child exec -c",
+  "observation": [
+    "__CF_USER_TEXT_ENCODING presence/type/value at most128UTF8bytes",
+    "finite environment keynames only <=32 names <=128bytes each",
+    "platform",
+    "uid"
+  ],
+  "qualification": "darwin; exactly one key __CF_USER_TEXT_ENCODING; string matches ^0x([0-9a-fA-F]{1,8}):0x0:0x0$; first hexadecimal component equals actual numeric uid. Exact observed full string becomes later host-only allowance. Origin remains unknown.",
+  "onMismatch": "STOP; do not invent/normalize/allowlist extra keys",
+  "processes": 4,
+  "peak": 3,
+  "deadlineMilliseconds": 5000,
+  "termMilliseconds": 2000,
+  "killMilliseconds": 1000,
+  "startupCaptureEachBytes": 65536,
+  "recordBytes": 262144,
+  "noActualOwnerEngine": true
+}

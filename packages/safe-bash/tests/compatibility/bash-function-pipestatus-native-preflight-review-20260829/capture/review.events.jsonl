@@ -1,0 +1,7 @@
+{"at":"2026-08-29T12:56:23.008Z","event":"owner-start","pid":62601,"mode":"review"}
+{"at":"2026-08-29T12:56:23.039Z","event":"capture-open","label":"review"}
+{"at":"2026-08-29T12:56:23.085Z","event":"enrolled","label":"review","pid":62614,"exe":"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","args":["/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/review.mjs"]}
+{"at":"2026-08-29T12:56:24.913Z","event":"exit","label":"review","pid":62614,"code":0,"signal":null}
+{"at":"2026-08-29T12:56:24.925Z","event":"close","label":"review","pid":62614,"code":0,"signal":null,"exitSeen":true,"timedOut":false,"failurePresent":false}
+{"at":"2026-08-29T12:56:24.929Z","event":"capture-closed","label":"review"}
+{"at":"2026-08-29T12:56:24.933Z","event":"owner-complete","pid":62601,"mode":"review","code":0}

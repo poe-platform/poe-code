@@ -1,0 +1,242 @@
+{
+  "distribution": "llm",
+  "version": "0.27.1",
+  "provider": "deterministic-fixture",
+  "cases": [
+    {
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "stdout": "llm, version 0.27.1\n",
+      "stderr": "",
+      "files": {}
+    },
+    {
+      "argv": [
+        "models",
+        "default",
+        "fixture-chat"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "files": {
+        "default_model.txt": "fixture-chat"
+      }
+    },
+    {
+      "argv": [
+        "models",
+        "default"
+      ],
+      "exitCode": 0,
+      "stdout": "fixture-chat\n",
+      "stderr": "",
+      "files": {
+        "default_model.txt": "fixture-chat"
+      }
+    },
+    {
+      "argv": [
+        "aliases",
+        "set",
+        "tiny",
+        "fixture-chat"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "files": {
+        "aliases.json": "{\n    \"tiny\": \"fixture-chat\"\n}\n",
+        "default_model.txt": "fixture-chat"
+      }
+    },
+    {
+      "argv": [
+        "aliases",
+        "set",
+        "nested",
+        "tiny"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "files": {
+        "aliases.json": "{\n    \"tiny\": \"fixture-chat\",\n    \"nested\": \"fixture-chat\"\n}\n",
+        "default_model.txt": "fixture-chat"
+      }
+    },
+    {
+      "argv": [
+        "aliases",
+        "list",
+        "--json"
+      ],
+      "exitCode": 0,
+      "stdout": "{\n    \"echo\": \"fixture-chat\",\n    \"tiny\": \"fixture-chat\",\n    \"nested\": \"fixture-chat\"\n}\n",
+      "stderr": "",
+      "files": {
+        "aliases.json": "{\n    \"tiny\": \"fixture-chat\",\n    \"nested\": \"fixture-chat\"\n}\n",
+        "default_model.txt": "fixture-chat"
+      }
+    },
+    {
+      "argv": [
+        "aliases",
+        "path"
+      ],
+      "exitCode": 0,
+      "stdout": "<USER_PATH>/aliases.json\n",
+      "stderr": "",
+      "files": {
+        "aliases.json": "{\n    \"tiny\": \"fixture-chat\",\n    \"nested\": \"fixture-chat\"\n}\n",
+        "default_model.txt": "fixture-chat"
+      }
+    },
+    {
+      "argv": [
+        "models",
+        "options",
+        "set",
+        "tiny",
+        "temperature",
+        "0.5"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "Set default option temperature=0.5 for model fixture-chat\n",
+      "files": {
+        "aliases.json": "{\n    \"tiny\": \"fixture-chat\",\n    \"nested\": \"fixture-chat\"\n}\n",
+        "default_model.txt": "fixture-chat",
+        "model_options.json": "{\n  \"fixture-chat\": {\n    \"temperature\": \"0.5\"\n  }\n}"
+      }
+    },
+    {
+      "argv": [
+        "models",
+        "options",
+        "show",
+        "nested"
+      ],
+      "exitCode": 0,
+      "stdout": "temperature: 0.5\n",
+      "stderr": "",
+      "files": {
+        "aliases.json": "{\n    \"tiny\": \"fixture-chat\",\n    \"nested\": \"fixture-chat\"\n}\n",
+        "default_model.txt": "fixture-chat",
+        "model_options.json": "{\n  \"fixture-chat\": {\n    \"temperature\": \"0.5\"\n  }\n}"
+      }
+    },
+    {
+      "argv": [
+        "models",
+        "options",
+        "list"
+      ],
+      "exitCode": 0,
+      "stdout": "fixture-chat:\n  temperature: 0.5\n",
+      "stderr": "",
+      "files": {
+        "aliases.json": "{\n    \"tiny\": \"fixture-chat\",\n    \"nested\": \"fixture-chat\"\n}\n",
+        "default_model.txt": "fixture-chat",
+        "model_options.json": "{\n  \"fixture-chat\": {\n    \"temperature\": \"0.5\"\n  }\n}"
+      }
+    },
+    {
+      "argv": [
+        "--no-log",
+        "-m",
+        "nested",
+        "hello"
+      ],
+      "exitCode": 0,
+      "stdout": "{\"model\": \"fixture-chat\", \"options\": {\"temperature\": 0.5}, \"prompt\": \"hello\"}\n",
+      "stderr": "",
+      "files": {
+        "aliases.json": "{\n    \"tiny\": \"fixture-chat\",\n    \"nested\": \"fixture-chat\"\n}\n",
+        "default_model.txt": "fixture-chat",
+        "model_options.json": "{\n  \"fixture-chat\": {\n    \"temperature\": \"0.5\"\n  }\n}"
+      }
+    },
+    {
+      "argv": [
+        "models",
+        "options",
+        "clear",
+        "tiny",
+        "temperature"
+      ],
+      "exitCode": 0,
+      "stdout": "Cleared option 'temperature' for model fixture-chat\n",
+      "stderr": "",
+      "files": {
+        "aliases.json": "{\n    \"tiny\": \"fixture-chat\",\n    \"nested\": \"fixture-chat\"\n}\n",
+        "default_model.txt": "fixture-chat",
+        "model_options.json": "{}"
+      }
+    },
+    {
+      "argv": [
+        "models",
+        "options",
+        "show",
+        "tiny"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "No default options set for model 'fixture-chat'.\n",
+      "files": {
+        "aliases.json": "{\n    \"tiny\": \"fixture-chat\",\n    \"nested\": \"fixture-chat\"\n}\n",
+        "default_model.txt": "fixture-chat",
+        "model_options.json": "{}"
+      }
+    },
+    {
+      "argv": [
+        "aliases",
+        "remove",
+        "nested"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "files": {
+        "aliases.json": "{\n    \"tiny\": \"fixture-chat\"\n}\n",
+        "default_model.txt": "fixture-chat",
+        "model_options.json": "{}"
+      }
+    },
+    {
+      "argv": [
+        "aliases",
+        "remove",
+        "missing"
+      ],
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "Error: No such alias: missing\n",
+      "files": {
+        "aliases.json": "{\n    \"tiny\": \"fixture-chat\"\n}\n",
+        "default_model.txt": "fixture-chat",
+        "model_options.json": "{}"
+      }
+    },
+    {
+      "argv": [
+        "models",
+        "default",
+        "missing"
+      ],
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "Error: Unknown model: missing\n",
+      "files": {
+        "aliases.json": "{\n    \"tiny\": \"fixture-chat\"\n}\n",
+        "default_model.txt": "fixture-chat",
+        "model_options.json": "{}"
+      }
+    }
+  ],
+  "prog_name": "llm"
+}

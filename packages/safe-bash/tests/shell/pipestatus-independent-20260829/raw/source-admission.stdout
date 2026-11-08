@@ -1,0 +1,3 @@
+Success. Updated the following files:
+A /Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-independent-20260829/admit-source.mjs
+PACKAGE_FIELDS {"path":"/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/corrected-v2/corrected-build-artifact.tgz","size":1005288,"mode":420,"sha256":"6c60e2d766fa675b7972afdc0eb6f5304f99231abceff1daf5cb196b897346a5","kind":"manual USTAR/gzip original strict-build artifact projection; NOT npm-produced/installed acceptance","originalSeal":"c590f60ab8f53c5988056087257e2ed8564ef0db5e256ca4a7d836fa88fce718","count":1010,"tarBytes":5819392,"compressedAdmittedBeforeAnyFutureInflation":true,"noInflationPerformed":true,"validationOnlyDeclarationsExcluded":true,"correctedG18SourceIncluded":true}

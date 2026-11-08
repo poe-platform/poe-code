@@ -1,0 +1,21 @@
+{
+  "mode": "shared-negative",
+  "selectedPass": 0,
+  "exactPass": 0,
+  "total": 1,
+  "profile": "Original stdout/status/stderr-presence policy; repaired shared-stdin additionally requires exact GNU diagnostic. Exact-row count is separate, with all raw stderr retained.",
+  "observations": [
+    {
+      "name": "comm: shared stdin",
+      "inputSha256": "d3e69ff19a538fc9beb7e0fbad8add1d127b0536cd13ee493fdb535f75903142",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "0909610a0909620a630a",
+        "stderrHex": ""
+      },
+      "selected": false,
+      "exact": false,
+      "filesUnchanged": true
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "groups": 8,
+  "passed": 8,
+  "rows": [
+    {
+      "id": "P01-successful-transfer",
+      "pass": true
+    },
+    {
+      "id": "P02-hold-falsy-failures",
+      "pass": true
+    },
+    {
+      "id": "P03-hold-and-close-failures",
+      "pass": true
+    },
+    {
+      "id": "P04-body-close-hold-independent",
+      "pass": true
+    },
+    {
+      "id": "P05-binding-close-hold-independent",
+      "pass": true
+    },
+    {
+      "id": "P06-registered-hold-release-failure",
+      "pass": true
+    },
+    {
+      "id": "P07-create-refusal",
+      "pass": true
+    },
+    {
+      "id": "P08-primary-secondary-identity",
+      "pass": true
+    }
+  ],
+  "sourceSha256": "e55037e0020d3ecefd4f8bdaf80cde1006fee0bbf85bbad26e39a8eac69514c8",
+  "sourceOnly": true,
+  "actualPrivateFaults": false,
+  "Shell": 0,
+  "Workers": 0,
+  "compiler": 0,
+  "child": {
+    "pid": 96645,
+    "status": 0,
+    "signal": null
+  },
+  "started": 1788024336821,
+  "finished": 1788024336871
+}

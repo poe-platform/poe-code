@@ -1,0 +1,31 @@
+{
+  "started": "2026-08-29T05:23:17.172Z",
+  "role": "SOURCE_PREPARATION",
+  "children": [
+    {
+      "name": "status",
+      "status": 0,
+      "signal": null
+    },
+    {
+      "name": "index",
+      "status": 0,
+      "signal": null
+    }
+  ],
+  "root": "/tmp/bash-conditional-author-prep-43EJhK",
+  "owned": [
+    {
+      "path": "src/shell/parser.ts",
+      "sha256": "e8c19ffc7a5c2ffcd63608f0fd4722466e1999e647bc2e676b12710555a0e9a4"
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "sha256": "d47946f659af53880de53e65f93d26b934404a56b31183d937174d0f46221f66"
+    },
+    {
+      "path": "src/shell/display.ts",
+      "sha256": "293c7d058c5d959134334ba432ad4baa906a3b99608b38140d82887dbebfd6f8"
+    }
+  ]
+}

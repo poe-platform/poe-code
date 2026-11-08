@@ -1,0 +1,408 @@
+{
+  "sourceCommit": "c25e682a7baa2f2abf70cebf8c01d11d0ad5daee",
+  "quotaCommit": "c25e682a7baa2f2abf70cebf8c01d11d0ad5daee",
+  "original": {
+    "passed": 42,
+    "total": 61,
+    "failures": [
+      {
+        "id": "root-counterexample",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "modulo-trailing",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "noninteger-trailing",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "left-error-before-next-operator-missing",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "left-error-before-next-same-precedence",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "left-error-before-skipped-syntax",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "group-runtime-before-missing-close",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "group-runtime-before-wrong-close",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "nested-runtime-before-close",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "prefix-first-argument-before-missing-second",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "prefix-second-before-missing-third",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "regex-error-before-trailing",
+        "failures": [
+          "stderr",
+          "submission count"
+        ]
+      },
+      {
+        "id": "regex-error-before-close",
+        "failures": [
+          "stderr",
+          "submission count"
+        ]
+      },
+      {
+        "id": "regex-error-before-later-missing",
+        "failures": [
+          "stderr",
+          "submission count"
+        ]
+      },
+      {
+        "id": "regex-prefix-error-before-outer-arity",
+        "failures": [
+          "stderr",
+          "submission count"
+        ]
+      },
+      {
+        "id": "regex-success-before-trailing",
+        "failures": [
+          "submission count"
+        ]
+      },
+      {
+        "id": "regex-success-before-missing-close",
+        "failures": [
+          "submission count"
+        ]
+      },
+      {
+        "id": "regex-success-before-runtime",
+        "failures": [
+          "stderr",
+          "submission count"
+        ]
+      },
+      {
+        "id": "first-regex-before-second-syntax",
+        "failures": [
+          "submission count"
+        ]
+      }
+    ]
+  },
+  "nativeSubset": {
+    "passed": 25,
+    "total": 44,
+    "failures": [
+      {
+        "id": "root-counterexample",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "modulo-trailing",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "noninteger-trailing",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "left-error-before-next-operator-missing",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "left-error-before-next-same-precedence",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "left-error-before-skipped-syntax",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "group-runtime-before-missing-close",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "group-runtime-before-wrong-close",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "nested-runtime-before-close",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "prefix-first-argument-before-missing-second",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "prefix-second-before-missing-third",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "regex-error-before-trailing",
+        "failures": [
+          "stderr",
+          "submission count"
+        ]
+      },
+      {
+        "id": "regex-error-before-close",
+        "failures": [
+          "stderr",
+          "submission count"
+        ]
+      },
+      {
+        "id": "regex-error-before-later-missing",
+        "failures": [
+          "stderr",
+          "submission count"
+        ]
+      },
+      {
+        "id": "regex-prefix-error-before-outer-arity",
+        "failures": [
+          "stderr",
+          "submission count"
+        ]
+      },
+      {
+        "id": "regex-success-before-trailing",
+        "failures": [
+          "submission count"
+        ]
+      },
+      {
+        "id": "regex-success-before-missing-close",
+        "failures": [
+          "submission count"
+        ]
+      },
+      {
+        "id": "regex-success-before-runtime",
+        "failures": [
+          "stderr",
+          "submission count"
+        ]
+      },
+      {
+        "id": "first-regex-before-second-syntax",
+        "failures": [
+          "submission count"
+        ]
+      }
+    ]
+  },
+  "projectSubset": {
+    "passed": 17,
+    "total": 17,
+    "failures": []
+  },
+  "shell": {
+    "passed": 3,
+    "total": 5,
+    "failures": [
+      {
+        "id": "root-counterexample",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "regex-success-before-trailing",
+        "failures": [
+          "submission count"
+        ]
+      }
+    ]
+  },
+  "oldCapSeparate": {
+    "id": "old-syntax-output-one-separate",
+    "mode": "direct",
+    "observed": {
+      "exitCode": 3,
+      "stdout": "",
+      "stderr": "expr: output bytes limit exceeded\n"
+    },
+    "expected": {
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "expr: syntax error: unexpected argument 'x'\n"
+    },
+    "jobs": [],
+    "encodes": [
+      "x"
+    ],
+    "budgetCount": 1,
+    "budgetIncreases": 0,
+    "events": [
+      {
+        "kind": "cleanup-registered"
+      },
+      {
+        "kind": "session-close-start"
+      },
+      {
+        "kind": "session-close-end"
+      },
+      {
+        "kind": "execute-settled",
+        "activeWorkers": 0
+      }
+    ],
+    "failures": [
+      "exitCode",
+      "stderr"
+    ],
+    "passed": false
+  },
+  "nearby": {
+    "passed": 11,
+    "total": 16,
+    "failures": [
+      {
+        "id": "nested-runtime-before-late-token",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "prefix-regex-before-late-token",
+        "failures": [
+          "exact encounter-order submissions"
+        ]
+      },
+      {
+        "id": "abort-result-before-late-close",
+        "failures": [
+          "rejection identity/output",
+          "exact encounter-order submissions"
+        ]
+      },
+      {
+        "id": "stdout-failure-no-regex-replay",
+        "failures": [
+          "exitCode",
+          "stderr"
+        ]
+      },
+      {
+        "id": "stderr-failure-after-regex",
+        "failures": [
+          "exact encounter-order submissions"
+        ]
+      }
+    ]
+  },
+  "expr": {
+    "status": 1,
+    "counts": {
+      "tests": 587,
+      "suites": 0,
+      "pass": 567,
+      "fail": 20,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "failed": [
+      "not ok 135 - sink failure is status 3 and diagnostic failure is not swallowed",
+      "not ok 210 - encounter-order v2 [\"7\",\"/\",\"0\",\"late\"]",
+      "not ok 211 - encounter-order v2 [\"7\",\"%\",\"0\",\"+\"]",
+      "not ok 212 - encounter-order v2 [\"bad\",\"*\",\"2\",\"+\",\"length\"]",
+      "not ok 213 - encounter-order v2 [\"(\",\"7\",\"/\",\"0\"]",
+      "not ok 214 - encounter-order v2 [\"length\",\"(\",\"7\",\"/\",\"0\",\")\",\"late\"]",
+      "not ok 215 - encounter-order v2 [\"substr\",\"abc\",\"(\",\"7\",\"/\",\"0\",\")\"]",
+      "not ok 220 - encounter-order v2 [\"a\",\":\",\"[\",\"late\"]",
+      "not ok 221 - encounter-order v2 [\"(\",\"a\",\":\",\"[\"]",
+      "not ok 222 - encounter-order v2 [\"index\",\"match\",\"a\",\"[\"]",
+      "not ok 223 - encounter-order v2 [\"a\",\":\",\"a\",\"late\"]",
+      "not ok 224 - encounter-order v2 [\"(\",\"a\",\":\",\"a\"]",
+      "not ok 225 - encounter-order v2 [\"match\",\"(\",\"a\",\":\",\"a\",\")\",\"(\"]",
+      "not ok 227 - encounter-order v2 inactive values absent [\"HIDDEN\",\"+\",\"999\"]",
+      "not ok 228 - encounter-order v2 inactive values absent [\"HIDDEN\",\":\",\"[\"]",
+      "not ok 229 - encounter-order v2 inactive values absent [\"length\",\"HIDDEN\"]",
+      "not ok 230 - encounter-order v2 inactive values absent [\"index\",\"HIDDEN\",\"Z\"]",
+      "not ok 231 - encounter-order v2 inactive values absent [\"substr\",\"HIDDEN\",\"999\",\"888\"]",
+      "not ok 232 - encounter-order v2 inactive values absent [\"match\",\"HIDDEN\",\"[\"]",
+      "not ok 237 - encounter-order v2 actual Shell invocation retains earlier error and completed job"
+    ]
+  },
+  "shared": {
+    "status": 0,
+    "counts": {
+      "tests": 61,
+      "suites": 0,
+      "pass": 61,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "failed": []
+  },
+  "activeWorkers": {
+    "original": 0,
+    "nearby": 0
+  },
+  "build": "passed",
+  "strictTypes": "passed"
+}

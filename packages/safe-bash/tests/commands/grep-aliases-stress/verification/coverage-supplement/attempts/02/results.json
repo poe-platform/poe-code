@@ -1,0 +1,99 @@
+{
+  "classification": "supplement-to-S02-S03-not-a-replacement-cohort",
+  "rows": [
+    {
+      "id": "S02/egrep-4-owned-reuse-internal-pipe-to-file",
+      "status": "pass",
+      "outputHex": "6b6565703a30310a6b6565703a30320a",
+      "activeAtSettlement": 0
+    },
+    {
+      "id": "S02/egrep-8-owned-reuse-internal-pipe-to-file",
+      "status": "pass",
+      "outputHex": "6b6565703a30310a6b6565703a30320a",
+      "activeAtSettlement": 0
+    },
+    {
+      "id": "S02/fgrep-4-owned-reuse-internal-pipe-to-file",
+      "status": "pass",
+      "outputHex": "6b6565703a30310a6b6565703a30320a",
+      "activeAtSettlement": 0
+    },
+    {
+      "id": "S02/fgrep-8-owned-reuse-internal-pipe-to-file",
+      "status": "pass",
+      "outputHex": "6b6565703a30310a6b6565703a30320a",
+      "activeAtSettlement": 0
+    },
+    {
+      "id": "S03/pipeline-output-budget",
+      "status": "fail",
+      "error": "AssertionError [ERR_ASSERTION]: Missing expected rejection.\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async TestContext.<anonymous> (file:///private/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/pack-fixed-01/physically-moved-offline-consumer/run-supplement/pipeline-holdouts.mjs:97:9)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)",
+      "activeAtSettlement": 0,
+      "observation": {
+        "exitCode": 0,
+        "stdoutHex": "6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a6b6565703a30310a",
+        "stderrHex": "65677265703a2072656765782051554555455f4558484155535445443a20717565756564207265717565737420636f756e74206f7220696e7075742062797465206c696d69742065786365656465640a"
+      }
+    }
+  ],
+  "events": [
+    {
+      "event": "create",
+      "workerThreadId": 1,
+      "case": "S02/egrep-4-owned-reuse-internal-pipe-to-file",
+      "path": "file:///private/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/pack-fixed-01/physically-moved-offline-consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js"
+    },
+    {
+      "event": "exit",
+      "workerThreadId": 1,
+      "case": "S02/egrep-4-owned-reuse-internal-pipe-to-file"
+    },
+    {
+      "event": "create",
+      "workerThreadId": 2,
+      "case": "S02/egrep-8-owned-reuse-internal-pipe-to-file",
+      "path": "file:///private/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/pack-fixed-01/physically-moved-offline-consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js"
+    },
+    {
+      "event": "exit",
+      "workerThreadId": 2,
+      "case": "S02/egrep-8-owned-reuse-internal-pipe-to-file"
+    },
+    {
+      "event": "create",
+      "workerThreadId": 3,
+      "case": "S02/fgrep-4-owned-reuse-internal-pipe-to-file",
+      "path": "file:///private/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/pack-fixed-01/physically-moved-offline-consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js"
+    },
+    {
+      "event": "exit",
+      "workerThreadId": 3,
+      "case": "S02/fgrep-4-owned-reuse-internal-pipe-to-file"
+    },
+    {
+      "event": "create",
+      "workerThreadId": 4,
+      "case": "S02/fgrep-8-owned-reuse-internal-pipe-to-file",
+      "path": "file:///private/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/pack-fixed-01/physically-moved-offline-consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js"
+    },
+    {
+      "event": "exit",
+      "workerThreadId": 4,
+      "case": "S02/fgrep-8-owned-reuse-internal-pipe-to-file"
+    },
+    {
+      "event": "create",
+      "workerThreadId": 5,
+      "case": "S03/pipeline-output-budget",
+      "path": "file:///private/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/pack-fixed-01/physically-moved-offline-consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js"
+    },
+    {
+      "event": "exit",
+      "workerThreadId": 5,
+      "case": "S03/pipeline-output-budget"
+    }
+  ],
+  "activeWorkers": 0,
+  "verifierForcedWorkerTermination": 0
+}

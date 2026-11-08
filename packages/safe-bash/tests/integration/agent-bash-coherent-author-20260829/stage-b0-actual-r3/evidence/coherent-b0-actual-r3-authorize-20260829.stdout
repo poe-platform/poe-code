@@ -1,0 +1,7 @@
+Success. Updated the following files:
+A /Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b0-actual-r3/AUTHORIZATION.json
+A /Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b0-actual-r3/preflight.mjs
+[main 6f8e55272cf2f207a2c71753bd8ccd5a430ccc07] docs: seal fresh one-attempt B0 authorization before launch
+ 2 files changed, 42 insertions(+)
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b0-actual-r3/AUTHORIZATION.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b0-actual-r3/preflight.mjs

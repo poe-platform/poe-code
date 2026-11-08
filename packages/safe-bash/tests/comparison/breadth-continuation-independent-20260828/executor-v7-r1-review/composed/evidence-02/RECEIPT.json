@@ -1,0 +1,35 @@
+{
+  "pid": 48037,
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  },
+  "reaped": true,
+  "failures": [],
+  "signals": [],
+  "records": [
+    {
+      "sequence": 0,
+      "kind": "final",
+      "report": {
+        "fixtureOnly": true,
+        "status": "ADMISSION_ACCEPTED",
+        "children": 0,
+        "allPass": true
+      }
+    }
+  ],
+  "captureBytes": {
+    "stdout": 496,
+    "stderr": 0,
+    "records": 118
+  },
+  "stdout": "eyJzY2hlbWEiOiJCT1VOREVEX1RFUk1JTkFMX1YyIiwibW9kZSI6ImFkbWlzc2lvbiIsInJ1bklkIjoic3ludGhldGljIiwic3RhdHVzIjoiQURNSVNTSU9OX0FDQ0VQVEVEIiwidW5zYWZlIjpmYWxzZSwiZXhpdENvZGUiOjAsInByaW1hcnkiOnsicHJlc2VudCI6ZmFsc2UsInVuZGVmaW5lZFZhbHVlIjpmYWxzZX0sInJlc3VsdCI6eyJwYXRoIjoiUkVTVUxULmpzb24iLCJieXRlcyI6MjI1MCwic2hhMjU2IjoiYzFmYjAzNTJjMjRkOWU5ZWViNzIxOGYzZWIzMTczMGJhYzZiNDc5OTI4ZjJiY2YyZDRmMTFmNDZiZjdmMDE0NiIsIm1vZGUiOjQyMH0sImxhdW5jaEFjY291bnRpbmciOnsiZW5yb2xsZWQiOjAsImF0dGVtcHRlZCI6MCwibGF1bmNoZWQiOjAsImNsb3NlZCI6MCwidW5rbm93bkFjcXVpc2l0aW9ucyI6MCwiYWxsQ2hpbGRyZW5SZWFwZWQiOm51bGwsInVuc2FmZSI6ZmFsc2V9LCJjaGlsZHJlbiI6W10sImhpc3RvcmljYWxTY29yZXNVbmNoYW5nZWQiOnRydWV9Cg==",
+  "stderr": "",
+  "rawRecords": "eyJzZXF1ZW5jZSI6MCwia2luZCI6ImZpbmFsIiwicmVwb3J0Ijp7ImZpeHR1cmVPbmx5Ijp0cnVlLCJzdGF0dXMiOiJBRE1JU1NJT05fQUNDRVBURUQiLCJjaGlsZHJlbiI6MCwiYWxsUGFzcyI6dHJ1ZX19Cg==",
+  "natural": true
+}

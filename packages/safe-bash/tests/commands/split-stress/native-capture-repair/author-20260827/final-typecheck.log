@@ -1,0 +1,1 @@
+{"name":"typecheck","started":"2026-08-27T15:02:41.631Z","finished":"2026-08-27T15:02:42.901Z","command":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","node_modules/typescript/bin/tsc","-p","tests/commands/split/tsconfig.json","--noEmit"],"capture":false,"status":0,"signal":null,"error":null}

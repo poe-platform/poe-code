@@ -1,0 +1,13 @@
+{
+  "args": [
+    "diff",
+    "6fde455bcc103117a6424b95156b152721f5735f",
+    "7a5c620005fb04518d44bb284f4e99284e4a7c33",
+    "--",
+    "src/shell/conditional.ts"
+  ],
+  "closed": true,
+  "pid": 61200,
+  "code": 0,
+  "signal": null
+}

@@ -1,0 +1,1783 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/InputRequest",
+  "$defs": {
+    "Annotations": {
+      "properties": {
+        "audience": {
+          "items": {
+            "$ref": "#/$defs/Role"
+          },
+          "type": "array"
+        },
+        "lastModified": {
+          "type": "string"
+        },
+        "priority": {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        }
+      },
+      "type": "object"
+    },
+    "AudioContent": {
+      "properties": {
+        "_meta": {
+          "$ref": "#/$defs/MetaObject"
+        },
+        "annotations": {
+          "$ref": "#/$defs/Annotations"
+        },
+        "data": {
+          "format": "byte",
+          "type": "string"
+        },
+        "mimeType": {
+          "type": "string"
+        },
+        "type": {
+          "const": "audio",
+          "type": "string"
+        }
+      },
+      "required": [
+        "data",
+        "mimeType",
+        "type"
+      ],
+      "type": "object"
+    },
+    "BlobResourceContents": {
+      "properties": {
+        "_meta": {
+          "$ref": "#/$defs/MetaObject"
+        },
+        "blob": {
+          "format": "byte",
+          "type": "string"
+        },
+        "mimeType": {
+          "type": "string"
+        },
+        "uri": {
+          "format": "uri",
+          "type": "string"
+        }
+      },
+      "required": [
+        "blob",
+        "uri"
+      ],
+      "type": "object"
+    },
+    "BooleanSchema": {
+      "properties": {
+        "default": {
+          "type": "boolean"
+        },
+        "title": {
+          "type": "string"
+        },
+        "type": {
+          "const": "boolean",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "type": "object"
+    },
+    "CallToolResult": {
+      "properties": {
+        "_meta": {
+          "$ref": "#/$defs/ResultMetaObject"
+        },
+        "content": {
+          "items": {
+            "$ref": "#/$defs/ContentBlock"
+          },
+          "type": "array"
+        },
+        "isError": {
+          "type": "boolean"
+        },
+        "resultType": {
+          "type": "string"
+        },
+        "structuredContent": {}
+      },
+      "required": [
+        "content",
+        "resultType"
+      ],
+      "type": "object"
+    },
+    "ClientCapabilities": {
+      "properties": {
+        "elicitation": {
+          "properties": {
+            "form": {
+              "$ref": "#/$defs/JSONObject"
+            },
+            "url": {
+              "$ref": "#/$defs/JSONObject"
+            }
+          },
+          "type": "object"
+        },
+        "experimental": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JSONObject"
+          },
+          "type": "object"
+        },
+        "extensions": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JSONObject"
+          },
+          "type": "object",
+          "propertyNames": {
+            "format": "mcp-extension-key"
+          }
+        },
+        "roots": {
+          "properties": {},
+          "type": "object"
+        },
+        "sampling": {
+          "properties": {
+            "context": {
+              "$ref": "#/$defs/JSONObject"
+            },
+            "tools": {
+              "$ref": "#/$defs/JSONObject"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
+    "CompleteResult": {
+      "properties": {
+        "_meta": {
+          "$ref": "#/$defs/ResultMetaObject"
+        },
+        "completion": {
+          "properties": {
+            "hasMore": {
+              "type": "boolean"
+            },
+            "total": {
+              "type": "integer"
+            },
+            "values": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 100,
+              "type": "array"
+            }
+          },
+          "required": [
+            "values"
+          ],
+          "type": "object"
+        },
+        "resultType": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "completion",
+        "resultType"
+      ],
+      "type": "object"
+    },
+    "ContentBlock": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/TextContent"
+        },
+        {
+          "$ref": "#/$defs/ImageContent"
+        },
+        {
+          "$ref": "#/$defs/AudioContent"
+        },
+        {
+          "$ref": "#/$defs/ResourceLink"
+        },
+        {
+          "$ref": "#/$defs/EmbeddedResource"
+        }
+      ]
+    },
+    "CreateMessageRequest": {
+      "properties": {
+        "method": {
+          "const": "sampling/createMessage",
+          "type": "string"
+        },
+        "params": {
+          "$ref": "#/$defs/CreateMessageRequestParams"
+        }
+      },
+      "required": [
+        "method",
+        "params"
+      ],
+      "type": "object"
+    },
+    "CreateMessageRequestParams": {
+      "properties": {
+        "includeContext": {
+          "enum": [
+            "allServers",
+            "none",
+            "thisServer"
+          ],
+          "type": "string"
+        },
+        "maxTokens": {
+          "type": "integer"
+        },
+        "messages": {
+          "items": {
+            "$ref": "#/$defs/SamplingMessage"
+          },
+          "type": "array"
+        },
+        "metadata": {
+          "$ref": "#/$defs/JSONObject"
+        },
+        "modelPreferences": {
+          "$ref": "#/$defs/ModelPreferences"
+        },
+        "stopSequences": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "systemPrompt": {
+          "type": "string"
+        },
+        "temperature": {
+          "type": "number"
+        },
+        "toolChoice": {
+          "$ref": "#/$defs/ToolChoice"
+        },
+        "tools": {
+          "items": {
+            "$ref": "#/$defs/Tool"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "maxTokens",
+        "messages"
+      ],
+      "type": "object"
+    },
+    "CreateMessageResult": {
+      "properties": {
+        "_meta": {
+          "$ref": "#/$defs/MetaObject"
+        },
+        "content": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TextContent"
+            },
+            {
+              "$ref": "#/$defs/ImageContent"
+            },
+            {
+              "$ref": "#/$defs/AudioContent"
+            },
+            {
+              "$ref": "#/$defs/ToolUseContent"
+            },
+            {
+              "$ref": "#/$defs/ToolResultContent"
+            },
+            {
+              "items": {
+                "$ref": "#/$defs/SamplingMessageContentBlock"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "model": {
+          "type": "string"
+        },
+        "role": {
+          "$ref": "#/$defs/Role"
+        },
+        "stopReason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "content",
+        "model",
+        "role"
+      ],
+      "type": "object"
+    },
+    "DiscoverResult": {
+      "properties": {
+        "_meta": {
+          "$ref": "#/$defs/ResultMetaObject"
+        },
+        "cacheScope": {
+          "enum": [
+            "private",
+            "public"
+          ],
+          "type": "string"
+        },
+        "capabilities": {
+          "$ref": "#/$defs/ServerCapabilities"
+        },
+        "instructions": {
+          "type": "string"
+        },
+        "resultType": {
+          "type": "string"
+        },
+        "supportedVersions": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "ttlMs": {
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "cacheScope",
+        "capabilities",
+        "resultType",
+        "supportedVersions",
+        "ttlMs"
+      ],
+      "type": "object"
+    },
+    "ElicitRequest": {
+      "properties": {
+        "method": {
+          "const": "elicitation/create",
+          "type": "string"
+        },
+        "params": {
+          "$ref": "#/$defs/ElicitRequestParams"
+        }
+      },
+      "required": [
+        "method",
+        "params"
+      ],
+      "type": "object"
+    },
+    "ElicitRequestFormParams": {
+      "properties": {
+        "message": {
+          "type": "string"
+        },
+        "mode": {
+          "const": "form",
+          "type": "string"
+        },
+        "requestedSchema": {
+          "properties": {
+            "$schema": {
+              "type": "string"
+            },
+            "properties": {
+              "additionalProperties": {
+                "$ref": "#/$defs/PrimitiveSchemaDefinition"
+              },
+              "type": "object"
+            },
+            "required": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "type": {
+              "const": "object",
+              "type": "string"
+            }
+          },
+          "required": [
+            "properties",
+            "type"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "message",
+        "requestedSchema"
+      ],
+      "type": "object"
+    },
+    "ElicitRequestParams": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ElicitRequestFormParams"
+        },
+        {
+          "$ref": "#/$defs/ElicitRequestURLParams"
+        }
+      ]
+    },
+    "ElicitRequestURLParams": {
+      "properties": {
+        "message": {
+          "type": "string"
+        },
+        "mode": {
+          "const": "url",
+          "type": "string"
+        },
+        "url": {
+          "format": "uri",
+          "type": "string"
+        }
+      },
+      "required": [
+        "message",
+        "mode",
+        "url"
+      ],
+      "type": "object"
+    },
+    "ElicitResult": {
+      "properties": {
+        "action": {
+          "enum": [
+            "accept",
+            "cancel",
+            "decline"
+          ],
+          "type": "string"
+        },
+        "content": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            ]
+          },
+          "type": "object"
+        }
+      },
+      "required": [
+        "action"
+      ],
+      "type": "object"
+    },
+    "EmbeddedResource": {
+      "properties": {
+        "_meta": {
+          "$ref": "#/$defs/MetaObject"
+        },
+        "annotations": {
+          "$ref": "#/$defs/Annotations"
+        },
+        "resource": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TextResourceContents"
+            },
+            {
+              "$ref": "#/$defs/BlobResourceContents"
+            }
+          ]
+        },
+        "type": {
+          "const": "resource",
+          "type": "string"
+        }
+      },
+      "required": [
+        "resource",
+        "type"
+      ],
+      "type": "object"
+    },
+    "GetPromptResult": {
+      "properties": {
+        "_meta": {
+          "$ref": "#/$defs/ResultMetaObject"
+        },
+        "description": {
+          "type": "string"
+        },
+        "messages": {
+          "items": {
+            "$ref": "#/$defs/PromptMessage"
+          },
+          "type": "array"
+        },
+        "resultType": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "messages",
+        "resultType"
+      ],
+      "type": "object"
+    },
+    "Icon": {
+      "properties": {
+        "mimeType": {
+          "type": "string"
+        },
+        "sizes": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "src": {
+          "format": "uri",
+          "type": "string"
+        },
+        "theme": {
+          "enum": [
+            "dark",
+            "light"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "src"
+      ],
+      "type": "object"
+    },
+    "ImageContent": {
+      "properties": {
+        "_meta": {
+          "$ref": "#/$defs/MetaObject"
+        },
+        "annotations": {
+          "$ref": "#/$defs/Annotations"
+        },
+        "data": {
+          "format": "byte",
+          "type": "string"
+        },
+        "mimeType": {
+          "type": "string"
+        },
+        "type": {
+          "const": "image",
+          "type": "string"
+        }
+      },
+      "required": [
+        "data",
+        "mimeType",
+        "type"
+      ],
+      "type": "object"
+    },
+    "Implementation": {
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "icons": {
+          "items": {
+            "$ref": "#/$defs/Icon"
+          },
+          "type": "array"
+        },
+        "name": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "websiteUrl": {
+          "format": "uri",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "version"
+      ],
+      "type": "object"
+    },
+    "InputRequest": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CreateMessageRequest"
+        },
+        {
+          "$ref": "#/$defs/ListRootsRequest"
+        },
+        {
+          "$ref": "#/$defs/ElicitRequest"
+        }
+      ]
+    },
+    "InputResponse": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CreateMessageResult"
+        },
+        {
+          "$ref": "#/$defs/ListRootsResult"
+        },
+        {
+          "$ref": "#/$defs/ElicitResult"
+        }
+      ]
+    },
+    "InputResponses": {
+      "additionalProperties": {
+        "$ref": "#/$defs/InputResponse"
+      },
+      "type": "object"
+    },
+    "JSONObject": {
+      "additionalProperties": {
+        "$ref": "#/$defs/JSONValue"
+      },
+      "type": "object"
+    },
+    "JSONValue": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/JSONObject"
+        },
+        {
+          "items": {
+            "$ref": "#/$defs/JSONValue"
+          },
+          "type": "array"
+        },
+        {
+          "type": [
+            "string",
+            "number",
+            "boolean",
+            "null"
+          ]
+        }
+      ]
+    },
+    "LegacyTitledEnumSchema": {
+      "properties": {
+        "default": {
+          "type": "string"
+        },
+        "enum": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "enumNames": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "title": {
+          "type": "string"
+        },
+        "type": {
+          "const": "string",
+          "type": "string"
+        }
+      },
+      "required": [
+        "enum",
+        "type"
+      ],
+      "type": "object"
+    },
+    "ListPromptsResult": {
+      "properties": {
+        "_meta": {
+          "$ref": "#/$defs/ResultMetaObject"
+        },
+        "cacheScope": {
+          "enum": [
+            "private",
+            "public"
+          ],
+          "type": "string"
+        },
+        "nextCursor": {
+          "type": "string"
+        },
+        "prompts": {
+          "items": {
+            "$ref": "#/$defs/Prompt"
+          },
+          "type": "array"
+        },
+        "resultType": {
+          "type": "string"
+        },
+        "ttlMs": {
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "cacheScope",
+        "prompts",
+        "resultType",
+        "ttlMs"
+      ],
+      "type": "object"
+    },
+    "ListResourcesResult": {
+      "properties": {
+        "_meta": {
+          "$ref": "#/$defs/ResultMetaObject"
+        },
+        "cacheScope": {
+          "enum": [
+            "private",
+            "public"
+          ],
+          "type": "string"
+        },
+        "nextCursor": {
+          "type": "string"
+        },
+        "resources": {
+          "items": {
+            "$ref": "#/$defs/Resource"
+          },
+          "type": "array"
+        },
+        "resultType": {
+          "type": "string"
+        },
+        "ttlMs": {
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "cacheScope",
+        "resources",
+        "resultType",
+        "ttlMs"
+      ],
+      "type": "object"
+    },
+    "ListResourceTemplatesResult": {
+      "properties": {
+        "_meta": {
+          "$ref": "#/$defs/ResultMetaObject"
+        },
+        "cacheScope": {
+          "enum": [
+            "private",
+            "public"
+          ],
+          "type": "string"
+        },
+        "nextCursor": {
+          "type": "string"
+        },
+        "resourceTemplates": {
+          "items": {
+            "$ref": "#/$defs/ResourceTemplate"
+          },
+          "type": "array"
+        },
+        "resultType": {
+          "type": "string"
+        },
+        "ttlMs": {
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "cacheScope",
+        "resourceTemplates",
+        "resultType",
+        "ttlMs"
+      ],
+      "type": "object"
+    },
+    "ListRootsRequest": {
+      "properties": {
+        "method": {
+          "const": "roots/list",
+          "type": "string"
+        },
+        "params": {
+          "properties": {
+            "_meta": {
+              "$ref": "#/$defs/MetaObject"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "required": [
+        "method"
+      ],
+      "type": "object"
+    },
+    "ListRootsResult": {
+      "properties": {
+        "roots": {
+          "items": {
+            "$ref": "#/$defs/Root"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "roots"
+      ],
+      "type": "object"
+    },
+    "ListToolsResult": {
+      "properties": {
+        "_meta": {
+          "$ref": "#/$defs/ResultMetaObject"
+        },
+        "cacheScope": {
+          "enum": [
+            "private",
+            "public"
+          ],
+          "type": "string"
+        },
+        "nextCursor": {
+          "type": "string"
+        },
+        "resultType": {
+          "type": "string"
+        },
+        "tools": {
+          "items": {
+            "$ref": "#/$defs/Tool"
+          },
+          "type": "array"
+        },
+        "ttlMs": {
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "cacheScope",
+        "resultType",
+        "tools",
+        "ttlMs"
+      ],
+      "type": "object"
+    },
+    "MetaObject": {
+      "type": "object",
+      "propertyNames": {
+        "format": "mcp-metadata-key"
+      }
+    },
+    "ModelHint": {
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "ModelPreferences": {
+      "properties": {
+        "costPriority": {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        "hints": {
+          "items": {
+            "$ref": "#/$defs/ModelHint"
+          },
+          "type": "array"
+        },
+        "intelligencePriority": {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        "speedPriority": {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        }
+      },
+      "type": "object"
+    },
+    "NumberSchema": {
+      "properties": {
+        "default": {
+          "type": "number"
+        },
+        "maximum": {
+          "type": "number"
+        },
+        "minimum": {
+          "type": "number"
+        },
+        "title": {
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "integer",
+            "number"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "type": "object"
+    },
+    "PrimitiveSchemaDefinition": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/StringSchema"
+        },
+        {
+          "$ref": "#/$defs/NumberSchema"
+        },
+        {
+          "$ref": "#/$defs/BooleanSchema"
+        },
+        {
+          "$ref": "#/$defs/UntitledSingleSelectEnumSchema"
+        },
+        {
+          "$ref": "#/$defs/TitledSingleSelectEnumSchema"
+        },
+        {
+          "$ref": "#/$defs/UntitledMultiSelectEnumSchema"
+        },
+        {
+          "$ref": "#/$defs/TitledMultiSelectEnumSchema"
+        },
+        {
+          "$ref": "#/$defs/LegacyTitledEnumSchema"
+        }
+      ]
+    },
+    "Prompt": {
+      "properties": {
+        "_meta": {
+          "$ref": "#/$defs/MetaObject"
+        },
+        "arguments": {
+          "items": {
+            "$ref": "#/$defs/PromptArgument"
+          },
+          "type": "array"
+        },
+        "description": {
+          "type": "string"
+        },
+        "icons": {
+          "items": {
+            "$ref": "#/$defs/Icon"
+          },
+          "type": "array"
+        },
+        "name": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "type": "object"
+    },
+    "PromptArgument": {
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "type": "object"
+    },
+    "PromptMessage": {
+      "properties": {
+        "content": {
+          "$ref": "#/$defs/ContentBlock"
+        },
+        "role": {
+          "$ref": "#/$defs/Role"
+        }
+      },
+      "required": [
+        "content",
+        "role"
+      ],
+      "type": "object"
+    },
+    "ReadResourceResult": {
+      "properties": {
+        "_meta": {
+          "$ref": "#/$defs/ResultMetaObject"
+        },
+        "cacheScope": {
+          "enum": [
+            "private",
+            "public"
+          ],
+          "type": "string"
+        },
+        "contents": {
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/TextResourceContents"
+              },
+              {
+                "$ref": "#/$defs/BlobResourceContents"
+              }
+            ]
+          },
+          "type": "array"
+        },
+        "resultType": {
+          "type": "string"
+        },
+        "ttlMs": {
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "cacheScope",
+        "contents",
+        "resultType",
+        "ttlMs"
+      ],
+      "type": "object"
+    },
+    "Resource": {
+      "properties": {
+        "_meta": {
+          "$ref": "#/$defs/MetaObject"
+        },
+        "annotations": {
+          "$ref": "#/$defs/Annotations"
+        },
+        "description": {
+          "type": "string"
+        },
+        "icons": {
+          "items": {
+            "$ref": "#/$defs/Icon"
+          },
+          "type": "array"
+        },
+        "mimeType": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "size": {
+          "type": "integer"
+        },
+        "title": {
+          "type": "string"
+        },
+        "uri": {
+          "format": "uri",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "uri"
+      ],
+      "type": "object"
+    },
+    "ResourceLink": {
+      "properties": {
+        "_meta": {
+          "$ref": "#/$defs/MetaObject"
+        },
+        "annotations": {
+          "$ref": "#/$defs/Annotations"
+        },
+        "icons": {
+          "items": {
+            "$ref": "#/$defs/Icon"
+          },
+          "type": "array"
+        },
+        "mimeType": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "size": {
+          "type": "integer"
+        },
+        "title": {
+          "type": "string"
+        },
+        "type": {
+          "const": "resource_link",
+          "type": "string"
+        },
+        "uri": {
+          "format": "uri",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "type",
+        "uri"
+      ],
+      "type": "object"
+    },
+    "ResourceTemplate": {
+      "properties": {
+        "_meta": {
+          "$ref": "#/$defs/MetaObject"
+        },
+        "annotations": {
+          "$ref": "#/$defs/Annotations"
+        },
+        "description": {
+          "type": "string"
+        },
+        "icons": {
+          "items": {
+            "$ref": "#/$defs/Icon"
+          },
+          "type": "array"
+        },
+        "mimeType": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "uriTemplate": {
+          "format": "uri-template",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "uriTemplate"
+      ],
+      "type": "object"
+    },
+    "Result": {
+      "additionalProperties": {},
+      "properties": {
+        "_meta": {
+          "$ref": "#/$defs/ResultMetaObject"
+        },
+        "resultType": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "resultType"
+      ],
+      "type": "object"
+    },
+    "ResultMetaObject": {
+      "properties": {
+        "io.modelcontextprotocol/serverInfo": {
+          "$ref": "#/$defs/Implementation"
+        }
+      },
+      "type": "object",
+      "propertyNames": {
+        "format": "mcp-metadata-key"
+      }
+    },
+    "Role": {
+      "enum": [
+        "assistant",
+        "user"
+      ],
+      "type": "string"
+    },
+    "Root": {
+      "properties": {
+        "_meta": {
+          "$ref": "#/$defs/MetaObject"
+        },
+        "name": {
+          "type": "string"
+        },
+        "uri": {
+          "format": "uri",
+          "type": "string"
+        }
+      },
+      "required": [
+        "uri"
+      ],
+      "type": "object"
+    },
+    "SamplingMessage": {
+      "properties": {
+        "_meta": {
+          "$ref": "#/$defs/MetaObject"
+        },
+        "content": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TextContent"
+            },
+            {
+              "$ref": "#/$defs/ImageContent"
+            },
+            {
+              "$ref": "#/$defs/AudioContent"
+            },
+            {
+              "$ref": "#/$defs/ToolUseContent"
+            },
+            {
+              "$ref": "#/$defs/ToolResultContent"
+            },
+            {
+              "items": {
+                "$ref": "#/$defs/SamplingMessageContentBlock"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "role": {
+          "$ref": "#/$defs/Role"
+        }
+      },
+      "required": [
+        "content",
+        "role"
+      ],
+      "type": "object"
+    },
+    "SamplingMessageContentBlock": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/TextContent"
+        },
+        {
+          "$ref": "#/$defs/ImageContent"
+        },
+        {
+          "$ref": "#/$defs/AudioContent"
+        },
+        {
+          "$ref": "#/$defs/ToolUseContent"
+        },
+        {
+          "$ref": "#/$defs/ToolResultContent"
+        }
+      ]
+    },
+    "ServerCapabilities": {
+      "properties": {
+        "completions": {
+          "$ref": "#/$defs/JSONObject"
+        },
+        "experimental": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JSONObject"
+          },
+          "type": "object"
+        },
+        "extensions": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JSONObject"
+          },
+          "type": "object",
+          "propertyNames": {
+            "format": "mcp-extension-key"
+          }
+        },
+        "logging": {
+          "$ref": "#/$defs/JSONObject"
+        },
+        "prompts": {
+          "properties": {
+            "listChanged": {
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        },
+        "resources": {
+          "properties": {
+            "listChanged": {
+              "type": "boolean"
+            },
+            "subscribe": {
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        },
+        "tools": {
+          "properties": {
+            "listChanged": {
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
+    "StringSchema": {
+      "properties": {
+        "default": {
+          "type": "string"
+        },
+        "format": {
+          "enum": [
+            "date",
+            "date-time",
+            "email",
+            "uri"
+          ],
+          "type": "string"
+        },
+        "maxLength": {
+          "type": "integer"
+        },
+        "minLength": {
+          "type": "integer"
+        },
+        "title": {
+          "type": "string"
+        },
+        "type": {
+          "const": "string",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "type": "object"
+    },
+    "TextContent": {
+      "properties": {
+        "_meta": {
+          "$ref": "#/$defs/MetaObject"
+        },
+        "annotations": {
+          "$ref": "#/$defs/Annotations"
+        },
+        "text": {
+          "type": "string"
+        },
+        "type": {
+          "const": "text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "text",
+        "type"
+      ],
+      "type": "object"
+    },
+    "TextResourceContents": {
+      "properties": {
+        "_meta": {
+          "$ref": "#/$defs/MetaObject"
+        },
+        "mimeType": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "uri": {
+          "format": "uri",
+          "type": "string"
+        }
+      },
+      "required": [
+        "text",
+        "uri"
+      ],
+      "type": "object"
+    },
+    "TitledMultiSelectEnumSchema": {
+      "properties": {
+        "default": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "items": {
+          "properties": {
+            "anyOf": {
+              "items": {
+                "properties": {
+                  "const": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "const",
+                  "title"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "anyOf"
+          ],
+          "type": "object"
+        },
+        "maxItems": {
+          "type": "integer"
+        },
+        "minItems": {
+          "type": "integer"
+        },
+        "title": {
+          "type": "string"
+        },
+        "type": {
+          "const": "array",
+          "type": "string"
+        }
+      },
+      "required": [
+        "items",
+        "type"
+      ],
+      "type": "object"
+    },
+    "TitledSingleSelectEnumSchema": {
+      "properties": {
+        "default": {
+          "type": "string"
+        },
+        "oneOf": {
+          "items": {
+            "properties": {
+              "const": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "const",
+              "title"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "title": {
+          "type": "string"
+        },
+        "type": {
+          "const": "string",
+          "type": "string"
+        }
+      },
+      "required": [
+        "oneOf",
+        "type"
+      ],
+      "type": "object"
+    },
+    "Tool": {
+      "properties": {
+        "_meta": {
+          "$ref": "#/$defs/MetaObject"
+        },
+        "annotations": {
+          "$ref": "#/$defs/ToolAnnotations"
+        },
+        "icons": {
+          "items": {
+            "$ref": "#/$defs/Icon"
+          },
+          "type": "array"
+        },
+        "inputSchema": {
+          "additionalProperties": {},
+          "properties": {
+            "$schema": {
+              "type": "string"
+            },
+            "type": {
+              "const": "object",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        },
+        "name": {
+          "type": "string"
+        },
+        "outputSchema": {
+          "additionalProperties": {},
+          "properties": {
+            "$schema": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "inputSchema",
+        "name"
+      ],
+      "type": "object"
+    },
+    "ToolAnnotations": {
+      "properties": {
+        "destructiveHint": {
+          "type": "boolean"
+        },
+        "idempotentHint": {
+          "type": "boolean"
+        },
+        "openWorldHint": {
+          "type": "boolean"
+        },
+        "readOnlyHint": {
+          "type": "boolean"
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "ToolChoice": {
+      "properties": {
+        "mode": {
+          "enum": [
+            "auto",
+            "none",
+            "required"
+          ],
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "ToolResultContent": {
+      "properties": {
+        "_meta": {
+          "$ref": "#/$defs/MetaObject"
+        },
+        "content": {
+          "items": {
+            "$ref": "#/$defs/ContentBlock"
+          },
+          "type": "array"
+        },
+        "isError": {
+          "type": "boolean"
+        },
+        "structuredContent": {},
+        "toolUseId": {
+          "type": "string"
+        },
+        "type": {
+          "const": "tool_result",
+          "type": "string"
+        }
+      },
+      "required": [
+        "content",
+        "toolUseId",
+        "type"
+      ],
+      "type": "object"
+    },
+    "ToolUseContent": {
+      "properties": {
+        "_meta": {
+          "$ref": "#/$defs/MetaObject"
+        },
+        "id": {
+          "type": "string"
+        },
+        "input": {
+          "additionalProperties": {},
+          "type": "object"
+        },
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "const": "tool_use",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "input",
+        "name",
+        "type"
+      ],
+      "type": "object"
+    },
+    "UntitledMultiSelectEnumSchema": {
+      "properties": {
+        "default": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "items": {
+          "properties": {
+            "enum": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "type": {
+              "const": "string",
+              "type": "string"
+            }
+          },
+          "required": [
+            "enum",
+            "type"
+          ],
+          "type": "object"
+        },
+        "maxItems": {
+          "type": "integer"
+        },
+        "minItems": {
+          "type": "integer"
+        },
+        "title": {
+          "type": "string"
+        },
+        "type": {
+          "const": "array",
+          "type": "string"
+        }
+      },
+      "required": [
+        "items",
+        "type"
+      ],
+      "type": "object"
+    },
+    "UntitledSingleSelectEnumSchema": {
+      "properties": {
+        "default": {
+          "type": "string"
+        },
+        "enum": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "title": {
+          "type": "string"
+        },
+        "type": {
+          "const": "string",
+          "type": "string"
+        }
+      },
+      "required": [
+        "enum",
+        "type"
+      ],
+      "type": "object"
+    }
+  },
+  "$comment": "Derived from MCP 2026-07-28 normative schema definitions in tiny-stdio-mcp-server. Metadata and extension key formats added for repository conformance. See MCP-LICENSE.txt for upstream licensing and source notices."
+}

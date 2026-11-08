@@ -1,0 +1,1057 @@
+{
+  "date": "2026-08-26",
+  "kind": "bounded-author-checkpoint-with-genuine-open-failures",
+  "node": "22.22.2",
+  "initialHead": "17285d1afc105999b6ccb943ddfd3819d6148aec",
+  "validationHead": "5ddce1b0550ad7de8f2a8082f0402fae7aa001b7",
+  "observedPrecommitHead": "d799cbb1d93be97cb3582082542138af848b08d7",
+  "initialSourceHashes": {
+    "runtime": "dabbb60ffc499a7e64fae8071f12b465b5845e7246510e19da15b406f8481d10",
+    "input": "c7492bb41555d865a0dcda9e3c7e8b2b3f5c5a1e73dc6e1bdb9b3fe6e7ed9a6d",
+    "parser": "73749cb5af6b6affe91014153aa4a6358bc8441807e8ad47fe09f74927c8c7b0",
+    "shell": "f4b9e55515e00ef456d48f6a3da60cf5b19b5af7fb91c700c151bd92726f6bb7"
+  },
+  "finalSourceHashes": {
+    "src/shell/runtime.ts": "6a86339d76e764031a26671586842467a40dc989895589ab416306e655496145",
+    "src/shell/input.ts": "03fce524aef5c5fc87b65c72adefc2dd86e92b0c702d675719ebb0770b876314",
+    "src/shell/parser.ts": "b7f4070c006221c44d822f8a6c45f24f896942ea8e7bef4290a936bb616eb2d6",
+    "src/shell/shell.ts": "f4b9e55515e00ef456d48f6a3da60cf5b19b5af7fb91c700c151bd92726f6bb7",
+    "src/shell/types.ts": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874",
+    "src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383"
+  },
+  "harnessHashes": {
+    "tests/shell/invocation-modes-cases.ts": "eead41974e124f79181f1c1dada9aa18d4a8bd13318005574827b9569b16ee91",
+    "tests/shell/invocation-modes-native.ts": "c4253c367d43de7f9ce9cde992494df81761828f8a686363c516223c08422bbf",
+    "tests/shell/invocation-modes-probe.ts": "acb89e509a1ac345a2903c46a3e6d6748f833f326504c4c793d099217c1df2cd",
+    "tests/shell/invocation-modes.test.ts": "1c78a0f3438c5b91e77fd9a26cd8e961ba9c71e0d0b8b7c17b903da9ab867a46",
+    "tests/shell/invocation-modes-reference.json": "31bbc09b2348d991cede4bdd5b5878efc3f6795f864522e4ec9ce91c28cd4eeb",
+    "tests/shell/script-entrypoint.test.ts": "57c4b9b71249b82ca68dce2979be26d13e7be5777d2778bd17e101b7ffe70ec6"
+  },
+  "publicExportsChanged": [],
+  "internalAdditions": [
+    "parseShellInputUnit (parser module only)",
+    "ShellInput.sourceLine (internal class method)"
+  ],
+  "actualTypeScriptLoadProof": {
+    "modules": [
+      "file:///Users/kjopek/Workspace/safe-bash/src/shell/index.ts",
+      "file:///Users/kjopek/Workspace/safe-bash/src/shell/shell.ts",
+      "file:///Users/kjopek/Workspace/safe-bash/src/shell/parser.ts",
+      "file:///Users/kjopek/Workspace/safe-bash/src/shell/types.ts",
+      "file:///Users/kjopek/Workspace/safe-bash/src/shell/input.ts",
+      "file:///Users/kjopek/Workspace/safe-bash/src/shell/locale.ts",
+      "file:///Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts",
+      "file:///Users/kjopek/Workspace/safe-bash/src/shell/arithmetic.ts",
+      "file:///Users/kjopek/Workspace/safe-bash/src/shell/pattern.ts"
+    ],
+    "smoke": {
+      "source": "bash -c 'sh -s'",
+      "stdinHex": "636f70790a00ff80",
+      "stdoutHex": "00ff80",
+      "exitCode": 0
+    }
+  },
+  "validation": {
+    "guardedBaseline": {
+      "total": 129,
+      "passed": 1,
+      "failed": 128,
+      "exitCode": 1
+    },
+    "previousFileBeforeSource": {
+      "total": 41,
+      "passed": 41,
+      "failed": 0,
+      "exitCode": 0
+    },
+    "previousFileAfterFeatureBeforeExpectationUpdate": {
+      "total": 41,
+      "passed": 39,
+      "failed": 2,
+      "exitCode": 1,
+      "reason": "Only obsolete explicit unsupported-mode and PATH-dispatch expectations."
+    },
+    "previousFileAfterAuthorizedExpectationUpdate": {
+      "total": 41,
+      "passed": 41,
+      "failed": 0,
+      "exitCode": 0
+    },
+    "newFinal": {
+      "total": 132,
+      "passed": 130,
+      "failed": 2,
+      "exitCode": 1,
+      "skipped": 0,
+      "todo": 0,
+      "cancelled": 0,
+      "genuineFailures": [
+        "exact primary 5.3: bash stdin-read-one-byte",
+        "exact primary 5.3: sh stdin-read-one-byte"
+      ],
+      "cause": "Existing read -N remains unsupported. No new read option, skip, xfail, expectation reduction or scope-completion claim."
+    },
+    "strictRepetitions": {
+      "count": 2,
+      "each": {
+        "total": 132,
+        "passed": 130,
+        "failed": 2,
+        "exitCode": 1
+      }
+    },
+    "boundedChildren": {
+      "total": 13,
+      "passed": 13,
+      "deadlineMs": 5000,
+      "unhandledRejections": "strict"
+    },
+    "targetedExisting": {
+      "total": 300,
+      "passed": 300,
+      "failed": 0,
+      "exitCode": 0,
+      "skipped": 0,
+      "todo": 0,
+      "sourceGuardInvalidations": 0
+    },
+    "scopedTypecheck": {
+      "exitCode": 0,
+      "noEmit": true
+    },
+    "globalTypecheck": {
+      "exitCode": 0,
+      "noEmit": true
+    },
+    "buildTypecheck": {
+      "exitCode": 0,
+      "noEmit": true
+    },
+    "earlierForeignTypeErrors": [
+      {
+        "check": "first global",
+        "exitCode": 2,
+        "diagnostics": "src/commands/archive/format.ts(45,33): error TS1487: Octal escape sequences are not allowed. Use the syntax '\\x00'.\n"
+      },
+      {
+        "check": "intermediate global/build",
+        "exitCode": 2,
+        "diagnostics": "src/commands/archive/internal.ts(91,45): error TS2550: Property 'isWellFormed' does not exist on type 'string'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2024' or later.\nsrc/commands/archive/stream.ts(9,74): error TS2353: Object literal may only specify known properties, and 'highWaterMark' does not exist in type 'ZlibOptions'.\nsrc/commands/archive/stream.ts(10,49): error TS2353: Object literal may only specify known properties, and 'highWaterMark' does not exist in type 'ZlibOptions'.\n"
+      }
+    ],
+    "pendingFirstReadCasesRerun": 0,
+    "frozenRemoteAuditsRerun": 0,
+    "fullOwnedOrProductSuiteRun": false
+  },
+  "native": {
+    "fixtureCount": 52,
+    "actualArgv0": [
+      "bash",
+      "sh"
+    ],
+    "totalRecords": 208,
+    "perProcessDeadlineMs": 2000,
+    "maxOutputBytes": 262144,
+    "fixtureHash": "eead41974e124f79181f1c1dada9aa18d4a8bd13318005574827b9569b16ee91",
+    "profiles": [
+      {
+        "name": "primary-5.3",
+        "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+        "version": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)"
+      },
+      {
+        "name": "historical-3.2",
+        "executable": "/bin/bash",
+        "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+        "version": "GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)"
+      }
+    ],
+    "pathScriptChildInterpreter": {
+      "executable": "/bin/bash",
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "version": "GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)",
+      "reason": "Identical supported #!/bin/bash fixture bytes; parent lookup profile is not mislabeled as child interpreter version."
+    },
+    "normalization": false,
+    "perCaseOracleSelection": false,
+    "unsupportedCasesExcluded": false,
+    "comparatorExitCode": 1,
+    "comparisons": [
+      {
+        "profile": "primary-5.3",
+        "total": 104,
+        "passed": 98,
+        "failures": [
+          {
+            "name": "stdin-read-one-byte",
+            "mode": "bash",
+            "expected": {
+              "stdout": "W1pdCg==",
+              "stderr": "",
+              "status": 0,
+              "files": {}
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "cmVhZDogaW52YWxpZCB2YXJpYWJsZSBuYW1lIG9yIHVuc3VwcG9ydGVkIG9wdGlvbgpiYXNoOiBsaW5lIDI6IFpwcmludGY6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+              "status": 127,
+              "files": {}
+            },
+            "differingFields": [
+              "stdout",
+              "stderr",
+              "status"
+            ]
+          },
+          {
+            "name": "path-unsupported-interpreter",
+            "mode": "bash",
+            "expected": {
+              "stdout": "",
+              "stderr": "YmFzaDogYmFkL3Rvb2w6IC9taXNzaW5nOiBiYWQgaW50ZXJwcmV0ZXI6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkK",
+              "status": 126,
+              "files": {
+                "bad": {
+                  "directory": true
+                },
+                "bad/tool": {
+                  "file": "IyEvbWlzc2luZwpwcmludGYgZm9yYmlkZGVu"
+                },
+                "bin": {
+                  "directory": true
+                },
+                "bin/tool": {
+                  "file": "IyEvYmluL2Jhc2gKcHJpbnRmICJbJXNdWyVzXVxuIiAiJDAiICIkMSI="
+                }
+              }
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "YmFzaDogbGluZSAxOiBiYWQvdG9vbDogdW5zdXBwb3J0ZWQgaW50ZXJwcmV0ZXI6IC9taXNzaW5nCg==",
+              "status": 126,
+              "files": {
+                "bad": {
+                  "directory": true
+                },
+                "bad/tool": {
+                  "file": "IyEvbWlzc2luZwpwcmludGYgZm9yYmlkZGVu"
+                },
+                "bin": {
+                  "directory": true
+                },
+                "bin/tool": {
+                  "file": "IyEvYmluL2Jhc2gKcHJpbnRmICJbJXNdWyVzXVxuIiAiJDAiICIkMSI="
+                }
+              }
+            },
+            "differingFields": [
+              "stderr"
+            ]
+          },
+          {
+            "name": "path-binary",
+            "mode": "bash",
+            "expected": {
+              "stdout": "",
+              "stderr": "YmFzaDogbGluZSAxOiBiYWQvdG9vbDogY2Fubm90IGV4ZWN1dGUgYmluYXJ5IGZpbGU6IEV4ZWMgZm9ybWF0IGVycm9yCg==",
+              "status": 126,
+              "files": {
+                "bad": {
+                  "directory": true
+                },
+                "bad/tool": {
+                  "file": "f0VMRgD/"
+                },
+                "bin": {
+                  "directory": true
+                },
+                "bin/tool": {
+                  "file": "IyEvYmluL2Jhc2gKcHJpbnRmICJbJXNdWyVzXVxuIiAiJDAiICIkMSI="
+                }
+              }
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "YmFzaDogbGluZSAxOiBiYWQvdG9vbDogY2Fubm90IGV4ZWN1dGUgYmluYXJ5IHNjcmlwdAo=",
+              "status": 126,
+              "files": {
+                "bad": {
+                  "directory": true
+                },
+                "bad/tool": {
+                  "file": "f0VMRgD/"
+                },
+                "bin": {
+                  "directory": true
+                },
+                "bin/tool": {
+                  "file": "IyEvYmluL2Jhc2gKcHJpbnRmICJbJXNdWyVzXVxuIiAiJDAiICIkMSI="
+                }
+              }
+            },
+            "differingFields": [
+              "stderr"
+            ]
+          },
+          {
+            "name": "stdin-read-one-byte",
+            "mode": "sh",
+            "expected": {
+              "stdout": "W1pdCg==",
+              "stderr": "",
+              "status": 0,
+              "files": {}
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "cmVhZDogaW52YWxpZCB2YXJpYWJsZSBuYW1lIG9yIHVuc3VwcG9ydGVkIG9wdGlvbgpzaDogbGluZSAyOiBacHJpbnRmOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+              "status": 127,
+              "files": {}
+            },
+            "differingFields": [
+              "stdout",
+              "stderr",
+              "status"
+            ]
+          },
+          {
+            "name": "path-unsupported-interpreter",
+            "mode": "sh",
+            "expected": {
+              "stdout": "",
+              "stderr": "c2g6IGJhZC90b29sOiAvbWlzc2luZzogYmFkIGludGVycHJldGVyOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5Cg==",
+              "status": 126,
+              "files": {
+                "bad": {
+                  "directory": true
+                },
+                "bad/tool": {
+                  "file": "IyEvbWlzc2luZwpwcmludGYgZm9yYmlkZGVu"
+                },
+                "bin": {
+                  "directory": true
+                },
+                "bin/tool": {
+                  "file": "IyEvYmluL2Jhc2gKcHJpbnRmICJbJXNdWyVzXVxuIiAiJDAiICIkMSI="
+                }
+              }
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "c2g6IGxpbmUgMTogYmFkL3Rvb2w6IHVuc3VwcG9ydGVkIGludGVycHJldGVyOiAvbWlzc2luZwo=",
+              "status": 126,
+              "files": {
+                "bad": {
+                  "directory": true
+                },
+                "bad/tool": {
+                  "file": "IyEvbWlzc2luZwpwcmludGYgZm9yYmlkZGVu"
+                },
+                "bin": {
+                  "directory": true
+                },
+                "bin/tool": {
+                  "file": "IyEvYmluL2Jhc2gKcHJpbnRmICJbJXNdWyVzXVxuIiAiJDAiICIkMSI="
+                }
+              }
+            },
+            "differingFields": [
+              "stderr"
+            ]
+          },
+          {
+            "name": "path-binary",
+            "mode": "sh",
+            "expected": {
+              "stdout": "",
+              "stderr": "c2g6IGxpbmUgMTogYmFkL3Rvb2w6IGNhbm5vdCBleGVjdXRlIGJpbmFyeSBmaWxlOiBFeGVjIGZvcm1hdCBlcnJvcgo=",
+              "status": 126,
+              "files": {
+                "bad": {
+                  "directory": true
+                },
+                "bad/tool": {
+                  "file": "f0VMRgD/"
+                },
+                "bin": {
+                  "directory": true
+                },
+                "bin/tool": {
+                  "file": "IyEvYmluL2Jhc2gKcHJpbnRmICJbJXNdWyVzXVxuIiAiJDAiICIkMSI="
+                }
+              }
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "c2g6IGxpbmUgMTogYmFkL3Rvb2w6IGNhbm5vdCBleGVjdXRlIGJpbmFyeSBzY3JpcHQK",
+              "status": 126,
+              "files": {
+                "bad": {
+                  "directory": true
+                },
+                "bad/tool": {
+                  "file": "f0VMRgD/"
+                },
+                "bin": {
+                  "directory": true
+                },
+                "bin/tool": {
+                  "file": "IyEvYmluL2Jhc2gKcHJpbnRmICJbJXNdWyVzXVxuIiAiJDAiICIkMSI="
+                }
+              }
+            },
+            "differingFields": [
+              "stderr"
+            ]
+          }
+        ]
+      },
+      {
+        "profile": "historical-3.2",
+        "total": 104,
+        "passed": 82,
+        "failures": [
+          {
+            "name": "stdin-read-one-byte",
+            "mode": "bash",
+            "expected": {
+              "stdout": "",
+              "stderr": "YmFzaDogbGluZSAxOiByZWFkOiAtTjogaW52YWxpZCBvcHRpb24KcmVhZDogdXNhZ2U6IHJlYWQgWy1lcnNdIFstdSBmZF0gWy10IHRpbWVvdXRdIFstcCBwcm9tcHRdIFstYSBhcnJheV0gWy1uIG5jaGFyc10gWy1kIGRlbGltXSBbbmFtZSAuLi5dCmJhc2g6IGxpbmUgMjogWnByaW50ZjogY29tbWFuZCBub3QgZm91bmQK",
+              "status": 127,
+              "files": {}
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "cmVhZDogaW52YWxpZCB2YXJpYWJsZSBuYW1lIG9yIHVuc3VwcG9ydGVkIG9wdGlvbgpiYXNoOiBsaW5lIDI6IFpwcmludGY6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+              "status": 127,
+              "files": {}
+            },
+            "differingFields": [
+              "stderr"
+            ]
+          },
+          {
+            "name": "stdin-incomplete-eof",
+            "mode": "bash",
+            "expected": {
+              "stdout": "",
+              "stderr": "YmFzaDogbGluZSA0OiBzeW50YXggZXJyb3I6IHVuZXhwZWN0ZWQgZW5kIG9mIGZpbGUK",
+              "status": 2,
+              "files": {
+                "before": {
+                  "file": ""
+                }
+              }
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "YmFzaDogbGluZSA0OiBzeW50YXggZXJyb3I6IHVuZXhwZWN0ZWQgZW5kIG9mIGZpbGUgZnJvbSBgaWYnIGNvbW1hbmQgb24gbGluZSAyCg==",
+              "status": 2,
+              "files": {
+                "before": {
+                  "file": ""
+                }
+              }
+            },
+            "differingFields": [
+              "stderr"
+            ]
+          },
+          {
+            "name": "c-later-syntax",
+            "mode": "bash",
+            "expected": {
+              "stdout": "",
+              "stderr": "bmFtZWQ6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCm5hbWVkOiAtYzogbGluZSAxOiBgKScK",
+              "status": 2,
+              "files": {
+                "before": {
+                  "file": ""
+                }
+              }
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "bmFtZWQ6IC1jOiBsaW5lIDI6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCm5hbWVkOiAtYzogbGluZSAyOiBgKScK",
+              "status": 2,
+              "files": {
+                "before": {
+                  "file": ""
+                }
+              }
+            },
+            "differingFields": [
+              "stderr"
+            ]
+          },
+          {
+            "name": "path-empty",
+            "mode": "bash",
+            "expected": {
+              "stdout": "W3Rvb2xdW2FyZ3VtZW50XQo=",
+              "stderr": "",
+              "status": 0,
+              "files": {
+                "tool": {
+                  "file": "IyEvYmluL2Jhc2gKcHJpbnRmICJbJXNdWyVzXVxuIiAiJDAiICIkMSI="
+                }
+              }
+            },
+            "actual": {
+              "stdout": "Wy4vdG9vbF1bYXJndW1lbnRdCg==",
+              "stderr": "",
+              "status": 0,
+              "files": {
+                "tool": {
+                  "file": "IyEvYmluL2Jhc2gKcHJpbnRmICJbJXNdWyVzXVxuIiAiJDAiICIkMSI="
+                }
+              }
+            },
+            "differingFields": [
+              "stdout"
+            ]
+          },
+          {
+            "name": "path-missing",
+            "mode": "bash",
+            "expected": {
+              "stdout": "",
+              "stderr": "YmFzaDogYWJzZW50OiBjb21tYW5kIG5vdCBmb3VuZAo=",
+              "status": 127,
+              "files": {}
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "YmFzaDogbGluZSAxOiBhYnNlbnQ6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+              "status": 127,
+              "files": {}
+            },
+            "differingFields": [
+              "stderr"
+            ]
+          },
+          {
+            "name": "path-empty-missing",
+            "mode": "bash",
+            "expected": {
+              "stdout": "",
+              "stderr": "YmFzaDogYWJzZW50OiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5Cg==",
+              "status": 127,
+              "files": {}
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "YmFzaDogbGluZSAxOiBhYnNlbnQ6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+              "status": 127,
+              "files": {}
+            },
+            "differingFields": [
+              "stderr"
+            ]
+          },
+          {
+            "name": "path-unset-missing",
+            "mode": "bash",
+            "expected": {
+              "stdout": "",
+              "stderr": "YmFzaDogYWJzZW50OiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5Cg==",
+              "status": 127,
+              "files": {}
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "YmFzaDogbGluZSAxOiBhYnNlbnQ6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkK",
+              "status": 127,
+              "files": {}
+            },
+            "differingFields": [
+              "stderr"
+            ]
+          },
+          {
+            "name": "path-directory-only",
+            "mode": "bash",
+            "expected": {
+              "stdout": "",
+              "stderr": "YmFzaDogdG9vbDogY29tbWFuZCBub3QgZm91bmQK",
+              "status": 127,
+              "files": {
+                "dir": {
+                  "directory": true
+                },
+                "dir/tool": {
+                  "directory": true
+                }
+              }
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "YmFzaDogbGluZSAxOiB0b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+              "status": 127,
+              "files": {
+                "dir": {
+                  "directory": true
+                },
+                "dir/tool": {
+                  "directory": true
+                }
+              }
+            },
+            "differingFields": [
+              "stderr"
+            ]
+          },
+          {
+            "name": "path-denied",
+            "mode": "bash",
+            "expected": {
+              "stdout": "",
+              "stderr": "YmFzaDogZGVueS90b29sOiBQZXJtaXNzaW9uIGRlbmllZAo=",
+              "status": 126,
+              "files": {
+                "deny": {
+                  "directory": true
+                },
+                "deny/tool": {
+                  "file": "IyEvYmluL2Jhc2gKcHJpbnRmICJbJXNdWyVzXVxuIiAiJDAiICIkMSI="
+                }
+              }
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "YmFzaDogbGluZSAxOiBkZW55L3Rvb2w6IFBlcm1pc3Npb24gZGVuaWVkCg==",
+              "status": 126,
+              "files": {
+                "deny": {
+                  "directory": true
+                },
+                "deny/tool": {
+                  "file": "IyEvYmluL2Jhc2gKcHJpbnRmICJbJXNdWyVzXVxuIiAiJDAiICIkMSI="
+                }
+              }
+            },
+            "differingFields": [
+              "stderr"
+            ]
+          },
+          {
+            "name": "path-unsupported-interpreter",
+            "mode": "bash",
+            "expected": {
+              "stdout": "",
+              "stderr": "YmFzaDogYmFkL3Rvb2w6IC9taXNzaW5nOiBiYWQgaW50ZXJwcmV0ZXI6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkK",
+              "status": 126,
+              "files": {
+                "bad": {
+                  "directory": true
+                },
+                "bad/tool": {
+                  "file": "IyEvbWlzc2luZwpwcmludGYgZm9yYmlkZGVu"
+                },
+                "bin": {
+                  "directory": true
+                },
+                "bin/tool": {
+                  "file": "IyEvYmluL2Jhc2gKcHJpbnRmICJbJXNdWyVzXVxuIiAiJDAiICIkMSI="
+                }
+              }
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "YmFzaDogbGluZSAxOiBiYWQvdG9vbDogdW5zdXBwb3J0ZWQgaW50ZXJwcmV0ZXI6IC9taXNzaW5nCg==",
+              "status": 126,
+              "files": {
+                "bad": {
+                  "directory": true
+                },
+                "bad/tool": {
+                  "file": "IyEvbWlzc2luZwpwcmludGYgZm9yYmlkZGVu"
+                },
+                "bin": {
+                  "directory": true
+                },
+                "bin/tool": {
+                  "file": "IyEvYmluL2Jhc2gKcHJpbnRmICJbJXNdWyVzXVxuIiAiJDAiICIkMSI="
+                }
+              }
+            },
+            "differingFields": [
+              "stderr"
+            ]
+          },
+          {
+            "name": "path-binary",
+            "mode": "bash",
+            "expected": {
+              "stdout": "",
+              "stderr": "YmFzaDogYmFkL3Rvb2w6IGNhbm5vdCBleGVjdXRlIGJpbmFyeSBmaWxlCg==",
+              "status": 126,
+              "files": {
+                "bad": {
+                  "directory": true
+                },
+                "bad/tool": {
+                  "file": "f0VMRgD/"
+                },
+                "bin": {
+                  "directory": true
+                },
+                "bin/tool": {
+                  "file": "IyEvYmluL2Jhc2gKcHJpbnRmICJbJXNdWyVzXVxuIiAiJDAiICIkMSI="
+                }
+              }
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "YmFzaDogbGluZSAxOiBiYWQvdG9vbDogY2Fubm90IGV4ZWN1dGUgYmluYXJ5IHNjcmlwdAo=",
+              "status": 126,
+              "files": {
+                "bad": {
+                  "directory": true
+                },
+                "bad/tool": {
+                  "file": "f0VMRgD/"
+                },
+                "bin": {
+                  "directory": true
+                },
+                "bin/tool": {
+                  "file": "IyEvYmluL2Jhc2gKcHJpbnRmICJbJXNdWyVzXVxuIiAiJDAiICIkMSI="
+                }
+              }
+            },
+            "differingFields": [
+              "stderr"
+            ]
+          },
+          {
+            "name": "stdin-read-one-byte",
+            "mode": "sh",
+            "expected": {
+              "stdout": "",
+              "stderr": "c2g6IGxpbmUgMTogcmVhZDogLU46IGludmFsaWQgb3B0aW9uCnJlYWQ6IHVzYWdlOiByZWFkIFstZXJzXSBbLXUgZmRdIFstdCB0aW1lb3V0XSBbLXAgcHJvbXB0XSBbLWEgYXJyYXldIFstbiBuY2hhcnNdIFstZCBkZWxpbV0gW25hbWUgLi4uXQpzaDogbGluZSAyOiBacHJpbnRmOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+              "status": 127,
+              "files": {}
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "cmVhZDogaW52YWxpZCB2YXJpYWJsZSBuYW1lIG9yIHVuc3VwcG9ydGVkIG9wdGlvbgpzaDogbGluZSAyOiBacHJpbnRmOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+              "status": 127,
+              "files": {}
+            },
+            "differingFields": [
+              "stderr"
+            ]
+          },
+          {
+            "name": "stdin-incomplete-eof",
+            "mode": "sh",
+            "expected": {
+              "stdout": "",
+              "stderr": "c2g6IGxpbmUgNDogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGVuZCBvZiBmaWxlCg==",
+              "status": 2,
+              "files": {
+                "before": {
+                  "file": ""
+                }
+              }
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "c2g6IGxpbmUgNDogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGVuZCBvZiBmaWxlIGZyb20gYGlmJyBjb21tYW5kIG9uIGxpbmUgMgo=",
+              "status": 2,
+              "files": {
+                "before": {
+                  "file": ""
+                }
+              }
+            },
+            "differingFields": [
+              "stderr"
+            ]
+          },
+          {
+            "name": "c-later-syntax",
+            "mode": "sh",
+            "expected": {
+              "stdout": "",
+              "stderr": "bmFtZWQ6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCm5hbWVkOiAtYzogbGluZSAxOiBgKScK",
+              "status": 2,
+              "files": {
+                "before": {
+                  "file": ""
+                }
+              }
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "bmFtZWQ6IC1jOiBsaW5lIDI6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCm5hbWVkOiAtYzogbGluZSAyOiBgKScK",
+              "status": 2,
+              "files": {
+                "before": {
+                  "file": ""
+                }
+              }
+            },
+            "differingFields": [
+              "stderr"
+            ]
+          },
+          {
+            "name": "path-empty",
+            "mode": "sh",
+            "expected": {
+              "stdout": "W3Rvb2xdW2FyZ3VtZW50XQo=",
+              "stderr": "",
+              "status": 0,
+              "files": {
+                "tool": {
+                  "file": "IyEvYmluL2Jhc2gKcHJpbnRmICJbJXNdWyVzXVxuIiAiJDAiICIkMSI="
+                }
+              }
+            },
+            "actual": {
+              "stdout": "Wy4vdG9vbF1bYXJndW1lbnRdCg==",
+              "stderr": "",
+              "status": 0,
+              "files": {
+                "tool": {
+                  "file": "IyEvYmluL2Jhc2gKcHJpbnRmICJbJXNdWyVzXVxuIiAiJDAiICIkMSI="
+                }
+              }
+            },
+            "differingFields": [
+              "stdout"
+            ]
+          },
+          {
+            "name": "path-missing",
+            "mode": "sh",
+            "expected": {
+              "stdout": "",
+              "stderr": "c2g6IGFic2VudDogY29tbWFuZCBub3QgZm91bmQK",
+              "status": 127,
+              "files": {}
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "c2g6IGxpbmUgMTogYWJzZW50OiBjb21tYW5kIG5vdCBmb3VuZAo=",
+              "status": 127,
+              "files": {}
+            },
+            "differingFields": [
+              "stderr"
+            ]
+          },
+          {
+            "name": "path-empty-missing",
+            "mode": "sh",
+            "expected": {
+              "stdout": "",
+              "stderr": "c2g6IGFic2VudDogTm8gc3VjaCBmaWxlIG9yIGRpcmVjdG9yeQo=",
+              "status": 127,
+              "files": {}
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "c2g6IGxpbmUgMTogYWJzZW50OiBjb21tYW5kIG5vdCBmb3VuZAo=",
+              "status": 127,
+              "files": {}
+            },
+            "differingFields": [
+              "stderr"
+            ]
+          },
+          {
+            "name": "path-unset-missing",
+            "mode": "sh",
+            "expected": {
+              "stdout": "",
+              "stderr": "c2g6IGFic2VudDogTm8gc3VjaCBmaWxlIG9yIGRpcmVjdG9yeQo=",
+              "status": 127,
+              "files": {}
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "c2g6IGxpbmUgMTogYWJzZW50OiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5Cg==",
+              "status": 127,
+              "files": {}
+            },
+            "differingFields": [
+              "stderr"
+            ]
+          },
+          {
+            "name": "path-directory-only",
+            "mode": "sh",
+            "expected": {
+              "stdout": "",
+              "stderr": "c2g6IHRvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+              "status": 127,
+              "files": {
+                "dir": {
+                  "directory": true
+                },
+                "dir/tool": {
+                  "directory": true
+                }
+              }
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "c2g6IGxpbmUgMTogdG9vbDogY29tbWFuZCBub3QgZm91bmQK",
+              "status": 127,
+              "files": {
+                "dir": {
+                  "directory": true
+                },
+                "dir/tool": {
+                  "directory": true
+                }
+              }
+            },
+            "differingFields": [
+              "stderr"
+            ]
+          },
+          {
+            "name": "path-denied",
+            "mode": "sh",
+            "expected": {
+              "stdout": "",
+              "stderr": "c2g6IGRlbnkvdG9vbDogUGVybWlzc2lvbiBkZW5pZWQK",
+              "status": 126,
+              "files": {
+                "deny": {
+                  "directory": true
+                },
+                "deny/tool": {
+                  "file": "IyEvYmluL2Jhc2gKcHJpbnRmICJbJXNdWyVzXVxuIiAiJDAiICIkMSI="
+                }
+              }
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "c2g6IGxpbmUgMTogZGVueS90b29sOiBQZXJtaXNzaW9uIGRlbmllZAo=",
+              "status": 126,
+              "files": {
+                "deny": {
+                  "directory": true
+                },
+                "deny/tool": {
+                  "file": "IyEvYmluL2Jhc2gKcHJpbnRmICJbJXNdWyVzXVxuIiAiJDAiICIkMSI="
+                }
+              }
+            },
+            "differingFields": [
+              "stderr"
+            ]
+          },
+          {
+            "name": "path-unsupported-interpreter",
+            "mode": "sh",
+            "expected": {
+              "stdout": "",
+              "stderr": "c2g6IGJhZC90b29sOiAvbWlzc2luZzogYmFkIGludGVycHJldGVyOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5Cg==",
+              "status": 126,
+              "files": {
+                "bad": {
+                  "directory": true
+                },
+                "bad/tool": {
+                  "file": "IyEvbWlzc2luZwpwcmludGYgZm9yYmlkZGVu"
+                },
+                "bin": {
+                  "directory": true
+                },
+                "bin/tool": {
+                  "file": "IyEvYmluL2Jhc2gKcHJpbnRmICJbJXNdWyVzXVxuIiAiJDAiICIkMSI="
+                }
+              }
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "c2g6IGxpbmUgMTogYmFkL3Rvb2w6IHVuc3VwcG9ydGVkIGludGVycHJldGVyOiAvbWlzc2luZwo=",
+              "status": 126,
+              "files": {
+                "bad": {
+                  "directory": true
+                },
+                "bad/tool": {
+                  "file": "IyEvbWlzc2luZwpwcmludGYgZm9yYmlkZGVu"
+                },
+                "bin": {
+                  "directory": true
+                },
+                "bin/tool": {
+                  "file": "IyEvYmluL2Jhc2gKcHJpbnRmICJbJXNdWyVzXVxuIiAiJDAiICIkMSI="
+                }
+              }
+            },
+            "differingFields": [
+              "stderr"
+            ]
+          },
+          {
+            "name": "path-binary",
+            "mode": "sh",
+            "expected": {
+              "stdout": "",
+              "stderr": "c2g6IGJhZC90b29sOiBjYW5ub3QgZXhlY3V0ZSBiaW5hcnkgZmlsZQo=",
+              "status": 126,
+              "files": {
+                "bad": {
+                  "directory": true
+                },
+                "bad/tool": {
+                  "file": "f0VMRgD/"
+                },
+                "bin": {
+                  "directory": true
+                },
+                "bin/tool": {
+                  "file": "IyEvYmluL2Jhc2gKcHJpbnRmICJbJXNdWyVzXVxuIiAiJDAiICIkMSI="
+                }
+              }
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "c2g6IGxpbmUgMTogYmFkL3Rvb2w6IGNhbm5vdCBleGVjdXRlIGJpbmFyeSBzY3JpcHQK",
+              "status": 126,
+              "files": {
+                "bad": {
+                  "directory": true
+                },
+                "bad/tool": {
+                  "file": "f0VMRgD/"
+                },
+                "bin": {
+                  "directory": true
+                },
+                "bin/tool": {
+                  "file": "IyEvYmluL2Jhc2gKcHJpbnRmICJbJXNdWyVzXVxuIiAiJDAiICIkMSI="
+                }
+              }
+            },
+            "differingFields": [
+              "stderr"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "limitations": [
+    "read -N failures remain genuine",
+    "sh uses existing virtual grammar, not full POSIX sh",
+    "source/dot/eval remain a separate future batch",
+    "no file-operand PATH search",
+    "strict prior direct-script shebang/text/permission policy",
+    "no startup files/interactive/login/options beyond c/s",
+    "no type/command -v/hash builtins or command-location cache",
+    "no new descriptor-relative FS identity or atomic stat/access/read",
+    "five pending first-read failures and paused NUL diagnostic unchanged/unrerun",
+    "no full Bash, superiority, 72-hour fulfillment or independent acceptance claim"
+  ]
+}

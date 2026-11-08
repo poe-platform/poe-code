@@ -1,0 +1,16 @@
+{
+  "at": "2026-08-27T19:00:51.002008+00:00",
+  "wrapperExitCode": 0,
+  "launcherFailure": null,
+  "stdout": {
+    "bytes": 970,
+    "sha256": "f65e1be47b5df2b2b00f1cffc01fe168c7b75d182917d82f816558dd3c81c9ee"
+  },
+  "stderr": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "wrapperAttemptRootExists": true,
+  "newWrapperInvocations": 1,
+  "automaticReruns": 0
+}

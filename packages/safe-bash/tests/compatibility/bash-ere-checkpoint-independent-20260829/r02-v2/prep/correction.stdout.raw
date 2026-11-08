@@ -1,0 +1,5 @@
+    const app = join(work,'installed-app'); await mkdir(join(app,'artifact'),{recursive:true}); await writeFile(join(app,'package.json'),'{"type":"module"}\n');
+Success. Updated the following files:
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/prepare-v2.mjs
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/PREP-CORRECTION.md
+{"pid":85003,"status":0,"signal":null}

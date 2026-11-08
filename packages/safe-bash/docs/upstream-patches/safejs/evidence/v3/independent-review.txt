@@ -1,0 +1,186 @@
+V3 FINITE INDEPENDENT REVIEW — 2026-08-26
+
+VERDICT
+PASS, LIMITED ARTIFACT-ONLY ARCHIVAL GATE; FAIL OVERALL ACCEPTANCE / NOT APPROVED.
+No new artifact-integrity or security blocker was found to committing ONLY the
+reviewed minimal patch, probes, provenance/license and accurately qualified
+evidence as an UNAPPROVED upstream proposal. This is not approval to apply,
+ship, merge upstream, change the accepted API/oracle, rebase the pin, or claim
+full validation. The root/author, not this reviewer, decides and performs any
+artifact-only commit after final documentation/checksum handoff.
+
+INDEPENDENT EXECUTION
+Command, from /Users/kjopek/Workspace/safe-bash:
+  GIT_OPTIONAL_LOCKS=0 node docs/upstream-patches/safejs/verify.mjs \
+    /Users/kjopek/Workspace/poe-code \
+    --baseline-copy /tmp/safe-bash-safejs-isolated-TQgyeN/baseline
+Fresh reviewer reproduction: /tmp/safe-bash-safejs-isolated-R0mMav
+Exit 1; final passed:false. These are independently executed results, not the
+author's ZicyG4 run or historical v1/v2 results.
+
+Gate                                 Baseline P/F/S       V3 patched P/F/S
+Original nine, unchanged              0 / 9 / 0            8 / 1 / 0
+Durable action-abort, unchanged       0 / 1 / 0            1 / 0 / 0
+Combined acceptance                  0 / 10 / 0           9 / 1 / 0
+Reason safety, current native oracle 0 / 18 / 0           18 / 0 / 0
+Wrapper/lifecycle invariants          0 / 9 / 0            8 / 1 / 0
+Full slow/fuzz upstream suite         3225 / 0 / 38        3225 / 0 / 38
+
+Each full suite ran 125 files / 3263 tests. All 125 files remain byte-identical
+to the pin; all 38 skipped case identities match between engines. No new skip,
+xfail, denominator exclusion, characterization-as-success or assertion change.
+No probe cancellations. The unchanged original-nine strict raw Error identity
+case alone fails acceptance (upstream-desired.probe.ts:37). The invariant failure
+is shared property/retained-graph conservative double charging: 87 versus 49.
+Baseline acceptance/invariants/reasons exit1; patched acceptance/invariants
+exit1; patched reasons and both full suites exit0. No command timeout/signal.
+
+ARTIFACT AND SOURCE INTEGRITY
+All 20 captured executable/probe/helper/provenance artifacts are unchanged
+across this review's before/after interval; prose/evidence docs were intentionally
+not frozen while the author finalized them. Exact SHA256:
+  lifecycle.patch
+    5a12e79d07fc9379c9a6a67897f8aa72767467cc775fac5ea88e55a5bcde95d3
+  patch-manifest.json (v3-canonical-abort-message-proposal)
+    207489161570fcf2ec9db00a8ede3aac5dfefef510b969274bc6d9a5b1ba98b3
+  snapshot.mjs
+    a9780a952078d9d0f95b76eeba2fc87df1b4fcaaf3e49d0217ad22c14b77ff14
+  verify.mjs
+    02ed074693fc54a1a3ba57118ee7286c9029aa21088327458a973f3b17e04554
+  baseline-hashes.json
+    e972ae842abbe52563f385965fc452f4f35fb988bd4c2e1fb1a65e252eb835c7
+  original-nine upstream-desired.probe.ts
+    7f8ebc44fdb3cc313439ec1f3a88c7df3dd3d894b8557daec6c0367fcb7611ab
+  action-abort.probe.ts
+    83fdc5c16bc381b552285e73d4ef0048b6aa391e58f09607fa10b7a7fe16cf49
+  wrapper-invariants.probe.mjs
+    8eeb6f698cdae6a45bf0c7cff62a74d5390ef4ee4f1284b5f910d9dc36604545
+  reason-contract.probe.mjs
+    83ec16e7e559d8fcf7a24c72b6e278cf1cbb1a2c733d8fd58c8640a0609a7560
+
+The original 259-file engine pin, including 238 src files, matches the supplied
+TQgyeN input and fresh baseline before/after. All seven patched files match
+manifest after-hashes; the complete resulting engine has no unexpected delta.
+Pinned historical revision: 031436f3d89ea1df8a33371e30076cb5e44ec262.
+Source-tree SHA256 (JSON of ordered package-relative [path, SHA256] pairs):
+  baseline ce71b29631d9eb09d8a23107f71b16cf8646b1d7d67c14c81b38de781c585bfd
+  patched  e6ce690a39daed56d2d1aef324da9303bffd7731e34fccc9cf705affb9185461
+
+Actual Node load hooks in acceptance, invariants and reason logs resolve OUR
+/private/tmp/safe-bash-safejs-isolated-R0mMav/{baseline,patched}/packages/safejs
+sources, not the original workspace, private checkout or preserved input:
+  baseline src/run.ts
+    92382a36b94bc5be7f8fc0372bb4b91428fd137ba86742c5d6f75865726e5512
+  patched src/run.ts
+    c786130717eab346135766190f005fa025b5e290b9d5220ad913f21da304e3c1
+  both src/interp/interpreter.ts
+    9144707a43315e80cd75ff6dfdf650760d196c2b9fc09f5876b86ff551a3338d
+Full-suite JSON paths are inside each fresh engine; inspected unchanged Vite
+aliases resolve workspace packages within that snapshot. Each complete snapshot
+contains 25,874 regular files and zero symlinks. No private import, worktree,
+private patch target, vendored full engine or dependency addition was used.
+
+NARROW V3 SECURITY REVIEW AND GUARDS
+Compared both artifact bytes and actual v2/v3 engine manifests. Exactly one
+engine string changed: "The operation was aborted." -> "This operation was
+aborted" in run.ts. The other six output files and all remaining engine bytes
+are identical. Snapshot/verifier/guards/original-nine/action/quota probes are
+unchanged. The reason probe alone now captures native AbortSignal's default
+message BEFORE engine import and uses it for message/stack assertions. This
+independent oracle corrects the v2 probe; it does not waive raw identity.
+
+The static correction cannot read original reason getters. Existing owned,
+branded, source-bound AbortError creation/materialization stores the original
+object as exact non-enumerable cause, without mutating or traversing it. Frozen
+and accessor reasons, stack formatting hooks, primitive identity and pre-setup
+rejection pass the 18 current checks. Prior v2 review carries forward for the
+unchanged closure brands/frozen wrappers, construct/static preservation,
+cycles/identity, live retained metadata, own __proto__ copying, host-operation
+annotations, original-promise observation and listener cleanup. Fresh invariant
+and durable action-abort tests exercise those paths. No Proxy, hosteval/native
+escape, dropped signal or quota weakening/canonicalization was introduced.
+
+Executed current owned artifact guards: 2/2 pass, exit0. Reexecuted independent
+source guards in fresh /tmp fixtures: four checks pass (all pinned hashes,
+nested source-link rejection, wrong baseline rejection, patch leaf-link
+rejection with unchanged outside inert target). Source-root aliases are
+canonicalized, NOT rejected; this existing policy is not falsely reported as
+a root-link rejection test. Our actual selected source is a regular directory.
+The current private-root default --apply-only attempt exits1 at exact-baseline
+mismatch BEFORE snapshot/application; no baseline was repinned or bypassed.
+Code inspection confirms baseline exit status AND exact 0/10 counts are asserted,
+patched 10/10 remains required, and private source/status/revision/index/license
+drift cannot yield passed:true. No new synthetic count/status-injection variant
+was run in this finite gate. Hash/path/traversal/target-ancestor regressions were.
+
+PRIVATE BEFORE/AFTER — DISTINCT INTERVALS, NO FALSE UNCHANGED CLAIM
+Reviewer interval: 2026-08-26T22:44:55.389Z to 22:47:01.175Z.
+Unchanged private 238-source digest:
+  f306b533263fe70bcafbe702a1fb213bfb39f337e567a6a079eca189a2fe3018
+Unchanged all-490-package-file digest (including existing dist):
+  682fee1b42f073e8ccbe2ebe065555c0a0b95facd583e1605ec1bc9faa69a1ee
+Unchanged revision: 3db0b0a0ed25278b2c1dee361d438891fa1e34fa
+Unchanged index SHA256:
+  85699b3d1bdd5d678d1e6adbfb614892ec03ef0b5b3b80413083eef51f8075e8
+Unchanged private LICENSE / LICENSE.upstream SHA256:
+  0f5d2ae231c0461da14b21ac8594071bb51be33e6a3dcc2b105813c69e7f4a13
+
+OUTER STATUS DID CHANGE: one external untracked file appeared:
+  ?? docs/plans/bugfix-loop-agent-array-override.md
+No status entries disappeared. Exact trimmed porcelain status digests:
+  before 8447e8f4ddce27486710bfac403ba250da1edae55d3951f40cfc2fe0a6ab41fa
+  after  870bd36d16b7dd592c950e3054ec1a0cb1edb40c7f390d27d319a132abafd3fe
+That file was already present at verifier before-copy, 22:45:14.578Z. The
+verifier's narrower interval through 22:46:14.172Z correctly reports all five
+private comparisons unchanged. This does NOT establish globally unchanged
+private status over the review interval. All reviewer Git reads used
+GIT_OPTIONAL_LOCKS=0; no reviewer command wrote private/repository files.
+Root MIT license is provenance, not newly granted redistribution permission.
+
+REMAINING LIMITS / NON-ARCHIVAL BLOCKERS
+1. Object-reason raw rejection identity is still an unmet accepted requirement.
+   Exact cause identity is a proposed alternative, not an approved contract.
+2. Shared retained-graph quota overcount remains 87 vs49; no quota redesign or
+   broad budget/security approval is claimed.
+3. Typecheck/build remains unestablished. Prior independent v2 source-copy
+   typechecks exited2 with the same eight unresolved workspace-declaration /
+   cascading implicit-any diagnostics on both engines. Not rerun for this
+   one-static-string v3 delta; no current typecheck pass is claimed.
+4. The newer private engine differs from the historical pin. This review does
+   not validate/rebase onto it. A preserved matching snapshot is required.
+5. Outer AbortError shape is sanitized; its exact cause graph is NOT recursively
+   sanitized and can retain host data/getters/capabilities. Do not recursively
+   expose/serialize that graph to guests. Trusted native signals/string source
+   remain assumptions; synchronous/uncooperative host effects are not undone.
+
+These block overall implementation approval, not accurately labeled minimal
+artifact archival. Final docs/checksums must preserve these limits and this
+reviewer's external status drift; do not copy the author's globally-unchanged
+claim onto our wider interval. Reviewed current README/EVIDENCE labels v3
+UNAPPROVED and retains failed v1/v2 history. Prose/checksum finalization was
+outside this executable pin and must not change tested artifacts.
+
+HISTORY, TOOLS, EVIDENCE
+V1's historical full-suite 3224/1/38 shape failure and v2's 3223/2/38 default-
+message failures remain distinct. V2 archived patch/manifest/reason fixture
+exactly match this reviewer's prior pins. V2 patch SHA256:
+  c5419b5edc91a8883d72cb5fe08d08bf47c48fde21bee2fe1f926f836c243f2d
+No earlier failed audit is reattributed to v3 or erased by today's full-suite pass.
+
+Node v22.22.2; tsx 4.23.12; copied Vitest 3.2.6, Vite 6.4.3,
+TypeScript 5.9.3. Installed tooling only, no network/install/build. Child cwd,
+HOME/temp/cache are fresh /tmp paths; TSX_DISABLE_CACHE=1; Vitest --no-cache;
+strict unhandled rejections; SAFEJS_PARSE_FUZZ=1 and SAFEJS_ADVERSARIAL_SLOW=1.
+Exact Node executable, argv, cwd, environment and statuses:
+  /tmp/safe-bash-safejs-isolated-R0mMav/commands.json
+Evidence root: /tmp/safejs-security-recheck-2XgUgs/
+  before.json, after.json, pinned-artifacts/, verify.log, verify.exit,
+  independent-proof.json, final-delta-proof.json, artifact-guards.log,
+  source-guards.log, private-pin-rejection.log.
+Full logs/JSON and source/private manifests are in R0mMav. A scratch summary
+initially queried Vitest case status "pending" rather than "skipped"; that
+reviewer parsing assertion failed, was corrected to the actual JSON schema,
+and then proved the identical 38 cases. No test/artifact was changed for it.
+
+STOP. Finite v3 review complete. Only /tmp independent evidence was written;
+no source/docs edits, staging, commits, delegation or private changes by reviewer.

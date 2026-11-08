@@ -1,0 +1,40 @@
+[
+  {
+    "id": "borrowed-offset-finalizer-newline",
+    "actual": {
+      "status": 0,
+      "stdout": "YjotMQpjOjMKYToyMAo=",
+      "stderr": "",
+      "files": {}
+    },
+    "input": {
+      "bytes": 13,
+      "sha256": "dce0b7916d43c63f908c937f5cc23bebb9713a16d6598c2339641d65695c393f"
+    },
+    "stdout": {
+      "bytes": 14,
+      "sha256": "f7e5d1a920ac5296ad4d733573f10b890a06134f26f954bf106281d0d4735be1"
+    },
+    "finalized": true,
+    "counters": null
+  },
+  {
+    "id": "borrowed-offset-finalizer-nul",
+    "actual": {
+      "status": 0,
+      "stdout": "YjotMQBjOjMAYToyMAA=",
+      "stderr": "",
+      "files": {}
+    },
+    "input": {
+      "bytes": 13,
+      "sha256": "81e6b0c65c337469453bec8550a71666b8399de994b8c0073a7237cef448a0fe"
+    },
+    "stdout": {
+      "bytes": 14,
+      "sha256": "d98bf3c1c0408273f8c8017abf3e43fa92fb05e807689214828b214fcb58e272"
+    },
+    "finalized": true,
+    "counters": null
+  }
+]

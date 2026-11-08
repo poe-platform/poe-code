@@ -1,0 +1,178 @@
+import {readFileSync, readdirSync} from "node:fs";
+import path from "node:path";
+import {fileURLToPath} from "node:url";
+import {createContext, runInContext} from "node:vm";
+import {createFsFromVolume, Volume} from "memfs";
+import {build} from "esbuild";
+import ts from "typescript";
+import {expect, it} from "vitest";
+import {packageSafeLibraries} from "./package-safe.mjs";
+
+const root = fileURLToPath(new URL("../", import.meta.url));
+
+it("packs the caller-backed image filesystem API with canonical public storage and a host-free Worker closure", async () => {
+  const volume = new Volume();
+  const write = (filename: string, bytes: string | Uint8Array) => {
+    volume.mkdirSync(path.dirname(filename), {recursive: true});
+    volume.writeFileSync(filename, bytes);
+  };
+  const copy = (source: string, target: string): void => {
+    for (const entry of readdirSync(source, {withFileTypes: true})) {
+      if (entry.isDirectory()) copy(path.join(source, entry.name), path.join(target, entry.name));
+      else write(path.join(target, entry.name), readFileSync(path.join(source, entry.name)));
+    }
+  };
+  const rootManifest = JSON.parse(readFileSync(path.join(root, "package.json"), "utf8"));
+  write("/repo/package.json", JSON.stringify({license: "MIT", dependencies: rootManifest.dependencies, devDependencies: rootManifest.devDependencies}));
+  // Unrelated shell/interpreter entries are fixtures; every image and filesystem artifact is real.
+  for (const name of ["safe-js", "safe-bash"]) {
+    write(`/repo/packages/${name}/package.json`, JSON.stringify({name: `@poe-code/${name}`, private: true, type: "module", exports: {".": {types: "./dist/index.d.ts", import: "./dist/index.js"}}}));
+    write(`/repo/packages/${name}/README.md`, `# ${name}\n`);
+    for (const extension of ["js", "d.ts"]) write(`/repo/packages/${name}/dist/index.${extension}`, "export {};\n");
+  }
+  for (const name of ["safe-fs", "xml-ast", "json-ast", "image-ast", "pdf-ast"]) {
+    const directory = path.join(root, "packages", name);
+    const manifest = JSON.parse(readFileSync(path.join(directory, "package.json"), "utf8"));
+    if (name === "safe-fs") manifest.exports = Object.fromEntries(["./contracts", "./storage", "./core", "./xml"].map(route => [route, manifest.exports[route]]));
+    write(`/repo/packages/${name}/package.json`, JSON.stringify(manifest));
+    write(`/repo/packages/${name}/README.md`, readFileSync(path.join(directory, "README.md")));
+    copy(path.join(directory, "dist"), `/repo/packages/${name}/dist`);
+    if (name === "safe-fs") {
+      copy(path.join(directory, "native"), `/repo/packages/${name}/native`);
+      copy(path.join(directory, "src/native"), `/repo/packages/${name}/src/native`);
+    }
+    for (const notice of manifest.poeCode?.safeLibraryNotices?.["safe-bash"] ?? []) write(`/repo/packages/${name}/${notice}`, readFileSync(path.join(directory, notice)));
+  }
+  await packageSafeLibraries({rootDir: "/repo", outDir: "/output", version: "0.1.0", files: createFsFromVolume(volume).promises, bundle: async () => ({outputFiles: []})});
+  const manifests = Object.fromEntries(["safe-fs", "safe-bash"].map(name => [name, JSON.parse(volume.readFileSync(`/output/${name}/package.json`, "utf8").toString())]));
+  expect(manifests["safe-bash"].exports["./sharp"]).toEqual(manifests["safe-bash"].exports["./image-ast"]);
+  const runtime = volume.readFileSync("/output/safe-bash/dist/image-ast/index.js", "utf8").toString();
+  expect(runtime).toContain('"@poe-platform/safe-fs/storage"');
+  expect(runtime).toContain('"@poe-platform/safe-fs/contracts"');
+  const ast = volume.readFileSync("/output/safe-bash/dist/image-ast/ast.d.ts", "utf8").toString();
+  expect(ast).toContain('"@poe-platform/safe-fs/contracts"');
+  for (const manifest of Object.values(manifests)) expect(Object.keys(manifest.dependencies)).not.toContain("@poe-code/safe-fs");
+  volume.mkdirSync("/node_modules/@poe-platform", {recursive: true});
+  for (const name of ["safe-fs", "safe-bash"]) volume.symlinkSync(`/output/${name}`, `/node_modules/@poe-platform/${name}`);
+  write("/consumer.mts", 'import sharp from "@poe-platform/safe-bash/sharp"; import type {FileSystem} from "@poe-platform/safe-fs/contracts"; declare const filesystem: FileSystem; sharp("/in.png", {filesystem}).png().toFile("/out.png");');
+  const compilerOptions: ts.CompilerOptions = {strict: true, noEmit: true, types: [], target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.NodeNext, moduleResolution: ts.ModuleResolutionKind.NodeNext, customConditions: ["workerd"]};
+  const host = ts.createCompilerHost(compilerOptions);
+  // Only TypeScript standard libraries may escape the published in-memory installation.
+  const standardRead = host.readFile;
+  const standardExists = host.fileExists;
+  const libraries = path.dirname(ts.getDefaultLibFilePath(compilerOptions)) + path.sep;
+  host.readFile = filename => filename.startsWith(libraries) ? standardRead(filename) : volume.existsSync(filename) ? volume.readFileSync(filename, "utf8").toString() : undefined;
+  host.fileExists = filename => filename.startsWith(libraries) ? standardExists(filename) : volume.existsSync(filename);
+  host.directoryExists = filename => volume.existsSync(filename) && volume.statSync(filename).isDirectory();
+  host.realpath = filename => volume.realpathSync(filename).toString();
+  host.getCurrentDirectory = () => "/";
+  const program = ts.createProgram(["/consumer.mts"], compilerOptions, host);
+  expect(ts.getPreEmitDiagnostics(program).map(diagnostic => ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n"))).toEqual([]);
+  const pending = Object.values(manifests).flatMap(manifest => Object.keys(manifest.dependencies ?? {}));
+  const installed = new Set<string>();
+  while (pending.length) {
+    const name = pending.shift()!;
+    if (name.startsWith("@poe-platform/") || installed.has(name)) continue;
+    installed.add(name);
+    const directory = path.join(root, "node_modules", name);
+    const manifest = JSON.parse(readFileSync(path.join(directory, "package.json"), "utf8"));
+    copy(directory, "/installed/" + name);
+    pending.push(...Object.keys(manifest.dependencies ?? {}));
+  }
+  write("/consumer.js", 'export {default as sharp, resampleStoredImage} from "@poe-platform/safe-bash/sharp"; export {MemoryFileSystem} from "@poe-platform/safe-fs/core";');
+  const select = (value: unknown): string => {
+    if (typeof value === "string") return value;
+    for (const condition of ["workerd", "browser", "import", "default"]) {
+      const target = (value as Record<string, unknown>)[condition];
+      if (target !== undefined) return select(target);
+    }
+    throw new Error("No portable export: " + JSON.stringify(value));
+  };
+  const result = await build({entryPoints: ["/consumer.js"], bundle: true, write: false, platform: "browser", format: "cjs", metafile: true,
+    plugins: [{name: "published-image-only", setup(builder) {
+      builder.onResolve({filter: /.*/}, args => {
+        let target: string;
+        if (args.path.startsWith(".") || args.path.startsWith("/")) target = path.resolve(args.resolveDir, args.path);
+        else if (args.path.startsWith("#safe-fs-")) target = path.resolve("/output/safe-fs", select(manifests["safe-fs"].imports[args.path]));
+        else {
+          const segments = args.path.split("/");
+          const name = segments.splice(0, args.path.startsWith("@") ? 2 : 1).join("/");
+          const directory = name.startsWith("@poe-platform/") ? "/output/" + name.split("/")[1] : "/installed/" + name;
+          const manifest = JSON.parse(volume.readFileSync(directory + "/package.json", "utf8").toString());
+          const route = segments.length ? "./" + segments.join("/") : ".";
+          if (manifest.exports !== undefined) target = path.resolve(directory, select(manifest.exports[route]));
+          else {
+            const entry = path.resolve(directory, segments.length ? segments.join("/") : manifest.main ?? "index.js");
+            const resolved = [entry, entry + ".js", path.join(entry, "index.js")].find(filename => volume.existsSync(filename) && volume.statSync(filename).isFile());
+            if (resolved === undefined) throw new Error("Missing installed package entry: " + args.path);
+            target = resolved;
+          }
+        }
+        return {path: target, namespace: "packed"};
+      });
+      builder.onLoad({filter: /.*/, namespace: "packed"}, args => ({contents: volume.readFileSync(args.path, "utf8").toString(), resolveDir: path.dirname(args.path)}));
+    }}]});
+  expect(Object.values(result.metafile!.outputs).flatMap(output => output.imports)).toEqual([]);
+  const module = {exports: {} as {sharp: typeof import("../packages/image-ast/src/index.js").default; resampleStoredImage: typeof import("../packages/image-ast/src/index.js").resampleStoredImage; MemoryFileSystem: typeof import("../packages/safe-fs/src/core.js").MemoryFileSystem}};
+  runInContext(result.outputFiles[0]!.text, createContext({module, exports: module.exports, Uint8Array, ArrayBuffer, TextEncoder, TextDecoder, AbortSignal, AbortController, structuredClone, ReadableStream, WritableStream, TransformStream, queueMicrotask, setTimeout, clearTimeout, crypto: globalThis.crypto}));
+  const {sharp, MemoryFileSystem, resampleStoredImage} = module.exports;
+  const pixels = new Uint8Array(4096);
+  pixels.set([255, 0, 0, 255]);
+  let end = 4;
+  const storage = {
+    allocate(length: number) {const position = end; end += length; return position;},
+    async read(position: number, length: number) {return pixels.subarray(position, position + length);},
+    async write(position: number, bytes: Uint8Array) {pixels.set(bytes, position);}
+  };
+  const resized = await resampleStoredImage({width: 1, height: 1, position: 0, format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: false}, storage, {width: 3, height: 2}, new AbortController().signal);
+  expect([...pixels.subarray(resized.position, resized.position + 24)]).toEqual(Array.from({length: 6}, () => [255, 0, 0, 255]).flat());
+  const fs = new MemoryFileSystem();
+  const input = await sharp({create: {width: 7, height: 3, channels: 4, background: "red"}}).png().toBuffer();
+  await fs.writeFile("/input.png", input);
+  const guarded = new Proxy(fs, {get(target, key) {
+    if (key === "readFile" || key === "writeFile") return () => {throw new Error("whole-file fallback forbidden");};
+    const value = Reflect.get(target, key, target);
+    return typeof value === "function" ? value.bind(target) : value;
+  }});
+  expect(await sharp("/input.png", {filesystem: guarded}).png().toFile("/output.png")).toMatchObject({width: 7, height: 3, format: "png"});
+  expect(await sharp("/input.png", {filesystem: guarded}).flip().rotate(90).flop().png().toFile("/rotated.png")).toMatchObject({width: 3, height: 7, format: "png"});
+  expect([...await sharp(await fs.readFile("/rotated.png")).raw().toBuffer()]).toEqual(Array.from({length: 21}, () => [255, 0, 0, 255]).flat());
+  expect(await sharp("/input.png", {filesystem: guarded}).resize(3, 5, {fit: "contain"}).rotate(90).toFile("/resized")).toMatchObject({width: 3, height: 5, format: "png"});
+  const resizedPixels = await sharp(await fs.readFile("/resized")).raw().toBuffer();
+  const expectedResized = await sharp(input).resize(3, 5, {fit: "contain"}).rotate(90).raw().toBuffer();
+  expect([...resizedPixels]).toEqual([...expectedResized]);
+  expect(await sharp("/input.png", {filesystem: guarded}).rotate(37).affine([1, 0.2, 0.1, 1], {interpolator: "bicubic"}).toFile("/affine.png")).toMatchObject({format: "png"});
+  expect(await sharp("/input.png", {filesystem: guarded}).boolean("/input.png", "eor").toFile("/boolean.png")).toMatchObject({format: "png", width: 7, height: 3});
+  expect(await sharp("/input.png", {filesystem: guarded}).composite([{input: "/input.png", blend: "difference", tile: true}]).toFile("/composite.png")).toMatchObject({format: "png", width: 7, height: 3});
+  expect([...await sharp(await fs.readFile("/composite.png")).raw().toBuffer()]).toEqual(Array.from({length: 21}, () => [0, 0, 0, 255]).flat());
+  await fs.writeFile("/raw", Uint8Array.of(0, 255, 0, 255));
+  expect(await sharp("/input.png", {filesystem: guarded}).boolean("/raw", "or", {raw: {width: 1, height: 1, channels: 4}}).composite([{input: {create: {width: 1, height: 1, channels: 4, background: "blue"}}, tile: true}]).toFile("/resources.png")).toMatchObject({format: "png", width: 7, height: 3});
+  expect([...await sharp(await fs.readFile("/resources.png")).raw().toBuffer()]).toEqual(Array.from({length: 21}, () => [0, 255, 255, 255]).flat());
+  expect(await sharp("/input.png", {filesystem: guarded}).toFormat("ppm").toFile("/output.ppm")).toMatchObject({format: "ppm", width: 7, height: 3, channels: 3});
+  expect(await sharp("/output.ppm", {filesystem: guarded}).composite([{input: "/output.ppm", blend: "difference"}]).png().toFile("/netpbm.png")).toMatchObject({format: "png", width: 7, height: 3});
+  expect([...await sharp(await fs.readFile("/netpbm.png")).raw().toBuffer()]).toEqual(Array.from({length: 21}, () => [0, 0, 0, 255]).flat());
+  expect(await sharp("/input.png", {filesystem: guarded}).toFormat("bmp").toFile("/output.bmp")).toMatchObject({format: "bmp", width: 7, height: 3, channels: 3});
+  expect(await sharp("/output.bmp", {filesystem: guarded}).composite([{input: "/output.bmp", blend: "difference"}]).png().toFile("/bitmap.png")).toMatchObject({format: "png", width: 7, height: 3});
+  expect([...await sharp(await fs.readFile("/bitmap.png")).raw().toBuffer()]).toEqual(Array.from({length: 21}, () => [0, 0, 0, 255]).flat());
+  expect(await sharp("/input.png", {filesystem: guarded}).gif().toFile("/output.gif")).toMatchObject({format: "gif", width: 7, height: 3, channels: 4});
+  expect([...await sharp(await fs.readFile("/output.gif")).raw().toBuffer()]).toEqual(Array.from({length: 21}, () => [255, 0, 0, 255]).flat());
+  expect(await sharp("/output.gif", {filesystem: guarded}).composite([{input: "/output.gif", blend: "difference"}]).png().toFile("/gif.png")).toMatchObject({format: "png", width: 7, height: 3});
+  expect([...await sharp(await fs.readFile("/gif.png")).raw().toBuffer()]).toEqual(Array.from({length: 21}, () => [0, 0, 0, 255]).flat());
+  await sharp("/input.png", {filesystem: guarded}).gif({pageHeight: 1, delay: [10, 20, 30], loop: 2}).toFile("/animated.gif");
+  expect(await sharp("/animated.gif", {filesystem: guarded, animated: true}).gif().toFile("/replayed.gif")).toMatchObject({format: "gif", pages: 3, pageHeight: 1});
+  expect([...await fs.readFile("/replayed.gif")]).toEqual([...await sharp(await fs.readFile("/animated.gif"), {animated: true}).gif().toBuffer()]);
+  expect(await sharp("/input.png", {filesystem: guarded}).jpeg({quality: 85}).toFile("/output.jpeg")).toMatchObject({format: "jpeg", width: 7, height: 3, channels: 3});
+  expect([...await fs.readFile("/output.jpeg")]).toEqual([...await sharp(await fs.readFile("/input.png")).jpeg({quality: 85}).toBuffer()]);
+  expect(await sharp("/input.png", {filesystem: guarded}).tiff().toFile("/output.tiff")).toMatchObject({format: "tiff", width: 7, height: 3, channels: 4});
+  expect([...await sharp(await fs.readFile("/output.tiff")).raw().toBuffer()]).toEqual(Array.from({length: 21}, () => [255, 0, 0, 255]).flat());
+  expect(await sharp("/output.tiff", {filesystem: guarded}).composite([{input: "/output.tiff", blend: "difference"}]).png().toFile("/tiff.png")).toMatchObject({format: "png", width: 7, height: 3});
+  expect([...await sharp(await fs.readFile("/tiff.png")).raw().toBuffer()]).toEqual(Array.from({length: 21}, () => [0, 0, 0, 255]).flat());
+  expect(await sharp("/input.png", {filesystem: guarded}).removeAlpha().grayscale().joinChannel(["/input.png", "/input.png"]).toFile("/joined.png")).toMatchObject({format: "png", channels: 3});
+  expect(await sharp("/input.png", {filesystem: guarded}).extend({top: 3, bottom: 3, left: 3, right: 3, background: "white"}).median(3).trim({lineArt: true}).toFile("/canvas.png")).toMatchObject({format: "png", width: 13, height: 9, trimOffsetLeft: 0, trimOffsetTop: 0});
+  expect(await sharp("/input.png", {filesystem: guarded}).gamma(2.2).resize(3, 2).convolve({width: 3, height: 3, kernel: [1, 2, 1, 2, 4, 2, 1, 2, 1]}).dilate(2).erode(2).blur({sigma: 1.5, precision: "float"}).sharpen({sigma: 1.5}).clahe({width: 5, height: 3, maxSlope: 2}).toFile("/filtered.png")).toMatchObject({width: 3, height: 2, format: "png", premultiplied: true});
+  // A 15-pixel flat CLAHE window clipped at 2 maps zero to floor(255 * 2 / 15).
+  expect([...await sharp(await fs.readFile("/filtered.png")).raw().toBuffer()]).toEqual(Array.from({length: 6}, () => [255, 34, 34, 255]).flat());
+  expect(await sharp("/input.png", {filesystem: guarded}).negate({alpha:false}).normalize().png().toFile("/negative.png")).toMatchObject({width: 7, height: 3, format: "png"});
+  expect([...await sharp(await fs.readFile("/negative.png")).raw().toBuffer()]).toEqual(Array.from({length: 21}, () => [0, 255, 255, 255]).flat());
+  expect([...await sharp(await fs.readFile("/output.png")).raw().toBuffer()]).toEqual(Array.from({length: 21}, () => [255, 0, 0, 255]).flat());
+});

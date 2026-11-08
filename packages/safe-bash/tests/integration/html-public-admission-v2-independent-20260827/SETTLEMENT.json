@@ -1,0 +1,22 @@
+{
+  "at": "2026-08-27T22:50:15.590Z",
+  "cleanupRoot": "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-v2-independent-20260827/scratch",
+  "removed": true,
+  "remainingGroups": [],
+  "childGroups": [
+    31612
+  ],
+  "signalsSent": [],
+  "evidence": {
+    "actual34": 0,
+    "allPassed": false,
+    "independentlyExecuted": [
+      "controls"
+    ],
+    "unexecuted": [
+      "extra-controls",
+      "admission",
+      "reconstruction"
+    ]
+  }
+}

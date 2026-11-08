@@ -1,0 +1,121 @@
+IDENTICAL: tests/shell-stress/env-split-holdout/product-row-bytes-v2.mjs -> tests/shell-stress/env-split-validity/product-row-v1.mjs
+--- tests/shell-stress/env-split-holdout/hosts.mjs
++++ tests/shell-stress/env-split-validity/hosts-v1.mjs
+@@ -1,6 +1,6 @@
+ import assert from 'node:assert/strict';
+ import { setImmediate as nextTurn } from 'node:timers/promises';
+-import { trapped } from './product-row.mjs';
++import { trapped } from './product-row-v1.mjs';
+ 
+ export const hostIds = ['literal-invoke-replace-env-parent', 'exported-not-local-lookup', 'empty-input-provenance', 'nested-shared-command-budget', 'cancel-and-late-rejection', 'awaited-sink-shared-output-budget', 'split-expansion-growth-budget'];
+ export async function runHost(loadLibrary, id) {
+@@ -22,8 +22,9 @@
+     } });
+     try {
+       if (id === 'literal-invoke-replace-env-parent') {
+-        commands.register({ name: 'bridge', execute: context => context.invoke('env', ['-S', '-i KEEP=${TOKEN} envcap "${TOKEN}" "\\$(not-evaluated)"'], { replaceEnv: true, env: { TOKEN: 'a b' }, stdin: new Uint8Array(), stdinIsDefault: false }) });
++        commands.register({ name: 'bridge', execute: context => context.invoke('env', ['-S', '-i KEEP=${TOKEN} envcap "${TOKEN}" "\\$(not-evaluated)"'], { replaceEnv: true, env: { TOKEN: 'a b' }, stdin: (async function* () {})(), stdinIsDefault: false }) });
+         const result = await shell.exec("LOCAL=private; bridge; printf '%s' \"$KEEP:$LOCAL\"");
++        assert.equal(result.exitCode, 0); assert.equal(result.stderr, '');
+         assert.equal(result.stdout, 'abcparent:private');
+         assert.deepEqual(captures, [{ args: ['a b', '$(not-evaluated)'], env: { KEEP: 'a b' }, stdinHex: '', stdinIsDefault: false }]);
+         assert.deepEqual(observations.map(row => row.command), ['bridge', 'env', 'envcap', 'printf']);
+IDENTICAL: tests/shell-stress/env-split-consumer/cases.mjs -> tests/shell-stress/env-split-validity/cases.mjs
+--- tests/shell-stress/env-split-consumer/consumer.mjs
++++ tests/shell-stress/env-split-validity/consumer-v1.mjs
+@@ -35,6 +35,9 @@
+   await fs.mkdir('/packed'); await fs.writeFile('/packed/phase', Buffer.from('seed')); await fs.chmod('/packed/phase', 0o644);
+   if (fixture.header) { await fs.writeFile('/packed/script', Buffer.from(`#!/usr/bin/env ${fixture.header}\n${fixture.body}`)); await fs.chmod('/packed/script', 0o755); }
+   const calls = []; const ticks = []; const sinks = []; let waiterCalls = 0; let disposed = false;
++  const boundaries = []; const entryBoundaries = []; const cleanups = [];
++  let originalSource; let revisedSource;
++  const parentEnv = { ...baseEnv, PATH: '/packed/bin', PWD: '/packed' };
+   const controller = new AbortController();
+   const reason = new contracts.FsError('ENOENT', { path: '/packed-cancel' });
+   const plugin = { name: 'independent-packed-env-consumer', setup(host) {
+@@ -58,14 +61,33 @@
+       if (context.args[0] === 'cancel') return context.invoke('waiter', []);
+       assert.equal(context.args[0], 'budget'); await context.invoke('tick', ['first']); return context.invoke('tick', ['forbidden']);
+     } });
+-    host.commands.register({ name: 'entry', execute: context => context.invoke('env', fixture.args ?? ['-S', fixture.split]) });
++    for (const name of ['parentbefore', 'parentafter']) host.commands.register({ name, execute: async context => {
++      boundaries.push({ command: name, args: [...context.args], env: { ...context.env } });
++      assert.deepEqual(context.args.slice(0, 2), ['parent-local', 'parent-public']);
++      assert.deepEqual(context.env, parentEnv);
++      return { exitCode: name === 'parentafter' ? Number(context.args[2]) : 0 };
++    } });
++    host.commands.register({ name: 'entry', execute: async context => {
++      const before = { ...context.env };
++      let cleanup;
++      const complete = () => cleanup ??= Promise.resolve().then(() => { cleanups.push('entry'); });
++      assert.equal(typeof context.registerCleanup, 'function');
++      context.registerCleanup(complete);
++      try { return await context.invoke('env', fixture.args ?? ['-S', fixture.split]); }
++      finally {
++        entryBoundaries.push({ before, after: { ...context.env } });
++        assert.deepEqual(context.env, before); assert.deepEqual(before, parentEnv);
++        await complete();
++      }
++    } });
+   }, dispose() { disposed = true; } };
+   const shell = new Shell({ fs, cwd: '/packed', env: { ...baseEnv, PATH: '/packed/bin' } }).use(agentCommands()).use(plugin);
+   let result; let caught; let tuple; let passed;
+   try {
+-    const setup = await shell.exec('SECRET=parent-local'); assert.equal(setup.exitCode, 0);
+-    const options = fixture.kind === 'budget' ? { limits: { maxCommands: fixture.maxCommands } } : fixture.kind === 'cancel' ? { signal: controller.signal } : variant?.hex != null ? { stdin: Buffer.from(variant.hex, 'hex') } : {};
+-    try { result = await shell.exec(fixture.header ? fixture.source : fixture.command ?? 'entry', options); } catch (error) { caught = error; }
++    originalSource = fixture.header ? fixture.source : fixture.command ?? 'entry';
++    revisedSource = 'SECRET=parent-local; export PUBLIC=parent-public; parentbefore "$SECRET" "$PUBLIC"; ' + originalSource + '; parentafter "$SECRET" "$PUBLIC" "$?"';
++    const options = fixture.kind === 'budget' ? { limits: { maxCommands: fixture.maxCommands + 3 } } : fixture.kind === 'cancel' ? { signal: controller.signal } : variant?.hex != null ? { stdin: Buffer.from(variant.hex, 'hex') } : {};
++    try { result = await shell.exec(revisedSource, options); } catch (error) { caught = error; }
+     if (fixture.kind === 'cancel') await new Promise(accept => setTimeout(accept, 40));
+     const effects = {};
+     for (const entry of (await fs.readdir('/packed')).sort((left, right) => left.name.localeCompare(right.name))) {
+@@ -76,7 +98,10 @@
+     tuple = result ? { status: result.exitCode, stdoutHex: Buffer.from(result.stdoutBytes).toString('hex'), stderrHex: Buffer.from(result.stderrBytes).toString('hex'), effects } : null;
+     if (fixture.kind === 'input') {
+       assert.equal(caught, undefined); assert.equal(tuple.status, 0); assert.equal(tuple.stderrHex, ''); assert.equal(tuple.stdoutHex, variant.hex ?? '');
+-      assert.deepEqual(sinks, [{ hex: variant.hex ?? '', env: fixture.exactEnv, origin: variant.defaultOrigin, cwd: '/packed' }]);
++      assert.deepEqual(sinks, [{ hex: variant.hex ?? '', env: { ...fixture.exactEnv, PWD: '/packed' }, origin: variant.defaultOrigin, cwd: '/packed' }]);
++      assert.deepEqual(calls.find(call => call.command === 'forward').env, fixture.exactEnv);
++      assert.equal(Object.hasOwn(sinks[0].env, 'SECRET'), false);
++      assert.equal(Object.hasOwn(sinks[0].env, 'PUBLIC'), false);
+       for (const command of ['env', 'forward', 'sink', 'cat']) assert.equal(calls.filter(call => call.command === command).length, 1);
+       for (const command of ['forward', 'sink']) assert.equal(calls.find(call => call.command === command).stdinIsDefault, variant.defaultOrigin);
+       passed = true;
+@@ -89,11 +114,22 @@
+       if (!fixture.header) assert.deepEqual(calls.find(call => call.command === 'env').args, fixture.args);
+       if (fixture.id === 'unsupported-dollar-stops-before-dispatch') assert.equal(calls.some(call => call.command === 'record'), false);
+     }
+-    const parent = await shell.exec('printf "%s|%s" "$SECRET" "$PUBLIC"');
+-    assert.equal(parent.exitCode, 0); assert.equal(parent.stdout, 'parent-local|parent-public'); assert.equal(parent.stderr, '');
++    assert.deepEqual(boundaries[0], { command: 'parentbefore', args: ['parent-local', 'parent-public'], env: parentEnv });
++    if (fixture.kind === 'cancel' || fixture.kind === 'budget') {
++      assert.equal(boundaries.length, 1);
++      assert.deepEqual(calls.map(call => call.command), fixture.kind === 'budget'
++        ? ['parentbefore', 'entry', 'env', 'forward', 'tick']
++        : ['parentbefore', 'entry', 'env', 'forward', 'waiter']);
++    } else {
++      assert.deepEqual(boundaries[1], { command: 'parentafter', args: ['parent-local', 'parent-public', String(tuple.status)], env: parentEnv });
++      assert.equal(boundaries.length, 2);
++    }
++    assert.equal(entryBoundaries.length, fixture.header ? 0 : 1);
++    assert.deepEqual(cleanups, fixture.header ? [] : ['entry']);
+     assert.equal(forbidden.length, 0); assert.ok(shell.commands.has('cat'));
+   } catch (error) { passed = false; caught = error; }
+   finally { await shell.dispose(); }
+-  observations.push({ variant: variant?.name ?? null, tuple, passed, error: caught ? { name: caught.name, message: caught.message, code: caught.code, limit: caught.limit } : null, sameReason: caught === reason, calls, ticks, sinks, waiterCalls, disposed });
++  assert.equal(disposed, true);
++  observations.push({ originalSource, revisedSource, boundaries, entryBoundaries, cleanups, budget: fixture.kind === 'budget' ? { original: fixture.maxCommands, setupCommands: 3, revised: fixture.maxCommands + 3 } : null, variant: variant?.name ?? null, tuple, passed, error: caught ? { name: caught.name, message: caught.message, code: caught.code, limit: caught.limit } : null, sameReason: caught === reason, calls, ticks, sinks, waiterCalls, disposed });
+ }
+ console.log(JSON.stringify({ id: fixture.id, resolved, loaded, observations, forbidden }));
+--- tests/shell-stress/env-split-consumer/packed-public-types.ts
++++ tests/shell-stress/env-split-validity/public-types.mts
+@@ -20,3 +20,7 @@
+ const limit: Error = new ShellLimitError('maxCommands');
+ void [bytes, status, reason, limit];
+ await shell.dispose();
++
++const empty: ByteSource = (async function* () {})();
++const explicitEmpty: CommandInvokeOptions = { stdin: empty, stdinIsDefault: false };
++void explicitEmpty;

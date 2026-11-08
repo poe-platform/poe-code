@@ -1,0 +1,62 @@
+{
+  "created": "2026-08-29T13:55:47.616Z",
+  "deadline": "2026-08-29T14:10:49.053Z",
+  "files": [
+    {
+      "path": "review.mjs",
+      "bytes": 9212,
+      "sha256": "74d37218770f2da2b31482005e1a758dfa5ed1c2bddd80c2c57a2adb4e7cfadc"
+    },
+    {
+      "path": "ownership.mjs",
+      "bytes": 2499,
+      "sha256": "b83c8917cdf6180f2ba5134f5b061a660ec2ae7d5650497cf88fdb9cf1f7bb58"
+    },
+    {
+      "path": "CONTROL-PROFILE.md",
+      "bytes": 2071,
+      "sha256": "66ca51765e522d3ae371897b8dcc12932c751c5e05886f1cb823dd8e28cd2b72"
+    },
+    {
+      "path": "INPUTS.json",
+      "bytes": 10528974,
+      "sha256": "68642d73c425f0937ce5e229429b040d2075c86997cbff2aea1f17e651627d9f"
+    },
+    {
+      "path": "INHERITED.json",
+      "bytes": 267099,
+      "sha256": "c3183ac72fdd1e573560e198ea13b9848a9a8c2a387d14860b75cbf0e57ff1cb"
+    },
+    {
+      "path": "TOOL-ADMISSION.json",
+      "bytes": 282,
+      "sha256": "7a43cda00c42f139e728e191189c07836939b9b329d87065ae1a79d79a280667"
+    }
+  ],
+  "controllers": [
+    {
+      "entry": "review.mjs",
+      "seconds": 120,
+      "children": 0
+    },
+    {
+      "entry": "ownership.mjs",
+      "seconds": 45,
+      "children": 3
+    }
+  ],
+  "versionedPurposes": 33,
+  "rejectionControls": 8,
+  "additionalGroups": 10,
+  "independentGroups": 6,
+  "retainedNormalDATA": 1,
+  "actualWorkers": 0,
+  "productImports": 0,
+  "compiler": 0,
+  "grant": {
+    "knownOS": 48,
+    "peak": 3,
+    "captureBytes": 67108864,
+    "workBytes": 402653184
+  }
+}

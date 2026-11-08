@@ -1,0 +1,117 @@
+import {expect,test} from "vitest";
+import * as svg from "./svg-storage.js";
+import {decodeSvgImage} from "./svg-pdf.js";
+import type {ImageByteSource,ImageByteStorage} from "./png-storage.js";
+
+function backing(){
+ const pages=new Map<number,Uint8Array>();let size=0;const borrowed=new Uint8Array(4096);
+ const storage:ImageByteStorage={allocate(length){const at=size;size+=length;return at;},async write(position,bytes){expect(bytes.length).toBeLessThanOrEqual(4096);for(let i=0;i<bytes.length;i++){const at=position+i,page=Math.floor(at/4096);let data=pages.get(page);if(!data){data=new Uint8Array(4096);pages.set(page,data);}data[at%4096]=bytes[i]!;}},async read(position,length){expect(length).toBeLessThanOrEqual(4096);for(let i=0;i<length;i++)borrowed[i]=pages.get(Math.floor((position+i)/4096))?.[(position+i)%4096]??0;return borrowed.subarray(0,length);}};
+ return {storage,async pixels(position:number,length:number){const out=new Uint8Array(length);for(let at=0;at<length;at+=4096)out.set(await storage.read(position+at,Math.min(4096,length-at)),at);return out;}};
+}
+
+for(const mode of ['buffered','storage','source'] as const){
+ for(const [name,transform] of [
+  ['clockwise','rotate(90 32 32)'],
+  ['counterclockwise','rotate(-90 32 32)'],
+  ['half turn','rotate(180 32 32)'],
+  ['reflection','translate(64 0) scale(-1 1)'],
+  ['horizontal stretch','scale(2 1)'],
+  ['collapsed','matrix(1 0 0 0 0 32)'],
+ ] as const)test(`${mode} transforms SVG text pixels: ${name}`,async()=>{
+  const text='<text x="20" y="34" font-size="14" text-anchor="middle" fill="blue">Ag</text>';
+  const plain=decodeSvgImage(new TextEncoder().encode(`<svg width="64" height="64">${text}</svg>`)).data;
+  const bytes=new TextEncoder().encode(`<svg width="64" height="64"><g transform="${transform}">${text}</g></svg>`);
+  let pixels:Uint8Array;
+  if(mode==='buffered')pixels=decodeSvgImage(bytes).data;
+  else{
+   const caller=backing(),signal=new AbortController().signal;
+   const image=mode==='storage'?await svg.decodeSvgToStorage(bytes,caller.storage,signal):await svg.decodeSvgSourceToStorage({size:bytes.length,async read(position,length){return bytes.subarray(position,position+length);}},caller.storage,signal);
+   pixels=await caller.pixels(image.position,64*64*4);
+  }
+  const expected=new Uint8Array(plain.length);
+  for(let y=0;y<64;y++)for(let x=0;x<64;x++){
+   const rgba=plain.subarray((y*64+x)*4,(y*64+x)*4+4);
+   const destinations=name==='clockwise'?[[63-y,x]]:name==='counterclockwise'?[[y,63-x]]:name==='half turn'?[[63-x,63-y]]:name==='reflection'?[[63-x,y]]:name==='horizontal stretch'?[[2*x,y],[2*x+1,y]]:[];
+   for(const [dx,dy] of destinations)if(dx!<64)expected.set(rgba,(dy!*64+dx!)*4);
+  }
+  expect(pixels).toEqual(expected);
+ });
+}
+
+const picture=`<svg width="48" height="36" viewBox="-2 -3 48 36"><rect width="40" height="30" fill="blue" opacity="0.4" rx="3"/><g transform="translate(3 1) rotate(12 10 10)"><circle cx="12" cy="12" r="8" fill="red" stroke="green" stroke-width="2"/><ellipse cx="25" cy="9" rx="6" ry="3" fill="none" stroke="purple"/><path d="M2 20l5 -4h4v8C15 20 20 12 22 20Q28 28 32 19z" fill="yellow" opacity="0.6" stroke="black"/><polyline points="1,1 12,4 14,8" fill="none" stroke="cyan"/></g><polygon points="1 25,8 24,4 32" fill="white"/><text x="24" y="30" font-size="10" text-anchor="middle">A&amp;g</text></svg>`;
+
+test("renders retained SVG source ranges into caller storage with identical pixels",async()=>{
+ const bytes=new TextEncoder().encode(picture),borrowed=new Uint8Array(4096);let reads=0;
+ const source:ImageByteSource={size:bytes.length,async read(position,length){expect(length).toBeLessThanOrEqual(4096);reads++;borrowed.set(bytes.subarray(position,position+length));return borrowed.subarray(0,length);}};
+ const caller=backing(),image=await svg.decodeSvgSourceToStorage(source,caller.storage,new AbortController().signal);
+ expect(image).toMatchObject({width:48,height:36,format:'svg'});expect(await caller.pixels(image.position,48*36*4)).toEqual(decodeSvgImage(bytes).data);expect(reads).toBeGreaterThan(0);
+});
+
+for(const [name,body,root]of [
+ ['nested transforms','<g transform="translate(1 2) rotate(31 4 3)"><g transform="scale(.9 1.1) matrix(1 .1 .2 1 .3 .4)"><rect x="1" y="2" width="9" height="7" stroke="red"/><text x="9" y="10" text-anchor="end">A</text></g><circle cx="9" cy="9" r="2"/></g>','viewBox="-1 -2 19 17"'],
+ ['numeric syntax','<polygon points=",1,2,3,4,5,6,"/><polyline points="1 bad 2 0x4 5"/><rect width="0.0000000000000000001%" height="4"/><g transform="fooscale(,2,) rotate( bad 3 4 5 ) matrix(1 0 0 1 2 3 99)"><rect width="4" height="4"/></g>',''],
+ ['interior BOM','<text x="1" y="9">A\ufeffB</text>',''],
+ ['UTF16 text','<text x="1" y="9">A\ufeffé😀&amp;quot;<b>G</b>&lt;x&gt;&#39;&apos;&amp;#39;</text>',''],
+ ['legacy tags','<TEXT x="2" y="9">Hi</TEXT><g/><rect width="3" height="3"/><text x="2"><line x1="1" y1="1" x2="9" y2="9"/></text ><g transform="translate(2)"><circle r="2"/></g>',''],
+] as const)test(`retained SVG preserves ${name}`,async()=>{
+ const bytes=new TextEncoder().encode('<svg width="23" height="19" '+root+'>'+body+'</svg>'),source:ImageByteSource={size:bytes.length,async read(position,length){return bytes.subarray(position,position+length);}},caller=backing();
+ const image=await svg.decodeSvgSourceToStorage(source,caller.storage,new AbortController().signal);
+ expect(await caller.pixels(image.position,image.width*image.height*4)).toEqual(decodeSvgImage(bytes).data);
+});
+
+test('preserves retained source failures after metadata inspection',async()=>{
+ const bytes=new TextEncoder().encode('<svg width="2" height="2">'+' '.repeat(8192)+'</svg>'),failure=new Error('retained source failed'),source:ImageByteSource={size:bytes.length,async read(position,length){if(position>=4096)throw failure;return bytes.subarray(position,position+length);}},caller=backing();
+ await expect(svg.decodeSvgSourceToStorage(source,caller.storage,new AbortController().signal)).rejects.toBe(failure);
+});
+
+test('observes cancellation during a long non-painting SVG scan',async()=>{
+ const bytes=new TextEncoder().encode('<svg width="2" height="2">'+' '.repeat(262144)+'</svg>'),source:ImageByteSource={size:bytes.length,async read(position,length){return bytes.subarray(position,position+length);}},caller=backing(),controller=new AbortController(),reason=new Error('cancel source scan'),write=caller.storage.write;
+ let timer:ReturnType<typeof setTimeout>|undefined;caller.storage.write=async(...args)=>{await write(...args);timer??=setTimeout(()=>controller.abort(reason),0);};
+ try{await expect(svg.decodeSvgSourceToStorage(source,caller.storage,controller.signal)).rejects.toBe(reason);}finally{clearTimeout(timer);}
+});
+
+for(const mode of ['buffered','storage','source'] as const){
+ for(const [name,path,paint,checks] of [
+  ['open grid lines','M2 3H18 M2 11H18 M2 19H18','stroke="red"',[[10,3,255,0,0,255],[10,7,0,0,0,0],[10,15,0,0,0,0]]],
+  ['closed triangles','M2 2H8V8Z M12 12H18V18Z','fill="blue" stroke="red"',[[6,4,0,0,255,255],[16,14,0,0,255,255],[10,10,0,0,0,0]]],
+  ['implicitly closed fills','M2 2H8V8H2 M12 2H18V8H12','fill="blue"',[[4,4,0,0,255,255],[14,4,0,0,255,255],[10,4,0,0,0,0]]],
+  ['relative moves after closure','M2 2h6v6z m10 10h6v6z','fill="blue" stroke="red"',[[6,4,0,0,255,255],[16,14,0,0,255,255],[10,10,0,0,0,0]]],
+ ] as const)test(`${mode} keeps SVG subpaths separate: ${name}`,async()=>{
+  const bytes=new TextEncoder().encode(`<svg width="22" height="22"><path d="${path}" ${paint}/></svg>`);
+  let pixels:Uint8Array;
+  if(mode==='buffered')pixels=decodeSvgImage(bytes).data;
+  else{
+   const caller=backing(),signal=new AbortController().signal;
+   const image=mode==='storage'?await svg.decodeSvgToStorage(bytes,caller.storage,signal):await svg.decodeSvgSourceToStorage({size:bytes.length,async read(position,length){return bytes.subarray(position,position+length);}},caller.storage,signal);
+   pixels=await caller.pixels(image.position,22*22*4);
+  }
+  for(const [x,y,...rgba] of checks)expect(Array.from(pixels.subarray((y*22+x)*4,(y*22+x)*4+4))).toEqual(rgba);
+ });
+}
+
+for(const mode of ['buffered','storage','source'] as const){
+ for(const [name,root,body,expected] of [
+  ['nested fill overrides and siblings','fill="red"',
+   '<g fill="blue"><rect x="2" y="2" width="5" height="5"/><g fill="green"><rect x="9" y="2" width="5" height="5"/></g><rect x="16" y="2" width="5" height="5"/><rect x="23" y="2" width="5" height="5" fill="white"/></g><g fill="yellow"/><rect x="30" y="2" width="5" height="5"/>',
+   '<rect x="2" y="2" width="5" height="5" fill="blue"/><rect x="9" y="2" width="5" height="5" fill="green"/><rect x="16" y="2" width="5" height="5" fill="blue"/><rect x="23" y="2" width="5" height="5" fill="white"/><rect x="30" y="2" width="5" height="5" fill="red"/>'],
+  ['fill opacity','fill="blue" fill-opacity="0.5"',
+   '<rect x="2" y="2" width="5" height="5"/><g fill-opacity="0.25"><rect x="9" y="2" width="5" height="5"/><rect x="16" y="2" width="5" height="5" fill-opacity="1"/></g><rect x="23" y="2" width="5" height="5"/>',
+   '<rect x="2" y="2" width="5" height="5" fill="blue" fill-opacity="0.5"/><rect x="9" y="2" width="5" height="5" fill="blue" fill-opacity="0.25"/><rect x="16" y="2" width="5" height="5" fill="blue" fill-opacity="1"/><rect x="23" y="2" width="5" height="5" fill="blue" fill-opacity="0.5"/>'],
+  ['stroke color width and opacity','stroke="red" stroke-width="3" stroke-opacity="0.5"',
+   '<g><line x1="3" y1="4" x2="40" y2="4"/><g stroke="blue" stroke-width="1" stroke-opacity="1"><line x1="3" y1="10" x2="40" y2="10"/></g><line x1="3" y1="16" x2="40" y2="16"/></g>',
+   '<line x1="3" y1="4" x2="40" y2="4" stroke="red" stroke-width="3" stroke-opacity="0.5"/><line x1="3" y1="10" x2="40" y2="10" stroke="blue" stroke-width="1" stroke-opacity="1"/><line x1="3" y1="16" x2="40" y2="16" stroke="red" stroke-width="3" stroke-opacity="0.5"/>'],
+  ['text size anchor and fill','fill="green" font-size="8" text-anchor="end"',
+   '<g font-size="18" text-anchor="middle" fill="blue"><text x="24" y="18">ABC</text></g><text x="44" y="32">Hi</text>',
+   '<text x="24" y="18" font-size="18" text-anchor="middle" fill="blue">ABC</text><text x="44" y="32" font-size="8" text-anchor="end" fill="green">Hi</text>'],
+ ] as const)test(`${mode} inherits SVG presentation attributes: ${name}`,async()=>{
+  const bytes=new TextEncoder().encode(`<svg width="48" height="36" ${root}>${body}</svg>`);
+  let pixels:Uint8Array;
+  if(mode==='buffered')pixels=decodeSvgImage(bytes).data;
+  else{
+   const caller=backing(),signal=new AbortController().signal,borrowed=new Uint8Array(4096);
+   const image=mode==='storage'?await svg.decodeSvgToStorage(bytes,caller.storage,signal):await svg.decodeSvgSourceToStorage({size:bytes.length,async read(position,length){borrowed.set(bytes.subarray(position,position+length));return borrowed.subarray(0,length);}},caller.storage,signal);
+   pixels=await caller.pixels(image.position,48*36*4);
+  }
+  expect(pixels).toEqual(decodeSvgImage(new TextEncoder().encode(`<svg width="48" height="36">${expected}</svg>`)).data);
+ });
+}

@@ -1,0 +1,21 @@
+{
+  "at": "2026-08-27T22:53:40.137Z",
+  "immutableFiles": 108,
+  "originalFixtures": 18,
+  "du75FrozenFiles": 15,
+  "helperAndToolsUnchanged": true,
+  "indexUnchanged": false,
+  "concurrentIndexChangesReconciled": true,
+  "archive": {
+    "code": 0,
+    "signal": null,
+    "bytes": 2340945920,
+    "chunks": 46192,
+    "maxChunkBytes": 65536,
+    "stderr": "",
+    "timedOut": false,
+    "sha256": "cb7f6b6d68f5946c3300e28156367ba42d1af83b12cb1b4be88832c50dfbfd07",
+    "closeObserved": true
+  },
+  "actual34": 0
+}

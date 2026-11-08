@@ -1,0 +1,8100 @@
+[
+  {
+    "number": 1,
+    "oldTestName": "strict UTF-8 rejection remains chunk invariant (not native parity): raw-lone-continuation",
+    "newTestName": "native UTF-8 replacement remains chunk invariant: raw-lone-continuation",
+    "options": {},
+    "calls": [
+      {
+        "argv": [
+          "-Rc",
+          "--",
+          "."
+        ],
+        "inputHex": "6f6b0a8061667465720a",
+        "files": {},
+        "inputKind": "bytes",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b0a8061667465720a"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-Rc",
+          "--",
+          "."
+        ],
+        "inputHex": "6f6b0a8061667465720a",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "",
+          "",
+          "6f6b0a8061667465720a"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-Rc",
+          "--",
+          "."
+        ],
+        "inputHex": "6f6b0a8061667465720a",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f",
+          "",
+          "6b0a8061667465720a"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-Rc",
+          "--",
+          "."
+        ],
+        "inputHex": "6f6b0a8061667465720a",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b",
+          "",
+          "0a8061667465720a"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-Rc",
+          "--",
+          "."
+        ],
+        "inputHex": "6f6b0a8061667465720a",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b0a",
+          "",
+          "8061667465720a"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-Rc",
+          "--",
+          "."
+        ],
+        "inputHex": "6f6b0a8061667465720a",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b0a80",
+          "",
+          "61667465720a"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-Rc",
+          "--",
+          "."
+        ],
+        "inputHex": "6f6b0a8061667465720a",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b0a8061",
+          "",
+          "667465720a"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-Rc",
+          "--",
+          "."
+        ],
+        "inputHex": "6f6b0a8061667465720a",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b0a806166",
+          "",
+          "7465720a"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-Rc",
+          "--",
+          "."
+        ],
+        "inputHex": "6f6b0a8061667465720a",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b0a80616674",
+          "",
+          "65720a"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-Rc",
+          "--",
+          "."
+        ],
+        "inputHex": "6f6b0a8061667465720a",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b0a8061667465",
+          "",
+          "720a"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-Rc",
+          "--",
+          "."
+        ],
+        "inputHex": "6f6b0a8061667465720a",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b0a806166746572",
+          "",
+          "0a"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-Rc",
+          "--",
+          "."
+        ],
+        "inputHex": "6f6b0a8061667465720a",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b0a8061667465720a",
+          "",
+          ""
+        ],
+        "options": {},
+        "overrideKeys": []
+      }
+    ]
+  },
+  {
+    "number": 2,
+    "oldTestName": "strict UTF-8 rejection remains chunk invariant (not native parity): raw-truncated",
+    "newTestName": "native UTF-8 replacement remains chunk invariant: raw-truncated",
+    "options": {},
+    "calls": [
+      {
+        "argv": [
+          "-Rj",
+          "--",
+          "."
+        ],
+        "inputHex": "6f6b0af09f",
+        "files": {},
+        "inputKind": "bytes",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b0af09f"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-Rj",
+          "--",
+          "."
+        ],
+        "inputHex": "6f6b0af09f",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "",
+          "",
+          "6f6b0af09f"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-Rj",
+          "--",
+          "."
+        ],
+        "inputHex": "6f6b0af09f",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f",
+          "",
+          "6b0af09f"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-Rj",
+          "--",
+          "."
+        ],
+        "inputHex": "6f6b0af09f",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b",
+          "",
+          "0af09f"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-Rj",
+          "--",
+          "."
+        ],
+        "inputHex": "6f6b0af09f",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b0a",
+          "",
+          "f09f"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-Rj",
+          "--",
+          "."
+        ],
+        "inputHex": "6f6b0af09f",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b0af0",
+          "",
+          "9f"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-Rj",
+          "--",
+          "."
+        ],
+        "inputHex": "6f6b0af09f",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b0af09f",
+          "",
+          ""
+        ],
+        "options": {},
+        "overrideKeys": []
+      }
+    ]
+  },
+  {
+    "number": 3,
+    "oldTestName": "strict UTF-8 rejection remains chunk invariant (not native parity): raw-bad-continuation",
+    "newTestName": "native UTF-8 replacement remains chunk invariant: raw-bad-continuation",
+    "options": {},
+    "calls": [
+      {
+        "argv": [
+          "-Rc",
+          "--",
+          "."
+        ],
+        "inputHex": "e282410a",
+        "files": {},
+        "inputKind": "bytes",
+        "acquired": true,
+        "chunksHex": [
+          "e282410a"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-Rc",
+          "--",
+          "."
+        ],
+        "inputHex": "e282410a",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "",
+          "",
+          "e282410a"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-Rc",
+          "--",
+          "."
+        ],
+        "inputHex": "e282410a",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "e2",
+          "",
+          "82410a"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-Rc",
+          "--",
+          "."
+        ],
+        "inputHex": "e282410a",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "e282",
+          "",
+          "410a"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-Rc",
+          "--",
+          "."
+        ],
+        "inputHex": "e282410a",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "e28241",
+          "",
+          "0a"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-Rc",
+          "--",
+          "."
+        ],
+        "inputHex": "e282410a",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "e282410a",
+          "",
+          ""
+        ],
+        "options": {},
+        "overrideKeys": []
+      }
+    ]
+  },
+  {
+    "number": 4,
+    "oldTestName": "strict UTF-8 rejection remains chunk invariant (not native parity): json-bad-string",
+    "newTestName": "native UTF-8 replacement remains chunk invariant: json-bad-string",
+    "options": {},
+    "calls": [
+      {
+        "argv": [
+          "-c",
+          "--",
+          "."
+        ],
+        "inputHex": "226f6b220a2280220a226166746572220a",
+        "files": {},
+        "inputKind": "bytes",
+        "acquired": true,
+        "chunksHex": [
+          "226f6b220a2280220a226166746572220a"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "--",
+          "."
+        ],
+        "inputHex": "226f6b220a2280220a226166746572220a",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "",
+          "",
+          "226f6b220a2280220a226166746572220a"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "--",
+          "."
+        ],
+        "inputHex": "226f6b220a2280220a226166746572220a",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22",
+          "",
+          "6f6b220a2280220a226166746572220a"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "--",
+          "."
+        ],
+        "inputHex": "226f6b220a2280220a226166746572220a",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "226f",
+          "",
+          "6b220a2280220a226166746572220a"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "--",
+          "."
+        ],
+        "inputHex": "226f6b220a2280220a226166746572220a",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "226f6b",
+          "",
+          "220a2280220a226166746572220a"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "--",
+          "."
+        ],
+        "inputHex": "226f6b220a2280220a226166746572220a",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "226f6b22",
+          "",
+          "0a2280220a226166746572220a"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "--",
+          "."
+        ],
+        "inputHex": "226f6b220a2280220a226166746572220a",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "226f6b220a",
+          "",
+          "2280220a226166746572220a"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "--",
+          "."
+        ],
+        "inputHex": "226f6b220a2280220a226166746572220a",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "226f6b220a22",
+          "",
+          "80220a226166746572220a"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "--",
+          "."
+        ],
+        "inputHex": "226f6b220a2280220a226166746572220a",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "226f6b220a2280",
+          "",
+          "220a226166746572220a"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "--",
+          "."
+        ],
+        "inputHex": "226f6b220a2280220a226166746572220a",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "226f6b220a228022",
+          "",
+          "0a226166746572220a"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "--",
+          "."
+        ],
+        "inputHex": "226f6b220a2280220a226166746572220a",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "226f6b220a2280220a",
+          "",
+          "226166746572220a"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "--",
+          "."
+        ],
+        "inputHex": "226f6b220a2280220a226166746572220a",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "226f6b220a2280220a22",
+          "",
+          "6166746572220a"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "--",
+          "."
+        ],
+        "inputHex": "226f6b220a2280220a226166746572220a",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "226f6b220a2280220a2261",
+          "",
+          "66746572220a"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "--",
+          "."
+        ],
+        "inputHex": "226f6b220a2280220a226166746572220a",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "226f6b220a2280220a226166",
+          "",
+          "746572220a"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "--",
+          "."
+        ],
+        "inputHex": "226f6b220a2280220a226166746572220a",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "226f6b220a2280220a22616674",
+          "",
+          "6572220a"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "--",
+          "."
+        ],
+        "inputHex": "226f6b220a2280220a226166746572220a",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "226f6b220a2280220a2261667465",
+          "",
+          "72220a"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "--",
+          "."
+        ],
+        "inputHex": "226f6b220a2280220a226166746572220a",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "226f6b220a2280220a226166746572",
+          "",
+          "220a"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "--",
+          "."
+        ],
+        "inputHex": "226f6b220a2280220a226166746572220a",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "226f6b220a2280220a22616674657222",
+          "",
+          "0a"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "--",
+          "."
+        ],
+        "inputHex": "226f6b220a2280220a226166746572220a",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "226f6b220a2280220a226166746572220a",
+          "",
+          ""
+        ],
+        "options": {},
+        "overrideKeys": []
+      }
+    ]
+  },
+  {
+    "number": 5,
+    "oldTestName": "raw native: record-error-prefix",
+    "newTestName": "raw native: record-error-prefix",
+    "options": {},
+    "calls": [
+      {
+        "argv": [
+          "-Rc",
+          ".,1/0"
+        ],
+        "inputHex": "780a790a",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "78",
+          "0a",
+          "79",
+          "0a"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      },
+      {
+        "argv": [
+          "-Rc",
+          ".,1/0"
+        ],
+        "inputHex": "780a790a",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "780a",
+          "790a"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      },
+      {
+        "argv": [
+          "-Rc",
+          ".,1/0"
+        ],
+        "inputHex": "780a790a",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "780a790a"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      },
+      {
+        "argv": [
+          "-Rc",
+          ".,1/0"
+        ],
+        "inputHex": "780a790a",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "780a790a"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      }
+    ]
+  },
+  {
+    "number": 6,
+    "oldTestName": "raw native: file-unicode:-Rc",
+    "newTestName": "raw native: file-unicode:-Rc",
+    "options": {},
+    "calls": [
+      {
+        "argv": [
+          "-Rc",
+          ".",
+          "unicode-start",
+          "-"
+        ],
+        "inputHex": "98800a",
+        "files": {
+          "unicode-start": "f09f"
+        },
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "98",
+          "80",
+          "0a"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      },
+      {
+        "argv": [
+          "-Rc",
+          ".",
+          "unicode-start",
+          "-"
+        ],
+        "inputHex": "98800a",
+        "files": {
+          "unicode-start": "f09f"
+        },
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "9880",
+          "0a"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      },
+      {
+        "argv": [
+          "-Rc",
+          ".",
+          "unicode-start",
+          "-"
+        ],
+        "inputHex": "98800a",
+        "files": {
+          "unicode-start": "f09f"
+        },
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "98800a"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      },
+      {
+        "argv": [
+          "-Rc",
+          ".",
+          "unicode-start",
+          "-"
+        ],
+        "inputHex": "98800a",
+        "files": {
+          "unicode-start": "f09f"
+        },
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "98800a"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      }
+    ]
+  },
+  {
+    "number": 7,
+    "oldTestName": "raw native: file-unicode:-Rsc",
+    "newTestName": "raw native: file-unicode:-Rsc",
+    "options": {},
+    "calls": [
+      {
+        "argv": [
+          "-Rsc",
+          ".",
+          "unicode-start",
+          "-"
+        ],
+        "inputHex": "98800a",
+        "files": {
+          "unicode-start": "f09f"
+        },
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "98",
+          "80",
+          "0a"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      },
+      {
+        "argv": [
+          "-Rsc",
+          ".",
+          "unicode-start",
+          "-"
+        ],
+        "inputHex": "98800a",
+        "files": {
+          "unicode-start": "f09f"
+        },
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "9880",
+          "0a"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      },
+      {
+        "argv": [
+          "-Rsc",
+          ".",
+          "unicode-start",
+          "-"
+        ],
+        "inputHex": "98800a",
+        "files": {
+          "unicode-start": "f09f"
+        },
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "98800a"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      },
+      {
+        "argv": [
+          "-Rsc",
+          ".",
+          "unicode-start",
+          "-"
+        ],
+        "inputHex": "98800a",
+        "files": {
+          "unicode-start": "f09f"
+        },
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "98800a"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      }
+    ]
+  },
+  {
+    "number": 8,
+    "oldTestName": "raw native: invalid:0:-Rc",
+    "newTestName": "raw native: invalid:0:-Rc",
+    "options": {},
+    "calls": [
+      {
+        "argv": [
+          "-Rc",
+          "."
+        ],
+        "inputHex": "6f6b0ac0af",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f",
+          "6b",
+          "0a",
+          "c0",
+          "af"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      },
+      {
+        "argv": [
+          "-Rc",
+          "."
+        ],
+        "inputHex": "6f6b0ac0af",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b",
+          "0ac0",
+          "af"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      },
+      {
+        "argv": [
+          "-Rc",
+          "."
+        ],
+        "inputHex": "6f6b0ac0af",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b0ac0af"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      },
+      {
+        "argv": [
+          "-Rc",
+          "."
+        ],
+        "inputHex": "6f6b0ac0af",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b0ac0af"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      }
+    ]
+  },
+  {
+    "number": 9,
+    "oldTestName": "raw native: invalid:0:-Rsc",
+    "newTestName": "raw native: invalid:0:-Rsc",
+    "options": {},
+    "calls": [
+      {
+        "argv": [
+          "-Rsc",
+          "."
+        ],
+        "inputHex": "6f6b0ac0af",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f",
+          "6b",
+          "0a",
+          "c0",
+          "af"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      },
+      {
+        "argv": [
+          "-Rsc",
+          "."
+        ],
+        "inputHex": "6f6b0ac0af",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b",
+          "0ac0",
+          "af"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      },
+      {
+        "argv": [
+          "-Rsc",
+          "."
+        ],
+        "inputHex": "6f6b0ac0af",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b0ac0af"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      },
+      {
+        "argv": [
+          "-Rsc",
+          "."
+        ],
+        "inputHex": "6f6b0ac0af",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b0ac0af"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      }
+    ]
+  },
+  {
+    "number": 10,
+    "oldTestName": "raw native: invalid:1:-Rc",
+    "newTestName": "raw native: invalid:1:-Rc",
+    "options": {},
+    "calls": [
+      {
+        "argv": [
+          "-Rc",
+          "."
+        ],
+        "inputHex": "6f6b0aeda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f",
+          "6b",
+          "0a",
+          "ed",
+          "a0",
+          "80"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      },
+      {
+        "argv": [
+          "-Rc",
+          "."
+        ],
+        "inputHex": "6f6b0aeda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b",
+          "0aed",
+          "a080"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      },
+      {
+        "argv": [
+          "-Rc",
+          "."
+        ],
+        "inputHex": "6f6b0aeda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b0aeda080"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      },
+      {
+        "argv": [
+          "-Rc",
+          "."
+        ],
+        "inputHex": "6f6b0aeda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b0aeda080"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      }
+    ]
+  },
+  {
+    "number": 11,
+    "oldTestName": "raw native: invalid:1:-Rsc",
+    "newTestName": "raw native: invalid:1:-Rsc",
+    "options": {},
+    "calls": [
+      {
+        "argv": [
+          "-Rsc",
+          "."
+        ],
+        "inputHex": "6f6b0aeda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f",
+          "6b",
+          "0a",
+          "ed",
+          "a0",
+          "80"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      },
+      {
+        "argv": [
+          "-Rsc",
+          "."
+        ],
+        "inputHex": "6f6b0aeda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b",
+          "0aed",
+          "a080"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      },
+      {
+        "argv": [
+          "-Rsc",
+          "."
+        ],
+        "inputHex": "6f6b0aeda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b0aeda080"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      },
+      {
+        "argv": [
+          "-Rsc",
+          "."
+        ],
+        "inputHex": "6f6b0aeda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b0aeda080"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      }
+    ]
+  },
+  {
+    "number": 12,
+    "oldTestName": "raw native: invalid:2:-Rc",
+    "newTestName": "raw native: invalid:2:-Rc",
+    "options": {},
+    "calls": [
+      {
+        "argv": [
+          "-Rc",
+          "."
+        ],
+        "inputHex": "6f6b0af4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f",
+          "6b",
+          "0a",
+          "f4",
+          "90",
+          "80",
+          "80"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      },
+      {
+        "argv": [
+          "-Rc",
+          "."
+        ],
+        "inputHex": "6f6b0af4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b",
+          "0af4",
+          "9080",
+          "80"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      },
+      {
+        "argv": [
+          "-Rc",
+          "."
+        ],
+        "inputHex": "6f6b0af4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b0af4908080"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      },
+      {
+        "argv": [
+          "-Rc",
+          "."
+        ],
+        "inputHex": "6f6b0af4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b0af4908080"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      }
+    ]
+  },
+  {
+    "number": 13,
+    "oldTestName": "raw native: invalid:2:-Rsc",
+    "newTestName": "raw native: invalid:2:-Rsc",
+    "options": {},
+    "calls": [
+      {
+        "argv": [
+          "-Rsc",
+          "."
+        ],
+        "inputHex": "6f6b0af4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f",
+          "6b",
+          "0a",
+          "f4",
+          "90",
+          "80",
+          "80"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      },
+      {
+        "argv": [
+          "-Rsc",
+          "."
+        ],
+        "inputHex": "6f6b0af4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b",
+          "0af4",
+          "9080",
+          "80"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      },
+      {
+        "argv": [
+          "-Rsc",
+          "."
+        ],
+        "inputHex": "6f6b0af4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b0af4908080"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      },
+      {
+        "argv": [
+          "-Rsc",
+          "."
+        ],
+        "inputHex": "6f6b0af4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b0af4908080"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      }
+    ]
+  },
+  {
+    "number": 14,
+    "oldTestName": "raw native: invalid:3:-Rc",
+    "newTestName": "raw native: invalid:3:-Rc",
+    "options": {},
+    "calls": [
+      {
+        "argv": [
+          "-Rc",
+          "."
+        ],
+        "inputHex": "6f6b0af09f",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f",
+          "6b",
+          "0a",
+          "f0",
+          "9f"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      },
+      {
+        "argv": [
+          "-Rc",
+          "."
+        ],
+        "inputHex": "6f6b0af09f",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b",
+          "0af0",
+          "9f"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      },
+      {
+        "argv": [
+          "-Rc",
+          "."
+        ],
+        "inputHex": "6f6b0af09f",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b0af09f"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      },
+      {
+        "argv": [
+          "-Rc",
+          "."
+        ],
+        "inputHex": "6f6b0af09f",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b0af09f"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      }
+    ]
+  },
+  {
+    "number": 15,
+    "oldTestName": "raw native: invalid:3:-Rsc",
+    "newTestName": "raw native: invalid:3:-Rsc",
+    "options": {},
+    "calls": [
+      {
+        "argv": [
+          "-Rsc",
+          "."
+        ],
+        "inputHex": "6f6b0af09f",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f",
+          "6b",
+          "0a",
+          "f0",
+          "9f"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      },
+      {
+        "argv": [
+          "-Rsc",
+          "."
+        ],
+        "inputHex": "6f6b0af09f",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b",
+          "0af0",
+          "9f"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      },
+      {
+        "argv": [
+          "-Rsc",
+          "."
+        ],
+        "inputHex": "6f6b0af09f",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b0af09f"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      },
+      {
+        "argv": [
+          "-Rsc",
+          "."
+        ],
+        "inputHex": "6f6b0af09f",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b0af09f"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      }
+    ]
+  },
+  {
+    "number": 16,
+    "oldTestName": "raw native: invalid:4:-Rc",
+    "newTestName": "raw native: invalid:4:-Rc",
+    "options": {},
+    "calls": [
+      {
+        "argv": [
+          "-Rc",
+          "."
+        ],
+        "inputHex": "6f6b0a80",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f",
+          "6b",
+          "0a",
+          "80"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      },
+      {
+        "argv": [
+          "-Rc",
+          "."
+        ],
+        "inputHex": "6f6b0a80",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b",
+          "0a80"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      },
+      {
+        "argv": [
+          "-Rc",
+          "."
+        ],
+        "inputHex": "6f6b0a80",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b0a80"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      },
+      {
+        "argv": [
+          "-Rc",
+          "."
+        ],
+        "inputHex": "6f6b0a80",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b0a80"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      }
+    ]
+  },
+  {
+    "number": 17,
+    "oldTestName": "raw native: invalid:4:-Rsc",
+    "newTestName": "raw native: invalid:4:-Rsc",
+    "options": {},
+    "calls": [
+      {
+        "argv": [
+          "-Rsc",
+          "."
+        ],
+        "inputHex": "6f6b0a80",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f",
+          "6b",
+          "0a",
+          "80"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      },
+      {
+        "argv": [
+          "-Rsc",
+          "."
+        ],
+        "inputHex": "6f6b0a80",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b",
+          "0a80"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      },
+      {
+        "argv": [
+          "-Rsc",
+          "."
+        ],
+        "inputHex": "6f6b0a80",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b0a80"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      },
+      {
+        "argv": [
+          "-Rsc",
+          "."
+        ],
+        "inputHex": "6f6b0a80",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6f6b0a80"
+        ],
+        "options": {},
+        "overrideKeys": [
+          "fs"
+        ]
+      }
+    ]
+  },
+  {
+    "number": 18,
+    "oldTestName": "strict malformed JSON 14 across chunk boundaries",
+    "newTestName": "native JSON acceptance 14 across chunk boundaries",
+    "options": {
+      "timeout": 3000
+    },
+    "calls": [
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "225c754443303022",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22",
+          "5c",
+          "75",
+          "44",
+          "43",
+          "30",
+          "30",
+          "22"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "225c754443303022",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "225c",
+          "7544",
+          "4330",
+          "3022"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "225c754443303022",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "225c754443",
+          "303022"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "225c754443303022",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "225c754443303022"
+        ],
+        "options": {},
+        "overrideKeys": []
+      }
+    ]
+  },
+  {
+    "number": 19,
+    "oldTestName": "strict malformed JSON 16 across chunk boundaries",
+    "newTestName": "native JSON acceptance 16 across chunk boundaries",
+    "options": {
+      "timeout": 3000
+    },
+    "calls": [
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "6e756c6c00",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6e",
+          "75",
+          "6c",
+          "6c",
+          "00"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "6e756c6c00",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6e75",
+          "6c6c",
+          "00"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "6e756c6c00",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6e756c6c00"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "6e756c6c00",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "6e756c6c00"
+        ],
+        "options": {},
+        "overrideKeys": []
+      }
+    ]
+  },
+  {
+    "number": 20,
+    "oldTestName": "invalid UTF-8 never becomes replacement text",
+    "newTestName": "invalid UTF-8 JSON tokens preserve prefix and native diagnostics",
+    "options": {},
+    "calls": [
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0ac0af",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b",
+          "7d",
+          "0a",
+          "c0",
+          "af"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0ac0af",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b7d",
+          "0ac0",
+          "af"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0ac0af",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b7d0ac0af"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0aeda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b",
+          "7d",
+          "0a",
+          "ed",
+          "a0",
+          "80"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0aeda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b7d",
+          "0aed",
+          "a080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0aeda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b7d0aeda080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0af4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b",
+          "7d",
+          "0a",
+          "f4",
+          "90",
+          "80",
+          "80"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0af4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b7d",
+          "0af4",
+          "9080",
+          "80"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0af4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b7d0af4908080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0af09f",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b",
+          "7d",
+          "0a",
+          "f0",
+          "9f"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0af09f",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b7d",
+          "0af0",
+          "9f"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0af09f",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b7d0af09f"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0a80",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b",
+          "7d",
+          "0a",
+          "80"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0a80",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b7d",
+          "0a80"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0a80",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b7d0a80"
+        ],
+        "options": {},
+        "overrideKeys": []
+      }
+    ]
+  },
+  {
+    "number": 21,
+    "oldTestName": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+    "newTestName": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+    "options": {},
+    "calls": [
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0aff",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "",
+          "7b7d0aff"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0aff",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b",
+          "7d0aff"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0aff",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b7d",
+          "0aff"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0aff",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b7d0a",
+          "ff"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0aff",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b7d0aff",
+          ""
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0aff",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b",
+          "7d",
+          "0a",
+          "ff"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b7d0aff",
+        "files": {},
+        "inputKind": "bytes",
+        "acquired": true,
+        "chunksHex": [
+          "7b7d0aff"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310aff",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "",
+          "22f09f9880220a310aff"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310aff",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22",
+          "f09f9880220a310aff"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310aff",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f0",
+          "9f9880220a310aff"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310aff",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f",
+          "9880220a310aff"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310aff",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f98",
+          "80220a310aff"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310aff",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880",
+          "220a310aff"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310aff",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f988022",
+          "0a310aff"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310aff",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880220a",
+          "310aff"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310aff",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880220a31",
+          "0aff"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310aff",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880220a310a",
+          "ff"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310aff",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880220a310aff",
+          ""
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310aff",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22",
+          "f0",
+          "9f",
+          "98",
+          "80",
+          "22",
+          "0a",
+          "31",
+          "0a",
+          "ff"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310aff",
+        "files": {},
+        "inputKind": "bytes",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880220a310aff"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465ff",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "",
+          "7b2261223a5b315d7d0a22696e636f6d706c657465ff"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465ff",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b",
+          "2261223a5b315d7d0a22696e636f6d706c657465ff"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465ff",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b22",
+          "61223a5b315d7d0a22696e636f6d706c657465ff"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465ff",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261",
+          "223a5b315d7d0a22696e636f6d706c657465ff"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465ff",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b226122",
+          "3a5b315d7d0a22696e636f6d706c657465ff"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465ff",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a",
+          "5b315d7d0a22696e636f6d706c657465ff"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465ff",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b",
+          "315d7d0a22696e636f6d706c657465ff"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465ff",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b31",
+          "5d7d0a22696e636f6d706c657465ff"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465ff",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d",
+          "7d0a22696e636f6d706c657465ff"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465ff",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d",
+          "0a22696e636f6d706c657465ff"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465ff",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a",
+          "22696e636f6d706c657465ff"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465ff",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22",
+          "696e636f6d706c657465ff"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465ff",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a2269",
+          "6e636f6d706c657465ff"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465ff",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e",
+          "636f6d706c657465ff"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465ff",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e63",
+          "6f6d706c657465ff"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465ff",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f",
+          "6d706c657465ff"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465ff",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d",
+          "706c657465ff"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465ff",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d70",
+          "6c657465ff"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465ff",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c",
+          "657465ff"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465ff",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c65",
+          "7465ff"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465ff",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c6574",
+          "65ff"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465ff",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c657465",
+          "ff"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465ff",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c657465ff",
+          ""
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465ff",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b",
+          "22",
+          "61",
+          "22",
+          "3a",
+          "5b",
+          "31",
+          "5d",
+          "7d",
+          "0a",
+          "22",
+          "69",
+          "6e",
+          "63",
+          "6f",
+          "6d",
+          "70",
+          "6c",
+          "65",
+          "74",
+          "65",
+          "ff"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465ff",
+        "files": {},
+        "inputKind": "bytes",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c657465ff"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0ac3",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "",
+          "7b7d0ac3"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0ac3",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b",
+          "7d0ac3"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0ac3",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b7d",
+          "0ac3"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0ac3",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b7d0a",
+          "c3"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0ac3",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b7d0ac3",
+          ""
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0ac3",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b",
+          "7d",
+          "0a",
+          "c3"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b7d0ac3",
+        "files": {},
+        "inputKind": "bytes",
+        "acquired": true,
+        "chunksHex": [
+          "7b7d0ac3"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310ac3",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "",
+          "22f09f9880220a310ac3"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310ac3",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22",
+          "f09f9880220a310ac3"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310ac3",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f0",
+          "9f9880220a310ac3"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310ac3",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f",
+          "9880220a310ac3"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310ac3",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f98",
+          "80220a310ac3"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310ac3",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880",
+          "220a310ac3"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310ac3",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f988022",
+          "0a310ac3"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310ac3",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880220a",
+          "310ac3"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310ac3",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880220a31",
+          "0ac3"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310ac3",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880220a310a",
+          "c3"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310ac3",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880220a310ac3",
+          ""
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310ac3",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22",
+          "f0",
+          "9f",
+          "98",
+          "80",
+          "22",
+          "0a",
+          "31",
+          "0a",
+          "c3"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310ac3",
+        "files": {},
+        "inputKind": "bytes",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880220a310ac3"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "",
+          "7b2261223a5b315d7d0a22696e636f6d706c657465c3"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b",
+          "2261223a5b315d7d0a22696e636f6d706c657465c3"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b22",
+          "61223a5b315d7d0a22696e636f6d706c657465c3"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261",
+          "223a5b315d7d0a22696e636f6d706c657465c3"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b226122",
+          "3a5b315d7d0a22696e636f6d706c657465c3"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a",
+          "5b315d7d0a22696e636f6d706c657465c3"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b",
+          "315d7d0a22696e636f6d706c657465c3"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b31",
+          "5d7d0a22696e636f6d706c657465c3"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d",
+          "7d0a22696e636f6d706c657465c3"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d",
+          "0a22696e636f6d706c657465c3"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a",
+          "22696e636f6d706c657465c3"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22",
+          "696e636f6d706c657465c3"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a2269",
+          "6e636f6d706c657465c3"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e",
+          "636f6d706c657465c3"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e63",
+          "6f6d706c657465c3"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f",
+          "6d706c657465c3"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d",
+          "706c657465c3"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d70",
+          "6c657465c3"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c",
+          "657465c3"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c65",
+          "7465c3"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c6574",
+          "65c3"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c657465",
+          "c3"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+          ""
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b",
+          "22",
+          "61",
+          "22",
+          "3a",
+          "5b",
+          "31",
+          "5d",
+          "7d",
+          "0a",
+          "22",
+          "69",
+          "6e",
+          "63",
+          "6f",
+          "6d",
+          "70",
+          "6c",
+          "65",
+          "74",
+          "65",
+          "c3"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+        "files": {},
+        "inputKind": "bytes",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c657465c3"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0ac328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "",
+          "7b7d0ac328"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0ac328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b",
+          "7d0ac328"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0ac328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b7d",
+          "0ac328"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0ac328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b7d0a",
+          "c328"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0ac328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b7d0ac3",
+          "28"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0ac328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b7d0ac328",
+          ""
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0ac328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b",
+          "7d",
+          "0a",
+          "c3",
+          "28"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b7d0ac328",
+        "files": {},
+        "inputKind": "bytes",
+        "acquired": true,
+        "chunksHex": [
+          "7b7d0ac328"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310ac328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "",
+          "22f09f9880220a310ac328"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310ac328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22",
+          "f09f9880220a310ac328"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310ac328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f0",
+          "9f9880220a310ac328"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310ac328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f",
+          "9880220a310ac328"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310ac328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f98",
+          "80220a310ac328"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310ac328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880",
+          "220a310ac328"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310ac328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f988022",
+          "0a310ac328"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310ac328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880220a",
+          "310ac328"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310ac328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880220a31",
+          "0ac328"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310ac328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880220a310a",
+          "c328"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310ac328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880220a310ac3",
+          "28"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310ac328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880220a310ac328",
+          ""
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310ac328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22",
+          "f0",
+          "9f",
+          "98",
+          "80",
+          "22",
+          "0a",
+          "31",
+          "0a",
+          "c3",
+          "28"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310ac328",
+        "files": {},
+        "inputKind": "bytes",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880220a310ac328"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "",
+          "7b2261223a5b315d7d0a22696e636f6d706c657465c328"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b",
+          "2261223a5b315d7d0a22696e636f6d706c657465c328"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b22",
+          "61223a5b315d7d0a22696e636f6d706c657465c328"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261",
+          "223a5b315d7d0a22696e636f6d706c657465c328"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b226122",
+          "3a5b315d7d0a22696e636f6d706c657465c328"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a",
+          "5b315d7d0a22696e636f6d706c657465c328"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b",
+          "315d7d0a22696e636f6d706c657465c328"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b31",
+          "5d7d0a22696e636f6d706c657465c328"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d",
+          "7d0a22696e636f6d706c657465c328"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d",
+          "0a22696e636f6d706c657465c328"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a",
+          "22696e636f6d706c657465c328"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22",
+          "696e636f6d706c657465c328"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a2269",
+          "6e636f6d706c657465c328"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e",
+          "636f6d706c657465c328"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e63",
+          "6f6d706c657465c328"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f",
+          "6d706c657465c328"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d",
+          "706c657465c328"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d70",
+          "6c657465c328"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c",
+          "657465c328"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c65",
+          "7465c328"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c6574",
+          "65c328"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c657465",
+          "c328"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+          "28"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+          ""
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b",
+          "22",
+          "61",
+          "22",
+          "3a",
+          "5b",
+          "31",
+          "5d",
+          "7d",
+          "0a",
+          "22",
+          "69",
+          "6e",
+          "63",
+          "6f",
+          "6d",
+          "70",
+          "6c",
+          "65",
+          "74",
+          "65",
+          "c3",
+          "28"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+        "files": {},
+        "inputKind": "bytes",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c657465c328"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0aeda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "",
+          "7b7d0aeda080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0aeda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b",
+          "7d0aeda080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0aeda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b7d",
+          "0aeda080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0aeda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b7d0a",
+          "eda080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0aeda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b7d0aed",
+          "a080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0aeda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b7d0aeda0",
+          "80"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0aeda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b7d0aeda080",
+          ""
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0aeda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b",
+          "7d",
+          "0a",
+          "ed",
+          "a0",
+          "80"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b7d0aeda080",
+        "files": {},
+        "inputKind": "bytes",
+        "acquired": true,
+        "chunksHex": [
+          "7b7d0aeda080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310aeda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "",
+          "22f09f9880220a310aeda080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310aeda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22",
+          "f09f9880220a310aeda080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310aeda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f0",
+          "9f9880220a310aeda080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310aeda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f",
+          "9880220a310aeda080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310aeda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f98",
+          "80220a310aeda080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310aeda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880",
+          "220a310aeda080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310aeda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f988022",
+          "0a310aeda080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310aeda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880220a",
+          "310aeda080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310aeda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880220a31",
+          "0aeda080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310aeda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880220a310a",
+          "eda080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310aeda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880220a310aed",
+          "a080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310aeda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880220a310aeda0",
+          "80"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310aeda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880220a310aeda080",
+          ""
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310aeda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22",
+          "f0",
+          "9f",
+          "98",
+          "80",
+          "22",
+          "0a",
+          "31",
+          "0a",
+          "ed",
+          "a0",
+          "80"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310aeda080",
+        "files": {},
+        "inputKind": "bytes",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880220a310aeda080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "",
+          "7b2261223a5b315d7d0a22696e636f6d706c657465eda080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b",
+          "2261223a5b315d7d0a22696e636f6d706c657465eda080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b22",
+          "61223a5b315d7d0a22696e636f6d706c657465eda080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261",
+          "223a5b315d7d0a22696e636f6d706c657465eda080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b226122",
+          "3a5b315d7d0a22696e636f6d706c657465eda080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a",
+          "5b315d7d0a22696e636f6d706c657465eda080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b",
+          "315d7d0a22696e636f6d706c657465eda080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b31",
+          "5d7d0a22696e636f6d706c657465eda080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d",
+          "7d0a22696e636f6d706c657465eda080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d",
+          "0a22696e636f6d706c657465eda080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a",
+          "22696e636f6d706c657465eda080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22",
+          "696e636f6d706c657465eda080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a2269",
+          "6e636f6d706c657465eda080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e",
+          "636f6d706c657465eda080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e63",
+          "6f6d706c657465eda080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f",
+          "6d706c657465eda080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d",
+          "706c657465eda080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d70",
+          "6c657465eda080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c",
+          "657465eda080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c65",
+          "7465eda080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c6574",
+          "65eda080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c657465",
+          "eda080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c657465ed",
+          "a080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c657465eda0",
+          "80"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+          ""
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b",
+          "22",
+          "61",
+          "22",
+          "3a",
+          "5b",
+          "31",
+          "5d",
+          "7d",
+          "0a",
+          "22",
+          "69",
+          "6e",
+          "63",
+          "6f",
+          "6d",
+          "70",
+          "6c",
+          "65",
+          "74",
+          "65",
+          "ed",
+          "a0",
+          "80"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+        "files": {},
+        "inputKind": "bytes",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c657465eda080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0af0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "",
+          "7b7d0af0808080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0af0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b",
+          "7d0af0808080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0af0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b7d",
+          "0af0808080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0af0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b7d0a",
+          "f0808080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0af0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b7d0af0",
+          "808080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0af0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b7d0af080",
+          "8080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0af0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b7d0af08080",
+          "80"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0af0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b7d0af0808080",
+          ""
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0af0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b",
+          "7d",
+          "0a",
+          "f0",
+          "80",
+          "80",
+          "80"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b7d0af0808080",
+        "files": {},
+        "inputKind": "bytes",
+        "acquired": true,
+        "chunksHex": [
+          "7b7d0af0808080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "",
+          "22f09f9880220a310af0808080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22",
+          "f09f9880220a310af0808080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f0",
+          "9f9880220a310af0808080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f",
+          "9880220a310af0808080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f98",
+          "80220a310af0808080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880",
+          "220a310af0808080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f988022",
+          "0a310af0808080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880220a",
+          "310af0808080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880220a31",
+          "0af0808080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880220a310a",
+          "f0808080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880220a310af0",
+          "808080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880220a310af080",
+          "8080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880220a310af08080",
+          "80"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880220a310af0808080",
+          ""
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22",
+          "f0",
+          "9f",
+          "98",
+          "80",
+          "22",
+          "0a",
+          "31",
+          "0a",
+          "f0",
+          "80",
+          "80",
+          "80"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af0808080",
+        "files": {},
+        "inputKind": "bytes",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880220a310af0808080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "",
+          "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b",
+          "2261223a5b315d7d0a22696e636f6d706c657465f0808080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b22",
+          "61223a5b315d7d0a22696e636f6d706c657465f0808080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261",
+          "223a5b315d7d0a22696e636f6d706c657465f0808080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b226122",
+          "3a5b315d7d0a22696e636f6d706c657465f0808080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a",
+          "5b315d7d0a22696e636f6d706c657465f0808080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b",
+          "315d7d0a22696e636f6d706c657465f0808080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b31",
+          "5d7d0a22696e636f6d706c657465f0808080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d",
+          "7d0a22696e636f6d706c657465f0808080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d",
+          "0a22696e636f6d706c657465f0808080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a",
+          "22696e636f6d706c657465f0808080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22",
+          "696e636f6d706c657465f0808080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a2269",
+          "6e636f6d706c657465f0808080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e",
+          "636f6d706c657465f0808080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e63",
+          "6f6d706c657465f0808080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f",
+          "6d706c657465f0808080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d",
+          "706c657465f0808080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d70",
+          "6c657465f0808080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c",
+          "657465f0808080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c65",
+          "7465f0808080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c6574",
+          "65f0808080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c657465",
+          "f0808080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c657465f0",
+          "808080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c657465f080",
+          "8080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c657465f08080",
+          "80"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+          ""
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b",
+          "22",
+          "61",
+          "22",
+          "3a",
+          "5b",
+          "31",
+          "5d",
+          "7d",
+          "0a",
+          "22",
+          "69",
+          "6e",
+          "63",
+          "6f",
+          "6d",
+          "70",
+          "6c",
+          "65",
+          "74",
+          "65",
+          "f0",
+          "80",
+          "80",
+          "80"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+        "files": {},
+        "inputKind": "bytes",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0af4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "",
+          "7b7d0af4908080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0af4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b",
+          "7d0af4908080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0af4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b7d",
+          "0af4908080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0af4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b7d0a",
+          "f4908080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0af4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b7d0af4",
+          "908080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0af4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b7d0af490",
+          "8080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0af4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b7d0af49080",
+          "80"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0af4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b7d0af4908080",
+          ""
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b7d0af4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b",
+          "7d",
+          "0a",
+          "f4",
+          "90",
+          "80",
+          "80"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b7d0af4908080",
+        "files": {},
+        "inputKind": "bytes",
+        "acquired": true,
+        "chunksHex": [
+          "7b7d0af4908080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "",
+          "22f09f9880220a310af4908080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22",
+          "f09f9880220a310af4908080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f0",
+          "9f9880220a310af4908080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f",
+          "9880220a310af4908080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f98",
+          "80220a310af4908080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880",
+          "220a310af4908080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f988022",
+          "0a310af4908080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880220a",
+          "310af4908080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880220a31",
+          "0af4908080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880220a310a",
+          "f4908080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880220a310af4",
+          "908080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880220a310af490",
+          "8080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880220a310af49080",
+          "80"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880220a310af4908080",
+          ""
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "22",
+          "f0",
+          "9f",
+          "98",
+          "80",
+          "22",
+          "0a",
+          "31",
+          "0a",
+          "f4",
+          "90",
+          "80",
+          "80"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "22f09f9880220a310af4908080",
+        "files": {},
+        "inputKind": "bytes",
+        "acquired": true,
+        "chunksHex": [
+          "22f09f9880220a310af4908080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "",
+          "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b",
+          "2261223a5b315d7d0a22696e636f6d706c657465f4908080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b22",
+          "61223a5b315d7d0a22696e636f6d706c657465f4908080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261",
+          "223a5b315d7d0a22696e636f6d706c657465f4908080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b226122",
+          "3a5b315d7d0a22696e636f6d706c657465f4908080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a",
+          "5b315d7d0a22696e636f6d706c657465f4908080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b",
+          "315d7d0a22696e636f6d706c657465f4908080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b31",
+          "5d7d0a22696e636f6d706c657465f4908080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d",
+          "7d0a22696e636f6d706c657465f4908080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d",
+          "0a22696e636f6d706c657465f4908080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a",
+          "22696e636f6d706c657465f4908080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22",
+          "696e636f6d706c657465f4908080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a2269",
+          "6e636f6d706c657465f4908080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e",
+          "636f6d706c657465f4908080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e63",
+          "6f6d706c657465f4908080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f",
+          "6d706c657465f4908080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d",
+          "706c657465f4908080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d70",
+          "6c657465f4908080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c",
+          "657465f4908080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c65",
+          "7465f4908080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c6574",
+          "65f4908080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c657465",
+          "f4908080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c657465f4",
+          "908080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c657465f490",
+          "8080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c657465f49080",
+          "80"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+          ""
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "7b",
+          "22",
+          "61",
+          "22",
+          "3a",
+          "5b",
+          "31",
+          "5d",
+          "7d",
+          "0a",
+          "22",
+          "69",
+          "6e",
+          "63",
+          "6f",
+          "6d",
+          "70",
+          "6c",
+          "65",
+          "74",
+          "65",
+          "f4",
+          "90",
+          "80",
+          "80"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-sc",
+          "."
+        ],
+        "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+        "files": {},
+        "inputKind": "bytes",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      }
+    ]
+  },
+  {
+    "number": 22,
+    "oldTestName": "valid large decimals survive while malformed JSON and division by zero fail",
+    "newTestName": "native JSON grammar, large decimals and division diagnostics",
+    "options": {},
+    "calls": [
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "4e614e",
+        "files": {},
+        "inputKind": "string",
+        "acquired": true,
+        "chunksHex": [
+          "4e614e"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "496e66696e697479",
+        "files": {},
+        "inputKind": "string",
+        "acquired": true,
+        "chunksHex": [
+          "496e66696e697479"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "2d496e66696e697479",
+        "files": {},
+        "inputKind": "string",
+        "acquired": true,
+        "chunksHex": [
+          "2d496e66696e697479"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "225c754438303022",
+        "files": {},
+        "inputKind": "string",
+        "acquired": true,
+        "chunksHex": [
+          "225c754438303022"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "225c754443303022",
+        "files": {},
+        "inputKind": "string",
+        "acquired": true,
+        "chunksHex": [
+          "225c754443303022"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "5b7d",
+        "files": {},
+        "inputKind": "string",
+        "acquired": true,
+        "chunksHex": [
+          "5b7d"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a7d",
+        "files": {},
+        "inputKind": "string",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a7d"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "3031",
+        "files": {},
+        "inputKind": "string",
+        "acquired": true,
+        "chunksHex": [
+          "3031"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "312e",
+        "files": {},
+        "inputKind": "string",
+        "acquired": true,
+        "chunksHex": [
+          "312e"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "3165",
+        "files": {},
+        "inputKind": "string",
+        "acquired": true,
+        "chunksHex": [
+          "3165"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7472756566616c7365",
+        "files": {},
+        "inputKind": "string",
+        "acquired": true,
+        "chunksHex": [
+          "7472756566616c7365"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "226261640a737472696e6722",
+        "files": {},
+        "inputKind": "string",
+        "acquired": true,
+        "chunksHex": [
+          "226261640a737472696e6722"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "5b312c5d",
+        "files": {},
+        "inputKind": "string",
+        "acquired": true,
+        "chunksHex": [
+          "5b312c5d"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a302c7d",
+        "files": {},
+        "inputKind": "string",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a302c7d"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "efbbbf30",
+        "files": {},
+        "inputKind": "string",
+        "acquired": true,
+        "chunksHex": [
+          "efbbbf30"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "ff",
+        "files": {},
+        "inputKind": "bytes",
+        "acquired": true,
+        "chunksHex": [
+          "ff"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "c3",
+        "files": {},
+        "inputKind": "bytes",
+        "acquired": true,
+        "chunksHex": [
+          "c3"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "c328",
+        "files": {},
+        "inputKind": "bytes",
+        "acquired": true,
+        "chunksHex": [
+          "c328"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "eda080",
+        "files": {},
+        "inputKind": "bytes",
+        "acquired": true,
+        "chunksHex": [
+          "eda080"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-nc",
+          "1/0"
+        ],
+        "inputHex": "6e756c6c",
+        "files": {},
+        "inputKind": "string",
+        "acquired": true,
+        "chunksHex": [
+          "6e756c6c"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-nc",
+          "0/0"
+        ],
+        "inputHex": "6e756c6c",
+        "files": {},
+        "inputKind": "string",
+        "acquired": true,
+        "chunksHex": [
+          "6e756c6c"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-nc",
+          "1%0"
+        ],
+        "inputHex": "6e756c6c",
+        "files": {},
+        "inputKind": "string",
+        "acquired": true,
+        "chunksHex": [
+          "6e756c6c"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "316539393939",
+        "files": {},
+        "inputKind": "string",
+        "acquired": true,
+        "chunksHex": [
+          "316539393939"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "5b3165393939395d",
+        "files": {},
+        "inputKind": "string",
+        "acquired": true,
+        "chunksHex": [
+          "5b3165393939395d"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "7b2261223a3165393939397d",
+        "files": {},
+        "inputKind": "string",
+        "acquired": true,
+        "chunksHex": [
+          "7b2261223a3165393939397d"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-nc",
+          "1e308*1e308"
+        ],
+        "inputHex": "6e756c6c",
+        "files": {},
+        "inputKind": "string",
+        "acquired": true,
+        "chunksHex": [
+          "6e756c6c"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-nc",
+          "\"1e9999\"|tonumber"
+        ],
+        "inputHex": "6e756c6c",
+        "files": {},
+        "inputKind": "string",
+        "acquired": true,
+        "chunksHex": [
+          "6e756c6c"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-nc",
+          "\"[1e9999]\"|fromjson"
+        ],
+        "inputHex": "6e756c6c",
+        "files": {},
+        "inputKind": "string",
+        "acquired": true,
+        "chunksHex": [
+          "6e756c6c"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "225c75443833445c754445303022",
+        "files": {},
+        "inputKind": "string",
+        "acquired": true,
+        "chunksHex": [
+          "225c75443833445c754445303022"
+        ],
+        "options": {},
+        "overrideKeys": []
+      }
+    ]
+  },
+  {
+    "number": 23,
+    "oldTestName": "strict malformed JSON 5 across chunk boundaries",
+    "newTestName": "native JSON acceptance 5 across chunk boundaries",
+    "options": {
+      "timeout": 3000
+    },
+    "calls": [
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "5b30315d",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "5b",
+          "30",
+          "31",
+          "5d"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "5b30315d",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "5b30",
+          "315d"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "5b30315d",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "5b30315d"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "5b30315d",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "5b30315d"
+        ],
+        "options": {},
+        "overrideKeys": []
+      }
+    ]
+  },
+  {
+    "number": 24,
+    "oldTestName": "strict malformed JSON 15 across chunk boundaries",
+    "newTestName": "native JSON acceptance 15 across chunk boundaries",
+    "options": {
+      "timeout": 3000
+    },
+    "calls": [
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "efbbbf30",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "ef",
+          "bb",
+          "bf",
+          "30"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "efbbbf30",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "efbb",
+          "bf30"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "efbbbf30",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "efbbbf30"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "efbbbf30",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "efbbbf30"
+        ],
+        "options": {},
+        "overrideKeys": []
+      }
+    ]
+  },
+  {
+    "number": 25,
+    "oldTestName": "strict malformed JSON 21 across chunk boundaries",
+    "newTestName": "native JSON acceptance 21 across chunk boundaries",
+    "options": {
+      "timeout": 3000
+    },
+    "calls": [
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "2d496e66696e697479",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "2d",
+          "49",
+          "6e",
+          "66",
+          "69",
+          "6e",
+          "69",
+          "74",
+          "79"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "2d496e66696e697479",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "2d49",
+          "6e66",
+          "696e",
+          "6974",
+          "79"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "2d496e66696e697479",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "2d496e6669",
+          "6e697479"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "2d496e66696e697479",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "2d496e66696e697479"
+        ],
+        "options": {},
+        "overrideKeys": []
+      }
+    ]
+  },
+  {
+    "number": 26,
+    "oldTestName": "strict malformed JSON 22 across chunk boundaries",
+    "newTestName": "native JSON acceptance 22 across chunk boundaries",
+    "options": {
+      "timeout": 3000
+    },
+    "calls": [
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "4e614e",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "4e",
+          "61",
+          "4e"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "4e614e",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "4e61",
+          "4e"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "4e614e",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "4e614e"
+        ],
+        "options": {},
+        "overrideKeys": []
+      },
+      {
+        "argv": [
+          "-c",
+          "."
+        ],
+        "inputHex": "4e614e",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": true,
+        "chunksHex": [
+          "4e614e"
+        ],
+        "options": {},
+        "overrideKeys": []
+      }
+    ]
+  },
+  {
+    "number": 27,
+    "oldTestName": "join native: join-zero-arity",
+    "newTestName": "join native: join-zero-arity",
+    "options": {},
+    "calls": [
+      {
+        "argv": [
+          "-c",
+          "--",
+          "join"
+        ],
+        "inputHex": "5b5d",
+        "files": {},
+        "inputKind": "string",
+        "acquired": true,
+        "chunksHex": [
+          "5b5d"
+        ],
+        "options": {},
+        "overrideKeys": []
+      }
+    ]
+  },
+  {
+    "number": 28,
+    "oldTestName": "join native: join-two-arity",
+    "newTestName": "join native: join-two-arity",
+    "options": {},
+    "calls": [
+      {
+        "argv": [
+          "-c",
+          "--",
+          "join(\"-\";\":\")"
+        ],
+        "inputHex": "5b5d",
+        "files": {},
+        "inputKind": "string",
+        "acquired": true,
+        "chunksHex": [
+          "5b5d"
+        ],
+        "options": {},
+        "overrideKeys": []
+      }
+    ]
+  },
+  {
+    "number": 29,
+    "oldTestName": "split rejects out-of-scope arity: split",
+    "newTestName": "split rejects undefined native arity: split",
+    "options": {
+      "timeout": 3000
+    },
+    "calls": [
+      {
+        "argv": [
+          "split"
+        ],
+        "inputHex": "",
+        "files": {},
+        "inputKind": "iterator",
+        "acquired": false,
+        "chunksHex": [],
+        "options": {},
+        "overrideKeys": []
+      }
+    ]
+  }
+]

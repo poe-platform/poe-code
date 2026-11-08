@@ -1,0 +1,74 @@
+{
+  "baseRevision": "7b1cb3b8424f5347be954d6a4c06d8d62500fbe7",
+  "directory": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-aggregate-proof-hL4LkJ",
+  "ownedOverlaySha256": {
+    "src/plugins/index.ts": "675b297afd45bf4257cb891486d6db615aaebc0b8fbda61358de573322aa3f36",
+    "src/index.ts": "1bbe79a75e94c67c794f80316e7d6632a98b017be0ea4ff35cb8fba5a7a41e4c",
+    "tests/plugins/agent-commands.test.ts": "04a86d954e095b7be5766ec644a4c72fb7641b1cb7173dbee1df3199df8ff451"
+  },
+  "scope": "Committed source plus three exact owned aggregate files; not the moving worktree",
+  "results": [
+    {
+      "command": [
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "exitCode": 0,
+      "stdout": "\n> virtual-bash@0.0.0 typecheck\n> tsc --noEmit\n\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "exitCode": 0,
+      "stdout": "\n> virtual-bash@0.0.0 build\n> tsc -p tsconfig.build.json\n\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/plugins/agent-commands.test.ts"
+      ],
+      "exitCode": 0,
+      "stdout": "TAP version 13\n# Subtest: aggregate definitions are exactly the six delivered families, each registered once\nok 1 - aggregate definitions are exactly the six delivered families, each registered once\n  ---\n  duration_ms: 1.865458\n  type: 'test'\n  ...\n# Subtest: collision with printf leaves the entire host registry untouched\nok 2 - collision with printf leaves the entire host registry untouched\n  ---\n  duration_ms: 0.179167\n  type: 'test'\n  ...\n# Subtest: collision with sed leaves the entire host registry untouched\nok 3 - collision with sed leaves the entire host registry untouched\n  ---\n  duration_ms: 0.115292\n  type: 'test'\n  ...\n# Subtest: collision with jq leaves the entire host registry untouched\nok 4 - collision with jq leaves the entire host registry untouched\n  ---\n  duration_ms: 0.061041\n  type: 'test'\n  ...\n# Subtest: collision with rg leaves the entire host registry untouched\nok 5 - collision with rg leaves the entire host registry untouched\n  ---\n  duration_ms: 0.054833\n  type: 'test'\n  ...\n# Subtest: collision with gzip leaves the entire host registry untouched\nok 6 - collision with gzip leaves the entire host registry untouched\n  ---\n  duration_ms: 0.045667\n  type: 'test'\n  ...\n# Subtest: collision with patch leaves the entire host registry untouched\nok 7 - collision with patch leaves the entire host registry untouched\n  ---\n  duration_ms: 0.144208\n  type: 'test'\n  ...\n# Subtest: explicit replacement affects all families once and preserves unrelated commands\nok 8 - explicit replacement affects all families once and preserves unrelated commands\n  ---\n  duration_ms: 0.352042\n  type: 'test'\n  ...\n# Subtest: invalid eager family limits install no commands\nok 9 - invalid eager family limits install no commands\n  ---\n  duration_ms: 0.178875\n  type: 'test'\n  ...\n# Subtest: definitions fallback resolves nested argv across families without a shell\nok 10 - definitions fallback resolves nested argv across families without a shell\n  ---\n  duration_ms: 4.016833\n  type: 'test'\n  ...\n# Subtest: plugin fallback resolves nested argv across families without a shell\nok 11 - plugin fallback resolves nested argv across families without a shell\n  ---\n  duration_ms: 1.044458\n  type: 'test'\n  ...\n# Subtest: plugin fallback can resolve host commands outside the aggregate\nok 12 - plugin fallback can resolve host commands outside the aggregate\n  ---\n  duration_ms: 0.1765\n  type: 'test'\n  ...\n# Subtest: custom fallback applies only without the shell invocation hook\nok 13 - custom fallback applies only without the shell invocation hook\n  ---\n  duration_ms: 2.793458\n  type: 'test'\n  ...\n# Subtest: aggregate forwards text limits without rewriting them\nok 14 - aggregate forwards text limits without rewriting them\n  ---\n  duration_ms: 0.878792\n  type: 'test'\n  ...\n# Subtest: aggregate forwards structured limits without rewriting them\nok 15 - aggregate forwards structured limits without rewriting them\n  ---\n  duration_ms: 0.491875\n  type: 'test'\n  ...\n# Subtest: aggregate forwards search limits without rewriting them\nok 16 - aggregate forwards search limits without rewriting them\n  ---\n  duration_ms: 0.330375\n  type: 'test'\n  ...\n# Subtest: aggregate forwards diffPatch limits without rewriting them\nok 17 - aggregate forwards diffPatch limits without rewriting them\n  ---\n  duration_ms: 1.764833\n  type: 'test'\n  ...\n# Subtest: search defaultInput remains an explicit family override\nok 18 - search defaultInput remains an explicit family override\n  ---\n  duration_ms: 0.718875\n  type: 'test'\n  ...\n# Subtest: README aggregate example and binary pipelines use the actual shell\nok 19 - README aggregate example and binary pipelines use the actual shell\n  ---\n  duration_ms: 13.945\n  type: 'test'\n  ...\n1..19\n# tests 19\n# suites 0\n# pass 19\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 207.034\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "node",
+        "--input-type=module",
+        "--eval",
+        "import assert from 'node:assert/strict';import{agentCommands,createAgentCommands,Shell,createMemoryFileSystem}from'virtual-bash';const shell=new Shell({fs:createMemoryFileSystem()}).use(agentCommands());try{const result=await shell.exec(\"printf 'hello\\n' | sed 's/hello/world/' | awk '{print $1}'\");assert.equal(result.stdout,'world\\n'.replace('\\n','\n'));assert.equal(result.stderr,'');assert.equal(result.exitCode,0);assert.equal(shell.commands.list().length,49);assert.equal(createAgentCommands().length,49);console.log('Built aggregate exports, 49 commands and README pipeline pass')}finally{await shell.dispose()}"
+      ],
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-aggregate-proof-hL4LkJ/[eval1]:1\nimport assert from 'node:assert/strict';import{agentCommands,createAgentCommands,Shell,createMemoryFileSystem}from'virtual-bash';const shell=new Shell({fs:createMemoryFileSystem()}).use(agentCommands());try{const result=await shell.exec(\"printf 'hello\\n' | sed 's/hello/world/' | awk '{print $1}'\");assert.equal(result.stdout,'world\\n'.replace('\\n','\n                                                                                                                                                                                                                                                                                                                                                             ^\n\nSyntaxError: Invalid or unexpected token\n    at compileSourceTextModule (node:internal/modules/esm/utils:346:16)\n    at ModuleLoader.createModuleWrap (node:internal/modules/esm/loader:256:12)\n    at ModuleLoader.eval (node:internal/modules/esm/loader:296:23)\n    at node:internal/process/execution:73:24\n    at asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:11)\n    at Object.runEntryPointWithESMLoader (node:internal/modules/run_main:139:19)\n    at evalModuleEntryPoint (node:internal/process/execution:72:47)\n    at node:internal/main/eval_string:38:3\n\nNode.js v22.22.2\n",
+      "classification": "Invalid inline oracle JavaScript caused by runner escaping, before any package import; not a product failure"
+    },
+    {
+      "command": [
+        "node",
+        "--input-type=module",
+        "--eval",
+        "import assert from 'node:assert/strict';import{agentCommands,createAgentCommands,Shell,createMemoryFileSystem}from'virtual-bash';const shell=new Shell({fs:createMemoryFileSystem()}).use(agentCommands());try{const result=await shell.exec(\"printf hello | sed s/hello/world/ | awk '{print $1}'\");assert.deepEqual(result.stdoutBytes,Uint8Array.from([119,111,114,108,100,10]));assert.equal(result.stderr,'');assert.equal(result.exitCode,0);assert.equal(shell.commands.list().length,49);assert.equal(createAgentCommands().length,49);console.log('Built aggregate exports, 49 commands and pipeline pass')}finally{await shell.dispose()}"
+      ],
+      "exitCode": 0,
+      "stdout": "Built aggregate exports, 49 commands and pipeline pass\n",
+      "stderr": ""
+    }
+  ],
+  "validChecks": {
+    "typecheck": true,
+    "build": true,
+    "aggregateTests": true,
+    "builtRootSmoke": true
+  }
+}

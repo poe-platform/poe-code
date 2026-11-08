@@ -1,0 +1,20 @@
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-a4yR17/negative-missing-du/consumer/node_modules/virtual-bash/dist/commands/du/index.js' imported from /Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/verify-refined-v2.mjs
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:985:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:731:20)
+    at ModuleLoader.resolve (node:internal/modules/esm/loader:708:38)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:310:38)
+    at onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:664:36)
+    at TracingChannel.tracePromise (node:diagnostics_channel:350:14)
+    at ModuleLoader.import (node:internal/modules/esm/loader:663:21)
+    at defaultImportModuleDynamicallyForModule (node:internal/modules/esm/utils:222:31) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-a4yR17/negative-missing-du/consumer/node_modules/virtual-bash/dist/commands/du/index.js'
+}
+
+Node.js v22.22.2

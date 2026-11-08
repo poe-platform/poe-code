@@ -1,0 +1,123 @@
+import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import { lstatSync, readFileSync, readdirSync, realpathSync } from "node:fs";
+import { dirname, join, relative, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+export const author = dirname(fileURLToPath(import.meta.url));
+export const repository = "/Users/kjopek/Workspace/safe-bash";
+const environment = { PATH: "/usr/bin:/bin", LC_ALL: "C", GIT_OPTIONAL_LOCKS: "0" };
+const hash = bytes => createHash("sha256").update(bytes).digest("hex");
+const git = (...args) => execFileSync("/usr/bin/git", ["-C", repository, "-c", "core.fsmonitor=false", ...args], { env: environment, timeout: 20000, maxBuffer: 32 * 1024 * 1024 });
+const regular = filename => {
+  assert.equal(realpathSync(filename), resolve(filename));
+  assert.ok(lstatSync(filename).isFile() && !lstatSync(filename).isSymbolicLink());
+  return readFileSync(filename);
+};
+export const load = filename => JSON.parse(regular(filename));
+export const candidate = load(join(author, "CANDIDATE.json"));
+export function inventory(root) {
+  assert.equal(realpathSync(root), resolve(root));
+  const entries = [];
+  const visit = directory => {
+    for (const name of readdirSync(directory).sort()) {
+      const filename = join(directory, name);
+      const stat = lstatSync(filename);
+      assert.ok(!stat.isSymbolicLink());
+      if (stat.isDirectory()) visit(filename);
+      else {
+        const bytes = regular(filename);
+        entries.push({ path: relative(root, filename), bytes: bytes.length, sha256: hash(bytes) });
+      }
+    }
+  };
+  visit(root);
+  return entries.sort((left, right) => left.path < right.path ? -1 : left.path > right.path ? 1 : 0);
+}
+export function directoryShape(roots) {
+  return Object.fromEntries(roots.map(root => {
+    const entries = [];
+    const visit = directory => {
+      for (const name of readdirSync(directory).sort()) {
+        const filename = join(directory, name);
+        const stat = lstatSync(filename);
+        assert.ok(stat.isFile() || stat.isDirectory());
+        entries.push({ path: relative(root, filename), kind: stat.isDirectory() ? "directory" : "file" });
+        if (stat.isDirectory()) visit(filename);
+      }
+    };
+    visit(root);
+    return [root, entries];
+  }));
+}
+export function verifyFrozen() {
+  const freezePath = relative(repository, join(author, "FREEZE.json"));
+  const commit = git("log", "-1", "--format=%H", "--", freezePath).toString().trim();
+  assert.match(commit, /^[a-f0-9]{40}$/u);
+  const bytes = regular(join(author, "FREEZE.json"));
+  assert.deepEqual(bytes, git("show", `${commit}:${freezePath}`));
+  const freeze = JSON.parse(bytes);
+  const actual = inventory(author).filter(entry => entry.path !== "FREEZE.json");
+  assert.deepEqual(actual, freeze.files, "Exact author file set, including new entries");
+  for (const entry of freeze.files) assert.equal(hash(git("show", `${commit}:${relative(repository, join(author, entry.path))}`)), entry.sha256);
+  for (const entry of load(join(author, "REFERENCES.json"))) {
+    const frozen = git("show", `${entry.commit}:${entry.path}`);
+    assert.equal(hash(frozen), entry.sha256);
+    assert.deepEqual(regular(join(repository, entry.path)), frozen);
+  }
+  return commit;
+}
+export function verifyCandidate(admission) {
+  const entries = load(join(author, "inventories/candidate-all940.json"));
+  const packageEntries = load(join(author, "inventories/candidate-package709.json"));
+  const parent = load(join(author, "inventories/parent-all940.json"));
+  assert.equal(entries.length, 940); assert.equal(packageEntries.length, 709); assert.equal(parent.length, 940);
+  assert.equal(hash(JSON.stringify(entries)), candidate.candidateManifestSha256);
+  assert.equal(hash(JSON.stringify(packageEntries)), candidate.packageManifestSha256);
+  assert.equal(hash(JSON.stringify(parent)), candidate.parentManifestSha256);
+  assert.equal(hash(JSON.stringify(parent.filter(entry => entry.path.startsWith("src/")))), candidate.parentSourceManifestSha256);
+  assert.equal(hash(JSON.stringify(entries.filter(entry => entry.path.startsWith("src/")))), candidate.sourceManifestSha256);
+  assert.equal(hash(JSON.stringify(entries.filter(entry => entry.path.startsWith("dist/")))), candidate.compiledManifestSha256);
+  const root = admission?.candidateRoot ?? candidate.candidateRoot;
+  const packageRoot = admission?.packageRoot ?? candidate.packageRoot;
+  assert.ok(root.startsWith("/private/tmp/") && packageRoot.startsWith("/private/tmp/"));
+  assert.deepEqual(inventory(root), entries);
+  assert.deepEqual(inventory(packageRoot), packageEntries);
+  for (const entry of candidate.changes) {
+    const decoded = Buffer.from(regular(join(author, "candidate-bytes", entry.path + ".base64-data")).toString().trim(), "base64");
+    assert.equal(hash(decoded), entry.after.sha256);
+    assert.deepEqual(regular(join(root, entry.path)), decoded);
+  }
+  for (const route of ["source-route", "packaged-route"]) assert.deepEqual(inventory(`/private/tmp/safe-bash-owned-output-receipt-review-zqBitE/${route}`), parent);
+  return { root, packageRoot, entries, packageEntries, parent };
+}
+export function releaseFor(cohort) {
+  assert.equal(process.env.NODE_OPTIONS ?? "", "");
+  const descriptor = process.env.ZERO_OVERLAY_ROOT_RELEASE;
+  assert.ok(descriptor, "AUTHOR/FREEZE ONLY: different exact-overlay review and explicit ROOT release required; no default execution");
+  const admission = load(resolve(descriptor));
+  const freezeCommit = verifyFrozen();
+  assert.equal(admission.authorFreezeCommit, freezeCommit);
+  assert.equal(admission.candidateManifestSha256, candidate.candidateManifestSha256);
+  assert.equal(admission.sourceManifestSha256, candidate.sourceManifestSha256);
+  assert.equal(admission.noPromotion, true);
+  assert.equal(admission.rootAuthorized, true);
+  assert.ok(typeof admission.rootAuthorization === "string" && admission.rootAuthorization.length > 0);
+  assert.ok(admission.allowedCohorts.includes(cohort));
+  assert.match(admission.independentReviewCommit, /^[a-f0-9]{40}$/u);
+  assert.notEqual(admission.independentReviewCommit, freezeCommit);
+  const review = JSON.parse(git("show", `${admission.independentReviewCommit}:${admission.independentReviewPath}`));
+  assert.equal(review.verdict, "ALLOW_REPLAY_OF_EXACT_FREEZE");
+  assert.equal(review.authorFreezeCommit, freezeCommit);
+  assert.equal(review.candidateManifestSha256, candidate.candidateManifestSha256);
+  assert.equal(review.sourceManifestSha256, candidate.sourceManifestSha256);
+  assert.ok(typeof review.reviewerIdentity === "string" && review.reviewerIdentity.length > 0);
+  assert.notEqual(review.reviewerIdentity, "zero-cap-overlay-author");
+  assert.ok(resolve(admission.outputRoot).startsWith("/private/tmp/"));
+  assert.equal(process.execPath, candidate.node.path);
+  assert.equal(hash(regular(process.execPath)), candidate.node.sha256);
+  assert.equal(process.version, "v22.22.2");
+  verifyCandidate(admission);
+  return { ...admission, freezeCommit };
+}

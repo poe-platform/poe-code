@@ -1,0 +1,11 @@
+{
+  "frozenAt": "2026-08-27T12:25:47.336Z",
+  "parameters": [
+    "P05",
+    "P06",
+    "P07"
+  ],
+  "sourceChanges": 0,
+  "change": "Exact actual syntax diagnostic selector; no parser change",
+  "sha256": "dfefea9261e4bce2ebc6a6ff459ca7654b0dde80838b4fc4c191cb6109be670e"
+}

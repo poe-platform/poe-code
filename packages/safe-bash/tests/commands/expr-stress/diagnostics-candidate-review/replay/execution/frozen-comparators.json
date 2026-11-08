@@ -1,0 +1,16 @@
+{
+  "id": "frozen-comparators",
+  "scriptSha256": "bb234f6c5baeb04d42cd1e0733a87164c5e0b587936513e4b36757143e19d9ab",
+  "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "tests/commands/expr-stress/diagnostics-candidate-review/replay/comparators.mjs",
+    "capture"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "timeoutMs": 240000,
+  "status": 0,
+  "signal": null,
+  "failure": null,
+  "stdout": "{\"originalComparator\":1,\"extensionComparator\":1,\"optionalNativeStatus\":0,\"optionalSummary\":\"# SKIP set GREP_ALIASES_NATIVE=1 for strict pinned native replay\\n  ---\\n  duration_ms: 0.011\\n  type: 'test'\\n  ...\\n1..52\\n# tests 52\\n# suites 0\\n# pass 50\\n# fail 0\\n# cancelled 0\\n# skipped 2\\n# todo 0\\n# duration_ms 860.257958\\n\"}\n",
+  "stderr": ""
+}

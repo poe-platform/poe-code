@@ -1,0 +1,9 @@
+{
+  "byteIdentical": true,
+  "originalSha256": "b995643979e9447809a8c216768e021e00700c854b3477469a3cfaa57f32e146",
+  "candidateSha256": "b995643979e9447809a8c216768e021e00700c854b3477469a3cfaa57f32e146",
+  "bytes": 4812,
+  "unchangedImportedCompilerInputs": true,
+  "sourceMaps": false,
+  "qualifier": "Actual TypeScript 5.9.3 Program.emit for the exact fixture under repository compiler options; baseline has the recorded three type errors. Not a full project build or native/service gate."
+}

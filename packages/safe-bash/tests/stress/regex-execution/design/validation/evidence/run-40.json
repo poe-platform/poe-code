@@ -1,0 +1,75 @@
+{
+  "args": [
+    "bench",
+    "long-linear",
+    "current",
+    "2"
+  ],
+  "pid": 70955,
+  "readyAt": 42.51666600000004,
+  "killed": false,
+  "events": [
+    {
+      "event": "disconnect",
+      "values": [],
+      "at": 68.25095800000003
+    },
+    {
+      "event": "stdout-close"
+    },
+    {
+      "event": "stderr-close"
+    },
+    {
+      "event": "exit",
+      "values": [
+        0,
+        null
+      ],
+      "at": 70.27354099999997
+    },
+    {
+      "event": "close",
+      "code": 0,
+      "signal": null,
+      "at": 70.28341600000005
+    }
+  ],
+  "messages": [
+    {
+      "type": "ready"
+    },
+    {
+      "type": "done",
+      "result": {
+        "id": "long-linear",
+        "engine": "current",
+        "pass": true,
+        "workMs": 0.01891599999999727,
+        "startupMs": 0.0028329999999954225,
+        "cleanupMs": 0.00012499999999704414,
+        "streamIncludesAutomaticDisposal": false,
+        "repetitions": 3,
+        "exactOutputGateBeforeTiming": true,
+        "inputUtf8Bytes": 262088,
+        "inputUtf16Bytes": 524176,
+        "rows": 8,
+        "batches": 4,
+        "protocolHitBytes": 628,
+        "hits": 8,
+        "execCalls": 16,
+        "captureValues": 16,
+        "selectedBytes": 80,
+        "selectedSha256": "4e6666657d99ddb9d3220ca2ec2729f0426ae29a6b7da6c8f3133bca4c1018fd",
+        "serializedBytes": 649,
+        "serializedSha256": "5748d54efbe0ecfeeaa5ddb74fbfc549e7fb2c530616b93d04ab473ac635b060",
+        "rssAfter": 61161472
+      }
+    }
+  ],
+  "stderr": "",
+  "ipcBytes": 648,
+  "streamBytes": 0,
+  "code": 0,
+  "signal": null
+}

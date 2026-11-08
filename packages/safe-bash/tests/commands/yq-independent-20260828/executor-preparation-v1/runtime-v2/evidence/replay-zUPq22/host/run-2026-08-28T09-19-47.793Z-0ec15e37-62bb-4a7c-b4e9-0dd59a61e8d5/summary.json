@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "aggregate": "FAIL",
+  "requested": 2,
+  "admitted": 2,
+  "stop": null,
+  "results": [
+    {
+      "jobId": "host-wrong-job-0",
+      "admitted": true,
+      "outcome": "FAIL",
+      "failures": [
+        "assertion: AssertionError [ERR_ASSERTION]: Wrong or missing receipt job\n+ actual - expected\n\n+ 'other'\n- 'host-wrong-job-0'\n"
+      ],
+      "integrity": true,
+      "reapProof": true,
+      "metadata": {
+        "pid": 14185,
+        "group": 14185,
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "spawnError": null,
+        "closed": true,
+        "reaped": true,
+        "kills": [],
+        "elapsedMs": 56
+      }
+    },
+    {
+      "jobId": "host-wrong-job-1",
+      "admitted": true,
+      "outcome": "PASS",
+      "failures": [],
+      "integrity": true,
+      "reapProof": true,
+      "metadata": {
+        "pid": 14186,
+        "group": 14186,
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "spawnError": null,
+        "closed": true,
+        "reaped": true,
+        "kills": [],
+        "elapsedMs": 54
+      }
+    }
+  ],
+  "activeChildren": [],
+  "evidence": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/evidence/replay-zUPq22/host/run-2026-08-28T09-19-47.793Z-0ec15e37-62bb-4a7c-b4e9-0dd59a61e8d5"
+}

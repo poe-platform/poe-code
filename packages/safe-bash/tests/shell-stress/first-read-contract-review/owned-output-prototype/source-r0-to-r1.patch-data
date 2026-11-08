@@ -1,0 +1,50 @@
+diff --git a/src/commands/network/curl.ts b/src/commands/network/curl.ts
+index 960e828..5afcfbc 100644
+--- a/src/commands/network/curl.ts
++++ b/src/commands/network/curl.ts
+@@ -186,8 +186,12 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
+         const upload: ByteSource | undefined = currentBody && (async function* () {
+           for await (const chunk of currentBody!.open(signal)) { uploaded += chunk.length; yield chunk; }
+         })();
+-        response = await operation.acquire(() => transport({ url: current.href, method, headers, signal,
+-          registerCleanup: operation.registerCleanup, ...(upload ? { body: upload } : {}) }), result => result.dispose());
++        response = await operation.acquire(async () => {
++          const acquired = await transport({ url: current.href, method, headers, signal,
++            registerCleanup: operation.registerCleanup, ...(upload ? { body: upload } : {}) });
++          let cleanup: Promise<void> | undefined;
++          return { ...acquired, dispose() { cleanup ??= Promise.resolve().then(() => acquired.dispose()); return cleanup; } };
++        }, result => result.dispose());
+         const block = responseHeaders(response, limits.maxHeaderBytes);
+         headerBytes += block.length;
+         if (headerBytes > limits.maxHeaderBytes) throw new CurlError(63, "Combined response headers exceed host byte limit");
+diff --git a/src/shell/runtime.ts b/src/shell/runtime.ts
+index ae98aad..8565b7b 100644
+--- a/src/shell/runtime.ts
++++ b/src/shell/runtime.ts
+@@ -392,7 +392,7 @@ export class Runtime {
+         status = state.pipefail ? statuses.findLast((status) => status !== 0) ?? 0 : statuses.at(-1)!;
+       } finally {
+         for (const close of closing) clearImmediate(close);
+-        for (const [index, controller] of controllers.entries()) if (!completed.has(index)) controller.abort(new PipelineClosed());
++        for (const [index, controller] of controllers.entries()) if (!completed.has(index) || written.has(index)) controller.abort(new PipelineClosed());
+         await Promise.all(pipes.map((pipe) => pipe.abort()));
+       }
+     }
+diff --git a/src/shell/shell.ts b/src/shell/shell.ts
+index 9d53582..6c9392e 100644
+--- a/src/shell/shell.ts
++++ b/src/shell/shell.ts
+@@ -113,6 +113,13 @@ export class Shell implements PluginHost {
+     const stdout = new Capture();
+     const stderr = new Capture();
+     const sink = (capture: Capture, external?: ByteSink): ByteSink => budget.sink({
++      ...(external?.ownedOutput ? { ownedOutput: {
++        consumerClosed: external.ownedOutput.consumerClosed,
++        write: async (chunk: Uint8Array) => {
++          await capture.write(chunk);
++          await external.ownedOutput!.write(chunk);
++        },
++      } } : {}),
+       write: async (chunk) => {
+         await capture.write(chunk);
+         if (external) await external.write(chunk);

@@ -1,0 +1,143 @@
+{
+  "schema": 1,
+  "classification": "preparation-only addition-aware seal",
+  "own": "tests/shell/cd-prerequisite-independent-20260828/executor-preparation-v1",
+  "membership": [
+    "BINDING.pending.json",
+    "COVERAGE.json",
+    "HANDOFF.md",
+    "INPUTS.json",
+    "MANIFEST.json",
+    "PREPARATION.md",
+    "ROUTE.pending.json",
+    "SYNTHETIC-RESULTS.json",
+    "common.mjs",
+    "entry.mjs",
+    "fixtures.mjs",
+    "mapping.mjs",
+    "run.mjs",
+    "seal.mjs",
+    "selfcheck.mjs",
+    "series.mjs",
+    "types.mjs",
+    "verify.mjs",
+    "workspace.mjs"
+  ],
+  "entries": {
+    "": {
+      "kind": "directory",
+      "mode": 493
+    },
+    "BINDING.pending.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 600,
+      "sha256": "6e51922a9765fdb199561b4bab70e183b9c1214bcbd44bf37a1bba67f2040a8a"
+    },
+    "COVERAGE.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 64480,
+      "sha256": "b4fa6e5958d71c53f7bfdbcaabce08d3be0a54de5d5640931b850613a53c9142"
+    },
+    "HANDOFF.md": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1818,
+      "sha256": "9868421c285168fda9c9141a7a1293b983e5b574418538a6d18f3f998c8d9e8a"
+    },
+    "INPUTS.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 114307,
+      "sha256": "3a9e141f35f6e755840feaa417b6ff6d83b0faf0dc355af3b80c280956ee15e4"
+    },
+    "PREPARATION.md": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 13260,
+      "sha256": "0011fb8684a8987f7e25a0ffb23df1b06f23bab4c3a66661de761be4217fbefe"
+    },
+    "ROUTE.pending.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 450,
+      "sha256": "07321bc1d246c7463df28aa45bb68cf3c90301dc971e3f47e739d2c3b7d52289"
+    },
+    "SYNTHETIC-RESULTS.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 3016,
+      "sha256": "8d7f675c2b8057aefec2aa88e9a93272663e5a2cd95fba06d06cd9b49dd7f7c0"
+    },
+    "common.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 6906,
+      "sha256": "d66aaf3eeb51e6dc12315edf434641b2d36463ef1408f99efb0510edfae3f5fa"
+    },
+    "entry.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 5216,
+      "sha256": "0647c7bef888901ec8addaa03d4675366ac1ef884a4121e1cb3887a5a051700c"
+    },
+    "fixtures.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 20055,
+      "sha256": "abb1b6c30715b2e516e36b56e77286a69b1dc5e585741cf4e8d828e1108076fb"
+    },
+    "mapping.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 6550,
+      "sha256": "609ee45f74551b39fbb527f37f826be8d6a2340daecc23db40f5b29e31ed38f4"
+    },
+    "run.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 11435,
+      "sha256": "7483ab5245c6b854a3193baf4c48db01f809e39039b4dc8d6fdeafebb329c2f2"
+    },
+    "seal.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 7987,
+      "sha256": "bb164317bcd20a49fbbf9111df6571068a16247d231a0e33bbbb429750ca3580"
+    },
+    "selfcheck.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 9242,
+      "sha256": "79afa8efc213b2be3454dc5f5d45fb9d59524114e07fdc74de0be66387b21f42"
+    },
+    "series.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 3446,
+      "sha256": "bcc5185b281ac496251301661f66b03cc293a3a0d0945b088e823b01cb9265dc"
+    },
+    "types.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 4295,
+      "sha256": "958f89633346ec90056df3ed8cadc62ceb10af76cec177874b944c5d6e38a01a"
+    },
+    "verify.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 4154,
+      "sha256": "b8586f88e27476477a27d7fb0ed635ea3187030a7fc5ea282fed565efdb6314b"
+    },
+    "workspace.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 5973,
+      "sha256": "8e1a9954e708e0c42a91a3acce86f5b3aefb6fccaceaa3afeb992e30b12e9c8a"
+    }
+  },
+  "soleSelfHashExclusion": "MANIFEST.json; explicit preparation Git commit binds its bytes",
+  "inheritedSoleSubtreeExclusion": "executor-preparation-v1",
+  "foreignStagingAfter": []
+}

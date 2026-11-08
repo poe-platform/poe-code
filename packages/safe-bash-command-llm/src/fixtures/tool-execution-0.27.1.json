@@ -1,0 +1,311 @@
+[
+  {
+    "mode": "success",
+    "events": [
+      [
+        "before",
+        "lookup",
+        "lookup"
+      ],
+      [
+        "execute",
+        {
+          "query": "one"
+        }
+      ],
+      [
+        "after",
+        "lookup",
+        "{\"city\": \"Z\\u00fcrich\", \"args\": {\"query\": \"one\"}, \"ok\": true, \"none\": null}"
+      ],
+      [
+        "before",
+        "lookup",
+        "lookup"
+      ],
+      [
+        "execute",
+        {
+          "query": "one"
+        }
+      ],
+      [
+        "after",
+        "lookup",
+        "{\"city\": \"Z\\u00fcrich\", \"args\": {\"query\": \"one\"}, \"ok\": true, \"none\": null}"
+      ]
+    ],
+    "results": [
+      {
+        "name": "lookup",
+        "output": "{\"city\": \"Z\\u00fcrich\", \"args\": {\"query\": \"one\"}, \"ok\": true, \"none\": null}",
+        "id": "id0",
+        "exception": null,
+        "attachments": []
+      },
+      {
+        "name": "lookup",
+        "output": "{\"city\": \"Z\\u00fcrich\", \"args\": {\"query\": \"one\"}, \"ok\": true, \"none\": null}",
+        "id": "id1",
+        "exception": null,
+        "attachments": []
+      }
+    ],
+    "failure": null
+  },
+  {
+    "mode": "missing",
+    "events": [
+      [
+        "before",
+        null,
+        "missing"
+      ],
+      [
+        "before",
+        "lookup",
+        "lookup"
+      ],
+      [
+        "execute",
+        {
+          "query": "one"
+        }
+      ],
+      [
+        "after",
+        "lookup",
+        "{\"city\": \"Z\\u00fcrich\", \"args\": {\"query\": \"one\"}, \"ok\": true, \"none\": null}"
+      ]
+    ],
+    "results": [
+      {
+        "name": "missing",
+        "output": "Error: tool \"missing\" does not exist",
+        "id": "id0",
+        "exception": "'tool \"missing\" does not exist'",
+        "attachments": []
+      },
+      {
+        "name": "lookup",
+        "output": "{\"city\": \"Z\\u00fcrich\", \"args\": {\"query\": \"one\"}, \"ok\": true, \"none\": null}",
+        "id": "id1",
+        "exception": null,
+        "attachments": []
+      }
+    ],
+    "failure": null
+  },
+  {
+    "mode": "cancel",
+    "events": [
+      [
+        "before",
+        "lookup",
+        "lookup"
+      ],
+      [
+        "before",
+        "lookup",
+        "lookup"
+      ]
+    ],
+    "results": [
+      {
+        "name": "lookup",
+        "output": "Cancelled: user declined",
+        "id": "id0",
+        "exception": "user declined",
+        "attachments": []
+      },
+      {
+        "name": "lookup",
+        "output": "Cancelled: user declined",
+        "id": "id1",
+        "exception": "user declined",
+        "attachments": []
+      }
+    ],
+    "failure": null
+  },
+  {
+    "mode": "failure",
+    "events": [
+      [
+        "before",
+        "lookup",
+        "lookup"
+      ],
+      [
+        "execute",
+        {
+          "query": "one"
+        }
+      ],
+      [
+        "after",
+        "lookup",
+        "Error: broken tool"
+      ],
+      [
+        "before",
+        "lookup",
+        "lookup"
+      ],
+      [
+        "execute",
+        {
+          "query": "one"
+        }
+      ],
+      [
+        "after",
+        "lookup",
+        "Error: broken tool"
+      ]
+    ],
+    "results": [
+      {
+        "name": "lookup",
+        "output": "Error: broken tool",
+        "id": "id0",
+        "exception": "broken tool",
+        "attachments": []
+      },
+      {
+        "name": "lookup",
+        "output": "Error: broken tool",
+        "id": "id1",
+        "exception": "broken tool",
+        "attachments": []
+      }
+    ],
+    "failure": null
+  },
+  {
+    "mode": "no_implementation",
+    "events": [
+      [
+        "before",
+        "lookup",
+        "lookup"
+      ]
+    ],
+    "results": [],
+    "failure": "No implementation available for tool: lookup"
+  },
+  {
+    "mode": "duplicate",
+    "events": [
+      [
+        "before",
+        "lookup",
+        "lookup"
+      ],
+      [
+        "after",
+        "lookup",
+        "last wins"
+      ],
+      [
+        "before",
+        "lookup",
+        "lookup"
+      ],
+      [
+        "after",
+        "lookup",
+        "last wins"
+      ]
+    ],
+    "results": [
+      {
+        "name": "lookup",
+        "output": "last wins",
+        "id": "id0",
+        "exception": null,
+        "attachments": []
+      },
+      {
+        "name": "lookup",
+        "output": "last wins",
+        "id": "id1",
+        "exception": null,
+        "attachments": []
+      }
+    ],
+    "failure": null
+  },
+  {
+    "mode": "attachment",
+    "events": [
+      [
+        "before",
+        "lookup",
+        "lookup"
+      ],
+      [
+        "execute",
+        {
+          "query": "one"
+        }
+      ],
+      [
+        "after",
+        "lookup",
+        "image ready"
+      ],
+      [
+        "before",
+        "lookup",
+        "lookup"
+      ],
+      [
+        "execute",
+        {
+          "query": "one"
+        }
+      ],
+      [
+        "after",
+        "lookup",
+        "image ready"
+      ]
+    ],
+    "results": [
+      {
+        "name": "lookup",
+        "output": "image ready",
+        "id": "id0",
+        "exception": null,
+        "attachments": [
+          {
+            "mimeType": "image/png",
+            "bytes": [
+              97,
+              98,
+              99
+            ]
+          }
+        ]
+      },
+      {
+        "name": "lookup",
+        "output": "image ready",
+        "id": "id1",
+        "exception": null,
+        "attachments": [
+          {
+            "mimeType": "image/png",
+            "bytes": [
+              97,
+              98,
+              99
+            ]
+          }
+        ]
+      }
+    ],
+    "failure": null
+  }
+]

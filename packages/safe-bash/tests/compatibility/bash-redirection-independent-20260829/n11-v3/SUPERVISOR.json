@@ -1,0 +1,11 @@
+{
+  "originalGlobalStart": 1787977926793,
+  "startedAt": "2026-08-29T04:51:33.208Z",
+  "closed": true,
+  "capture": 161,
+  "sealSha256": "07601d6c489443c34c28bb5c9836d4f6b67e0f1e03616027cc5ed53e338d836f",
+  "pid": 95663,
+  "code": 0,
+  "signal": null,
+  "globalElapsedMs": 1175266
+}

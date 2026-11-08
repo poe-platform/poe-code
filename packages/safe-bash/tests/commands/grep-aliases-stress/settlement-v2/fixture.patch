@@ -1,0 +1,30 @@
+*** Begin Patch
+*** Update File: holdouts.mts
+@@
+-    try { const result = await shell.exec('egrep -q keep', { stdin: input.input }); details.result = result; details.returns = input.returns(); details.nextCalls = input.nextCalls(); assert.equal(input.returns(), 1); assert.equal(result.exitCode, 2); assert.ok(result.stderr.includes(failure.message)); }
+-    finally { await shell.dispose(); }
++    try {
++      const outcome = await shell.exec('egrep -q keep', { stdin: input.input }).then(result => ({ result }), error => ({ error }));
++      details.settlement = 'error' in outcome ? 'rejected' : 'fulfilled';
++      if ('result' in outcome) details.result = outcome.result;
++      else details.rejection = { name: outcome.error?.name, message: outcome.error?.message, stack: outcome.error?.stack, identicalSentinel: outcome.error === failure };
++      details.returns = input.returns(); details.nextCalls = input.nextCalls();
++      assert.ok('error' in outcome); assert.equal(outcome.error, failure); assert.equal('result' in outcome, false);
++      assert.equal(input.returns(), 1);
++    } finally { await shell.dispose(); }
+@@
+-    try {
+-      const result = await shell.exec('grep -q keep', { stdin: input.input });
+-      details.result = result; details.returns = input.returns(); details.aliasesRegistered = shell.commands.has('egrep') || shell.commands.has('fgrep');
+-      assert.equal(input.returns(), 1); assert.equal(result.exitCode, 2); assert.ok(result.stderr.includes(failure.message));
+-    } finally { await shell.dispose(); }
++    try {
++      const outcome = await shell.exec('grep -q keep', { stdin: input.input }).then(result => ({ result }), error => ({ error }));
++      details.settlement = 'error' in outcome ? 'rejected' : 'fulfilled';
++      if ('result' in outcome) details.result = outcome.result;
++      else details.rejection = { name: outcome.error?.name, message: outcome.error?.message, stack: outcome.error?.stack, identicalSentinel: outcome.error === failure };
++      details.returns = input.returns(); details.aliasesRegistered = shell.commands.has('egrep') || shell.commands.has('fgrep');
++      assert.ok('error' in outcome); assert.equal(outcome.error, failure); assert.equal('result' in outcome, false);
++      assert.equal(input.returns(), 1);
++    } finally { await shell.dispose(); }
+*** End Patch

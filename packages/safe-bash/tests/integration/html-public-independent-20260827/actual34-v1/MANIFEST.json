@@ -1,0 +1,19 @@
+{
+  "schema": "html-actual34-recipe/1",
+  "at": "2026-08-28T01:12:32.020Z",
+  "files": {
+    ".gitignore": "ca1838cde9e4cfb493f3ea87a08bf973a9d6102aac688fc8828107d5586042aa",
+    "PREAUTH.json": "632e5bdaf3cff1befec55c8db2654b81c45a1bb0fd479c0563525e6f071c5349",
+    "PREPARATION-01.json": "fa009ce91bc04544a804510b81827015f5d3df73d44107a038a444ace0593cf5",
+    "RECIPE.md": "209a769ba342c35de66121afc3a5bcb407f5d35edd684e6395b5f9e5c0b9b35e",
+    "STATIC.json": "deb854dcfd54b3c8f2064a28136602c632508fd71880d96a88abd86ba70b57f8",
+    "audit-loader.mjs": "485f7cc08a658d56e6653ea65fa4b679d689c70c6ec54a6b8a9b40c5e1d0d02a",
+    "common.mjs": "1d8e55a96ad7be34ed3c3a3a4d648db2f976764f44d010497b6acc16bc432add",
+    "harness-fixture.mjs": "72cf2004310e8aa3ec1df589f97f908bbf1713b51545c73c3cd8ea4d6842bc19",
+    "prepare.mjs": "6eb677f8fdc8d904f73986f615d90fecb8513e5168ab298412fb90c3d931f642",
+    "qualify.mjs": "bf232116d91cfaaaa78fa66538c58d1da0cfaf720ac22901f8006fdeaaafbc55",
+    "root-export-control.mjs": "f859d85a309b0fea1c4d15928b87c172ba807f16ed885144854983b0d0b1420c",
+    "run.mjs": "3f89456988628c97ee565ce084889346587382ecf5004a2b283d393983da948f",
+    "supervisor.mjs": "4b0c84059928fd91170aec9712926dcfd32ee9e24c8e1f785aba5938fb6e0cb4"
+  }
+}

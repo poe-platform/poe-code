@@ -1,0 +1,15 @@
+{
+  "id": "caller-errno-identity",
+  "families": [
+    "F08",
+    "F10"
+  ],
+  "observation": {
+    "returned": {
+      "identity": 0,
+      "type": "object",
+      "code": null
+    }
+  },
+  "classification": "SYNTHETIC_CONTROL_OBSERVATION_BEFORE_ASSERTION"
+}

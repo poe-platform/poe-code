@@ -1,0 +1,263 @@
+import { describe, expect, it, vi } from "vitest";
+import { cosArray, cosDict, cosName, cosNumber, cosRef, dictGet } from "../ast.js";
+import { parseCosDocument } from "../cos/parser.js";
+import { serializeCosDocument } from "../cos/writer.js";
+import { generateToUnicodeCMap, parseToUnicodeCMap } from "./cmap.js";
+import {
+  buildFontEncodingDifferencesMap,
+  decodeWinAnsiByte,
+  encodeWinAnsiBytes,
+  measureStandard14TextWidth,
+  normalizeStandard14FontName,
+  resolveGlyphNameOptional,
+} from "./standard14.js";
+import { embedTrueTypeFontInCos, parseTrueTypeFont } from "./truetype.js";
+
+function buildSyntheticTrueTypeBytes(): Uint8Array {
+  const buf = new ArrayBuffer(256);
+  const view = new DataView(buf);
+  const bytes = new Uint8Array(buf);
+  // sfnt version 0x00010000, 5 tables: cmap, head, hhea, hmtx, maxp
+  view.setUint32(0, 0x00010000, false);
+  view.setUint16(4, 5, false);
+  const writeRec = (idx: number, tag: string, off: number, len: number) => {
+    const p = 12 + idx * 16;
+    for (let i = 0; i < 4; i++) bytes[p + i] = tag.charCodeAt(i);
+    view.setUint32(p + 8, off, false);
+    view.setUint32(p + 12, len, false);
+  };
+  writeRec(0, "head", 92, 54);
+  writeRec(1, "hhea", 148, 36);
+  writeRec(2, "maxp", 184, 6);
+  writeRec(3, "hmtx", 192, 8);
+  writeRec(4, "cmap", 200, 44);
+
+  // head (offset 92)
+  view.setUint16(92 + 18, 1000, false); // unitsPerEm = 1000
+  view.setInt16(92 + 36, 0, false);
+  view.setInt16(92 + 38, -200, false);
+  view.setInt16(92 + 40, 800, false);
+  view.setInt16(92 + 42, 800, false);
+
+  // hhea (offset 148)
+  view.setInt16(148 + 4, 800, false); // ascender
+  view.setInt16(148 + 6, -200, false); // descender
+  view.setUint16(148 + 34, 2, false); // numOfLongHorMetrics = 2
+
+  // maxp (offset 184)
+  view.setUint16(184 + 4, 2, false); // numGlyphs = 2
+
+  // hmtx (offset 192): gid 0 = 500, gid 1 = 650
+  view.setUint16(192, 500, false);
+  view.setUint16(196, 650, false);
+
+  // cmap (offset 200): 1 subtable format 12 at +12 (offset 212)
+  view.setUint16(200, 0, false);
+  view.setUint16(202, 1, false);
+  view.setUint16(204, 3, false); // platformID = 3
+  view.setUint16(206, 10, false); // encodingID = 10
+  view.setUint32(208, 12, false); // subtable rel offset
+  view.setUint16(212, 12, false); // format 12
+  view.setUint32(216, 28, false); // length
+  view.setUint32(224, 1, false); // numGroups = 1
+  view.setUint32(228, 65, false); // startCharCode 'A'
+  view.setUint32(232, 65, false); // endCharCode 'A'
+  view.setUint32(236, 1, false); // startGlyphID = 1
+
+  return bytes;
+}
+
+describe("Layer 2 Fonts: Standard 14, ToUnicode CMap, and First-Party TrueType Engine", () => {
+  it("resolves Standard 14 metrics, WinAnsi encoding, and /Differences arrays", () => {
+    expect(normalizeStandard14FontName("ABCDEF+Helvetica-Bold")).toBe("Helvetica-Bold");
+    expect(measureStandard14TextWidth("Hello", "Courier", 10)).toBeCloseTo(30, 3);
+    expect(decodeWinAnsiByte(0x80)).toBe("€");
+    expect([...encodeWinAnsiBytes("€A")]).toEqual([0x80, 0x41]);
+
+    const encDict = cosDict({
+      Type: cosName("Encoding"),
+      Differences: cosArray([cosNumber(65), cosName("Euro"), cosName("bullet")]),
+    });
+    const diffs = buildFontEncodingDifferencesMap(encDict);
+    expect(diffs.get(65)).toBe("€");
+    expect(diffs.get(66)).toBe("•");
+  });
+
+  it("round-trips /ToUnicode CMaps (beginbfchar & beginbfrange)", () => {
+    const cidMap = new Map<number, string>([
+      [1, "H"],
+      [2, "e"],
+      [3, "l"],
+      [4, "o"],
+    ]);
+    const cmapStream = generateToUnicodeCMap(cidMap);
+    const parsed = parseToUnicodeCMap(cmapStream);
+    expect(parsed.isTwoByte).toBe(true);
+    const decoded = parsed.decodeBytes(Uint8Array.from([0x00, 0x01, 0x00, 0x02, 0x00, 0x03, 0x00, 0x03, 0x00, 0x04]));
+    expect(decoded.map(d => d.unicode).join("")).toBe("Hello");
+  });
+
+  it("parses TrueType (sfnt) tables and embeds Type0/CIDFontType2 into a COS document", () => {
+    const ttfBytes = buildSyntheticTrueTypeBytes();
+    const font = parseTrueTypeFont(ttfBytes);
+    expect(font.unitsPerEm).toBe(1000);
+    expect(font.getGlyphId(65)).toBe(1);
+    expect(font.getAdvanceWidth1000(65)).toBe(650);
+    expect(font.measureTextWidth("A", 20)).toBeCloseTo(13, 3);
+
+    const baseBytes = serializeCosDocument({
+      objects: [
+        { objectNumber: 1, generationNumber: 0, value: cosDict({ Type: cosName("Catalog"), Pages: cosRef(2) }) },
+        { objectNumber: 2, generationNumber: 0, value: cosDict({ Type: cosName("Pages"), Count: cosNumber(0), Kids: cosArray([]) }) },
+      ],
+      rootRef: cosRef(1),
+    });
+    const cosDoc = parseCosDocument(baseBytes);
+    const { usedGlyphs } = font.encodeTextToCidHex("A");
+    const fontRef = embedTrueTypeFontInCos(cosDoc, font, usedGlyphs);
+    const embeddedDict = cosDoc.resolveDict(fontRef);
+    expect(embeddedDict).toBeDefined();
+    const descendant = cosDoc.resolveDict(cosDoc.resolveArray(dictGet(embeddedDict!, "DescendantFonts"))!.items[0])!;
+    expect(dictGet(descendant, "Subtype")).toEqual(cosName("CIDFontType2"));
+    expect(dictGet(descendant, "CIDToGIDMap")).toEqual(cosName("Identity"));
+    const descriptor = cosDoc.resolveDict(dictGet(descendant, "FontDescriptor"))!;
+    expect(dictGet(descriptor, "FontFile3")).toBeUndefined();
+    const program = cosDoc.resolve(dictGet(descriptor, "FontFile2"));
+    expect(program?.kind).toBe("stream");
+    if (program?.kind !== "stream") throw new Error("Missing TrueType font stream");
+    expect(dictGet(program.dict, "Subtype")).toBeUndefined();
+    expect(cosDoc.decodeStream(program)).toEqual(font.bytes);
+  });
+
+  it("resolves Adobe glyph names, presentation-form ligatures vs .swash variants, uni/u sequences, and whole-font numeric heuristics", () => {
+    expect(resolveGlyphNameOptional("fi")).toBe("fi");
+    expect(resolveGlyphNameOptional("ffi")).toBe("ffi");
+    expect(resolveGlyphNameOptional("fi.swash")).toBe("\ufb01");
+    expect(resolveGlyphNameOptional("ffi.swash")).toBe("\ufb03");
+    expect(resolveGlyphNameOptional("uniFB01")).toBe("\ufb01");
+    expect(resolveGlyphNameOptional("f_f_i")).toBe("ffi");
+    expect(resolveGlyphNameOptional("A.swash")).toBe("A");
+    expect(resolveGlyphNameOptional("A_a")).toBe("Aa");
+    expect(resolveGlyphNameOptional("A_unknown_B")).toBe("AB");
+    expect(resolveGlyphNameOptional("Omega")).toBe("\u2126");
+
+    expect(resolveGlyphNameOptional("uni00410042D8000043")).toBe("ABC");
+    expect(resolveGlyphNameOptional("uni0041zzzz0042")).toBe("AB");
+    expect(resolveGlyphNameOptional("uniD83DDE00")).toBeUndefined();
+    expect(resolveGlyphNameOptional("uni00e9")).toBe("\u00e9");
+    expect(resolveGlyphNameOptional("u1F600")).toBe("\u{1F600}");
+    expect(resolveGlyphNameOptional("u110000")).toBeUndefined();
+    expect(resolveGlyphNameOptional(".notdef")).toBe("");
+    expect(resolveGlyphNameOptional("u0000")).toBe("");
+    expect(resolveGlyphNameOptional("uni0000")).toBe("");
+
+    const numericEnc = cosDict({
+      Type: cosName("Encoding"),
+      Differences: cosArray([
+        cosNumber(1),
+        cosName("a65"),
+        cosName("66"),
+        cosName("zz67"),
+        cosName("a68--"),
+      ]),
+    });
+    const numDiffs = buildFontEncodingDifferencesMap(numericEnc);
+    expect(numDiffs.get(1)).toBe("A");
+    expect(numDiffs.get(2)).toBe("B");
+    expect(numDiffs.get(3)).toBe("C");
+    expect(numDiffs.get(4)).toBe("D");
+
+    const hexNumericEnc = cosDict({
+      Type: cosName("Encoding"),
+      Differences: cosArray([cosNumber(5), cosName("A4F"), cosName("50")]),
+    });
+    const hexDiffs = buildFontEncodingDifferencesMap(hexNumericEnc);
+    expect(hexDiffs.get(5)).toBe("O");
+    expect(hexDiffs.get(6)).toBe("P");
+
+    const nonNumericEnc = cosDict({
+      Type: cosName("Encoding"),
+      Differences: cosArray([cosNumber(65), cosName("a65")]),
+    });
+    const disabledDiffs = buildFontEncodingDifferencesMap(nonNumericEnc);
+    expect(disabledDiffs.has(65)).toBe(false);
+  });
+});
+
+it("embeds advance widths for glyph IDs above 511", async () => {
+  const { PdfDocument } = await import("../index.js");
+  const bytes = buildSyntheticTrueTypeBytes();
+  const view = new DataView(bytes.buffer);
+  view.setUint16(188, 600); // maxp.numGlyphs; trailing hmtx glyphs inherit width 650.
+  view.setUint32(236, 599); // The format-12 cmap maps A to glyph 599.
+  const doc = PdfDocument.create(), page = doc.addPage([100, 100]);
+  const font = doc.embedFont(bytes);
+  page.drawText("AA", { font, size: 20, x: 10, y: 30 });
+  const loaded = PdfDocument.load(doc.save());
+  const glyphs = loaded.getPage(0).evaluateDisplayList().glyphs;
+  expect(loaded.extractText()).toBe("AA");
+  expect(glyphs[0]!.charCode).toBe(599);
+  expect(glyphs[1]!.matrix[4] - glyphs[0]!.matrix[4]).toBeCloseTo(13);
+});
+
+
+it("looks up compact TrueType character ranges without expanding a character map", () => {
+  const bytes = buildSyntheticTrueTypeBytes();
+  const view = new DataView(bytes.buffer);
+  view.setUint32(228, 0x10000, false);
+  view.setUint32(232, 0x1ffff, false);
+  const original = Map.prototype.set; let entries = 0;
+  const spy = vi.spyOn(Map.prototype, "set").mockImplementation(function(this: Map<unknown, unknown>, key: unknown, value: unknown) {
+    if (typeof key === "number") entries++;
+    return original.call(this, key, value);
+  });
+  let font: ReturnType<typeof parseTrueTypeFont>;
+  try { font = parseTrueTypeFont(bytes); }
+  finally { spy.mockRestore(); }
+  expect(entries).toBe(0);
+  expect(font.getGlyphId(0x10000)).toBe(1);
+  expect(font.getGlyphId(0x1ffff)).toBe(65536);
+  expect(font.getGlyphId(0x20000)).toBe(0);
+});
+
+it("preserves last-wins lookup for overlapping TrueType ranges", () => {
+  const bytes = buildSyntheticTrueTypeBytes(); const view = new DataView(bytes.buffer);
+  view.setUint32(224, 2, false);
+  view.setUint32(232, 70, false);
+  view.setUint32(240, 66, false); view.setUint32(244, 68, false); view.setUint32(248, 10, false);
+  const font = parseTrueTypeFont(bytes);
+  expect([65, 66, 68, 69, 70, 71].map(cp => font.getGlyphId(cp))).toEqual([1, 10, 12, 5, 6, 0]);
+});
+
+
+it("retains format-4 overlap fallback for zero and out-of-bounds glyphs", () => {
+  const bytes = buildSyntheticTrueTypeBytes(); const view = new DataView(bytes.buffer);
+  view.setUint16(188, 10, false);
+  view.setUint16(212, 4, false); view.setUint16(218, 6, false);
+  for (const [offset, values] of [[226, [67, 68, 65535]], [234, [65, 66, 65535]], [240, [65472, 0, 1]], [246, [0, 6, 0]]] as const) {
+    values.forEach((value, index) => view.setUint16(offset + index * 2, value, false));
+  }
+  view.setUint16(254, 9, false);
+  const font = parseTrueTypeFont(bytes);
+  expect([64, 65, 66, 67, 68, 65535, 65.5].map(cp => font.getGlyphId(cp))).toEqual([0, 1, 9, 3, 0, 0, 0]);
+});
+
+it("uses logarithmic reads for ordered TrueType character ranges", () => {
+  const bytes = new Uint8Array(228 + 1024 * 12);
+  bytes.set(buildSyntheticTrueTypeBytes()); const view = new DataView(bytes.buffer);
+  view.setUint32(224, 1024, false);
+  for (let index = 0; index < 1024; index++) {
+    view.setUint32(228 + index * 12, index * 2, false);
+    view.setUint32(232 + index * 12, index * 2, false);
+    view.setUint32(236 + index * 12, index + 1, false);
+  }
+  const font = parseTrueTypeFont(bytes);
+  const original = DataView.prototype.getUint32; let reads = 0;
+  const spy = vi.spyOn(DataView.prototype, "getUint32").mockImplementation(function(this: DataView, offset: number, littleEndian?: boolean) {
+    reads++; return original.call(this, offset, littleEndian);
+  });
+  let glyph: number;
+  try { glyph = font.getGlyphId(2046); }
+  finally { spy.mockRestore(); }
+  expect(glyph).toBe(1024); expect(reads).toBeLessThan(40);
+});

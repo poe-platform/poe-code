@@ -1,0 +1,825 @@
+import type { AdapterContext } from "./types.js";
+import { pipeRow, simpleTableColumns, multilineTable } from "./gfm-syntax.js";
+import type { Alignment, Attr } from "./ast-types.js";
+import { fencedDivAttributes, normalizeLabel, romanListNumber } from "./commonmark-syntax.js";
+
+export interface BlockPoint { line: number; column: number }
+export interface BlockSource { source: string; start: BlockPoint; end: BlockPoint }
+export interface PendingInline {
+  kind: "pendingInline";
+  lines: { text: string; start: BlockPoint }[];
+}
+export interface PendingItem { blocks: PendingBlock[]; source: BlockSource }
+export interface PendingDefinition extends PendingItem { tight: boolean }
+export type PendingBlock =
+  | { kind: "nativeDiv"; literal: string; blocks: PendingBlock[]; source: BlockSource }
+  | { kind: "div"; attributes: Attr; blocks: PendingBlock[]; source: BlockSource }
+  | { kind: "definitionList"; items: {term: PendingInline; definitions: PendingDefinition[]}[]; source: BlockSource }
+  | { kind: "footnote"; label: string; blocks: PendingBlock[]; source: BlockSource }
+  | { kind: "table"; widths?: number[]; alignments: Alignment[]; header: string[]; rows: string[][]; source: BlockSource }
+  | { kind: "paragraph"; inline: PendingInline; source: BlockSource }
+  | { kind: "heading"; level: number; inline: PendingInline; source: BlockSource }
+  | { kind: "thematicBreak"; source: BlockSource }
+  | { kind: "code"; info: string; literal: string; source: BlockSource }
+  | { kind: "html"; literal: string; source: BlockSource }
+  | { kind: "quote"; blocks: PendingBlock[]; source: BlockSource }
+  | { kind: "list"; start: number | null; marker: string; style?: "LowerRoman" | "UpperRoman" | "LowerAlpha" | undefined; tight: boolean; items: PendingItem[]; source: BlockSource };
+export interface BlockDefinition {
+  label: string;
+  destination: string;
+  title: string;
+  source: BlockSource;
+}
+export interface CommonMarkBlockDocument { blocks: PendingBlock[]; definitions: BlockDefinition[] }
+
+interface Line {
+  raw: string;
+  text: string;
+  tabs: boolean;
+  // Cache one cursor, rather than retaining one index per expanded character.
+  original: number;
+  expanded: number;
+  number: number;
+  ending: string;
+}
+type ListBlock = Extract<PendingBlock, { kind: "list" }>;
+type Container =
+  | { kind: "nativeDiv"; node: Extract<PendingBlock, { kind: "nativeDiv" }> }
+  | { kind: "div"; node: Extract<PendingBlock, { kind: "div" }> }
+  | { kind: "definition"; node: PendingDefinition; indent: number; blank: boolean; empty: boolean }
+  | { kind: "footnote"; node: Extract<PendingBlock, { kind: "footnote" }>; indent: number; blank: boolean; empty: boolean }
+  | { kind: "quote"; node: Extract<PendingBlock, { kind: "quote" }> }
+  | { kind: "list"; node: ListBlock }
+  | { kind: "item"; node: PendingItem; indent: number; list: ListBlock; blank: boolean; empty: boolean };
+type Leaf =
+  | { kind: "table"; node: Extract<PendingBlock, { kind: "table" }>; columns?: {start: number; end: number}[] }
+  | { kind: "paragraph"; node: Extract<PendingBlock, { kind: "paragraph" }> }
+  | { kind: "fence"; node: Extract<PendingBlock, { kind: "code" }>; char: string; length: number; indent: number }
+  | { kind: "indent"; node: Extract<PendingBlock, { kind: "code" }>; blanks: string[] }
+  | { kind: "html"; node: Extract<PendingBlock, { kind: "html" }>; end: readonly string[] | null };
+interface Marker { style?: "LowerRoman" | "UpperRoman" | "LowerAlpha" | undefined; start: number | null; marker: string; content: number; indent: number; empty: boolean }
+
+function spaces(text: string, offset: number): number {
+  let end = offset;
+  while (text[end] === " ") end++;
+  return end - offset;
+}
+function trimEnd(text: string): string {
+  let end = text.length;
+  while (text[end - 1] === " " || text[end - 1] === "\t") end--;
+  return text.slice(0, end);
+}
+function trim(text: string): string {
+  let start = 0;
+  while (text[start] === " " || text[start] === "\t") start++;
+  return trimEnd(text.slice(start));
+}
+function sourcePosition(line: Line, offset: number): { original: number; remaining: number } {
+  if (!line.tabs) return { original: Math.min(offset, line.raw.length), remaining: 0 };
+  let original = offset < line.expanded ? 0 : line.original;
+  let expanded = offset < line.expanded ? 0 : line.expanded;
+  while (original < line.raw.length) {
+    const width = line.raw[original] === "\t" ? 4 - expanded % 4 : 1;
+    if (expanded + width > offset) break;
+    expanded += width;
+    original++;
+  }
+  line.original = original;
+  line.expanded = expanded;
+  const remaining = line.raw[original] === "\t" && offset > expanded ? expanded + 4 - expanded % 4 - offset : 0;
+  return { original, remaining };
+}
+function rawFrom(line: Line, offset: number): string {
+  const { original, remaining } = sourcePosition(line, offset);
+  return remaining ? " ".repeat(remaining) + line.raw.slice(original + 1) : line.raw.slice(original);
+}
+function point(line: Line, offset: number): BlockPoint {
+  return { line: line.number, column: sourcePosition(line, offset).original + 1 };
+}
+function endPoint(line: Line): BlockPoint {
+  return { line: line.number, column: Math.max(1, line.raw.length) };
+}
+function rule(text: string, offset: number): boolean {
+  const char = text[offset];
+  if (char !== "-" && char !== "*" && char !== "_") return false;
+  let count = 0;
+  for (let i = offset; i < text.length; i++) {
+    if (text[i] === char) count++;
+    else if (text[i] !== " ") return false;
+  }
+  return count >= 3;
+}
+function setext(text: string, offset: number): number {
+  const char = text[offset];
+  if (char !== "=" && char !== "-") return 0;
+  let end = offset;
+  while (text[end] === char) end++;
+  return spaces(text, end) === text.length - end ? (char === "=" ? 1 : 2) : 0;
+}
+function heading(text: string, offset: number): number {
+  let end = offset;
+  while (text[end] === "#") end++;
+  const count = end - offset;
+  return count > 0 && count <= 6 && (end === text.length || text[end] === " ") ? count : 0;
+}
+function fence(text: string, offset: number): { char: string; length: number } | undefined {
+  const char = text[offset];
+  if (char !== "`" && char !== "~") return;
+  let end = offset;
+  while (text[end] === char) end++;
+  if (end - offset < 3 || (char === "`" && text.indexOf("`", end) !== -1)) return;
+  return { char, length: end - offset };
+}
+function marker(text: string, offset: number, fancy = false, listStyle?: Marker["style"]): Marker | undefined {
+  let end = offset;
+  let start: number | null = null;
+  let style: Marker["style"];
+  let char = text[end];
+  if (char === "-" || char === "+" || char === "*") end++;
+  else {
+    while (text[end] !== undefined && text[end]! >= "0" && text[end]! <= "9" && end - offset < 10) end++;
+    if (end === offset && fancy) {
+      const next = text[offset + 1];
+      // A single lowercase letter starts an alphabetic list, except i.
+      // Continuations retain the enclosing list's alphabetic or Roman style.
+      if (char && char >= "a" && char <= "z" && (next === "." || next === ")") &&
+          (listStyle === "LowerAlpha" || char !== "i" && (listStyle !== "LowerRoman" || !"vxlcdm".includes(char)))) {
+        start = char.charCodeAt(0) - 96; style = "LowerAlpha"; end++;
+      } else {
+        while (end - offset < 16 && text[end] && "ivxlcdmIVXLCDM".includes(text[end]!)) end++;
+        const label = text.slice(offset, end), number = romanListNumber(label);
+        if (number === undefined) return;
+        start = number; style = label === label.toLowerCase() ? "LowerRoman" : "UpperRoman";
+      }
+    }
+    if (end === offset || (!style && end - offset > 9) || (text[end] !== "." && text[end] !== ")")) return;
+    start ??= Number(text.slice(offset, end));
+    char = text[end++];
+  }
+  if (end !== text.length && text[end] !== " ") return;
+  const padding = spaces(text, end);
+  const empty = end + padding === text.length;
+  const content = end + (empty || padding > 4 ? Math.min(padding, 1) : padding);
+  return { start, style, marker: char!, content, indent: end - offset + (empty ? 1 : padding > 4 ? 1 : padding), empty };
+}
+
+const blockTags = new Set([
+  "address", "article", "aside", "base", "basefont", "blockquote", "body", "caption", "center", "col", "colgroup",
+  "dd", "details", "dialog", "dir", "div", "dl", "dt", "fieldset", "figcaption", "figure", "footer", "form",
+  "frame", "frameset", "h1", "h2", "h3", "h4", "h5", "h6", "head", "header", "hr", "html", "iframe",
+  "legend", "li", "link", "main", "menu", "menuitem", "nav", "noframes", "ol", "optgroup", "option", "p",
+  "param", "search", "section", "summary", "table", "tbody", "td", "tfoot", "th", "thead", "title", "tr", "track", "ul"
+]);
+function letter(char: string | undefined): boolean {
+  return char !== undefined && ((char >= "a" && char <= "z") || (char >= "A" && char <= "Z"));
+}
+function nameChar(char: string | undefined): boolean {
+  return letter(char) || (char !== undefined && char >= "0" && char <= "9") || char === "-";
+}
+function punctuation(char: string | undefined): boolean {
+  if (char === undefined) return false;
+  const code = char.charCodeAt(0);
+  return code >= 0x21 && code <= 0x2f || code >= 0x3a && code <= 0x40 || code >= 0x5b && code <= 0x60 || code >= 0x7b && code <= 0x7e;
+}
+// Complete type-7 tag recognition is a small attribute scanner, not a substitution.
+function completeTag(text: string, offset: number): boolean {
+  let i = offset + 1;
+  const closing = text[i] === "/";
+  if (closing) i++;
+  if (!letter(text[i])) return false;
+  while (nameChar(text[i])) i++;
+  while (i < text.length) {
+    const gap = spaces(text, i);
+    i += gap;
+    if (text[i] === ">" || (!closing && text[i] === "/" && text[i + 1] === ">")) {
+      i += text[i] === "/" ? 2 : 1;
+      return spaces(text, i) === text.length - i;
+    }
+    if (closing || gap === 0) return false;
+    const first = text[i];
+    if (!letter(first) && first !== "_" && first !== ":") return false;
+    i++;
+    while (nameChar(text[i]) || text[i] === "_" || text[i] === ":" || text[i] === ".") i++;
+    const afterName = i;
+    i += spaces(text, i);
+    if (text[i] !== "=") { i = afterName; continue; }
+    i++;
+    i += spaces(text, i);
+    const quote = text[i];
+    if (quote === "'" || quote === '"') {
+      i++;
+      while (i < text.length && text[i] !== quote) i++;
+      if (i === text.length) return false;
+      i++;
+    } else {
+      const begin = i;
+      while (i < text.length && !" \"'=<>`".includes(text[i]!)) i++;
+      if (i === begin) return false;
+    }
+  }
+  return false;
+}
+function htmlStart(text: string, offset: number, interrupt: boolean): { end: readonly string[] | null } | undefined {
+  if (text[offset] !== "<") return;
+  if (text.startsWith("<!--", offset)) return { end: ["-->"] };
+  if (text.startsWith("<?", offset)) return { end: ["?>"] };
+  if (text.startsWith("<![CDATA[", offset)) return { end: ["]]>"] };
+  if (text.startsWith("<!", offset) && letter(text[offset + 2])) return { end: [">"] };
+  let i = offset + 1;
+  const closing = text[i] === "/";
+  if (closing) i++;
+  const begin = i;
+  while (nameChar(text[i])) i++;
+  const name = text.slice(begin, i).toLowerCase();
+  const boundary = text[i] === undefined || text[i] === " " || text[i] === ">" || (text[i] === "/" && text[i + 1] === ">");
+  if (!boundary) return;
+  if (!closing && ["script", "pre", "style", "textarea"].includes(name) && (text[i] === undefined || text[i] === " " || text[i] === ">")) return { end: ["</script>", "</pre>", "</style>", "</textarea>"] };
+  if (blockTags.has(name)) return { end: null };
+  if (!interrupt && (closing || !["script", "pre", "style", "textarea"].includes(name)) && completeTag(text, offset)) return { end: null };
+}
+function interrupts(text: string, offset: number, rawHtml = true, fancy = false): boolean {
+  const indent = spaces(text, offset);
+  if (indent > 3) return false;
+  const at = offset + indent;
+  const item = marker(text, at, fancy);
+  return Boolean(heading(text, at) || rule(text, at) || fence(text, at) || text[at] === ">" || rawHtml && htmlStart(text, at, true) ||
+    (item && !item.empty && (item.start === null || item.start === 1)));
+}
+
+/** Internal phase only. PendingInline is deliberately not a validated Pandoc AST. */
+export async function parseCommonMarkBlocks(
+  text: string,
+  context: AdapterContext,
+  source = "input",
+  extensions: Readonly<Record<string, boolean>> = {}
+): Promise<CommonMarkBlockDocument> {
+  context.checkpoint(0);
+  context.charge("text", text.length);
+  context.charge("retainedBytes", text.length * 2);
+  text = text.replaceAll("\u0000", "�");
+  const document: CommonMarkBlockDocument = { blocks: [], definitions: [] };
+  const labels = new Set<string>();
+  const blankItems = new WeakSet<PendingItem>();
+  const stack: Container[] = [];
+  let leaf: Leaf | undefined;
+  let cursor = 0;
+  let number = 0;
+  const range = (line: Line, offset: number): BlockSource => ({ source, start: point(line, offset), end: endPoint(line) });
+  const blocks = (): PendingBlock[] => {
+    const top = stack[stack.length - 1];
+    return top?.kind === "nativeDiv" || top?.kind === "div" || top?.kind === "quote" || top?.kind === "item" || top?.kind === "footnote" || top?.kind === "definition" ? top.node.blocks : document.blocks;
+  };
+  const add = (node: PendingBlock): void => {
+    context.bound("depth", stack.length + 1);
+    context.charge("nodes", 1);
+    context.charge("retainedBytes", 128);
+    const item = stack[stack.length - 1];
+    if (item?.kind === "item" && item.blank && item.node.blocks.length > 0) item.list.tight = false;
+    if (item?.kind === "item") item.blank = false;
+    if (item?.kind === "definition" && item.blank && node.kind !== "list") item.node.tight = false;
+    if (item?.kind === "definition") item.blank = false;
+    blocks().push(node);
+  };
+  const push = (container: Container): void => {
+    context.bound("depth", stack.length + 1);
+    context.charge("retainedBytes", 64);
+    stack.push(container);
+  };
+  const inlineLine = (line: Line, offset: number, value?: string) => {
+    context.bound("references", document.definitions.length + (leaf?.kind === "paragraph" ? leaf.node.inline.lines.length : 0) + 1);
+    const literal = value ?? rawFrom(line, offset);
+    context.charge("retainedBytes", literal.length * 2 + 48);
+    return { text: literal, start: point(line, offset) };
+  };
+  const finish = (): void => {
+    if (leaf?.kind === "paragraph") extractDefinitions(leaf.node);
+    leaf = undefined;
+  };
+  function extractDefinitions(node: Extract<PendingBlock, { kind: "paragraph" }>): void {
+    let consumed = 0;
+    while (consumed < node.inline.lines.length) {
+      const candidate = readDefinition(node.inline.lines, consumed, context);
+      if (!candidate) break;
+      context.charge("references", 1);
+      context.charge("retainedBytes", (candidate.label.length + candidate.destination.length + candidate.title.length) * 2 + 128);
+      if (!labels.has(candidate.label)) {
+        labels.add(candidate.label);
+        document.definitions.push({
+          label: candidate.label, destination: candidate.destination, title: candidate.title,
+          source: { source, start: node.inline.lines[consumed]!.start,
+            end: { line: node.inline.lines[consumed + candidate.count - 1]!.start.line,
+              column: node.inline.lines[consumed + candidate.count - 1]!.start.column + node.inline.lines[consumed + candidate.count - 1]!.text.length - 1 } }
+        });
+      }
+      consumed += candidate.count;
+    }
+    if (consumed) {
+      node.inline.lines.splice(0, consumed);
+      if (node.inline.lines.length) node.source.start = node.inline.lines[0]!.start;
+      else {
+        const siblings = blocks();
+        const index = siblings.indexOf(node);
+        if (index >= 0) siblings.splice(index, 1);
+      }
+    }
+  }
+  while (cursor < text.length) {
+    if (context.sinceYield !== undefined && context.sinceYield < 255) context.checkpoint();
+    else await context.cooperate();
+    const begin = cursor;
+    while (cursor < text.length && text[cursor] !== "\n" && text[cursor] !== "\r") {
+      context.checkpoint();
+      if (cursor > begin && (cursor - begin) % 256 === 0) await context.cooperate(0);
+      cursor++;
+    }
+    const raw = text.slice(begin, cursor);
+    let ending = "";
+    if (cursor < text.length) {
+      ending = text[cursor++]!;
+      if (ending === "\r" && text[cursor] === "\n") ending += text[cursor++]!;
+    }
+    // Preserve the logical budget across changes to temporary storage.
+    context.charge("retainedBytes", raw.length * 12 + 64);
+    const tabs = raw.includes("\t");
+    let lineText = raw;
+    if (!tabs) {
+      context.checkpoint(raw.length);
+      context.bound("text", raw.length);
+      context.charge("retainedBytes", raw.length * 10);
+      if (raw.length >= 256) await context.cooperate(0);
+    } else {
+      const fragments: string[] = [];
+      lineText = "";
+      let width = 0;
+      for (let i = 0; i < raw.length; i++) {
+        context.checkpoint();
+        const count = raw[i] === "\t" ? 4 - width % 4 : 1;
+        context.bound("text", width + count);
+        context.charge("retainedBytes", count * 10);
+        fragments.push(raw[i] === "\t" ? " ".repeat(count) : raw[i]!);
+        if (fragments.length === 256) {
+          lineText += fragments.join("");
+          fragments.length = 0;
+        }
+        width += count;
+        if (i > 0 && i % 256 === 0) await context.cooperate(0);
+      }
+      lineText += fragments.join("");
+    }
+    const line: Line = { raw, text: lineText, tabs, original: 0, expanded: 0, number: ++number, ending };
+    let offset = 0;
+    let matched = 0;
+    for (; matched < stack.length; matched++) {
+      context.checkpoint();
+      const container = stack[matched]!;
+      const child = stack[matched + 1];
+      if (container.kind === "list" || container.kind === "nativeDiv" || container.kind === "div") continue;
+      const indent = spaces(line.text, offset);
+      if (container.kind === "quote") {
+        if (indent > 3 || line.text[offset + indent] !== ">") break;
+        offset += indent + 1;
+        if (line.text[offset] === " ") offset++;
+      } else if (container.empty && container.blank) break;
+      // Lists can use two continuation columns, with up to three extra marker spaces.
+      else if (container.kind === "definition" && indent >= container.indent - 2 &&
+        (child?.kind === "list" && child.node.source.start.column <= container.node.source.start.column + 5 || indent <= container.indent + 1 && marker(line.text, offset + indent, extensions.fancy_lists))) offset += container.indent - 2;
+      else if (indent >= container.indent) offset += container.indent;
+      else if (offset + indent === line.text.length) offset += indent;
+      else break;
+      if (container.kind === "item" && offset + spaces(line.text, offset) < line.text.length) container.empty = false;
+    }
+    const blank = offset + spaces(line.text, offset) === line.text.length;
+    if (matched < stack.length) {
+      const failed = stack[matched];
+      const siblingIndent = spaces(line.text, offset);
+      const sibling = siblingIndent <= 3 ? marker(line.text, offset + siblingIndent, extensions.fancy_lists) : undefined;
+      const siblingItem = failed?.kind === "item" && sibling;
+      const siblingFootnote = failed?.kind === "footnote" && line.text.startsWith("[^", offset + siblingIndent) && line.text.includes("]:", offset + siblingIndent + 2);
+      const siblingDefinition = extensions.definition_lists && siblingIndent <= 3 && [":", "~"].includes(line.text[offset + siblingIndent] ?? "") && line.text[offset + siblingIndent + 1] === " ";
+      if (leaf?.kind === "paragraph" && !blank && !siblingItem && !siblingFootnote && !siblingDefinition && !interrupts(line.text, offset, extensions.raw_html !== false, extensions.fancy_lists)) {
+        leaf.node.inline.lines.push(inlineLine(line, offset + spaces(line.text, offset)));
+        leaf.node.source.end = endPoint(line);
+        for (const container of stack) container.node.source.end = endPoint(line);
+        continue;
+      }
+      finish();
+      stack.length = matched;
+    }
+    for (const container of stack) container.node.source.end = endPoint(line);
+    if (leaf?.kind === "fence") {
+      const indent = spaces(line.text, offset);
+      const at = offset + indent;
+      let end = at;
+      while (line.text[end] === leaf.char) end++;
+      if (indent <= 3 && end - at >= leaf.length && spaces(line.text, end) === line.text.length - end) {
+        leaf.node.source.end = endPoint(line);
+        finish();
+      } else {
+        const value = rawFrom(line, offset + Math.min(indent, leaf.indent)) + (ending || "\n");
+        context.charge("retainedBytes", value.length * 2);
+        leaf.node.literal += value;
+        leaf.node.source.end = endPoint(line);
+      }
+      continue;
+    }
+    if (leaf?.kind === "html") {
+      if (leaf.end === null && blank) finish();
+      else {
+        const value = rawFrom(line, offset) + (ending || "\n");
+        context.charge("retainedBytes", value.length * 2);
+        leaf.node.literal += value;
+        leaf.node.source.end = endPoint(line);
+        if (leaf.end !== null && leaf.end.some((end) => line.text.toLowerCase().includes(end))) finish();
+        continue;
+      }
+    }
+    if (leaf?.kind === "indent") {
+      const indent = spaces(line.text, offset);
+      if (blank) {
+        const value = rawFrom(line, offset + Math.min(indent, 4)) + (ending || "\n");
+        context.charge("retainedBytes", value.length * 2);
+        leaf.blanks.push(value);
+        continue;
+      }
+      if (indent >= 4) {
+        const value = leaf.blanks.join("") + rawFrom(line, offset + 4) + (ending || "\n");
+        context.charge("retainedBytes", value.length * 2);
+        leaf.node.literal += value;
+        leaf.blanks.length = 0;
+        leaf.node.source.end = endPoint(line);
+        continue;
+      }
+      finish();
+    }
+    if (extensions.native_divs && spaces(line.text, offset) <= 3 && line.text.slice(offset).trim().toLowerCase() === "</div>") {
+      let index = stack.length - 1;
+      while (index >= 0 && stack[index]!.kind !== "nativeDiv") index--;
+      if (index >= 0) {finish(); stack.length = index; continue;}
+    }
+    if (extensions.fenced_divs && spaces(line.text, offset) <= 3) {
+      const at = offset + spaces(line.text, offset);
+      let stop = at;
+      while (line.text[stop] === ":") stop++;
+      if (stop - at >= 3) {
+        const tail = rawFrom(line, stop).trim();
+        const attributes = fencedDivAttributes(tail, context);
+        if (attributes) {
+          finish();
+          const node: Extract<PendingBlock, {kind: "div"}> = {kind: "div", attributes, blocks: [], source: range(line, at)};
+          add(node); push({kind: "div", node}); continue;
+        }
+        if (!tail) {
+          let index = stack.length - 1;
+          while (index >= 0 && stack[index]!.kind !== "div") index--;
+          if (index >= 0) {finish(); stack.length = index; continue;}
+        }
+      }
+    }
+    if (blank) {
+      finish();
+      let deepest: Extract<Container, { kind: "item" }> | undefined;
+      if (stack[stack.length - 1]?.kind === "item") {
+        for (const container of stack) if (container.kind === "item") { deepest = container; blankItems.add(container.node); }
+      }
+      if (deepest) deepest.blank = true;
+      const top = stack[stack.length - 1];
+      if (top?.kind === "definition") top.blank = true;
+      continue;
+    }
+    if (leaf?.kind === "table" && leaf.columns) {
+      const text = rawFrom(line, offset), columns = leaf.columns;
+      if (simpleTableColumns(text, context)) {finish(); continue;}
+      context.charge("tableCells", columns.length);
+      context.charge("retainedBytes", text.length * 2 + columns.length * 32);
+      leaf.node.rows.push(columns.map((column, index) => text.slice(index ? column.start : 0, columns[index + 1]?.start).trim()));
+      leaf.node.source.end = endPoint(line);
+      continue;
+    }
+    if (extensions.simple_tables && leaf?.kind === "paragraph" && leaf.node.inline.lines.length === 1) {
+      const columns = simpleTableColumns(rawFrom(line, offset), context);
+      if (columns) {
+        let next = cursor;
+        while (text[next] === " " || text[next] === "\t") next++;
+        if (next === text.length || text[next] === "\n" || text[next] === "\r") {
+          leaf.node.inline.lines.push(inlineLine(line, offset)); leaf.node.source.end = endPoint(line); continue;
+        }
+        const previous = leaf.node, headerText = " ".repeat(Math.max(0, previous.source.start.column - offset - 1)) + previous.inline.lines[0]!.text;
+        const header = columns.map((column, index) => headerText.slice(index ? column.start : 0, columns[index + 1]?.start).trim());
+        const alignments: Alignment[] = columns.map((column, index) => {
+          const value = headerText.slice(column.start, columns[index + 1]?.start).trimEnd();
+          const left = value.length > 0 && value[0] !== " ", right = value.length >= column.end - column.start;
+          return left ? right ? "AlignDefault" : "AlignLeft" : right ? "AlignRight" : "AlignCenter";
+        });
+        context.charge("tableCells", columns.length);
+        context.charge("retainedBytes", headerText.length * 2 + columns.length * 32);
+        const node: Extract<PendingBlock, {kind: "table"}> = {kind: "table", alignments, header, rows: [], source: {...previous.source, end: endPoint(line)}};
+        const siblings = blocks(); siblings[siblings.indexOf(previous)] = node;
+        leaf = {kind: "table", node, columns}; continue;
+      }
+    }
+    if (leaf?.kind === "table") {
+      const row = !interrupts(line.text, offset, extensions.raw_html !== false, extensions.fancy_lists) ? pipeRow(rawFrom(line, offset), context) : undefined;
+      if (row) {
+        context.charge("tableCells", extensions.preserve_table_columns ? row.length : leaf.node.alignments.length);
+        leaf.node.rows.push(extensions.preserve_table_columns ? row : row.slice(0, leaf.node.alignments.length));
+        leaf.node.source.end = endPoint(line);
+        continue;
+      }
+      finish();
+    }
+    if (extensions.pipe_tables && leaf?.kind === "paragraph" && leaf.node.inline.lines.length === 1) {
+      const header = pipeRow(leaf.node.inline.lines[0]!.text, context);
+      const delimiter = pipeRow(rawFrom(line, offset), context);
+      const alignments: Alignment[] = [];
+      if (header && delimiter && header.length === delimiter.length) {
+        for (const cell of delimiter) {
+          context.checkpoint(cell.length);
+          let at = cell.startsWith(":") ? 1 : 0;
+          const begin = at;
+          while (cell[at] === "-") at++;
+          const right = cell[at] === ":";
+          if (right) at++;
+          if (at !== cell.length || at === begin || cell[begin] !== "-") break;
+          alignments.push(cell.startsWith(":") ? right ? "AlignCenter" : "AlignLeft" : right ? "AlignRight" : "AlignDefault");
+        }
+        if (alignments.length === header.length) {
+          const previous = leaf.node;
+          context.charge("tableCells", header.length);
+          const node: Extract<PendingBlock, { kind: "table" }> = { kind: "table", alignments, header, rows: [], source: { ...previous.source, end: endPoint(line) } };
+          const siblings = blocks();
+          siblings[siblings.indexOf(previous)] = node;
+          leaf = { kind: "table", node };
+          continue;
+        }
+      }
+    }
+    const definitionIndent = spaces(line.text, offset), definitionAt = offset + definitionIndent;
+    if (extensions.definition_lists && definitionIndent <= 3 && [":", "~"].includes(line.text[definitionAt] ?? "") && line.text[definitionAt + 1] === " ") {
+      if (leaf?.kind === "paragraph") extractDefinitions(leaf.node);
+      const siblings = blocks(), previous = siblings[siblings.length - 1];
+      if (previous?.kind === "paragraph" || previous?.kind === "definitionList") {
+        finish();
+        const term = previous.kind === "paragraph" ? previous : undefined;
+        if (term) siblings.pop();
+        let list = siblings[siblings.length - 1];
+        if (list?.kind !== "definitionList") {
+          list = {kind: "definitionList", items: [], source: {...previous.source}};
+          add(list);
+        }
+        if (term) list.items.push({term: term.inline, definitions: []});
+        const item = list.items[list.items.length - 1]!;
+        const termEnd = item.term.lines.at(-1)!.start.line;
+        const firstDefinitionLine = item.definitions[0]?.source.start.line ?? line.number;
+        const definition: PendingDefinition = {blocks: [], tight: termEnd + 1 === firstDefinitionLine, source: range(line, definitionAt)};
+        context.charge("nodes", 1); context.charge("retainedBytes", 128);
+        item.definitions.push(definition);
+        list.source.end = endPoint(line);
+        push({kind: "definition", node: definition, indent: definitionIndent + 4, blank: false, empty: false});
+        offset = definitionAt + 1 + Math.min(3, spaces(line.text, definitionAt + 1));
+      }
+    }
+    const initialIndent = spaces(line.text, offset);
+    const underline = initialIndent <= 3 ? setext(line.text, offset + initialIndent) : 0;
+    if (leaf?.kind === "paragraph" && underline) {
+      const node = leaf.node;
+      extractDefinitions(node);
+      if (node.inline.lines.length) {
+        const siblings = blocks();
+        siblings[siblings.indexOf(node)] = { kind: "heading", level: underline, inline: node.inline, source: { ...node.source, end: endPoint(line) } };
+        leaf = undefined;
+        continue;
+      }
+      leaf = undefined;
+    }
+    if (leaf?.kind === "paragraph" && !interrupts(line.text, offset, extensions.raw_html !== false, extensions.fancy_lists)) {
+      leaf.node.inline.lines.push(inlineLine(line, offset + initialIndent));
+      leaf.node.source.end = endPoint(line);
+      continue;
+    }
+    const wasParagraph = leaf?.kind === "paragraph";
+    finish();
+    // Reprocess opening containers on the same physical line. Each iteration
+    // consumes a marker and charges depth/work before retaining its state.
+    for (;;) {
+      context.checkpoint();
+      const indent = spaces(line.text, offset);
+      const at = offset + indent;
+      const top = stack[stack.length - 1];
+      if (extensions.footnotes && indent <= 3 && line.text.startsWith("[^", at)) {
+        const end = line.text.indexOf("]:", at + 2);
+        const label = end < 0 ? "" : line.text.slice(at + 2, end);
+        if (label && ![...label].some(c => c === " " || c === "\t")) {
+          const node: Extract<PendingBlock, { kind: "footnote" }> = { kind: "footnote", label, blocks: [], source: range(line, at) };
+          add(node); push({ kind: "footnote", node, indent: 4, blank: false, empty: false });
+          offset = end + 2 + spaces(line.text, end + 2); continue;
+        }
+      }
+      let item = indent <= 3 && !rule(line.text, at) ? marker(line.text, at, extensions.fancy_lists) : undefined;
+      if (item && top?.kind === "list" && item.marker === top.node.marker && item.style !== top.node.style) item = marker(line.text, at, extensions.fancy_lists, top.node.style);
+      if (top?.kind === "list" && (!item || (item.start !== null) !== (top.node.start !== null) || item.marker !== top.node.marker || item.style !== top.node.style)) {
+        stack.pop();
+        const parent = stack[stack.length - 1];
+        const previous = top.node.items[top.node.items.length - 1];
+        if (parent?.kind === "item" && previous && blankItems.has(previous)) parent.blank = true;
+      }
+      if (indent <= 3 && line.text[at] === ">") {
+        const node: Extract<PendingBlock, { kind: "quote" }> = { kind: "quote", blocks: [], source: range(line, at) };
+        add(node);
+        push({ kind: "quote", node });
+        offset = at + 1;
+        if (line.text[offset] === " ") offset++;
+        continue;
+      }
+      if (item && (!wasParagraph || !item.empty && (item.start === null || item.start === 1))) {
+        let listContainer = stack[stack.length - 1];
+        if (listContainer?.kind !== "list") {
+          const node: ListBlock = { kind: "list", start: item.start, marker: item.marker, style: item.style, tight: true, items: [], source: range(line, at) };
+          add(node);
+          listContainer = { kind: "list", node };
+          push(listContainer);
+        }
+        const previous = listContainer.node.items[listContainer.node.items.length - 1];
+        // Blank lines between items are recorded before the previous item closes.
+        if (previous && blankItems.has(previous)) listContainer.node.tight = false;
+        const node: PendingItem = { blocks: [], source: range(line, at) };
+        context.charge("nodes", 1);
+        context.charge("retainedBytes", 128);
+        listContainer.node.items.push(node);
+        push({ kind: "item", node, list: listContainer.node, indent: indent + item.indent, blank: false, empty: item.empty });
+        offset = item.content;
+        if (item.empty) break;
+        continue;
+      }
+      if (extensions.fenced_divs && indent <= 3 && line.text.startsWith(":::", at)) {
+        let stop = at + 3; while (line.text[stop] === ":") stop++;
+        const attributes = fencedDivAttributes(rawFrom(line, stop), context);
+        if (attributes) {
+          const node: Extract<PendingBlock, {kind: "div"}> = {kind: "div", attributes, blocks: [], source: range(line, at)};
+          add(node); push({kind: "div", node}); break;
+        }
+      }
+      if (at === line.text.length) break;
+      const level = indent <= 3 ? heading(line.text, at) : 0;
+      if (level) {
+        let content = trim(rawFrom(line, at + level));
+        let end = content.length;
+        while (content[end - 1] === "#") end--;
+        if (end < content.length && (end === 0 || content[end - 1] === " " || content[end - 1] === "\t")) content = trimEnd(content.slice(0, end));
+        add({ kind: "heading", level, inline: { kind: "pendingInline", lines: [inlineLine(line, at + level + spaces(line.text, at + level), content)] }, source: range(line, at) });
+        break;
+      }
+      if (extensions.multiline_tables && spaces(line.text, offset) <= 3 && line.text[offset] === "-") {
+        let stop = cursor, count = 0, lastLength = 0;
+        const prefix = line.text.slice(0, offset);
+        const table = await multilineTable(rawFrom(line, offset), async () => {
+          if (stop >= text.length) return;
+          const begin = stop;
+          while (stop < text.length && text[stop] !== "\n" && text[stop] !== "\r") {context.checkpoint(); stop++;}
+          const value = text.slice(begin, stop);
+          if (stop < text.length) {const ending = text[stop++]; if (ending === "\r" && text[stop] === "\n") stop++;}
+          if (!value.startsWith(prefix)) return;
+          count++; lastLength = value.length;
+          return value.slice(prefix.length);
+        }, context);
+        if (table) {
+          add({kind: "table", ...table, source: {...range(line, offset), end: {line: number + count, column: lastLength}}});
+          cursor = stop; number += count; break;
+        }
+      }
+      if (indent <= 3 && rule(line.text, at)) { add({ kind: "thematicBreak", source: range(line, at) }); break; }
+      const opening = indent <= 3 ? fence(line.text, at) : undefined;
+      if (opening) {
+        const node: Extract<PendingBlock, { kind: "code" }> = { kind: "code", info: trim(rawFrom(line, at + opening.length)), literal: "", source: range(line, at) };
+        add(node);
+        leaf = { kind: "fence", node, ...opening, indent };
+        break;
+      }
+      if (extensions.native_divs && indent <= 3 && line.text.slice(at, at + 4).toLowerCase() === "<div" &&
+        [">", " "].includes(line.text[at + 4] ?? "") && completeTag(line.text, at) && !line.text.trimEnd().endsWith("/>")) {
+        const literal = rawFrom(line, at);
+        context.charge("retainedBytes", literal.length * 2);
+        const node: Extract<PendingBlock, {kind: "nativeDiv"}> = {kind: "nativeDiv", literal, blocks: [], source: range(line, at)};
+        add(node); push({kind: "nativeDiv", node}); break;
+      }
+      const html = extensions.raw_html !== false && indent <= 3 ? htmlStart(line.text, at, false) : undefined;
+      if (html) {
+        const literal = rawFrom(line, offset) + (ending || "\n");
+        context.charge("retainedBytes", literal.length * 2);
+        const node: Extract<PendingBlock, { kind: "html" }> = { kind: "html", literal, source: range(line, at) };
+        add(node);
+        if (html.end === null || !html.end.some((end) => line.text.toLowerCase().includes(end))) leaf = { kind: "html", node, end: html.end };
+        break;
+      }
+      if (indent >= 4) {
+        const literal = rawFrom(line, offset + 4) + (ending || "\n");
+        context.charge("retainedBytes", literal.length * 2);
+        const node: Extract<PendingBlock, { kind: "code" }> = { kind: "code", info: "", literal, source: range(line, offset + 4) };
+        add(node);
+        leaf = { kind: "indent", node, blanks: [] };
+        break;
+      }
+      const node: Extract<PendingBlock, { kind: "paragraph" }> = { kind: "paragraph", inline: { kind: "pendingInline", lines: [inlineLine(line, at)] }, source: range(line, at) };
+      add(node);
+      leaf = { kind: "paragraph", node };
+      break;
+    }
+    for (const container of stack) {
+      if (container.kind === "item") blankItems.delete(container.node);
+      container.node.source.end = endPoint(line);
+    }
+  }
+  finish();
+  context.checkpoint(0);
+  return document;
+}
+
+// Definition grammar runs only at the beginning of a pending paragraph. It
+// returns source strings for a future inline resolver, not fabricated text ASTs.
+function readDefinition(
+  lines: PendingInline["lines"], index: number, context: AdapterContext
+): { label: string; destination: string; title: string; count: number } | undefined {
+  let first = lines[index]!.text;
+  if (first[0] !== "[") return;
+  let i = 1;
+  let label = "";
+  let labelCharacters = 0;
+  let count = 1;
+  for (;;) {
+    context.checkpoint();
+    if (i === first.length) {
+      if (!lines[index + count] || labelCharacters >= 999) return;
+      label += "\n";
+      labelCharacters++;
+      first = lines[index + count++]!.text;
+      i = 0;
+      continue;
+    }
+    if (first[i] === "\\" && punctuation(first[i + 1])) { label += first[i++]! + first[i++]!; labelCharacters += 2; if (labelCharacters > 999) return; continue; }
+    if (first[i] === "]") break;
+    if (first[i] === "[") return;
+    const width = first.codePointAt(i)! > 0xffff ? 2 : 1;
+    label += first.slice(i, i + width);
+    i += width;
+    if (++labelCharacters > 999) return;
+  }
+  if (first[i] !== "]" || first[i + 1] !== ":") return;
+  label = normalizeLabel(label, context);
+  if (!label) return;
+  let text = first.slice(i + 2);
+  i = 0;
+  while (text[i] === " " || text[i] === "\t") i++;
+  if (i === text.length && lines[index + count]) { text = lines[index + count++]!.text; i = 0; while (text[i] === " " || text[i] === "\t") i++; }
+  let destination = "";
+  if (text[i] === "<") {
+    i++;
+    while (i < text.length && text[i] !== ">") {
+      context.checkpoint();
+      if (text[i] === "<") return;
+      if (text[i] === "\\" && punctuation(text[i + 1])) destination += text[i++]!;
+      destination += text[i++]!;
+    }
+    if (text[i++] !== ">") return;
+  } else {
+    let depth = 0;
+    while (i < text.length && text[i] !== " " && text[i] !== "\t") {
+      context.checkpoint();
+      const char = text[i++]!;
+      if (char.charCodeAt(0) < 0x20 || char.charCodeAt(0) === 0x7f) return;
+      if (char === "\\" && punctuation(text[i])) { destination += char + text[i++]!; continue; }
+      if (char === "(") { context.bound("depth", ++depth); }
+      if (char === ")" && --depth < 0) return;
+      destination += char;
+    }
+    if (depth !== 0 || !destination) return;
+  }
+  const destinationCount = count;
+  const tail = text.slice(i);
+  const hasGap = tail.length > 0 && (tail[0] === " " || tail[0] === "\t");
+  text = trim(tail);
+  if (!text && lines[index + count]) {
+    const next = trim(lines[index + count]!.text);
+    if (next[0] === "'" || next[0] === '"' || next[0] === "(") { text = next; count++; }
+  } else if (text && !hasGap) return;
+  if (!text) return { label, destination, title: "", count };
+  const opening = text[0];
+  if (opening !== "'" && opening !== '"' && opening !== "(") return;
+  const closing = opening === "(" ? ")" : opening;
+  const titleFailure = () => count > destinationCount ? { label, destination, title: "", count: destinationCount } : undefined;
+  let title = "";
+  i = 1;
+  for (;;) {
+    context.checkpoint();
+    if (i === text.length) {
+      if (!lines[index + count]) return titleFailure();
+      text = lines[index + count++]!.text;
+      i = 0;
+      title += "\n";
+      continue;
+    }
+    const char = text[i++]!;
+    if (char === "\\" && punctuation(text[i])) { title += char + text[i++]!; continue; }
+    if (char === closing) return trim(text.slice(i)) ? titleFailure() : { label, destination, title, count };
+    if (opening === "(" && char === "(") return titleFailure();
+    title += char;
+  }
+}

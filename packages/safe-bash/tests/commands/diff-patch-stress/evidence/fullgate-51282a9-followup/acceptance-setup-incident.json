@@ -1,0 +1,9 @@
+{
+  "stage": "snapshot copy, before test execution",
+  "status": 1,
+  "reason": "Initial new copy routine required terminal LF even on a zero-byte archived log: tests/commands/diff-patch-stress/gnu-target/revision2-2026-08-26-typecheck.txt",
+  "correction": "Allow zero-byte input and emit an empty apply_patch Add File body; continue to compare every copied file hash to its exact frozen input.",
+  "testExecutions": 0,
+  "sourceChanges": 0,
+  "fixtureOrAssertionChanges": 0
+}

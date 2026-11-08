@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "target": "ES2024", "lib": ["ES2024", "DOM"], "module": "ESNext", "moduleResolution": "Bundler",
+    "strict": true, "skipLibCheck": true, "types": ["node", "@cloudflare/workers-types"],
+    "rootDir": "src", "outDir": "dist", "declaration": true, "allowJs": true,
+    "checkJs": false
+  },
+  "include": ["src"]
+}

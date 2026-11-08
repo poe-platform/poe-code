@@ -1,0 +1,24 @@
+{
+  "closedAt": "2026-08-27T16:04:22.629Z",
+  "snapshots": [
+    {
+      "capture": "capture-1",
+      "temporary": "/private/tmp/safe-bash-column-current-l7jXfm",
+      "archiveRechecked": true,
+      "packRechecked": true,
+      "removed": true
+    },
+    {
+      "capture": "capture-2",
+      "temporary": "/private/tmp/safe-bash-column-current-Fe3eCP",
+      "archiveRechecked": true,
+      "packRechecked": true,
+      "removed": true
+    }
+  ],
+  "allOwnedSnapshotsRemoved": true,
+  "runnerLogCopiedAndRemoved": true,
+  "children": "All 32 bounded child commands reported close, null timeout/output-cap/spawn failure/signal, followed by the unchanged wrapper process-group retirement attempt. No test positivity relies on forced closure.",
+  "gates": "Final source/packed positive gates released and awaited; strict unhandled rejection runs exit zero. Deliberate mutant events remain separate.",
+  "foreignArtifacts": "Not modified or removed."
+}

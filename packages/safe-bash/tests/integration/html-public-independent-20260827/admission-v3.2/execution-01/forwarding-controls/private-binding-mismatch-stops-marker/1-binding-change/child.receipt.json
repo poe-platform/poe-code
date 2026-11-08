@@ -1,0 +1,22 @@
+{
+  "pid": 87495,
+  "ppid": 86238,
+  "mode": "binding-change",
+  "reason": "EXACT_FORWARDING_REASON",
+  "memory": {
+    "baseline": {
+      "rss": 45940736,
+      "heapTotal": 5914624,
+      "heapUsed": 5036344,
+      "external": 2082455,
+      "arrayBuffers": 16831
+    },
+    "fieldwisePeaks": {
+      "rss": 45957120,
+      "heapTotal": 5914624,
+      "heapUsed": 5045936,
+      "external": 2082495,
+      "arrayBuffers": 16831
+    }
+  }
+}

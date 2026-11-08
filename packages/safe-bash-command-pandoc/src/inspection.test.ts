@@ -1,0 +1,42 @@
+import { expect, it, vi } from "vitest";
+import { createFormatInspectionCommand, inspectFormats } from "./index.js";
+it("lists built-in and supplied directions, labels combined lists, and derives extension signs", () => {
+  const reader = {
+    format: "docx",
+    read: async () => ({ blocks: [], metadata: {}, resources: [] })
+  };
+  expect(inspectFormats(["--list-input-formats", "--list-output-formats"], { reader })).toBe(
+    "Input formats:\ncommonmark\ncommonmark_x\ncsv\ndocx\nepub\ngfm\nhtml\nhtml5\njson\nlatex\nmarkdown\nmarkdown_github\nmarkdown_mmd\nmarkdown_phpextra\nmarkdown_strict\nmd\nodt\npdf\npptx\nrst\nrtf\ntsv\nxlsx\nOutput formats:\ncommonmark\ncommonmark_x\ndocx\nepub\nepub3\ngfm\nhtml\nhtml5\njson\nlatex\nmarkdown\nmarkdown_github\nmarkdown_mmd\nmarkdown_phpextra\nmarkdown_strict\nmd\nodt\npdf\nplain\npptx\nrst\nrtf\n"
+  );
+  expect(inspectFormats(["--list-extensions=gfm-task_lists"])).toBe(
+    "+autolink_bare_uris\n+pipe_tables\n+raw_html\n+strikeout\n-task_lists\n+gfm_auto_identifiers\n"
+  );
+  expect(inspectFormats(["--list-extensions", "gfm"])).toContain("+task_lists\n");
+  for (const args of [
+    [],
+    ["--list-extensions"],
+    ["--list-input-formats", "input.md"],
+    ["--list-extensions=gfm", "--list-output-formats"]
+  ])
+    expect(() => inspectFormats(args)).toThrowError(expect.objectContaining({ code: "E_OPTION" }));
+});
+it("thin safe-bash adapter awaits byte output and separates diagnostics", async () => {
+  const stdout = { write: vi.fn(async (_bytes: Uint8Array) => {}) };
+  const stderr = { write: vi.fn(async (_bytes: Uint8Array) => {}) };
+  const command = createFormatInspectionCommand();
+  const context = {
+    args: ["--list-extensions=gfm"],
+    stdout,
+    stderr,
+    signal: new AbortController().signal
+  };
+  expect(await command.execute(context)).toEqual({ exitCode: 0 });
+  expect(new TextDecoder().decode(stdout.write.mock.calls[0]![0])).toContain("+pipe_tables");
+  expect(stderr.write).not.toHaveBeenCalled();
+  stdout.write.mockClear();
+  expect(await command.execute({ ...context, args: ["--list-extensions=unknown"] })).toEqual({
+    exitCode: 2
+  });
+  expect(stdout.write).not.toHaveBeenCalled();
+  expect(new TextDecoder().decode(stderr.write.mock.calls[0]![0])).toContain("E_FORMAT:");
+});

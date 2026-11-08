@@ -1,0 +1,646 @@
+TAP version 13
+# Subtest: qualified s3 existing-target copyFile to-remote
+ok 1 - qualified s3 existing-target copyFile to-remote
+  ---
+  duration_ms: 8.052917
+  type: 'test'
+  ...
+# Subtest: qualified s3 existing-target cp to-remote
+ok 2 - qualified s3 existing-target cp to-remote
+  ---
+  duration_ms: 8.380875
+  type: 'test'
+  ...
+# Subtest: qualified s3 existing-target mv to-remote
+ok 3 - qualified s3 existing-target mv to-remote
+  ---
+  duration_ms: 5.272583
+  type: 'test'
+  ...
+# Subtest: qualified s3 existing-target copyFile from-remote
+ok 4 - qualified s3 existing-target copyFile from-remote
+  ---
+  duration_ms: 1.685833
+  type: 'test'
+  ...
+# Subtest: qualified s3 existing-target cp from-remote
+ok 5 - qualified s3 existing-target cp from-remote
+  ---
+  duration_ms: 2.774167
+  type: 'test'
+  ...
+# Subtest: qualified s3 existing-target mv from-remote
+ok 6 - qualified s3 existing-target mv from-remote
+  ---
+  duration_ms: 3.114916
+  type: 'test'
+  ...
+# Subtest: qualified s3 resolves nested readonly source and overlay destination views
+ok 7 - qualified s3 resolves nested readonly source and overlay destination views
+  ---
+  duration_ms: 2.553833
+  type: 'test'
+  ...
+# Subtest: qualified s3 cannot bless altered or copied Memory observations
+ok 8 - qualified s3 cannot bless altered or copied Memory observations
+  ---
+  duration_ms: 0.865208
+  type: 'test'
+  ...
+# Subtest: genuine s3 metadata with Memory-alias content mapping stays unknown to-remote
+ok 9 - genuine s3 metadata with Memory-alias content mapping stays unknown to-remote
+  ---
+  duration_ms: 2.861625
+  type: 'test'
+  ...
+# Subtest: genuine s3 metadata with Memory-alias content mapping stays unknown from-remote
+ok 10 - genuine s3 metadata with Memory-alias content mapping stays unknown from-remote
+  ---
+  duration_ms: 1.780459
+  type: 'test'
+  ...
+# Subtest: qualified webdav existing-target copyFile to-remote
+ok 11 - qualified webdav existing-target copyFile to-remote
+  ---
+  duration_ms: 23.779583
+  type: 'test'
+  ...
+# Subtest: qualified webdav existing-target cp to-remote
+ok 12 - qualified webdav existing-target cp to-remote
+  ---
+  duration_ms: 11.406875
+  type: 'test'
+  ...
+# Subtest: qualified webdav existing-target mv to-remote
+ok 13 - qualified webdav existing-target mv to-remote
+  ---
+  duration_ms: 8.906041
+  type: 'test'
+  ...
+# Subtest: qualified webdav existing-target copyFile from-remote
+ok 14 - qualified webdav existing-target copyFile from-remote
+  ---
+  duration_ms: 4.302333
+  type: 'test'
+  ...
+# Subtest: qualified webdav existing-target cp from-remote
+ok 15 - qualified webdav existing-target cp from-remote
+  ---
+  duration_ms: 7.083125
+  type: 'test'
+  ...
+# Subtest: qualified webdav existing-target mv from-remote
+ok 16 - qualified webdav existing-target mv from-remote
+  ---
+  duration_ms: 9.649458
+  type: 'test'
+  ...
+# Subtest: qualified webdav resolves nested readonly source and overlay destination views
+ok 17 - qualified webdav resolves nested readonly source and overlay destination views
+  ---
+  duration_ms: 3.68425
+  type: 'test'
+  ...
+# Subtest: qualified webdav cannot bless altered or copied Memory observations
+ok 18 - qualified webdav cannot bless altered or copied Memory observations
+  ---
+  duration_ms: 1.469916
+  type: 'test'
+  ...
+# Subtest: genuine webdav metadata with Memory-alias content mapping stays unknown to-remote
+ok 19 - genuine webdav metadata with Memory-alias content mapping stays unknown to-remote
+  ---
+  duration_ms: 5.508375
+  type: 'test'
+  ...
+# Subtest: genuine webdav metadata with Memory-alias content mapping stays unknown from-remote
+ok 20 - genuine webdav metadata with Memory-alias content mapping stays unknown from-remote
+  ---
+  duration_ms: 3.1835
+  type: 'test'
+  ...
+# Subtest: qualified comparison retains known Memory hardlink and symlink identity
+ok 21 - qualified comparison retains known Memory hardlink and symlink identity
+  ---
+  duration_ms: 0.424083
+  type: 'test'
+  ...
+# Subtest: qualified S3 metadata failure preserves both stores
+ok 22 - qualified S3 metadata failure preserves both stores
+  ---
+  duration_ms: 0.573208
+  type: 'test'
+  ...
+# Subtest: qualified S3 cancel failure preserves both stores
+ok 23 - qualified S3 cancel failure preserves both stores
+  ---
+  duration_ms: 0.390583
+  type: 'test'
+  ...
+# Subtest: qualified S3 write failure preserves both stores
+ok 24 - qualified S3 write failure preserves both stores
+  ---
+  duration_ms: 0.550334
+  type: 'test'
+  ...
+# Subtest: qualified S3 missing destination race keeps exclusive creation and source bytes
+ok 25 - qualified S3 missing destination race keeps exclusive creation and source bytes
+  ---
+  duration_ms: 0.635458
+  type: 'test'
+  ...
+# Subtest: Memory authority preserves exact cancellation during peer observation
+ok 26 - Memory authority preserves exact cancellation during peer observation
+  ---
+  duration_ms: 0.339875
+  type: 'test'
+  ...
+# Subtest: known complete tuples win without querying an advertised authority
+ok 27 - known complete tuples win without querying an advertised authority
+  ---
+  duration_ms: 1.21525
+  type: 'test'
+  ...
+# Subtest: recognized shared authority permits distinct overwrite, sharedStore=false
+ok 28 - recognized shared authority permits distinct overwrite, sharedStore=false
+  ---
+  duration_ms: 1.532375
+  type: 'test'
+  ...
+# Subtest: recognized shared authority permits distinct overwrite, sharedStore=true
+ok 29 - recognized shared authority permits distinct overwrite, sharedStore=true
+  ---
+  duration_ms: 0.547584
+  type: 'test'
+  ...
+# Subtest: same-mount unknown stat can use its recognized metadata authority
+ok 30 - same-mount unknown stat can use its recognized metadata authority
+  ---
+  duration_ms: 0.366125
+  type: 'test'
+  ...
+# Subtest: authority-proven alias fails before source acquisition or writes
+ok 31 - authority-proven alias fails before source acquisition or writes
+  ---
+  duration_ms: 0.750917
+  type: 'test'
+  ...
+# Subtest: both operands unwrap nested mounts and readonly views without erasing policy
+ok 32 - both operands unwrap nested mounts and readonly views without erasing policy
+  ---
+  duration_ms: 1.351208
+  type: 'test'
+  ...
+# Subtest: unrecognized peers stay unknown despite independent adapter objects
+ok 33 - unrecognized peers stay unknown despite independent adapter objects
+  ---
+  duration_ms: 0.164708
+  type: 'test'
+  ...
+# Subtest: invalid or conflicting terminal answers fail EIO: distinct/same
+ok 34 - invalid or conflicting terminal answers fail EIO: distinct/same
+  ---
+  duration_ms: 0.626084
+  type: 'test'
+  ...
+# Subtest: invalid or conflicting terminal answers fail EIO: invalid/unknown
+ok 35 - invalid or conflicting terminal answers fail EIO: invalid/unknown
+  ---
+  duration_ms: 0.463584
+  type: 'test'
+  ...
+# Subtest: terminal authorities are queried once each, including reverse-only proof
+ok 36 - terminal authorities are queried once each, including reverse-only proof
+  ---
+  duration_ms: 0.626959
+  type: 'test'
+  ...
+# Subtest: real metadata/authority ENOENT errors propagate without content effects
+ok 37 - real metadata/authority ENOENT errors propagate without content effects
+  ---
+  duration_ms: 0.373709
+  type: 'test'
+  ...
+# Subtest: real metadata/authority EACCES errors propagate without content effects
+ok 38 - real metadata/authority EACCES errors propagate without content effects
+  ---
+  duration_ms: 0.164125
+  type: 'test'
+  ...
+# Subtest: real metadata/authority EIO errors propagate without content effects
+ok 39 - real metadata/authority EIO errors propagate without content effects
+  ---
+  duration_ms: 0.354417
+  type: 'test'
+  ...
+# Subtest: ENOENT-shaped cancellation stops between authorities and remains the exact reason
+ok 40 - ENOENT-shaped cancellation stops between authorities and remains the exact reason
+  ---
+  duration_ms: 0.389292
+  type: 'test'
+  ...
+# Subtest: recursive negotiation stays unknown without requerying; cyclic trusted views fail EIO
+ok 41 - recursive negotiation stays unknown without requerying; cyclic trusted views fail EIO
+  ---
+  duration_ms: 0.228334
+  type: 'test'
+  ...
+# Subtest: opaque forwarding of a negotiating wrapper method stays unknown before nested metadata or authority queries
+ok 42 - opaque forwarding of a negotiating wrapper method stays unknown before nested metadata or authority queries
+  ---
+  duration_ms: 0.436084
+  type: 'test'
+  ...
+# Subtest: overlay comparison observes selected backing without copy-up, then changes after a real copy-up
+ok 43 - overlay comparison observes selected backing without copy-up, then changes after a real copy-up
+  ---
+  duration_ms: 2.360917
+  type: 'test'
+  ...
+# Subtest: synthetic mount directories compare as unknown without inventing backing entries
+ok 44 - synthetic mount directories compare as unknown without inventing backing entries
+  ---
+  duration_ms: 0.343875
+  type: 'test'
+  ...
+# Subtest: direct same-path, reverse=false: rejects before I/O or publication
+ok 45 - direct same-path, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 13.675333
+  type: 'test'
+  ...
+# Subtest: direct same-path, reverse=true: rejects before I/O or publication
+ok 46 - direct same-path, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 8.632666
+  type: 'test'
+  ...
+# Subtest: direct hardlink, reverse=false: rejects before I/O or publication
+ok 47 - direct hardlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 9.448542
+  type: 'test'
+  ...
+# Subtest: direct hardlink, reverse=true: rejects before I/O or publication
+ok 48 - direct hardlink, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 6.697667
+  type: 'test'
+  ...
+# Subtest: direct symlink, reverse=false: rejects before I/O or publication
+ok 49 - direct symlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 7.391208
+  type: 'test'
+  ...
+# Subtest: direct symlink, reverse=true: rejects before I/O or publication
+ok 50 - direct symlink, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 6.371583
+  type: 'test'
+  ...
+# Subtest: readonly same-path, reverse=false: rejects before I/O or publication
+ok 51 - readonly same-path, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 3.524958
+  type: 'test'
+  ...
+# Subtest: readonly hardlink, reverse=false: rejects before I/O or publication
+ok 52 - readonly hardlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 3.69375
+  type: 'test'
+  ...
+# Subtest: readonly symlink, reverse=false: rejects before I/O or publication
+ok 53 - readonly symlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 4.451792
+  type: 'test'
+  ...
+# Subtest: nested same-path, reverse=false: rejects before I/O or publication
+ok 54 - nested same-path, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 3.670541
+  type: 'test'
+  ...
+# Subtest: nested same-path, reverse=true: rejects before I/O or publication
+ok 55 - nested same-path, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 4.32825
+  type: 'test'
+  ...
+# Subtest: nested hardlink, reverse=false: rejects before I/O or publication
+ok 56 - nested hardlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 3.599167
+  type: 'test'
+  ...
+# Subtest: nested hardlink, reverse=true: rejects before I/O or publication
+ok 57 - nested hardlink, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 3.177958
+  type: 'test'
+  ...
+# Subtest: nested symlink, reverse=false: rejects before I/O or publication
+ok 58 - nested symlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 5.785584
+  type: 'test'
+  ...
+# Subtest: nested symlink, reverse=true: rejects before I/O or publication
+ok 59 - nested symlink, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 5.730958
+  type: 'test'
+  ...
+# Subtest: overlay-lower same-path, reverse=false: rejects before I/O or publication
+ok 60 - overlay-lower same-path, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 4.345459
+  type: 'test'
+  ...
+# Subtest: overlay-lower same-path, reverse=true: rejects before I/O or publication
+ok 61 - overlay-lower same-path, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 7.62725
+  type: 'test'
+  ...
+# Subtest: overlay-lower hardlink, reverse=false: rejects before I/O or publication
+ok 62 - overlay-lower hardlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 4.771708
+  type: 'test'
+  ...
+# Subtest: overlay-lower hardlink, reverse=true: rejects before I/O or publication
+ok 63 - overlay-lower hardlink, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 4.876708
+  type: 'test'
+  ...
+# Subtest: overlay-lower symlink, reverse=false: rejects before I/O or publication
+ok 64 - overlay-lower symlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 5.68825
+  type: 'test'
+  ...
+# Subtest: overlay-lower symlink, reverse=true: rejects before I/O or publication
+ok 65 - overlay-lower symlink, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 4.675791
+  type: 'test'
+  ...
+# Subtest: overlay-upper same-path, reverse=false: rejects before I/O or publication
+ok 66 - overlay-upper same-path, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 3.29025
+  type: 'test'
+  ...
+# Subtest: overlay-upper same-path, reverse=true: rejects before I/O or publication
+ok 67 - overlay-upper same-path, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 5.811708
+  type: 'test'
+  ...
+# Subtest: overlay-upper hardlink, reverse=false: rejects before I/O or publication
+ok 68 - overlay-upper hardlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 5.2335
+  type: 'test'
+  ...
+# Subtest: overlay-upper hardlink, reverse=true: rejects before I/O or publication
+ok 69 - overlay-upper hardlink, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 5.069875
+  type: 'test'
+  ...
+# Subtest: overlay-upper symlink, reverse=false: rejects before I/O or publication
+ok 70 - overlay-upper symlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 5.90325
+  type: 'test'
+  ...
+# Subtest: overlay-upper symlink, reverse=true: rejects before I/O or publication
+ok 71 - overlay-upper symlink, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 4.774208
+  type: 'test'
+  ...
+# Subtest: readonly-overlay same-path, reverse=false: rejects before I/O or publication
+ok 72 - readonly-overlay same-path, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 3.567875
+  type: 'test'
+  ...
+# Subtest: readonly-overlay hardlink, reverse=false: rejects before I/O or publication
+ok 73 - readonly-overlay hardlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 6.284333
+  type: 'test'
+  ...
+# Subtest: readonly-overlay symlink, reverse=false: rejects before I/O or publication
+ok 74 - readonly-overlay symlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 5.44675
+  type: 'test'
+  ...
+# Subtest: same memory backend, multipleMounts=false: mount rejects before delegation
+ok 75 - same memory backend, multipleMounts=false: mount rejects before delegation
+  ---
+  duration_ms: 0.381666
+  type: 'test'
+  ...
+# Subtest: same memory backend, multipleMounts=true: mount rejects before delegation
+ok 76 - same memory backend, multipleMounts=true: mount rejects before delegation
+  ---
+  duration_ms: 0.138875
+  type: 'test'
+  ...
+# Subtest: overlapping native roots identify the same file without exposing host paths
+ok 77 - overlapping native roots identify the same file without exposing host paths
+  ---
+  duration_ms: 4.632584
+  type: 'test'
+  ...
+# Subtest: separate native roots and files remain copyable
+ok 78 - separate native roots and files remain copyable
+  ---
+  duration_ms: 5.179167
+  type: 'test'
+  ...
+# Subtest: unknown source identity rejects existing cross-mount target before effects
+ok 79 - unknown source identity rejects existing cross-mount target before effects
+  ---
+  duration_ms: 0.829417
+  type: 'test'
+  ...
+# Subtest: unknown target identity rejects existing cross-mount target before effects
+ok 80 - unknown target identity rejects existing cross-mount target before effects
+  ---
+  duration_ms: 0.278417
+  type: 'test'
+  ...
+# Subtest: unknown both identity rejects existing cross-mount target before effects
+ok 81 - unknown both identity rejects existing cross-mount target before effects
+  ---
+  duration_ms: 0.16225
+  type: 'test'
+  ...
+# Subtest: unknown providers can copy to missing targets using exclusive creation
+ok 82 - unknown providers can copy to missing targets using exclusive creation
+  ---
+  duration_ms: 0.439458
+  type: 'test'
+  ...
+# Subtest: destination races from missing to source alias, streaming=false: exclusive write preserves source
+ok 83 - destination races from missing to source alias, streaming=false: exclusive write preserves source
+  ---
+  duration_ms: 0.179083
+  type: 'test'
+  ...
+# Subtest: destination races from missing to source alias, streaming=true: exclusive write preserves source
+ok 84 - destination races from missing to source alias, streaming=true: exclusive write preserves source
+  ---
+  duration_ms: 0.137792
+  type: 'test'
+  ...
+# Subtest: disjoint failed writer, streaming=false: source survives genuine target failure
+ok 85 - disjoint failed writer, streaming=false: source survives genuine target failure
+  ---
+  duration_ms: 0.220125
+  type: 'test'
+  ...
+# Subtest: disjoint failed writer, streaming=true: source survives genuine target failure
+ok 86 - disjoint failed writer, streaming=true: source survives genuine target failure
+  ---
+  duration_ms: 0.132834
+  type: 'test'
+  ...
+# Subtest: direct cross-mount copy rejects a real same-path alias without touching source bytes
+ok 87 - direct cross-mount copy rejects a real same-path alias without touching source bytes
+  ---
+  duration_ms: 9.934125
+  type: 'test'
+  ...
+# Subtest: direct cross-mount copy rejects a real hardlink alias without touching source bytes
+ok 88 - direct cross-mount copy rejects a real hardlink alias without touching source bytes
+  ---
+  duration_ms: 9.043833
+  type: 'test'
+  ...
+# Subtest: direct cross-mount copy rejects a real symlink alias without touching source bytes
+ok 89 - direct cross-mount copy rejects a real symlink alias without touching source bytes
+  ---
+  duration_ms: 8.229875
+  type: 'test'
+  ...
+# Subtest: cross-mount copy does not treat unrelated synthetic dev/ino collisions as identity
+ok 90 - cross-mount copy does not treat unrelated synthetic dev/ino collisions as identity
+  ---
+  duration_ms: 0.777959
+  type: 'test'
+  ...
+# Subtest: complete opaque scopes compare only by reference and require both coordinates
+ok 91 - complete opaque scopes compare only by reference and require both coordinates
+  ---
+  duration_ms: 0.532792
+  type: 'test'
+  ...
+# Subtest: invalid identityScope never proves distinctness, in either direction, before effects
+ok 92 - invalid identityScope never proves distinctness, in either direction, before effects
+  ---
+  duration_ms: 5.324417
+  type: 'test'
+  ...
+# Subtest: invalid dev never proves distinctness, in either direction, before effects
+ok 93 - invalid dev never proves distinctness, in either direction, before effects
+  ---
+  duration_ms: 3.042583
+  type: 'test'
+  ...
+# Subtest: invalid ino never proves distinctness, in either direction, before effects
+ok 94 - invalid ino never proves distinctness, in either direction, before effects
+  ---
+  duration_ms: 1.993042
+  type: 'test'
+  ...
+# Subtest: memory scopes are store-specific; hardlinks and wrapper views preserve the backing tuple
+ok 95 - memory scopes are store-specific; hardlinks and wrapper views preserve the backing tuple
+  ---
+  duration_ms: 0.48275
+  type: 'test'
+  ...
+# Subtest: unknown same-mount destination cannot rely on arbitrary backend copyFile presence
+ok 96 - unknown same-mount destination cannot rely on arbitrary backend copyFile presence
+  ---
+  duration_ms: 0.22725
+  type: 'test'
+  ...
+# Subtest: native roots and instances publish the agreed host identity scope
+ok 97 - native roots and instances publish the agreed host identity scope
+  ---
+  duration_ms: 10.968542
+  type: 'test'
+  ...
+# Subtest: overlay copy-up changes exposed identity to the actual upper entry through wrappers
+ok 98 - overlay copy-up changes exposed identity to the actual upper entry through wrappers
+  ---
+  duration_ms: 2.45125
+  type: 'test'
+  ...
+# Subtest: pending overlay garbage is not mutated by direct or mounted alias rejection
+ok 99 - pending overlay garbage is not mutated by direct or mounted alias rejection
+  ---
+  duration_ms: 1.786041
+  type: 'test'
+  ...
+# Subtest: upper same-path: overlay copy rejects before staging or reading source
+ok 100 - upper same-path: overlay copy rejects before staging or reading source
+  ---
+  duration_ms: 2.072208
+  type: 'test'
+  ...
+# Subtest: upper hardlink: overlay copy rejects before staging or reading source
+ok 101 - upper hardlink: overlay copy rejects before staging or reading source
+  ---
+  duration_ms: 0.460333
+  type: 'test'
+  ...
+# Subtest: upper symlink: overlay copy rejects before staging or reading source
+ok 102 - upper symlink: overlay copy rejects before staging or reading source
+  ---
+  duration_ms: 0.642709
+  type: 'test'
+  ...
+# Subtest: lower same-path: overlay copy rejects before staging or reading source
+ok 103 - lower same-path: overlay copy rejects before staging or reading source
+  ---
+  duration_ms: 0.462708
+  type: 'test'
+  ...
+# Subtest: lower hardlink: overlay copy rejects before staging or reading source
+ok 104 - lower hardlink: overlay copy rejects before staging or reading source
+  ---
+  duration_ms: 0.455125
+  type: 'test'
+  ...
+# Subtest: lower symlink: overlay copy rejects before staging or reading source
+ok 105 - lower symlink: overlay copy rejects before staging or reading source
+  ---
+  duration_ms: 0.37675
+  type: 'test'
+  ...
+# Subtest: overlay distinct lower/upper files with colliding local inode numbers remain copyable
+ok 106 - overlay distinct lower/upper files with colliding local inode numbers remain copyable
+  ---
+  duration_ms: 0.882417
+  type: 'test'
+  ...
+1..106
+# tests 106
+# suites 0
+# pass 106
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 348.250167

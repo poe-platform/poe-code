@@ -1,0 +1,19 @@
+{
+  "args": [
+    "node_modules/typescript/bin/tsc",
+    "--noEmit",
+    "--strict",
+    "--skipLibCheck",
+    "--module",
+    "NodeNext",
+    "--target",
+    "ES2023",
+    "--exactOptionalPropertyTypes",
+    "types.mts"
+  ],
+  "declarationBefore": "    readonly compareEntry?: (this: FileSystem, ...args: Parameters<NonNullable<FileSystem[\"compareEntry\"]>>) => ReturnType<NonNullable<FileSystem[\"compareEntry\"]>>;",
+  "declarationAfter": "    readonly compareEntry?: (this: FileSystem, ...args: Parameters<NonNullable<FileSystem[\"compareEntry\"]>>) => Promise<\"different\">;",
+  "status": 2,
+  "stdout": "types.mts(14,10): error TS2344: Type 'false' does not satisfy the constraint 'true'.\ntypes.mts(15,10): error TS2344: Type 'false' does not satisfy the constraint 'true'.\ntypes.mts(16,10): error TS2344: Type 'false' does not satisfy the constraint 'true'.\n",
+  "stderr": ""
+}

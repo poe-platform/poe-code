@@ -1,0 +1,45 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { createRequire } from "node:module";
+import { Volume, createFsFromVolume } from "memfs";
+import { createResourceBoundOAuthStores } from "../dist/index.js";
+const native = createRequire(import.meta.url)("../dist/mcp-oauth-rust.node");
+test("native identity transitions persist generation history and retire registrations", () => {
+  const record = new native.NativeResourceCredentials(null);
+  assert.equal(record.resource, null);
+  assert.equal(record.reconcile("https://one.example/"), true);
+  record.setClient("__proto__", JSON.stringify({ clientId: "original" }));
+  assert.equal(record.client("__proto__").clientId, "original");
+  assert.equal(record.initialGrantAllowed, true);
+  assert.equal(record.reconcile("https://two.example/"), true);
+  assert.equal(record.client("__proto__"), null);
+  const restored = new native.NativeResourceCredentials(record.serialize());
+  assert.equal(restored.initialGrantAllowed, false);
+  assert.equal(restored.reconcile("https://one.example/"), true);
+  assert.equal(restored.client("__proto__"), null);
+  restored.clearSession();
+  assert.equal(restored.initialGrantAllowed, false);
+  const cache = new native.NativeProviderClientCache();
+  cache.store("issuer", JSON.stringify({ clientId: "old" }), false);
+  assert.equal(cache.find("issuer").found, true);
+  cache.clear();
+  assert.equal(cache.find("issuer").found, false);
+});
+test("named identity peeks preserve history and explicit reset writes a replay tombstone", async () => {
+  const fs = createFsFromVolume(new Volume()).promises;
+  const options = { backend: "file", fileStore: { fs, filePath: "/home/test/identity.enc", salt: "fixture", getMachineIdentity: () => ({ hostname: "host", username: "user" }) } };
+  const stores = createResourceBoundOAuthStores(options, undefined, "catalog"), one = "https://one.example/", two = "https://two.example/";
+  await stores.sessionStore.withLock(one, async () => {
+    await stores.clientStore.save("https://auth.example/", { clientId: "old" });
+  }, {});
+  assert.equal(stores.initialGrantAllowed, true);
+  assert.equal(await stores.sessionStore.load(two), null);
+  assert.equal((await stores.clientStore.load("https://auth.example/")).clientId, "old");
+  await stores.sessionStore.withLock(two, async () => {}, {});
+  assert.equal(await stores.clientStore.load("https://auth.example/"), null);
+  assert.equal(stores.initialGrantAllowed, false);
+  await stores.reset(one);
+  const reloaded = createResourceBoundOAuthStores(options, undefined, "catalog");
+  await reloaded.sessionStore.withLock(one, async () => {}, {});
+  assert.equal(reloaded.initialGrantAllowed, false);
+});

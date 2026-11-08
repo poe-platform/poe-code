@@ -1,0 +1,9 @@
+{
+  "at": "2026-08-27T10:53:59.974Z",
+  "ownedProcessesMatchingQualifiedRoot": [],
+  "qualifiedRoot": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-h1sR2i",
+  "removed": true,
+  "runtimeControlScratchRemoved": true,
+  "canonicalScratchRemoved": true,
+  "scope": "exact owned work only; foreign staged scopes, source and old native scratch untouched"
+}

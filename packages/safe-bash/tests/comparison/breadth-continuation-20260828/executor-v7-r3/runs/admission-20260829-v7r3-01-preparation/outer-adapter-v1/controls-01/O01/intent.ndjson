@@ -1,0 +1,1 @@
+{"schema":"BREADTH_OUTER_INTENT_V1","runId":"O01","limit":{"stdout":65536,"stderr":65536,"fd3":262144,"intent":16384,"events":49152,"receipt":65536,"outer":524288,"inner":268435456,"administration":524288,"overall":269484032},"command":"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","argvCount":4}

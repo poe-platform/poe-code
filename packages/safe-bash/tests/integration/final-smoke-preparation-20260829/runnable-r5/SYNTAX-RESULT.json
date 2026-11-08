@@ -1,0 +1,19 @@
+{
+  "schema": "FINAL_SMOKE_R5_SEPARATE_SYNTAX_RECEIPT",
+  "packetSha256": "4b8c9b8c8c937cb14e2978a0a123824ed066072839d5ea4a2101c2e847edd3db",
+  "packetBytes": 9149,
+  "scope": "Node --check only; no evaluation/product/loader/Worker",
+  "ownerPID": 11639,
+  "checks": [
+    {"file": "bootstrap.mjs", "pid": 11640, "waitExit": 0},
+    {"file": "runtime.mjs", "pid": 11641, "waitExit": 0},
+    {"file": "consumer-entry.mjs", "pid": 11642, "waitExit": 0}
+  ],
+  "syntaxOwnerToolExit": 0,
+  "stderr": "empty",
+  "rawStdout": "publication-raw/final-smoke-r5-syntax.stdout",
+  "rawStderr": "publication-raw/final-smoke-r5-syntax.stderr",
+  "qualification": "Observed shell waits and returned owner tool execution, not universal process-group or internal-thread census",
+  "priorPreparationSyntaxPending": "Superseded only by this separate observed syntax receipt",
+  "actualActivation": false
+}

@@ -1,0 +1,16 @@
+{
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "tests/fs/overlay/rmdir.test.ts",
+    "tests/fs/overlay/rmdir-static-lower.test.ts"
+  ],
+  "exit": 1,
+  "sourceSha256": "b68fb33939bbc3422c3f4e42533e1e8075dd4a01c3148847e4eef9ce0f6465db",
+  "testHashes": {
+    "tests/fs/overlay/rmdir.test.ts": "1492ced30d56c966c0599d6e819c020415fd7d952e1fe94f0c09bcbbdd5a0ee5",
+    "tests/fs/overlay/rmdir-static-lower.test.ts": "0575ae9099b407fdf5a27806081ad7eab6ac5b43fe1b41fcba16b3da862c8d73"
+  }
+}

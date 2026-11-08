@@ -1,0 +1,14 @@
+{
+  "helper": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/preserve.mjs",
+    "bytes": 4209,
+    "sha256": "e8dd2be804c6f16fd781ffad5d63f4043fbf60d541c0ecb286517d28285a8841"
+  },
+  "helperOrdinal": 2,
+  "helperMaximum": 2,
+  "deadline": "2026-08-29T16:16:47.949Z",
+  "sourceControlPreseal": "f4893b1cf3b1c37ac186aba19e897c466ed82e144498b798acc0febf62d9db1b",
+  "productRuns": 0,
+  "newChurnChildren": 0,
+  "publicationOnly": true
+}

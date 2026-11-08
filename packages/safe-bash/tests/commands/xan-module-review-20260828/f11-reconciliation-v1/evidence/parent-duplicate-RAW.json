@@ -1,0 +1,15 @@
+{
+  "id": "parent-duplicate",
+  "state": "HOLD",
+  "exitCode": 1,
+  "phases": [
+    {
+      "id": "build",
+      "status": "PASS"
+    }
+  ],
+  "error": {
+    "name": "Error",
+    "message": "A01_HOLD_DEPENDENTS: all required IDs exactly once\n+ actual - expected\n\n  [\n    'required-a',\n    'required-b',\n+   'required-a'\n  ]\n"
+  }
+}

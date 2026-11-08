@@ -1,0 +1,10 @@
+{
+  "classification": "verifier quoted-phrase mismatch; not an AWS or product discrepancy",
+  "incorrectPattern": "all results were returned",
+  "actualAWSWording": "all of the results were returned",
+  "preservedAuditor": "auditor-input.mjs.txt",
+  "pinnedSourceFetchSucceeded": true,
+  "awsFetchSucceeded": true,
+  "serviceDownloads": 0,
+  "serviceLaunches": 0
+}

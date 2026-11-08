@@ -1,0 +1,5 @@
+{"pid":66227,"status":0,"signal":null,"args":["status","--porcelain=v1","-z","--untracked-files=normal","--","tests/integration/agent-bash-coherent-author-20260829/stage-b0-actual-r3"]}
+{"pid":66228,"status":0,"signal":null,"args":["diff","--cached","--name-only","-z"]}
+{"pid":66229,"status":0,"signal":null,"args":["diff-tree","--no-commit-id","--name-only","-z","-r","f569bf74541d9d8eb2688776b8ec093b6fc9a705"]}
+{"pid":66231,"status":0,"signal":null,"args":["cat-file","--batch-check=%(objectname) %(objecttype) %(objectsize)"]}
+{"pid":66233,"status":0,"signal":null,"args":["cat-file","--batch"]}

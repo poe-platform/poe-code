@@ -1,0 +1,99 @@
+# Routed S3 refusal — read-only decision brief, 2026-08-27
+
+## Root decision requested
+
+Approve a narrowly scoped **fixture/profile migration only**, not a production fix or failure waiver. The exact routed S3 expectation is obsolete under the already explicit snapshot-marker contract. No repository edit, assertion/result change, staging or commit was made. No superiority, full-green or whole-product acceptance claim is supported.
+
+Proposed write scope, ONLY after root approval: `tests/stress/adapters/remote-safe-workflows.test.ts:17,45-69` and a root-designated new migration evidence/report path. Give the fixture an explicit expected removal profile (S3 snapshot-marker; stock WebDAV unsupported), verify the advertised capability rather than infer it from the backend name, and split the final assertions accordingly. Proposed S3 title: `s3: named-file cleanup leaves parents and snapshot rmdir deletes only the empty marker`; retain the WebDAV refusal title. Do not accept either outcome opportunistically or simply drop the rejection assertion. Preserve the original fixture/result bytes in the original frozen cohort and record the migration separately.
+
+- Retain shared exact named-file cleanup, binary payload and sentinel assertions.
+- S3: require `snapshotRmdir === true`; `rmdir(nested)` fulfills; exactly one mutation deletes `{Bucket: "safe-workflows", Key: "work/scratch/nested/"}`. Compare the complete object snapshot against the old snapshot minus only this marker; `/work` and `/work/scratch` remain, sentinel bytes remain `[255,3]`, and this quiescent fixture's `nested` path becomes ENOENT.
+- WebDAV: retain the exact FsError ENOTSUP/syscall `rmdir`/requested-path rejection, zero mutations, unchanged snapshot and all three directories. No stock WebDAV capability promotion or recursive DELETE exception.
+- Required accompanying positive/negative controls: observed file/nested-file/nested-marker descendants => ENOTEMPTY/no deletion; post-LIST byte child AND nested marker/bytes survive successful exact-marker deletion, potentially leaving the directory visible; complete pagination before DELETE; incomplete LIST/vanished marker/ambiguous or implicit representation refuse; pre-abort/root/readonly protection; conditional-operation capabilities remain false when unverified; unknown authority remains ENOTSUP/no publication. Existing selected controls below supply bounded evidence, not universal guarantees.
+
+## Frozen provenance
+
+- Initial observed HEAD: `552ba58468be063d7e8627d90f20f4e8e7432dcc` (already newer than the user-observed 547160e8).
+- Historical failed archive: `b494675c34dc289f4ad4b10a9201e1211eb0a7d8`.
+- Actual HEAD captured at archive time: `b5d4b2f60a7e6f13b7d80e3157ea5432542dd2ca`, not a historical source substituted as current.
+- After replay observation: `3ee476a8bdd750b889b0b83eb0f5927d7b5be670`. Relevant adapter, contract, original test and helper paths have no diff from the captured current commit. Other owners advanced HEAD concurrently; those commits were not requalified here.
+- Both isolated committed copies contain `src`, package/tsconfig inputs and only the selected tests/helpers listed below (222 files each). Archive differences are only `package.json`, `src/commands/execution.ts`, `tsconfig.json`; S3/WebDAV/contracts/original test/helpers/control tests are byte-identical. Copies were SHA256-checked again after replay and unchanged.
+- Runtime: Node v22.22.2, Darwin arm64; executable `/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node`; existing tsx 4.23.12, absolute loader `/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/esm/index.mjs`, SHA256 `b429a785c5ba2b3158e876b530addc4bc761b45f79a7e477bdcda3c759171022`. `TSX_DISABLE_CACHE=1`; no build/shared dist, install, download, bucket/service, private poe-code access or native provider run.
+- Historical RAW UNQUALIFIED 16,520 pass / 307 fail / 13 skip remains unchanged; the ten-failure routing still includes this original failure. Historical setup/pins/env inputs and bounded 3bf/source/pk81 acceptance do not certify a current whole product.
+
+## Exact original failure and contract
+
+Route: `tests/integration/full-gate-20260827/preflight-repair/HANDOFF.md:90,99` and `combined-b494675c/FAILURE_ROUTING.json`, entry `tap-line-109632`, group `S3-rmdir-old-refusal`.
+
+Exact name: `s3: named-file cleanup leaves parents and unsupported empty rmdir has no effects`.
+
+`tests/stress/adapters/remote-safe-workflows.test.ts:58-64` unconditionally runs `await assert.rejects(fs.rmdir(nested), error => { ... })`, requiring FsError, `code === "ENOTSUP"`, `syscall === "rmdir"`, `path === nested`. Original TAP at decoded lines 109631-109645 says `not ok 16491`, `error: 'Missing expected rejection.'`, `code: 'ERR_ASSERTION'`, stack ending in that original file at `58:5`; duration 8.317542 ms. Lines 65-68's no-mutation/unchanged-directory assertions are never reached in this failing S3 test. None was revised.
+
+Raw encoded source: `tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/test.stdout.log.data.gzbase64`. Stored SHA256 `9bcc6ef303a27cfc1749eece78b991acdb2e43b48f2990e5a089a751d91985f3`; decoded SHA256 `f51ee8beb275d7a4fd53024f57b98e614886a2ed7ae143b133d95d73e6fec3bd`, matching its EVIDENCE_MANIFEST record. Only the exact S3 raw failure was extracted for this report; no broad JSON/TAP dump is needed.
+
+`src/contracts/filesystem.ts:34`, `src/contracts/filesystem.md:24,40,50` explicitly require `snapshotRmdir: true` to select weaker snapshot-empty marker semantics. A completed observation may authorize deleting only the exact explicit marker, never descendants. A child arriving afterward survives and may keep the logical directory visible after success; no rollback, transaction, prefix emptiness or ABA guarantee. Omitted/false flag retains the strong default. The WebDAV rule at `src/contracts/filesystem.md:88` still requires ENOTSUP absent a genuine explicitly configured atomic primitive.
+
+`src/fs/s3/filesystem.ts:134,509-532` declares true, checks type/root/readonly/cancellation, rejects observed descendants at 523-524, verifies LIST completion at 526, requires explicit marker at 530-531, then issues exactly one marker-key DELETE at 532. `src/fs/s3/README.md:133` documents prerequisites and weaker success. Stock `src/fs/webdav/webdav.ts:769-784` refuses after empty observation without an injected atomic primitive. This scoped case shows no false capability or unsafe descendant operation.
+
+History: original assertion blame `a645b06e1` (August 26); additive contract `ba200fec275dbda8c30cc368252cd61b6d42527c` (August 27 02:07 -0500); S3 implementation `5660248b1ff89572a6164d0b0c7bd22d03630d9b` (02:19). `tests/fs/s3/rmdir-real-service/list-oracle-review/REPORT.md:5` records the root ba200fe handoff authorizing separate additive-profile implementation. That historical authorization is not authorization to edit this fixture now.
+
+## Exact bounded reproduction
+
+Copies were made with `git archive "$SHA" src package.json tsconfig.json tsconfig.build.json tests/stress/adapters/remote-safe-workflows.test.ts tests/fs/conformance/fixtures.ts tests/fs/webdav/mock.ts tests/fs/webdav/rmdir.test.ts tests/fs/s3/rmdir.test.ts tests/fs/s3/constructor-comparison.test.ts tests/fs/s3/rmdir-real-service/snapshot-profile/rmdir-profile.test.ts | tar -x -C "$ISOLATED_COPY"`.
+
+In EACH isolated copy, the exact original command was:
+
+```sh
+TSX_DISABLE_CACHE=1 /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import /Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/esm/index.mjs --test --test-reporter=tap --test-concurrency=1 '--test-name-pattern=^s3: named-file cleanup leaves parents and unsupported empty rmdir has no effects$' tests/stress/adapters/remote-safe-workflows.test.ts
+```
+
+Both: process status **1**, tests 1/pass 0/fail 1/skip 0, the same `Missing expected rejection.` and original `58:5` assertion. No shell command is under test: the exact operation is VFS `rmdir("/work/scratch/nested")` with options omitted, fulfilling with undefined, not a shell exit status.
+
+Input: `MockS3Client({buckets:["safe-workflows"]})`, `S3FileSystem({transport:mock,bucket:"safe-workflows"})`, no prefix or special removal options. `mkdir("/work/scratch/nested", {recursive:true})`; write `owned-file` with helper `binary` (4099 bytes, byte i = i % 256; SHA256 `60a62725a6589b4c56d914f383935cf1f09fdb4c6e6814c1545d5ade78281416`); write `/sentinel` bytes `[255,3]`; `rm(nested + "/owned-file")`. Immediately before rmdir, object keys are `work/`, `work/scratch/`, `work/scratch/nested/` (zero bytes each), `sentinel` (2 bytes). No children remain. Instrumented replay confirms precisely the marker deletion above, two parent markers unchanged, sentinel unchanged, nested stat ENOENT.
+
+WebDAV uses `new MockDav()` and `WebDavFileSystem({baseUrl:"https://example.test/dav/",fetch:mock.fetch})`, same input calls. It rejects with `FsError`, ENOTSUP, syscall rmdir, requested nested path, message `ENOTSUP: rmdir has no safe portable WebDAV equivalent, rmdir '/work/scratch/nested'`; operation requests are PROPFIND only, all entries/bytes unchanged. These are stock-adapter mocked controls, NOT a fresh deployed-service acceptance claim.
+
+Additional commands use the exact node/loader/env/options above, replacing only file and anchored `--test-name-pattern` with these expressions:
+
+| File (under tests/) | Exact regex | Result per commit |
+| --- | --- | --- |
+| stress/adapters/remote-safe-workflows.test.ts | `^webdav: named-file cleanup leaves parents and unsupported empty rmdir has no effects$` | 1/1, status 0 |
+| fs/s3/rmdir.test.ts | `^(snapshot rmdir deletes only the empty marker with conditionalDelete=(false\|true)\|a child created after the empty listing survives successful marker removal\|rmdir rejects (explicit\|implicit) directory containing (file\|nested/file\|child/)\|pre-abort, read-only mode, and root protection make no requests)$` | 10/10, status 0 |
+| fs/s3/rmdir-real-service/snapshot-profile/rmdir-profile.test.ts | `^(snapshot capability is frozen and does not enable atomic rename or conditional DELETE\|removal requests at least two keys and paginates with configured pageSize=1\|an empty intermediate page is not completion; deletion waits for the marker and final page\|(missing completeness flag\|missing continuation token\|disappeared marker) refuses before deletion\|file-prefix ambiguity is unchanged and not deleted)$` | 7/7, status 0 |
+| fs/s3/constructor-comparison.test.ts | `^serialized SDK alias and existing target with unknown authority$` | 1/1, status 0 |
+| fs/webdav/rmdir.test.ts | `^(empty rmdir is unsupported with (lock\|etag) policy and never locks or deletes\|a child created after the empty PROPFIND survives without DELETE)$` | 3/3, status 0 |
+| fs/s3/rmdir-real-service/snapshot-profile/rmdir-profile.test.ts | `^(late byte child, nested marker and nested bytes survive; no rollback or ENOTEMPTY after delete\|an implicit directory losing its final child does not authorize marker deletion)$` | 2/2, status 0 |
+
+Table pipes are Markdown-escaped; remove their backslashes when passing the regex. Totals per commit: **one unchanged routed failure + 24 selected passing controls**, zero skipped/cancelled/TODO. The path named `rmdir-real-service/snapshot-profile/rmdir-profile.test.ts` itself uses MockS3Client; its service runner was not invoked. The implicit-directory control deliberately has the external fixture remove its child during LIST; it asserts no extra product DELETE, not zero external fixture effects.
+
+Supplementary temporary `probe.mjs` replayed the exact input and compared before/after object bytes, metadata and ETags, recording operation requests. Command: `TSX_DISABLE_CACHE=1 node --import /Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/esm/index.mjs /tmp/s3-routed-review-d4EdKC/probe.mjs failed` (and `current`); both final status 0. It also constructed the real HTTP transport with explicit dummy credentials, example.test endpoint and a request callback that throws if invoked: conditionalPut/Copy/Delete all false, zero requests. This is capability construction only, not service verification. Probe attempt 1 failed because the investigator retained `MockS3Client.requests`' snapshot getter value before invocation; corrected only the temporary probe to reread the getter (and use the HTTP subpath import). That failure is a probe defect, not a canonical test/product failure; original assertions were untouched.
+
+## SHA256 — identical in both scoped commits
+
+```text
+e8f5e47e15f8e601b08176954533eacff02102c4910d4c6da52547546989f4e5  tests/stress/adapters/remote-safe-workflows.test.ts
+0e54d28e8f669f60cf0f38247ae30da5d5b864a44216c8b10f9730f93b8be4f0  tests/fs/conformance/fixtures.ts
+177f79ee640460822cfe0486c87f7cc61ac7c8b84389abe32b48ef27f4b4ef36  tests/fs/webdav/mock.ts
+a11b016e6bac06e6e8cd26fabb3b56a30788c8f75091513f6bf01ab7d016909d  src/contracts/filesystem.ts
+4c0c83ac7477776455055b32370844453ee7521467f02e5304bff23901df06b2  src/contracts/filesystem.md
+9ac11951d681db45cee474568ca46d227cfb5bbd9b0d5ce2d6c176d0c4f94833  src/fs/s3/filesystem.ts
+99655664c7a52c595dc1ec4e5d461e4c002a0c9ba60d222ded078e5b9780841e  src/fs/s3/mock.ts
+185895f1b939370903c9a896df47a1066647a50eb3022e1d0387918996ccd51c  src/fs/s3/transport.ts
+73611a0d279cec24d85d14031a02d92607979977ef926245fe0a6f9e7eb6161d  src/fs/s3/http/transport.ts
+a45743f5660219857369e6568d734ace3e0007537fedcfb402cd04ec0ae11e78  src/fs/s3/README.md
+e66a66e2745852c6bd12be12a18c855df069152cf6b8089d2ecee8880c62de94  src/fs/webdav/webdav.ts
+2bfd61979415fac071060b6ca19d8831a08b39fdbafa640e8c913a0f5bd3f236  tests/fs/s3/rmdir.test.ts
+225ca0b5720226b419f52d6ab1d1f27396a4926e91947a6125158decda9bb55a  tests/fs/s3/rmdir-real-service/snapshot-profile/rmdir-profile.test.ts
+84d2d993eefe78f40e4e5b4439b752907192b936c31681a0a1c65d8912840dbf  tests/fs/s3/constructor-comparison.test.ts
+89254f7428a0eca4ec6cda5fd10cf63afa066bd4a7a6b16397e9a66fd3576925  tests/fs/webdav/rmdir.test.ts
+```
+
+Full archived-file manifest SHA256 (lexically sorted `sha256  relative-path`, LF terminated): historical `cf206dfb82253add083bc0ff578951fc2efcad7ad10c88559767eab0f7fb6f99`; captured current `7a9541090900a5b48e6a0aea09538ce2059baffe8777fe9afcf4adc39e7d1939`.
+
+## Repository status / cleanup
+
+At archive time: modified `scripts/verify-whole-gate.mjs`, `tests/integration/full-gate-20260827/preflight-repair/preflight.test.mjs`; untracked `tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/`, `tests/commands/search-stress/.native-1m4O1e/`, `tests/shell-stress/first-read-contract-review/owned-output-qualified-prototype/`. Index empty.
+
+After bounded replay: those two tracked modifications were committed by concurrent work; untracked `benchmarks/reports/current-comparison-20260827/measurement-review/` appeared, and the same three untracked test directories remained. Index still empty. None was modified, staged, deleted or committed by this investigation. Initial startup additionally saw concurrent diagnostic-profiles/pin-review and invocation-cleanup migration report/evidence/history entries; these disappeared before archive-time status and were not touched.
+
+Only `/tmp/s3-routed-review-d4EdKC` and this report were task-owned writes. Final verification confirmed all 444 frozen inputs unchanged across both copies, plus the original working test, routing JSON and encoded/decoded raw TAP unchanged. All archive/source copies, temporary runner/probe, logs/manifests/effect outputs were then deleted; only this report remains. No repository/root config/evidence edits. Root must explicitly approve the exact fixture migration before any such work begins.

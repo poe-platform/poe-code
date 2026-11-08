@@ -1,0 +1,110 @@
+{
+  "status": "READY_FOR_DIFFERENT_PREEXECUTION_REVIEW_NOT_RUNTIME_ACCEPTANCE",
+  "at": "2026-08-29T12:40:02.049Z",
+  "sourceCandidate": "bd0f227d081829512bafc2936f0b33632e02890b",
+  "preseal": {
+    "bytes": 17692,
+    "sha256": "007887fff41f65481ecf7a4fe4ab68db2aa1a5c67d4782a30c5bf764d84f0fbc"
+  },
+  "controlPreseal": {
+    "bytes": 908,
+    "sha256": "37ba088783aa0502e0eb5649e185beb5f2288bbb5943c8d2ad663e76a086b926"
+  },
+  "controls": {
+    "groups": 12,
+    "pass": 12,
+    "fail": 0,
+    "actualNodeControllers": 1,
+    "actualOSChildrenSpawned": 0,
+    "productImports": 0,
+    "engineImports": 0,
+    "workers": 0,
+    "qualification": "File admission and whole inherited-owner synthetic dependency injection, not native FD/OS child/Worker/engine proof."
+  },
+  "sourceInputs": 309,
+  "stageAEmissions": 1012,
+  "packageMembers": 1014,
+  "package": {
+    "bytes": 930368,
+    "sha256": "2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca"
+  },
+  "originEntries": 1117,
+  "edges": 975,
+  "edgeKinds": {
+    "PINNED_NODE_BUILTIN": 99,
+    "BOUND_RELATIVE_IMPORT": 872,
+    "EXPECTED_PRIVATE_EXPORT_DENIAL": 1,
+    "COMPUTED_IMPORT_REQUIRES_RUNTIME_BOUND_LOADER": 3
+  },
+  "storedNewOriginBlobsVerified": 2,
+  "remaining": {
+    "B0AuthorObserved": 39,
+    "B1Planned": 15,
+    "B2Planned": 672,
+    "totalPlanned": 726,
+    "unit2PerLayout": 50,
+    "B2RuntimeStatus": "UNRUN"
+  },
+  "actualProductCalls": 0,
+  "actualRootGrant": false,
+  "knownRoles": [
+    "offline-install",
+    "workflow-source-built",
+    "workflow-installed",
+    "workflow-physically-moved"
+  ],
+  "bounds": {
+    "wallSeconds": 1800,
+    "activeSeconds": 1620,
+    "publicationReserveSeconds": 180,
+    "knownOSStarts": 32,
+    "knownOSPeak": 3,
+    "supervisedChildren": 4,
+    "installSeconds": 120,
+    "layoutSeconds": 300,
+    "caseSeconds": 30,
+    "cleanupSeconds": 5,
+    "captureBytes": 67108864,
+    "workingBytes": 805306368,
+    "guestWorkersPerLayout": 5,
+    "guestWorkersTotal": 15,
+    "guestWorkerMaximumActive": 5,
+    "guestWorkerExpectedSequentialPeak": 1,
+    "regexWorkers": 0,
+    "internalLoaderThreads": 0,
+    "synchronousHookMainEntries": 3,
+    "synchronousHookGuestEntriesMaximum": 15,
+    "loadRecordsPerIsolate": 2048,
+    "observerRecordsPerLayout": 512
+  },
+  "workRoot": "/private/tmp/safe-bash-coherent-b1-public15-20260829-r2",
+  "outerCaptures": [
+    "/private/tmp/coherent-b1-public15-20260829-r2.launch.stdout",
+    "/private/tmp/coherent-b1-public15-20260829-r2.launch.stderr"
+  ],
+  "preparation": {
+    "conservativeAnchor": "2026-08-29T12:25:00.000Z",
+    "elapsedFromConservativeAnchorSeconds": 902.049,
+    "rawCaptureBytesBeforePublication": 10479,
+    "knownStartAccounting": {
+      "instructionContext": 1,
+      "initialSourceAndAuthentication": 9,
+      "helperSyntaxPreparation": 5,
+      "firstSeal": 4,
+      "readFirstSealFailure": 1,
+      "correctedSeal": 5,
+      "presealCommit": 7,
+      "pureControllerDispatch": 2,
+      "finalPublicationIncludingStoredBlobReadAndCommit": 7,
+      "totalInclusiveConservative": 41,
+      "limit": 48
+    },
+    "qualification": "Known explicit process roles; all previous tool sessions completed and metadata children report status0/signalnull. Final publication transcript records its own completion; no full descendant/PGID census."
+  },
+  "historical": [
+    "01406364/5a0b4923 missing-origin STOP unchanged",
+    "r2 first static scanner template false-positive retained",
+    "B0 d116d79a author39P independent audit separate",
+    "All B1 calls and B2 retained/types/mutants unrun"
+  ]
+}

@@ -1,0 +1,17 @@
+import type {
+  ByteSink, CommandInvokeOptions, FileStat, FileSystem, FsOptions,
+  ShellExecOptions, ShellLimits, ShellOptions, ShellResult,
+} from 'virtual-bash';
+
+export const Negative01: ShellOptions = { fs: 'not-a-filesystem' };
+export const Negative02: ShellExecOptions = { env: { HOME: 7 } };
+export const Negative03: ShellExecOptions = { signal: undefined };
+export const Negative04: FsOptions = { signal: undefined };
+export const Negative05: ByteSink = { write: async (chunk: string) => { void chunk; } };
+export const Negative06: Pick<FileStat, 'allocatedBytes'> = { allocatedBytes: 'unknown' };
+export const Negative07: FileStat['type'] = 'socket';
+export const Negative08: ShellLimits = { maxCommands: 'unlimited' };
+export const Negative09: CommandInvokeOptions = { signal: 1 };
+export const Negative10: ShellResult['stdoutBytes'] = 'text-not-bytes';
+
+export type ActualAccessSignature = FileSystem['access'];

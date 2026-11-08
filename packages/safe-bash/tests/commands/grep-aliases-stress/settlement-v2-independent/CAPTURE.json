@@ -1,0 +1,20 @@
+{
+  "candidate": "0123c83d3aae72a15621acbb29a165b97b2c6ab6",
+  "fixtureFreeze": "8b89c0e76dfe581ce57418b391e74ce299686af7",
+  "authorEvidence": "b6987ae7e6348ffb3deeacdade033ec281849aa7",
+  "reviewHarnessCommit": "643439ad",
+  "packageSha256": "62228b67ca6793544f0f4374ca00fbbb6e627f514f184d5880fd7723ccf179c6",
+  "bytes": 133140,
+  "sha256": "5440481e4709165e9270a84e693c7ec7c8e5e9e291d831a05f784c3cf9932c53",
+  "files": 56,
+  "exclusions": [
+    "replay/physically-moved-consumer",
+    "replay/staging",
+    "replay/home",
+    "replay/base-01/home",
+    "replay/base-01/node-compile-cache",
+    "replay/supplement-01/home",
+    "replay/supplement-01/node-compile-cache"
+  ],
+  "format": "base64 gzip tar; exact raw results, inputs, receipts, controls and cleanup, not product or compiler-cache duplicate"
+}

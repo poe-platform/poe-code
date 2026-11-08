@@ -1,0 +1,27 @@
+{
+  "dataOnly": true,
+  "guestExecutions": 0,
+  "newEnginePasses": 0,
+  "negativeChecks": [
+    {
+      "id": "missing-surface-terminal",
+      "refused": true,
+      "reason": "(0, 1)"
+    },
+    {
+      "id": "fabricated-surface-result",
+      "refused": true,
+      "reason": ""
+    },
+    {
+      "id": "nonzero-fulfilled-is-not-rejection",
+      "refused": true,
+      "reason": "('result', 'rejection')"
+    },
+    {
+      "id": "extra-authorization-is-nonpass",
+      "refused": true,
+      "reason": "([{'call': 1, 'url': 'https://owned.invalid/upload', 'method': 'PUT', 'attempt': 0, 'hasRedirectFrom': False, 'signalAborted': False, 'allowed': True}, {'call': 1, 'url': 'https://owned.invalid/upload', 'method': 'PUT', 'attempt': 0, 'hasRedirectFrom': False, 'signalAborted': False, 'allowed': True}], [{'call': 1, 'url': 'https://owned.invalid/upload', 'method': 'PUT', 'attempt': 0, 'hasRedirectFrom': False, 'signalAborted': False, 'allowed': True}])"
+    }
+  ]
+}

@@ -1,0 +1,282 @@
+[
+  {
+    "previous": "",
+    "prompt": "",
+    "request": {
+      "model": "fixture",
+      "stream": false,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Question"
+        },
+        {
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "type": "function",
+              "id": "weather_1",
+              "function": {
+                "name": "weather",
+                "arguments": "{\"city\": \"Z\\u00fcrich\", \"nested\": {\"quoted\": \"a\\\"b\", \"list\": [1, true, null]}}"
+              }
+            },
+            {
+              "type": "function",
+              "id": "clock_2",
+              "function": {
+                "name": "clock",
+                "arguments": "{}"
+              }
+            }
+          ]
+        },
+        {
+          "role": "tool",
+          "tool_call_id": "weather_1",
+          "content": "Sunny\n\u2600"
+        },
+        {
+          "role": "tool",
+          "tool_call_id": "clock_2",
+          "content": "12:00"
+        }
+      ],
+      "tools": [
+        {
+          "type": "function",
+          "function": {
+            "name": "weather",
+            "description": null,
+            "parameters": {
+              "type": "object"
+            }
+          }
+        },
+        {
+          "type": "function",
+          "function": {
+            "name": "clock",
+            "description": null,
+            "parameters": {}
+          }
+        }
+      ]
+    },
+    "output": "Final answer"
+  },
+  {
+    "previous": "",
+    "prompt": "Explain the results",
+    "request": {
+      "model": "fixture",
+      "stream": false,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Question"
+        },
+        {
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "type": "function",
+              "id": "weather_1",
+              "function": {
+                "name": "weather",
+                "arguments": "{\"city\": \"Z\\u00fcrich\", \"nested\": {\"quoted\": \"a\\\"b\", \"list\": [1, true, null]}}"
+              }
+            },
+            {
+              "type": "function",
+              "id": "clock_2",
+              "function": {
+                "name": "clock",
+                "arguments": "{}"
+              }
+            }
+          ]
+        },
+        {
+          "role": "tool",
+          "tool_call_id": "weather_1",
+          "content": "Sunny\n\u2600"
+        },
+        {
+          "role": "tool",
+          "tool_call_id": "clock_2",
+          "content": "12:00"
+        },
+        {
+          "role": "user",
+          "content": "Explain the results"
+        }
+      ],
+      "tools": [
+        {
+          "type": "function",
+          "function": {
+            "name": "weather",
+            "description": null,
+            "parameters": {
+              "type": "object"
+            }
+          }
+        },
+        {
+          "type": "function",
+          "function": {
+            "name": "clock",
+            "description": null,
+            "parameters": {}
+          }
+        }
+      ]
+    },
+    "output": "Final answer"
+  },
+  {
+    "previous": "Checking",
+    "prompt": "",
+    "request": {
+      "model": "fixture",
+      "stream": false,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Question"
+        },
+        {
+          "role": "assistant",
+          "content": "Checking"
+        },
+        {
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "type": "function",
+              "id": "weather_1",
+              "function": {
+                "name": "weather",
+                "arguments": "{\"city\": \"Z\\u00fcrich\", \"nested\": {\"quoted\": \"a\\\"b\", \"list\": [1, true, null]}}"
+              }
+            },
+            {
+              "type": "function",
+              "id": "clock_2",
+              "function": {
+                "name": "clock",
+                "arguments": "{}"
+              }
+            }
+          ]
+        },
+        {
+          "role": "tool",
+          "tool_call_id": "weather_1",
+          "content": "Sunny\n\u2600"
+        },
+        {
+          "role": "tool",
+          "tool_call_id": "clock_2",
+          "content": "12:00"
+        }
+      ],
+      "tools": [
+        {
+          "type": "function",
+          "function": {
+            "name": "weather",
+            "description": null,
+            "parameters": {
+              "type": "object"
+            }
+          }
+        },
+        {
+          "type": "function",
+          "function": {
+            "name": "clock",
+            "description": null,
+            "parameters": {}
+          }
+        }
+      ]
+    },
+    "output": "Final answer"
+  },
+  {
+    "previous": "Checking",
+    "prompt": "Explain the results",
+    "request": {
+      "model": "fixture",
+      "stream": false,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Question"
+        },
+        {
+          "role": "assistant",
+          "content": "Checking"
+        },
+        {
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "type": "function",
+              "id": "weather_1",
+              "function": {
+                "name": "weather",
+                "arguments": "{\"city\": \"Z\\u00fcrich\", \"nested\": {\"quoted\": \"a\\\"b\", \"list\": [1, true, null]}}"
+              }
+            },
+            {
+              "type": "function",
+              "id": "clock_2",
+              "function": {
+                "name": "clock",
+                "arguments": "{}"
+              }
+            }
+          ]
+        },
+        {
+          "role": "tool",
+          "tool_call_id": "weather_1",
+          "content": "Sunny\n\u2600"
+        },
+        {
+          "role": "tool",
+          "tool_call_id": "clock_2",
+          "content": "12:00"
+        },
+        {
+          "role": "user",
+          "content": "Explain the results"
+        }
+      ],
+      "tools": [
+        {
+          "type": "function",
+          "function": {
+            "name": "weather",
+            "description": null,
+            "parameters": {
+              "type": "object"
+            }
+          }
+        },
+        {
+          "type": "function",
+          "function": {
+            "name": "clock",
+            "description": null,
+            "parameters": {}
+          }
+        }
+      ]
+    },
+    "output": "Final answer"
+  }
+]

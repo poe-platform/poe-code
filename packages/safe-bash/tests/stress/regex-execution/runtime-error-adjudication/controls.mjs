@@ -1,0 +1,209 @@
+import assert from 'node:assert/strict';
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { originalGroup } from './original-group.mjs';
+
+const snapshots = resolve('tests/stress/regex-execution/cleanup-boundary-review/.temporary');
+const api = await import(pathToFileURL(resolve(snapshots, 'runtime-r1/dist/index.js')));
+const baseline = await import(pathToFileURL(resolve(snapshots, 'baseline/dist/index.js')));
+const gates = [];
+const shells = [];
+const tasks = [];
+const observations = [];
+const correctionOnly = process.argv[2] === '--group2-harness-correction';
+const tick = () => new Promise(resolveTick => setImmediate(resolveTick));
+const settle = promise => Promise.resolve(promise).then(value => ({ resolved: true, value }), error => ({ resolved: false, error }));
+const track = promise => { const task = settle(promise); tasks.push(task); return task; };
+function deferred() {
+  let release;
+  const promise = new Promise(resolvePromise => { release = resolvePromise; });
+  const gate = { promise, release };
+  gates.push(gate);
+  return gate;
+}
+async function within(promise) {
+  let timer;
+  try { return await Promise.race([promise, new Promise((unused, reject) => { timer = setTimeout(() => reject(new Error('bounded adjudication timeout')), 1200); })]); }
+  finally { clearTimeout(timer); }
+}
+function shell(publicApi = api) {
+  const instance = new publicApi.Shell({ fs: new publicApi.MemoryFileSystem() }).use(publicApi.agentCommands());
+  shells.push(instance);
+  return instance;
+}
+async function stillPending(promise) {
+  let settled = false;
+  void promise.then(() => { settled = true; }, () => { settled = true; });
+  await tick();
+  assert.equal(settled, false, 'public boundary must await cooperative cleanup');
+}
+async function check(name, operation) {
+  if (correctionOnly && name !== 'ordinary-handler-throw-with-cleanup-and-original-assertion') return;
+  const shellStart = shells.length;
+  const taskStart = tasks.length;
+  const observation = { name, pass: false };
+  try { observation.details = await operation(); observation.pass = true; }
+  catch (error) { observation.error = error.stack; }
+  finally {
+    for (const gate of gates) gate.release();
+    try {
+      const disposed = await within(Promise.all(shells.slice(shellStart).map(instance => settle(instance.dispose()))));
+      assert.ok(disposed.every(result => result.resolved));
+      await within(Promise.all(tasks.slice(taskStart)));
+    } catch (error) { observation.pass = false; observation.cleanupError = error.stack; }
+    observations.push(observation);
+  }
+}
+function cleanupPair(context, count = 2) {
+  const gate = deferred();
+  const started = deferred();
+  const failures = [new Error('secondary cleanup failure'), new Error('other secondary cleanup failure')];
+  const state = { gate, started, failures: failures.slice(0, count), calls: 0, completed: 0 };
+  context.registerCleanup(async () => {
+    state.calls++;
+    started.release();
+    await gate.promise;
+    state.completed++;
+    throw failures[0];
+  });
+  if (count === 2) context.registerCleanup(() => { state.calls++; state.completed++; throw failures[1]; });
+  return state;
+}
+async function drain(running, ready, getState, abort) {
+  await within(ready.promise);
+  const state = getState();
+  await within(state.started.promise);
+  await tick();
+  assert.equal(state.calls, state.failures.length);
+  if (abort) abort();
+  await stillPending(running);
+  state.gate.release();
+  const result = await within(running);
+  assert.equal(state.completed, state.failures.length);
+  return result;
+}
+
+await check('ordinary-handler-throw-without-cleanup', async () => {
+  const variants = [];
+  for (const [label, publicApi] of [['baseline', baseline], ['runtime-r1', api]]) {
+    const instance = shell(publicApi);
+    const primary = new Error('selected execution failure');
+    instance.register({ name: 'owned', execute() { throw primary; } });
+    const result = await within(track(instance.exec('owned')));
+    assert.equal(result.resolved, true);
+    assert.equal(result.value.exitCode, 1);
+    assert.equal(result.value.stdout, '');
+    assert.equal(result.value.stderr, 'shell: line 1: selected execution failure\n');
+    assert.deepEqual(Object.keys(primary), []);
+    variants.push({ label, resolved: true, exitCode: result.value.exitCode, stderr: result.value.stderr });
+  }
+  return { variants };
+});
+
+await check('ordinary-handler-throw-with-cleanup-and-original-assertion', async () => {
+  const variants = [];
+  for (const count of [1, 2]) {
+    const instance = shell();
+    const primary = new Error('selected execution failure');
+    const ready = deferred();
+    let state;
+    let stderr = '';
+    instance.register({ name: 'owned', execute(context) { state = cleanupPair(context, count); ready.release(); throw primary; } });
+    const running = track(instance.exec('owned', { stderr: { write(chunk) { stderr += new TextDecoder().decode(chunk); } } }));
+    const result = await drain(running, ready, () => state);
+    assert.equal(result.resolved, false);
+    assert.equal(stderr, 'shell: line 1: selected execution failure\n');
+    assert.notEqual(result.error, primary);
+    if (count === 1) assert.equal(result.error, state.failures[0]);
+    else {
+      assert.ok(result.error instanceof AggregateError);
+      assert.equal(result.error.message, 'Invocation cleanup failed');
+      assert.deepEqual(new Set(result.error.errors), new Set(state.failures));
+    }
+    assert.deepEqual(Object.keys(primary), []);
+    variants.push({ cleanups: count, exactCleanupIdentities: true, awaited: true, stderr });
+  }
+  let originalFailure;
+  let originalOutcome;
+  const originalTrack = promise => {
+    const task = track(promise);
+    void task.then(outcome => { originalOutcome = outcome; });
+    return task;
+  };
+  try { await originalGroup({ shell, deferred, track: originalTrack, within, stillPending, assert }); }
+  catch (error) { originalFailure = error; }
+  assert.equal(originalFailure?.code, 'ERR_ASSERTION');
+  assert.ok(originalFailure.actual instanceof AggregateError);
+  assert.equal(originalFailure.actual.message, 'Invocation cleanup failed');
+  assert.equal(originalFailure.expected.message, 'selected execution failure');
+  assert.ok(originalOutcome.error instanceof AggregateError);
+  assert.equal(originalOutcome.error.errors.length, 2);
+  assert.deepEqual(new Set(originalOutcome.error.errors.map(error => error.message)), new Set(['secondary cleanup failure', 'other secondary cleanup failure']));
+  return { variants, original: { pass: false, caller: 'none', assertionPreserved: true, laterCallerBranchesReached: false, actual: originalFailure.actual.message, expected: originalFailure.expected.message } };
+});
+
+await check('genuine-public-execution-rejection-identity', async () => {
+  const variants = [];
+  for (const [label, publicApi] of [['baseline', baseline], ['runtime-r1', api]]) {
+    const instance = shell(publicApi);
+    const primary = new publicApi.ShellLimitError('maxCommands');
+    const descriptors = Object.getOwnPropertyDescriptors(primary);
+    instance.register({ name: 'owned', execute() { throw primary; } });
+    const result = await within(track(instance.exec('owned')));
+    assert.equal(result.resolved, false);
+    assert.equal(result.error, primary);
+    assert.deepEqual(Object.getOwnPropertyDescriptors(primary), descriptors);
+    variants.push({ label, entry: 'public-ShellLimitError', cleanups: 0, exactIdentity: true });
+  }
+  for (const entry of ['public-ShellLimitError', 'runtime-output-budget']) {
+    const instance = shell();
+    const ready = deferred();
+    let primary = entry === 'public-ShellLimitError' ? new api.ShellLimitError('maxCommands') : undefined;
+    let descriptors = primary && Object.getOwnPropertyDescriptors(primary);
+    let state;
+    instance.register({ name: 'owned', async execute(context) {
+      state = cleanupPair(context);
+      ready.release();
+      if (entry === 'runtime-output-budget') {
+        try { await context.stdout.write(Uint8Array.of(65)); }
+        catch (error) { primary = error; descriptors = Object.getOwnPropertyDescriptors(primary); throw error; }
+        assert.fail('zero output budget must reject one byte');
+      }
+      throw primary;
+    } });
+    const running = track(instance.exec('owned', entry === 'runtime-output-budget' ? { limits: { maxOutputBytes: 0 } } : {}));
+    const result = await drain(running, ready, () => state);
+    assert.equal(result.resolved, false);
+    assert.ok(primary instanceof api.ShellLimitError);
+    assert.equal(result.error, primary);
+    assert.deepEqual(Object.getOwnPropertyDescriptors(primary), descriptors);
+    variants.push({ label: 'runtime-r1', entry, cleanups: 2, exactIdentity: true, unmutated: true, awaited: true });
+  }
+  return { variants };
+});
+
+await check('caller-abort-during-drain-exact-reasons', async () => {
+  const variants = [];
+  for (const entry of ['ordinary-throw', 'execution-rejection']) {
+    for (const caller of [0, false, '', { code: 'ENOENT' }]) {
+      const instance = shell();
+      const controller = new AbortController();
+      const primary = entry === 'ordinary-throw' ? new Error('selected execution failure') : new api.ShellLimitError('maxCommands');
+      const descriptors = Object.getOwnPropertyDescriptors(primary);
+      const ready = deferred();
+      let state;
+      instance.register({ name: 'owned', execute(context) { state = cleanupPair(context); ready.release(); throw primary; } });
+      const running = track(instance.exec('owned', { signal: controller.signal }));
+      const result = await drain(running, ready, () => state, () => controller.abort(caller));
+      assert.equal(result.resolved, false);
+      assert.equal(result.error, caller);
+      assert.deepEqual(Object.getOwnPropertyDescriptors(primary), descriptors);
+      variants.push({ entry, caller, cleanups: 2, exactIdentity: true, primaryUnmutated: true, awaited: true });
+    }
+  }
+  return { variants };
+});
+
+const pass = observations.every(observation => observation.pass);
+console.log(JSON.stringify({ pass, groups: observations.length, passed: observations.filter(observation => observation.pass).length, observations }));
+if (!pass) process.exitCode = 1;

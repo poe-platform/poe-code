@@ -1,0 +1,8 @@
+[main 5ea187ecc] test(b35): bind reviewed v4 activation slots without dispatch
+ 6 files changed, 360 insertions(+)
+ create mode 100644 tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/GO.json
+ create mode 100644 tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/REVIEW.json
+ create mode 100644 tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/activation-v1/BINDING.json
+ create mode 100644 tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/activation-v1/COMMAND.pending.txt
+ create mode 100644 tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/activation-v1/HANDOFF.md
+ create mode 100644 tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/activation-v1/ROOT-AUTHORIZATION.json

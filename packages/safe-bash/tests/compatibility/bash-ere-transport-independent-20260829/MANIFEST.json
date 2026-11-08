@@ -1,0 +1,59 @@
+{
+  "schema": 1,
+  "date": "2026-08-29",
+  "role": "independent SOURCE/DATA review, no runtime acceptance",
+  "candidate": "0f36459ccf38623906c5c80702c5d32111167f4d",
+  "authorSealSha256": "f6ff74e59b15c98e230a2011af8c5c21d6922e44599bc88084a3705846cc55d1",
+  "originalRuntimeFamilies": 32,
+  "originalRuntimeVariants": 60,
+  "runtimeStatus": "UNRUN",
+  "sourceBlockers": 4,
+  "sourceQualifications": 2,
+  "files": [
+    {
+      "path": "REPORT.md",
+      "bytes": 8312,
+      "sha256": "8e687d5fcc5f0ebdacefd10b8babcac11157f6a2d460a8bc4e7da2f7d65a8c4f"
+    },
+    {
+      "path": "FINDINGS.json",
+      "bytes": 10416,
+      "sha256": "ffe0e4494b55fbdcdcaeaf6eed10a832f82d1c06d2aa85a15d78b8f396bbb3cd"
+    },
+    {
+      "path": "LOADER.md",
+      "bytes": 4645,
+      "sha256": "102824718bfb5af625831ddca95b338211b0635d1911388544f38f6d6f31372e"
+    },
+    {
+      "path": "LOADER.json",
+      "bytes": 9220,
+      "sha256": "fe0ce78104b979a881985062650d333095f9a901da238d90a1d70979d5ed5be0"
+    },
+    {
+      "path": "PRIORITY-CONTROLS.json",
+      "bytes": 6143,
+      "sha256": "ff053dde74a8d8f2af7893a18b44e616de2a91769c255cbf80b16b50083e0809"
+    },
+    {
+      "path": "SOURCE-BINDINGS.json",
+      "bytes": 48527,
+      "sha256": "4da8c2630b34b5ab7e9d53f73240969cb603f76832f6c7bdc6ec6f56d73f5c4f"
+    },
+    {
+      "path": ".gitignore",
+      "bytes": 34,
+      "sha256": "1b347d2b109eb61e0df1ec97df830af957eaf612fdf80274f94eeefff2594827"
+    },
+    {
+      "path": "SOURCE-READS.json.gz.base64.data",
+      "bytes": 265681,
+      "sha256": "e879571937ebe3405bae7719c207cea32808cd70addd59244f84de8ba4d45ae5"
+    },
+    {
+      "path": "AUDIT.md",
+      "bytes": 1356,
+      "sha256": "4b60e58110f3a526076e949b269ad59bb461cb5514fe455dbeac8084e874ae51"
+    }
+  ]
+}

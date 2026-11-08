@@ -1,0 +1,7 @@
+[main 17c6069fc4fa838f01e7b89734417757af62335c] Seal CORE70 v6 independent preexecution controls
+ 5 files changed, 1594 insertions(+)
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/runtime-preflight-v6-review/ADMISSION.json
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/runtime-preflight-v6-review/EXECUTION-PRESEAL.json
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/runtime-preflight-v6-review/PRESEAL.md
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/runtime-preflight-v6-review/novel.mjs
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/runtime-preflight-v6-review/owner.mjs

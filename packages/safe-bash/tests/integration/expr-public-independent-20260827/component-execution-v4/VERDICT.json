@@ -1,0 +1,25 @@
+{
+  "schema": "expr-v4-required-phase-verdict/1",
+  "commit": "8a28b7bffa5ef093cff2374ec32cba4ec4ca83f0",
+  "status": "HELD",
+  "exitCode": 1,
+  "reasons": [
+    "child-closure",
+    "integrity-hold",
+    "reported-failures",
+    "context-count",
+    "installed-node22:types",
+    "installed-node22:runtime",
+    "installed-node24:package-controls",
+    "installed-node24:types",
+    "installed-node24:runtime",
+    "moved-node22:package-controls",
+    "moved-node22:types",
+    "moved-node22:runtime",
+    "moved-node24:package-controls",
+    "moved-node24:types",
+    "moved-node24:runtime"
+  ],
+  "errors": [],
+  "beforeProcessExit": true
+}

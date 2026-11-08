@@ -1,0 +1,21 @@
+{
+  "source": {
+    "path": "/private/tmp/coherent-b1-r5-runtime/capture/events.jsonl",
+    "bytes": 7935,
+    "sha256": "65d9cea35ee6c73713f52a67af6c125716385e0e3986081f518c71d1dd849d52",
+    "mode": 420,
+    "dev": 16777232,
+    "ino": 190022492,
+    "mtimeMs": 1788021748872.7095,
+    "origin": {
+      "finalSha256": "89f3c55c91dc664a94df815ef23d5ddbbe6fb7376a1ef5a8e490255c475dd72b",
+      "locator": "/private/tmp/coherent-b1-r5-runtime/capture/events.jsonl"
+    },
+    "role": "fixed-capture-directory-member"
+  },
+  "dataPath": "data/853c0d6b103e5073bb8131694d12228761f2ead7555f83b8e3f3a20219246212.raw",
+  "identityPath": "identities/853c0d6b103e5073bb8131694d12228761f2ead7555f83b8e3f3a20219246212.json",
+  "copiedBytes": 7935,
+  "copiedMode": 420,
+  "copiedSha256": "65d9cea35ee6c73713f52a67af6c125716385e0e3986081f518c71d1dd849d52"
+}

@@ -1,0 +1,14 @@
+ROOT_ADMIN_PID=15634 TIME=2026-08-29T13:03:47Z
+UNUSED=/private/tmp/FINAL-SMOKE-R4-ROOT-GO.json
+UNUSED=/private/tmp/final-coherent-smoke-r5-20260829
+UNUSED=/private/tmp/final-coherent-smoke-r5-20260829.outer.stdout
+UNUSED=/private/tmp/final-coherent-smoke-r5-20260829.outer.stderr
+UNUSED=/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/runnable-r5/actual-evidence
+START role=packet-hash pid=15635
+WAIT role=packet-hash pid=15635 exit=0
+START role=grant-hash pid=15636
+WAIT role=grant-hash pid=15636 exit=0
+GRANT bytes=361 sha256=39d3b7e7ccc2010b0a3ce60e784580c0f03a1f5317023cb04ad4f52de48dd7eb
+LAUNCH_TIME=2026-08-29T13:03:48Z
+START role=activation-owner pid=15637
+WAIT role=activation-owner pid=15637 exit=78

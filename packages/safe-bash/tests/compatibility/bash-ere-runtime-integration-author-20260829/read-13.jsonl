@@ -1,0 +1,5 @@
+{"pid":33791,"at":"2026-08-29T11:35:45.957Z","role":"SOURCE-DATA-only"}
+{"path":"tests/compatibility/bash-ere-runtime-integration-design-20260829/docs/references.data","size":6174,"mode":384,"sha256":"5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7"}
+{"path":"tests/compatibility/bash-ere-runtime-integration-design-20260829/docs/hosts.data","size":2440,"mode":384,"sha256":"17da6ffa3e2bee29c1c46ff209c6989263ac735b896f564f601b982c14108681"}
+{"path":"tests/compatibility/bash-ere-runtime-integration-author-20260829/baseline/tsconfig.build.json","size":260,"mode":420,"sha256":"b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e"}
+{"path":"tests/compatibility/bash-ere-runtime-integration-author-20260829/baseline/tsconfig.json","size":2920,"mode":420,"sha256":"f7db199a0245ffba2e8468f4d57ec6cb9fb61e6209acbf3e9806d83ea4e22508"}

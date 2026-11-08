@@ -1,0 +1,25 @@
+{
+  "name": "consumer-types",
+  "argv": [
+    "/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/candidate/node_modules/typescript/bin/tsc",
+    "--module",
+    "NodeNext",
+    "--target",
+    "ES2023",
+    "--strict",
+    "--skipLibCheck",
+    "--types",
+    "node",
+    "--typeRoots",
+    "/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/candidate/node_modules/@types",
+    "--listFiles",
+    "/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/consumer.mts"
+  ],
+  "cwd": "/private/tmp/safe-bash-tree-final-436bda3-k1mKIO",
+  "pid": 60080,
+  "completion": {
+    "exitCode": 0,
+    "signal": null
+  },
+  "elapsedMs": 334
+}

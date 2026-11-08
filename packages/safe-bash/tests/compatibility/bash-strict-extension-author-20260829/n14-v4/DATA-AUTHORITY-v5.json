@@ -1,0 +1,15 @@
+{
+  "role": "ROOT_EXACT_SINGLE_INPUT_DATA_ADMISSION",
+  "path": "tests/integration/coherent78-shell-independent-20260828/RAW-v2.json.gz.base64",
+  "authorityCommit": "7196bace8ea2c141d5ed1020fef5bf721c321ace",
+  "gitMode": "100644",
+  "gitBlob": "e584cc41d956da910a5686deb979e84c2b6df796",
+  "bytes": 5916905,
+  "sha256": "a49b8a7055ac2902d1368ddb638d62c5a1896dc9ed25c18b025816a710077509",
+  "publishedSha256Authority": "tests/compatibility/bash-strict-extension-author-20260829/PRESEAL-v2.json:baseEvidence",
+  "encodedCeiling": 6291456,
+  "decompressedCeilingUnchanged": 67108864,
+  "aggregateWorkingCeilingUnchanged": 268435456,
+  "genericOtherInputReadCeilingUnchanged": 4194304,
+  "historicalRefusal": "0db27688d279423f6eb7a4f8eb5c430f50876b49"
+}

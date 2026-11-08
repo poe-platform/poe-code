@@ -1,0 +1,6 @@
+src/commands/node/index.ts(79,26): error TS7006: Parameter 'value' implicitly has an 'any' type.
+src/commands/node/index.ts(83,22): error TS7006: Parameter 'sequence' implicitly has an 'any' type.
+src/commands/node/index.ts(84,21): error TS7006: Parameter 'label' implicitly has an 'any' type.
+src/commands/node/index.ts(84,28): error TS7006: Parameter 'bytes' implicitly has an 'any' type.
+src/commands/node/index.ts(91,24): error TS7006: Parameter 'reason' implicitly has an 'any' type.
+src/commands/node/index.ts(97,17): error TS7006: Parameter 'reason' implicitly has an 'any' type.

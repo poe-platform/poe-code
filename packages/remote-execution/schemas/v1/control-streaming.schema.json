@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "control-streaming.schema.json",
+  "title": "Remote execution v1 binary CONTROL admission (review draft)",
+  "$ref": "#/$defs/Control",
+  "$defs": {
+    "EffectEvent": {
+      "type": "object",
+      "properties": {
+        "type": { "const": "Effect" },
+        "effect": { "$ref": "streaming-profile.schema.json#/$defs/Effect" }
+      },
+      "required": ["type", "effect"],
+      "additionalProperties": false
+    },
+    "JobState": {
+      "type": "object",
+      "properties": {
+        "type": { "const": "JobState" },
+        "job": { "$ref": "protocol.schema.json#/$defs/Job" }
+      },
+      "required": ["type", "job"],
+      "additionalProperties": false
+    },
+    "FailureEvent": {
+      "type": "object",
+      "properties": {
+        "type": { "const": "Failure" },
+        "error": { "$ref": "protocol.schema.json#/$defs/Failure" }
+      },
+      "required": ["type", "error"],
+      "additionalProperties": false
+    },
+    "Control": {
+      "oneOf": [
+        { "$ref": "protocol.schema.json#/$defs/Ack" },
+        { "$ref": "protocol.schema.json#/$defs/ChannelOpen" },
+        { "$ref": "protocol.schema.json#/$defs/Callback" },
+        { "$ref": "protocol.schema.json#/$defs/CallbackResult" },
+        { "$ref": "#/$defs/EffectEvent" },
+        { "$ref": "#/$defs/JobState" },
+        { "$ref": "#/$defs/FailureEvent" }
+      ]
+    },
+    "CanonicalObjectControl": {
+      "oneOf": [
+        { "$ref": "#/$defs/Control" },
+        { "$ref": "urn:poe:remote-execution:canonical-filesystem:v1#/$defs/CanonicalCallback" },
+        { "$ref": "urn:poe:remote-execution:canonical-filesystem:v1#/$defs/CanonicalCallbackResult" }
+      ],
+      "description": "Select only after canonical-object-v1 negotiation and accounted filesystem admission. Grants and originating-operation result semantics require separate validation."
+    }
+  }
+}

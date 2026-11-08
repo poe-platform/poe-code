@@ -1,0 +1,1 @@
+{"schemaVersion":2,"status":"INCOMPLETE","unfulfilled":[{"path":"expected.assertions[0]","value":"Retained fragments survive producer reuse and finalization; subarray/slice views do not qualify as owned copies.","reason":"Natural-language obligation has no executable proof binding"}],"semanticFullRecordPass":false}

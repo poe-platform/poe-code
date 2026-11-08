@@ -1,0 +1,44 @@
+{
+  "name": "safe-bash-command-ffprobe",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./media": {
+      "types": "./dist/media.d.ts",
+      "import": "./dist/media.js"
+    },
+    "./options": {
+      "types": "./dist/options.d.ts",
+      "import": "./dist/options.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc && esbuild src/index.ts --bundle --platform=browser --conditions=workerd --format=esm --target=es2022 --external:safe-bash-contracts --external:safe-bash-contracts/* --outfile=dist/index.js",
+    "lint": "eslint src && tsc --noEmit && tsc -p tsconfig.test.json",
+    "test": "cd ../.. && vitest run packages/safe-bash-command-ffprobe",
+    "test:unit": "cd ../.. && vitest run packages/safe-bash-command-ffprobe"
+  },
+  "dependencies": {
+    "@noble/hashes": "2.4.0"
+  },
+  "devDependencies": {
+    "safe-bash-contracts": "*",
+    "@poe-code/audio-ast": "*",
+    "@poe-code/mp4-ast": "*",
+    "@poe-code/safe-fs": "*"
+  },
+  "sideEffects": false
+}

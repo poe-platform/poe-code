@@ -1,0 +1,79 @@
+{
+  "version": 3,
+  "reviewerIdentity": "Codex Independent Leaf Verifier",
+  "reviewerThread": "01a043dd-cfc3-7f93-8f3b-70e2d7b1d2a4",
+  "date": "2026-08-27",
+  "bindingReviewCommit": "758880944964ed1bb9f9cbb524dfeb14e88b3047",
+  "authorStatusPreparationCommit": "71abbafc8a9adadf98ed8921b4cc549ae90399ff",
+  "actualExecutionsAtFreeze": 0,
+  "privateQueriesAtFreeze": 0,
+  "cohorts": {
+    "surface": 8,
+    "lifecycle": 11,
+    "controls": 6
+  },
+  "attemptsAuthorized": 1,
+  "files": [
+    {
+      "path": "BINDINGS.json",
+      "bytes": 83774,
+      "sha256": "eb9f924eb35743ceeca0c4deb6de2b51a31ca5b00020094f5aa9bc37daf562c7"
+    },
+    {
+      "path": "LOCATION-PROOF.json",
+      "bytes": 3760,
+      "sha256": "a8efcae80a9f0d8d423bd6b6e47df3a2bc4dde25209415a9d812a3aa87e77491"
+    },
+    {
+      "path": "PREPARATION.json",
+      "bytes": 7167,
+      "sha256": "43c92d92c61236d3f267ac1634b52accd6d05ece99990df5a22794b416ae86fa"
+    },
+    {
+      "path": "README.md",
+      "bytes": 4722,
+      "sha256": "4bf34d4eef2515314b571089642cab52fd047d12362f7f673cff8823bbaf4735"
+    },
+    {
+      "path": "ROOT-RELEASE.json",
+      "bytes": 2120,
+      "sha256": "2f7e3bbcf7dd14602cfc79e96e8e347819224f174a612faf873b373838afaf2a"
+    },
+    {
+      "path": "STATIC-CHECKS.json",
+      "bytes": 1283,
+      "sha256": "68ace1525627a92a24bebf12548d74f02f1ed1ea4f00bf085addce2fdf437b14"
+    },
+    {
+      "path": "admission-location.patch-data",
+      "bytes": 3700,
+      "sha256": "01a7b72a14b76432bd07cb7e0ce99127b19dab45778966ad0a9c8981c41126b9"
+    },
+    {
+      "path": "assess.py",
+      "bytes": 12778,
+      "sha256": "08caf5d33ce427eefc48f05a9d397acb1d3851ac318de1c90da76f1397ca7522"
+    },
+    {
+      "path": "expected-private-ns.json.data",
+      "bytes": 70152,
+      "sha256": "6684c57b7d753b5d555a1d2ae4ca7821da1dba1f0eb7a1c3030737af448ca6d3"
+    },
+    {
+      "path": "orchestration.patch-data",
+      "bytes": 7188,
+      "sha256": "611b143b393e72b0ca0b0a24e802975f25752e0b45f87fa18ca5b1a172deee2b"
+    },
+    {
+      "path": "prepare.py",
+      "bytes": 18114,
+      "sha256": "b5e1e30ccf6e1ba9ad8fcde163add72f64f379808a363dfb68dc55475f06fd16"
+    },
+    {
+      "path": "run.py",
+      "bytes": 21491,
+      "sha256": "2e9ce2b289c1e3fbbdabef9306c161666349705febee44eabec813d8d3aa5e87"
+    }
+  ],
+  "noPromotion": true
+}

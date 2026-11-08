@@ -1,0 +1,3 @@
+{"args":["status","--porcelain=v1","--untracked-files=all","--","tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v2"],"status":0,"signal":null,"error":null}
+{"args":["show","12cb7a0032f581e45402399d5ef0da1ec2d700f9:tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-v1/HANDOFF.md"],"status":0,"signal":null,"error":null}
+{"args":["ls-tree","-r","--name-only","-z","12cb7a0032f581e45402399d5ef0da1ec2d700f9","--","tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-v1"],"status":0,"signal":null,"error":null}

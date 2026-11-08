@@ -1,0 +1,9 @@
+[main 42c5df0d2e6c8246d18ddd331ad3d3a0ecb65582] Independently accept prepareVariable v3 finite cleanup delta
+ 7 files changed, 13291 insertions(+)
+ create mode 100644 tests/compatibility/final-coherent-producer-20260829/SOURCE-REVIEW.json
+ create mode 100644 tests/compatibility/final-coherent-producer-20260829/review-objects.stderr
+ create mode 100644 tests/compatibility/final-coherent-producer-20260829/review-objects.stdout
+ create mode 100644 tests/compatibility/final-coherent-producer-20260829/review.mjs
+ create mode 100644 tests/compatibility/final-coherent-producer-20260829/review.stderr
+ create mode 100644 tests/compatibility/final-coherent-producer-20260829/review.stdout
+ create mode 100644 tests/compatibility/final-coherent-producer-20260829/runtime.pinned.ts.data

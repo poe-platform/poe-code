@@ -1,0 +1,429 @@
+{
+  "status": "DATA_PASS_RUNTIME_HOLD",
+  "results": [
+    {
+      "id": "object-oid-request-positive",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "object-reject-truncated",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "object-reject-extra",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "object-reject-wrong-oid",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "object-reject-duplicate-request",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "object-reject-wrong-size",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "object-reject-display-request",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "spaces",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "tab",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "newline",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "quote",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "backslash",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "unicode",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "nfc",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "nfd",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "bom",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "cr",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "leading-dash",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "quoted-literal",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "directory-sort-modes-normalization-distinct",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "truncated",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "empty-record",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "empty-path",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "absolute",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "dot",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "parent",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "double-slash",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "trailing-slash",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "invalid-utf8",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "overlong-utf8",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "surrogate-utf8",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "duplicate",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "file-directory",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "directory-file",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "mode",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "type",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "type-mode",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "missing-tab",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "extra-header",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "uppercase-oid",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "short-oid",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "embedded-nul",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "full-census",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "exact-98-no-filtering",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "independent-full-tree",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "stored-commit-and-tree-authentication",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "derived-composition-not-stored-object",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "unchanged-selected-source-projection",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "projection-reject-duplicate",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "projection-reject-missing",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "projection-reject-mode",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "projection-reject-blob",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "projection-reject-instruction",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "projection-reject-traversal",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "capture-reject-hash",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "capture-reject-offset",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "capture-reject-total",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "capture-reject-base64",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "capture-reject-missing",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "capture-reject-duplicate",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "capture-reject-extra-channel",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "capture-reject-exit",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "capture-reject-cleanup",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "fresh-git-stored-tree-oracle",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    },
+    {
+      "id": "independent-candidate-composition",
+      "status": "PASS",
+      "classification": "DATA/SYNTHETIC"
+    }
+  ],
+  "candidateCount": 50002,
+  "baseCount": 37412,
+  "actual98": 98,
+  "selectedCount": 274,
+  "candidateTree": "189bef24a927241d7c47a662f1ac447b56da1835",
+  "independentTree": "189bef24a927241d7c47a662f1ac447b56da1835",
+  "composedTree": "8437e4eda904e1248c25eeef0d9d455b1d251495",
+  "candidateCompositionTree": "f761c0e1d7a1df48236da38ad78a18cf00a4813c",
+  "storedTreeEqual": true,
+  "builds": 0,
+  "productImports": 0,
+  "productPasses": 0,
+  "historical": "25 DATA / 68 NOT_RUN preserved",
+  "budgetDelta": "none",
+  "readRouteDelta": "none",
+  "elapsedMs": 2035.279958,
+  "rawBytes": 36985,
+  "persistentBytes": 51704,
+  "childCount": 2,
+  "peakOwnedProcesses": 2,
+  "allRetired": true,
+  "remainingHandles": 0,
+  "receipts": [
+    {
+      "id": "committed-input-inventory",
+      "executable": "/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "ls-tree",
+        "-rz",
+        "--full-tree",
+        "d8cbb7d76459e14d20f57e19f7c01ce04fa08702",
+        "--",
+        "tests/commands/apply-patch-independent-20260828/path-transport-v2"
+      ],
+      "started": "2026-08-28T18:14:55.339Z",
+      "finished": "2026-08-28T18:14:55.634Z",
+      "startedElapsedMs": 27.878833,
+      "finishedElapsedMs": 321.566292,
+      "pid": 99235,
+      "spawnAttempted": true,
+      "spawnReturned": true,
+      "spawnEvent": true,
+      "spawnThrew": false,
+      "code": 0,
+      "signal": null,
+      "closeObserved": true,
+      "groupAbsent": true,
+      "spawnError": null,
+      "fault": null,
+      "bytes": 36944,
+      "fragments": [
+        {
+          "name": "committed-input-inventory-stdout-0.json",
+          "bytes": 36944,
+          "sha256": "60bc87d8b899be683a75363edb04453a34b4f699dcea0b434edacf09ac2dae66"
+        }
+      ],
+      "stdoutSha256": "60bc87d8b899be683a75363edb04453a34b4f699dcea0b434edacf09ac2dae66",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "knownChildCleanup": true
+    },
+    {
+      "id": "stored-tree-oracle",
+      "executable": "/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "rev-parse",
+        "--verify",
+        "58be2d6c5706f3e90f01d48e695ecfd9daa52669^{tree}"
+      ],
+      "started": "2026-08-28T18:14:57.065Z",
+      "finished": "2026-08-28T18:14:57.095Z",
+      "startedElapsedMs": 1752.373042,
+      "finishedElapsedMs": 1781.823125,
+      "pid": 99258,
+      "spawnAttempted": true,
+      "spawnReturned": true,
+      "spawnEvent": true,
+      "spawnThrew": false,
+      "code": 0,
+      "signal": null,
+      "closeObserved": true,
+      "groupAbsent": true,
+      "spawnError": null,
+      "fault": null,
+      "bytes": 41,
+      "fragments": [
+        {
+          "name": "stored-tree-oracle-stdout-0.json",
+          "bytes": 41,
+          "sha256": "b2a726ccbc872eebe70cc138934a519e5fc55a8f6efbc70f44d61ce10d71741d"
+        }
+      ],
+      "stdoutSha256": "b2a726ccbc872eebe70cc138934a519e5fc55a8f6efbc70f44d61ce10d71741d",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "knownChildCleanup": true
+    }
+  ]
+}

@@ -1,0 +1,242 @@
+{
+  "timestamp": "2026-08-27T00:50:33.695Z",
+  "observedHead": "0c4709fa8ca55b4e0414219ee5e3a57a59418fc7",
+  "status": "PREPARATION ONLY; READY absent at bounded wait endpoint; no source acceptance",
+  "nativeCasesPerProfile": 26,
+  "nativeCasesTotal": 52,
+  "nativeMetadataProcesses": 4,
+  "hostRowsPrepared": 8,
+  "virtualRowsPrepared": 34,
+  "nativeEvidenceHash": "c5c698cf91b3cbf32c63f338af5e5a241be941c092821dc3a900d58ccaeceabe",
+  "frozen": [
+    {
+      "revision": "c440c1a",
+      "path": "tests/shell-stress/invocation-modes/cases.ts",
+      "sha256": "788539627f6f5d8a8b31702ec3b9c7a6477efe8878fa88fa7fd0ae955553ed3b",
+      "unchanged": true
+    },
+    {
+      "revision": "c440c1a",
+      "path": "tests/shell-stress/invocation-modes/holdout.test.ts",
+      "sha256": "7190d5a6611b7baafe2801505ce0df32b6cb476257b1b533f6032642a5721a12",
+      "unchanged": true
+    },
+    {
+      "revision": "21a6b91",
+      "path": "tests/shell/invocation-modes.test.ts",
+      "sha256": "1c78a0f3438c5b91e77fd9a26cd8e961ba9c71e0d0b8b7c17b903da9ab867a46",
+      "unchanged": true
+    }
+  ],
+  "inputHashes": {
+    "tests/shell-stress/invocation-closure/audit.mjs": "85074ef06fe5ef2f253c5f3f183b4cb8cf7e36e23373d0446065f5a7a45c6e87",
+    "tests/shell-stress/invocation-closure/cases.ts": "1f5ac63adbfa9e13d70ab79e2cf991efa6cb7d70d6f2463d2bef0ed4d14c6aef",
+    "tests/shell-stress/invocation-closure/compare.ts": "e74dad80dbe97855d8dcd272771d5eb44dbb1ddd97a08ca44c793ad78e991b18",
+    "tests/shell-stress/invocation-closure/holdout.test.ts": "8a9deddf284de912e4ec9fc5137110c507106b5f0ac4dcdb6a85a94bcc2c07ff",
+    "tests/shell-stress/invocation-closure/native.ts": "b2f6d8a5ed8bd96392d62d7af8d5c89c75f1a58983aaf87e775171013520bbec",
+    "tests/shell-stress/invocation-closure/probe.ts": "d9d956718c93d15243d6e026ee6dbefbc05ec4ef2a2a6b818a3915fbad139464",
+    "tests/shell-stress/invocation-closure/support.ts": "e3107cc5be93b3bac67f6a00e11d5def70db437860a12c77f4292e7b147efcd2",
+    "tests/shell-stress/invocation-closure/verify.ts": "73edb85fdb7272f0ca35af6ca2d87dda6e4c0ec01019a7ea8bd48d6246941eee"
+  },
+  "gnuReadSource": {
+    "path": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/bash-5.3/builtins/read.def",
+    "sha256": "f4c50b4e13cb7208ba871234b3efc874d9896c03ef8922121a3e6e0cca3c181f"
+  },
+  "nativeProfileHashes": [
+    {
+      "id": "gnu-5.3",
+      "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c"
+    },
+    {
+      "id": "historical-3.2",
+      "executable": "/bin/bash",
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3"
+    }
+  ],
+  "rawProfileDifferences": [
+    {
+      "id": "query-V-verbose",
+      "fields": [
+        "stdoutHex"
+      ]
+    },
+    {
+      "id": "type-multiple-status",
+      "fields": [
+        "stdoutHex"
+      ]
+    },
+    {
+      "id": "query-empty-and-unsupported-option",
+      "fields": [
+        "stderrHex"
+      ]
+    },
+    {
+      "id": "read-N-character-count-en_US.UTF-8",
+      "fields": [
+        "stdoutHex",
+        "stderrHex"
+      ]
+    },
+    {
+      "id": "read-N-character-count-C",
+      "fields": [
+        "stdoutHex",
+        "stderrHex"
+      ]
+    },
+    {
+      "id": "read-N-delimiter-vs-n",
+      "fields": [
+        "stdoutHex",
+        "stderrHex"
+      ]
+    },
+    {
+      "id": "read-N-skips-nul-data",
+      "fields": [
+        "stdoutHex",
+        "stderrHex"
+      ]
+    },
+    {
+      "id": "read-N-nul-delimiter",
+      "fields": [
+        "stdoutHex",
+        "stderrHex"
+      ]
+    },
+    {
+      "id": "read-N-no-ifs-split",
+      "fields": [
+        "stdoutHex",
+        "stderrHex"
+      ]
+    },
+    {
+      "id": "read-N-backslash-raw",
+      "fields": [
+        "stdoutHex",
+        "stderrHex"
+      ]
+    },
+    {
+      "id": "read-N-zero-invalid",
+      "fields": [
+        "stdoutHex",
+        "stderrHex"
+      ]
+    },
+    {
+      "id": "read-N-eof-partial",
+      "fields": [
+        "stdoutHex",
+        "stderrHex"
+      ]
+    },
+    {
+      "id": "read-N-stdin-source-cursor",
+      "fields": [
+        "stdoutHex",
+        "stderrHex"
+      ]
+    },
+    {
+      "id": "sh-special-ordinary-function",
+      "fields": [
+        "stdoutHex"
+      ]
+    }
+  ],
+  "rawDifferencesIncludeIsolatedPathnames": true,
+  "preparationTypeEvidenceHash": "eb4b3fde9d08889b94eec7542e68fe8bfadaa722639ee00e224c8fc75042cacf",
+  "preparationCompilerInputs": 198,
+  "readyWait": {
+    "started": "2026-08-27T00:45:18.343Z",
+    "finished": "2026-08-27T00:49:08.347Z",
+    "elapsedMs": 230004,
+    "targetMs": 230000,
+    "maximumRequestedMs": 240000,
+    "ready": false,
+    "pid": 9342,
+    "watcherExited": true
+  },
+  "cleanup": {
+    "checkedPids": [
+      89672,
+      89673,
+      89674,
+      89675,
+      89676,
+      89677,
+      89678,
+      89696,
+      89698,
+      89700,
+      89701,
+      89702,
+      89703,
+      89704,
+      89705,
+      89706,
+      89707,
+      89708,
+      89709,
+      89710,
+      89711,
+      89712,
+      89713,
+      89714,
+      89715,
+      89716,
+      89717,
+      89720,
+      89722,
+      89723,
+      89724,
+      89725,
+      89726,
+      89727,
+      89728,
+      89731,
+      89740,
+      89749,
+      89750,
+      89751,
+      89752,
+      89753,
+      89754,
+      89755,
+      89756,
+      89757,
+      89758,
+      89759,
+      89761,
+      89762,
+      89763,
+      89764,
+      89765,
+      89766,
+      89767,
+      89770,
+      4034,
+      4035,
+      9342
+    ],
+    "stillAlive": [],
+    "temporaryDirectories": []
+  },
+  "foreignWorktree": " M tests/commands/structured-stress/jq-42-author-20260827/followup.test.ts\n M tests/commands/structured-stress/jq-42-author-20260827/native.test.ts\n M tests/commands/structured-stress/jq-42-author-20260827/report.ts\n",
+  "indexAtAudit": "",
+  "notRun": [
+    "new virtual 34",
+    "unchanged 72",
+    "unchanged 132",
+    "fresh original 57 native x2",
+    "virtual comparisons",
+    "prior regressions",
+    "global/build/benchmark noEmit"
+  ]
+}

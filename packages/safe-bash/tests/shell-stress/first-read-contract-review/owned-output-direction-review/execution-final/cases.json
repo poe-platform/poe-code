@@ -1,0 +1,154 @@
+{
+  "schema": 1,
+  "classification": "additive-pre-v2-declaration-intentions-not-executable-acceptance",
+  "logicalCaseCount": 7,
+  "maximumLogicalCaseCount": 7,
+  "oldOriginalCountUnaffected": 5,
+  "oldIndependentCountUnaffected": 16,
+  "cases": [
+    {
+      "id": "D01",
+      "name": "Active borrowed curl data read and remaining-byte conservation",
+      "input": "borrowedCurl",
+      "distinctFromOld": "H06 used sequential borrowed consumers; this requires real curl actively awaiting the shared input at output closure.",
+      "workflow": [
+        "Dispatch actual curl through actual Shell with the explicitly enabled loopback transport and borrowed input; no fake curl command.",
+        "Deliver the prefix, admit exactly one pending second next, then release the downstream start barrier while that next remains pending and stdout has never been written.",
+        "Observe real stdout closure. For a declared truthful cooperative per-read lease, revoke just that lease; otherwise retain the opaque pending promise until explicitly resolved with the late chunk.",
+        "After the pending read is settled or safely handed back, sequential actual Shell sibling and owner consumers must obtain their frozen remaining chunks; restore any uncommitted late chunk first.",
+        "Observe owned loopback cleanup, actual upload bytes when sent, and normal bounded teardown; do not assume curl opens HTTP before buffering its input."
+      ],
+      "required": [
+        "Source return/cancel/destructive close counts are zero, including late settlement; no concurrent underlying next and no implicit transfer.",
+        "Curl must really reach the pending borrowed read; untouched stdin, source-empty setup, whole-input drain, and zero-start passes fail this case.",
+        "Prefix and late bytes are each either recorded in actual committed curl upload or handed back exactly; owner and sibling tails remain exact, ordered and nonempty. A chunk merely seen by the verifier is not a committed effect.",
+        "No new curl read may steal the sibling/owner suffix after stdout-only work terminates; the harness may not repair this with a private replay buffer or artificially bounded wrapper hiding the suffix.",
+        "A cooperative lease returns uncommitted late bytes to its owner without invoking shared iterator return; the opaque branch is not required to preempt or report prompt cleanup.",
+        "Stage and caller stay live at output close; request and read-start counters remain separate; request/socket cleanup is observed before harness teardown if a request was opened."
+      ],
+      "bindingBlockers": ["Real curl borrowed-read enrollment/handback API and declaration-selected lease or opaque sequencing", "Exact committed-byte observation and public status/diagnostic policy without adapting production behavior"]
+    },
+    {
+      "id": "D02",
+      "name": "Opaque read deferral with truthful cleanup accounting",
+      "input": "opaqueRead",
+      "distinctFromOld": "H06 did not hold an active opaque next across output closure or require accounting for the subsequently resolved chunk.",
+      "workflow": [
+        "A registered Shell command explicitly starts one opaque borrowed next, with no cooperative cancel hook, and releases downstream only after entry.",
+        "Keep that exact promise unresolved across observed output closure; snapshot next/return/cancel, operation completion and actual read settlement independently.",
+        "Resolve it with the frozen late bytes under a controlled gate, then complete the declared sequencing path: real VFS commit or supported owner handback.",
+        "Run actual Shell sibling and owner consumers sequentially on the same cursor and compare all bytes; finish all controlled host work before leaving the case."
+      ],
+      "required": [
+        "Underlying return/cancel/close is never called; admission does not race a second next against the opaque pending read.",
+        "No fake claim that abort settled or reclaimed the pending opaque read. Public exec/operation close may settle if its contract excludes opaque work, but that is not read cleanup completion.",
+        "Do not require public exec/dispose to wait for unregistered opaque host work; do require any specifically registered cooperative cleanup to finish.",
+        "The late chunk is neither lost nor duplicated: exact VFS record or exact owner handback, followed by exact nonempty sibling and owner tails.",
+        "Resolve/reject gates and safety deadlines are harness controls, not claims of universal prompt cancellation; stage/caller remain live."
+      ],
+      "bindingBlockers": ["Opaque sequencing and late-chunk ownership observability", "Separate operation completion, registered cleanup completion and actual opaque-read settlement events"]
+    },
+    {
+      "id": "D03",
+      "name": "Explicit cooperative ownership transfer permits source cleanup",
+      "input": "transferredRead",
+      "distinctFromOld": "The source is explicitly handed over by its former owner, contrasting the actively borrowed D01/D02 cases rather than assuming ownership from use.",
+      "workflow": [
+        "Record an explicit exclusive transfer before a Shell command admits a source read; retain a distinct borrowed source for a later real Shell consumer.",
+        "Register cooperative invocation cleanup synchronously before owned acquisition, start exactly one owned read, and release downstream before any write.",
+        "On actual stdout closure, overlap operation close and the command finally path using the same cleanup; hold its completion under a cooperative gate.",
+        "While cleanup is gated, complete an independent VFS effect and a separate live Shell invocation consuming the unrelated borrowed source; only then request overlapping disposal.",
+        "Release the gate and check one underlying resource release and all shared cleanup settlements."
+      ],
+      "required": [
+        "Explicit transfer is evidenced before acquisition; the transferred source has one declared return/cancel release, not a blanket ban on all iterator cleanup.",
+        "All overlapping cleanup callers await the same completion and no resource releases twice; public cooperative settlement cannot precede gate release.",
+        "Owned read/request starts once before downstream close and no first write occurs; source active count is zero after cooperative cleanup.",
+        "Unrelated borrowed source has zero return/cancel and exact survivor bytes; stage/caller and independent VFS task survive operation EPIPE."
+      ],
+      "bindingBlockers": ["Explicit exclusive transfer representation and cooperative source cleanup API", "Public disposal ordering that leaves the independent effect before deliberate disposal"]
+    },
+    {
+      "id": "D04",
+      "name": "Transitive three-level close covers admitted work and refuses late acquisition",
+      "input": "parentTree",
+      "distinctFromOld": "H08 isolated unrelated lifetimes; this requires explicit parent-child-grandchild propagation and admission closure at each level.",
+      "workflow": [
+        "Use real Shell to construct exactly the frozen explicit three-level tree, with the parent bound to stdout and descendant cooperative cleanup registered before each acquisition.",
+        "Admit grandchild cooperative acquisition but defer its completion; independently gate child cleanup. Start one owned operation before releasing downstream.",
+        "Observe parent termination from actual stdout closure, attempt one late acquisition at each level, and retain exact rejection/reason identities.",
+        "Resolve the admitted grandchild acquisition into a real VFS-owned resource and hold its cleanup; overlap parent close/finally while descendants remain gated.",
+        "Complete outside-tree VFS/stderr work before deliberate overlapping disposal, then release both cooperative cleanup gates and check drain completion."
+      ],
+      "required": [
+        "Parent close terminates child and grandchild, prevents every late acquisition callback from running, and retains first selected reason without stage/caller abort.",
+        "An acquisition already admitted before parent close is covered: eventual cooperative resource is released exactly once before parent/public registered cleanup settles.",
+        "Parent cleanup cannot resolve while registered child or grandchild cleanup is gated; no transient child removal loses the transitive drain.",
+        "Cleanup was registered synchronously before resource admission, shares idempotent finally completion, and does not wait for unrelated opaque work.",
+        "Outside-tree file bytes and stderr complete exactly; no implicit global-stage cancellation or test-side manual propagation masquerades as product behavior."
+      ],
+      "bindingBlockers": ["Declared explicit parent-child API and transitive admission/drain contract", "Observable cooperative acquisition with VFS-backed owned resource and exact reason mapping"]
+    },
+    {
+      "id": "D05",
+      "name": "Child output close isolates its parent, sibling and independent effects",
+      "input": "childIsolation",
+      "distinctFromOld": "The closed operation has an explicit parent and an explicitly related sibling; survival is not just two unrelated operations.",
+      "workflow": [
+        "In actual Shell, create a parent not bound to stdout, then a stdout-bound child and a file sibling under that parent.",
+        "Start one stdout-child owned read before releasing head; retain parent and sibling cooperative work behind independent gates.",
+        "Observe child output-close cleanup; only afterward admit fresh parent and sibling work and release their gates.",
+        "Complete both exact VFS files and independent stderr, then explicitly close the parent normally and verify final resource accounting."
+      ],
+      "required": [
+        "Child sees output-close EPIPE and releases exactly once; parent, sibling, stage and caller are not aborted by that event.",
+        "Fresh parent/sibling acquisition after child close succeeds, with proper registration before acquisition; surviving flags alone are insufficient.",
+        "Parent and sibling exact file bytes and stderr are produced after child closure, with no writes to the closed stdout sink.",
+        "Closing the parent at the end cannot duplicate the already closed child's cleanup; registered resource accounting is complete."
+      ],
+      "bindingBlockers": ["Parent scope construction independent of stdout plus child destination binding", "Exact normal-close versus downstream-close reason/status distinction"]
+    },
+    {
+      "id": "D06",
+      "name": "Active borrowed curl input survives for required mixed destinations",
+      "input": "mixedCurl",
+      "distinctFromOld": "H09-H11 exercised mixed destinations without requiring curl already blocked on a borrowed data read at output closure.",
+      "workflow": [
+        "Run the frozen real curl data/body-file/header-file/writeout argv through Shell against one explicitly allowed task-owned loopback endpoint.",
+        "Deliver the first upload chunk and hold the second borrowed next pending; release downstream only after that actual read enters, before response headers and first stdout write.",
+        "Observe stdout closure and verify request/file ownership remains admitted; release the second input chunk and real EOF, then send the deterministic response with automatic Date disabled.",
+        "Complete independent VFS/stderr work outside the stdout operation and retain actual upload, response header bytes, body file and all diagnostics.",
+        "Observe actual request/socket finish/close before forced harness teardown; record necessary completion separately from cancellation of redundant stdout writeout."
+      ],
+      "required": [
+        "Borrowed source return/cancel/close is zero even when curl finishes or writeout encounters the closed output; this run intentionally supplies the full finite upload to curl.",
+        "Exactly one real HTTP request receives the complete frozen upload; stdout closure must not prevent request start merely because curl buffers data before networking.",
+        "Body file equals the exact response bytes and header file equals the frozen header block; no partial file or missing preheaders work is acceptable.",
+        "Independent file and stderr bytes complete exactly, stage/caller remain live at closure, and stdout stays empty.",
+        "Keep any legitimate late-write diagnostic/status exactly as declared before execution; do not suppress errors to pass, or broaden old H09-H11 status assertions.",
+        "Actual loopback owned-resource cleanup is demonstrated; a mock transport only is insufficient for this case."
+      ],
+      "bindingBlockers": ["Exact curl option spelling from authenticated public declaration and output-status policy", "Declared header serialization and transport request-cleanup registration; deterministic header mismatch cannot silently rebaseline input"]
+    },
+    {
+      "id": "D07",
+      "name": "Borrowed late errors and child cleanup preserve caller/error precedence",
+      "input": "failureReasons",
+      "distinctFromOld": "H12 supplied precedence controls; this adds a still-pending borrowed next and explicitly parented cooperative cleanup failure without changing those controls.",
+      "workflow": [
+        "Run exactly the four frozen subruns through actual Shell with a started opaque borrowed next, output-close barrier and explicitly registered child cleanup.",
+        "For caller variants abort with the same object or primitive zero before selected public settlement; resolve the pending read and release failing cooperative cleanup under explicit gates.",
+        "For execution/aggregate variants retain sentinel error identities, release registered cleanup, and reject the controlled opaque read after its consumer has stopped waiting (after public settlement when the declared contract permits).",
+        "Use bounded process-level unhandled-rejection observation and then a real owner consumer in a separate live Shell invocation without the aborted caller signal for the survivor bytes; drain all controlled gates before leaving."
+      ],
+      "required": [
+        "Observed caller reason wins by exact identity including primitive zero and errno-shaped EPIPE; internal child output-close is not caller cancellation.",
+        "Selected execution rejection survives cleanup errors; without caller/execution rejection, both child cleanup errors appear by identity in the public aggregate.",
+        "Every registered cooperative cleanup is awaited once and every late rejection is observed; no unhandled rejection or invented generic success/cancellation status.",
+        "Borrowed iterator return/cancel remains zero, the actual late read is not falsely labeled preempted, and exact owner survivor bytes remain usable.",
+        "Four subruns form one logical case; a missing subrun is incomplete, never four extra passes."
+      ],
+      "bindingBlockers": ["Exact public error-selection points and parent-child cleanup registration", "Truthful late opaque-read observation without enrolling opaque work in cooperative cleanup"]
+    }
+  ]
+}

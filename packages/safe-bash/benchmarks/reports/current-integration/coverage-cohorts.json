@@ -1,0 +1,693 @@
+{
+  "remote-cancellation S/D": {
+    "counts": {
+      "pass": 24
+    },
+    "total": 24,
+    "selection": "^[SD]\\d\\d ",
+    "records": [
+      {
+        "id": "clean-test:tap-line-75652",
+        "name": "S01 S3 pre-aborted aggregate pipeline starts no transport",
+        "status": "pass",
+        "line": 75652
+      },
+      {
+        "id": "clean-test:tap-line-75659",
+        "name": "S02 S3 pending metadata stops waiting and observes late rejection",
+        "status": "pass",
+        "line": 75659
+      },
+      {
+        "id": "clean-test:tap-line-75666",
+        "name": "S03 S3 aggregate GET abort closes cooperative body",
+        "status": "pass",
+        "line": 75666
+      },
+      {
+        "id": "clean-test:tap-line-75673",
+        "name": "S04 S3 noncooperative GET next and late rejecting return are observed",
+        "status": "pass",
+        "line": 75673
+      },
+      {
+        "id": "clean-test:tap-line-75680",
+        "name": "S05 S3 late GET response body is disposed after prompt cancellation",
+        "status": "pass",
+        "line": 75680
+      },
+      {
+        "id": "clean-test:tap-line-75687",
+        "name": "S06 S3 aggregate PUT staging abort preserves old destination",
+        "status": "pass",
+        "line": 75687
+      },
+      {
+        "id": "clean-test:tap-line-75694",
+        "name": "S07 S3 append staging abort returns pending producer before PUT",
+        "status": "pass",
+        "line": 75694
+      },
+      {
+        "id": "clean-test:tap-line-75701",
+        "name": "S08 S3 aggregate head early exit cancels upstream GET",
+        "status": "pass",
+        "line": 75701
+      },
+      {
+        "id": "clean-test:tap-line-75708",
+        "name": "S09 S3 aggregate output quota releases GET iterator",
+        "status": "pass",
+        "line": 75708
+      },
+      {
+        "id": "clean-test:tap-line-75715",
+        "name": "S10 S3 aggregate upload quota closes body without publication",
+        "status": "pass",
+        "line": 75715
+      },
+      {
+        "id": "clean-test:tap-line-75722",
+        "name": "S11 S3 rename abort after accepted copy retains documented partial effect",
+        "status": "pass",
+        "line": 75722
+      },
+      {
+        "id": "clean-test:tap-line-75729",
+        "name": "S12 S3 streaming PUT abort returns pending producer before mock publication",
+        "status": "pass",
+        "line": 75729
+      },
+      {
+        "id": "clean-test:tap-line-75736",
+        "name": "D01 native HTTP WebDAV pre-aborted aggregate pipeline sends nothing",
+        "status": "pass",
+        "line": 75736
+      },
+      {
+        "id": "clean-test:tap-line-75743",
+        "name": "D02 injected WebDAV pending metadata stops waiting despite noncooperative fetch",
+        "status": "pass",
+        "line": 75743
+      },
+      {
+        "id": "clean-test:tap-line-75750",
+        "name": "D03 native HTTP WebDAV aggregate GET abort closes stalled socket",
+        "status": "pass",
+        "line": 75750
+      },
+      {
+        "id": "clean-test:tap-line-75757",
+        "name": "D04 injected WebDAV stalled body releases reader and observes late cancel rejection",
+        "status": "pass",
+        "line": 75757
+      },
+      {
+        "id": "clean-test:tap-line-75764",
+        "name": "D05 injected WebDAV late GET response is canceled after bounded caller settlement",
+        "status": "pass",
+        "line": 75764
+      },
+      {
+        "id": "clean-test:tap-line-75771",
+        "name": "D06 native HTTP WebDAV aggregate PUT abort before server publication",
+        "status": "pass",
+        "line": 75771
+      },
+      {
+        "id": "clean-test:tap-line-75778",
+        "name": "D07 native HTTP WebDAV PUT abort returns blocked producer and preserves unpublished bytes",
+        "status": "pass",
+        "line": 75778
+      },
+      {
+        "id": "clean-test:tap-line-75785",
+        "name": "D08 native HTTP WebDAV aggregate head early exit cancels GET socket",
+        "status": "pass",
+        "line": 75785
+      },
+      {
+        "id": "clean-test:tap-line-75792",
+        "name": "D09 native HTTP WebDAV aggregate output quota cancels GET socket",
+        "status": "pass",
+        "line": 75792
+      },
+      {
+        "id": "clean-test:tap-line-75799",
+        "name": "D10 native HTTP WebDAV aggregate upload quota preserves unpublished destination",
+        "status": "pass",
+        "line": 75799
+      },
+      {
+        "id": "clean-test:tap-line-75806",
+        "name": "D11 native HTTP WebDAV MOVE accepted before abort is not rolled back",
+        "status": "pass",
+        "line": 75806
+      },
+      {
+        "id": "clean-test:tap-line-75813",
+        "name": "D12 native HTTP WebDAV pending metadata abort closes response socket",
+        "status": "pass",
+        "line": 75813
+      }
+    ]
+  },
+  "late-WebDAV V": {
+    "counts": {
+      "pass": 10
+    },
+    "total": 10,
+    "selection": "^V\\d\\d ",
+    "records": [
+      {
+        "id": "clean-test:tap-line-75582",
+        "name": "V01 caller abort settles ignored metadata and observes unguarded late rejection",
+        "status": "pass",
+        "line": 75582
+      },
+      {
+        "id": "clean-test:tap-line-75589",
+        "name": "V02 deadline settles ignored accepted PUT without rolling back published bytes",
+        "status": "pass",
+        "line": 75589
+      },
+      {
+        "id": "clean-test:tap-line-75596",
+        "name": "V03 late GET cancels unlocked body without waiting for rejecting host cleanup",
+        "status": "pass",
+        "line": 75596
+      },
+      {
+        "id": "clean-test:tap-line-75603",
+        "name": "V04 valid late LOCK unlocks exact encoded collection URL with granted token",
+        "status": "pass",
+        "line": 75603
+      },
+      {
+        "id": "clean-test:tap-line-75610",
+        "name": "V05 deadline late LOCK cleanup has independent deadline and cannot guarantee release",
+        "status": "pass",
+        "line": 75610
+      },
+      {
+        "id": "clean-test:tap-line-75617",
+        "name": "V06 malformed late LOCK token cannot authorize cleanup",
+        "status": "pass",
+        "line": 75617
+      },
+      {
+        "id": "clean-test:tap-line-75624",
+        "name": "V07 foreign response URL cannot authorize late LOCK cleanup",
+        "status": "pass",
+        "line": 75624
+      },
+      {
+        "id": "clean-test:tap-line-75631",
+        "name": "V08 followed redirect cannot authorize late LOCK cleanup",
+        "status": "pass",
+        "line": 75631
+      },
+      {
+        "id": "clean-test:tap-line-75638",
+        "name": "V09 absent late LOCK token cannot authorize cleanup",
+        "status": "pass",
+        "line": 75638
+      },
+      {
+        "id": "clean-test:tap-line-75645",
+        "name": "V10 unsuccessful late LOCK status cannot authorize cleanup",
+        "status": "pass",
+        "line": 75645
+      }
+    ]
+  },
+  "stdin shell": {
+    "counts": {
+      "pass": 35
+    },
+    "total": 35,
+    "selection": "^stdin shell ",
+    "records": [
+      {
+        "id": "clean-test:tap-line-31481",
+        "name": "stdin shell ordinary default filesystem",
+        "status": "pass",
+        "line": 31481
+      },
+      {
+        "id": "clean-test:tap-line-31487",
+        "name": "stdin shell documented empty pipeline",
+        "status": "pass",
+        "line": 31487
+      },
+      {
+        "id": "clean-test:tap-line-31493",
+        "name": "stdin shell documented empty redirection",
+        "status": "pass",
+        "line": 31493
+      },
+      {
+        "id": "clean-test:tap-line-31499",
+        "name": "stdin shell documented empty heredoc",
+        "status": "pass",
+        "line": 31499
+      },
+      {
+        "id": "clean-test:tap-line-31505",
+        "name": "stdin shell nonempty pipeline",
+        "status": "pass",
+        "line": 31505
+      },
+      {
+        "id": "clean-test:tap-line-31511",
+        "name": "stdin shell descriptor captures empty file",
+        "status": "pass",
+        "line": 31511
+      },
+      {
+        "id": "clean-test:tap-line-31517",
+        "name": "stdin shell descriptor restores original default",
+        "status": "pass",
+        "line": 31517
+      },
+      {
+        "id": "clean-test:tap-line-31523",
+        "name": "stdin shell reversed descriptor setup keeps empty input",
+        "status": "pass",
+        "line": 31523
+      },
+      {
+        "id": "clean-test:tap-line-31529",
+        "name": "stdin shell output-only redirection preserves default",
+        "status": "pass",
+        "line": 31529
+      },
+      {
+        "id": "clean-test:tap-line-31535",
+        "name": "stdin shell output redirection preserves empty pipe",
+        "status": "pass",
+        "line": 31535
+      },
+      {
+        "id": "clean-test:tap-line-31541",
+        "name": "stdin shell explicit file ignores connected empty stdin",
+        "status": "pass",
+        "line": 31541
+      },
+      {
+        "id": "clean-test:tap-line-31547",
+        "name": "stdin shell explicit dash selects default empty stdin",
+        "status": "pass",
+        "line": 31547
+      },
+      {
+        "id": "clean-test:tap-line-31553",
+        "name": "stdin shell regexp flag preserves empty stdin",
+        "status": "pass",
+        "line": 31553
+      },
+      {
+        "id": "clean-test:tap-line-31559",
+        "name": "stdin shell pattern file preserves empty stdin",
+        "status": "pass",
+        "line": 31559
+      },
+      {
+        "id": "clean-test:tap-line-31565",
+        "name": "stdin shell pattern stdin selects filesystem",
+        "status": "pass",
+        "line": 31565
+      },
+      {
+        "id": "clean-test:tap-line-31571",
+        "name": "stdin shell files mode ignores connected empty input",
+        "status": "pass",
+        "line": 31571
+      },
+      {
+        "id": "clean-test:tap-line-31577",
+        "name": "stdin shell env forwards default metadata",
+        "status": "pass",
+        "line": 31577
+      },
+      {
+        "id": "clean-test:tap-line-31583",
+        "name": "stdin shell nested env forwards default metadata",
+        "status": "pass",
+        "line": 31583
+      },
+      {
+        "id": "clean-test:tap-line-31589",
+        "name": "stdin shell nested env forwards empty pipe metadata",
+        "status": "pass",
+        "line": 31589
+      },
+      {
+        "id": "clean-test:tap-line-31595",
+        "name": "stdin shell nested env forwards nonempty pipe metadata",
+        "status": "pass",
+        "line": 31595
+      },
+      {
+        "id": "clean-test:tap-line-31601",
+        "name": "stdin shell custom invoke inherits default",
+        "status": "pass",
+        "line": 31601
+      },
+      {
+        "id": "clean-test:tap-line-31607",
+        "name": "stdin shell custom invoke inherits empty pipe",
+        "status": "pass",
+        "line": 31607
+      },
+      {
+        "id": "clean-test:tap-line-31613",
+        "name": "stdin shell custom invoke replacement is nondefault",
+        "status": "pass",
+        "line": 31613
+      },
+      {
+        "id": "clean-test:tap-line-31619",
+        "name": "stdin shell custom transparent invoke forwards default",
+        "status": "pass",
+        "line": 31619
+      },
+      {
+        "id": "clean-test:tap-line-31625",
+        "name": "stdin shell custom transparent invoke forwards empty pipe",
+        "status": "pass",
+        "line": 31625
+      },
+      {
+        "id": "clean-test:tap-line-31631",
+        "name": "stdin shell explicit replacement metadata is honored",
+        "status": "pass",
+        "line": 31631
+      },
+      {
+        "id": "clean-test:tap-line-31637",
+        "name": "stdin shell metadata without replacement does not override inheritance",
+        "status": "pass",
+        "line": 31637
+      },
+      {
+        "id": "clean-test:tap-line-31643",
+        "name": "stdin shell group retains redirected stdin",
+        "status": "pass",
+        "line": 31643
+      },
+      {
+        "id": "clean-test:tap-line-31649",
+        "name": "stdin shell function retains pipeline stdin",
+        "status": "pass",
+        "line": 31649
+      },
+      {
+        "id": "clean-test:tap-line-31655",
+        "name": "stdin shell substitution retains redirected stdin",
+        "status": "pass",
+        "line": 31655
+      },
+      {
+        "id": "clean-test:tap-line-31661",
+        "name": "stdin shell explicit empty string",
+        "status": "pass",
+        "line": 31661
+      },
+      {
+        "id": "clean-test:tap-line-31667",
+        "name": "stdin shell explicit empty bytes",
+        "status": "pass",
+        "line": 31667
+      },
+      {
+        "id": "clean-test:tap-line-31673",
+        "name": "stdin shell explicit empty source",
+        "status": "pass",
+        "line": 31673
+      },
+      {
+        "id": "clean-test:tap-line-31679",
+        "name": "stdin shell exhausted source does not revert to filesystem discovery",
+        "status": "pass",
+        "line": 31679
+      },
+      {
+        "id": "clean-test:tap-line-31685",
+        "name": "stdin shell zero chunks before data retain nondefault metadata",
+        "status": "pass",
+        "line": 31685
+      }
+    ]
+  },
+  "pipeline closure": {
+    "counts": {
+      "pass": 20,
+      "fail": 5
+    },
+    "total": 25,
+    "selection": "^hard-deadline pipeline close:",
+    "records": [
+      {
+        "id": "clean-test:tap-line-73632",
+        "name": "hard-deadline pipeline close: transport",
+        "status": "pass",
+        "line": 73632
+      },
+      {
+        "id": "clean-test:tap-line-73639",
+        "name": "hard-deadline pipeline close: pipefail",
+        "status": "pass",
+        "line": 73639
+      },
+      {
+        "id": "clean-test:tap-line-73646",
+        "name": "hard-deadline pipeline close: middle",
+        "status": "pass",
+        "line": 73646
+      },
+      {
+        "id": "clean-test:tap-line-73653",
+        "name": "hard-deadline pipeline close: middle-status",
+        "status": "pass",
+        "line": 73653
+      },
+      {
+        "id": "clean-test:tap-line-73660",
+        "name": "hard-deadline pipeline close: nested-invoke",
+        "status": "pass",
+        "line": 73660
+      },
+      {
+        "id": "clean-test:tap-line-73667",
+        "name": "hard-deadline pipeline close: redirect",
+        "status": "pass",
+        "line": 73667
+      },
+      {
+        "id": "clean-test:tap-line-73674",
+        "name": "hard-deadline pipeline close: group",
+        "status": "pass",
+        "line": 73674
+      },
+      {
+        "id": "clean-test:tap-line-73681",
+        "name": "hard-deadline pipeline close: consumer-rejection",
+        "status": "pass",
+        "line": 73681
+      },
+      {
+        "id": "clean-test:tap-line-73688",
+        "name": "hard-deadline pipeline close: consumer-status",
+        "status": "pass",
+        "line": 73688
+      },
+      {
+        "id": "clean-test:tap-line-73695",
+        "name": "hard-deadline pipeline close: late-read-rejection",
+        "status": "pass",
+        "line": 73695
+      },
+      {
+        "id": "clean-test:tap-line-73702",
+        "name": "hard-deadline pipeline close: iterator-return",
+        "status": "pass",
+        "line": 73702
+      },
+      {
+        "id": "clean-test:tap-line-73709",
+        "name": "hard-deadline pipeline close: caller-abort",
+        "status": "pass",
+        "line": 73709
+      },
+      {
+        "id": "clean-test:tap-line-73716",
+        "name": "hard-deadline pipeline close: budget-abort",
+        "status": "pass",
+        "line": 73716
+      },
+      {
+        "id": "clean-test:tap-line-73723",
+        "name": "hard-deadline pipeline close: completed-success",
+        "status": "pass",
+        "line": 73723
+      },
+      {
+        "id": "clean-test:tap-line-73730",
+        "name": "hard-deadline pipeline close: completed-failure",
+        "status": "pass",
+        "line": 73730
+      },
+      {
+        "id": "clean-test:tap-line-73737",
+        "name": "hard-deadline pipeline close: completed-rejection",
+        "status": "pass",
+        "line": 73737
+      },
+      {
+        "id": "clean-test:tap-line-73744",
+        "name": "hard-deadline pipeline close: delayed-no-write",
+        "status": "pass",
+        "line": 73744
+      },
+      {
+        "id": "clean-test:tap-line-73751",
+        "name": "hard-deadline pipeline close: closed-before-write",
+        "status": "pass",
+        "line": 73751
+      },
+      {
+        "id": "clean-test:tap-line-73758",
+        "name": "hard-deadline pipeline close: zero-byte-no-write",
+        "status": "pass",
+        "line": 73758
+      },
+      {
+        "id": "clean-test:tap-line-73765",
+        "name": "hard-deadline pipeline close: first-read-head-zero",
+        "status": "pass",
+        "line": 73765
+      },
+      {
+        "id": "clean-test:tap-line-73772",
+        "name": "hard-deadline pipeline close: first-read-local",
+        "status": "fail",
+        "line": 73772
+      },
+      {
+        "id": "clean-test:tap-line-73808",
+        "name": "hard-deadline pipeline close: first-read-s3",
+        "status": "fail",
+        "line": 73808
+      },
+      {
+        "id": "clean-test:tap-line-73845",
+        "name": "hard-deadline pipeline close: first-read-webdav",
+        "status": "fail",
+        "line": 73845
+      },
+      {
+        "id": "clean-test:tap-line-73882",
+        "name": "hard-deadline pipeline close: first-read-curl-body",
+        "status": "fail",
+        "line": 73882
+      },
+      {
+        "id": "clean-test:tap-line-73918",
+        "name": "hard-deadline pipeline close: first-read-curl-headers",
+        "status": "fail",
+        "line": 73918
+      }
+    ]
+  },
+  "remote safe workflows": {
+    "counts": {
+      "pass": 6
+    },
+    "total": 6,
+    "selection": "^(s3|webdav): (named-file cleanup|explicitly destructive subtree|bounded memory staging)",
+    "records": [
+      {
+        "id": "clean-test:tap-line-75062",
+        "name": "s3: named-file cleanup leaves parents and unsupported empty rmdir has no effects",
+        "status": "pass",
+        "line": 75062
+      },
+      {
+        "id": "clean-test:tap-line-75068",
+        "name": "s3: explicitly destructive subtree deletion is distinct from empty-only removal",
+        "status": "pass",
+        "line": 75068
+      },
+      {
+        "id": "clean-test:tap-line-75074",
+        "name": "s3: bounded memory staging publishes named bytes exclusively and cleans only local parents",
+        "status": "pass",
+        "line": 75074
+      },
+      {
+        "id": "clean-test:tap-line-75080",
+        "name": "webdav: named-file cleanup leaves parents and unsupported empty rmdir has no effects",
+        "status": "pass",
+        "line": 75080
+      },
+      {
+        "id": "clean-test:tap-line-75086",
+        "name": "webdav: explicitly destructive subtree deletion is distinct from empty-only removal",
+        "status": "pass",
+        "line": 75086
+      },
+      {
+        "id": "clean-test:tap-line-75092",
+        "name": "webdav: bounded memory staging publishes named bytes exclusively and cleans only local parents",
+        "status": "pass",
+        "line": 75092
+      }
+    ]
+  },
+  "metadata integration": {
+    "total": 6,
+    "counts": {
+      "pass": 6
+    },
+    "selection": "Exact literal test titles from frozen tests/commands/metadata/integration.test.ts",
+    "records": [
+      {
+        "id": "clean-test:tap-line-26332",
+        "name": "metadata root API preflights collisions and excludes optional network/runtime plugins",
+        "status": "pass",
+        "line": 26332
+      },
+      {
+        "id": "clean-test:tap-line-26338",
+        "name": "aggregate shell uses mktemp, chmod, stat, command substitution and a real pipeline",
+        "status": "pass",
+        "line": 26338
+      },
+      {
+        "id": "clean-test:tap-line-26344",
+        "name": "metadata options are forwarded through the aggregate without enabling host state",
+        "status": "pass",
+        "line": 26344
+      },
+      {
+        "id": "clean-test:tap-line-26350",
+        "name": "readonly VFS mutation failures do not prevent metadata reads",
+        "status": "pass",
+        "line": 26350
+      },
+      {
+        "id": "clean-test:tap-line-26356",
+        "name": "actual S3 metadata is readable but private-mode creation is not fabricated",
+        "status": "pass",
+        "line": 26356
+      },
+      {
+        "id": "clean-test:tap-line-26362",
+        "name": "stat awaits output backpressure and remains cancellable",
+        "status": "pass",
+        "line": 26362
+      }
+    ]
+  }
+}

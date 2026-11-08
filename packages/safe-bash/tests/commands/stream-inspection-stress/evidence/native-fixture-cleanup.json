@@ -1,0 +1,26 @@
+{
+  "at": "2026-08-27T05:06:55.069Z",
+  "removedOwnSupplementFixtureDirectories": [
+    "strings-ascii-boundaries",
+    "strings-tab-is-printable",
+    "strings-minimum-one",
+    "strings-utf8-separates-ascii",
+    "strings-invalid-utf8",
+    "strings-offset-decimal",
+    "strings-offset-hex",
+    "strings-offset-octal",
+    "strings-minimum-legacy",
+    "strings-minimum-long",
+    "strings-all-byte-classifications",
+    "strings-long-run-reused-buffer",
+    "strings-file-label-offsets",
+    "strings-operand-runs-do-not-join",
+    "strings-dash-stdin-extension",
+    "strings-invalid-80",
+    "strings-invalid-81",
+    "strings-invalid-82",
+    "strings-invalid-83",
+    "strings-invalid-84"
+  ],
+  "retained": "All20 raw captures/report/hashes, all original frozen preparation artifacts, native provider binary/source and copied source snapshots retained; no foreign artifacts touched"
+}

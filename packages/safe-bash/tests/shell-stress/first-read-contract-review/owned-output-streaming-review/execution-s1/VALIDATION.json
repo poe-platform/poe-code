@@ -1,0 +1,15 @@
+{
+  "at": "2026-08-27T11:45:18.595Z",
+  "fullOwnedWhitespaceExit": 2,
+  "preservedReasons": "Three single-space context lines in exact driver diff artifact; not executable source defects",
+  "allOtherOwnedWhitespaceExit": 0,
+  "originalSealFilesVerified": 97,
+  "authenticationBefore": "2026-08-27T11:34:47.404Z",
+  "authenticationAfter": "2026-08-27T11:41:53.867Z",
+  "buildAndScopedTypingExit": 0,
+  "compilerInputsMatched": 358,
+  "liveSourceChanges": 0,
+  "acceptanceFullPass": false,
+  "loaderEnvironmentCaveat": "Acceptance inherited ambient TMPDIR and unset TSX_DISABLE_CACHE; task-only loader cache footprint not certified",
+  "rootActualExecutorExit": "not yet observable by this leaf"
+}

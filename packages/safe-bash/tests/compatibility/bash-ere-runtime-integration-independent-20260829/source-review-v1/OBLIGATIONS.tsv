@@ -1,0 +1,71 @@
+id	seam	required_observation	status
+R01	runtime.ere publication	Substring and all capture indexes	UNRUN
+R02	transport result to typed array	Longest whole match retained	UNRUN
+R03	transport result to typed array	Capture tie result preserved	UNRUN
+R04	transport result to typed array	Left-subexpression priority preserved	UNRUN
+R05	runtime.ere publication	Nested repeated capture reporting	UNRUN
+R06	runtime.ere publication	Ratified last-parent visible reporting	UNRUN
+R07	IndexedBinding staging	Dense empty slots and presence	UNRUN
+R08	runtime.ere semantic refusal	Nullable captured-repeat profile refusal	UNRUN
+R09	word and transport request	Original subject anchor boundaries	UNRUN
+R10	word and transport request	No implicit newline splitting	UNRUN
+R11	Lexer and word regexAppend	Quoted dot literal fragment	UNRUN
+R12	word regexAppend	Quoted versus unquoted variable regex	UNRUN
+R13	word regexAppend	Quoted dollar and braces literalness	UNRUN
+R14	Lexer regexBracket	ASCII named class handling	UNRUN
+R15	Lexer regexBracket	Negated bracket/range material	UNRUN
+R16	Lexer regexBracketFirst	Initial closing bracket and trailing hyphen	UNRUN
+R17	transport result to typed array	Interval result and final capture	UNRUN
+R18	runtime.ere refusal path	Invalid interval status and prior-state retention	UNRUN
+R19	runtime.ere semantic catch	Runtime compile failure status and prior state	UNRUN
+R20	evaluateConditional traversal	Unvisited RHS has no expansion/acquisition	UNRUN
+R21	Parser full structural parse	Skipped structural error remains parse error	UNRUN
+R22	IndexedBinding empty staging	Valid nonmatch clears captures	UNRUN
+R23	evaluateConditional not	Negation preserves completed capture publication	UNRUN
+R24	stateMonitor typed scopes	Qualified modern visible-local-shadow rule	UNRUN
+R25	runtime.ere readonly checks	Readonly retains result status and diagnoses	UNRUN
+R26	runtime.ere exported check	Explicit typed-array exported-binding profile	UNRUN
+R27	cloneState and array ownership	Subshell snapshot isolation	UNRUN
+R28	shared Runtime state	Function capture overwrite without hidden stack	UNRUN
+R29	runtime.ere semantic refusal	Explicit backreference profile refusal	UNRUN
+R30	runtime.ere semantic refusal	Explicit collating-symbol profile refusal	UNRUN
+R31	request ASCII admission	No lossy non-ASCII capture conversion	UNRUN
+R32	word callback path	Arithmetic operand expansion exactly once	UNRUN
+H01	Runtime root/session admission	Preabort and skipped acquisition prevention	UNRUN
+H02	session.execute and scope cleanup	Request abort and owned retirement	UNRUN
+H03	profile catch versus global Budget	Grammar/private/global limits remain distinct	UNRUN
+H04	ArrayOwner and staged binding	Preallocation with old snapshots retained	UNRUN
+H05	BindingWatch and readonly guards	Caller then readonly then stale ordering	UNRUN
+H06	ereDiagnostic and N14	Raw sink/control/caller/cleanup selection	UNRUN
+H07	future accepted transport rebind	Exact reply/Worker/loaded artifact closure	UNRUN
+H08	Budget-keyed EreTransportRoot	Shared descendant budget and independent roots	UNRUN
+EC01	evaluateConditional numeric leaf	Invalid ERE result2	UNRUN
+EC02	evaluateConditional not	Inner inversion of2 to0	UNRUN
+EC03	Parser same-node cancellation	Adjacent double inversion retains2	UNRUN
+EC04	Parser grouped preservation	Grouped nested inversion yields1	UNRUN
+EC05	evaluateConditional and	Invalid left retains2 and skips right	UNRUN
+EC06	evaluateConditional or	Invalid left permits successful recovery	UNRUN
+EC07	evaluateConditional or	Invalid left then false yields1	UNRUN
+EC08	evaluateConditional and	False left skips invalid RHS	UNRUN
+EC09	evaluateConditional or	True left skips invalid RHS	UNRUN
+EC10	evaluateConditional and	True left reaches invalid RHS	UNRUN
+EC11	evaluateConditional or	False left reaches invalid RHS	UNRUN
+EC12	ereDiagnostic at each reached leaf	Two invalid leaves produce two diagnostics	UNRUN
+EC13	grouped not after or	Recovery then inversion yields1	UNRUN
+EC14	Runtime.script outer AND	Status2 skips following command	UNRUN
+EC15	Runtime.script outer OR	Status2 visits following command	UNRUN
+EC16	Runtime.pipeline negate	Outer inversion maps2 to0	UNRUN
+EC17	inner not then outer AND	Inner success permits next command	UNRUN
+EC18	inner not then outer OR	Inner success skips next command	UNRUN
+EC19	Parser structural failure	No guessed runtime status for malformed source	UNRUN
+EC20	Runtime.errexit	Bare status2 terminates in stated context	UNRUN
+EC21	outer OR and errexit context	Recovery allows subsequent command	UNRUN
+EC22	inner not and errexit	Inverted success allows subsequent command	UNRUN
+EC23	nonmatch publication then not	Nonmatch clear remains after inversion	UNRUN
+EC24	invalid leaf then valid match	Later visited match may publish captures	UNRUN
+EC25	grouped not after and	Skipped right and inversion of retained2	UNRUN
+EH01	private profile exception channel	Private3 escapes inner boolean evaluation	UNRUN
+EH02	command-boundary status3	Existing outer AND/OR/negation semantics	UNRUN
+EH03	global/caller/protocol/sink channel	No false status conversion of raw errors	UNRUN
+EH04	session and array cleanup finally	Nonzero status versus rejection distinction	UNRUN
+EH05	unchanged N14 exact-Promise machinery	No inferred provenance from derived promises	UNRUN

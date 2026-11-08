@@ -1,0 +1,117 @@
+SEAL-SHAPE ["coreAuthority","sourceCommit","engineCommit","transportCommit","selectedTree","selectedCount","counts","sources","packageJson","exports","dependencies","qualification","node","typescript","npm","flags","inputInventory","fixtures","authority","intendedCompilerChildren","intendedPackProducers","runtimeImports"]
+SOURCE-RECORDS 2888 [{"path":"README.md","mode":"100644","blob":"a384166831a20dc9eac32c3e7a36b202889f44f0","bytes":51008,"sha256":"e1465dace0d50eaf5038edc08623faeba807ffb0cb4aa8138b9cf5f3fbaea351","revision":"68a5a55bbf227c7d4895a4588510a319d4f2c4d8","group":"core"},{"path":"package.json","mode":"100644","blob":"c0cc226556519d6bc8b54ab5e243a7609712e599","bytes":5257,"sha256":"431073b5d27f26992c3013d1f30ff223ff33ae35b993bbb178f8dbe8f6e1bfc1","revision":"68a5a55bbf227c7d4895a4588510a319d4f2c4d8","group":"core"}]
+CONTRACTS [
+  'command.md',
+  'command.ts',
+  'errors.ts',
+  'filesystem.md',
+  'filesystem.ts',
+  'index.ts',
+  'io.ts',
+  'output.ts',
+  'path.ts',
+  'plugin.ts'
+]
+SHELL-DIR [
+  'arithmetic.ts',   'arrays',
+  'cancellation.ts', 'cleanup.ts',
+  'conditional.ts',  'display.ts',
+  'getopts.ts',      'index.ts',
+  'input.ts',        'locale.ts',
+  'parser.ts',       'pattern.ts',
+  'runtime.ts',      'shell.ts',
+  'types.ts'
+]
+CELL import * as fs from 'node:fs';
+import assert from 'node:assert/strict';
+import { pathToFileURL } from 'node:url';
+import { observeWorker } from './worker-observer.mjs';
+const [cellPath, capturePath] = process.argv.slice(2);
+const output = fs.openSync(capturePath, 'wx');
+const emit = row => fs.writeSync(output, `${JSON.stringify(row)}\n`);
+emit({ event: 'startup', pid: process.pid, execPath: process.execPath });
+let observer;
+let shell;
+let primary;
+let cleanupFailed = false;
+let cellId;
+try {
+  const cell = JSON.parse(fs.readFileSync(cellPath, 'utf8'));
+  cellId = cell.definition.id;
+  if (cell.definition.route === 'DEFERRED_ADAPTER') throw new Error(`DEFERRED ${cell.definition.id}: ${cell.definition.gate}`);
+  observer = observeWorker({ ...cell.worker, maximumStarts: cell.definition.workerStartsMaximum }, emit);
+  const api = await import(pathToFileURL(cell.modulePath).href);
+  shell = new api.Shell({ fs: new api.MemoryFileSystem(), cwd: '/', env: { LC_ALL: 'C', LANG: 'C', TZ: 'UTC' }, limits: cell.limits });
+  shell.use(api.agentCommands());
+  const check = async (script, expected, options) => {
+    const result = await shell.exec(script, options);
+    observer.assertRetired();
+    assert.equal(result.exitCode, expected.exitCode);
+    assert.equal(result.stdout, expected.stdout ?? '');
+    if (expected.stderr?.exact !== undefined) assert.equal(result.stderr, expected.stderr.exact);
+    else if (expected.stderr?.contains) assert.ok(result.stderr.includes(expected.stderr.contains), result.stderr);
+    return result;
+  };
+  const definition = cell.definition;
+  if (definition.route === 'script') {
+    const result = await check(definition.script, definition.expected);
+    if (definition.id.startsWith('EC') && definition.id !== 'EC19') assert.equal(result.stderr, 'shell: line 1: [[ invalid ERE\n'.repeat(definition.invalidVisits));
+  } else if (definition.id === 'H01') {
+    for (const reason of [null, false, 0, '', Object.freeze({ caller: true })]) {
+      const controller = new AbortController(); controller.abort(reason);
+      let caught; let rejected = false;
+      try { await shell.exec("BASH_REMATCH=(saved); [[ a =~ (a) ]]", { signal: controller.signal }); } catch (error) { rejected = true; caught = error; }
+      assert.equal(rejected, true); assert.equal(caught, reason);
+      observer.assertRetired(); assert.equal(observer.rows.length, 0);
+    }
+    await check('[[ yes || a =~ (a) ]]', { exitCode: 0, stderr: { exact: '' } });
+    assert.equal(observer.rows.length, 0);
+  } else if (definition.id === 'H06') {
+    for (const [script, reason] of [["bad='('; [[ a =~ $bad ]]", 0], ["BASH_REMATCH=(saved); readonly BASH_REMATCH; [[ a =~ (a) ]]", Object.freeze({ sink: true })]]) {
+      let caught; let rejected = false;
+      try { await shell.exec(script, { stderr: { write() { throw reason; } } }); } catch (error) { rejected = true; caught = error; }
+      assert.equal(rejected, true); assert.equal(caught, reason); observer.assertRetired();
+    }
+    const controller = new AbortController(); const caller = Object.freeze({ caller: true });
+    let caught; let rejected = false;
+    try { await shell.exec("bad='('; [[ a =~ $bad ]]", { signal: controller.signal, stderr: { write() { controller.abort(caller); throw false; } } }); } catch (error) { rejected = true; caught = error; }
+    assert.equal(rejected, true); assert.equal(caught, caller); observer.assertRetired();
+  } else if (definition.id === 'H08') {
+    shell.register({ name: 'relay', execute(context) { assert.equal(typeof context.invoke, 'function'); return context.invoke('match', []); } });
+    const script = "match(){ [[ aa =~ (a+) ]]; printf '<%s>\\n' \"${BASH_REMATCH[1]}\"; }; relay; relay";
+    await check(script, { exitCode: 0, stdout: '<aa>\n<aa>\n', stderr: { exact: '' } });
+    assert.equal(observer.rows.length, 1); assert.equal(observer.rows[0].requests.length, 2);
+    assert.ok(observer.rows[0].requests[1].work < observer.rows[0].requests[0].work);
+    await check("[[ a =~ (a) ]]; printf '<%s>\\n' \"${BASH_REMATCH[1]}\"", { exitCode: 0, stdout: '<a>\n', stderr: { exact: '' } });
+    assert.equal(observer.rows.length, 2);
+  } else if (definition.id === 'EH01' || definition.id === 'EH02') {
+    const pattern = '('.repeat(33) + 'a' + ')'.repeat(33);
+    const prefix = `re='${pattern}'; `;
+    const variants = definition.id === 'EH01'
+      ? [['[[ x =~ $re ]]', 3], ['[[ ! x =~ $re ]]', 3], ['[[ x =~ $re || yes ]]', 3], ['[[ x =~ $re && yes ]]', 3], ['[[ yes && x =~ $re ]]', 3], ["[[ '' || x =~ $re ]]", 3], ['[[ yes || x =~ $re ]]', 0], ["[[ '' && x =~ $re ]]", 1]]
+      : [['[[ x =~ $re ]] || :', 0], ['[[ x =~ $re ]] && :', 3], ['! [[ x =~ $re ]]', 0]];
+    for (const [script, exitCode] of variants) await check(prefix + script, { exitCode });
+  } else if (definition.id === 'EH03') {
+    for (const [script, options, limit] of [['echo ignored', { limits: { maxSourceBytes: 0 } }, 'maxSourceBytes'], ["bad='('; [[ a =~ $bad ]]", { limits: { maxOutputBytes: 0 } }, 'maxOutputBytes']]) {
+      let caught; try { await shell.exec(script, options); } catch (error) { caught = error; }
+      assert.ok(caught instanceof api.ShellLimitError); assert.equal(caught.limit, limit); observer.assertRetired();
+    }
+  } else throw new Error('missing host executor');
+} catch (error) { primary = error; emit({ event: 'failure', name: error?.name, message: String(error) }); }
+finally {
+  try { await shell?.dispose(); observer?.assertRetired(); } catch (error) { cleanupFailed = true; primary ??= error; emit({ event: 'unsafe-retirement', message: String(error) }); }
+  observer?.restore();
+  emit({ event: 'result', id: cellId, status: primary ? 'FAIL' : 'PASS', retired: !cleanupFailed, workers: observer?.rows ?? [] });
+  fs.closeSync(output);
+  if (primary) process.exitCode = 1;
+}
+
+OBLIGATION {"id":"H02","name":"abort-owned-worker","procedure":"Gate an admitted actual matcher job, abort caller, observe exact reason and registered job/session retirement before public settlement. Gate/release must not create circular cleanup. No opaque-provider ownership inference.","status":"UNRUN","authority":"17da6ffa3e2bee29c1c46ff209c6989263ac735b896f564f601b982c14108681"}
+OBLIGATION {"id":"H03","name":"grammar-and-logical-limits","procedure":"Preseal exact boundary/one-over group/node/depth/interval fixtures and modest branching work/state exhaustion. Check preallocation refusals, no partial match/capture publication and no parent Budget reset; do not use oversized bombs.","status":"UNRUN","authority":"17da6ffa3e2bee29c1c46ff209c6989263ac735b896f564f601b982c14108681"}
+OBLIGATION {"id":"H04","name":"capture-ledger","procedure":"Preseal sums of nested overlapping captures, target replacement with old snapshots alive, F/metadata/ticket boundaries and retirement failures. Distinguish worker envelope, private array ledger and E_command; no lowered-private-hook result presented as default proof.","status":"UNRUN","authority":"17da6ffa3e2bee29c1c46ff209c6989263ac735b896f564f601b982c14108681"}
+OBLIGATION {"id":"H05","name":"concurrent-stale-and-readonly","procedure":"Gate between post-operand target snapshot and publication; mutate through actual context.invoke to readonly/unrelated epoch/local restoration. Caller wins, then readonly before stale. No retry/state injection as public proof.","status":"UNRUN","authority":"17da6ffa3e2bee29c1c46ff209c6989263ac735b896f564f601b982c14108681"}
+OBLIGATION {"id":"H06","name":"diagnostic-sink-and-cleanup","procedure":"Reject/gate exact redirected diagnostic sink for syntax and readonly routes, combine caller and registered cleanup errors, retain primary reason/backpressure. No false/no-match conversion; no blanket expected status1.","status":"UNRUN","authority":"17da6ffa3e2bee29c1c46ff209c6989263ac735b896f564f601b982c14108681"}
+OBLIGATION {"id":"H07","name":"reply-and-loaded-binding","procedure":"Finite wrong id/operation/group count/span/UTF8 boundary/extra key/late reply controls; actual fixed Worker/package moved-origin denial and different-source hash refusal. Count lifecycle separately from semantic capture proof.","status":"UNRUN","authority":"17da6ffa3e2bee29c1c46ff209c6989263ac735b896f564f601b982c14108681"}
+OBLIGATION {"id":"H08","name":"shared-budget-and-snapshots","procedure":"Two internal conditional descendants/context.invoke share admitted work and array ledger; fresh independent public exec uses established fresh boundary. Verify ordinary local, global and cloned state, recursive calls and byte-exact capture reads. Do not infer cross-exec RSS bounds.","status":"UNRUN","authority":"17da6ffa3e2bee29c1c46ff209c6989263ac735b896f564f601b982c14108681"}
+OBLIGATION {"id":"EH04","procedure":"Cleanup versus numeric2, falsy diagnostic and caller precedence","status":"UNRUN"}
+OBLIGATION {"id":"EH05","procedure":"N14 exact invoke Promise versus derived Promise/thenable distinctions","status":"UNRUN"}

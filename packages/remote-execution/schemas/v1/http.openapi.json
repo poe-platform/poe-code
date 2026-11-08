@@ -1,0 +1,4178 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Generic remote execution lifecycle",
+    "version": "1.0.0-draft",
+    "description": "Review-draft generic execution lifecycle for remote-execution. This specification does not certify an implementation or deployed provider. Upload and materialization are explicit public operations independent of media-cli and native tool selection. HTTP v1 and binary major 1 negotiate together; admission-map.json selects streaming and canonical-object profiles. Shape validation requires semantic authorization, bounds and lifecycle checks. Native outcome, canonical effects, consumer delivery and cleanup are independent observations; no exactly-once claim survives lost state."
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/v1/capabilities": {
+      "get": {
+        "operationId": "getCapabilities",
+        "description": "Inspect authenticated deployment build identities, features and limits. Discovery is advisory; session and job admission recheck requirements.",
+        "parameters": [
+          {
+            "name": "Execution-Protocol",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "HTTP v1 and binary major 1 negotiate together."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted or completed as indicated by returned state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Capabilities"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; HTTP status is not native exit. 400 invalid, 401/403 denied, 404 absent, 409 conflict, 410 expired/replay gap, 413 limit, 416 range, 422 unsupported, 429 admission, 503 unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          }
+        },
+        "x-execution-contract": {
+          "owner": "client",
+          "acknowledgement": "authenticated discovery only; session and job admission recheck build/features/limits",
+          "ambiguousMutation": "inspect retained keyed/identified state; no blind resubmission"
+        }
+      }
+    },
+    "/v1/sessions": {
+      "post": {
+        "operationId": "openSession",
+        "description": "Admit a generic session with explicit namespace bindings, build and lease. No media tool, shell or native launch is required.",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "description": "Principal/session epoch/operation/body bound; inspect on ambiguous response. Replay only during retained admission state."
+          },
+          {
+            "name": "Execution-Protocol",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "HTTP v1 and binary major 1 negotiate together."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted or completed as indicated by returned state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Session"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; HTTP status is not native exit. 400 invalid, 401/403 denied, 404 absent, 409 conflict, 410 expired/replay gap, 413 limit, 416 range, 422 unsupported, 429 admission, 503 unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./protocol.schema.json#/$defs/SessionRequest"
+              }
+            }
+          }
+        },
+        "x-execution-contract": {
+          "owner": "session",
+          "acknowledgement": "session admission and lease; no upload or native launch",
+          "recoveryOperationId": "inspectInitialAdmission",
+          "ambiguousMutation": "inspect retained keyed/identified state; no blind resubmission"
+        }
+      }
+    },
+    "/v1/sessions/{sessionId}": {
+      "get": {
+        "operationId": "inspectSession",
+        "description": "Inspect the original session epoch, bindings and lease; a replacement session cannot recover its authority.",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Epoch",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Protocol",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "HTTP v1 and binary major 1 negotiate together."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted or completed as indicated by returned state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Session"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; HTTP status is not native exit. 400 invalid, 401/403 denied, 404 absent, 409 conflict, 410 expired/replay gap, 413 limit, 416 range, 422 unsupported, 429 admission, 503 unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          }
+        },
+        "x-execution-contract": {
+          "owner": "session",
+          "acknowledgement": "current retained session metadata; not resource drain",
+          "ambiguousMutation": "inspect retained keyed/identified state; no blind resubmission"
+        }
+      },
+      "delete": {
+        "operationId": "closeSession",
+        "description": "Close admission and settle session-owned operations and resources. Report confirmed disposal separately from unreachable or unknown remote cleanup.",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "description": "Principal/session epoch/operation/body bound; inspect on ambiguous response. Replay only during retained admission state."
+          },
+          {
+            "name": "Execution-Epoch",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Protocol",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "HTTP v1 and binary major 1 negotiate together."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted or completed as indicated by returned state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Session"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; HTTP status is not native exit. 400 invalid, 401/403 denied, 404 absent, 409 conflict, 410 expired/replay gap, 413 limit, 416 range, 422 unsupported, 429 admission, 503 unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          }
+        },
+        "x-execution-contract": {
+          "owner": "session",
+          "acknowledgement": "close admission and drain owned resources; preserve unknown remote tails",
+          "recoveryOperationId": "inspectSession",
+          "ambiguousMutation": "inspect retained keyed/identified state; no blind resubmission"
+        }
+      }
+    },
+    "/v1/sessions/{sessionId}/lease": {
+      "post": {
+        "operationId": "renewSession",
+        "description": "Renew the existing live lease within policy; never resurrect expired resources or a retired epoch.",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "description": "Principal/session epoch/operation/body bound; inspect on ambiguous response. Replay only during retained admission state."
+          },
+          {
+            "name": "Execution-Epoch",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Protocol",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "HTTP v1 and binary major 1 negotiate together."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted or completed as indicated by returned state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Session"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; HTTP status is not native exit. 400 invalid, 401/403 denied, 404 absent, 409 conflict, 410 expired/replay gap, 413 limit, 416 range, 422 unsupported, 429 admission, 503 unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./protocol.schema.json#/$defs/LeaseRequest"
+              }
+            }
+          }
+        },
+        "x-execution-contract": {
+          "owner": "session",
+          "acknowledgement": "confirmed lease deadline for the same epoch",
+          "recoveryOperationId": "inspectSession",
+          "ambiguousMutation": "inspect retained keyed/identified state; no blind resubmission"
+        }
+      }
+    },
+    "/v1/sessions/{sessionId}/operations/{key}": {
+      "get": {
+        "operationId": "inspectOperationByKey",
+        "description": "Inspect retained admission by principal/session/epoch/type/body-bound key after an ambiguous mutation response. Absence or expiry does not authorize reexecution.",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Epoch",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Protocol",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "HTTP v1 and binary major 1 negotiate together."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted or completed as indicated by returned state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/OperationLookup"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; HTTP status is not native exit. 400 invalid, 401/403 denied, 404 absent, 409 conflict, 410 expired/replay gap, 413 limit, 416 range, 422 unsupported, 429 admission, 503 unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          }
+        },
+        "x-execution-contract": {
+          "owner": "session",
+          "acknowledgement": "retained admission/outcome for the exact keyed request; not mutation replay",
+          "ambiguousMutation": "inspect retained keyed/identified state; no blind resubmission"
+        }
+      }
+    },
+    "/v1/sessions/{sessionId}/uploads": {
+      "post": {
+        "operationId": "beginUpload",
+        "description": "Reserve bounded upload staging with expected size and whole-blob digest. Available without media-cli or a job; no canonical file is created.",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "description": "Principal/session epoch/operation/body bound; inspect on ambiguous response. Replay only during retained admission state."
+          },
+          {
+            "name": "Execution-Epoch",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Protocol",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "HTTP v1 and binary major 1 negotiate together."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted or completed as indicated by returned state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Upload"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; HTTP status is not native exit. 400 invalid, 401/403 denied, 404 absent, 409 conflict, 410 expired/replay gap, 413 limit, 416 range, 422 unsupported, 429 admission, 503 unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./protocol.schema.json#/$defs/UploadRequest"
+              }
+            }
+          }
+        },
+        "x-execution-contract": {
+          "owner": "upload",
+          "acknowledgement": "bounded staging reservation; no committed blob",
+          "recoveryOperationId": "inspectOperationByKey",
+          "ambiguousMutation": "inspect retained keyed/identified state; no blind resubmission"
+        }
+      }
+    },
+    "/v1/sessions/{sessionId}/uploads/{uploadId}": {
+      "get": {
+        "operationId": "inspectUpload",
+        "description": "Inspect durable contiguous staging progress before resuming an interrupted upload.",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "uploadId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Epoch",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Protocol",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "HTTP v1 and binary major 1 negotiate together."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted or completed as indicated by returned state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Upload"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; HTTP status is not native exit. 400 invalid, 401/403 denied, 404 absent, 409 conflict, 410 expired/replay gap, 413 limit, 416 range, 422 unsupported, 429 admission, 503 unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          }
+        },
+        "x-execution-contract": {
+          "owner": "upload",
+          "acknowledgement": "retained validated staging offset and upload state",
+          "ambiguousMutation": "inspect retained keyed/identified state; no blind resubmission"
+        }
+      },
+      "delete": {
+        "operationId": "abortUpload",
+        "description": "Stop upload admission, drain admitted writes and release staging; committed blobs have independent retention.",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "uploadId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "description": "Principal/session epoch/operation/body bound; inspect on ambiguous response. Replay only during retained admission state."
+          },
+          {
+            "name": "Execution-Epoch",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Protocol",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "HTTP v1 and binary major 1 negotiate together."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted or completed as indicated by returned state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Upload"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; HTTP status is not native exit. 400 invalid, 401/403 denied, 404 absent, 409 conflict, 410 expired/replay gap, 413 limit, 416 range, 422 unsupported, 429 admission, 503 unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          }
+        },
+        "x-execution-contract": {
+          "owner": "upload",
+          "acknowledgement": "close upload admission and drain staging writes",
+          "ambiguousMutation": "inspect retained keyed/identified state; no blind resubmission",
+          "recoveryOperationId": "inspectUpload"
+        }
+      }
+    },
+    "/v1/sessions/{sessionId}/uploads/{uploadId}/bytes": {
+      "put": {
+        "operationId": "uploadChunk",
+        "description": "Stage one bounded raw-byte chunk at its explicit offset. Acknowledge only durable staging; identical retained replay may succeed, conflicting overlap fails.",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "uploadId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "description": "Principal/session epoch/operation/body bound; inspect on ambiguous response. Replay only during retained admission state."
+          },
+          {
+            "name": "Upload-Offset",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]{0,19})$",
+              "description": "Canonical unsigned decimal <= 18446744073709551615, checked semantically."
+            }
+          },
+          {
+            "name": "Content-Length",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]{0,19})$",
+              "description": "Canonical unsigned decimal <= 18446744073709551615, checked semantically."
+            }
+          },
+          {
+            "name": "Content-Digest",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Execution-Epoch",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Protocol",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "HTTP v1 and binary major 1 negotiate together."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted or completed as indicated by returned state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Upload"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; HTTP status is not native exit. 400 invalid, 401/403 denied, 404 absent, 409 conflict, 410 expired/replay gap, 413 limit, 416 range, 422 unsupported, 429 admission, 503 unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/octet-stream": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          }
+        },
+        "x-execution-contract": {
+          "owner": "upload",
+          "acknowledgement": "validated contiguous staging offset; not blob commit",
+          "ambiguousMutation": "inspect retained keyed/identified state; no blind resubmission",
+          "recoveryOperationId": "inspectUpload"
+        }
+      }
+    },
+    "/v1/sessions/{sessionId}/uploads/{uploadId}/commit": {
+      "post": {
+        "operationId": "commitUpload",
+        "description": "Verify exact total length and whole digest, then return an immutable authorized blob receipt. This does not materialize a canonical file.",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "uploadId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "description": "Principal/session epoch/operation/body bound; inspect on ambiguous response. Replay only during retained admission state."
+          },
+          {
+            "name": "Execution-Epoch",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Protocol",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "HTTP v1 and binary major 1 negotiate together."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted or completed as indicated by returned state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Blob"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; HTTP status is not native exit. 400 invalid, 401/403 denied, 404 absent, 409 conflict, 410 expired/replay gap, 413 limit, 416 range, 422 unsupported, 429 admission, 503 unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          }
+        },
+        "x-execution-contract": {
+          "owner": "upload",
+          "acknowledgement": "verified immutable authorized blob; not materialization",
+          "ambiguousMutation": "inspect retained keyed/identified state; no blind resubmission",
+          "recoveryOperationId": "inspectUpload"
+        }
+      }
+    },
+    "/v1/sessions/{sessionId}/blobs/{blobId}/bytes": {
+      "get": {
+        "operationId": "readBlob",
+        "description": "Read one bounded raw-byte range from an authorized committed blob; full-blob digest alone does not authenticate an isolated range.",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "blobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Range",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Execution-Epoch",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Protocol",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "HTTP v1 and binary major 1 negotiate together."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted or completed as indicated by returned state.",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "206": {
+            "description": "One requested byte range",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; HTTP status is not native exit. 400 invalid, 401/403 denied, 404 absent, 409 conflict, 410 expired/replay gap, 413 limit, 416 range, 422 unsupported, 429 admission, 503 unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          }
+        },
+        "x-execution-contract": {
+          "owner": "session",
+          "acknowledgement": "requested immutable blob range only",
+          "ambiguousMutation": "inspect retained keyed/identified state; no blind resubmission"
+        }
+      }
+    },
+    "/v1/sessions/{sessionId}/blobs/{blobId}": {
+      "get": {
+        "operationId": "inspectBlob",
+        "description": "Inspect immutable blob size and digest under session authorization; content equality is independent of file identity.",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "blobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Epoch",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Protocol",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "HTTP v1 and binary major 1 negotiate together."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted or completed as indicated by returned state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Blob"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; HTTP status is not native exit. 400 invalid, 401/403 denied, 404 absent, 409 conflict, 410 expired/replay gap, 413 limit, 416 range, 422 unsupported, 429 admission, 503 unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          }
+        },
+        "x-execution-contract": {
+          "owner": "session",
+          "acknowledgement": "authorized immutable blob identity/digest/length",
+          "ambiguousMutation": "inspect retained keyed/identified state; no blind resubmission"
+        }
+      }
+    },
+    "/v1/sessions/{sessionId}/manifests": {
+      "post": {
+        "operationId": "putManifest",
+        "description": "Admit exact immutable manifest JSON bytes, ordering, paths, blobs and link relationships. Does not apply the manifest or select a tool. When dependency-manifest-v1 is negotiated, select the operation schema in admission-map.json: byte paths and private preparation replace legacy models, and job submission retains generic binary streams. Preparation does not publish canonical inputs; unknown profiles fail before effects.",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "description": "Principal/session epoch/operation/body bound; inspect on ambiguous response. Replay only during retained admission state."
+          },
+          {
+            "name": "Execution-Epoch",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Protocol",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "HTTP v1 and binary major 1 negotiate together."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted or completed as indicated by returned state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/ManifestReceipt"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; HTTP status is not native exit. 400 invalid, 401/403 denied, 404 absent, 409 conflict, 410 expired/replay gap, 413 limit, 416 range, 422 unsupported, 429 admission, 503 unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./protocol.schema.json#/$defs/Manifest"
+              }
+            }
+          }
+        },
+        "x-execution-contract": {
+          "owner": "session",
+          "acknowledgement": "validated exact stored manifest bytes/digest; no filesystem mutation",
+          "ambiguousMutation": "inspect retained keyed/identified state; no blind resubmission",
+          "recoveryOperationId": "inspectOperationByKey"
+        }
+      }
+    },
+    "/v1/sessions/{sessionId}/manifests/{manifestId}": {
+      "get": {
+        "operationId": "getManifest",
+        "description": "Retrieve the exact stored manifest and receipt without silently reserializing its digest input. When dependency-manifest-v1 is negotiated, select the operation schema in admission-map.json: byte paths and private preparation replace legacy models, and job submission retains generic binary streams. Preparation does not publish canonical inputs; unknown profiles fail before effects.",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "manifestId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Epoch",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Protocol",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "HTTP v1 and binary major 1 negotiate together."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted or completed as indicated by returned state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Manifest"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; HTTP status is not native exit. 400 invalid, 401/403 denied, 404 absent, 409 conflict, 410 expired/replay gap, 413 limit, 416 range, 422 unsupported, 429 admission, 503 unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          }
+        },
+        "x-execution-contract": {
+          "owner": "session",
+          "acknowledgement": "exact retained manifest bytes; not source freshness",
+          "ambiguousMutation": "inspect retained keyed/identified state; no blind resubmission"
+        }
+      }
+    },
+    "/v1/sessions/{sessionId}/materializations": {
+      "post": {
+        "operationId": "materialize",
+        "description": "Explicitly apply a manifest through authorized canonical filesystem operations without launching a tool. Return an inspectable operation; partial effects and revisions survive failure. When dependency-manifest-v1 is negotiated, select the operation schema in admission-map.json: byte paths and private preparation replace legacy models, and job submission retains generic binary streams. Preparation does not publish canonical inputs; unknown profiles fail before effects.",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "description": "Principal/session epoch/operation/body bound; inspect on ambiguous response. Replay only during retained admission state."
+          },
+          {
+            "name": "Execution-Epoch",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Protocol",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "HTTP v1 and binary major 1 negotiate together."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted or completed as indicated by returned state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./streaming-profile.schema.json#/$defs/Materialization"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; HTTP status is not native exit. 400 invalid, 401/403 denied, 404 absent, 409 conflict, 410 expired/replay gap, 413 limit, 416 range, 422 unsupported, 429 admission, 503 unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./protocol.schema.json#/$defs/MaterializeRequest"
+              }
+            }
+          }
+        },
+        "x-execution-contract": {
+          "owner": "materialization",
+          "acknowledgement": "admission only; inspect ordered progress and exact ready revision",
+          "ambiguousMutation": "inspect retained keyed/identified state; no blind resubmission",
+          "recoveryOperationId": "inspectOperationByKey"
+        }
+      }
+    },
+    "/v1/sessions/{sessionId}/materializations/{operationId}": {
+      "get": {
+        "operationId": "inspectMaterialization",
+        "description": "Inspect application progress, revision and ordered effect settlement independently of any job. Complete does not mean a directory transaction or immutable source snapshot. When dependency-manifest-v1 is negotiated, select the operation schema in admission-map.json: byte paths and private preparation replace legacy models, and job submission retains generic binary streams. Preparation does not publish canonical inputs; unknown profiles fail before effects.",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "operationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Epoch",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Protocol",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "HTTP v1 and binary major 1 negotiate together."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted or completed as indicated by returned state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./streaming-profile.schema.json#/$defs/Materialization"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; HTTP status is not native exit. 400 invalid, 401/403 denied, 404 absent, 409 conflict, 410 expired/replay gap, 413 limit, 416 range, 422 unsupported, 429 admission, 503 unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          }
+        },
+        "x-execution-contract": {
+          "owner": "materialization",
+          "acknowledgement": "retained progress/revision and partial or unknown effects",
+          "ambiguousMutation": "inspect retained keyed/identified state; no blind resubmission"
+        }
+      }
+    },
+    "/v1/sessions/{sessionId}/jobs": {
+      "post": {
+        "operationId": "submitJob",
+        "description": "Admit a registered generic tool and literal byte argv, cwd/env, input and grants against the session build. Reserve any ready revision through namespace installation; acceptance is distinct from launch. When dependency-manifest-v1 is negotiated, select the operation schema in admission-map.json: byte paths and private preparation replace legacy models, and job submission retains generic binary streams. Preparation does not publish canonical inputs; unknown profiles fail before effects.",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "description": "Principal/session epoch/operation/body bound; inspect on ambiguous response. Replay only during retained admission state."
+          },
+          {
+            "name": "Execution-Epoch",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Protocol",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "HTTP v1 and binary major 1 negotiate together."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted or completed as indicated by returned state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Job"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; HTTP status is not native exit. 400 invalid, 401/403 denied, 404 absent, 409 conflict, 410 expired/replay gap, 413 limit, 416 range, 422 unsupported, 429 admission, 503 unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./streaming-profile.schema.json#/$defs/GenericJobRequest"
+              }
+            }
+          }
+        },
+        "x-execution-contract": {
+          "owner": "job",
+          "acknowledgement": "durable admission only; native launch and drain are later observations",
+          "recoveryOperationId": "inspectOperationByKey",
+          "ambiguousMutation": "inspect retained keyed/identified state; no blind resubmission"
+        }
+      },
+      "get": {
+        "operationId": "listJobs",
+        "description": "List authorized retained job metadata; never collect stream payloads into the result.",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Cursor",
+            "in": "header",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Epoch",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Protocol",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "HTTP v1 and binary major 1 negotiate together."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted or completed as indicated by returned state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/JobList"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; HTTP status is not native exit. 400 invalid, 401/403 denied, 404 absent, 409 conflict, 410 expired/replay gap, 413 limit, 416 range, 422 unsupported, 429 admission, 503 unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          }
+        },
+        "x-execution-contract": {
+          "owner": "session",
+          "acknowledgement": "retained job inventory only; no wait or drain",
+          "ambiguousMutation": "inspect retained keyed/identified state; no blind resubmission"
+        }
+      }
+    },
+    "/v1/sessions/{sessionId}/jobs/{jobId}": {
+      "get": {
+        "operationId": "inspectJob",
+        "description": "Inspect native process outcome, cancellation, effect barrier, stream completion and cleanup as separate observations.",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Epoch",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Protocol",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "HTTP v1 and binary major 1 negotiate together."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted or completed as indicated by returned state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Job"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; HTTP status is not native exit. 400 invalid, 401/403 denied, 404 absent, 409 conflict, 410 expired/replay gap, 413 limit, 416 range, 422 unsupported, 429 admission, 503 unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          }
+        },
+        "x-execution-contract": {
+          "owner": "job",
+          "acknowledgement": "retained state and observed outcome; no cancellation request",
+          "ambiguousMutation": "inspect retained keyed/identified state; no blind resubmission"
+        }
+      }
+    },
+    "/v1/sessions/{sessionId}/jobs/{jobId}/wait": {
+      "get": {
+        "operationId": "waitJob",
+        "description": "Wait for inspectable job settlement and return metadata only. Known native exit does not establish client sink delivery or complete cleanup.",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Epoch",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Protocol",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "HTTP v1 and binary major 1 negotiate together."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted or completed as indicated by returned state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Job"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; HTTP status is not native exit. 400 invalid, 401/403 denied, 404 absent, 409 conflict, 410 expired/replay gap, 413 limit, 416 range, 422 unsupported, 429 admission, 503 unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          }
+        },
+        "x-execution-contract": {
+          "owner": "job",
+          "acknowledgement": "terminal metadata after server drain; client sinks/local cleanup settle separately",
+          "recoveryOperationId": "inspectJob",
+          "ambiguousMutation": "inspect retained keyed/identified state; no blind resubmission"
+        }
+      }
+    },
+    "/v1/sessions/{sessionId}/jobs/{jobId}/cancel": {
+      "post": {
+        "operationId": "cancelJob",
+        "description": "Request cancellation; inspect until termination is confirmed or unknown. Completed canonical effects remain and HTTP cancellation is not process death.",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "description": "Principal/session epoch/operation/body bound; inspect on ambiguous response. Replay only during retained admission state."
+          },
+          {
+            "name": "Execution-Epoch",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Protocol",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "HTTP v1 and binary major 1 negotiate together."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted or completed as indicated by returned state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Job"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; HTTP status is not native exit. 400 invalid, 401/403 denied, 404 absent, 409 conflict, 410 expired/replay gap, 413 limit, 416 range, 422 unsupported, 429 admission, 503 unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./protocol.schema.json#/$defs/CancelRequest"
+              }
+            }
+          }
+        },
+        "x-execution-contract": {
+          "owner": "job",
+          "acknowledgement": "cancellation request; confirmed death and disposal are separate",
+          "recoveryOperationId": "inspectJob",
+          "ambiguousMutation": "inspect retained keyed/identified state; no blind resubmission"
+        }
+      }
+    },
+    "/v1/sessions/{sessionId}/jobs/{jobId}/lanes": {
+      "post": {
+        "operationId": "attachJobLane",
+        "description": "Attach an owned bounded subscription to retained job streams without resubmitting native execution. Disconnect closes the subscription, not the job.",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "description": "Principal/session epoch/operation/body bound; inspect on ambiguous response. Replay only during retained admission state."
+          },
+          {
+            "name": "Execution-Epoch",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Protocol",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "HTTP v1 and binary major 1 negotiate together."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted or completed as indicated by returned state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Lane"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; HTTP status is not native exit. 400 invalid, 401/403 denied, 404 absent, 409 conflict, 410 expired/replay gap, 413 limit, 416 range, 422 unsupported, 429 admission, 503 unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./protocol.schema.json#/$defs/LaneRequest"
+              }
+            }
+          }
+        },
+        "x-execution-contract": {
+          "owner": "named-consumer",
+          "acknowledgement": "retained lane/cursor admission; no resubmission or completed delivery",
+          "recoveryOperationId": "inspectJob",
+          "ambiguousMutation": "inspect retained keyed/identified state; no blind resubmission"
+        }
+      }
+    },
+    "/v1/sessions/{sessionId}/jobs/{jobId}/lanes/{laneId}/frames": {
+      "get": {
+        "operationId": "readFrames",
+        "description": "Stream ordered binary frames immediately within negotiated replay/inflight bounds. Transport EOF is not a channel END; expired cursors fail with replayGap.",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "laneId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Cursor",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]{0,19})$",
+              "description": "Canonical unsigned decimal <= 18446744073709551615, checked semantically."
+            }
+          },
+          {
+            "name": "Execution-Epoch",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Protocol",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "HTTP v1 and binary major 1 negotiate together."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted or completed as indicated by returned state.",
+            "content": {
+              "application/vnd.poe.remote-execution.v1+octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; HTTP status is not native exit. 400 invalid, 401/403 denied, 404 absent, 409 conflict, 410 expired/replay gap, 413 limit, 416 range, 422 unsupported, 429 admission, 503 unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          }
+        },
+        "x-execution-contract": {
+          "owner": "named-consumer",
+          "acknowledgement": "ordered retained frames; delivery awaits sink writes and explicit acknowledgement",
+          "ambiguousMutation": "inspect retained keyed/identified state; no blind resubmission",
+          "recoveryOperationId": "attachJobLane"
+        }
+      },
+      "post": {
+        "operationId": "sendFrames",
+        "description": "Send bounded binary input/control frames with admitted channels, direction, correlation, contiguous sequence and offsets. Do not treat receipt as sink delivery.",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "laneId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "description": "Principal/session epoch/operation/body bound; inspect on ambiguous response. Replay only during retained admission state."
+          },
+          {
+            "name": "Execution-Epoch",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Protocol",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "HTTP v1 and binary major 1 negotiate together."
+          },
+          {
+            "name": "Execution-Cursor",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "./protocol.schema.json#/$defs/Uint64"
+            },
+            "description": "First submitted frame sequence. Retained identical input retries do not write twice; uncertain delivery or expired receipts return 410."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted or completed as indicated by returned state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Ack"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; HTTP status is not native exit. 400 invalid, 401/403 denied, 404 absent, 409 conflict, 410 expired/replay gap, 413 limit, 416 range, 422 unsupported, 429 admission, 503 unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/vnd.poe.remote-execution.v1+octet-stream": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          }
+        },
+        "x-execution-contract": {
+          "owner": "job-lane",
+          "acknowledgement": "validated ordered input frames; canonical effect settlement remains separate",
+          "recoveryOperationId": "attachJobLane",
+          "ambiguousMutation": "inspect retained keyed/identified state; no blind resubmission"
+        }
+      }
+    },
+    "/v1/sessions/{sessionId}/jobs/{jobId}/lanes/{laneId}/ack": {
+      "post": {
+        "operationId": "acknowledgeFrames",
+        "description": "Advance a named consumer cursor only after destination writes settle. Cursor loss after a successful write leaves delivery uncertain.",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "laneId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "description": "Principal/session epoch/operation/body bound; inspect on ambiguous response. Replay only during retained admission state."
+          },
+          {
+            "name": "Execution-Epoch",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Protocol",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "HTTP v1 and binary major 1 negotiate together."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted or completed as indicated by returned state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Ack"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; HTTP status is not native exit. 400 invalid, 401/403 denied, 404 absent, 409 conflict, 410 expired/replay gap, 413 limit, 416 range, 422 unsupported, 429 admission, 503 unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./protocol.schema.json#/$defs/Ack"
+              }
+            }
+          }
+        },
+        "x-execution-contract": {
+          "owner": "named-consumer",
+          "acknowledgement": "contiguous completed sink writes; not exactly-once external effects",
+          "ambiguousMutation": "inspect retained keyed/identified state; no blind resubmission",
+          "recoveryOperationId": "attachJobLane"
+        }
+      }
+    },
+    "/v1/sessions/{sessionId}/jobs/{jobId}/callbacks/{callbackId}/result": {
+      "post": {
+        "operationId": "answerCallback",
+        "description": "Answer the original authorized callback with correlated result metadata. Recorded duplicate results may replay only while retained; uncertain canonical mutations must not reexecute.",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "callbackId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "description": "Principal/session epoch/operation/body bound; inspect on ambiguous response. Replay only during retained admission state."
+          },
+          {
+            "name": "Execution-Epoch",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Protocol",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "HTTP v1 and binary major 1 negotiate together."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted or completed as indicated by returned state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/CallbackResult"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; HTTP status is not native exit. 400 invalid, 401/403 denied, 404 absent, 409 conflict, 410 expired/replay gap, 413 limit, 416 range, 422 unsupported, 429 admission, 503 unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "./protocol.schema.json#/$defs/CallbackResult"
+                  },
+                  {
+                    "$ref": "./canonical-filesystem.schema.json#/$defs/CanonicalCallbackResult"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "x-execution-contract": {
+          "owner": "job-grant",
+          "acknowledgement": "authorized operation progress; lost receipt may leave unknown effects",
+          "ambiguousMutation": "inspect retained keyed/identified state; no blind resubmission",
+          "recoveryOperationId": "inspectJob"
+        }
+      }
+    },
+    "/v1/sessions/{sessionId}/jobs/{jobId}/resources/release": {
+      "post": {
+        "operationId": "releaseResources",
+        "description": "Revoke selected invocation-owned grants and retained leases, stop admission and drain admitted work. Release never closes borrowed shell descriptors.",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "description": "Principal/session epoch/operation/body bound; inspect on ambiguous response. Replay only during retained admission state."
+          },
+          {
+            "name": "Execution-Epoch",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Protocol",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "HTTP v1 and binary major 1 negotiate together."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted or completed as indicated by returned state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Job"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; HTTP status is not native exit. 400 invalid, 401/403 denied, 404 absent, 409 conflict, 410 expired/replay gap, 413 limit, 416 range, 422 unsupported, 429 admission, 503 unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./protocol.schema.json#/$defs/ReleaseRequest"
+              }
+            }
+          }
+        },
+        "x-execution-contract": {
+          "owner": "job",
+          "acknowledgement": "close owned retains and drain admitted operations; never close borrowed shell descriptors",
+          "ambiguousMutation": "inspect retained keyed/identified state; no blind resubmission",
+          "recoveryOperationId": "inspectJob"
+        }
+      }
+    },
+    "/v1/sessions/{sessionId}/materializations/{operationId}/lanes": {
+      "post": {
+        "operationId": "materializationAttachJobLane",
+        "description": "Attach a materialization-owned lane independent of jobs or tools, using the same authorization, bounds and replay rules.",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "operationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "description": "Principal/session epoch/operation/body bound; inspect on ambiguous response. Replay only during retained admission state."
+          },
+          {
+            "name": "Execution-Epoch",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Protocol",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "HTTP v1 and binary major 1 negotiate together."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted or completed as indicated by returned state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Lane"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; HTTP status is not native exit. 400 invalid, 401/403 denied, 404 absent, 409 conflict, 410 expired/replay gap, 413 limit, 416 range, 422 unsupported, 429 admission, 503 unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./protocol.schema.json#/$defs/LaneRequest"
+              }
+            }
+          }
+        },
+        "x-execution-contract": {
+          "owner": "named-consumer",
+          "acknowledgement": "materialization lane/cursor admission; no native launch or publication",
+          "ambiguousMutation": "inspect retained keyed/identified state; no blind resubmission",
+          "recoveryOperationId": "inspectMaterialization"
+        }
+      }
+    },
+    "/v1/sessions/{sessionId}/materializations/{operationId}/lanes/{laneId}/frames": {
+      "get": {
+        "operationId": "materializationReadFrames",
+        "description": "Stream the materialization operation’s ordered callback/effect frames; no media process is required.",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "operationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "laneId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Cursor",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]{0,19})$",
+              "description": "Canonical unsigned decimal <= 18446744073709551615, checked semantically."
+            }
+          },
+          {
+            "name": "Execution-Epoch",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Protocol",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "HTTP v1 and binary major 1 negotiate together."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted or completed as indicated by returned state.",
+            "content": {
+              "application/vnd.poe.remote-execution.v1+octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; HTTP status is not native exit. 400 invalid, 401/403 denied, 404 absent, 409 conflict, 410 expired/replay gap, 413 limit, 416 range, 422 unsupported, 429 admission, 503 unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          }
+        },
+        "x-execution-contract": {
+          "owner": "named-consumer",
+          "acknowledgement": "ordered materialization frames; delivery awaits sink writes and explicit acknowledgement",
+          "ambiguousMutation": "inspect retained keyed/identified state; no blind resubmission",
+          "recoveryOperationId": "materializationAttachJobLane"
+        }
+      },
+      "post": {
+        "operationId": "materializationSendFrames",
+        "description": "Send correlated materialization callback data/control through its own admitted lane and cleanup scope.",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "operationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "laneId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "description": "Principal/session epoch/operation/body bound; inspect on ambiguous response. Replay only during retained admission state."
+          },
+          {
+            "name": "Execution-Epoch",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Protocol",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "HTTP v1 and binary major 1 negotiate together."
+          },
+          {
+            "name": "Execution-Cursor",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "./protocol.schema.json#/$defs/Uint64"
+            },
+            "description": "First submitted frame sequence. Retained identical input retries do not write twice; uncertain delivery or expired receipts return 410."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted or completed as indicated by returned state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Ack"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; HTTP status is not native exit. 400 invalid, 401/403 denied, 404 absent, 409 conflict, 410 expired/replay gap, 413 limit, 416 range, 422 unsupported, 429 admission, 503 unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/vnd.poe.remote-execution.v1+octet-stream": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          }
+        },
+        "x-execution-contract": {
+          "owner": "materialization-lane",
+          "acknowledgement": "validated ordered materialization input; not canonical publication",
+          "ambiguousMutation": "inspect retained keyed/identified state; no blind resubmission",
+          "recoveryOperationId": "materializationAttachJobLane"
+        }
+      }
+    },
+    "/v1/sessions/{sessionId}/materializations/{operationId}/lanes/{laneId}/ack": {
+      "post": {
+        "operationId": "materializationAcknowledgeFrames",
+        "description": "Acknowledge materialization lane delivery to its named consumer, separately from canonical effect settlement and revision advancement.",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "operationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "laneId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "description": "Principal/session epoch/operation/body bound; inspect on ambiguous response. Replay only during retained admission state."
+          },
+          {
+            "name": "Execution-Epoch",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Protocol",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "HTTP v1 and binary major 1 negotiate together."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted or completed as indicated by returned state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Ack"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; HTTP status is not native exit. 400 invalid, 401/403 denied, 404 absent, 409 conflict, 410 expired/replay gap, 413 limit, 416 range, 422 unsupported, 429 admission, 503 unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./protocol.schema.json#/$defs/Ack"
+              }
+            }
+          }
+        },
+        "x-execution-contract": {
+          "owner": "named-consumer",
+          "acknowledgement": "contiguous completed delivery; not directory publication",
+          "ambiguousMutation": "inspect retained keyed/identified state; no blind resubmission",
+          "recoveryOperationId": "materializationAttachJobLane"
+        }
+      }
+    },
+    "/v1/sessions/{sessionId}/materializations/{operationId}/callbacks/{callbackId}/result": {
+      "post": {
+        "operationId": "materializationAnswerCallback",
+        "description": "Answer a materialization-owned callback under its operation grant; job authority cannot substitute for this owner.",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "operationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "callbackId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "description": "Principal/session epoch/operation/body bound; inspect on ambiguous response. Replay only during retained admission state."
+          },
+          {
+            "name": "Execution-Epoch",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Protocol",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "HTTP v1 and binary major 1 negotiate together."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted or completed as indicated by returned state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/CallbackResult"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; HTTP status is not native exit. 400 invalid, 401/403 denied, 404 absent, 409 conflict, 410 expired/replay gap, 413 limit, 416 range, 422 unsupported, 429 admission, 503 unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "./protocol.schema.json#/$defs/CallbackResult"
+                  },
+                  {
+                    "$ref": "./canonical-filesystem.schema.json#/$defs/CanonicalCallbackResult"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "x-execution-contract": {
+          "owner": "materialization-grant",
+          "acknowledgement": "authorized operation progress; not native tool selection",
+          "ambiguousMutation": "inspect retained keyed/identified state; no blind resubmission",
+          "recoveryOperationId": "inspectMaterialization"
+        }
+      }
+    },
+    "/v1/operations/{key}": {
+      "get": {
+        "operationId": "inspectInitialAdmission",
+        "description": "Inspect principal-scoped initial admission after losing a response before learning the session ID; retained state bounds recovery.",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Protocol",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "HTTP v1 and binary major 1 negotiate together."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Initial session admission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/OperationLookup"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          }
+        },
+        "x-execution-contract": {
+          "owner": "principal",
+          "acknowledgement": "retained initial session admission by principal-scoped key",
+          "ambiguousMutation": "inspect retained keyed/identified state; no blind resubmission"
+        }
+      }
+    },
+    "/v1/sessions/{sessionId}/jobs/{jobId}/signal": {
+      "post": {
+        "operationId": "signalJob",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Protocol",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "HTTP v1 and binary major 1 negotiate together."
+          },
+          {
+            "name": "Execution-Epoch",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted or completed as indicated by state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Job"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; HTTP status is not native exit.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./protocol.schema.json#/$defs/SignalRequest"
+              }
+            }
+          }
+        },
+        "description": "Admit an explicit native process-group signal under the qualified signal profile. Signal acceptance is separate from cancellation and observed termination.",
+        "x-execution-contract": {
+          "owner": "job",
+          "acknowledgement": "signal request; termination requires observation",
+          "recoveryOperationId": "inspectJob",
+          "ambiguousMutation": "inspect retained keyed/identified state; no blind resubmission"
+        }
+      }
+    },
+    "/v1/sessions/{sessionId}/file-handles": {
+      "post": {
+        "operationId": "openFile",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Protocol",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "HTTP v1 and binary major 1 negotiate together."
+          },
+          {
+            "name": "Execution-Epoch",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted or completed as indicated by state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/FileHandle"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; HTTP status is not native exit.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./protocol.schema.json#/$defs/FileOpenRequest"
+              }
+            }
+          }
+        },
+        "description": "Acquire an authorized canonical retained read handle in the specified namespace. Pathnames and stat tuples cannot recreate retained object identity.",
+        "x-execution-contract": {
+          "owner": "session",
+          "acknowledgement": "authorized retained file handle; identity is independent of pathname freshness",
+          "ambiguousMutation": "inspect retained keyed/identified state; no blind resubmission",
+          "recoveryOperationId": "inspectOperationByKey"
+        }
+      }
+    },
+    "/v1/sessions/{sessionId}/file-handles/{handleId}": {
+      "get": {
+        "operationId": "fileMetadata",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "handleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Protocol",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "HTTP v1 and binary major 1 negotiate together."
+          },
+          {
+            "name": "Execution-Epoch",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted or completed as indicated by state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/FileMetadata"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; HTTP status is not native exit.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          }
+        },
+        "description": "Inspect the retained object, preserving exact sizes and unknown metadata even after rename, unlink or pathname replacement.",
+        "x-execution-contract": {
+          "owner": "session",
+          "acknowledgement": "metadata on the retained object; not immutable content",
+          "ambiguousMutation": "inspect retained keyed/identified state; no blind resubmission"
+        }
+      },
+      "delete": {
+        "operationId": "closeFile",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "handleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Protocol",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "HTTP v1 and binary major 1 negotiate together."
+          },
+          {
+            "name": "Execution-Epoch",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted or completed as indicated by state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Released"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; HTTP status is not native exit.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          }
+        },
+        "description": "Close handle admission and drain its operations; release this retain without closing independent opens or borrowed shell descriptors.",
+        "x-execution-contract": {
+          "owner": "session",
+          "acknowledgement": "close retained handle admission and drain operations; ambiguous close is not blindly retried",
+          "ambiguousMutation": "inspect retained keyed/identified state; no blind resubmission",
+          "recoveryOperationId": "inspectOperationByKey"
+        }
+      }
+    },
+    "/v1/sessions/{sessionId}/file-handles/{handleId}/bytes": {
+      "get": {
+        "operationId": "readFileRange",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "handleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Protocol",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "HTTP v1 and binary major 1 negotiate together."
+          },
+          {
+            "name": "Execution-Epoch",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Range",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted or completed as indicated by state.",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "206": {
+            "description": "Raw bytes for an admitted retained file range. Metadata describes its observed live object, not an immutable snapshot.",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; HTTP status is not native exit.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          }
+        },
+        "description": "Read bounded raw bytes through the admitted retained object, not a reopened pathname. Retained identity does not freeze mutable contents.",
+        "x-execution-contract": {
+          "owner": "session",
+          "acknowledgement": "range on the retained object under declared freshness; no pathname reacquisition",
+          "ambiguousMutation": "inspect retained keyed/identified state; no blind resubmission"
+        }
+      }
+    },
+    "/v1/sessions/{sessionId}/file-listings": {
+      "post": {
+        "operationId": "listFiles",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Protocol",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "HTTP v1 and binary major 1 negotiate together."
+          },
+          {
+            "name": "Execution-Epoch",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted or completed as indicated by state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/FileListing"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; HTTP status is not native exit.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./protocol.schema.json#/$defs/FileListRequest"
+              }
+            }
+          }
+        },
+        "description": "Enumerate the authorized canonical directory under the explicit entry bound; overflow fails rather than returning a silently truncated listing.",
+        "x-execution-contract": {
+          "owner": "session",
+          "acknowledgement": "bounded canonical listing at backend consistency; not a directory snapshot",
+          "ambiguousMutation": "inspect retained keyed/identified state; no blind resubmission"
+        }
+      }
+    },
+    "/v1/sessions/{sessionId}/jobs/{jobId}/effects": {
+      "get": {
+        "operationId": "inspectEffects",
+        "description": "Inspect ordered effects, retained output identities and partial/unknown progress after any outcome; no inline media bytes or implicit rollback.",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Epoch",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Protocol",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "HTTP v1 and binary major 1 negotiate together."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted or completed as indicated by returned state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./streaming-profile.schema.json#/$defs/EffectManifest"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; HTTP status is not native exit. 400 invalid, 401/403 denied, 404 absent, 409 conflict, 410 expired/replay gap, 413 limit, 416 range, 422 unsupported, 429 admission, 503 unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          }
+        },
+        "x-execution-contract": {
+          "owner": "job",
+          "acknowledgement": "ordered retained effect observations and barrier; unknown remains unknown",
+          "ambiguousMutation": "inspect retained keyed/identified state; no blind resubmission"
+        }
+      }
+    },
+    "/v1/sessions/{sessionId}/jobs/{jobId}/outputs/{identityId}": {
+      "get": {
+        "operationId": "outputMetadata",
+        "description": "Inspect an authorized retained output identity independently of its current pathname and native exit status; expired retains remain unavailable.",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "identityId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Epoch",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Protocol",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "HTTP v1 and binary major 1 negotiate together."
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 256
+            },
+            "description": "Exact strong ETag from a qualified retained output. Changed or unqualified representations fail with HTTP 412."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted or completed as indicated by returned state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/FileMetadata"
+                }
+              }
+            },
+            "headers": {
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Strong validator binding the retained identity and qualified backend content version. Omitted for unqualified live outputs; never synthesized from stat tuples or file content hashes."
+              }
+            }
+          },
+          "412": {
+            "description": "Retained source identity/version changed or no qualified validator is available; native exit is unchanged.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; HTTP status is not native exit. 400 invalid, 401/403 denied, 404 absent, 409 conflict, 410 expired/replay gap, 413 limit, 416 range, 422 unsupported, 429 admission, 503 unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          }
+        },
+        "x-execution-contract": {
+          "owner": "session",
+          "acknowledgement": "authorized retained output identity metadata; no replacement-path lookup",
+          "ambiguousMutation": "inspect retained keyed/identified state; no blind resubmission"
+        }
+      }
+    },
+    "/v1/sessions/{sessionId}/jobs/{jobId}/outputs/{identityId}/bytes": {
+      "get": {
+        "operationId": "readOutputRange",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "identityId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Execution-Protocol",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "HTTP v1 and binary major 1 negotiate together."
+          },
+          {
+            "name": "Execution-Epoch",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Range",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 256
+            },
+            "description": "Exact strong ETag from a qualified retained output. Changed or unqualified representations fail with HTTP 412."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted or completed as indicated by state.",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            },
+            "headers": {
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Strong validator binding the retained identity and qualified backend content version. Omitted for unqualified live outputs; never synthesized from stat tuples or file content hashes."
+              }
+            }
+          },
+          "206": {
+            "description": "Raw bytes for an admitted retained file range. Metadata describes its observed live object, not an immutable snapshot.",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            },
+            "headers": {
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Strong validator binding the retained identity and qualified backend content version. Omitted for unqualified live outputs; never synthesized from stat tuples or file content hashes."
+              }
+            }
+          },
+          "412": {
+            "description": "Retained source identity/version changed or no qualified validator is available; native exit is unchanged.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Typed failure; HTTP status is not native exit.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./protocol.schema.json#/$defs/Failure"
+                }
+              }
+            }
+          }
+        },
+        "description": "Retrieve a bounded raw-byte range from an authorized retained output identity after nonzero exit, cancellation or loss, while retention remains live.",
+        "x-execution-contract": {
+          "owner": "session",
+          "acknowledgement": "authorized retained output range; live bytes can change absent a stable revision",
+          "ambiguousMutation": "inspect retained keyed/identified state; no blind resubmission"
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  },
+  "x-admission-map": "admission-map.json",
+  "x-http-profiles": {
+    "dependency-manifest-v1": {
+      "selectionHeader": "Execution-Profile",
+      "schema": "dependency-manifest.schema.json",
+      "operationOverrides": "admission-map.json#/httpProfiles/dependency-manifest-v1/httpSchemaOverrides",
+      "requiresNegotiation": true,
+      "unknownProfile": "Reject before effects; legacy path/root/overwrite models are not fallback."
+    }
+  },
+  "x-execution-contract": {
+    "status": "review-draft",
+    "source": "../../sdk-transport-decisions.md",
+    "packageOwners": [
+      "media-cli",
+      "remote-execution"
+    ],
+    "schemaSelection": "admission-map.json",
+    "completionBarriers": [
+      "nativeOutcome",
+      "canonicalEffects",
+      "streamProduction",
+      "namedConsumerDelivery",
+      "serverCleanup",
+      "localCleanup"
+    ],
+    "unknownOutcome": "Preserve known observations and partial output; do not infer native exit or automatically resubmit mutations after lost state."
+  },
+  "x-planning-selection": {
+    "status": "review-draft",
+    "admission": "admission-map.json",
+    "standaloneOperations": [
+      "beginUpload",
+      "inspectUpload",
+      "uploadChunk",
+      "commitUpload",
+      "abortUpload",
+      "readBlob",
+      "putManifest",
+      "getManifest",
+      "materialize",
+      "inspectMaterialization"
+    ],
+    "standaloneMeaning": "Available without media-cli, a tool definition or native launch. Caller binds canonical authority and owns cleanup.",
+    "materializationProfileSelection": "Negotiate canonical import versus dependency-manifest-v1 private preparation before admission; never silently switch profiles.",
+    "executionCompletion": [
+      "native outcome",
+      "canonical effect settlement",
+      "named-consumer delivery",
+      "owned cleanup"
+    ],
+    "engineResult": "Promise<{ exitCode: number }>; no stdout/stderr/file buffers. Incomplete lifecycle rejects with observed outcome and recovery metadata."
+  },
+  "x-design-review": {
+    "status": "review-draft",
+    "contract": "../../frontend-server-contract.md",
+    "sourceBinding": "frontend-server-source-binding-20260917.json",
+    "acceptancePlan": "../../../plans/remote-media-design-acceptance-20260917.md",
+    "runtimeConformanceClaim": false
+  },
+  "x-boundary-admission-review": {
+    "status": "review-draft",
+    "contract": "../../boundary-admission-review.md",
+    "validation": "boundary-admission-review.json",
+    "runtimeConformanceClaim": false,
+    "schemaSelection": "Apply admission-map mandatory streaming overrides, then explicitly negotiated profile overrides; no legacy buffered fallback."
+  },
+  "x-execute-settlement": {
+    "status": "review-draft",
+    "contract": "../../contracts.md#execute-settlement-decisions-against-the-current-contracts",
+    "requestBoundary": "In-process structural capability object; never serialize fs, sinks, input cursor, signal, cleanup registrar or admitted handles.",
+    "resolveRequires": [
+      "qualified native shell status",
+      "all admitted effects resolved",
+      "output END and awaited writes for this named consumer",
+      "server-owned cleanup settled",
+      "local invocation-owned cleanup settled"
+    ],
+    "unknownEffectOrDelivery": "Reject incomplete execute lifecycle while retaining every known native and progress observation.",
+    "cancellation": "Preserve local AbortSignal reason; cancellation request, confirmed termination and resource disposal are separate observations.",
+    "ownership": "Destination closure retires its admitted output scope; borrowed siblings, sessions and original shell descriptors retain their owners.",
+    "lostState": "No exactly-once claim, synthetic END/status, rollback or automatic native resubmission.",
+    "wireShapeChange": false,
+    "runtimeConformanceClaim": false
+  },
+  "x-source-bound-lifecycle-selection": {
+    "status": "review-draft",
+    "contract": "../../source-bound-lifecycle-selection.md",
+    "validation": "source-bound-lifecycle-selection.json",
+    "acceptancePlan": "../../../plans/remote-media-source-bound-lifecycle-acceptance.md",
+    "runtimeConformanceClaim": false,
+    "wireShapeChange": false
+  },
+  "x-js-server-selection": {
+    "status": "review-draft",
+    "contract": "../../contracts.md#current-js-frontend-and-generic-server-selection",
+    "sourceBinding": "js-server-selection.json",
+    "acceptancePlan": "../../../plans/remote-media-js-server-contract-acceptance.md",
+    "wireShapeChange": false,
+    "runtimeConformanceClaim": false
+  },
+  "x-current-contract-review": {
+    "status": "design-only",
+    "contract": "../../contracts.md#current-source-design-review-september-17",
+    "sourceReceipt": "current-contract-review.json",
+    "acceptancePlan": "../../../plans/remote-media-current-contract-design.md",
+    "wireShapeChange": false,
+    "runtimeConformanceClaim": false
+  },
+  "x-request-design-selection": {
+    "status": "design-only",
+    "sourceReceipt": "request-design-selection.json",
+    "contract": "../../contracts.md#selected-design-for-this-request",
+    "acceptancePlan": "../../../plans/remote-media-request-design-acceptance.md",
+    "wireShapeChange": false,
+    "runtimeConformanceClaim": false
+  },
+  "x-current-planning-review": {
+    "status": "design-only",
+    "contract": "../../contracts.md#current-planning-review",
+    "sourceReceipt": "current-planning-review.json",
+    "wireShapeChange": false,
+    "runtimeConformanceClaim": false,
+    "semanticAdmission": [
+      "Accounted bound operations and cleanup; preserve acquired handle access rights.",
+      "Object identity is correlation, not handle authority or open-description cursor.",
+      "Close consumes ownership on failure; disposal drains and attempts all owned closes.",
+      "Dense owned byte directory components; malformed backend listings fail EIO, limits fail EFBIG.",
+      "No external-writer serialization, native mediation or exactly-once inference from an authority."
+    ]
+  },
+  "x-js-media-planning-selection": {
+    "status": "design-only",
+    "contract": "../../contracts.md#js-media-frontend-and-generic-sandbox-decision",
+    "sourceReceipt": "request-review-20260918.json",
+    "schemaSelection": "admission-map.json",
+    "wireShapeChange": false,
+    "runtimeConformanceClaim": false
+  },
+  "x-planning-contract-selection": {
+    "status": "design-only",
+    "contract": "../../contracts.md#current-request-contract-map",
+    "sourceReceipt": "planning-contract-selection.json",
+    "schemaSelection": "admission-map.json",
+    "wireShapeChange": false,
+    "runtimeConformanceClaim": false
+  },
+  "x-design-entrypoint": {
+    "status": "design-only",
+    "contract": "../../contracts.md#design-entrypoint-and-precedence",
+    "validation": "design-entrypoint-validation.json",
+    "acceptancePlan": "../../../plans/remote-media-design-acceptance-20260917.md",
+    "schemaSelection": "admission-map.json",
+    "wireShapeChange": false,
+    "runtimeConformanceClaim": false
+  },
+  "x-structural-engine-review": {
+    "status": "design-only",
+    "sourceBinding": "structural-engine-source-review.json",
+    "contract": "../../contracts.md#structural-shell-engine",
+    "acceptancePlan": "../../../plans/media-frontend-generic-sandbox-design.md",
+    "schemaSelection": "admission-map.json",
+    "wireShapeChange": false,
+    "runtimeConformanceClaim": false
+  },
+  "x-planning-turn-admission-review": {
+    "status": "design-only",
+    "contract": "../../contracts.md#current-planning-turn-admission-review",
+    "sourceReceipt": "planning-turn-admission-review.json",
+    "acceptancePlan": "../../../plans/remote-media-design-review-20260919.md",
+    "wireShapeChange": false,
+    "runtimeConformanceClaim": false
+  },
+  "x-current-frontend-sandbox-review": {
+    "status": "design-only",
+    "contract": "../../contracts.md#current-planning-turn-admission-review",
+    "sourceReceipt": "current-frontend-sandbox-review.json",
+    "acceptancePlan": "../../../plans/remote-media-design-review-20260919.md",
+    "wireShapeChange": false,
+    "runtimeConformanceClaim": false
+  },
+  "x-frontend-native-admission": {
+    "status": "design-only",
+    "contract": "../../contracts.md#frontend-native-mediation-and-schema-admission",
+    "admission": "admission-map.json",
+    "structuralRequestIsWireModel": false,
+    "descriptorOffsets": "Current numeric input/lease facets require safe integers; exact wire offsets do not upgrade those capabilities.",
+    "nativeMediation": "Build-qualified live canonical mediation is required independently of grammar discovery and private materialization.",
+    "wireShapeChange": false,
+    "runtimeConformanceClaim": false
+  },
+  "x-planning-turn-structural-selection": {
+    "status": "design-only",
+    "contract": "../../contracts.md#planning-turn-selection-js-frontend-and-generic-sandbox",
+    "sourceReceipt": "planning-turn-source-binding.json",
+    "acceptancePlan": "../../../plans/remote-media-planning-turn-acceptance.md",
+    "httpMajor": 1,
+    "binaryMajor": 1,
+    "wireShapeChange": false,
+    "runtimeConformanceClaim": false
+  },
+  "x-observable-boundary-review": {
+    "status": "design-only",
+    "contract": "../../contracts.md#planning-review-observable-boundaries",
+    "sourceReceipt": "planning-turn-contract-recheck.json",
+    "acceptancePlan": "../../../plans/remote-media-planning-turn-acceptance.md",
+    "httpMajor": 1,
+    "binaryMajor": 1,
+    "wireShapeChange": false,
+    "runtimeConformanceClaim": false
+  },
+  "x-current-source-admission": {
+    "status": "design-only",
+    "contract": "../../contracts.md#current-request-selection-against-shell-and-filesystem-contracts",
+    "sourceReceipt": "planning-turn-source-binding.json",
+    "acceptancePlan": "../../../plans/remote-media-planning-turn-acceptance.md",
+    "runtimeConformanceClaim": false,
+    "wireShapeChange": false,
+    "packageOwners": [
+      "media-cli",
+      "remote-execution"
+    ],
+    "runnerAdoption": "Node server candidate only; qualify byte argv, spawn failure, signal identity, descriptor bridge and drain before adoption. No shared runner change.",
+    "standaloneOperations": [
+      "upload",
+      "materialize"
+    ],
+    "settlementAxes": [
+      "native",
+      "canonicalEffects",
+      "consumerDelivery",
+      "cancellation",
+      "serverCleanup",
+      "localCleanup"
+    ],
+    "freshness": "Backend-declared live reads; retained identity and materialization revision do not freeze contents. Cache only verified immutable blobs or qualified stable versions.",
+    "canonicalFacets": {
+      "filesystem": "accounted FileSystem; optional objects requires independent qualification",
+      "exactSeek": "same-description capability, never inferred from positional read or pathname reopen",
+      "cleanup": "engine finally and invocation owner await the same registered barrier"
+    },
+    "publicTransfer": "upload and materialize without media-cli",
+    "visibility": "completed live canonical effects before native acknowledgement; backend-declared read freshness",
+    "recovery": "inspect retained state; loss is unknown, never automatic uncertain resubmission"
+  }
+}

@@ -1,0 +1,44 @@
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { readFileSync, writeFileSync, mkdirSync, cpSync, chmodSync, existsSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { execFileSync } from 'node:child_process';
+
+const repo = '/Users/kjopek/Workspace/safe-bash';
+const task = '/tmp/safe-bash-search-stdin-close-fix-20260827';
+const frozen = 'b494675c34dc289f4ad4b10a9201e1211eb0a7d8';
+const sidecar = 'tests/shell-stress/first-read-contract-review/search-sidecar-review';
+const digest = bytes => createHash('sha256').update(bytes).digest('hex');
+const git = (...args) => execFileSync('git', args, { cwd: repo, maxBuffer: 32 * 1024 * 1024 });
+const qualification = JSON.parse(readFileSync(join(repo, sidecar, 'qualification.json')));
+const oldPaths = qualification.qualified.map(entry => {
+  const bytes = git('show', `${frozen}:${entry.path}`);
+  assert.equal(digest(bytes), entry.frozenSha256);
+  const current = readFileSync(join(repo, entry.path));
+  return { path: entry.path, frozen: digest(bytes), current: digest(current), unchanged: bytes.equals(current) };
+});
+assert.equal(digest(readFileSync(join(repo, sidecar, 'qualification.json'))), digest(git('show', `c5d44262ecca11009df6ce32a180005d3f3cb574:${sidecar}/qualification.json`)));
+const paths = git('ls-files', 'src', 'tests/commands/search-stress', 'tests/commands/rg.test.ts', 'tests/commands/search.test.ts', 'tests/commands/helpers.ts', 'package.json', 'package-lock.json', 'tsconfig.json', 'tsconfig.build.json').toString().trim().split('\n').filter(path => !path.includes('/direct-stdin-close-fix/'));
+assert(!existsSync(join(task, 'before')));
+const files = paths.map(path => {
+  const bytes = readFileSync(join(repo, path));
+  const output = join(task, 'before', path);
+  mkdirSync(dirname(output), { recursive: true }); writeFileSync(output, bytes);
+  return { path, sha256: digest(bytes), bytes: bytes.length };
+});
+const dependencies = qualification.dependencies.map(entry => {
+  const input = join(repo, 'node_modules', entry.path);
+  const output = join(task, 'before/node_modules', entry.path);
+  const bytes = readFileSync(input);
+  assert.equal(digest(bytes), entry.sha256, input);
+  mkdirSync(dirname(output), { recursive: true }); cpSync(input, output);
+  return entry;
+});
+cpSync(join(repo, 'node_modules/@types'), join(task, 'before/node_modules/@types'), { recursive: true });
+cpSync(join(repo, 'node_modules/undici-types'), join(task, 'before/node_modules/undici-types'), { recursive: true });
+cpSync(qualification.rg.resolved, join(task, 'native-bin/rg')); chmodSync(join(task, 'native-bin/rg'), 0o755);
+assert.equal(digest(readFileSync(join(task, 'native-bin/rg'))), qualification.rg.sha256);
+assert.equal(digest(readFileSync(process.execPath)), qualification.node.sha256);
+const record = { at: new Date().toISOString(), repo, task, frozen, sidecarCommit: 'c5d44262ecca11009df6ce32a180005d3f3cb574', head: git('rev-parse', 'HEAD').toString().trim(), initialStatus: git('status', '--short').toString(), initialIndex: git('diff', '--cached', '--name-status').toString(), files, oldPaths, dependencies, node: qualification.node, rg: qualification.rg, sidecarGenerated: qualification.generated };
+writeFileSync(join(task, 'qualification.json'), JSON.stringify(record, null, 2) + '\n');
+console.log(JSON.stringify({files:files.length, authenticatedFrozen:oldPaths.length, differences:oldPaths.filter(entry => !entry.unchanged), dependencies: dependencies.length}, null, 2));

@@ -1,0 +1,225 @@
+{
+  "schema": "scoped-env-v13-v2-artifact-manifest/1",
+  "at": "2026-08-28T10:38:08.270Z",
+  "recipeCommit": "13c50ab58b76423e53f0e49da859dff584343fe9",
+  "files": [
+    {
+      "path": "capture-child.mjs",
+      "bytes": 298,
+      "sha256": "d3e1e095e00aebfb2255efc8d2c9476cf86cdcab75e33f96f4bacadcf116e2a7"
+    },
+    {
+      "path": "controls.mjs",
+      "bytes": 2397,
+      "sha256": "7bb93d0b35eba751ea3d8041730731fa0ed7afc95676fc6dd30ccf62bae7e11a"
+    },
+    {
+      "path": "coordinator-stderr.gz",
+      "bytes": 20,
+      "sha256": "abfbb86f9f5ddfbd9fc1a72c43ab384702ce8bae86b60f3324748485e235e61e"
+    },
+    {
+      "path": "coordinator-stdout.gz",
+      "bytes": 134,
+      "sha256": "4577681ddcda0569838889ae55a2a20fea1b6df89971f64ed20f3d38ec87c0f3"
+    },
+    {
+      "path": "FINAL.json",
+      "bytes": 20575,
+      "sha256": "6d3aa06ae77f5b47967fffb15e1a4f8641c8245f1394167d7f21e76307c9a2c8"
+    },
+    {
+      "path": "HANDOFF.md",
+      "bytes": 6338,
+      "sha256": "de10e1725937664a728a755aa3e87219bb2b2a06c2ccd656ff1af1bd2ec0e8cc"
+    },
+    {
+      "path": "LAUNCH-START.json",
+      "bytes": 382,
+      "sha256": "3201bf790f7fc559052ccf3f9f42cc9d82a5f04495d7a77b923862d527cc67a0"
+    },
+    {
+      "path": "launch.mjs",
+      "bytes": 2287,
+      "sha256": "8d744061224d1e4289992f11324847a9cf3def5a0af56982fe8732b8aefc8319"
+    },
+    {
+      "path": "OUTER-CAPTURE.json",
+      "bytes": 973,
+      "sha256": "4c7d40257843360104e106b4becb8ab1e14c8be50437bdb3c4a4179493c4144c"
+    },
+    {
+      "path": "PREEXECUTION.md",
+      "bytes": 4542,
+      "sha256": "307b8ee27f952fbd873c89674894a121eca4da0de2dbf29e0257dd152f73a572"
+    },
+    {
+      "path": "raw/C08-stderr.gz",
+      "bytes": 32,
+      "sha256": "44c1a4e4c630c295b2246337a2aa842a38c8653538ae08d50f48be932d8ba971"
+    },
+    {
+      "path": "raw/C08-stdout.gz",
+      "bytes": 32,
+      "sha256": "04badc32c1d860f6193acb5960760215b59b2260d60ea8f0fad2ccc90120c37d"
+    },
+    {
+      "path": "raw/C09-stderr.gz",
+      "bytes": 32,
+      "sha256": "44c1a4e4c630c295b2246337a2aa842a38c8653538ae08d50f48be932d8ba971"
+    },
+    {
+      "path": "raw/C09-stdout.gz",
+      "bytes": 29,
+      "sha256": "a355e364712d7694f9b2c7867da033b79b16fd7ead1c5efcc63fbdbbbe243deb"
+    },
+    {
+      "path": "raw/inner-git-1-after.json.gz",
+      "bytes": 999,
+      "sha256": "74a0d7d449c7db13b51c883deaef9c3696db0595faf9deb84c797b2398a41b4f"
+    },
+    {
+      "path": "raw/inner-git-1-before.json.gz",
+      "bytes": 783,
+      "sha256": "fdf96d3f1334ab6eb4b3e44012babe8035bbffeffce4c997e6407fe23bb6729c"
+    },
+    {
+      "path": "raw/inner-git-2-after.json.gz",
+      "bytes": 1003,
+      "sha256": "8aa562bf2eba994d56d1ec7021b264b0bee336afcb6e4076a5923280f58b8edd"
+    },
+    {
+      "path": "raw/inner-git-2-before.json.gz",
+      "bytes": 786,
+      "sha256": "d24746651d8b024324198e8b218c8cb6574bfefad06593967f02b4ed89417514"
+    },
+    {
+      "path": "raw/inner-worker.json.gz",
+      "bytes": 3065,
+      "sha256": "6135193b7f5af4b35a0364338d2cbe71a5560043ef59a8cb0028004bebf7ed8b"
+    },
+    {
+      "path": "raw/outer-OS-FENCE-RESULT.json.gz",
+      "bytes": 2077,
+      "sha256": "269cdcca24540642a8ac00fada8f5d57306e53e9634335fe5db3b1e42384e45b"
+    },
+    {
+      "path": "raw/outer-OS-FENCE.json.gz",
+      "bytes": 1338,
+      "sha256": "c5c42918eab416db99afd33310aa7e3218bd4a74bdfc9eeb7efc5f36b859f9af"
+    },
+    {
+      "path": "raw/outer-stderr.gz",
+      "bytes": 20,
+      "sha256": "abfbb86f9f5ddfbd9fc1a72c43ab384702ce8bae86b60f3324748485e235e61e"
+    },
+    {
+      "path": "raw/outer-stdout.gz",
+      "bytes": 117,
+      "sha256": "b68dea6cb858c84681cd4f2d8afb840c4bee4dc6a6f6f0c970572994561361b3"
+    },
+    {
+      "path": "RECIPE.json",
+      "bytes": 24525,
+      "sha256": "32594007fba6a60aa4ea2623f84475be09d801d61bc16918a9627e4e9fe88657"
+    },
+    {
+      "path": "RESULTS.json",
+      "bytes": 76951,
+      "sha256": "e25fbc91edcc719fcb7ef96736b2873d77f158ac7b9a530e88b2308a09f418e5"
+    },
+    {
+      "path": "review.mjs",
+      "bytes": 12950,
+      "sha256": "ab93bebabeed8f4935af33888624139880a02bd51a1d34ba87d247eed9dd7bdf"
+    },
+    {
+      "path": "worker.mjs",
+      "bytes": 13114,
+      "sha256": "186d38f776a77b20ae7e33c93920428ae3c3b53f31a828ce6e03f4e481dc0851"
+    }
+  ],
+  "rawValidation": {
+    "files": 15,
+    "decodedBytes": 43773,
+    "compressedAndDecodedSha256Verified": true
+  },
+  "priorPreservation": {
+    "seal": "99684045c7bbd0ea40e1eb2f15271cfef8c626e0",
+    "files": 38,
+    "allByteIdentical": true,
+    "originalCounts": {
+      "pass": 30,
+      "fail": 2,
+      "unexecuted": 1
+    },
+    "noOldRescore": true
+  },
+  "launchOutcome": {
+    "pid": 27933,
+    "status": 0,
+    "signal": null,
+    "stdout": "{\"counts\":{\"pass\":14,\"fail\":0,\"unexecuted\":0},\"coordinatorExitCode\":0,\"actualGitReads\":2,\"workerStatus\":0,\"rootsRemoved\":true,\"failure\":null}\n{\"outerAccepted\":true,\"actualCoordinatorStatus\":0,\"signal\":null}\n",
+    "stderr": ""
+  },
+  "ownership": {
+    "newRoots": [
+      {
+        "path": "/private/tmp/unified76-env-v2-8h280D",
+        "absent": true,
+        "removed": true,
+        "bytes": 733422,
+        "entries": 27
+      },
+      {
+        "path": "/private/tmp/unified76-os-write-uS5GX4",
+        "absent": true,
+        "removed": true,
+        "bytes": 786,
+        "entries": 59
+      },
+      {
+        "path": "/private/tmp/full-gate-unified76-env13v2-8h280D",
+        "absent": true,
+        "removed": true,
+        "bytes": 31970,
+        "entries": 6
+      }
+    ],
+    "closedProcesses": [
+      {
+        "pid": 27933,
+        "status": 0
+      },
+      {
+        "pid": 27934,
+        "status": 0
+      },
+      {
+        "pid": 27976,
+        "status": 0
+      },
+      {
+        "pid": 27977,
+        "status": 7
+      },
+      {
+        "pid": 27984,
+        "status": 0
+      },
+      {
+        "pid": 28004,
+        "status": 0
+      },
+      {
+        "pid": 28009,
+        "status": 0
+      }
+    ],
+    "signals": [],
+    "foreignProcessSignals": 0,
+    "foreignSentinelExperiment": false,
+    "originalRetainedRootsTouched": false,
+    "claim": "Closure from actual close events, synchronous Git return and shipping supervisor receipts; no new process probe or arbitrary host background closure claim."
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "status": "DEFINITION_AND_PURE_CONTROLS_PASS",
+  "coordinatorDefinitionImported": true,
+  "coordinatorMainCalled": false,
+  "predicates": 9,
+  "falsyReasons": 5,
+  "productImports": 0,
+  "children": 0,
+  "qualification": "Harness definition import only, no compiler/installer/retained/product/Worker activation"
+}

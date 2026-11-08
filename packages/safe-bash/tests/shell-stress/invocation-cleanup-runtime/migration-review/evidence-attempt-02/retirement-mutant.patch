@@ -1,0 +1,6 @@
+*** Begin Patch
+*** Update File: src/commands/regex-execution/client.ts
+@@
+-      if (!this.exited) await this.worker.terminate();
++      if (!this.exited) void this.worker.terminate();
+*** End Patch

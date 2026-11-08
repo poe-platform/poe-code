@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "jobId": "capture-before-assert-0",
+  "outcome": "PASS",
+  "raw": "captured-before-assert",
+  "observed": 2,
+  "expected": 1
+}

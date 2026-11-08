@@ -1,0 +1,566 @@
+{
+  "originalReport": "tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/result.json",
+  "sourceCommit": "f12141d4d0a4b7e46ffa5c5e0d1978cf41e72f02",
+  "sourceTreeSha256": "e7f64ecaa2cf5bce5fdebd3bfcca9e94d063d278b85ed9c263f742d104c32424",
+  "testTreeSha256": "d602edfbb0a07ae8b54bfa19980716eb13db8c294064d73cce1b9e8ec60dd1c8",
+  "harnessSha256": "46ba874f5e30d8e8f47610f67bb41cf1fcdfad51937b72d314cf4fd0a9d819ea",
+  "exitCode": 1,
+  "groups": [
+    {
+      "name": "regex",
+      "files": [
+        "tests/commands/regex-execution/package-consumer.mts"
+      ],
+      "runtime": [
+        "package-consumer.mjs"
+      ],
+      "existingCoverage": "tests/commands/regex-execution/package.mjs",
+      "qualification": "unchanged public consumer; strict declarations and emitted runtime",
+      "inputs": [
+        {
+          "path": "tests/commands/regex-execution/package-consumer.mts",
+          "target": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/regex/package-consumer.mts",
+          "sha256": "a3d27cd3208a139758543299cfb1646ce27786d978f0cb7afa515f86b237f1f2"
+        }
+      ],
+      "compile": "pass",
+      "runtimeResults": [],
+      "error": "AssertionError [ERR_ASSERTION]: {\"command\":[\"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\"--experimental-permission\",\"--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer\",\"--allow-worker\",\"--unhandled-rejections=strict\",\"--test\",\"--test-reporter=tap\",\"/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/regex/emitted/package-consumer.mjs\"],\"cwd\":\"/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer\",\"status\":1,\"signal\":null,\"stdout\":\"\",\"stderr\":\"Could not find '/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/regex/emitted/package-consumer.mjs'\\n\"}\n\n1 !== 0\n\n    at requireSuccess (file:///Users/kjopek/Workspace/safe-bash/tests/plugins/stream-five-public/harness.mjs:22:10)\n    at step (file:///Users/kjopek/Workspace/safe-bash/tests/plugins/stream-five-public/harness.mjs:66:3)\n    at currentConsumers (file:///Users/kjopek/Workspace/safe-bash/scripts/verify-current-consumers.mjs:51:27)\n    at file:///Users/kjopek/Workspace/safe-bash/scripts/verify-qualified-release.mjs:87:9"
+    },
+    {
+      "name": "regex-continuation",
+      "files": [
+        "tests/commands/regex-execution/continuation/package-consumer.mts"
+      ],
+      "runtime": [
+        "package-consumer.mjs"
+      ],
+      "existingCoverage": "tests/commands/regex-execution/continuation/package.mjs",
+      "qualification": "unchanged public consumer; strict declarations and emitted runtime",
+      "inputs": [
+        {
+          "path": "tests/commands/regex-execution/continuation/package-consumer.mts",
+          "target": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/regex-continuation/package-consumer.mts",
+          "sha256": "7e27be9c20ee8fd7413e60c4424221520a1856ddfe2b8b80d19d1c1443eea4b3"
+        }
+      ],
+      "compile": "pass",
+      "runtimeResults": [],
+      "error": "AssertionError [ERR_ASSERTION]: {\"command\":[\"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\"--experimental-permission\",\"--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer\",\"--allow-worker\",\"--unhandled-rejections=strict\",\"--test\",\"--test-reporter=tap\",\"/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/regex-continuation/emitted/package-consumer.mjs\"],\"cwd\":\"/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer\",\"status\":1,\"signal\":null,\"stdout\":\"\",\"stderr\":\"Could not find '/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/regex-continuation/emitted/package-consumer.mjs'\\n\"}\n\n1 !== 0\n\n    at requireSuccess (file:///Users/kjopek/Workspace/safe-bash/tests/plugins/stream-five-public/harness.mjs:22:10)\n    at step (file:///Users/kjopek/Workspace/safe-bash/tests/plugins/stream-five-public/harness.mjs:66:3)\n    at currentConsumers (file:///Users/kjopek/Workspace/safe-bash/scripts/verify-current-consumers.mjs:51:27)\n    at file:///Users/kjopek/Workspace/safe-bash/scripts/verify-qualified-release.mjs:87:9"
+    },
+    {
+      "name": "regex-followup",
+      "files": [
+        "tests/commands/regex-execution/followup/product-consumer.mts"
+      ],
+      "runtime": [
+        "product-consumer.mjs"
+      ],
+      "existingCoverage": "tests/commands/regex-execution/followup/package.mjs",
+      "qualification": "unchanged public consumer; strict declarations and emitted runtime",
+      "inputs": [
+        {
+          "path": "tests/commands/regex-execution/followup/product-consumer.mts",
+          "target": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/regex-followup/product-consumer.mts",
+          "sha256": "98002da21b35415d69181b33fed9a2011a8dea758fd63407d0e17a8d488bb36d"
+        }
+      ],
+      "compile": "pass",
+      "runtimeResults": [],
+      "error": "AssertionError [ERR_ASSERTION]: {\"command\":[\"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\"--experimental-permission\",\"--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer\",\"--allow-worker\",\"--unhandled-rejections=strict\",\"--test\",\"--test-reporter=tap\",\"/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/regex-followup/emitted/product-consumer.mjs\"],\"cwd\":\"/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer\",\"status\":1,\"signal\":null,\"stdout\":\"\",\"stderr\":\"Could not find '/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/regex-followup/emitted/product-consumer.mjs'\\n\"}\n\n1 !== 0\n\n    at requireSuccess (file:///Users/kjopek/Workspace/safe-bash/tests/plugins/stream-five-public/harness.mjs:22:10)\n    at step (file:///Users/kjopek/Workspace/safe-bash/tests/plugins/stream-five-public/harness.mjs:66:3)\n    at currentConsumers (file:///Users/kjopek/Workspace/safe-bash/scripts/verify-current-consumers.mjs:51:27)\n    at file:///Users/kjopek/Workspace/safe-bash/scripts/verify-qualified-release.mjs:87:9"
+    },
+    {
+      "name": "regex-production",
+      "files": [
+        "tests/stress/regex-execution/production-review/package-consumer.mts"
+      ],
+      "runtime": [
+        "package-consumer.mjs"
+      ],
+      "existingCoverage": "tests/stress/regex-execution/production-review/package.mjs",
+      "qualification": "unchanged public consumer; strict declarations and emitted runtime",
+      "inputs": [
+        {
+          "path": "tests/stress/regex-execution/production-review/package-consumer.mts",
+          "target": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/regex-production/package-consumer.mts",
+          "sha256": "b2d369407771c8f6760adff58fa2eff193879f1932c545870831a7d19fd84675"
+        }
+      ],
+      "compile": "pass",
+      "runtimeResults": [],
+      "error": "AssertionError [ERR_ASSERTION]: {\"command\":[\"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\"--experimental-permission\",\"--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer\",\"--allow-worker\",\"--unhandled-rejections=strict\",\"--test\",\"--test-reporter=tap\",\"/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/regex-production/emitted/package-consumer.mjs\"],\"cwd\":\"/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer\",\"status\":1,\"signal\":null,\"stdout\":\"\",\"stderr\":\"Could not find '/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/regex-production/emitted/package-consumer.mjs'\\n\"}\n\n1 !== 0\n\n    at requireSuccess (file:///Users/kjopek/Workspace/safe-bash/tests/plugins/stream-five-public/harness.mjs:22:10)\n    at step (file:///Users/kjopek/Workspace/safe-bash/tests/plugins/stream-five-public/harness.mjs:66:3)\n    at currentConsumers (file:///Users/kjopek/Workspace/safe-bash/scripts/verify-current-consumers.mjs:51:27)\n    at file:///Users/kjopek/Workspace/safe-bash/scripts/verify-qualified-release.mjs:87:9"
+    },
+    {
+      "name": "regex-production-continuation",
+      "files": [
+        "tests/stress/regex-execution/production-continuation-review/package-consumer.mts"
+      ],
+      "runtime": [
+        "package-consumer.mjs"
+      ],
+      "existingCoverage": "tests/stress/regex-execution/production-continuation-review/package.mjs",
+      "qualification": "unchanged public consumer; strict declarations and emitted runtime",
+      "inputs": [
+        {
+          "path": "tests/stress/regex-execution/production-continuation-review/package-consumer.mts",
+          "target": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/regex-production-continuation/package-consumer.mts",
+          "sha256": "f885b55a6a280729b109084ae36885167135f3e753052f98aa01b4f206dd39cc"
+        }
+      ],
+      "compile": "pass",
+      "runtimeResults": [],
+      "error": "AssertionError [ERR_ASSERTION]: {\"command\":[\"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\"--experimental-permission\",\"--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer\",\"--allow-worker\",\"--unhandled-rejections=strict\",\"--test\",\"--test-reporter=tap\",\"/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/regex-production-continuation/emitted/package-consumer.mjs\"],\"cwd\":\"/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer\",\"status\":1,\"signal\":null,\"stdout\":\"\",\"stderr\":\"Could not find '/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/regex-production-continuation/emitted/package-consumer.mjs'\\n\"}\n\n1 !== 0\n\n    at requireSuccess (file:///Users/kjopek/Workspace/safe-bash/tests/plugins/stream-five-public/harness.mjs:22:10)\n    at step (file:///Users/kjopek/Workspace/safe-bash/tests/plugins/stream-five-public/harness.mjs:66:3)\n    at currentConsumers (file:///Users/kjopek/Workspace/safe-bash/scripts/verify-current-consumers.mjs:51:27)\n    at file:///Users/kjopek/Workspace/safe-bash/scripts/verify-qualified-release.mjs:87:9"
+    },
+    {
+      "name": "s3-constructor",
+      "files": [
+        "tests/fs/s3/constructor-comparison/consumer.mts"
+      ],
+      "runtime": [
+        "consumer.mjs"
+      ],
+      "existingCoverage": "tests/fs/s3/constructor-comparison/build-consumer.mjs",
+      "qualification": "unchanged public consumer; strict declarations and emitted runtime",
+      "inputs": [
+        {
+          "path": "tests/fs/s3/constructor-comparison/consumer.mts",
+          "target": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/s3-constructor/consumer.mts",
+          "sha256": "1c3a43c9c582380f179e0e4c888bcd238076f37beb33810a95accc40442a2383"
+        }
+      ],
+      "compile": "pass",
+      "runtimeResults": [],
+      "error": "AssertionError [ERR_ASSERTION]: {\"command\":[\"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\"--experimental-permission\",\"--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer\",\"--allow-worker\",\"--unhandled-rejections=strict\",\"--test\",\"--test-reporter=tap\",\"/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/s3-constructor/emitted/consumer.mjs\"],\"cwd\":\"/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer\",\"status\":1,\"signal\":null,\"stdout\":\"\",\"stderr\":\"Could not find '/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/s3-constructor/emitted/consumer.mjs'\\n\"}\n\n1 !== 0\n\n    at requireSuccess (file:///Users/kjopek/Workspace/safe-bash/tests/plugins/stream-five-public/harness.mjs:22:10)\n    at step (file:///Users/kjopek/Workspace/safe-bash/tests/plugins/stream-five-public/harness.mjs:66:3)\n    at currentConsumers (file:///Users/kjopek/Workspace/safe-bash/scripts/verify-current-consumers.mjs:51:27)\n    at file:///Users/kjopek/Workspace/safe-bash/scripts/verify-qualified-release.mjs:87:9"
+    },
+    {
+      "name": "s3-http-author",
+      "files": [
+        "tests/fs/s3/http/author/public-consumer.mts"
+      ],
+      "runtime": [
+        "public-consumer.mjs"
+      ],
+      "existingCoverage": "tests/fs/s3/http/author/build-public-consumer.mjs",
+      "qualification": "strict public types and module import only; exported workflow requires explicit real S3 service/credentials; no service execution claimed",
+      "inputs": [
+        {
+          "path": "tests/fs/s3/http/author/public-consumer.mts",
+          "target": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/s3-http-author/public-consumer.mts",
+          "sha256": "190253ffc034bfea5a7af208cce2dc91bd0b6fb2be993fdb8623b9e5cbf4b1dd"
+        }
+      ],
+      "compile": "pass",
+      "runtimeResults": [],
+      "error": "AssertionError [ERR_ASSERTION]: {\"command\":[\"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\"--experimental-permission\",\"--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer\",\"--allow-worker\",\"--unhandled-rejections=strict\",\"--test\",\"--test-reporter=tap\",\"/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/s3-http-author/emitted/public-consumer.mjs\"],\"cwd\":\"/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer\",\"status\":1,\"signal\":null,\"stdout\":\"\",\"stderr\":\"Could not find '/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/s3-http-author/emitted/public-consumer.mjs'\\n\"}\n\n1 !== 0\n\n    at requireSuccess (file:///Users/kjopek/Workspace/safe-bash/tests/plugins/stream-five-public/harness.mjs:22:10)\n    at step (file:///Users/kjopek/Workspace/safe-bash/tests/plugins/stream-five-public/harness.mjs:66:3)\n    at currentConsumers (file:///Users/kjopek/Workspace/safe-bash/scripts/verify-current-consumers.mjs:51:27)\n    at file:///Users/kjopek/Workspace/safe-bash/scripts/verify-qualified-release.mjs:87:9"
+    },
+    {
+      "name": "s3-http-independent",
+      "files": [
+        "tests/fs/s3/http-independent/public-workflow.mts"
+      ],
+      "runtime": [
+        "public-workflow.mjs"
+      ],
+      "existingCoverage": "tests/fs/s3/http-independent/validate.mjs",
+      "qualification": "strict public types and module import only; exported workflow requires explicit real S3 service/credentials; no service execution claimed",
+      "inputs": [
+        {
+          "path": "tests/fs/s3/http-independent/public-workflow.mts",
+          "target": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/s3-http-independent/public-workflow.mts",
+          "sha256": "1b9c3ca734232921684a5bff00c59f4dd408d73f8d7a363d3b1a10de60e978cf"
+        }
+      ],
+      "compile": "pass",
+      "runtimeResults": [],
+      "error": "AssertionError [ERR_ASSERTION]: {\"command\":[\"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\"--experimental-permission\",\"--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer\",\"--allow-worker\",\"--unhandled-rejections=strict\",\"--test\",\"--test-reporter=tap\",\"/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/s3-http-independent/emitted/public-workflow.mjs\"],\"cwd\":\"/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer\",\"status\":1,\"signal\":null,\"stdout\":\"\",\"stderr\":\"Could not find '/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/s3-http-independent/emitted/public-workflow.mjs'\\n\"}\n\n1 !== 0\n\n    at requireSuccess (file:///Users/kjopek/Workspace/safe-bash/tests/plugins/stream-five-public/harness.mjs:22:10)\n    at step (file:///Users/kjopek/Workspace/safe-bash/tests/plugins/stream-five-public/harness.mjs:66:3)\n    at currentConsumers (file:///Users/kjopek/Workspace/safe-bash/scripts/verify-current-consumers.mjs:51:27)\n    at file:///Users/kjopek/Workspace/safe-bash/scripts/verify-qualified-release.mjs:87:9"
+    },
+    {
+      "name": "s3-rmdir",
+      "files": [
+        "tests/fs/s3/rmdir-independent/public-consumer.mts"
+      ],
+      "runtime": [
+        "public-consumer.mjs"
+      ],
+      "existingCoverage": "tests/fs/s3/rmdir-independent/run.mjs",
+      "qualification": "strict public types and constructor smoke only; not independent rmdir or MinIO acceptance",
+      "inputs": [
+        {
+          "path": "tests/fs/s3/rmdir-independent/public-consumer.mts",
+          "target": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/s3-rmdir/public-consumer.mts",
+          "sha256": "d409e32b638f8055d99692f709daf93a3e8a806efbdb658e10e79400be8550ea"
+        }
+      ],
+      "compile": "pass",
+      "runtimeResults": [],
+      "error": "AssertionError [ERR_ASSERTION]: {\"command\":[\"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\"--experimental-permission\",\"--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer\",\"--allow-worker\",\"--unhandled-rejections=strict\",\"--test\",\"--test-reporter=tap\",\"/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/s3-rmdir/emitted/public-consumer.mjs\"],\"cwd\":\"/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer\",\"status\":1,\"signal\":null,\"stdout\":\"\",\"stderr\":\"Could not find '/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/s3-rmdir/emitted/public-consumer.mjs'\\n\"}\n\n1 !== 0\n\n    at requireSuccess (file:///Users/kjopek/Workspace/safe-bash/tests/plugins/stream-five-public/harness.mjs:22:10)\n    at step (file:///Users/kjopek/Workspace/safe-bash/tests/plugins/stream-five-public/harness.mjs:66:3)\n    at currentConsumers (file:///Users/kjopek/Workspace/safe-bash/scripts/verify-current-consumers.mjs:51:27)\n    at file:///Users/kjopek/Workspace/safe-bash/scripts/verify-qualified-release.mjs:87:9"
+    },
+    {
+      "name": "webdav-loopback",
+      "files": [
+        "tests/fs/webdav/consumer/consumer.test.mts",
+        "tests/fs/webdav/consumer/example.mts",
+        "tests/fs/webdav/consumer/provider.mts",
+        "tests/fs/webdav/consumer/types.mts"
+      ],
+      "runtime": [
+        "consumer.test.mjs"
+      ],
+      "existingCoverage": "tests/fs/webdav/consumer/run.mjs",
+      "qualification": "strict public types including type assertions; unchanged thirteen serialized loopback runtime tests; not deployed-provider proof",
+      "inputs": [
+        {
+          "path": "tests/fs/webdav/consumer/consumer.test.mts",
+          "target": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/webdav-loopback/consumer.test.mts",
+          "sha256": "b69e78c54d5afb844cef7f59c4d530e1ddad6634394a32e56e455b7a7bce752a"
+        },
+        {
+          "path": "tests/fs/webdav/consumer/example.mts",
+          "target": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/webdav-loopback/example.mts",
+          "sha256": "7a51aed0e78cc30d54dfa1b616c9e659710bed4f0a4cd7e42e28258a974f7b15"
+        },
+        {
+          "path": "tests/fs/webdav/consumer/provider.mts",
+          "target": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/webdav-loopback/provider.mts",
+          "sha256": "288d17dca5b6950fababb945cf21c15594dfbf37897d1cdcaab2aba1088a6b9b"
+        },
+        {
+          "path": "tests/fs/webdav/consumer/types.mts",
+          "target": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/webdav-loopback/types.mts",
+          "sha256": "90ad547d0b4ff13cb0b5fc4f79b26b8b59ceac144adea8de4f511b421663d028"
+        }
+      ],
+      "compile": "pass",
+      "runtimeResults": [],
+      "error": "AssertionError [ERR_ASSERTION]: {\"command\":[\"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\"--experimental-permission\",\"--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer\",\"--allow-worker\",\"--unhandled-rejections=strict\",\"--test\",\"--test-reporter=tap\",\"/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/webdav-loopback/emitted/consumer.test.mjs\"],\"cwd\":\"/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer\",\"status\":1,\"signal\":null,\"stdout\":\"\",\"stderr\":\"Could not find '/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/webdav-loopback/emitted/consumer.test.mjs'\\n\"}\n\n1 !== 0\n\n    at requireSuccess (file:///Users/kjopek/Workspace/safe-bash/tests/plugins/stream-five-public/harness.mjs:22:10)\n    at step (file:///Users/kjopek/Workspace/safe-bash/tests/plugins/stream-five-public/harness.mjs:66:3)\n    at currentConsumers (file:///Users/kjopek/Workspace/safe-bash/scripts/verify-current-consumers.mjs:51:27)\n    at file:///Users/kjopek/Workspace/safe-bash/scripts/verify-qualified-release.mjs:87:9"
+    },
+    {
+      "name": "webdav-services",
+      "files": [
+        "tests/fs/webdav/real-service/consumer.mts",
+        "tests/fs/webdav/real-service/example.mts",
+        "tests/fs/webdav/real-service/https.mts",
+        "tests/fs/webdav/real-service/phase2-consumer.mts",
+        "tests/fs/webdav/real-service-independent/independent.mts",
+        "tests/fs/webdav/real-service-independent/scope-neighbors.mts",
+        "tests/fs/webdav/rmdir-real-service/feasibility.mts"
+      ],
+      "runtime": [],
+      "existingCoverage": "tests/fs/webdav/real-service/run.mjs; tests/fs/webdav/real-service/scope-replay.mjs; tests/fs/webdav/real-service-independent/run.mjs; tests/fs/webdav/rmdir-real-service/run.mjs",
+      "qualification": "strict compile of current provider/research programs with unchanged shared example/https companions, assembled as existing runners do; runtime requires explicit provisioned Apache/WsgiDAV TLS/backing authority; not executed or counted as provider passes; feasibility is research, not product rmdir support",
+      "inputs": [
+        {
+          "path": "tests/fs/webdav/real-service/consumer.mts",
+          "target": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/webdav-services/consumer.mts",
+          "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f"
+        },
+        {
+          "path": "tests/fs/webdav/real-service/example.mts",
+          "target": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/webdav-services/example.mts",
+          "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b"
+        },
+        {
+          "path": "tests/fs/webdav/real-service/https.mts",
+          "target": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/webdav-services/https.mts",
+          "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d"
+        },
+        {
+          "path": "tests/fs/webdav/real-service/phase2-consumer.mts",
+          "target": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/webdav-services/phase2-consumer.mts",
+          "sha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7"
+        },
+        {
+          "path": "tests/fs/webdav/real-service-independent/independent.mts",
+          "target": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/webdav-services/independent.mts",
+          "sha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923"
+        },
+        {
+          "path": "tests/fs/webdav/real-service-independent/scope-neighbors.mts",
+          "target": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/webdav-services/scope-neighbors.mts",
+          "sha256": "8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2"
+        },
+        {
+          "path": "tests/fs/webdav/rmdir-real-service/feasibility.mts",
+          "target": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/webdav-services/feasibility.mts",
+          "sha256": "295130247672732248290f5a6934100e134b228fe9bc07138a1d159958fe30ca"
+        }
+      ],
+      "compile": "pass",
+      "runtimeResults": []
+    },
+    {
+      "name": "stream-inspection",
+      "files": [
+        "tests/integration/stream-inspection-public-author/consumer.mts"
+      ],
+      "runtime": [
+        "consumer.mjs"
+      ],
+      "existingCoverage": "tests/integration/stream-inspection-public-author/verify.mjs",
+      "qualification": "unchanged public consumer; strict declarations and emitted runtime",
+      "inputs": [
+        {
+          "path": "tests/integration/stream-inspection-public-author/consumer.mts",
+          "target": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/stream-inspection/consumer.mts",
+          "sha256": "719046b74bf7fb6ae2f20ef5a7b011e73c5346367eeabf5becf787b5055fbb9d"
+        }
+      ],
+      "compile": "pass",
+      "runtimeResults": [],
+      "error": "AssertionError [ERR_ASSERTION]: {\"command\":[\"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\"--experimental-permission\",\"--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer\",\"--allow-worker\",\"--unhandled-rejections=strict\",\"--test\",\"--test-reporter=tap\",\"/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/stream-inspection/emitted/consumer.mjs\"],\"cwd\":\"/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer\",\"status\":1,\"signal\":null,\"stdout\":\"\",\"stderr\":\"Could not find '/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/stream-inspection/emitted/consumer.mjs'\\n\"}\n\n1 !== 0\n\n    at requireSuccess (file:///Users/kjopek/Workspace/safe-bash/tests/plugins/stream-five-public/harness.mjs:22:10)\n    at step (file:///Users/kjopek/Workspace/safe-bash/tests/plugins/stream-five-public/harness.mjs:66:3)\n    at currentConsumers (file:///Users/kjopek/Workspace/safe-bash/scripts/verify-current-consumers.mjs:51:27)\n    at file:///Users/kjopek/Workspace/safe-bash/scripts/verify-qualified-release.mjs:87:9"
+    },
+    {
+      "name": "stream-five",
+      "files": [
+        "tests/plugins/stream-five-fixture-migration/public-options.mts"
+      ],
+      "runtime": [
+        "public-options.mjs"
+      ],
+      "existingCoverage": "tests/plugins/stream-five-fixture-migration/capture.mjs final",
+      "qualification": "unchanged public consumer; strict declarations and emitted runtime",
+      "inputs": [
+        {
+          "path": "tests/plugins/stream-five-fixture-migration/public-options.mts",
+          "target": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/stream-five/public-options.mts",
+          "sha256": "e4ab1b52cfd29465fa064dea6b1ff5cb6e5648463aace59beec41e5eaee1468e"
+        }
+      ],
+      "compile": "pass",
+      "runtimeResults": [],
+      "error": "AssertionError [ERR_ASSERTION]: {\"command\":[\"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\"--experimental-permission\",\"--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer\",\"--allow-worker\",\"--unhandled-rejections=strict\",\"--test\",\"--test-reporter=tap\",\"/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/stream-five/emitted/public-options.mjs\"],\"cwd\":\"/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer\",\"status\":1,\"signal\":null,\"stdout\":\"\",\"stderr\":\"Could not find '/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/stream-five/emitted/public-options.mjs'\\n\"}\n\n1 !== 0\n\n    at requireSuccess (file:///Users/kjopek/Workspace/safe-bash/tests/plugins/stream-five-public/harness.mjs:22:10)\n    at step (file:///Users/kjopek/Workspace/safe-bash/tests/plugins/stream-five-public/harness.mjs:66:3)\n    at currentConsumers (file:///Users/kjopek/Workspace/safe-bash/scripts/verify-current-consumers.mjs:51:27)\n    at file:///Users/kjopek/Workspace/safe-bash/scripts/verify-qualified-release.mjs:87:9"
+    }
+  ],
+  "failedSteps": [
+    {
+      "name": "consumer-regex-package-consumer.mjs",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--experimental-permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "--test",
+        "--test-reporter=tap",
+        "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/regex/emitted/package-consumer.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer",
+      "status": 1,
+      "signal": null,
+      "stdout": "",
+      "stderr": "Could not find '/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/regex/emitted/package-consumer.mjs'\n"
+    },
+    {
+      "name": "consumer-regex-continuation-package-consumer.mjs",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--experimental-permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "--test",
+        "--test-reporter=tap",
+        "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/regex-continuation/emitted/package-consumer.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer",
+      "status": 1,
+      "signal": null,
+      "stdout": "",
+      "stderr": "Could not find '/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/regex-continuation/emitted/package-consumer.mjs'\n"
+    },
+    {
+      "name": "consumer-regex-followup-product-consumer.mjs",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--experimental-permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "--test",
+        "--test-reporter=tap",
+        "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/regex-followup/emitted/product-consumer.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer",
+      "status": 1,
+      "signal": null,
+      "stdout": "",
+      "stderr": "Could not find '/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/regex-followup/emitted/product-consumer.mjs'\n"
+    },
+    {
+      "name": "consumer-regex-production-package-consumer.mjs",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--experimental-permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "--test",
+        "--test-reporter=tap",
+        "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/regex-production/emitted/package-consumer.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer",
+      "status": 1,
+      "signal": null,
+      "stdout": "",
+      "stderr": "Could not find '/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/regex-production/emitted/package-consumer.mjs'\n"
+    },
+    {
+      "name": "consumer-regex-production-continuation-package-consumer.mjs",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--experimental-permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "--test",
+        "--test-reporter=tap",
+        "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/regex-production-continuation/emitted/package-consumer.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer",
+      "status": 1,
+      "signal": null,
+      "stdout": "",
+      "stderr": "Could not find '/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/regex-production-continuation/emitted/package-consumer.mjs'\n"
+    },
+    {
+      "name": "consumer-s3-constructor-consumer.mjs",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--experimental-permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "--test",
+        "--test-reporter=tap",
+        "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/s3-constructor/emitted/consumer.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer",
+      "status": 1,
+      "signal": null,
+      "stdout": "",
+      "stderr": "Could not find '/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/s3-constructor/emitted/consumer.mjs'\n"
+    },
+    {
+      "name": "consumer-s3-http-author-public-consumer.mjs",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--experimental-permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "--test",
+        "--test-reporter=tap",
+        "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/s3-http-author/emitted/public-consumer.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer",
+      "status": 1,
+      "signal": null,
+      "stdout": "",
+      "stderr": "Could not find '/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/s3-http-author/emitted/public-consumer.mjs'\n"
+    },
+    {
+      "name": "consumer-s3-http-independent-public-workflow.mjs",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--experimental-permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "--test",
+        "--test-reporter=tap",
+        "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/s3-http-independent/emitted/public-workflow.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer",
+      "status": 1,
+      "signal": null,
+      "stdout": "",
+      "stderr": "Could not find '/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/s3-http-independent/emitted/public-workflow.mjs'\n"
+    },
+    {
+      "name": "consumer-s3-rmdir-public-consumer.mjs",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--experimental-permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "--test",
+        "--test-reporter=tap",
+        "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/s3-rmdir/emitted/public-consumer.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer",
+      "status": 1,
+      "signal": null,
+      "stdout": "",
+      "stderr": "Could not find '/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/s3-rmdir/emitted/public-consumer.mjs'\n"
+    },
+    {
+      "name": "consumer-webdav-loopback-consumer.test.mjs",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--experimental-permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "--test",
+        "--test-reporter=tap",
+        "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/webdav-loopback/emitted/consumer.test.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer",
+      "status": 1,
+      "signal": null,
+      "stdout": "",
+      "stderr": "Could not find '/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/webdav-loopback/emitted/consumer.test.mjs'\n"
+    },
+    {
+      "name": "consumer-stream-inspection-consumer.mjs",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--experimental-permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "--test",
+        "--test-reporter=tap",
+        "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/stream-inspection/emitted/consumer.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer",
+      "status": 1,
+      "signal": null,
+      "stdout": "",
+      "stderr": "Could not find '/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/stream-inspection/emitted/consumer.mjs'\n"
+    },
+    {
+      "name": "consumer-stream-five-public-options.mjs",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--experimental-permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "--test",
+        "--test-reporter=tap",
+        "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/stream-five/emitted/public-options.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer",
+      "status": 1,
+      "signal": null,
+      "stdout": "",
+      "stderr": "Could not find '/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/stream-five/emitted/public-options.mjs'\n"
+    }
+  ],
+  "testsUnchanged": true,
+  "rootDistUnchanged": true,
+  "relativeDiscoveryControl": {
+    "status": 1,
+    "stdout": "TAP version 13\n# Subtest: regex/emitted/package-consumer.mjs\nnot ok 1 - regex/emitted/package-consumer.mjs\n  ---\n  duration_ms: 0.795125\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/regex/emitted/package-consumer.mjs:1:1'\n  failureType: 'testCodeFailure'\n  error: 'Access to this API has been restricted. Use --allow-child-process to manage permissions.'\n  code: 'ERR_ACCESS_DENIED'\n  stack: |-\n    ChildProcess.spawn (node:internal/child_process:395:28)\n    spawn (node:child_process:787:9)\n    TestContext.<anonymous> (node:internal/test_runner/runner:377:19)\n    FileTest.runInAsyncScope (node:async_hooks:214:14)\n    FileTest.run (node:internal/test_runner/test:1047:25)\n    FileTest.start (node:internal/test_runner/test:944:17)\n    runTestFile (node:internal/test_runner/runner:456:32)\n    node:internal/test_runner/runner:727:25\n    node:internal/per_context/primordials:561:37\n    new Promise (<anonymous>)\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 0\n# fail 1\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 4.407917\n",
+    "stderr": "(node:50750) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+  },
+  "directUnchangedWebdavControl": {
+    "status": 1,
+    "stdout": "TAP version 13\n# Subtest: consumer resolves the built public package, not TypeScript source\nok 1 - consumer resolves the built public package, not TypeScript source\n  ---\n  duration_ms: 0.362292\n  type: 'test'\n  ...\n# Subtest: built public consumer: existing-target cp to-remote through actual serialized HTTP\nok 2 - built public consumer: existing-target cp to-remote through actual serialized HTTP\n  ---\n  duration_ms: 38.232875\n  type: 'test'\n  ...\n# Subtest: built public consumer: existing-target cp from-remote through actual serialized HTTP\nok 3 - built public consumer: existing-target cp from-remote through actual serialized HTTP\n  ---\n  duration_ms: 14.295792\n  type: 'test'\n  ...\n# Subtest: built public consumer: existing-target mv to-remote through actual serialized HTTP\nnot ok 4 - built public consumer: existing-target mv to-remote through actual serialized HTTP\n  ---\n  duration_ms: 13.136208\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/webdav-loopback/emitted/consumer.test.mjs:26:9'\n  failureType: 'testCodeFailure'\n  error: |-\n    mv: EAGAIN: resource temporarily unavailable, utimes '/remote/target'\n    \n    \n    1 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 1\n  operator: 'strictEqual'\n  stack: |-\n    file:///Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/webdav-loopback/emitted/consumer.test.mjs:34:24\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async withBackingDav (file:///Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/webdav-loopback/emitted/provider.mjs:167:9)\n    async TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-L0QqFx/consumer/webdav-loopback/emitted/consumer.test.mjs:28:13)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: built public consumer: existing-target mv from-remote through actual serialized HTTP\nok 5 - built public consumer: existing-target mv from-remote through actual serialized HTTP\n  ---\n  duration_ms: 12.971459\n  type: 'test'\n  ...\n# Subtest: built public consumer: cp overlapping backing alias preserves bytes\nok 6 - built public consumer: cp overlapping backing alias preserves bytes\n  ---\n  duration_ms: 8.121708\n  type: 'test'\n  ...\n# Subtest: built public consumer: absent authority refuses existing-target cp\nok 7 - built public consumer: absent authority refuses existing-target cp\n  ---\n  duration_ms: 10.888042\n  type: 'test'\n  ...\n# Subtest: built public consumer: mv overlapping backing alias preserves bytes\nok 8 - built public consumer: mv overlapping backing alias preserves bytes\n  ---\n  duration_ms: 5.089958\n  type: 'test'\n  ...\n# Subtest: built public consumer: absent authority refuses existing-target mv\nok 9 - built public consumer: absent authority refuses existing-target mv\n  ---\n  duration_ms: 7.419417\n  type: 'test'\n  ...\n# Subtest: built public constructor callback propagates EACCES before content\nok 10 - built public constructor callback propagates EACCES before content\n  ---\n  duration_ms: 2.917625\n  type: 'test'\n  ...\n# Subtest: built public constructor callback propagates abort before content\nok 11 - built public constructor callback propagates abort before content\n  ---\n  duration_ms: 3.044333\n  type: 'test'\n  ...\n# Subtest: built public constructor distinct cannot override serialized protocol alias proof\nok 12 - built public constructor distinct cannot override serialized protocol alias proof\n  ---\n  duration_ms: 2.980375\n  type: 'test'\n  ...\n# Subtest: built public complete backing identities retain precedence without callback invocation\nok 13 - built public complete backing identities retain precedence without callback invocation\n  ---\n  duration_ms: 0.247166\n  type: 'test'\n  ...\n1..13\n# tests 13\n# suites 0\n# pass 12\n# fail 1\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 122.094708\n",
+    "stderr": "(node:50751) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+  },
+  "cause": "Author harness --test requires child processes/discovery permissions. Direct plain Node executes emitted node:test files and emits TAP without granting child process authority. No consumer, source, assertions, or permission scope changes."
+}
+

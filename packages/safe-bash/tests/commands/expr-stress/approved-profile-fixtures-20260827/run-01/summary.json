@@ -1,0 +1,53 @@
+{
+  "started": "2026-08-27T20:12:47.666Z",
+  "finished": "2026-08-27T20:13:13.951Z",
+  "baseline": "6f2f0abb0fb337715849adf8978d5429d086fb6d",
+  "candidate": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+  "originalContracts": {
+    "tests": 27,
+    "pass": 26,
+    "fail": 1,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "approvedContracts": {
+    "tests": 27,
+    "pass": 27,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "unchangedControls": {
+    "tests": 298,
+    "pass": 298,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "historicalLegacy": "240/241 raw results preserved; no new 241-case run or inferred 241/241",
+  "originalRuntime": {
+    "passed": 11,
+    "total": 12,
+    "red": [
+      "syntax-output-one"
+    ]
+  },
+  "version2Runtime": {
+    "passed": 12,
+    "total": 12,
+    "red": []
+  },
+  "ordinaryErrorPolicy": {
+    "passed": false,
+    "status": 2,
+    "stderrBytes": 23,
+    "limit": 1
+  },
+  "policySatisfied": false,
+  "sourceDocsModified": false,
+  "noNativeExecution": true,
+  "fullGate": false
+}

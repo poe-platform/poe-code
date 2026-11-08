@@ -1,0 +1,48 @@
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
+import { spawnSync } from 'node:child_process';
+
+const directory = resolve(process.argv[2]);
+assert.ok(directory.startsWith('/tmp/safe-bash-stream-public-independent.'));
+assert.equal(existsSync(directory), false);
+mkdirSync(directory, { recursive: true });
+const npm = realpathSync(join(dirname(process.execPath), 'npm'));
+const packageRoot = join(directory, 'canary');
+const consumer = join(directory, 'consumer');
+const home = join(directory, 'home');
+for (const target of [packageRoot, consumer, home]) mkdirSync(target);
+const profile = join(directory, 'network-denied.sb');
+writeFileSync(profile, '(version 1) (allow default) (deny network*)\n');
+const env = { PATH: `${dirname(process.execPath)}:/usr/bin:/bin`, HOME: home, TMPDIR: directory, npm_config_userconfig: join(home, 'user.npmrc'), npm_config_globalconfig: join(home, 'global.npmrc'), npm_config_cache: join(directory, 'empty-cache'), npm_config_update_notifier: 'false' };
+writeFileSync(env.npm_config_userconfig, '');
+writeFileSync(env.npm_config_globalconfig, '');
+const sentinel = join(directory, 'LIFECYCLE_EXECUTED');
+const lifecycle = `node -e "require('node:fs').writeFileSync('${sentinel}','executed'); process.exit(91)"`;
+writeFileSync(join(packageRoot, 'package.json'), JSON.stringify({ name: 'stream-public-offline-canary', version: '1.0.0', scripts: Object.fromEntries(['prepack', 'prepare', 'postpack', 'preinstall', 'install', 'postinstall'].map(name => [name, lifecycle])) }));
+writeFileSync(join(consumer, 'package.json'), JSON.stringify({ name: 'offline-canary-consumer', private: true }));
+const steps = [];
+function run(label, args, cwd, expected = 0) {
+  const result = spawnSync('/usr/bin/sandbox-exec', ['-f', profile, process.execPath, npm, ...args], { cwd, env, encoding: 'utf8', timeout: 30000 });
+  steps.push({ label, args, cwd, status: result.status, stdout: result.stdout, stderr: result.stderr });
+  writeFileSync(join(directory, 'results.json'), JSON.stringify({ steps }, null, 2));
+  assert.equal(result.status, expected, result.stderr);
+  return result;
+}
+run('negative control npm10 prepare bypasses ignore-scripts', ['pack', '--offline', '--ignore-scripts', '--json', '--pack-destination', directory], packageRoot, 91);
+assert.equal(readFileSync(sentinel, 'utf8'), 'executed');
+const guardedRoot = join(directory, 'guarded-canary');
+mkdirSync(guardedRoot);
+const guardedSentinel = join(directory, 'GUARDED_LIFECYCLE_EXECUTED');
+const guardedLifecycle = `node -e "require('node:fs').writeFileSync('${guardedSentinel}','executed'); process.exit(92)"`;
+writeFileSync(join(guardedRoot, 'package.json'), JSON.stringify({ name: 'stream-public-guarded-canary', version: '1.0.0', scripts: Object.fromEntries(['prepack', 'postpack', 'preinstall', 'install', 'postinstall'].map(name => [name, guardedLifecycle])) }));
+const packed = JSON.parse(run('prepare absent: offline pack suppresses prepack/postpack', ['pack', '--offline', '--ignore-scripts', '--json', '--pack-destination', directory], guardedRoot).stdout);
+assert.equal(existsSync(guardedSentinel), false);
+run('explicit offline install suppresses preinstall/install/postinstall', ['install', '--offline', '--ignore-scripts', '--omit=dev', '--no-audit', '--no-fund', '--no-package-lock', join(directory, packed[0].filename)], consumer);
+assert.equal(existsSync(guardedSentinel), false);
+const missing = run('empty-cache uncached lookup explicitly fails offline', ['view', 'stream-public-never-cached-control-8675309', 'version', '--offline', '--ignore-scripts'], consumer, 1);
+assert.match(missing.stderr, /ENOTCACHED/u);
+const report = { status: 'pass', productExecution: false, controls: 4, negativeControlPrepareExecutedDespiteIgnoreScripts: existsSync(sentinel), suppressedLifecycleNames: ['prepack', 'postpack', 'preinstall', 'install', 'postinstall'], guardedSentinelExists: existsSync(guardedSentinel), node: process.version, npmRealpath: npm, npmSha256: createHash('sha256').update(readFileSync(npm)).digest('hex'), networkPolicy: readFileSync(profile, 'utf8'), steps };
+writeFileSync(join(directory, 'results.json'), JSON.stringify(report, null, 2) + '\n');
+console.log(JSON.stringify(report, null, 2));

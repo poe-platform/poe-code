@@ -1,0 +1,66 @@
+{
+  "schema": "FINAL_LAZY_WASM_SOURCE_DIAGNOSIS_SEAL",
+  "at": "2026-08-29T10:07:32.889Z",
+  "nodePrimaryCommit": "2645dc73720b1b4f27c49f395d3c66025ce126cc",
+  "localBindings": 45,
+  "primaryLocators": 18,
+  "files": [
+    {
+      "path": "ADMIN-RECEIPTS.json",
+      "bytes": 3103,
+      "mode": 420,
+      "sha256": "7c39ba91f57f55d546d8ac91318b063a51f7bc1cc294adbe12b78ece79ae47b0"
+    },
+    {
+      "path": "BUILD-ENTRY-NOTE.json",
+      "bytes": 419,
+      "mode": 420,
+      "sha256": "221501c539a316980d224b79ac702638c2e3a6d840c7531d6f75482c3db48aef"
+    },
+    {
+      "path": "FUTURE-PROPOSAL.json",
+      "bytes": 3809,
+      "mode": 420,
+      "sha256": "b2fb94584491bf2c293fcc7a19b9d8741dd37ae122b96a7888fb20d95cafcc77"
+    },
+    {
+      "path": "LOCAL-BINDINGS.json",
+      "bytes": 13066,
+      "mode": 420,
+      "sha256": "d0e99048ea0244fe43741ec317679b51910f23afb64489df1f644f84e1300420"
+    },
+    {
+      "path": "POST-BINDINGS.json",
+      "bytes": 12691,
+      "mode": 420,
+      "sha256": "bf56ef2e52957e8ecbfa42ea41b3d75baa05fdaf9f89ad1f9f4e8ff0ee1ceab9"
+    },
+    {
+      "path": "PRIMARY-SOURCES.json",
+      "bytes": 12332,
+      "mode": 420,
+      "sha256": "c7aef4d9b0fe7c57867f9174fc77ff1b421f5a4b7798ddf2088c181984d84f11"
+    },
+    {
+      "path": "README.md",
+      "bytes": 4683,
+      "mode": 420,
+      "sha256": "8a18cb7d86e49885386fc5d008e6a4d6ec7c1c1b05d1cb5f8acd4157e616a218"
+    },
+    {
+      "path": "SCOPE.json",
+      "bytes": 615,
+      "mode": 420,
+      "sha256": "10101dd60cf6e53aadb1b0e1c7708ba06ece1839f8cb508d978d9e002554bcfc"
+    },
+    {
+      "path": "SOURCE-TRACE.json",
+      "bytes": 3390,
+      "mode": 420,
+      "sha256": "0fa8eb8b33c4225b46765bdcdb62eb99520202d9077963abb292e79fa9eec85b"
+    }
+  ],
+  "runtimeAuthorized": false,
+  "afterPublication": "PAUSE",
+  "notAFull55Preseal": true
+}

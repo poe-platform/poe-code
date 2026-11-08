@@ -1,0 +1,70 @@
+Independent BOUNDED PREFLIGHT — 2026-08-27T06:08:52.740Z
+
+DISPOSITION: PACKAGE IDENTITY PASS; REPRESENTATIVE EXECUTION HOLD for three concrete driver seal/lifecycle/accounting gaps. No product/network/native/performance/full224/control execution or imports by verifier; no downloads/install/extraction, author/source/harness/golden edits, staging/commits. Owned writes only verification/** and /tmp. No active owned children or native fixtures.
+
+Durable review: benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/verification/PREFLIGHT.md
+Raw independent package check: benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/verification/package-preflight-attempt-2.json, exit0.
+Raw independent closure/selection check: benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/verification/candidate-preflight-attempt-1.json, exit0.
+
+CONFIRMED: actual tarball9879070bytes, SHA256f3a90ecffb1150e786201d9bd408ae30bcc1f64f3b10b7de22353f7e1373841d, SHA1abc0520ad5c278eae2de4cd90c3d7f88e1fdd724, SRIsha512-T0Vpy7YRgCjxJdqG3tkxn0ZnIDLJvVwb8hH4L+6NVdp+Te27jQxjxnszW9ODjEKbWxWujj83rP5S0GQxCSufgg==; raw metadataSHAef19c2318535bde2774c58b2ab7501178b6227e8cba98071bcb0ebdcc69d84b1. All955 published files equal full extracted and actual frozen package maps (zero missing/extra/changed paths; package.json unchanged, no bookkeeping exceptions). Bundle70dd1320d921b736e965b1545e50ab57af2b2807a26de7fa624d4f519a953b7c. Regular independent extraction inspected without extracting/executing.
+Proposed closure3842files/135300567bytes independently checks exact membership, nlink1, modes and hashes;955 registry package files, all other bytes equal accepted frozen helpers/dependencies. Node executable on disk currently matches5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011. This does NOT yet prove future runtime use, nor authenticate every dependency tarball or package signatures. Two raw HTTPS request records authorized registry TLS; SRI/SHA1 independently recomputed from retained compressed bytes.
+
+Exact plan7distinct IDs/8Bash.exec requests: original echo/multiple, composition/archive-hash/archive-hash, cat/binary-stdin, curl/get, curl/output, type/type, patch/dry-run; aligned patch/dry-run repeat. All exact recipe/native/old-observation fields match.8fresh workers+coordinator; no ours/init/warmup/neutrality/transport/inventory/retry/full224. The IPC disconnect protocol is compatible, no synthetic stop message. No measured-path custom command or loader remap found. Engine registry wrapping forwards original implementation. The observer's child_process denial is an explicit host policy, not transparent instrumentation or all-thread process coverage; preserve that limit.
+
+BLOCKERS BEFORE ROOT PRODUCT APPROVAL:
+B1 representative.mjs15/21/67: approval binds five files but not live download.json, whose executable/HOME/TMPDIR affect launch; driver does not verify recorded Node binary hash. Complete launch seal for actual consumed records/binary. Staged observer hashes must equal root-approved hashes (currently freshly derived after copying), and the two declared observer input additions must be explicit while rejecting other closure additions. Current offline exact membership does not substitute for a complete execution seal.
+B2 representative.mjs47,114-117:150s timer only signals active workers and is cleared before cleanup/server close; no bounded coordinator/server finalization. A closeChild failure can skip server close/final evidence. Keep a bounded finalization mechanism and attempt/record all cleanup even after one failure. No new recipes or controls needed.
+B3 representative.mjs74-90,96-98,119: rejected startup/request deadlines leave state active; a late ready can still dispatch a request while cleanup proceeds. Fence terminal/closing callbacks and log timeout/error settlements. Count actual child-launched/request-send/settlement events independently: results.length is not launched children when finally throws, and returned-result snapshots can omit late sends. Preserve unknown/incomplete states rather than synthesizing observations.
+These are static source findings, NOT observed product bugs or failures. No demand for universal module/thread telemetry. No GO for current driver hash; root can obtain corrected hash-bound handoff without widening8-call budget.
+
+Candidate before capture2026-08-27T06:03:07.743Z, after2026-08-27T06:08:52.740Z; beforeHEAD1836795aed012ad734fedbd0ed56c2c98ab57f56, afterHEADb0713c421962107ba2e36585f3cb90e023c3b26e, inspected author-input drift0. Source author still owns files; no waiting loop or final seal. Full before/after hashes/modes in preflight-inputs-before.json and preflight-inputs-after.json. Current text planSHA527ac740058732c25d70ccadfae006a66b3ee9d5a7622af51e8e6429d4a64225; representative-plan-v2 is effective, prior proposal retained.
+{
+  "representative.mjs": {
+    "before": "f7d3ed67e685a2e89e6daf5d5920cf36b5f3dd030b8998489264109983ab75ce",
+    "after": "f7d3ed67e685a2e89e6daf5d5920cf36b5f3dd030b8998489264109983ab75ce"
+  },
+  "observe-process.mjs": {
+    "before": "7986a7e8730b7c022e97f42d6d5bb497cc46455304af617541e5fe0d41c5b10c",
+    "after": "7986a7e8730b7c022e97f42d6d5bb497cc46455304af617541e5fe0d41c5b10c"
+  },
+  "observe-load.mjs": {
+    "before": "bb1d9e856b1a056f19deaad325568a3092354221ccc8731a25cea42eb94b9b9d",
+    "after": "bb1d9e856b1a056f19deaad325568a3092354221ccc8731a25cea42eb94b9b9d"
+  },
+  "representative-plan-v2.json": {
+    "before": "f13ec98a0187d9cb286385fbc32ef488b987071ca19f567e70b4ce0aff8aac99",
+    "after": "f13ec98a0187d9cb286385fbc32ef488b987071ca19f567e70b4ce0aff8aac99"
+  },
+  "execution-closure.json": {
+    "before": "8770fa09f562363a43f4d538965b4afc0663e09807466509ba4464b6e8568821",
+    "after": "8770fa09f562363a43f4d538965b4afc0663e09807466509ba4464b6e8568821"
+  },
+  "download.json": {
+    "before": "9d01415e5daec76721543de5a41597f42e158eea2dff6229bcd2d9be3ef937e0",
+    "after": "9d01415e5daec76721543de5a41597f42e158eea2dff6229bcd2d9be3ef937e0"
+  },
+  "package-comparison.json": {
+    "before": "393d8d78a26e521594f1ac33953b9f6dd76a5dd936f82f4fe66de4af3829aa9e",
+    "after": "393d8d78a26e521594f1ac33953b9f6dd76a5dd936f82f4fe66de4af3829aa9e"
+  }
+}
+
+OWN CHECK HISTORY: preparation path guard now explicitly accepts actual author-owned safe-bash-published-auth temp prefix (no wider private access). Initial read-only index capture ENOBUFS caused missing-input verifier attempt1 exit1; preserved raw report. Capture retry16MiB index buffer and package attempt2 exit0. Candidate script syntax check and offline candidate check exit0. No authored sibling was modified.
+
+Commands executed (offline only):
+node benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/verification/verify-package.mjs --input benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/verification/package-preflight-input.json --out benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/verification/package-preflight-attempt-2.json
+node --check benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/verification/verify-candidate.mjs
+node benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/verification/verify-candidate.mjs --out benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/verification/candidate-preflight-attempt-1.json
+
+Own evidence/script hashes:
+{
+  "verify-package.mjs": "c39c8b5cfcff64836cca64b7d06ffb460615da28bb6e76faabbf700ae7de1779",
+  "tar-map.mjs": "d1d064cd6c0e03c98ef2179cd7d9d22c1cc835ab98c8cdbc47306012b50d7343",
+  "verify-candidate.mjs": "5de097e066420aa8f2873f7a2c3b7309ff7da68b21548aadb41dfd83de0d6b0e",
+  "PREFLIGHT.md": "e6ded1b2e674bfc94d2d081a3c9c4eb3818be6afeefa23ed179ffc4139cdf9e4",
+  "package-preflight-attempt-1.json": "5b1681448449079eb441b9c5a9c6b50e4aedb3242f097cf190863f58c616b010",
+  "package-preflight-attempt-2.json": "228af56a27880ddafb9557077813540318be53dc42ebdecec66c2936dd035002",
+  "candidate-preflight-attempt-1.json": "5a9683528041c758fe7aea906190436fadd4ea2b2b2f99211d4f03c0ffa26251"
+}
+
+Accepted original222/224 and aligned223/224 vsbaseline155/224 unchanged; c2902a6 PLUS dirty/untracked sourceSHA76deb591783ac168ca5daef04c4351d7e80b159c003cd27d3a445190ca6fd74c, not currentHEAD or additive union. Stop at preflight; root later resumes after corrected candidate authorization and any8 results.

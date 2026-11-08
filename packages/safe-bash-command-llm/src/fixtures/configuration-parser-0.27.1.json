@@ -1,0 +1,3184 @@
+{
+  "oracle": "llm 0.27.1 CliRunner with isolated LLM_USER_PATH; only fixture gpt-4o-mini model (alias mini) registered",
+  "version": "0.27.1",
+  "cases": [
+    {
+      "files": {},
+      "argv": [
+        "embed-models",
+        "list",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm embed-models list [OPTIONS]\n\n  List available embedding models\n\nOptions:\n  -q, --query TEXT  Search for embedding models matching these strings\n  -h, --help        Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "embed-models",
+        "list",
+        "-h"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm embed-models list [OPTIONS]\n\n  List available embedding models\n\nOptions:\n  -q, --query TEXT  Search for embedding models matching these strings\n  -h, --help        Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "embed-models",
+        "list"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "embed-models",
+        "list",
+        "--unknown"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm embed-models list [OPTIONS]\nTry 'llm embed-models list -h' for help.\n\nError: No such option: --unknown\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "embed-models",
+        "list",
+        "--help=1"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "embed-models",
+        "list",
+        "--unknown",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm embed-models list [OPTIONS]\nTry 'llm embed-models list -h' for help.\n\nError: No such option: --unknown\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "embed-models",
+        "list",
+        "-xh"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm embed-models list [OPTIONS]\nTry 'llm embed-models list -h' for help.\n\nError: No such option: -x\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "embed-models",
+        "list",
+        "--",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm embed-models list [OPTIONS]\nTry 'llm embed-models list -h' for help.\n\nError: Got unexpected extra argument (--help)\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "embed-models",
+        "list",
+        "one",
+        "two",
+        "three",
+        "four"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm embed-models list [OPTIONS]\nTry 'llm embed-models list -h' for help.\n\nError: Got unexpected extra arguments (one two three four)\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "embed-models",
+        "default",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm embed-models default [OPTIONS] [MODEL]\n\n  Show or set the default embedding model\n\nOptions:\n  --remove-default  Reset to specifying no default model\n  -h, --help        Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "embed-models",
+        "default",
+        "-h"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm embed-models default [OPTIONS] [MODEL]\n\n  Show or set the default embedding model\n\nOptions:\n  --remove-default  Reset to specifying no default model\n  -h, --help        Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "embed-models",
+        "default"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "<No default embedding model set>\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "embed-models",
+        "default",
+        "--unknown"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm embed-models default [OPTIONS] [MODEL]\nTry 'llm embed-models default -h' for help.\n\nError: No such option: --unknown\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "embed-models",
+        "default",
+        "--help=1"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "embed-models",
+        "default",
+        "--unknown",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm embed-models default [OPTIONS] [MODEL]\nTry 'llm embed-models default -h' for help.\n\nError: No such option: --unknown\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "embed-models",
+        "default",
+        "-xh"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm embed-models default [OPTIONS] [MODEL]\nTry 'llm embed-models default -h' for help.\n\nError: No such option: -x\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "embed-models",
+        "default",
+        "--",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "Error: Unknown embedding model: --help\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "embed-models",
+        "default",
+        "one",
+        "two",
+        "three",
+        "four"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm embed-models default [OPTIONS] [MODEL]\nTry 'llm embed-models default -h' for help.\n\nError: Got unexpected extra arguments (two three four)\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "list",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm templates list [OPTIONS]\n\n  List available prompt templates\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "list",
+        "-h"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm templates list [OPTIONS]\n\n  List available prompt templates\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "list"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "list",
+        "--unknown"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm templates list [OPTIONS]\nTry 'llm templates list -h' for help.\n\nError: No such option: --unknown\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "list",
+        "--help=1"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "list",
+        "--unknown",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm templates list [OPTIONS]\nTry 'llm templates list -h' for help.\n\nError: No such option: --unknown\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "list",
+        "-xh"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm templates list [OPTIONS]\nTry 'llm templates list -h' for help.\n\nError: No such option: -x\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "list",
+        "--",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm templates list [OPTIONS]\nTry 'llm templates list -h' for help.\n\nError: Got unexpected extra argument (--help)\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "list",
+        "one",
+        "two",
+        "three",
+        "four"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm templates list [OPTIONS]\nTry 'llm templates list -h' for help.\n\nError: Got unexpected extra arguments (one two three four)\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "path",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm templates path [OPTIONS]\n\n  Output the path to the templates directory\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "path",
+        "-h"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm templates path [OPTIONS]\n\n  Output the path to the templates directory\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "path"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "<USER_PATH>/templates\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "path",
+        "--unknown"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm templates path [OPTIONS]\nTry 'llm templates path -h' for help.\n\nError: No such option: --unknown\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "path",
+        "--help=1"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "path",
+        "--unknown",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm templates path [OPTIONS]\nTry 'llm templates path -h' for help.\n\nError: No such option: --unknown\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "path",
+        "-xh"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm templates path [OPTIONS]\nTry 'llm templates path -h' for help.\n\nError: No such option: -x\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "path",
+        "--",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm templates path [OPTIONS]\nTry 'llm templates path -h' for help.\n\nError: Got unexpected extra argument (--help)\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "path",
+        "one",
+        "two",
+        "three",
+        "four"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm templates path [OPTIONS]\nTry 'llm templates path -h' for help.\n\nError: Got unexpected extra arguments (one two three four)\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "show",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm templates show [OPTIONS] NAME\n\n  Show the specified prompt template\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "show",
+        "-h"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm templates show [OPTIONS] NAME\n\n  Show the specified prompt template\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "show"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm templates show [OPTIONS] NAME\nTry 'llm templates show -h' for help.\n\nError: Missing argument 'NAME'.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "show",
+        "--unknown"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm templates show [OPTIONS] NAME\nTry 'llm templates show -h' for help.\n\nError: No such option: --unknown\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "show",
+        "--help=1"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "show",
+        "--unknown",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm templates show [OPTIONS] NAME\nTry 'llm templates show -h' for help.\n\nError: No such option: --unknown\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "show",
+        "-xh"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm templates show [OPTIONS] NAME\nTry 'llm templates show -h' for help.\n\nError: No such option: -x\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "show",
+        "--",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "Error: Template '--help' not found or invalid\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "show",
+        "one",
+        "two",
+        "three",
+        "four"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm templates show [OPTIONS] NAME\nTry 'llm templates show -h' for help.\n\nError: Got unexpected extra arguments (two three four)\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "loaders",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm templates loaders [OPTIONS]\n\n  Show template loaders registered by plugins\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "loaders",
+        "-h"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm templates loaders [OPTIONS]\n\n  Show template loaders registered by plugins\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "loaders"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "No template loaders found\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "loaders",
+        "--unknown"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm templates loaders [OPTIONS]\nTry 'llm templates loaders -h' for help.\n\nError: No such option: --unknown\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "loaders",
+        "--help=1"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "loaders",
+        "--unknown",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm templates loaders [OPTIONS]\nTry 'llm templates loaders -h' for help.\n\nError: No such option: --unknown\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "loaders",
+        "-xh"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm templates loaders [OPTIONS]\nTry 'llm templates loaders -h' for help.\n\nError: No such option: -x\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "loaders",
+        "--",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm templates loaders [OPTIONS]\nTry 'llm templates loaders -h' for help.\n\nError: Got unexpected extra argument (--help)\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "loaders",
+        "one",
+        "two",
+        "three",
+        "four"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm templates loaders [OPTIONS]\nTry 'llm templates loaders -h' for help.\n\nError: Got unexpected extra arguments (one two three four)\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "list",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm keys list [OPTIONS]\n\n  List names of all stored keys\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "list",
+        "-h"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm keys list [OPTIONS]\n\n  List names of all stored keys\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "list"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "No keys found\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "list",
+        "--unknown"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm keys list [OPTIONS]\nTry 'llm keys list -h' for help.\n\nError: No such option: --unknown\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "list",
+        "--help=1"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "list",
+        "--unknown",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm keys list [OPTIONS]\nTry 'llm keys list -h' for help.\n\nError: No such option: --unknown\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "list",
+        "-xh"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm keys list [OPTIONS]\nTry 'llm keys list -h' for help.\n\nError: No such option: -x\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "list",
+        "--",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm keys list [OPTIONS]\nTry 'llm keys list -h' for help.\n\nError: Got unexpected extra argument (--help)\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "list",
+        "one",
+        "two",
+        "three",
+        "four"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm keys list [OPTIONS]\nTry 'llm keys list -h' for help.\n\nError: Got unexpected extra arguments (one two three four)\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "path",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm keys path [OPTIONS]\n\n  Output the path to the keys.json file\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "path",
+        "-h"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm keys path [OPTIONS]\n\n  Output the path to the keys.json file\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "path"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "<USER_PATH>/keys.json\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "path",
+        "--unknown"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm keys path [OPTIONS]\nTry 'llm keys path -h' for help.\n\nError: No such option: --unknown\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "path",
+        "--help=1"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "path",
+        "--unknown",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm keys path [OPTIONS]\nTry 'llm keys path -h' for help.\n\nError: No such option: --unknown\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "path",
+        "-xh"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm keys path [OPTIONS]\nTry 'llm keys path -h' for help.\n\nError: No such option: -x\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "path",
+        "--",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm keys path [OPTIONS]\nTry 'llm keys path -h' for help.\n\nError: Got unexpected extra argument (--help)\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "path",
+        "one",
+        "two",
+        "three",
+        "four"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm keys path [OPTIONS]\nTry 'llm keys path -h' for help.\n\nError: Got unexpected extra arguments (one two three four)\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "get",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm keys get [OPTIONS] NAME\n\n  Return the value of a stored key\n\n  Example usage:\n\n      export OPENAI_API_KEY=$(llm keys get openai)\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "get",
+        "-h"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm keys get [OPTIONS] NAME\n\n  Return the value of a stored key\n\n  Example usage:\n\n      export OPENAI_API_KEY=$(llm keys get openai)\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "get"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm keys get [OPTIONS] NAME\nTry 'llm keys get -h' for help.\n\nError: Missing argument 'NAME'.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "get",
+        "--unknown"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm keys get [OPTIONS] NAME\nTry 'llm keys get -h' for help.\n\nError: No such option: --unknown\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "get",
+        "--help=1"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "get",
+        "--unknown",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm keys get [OPTIONS] NAME\nTry 'llm keys get -h' for help.\n\nError: No such option: --unknown\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "get",
+        "-xh"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm keys get [OPTIONS] NAME\nTry 'llm keys get -h' for help.\n\nError: No such option: -x\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "get",
+        "--",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "Error: No keys found\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "get",
+        "one",
+        "two",
+        "three",
+        "four"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm keys get [OPTIONS] NAME\nTry 'llm keys get -h' for help.\n\nError: Got unexpected extra arguments (two three four)\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "set",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm keys set [OPTIONS] NAME\n\n  Save a key in the keys.json file\n\n  Example usage:\n\n      $ llm keys set openai\n      Enter key: ...\n\nOptions:\n  --value TEXT  Value to set\n  -h, --help    Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "set",
+        "-h"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm keys set [OPTIONS] NAME\n\n  Save a key in the keys.json file\n\n  Example usage:\n\n      $ llm keys set openai\n      Enter key: ...\n\nOptions:\n  --value TEXT  Value to set\n  -h, --help    Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "set"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm keys set [OPTIONS] NAME\nTry 'llm keys set -h' for help.\n\nError: Missing argument 'NAME'.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "set",
+        "--unknown"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm keys set [OPTIONS] NAME\nTry 'llm keys set -h' for help.\n\nError: No such option: --unknown\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "set",
+        "--help=1"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "set",
+        "--unknown",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm keys set [OPTIONS] NAME\nTry 'llm keys set -h' for help.\n\nError: No such option: --unknown\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "set",
+        "-xh"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm keys set [OPTIONS] NAME\nTry 'llm keys set -h' for help.\n\nError: No such option: -x\n"
+    },
+    {
+      "files": {
+        "keys.json": "{\n  \"// Note\": \"This file stores secret API credentials. Do not share!\",\n  \"--help\": \"fixture-value\"\n}\n"
+      },
+      "argv": [
+        "keys",
+        "set",
+        "--",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Enter key: \n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "set",
+        "one",
+        "two",
+        "three",
+        "four"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "Enter key: \n",
+      "stderr": "Usage: llm keys set [OPTIONS] NAME\nTry 'llm keys set -h' for help.\n\nError: Got unexpected extra arguments (two three four)\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "list",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm aliases list [OPTIONS]\n\n  List current aliases\n\nOptions:\n  --json      Output as JSON\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "list",
+        "-h"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm aliases list [OPTIONS]\n\n  List current aliases\n\nOptions:\n  --json      Output as JSON\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "list"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "mini : gpt-4o-mini\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "list",
+        "--unknown"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm aliases list [OPTIONS]\nTry 'llm aliases list -h' for help.\n\nError: No such option: --unknown\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "list",
+        "--help=1"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "list",
+        "--unknown",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm aliases list [OPTIONS]\nTry 'llm aliases list -h' for help.\n\nError: No such option: --unknown\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "list",
+        "-xh"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm aliases list [OPTIONS]\nTry 'llm aliases list -h' for help.\n\nError: No such option: -x\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "list",
+        "--",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm aliases list [OPTIONS]\nTry 'llm aliases list -h' for help.\n\nError: Got unexpected extra argument (--help)\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "list",
+        "one",
+        "two",
+        "three",
+        "four"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm aliases list [OPTIONS]\nTry 'llm aliases list -h' for help.\n\nError: Got unexpected extra arguments (one two three four)\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "path",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm aliases path [OPTIONS]\n\n  Output the path to the aliases.json file\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "path",
+        "-h"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm aliases path [OPTIONS]\n\n  Output the path to the aliases.json file\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "path"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "<USER_PATH>/aliases.json\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "path",
+        "--unknown"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm aliases path [OPTIONS]\nTry 'llm aliases path -h' for help.\n\nError: No such option: --unknown\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "path",
+        "--help=1"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "path",
+        "--unknown",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm aliases path [OPTIONS]\nTry 'llm aliases path -h' for help.\n\nError: No such option: --unknown\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "path",
+        "-xh"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm aliases path [OPTIONS]\nTry 'llm aliases path -h' for help.\n\nError: No such option: -x\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "path",
+        "--",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm aliases path [OPTIONS]\nTry 'llm aliases path -h' for help.\n\nError: Got unexpected extra argument (--help)\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "path",
+        "one",
+        "two",
+        "three",
+        "four"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm aliases path [OPTIONS]\nTry 'llm aliases path -h' for help.\n\nError: Got unexpected extra arguments (one two three four)\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "set",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm aliases set [OPTIONS] ALIAS [MODEL_ID]\n\n  Set an alias for a model\n\n  Example usage:\n\n      llm aliases set mini gpt-4o-mini\n\n  Alternatively you can omit the model ID and specify one or more -q options.\n  The first model matching all of those query strings will be used.\n\n      llm aliases set mini -q 4o -q mini\n\nOptions:\n  -q, --query TEXT  Set alias for model matching these strings\n  -h, --help        Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "set",
+        "-h"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm aliases set [OPTIONS] ALIAS [MODEL_ID]\n\n  Set an alias for a model\n\n  Example usage:\n\n      llm aliases set mini gpt-4o-mini\n\n  Alternatively you can omit the model ID and specify one or more -q options.\n  The first model matching all of those query strings will be used.\n\n      llm aliases set mini -q 4o -q mini\n\nOptions:\n  -q, --query TEXT  Set alias for model matching these strings\n  -h, --help        Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "set"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm aliases set [OPTIONS] ALIAS [MODEL_ID]\nTry 'llm aliases set -h' for help.\n\nError: Missing argument 'ALIAS'.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "set",
+        "--unknown"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm aliases set [OPTIONS] ALIAS [MODEL_ID]\nTry 'llm aliases set -h' for help.\n\nError: No such option: --unknown\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "set",
+        "--help=1"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "set",
+        "--unknown",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm aliases set [OPTIONS] ALIAS [MODEL_ID]\nTry 'llm aliases set -h' for help.\n\nError: No such option: --unknown\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "set",
+        "-xh"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm aliases set [OPTIONS] ALIAS [MODEL_ID]\nTry 'llm aliases set -h' for help.\n\nError: No such option: -x\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "set",
+        "--",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "Error: You must provide a model_id or at least one -q option\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "set",
+        "one",
+        "two",
+        "three",
+        "four"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm aliases set [OPTIONS] ALIAS [MODEL_ID]\nTry 'llm aliases set -h' for help.\n\nError: Got unexpected extra arguments (three four)\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "remove",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm aliases remove [OPTIONS] ALIAS\n\n  Remove an alias\n\n  Example usage:\n\n      $ llm aliases remove turbo\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "remove",
+        "-h"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm aliases remove [OPTIONS] ALIAS\n\n  Remove an alias\n\n  Example usage:\n\n      $ llm aliases remove turbo\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "remove"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm aliases remove [OPTIONS] ALIAS\nTry 'llm aliases remove -h' for help.\n\nError: Missing argument 'ALIAS'.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "remove",
+        "--unknown"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm aliases remove [OPTIONS] ALIAS\nTry 'llm aliases remove -h' for help.\n\nError: No such option: --unknown\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "remove",
+        "--help=1"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "remove",
+        "--unknown",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm aliases remove [OPTIONS] ALIAS\nTry 'llm aliases remove -h' for help.\n\nError: No such option: --unknown\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "remove",
+        "-xh"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm aliases remove [OPTIONS] ALIAS\nTry 'llm aliases remove -h' for help.\n\nError: No such option: -x\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "remove",
+        "--",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "Error: No aliases.json file exists\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "remove",
+        "one",
+        "two",
+        "three",
+        "four"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm aliases remove [OPTIONS] ALIAS\nTry 'llm aliases remove -h' for help.\n\nError: Got unexpected extra arguments (two three four)\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "default",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm models default [OPTIONS] [MODEL]\n\n  Show or set the default model\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "default",
+        "-h"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm models default [OPTIONS] [MODEL]\n\n  Show or set the default model\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "default"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "gpt-4o-mini\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "default",
+        "--unknown"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm models default [OPTIONS] [MODEL]\nTry 'llm models default -h' for help.\n\nError: No such option: --unknown\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "default",
+        "--help=1"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "default",
+        "--unknown",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm models default [OPTIONS] [MODEL]\nTry 'llm models default -h' for help.\n\nError: No such option: --unknown\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "default",
+        "-xh"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm models default [OPTIONS] [MODEL]\nTry 'llm models default -h' for help.\n\nError: No such option: -x\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "default",
+        "--",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "Error: Unknown model: --help\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "default",
+        "one",
+        "two",
+        "three",
+        "four"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm models default [OPTIONS] [MODEL]\nTry 'llm models default -h' for help.\n\nError: Got unexpected extra arguments (two three four)\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "list",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm models options list [OPTIONS]\n\n  List default options for all models\n\n  Example usage:\n\n      llm models options list\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "list",
+        "-h"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm models options list [OPTIONS]\n\n  List default options for all models\n\n  Example usage:\n\n      llm models options list\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "list"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "No default options set for any models.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "list",
+        "--unknown"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm models options list [OPTIONS]\nTry 'llm models options list -h' for help.\n\nError: No such option: --unknown\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "list",
+        "--help=1"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "list",
+        "--unknown",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm models options list [OPTIONS]\nTry 'llm models options list -h' for help.\n\nError: No such option: --unknown\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "list",
+        "-xh"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm models options list [OPTIONS]\nTry 'llm models options list -h' for help.\n\nError: No such option: -x\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "list",
+        "--",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm models options list [OPTIONS]\nTry 'llm models options list -h' for help.\n\nError: Got unexpected extra argument (--help)\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "list",
+        "one",
+        "two",
+        "three",
+        "four"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm models options list [OPTIONS]\nTry 'llm models options list -h' for help.\n\nError: Got unexpected extra arguments (one two three four)\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "show",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm models options show [OPTIONS] MODEL\n\n  List default options set for a specific model\n\n  Example usage:\n\n      llm models options show gpt-4o\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "show",
+        "-h"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm models options show [OPTIONS] MODEL\n\n  List default options set for a specific model\n\n  Example usage:\n\n      llm models options show gpt-4o\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "show"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm models options show [OPTIONS] MODEL\nTry 'llm models options show -h' for help.\n\nError: Missing argument 'MODEL'.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "show",
+        "--unknown"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm models options show [OPTIONS] MODEL\nTry 'llm models options show -h' for help.\n\nError: No such option: --unknown\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "show",
+        "--help=1"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "show",
+        "--unknown",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm models options show [OPTIONS] MODEL\nTry 'llm models options show -h' for help.\n\nError: No such option: --unknown\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "show",
+        "-xh"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm models options show [OPTIONS] MODEL\nTry 'llm models options show -h' for help.\n\nError: No such option: -x\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "show",
+        "--",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "No default options set for model '--help'.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "show",
+        "one",
+        "two",
+        "three",
+        "four"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm models options show [OPTIONS] MODEL\nTry 'llm models options show -h' for help.\n\nError: Got unexpected extra arguments (two three four)\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "set",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm models options set [OPTIONS] MODEL KEY VALUE\n\n  Set a default option for a model\n\n  Example usage:\n\n      llm models options set gpt-4o temperature 0.5\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "set",
+        "-h"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm models options set [OPTIONS] MODEL KEY VALUE\n\n  Set a default option for a model\n\n  Example usage:\n\n      llm models options set gpt-4o temperature 0.5\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "set"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm models options set [OPTIONS] MODEL KEY VALUE\nTry 'llm models options set -h' for help.\n\nError: Missing argument 'MODEL'.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "set",
+        "--unknown"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm models options set [OPTIONS] MODEL KEY VALUE\nTry 'llm models options set -h' for help.\n\nError: No such option: --unknown\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "set",
+        "--help=1"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "set",
+        "--unknown",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm models options set [OPTIONS] MODEL KEY VALUE\nTry 'llm models options set -h' for help.\n\nError: No such option: --unknown\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "set",
+        "-xh"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm models options set [OPTIONS] MODEL KEY VALUE\nTry 'llm models options set -h' for help.\n\nError: No such option: -x\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "set",
+        "--",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm models options set [OPTIONS] MODEL KEY VALUE\nTry 'llm models options set -h' for help.\n\nError: Missing argument 'KEY'.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "set",
+        "one",
+        "two",
+        "three",
+        "four"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm models options set [OPTIONS] MODEL KEY VALUE\nTry 'llm models options set -h' for help.\n\nError: Got unexpected extra argument (four)\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "clear",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm models options clear [OPTIONS] MODEL [KEY]\n\n  Clear default option(s) for a model\n\n  Example usage:\n\n      llm models options clear gpt-4o\n      # Or for a single option\n      llm models options clear gpt-4o temperature\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "clear",
+        "-h"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm models options clear [OPTIONS] MODEL [KEY]\n\n  Clear default option(s) for a model\n\n  Example usage:\n\n      llm models options clear gpt-4o\n      # Or for a single option\n      llm models options clear gpt-4o temperature\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "clear"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm models options clear [OPTIONS] MODEL [KEY]\nTry 'llm models options clear -h' for help.\n\nError: Missing argument 'MODEL'.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "clear",
+        "--unknown"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm models options clear [OPTIONS] MODEL [KEY]\nTry 'llm models options clear -h' for help.\n\nError: No such option: --unknown\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "clear",
+        "--help=1"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "clear",
+        "--unknown",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm models options clear [OPTIONS] MODEL [KEY]\nTry 'llm models options clear -h' for help.\n\nError: No such option: --unknown\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "clear",
+        "-xh"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm models options clear [OPTIONS] MODEL [KEY]\nTry 'llm models options clear -h' for help.\n\nError: No such option: -x\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "clear",
+        "--",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "clear",
+        "one",
+        "two",
+        "three",
+        "four"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm models options clear [OPTIONS] MODEL [KEY]\nTry 'llm models options clear -h' for help.\n\nError: Got unexpected extra arguments (three four)\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm keys [OPTIONS] COMMAND [ARGS]...\n\n  Manage stored API keys for different models\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*  List names of all stored keys\n  get    Return the value of a stored key\n  path   Output the path to the keys.json file\n  set    Save a key in the keys.json file\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "--help",
+        "set"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm keys [OPTIONS] COMMAND [ARGS]...\n\n  Manage stored API keys for different models\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*  List names of all stored keys\n  get    Return the value of a stored key\n  path   Output the path to the keys.json file\n  set    Save a key in the keys.json file\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "-xh"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm keys [OPTIONS] COMMAND [ARGS]...\n\n  Manage stored API keys for different models\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*  List names of all stored keys\n  get    Return the value of a stored key\n  path   Output the path to the keys.json file\n  set    Save a key in the keys.json file\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "wat",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm keys list [OPTIONS]\n\n  List names of all stored keys\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "--",
+        "-h"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm keys list [OPTIONS]\n\n  List names of all stored keys\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "wat"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm keys list [OPTIONS]\nTry 'llm keys list -h' for help.\n\nError: Got unexpected extra argument (wat)\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "--wat"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm keys list [OPTIONS]\nTry 'llm keys list -h' for help.\n\nError: No such option: --wat\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "--help=1"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "--help=1",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "--help",
+        "--help=1"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "-h=x"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm keys [OPTIONS] COMMAND [ARGS]...\n\n  Manage stored API keys for different models\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*  List names of all stored keys\n  get    Return the value of a stored key\n  path   Output the path to the keys.json file\n  set    Save a key in the keys.json file\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "--unknown",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm keys [OPTIONS] COMMAND [ARGS]...\n\n  Manage stored API keys for different models\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*  List names of all stored keys\n  get    Return the value of a stored key\n  path   Output the path to the keys.json file\n  set    Save a key in the keys.json file\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "-q",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm keys [OPTIONS] COMMAND [ARGS]...\n\n  Manage stored API keys for different models\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*  List names of all stored keys\n  get    Return the value of a stored key\n  path   Output the path to the keys.json file\n  set    Save a key in the keys.json file\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm aliases [OPTIONS] COMMAND [ARGS]...\n\n  Manage model aliases\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*   List current aliases\n  path    Output the path to the aliases.json file\n  remove  Remove an alias\n  set     Set an alias for a model\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "--help",
+        "set"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm aliases [OPTIONS] COMMAND [ARGS]...\n\n  Manage model aliases\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*   List current aliases\n  path    Output the path to the aliases.json file\n  remove  Remove an alias\n  set     Set an alias for a model\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "-xh"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm aliases [OPTIONS] COMMAND [ARGS]...\n\n  Manage model aliases\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*   List current aliases\n  path    Output the path to the aliases.json file\n  remove  Remove an alias\n  set     Set an alias for a model\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "wat",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm aliases list [OPTIONS]\n\n  List current aliases\n\nOptions:\n  --json      Output as JSON\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "--",
+        "-h"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm aliases list [OPTIONS]\n\n  List current aliases\n\nOptions:\n  --json      Output as JSON\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "wat"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm aliases list [OPTIONS]\nTry 'llm aliases list -h' for help.\n\nError: Got unexpected extra argument (wat)\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "--wat"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm aliases list [OPTIONS]\nTry 'llm aliases list -h' for help.\n\nError: No such option: --wat\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "--help=1"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "--help=1",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "--help",
+        "--help=1"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "-h=x"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm aliases [OPTIONS] COMMAND [ARGS]...\n\n  Manage model aliases\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*   List current aliases\n  path    Output the path to the aliases.json file\n  remove  Remove an alias\n  set     Set an alias for a model\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "--unknown",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm aliases [OPTIONS] COMMAND [ARGS]...\n\n  Manage model aliases\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*   List current aliases\n  path    Output the path to the aliases.json file\n  remove  Remove an alias\n  set     Set an alias for a model\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "-q",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm aliases [OPTIONS] COMMAND [ARGS]...\n\n  Manage model aliases\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*   List current aliases\n  path    Output the path to the aliases.json file\n  remove  Remove an alias\n  set     Set an alias for a model\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm models options [OPTIONS] COMMAND [ARGS]...\n\n  Manage default options for models\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*  List default options for all models\n  clear  Clear default option(s) for a model\n  set    Set a default option for a model\n  show   List default options set for a specific model\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "--help",
+        "set"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm models options [OPTIONS] COMMAND [ARGS]...\n\n  Manage default options for models\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*  List default options for all models\n  clear  Clear default option(s) for a model\n  set    Set a default option for a model\n  show   List default options set for a specific model\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "-xh"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm models options [OPTIONS] COMMAND [ARGS]...\n\n  Manage default options for models\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*  List default options for all models\n  clear  Clear default option(s) for a model\n  set    Set a default option for a model\n  show   List default options set for a specific model\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "wat",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm models options list [OPTIONS]\n\n  List default options for all models\n\n  Example usage:\n\n      llm models options list\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "--",
+        "-h"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm models options list [OPTIONS]\n\n  List default options for all models\n\n  Example usage:\n\n      llm models options list\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "wat"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm models options list [OPTIONS]\nTry 'llm models options list -h' for help.\n\nError: Got unexpected extra argument (wat)\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "--wat"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm models options list [OPTIONS]\nTry 'llm models options list -h' for help.\n\nError: No such option: --wat\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "--help=1"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "--help=1",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "--help",
+        "--help=1"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "-h=x"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm models options [OPTIONS] COMMAND [ARGS]...\n\n  Manage default options for models\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*  List default options for all models\n  clear  Clear default option(s) for a model\n  set    Set a default option for a model\n  show   List default options set for a specific model\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "--unknown",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm models options [OPTIONS] COMMAND [ARGS]...\n\n  Manage default options for models\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*  List default options for all models\n  clear  Clear default option(s) for a model\n  set    Set a default option for a model\n  show   List default options set for a specific model\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "-q",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm models options [OPTIONS] COMMAND [ARGS]...\n\n  Manage default options for models\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*  List default options for all models\n  clear  Clear default option(s) for a model\n  set    Set a default option for a model\n  show   List default options set for a specific model\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm templates [OPTIONS] COMMAND [ARGS]...\n\n  Manage stored prompt templates\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*    List available prompt templates\n  edit     Edit the specified prompt template using the default $EDITOR\n  loaders  Show template loaders registered by plugins\n  path     Output the path to the templates directory\n  show     Show the specified prompt template\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "--help",
+        "set"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm templates [OPTIONS] COMMAND [ARGS]...\n\n  Manage stored prompt templates\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*    List available prompt templates\n  edit     Edit the specified prompt template using the default $EDITOR\n  loaders  Show template loaders registered by plugins\n  path     Output the path to the templates directory\n  show     Show the specified prompt template\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "-xh"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm templates [OPTIONS] COMMAND [ARGS]...\n\n  Manage stored prompt templates\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*    List available prompt templates\n  edit     Edit the specified prompt template using the default $EDITOR\n  loaders  Show template loaders registered by plugins\n  path     Output the path to the templates directory\n  show     Show the specified prompt template\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "wat",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm templates list [OPTIONS]\n\n  List available prompt templates\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "--",
+        "-h"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm templates list [OPTIONS]\n\n  List available prompt templates\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "wat"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm templates list [OPTIONS]\nTry 'llm templates list -h' for help.\n\nError: Got unexpected extra argument (wat)\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "--wat"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm templates list [OPTIONS]\nTry 'llm templates list -h' for help.\n\nError: No such option: --wat\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "--help=1"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "--help=1",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "--help",
+        "--help=1"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "-h=x"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm templates [OPTIONS] COMMAND [ARGS]...\n\n  Manage stored prompt templates\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*    List available prompt templates\n  edit     Edit the specified prompt template using the default $EDITOR\n  loaders  Show template loaders registered by plugins\n  path     Output the path to the templates directory\n  show     Show the specified prompt template\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "--unknown",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm templates [OPTIONS] COMMAND [ARGS]...\n\n  Manage stored prompt templates\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*    List available prompt templates\n  edit     Edit the specified prompt template using the default $EDITOR\n  loaders  Show template loaders registered by plugins\n  path     Output the path to the templates directory\n  show     Show the specified prompt template\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "templates",
+        "-q",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm templates [OPTIONS] COMMAND [ARGS]...\n\n  Manage stored prompt templates\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*    List available prompt templates\n  edit     Edit the specified prompt template using the default $EDITOR\n  loaders  Show template loaders registered by plugins\n  path     Output the path to the templates directory\n  show     Show the specified prompt template\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "embed-models",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm embed-models [OPTIONS] COMMAND [ARGS]...\n\n  Manage available embedding models\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*    List available embedding models\n  default  Show or set the default embedding model\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "embed-models",
+        "--help",
+        "set"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm embed-models [OPTIONS] COMMAND [ARGS]...\n\n  Manage available embedding models\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*    List available embedding models\n  default  Show or set the default embedding model\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "embed-models",
+        "-xh"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm embed-models [OPTIONS] COMMAND [ARGS]...\n\n  Manage available embedding models\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*    List available embedding models\n  default  Show or set the default embedding model\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "embed-models",
+        "wat",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm embed-models list [OPTIONS]\n\n  List available embedding models\n\nOptions:\n  -q, --query TEXT  Search for embedding models matching these strings\n  -h, --help        Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "embed-models",
+        "--",
+        "-h"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm embed-models list [OPTIONS]\n\n  List available embedding models\n\nOptions:\n  -q, --query TEXT  Search for embedding models matching these strings\n  -h, --help        Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "embed-models",
+        "wat"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm embed-models list [OPTIONS]\nTry 'llm embed-models list -h' for help.\n\nError: Got unexpected extra argument (wat)\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "embed-models",
+        "--wat"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm embed-models list [OPTIONS]\nTry 'llm embed-models list -h' for help.\n\nError: No such option: --wat\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "embed-models",
+        "--help=1"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "embed-models",
+        "--help=1",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "embed-models",
+        "--help",
+        "--help=1"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "embed-models",
+        "-h=x"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm embed-models [OPTIONS] COMMAND [ARGS]...\n\n  Manage available embedding models\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*    List available embedding models\n  default  Show or set the default embedding model\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "embed-models",
+        "--unknown",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm embed-models [OPTIONS] COMMAND [ARGS]...\n\n  Manage available embedding models\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*    List available embedding models\n  default  Show or set the default embedding model\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "embed-models",
+        "-q",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm embed-models [OPTIONS] COMMAND [ARGS]...\n\n  Manage available embedding models\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*    List available embedding models\n  default  Show or set the default embedding model\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "set",
+        "--value"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--value' requires an argument.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "set",
+        "--value",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm keys set [OPTIONS] NAME\nTry 'llm keys set -h' for help.\n\nError: Missing argument 'NAME'.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "set",
+        "name",
+        "--valu",
+        "value"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm keys set [OPTIONS] NAME\nTry 'llm keys set -h' for help.\n\nError: No such option: --valu Did you mean --value?\n"
+    },
+    {
+      "files": {
+        "keys.json": "{\n  \"// Note\": \"This file stores secret API credentials. Do not share!\",\n  \"-name\": \"fixture-value\"\n}\n"
+      },
+      "argv": [
+        "keys",
+        "set",
+        "--",
+        "-name"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Enter key: \n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "set",
+        "-q"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '-q' requires an argument.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "list",
+        "--json=1"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--json' does not take a value.\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "list",
+        "--jsn"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm aliases list [OPTIONS]\nTry 'llm aliases list -h' for help.\n\nError: No such option: --jsn Did you mean --json?\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "default",
+        "unknown"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "Error: Unknown model: unknown\n"
+    },
+    {
+      "files": {
+        "keys.json": "{\n  \"// Note\": \"This file stores secret API credentials. Do not share!\",\n  \"fixture\": \"fixture-value\"\n}\n"
+      },
+      "argv": [
+        "keys",
+        "set",
+        "fixture"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Enter key: \n",
+      "stderr": ""
+    },
+    {
+      "files": {
+        "keys.json": "{\n  \"// Note\": \"This file stores secret API credentials. Do not share!\",\n  \"\": \"explicit\"\n}\n"
+      },
+      "argv": [
+        "keys",
+        "set",
+        "",
+        "--value",
+        "explicit"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "files": {
+        "keys.json": "{\n  \"// Note\": \"This file stores secret API credentials. Do not share!\",\n  \"fixture\": \"\"\n}\n"
+      },
+      "argv": [
+        "keys",
+        "set",
+        "fixture",
+        "--value="
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "files": {
+        "keys.json": "{\n  \"// Note\": \"This file stores secret API credentials. Do not share!\",\n  \"fixture\": \"last\"\n}\n"
+      },
+      "argv": [
+        "keys",
+        "set",
+        "fixture",
+        "--value",
+        "first",
+        "--value",
+        "last"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "set",
+        "fixture",
+        "--help"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "Usage: llm keys set [OPTIONS] NAME\n\n  Save a key in the keys.json file\n\n  Example usage:\n\n      $ llm keys set openai\n      Enter key: ...\n\nOptions:\n  --value TEXT  Value to set\n  -h, --help    Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "keys",
+        "set",
+        "fixture",
+        "extra",
+        "--value",
+        "explicit"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm keys set [OPTIONS] NAME\nTry 'llm keys set -h' for help.\n\nError: Got unexpected extra argument (extra)\n"
+    },
+    {
+      "files": {
+        "aliases.json": "{\n    \"alias\": \"target\"\n}\n"
+      },
+      "argv": [
+        "aliases",
+        "set",
+        "alias",
+        "target"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "files": {
+        "aliases.json": "{\n    \"alias\": \"gpt-4o-mini\"\n}\n"
+      },
+      "argv": [
+        "aliases",
+        "set",
+        "alias",
+        "-qmini"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "Alias 'alias' set to model 'gpt-4o-mini'\n"
+    },
+    {
+      "files": {},
+      "argv": [
+        "aliases",
+        "list",
+        "--json"
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "{\n    \"mini\": \"gpt-4o-mini\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "files": {},
+      "argv": [
+        "models",
+        "options",
+        "clear",
+        "unknown",
+        ""
+      ],
+      "stdin": "fixture-value\n",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ]
+}

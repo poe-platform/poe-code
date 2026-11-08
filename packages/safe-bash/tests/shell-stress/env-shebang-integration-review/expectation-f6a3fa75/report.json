@@ -1,0 +1,219 @@
+{
+  "product": "ea409a6b49d5c1523e3238f0384048218b559c4c",
+  "candidate": "f6a3fa75280bd4d925027e62498aa67b5d9785dc",
+  "startedAt": "2026-08-27T15:32:00.848Z",
+  "scratch": "/private/tmp/safe-bash-expectation-f6a3fa75-review-TSuZ2k",
+  "platform": "darwin",
+  "arch": "arm64",
+  "node": "v22.22.2",
+  "commands": [
+    {
+      "label": "build",
+      "executable": "npm",
+      "args": [
+        "run",
+        "build"
+      ],
+      "cwd": "/private/tmp/safe-bash-expectation-f6a3fa75-review-TSuZ2k/source",
+      "pid": 40136,
+      "exitCode": 0,
+      "signal": null,
+      "processGroupAbsent": true,
+      "stdoutSha256": "192358b3fd3475b4bb505c07ba0b5608c6e4aa06624198bba950fe56e278e6f0",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "author",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--import",
+        "tsx",
+        "--test",
+        "tests/shell/env-shebang.test.ts",
+        "tests/shell/env-shebang-host.test.ts"
+      ],
+      "cwd": "/private/tmp/safe-bash-expectation-f6a3fa75-review-TSuZ2k/source",
+      "pid": 40158,
+      "exitCode": 0,
+      "signal": null,
+      "processGroupAbsent": true,
+      "stdoutSha256": "320711f89a972cf311113edb3d48c77f48dbf56565995c70e757565d5a67cbdc",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "strict",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--target",
+        "ES2023",
+        "--lib",
+        "ES2023",
+        "--module",
+        "NodeNext",
+        "--moduleResolution",
+        "NodeNext",
+        "--strict",
+        "--noUncheckedIndexedAccess",
+        "--exactOptionalPropertyTypes",
+        "--verbatimModuleSyntax",
+        "--forceConsistentCasingInFileNames",
+        "--skipLibCheck",
+        "--types",
+        "node",
+        "tests/shell/env-shebang.test.ts",
+        "tests/shell/env-shebang-host.test.ts"
+      ],
+      "cwd": "/private/tmp/safe-bash-expectation-f6a3fa75-review-TSuZ2k/source",
+      "pid": 40238,
+      "exitCode": 0,
+      "signal": null,
+      "processGroupAbsent": true,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "exactAuthorizedTransformation": true,
+  "testSha256": {
+    "original": "fa3920c0e09cf2c614540a0a804cc36d60d73da1e8bdf14d590c1e262de78129",
+    "corrected": "ac45453fa01328c5eb783952c384446d68a8cceaaa39e54b2b23c6a74d1a4341",
+    "host": "1d94c3d9bf4008915c85f373c0e14b1acc0818f4c0f7a850d4ddabb51d669537"
+  },
+  "literalNegativeReview": {
+    "preserved": true,
+    "evidence": [
+      "env-shebang.test.ts:22-25 literal bash -e => 127 and exact diagnostic",
+      "env-shebang.test.ts:125-139 missing => 127 with empty stdout",
+      "env-shebang.test.ts:149-153 reserved bash override => 126 and zero hijacks before alien",
+      "env-shebang.test.ts:330-348 unregistered/true/pwd/host-only-never-registered => 127, exact stderr, empty stdout, zero lookups"
+    ]
+  },
+  "originalEightConflicts": [
+    {
+      "path": "tests/shell-stress/env-split-author/resume-host.ts",
+      "sha256": "c22482b06a27a6883bf1d6f6dac98e8a83795495c452772869e3b5a03b3135ce",
+      "byteIdentical": true
+    },
+    {
+      "path": "tests/shell/errexit-host.test.ts",
+      "sha256": "5ba8085495c5740d4f15d413eb55502d270746f3e7275ef7aa6393500593cf7f",
+      "byteIdentical": true
+    },
+    {
+      "path": "tests/shell/expanded-gaps-env-host.test.ts",
+      "sha256": "2fd1eb106e75ace5d17d7d5145045dab0f88aa254d4110862b2964fec61b5b95",
+      "byteIdentical": true
+    }
+  ],
+  "priorReceipts": [
+    {
+      "commit": "ee7d909c0379ca1237f729f55a0a22fbe35aa8f7",
+      "path": "tests/shell-stress/env-shebang-author/guarded-completion/fourth-author.tap",
+      "sha256": "142e51689305f298b15a00bc39b0239b5a827dd571482e3a7ec00f3967bb2833",
+      "tests": 48,
+      "pass": 47,
+      "fail": 1
+    },
+    {
+      "commit": "01cc25f94247f6a2f9279f33c058fc4c7862f6ac",
+      "path": "tests/shell-stress/env-shebang-integration-review/guarded-ea409a6b-20260827-review1-controls/author.tap",
+      "sha256": "a0e02b530f66c14d1fab1709d3b11a96a839ecb9a0552275fc8a86e1694c52ae",
+      "tests": 48,
+      "pass": 47,
+      "fail": 1
+    }
+  ],
+  "excludedTextDelta": {
+    "productSha256": "dfc9baed56564395bf90472fd505ea56a8eb5820712c0a5096d95ef2e2db47cc",
+    "candidateSha256": "9a66dc0e320c62aad86d78da9c55580cf6910a537a47db8a330e5122f63a1895"
+  },
+  "archive": {
+    "format": "git archive tar",
+    "sha256": "848f03cabacdbeb8cc1195e309650e33a0ca4e575c4dfe1bac1a781f0100b8b5",
+    "bytes": 1582725120,
+    "tree": "0220bcc24af24596358c60dbdcddea6245f3dee9",
+    "unchangedAfter": true
+  },
+  "inputDelta": [
+    [
+      "tests/shell/env-shebang.test.ts",
+      "file",
+      420,
+      "ac45453fa01328c5eb783952c384446d68a8cceaaa39e54b2b23c6a74d1a4341"
+    ]
+  ],
+  "inputTree": {
+    "algorithm": "SHA256(JSON.stringify(sorted recursive [path,type,mode,contentSHA256] rows)); directories included; only initially absent dist and node_modules excluded",
+    "entries": 28050,
+    "pristineSha256": "cf651123ea21602b9b68cfd58025e31bbf6fcd8b5c4dc2fb336f12d1d9bac0d7",
+    "beforeSha256": "f849e1c0965951f76c10181a5dba2ea8a5c8030f87918c6eb5b3144e6f365382",
+    "afterSha256": "f849e1c0965951f76c10181a5dba2ea8a5c8030f87918c6eb5b3144e6f365382",
+    "appendAwarePostcheck": true
+  },
+  "runtimeSha256": "4e937b71df3135d1262a616924b4173e982f236dd86415e0e75895eac9c85e06",
+  "tools": [
+    {
+      "name": "tsx",
+      "version": "4.23.12",
+      "packageJsonSha256": "96aee9fd252d0cc31f3c01468250961f5b338c797bc208700d7db926450c7659"
+    },
+    {
+      "name": "typescript",
+      "version": "5.9.3",
+      "packageJsonSha256": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6"
+    },
+    {
+      "name": "@types/node",
+      "version": "22.20.1",
+      "packageJsonSha256": "1e6d3bbbc5082745123d236b38dce0eacdab987d4ac9e57e299e55f780c170de"
+    },
+    {
+      "name": "esbuild",
+      "version": "0.28.2",
+      "packageJsonSha256": "9d0bc453f4e791553c4cc2298ba023b409241fd9801e494741666eb0f6051490"
+    }
+  ],
+  "counts": {
+    "tests": 48,
+    "suites": 0,
+    "pass": 48,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "priorReceiptsUnchangedAfter": true,
+  "status": "PASS: bounded single-expectation acceptance only",
+  "finishedAt": "2026-08-27T15:32:29.359Z",
+  "caseIdentity": {
+    "count": 48,
+    "sameOrderedCasesExceptAuthorizedTitle": true,
+    "oldTitlesSha256": "dcd95b7a9efa28f9238d6cb0cc86c6376b10fb569a106bc1e3e70203c9eca1d1",
+    "newTitlesSha256": "fec3d4a23d92357a5845e630aa24b62e152928b7a7b89348950816480546ee30"
+  },
+  "reviewRunnerSha256": "ef41c487869277c9bc59300650b9537373be5dceace8d03db9d1f22ba9014069",
+  "cleanup": {
+    "scratch": "/tmp/safe-bash-expectation-f6a3fa75-review-TSuZ2k",
+    "resolvedScratch": "/private/tmp/safe-bash-expectation-f6a3fa75-review-TSuZ2k",
+    "removedScratchIncludingArchiveBuildAndToolSymlink": true,
+    "scratchAbsent": true,
+    "runnerPid": 39741,
+    "runnerAbsent": true,
+    "commandPidsAndGroupsAbsent": [
+      40136,
+      40158,
+      40238
+    ],
+    "checkedAt": "2026-08-27T15:33:44.793Z",
+    "nativeOracleProcessesStarted": 0
+  },
+  "priorReceiptsUnchangedAtPublication": true,
+  "publication": {
+    "initialEvidenceHashCheck": "Failed: publisher trimEnd removed final blank diff context; product checks remained PASS.",
+    "actualInitialDiffSha256": "55a0c64e0efd152337e25119a4f767eeb76198aa44e427887aaef0fe35f1ed59",
+    "expectedCommittedDiffSha256": "27b29323bd128d95ecddce7988dd076055c83e9b291cdf3bd04768eb5c5259a9",
+    "correction": "Restored exact committed diff bytes using apply_patch; no test or product rerun/change.",
+    "finalEvidenceHashCheck": "PASS"
+  }
+}

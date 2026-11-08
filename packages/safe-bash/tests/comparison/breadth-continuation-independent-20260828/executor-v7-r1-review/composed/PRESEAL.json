@@ -1,0 +1,978 @@
+{
+  "schema": "INDEPENDENT_COMPOSED_PREEXECUTION_V1",
+  "classification": "DATA_SYNTHETIC_STUB_ONLY_NOT_ROOT_AUTHORITY",
+  "created": "2026-08-28T15:00:25.383Z",
+  "candidate": "230ed3c6e15617b312760367adf9ede4e5c7ff6a",
+  "evidence": "fedfca3c445696a19aaf84ac85bc74cff229d5c2",
+  "recipeSha256": "05aa8dce295c507fd605c93aa113ba2ecd5605064dc0f6dfe3a20aa6dc6bf04d",
+  "interfaceSha256": "913d051875c60492cce06937ff33b85bb4c9b36085b79169d5e51e87852880c4",
+  "instructionBinding": {
+    "repository": {
+      "path": "AGENTS.md",
+      "sha256": "64fde885fd30edd6751f95603defac1d15defb6a33dedca2049a82f9aace379c"
+    },
+    "orchestrator": {
+      "sha256": "a57c7dc70a12ec6f8d26a2c3ac908d81a66b3a268c782f42926c2b7e840b23b7"
+    },
+    "ownDataRuleCommit": "f5fa0d3f"
+  },
+  "limits": {
+    "families": 30,
+    "supervisedChildren": 16,
+    "drivers": 1,
+    "totalOwnedProcesses": 17,
+    "maxActiveSupervisedChildren": 1,
+    "childDeadlineMs": 10000,
+    "termGraceMs": 2000,
+    "killGraceMs": 1000,
+    "heapMiB": 128,
+    "streamRetainedBytes": 65536,
+    "recordBytes": 262144,
+    "generatedBytesMaximum": 67108864,
+    "fullCapAllocation": "STATIC_ONLY",
+    "metadataProcessesExcluded": "Small batched Git provenance reads, not synthetic workload children",
+    "driverBound": "Sequential finite family/fixture bounds; no independent hard driver watchdog"
+  },
+  "driver": {
+    "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--max-old-space-size=128",
+      "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed/driver.mjs"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash"
+  },
+  "families": [
+    {
+      "id": "F01",
+      "expected": "Actual outer/body/store/report synthetic positive qualifies only with syntheticOnly; real authority refuses."
+    },
+    {
+      "id": "F02",
+      "expected": "All twelve literal PASS rows with actual exit7/close7 refuse outer qualification."
+    },
+    {
+      "id": "F03",
+      "expected": "Actual closed exit0/close0 CAPTURE_LIMIT with observed65537 retained65536 refuses."
+    },
+    {
+      "id": "F04",
+      "expected": "Cross-realm own-data receipt accepts; nine missing/type/key/order/accessor/nonfinite controls refuse without coercion."
+    },
+    {
+      "id": "F05",
+      "expected": "Seven natural/failures/signals/capture-count/base64 counterexamples refuse actual composed receipt."
+    },
+    {
+      "id": "F06",
+      "expected": "Actual candidate invalid CLI B16 exits1 with final integer children0 and terminal array[]; separate one-stub body chain persists and closes."
+    },
+    {
+      "id": "F07",
+      "expected": "Nonzero real stub probe stops body with ADMISSION_PROBE_STOP and a closed child."
+    },
+    {
+      "id": "F08",
+      "expected": "Throw after actual child enrollment leaves known handle closed and body refused."
+    },
+    {
+      "id": "F09",
+      "expected": "Receipt persistence failure retains emergency receipt, closes child and refuses."
+    },
+    {
+      "id": "F10",
+      "expected": "Setup primary0/null/undefined retain exact identity and presence with zero child launches."
+    },
+    {
+      "id": "F11",
+      "expected": "Primary Error identity survives later cleanup failure in actual body."
+    },
+    {
+      "id": "F12",
+      "expected": "Failure after config preparation enrolls but never launches; unsafe tail remains."
+    },
+    {
+      "id": "F13",
+      "expected": "Tail failure after real stub closure preserves object primary identity and refuses."
+    },
+    {
+      "id": "F14",
+      "expected": "Stdout publication failure after real child closure retains exact reason, stderr fallback and refusal."
+    },
+    {
+      "id": "F15",
+      "expected": "Actual body multipart RESULT roundtrips; part/reference tamper rejects read and audit, original bytes preserved."
+    },
+    {
+      "id": "F16",
+      "expected": "Actual store partial write plus close failure preserves both reasons; partial audit and publication failure compose."
+    },
+    {
+      "id": "F17",
+      "expected": "Shared store/external exact128 boundary plusone refuses; actual body512cap refuses without large allocation."
+    },
+    {
+      "id": "F18",
+      "expected": "Append-only unknown directory and record mode tamper are detected, not silently restored."
+    },
+    {
+      "id": "F19",
+      "expected": "Exact262144 record accepts plusone refuses; actual small transport cumulative overflow poisons later writes and partial parse refuses."
+    },
+    {
+      "id": "F20",
+      "expected": "Actual auth-reference reader composes in body with synthetic zero-commit references; hash/reference tamper refuses without authority calls."
+    },
+    {
+      "id": "F21",
+      "expected": "Actual loader/importWithWindow ordered literal source sees undefined twice, revokes at slot2 before factory, captured aliases refuse, sentinel never runs."
+    },
+    {
+      "id": "F22",
+      "expected": "Actual loader import failure preserves exact thrown object and revokes alias before factory."
+    },
+    {
+      "id": "F23",
+      "expected": "Caught wrong-order query during actual literal import is sticky and forbids factory."
+    },
+    {
+      "id": "F24",
+      "expected": "Actual loader rejects incorrect expected0644 against literal0444 before factory."
+    },
+    {
+      "id": "F25",
+      "expected": "Actual body/bootstrap observer preserves0/null/undefined/object/Error identity; import+cleanup retains exact reasons."
+    },
+    {
+      "id": "F26",
+      "expected": "Nine actual window wrong-arity/order/type/prefix/extra-query controls prevent factory despite caught violations."
+    },
+    {
+      "id": "F27",
+      "expected": "Actual projection inspection binds three literal0444 files; 248MiB+8MiB allocation is static-only; full worker remains unqualified."
+    },
+    {
+      "id": "F28",
+      "expected": "Outer postflight undefined after actual body child and preflight0 before child both refuse with exact presence."
+    },
+    {
+      "id": "F29",
+      "expected": "Actual ten-second deadline retires stub timer by TERM, closes0, retains NATURAL_DEADLINE and naturalfalse."
+    },
+    {
+      "id": "F30",
+      "expected": "Postsettlement resources return to baseline, no unhandled events, all sixteen children close, generated bytes and files stay bounded."
+    }
+  ],
+  "children": [
+    {
+      "ordinal": 1,
+      "family": "F01",
+      "entry": "body-child.mjs",
+      "mode": "positive",
+      "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=128",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed/import-guard.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed/body-child.mjs",
+        "positive"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed",
+      "stdio": [
+        "ignore",
+        "pipe",
+        "pipe",
+        "pipe"
+      ],
+      "detached": true,
+      "deadlineMs": 10000,
+      "termGraceMs": 2000,
+      "killGraceMs": 1000
+    },
+    {
+      "ordinal": 2,
+      "family": "F02",
+      "entry": "body-child.mjs",
+      "mode": "exit7",
+      "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=128",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed/import-guard.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed/body-child.mjs",
+        "exit7"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed",
+      "stdio": [
+        "ignore",
+        "pipe",
+        "pipe",
+        "pipe"
+      ],
+      "detached": true,
+      "deadlineMs": 10000,
+      "termGraceMs": 2000,
+      "killGraceMs": 1000
+    },
+    {
+      "ordinal": 3,
+      "family": "F03",
+      "entry": "body-child.mjs",
+      "mode": "overflow",
+      "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=128",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed/import-guard.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed/body-child.mjs",
+        "overflow"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed",
+      "stdio": [
+        "ignore",
+        "pipe",
+        "pipe",
+        "pipe"
+      ],
+      "detached": true,
+      "deadlineMs": 10000,
+      "termGraceMs": 2000,
+      "killGraceMs": 1000
+    },
+    {
+      "ordinal": 4,
+      "family": "F06",
+      "entry": "candidate:coordinator.mjs",
+      "mode": "invalid",
+      "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=128",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed/import-guard.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r1/coordinator.mjs",
+        "invalid",
+        "never-admission"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed",
+      "stdio": [
+        "ignore",
+        "pipe",
+        "pipe",
+        "pipe"
+      ],
+      "detached": true,
+      "deadlineMs": 10000,
+      "termGraceMs": 2000,
+      "killGraceMs": 1000
+    },
+    {
+      "ordinal": 5,
+      "family": "F06",
+      "entry": "stub-child.mjs",
+      "mode": "pass",
+      "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=128",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed/import-guard.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed/stub-child.mjs",
+        "pass"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed",
+      "stdio": [
+        "ignore",
+        "pipe",
+        "pipe",
+        "pipe"
+      ],
+      "detached": true,
+      "deadlineMs": 10000,
+      "termGraceMs": 2000,
+      "killGraceMs": 1000
+    },
+    {
+      "ordinal": 6,
+      "family": "F07",
+      "entry": "stub-child.mjs",
+      "mode": "exit7",
+      "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=128",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed/import-guard.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed/stub-child.mjs",
+        "exit7"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed",
+      "stdio": [
+        "ignore",
+        "pipe",
+        "pipe",
+        "pipe"
+      ],
+      "detached": true,
+      "deadlineMs": 10000,
+      "termGraceMs": 2000,
+      "killGraceMs": 1000
+    },
+    {
+      "ordinal": 7,
+      "family": "F08",
+      "entry": "stub-child.mjs",
+      "mode": "wait-term",
+      "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=128",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed/import-guard.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed/stub-child.mjs",
+        "wait-term"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed",
+      "stdio": [
+        "ignore",
+        "pipe",
+        "pipe",
+        "pipe"
+      ],
+      "detached": true,
+      "deadlineMs": 10000,
+      "termGraceMs": 2000,
+      "killGraceMs": 1000
+    },
+    {
+      "ordinal": 8,
+      "family": "F09",
+      "entry": "stub-child.mjs",
+      "mode": "pass",
+      "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=128",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed/import-guard.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed/stub-child.mjs",
+        "pass"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed",
+      "stdio": [
+        "ignore",
+        "pipe",
+        "pipe",
+        "pipe"
+      ],
+      "detached": true,
+      "deadlineMs": 10000,
+      "termGraceMs": 2000,
+      "killGraceMs": 1000
+    },
+    {
+      "ordinal": 9,
+      "family": "F13",
+      "entry": "stub-child.mjs",
+      "mode": "pass",
+      "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=128",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed/import-guard.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed/stub-child.mjs",
+        "pass"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed",
+      "stdio": [
+        "ignore",
+        "pipe",
+        "pipe",
+        "pipe"
+      ],
+      "detached": true,
+      "deadlineMs": 10000,
+      "termGraceMs": 2000,
+      "killGraceMs": 1000
+    },
+    {
+      "ordinal": 10,
+      "family": "F14",
+      "entry": "stub-child.mjs",
+      "mode": "pass",
+      "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=128",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed/import-guard.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed/stub-child.mjs",
+        "pass"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed",
+      "stdio": [
+        "ignore",
+        "pipe",
+        "pipe",
+        "pipe"
+      ],
+      "detached": true,
+      "deadlineMs": 10000,
+      "termGraceMs": 2000,
+      "killGraceMs": 1000
+    },
+    {
+      "ordinal": 11,
+      "family": "F21",
+      "entry": "policy-child.mjs",
+      "mode": "ordered",
+      "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=128",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed/import-guard.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed/policy-child.mjs",
+        "ordered"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed",
+      "stdio": [
+        "ignore",
+        "pipe",
+        "pipe",
+        "pipe"
+      ],
+      "detached": true,
+      "deadlineMs": 10000,
+      "termGraceMs": 2000,
+      "killGraceMs": 1000
+    },
+    {
+      "ordinal": 12,
+      "family": "F22",
+      "entry": "policy-child.mjs",
+      "mode": "failed",
+      "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=128",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed/import-guard.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed/policy-child.mjs",
+        "failed"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed",
+      "stdio": [
+        "ignore",
+        "pipe",
+        "pipe",
+        "pipe"
+      ],
+      "detached": true,
+      "deadlineMs": 10000,
+      "termGraceMs": 2000,
+      "killGraceMs": 1000
+    },
+    {
+      "ordinal": 13,
+      "family": "F23",
+      "entry": "policy-child.mjs",
+      "mode": "caught",
+      "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=128",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed/import-guard.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed/policy-child.mjs",
+        "caught"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed",
+      "stdio": [
+        "ignore",
+        "pipe",
+        "pipe",
+        "pipe"
+      ],
+      "detached": true,
+      "deadlineMs": 10000,
+      "termGraceMs": 2000,
+      "killGraceMs": 1000
+    },
+    {
+      "ordinal": 14,
+      "family": "F24",
+      "entry": "policy-child.mjs",
+      "mode": "bad-mode",
+      "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=128",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed/import-guard.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed/policy-child.mjs",
+        "bad-mode"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed",
+      "stdio": [
+        "ignore",
+        "pipe",
+        "pipe",
+        "pipe"
+      ],
+      "detached": true,
+      "deadlineMs": 10000,
+      "termGraceMs": 2000,
+      "killGraceMs": 1000
+    },
+    {
+      "ordinal": 15,
+      "family": "F28",
+      "entry": "body-child.mjs",
+      "mode": "postflight",
+      "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=128",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed/import-guard.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed/body-child.mjs",
+        "postflight"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed",
+      "stdio": [
+        "ignore",
+        "pipe",
+        "pipe",
+        "pipe"
+      ],
+      "detached": true,
+      "deadlineMs": 10000,
+      "termGraceMs": 2000,
+      "killGraceMs": 1000
+    },
+    {
+      "ordinal": 16,
+      "family": "F29",
+      "entry": "stub-child.mjs",
+      "mode": "wait-term",
+      "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=128",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed/import-guard.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed/stub-child.mjs",
+        "wait-term"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed",
+      "stdio": [
+        "ignore",
+        "pipe",
+        "pipe",
+        "pipe"
+      ],
+      "detached": true,
+      "deadlineMs": 10000,
+      "termGraceMs": 2000,
+      "killGraceMs": 1000
+    }
+  ],
+  "actualImports": [
+    {
+      "path": "../executor-overlay-v2/telemetry.mjs",
+      "bytes": 3403,
+      "mode": 420,
+      "sha256": "5917ff201f2949e42415f10ee7e01fa619e4c7aa812773f19d407272340535ea",
+      "gitBlob": "5c64c24cab08054834e729a926e62361d2ed3a46"
+    },
+    {
+      "path": "../executor-preparation-v1/core.mjs",
+      "bytes": 5460,
+      "mode": 420,
+      "sha256": "f7f526ae092091164f166bd233e7fccafb2b561820a020ac6884b05f045d95b2",
+      "gitBlob": "85525d1b0494e24c9716681a724d7b7d22adf7a0"
+    },
+    {
+      "path": "../executor-preparation-v1/legacy-assess.mjs",
+      "bytes": 6915,
+      "mode": 420,
+      "sha256": "4e1ef722249987da598a0765f87e48c021cf5a2f1ec83c09e86d2489c39397eb",
+      "gitBlob": "e3a4f5992421942ebfb35ad4d21d32c494e0201a"
+    },
+    {
+      "path": "../executor-preparation-v1/predicates.mjs",
+      "bytes": 2734,
+      "mode": 420,
+      "sha256": "f67d562fca20f67703610c34638a9daa19badd36e2ac18bc4947e3b41411962a",
+      "gitBlob": "d4488df0fca1f680997ab7a91e8df456d053e77d"
+    },
+    {
+      "path": "../executor-v3/projection.mjs",
+      "bytes": 8872,
+      "mode": 420,
+      "sha256": "13f3363d839f4c3820f5bdd860684564087fb15b7ed2a1d337a10297000b84e1",
+      "gitBlob": "ccae6e7bbb6a3880ebda9e6ae48538304b3ea959"
+    },
+    {
+      "path": "../executor-v3/regular-read.mjs",
+      "bytes": 999,
+      "mode": 420,
+      "sha256": "9995afc3c98840ece5b85fa7057c48f5331c5e174b52a8dea682df65c72833bb",
+      "gitBlob": "539d756f7378259cfc8dda9bc42ffa7a835c19f0"
+    },
+    {
+      "path": "../executor-v3/safety.mjs",
+      "bytes": 3012,
+      "mode": 420,
+      "sha256": "056f5c1c205e2c7273270a44898b05c247628413f4cd0e3182075d405b83b913",
+      "gitBlob": "6c93f605b5148281de631f04b513a335a0f3127a"
+    },
+    {
+      "path": "../executor-v3/transport.mjs",
+      "bytes": 1334,
+      "mode": 420,
+      "sha256": "70865ca016eff4b83c7d776c0cdeff6372caa9e341b3dfe6164615c1f256c11f",
+      "gitBlob": "b7a8dd7d81ba3b2ab41342ba761a22d2115dd6f1"
+    },
+    {
+      "path": "../executor-v3/w07.mjs",
+      "bytes": 2447,
+      "mode": 420,
+      "sha256": "b837fe5fda30bf2a089b9407c5ef8a7f7f47e6bcab2909c1f24ce58e2cce4669",
+      "gitBlob": "ce7278d1f3675e70d0e8459f2b32a7f700ca190e"
+    },
+    {
+      "path": "../executor-v4/controls.mjs",
+      "bytes": 12538,
+      "mode": 420,
+      "sha256": "94ff2119c17f4076c2811005a0c9fe7cd98863ca8cbdedc7c827c2b8ff0c7583",
+      "gitBlob": "592027ec0b76f9cac413ee287bbfbbf181321afd"
+    },
+    {
+      "path": "../executor-v4/loaded-outcome.mjs",
+      "bytes": 2139,
+      "mode": 420,
+      "sha256": "50afab5299e9ae8726b1fc3f4b8063dcff5993bc3368e0675226ab1c161e8de7",
+      "gitBlob": "fda174e53c5d146f711005ec00da1e19dd6eff45"
+    },
+    {
+      "path": "../executor-v4/operations.mjs",
+      "bytes": 3560,
+      "mode": 420,
+      "sha256": "c4ec72e794ced9affb2bd7fee57b6a6d53b28bb7ea699178ecd160f4cd755741",
+      "gitBlob": "21f12140e846197e01484349762f64a71a13bfd5"
+    },
+    {
+      "path": "../executor-v4/predicates.mjs",
+      "bytes": 5313,
+      "mode": 420,
+      "sha256": "ad53b12de5c7084470dffd066a90b681423643a9875a8866c6d4636ce4e080ce",
+      "gitBlob": "5dbf67e44d084bfa3d4d844a90f595ac084a0d2f"
+    },
+    {
+      "path": "../executor-v4/safety.mjs",
+      "bytes": 3107,
+      "mode": 420,
+      "sha256": "74849abb4e28b012ec8cddb729d1bae02cbde253291b3e2f2bb070457b7e66a2",
+      "gitBlob": "34e0da051e8c80428f9f2f0eaff2ba6fae7f2b1e"
+    },
+    {
+      "path": "../executor-v5/consumer-scope.mjs",
+      "bytes": 2056,
+      "mode": 420,
+      "sha256": "8bcd4f1ac63fbbdd882eec1d9564601a4f1027c65e71d83d6d3a9981b3f59b09",
+      "gitBlob": "caca26281e70e97b604592c9d514c76c10c8f211"
+    },
+    {
+      "path": "../executor-v5/projection.mjs",
+      "bytes": 8547,
+      "mode": 420,
+      "sha256": "ee3f76cebbb9fa3905b27eed1232b7c475f362c5bace14a1a178c9ff2cc1763d",
+      "gitBlob": "3b65c0eb9830af4ffc6641360bb623bca39cf789"
+    },
+    {
+      "path": "../executor-v6/loader.mjs",
+      "bytes": 5431,
+      "mode": 420,
+      "sha256": "0878dfd6ec02b7c232495e44e4e702216586ce0b5e7eb42aad73abb817683a97",
+      "gitBlob": "faa86ae2e0cf67d2210f3ff4626c96ef0369824c"
+    },
+    {
+      "path": "../executor-v7/body.mjs",
+      "bytes": 12354,
+      "mode": 420,
+      "sha256": "4229b7321846720a453340fc9a12d1271ece51588fccbaee7aa44fab4ff2f336",
+      "gitBlob": "73985ec5baff08d36e00d9e4abb8d8e8e39c8d5b"
+    },
+    {
+      "path": "../executor-v7/evidence.mjs",
+      "bytes": 5855,
+      "mode": 420,
+      "sha256": "1134b9244963e528207dd53ca91c45500783dcdbc6d20a9c932df05eca045bfa",
+      "gitBlob": "76c3ebdccb0821ef0bf2917514688efd12066a7b"
+    },
+    {
+      "path": "../executor-v7/launch-ledger.mjs",
+      "bytes": 5128,
+      "mode": 420,
+      "sha256": "9bc354d736ccdbd4bd4df01c7a4e7baf5fc1e8aa1673647f851317bd1761f940",
+      "gitBlob": "adce2ad57f19a2f3824b4f10c4b7b82c23b92db9"
+    },
+    {
+      "path": "../executor-v7/loader.mjs",
+      "bytes": 59,
+      "mode": 420,
+      "sha256": "14ae547b7be6c660fb534f4ade6b4e05dbc42688cc38a7f09653bc9d98b61ba5",
+      "gitBlob": "27e87aca2c71afc1d83d705961448b9dcb51ba8b"
+    },
+    {
+      "path": "../executor-v7/outer.mjs",
+      "bytes": 3180,
+      "mode": 420,
+      "sha256": "ad29e8d1407a65d6bf11713aa1a4b81a61bdba51b1f75015926c9f809b810eb8",
+      "gitBlob": "2410ef99eb90d0124c582bb7d270884bddc29551"
+    },
+    {
+      "path": "../executor-v7/projection.mjs",
+      "bytes": 138,
+      "mode": 420,
+      "sha256": "2d2a2b6d76a4b6af24320616565213a71f8946bf71bb7ad5a451ed63906aed3e",
+      "gitBlob": "0f9060000652bcb12a96e0ca2daa3d3a132a6c46"
+    },
+    {
+      "path": "../executor-v7/records.mjs",
+      "bytes": 8609,
+      "mode": 420,
+      "sha256": "2770061597fe434980dbf5f4843c6c94e364ecc163f41938f39cfe3530c9dba1",
+      "gitBlob": "59c959477b00329228e273481e7186746bf7dd86"
+    },
+    {
+      "path": "../executor-v7/report.mjs",
+      "bytes": 9660,
+      "mode": 420,
+      "sha256": "16407f6f93796ce4b5ed0ec0fc0b217accb3f259e3594f23abef5b3f8452df77",
+      "gitBlob": "e55f9cba2dcc37dac06e963717e93b58b551e1c2"
+    },
+    {
+      "path": "../executor-v7/schema.mjs",
+      "bytes": 1438,
+      "mode": 420,
+      "sha256": "37fc2c5ef2c36157c4e617fb611950018265376ac3d1ef7b4632207a0be3ff3e",
+      "gitBlob": "96384aa33d13d90a341da9ff117f8b08884ec4fa"
+    },
+    {
+      "path": "../executor-v7/supervisor.mjs",
+      "bytes": 4012,
+      "mode": 420,
+      "sha256": "3c65a42409bee8ab89237d0ec7841d1caf0248fd29bf52784db76ab90e7428b6",
+      "gitBlob": "3a589f4212fa003ab0b5384ca4ba0d27d5de5cdd"
+    },
+    {
+      "path": "../executor-v7/transport.mjs",
+      "bytes": 1366,
+      "mode": 420,
+      "sha256": "a67cb1e335dc7b5f60cecd4c868e714701277b766f8ced0feb499df2202917b7",
+      "gitBlob": "2533334f9e512551db5631c962d777311c16f4ba"
+    },
+    {
+      "path": "authorization.mjs",
+      "bytes": 5367,
+      "mode": 420,
+      "sha256": "bf0c0d1dc58a634606c16911b7ffd82ef0259ac963463bd1020f9796ecca1bd1",
+      "gitBlob": "a126cfad8ee524b0aa5eb99735b87366f42ef5b6"
+    },
+    {
+      "path": "body.mjs",
+      "bytes": 58,
+      "mode": 420,
+      "sha256": "fbdf10dc97fc309de06fef9278a74de23915376f90e4b46a88825d26a4c58eb3",
+      "gitBlob": "a2a53539191db27d97609bfe21ac586b656d7c71"
+    },
+    {
+      "path": "bootstrap.mjs",
+      "bytes": 5261,
+      "mode": 420,
+      "sha256": "5104b893860638beb026acac1526f677eb2861a6a2c354e58818cdf51bc04ffd",
+      "gitBlob": "c54393cab247081b9f4b3bc016e52a115887f4e8"
+    },
+    {
+      "path": "coordinator.mjs",
+      "bytes": 1769,
+      "mode": 420,
+      "sha256": "92a63edc9bfd79daea0e5f3eef82f2e5c133affec8b7a4ea055a5f33cdd86074",
+      "gitBlob": "87124f42a7ea31522b4ca5077e11410577ce1016"
+    },
+    {
+      "path": "evidence.mjs",
+      "bytes": 107,
+      "mode": 420,
+      "sha256": "b36896e046bd1301a23dad0dbaa958fba9a44449feca155fba5237019fff18db",
+      "gitBlob": "3b3a607e5e087e173824df3a0f55e7a68ca7316d"
+    },
+    {
+      "path": "launch-ledger.mjs",
+      "bytes": 80,
+      "mode": 420,
+      "sha256": "4857ce2b799954ea33d98b355d0484aea37c4e285f3fe4c2136e919e29022328",
+      "gitBlob": "0ff578b26f043e52390c3c3b39d88c70e1acc98a"
+    },
+    {
+      "path": "loader.mjs",
+      "bytes": 59,
+      "mode": 420,
+      "sha256": "1f97443a46f5b6259f8890cb084e98b610ab8878b50636d86df996d4a1bd48ec",
+      "gitBlob": "e816dd1ee1afd7731c334c513b43e91ad6eb2505"
+    },
+    {
+      "path": "outer.mjs",
+      "bytes": 75,
+      "mode": 420,
+      "sha256": "2d739c3ab9b689ce97eaa7bf0b9893b1c1430576768c67028e5624190accfa5a",
+      "gitBlob": "3a4d8f007a4070b5af1ea204d9d196da02fadc9c"
+    },
+    {
+      "path": "production.mjs",
+      "bytes": 4131,
+      "mode": 420,
+      "sha256": "663cff7f5d4ba5ca4a4c5dc53e9cd4aed9f34aabefcb6d8803fbf4c5ca8c5fc9",
+      "gitBlob": "04abd73dd7414d0927a004c1b23e332dc0cf68c9"
+    },
+    {
+      "path": "projection.mjs",
+      "bytes": 113,
+      "mode": 420,
+      "sha256": "372c5c121f5cb25acc1c42357344da69acab1bedbc34ff7efa9c686f72e78c34",
+      "gitBlob": "005018826ba01ed51801c635db498ebcd0811c4b"
+    },
+    {
+      "path": "records.mjs",
+      "bytes": 96,
+      "mode": 420,
+      "sha256": "8c304936a0cf3c6285c8febf8231016f908d00137ac8b75359a21c0d93600726",
+      "gitBlob": "6b5f1f4a61be97807518b724567f462918068566"
+    },
+    {
+      "path": "report.mjs",
+      "bytes": 88,
+      "mode": 420,
+      "sha256": "e45e2e75c8d7c69331407218d8d30b16c15089ca8caf98cd08923342b0271d39",
+      "gitBlob": "2ff1bb5bf29de1b5bb1b96c5fc766197e641c267"
+    },
+    {
+      "path": "schema.mjs",
+      "bytes": 93,
+      "mode": 420,
+      "sha256": "1b516b9be6a36964254e79694c7f6df2243b9380d96d9b4a986266f5b7a074ed",
+      "gitBlob": "9f0a7d6e635a3960bd7009c003a68fafe8e2deb7"
+    },
+    {
+      "path": "supervisor.mjs",
+      "bytes": 59,
+      "mode": 420,
+      "sha256": "5910c8b742ce0b57451cbdf08ee721afa384eccff1dbc71f53d9e1b6a488fb71",
+      "gitBlob": "06db7e0bea8a9ed803045716bf1ebe9fe4880583"
+    },
+    {
+      "path": "transport.mjs",
+      "bytes": 74,
+      "mode": 420,
+      "sha256": "0e86cd4d2570f36efd7dc4e0087d76df3c911684ceea917b02a107d6191e6da2",
+      "gitBlob": "e6a0d7fe71254ecf61304edc99df47d55bc7f3c8"
+    }
+  ],
+  "owned": [
+    {
+      "base": "owned",
+      "path": "INPUTS.json",
+      "bytes": 112446,
+      "mode": 420,
+      "sha256": "0b256b6922c41a02ffd4ab278128eab6446441e07cab7e2b286d8a0d50f9c2c0"
+    },
+    {
+      "base": "owned",
+      "path": "README.md",
+      "bytes": 2332,
+      "mode": 420,
+      "sha256": "1f7fae113e9e4ad40ab35afe82c6235c5a374e5eb2aabfff3c668755d791716f"
+    },
+    {
+      "base": "owned",
+      "path": "auth.mjs",
+      "bytes": 2774,
+      "mode": 420,
+      "sha256": "c46e8a97632b5aec29a95dbca616a1297479f787b049a20e8879cdc77524cda6"
+    },
+    {
+      "base": "owned",
+      "path": "body-child.mjs",
+      "bytes": 1071,
+      "mode": 420,
+      "sha256": "2a74adbdc874df837a3cfb0fb3267fb0ab7649d5ad27a33577ec6239e4568133"
+    },
+    {
+      "base": "owned",
+      "path": "composition.mjs",
+      "bytes": 3351,
+      "mode": 420,
+      "sha256": "634660a9b2dc91a6a31f6b565cbc50e877c768169c4efa2aae7a7ba256b1c799"
+    },
+    {
+      "base": "owned",
+      "path": "driver.mjs",
+      "bytes": 29569,
+      "mode": 420,
+      "sha256": "1cd3eed42e1b4b614e9a95ff8f5fa10d76a6a7de99c60b3105849ef500769621"
+    },
+    {
+      "base": "owned",
+      "path": "fixtures/caught.mjs",
+      "bytes": 223,
+      "mode": 292,
+      "sha256": "248d53df4a2aa70586ab58401838fa5b807e09134e0ee97014b07ffb7793b450"
+    },
+    {
+      "base": "owned",
+      "path": "fixtures/failed.mjs",
+      "bytes": 185,
+      "mode": 292,
+      "sha256": "a3a790d61a63425a79c87dca29c6a3d512aa8870771206ae71672d71215a0099"
+    },
+    {
+      "base": "owned",
+      "path": "fixtures/ordered.mjs",
+      "bytes": 376,
+      "mode": 292,
+      "sha256": "2b3f2e499432ca8c87e31ef234e5bb8153d74813658955875f5a02d14baf5fec"
+    },
+    {
+      "base": "owned",
+      "path": "import-guard.mjs",
+      "bytes": 2014,
+      "mode": 420,
+      "sha256": "8abde9c9b62a63e0256b4954a8d98693f2974948a0d644a7d443e889242ee108"
+    },
+    {
+      "base": "owned",
+      "path": "policy-child.mjs",
+      "bytes": 2931,
+      "mode": 420,
+      "sha256": "533067fe002f2abe0b2b0d795898939427d4e4d47fdd72bd8ceca9598288d3f6"
+    },
+    {
+      "base": "owned",
+      "path": "stub-child.mjs",
+      "bytes": 618,
+      "mode": 420,
+      "sha256": "53fe52c551f81b4a7b4ee493ec0e5b0656a7240d559c7f92b89185a2cf211bf0"
+    }
+  ],
+  "productionWorkerQualification": "UNQUALIFIED: real authority and bootstrap source binding cannot admit own literal fixture tree; no worker top-level execution",
+  "actualCli": "Only invalid never-admission: rejects arguments before configure/authority/stage; no real admission path",
+  "history": "Original31/33 author28children; r1postcapture2/2+12 remain separate. becd1647 lost294045 bytes and oversized artifacts; old13/54vs47/54; W07unqualified/consumedtokens unchanged."
+}

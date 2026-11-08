@@ -1,0 +1,103 @@
+{
+  "schema": "proposed-falsification-controls-v1",
+  "count": 12,
+  "executions": 0,
+  "rows": [
+    {
+      "id": "C01",
+      "name": "wrong-candidate-or-pack",
+      "perturbation": "Alter one expected commit/pack hash in an in-memory binding copy.",
+      "requiredObservation": "Admission rejects exact mismatch before product module load; positive unchanged binding accepted.",
+      "productChildCeiling": 2,
+      "executions": 0
+    },
+    {
+      "id": "C02",
+      "name": "recipe-or-oracle-tamper",
+      "perturbation": "Change one W06 expected digit without updating the sealed manifest.",
+      "requiredObservation": "Recipe admission rejects hash before execution, not a semantic comparison failure.",
+      "productChildCeiling": 2,
+      "executions": 0
+    },
+    {
+      "id": "C03",
+      "name": "source-fallback",
+      "perturbation": "Resolve an import toward the disallowed source/old-layout path, with an observable marker if loaded.",
+      "requiredObservation": "Loader rejects the exact forbidden URL; zero marker loads. A generic assertion error is not proof.",
+      "productChildCeiling": 2,
+      "executions": 0
+    },
+    {
+      "id": "C04",
+      "name": "actual-load-not-disk-only",
+      "perturbation": "Make a controlled test resolver select a wrong hashed module while the expected file remains untouched.",
+      "requiredObservation": "Actual load trace rejects the selected wrong bytes; disk-only guard would miss it. No production module is patched.",
+      "productChildCeiling": 2,
+      "executions": 0
+    },
+    {
+      "id": "C05",
+      "name": "fresh-view-new-entry-mode-link",
+      "perturbation": "Supply a synthetic fresh-view manifest with one unlisted regular entry, mode mismatch, or symlink, using three in-memory subchecks.",
+      "requiredObservation": "Each designated fresh-view guard rejects; unchanged synthetic view accepted. Never create or copy AGENTS.",
+      "productChildCeiling": 2,
+      "executions": 0
+    },
+    {
+      "id": "C06",
+      "name": "stdout-byte-fidelity",
+      "perturbation": "Change exactly binary W03 byte FF to UTF-8 replacement bytes in an in-memory captured record.",
+      "requiredObservation": "Exact stdout/added-file predicates both detect altered bytes; original literal record accepted.",
+      "productChildCeiling": 2,
+      "executions": 0
+    },
+    {
+      "id": "C07",
+      "name": "status-and-diagnostic",
+      "perturbation": "Change a passing capture status0 to7, then add one stderr byte in separate in-memory subchecks.",
+      "requiredObservation": "Each designated predicate rejects; do not equate nonempty stderr categories or ignore status.",
+      "productChildCeiling": 2,
+      "executions": 0
+    },
+    {
+      "id": "C08",
+      "name": "namespace-preservation",
+      "perturbation": "Perturb an initial file byte, add an unexpected final path, and retain W09 stage in separate in-memory records.",
+      "requiredObservation": "Preservation, exact namespace and absent-path predicates respectively reject; correct record accepted.",
+      "productChildCeiling": 2,
+      "executions": 0
+    },
+    {
+      "id": "C09",
+      "name": "cleanup-before-credit",
+      "perturbation": "A harness-only child publishes a matching result but intentionally retains an owned timer/pipe until the supervisor deadline.",
+      "requiredObservation": "Lifecycle rejects despite matching output; retain natural/forced status and then reap completely. No product invocation needed.",
+      "productChildCeiling": 2,
+      "executions": 0
+    },
+    {
+      "id": "C10",
+      "name": "guarded-failure-continuation",
+      "perturbation": "Feed an ordinary assertion failure with closed resources to the coordinator, and separately a binding/cleanup failure.",
+      "requiredObservation": "Ordinary failure permits next scheduled record; unsafe case halts before next dispatch. No missing tail may be called pass.",
+      "productChildCeiling": 2,
+      "executions": 0
+    },
+    {
+      "id": "C11",
+      "name": "real-plugin-admission",
+      "perturbation": "A harness-only plugin blocks setup on a controlled promise; inspect the barrier before and after release, then a rejecting setup subcheck.",
+      "requiredObservation": "No registry observation before actual preceding setup completion; rejection is captured and disposed. No sleeps or counter reset.",
+      "productChildCeiling": 2,
+      "executions": 0
+    },
+    {
+      "id": "C12",
+      "name": "no-op-target-substitution",
+      "perturbation": "Load a separate test-only stub with explicit module hash that returns0 without producing W02 files.",
+      "requiredObservation": "Designated W02 file/effect predicate rejects despite status0; actual stub load must be observed. Never mutate product or replace the positive run.",
+      "productChildCeiling": 2,
+      "executions": 0
+    }
+  ]
+}

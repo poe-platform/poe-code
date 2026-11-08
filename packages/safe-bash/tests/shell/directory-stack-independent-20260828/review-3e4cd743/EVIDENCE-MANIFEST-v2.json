@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "path": "EVIDENCE-v2.json.gz.base64",
+  "bytes": 1631435,
+  "sha256": "b1b4b5f35370e3d0b5949a0ad041cfc8694fd9ad482d7a159ea432b9acfc87f7",
+  "files": 1124,
+  "nodes": 61029,
+  "supersedesUncommittedEncoding": {
+    "path": "EVIDENCE-v1.json.gz.base64",
+    "bytes": 50000951,
+    "sha256": "fbbfceff5cae6c7d2f946fb80aff2335506614e8781a95d4036499f9509de062",
+    "removal": "only redundant uncommitted serialization removed after1124 exact byte roundtrips; original rawfiles retained until authenticated cleanup"
+  }
+}

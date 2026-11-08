@@ -1,0 +1,14 @@
+{
+  "name": "build",
+  "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-independent-25t99S/source/node_modules/typescript/bin/tsc",
+    "-p",
+    "tsconfig.build.json"
+  ],
+  "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-independent-25t99S/source",
+  "status": 0,
+  "signal": null,
+  "stdout": "",
+  "stderr": ""
+}

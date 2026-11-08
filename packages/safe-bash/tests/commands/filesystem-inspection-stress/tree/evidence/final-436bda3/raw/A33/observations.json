@@ -1,0 +1,43 @@
+{
+  "candidate": "/tmp/safe-bash-tree-final-436bda3-k1mKIO/candidate",
+  "api": "standalone src/commands/tree/index.ts",
+  "invocations": [
+    {
+      "argv": [
+        "wide"
+      ],
+      "limits": {
+        "maxOutputBytes": 64
+      },
+      "cwd": "/",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TERM": "dumb",
+        "TZ": "UTC"
+      },
+      "stdout": [
+        {
+          "attemptedBase64": "d2lkZQo=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fC0tIGVudHJ5LTAwMC1cMzUxXDIzM1wyNTIudHh0Cg==",
+          "state": "fulfilled"
+        }
+      ],
+      "stderr": [],
+      "startedAt": "2026-08-27T09:27:33.023Z",
+      "error": {
+        "name": "FsError",
+        "message": "EFBIG: tree output limit exceeded (64)",
+        "code": "EFBIG",
+        "stack": "FsError: EFBIG: tree output limit exceeded (64)\n    at WalkBudget.check (/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/candidate/src/commands/tree/io.ts:44:32)\n    at WalkBudget.checkOutput (/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/candidate/src/commands/tree/io.ts:59:42)\n    at WalkBudget.outputText (/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/candidate/src/commands/tree/io.ts:62:10)\n    at WalkBudget.emit (/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/candidate/src/commands/tree/io.ts:89:23)\n    at Walker.write (/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/candidate/src/commands/tree/tree.ts:172:68)\n    at Walker.visit (/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/candidate/src/commands/tree/tree.ts:162:18)\n    at async Walker.visit (/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/candidate/src/commands/tree/tree.ts:165:9)\n    at async Walker.run (/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/candidate/src/commands/tree/tree.ts:183:7)\n    at async Object.execute (/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/candidate/src/commands/tree/tree.ts:212:24)"
+      },
+      "rejected": true,
+      "sameAsSignalReason": false,
+      "finishedAt": "2026-08-27T09:27:33.026Z"
+    }
+  ],
+  "shells": []
+}

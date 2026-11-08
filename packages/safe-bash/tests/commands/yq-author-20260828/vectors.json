@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "sealedBeforeSource": true,
+  "command": [
+    {"id":"A-C01","args":[],"input":"a: 1\nitems:\n  - red\n  - {ok: true}\n","status":0,"stdout":"\"a\": 1\n\"items\":\n  - \"red\"\n  - \"ok\": true\n"},
+    {"id":"A-C02","args":["eval","-o","json","-c","."],"input":"1\n---\n2\n","status":0,"stdout":"1\n2\n"},
+    {"id":"A-C03","args":["--version"],"input":"poison","status":0,"stdout":"virtual-bash restricted YAML profile\n"},
+    {"id":"A-C04","args":["e","--help"],"input":"poison","status":0,"stdoutSha256":"97238372eed5e2358540baadbb7e5eac1c81d14dde163a1b7fd05d9048521f65"},
+    {"id":"A-C05","args":["--slurp","."],"input":"1\n","status":2,"diagnostic":"CLI_UNSUPPORTED_OPTION"},
+    {"id":"A-C06","args":["-c","."],"input":"1\n","status":2,"diagnostic":"CLI_INCOMPATIBLE_OPTIONS"},
+    {"id":"A-C07","args":["$missing"],"input":"poison","status":3,"diagnostic":"QUERY_COMPILE_FAILED"}
+  ],
+  "yaml": [
+    {"id":"A-Y01","input":"[one, {two: [3, null]},]\n","value":["one",{"two":[3,null]}]},
+    {"id":"A-Y02","input":"'can''t'\n","value":"can't"},
+    {"id":"A-Y03","input":"\"a\\n\\t\\x41\\u0042\\uD83D\\uDE42\"\n","value":"a\n\tAB🙂"},
+    {"id":"A-Y04","input":"|-\n  pine\n  oak\n","value":"pine\noak"},
+    {"id":"A-Y05","input":">-\n  pine\n  oak\n","value":"pine oak"},
+    {"id":"A-Y06","input":"%YAML 1.2\n---\nready\n...\n---\n","values":["ready",null]},
+    {"id":"A-Y07","input":"[+12, 012, 0o12, 0xA, .5]\n","json":"[12,12,10,10,0.5]"},
+    {"id":"A-Y08","input":"10e-1147483647\n","numberText":"1E-1147483646"},
+    {"id":"A-Y09","input":"!!float 7\n","numberText":"7"},
+    {"id":"A-Y10","input":"!!int 7.0\n","error":"SCHEMA_TAG_LEXEME_MISMATCH"},
+    {"id":"A-Y11","input":"a: 1\n\"\\u0061\": 2\n","error":"SCHEMA_DUPLICATE_KEY"},
+    {"id":"A-Y12","input":"<<: one\n","error":"SCHEMA_PLAIN_MERGE_KEY"},
+    {"id":"A-Y13","input":"'<<': one\n","json":"{\"<<\":\"one\"}"},
+    {"id":"A-Y14","input":"[&a old, *a, &a new, *a]\n","json":"[\"old\",\"old\",\"new\",\"new\"]"},
+    {"id":"A-Y15","input":"[&a old, &a [*a]]\n","error":"ALIAS_CURRENT_NODE"},
+    {"id":"A-Y16","input":"&a 1\n---\n*a\n","errorAfterValues":1,"error":"ALIAS_UNDEFINED"}
+  ],
+  "resource": [
+    {"id":"A-R01","pending":1022,"units":1,"expectedReservationCost":1,"expectedPending":1023,"finishCost":0},
+    {"id":"A-R02","pending":1023,"units":1,"expectedReservationCost":2,"expectedPending":1,"finishCost":0},
+    {"id":"A-R03","pending":1023,"units":0,"expectedReservationCost":0,"expectedPending":1023,"finishCost":0},
+    {"id":"A-R04","estimateUnits":1023,"copyUnits":1,"expectedCombinedCost":1025,"reservationStepCalls":1,"copyStepCalls":0},
+    {"id":"A-R05","abortReasons":[false,null,"__undefined__"],"allocationAfterGuard":0,"publicationAfterGuard":0}
+  ]
+}

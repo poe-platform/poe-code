@@ -1,0 +1,2055 @@
+{
+  "baseCommit": "86c8a3d22d86cb30e0c4a662486d211cea67e5d1",
+  "sourceCommit": "c9a9a5eed7185783b69043e019c067370dc09615",
+  "capturedAt": "2026-09-17T04:08:42.362Z",
+  "candidate": "Base commit plus exact EPUB writer/test changes bound below; no unrelated plan included.",
+  "toolsRemoved": true,
+  "files": [
+    {
+      "path": "docs/pandoc/current-matrix/additional.json",
+      "bytes": 29430,
+      "sha256": "283fbe90af854115cf9d4ad1f7bdd1f0c5ee12198b9cd9c7e06561e04ebf3919",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/build.log",
+      "bytes": 572,
+      "sha256": "7926ddc39217cbdc6d25f4f001ae9a0aaa559ba3ebb817f5374a67c841f1c33d",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/commonmark.log",
+      "bytes": 2616,
+      "sha256": "0a5880b574a8738293849212c5908dce6801f8a528cace69f37c6e33ea08a671",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/epub-epochs-build.log",
+      "bytes": 572,
+      "sha256": "7926ddc39217cbdc6d25f4f001ae9a0aaa559ba3ebb817f5374a67c841f1c33d",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/epub-epochs-lint.log",
+      "bytes": 166,
+      "sha256": "c5b6d72105917408d53c0dbe78faa79eeb24ace53233e517aac6163c9f514cbb",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/epub-epochs-red.log",
+      "bytes": 5823,
+      "sha256": "4d61a19ae97e4eac3636f1f0546d3f80e450fdb70e5ebfb81abe5306762bf6ed",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/epub-epochs-unit.log",
+      "bytes": 3997,
+      "sha256": "9bae6c4eca0b868a963f8d79994b0c99c50133708e7b4e666be3430c81123c9d",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/execution.json",
+      "bytes": 1472016,
+      "sha256": "a32b18af095e0a7b1788275fc1ac8236872d2df09525dc52a39b6d4ad44417f3",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/independent.json",
+      "bytes": 27775,
+      "sha256": "de0a8fc4091679913a58a844a4ae43bbb66dd60ff90a7cf5577b4ea02b78ec3b",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/lint.log",
+      "bytes": 166,
+      "sha256": "c5b6d72105917408d53c0dbe78faa79eeb24ace53233e517aac6163c9f514cbb",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/oracle-install.log",
+      "bytes": 772,
+      "sha256": "6ae25f8bb5cafea94da6e6cdba7108e2b636c0b428a537828c2d9ef1f53e01bf",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/commonmark-epub.epub",
+      "bytes": 2015,
+      "sha256": "1a66464bda74c5d069433517395fa98c3664134f2b2e4a577fee7d2ceb7b30e6",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/commonmark-epub3.epub",
+      "bytes": 2015,
+      "sha256": "1a66464bda74c5d069433517395fa98c3664134f2b2e4a577fee7d2ceb7b30e6",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/commonmark-pdf.pdf",
+      "bytes": 142063,
+      "sha256": "851844142f40d33cfb291eaa46b5f7435b98d72734289e4888c957720dc179fd",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/commonmark-pdf.pdf.png",
+      "bytes": 4013,
+      "sha256": "1f19988c2533a971af0db3653297e5568ea74dac7ed330f35d7fafee8f86c7fe",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/commonmark-pptx.pptx",
+      "bytes": 4996,
+      "sha256": "14ba7be49f3d6764762da930d448049f250b6201fb81e90153f4c3880e088981",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/csv-epub.epub",
+      "bytes": 2058,
+      "sha256": "a214e2b3a146fdedd3a681c03f5a70acc7d12e45b2860e6fdf783fe8fb4023f7",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/csv-epub3.epub",
+      "bytes": 2058,
+      "sha256": "a214e2b3a146fdedd3a681c03f5a70acc7d12e45b2860e6fdf783fe8fb4023f7",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/csv-pdf.pdf",
+      "bytes": 142123,
+      "sha256": "41abfae15dbde0f8ba5494f86bb260e739f375cc5fec11d9e8444054d6b28e72",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/csv-pdf.pdf.png",
+      "bytes": 4136,
+      "sha256": "4961b4c6548f5b625739e23e01e5470ffe43c0b690a7672792c81e5864c2bb19",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/csv-pptx.pptx",
+      "bytes": 4992,
+      "sha256": "8e2fc2b498025c4012a4a08c50d41c6868b404f22785f379b9d796ad02641dc0",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/epub2-epub.epub",
+      "bytes": 2042,
+      "sha256": "7a1d16c10b7c3b7c9ca2a5c71b9323d9041c2b592d0f003c4baeb9169aca59c0",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/epub2-epub3.epub",
+      "bytes": 2042,
+      "sha256": "7a1d16c10b7c3b7c9ca2a5c71b9323d9041c2b592d0f003c4baeb9169aca59c0",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/epub2-pdf.pdf",
+      "bytes": 142121,
+      "sha256": "51886318751339fcca1f762118b930939c17c86dc62347ae6dcf4982274b51a3",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/epub2-pdf.pdf.png",
+      "bytes": 4013,
+      "sha256": "1f19988c2533a971af0db3653297e5568ea74dac7ed330f35d7fafee8f86c7fe",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/epub3-epub.epub",
+      "bytes": 2042,
+      "sha256": "7a1d16c10b7c3b7c9ca2a5c71b9323d9041c2b592d0f003c4baeb9169aca59c0",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/epub3-epub3.epub",
+      "bytes": 2042,
+      "sha256": "7a1d16c10b7c3b7c9ca2a5c71b9323d9041c2b592d0f003c4baeb9169aca59c0",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/epub3-pdf.pdf",
+      "bytes": 142121,
+      "sha256": "51886318751339fcca1f762118b930939c17c86dc62347ae6dcf4982274b51a3",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/epub3-pdf.pdf.png",
+      "bytes": 4013,
+      "sha256": "1f19988c2533a971af0db3653297e5568ea74dac7ed330f35d7fafee8f86c7fe",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/gfm-epub.epub",
+      "bytes": 2015,
+      "sha256": "1a66464bda74c5d069433517395fa98c3664134f2b2e4a577fee7d2ceb7b30e6",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/gfm-epub3.epub",
+      "bytes": 2015,
+      "sha256": "1a66464bda74c5d069433517395fa98c3664134f2b2e4a577fee7d2ceb7b30e6",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/gfm-pdf.pdf",
+      "bytes": 142063,
+      "sha256": "851844142f40d33cfb291eaa46b5f7435b98d72734289e4888c957720dc179fd",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/gfm-pdf.pdf.png",
+      "bytes": 4013,
+      "sha256": "1f19988c2533a971af0db3653297e5568ea74dac7ed330f35d7fafee8f86c7fe",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/gfm-pptx.pptx",
+      "bytes": 4996,
+      "sha256": "14ba7be49f3d6764762da930d448049f250b6201fb81e90153f4c3880e088981",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/html-epub.epub",
+      "bytes": 2015,
+      "sha256": "1a66464bda74c5d069433517395fa98c3664134f2b2e4a577fee7d2ceb7b30e6",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/html-epub3.epub",
+      "bytes": 2015,
+      "sha256": "1a66464bda74c5d069433517395fa98c3664134f2b2e4a577fee7d2ceb7b30e6",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/html-pdf.pdf",
+      "bytes": 142063,
+      "sha256": "851844142f40d33cfb291eaa46b5f7435b98d72734289e4888c957720dc179fd",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/html-pdf.pdf.png",
+      "bytes": 4013,
+      "sha256": "1f19988c2533a971af0db3653297e5568ea74dac7ed330f35d7fafee8f86c7fe",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/html-pptx.pptx",
+      "bytes": 4996,
+      "sha256": "14ba7be49f3d6764762da930d448049f250b6201fb81e90153f4c3880e088981",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/json-epub.epub",
+      "bytes": 2015,
+      "sha256": "1a66464bda74c5d069433517395fa98c3664134f2b2e4a577fee7d2ceb7b30e6",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/json-epub3.epub",
+      "bytes": 2015,
+      "sha256": "1a66464bda74c5d069433517395fa98c3664134f2b2e4a577fee7d2ceb7b30e6",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/json-pdf.pdf",
+      "bytes": 142063,
+      "sha256": "851844142f40d33cfb291eaa46b5f7435b98d72734289e4888c957720dc179fd",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/json-pdf.pdf.png",
+      "bytes": 4013,
+      "sha256": "1f19988c2533a971af0db3653297e5568ea74dac7ed330f35d7fafee8f86c7fe",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/json-pptx.pptx",
+      "bytes": 4996,
+      "sha256": "14ba7be49f3d6764762da930d448049f250b6201fb81e90153f4c3880e088981",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/latex-epub.epub",
+      "bytes": 2015,
+      "sha256": "1a66464bda74c5d069433517395fa98c3664134f2b2e4a577fee7d2ceb7b30e6",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/latex-epub3.epub",
+      "bytes": 2015,
+      "sha256": "1a66464bda74c5d069433517395fa98c3664134f2b2e4a577fee7d2ceb7b30e6",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/latex-pdf.pdf",
+      "bytes": 142063,
+      "sha256": "851844142f40d33cfb291eaa46b5f7435b98d72734289e4888c957720dc179fd",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/latex-pdf.pdf.png",
+      "bytes": 4013,
+      "sha256": "1f19988c2533a971af0db3653297e5568ea74dac7ed330f35d7fafee8f86c7fe",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/latex-pptx.pptx",
+      "bytes": 4996,
+      "sha256": "14ba7be49f3d6764762da930d448049f250b6201fb81e90153f4c3880e088981",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/pptx-epub.epub",
+      "bytes": 2057,
+      "sha256": "65ea6fd3cd71d4fbaf8eb2d0ff2a85934114027095fbae8bb2799439edafea2f",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/pptx-epub3.epub",
+      "bytes": 2057,
+      "sha256": "65ea6fd3cd71d4fbaf8eb2d0ff2a85934114027095fbae8bb2799439edafea2f",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/pptx-pdf.pdf",
+      "bytes": 142063,
+      "sha256": "851844142f40d33cfb291eaa46b5f7435b98d72734289e4888c957720dc179fd",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/pptx-pdf.pdf.png",
+      "bytes": 4013,
+      "sha256": "1f19988c2533a971af0db3653297e5568ea74dac7ed330f35d7fafee8f86c7fe",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/pptx-pptx.pptx",
+      "bytes": 4996,
+      "sha256": "14ba7be49f3d6764762da930d448049f250b6201fb81e90153f4c3880e088981",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/rst-epub.epub",
+      "bytes": 2015,
+      "sha256": "1a66464bda74c5d069433517395fa98c3664134f2b2e4a577fee7d2ceb7b30e6",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/rst-epub3.epub",
+      "bytes": 2015,
+      "sha256": "1a66464bda74c5d069433517395fa98c3664134f2b2e4a577fee7d2ceb7b30e6",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/rst-pdf.pdf",
+      "bytes": 142063,
+      "sha256": "851844142f40d33cfb291eaa46b5f7435b98d72734289e4888c957720dc179fd",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/rst-pdf.pdf.png",
+      "bytes": 4013,
+      "sha256": "1f19988c2533a971af0db3653297e5568ea74dac7ed330f35d7fafee8f86c7fe",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/rst-pptx.pptx",
+      "bytes": 4996,
+      "sha256": "14ba7be49f3d6764762da930d448049f250b6201fb81e90153f4c3880e088981",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/rtf-epub.epub",
+      "bytes": 2015,
+      "sha256": "1a66464bda74c5d069433517395fa98c3664134f2b2e4a577fee7d2ceb7b30e6",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/rtf-epub3.epub",
+      "bytes": 2015,
+      "sha256": "1a66464bda74c5d069433517395fa98c3664134f2b2e4a577fee7d2ceb7b30e6",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/rtf-pdf.pdf",
+      "bytes": 142063,
+      "sha256": "851844142f40d33cfb291eaa46b5f7435b98d72734289e4888c957720dc179fd",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/rtf-pdf.pdf.png",
+      "bytes": 4013,
+      "sha256": "1f19988c2533a971af0db3653297e5568ea74dac7ed330f35d7fafee8f86c7fe",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/rtf-pptx.pptx",
+      "bytes": 4996,
+      "sha256": "14ba7be49f3d6764762da930d448049f250b6201fb81e90153f4c3880e088981",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/tsv-epub.epub",
+      "bytes": 2058,
+      "sha256": "a214e2b3a146fdedd3a681c03f5a70acc7d12e45b2860e6fdf783fe8fb4023f7",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/tsv-epub3.epub",
+      "bytes": 2058,
+      "sha256": "a214e2b3a146fdedd3a681c03f5a70acc7d12e45b2860e6fdf783fe8fb4023f7",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/tsv-pdf.pdf",
+      "bytes": 142123,
+      "sha256": "41abfae15dbde0f8ba5494f86bb260e739f375cc5fec11d9e8444054d6b28e72",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/tsv-pdf.pdf.png",
+      "bytes": 4136,
+      "sha256": "4961b4c6548f5b625739e23e01e5470ffe43c0b690a7672792c81e5864c2bb19",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/outputs/tsv-pptx.pptx",
+      "bytes": 4992,
+      "sha256": "8e2fc2b498025c4012a4a08c50d41c6868b404f22785f379b9d796ad02641dc0",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/pdf-contact.png",
+      "bytes": 12163,
+      "sha256": "e0d850beee9d19685d3139867a67b94381f407f9631dd5caf16d0c70b119c41a",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/pre-epochs-execution.json",
+      "bytes": 1409389,
+      "sha256": "b751420f627e20abc2c7e948369fc43d6abc61cf9d06407426dd13f31905a0e9",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/pre-epochs-independent.json",
+      "bytes": 20910,
+      "sha256": "35d7e081fa006061b59a41bd95f398ea904ca31f582219c018dfcc40fe4a9824",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/rst.log",
+      "bytes": 828,
+      "sha256": "abaec1f45a4bad1586490a527f0fb69336f8cbf5147f54800f64c70ff415943d",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/safe-bash-final.log",
+      "bytes": 6027,
+      "sha256": "22dd9a2a402392f76b77941f52e2080007b4ad05bf0d98d00eacf87396917720",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/safe-bash.log",
+      "bytes": 6025,
+      "sha256": "32188469166263fd8d774be6df7fa99562cbd56829e5784e8da6f98d4ae4468f",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/source-binding.json",
+      "bytes": 322321,
+      "sha256": "a549ab7b604fc54262171c788bb4380c96502324fcbbbfc6581714a16814a407",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/stale-build-execution.json",
+      "bytes": 1634426,
+      "sha256": "49bb84d83e9227cae6383a9426a50fea009114d6ad2620145723359244b97b75",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/summary.md",
+      "bytes": 7760,
+      "sha256": "915482658a82ad648f603655bbb680470650578728e4cc405591dc9d2ae82cf7",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/pandoc/current-matrix/unit.log",
+      "bytes": 5972,
+      "sha256": "e096f9fe73d6cf0e4e167d74ce56879f01d775664f2f1bc2950f7435a6da29c4",
+      "classification": "Integration/oracle evidence; not a unit input"
+    },
+    {
+      "path": "docs/plans/pandoc-matrix-current-revalidation.md",
+      "bytes": 4574,
+      "sha256": "55c04be20c4c6c29dccba91fba2f00482727957d0c18b5e06d64e0f95026efa4",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/ast-types.d.ts",
+      "bytes": 3546,
+      "sha256": "f6c9021b1f61e64ddccad763e7ff0ac665ec62fd17f494bfe7ba88b984f272a1",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/ast-types.js",
+      "bytes": 107,
+      "sha256": "aaa1f34fac7b8af1d7cf8384ab2163beee2008f96ab06a997182195167dbd0d4",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/ast.d.ts",
+      "bytes": 723,
+      "sha256": "89c1031c948a858357ddbcdeaebc58e66e9546cc44d8c9cc59c1f029a48c3ba7",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/ast.js",
+      "bytes": 12043,
+      "sha256": "0a44712cda5c37eb184bbe99daece00fc1c8886541abf290f2048aa2e2057ec7",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/cli.d.ts",
+      "bytes": 664,
+      "sha256": "ef6e9cc5ec8f3e35f6eddf0d7229701b2818ce418600e718e4adc12aa2126dee",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/cli.js",
+      "bytes": 10157,
+      "sha256": "f36968d6e6c8ba1dbde0a30588364decffcf687db50828b5c5c70bba12e14b55",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/commonmark-blocks.d.ts",
+      "bytes": 1753,
+      "sha256": "6442de5317460029abdd2bac5784b2f993aa0051cce415996966a8c970a29b34",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/commonmark-blocks.js",
+      "bytes": 29517,
+      "sha256": "afa28d38ce64c32ebaad7d60bbd938fe3f208e2b593c955c4e19427f4dd94045",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/commonmark-case-fold.d.ts",
+      "bytes": 62,
+      "sha256": "e003fa16f05f3973a7987e14c620c2f52ded0415b61df8d76baac3815d62b3e4",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/commonmark-case-fold.js",
+      "bytes": 11876,
+      "sha256": "aabe12a3ad4198290ae2935169932b0948ebd90b34d13798c32ef943d0ccffdb",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/commonmark-characters.d.ts",
+      "bytes": 157,
+      "sha256": "f493859f3155394f07347e2970e794f150945a3809c8f5c7412aee399553bf03",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/commonmark-characters.js",
+      "bytes": 8783,
+      "sha256": "2f36e26c242cecc48a40c3ee00d522e3c4c7f681e8a0b12816e464aabf6b061f",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/commonmark-inlines.d.ts",
+      "bytes": 622,
+      "sha256": "c1954e661fe6664c2a1ae793cd7d5c6048aeb5a6cc2bb4e272f50cb679211c41",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/commonmark-inlines.js",
+      "bytes": 22499,
+      "sha256": "03b307d8d41f86152a410d58a0e7587be7db4c6ee288a305fd8c144fa37da0e6",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/commonmark-syntax.d.ts",
+      "bytes": 1335,
+      "sha256": "6a58fb32662edf71da1ed61adabfa7bb313039229fa9a73e23a11a6be89a204a",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/commonmark-syntax.js",
+      "bytes": 5947,
+      "sha256": "ee385f852874d00ff92fc55fbdfb27aeff74cdee2e1d37440f24d3900f1d8d65",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/commonmark.d.ts",
+      "bytes": 172,
+      "sha256": "b64c7be2c4c6a9404faef43ed75720ec31f2cd04e1c6b04e6cc75d06aff174fe",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/commonmark.js",
+      "bytes": 4888,
+      "sha256": "3e69ddf2a1964ac662be9e113e6766b3bbeda4d082e8cc36af7c2c2f556e5944",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/delimited.d.ts",
+      "bytes": 199,
+      "sha256": "d3f5466a70c77b4ddcaca67979e9d135b1e646661183201ba6f6d3ca8abc4989",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/delimited.js",
+      "bytes": 5350,
+      "sha256": "c6e1b1fb5bdc1d4f9bca8b74eb7976e74b02cb0f0979abc84b5c2f80019ba672",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/engine.d.ts",
+      "bytes": 595,
+      "sha256": "f6d7d3d6f7079ef44cfc76a73643b123604ead40a15a1114b2add08be1e3712b",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/engine.js",
+      "bytes": 25191,
+      "sha256": "5cf83bdf0c328231d5d6349ffba8df8fcc53a0ffa39321285ebc2f0774554264",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/epub-writer.d.ts",
+      "bytes": 191,
+      "sha256": "cf94baad05801d8e3e1970b96417ffef8eca1431be0f8d815c86c1c467bd3d3f",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/epub-writer.js",
+      "bytes": 18928,
+      "sha256": "f0061927c354933e1b705bd5c1afa72c80f5986d5469a138f1cabf83df490fbb",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/epub-xml.d.ts",
+      "bytes": 1115,
+      "sha256": "756fc9bdacb75f81754b1aa9b41bf2debdeb59e5b7667ea089e92bb27d3c7a8d",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/epub-xml.js",
+      "bytes": 5934,
+      "sha256": "c4e20d31bd2da8a119b82f71160fae628b8344d9b29890ad3a950417c7dbe6f3",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/epub.d.ts",
+      "bytes": 103,
+      "sha256": "97a06b72fe34a0113a208e6746969a2a0a3311804a902e1f2f638deedc13ad29",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/epub.js",
+      "bytes": 26502,
+      "sha256": "599d0d920e739c9477e92027dce73e14bc2d13cd2f935fa0d6ab5ccc1c6fa4de",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/errors.d.ts",
+      "bytes": 630,
+      "sha256": "86fac7d922326d236696c64806d426a92219188d5d934f365ba7e2f8dd50bc00",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/errors.js",
+      "bytes": 542,
+      "sha256": "1b3f6c098a6c50944592665af1c88450c1fe449fe87af3a655a3e674d8ca6edd",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/execution.d.ts",
+      "bytes": 2320,
+      "sha256": "fdab5dd192476b6894cd5baf4e76873011c1f3b901da82ce9732b608b38ee354",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/execution.js",
+      "bytes": 19176,
+      "sha256": "6aa2e3325491a6919e77b49a0f9db109db1a269511b0161b27a8216504b5ac58",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/formats.d.ts",
+      "bytes": 2994,
+      "sha256": "3047a43c4c31289898ed5445c798ed55822c668c5dbe12b3766982dce23a5aa9",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/formats.js",
+      "bytes": 6692,
+      "sha256": "e0476a864701a5ccfd8be1418c1954ec58790e2753ff0941ee202d3fdccc8e3d",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/formats/commonmark.d.ts",
+      "bytes": 476,
+      "sha256": "57cb7aada837ec0d772231897fd917a616969efaf731f7dba73e02f212e89bd2",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/formats/commonmark.js",
+      "bytes": 462,
+      "sha256": "2c2c21b9468a8815d3c1e2d75de953b34ea1fcf9d00ee1aa7085bfbdc16d622a",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/formats/csv.d.ts",
+      "bytes": 532,
+      "sha256": "06cc0794b019b8b1ba551ef2bbdd8f266af7302a7e8342de11be8f9408c79231",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/formats/csv.js",
+      "bytes": 345,
+      "sha256": "7b64a02803badfe4cf0bf2601ad4413464cc0db3e32c222bb7a6016005138846",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/formats/docx.d.ts",
+      "bytes": 268,
+      "sha256": "ec7c9d976f3ff4be59811b194b671759d48b8e2f1b584045fde85ddf697969b0",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/formats/docx.js",
+      "bytes": 233,
+      "sha256": "6b2e017d8927649ccc08c7a7321b4e8dfa8ea6c0eddc931fe0f0f17f66604039",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/formats/epub.d.ts",
+      "bytes": 455,
+      "sha256": "e38d2f61f35b5907da82124ccd3d2ed7f40615b517ac170da6a727035cd675f9",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/formats/epub.js",
+      "bytes": 449,
+      "sha256": "15064dfaeb82ae5fa4dcaeb3f4cf50b40a8cc37fc44ae6e53ca61f0cf84da336",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/formats/gfm.d.ts",
+      "bytes": 805,
+      "sha256": "c7fd9fb1b0e9ff58c3f3d0de0fa073c5f282ee162ae4f28d646a648f88ad1c48",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/formats/gfm.js",
+      "bytes": 596,
+      "sha256": "9a3006b31faca6ae11a6902e0eab8668f743440db52a4a62e9e4ffb5d80b233f",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/formats/html.d.ts",
+      "bytes": 317,
+      "sha256": "bc569b5892fd3950b57ef6c8119352799dadc80b9ee2e8d69a91f2fa994a8467",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/formats/html.js",
+      "bytes": 291,
+      "sha256": "fa212c27a51d55c1aa810e8289af4cf726b36ab0c37e5e0e8c29d02c86f0bac0",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/formats/html5.d.ts",
+      "bytes": 464,
+      "sha256": "76578f48d232b8fdcc39e7089bd89e601a2d063a8973ec7b5642cb9ffa5daa01",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/formats/html5.js",
+      "bytes": 427,
+      "sha256": "a0bf2688d34bf9bb0879c74e20b9cbb3d24d73b8e23e4a014e0990addd27b44a",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/formats/index.d.ts",
+      "bytes": 118,
+      "sha256": "e4312a81bff11957e9fce0e6696c462e47809dbcf4de29ce2abc5d74313152a1",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/formats/index.js",
+      "bytes": 680,
+      "sha256": "8bdc857743ec87696faca86aaba48601461421084aa2b9c96de1a9e73876aa4b",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/formats/json.d.ts",
+      "bytes": 369,
+      "sha256": "714dfb09dd3bb07632b06889e90e9595ab6febc77254d5c39b75f2c3592a30bb",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/formats/json.js",
+      "bytes": 331,
+      "sha256": "38d1f7d4e324667700bdb6c1f41e3edad15291a006a1a1d8d54679c0915e08c3",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/formats/latex.d.ts",
+      "bytes": 469,
+      "sha256": "aabb53de21c095da2c540f2b01af2d75691983c97ec9b5a0f6f7ca54640adc76",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/formats/latex.js",
+      "bytes": 458,
+      "sha256": "4f07e61a263bbb6e85717035f44d3f13e360935858012d99486823f04578db58",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/formats/pdf.d.ts",
+      "bytes": 321,
+      "sha256": "5ca6516bff2bc32b9d5fb6ae245917ba1fd7828bcbf9e843399a8e700212a76e",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/formats/pdf.js",
+      "bytes": 331,
+      "sha256": "e0f427fb2d73db89d6f52fe8e1a08e1e4124f23111d2317b3505fee56114eff8",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/formats/plain.d.ts",
+      "bytes": 394,
+      "sha256": "7a93f138821fd3fa9ce5de28e7e038b70b69532b23251a3580104c488ecc63eb",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/formats/plain.js",
+      "bytes": 340,
+      "sha256": "37ec11d62179dfcf872bbed7d410f40e47f9f593d9b331e16a06d425f7711a53",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/formats/pptx.d.ts",
+      "bytes": 779,
+      "sha256": "6f3bd8949c729b138e098731413731d804a49240d7a8b6b0db3a4dcba3801404",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/formats/pptx.js",
+      "bytes": 883,
+      "sha256": "2631b0b9d25f776f5da174fb71d36d853d6a95675db54a99ee58dbcbd08ead38",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/formats/rst.d.ts",
+      "bytes": 463,
+      "sha256": "5b0643f3171f916cf3bb3ee80c9a63a83c9b4d12288b297caa69fa0aa4ade796",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/formats/rst.js",
+      "bytes": 404,
+      "sha256": "4ec806ab174b7aee0e67206c130eb3d1f18f5c995d99634abc8b821bd695f6d0",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/formats/rtf.d.ts",
+      "bytes": 440,
+      "sha256": "05cafa7136b1757e4d1979b9fa3aafb68c409c15403167815ec78f734cafc699",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/formats/rtf.js",
+      "bytes": 384,
+      "sha256": "d797385dce3e21258ba0d3e8077e32b88e3aed9ab4bf6b99391d733e8c4a632c",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/formats/tsv.d.ts",
+      "bytes": 532,
+      "sha256": "06cc0794b019b8b1ba551ef2bbdd8f266af7302a7e8342de11be8f9408c79231",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/formats/tsv.js",
+      "bytes": 345,
+      "sha256": "77540b817b31543fdcf37c68338c99cd554f2fcaf1d5a9a556bd403aca003768",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/formats/xlsx.d.ts",
+      "bytes": 268,
+      "sha256": "9b51241b07ec54198ad8ab4e0608ec90909b4964f2ab65c301d98133d956a84d",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/formats/xlsx.js",
+      "bytes": 222,
+      "sha256": "8979027944047e61061bd6262c1c03c5e644ce4d8a2ab2d51758b6527e43dc5b",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/gfm-syntax.d.ts",
+      "bytes": 541,
+      "sha256": "1b655e997d68be568b9128240a8126d17b92ab9252cd7b475eaee44a03a11b2b",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/gfm-syntax.js",
+      "bytes": 4938,
+      "sha256": "dcf5762434518a5bf750f73f81b76baee128fae3a295bcc7682f5f6ced67b24f",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/html-writer.d.ts",
+      "bytes": 190,
+      "sha256": "dc5142b0256a61165d40c6ed0d4b292e872331e7cf75d1aa2a0ce4e3ae6aef0d",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/html-writer.js",
+      "bytes": 21331,
+      "sha256": "ebd2513507d3c60ad329bf62f60af93c9f6967da4221ae81c83fb2a188885fea",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/html.d.ts",
+      "bytes": 527,
+      "sha256": "5c66b3afa2bd1a59661b12906a7a102eed3f4f1931c81eb216fa304a4ac40e47",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/html.js",
+      "bytes": 16608,
+      "sha256": "85e4baf0042ebbd703a60d13bbf9de8071260fa140ba815b9163dfc1b4beb25c",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/index.d.ts",
+      "bytes": 1486,
+      "sha256": "cb664bb7f9c43de032d127146067ed722933720d8868b65f8fef57057ef0cba9",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/index.js",
+      "bytes": 590,
+      "sha256": "c6f64d40afb50dfac924e0dde445a3b0aa38f64bbd1ca6d128c39b06831de908",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/inspection.d.ts",
+      "bytes": 427,
+      "sha256": "ab5a90f8a67fc6bc7f032a698d4aef61ca507c50ed9c956b76aa3bd8f42ffd2d",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/inspection.js",
+      "bytes": 3572,
+      "sha256": "97d6ebb6f021b521b70f0f228414b101af3ded79660742eaea6bcfe71ecbaeb0",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/json.d.ts",
+      "bytes": 172,
+      "sha256": "f7fb7b5ee4919f7140d637076ac24913f92c0a301f038c342be5d80ef2222978",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/json.js",
+      "bytes": 6773,
+      "sha256": "98418aea57b5f3c37fb332f800396d8cd580204df74f1c915c54b392c504e407",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/latex-expansion.d.ts",
+      "bytes": 456,
+      "sha256": "8af7dff0e3c5e64f0dd6da27b207e28156a393db8073f922ae1f9e905c284b62",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/latex-expansion.js",
+      "bytes": 12111,
+      "sha256": "99237c2130d16d235782067e5aa7e7d8b555be43ca8e6862c02b344f847890fb",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/latex-syntax.d.ts",
+      "bytes": 1221,
+      "sha256": "d858432b3a2e6d7131a31c8b8f083e2f16c8b03e73415f0565a6a4f4eb453890",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/latex-syntax.js",
+      "bytes": 11597,
+      "sha256": "81dac79da338d20400807de64c7617f08a75ddb1b78ea9e4b24a736c23e6211c",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/latex-writer.d.ts",
+      "bytes": 190,
+      "sha256": "ed8c10c4e65f2c9d47da7b852a12b7858ebfc3937a8bbd61c3fb824c3f171952",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/latex-writer.js",
+      "bytes": 27122,
+      "sha256": "d78b185037ccb8713069ffa95de5f0e904536f370aea52993921b7aeec2b98db",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/latex.d.ts",
+      "bytes": 104,
+      "sha256": "302b879eec45cf33970270eb93f55c2ad8270d81718d35ee2534fae2c53112f8",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/latex.js",
+      "bytes": 22198,
+      "sha256": "d8ddb03a8d95adae5836d267f781d95a115a10edf1cf028dee25f40231ade829",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/markdown-writer.d.ts",
+      "bytes": 275,
+      "sha256": "e15de173cfac69da6bf1e4a8de3971a517367b54ebf186470a993de11f9c7f1d",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/markdown-writer.js",
+      "bytes": 15975,
+      "sha256": "3325b65c97dcaeade1e756b302d547d28ac6a64cc3f97c380948f291672303fa",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/metadata.d.ts",
+      "bytes": 869,
+      "sha256": "adb42ccf34b7225c48302eb9d33f686194e053d1c783c3544b8886ba904fd3b7",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/metadata.js",
+      "bytes": 3776,
+      "sha256": "81c2bd9485af25845695b2957c3ca3de2edaaa8df8b55105a1214f6e2f51b091",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/pdf-writer.d.ts",
+      "bytes": 185,
+      "sha256": "b34a86ea826bfb6df132992a6e524b48e8da616ba4097fa6353a77a531f0bd59",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/pdf-writer.js",
+      "bytes": 13177,
+      "sha256": "c5e3599aa0fc055abf06ab716e527828a2bc7906b48558ae698332941e1d71bb",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/plain-writer.d.ts",
+      "bytes": 190,
+      "sha256": "2b3b46f4dbe3e77eade1b6c7a2b1e2d9be4a23bb00c8e68503276d33db6617fa",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/plain-writer.js",
+      "bytes": 8994,
+      "sha256": "f6319bc91eb6498a86f516811ac4db93909bdbb82c921aac754189afac931784",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/pptx.d.ts",
+      "bytes": 172,
+      "sha256": "8ac9831fb15d36db6d59349f259d1c761f8a2aff6d1b40e74290032bbcce45c9",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/pptx.js",
+      "bytes": 32011,
+      "sha256": "e3b733e429aa08779ca72a63e05e8b3c68fab1b488bf0c5e681ec53f47fcd4d3",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/public/chunks/chunk-3PKVYCA6.js",
+      "bytes": 265431,
+      "sha256": "7da4d0cf422075a6324f7867100c3757043fbc90ed0690b00344cd0666a49295",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/public/chunks/chunk-3PKVYCA6.js.map",
+      "bytes": 519752,
+      "sha256": "a2b87c7afd8272f4eafd039cad4c5771f8bdebaa30d5574275ea8b189dceefc3",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/public/chunks/chunk-4DKQ657F.js",
+      "bytes": 3393347,
+      "sha256": "f10ccf8c4da7ca0d3f9a3e7d4039f17f1dee9eaf29e06839d26c133322b944e4",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/public/chunks/chunk-4DKQ657F.js.map",
+      "bytes": 5945237,
+      "sha256": "4c9bde601211d414381a7f7874a81ef05a28ad422f0cbede260767ec745a0da4",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/public/chunks/chunk-5IFPRQCF.js",
+      "bytes": 674,
+      "sha256": "9e9b84ade2ef3316c5e466369324bde50374b5035aced2e92a218e679dbd2af1",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/public/chunks/chunk-5IFPRQCF.js.map",
+      "bytes": 1014,
+      "sha256": "185d14b6934c5f485d7cba23d64c0abe2473f51671342908b47b0d4e9d0292e3",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/public/chunks/chunk-QLPUPWYR.js",
+      "bytes": 675,
+      "sha256": "e9e10a1368471b3e3e837cfd35fe94acf0203c1c8f5be73092f944930a47b54d",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/public/chunks/chunk-QLPUPWYR.js.map",
+      "bytes": 1065,
+      "sha256": "92a8124dc10a2ad18f9315b19048405ba4206d966590c93e3e1d3e02b18cf1bf",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/public/chunks/chunk-UQYX6ATT.js",
+      "bytes": 1161820,
+      "sha256": "fad118fca9c5c6a0485933d0040f15b0d12c4f83a92beb4fa6c926643ed11f8a",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/public/chunks/chunk-UQYX6ATT.js.map",
+      "bytes": 3399650,
+      "sha256": "aba64d00157225187783a9033462f708b7378b0000649f1a19f2ecf955994e6a",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/public/chunks/pptx-MDRQZG5B.js",
+      "bytes": 26415,
+      "sha256": "90d59519bf1ea9bce4ff1ffcad29fdf8ca35ed970b5077228688e8d23409c5aa",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/public/chunks/pptx-MDRQZG5B.js.map",
+      "bytes": 50258,
+      "sha256": "d9c30ce4b5b07f23eec15c456629bfea0e78727c3780139df27133400d9f07b7",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/public/chunks/pptx-NGFICFKZ.js",
+      "bytes": 25564,
+      "sha256": "0f8a64dbad022a34ebd314cc1f5105569eac12bcd6434874532335270a6030e1",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/public/chunks/pptx-NGFICFKZ.js.map",
+      "bytes": 45867,
+      "sha256": "3727408e64758f8de6e0a6b6392af32995af438fec99245cf0b48744fdc4b879",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/public/command.js",
+      "bytes": 541070,
+      "sha256": "8a7eaaa943503d879f78dfc11149fdce091766c6cc616aefc02876f4d175ce5b",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/public/command.js.map",
+      "bytes": 1156018,
+      "sha256": "e9a97eb645521f7e4490075e03bb2e57c32d986347df54852d36a1810cfd4948",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/public/sdk.js",
+      "bytes": 503845,
+      "sha256": "523f2e0905321bbf8709e7c96dbed8e670bf715dd95fbb9535bc2516b0423a7e",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/public/sdk.js.map",
+      "bytes": 992368,
+      "sha256": "c2012b46aa3d2de605316b18fe8c5249559ac51c4b42a63623523f4f0e4233d7",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/resources.d.ts",
+      "bytes": 978,
+      "sha256": "7194f6096543a19fb7007592f7298d5857827d63e72fed7704a49775cbe38ca6",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/resources.js",
+      "bytes": 13348,
+      "sha256": "59a0dacfe8aa6485f27b2c76da20eb88d1cbe5e863dc2021e35f917ad710db6c",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/rst-column-width.d.ts",
+      "bytes": 62,
+      "sha256": "a5ecf2f870bcbb6c1516cad664b51ed0a1263bde650661603ae406e303f61d57",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/rst-column-width.js",
+      "bytes": 22964,
+      "sha256": "b10455cb19421273e75e3925c1c6ab493ff753a74eb47bcc5c5fa841e11762b2",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/rst-inlines.d.ts",
+      "bytes": 864,
+      "sha256": "7d8f11a06cb012e4f21eaeeb2e5e4916d6dfcdb1bc81e893d51aed3f6d90a745",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/rst-inlines.js",
+      "bytes": 9852,
+      "sha256": "c99da874f92fe9bf25203c4c3bd4e3c226f05a26922ac6ceb6095fee92dcba60",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/rst-syntax.d.ts",
+      "bytes": 1593,
+      "sha256": "13933ee800ef4dbb70557d3085481a2d4e2dbc31156146a78117ac51ea6ad365",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/rst-syntax.js",
+      "bytes": 5101,
+      "sha256": "729e8cdeb74ba600f3fe0f641741bfb1d949cdf4ed4ebf376b0d597dcab478bf",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/rst-writer.d.ts",
+      "bytes": 188,
+      "sha256": "bda94c7bb98cf992b192852373e51c0e451330e5d61998e4f4b447541ac9999c",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/rst-writer.js",
+      "bytes": 19642,
+      "sha256": "9670d51ac3f32dd5fd0cdf291a3428c77eb1840456d10c4f2984210cc8b18a21",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/rst.d.ts",
+      "bytes": 102,
+      "sha256": "3593cb2c7dff9838a5c1512f86f041ef0670db396465d7ae93a00408811aba61",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/rst.js",
+      "bytes": 31158,
+      "sha256": "d9915c87f684e300928e593be3e5b5a645ff9f68d70574221d610be0194f23b3",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/rtf-pictures.d.ts",
+      "bytes": 280,
+      "sha256": "739ed43a3e34aa738f4f5b83b6854a5deee5df3eec4b4126692ac77d6c88e0d3",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/rtf-pictures.js",
+      "bytes": 9061,
+      "sha256": "559c1b906932e96bcc3dff3d04d206c07bebc6061112fdfb6564b0313cba8d6a",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/rtf-syntax.d.ts",
+      "bytes": 1064,
+      "sha256": "e3a54fa6f462048bb9685f73fd90d569f14feafe4e8f9d84407d51ee56e9b469",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/rtf-syntax.js",
+      "bytes": 5097,
+      "sha256": "c9392f854bbfaa6ddc0cf81c20a7478466e0a717ad79b51c3adff2688a25813b",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/rtf-writer.d.ts",
+      "bytes": 188,
+      "sha256": "71b4603f9397ebbb3af9f124d01ad2b064f9f195838abec5c01e0bccfc10a738",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/rtf-writer.js",
+      "bytes": 20054,
+      "sha256": "6faaa5e0a5d3a5930bcbf58594f37fe2904856bd3dc01172c8124c34f602508a",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/rtf.d.ts",
+      "bytes": 102,
+      "sha256": "aeaca1edc4f498e55689560bfeec64f12baace9aa1e494118f84264add066b01",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/rtf.js",
+      "bytes": 47778,
+      "sha256": "7786a27304ffbda9801c3fa9e5d33ef26063be5c37f7fb5bf637cfcf319a32ef",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/safe-bash.d.ts",
+      "bytes": 1581,
+      "sha256": "88a008bd1b62c958b6ab95f4ce144fe5fab374f3decbdf9d51f9cf986a6e8ad7",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/safe-bash.js",
+      "bytes": 5085,
+      "sha256": "573a509c15aa14d53eb4620aac13fe200692733e5e4f1ebdc044098f1064f2be",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/strict-json.d.ts",
+      "bytes": 429,
+      "sha256": "baa4ae9591ff8944869b9baa61c9f5c4648ba95ada2239809dd3adc770f9bafc",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/strict-json.js",
+      "bytes": 6583,
+      "sha256": "2fa97548366dc6ea9f8537c2ea0ee335262195c6022121b2b908ccb250225367",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/table-writers.d.ts",
+      "bytes": 422,
+      "sha256": "dccfd85e448400879054380342ce655fd1499d2355f4be62925278b492c47cd5",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/table-writers.js",
+      "bytes": 18289,
+      "sha256": "c38d0cedb69aa4e4767dc0d3eab669e84e9edf31810715125277fbdca172e0e1",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/tables.d.ts",
+      "bytes": 698,
+      "sha256": "9b22ff4576aad63267734ca3c60e91bc015c7cefad509ddbf0c414088988804f",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/tables.js",
+      "bytes": 2430,
+      "sha256": "3fa14cc583876114b45b6a1644dc83d84480aaf52afa682f77ddd2757ddd9e69",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/types.d.ts",
+      "bytes": 9761,
+      "sha256": "8786ec4463a377962ff69cdf63da74e9337c4acbac12a8c7f1f07a32e58218f0",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/dist/types.js",
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/adversarial.test.ts",
+      "bytes": 9374,
+      "sha256": "b49550e3407c1c433586422888a79f7dd92f720e1967b8f56da276c0863985ff",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/archive-adversarial.test.ts",
+      "bytes": 9343,
+      "sha256": "abf41001a03f3c26386cc8118edd3ec97810ce5114e42d89b4d390e44859574b",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/ast-types.ts",
+      "bytes": 3800,
+      "sha256": "47b0dafb99b70b7671cc6cb1dfc631ae07e429417bbdf1afe322321ae424a67a",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/ast.test.ts",
+      "bytes": 11197,
+      "sha256": "fd141c8d173c4ca1f936b03711d5c24fa644a2bfdba986e774d6c49174bb2eb3",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/ast.ts",
+      "bytes": 12170,
+      "sha256": "b525ace1da8d4788bc812100be0a5cc6d7572fb1f84cff23071aa14c06ab8152",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/cli-adapter.test.ts",
+      "bytes": 2020,
+      "sha256": "9c6720ceb6098c42f3726b5cacb15d0f3eab56fd8aa1138bd33ca2202dbf02f7",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/cli.ts",
+      "bytes": 9907,
+      "sha256": "bffba535fea15548e05d03d9494ab96a81f898a128b91abdf4525a650d3d7291",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/command-info.test.ts",
+      "bytes": 826,
+      "sha256": "f4fd64199c397ddc09c0a0e3d84992974ed5cd1c76721aca4a0026b7c3e75d81",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/command-status.test.ts",
+      "bytes": 1543,
+      "sha256": "61f2fdcefb0738c526643e06e335219fbb062e12efae0201894fa8ce1e042083",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/commonmark-blocks.test.ts",
+      "bytes": 13971,
+      "sha256": "3d91d5757a32a2150b6d15ab4606d78fb37fe2b2e8fb8e488a8608c2a49e2f0c",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/commonmark-blocks.ts",
+      "bytes": 28897,
+      "sha256": "0b63fd109baad6a1c3f49a7337c1d3b93cdc726ecdea9f1131563d8289159532",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/commonmark-case-fold.ts",
+      "bytes": 11108,
+      "sha256": "14da5457d4ea22cbce9d962543b006900f00b4aba98628aba6604f24f2a9a3e5",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/commonmark-characters.test.ts",
+      "bytes": 823,
+      "sha256": "ade9b05e6e61c704e55025b4f0bcf24ff215284a9bdbfdf70eed63dc9462ade6",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/commonmark-characters.ts",
+      "bytes": 8726,
+      "sha256": "82149be6fb0dc787f6ceb8b643d0da8e9c9caed484f1c3a4e5a0021cb63c31aa",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/commonmark-inlines.test.ts",
+      "bytes": 10548,
+      "sha256": "347f1bd150ec0b96dbdf1c933d7d5445267f5071c5c8ca437f0eb93dc0b8e506",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/commonmark-inlines.ts",
+      "bytes": 19893,
+      "sha256": "0b90f2582d9ae420490288af02c5db3bdf8aaef845230c73e842f33a10ae6bd7",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/commonmark-syntax.ts",
+      "bytes": 5729,
+      "sha256": "d2fc5b23506360cb80902f3a7a35a096929dc54d1f5dbc502c9500e67b34354e",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/commonmark.ts",
+      "bytes": 4474,
+      "sha256": "70236f368476f4d44b4cf73715146e7c0769dbd5a782ab20cf3d667d6f985aca",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/consumer.test.ts",
+      "bytes": 14907,
+      "sha256": "1886e232ad1823b3264209391b8b325f40787d76b271ae0c41c6b8f5f5313286",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/delimited.test.ts",
+      "bytes": 8471,
+      "sha256": "a12e9a6a2f178d91b0e714eb05ebf63bb7c4593483528eec40ed0cee9e634c4c",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/delimited.ts",
+      "bytes": 4895,
+      "sha256": "383cc23ef85d9c14840b2769abe607c1204629b7ff595f7fb29224a6fbb11406",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/descriptor-consumer.test.ts",
+      "bytes": 1106,
+      "sha256": "043edf249f7aecaf588222a8153106f7b74195eeb27f492247a651d017fd0d41",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/engine.ts",
+      "bytes": 23959,
+      "sha256": "dbfd304401d59ff3c9c4f3d7d6d957202d43be5cacae3fba89fe0512c24b853c",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/epub-defaults.test.ts",
+      "bytes": 1038,
+      "sha256": "e2140c2b5ad4abc73b2d8ec684649951103ca10c7f6fc8c8451e6e4534d53116",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/epub-writer.test.ts",
+      "bytes": 14921,
+      "sha256": "0f642a520dbbf95238d1a58e06db4561b634dfc7bc545a3ea1d54259366e3933",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/epub-writer.ts",
+      "bytes": 17180,
+      "sha256": "64f9040127b77126a1b5d847e1933b18a18b5ef009dad1f0f11923aba864303d",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/epub-xml.ts",
+      "bytes": 6024,
+      "sha256": "438367f93a69c0a5ae3f25d8abcd89ba22f99eed9947bb6233eb49a98dc8cc46",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/epub.test.ts",
+      "bytes": 20678,
+      "sha256": "9b343a5c2a7e01252b33dbd3e1384ea1905c98a1e07a5067cf66d39b5b21761c",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/epub.ts",
+      "bytes": 23738,
+      "sha256": "43df19f3424cd48ebca1fe2af9179933e24e8ef1b38b0f7ceb99aa2ae656a50e",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/errors.ts",
+      "bytes": 538,
+      "sha256": "e0d9c89a017cf47e9fd797b87580a995e4d07f58f66ae4d32e47063c05fd8536",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/execution.test.ts",
+      "bytes": 14308,
+      "sha256": "dd1eb2723e30b5a0f30656ef99ed71a1124366b21aa79e9ad05fb18713675fec",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/execution.ts",
+      "bytes": 18190,
+      "sha256": "d8fd0f0de3e5e1fb394952dcc81b6a4ec3fe4fbaf0e78ad6b1997c97eeabe71f",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/formats.test.ts",
+      "bytes": 5082,
+      "sha256": "07b78e5457b94dbf81192adf275c7e8bfbeb45b4f9dadcc6aa47642d6af667ca",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/formats.ts",
+      "bytes": 7959,
+      "sha256": "7fc5989daf7861117f1eb473a7cc4a76b5563eb18ce1d0939b0a05c5fc565097",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/formats/commonmark.ts",
+      "bytes": 510,
+      "sha256": "38a25c2eff26ecc93ed201d84cd11cc8f2ffbfc8241eecb5d6f26f8d2d41935f",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/formats/csv.ts",
+      "bytes": 397,
+      "sha256": "9bc388c305ae247e8508a393a821eb95ce42fec4e6af630db063880e72f42bfd",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/formats/docx.ts",
+      "bytes": 289,
+      "sha256": "7c49ba684496a2c72122cc856293ea1566f0b73fcc231d8fcbd94b72df5e1e21",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/formats/epub.ts",
+      "bytes": 495,
+      "sha256": "ba550d7b4c428616aeac3ffc8c14dcb3deedf99fe52ccb01b631f6058ca1c529",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/formats/gfm.ts",
+      "bytes": 624,
+      "sha256": "5ec646722d2312eb462cea07d598f45b6e9d51aeb920e36ec7daff95919d7f37",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/formats/html.ts",
+      "bytes": 345,
+      "sha256": "30d0cd2c4ec42fdd12523623ed05ae752b11537f2829d2dc98e4eca4007c0744",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/formats/html5.ts",
+      "bytes": 473,
+      "sha256": "b80cc97ee3f1a33f09f33b653be3beee45b3907196f0457c7b3538bf840d1de5",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/formats/index.ts",
+      "bytes": 732,
+      "sha256": "7dca9f1d4c3e42ac615d405c3e37519c3323da67bcf57a7d5f3fa20bc41e6d8f",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/formats/json.ts",
+      "bytes": 383,
+      "sha256": "b56051179fbba44769b515214c2612268e8c6441872774737f401094c31cd656",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/formats/latex.ts",
+      "bytes": 508,
+      "sha256": "900ce071bc79fc549d37ab54da8079d6c1b0a4f87f63a5b0c8e6383610a9138b",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/formats/pdf.ts",
+      "bytes": 385,
+      "sha256": "fc48669b60c55dd0dd417849192a1eba8998e7273e1c8cdbc079cf06bd6a16f5",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/formats/plain.ts",
+      "bytes": 394,
+      "sha256": "35bb7a948ff820c108dc456722ac341f7efc285bfb50e9bb133f3d4a1f85a7c0",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/formats/pptx.ts",
+      "bytes": 855,
+      "sha256": "459d49a664b54e47762a37939e83af223a78461af1203dafa9d52ede22b41a21",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/formats/rst.ts",
+      "bytes": 454,
+      "sha256": "7481e803e290ae682c8e9da31ffe37c4b7f9c13404a0b89fe7ac4f0e82f1b940",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/formats/rtf.ts",
+      "bytes": 434,
+      "sha256": "b858d4333d9bb08268ac17f5b66973fba30ab4484556aa7c00070a8dd0d6d8d2",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/formats/tsv.ts",
+      "bytes": 397,
+      "sha256": "ae0f2420e5a00bea1037e69201a90c1ca52ce477f3209551cee1dcbdbe9620a2",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/formats/xlsx.ts",
+      "bytes": 278,
+      "sha256": "8f43b0706bce9f6e20e0c6ca007864fae59e612ae70db3a461a3892fcd4cbd4b",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/gfm-syntax.ts",
+      "bytes": 4345,
+      "sha256": "767aa5c3bbd6abf75d7194289424820470afbdd562baa54e15e03a609eb1a30d",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/gfm.test.ts",
+      "bytes": 11500,
+      "sha256": "238392e735595428f632dcfce6929b981e6ee0d5c52b3ce5d3c41134d5402ac6",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/html-writer.test.ts",
+      "bytes": 11188,
+      "sha256": "8f18080967bcbfaeea518178fb7f5c04aec56f36c43ddba3ce49deb9c94f45a4",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/html-writer.ts",
+      "bytes": 16325,
+      "sha256": "d51a73ae96e057c3d47e940d8f45559a5837ade674f66cad6497b37acd91bc64",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/html.test.ts",
+      "bytes": 8664,
+      "sha256": "57ebf97737f996daec259704c1d599ccb58bbf2c0cfa548b26bbe503b78a91af",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/html.ts",
+      "bytes": 15438,
+      "sha256": "0a596d9772d4822bbbf725e32e032b6501f34daf86b974d54ff38045e6d6bf92",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/index.ts",
+      "bytes": 1571,
+      "sha256": "d69acf6c700c1dee5673bd3b114f6ecd77da147f0df26c0a5299a4e4d6ba7720",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/inspection.test.ts",
+      "bytes": 2030,
+      "sha256": "70fd8ac8f9fd234357f0f417fa457f26ac1607a30bd29c0c34d88cb75ef64bef",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/inspection.ts",
+      "bytes": 3621,
+      "sha256": "94dca2800b2458a3c82d27f872f3c77dcefb4dbc303d684dc567be7223cd8178",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/json-cancellation.test.ts",
+      "bytes": 2224,
+      "sha256": "1e352d5b86c38d5405531c2c349a9de3af5de27dfe8788526122083c8901f0f2",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/json.test.ts",
+      "bytes": 15687,
+      "sha256": "9b55ea3cc3f9a6ac981bc13effaf5f6d01fc23b605b5dfb36e9caa7030544813",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/json.ts",
+      "bytes": 7006,
+      "sha256": "3958bf2eb2a38cffb990f80abfad65fea63d34bb3af89649819a381ade0a73e5",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/latex-cancellation.test.ts",
+      "bytes": 1852,
+      "sha256": "ba6a57b8b097758d20d2e4b4ae93372724d262ba354a5314b4dac970eb389a5f",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/latex-expansion.ts",
+      "bytes": 10668,
+      "sha256": "3fd98756d6f96cd0c18e28fd3ad0498006e1bcbecd465925f48ec07ea96873bf",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/latex-matrix-regression.test.ts",
+      "bytes": 825,
+      "sha256": "4e1bb7b8d0b4a69c8f20ee5be75cbbd8028d64c3aaeaf5e6dbab9fe420364754",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/latex-syntax.ts",
+      "bytes": 9899,
+      "sha256": "2509ffd668e63273b68c9aeac40e3b3089f48ed3ab5c160d2010d714df8ebf15",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/latex-writer.test.ts",
+      "bytes": 14088,
+      "sha256": "6ddbafa7f8b108623d3a2ba4c4c69370b283a23f9b7d0d5391c7df6b7eb4c6bf",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/latex-writer.ts",
+      "bytes": 21954,
+      "sha256": "976ffed28fd743808cb44e099eb9e11dcb0a58af35512f378bf28b582df829cd",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/latex.test.ts",
+      "bytes": 15971,
+      "sha256": "687eae503f86f16669137886969be1015c9c872ce70f10fe62c34fbb4abbb8e2",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/latex.ts",
+      "bytes": 18917,
+      "sha256": "392857c0a4606826fe113efa88e8cbe53e691d0e6790e91726c08be96b1fb6be",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/markdown-matrix-regression.test.ts",
+      "bytes": 1589,
+      "sha256": "a281b5c29d3ec9fd19a9d3eccbfda3cd5156115a999036d35214300bd10267f7",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/markdown-writer.test.ts",
+      "bytes": 8171,
+      "sha256": "c9dfc662ba3cd89da00f8a04a538ba6fbffd5cd0a4a43f3fd6a7c1949992e6b7",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/markdown-writer.ts",
+      "bytes": 13337,
+      "sha256": "5e0d0a2574629dbb2631ffffd14ae98edf21bbca98f88445f9708d90df90a52b",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/metadata.ts",
+      "bytes": 4050,
+      "sha256": "8840f9a19140769a05d30cde6dbb7ccd39a1c658bb1c3a951946d38bfa65b772",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/orchestration.test.ts",
+      "bytes": 7240,
+      "sha256": "a4b402bdf13962fa5ad81163e57b29bf7c8eb4f6bf32d6b68dcd1b6cd9c8a88e",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/pdf-cancellation.test.ts",
+      "bytes": 1412,
+      "sha256": "fea4c2f3d1d9fdec34096bfeb98b75c461e208560b6952c2598ebe189f04f6f4",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/pdf-integration.test.ts",
+      "bytes": 6977,
+      "sha256": "c18cf6fd44eef62914c8f08eb4479a7c57c8f0768cd49505e1745a9c1d91df5b",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/pdf-writer.test.ts",
+      "bytes": 7488,
+      "sha256": "c934c2f5db1ca3faacca3fd589d09743855d36e0694431c4e26228f67b2248cf",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/pdf-writer.ts",
+      "bytes": 11026,
+      "sha256": "28946be816291e8d384925f54fe8f4c28141a914c6f5dea1702c3085c8a12c90",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/plain-writer.test.ts",
+      "bytes": 7596,
+      "sha256": "1223854b502a3e11e76fc5ded46cfe67bce413c7849ebc6812e8c65b3ae9042a",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/plain-writer.ts",
+      "bytes": 7360,
+      "sha256": "d9af5ab52486cf31dd3bda065ef25684701007aae25ba5a91be58b545f93e5d3",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/pptx-conversion.test.ts",
+      "bytes": 23106,
+      "sha256": "bb130164f3b2f15e4725ee28aea1755099eec354f0d6a1d9ebef79acdec1bb0f",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/pptx-dependency.test.ts",
+      "bytes": 913,
+      "sha256": "1c27881717643b640ebc4a251e1f15b98bfe0bd3f4ff864eee4f31d2126c79f9",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/pptx-registry.test.ts",
+      "bytes": 1396,
+      "sha256": "2c1cb4e427768d7acfa384b7e028886e5a3a8e662e8eaf4d863e81122dc1b553",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/pptx.ts",
+      "bytes": 27534,
+      "sha256": "0390e8ed6e3e5e5c953bb1d3d4781b4c7dfe550c1d91105e4dbfc379bc7568f6",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/publication-feature-matrix.test.ts",
+      "bytes": 616,
+      "sha256": "6db8f8c70eb91cb69754b38bbe563ff39e6c7510205620349157ed3a147b1de9",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/publication-options.test.ts",
+      "bytes": 3739,
+      "sha256": "db40791701becdde7afb20adf20ae9242892c2e9a83cb65fb7b6f29f047c3e06",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/resources.test.ts",
+      "bytes": 12841,
+      "sha256": "025ba360acf6ffe5bd33e519898888c33a49f5550fdd97ffc46a9cb970540459",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/resources.ts",
+      "bytes": 12474,
+      "sha256": "86283349133a76fe1371f2774c6ceb4edaecb653a5f9344fb0ccf380726b87d1",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/rst-column-width.ts",
+      "bytes": 21144,
+      "sha256": "dd68486810e21b614b11a40361c8a7fbc37bcf804e9686517ef44b09f848457d",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/rst-inlines.ts",
+      "bytes": 9186,
+      "sha256": "4de4ae048635120329e1d8495c2d681db3ea2b75c6c503e44dc6626fbb6250af",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/rst-syntax.ts",
+      "bytes": 5580,
+      "sha256": "7e09bac91aa478b0707a17d8d446369fdf62edb543fcf4e428cbacfb55c22058",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/rst-writer.test.ts",
+      "bytes": 11390,
+      "sha256": "8b77db83c406c8fa1e49b8b4fd36fedeb68a940cb2bf3bc1c7c52c0939decacc",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/rst-writer.ts",
+      "bytes": 16162,
+      "sha256": "4f71d462c59b8a153904b0085865fab49221116eba2518d9281cf3809dbf9d96",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/rst.test.ts",
+      "bytes": 19419,
+      "sha256": "3eb3c2563e17d78c462f5ae75982babaa89bea9db634877dd858d144e33b8a76",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/rst.ts",
+      "bytes": 27284,
+      "sha256": "84d42928dc6254cbcad1bbc5a01657df4d2d435dd0a65214bb29e0d8050a67d0",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/rtf-pictures.ts",
+      "bytes": 8138,
+      "sha256": "ac7f3d0482b289d24c873c1f27065062e4b7fef7b5a9f47a27e710622cb91796",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/rtf-syntax.ts",
+      "bytes": 5134,
+      "sha256": "195c667e8316b18993b0adb88dd5022b3406b1a381883f11682cc41c5469cc92",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/rtf-writer.test.ts",
+      "bytes": 13023,
+      "sha256": "902546371eebac12e2aa90895c9c47cce801a27d59fc083a649fdc4790b040c6",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/rtf-writer.ts",
+      "bytes": 16473,
+      "sha256": "020065c0589136317d430821a2ea2cce27690f5244b7bdd82df810cf261be1fe",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/rtf.test.ts",
+      "bytes": 16281,
+      "sha256": "7ab49e9c9802213dfe2faa3b9f7d878807e362feca1ebe9b5ad40fdf667cb36f",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/rtf.ts",
+      "bytes": 41513,
+      "sha256": "f0dff4adb0655ec903df7ea0fe5d335040e90f59c2c4d72a3e8d3e5769828af5",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/safe-bash.test.ts",
+      "bytes": 14729,
+      "sha256": "7ba5b644d9c9c0cd427ac56f7db8cd6c9f15e4bbef58f83b6a12bc5cf05da1cd",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/safe-bash.ts",
+      "bytes": 5592,
+      "sha256": "5481910e78d9a898df47e597ac0ae4ecb7ed76fc1a4db5ffc7c733403a156fa9",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/strict-json.ts",
+      "bytes": 5584,
+      "sha256": "0500a3a1f211eefd2a54ee82dffdf7794d1b046c24cabd18e081b50497e16f5a",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/table-writers.test.ts",
+      "bytes": 9829,
+      "sha256": "8a2aa4b5107a5e92e3ae4570bc2570fb31a69bf4d38b740a197e8b0b8391a66c",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/table-writers.ts",
+      "bytes": 14579,
+      "sha256": "efab96985c99ea237a438cf306fe7ff501aaa4e75b3135c9e69cba13726f7389",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/tables.test.ts",
+      "bytes": 4714,
+      "sha256": "5d1a44c9703c8b1d71c689197439cbbfe4bd2fe30c5aa83fa18016f5d34d6698",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/tables.ts",
+      "bytes": 2442,
+      "sha256": "81938f9c71bf064d8d3ad5996e9bf149603cba30dc9cb2a9eba62d0ae2128e2f",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/pandoc/src/types.ts",
+      "bytes": 9386,
+      "sha256": "5e2efa9cb54bfe6c0a1f5c93032742c51548f6c146b9d28667f2525e661dc255",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/safe-bash/src/commands/pandoc/index.ts",
+      "bytes": 9771,
+      "sha256": "b6473f28e6f14d78cc9f0dd6f385d167e613207ccc06d110acccd81bef2cad80",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/safe-bash/tests/commands/pandoc-fixture.ts",
+      "bytes": 3614,
+      "sha256": "3627e6d0bf1cc7cd73f4d93a23310ef0d0679c4240b1a35568161a813be554e3",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/safe-bash/tests/commands/pandoc-safety.test.ts",
+      "bytes": 13246,
+      "sha256": "ef4d7c536e0d334aa003910d7da4d3a736a48a65d2ad4ea7509232a89a0cfebc",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    },
+    {
+      "path": "packages/safe-bash/tests/commands/pandoc.test.ts",
+      "bytes": 7527,
+      "sha256": "191cc27d8dd2d012d488f756a506013ec10a4437ac5ab48f7010708627eb8b48",
+      "classification": "Current candidate source/test/build or owned QA procedure"
+    }
+  ]
+}

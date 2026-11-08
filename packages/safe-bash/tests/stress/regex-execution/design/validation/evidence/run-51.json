@@ -1,0 +1,86 @@
+{
+  "args": [
+    "package",
+    "moved-esm"
+  ],
+  "pid": 70967,
+  "readyAt": 41.57554200000004,
+  "killed": false,
+  "events": [
+    {
+      "event": "disconnect",
+      "values": [],
+      "at": 71.59850000000006
+    },
+    {
+      "event": "stdout-close"
+    },
+    {
+      "event": "stderr-close"
+    },
+    {
+      "event": "exit",
+      "values": [
+        0,
+        null
+      ],
+      "at": 73.6244999999999
+    },
+    {
+      "event": "close",
+      "code": 0,
+      "signal": null,
+      "at": 73.63149999999996
+    }
+  ],
+  "messages": [
+    {
+      "type": "ready"
+    },
+    {
+      "type": "done",
+      "result": {
+        "pass": true,
+        "node": "v22.22.2",
+        "imported": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/design/validation/.scratch/moved/node_modules/regex-validation-prototype/client.js",
+        "result": {
+          "hits": [
+            [
+              {
+                "pattern": 0,
+                "start": 0,
+                "end": 1,
+                "captures": [
+                  "a",
+                  "a"
+                ]
+              }
+            ]
+          ],
+          "bytes": 56,
+          "execCalls": 2
+        },
+        "metrics": {
+          "created": 1,
+          "terminated": 1,
+          "requests": 2,
+          "execCalls": 2,
+          "inputBytes": 2,
+          "responseBytes": 56,
+          "startupMs": 21.826750000000004,
+          "workMs": 0.2957919999999987,
+          "terminationMs": 0.9742499999999978,
+          "peakInflight": 1,
+          "listenersAfter": 0,
+          "exitCode": 1
+        },
+        "runtimeDependencies": 0
+      }
+    }
+  ],
+  "stderr": "",
+  "ipcBytes": 605,
+  "streamBytes": 0,
+  "code": 0,
+  "signal": null
+}

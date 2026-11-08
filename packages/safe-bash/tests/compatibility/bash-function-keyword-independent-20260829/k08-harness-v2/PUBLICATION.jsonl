@@ -1,0 +1,4 @@
+{"event":"before","name":"git-add","args":["add","--","tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v2"],"utc":"2026-08-29T15:29:53.092Z"}
+{"event":"after","name":"git-add","pid":12597,"status":0,"signal":null}
+{"event":"before","name":"git-commit","args":["-c","core.hooksPath=/dev/null","-c","maintenance.auto=false","-c","gc.auto=0","-c","core.abbrev=40","commit","--only","-m","review: accept K08 v2 source and finite pure preexecution repairs","--","tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v2"],"utc":"2026-08-29T15:29:53.247Z"}
+{"event":"after","name":"git-commit","pid":12601,"status":0,"signal":null}

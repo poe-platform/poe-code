@@ -1,0 +1,32 @@
+{
+  "sequence": 54,
+  "command": "tar",
+  "args": [
+    "-xf",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/candidate.tar",
+    "-C",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/source"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "status": 0,
+  "signal": null,
+  "pid": 7367,
+  "pgid": 7367,
+  "timedOut": false,
+  "termination": {
+    "termSent": false,
+    "killSent": false,
+    "groupGone": true
+  },
+  "closure": {
+    "descendantGroupDetected": false,
+    "rootPidGone": true,
+    "groupGone": true
+  },
+  "timeoutMs": 120000,
+  "startedAt": "2026-08-27T21:22:48.726Z",
+  "finishedAt": "2026-08-27T21:22:48.834Z",
+  "durationMs": 107.433292,
+  "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

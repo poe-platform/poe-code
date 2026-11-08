@@ -1,0 +1,38 @@
+{
+  "classification": "author harness correction, not a product/native failure waiver",
+  "initialRun": {
+    "command": "node --import tsx --test tests/commands/column/behavior.test.ts tests/commands/column/limits.test.ts",
+    "tests": 70,
+    "passes": 69,
+    "failures": 1,
+    "failingTest": "actual complex shell pipeline, redirects, variables and substitutions",
+    "error": "TypeError: Cannot read properties of undefined (reading 'readFile')",
+    "cause": "Test invented instance.fs; Shell does not expose that property.",
+    "correction": "Read the unchanged expected VFS output through actual instance.exec('cat /table'); pipeline inputs and expected bytes unchanged."
+  },
+  "captureSyntaxCorrection": {
+    "failure": "capture-native.mjs and native.test.ts failed JSON parsing: Bad escaped character, line 23",
+    "cause": "cases.json used JavaScript-only \\v escape for vertical tab",
+    "correction": "Changed JSON representation to \\u000b; intended input byte 0b and expected output unchanged. No native cohort existed or was overwritten."
+  },
+  "scopedTypeCorrection": {
+    "failure": "native.test.ts TS2315 Type 'Record' is not generic; consequent TS2769 unknown file content",
+    "correction": "Renamed local captured record interface NativeRecord to avoid shadowing built-in Record<string,string>; no inputs or runtime expectations changed."
+  },
+  "diagnosticFixtureCorrection": {
+    "failure": "113-test run: 112 passed, first missing path assertion failed with maxDiagnosticBytes=60 because the valid truncation marker plus filesystem message consumed the budget before the path",
+    "correction": "Increased only that test's configured diagnostic budget to 120; preserved three operands, cumulative byte assertion and missing-one path assertion. Separate oversized-message test still checks truncation and UTF-8 safety."
+  },
+  "externalStdinBoundary": {
+    "command": "node --import tsx --test --test-reporter=spec tests/commands/column/*.test.ts",
+    "tests": 82,
+    "passes": 81,
+    "failures": 1,
+    "failingTest": "actual Shell exec/dispose await registered cooperative cleanup",
+    "originalInput": "instance.exec('column -t', { stdin }); external stdin next() stays pending; return() waits a manually released gate; then instance.dispose()",
+    "expected": "execSettled=false before releasing return gate",
+    "actual": "execSettled=true",
+    "boundary": "src/shell/input.ts ShellInput async iterator exposes next but no return; its underlying external source remains owned by Shell, not column. Column cannot register cleanup for hidden external return work.",
+    "action": "Reported via /tmp/safe-bash-column-api.txt; shared sources unchanged. Scoped positive test now uses an explicitly configured VFS readStream, directly acquired and owned by column. External stdin limitation retained in documentation; original all-source cleanup claim is NOT certified."
+  }
+}

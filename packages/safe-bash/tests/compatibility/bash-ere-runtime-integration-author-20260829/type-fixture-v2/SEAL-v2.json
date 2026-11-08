@@ -1,0 +1,86 @@
+{
+  "mode": "type-only",
+  "sourceCommit": "e013f817f",
+  "transport": "02782056c436c9f2a8319f73a9eb8e2b4b5aebd5",
+  "retainedMembers": 1549,
+  "retainedSources": 305,
+  "retainedTools": 241,
+  "authority": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/type-fixture-v2/A07.stdout",
+    "size": 4869,
+    "mode": 420,
+    "sha256": "ab3fb770c6e8ef03057d6f6abbd8806d80dcb271b4256037805fdceaf7d410ff"
+  },
+  "oldSeal": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/SEAL.json",
+    "size": 183313,
+    "mode": 420,
+    "sha256": "8bcc8e9d2d7d6374e709c7343736859718c78a3c64fd30268ffb18ec083930d5"
+  },
+  "compiledCensus": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/TYPE-01.post-census.json",
+    "size": 304520,
+    "mode": 420,
+    "sha256": "7ba181c037d869ce2e541b4fe5edd5f3fd6295d4c305a296574965d2c24a5f41"
+  },
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "size": 112989184,
+    "mode": 493,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "fixtures": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/type-fixture-v2/positive-v2.mts",
+      "size": 630,
+      "mode": 420,
+      "sha256": "60b0982ba0c3e880e7f45b02a4df9813353a1cefaa5f2ae7462a249a5bcea32f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/type-fixture-v2/runner.mjs",
+      "size": 9368,
+      "mode": 420,
+      "sha256": "9e148a0a2b51982e5eab1f94dc3a0cfa3f2e5a30d1bc708382d0e5aff78665f4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/type-fixture-v2/PRESEAL.md",
+      "size": 2100,
+      "mode": 420,
+      "sha256": "b32d9f366a9d1b5033b73510b1ad4d0da62cf80837253412c9129a1882e8b64f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/type-fixture-v2/ROLE-PLAN.json",
+      "size": 1097,
+      "mode": 420,
+      "sha256": "a12ab0b276aaa07cdf45c2ee51f66515c1c20c6fa6ff33a0bc8f0f55c3bfc2f2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/type-fixture-v2/A07.stdout",
+      "size": 4869,
+      "mode": 420,
+      "sha256": "ab3fb770c6e8ef03057d6f6abbd8806d80dcb271b4256037805fdceaf7d410ff"
+    }
+  ],
+  "flags": [
+    "--target",
+    "ES2023",
+    "--lib",
+    "ES2023",
+    "--module",
+    "NodeNext",
+    "--moduleResolution",
+    "NodeNext",
+    "--strict",
+    "--noUncheckedIndexedAccess",
+    "--exactOptionalPropertyTypes",
+    "--verbatimModuleSyntax",
+    "--skipLibCheck",
+    "--types",
+    "node"
+  ],
+  "expectedExit": 0,
+  "expectedStdout": "",
+  "expectedStderr": "",
+  "compilerMaximum": 2,
+  "compilerPlanned": 1
+}

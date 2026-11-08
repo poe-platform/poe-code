@@ -1,0 +1,21 @@
+{
+  "source": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/FINAL.json",
+    "bytes": 25661,
+    "sha256": "89f3c55c91dc664a94df815ef23d5ddbbe6fb7376a1ef5a8e490255c475dd72b",
+    "mode": 420,
+    "dev": 16777232,
+    "ino": 190012523,
+    "mtimeMs": 1788021022830.9253,
+    "origin": {
+      "finalSha256": "89f3c55c91dc664a94df815ef23d5ddbbe6fb7376a1ef5a8e490255c475dd72b",
+      "locator": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/FINAL.json"
+    },
+    "role": "executed-FINAL"
+  },
+  "dataPath": "data/0002af3c999506eb0ccbc28931d683a2d5966db47f5233619fae97721af762f6.raw",
+  "identityPath": "identities/0002af3c999506eb0ccbc28931d683a2d5966db47f5233619fae97721af762f6.json",
+  "copiedBytes": 25661,
+  "copiedMode": 420,
+  "copiedSha256": "89f3c55c91dc664a94df815ef23d5ddbbe6fb7376a1ef5a8e490255c475dd72b"
+}

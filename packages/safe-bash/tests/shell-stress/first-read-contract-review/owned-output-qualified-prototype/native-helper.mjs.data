@@ -1,0 +1,14 @@
+import { get } from 'node:http';
+import { closeSync } from 'node:fs';
+const [mode, origin] = process.argv.slice(2);
+const request = path => new Promise((resolve, reject) => {
+  const pending = get(origin + path, { agent: false }, response => { response.resume(); response.on('end', resolve); });
+  pending.on('error', reject);
+});
+if (mode === 'closed') {
+  await request('/gate');
+  closeSync(0);
+  await request('/closed');
+} else {
+  for await (const chunk of process.stdin) process.stdout.write(chunk);
+}

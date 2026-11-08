@@ -1,0 +1,1 @@
+{"name":"output-quota","command":"du -bac tree","result":{"stdout":"","stderr":"","stdoutBytes":{},"stderrBytes":{},"exitCode":1}}

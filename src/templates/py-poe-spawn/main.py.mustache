@@ -1,0 +1,17 @@
+import os
+from openai import OpenAI
+from dotenv import load_dotenv
+
+load_dotenv()
+
+client = OpenAI(
+    api_key=os.getenv("POE_API_KEY"),
+    base_url=os.getenv("POE_BASE_URL")
+)
+
+response = client.chat.completions.create(
+    model=os.getenv("MODEL", "{{model}}"),
+    messages=[{"role": "user", "content": "Tell me a joke"}]
+)
+
+print(response.choices[0].message.content)

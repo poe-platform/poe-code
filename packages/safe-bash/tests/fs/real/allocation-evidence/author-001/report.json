@@ -1,0 +1,479 @@
+{
+  "candidate": "a3febbee84e2c1c871376a9d5d30baddb96dae68",
+  "startedAt": "2026-08-27T16:32:50.084Z",
+  "headBefore": "4f3a3115cf5cdf365ee2877ce04e2ef951aed491",
+  "node": "v22.22.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "uv": "1.51.0",
+  "compiler": "5.9.3",
+  "qualification": "Named live inputs equal committed candidate before and after; not an archive run, full gate, wrapper verification, Linux runtime witness, or public built-package acceptance.",
+  "inventoryScope": "Enumerates tracked and nonignored untracked additions in src/contracts and src/fs/real; tests/helpers/configs are exact named inputs. Not an append-proof whole-repository check.",
+  "commands": [
+    {
+      "label": "focused-runtime",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--import",
+        "tsx",
+        "--test",
+        "tests/contracts/filesystem-allocation.test.ts",
+        "tests/fs/real/allocation.test.ts"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "counts": {
+        "tests": 9,
+        "pass": 9,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "label": "legacy-regressions",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--import",
+        "tsx",
+        "--test",
+        "tests/contracts/filesystem.test.ts",
+        "tests/contracts/filesystem-identity.test.ts",
+        "tests/fs/real/conformance.test.ts",
+        "tests/fs/real/cancellation-regression.test.ts"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "counts": {
+        "tests": 42,
+        "pass": 42,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "label": "focused-types",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--target",
+        "ES2023",
+        "--module",
+        "NodeNext",
+        "--moduleResolution",
+        "NodeNext",
+        "--strict",
+        "--noUncheckedIndexedAccess",
+        "--exactOptionalPropertyTypes",
+        "--verbatimModuleSyntax",
+        "--forceConsistentCasingInFileNames",
+        "--skipLibCheck",
+        "--types",
+        "node",
+        "tests/contracts/filesystem-allocation.test.ts",
+        "tests/fs/real/allocation.test.ts"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "counts": {}
+    },
+    {
+      "label": "core-whitespace",
+      "executable": "git",
+      "args": [
+        "diff",
+        "--check",
+        "a3febbee84e2c1c871376a9d5d30baddb96dae68^",
+        "a3febbee84e2c1c871376a9d5d30baddb96dae68",
+        "--",
+        "src/contracts/filesystem.ts",
+        "src/contracts/filesystem.md",
+        "src/fs/real/index.ts",
+        "src/fs/real/allocation.ts",
+        "tests/contracts/filesystem-allocation.test.ts",
+        "tests/fs/real/allocation.test.ts"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "counts": {}
+    }
+  ],
+  "inputsBefore": [
+    {
+      "path": "package.json",
+      "sha256": "2127bbfed020aeb7873462ae65224e6ee73069425c878aa2ceee9816b2191245",
+      "bytes": 3997,
+      "gitBlob": "f176ae92e21c5a3d062474d62e8af8f1ccf34e0b"
+    },
+    {
+      "path": "src/contracts/command.md",
+      "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+      "bytes": 8066,
+      "gitBlob": "16371126acaccd07a8db2505b53a0625eb9b4592"
+    },
+    {
+      "path": "src/contracts/command.ts",
+      "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+      "bytes": 2923,
+      "gitBlob": "671327d43c48c5964658ad8c630578fe889421e2"
+    },
+    {
+      "path": "src/contracts/errors.ts",
+      "sha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "bytes": 3457,
+      "gitBlob": "d466866ce93c4feced56e2bd5fe4c41637e62226"
+    },
+    {
+      "path": "src/contracts/filesystem.md",
+      "sha256": "fb74e8fc3841c06f89e8fa93fad55cdfac20788de4eee13db6b8a8072b963d2a",
+      "bytes": 20876,
+      "gitBlob": "574db49cd823e7d662cb6ada5ad4dd0c92a8d192"
+    },
+    {
+      "path": "src/contracts/filesystem.ts",
+      "sha256": "e2343faf818a15ad7afc06618b3f8856cf14f36c86574cc49c85d51a13e7e522",
+      "bytes": 3897,
+      "gitBlob": "5c1a59a85e47bc9bc242a2e92b22680d785fcc89"
+    },
+    {
+      "path": "src/contracts/index.ts",
+      "sha256": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+      "bytes": 173,
+      "gitBlob": "778c289fc215e238a96880e9e64e04baed45e0d0"
+    },
+    {
+      "path": "src/contracts/io.ts",
+      "sha256": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+      "bytes": 7383,
+      "gitBlob": "738e6bb2e1055d6e575f6b342b75ed3053710f70"
+    },
+    {
+      "path": "src/contracts/path.ts",
+      "sha256": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "bytes": 1675,
+      "gitBlob": "4cbf95a4baa405a6fc5438c23511a9059b977201"
+    },
+    {
+      "path": "src/contracts/plugin.ts",
+      "sha256": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "bytes": 2359,
+      "gitBlob": "69b685ebbf6cfb7d1068c419b7e4109e4f9179d4"
+    },
+    {
+      "path": "src/fs/real/allocation.ts",
+      "sha256": "8394428e33a97402159ccb0c67add8d375a2e013c5ddef5fa68875dddbed70ef",
+      "bytes": 354,
+      "gitBlob": "6b550b3dc78e1f97bc8189ef2cb4c0228d438023"
+    },
+    {
+      "path": "src/fs/real/index.ts",
+      "sha256": "ab139aa429c2705c7d5ec13a20d1583bacb182e3e2347fcdee2f169704c0bc9a",
+      "bytes": 23656,
+      "gitBlob": "fd2e528075dd2f4be46eb18e2a72fa44dbfb57c4"
+    },
+    {
+      "path": "tests/contracts/filesystem-allocation.test.ts",
+      "sha256": "95b5931bd1319be8efdc8eaddb40324cd1ff7a292144cfe28c1a8ab892d9b766",
+      "bytes": 1733,
+      "gitBlob": "c79bf17b8c9cab4797a7cdaa6c41f04e22969b61"
+    },
+    {
+      "path": "tests/contracts/filesystem-identity.test.ts",
+      "sha256": "0654e47dc1447cce2f1c929d139cdd22ee641f3410a5bca3799f29f110607b31",
+      "bytes": 2352,
+      "gitBlob": "9a331f4eaeeea41203af20f65b598408e635b466"
+    },
+    {
+      "path": "tests/contracts/filesystem.test.ts",
+      "sha256": "4f04a46834281a3d0b2e05de3824e653c923ee754015e80eacf222aeb7822c92",
+      "bytes": 2143,
+      "gitBlob": "c06023c04aef71f878188e5b77cbfeb7b72d18d9"
+    },
+    {
+      "path": "tests/fs/real/allocation.test.ts",
+      "sha256": "e17365f825500d479b72e7f9d97970c14d02e6dd454a232674c742c145971443",
+      "bytes": 6253,
+      "gitBlob": "4dee334d4459a8c00039bf33caae49358d0de622"
+    },
+    {
+      "path": "tests/fs/real/cancellation-regression.test.ts",
+      "sha256": "5188309877fa0ca8fa5179a484de6974386f5aa9679b6a4426228716ba695dbb",
+      "bytes": 7227,
+      "gitBlob": "353231b7e7828052a3a904f61173ebd6744458db"
+    },
+    {
+      "path": "tests/fs/real/conformance.test.ts",
+      "sha256": "48a9587cc2483c0924b176ca1ec3fedd5fdf417a96f898f5ab9e4200316a468c",
+      "bytes": 16086,
+      "gitBlob": "496845452c6bad81adc15171568a2c51c039902d"
+    },
+    {
+      "path": "tests/fs/real/helpers.ts",
+      "sha256": "7e796cabc885da663b37b67aa71b1b6e669fc7497ef2d25283db3a593c0149e2",
+      "bytes": 1551,
+      "gitBlob": "977f1013153ccf7edb3cf96c9009bfebe929114b"
+    },
+    {
+      "path": "tsconfig.json",
+      "sha256": "86adf86ecb49df322e08438453c00ef14d922c0785f7d879498b1fc8cb48e5d4",
+      "bytes": 1087,
+      "gitBlob": "b4c8915ba61dfeb955de8186558d25d00d76b98b"
+    }
+  ],
+  "fixturesBefore": [],
+  "nativeWitness": {
+    "node": "v22.22.2",
+    "platform": "darwin",
+    "arch": "arm64",
+    "uv": "1.51.0",
+    "filesystemType": 26,
+    "observations": [
+      {
+        "name": "empty",
+        "method": "stat",
+        "type": "file",
+        "size": 0,
+        "blocks": "0",
+        "allocatedBytes": 0
+      },
+      {
+        "name": "empty",
+        "method": "lstat",
+        "type": "file",
+        "size": 0,
+        "blocks": "0",
+        "allocatedBytes": 0
+      },
+      {
+        "name": "dense",
+        "method": "stat",
+        "type": "file",
+        "size": 65536,
+        "blocks": "128",
+        "allocatedBytes": 65536
+      },
+      {
+        "name": "dense",
+        "method": "lstat",
+        "type": "file",
+        "size": 65536,
+        "blocks": "128",
+        "allocatedBytes": 65536
+      },
+      {
+        "name": "sparse",
+        "method": "stat",
+        "type": "file",
+        "size": 4194304,
+        "blocks": "0",
+        "allocatedBytes": 0
+      },
+      {
+        "name": "sparse",
+        "method": "lstat",
+        "type": "file",
+        "size": 4194304,
+        "blocks": "0",
+        "allocatedBytes": 0
+      },
+      {
+        "name": "hole-written",
+        "method": "stat",
+        "type": "file",
+        "size": 4194304,
+        "blocks": "8192",
+        "allocatedBytes": 4194304
+      },
+      {
+        "name": "hole-written",
+        "method": "lstat",
+        "type": "file",
+        "size": 4194304,
+        "blocks": "8192",
+        "allocatedBytes": 4194304
+      },
+      {
+        "name": "hardlink",
+        "method": "stat",
+        "type": "file",
+        "size": 65536,
+        "blocks": "128",
+        "allocatedBytes": 65536
+      },
+      {
+        "name": "hardlink",
+        "method": "lstat",
+        "type": "file",
+        "size": 65536,
+        "blocks": "128",
+        "allocatedBytes": 65536
+      },
+      {
+        "name": "directory",
+        "method": "stat",
+        "type": "directory",
+        "size": 64,
+        "blocks": "0",
+        "allocatedBytes": 0
+      },
+      {
+        "name": "directory",
+        "method": "lstat",
+        "type": "directory",
+        "size": 64,
+        "blocks": "0",
+        "allocatedBytes": 0
+      },
+      {
+        "name": "symlink",
+        "method": "stat",
+        "type": "file",
+        "size": 65536,
+        "blocks": "128",
+        "allocatedBytes": 65536
+      },
+      {
+        "name": "symlink",
+        "method": "lstat",
+        "type": "symlink",
+        "size": 5,
+        "blocks": "0",
+        "allocatedBytes": 0
+      }
+    ]
+  },
+  "inputsAfter": [
+    {
+      "path": "package.json",
+      "sha256": "2127bbfed020aeb7873462ae65224e6ee73069425c878aa2ceee9816b2191245",
+      "bytes": 3997,
+      "gitBlob": "f176ae92e21c5a3d062474d62e8af8f1ccf34e0b"
+    },
+    {
+      "path": "src/contracts/command.md",
+      "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+      "bytes": 8066,
+      "gitBlob": "16371126acaccd07a8db2505b53a0625eb9b4592"
+    },
+    {
+      "path": "src/contracts/command.ts",
+      "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+      "bytes": 2923,
+      "gitBlob": "671327d43c48c5964658ad8c630578fe889421e2"
+    },
+    {
+      "path": "src/contracts/errors.ts",
+      "sha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "bytes": 3457,
+      "gitBlob": "d466866ce93c4feced56e2bd5fe4c41637e62226"
+    },
+    {
+      "path": "src/contracts/filesystem.md",
+      "sha256": "fb74e8fc3841c06f89e8fa93fad55cdfac20788de4eee13db6b8a8072b963d2a",
+      "bytes": 20876,
+      "gitBlob": "574db49cd823e7d662cb6ada5ad4dd0c92a8d192"
+    },
+    {
+      "path": "src/contracts/filesystem.ts",
+      "sha256": "e2343faf818a15ad7afc06618b3f8856cf14f36c86574cc49c85d51a13e7e522",
+      "bytes": 3897,
+      "gitBlob": "5c1a59a85e47bc9bc242a2e92b22680d785fcc89"
+    },
+    {
+      "path": "src/contracts/index.ts",
+      "sha256": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+      "bytes": 173,
+      "gitBlob": "778c289fc215e238a96880e9e64e04baed45e0d0"
+    },
+    {
+      "path": "src/contracts/io.ts",
+      "sha256": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+      "bytes": 7383,
+      "gitBlob": "738e6bb2e1055d6e575f6b342b75ed3053710f70"
+    },
+    {
+      "path": "src/contracts/path.ts",
+      "sha256": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "bytes": 1675,
+      "gitBlob": "4cbf95a4baa405a6fc5438c23511a9059b977201"
+    },
+    {
+      "path": "src/contracts/plugin.ts",
+      "sha256": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "bytes": 2359,
+      "gitBlob": "69b685ebbf6cfb7d1068c419b7e4109e4f9179d4"
+    },
+    {
+      "path": "src/fs/real/allocation.ts",
+      "sha256": "8394428e33a97402159ccb0c67add8d375a2e013c5ddef5fa68875dddbed70ef",
+      "bytes": 354,
+      "gitBlob": "6b550b3dc78e1f97bc8189ef2cb4c0228d438023"
+    },
+    {
+      "path": "src/fs/real/index.ts",
+      "sha256": "ab139aa429c2705c7d5ec13a20d1583bacb182e3e2347fcdee2f169704c0bc9a",
+      "bytes": 23656,
+      "gitBlob": "fd2e528075dd2f4be46eb18e2a72fa44dbfb57c4"
+    },
+    {
+      "path": "tests/contracts/filesystem-allocation.test.ts",
+      "sha256": "95b5931bd1319be8efdc8eaddb40324cd1ff7a292144cfe28c1a8ab892d9b766",
+      "bytes": 1733,
+      "gitBlob": "c79bf17b8c9cab4797a7cdaa6c41f04e22969b61"
+    },
+    {
+      "path": "tests/contracts/filesystem-identity.test.ts",
+      "sha256": "0654e47dc1447cce2f1c929d139cdd22ee641f3410a5bca3799f29f110607b31",
+      "bytes": 2352,
+      "gitBlob": "9a331f4eaeeea41203af20f65b598408e635b466"
+    },
+    {
+      "path": "tests/contracts/filesystem.test.ts",
+      "sha256": "4f04a46834281a3d0b2e05de3824e653c923ee754015e80eacf222aeb7822c92",
+      "bytes": 2143,
+      "gitBlob": "c06023c04aef71f878188e5b77cbfeb7b72d18d9"
+    },
+    {
+      "path": "tests/fs/real/allocation.test.ts",
+      "sha256": "e17365f825500d479b72e7f9d97970c14d02e6dd454a232674c742c145971443",
+      "bytes": 6253,
+      "gitBlob": "4dee334d4459a8c00039bf33caae49358d0de622"
+    },
+    {
+      "path": "tests/fs/real/cancellation-regression.test.ts",
+      "sha256": "5188309877fa0ca8fa5179a484de6974386f5aa9679b6a4426228716ba695dbb",
+      "bytes": 7227,
+      "gitBlob": "353231b7e7828052a3a904f61173ebd6744458db"
+    },
+    {
+      "path": "tests/fs/real/conformance.test.ts",
+      "sha256": "48a9587cc2483c0924b176ca1ec3fedd5fdf417a96f898f5ab9e4200316a468c",
+      "bytes": 16086,
+      "gitBlob": "496845452c6bad81adc15171568a2c51c039902d"
+    },
+    {
+      "path": "tests/fs/real/helpers.ts",
+      "sha256": "7e796cabc885da663b37b67aa71b1b6e669fc7497ef2d25283db3a593c0149e2",
+      "bytes": 1551,
+      "gitBlob": "977f1013153ccf7edb3cf96c9009bfebe929114b"
+    },
+    {
+      "path": "tsconfig.json",
+      "sha256": "86adf86ecb49df322e08438453c00ef14d922c0785f7d879498b1fc8cb48e5d4",
+      "bytes": 1087,
+      "gitBlob": "b4c8915ba61dfeb955de8186558d25d00d76b98b"
+    }
+  ],
+  "fixturesAfter": [],
+  "status": "passed-scoped-author-checks",
+  "headAfter": "4f3a3115cf5cdf365ee2877ce04e2ef951aed491",
+  "finishedAt": "2026-08-27T16:32:55.953Z"
+}

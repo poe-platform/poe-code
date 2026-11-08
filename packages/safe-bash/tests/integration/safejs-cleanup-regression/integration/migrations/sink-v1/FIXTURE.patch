@@ -1,0 +1,17 @@
+diff --git a/tests/integration/safejs-cleanup-regression/integration/child.mjs b/tests/integration/safejs-cleanup-regression/integration/child.mjs
+index f237e466..68c69ea5 100644
+--- a/tests/integration/safejs-cleanup-regression/integration/child.mjs
++++ b/tests/integration/safejs-cleanup-regression/integration/child.mjs
+@@ -233,8 +233,10 @@ try {
+       assert.deepEqual({ exitCode: result.exitCode, stdout: result.stdout, stderr: result.stderr },
+         { exitCode: 2, stdout: "", stderr: `grep: sink:${selected.id}\n` });
+     } else {
+-      assert.equal(caught, true);
+-      assert.equal(failure, sinkReason, "Strict caller sink error identity");
++      assert.equal(selected.id, "literal-grep-caller-sink-error");
++      assert.equal(caught, false);
++      assert.deepEqual({ exitCode: result.exitCode, stdout: result.stdout, stderr: result.stderr },
++        { exitCode: 2, stdout: "", stderr: "grep: sink:literal-grep-caller-sink-error\n" });
+     }
+   } else {
+     assert.equal(caught, false, String(failure));

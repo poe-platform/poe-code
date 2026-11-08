@@ -1,0 +1,186 @@
+{
+  "schema": 1,
+  "kind": "INDEPENDENT_LAUNCH_COVERAGE_INTERFACE_ADDENDUM_SEAL",
+  "date": "2026-08-28",
+  "root": "tests/commands/yq-independent-20260828/successor-review-independent-v1/launch-coverage-interface-v1",
+  "membership": "Exactly listed21 files plus FINAL-SEAL.json itself; seal self-excluded from content hash to avoid recursion. No executable/harness authored.",
+  "criteriaCommit": "951555d926c3c13ff3c9c2bc0789b913d18a4720",
+  "priorTerminalReview": "9925b10d4cd5e85a9296e4a3529aec7e8472a5bb",
+  "priorReviewSealSha256": "862e2a11286d17e750475fad69920f899c3b354cb1cf3376ebcb41408dfe3ba7",
+  "composition": "0e8ee2900e7810b911f1335b0d3f05f23ce740c5",
+  "recipeSha256": "92b4c7b958b9f07b75c2f55fa719e83093317a506bb41f74526a4df09eed7c90",
+  "candidate": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+  "verdict": "COVERAGE_COMPLETION_REQUIRED_FOR_ACCEPTANCE_ORIENTED_LAUNCH",
+  "priorCodeStaticReadyUnchanged": true,
+  "goIssued": false,
+  "coverage": {
+    "records": 194,
+    "overlappingOverlays": 8,
+    "structuralGapRecords": 80,
+    "structuralGapBindings": 135,
+    "additionalUnsupportedIds": 10,
+    "structuralOrUnsupportedIdUnion": 90,
+    "runtimeProjectionsPerEnvironment": 149,
+    "declaredFragmentsPerEnvironment": 371,
+    "loadedSlots": 10
+  },
+  "executionCounts": {
+    "candidate": 0,
+    "compiler": 0,
+    "authoredHelpers": 0,
+    "copiedTools": 0,
+    "controls": 0
+  },
+  "semanticPasses": 0,
+  "controlPasses": 0,
+  "files": [
+    {
+      "path": "AUDIT-INPUTS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 19237,
+      "sha256": "7c272c01b8b6924220ea17785058d99d4e3d8f92cc71b1fad2fd4282bd40dbe4"
+    },
+    {
+      "path": "COMPLETION-ROUTING.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 14238,
+      "sha256": "e43e2a32247ed5f95ecc7951b26326be36de4fd168caae7180d40a567736783d"
+    },
+    {
+      "path": "COUNTS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 3006,
+      "sha256": "dc7a4b7f118b344da43a8904fce153ac5041973fea9b428a57635346e27993c4"
+    },
+    {
+      "path": "COVERAGE-194.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 254120,
+      "sha256": "76399ff39ec9200720055cfa4212c0a3771f958d74dd2d3b30ec4f9d734e92b7"
+    },
+    {
+      "path": "CRITERIA.md",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 4029,
+      "sha256": "2977de580a7b4f0206bf73ea1bc5d9affc9b2710b89217b011c02860ed6798e6"
+    },
+    {
+      "path": "CRITICAL-REPAIRS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 18665,
+      "sha256": "fe28ef30e95a8bebfbfb86f83e41758023f9cf4494dd46669ebed95ebd16d77e"
+    },
+    {
+      "path": "EARLY-FINDINGS.md",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 3586,
+      "sha256": "a634e538fd760bf8496d4423b43d30feb399e22aea1939dcb1596421ea30ce73"
+    },
+    {
+      "path": "FRAGMENTS-371.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 137108,
+      "sha256": "7eb0650ef49a0c7693daaba50fd0a182e8911dfab9c478ee8a89d7cf9abdd6d6"
+    },
+    {
+      "path": "GAPS-135.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 148841,
+      "sha256": "16d048aba51e7beeb4019604a3b7a03e2d8a985cffe1a725365e4cf233d41deb"
+    },
+    {
+      "path": "INSPECTED-SOURCE.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 8187,
+      "sha256": "c5cd894a70f07b893058f5b10dd35b6b492eb33bcb3616900eb25fb1210d9876"
+    },
+    {
+      "path": "INTEGRITY-COPY-CLEANUP.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 7184,
+      "sha256": "a8d715e532dc5e8bba958d86c87cb1669696a6aa54bfaaa92e7d11713d77550b"
+    },
+    {
+      "path": "INTERFACE-INPUTS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 9630,
+      "sha256": "8705c65f01a8ff07068202ebc9f7161ae1bc28eb26e6e1becac0108f89185362"
+    },
+    {
+      "path": "JOB-INDEX.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 74723,
+      "sha256": "54551b21864841bc0ed3d0ca543abfb35c2bc5ac3561b3586fd7044c97bc1b82"
+    },
+    {
+      "path": "LOADED-SLOTS-10.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 19793,
+      "sha256": "60fac283a45909c6abb7232c93ddb281bbf6356d6a7923730327ae924820f04c"
+    },
+    {
+      "path": "OVERLAYS-8-AND-GUARDS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 18124,
+      "sha256": "855e6dadd23eb30ce15ef4d1f4097d9e1476fc8580abfb889d01bfbd43eea5b4"
+    },
+    {
+      "path": "PREPARATION-ERRORS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1435,
+      "sha256": "9aa7c300b8d53bd915c87ae4480244476f1230e42aab2397e6aed65820a806ae"
+    },
+    {
+      "path": "PROJECTIONS-149.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 96692,
+      "sha256": "8ced392aeb05bbd88d400f74b1b7515cbc76eb74c83985627400a4be7dc6221d"
+    },
+    {
+      "path": "ROOT-LAUNCH-INTERFACE.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 13874,
+      "sha256": "9608366e350216bc28b81590bb7f9eaf80db3e10fa70a4bfd9179d2717295a81"
+    },
+    {
+      "path": "ROOT_HANDOFF.md",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 4367,
+      "sha256": "07d3f246c01095cd12f0ba4fee791f8c4c06e59d3eadf469820ce5a1295339e2"
+    },
+    {
+      "path": "TYPE-BINDINGS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 9452,
+      "sha256": "de7ab09d0081fdf49f0619a255b9db9bff18e8076bc12770895a2716908bcb97"
+    },
+    {
+      "path": "VALIDATION.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1493,
+      "sha256": "c37a7b5eab1568ce48f47aea8ea6d404cb7e6616ba5b599e3fb158eb9c4dd126"
+    }
+  ],
+  "readerPreparationFailureRecords": 3
+}

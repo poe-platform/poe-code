@@ -1,0 +1,33 @@
+{
+  "id": "registered-vfs-dispose",
+  "mutant": "none",
+  "pass": true,
+  "events": [
+    "registered-acquired:release",
+    "next:0",
+    "next-entered:release",
+    "registered-entered:release",
+    "return",
+    "return-entered:release",
+    "return",
+    "return-entered:release",
+    "registered-release:release",
+    "rejected:Error: Shell is disposed",
+    "fulfilled",
+    "registered-retirement:1;close-calls:2",
+    "next-entered:release"
+  ],
+  "input": {
+    "reads": 0,
+    "returns": 1,
+    "acquired": 1,
+    "concurrent": 0,
+    "maxConcurrent": 0
+  },
+  "output": [
+    "00ff"
+  ],
+  "stderr": [],
+  "strictUnhandled": true,
+  "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+}

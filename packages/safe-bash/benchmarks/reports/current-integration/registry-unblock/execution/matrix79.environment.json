@@ -1,0 +1,32 @@
+{
+  "phase": "matrix79",
+  "capturedEpoch": 1787791047.497369,
+  "provenance": "CONTEMPORANEOUS immediately before spawn",
+  "env": {
+    "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/opt/homebrew/bin:/usr/bin:/bin",
+    "LANG": "C.UTF-8",
+    "LC_ALL": "C.UTF-8",
+    "TZ": "UTC",
+    "CI": "1",
+    "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/environment/matrix79/HOME",
+    "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/environment/matrix79/TMPDIR",
+    "XDG_CACHE_HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/environment/matrix79/XDG_CACHE_HOME",
+    "XDG_CONFIG_HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/environment/matrix79/XDG_CONFIG_HOME",
+    "XDG_DATA_HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/environment/matrix79/XDG_DATA_HOME",
+    "XDG_STATE_HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/environment/matrix79/XDG_STATE_HOME",
+    "npm_config_cache": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/environment/matrix79/npm_config_cache",
+    "XDG_RUNTIME_DIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/environment/matrix79/runtime"
+  },
+  "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/source",
+  "argv": [
+    "node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-concurrency=1",
+    "--test-reporter=tap",
+    "--test-name-pattern=^(?:memory: independent six-family named-file probes|memory: aggregate six-family coding-agent flow|memory: binary stdin, compression, hashes and redirected bytes|memory: cwd, supplied stdin and explicitly empty stdin|memory: create, copy, append, inspect and remove files|memory: move retains bytes and removes source|memory: touch creates an empty file successfully|memory: in-place edit, diff-to-patch stdin and reverse|memory: missing paths, stderr redirection and command errors|memory: cancellation interrupts actual blocked command pipeline|memory: output limit terminates real binary reads|real: independent six-family named-file probes|real: aggregate six-family coding-agent flow|real: binary stdin, compression, hashes and redirected bytes|real: cwd, supplied stdin and explicitly empty stdin|real: create, copy, append, inspect and remove files|real: move retains bytes and removes source|real: touch creates an empty file successfully|real: in-place edit, diff-to-patch stdin and reverse|real: missing paths, stderr redirection and command errors|real: cancellation interrupts actual blocked command pipeline|real: output limit terminates real binary reads|s3: independent six-family named-file probes|s3: aggregate six-family coding-agent flow|s3: binary stdin, compression, hashes and redirected bytes|s3: cwd, supplied stdin and explicitly empty stdin|s3: create, copy, append, inspect and remove files|s3: move retains bytes and removes source|s3: touch creates an empty file successfully|s3: in-place edit, diff-to-patch stdin and reverse|s3: missing paths, stderr redirection and command errors|s3: cancellation interrupts actual blocked command pipeline|s3: output limit terminates real binary reads|webdav: independent six-family named-file probes|webdav: aggregate six-family coding-agent flow|webdav: binary stdin, compression, hashes and redirected bytes|webdav: cwd, supplied stdin and explicitly empty stdin|webdav: create, copy, append, inspect and remove files|webdav: move retains bytes and removes source|webdav: touch creates an empty file successfully|webdav: in-place edit, diff-to-patch stdin and reverse|webdav: missing paths, stderr redirection and command errors|webdav: cancellation interrupts actual blocked command pipeline|webdav: output limit terminates real binary reads|mount: independent six-family named-file probes|mount: aggregate six-family coding-agent flow|mount: binary stdin, compression, hashes and redirected bytes|mount: cwd, supplied stdin and explicitly empty stdin|mount: create, copy, append, inspect and remove files|mount: move retains bytes and removes source|mount: touch creates an empty file successfully|mount: in-place edit, diff-to-patch stdin and reverse|mount: missing paths, stderr redirection and command errors|mount: cancellation interrupts actual blocked command pipeline|mount: output limit terminates real binary reads|overlay: independent six-family named-file probes|overlay: aggregate six-family coding-agent flow|overlay: binary stdin, compression, hashes and redirected bytes|overlay: cwd, supplied stdin and explicitly empty stdin|overlay: create, copy, append, inspect and remove files|overlay: move retains bytes and removes source|overlay: touch creates an empty file successfully|overlay: in-place edit, diff-to-patch stdin and reverse|overlay: missing paths, stderr redirection and command errors|overlay: cancellation interrupts actual blocked command pipeline|overlay: output limit terminates real binary reads|mount: cross-backend pipeline and copy use real mount plus S3|overlay: edit and remove lower files without changing S3 lower|readonly: all six aggregate families can inspect without mutation|structured capability gap: raw slurped text can be split into lines|readonly: rejects mutation: printf 'changed' > target\\.txt|readonly: rejects mutation: printf 'changed' >> target\\.txt|readonly: rejects mutation: mkdir denied|readonly: rejects mutation: cp old\\.txt denied\\.txt|readonly: rejects mutation: mv old\\.txt denied\\.txt|readonly: rejects mutation: rm old\\.txt|readonly: rejects mutation: sed -i 's/beta/BETA/' target\\.txt|readonly: rejects mutation: patch -i change\\.diff|readonly: rejects mutation: gzip payload\\.bin)$",
+    "tests/integration/adapter-tools/matrix.test.ts"
+  ]
+}

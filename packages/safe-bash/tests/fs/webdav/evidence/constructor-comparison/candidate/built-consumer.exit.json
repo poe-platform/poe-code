@@ -1,0 +1,13 @@
+{
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--test",
+    "consumer-out/consumer.test.js"
+  ],
+  "cwd": "/private/tmp/safe-bash-webdav-constructor-8tiSAh/candidate/archive",
+  "start": "2026-08-27T02:52:16.485Z",
+  "end": "2026-08-27T02:52:16.865Z",
+  "status": 1,
+  "signal": null
+}

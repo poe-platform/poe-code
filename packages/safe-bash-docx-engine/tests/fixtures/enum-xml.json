@@ -1,0 +1,757 @@
+{
+  "provenance": "Original independently enumerated XML facts; numeric facts from retained requirement-derived enum map; never product runtime.",
+  "families": [
+    {
+      "family": "WD_UNDERLINE",
+      "group": "text",
+      "entries": [
+        {
+          "name": "INHERITED",
+          "value": -1,
+          "xml": null,
+          "mapped": true
+        },
+        {
+          "name": "NONE",
+          "value": 0,
+          "xml": "none",
+          "mapped": true
+        },
+        {
+          "name": "SINGLE",
+          "value": 1,
+          "xml": "single",
+          "mapped": true
+        },
+        {
+          "name": "WORDS",
+          "value": 2,
+          "xml": "words",
+          "mapped": true
+        },
+        {
+          "name": "DOUBLE",
+          "value": 3,
+          "xml": "double",
+          "mapped": true
+        },
+        {
+          "name": "DOTTED",
+          "value": 4,
+          "xml": "dotted",
+          "mapped": true
+        },
+        {
+          "name": "THICK",
+          "value": 6,
+          "xml": "thick",
+          "mapped": true
+        },
+        {
+          "name": "DASH",
+          "value": 7,
+          "xml": "dash",
+          "mapped": true
+        },
+        {
+          "name": "DOT_DASH",
+          "value": 9,
+          "xml": "dotDash",
+          "mapped": true
+        },
+        {
+          "name": "DOT_DOT_DASH",
+          "value": 10,
+          "xml": "dotDotDash",
+          "mapped": true
+        },
+        {
+          "name": "WAVY",
+          "value": 11,
+          "xml": "wave",
+          "mapped": true
+        },
+        {
+          "name": "DOTTED_HEAVY",
+          "value": 20,
+          "xml": "dottedHeavy",
+          "mapped": true
+        },
+        {
+          "name": "DASH_HEAVY",
+          "value": 23,
+          "xml": "dashedHeavy",
+          "mapped": true
+        },
+        {
+          "name": "DOT_DASH_HEAVY",
+          "value": 25,
+          "xml": "dashDotHeavy",
+          "mapped": true
+        },
+        {
+          "name": "DOT_DOT_DASH_HEAVY",
+          "value": 26,
+          "xml": "dashDotDotHeavy",
+          "mapped": true
+        },
+        {
+          "name": "WAVY_HEAVY",
+          "value": 27,
+          "xml": "wavyHeavy",
+          "mapped": true
+        },
+        {
+          "name": "DASH_LONG",
+          "value": 39,
+          "xml": "dashLong",
+          "mapped": true
+        },
+        {
+          "name": "WAVY_DOUBLE",
+          "value": 43,
+          "xml": "wavyDouble",
+          "mapped": true
+        },
+        {
+          "name": "DASH_LONG_HEAVY",
+          "value": 55,
+          "xml": "dashLongHeavy",
+          "mapped": true
+        }
+      ],
+      "routeFamily": "WD_UNDERLINE"
+    },
+    {
+      "family": "WD_COLOR_INDEX",
+      "group": "text",
+      "entries": [
+        {
+          "name": "INHERITED",
+          "value": -1,
+          "xml": null,
+          "mapped": true
+        },
+        {
+          "name": "AUTO",
+          "value": 0,
+          "xml": "default",
+          "mapped": true
+        },
+        {
+          "name": "BLACK",
+          "value": 1,
+          "xml": "black",
+          "mapped": true
+        },
+        {
+          "name": "BLUE",
+          "value": 2,
+          "xml": "blue",
+          "mapped": true
+        },
+        {
+          "name": "BRIGHT_GREEN",
+          "value": 4,
+          "xml": "green",
+          "mapped": true
+        },
+        {
+          "name": "DARK_BLUE",
+          "value": 9,
+          "xml": "darkBlue",
+          "mapped": true
+        },
+        {
+          "name": "DARK_RED",
+          "value": 13,
+          "xml": "darkRed",
+          "mapped": true
+        },
+        {
+          "name": "DARK_YELLOW",
+          "value": 14,
+          "xml": "darkYellow",
+          "mapped": true
+        },
+        {
+          "name": "GRAY_25",
+          "value": 16,
+          "xml": "lightGray",
+          "mapped": true
+        },
+        {
+          "name": "GRAY_50",
+          "value": 15,
+          "xml": "darkGray",
+          "mapped": true
+        },
+        {
+          "name": "GREEN",
+          "value": 11,
+          "xml": "darkGreen",
+          "mapped": true
+        },
+        {
+          "name": "PINK",
+          "value": 5,
+          "xml": "magenta",
+          "mapped": true
+        },
+        {
+          "name": "RED",
+          "value": 6,
+          "xml": "red",
+          "mapped": true
+        },
+        {
+          "name": "TEAL",
+          "value": 10,
+          "xml": "darkCyan",
+          "mapped": true
+        },
+        {
+          "name": "TURQUOISE",
+          "value": 3,
+          "xml": "cyan",
+          "mapped": true
+        },
+        {
+          "name": "VIOLET",
+          "value": 12,
+          "xml": "darkMagenta",
+          "mapped": true
+        },
+        {
+          "name": "WHITE",
+          "value": 8,
+          "xml": "white",
+          "mapped": true
+        },
+        {
+          "name": "YELLOW",
+          "value": 7,
+          "xml": "yellow",
+          "mapped": true
+        }
+      ],
+      "routeFamily": "WD_COLOR_INDEX"
+    },
+    {
+      "family": "WD_PARAGRAPH_ALIGNMENT",
+      "group": "text",
+      "entries": [
+        {
+          "name": "LEFT",
+          "value": 0,
+          "xml": "left",
+          "mapped": true
+        },
+        {
+          "name": "CENTER",
+          "value": 1,
+          "xml": "center",
+          "mapped": true
+        },
+        {
+          "name": "RIGHT",
+          "value": 2,
+          "xml": "right",
+          "mapped": true
+        },
+        {
+          "name": "JUSTIFY",
+          "value": 3,
+          "xml": "both",
+          "mapped": true
+        },
+        {
+          "name": "DISTRIBUTE",
+          "value": 4,
+          "xml": "distribute",
+          "mapped": true
+        },
+        {
+          "name": "JUSTIFY_MED",
+          "value": 5,
+          "xml": "mediumKashida",
+          "mapped": true
+        },
+        {
+          "name": "JUSTIFY_HI",
+          "value": 7,
+          "xml": "highKashida",
+          "mapped": true
+        },
+        {
+          "name": "JUSTIFY_LOW",
+          "value": 8,
+          "xml": "lowKashida",
+          "mapped": true
+        },
+        {
+          "name": "THAI_JUSTIFY",
+          "value": 9,
+          "xml": "thaiDistribute",
+          "mapped": true
+        }
+      ],
+      "routeFamily": "WD_PARAGRAPH_ALIGNMENT"
+    },
+    {
+      "family": "WD_LINE_SPACING",
+      "group": "text",
+      "entries": [
+        {
+          "name": "SINGLE",
+          "value": 0,
+          "xml": null,
+          "mapped": false
+        },
+        {
+          "name": "ONE_POINT_FIVE",
+          "value": 1,
+          "xml": null,
+          "mapped": false
+        },
+        {
+          "name": "DOUBLE",
+          "value": 2,
+          "xml": null,
+          "mapped": false
+        },
+        {
+          "name": "AT_LEAST",
+          "value": 3,
+          "xml": "atLeast",
+          "mapped": true
+        },
+        {
+          "name": "EXACTLY",
+          "value": 4,
+          "xml": "exact",
+          "mapped": true
+        },
+        {
+          "name": "MULTIPLE",
+          "value": 5,
+          "xml": "auto",
+          "mapped": true
+        }
+      ],
+      "routeFamily": "WD_LINE_SPACING"
+    },
+    {
+      "family": "WD_TAB_ALIGNMENT",
+      "group": "text",
+      "entries": [
+        {
+          "name": "LEFT",
+          "value": 0,
+          "xml": "left",
+          "mapped": true
+        },
+        {
+          "name": "CENTER",
+          "value": 1,
+          "xml": "center",
+          "mapped": true
+        },
+        {
+          "name": "RIGHT",
+          "value": 2,
+          "xml": "right",
+          "mapped": true
+        },
+        {
+          "name": "DECIMAL",
+          "value": 3,
+          "xml": "decimal",
+          "mapped": true
+        },
+        {
+          "name": "BAR",
+          "value": 4,
+          "xml": "bar",
+          "mapped": true
+        },
+        {
+          "name": "LIST",
+          "value": 6,
+          "xml": "list",
+          "mapped": true
+        },
+        {
+          "name": "CLEAR",
+          "value": 101,
+          "xml": "clear",
+          "mapped": true
+        },
+        {
+          "name": "END",
+          "value": 102,
+          "xml": "end",
+          "mapped": true
+        },
+        {
+          "name": "NUM",
+          "value": 103,
+          "xml": "num",
+          "mapped": true
+        },
+        {
+          "name": "START",
+          "value": 104,
+          "xml": "start",
+          "mapped": true
+        }
+      ],
+      "routeFamily": "WD_TAB_ALIGNMENT"
+    },
+    {
+      "family": "WD_TAB_LEADER",
+      "group": "text",
+      "entries": [
+        {
+          "name": "SPACES",
+          "value": 0,
+          "xml": "none",
+          "mapped": true
+        },
+        {
+          "name": "DOTS",
+          "value": 1,
+          "xml": "dot",
+          "mapped": true
+        },
+        {
+          "name": "DASHES",
+          "value": 2,
+          "xml": "hyphen",
+          "mapped": true
+        },
+        {
+          "name": "LINES",
+          "value": 3,
+          "xml": "underscore",
+          "mapped": true
+        },
+        {
+          "name": "HEAVY",
+          "value": 4,
+          "xml": "heavy",
+          "mapped": true
+        },
+        {
+          "name": "MIDDLE_DOT",
+          "value": 5,
+          "xml": "middleDot",
+          "mapped": true
+        }
+      ],
+      "routeFamily": "WD_TAB_LEADER"
+    },
+    {
+      "family": "MSO_THEME_COLOR",
+      "group": "dml",
+      "entries": [
+        {
+          "name": "NOT_THEME_COLOR",
+          "value": 0,
+          "xml": null,
+          "mapped": false
+        },
+        {
+          "name": "ACCENT_1",
+          "value": 5,
+          "xml": "accent1",
+          "mapped": true
+        },
+        {
+          "name": "ACCENT_2",
+          "value": 6,
+          "xml": "accent2",
+          "mapped": true
+        },
+        {
+          "name": "ACCENT_3",
+          "value": 7,
+          "xml": "accent3",
+          "mapped": true
+        },
+        {
+          "name": "ACCENT_4",
+          "value": 8,
+          "xml": "accent4",
+          "mapped": true
+        },
+        {
+          "name": "ACCENT_5",
+          "value": 9,
+          "xml": "accent5",
+          "mapped": true
+        },
+        {
+          "name": "ACCENT_6",
+          "value": 10,
+          "xml": "accent6",
+          "mapped": true
+        },
+        {
+          "name": "BACKGROUND_1",
+          "value": 14,
+          "xml": "background1",
+          "mapped": true
+        },
+        {
+          "name": "BACKGROUND_2",
+          "value": 16,
+          "xml": "background2",
+          "mapped": true
+        },
+        {
+          "name": "DARK_1",
+          "value": 1,
+          "xml": "dark1",
+          "mapped": true
+        },
+        {
+          "name": "DARK_2",
+          "value": 3,
+          "xml": "dark2",
+          "mapped": true
+        },
+        {
+          "name": "FOLLOWED_HYPERLINK",
+          "value": 12,
+          "xml": "followedHyperlink",
+          "mapped": true
+        },
+        {
+          "name": "HYPERLINK",
+          "value": 11,
+          "xml": "hyperlink",
+          "mapped": true
+        },
+        {
+          "name": "LIGHT_1",
+          "value": 2,
+          "xml": "light1",
+          "mapped": true
+        },
+        {
+          "name": "LIGHT_2",
+          "value": 4,
+          "xml": "light2",
+          "mapped": true
+        },
+        {
+          "name": "TEXT_1",
+          "value": 13,
+          "xml": "text1",
+          "mapped": true
+        },
+        {
+          "name": "TEXT_2",
+          "value": 15,
+          "xml": "text2",
+          "mapped": true
+        }
+      ],
+      "routeFamily": "MSO_THEME_COLOR_INDEX"
+    },
+    {
+      "family": "WD_STYLE_TYPE",
+      "group": "style",
+      "entries": [
+        {
+          "name": "CHARACTER",
+          "value": 2,
+          "xml": "character",
+          "mapped": true
+        },
+        {
+          "name": "LIST",
+          "value": 4,
+          "xml": "numbering",
+          "mapped": true
+        },
+        {
+          "name": "PARAGRAPH",
+          "value": 1,
+          "xml": "paragraph",
+          "mapped": true
+        },
+        {
+          "name": "TABLE",
+          "value": 3,
+          "xml": "table",
+          "mapped": true
+        }
+      ],
+      "routeFamily": "WD_STYLE_TYPE"
+    },
+    {
+      "family": "WD_CELL_VERTICAL_ALIGNMENT",
+      "group": "table",
+      "entries": [
+        {
+          "name": "TOP",
+          "value": 0,
+          "xml": "top",
+          "mapped": true
+        },
+        {
+          "name": "CENTER",
+          "value": 1,
+          "xml": "center",
+          "mapped": true
+        },
+        {
+          "name": "BOTTOM",
+          "value": 3,
+          "xml": "bottom",
+          "mapped": true
+        },
+        {
+          "name": "BOTH",
+          "value": 101,
+          "xml": "both",
+          "mapped": true
+        }
+      ],
+      "routeFamily": "WD_CELL_VERTICAL_ALIGNMENT"
+    },
+    {
+      "family": "WD_ORIENTATION",
+      "group": "section",
+      "entries": [
+        {
+          "name": "PORTRAIT",
+          "value": 0,
+          "xml": "portrait",
+          "mapped": true
+        },
+        {
+          "name": "LANDSCAPE",
+          "value": 1,
+          "xml": "landscape",
+          "mapped": true
+        }
+      ],
+      "routeFamily": "WD_ORIENTATION"
+    },
+    {
+      "family": "WD_TABLE_ALIGNMENT",
+      "group": "table",
+      "entries": [
+        {
+          "name": "LEFT",
+          "value": 0,
+          "xml": "left",
+          "mapped": true
+        },
+        {
+          "name": "CENTER",
+          "value": 1,
+          "xml": "center",
+          "mapped": true
+        },
+        {
+          "name": "RIGHT",
+          "value": 2,
+          "xml": "right",
+          "mapped": true
+        }
+      ],
+      "routeFamily": "WD_TABLE_ALIGNMENT"
+    },
+    {
+      "family": "WD_ROW_HEIGHT_RULE",
+      "group": "table",
+      "entries": [
+        {
+          "name": "AUTO",
+          "value": 0,
+          "xml": "auto",
+          "mapped": true
+        },
+        {
+          "name": "AT_LEAST",
+          "value": 1,
+          "xml": "atLeast",
+          "mapped": true
+        },
+        {
+          "name": "EXACTLY",
+          "value": 2,
+          "xml": "exact",
+          "mapped": true
+        }
+      ],
+      "routeFamily": "WD_ROW_HEIGHT_RULE"
+    },
+    {
+      "family": "WD_SECTION_START",
+      "group": "section",
+      "entries": [
+        {
+          "name": "CONTINUOUS",
+          "value": 0,
+          "xml": "continuous",
+          "mapped": true
+        },
+        {
+          "name": "NEW_COLUMN",
+          "value": 1,
+          "xml": "nextColumn",
+          "mapped": true
+        },
+        {
+          "name": "NEW_PAGE",
+          "value": 2,
+          "xml": "nextPage",
+          "mapped": true
+        },
+        {
+          "name": "EVEN_PAGE",
+          "value": 3,
+          "xml": "evenPage",
+          "mapped": true
+        },
+        {
+          "name": "ODD_PAGE",
+          "value": 4,
+          "xml": "oddPage",
+          "mapped": true
+        }
+      ],
+      "routeFamily": "WD_SECTION_START"
+    },
+    {
+      "family": "WD_HEADER_FOOTER_INDEX",
+      "group": "section",
+      "entries": [
+        {
+          "name": "PRIMARY",
+          "value": 1,
+          "xml": "default",
+          "mapped": true
+        },
+        {
+          "name": "FIRST_PAGE",
+          "value": 2,
+          "xml": "first",
+          "mapped": true
+        },
+        {
+          "name": "EVEN_PAGE",
+          "value": 3,
+          "xml": "even",
+          "mapped": true
+        }
+      ],
+      "routeFamily": "WD_HEADER_FOOTER_INDEX"
+    }
+  ]
+}

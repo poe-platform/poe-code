@@ -1,0 +1,7 @@
+# Supplementary selected-rejection binding, before execution
+
+The original twelve-parameter Q02 cohort stays9/12 with three failed binding assumptions. No assertion or outcome in that cohort is changed. This supplementary run reuses **only P05/P06/P07**, not three new reason/cleanup parameters or three additional logical cases.
+
+To test the existing *selected execution rejection* rule rather than pretending every command throw escapes Shell, the actual registered command first observes/rethrows the same0/undefined/Error IO value using the failure-preserving close pattern. Existing runtime converts this to command status1 and records the failed registered close. A subsequent malformed shell line then invokes the public stderr sink in Shell's syntax-diagnostic path. That sink explicitly throws the same value, producing a genuine outer execution rejection, outside ordinary command-to-status conversion. The selected value must win over already-recorded cleanup Error/Error/0. Exact local/public/cleanup identities, diagnostic bytes, order, normally-live operation and cleanup count are required.
+
+This is a deliberately separate host-sink binding, not evidence that the original command throw was selected, not a runtime change and not a new precedence policy. Both raw cohorts remain reported separately. Source-fix rounds remain0. If this binding fails, retain it as failed rather than expanding the fixture further.

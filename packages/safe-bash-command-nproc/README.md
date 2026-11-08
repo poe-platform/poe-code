@@ -1,0 +1,24 @@
+# safe-bash-command-nproc
+
+Query available logical processing units for parallel build scripts.
+
+Resource limits default to `Infinity`; configure finite quotas through command options when needed.
+
+Report deterministic processor counts with `--all`, `--ignore=N`, and `OMP_NUM_THREADS` / `OMP_THREAD_LIMIT` awareness.
+
+## Features
+
+- `nproc` — Print available processing units
+- `--all` — Report total installed processors
+- `--ignore=N` — Subtract `N` units (minimum 1) for worker pool sizing
+
+## Quick Start
+
+```ts
+import { createMemoryFileSystem, Shell, agentCommands } from "@poe-platform/safe-bash";
+
+const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
+const res = await shell.exec("nproc --ignore=1");
+```
+
+Resource limits are disabled (`Infinity`) by default. Pass `limits` to the command factory or plugin to enforce bounds; omitted limits remain disabled.

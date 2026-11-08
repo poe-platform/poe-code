@@ -1,0 +1,28 @@
+{
+  "rows": [
+    {
+      "id": "C01-accepted-explicit-ROOT-author-branch",
+      "status": "PASS"
+    },
+    {
+      "id": "C02-missing-binding-refused",
+      "status": "PASS"
+    },
+    {
+      "id": "C03-wrong-source-or-source-review-refused",
+      "status": "PASS"
+    },
+    {
+      "id": "C04-unknown-kind-refused",
+      "status": "PASS"
+    }
+  ],
+  "pass": 4,
+  "fail": 0,
+  "rootDecisionSha256": "172d789916e62cac03caaf18610615148e95f59cdf0ac0c8e97a7465baeaa5ea",
+  "contractSha256": "0c76c54ced4715d97859fb1598dd4c5ad769f967ac50167fb48fdfa8a90af2e9",
+  "helperSha256": "05fe714e89ff474c55e46ce873b1d004b7c870dc463b9616c440acdbdfeb47f8",
+  "product": 0,
+  "compiler": 0,
+  "pack": 0
+}

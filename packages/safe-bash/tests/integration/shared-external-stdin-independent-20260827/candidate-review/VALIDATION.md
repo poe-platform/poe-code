@@ -1,0 +1,9 @@
+# Final validation
+
+- Read-only candidate verifier: PASS; 179 immutable capture files, 13,066 authenticated loaded-byte receipts; all exact raw denominators retained, including column0/6.
+- Read-only historical verifier: PASS; 171 immutable files, 12,496 historical loaded-byte receipts; original18/32 and provisional25/35 unchanged.
+- Staged code/report whitespace check: PASS when excluding only `evidence/references/historical-to-final-product.diff.txt`. Full staged check reports seven preserved single-space context lines in that exact Git diff data (lines18,65,80,86,110,119,155); bytes intentionally remain unchanged. The earlier unstaged check preceded staging of these new files and did not validate them. No broad source/test whitespace waiver.
+- At 2026-08-27T16:18:43.649Z, 80 owned command receipts all closed, watchdog expiries0; exact recorded-PID process-table cross-check found zero active owned candidate scratch processes. No servers/background workers started; no foreign process cleanup.
+- Separate fixture commits: main adapter `dc8e362b5b03a526d9b0bfd90cdcefeca601c590`; author/column supplement `79f0f91717a4e3df328981c7d4988b129c417706` (committed after execution, disclosed); authorized falsy supplement `bdb49bb1c2b2c5646e1ed8666bf53ebf3bb6433c` (committed before execution).
+- Final source verdict: supports the bounded final input fix, including falsy primary reasons; no genuine candidate defect established. Green-fixture acceptance remains blocked on explicit root adjudication of the two provisional read expectations and six column diagnostic fixture failures. Aliases/column use packed internal factories; this is not public-export acceptance.
+- No production edit, fixture expectation correction, automatic rebaseline, source mutant, baseline rebuild, global suite, native/performance run, dependency/config/barrel change, or stronger opaque-return claim.

@@ -1,0 +1,20 @@
+{
+  "totals": {
+    "positive": {
+      "pass": 4,
+      "fail": 0
+    },
+    "guard": {
+      "pass": 12,
+      "fail": 0
+    },
+    "refusal": {
+      "pass": 2,
+      "fail": 0
+    }
+  },
+  "rows": 18,
+  "retainedLocks": 0,
+  "rootResolution": "file:///Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/consumer/node_modules/virtual-bash/dist/index.js",
+  "subpathResolution": "file:///Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/consumer/node_modules/virtual-bash/dist/fs/webdav/index.js"
+}

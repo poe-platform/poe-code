@@ -1,0 +1,85 @@
+{
+  "source": "a5fd225af5f9985ae805f48ab1b1790a9c3fbc7f",
+  "evidence": "f9fe59338cf01863735ee67bef5ae03ef993d053",
+  "files": [
+    {
+      "path": "modules/state.mjs",
+      "sha256": "28af6d9b42ddf85caa637a4eca2cb36147508e2175668ba8e307ea47b4b4ef88",
+      "bytes": 1572,
+      "role": "EXACT_AUTHOR_HELPER"
+    },
+    {
+      "path": "modules/storage.mjs",
+      "sha256": "4b5cf5904487ae63b229a5d99b3e02c257b94b5862800e6591b348fc1c5a7049",
+      "bytes": 2510,
+      "role": "EXACT_AUTHOR_HELPER"
+    },
+    {
+      "path": "modules/capture.mjs",
+      "sha256": "189163f34934cad07540eda703611ad7c1f758e23f784a7d1935a31d16391009",
+      "bytes": 1888,
+      "role": "EXACT_AUTHOR_HELPER"
+    },
+    {
+      "path": "modules/observer-state.mjs",
+      "sha256": "14ad6fd00f476722676fd590b2fc0774d7c1eb242d6525e885b1bfb53d3bce74",
+      "bytes": 1240,
+      "role": "EXACT_AUTHOR_HELPER"
+    },
+    {
+      "path": "modules/admission.mjs",
+      "sha256": "c03847089c61e0fc0cf957e85424937c79fa3e1a9d2152cb5fe39dab70d57b0f",
+      "bytes": 3716,
+      "role": "EXACT_AUTHOR_HELPER"
+    },
+    {
+      "path": "modules/lifecycle.mjs",
+      "sha256": "67f9674fac2dbe0ee5eee5fd3685263106b29ad80664094555731780b821e3fd",
+      "bytes": 5280,
+      "role": "EXACT_AUTHOR_HELPER"
+    },
+    {
+      "path": "modules/group-observer.mjs",
+      "sha256": "ba7ec9ff06c8b0867b9183b1242ade0f4b1ca1d9d6bb0c6b1abdbb574d830417",
+      "bytes": 759,
+      "role": "EXACT_AUTHOR_HELPER"
+    },
+    {
+      "path": "modules/AUTHOR-BRANCHES.mjs",
+      "sha256": "27bb471df39d69e274423dbf56c5970b50daeecf298332b3054c1763e44a1f43",
+      "bytes": 5116,
+      "role": "EXACT_TEN_BRANCHES_NEW_CONTROLLER",
+      "originalBlockSha256": "201b2e3e45384cb2fc6da743a18e81b2e31036986cb645136a496218ac3945a3"
+    },
+    {
+      "path": "WRAPPER-PAYLOAD.data",
+      "sha256": "08d702bd9312a804490008f4dfcfc2de775d09778572a8e671ec61485aa8b75d",
+      "bytes": 497,
+      "role": "LITERAL_NO_IMPORT_FD_CHECK"
+    },
+    {
+      "path": "review-controls.mjs",
+      "sha256": "3a904fe020a734260790459d1fb9b1313f6f939ca4127683fb9d03ce5c9ed542",
+      "bytes": 13922,
+      "role": "REVIEW_CONTROL"
+    },
+    {
+      "path": "CONTROL-PRESEAL.md",
+      "sha256": "cf1551ffe45ecafb7ffd38c3bbb9d57d073a78b8623e8cd65102af74aa31e468",
+      "bytes": 2503,
+      "role": "REVIEW_CONTROL"
+    },
+    {
+      "path": "WRAPPER-DERIVATIVE.json",
+      "sha256": "82457b3a4e355663ddd3652c269c5d37dc997ba7246c1680020ff16e995ad214",
+      "bytes": 1464,
+      "role": "REVIEW_CONTROL"
+    }
+  ],
+  "authorBranches": 10,
+  "authorLiteralFixtures": 2,
+  "novel": 10,
+  "nodeProcessesIncludingOwner": 5,
+  "extraRefusalShells": 2,
+  "nativeEntryExecuted": false
+}

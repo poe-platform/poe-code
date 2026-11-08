@@ -1,0 +1,12 @@
+{
+  "grant": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/GO.json",
+  "seal": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/PREPARATION-SEAL-v3.json",
+  "grantSha256": "5d37bb0ff2f321624783c0b6e3abc027031d98a15aaa3ec2aab31c96169273d9",
+  "layout": "source-build",
+  "id": "P13",
+  "specifier": "./dist/index.js",
+  "workerLog": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P13.worker.jsonl",
+  "workerParentLog": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P13.worker-parent.jsonl",
+  "workerStartsRemaining": 360,
+  "workerCaptureBytes": 262144
+}

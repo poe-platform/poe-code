@@ -1,0 +1,9 @@
+{
+  "revision": "b3457383dffdcc66a72c36fadbea679bcf045131",
+  "files": {
+    "actual-frozen-02/REPORT.json": "7442c6deffecc288a1cd252a981bbde7699d03b9d81b48fab61eaef5a953e4d2",
+    "regression-results-original-01/REPORT.json": "9c5b697991c2d385b97f30f77e5a8b16803c67f988ef8155049a72ce7d7d586f"
+  },
+  "originalMutantM3": "survived; redundant prepareArithmetic discarded .error; not credited as rejected",
+  "newMutantM3": "9cd95bfdf096b6725a4a800e6aa22f06096c939f83409cf29d3dd88b6808939d"
+}

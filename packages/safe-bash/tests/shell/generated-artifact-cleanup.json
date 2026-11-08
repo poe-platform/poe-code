@@ -1,0 +1,41 @@
+{
+  "directory": "/tmp/safe-bash-shell-generated-backup-KZWd54",
+  "records": [
+    {
+      "path": "src/shell/arithmetic.js",
+      "sha256": "084e9fe03297f68d150dd7fd6fc9661a5892a537b46fa6c0e98008aae3693e1c"
+    },
+    {
+      "path": "src/shell/index.js",
+      "sha256": "2b973837f831a68b29b5c15af0d3bdd98a747adf60fd8cf55a21593957b1f892"
+    },
+    {
+      "path": "src/shell/input.js",
+      "sha256": "575f6a1c3d31432dafc2475ef05c4321c2f49bd8cdca2f0b48488705e8061752"
+    },
+    {
+      "path": "src/shell/locale.js",
+      "sha256": "231ee44f3423031af6ba5350b16a141ed54c08a3335c0e355e3ee1a977efdac5"
+    },
+    {
+      "path": "src/shell/parser.js",
+      "sha256": "1b5b961f7f7649b06502a737db2eba703d47c47aff9622aa9a7fff1bbfaf173c"
+    },
+    {
+      "path": "src/shell/pattern.js",
+      "sha256": "85f3196f1a5cf3b0bc2c7867b20db6bfd773c5a17d8d6adfcfcd90a08cf5aaa6"
+    },
+    {
+      "path": "src/shell/runtime.js",
+      "sha256": "4fc97b114efd56c1123d1dd944bc2913c8153b9a08799873d90a3b2772e1620a"
+    },
+    {
+      "path": "src/shell/shell.js",
+      "sha256": "1168e88f187e21a17d4381f49fc3a366fdc3ec94584947886f72efe10e4f2a5f"
+    },
+    {
+      "path": "src/shell/types.js",
+      "sha256": "468a5d210f8c7fe3f807a7e803712cfe9facbfc1cf653b9184bebd7bd5bdf6be"
+    }
+  ]
+}

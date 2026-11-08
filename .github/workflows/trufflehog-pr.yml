@@ -1,0 +1,27 @@
+name: TruffleHog PR Scan
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: trufflehog-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  trufflehog:
+    name: TruffleHog Advisory Scan
+    uses: ./.github/workflows/trufflehog-pr-template.yml
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    with:
+      trufflehog_image: ghcr.io/trufflesecurity/trufflehog:latest
+      results: verified,unverified,unknown
+      max_findings: 10

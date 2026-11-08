@@ -1,0 +1,6 @@
+{"started":"2026-08-29T09:02:30.464Z","pid":32154,"parent":32152,"mode":"--compose","productExecutions":0}
+{"pid":32156,"args":["cat-file","--batch-check=%(objectname) %(objecttype) %(objectsize)"],"status":0,"signal":null,"role":"DEVELOPMENT_METADATA_NOT_ORACLE"}
+{"pid":32157,"args":["cat-file","--batch"],"status":0,"signal":null,"role":"DEVELOPMENT_METADATA_NOT_ORACLE"}
+{"pid":32158,"args":["cat-file","--batch-check=%(objectname) %(objecttype) %(objectsize)"],"status":0,"signal":null,"role":"DEVELOPMENT_METADATA_NOT_ORACLE"}
+{"pid":32159,"args":["cat-file","--batch"],"status":0,"signal":null,"role":"DEVELOPMENT_METADATA_NOT_ORACLE"}
+{"finished":"2026-08-29T09:02:30.714Z","children":4,"closed":true,"productExecutions":0}

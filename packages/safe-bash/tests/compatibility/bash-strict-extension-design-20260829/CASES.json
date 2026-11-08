@@ -1,0 +1,353 @@
+{
+  "schema": "strict-extension-design-v1",
+  "original": 11,
+  "inheritedProbes": 7,
+  "newPrograms": 5,
+  "hostProtocols": 5,
+  "identities": 28,
+  "nativeExecutions": 0,
+  "cases": [
+    {
+      "id": "U06",
+      "program": "set -uz; printf '%s\\n' after",
+      "question": "Invalid-tail status/termination/partial mutation must be qualified",
+      "basis": "OPEN-P1",
+      "version": "ORIGINAL_UNCHANGED",
+      "expectedRuntime": null,
+      "execution": "UNRUN",
+      "invocationProfile": "GNU53_DEFAULT_ONESHOT_C",
+      "expectedNativeRuntime": null,
+      "role": "UNCHANGED_SOURCE_REFERENCE_PROGRAM_UNRUN"
+    },
+    {
+      "id": "U07",
+      "program": "set -u; set -o; printf '%s\\n' after",
+      "question": "Missing o operand/listing remains explicit supported-profile gap",
+      "basis": "OUTSIDE-P1",
+      "version": "ORIGINAL_UNCHANGED",
+      "expectedRuntime": null,
+      "execution": "UNRUN",
+      "invocationProfile": "GNU53_DEFAULT_ONESHOT_C",
+      "expectedNativeRuntime": null,
+      "role": "UNCHANGED_SOURCE_REFERENCE_PROGRAM_UNRUN"
+    },
+    {
+      "id": "U17",
+      "program": "set -u; printf '%s\\n' \"${missing:?required}\"; printf '%s\\n' after",
+      "question": "Existing explicit-error behavior separate from new nounset mapping",
+      "basis": "G2/KNOWN-PROFILE",
+      "version": "ORIGINAL_UNCHANGED",
+      "expectedRuntime": null,
+      "execution": "UNRUN",
+      "invocationProfile": "GNU53_DEFAULT_ONESHOT_C",
+      "expectedNativeRuntime": null,
+      "role": "UNCHANGED_SOURCE_REFERENCE_PROGRAM_UNRUN"
+    },
+    {
+      "id": "U27",
+      "program": "set -u; printf '%s\\n' \"${#a[@]}\"",
+      "question": "Unset array count exception: exact GNU5.3 rule unresolved",
+      "basis": "OPEN-P2",
+      "version": "ORIGINAL_UNCHANGED",
+      "expectedRuntime": null,
+      "execution": "UNRUN",
+      "invocationProfile": "GNU53_DEFAULT_ONESHOT_C",
+      "expectedNativeRuntime": null,
+      "role": "UNCHANGED_SOURCE_REFERENCE_PROGRAM_UNRUN"
+    },
+    {
+      "id": "U28",
+      "program": "set -u; a=(); printf '%s|%s\\n' \"${#a[@]}\" \"${#a[*]}\"",
+      "question": "Empty array count: exact GNU5.3 rule unresolved",
+      "basis": "OPEN-P2",
+      "version": "ORIGINAL_UNCHANGED",
+      "expectedRuntime": null,
+      "execution": "UNRUN",
+      "invocationProfile": "GNU53_DEFAULT_ONESHOT_C",
+      "expectedNativeRuntime": null,
+      "role": "UNCHANGED_SOURCE_REFERENCE_PROGRAM_UNRUN"
+    },
+    {
+      "id": "U31",
+      "program": "set -u; printf '%s\\n' \"$((missing+1))\"; printf '%s\\n' after",
+      "question": "Arithmetic bare read nounset override needs primary/native qualification",
+      "basis": "OPEN-P3",
+      "version": "ORIGINAL_UNCHANGED",
+      "expectedRuntime": null,
+      "execution": "UNRUN",
+      "invocationProfile": "GNU53_DEFAULT_ONESHOT_C",
+      "expectedNativeRuntime": null,
+      "role": "UNCHANGED_SOURCE_REFERENCE_PROGRAM_UNRUN"
+    },
+    {
+      "id": "U32",
+      "program": "set -u; ((missing=2)); printf '%s\\n' \"$missing\"",
+      "question": "Pure assignment LHS not read",
+      "basis": "P3",
+      "version": "ORIGINAL_UNCHANGED",
+      "expectedRuntime": null,
+      "execution": "UNRUN",
+      "invocationProfile": "GNU53_DEFAULT_ONESHOT_C",
+      "expectedNativeRuntime": null,
+      "role": "UNCHANGED_SOURCE_REFERENCE_PROGRAM_UNRUN"
+    },
+    {
+      "id": "U33",
+      "program": "set -u; ((missing+=2)); printf '%s\\n' after",
+      "question": "Compound LHS read and fatal scope",
+      "basis": "OPEN-P3",
+      "version": "ORIGINAL_UNCHANGED",
+      "expectedRuntime": null,
+      "execution": "UNRUN",
+      "invocationProfile": "GNU53_DEFAULT_ONESHOT_C",
+      "expectedNativeRuntime": null,
+      "role": "UNCHANGED_SOURCE_REFERENCE_PROGRAM_UNRUN"
+    },
+    {
+      "id": "U34",
+      "program": "set -u; let 'missing++'; printf '%s\\n' after",
+      "question": "LET increment read/control preservation",
+      "basis": "OPEN-P3",
+      "version": "ORIGINAL_UNCHANGED",
+      "expectedRuntime": null,
+      "execution": "UNRUN",
+      "invocationProfile": "GNU53_DEFAULT_ONESHOT_C",
+      "expectedNativeRuntime": null,
+      "role": "UNCHANGED_SOURCE_REFERENCE_PROGRAM_UNRUN"
+    },
+    {
+      "id": "U35",
+      "program": "set -u; empty=; printf '%s\\n' \"$((empty+1))\"; printf '%s\\n' \"$((1 || missing))\"; printf '%s\\n' \"$((0 ? missing : 4))\"",
+      "question": "Empty zero and unvisited branches",
+      "basis": "G3/P3",
+      "version": "ORIGINAL_UNCHANGED",
+      "expectedRuntime": null,
+      "execution": "UNRUN",
+      "invocationProfile": "GNU53_DEFAULT_ONESHOT_C",
+      "expectedNativeRuntime": null,
+      "role": "UNCHANGED_SOURCE_REFERENCE_PROGRAM_UNRUN"
+    },
+    {
+      "id": "U36",
+      "program": "set -u; value=missing; let 'value+1'; printf '%s\\n' after",
+      "question": "Recursive arithmetic missing-name diagnostic/termination",
+      "basis": "OPEN-P3",
+      "version": "ORIGINAL_UNCHANGED",
+      "expectedRuntime": null,
+      "execution": "UNRUN",
+      "invocationProfile": "GNU53_DEFAULT_ONESHOT_C",
+      "expectedNativeRuntime": null,
+      "role": "UNCHANGED_SOURCE_REFERENCE_PROGRAM_UNRUN"
+    },
+    {
+      "id": "S-U06-PARTIAL-v1",
+      "program": "set -uz; printf \"set-status:%s\\n\" \"$?\"; printf \"%s\\n\" \"$missing\"; printf \"after\\n\"",
+      "question": "Observe incremental u mutation separately from invalid-tail status and subsequent fatal read.",
+      "version": "SOURCE_PROPOSED_V1",
+      "expectedRuntime": null,
+      "execution": "UNRUN",
+      "invocationProfile": "GNU53_DEFAULT_ONESHOT_C",
+      "expectedNativeRuntime": null,
+      "role": "UNCHANGED_SOURCE_REFERENCE_PROGRAM_UNRUN"
+    },
+    {
+      "id": "S-U07-LIST-STATUS-v1",
+      "program": "set -u; set -o; printf \"list-status:%s\\n\" \"$?\"; printf \"after\\n\"",
+      "question": "Preserve complete raw listing and subsequent status; no output filtering or invented option labels.",
+      "version": "SOURCE_PROPOSED_V1",
+      "expectedRuntime": null,
+      "execution": "UNRUN",
+      "invocationProfile": "GNU53_DEFAULT_ONESHOT_C",
+      "expectedNativeRuntime": null,
+      "role": "UNCHANGED_SOURCE_REFERENCE_PROGRAM_UNRUN"
+    },
+    {
+      "id": "S-U27-INPUT-UNIT-v1",
+      "program": "set -u; printf \"%s\\n\" \"${#a[@]}\"; printf \"same-unit\\n\"\nprintf \"next-unit:%s\\n\" \"$?\"\n",
+      "question": "Distinguish nonfatal DISCARD from FORCE_EOF and same-line versus next parsed unit.",
+      "version": "SOURCE_PROPOSED_V1",
+      "expectedRuntime": null,
+      "execution": "UNRUN",
+      "invocationProfile": "GNU53_DEFAULT_ONESHOT_C",
+      "expectedNativeRuntime": null,
+      "role": "UNCHANGED_SOURCE_REFERENCE_PROGRAM_UNRUN"
+    },
+    {
+      "id": "S-U28-PRESENCE-v1",
+      "program": "set -u; a=(); printf \"len:%s|guard:%s\\n\" \"${#a[@]}\" \"${a[@]+present}\"",
+      "question": "Do not collapse existing empty array object/length with aggregate expansion presence; presence tuple unmeasured.",
+      "version": "SOURCE_PROPOSED_V1",
+      "expectedRuntime": null,
+      "execution": "UNRUN",
+      "invocationProfile": "GNU53_DEFAULT_ONESHOT_C",
+      "expectedNativeRuntime": null,
+      "role": "UNCHANGED_SOURCE_REFERENCE_PROGRAM_UNRUN"
+    },
+    {
+      "id": "S-ARITH-SUBSHELL-v1",
+      "program": "(set -u; let \"missing++\"; printf \"child-after\\n\")\nprintf \"parent:%s\\n\" \"$?\"\n",
+      "question": "Record actual isolated fatal status and parent continuation; no inherited root-status golden.",
+      "version": "SOURCE_PROPOSED_V1",
+      "expectedRuntime": null,
+      "execution": "UNRUN",
+      "invocationProfile": "GNU53_DEFAULT_ONESHOT_C",
+      "expectedNativeRuntime": null,
+      "role": "UNCHANGED_SOURCE_REFERENCE_PROGRAM_UNRUN"
+    },
+    {
+      "id": "S-ARITH-SUBSTITUTION-v1",
+      "program": "set -u; result=$(let \"missing++\"); printf \"status:%s|result:%s\\n\" \"$?\" \"$result\"",
+      "question": "Record assignment substitution status and parent continuation without -e.",
+      "version": "SOURCE_PROPOSED_V1",
+      "expectedRuntime": null,
+      "execution": "UNRUN",
+      "invocationProfile": "GNU53_DEFAULT_ONESHOT_C",
+      "expectedNativeRuntime": null,
+      "role": "UNCHANGED_SOURCE_REFERENCE_PROGRAM_UNRUN"
+    },
+    {
+      "id": "S-U31-STDIN-v1",
+      "program": "set -u; printf '%s\\n' \"$((missing+1))\"; printf '%s\\n' after",
+      "invocationProfile": "GNU53_NONINTERACTIVE_STDIN",
+      "question": "Same literal source through reader loop rather than ONESHOT -c; preserve both raw profiles.",
+      "version": "SOURCE_PROPOSED_V1",
+      "expectedRuntime": null,
+      "execution": "UNRUN",
+      "expectedNativeRuntime": null,
+      "role": "UNCHANGED_SOURCE_REFERENCE_PROGRAM_UNRUN"
+    },
+    {
+      "id": "E19-plus-tail",
+      "program": "set -u; set +uz; printf \"set:%s|flags:%s\\n\" \"$?\" \"$-\"; printf \"%s\\n\" \"$missing\"",
+      "question": "Partial +u mutation survives invalid tail; distinguish command status from final script status.",
+      "version": "EXTENSION_DESIGN_V1",
+      "role": "NEIGHBOR_PROGRAM_POLICY_OR_REFERENCE_OPEN",
+      "execution": "UNRUN",
+      "expectedRuntime": null,
+      "expectedNativeRuntime": null,
+      "invocationProfile": "GNU53_DEFAULT_ONESHOT_C"
+    },
+    {
+      "id": "E20-subset-listing",
+      "program": "set -- one two; set -u; set +o; printf \"count:%s|first:%s\\n\" \"$#\" \"$1\"",
+      "question": "Capture exact truthful proposed subset listing and positional preservation; ROOT listing policy required.",
+      "version": "EXTENSION_DESIGN_V1",
+      "role": "NEIGHBOR_PROGRAM_POLICY_OR_REFERENCE_OPEN",
+      "execution": "UNRUN",
+      "expectedRuntime": null,
+      "expectedNativeRuntime": null,
+      "invocationProfile": "GNU53_DEFAULT_ONESHOT_C"
+    },
+    {
+      "id": "E21-write-only-chain",
+      "program": "set -u; ((outer=(inner=2))); printf \"%s|%s\\n\" \"$outer\" \"$inner\"",
+      "question": "No fabricated LHS read in nested direct assignments; preserve signed64 publication rules.",
+      "version": "EXTENSION_DESIGN_V1",
+      "role": "NEIGHBOR_PROGRAM_POLICY_OR_REFERENCE_OPEN",
+      "execution": "UNRUN",
+      "expectedRuntime": null,
+      "expectedNativeRuntime": null,
+      "invocationProfile": "GNU53_DEFAULT_ONESHOT_C"
+    },
+    {
+      "id": "E22-function-fatal",
+      "program": "set -u; f() { let \"missing++\"; printf \"function-after\\n\"; }; f; printf \"caller-after\\n\"",
+      "question": "Typed fatal control must not become a LET status or a local function return; native final tuple open.",
+      "version": "EXTENSION_DESIGN_V1",
+      "role": "NEIGHBOR_PROGRAM_POLICY_OR_REFERENCE_OPEN",
+      "execution": "UNRUN",
+      "expectedRuntime": null,
+      "expectedNativeRuntime": null,
+      "invocationProfile": "GNU53_DEFAULT_ONESHOT_C"
+    },
+    {
+      "id": "E23-source-discard",
+      "program": "set -u; . ./missing-length.sh; printf \"caller-after\\n\"\nprintf \"next:%s\\n\" \"$?\"\n",
+      "files": {
+        "missing-length.sh": "printf \"%s\\n\" \"${#a[@]}\"; printf \"source-same\\n\"\nprintf \"source-next\\n\"\n"
+      },
+      "question": "Root/caller versus sourced reader continuation boundary; explicit HOLD pending policy/native evidence, not guessed golden.",
+      "version": "EXTENSION_DESIGN_V1",
+      "role": "NEIGHBOR_PROGRAM_POLICY_OR_REFERENCE_OPEN",
+      "execution": "UNRUN",
+      "expectedRuntime": null,
+      "expectedNativeRuntime": null,
+      "invocationProfile": "GNU53_DEFAULT_ONESHOT_C"
+    },
+    {
+      "id": "H24-preabort",
+      "program": "set -u; let \"missing++\"",
+      "protocol": "Preaborted public caller with exact frozen object reason; no command/diagnostic work. Capture rejection separately from mapped shell status.",
+      "variants": [
+        "object-reason"
+      ],
+      "version": "EXTENSION_DESIGN_V1",
+      "role": "PUBLIC_HOST_CONTRACT_PROPOSAL",
+      "execution": "UNRUN",
+      "expectedRuntime": null,
+      "expectedNativeRuntime": null,
+      "invocationProfile": "PRODUCT_PUBLIC_API_ONLY_NO_NATIVE_EQUIVALENCE"
+    },
+    {
+      "id": "H25-falsy-sink",
+      "program": "set -u; let \"missing++\"",
+      "protocol": "Original caller stderr rejects a tagged falsy value during strict diagnostic; retain exact thrown value and observe completion/cleanup. Do not use truthiness to detect rejection.",
+      "variants": [
+        "undefined",
+        "null",
+        "false",
+        "zero",
+        "empty-string"
+      ],
+      "version": "EXTENSION_DESIGN_V1",
+      "role": "PUBLIC_HOST_CONTRACT_PROPOSAL",
+      "execution": "UNRUN",
+      "expectedRuntime": null,
+      "expectedNativeRuntime": null,
+      "invocationProfile": "PRODUCT_PUBLIC_API_ONLY_NO_NATIVE_EQUIVALENCE"
+    },
+    {
+      "id": "H26-read-budget",
+      "program": "set -u; let value",
+      "protocol": "Supply a scalar arithmetic expression exceeding existing maxExpansionBytes through explicit env, with a short argument. Confirm existing read-size admission precedes recursive parse/growth and genuine ShellLimitError escapes unchanged; no new limit API.",
+      "variants": [
+        "maxExpansionBytes32-value64bytes"
+      ],
+      "version": "EXTENSION_DESIGN_V1",
+      "role": "PUBLIC_HOST_CONTRACT_PROPOSAL",
+      "execution": "UNRUN",
+      "expectedRuntime": null,
+      "expectedNativeRuntime": null,
+      "invocationProfile": "PRODUCT_PUBLIC_API_ONLY_NO_NATIVE_EQUIVALENCE"
+    },
+    {
+      "id": "H27-registered-cleanup",
+      "program": "f() { set -u; let \"missing++\"; }; guard",
+      "protocol": "Public registered command guard registers cooperative cleanup before context.invoke(f). Hold/release cleanup explicitly, observe public settlement; compare successful cleanup with cleanup rejection after a mapped nonzero result. No opaque-provider promise or test-only hook.",
+      "variants": [
+        "held-cleanup-fulfills",
+        "held-cleanup-rejects-object"
+      ],
+      "version": "EXTENSION_DESIGN_V1",
+      "role": "PUBLIC_HOST_CONTRACT_PROPOSAL",
+      "execution": "UNRUN",
+      "expectedRuntime": null,
+      "expectedNativeRuntime": null,
+      "invocationProfile": "PRODUCT_PUBLIC_API_ONLY_NO_NATIVE_EQUIVALENCE"
+    },
+    {
+      "id": "H28-caller-during-diagnostic",
+      "program": "f() { set -u; let \"missing++\"; }; guard",
+      "protocol": "Use the same existing registered cooperative cleanup scope with a controlled diagnostic sink; request caller abort only after sink entry, explicitly release owned cleanup and preserve exact caller reason ahead of escaping/cleanup outcomes. Record events, not timing-only absence claims.",
+      "variants": [
+        "caller-and-cleanup-rejection"
+      ],
+      "version": "EXTENSION_DESIGN_V1",
+      "role": "PUBLIC_HOST_CONTRACT_PROPOSAL",
+      "execution": "UNRUN",
+      "expectedRuntime": null,
+      "expectedNativeRuntime": null,
+      "invocationProfile": "PRODUCT_PUBLIC_API_ONLY_NO_NATIVE_EQUIVALENCE"
+    }
+  ]
+}

@@ -1,0 +1,246 @@
+{
+  "decision": "HOLD",
+  "scope": "B1_R5_ADMIN_DELTA_AND_FINAL_SLOT_SOURCE_PURE",
+  "utc": "2026-08-29T15:51:40.208Z",
+  "source": "c4a2cc65e76c7f1015b8b0206c8a7cdec9f70645",
+  "evidence": "0d6163dca28e2f0ad7fef45fcfdfb11bf9c717ac",
+  "final": {
+    "bytes": 23784,
+    "sha256": "d7cdc4e0261c4752b518fdc42c327f2afa2d777c83c33048c8d14ad86b5b0e65"
+  },
+  "presealCommit": "ef58f3547ca0f6f71b87d4b8ba91891af0c7af27",
+  "presealSha256": "34e510ba218751bb7e5dda0b489254d6895e3da5c4cb0b8cc7519d8553f18365",
+  "reportSha256": "850be377c19ad4e62355cf2b5d66cdbc0f8234802500fa71c4a5931bdbd37aee",
+  "authorPure": {
+    "pass": 8,
+    "total": 8
+  },
+  "authorHarmless": {
+    "pass": 2,
+    "total": 2,
+    "children": [
+      {
+        "pid": 33655,
+        "role": "publication-preimport",
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "status": 0
+      },
+      {
+        "pid": 33657,
+        "role": "publisher",
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "status": 0
+      }
+    ],
+    "knownOutstanding": 0
+  },
+  "bindingData": {
+    "pass": 4,
+    "total": 4
+  },
+  "independentNovel": {
+    "pass": 7,
+    "total": 8
+  },
+  "finding": {
+    "id": "C01",
+    "kind": "SOURCE_DATA_ACCOUNTING_GAP_NOT_ACTUAL_OVERFLOW",
+    "files": [
+      "/private/tmp/coherent-b1-r5-owner.stdout",
+      "/private/tmp/coherent-b1-r5-owner.stderr",
+      "/private/tmp/coherent-b1-r5-admin/capture/publisher.stdout",
+      "/private/tmp/coherent-b1-r5-admin/capture/publisher.stderr"
+    ],
+    "perFileAcceptedCeiling": 4096,
+    "requiredAggregateCeiling": 16384,
+    "chargedAggregateCeiling": 8192,
+    "shortfall": 8192,
+    "qualification": "SOURCE arithmetic plus pure Ledger call; no publisher or byte streams executed"
+  },
+  "postguards": {
+    "utc": "2026-08-29T15:49:28.131Z",
+    "bindingsVerified": 101,
+    "unusedPaths": 6,
+    "ownedFileCount": 43,
+    "ownedLogicalBytes": 239820,
+    "notRSS": true,
+    "notGlobalCensus": true,
+    "references": [
+      {
+        "path": "tests/integration/agent-bash-coherent-author-20260829/admin-owner-r2/publish.mjs",
+        "lines": [
+          {
+            "line": 140,
+            "text": "    if (!stat.isFile() || stat.isSymbolicLink() || stat.size > 4096) throw Error('Startup capture admission');"
+          },
+          {
+            "line": 144,
+            "text": "  ledger.charge(8192 - startupBytes);"
+          },
+          {
+            "line": 193,
+            "text": "    const startup = binding.outputs.startupCaptures.map(file => {"
+          },
+          {
+            "line": 195,
+            "text": "      if (!stat.isFile() || stat.size > 4096) throw Error('Startup reserved tail exceeded');"
+          },
+          {
+            "line": 199,
+            "text": "    const value = { schema: 'b1-publication-final-v2', atUTC: new Date().toISOString(), terminal, faults: { primaryPresent: state.primaryPresent, primary: state.primary, secondary: state.secondary }, knownStartsThroughReceipt: countPublication(auth.ownerAdmission, publisherStart, terminal.children).knownStarts, ownedRoleLedger: { prior: auth.ownerAdmission.starts, publisher: publisherStart, children: terminal.children, ownerDisposition: 'EXIT_PENDING_EXTERNAL_OBSERVATION', namedUnusedReservations: ['git-add', 'git-commit', 'git-receipt'].filter(role => !terminal.children.some(child => child.role === role && child.pid)) }, knownChildRetirement: unknownChild ? 'UNKNOWN' : terminal.children.every(child => child.exitObserved && child.closeObserved) ? 'OBSERVED_FOR_RECORDED_CHILDREN_ONLY' : 'UNKNOWN', accounting: ledger.snapshot(), measuredBeforeFinalWrite: measured, reservedAfterCensusBytes: 1048576, noFullCensus: true, noGuaranteedDurableCapture: true, commitMayBeAbsent: true };"
+          }
+        ]
+      },
+      {
+        "path": "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/PUBLICATION-BINDING.json",
+        "lines": [
+          {
+            "line": 53,
+            "text": "    \"startupCaptures\": ["
+          },
+          {
+            "line": 54,
+            "text": "      \"/private/tmp/coherent-b1-r5-owner.stdout\","
+          },
+          {
+            "line": 55,
+            "text": "      \"/private/tmp/coherent-b1-r5-owner.stderr\","
+          },
+          {
+            "line": 56,
+            "text": "      \"/private/tmp/coherent-b1-r5-admin/capture/publisher.stdout\","
+          },
+          {
+            "line": 57,
+            "text": "      \"/private/tmp/coherent-b1-r5-admin/capture/publisher.stderr\""
+          }
+        ]
+      },
+      {
+        "path": "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/entry.mjs",
+        "lines": [
+          {
+            "line": 20,
+            "text": "  assert.equal(process.env.B1_ADMIN_ROOT_GO, 'ROOT_B1_R5_LIVE_ADMIN_EXPLICIT_AUTHORIZATION');"
+          },
+          {
+            "line": 37,
+            "text": "  const runtime = await owner.run('runtime-coordinator', packet.runtimeCommand.executable, packet.runtimeCommand.argv, 1620000);"
+          },
+          {
+            "line": 50,
+            "text": "    owner.rows.push({ id: `runtime-child-${child.pid}`, role: child.role, pid: child.pid, startUTC: new Date(Date.parse(runtime.row.startUTC) + child.elapsedMs).toISOString(), startObserved: true, exitObserved: true, closeObserved: true, stdoutEnd: null, stderrEnd: null, qualification: 'Runtime events report exit/close. Stream EOF not separately observed. Start wallclock derived from recorded elapsed time.', exitCode: exit.status, closeCode: close.status });"
+          },
+          {
+            "line": 61,
+            "text": "    owner.rows.push({ id: `publisher-child-${child.pid}`, role: child.role, pid: child.pid, startUTC: child.startedUTC, startObserved: true, exitObserved: true, closeObserved: true, stdoutEnd: null, stderrEnd: null, qualification: 'Publisher exit/close records; no inferred stream EOF.' });"
+          },
+          {
+            "line": 64,
+            "text": "  owner.persist(packet.slots.finalReceipt, { outcome: 'REPORTED_NOT_COHERENT_ACCEPTANCE', runtimeStatus: runtime.row.exitCode, publisherStatus: result.publication.row.exitCode, published: published.identity, snapshot: owner.snapshot(), ownerDisposition: 'EXIT_PENDING_EXTERNAL_OBSERVATION', qualification: 'Direct tool return may externally qualify owner exit, not self-certified full census.' });"
+          },
+          {
+            "line": 67,
+            "text": "  if (owner) { owner.terminal = true; try { owner.persist(packet.slots.failureReceipt, { primaryPresent: true, primary: { type: reason === null ? 'null' : typeof reason, value: ['string', 'number', 'boolean'].includes(typeof reason) ? reason : undefined }, detail: reason instanceof Error ? reason.message.slice(0, 512) : undefined, snapshot: owner.snapshot(), ownerDisposition: 'EXIT_PENDING_EXTERNAL_OBSERVATION', result: 'UNKNOWN_OR_STOP_NO_RETRY' }); } catch {} }"
+          }
+        ]
+      }
+    ]
+  },
+  "rawCaptures": [
+    {
+      "path": "admin-locator.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "admin-locator.stdout",
+      "bytes": 4997,
+      "sha256": "fe163ec4f016a21ad838ad22e7c0d8aa40af3524f1896757c0c902048327192d"
+    },
+    {
+      "path": "author.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "author.stdout",
+      "bytes": 83,
+      "sha256": "bb51602990aac71f74115accd8eb65709e3f0538c5ed94924c0cf4c10a56b676"
+    },
+    {
+      "path": "harmless/publication-preimport.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "harmless/publication-preimport.stdout",
+      "bytes": 1076,
+      "sha256": "c3aefb2a8df519915e68b9b1f7618dea203a0748c011991c4559910df4fe1846"
+    },
+    {
+      "path": "harmless/publisher.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "harmless/publisher.stdout",
+      "bytes": 349,
+      "sha256": "38dbe6fdba2bb0a499e57839b107de100b4b1bd138b872edfbd48264e5cfdece"
+    },
+    {
+      "path": "independent.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "independent.stdout",
+      "bytes": 1204,
+      "sha256": "4e5a8bbd77b3c04af28ddc65e1db4a9cc40c991ad7cf4e3ac41abdb8197e0acb"
+    },
+    {
+      "path": "locator.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "locator.stdout",
+      "bytes": 3621,
+      "sha256": "286696c196b10a3dac99d814b12080bda99c0fe451d375fee1a9fe4c1f4807c4"
+    }
+  ],
+  "knownReviewRoles": {
+    "beforePublication": 27,
+    "reservedPublication": 5,
+    "throughFinalPublication": 32,
+    "authorized": 36,
+    "peakObservedControlledChain": 2,
+    "authorizedPeak": 3,
+    "notGlobalCensus": true
+  },
+  "future": {
+    "knownOs": 36,
+    "peak": 3,
+    "seconds": 1800,
+    "active": 1620,
+    "tail": 180,
+    "captureBytes": 67108864,
+    "workBytes": 805306368
+  },
+  "window": {
+    "issued": "2026-08-29T15:41:47.955Z",
+    "latest": "2026-08-29T16:01:47.955Z",
+    "expires": "2026-08-29T16:31:47.955Z"
+  },
+  "bindingAuthorization": "ROOT_B1_R5_LIVE_ADMIN_20260829_ONE_ACTUAL_AFTER_FINAL_ACCEPTANCE",
+  "actualGo": false,
+  "actualProductCalls": 0,
+  "realPublisherCalls": 0,
+  "workers": 0
+}

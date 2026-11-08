@@ -1,0 +1,24 @@
+import fs from 'node:fs';
+import crypto from 'node:crypto';
+import assert from 'node:assert/strict';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
+const parent=path.resolve('tests/integration/agent-bash-coherent-independent-20260829/b1-r6-final-review');
+const own=`${parent}/correction-v2`;
+const digest=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
+function read(file, expected) { const stat=fs.lstatSync(file); assert(stat.isFile()&&stat.size<1048576); const bytes=fs.readFileSync(file); assert.equal(bytes.length,stat.size); if(expected)assert.equal(digest(bytes),expected); return bytes; }
+const receipt=JSON.parse(read(`${parent}/RECEIPT.json`,'e0683ce6042c8ebf89181695cfb00f67d371974b9c87464f6b9d7bec5a8ca282').toString());
+const pin=receipt.bindings.find(row=>row.path==='review.mjs');
+const original=read(`${parent}/review.mjs`,pin.sha256).toString();
+const start=original.indexOf('function walk(value) {');
+const end=original.indexOf('\nconst final =',start);
+assert(start>=0&&end>start);
+const classifier=read(`${own}/classifier.mjs`);
+let source=original.slice(0,start)+`function walk(value) { classifyDocument(value, admit); }\n`+original.slice(end);
+source=`import { classifyDocument } from ${JSON.stringify(pathToFileURL(`${own}/classifier.mjs`).href)};\n`+source;
+assert.equal(source.split("const own = path.resolve('tests/integration/agent-bash-coherent-independent-20260829/b1-r6-final-review');").length,2);
+source=source.replace("const own = path.resolve('tests/integration/agent-bash-coherent-independent-20260829/b1-r6-final-review');",`const own = ${JSON.stringify(own)};`);
+source=source.replace("fs.statSync(`${own}/raw/startup.stdout`).birthtimeMs + 420000","fs.statSync(`${own}/startup.stdout`).birthtimeMs + 300000");
+fs.writeFileSync(`${own}/DERIVED.mjs.data`,source,{flag:'wx'});
+fs.writeFileSync(`${own}/EXECUTABLE-SEAL.json`,JSON.stringify({original:pin,classifier:{bytes:classifier.length,sha256:digest(classifier)},derived:{bytes:Buffer.byteLength(source),sha256:digest(Buffer.from(source))},changes:['typed origin classifier','fresh owned output root','fresh 300s deadline'],groupsUnchanged:true,at:new Date().toISOString()},null,2)+'\n',{flag:'wx'});
+await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);

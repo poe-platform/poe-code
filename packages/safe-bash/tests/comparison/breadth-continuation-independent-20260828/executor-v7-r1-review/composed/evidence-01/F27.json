@@ -1,0 +1,19 @@
+{
+  "id": "F27",
+  "expected": "Actual projection inspection binds three literal0444 files; 248MiB+8MiB allocation is static-only; full worker remains unqualified.",
+  "pass": true,
+  "started": "2026-08-28T15:01:02.867Z",
+  "finished": "2026-08-28T15:01:02.868Z",
+  "detail": {
+    "readonlyLiteralFiles": 3,
+    "allocation": {
+      "combined": 268435456,
+      "coordinator": 260046848,
+      "collector": 8388608,
+      "record": 262144,
+      "stream": 65536
+    },
+    "fullCapQualification": "STATIC_ONLY",
+    "actualWorker": "UNQUALIFIED_AUTHORITY_AND_REAL_SOURCE_BINDINGS_FORBID_STUB_IMPORT"
+  }
+}

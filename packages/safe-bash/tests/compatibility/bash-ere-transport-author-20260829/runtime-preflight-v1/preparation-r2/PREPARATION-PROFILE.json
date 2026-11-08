@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "oldStop": "8cb3658469abf714b95557b167cd92ae0c7325c1",
+  "minutes": 25,
+  "knownOS": 56,
+  "peak": 3,
+  "captureBytes": 100663296,
+  "workingBytes": 536870912,
+  "helperCeiling": 6,
+  "roles": [
+    "H1 retained TEXT syntax diagnosis",
+    "H2 repaired syntax/pure admission/receipt/capture and DATA materialization",
+    "H3 owner qualification controller",
+    "H4 normal harmless Node child of H3",
+    "H5 postspawn-fault harmless Node child of H3",
+    "H6 final DATA/census/source parse reserve"
+  ],
+  "compiler": 0,
+  "Workers": 0,
+  "productImports": 0,
+  "allRuntimeVariants": "UNRUN"
+}

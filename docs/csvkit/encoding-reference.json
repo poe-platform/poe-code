@@ -1,0 +1,1164 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "sourceSha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "PYTHONIOENCODING": "utf-8",
+    "COLUMNS": "80",
+    "LINES": "24"
+  },
+  "byteRepresentation": "hex",
+  "cases": [
+    {
+      "label": "utf-8",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "utf-8",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": "6e616d650ac3a90a"
+      },
+      "stdin": "",
+      "stdout": "6e616d650ac3a90a",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "label": "utf-8-sig",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "utf-8-sig",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": "efbbbf6e616d650ac3a90a"
+      },
+      "stdin": "",
+      "stdout": "6e616d650ac3a90a",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "label": "utf-16",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "utf-16",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": "fffe6e0061006d0065000a00e9000a00"
+      },
+      "stdin": "",
+      "stdout": "6e616d650ac3a90a",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "label": "utf-16-le",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "utf-16-le",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": "6e0061006d0065000a00e9000a00"
+      },
+      "stdin": "",
+      "stdout": "6e616d650ac3a90a",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "label": "utf-16-be",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "utf-16-be",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": "006e0061006d0065000a00e9000a"
+      },
+      "stdin": "",
+      "stdout": "6e616d650ac3a90a",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "label": "latin-1",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "latin-1",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": "6e616d650ae90a"
+      },
+      "stdin": "",
+      "stdout": "6e616d650ac3a90a",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "label": "cp1252",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "cp1252",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": "6e616d650ae9800a"
+      },
+      "stdin": "",
+      "stdout": "6e616d650ac3a9e282ac0a",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "label": "ascii",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "ascii",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": "6e616d650a780a"
+      },
+      "stdin": "",
+      "stdout": "6e616d650a780a",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "label": "alias UTF_8",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "UTF_8",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": "6e616d650a780a"
+      },
+      "stdin": "",
+      "stdout": "6e616d650a780a",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "label": "alias utf8",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "utf8",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": "6e616d650a780a"
+      },
+      "stdin": "",
+      "stdout": "6e616d650a780a",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "label": "alias u8",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "u8",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": "6e616d650a780a"
+      },
+      "stdin": "",
+      "stdout": "6e616d650a780a",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "label": "alias utf 8",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "utf 8",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": "6e616d650a780a"
+      },
+      "stdin": "",
+      "stdout": "6e616d650a780a",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "label": "alias UTF-16LE",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "UTF-16LE",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": "6e0061006d0065000a0078000a00"
+      },
+      "stdin": "",
+      "stdout": "6e616d650a780a",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "label": "alias utf_16_be",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "utf_16_be",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": "006e0061006d0065000a0078000a"
+      },
+      "stdin": "",
+      "stdout": "6e616d650a780a",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "label": "alias latin1",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "latin1",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": "6e616d650a780a"
+      },
+      "stdin": "",
+      "stdout": "6e616d650a780a",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "label": "alias L1",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "L1",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": "6e616d650a780a"
+      },
+      "stdin": "",
+      "stdout": "6e616d650a780a",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "label": "alias iso-8859-1",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "iso-8859-1",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": "6e616d650a780a"
+      },
+      "stdin": "",
+      "stdout": "6e616d650a780a",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "label": "alias windows-1252",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "windows-1252",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": "6e616d650a780a"
+      },
+      "stdin": "",
+      "stdout": "6e616d650a780a",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "label": "alias US-ASCII",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "US-ASCII",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": "6e616d650a780a"
+      },
+      "stdin": "",
+      "stdout": "6e616d650a780a",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "label": "alias 646",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "646",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": "6e616d650a780a"
+      },
+      "stdin": "",
+      "stdout": "6e616d650a780a",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "label": "invalid utf-8 6e616d650aff",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "utf-8",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": "6e616d650aff"
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "596f75722066696c65206973206e6f7420227574662d382220656e636f6465642e20506c6561736520737065636966792074686520636f727265637420656e636f64696e67207769746820746865202d2d656e636f64696e6720666c61672e2055736520746865202d7620666c616720746f207365652074686520636f6d706c657465206572726f722e0a",
+      "status": 1
+    },
+    {
+      "label": "invalid utf-8 6e616d650ae282",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "utf-8",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": "6e616d650ae282"
+      },
+      "stdin": "",
+      "stdout": "6e616d650a",
+      "stderr": "596f75722066696c65206973206e6f7420227574662d382220656e636f6465642e20506c6561736520737065636966792074686520636f727265637420656e636f64696e67207769746820746865202d2d656e636f64696e6720666c61672e2055736520746865202d7620666c616720746f207365652074686520636f6d706c657465206572726f722e0a",
+      "status": 1
+    },
+    {
+      "label": "invalid utf-8-sig efbb",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "utf-8-sig",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": "efbb"
+      },
+      "stdin": "",
+      "stdout": "0a",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "label": "invalid utf-16 6e616d650a780a",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "utf-16",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": "6e616d650a780a"
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "596f75722066696c65206973206e6f7420227574662d31362220656e636f6465642e20506c6561736520737065636966792074686520636f727265637420656e636f64696e67207769746820746865202d2d656e636f64696e6720666c61672e2055736520746865202d7620666c616720746f207365652074686520636f6d706c657465206572726f722e0a",
+      "status": 1
+    },
+    {
+      "label": "invalid utf-16 fffe61",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "utf-16",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": "fffe61"
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "596f75722066696c65206973206e6f7420227574662d31362220656e636f6465642e20506c6561736520737065636966792074686520636f727265637420656e636f64696e67207769746820746865202d2d656e636f64696e6720666c61672e2055736520746865202d7620666c616720746f207365652074686520636f6d706c657465206572726f722e0a",
+      "status": 1
+    },
+    {
+      "label": "invalid utf-16-le 00d8",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "utf-16-le",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": "00d8"
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "596f75722066696c65206973206e6f7420227574662d31362d6c652220656e636f6465642e20506c6561736520737065636966792074686520636f727265637420656e636f64696e67207769746820746865202d2d656e636f64696e6720666c61672e2055736520746865202d7620666c616720746f207365652074686520636f6d706c657465206572726f722e0a",
+      "status": 1
+    },
+    {
+      "label": "invalid utf-16-be dc00",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "utf-16-be",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": "dc00"
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "596f75722066696c65206973206e6f7420227574662d31362d62652220656e636f6465642e20506c6561736520737065636966792074686520636f727265637420656e636f64696e67207769746820746865202d2d656e636f64696e6720666c61672e2055736520746865202d7620666c616720746f207365652074686520636f6d706c657465206572726f722e0a",
+      "status": 1
+    },
+    {
+      "label": "invalid cp1252 6e616d650a81",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "cp1252",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": "6e616d650a81"
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "596f75722066696c65206973206e6f7420226370313235322220656e636f6465642e20506c6561736520737065636966792074686520636f727265637420656e636f64696e67207769746820746865202d2d656e636f64696e6720666c61672e2055736520746865202d7620666c616720746f207365652074686520636f6d706c657465206572726f722e0a",
+      "status": 1
+    },
+    {
+      "label": "invalid ascii 6e616d650aff",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "ascii",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": "6e616d650aff"
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "596f75722066696c65206973206e6f74202261736369692220656e636f6465642e20506c6561736520737065636966792074686520636f727265637420656e636f64696e67207769746820746865202d2d656e636f64696e6720666c61672e2055736520746865202d7620666c616720746f207365652074686520636f6d706c657465206572726f722e0a",
+      "status": 1
+    },
+    {
+      "label": "empty not-a-codec",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "not-a-codec",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": ""
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "4c6f6f6b75704572726f723a20756e6b6e6f776e20656e636f64696e673a206e6f742d612d636f6465630a",
+      "status": 1
+    },
+    {
+      "label": "empty utf-8:ignore",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "utf-8:ignore",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": ""
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "4c6f6f6b75704572726f723a20756e6b6e6f776e20656e636f64696e673a207574662d383a69676e6f72650a",
+      "status": 1
+    },
+    {
+      "label": "empty utf-8:replace",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "utf-8:replace",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": ""
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "4c6f6f6b75704572726f723a20756e6b6e6f776e20656e636f64696e673a207574662d383a7265706c6163650a",
+      "status": 1
+    },
+    {
+      "label": "empty latin-1:strict",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "latin-1:strict",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": ""
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "4c6f6f6b75704572726f723a20756e6b6e6f776e20656e636f64696e673a206c6174696e2d313a7374726963740a",
+      "status": 1
+    },
+    {
+      "label": "empty utf-8:",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "utf-8:",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": ""
+      },
+      "stdin": "",
+      "stdout": "0a",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "label": "empty UTF-8-SIG",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "UTF-8-SIG",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": ""
+      },
+      "stdin": "",
+      "stdout": "0a",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "label": "empty utf-16",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "utf-16",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": ""
+      },
+      "stdin": "",
+      "stdout": "0a",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "label": "empty cp1252",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "cp1252",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": ""
+      },
+      "stdin": "",
+      "stdout": "0a",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "label": "environment utf-8:ignore",
+      "command": "csvcut",
+      "argv": [
+        "input.csv"
+      ],
+      "env": {
+        "PYTHONIOENCODING": "utf-8:ignore"
+      },
+      "files": {
+        "input.csv": "6e616d650a780a"
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "4c6f6f6b75704572726f723a20756e6b6e6f776e20656e636f64696e673a207574662d383a69676e6f72650a",
+      "status": 1
+    },
+    {
+      "label": "environment utf-8:replace",
+      "command": "csvcut",
+      "argv": [
+        "input.csv"
+      ],
+      "env": {
+        "PYTHONIOENCODING": "utf-8:replace"
+      },
+      "files": {
+        "input.csv": "6e616d650a780a"
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "4c6f6f6b75704572726f723a20756e6b6e6f776e20656e636f64696e673a207574662d383a7265706c6163650a",
+      "status": 1
+    },
+    {
+      "label": "environment latin-1:strict",
+      "command": "csvcut",
+      "argv": [
+        "input.csv"
+      ],
+      "env": {
+        "PYTHONIOENCODING": "latin-1:strict"
+      },
+      "files": {
+        "input.csv": "6e616d650a780a"
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "4c6f6f6b75704572726f723a20756e6b6e6f776e20656e636f64696e673a206c6174696e2d313a7374726963740a",
+      "status": 1
+    },
+    {
+      "label": "environment utf-8:",
+      "command": "csvcut",
+      "argv": [
+        "input.csv"
+      ],
+      "env": {
+        "PYTHONIOENCODING": "utf-8:"
+      },
+      "files": {
+        "input.csv": "6e616d650a780a"
+      },
+      "stdin": "",
+      "stdout": "6e616d650a780a",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "label": "environment ",
+      "command": "csvcut",
+      "argv": [
+        "input.csv"
+      ],
+      "env": {
+        "PYTHONIOENCODING": ""
+      },
+      "files": {
+        "input.csv": "6e616d650a780a"
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "4c6f6f6b75704572726f723a20756e6b6e6f776e20656e636f64696e673a200a",
+      "status": 1
+    },
+    {
+      "label": "environment :replace",
+      "command": "csvcut",
+      "argv": [
+        "input.csv"
+      ],
+      "env": {
+        "PYTHONIOENCODING": ":replace"
+      },
+      "files": {
+        "input.csv": "6e616d650a780a"
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "4c6f6f6b75704572726f723a20756e6b6e6f776e20656e636f64696e673a203a7265706c6163650a",
+      "status": 1
+    },
+    {
+      "label": "environment utf-8-sig",
+      "command": "csvcut",
+      "argv": [
+        "input.csv"
+      ],
+      "env": {
+        "PYTHONIOENCODING": "utf-8-sig"
+      },
+      "files": {
+        "input.csv": "6e616d650a780a"
+      },
+      "stdin": "",
+      "stdout": "efbbbf6e616d650a780a",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "label": "environment cp1252",
+      "command": "csvcut",
+      "argv": [
+        "input.csv"
+      ],
+      "env": {
+        "PYTHONIOENCODING": "cp1252"
+      },
+      "files": {
+        "input.csv": "6e616d650a780a"
+      },
+      "stdin": "",
+      "stdout": "6e616d650a780a",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "label": "bom input None",
+      "command": "csvcut",
+      "argv": [
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": "efbbbf6e616d650a780a"
+      },
+      "stdin": "",
+      "stdout": "efbbbf6e616d650a780a",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "label": "bom input utf-8",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "utf-8",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": "efbbbf6e616d650a780a"
+      },
+      "stdin": "",
+      "stdout": "efbbbf6e616d650a780a",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "label": "bom input utf-8-sig",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "utf-8-sig",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": "efbbbf6e616d650a780a"
+      },
+      "stdin": "",
+      "stdout": "6e616d650a780a",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "label": "add-bom csvcut []",
+      "command": "csvcut",
+      "argv": [
+        "--add-bom",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": ""
+      },
+      "stdin": "",
+      "stdout": "efbbbf0a",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "label": "add-bom csvcut []",
+      "command": "csvcut",
+      "argv": [
+        "--add-bom",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": "6e616d650a780a"
+      },
+      "stdin": "",
+      "stdout": "efbbbf6e616d650a780a",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "label": "add-bom csvcut ['-n']",
+      "command": "csvcut",
+      "argv": [
+        "--add-bom",
+        "-n",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": "6e616d650a780a"
+      },
+      "stdin": "",
+      "stdout": "efbbbf2020313a206e616d650a",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "label": "add-bom csvstat ['--count']",
+      "command": "csvstat",
+      "argv": [
+        "--add-bom",
+        "--count",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": "6e616d650a780a"
+      },
+      "stdin": "",
+      "stdout": "efbbbf310a",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "label": "add-bom csvjson ['-I', '-y', '0']",
+      "command": "csvjson",
+      "argv": [
+        "--add-bom",
+        "-I",
+        "-y",
+        "0",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": "6e616d650a780a"
+      },
+      "stdin": "",
+      "stdout": "efbbbf5b7b226e616d65223a202278227d5d",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "label": "add-bom csvcut ['-c', 'missing']",
+      "command": "csvcut",
+      "argv": [
+        "--add-bom",
+        "-c",
+        "missing",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": "6e616d650a780a"
+      },
+      "stdin": "",
+      "stdout": "efbbbf",
+      "stderr": "436f6c756d6e4964656e7469666965724572726f723a20436f6c756d6e20276d697373696e672720697320696e76616c69642e204974206973206e65697468657220616e20696e7465676572206e6f72206120636f6c756d6e206e616d652e20436f6c756d6e206e616d6573206172653a20276e616d65270a",
+      "status": 1
+    },
+    {
+      "label": "sql2csv suppressed bom",
+      "command": "sql2csv",
+      "argv": [
+        "--add-bom",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": ""
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "75736167653a2073716c32637376205b2d685d205b2d765d205b2d6c5d205b2d565d205b2d2d646220434f4e4e454354494f4e5f535452494e475d0a2020202020202020202020202020205b2d2d656e67696e652d6f7074696f6e20454e47494e455f4f5054494f4e20454e47494e455f4f5054494f4e5d0a2020202020202020202020202020205b2d2d657865637574696f6e2d6f7074696f6e20455845435554494f4e5f4f5054494f4e20455845435554494f4e5f4f5054494f4e5d0a2020202020202020202020202020205b2d2d71756572792051554552595d205b2d6520454e434f44494e475d205b2d485d0a2020202020202020202020202020205b46494c455d0a73716c326373763a206572726f723a20756e7265636f676e697a656420617267756d656e74733a202d2d6164642d626f6d0a",
+      "status": 2
+    },
+    {
+      "label": "invalid alias UTF_8",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "UTF_8",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": "6e616d650aff"
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "596f75722066696c65206973206e6f7420225554465f382220656e636f6465642e20506c6561736520737065636966792074686520636f727265637420656e636f64696e67207769746820746865202d2d656e636f64696e6720666c61672e2055736520746865202d7620666c616720746f207365652074686520636f6d706c657465206572726f722e0a",
+      "status": 1
+    },
+    {
+      "label": "invalid alias u8",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "u8",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": "6e616d650aff"
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "596f75722066696c65206973206e6f74202275382220656e636f6465642e20506c6561736520737065636966792074686520636f727265637420656e636f64696e67207769746820746865202d2d656e636f64696e6720666c61672e2055736520746865202d7620666c616720746f207365652074686520636f6d706c657465206572726f722e0a",
+      "status": 1
+    },
+    {
+      "label": "invalid alias utf 8",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "utf 8",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": "6e616d650aff"
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "596f75722066696c65206973206e6f74202275746620382220656e636f6465642e20506c6561736520737065636966792074686520636f727265637420656e636f64696e67207769746820746865202d2d656e636f64696e6720666c61672e2055736520746865202d7620666c616720746f207365652074686520636f6d706c657465206572726f722e0a",
+      "status": 1
+    },
+    {
+      "label": "invalid alias UTF-8-SIG",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "UTF-8-SIG",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": "6e616d650aff"
+      },
+      "stdin": "",
+      "stdout": "",
+      "stderr": "596f75722066696c65206973206e6f7420225554462d382d5349472220656e636f6465642e20506c6561736520737065636966792074686520636f727265637420656e636f64696e67207769746820746865202d2d656e636f64696e6720666c61672e2055736520746865202d7620666c616720746f207365652074686520636f6d706c657465206572726f722e0a",
+      "status": 1
+    },
+    {
+      "label": "output profile latin-1",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "utf-8",
+        "--add-bom",
+        "input.csv"
+      ],
+      "env": {
+        "PYTHONIOENCODING": "latin-1"
+      },
+      "files": {
+        "input.csv": "6e616d650ac3a90a"
+      },
+      "stdin": "",
+      "stdout": "efbbbf6e616d650ae90a",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "label": "output profile cp1252",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "utf-8",
+        "--add-bom",
+        "input.csv"
+      ],
+      "env": {
+        "PYTHONIOENCODING": "cp1252"
+      },
+      "files": {
+        "input.csv": "6e616d650ac3a90a"
+      },
+      "stdin": "",
+      "stdout": "efbbbf6e616d650ae90a",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "label": "output profile utf-16",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "utf-8",
+        "--add-bom",
+        "input.csv"
+      ],
+      "env": {
+        "PYTHONIOENCODING": "utf-16"
+      },
+      "files": {
+        "input.csv": "6e616d650ac3a90a"
+      },
+      "stdin": "",
+      "stdout": "efbbbf6e0061006d0065000a00e9000a00",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "label": "output profile utf-8-sig",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "utf-8",
+        "--add-bom",
+        "input.csv"
+      ],
+      "env": {
+        "PYTHONIOENCODING": "utf-8-sig"
+      },
+      "files": {
+        "input.csv": "6e616d650ac3a90a"
+      },
+      "stdin": "",
+      "stdout": "efbbbfefbbbf6e616d650ac3a90a",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "label": "add-bom before codec error",
+      "command": "csvcut",
+      "argv": [
+        "-e",
+        "not-a-codec",
+        "--add-bom",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": ""
+      },
+      "stdin": "",
+      "stdout": "efbbbf",
+      "stderr": "4c6f6f6b75704572726f723a20756e6b6e6f776e20656e636f64696e673a206e6f742d612d636f6465630a",
+      "status": 1
+    },
+    {
+      "label": "add-bom suppressed on help",
+      "command": "csvcut",
+      "argv": [
+        "--add-bom",
+        "--help",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": ""
+      },
+      "stdin": "",
+      "stdout": "75736167653a20637376637574205b2d685d205b2d642044454c494d495445525d205b2d745d205b2d712051554f5445434841525d205b2d75207b302c312c322c332c342c357d5d205b2d625d0a20202020202020202020202020205b2d7020455343415045434841525d205b2d7a204649454c445f53495a455f4c494d49545d205b2d6520454e434f44494e475d205b2d535d205b2d485d0a20202020202020202020202020205b2d4b20534b49505f4c494e45535d205b2d765d205b2d6c5d205b2d2d6164642d626f6d5d205b2d2d7a65726f5d205b2d565d205b2d6e5d0a20202020202020202020202020205b2d6320434f4c554d4e535d205b2d43204e4f545f434f4c554d4e535d205b2d785d0a20202020202020202020202020205b46494c455d0a0a46696c74657220616e64207472756e63617465204353562066696c65732e204c696b652074686520556e697820226375742220636f6d6d616e642c2062757420666f7220746162756c61720a646174612e0a0a706f736974696f6e616c20617267756d656e74733a0a202046494c45202020202020202020202020202020202020546865204353562066696c6520746f206f706572617465206f6e2e204966206f6d69747465642c2077696c6c206163636570740a202020202020202020202020202020202020202020202020696e70757420617320706970656420646174612076696120535444494e2e0a0a6f7074696f6e733a0a20202d682c202d2d68656c7020202020202020202020202073686f7720746869732068656c70206d65737361676520616e6420657869740a20202d642c202d2d64656c696d697465722044454c494d495445520a20202020202020202020202020202020202020202020202044656c696d6974696e6720636861726163746572206f662074686520696e707574204353562066696c652e0a20202d742c202d2d746162732020202020202020202020205370656369667920746861742074686520696e707574204353562066696c652069732064656c696d6974656420776974680a202020202020202020202020202020202020202020202020746162732e204f766572726964657320222d64222e0a20202d712c202d2d71756f7465636861722051554f5445434841520a202020202020202020202020202020202020202020202020436861726163746572207573656420746f2071756f746520737472696e677320696e2074686520696e707574204353562066696c652e0a20202d752c202d2d71756f74696e67207b302c312c322c332c342c357d0a20202020202020202020202020202020202020202020202051756f74696e67207374796c65207573656420696e2074686520696e707574204353562066696c653a20302071756f74650a2020202020202020202020202020202020202020202020206d696e696d616c2c20312071756f746520616c6c2c20322071756f7465206e6f6e2d6e756d657269632c20332071756f74650a2020202020202020202020202020202020202020202020206e6f6e652e0a20202d622c202d2d6e6f2d646f75626c6571756f7465202057686574686572206f72206e6f7420646f75626c652071756f7465732061726520646f75626c656420696e2074686520696e7075740a2020202020202020202020202020202020202020202020204353562066696c652e0a20202d702c202d2d6573636170656368617220455343415045434841520a202020202020202020202020202020202020202020202020436861726163746572207573656420746f20657363617065207468652064656c696d69746572206966202d2d71756f74696e6720330a202020202020202020202020202020202020202020202020282271756f7465206e6f6e6522292069732073706563696669656420616e6420746f20657363617065207468650a20202020202020202020202020202020202020202020202051554f544543484152206966202d2d6e6f2d646f75626c6571756f7465206973207370656369666965642e0a20202d7a2c202d2d6d61786669656c6473697a65204649454c445f53495a455f4c494d49540a2020202020202020202020202020202020202020202020204d6178696d756d206c656e677468206f6620612073696e676c65206669656c6420696e2074686520696e707574204353560a20202020202020202020202020202020202020202020202066696c652e0a20202d652c202d2d656e636f64696e6720454e434f44494e470a202020202020202020202020202020202020202020202020537065636966792074686520656e636f64696e67206f662074686520696e707574204353562066696c652e0a20202d532c202d2d736b6970696e697469616c73706163650a20202020202020202020202020202020202020202020202049676e6f7265207768697465737061636520696d6d6564696174656c7920666f6c6c6f77696e67207468652064656c696d697465722e0a20202d482c202d2d6e6f2d6865616465722d726f772020205370656369667920746861742074686520696e707574204353562066696c6520686173206e6f2068656164657220726f772e0a20202020202020202020202020202020202020202020202057696c6c206372656174652064656661756c7420686561646572732028612c622c632c2e2e2e292e0a20202d4b2c202d2d736b69702d6c696e657320534b49505f4c494e45530a2020202020202020202020202020202020202020202020205370656369667920746865206e756d626572206f6620696e697469616c206c696e657320746f20736b6970206265666f7265207468650a20202020202020202020202020202020202020202020202068656164657220726f772028652e672e20636f6d6d656e74732c20636f70797269676874206e6f74696365732c20656d7074790a202020202020202020202020202020202020202020202020726f7773292e0a20202d762c202d2d766572626f73652020202020202020205072696e742064657461696c65642074726163656261636b73207768656e206572726f7273206f636375722e0a20202d6c2c202d2d6c696e656e756d626572732020202020496e73657274206120636f6c756d6e206f66206c696e65206e756d62657273206174207468652066726f6e74206f66207468650a2020202020202020202020202020202020202020202020206f75747075742e2055736566756c207768656e20706970696e6720746f2067726570206f7220617320612073696d706c650a2020202020202020202020202020202020202020202020207072696d617279206b65792e0a20202d2d6164642d626f6d2020202020202020202020202041646420746865205554462d3820627974652d6f72646572206d61726b2028424f4d2920746f20746865206f75747075742c20666f720a202020202020202020202020202020202020202020202020457863656c20636f6d7061746962696c6974790a20202d2d7a65726f202020202020202020202020202020205768656e20696e74657270726574696e67206f7220646973706c6179696e6720636f6c756d6e206e756d626572732c207573650a2020202020202020202020202020202020202020202020207a65726f2d6261736564206e756d626572696e6720696e7374656164206f66207468652064656661756c7420312d62617365640a2020202020202020202020202020202020202020202020206e756d626572696e672e0a20202d562c202d2d76657273696f6e202020202020202020446973706c61792076657273696f6e20696e666f726d6174696f6e20616e6420657869742e0a20202d6e2c202d2d6e616d65732020202020202020202020446973706c617920636f6c756d6e206e616d657320616e6420696e64696365732066726f6d2074686520696e707574204353560a202020202020202020202020202020202020202020202020616e6420657869742e0a20202d632c202d2d636f6c756d6e7320434f4c554d4e530a2020202020202020202020202020202020202020202020204120636f6d6d612d736570617261746564206c697374206f6620636f6c756d6e20696e64696365732c206e616d6573206f720a20202020202020202020202020202020202020202020202072616e67657320746f206265206578747261637465642c20652e672e2022312c69642c332d35222e2044656661756c747320746f0a202020202020202020202020202020202020202020202020616c6c20636f6c756d6e732e0a20202d432c202d2d6e6f742d636f6c756d6e73204e4f545f434f4c554d4e530a2020202020202020202020202020202020202020202020204120636f6d6d612d736570617261746564206c697374206f6620636f6c756d6e20696e64696365732c206e616d6573206f720a20202020202020202020202020202020202020202020202072616e67657320746f206265206578636c756465642c20652e672e2022312c69642c332d35222e2044656661756c747320746f206e6f0a202020202020202020202020202020202020202020202020636f6c756d6e732e0a20202d782c202d2d64656c6574652d656d7074792d726f77730a20202020202020202020202020202020202020202020202041667465722063757474696e672c2064656c65746520726f77732077686963682061726520636f6d706c6574656c7920656d7074792e0a",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "label": "workbook encoding distinct from CSV",
+      "command": "in2csv",
+      "argv": [
+        "-e",
+        "ascii",
+        "--encoding-xls",
+        "not-a-codec",
+        "-f",
+        "csv",
+        "-I",
+        "-y",
+        "0",
+        "input.csv"
+      ],
+      "env": {},
+      "files": {
+        "input.csv": "6e616d650a780a"
+      },
+      "stdin": "",
+      "stdout": "6e616d650a780a",
+      "stderr": "",
+      "status": 0
+    }
+  ],
+  "qualification": {
+    "archiveSha256Verified": true,
+    "interpreterSha256Verified": true,
+    "activeDistributionVersionsMatch": true,
+    "sqliteVersionMatch": true,
+    "decodeWindowBytes": 8192,
+    "outputProfileCasesAreDivergences": true
+  }
+}

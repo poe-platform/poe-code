@@ -1,0 +1,9 @@
+{
+  "family": "ER-12",
+  "name": "baseline-omits-readme",
+  "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+  "outcome": "CONTROL_PASS",
+  "failure": null,
+  "input": "ER-12-baseline-omits-readme-input.json",
+  "raw": "ER-12-baseline-omits-readme-raw.json"
+}

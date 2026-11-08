@@ -1,0 +1,5 @@
+{
+  "id": "reject-missingStdout",
+  "polarity": "negative",
+  "passed": true
+}

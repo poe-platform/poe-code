@@ -1,0 +1,22 @@
+[package]
+name = "toolcraft-template-rust-node"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.88"
+license = "MIT"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+toolcraft-template-rust-napi-core = { path = "shared" }
+# napi-rs CLI inspects the addon manifest to enable artifact/type generation.
+napi-derive = "=3.6.7"
+
+[build-dependencies]
+napi-build = "=2.4.3"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = "symbols"

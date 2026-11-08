@@ -1,0 +1,20 @@
+[
+  {"name":"empty-before-comment", "args":["-S", "rec ${EMPTY}#kept ${ABSENT}#ignored", "tail"]},
+  {"name":"expanded-punctuation-not-resplit", "args":["-S", "rec ${INSERT} pre${INSERT}post"]},
+  {"name":"non-ASCII-whitespace-is-data", "args":["-S", "rec a b c d"]},
+  {"name":"escaped-dollar-not-expanded", "args":["-S", "rec \\${V} \\${ABSENT}"]},
+  {"name":"empty-variable-prefix-suffix", "args":["-S", "rec a${ABSENT}b ${EMPTY}${ABSENT} ${ABSENT}${EMPTY}"]},
+  {"name":"stop-before-malformed-tail", "args":["-S", "rec good\\c ${BAD:-x} \"unfinished", "tail"]},
+  {"name":"comment-before-malformed-tail", "args":["-S", "rec good # ${BAD:-x} \"unfinished", "tail"]},
+  {"name":"quoted-backslash-newline", "args":["-S", "rec \"a\\\nb\""]},
+  {"name":"dollar-invalid-unicode-name", "args":["-S", "rec ${λ} tail"]},
+  {"name":"valid-name-underscore-digit", "args":["-S", "rec ${_VAR9}"], "extraEnv":{"_VAR9":"under score"}},
+  {"name":"chdir-last-option-before-assignment", "args":["-C", "missing", "-S", "-C sub A=last rec ${V}"], "directories":["sub"]},
+  {"name":"nested-options-consume-original-argv", "args":["-S", "-u", "V", "-S", "rec ${V}"]},
+  {"name":"nested-S-consumes-original-string", "args":["-S", "-S", "rec nested tail"]},
+  {"name":"duplicate-assignment-preserves-expansion-time", "args":["-S", "A=one A=two V=child rec ${V}"]},
+  {"name":"split-generated-assignment-stops-options", "args":["-S", "A=one rec -S --split-string=literal", "tail"]},
+  {"name":"leading-BOM-is-literal-argument-data", "args":["-S", "rec ﻿é \"﻿\""]},
+  {"name":"lone-dash-then-assignment", "args":["-S", "- PATH=${PATH} A=one rec ${V}"]},
+  {"name":"empty-split-does-not-remove-following-empty-arg", "args":["-S", "rec", "", "-S", ""]}
+]

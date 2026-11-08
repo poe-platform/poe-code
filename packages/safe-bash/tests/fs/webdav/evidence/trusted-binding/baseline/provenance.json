@@ -1,0 +1,9 @@
+{
+  "phase": "baseline",
+  "pin": "916fbb4eae610752f34ec25354f6bc2dff28925b",
+  "requiredCore": "0bee8e7",
+  "ownedOverlay": true,
+  "node": "v22.22.2",
+  "archiveBaseSha256": "845bfb41c726bd5e609ee86a92d9b2c84cfa9d63d4b5dd9eccc610cc394b4ea7",
+  "status": " M src/commands/archive/README.md\n M src/commands/archive/format.ts\n M src/commands/diff-patch/patch.ts\n M src/shell/runtime.ts\n M tests/commands/archive-stress/native.test.ts\n M tests/commands/core-sort/regressions.test.ts\n M tests/shell-stress/current-shell/README.md\n M tests/shell-stress/current-shell/capture-native.mjs\n M tests/shell-stress/current-shell/support.mjs\n?? docs/PROVIDER_NAMESPACE_REVIEW.md\n?? tests/commands/archive-stress/pax-extensibility-evidence/\n?? tests/commands/archive-stress/pax-extensibility.test.ts\n?? tests/commands/archive-stress/pax-independent/\n?? tests/commands/archive-stress/pax-native.test.ts\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/structured-stress/jq-grammar-source-review/\n?? tests/fs/s3/trusted-observation/\n?? tests/shell-stress/current-shell/current-shell.test.ts\n?? tests/shell-stress/current-shell/pre-ready-red.json\n?? tests/shell-stress/current-shell/pre-ready-validation.json\n?? tests/shell-stress/current-shell/pre-ready-witness-red.json\n?? tests/shell-stress/current-shell/product-child.mjs\n?? tests/shell-stress/current-shell/run-product.mjs\n?? tests/shell-stress/current-shell/validate.mjs\n?? tests/shell/source-dot-eval-eval-comparison.json\n?? tests/shell/source-dot-eval-eval-first.json\n?? tests/shell/source-dot-eval-eval-host.test.ts\n?? tests/shell/source-dot-eval-eval-native.json\n?? tests/shell/source-dot-eval-eval.test.ts\n"
+}

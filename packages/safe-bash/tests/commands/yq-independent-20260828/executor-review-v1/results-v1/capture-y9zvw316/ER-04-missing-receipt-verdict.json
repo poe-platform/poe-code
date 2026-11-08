@@ -1,0 +1,9 @@
+{
+  "family": "ER-04",
+  "name": "missing-receipt",
+  "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+  "outcome": "CONTROL_PASS",
+  "failure": null,
+  "input": "ER-04-missing-receipt-input.json",
+  "raw": "ER-04-missing-receipt-raw.json"
+}

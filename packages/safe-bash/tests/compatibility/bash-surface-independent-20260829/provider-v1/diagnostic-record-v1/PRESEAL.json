@@ -1,0 +1,39 @@
+{
+  "schema": "d03-existing-record-preseal-v1",
+  "at": 1787981398050,
+  "files": [
+    {
+      "path": "admin.mjs",
+      "bytes": 4104,
+      "sha256": "1b8cce296831b5209d32e9b1cf16760dcf47e740762adbff1fe4d072b1e9015b"
+    },
+    {
+      "path": "PLAN.json",
+      "bytes": 2249,
+      "sha256": "33ce36931671313fee8c9413a34afb14c4d598403a70e44f4455a4380b1e87b9"
+    },
+    {
+      "path": "reader.mjs",
+      "bytes": 9900,
+      "sha256": "eae96207c4806f06095d445e11a9179bac17d6d03b29bca951f722e0c15937c4"
+    },
+    {
+      "path": "reader-v2.mjs",
+      "bytes": 10034,
+      "sha256": "1a9c8ffd08cd60a7b60c94d080ebb34b1c20a4211675b92de9a0d20a4811c42e"
+    },
+    {
+      "path": "reader-v3.mjs",
+      "bytes": 10243,
+      "sha256": "20c46813c28910789a5a88b53fec4e804c641ddebc4e3be09aa734d89cd7197d"
+    }
+  ],
+  "activeReader": "reader-v3.mjs",
+  "originalReaderRoles": "v1 initial source; v2 unmatched-header suppression and6 DATA checks; v3 limits indicator and retains reasons from explicit dyld/sandbox/secinit contexts",
+  "privateReadCountBeforeSeal": 0,
+  "targetLaunches": 0,
+  "phaseDeadline": 1787982004026,
+  "authority": "Exact ROOT15min/32ALL/peak2/32MiB capture/128MiB work; only two diagnostic roots. No full raw record publication.",
+  "capture": "Preopened owned EVENTS.jsonl selected-only before private metadata/read; <=32768selected bytes; final results <=32768bytes",
+  "noProfilesOrProgramsExecuted": true
+}

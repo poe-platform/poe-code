@@ -1,0 +1,104 @@
+{
+  "schema": "pre-execution-synthetic-preparation-seal-v1",
+  "sealedAt": "2026-08-28T09:18:15.544Z",
+  "authorization": "metadata availability and synthetic helpers only; no product/comparator/native/timing cohort",
+  "originalManifestSha256": "19526e0eb11478107b73026bdcc5d3b309f4cfb38c57a93c7cfea1672e75e923",
+  "files": [
+    {
+      "path": "AMENDMENT.md",
+      "bytes": 6241,
+      "mode": 420,
+      "sha256": "00939bd3061705f014ffa82fe91c92ff88df1aa60feb6ee9a68a9dbe0669adf1"
+    },
+    {
+      "path": "BINDINGS.json",
+      "bytes": 3336,
+      "mode": 420,
+      "sha256": "a23a102e2b8aecf3536288495aa863c95cbaf7fe8a5dd5b23ea17eb772278e51"
+    },
+    {
+      "path": "SCHEDULE.json",
+      "bytes": 23670,
+      "mode": 420,
+      "sha256": "7de3feaf3a0873eaa94908d0818207b739ea34b6ddd2874cf96a54a5b3d423fe"
+    },
+    {
+      "path": "adapter.mjs",
+      "bytes": 6238,
+      "mode": 420,
+      "sha256": "151a6d5e7800443c231712f21c6b5d2a37a5f435ffa278c182d8913b18d26b90"
+    },
+    {
+      "path": "controls.mjs",
+      "bytes": 11256,
+      "mode": 420,
+      "sha256": "f94da5b3a51e304cf2799d78a475daccd1704bde84f214aaa8fb222d52021be1"
+    },
+    {
+      "path": "core.mjs",
+      "bytes": 5460,
+      "mode": 420,
+      "sha256": "f7f526ae092091164f166bd233e7fccafb2b561820a020ac6884b05f045d95b2"
+    },
+    {
+      "path": "fixtures/expected.mjs",
+      "bytes": 88,
+      "mode": 420,
+      "sha256": "8e5628ad550d88cdee0fa707eb6d78816ad0682c99b25729741a8afe7e928bc9"
+    },
+    {
+      "path": "fixtures/forbidden-source.mjs",
+      "bytes": 96,
+      "mode": 420,
+      "sha256": "cc5479c11e883c698d05f2e02eb3c3b365d022c60a4c7584559ae6f338cb24a1"
+    },
+    {
+      "path": "fixtures/wrong.mjs",
+      "bytes": 88,
+      "mode": 420,
+      "sha256": "973cc261295f009ecd5d64a45913ccf5275006e1a7191591cb48fc6b1bd2d1ca"
+    },
+    {
+      "path": "legacy-assess.mjs",
+      "bytes": 6915,
+      "mode": 420,
+      "sha256": "4e1ef722249987da598a0765f87e48c021cf5a2f1ec83c09e86d2489c39397eb"
+    },
+    {
+      "path": "metadata.mjs",
+      "bytes": 4175,
+      "mode": 420,
+      "sha256": "e09074db3d8f8d14c81ca60752a334f73705e355b86add92bcce441b6e2dfa85"
+    },
+    {
+      "path": "observe-load.mjs",
+      "bytes": 1813,
+      "mode": 420,
+      "sha256": "d7baf31b117112d2c9766660242ada224ed0f5b7b3d2599065de7457a22c70a7"
+    },
+    {
+      "path": "predicates.mjs",
+      "bytes": 2734,
+      "mode": 420,
+      "sha256": "f67d562fca20f67703610c34638a9daa19badd36e2ac18bc4947e3b41411962a"
+    },
+    {
+      "path": "prepare.mjs",
+      "bytes": 3887,
+      "mode": 420,
+      "sha256": "c603a7c9bb5852e5614229da6df70f3de4b39e8dc4b72e72c837f3ee428a2e63"
+    },
+    {
+      "path": "supervisor.mjs",
+      "bytes": 4007,
+      "mode": 420,
+      "sha256": "cec95c053a7c7dcab2d1117d5dcabb39e07ec6be29bec734a350822f672787dc"
+    },
+    {
+      "path": "synthetic-child.mjs",
+      "bytes": 2509,
+      "mode": 420,
+      "sha256": "53f47c5455efb2373116fa0268b1498ac09dd2608462630b412c70721f559ce7"
+    }
+  ]
+}

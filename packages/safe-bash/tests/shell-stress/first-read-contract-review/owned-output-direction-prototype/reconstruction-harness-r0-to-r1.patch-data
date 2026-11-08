@@ -1,0 +1,22 @@
+--- a/restore-v2.mjs
++++ b/restore-v2.mjs
+@@ -1,5 +1,5 @@
+ import assert from 'node:assert/strict';
+-import { readFileSync, readdirSync, mkdtempSync, mkdirSync, symlinkSync, chmodSync } from 'node:fs';
++import { readFileSync, readdirSync, mkdtempSync, mkdirSync, symlinkSync, chmodSync, realpathSync } from 'node:fs';
+ import { createHash } from 'node:crypto';
+ import { resolve, relative } from 'node:path';
+ import { spawnSync, execFileSync } from 'node:child_process';
+@@ -54,7 +54,11 @@
+ run(process.execPath, [compiler, '-p', 'tsconfig.build.json']);
+ assert.equal(hash(JSON.stringify(inventory('dist'))), handoff.compiledManifestSha256, 'Exact v2 compilation');
+ const compilerOutput = run(process.execPath, [compiler, '--noEmit', '--listFiles', '-p', 'tsconfig.json']);
+-const normalize = (path, base) => path.startsWith(base + '/') ? 'CANDIDATE/' + relative(base, path) : path;
++const normalize = (path, base) => {
++  const actualPath = realpathSync(path);
++  const actualBase = realpathSync(base);
++  return actualPath.startsWith(actualBase + '/') ? 'CANDIDATE/' + relative(actualBase, actualPath) : actualPath;
++};
+ const actualInputs = compilerOutput.trim().split('\n').map(path => ({ path: normalize(path, candidate), sha256: hash(readFileSync(path)) }));
+ const expectedInputs = handoff.compilerInputs.map(entry => ({ path: normalize(entry.path, handoff.candidate), sha256: entry.sha256 }));
+ assert.deepEqual(actualInputs, expectedInputs);

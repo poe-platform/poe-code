@@ -1,0 +1,1146 @@
+{
+  "oracle": "GNU diffutils 3.10, Linux, LC_ALL=C, TZ=UTC; both operands are pipes; fixed labels LEFT/RIGHT",
+  "fixtures": [
+    {
+      "args": [
+        "-i"
+      ],
+      "old": "A\n",
+      "next": "a\n",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--ignore-case",
+        "-u"
+      ],
+      "old": "A\nold\n",
+      "next": "a\nnew\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "--- LEFT\n+++ RIGHT\n@@ -1,2 +1,2 @@\n A\n-old\n+new\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-i"
+      ],
+      "old": "Ä\n",
+      "next": "ä\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "1c1\n< Ä\n---\n> ä\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-i"
+      ],
+      "old": "A",
+      "next": "a\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "1c1\n< A\n\\ No newline at end of file\n---\n> a\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-y"
+      ],
+      "old": "A\n",
+      "next": "a\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "A\t\t\t\t\t\t\t      |\ta\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-y",
+        "-W30"
+      ],
+      "old": "same\nleft\ngone\nend\n",
+      "next": "same\nright\nend\nnew\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "same\t\tsame\nleft\t      |\tright\ngone\t      <\nend\t\tend\n\t      >\tnew\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-yi",
+        "--width=30"
+      ],
+      "old": "A\n",
+      "next": "a\n",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "A\t\ta\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--side-by-side",
+        "-W",
+        "20",
+        "--suppress-common-lines"
+      ],
+      "old": "same\nleft\n",
+      "next": "same\nright\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "left  |\tright\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-y",
+        "-W20",
+        "--left-column"
+      ],
+      "old": "same\n",
+      "next": "same\n",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "same  (\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-y",
+        "-W20"
+      ],
+      "old": "012345678901234\n\tX\n",
+      "next": "short\n    X\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "01234 |\tshort\n      |\t    X\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-y",
+        "-W20",
+        "-t"
+      ],
+      "old": "\tX\nold",
+      "next": "\tY\nnew\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "         |          \nold      \\  new\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-B"
+      ],
+      "old": "x\n\ny\n",
+      "next": "x\ny\n",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-B"
+      ],
+      "old": "x\n \ny\n",
+      "next": "x\ny\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "2d1\n<  \n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-Bw"
+      ],
+      "old": "x\n \ny\n",
+      "next": "x\ny\n",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-Z"
+      ],
+      "old": "x \t\n",
+      "next": "x\n",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-E"
+      ],
+      "old": "a\tb\n",
+      "next": "a       b\n",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-I",
+        "^skip"
+      ],
+      "old": "keep\nskip old\n",
+      "next": "keep\nskip new\n",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-I^skip"
+      ],
+      "old": "skip old\nold\n",
+      "next": "skip new\nnew\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "1,2c1,2\n< skip old\n< old\n---\n> skip new\n> new\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-I",
+        "^skip",
+        "-I",
+        "^other",
+        "-u"
+      ],
+      "old": "skip old\nkeep\nother old\n",
+      "next": "skip new\nkeep\nother new\n",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-s"
+      ],
+      "old": "same\n",
+      "next": "same\n",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "Files LEFT and RIGHT are identical\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-si"
+      ],
+      "old": "A\n",
+      "next": "a\n",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "Files LEFT and RIGHT are identical\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-a"
+      ],
+      "old": "A\u0000\n",
+      "next": "a\u0000\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "1c1\n< A\u0000\n---\n> a\u0000\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--text",
+        "-u"
+      ],
+      "old": "A\u0000\n",
+      "next": "a\u0000\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "--- LEFT\n+++ RIGHT\n@@ -1 +1 @@\n-A\u0000\n+a\u0000\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-d"
+      ],
+      "old": "a\nb\n",
+      "next": "a\nc\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "2c2\n< b\n---\n> c\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-n"
+      ],
+      "old": "a\nb\nc\n",
+      "next": "A\nb\nC\nnew\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "d1 1\na1 1\nA\nd3 1\na3 2\nC\nnew\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-n"
+      ],
+      "old": "",
+      "next": "new",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "a0 1\nnew",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-e"
+      ],
+      "old": "a\nb\nc\n",
+      "next": "A\nb\nC\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "3c\nC\n.\n1c\nA\n.\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-e"
+      ],
+      "old": "a\n",
+      "next": ".\nnext\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "1c\n..\n.\ns/.//\na\nnext\n.\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-D",
+        "CHANGE"
+      ],
+      "old": "same\nold\nend\n",
+      "next": "same\nnew\nend\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "same\n#ifndef CHANGE\nold\n#else /* CHANGE */\nnew\n#endif /* CHANGE */\nend\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--ifdef=CHANGE"
+      ],
+      "old": "",
+      "next": "new\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "#ifdef CHANGE\nnew\n#endif /* CHANGE */\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-DCHANGE"
+      ],
+      "old": "gone\n",
+      "next": "",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "#ifndef CHANGE\ngone\n#endif /* ! CHANGE */\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-u",
+        "-p"
+      ],
+      "old": "int main()\n{\nold\n}\n",
+      "next": "int main()\n{\nnew\n}\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "--- LEFT\n+++ RIGHT\n@@ -1,4 +1,4 @@\n int main()\n {\n-old\n+new\n }\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-U0",
+        "-F",
+        "^int"
+      ],
+      "old": "int main()\n{\nold\n}\n",
+      "next": "int main()\n{\nnew\n}\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "--- LEFT\n+++ RIGHT\n@@ -3 +3 @@ int main()\n-old\n+new\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-u",
+        "-t"
+      ],
+      "old": "\told\n",
+      "next": "\tnew\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "--- LEFT\n+++ RIGHT\n@@ -1 +1 @@\n-        old\n+        new\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-T"
+      ],
+      "old": "old\n",
+      "next": "new\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "1c1\n<\told\n---\n>\tnew\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-uT"
+      ],
+      "old": "old\n",
+      "next": "new\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "--- LEFT\n+++ RIGHT\n@@ -1 +1 @@\n-\told\n+\tnew\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-y",
+        "-W1"
+      ],
+      "old": "old\n",
+      "next": "new\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "|\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-y",
+        "-W5"
+      ],
+      "old": "old\n",
+      "next": "new\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "  |  \n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-y"
+      ],
+      "old": "a",
+      "next": "a\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "a\t\t\t\t\t\t\t      \\\ta\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-y"
+      ],
+      "old": "a\n",
+      "next": "a",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "a\t\t\t\t\t\t\t      /\ta\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-y"
+      ],
+      "old": "a",
+      "next": "a",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "a\t\t\t\t\t\t\t\ta",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-yB"
+      ],
+      "old": "a\n\nb\n",
+      "next": "a\nb\n",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "a\t\t\t\t\t\t\t\ta\n\t\t\t\t\t\t\t\tb\nb\t\t\t\t\t\t\t      (\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-B"
+      ],
+      "old": "\na\nb\nc\nd\nold\n",
+      "next": "a\nb\nc\nd\nnew\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "6c5\n< old\n---\n> new\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-Bu"
+      ],
+      "old": "\na\nb\nc\nd\nold\n",
+      "next": "a\nb\nc\nd\nnew\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "--- LEFT\n+++ RIGHT\n@@ -1,6 +1,5 @@\n-\n a\n b\n c\n d\n-old\n+new\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-BI^skip",
+        "-u"
+      ],
+      "old": "skip old\nkeep\nold\n",
+      "next": "skip new\nkeep\nnew\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "--- LEFT\n+++ RIGHT\n@@ -1,3 +1,3 @@\n-skip old\n+skip new\n keep\n-old\n+new\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-BE"
+      ],
+      "old": "a\n \nb\n",
+      "next": "a\nb\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "2d1\n<  \n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-I^SKIP",
+        "-i"
+      ],
+      "old": "skip old\n",
+      "next": "skip new\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "1c1\n< skip old\n---\n> skip new\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-p"
+      ],
+      "old": "int main()\n{\nold\n}\n",
+      "next": "int main()\n{\nnew\n}\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "*** LEFT\n--- RIGHT\n***************\n*** 1,4 ****\n  int main()\n  {\n! old\n  }\n--- 1,4 ----\n  int main()\n  {\n! new\n  }\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-e"
+      ],
+      "old": "a\n",
+      "next": ".\n.\nlast\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "1c\n..\n.\ns/.//\na\n..\n.\ns/.//\na\nlast\n.\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-nB"
+      ],
+      "old": "\na\nb\nc\nold\n",
+      "next": "a\nb\nc\nnew\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "d5 1\na5 1\nnew\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-DBOSS",
+        "-B"
+      ],
+      "old": "\na\nb\nc\nold\n",
+      "next": "a\nb\nc\nnew\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "\na\nb\nc\n#ifndef BOSS\nold\n#else /* BOSS */\nnew\n#endif /* BOSS */\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-DCHANGE",
+        "-i"
+      ],
+      "old": "A\n",
+      "next": "a\n",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "A\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-cT"
+      ],
+      "old": "old\n",
+      "next": "new\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "*** LEFT\n--- RIGHT\n***************\n*** 1 ****\n!\told\n--- 1 ----\n!\tnew\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--ignore-trailing-space"
+      ],
+      "old": "x\t\n",
+      "next": "x\n",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--ignore-tab-expansion"
+      ],
+      "old": "\tx\n",
+      "next": "        x\n",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--ignore-blank-lines"
+      ],
+      "old": "\nx\n",
+      "next": "x\n",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--report-identical-files"
+      ],
+      "old": "x\n",
+      "next": "x\n",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "Files LEFT and RIGHT are identical\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--minimal",
+        "--rcs"
+      ],
+      "old": "old\n",
+      "next": "new\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "d1 1\na1 1\nnew\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-y",
+        "-W1"
+      ],
+      "old": "long left line\nsame\n",
+      "next": "long right line\nsame\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "|\n \n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-y",
+        "-W2"
+      ],
+      "old": "long left line\nsame\n",
+      "next": "long right line\nsame\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "| \n  \n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-y",
+        "-W3"
+      ],
+      "old": "long left line\nsame\n",
+      "next": "long right line\nsame\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": " | \n   \n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-y",
+        "-W4"
+      ],
+      "old": "long left line\nsame\n",
+      "next": "long right line\nsame\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": " |  \n    \n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-y",
+        "-W5"
+      ],
+      "old": "long left line\nsame\n",
+      "next": "long right line\nsame\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "  |  \n     \n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-y",
+        "-W6"
+      ],
+      "old": "long left line\nsame\n",
+      "next": "long right line\nsame\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "  |   \n      \n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-y",
+        "-W7"
+      ],
+      "old": "long left line\nsame\n",
+      "next": "long right line\nsame\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "   |   \n       \n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-y",
+        "-W8"
+      ],
+      "old": "long left line\nsame\n",
+      "next": "long right line\nsame\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "   |\t\n\t\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-y",
+        "-W9"
+      ],
+      "old": "long left line\nsame\n",
+      "next": "long right line\nsame\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "l   |\tl\ns\ts\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-y",
+        "-W10"
+      ],
+      "old": "long left line\nsame\n",
+      "next": "long right line\nsame\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "lo  |\tlo\nsa\tsa\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-y",
+        "-W11"
+      ],
+      "old": "long left line\nsame\n",
+      "next": "long right line\nsame\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "lon  |\tlon\nsam\tsam\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-y",
+        "-W12"
+      ],
+      "old": "long left line\nsame\n",
+      "next": "long right line\nsame\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "long |\tlong\nsame\tsame\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-y",
+        "-W13"
+      ],
+      "old": "long left line\nsame\n",
+      "next": "long right line\nsame\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "long  |\tlong \nsame\tsame\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-y",
+        "-W14"
+      ],
+      "old": "long left line\nsame\n",
+      "next": "long right line\nsame\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "long  |\tlong \nsame\tsame\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-y",
+        "-W15"
+      ],
+      "old": "long left line\nsame\n",
+      "next": "long right line\nsame\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "long  |\tlong \nsame\tsame\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-y",
+        "-W16"
+      ],
+      "old": "long left line\nsame\n",
+      "next": "long right line\nsame\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "long  |\tlong \nsame\tsame\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-y",
+        "-W17"
+      ],
+      "old": "long left line\nsame\n",
+      "next": "long right line\nsame\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "long  |\tlong \nsame\tsame\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-y",
+        "-W18"
+      ],
+      "old": "long left line\nsame\n",
+      "next": "long right line\nsame\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "long  |\tlong \nsame\tsame\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-y",
+        "-W19"
+      ],
+      "old": "long left line\nsame\n",
+      "next": "long right line\nsame\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "long  |\tlong \nsame\tsame\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-y",
+        "-W20"
+      ],
+      "old": "long left line\nsame\n",
+      "next": "long right line\nsame\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "long  |\tlong \nsame\tsame\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-y",
+        "-W21"
+      ],
+      "old": "long left line\nsame\n",
+      "next": "long right line\nsame\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "long \t  |\tlong \nsame\t\tsame\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-y",
+        "-W22"
+      ],
+      "old": "long left line\nsame\n",
+      "next": "long right line\nsame\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "long l\t  |\tlong r\nsame\t\tsame\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-y",
+        "-W23"
+      ],
+      "old": "long left line\nsame\n",
+      "next": "long right line\nsame\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "long le\t   |\tlong ri\nsame\t\tsame\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-y",
+        "-W24"
+      ],
+      "old": "long left line\nsame\n",
+      "next": "long right line\nsame\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "long lef   |\tlong rig\nsame\t\tsame\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-y",
+        "-W25"
+      ],
+      "old": "long left line\nsame\n",
+      "next": "long right line\nsame\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "long left   |\tlong righ\nsame\t\tsame\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-y",
+        "-W26"
+      ],
+      "old": "long left line\nsame\n",
+      "next": "long right line\nsame\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "long left   |\tlong right\nsame\t\tsame\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-y",
+        "-W27"
+      ],
+      "old": "long left line\nsame\n",
+      "next": "long right line\nsame\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "long left l  |\tlong right \nsame\t\tsame\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-y",
+        "-W28"
+      ],
+      "old": "long left line\nsame\n",
+      "next": "long right line\nsame\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "long left li |\tlong right l\nsame\t\tsame\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-y",
+        "-W29"
+      ],
+      "old": "long left line\nsame\n",
+      "next": "long right line\nsame\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "long left lin |\tlong right li\nsame\t\tsame\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-y",
+        "-W30"
+      ],
+      "old": "long left line\nsame\n",
+      "next": "long right line\nsame\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "long left lin |\tlong right li\nsame\t\tsame\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-y",
+        "-W31"
+      ],
+      "old": "long left line\nsame\n",
+      "next": "long right line\nsame\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "long left lin |\tlong right li\nsame\t\tsame\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-y",
+        "-W32"
+      ],
+      "old": "long left line\nsame\n",
+      "next": "long right line\nsame\n",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "long left lin |\tlong right li\nsame\t\tsame\n",
+        "stderr": ""
+      }
+    }
+  ]
+}

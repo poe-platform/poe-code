@@ -1,0 +1,17 @@
+{
+  "role": "DEVGIT_METADATA",
+  "pid": 671,
+  "command": [
+    "/usr/bin/git",
+    "--no-optional-locks",
+    "-c",
+    "core.hooksPath=/dev/null",
+    "cat-file",
+    "--batch"
+  ],
+  "start": 1787949614891,
+  "end": 1787949614916,
+  "status": 0,
+  "signal": null,
+  "error": null
+}

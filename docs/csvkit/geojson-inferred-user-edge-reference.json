@@ -1,0 +1,231 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "sourceSha256": "cbfe8f90a73d234ddb332b25bf288922cd960b250ea1847b474a05a3554273c5",
+  "cases": [
+    {
+      "stdin": "lat,lon,g\n2,3,\"{\"\"type\"\":\"\"MultiPoint\"\",\"\"coordinates\"\":[[1,null]]}\"\n",
+      "argv": [
+        "-y0",
+        "--lat",
+        "lat",
+        "--lon",
+        "lon",
+        "--geometry",
+        "g"
+      ],
+      "stdout": "{\"type\": \"FeatureCollection\", \"bbox\": [1, null, 1, null], \"features\": [{\"type\": \"Feature\", \"properties\": {}, \"geometry\": {\"type\": \"MultiPoint\", \"coordinates\": [[1, null]]}}]}",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "lat,lon,g\n2,3,\"{\"\"type\"\":\"\"MultiPoint\"\",\"\"coordinates\"\":[[1,null],[2,3]]}\"\n",
+      "argv": [
+        "-y0",
+        "--lat",
+        "lat",
+        "--lon",
+        "lon",
+        "--geometry",
+        "g"
+      ],
+      "stdout": "{\"type\": \"FeatureCollection\", \"bbox\": [1, 3, 2, 3], \"features\": [{\"type\": \"Feature\", \"properties\": {}, \"geometry\": {\"type\": \"MultiPoint\", \"coordinates\": [[1, null], [2, 3]]}}]}",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "lat,lon,g\n2,3,\"{\"\"type\"\":\"\"MultiPoint\"\",\"\"coordinates\"\":[[1,3],[2,null]]}\"\n",
+      "argv": [
+        "-y0",
+        "--lat",
+        "lat",
+        "--lon",
+        "lon",
+        "--geometry",
+        "g"
+      ],
+      "stdout": "",
+      "stderr": "TypeError: '<' not supported between instances of 'NoneType' and 'int'\n",
+      "status": 1
+    },
+    {
+      "stdin": "lat,lon,g\n2,3,\"{\"\"type\"\":\"\"MultiPoint\"\",\"\"coordinates\"\":[[1,\"\"b\"\"]]}\"\n",
+      "argv": [
+        "-y0",
+        "--lat",
+        "lat",
+        "--lon",
+        "lon",
+        "--geometry",
+        "g"
+      ],
+      "stdout": "{\"type\": \"FeatureCollection\", \"bbox\": [1, \"b\", 1, \"b\"], \"features\": [{\"type\": \"Feature\", \"properties\": {}, \"geometry\": {\"type\": \"MultiPoint\", \"coordinates\": [[1, \"b\"]]}}]}",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "lat,lon,g\n2,3,\"{\"\"type\"\":\"\"MultiPoint\"\",\"\"coordinates\"\":[[1,\"\"b\"\"],[2,\"\"a\"\"]]}\"\n",
+      "argv": [
+        "-y0",
+        "--lat",
+        "lat",
+        "--lon",
+        "lon",
+        "--geometry",
+        "g"
+      ],
+      "stdout": "{\"type\": \"FeatureCollection\", \"bbox\": [1, \"a\", 2, \"b\"], \"features\": [{\"type\": \"Feature\", \"properties\": {}, \"geometry\": {\"type\": \"MultiPoint\", \"coordinates\": [[1, \"b\"], [2, \"a\"]]}}]}",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "lat,lon,g\n2,3,\"{\"\"type\"\":\"\"MultiPoint\"\",\"\"coordinates\"\":[[1,\"\"b\"\"],[2,3]]}\"\n",
+      "argv": [
+        "-y0",
+        "--lat",
+        "lat",
+        "--lon",
+        "lon",
+        "--geometry",
+        "g"
+      ],
+      "stdout": "",
+      "stderr": "TypeError: '<' not supported between instances of 'int' and 'str'\n",
+      "status": 1
+    },
+    {
+      "stdin": "lat,lon,g\n2,3,\"{\"\"type\"\":\"\"MultiPoint\"\",\"\"coordinates\"\":[[1,3],[2,\"\"b\"\"]]}\"\n",
+      "argv": [
+        "-y0",
+        "--lat",
+        "lat",
+        "--lon",
+        "lon",
+        "--geometry",
+        "g"
+      ],
+      "stdout": "",
+      "stderr": "TypeError: '<' not supported between instances of 'str' and 'int'\n",
+      "status": 1
+    },
+    {
+      "stdin": "lat,lon,g\n2,3,\"{\"\"type\"\":\"\"MultiPoint\"\",\"\"coordinates\"\":[[1,false],[2,true]]}\"\n",
+      "argv": [
+        "-y0",
+        "--lat",
+        "lat",
+        "--lon",
+        "lon",
+        "--geometry",
+        "g"
+      ],
+      "stdout": "{\"type\": \"FeatureCollection\", \"bbox\": [1, false, 2, true], \"features\": [{\"type\": \"Feature\", \"properties\": {}, \"geometry\": {\"type\": \"MultiPoint\", \"coordinates\": [[1, false], [2, true]]}}]}",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "lat,lon,g\n2,3,\"{\"\"type\"\":\"\"MultiPoint\"\",\"\"coordinates\"\":[[9007199254740993,2],[9007199254740992,3]]}\"\n",
+      "argv": [
+        "-y0",
+        "--lat",
+        "lat",
+        "--lon",
+        "lon",
+        "--geometry",
+        "g"
+      ],
+      "stdout": "{\"type\": \"FeatureCollection\", \"bbox\": [9007199254740992, 2, 9007199254740993, 3], \"features\": [{\"type\": \"Feature\", \"properties\": {}, \"geometry\": {\"type\": \"MultiPoint\", \"coordinates\": [[9007199254740993, 2], [9007199254740992, 3]]}}]}",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "lat,lon,g\n2,3,\"{\"\"type\"\":\"\"MultiPoint\"\",\"\"coordinates\"\":[[1,2,99]]}\"\n",
+      "argv": [
+        "-y0",
+        "--lat",
+        "lat",
+        "--lon",
+        "lon",
+        "--geometry",
+        "g"
+      ],
+      "stdout": "{\"type\": \"FeatureCollection\", \"bbox\": [1, 2, 1, 2], \"features\": [{\"type\": \"Feature\", \"properties\": {}, \"geometry\": {\"type\": \"MultiPoint\", \"coordinates\": [[1, 2, 99]]}}]}",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "lat,lon,g\n2,3,\"{\"\"type\"\":\"\"MultiPoint\"\",\"\"coordinates\"\":[[1,2,3,4]]}\"\n",
+      "argv": [
+        "-y0",
+        "--lat",
+        "lat",
+        "--lon",
+        "lon",
+        "--geometry",
+        "g"
+      ],
+      "stdout": "",
+      "stderr": "TypeError: object of type 'int' has no len()\n",
+      "status": 1
+    },
+    {
+      "stdin": "lat,lon,g\n2,3,\"{\"\"type\"\":\"\"MultiPoint\"\",\"\"coordinates\"\":[[1,{}]]}\"\n",
+      "argv": [
+        "-y0",
+        "--lat",
+        "lat",
+        "--lon",
+        "lon",
+        "--geometry",
+        "g"
+      ],
+      "stdout": "{\"type\": \"FeatureCollection\", \"bbox\": [1, {}, 1, {}], \"features\": [{\"type\": \"Feature\", \"properties\": {}, \"geometry\": {\"type\": \"MultiPoint\", \"coordinates\": [[1, {}]]}}]}",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "lat,lon,g\n2,3,\"{\"\"type\"\":\"\"MultiPoint\"\",\"\"coordinates\"\":[[1,[]]]}\"\n",
+      "argv": [
+        "-y0",
+        "--lat",
+        "lat",
+        "--lon",
+        "lon",
+        "--geometry",
+        "g"
+      ],
+      "stdout": "{\"type\": \"FeatureCollection\", \"bbox\": [1, [], 1, []], \"features\": [{\"type\": \"Feature\", \"properties\": {}, \"geometry\": {\"type\": \"MultiPoint\", \"coordinates\": [[1, []]]}}]}",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "lat,lon,g\n2,3,\"{\"\"type\"\":\"\"MultiPoint\"\",\"\"coordinates\"\":[[1,null],[2,null]]}\"\n",
+      "argv": [
+        "-y0",
+        "--lat",
+        "lat",
+        "--lon",
+        "lon",
+        "--geometry",
+        "g"
+      ],
+      "stdout": "{\"type\": \"FeatureCollection\", \"bbox\": [1, null, 2, null], \"features\": [{\"type\": \"Feature\", \"properties\": {}, \"geometry\": {\"type\": \"MultiPoint\", \"coordinates\": [[1, null], [2, null]]}}]}",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "stdin": "lat,lon,g\n2,3,\"{\"\"type\"\":\"\"MultiPoint\"\",\"\"coordinates\"\":[[1,2],[2,true]]}\"\n",
+      "argv": [
+        "-y0",
+        "--lat",
+        "lat",
+        "--lon",
+        "lon",
+        "--geometry",
+        "g"
+      ],
+      "stdout": "{\"type\": \"FeatureCollection\", \"bbox\": [1, true, 2, 2], \"features\": [{\"type\": \"Feature\", \"properties\": {}, \"geometry\": {\"type\": \"MultiPoint\", \"coordinates\": [[1, 2], [2, true]]}}]}",
+      "stderr": "",
+      "status": 0
+    }
+  ]
+}

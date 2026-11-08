@@ -1,0 +1,20 @@
+import { resolvePath, type FileSystem } from "@poe-code/safe-fs/core";
+import type { ArchiveContext } from "safe-bash-docx-engine/archive";
+import type { DocxInvocation } from "./command.js";
+import type { DocxInspectionCommandRequest } from "./inspection-command.js";
+import { PublicationError, type PublicationInput } from "safe-bash-docx-engine/publication";
+import { formatDocumentRuns, type RunFormatOptions } from "safe-bash-docx-engine/run-format";
+
+export async function executeRunFormatCommand(invocation: DocxInvocation, bytes: Uint8Array, input: PublicationInput | undefined,
+  request: DocxInspectionCommandRequest, context: ArchiveContext): Promise<Uint8Array> {
+  const options = invocation.options as RunFormatOptions;
+  if ((options.inPlace || options.output !== undefined && options.output !== "-") && invocation.inputs[0] !== "-" && !input)
+    throw new PublicationError("unsupported-publication", "File publication requires admitted input identity.");
+  const output = options.output === undefined ? undefined : options.output === "-" ? "-" : resolvePath(request.cwd, options.output);
+  const data = await formatDocumentRuns(bytes, { ...options, ...(input ? { input } : {}), ...(output === undefined ? {} : { output }) },
+    { ...context, encoding: { order: "input", compression: "store" }, filesystem: request.filesystem as FileSystem, stdout: request.stdout });
+  if (output === "-" && !data.dryRun) return new Uint8Array();
+  return new TextEncoder().encode(options.json ? JSON.stringify({ version: 1, operation: "runs.set", ok: true, data,
+    warnings: [], errors: [], affected: data.changes.length, locations: data.changes.map(change => change.after) }) + "\n"
+    : `docx runs set: ${data.dryRun ? "dry-run; " : ""}${data.changes.length} ${options.text === undefined ? `${data.changes.length === 1 ? "selection" : "selections"} formatted` : `${data.changes.length === 1 ? "run" : "runs"} updated`}\n`);
+}

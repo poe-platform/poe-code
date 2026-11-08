@@ -1,0 +1,69 @@
+{
+  "profile": "S06 regression preseal; no product validation yet",
+  "date": "2026-08-28",
+  "originalRevision": "50117fc54fdfd650e8f57e84b82ba21297ab8a0f",
+  "productBaseline": "c7dae6e884d1a144266dfc1bb80785bf007a667f",
+  "acceptedBaseTree": "37ad3f94f9fa07037e61d2bd27a4a4b7cddb4d5e",
+  "baselineComposedTree": "d6c17f62d2d3062b5ab074044a86b8a455820373",
+  "baselinePackageSha256": "0fadca03da4e100c7dd5b7df0a25d321467f9f1f9fbd288ebcc4456746945d26",
+  "originalTestGroups": 32,
+  "originalPublicExecs": 69,
+  "targetedCases": 50,
+  "baselinePredictedFailureCases": 9,
+  "files": [
+    {
+      "path": "tests/shell/indexed-arrays-author-20260828/foundation.test.ts",
+      "revision": "50117fc54fdfd650e8f57e84b82ba21297ab8a0f",
+      "sha256": "32a2243ae4f90677e596ba38e523b144a686ab29eed72ee3693b67086410c864"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-author-20260828/syntax.test.ts",
+      "revision": "50117fc54fdfd650e8f57e84b82ba21297ab8a0f",
+      "sha256": "3a168006b4c43f789ac4f6b0ae0f77ca62fabf3a4820d6d9c6826ae38f2d9579"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-author-20260828/public-consumer.ts",
+      "revision": "50117fc54fdfd650e8f57e84b82ba21297ab8a0f",
+      "sha256": "e0badcf27cf28e1d70d4e7f092ab6a892be364d9a77787fb9e0d120551e8c5ba"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-author-20260828/validate-foundation.mjs",
+      "revision": "50117fc54fdfd650e8f57e84b82ba21297ab8a0f",
+      "sha256": "fe4cd63cd1ac882d2c02cc3d7b39d11576ad169c1a27297869612f4c8e7ce717"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-author-20260828/s06-v2/cases.ts",
+      "sha256": "48af63658a0a5162234bb5bd938f1ac64686f6c53a42388259fd3f43eb50e776"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-author-20260828/s06-v2/regression.test.ts",
+      "sha256": "8bf61fe120e2c876fe183954a15edb6c50000b889a06f05ee35bf7fea470706d"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-author-20260828/s06-v2/public-s06.ts",
+      "sha256": "0d24f940d7e3ce12b2016df5d081e7860d9c69d69323b850cb955286c7cc2d7b"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-author-20260828/s06-v2/validate-repair.mjs",
+      "sha256": "c3723ccca831d0fef26618398e33dd61038216e499cb4f3831bfca3b389d1d6e"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-author-20260828/s06-v2/PRESEAL.md",
+      "sha256": "a836803e7beb71034bcef055783c0ed32fcc776977624ec513b76fbf7a7b7cf6"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-independent-20260828/review-v3/VECTORS.json",
+      "revision": "100685daa1a13dad8086c04bbbb24b0b19057a6f",
+      "sha256": "7d9c591a044fa1fc609c1c6e72a06146ec9e0c26d7c45304d516418f425e5095"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-independent-20260828/candidate-v1/FIRST-RUNTIME-RESULT.md",
+      "revision": "0ae08742117721eb5ddba73c8cc09418ed9c32bb",
+      "sha256": "cc9fdc7be122d7960280382896fdf0d8c5e7b60a4bb7e9b98c9d7bc81bc33081"
+    }
+  ],
+  "targetedSourceTests": 51,
+  "previousPresealCommit": "105a2c92",
+  "previousAttempt": "s06-v1/baseline-attempt-eZqFQv",
+  "previousFailure": "TS2307 on new fixture import; no runtime tests executed"
+}

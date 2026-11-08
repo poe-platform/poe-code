@@ -1,0 +1,855 @@
+{
+  "role": "AUTHOR evidence synthesis and read-only record audit, NOT independent acceptance",
+  "sourceCommit": "84ab66ca717e0dff21abf57051b41cb553f3c7f3",
+  "fixtureCommit": "8b6bcf83745727a45232c96de79a030fe98fb388",
+  "authorRun": {
+    "file": "author-run-v2.json",
+    "sha256": "77a55b5ed12176fba1f52158b52a91d6882fdb8fd43f6d29ad3e77f73089932e",
+    "started": "2026-08-27T11:30:00.964Z",
+    "finished": "2026-08-27T11:30:36.342Z"
+  },
+  "preservedFailedRun": {
+    "file": "author-run-v1.json",
+    "sha256": "a2d23cd2381dec61309e7ee9e30ee97c31436dc4edd24f2451aa50050453d893",
+    "fixtureCommit": "f2906a064d2558c634cdc1b71a7b74fd2f6d022a",
+    "classification": "new author prototype assertion error, retained; not product failure or original fourth defect"
+  },
+  "summary": {
+    "hidden": [
+      {
+        "profile": "gnu97-darwin-primary",
+        "total": 48,
+        "strictExact": 40,
+        "command": {
+          "total": 42,
+          "strictExact": 39
+        },
+        "protocol": {
+          "total": 6,
+          "strictExact": 1,
+          "supportedCoreCredit": 0
+        },
+        "additionalVirtualDiagnosticChecks": 3
+      },
+      {
+        "profile": "apple-env-bash32-historical",
+        "total": 48,
+        "strictExact": 23,
+        "command": {
+          "total": 42,
+          "strictExact": 22
+        },
+        "protocol": {
+          "total": 6,
+          "strictExact": 1,
+          "supportedCoreCredit": 0
+        },
+        "additionalVirtualDiagnosticChecks": 0
+      }
+    ],
+    "hiddenHosts": {
+      "total": 7,
+      "passed": 7
+    },
+    "consumer": [
+      {
+        "profile": "primary",
+        "total": 10,
+        "strictExact": 7,
+        "supportedCore": 7,
+        "unsupportedShebang": 3
+      },
+      {
+        "profile": "historical",
+        "total": 10,
+        "strictExact": 7,
+        "supportedCore": 7,
+        "unsupportedShebang": 3
+      }
+    ],
+    "consumerHosts": {
+      "cases": 3,
+      "executions": 5,
+      "passed": 5
+    },
+    "additionalPolicyControls": {
+      "total": 12,
+      "passed": 12
+    },
+    "childProcesses": 121
+  },
+  "originalArtifactHashesUnchanged": 94,
+  "frozenV2InputsUnchanged": 20,
+  "primaryEquivalence": [
+    {
+      "id": "quotes-empty-concatenated",
+      "variant": null,
+      "rawPrimaryTupleEqual": true,
+      "originalAssertionErrorPreservedIn": "original-observations.json",
+      "completedPrimaryTuple": true
+    },
+    {
+      "id": "long-option-preserves-tail",
+      "variant": null,
+      "rawPrimaryTupleEqual": true,
+      "originalAssertionErrorPreservedIn": "original-observations.json",
+      "completedPrimaryTuple": true
+    },
+    {
+      "id": "escapes-and-comments",
+      "variant": null,
+      "rawPrimaryTupleEqual": true,
+      "originalAssertionErrorPreservedIn": "original-observations.json",
+      "completedPrimaryTuple": true
+    },
+    {
+      "id": "variables-are-not-shell-code",
+      "variant": null,
+      "rawPrimaryTupleEqual": true,
+      "originalAssertionErrorPreservedIn": "original-observations.json",
+      "completedPrimaryTuple": true
+    },
+    {
+      "id": "split-before-ignore-environment",
+      "variant": null,
+      "rawPrimaryTupleEqual": true,
+      "originalAssertionErrorPreservedIn": "original-observations.json",
+      "completedPrimaryTuple": true
+    },
+    {
+      "id": "unset-and-repeated-assignment",
+      "variant": null,
+      "rawPrimaryTupleEqual": true,
+      "originalAssertionErrorPreservedIn": "original-observations.json",
+      "completedPrimaryTuple": true
+    },
+    {
+      "id": "unsupported-dollar-stops-before-dispatch",
+      "variant": null,
+      "rawPrimaryTupleEqual": true,
+      "originalAssertionErrorPreservedIn": "original-observations.json",
+      "completedPrimaryTuple": true
+    },
+    {
+      "id": "shebang-split-bash-errexit",
+      "variant": null,
+      "rawPrimaryTupleEqual": true,
+      "originalAssertionErrorPreservedIn": "original-observations.json",
+      "completedPrimaryTuple": true
+    },
+    {
+      "id": "shebang-long-split-sh-argv",
+      "variant": null,
+      "rawPrimaryTupleEqual": true,
+      "originalAssertionErrorPreservedIn": "original-observations.json",
+      "completedPrimaryTuple": true
+    },
+    {
+      "id": "non-split-header-one-argument",
+      "variant": null,
+      "rawPrimaryTupleEqual": true,
+      "originalAssertionErrorPreservedIn": "original-observations.json",
+      "completedPrimaryTuple": true
+    },
+    {
+      "id": "transparent-input-presence",
+      "variant": "default",
+      "rawPrimaryTupleEqual": true,
+      "originalAssertionErrorPreservedIn": "original-observations.json",
+      "completedPrimaryTuple": true
+    },
+    {
+      "id": "transparent-input-presence",
+      "variant": "explicit-empty",
+      "rawPrimaryTupleEqual": true,
+      "originalAssertionErrorPreservedIn": "original-observations.json",
+      "completedPrimaryTuple": true
+    },
+    {
+      "id": "transparent-input-presence",
+      "variant": "binary",
+      "rawPrimaryTupleEqual": true,
+      "originalAssertionErrorPreservedIn": "original-observations.json",
+      "completedPrimaryTuple": true
+    },
+    {
+      "id": "shared-command-budget",
+      "variant": null,
+      "rawPrimaryTupleEqual": true,
+      "originalAssertionErrorPreservedIn": "original-observations.json",
+      "completedPrimaryTuple": false
+    },
+    {
+      "id": "typed-cancellation",
+      "variant": null,
+      "rawPrimaryTupleEqual": true,
+      "originalAssertionErrorPreservedIn": "original-observations.json",
+      "completedPrimaryTuple": false
+    }
+  ],
+  "hiddenPrimaryRawTuplesUnchanged": 48,
+  "primaryNativeInvalidGrammar125Exact": 9,
+  "sourceArchiveSha256": "f17461ad17ddf23b1c194b2a422a3d41e229b1becf999faa2897c82cabb14f1f",
+  "sourceFiles": 220,
+  "emittedFiles": 708,
+  "actualBuildInputs": 343,
+  "actualMovedDeclarationInputs": 242,
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "tarball": {
+    "sha256": "3ac9f899fbabb14e0473a9345113642fbfd2d12ac6e957659695b6b9e2fbac8c",
+    "size": 630766,
+    "shasum": "09a3036291301ce501ec458ff4ca5bf29008e984",
+    "integrity": "sha512-1EzrjZuMG90ArnHsXuT6Mr7SljLgy7vdc03rXyZZ4ANkObs64lTkyQ3OpEmjDjrY578MIsK516fcK3Ecl4ec4Q==",
+    "files": 710,
+    "reusedOriginalPack": true,
+    "newPack": false
+  },
+  "movedPackage": {
+    "from": "/private/tmp/safe-bash-env-validity-v2-vW3iKJ/installation",
+    "to": "/private/tmp/safe-bash-env-validity-v2-vW3iKJ/moved-consumer",
+    "oldPathAbsent": true,
+    "packageRoot": "/private/tmp/safe-bash-env-validity-v2-vW3iKJ/moved-consumer/node_modules/virtual-bash",
+    "packageIsRealDirectory": true
+  },
+  "productProcesses": 117,
+  "actualProductModuleCounts": [
+    174
+  ],
+  "sourceAndInstalledHashesUnchanged": true,
+  "noProductHostProcessOrFetchAttempts": true,
+  "freshNativeRuns": 0,
+  "originalAndRevisedDiff": [
+    "original-revised.diff",
+    "v1-v2.diff"
+  ],
+  "sourceProof": "binding-source-proof.json",
+  "remainingLosses": {
+    "file": "remaining-losses-v2.json",
+    "sha256": "b9b8766ed6b047d697e97e2ca4a7c00aad58cce0e43dcff669e666ad207235a7",
+    "hiddenPrimary": 8,
+    "hiddenHistorical": 25,
+    "consumerEachWholeProfile": 3
+  },
+  "cleanup": {
+    "scratchAbsent": true,
+    "childGroups": [
+      {
+        "id": "archived-source-build",
+        "pid": 50785,
+        "alive": false
+      },
+      {
+        "id": "offline-original-tgz-install",
+        "pid": 50896,
+        "alive": false
+      },
+      {
+        "id": "moved-installed-public-types",
+        "pid": 50937,
+        "alive": false
+      },
+      {
+        "id": "invalid-byte-binding-type-negative",
+        "pid": 50946,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:mixed-fragments",
+        "pid": 50954,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:empty-quoted-arguments",
+        "pid": 50972,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:six-whitespace-separators",
+        "pid": 50988,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:quoted-whitespace",
+        "pid": 50999,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:underscore-escape-contexts",
+        "pid": 51014,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:escaped-control-characters",
+        "pid": 51022,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:single-quote-escape-exceptions",
+        "pid": 51037,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:escaped-quotes-hash-dollar",
+        "pid": 51055,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:hash-boundary",
+        "pid": 51069,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:stop-escape",
+        "pid": 51078,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:stop-inside-double-quote-error",
+        "pid": 51091,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:stop-inside-single-quote-literal",
+        "pid": 51110,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:unmatched-single-quote",
+        "pid": 51115,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:unmatched-double-quote",
+        "pid": 51120,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:invalid-escape",
+        "pid": 51127,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:terminal-backslash",
+        "pid": 51137,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:incoming-value-keeps-one-argument",
+        "pid": 51144,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:incoming-value-not-reparsed",
+        "pid": 51155,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:single-quote-no-expansion",
+        "pid": 51163,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:empty-and-unset-boundaries",
+        "pid": 51170,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:lookup-before-ignore-and-unset",
+        "pid": 51178,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:lookup-before-assignment",
+        "pid": 51186,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:earlier-option-unset-lookup",
+        "pid": 51196,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:earlier-ignore-lookup",
+        "pid": 51211,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:invalid-bare-dollar",
+        "pid": 51219,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:invalid-special-dollar",
+        "pid": 51227,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:invalid-parameter-operator",
+        "pid": 51234,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:command-substitution-not-shell",
+        "pid": 51239,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:backticks-and-operators-literal",
+        "pid": 51252,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:long-split-equals-tail",
+        "pid": 51262,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:long-split-separate",
+        "pid": 51281,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:attached-short-split",
+        "pid": 51287,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:repeat-split-option",
+        "pid": 51295,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:nested-split-with-variable",
+        "pid": 51303,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:assignment-options-stop",
+        "pid": 51314,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:double-dash-after-split",
+        "pid": 51324,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:packed-non-s-single-operand",
+        "pid": 51332,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:plain-argv-positive",
+        "pid": 51339,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:empty-split-then-tail",
+        "pid": 51345,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:missing-command-negative",
+        "pid": 51352,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:nonexecutable-command-negative",
+        "pid": 51366,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:moderate-variable-growth",
+        "pid": 51377,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:plain-bash",
+        "pid": 51381,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:non-s-packed-bash-option",
+        "pid": 51387,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:split-errexit",
+        "pid": 51392,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:split-assignment-and-clear",
+        "pid": 51399,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:split-long-plus-option",
+        "pid": 51410,
+        "alive": false
+      },
+      {
+        "id": "hidden:gnu97-darwin-primary:split-quoted-marker",
+        "pid": 51415,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:mixed-fragments",
+        "pid": 51421,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:empty-quoted-arguments",
+        "pid": 51427,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:six-whitespace-separators",
+        "pid": 51430,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:quoted-whitespace",
+        "pid": 51445,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:underscore-escape-contexts",
+        "pid": 51482,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:escaped-control-characters",
+        "pid": 51488,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:single-quote-escape-exceptions",
+        "pid": 51496,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:escaped-quotes-hash-dollar",
+        "pid": 51498,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:hash-boundary",
+        "pid": 51501,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:stop-escape",
+        "pid": 51507,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:stop-inside-double-quote-error",
+        "pid": 51514,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:stop-inside-single-quote-literal",
+        "pid": 51521,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:unmatched-single-quote",
+        "pid": 51525,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:unmatched-double-quote",
+        "pid": 51529,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:invalid-escape",
+        "pid": 51535,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:terminal-backslash",
+        "pid": 51539,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:incoming-value-keeps-one-argument",
+        "pid": 51543,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:incoming-value-not-reparsed",
+        "pid": 51549,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:single-quote-no-expansion",
+        "pid": 51554,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:empty-and-unset-boundaries",
+        "pid": 51559,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:lookup-before-ignore-and-unset",
+        "pid": 51564,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:lookup-before-assignment",
+        "pid": 51566,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:earlier-option-unset-lookup",
+        "pid": 51570,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:earlier-ignore-lookup",
+        "pid": 51574,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:invalid-bare-dollar",
+        "pid": 51585,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:invalid-special-dollar",
+        "pid": 51590,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:invalid-parameter-operator",
+        "pid": 51595,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:command-substitution-not-shell",
+        "pid": 51599,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:backticks-and-operators-literal",
+        "pid": 51602,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:long-split-equals-tail",
+        "pid": 51616,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:long-split-separate",
+        "pid": 51631,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:attached-short-split",
+        "pid": 51636,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:repeat-split-option",
+        "pid": 51640,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:nested-split-with-variable",
+        "pid": 51649,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:assignment-options-stop",
+        "pid": 51652,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:double-dash-after-split",
+        "pid": 51659,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:packed-non-s-single-operand",
+        "pid": 51661,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:plain-argv-positive",
+        "pid": 51673,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:empty-split-then-tail",
+        "pid": 51676,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:missing-command-negative",
+        "pid": 51679,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:nonexecutable-command-negative",
+        "pid": 51682,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:moderate-variable-growth",
+        "pid": 51688,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:plain-bash",
+        "pid": 51693,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:non-s-packed-bash-option",
+        "pid": 51697,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:split-errexit",
+        "pid": 51699,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:split-assignment-and-clear",
+        "pid": 51704,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:split-long-plus-option",
+        "pid": 51710,
+        "alive": false
+      },
+      {
+        "id": "hidden:apple-env-bash32-historical:split-quoted-marker",
+        "pid": 51715,
+        "alive": false
+      },
+      {
+        "id": "hidden-host:literal-invoke-replace-env-parent",
+        "pid": 51721,
+        "alive": false
+      },
+      {
+        "id": "hidden-host:exported-not-local-lookup",
+        "pid": 51725,
+        "alive": false
+      },
+      {
+        "id": "hidden-host:empty-input-provenance",
+        "pid": 51733,
+        "alive": false
+      },
+      {
+        "id": "hidden-host:nested-shared-command-budget",
+        "pid": 51743,
+        "alive": false
+      },
+      {
+        "id": "hidden-host:cancel-and-late-rejection",
+        "pid": 51748,
+        "alive": false
+      },
+      {
+        "id": "hidden-host:awaited-sink-shared-output-budget",
+        "pid": 51752,
+        "alive": false
+      },
+      {
+        "id": "hidden-host:split-expansion-growth-budget",
+        "pid": 51757,
+        "alive": false
+      },
+      {
+        "id": "consumer:quotes-empty-concatenated",
+        "pid": 51763,
+        "alive": false
+      },
+      {
+        "id": "consumer:long-option-preserves-tail",
+        "pid": 51767,
+        "alive": false
+      },
+      {
+        "id": "consumer:escapes-and-comments",
+        "pid": 51771,
+        "alive": false
+      },
+      {
+        "id": "consumer:variables-are-not-shell-code",
+        "pid": 51775,
+        "alive": false
+      },
+      {
+        "id": "consumer:split-before-ignore-environment",
+        "pid": 51780,
+        "alive": false
+      },
+      {
+        "id": "consumer:unset-and-repeated-assignment",
+        "pid": 51786,
+        "alive": false
+      },
+      {
+        "id": "consumer:unsupported-dollar-stops-before-dispatch",
+        "pid": 51789,
+        "alive": false
+      },
+      {
+        "id": "consumer:shebang-split-bash-errexit",
+        "pid": 51796,
+        "alive": false
+      },
+      {
+        "id": "consumer:shebang-long-split-sh-argv",
+        "pid": 51803,
+        "alive": false
+      },
+      {
+        "id": "consumer:non-split-header-one-argument",
+        "pid": 51814,
+        "alive": false
+      },
+      {
+        "id": "consumer:transparent-input-presence",
+        "pid": 51820,
+        "alive": false
+      },
+      {
+        "id": "consumer:shared-command-budget",
+        "pid": 51823,
+        "alive": false
+      },
+      {
+        "id": "consumer:typed-cancellation",
+        "pid": 51827,
+        "alive": false
+      },
+      {
+        "id": "additional-explicit-replacement-controls",
+        "pid": 51831,
+        "alive": false
+      }
+    ]
+  },
+  "watchdogInterventions": 0,
+  "limits": [
+    "No independently reviewed acceptance",
+    "No product changes",
+    "Runtime/shebang unsupported",
+    "Parent values/exports asserted after settled work; interrupted exec only exposes retained parent context, not interpreter-local storage",
+    "Scope is fixture revision, not superiority or full project completion"
+  ]
+}

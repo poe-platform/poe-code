@@ -1,0 +1,11 @@
+{
+  "audit.json": "fdac5b695e2745335beefdf8f5597cc6a72a716c996fe6b5c05d80d0e3def6e0",
+  "author-service-replay.json": "2f9c009a01289e30b97c490d0dd1aa7f146601127be2b2eef67b9d933d9c9e87",
+  "download.json": "41b4202cd481d998c09d841be669660d87d09a592091b71a4adfb3d3f8b508b4",
+  "packed-public-service.json": "d3455fb79ed1c3b716b141b71f889e62b5dc69c33df27ea49de8f64ace5adab8",
+  "prepare.json": "7fa4305ac554416b3ab51543fff1ed716a5718d4fb618e2c30dd5322d9e0d2d1",
+  "raw-author-fallback-check.json": "a1fc9769d301d92a6de8575a04dd57c91dbcfca1236d3777f893f6fc4569dfba",
+  "raw-author-guards.json": "4615f10c8efd27a72d4276de34311c70fc5d150637937b375b5e698c1b4ecd26",
+  "raw-author-transport-check.json": "7e4d99a3f099f8e9e484511f8b4b8ab7bfc78c209395270e654d4b58ade3cd89",
+  "raw-packed-native.json": "a75fa4e94203020d185bce257e032c75d86ec6b85ca64a88af806def3944115e"
+}

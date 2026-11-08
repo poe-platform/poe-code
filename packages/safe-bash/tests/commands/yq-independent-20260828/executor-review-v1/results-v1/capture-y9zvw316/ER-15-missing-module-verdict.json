@@ -1,0 +1,9 @@
+{
+  "family": "ER-15",
+  "name": "missing-module",
+  "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+  "outcome": "CONTROL_PASS",
+  "failure": null,
+  "input": "ER-15-missing-module-input.json",
+  "raw": "ER-15-missing-module-raw.json"
+}

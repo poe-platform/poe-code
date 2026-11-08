@@ -1,0 +1,36 @@
+{
+  "environments": [
+    "C",
+    "en_US.UTF-8"
+  ],
+  "byteEquivalentParsedResults": true,
+  "initialUnqualifiedAmbientRetained": true,
+  "results": [
+    {
+      "selectors": 14,
+      "selectorTotal": 14,
+      "productGate": 517,
+      "gateTotal": 517,
+      "runtimeAdmission": 517,
+      "runtimeTotal": 517,
+      "namedUserPolicy": 10,
+      "namedShell": 10,
+      "namedFrozenNativeStrict": 9,
+      "namedTotal": 10
+    },
+    {
+      "selectors": 14,
+      "selectorTotal": 14,
+      "productGate": 517,
+      "gateTotal": 517,
+      "runtimeAdmission": 517,
+      "runtimeTotal": 517,
+      "namedUserPolicy": 10,
+      "namedShell": 10,
+      "namedFrozenNativeStrict": 9,
+      "namedTotal": 10
+    }
+  ],
+  "noAmbientLocaleSelection": true,
+  "qualification": "Named and fallback behavior unchanged under explicit host locale environments; product receives exactly frozen virtual env maps."
+}

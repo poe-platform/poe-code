@@ -1,0 +1,417 @@
+{
+  "mode": "PURE_MOCK_SELFCHECK",
+  "status": "PASS_MOCK_CHECKS",
+  "counts": {
+    "checks": 62,
+    "passed": 62,
+    "failed": 0
+  },
+  "fixtureAuthority": "Public deterministic test key and synthetic hashes only; not ROOT authority or a candidate freeze.",
+  "engineCalls": 0,
+  "nativeWorkloadCalls": 0,
+  "childProcessesCreated": 0,
+  "loopbackServersCreated": 0,
+  "performanceSamples": 0,
+  "score": null,
+  "realLifecycleValidation": "NOT_RUN",
+  "checks": [
+    {
+      "name": "PREPARE is WAITING_ROOT, not a score",
+      "status": "PASS_MOCK_CHECK"
+    },
+    {
+      "name": "absent approval/freeze never calls artifact reader",
+      "status": "PASS_MOCK_CHECK"
+    },
+    {
+      "name": "missing candidate binding is WAITING_ROOT",
+      "status": "PASS_MOCK_CHECK"
+    },
+    {
+      "name": "synthetic signed inputs cannot enable execution",
+      "status": "PASS_MOCK_CHECK"
+    },
+    {
+      "name": "reject run flag",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "execution/timing flags must remain false"
+      ]
+    },
+    {
+      "name": "reject timing flag",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "execution/timing flags must remain false"
+      ]
+    },
+    {
+      "name": "reject unfrozen candidate",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "candidate is not a future ROOT freeze"
+      ]
+    },
+    {
+      "name": "reject floating commit",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "candidate commit must be exact"
+      ]
+    },
+    {
+      "name": "reject missing packed review",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "unbound artifact: undefined"
+      ]
+    },
+    {
+      "name": "reject stale review subject",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "inventoryReview: stale candidate"
+      ]
+    },
+    {
+      "name": "reject stale pack subject",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "packedReview: stale pack manifest"
+      ]
+    },
+    {
+      "name": "reject same reviewer",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "inventory and packed reviews must name different reviewers"
+      ]
+    },
+    {
+      "name": "reject changed 224 count",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "unchanged 224 denominator required"
+      ]
+    },
+    {
+      "name": "reject changed aligned recipes",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "224 profiles must reference identical ordered recipe bytes"
+      ]
+    },
+    {
+      "name": "reject merged TMPDIR profile",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "TMPDIR profiles and native captures must stay separate"
+      ]
+    },
+    {
+      "name": "reject merged native capture",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "TMPDIR profiles and native captures must stay separate"
+      ]
+    },
+    {
+      "name": "reject relaxed aligned predicate",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "224 comparison predicates must remain identical"
+      ]
+    },
+    {
+      "name": "reject removed historical diagnostic",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "preserve historical breadth recipes/diagnostics separately"
+      ]
+    },
+    {
+      "name": "reject invented score union",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "no score union across overlapping cohorts"
+      ]
+    },
+    {
+      "name": "reject unbound resolved entry",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "unbound artifact: unreviewed-entry"
+      ]
+    },
+    {
+      "name": "reject missing lock hash",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "missing engine lock hashes"
+      ]
+    },
+    {
+      "name": "reject different baseline version",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "baseline version differs from authenticated historical pin"
+      ]
+    },
+    {
+      "name": "reject oversized declared artifact",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "artifact byte cap"
+      ]
+    },
+    {
+      "name": "reject aggregate read cap",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "aggregate artifact byte cap"
+      ]
+    },
+    {
+      "name": "reject duplicate artifact",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "duplicate artifact: candidateFreeze"
+      ]
+    },
+    {
+      "name": "reject wrong approvalSha256",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "ROOT approval hash mismatch"
+      ]
+    },
+    {
+      "name": "reject wrong rootKeySha256",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "ROOT trust-key hash mismatch"
+      ]
+    },
+    {
+      "name": "reject correctly hashed but forged signature",
+      "status": "PASS_MOCK_CHECK"
+    },
+    {
+      "name": "reject signed approval reused for another manifest",
+      "status": "PASS_MOCK_CHECK"
+    },
+    {
+      "name": "retain partial receipts when artifact hash changes",
+      "status": "PASS_MOCK_CHECK"
+    },
+    {
+      "name": "missing on-disk approved artifact stays WAITING_ROOT",
+      "status": "PASS_MOCK_CHECK"
+    },
+    {
+      "name": "reject canonical artifact alias",
+      "status": "PASS_MOCK_CHECK"
+    },
+    {
+      "name": "sibling row selectors preserve separate profiles without copying files",
+      "status": "PASS_MOCK_CHECK"
+    },
+    {
+      "name": "reader hashes executable-looking fixture without importing",
+      "status": "PASS_MOCK_CHECK"
+    },
+    {
+      "name": "reader rejects directories, traversal and excess input",
+      "status": "PASS_MOCK_CHECK"
+    },
+    {
+      "name": "complete lifecycle is MODEL_CLEAN, not real process proof",
+      "status": "PASS_MOCK_CHECK"
+    },
+    {
+      "name": "model rejects stalled guest",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "missing phase: guest-result",
+        "missing phase: exec-settled",
+        "missing phase: snapshot-complete",
+        "missing phase: dispose-start",
+        "missing phase: dispose-settled",
+        "missing phase: ipc-disconnected",
+        "missing phase: child-exit",
+        "missing phase: stdio-close",
+        "missing phase: resource-census"
+      ]
+    },
+    {
+      "name": "model rejects unsettled execution",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "missing phase: exec-settled"
+      ]
+    },
+    {
+      "name": "model rejects stalled disposal",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "missing phase: dispose-settled"
+      ]
+    },
+    {
+      "name": "model rejects exit without stdio close",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "missing phase: stdio-close"
+      ]
+    },
+    {
+      "name": "model rejects leaked worker after successful guest",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "owned resource census incomplete or leaked"
+      ]
+    },
+    {
+      "name": "model rejects unknown resource census",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "owned resource census incomplete or leaked"
+      ]
+    },
+    {
+      "name": "model rejects late promise after close",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "sticky failure: late-promise"
+      ]
+    },
+    {
+      "name": "model rejects cancelled then successful",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "sticky failure: cancel"
+      ]
+    },
+    {
+      "name": "model rejects TERM then natural-looking exit",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "sticky failure: term"
+      ]
+    },
+    {
+      "name": "model rejects KILL then natural-looking exit",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "sticky failure: kill"
+      ]
+    },
+    {
+      "name": "model rejects partial stdout overflow",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "capture limit/unknown: outputBytes"
+      ]
+    },
+    {
+      "name": "model rejects snapshot overflow",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "capture limit/unknown: snapshotBytes"
+      ]
+    },
+    {
+      "name": "model rejects diagnostic overflow",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "capture limit/unknown: diagnosticBytes"
+      ]
+    },
+    {
+      "name": "model rejects IPC/report overflow",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "capture limit/unknown: reportBytes"
+      ]
+    },
+    {
+      "name": "model rejects duplicate result",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "duplicate/out-of-order phase: guest-result"
+      ]
+    },
+    {
+      "name": "model rejects guest deadline",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "deadline: exec-start -> guest-result"
+      ]
+    },
+    {
+      "name": "model rejects setup consumes request deadline",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "deadline: request-start -> resource-census"
+      ]
+    },
+    {
+      "name": "model rejects startup deadline",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "deadline: launch -> ready"
+      ]
+    },
+    {
+      "name": "model rejects settlement deadline",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "deadline: guest-result -> exec-settled"
+      ]
+    },
+    {
+      "name": "model rejects snapshot deadline",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "deadline: exec-settled -> snapshot-complete"
+      ]
+    },
+    {
+      "name": "model rejects dispose deadline",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "deadline: dispose-start -> dispose-settled"
+      ]
+    },
+    {
+      "name": "model rejects natural-close deadline",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "deadline: dispose-settled -> resource-census"
+      ]
+    },
+    {
+      "name": "model rejects parent watchdog",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "sticky failure: watchdog-expired"
+      ]
+    },
+    {
+      "name": "model rejects reversed clock",
+      "status": "PASS_MOCK_CHECK",
+      "detail": [
+        "unknown event or nonmonotonic mock clock",
+        "missing phase: request-start"
+      ]
+    },
+    {
+      "name": "TERM/KILL/stop-wait fallback never exceeds fixed parent cap",
+      "status": "PASS_MOCK_CHECK"
+    },
+    {
+      "name": "runtime module graph contains only reviewed local files and builtins",
+      "status": "PASS_MOCK_CHECK"
+    }
+  ]
+}

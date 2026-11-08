@@ -1,0 +1,14 @@
+{
+  "id": "symlink-rejection",
+  "families": [
+    "F01"
+  ],
+  "observation": {
+    "thrown": {
+      "code": "SYMLINK",
+      "name": "Error",
+      "message": "SYMLINK: link"
+    }
+  },
+  "classification": "SYNTHETIC_CONTROL_OBSERVATION_BEFORE_ASSERTION"
+}

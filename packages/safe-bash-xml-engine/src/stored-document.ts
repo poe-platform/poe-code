@@ -1,0 +1,447 @@
+import { parseStoredXml } from "./recovery.js";
+import { type XmlSourceSpan, type XmlName, type XmlAttribute, type XmlContent, type XmlElement } from "@poe-code/safe-fs/core";
+import { PagedStorage, type PagedStorageContext } from "@poe-code/safe-fs/storage";
+import { StoredStringMap as StoredNamespaces } from "./stored-map.js";
+import { XmlBudget } from "./limits.js";
+
+// Fixed-size links are separate from the variable-size node metadata. Pointers
+// are safe integer byte offsets; zero is the absent-link sentinel.
+const headerBytes = 88;
+const namespaceNodesField = 80;
+const namespacesField = 72;
+const parentField = 0, nextField = 8, firstField = 16, lastField = 24, sizeField = 32, firstAttributeField = 40, lastAttributeField = 48, flagsField = 56, fragmentField = 64;
+const textFlag = 1, preserveSpaceFlag = 2;
+
+export type StoredAttribute = XmlAttribute & { readonly valueReference?: number; readonly namespaceValueReference?: number };
+export type StoredXmlAttribute = { kind: "attribute"; value: XmlAttribute; namespaceNode?: boolean };
+type XmlStreamEvent = Parameters<NonNullable<Parameters<typeof parseStoredXml>[4]>>[0];
+type Metadata = StoredXmlAttribute | Exclude<XmlContent, XmlElement> | {
+  kind: "element"; name: string; localName: string; namespace: string; namespaceReference?: number; nameReference?: number; localNameReference?: number; prefix?: string;
+  declaration?: string;
+};
+
+/** XML node state in the caller's paged filesystem storage. Metadata is loaded
+ * one node at a time; XML tokens and parser ancestry still have their own cost. */
+export class StoredXmlDocument {
+  private rootReference = 0;
+  private documentReference = 0;
+  private namespaceStart = Infinity;
+  readonly storage: PagedStorage;
+  private closing: Promise<void> | undefined;
+
+  private constructor(context: PagedStorageContext, readonly budget: XmlBudget, pages: number) {
+    this.storage = new PagedStorage(context, pages);
+  }
+
+  get root(): number { return this.rootReference; }
+  get document(): number { return this.documentReference; }
+
+  static async parse(source: AsyncIterable<string> | Iterable<string>, context: PagedStorageContext & { readonly registerCleanup?: (cleanup: () => Promise<void>) => void },
+    budget: XmlBudget, pages = 64, recover?: (message: string) => void): Promise<StoredXmlDocument> {
+    const document = new StoredXmlDocument(context, budget, pages);
+    try {
+      context.registerCleanup?.(document.close.bind(document));
+      document.documentReference = await document.storage.append(new Uint8Array(headerBytes));
+      const namespaces = await new StoredNamespaces(document.storage, budget).set("xml", "http://www.w3.org/XML/1998/namespace");
+      await document.set(document.documentReference, namespacesField, namespaces.reference);
+      let parent = document.documentReference, fragmentTail = 0, attributeTail = 0, targetReference: number | undefined;
+      let attributeNames: Pick<XmlName, "nameReference" | "localNameReference" | "prefixReference"> = {};
+      let pendingNamespace: { prefix: string | number; reference: number } | undefined;
+      let tokens = new StoredNamespaces(document.storage, budget);
+      const consume = async (event: XmlStreamEvent, namespaceParts: (reference: number) => AsyncIterable<string>, sourceParts: (span: XmlSourceSpan) => AsyncIterable<string>): Promise<void> => {
+          async function retainNamespace(reference: number): Promise<number> {
+            const key = String(reference), previous = await tokens.lookup(key);
+            if (previous !== undefined) return previous;
+            const retained = await tokens.storeString(namespaceParts(reference));
+            tokens = await tokens.set(key, { reference: retained });
+            return retained;
+          }
+          if (pendingNamespace && !(event.type === "attribute" && event.continuation)) {
+            const scope = await document.namespaceScope(parent);
+            const updated = await scope.set(pendingNamespace.prefix, document.text(pendingNamespace.reference));
+            await document.set(parent, namespacesField, updated.reference);
+            pendingNamespace = undefined;
+          }
+          if (event.type === "attribute") {
+            if (!event.continuation) {
+              const full = event.attribute.nameSource;
+              const local = event.attribute.localNameSource;
+              const nameReference = full ? await tokens.storeString(sourceParts(full)) : undefined;
+              const localNameReference = local ? local.start === full?.start ? nameReference : await tokens.storeString(sourceParts(local)) : undefined;
+              const prefixReference = event.attribute.prefixSource ? await tokens.storeString(sourceParts(event.attribute.prefixSource)) : undefined;
+              attributeNames = { ...(prefixReference === undefined ? {} : { prefixReference }), ...(nameReference === undefined ? {} : { nameReference }), ...(localNameReference === undefined ? {} : { localNameReference }) };
+            }
+            const { nameSource: ignoredNameSource, localNameSource: ignoredLocalSource, prefixSource: ignoredPrefixSource, ...original } = event.attribute;
+            const retained = { ...original, ...attributeNames };
+            const attribute = event.attribute.namespaceReference === undefined ? retained : {
+              ...retained, namespaceReference: await retainNamespace(event.attribute.namespaceReference)
+            };
+            const reference = await document.append(parent, { kind: "attribute", value: attribute }, event.continuation);
+            if (event.continuation) await document.set(attributeTail, fragmentField, reference);
+            attributeTail = reference;
+            if (!event.continuation && event.attribute.namespace === "http://www.w3.org/2000/xmlns/")
+              pendingNamespace = { prefix: attribute.name === "xmlns" ? "" : attribute.localNameReference ?? attribute.localName, reference };
+            return;
+          }
+          if (event.type === "close") { parent = await document.field(parent, parentField); return; }
+          let metadata: Metadata;
+          if (event.type === "content") {
+            metadata = event.content;
+            if (metadata.kind === "processing-instruction" && metadata.targetSource) {
+              if (!event.continuation) targetReference = await tokens.storeString(sourceParts(metadata.targetSource));
+              const { targetSource: ignoredSource, ...content } = metadata;
+              metadata = { ...content, targetReference: targetReference! };
+            }
+          }
+          else {
+            const element = event.element;
+            const prefixReference = element.prefixSource ? await tokens.storeString(sourceParts(element.prefixSource)) : undefined;
+            const nameReference = element.nameSource ? await tokens.storeString(sourceParts(element.nameSource)) : undefined;
+            const localNameReference = element.localNameSource ? element.nameSource?.start === element.localNameSource.start
+              ? nameReference : await tokens.storeString(sourceParts(element.localNameSource)) : undefined;
+            metadata = { kind: "element", ...(prefixReference === undefined ? {} : { prefixReference }), name: element.name, localName: element.localName, namespace: element.namespace,
+              ...(nameReference === undefined ? {} : { nameReference, prefix: element.prefix! }),
+              ...(localNameReference === undefined ? {} : { localNameReference }),
+              ...(element.namespaceReference === undefined ? {} : { namespaceReference: await retainNamespace(element.namespaceReference) }),
+              ...(element.declaration === undefined ? {} : { declaration: element.declaration }) };
+          }
+          const continuation = event.type === "content" && event.continuation === true;
+          const reference = await document.append(parent, metadata, continuation);
+          if (continuation) await document.set(fragmentTail, fragmentField, reference);
+          fragmentTail = reference;
+          if (event.type === "open") {
+            const namespaces = await document.namespaceScope(parent);
+            await document.set(reference, namespacesField, namespaces.reference);
+            if (!document.rootReference) document.rootReference = reference;
+            parent = reference;
+          }
+      };
+      await parseStoredXml(source, context, budget, recover, consume, { deferNamespaces: true, deferContentNames: true, deferElementNames: true, deferAttributeNames: true });
+      return document;
+    } catch (error) {
+      try { await document.close(); }
+      catch { /* Preserve the original parser, source or cancellation failure. */ }
+      throw error;
+    }
+  }
+
+  private async field(reference: number, offset: number): Promise<number> {
+    const bytes = await this.storage.read(reference + offset, 8);
+    return new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getFloat64(0, true);
+  }
+
+  private async set(reference: number, offset: number, value: number): Promise<void> {
+    const bytes = new Uint8Array(8);
+    new DataView(bytes.buffer).setFloat64(0, value, true);
+    await this.storage.write(reference + offset, bytes);
+  }
+
+  private async append(parent: number, metadata: Metadata, fragment = false): Promise<number> {
+    const source = JSON.stringify(metadata);
+    const encoder = new TextEncoder();
+    // Encode in fixed windows instead of allocating another full-node byte copy.
+    let size = 0, scanned = 0;
+    for (const character of source) {
+      const point = character.codePointAt(0)!;
+      size += point <= 0x7f ? 1 : point <= 0x7ff ? 2 : point <= 0xffff ? 3 : 4;
+      if (++scanned === 4096) { const checkpoint = this.budget.tick(scanned); if (checkpoint) await checkpoint; scanned = 0; }
+    }
+    const reference = this.storage.allocate(headerBytes + size);
+    const header = new Uint8Array(headerBytes), view = new DataView(header.buffer);
+    view.setFloat64(parentField, parent, true);
+    view.setFloat64(sizeField, size, true);
+    await this.storage.write(reference, header);
+    let at = reference + headerBytes;
+    for (let offset = 0; offset < source.length;) {
+      let end = Math.min(source.length, offset + 4096);
+      const last = source.charCodeAt(end - 1);
+      if (end < source.length && last >= 0xd800 && last <= 0xdbff) end--;
+      const bytes = encoder.encode(source.slice(offset, end));
+      await this.storage.write(at, bytes);
+      at += bytes.length; offset = end;
+      const checkpoint = this.budget.tick(bytes.length); if (checkpoint) await checkpoint;
+    }
+    if (fragment) return reference;
+    const firstLink = metadata.kind === "attribute" ? firstAttributeField : firstField;
+    const lastLink = metadata.kind === "attribute" ? lastAttributeField : lastField;
+    const last = await this.field(parent, lastLink);
+    if (metadata.kind === "attribute") await this.set(reference, lastField, last);
+    if (last) await this.set(last, nextField, reference);
+    else await this.set(parent, firstLink, reference);
+    await this.set(parent, lastLink, reference);
+    return reference;
+  }
+
+  /** Buffering convenience API; engine traversal uses metadata and attribute links. */
+  async node(reference: number): Promise<XmlContent | StoredXmlAttribute> {
+    const value = await this.metadata(reference);
+    if (value.kind === "element") {
+      const attributes: XmlAttribute[] = [];
+      for await (const attribute of this.attributes(reference)) {
+        const { valueReference: ignoredReference, ...complete } = attribute;
+        complete.value = "";
+        for await (const part of this.attributeText(attribute)) complete.value += part;
+        complete.namespace = "";
+        for await (const part of this.namespaceText(attribute)) complete.namespace += part;
+        complete.name = ""; complete.localName = "";
+        for await (const part of this.nameText(attribute)) complete.name += part;
+        for await (const part of this.nameText(attribute, true)) complete.localName += part;
+        delete complete.nameReference; delete complete.localNameReference; delete complete.prefix; delete complete.prefixReference;
+        delete complete.namespaceReference;
+        attributes.push(complete);
+      }
+      const namespaces = new Map<string, string>();
+      for await (const [prefix, uri] of await this.namespaceScope(reference)) namespaces.set(prefix, uri);
+      let namespace = ""; for await (const part of this.namespaceText(value)) namespace += part;
+      let name = "", localName = "";
+      for await (const part of this.nameText(value)) name += part;
+      for await (const part of this.nameText(value, true)) localName += part;
+      const { namespaceReference: ignoredNamespaceReference, nameReference: ignoredNameReference, localNameReference: ignoredLocalReference, prefix: ignoredPrefix, prefixReference: ignoredPrefixReference, ...element } = value;
+      return { ...element, name, localName, namespace, attributes, namespaces };
+    }
+    if (value.kind === "attribute") {
+      let text = "";
+      for await (const part of this.text(reference)) text += part;
+      let namespace = ""; for await (const part of this.namespaceText(value.value)) namespace += part;
+      let name = "", localName = "";
+      for await (const part of this.nameText(value.value)) name += part;
+      for await (const part of this.nameText(value.value, true)) localName += part;
+      const { namespaceReference: ignoredNamespaceReference, nameReference: ignoredName, localNameReference: ignoredLocal, prefix: ignoredPrefix, prefixReference: ignoredPrefixReference, ...attribute } = value.value;
+      return { ...value, value: { ...attribute, name, localName, namespace, value: text } };
+    }
+    if (value.kind === "processing-instruction" && value.targetReference !== undefined) {
+      let target = ""; for await (const part of this.targetText(value)) target += part;
+      const { targetReference: ignoredReference, ...content } = value;
+      return { ...content, target };
+    }
+    return value;
+  }
+
+  async prefixEquals(name: XmlName, expected: string | number): Promise<boolean> {
+    const colon = name.name.indexOf(":");
+    const prefix = name.prefixReference ?? name.prefix ?? (colon < 0 ? "" : name.name.slice(0, colon));
+    const tokens = new StoredNamespaces(this.storage, this.budget);
+    return typeof prefix === "number" ? tokens.equals(prefix, expected)
+      : typeof expected === "number" ? tokens.equals(expected, prefix) : prefix === expected;
+  }
+
+  async *nameText(name: XmlName, local = false): AsyncGenerator<string> {
+    const reference = local ? name.localNameReference : name.nameReference;
+    if (reference === undefined) yield local ? name.localName : name.name;
+    else yield* new StoredNamespaces(this.storage, this.budget).valueParts(reference);
+  }
+
+  async nameEquals(name: XmlName, expected: string | XmlName, local = false): Promise<boolean> {
+    const reference = local ? name.localNameReference : name.nameReference;
+    const text = local ? name.localName : name.name;
+    const other = typeof expected === "string" ? expected : local ? expected.localNameReference ?? expected.localName : expected.nameReference ?? expected.name;
+    const tokens = new StoredNamespaces(this.storage, this.budget);
+    if (reference !== undefined) return tokens.equals(reference, other);
+    return typeof other === "string" ? text === other : tokens.equals(other, text);
+  }
+
+  async *targetText(content: Extract<XmlContent, { kind: "processing-instruction" }>): AsyncGenerator<string> {
+    if (content.targetReference === undefined) yield content.target;
+    else yield* new StoredNamespaces(this.storage, this.budget).valueParts(content.targetReference);
+  }
+
+  async *namespaceText(name: XmlName): AsyncGenerator<string> {
+    if (name.namespaceReference === undefined) yield name.namespace;
+    else yield* new StoredNamespaces(this.storage, this.budget).valueParts(name.namespaceReference);
+  }
+
+  async namespaceEquals(name: XmlName, expected: string | number): Promise<boolean> {
+    const tokens = new StoredNamespaces(this.storage, this.budget);
+    if (name.namespaceReference !== undefined) return tokens.equals(name.namespaceReference, expected);
+    return typeof expected === "string" ? name.namespace === expected : tokens.equals(expected, name.namespace);
+  }
+
+  async namespaceScope(reference: number): Promise<StoredNamespaces> {
+    return new StoredNamespaces(this.storage, this.budget, await this.field(reference, namespacesField));
+  }
+
+  isNamespaceNode(reference: number): boolean { return reference >= this.namespaceStart; }
+
+  async *namespaceNodes(reference: number, create = true): AsyncGenerator<number> {
+    if (reference === this.document || (await this.metadata(reference)).kind !== "element") return;
+    let first = await this.field(reference, namespaceNodesField);
+    if (!first && create) {
+      const scope = await this.namespaceScope(reference);
+      let previous = 0;
+      for await (const [prefix, uri] of scope.tokenReferences()) {
+        if (await scope.equals(uri, "")) continue;
+        const value: StoredAttribute = { name: "", localName: "", namespace: "", value: "", nameReference: prefix, localNameReference: prefix, namespaceValueReference: uri };
+        const node = await this.append(reference, { kind: "attribute", value, namespaceNode: true }, true);
+        this.namespaceStart = Math.min(this.namespaceStart, node);
+        if (previous) await this.set(previous, nextField, node);
+        else first = node;
+        previous = node;
+      }
+      await this.set(reference, namespaceNodesField, first);
+    }
+    while (first) {
+      yield first;
+      first = await this.field(first, nextField);
+    }
+  }
+
+  /** Load scalar metadata only; attributes and namespace scopes have separate iterators. */
+  async metadata(reference: number): Promise<XmlContent | StoredXmlAttribute> {
+    const size = await this.field(reference, sizeField);
+    const decoder = new TextDecoder();
+    const parts: string[] = [];
+    for (let offset = 0; offset < size; offset += 16384) {
+      const bytes = await this.storage.read(reference + headerBytes + offset, Math.min(16384, size - offset));
+      parts.push(decoder.decode(bytes, { stream: true }));
+      const checkpoint = this.budget.tick(bytes.length); if (checkpoint) await checkpoint;
+    }
+    parts.push(decoder.decode());
+    const metadata = JSON.parse(parts.join("")) as Metadata;
+    if (metadata.kind === "cdata" && (await this.field(reference, flagsField) & textFlag))
+      return { kind: "text", text: metadata.text };
+    return metadata.kind === "element"
+      ? { ...metadata, attributes: [], namespaces: new Map<string, string>(), children: [], content: [], text: "" }
+      : metadata;
+  }
+
+  /** Content bodies may span parser fragments or coalesced text tokens.
+   * Replay them without making a concatenated node value. */
+  async *text(reference: number): AsyncGenerator<string> {
+    let fragment = reference;
+    while (fragment) {
+      const node = await this.metadata(fragment);
+      if (node.kind === "element") throw new TypeError("Expected XML value node");
+      if (node.kind === "attribute" && node.namespaceNode) {
+        yield* new StoredNamespaces(this.storage, this.budget).valueParts((node.value as StoredAttribute).namespaceValueReference!);
+      } else yield node.kind === "attribute" ? node.value.value : node.text;
+      fragment = await this.field(fragment, fragmentField);
+    }
+  }
+
+  /** Apply tree transformations by changing stored links. Whitespace inheritance
+   * lives on each parent record; merged text remains a chain of token bodies. */
+  async transform(options: { noblanks?: boolean; nocdata?: boolean }): Promise<void> {
+    if (!options.noblanks && !options.nocdata) return;
+    for await (const event of this.walk(this.root)) {
+      if (event.closing) continue;
+      const element = await this.metadata(event.reference);
+      if (element.kind !== "element") continue;
+      let preserve = (await this.field(await this.parent(event.reference), flagsField) & preserveSpaceFlag) !== 0;
+      for await (const attribute of this.attributes(event.reference)) {
+        if (attribute.namespace === "http://www.w3.org/XML/1998/namespace" && attribute.localName === "space")
+          preserve = await this.attributeEquals(attribute, "preserve");
+      }
+      await this.set(event.reference, flagsField, preserve ? preserveSpaceFlag : 0);
+      let current = await this.field(event.reference, firstField), previous = 0, mixed = false;
+      while (current) {
+        let child = await this.metadata(current);
+        let next = await this.field(current, nextField);
+        if (options.nocdata && (child.kind === "text" || child.kind === "cdata")) {
+          await this.set(current, flagsField, textFlag);
+          let tail = current;
+          for (let fragment = await this.field(tail, fragmentField); fragment; fragment = await this.field(tail, fragmentField)) tail = fragment;
+          while (next) {
+            const adjacent = await this.metadata(next);
+            if (adjacent.kind !== "text" && adjacent.kind !== "cdata") break;
+            await this.set(tail, fragmentField, next);
+            tail = next;
+            next = await this.field(next, nextField);
+            for (let fragment = await this.field(tail, fragmentField); fragment; fragment = await this.field(tail, fragmentField)) tail = fragment;
+          }
+          await this.set(current, nextField, next);
+          if (!next) await this.set(event.reference, lastField, current);
+          child = { kind: "text", text: child.text };
+        }
+        let skip = false;
+        if (child.kind === "text") {
+          if (options.noblanks && !preserve && !mixed && (previous !== 0 || next !== 0)) {
+            skip = true;
+            for await (const part of this.text(current)) for (const character of part) {
+              const checkpoint = this.budget.tick(); if (checkpoint) await checkpoint;
+              if (!" \t\r\n".includes(character)) skip = false;
+            }
+          }
+          if (!skip) mixed = true;
+        } else if (child.kind === "cdata") mixed = true;
+        if (skip) {
+          if (previous) await this.set(previous, nextField, next);
+          else await this.set(event.reference, firstField, next);
+          if (!next) await this.set(event.reference, lastField, previous);
+        } else previous = current;
+        current = next;
+      }
+    }
+  }
+
+  async *attributeReferences(reference: number, reverse = false): AsyncGenerator<number> {
+    let attribute = await this.field(reference, reverse ? lastAttributeField : firstAttributeField);
+    while (attribute) {
+      const checkpoint = this.budget.tick(); if (checkpoint) await checkpoint;
+      yield attribute;
+      attribute = await this.field(attribute, reverse ? lastField : nextField);
+    }
+  }
+
+  async *attributes(reference: number): AsyncGenerator<StoredAttribute> {
+    for await (const attribute of this.attributeReferences(reference)) {
+      const value = await this.metadata(attribute);
+      if (value.kind !== "attribute") throw new TypeError("Expected XML attribute");
+      yield { ...value.value, valueReference: attribute };
+    }
+  }
+
+  async *attributeText(attribute: StoredAttribute): AsyncGenerator<string> {
+    if (attribute.namespaceValueReference !== undefined) yield* new StoredNamespaces(this.storage, this.budget).valueParts(attribute.namespaceValueReference);
+    else if (attribute.valueReference === undefined) yield attribute.value;
+    else yield* this.text(attribute.valueReference);
+  }
+
+  async attributeEquals(attribute: StoredAttribute, expected: string): Promise<boolean> {
+    let offset = 0;
+    for await (const part of this.attributeText(attribute)) {
+      if (part.length > expected.length - offset || expected.slice(offset, offset + part.length) !== part) return false;
+      offset += part.length;
+    }
+    return offset === expected.length;
+  }
+
+  async *children(reference: number, attributes = false): AsyncGenerator<number> {
+    let child = await this.field(reference, attributes ? firstAttributeField : firstField);
+    while (child) {
+      const checkpoint = this.budget.tick(); if (checkpoint) await checkpoint;
+      const value = attributes ? await this.metadata(child) : undefined;
+      if (value?.kind !== "attribute" || value.value.namespace !== "http://www.w3.org/2000/xmlns/") yield child;
+      child = await this.field(child, nextField);
+    }
+  }
+
+  async parent(reference: number): Promise<number> {
+    return this.field(reference, parentField);
+  }
+
+  /** Traverse only the requested subtree, following stored links rather than a
+   * resident stack of siblings or ancestors. Attribute nodes are separate. */
+  async *walk(reference: number): AsyncGenerator<{ reference: number; closing: boolean }> {
+    let current = reference;
+    while (current) {
+      const checkpoint = this.budget.tick(); if (checkpoint) await checkpoint;
+      yield { reference: current, closing: false };
+      const first = await this.field(current, firstField);
+      if (first) { current = first; continue; }
+      yield { reference: current, closing: true };
+      while (current !== reference) {
+        const next = await this.field(current, nextField);
+        if (next) { current = next; break; }
+        current = await this.field(current, parentField);
+        yield { reference: current, closing: true };
+      }
+      if (current === reference) break;
+    }
+  }
+
+  close(): Promise<void> {
+    this.rootReference = 0;
+    this.documentReference = 0;
+    return this.closing ??= this.storage.close();
+  }
+}

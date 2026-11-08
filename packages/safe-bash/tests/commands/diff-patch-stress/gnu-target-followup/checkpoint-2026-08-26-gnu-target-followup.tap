@@ -1,0 +1,545 @@
+TAP version 13
+# Subtest: interstitial metadata cannot hide selected traversal from whole-input authorization
+not ok 1 - interstitial metadata cannot hide selected traversal from whole-input authorization
+  ---
+  duration_ms: 11.660375
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/metadata-safety.test.ts:1:234'
+  failureType: 'testCodeFailure'
+  error: |-
+    authorization must see the selected tail before publishing the prefix
+    + actual - expected
+    
+    + [
+    +   {
+    +     destination: undefined,
+    +     flag: 'w',
+    +     method: 'writeFile',
+    +     path: '/sandbox/work/first',
+    +     signal: AbortSignal {
+    +       [Symbol(events.maxEventTargetListeners)]: 0,
+    +       [Symbol(events.maxEventTargetListenersWarned)]: false,
+    +       [Symbol(kAborted)]: false,
+    +       [Symbol(kComposite)]: false,
+    +       [Symbol(kEvents)]: SafeMap(0) {},
+    +       [Symbol(kHandlers)]: SafeMap(0) {},
+    +       [Symbol(kReason)]: undefined
+    +     }
+    +   }
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0:
+      method: 'writeFile'
+      path: '/sandbox/work/first'
+      signal:
+      flag: 'w'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/metadata-safety.test.ts:18:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: interstitial metadata cannot hide selected symlink from whole-input authorization
+not ok 2 - interstitial metadata cannot hide selected symlink from whole-input authorization
+  ---
+  duration_ms: 1.9255
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/metadata-safety.test.ts:1:234'
+  failureType: 'testCodeFailure'
+  error: |-
+    authorization must see the selected tail before publishing the prefix
+    + actual - expected
+    
+    + [
+    +   {
+    +     destination: undefined,
+    +     flag: 'w',
+    +     method: 'writeFile',
+    +     path: '/sandbox/work/first',
+    +     signal: AbortSignal {
+    +       [Symbol(events.maxEventTargetListeners)]: 0,
+    +       [Symbol(events.maxEventTargetListenersWarned)]: false,
+    +       [Symbol(kAborted)]: false,
+    +       [Symbol(kComposite)]: false,
+    +       [Symbol(kEvents)]: SafeMap(0) {},
+    +       [Symbol(kHandlers)]: SafeMap(0) {},
+    +       [Symbol(kReason)]: undefined
+    +     }
+    +   }
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0:
+      method: 'writeFile'
+      path: '/sandbox/work/first'
+      signal:
+      flag: 'w'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/metadata-safety.test.ts:18:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: interstitial metadata cannot hide selected hardlink from whole-input authorization
+not ok 3 - interstitial metadata cannot hide selected hardlink from whole-input authorization
+  ---
+  duration_ms: 2.441083
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/metadata-safety.test.ts:1:234'
+  failureType: 'testCodeFailure'
+  error: |-
+    authorization must see the selected tail before publishing the prefix
+    + actual - expected
+    
+    + [
+    +   {
+    +     destination: undefined,
+    +     flag: 'w',
+    +     method: 'writeFile',
+    +     path: '/sandbox/work/first',
+    +     signal: AbortSignal {
+    +       [Symbol(events.maxEventTargetListeners)]: 0,
+    +       [Symbol(events.maxEventTargetListenersWarned)]: false,
+    +       [Symbol(kAborted)]: false,
+    +       [Symbol(kComposite)]: false,
+    +       [Symbol(kEvents)]: SafeMap(0) {},
+    +       [Symbol(kHandlers)]: SafeMap(0) {},
+    +       [Symbol(kReason)]: undefined
+    +     }
+    +   }
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0:
+      method: 'writeFile'
+      path: '/sandbox/work/first'
+      signal:
+      flag: 'w'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/metadata-safety.test.ts:18:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: pinned native accepts metadata between-sections: rename from target
+ok 4 - pinned native accepts metadata between-sections: rename from target
+  ---
+  duration_ms: 31.82675
+  type: 'test'
+  ...
+# Subtest: pinned native accepts metadata between-sections: rename to sentinel
+ok 5 - pinned native accepts metadata between-sections: rename to sentinel
+  ---
+  duration_ms: 20.767417
+  type: 'test'
+  ...
+# Subtest: pinned native accepts metadata between-sections: copy from target
+ok 6 - pinned native accepts metadata between-sections: copy from target
+  ---
+  duration_ms: 18.020375
+  type: 'test'
+  ...
+# Subtest: pinned native accepts metadata between-sections: copy to sentinel
+ok 7 - pinned native accepts metadata between-sections: copy to sentinel
+  ---
+  duration_ms: 17.295875
+  type: 'test'
+  ...
+# Subtest: pinned native accepts metadata between-sections: new file mode 120000
+ok 8 - pinned native accepts metadata between-sections: new file mode 120000
+  ---
+  duration_ms: 15.255792
+  type: 'test'
+  ...
+# Subtest: pinned native accepts metadata between-sections: deleted file mode 120000
+ok 9 - pinned native accepts metadata between-sections: deleted file mode 120000
+  ---
+  duration_ms: 15.387375
+  type: 'test'
+  ...
+# Subtest: pinned native accepts metadata between-sections: old mode 120000
+ok 10 - pinned native accepts metadata between-sections: old mode 120000
+  ---
+  duration_ms: 14.180333
+  type: 'test'
+  ...
+# Subtest: pinned native accepts metadata between-sections: new mode 120000
+ok 11 - pinned native accepts metadata between-sections: new mode 120000
+  ---
+  duration_ms: 15.668333
+  type: 'test'
+  ...
+# Subtest: pinned native accepts metadata between-sections: similarity index 100%
+ok 12 - pinned native accepts metadata between-sections: similarity index 100%
+  ---
+  duration_ms: 15.676125
+  type: 'test'
+  ...
+# Subtest: pinned native accepts metadata between-sections: dissimilarity index 100%
+ok 13 - pinned native accepts metadata between-sections: dissimilarity index 100%
+  ---
+  duration_ms: 16.886667
+  type: 'test'
+  ...
+# Subtest: pinned native accepts metadata between-sections: GIT binary patch
+ok 14 - pinned native accepts metadata between-sections: GIT binary patch
+  ---
+  duration_ms: 13.408334
+  type: 'test'
+  ...
+# Subtest: pinned native accepts metadata between-sections: unknown extension metadata
+ok 15 - pinned native accepts metadata between-sections: unknown extension metadata
+  ---
+  duration_ms: 13.972791
+  type: 'test'
+  ...
+# Subtest: pinned native creates missing parent default strip
+ok 16 - pinned native creates missing parent default strip
+  ---
+  duration_ms: 12.68625
+  type: 'test'
+  ...
+# Subtest: pinned native creates missing parent explicit -p0
+ok 17 - pinned native creates missing parent explicit -p0
+  ---
+  duration_ms: 13.999292
+  type: 'test'
+  ...
+# Subtest: pinned native conflict, not invalid syntax: normal-overlapping-old-hunks
+ok 18 - pinned native conflict, not invalid syntax: normal-overlapping-old-hunks
+  ---
+  duration_ms: 12.626958
+  type: 'test'
+  ...
+# Subtest: pinned native conflict, not invalid syntax: context-overlapping-hunks
+ok 19 - pinned native conflict, not invalid syntax: context-overlapping-hunks
+  ---
+  duration_ms: 11.444916
+  type: 'test'
+  ...
+# Subtest: pinned native conflict, not invalid syntax: default-normal-overlapping-old-hunks
+ok 20 - pinned native conflict, not invalid syntax: default-normal-overlapping-old-hunks
+  ---
+  duration_ms: 12.303041
+  type: 'test'
+  ...
+# Subtest: pinned native conflict, not invalid syntax: default-context-overlapping-hunks
+ok 21 - pinned native conflict, not invalid syntax: default-context-overlapping-hunks
+  ---
+  duration_ms: 9.842167
+  type: 'test'
+  ...
+# Subtest: GNU default partial publication and diagnostics: default-normal-overlapping-old-hunks
+not ok 22 - GNU default partial publication and diagnostics: default-normal-overlapping-old-hunks
+  ---
+  duration_ms: 35.225
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/overlap-default.test.ts:1:164'
+  failureType: 'testCodeFailure'
+  error: |-
+    GNU default publication/status/full-namespace parity: default-normal-overlapping-old-hunks
+    + actual - expected
+    ... Skipped lines
+    
+      {
+        after: [
+          {
+            path: '/',
+            type: 'directory'
+    ...
+        stdout: 'patching file target\n' +
+    -     'misordered hunks! output would be garbled\n' +
+          'Hunk #2 FAILED at 1.\n' +
+          '1 out of 2 hunks FAILED -- saving rejects to file reject\n'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    exitCode: 1
+    stdout: |-
+      patching file target
+      misordered hunks! output would be garbled
+      Hunk #2 FAILED at 1.
+      1 out of 2 hunks FAILED -- saving rejects to file reject
+      
+    stderr: ''
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/work'
+        type: 'directory'
+      3:
+        path: '/sandbox/work/other'
+        type: 'file'
+        hex: '6f6c640a'
+      4:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a6b6565700a656e640a'
+      5:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/work'
+        type: 'directory'
+      3:
+        path: '/sandbox/work/other'
+        type: 'file'
+        hex: '6f6c640a'
+      4:
+        path: '/sandbox/work/reject'
+        type: 'file'
+        hex: '2a2a2a202f6465762f6e756c6c0a2d2d2d202f6465762f6e756c6c0a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a0a2a2a2a20310a2d206f6c640a2d2d2d2031202d2d2d2d2d0a2b206e65770a'
+      5:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6e65770a6b6565700a656e640a'
+      6:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+  actual:
+    exitCode: 1
+    stdout: |-
+      patching file target
+      Hunk #2 FAILED at 1.
+      1 out of 2 hunks FAILED -- saving rejects to file reject
+      
+    stderr: ''
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/work'
+        type: 'directory'
+      3:
+        path: '/sandbox/work/other'
+        type: 'file'
+        hex: '6f6c640a'
+      4:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a6b6565700a656e640a'
+      5:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/work'
+        type: 'directory'
+      3:
+        path: '/sandbox/work/other'
+        type: 'file'
+        hex: '6f6c640a'
+      4:
+        path: '/sandbox/work/reject'
+        type: 'file'
+        hex: '2a2a2a202f6465762f6e756c6c0a2d2d2d202f6465762f6e756c6c0a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a0a2a2a2a20310a2d206f6c640a2d2d2d2031202d2d2d2d2d0a2b206e65770a'
+      5:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6e65770a6b6565700a656e640a'
+      6:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+  operator: 'deepStrictEqual'
+  stack: |-
+    assertDefaultParity (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/evidence.ts:26:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/overlap-default.test.ts:6:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: GNU default partial publication and diagnostics: default-context-overlapping-hunks
+not ok 23 - GNU default partial publication and diagnostics: default-context-overlapping-hunks
+  ---
+  duration_ms: 22.526875
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/overlap-default.test.ts:1:164'
+  failureType: 'testCodeFailure'
+  error: |-
+    GNU default publication/status/full-namespace parity: default-context-overlapping-hunks
+    + actual - expected
+    ... Skipped lines
+    
+      {
+        after: [
+          {
+            path: '/',
+            type: 'directory'
+    ...
+        stdout: 'patching file target\n' +
+    -     'misordered hunks! output would be garbled\n' +
+          'Hunk #2 FAILED at 1.\n' +
+          '1 out of 2 hunks FAILED -- saving rejects to file reject\n'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    exitCode: 1
+    stdout: |-
+      patching file target
+      misordered hunks! output would be garbled
+      Hunk #2 FAILED at 1.
+      1 out of 2 hunks FAILED -- saving rejects to file reject
+      
+    stderr: ''
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/work'
+        type: 'directory'
+      3:
+        path: '/sandbox/work/other'
+        type: 'file'
+        hex: '6f6c640a'
+      4:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a6b6565700a656e640a'
+      5:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/work'
+        type: 'directory'
+      3:
+        path: '/sandbox/work/other'
+        type: 'file'
+        hex: '6f6c640a'
+      4:
+        path: '/sandbox/work/reject'
+        type: 'file'
+        hex: '2a2a2a207461726765740a2d2d2d207461726765740a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a0a2a2a2a2031202a2a2a2a0a21206f6c640a2d2d2d2031202d2d2d2d0a21206e65770a'
+      5:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6e65770a6b6565700a656e640a'
+      6:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+  actual:
+    exitCode: 1
+    stdout: |-
+      patching file target
+      Hunk #2 FAILED at 1.
+      1 out of 2 hunks FAILED -- saving rejects to file reject
+      
+    stderr: ''
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/work'
+        type: 'directory'
+      3:
+        path: '/sandbox/work/other'
+        type: 'file'
+        hex: '6f6c640a'
+      4:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a6b6565700a656e640a'
+      5:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/work'
+        type: 'directory'
+      3:
+        path: '/sandbox/work/other'
+        type: 'file'
+        hex: '6f6c640a'
+      4:
+        path: '/sandbox/work/reject'
+        type: 'file'
+        hex: '2a2a2a207461726765740a2d2d2d207461726765740a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a0a2a2a2a2031202a2a2a2a0a21206f6c640a2d2d2d2031202d2d2d2d0a21206e65770a'
+      5:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6e65770a6b6565700a656e640a'
+      6:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+  operator: 'deepStrictEqual'
+  stack: |-
+    assertDefaultParity (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/evidence.ts:26:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/overlap-default.test.ts:6:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..23
+# tests 23
+# suites 0
+# pass 18
+# fail 5
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 445.194208

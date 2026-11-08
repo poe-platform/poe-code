@@ -1,0 +1,349 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "sourceSha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+  "cases": [
+    {
+      "argv": [
+        "-f",
+        "fixed",
+        "-s",
+        "schema.csv"
+      ],
+      "stdin": "abcdef\n",
+      "files": {
+        "schema.csv": "column,start,length\na,x\n"
+      },
+      "binaries": {},
+      "stdout": "",
+      "stderr": "ValueError: Error reading schema at line 2: invalid literal for int() with base 10: 'x'\n",
+      "status": 1
+    },
+    {
+      "argv": [
+        "-f",
+        "fixed",
+        "-s",
+        "schema.csv"
+      ],
+      "stdin": "abcdef\n",
+      "files": {
+        "schema.csv": "column,start,length\na,x,b\n"
+      },
+      "binaries": {},
+      "stdout": "",
+      "stderr": "ValueError: Error reading schema at line 2: invalid literal for int() with base 10: 'x'\n",
+      "status": 1
+    },
+    {
+      "argv": [
+        "-f",
+        "fixed",
+        "-s",
+        "schema.csv"
+      ],
+      "stdin": "abcdef\n",
+      "files": {
+        "schema.csv": "column,start,length\na,0\n"
+      },
+      "binaries": {},
+      "stdout": "",
+      "stderr": "ValueError: Error reading schema at line 2: list index out of range\n",
+      "status": 1
+    },
+    {
+      "argv": [
+        "-f",
+        "fixed",
+        "-s",
+        "schema.csv"
+      ],
+      "stdin": "abcdef\n",
+      "files": {
+        "schema.csv": "column,start,length\na,1\n"
+      },
+      "binaries": {},
+      "stdout": "",
+      "stderr": "ValueError: Error reading schema at line 2: list index out of range\n",
+      "status": 1
+    },
+    {
+      "argv": [
+        "-f",
+        "fixed",
+        "-s",
+        "schema.csv"
+      ],
+      "stdin": "abcdef\n",
+      "files": {
+        "schema.csv": "column,start,length\na,0,x\n"
+      },
+      "binaries": {},
+      "stdout": "",
+      "stderr": "ValueError: Error reading schema at line 2: invalid literal for int() with base 10: 'x'\n",
+      "status": 1
+    },
+    {
+      "argv": [
+        "-f",
+        "fixed",
+        "-s",
+        "schema.csv"
+      ],
+      "stdin": "abcdef\n",
+      "files": {
+        "schema.csv": "column,start,length\na\n"
+      },
+      "binaries": {},
+      "stdout": "",
+      "stderr": "ValueError: Error reading schema at line 2: list index out of range\n",
+      "status": 1
+    },
+    {
+      "argv": [
+        "-f",
+        "fixed",
+        "-s",
+        "schema.csv"
+      ],
+      "stdin": "abcdef\n",
+      "files": {
+        "schema.csv": "column,start,length\n,x\n"
+      },
+      "binaries": {},
+      "stdout": "",
+      "stderr": "ValueError: Error reading schema at line 2: invalid literal for int() with base 10: 'x'\n",
+      "status": 1
+    },
+    {
+      "argv": [
+        "-f",
+        "fixed",
+        "-s",
+        "schema.csv"
+      ],
+      "stdin": "abcdef\n",
+      "files": {
+        "schema.csv": "column,start,length\n,1\n"
+      },
+      "binaries": {},
+      "stdout": "",
+      "stderr": "ValueError: Error reading schema at line 2: list index out of range\n",
+      "status": 1
+    },
+    {
+      "argv": [
+        "sample.dbf"
+      ],
+      "stdin": "",
+      "files": {},
+      "binaries": {
+        "sample.dbf": "AwAAAAMAAABBABkAAAAAAAAAAAAAAAAAAAAAAAAAAABuAAAAAAAAAAAAAE4AAAAAGAAAAAAAAAAAAAAAAAAAAA0gICAgICAgICA5MDA3MTk5MjU0NzQwOTkzICAgICAgICAtOTAwNzE5OTI1NDc0MDk5MyAgICAgMTIzNDU2Nzg5MDEyMzQ1Njc4OTAa"
+      },
+      "stdout": "n\n9007199254740993\n-9007199254740993\n12345678901234567890\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "sample.dbf"
+      ],
+      "stdin": "",
+      "files": {},
+      "binaries": {
+        "sample.dbf": "AwAAAAEAAABBABkAAAAAAAAAAAAAAAAAAAAAAAAAAABuAAAAAAAAAAAAAE4AAAAAGAAAAAAAAAAAAAAAAAAAAA0gICAgICAgICAgICAgICAgICAgICAgMSoyGg=="
+      },
+      "stdout": "",
+      "stderr": "ValueError: could not convert string to float: b'1*2'\n",
+      "status": 1
+    },
+    {
+      "argv": [
+        "sample.dbf"
+      ],
+      "stdin": "",
+      "files": {},
+      "binaries": {
+        "sample.dbf": "AwAAAAEAAABBABkAAAAAAAAAAAAAAAAAAAAAAAAAAABuAAAAAAAAAAAAAEYAAAAAGAAAAAAAAAAAAAAAAAAAAA0gICAgICAgICA5MDA3MTk5MjU0NzQwOTkzGg=="
+      },
+      "stdout": "n\n9007199254740992.0\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "sample.dbf"
+      ],
+      "stdin": "",
+      "files": {},
+      "binaries": {
+        "sample.dbf": "AwAAAAIAAABBABkAAAAAAAAAAAAAAAAAAAAAAAAAAABuAAAAAAAAAAAAAEYAAAAAGAAAAAAAAAAAAAAAAAAAAA0gICAgICAgICAgICAgICAgICAgICAgIC0wICAgICAgICAxMDAwMDAwMDAwMDAwMDAwMBo="
+      },
+      "stdout": "n\n-0.0\n1E+16\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "sample.dbf"
+      ],
+      "stdin": "",
+      "files": {},
+      "binaries": {
+        "sample.dbf": "AwAAAAQAAABBABkAAAAAAAAAAAAAAAAAAAAAAAAAAABuAAAAAAAAAAAAAE4AAAAAGAAAAAAAAAAAAAAAAAAAAA0gICAgICAgICAgICAgICAgICAgKioxMioqICAgICAgICAgICAgICAgICAgICAgMSwyNSAgICAgICAgICAgICAgICAgICAgMV8wMDAgICAgICAgICAgICAgICAgICAgICAgIC0wGg=="
+      },
+      "stdout": "n\n12\n1.25\n1000\n0\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "sample.dbf"
+      ],
+      "stdin": "",
+      "files": {},
+      "binaries": {
+        "sample.dbf": "AwAAAAEAAABBABkAAAAAAAAAAAAAAAAAAAAAAAAAAABuAAAAAAAAAAAAAE4AAAAAGAAAAAAAAAAAAAAAAAAAAA0gICAgICAgICAgICAgICAgICAgICAweDEwGg=="
+      },
+      "stdout": "",
+      "stderr": "ValueError: could not convert string to float: b'0x10'\n",
+      "status": 1
+    },
+    {
+      "argv": [
+        "sample.dbf"
+      ],
+      "stdin": "",
+      "files": {},
+      "binaries": {
+        "sample.dbf": "AwAAAAEAAABBABkAAAAAAAAAAAAAAAAAAAAAAAAAAABuAAAAAAAAAAAAAEYAAAAAGAAAAAAAAAAAAAAAAAAAAA0gICAgICAgICAgICAgICAgICAgICAweDEwGg=="
+      },
+      "stdout": "",
+      "stderr": "ValueError: could not convert string to float: b'0x10'\n",
+      "status": 1
+    },
+    {
+      "argv": [
+        "sample.dbf"
+      ],
+      "stdin": "",
+      "files": {},
+      "binaries": {
+        "sample.dbf": "AwAAAAEAAABBABkAAAAAAAAAAAAAAAAAAAAAAAAAAABuAAAAAAAAAAAAAEYAAAAAGAAAAAAAAAAAAAAAAAAAAA0gICAgICAgICAgICAgICAgICAgICAxLDI1Gg=="
+      },
+      "stdout": "",
+      "stderr": "ValueError: could not convert string to float: b'1,25'\n",
+      "status": 1
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "null",
+      "files": {},
+      "binaries": {},
+      "stdout": "",
+      "stderr": "TypeError: 'NoneType' object is not iterable\n",
+      "status": 1
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "true",
+      "files": {},
+      "binaries": {},
+      "stdout": "",
+      "stderr": "TypeError: 'bool' object is not iterable\n",
+      "status": 1
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "42",
+      "files": {},
+      "binaries": {},
+      "stdout": "",
+      "stderr": "TypeError: 'int' object is not iterable\n",
+      "status": 1
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "1.2",
+      "files": {},
+      "binaries": {},
+      "stdout": "",
+      "stderr": "TypeError: 'decimal.Decimal' object is not iterable\n",
+      "status": 1
+    },
+    {
+      "argv": [
+        "-f",
+        "json",
+        "-k",
+        "rows"
+      ],
+      "stdin": "{\"rows\":null}",
+      "files": {},
+      "binaries": {},
+      "stdout": "",
+      "stderr": "TypeError: 'NoneType' object is not iterable\n",
+      "status": 1
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "NaN",
+      "files": {},
+      "binaries": {},
+      "stdout": "",
+      "stderr": "TypeError: 'float' object is not iterable\n",
+      "status": 1
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "Infinity",
+      "files": {},
+      "binaries": {},
+      "stdout": "",
+      "stderr": "TypeError: 'float' object is not iterable\n",
+      "status": 1
+    },
+    {
+      "argv": [
+        "-f",
+        "json"
+      ],
+      "stdin": "-Infinity",
+      "files": {},
+      "binaries": {},
+      "stdout": "",
+      "stderr": "TypeError: 'float' object is not iterable\n",
+      "status": 1
+    },
+    {
+      "argv": [
+        "sample.dbf"
+      ],
+      "stdin": "",
+      "files": {},
+      "binaries": {
+        "sample.dbf": "AwAAAAEAAABBABkAAAAAAAAAAAAAAAAAAAAAAAAAAABuAAAAAAAAAAAAAEYAAAAAGAAAAAAAAAAAAAAAAAAAAA0gICAgICAgICAgICAgICAgICAgICAgKiAqGg=="
+      },
+      "stdout": "",
+      "stderr": "ValueError: could not convert string to float: b' '\n",
+      "status": 1
+    }
+  ]
+}

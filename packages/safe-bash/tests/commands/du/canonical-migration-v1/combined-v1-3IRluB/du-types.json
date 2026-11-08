@@ -1,0 +1,13 @@
+{
+  "name": "du-types",
+  "args": [
+    "node_modules/typescript/bin/tsc",
+    "-p",
+    "tests/commands/du/tsconfig.json"
+  ],
+  "startedAt": "2026-08-27T18:32:24.491Z",
+  "finishedAt": "2026-08-27T18:32:25.467Z",
+  "status": 0,
+  "signal": null,
+  "counts": {}
+}

@@ -1,0 +1,160 @@
+import { assertDiagramXmlReplacement, assertDiagramGraphReplacement } from "./diagrams.js";
+import { assertEquationXmlReplacement } from "./equations.js";
+import { readDocumentBindingOwnership } from "./binding-ownership.js";
+import { embeddedFontState, UnsupportedEmbeddedFontMutationError } from "./font-resources.js";
+import { assertSettingsXmlReplacement } from "./settings.js";
+import { archiveSettings, InputTypeError, type ArchiveContext, type ArchiveMember } from "./archive.js";
+import { readDocumentArchive, type AdmittedDocumentArchive } from "./admission.js";
+import { isXmlContentType, parseDocumentXml } from "./package-xml.js";
+import { normalizePartName, asciiKey } from "./part-uri.js";
+import { SelectionError, closedRecord, encodeGeneratedLocation as encodeLocation, type PartLocation } from "./location-token.js";
+import { compatibilityProfileForPart } from "./compatibility.js";
+import { opaqueXmlContent } from "./xml-retention.js";
+import { UnsupportedEditError } from "./xml-write.js";
+import { assertDocumentEditable, publishDocumentArchive, type PublicationOptions, type PublicationContext } from "./publication.js";
+import { DocumentBudget } from "./budget.js";
+import { DocumentPackage } from "./package.js";
+import { displayXml } from "./xml-display.js";
+import { documentDialects } from "./dialect.js";
+import { parseMediaType } from "./media-type.js";
+
+export interface XmlOptions { readonly part: string; readonly raw?: boolean; readonly pretty?: boolean }
+export interface XmlData {
+  readonly part: string;
+  readonly encoding: "base64" | "utf-8";
+  readonly content: string;
+  readonly pretty: boolean;
+  readonly bytes: number;
+  readonly sha256: string;
+}
+export interface XmlMutationData {
+  readonly changed: boolean;
+  readonly changes: readonly { readonly kind: "replace"; readonly before: PartLocation; readonly after: PartLocation }[];
+  readonly output: { readonly path: string | null; readonly bytes: number; readonly sha256: string } | null;
+  readonly dryRun: boolean;
+}
+function selector(part: string): string {
+  if (typeof part !== "string" || !part.startsWith("/") || part.includes("*") || part.includes("?"))
+    throw new InputTypeError("Select one absolute XML part name.");
+  if (asciiKey(part) === "/[content_types].xml") return "/[Content_Types].xml";
+  return normalizePartName(part);
+}
+function selected(archive: AdmittedDocumentArchive, name: string): ArchiveMember {
+  const matches = archive.members.filter(member => !member.directory && asciiKey(
+    asciiKey(member.name) === "[content_types].xml" ? "/[Content_Types].xml" : normalizePartName("/" + member.name)
+  ) === asciiKey(name));
+  if (!matches.length) throw new SelectionError("missing-selection");
+  if (matches.length !== 1) throw new SelectionError("ambiguous-selection");
+  const member = matches[0]!;
+  const type = asciiKey(name) === "/[content_types].xml" ? "application/xml" : archive.package.getPart(name).content_type.toLowerCase();
+  if (!isXmlContentType(type))
+    throw new UnsupportedEditError("The selected part is not XML.");
+  return member;
+}
+async function digest(bytes: Uint8Array, budget: DocumentBudget): Promise<string> {
+  budget.charge("work", bytes.length);
+  budget.charge("retainedBytes", bytes.length);
+  const value = await crypto.subtle.digest("SHA-256", new Uint8Array(bytes));
+  budget.check("work", 0);
+  return [...new Uint8Array(value)].map(n => n.toString(16).padStart(2, "0")).join("");
+}
+export async function getDocumentXml(input: Uint8Array, context: ArchiveContext, options: XmlOptions): Promise<XmlData | Uint8Array> {
+  closedRecord(options, ["part", "raw", "pretty"]);
+  options = { ...options };
+  const name = selector(options.part);
+  for (const value of [options.raw, options.pretty]) if (value !== undefined && typeof value !== "boolean") throw new InputTypeError("XML display flags require booleans.");
+  if (options.raw && options.pretty) throw new InputTypeError("Raw and pretty output conflict.");
+  const settings = archiveSettings(context);
+  const { budget } = settings;
+  const archive = await readDocumentArchive(input, { ...context, budget });
+  const member = selected(archive, name);
+  const xml = parseDocumentXml(member.bytes, { maxBytes: Math.min(settings.limits.maxEntryBytes, budget.limits.xmlPartBytes) }, budget);
+  if (options.raw) { budget.check("serializedOutput", xml.bytes.length); return xml.bytes; }
+  let content: string;
+  if (options.pretty) content = displayXml(xml.root, budget, true);
+  else {
+    budget.check("serializedOutput", 4 * Math.ceil(xml.bytes.length / 3));
+    budget.charge("retainedBytes", xml.bytes.length * 4);
+    const chunks: string[] = [];
+    for (let offset = 0; offset < xml.bytes.length; offset += 8192) chunks.push(String.fromCharCode(...xml.bytes.subarray(offset, offset + 8192)));
+    content = btoa(chunks.join(""));
+  }
+  const partname = asciiKey(member.name) === "[content_types].xml" ? "/[Content_Types].xml" : archive.package.getPart(name).partname;
+  const data: XmlData = { part: partname, encoding: options.pretty ? "utf-8" : "base64", content, pretty: options.pretty ?? false, bytes: xml.bytes.length, sha256: await digest(xml.bytes, budget) };
+  budget.check("serializedOutput", new TextEncoder().encode(JSON.stringify(data)).length);
+  return data;
+}
+
+/** Deliberately replaces one complete XML part, with validation before publication. */
+export async function replaceDocumentXmlPart(input: Uint8Array, replacement: Uint8Array, options: PublicationOptions & { readonly part: string; readonly allowEmpty?: boolean }, context: PublicationContext): Promise<XmlMutationData> {
+  closedRecord(options, ["part", "allowEmpty", "input", "output", "inPlace", "force", "dryRun", "json"]);
+  const name = selector(options.part);
+  const { part: ignoredPart, allowEmpty, ...publication } = options;
+  if (allowEmpty !== undefined && typeof allowEmpty !== "boolean") throw new InputTypeError("allowEmpty requires a boolean.");
+  if (publication.input) publication.input = { path: publication.input.path, stat: { ...publication.input.stat } };
+  const settings = archiveSettings(context);
+  const { budget } = settings;
+  const beforeNodes = budget.usage.xmlNodes;
+  const xml = parseDocumentXml(replacement, { maxBytes: Math.min(settings.limits.maxEntryBytes, budget.limits.xmlPartBytes) }, budget);
+  const replacementNodes = budget.usage.xmlNodes - beforeNodes;
+  if (!(input instanceof Uint8Array)) throw new InputTypeError("Expected archive bytes.");
+  budget.charge("retainedBytes", input.length);
+  const owned = new Uint8Array(input);
+  const archive = await readDocumentArchive(owned, { ...context, budget });
+  let member: ArchiveMember | undefined;
+  try { member = selected(archive, name); }
+  catch (error) {
+    if (!allowEmpty || !(error instanceof SelectionError) || error.code !== "missing-selection") throw error;
+  }
+  const partname = member === undefined ? name : asciiKey(member.name) === "[content_types].xml" ? "/[Content_Types].xml" : archive.package.getPart(name).partname;
+  assertDocumentEditable(archive, settings);
+  const changed = member !== undefined && (member.bytes.length !== xml.bytes.length || member.bytes.some((byte, index) => byte !== xml.bytes[index]));
+  const ownership = readDocumentBindingOwnership(archive.package, budget);
+  const bindingIds = new Set(ownership.declarations.flatMap(declaration => declaration.storeItemId === null ? [] : [declaration.storeItemId.toLowerCase()]));
+  const bindingParts = new Set(ownership.declarations.map(declaration => declaration.part));
+  for (const store of ownership.stores) if (store.storeItemId !== null && bindingIds.has(store.storeItemId.toLowerCase())) { bindingParts.add(store.item); bindingParts.add(store.properties); }
+  if (changed && bindingParts.has(partname)) throw new UnsupportedEditError("Raw replacement of binding declarations or referenced stores is unsupported; use controls bind.");
+  const unboundCustomItem = member !== undefined && ["/", ...archive.package.parts.filter(part => part.content_type.toLowerCase() !== "application/vnd.openxmlformats-package.relationships+xml").map(part => part.partname)].some(owner => archive.package.relationships(owner).some(edge => !edge.is_external && ["http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXml", "http://purl.oclc.org/ooxml/officeDocument/relationships/customXml"].includes(edge.reltype) && edge.target_part.partname === partname));
+  const candidate = { ...archive, members: archive.members.map(entry => entry === member ? { ...entry, bytes: xml.bytes } : entry) };
+  const graph = new DocumentPackage(candidate, settings.limits, budget);
+  if (member) {
+    const original = parseDocumentXml(member.bytes, {}, budget);
+    if (changed) await assertDiagramXmlReplacement(archive, original.root, xml.root, owned, partname, budget);
+    if (changed) await assertEquationXmlReplacement(archive, original.root, xml.root, owned, partname, budget,xml.bytes);
+    const originalPart = archive.package.parts.find(part => part.partname === partname);
+    if (changed && originalPart) assertSettingsXmlReplacement(originalPart.content_type, member.bytes, xml.bytes, budget);
+    if (changed) await assertDiagramGraphReplacement(archive, graph, owned, name, budget);
+    if (original.root.namespace !== xml.root.namespace || original.root.localName !== xml.root.localName)
+      throw new UnsupportedEditError("Replacement must retain the part root expanded name.");
+    if (changed) budget.charge("insertedNodes", replacementNodes);
+    if (changed && !unboundCustomItem && opaqueXmlContent(original.root, budget, compatibilityProfileForPart(partname)) !== opaqueXmlContent(xml.root, budget, compatibilityProfileForPart(partname)))
+      throw new UnsupportedEditError("Replacement changes opaque XML content or its namespace context.");
+  }
+  for (const part of archive.package.parts) {
+    if (parseMediaType(graph.getPart(part.partname).content_type, "identity") !== parseMediaType(part.content_type, "identity"))
+      throw new UnsupportedEditError("XML replacement cannot change existing part content types or document kind.");
+  }
+  if (changed && embeddedFontState(archive.package, budget) !== embeddedFontState(graph, budget))
+    throw new UnsupportedEmbeddedFontMutationError();
+  const originalMain = archive.package.relationships("/").find(edge => edge.reltype === `${documentDialects[archive.dialect].r}/officeDocument`)!;
+  const mainEdges = graph.relationships("/").filter(edge => edge.reltype === originalMain.reltype);
+  if (mainEdges.length !== 1 || mainEdges[0]!.is_external || mainEdges[0]!.target_part.partname !== originalMain.target_part.partname)
+    throw new UnsupportedEditError("XML replacement cannot rebind the main document part.");
+  const sourceSha256 = await digest(owned, budget);
+  const location = (generation: number): PartLocation => {
+    const value = { version: 1 as const, sourceSha256, generation, part: partname, story: partname, path: [], range: null };
+    return { kind: "part", token: encodeLocation(value), value, positions: {} };
+  };
+  const changes = changed ? [{ kind: "replace" as const, before: location(0), after: location(1) }] : [];
+  const path = publication.inPlace ? publication.input?.path : publication.output;
+  if (typeof path === "string") budget.check("serializedOutput", path.length);
+  const prospective: XmlMutationData = { changed, changes, dryRun: publication.dryRun ?? false,
+    output: publication.dryRun ? null : { path: path ?? null, bytes: Math.min(settings.limits.maxArchiveBytes, Number.MAX_SAFE_INTEGER), sha256: "0".repeat(64) } };
+  const summary = JSON.stringify({ version: 1, operation: "xml.set", ok: true, data: prospective,
+    warnings: [], errors: [], affected: changed ? 1 : 0, locations: changes.map(change => change.after) }) + "\n";
+  budget.check("serializedOutput", new TextEncoder().encode(summary).length);
+  budget.charge("retainedBytes", summary.length * 2);
+  const result = await publishDocumentArchive(candidate, publication, { ...context, budget });
+  return { changed, changes, dryRun: publication.dryRun ?? false,
+    output: result.published.length ? { path: result.published[0]!.path, bytes: result.published[0]!.bytes, sha256: result.archiveSha256! } : null };
+}

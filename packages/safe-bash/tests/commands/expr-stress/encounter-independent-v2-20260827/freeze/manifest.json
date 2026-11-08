@@ -1,0 +1,1503 @@
+{
+  "frozenAt": "2026-08-27T20:47:13.803Z",
+  "baselineCommit": "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29",
+  "sourceSelection": "Committed static relative-import closure of expr + worker + historical Shell driver; never overlays live edits. Unrelated live edits neither enter nor veto archive.",
+  "archiveSha256": "89a2f8f41e8edda3cf2fe3352c263e2d48333d1506470f08167020aff3f27509",
+  "expandedSha256": "2cb4fcd558d7bdd56de9fcc0252f09b3c91228d99f1fc40ed6f7cc953fadfb24",
+  "sourceFiles": 40,
+  "compressedBytes": 87870,
+  "originalCasesSha256": "d1892a748a9437fa253735636abf6f8d349c00d4898579d7a8b92bf0a2598314",
+  "exact61Sha256": "d4bb6baf0109a8f5ba2e6752a1bb5d56c492cbdde43495883f68a4a2ea124a47",
+  "originalCount": 61,
+  "nativeCount": 44,
+  "projectCount": 17,
+  "nearbyCount": 16,
+  "provenance": [
+    {
+      "commit": "e9ff18dcdd403c68550c9ad9ea69d2edce5403a3",
+      "source": "tests/commands/expr-stress/sequencing-design-20260827/freeze/cases.json",
+      "destination": "freeze/original-cases.json",
+      "sha256": "d1892a748a9437fa253735636abf6f8d349c00d4898579d7a8b92bf0a2598314"
+    },
+    {
+      "commit": "e9ff18dcdd403c68550c9ad9ea69d2edce5403a3",
+      "source": "tests/commands/expr-stress/sequencing-design-20260827/driver.mjs",
+      "destination": "freeze/original-driver.mjs",
+      "sha256": "3871b6fa2bf72b482910217ff0f16919e20f752b3b1862e9683c5c5247fa3613"
+    },
+    {
+      "commit": "e9ff18dcdd403c68550c9ad9ea69d2edce5403a3",
+      "source": "tests/commands/expr-stress/sequencing-design-20260827/freeze/receipt.json",
+      "destination": "freeze/original-receipt.json",
+      "sha256": "79f10c8d6e143798537868270d40dacad65a95f65de5824c98acc8bef1bcda5f"
+    },
+    {
+      "commit": "514f84076362b50fc9f8c22fc0ec1b9f2a4bf2f1",
+      "source": "tests/commands/expr-stress/sequencing-design-20260827/baseline-01/product.json",
+      "destination": "historical/accepted-product.json",
+      "sha256": "b72d2ab3e990f112984330f018f1e211ba7d47ede1a9ac16ad6e172595121dce"
+    },
+    {
+      "commit": "514f84076362b50fc9f8c22fc0ec1b9f2a4bf2f1",
+      "source": "tests/commands/expr-stress/sequencing-design-20260827/baseline-01/native-semantics.json",
+      "destination": "historical/native-semantics.json",
+      "sha256": "f731ff89519429d2ab111c49ccf97deb9a7ddb258d259fcd8e48eb4cecd9593c"
+    },
+    {
+      "commit": "514f84076362b50fc9f8c22fc0ec1b9f2a4bf2f1",
+      "source": "tests/commands/expr-stress/sequencing-design-20260827/baseline-01/native-controls.json",
+      "destination": "historical/native-controls.json",
+      "sha256": "ee13883ba3562bdf9caa9a4c75dac9aa29721505f18f8238c003b7da5da7baf3"
+    },
+    {
+      "commit": "cf5caabebff6eaec146700d4dd8c707ff8958e96",
+      "source": "tests/commands/expr-stress/qualified-final-review-20260827/sequencing-unchanged.json",
+      "destination": "historical/qualified-sequencing.json",
+      "sha256": "6fd12fc992ae68bb13b76f4ede2bdd03f0757eb866c0c3caa0febf1cf2600e5c"
+    },
+    {
+      "commit": "cf5caabebff6eaec146700d4dd8c707ff8958e96",
+      "source": "tests/commands/expr-stress/qualified-final-review-20260827/sequencing-summary.json",
+      "destination": "historical/qualified-summary.json",
+      "sha256": "e7642d9cb5f2f0eebcc2db0fe9e11cac185f83f4bc2e9f69d082d34b9c20676b"
+    }
+  ],
+  "newControlsSha256": "055ec3d97e09ac77bbc97c0534175a02bf886ac8c6dea2454bf2d4ffb0e5e764",
+  "sourceArchiveClassification": "gzip base64 immutable source data, not canonical TypeScript input",
+  "historicalProfile": "Frozen GNU coreutils 9.7 Darwin 25.4.0 arm64, LC_ALL=C. No new native execution, no Linux assumption. New controls are project-policy controls, not independently native-qualified.",
+  "expectedEvents": {
+    "original": "Byte-identical original-driver.mjs preserves all expected job counts, noEncode checks, shared-budget checks, nonoverlap, abort identity and worker settlement assertions. Historical captures preserve actual events; their nondeterministic timings/exit codes are not new expected events.",
+    "nearby": "One shared Budget and matcher, monotonically decreasing work allowance; exact ordered subjects; zero inactive encoding/jobs; registration before acquisition; all workers closed before execute settlement; repeated concurrent cleanup awaited; sink writes awaited; errno-shaped caller cancellation preserves identity."
+  },
+  "inputs": [
+    {
+      "id": "root-counterexample",
+      "args": [
+        "1",
+        "/",
+        "0",
+        "x"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": 0,
+      "noEncode": [],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "modulo-trailing",
+      "args": [
+        "1",
+        "%",
+        "0",
+        "x"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": 0,
+      "noEncode": [],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "noninteger-trailing",
+      "args": [
+        "bad",
+        "+",
+        "1",
+        "x"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: non-integer argument\n"
+      },
+      "jobs": 0,
+      "noEncode": [],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "left-error-before-next-operator-missing",
+      "args": [
+        "1",
+        "/",
+        "0",
+        "+"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": 0,
+      "noEncode": [],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "left-error-before-next-same-precedence",
+      "args": [
+        "1",
+        "/",
+        "0",
+        "*"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": 0,
+      "noEncode": [],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "left-error-before-skipped-syntax",
+      "args": [
+        "1",
+        "/",
+        "0",
+        "|",
+        ")"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": 0,
+      "noEncode": [],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "group-runtime-before-missing-close",
+      "args": [
+        "(",
+        "1",
+        "/",
+        "0"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": 0,
+      "noEncode": [],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "group-runtime-before-wrong-close",
+      "args": [
+        "(",
+        "1",
+        "/",
+        "0",
+        "x"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": 0,
+      "noEncode": [],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "nested-runtime-before-close",
+      "args": [
+        "length",
+        "(",
+        "1",
+        "/",
+        "0",
+        "x"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": 0,
+      "noEncode": [],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "prefix-first-argument-before-missing-second",
+      "args": [
+        "index",
+        "(",
+        "1",
+        "/",
+        "0",
+        ")"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": 0,
+      "noEncode": [],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "prefix-second-before-missing-third",
+      "args": [
+        "substr",
+        "abc",
+        "(",
+        "1",
+        "/",
+        "0",
+        ")"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": 0,
+      "noEncode": [],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "rhs-group-syntax-before-division",
+      "args": [
+        "1",
+        "/",
+        "(",
+        "0",
+        "x",
+        ")"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: expecting ')' instead of 'x'\n"
+      },
+      "jobs": 0,
+      "noEncode": [],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "rhs-missing-before-division",
+      "args": [
+        "1",
+        "/"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: missing argument after '/'\n"
+      },
+      "jobs": 0,
+      "noEncode": [],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "rhs-higher-precedence-syntax-before-division",
+      "args": [
+        "1",
+        "/",
+        "0",
+        ":"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: missing argument after ':'\n"
+      },
+      "jobs": 0,
+      "noEncode": [],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "rhs-prefix-syntax-before-noninteger",
+      "args": [
+        "bad",
+        "+",
+        "length"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: missing argument after 'length'\n"
+      },
+      "jobs": 0,
+      "noEncode": [],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "rhs-closing-syntax-before-runtime",
+      "args": [
+        "1",
+        "/",
+        ")"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: unexpected ')'\n"
+      },
+      "jobs": 0,
+      "noEncode": [],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "rhs-higher-precedence-runtime-first",
+      "args": [
+        "bad",
+        "+",
+        "1",
+        "/",
+        "0"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": 0,
+      "noEncode": [],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "earlier-noninteger-before-later-division",
+      "args": [
+        "bad",
+        "*",
+        "1",
+        "+",
+        "1",
+        "/",
+        "0"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: non-integer argument\n"
+      },
+      "jobs": 0,
+      "noEncode": [],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "regex-error-before-trailing",
+      "args": [
+        "a",
+        ":",
+        "[",
+        "x"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: Invalid regular expression\n"
+      },
+      "jobs": 1,
+      "noEncode": [],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "regex-error-before-close",
+      "args": [
+        "(",
+        "a",
+        ":",
+        "["
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: Invalid regular expression\n"
+      },
+      "jobs": 1,
+      "noEncode": [],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "regex-error-before-later-missing",
+      "args": [
+        "a",
+        ":",
+        "[",
+        "+"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: Invalid regular expression\n"
+      },
+      "jobs": 1,
+      "noEncode": [],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "regex-prefix-error-before-outer-arity",
+      "args": [
+        "index",
+        "match",
+        "a",
+        "["
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: Invalid regular expression\n"
+      },
+      "jobs": 1,
+      "noEncode": [],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "regex-success-before-trailing",
+      "args": [
+        "a",
+        ":",
+        "a",
+        "x"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: unexpected argument 'x'\n"
+      },
+      "jobs": 1,
+      "noEncode": [],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "regex-success-before-missing-close",
+      "args": [
+        "(",
+        "a",
+        ":",
+        "a"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: expecting ')' after 'a'\n"
+      },
+      "jobs": 1,
+      "noEncode": [],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "regex-success-before-runtime",
+      "args": [
+        "a",
+        ":",
+        "a",
+        "/",
+        "0",
+        "x"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": 1,
+      "noEncode": [],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "syntax-prevents-regex-submit",
+      "args": [
+        "a",
+        ":",
+        "(",
+        "[",
+        "x",
+        ")"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: expecting ')' instead of 'x'\n"
+      },
+      "jobs": 0,
+      "noEncode": [],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "first-regex-before-second-syntax",
+      "args": [
+        "match",
+        "(",
+        "a",
+        ":",
+        "a",
+        ")",
+        "("
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: missing argument after '('\n"
+      },
+      "jobs": 1,
+      "noEncode": [],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "regex-two-once-in-order",
+      "args": [
+        "(",
+        "a",
+        ":",
+        "a",
+        ")",
+        "+",
+        "(",
+        "b",
+        ":",
+        "b",
+        ")"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 0,
+        "stdout": "2\n",
+        "stderr": ""
+      },
+      "jobs": 2,
+      "noEncode": [],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "first-regex-error-stops-second",
+      "args": [
+        "(",
+        "a",
+        ":",
+        "[",
+        ")",
+        "+",
+        "(",
+        "b",
+        ":",
+        "b",
+        ")"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: Invalid regular expression\n"
+      },
+      "jobs": 1,
+      "noEncode": [],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "skip-or-division",
+      "args": [
+        "1",
+        "|",
+        "(",
+        "1",
+        "/",
+        "0",
+        ")"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "jobs": 0,
+      "noEncode": [],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "skip-and-division",
+      "args": [
+        "0",
+        "&",
+        "(",
+        "1",
+        "/",
+        "0",
+        ")"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 1,
+        "stdout": "0\n",
+        "stderr": ""
+      },
+      "jobs": 0,
+      "noEncode": [],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "skip-or-invalid-regex",
+      "args": [
+        "1",
+        "|",
+        "a",
+        ":",
+        "["
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "jobs": 0,
+      "noEncode": [],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "skip-and-prefix-invalid-regex",
+      "args": [
+        "0",
+        "&",
+        "match",
+        "a",
+        "["
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 1,
+        "stdout": "0\n",
+        "stderr": ""
+      },
+      "jobs": 0,
+      "noEncode": [],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "skip-still-missing-close",
+      "args": [
+        "1",
+        "|",
+        "(",
+        "1",
+        "/",
+        "0"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: expecting ')' after '0'\n"
+      },
+      "jobs": 0,
+      "noEncode": [],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "skip-still-missing-operand",
+      "args": [
+        "0",
+        "&",
+        "a",
+        ":"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: missing argument after ':'\n"
+      },
+      "jobs": 0,
+      "noEncode": [],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "skip-still-trailing",
+      "args": [
+        "1",
+        "|",
+        "a",
+        ":",
+        "[",
+        "x"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: unexpected argument 'x'\n"
+      },
+      "jobs": 0,
+      "noEncode": [],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "skip-still-prefix-arity",
+      "args": [
+        "1",
+        "|",
+        "substr",
+        "a",
+        "1"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: missing argument after '1'\n"
+      },
+      "jobs": 0,
+      "noEncode": [],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "nested-skip-never-regex",
+      "args": [
+        "1",
+        "|",
+        "(",
+        "0",
+        "|",
+        "match",
+        "a",
+        "[",
+        ")"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "jobs": 0,
+      "noEncode": [],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "active-then-skipped-regex",
+      "args": [
+        "a",
+        ":",
+        "a",
+        "|",
+        "b",
+        ":",
+        "["
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "jobs": 1,
+      "noEncode": [],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "active-false-then-active-regex",
+      "args": [
+        "a",
+        ":",
+        "b",
+        "|",
+        "b",
+        ":",
+        "b"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "jobs": 2,
+      "noEncode": [],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "left-associative-division",
+      "args": [
+        "20",
+        "/",
+        "2",
+        "/",
+        "2"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 0,
+        "stdout": "5\n",
+        "stderr": ""
+      },
+      "jobs": 0,
+      "noEncode": [],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "prefix-binds-before-colon",
+      "args": [
+        "length",
+        "abc",
+        ":",
+        "3"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "jobs": 1,
+      "noEncode": [],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "quoted-parenthesis",
+      "args": [
+        "+",
+        ")"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 0,
+        "stdout": ")\n",
+        "stderr": ""
+      },
+      "jobs": 0,
+      "noEncode": [],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "leading-double-dash",
+      "args": [
+        "--",
+        "1",
+        "+",
+        "2"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "jobs": 0,
+      "noEncode": [],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "skip-no-prefix-locale-evaluation",
+      "args": [
+        "1",
+        "|",
+        "length",
+        "abc"
+      ],
+      "environment": {
+        "LC_ALL": "unsupported-sequencing-profile"
+      },
+      "expected": {
+        "exitCode": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "jobs": 0,
+      "noEncode": [
+        "abc"
+      ],
+      "abort": null,
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "skip-no-substr-number-evaluation",
+      "args": [
+        "1",
+        "|",
+        "substr",
+        "abc",
+        "999",
+        "1"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "jobs": 0,
+      "noEncode": [
+        "abc",
+        "999"
+      ],
+      "abort": null,
+      "limits": {
+        "maxNumericDigits": 1
+      },
+      "sharedBudget": false
+    },
+    {
+      "id": "argument-admission-before-runtime",
+      "args": [
+        "1",
+        "/",
+        "0",
+        "oversized"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: aggregate argument bytes limit exceeded\n"
+      },
+      "jobs": 0,
+      "noEncode": [],
+      "abort": null,
+      "limits": {
+        "maxArgumentBytes": 3
+      },
+      "sharedBudget": false
+    },
+    {
+      "id": "node-limit-active",
+      "args": [
+        "1",
+        "+",
+        "2"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: AST node limit exceeded\n"
+      },
+      "jobs": 0,
+      "noEncode": [],
+      "abort": null,
+      "limits": {
+        "maxNodes": 2
+      },
+      "sharedBudget": false
+    },
+    {
+      "id": "node-limit-skipped",
+      "args": [
+        "1",
+        "|",
+        "(",
+        "1",
+        "+",
+        "2",
+        ")"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: AST node limit exceeded\n"
+      },
+      "jobs": 0,
+      "noEncode": [],
+      "abort": null,
+      "limits": {
+        "maxNodes": 4
+      },
+      "sharedBudget": false
+    },
+    {
+      "id": "parser-depth-skipped",
+      "args": [
+        "1",
+        "|",
+        "(",
+        "(",
+        "1",
+        ")",
+        ")"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: parser depth limit exceeded\n"
+      },
+      "jobs": 0,
+      "noEncode": [],
+      "abort": null,
+      "limits": {
+        "maxDepth": 2
+      },
+      "sharedBudget": false
+    },
+    {
+      "id": "ast-depth-left-chain",
+      "args": [
+        "1",
+        "+",
+        "1",
+        "+",
+        "1"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: AST depth limit exceeded\n"
+      },
+      "jobs": 0,
+      "noEncode": [],
+      "abort": null,
+      "limits": {
+        "maxDepth": 2
+      },
+      "sharedBudget": false
+    },
+    {
+      "id": "work-admission-before-runtime",
+      "args": [
+        "1",
+        "/",
+        "0"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: evaluation work limit exceeded\n"
+      },
+      "jobs": 0,
+      "noEncode": [],
+      "abort": null,
+      "limits": {
+        "maxSteps": 1
+      },
+      "sharedBudget": false
+    },
+    {
+      "id": "active-string-allocation",
+      "args": [
+        "abc"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: string allocation limit exceeded\n"
+      },
+      "jobs": 0,
+      "noEncode": [],
+      "abort": null,
+      "limits": {
+        "maxStringBytes": 2
+      },
+      "sharedBudget": false
+    },
+    {
+      "id": "numeric-conversion",
+      "args": [
+        "12",
+        "+",
+        "1"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: numeric digits limit exceeded\n"
+      },
+      "jobs": 0,
+      "noEncode": [],
+      "abort": null,
+      "limits": {
+        "maxNumericDigits": 1
+      },
+      "sharedBudget": false
+    },
+    {
+      "id": "output-limit",
+      "args": [
+        "abc"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: output bytes limit exceeded\n"
+      },
+      "jobs": 0,
+      "noEncode": [],
+      "abort": null,
+      "limits": {
+        "maxOutputBytes": 3
+      },
+      "sharedBudget": false
+    },
+    {
+      "id": "diagnostic-output-limit-new-control",
+      "args": [
+        "1",
+        "x"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: output bytes limit exceeded\n"
+      },
+      "jobs": 0,
+      "noEncode": [],
+      "abort": null,
+      "limits": {
+        "maxOutputBytes": 4
+      },
+      "sharedBudget": false
+    },
+    {
+      "id": "shared-budget-two-jobs",
+      "args": [
+        "(",
+        "a",
+        ":",
+        "a",
+        ")",
+        "+",
+        "(",
+        "b",
+        ":",
+        "b",
+        ")"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 0,
+        "stdout": "2\n",
+        "stderr": ""
+      },
+      "jobs": 2,
+      "noEncode": [],
+      "abort": null,
+      "limits": {
+        "maxSteps": 10000
+      },
+      "sharedBudget": true
+    },
+    {
+      "id": "abort-before-admission",
+      "args": [
+        "a",
+        ":",
+        "a"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "rejected": true
+      },
+      "jobs": 0,
+      "noEncode": [],
+      "abort": "before",
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "abort-after-first-worker-result",
+      "args": [
+        "(",
+        "a",
+        ":",
+        "a",
+        ")",
+        "+",
+        "(",
+        "b",
+        ":",
+        "b",
+        ")"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "rejected": true
+      },
+      "jobs": 1,
+      "noEncode": [],
+      "abort": "after-result",
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "abort-admitted-worker",
+      "args": [
+        "a",
+        ":",
+        "a"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "rejected": true
+      },
+      "jobs": 1,
+      "noEncode": [],
+      "abort": "admitted",
+      "limits": null,
+      "sharedBudget": false
+    },
+    {
+      "id": "abort-during-evaluation-checkpoint",
+      "args": [
+        "1",
+        "+",
+        "2",
+        "+",
+        "3"
+      ],
+      "environment": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "rejected": true
+      },
+      "jobs": 0,
+      "noEncode": [],
+      "abort": "checkpoint",
+      "limits": null,
+      "sharedBudget": false
+    }
+  ]
+}

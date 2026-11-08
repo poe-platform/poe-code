@@ -1,0 +1,931 @@
+# safe-bash
+
+Run shell scripts and command-line tools in your application against an explicit filesystem, without launching a host shell. The root and contract `posixPath` exports, including `contracts/node` and `contracts/node-path`, share the portable safe-fs helpers in every runtime, with `/` as the working directory for `resolve` and `relative`.
+
+All command plugins and their factories are available from the root entrypoint in Node, browsers, and Cloudflare Workers.
+
+Import `ffmpegCommands` from `@poe-platform/safe-bash` and register
+it with `shell.use(ffmpegCommands())` for in-memory media conversion and probing.
+Pass `cloudflareWorkerLimits()` explicitly to bound media work in Workers.
+
+## Quickstart
+
+Install in a Node.js 22+ ESM application:
+
+```sh
+npm install @poe-platform/safe-bash
+```
+
+```ts
+import { Shell, agentCommands, createMemoryFileSystem } from "@poe-platform/safe-bash";
+
+const fs = createMemoryFileSystem();
+const encoder = new TextEncoder();
+await fs.mkdir("/work");
+await fs.writeFile("/work/names.txt", encoder.encode("Ada\nGrace\nAda\n"));
+await fs.writeFile("/work/run.sh", encoder.encode(`#!/bin/sh
+set -eu
+sort names.txt | uniq > names.sorted.txt
+printf 'Hello, %s!\\n' "$1"
+cat names.sorted.txt
+`));
+
+const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+try {
+  const result = await shell.exec("sh run.sh reader");
+  if (result.exitCode !== 0) throw new Error(result.stderr);
+  process.stdout.write(result.stdout);
+} finally {
+  await shell.dispose();
+}
+```
+
+Output: `Hello, reader!\nAda\nGrace\n`. The script, input, and generated
+`names.sorted.txt` stay in memory. Results contain `exitCode`, `stdout`, `stderr`,
+`stdoutBytes`, and `stderrBytes`; use the byte fields for binary output.
+For large output, use `await shell.exec(source, { captureOutput: false, stdout, stderr })`.
+Each sink implements `async write(bytes)`; writes are awaited for backpressure.
+This mode creates no stdout/stderr captures or decoded output copies. Results and
+hooks retain exit/state metadata but have empty output fields. An omitted sink
+discards its stream. The CLI and timeout worker use this mode; the same SDK option
+works in Workers and `session.exec()`. Buffered results remain the default.
+Sinks must consume bytes before their write resolves, or copy bytes they retain.
+This bounds shell output transport, not arbitrary programs: command substitution,
+variables, arrays, arguments, process substitution and individual commands may
+retain data. See [streaming boundaries](src/contracts/streaming-execution.md).
+Each `exec()` starts fresh shell variables, functions, and working-directory state;
+filesystem changes persist in the supplied `fs`. The invocation-local `umask`
+starts at `0022`, accepts octal or symbolic modes, and is inherited by child shells.
+Use `shell.createSession()` to retain shell state, including aliases and `set --`
+arguments, across `session.exec()` calls. With `backgroundJobs: true`, session
+turns return while background commands run; later turns can use `jobs`, `wait`,
+`kill`, and `disown`. Calls in one session execute in submission order. Live jobs
+belong to that session, not its serializable `state` snapshot. Redirect background
+output to files or supply `stdout`/`stderr` sinks to receive output after a turn
+returns. `await session.dispose()` cancels remaining work and awaits cleanup;
+`shell.dispose()` also disposes its sessions. Disowning removes a job from
+`jobs`/`wait`, while `disown -h` retains it with the nohup mark. Both remain owned
+for resource cleanup. Ordinary `shell.exec()` still drains its children before
+returning.
+Within a script, `exec` keeps file redirections open or replaces the current shell
+command, including `-c` to clear its environment and `-a` to set its argument zero.
+`read -u FD -t SECONDS` reads an open descriptor with a timeout; `mapfile -u FD`
+and `readarray -u FD` collect its remaining records. `readExtension` and
+`mapfileExtension` are also available as public factories.
+Use `caller [depth]` to inspect function/source call sites, and
+`printf '%(%Y-%m-%d)T\n' 1700000000` to format timestamps (`-1` means now,
+`-2` means shell start). Time formatting uses the virtual `TZ`, defaulting to UTC.
+Creation modes use the filesystem's capabilities; advisory modes do not enforce
+physical permissions, and the host process mask remains unchanged.
+Core, shell, and command imports use Web-standard bytes without installing
+`globalThis.Buffer`. Workers do not need `nodejs_compat` for this. The legacy
+`portable-buffer.js` bootstrap remains importable but no longer installs a global.
+The root uses the portable shell and Fetch transport in every runtime. Import
+`Shell` from `@poe-platform/safe-bash/node` to opt into Node worker-backed
+`timeout --kill-after`, real filesystem adapters, and Node runtime hosts.
+For Node-specific HTTP controls, import `createNodeHttpTransport` from
+`@poe-platform/safe-bash/commands/network/node` and pass it as `transport`.
+Bash `[[ value =~ pattern ]]` and `BASH_REMATCH` also work in browsers and
+Workers, using the same ERE engine with cooperative cancellation and shared
+resource accounting.
+AES ZIP encryption and decryption also work in browsers and Workers. The
+`@poe-platform/safe-bash/trap` entry selects the portable signal catalog there.
+
+For an application that selects its commands, import `Shell` and `CommandRegistry`
+from `@poe-platform/safe-bash/shell`, then compose plugins with `shell.use()`:
+
+```ts
+import { Shell } from "@poe-platform/safe-bash/shell";
+import { pdfinfoCommands } from "@poe-platform/safe-bash/commands/pdfinfo";
+
+const shell = new Shell({ fs }).use(pdfinfoCommands());
+```
+
+Python and LLM plugins have independent `commands/python` and `commands/llm`
+entrypoints. Use `pythonExecutorCommands({ createExecutor })` from
+`commands/python/executor` (or
+`createPythonExecutorCommands` for command definitions) when supplying an
+interpreter: these exports exclude the default artifact renderer and its PDF
+engines. `pythonCommands()` retains the default version probes and document
+rendering; its existing options overload remains compatible. Select spreadsheet
+formats through `ssconvert/commands` with
+`ssconvert/formats/csv` and `ssconvert/formats/xlsx`; the compatibility
+`commands/ssconvert` entry retains its full format set. The aggregate root/core
+exports and the explicit `@poe-platform/safe-bash/full` aggregate remain available
+with the existing `agentCommands()` defaults;
+keep existing explicit plugins and their limits when migrating an application.
+For a lightweight registry, import `baseAgentCommands` and
+`createBoundedRegexProvider` from `@poe-platform/safe-bash/registry` with the same
+family limits and regex options. It preserves the base shell inventory without
+the default registry’s GH/Git integration; add `ghCommands` explicitly where needed.
+The registry subpath supports ESM splitting without visiting the full aggregate.
+Configure the included `dd` command through `bytes.dd` on `agentCommands()` or
+`baseAgentCommands()`, or through `dd` on `byteCommands()`. These options accept
+the command's block, buffer, transfer and read-operation limits.
+Its exports do not select the optional
+`op`, `node` or `safejs` plugins; add those only through their command entrypoints.
+Only registered commands are available; adding search commands does not enable unrelated tools.
+`agentCommands()` includes convenience tools such as `bc`, `fd`, `sponge`, `less`, and `more` by default. Pass `muscleMemory: false` to omit that family; individual command plugins remain available. Use `moreCommands()` to register only `more`; `lessCommands()` and `pagerCommands()` retain both pagers. Pager input limits are disabled by default; set `maxInputBytes` to opt in.
+Removing a registered command changes availability, while shared family code may
+remain bundled. Splitting dynamic
+imports changes initialization timing: every uploaded static chunk and Wasm asset
+still counts toward a Worker's uncompressed size.
+
+## Supported features and commands
+
+The root and `core` exports provide spreadsheet, PDF, media, office, and Git
+commands using static metadata, loading their implementations on first execution.
+`agentCommands()` includes the portable command suite, including YAML, CSV, HTML,
+PDF, media, office, Mermaid, and virtual `op` commands. Git remains an explicit
+plugin, as do network and external runtime capabilities. For a shell without
+`agentCommands()`, select individual commands or families:
+
+```ts
+import { optionalCommands } from "@poe-platform/safe-bash";
+
+shell.use(optionalCommands({ commands: ["pdftotext", "ffprobe"] }));
+// Alternatively: optionalCommands({ families: ["pdfinfo", "ssconvert"] })
+// Full profile: agentCommands() plus optionalCommands({ profile: "full" })
+```
+
+The full optional profile fills missing commands and preserves existing dedicated
+registrations, including configured default commands. Pass `replace: true` to
+replace existing registrations explicitly.
+
+Existing root factories such as `ffmpegCommands()` and `createPdftotextCommand()`
+also defer loading. The advanced command subpaths retain their eager SDK and
+synchronous APIs. Selected ssconvert format factories remain supported through
+`configuration.ssconvert.formats`; no format adapter is replaced.
+Concurrent first calls share one code-load promise per family. Failed loader
+calls retry on the next invocation. Host module caches can retain evaluation
+errors; correcting a broken bundled module can require restarting the host. Cancellation stops that caller's wait and prevents late
+dispatch; it does not cancel another caller's shared code import. Factories and
+execution contexts are invocation-local, and Git shares compiled Wasm code but
+creates separate mutable instances. Existing filesystem, streams, host bindings,
+limits and cleanup remain with the original command context. Configuration
+validation in deferred factories occurs at first execution.
+
+Static dynamic-import chunks and Wasm assets still count toward Cloudflare's
+total uncompressed upload size. Deferring evaluation reduces startup work;
+splitting files alone does not remove deployment bytes. Hosts can parse or
+compile statically declared assets before execution; the loader defers JavaScript
+evaluation and mutable engine initialization. The maintained
+`tests/integration/lazy-loading.test.mjs` qualifies source and installed profiles
+in workerd and reports cold runtime/setup, first use, repeat use and cleanup
+measurements. Python uses an injected asynchronous executor in this loader
+regression; LLM uses a synthetic provider, without external model calls.
+
+All private command plugins are available from `@poe-platform/safe-bash/core` in portable browser and workerd environments. Each command exposes its plugin, `create<Name>Commands`, `create<Name>Command`, `<Name>CommandsOptions`, and `<Name>Limits`; factories construct commands without registering them. Standalone `sed`, `awk`, `find`, `diff`, `patch`, `tar`, `zip`, `unzip`, `gzip`, `curl`, and `wget` imports use `@poe-platform/safe-bash/commands/<name>`. Standalone network factories deny requests unless an `authorize` callback permits them.
+
+Chain `.use(plugin).register(command, { replace: true })` to replace a plugin command. Registration waits for pending plugin setup in call order; setup and queued registration errors surface through `exec()`. Replacements for `true`, `false`, and `pwd` also apply to shell calls; `builtin <name>` explicitly runs the shell builtin.
+
+### Shell syntax
+
+- Quoting and escapes, variables and positional arguments (including
+  `${@:offset:length}` and `${*:offset:length}` slices), parameter expansion
+  (including scalar `${!name}` indirection and `^`/`^^` and `,`/`,,` case
+  conversion with optional patterns),
+  `$(command)` and backtick substitution, arithmetic expansion, and pathname globs.
+- Pipelines (`|`, `|&`), lists (`;`, `&&`, `||`, `!`), file redirection (`<`, `>`,
+  `>>`, `<>`), combined output redirection (`&>`, `>& file`, `&>>`), descriptor
+  redirection such as `2>&1`, here-documents, and here-strings. `<>` opens without
+  truncation and requires a filesystem with descriptor support.
+- `if`/`elif`/`else`, `case`, `for name in …`, `while`, `until`, functions,
+  groups `{ …; }`, subshells `( … )` (including adjacent nested subshells and
+  `BASH_SUBSHELL` nesting levels),
+  `[[ … ]]` (including file age/identity, special-file, mode and nameref
+  predicates; ordering uses byte comparison in C/POSIX and host Intl collation
+  in supported UTF-8 locales. Literal/glob and ASCII ERE comparisons also accept UTF-8 locales,
+  with ranges limited to C/POSIX collation, including C.UTF-8), arithmetic commands `(( … ))`, and indexed arrays with arithmetic
+  and relative negative element indices, including `declare -a`, `local -a`,
+  and `readonly -a` array literals. Arithmetic array operands such as `a[i]`
+  support reads, assignments, and increments in `$(( … ))`, `(( … ))`,
+  `for (( … ))`, and `let`, including associative keys. Array expansions support member slices, element substrings, member-wise trimming
+  and substitution, and lazy element default, alternate, assignment, and error operators by default.
+  Ownership predicates `-O` and `-G` in `[[ … ]]`, `test` and `[` use explicit
+  `capabilities: { predicateIdentity: { effectiveUid, effectiveGid } }` on the
+  shell or execution options; missing caller or filesystem identity is refused.
+  File predicates in `[[ … ]]`, `test` and `[` evaluate symlink traversal loops
+  as false; `-L`/`-h` still recognize the link itself. Access checks `-r`/`-w`/`-x`
+  evaluate denied access as false, and `-N` compares modification and access times.
+- Virtual script files through `sh`, `bash`, or executable paths; `source`/`.`
+  runs a script in the current shell. `bash -n script.sh` (also `sh -n`) checks
+  syntax without executing commands; `set -n` / `set -o noexec` parses the
+  remaining input without execution. `set -e`, `set -u`, and `set -o pipefail`
+  control failures; `set -a` (or `set -o allexport`) exports subsequent variable
+  assignments to child commands, and `set +a` disables automatic export.
+  Bash-profile `set -f` / `set -o noglob` disables pathname
+  expansion, and `set +f` restores it. `set -C` (or `set -o noclobber`) protects existing output
+  files from `>` redirection; `>|` overrides it and `>>` still appends.
+  `shopt -s dotglob` includes dotfiles in globs. `failglob` rejects unmatched
+  patterns; `lastpipe` retains the final foreground pipeline stage's shell changes;
+  `inherit_errexit` carries `set -e` into command substitutions. Enable
+  `expand_aliases` to expand aliases on subsequently read command lines.
+
+Shell builtins beyond the tools below: `:`, `cd`, `pushd`, `popd`, `dirs`, `set`,
+`shift`, `export`, `local`, `declare`, `readonly`, `unset`, `read`, `getopts`, `let`, `shopt`, `umask`,
+`exit`, `return`, `break`, `continue`, `command`, `builtin`, `type`, `.`, `source`,
+`eval`, `alias`, `unalias`. `alias name='command args'` defines an alias;
+`alias -p` lists definitions, and `unalias name` or `unalias -a` removes them.
+`pwd`, `true`, and `false` also work without a command bundle.
+`command -p` bypasses functions and searches `/bin:/usr/bin` in the supplied
+filesystem while preserving `PATH`; registered commands remain available.
+Combine it with `-v` or `-V` for discovery, including `command -pV printf`.
+`unset -v NAME` removes variables; `unset -f NAME` removes functions without changing
+variables of the same name. Use `--` to end option parsing.
+`read -a NAME` replaces an indexed array with the record's IFS-separated fields.
+The default `read` accepts `-u 0` to select supplied stdin, plus `-p PROMPT`
+and `-s` for nonterminal input; prompts are suppressed and silent mode has no
+terminal effect. Other `-u` descriptors require the optional read extension.
+`export -n NAME` removes a variable's export attribute while keeping its value;
+`export -f NAME` passes a defined function to virtual child shells, and `export -fn NAME`
+stops passing it. `export -p` prints reusable variable declarations; `export -fp` lists
+exported functions. Arrays can carry an export attribute, but their elements are
+not included in child command environments.
+`declare` supports integer (`-i`), ASCII case conversion (`-l`/`-u`), scalar
+name references (`-n`), exports (`-x`), readonly (`-r`), arrays (`-a`/`-A`),
+global declarations (`-g`), inherited locals (`-I`), declaration printing (`-p`),
+and function inspection (`-f`/`-F`). `typeset` is an alias for `declare`.
+`local` accepts variable attribute flags and combinations such as `-ai` and `-ar`.
+`declare`, `typeset`, `local`, and `export` accept `name+=value`; integer variables
+add the arithmetic value instead of concatenating text.
+`cd -L` preserves symlinks in `PWD` (the default); `cd -P` resolves symlinks before
+following `..` and records the physical directory. Use `cd -- <path>` for paths
+beginning with a dash.
+Each invocation starts with `umask 0022`; numeric and symbolic masks affect new
+files and default directory modes through the supplied filesystem. Host umask
+is unchanged and may further restrict real file modes; remote modes can be advisory.
+`readonly -f name` protects a function from redefinition and `unset -f`;
+`readonly -f` lists protected functions. `unset -v` removes variables independently.
+`local -i count=2+3` evaluates scalar assignments as arithmetic; `local -n ref=target`
+reads and writes the named variable. Both attributes follow function scope and restore
+outer bindings on return. Indexed and associative arrays support readonly (`-r`),
+integer (`-i`, including arithmetic `+=`), and ASCII case conversion (`-l`/`-u`)
+on each element. Nameref targets must be simple variable names; combining nameref
+with integer or array attributes is unsupported.
+
+### Command bundle
+
+`agentCommands()` registers all **79 commands** below. They operate on the supplied
+filesystem and byte streams, not host executables. `file` recognizes bounded CSV,
+HTML, XML and shell/Python shebang text alongside JSON and binary headers, preserving
+the detected charset in MIME output; see its [recognition limits](src/commands/file/README.md#recognition-and-limits-of-meaning).
+
+`hexdump` and `hd` default to the BSD numeric and repeated-row profile.
+Use `agentCommands({ hexdump: { dialect: "util-linux" } })` or
+`hexdumpCommands({ dialect: "util-linux" })` for hexadecimal/octal counts,
+binary size suffixes such as `1KiB`, decimal suffixes such as `1KB`, and
+unsqueezed partial final rows. This selects those semantics; custom formats
+and other unsupported options remain unavailable.
+
+| Purpose | Commands |
+| --- | --- |
+| Browse | `pwd`, `ls` (including `-i`/`--inode` for provider-reported inode numbers, with `?` for unknown metadata; `-Q`/`--quote-name` and `--indicator-style=none/slash/file-type/classify`), `tree`, `find` (including `-H` to follow argument symlinks while keeping descendant links physical, and `-D tree` for virtual expression diagnostics; other debug modes are unsupported), `du`, `file`, `basename`, `dirname`, `realpath` (including lexical `-s`/`--strip`/`--no-symlinks`), `readlink` (including `-m`/`--canonicalize-missing`), `which` |
+| Files | `mkdir`, `touch`, `cp`, `mv`, `rm`, `rmdir`, `ln`, `chmod`, `stat`, `mktemp`. `mkdir -m` accepts octal and symbolic permission modes; symbolic modes start from `0777` masked by the current umask. `rm --interactive=never` removes without prompting; `--interactive=always` / `-i` reads a confirmation from stdin for each removal. `--interactive=once` / `-I` prompts once for recursive removal or more than three operands. `cp -a` / `--archive` copies directory trees without dereferencing symbolic links (the virtual archive profile is `-RP`; add preservation flags for metadata and hard links). `cp -b` / `--backup[=simple\|numbered\|existing]` preserves replaced files; `-S` / `--suffix` sets the simple backup suffix. `cp -t DIR` / `--target-directory=DIR` copies sources into a directory; `-T` / `--no-target-directory` treats the destination as a single path. `mv -u` / `--update` moves files only when the destination is absent or older; directories retain normal move behavior. `mv -t DIR` / `--target-directory=DIR` moves sources into an existing directory; `-T` / `--no-target-directory` treats the destination as an exact path. `cp --remove-destination` removes destination entries before copying, preserving other hard links and leaving destination symlink referents untouched. `cp --preserve=mode` retains permissions; `-p` retains modes and access/modification times and requires matching reported owners. `-d` copies symlinks and preserves links between copied entries. `--attributes-only` leaves existing bytes intact and creates empty missing files; combine it with preservation flags to update metadata. Unsupported metadata operations fail explicitly; ownership changes and symlink timestamps are unavailable. `cp -v` reports paths using the original operand spelling, including relative paths. `ln -sr` / `--symbolic --relative` computes a relative symlink target from the link directory, resolving existing symlinks and allowing missing sources. `ln -v` / `--verbose` reports each successful link as 'target' => 'source' (hard) or 'target' -> 'source' (symbolic). `rmdir --ignore-fail-on-non-empty` leaves nonempty directories untouched without reporting a failure; with `-p`, removal stops at the first nonempty parent. `touch -h` / `--no-dereference` accepts ordinary files and reads reference symlink metadata; symlink targets fail explicitly because symlink timestamp mutation is unavailable. `touch -d` / `--date` accepts epoch seconds (`@0`), ISO/RFC dates and the virtual `date` relative-date profile; `-t [[CC]YY]MMDDhhmm[.ss]` sets a calendar timestamp. |
+| Filter/search | `cat`, `head`, `tail`, `wc`, `tee`, `cut`, `tr`, `sort`, `uniq`, `sed`, `awk`, `grep`, `rg`, `egrep`, `fgrep`, `rgrep`, `fd`. `sort` spills runs through injected safe-fs, with separate memory and input limits; see [sort usage and locale limitations](../safe-bash-command-sort/README.md). `fd` finds virtual files and directories with regex/glob patterns, extension/type/size/time filters, ignore files, and literal command execution; see [fd usage](../safe-bash-command-fd/README.md). `awk` accepts `--field-separator` (`-F`), `--source` (`-e`), and `--characters-as-bytes` (`-b`); its string indexes and records are byte-oriented. `sed` and `awk` regexes count UTF-8 characters by default and in UTF-8 locales; C/POSIX locales and `awk -b` select byte matching (locale precedence: `LC_ALL`, `LC_CTYPE`, `LANG`). `cut -c` selects raw bytes in C/POSIX locales (`LC_ALL`, then `LC_CTYPE`, then `LANG`); otherwise it selects UTF-8 characters, including when no locale is set. `head` and `tail` accept `-z` / `--zero-terminated` for NUL-delimited records. `tail --follow[=descriptor\|name]` follows retained files; `--retry` retries inaccessible files (`-F` combines name following and retry). `-s` / `--sleep-interval` sets polling seconds, and `--max-unchanged-stats` controls name reopening after unchanged polls; `--max-idle=0` emits only the initial selection. Following requires retained-read filesystem support. `uniq -D` / `--all-repeated[=none\|prepend\|separate]` prints every repeated record; `--group[=separate\|prepend\|append\|both]` prints all records with group separators. `wc -L` / `--max-line-length` counts display columns with eight-column tab stops; UTF-8 widths use the frozen GNU/Linux C.UTF-8 profile. |
+| Format/combine | `nl`, `seq`, `rev`, `tac`, `expand`, `unexpand`, `fold`, `fmt`, `strings`, `paste`, `comm`, `join`, `column`, `split`, `pr`. `pr --date-format=FORMAT` customizes the UTC header date using the virtual `date` format directives. |
+| Structured text | `jq`, `html-to-markdown`, `xq`, `xmllint`, `mdq`. `mdq` extracts Markdown sections and elements, with Markdown, JSON and plain output; see the [query syntax and limits](../safe-bash-command-mdq/README.md). `xq` converts XML to JSON and applies jq filters. `xmllint` supports `--xpath`, `--noout` well-formedness checks, `--format`, `--noblanks`, `--output` / `-o`, `--recover`, `--encode`, and inclusive/exclusive canonicalization (`--c14n` / `--exc-c14n`) with comments; DTDs and schema validation are unsupported. [XML modes and limits](docs/XML_QUERY.md). `jq` supports ASCII escapes (`-a`), indentation (`--indent`, `--tab`), explicit color (`-C` / `-M`), NUL-delimited raw output (`--raw-output0`), and unbuffered writes. `jq -S` / `--sort-keys` sorts object keys recursively in JSON output; `--stream` / `--stream-errors` emit path events, and `--seq` handles JSON sequences within the same resource limits. `--rawfile NAME FILE` binds virtual-file text; `--slurpfile NAME FILE` binds its JSON values as an array. `--args` and `--jsonargs` expose string or JSON arguments through `$ARGS.positional`. `jq -L DIRECTORY` loads virtual `.jq` modules with zero-argument definitions; see [jq options and limits](src/commands/structured/README.md). |
+| Bytes/checksums | `base64`, `base32`, `xxd`, `od`, `md5sum`, `sha1sum`, `sha256sum`, `cksum`. `od -a` prints ASCII character names, `-f` prints IEEE single-precision floats, and `-i` / `-l` print signed four/eight-byte integers. Explicit float types are `-tf4` and `-tf8`. `od --strings[=MIN]` / `-S[MIN]` prints NUL-terminated strings with at least MIN characters (default 3). |
+| Archives | Tar extraction to the filesystem requires atomic backend confinement; MemoryFileSystem supports it, while backends without it refuse extraction. `tar -xO` remains available. `gzip`, `gunzip`, `zcat`, `tar`, `zip`, `unzip`. ZIP inspection supports `unzip -Z -1 ARCHIVE [FILES...]` for names only and `unzip -z ARCHIVE` for the archive comment, without extracting members. Other ZipInfo formats are unsupported. Tar supports gzip (`-z`), bzip2 (`-j`), xz (`-J`), suffix-selected creation (`-a`), and compression detection when reading. Creation accepts `--mtime=@SECONDS` or ISO/RFC dates, numeric `--owner`/`--group`, and octal `--mode`; `--atime-preserve[=replace]` restores source file and directory access times on timestamp-capable backends. Extraction accepts `--touch`/`-m`, `--same-permissions`/`--preserve-permissions`/`-p`, `--no-same-permissions` (virtual 022 mask), `--no-same-owner`, and directory restoration policies. Special permission bits remain stripped; ownership restoration (`--same-owner`), name lookup, symbolic modes and no-atime reads (`--atime-preserve=system`) are unsupported. `--full-time` shows UTC timestamps in verbose listings; `--utc` also enables verbose listing. `--record-size=SIZE` / `-b N` sets output record padding, `-B` accepts full-record reads, and `--ignore-zeros` / `-i` reads past zero blocks and concatenated archives. `--seek` / `-n`, `--no-seek`, and `--force-local` accept local VFS archives with sequential reads. `--quoting-style=literal\|escape\|c` controls displayed names; `--totals` reports archive byte counts on stderr. Extraction supports `-k` / `--keep-old-files` (preserve conflicts and return status 2), `--skip-old-files` (preserve silently), and `--overwrite` (default safe replacement); the last policy wins. Existing directories are merged. Path, symlink and input-archive safety checks apply to every policy. |
+| ZIP archives | `zip`, `unzip`. File extraction requires atomic ancestry verification; MemoryFileSystem supports it, while unsupported backends refuse extraction. `unzip -n` preserves existing regular files without prompting; `-j` flattens paths and skips directory entries. Selection uses original archive names. Overwrite, traversal, symlink and backend capability checks still apply. |
+| Script helpers | `echo`, `printf`, `true`, `false`, `test`, `[`, `env`, `printenv`, `xargs`, `expr`, `date`, `sleep`, `timeout`. `test` / `[` support special-node and mode predicates and live shell `-v`, `-R`, `-o`, `-t` queries. Byte-stream descriptors are nonterminal. Ownership queries require the command plugin option `predicateIdentity: { effectiveUid, effectiveGid }` and backend owner metadata; unavailable capabilities report an error. Remote modes remain advisory. `env -v` / `--debug` writes environment changes, the working directory change, and command/argument diagnostics to stderr. |
+| Changes/review | `diff`, `patch`, `apply_patch`. Diff supports binary comparisons, byte-preserving text changes, symlinks, multi-file comparisons, explicit context widths, and `--color[=auto\|never\|always]`; [diff options and limits](src/commands/diff-patch/README.md) describes configuration. |
+
+`printf` returns status 1 for invalid formats and options, retaining any output written before a format error. Its Bash format dialect accepts zero flags on string conversions and rejects numbered conversions such as `%1$s`; the grouping flag is accepted without locale-specific separators. `%#q` single-quotes printable input, and `%Q` applies precision to input bytes before quoting. In UTF-8 locales, `%ls`, `%lc`, `%S` and `%C` count characters for precision and padding; ordinary `%s` and `%c` remain byte-based.
+
+`expr` accepts UTF-8 locales for string comparisons, bracket matching, and character operations, including `LANG=en_US.UTF-8` and `LANG=UTF-8`. Named-locale ordering uses host `Intl` collation; see [expr usage and matching profiles](../safe-bash-command-expr/README.md).
+
+`uniq -s` and `uniq -w` count Unicode code points in valid UTF-8 records; invalid UTF-8 records retain byte comparisons. `uniq INPUT OUTPUT` refuses aliases of the input, including symbolic and hard links, before opening the output. An existing output also requires the filesystem to establish that the files are distinct. `cut` accepts space/tab separators and padding in range lists, rejects empty comma items, and retains `--output-delimiter` between adjacent byte or character ranges. `chmod -r` removes read permissions; `--reference=FILE` copies a file's mode.
+
+`cp -l` / `--link` creates hard links to source files; `cp -s` / `--symbolic-link` creates symbolic links using the source operand as the literal target. Relative symbolic targets require destinations in the current directory; use absolute source paths when copying into other directories. Link modes require filesystem link capabilities and support recursive copying, no-clobber and backups. `cp -x` / `--one-file-system` creates directories at known filesystem boundaries without copying their contents; unknown filesystem identities remain traversable.
+
+`ln -i` / `--interactive` prompts on stderr before replacing an existing destination and reads one answer from stdin. Answers beginning with `y` or `Y` confirm replacement; refusal or EOF preserves the entry and returns status 1. The last `-i` or `-f` option selects interactive or forced replacement.
+
+`ln -L` / `--logical` follows source symlinks for hard links; `-P` / `--physical` links the source entry (the default). The last source-mode option wins; both are ignored with `-s`. Physical symlink hard links depend on backend support and host link semantics on the real filesystem adapter.
+
+Tar creation also accepts `--sort=name` (bytewise directory-child order; operand order stays unchanged), `--sort=none` (default), `--dereference` / `-h` (archive symbolic-link targets), and `--exclude-caches` (retain directories with a valid `CACHEDIR.TAG` and their tag files, omitting other contents). Dereferencing retains backend containment and output-archive checks and rejects directory cycles.
+
+Tar reads newline-delimited exclusion patterns with `-X FILE` / `--exclude-from=FILE`; exclusion spelling accepts leading `./` and trailing `/`. File lists resolve against the active `-C` directory and accept trailing `--null` or `--verbatim-files-from` when no earlier decoding mode was specified. Tar and ZIP can read S3, WebDAV and custom filesystem sources without retained handles using canonical-path and metadata checks; these checks do not provide concurrent-read snapshots. When listing or extracting, `--wildcards` enables anchored glob member selection; `--no-wildcards` restores literal selection. `--occurrence[=NUM]` selects only the requested occurrence of each member operand (default 1), and requires member operands.
+
+Use `cat --help`, `base64 --help`, `cp --help`, `sort --help`, `grep --help`, `rg --help` or `tar --help` to discover supported options. `base64 --version`, `cp --version` and `sort --version` identify the safe-bash implementation. These informational requests exit before processing input files.
+`cp -u` / `--update` copies missing files and replaces files only when the source
+has a newer modification time. Recursive copies compare each file separately.
+File-content copies (`cp` and cross-device `mv`) require a retained reader with
+authoritative file identity. Destinations require streaming writes, exclusive
+creation for missing or explicitly removed files, or guarded staging for an
+existing-file move. Exclusive creation buffers the
+inspected source size within the host input and memory budgets. The reader identity
+is verified before bytes are read; backends without this guarantee refuse the
+transfer. Ordinary same-device `mv` still uses rename.
+`mv -i` / `--interactive` asks on stderr before replacing an existing destination
+and reads one response from stdin. A response beginning with `y` or `Y` allows
+the move; refusal or EOF keeps both paths and returns status 1. The last of
+`-i`, `-f`, and `-n` wins. Skipped updates and missing destinations do not prompt,
+and backups are created only after confirmation.
+Cross-device `mv` requires atomic conditional source removal. Backends without
+this capability refuse the fallback before copying. If a source entry or its
+parent changes during transfer, cleanup fails and retains the copied data;
+the command never deletes a replacement source entry.
+Cross-device `mv` can replace an existing regular file using guarded staging
+with atomic destination and ancestry checks and retained staging cleanup. Memory
+mounts support this route. Source bytes are buffered under the input and
+collection limits; supported modes and timestamps are prepared before publication.
+Backends without these guarantees refuse the overwrite. Hardlinked destinations
+are replaced without changing the contents of their sibling links. Opaque
+destination identities remain unsupported. Backends with bound path resolution
+support symlinked destination parents and reject path changes before publication.
+Same-device replacement and cross-device moves to missing destinations remain supported.
+Directory moves with multiple source links to one inode require atomic unlink
+receipts to remove those links without accepting unrelated source changes.
+`cp -i` / `--interactive` prompts on stderr before overwriting each existing file
+and reads one response from stdin. Responses beginning with `y` or `Y` allow
+replacement; refusal or EOF preserves the destination and returns status 1.
+The last `-i` or `-n` wins; `-f` does not disable confirmation.
+`stat -t FILE` / `--terse` prints file metadata in GNU field order, using `?` for
+fields the backend does not expose. `-c` / `--format` and `--printf` override
+terse output. Filesystem terse output (`-ft`) remains unsupported.
+`factor --exponents 72` prints `72: 2^3 3^2`; without operands, it reads numbers from stdin.
+Integers are exact beyond JavaScript's safe-integer range. `factor.limits.maxValue`
+accepts a positive safe integer, a positive `bigint`, or `Infinity` (the default).
+`zstd`, `unzstd`, and `zstdcat` accept `-q` / `--quiet`, including combined
+short options such as `-qc`. Repeating quiet suppresses processing errors on
+stderr while preserving failure exit codes and validation.
+For explicit SDK registration, import `createZstdCommands` or `zstdCommands`
+from `@poe-platform/safe-bash/commands/zstd`; `limits.maxDecodedBytes` bounds
+decoded output across operands while the default remains unlimited.
+Use `--[no-]check` to control frame checksums, `--stream-size=BYTES` to declare
+and enforce input size, and `--[no-]pass-through` to copy unrecognized input
+during decompression. `--exclude-compressed` skips compressed file suffixes.
+Single-thread execution, I/O read-ahead, literal compression, row matching,
+size hints and bounded long-distance matching are configurable; see the
+[compression options](src/commands/bytes/compression/README.md).
+Named compression removes its source only through an atomic identity- and
+ancestry-bound conditional delete. Backends without that guarantee refuse before
+publishing output; use `--keep` or `--stdout` to retain the source.
+Zstandard presets are parsed as whole numbers; the bounded codec supports levels
+1–9. Higher presets and `--fast[=NUM]` fail explicitly instead of selecting a
+different level. Native codecs enforce a 64 MiB allocation ceiling for encoding
+and decoding, including ZIP LZMA; Zstandard windows are limited to 32 MiB.
+XZ decompression flags can lower the ceiling. Output-byte limits remain separate.
+Use `grep -A NUM`, `-B NUM` or `-C NUM` to include lines after, before or around each match; separated groups use `--`, and `-n` marks context lines with `-`.
+`grep -L` / `--files-without-match` prints filenames without selected lines. Its exit status follows GNU grep: 0 if any input line is selected, 1 otherwise, even when it prints a filename. `-v` inverts line selection; `-q` suppresses output. This also applies to `egrep` and `fgrep`.
+Use `rgrep` or `grep -r` to search directories, with `--include`, `--exclude`, `--exclude-from` and `--exclude-dir` to filter basenames. `-R` follows nested symlinks; recursion is bounded to 128 levels and detects ancestor loops. `-b` prints byte offsets, `-Z` uses NUL after filenames, and `--no-group-separator` hides context separators. These options also work with `egrep` and `fgrep`.
+`--group-separator=SEP` customizes context separators, `--label=LABEL` names stdin, and `--initial-tab` inserts a tab after prefixes. `--binary-files=text` searches raw bytes as text; other binary-detection modes are explicitly unsupported. `--binary` preserves bytes without Windows text-mode translation. `--color=never` and `--colour=never` disable colour; `auto` also emits plain text because output is captured rather than a terminal. Forced colour is unsupported.
+The default bounded `grep` matcher rejects BRE groups, intervals, backreferences
+and escape extensions such as `\|`. Use `grep -E 'Remove upvote|Upvoted'` for
+alternation or `grep -F -e 'Remove upvote' -e 'Upvoted'` for literal alternatives.
+Exit 1 means no match; exit 2 means filtering failed. If a preceding action
+succeeded, inspect its resulting state and retry only the read-only verification
+before repeating the action. A configured regex executor may support more syntax.
+`tee` accepts `-i` / `--ignore-interrupts`, `-p`, and `--output-error[=warn|warn-nopipe|exit|exit-nopipe]` alongside `-a` / `--append`. File write failures continue with the remaining destinations in warn modes and stop in exit modes; the last error option wins. Bare `--output-error` and `-p` select `warn-nopipe`. Virtual commands have no native signal handlers or OS pipes: host cancellation and shell downstream-failure handling remain in effect.
+`iconv -f UTF-8 -t UTF-16BE -o result source` writes converted bytes to a virtual file, replacing its existing contents. `--output=result` is equivalent; omit input files to convert stdin, and use `--output=-` to write to stdout. Conversion output limits also apply to file output.
+
+`iconv -s` / `--silent` accepts the native silent control while retaining fatal error diagnostics. `--verbose` prints each named input as `filename:` on stderr before conversion; stdin has no progress label.
+
+Use `grep -w` or `--word-regexp` to match whole words with C-locale byte matching (word characters are ASCII letters, digits and underscore), including fixed strings and `-o` output.
+
+`cut -c` preserves and selects individual bytes in C/POSIX locales, using the first nonempty value of `LC_ALL`, `LC_CTYPE`, and `LANG`. Other locales and an unset locale retain UTF-8 character selection.
+
+Use `strings -s ':'` or `--output-separator=:` to separate extracted strings with custom text, including after the final string. An empty separator joins the strings.
+Default `rg` accepts UTF-8 literals and bounded ASCII regex operators (`.`, anchors,
+classes, groups, alternation and greedy repetition), including `-o` and match counts.
+It preserves original UTF-8 byte offsets and supports case/word selection on ASCII
+subjects, plus bounded ASCII globs for path and ignore filtering. Unicode case/word
+selection, Unicode regex syntax, escape extensions, lazy repetition and invalid
+UTF-8/NUL subjects require a configured regex executor; unsupported profiles fail
+explicitly. Replacement supports `$0`, numbered and named captures (`$1`, `${1}`,
+`$name`, `${name}`), and `$$` for a literal dollar sign. Unknown or unmatched groups
+expand to empty text. Replacement, trimming, file-size limits, depth aliases and
+explicit virtual ignore files are supported. `--threads` accepts a count while
+execution stays serial; `--multiline` supports cross-line patterns and capture
+replacement through the default portable matcher.
+
+Default `grep`, `egrep` and `fgrep` preserve arbitrary subject bytes for fixed
+matching and ASCII patterns without regex syntax, including NUL and invalid UTF-8
+records with `-a`. Patterns retain UTF-8 validation; regex operators retain the
+bounded engine's UTF-8 subject restrictions.
+
+`/commands/fmt` exports `parseFmtArguments`, the pure byte coroutine
+`createFmtEngine`, and equivalent `fmtCommand({ limits?, profile? })` /
+`fmt(context, { width?, goal?, crown?, tagged?, split?, uniform?, prefix?, files?, limits?, profile? })`
+execution APIs, with literal byte `arguments` available as an alternative to typed
+formatting options. `fmtCommands({ limits?, profile?, replace? })` registers an
+explicit plugin. Formatting defaults to GNU coreutils 9.10 byte lengths and
+bounded paragraph optimization;
+an explicit historical 8.30 profile retains its older width boundary. Supports
+`-w`, `-g`, `-c`, `-t`, `-s`, `-u` and `-p`; for example,
+`printf 'aa bb cc dd ee' | fmt -w8` produces `aa bb cc\ndd ee\n`. Private
+implementation and declarations ship inside safe-bash. See the
+[fmt contract](https://github.com/poe-platform/poe-code/blob/main/packages/safe-bash-command-fmt/README.md)
+for spacing, prefix, cancellation and resource limits.
+
+`mdq '# Authentication' < /SPEC.md` extracts a chapter, and
+`mdq '# Authentication | # Token expiry' < /SPEC.md` narrows it to a nested
+section. Use `mdq -o json '# Token expiry' /SPEC.md | jq -r '.items[0].section.title'`
+for structured pipelines. `mdq` is in `agentCommands()`; the `/commands/mdq`
+export also provides `mdq(context, options)`, `createMdqCommand`, and
+`mdqCommands({ limits?, replace? })`. The CLI and typed SDK share validation,
+UTF-8 VFS/stream input, formatting and match status. Compatibility targets
+mdq v0.10.0. Hosts can configure input/output, allocation, depth and work
+ceilings; these resource limits default to disabled (`Infinity`). See the
+[query syntax, flags and limits](../safe-bash-command-mdq/README.md).
+
+### Opt-in commands and storage
+
+These plugins are separate from `agentCommands()`; pass them to `shell.use(...)`.
+Portable plugins for media, PDFs, spreadsheets and text are available from both
+`@poe-platform/safe-bash` and `@poe-platform/safe-bash/core`, with the same factories
+and option types. The `/commands/...` subpaths remain available for command-specific
+SDKs and helpers. Both main entry points share the portable `posixPath` API.
+
+`mikeYqCommands()` is exported from the package root, core, and `/commands/yq`.
+It enables bounded Mike-style format conversion: `yq -p csv -o json . records.csv`
+reads a table, and
+`yq -o csv . records.yaml` writes one. Input and output support CSV, TSV,
+properties, XML, INI, TOML, base64 and URI; shell and Lua are output only.
+See the [format profile](src/commands/yq/FORMATS.md) for supported shapes and limits.
+
+Import `csvcutCommands` from `@poe-platform/safe-bash/commands/csvcut` and pass it
+to `shell.use(csvcutCommands())` to enable CSV projection without the aggregate plugin. For example,
+`printf 'a,b\nx,y\n' | csvcut -c2,1,2` emits `b,a,b\ny,x,y\n`.
+The same subpath exports the typed SDK and bounded record/selector APIs; see the
+[flags, limits and profiles](https://github.com/poe-platform/poe-code/blob/main/packages/safe-bash-command-csvcut/README.md).
+Packed Node ESM consumers are verified; actual browser/workerd execution remains
+unqualified.
+
+| Command | Plugin and configuration |
+| --- | --- |
+| `ast-grep`, `sg` | `astGrepCommands()` from `/ast-grep`: structural search, YAML rules and virtual-file rewrites across TS, JS, JSX, JSON, YAML, HTML and CSS. [Flags and limits](../safe-bash-command-ast-grep/README.md). |
+| `ffprobe`, `sox`, `soxi` | `audioCommands()` from `/commands/audio`: local audio inspection, WAV effects and synthesis. Use individual `/commands/sox` and `/commands/soxi` plugins alongside an existing media `ffprobe`. [Flags and limits](../safe-bash-command-audio/README.md). |
+| `dos2unix`, `unix2dos` | `lineEndingCommands({ limits?, replace? })` from `/commands/line-endings`: byte and UTF-16 line-ending conversion. Use `-e` / `--add-eol` to terminate the final line, `-O` / `--to-stdout` to convert without rewriting inputs, and `-i[FLAGS]` / `--info[=FLAGS]` to inspect line endings, BOM and text/binary status. `-v` prints conversion details. In-place conversion requires safe publication capabilities and preserves reported ownership; `--allow-chown` permits publication when ownership cannot be preserved, and `--no-allow-chown` restores the default. |
+| `curl`, `wget` | `networkCommands({ authorize, transport?, limits?, replace? })`: required authorization on every request, redirect, and retry. Curl's `-r/--range` requests byte ranges. Wget supports `--header 'NAME: VALUE'`, `--user-agent`, `--referer`, `--post-data`/`--post-file` and `--method` with `--body-data`/`--body-file`; body files come from the VFS and retain their bytes. Repeated wget headers replace earlier values by name; `--header=''` clears custom headers, and `NAME:` sends an empty value. Host, Connection, and Expect overrides are accepted; framing and proxy headers remain transport-controlled. Custom headers are dropped after crossing origins. Node uses the native HTTP transport and supports curl's `--connect-timeout` for DNS/TCP/TLS setup. Workers default to `createFetchTransport()`, which cannot enforce a separate connection timeout. Network registration without an authorizer denies requests. Quotas default to disabled in every runtime. `createOriginAuthorizer([...])` provides exact origin/hostname policy; its omitted allowlist is deliberately `*` (allow all). [Options and limits](src/commands/network/types.ts). |
+| `node` | Opt-in [QuickJS runtime](../safe-bash-command-node/README.md) via `commands/node/quickjs`, with safe-fs files and safe-bash child commands. The existing [injected runtime](src/commands/node/README.md) remains available. |
+| `python`, `python3` | `pythonExecutorCommands({ createExecutor })` from `@poe-platform/safe-bash/commands/python/executor`: supply an explicit executor for invocation-local Python, filesystem I/O and shell streams. Open-file, directory, worker-capacity, input-fragment, package-download, cache, manifest-store and Docker frame-size quotas are unlimited by default; configure individual budgets when needed. [Executor and ownership contract](src/contracts/python-executor.md). Invocation capabilities include `createPythonLlmCapability(context, service)` for the same authorized model service and `createPythonShellCapability(context)` for enabled commands. The pinned [Python LLM package profile](docs/python-llm.md) runs the original `llm` distribution with ordinary prompts, sync/async responses, in-memory conversations, embeddings and bounded host input streams. It requires explicit static package assets; the calling profile excludes logs, saved history and provider installation. The separate legacy configuration interface and remaining transport limits are documented there. |
+| `llm` | `llmCommands({ providers, defaultModel?, replace? })` or `llmCommands({ service, replace? })`: opt-in model routing, sandbox attachments and streamed text/binary output. Includes injected-transport OpenAI and ElevenLabs reference providers. [Configuration and provider contract](src/commands/llm/README.md). |
+| `dot` | `/commands/dot`: `dotCommands({ limits?, replace? })` renders DOT to SVG, PDF, PNG, JPEG, WebP, JSON, DOT/canon or plain text with `-T`, `-o`, `-G/-N/-E` and `-Kdot|neato`. `/commands/graphviz`: `graphvizCommands()` also registers `neato` spring layout and `svgo` SVG optimization. `/graphviz` exports the same factories and DOT/SVG engine APIs. All use bounded VFS/stream I/O. |
+| `rsvg-convert` | `/commands/rsvg-convert`: `rsvgConvertCommands({ limits?, replace? })` converts SVG diagram primitives to vector PDF (`-f pdf`) or PNG (`-f png`). Supports groups, transforms, shapes and plain text; advanced SVG/CSS is outside this profile. |
+| `wdiff` | `/commands/wdiff`: `wdiffCommands({ limits?, replace? })` compares words in two files (or one stdin operand), preserving bytes and marking `[-deletions-]` and `{+insertions+}`. |
+| `diffpdf`, `pdfdiff` | `/commands/diffpdf`: `diffpdfCommands({ limits?, replace? })` compares PDF text (`--text`, default) or text geometry (`--layout`), reporting changed pages. Does not compare image pixels. |
+| `pdfinfo` | `/commands/pdfinfo`: `pdfinfoCommands({ replace? })` registering `pdfinfo`, `pdffonts`, `pdfdetach`, `pdfunite`, and `pdfseparate` powered by `@poe-code/pdf-ast`. Supports Poppler metadata, page geometry, `-box`, `-isodates`/`-rawdates`, `-custom`, `-meta`, `-url`, `-js`, `-struct`/`-struct-text`, and `-dests`. Merge with `pdfunite first.pdf second.pdf combined.pdf`; split with `pdfseparate -f 1 -l 3 combined.pdf page-%03d.pdf`. Individual plugins `pdfuniteCommands` and `pdfseparateCommands` are also available from their own `/commands/pdfunite` and `/commands/pdfseparate` exports, with input/output byte, page, and object limits. |
+| `pdftoppm` | `/commands/pdftoppm`: `pdftoppmPlugin({ replace? })` and `createPdftoppmCommand` powered by `@poe-code/pdf-ast`. Renders PDF pages to `.png`, `.ppm`, `.pgm`, `.pbm`, or `.svg` with configurable `-r`/`-rx`/`-ry` DPI, `-f`/`-l` page ranges, `-singlefile`, `-sep`, and `-x`/`-y`/`-W`/`-H`/`-cropbox` sub-region cropping. |
+| `pdfimages` | `/commands/pdfimages`: `pdfimagesPlugin({ replace? })` and `createPdfimagesCommand` powered by `@poe-code/pdf-ast`. Lists (`-list`) and extracts embedded XObject, nested Form XObject, and inline images to `.png`, `.jpg` (`-j`/`-all`), `.ppm`, or `.pbm` with CTM PPI metadata and `-p` page numbering. |
+| `pdftotext` | `/commands/pdftotext`: `pdftotextCommands({ replace? })` registering `pdftotext` and `pdftohtml` powered by `@poe-code/pdf-ast`. Supports logical reading order with dehyphenation, `-layout`, `-raw`, `-bbox`/`-bbox-layout` XHTML, Poppler `-tsv`, `-htmlmeta`, and `pdftohtml` (`-xml`, `-stdout`, `-s`, `-c`). |
+| `pdftk` | `/commands/pdftk`: `pdftkPlugin({ replace? })` and `createPdftkCommand` powered by `@poe-code/pdf-ast`. Supports `cat`/`shuffle` multi-handle page assembly and rotations, `dump_data_fields_utf8`, `fill_form` (FDF/XFDF/stanzas) with `flatten`, `burst`, `rotate`, `background`, and `stamp`. |
+| `qpdf` | `/commands/qpdf`: `qpdfCommands({ replace? })` and `runQpdfCli` powered by `@poe-code/pdf-ast`. Supports `--check`, `--show-npages`, `--show-xref`, `--show-object`, `--json`, `--is-encrypted`, `--requires-password`, `--show-encryption`, `--encrypt`/`--decrypt`, `--empty --pages ... --`, `--split-pages`, `--rotate`, `--qdf`, and `--replace-input`. |
+| `magick`, `convert`, `mogrify`, `composite`, `montage`, `compare` | `/commands/imagemagick`: opt-in `imagemagickPlugin({ replace? })` (`imagemagickCommands`) registering ImageMagick `magick`, `convert`, `mogrify`, `composite`, `montage`, `compare`, and `identify` powered by `@poe-code/image-ast`. Supports `xc:`/`canvas:`/`gradient:`/`radial-gradient:`/`pattern:checkerboard`/`label:` generators, geometry modifiers (`!`, `>`, `<`, `^`, `%`, `@`), left-to-right image stack operators (`-resize`, `-crop`, `-extent`, `-border`, `-shave`, `-splice`, `-chop`, `-roll`, `-trim`, `-rotate`, `-flip`, `-flop`, `-shear`, `-distort` (`SRT`, `Perspective`, `Affine`, `Barrel`), `-swirl`, `-implode`, `-wave`, `-shadow`, `-vignette`, `-negate`, `-colorspace`, `-sepia-tone`, `-solarize`, `-posterize`, `-colors`, `-modulate`, `-gamma`, `-level`, `-threshold`, `-opaque`/`-transparent`, `-evaluate`, `-function`, `-clut`, `-fx`, `-blur`, `-sharpen`, `-edge`, `-emboss`, `-charcoal`, `-draw` (`rectangle`, `circle`, `polygon`, `polyline`, `bezier`, `path`, `text`), `-annotate`, `( ... )`, `+clone`, `-morph`, `+append`, `-append`, `-composite`, `-flatten`), `compare -metric AE\|MAE\|MSE\|RMSE\|PSNR\|SSIM`, in-place `mogrify`, `montage` grids, `out-%d.png` scene output, and stdin/stdout byte streams (`-`, `png:-`). |
+| `qrencode` | `/commands/qrencode`: `qrencodeCommands()` generates QR and Micro QR symbols as PNG, PNG32, SVG, EPS, ASCII, UTF-8 or ANSI, with VFS input/output, structured append, colors, and configurable byte/memory limits. |
+| `sips` | `/commands/sips`: opt-in `sipsPlugin({ replace? })` (`sipsCommands`) registering macOS `sips` and ImageMagick `identify` powered by `@poe-code/image-ast` (`sharp`). Supports `-g`, `-1`, `-Z`, `-z`, `--resampleWidth`, `--resampleHeight`, `-c`, `--cropOffset`, `-p`, `--padColor`, `-r`, `-f`, `-s format`, `-s formatOptions`, `-o/--out`, and `identify` (`-ping`, `-format`, `-verbose`). |
+| `soffice` | `/commands/soffice`: opt-in `sofficeCommands({ replace? })` registering `soffice` and `libreoffice` powered by `@poe-code/pdf-ast`. Supports headless `--convert-to pdf[:writer_pdf_Export\|calc_pdf_Export\|impress_pdf_Export]` (including JSON `FilterData`), StarCalc `--convert-to csv:...`, `--cat`, and conversion across `.docx`, `.odt`, `.rtf`, `.xlsx`, `.pptx`, `.csv`, `.html`, `.png`, `.txt`, and `.pdf`. |
+| `wkhtmltopdf` | `/commands/wkhtmltopdf`: opt-in CLI/SDK adapter with VFS byte I/O and explicit limits. Requires a supplied first-party static renderer; none is included. `wkhtmltopdfCommands({ limits, renderer? })` and `runWkhtmltopdf(context, options)` share behavior. Exported `switches` lists all 122 flags and rejections; `wkhtmltopdfLimits` defaults to 16 MiB PDF output, 64 objects and 128 batch jobs. `--help`, `--extended-help` and `--version` work without a renderer; TOC and dynamic execution are unavailable. |
+| `unrtf` | `/commands/unrtf`: opt-in `unrtfCommands({ limits?, replace? })`, equivalent `unrtf(context, { format?, file?, limits? })` SDK, and bounded `tokenizeRtf`, `extractRtf`, `renderRtf` streams. Strict UTF-8 text/HTML supports scoped font/color/emphasis and flat tables; objects, pictures and field instructions stay inert. Use `unrtf --text /document.rtf` or `unrtf --html /document.rtf` (HTML default); output is UTF-8 with no invented text separator/final LF. Accepted flags are `--text`, `--html`, `--quiet`, `--nopict`, `-n`, `--`; unsupported profiles fail with status 1. Opt into scoped GNU 0.21.10 text/HTML/LaTeX wrappers and character aliases with `--profile=gnu-0.21.10` or SDK `profile`; this admits `--latex`, `--noremap` (SDK `noremap`) and banner suppression via `--quiet` (SDK `quiet`). Strict extraction remains in effect; full native parser/rendering parity and picture exports remain unimplemented. Private implementation/types ship inside safe-bash; see the [flags, limits and runtime profile](https://github.com/poe-platform/poe-code/blob/main/packages/safe-bash-command-unrtf/README.md). |
+| `exiftool` | `/commands/exiftool`: opt-in `exiftoolCommands({ limits? })` for uncompressed PNG text and `tIME` inspection/selected writes. Use `exiftool -j -Title /image.png`, `-csv` for union headers, or `-Title=Example` to edit with an `_original` backup. Typed SDK argv uses `createExiftoolArguments`. Defaults: 64 files, 16 MiB cumulative input/output, 8 MiB decoded and 32 MiB retained bytes. Private implementation/types ship inside safe-bash. PDF, Office, EXIF/XMP, broader timestamps, import and execute protocols remain unsupported; see the [supported profile](https://github.com/poe-platform/poe-code/blob/main/packages/safe-bash-command-exiftool/README.md). |
+| `csvcut` | `/commands/csvcut`: `csvcutCommands({ limits?, replace? })` and equivalent `csvcut(context, { include?, exclude?, zero?, names?, headerless?, deleteEmptyRows?, lineNumbers?, addBom?, dialect?, filePath?, encoding?, help?, version? }, { limits? })`. Bounded UTF-8-sig byte input, comma/LF output and literal VFS paths; csvkit 2.2.0 selector candidate, permissive-v1 reader, quoting 0/3 only, no Sniffer or full Python compatibility. Defaults: 16 MiB input, 32 MiB output, 64 MiB retained, 1 MiB fields and 100,000 cells. Private implementation/types ship inside safe-bash; see the [flags, limits and runtime profile](https://github.com/poe-platform/poe-code/blob/main/packages/safe-bash-command-csvcut/README.md). |
+| `csvgrep` | `/commands/csvgrep`: `csvgrepCommands({ limits?, replace? })` and equivalent `csvgrep(context, { columns, match?, regex?, file?, any?, invert?, dialect?, filePath? }, { limits? })`. Preserves CSV rows/headers with UTF-8-sig input, comma/LF output and the bounded `bounded-sequence-v1` Python regex subset; full csvkit compatibility is unqualified. Private implementation/types ship inside safe-bash; see the [supported profile](https://github.com/poe-platform/poe-code/blob/main/packages/safe-bash-command-csvgrep/README.md). |
+| `fold` | `/commands/fold`: opt-in `foldCommands({ locale?, limits?, replace? })` and `fold(context, { width?, mode?, spaces?, files?, locale?, limits? })` for byte streams and literal VFS paths. Supports column, character and byte counting with a pinned Unicode 17 profile or explicit C decoding. Use `replace: true` with `agentCommands()` to replace its existing fold implementation; defaults are unchanged. Private implementation/types ship inside safe-bash; see the [supported profile](https://github.com/poe-platform/poe-code/blob/main/packages/safe-bash-command-fold/README.md). |
+| `playwright-cli` | Opt in with `createPlaywrightCli({ adapter })` from `/commands/playwright`; `/playwright` shares the same controller and error identities. The private implementation is bundled into Safe Bash. Standard browser commands, storage state, native snapshots, recordings, and traces through a host-owned adapter. Completed actions retain their live session when a failed checkpoint confirms safe cleanup. [Sessions and host capabilities](src/contracts/playwright-sessions.md). [Optional Cloudflare adapter and portable profiles](https://github.com/poe-platform/poe-code/blob/main/packages/safe-playwright-cloudflare/README.md). `installPlaywrightNetworkPolicy` from `/playwright` supports browser-native redirects with per-hop bounded host HTTP fetch and independent direct HTTP/WebSocket denial. `bindPlaywrightRoutePolicy(context, { ownsRequest, admit, fetch }, limits)` lets standard route mocks and header rewrites use that host policy, with admission before matching and bounded response leases. Cloudflare guardrails do not establish WebRTC/UDP denial or all-protocol accounting; hosts requiring those guarantees must refuse this integration. [Network policy and lifecycle](src/contracts/playwright-network-policy.md). |
+
+`/commands/diff3` provides opt-in `diff3Commands({ limits?, replace? })`, the
+equivalent `diff3(context, { files, merge?, selector?, labels?, ... })` SDK, and
+pure byte report/merge/ed and analysis APIs. Its GNU 3.12 qualified profile uses
+VFS files and bounded stdin spooling; private implementation and declarations
+ship inside safe-bash. `diff3 -m /ours /base /theirs` emits merge bytes (flagged
+conflicts return 1); the default report returns 0 for differences. `-e` emits an
+ed script without executing it. GNU 3.12's `-X` is unflagged; one stdin operand
+is supported in any position, and external `--diff-program` selection is refused.
+The command is qualified for Node ESM; actual browser/workerd engines remain
+unverified. See the [flags, limits and supported profile](https://github.com/poe-platform/poe-code/blob/main/packages/safe-bash-command-diff3/README.md).
+
+
+`/commands/htmlq` exports `htmlqCommands({ limits?, replace? })`,
+equivalent `htmlq(context, { selector: "p", text: true })` SDK execution (or
+literal `argv`) and the inert HTML
+byte-stream engine. Use `htmlq 'div > p' -t -f /input.html`; attribute, text and
+HTML projections preserve pinned separators and lazy first-match removals.
+Explicit engine limits and cancellation are required. Private implementation and
+types ship inside safe-bash. Full HTML5 recovery, selector grammar and Rust URL
+parity remain unqualified; modern `:is/:where/:has/:lang` are explicitly rejected.
+Use `--attribute` (`--attributes` is also accepted) for attribute output, and
+`-w` (`-i` is also accepted) to ignore whitespace-only text. Multiple selector
+operands combine in document order; no-match succeeds with empty output.
+Scripts/styles remain inert and preserved; interior BOMs are retained
+regardless of input chunking, correcting the pinned upstream defect.
+Node.js 22+ is qualified; browser/workerd conditional graphs are checked
+in Node, while actual engines remain unverified. See the
+[supported flags and limits](https://github.com/poe-platform/poe-code/blob/main/packages/safe-bash-command-htmlq/README.md).
+
+
+
+For example, load the optional PDF adapter to inspect its supported options:
+
+```ts
+import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";
+import { wkhtmltopdfCommands } from "@poe-platform/safe-bash/commands/wkhtmltopdf";
+
+const shell = new Shell({ fs: createMemoryFileSystem() }).use(wkhtmltopdfCommands());
+try {
+  console.log((await shell.exec("wkhtmltopdf --help")).stdout);
+} finally {
+  await shell.dispose();
+}
+```
+
+For a custom same-isolate Python JSPI host, use `createPythonJspiExecutor` from
+the same Python entry with an explicit loader, precompiled Wasm modules and
+pinned, authenticated runtime assets; follow the [static host recipe](src/contracts/python-jspi.md).
+Invocation-owned [host services and Python shell calls](docs/python-host-services.md)
+can be enabled explicitly through `createCapabilities`. Python's `maxTransferBytes`
+is unlimited when omitted or set to `Infinity`; finite values enforce a per-request
+I/O ceiling. Worker transports use finite chunks independently of that ceiling.
+Native I/O uses the caller's asynchronous filesystem without workspace copying,
+Node worker threads or a SAB request/reply bridge. This path is qualified with
+installed public-package artifacts in local workerd, not a verified Cloudflare
+deployment or a managed Python native-filesystem integration. JSPI cancellation
+is cooperative; it neither preempts CPU-only loops nor establishes confinement.
+
+Storage can be in memory, a rooted host directory, S3-compatible storage, or WebDAV,
+with read-only wrappers, mounts, and overlays. Choose and configure it explicitly;
+see the [filesystem guide](../safe-fs/README.md). The root export includes
+`createS3HttpTransport` in Node, browsers, and Workers; portable runtimes use fetch.
+
+### Run JavaScript with SafeJS
+
+Register `nodeCommands()` to load SafeJS on first execution, or inject a runtime
+as below. No native Node.js subprocess is started. SafeJS is the execution engine,
+not a separate shell command.
+
+```ts
+import { Shell, agentCommands, createMemoryFileSystem, nodeCommands } from "@poe-platform/safe-bash";
+import { Budget, run, makeFsModule, declareHostOperation, parseSourceModule } from "@poe-platform/safe-js";
+
+const fs = createMemoryFileSystem();
+await fs.writeFile("/transform.js", new TextEncoder().encode(`
+  import { writeFile } from "fs";
+  const text = await process.stdin.readText();
+  await writeFile("/result.txt", text.toUpperCase());
+  console.log(process.argv[2]);
+`));
+
+const shell = new Shell({ fs }).use(agentCommands()).use(nodeCommands({
+  runtime: {
+    run, makeFsModule, declareHostOperation, parseSourceModule,
+    createBudget: options => new Budget(options),
+  },
+}));
+
+try {
+  const result = await shell.exec("printf 'hello\\n' | node /transform.js done; cat /result.txt; node -p '1 + 2'");
+  console.log(result.stdout);
+} finally {
+  await shell.dispose();
+}
+```
+
+Output: `done\nHELLO\n3\n`.
+
+`node -e SOURCE` evaluates a program; `node -p EXPRESSION` prints an expression.
+`node FILE`, `node -`, and bare `node` accept virtual-file or stdin source.
+`--env-file` loads virtual dotenv files; `--version` uses supplied runtime identity
+and `--completion-bash` lists supported options. Runtime flags require explicit
+adapter capabilities; see the [Node configuration](src/commands/node/README.md#configuration).
+Programs get `console`, virtual `process.argv`, `process.env`, `process.cwd()`,
+`process.exitCode`, guest-owned `Buffer` bytes with string encodings and shared
+views, and shell streams. Await `process.stdout.write(text)` and
+`process.stderr.write(text)`; read input with `process.stdin.readText()` or
+`readBytes(size?)`. These are bounded async helpers, not native Node streams.
+`setTimeout(callback, delay?, ...args)` and `clearTimeout(id)` support cancellable
+guest timers, including during top-level `await`. Pending callbacks finish before
+the command exits and share its deadline and interpreter budgets.
+`require("fs").readFileSync(path, "utf8")` reads text from the VFS before the next
+guest statement; `node:fs` and named/default/namespace imports work too. An encoding
+is required. Async helpers remain available through `fs.promises` and
+`fs/promises`.
+
+Import async filesystem functions from `"fs"` or `"node:fs/promises"`, or use
+`const fs = require("node:fs/promises")`. `require("./data.json")` loads virtual
+JSON relative to the entry file's directory, or virtual cwd for inline and stdin
+source. `node --require ./setup.cjs` / `node -r ./setup.cjs` preloads virtual
+CommonJS modules before the program; repeated flags run in order from virtual cwd.
+Explicit `.cjs`, `.js`, and `.json` module paths share an invocation-local cache,
+including nested relative dependencies, and retain source limits, interpreter
+budgets, and cancellation. Synchronous writes, append, mkdir, readdir, stat/lstat,
+exists, unlink, rm, rename, and copyFile also use the VFS. Package search,
+ESM loading, `process.exit()`, and native module fallback are unavailable.
+Pass `limits` for source/input/output bytes, timeout, and interpreter budgets;
+see [defaults and configuration](src/commands/node/README.md#configuration).
+
+## Wire an individual MCP tool
+
+There is no generic safe-bash MCP server. Define each server and tool around the
+specific operation it grants, then call `Shell.exec()` with fixed shell source.
+For example, this server exposes name normalization without accepting arbitrary
+Bash from the MCP client:
+
+```ts
+import { Shell, agentCommands, createMemoryFileSystem } from "poe-code/safe-bash";
+import { createServer, defineSchema } from "tiny-stdio-mcp-server";
+
+const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
+const input = defineSchema({ names: { type: "string" } });
+
+const server = createServer({ name: "contacts-tools", version: "1.0.0" })
+  .tool("normalize_names", "Sort and deduplicate newline-separated names", input,
+    async ({ names }) => {
+      const result = await shell.exec("sort | uniq", { stdin: names });
+      if (result.exitCode !== 0) throw new Error(result.stderr);
+      return result.stdout;
+    });
+
+try {
+  await server.listen();
+} finally {
+  await shell.dispose();
+}
+```
+
+Install `poe-code` and the MCP transport package in that server's own project.
+Choose its filesystem, command bundle, limits, and opt-in capabilities there;
+do not expose caller-supplied shell source unless arbitrary shell execution is
+the deliberate API.
+
+## Add a command
+
+A `CommandDefinition` has a name and an `execute(context)` handler. This example
+adds `file-bytes`, which reports a virtual file's size without reading its contents:
+
+```ts
+import {
+  Shell, agentCommands, createMemoryFileSystem, resolvePath, writeText,
+  type CommandDefinition,
+} from "@poe-platform/safe-bash";
+
+const fileBytes: CommandDefinition = {
+  name: "file-bytes",
+  async execute({ args, cwd, fs, stdout, stderr, signal }) {
+    if (args.length !== 1) {
+      await writeText(stderr, "Usage: file-bytes FILE\n");
+      return { exitCode: 2 };
+    }
+    const stat = await fs.stat(resolvePath(cwd, args[0]!), { signal });
+    await writeText(stdout, `${stat.size}\n`);
+    return { exitCode: 0 };
+  },
+};
+
+const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
+shell.use({
+  name: "file-tools",
+  setup(host) { host.commands.register(fileBytes); },
+});
+try {
+  const result = await shell.exec("printf 'hello\\n' > message.txt; file-bytes message.txt | cat");
+  if (result.exitCode !== 0) throw new Error(result.stderr);
+  process.stdout.write(result.stdout);
+} finally {
+  await shell.dispose();
+}
+```
+
+Output: `6\n`. For a single command, use `shell.register(fileBytes)` instead of a
+plugin. Duplicate names fail unless registration explicitly sets `{ replace: true }`.
+Handlers receive `args`, `stdin`, `stdout`, `stderr`, `cwd`, `env`, `fs`, and `signal`;
+return `{ exitCode }` with an integer from 0–255, await writes, and pass the signal to I/O.
+Use `context.invoke` to call another command with literal arguments rather than
+interpolating shell source. [Command contract](src/contracts/command.md).
+
+`shell.use(middleware)` wraps command dispatch for logging or policy checks;
+middleware must await or return `next()`. Plugins can also register filesystem
+factories and provide a `dispose()` hook. [Plugin contract](src/contracts/plugin.ts).
+For SafeJS host integration, `makeSafeJsShellModule` exposes shell execution and
+`makeSafeJsFsModule` adapts the filesystem through injected runtime hooks.
+[Integration contracts](src/integrations/safejs/index.ts).
+
+## Options
+
+### Shell and execution
+
+| `new Shell(...)` option | Behavior |
+| --- | --- |
+| `fs` | Required filesystem; no implicit host access. |
+| `deviceView` | `"default"` (the default) adds synthetic `/dev/null` and shadows ordinary backing files there. `"provided"` uses the supplied filesystem's paths and capabilities, including an `exec` filesystem override, without adding devices. Nested commands retain the selected view. |
+| `cwd` | Initial virtual directory; defaults to `/`. |
+| `env` | Initial exported variables; defaults to an empty map, with `PWD` set from `cwd`. No host environment inheritance. Never pass host `process.env` or any secret-bearing object: everything in `env` is readable by executed scripts (`env`, `printenv`, `$VAR`), and on Cloudflare Workers with `nodejs_compat` `process.env` contains the Worker's secret bindings. The shell warns only for the identical host `process.env` object, not copies, and does not filter values. |
+| `commands` | Existing `CommandRegistry`; defaults to an empty registry. |
+| `limits` | Resource limits listed below. |
+
+`exec(source, options)` can override `fs`, `cwd`, and `limits`, and merge `env` for
+one execution. `stdin` accepts a string, `Uint8Array`, or async byte source;
+`stdout`/`stderr` accept byte sinks. Results still buffer output when sinks are
+provided. Pass an `AbortSignal` as `signal` to cancel. [Option types](src/shell/types.ts).
+
+`RANDOM` produces values from 0 through 32767 and accepts a seed for repeatable
+sequences. `SECONDS` tracks elapsed whole seconds and accepts a new starting
+value. Assignments through arithmetic, `read`, and `printf -v` retain these
+behaviors; unsetting either variable removes its special behavior.
+
+HTML, YAML, CSV and XML query limits, plus `xan`, `bc`, `less`, `sponge`, SafeJS
+and LLM provider quotas accept `Infinity`; explicit `undefined` retains the default.
+
+Execution quotas are unlimited by default. Set individual `limits` to opt in;
+supplying one does not enable other quotas. Available quotas are `maxParseUnits`,
+`maxInputBytes`, `maxOutputBytes`, `maxPipelineBytes`, `maxCommands`, `maxFileSystemOperations`,
+`maxPathComponents`, `maxPathnameComponents`, `maxRedirects`, `maxPipelineStages`, `maxLoopIterations`,
+`maxSubstitutionDepth`, `maxFunctionDepth`, `maxSourceBytes`, `maxExpansionFields`, `maxExpansionBytes`,
+`maxWallClockMs`, and `maxCpuMs`. The CPU deadline measures elapsed time including
+waits at cooperative checkpoints. `maxPipelineBytes` counts bytes written across
+all pipeline edges in one invocation, including nested pipelines; terminal output
+does not consume this quota. `pipeHighWaterMark` defaults to 64 KiB for
+streaming backpressure and does not cap total work. `cloudflareWorkerLimits` is
+an explicit restrictive preset. Background job quotas (`maxJobs`, `maxWaiters`,
+`maxCleanupsPerJob`) are also unlimited unless supplied. `maxFunctionDepth` limits
+simultaneously active shell functions independently of substitution depth; zero
+rejects function calls, and completed calls free their depth slot.
+
+Always call `dispose()` when finished. Shell failures normally produce an exit
+code and stderr; limit violations, cancellation, and host failures can reject `exec()`.
+The command budget counts compound commands and loop conditions as well as body
+commands. With both work budgets set to 10,000, `while true; do :; done` reaches
+`maxCommands` first. Work budgets bound execution counts, not elapsed latency.
+`maxPathComponents` counts PATH search directories consulted per lookup;
+`maxPathnameComponents` separately bounds components within each filesystem path.
+Await execution settlement and shell disposal before closing backing storage,
+including after a caller timeout; cancellation is cooperative.
+
+Portable browser profiles restore blank tabs by default, preserving storage,
+settings, tab count, and selection. Only pass `tabRestoration: 'navigate'` to
+`restoreBrowserProfile` when replaying saved URLs is authorized; action URLs can
+repeat effects. Use `recovery: true` to also suppress configuration and provider scripts.
+Owner-bound hosts can enable `namedSessionAttachment: true` on
+`createPlaywrightCli({ adapter, persistence, ... })` to support `attach NAME`.
+It selects an existing live session or restores its committed resumable profile
+for subsequent invocations with the same `PLAYWRIGHT_CLI_SESSION` default,
+including an authenticated agent ID different from the target name. Explicit
+`-s=NAME` overrides selection; `detach` retains the browser, while `close` retires it. See the
+[host capability contract](src/contracts/playwright-sessions.md#persistence).
+Hosts accepting direct browser activity can call `renewSession({ name, context })`
+to renew that exact retained session's idle deadline without browser commands.
+Browser snapshots are unlimited by default, including automatic snapshots after
+navigation. Set `maxSnapshotBytes` to enforce a UTF-8 output budget; refusal keeps
+the healthy browser session available for inspection and scoped snapshots.
+Pass `onSnapshot` to `createPlaywrightCli` or `createPlaywrightController` to inspect
+navigation response headers and call `recapture()` before publishing YAML or JSON.
+Page URL, title and console events reflect changes made by the hook. Recaptures
+re-resolve target selectors and finish before the session accepts another command. The `/playwright` entrypoint
+also exports `getPlaywrightMainFrameNavigation(context, page)` for passive metadata
+reads. See the [snapshot hook contract](src/contracts/playwright-snapshot.md).
+`playwright-cli --help` and `playwright-cli show --help` report dashboard
+availability. Without a host dashboard ability, interactive local browser login is unavailable;
+use the authentication flow supplied by the host application.
+
+For Cloudflare Workers, the exported `cloudflareWorkerLimits` profile also sets
+`commandLimits.archive`: 4 MiB archive inputs, an 8 MiB ZIP input collection peak,
+4 MiB entries, 8 MiB total payload and 1,000 members. These ceilings apply to
+`tar`, `zip` and `unzip`, including nested calls and `agentCommands()`; tighter
+registration limits still win. Oversized ZIP file metadata is rejected before
+reading, and growing streams remain byte-bounded. ZIP decoding retains a bounded
+archive in memory; codec workspace, parsed entries, filesystem storage and other
+requests need additional headroom. Configure other command-family buffers at no
+more than 8 MiB and bound concurrent requests at the host. Create a separate
+`Shell`, environment object, and quota-wrapped filesystem view for each tenant or
+request. Never reuse tenant state across requests; import `withFileSystemQuota`
+from `poe-code/safe-fs` to bound cumulative writes, including command-initiated
+copies and streaming output. Admission control and rate limiting remain host
+responsibilities.
+
+### Command configuration
+
+`agentCommands()` accepts `replace` (default `false`), an `execute` fallback for
+nested command dispatch, and `regex` worker limits. Per-family options are
+`text`, `structured`, `search`, `diffPatch`, `metadata`, `archive`, `tableText`,
+`streamInspection`, `streamFormat`, `split`, `timeEnv`, `tree`, `file`, `column`,
+`htmlToMarkdown`, `du`, `expr`, `which`, `timeout`, and `applyPatch`.
+`timeout.limits` bounds argument count, argument bytes, and timeout's own output
+through `maxArguments`, `maxArgumentBytes`, and `maxOutputBytes`.
+`timeEnv.maxTimerMilliseconds` and `timeout.maxTimerMilliseconds` accept `Infinity`;
+host timer calls remain capped at 2147483647 ms and progress with frozen clocks.
+Use the [typed options and linked family interfaces](src/plugins/index.ts) for
+their individual limits and hooks, including clocks and schedulers. Command and
+shell work quanta yield to the host even when its clock is frozen. Family budgets
+are separate from shell counters; `limits.commandLimits.archive` supplies
+invocation ceilings. Per-execution family overrides merge with the shell's
+profile, and non-Worker hosts can configure larger limits. `replace` applies
+across the entire bundle.
+Text, search, structured queries, directory inspection, table/stream tools,
+time/environment commands, metadata, diff/patch, LLM providers, `yes`, `less`,
+`sponge`, `bc`, `htmlq`, `which`, `getopt`, `factor`, and `tsort`
+have unlimited resource budgets by default. Set individual family limits to opt
+in; setting one limit leaves the others unlimited. Explicit `Infinity` also
+disables a limit. Shell limit overrides set to `undefined` preserve the inherited
+value (or the default when none was set). Standard and agent command factories accept `maxRecursiveDirectoryDepth`
+for recursive filesystem traversal; it defaults to unlimited. Shell helpers expose `maxCdWork`, `maxCdProbes`,
+`maxCdPathBytes`, `maxCdPathComponents`, `maxDirectoryStackEntries`,
+`maxDirectoryStackBytes`, `maxDirectoryDiagnosticBytes`, `maxDirectoryStackOutputBytes`, `maxSyntaxDepth`, `maxAdmittedHandles`, `maxDescriptorOperations`, `maxDescriptorReadBytes`, `maxGlobstarStates`, `maxGlobstarDepth` and
+`maxGlobstarEntries`. Env split limits are supplied through
+`execution.envSplitLimits`; env shebangs use `maxEnvSplitBytes`, `maxEnvSplitArguments`, `maxEnvSplitExpansions`, and `maxEnvSplitWork` in Shell limits; truncate uses `metadata.limits.maxArguments`.
+Browser controller structural ceilings (configuration, snapshots, output files,
+recording, traces, routes and WebMCP) are also optional `limits`; WebMCP discovery uses the optional `webMCPDiscoveryTimeoutMs` deadline, disabled by default; viewport dimensions and operation receipt count/age use `maxViewportDimension`, `maxOperationOutcomes`, and `maxOperationOutcomeAgeMs`, also unlimited by default; network and
+route-policy byte/count ceilings default to `Infinity`. Browser action, snapshot,
+navigation, and code execution deadlines are disabled by default; configure
+`limits.actionTimeoutMs`, `limits.codeExecutionTimeoutMs`, or session timeouts
+to bound them. `Infinity` disables host deadlines and maps to the native
+Playwright timeout value `0`. `xargs -s Infinity` and `--max-chars=Infinity` explicitly remove
+the command-size quota. Without `-n`, argument count does not split `xargs` batches;
+command-size and explicit line limits still apply. `-I` followed by `-n 1` preserves
+replacement mode; `-L` and other `-n` values select the last requested batching mode.
+Stream chunk sizes and polling intervals control execution
+independently of these quotas. `diff -u /dev/null FILE` and its reverse produce
+creation/deletion patches; top-level readable character and FIFO inputs are
+read to EOF. Regular files retain identity-checked reads. `patch` supports RealFileSystem
+and mounted Real storage through best-effort trusted staging; the host must exclude
+concurrent external writers. This path does not provide atomic ancestry validation
+against other processes.
+
+The package root exports `createBoundedRegexProvider`, `BoundedRegexProvider`,
+and `BoundedRegexProviderOptions`. `portableSearchCommands()` and `agentCommands()`
+use this provider by default. Pass `regexExecutor` to `agentCommands()` to configure
+its resource limits explicitly:
+
+```ts
+import { agentCommands, createBoundedRegexProvider } from "@poe-platform/safe-bash";
+
+shell.use(
+  agentCommands({
+    regexExecutor: createBoundedRegexProvider({ maxWorkers: 1, maxInputBytes: 65_536 }),
+    regex: { maxWorkers: 1 }
+  })
+);
+```
+
+Provider limits bound pattern/input/result bytes, matches, work, allocations,
+states, and active workers. `regex` configures executor queue and timeout limits.
+The default provider runs cooperatively; it does not provide native-worker or
+process-memory isolation. No internal-module import is needed.
+
+### Environment variables
+
+There are no package-specific runtime environment switches. Supply these through
+`env` or set/export them inside a script; they refer to the virtual environment:
+
+| Variables | Effect |
+| --- | --- |
+| `HOME`, `CDPATH`, `PWD`, `OLDPWD` | Home expansion, directory search, current and previous directory. The shell maintains `PWD`/`OLDPWD` on directory changes. |
+| `PATH` | Virtual executable lookup for `which`, `type -p`, and `type -P`. Registered commands resolve under `/bin` and `/usr/bin`; the default search path is `/bin:/usr/bin` when PATH has never been set. Returned paths can be invoked directly. |
+| `IFS` | Field splitting and `read`; defaults to space, tab, and newline. |
+| `LC_ALL`, `LC_CTYPE`, `LC_COLLATE`, `LANG` | Character and collation behavior where supported; locale support varies by command. |
+| `TMPDIR` | `mktemp` directory; defaults to `/tmp`, created in a writable VFS when needed. Explicit directories must exist. |
+| `TZ` | `date` and `touch` timezone. `date` otherwise uses `timeEnv.defaultTimeZone`; `touch` defaults to `UTC`. |
+| `QUOTING_STYLE` | `stat` filename quoting: `literal`, `shell-always`, or `shell-escape-always`. |
+
+`getopts` starts with `OPTIND=1` and `OPTERR=1`, updates `OPTIND`/`OPTARG`, and
+honors changes made in the script. `PIPESTATUS` exposes pipeline stage statuses.
+`curl` does not read proxy variables, host credentials, `.curlrc`, or `.netrc`.
+`curl --cacert VFSFILE` reads a bounded PEM CA bundle from the virtual filesystem
+and scopes its trust to that transfer, retaining certificate and hostname
+verification. The Node transport supports it; Fetch rejects custom CA trust.
+Explicit `-K/--config` files come from the VFS. Curl also supports `--url-query`,
+negated boolean flags and `--variable`/`--expand-*` value options. HTTP version
+selection and ignored Content-Length require explicit transport capabilities;
+Node supports `--http1.1`. See the [network options](src/commands/network/README.md).
+Following curl 8.5/8.10, `--data-urlencode name@file` sends no field when the
+file is empty; use `--data-urlencode name=` to send an explicit empty value.
+Repeated curl data options use curl 8.10.1 joining semantics: `&` is added only
+when earlier fragments have produced bytes, so empty leading fragments add no separator.
+`curl --json` retains its `Content-Type: application/json` and `Accept: application/json`
+headers when `-G` or a 301/302/303 redirect removes the body. Explicit `-H` overrides
+and suppression still apply within the original origin; cross-origin custom-header
+and credential protections remain in effect.
+
+## Limitations
+
+- This is a Bash-like interpreter, not full Bash or POSIX certification. No
+  background jobs/job control, `exec`,
+  associative arrays, or C-style `for ((…))` loops. `shopt` supports `dotglob`,
+  `globstar`, `nullglob`, `nocaseglob`, `nocasematch`, `lastpipe`, `failglob`,
+  `inherit_errexit`, `expand_aliases`, and `xpg_echo`, plus `-o` for supported
+  `set` options. `shopt -s extglob` enables extended patterns, including parameter trimming.
+  Enable it on a preceding line before using unquoted extended patterns; syntax on the
+  same command line or inside a function body is parsed before that line executes.
+  `shopt -s xpg_echo` enables backslash escapes in builtin `echo`; `echo -E` disables them for that call.
+  Process substitutions use temporary files in virtual `TMPDIR` (default `/tmp`),
+  requiring a writable temporary directory. They buffer data rather than running
+  as concurrent OS processes, and remove their temporary files after use.
+- Utilities implement subsets of their native counterparts' flags and behavior.
+  There is no `git`, `npm`, `npx`, or fallback to installed host programs.
+  The opt-in `node` command is not a general Node.js runtime.
+- Plugins, filesystem adapters, and runtime providers are trusted host JavaScript,
+  not sandboxed code. Real storage and network plugins grant real access; URL
+  allowlisting alone does not pin DNS or prevent access to private addresses.
+- Cancellation is cooperative; it cannot undo completed effects or stop opaque
+  host work. Node `Shell` runs finite, positive `timeout` children in a
+  terminable worker and returns 137 after hard escalation. Custom commands,
+  middleware and extensions require explicit `workerModules` factories. Portable
+  hosts require their own escalation policy. Nested worker escalation and finite
+  shared interpreter quotas are refused; see the [timeout profile](src/commands/timeout/README.md).
+  Limits do not bound total process memory.
+  `timeout --preserve-status` retains the child's status; `--signal` (`-s`)
+  accepts Linux signal names and numbers and sets the cancellation exit status.
+  `trap` supports cleanup and inherited trap inspection by default. Host signal
+  delivery requires the optional trap extension signal host. Signals from `timeout`
+  honor ignored and trapped signals when a worker policy is active;
+  signal `0` lets the child finish, and `KILL` reports status 137 on expiry.
+  STOP-family signals require a finite, positive `--kill-after` interval on Node;
+  otherwise the command returns 125 before starting a child.

@@ -1,0 +1,9 @@
+{
+  "extends": "/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/worktree-FxpGNZ/tsconfig.json",
+  "include": [
+    "/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/worktree-FxpGNZ/tests/fs/mount/identity-compatibility-review/compatibility.test.ts"
+  ],
+  "compilerOptions": {
+    "noEmit": true
+  }
+}

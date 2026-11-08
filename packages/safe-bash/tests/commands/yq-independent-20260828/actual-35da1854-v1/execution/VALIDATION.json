@@ -1,0 +1,22 @@
+{
+  "date": "2026-08-28",
+  "integrityGuards": 42,
+  "rawCapturesRechecked": true,
+  "movedTrees": 17,
+  "movedParentAddedEntryCheck": true,
+  "childReapRecords": 167,
+  "jsonFilesParsed": 1027,
+  "syntax": [
+    "audit-raw.mjs",
+    "auth.mjs",
+    "build-proof.mjs",
+    "collect.mjs",
+    "launch.mjs",
+    "prepare.mjs",
+    "static-review.mjs"
+  ],
+  "failedAggregatePreserved": true,
+  "foreignBuildProofUnchanged": true,
+  "productReruns": 0,
+  "fullGate": false
+}

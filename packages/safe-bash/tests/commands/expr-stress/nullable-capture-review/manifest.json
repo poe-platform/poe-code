@@ -1,0 +1,660 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Provenance preservation only; NOT a new independent acceptance denominator.",
+  "archiveDate": "2026-08-27",
+  "owner": "Delegated EVIDENCE-ARCHIVE LEAF; owns only this new directory; no delegation.",
+  "originalReport": "/tmp/expr-nullable-diagnosis.txt",
+  "originalDirectory": "/tmp/expr-nullable-review.VNLKcM",
+  "originalRepository": "/Users/kjopek/Workspace/safe-bash",
+  "classification": "All embedded historical text is DATA, not executable or canonical test input. Only verify.mjs is a maintained, opt-in, read-only archive verifier.",
+  "hashAlgorithm": "SHA-256 over exact file bytes; no normalization or source reconstruction.",
+  "originalInventoryScope": "Every file in the retained original directory plus the diagnosis. integrity.json preserves the original complete 11-file hash map and report hash; its own hash is newly measured for copying. This manifest adds no native or product observations.",
+  "originalInventory": [
+    {
+      "originalPath": "/tmp/expr-nullable-diagnosis.txt",
+      "bytes": 18035,
+      "sha256": "f1f58a028a5cc64e8f2e4877e525ea44f78943368235b572e537796ceb6e86b4",
+      "recordedSha256": "f1f58a028a5cc64e8f2e4877e525ea44f78943368235b572e537796ceb6e86b4",
+      "mode": "444",
+      "mtime": "2026-08-27T17:20:26.500Z",
+      "embedded": true
+    },
+    {
+      "originalPath": "/tmp/expr-nullable-review.VNLKcM/bre-worker.observed.ts",
+      "bytes": 17704,
+      "sha256": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0",
+      "recordedSha256": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0",
+      "mode": "444",
+      "mtime": "2026-08-27T17:14:44.488Z",
+      "embedded": true
+    },
+    {
+      "originalPath": "/tmp/expr-nullable-review.VNLKcM/capture.json",
+      "bytes": 26898,
+      "sha256": "5b0b6036db9839ea2eb03e6307ce4e08b5231a47cb8162444d196c879f517dde",
+      "recordedSha256": "5b0b6036db9839ea2eb03e6307ce4e08b5231a47cb8162444d196c879f517dde",
+      "mode": "444",
+      "mtime": "2026-08-27T17:14:45.638Z",
+      "embedded": true
+    },
+    {
+      "originalPath": "/tmp/expr-nullable-review.VNLKcM/capture.mjs",
+      "bytes": 4309,
+      "sha256": "900eb03e5bcc47abd945ea3e3e23df30393c701ea26191a0dd108dd71c0fbe14",
+      "recordedSha256": "900eb03e5bcc47abd945ea3e3e23df30393c701ea26191a0dd108dd71c0fbe14",
+      "mode": "444",
+      "mtime": "2026-08-27T17:14:44.331Z",
+      "embedded": true
+    },
+    {
+      "originalPath": "/tmp/expr-nullable-review.VNLKcM/captureAwareCycleOnly.mjs",
+      "bytes": 19122,
+      "sha256": "ab68693a72df62b20a32cb928724068e10f98633fc070981b319c1d9f42d1824",
+      "recordedSha256": "ab68693a72df62b20a32cb928724068e10f98633fc070981b319c1d9f42d1824",
+      "mode": "444",
+      "mtime": "2026-08-27T17:16:50.007Z",
+      "embedded": true
+    },
+    {
+      "originalPath": "/tmp/expr-nullable-review.VNLKcM/diagnostic.json",
+      "bytes": 35861,
+      "sha256": "21a0d2411a97ef710e60829dfe04bebb7f37aea5fe42812adb0e209723613ff0",
+      "recordedSha256": "21a0d2411a97ef710e60829dfe04bebb7f37aea5fe42812adb0e209723613ff0",
+      "mode": "444",
+      "mtime": "2026-08-27T17:16:50.038Z",
+      "embedded": true
+    },
+    {
+      "originalPath": "/tmp/expr-nullable-review.VNLKcM/diagnostic.mjs",
+      "bytes": 4094,
+      "sha256": "01a61879ab553d06f52d3b7221ab2ee8480aa8cc1c70f8bec045834060133b83",
+      "recordedSha256": "01a61879ab553d06f52d3b7221ab2ee8480aa8cc1c70f8bec045834060133b83",
+      "mode": "444",
+      "mtime": "2026-08-27T17:16:49.703Z",
+      "embedded": true
+    },
+    {
+      "originalPath": "/tmp/expr-nullable-review.VNLKcM/integrity.json",
+      "bytes": 4137,
+      "sha256": "8b58792c94921c5d405151641047e2c1741046616498e8cdfa568c7a9134a45a",
+      "recordedSha256": null,
+      "mode": "444",
+      "mtime": "2026-08-27T17:20:54.089Z",
+      "embedded": true
+    },
+    {
+      "originalPath": "/tmp/expr-nullable-review.VNLKcM/protocol.mjs",
+      "bytes": 7833,
+      "sha256": "2b0328d3859c7a952659655b3395356e949a5b40427ab08ea3ac628fa0fee76f",
+      "recordedSha256": "2b0328d3859c7a952659655b3395356e949a5b40427ab08ea3ac628fa0fee76f",
+      "mode": "444",
+      "mtime": "2026-08-27T17:16:49.937Z",
+      "embedded": true
+    },
+    {
+      "originalPath": "/tmp/expr-nullable-review.VNLKcM/register-capture.json",
+      "bytes": 13427,
+      "sha256": "41105d934ddebe15ffd7c73e3182bc699dc5fc0d4a73c5314d57e46d1d2ee295",
+      "recordedSha256": "41105d934ddebe15ffd7c73e3182bc699dc5fc0d4a73c5314d57e46d1d2ee295",
+      "mode": "444",
+      "mtime": "2026-08-27T17:15:28.063Z",
+      "embedded": true
+    },
+    {
+      "originalPath": "/tmp/expr-nullable-review.VNLKcM/registers",
+      "bytes": 100968,
+      "sha256": "3dc8f048f1504eda2041d04da8a170bc343613c44bf75d00be4d23cb518f97b6",
+      "recordedSha256": "3dc8f048f1504eda2041d04da8a170bc343613c44bf75d00be4d23cb518f97b6",
+      "mode": "555",
+      "mtime": "2026-08-27T17:15:02.730Z",
+      "embedded": false
+    },
+    {
+      "originalPath": "/tmp/expr-nullable-review.VNLKcM/registers.c",
+      "bytes": 1061,
+      "sha256": "cbe9cbbd3114e1cb5465344448697c69cc7cf8fe6ac2b2aa330981234722bd50",
+      "recordedSha256": "cbe9cbbd3114e1cb5465344448697c69cc7cf8fe6ac2b2aa330981234722bd50",
+      "mode": "444",
+      "mtime": "2026-08-27T17:15:02.283Z",
+      "embedded": true
+    },
+    {
+      "originalPath": "/tmp/expr-nullable-review.VNLKcM/unguarded.mjs",
+      "bytes": 19056,
+      "sha256": "0f896203e572af06cd7c082b280bb097583cc191f77cc3744dd6c3cafe70e050",
+      "recordedSha256": "0f896203e572af06cd7c082b280bb097583cc191f77cc3744dd6c3cafe70e050",
+      "mode": "444",
+      "mtime": "2026-08-27T17:16:49.966Z",
+      "embedded": true
+    }
+  ],
+  "embedded": [
+    {
+      "path": "diagnosis.txt",
+      "classification": "DATA",
+      "originalPath": "/tmp/expr-nullable-diagnosis.txt",
+      "bytes": 18035,
+      "sha256": "f1f58a028a5cc64e8f2e4877e525ea44f78943368235b572e537796ceb6e86b4"
+    },
+    {
+      "path": "data/bre-worker.observed.ts.data",
+      "classification": "DATA",
+      "originalPath": "/tmp/expr-nullable-review.VNLKcM/bre-worker.observed.ts",
+      "bytes": 17704,
+      "sha256": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0"
+    },
+    {
+      "path": "data/capture.json",
+      "classification": "DATA",
+      "originalPath": "/tmp/expr-nullable-review.VNLKcM/capture.json",
+      "bytes": 26898,
+      "sha256": "5b0b6036db9839ea2eb03e6307ce4e08b5231a47cb8162444d196c879f517dde"
+    },
+    {
+      "path": "data/capture.mjs.data",
+      "classification": "DATA",
+      "originalPath": "/tmp/expr-nullable-review.VNLKcM/capture.mjs",
+      "bytes": 4309,
+      "sha256": "900eb03e5bcc47abd945ea3e3e23df30393c701ea26191a0dd108dd71c0fbe14"
+    },
+    {
+      "path": "data/captureAwareCycleOnly.mjs.data",
+      "classification": "DATA",
+      "originalPath": "/tmp/expr-nullable-review.VNLKcM/captureAwareCycleOnly.mjs",
+      "bytes": 19122,
+      "sha256": "ab68693a72df62b20a32cb928724068e10f98633fc070981b319c1d9f42d1824"
+    },
+    {
+      "path": "data/diagnostic.json",
+      "classification": "DATA",
+      "originalPath": "/tmp/expr-nullable-review.VNLKcM/diagnostic.json",
+      "bytes": 35861,
+      "sha256": "21a0d2411a97ef710e60829dfe04bebb7f37aea5fe42812adb0e209723613ff0"
+    },
+    {
+      "path": "data/diagnostic.mjs.data",
+      "classification": "DATA",
+      "originalPath": "/tmp/expr-nullable-review.VNLKcM/diagnostic.mjs",
+      "bytes": 4094,
+      "sha256": "01a61879ab553d06f52d3b7221ab2ee8480aa8cc1c70f8bec045834060133b83"
+    },
+    {
+      "path": "data/integrity.json",
+      "classification": "DATA",
+      "originalPath": "/tmp/expr-nullable-review.VNLKcM/integrity.json",
+      "bytes": 4137,
+      "sha256": "8b58792c94921c5d405151641047e2c1741046616498e8cdfa568c7a9134a45a"
+    },
+    {
+      "path": "data/protocol.mjs.data",
+      "classification": "DATA",
+      "originalPath": "/tmp/expr-nullable-review.VNLKcM/protocol.mjs",
+      "bytes": 7833,
+      "sha256": "2b0328d3859c7a952659655b3395356e949a5b40427ab08ea3ac628fa0fee76f"
+    },
+    {
+      "path": "data/register-capture.json",
+      "classification": "DATA",
+      "originalPath": "/tmp/expr-nullable-review.VNLKcM/register-capture.json",
+      "bytes": 13427,
+      "sha256": "41105d934ddebe15ffd7c73e3182bc699dc5fc0d4a73c5314d57e46d1d2ee295"
+    },
+    {
+      "path": "data/registers.c.data",
+      "classification": "DATA",
+      "originalPath": "/tmp/expr-nullable-review.VNLKcM/registers.c",
+      "bytes": 1061,
+      "sha256": "cbe9cbbd3114e1cb5465344448697c69cc7cf8fe6ac2b2aa330981234722bd50"
+    },
+    {
+      "path": "data/unguarded.mjs.data",
+      "classification": "DATA",
+      "originalPath": "/tmp/expr-nullable-review.VNLKcM/unguarded.mjs",
+      "bytes": 19056,
+      "sha256": "0f896203e572af06cd7c082b280bb097583cc191f77cc3744dd6c3cafe70e050"
+    }
+  ],
+  "referencedButNotEmbedded": [
+    {
+      "originalPath": "/tmp/expr-nullable-review.VNLKcM/registers",
+      "classification": "REFERENCED_NOT_EMBEDDED",
+      "reason": "Supplemental native binary excluded; original bytes read only to verify its recorded hash; never executed.",
+      "measurements": [
+        {
+          "sha256": "3dc8f048f1504eda2041d04da8a170bc343613c44bf75d00be4d23cb518f97b6",
+          "evidence": "data/integrity.json#/files/registers"
+        }
+      ]
+    },
+    {
+      "originalPath": "/Users/kjopek/Workspace/safe-bash/dist/commands/expr/bre-worker.js",
+      "classification": "REFERENCED_NOT_EMBEDDED",
+      "reason": "Dist hash was recorded after helper capture, not before; build/source identity remains unqualified.",
+      "measurements": [
+        {
+          "sha256": "e744453f4430b6a929cadac4e4b6a8a4e58ac75440ef16006ff4f4dab31f4874",
+          "evidence": "data/diagnostic.json#/builtInputs/dist~1commands~1expr~1bre-worker.js"
+        }
+      ]
+    },
+    {
+      "originalPath": "/Users/kjopek/Workspace/safe-bash/dist/commands/regex-execution/matching.js",
+      "classification": "REFERENCED_NOT_EMBEDDED",
+      "reason": "Dist hash was recorded after helper capture, not before; build/source identity remains unqualified.",
+      "measurements": [
+        {
+          "sha256": "2f97a68fce0ab504676afe31b4c4fd5eea1edde87ffb28bea9f55c8422693791",
+          "evidence": "data/diagnostic.json#/builtInputs/dist~1commands~1regex-execution~1matching.js"
+        }
+      ]
+    },
+    {
+      "originalPath": "/Users/kjopek/Workspace/safe-bash/dist/commands/regex-execution/protocol.js",
+      "classification": "REFERENCED_NOT_EMBEDDED",
+      "reason": "Dist hash was recorded after helper capture, not before; build/source identity remains unqualified.",
+      "measurements": [
+        {
+          "sha256": "a38e930b62581a22b23d05087b4f67937accbe157d5f6bb6c9b33e7c35f5c9b6",
+          "evidence": "data/diagnostic.json#/builtInputs/dist~1commands~1regex-execution~1protocol.js"
+        }
+      ]
+    },
+    {
+      "originalPath": "/Users/kjopek/Workspace/safe-bash/dist/commands/regex-execution/worker.js",
+      "classification": "REFERENCED_NOT_EMBEDDED",
+      "reason": "Dist hash was recorded after helper capture, not before; build/source identity remains unqualified.",
+      "measurements": [
+        {
+          "sha256": "46479e6d87bd5d20371a2e523310b2275c74d32d15105fcc9678ec73410efe4f",
+          "evidence": "data/diagnostic.json#/builtInputs/dist~1commands~1regex-execution~1worker.js"
+        }
+      ]
+    },
+    {
+      "originalPath": "/Users/kjopek/Workspace/safe-bash/src/commands/expr/bre-worker.ts",
+      "classification": "REFERENCED_NOT_EMBEDDED",
+      "reason": "Historical input is referenced only; no live-source correspondence was checked.",
+      "measurements": [
+        {
+          "sha256": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0",
+          "evidence": "data/capture.json#/before/src~1commands~1expr~1bre-worker.ts"
+        },
+        {
+          "sha256": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0",
+          "evidence": "data/capture.json#/after/src~1commands~1expr~1bre-worker.ts"
+        },
+        {
+          "sha256": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0",
+          "evidence": "data/integrity.json#/sourceAfter/src~1commands~1expr~1bre-worker.ts"
+        },
+        {
+          "sha256": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0",
+          "evidence": "data/diagnostic.json#/sourceHash"
+        },
+        {
+          "sha256": "1109c0506cd2606cd2f5c13143683ff3ced53e98071d2412697cf8a47a5f0e1a",
+          "evidence": "diagnosis.txt: Original recorded bre-worker.ts SHA256"
+        }
+      ]
+    },
+    {
+      "originalPath": "/Users/kjopek/Workspace/safe-bash/src/commands/expr/evaluate.ts",
+      "classification": "REFERENCED_NOT_EMBEDDED",
+      "reason": "Historical input is referenced only; no live-source correspondence was checked.",
+      "measurements": [
+        {
+          "sha256": "80f8b4b7fbcd0552dd91772b941e6654c0b8dd08ce980814b811f08959015d61",
+          "evidence": "data/capture.json#/before/src~1commands~1expr~1evaluate.ts"
+        },
+        {
+          "sha256": "80f8b4b7fbcd0552dd91772b941e6654c0b8dd08ce980814b811f08959015d61",
+          "evidence": "data/capture.json#/after/src~1commands~1expr~1evaluate.ts"
+        },
+        {
+          "sha256": "80f8b4b7fbcd0552dd91772b941e6654c0b8dd08ce980814b811f08959015d61",
+          "evidence": "data/integrity.json#/sourceAfter/src~1commands~1expr~1evaluate.ts"
+        }
+      ]
+    },
+    {
+      "originalPath": "/Users/kjopek/Workspace/safe-bash/src/commands/expr/index.ts",
+      "classification": "REFERENCED_NOT_EMBEDDED",
+      "reason": "Historical input is referenced only; no live-source correspondence was checked.",
+      "measurements": [
+        {
+          "sha256": "f4763994bb7b52cc15706bc4134600d2f3bfc4aaab54cf3929744336c04178c0",
+          "evidence": "data/capture.json#/before/src~1commands~1expr~1index.ts"
+        },
+        {
+          "sha256": "f4763994bb7b52cc15706bc4134600d2f3bfc4aaab54cf3929744336c04178c0",
+          "evidence": "data/capture.json#/after/src~1commands~1expr~1index.ts"
+        },
+        {
+          "sha256": "1f4eb0b6aa5200877ce62b59f7ac488255f4b98c3d5bb8b426fb49dec372dcef",
+          "evidence": "data/integrity.json#/sourceAfter/src~1commands~1expr~1index.ts"
+        }
+      ]
+    },
+    {
+      "originalPath": "/Users/kjopek/Workspace/safe-bash/src/commands/expr/internal.ts",
+      "classification": "REFERENCED_NOT_EMBEDDED",
+      "reason": "Historical input is referenced only; no live-source correspondence was checked.",
+      "measurements": [
+        {
+          "sha256": "12ba86e1164d34a7fee89de4f8c1470fffa2fe624d26641584c08c9c96e90f56",
+          "evidence": "data/capture.json#/before/src~1commands~1expr~1internal.ts"
+        },
+        {
+          "sha256": "12ba86e1164d34a7fee89de4f8c1470fffa2fe624d26641584c08c9c96e90f56",
+          "evidence": "data/capture.json#/after/src~1commands~1expr~1internal.ts"
+        },
+        {
+          "sha256": "12ba86e1164d34a7fee89de4f8c1470fffa2fe624d26641584c08c9c96e90f56",
+          "evidence": "data/integrity.json#/sourceAfter/src~1commands~1expr~1internal.ts"
+        }
+      ]
+    },
+    {
+      "originalPath": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/client.ts",
+      "classification": "REFERENCED_NOT_EMBEDDED",
+      "reason": "Historical input is referenced only; no live-source correspondence was checked.",
+      "measurements": [
+        {
+          "sha256": "dcd4ea63c2ea76d5c5007369f029d6b7788929c0473b84f54e65ea8243016b49",
+          "evidence": "data/capture.json#/before/src~1commands~1regex-execution~1client.ts"
+        },
+        {
+          "sha256": "dcd4ea63c2ea76d5c5007369f029d6b7788929c0473b84f54e65ea8243016b49",
+          "evidence": "data/capture.json#/after/src~1commands~1regex-execution~1client.ts"
+        },
+        {
+          "sha256": "dcd4ea63c2ea76d5c5007369f029d6b7788929c0473b84f54e65ea8243016b49",
+          "evidence": "data/integrity.json#/sourceAfter/src~1commands~1regex-execution~1client.ts"
+        }
+      ]
+    },
+    {
+      "originalPath": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/protocol.ts",
+      "classification": "REFERENCED_NOT_EMBEDDED",
+      "reason": "Historical input is referenced only; no live-source correspondence was checked.",
+      "measurements": [
+        {
+          "sha256": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1",
+          "evidence": "data/capture.json#/before/src~1commands~1regex-execution~1protocol.ts"
+        },
+        {
+          "sha256": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1",
+          "evidence": "data/capture.json#/after/src~1commands~1regex-execution~1protocol.ts"
+        },
+        {
+          "sha256": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1",
+          "evidence": "data/integrity.json#/sourceAfter/src~1commands~1regex-execution~1protocol.ts"
+        },
+        {
+          "sha256": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1",
+          "evidence": "data/diagnostic.json#/protocolHash"
+        }
+      ]
+    },
+    {
+      "originalPath": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/worker.ts",
+      "classification": "REFERENCED_NOT_EMBEDDED",
+      "reason": "Historical input is referenced only; no live-source correspondence was checked.",
+      "measurements": [
+        {
+          "sha256": "a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6",
+          "evidence": "data/capture.json#/before/src~1commands~1regex-execution~1worker.ts"
+        },
+        {
+          "sha256": "a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6",
+          "evidence": "data/capture.json#/after/src~1commands~1regex-execution~1worker.ts"
+        },
+        {
+          "sha256": "a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6",
+          "evidence": "data/integrity.json#/sourceAfter/src~1commands~1regex-execution~1worker.ts"
+        }
+      ]
+    },
+    {
+      "originalPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/regex-audit-cases.ts",
+      "classification": "REFERENCED_NOT_EMBEDDED",
+      "reason": "Historical input is referenced only; no live-source correspondence was checked.",
+      "measurements": [
+        {
+          "sha256": "06eb8c20c6b1f24e96baa76c2be0eaec7087d7d0a14c4c8d25e4c5c9b3074a1f",
+          "evidence": "data/capture.json#/before/tests~1commands~1expr-author~1regex-audit-cases.ts"
+        },
+        {
+          "sha256": "06eb8c20c6b1f24e96baa76c2be0eaec7087d7d0a14c4c8d25e4c5c9b3074a1f",
+          "evidence": "data/capture.json#/after/tests~1commands~1expr-author~1regex-audit-cases.ts"
+        },
+        {
+          "sha256": "06eb8c20c6b1f24e96baa76c2be0eaec7087d7d0a14c4c8d25e4c5c9b3074a1f",
+          "evidence": "data/integrity.json#/sourceAfter/tests~1commands~1expr-author~1regex-audit-cases.ts"
+        }
+      ]
+    },
+    {
+      "originalPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/regex-capture-kdugBl/results.json",
+      "classification": "REFERENCED_NOT_EMBEDDED",
+      "reason": "Historical input is referenced only; no live-source correspondence was checked.",
+      "measurements": [
+        {
+          "sha256": "7e96970537744eefa44359524e04effbced33be652236bfbb0a0a83d19e13db7",
+          "evidence": "data/capture.json#/before/tests~1commands~1expr-author~1regex-capture-kdugBl~1results.json"
+        },
+        {
+          "sha256": "7e96970537744eefa44359524e04effbced33be652236bfbb0a0a83d19e13db7",
+          "evidence": "data/capture.json#/after/tests~1commands~1expr-author~1regex-capture-kdugBl~1results.json"
+        },
+        {
+          "sha256": "7e96970537744eefa44359524e04effbced33be652236bfbb0a0a83d19e13db7",
+          "evidence": "data/integrity.json#/sourceAfter/tests~1commands~1expr-author~1regex-capture-kdugBl~1results.json"
+        }
+      ]
+    },
+    {
+      "originalPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/regex-capture-kdugBl/summary.json",
+      "classification": "REFERENCED_NOT_EMBEDDED",
+      "reason": "Historical input is referenced only; no live-source correspondence was checked.",
+      "measurements": [
+        {
+          "sha256": "4769358bb6c80c62f3e4f97be2f6c75a56c731cd44e7fe9417afac147aadf518",
+          "evidence": "data/capture.json#/before/tests~1commands~1expr-author~1regex-capture-kdugBl~1summary.json"
+        },
+        {
+          "sha256": "4769358bb6c80c62f3e4f97be2f6c75a56c731cd44e7fe9417afac147aadf518",
+          "evidence": "data/capture.json#/after/tests~1commands~1expr-author~1regex-capture-kdugBl~1summary.json"
+        },
+        {
+          "sha256": "4769358bb6c80c62f3e4f97be2f6c75a56c731cd44e7fe9417afac147aadf518",
+          "evidence": "data/integrity.json#/sourceAfter/tests~1commands~1expr-author~1regex-capture-kdugBl~1summary.json"
+        }
+      ]
+    },
+    {
+      "originalPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/expr/helpers.ts",
+      "classification": "REFERENCED_NOT_EMBEDDED",
+      "reason": "Historical input is referenced only; no live-source correspondence was checked.",
+      "measurements": [
+        {
+          "sha256": "51448c59444bb12337860c53c6fc2a9b2e4a193e172630f425a096fadee1b390",
+          "evidence": "data/capture.json#/before/tests~1commands~1expr~1helpers.ts"
+        },
+        {
+          "sha256": "51448c59444bb12337860c53c6fc2a9b2e4a193e172630f425a096fadee1b390",
+          "evidence": "data/capture.json#/after/tests~1commands~1expr~1helpers.ts"
+        },
+        {
+          "sha256": "51448c59444bb12337860c53c6fc2a9b2e4a193e172630f425a096fadee1b390",
+          "evidence": "data/integrity.json#/sourceAfter/tests~1commands~1expr~1helpers.ts"
+        }
+      ]
+    },
+    {
+      "originalPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/expr/oracle.ts",
+      "classification": "REFERENCED_NOT_EMBEDDED",
+      "reason": "Historical input is referenced only; no live-source correspondence was checked.",
+      "measurements": [
+        {
+          "sha256": "3d8862abadcb5b07cf17234df2bedf10cd74ffdcf2d293104bbd9fcb4935cb83",
+          "evidence": "data/capture.json#/before/tests~1commands~1expr~1oracle.ts"
+        },
+        {
+          "sha256": "3d8862abadcb5b07cf17234df2bedf10cd74ffdcf2d293104bbd9fcb4935cb83",
+          "evidence": "data/capture.json#/after/tests~1commands~1expr~1oracle.ts"
+        },
+        {
+          "sha256": "3d8862abadcb5b07cf17234df2bedf10cd74ffdcf2d293104bbd9fcb4935cb83",
+          "evidence": "data/integrity.json#/sourceAfter/tests~1commands~1expr~1oracle.ts"
+        }
+      ]
+    },
+    {
+      "originalPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/lib/config.h",
+      "classification": "REFERENCED_NOT_EMBEDDED",
+      "reason": "GNU source/header/config/static-library input excluded; recorded historical identity only.",
+      "measurements": [
+        {
+          "sha256": "cb3b7a64faca1cd9b6d1683aa636e98da83a0546b2b663c7c5c9b7d3dfeedc4a",
+          "evidence": "data/register-capture.json#/inputs/lib~1config.h"
+        },
+        {
+          "sha256": "cb3b7a64faca1cd9b6d1683aa636e98da83a0546b2b663c7c5c9b7d3dfeedc4a",
+          "evidence": "data/integrity.json#/oracleInputsAfter/lib~1config.h"
+        }
+      ]
+    },
+    {
+      "originalPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/lib/libcoreutils.a",
+      "classification": "REFERENCED_NOT_EMBEDDED",
+      "reason": "GNU source/header/config/static-library input excluded; recorded historical identity only.",
+      "measurements": [
+        {
+          "sha256": "285645d4438ee034d06a8322954adc1ee48f3abc62e539cf7102a1107b42b977",
+          "evidence": "data/register-capture.json#/inputs/lib~1libcoreutils.a"
+        },
+        {
+          "sha256": "285645d4438ee034d06a8322954adc1ee48f3abc62e539cf7102a1107b42b977",
+          "evidence": "data/integrity.json#/oracleInputsAfter/lib~1libcoreutils.a"
+        }
+      ]
+    },
+    {
+      "originalPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/lib/regcomp.c",
+      "classification": "REFERENCED_NOT_EMBEDDED",
+      "reason": "GNU source/header/config/static-library input excluded; recorded historical identity only.",
+      "measurements": [
+        {
+          "sha256": "9e897576ec5421fbd8b476fb287f323eb61612c85d2ec78b88b4bc508371380e",
+          "evidence": "data/register-capture.json#/inputs/lib~1regcomp.c"
+        },
+        {
+          "sha256": "9e897576ec5421fbd8b476fb287f323eb61612c85d2ec78b88b4bc508371380e",
+          "evidence": "data/integrity.json#/oracleInputsAfter/lib~1regcomp.c"
+        }
+      ]
+    },
+    {
+      "originalPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/lib/regex.h",
+      "classification": "REFERENCED_NOT_EMBEDDED",
+      "reason": "GNU source/header/config/static-library input excluded; recorded historical identity only.",
+      "measurements": [
+        {
+          "sha256": "fa71b3d169b5952602d73c9954b53d7bb2761bd42805a3298b63f5966c0a2c64",
+          "evidence": "data/register-capture.json#/inputs/lib~1regex.h"
+        },
+        {
+          "sha256": "fa71b3d169b5952602d73c9954b53d7bb2761bd42805a3298b63f5966c0a2c64",
+          "evidence": "data/integrity.json#/oracleInputsAfter/lib~1regex.h"
+        }
+      ]
+    },
+    {
+      "originalPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/lib/regexec.c",
+      "classification": "REFERENCED_NOT_EMBEDDED",
+      "reason": "GNU source/header/config/static-library input excluded; recorded historical identity only.",
+      "measurements": [
+        {
+          "sha256": "5cf9d377abdcc8be6469690c9f9454f468257bd07200e37c23acaa4ee587944b",
+          "evidence": "data/register-capture.json#/inputs/lib~1regexec.c"
+        },
+        {
+          "sha256": "5cf9d377abdcc8be6469690c9f9454f468257bd07200e37c23acaa4ee587944b",
+          "evidence": "data/integrity.json#/oracleInputsAfter/lib~1regexec.c"
+        }
+      ]
+    },
+    {
+      "originalPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+      "classification": "REFERENCED_NOT_EMBEDDED",
+      "reason": "Native binary excluded; historical hashes only, not rerun or newly inspected.",
+      "measurements": [
+        {
+          "sha256": "e8a4e2b58a33d2ad6bfa9eb8a4ed5f62775ab9ceac4b9421680c98973fd9109c",
+          "evidence": "data/capture.json#/oracle/sha256"
+        },
+        {
+          "sha256": "e8a4e2b58a33d2ad6bfa9eb8a4ed5f62775ab9ceac4b9421680c98973fd9109c",
+          "evidence": "data/integrity.json#/oracleAfter"
+        }
+      ]
+    },
+    {
+      "originalPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr.c",
+      "classification": "REFERENCED_NOT_EMBEDDED",
+      "reason": "GNU source/header/config/static-library input excluded; recorded historical identity only.",
+      "measurements": [
+        {
+          "sha256": "c9dc5e04039505ab48a350e9407b1d83b2574fd7e2c31c9d23f4bf942d1b8af0",
+          "evidence": "data/register-capture.json#/inputs/src~1expr.c"
+        },
+        {
+          "sha256": "c9dc5e04039505ab48a350e9407b1d83b2574fd7e2c31c9d23f4bf942d1b8af0",
+          "evidence": "data/integrity.json#/oracleInputsAfter/src~1expr.c"
+        }
+      ]
+    }
+  ],
+  "unhashedReferences": [
+    {
+      "originalPath": "/tmp/expr-extension-author.log",
+      "evidence": "diagnosis.txt: around line 14660",
+      "sha256": null,
+      "reason": "No hash recorded; author log not read or embedded."
+    },
+    {
+      "originalPath": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/typescript.js",
+      "evidence": "data/diagnostic.mjs.data and data/diagnostic.json#/typescriptVersion",
+      "sha256": null,
+      "recordedVersion": "5.9.3",
+      "reason": "Dependency tree excluded; original evidence records version, not package bytes/hash."
+    },
+    {
+      "originalPath": "/usr/lib/libSystem.B.dylib",
+      "evidence": "diagnosis.txt: otool dynamic dependency observation",
+      "sha256": null,
+      "reason": "System binary excluded; no hash recorded."
+    }
+  ],
+  "omissions": [
+    "Only the supplemental registers binary is omitted from the original temp-directory file inventory; all 11 text files and the exact diagnosis are embedded.",
+    "No binaries, dependency trees, native oracle implementation/archive, live source, dist tree, whole author cohort, author log, or fetched web source are copied. Historical paths/hashes and source URLs remain in the original text/JSON.",
+    "Source and harness text is copied only from the retained artifacts. No unavailable historical source, compiler inputs, register-capture generation harness, failed initial metadata capture, or warning log is reconstructed.",
+    "No new capture, native probe, worker run, product build, whole tests, fix, oracle change, or acceptance claim."
+  ],
+  "historicalLimits": [
+    "Original author source hash/candidate was not recovered; capture used dirty concurrent source. Helper launches dist; its hashes were recorded later, so helper rows do not prove source/build correspondence.",
+    "Original integrity.json records a later src/commands/expr/index.ts change. Historical checks enumerated paths and were not append-proof. Read-only permission bits are not immutable flags.",
+    "The real program-counter-only cycle guard issue, GNU 9.7 unfinished-register anomaly, failed capture-aware-only relaxation, broad unsupported refusal, and every captured negative control remain unchanged.",
+    "GNU 9.7 on Darwin 25.4.0 arm64 with LC_ALL=C is not GNU/Linux or general POSIX parity. Supplemental archive/binary provenance does not establish identical reproducible build inputs.",
+    "Historical native children settled and diagnostic workers terminated. The diagnostic listener warning and failed config.h metadata attempt remain recorded, not repaired.",
+    "This archive neither blesses live-source correspondence nor supplies a safe fix, native parity, sealed candidate, broad superiority, or independent acceptance denominator."
+  ],
+  "archiveSupportFiles": [
+    "README.md",
+    "manifest.json",
+    "verify.mjs"
+  ],
+  "verification": "Run node tests/commands/expr-stress/nullable-capture-review/verify.mjs; optional --originals also reads retained originals and checks their exact hashes, mode/mtime, and directory inventory. No captured code is imported or executed, no external historical input is read, and nothing is written. Exact archive path inventory detects additional current archive entries, not historical/live repository additions."
+}

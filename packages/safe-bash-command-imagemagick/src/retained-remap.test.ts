@@ -1,0 +1,80 @@
+import { createHash } from "node:crypto";
+import { expect, it } from "vitest";
+import sharp, { decodeImage } from "@poe-code/image-ast";
+import { MemoryFileSystem } from "@poe-code/safe-fs/core";
+import { runConvertCli } from "./index.js";
+const operators = [
+    ["-remap", "palette"], ["+dither", "-remap", "palette"],
+    ["-dither", "none", "-remap", "palette"], ["-dither", "FloydSteinberg", "-remap", "palette"],
+    ["-remap", "gradient:red-blue"], ["+dither", "-remap", "pattern:checkerboard"],
+    ["-remap", "xc:red"], ["-remap", "missing"],
+    ["-remap", "palette", "+dither", "-remap", "gradient:blue-red"]
+];
+async function paletteFixture() { return sharp(new Uint8Array([0, 0, 0, 255, 255, 255, 255, 255]), { raw: { width: 2, height: 1, channels: 4 } }).png().toBuffer(); }
+async function fixture(width = 53, height = 37) {
+    return sharp(Uint8Array.from({ length: width * height * 4 }, (_, i) => i * 37 % 256), { raw: { width, height, channels: 4 } }).png().toBuffer();
+}
+it.each([false, true])("uses palette RGBA with dithering %s", async (dither) => {
+    for (const alpha of [0, 64, 160, 255]) {
+        const input = await sharp(new Uint8Array([240, 30, 60, alpha]), { raw: { width: 1, height: 1, channels: 4 } }).png().toBuffer();
+        for (const [palette, expectedAlpha] of [["xc:blue", 255], ["xc:#0000ff80", 128], ["gradient:red-blue", 255]] as const) {
+            const files = new Map([["input", input]]);
+            const argv = ["input", ...(dither ? ["-dither", "FloydSteinberg"] : ["+dither"]), "-remap", palette, "out.png"];
+            expect((await runConvertCli(argv, files)).exitCode).toBe(0);
+            const pixels = await sharp(files.get("out.png")!).ensureAlpha().raw().toBuffer();
+            expect(Array.from(pixels)).toEqual(palette.startsWith("gradient:") ? [255, 0, 0, expectedAlpha] : [0, 0, 255, expectedAlpha]);
+            const filesystem = new MemoryFileSystem();
+            await filesystem.writeFile("/input", input);
+            expect((await runConvertCli(argv, { filesystem, cwd: "/" })).exitCode).toBe(0);
+            expect(decodeImage(await filesystem.readFile("/out.png"))).toEqual(decodeImage(files.get("out.png")!));
+        }
+    }
+});
+it.each([false, true])("distinguishes palette colors differing only in alpha with dithering %s", async (dither) => {
+    const pixels = new Uint8Array([0, 0, 255, 64, 0, 0, 255, 192]);
+    const palette = await sharp(pixels, { raw: { width: 2, height: 1, channels: 4 } }).png().toBuffer();
+    const input = await sharp(new Uint8Array([0, 0, 255, 80, 0, 0, 255, 176]), { raw: { width: 2, height: 1, channels: 4 } }).png().toBuffer();
+    const files = new Map([["input", input], ["palette", palette]]);
+    const argv = ["input", ...(dither ? ["-dither", "FloydSteinberg"] : ["+dither"]), "-remap", "palette", "out.png"];
+    expect((await runConvertCli(argv, files)).exitCode).toBe(0);
+    expect(Array.from(await sharp(files.get("out.png")!).ensureAlpha().raw().toBuffer())).toEqual(Array.from(pixels));
+    const filesystem = new MemoryFileSystem();
+    await filesystem.writeFile("/input", input);
+    await filesystem.writeFile("/palette", palette);
+    expect((await runConvertCli(argv, { filesystem, cwd: "/" })).exitCode).toBe(0);
+    expect(decodeImage(await filesystem.readFile("/out.png"))).toEqual(decodeImage(files.get("out.png")!));
+});
+it("preserves original remap pixel vectors", async () => {
+    const bytes = await fixture(), hashes: string[] = [];
+    for (const args of operators) {
+        const files = new Map([["input", bytes], ["palette", await paletteFixture()]]);
+        expect((await runConvertCli(["input", ...args, "out.png"], files)).exitCode).toBe(0);
+        hashes.push(createHash("sha256").update(files.get("out.png")!).digest("hex"));
+    }
+    expect(hashes).toMatchInlineSnapshot(`
+      [
+        "83a355d7c2839f422065a37a534fa66a1d41bc1d75b395421440e660915e0267",
+        "482f6e94ff264edf615ceffd039e8a0f8cd36447ff86372b33c356c7611d4406",
+        "482f6e94ff264edf615ceffd039e8a0f8cd36447ff86372b33c356c7611d4406",
+        "83a355d7c2839f422065a37a534fa66a1d41bc1d75b395421440e660915e0267",
+        "49569d48065faaa3fae04614070ba15cd508d9139c6ab5011e5329ec20b18ee2",
+        "f4c2149f011129a4814ee7cd28ea3eba4fa33262e385f6e3f60019c9d8021829",
+        "49569d48065faaa3fae04614070ba15cd508d9139c6ab5011e5329ec20b18ee2",
+        "d3b98c3d20a92e1f210c8fd9db66ed6be330b333920d38e38c3e1c05eb4c8156",
+        "8217d29cdc785151c1d6d1d5b0d4e0df30c1c282bfb44e718c36598f1869f918",
+      ]
+    `);
+});
+it.each(operators.flatMap(args => [[53, 37], [1031, 3], [1, 1], ...(args === operators[0] ? [[12001, 3]] : [])].map(([width, height]) => ({ width: width!, height: height!, args }))))("retains $width x $height $args", async ({ width, height, args }) => {
+    const bytes = await fixture(width, height), fs = new MemoryFileSystem(), files = new Map([["input", bytes], ["palette", await paletteFixture()]]);
+    await fs.writeFile("/input", bytes);
+    await fs.writeFile("/palette", await paletteFixture());
+    const filesystem = new Proxy(fs, { get(target, key) {
+        if (key === "readFile" || key === "writeFile") return () => { throw new Error("whole-file remap I/O forbidden"); };
+        const value = Reflect.get(target, key, target);
+        return typeof value === "function" ? value.bind(target) : value;
+    } });
+    const argv = ["input", ...args, "out.png"];
+    expect(await runConvertCli(argv, { filesystem, cwd: "/" })).toEqual(await runConvertCli(argv, files));
+    expect(decodeImage(await fs.readFile("/out.png"))).toEqual(decodeImage(files.get("out.png")!));
+});

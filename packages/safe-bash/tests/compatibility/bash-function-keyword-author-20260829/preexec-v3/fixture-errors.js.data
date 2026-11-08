@@ -1,0 +1,3 @@
+import {preauthRecord} from './preauth.mjs';
+process.stdout.write('B35_CANONICAL_READY\n');
+for(const reason of [undefined,null,false,0])process.stderr.write(JSON.stringify(preauthRecord(true,reason,[{phase:'control',reason}]))+'\n');

@@ -1,0 +1,38 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "cases": [
+    {
+      "argv": [
+        "-y0",
+        "--max-rows",
+        "9007199254740992"
+      ],
+      "stdin": "n\n2.12345\n",
+      "stdout": "|      n |\n| ------ |\n| 2.123\u2026 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "-y0",
+        "--max-rows",
+        "9223372036854775807"
+      ],
+      "stdin": "n\n2.12345\n",
+      "stdout": "|      n |\n| ------ |\n| 2.123\u2026 |\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "argv": [
+        "-y0",
+        "--max-rows",
+        "9223372036854775808"
+      ],
+      "stdin": "n\n2.12345\n",
+      "stdout": "",
+      "stderr": "ValueError: Stop argument for islice() must be None or an integer: 0 <= x <= sys.maxsize.\n",
+      "status": 1
+    }
+  ]
+}

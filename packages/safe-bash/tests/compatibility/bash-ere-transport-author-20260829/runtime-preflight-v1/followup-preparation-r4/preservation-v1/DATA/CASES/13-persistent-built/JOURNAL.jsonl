@@ -1,0 +1,13 @@
+{"seq":1,"at":20889,"kind":"case-entry","detail":"","attemptId":0}
+{"seq":2,"at":29318,"kind":"attempt","detail":"","attemptId":1}
+{"seq":3,"at":30462,"kind":"constructed","detail":"","attemptId":1}
+{"seq":4,"at":30543,"kind":"setup-fault","detail":"false","attemptId":1}
+{"seq":5,"at":30858,"kind":"termination-requested","detail":"","attemptId":1}
+{"seq":6,"at":30904,"kind":"setup-fault","detail":"false","attemptId":1}
+{"seq":7,"at":30986,"kind":"termination-rejected","detail":"boolean","attemptId":1}
+{"seq":8,"at":31055,"kind":"execute-settled","detail":"rejected","attemptId":1}
+{"seq":9,"at":31218,"kind":"close-settled","detail":"session:rejected","attemptId":1}
+{"seq":10,"at":31536,"kind":"close-settled","detail":"root:rejected","attemptId":1}
+{"seq":11,"at":31611,"kind":"unconfirmed","detail":"","attemptId":1}
+{"seq":12,"at":31632,"kind":"retained-root-and-handles","detail":"","attemptId":1}
+{"seq":13,"at":32006,"kind":"receipt-publication","detail":"","attemptId":1}

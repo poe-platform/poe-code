@@ -1,0 +1,46 @@
+export { encodeId3 } from "./id3.js";
+export { readOgg } from "./ogg.js";
+export { mpegFrame } from "./mpeg.js";
+export { probeOggStreamSource, type OggCommentSpan } from "./ogg-stream-source.js";
+export { scanOggPages, type OggPageSpan } from "./ogg-source.js";
+export { probeMp3Source, type Mp3Tag } from "./mp3-source.js";
+export { probeId3Source, readId3Text, type Id3TextSpan } from "./id3-source.js";
+export { normalizeVorbisCommentKey } from "./vorbis.js";
+export { probeFlacSource, type FlacCommentSpan } from "./flac-source.js";
+export { probeWavSource, type AudioProbeSource, type WavTagSpan } from "./wav-source.js";
+export * from "./types.js";
+export { decodePcm, encodeWav } from "./wav.js";
+export * from "./dsp.js";
+export type { MetadataOptions } from "./metadata.js";
+import { Reader } from "./binary.js";
+import { parseWav } from "./wav.js";
+import { parseMp3 } from "./mp3.js";
+import { parseFlac } from "./flac.js";
+import { parseOgg } from "./ogg.js";
+import { parseMp4 } from "./mp4.js";
+import { rewriteMetadata } from "./metadata.js";
+import type { MetadataOptions } from "./metadata.js";
+import type { AudioAst, AudioTags, AudioParseOptions } from "./types.js";
+export function parseAudio(data: Uint8Array, options: AudioParseOptions = {}): AudioAst {
+  const reader = new Reader(data),
+    marker = reader.text(0, 4);
+  if (marker === "RIFF") return parseWav(data);
+  if (marker === "fLaC") return parseFlac(data);
+  if (marker === "OggS") return parseOgg(data);
+  if (data.length >= 8 && reader.text(4, 4) === "ftyp") return parseMp4(data, options);
+  if (marker.startsWith("ID3") || (reader.u8(0) === 255 && (reader.u8(1) & 224) === 224))
+    return parseMp3(data);
+  throw new Error("Unsupported audio container");
+}
+export function probeAudio(data: Uint8Array, options: AudioParseOptions = {}): Omit<AudioAst, "data" | "nodes" | "pictures"> {
+  const { format, streams, tags, duration, bitrate } = parseAudio(data, options);
+  return { format, streams, tags, duration, bitrate };
+}
+export function writeAudioMetadata(
+  data: Uint8Array | AudioAst,
+  tags: AudioTags,
+  options: MetadataOptions = {}
+): Uint8Array {
+  const ast = data instanceof Uint8Array ? parseAudio(data) : data;
+  return rewriteMetadata(ast, tags, options);
+}

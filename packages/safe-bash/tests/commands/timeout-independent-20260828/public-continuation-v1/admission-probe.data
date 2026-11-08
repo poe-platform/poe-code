@@ -1,0 +1,11 @@
+const admissionRecords=[];
+async function admitPublicPlugin(instance){
+  const record={ordinal:admissionRecords.length,script:'',markerEntered:0,sameRegistry:false,timeoutCallable:false,dispatch:[],clockBefore:clocks.map(value=>({records:value.records.length,live:value.live}))};
+  admissionRecords.push(record);let phase='setup';
+  instance.use(async(context,next)=>{record.dispatch.push({phase,command:context.command});return next();});
+  instance.use({name:'timeout-independent-public-admission-marker',setup(host){record.markerEntered++;record.sameRegistry=host.commands===instance.commands;record.timeoutCallable=typeof host.commands.get('timeout')?.execute==='function';}});
+  const outcome=await watch(instance.exec('')).settled;
+  record.outcome=diagnosticOutcome(outcome);record.clockAfter=clocks.map(value=>({records:value.records.length,live:value.live}));
+  preserveDiagnostic('plugin-admission-before-assertion',structuredClone(record));assertAdmission(record);phase='measured';return instance;
+}
+

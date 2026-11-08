@@ -1,0 +1,13 @@
+{
+  "startedMs": 1787979607193,
+  "date": "2026-08-29",
+  "role": "Independent Unit2 strict-mode review preparation",
+  "bounds": {
+    "seconds": 1500,
+    "allProcesses": 64,
+    "peak": 3,
+    "captureBytes": 134217728,
+    "workBytes": 536870912
+  },
+  "noProductUntilCommittedPreseal": true
+}

@@ -1,0 +1,36 @@
+{
+  "name": "@poe-code/config-extends",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "test:unit": "cd ../.. && vitest run packages/config-extends/src"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@poe-code/frontmatter": "*",
+    "toolcraft-design": "*",
+    "yaml": "^2.8.2",
+    "@poe-code/safe-fs": "*"
+  },
+  "imports": {
+    "#config-extends-filesystem": {
+      "types": "./src/default-filesystem.ts",
+      "workerd": "./dist/default-filesystem.workerd.js",
+      "browser": "./dist/default-filesystem.workerd.js",
+      "worker": "./dist/default-filesystem.workerd.js",
+      "default": "./dist/default-filesystem.js"
+    }
+  }
+}

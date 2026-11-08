@@ -1,0 +1,354 @@
+diff --git a/src/commands/apply-patch/apply.ts b/src/commands/apply-patch/apply.ts
+index 35ee95b3..8082bf27 100644
+--- a/src/commands/apply-patch/apply.ts
++++ b/src/commands/apply-patch/apply.ts
+@@ -41,15 +41,16 @@ class Invocation {
+     for await (const chunk of readBytes(context.stdin, context.signal)) {
+       work.count("maxInputChunks", 1);
+       if (chunk.byteLength > work.limits.maxPatchBytes - bytes) throw new PatchError("maxPatchBytes limit exceeded");
+-      work.step(chunk.byteLength + 1);
+-      if (chunk.byteLength) chunks.push(new Uint8Array(chunk));
++      await work.charge(1);
++      if (chunk.byteLength) chunks.push(await work.copy(chunk));
+       bytes += chunk.byteLength;
+       await work.checkpoint();
+     }
+     work.check();
++    work.admit(bytes);
+     const data = new Uint8Array(bytes);
+     let offset = 0;
+-    for (const chunk of chunks) { work.step(chunk.length); data.set(chunk, offset); offset += chunk.length; await work.checkpoint(); }
++    for (const chunk of chunks) { await work.copyInto(chunk, data, offset); offset += chunk.length; }
+     return work.text(data, 2);
+   }
+ 
+@@ -66,7 +67,7 @@ class Invocation {
+     const parts = path.split("/").filter(Boolean);
+     let current = "/";
+     for (let index = -1; index < parts.length; index++) {
+-      this.work.step();
++      await this.work.charge(1);
+       if (index >= 0) current = current === "/" ? current + parts[index]! : current + "/" + parts[index]!;
+       const stat = await this.stat(current, cached);
+       if (!stat) return undefined;
+@@ -80,7 +81,7 @@ class Invocation {
+   private async writable(path: string): Promise<void> {
+     let target = path;
+     while (!await this.stat(target, true)) {
+-      this.work.step();
++      await this.work.charge(1);
+       const parent = dirname(target);
+       if (parent === target) throw new PatchError("missing VFS root");
+       target = parent;
+@@ -98,10 +99,7 @@ class Invocation {
+     if (!(bytes instanceof Uint8Array)) throw new TypeError("FileSystem.readFile must return Uint8Array");
+     if (bytes.length > maximum) throw new PatchError("target read byte limit exceeded");
+     this.work.count("maxReadBytes", bytes.length);
+-    this.work.step(bytes.length);
+-    const owned = new Uint8Array(bytes);
+-    await this.work.checkpoint();
+-    return owned;
++    return this.work.copy(bytes);
+   }
+ 
+   private async prepare(files: readonly PatchFile[]): Promise<Plan[]> {
+@@ -123,7 +121,7 @@ class Invocation {
+     for (let left = 0; left < snapshots.length; left++) for (let right = left + 1; right < snapshots.length; right++) {
+       const source = snapshots[left]!;
+       const target = snapshots[right]!;
+-      this.work.step();
++      await this.work.charge(1);
+       let comparison = relation(source.stat, target.stat);
+       if (comparison === "unknown" && this.context.fs.compareEntry) {
+         comparison = await this.work.fs(source.path, () => this.context.fs.compareEntry!(source.path, this.context.fs, target.path, { signal: this.context.signal }));
+@@ -209,6 +207,7 @@ class Invocation {
+           lines.push(line);
+         }
+         if (bytes > work.limits.maxOutputBytes) throw new PatchError("maxOutputBytes limit exceeded");
++        await work.charge(bytes * 2);
+         summary = Buffer.from(lines.join(""));
+         await work.checkpoint();
+         await this.publish(plans);
+diff --git a/src/commands/apply-patch/matcher.ts b/src/commands/apply-patch/matcher.ts
+index a977a737..b800610c 100644
+--- a/src/commands/apply-patch/matcher.ts
++++ b/src/commands/apply-patch/matcher.ts
+@@ -8,16 +8,16 @@ async function records(text: string, work: Work): Promise<RecordLine[]> {
+   const result: RecordLine[] = [];
+   let start = 0;
+   for (let index = 0; index < text.length; index++) {
++    if (work.due) await work.checkpoint();
+     work.step();
+     if (text[index] === "\n") {
+       const crlf = index > start && text[index - 1] === "\r";
+       work.count("maxLines", 1);
+-      result.push({ text: text.slice(start, crlf ? index - 1 : index), ending: crlf ? "\r\n" : "\n" });
++      result.push({ text: await work.slice(text, start, crlf ? index - 1 : index), ending: crlf ? "\r\n" : "\n" });
+       start = index + 1;
+     }
+-    if ((index & 2047) === 0) await work.checkpoint();
+   }
+-  if (start < text.length) { work.count("maxLines", 1); result.push({ text: text.slice(start), ending: "" }); }
++  if (start < text.length) { work.count("maxLines", 1); result.push({ text: await work.slice(text, start), ending: "" }); }
+   await work.checkpoint();
+   return result;
+ }
+@@ -27,7 +27,7 @@ async function find(lines: readonly RecordLine[], pattern: readonly string[], st
+   const first = eof ? last : start;
+   if (first < start) return -1;
+   for (let candidate = first; candidate <= last; candidate++) {
+-    work.step();
++    await work.charge(1);
+     let matched = true;
+     for (let offset = 0; offset < pattern.length; offset++) {
+       if (!await work.equal(lines[candidate + offset]!.text, pattern[offset]!)) { matched = false; break; }
+@@ -40,20 +40,20 @@ async function find(lines: readonly RecordLine[], pattern: readonly string[], st
+ 
+ async function encode(lines: readonly RecordLine[], work: Work): Promise<Uint8Array> {
+   let bytes = 0;
++  let units = 0;
+   for (const line of lines) {
+     bytes += await work.utf8(line.text, work.limits.maxFileBytes - bytes);
+     if (line.ending.length > work.limits.maxFileBytes - bytes) throw new PatchError("maxFileBytes limit exceeded");
+     bytes += line.ending.length;
++    units += line.text.length + line.ending.length;
+   }
+   work.count("maxStagedBytes", bytes);
++  work.admit(units * 2 + bytes);
+   const result = new Uint8Array(bytes);
+   let offset = 0;
+   for (const line of lines) {
+-    work.step(line.text.length + line.ending.length);
+-    const encoded = Buffer.from(line.text + line.ending);
+-    result.set(encoded, offset);
+-    offset += encoded.length;
+-    await work.checkpoint();
++    offset = await work.encodeInto(line.text, result, offset);
++    offset = await work.encodeInto(line.ending, result, offset);
+   }
+   return result;
+ }
+diff --git a/src/commands/apply-patch/parser.ts b/src/commands/apply-patch/parser.ts
+index 9c79540a..1f97926f 100644
+--- a/src/commands/apply-patch/parser.ts
++++ b/src/commands/apply-patch/parser.ts
+@@ -17,16 +17,17 @@ async function patchLines(text: string, work: Work): Promise<string[]> {
+   const lines: string[] = [];
+   let start = 0;
+   for (let index = 0; index < text.length; index++) {
++    if (work.due) await work.checkpoint();
+     work.step();
+     if (text.charCodeAt(index) === 0) throw new PatchError("NUL bytes are unsupported", 2);
+     if (text[index] === "\n") {
+       work.count("maxLines", 1);
+-      lines.push(text.slice(start, text[index - 1] === "\r" ? index - 1 : index));
++      lines.push(await work.slice(text, start, text[index - 1] === "\r" ? index - 1 : index));
+       start = index + 1;
+     }
+-    if ((index & 2047) === 0) await work.checkpoint();
+   }
+-  if (start < text.length) { work.count("maxLines", 1); lines.push(text.slice(start)); }
++  await work.checkpoint();
++  if (start < text.length) { work.count("maxLines", 1); lines.push(await work.slice(text, start)); }
+   await work.checkpoint();
+   return lines;
+ }
+@@ -36,6 +37,7 @@ export async function targetPath(value: string, work: Work): Promise<string> {
+   let components = 0;
+   let start = 0;
+   for (let index = 0; index <= value.length; index++) {
++    if (work.due) await work.checkpoint();
+     work.step();
+     const code = value.charCodeAt(index);
+     if (code < 32 || code === 127) throw new PatchError("control character in path", 2);
+@@ -84,8 +86,7 @@ export async function parse(text: string, work: Work): Promise<PatchFile[]> {
+     let finished = false;
+     while (index < lines.length - 1) {
+       const line = lines[index]!;
+-      work.step(line.length + 1);
+-      await work.checkpoint();
++      await work.charge(line.length + 1);
+       if (line.startsWith("*** Add File: ") || line.startsWith("*** Delete File: ") || line.startsWith("*** Update File: ")) break;
+       if (kind === "add") {
+         if (!line.startsWith("+")) throw new PatchError(`invalid Add body at patch line ${index + 1}`, 2);
+@@ -125,7 +126,7 @@ export async function parse(text: string, work: Work): Promise<PatchFile[]> {
+   const paths: string[] = [];
+   for (const file of files) for (const path of [file.path, ...(file.destination ? [file.destination] : [])]) {
+     for (const previous of paths) {
+-      work.step(path.length + previous.length + 1);
++      await work.charge(path.length + previous.length + 1);
+       if (path === previous || path.startsWith(previous + "/") || previous.startsWith(path + "/")) throw new PatchError("duplicate or conflicting patch paths", 2);
+       await work.checkpoint();
+     }
+diff --git a/src/commands/apply-patch/shared.ts b/src/commands/apply-patch/shared.ts
+index f58867b3..7c470c9e 100644
+--- a/src/commands/apply-patch/shared.ts
++++ b/src/commands/apply-patch/shared.ts
+@@ -39,71 +39,151 @@ export class Work {
+ 
+   remaining(key: keyof ApplyPatchLimits): number { return this.limits[key] - (this.counts.get(key) ?? 0); }
+ 
+-  step(amount = 1): void {
++  admit(amount: number): void {
+     this.check();
+     if (!Number.isSafeInteger(amount) || amount < 0 || amount > this.limits.maxWork - this.units) throw new PatchError("maxWork limit exceeded");
++  }
++
++  step(amount = 1): void {
++    this.admit(amount);
+     this.units += amount;
+   }
+ 
++  get due(): boolean { return this.units >= this.nextYield; }
++
+   async checkpoint(): Promise<void> {
+     this.check();
+     if (this.units >= this.nextYield) {
+-      this.nextYield = this.units + 4096;
++      this.nextYield += 4096;
+       try { await setImmediate(undefined, { signal: this.context.signal }); }
+       catch (error) { this.context.signal.throwIfAborted(); throw error; }
+       this.check();
+     }
+   }
+ 
++  async charge(amount: number): Promise<void> {
++    this.admit(amount);
++    while (amount > 0) {
++      await this.checkpoint();
++      const count = Math.min(amount, this.nextYield - this.units);
++      this.step(count);
++      amount -= count;
++    }
++    await this.checkpoint();
++  }
++
++  async copyInto(bytes: Uint8Array, target: Uint8Array, start: number): Promise<void> {
++    this.admit(bytes.length);
++    let offset = 0;
++    while (offset < bytes.length) {
++      await this.checkpoint();
++      const count = Math.min(bytes.length - offset, this.nextYield - this.units);
++      this.step(count);
++      target.set(bytes.subarray(offset, offset + count), start + offset);
++      offset += count;
++    }
++    await this.checkpoint();
++  }
++
++  async copy(bytes: Uint8Array): Promise<Uint8Array> {
++    this.admit(bytes.length);
++    const result = new Uint8Array(bytes.length);
++    await this.copyInto(bytes, result, 0);
++    return result;
++  }
++
++  async slice(text: string, start: number, end = text.length): Promise<string> {
++    await this.charge(end - start);
++    return text.slice(start, end);
++  }
++
++  async encodeInto(text: string, target: Uint8Array, start: number): Promise<number> {
++    const encoder = new TextEncoder();
++    let offset = start;
++    for (let index = 0; index < text.length;) {
++      let end = Math.min(text.length, index + 1024);
++      const last = text.charCodeAt(end - 1);
++      if (end < text.length && last >= 0xd800 && last <= 0xdbff) end--;
++      await this.charge(end - index);
++      const chunk = text.slice(index, end);
++      const bytes = await this.utf8(chunk, target.length - offset);
++      await this.charge(bytes);
++      const encoded = encoder.encodeInto(chunk, target.subarray(offset, offset + bytes));
++      if (encoded.read !== chunk.length || encoded.written !== bytes) throw new Error("apply_patch encoding size mismatch");
++      offset += bytes;
++      index = end;
++    }
++    await this.checkpoint();
++    return offset;
++  }
++
+   async utf8(text: string, maximum: number, status: 1 | 2 = 1): Promise<number> {
+     let bytes = 0;
+-    let checkpointAt = 2048;
+     for (let index = 0; index < text.length; index++) {
++      if (this.due) await this.checkpoint();
+       this.step();
+       const code = text.charCodeAt(index);
+       let width = code < 0x80 ? 1 : code < 0x800 ? 2 : 3;
+       if (code >= 0xd800 && code <= 0xdbff) {
++        if (this.due) await this.checkpoint();
++        this.step();
+         const next = text.charCodeAt(index + 1);
+         if (!(next >= 0xdc00 && next <= 0xdfff)) throw new PatchError("unpaired surrogate in text", status);
+         index++;
+-        this.step();
+         width = 4;
+       } else if (code >= 0xdc00 && code <= 0xdfff) throw new PatchError("unpaired surrogate in text", status);
+       if (width > maximum - bytes) throw new PatchError("UTF-8 byte limit exceeded");
+       bytes += width;
+-      if (index >= checkpointAt) { checkpointAt = index + 2048; await this.checkpoint(); }
+     }
+     await this.checkpoint();
+     return bytes;
+   }
+ 
+   async text(bytes: Uint8Array, status: 1 | 2): Promise<string> {
+-    for (let offset = 0; offset < bytes.length; offset += 4096) {
+-      const end = Math.min(offset + 4096, bytes.length);
+-      this.step(end - offset);
++    this.admit(bytes.length * 2);
++    for (let offset = 0; offset < bytes.length; offset += 2048) {
++      const end = Math.min(offset + 2048, bytes.length);
++      await this.charge(end - offset);
+       for (let index = offset; index < end; index++) if (bytes[index] === 0) throw new PatchError("NUL bytes are unsupported", status);
+-      await this.checkpoint();
+     }
+-    try { return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes); }
++    const decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
++    const parts: string[] = [];
++    let length = 0;
++    for (let offset = 0; offset < bytes.length; offset += 2048) {
++      const end = Math.min(offset + 2048, bytes.length);
++      await this.charge(end - offset);
++      let part: string;
++      try { part = decoder.decode(bytes.subarray(offset, end), { stream: true }); }
++      catch { throw new PatchError("invalid UTF-8", status); }
++      parts.push(part);
++      length += part.length;
++    }
++    let last: string;
++    try { last = decoder.decode(); }
+     catch { throw new PatchError("invalid UTF-8", status); }
++    parts.push(last);
++    await this.charge(length + last.length);
++    return parts.join("");
+   }
+ 
+   async equal(left: string | Uint8Array, right: string | Uint8Array): Promise<boolean> {
+-    this.step();
++    await this.charge(1);
+     if (left.length !== right.length) return false;
+-    for (let offset = 0; offset < left.length; offset += 4096) {
+-      const end = Math.min(offset + 4096, left.length);
++    for (let offset = 0; offset < left.length;) {
++      const end = Math.min(offset + this.nextYield - this.units, left.length);
+       this.step(end - offset);
+-      for (let index = offset; index < end; index++) if (left[index] !== right[index]) return false;
++      let matched = true;
++      for (let index = offset; index < end; index++) if (left[index] !== right[index]) { matched = false; break; }
+       await this.checkpoint();
++      if (!matched) return false;
++      offset = end;
+     }
+     return true;
+   }
+ 
+   async fs<Value>(path: string, operation: () => Promise<Value>): Promise<Value> {
+     this.count("maxFsCalls", 1);
+-    this.step();
+-    await this.checkpoint();
++    await this.charge(1);
+     try {
+       this.check();
+       const result = await operation();

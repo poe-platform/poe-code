@@ -1,0 +1,28 @@
+{
+  "id": "N03",
+  "pass": false,
+  "kind": "PURE_EXACT_CATCH_FRAGMENT_WITH_DOUBLES",
+  "reviewerCorrection": "Original isolated catch omitted name, producing ReferenceError before discard; original RESULT.json preserved and original N03 is not product evidence. This invocation supplies the exact missing lexical binding.",
+  "fragmentSha256": "bb24d02b5839c33791ef9cbc213e2c903b335602e5a54de6277f03fbea1a508d",
+  "observations": [
+    {
+      "primary": false,
+      "discardCalls": 1,
+      "primaryPreserved": false,
+      "secondaryReplacedPrimary": true
+    },
+    {
+      "primary": 0,
+      "discardCalls": 1,
+      "primaryPreserved": false,
+      "secondaryReplacedPrimary": true
+    },
+    {
+      "primary": null,
+      "discardCalls": 1,
+      "primaryPreserved": false,
+      "secondaryReplacedPrimary": true
+    }
+  ],
+  "noRuntimeClassesExecuted": true
+}

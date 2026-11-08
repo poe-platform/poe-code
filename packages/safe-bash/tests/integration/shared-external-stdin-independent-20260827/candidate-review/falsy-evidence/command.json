@@ -1,0 +1,17 @@
+{
+  "args": [
+    "--unhandled-rejections=strict",
+    "--experimental-loader",
+    "/private/tmp/shared-stdin-independent-candidate-falsy-B8L2Fu/consumer/fixtures/loader.mjs",
+    "/private/tmp/shared-stdin-independent-candidate-falsy-B8L2Fu/consumer/fixtures/falsy-probe.mjs",
+    "/tmp/shared-stdin-independent-candidate-falsy-20260827-1617/results.json"
+  ],
+  "pid": 27734,
+  "status": 0,
+  "signal": null,
+  "stdout": "",
+  "stderr": "(node:27734) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:\n--import 'data:text/javascript,import { register } from \"node:module\"; import { pathToFileURL } from \"node:url\"; register(\"/private/tmp/shared-stdin-independent-candidate-falsy-B8L2Fu/consumer/fixtures/loader.mjs\", pathToFileURL(\"./\"));'\n(Use `node --trace-warnings ...` to show where the warning was created)\n",
+  "expired": false,
+  "overLimit": false,
+  "closed": true
+}

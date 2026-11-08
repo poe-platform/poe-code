@@ -1,0 +1,12 @@
+{
+  "command": [
+    "node",
+    "docs/upstream-patches/safejs/verify.mjs",
+    "/Users/kjopek/Workspace/poe-code",
+    "--apply-only"
+  ],
+  "status": 1,
+  "reason": "Exact baseline mismatch; input is never patched",
+  "rawLog": "/tmp/safe-bash-safejs-v2-prepare.log",
+  "rawSha256": "e6ee8f49da34038fb886ad819c08c56295df54811845b0537a159768f0c21ac9"
+}

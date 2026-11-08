@@ -1,0 +1,9 @@
+{
+  "name": "@poe-code/py-poe-spawn",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:unit": "python3 -m unittest discover -s tests -t ."
+  }
+}

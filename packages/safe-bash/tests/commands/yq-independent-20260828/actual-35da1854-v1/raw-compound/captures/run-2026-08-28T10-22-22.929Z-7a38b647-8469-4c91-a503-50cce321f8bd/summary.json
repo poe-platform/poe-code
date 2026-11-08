@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "aggregate": "PASS",
+  "requested": 1,
+  "admitted": 1,
+  "stop": null,
+  "results": [
+    {
+      "jobId": "CMD-02--whole",
+      "admitted": true,
+      "outcome": "PASS",
+      "failures": [],
+      "integrity": true,
+      "reapProof": true,
+      "metadata": {
+        "pid": 90361,
+        "group": 90361,
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "spawnError": null,
+        "closed": true,
+        "reaped": true,
+        "kills": [],
+        "elapsedMs": 18179
+      }
+    }
+  ],
+  "activeChildren": [],
+  "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-22-22.929Z-7a38b647-8469-4c91-a503-50cce321f8bd"
+}

@@ -1,0 +1,6 @@
+{
+  "role": "bash",
+  "path": "/opt/pkg/bin/bash",
+  "disposition": "ABSENT",
+  "code": "ENOENT"
+}

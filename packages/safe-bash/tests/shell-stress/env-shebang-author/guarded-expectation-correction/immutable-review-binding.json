@@ -1,0 +1,10 @@
+{
+  "verifiedAt": "2026-08-27T15:32:55.031Z",
+  "commit": "01cc25f94247f6a2f9279f33c058fc4c7862f6ac",
+  "method": "git show COMMIT:PATH SHA256 equals attempt-03 captured reference; no live evidence fallback",
+  "files": {
+    "tests/shell-stress/env-shebang-integration-review/guarded-ea409a6b-20260827-review1/report.json": "bc8cf21b3abf3dae5e660bf56d7d82297c0653d45961b5aee45652eb75d8895f",
+    "tests/shell-stress/env-shebang-integration-review/guarded-ea409a6b-20260827-review1-controls/report.json": "f0b5469f2637df517555e616e09963029a0cf2b789754bc35d711bfba2de15b8",
+    "tests/shell-stress/env-shebang-integration-review/guarded-ea409a6b-20260827-review1-audit/report.json": "650a542b773c558a77793feaa91257fdedf8d5ffb02576e6369f3c9921295bc2"
+  }
+}

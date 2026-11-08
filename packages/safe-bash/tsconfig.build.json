@@ -1,0 +1,30 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/commands/bytes/compression/native/generated/bz2.d.mts",
+    "src/commands/bytes/compression/native/generated/xz.d.mts",
+    "src/commands/bytes/compression/native/generated/zstd.d.mts"
+  ],
+  "exclude": [
+    "tests",
+    "dist",
+    "node_modules",
+    "src/commands/cmp/index.ts",
+    "src/commands/dd/index.ts",
+    "src/commands/install/index.ts",
+    "src/commands/truncate/index.ts",
+    "src/commands/yes/index.ts",
+    "src/fs/devices/index.ts",
+    "src/optional.ts",
+    "src/shell/extensions/arrays/index.ts",
+    "src/shell/extensions/trap/index.ts"
+  ]
+}

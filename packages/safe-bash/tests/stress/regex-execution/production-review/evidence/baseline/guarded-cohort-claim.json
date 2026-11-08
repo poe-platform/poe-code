@@ -1,0 +1,13 @@
+{
+  "snapshotName": "baseline",
+  "job": "cohort",
+  "label": "guarded-cohort",
+  "time": "2026-08-27T05:46:27.337Z",
+  "risky": false,
+  "watchdogAfterReadyMs": 15000,
+  "outputCap": 65536,
+  "oldSpaceMb": 128,
+  "historical": "12 archived, prior revision 0/6; not rerun",
+  "reservation": "benign; no risk reservation consumed",
+  "harnessSha256": "1638151093e494240cdf341c2a65b109b4c1e22ff35baed39eaa46581b0bf9e7"
+}

@@ -1,0 +1,102 @@
+import type { FileSystem } from "@poe-code/safe-fs/contracts";
+import { harnessFileSystem } from "../filesystem.js";
+import { basename as pathBasename, dirname, extname, joinPath as join } from "@poe-code/safe-fs/runtime-core";
+
+import { UserError } from "@poe-code/user-error";
+
+import { hasOwnErrorCode } from "../error-codes.js";
+
+export type HarnessPair = {
+  ajsPath: string;
+  mdPath: string;
+  basename: string;
+};
+
+export type HarnessFs = {
+  readdir?(
+    path: string,
+    options?: { withFileTypes?: boolean }
+  ): Promise<Array<string | { name: string; isDirectory(): boolean }>>;
+  stat(path: string): Promise<{ isFile(): boolean; isDirectory?(): boolean }>;
+};
+
+type HarnessPairSide = "ajs" | "md";
+
+/**
+ * A harness pair is two files sharing a basename, so a missing side is a user
+ * mistake, not a system failure. Both kinds and search paths are hard to
+ * discover, so the message carries the recovery: the CLI renders `message` only.
+ */
+export class MissingPairError extends UserError {
+  readonly side: HarnessPairSide;
+  readonly path: string;
+
+  constructor(side: HarnessPairSide, path: string) {
+    super(
+      `Missing harness ${side} file: ${path}\n` +
+        "Run `poe-code harness list` to see available harnesses, " +
+        "or `poe-code harness new <name>` to scaffold this pair."
+    );
+    this.side = side;
+    this.path = path;
+  }
+}
+
+export class InvalidPairExtensionError extends Error {
+  readonly extension: string;
+  readonly path: string;
+
+  constructor(path: string, extension: string) {
+    super(`Harness pair input must be a .md or .ajs file: ${path}`);
+    this.name = "InvalidPairExtensionError";
+    this.extension = extension;
+    this.path = path;
+  }
+}
+
+export async function resolvePair(inputPath: string, inputFs?: HarnessFs | FileSystem): Promise<HarnessPair> {
+  const fs = inputFs === undefined || "capabilities" in inputFs ? harnessFileSystem(inputFs) : inputFs;
+  const extension = extname(inputPath);
+
+  if (extension !== ".md" && extension !== ".ajs") {
+    throw new InvalidPairExtensionError(inputPath, extension);
+  }
+
+  const pairBasename = pathBasename(inputPath, extension);
+  const pairDir = dirname(inputPath);
+  const pair: HarnessPair = {
+    ajsPath: join(pairDir, `${pairBasename}.ajs`),
+    mdPath: join(pairDir, `${pairBasename}.md`),
+    basename: pairBasename
+  };
+
+  const checks: Array<{ side: HarnessPairSide; path: string }> =
+    extension === ".md"
+      ? [
+          { side: "md", path: pair.mdPath },
+          { side: "ajs", path: pair.ajsPath }
+        ]
+      : [
+          { side: "ajs", path: pair.ajsPath },
+          { side: "md", path: pair.mdPath }
+        ];
+
+  for (const check of checks) {
+    let stat: { isFile(): boolean };
+    try {
+      stat = await fs.stat(check.path);
+    } catch (error) {
+      if (hasOwnErrorCode(error, "ENOENT")) {
+        throw new MissingPairError(check.side, check.path);
+      }
+
+      throw error;
+    }
+
+    if (!stat.isFile()) {
+      throw new MissingPairError(check.side, check.path);
+    }
+  }
+
+  return pair;
+}

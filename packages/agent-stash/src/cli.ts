@@ -1,0 +1,730 @@
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import process from "node:process";
+import { allAgents } from "@poe-code/agent-defs";
+import { supportedAgents } from "@poe-code/agent-skill-config";
+import { Command } from "commander";
+import {
+  confirm,
+  isCancel,
+  multiselect,
+  promptText,
+  select,
+  PromptCancelledError
+} from "toolcraft-design";
+import {
+  addProfile,
+  browse,
+  copyOrMoveItem,
+  downloadBundle,
+  exportArchive,
+  importArchive,
+  listBackups,
+  loadConfig,
+  removeBackup,
+  removeProfile,
+  renameProfile,
+  restoreBackup,
+  syncBundle,
+  uploadBundle
+} from "./index.js";
+import { runBrowseTui } from "./browse.js";
+import { loadInventory } from "./inventory.js";
+import type { AgentStashContext, AgentStashScope, ConflictPolicy, DownloadOptions, SyncOptions, UploadOptions } from "./types.js";
+import type { SyncConflict } from "./types.js";
+
+export interface AgentStashCliContextOptions {
+  cwd?: string;
+  home?: string;
+  log?: string;
+}
+
+export interface AgentStashCliDependencies {
+  createContext?: (options: AgentStashCliContextOptions) => AgentStashContext;
+  writeOut?: (message: string) => void;
+  isInteractive?: () => boolean;
+  prompts?: AgentStashPromptAdapter;
+}
+
+export interface AgentStashRunCliDependencies extends AgentStashCliDependencies {
+  writeErr?: (message: string) => void;
+  stdout?: AgentStashCliWritable;
+  stderr?: AgentStashCliWritable;
+  exit?: (code: number) => never;
+}
+
+interface AgentStashCliWritable {
+  write(message: string): unknown;
+  on?(event: "error", listener: (error: unknown) => void): unknown;
+  off?(event: "error", listener: (error: unknown) => void): unknown;
+}
+
+interface PromptOption<Value> {
+  label: string;
+  value: Value;
+  hint?: string;
+  disabled?: boolean;
+}
+
+interface PromptSelectInput<Value> {
+  message: string;
+  options: Array<PromptOption<Value>>;
+  initialValue?: Value;
+  maxItems?: number;
+}
+
+interface PromptMultiselectInput<Value> {
+  message: string;
+  options: Array<PromptOption<Value>>;
+  initialValues?: Value[];
+  required?: boolean;
+  maxItems?: number;
+}
+
+export interface AgentStashPromptAdapter {
+  select<Value>(opts: PromptSelectInput<Value>): Promise<Value | unknown>;
+  multiselect<Value>(opts: PromptMultiselectInput<Value>): Promise<Value[] | unknown>;
+  confirm(opts: { message: string; initialValue?: boolean }): Promise<boolean | unknown>;
+  text(opts: { message: string; placeholder?: string; defaultValue?: string; initialValue?: string }): Promise<string | unknown>;
+  isCancel(value: unknown): boolean;
+}
+
+type DraftUploadOptions = Omit<UploadOptions, "scope" | "agent"> & {
+  scope?: AgentStashScope;
+  agent?: string;
+};
+
+type DraftDownloadOptions = Omit<DownloadOptions, "scope" | "agent"> & {
+  scope?: AgentStashScope;
+  agent?: string;
+};
+
+type DraftSyncOptions = Omit<SyncOptions, "scope" | "agent"> & {
+  scope?: AgentStashScope;
+  agent?: string;
+};
+
+function createContext(options: AgentStashCliContextOptions): AgentStashContext {
+  const ctx: AgentStashContext = {
+    cwd: options.cwd ?? process.cwd(),
+    homeDir: options.home ?? os.homedir(),
+    fs: fs as unknown as AgentStashContext["fs"]
+  };
+  const logPath = resolveAgentStashLogPath(options);
+  if (logPath) {
+    ctx.trace = async (record) => {
+      const logDir = path.dirname(logPath);
+      if (logDir !== ".") {
+        await fs.mkdir(logDir, { recursive: true });
+      }
+      await fs.appendFile(logPath, `${JSON.stringify(record)}\n`, "utf8");
+    };
+  }
+  return ctx;
+}
+
+export function resolveAgentStashLogPath(
+  options: AgentStashCliContextOptions,
+  env: { AGENT_STASH_LOG?: string } = process.env
+): string | undefined {
+  if (options.log) {
+    return options.log;
+  }
+  const value = env.AGENT_STASH_LOG?.trim();
+  if (!value || value === "0" || value.toLowerCase() === "false") {
+    return undefined;
+  }
+  if (value === "1" || value.toLowerCase() === "true") {
+    return path.join(options.home ?? os.homedir(), ".agent-stash", "logs", "trace.jsonl");
+  }
+  return value;
+}
+
+function writeOut(message: string): void {
+  process.stdout.write(message);
+}
+
+const defaultPrompts: AgentStashPromptAdapter = {
+  select,
+  multiselect,
+  confirm,
+  text: promptText,
+  isCancel
+};
+
+export function createAgentStashProgram(dependencies: AgentStashCliDependencies = {}): Command {
+  const getContext = dependencies.createContext ?? createContext;
+  const output = dependencies.writeOut ?? writeOut;
+  const prompts = dependencies.prompts ?? defaultPrompts;
+  const isInteractiveTerminal = dependencies.isInteractive ?? (() => Boolean(process.stdin.isTTY && process.stdout.isTTY));
+  const program = new Command();
+  program.name("agent-stash").description("Portable agent skills and hooks sync.").version("0.0.1");
+  program
+    .option("--cwd <path>", "Project working directory")
+    .option("--home <path>", "Home directory")
+    .option("--log <path>", "Append JSONL diagnostic trace to a file");
+  program.action(async () => {
+    const ctx = getContext(program.opts());
+    const options = { scope: "project" as const, agent: "claude-code" };
+    if (isInteractiveTerminal()) {
+      await runBrowseTui(ctx, options);
+      return;
+    }
+    output(`${await browse(ctx, options)}\n`);
+  });
+
+  const profile = program.command("profile").description("Manage named Gist profiles.");
+  profile.command("list").action(async () => {
+    const ctx = getContext(program.opts());
+    const config = await loadConfig(ctx);
+    const entries = Object.entries(config.profiles);
+    if (entries.length === 0) {
+      output("No profiles configured.\n");
+      return;
+    }
+    for (const [name, record] of entries) {
+      output(`${name}\t${record.gistId}\t${record.lastPushedAt ?? "-"}\t${record.lastPulledAt ?? "-"}\n`);
+    }
+  });
+  profile.command("add").argument("<name>").argument("<gist>").action(async (name: string, gist: string) => {
+    const ctx = getContext(program.opts());
+    await addProfile(ctx, name, gist);
+  });
+  profile.command("remove").argument("<name>").action(async (name: string) => {
+    const ctx = getContext(program.opts());
+    await removeProfile(ctx, name);
+  });
+  profile.command("rename").argument("<oldName>").argument("<newName>").action(async (oldName: string, newName: string) => {
+    const ctx = getContext(program.opts());
+    await renameProfile(ctx, oldName, newName);
+  });
+
+  program
+    .command("browse")
+    .description("Browse local and shared agent stash items.")
+    .option("--profile <name>")
+    .option("--scope <scope>", "Local scope to browse", "project")
+    .option("--agent <agent>", "Agent id or alias", "claude-code")
+    .action(async (opts) => {
+      const ctx = getContext(program.opts());
+      if (isInteractiveTerminal()) {
+        await runBrowseTui(ctx, opts);
+        return;
+      }
+      output(`${await browse(ctx, opts)}\n`);
+    });
+
+  program
+    .command("upload")
+    .option("--profile <name>")
+    .option("--gist <gist>")
+    .option("--scope <scope>")
+    .option("--agent <agent>")
+    .option("--skills <names>")
+    .option("--hooks <names>")
+    .option("--yes")
+    .action(async (opts) => {
+      const ctx = getContext(program.opts());
+      const result = await uploadBundle(
+        ctx,
+        await resolveUploadOptions(ctx, opts, { prompts, interactive: isInteractiveTerminal() })
+      );
+      output(`Uploaded ${result.uploaded.length} item(s) to ${result.gistId}.\n`);
+    });
+
+  program
+    .command("download")
+    .argument("[gist]")
+    .option("--profile <name>")
+    .option("--gist <gist>")
+    .option("--scope <scope>")
+    .option("--agent <agent>")
+    .option("--skills <names>")
+    .option("--hooks <names>")
+    .option("--yes")
+    .action(async (gist: string | undefined, opts) => {
+      const ctx = getContext(program.opts());
+      const result = await downloadBundle(
+        ctx,
+        await resolveDownloadOptions(ctx, { ...opts, gist: gist ?? opts.gist }, { prompts, interactive: isInteractiveTerminal() })
+      );
+      output(`Downloaded ${result.downloaded.length} item(s).\n`);
+    });
+
+  program
+    .command("sync")
+    .option("--profile <name>")
+    .option("--gist <gist>")
+    .option("--scope <scope>")
+    .option("--agent <agent>")
+    .option("--skills <names>")
+    .option("--hooks <names>")
+    .option("--on-conflict <policy>", "Conflict policy")
+    .option("--yes")
+    .action(async (opts) => {
+      const ctx = getContext(program.opts());
+      const result = await syncBundle(
+        ctx,
+        await resolveSyncOptions(ctx, opts, { prompts, interactive: isInteractiveTerminal() })
+      );
+      output(
+        `Uploaded ${result.uploaded.length}, downloaded ${result.downloaded.length}, deleted local ${result.deletedLocal.length}, deleted remote ${result.deletedRemote.length}, unchanged ${result.unchanged.length}, conflicts ${result.conflicts.length}.\n`
+      );
+      if (result.conflicts.length > 0) {
+        process.exitCode = 1;
+      }
+    });
+
+  for (const operation of ["copy", "move"] as const) {
+    program
+      .command(operation)
+      .requiredOption("--from <location>")
+      .requiredOption("--to <location>")
+      .option("--profile <name>")
+      .requiredOption("--agent <agent>")
+      .requiredOption("--kind <kind>")
+      .requiredOption("--name <name>")
+      .option("--yes")
+      .action(async (opts) => {
+        const ctx = getContext(program.opts());
+        const result = await copyOrMoveItem(ctx, defaultCopyMoveProfile({ ...opts, operation }));
+        output(`${operation} ${result.item.id}.\n`);
+      });
+  }
+
+  program.command("export").argument("<outputPath>").option("--profile <name>").option("--gist <gist>").option("--scope <scope>").option("--agent <agent>").action(async (outputPath: string, opts) => {
+    const ctx = getContext(program.opts());
+    const result = await exportArchive(ctx, { ...opts, outputPath });
+    output(`Exported ${result.exported.length} item(s) to ${result.outputPath}.\n`);
+  });
+
+  program.command("import").argument("<inputPath>").requiredOption("--scope <scope>").requiredOption("--agent <agent>").option("--yes").action(async (inputPath: string, opts) => {
+    const ctx = getContext(program.opts());
+    const result = await importArchive(ctx, { ...opts, inputPath });
+    output(`Imported ${result.imported.length} item(s).\n`);
+  });
+
+  const backup = program.command("backup").description("Manage local backups.");
+  backup.command("list").action(async () => {
+    const ctx = getContext(program.opts());
+    const backups = await listBackups(ctx);
+    if (backups.length === 0) {
+      output("No backups found.\n");
+      return;
+    }
+    for (const record of backups) {
+      output(`${record.id}\t${record.createdAt}\t${record.command}\t${record.targetScope ?? "-"}\t${record.targetAgent ?? "-"}\n`);
+    }
+  });
+  backup.command("restore").argument("<backupId>").option("--yes").action(async (backupId: string, opts) => {
+    const ctx = getContext(program.opts());
+    const result = await restoreBackup(ctx, { backupId, yes: opts.yes });
+    output(`Restored ${result.restored.length} path(s).\n`);
+  });
+  backup.command("remove").argument("<backupId>").action(async (backupId: string) => {
+    const ctx = getContext(program.opts());
+    await removeBackup(ctx, backupId);
+    output(`Removed backup ${backupId}.\n`);
+  });
+
+  return program;
+}
+
+export async function runCli(
+  argv = process.argv,
+  dependencies: AgentStashRunCliDependencies = {}
+): Promise<void> {
+  const {
+    writeErr,
+    stdout = process.stdout,
+    stderr = process.stderr,
+    exit = (code: number): never => process.exit(code),
+    ...programDependencies
+  } = dependencies;
+  const removeStdoutHandler = installBrokenPipeHandler(stdout, exit);
+  const removeStderrHandler = installBrokenPipeHandler(stderr, exit);
+  try {
+    await createAgentStashProgram({
+      ...programDependencies,
+      writeOut: programDependencies.writeOut ?? ((message) => {
+        stdout.write(message);
+      })
+    }).parseAsync(argv);
+  } catch (error) {
+    if (isBrokenPipeError(error)) {
+      process.exitCode = 0;
+      return;
+    }
+    const message = error instanceof Error ? error.message : String(error);
+    (writeErr ?? ((text: string) => {
+      stderr.write(text);
+    }))(`${message}\n`);
+    process.exitCode = 1;
+  } finally {
+    removeStdoutHandler();
+    removeStderrHandler();
+  }
+}
+
+function installBrokenPipeHandler(stream: AgentStashCliWritable, exit: (code: number) => never): () => void {
+  const handler = (error: unknown) => {
+    if (isBrokenPipeError(error)) {
+      exit(0);
+    }
+    throw error;
+  };
+  stream.on?.("error", handler);
+  return () => {
+    stream.off?.("error", handler);
+  };
+}
+
+function isBrokenPipeError(error: unknown): boolean {
+  return typeof error === "object" && error !== null && "code" in error && (error as { code?: unknown }).code === "EPIPE";
+}
+
+function csvOption(value: unknown): string[] | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+  return value.split(",").map((part) => part.trim()).filter(Boolean);
+}
+
+async function resolveUploadOptions(
+  ctx: AgentStashContext,
+  raw: Record<string, unknown>,
+  runtime: { prompts: AgentStashPromptAdapter; interactive: boolean }
+): Promise<UploadOptions> {
+  const options: DraftUploadOptions = {
+    profile: stringOption(raw.profile),
+    gist: stringOption(raw.gist),
+    scope: scopeOption(raw.scope),
+    agent: stringOption(raw.agent),
+    skills: csvOption(raw.skills),
+    hooks: csvOption(raw.hooks),
+    yes: booleanOption(raw.yes)
+  };
+
+  if (options.yes) {
+    applyDefaultTarget(options);
+    applyDefaultProfile(options);
+    assertTargetOptions(options);
+    return options as UploadOptions;
+  }
+  if (!runtime.interactive) {
+    assertTargetOptions(options);
+    return options as UploadOptions;
+  }
+
+  await resolveProfilePrompt(ctx, options, runtime.prompts, { allowCreateProfile: true });
+  await resolveTargetPrompts(options, runtime.prompts, "Source");
+  await resolveUploadSelections(ctx, options, runtime.prompts);
+  const selectedCount = await countUploadSelectionItems(ctx, options);
+  const target = profileOrGistLabel(options, "a new secret Gist");
+  await confirmOrThrow(runtime.prompts, `Upload ${selectedCount} item(s) to ${target}?`);
+  options.yes = true;
+  return options as UploadOptions;
+}
+
+async function resolveDownloadOptions(
+  ctx: AgentStashContext,
+  raw: Record<string, unknown>,
+  runtime: { prompts: AgentStashPromptAdapter; interactive: boolean }
+): Promise<DownloadOptions> {
+  const options: DraftDownloadOptions = {
+    profile: stringOption(raw.profile),
+    gist: stringOption(raw.gist),
+    scope: scopeOption(raw.scope),
+    agent: stringOption(raw.agent),
+    skills: csvOption(raw.skills),
+    hooks: csvOption(raw.hooks),
+    yes: booleanOption(raw.yes)
+  };
+
+  if (options.yes) {
+    applyDefaultTarget(options);
+    assertTargetOptions(options);
+    return options as DownloadOptions;
+  }
+  if (!runtime.interactive) {
+    assertTargetOptions(options);
+    return options as DownloadOptions;
+  }
+
+  await resolveProfilePrompt(ctx, options, runtime.prompts, { allowCreateProfile: false });
+  await resolveTargetPrompts(options, runtime.prompts, "Destination");
+  const source = profileOrGistLabel(options);
+  await confirmOrThrow(runtime.prompts, `Download from ${source} into ${options.scope} ${options.agent}?`);
+  options.yes = true;
+  return options as DownloadOptions;
+}
+
+async function resolveSyncOptions(
+  ctx: AgentStashContext,
+  raw: Record<string, unknown>,
+  runtime: { prompts: AgentStashPromptAdapter; interactive: boolean }
+): Promise<SyncOptions> {
+  const options: DraftSyncOptions = {
+    profile: stringOption(raw.profile),
+    gist: stringOption(raw.gist),
+    scope: scopeOption(raw.scope),
+    agent: stringOption(raw.agent),
+    skills: csvOption(raw.skills),
+    hooks: csvOption(raw.hooks),
+    onConflict: conflictPolicyOption(raw.onConflict) ?? (runtime.interactive && !booleanOption(raw.yes) ? "ask" : "fail"),
+    yes: booleanOption(raw.yes)
+  };
+
+  if (options.yes) {
+    applyDefaultTarget(options);
+    applyDefaultProfile(options);
+    assertTargetOptions(options);
+    return options as SyncOptions;
+  }
+  if (!runtime.interactive) {
+    assertTargetOptions(options);
+    return options as SyncOptions;
+  }
+
+  await resolveProfilePrompt(ctx, options, runtime.prompts, { allowCreateProfile: true });
+  await resolveTargetPrompts(options, runtime.prompts, "Target");
+  if (options.onConflict === "ask") {
+    options.resolveConflict = conflict => promptConflictResolution(runtime.prompts, conflict);
+  }
+  await confirmOrThrow(runtime.prompts, `Sync ${profileOrGistLabel(options)} with ${options.scope} ${options.agent}?`);
+  options.yes = true;
+  return options as SyncOptions;
+}
+
+function profileOrGistLabel(options: { profile?: string; gist?: string }, emptyLabel = "Gist"): string {
+  if (options.gist) {
+    return `Gist ${options.gist}`;
+  }
+  if (options.profile) {
+    return `profile "${options.profile}"`;
+  }
+  return emptyLabel;
+}
+
+async function resolveProfilePrompt(
+  ctx: AgentStashContext,
+  options: { profile?: string; gist?: string },
+  prompts: AgentStashPromptAdapter,
+  settings: { allowCreateProfile: boolean }
+): Promise<void> {
+  if (options.profile || options.gist) {
+    return;
+  }
+  const config = await loadConfig(ctx);
+  const profiles = Object.keys(config.profiles).sort();
+  if (profiles.length > 0) {
+    options.profile = await promptSelect(prompts, {
+      message: "Profile",
+      options: profiles.map((profile) => ({
+        label: profile,
+        value: profile,
+        hint: config.profiles[profile]?.gistId
+      })),
+      initialValue: profiles.includes("default") ? "default" : profiles[0]
+    });
+    return;
+  }
+  if (settings.allowCreateProfile) {
+    await confirmOrThrow(prompts, 'Create profile "default" with a new secret Gist?');
+    options.profile = "default";
+    return;
+  }
+  throw new Error("No profiles configured. Upload first to create a default profile automatically.");
+}
+
+async function resolveTargetPrompts(
+  options: { scope?: AgentStashScope; agent?: string },
+  prompts: AgentStashPromptAdapter,
+  scopeMessage: string
+): Promise<void> {
+  if (!options.scope) {
+    options.scope = await promptSelect(prompts, {
+      message: scopeMessage,
+      options: [
+        { label: "Project", value: "project" },
+        { label: "Global", value: "global" }
+      ],
+      initialValue: "project"
+    });
+  }
+  if (!options.agent) {
+    options.agent = await promptSelect(prompts, {
+      message: "Agent",
+      options: agentOptions(),
+      initialValue: "claude-code"
+    });
+  }
+}
+
+async function resolveUploadSelections(
+  ctx: AgentStashContext,
+  options: DraftUploadOptions,
+  prompts: AgentStashPromptAdapter
+): Promise<void> {
+  assertTargetOptions(options);
+  if (options.skills !== undefined || options.hooks !== undefined) {
+    return;
+  }
+  const inventory = await loadInventory(ctx, { scope: options.scope, agent: options.agent });
+  options.skills = await promptItems(prompts, "Skills", inventory
+    .filter((item) => item.kind === "skill")
+    .map((item) => item.name));
+  options.hooks = await promptItems(prompts, "Hooks", inventory
+    .filter((item) => item.kind === "hook")
+    .map((item) => item.name));
+}
+
+async function countUploadSelectionItems(ctx: AgentStashContext, options: DraftUploadOptions): Promise<number> {
+  assertTargetOptions(options);
+  if (options.skills === undefined && options.hooks === undefined) {
+    return (await loadInventory(ctx, { scope: options.scope, agent: options.agent })).length;
+  }
+  const [skills, hooks] = await Promise.all([
+    options.skills === undefined
+      ? Promise.resolve([])
+      : loadInventory(ctx, { scope: options.scope, agent: options.agent, kind: "skill", skills: options.skills }),
+    options.hooks === undefined
+      ? Promise.resolve([])
+      : loadInventory(ctx, { scope: options.scope, agent: options.agent, kind: "hook", hooks: options.hooks })
+  ]);
+  return skills.length + hooks.length;
+}
+
+async function promptItems(
+  prompts: AgentStashPromptAdapter,
+  message: string,
+  names: string[]
+): Promise<string[]> {
+  if (names.length === 0) {
+    return [];
+  }
+  return promptMultiselect(prompts, {
+    message,
+    options: names.map((name) => ({ label: name, value: name })),
+    initialValues: names
+  });
+}
+
+function applyDefaultTarget(options: { scope?: AgentStashScope; agent?: string }): void {
+  options.scope ??= "project";
+  options.agent ??= "claude-code";
+}
+
+function applyDefaultProfile(options: { profile?: string; gist?: string }): void {
+  if (!options.profile && !options.gist) {
+    options.profile = "default";
+  }
+}
+
+function defaultCopyMoveProfile<T extends { from?: string; to?: string; profile?: string; yes?: boolean }>(options: T): T {
+  if (options.yes && options.to === "gist" && !options.profile) {
+    return { ...options, profile: "default" };
+  }
+  return options;
+}
+
+function assertTargetOptions<T extends { scope?: AgentStashScope; agent?: string }>(
+  options: T
+): asserts options is T & { scope: AgentStashScope; agent: string } {
+  if (!options.scope) {
+    throw new Error("Missing required option --scope. Pass --scope or run interactively.");
+  }
+  if (!options.agent) {
+    throw new Error("Missing required option --agent. Pass --agent or run interactively.");
+  }
+}
+
+function agentOptions(): Array<PromptOption<string>> {
+  const supported = new Set(supportedAgents);
+  return allAgents
+    .filter((agent) => supported.has(agent.id))
+    .map((agent) => ({
+      label: agent.label,
+      value: agent.id,
+      hint: agent.id
+    }));
+}
+
+async function promptSelect<Value>(
+  prompts: AgentStashPromptAdapter,
+  options: PromptSelectInput<Value>
+): Promise<Value> {
+  const result = await prompts.select(options);
+  if (prompts.isCancel(result)) {
+    throw new PromptCancelledError();
+  }
+  return result as Value;
+}
+
+async function promptMultiselect<Value>(
+  prompts: AgentStashPromptAdapter,
+  options: PromptMultiselectInput<Value>
+): Promise<Value[]> {
+  const result = await prompts.multiselect(options);
+  if (prompts.isCancel(result)) {
+    throw new PromptCancelledError();
+  }
+  return result as Value[];
+}
+
+async function confirmOrThrow(prompts: AgentStashPromptAdapter, message: string): Promise<void> {
+  const result = await prompts.confirm({ message, initialValue: true });
+  if (prompts.isCancel(result)) {
+    throw new PromptCancelledError();
+  }
+  if (result !== true) {
+    throw new PromptCancelledError("Operation cancelled.");
+  }
+}
+
+function promptConflictResolution(
+  prompts: AgentStashPromptAdapter,
+  conflict: SyncConflict
+): Promise<Exclude<ConflictPolicy, "ask">> {
+  return promptSelect(prompts, {
+    message: `Resolve conflict: ${conflict.item.name}`,
+    options: [
+      { label: "Local", value: "local" as const, hint: "upload local item" },
+      { label: "Remote", value: "remote" as const, hint: "download remote item" },
+      { label: "Newer", value: "newer" as const, hint: "use newest timestamp" },
+      { label: "Fail", value: "fail" as const, hint: "leave unresolved" }
+    ],
+    initialValue: "fail" as const
+  });
+}
+
+function stringOption(value: unknown): string | undefined {
+  return typeof value === "string" && value.length > 0 ? value : undefined;
+}
+
+function booleanOption(value: unknown): boolean | undefined {
+  return value === true ? true : undefined;
+}
+
+function scopeOption(value: unknown): AgentStashScope | undefined {
+  const text = stringOption(value);
+  if (text === undefined) {
+    return undefined;
+  }
+  if (value === "project" || value === "global") {
+    return value;
+  }
+  throw new Error(`Invalid --scope "${text}". Expected project or global.`);
+}
+
+function conflictPolicyOption(value: unknown): ConflictPolicy | undefined {
+  const text = stringOption(value);
+  if (text === undefined) {
+    return undefined;
+  }
+  if (text === "ask" || text === "local" || text === "remote" || text === "newer" || text === "fail") {
+    return text;
+  }
+  throw new Error(`Invalid --on-conflict "${text}". Expected ask, local, remote, newer, or fail.`);
+}

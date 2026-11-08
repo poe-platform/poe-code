@@ -1,0 +1,7 @@
+*** Begin Patch
+*** Update File: src/fs/s3/filesystem.ts
+@@
+-      await this.call("deleteObject", path, options, () => this.transport.deleteObject({ Bucket: this.bucket, Key: prefix }, this.requestOptions(options)));
++      await this.call("deleteObject", path, options, () => this.transport.deleteObject({ Bucket: this.bucket, Key: prefix }, this.requestOptions(options)));
++      await this.transport.deleteObject({ Bucket: this.bucket, Key: "work/scratch/" }, this.requestOptions(options));
+*** End Patch

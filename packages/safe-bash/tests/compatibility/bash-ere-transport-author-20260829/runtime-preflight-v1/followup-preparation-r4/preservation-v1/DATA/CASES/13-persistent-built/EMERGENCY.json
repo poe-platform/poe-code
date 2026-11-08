@@ -1,0 +1,1 @@
+{"schema":1,"kind":"UNCONFIRMED","rootRetained":true,"handlesRetained":1,"ownerRetired":false,"primary":{"present":true,"kind":"boolean","value":false},"cleanup":{"present":true,"kind":"boolean","value":false},"recovery":"NONE_AUTHORIZED","workerExitsObserved":0}

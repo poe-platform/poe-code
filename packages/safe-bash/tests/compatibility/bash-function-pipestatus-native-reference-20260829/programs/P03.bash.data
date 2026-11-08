@@ -1,0 +1,1 @@
+false; printf "a:<%s>\n" "${PIPESTATUS[@]}"; printf "b:<%s>\n" "${PIPESTATUS[@]}"

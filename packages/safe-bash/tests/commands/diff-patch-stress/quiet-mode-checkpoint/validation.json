@@ -1,0 +1,153 @@
+{
+  "kind": "Bounded author validation; not independent routed-five replay",
+  "before": {
+    "at": "2026-08-27T02:16:40.960Z",
+    "head": "cd8b5c8025e9d40ba71594f7b709a42f5249988d",
+    "dirty": "M src/commands/archive/README.md\n M src/commands/archive/format.ts\n M src/commands/diff-patch/README.md\n M src/commands/diff-patch/patch.ts\n M src/commands/metadata/README.md\n M src/commands/metadata/stat.ts\n M src/fs/s3/authority.ts\n M src/fs/s3/filesystem.ts\n M src/fs/s3/mock.ts\n M src/fs/s3/transport.ts\n M src/fs/webdav/resource-id.ts\n M src/fs/webdav/webdav.ts\n M src/shell/runtime.ts\n M tests/commands/archive-stress/native.test.ts\n M tests/fs/s3/comparison.test.ts\n M tests/fs/webdav/mock.ts\n M tests/fs/webdav/operation-authority.test.ts\n M tests/fs/webdav/resource-id.test.ts\n M tests/shell-stress/current-shell/README.md\n M tests/shell-stress/current-shell/capture-native.mjs\n M tests/shell-stress/current-shell/support.mjs\n?? benchmarks/expanded/scratch-control.mjs\n?? benchmarks/expanded/sort-review.mjs\n?? benchmarks/reports/core-fixes-20260827/\n?? benchmarks/reports/expanded-20260827/scratch-audit/\n?? tests/commands/archive-stress/pax-extensibility-evidence/\n?? tests/commands/archive-stress/pax-extensibility.test.ts\n?? tests/commands/archive-stress/pax-independent/\n?? tests/commands/archive-stress/pax-native.test.ts\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/diff-patch-stress/quiet-mode-checkpoint/\n?? tests/commands/diff-patch/patch-quiet.test.ts\n?? tests/commands/metadata-stress/stat-human-native.test.ts\n?? tests/commands/metadata-stress/stat-human.test.ts\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/structured-stress/jq-grammar-canonical-plan/\n?? tests/commands/structured-stress/jq-grammar-source-review/\n?? tests/fs/s3/trusted-forwarding.test.ts\n?? tests/fs/s3/trusted-observation/\n?? tests/shell-stress/current-shell/REPORT.md\n?? tests/shell-stress/current-shell/current-shell.test.ts\n?? tests/shell-stress/current-shell/pre-ready-red.json\n?? tests/shell-stress/current-shell/pre-ready-validation.json\n?? tests/shell-stress/current-shell/pre-ready-witness-red.json\n?? tests/shell-stress/current-shell/product-child.mjs\n?? tests/shell-stress/current-shell/run-product.mjs\n?? tests/shell-stress/current-shell/validate.mjs\n?? tests/shell/bom-capture-jq-review.json\n?? tests/shell/source-dot-eval-eval-comparison.json\n?? tests/shell/source-dot-eval-eval-first.json\n?? tests/shell/source-dot-eval-eval-host.test.ts\n?? tests/shell/source-dot-eval-eval-native.json\n?? tests/shell/source-dot-eval-eval.md\n?? tests/shell/source-dot-eval-eval.test.ts\n?? tests/shell/source-dot-eval-final-validation.json",
+    "index": "",
+    "hashes": {
+      "src/commands/diff-patch/diff-format.ts": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24",
+      "src/commands/diff-patch/diff.ts": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e",
+      "src/commands/diff-patch/index.ts": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17",
+      "src/commands/diff-patch/patch-envelope.ts": "f6a15e78d7cea41d503f5352206efeb9fa950871c820af730cf27ea06ade99e8",
+      "src/commands/diff-patch/patch-formats.ts": "a78045ac43900582bdb19f0476414e8566c4e1e2edc86b654bc760cf86de3aa4",
+      "src/commands/diff-patch/patch-gnu-paths.ts": "3a06d5b33d3c0df12ff83b0bbf4396d90906d6fd61e3ca1bd5537f508c4282af",
+      "src/commands/diff-patch/patch-gnu-reject.ts": "5df12efd994c0187998f0112a5fac595f376142f2cd187a5e0b40738f7b6cf02",
+      "src/commands/diff-patch/patch-path.ts": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94",
+      "src/commands/diff-patch/patch.ts": "72bfb60c502ac5bcaf2efa3e0f044b0ab1d89a54293f829d62f011e7c10e82d7",
+      "src/commands/diff-patch/shared.ts": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+      "src/commands/diff-patch/unified.ts": "a8659f40aeb9d1cac3548ffd24950e652eeace92cef1339de9e3a5e5ed7e10fb",
+      "src/commands/diff-patch/README.md": "26745f4ccdb86bd9de6f3c7265fe46704974ef88dd037db39a92c4ff5cce8454",
+      "tests/commands/diff-patch/patch-quiet.test.ts": "c42ae03030a5672b6e07435d7a142612bdfcd431f68bcadcecc9826f4ba95aa0",
+      "tests/commands/diff-patch/patch.test.ts": "0de44c6c3c3ddc48eb88fb87e3a68b2cbcea58a6934c2898531b185e9efe9920",
+      "tests/commands/diff-patch/safety.test.ts": "ca3bc6adadf3ad8d17714e7ecfbb69f5e90810c4fe56f9de7a80f3eda83e15cd",
+      "tests/commands/diff-patch/cancellation.test.ts": "a89c8ff6695cbaf04a367da0f99af8f456fe062ab6871b165b9c8d7e8f9f3ae0",
+      "tests/commands/diff-patch/patch-gnu-publication.test.ts": "aa2f94416542c1f494b0805b33ae3b38342088ad0cc04f019c9de800ab3a957e",
+      "tests/commands/diff-patch/helpers.ts": "9a8244aabef7fcdb13747ae85dd7c05f4f99dd512a64c198931ac33c129e4991",
+      "tests/commands/diff-patch/patch-gnu-native.ts": "fa754e3d45c5da0e9dbb4af6d87515638c007616daf98ae38ea910405d4a9bb5",
+      "tests/commands/diff-patch-stress/gnu-target/oracle.ts": "ad9920197aa38291dfff5d04170c5e1b87cd225bf590c8073a8ebba8c68181cc"
+    }
+  },
+  "after": {
+    "at": "2026-08-27T02:16:43.397Z",
+    "head": "cd8b5c8025e9d40ba71594f7b709a42f5249988d",
+    "dirty": "M src/commands/archive/README.md\n M src/commands/archive/format.ts\n M src/commands/diff-patch/README.md\n M src/commands/diff-patch/patch.ts\n M src/commands/metadata/README.md\n M src/commands/metadata/stat.ts\n M src/fs/s3/authority.ts\n M src/fs/s3/filesystem.ts\n M src/fs/s3/mock.ts\n M src/fs/s3/transport.ts\n M src/fs/webdav/resource-id.ts\n M src/fs/webdav/webdav.ts\n M src/shell/runtime.ts\n M tests/commands/archive-stress/native.test.ts\n M tests/fs/s3/comparison.test.ts\n M tests/fs/webdav/mock.ts\n M tests/fs/webdav/operation-authority.test.ts\n M tests/fs/webdav/resource-id.test.ts\n M tests/shell-stress/current-shell/README.md\n M tests/shell-stress/current-shell/capture-native.mjs\n M tests/shell-stress/current-shell/support.mjs\n?? benchmarks/expanded/scratch-control.mjs\n?? benchmarks/expanded/sort-review.mjs\n?? benchmarks/reports/core-fixes-20260827/\n?? benchmarks/reports/expanded-20260827/scratch-audit/\n?? tests/commands/archive-stress/pax-extensibility-evidence/\n?? tests/commands/archive-stress/pax-extensibility.test.ts\n?? tests/commands/archive-stress/pax-independent/\n?? tests/commands/archive-stress/pax-native.test.ts\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/diff-patch-stress/quiet-mode-checkpoint/\n?? tests/commands/diff-patch/node-compile-cache/\n?? tests/commands/diff-patch/patch-quiet.test.ts\n?? tests/commands/metadata-stress/stat-human-native.test.ts\n?? tests/commands/metadata-stress/stat-human.test.ts\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/structured-stress/jq-grammar-canonical-plan/\n?? tests/commands/structured-stress/jq-grammar-source-review/\n?? tests/fs/s3/trusted-forwarding.test.ts\n?? tests/fs/s3/trusted-observation/\n?? tests/shell-stress/current-shell/REPORT.md\n?? tests/shell-stress/current-shell/current-shell.test.ts\n?? tests/shell-stress/current-shell/pre-ready-red.json\n?? tests/shell-stress/current-shell/pre-ready-validation.json\n?? tests/shell-stress/current-shell/pre-ready-witness-red.json\n?? tests/shell-stress/current-shell/product-child.mjs\n?? tests/shell-stress/current-shell/run-product.mjs\n?? tests/shell-stress/current-shell/validate.mjs\n?? tests/shell/bom-capture-jq-review.json\n?? tests/shell/source-dot-eval-eval-comparison.json\n?? tests/shell/source-dot-eval-eval-first.json\n?? tests/shell/source-dot-eval-eval-host.test.ts\n?? tests/shell/source-dot-eval-eval-native.json\n?? tests/shell/source-dot-eval-eval.md\n?? tests/shell/source-dot-eval-eval.test.ts\n?? tests/shell/source-dot-eval-final-validation.json",
+    "index": "",
+    "hashes": {
+      "src/commands/diff-patch/diff-format.ts": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24",
+      "src/commands/diff-patch/diff.ts": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e",
+      "src/commands/diff-patch/index.ts": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17",
+      "src/commands/diff-patch/patch-envelope.ts": "f6a15e78d7cea41d503f5352206efeb9fa950871c820af730cf27ea06ade99e8",
+      "src/commands/diff-patch/patch-formats.ts": "a78045ac43900582bdb19f0476414e8566c4e1e2edc86b654bc760cf86de3aa4",
+      "src/commands/diff-patch/patch-gnu-paths.ts": "3a06d5b33d3c0df12ff83b0bbf4396d90906d6fd61e3ca1bd5537f508c4282af",
+      "src/commands/diff-patch/patch-gnu-reject.ts": "5df12efd994c0187998f0112a5fac595f376142f2cd187a5e0b40738f7b6cf02",
+      "src/commands/diff-patch/patch-path.ts": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94",
+      "src/commands/diff-patch/patch.ts": "72bfb60c502ac5bcaf2efa3e0f044b0ab1d89a54293f829d62f011e7c10e82d7",
+      "src/commands/diff-patch/shared.ts": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+      "src/commands/diff-patch/unified.ts": "a8659f40aeb9d1cac3548ffd24950e652eeace92cef1339de9e3a5e5ed7e10fb",
+      "src/commands/diff-patch/README.md": "26745f4ccdb86bd9de6f3c7265fe46704974ef88dd037db39a92c4ff5cce8454",
+      "tests/commands/diff-patch/patch-quiet.test.ts": "c42ae03030a5672b6e07435d7a142612bdfcd431f68bcadcecc9826f4ba95aa0",
+      "tests/commands/diff-patch/patch.test.ts": "0de44c6c3c3ddc48eb88fb87e3a68b2cbcea58a6934c2898531b185e9efe9920",
+      "tests/commands/diff-patch/safety.test.ts": "ca3bc6adadf3ad8d17714e7ecfbb69f5e90810c4fe56f9de7a80f3eda83e15cd",
+      "tests/commands/diff-patch/cancellation.test.ts": "a89c8ff6695cbaf04a367da0f99af8f456fe062ab6871b165b9c8d7e8f9f3ae0",
+      "tests/commands/diff-patch/patch-gnu-publication.test.ts": "aa2f94416542c1f494b0805b33ae3b38342088ad0cc04f019c9de800ab3a957e",
+      "tests/commands/diff-patch/helpers.ts": "9a8244aabef7fcdb13747ae85dd7c05f4f99dd512a64c198931ac33c129e4991",
+      "tests/commands/diff-patch/patch-gnu-native.ts": "fa754e3d45c5da0e9dbb4af6d87515638c007616daf98ae38ea910405d4a9bb5",
+      "tests/commands/diff-patch-stress/gnu-target/oracle.ts": "ad9920197aa38291dfff5d04170c5e1b87cd225bf590c8073a8ebba8c68181cc"
+    }
+  },
+  "sourceBaseline": {
+    "path": "src/commands/diff-patch/patch.ts",
+    "sha256": "b344c6f7b0f6afaccdab75778a12c11c868d7f8bccd5d453c56e552039e619fe"
+  },
+  "outcomes": [
+    {
+      "name": "quiet-tests",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/commands/diff-patch/patch-quiet.test.ts"
+      ],
+      "status": 0,
+      "signal": null,
+      "summary": [
+        "# tests 41",
+        "# pass 41",
+        "# fail 0",
+        "# cancelled 0",
+        "# skipped 0",
+        "# todo 0"
+      ],
+      "logSha256": "a9535da412df8ad4d1c124a2f504ab6d33cb1f3bd13ee58feb3841586a8558be"
+    },
+    {
+      "name": "existing-targeted-tests",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/commands/diff-patch/patch.test.ts",
+        "tests/commands/diff-patch/safety.test.ts",
+        "tests/commands/diff-patch/cancellation.test.ts",
+        "tests/commands/diff-patch/patch-gnu-publication.test.ts"
+      ],
+      "status": 0,
+      "signal": null,
+      "summary": [
+        "# tests 143",
+        "# pass 143",
+        "# fail 0",
+        "# cancelled 0",
+        "# skipped 0",
+        "# todo 0"
+      ],
+      "logSha256": "917b9867595f16bbc9528192dc84b0e69d3a11acaaa96127918d1b1dfe1e2f13"
+    },
+    {
+      "name": "scoped-typecheck",
+      "executable": "node_modules/.bin/tsc",
+      "args": [
+        "--noEmit",
+        "--strict",
+        "--noUncheckedIndexedAccess",
+        "--exactOptionalPropertyTypes",
+        "--verbatimModuleSyntax",
+        "--target",
+        "ES2023",
+        "--module",
+        "NodeNext",
+        "--moduleResolution",
+        "NodeNext",
+        "--skipLibCheck",
+        "src/commands/diff-patch/diff-format.ts",
+        "src/commands/diff-patch/diff.ts",
+        "src/commands/diff-patch/index.ts",
+        "src/commands/diff-patch/patch-envelope.ts",
+        "src/commands/diff-patch/patch-formats.ts",
+        "src/commands/diff-patch/patch-gnu-paths.ts",
+        "src/commands/diff-patch/patch-gnu-reject.ts",
+        "src/commands/diff-patch/patch-path.ts",
+        "src/commands/diff-patch/patch.ts",
+        "src/commands/diff-patch/shared.ts",
+        "src/commands/diff-patch/unified.ts",
+        "tests/commands/diff-patch/patch-quiet.test.ts",
+        "tests/commands/diff-patch/patch.test.ts",
+        "tests/commands/diff-patch/safety.test.ts",
+        "tests/commands/diff-patch/cancellation.test.ts",
+        "tests/commands/diff-patch/patch-gnu-publication.test.ts",
+        "tests/commands/diff-patch/helpers.ts",
+        "tests/commands/diff-patch/patch-gnu-native.ts",
+        "tests/commands/diff-patch-stress/gnu-target/oracle.ts"
+      ],
+      "status": 0,
+      "signal": null,
+      "summary": [],
+      "logSha256": "02a713f76226c52a198adae80526740fc4d6057636326bc8dec49635db8ae7a7"
+    }
+  ]
+}

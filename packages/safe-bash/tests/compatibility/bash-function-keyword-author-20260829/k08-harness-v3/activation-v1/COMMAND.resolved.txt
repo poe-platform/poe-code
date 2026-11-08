@@ -1,0 +1,1 @@
+exec /bin/zsh -f '/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/launch.sh' '200923' 'db262c234c02526f2864ef66d8e137e9cd9817645431d944ff3459ad3c89d9d9' '1de03294f35b1c7f9d3d9aee1281250eec3771cfdc6aa2fbcee28a30f213c641' '80f3ae8ed00a5dcc7ba597497352fcf4e94a21e427e53858b3fe6b8e970653d3'

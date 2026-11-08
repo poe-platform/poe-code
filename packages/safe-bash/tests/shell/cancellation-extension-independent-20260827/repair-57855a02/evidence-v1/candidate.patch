@@ -1,0 +1,15 @@
+diff --git a/src/shell/cancellation.ts b/src/shell/cancellation.ts
+index 3b7b55ab..a0e68c7b 100644
+--- a/src/shell/cancellation.ts
++++ b/src/shell/cancellation.ts
+@@ -781,8 +781,8 @@ export function selectRuntimeCancellationOutcome<Value>(
+     : undefined;
+   const classified = reported ?? observed;
+ 
+-  if (captured.kind === "throw" && !classified) {
+-    return throwingSelection(state, captured.reason);
++  if (captured.kind === "throw" && classified?.role !== "invoke-option") {
++    return throwingSelection(state, captured.reason, classified);
+   }
+ 
+   const invokes = origins.filter(origin => origin.role === "invoke-option");

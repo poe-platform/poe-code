@@ -1,0 +1,41 @@
+TAP version 13
+# Subtest: independent frozen GNU: comm C byte collation
+not ok 1 - independent frozen GNU: comm C byte collation
+  ---
+  duration_ms: 11.1175
+  type: 'test'
+  location: '/private/tmp/safe-bash-table-review-owned/audit/tests/commands/table-text-stress/corpus.test.ts:1:351'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '09410a'
+    - '000a0909410a800a09810a0909ff0a'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '000a0909410a800a09810a0909ff0a'
+  actual: '09410a'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-table-review-owned/audit/tests/commands/table-text-stress/corpus.test.ts:15:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..0
+# Subtest: tests/commands/table-text/contracts.test.ts
+ok 2 - tests/commands/table-text/contracts.test.ts
+  ---
+  duration_ms: 109.462833
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 1
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 136.564667

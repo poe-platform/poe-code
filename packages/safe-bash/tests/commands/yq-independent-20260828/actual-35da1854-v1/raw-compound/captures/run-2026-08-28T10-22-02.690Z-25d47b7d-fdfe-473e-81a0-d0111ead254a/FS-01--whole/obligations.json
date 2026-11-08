@@ -1,0 +1,1 @@
+{"schemaVersion":2,"status":"INCOMPLETE","unfulfilled":[{"path":"expected.assertions[0]","value":"Literal file order and repetitions preserved; one stdin occurrence; use supplied signal in readBytes; no host path access or writes.","reason":"Natural-language obligation has no executable proof binding"}],"semanticFullRecordPass":false}

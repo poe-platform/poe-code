@@ -1,0 +1,41 @@
+{
+  "start": "2026-08-29T13:14:44.295Z",
+  "deadline": "2026-08-29T13:19:44.295Z",
+  "limits": {
+    "knownOS": 12,
+    "peak": 2,
+    "capture": 16777216,
+    "work": 67108864
+  },
+  "roles": [
+    {
+      "name": "bootstrap apply_patch",
+      "count": 1
+    },
+    {
+      "name": "inspect owner + Git committed handoff",
+      "count": 2
+    },
+    {
+      "name": "verification implementation apply_patch",
+      "count": 1
+    },
+    {
+      "name": "verify owner",
+      "count": 1
+    },
+    {
+      "name": "publication owner + Git add/commit/status",
+      "count": 4
+    },
+    {
+      "name": "final bounded reader",
+      "count": 1
+    }
+  ],
+  "planned": 10,
+  "reserve": 2,
+  "Bash": 0,
+  "Workers": 0,
+  "native": 0
+}

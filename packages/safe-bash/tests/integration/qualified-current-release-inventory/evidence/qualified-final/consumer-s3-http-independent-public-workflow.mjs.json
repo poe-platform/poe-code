@@ -1,0 +1,15 @@
+{
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--experimental-permission",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-35fajW/consumer",
+    "--allow-worker",
+    "--unhandled-rejections=strict",
+    "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-35fajW/consumer/s3-http-independent/emitted/public-workflow.mjs"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-35fajW/consumer",
+  "status": 0,
+  "signal": null,
+  "stdout": "",
+  "stderr": "(node:8939) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+}

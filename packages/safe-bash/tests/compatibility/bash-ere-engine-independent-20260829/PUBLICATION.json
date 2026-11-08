@@ -1,0 +1,47 @@
+{
+  "at": "2026-08-29T08:52:25.603Z",
+  "actualElapsedThroughPublicationMs": 284711,
+  "source": "f97fd06024cb63edfd01873d81d84576a22189db",
+  "presealCommit": "5caf8e2d",
+  "initialEvidenceSha256": "d5c657b32a9f0bece3e2bf21d64ccbf7f5260d1ed9a9b19f338c31968264c82a",
+  "summarySha256": "c4cbd72d05136a8a7432a2c4600d7922c9efe23a8bab24cbf5f776fde090a9c8",
+  "reportOverride": {
+    "path": "HANDOFF.md",
+    "beforeSha256": "dab26d5bfe5f44715d4f0538ad3983c8874cf4e286ca665d6e86509a8a555c96",
+    "sha256": "9b88bac08fad94c9440efdc5f56a4acb25a31f54458c7c502d05e66e79bdba45",
+    "bytes": 7171,
+    "corrections": [
+      [
+        "group entry lines147–150",
+        "group entry lines145–148"
+      ],
+      [
+        "publication lines174–179",
+        "publication lines165–169"
+      ]
+    ]
+  },
+  "sourceModules": 5,
+  "compilerDeclarationClosureFiles": 241,
+  "processes": {
+    "preparationKnown": 47,
+    "actualRuntimeOwner": 1,
+    "actualRuntimeChildren": 27,
+    "actualRetiredChildren": 27,
+    "knownActualThroughThisPublication": 37,
+    "reservedFinalGitAndMetadataStarts": 5,
+    "qualifiedFinalKnownCeiling": 42,
+    "authorizedActualCeiling": 128,
+    "peakKnown": 2,
+    "notOSWideCensus": true
+  },
+  "remainingActiveOwnedProcesses": 0,
+  "retainedWork": "ACTUAL-01/work (known regular files, no active child)",
+  "qualifications": [
+    "no native observations",
+    "no Shell or Worker activation",
+    "no package root import/npm install",
+    "R02 SOURCE-only",
+    "original reviewer seal failure preserved"
+  ]
+}

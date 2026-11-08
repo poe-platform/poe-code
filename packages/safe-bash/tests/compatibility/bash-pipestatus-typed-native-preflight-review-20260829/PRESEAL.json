@@ -1,0 +1,36 @@
+{
+  "at": "2026-08-29T14:08:43.248Z",
+  "source": "e10e371dc9c70583681add9c1747c85a710b1f59",
+  "readySha256": "798c191fdad35bdf6c1592afda1954764da2209ad18984d966e5488c5e80bdd0",
+  "executableSha256": "ade56f23358e284df533f7e57e462ba927fb0386899061e90699977746424b6e",
+  "files": [
+    {
+      "path": "owner.mjs",
+      "bytes": 8791,
+      "sha256": "3c847179e38cd47c5e6d5db258f9ceeeac90edb988c04f98d7e07b263ae0db50"
+    },
+    {
+      "path": "replay.mjs",
+      "bytes": 19992,
+      "sha256": "acb5126b192fbc2052f4c7eb4a89fd9ea9b00ed415cf253240955af6f016fc31"
+    },
+    {
+      "path": "INPUTS.json",
+      "bytes": 11890,
+      "sha256": "b6d9d429def5b31ef7fc20267ea2471338caa7de68450736f24f2bcc97794f87"
+    },
+    {
+      "path": "ROLE-PLAN.json",
+      "bytes": 878,
+      "sha256": "727b89aca1cdabc3aa4db0f612c0989658983f4bda40b0c9af896f31f1371b1b"
+    }
+  ],
+  "controls": {
+    "retained": "D01-D12 unchanged120 assertions",
+    "novel": "N01-N08 fixed DATA",
+    "PUREHelpers": 1,
+    "harmlessFixtures": 0,
+    "Bash": 0,
+    "Workers": 0
+  }
+}

@@ -1,0 +1,243 @@
+TAP version 13
+# Subtest: s3: traversal remains rooted under explicit backend policy
+ok 1 - s3: traversal remains rooted under explicit backend policy
+  ---
+  duration_ms: 2.530625
+  type: 'test'
+  ...
+# PATH POLICY: lexical root ascent rejects EACCES
+# Subtest: s3: optional metadata capabilities are exercised or fail closed
+not ok 2 - s3: optional metadata capabilities are exercised or fail closed
+  ---
+  duration_ms: 1.469125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/adapters/core.test.ts:1:1224'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/stress/adapters/core.test.ts:39:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: s3: optional truncate preserves exact bytes or rejects without mutation
+ok 3 - s3: optional truncate preserves exact bytes or rejects without mutation
+  ---
+  duration_ms: 2.234042
+  type: 'test'
+  ...
+# Subtest: s3: default conditional-copy rename creates with exact guards and bytes
+ok 4 - s3: default conditional-copy rename creates with exact guards and bytes
+  ---
+  duration_ms: 3.701
+  type: 'test'
+  ...
+# Subtest: s3: default conditional-copy rename replaces with exact guards and bytes
+ok 5 - s3: default conditional-copy rename replaces with exact guards and bytes
+  ---
+  duration_ms: 1.427667
+  type: 'test'
+  ...
+# Subtest: s3: default buffered-put rename creates with exact guards and bytes
+ok 6 - s3: default buffered-put rename creates with exact guards and bytes
+  ---
+  duration_ms: 1.130083
+  type: 'test'
+  ...
+# Subtest: s3: default buffered-put rename replaces with exact guards and bytes
+ok 7 - s3: default buffered-put rename replaces with exact guards and bytes
+  ---
+  duration_ms: 1.857125
+  type: 'test'
+  ...
+# Subtest: s3: default streamed-put rename creates with exact guards and bytes
+ok 8 - s3: default streamed-put rename creates with exact guards and bytes
+  ---
+  duration_ms: 2.155625
+  type: 'test'
+  ...
+# Subtest: s3: default streamed-put rename replaces with exact guards and bytes
+ok 9 - s3: default streamed-put rename replaces with exact guards and bytes
+  ---
+  duration_ms: 1.243334
+  type: 'test'
+  ...
+# Subtest: s3: default rename missing guards {} has no host effects
+ok 10 - s3: default rename missing guards {} has no host effects
+  ---
+  duration_ms: 0.551791
+  type: 'test'
+  ...
+# Subtest: s3: default rename missing guards {"conditionalDelete":true} has no host effects
+ok 11 - s3: default rename missing guards {"conditionalDelete":true} has no host effects
+  ---
+  duration_ms: 0.21275
+  type: 'test'
+  ...
+# Subtest: s3: default rename missing guards {"conditionalCopy":false,"conditionalPut":false,"conditionalDelete":true} has no host effects
+ok 12 - s3: default rename missing guards {"conditionalCopy":false,"conditionalPut":false,"conditionalDelete":true} has no host effects
+  ---
+  duration_ms: 0.45875
+  type: 'test'
+  ...
+# Subtest: s3: default rename missing guards {"conditionalPut":true} has no host effects
+ok 13 - s3: default rename missing guards {"conditionalPut":true} has no host effects
+  ---
+  duration_ms: 0.483791
+  type: 'test'
+  ...
+# Subtest: s3: default rename copy race preserves winning bytes and exact acknowledged effects
+ok 14 - s3: default rename copy race preserves winning bytes and exact acknowledged effects
+  ---
+  duration_ms: 1.054417
+  type: 'test'
+  ...
+# Subtest: s3: default rename delete race preserves winning bytes and exact acknowledged effects
+ok 15 - s3: default rename delete race preserves winning bytes and exact acknowledged effects
+  ---
+  duration_ms: 0.539792
+  type: 'test'
+  ...
+# Subtest: s3: truncate without conditional PUT preserves exact bytes and sends no mutation
+ok 16 - s3: truncate without conditional PUT preserves exact bytes and sends no mutation
+  ---
+  duration_ms: 2.533084
+  type: 'test'
+  ...
+# Subtest: s3: truncate condition conflicts preserve competing bytes and metadata
+ok 17 - s3: truncate condition conflicts preserve competing bytes and metadata
+  ---
+  duration_ms: 1.542042
+  type: 'test'
+  ...
+# Subtest: s3: bounded truncate guards publication and zero truncate never downloads old bytes
+ok 18 - s3: bounded truncate guards publication and zero truncate never downloads old bytes
+  ---
+  duration_ms: 1.218125
+  type: 'test'
+  ...
+# Subtest: s3: 1203 files paginate without omissions across a subtree rename and recursive delete
+ok 19 - s3: 1203 files paginate without omissions across a subtree rename and recursive delete
+  ---
+  duration_ms: 157.670334
+  type: 'test'
+  ...
+# Subtest: s3: malformed listing out-of-prefix key fails closed
+ok 20 - s3: malformed listing out-of-prefix key fails closed
+  ---
+  duration_ms: 0.208916
+  type: 'test'
+  ...
+# Subtest: s3: malformed listing missing continuation token fails closed
+ok 21 - s3: malformed listing missing continuation token fails closed
+  ---
+  duration_ms: 0.080958
+  type: 'test'
+  ...
+# Subtest: s3: malformed listing cyclic continuation token fails closed
+ok 22 - s3: malformed listing cyclic continuation token fails closed
+  ---
+  duration_ms: 0.065667
+  type: 'test'
+  ...
+# Subtest: s3: malformed listing invalid object size fails closed
+ok 23 - s3: malformed listing invalid object size fails closed
+  ---
+  duration_ms: 0.063
+  type: 'test'
+  ...
+# Subtest: s3: malformed listing nested non-direct child fails closed
+ok 24 - s3: malformed listing nested non-direct child fails closed
+  ---
+  duration_ms: 0.087625
+  type: 'test'
+  ...
+# Subtest: s3: maxListEntries rejects rather than returning a truncated listing
+ok 25 - s3: maxListEntries rejects rather than returning a truncated listing
+  ---
+  duration_ms: 0.249708
+  type: 'test'
+  ...
+# Subtest: s3: exclusive copy rejects a destination created during copy authorization
+ok 26 - s3: exclusive copy rejects a destination created during copy authorization
+  ---
+  duration_ms: 0.704083
+  type: 'test'
+  ...
+# Subtest: s3: cancellation during getObject reaches the repository mock
+ok 27 - s3: cancellation during getObject reaches the repository mock
+  ---
+  duration_ms: 0.783792
+  type: 'test'
+  ...
+# Subtest: s3: cancellation during putObject reaches the repository mock
+ok 28 - s3: cancellation during putObject reaches the repository mock
+  ---
+  duration_ms: 0.437791
+  type: 'test'
+  ...
+# Subtest: s3: cancellation during listObjectsV2 reaches the repository mock
+ok 29 - s3: cancellation during listObjectsV2 reaches the repository mock
+  ---
+  duration_ms: 0.230709
+  type: 'test'
+  ...
+# Subtest: s3: explicit non-atomic rename opt-out rejects before host effects
+ok 30 - s3: explicit non-atomic rename opt-out rejects before host effects
+  ---
+  duration_ms: 0.29575
+  type: 'test'
+  ...
+# PROFILE: explicit opt-out rejects; default guarded rename remains non-atomic copy/delete
+# Subtest: s3: non-atomic rename reports exact copy-phase partial state
+ok 31 - s3: non-atomic rename reports exact copy-phase partial state
+  ---
+  duration_ms: 0.845167
+  type: 'test'
+  ...
+# Subtest: s3: non-atomic rename reports exact delete-phase partial state
+ok 32 - s3: non-atomic rename reports exact delete-phase partial state
+  ---
+  duration_ms: 1.065625
+  type: 'test'
+  ...
+# Subtest: s3: unrepresentable object keys and file-prefix collisions remain explicit
+ok 33 - s3: unrepresentable object keys and file-prefix collisions remain explicit
+  ---
+  duration_ms: 0.434709
+  type: 'test'
+  ...
+# Subtest: s3: concurrent a writes enforce transport preconditions without lost updates
+ok 34 - s3: concurrent a writes enforce transport preconditions without lost updates
+  ---
+  duration_ms: 0.519875
+  type: 'test'
+  ...
+# Subtest: s3: concurrent wx writes enforce transport preconditions without lost updates
+ok 35 - s3: concurrent wx writes enforce transport preconditions without lost updates
+  ---
+  duration_ms: 0.210166
+  type: 'test'
+  ...
+# Subtest: s3: read-only capability rejects every mutating required operation
+ok 36 - s3: read-only capability rejects every mutating required operation
+  ---
+  duration_ms: 0.22875
+  type: 'test'
+  ...
+# Subtest: s3: false body lengths reject exact-byte corruption
+ok 37 - s3: false body lengths reject exact-byte corruption
+  ---
+  duration_ms: 0.200833
+  type: 'test'
+  ...
+1..37
+# tests 37
+# suites 0
+# pass 36
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 351.845333

@@ -1,0 +1,253 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { setImmediate as turn } from "node:timers/promises";
+import { createSearchCommands, MemoryFileSystem, searchCommands, Shell, type ByteSource, type CommandContext, type SearchOptions } from "../../../src/index.js";
+
+function deferred<Value>() {
+  let resolve!: (value: Value) => void;
+  let reject!: (reason: unknown) => void;
+  const promise = new Promise<Value>((accept, decline) => { resolve = accept; reject = decline; });
+  return { promise, resolve, reject };
+}
+
+async function bounded<Value>(promise: PromiseLike<Value>): Promise<Value> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([promise, new Promise<never>((_resolve, reject) => {
+      timer = setTimeout(() => reject(new Error("controlled fixture did not settle")), 2000);
+    })]);
+  } finally { clearTimeout(timer); }
+}
+
+function outcome<Value>(promise: PromiseLike<Value>) {
+  return Promise.resolve(promise).then(value => ({ fulfilled: true as const, value }), (reason: unknown) => ({ fulfilled: false as const, reason }));
+}
+
+function input(chunks: readonly Uint8Array[], cleanupError?: Error) {
+  const state = { reads: 0, returns: 0, completed: false };
+  const iterator: AsyncIterator<Uint8Array> = {
+    async next() {
+      const chunk = chunks[state.reads++];
+      if (chunk !== undefined) return { done: false, value: chunk };
+      state.completed = true;
+      return { done: true, value: undefined };
+    },
+    async return() {
+      state.returns++;
+      if (cleanupError) throw cleanupError;
+      return { done: true, value: undefined };
+    },
+  };
+  const source: ByteSource = { [Symbol.asyncIterator]() { return iterator; } };
+  return { source, iterator, state };
+}
+
+function stalled() {
+  const entered = deferred<void>();
+  const pending = deferred<IteratorResult<Uint8Array>>();
+  const state = { reads: 0, returns: 0, returnCompleted: false };
+  const source: ByteSource = { [Symbol.asyncIterator]() { return {
+    next() { state.reads++; entered.resolve(); return pending.promise; },
+    async return() { state.returns++; state.returnCompleted = true; return { done: true, value: undefined }; },
+  }; } };
+  return { source, entered, pending, state };
+}
+
+function direct(stdin: ByteSource, args: readonly string[] = ["foo", "-"], options: SearchOptions = {}, fs = new MemoryFileSystem()) {
+  const controller = new AbortController();
+  const stdout: Uint8Array[] = [];
+  const stderr: Uint8Array[] = [];
+  const context: CommandContext = {
+    command: "rg", args, stdin, stdinIsDefault: false, cwd: "/", env: {}, fs, signal: controller.signal,
+    stdout: { async write(chunk) { stdout.push(Uint8Array.from(chunk)); } },
+    stderr: { async write(chunk) { stderr.push(Uint8Array.from(chunk)); } },
+  };
+  return {
+    controller, context,
+    execute: () => Promise.resolve(createSearchCommands(options)[0]!.execute(context)),
+    stdout: () => Buffer.concat(stdout), stderr: () => Buffer.concat(stderr),
+  };
+}
+
+for (const kind of ["Error", "zero", "native default"] as const) test(`direct stalled stdin closes once for ${kind} cancellation`, { timeout: 4000 }, async () => {
+  const source = stalled();
+  const command = direct(source.source);
+  const errors: unknown[] = [];
+  const observe = (error: unknown) => { errors.push(error); };
+  process.on("unhandledRejection", observe);
+  const execution = outcome(command.execute());
+  try {
+    await bounded(source.entered.promise);
+    if (kind === "Error") command.controller.abort(new Error("direct abort"));
+    else if (kind === "zero") command.controller.abort(0);
+    else command.controller.abort(undefined);
+    const reason: unknown = command.controller.signal.reason;
+    if (kind === "zero") assert.equal(reason, 0);
+    if (kind === "native default") { assert(reason instanceof DOMException); assert.equal(reason.name, "AbortError"); }
+    const result = await bounded(execution);
+    assert.equal(result.fulfilled, false);
+    if (!result.fulfilled) assert.equal(result.reason, reason);
+    assert.deepEqual(source.state, { reads: 1, returns: 1, returnCompleted: true });
+    const late = new Error("late pending next rejection");
+    source.pending.reject(late);
+    await turn(); await turn();
+    assert.deepEqual(errors, []);
+    await assert.rejects(source.pending.promise, error => error === late);
+    assert.deepEqual(source.state, { reads: 1, returns: 1, returnCompleted: true });
+    assert.deepEqual(command.stdout(), Buffer.alloc(0)); assert.deepEqual(command.stderr(), Buffer.alloc(0));
+  } finally {
+    command.controller.abort(); source.pending.resolve({ done: true, value: undefined });
+    await bounded(execution); await source.pending.promise.catch(() => {});
+    await turn(); process.off("unhandledRejection", observe);
+  }
+});
+
+test("input quota counts chunks once and closes only the exceeded source", { timeout: 4000 }, async () => {
+  for (const maximum of [4, 3]) {
+    const source = input([Buffer.from("fo"), Buffer.from("o\n")]);
+    const command = direct(source.source, ["foo", "-"], { maxFileBytes: maximum });
+    const result = await bounded(command.execute());
+    assert.equal(result.exitCode, maximum === 4 ? 0 : 2);
+    assert.deepEqual(command.stdout(), Buffer.from(maximum === 4 ? "foo\n" : ""));
+    assert.deepEqual(command.stderr(), Buffer.from(maximum === 4 ? "" : "rg: input file byte limit exceeded\n"));
+    assert.equal(source.state.returns, maximum === 4 ? 0 : 1);
+    assert.equal(source.state.reads, maximum === 4 ? 3 : 2);
+    assert.equal(command.controller.signal.aborted, false);
+  }
+});
+
+test("shared output quota retains the primary error despite source cleanup failure", { timeout: 4000 }, async () => {
+  const source = input([Buffer.from("foo\n")], new Error("secondary cleanup failure"));
+  const file = input([Buffer.from("foo\n")]);
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/file", Buffer.from("foo\n"));
+  fs.readStream = () => file.source;
+  const command = direct(source.source, ["--no-filename", "foo", "/file", "-"], { maxOutputBytes: 4 }, fs);
+  assert.equal((await bounded(command.execute())).exitCode, 2);
+  assert.deepEqual(command.stdout(), Buffer.from("foo\n"));
+  assert.deepEqual(command.stderr(), Buffer.from("rg: output byte limit exceeded\n"));
+  assert.equal(source.state.returns, 1); assert.equal(file.state.returns, 0);
+  assert.equal(source.state.reads, 1); assert.equal(command.controller.signal.aborted, false);
+});
+
+for (const flag of ["-q", "-m1"]) test(`${flag} returns stdin without a second pull`, { timeout: 4000 }, async () => {
+  const source = input([Buffer.from("foo\n"), Buffer.from("unread\n")]);
+  const command = direct(source.source, [flag, "foo", "-"]);
+  assert.equal((await bounded(command.execute())).exitCode, 0);
+  assert.deepEqual(source.state, { reads: 1, returns: 1, completed: false });
+  assert.deepEqual(command.stdout(), Buffer.from(flag === "-q" ? "" : "foo\n"));
+  assert.deepEqual(command.stderr(), Buffer.alloc(0)); assert.equal(command.controller.signal.aborted, false);
+});
+
+test("natural completion preserves UTF8, null records and no-match status without closing", { timeout: 4000 }, async () => {
+  for (const sample of [
+    { args: ["é", "-"], bytes: Buffer.from("é\nno\né"), expected: Buffer.from("é\né\n"), status: 0 },
+    { args: ["--null-data", "foo", "-"], bytes: Buffer.from("foo\0no\0"), expected: Buffer.from("foo\0"), status: 0 },
+    { args: ["absent", "-"], bytes: Buffer.from("foo\n"), expected: Buffer.alloc(0), status: 1 },
+  ]) {
+    const source = input([sample.bytes.subarray(0, 1), sample.bytes.subarray(1)]);
+    const command = direct(source.source, sample.args);
+    assert.equal((await bounded(command.execute())).exitCode, sample.status);
+    assert.deepEqual(command.stdout(), sample.expected); assert.deepEqual(command.stderr(), Buffer.alloc(0));
+    assert.deepEqual(source.state, { reads: 3, returns: 0, completed: true });
+    assert.equal(command.controller.signal.aborted, false);
+  }
+});
+
+test("explicit file input never acquires unrelated stdin", { timeout: 4000 }, async () => {
+  let acquired = 0;
+  const stdin: ByteSource = { [Symbol.asyncIterator]() { acquired++; throw new Error("unrelated stdin"); } };
+  const fs = new MemoryFileSystem(); await fs.writeFile("/file", Buffer.from("no\nfoo\n"));
+  const command = direct(stdin, ["-n", "foo", "/file"], {}, fs);
+  assert.equal((await bounded(command.execute())).exitCode, 0);
+  assert.deepEqual(command.stdout(), Buffer.from("2:foo\n")); assert.deepEqual(command.stderr(), Buffer.alloc(0));
+  assert.equal(acquired, 0); assert.equal(command.controller.signal.aborted, false);
+});
+
+test("public Shell already closes its structural owner before rejection", { timeout: 4000 }, async () => {
+  const source = stalled();
+  const controller = new AbortController(); const reason = new Error("public abort");
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(searchCommands());
+  const execution = outcome(shell.exec("rg foo -", { stdin: source.source, signal: controller.signal }));
+  try {
+    await bounded(source.entered.promise); controller.abort(reason);
+    const result = await bounded(execution);
+    assert.equal(result.fulfilled, false); if (!result.fulfilled) assert.equal(result.reason, reason);
+    assert.deepEqual(source.state, { reads: 1, returns: 1, returnCompleted: true });
+    source.pending.resolve({ done: true, value: undefined }); await source.pending.promise; await turn();
+    assert.equal(source.state.returns, 1);
+  } finally {
+    controller.abort(); source.pending.resolve({ done: true, value: undefined });
+    await bounded(execution); await source.pending.promise; await bounded(shell.dispose());
+  }
+});
+
+test("nonreturnable borrowed input leaves close authority with its direct owner", { timeout: 4000 }, async () => {
+  const owner = input([Buffer.from("foo\n"), Buffer.from("bar\n")]);
+  const borrowed: ByteSource = { [Symbol.asyncIterator]() { return { next: () => owner.iterator.next() }; } };
+  try {
+    const first = direct(borrowed, ["-q", "foo", "-"]);
+    assert.equal((await bounded(first.execute())).exitCode, 0); assert.equal(owner.state.returns, 0);
+    const second = direct(borrowed, ["-m1", "bar", "-"]);
+    assert.equal((await bounded(second.execute())).exitCode, 0);
+    assert.deepEqual(second.stdout(), Buffer.from("bar\n")); assert.deepEqual(second.stderr(), Buffer.alloc(0));
+    assert.deepEqual(owner.state, { reads: 2, returns: 0, completed: false });
+  } finally { await owner.iterator.return!(); }
+  assert.equal(owner.state.returns, 1);
+});
+
+test("nested Shell invocation and sibling retain parent input until owner settlement", { timeout: 4000 }, async () => {
+  const owner = input([Buffer.from("foo\n"), Buffer.from("bar\n")]);
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(searchCommands());
+  shell.commands.register({ name: "nested", async execute(context) {
+    assert(context.invoke);
+    const result = await context.invoke("rg", ["-q", "foo", "-"], { stdin: context.stdin, stdinIsDefault: false });
+    assert.equal(owner.state.returns, 0); assert.equal(result.exitCode, 0);
+    return result;
+  } });
+  shell.commands.register({ name: "sibling", async execute(context) {
+    assert(context.invoke); assert.equal(owner.state.returns, 0);
+    const result = await context.invoke("rg", ["-m1", "bar", "-"]);
+    assert.equal(owner.state.returns, 0);
+    return result;
+  } });
+  try {
+    const result = await bounded(shell.exec("nested; sibling", { stdin: owner.source }));
+    assert.equal(result.exitCode, 0); assert.deepEqual(result.stdoutBytes, Buffer.from("bar\n"));
+    assert.deepEqual(result.stderrBytes, Buffer.alloc(0));
+    assert.deepEqual(owner.state, { reads: 2, returns: 1, completed: false });
+  } finally { await bounded(shell.dispose()); }
+});
+
+for (const mode of ["direct", "public"] as const) test(`${mode} opaque generator return invocation does not require finally completion`, { timeout: 4000 }, async () => {
+  const entered = deferred<void>(); const gate = deferred<Uint8Array>();
+  let finalized = false; let returns = 0; let nextSettled = false;
+  const generator = (async function* () {
+    try { entered.resolve(); yield await gate.promise; } finally { finalized = true; }
+  })();
+  let pending: Promise<IteratorResult<Uint8Array>> | undefined;
+  let closing: Promise<IteratorResult<Uint8Array>> | undefined;
+  const source: ByteSource = { [Symbol.asyncIterator]() { return {
+    next() {
+      pending = generator.next();
+      void pending.then(() => { nextSettled = true; }, () => { nextSettled = true; });
+      return pending;
+    },
+    return() { returns++; return closing = generator.return(undefined); },
+  }; } };
+  const command = direct(source); const reason = new Error(`${mode} opaque abort`);
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(searchCommands());
+  const execution = outcome(mode === "direct" ? command.execute() : shell.exec("rg foo -", { stdin: source, signal: command.controller.signal }));
+  try {
+    await bounded(entered.promise); command.controller.abort(reason);
+    const result = await bounded(execution);
+    assert.equal(result.fulfilled, false); if (!result.fulfilled) assert.equal(result.reason, reason);
+    assert.equal(returns, 1); assert.equal(finalized, false); assert.equal(nextSettled, false);
+    gate.resolve(Buffer.from("foo\n")); await bounded(pending!); await bounded(closing!);
+    assert.equal(finalized, true); assert.equal(nextSettled, true); assert.equal(returns, 1);
+  } finally {
+    command.controller.abort(); gate.resolve(Buffer.alloc(0));
+    await bounded(execution); if (pending) await bounded(pending);
+    await bounded(closing ?? generator.return(undefined)); await bounded(shell.dispose());
+  }
+});

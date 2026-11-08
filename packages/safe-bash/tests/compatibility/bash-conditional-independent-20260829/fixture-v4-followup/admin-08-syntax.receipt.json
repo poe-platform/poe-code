@@ -1,0 +1,14 @@
+{
+  "label": "admin-08-syntax",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--check",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/run.mjs"
+  ],
+  "closed": true,
+  "signals": [],
+  "bytes": 0,
+  "pid": 53616,
+  "code": 0,
+  "signal": null
+}

@@ -1,0 +1,11 @@
+{
+  "at": "2026-08-27T22:50:15.587Z",
+  "helperSha256": "349fbb61627c2f8bb01ca37b4b38946608804d52daa83e8fade99f8a6d97672d",
+  "groups": [
+    31612
+  ],
+  "remaining": [],
+  "cleanupRoot": "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-v2-independent-20260827/scratch",
+  "cleanupPolicy": "Only owned scratch after group closure, authenticated source/pack/mode verification and compressed recursive receipt roundtrip; no external/author scratch removal",
+  "actual34": 0
+}

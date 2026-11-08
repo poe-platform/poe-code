@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "specifier": "#safe-fs-native-seek",
+  "directory": "native/fs-seek",
+  "source": "native/seek.c",
+  "loader": "native/loader.mjs",
+  "declaration": "src/native/loader.d.ts",
+  "napi": 6,
+  "maxBinaryBytes": 1048576,
+  "targets": [
+    { "platform": "linux", "arch": "x64", "libc": "glibc", "minimumLibc": "2.31" }
+  ]
+}

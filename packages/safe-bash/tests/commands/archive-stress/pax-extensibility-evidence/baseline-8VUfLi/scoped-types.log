@@ -1,0 +1,7 @@
+tests/commands/archive-stress/pax-native.test.ts(26,158): error TS2769: No overload matches this call.
+  Overload 1 of 8, '(command: string, args: readonly string[], options: SpawnSyncOptionsWithStringEncoding): SpawnSyncReturns<string>', gave the following error.
+    Object literal may only specify known properties, and 'detached' does not exist in type 'SpawnSyncOptionsWithStringEncoding'.
+  Overload 2 of 8, '(command: string, args: readonly string[], options: SpawnSyncOptionsWithBufferEncoding): SpawnSyncReturns<NonSharedBuffer>', gave the following error.
+    Object literal may only specify known properties, and 'detached' does not exist in type 'SpawnSyncOptionsWithBufferEncoding'.
+  Overload 3 of 8, '(command: string, args?: readonly string[] | undefined, options?: SpawnSyncOptions | undefined): SpawnSyncReturns<string | NonSharedBuffer>', gave the following error.
+    Object literal may only specify known properties, and 'detached' does not exist in type 'SpawnSyncOptions'.

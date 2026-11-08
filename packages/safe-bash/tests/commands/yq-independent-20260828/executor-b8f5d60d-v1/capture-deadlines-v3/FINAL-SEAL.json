@@ -1,0 +1,220 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "status": "STATIC_CORRECTIVE_COMPONENT_SEALED_NOT_REVIEW_ACCEPTANCE",
+  "scope": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3",
+  "baseComposition": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+  "sourcePreseal": {
+    "path": "SOURCE-PRESEAL.json",
+    "kind": "file",
+    "mode": 420,
+    "bytes": 8344,
+    "sha256": "6da57435bd6819c5973a5b979a688358294531550c2b70eb88091569f406e80c"
+  },
+  "assemblyOverlay": {
+    "path": "ASSEMBLY-OVERLAY.json",
+    "kind": "file",
+    "mode": 420,
+    "bytes": 11377,
+    "sha256": "397b98ac8c2355541c0a11a5162ea2cb219a64c9a5a31f91d09c67b47b29628e"
+  },
+  "entries": [
+    {
+      "path": "ASSEMBLY-OVERLAY.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 11377,
+      "sha256": "397b98ac8c2355541c0a11a5162ea2cb219a64c9a5a31f91d09c67b47b29628e"
+    },
+    {
+      "path": "DEFERRED-WITNESSES.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 10730,
+      "sha256": "4857cab5fc9fe5a99d68b0e9fe4aa9e922c5372b8b6eea9a757df5759313dacd"
+    },
+    {
+      "path": "DOC-CHECK-V2.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 814,
+      "sha256": "3fd413d4d83eff50850388c33eeb95a8e2525c7023fb2297e50ba9b28c8c4940"
+    },
+    {
+      "path": "DOC-CHECK-V3.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 850,
+      "sha256": "c3a6c03f1f2e49868ecef3285c57f6b46fc5547822d13cf0f557f14e66513c33"
+    },
+    {
+      "path": "EVIDENCE-ROLES.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 7661,
+      "sha256": "24633158fee14c83d2298978b27e5b0e578eb9a4d55d64dc634188236ef83c0d"
+    },
+    {
+      "path": "INPUTS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 11155,
+      "sha256": "ebf5cd7428b542e2380852dc2f6035e04e977afb5c3ef44ebfd96b15cd823d86"
+    },
+    {
+      "path": "INTEGRATION.md",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 2823,
+      "sha256": "73ff78e28d76e48de418cb6f4c8b2cd62cf71708582626a304c71e145c806662"
+    },
+    {
+      "path": "PREPARATION-HISTORY.md",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1447,
+      "sha256": "3be5bda359a82e25a028d214a101090c381bba8d707390329ad867e51ef36157"
+    },
+    {
+      "path": "README.md",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1306,
+      "sha256": "9582ef0fcacdfb4e3a5d7cbc3770d98257388bf5352a989feaa4d4ca84617fae"
+    },
+    {
+      "path": "SOURCE-CHANGES.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1794,
+      "sha256": "3c9674ceaff8fe435c98955d06c59c8f2f8649d3ebeaf0741f55af3aecd3e1d3"
+    },
+    {
+      "path": "SOURCE-PRESEAL.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 8344,
+      "sha256": "6da57435bd6819c5973a5b979a688358294531550c2b70eb88091569f406e80c"
+    },
+    {
+      "path": "SPECIFICATION.md",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 10610,
+      "sha256": "c4c40c191a17da1f29696dfc13a4638bce16dc3a29847e31cd751d1e45cc7ded"
+    },
+    {
+      "path": "STATIC-CHECKS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 4369,
+      "sha256": "9deba97d4d022f70f1a5fef876bbd02ce012d7d39994df2ddb424ebd95ef87a4"
+    },
+    {
+      "path": "SYNTAX-CAPTURE.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 2947,
+      "sha256": "468ee2c81c5007ed199519f3824c1e0570ee17d56859ff131721225c2b65ee26"
+    },
+    {
+      "path": "overlay/core/capture-budget-v3.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 6289,
+      "sha256": "fac865817f05c8cbe970e1356c565a68468306caada0f251a9f86710df1c0605"
+    },
+    {
+      "path": "overlay/core/owned-process.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 7803,
+      "sha256": "b8fcbc43e1500f058c3dbc1942a438cd6da383135bebe05fcc2f6b175978d7fc"
+    },
+    {
+      "path": "overlay/core/phase-capture.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 4240,
+      "sha256": "a5449c12112a341f818154899c10290509e7999d5c48b7b7a3d7d6942fd69335"
+    },
+    {
+      "path": "overlay/core/supervisor.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 27596,
+      "sha256": "7d33d4e0feba862a3bf3b5da3f6e41bd2217871c01d429207b4a47061682a126"
+    }
+  ],
+  "directories": [
+    {
+      "path": "",
+      "kind": "directory",
+      "mode": 493
+    },
+    {
+      "path": "overlay",
+      "kind": "directory",
+      "mode": 493
+    },
+    {
+      "path": "overlay/core",
+      "kind": "directory",
+      "mode": 493
+    }
+  ],
+  "selfEntry": {
+    "path": "FINAL-SEAL.json",
+    "kind": "file",
+    "mode": 420,
+    "modeAuthority": "Fresh declared0644 verified immediately after publication and commit; never inferred from Git100644.",
+    "byteAuthority": "Exact SHA256/size routed externally with immutable commit; no circular self-hash."
+  },
+  "membership": {
+    "filesIncludingSeal": 19,
+    "directoriesIncludingRoot": 3,
+    "exactFiles": [
+      "ASSEMBLY-OVERLAY.json",
+      "DEFERRED-WITNESSES.json",
+      "DOC-CHECK-V2.json",
+      "DOC-CHECK-V3.json",
+      "EVIDENCE-ROLES.json",
+      "FINAL-SEAL.json",
+      "INPUTS.json",
+      "INTEGRATION.md",
+      "PREPARATION-HISTORY.md",
+      "README.md",
+      "SOURCE-CHANGES.json",
+      "SOURCE-PRESEAL.json",
+      "SPECIFICATION.md",
+      "STATIC-CHECKS.json",
+      "SYNTAX-CAPTURE.json",
+      "overlay/core/capture-budget-v3.mjs",
+      "overlay/core/owned-process.mjs",
+      "overlay/core/phase-capture.mjs",
+      "overlay/core/supervisor.mjs"
+    ],
+    "exactDirectories": [
+      "",
+      "overlay",
+      "overlay/core"
+    ]
+  },
+  "activeProjectionFiles": 4,
+  "activeProjection": "Three exact-preimage replacements plus new absent-only core/capture-budget-v3.mjs; ASSEMBLY-OVERLAY.json is the complete additive write set.",
+  "preserved": {
+    "originalB1AndWitnesses": true,
+    "oldBuild": {
+      "revision": "937c1f6a35c620146e62924b16d90e808319024f",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/FINAL-SEAL.json",
+      "sha256": "e796e30489e031c4ab6d58882542e7f3b6c644ead90ae29474c2744003f73c9d",
+      "files": 17,
+      "bytesModesAndMembershipUnchanged": true,
+      "oldBuildPassNotReused": true
+    },
+    "failedPreparationCaptures": true,
+    "fcF01Untouched": true
+  },
+  "dynamicProof": "ALL_UNRUN",
+  "RootGO": false
+}

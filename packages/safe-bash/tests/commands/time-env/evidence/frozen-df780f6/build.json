@@ -1,0 +1,35 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "node_modules/typescript/bin/tsc",
+    "-p",
+    "tsconfig.build.json"
+  ],
+  "cwd": "/tmp/safe-bash-time-env-frozen-ztW7Wk",
+  "pid": 88988,
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 1717,
+  "timeoutMs": 120000,
+  "outputBytes": 0,
+  "observed": [
+    {
+      "pid": 88988,
+      "parent": 88813,
+      "group": 88988,
+      "born": "Thu Aug 27 02:41:27 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node node_modules/typescript/bin/tsc -p tsconfig.build.json"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "counts": {},
+  "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

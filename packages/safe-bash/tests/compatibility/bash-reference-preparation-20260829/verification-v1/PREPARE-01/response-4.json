@@ -1,0 +1,16 @@
+{
+  "url": "https://savannah.gnu.org/p/release-gpgkeys.php?group=bash&download=1",
+  "cap": 4194304,
+  "name": "release-keys.data",
+  "startedAt": "2026-08-29T04:59:47.589Z",
+  "bytes": 0,
+  "status": 404,
+  "headers": {
+    "date": "Sat, 29 Aug 2026 04:59:47 GMT",
+    "content-type": "text/html; charset=utf-8",
+    "content-length": null,
+    "location": null
+  },
+  "disposition": "HTTP_UNAVAILABLE",
+  "endedAt": "2026-08-29T04:59:47.756Z"
+}

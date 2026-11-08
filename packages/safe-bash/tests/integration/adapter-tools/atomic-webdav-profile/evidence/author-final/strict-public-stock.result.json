@@ -1,0 +1,14 @@
+{
+  "name": "strict-public-stock",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+    "-p",
+    "tsconfig.json"
+  ],
+  "cwd": "consumer",
+  "startedAt": "2026-08-27T09:01:22.767Z",
+  "durationMs": 419.8256250000013,
+  "status": 0,
+  "signal": null
+}

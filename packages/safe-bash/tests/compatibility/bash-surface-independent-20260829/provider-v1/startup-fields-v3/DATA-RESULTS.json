@@ -1,0 +1,41 @@
+{
+  "schema": "d03-startup-fields-data-results-v3",
+  "role": "DATA_ONLY_NOT_NATIVE_OR_PROVIDER_QUALIFICATION",
+  "controlsSha256": "bba523d2dd72371ed25c9432962a369d6223c604619ed18efb7f6cf427af7645",
+  "extractorSha256": "be8d79040da44855ed76909d4315aa0742ccfc115edb7d5ac76c635f267e2fa4",
+  "rows": [
+    {
+      "id": "termination-flags-indicator-retained",
+      "status": "PASS"
+    },
+    {
+      "id": "only-faulting-thread-selected",
+      "status": "PASS"
+    },
+    {
+      "id": "top-eight-frame-ceiling",
+      "status": "PASS"
+    },
+    {
+      "id": "no-registers-or-environment",
+      "status": "PASS"
+    },
+    {
+      "id": "startup-reason-path-redaction",
+      "status": "PASS"
+    },
+    {
+      "id": "non-diagnostic-message-omitted",
+      "status": "PASS"
+    },
+    {
+      "id": "missing-thread-index-qualified",
+      "status": "PASS"
+    },
+    {
+      "id": "invalid-image-index-refused",
+      "status": "PASS"
+    }
+  ],
+  "recordReads": 0
+}

@@ -1,0 +1,6 @@
+{
+  "preseal": "f8f740f4",
+  "code": 78,
+  "stdout": "{\"work\":\"/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/candidate-v1/public-v2-app-5xarxw\",\"accepted\":false,\"unsafeStop\":true,\"guards\":[{\"id\":\"positive\",\"accepted\":true},{\"id\":\"missing-root-js\",\"accepted\":true},{\"id\":\"changed-root-js-mode\",\"accepted\":true},{\"id\":\"extra-app-entry\",\"accepted\":true},{\"id\":\"symlink-app-entry\",\"accepted\":true},{\"id\":\"wrong-package-sha\",\"accepted\":true}],\"runs\":[{\"cohort\":\"semantic\",\"code\":78,\"passed\":26,\"failed\":[\"S06\"],\"errors\":[\"missing/duplicate/reordered observations\",\"summary mismatch\",\"exit contradicts body outcomes\"]}],\"sha256\":\"178e1e91eea739f1435aa40340db59e69bfe62aa8e34121a31d970bbed1134f8\"}\n",
+  "stderr": ""
+}

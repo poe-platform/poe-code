@@ -1,0 +1,33 @@
+{
+  "name": "existing-rmdir",
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-reporter=tap",
+    "tests/fs/mount/rmdir.test.ts",
+    "tests/fs/overlay/rmdir-static-lower.test.ts",
+    "tests/fs/overlay/rmdir.test.ts",
+    "tests/fs/readonly/rmdir.test.ts"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/remote-rmdir/wrapper-profile/.frozen-D8MUaL",
+  "startedAt": "2026-08-27T07:18:12.032Z",
+  "elapsedMs": 182.65191700000014,
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "counts": {
+    "tests": 36,
+    "pass": 36,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failures": [],
+  "sourceHash": "940e098a8c3df26f01bfa2b6cb020a766b1039527975ac5fd1686a168aaa1399",
+  "inputHash": "793a07850f2c5c9c9822e8f206561f9de664d9a06dc720aa12b64c20c91d64e2",
+  "unchanged": true
+}

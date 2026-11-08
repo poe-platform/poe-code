@@ -1,0 +1,14 @@
+{
+  "checks": {
+    "originalRuntimeCompleteEntrySet": true,
+    "revisedRuntimeCompleteEntrySet": true,
+    "installedCompleteEntrySet": true,
+    "toolingCompleteEntrySet": true,
+    "originalTreesCompleteEntrySets": true,
+    "candidateArchive": true,
+    "frozenInputs": true
+  },
+  "detectsAddedEntries": true,
+  "qualification": "Observation-time equality of complete selected extracted runtime, build/installed, tooling and named original-evidence entry sets; not a transient-mutation or global live-tree guarantee.",
+  "inputError": null
+}

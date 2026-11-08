@@ -1,0 +1,23 @@
+{
+  "variant": "baseline",
+  "commit": "dce6e3824d6de6d03490a531cf2bc7d2d279bb8c",
+  "cohortVersion": "v2",
+  "scratch": "/private/tmp/sort-unkeyed-review-baseline-66kr9T",
+  "archiveSha256": "4076f21b9754a47d5e35c7db4facc641e56ca1bd47fb3d7c64970895ee96479d",
+  "packageFiles": 733,
+  "loadedModules": 174,
+  "acceptance": {
+    "passed": 21,
+    "total": 21
+  },
+  "independent": {
+    "passed": 34,
+    "total": 34
+  },
+  "failed": [],
+  "sourceBeforeAfterEqual": true,
+  "packageBeforeAfterEqual": true,
+  "exactChildClosure": true,
+  "shellsDisposed": 55,
+  "candidateAcceptance": false
+}

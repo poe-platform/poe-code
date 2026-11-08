@@ -1,0 +1,7 @@
+--- runnable-r5/runtime.mjs (historical consumed source; do not apply in place)
++++ prospective reviewed successor runtime.mjs
+@@
++import {admitLink} from './npm-descriptor.mjs';
+@@
+-else{assert.equal(row.kind,'symlink');assert.equal(fs.readlinkSync(filename),row.target);}
++else{admitLink(row,toolData.npm.root);}

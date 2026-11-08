@@ -1,0 +1,49 @@
+{
+  "status": "passed-focused-review",
+  "ref": "40fb77fb09a2145e8a767c96b64966dafdff5c2b",
+  "mode": "freeze",
+  "selectedFiles": 15,
+  "exactDiagnostics": [
+    2339,
+    2345,
+    2769
+  ],
+  "runtimeSupportDiagnostics": 0,
+  "globRuntime": {
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--test",
+      "--test-timeout=20000",
+      "--test-concurrency=1",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/glob-typing-review-20260827/independent/node_modules/review-baseline-v3-TKK7sw/emitted/tests/commands/regex-execution/continuation/glob.test.js"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 280,
+    "tests": 4,
+    "pass": 4,
+    "fail": 0
+  },
+  "exprRuntime": {
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--test",
+      "--test-timeout=20000",
+      "--test-concurrency=1",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/glob-typing-review-20260827/independent/node_modules/review-baseline-v3-TKK7sw/emitted/tests/commands/expr/regex-protocol.test.js"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 218,
+    "tests": 5,
+    "pass": 5,
+    "fail": 0
+  },
+  "immutableGitInputsRechecked": true,
+  "runtimeArchiveTreeIncludingNewEntriesUnchanged": true,
+  "controlsOnlyUseExplicitRecordedTemporaryAdditions": false,
+  "endedAt": "2026-08-27T20:36:11.906Z",
+  "qualification": "Only exact glob fixture closure and five adjacent expr protocol tests. Original unrelated DU diagnostics preserved, not fixed or revalidated. No full gate, native oracle, broader corpus or performance claim."
+}

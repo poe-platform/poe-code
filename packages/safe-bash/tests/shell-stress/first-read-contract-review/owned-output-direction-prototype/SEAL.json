@@ -1,0 +1,474 @@
+{
+  "sealedAt": "2026-08-27T10:25:25.069Z",
+  "observedProvisionalApiFileBirth": "2026-08-27T10:03:32.848Z",
+  "intervalQualification": "Observed author artifact interval only, not 72 hours or a full-work-duration claim",
+  "sourceFilesVerified": 213,
+  "testFilesVerified": 15,
+  "compiledFilesVerified": 708,
+  "oldArtifactsVerified": 235,
+  "v1CandidateFilesVerified": 935,
+  "scratchCandidatesReadonly": [
+    "/tmp/safe-bash-owned-output-direction-prototype-PMLamJ/candidate",
+    "/tmp/safe-bash-owned-output-direction-prototype-a1Rz7L/candidate",
+    "/tmp/safe-bash-owned-output-direction-prototype-replay-2ewzzd/candidate",
+    "/tmp/safe-bash-owned-output-direction-prototype-replay-7ox5aq/candidate",
+    "/tmp/safe-bash-owned-output-direction-prototype-replay-TiI2ki/candidate",
+    "/tmp/safe-bash-owned-output-direction-prototype-replay-sJyfmG/candidate"
+  ],
+  "runClosure": [
+    {
+      "path": "runs/reconstruction-r0-canonical-path-failure.json",
+      "pid": 59465,
+      "status": 1,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/reconstruction-r0-path-failure.json",
+      "pid": 50463,
+      "status": 1,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/reconstruction-r1.json",
+      "pid": 72459,
+      "status": 0,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/v1-diagnosis-adapted-five.json",
+      "pid": 21054,
+      "status": 0,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/v1-diagnosis-first-read-curl-body.json",
+      "pid": 21039,
+      "status": 1,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/v1-diagnosis-first-read-curl-headers.json",
+      "pid": 21050,
+      "status": 1,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/v1-diagnosis-first-read-local.json",
+      "pid": 21008,
+      "status": 1,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/v1-diagnosis-first-read-s3.json",
+      "pid": 21029,
+      "status": 0,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/v1-diagnosis-first-read-webdav.json",
+      "pid": 21033,
+      "status": 1,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/v2-r0-adapted-five.json",
+      "pid": 17375,
+      "status": 0,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/v2-r0-author.json",
+      "pid": 18498,
+      "status": 0,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/v2-r0-control-C1.json",
+      "pid": 18452,
+      "status": 0,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/v2-r0-control-C2.json",
+      "pid": 18455,
+      "status": 0,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/v2-r0-control-C3.json",
+      "pid": 18458,
+      "status": 0,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/v2-r0-control-C4.json",
+      "pid": 18461,
+      "status": 0,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/v2-r0-control-C5.json",
+      "pid": 18464,
+      "status": 0,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/v2-r0-control-C6.json",
+      "pid": 18467,
+      "status": 0,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/v2-r0-control-C7.json",
+      "pid": 18471,
+      "status": 0,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/v2-r0-control-C8.json",
+      "pid": 18492,
+      "status": 0,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/v2-r0-control-C9.json",
+      "pid": 18495,
+      "status": 0,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/v2-r0-direction-author.json",
+      "pid": 17339,
+      "status": 0,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/v2-r0-existing-byte-io.json",
+      "pid": 18424,
+      "status": 0,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/v2-r0-existing-remote.json",
+      "pid": 18338,
+      "status": 0,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/v2-r0-existing-shared.json",
+      "pid": 18431,
+      "status": 0,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/v2-r0-existing-streaming.json",
+      "pid": 18447,
+      "status": 0,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/v2-r0-original-five-and-head-zero.json",
+      "pid": 17403,
+      "status": 1,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/v2-r0-scoped-typecheck.json",
+      "pid": 17357,
+      "status": 0,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/v2-r0-source-build.json",
+      "pid": 17344,
+      "status": 0,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/v2-r1-adapted-five.json",
+      "pid": 24242,
+      "status": 0,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/v2-r1-author.json",
+      "pid": 24424,
+      "status": 0,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/v2-r1-control-C1.json",
+      "pid": 24390,
+      "status": 0,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/v2-r1-control-C2.json",
+      "pid": 24393,
+      "status": 0,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/v2-r1-control-C3.json",
+      "pid": 24396,
+      "status": 0,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/v2-r1-control-C4.json",
+      "pid": 24401,
+      "status": 0,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/v2-r1-control-C5.json",
+      "pid": 24409,
+      "status": 0,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/v2-r1-control-C6.json",
+      "pid": 24412,
+      "status": 0,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/v2-r1-control-C7.json",
+      "pid": 24415,
+      "status": 0,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/v2-r1-control-C8.json",
+      "pid": 24418,
+      "status": 0,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/v2-r1-control-C9.json",
+      "pid": 24421,
+      "status": 0,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/v2-r1-direction-author.json",
+      "pid": 24195,
+      "status": 0,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/v2-r1-existing-byte-io.json",
+      "pid": 24361,
+      "status": 0,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/v2-r1-existing-remote.json",
+      "pid": 24309,
+      "status": 0,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/v2-r1-existing-shared.json",
+      "pid": 24368,
+      "status": 0,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/v2-r1-existing-streaming.json",
+      "pid": 24385,
+      "status": 0,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/v2-r1-original-five-and-head-zero.json",
+      "pid": 24284,
+      "status": 1,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/v2-r1-scoped-typecheck.json",
+      "pid": 24218,
+      "status": 0,
+      "closed": true,
+      "currentIdentity": "absent"
+    },
+    {
+      "path": "runs/v2-r1-source-build.json",
+      "pid": 24200,
+      "status": 0,
+      "closed": true,
+      "currentIdentity": "absent"
+    }
+  ],
+  "supervisedRuns": 47,
+  "productAndDiagnosisRuns": 44,
+  "reconstructionCapturedRuns": 3,
+  "directFirstReconstructionFailure": "Truncated tool output; original script and same-error captured rerun retained; see RECONSTRUCTION.md",
+  "reconstructionChildren": [
+    {
+      "command": "/usr/bin/tar",
+      "args": [
+        "-tzf",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-prototype/baseline.tar.gz.data"
+      ],
+      "pid": 72464,
+      "status": 0,
+      "signal": null,
+      "aliveAfterReap": false
+    },
+    {
+      "command": "/usr/bin/tar",
+      "args": [
+        "-xzf",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-prototype/baseline.tar.gz.data",
+        "-C",
+        "/tmp/safe-bash-owned-output-direction-prototype-replay-2ewzzd/candidate"
+      ],
+      "pid": 72465,
+      "status": 0,
+      "signal": null,
+      "aliveAfterReap": false
+    },
+    {
+      "command": "/usr/bin/git",
+      "args": [
+        "apply",
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-prototype/source-r1.patch-data"
+      ],
+      "pid": 72467,
+      "status": 0,
+      "signal": null,
+      "aliveAfterReap": false
+    },
+    {
+      "command": "/usr/bin/git",
+      "args": [
+        "apply",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-prototype/source-r1.patch-data"
+      ],
+      "pid": 72468,
+      "status": 0,
+      "signal": null,
+      "aliveAfterReap": false
+    },
+    {
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+        "-p",
+        "tsconfig.build.json"
+      ],
+      "pid": 72521,
+      "status": 0,
+      "signal": null,
+      "aliveAfterReap": false
+    },
+    {
+      "command": "/usr/bin/git",
+      "args": [
+        "apply",
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-direction-prototype/source-v1-to-v2-r1.patch-data"
+      ],
+      "pid": 72592,
+      "status": 0,
+      "signal": null,
+      "aliveAfterReap": false
+    },
+    {
+      "command": "/usr/bin/git",
+      "args": [
+        "apply",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-direction-prototype/source-v1-to-v2-r1.patch-data"
+      ],
+      "pid": 72610,
+      "status": 0,
+      "signal": null,
+      "aliveAfterReap": false
+    },
+    {
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+        "-p",
+        "tsconfig.build.json"
+      ],
+      "pid": 72639,
+      "status": 0,
+      "signal": null,
+      "aliveAfterReap": false
+    },
+    {
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--listFiles",
+        "-p",
+        "tsconfig.json"
+      ],
+      "pid": 72685,
+      "status": 0,
+      "signal": null,
+      "aliveAfterReap": false
+    }
+  ],
+  "candidateImport": "/tmp/safe-bash-owned-output-direction-prototype-PMLamJ/candidate/dist/index.js",
+  "handoffSha256": "fb04617552411603080dc4ab0bd34388576b8a1e523c31d0b410f11f7f3c1299",
+  "sourceCommits": [
+    "98462779",
+    "630bf76f"
+  ],
+  "fixtureFreezeCommit": "cabb9519",
+  "reconstructionCommit": "a589cf6a",
+  "actualLeafClosed": "Root must observe after normal author exit; not self-certified",
+  "opaqueHostWorkClaimedDrained": false,
+  "independentBodiesInspected": false
+}

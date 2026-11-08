@@ -1,0 +1,30 @@
+{
+  "command": [
+    "tar",
+    "-xzf",
+    "/private/tmp/safe-bash-column-final-5XKcCe/pack/virtual-bash-0.0.0.tgz",
+    "--strip-components=1",
+    "-C",
+    "/private/tmp/safe-bash-column-final-5XKcCe/staging/node_modules/virtual-bash"
+  ],
+  "cwd": "/private/tmp/safe-bash-column-final-5XKcCe",
+  "startedAt": "2026-08-27T16:28:01.955Z",
+  "endedAt": "2026-08-27T16:28:02.160Z",
+  "pid": 54005,
+  "deadlineMs": 90000,
+  "outputCap": 8388608,
+  "status": 0,
+  "signal": null,
+  "termination": null,
+  "spawnError": null,
+  "observedBytes": {
+    "stdout": 0,
+    "stderr": 0
+  },
+  "stdoutHex": "",
+  "stderrHex": "",
+  "groupAliveAtClose": false,
+  "groupAliveAfterRetirement": false,
+  "cleanup": "close-observed-group-checked-and-retired",
+  "forcedCleanupIsPass": false
+}

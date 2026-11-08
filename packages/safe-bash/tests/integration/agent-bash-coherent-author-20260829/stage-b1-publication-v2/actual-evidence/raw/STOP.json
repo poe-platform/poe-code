@@ -1,0 +1,25 @@
+{
+  "primaryPresent": true,
+  "primary": {
+    "type": "object"
+  },
+  "retirement": {
+    "children": 3,
+    "attemptedBytes": 308684,
+    "storedBytes": 308684,
+    "elapsedMs": 25886.221333,
+    "failures": [
+      {
+        "phase": "outer-failure",
+        "reason": {
+          "type": "object"
+        }
+      }
+    ],
+    "secondaryPresent": false,
+    "secondary": {
+      "type": "undefined"
+    }
+  },
+  "automaticRetry": false
+}

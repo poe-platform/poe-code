@@ -1,0 +1,2 @@
+import { createYqQuerySession } from "@@ROOT@@";
+export const forbidden = createYqQuerySession;

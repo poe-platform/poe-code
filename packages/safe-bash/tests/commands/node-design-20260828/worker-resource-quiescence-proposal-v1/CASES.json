@@ -1,0 +1,130 @@
+{
+  "schema": "WRQ-future-obligations-v1",
+  "classification": "PREPARE case data only; all unrun; no executable recipe or grant",
+  "historicalIsolation": "New WRQ identities, not additions to or rescoring of original36, F01-F07, eight private-ABI evaluations or repair controls.",
+  "finiteScope": {
+    "identities": 8,
+    "maximumFutureInstancesIfBothCompletionAlternativesReviewed": 11,
+    "maximumGuestEvaluations": 10,
+    "maximumWorkerCreations": 11,
+    "concurrentWorkers": 1,
+    "retries": 0,
+    "candidateOverallAdmissionMs": 120000,
+    "candidatePerInvocationAdmissionMs": 5000,
+    "captureBytesPerInstanceMax": 65536,
+    "candidateTotalEvidenceBytesMax": 1048576,
+    "rule": "These are review bounds, not an executable grant or hard exit-time proof. One Worker per instance, sequential retirement/drain before next. Q/L selection can remove the unselected WRQ04 variant; do not relabel it passed. Safety uncertainty stops; no repeated failure or closure expansion."
+  },
+  "commonPrerequisites": [
+    "New sealed static entries, original-source provenance, all loads/tool/native-launch identities, exact engine/adapter boundary and independent ownership/capture/close evidence. No native guest evaluation or private-ABI-await-for-sync.",
+    "Fresh parent VFS namespace and fresh Worker per instance; exact read/write/output grants; immutable actual source and output bytes; no automatic engine deep import or ambient host resource.",
+    "Observe actual parent operations, byte reservations, pending records, event/sequence transitions and Worker exit; provider strings or an entry success message alone never establish outcome.",
+    "For Q, actual qualified engine creation/settlement/reaction/active/pending witnesses are required. Absence of the hook is a qualification gap, not a fabricated zero count."
+  ],
+  "cases": [
+    {
+      "id": "WRQ01",
+      "instances": 1,
+      "guestEvaluations": 1,
+      "topic": "Ordinary synchronous text value, pure-call contrast and ordering",
+      "guestSource": "const fs = require('fs'); const trace = []; Promise.resolve().then(() => trace.push('reaction')); trace.push('before'); const text = fs.readFileSync('/a', 'utf8'); trace.push(text); trace.push('after'); console.log(trace.join('|')); console.log(pureAdd(2, 3));",
+      "hostSchedule": "VFS /a contains UTF8 A. pureAdd is an ordinary pure Worker-local host function. Parent records read acquisition, yields one parent event-loop turn, then returns A through SAB; Worker cannot consume a message callback while waiting. No native Promise is returned by readFileSync.",
+      "requiredSemanticObservation": "Sync call returns actual string A before subsequent statements. Its read owns one real operation and slot; no guest reaction executes inside the ordinary call. Inspect both host trace and actual engine order.",
+      "candidateStdoutUtf8": "before|A|after\n5\n",
+      "candidateStderrUtf8": "",
+      "state": {"/a": "A"},
+      "statusCondition": "0 only with selected completion evidence and confirmed exit/drain; raw run completion alone insufficient.",
+      "unknown": "Observed scheduling and whole-completion qualification remain unrun, despite source-supported call path."
+    },
+    {
+      "id": "WRQ02",
+      "instances": 1,
+      "guestEvaluations": 1,
+      "topic": "Delayed rejection in the same try/catch; guest thrown identity versus host conversion",
+      "guestSource": "const fs = require('fs'); try { fs.readFileSync('/missing', 'utf8'); console.log('bad'); } catch (error) { console.log(error.code + '|' + error.path); } const marker = { n: 1 }; try { throw marker; } catch (error) { console.log(error === marker); } try { throw null; } catch (error) { console.log(error === null); } try { hostThrowUndefined(); } catch (error) { console.log(error.name); }",
+      "hostSchedule": "Parent rejects the admitted read with real ENOENT after one parent event-loop turn. Worker reconstructs an ordinary local Error with own code/path. hostThrowUndefined throws undefined locally; it is not a caller cancellation.",
+      "candidateStdoutUtf8": "ENOENT|/missing\ntrue\ntrue\nError\n",
+      "candidateStderrUtf8": "",
+      "state": {},
+      "statusCondition": "Require the original try/catch to catch the delayed fs error with no bad output; no pending detached rejection. Guest object identity line is a compatibility requirement/discriminator, not a source-proven result.",
+      "unknown": "S2 predicts host primitive-to-Error conversion; guest throw/catch object identity and the complete adapter path require observation. Error identity across Worker cloning is explicitly not expected."
+    },
+    {
+      "id": "WRQ03",
+      "instances": 1,
+      "guestEvaluations": 1,
+      "topic": "Repeated host copies, initial aliases, guest builtin/JSON cache identity",
+      "guestSource": "console.log(hostObject() === hostObject()); console.log(initialA === initialB); const fs = require('fs'); console.log(fs === require('fs')); const first = require('./a.json'); first.n = 2; const second = require('./a.json'); console.log((first === second) + '|' + second.n);",
+      "hostSchedule": "hostObject returns the same ordinary Worker-host object twice; initialA/initialB share one object in initial bindings. JSON source /a.json is {\"n\":1}. Each require reauthorizes; only first JSON read constructs the guest cache entry. No raw guest value crosses a port.",
+      "candidateStdoutUtf8": "false\ntrue\ntrue\ntrue|2\n",
+      "candidateStderrUtf8": "",
+      "state": {"/a.json": "{\"n\":1}"},
+      "statusCondition": "Cache and alias outputs must be actual guest evaluations, not host cache counters. Repeated ordinary-host-return identity is deliberately not claimed.",
+      "unknown": "Trusted guest cache scaffold, reauthorization and cancellation-wrapper interaction need qualification; public import registry is not CJS proof."
+    },
+    {
+      "id": "WRQ04",
+      "instances": 2,
+      "guestEvaluations": 2,
+      "topic": "Useful promise VFS editing and pending guest-only jobs; Q versus explicit L retirement",
+      "guestSource": "const fs = require('fs'); Promise.race([]); (async function () { const data = JSON.parse(await fs.promises.readFile('/a', 'utf8')); data.n = data.n + 1; await fs.promises.writeFile('/b', JSON.stringify(data)); console.log('done'); if (lifetimeMode) process.exit(0); })();",
+      "hostSchedule": "Separate proposed Q and L invocations, /a={\"n\":1}. Resolve parent read then write on separate parent turns. Record parent active count independently from native Worker Promise continuations and engine reaction ownership. lifetimeMode is false for Q, true for L; no TLA.",
+      "candidateStdoutUtf8": "done\n",
+      "candidateStderrUtf8": "",
+      "state": {"/a": "{\"n\":1}", "/b": "{\"n\":2}"},
+      "statusCondition": "Q cannot succeed with the pending Promise.race([]); candidate quiescence failure2/deadline control. L may return intentional-retirement0 only after explicit exit, zero remaining parent jobs/publications and confirmed Worker exit; never label the guest promise settled.",
+      "unknown": "All-job hooks and modeled exit non-return are not established. If a hook is absent, record unknown, not inferred pending0. Exact diagnostics await the selected provider contract."
+    },
+    {
+      "id": "WRQ05",
+      "instances": 3,
+      "guestEvaluations": 3,
+      "topic": "Blocked cancellation, falsy/raw parent identity and no post-cancel effects",
+      "guestSource": "const fs = require('fs'); try { fs.readFileSync('/held', 'utf8'); } catch (error) { fs.writeFileSync('/after', 'bad'); }",
+      "hostSchedule": "Parent read is held. Three separate invocations use explicit parent control records with present=true and value undefined, false, or a unique parent object. This raw channel is not AbortController.abort(undefined)'s default reason. Parent latches stop/increments-notifies the same wait epoch without a Worker callback; aborts the cooperative VFS operation; confirms Worker exit.",
+      "candidateStdoutUtf8": "",
+      "candidateStderrUtf8": "",
+      "state": {"/held": "unchanged", "/after": null},
+      "statusCondition": "Provider outcome is control with identical parent reason reference/value/presence; Shell uses its existing control mapping, not exit1 or a copied message. Guest catch cannot admit /after.",
+      "unknown": "Actual blocked wake, cancellation race and no-effects admission proof unrun. Keeping a parent-side reason variable alone does not prove route provenance."
+    },
+    {
+      "id": "WRQ06",
+      "instances": 1,
+      "guestEvaluations": 1,
+      "topic": "Confirmed exit versus held parent cleanup and closed stdout",
+      "guestSource": "const fs = require('fs'); fs.promises.writeFile('/b', 'X'); process.stdout.write('not-published');",
+      "hostSchedule": "VFS publishes X and holds its cooperative cleanup. stdout is explicitly closed before the output admission. Parent rejects that destination, closes invocation admission on terminal failure and terminates Worker; release the held VFS cleanup only after observed Worker exit, with a secondary cleanup failure.",
+      "candidateStdoutUtf8": "",
+      "candidateStderrUtf8": "",
+      "state": {"/b": "X"},
+      "statusCondition": "No success or clean settlement while parent cleanup is held. Preserve primary output failure and secondary cleanup failure; no rollback of X. Worker retirement and parent retirement are distinct observations.",
+      "unknown": "If actual engine scheduling has not admitted the write at the specified barrier, stop/classify schedule mismatch; do not fabricate X. Sink failure alone must not be reported as sibling cancellation."
+    },
+    {
+      "id": "WRQ07",
+      "instances": 1,
+      "guestEvaluations": 1,
+      "topic": "Capability refusal, finite schemas, stale responses and capture/load admission",
+      "guestSource": "const fs = require('fs'); try { require('worker_threads'); } catch (error) { console.log('module-refused'); } try { fs.writeFileSync('/denied', 'X'); } catch (error) { console.log(error.code); }",
+      "hostSchedule": "dataWrite absent; stdout granted. Before guest eval, validate exactly six inert protocol inputs against the composed proposed validator: cross-realm own-data valid request; own accessor request; extra-key request; hole-bearing doorbell list; stale response seq; unknown authority. No arbitrary host eval/proto identity test. First must admit structurally; other five refuse without operations. This is a future static-control binding obligation, not a remodeled acceptor pass.",
+      "candidateStdoutUtf8": "module-refused\nERR_VNODE_DENIED\n",
+      "candidateStderrUtf8": "",
+      "state": {"/denied": null},
+      "statusCondition": "0 requires complete entry/actual-load/owned-output/exit reconciliation and selected completion contract; protocol negatives never themselves count as guest engine evidence.",
+      "unknown": "Guest capability absence, pre-copy descriptor refusal and dynamic load membership remain unqualified. Fixed entry must exclude eval:true, user-code native eval, nested Worker, subprocess and ambient fs/network/env."
+    },
+    {
+      "id": "WRQ08",
+      "instances": 1,
+      "guestEvaluations": 0,
+      "topic": "Worker heap-limit / termination / capture control, not SafeJS evidence",
+      "trustedEntryData": "A separately sealed static capability-inert entry retains at most32 dense arrays of262144 numeric elements (nominal64MiB element storage), under proposed32/8/8/4 Worker resourceLimits. No eval:true, SafeJS import, user source, external ArrayBuffer or child Worker in this control.",
+      "hostSchedule": "Admit only with independently bounded parent-process containment and verified launch flags; own error/exit listeners immediately. Observe heap-limit failure or bounded loop completion; after5s admission timeout request termination, await real exit and drain captures. Never retry or expand allocation if no failure occurs.",
+      "statusCondition": "Require evidence of actual configured heap enforcement and confirmed retirement; ordinary exit after the bounded loop is a negative qualification observation, not a pass. Neither result proves RSS/external-memory limits or hard termination latency.",
+      "unknown": "Startup feasibility and actual limit behavior are unrun. Without independent process containment this proposed stress control remains inadmissible; no executable grant is issued."
+    }
+  ],
+  "newExecutions": {"workers": 0, "guestEvaluations": 0, "engineImports": 0, "controls": 0, "builds": 0, "installs": 0},
+  "outcomes": "All candidate observations are requirements or discrimination questions, never measured passes. Existing engine grammar limitations must be separated from CLI/provider feasibility."
+}

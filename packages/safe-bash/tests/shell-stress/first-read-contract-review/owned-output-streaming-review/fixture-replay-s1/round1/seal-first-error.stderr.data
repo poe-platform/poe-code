@@ -1,0 +1,23 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: /Users/kjopek/Workspace/safe-bash/package.json
++ actual - expected
+
++ 'b4ae6338424b9bab15c8c914dc626cda692b70860d76d9f86e06f25130fdb80d'
+- '8e2f368f83680bf443335e7347328abe7d74d6b23768f283b3a8b0970aca5427'
+
+    at file:///private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/seal.mjs:14:134
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 'b4ae6338424b9bab15c8c914dc626cda692b70860d76d9f86e06f25130fdb80d',
+  expected: '8e2f368f83680bf443335e7347328abe7d74d6b23768f283b3a8b0970aca5427',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.2

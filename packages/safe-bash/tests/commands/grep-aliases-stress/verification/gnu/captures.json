@@ -1,0 +1,1143 @@
+{
+  "classification": "raw-GNU-native-capture-not-candidate-results",
+  "startedAt": "2026-08-27T14:35:32.253Z",
+  "corpusSha256": "a745efbc79d4c48d31b6a5e3e5e5fe51de0bd19f1a51dd66d984abc24f7161a8",
+  "helperSha256": "c513caddf75bf5d12515927eb3603f2a15640e9bc23f19daadd532306c709a7a",
+  "nativeDirectory": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src",
+  "pins": {
+    "grep": "e6f4094b2abbe43e2740d6bc32481a1e6bc3de86a754db23c920ddec56a48743",
+    "egrep": "6848c4b9df827591f8af3d846c98b4766d262f06c440efb8b6535eb6accac084",
+    "fgrep": "e512071d46a7816b96564588c5ebbd1b9189212aa4130e453eb7cdcaabd30f9a"
+  },
+  "archiveSha256": "2649b27c0e90e632eadcd757be06c6e9a4f48d941de51e7c0f83ff76408a07b9",
+  "environment": {
+    "PATH": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src:/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "HOME": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/home",
+    "TMPDIR": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct"
+  },
+  "nativeRoot": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct",
+  "stderrTransformations": [],
+  "candidateRuns": 0,
+  "nativeChildCount": 55,
+  "versions": [
+    {
+      "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/grep",
+      "args": [
+        "--version"
+      ],
+      "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct",
+      "stdinHex": "",
+      "stdoutHex": "677265702028474e5520677265702920332e31320a436f70797269676874202843292032303235204672656520536f66747761726520466f756e646174696f6e2c20496e632e0a4c6963656e73652047504c76332b3a20474e552047504c2076657273696f6e2033206f72206c61746572203c68747470733a2f2f676e752e6f72672f6c6963656e7365732f67706c2e68746d6c3e2e0a54686973206973206672656520736f6674776172653a20796f7520617265206672656520746f206368616e676520616e64207265646973747269627574652069742e0a5468657265206973204e4f2057415252414e54592c20746f2074686520657874656e74207065726d6974746564206279206c61772e0a0a5772697474656e206279204d696b65204861657274656c20616e64206f74686572733b207365650a3c68747470733a2f2f6769742e736176616e6e61682e676e752e6f72672f636769742f677265702e6769742f747265652f415554484f52533e2e0a",
+      "stderrHex": "",
+      "status": 0,
+      "signal": null,
+      "launchError": null
+    },
+    {
+      "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/egrep",
+      "args": [
+        "--version"
+      ],
+      "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct",
+      "stdinHex": "",
+      "stdoutHex": "677265702028474e5520677265702920332e31320a436f70797269676874202843292032303235204672656520536f66747761726520466f756e646174696f6e2c20496e632e0a4c6963656e73652047504c76332b3a20474e552047504c2076657273696f6e2033206f72206c61746572203c68747470733a2f2f676e752e6f72672f6c6963656e7365732f67706c2e68746d6c3e2e0a54686973206973206672656520736f6674776172653a20796f7520617265206672656520746f206368616e676520616e64207265646973747269627574652069742e0a5468657265206973204e4f2057415252414e54592c20746f2074686520657874656e74207065726d6974746564206279206c61772e0a0a5772697474656e206279204d696b65204861657274656c20616e64206f74686572733b207365650a3c68747470733a2f2f6769742e736176616e6e61682e676e752e6f72672f636769742f677265702e6769742f747265652f415554484f52533e2e0a",
+      "stderrHex": "65677265703a207761726e696e673a206567726570206973206f62736f6c657363656e743b207573696e672067726570202d450a",
+      "status": 0,
+      "signal": null,
+      "launchError": null
+    },
+    {
+      "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/fgrep",
+      "args": [
+        "--version"
+      ],
+      "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct",
+      "stdinHex": "",
+      "stdoutHex": "677265702028474e5520677265702920332e31320a436f70797269676874202843292032303235204672656520536f66747761726520466f756e646174696f6e2c20496e632e0a4c6963656e73652047504c76332b3a20474e552047504c2076657273696f6e2033206f72206c61746572203c68747470733a2f2f676e752e6f72672f6c6963656e7365732f67706c2e68746d6c3e2e0a54686973206973206672656520736f6674776172653a20796f7520617265206672656520746f206368616e676520616e64207265646973747269627574652069742e0a5468657265206973204e4f2057415252414e54592c20746f2074686520657874656e74207065726d6974746564206279206c61772e0a0a5772697474656e206279204d696b65204861657274656c20616e64206f74686572733b207365650a3c68747470733a2f2f6769742e736176616e6e61682e676e752e6f72672f636769742f677265702e6769742f747265652f415554484f52533e2e0a",
+      "stderrHex": "66677265703a207761726e696e673a206667726570206973206f62736f6c657363656e743b207573696e672067726570202d460a",
+      "status": 0,
+      "signal": null,
+      "launchError": null
+    }
+  ],
+  "records": [
+    {
+      "id": "N01",
+      "filesBeforeHex": {},
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/egrep",
+          "args": [
+            "-n",
+            "^(red|blue)$"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N01",
+          "stdinHex": "7265640a626c75650a7265647c626c75650a677265656e0a",
+          "stdoutHex": "313a7265640a323a626c75650a",
+          "stderrHex": "65677265703a207761726e696e673a206567726570206973206f62736f6c657363656e743b207573696e672067726570202d450a",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        },
+        {
+          "repeat": 2,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/egrep",
+          "args": [
+            "-n",
+            "^(red|blue)$"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N01",
+          "stdinHex": "7265640a626c75650a7265647c626c75650a677265656e0a",
+          "stdoutHex": "313a7265640a323a626c75650a",
+          "stderrHex": "65677265703a207761726e696e673a206567726570206973206f62736f6c657363656e743b207573696e672067726570202d450a",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        }
+      ]
+    },
+    {
+      "id": "N02",
+      "filesBeforeHex": {},
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/fgrep",
+          "args": [
+            "-n",
+            "red|blue"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N02",
+          "stdinHex": "7265640a626c75650a7265647c626c75650a677265656e0a",
+          "stdoutHex": "333a7265647c626c75650a",
+          "stderrHex": "66677265703a207761726e696e673a206667726570206973206f62736f6c657363656e743b207573696e672067726570202d460a",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        },
+        {
+          "repeat": 2,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/fgrep",
+          "args": [
+            "-n",
+            "red|blue"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N02",
+          "stdinHex": "7265640a626c75650a7265647c626c75650a677265656e0a",
+          "stdoutHex": "333a7265647c626c75650a",
+          "stderrHex": "66677265703a207761726e696e673a206667726570206973206f62736f6c657363656e743b207573696e672067726570202d460a",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        }
+      ]
+    },
+    {
+      "id": "N03",
+      "filesBeforeHex": {},
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/egrep",
+          "args": [
+            "-F",
+            "a+b"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N03",
+          "stdinHex": "612b620a61620a616161620a615c2b620a",
+          "stdoutHex": "",
+          "stderrHex": "65677265703a207761726e696e673a206567726570206973206f62736f6c657363656e743b207573696e672067726570202d450a677265703a20636f6e666c696374696e67206d61746368657273207370656369666965640a",
+          "status": 2,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        },
+        {
+          "repeat": 2,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/egrep",
+          "args": [
+            "-F",
+            "a+b"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N03",
+          "stdinHex": "612b620a61620a616161620a615c2b620a",
+          "stdoutHex": "",
+          "stderrHex": "65677265703a207761726e696e673a206567726570206973206f62736f6c657363656e743b207573696e672067726570202d450a677265703a20636f6e666c696374696e67206d61746368657273207370656369666965640a",
+          "status": 2,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        }
+      ]
+    },
+    {
+      "id": "N04",
+      "filesBeforeHex": {},
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/fgrep",
+          "args": [
+            "-E",
+            "a+b"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N04",
+          "stdinHex": "612b620a61620a616161620a615c2b620a",
+          "stdoutHex": "",
+          "stderrHex": "66677265703a207761726e696e673a206667726570206973206f62736f6c657363656e743b207573696e672067726570202d460a677265703a20636f6e666c696374696e67206d61746368657273207370656369666965640a",
+          "status": 2,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        },
+        {
+          "repeat": 2,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/fgrep",
+          "args": [
+            "-E",
+            "a+b"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N04",
+          "stdinHex": "612b620a61620a616161620a615c2b620a",
+          "stdoutHex": "",
+          "stderrHex": "66677265703a207761726e696e673a206667726570206973206f62736f6c657363656e743b207573696e672067726570202d460a677265703a20636f6e666c696374696e67206d61746368657273207370656369666965640a",
+          "status": 2,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        }
+      ]
+    },
+    {
+      "id": "N05",
+      "filesBeforeHex": {},
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/egrep",
+          "args": [
+            "-G",
+            "a+b"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N05",
+          "stdinHex": "612b620a61620a616161620a615c2b620a",
+          "stdoutHex": "",
+          "stderrHex": "65677265703a207761726e696e673a206567726570206973206f62736f6c657363656e743b207573696e672067726570202d450a677265703a20636f6e666c696374696e67206d61746368657273207370656369666965640a",
+          "status": 2,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        },
+        {
+          "repeat": 2,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/egrep",
+          "args": [
+            "-G",
+            "a+b"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N05",
+          "stdinHex": "612b620a61620a616161620a615c2b620a",
+          "stdoutHex": "",
+          "stderrHex": "65677265703a207761726e696e673a206567726570206973206f62736f6c657363656e743b207573696e672067726570202d450a677265703a20636f6e666c696374696e67206d61746368657273207370656369666965640a",
+          "status": 2,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        }
+      ]
+    },
+    {
+      "id": "N06",
+      "filesBeforeHex": {},
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/fgrep",
+          "args": [
+            "-G",
+            "a+b"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N06",
+          "stdinHex": "612b620a61620a616161620a615c2b620a",
+          "stdoutHex": "",
+          "stderrHex": "66677265703a207761726e696e673a206667726570206973206f62736f6c657363656e743b207573696e672067726570202d460a677265703a20636f6e666c696374696e67206d61746368657273207370656369666965640a",
+          "status": 2,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        },
+        {
+          "repeat": 2,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/fgrep",
+          "args": [
+            "-G",
+            "a+b"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N06",
+          "stdinHex": "612b620a61620a616161620a615c2b620a",
+          "stdoutHex": "",
+          "stderrHex": "66677265703a207761726e696e673a206667726570206973206f62736f6c657363656e743b207573696e672067726570202d460a677265703a20636f6e666c696374696e67206d61746368657273207370656369666965640a",
+          "status": 2,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        }
+      ]
+    },
+    {
+      "id": "N07",
+      "filesBeforeHex": {},
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/egrep",
+          "args": [
+            "-E",
+            "-F",
+            "a+b"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N07",
+          "stdinHex": "612b620a61620a616161620a615c2b620a",
+          "stdoutHex": "",
+          "stderrHex": "65677265703a207761726e696e673a206567726570206973206f62736f6c657363656e743b207573696e672067726570202d450a677265703a20636f6e666c696374696e67206d61746368657273207370656369666965640a",
+          "status": 2,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        },
+        {
+          "repeat": 2,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/egrep",
+          "args": [
+            "-E",
+            "-F",
+            "a+b"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N07",
+          "stdinHex": "612b620a61620a616161620a615c2b620a",
+          "stdoutHex": "",
+          "stderrHex": "65677265703a207761726e696e673a206567726570206973206f62736f6c657363656e743b207573696e672067726570202d450a677265703a20636f6e666c696374696e67206d61746368657273207370656369666965640a",
+          "status": 2,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        }
+      ]
+    },
+    {
+      "id": "N08",
+      "filesBeforeHex": {},
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/fgrep",
+          "args": [
+            "-F",
+            "-E",
+            "a+b"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N08",
+          "stdinHex": "612b620a61620a616161620a615c2b620a",
+          "stdoutHex": "",
+          "stderrHex": "66677265703a207761726e696e673a206667726570206973206f62736f6c657363656e743b207573696e672067726570202d460a677265703a20636f6e666c696374696e67206d61746368657273207370656369666965640a",
+          "status": 2,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        },
+        {
+          "repeat": 2,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/fgrep",
+          "args": [
+            "-F",
+            "-E",
+            "a+b"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N08",
+          "stdinHex": "612b620a61620a616161620a615c2b620a",
+          "stdoutHex": "",
+          "stderrHex": "66677265703a207761726e696e673a206667726570206973206f62736f6c657363656e743b207573696e672067726570202d460a677265703a20636f6e666c696374696e67206d61746368657273207370656369666965640a",
+          "status": 2,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        }
+      ]
+    },
+    {
+      "id": "N09",
+      "filesBeforeHex": {},
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/egrep",
+          "args": [
+            "-e",
+            "^ant$",
+            "-e",
+            "^cat$"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N09",
+          "stdinHex": "616e740a6265650a6361740a414e540a",
+          "stdoutHex": "616e740a6361740a",
+          "stderrHex": "65677265703a207761726e696e673a206567726570206973206f62736f6c657363656e743b207573696e672067726570202d450a",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        },
+        {
+          "repeat": 2,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/egrep",
+          "args": [
+            "-e",
+            "^ant$",
+            "-e",
+            "^cat$"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N09",
+          "stdinHex": "616e740a6265650a6361740a414e540a",
+          "stdoutHex": "616e740a6361740a",
+          "stderrHex": "65677265703a207761726e696e673a206567726570206973206f62736f6c657363656e743b207573696e672067726570202d450a",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        }
+      ]
+    },
+    {
+      "id": "N10",
+      "filesBeforeHex": {
+        "patterns.txt": "616e740a6361740a",
+        "subjects.txt": "616e740a6265650a6361740a414e540a"
+      },
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/fgrep",
+          "args": [
+            "-f",
+            "patterns.txt",
+            "subjects.txt"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N10",
+          "stdinHex": "",
+          "stdoutHex": "616e740a6361740a",
+          "stderrHex": "66677265703a207761726e696e673a206667726570206973206f62736f6c657363656e743b207573696e672067726570202d460a",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {
+            "patterns.txt": "616e740a6361740a",
+            "subjects.txt": "616e740a6265650a6361740a414e540a"
+          }
+        },
+        {
+          "repeat": 2,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/fgrep",
+          "args": [
+            "-f",
+            "patterns.txt",
+            "subjects.txt"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N10",
+          "stdinHex": "",
+          "stdoutHex": "616e740a6361740a",
+          "stderrHex": "66677265703a207761726e696e673a206667726570206973206f62736f6c657363656e743b207573696e672067726570202d460a",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {
+            "patterns.txt": "616e740a6361740a",
+            "subjects.txt": "616e740a6265650a6361740a414e540a"
+          }
+        }
+      ]
+    },
+    {
+      "id": "N11",
+      "filesBeforeHex": {
+        "subjects.txt": "616e740a6265650a6361740a414e540a"
+      },
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/egrep",
+          "args": [
+            "-f",
+            "-",
+            "subjects.txt"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N11",
+          "stdinHex": "5e28616e747c63617429240a",
+          "stdoutHex": "616e740a6361740a",
+          "stderrHex": "65677265703a207761726e696e673a206567726570206973206f62736f6c657363656e743b207573696e672067726570202d450a",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {
+            "subjects.txt": "616e740a6265650a6361740a414e540a"
+          }
+        },
+        {
+          "repeat": 2,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/egrep",
+          "args": [
+            "-f",
+            "-",
+            "subjects.txt"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N11",
+          "stdinHex": "5e28616e747c63617429240a",
+          "stdoutHex": "616e740a6361740a",
+          "stderrHex": "65677265703a207761726e696e673a206567726570206973206f62736f6c657363656e743b207573696e672067726570202d450a",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {
+            "subjects.txt": "616e740a6265650a6361740a414e540a"
+          }
+        }
+      ]
+    },
+    {
+      "id": "N12",
+      "filesBeforeHex": {},
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/fgrep",
+          "args": [
+            "-e",
+            "-needle"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N12",
+          "stdinHex": "2d6e6565646c650a6e6565646c650a2d2d6e6565646c650a",
+          "stdoutHex": "2d6e6565646c650a2d2d6e6565646c650a",
+          "stderrHex": "66677265703a207761726e696e673a206667726570206973206f62736f6c657363656e743b207573696e672067726570202d460a",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        },
+        {
+          "repeat": 2,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/fgrep",
+          "args": [
+            "-e",
+            "-needle"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N12",
+          "stdinHex": "2d6e6565646c650a6e6565646c650a2d2d6e6565646c650a",
+          "stdoutHex": "2d6e6565646c650a2d2d6e6565646c650a",
+          "stderrHex": "66677265703a207761726e696e673a206667726570206973206f62736f6c657363656e743b207573696e672067726570202d460a",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        }
+      ]
+    },
+    {
+      "id": "N13",
+      "filesBeforeHex": {},
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/egrep",
+          "args": [
+            "--",
+            "-needle"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N13",
+          "stdinHex": "2d6e6565646c650a6e6565646c650a2d2d6e6565646c650a",
+          "stdoutHex": "2d6e6565646c650a2d2d6e6565646c650a",
+          "stderrHex": "65677265703a207761726e696e673a206567726570206973206f62736f6c657363656e743b207573696e672067726570202d450a",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        },
+        {
+          "repeat": 2,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/egrep",
+          "args": [
+            "--",
+            "-needle"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N13",
+          "stdinHex": "2d6e6565646c650a6e6565646c650a2d2d6e6565646c650a",
+          "stdoutHex": "2d6e6565646c650a2d2d6e6565646c650a",
+          "stderrHex": "65677265703a207761726e696e673a206567726570206973206f62736f6c657363656e743b207573696e672067726570202d450a",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        }
+      ]
+    },
+    {
+      "id": "N14",
+      "filesBeforeHex": {
+        "a.txt": "6869743a610a6d6973730a6869743a620a",
+        "b.txt": "6e6f6e650a6869743a630a"
+      },
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/egrep",
+          "args": [
+            "-n",
+            "^hit:",
+            "a.txt",
+            "b.txt"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N14",
+          "stdinHex": "",
+          "stdoutHex": "612e7478743a313a6869743a610a612e7478743a333a6869743a620a622e7478743a323a6869743a630a",
+          "stderrHex": "65677265703a207761726e696e673a206567726570206973206f62736f6c657363656e743b207573696e672067726570202d450a",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {
+            "a.txt": "6869743a610a6d6973730a6869743a620a",
+            "b.txt": "6e6f6e650a6869743a630a"
+          }
+        },
+        {
+          "repeat": 2,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/egrep",
+          "args": [
+            "-n",
+            "^hit:",
+            "a.txt",
+            "b.txt"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N14",
+          "stdinHex": "",
+          "stdoutHex": "612e7478743a313a6869743a610a612e7478743a333a6869743a620a622e7478743a323a6869743a630a",
+          "stderrHex": "65677265703a207761726e696e673a206567726570206973206f62736f6c657363656e743b207573696e672067726570202d450a",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {
+            "a.txt": "6869743a610a6d6973730a6869743a620a",
+            "b.txt": "6e6f6e650a6869743a630a"
+          }
+        }
+      ]
+    },
+    {
+      "id": "N15",
+      "filesBeforeHex": {
+        "b.txt": "6e6f6e650a6869743a630a"
+      },
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/fgrep",
+          "args": [
+            "-n",
+            "hit:",
+            "-",
+            "b.txt"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N15",
+          "stdinHex": "6869743a737464696e0a",
+          "stdoutHex": "287374616e6461726420696e707574293a313a6869743a737464696e0a622e7478743a323a6869743a630a",
+          "stderrHex": "66677265703a207761726e696e673a206667726570206973206f62736f6c657363656e743b207573696e672067726570202d460a",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {
+            "b.txt": "6e6f6e650a6869743a630a"
+          }
+        },
+        {
+          "repeat": 2,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/fgrep",
+          "args": [
+            "-n",
+            "hit:",
+            "-",
+            "b.txt"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N15",
+          "stdinHex": "6869743a737464696e0a",
+          "stdoutHex": "287374616e6461726420696e707574293a313a6869743a737464696e0a622e7478743a323a6869743a630a",
+          "stderrHex": "66677265703a207761726e696e673a206667726570206973206f62736f6c657363656e743b207573696e672067726570202d460a",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {
+            "b.txt": "6e6f6e650a6869743a630a"
+          }
+        }
+      ]
+    },
+    {
+      "id": "N16",
+      "filesBeforeHex": {},
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/fgrep",
+          "args": [
+            "absent"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N16",
+          "stdinHex": "7265640a626c75650a7265647c626c75650a677265656e0a",
+          "stdoutHex": "",
+          "stderrHex": "66677265703a207761726e696e673a206667726570206973206f62736f6c657363656e743b207573696e672067726570202d460a",
+          "status": 1,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        },
+        {
+          "repeat": 2,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/fgrep",
+          "args": [
+            "absent"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N16",
+          "stdinHex": "7265640a626c75650a7265647c626c75650a677265656e0a",
+          "stdoutHex": "",
+          "stderrHex": "66677265703a207761726e696e673a206667726570206973206f62736f6c657363656e743b207573696e672067726570202d460a",
+          "status": 1,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        }
+      ]
+    },
+    {
+      "id": "N17",
+      "filesBeforeHex": {},
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/egrep",
+          "args": [
+            "hit",
+            "absent.txt"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N17",
+          "stdinHex": "",
+          "stdoutHex": "",
+          "stderrHex": "65677265703a207761726e696e673a206567726570206973206f62736f6c657363656e743b207573696e672067726570202d450a677265703a20616273656e742e7478743a204e6f20737563682066696c65206f72206469726563746f72790a",
+          "status": 2,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        },
+        {
+          "repeat": 2,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/egrep",
+          "args": [
+            "hit",
+            "absent.txt"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N17",
+          "stdinHex": "",
+          "stdoutHex": "",
+          "stderrHex": "65677265703a207761726e696e673a206567726570206973206f62736f6c657363656e743b207573696e672067726570202d450a677265703a20616273656e742e7478743a204e6f20737563682066696c65206f72206469726563746f72790a",
+          "status": 2,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        }
+      ]
+    },
+    {
+      "id": "N18",
+      "filesBeforeHex": {},
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/egrep",
+          "args": [
+            "["
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N18",
+          "stdinHex": "7265640a626c75650a7265647c626c75650a677265656e0a",
+          "stdoutHex": "",
+          "stderrHex": "65677265703a207761726e696e673a206567726570206973206f62736f6c657363656e743b207573696e672067726570202d450a677265703a20496e76616c696420726567756c61722065787072657373696f6e0a",
+          "status": 2,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        },
+        {
+          "repeat": 2,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/egrep",
+          "args": [
+            "["
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N18",
+          "stdinHex": "7265640a626c75650a7265647c626c75650a677265656e0a",
+          "stdoutHex": "",
+          "stderrHex": "65677265703a207761726e696e673a206567726570206973206f62736f6c657363656e743b207573696e672067726570202d450a677265703a20496e76616c696420726567756c61722065787072657373696f6e0a",
+          "status": 2,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        }
+      ]
+    },
+    {
+      "id": "N19",
+      "filesBeforeHex": {},
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/fgrep",
+          "args": [
+            "-e"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N19",
+          "stdinHex": "",
+          "stdoutHex": "",
+          "stderrHex": "66677265703a207761726e696e673a206667726570206973206f62736f6c657363656e743b207573696e672067726570202d460a677265703a206f7074696f6e20726571756972657320616e20617267756d656e74202d2d202765270a55736167653a2067726570205b4f5054494f4e5d2e2e2e205041545445524e53205b46494c455d2e2e2e0a547279202767726570202d2d68656c702720666f72206d6f726520696e666f726d6174696f6e2e0a",
+          "status": 2,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        },
+        {
+          "repeat": 2,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/fgrep",
+          "args": [
+            "-e"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N19",
+          "stdinHex": "",
+          "stdoutHex": "",
+          "stderrHex": "66677265703a207761726e696e673a206667726570206973206f62736f6c657363656e743b207573696e672067726570202d460a677265703a206f7074696f6e20726571756972657320616e20617267756d656e74202d2d202765270a55736167653a2067726570205b4f5054494f4e5d2e2e2e205041545445524e53205b46494c455d2e2e2e0a547279202767726570202d2d68656c702720666f72206d6f726520696e666f726d6174696f6e2e0a",
+          "status": 2,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        }
+      ]
+    },
+    {
+      "id": "N20",
+      "filesBeforeHex": {},
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/fgrep",
+          "args": [
+            "-a",
+            "hit"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N20",
+          "stdinHex": "ff6869740a686974fe0a6d6973730a",
+          "stdoutHex": "ff6869740a686974fe0a",
+          "stderrHex": "66677265703a207761726e696e673a206667726570206973206f62736f6c657363656e743b207573696e672067726570202d460a",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        },
+        {
+          "repeat": 2,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/fgrep",
+          "args": [
+            "-a",
+            "hit"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N20",
+          "stdinHex": "ff6869740a686974fe0a6d6973730a",
+          "stdoutHex": "ff6869740a686974fe0a",
+          "stderrHex": "66677265703a207761726e696e673a206667726570206973206f62736f6c657363656e743b207573696e672067726570202d460a",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        }
+      ]
+    },
+    {
+      "id": "N21",
+      "filesBeforeHex": {},
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/egrep",
+          "args": [
+            "-z",
+            "^(red|blue)$"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N21",
+          "stdinHex": "72656400626c7565007265647c626c756500677265656e00",
+          "stdoutHex": "72656400626c756500",
+          "stderrHex": "65677265703a207761726e696e673a206567726570206973206f62736f6c657363656e743b207573696e672067726570202d450a",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        },
+        {
+          "repeat": 2,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/egrep",
+          "args": [
+            "-z",
+            "^(red|blue)$"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N21",
+          "stdinHex": "72656400626c7565007265647c626c756500677265656e00",
+          "stdoutHex": "72656400626c756500",
+          "stderrHex": "65677265703a207761726e696e673a206567726570206973206f62736f6c657363656e743b207573696e672067726570202d450a",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        }
+      ]
+    },
+    {
+      "id": "N22",
+      "filesBeforeHex": {},
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/fgrep",
+          "args": [
+            "hit"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N22",
+          "stdinHex": "6d6973730a6869743a6c617374",
+          "stdoutHex": "6869743a6c6173740a",
+          "stderrHex": "66677265703a207761726e696e673a206667726570206973206f62736f6c657363656e743b207573696e672067726570202d460a",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        },
+        {
+          "repeat": 2,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/fgrep",
+          "args": [
+            "hit"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N22",
+          "stdinHex": "6d6973730a6869743a6c617374",
+          "stdoutHex": "6869743a6c6173740a",
+          "stderrHex": "66677265703a207761726e696e673a206667726570206973206f62736f6c657363656e743b207573696e672067726570202d460a",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        }
+      ]
+    },
+    {
+      "id": "N23",
+      "filesBeforeHex": {
+        "empty.patterns": ""
+      },
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/egrep",
+          "args": [
+            "-f",
+            "empty.patterns"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N23",
+          "stdinHex": "7265640a626c75650a7265647c626c75650a677265656e0a",
+          "stdoutHex": "",
+          "stderrHex": "65677265703a207761726e696e673a206567726570206973206f62736f6c657363656e743b207573696e672067726570202d450a",
+          "status": 1,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {
+            "empty.patterns": ""
+          }
+        },
+        {
+          "repeat": 2,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/egrep",
+          "args": [
+            "-f",
+            "empty.patterns"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N23",
+          "stdinHex": "7265640a626c75650a7265647c626c75650a677265656e0a",
+          "stdoutHex": "",
+          "stderrHex": "65677265703a207761726e696e673a206567726570206973206f62736f6c657363656e743b207573696e672067726570202d450a",
+          "status": 1,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {
+            "empty.patterns": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "N24",
+      "filesBeforeHex": {
+        "a.txt": "6869743a610a6d6973730a6869743a620a"
+      },
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/fgrep",
+          "args": [
+            "-q",
+            "hit",
+            "a.txt"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N24",
+          "stdinHex": "",
+          "stdoutHex": "",
+          "stderrHex": "66677265703a207761726e696e673a206667726570206973206f62736f6c657363656e743b207573696e672067726570202d460a",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {
+            "a.txt": "6869743a610a6d6973730a6869743a620a"
+          }
+        },
+        {
+          "repeat": 2,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/fgrep",
+          "args": [
+            "-q",
+            "hit",
+            "a.txt"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N24",
+          "stdinHex": "",
+          "stdoutHex": "",
+          "stderrHex": "66677265703a207761726e696e673a206667726570206973206f62736f6c657363656e743b207573696e672067726570202d460a",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {
+            "a.txt": "6869743a610a6d6973730a6869743a620a"
+          }
+        }
+      ]
+    },
+    {
+      "id": "N25",
+      "filesBeforeHex": {
+        "a.txt": "6869743a610a6d6973730a6869743a620a",
+        "b.txt": "6e6f6e650a6869743a630a"
+      },
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/egrep",
+          "args": [
+            "-v",
+            "-c",
+            "^hit:",
+            "a.txt",
+            "b.txt"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N25",
+          "stdinHex": "",
+          "stdoutHex": "612e7478743a310a622e7478743a310a",
+          "stderrHex": "65677265703a207761726e696e673a206567726570206973206f62736f6c657363656e743b207573696e672067726570202d450a",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {
+            "a.txt": "6869743a610a6d6973730a6869743a620a",
+            "b.txt": "6e6f6e650a6869743a630a"
+          }
+        },
+        {
+          "repeat": 2,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/egrep",
+          "args": [
+            "-v",
+            "-c",
+            "^hit:",
+            "a.txt",
+            "b.txt"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N25",
+          "stdinHex": "",
+          "stdoutHex": "612e7478743a310a622e7478743a310a",
+          "stderrHex": "65677265703a207761726e696e673a206567726570206973206f62736f6c657363656e743b207573696e672067726570202d450a",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {
+            "a.txt": "6869743a610a6d6973730a6869743a620a",
+            "b.txt": "6e6f6e650a6869743a630a"
+          }
+        }
+      ]
+    },
+    {
+      "id": "N26",
+      "filesBeforeHex": {
+        "a.txt": "6869743a610a6d6973730a6869743a620a"
+      },
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/fgrep",
+          "args": [
+            "-f",
+            "absent.patterns",
+            "a.txt"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N26",
+          "stdinHex": "",
+          "stdoutHex": "",
+          "stderrHex": "66677265703a207761726e696e673a206667726570206973206f62736f6c657363656e743b207573696e672067726570202d460a677265703a20616273656e742e7061747465726e733a204e6f20737563682066696c65206f72206469726563746f72790a",
+          "status": 2,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {
+            "a.txt": "6869743a610a6d6973730a6869743a620a"
+          }
+        },
+        {
+          "repeat": 2,
+          "executable": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/fgrep",
+          "args": [
+            "-f",
+            "absent.patterns",
+            "a.txt"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/gnu-native-ZxK4ct/N26",
+          "stdinHex": "",
+          "stdoutHex": "",
+          "stderrHex": "66677265703a207761726e696e673a206667726570206973206f62736f6c657363656e743b207573696e672067726570202d460a677265703a20616273656e742e7061747465726e733a204e6f20737563682066696c65206f72206469726563746f72790a",
+          "status": 2,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {
+            "a.txt": "6869743a610a6d6973730a6869743a620a"
+          }
+        }
+      ]
+    }
+  ],
+  "bounds": {
+    "timeoutMs": 2000,
+    "maxBufferBytes": 65536,
+    "killSignal": "SIGKILL",
+    "concurrency": 1
+  },
+  "exactOwnedNativeRootRemoved": true,
+  "endedAt": "2026-08-27T14:35:32.994Z"
+}

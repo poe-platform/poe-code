@@ -1,0 +1,231 @@
+{
+  "status": "PURE_PASS",
+  "author": {
+    "cases": [
+      {
+        "id": "P01",
+        "pass": true
+      },
+      {
+        "id": "P02",
+        "pass": true
+      },
+      {
+        "id": "P03",
+        "pass": true
+      },
+      {
+        "id": "P04",
+        "pass": true
+      },
+      {
+        "id": "P05",
+        "pass": true
+      },
+      {
+        "id": "P06",
+        "pass": true
+      },
+      {
+        "id": "P07",
+        "pass": true
+      },
+      {
+        "id": "P08",
+        "pass": true
+      },
+      {
+        "id": "P09",
+        "pass": true
+      },
+      {
+        "id": "P10",
+        "pass": true
+      },
+      {
+        "id": "P11",
+        "pass": true
+      },
+      {
+        "id": "P12",
+        "pass": true
+      }
+    ],
+    "passed": 12,
+    "total": 12,
+    "loaded": [
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-independent-20260829/corrections-v1/emitted/transport/accounting.js",
+        "bytes": 6678,
+        "mode": 420,
+        "sha256": "5515cbc0923cd568c84e20e6426a5412acafe47807a78d794903a67873d87677"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-independent-20260829/corrections-v1/emitted/limits.js",
+        "bytes": 3265,
+        "mode": 420,
+        "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-independent-20260829/corrections-v1/emitted/transport/protocol.js",
+        "bytes": 1198,
+        "mode": 420,
+        "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-independent-20260829/corrections-v1/emitted/errors.js",
+        "bytes": 1045,
+        "mode": 420,
+        "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-independent-20260829/corrections-v1/emitted/transport/validation.js",
+        "bytes": 12419,
+        "mode": 420,
+        "sha256": "481ebcabf4d2d0368fe8992403b3b07510334e50a3ebaccbaf1742b5b0bb26fd"
+      }
+    ],
+    "workerAcquisitions": 0,
+    "matchingCalls": 0
+  },
+  "independent": {
+    "rows": [
+      {
+        "id": "N01",
+        "pass": true,
+        "detail": null
+      },
+      {
+        "id": "N02",
+        "pass": true,
+        "detail": null
+      },
+      {
+        "id": "N03",
+        "pass": true,
+        "detail": null
+      },
+      {
+        "id": "N04",
+        "pass": true,
+        "detail": {
+          "nativeUndefinedAbortIsDOMException": true
+        }
+      },
+      {
+        "id": "N05",
+        "pass": true,
+        "detail": null
+      },
+      {
+        "id": "N06",
+        "pass": true,
+        "detail": {
+          "engineAllowanceWork": 0,
+          "acceptedValidation": true,
+          "sourceUsesSeparate50000000Counter": true,
+          "WorkerExecution": false
+        }
+      },
+      {
+        "id": "N07",
+        "pass": true,
+        "detail": {
+          "explicitValidationVisits": 39,
+          "publishedEngineUsageWork": 0,
+          "sourceWorkerVisitor": "no-op",
+          "actualWorker": false
+        }
+      },
+      {
+        "id": "N08",
+        "pass": true,
+        "detail": {
+          "nominalRoot": 61,
+          "nominalWorker": 68,
+          "notOwnerAllocationProof": true
+        }
+      },
+      {
+        "id": "N09",
+        "pass": true,
+        "detail": null
+      },
+      {
+        "id": "N10",
+        "pass": true,
+        "detail": null
+      },
+      {
+        "id": "N11",
+        "pass": true,
+        "detail": {
+          "finiteExtraKeys": 32,
+          "traps": 0,
+          "nativeAllocationNotMeasured": true,
+          "historicalS04Unchanged": true
+        }
+      },
+      {
+        "id": "N12",
+        "pass": true,
+        "detail": null
+      }
+    ],
+    "passed": 12,
+    "total": 12,
+    "Workers": 0,
+    "matchingCalls": 0
+  },
+  "loads": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-independent-20260829/corrections-v1/author.mjs",
+      "bytes": 9210,
+      "mode": 420,
+      "sha256": "f15fa2155b7e99e2199690ccc78017e7abb205602b0aa9ae4fbe10fb34565787"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-independent-20260829/corrections-v1/emitted/transport/accounting.js",
+      "bytes": 6678,
+      "mode": 420,
+      "sha256": "5515cbc0923cd568c84e20e6426a5412acafe47807a78d794903a67873d87677",
+      "archivePath": "RUN-v3/work/emitted/transport/accounting.js"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-independent-20260829/corrections-v1/emitted/limits.js",
+      "bytes": 3265,
+      "mode": 420,
+      "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6",
+      "archivePath": "RUN-v3/work/emitted/limits.js"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-independent-20260829/corrections-v1/emitted/transport/protocol.js",
+      "bytes": 1198,
+      "mode": 420,
+      "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f",
+      "archivePath": "RUN-v3/work/emitted/transport/protocol.js"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-independent-20260829/corrections-v1/emitted/errors.js",
+      "bytes": 1045,
+      "mode": 420,
+      "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44",
+      "archivePath": "RUN-v3/work/emitted/errors.js"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-independent-20260829/corrections-v1/emitted/transport/validation.js",
+      "bytes": 12419,
+      "mode": 420,
+      "sha256": "481ebcabf4d2d0368fe8992403b3b07510334e50a3ebaccbaf1742b5b0bb26fd",
+      "archivePath": "RUN-v3/work/emitted/transport/validation.js"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-independent-20260829/corrections-v1/novel.mjs",
+      "bytes": 6676,
+      "mode": 420,
+      "sha256": "fcdd71694985054b743a40f7f624929cdc384f9d1690921b64780f4dbb513621"
+    }
+  ],
+  "Workers": 0,
+  "matchingCalls": 0
+}

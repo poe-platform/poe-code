@@ -1,0 +1,1 @@
+{"id":"N04","status":"pass","evidence":{"exitCode":0,"stdoutBytes":205,"stderrBytes":0,"fsCalls":18,"comparison":"bytes"}}

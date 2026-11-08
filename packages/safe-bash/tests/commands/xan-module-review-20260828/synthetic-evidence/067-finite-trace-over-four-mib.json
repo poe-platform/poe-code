@@ -1,0 +1,17 @@
+{
+  "id": "finite-trace-over-four-mib",
+  "families": [
+    "F11"
+  ],
+  "observation": {
+    "returned": {
+      "reaped": true,
+      "code": 0,
+      "bytes": 5242954,
+      "expectedBytes": 5242954,
+      "matching": true,
+      "exceeded": false
+    }
+  },
+  "classification": "SYNTHETIC_CONTROL_OBSERVATION_BEFORE_ASSERTION"
+}

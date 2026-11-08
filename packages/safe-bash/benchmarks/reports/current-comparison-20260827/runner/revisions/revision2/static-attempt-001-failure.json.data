@@ -1,0 +1,12 @@
+{
+  "status": "FAILED_STATIC_CONTROL",
+  "exit": 1,
+  "reason": "The ad-hoc capability scan matched child_process/worker_threads/node:net/node:http text inside selfcheck.mjs's own rejection regex, not an executable import.",
+  "preservedStdout": "/tmp/safe-bash-runner-revision2-checks.kYEUpK/static-cli-checks.json",
+  "stderrLocation": "Original tool transcript; stderr was not separately redirected",
+  "correction": "Check actual static import specifiers in all four inspected modules instead of unclassified occurrences of forbidden words. Existing runtime module-graph mock checks remain intact. No product/source predicate relaxed and no runner code changed for this correction.",
+  "earlierAssertionsInAttempt": "Nine CLI receipts,83 mock results and15 archived byte/hash records had already passed before the lexical scan failed.",
+  "engineCalls": 0,
+  "nativeWorkloadCalls": 0,
+  "score": null
+}

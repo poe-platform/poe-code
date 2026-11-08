@@ -1,0 +1,41 @@
+[
+  {
+    "name": "preseal-add",
+    "args": [
+      "add",
+      "--",
+      "tests/integration/agent-bash-coherent-independent-20260829/b0-actual-audit-r3"
+    ],
+    "start": "2026-08-29T12:18:39.115Z",
+    "pid": 88220,
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "close": {
+      "code": 0,
+      "signal": null
+    }
+  },
+  {
+    "name": "preseal-commit",
+    "args": [
+      "commit",
+      "--only",
+      "-m",
+      "test: seal independent B0 actual DATA audit",
+      "--",
+      "tests/integration/agent-bash-coherent-independent-20260829/b0-actual-audit-r3"
+    ],
+    "start": "2026-08-29T12:18:39.279Z",
+    "pid": 88221,
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "close": {
+      "code": 0,
+      "signal": null
+    }
+  }
+]

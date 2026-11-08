@@ -1,0 +1,126 @@
+{
+  "phase": "PURE_SYNTHETIC_AND_TWO_HARMLESS_CHILDREN_ONLY",
+  "productExecutions": 0,
+  "workers": 0,
+  "rows": [
+    {
+      "id": "syntax/owner.mjs",
+      "status": "PASS",
+      "diagnostic": null
+    },
+    {
+      "id": "syntax/harmless.mjs",
+      "status": "PASS",
+      "diagnostic": null
+    },
+    {
+      "id": "syntax/controls.mjs",
+      "status": "PASS",
+      "diagnostic": null
+    },
+    {
+      "id": "clock/NaN-before-acquisition",
+      "status": "PASS"
+    },
+    {
+      "id": "clock/infinite-case-before-acquisition",
+      "status": "PASS"
+    },
+    {
+      "id": "fd/partial-open-closes-first",
+      "status": "PASS"
+    },
+    {
+      "id": "publication/falsy-0-after-enrollment",
+      "status": "PASS"
+    },
+    {
+      "id": "publication/falsy-1-after-enrollment",
+      "status": "PASS"
+    },
+    {
+      "id": "publication/falsy-2-after-enrollment",
+      "status": "PASS"
+    },
+    {
+      "id": "publication/falsy-3-after-enrollment",
+      "status": "PASS"
+    },
+    {
+      "id": "capture/short-write-exact-bytes",
+      "status": "PASS"
+    },
+    {
+      "id": "capture/zero-write-rejects-after-reap",
+      "status": "PASS"
+    },
+    {
+      "id": "capture/cap-before-write",
+      "status": "PASS"
+    },
+    {
+      "id": "deadline/publication-inside-total",
+      "status": "PASS"
+    },
+    {
+      "id": "spawn/no-fabricated-retirement",
+      "status": "PASS"
+    },
+    {
+      "id": "retirement/missing-close-is-unknown",
+      "status": "PASS"
+    },
+    {
+      "id": "actual-zero",
+      "status": "PASS"
+    },
+    {
+      "id": "actual-nonzero",
+      "status": "PASS"
+    }
+  ],
+  "actual": [
+    {
+      "id": "actual-zero",
+      "pid": 65685,
+      "retired": true,
+      "closeObserved": true,
+      "code": 0,
+      "signal": null
+    },
+    {
+      "id": "actual-nonzero",
+      "pid": 65687,
+      "retired": true,
+      "closeObserved": true,
+      "code": 7,
+      "signal": null
+    }
+  ],
+  "sourceSeal": [
+    {
+      "name": "owner.mjs",
+      "sha256": "247dcf01da67894bb3b8b8d09d67b2b5457e730dc5c83a3aeffdc4e95f2730a4"
+    },
+    {
+      "name": "harmless.mjs",
+      "sha256": "6802837fd93d5f35cf42eaeba84bbe561110a1916fa33a083ca94f73ab7f3fdc"
+    },
+    {
+      "name": "controls.mjs",
+      "sha256": "3e534c4ef793721b0532ac6ee7b88e97360926eea5d5905427fec6830a30416e"
+    },
+    {
+      "name": "PRESEAL.md",
+      "sha256": "2e1b947407bf7f10c6da8605301136e894671c06b46b0b3334671c5d08d3abe4"
+    },
+    {
+      "name": "START.json",
+      "sha256": "6cebde2986e06f44f6a5467d446d558c64dfb37714e6c1cdddf3c1eafff96820"
+    }
+  ],
+  "finishedMs": 1788013370835,
+  "deadline": 1788013430745,
+  "actualKnownStarts": 3,
+  "status": "PASS"
+}

@@ -1,0 +1,1707 @@
+{
+  "files": [
+    {
+      "path": "CAPTURE-MANIFEST.json",
+      "bytes": 24640,
+      "sha256": "698ac2e3006a4a301a755d68358d7dac4d7a6b5a428bb9b91962eed2b104e97c",
+      "mode": 384
+    },
+    {
+      "path": "HANDOFF.md",
+      "bytes": 5049,
+      "sha256": "0300bf14337e64d677f59327370c0fdff8ffbcaa11961982c8801e4223146db8",
+      "mode": 384
+    },
+    {
+      "path": "OBSERVATIONS.json",
+      "bytes": 79780,
+      "sha256": "4de9c77b8b53cdd81e7f494f7e1c6bbbe599627096d129363df84142f0dcd865",
+      "mode": 384
+    },
+    {
+      "path": "PREFLIGHT.json",
+      "bytes": 65715,
+      "sha256": "e992cd42525ab13380f469eca29dbc61ebeef922a8f67df3f6d7b48768e48e78",
+      "mode": 384
+    },
+    {
+      "path": "PROTOCOL.md",
+      "bytes": 1620,
+      "sha256": "2d952893a1edc122e2f9aa2e9cf5fd20ce58d90b3cd3664aabe844c70b5bdeac",
+      "mode": 420
+    },
+    {
+      "path": "captured/F02.json.data",
+      "bytes": 1734,
+      "sha256": "2caa1eed36dcca33af8a72e3c982f450b74e2a240bcac23ea4c9d4ebfc11ba1c",
+      "mode": 384
+    },
+    {
+      "path": "captured/F02.observation.nul.data",
+      "bytes": 564,
+      "sha256": "08922d7ad4933440c019022755dc81de736b2739672fed9d37fcd406899b3001",
+      "mode": 384
+    },
+    {
+      "path": "captured/F03.json.data",
+      "bytes": 1734,
+      "sha256": "b0b86ed930e0691df784af8618f8bbd1965193bb9a30b4f0eb1bc5350cc0abd9",
+      "mode": 384
+    },
+    {
+      "path": "captured/F03.observation.nul.data",
+      "bytes": 564,
+      "sha256": "3ee3bc99e1252a56377fc21f30c5f5110cd3dfa9b353ef31a590dcb874a31f02",
+      "mode": 384
+    },
+    {
+      "path": "captured/F04.json.data",
+      "bytes": 1734,
+      "sha256": "c910348f2555ca8151eceb774880f3afa4cc622c537b885eaed7ab72c21ec4dc",
+      "mode": 384
+    },
+    {
+      "path": "captured/F04.observation.nul.data",
+      "bytes": 564,
+      "sha256": "7ec3f715f3ad2eb30b7ea2e10fb06ab464c5dec377d08a0d65967fa90ef5a154",
+      "mode": 384
+    },
+    {
+      "path": "captured/F05.json.data",
+      "bytes": 1799,
+      "sha256": "eb0ccc0fc0a3f6c4ad7828ab4891025af6305e2dd7dd76383cbbf8043cae6798",
+      "mode": 384
+    },
+    {
+      "path": "captured/F05.observation.nul.data",
+      "bytes": 648,
+      "sha256": "a8946b8309b4c2868d6b1b68b361a3380fe99e496c1d0b48770afb09ebe5f0be",
+      "mode": 384
+    },
+    {
+      "path": "captured/F06.json.data",
+      "bytes": 1809,
+      "sha256": "6c588779903c736038df5f6bedb32e008bd1c1ec2656920e7a9b876f6ab78e45",
+      "mode": 384
+    },
+    {
+      "path": "captured/F06.observation.nul.data",
+      "bytes": 639,
+      "sha256": "7bd95647d8578926b4f20ee48ae0c4684899e2de765dfb298fccb13cad77915d",
+      "mode": 384
+    },
+    {
+      "path": "captured/F07.json.data",
+      "bytes": 1932,
+      "sha256": "51e06ee119c20a16628192031315683acbb90441d2b17eeec8cdf5129e8ab1a0",
+      "mode": 384
+    },
+    {
+      "path": "captured/F07.observation.nul.data",
+      "bytes": 762,
+      "sha256": "cba092df996c6f2cf411e0a142ceaed9dc8fe8b1dc7acea648550f34fb0c58e7",
+      "mode": 384
+    },
+    {
+      "path": "captured/F08.json.data",
+      "bytes": 1734,
+      "sha256": "4aee329e405f3fe0f8cb73c6e740a8dff44292ec9c65f210c27296c5793ff57b",
+      "mode": 384
+    },
+    {
+      "path": "captured/F08.observation.nul.data",
+      "bytes": 564,
+      "sha256": "7ee29c7a85a3034db720d3ace1a53084c07447aa47e03b90a6a152d34452e8bc",
+      "mode": 384
+    },
+    {
+      "path": "captured/F09.json.data",
+      "bytes": 1730,
+      "sha256": "7a54546756229a434d6d48c1afe54a78313f084a8acb937a75d78003bf6500b6",
+      "mode": 384
+    },
+    {
+      "path": "captured/F09.observation.nul.data",
+      "bytes": 560,
+      "sha256": "24431a5230c1d5d4bf99ea3c3ebecadbd2de4397217a0f5da18a4e0491066da6",
+      "mode": 384
+    },
+    {
+      "path": "captured/F10.json.data",
+      "bytes": 1936,
+      "sha256": "55d5f294e23990888d712ec6408749aa388439019a4d7d1c85bb0c3f138588ea",
+      "mode": 384
+    },
+    {
+      "path": "captured/F10.observation.nul.data",
+      "bytes": 766,
+      "sha256": "0668329b1271f34b3f3e497716bc0825c55f4d24df1af8357e802b52ede9bdbb",
+      "mode": 384
+    },
+    {
+      "path": "captured/JOURNAL.jsonl.data",
+      "bytes": 39964,
+      "sha256": "25924851ea3448e6973f1c13b4c296d66bfa494a4833b918bf57b7b1f5e7ac15",
+      "mode": 384
+    },
+    {
+      "path": "captured/P02.json.data",
+      "bytes": 1734,
+      "sha256": "121e703ecfcff1d34f3b68eefdc7bcacdbe30713c0d468ba80c4c9c329e2e947",
+      "mode": 384
+    },
+    {
+      "path": "captured/P02.observation.nul.data",
+      "bytes": 564,
+      "sha256": "cffdc8083ba5c674da565b39724c7c2f6cfce0468dc67e5309ccfed2efcfe69e",
+      "mode": 384
+    },
+    {
+      "path": "captured/P03.json.data",
+      "bytes": 1747,
+      "sha256": "670075e9f9f0f721353706d5375e98687d177a3f5a23bd46d30a1de010ff7b0f",
+      "mode": 384
+    },
+    {
+      "path": "captured/P03.observation.nul.data",
+      "bytes": 577,
+      "sha256": "769ae9f5f13ed43710aab6248be5a5fe3f18c366a12c2a534b9a91b4d49671e5",
+      "mode": 384
+    },
+    {
+      "path": "captured/P04.json.data",
+      "bytes": 1747,
+      "sha256": "918734d5599090152582b2374765daca281ef7765a2a89b6e27066a438278ac5",
+      "mode": 384
+    },
+    {
+      "path": "captured/P04.observation.nul.data",
+      "bytes": 577,
+      "sha256": "5352cb862d6435cbb9fec25db256e12c517a392f5277513d7d2cf31a8bab6f46",
+      "mode": 384
+    },
+    {
+      "path": "captured/P05.json.data",
+      "bytes": 1742,
+      "sha256": "2664a6e349586279c00f9f5c38678c43dc97023b406de2bd4d01566e8ad816f3",
+      "mode": 384
+    },
+    {
+      "path": "captured/P05.observation.nul.data",
+      "bytes": 572,
+      "sha256": "864d5021f9285c2152ebc523debaac846342cb48bab28ec25fd0d79c02b6a707",
+      "mode": 384
+    },
+    {
+      "path": "captured/P06.json.data",
+      "bytes": 1742,
+      "sha256": "3a5ab5e12e8640ae121b658478fb8718c990283ba705aa65b1fc3881dfa97aa7",
+      "mode": 384
+    },
+    {
+      "path": "captured/P06.observation.nul.data",
+      "bytes": 572,
+      "sha256": "d3c72a9d6706414eb444feb2519e9a0c388fa1af85aae0a3595eca6bef1743e3",
+      "mode": 384
+    },
+    {
+      "path": "captured/P07.json.data",
+      "bytes": 1738,
+      "sha256": "e0188b44a3477941e7d41c395b4d691083774e9310a2d7a61d654d887ed11826",
+      "mode": 384
+    },
+    {
+      "path": "captured/P07.observation.nul.data",
+      "bytes": 568,
+      "sha256": "b7694f76149c564dcc29542369a79ff38cb5e9f4bf20995643ec9a3f3cb012fc",
+      "mode": 384
+    },
+    {
+      "path": "captured/P08.json.data",
+      "bytes": 1738,
+      "sha256": "f1d8c31bc06be8f93bc607a310ee5f8b9ca5471a919b05c3c751ea8b1acbb017",
+      "mode": 384
+    },
+    {
+      "path": "captured/P08.observation.nul.data",
+      "bytes": 568,
+      "sha256": "78c0db3f94fa9ab6b7a67f047d4715d76117ed9eaf9f33891b6a9c1f3301d703",
+      "mode": 384
+    },
+    {
+      "path": "captured/P09.json.data",
+      "bytes": 1747,
+      "sha256": "ce2bb9f8c932de0e852fd3641a9edfd1a07fffbac698491514b6ba5c87e8eb04",
+      "mode": 384
+    },
+    {
+      "path": "captured/P09.observation.nul.data",
+      "bytes": 577,
+      "sha256": "0402097ad11e22726a2b2a026f7632e2ec261324ee2bffc01f565b33e21aea88",
+      "mode": 384
+    },
+    {
+      "path": "captured/P10.json.data",
+      "bytes": 1742,
+      "sha256": "dfc677f862d4ee93c2fd09d41e3441ceb92ca2a768bbb64fca000f6df97cee94",
+      "mode": 384
+    },
+    {
+      "path": "captured/P10.observation.nul.data",
+      "bytes": 572,
+      "sha256": "115d22dd2e82df73aa4116d9d50674afde22ba930f34bd51bb41792775917d13",
+      "mode": 384
+    },
+    {
+      "path": "captured/P11.json.data",
+      "bytes": 1775,
+      "sha256": "ef9d70d2815fc5c328c312488fe7598b4b846f5dc4bf5ff3b8f3da5084914b44",
+      "mode": 384
+    },
+    {
+      "path": "captured/P11.observation.nul.data",
+      "bytes": 605,
+      "sha256": "c592ff079014e11becf80589c55eb8a8122528d7b52725c1f01384d96f88b8a6",
+      "mode": 384
+    },
+    {
+      "path": "captured/P12.json.data",
+      "bytes": 1759,
+      "sha256": "63e88239d3ed211a0d61c1b67875163a51e3fa0120d49c06f019ee8edd1853b9",
+      "mode": 384
+    },
+    {
+      "path": "captured/P12.observation.nul.data",
+      "bytes": 589,
+      "sha256": "3db48bf79cfc0edff7343a31c038fe614b11d67202bece0531bad7527a25b1d0",
+      "mode": 384
+    },
+    {
+      "path": "captured/P13.json.data",
+      "bytes": 1775,
+      "sha256": "618508614f61c15234d147781ea9e4403edf444efe128ec242daab71a3d5fc77",
+      "mode": 384
+    },
+    {
+      "path": "captured/P13.observation.nul.data",
+      "bytes": 605,
+      "sha256": "94dcd986d0c1fcd794545a37d8667afba5559d5247a0a50e578bc62e8a295f76",
+      "mode": 384
+    },
+    {
+      "path": "captured/P14.json.data",
+      "bytes": 1738,
+      "sha256": "2a2ffe0af89cfa2c9ce158487409e8ca8e1a9bcb2640150093dca53ba5f5bf59",
+      "mode": 384
+    },
+    {
+      "path": "captured/P14.observation.nul.data",
+      "bytes": 568,
+      "sha256": "80f19379702f5af055a5053890fdefb9b75de79570e1319e95a00918cbf5bb74",
+      "mode": 384
+    },
+    {
+      "path": "captured/P15.json.data",
+      "bytes": 1843,
+      "sha256": "1962a7b951d3ab354754c1c815acffd3f183f40ff5633c8b6f220ca913878df5",
+      "mode": 384
+    },
+    {
+      "path": "captured/P15.observation.nul.data",
+      "bytes": 673,
+      "sha256": "5dddff08288b09666937b84112997fca1209583d490ade8fb22c2653949af088",
+      "mode": 384
+    },
+    {
+      "path": "captured/P16.json.data",
+      "bytes": 1734,
+      "sha256": "b2caa46197d31e7ed841f17cfa1b9e382f67d7c960b759483e0eb41bbd0f4cb5",
+      "mode": 384
+    },
+    {
+      "path": "captured/P16.observation.nul.data",
+      "bytes": 564,
+      "sha256": "ad6d3c664d1ca9192fabfcb8f6a8f0f6abc1449bd3e48ec803ad9282459b8915",
+      "mode": 384
+    },
+    {
+      "path": "captured/P17.json.data",
+      "bytes": 1738,
+      "sha256": "190c58ae241e21153067dbc3581cadb401d92cc84999c7f2d647d03dad8ff2d6",
+      "mode": 384
+    },
+    {
+      "path": "captured/P17.observation.nul.data",
+      "bytes": 568,
+      "sha256": "aeaaa6d4409e15a6e76aa6cf517b5bf3bffe396dc8361b59f9d0c9de6e86af8d",
+      "mode": 384
+    },
+    {
+      "path": "captured/P18.json.data",
+      "bytes": 1759,
+      "sha256": "60d24297ecc377e9d6f1590f764b0939d0ec32eb6a1fdf020335e6fb2ae3b6f7",
+      "mode": 384
+    },
+    {
+      "path": "captured/P18.observation.nul.data",
+      "bytes": 589,
+      "sha256": "c53ed1dbc4b67bf306ec00294c38e25c4a143b23ac10f2f0216d02e8af8da48f",
+      "mode": 384
+    },
+    {
+      "path": "captured/RESULTS.json.data",
+      "bytes": 2117,
+      "sha256": "3267a88c111c3b8cda08dee2de1ad24413793bbe828e7be51889a6252b572fab",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/F02/stderr.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/F02/stdout.data",
+      "bytes": 1,
+      "sha256": "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/F03/stderr.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/F03/stdout.data",
+      "bytes": 1,
+      "sha256": "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/F04/stderr.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/F04/stdout.data",
+      "bytes": 1,
+      "sha256": "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/F05/stderr.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/F05/stdout.data",
+      "bytes": 6,
+      "sha256": "6db7d803e74f1ffa7d8f5adc0bf95b3e15bf4c8373fffadf546227cc6c6742cb",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/F06/stderr.data",
+      "bytes": 57,
+      "sha256": "eb17c58d9c81df7e3088dfbae253e7f8c030671bcdae9c6afbda0ce0251b23a9",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/F06/stdout.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/F07/stderr.data",
+      "bytes": 150,
+      "sha256": "c2cb3fc2c0184ec7727e7065809b03b402fa742102fa39452ec057ad591e7de8",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/F07/stdout.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/F08/stderr.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/F08/stdout.data",
+      "bytes": 1,
+      "sha256": "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/F09/stderr.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/F09/stdout.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/F10/stderr.data",
+      "bytes": 152,
+      "sha256": "eff52fc387fc7417de27381e3c28f8b1cceae322cd3d81244ccfa4c3a0e1a9ba",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/F10/stdout.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/P02/stderr.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/P02/stdout.data",
+      "bytes": 3,
+      "sha256": "c297dc29728d50fd786c7303124d325f850a12d98776cf36683a90039ebca3b6",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/P03/stderr.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/P03/stdout.data",
+      "bytes": 12,
+      "sha256": "b0070379ed051510ecb409a542bb66ae55d00a84318f1a86a5271810f9297e2a",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/P04/stderr.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/P04/stdout.data",
+      "bytes": 10,
+      "sha256": "ffdebca6b09512b4ddf1aa0f414444544c06cba1d085c1562c1c2a94b0f90657",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/P05/stderr.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/P05/stdout.data",
+      "bytes": 8,
+      "sha256": "a7315dfbc74bd0fe3dab3c2f05feae06c9965a079438fefa46a939a183d645f4",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/P06/stderr.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/P06/stdout.data",
+      "bytes": 8,
+      "sha256": "a7315dfbc74bd0fe3dab3c2f05feae06c9965a079438fefa46a939a183d645f4",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/P07/stderr.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/P07/stdout.data",
+      "bytes": 6,
+      "sha256": "b147c7015cdc0201e5b3935f50de4e6b0900656bacc81d207f29ab137849b775",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/P08/stderr.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/P08/stdout.data",
+      "bytes": 6,
+      "sha256": "b147c7015cdc0201e5b3935f50de4e6b0900656bacc81d207f29ab137849b775",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/P09/stderr.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/P09/stdout.data",
+      "bytes": 12,
+      "sha256": "b0070379ed051510ecb409a542bb66ae55d00a84318f1a86a5271810f9297e2a",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/P10/stderr.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/P10/stdout.data",
+      "bytes": 8,
+      "sha256": "43195836a7f07e0351e1d1cee72aca97c80af4916a76cd84c340e92ef2b8fe00",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/P11/stderr.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/P11/stdout.data",
+      "bytes": 31,
+      "sha256": "bf9359d4da34bf4a5d4e07e4fbc2b6df99386a6addf2224d8fc69d295cf1756b",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/P12/stderr.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/P12/stdout.data",
+      "bytes": 21,
+      "sha256": "0a303541afa18f7b333302a1314aae9a96bf5cb4e5f5c6b3105cc7c5a2e06eb9",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/P13/stderr.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/P13/stdout.data",
+      "bytes": 31,
+      "sha256": "595110a22e2d0dba30eaeb64ce7291ab7bbeb89b2984104e143c9c7dedb720ae",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/P14/stderr.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/P14/stdout.data",
+      "bytes": 4,
+      "sha256": "661453ecc7c1538bc5b2b960d00ba2381b281366282005e8d06fef52fcc3055a",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/P15/stderr.data",
+      "bytes": 76,
+      "sha256": "2d3358c42d90c09f18410079319c0b7578e1d0c132a564a2c0aed0b466391cb4",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/P15/stdout.data",
+      "bytes": 6,
+      "sha256": "f5c70abaed49a629da7c2db760134a86af54176accd4b3b2d40e8d849f4339fb",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/P16/stderr.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/P16/stdout.data",
+      "bytes": 3,
+      "sha256": "c297dc29728d50fd786c7303124d325f850a12d98776cf36683a90039ebca3b6",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/P17/stderr.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/P17/stdout.data",
+      "bytes": 4,
+      "sha256": "661453ecc7c1538bc5b2b960d00ba2381b281366282005e8d06fef52fcc3055a",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/P18/stderr.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "captured/captures/P18/stdout.data",
+      "bytes": 19,
+      "sha256": "1d9aae7ded26c21c0c8ffdb13c382c54770257ad24f03cb2b8f03d140fbe26f3",
+      "mode": 384
+    },
+    {
+      "path": "captured/cases/F05/work/out.data",
+      "bytes": 1,
+      "sha256": "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881",
+      "mode": 384
+    },
+    {
+      "path": "captured/outer/bootstrap.stderr.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "captured/outer/bootstrap.stdout.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "observe.mjs",
+      "bytes": 13675,
+      "sha256": "b9aaa0a7034de9301bbc4f64bcc60d151012d069b0ad363ef80990c7d74af91b",
+      "mode": 420
+    },
+    {
+      "path": "raw/preflight.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 420
+    },
+    {
+      "path": "raw/preflight.stdout",
+      "bytes": 1466,
+      "sha256": "fd53b7d4d9e2e0c60bb3c695ca32f24b40c6b3f755354b1aa76c8e707aa19a6a",
+      "mode": 420
+    },
+    {
+      "path": "raw/slot-receipt-child.json",
+      "bytes": 53,
+      "sha256": "5be607aa6069756a424013851e837a1d6719ca60a53323cc1dcdd74f0dd1cb8a",
+      "mode": 384
+    },
+    {
+      "path": "raw/slot-receipt.json",
+      "bytes": 6440,
+      "sha256": "8b90b85c6ebd2ec02f3b113bc8dad25d161f8877ad1f907a1facf506ceda04c5",
+      "mode": 384
+    },
+    {
+      "path": "raw/slot-receipt.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "raw/slot-review-paths.nul",
+      "bytes": 739,
+      "sha256": "712fe10f946b8b4cb3419d8e7cb8086f52cb9b2968484f52baad6b297556986b",
+      "mode": 384
+    },
+    {
+      "path": "raw/startup.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "raw/startup.stdout",
+      "bytes": 53,
+      "sha256": "3afdf3d0a6b641062939afeef22afe785451ab7aaf946cf230d8ac9327b47af6",
+      "mode": 384
+    },
+    {
+      "path": "raw/syntax.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 420
+    },
+    {
+      "path": "raw/syntax.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 420
+    }
+  ],
+  "actualSourceFiles": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/admission.mjs",
+      "bytes": 10000,
+      "sha256": "ee9f4ee485e3c3441c80d142b160f6b8eb70fb3b6cb099b271d9cb9c0288e8f5",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/entry.mjs",
+      "bytes": 7153,
+      "sha256": "e4b0550f5e15bc150ad769a135e1db75916fe0c6e916d33a2f59c2cf1a4a0c0f",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/observation.mjs",
+      "bytes": 2170,
+      "sha256": "5e5c568fe1a630bfc55017a48833efc96c2dbc179025d2be233523f5e76131a0",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/capture.mjs",
+      "bytes": 1888,
+      "sha256": "189163f34934cad07540eda703611ad7c1f758e23f784a7d1935a31d16391009",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/lifecycle.mjs",
+      "bytes": 5280,
+      "sha256": "67f9674fac2dbe0ee5eee5fd3685263106b29ad80664094555731780b821e3fd",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/group-observer.mjs",
+      "bytes": 759,
+      "sha256": "ba7ec9ff06c8b0867b9183b1242ade0f4b1ca1d9d6bb0c6b1abdbb574d830417",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/observer-state.mjs",
+      "bytes": 1240,
+      "sha256": "14ad6fd00f476722676fd590b2fc0774d7c1eb242d6525e885b1bfb53d3bce74",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/state.mjs",
+      "bytes": 1824,
+      "sha256": "57a60758c3f59ed0d226f790be355a663702f004d2b1c5c8d6d58073bae2eaae",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/storage.mjs",
+      "bytes": 3583,
+      "sha256": "de44eb9eb8a4a20b4a20e793045b5590891189907cf1b9a7c2def32d0effb9c9",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/REQUESTS.json",
+      "bytes": 20359,
+      "sha256": "c0d895342b497fb711521ab701a6513fbeebbd54af3a9973df7b7c069244473a",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/COHORT.json",
+      "bytes": 7080,
+      "sha256": "6f68a645c72bee2f0834fd134eb5236b1a5cfd32b69ae47aad33cbf046d79a90",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/PROTOCOL.json",
+      "bytes": 1613,
+      "sha256": "978d5ccbbe37febde406a1bbf2ea00d9313b6b32ce570221c16470db4a7ae931",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/TOOLS.json",
+      "bytes": 3067,
+      "sha256": "afc1d0c9413671fd0b54192c7ab87ec21c4058900a96f3e535d6d4c6a3436f7a",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/F02.bash.data",
+      "bytes": 29,
+      "sha256": "fd50190d103005960f6211f174c6988cbb8dc6966478b34e268369b68e7f4da9",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/F03.bash.data",
+      "bytes": 26,
+      "sha256": "a576c3dd258d61aaf032522169284aa7fd9866c106fc2a2293e6d29ff40e88b8",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/F04.bash.data",
+      "bytes": 42,
+      "sha256": "c096f26723996ffd7baace023fb752efc95d49f2b2b373cfc4a0405e7db5b6e9",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/F05.bash.data",
+      "bytes": 48,
+      "sha256": "4a39b12f8fd9a0666e19be5c6eef74abdf4cf04d2b8988443072c7c8b24523ac",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/F06.bash.data",
+      "bytes": 12,
+      "sha256": "ac67da2109cc7d1a5e11592892661205249ce4430c5ad1f571990a9d4a519e3d",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/F07.bash.data",
+      "bytes": 20,
+      "sha256": "2390e69d460a7a47d56626d462ce54818dc51e15828840cbda16be1722dca83c",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/F08.bash.data",
+      "bytes": 31,
+      "sha256": "edb2617177c00179c428b9bb21be103ee8010228c7c88ba954ed52791864ea65",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/F09.bash.data",
+      "bytes": 24,
+      "sha256": "0cb1d6fdd68ec476219bec965ad83919ad6a812b9f0194fd4eeee29464d91e49",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/F10.bash.data",
+      "bytes": 23,
+      "sha256": "ca78fd92b11466d4af610bfe4753763fa583cb9c1c797e182aa878900428ddce",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/P02.bash.data",
+      "bytes": 34,
+      "sha256": "c2dd0965e76fdb5a348fc381faf64eb48aace205b0114469906123f1b61437fa",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/P03.bash.data",
+      "bytes": 81,
+      "sha256": "0f79c1da2ea561ad221dbb3d17601f914de695a8c809c2caa3de0d3daf4a2468",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/P04.bash.data",
+      "bytes": 64,
+      "sha256": "a8259d87aab3038de0bac199e0c8fd5202ce7edf8334495b62c5246aaff69615",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/P05.bash.data",
+      "bytes": 73,
+      "sha256": "cd7a8119ae78504ab739e7e20cffc09f5c65fe2d7c0a8bd5f6af37aa0a89b2e9",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/P06.bash.data",
+      "bytes": 58,
+      "sha256": "7f8d6d49287d0cc28bb1da3c4185cdba6bf67b010c3c9ff040c1bd7703756978",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/P07.bash.data",
+      "bytes": 57,
+      "sha256": "90d9ce459a465287e324277d021ff7bcd8b2c4952f8bdba98cecd6e7596e16a2",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/P08.bash.data",
+      "bytes": 51,
+      "sha256": "29dc805ec9811bb07bde82b43cdb95430926b6447289f80d12f0a3d17bebd741",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/P09.bash.data",
+      "bytes": 104,
+      "sha256": "0467169d179cc35f7736da9b590aa53ec9b278f8e78ffeca808e002e2fcc7917",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/P10.bash.data",
+      "bytes": 53,
+      "sha256": "24e73a0cb6a4b5dcc88ed63a525e446cd4c5b05ca0d4992a4285ffc4b15a4cfb",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/P11.bash.data",
+      "bytes": 119,
+      "sha256": "5333f1680e467fe8637a54e10dd2d5e0931512d44767338296d5c1cf21647f61",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/P12.bash.data",
+      "bytes": 94,
+      "sha256": "122f3b9b7c91ede81feabb838f624d731b1851a15819e4ba9792c6eafdb9b833",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/P13.bash.data",
+      "bytes": 125,
+      "sha256": "7b30df74d0e906adb70657f2592d14da177d384c03d05b3e943e18edb2af9234",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/P14.bash.data",
+      "bytes": 51,
+      "sha256": "6ad638fd0b75d9a6e869da6397f749bde6bb2c5bb95ac491d07afcbc2dc1f021",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/P15.bash.data",
+      "bytes": 63,
+      "sha256": "03b8423f7e406dc4cfc4d15ac2de1a21980b9ab96bbb18943e3a4891e5c960cf",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/P16.bash.data",
+      "bytes": 62,
+      "sha256": "c8d572dda97a672dcf28abe7aa60811f487c7a261a5e18a3b3c0f057e9e88474",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/P17.bash.data",
+      "bytes": 52,
+      "sha256": "1ec83299aba1bad4ee1ae8896415f405c09816b7ae27e24910fddcba1f8ada00",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/P18.bash.data",
+      "bytes": 133,
+      "sha256": "47ed194099c72090e84121251d7dc6fae2290b1b226c99f41ca49875710c1339",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/APPROVAL-PROPOSAL.template.json",
+      "bytes": 2902,
+      "sha256": "a6d8728e5f8c9db7e79c1c2eb1e403e2411edb72d88c02a3bf8b1a8cbf4670e7",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/CONTROL-CORRECTION.md",
+      "bytes": 1205,
+      "sha256": "8b57611e66425a010f612a73859f29c043f185d793c5fb22c66c31d9228fc038",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/CONTROL-PRESEAL.initial.json.data",
+      "bytes": 1473,
+      "sha256": "1ebb12940496bc36c1ea6637f6ea5530c3d7345a5a0e6ea553849d171e97b4d5",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/CONTROL-PRESEAL.json",
+      "bytes": 1473,
+      "sha256": "e6dbdd8b12871206530deb1ed9a9d729549a105243016cebe1f822309aa07cc2",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/CONTROL-RESULT.json",
+      "bytes": 1450,
+      "sha256": "3d19d225fed8f5dcc4288fa77978ba79a999fd1031c2129f09030a66e4e278a1",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/GO.template.json",
+      "bytes": 1840,
+      "sha256": "b7ce233660f978f704e1f933d2a7421aef3b6e957c89b51fb3b2233e041dc001",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/HANDOFF-RESULT.json",
+      "bytes": 2783,
+      "sha256": "5ad18886ebc0714e138d2d20814a2995021774387d9f574d91b60220095b59b0",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/HANDOFF.md",
+      "bytes": 3373,
+      "sha256": "0af92ce8a30ca88229014f2b7627fdfcf52773a5e71febb60cebe6a32d6e325d",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/LIFECYCLE-LEDGER.json",
+      "bytes": 290,
+      "sha256": "81c099693505b0cb113ec7ac99449f6f4ea10cf4f78aa6350592b44f38203de3",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/PREEXEC-PLAN.md",
+      "bytes": 2311,
+      "sha256": "f1496ef4438156ee3fa44f15b072d339ae8cb59c7fee8bc8f72c77620b189b8e",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/REVIEW-ACCEPTANCE.template.json",
+      "bytes": 367,
+      "sha256": "734e653c116bff6c0b682ac904879b61527c2cc260d46112b395acfe87a39649",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/SOURCE-DELTA.json",
+      "bytes": 1998,
+      "sha256": "bee25423568a6e804029a0ab1aa4801425bfdd601904c8bb49c5c98076c0bdcf",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/SYNTAX-RESULT.json",
+      "bytes": 1386,
+      "sha256": "8d3026fbd9d7c9687babc78bb8c360c0fe25e732fee1378a90b33ebce763471f",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/cohort.fragment.data",
+      "bytes": 1422,
+      "sha256": "cbb47c9c7b6d796266b44b9ea86b19e26cb76e903e9793f45e7deefc2df15cf2",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/control-work/fd/outer/bootstrap.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/control-work/lifecycle/JOURNAL.jsonl",
+      "bytes": 3470,
+      "sha256": "fba9ea66b2559a4bd4feef5693ae1f225b05de680b33ccea985708ed06e7c951",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/control-work/lifecycle/ignore-term/stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/control-work/lifecycle/ignore-term/stdout",
+      "bytes": 5,
+      "sha256": "b24d6d33736ecd5604a4b17bc9c6481039fac362bb7df044ef1c10a2bfd21db6",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/control-work/lifecycle/normal/stderr",
+      "bytes": 3,
+      "sha256": "d9eb253e06987fa74a5d3189f73d9f7a8104cca786fafbb52bc9555972f5477f",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/control-work/lifecycle/normal/stdout",
+      "bytes": 3,
+      "sha256": "28af88e2874e97b45995c097a86a97d705969a16f185701a7d393cd516f2adad",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/control-work/pin",
+      "bytes": 7,
+      "sha256": "be302461cda285db3ed2d45fb767b23e08ca8808b35a638009937df22b332d73",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/controller.initial.mjs.data",
+      "bytes": 25030,
+      "sha256": "c2b2ce79c68731d9ad38ac11afc79254d2d9aae88c6f651d7ca064fb23f9580a",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/controller.mjs",
+      "bytes": 30128,
+      "sha256": "2ba3f93d171b5a719e67de47d83cf873682b029466abd1869924aff4b21771d0",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/COHORT.json",
+      "bytes": 7080,
+      "sha256": "6f68a645c72bee2f0834fd134eb5236b1a5cfd32b69ae47aad33cbf046d79a90",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/PRESEAL.json",
+      "bytes": 6772,
+      "sha256": "b082c051f1e1599af1a5789786c20a6d89d882dda67b6d2430062c84779bf901",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/PROTOCOL.json",
+      "bytes": 1613,
+      "sha256": "978d5ccbbe37febde406a1bbf2ea00d9313b6b32ce570221c16470db4a7ae931",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/REQUESTS.json",
+      "bytes": 20359,
+      "sha256": "c0d895342b497fb711521ab701a6513fbeebbd54af3a9973df7b7c069244473a",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/TOOLS.json",
+      "bytes": 3067,
+      "sha256": "afc1d0c9413671fd0b54192c7ab87ec21c4058900a96f3e535d6d4c6a3436f7a",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/admission.mjs",
+      "bytes": 10000,
+      "sha256": "ee9f4ee485e3c3441c80d142b160f6b8eb70fb3b6cb099b271d9cb9c0288e8f5",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/capture.mjs",
+      "bytes": 1888,
+      "sha256": "189163f34934cad07540eda703611ad7c1f758e23f784a7d1935a31d16391009",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/entry.mjs",
+      "bytes": 7153,
+      "sha256": "e4b0550f5e15bc150ad769a135e1db75916fe0c6e916d33a2f59c2cf1a4a0c0f",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/group-observer.mjs",
+      "bytes": 759,
+      "sha256": "ba7ec9ff06c8b0867b9183b1242ade0f4b1ca1d9d6bb0c6b1abdbb574d830417",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/lifecycle.mjs",
+      "bytes": 5280,
+      "sha256": "67f9674fac2dbe0ee5eee5fd3685263106b29ad80664094555731780b821e3fd",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/observation.mjs",
+      "bytes": 2170,
+      "sha256": "5e5c568fe1a630bfc55017a48833efc96c2dbc179025d2be233523f5e76131a0",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/observer-state.mjs",
+      "bytes": 1240,
+      "sha256": "14ad6fd00f476722676fd590b2fc0774d7c1eb242d6525e885b1bfb53d3bce74",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/F02.bash.data",
+      "bytes": 29,
+      "sha256": "fd50190d103005960f6211f174c6988cbb8dc6966478b34e268369b68e7f4da9",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/F03.bash.data",
+      "bytes": 26,
+      "sha256": "a576c3dd258d61aaf032522169284aa7fd9866c106fc2a2293e6d29ff40e88b8",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/F04.bash.data",
+      "bytes": 42,
+      "sha256": "c096f26723996ffd7baace023fb752efc95d49f2b2b373cfc4a0405e7db5b6e9",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/F05.bash.data",
+      "bytes": 48,
+      "sha256": "4a39b12f8fd9a0666e19be5c6eef74abdf4cf04d2b8988443072c7c8b24523ac",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/F06.bash.data",
+      "bytes": 12,
+      "sha256": "ac67da2109cc7d1a5e11592892661205249ce4430c5ad1f571990a9d4a519e3d",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/F07.bash.data",
+      "bytes": 20,
+      "sha256": "2390e69d460a7a47d56626d462ce54818dc51e15828840cbda16be1722dca83c",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/F08.bash.data",
+      "bytes": 31,
+      "sha256": "edb2617177c00179c428b9bb21be103ee8010228c7c88ba954ed52791864ea65",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/F09.bash.data",
+      "bytes": 24,
+      "sha256": "0cb1d6fdd68ec476219bec965ad83919ad6a812b9f0194fd4eeee29464d91e49",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/F10.bash.data",
+      "bytes": 23,
+      "sha256": "ca78fd92b11466d4af610bfe4753763fa583cb9c1c797e182aa878900428ddce",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/P02.bash.data",
+      "bytes": 34,
+      "sha256": "c2dd0965e76fdb5a348fc381faf64eb48aace205b0114469906123f1b61437fa",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/P03.bash.data",
+      "bytes": 81,
+      "sha256": "0f79c1da2ea561ad221dbb3d17601f914de695a8c809c2caa3de0d3daf4a2468",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/P04.bash.data",
+      "bytes": 64,
+      "sha256": "a8259d87aab3038de0bac199e0c8fd5202ce7edf8334495b62c5246aaff69615",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/P05.bash.data",
+      "bytes": 73,
+      "sha256": "cd7a8119ae78504ab739e7e20cffc09f5c65fe2d7c0a8bd5f6af37aa0a89b2e9",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/P06.bash.data",
+      "bytes": 58,
+      "sha256": "7f8d6d49287d0cc28bb1da3c4185cdba6bf67b010c3c9ff040c1bd7703756978",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/P07.bash.data",
+      "bytes": 57,
+      "sha256": "90d9ce459a465287e324277d021ff7bcd8b2c4952f8bdba98cecd6e7596e16a2",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/P08.bash.data",
+      "bytes": 51,
+      "sha256": "29dc805ec9811bb07bde82b43cdb95430926b6447289f80d12f0a3d17bebd741",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/P09.bash.data",
+      "bytes": 104,
+      "sha256": "0467169d179cc35f7736da9b590aa53ec9b278f8e78ffeca808e002e2fcc7917",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/P10.bash.data",
+      "bytes": 53,
+      "sha256": "24e73a0cb6a4b5dcc88ed63a525e446cd4c5b05ca0d4992a4285ffc4b15a4cfb",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/P11.bash.data",
+      "bytes": 119,
+      "sha256": "5333f1680e467fe8637a54e10dd2d5e0931512d44767338296d5c1cf21647f61",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/P12.bash.data",
+      "bytes": 94,
+      "sha256": "122f3b9b7c91ede81feabb838f624d731b1851a15819e4ba9792c6eafdb9b833",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/P13.bash.data",
+      "bytes": 125,
+      "sha256": "7b30df74d0e906adb70657f2592d14da177d384c03d05b3e943e18edb2af9234",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/P14.bash.data",
+      "bytes": 51,
+      "sha256": "6ad638fd0b75d9a6e869da6397f749bde6bb2c5bb95ac491d07afcbc2dc1f021",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/P15.bash.data",
+      "bytes": 63,
+      "sha256": "03b8423f7e406dc4cfc4d15ac2de1a21980b9ab96bbb18943e3a4891e5c960cf",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/P16.bash.data",
+      "bytes": 62,
+      "sha256": "c8d572dda97a672dcf28abe7aa60811f487c7a261a5e18a3b3c0f057e9e88474",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/P17.bash.data",
+      "bytes": 52,
+      "sha256": "1ec83299aba1bad4ee1ae8896415f405c09816b7ae27e24910fddcba1f8ada00",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/programs/P18.bash.data",
+      "bytes": 133,
+      "sha256": "47ed194099c72090e84121251d7dc6fae2290b1b226c99f41ca49875710c1339",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/state.mjs",
+      "bytes": 1824,
+      "sha256": "57a60758c3f59ed0d226f790be355a663702f004d2b1c5c8d6d58073bae2eaae",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/storage.mjs",
+      "bytes": 3583,
+      "sha256": "de44eb9eb8a4a20b4a20e793045b5590891189907cf1b9a7c2def32d0effb9c9",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/observation.mjs.source",
+      "bytes": 2170,
+      "sha256": "5e5c568fe1a630bfc55017a48833efc96c2dbc179025d2be233523f5e76131a0",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/D01.json",
+      "bytes": 75,
+      "sha256": "ac38683ecf3b41a7b2c452c2e6f36c084619baa4b4fb24b9a59445b0128c0e67",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/D02.json",
+      "bytes": 74,
+      "sha256": "6e6af098e506c5f31f5d0620edefa3fd2f8baecfbcf12dac7481da360b6e9a7e",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/D03.json",
+      "bytes": 74,
+      "sha256": "e879cb0ba98a71c3ff2d4f05de0b6908b05a0d00f554af46c6c3879bed937f90",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/D04.json",
+      "bytes": 74,
+      "sha256": "52d50525b729f747048ac8bfe483361b965626766f5a88dc8ddec155f02d8806",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/D05.json",
+      "bytes": 74,
+      "sha256": "7d02257228ae594e007bd788a6d4292ba4145a4d3f26214bd6dbd166fc55f0a1",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/D06.json",
+      "bytes": 74,
+      "sha256": "d1e3ea481bf9137f36ca9dd0deee7375eaad688eeddf65cecef86c8e26e1e9ed",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/D07.json",
+      "bytes": 74,
+      "sha256": "e2bb023e7248f04528defa9dbeadf1fcabb506ae75be9ff87f5fa2dd08663868",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/D08.json",
+      "bytes": 74,
+      "sha256": "4f6080bf251bd7d5abba38b25d09ce5071ead7587ff510c685c8256152c20cac",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/D09.json",
+      "bytes": 74,
+      "sha256": "f2928502aecf8796f9d8f5277c4b887dc0241c4669d66ab2393434d6cc326758",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/D10.json",
+      "bytes": 74,
+      "sha256": "b9b29bbd94bf8b26f90fb69ce94ccd5a5de5ff5a66948f69cda11b731b1b62bd",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/D11.json",
+      "bytes": 74,
+      "sha256": "c0778f3998ba60d4c770dd6b930d399fea61698b7f8c3b733dee1894d9787d12",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/D12.json",
+      "bytes": 74,
+      "sha256": "3ed6c778f146a474dce587a1368650a4034418c145d41a7d54b29da87ff5fa2f",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/bootstrap-v2.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/bootstrap-v2.stdout",
+      "bytes": 261,
+      "sha256": "903d9b963882934bba6c0097b3c73afdbe111842fb28e5193bfa3685b4716d43",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/controller-syntax.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/controller-syntax.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/lifecycle-ignore-term.json",
+      "bytes": 2882,
+      "sha256": "7634a836ba1ee49b6291b0d00dacc2f56db39ae6312ab02241fb49c1e75e48bd",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/lifecycle-normal.json",
+      "bytes": 1944,
+      "sha256": "545b92b8d08884bd2486646b15615ee047c22afb4a66d8f7dbcb7500ded34a9e",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/mechanisms.data",
+      "bytes": 13009,
+      "sha256": "b6440bde4437932bfc6723ae35233dbfd870d69e18140f3f59813b343b4d0146",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/parent-tree.nul",
+      "bytes": 13383,
+      "sha256": "863835489fc91c4306cb386d2e5c38e6bd7cb0a07ce0bdcbbefabeeba1e9a60d",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/prepare.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/prepare.stdout",
+      "bytes": 268,
+      "sha256": "b7676c3eef59517946a54822230d875eb6f0c750d378c42720a61cd6890261f2",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/startup.stderr",
+      "bytes": 29,
+      "sha256": "7fe1c7fb3bdb0d189edb9e585e57c72891e6fbf3c39cd98fd8e1dd5bf9d68075",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/startup.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/syntax-admission.json",
+      "bytes": 116,
+      "sha256": "44e29ef571772d9de17ff068e69452859962fb23d437616c4bc4e9eab35fe1e0",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/syntax-admission.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/syntax-admission.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/syntax-capture.json",
+      "bytes": 114,
+      "sha256": "5ccec262cf68dbdab282b71b320a28e6de3eca4e41c75cc436102c01ac27f83b",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/syntax-capture.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/syntax-capture.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/syntax-entry.json",
+      "bytes": 112,
+      "sha256": "566100e1aa21655c683e75ff51d680a3de669c2c30955e1a0ff81e9d422c27d4",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/syntax-entry.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/syntax-entry.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/syntax-group-observer.json",
+      "bytes": 121,
+      "sha256": "55dc5e9170a25dc39974c28db4976c92a0247fd350037e8890ae52da2930b409",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/syntax-group-observer.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/syntax-group-observer.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/syntax-lifecycle.json",
+      "bytes": 116,
+      "sha256": "dac3571262826856567d39b7d32a74be22f8029eccdc634226618d7de961b548",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/syntax-lifecycle.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/syntax-lifecycle.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/syntax-observation.json",
+      "bytes": 118,
+      "sha256": "a526f333c41e9cdd0c6d505bf00157b06f2faa209adb5ed4d2a700b8416f99e1",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/syntax-observation.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/syntax-observation.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/syntax-observer-state.json",
+      "bytes": 121,
+      "sha256": "35af2c658ddf13bea5b9986c7618b9e086c31b399498d328da227f8acf88c976",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/syntax-observer-state.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/syntax-observer-state.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/syntax-state.json",
+      "bytes": 112,
+      "sha256": "5fc277ea4b58cfa4908306b6a9089956301f0955e6a1423dd6364f9d6efb4c56",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/syntax-state.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/syntax-state.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/syntax-storage.json",
+      "bytes": 114,
+      "sha256": "8dd52c0f11de80b6455f0bf246fa323098c9f5454eb64b62ad847fb136d21359",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/syntax-storage.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/raw/syntax-storage.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    }
+  ],
+  "managedLedger": {
+    "max": 27,
+    "peak": 2,
+    "starts": 27,
+    "active": 1,
+    "peakCharged": 2,
+    "confirmedStarts": 27,
+    "activeConfirmed": 1,
+    "peakConfirmed": 2,
+    "confirmedRoles": {
+      "owner": 1,
+      "case": 26
+    },
+    "roles": {
+      "owner": 1,
+      "case": 26
+    },
+    "sourceForkReservations": 19
+  },
+  "observations": 26,
+  "excludes": [
+    "SEAL.json",
+    "raw/publish.stdout",
+    "raw/publish.stderr",
+    "later publication metadata"
+  ],
+  "deadline": 1788010326601.325
+}

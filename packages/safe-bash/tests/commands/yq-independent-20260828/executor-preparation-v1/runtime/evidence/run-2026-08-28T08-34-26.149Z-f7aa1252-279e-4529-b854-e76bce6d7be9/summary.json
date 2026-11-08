@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "aggregate": "FAIL",
+  "requested": 2,
+  "admitted": 2,
+  "stop": null,
+  "results": [
+    {
+      "jobId": "malformed-0",
+      "admitted": true,
+      "outcome": "FAIL",
+      "failures": [
+        "assertion: SyntaxError: Expected property name or '}' in JSON at position 1 (line 1 column 2)"
+      ],
+      "integrity": true,
+      "reapProof": true,
+      "metadata": {
+        "pid": 99208,
+        "group": 99208,
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "spawnError": null,
+        "closed": true,
+        "reaped": true,
+        "kills": [],
+        "elapsedMs": 43
+      }
+    },
+    {
+      "jobId": "malformed-1",
+      "admitted": true,
+      "outcome": "PASS",
+      "failures": [],
+      "integrity": true,
+      "reapProof": true,
+      "metadata": {
+        "pid": 99209,
+        "group": 99209,
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "spawnError": null,
+        "closed": true,
+        "reaped": true,
+        "kills": [],
+        "elapsedMs": 53
+      }
+    }
+  ],
+  "activeChildren": [],
+  "evidence": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/evidence/run-2026-08-28T08-34-26.149Z-f7aa1252-279e-4529-b854-e76bce6d7be9"
+}

@@ -1,0 +1,6 @@
+{
+  "integrity": false,
+  "integrityError": "AssertionError [ERR_ASSERTION]: Tree membership/hash/modes: /Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/work/synthetic-Xhq6mh/integrity-content/guarded\n+ actual - expected\n\n+ 'e5427cebfdb5414d5cc6ba3aa64ccf0d1134b7b91b02e147fa83459b037cf76a'\n- 'c0683f910991bd05b85140e71171760ea0976467d341b0748f335f1b6afbaa6d'\n",
+  "reapProof": true,
+  "syntheticWithheldReapProof": false
+}

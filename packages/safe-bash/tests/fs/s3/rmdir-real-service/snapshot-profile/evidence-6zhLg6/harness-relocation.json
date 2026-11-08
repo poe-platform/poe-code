@@ -1,0 +1,26 @@
+[
+  {
+    "name": "service.mjs",
+    "originalSha256": "da7cc3935286becab0f05996f14c12078f1dbb1f9919ed799f6e4a1f819ee4c8",
+    "relocatedSha256": "b5746a901b6bb4cc94125e7f69674c263d23f17c089984ae8d1f277ac7714ec8",
+    "relocated": true
+  },
+  {
+    "name": "prepare.mjs",
+    "originalSha256": "18f701f058521b3be8c06c15534a68921e3a1e853cf81c7c6998358e841327c5",
+    "relocatedSha256": "49645a617621fff6f40820f17551aee5ee3450aaf6842aa0406c8fb88ee7cb5e",
+    "relocated": true
+  },
+  {
+    "name": "reference-signature.mjs",
+    "originalSha256": "2ded8a026e89cce05b1aec1a4b2d3c28989fa6b65507fd6b0c6e31bf0b081931",
+    "relocatedSha256": "2ded8a026e89cce05b1aec1a4b2d3c28989fa6b65507fd6b0c6e31bf0b081931",
+    "relocated": false
+  },
+  {
+    "name": "service.lock.json",
+    "originalSha256": "c2622dcbe2500d58995cac8bc73b9f89760418ef89a700457ad8ba8fdb1982d7",
+    "relocatedSha256": "c2622dcbe2500d58995cac8bc73b9f89760418ef89a700457ad8ba8fdb1982d7",
+    "relocated": false
+  }
+]

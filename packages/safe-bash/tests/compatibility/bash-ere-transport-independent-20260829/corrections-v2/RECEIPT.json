@@ -1,0 +1,79 @@
+{
+  "schema": 1,
+  "verdict": "SOURCE_ACCEPT_SC01_PURE_ONLY",
+  "candidate": "46611a5b67ad7af276154421ac7f50dd536ec570",
+  "engine": "72187e5abc1179883f85a63e1ef558f2e141c542",
+  "evidence": "bd3a0422b10c8fc4d79ed0c69dda6fb2f28df5c3",
+  "presealSha256": "fa6e16fe9dc4beb5bd93d0e6c448e3ca8b9a3d0b5023d5d3b623883902b2b807",
+  "authorReplay": 20,
+  "authorPassed": 20,
+  "novel": 12,
+  "novelPassed": 12,
+  "requestSweep": 15,
+  "replySweep": 594,
+  "failureSweep": 9,
+  "malformedSweep": 6,
+  "workerStarts": 0,
+  "matchingCalls": 0,
+  "compilerStarts": 0,
+  "allWorkerVariantsUnrun": 60,
+  "sourcePostguards": 12,
+  "localPostguards": 24,
+  "actualPureChild": {
+    "pid": 64713,
+    "exit": 0,
+    "close": 0,
+    "signal": null,
+    "stdoutBytes": 76,
+    "stderrBytes": 0,
+    "peakIncludingParent": 2
+  },
+  "rolesQualification": "Task-local direct-launch accounting only; not a global process census. Presealed three pure helper bodies run in one parent and one child. Administration roles and publication are separate.",
+  "bindings": [
+    {
+      "path": "PRESEAL.json",
+      "bytes": 4845,
+      "sha256": "fa6e16fe9dc4beb5bd93d0e6c448e3ca8b9a3d0b5023d5d3b623883902b2b807"
+    },
+    {
+      "path": "RUN.json",
+      "bytes": 314,
+      "sha256": "6d8766a9e5e3536b0b124e27ecaf3ed684939cb9e6a685e5ac6e3434ca7ab3cb"
+    },
+    {
+      "path": "PURE-RESULT.json",
+      "bytes": 2492,
+      "sha256": "a665f52641368c6bbd5a328a084d505904419c53e2c4362da826b9304eaf4423"
+    },
+    {
+      "path": "NOVEL-RESULT.json",
+      "bytes": 1167,
+      "sha256": "94668006a31adaa8bb37b457b66a2da22fcc83e39fdc47a1d02618884c2f9c49"
+    },
+    {
+      "path": "child.stdout",
+      "bytes": 76,
+      "sha256": "b7160972d2fcc1f480fb0fd06ad8faa1d8888954e50509e311d3322a31fd3022"
+    },
+    {
+      "path": "child.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "run.jsonl",
+      "bytes": 299,
+      "sha256": "4c6739f33aafd30de625344f762ea799ba79e30b63c62a4099f3e6d8b69bd254"
+    },
+    {
+      "path": "prepare.jsonl",
+      "bytes": 173,
+      "sha256": "3cae86cd3261ea389eea3691cfb0db520059d757f5ce4f1d4ef66acb15d0bd92"
+    },
+    {
+      "path": "SOURCE-DELTA.diff",
+      "bytes": 7118,
+      "sha256": "de7282ebb2254836e1a910e5e2bf0509c4ddcf591453a2e2bf49c244576efc86"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "appliesTo": "SCRATCH-RECEIPT.json contentDisposition",
+  "qualification": "The frozen settlement helper has an unconditional success-template sentence about a reproduced package. That sentence does NOT describe this failed run. No admission directory, full materialization, compiler invocation, npm pack or reproduced package exists in this independent evidence. The actual settlement has allPassed:false and unexecuted admission/reconstruction phases.",
+  "rawPreserved": true,
+  "actualScratch": "Only three entries: the controls scratch directory, link-view directory and deliberately created dangling control symlink; no regular files. Literal link target was recorded without following it, then only owned scratch was removed.",
+  "actual34": 0
+}

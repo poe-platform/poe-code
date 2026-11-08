@@ -1,0 +1,17 @@
+[main 9790b146fda6e78083e4016754fd38916a53402c] test: freeze apply-patch753 actual built review graphs
+ Committer: Kamil Jopek <kjopek@bamboo.quora.net>
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly. Run the
+following command and follow the instructions in your editor to edit
+your configuration file:
+
+    git config --global --edit
+
+After doing this, you may fix the identity used for this commit with:
+
+    git commit --amend --reset-author
+
+ 2 files changed, 2 insertions(+)
+ create mode 100644 tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v2/BUILD-RECEIPT.json
+ create mode 100644 tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v2/RUNTIME-SEAL.json

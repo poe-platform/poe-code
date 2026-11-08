@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "packages": [
+    {
+      "name": "auth-store",
+      "version": "0.0.1",
+      "license": "MIT"
+    },
+    {
+      "name": "mcp-oauth",
+      "version": "0.0.1",
+      "license": "MIT"
+    },
+    {
+      "name": "tiny-http-mcp-server",
+      "version": "0.1.0",
+      "license": "MIT"
+    },
+    {
+      "name": "tiny-mcp-client",
+      "version": "0.1.0",
+      "license": "MIT"
+    }
+  ]
+}

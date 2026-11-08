@@ -1,0 +1,14 @@
+{
+  "source": "ffmpeg-release",
+  "path": "libavfilter/vf_subtitles.c",
+  "sha256": "eba4c710e85d2db937168685801dc1689cc31d566d39de92650a7e507e1820bf",
+  "macro": "COMMON_OPTIONS",
+  "line": 72,
+  "fields": [
+    { "name": "filename", "offset": "filename" },
+    { "name": "f", "offset": "filename" },
+    { "name": "original_size", "offset": "original_w" },
+    { "name": "fontsdir", "offset": "fontsdir" },
+    { "name": "alpha", "offset": "alpha" }
+  ]
+}

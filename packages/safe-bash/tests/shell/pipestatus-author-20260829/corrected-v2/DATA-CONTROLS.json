@@ -1,0 +1,35 @@
+{
+  "checks": [
+    {
+      "id": "D01 exact old 24-group bodies",
+      "status": "PASS",
+      "category": "DATA"
+    },
+    {
+      "id": "D02 corrected helper SHA",
+      "status": "PASS",
+      "category": "DATA"
+    },
+    {
+      "id": "D03 runtime byte equality",
+      "status": "PASS",
+      "category": "DATA"
+    },
+    {
+      "id": "D04 all seven transport blobs at 46611",
+      "status": "PASS",
+      "category": "DATA"
+    },
+    {
+      "id": "D05 original parser; B35 excluded",
+      "status": "PASS",
+      "category": "DATA"
+    },
+    {
+      "id": "D06 18+8 exact case membership and zero-Worker plan",
+      "status": "PASS",
+      "category": "DATA"
+    }
+  ],
+  "productExecutions": 0
+}

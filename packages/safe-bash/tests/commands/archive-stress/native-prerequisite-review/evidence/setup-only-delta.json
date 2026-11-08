@@ -1,0 +1,17 @@
+{
+  "from": "missing-prerequisite",
+  "to": "configured-prerequisite",
+  "addedRegularFiles": [
+    {
+      "path": "tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+      "sha256": "49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66",
+      "bytes": 456096,
+      "versionStdout": "tar (GNU tar) 1.35\nCopyright (C) 2023 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by John Gilmore and Jay Fenlason.\n"
+    }
+  ],
+  "sourceChanges": [],
+  "testChanges": [],
+  "configChanges": [],
+  "environmentChanges": [],
+  "explanation": "Both test files hardcode this relative executable; GNU_TAR is explicit runner input, not an API honored by these test bodies. Both child environments use the same absolute target and /usr/bin:/bin PATH. No wrapper substituted for the hash-pinned native executable."
+}

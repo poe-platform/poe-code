@@ -1,0 +1,16 @@
+{
+  "name": "pack",
+  "executable": "npm",
+  "args": [
+    "pack",
+    "--ignore-scripts",
+    "--json",
+    "--pack-destination",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-LoFht8/source",
+  "startedAt": "2026-08-27T09:13:42.620Z",
+  "finishedAt": "2026-08-27T09:13:43.378Z",
+  "status": 0,
+  "signal": null
+}

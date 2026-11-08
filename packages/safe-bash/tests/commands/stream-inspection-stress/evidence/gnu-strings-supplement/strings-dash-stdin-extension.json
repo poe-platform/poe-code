@@ -1,0 +1,28 @@
+{
+  "id": "strings-dash-stdin-extension",
+  "args": [
+    "-",
+    "one",
+    "-"
+  ],
+  "locale": "C",
+  "inputSha256": "97d7f94bff715ffd053cfa7998320b65d2fc577326378ebcdd93eba15229dba1",
+  "fileHashes": {
+    "one": "8d1bdc88470f6ec6675cfe5feff99de6c3707719d1cc73fa24173c943f5d9ae2"
+  },
+  "originalExpected": {
+    "stdoutHex": "535444494e0a46494c450a",
+    "stderrHex": "",
+    "exitCode": 0
+  },
+  "expected": {
+    "stdoutHex": "46494c450a",
+    "stderrHex": "",
+    "exitCode": 0
+  },
+  "differences": [
+    "stdoutHex"
+  ],
+  "signal": null,
+  "error": null
+}

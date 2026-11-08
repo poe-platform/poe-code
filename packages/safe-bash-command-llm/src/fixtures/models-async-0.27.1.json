@@ -1,0 +1,94 @@
+[
+  {
+    "argv": [
+      "models",
+      "--async"
+    ],
+    "stdout": "FixtureAsync (async): paired (aliases: a)\nDefault: plain\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "argv": [
+      "models",
+      "--async",
+      "--options"
+    ],
+    "stdout": "FixtureAsync (async): paired (aliases: a)\n  Options:\n    count: int\n      Async count\n  Features:\n  - schemas\n  - tools\n  - async\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "argv": [
+      "models",
+      "--options"
+    ],
+    "stdout": "FixtureModel: plain (aliases: p)\nFixtureModel: paired (aliases: a)\n  Features:\n  - async\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "argv": [
+      "models",
+      "--async",
+      "--tools"
+    ],
+    "stdout": "Default: plain\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "argv": [
+      "models",
+      "--async",
+      "--schemas"
+    ],
+    "stdout": "",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "argv": [
+      "models",
+      "--async",
+      "-q",
+      "FixtureModel"
+    ],
+    "stdout": "FixtureAsync (async): paired (aliases: a)\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "argv": [
+      "models",
+      "--async",
+      "-q",
+      "FixtureAsync"
+    ],
+    "stdout": "",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "argv": [
+      "models",
+      "--async",
+      "-m",
+      "a"
+    ],
+    "stdout": "FixtureAsync (async): paired (aliases: a)\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "argv": [
+      "models",
+      "--async",
+      "-m",
+      "plain"
+    ],
+    "stdout": "",
+    "stderr": "",
+    "exitCode": 0
+  }
+]

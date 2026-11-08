@@ -1,0 +1,22 @@
+{
+  "utc": "2026-08-29T14:31:58.375Z",
+  "pid": 93295,
+  "receipts": [
+    {
+      "path": "/private/tmp/safe-bash-coherent-stage-a-20260829-r2/source/src/shell/shell.ts",
+      "bytes": 15081,
+      "sha256": "126438b132a9f1863bf25b20f02ca6473cb24aa86e0a91869ab98bcbf3309cba"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/node-public-author-20260829/node-load-guard.mjs",
+      "bytes": 2613,
+      "sha256": "7d525601f62fccdd61e5393fb1a770c8c9b0ffffc86777e568a2c72b0b277ed1"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/node-public-author-20260829/node-policy.mjs",
+      "bytes": 3534,
+      "sha256": "c617030cd82a379e0285eb4e4ab53beac7fe0caea34ae0d68995a6d64abee123"
+    }
+  ],
+  "total": 21228
+}

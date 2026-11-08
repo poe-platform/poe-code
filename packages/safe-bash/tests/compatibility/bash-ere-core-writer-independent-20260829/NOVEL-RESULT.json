@@ -1,0 +1,42 @@
+{
+  "phase": "PURE_ONLY",
+  "rows": [
+    {
+      "id": "N01-variable-short-multiple-unicode-exact-boundary",
+      "status": "PASS"
+    },
+    {
+      "id": "N02-partial-then-every-invalid-count-sticky",
+      "status": "PASS"
+    },
+    {
+      "id": "N03-partial-throw-falsy-and-object-identities",
+      "status": "PASS"
+    },
+    {
+      "id": "N04-nonserializable-and-toJSON-falsy-before-write",
+      "status": "PASS"
+    },
+    {
+      "id": "N05-admission-precedes-buffer-allocation",
+      "status": "PASS"
+    },
+    {
+      "id": "N06-all-cleanups-terminal-close-audit-raw-order",
+      "status": "PASS"
+    },
+    {
+      "id": "N07-identity-no-inspection-and-bounded-description",
+      "status": "PASS"
+    },
+    {
+      "id": "N08-absent-writer-close-once-and-audit-falsy",
+      "status": "PASS"
+    }
+  ],
+  "pass": 8,
+  "fail": 0,
+  "products": 0,
+  "workers": 0,
+  "native": 0
+}

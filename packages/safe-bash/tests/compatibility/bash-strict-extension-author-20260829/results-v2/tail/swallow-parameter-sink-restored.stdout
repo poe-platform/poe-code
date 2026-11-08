@@ -1,0 +1,2 @@
+{"id":"X07-parameter-falsy-sink","role":"RATIFIED_PRODUCT_PROFILE_NOT_NATIVE_GOLDEN","pass":true,"created":6,"disposed":6,"cleanupFailure":false}
+{"summary":{"cases":1,"pass":1,"fail":0,"native":0}}

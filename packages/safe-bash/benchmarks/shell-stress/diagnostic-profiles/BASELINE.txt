@@ -1,0 +1,413 @@
+READY
+
+Independent entire-profile baseline completed before author source writes, 2026-08-26.
+
+PRIMARY DESIGN CHOICE: pinned GNU Bash 5.3.0, not a user requirement; historical 3.2.57 preserved. Uniform argv0=shell for ALL cases in BOTH acceptance profiles. Earlier shell-stress capture retained raw for ALL cases. No stderr normalization, oracle mixing or waived failures.
+
+Virtual baseline revision 33ddb70c75865e3e695cf471b942ab0add98a891; aggregate 96fb0ec0422362d1cbad121660976f33a1019623de36742c5ad8a8284f5fe996 -> 96fb0ec0422362d1cbad121660976f33a1019623de36742c5ad8a8284f5fe996; changed source paths []. Shell source last substantive prior commit d0bf4ce.
+
+Complete inventory: original105 =72 differential +5 syntax +22 virtual resource probes +5 process harness tests +1 identity. Current13 =11 native fixtures +2 virtual pattern resource probes. Every original fixture/expectation/helper remains unchanged. Fixed strict profile expands byte comparison to all5 syntax rows, unlike old assertions which checked status/no effects/nonempty diagnostic only.
+
+Native: 88 portable fixture observations (77 original +11 current), PLUS the original sleep30 pipeline lifecycle control under each profile/label/repetition. Two identical stable captures per profile and label; 704 fixture executions +8 lifecycle controls=712 complete capture children. Explicit lifecycle timeout200ms/SIGKILL is the measured expected wait, not an unavailable native pass. Ordinary per-script deadline2000ms, combined outputcap262144, sanitized identical environment policy, isolated cwd, detached process-group cleanup. No native equivalent is invented for24 virtual resource probes.
+
+historical-3.2 argv0=shell-stress: exact fixtures 74/88 pass; 14/88 active fail; original 67/77; current 7/11.
+
+primary-5.3 argv0=shell-stress: exact fixtures 74/88 pass; 14/88 active fail; original 67/77; current 7/11.
+
+historical-3.2 argv0=shell: exact fixtures 74/88 pass; 14/88 active fail; original 67/77; current 7/11.
+
+primary-5.3 argv0=shell: exact fixtures 86/88 pass; 2/88 active fail; original 75/77; current 11/11.
+
+Global invocation change alone alters13 historical and14 modern fixture stderr observations; no stdout/status/file effects change. It does not make historical match modern.
+
+Resource probes24/24 passed. Original live historical tests unchanged: combined108/118 pass,10 fail,0 skipped/cancelled/todo. Nine are previously reported compatibility failures (original5,current4); one extra infrastructure failure: process harness kills descendants holding inherited pipes after parent exit reported kill EPERM during close-group cleanup after121ms. Earlier narrative incorrectly called it a deadline overrun; raw captured transcript is unchanged. Targeted unchanged process-only rerun subsequently passed5/5; initial failure remains recorded, not waived.
+
+Modern strict full118 accounting at baseline:86/88 fixture passes +24/24 resources +5/6 identity/harness =115/118 pass,3 active failures (2 diagnostics +1 infrastructure). Historical strict:74/88 +24/24 +5/6 =103/118,15 active failures. Native calibration stability is NOT virtual pass status.
+
+SEVEN REPORTED DIAGNOSTIC ROWS: all seven ALREADY EXACTLY MATCH modern shell profile. Zero of these require fabricated source fixes. Historical/version and global invocation differences explain their previous classification. Full seven-row data follows:
+
+{
+  "name": "fatal-parameter-expansion-prevents-following-file-effect",
+  "historical": {
+    "stdout": "",
+    "stderr": "shell: missing: stop\n",
+    "stdoutBase64": "",
+    "stderrBase64": "c2hlbGw6IG1pc3Npbmc6IHN0b3AK",
+    "exitCode": 127,
+    "files": {}
+  },
+  "modern": {
+    "stdout": "",
+    "stderr": "shell: line 1: missing: stop\n",
+    "stdoutBase64": "",
+    "stderrBase64": "c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo=",
+    "exitCode": 127,
+    "files": {}
+  },
+  "virtual": {
+    "stdout": "",
+    "stderr": "shell: line 1: missing: stop\n",
+    "exitCode": 127,
+    "files": {},
+    "stdoutBase64": "",
+    "stderrBase64": "c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo="
+  },
+  "modernPass": true
+}
+
+{
+  "name": "fatal-arithmetic-expansion-prevents-following-file-effect",
+  "historical": {
+    "stdout": "",
+    "stderr": "shell: 1/0: division by 0 (error token is \"0\")\n",
+    "stdoutBase64": "",
+    "stderrBase64": "c2hlbGw6IDEvMDogZGl2aXNpb24gYnkgMCAoZXJyb3IgdG9rZW4gaXMgIjAiKQo=",
+    "exitCode": 1,
+    "files": {}
+  },
+  "modern": {
+    "stdout": "",
+    "stderr": "shell: line 1: 1/0: division by 0 (error token is \"0\")\n",
+    "stdoutBase64": "",
+    "stderrBase64": "c2hlbGw6IGxpbmUgMTogMS8wOiBkaXZpc2lvbiBieSAwIChlcnJvciB0b2tlbiBpcyAiMCIpCg==",
+    "exitCode": 1,
+    "files": {}
+  },
+  "virtual": {
+    "stdout": "",
+    "stderr": "shell: line 1: 1/0: division by 0 (error token is \"0\")\n",
+    "exitCode": 1,
+    "files": {},
+    "stdoutBase64": "",
+    "stderrBase64": "c2hlbGw6IGxpbmUgMTogMS8wOiBkaXZpc2lvbiBieSAwIChlcnJvciB0b2tlbiBpcyAiMCIpCg=="
+  },
+  "modernPass": true
+}
+
+{
+  "name": "fatal-expansion-in-substitution-stops-substitution-only",
+  "historical": {
+    "stdout": "<>:1\n",
+    "stderr": "shell: missing: stop\n",
+    "stdoutBase64": "PD46MQo=",
+    "stderrBase64": "c2hlbGw6IG1pc3Npbmc6IHN0b3AK",
+    "exitCode": 0,
+    "files": {}
+  },
+  "modern": {
+    "stdout": "<>:1\n",
+    "stderr": "shell: line 1: missing: stop\n",
+    "stdoutBase64": "PD46MQo=",
+    "stderrBase64": "c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo=",
+    "exitCode": 0,
+    "files": {}
+  },
+  "virtual": {
+    "stdout": "<>:1\n",
+    "stderr": "shell: line 1: missing: stop\n",
+    "exitCode": 0,
+    "files": {},
+    "stdoutBase64": "PD46MQo=",
+    "stderrBase64": "c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo="
+  },
+  "modernPass": true
+}
+
+{
+  "name": "command-substitution-removes-nul-bytes",
+  "historical": {
+    "stdout": "<ab>\n",
+    "stderr": "",
+    "stdoutBase64": "PGFiPgo=",
+    "stderrBase64": "",
+    "exitCode": 0,
+    "files": {}
+  },
+  "modern": {
+    "stdout": "<ab>\n",
+    "stderr": "shell: line 1: warning: command substitution: ignored null byte in input\n",
+    "stdoutBase64": "PGFiPgo=",
+    "stderrBase64": "c2hlbGw6IGxpbmUgMTogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==",
+    "exitCode": 0,
+    "files": {}
+  },
+  "virtual": {
+    "stdout": "<ab>\n",
+    "stderr": "shell: line 1: warning: command substitution: ignored null byte in input\n",
+    "exitCode": 0,
+    "files": {},
+    "stdoutBase64": "PGFiPgo=",
+    "stderrBase64": "c2hlbGw6IGxpbmUgMTogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg=="
+  },
+  "modernPass": true
+}
+
+{
+  "name": "move-output-really-closes-source",
+  "historical": {
+    "stdout": "status=1",
+    "stderr": "shell: 3: Bad file descriptor\n",
+    "stdoutBase64": "c3RhdHVzPTE=",
+    "stderrBase64": "c2hlbGw6IDM6IEJhZCBmaWxlIGRlc2NyaXB0b3IK",
+    "exitCode": 0,
+    "files": {
+      "saved": {
+        "type": "file",
+        "base64": "bW92ZWQ="
+      }
+    }
+  },
+  "modern": {
+    "stdout": "status=1",
+    "stderr": "shell: line 1: 3: Bad file descriptor\n",
+    "stdoutBase64": "c3RhdHVzPTE=",
+    "stderrBase64": "c2hlbGw6IGxpbmUgMTogMzogQmFkIGZpbGUgZGVzY3JpcHRvcgo=",
+    "exitCode": 0,
+    "files": {
+      "saved": {
+        "type": "file",
+        "base64": "bW92ZWQ="
+      }
+    }
+  },
+  "virtual": {
+    "stdout": "status=1",
+    "stderr": "shell: line 1: 3: Bad file descriptor\n",
+    "exitCode": 0,
+    "files": {
+      "saved": {
+        "type": "file",
+        "base64": "bW92ZWQ="
+      }
+    },
+    "stdoutBase64": "c3RhdHVzPTE=",
+    "stderrBase64": "c2hlbGw6IGxpbmUgMTogMzogQmFkIGZpbGUgZGVzY3JpcHRvcgo="
+  },
+  "modernPass": true
+}
+
+{
+  "name": "move-input-really-closes-source",
+  "historical": {
+    "stdout": "<first>status=1",
+    "stderr": "shell: 3: Bad file descriptor\n",
+    "stdoutBase64": "PGZpcnN0PnN0YXR1cz0x",
+    "stderrBase64": "c2hlbGw6IDM6IEJhZCBmaWxlIGRlc2NyaXB0b3IK",
+    "exitCode": 0,
+    "files": {
+      "input": {
+        "type": "file",
+        "base64": "Zmlyc3QKc2Vjb25kCg=="
+      }
+    }
+  },
+  "modern": {
+    "stdout": "<first>status=1",
+    "stderr": "shell: line 1: 3: Bad file descriptor\n",
+    "stdoutBase64": "PGZpcnN0PnN0YXR1cz0x",
+    "stderrBase64": "c2hlbGw6IGxpbmUgMTogMzogQmFkIGZpbGUgZGVzY3JpcHRvcgo=",
+    "exitCode": 0,
+    "files": {
+      "input": {
+        "type": "file",
+        "base64": "Zmlyc3QKc2Vjb25kCg=="
+      }
+    }
+  },
+  "virtual": {
+    "stdout": "<first>status=1",
+    "stderr": "shell: line 1: 3: Bad file descriptor\n",
+    "exitCode": 0,
+    "files": {
+      "input": {
+        "type": "file",
+        "base64": "Zmlyc3QKc2Vjb25kCg=="
+      }
+    },
+    "stdoutBase64": "PGZpcnN0PnN0YXR1cz0x",
+    "stderrBase64": "c2hlbGw6IGxpbmUgMTogMzogQmFkIGZpbGUgZGVzY3JpcHRvcgo="
+  },
+  "modernPass": true
+}
+
+{
+  "name": "fatal-parameter-preserves-only-earlier-effects",
+  "historical": {
+    "stdout": "",
+    "stderr": "shell: missing: stop\n",
+    "stdoutBase64": "",
+    "stderrBase64": "c2hlbGw6IG1pc3Npbmc6IHN0b3AK",
+    "exitCode": 127,
+    "files": {
+      "before": {
+        "type": "file",
+        "base64": "YmVmb3Jl"
+      }
+    }
+  },
+  "modern": {
+    "stdout": "",
+    "stderr": "shell: line 1: missing: stop\n",
+    "stdoutBase64": "",
+    "stderrBase64": "c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo=",
+    "exitCode": 127,
+    "files": {
+      "before": {
+        "type": "file",
+        "base64": "YmVmb3Jl"
+      }
+    }
+  },
+  "virtual": {
+    "stdout": "",
+    "stderr": "shell: line 1: missing: stop\n",
+    "exitCode": 127,
+    "files": {
+      "before": {
+        "type": "file",
+        "base64": "YmVmb3Jl"
+      }
+    },
+    "stdoutBase64": "",
+    "stderrBase64": "c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo="
+  },
+  "modernPass": true
+}
+
+TWO BEHAVIORAL CONFLICTS (not diagnostic waivers):
+
+{
+  "name": "nested-substitution-syntax-error-does-not-prevent-earlier-effects",
+  "historical": {
+    "stdout": "",
+    "stderr": "shell: command substitution: line 1: syntax error: unexpected end of file\n",
+    "stdoutBase64": "",
+    "stderrBase64": "c2hlbGw6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBsaW5lIDE6IHN5bnRheCBlcnJvcjogdW5leHBlY3RlZCBlbmQgb2YgZmlsZQo=",
+    "exitCode": 0,
+    "files": {
+      "marker": {
+        "type": "file",
+        "base64": "dG91Y2hlZA=="
+      }
+    }
+  },
+  "modern": {
+    "stdout": "",
+    "stderr": "shell: -c: line 1: syntax error near unexpected token `)'\nshell: -c: line 1: `printf touched >marker; printf '%s' \"$(true |)\"'\n",
+    "stdoutBase64": "",
+    "stderrBase64": "c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCnNoZWxsOiAtYzogbGluZSAxOiBgcHJpbnRmIHRvdWNoZWQgPm1hcmtlcjsgcHJpbnRmICclcycgIiQodHJ1ZSB8KSInCg==",
+    "exitCode": 127,
+    "files": {}
+  },
+  "virtual": {
+    "stdout": "",
+    "stderr": "shell: -c: line 1: syntax error near unexpected token `)'\nshell: -c: line 1: `printf touched >marker; printf '%s' \"$(true |)\"'\n",
+    "exitCode": 127,
+    "files": {},
+    "stdoutBase64": "",
+    "stderrBase64": "c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCnNoZWxsOiAtYzogbGluZSAxOiBgcHJpbnRmIHRvdWNoZWQgPm1hcmtlcjsgcHJpbnRmICclcycgIiQodHJ1ZSB8KSInCg=="
+  }
+}
+
+{
+  "name": "prevalidation-prior-output-and-file",
+  "historical": {
+    "stdout": "beforeafter",
+    "stderr": "shell: command substitution: line 1: syntax error: unexpected end of file\n",
+    "stdoutBase64": "YmVmb3JlYWZ0ZXI=",
+    "stderrBase64": "c2hlbGw6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBsaW5lIDE6IHN5bnRheCBlcnJvcjogdW5leHBlY3RlZCBlbmQgb2YgZmlsZQo=",
+    "exitCode": 0,
+    "files": {
+      "marker": {
+        "type": "file",
+        "base64": "bWFya2Vy"
+      }
+    }
+  },
+  "modern": {
+    "stdout": "",
+    "stderr": "shell: -c: line 1: syntax error near unexpected token `)'\nshell: -c: line 1: `printf before; printf marker >marker; printf \"%s\" \"$(true |)\"; printf after'\n",
+    "stdoutBase64": "",
+    "stderrBase64": "c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCnNoZWxsOiAtYzogbGluZSAxOiBgcHJpbnRmIGJlZm9yZTsgcHJpbnRmIG1hcmtlciA+bWFya2VyOyBwcmludGYgIiVzIiAiJCh0cnVlIHwpIjsgcHJpbnRmIGFmdGVyJwo=",
+    "exitCode": 127,
+    "files": {}
+  },
+  "virtual": {
+    "stdout": "",
+    "stderr": "shell: -c: line 1: syntax error near unexpected token `)'\nshell: -c: line 1: `printf before; printf marker >marker; printf \"%s\" \"$(true |)\"; printf after'\n",
+    "exitCode": 127,
+    "files": {},
+    "stdoutBase64": "",
+    "stderrBase64": "c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCnNoZWxsOiAtYzogbGluZSAxOiBgcHJpbnRmIGJlZm9yZTsgcHJpbnRmIG1hcmtlciA+bWFya2VyOyBwcmludGYgIiVzIiAiJCh0cnVlIHwpIjsgcHJpbnRmIGFmdGVyJwo="
+  }
+}
+
+Historical same-unit malformed substitution returns0 and leaves marker (first touched, second marker) and second stdout beforeafter. Modern/virtual return127 with empty stdout/files: do not emulate historical prior effects.
+
+EXACT MODERN RESIDUALS (whole cohort, not just nine prior rows):
+
+{
+  "name": "unterminated-quote-after-write",
+  "cohort": "original-syntax",
+  "pass": false,
+  "expected": {
+    "stdout": "",
+    "stderr": "shell: -c: line 1: unexpected EOF while looking for matching `\"'\n",
+    "stdoutBase64": "",
+    "stderrBase64": "c2hlbGw6IC1jOiBsaW5lIDE6IHVuZXhwZWN0ZWQgRU9GIHdoaWxlIGxvb2tpbmcgZm9yIG1hdGNoaW5nIGAiJwo=",
+    "exitCode": 2,
+    "files": {}
+  },
+  "actual": {
+    "stdout": "",
+    "stderr": "shell: Unterminated double quote at offset 44\n",
+    "exitCode": 2,
+    "files": {},
+    "stdoutBase64": "",
+    "stderrBase64": "c2hlbGw6IFVudGVybWluYXRlZCBkb3VibGUgcXVvdGUgYXQgb2Zmc2V0IDQ0Cg=="
+  }
+}
+
+{
+  "name": "missing-group-terminator-after-write",
+  "cohort": "original-syntax",
+  "pass": false,
+  "expected": {
+    "stdout": "",
+    "stderr": "shell: -c: line 2: syntax error: unexpected end of file from `{' command on line 1\n",
+    "stdoutBase64": "",
+    "stderrBase64": "c2hlbGw6IC1jOiBsaW5lIDI6IHN5bnRheCBlcnJvcjogdW5leHBlY3RlZCBlbmQgb2YgZmlsZSBmcm9tIGB7JyBjb21tYW5kIG9uIGxpbmUgMQo=",
+    "exitCode": 2,
+    "files": {}
+  },
+  "actual": {
+    "stdout": "",
+    "stderr": "shell: -c: line 2: syntax error: unexpected end of file\n",
+    "exitCode": 2,
+    "files": {},
+    "stdoutBase64": "",
+    "stderrBase64": "c2hlbGw6IC1jOiBsaW5lIDI6IHN5bnRheCBlcnJvcjogdW5leHBlY3RlZCBlbmQgb2YgZmlsZQo="
+  }
+}
+
+Source author may now fix the two existing syntax diagnostic residuals without broadening syntax, plus independently frozen narrow line/NUL/FsError controls if reproduced. All seven original diagnostic rows require profile correction, not source changes.
+
+FsError boundary coordination: src/contracts/errors.ts retains public typed code/errno/syscall/path/dest/cause. Adapter matrix (other owner) now asserts exact input-redirection CLI shell: line1 missing path with No such file or directory and typed ENOENT/path at access/readFile/stat boundary plus unchanged namespace. cat command ENOENT stderr is distinct command-owner scope, not authorization for blanket stripping. Author reports cd missing path generic error display as candidate; test typed API/plugin boundary separately. No contracts/adapters/command/root changes by this verifier.
+
+Import-provenance correction: direct eval .js resolution was a real generated-JS hazard, but actual NODE_DEBUG=esm virtual-child.ts graph loaded TS dependencies even while JS siblings existed. Initial inference that all TS tests were contaminated was too strong. Shell owner preserved/hash-verified and removed only owned9 emitted files; other owners removed dependencies. No TS-source proof was claimed for an earlier shadowed run. Current baseline source hashes stable.
+
+/tmp/safe-bash-shell-diagnostic-native-complete-baseline.json SHA256 0cb9d0b498331434ec2a49dd4f75b30dcfb10db2ff8fd029613d948f119d4cf3
+
+/tmp/safe-bash-shell-diagnostic-native-baseline.json SHA256 f176d08f7ec9a6a9d3a90a1c15eedaef3b9cb048a11fe50e1bdce09d3b06c271
+
+/tmp/safe-bash-shell-diagnostic-virtual-baseline.json SHA256 fd95054242fb24d1b6d8614812a1e14fcdd01a81b71833c905f1f48cc9a5320d
+
+/tmp/safe-bash-diagnostic-import-trace.log SHA256 e1f0c3c5014cca880ee99338250372ff4cddeb32dc6207f8efb090dbe2b6bfe4
+
+/tmp/safe-bash-shell-modern-reference.txt SHA256 b7851713e22cd4c4706d443fd04bbb863cbf8f3bbbd9c2771e54c3749f209bf9
+
+Native complete JSON embeds literal scripts, argv, stdin/environment/files, raw byte base64, binary identities, source/harness hashes, repetitions and child PIDs. First preliminary raw88 captures also preserved; complete capture adds original lifecycle control without altering fixtures.
+
+GNU primary evidence: https://ftp.gnu.org/gnu/bash/bash-5.3.tar.gz (existing verified build archive); source SHA256 0d5cd86965f869a26cf64f4b71be7b96f90a3ba8b3d74e27e8e9d9d5550f31ba; source subst.c:6716-6728 drops NUL and warns once, error.c:74-85 includes execution line, error.c:222-234 internal_warning. GNU5.3 manual https://www.gnu.org/s/bash/manual/bash.html and https://www.gnu.org/s/bash/manual/html_node/Command-Substitution.html; GNU discussion https://lists.gnu.org/archive/html/bug-bash/2016-09/msg00070.html. Capture observations, not manual guesses, determine frozen expected bytes.
+
+No new Bash build, dependencies, fixture edits, broad syntax or superiority claims. New frozen harness/profile commit will follow separately; source corrections belong only to author.

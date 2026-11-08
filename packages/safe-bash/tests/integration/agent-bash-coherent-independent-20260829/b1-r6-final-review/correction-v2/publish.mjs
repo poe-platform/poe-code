@@ -1,0 +1,13 @@
+import fs from 'node:fs';
+import crypto from 'node:crypto';
+import assert from 'node:assert/strict';
+const own='tests/integration/agent-bash-coherent-independent-20260829/b1-r6-final-review/correction-v2';
+const sha=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
+assert(Date.now()<fs.statSync(`${own}/startup.stdout`).birthtimeMs+300000,'PUBLICATION_DEADLINE');
+const command=fs.readFileSync('tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/COMMAND.json');
+assert.equal(sha(command),'9ecf5ccae3492024fd67f35f64ee925b4062a590d5f5d6fb943c8542539b02b0');
+fs.writeFileSync(`${own}/COMMAND.json`,command,{flag:'wx'});
+const names=['PRESEAL.md','REPORT.md','classifier.mjs','run.mjs','publish.mjs','DERIVED.mjs.data','EXECUTABLE-SEAL.json','startup.stdout','startup.stderr','syntax.stdout','syntax.stderr','review.stdout','review.stderr','COMMAND.json'];
+const bindings=names.map(path=>{const bytes=fs.readFileSync(`${own}/${path}`);assert(bytes.length<1048576);return{path,bytes:bytes.length,sha256:sha(bytes)};});
+const value={schema:'b1-r6-classifier-correction-reporting-hold',at:new Date().toISOString(),verdict:'HOLD',replayExit:1,fullySealedPasses:0,sourceBoundReachedControlBodies:11,individualPassReceipts:false,terminalFailure:'ENOENT historical publisher sibling path, after PURE and postguards',previousRefusalPreserved:true,actualPublisher:0,product:0,Workers:0,knownStartChargeCeiling:18,windowRenewed:false,bindings};
+const bytes=Buffer.from(JSON.stringify(value,null,2)+'\n');fs.writeFileSync(`${own}/RECEIPT.json`,bytes,{flag:'wx',mode:0o600});console.log(JSON.stringify({at:value.at,receiptSha256:sha(bytes),bytes:bytes.length,verdict:value.verdict}));

@@ -1,0 +1,2 @@
+declare -a a=([0]="old" [5]="tail")
+declare -- side="kept"

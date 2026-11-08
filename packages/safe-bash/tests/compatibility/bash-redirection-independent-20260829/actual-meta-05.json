@@ -1,0 +1,15 @@
+{
+  "args": [
+    "show",
+    "--no-patch",
+    "--format=%H",
+    "3fb5c684",
+    "374c7a0b",
+    "fdd8eedb"
+  ],
+  "pid": 96435,
+  "closed": true,
+  "originalGlobalStart": 1787977926793,
+  "code": 0,
+  "signal": null
+}

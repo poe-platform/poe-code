@@ -1,0 +1,20 @@
+{
+  "schema": "FUNCTIONAL_V2_LOADED_EDGE_RECONCILIATION",
+  "actualWorkers": 10,
+  "exactWorkerToConsumerEdges": 10,
+  "exactConsumerToBarePackageEdges": 10,
+  "sourceLoadObservations": 1553,
+  "consumerEvaluations": 10,
+  "perFileEvaluationNotClaimed": true,
+  "authorityMetadataChildren": 22,
+  "authorityAllAuthenticated": true,
+  "rawInvocationCountsMatch": true,
+  "allReportedPending": 0,
+  "allReportedDescriptors": 0,
+  "cleanupErrors": 0,
+  "lateErrors": 0,
+  "guardViolations": 1,
+  "unsafeWorker": 10,
+  "protocolQualified": false,
+  "reason": "Complete cohort did not finish; capability refusal cannot become a command defect or pass."
+}

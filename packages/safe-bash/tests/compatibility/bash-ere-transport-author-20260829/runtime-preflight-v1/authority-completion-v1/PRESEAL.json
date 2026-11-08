@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "phase": "SOURCE_DATA_AUTHORITY_COMPLETION_ONLY",
+  "source": {
+    "commit": "6f9632cc2e51987f3fdfdb9eae2718e1977dc2d6",
+    "receiptSha256": "04ef22c058ba46eca71c93ceab787fdebf474cbd55296d5573035bf3eee41743"
+  },
+  "closure": {
+    "size": 4876,
+    "sha256": "1ebcca468acfbc46c2db16f53a020bde04d417e6aee31a8e20fe15e23373d08f"
+  },
+  "slot": {
+    "size": 3575,
+    "sha256": "d42b31a9e03a53ecd9f201a8ad54cf12f7ea2c0b9c8c1c1805f24a3020887ee5"
+  },
+  "helper": {
+    "path": "closure-check.mjs",
+    "size": 4504,
+    "sha256": "4d6a4b5ed6ccd4a0ea0de17a167dcad1d2a4ead34e1f124c5bcead0cc86e390b",
+    "externalImports": [
+      "node:fs",
+      "node:crypto",
+      "node:url"
+    ],
+    "pureDependency": {
+      "name": "data-support.mjs",
+      "size": 5286,
+      "sha256": "c29b6703272e381fbdcc69fe1bc7543127b55f6aed5067f831da820d5628adce",
+      "imports": [
+        "node:fs",
+        "node:crypto",
+        "node:path",
+        "node:zlib"
+      ],
+      "dynamic": []
+    }
+  },
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "size": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "authenticatedAt": "2026-08-29T14:10:45.635Z",
+    "streamChunkBytes": 65536
+  },
+  "planned": {
+    "pureHelpers": 1,
+    "closureControls": 6,
+    "realChildrenOfHelper": 0,
+    "Workers": 0,
+    "compiler": 0,
+    "productImports": 0
+  },
+  "limits": {
+    "milliseconds": 720000,
+    "knownOS": 32,
+    "peak": 3,
+    "captureBytes": 50331648,
+    "workBytes": 201326592
+  },
+  "helperCapture": [
+    "capture/closure.stdout",
+    "capture/closure.stderr"
+  ],
+  "historicalResultsUnchanged": true
+}

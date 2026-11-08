@@ -1,0 +1,22 @@
+{
+  "role": "PREPARATION_CATALOG_READ_NOT_TIMED_PROOF",
+  "queries": [
+    "633f6c82f738f1c69d6c7b6c91672524ec8688b2:tests/integration/coherent78-shell-author-20260828/MANIFEST.json",
+    "633f6c82f738f1c69d6c7b6c91672524ec8688b2:tests/integration/coherent78-shell-author-20260828/CANDIDATE.json",
+    "633f6c82f738f1c69d6c7b6c91672524ec8688b2:tests/integration/coherent78-shell-independent-20260828/PRESEAL.json",
+    "803be45d68b3c6e0593c8e36ca45dda75ffc766d:tests/integration/coherent78-shell-author-20260828/MANIFEST.json",
+    "803be45d68b3c6e0593c8e36ca45dda75ffc766d:tests/integration/coherent78-shell-author-20260828/CANDIDATE.json"
+  ],
+  "pid": 80713,
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "stdoutSha256": "b9d1c90ce2cc77bd79ae1475625e10fd79eec19b36edca570a9b03df7b38b8b4",
+  "bootstrapFailure": {
+    "command": "git rev-parse --verify 633f6c82^{commit} 803be45d^{commit} ea7e1873^{commit}",
+    "status": 128,
+    "stderr": "fatal: Needed a single revision\n",
+    "classification": "bootstrap command-form error before any proof; no absent-object inference; full names then resolved by rev-parse without single-revision --verify"
+  },
+  "proofExecutions": 0
+}

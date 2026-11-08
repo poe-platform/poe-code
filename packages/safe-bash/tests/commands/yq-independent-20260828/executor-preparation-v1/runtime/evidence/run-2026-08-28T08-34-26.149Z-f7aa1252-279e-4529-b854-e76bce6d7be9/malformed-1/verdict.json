@@ -1,0 +1,21 @@
+{
+  "jobId": "malformed-1",
+  "admitted": true,
+  "outcome": "PASS",
+  "failures": [],
+  "integrity": true,
+  "reapProof": true,
+  "metadata": {
+    "pid": 99209,
+    "group": 99209,
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "overflow": false,
+    "spawnError": null,
+    "closed": true,
+    "reaped": true,
+    "kills": [],
+    "elapsedMs": 53
+  }
+}

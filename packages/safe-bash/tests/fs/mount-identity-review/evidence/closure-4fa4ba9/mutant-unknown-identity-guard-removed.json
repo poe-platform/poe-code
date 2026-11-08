@@ -1,0 +1,2100 @@
+{
+  "name": "mutant-unknown-identity-guard-removed",
+  "revision": "4fa4ba9502dac843bd13aa5031d128a3171f597d",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "argv": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-concurrency=1",
+    "tests/fs/mount-identity-review/contract-edges.test.ts"
+  ],
+  "started": "2026-08-26T23:57:08.970Z",
+  "ended": "2026-08-26T23:57:09.136Z",
+  "exit": 1,
+  "signal": null,
+  "stdout": "TAP version 13\n# Subtest: unknown identity: missing scope rejects before acquisition in both directions\nnot ok 1 - unknown identity: missing scope rejects before acquisition in both directions\n  ---\n  duration_ms: 4.683417\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount-identity-review/.closure-archive-PBV23w/fixed/tests/fs/mount-identity-review/contract-edges.test.ts:1:5040'\n  failureType: 'testCodeFailure'\n  error: |-\n    The expression evaluated to a falsy value:\n    \n      assert.ok(result.failure instanceof FsError)\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: true\n  actual: false\n  operator: '=='\n  stack: |-\n    boundary (/Users/kjopek/Workspace/safe-bash/tests/fs/mount-identity-review/.closure-archive-PBV23w/fixed/tests/fs/mount-identity-review/contract-edges.test.ts:98:10)\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount-identity-review/.closure-archive-PBV23w/fixed/tests/fs/mount-identity-review/contract-edges.test.ts:134:7)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)\n  ...\n# Subtest: unknown identity: null scope rejects before acquisition in both directions\nnot ok 2 - unknown identity: null scope rejects before acquisition in both directions\n  ---\n  duration_ms: 1.141541\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount-identity-review/.closure-archive-PBV23w/fixed/tests/fs/mount-identity-review/contract-edges.test.ts:1:5040'\n  failureType: 'testCodeFailure'\n  error: |-\n    The expression evaluated to a falsy value:\n    \n      assert.ok(result.failure instanceof FsError)\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: true\n  actual: false\n  operator: '=='\n  stack: |-\n    boundary (/Users/kjopek/Workspace/safe-bash/tests/fs/mount-identity-review/.closure-archive-PBV23w/fixed/tests/fs/mount-identity-review/contract-edges.test.ts:98:10)\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount-identity-review/.closure-archive-PBV23w/fixed/tests/fs/mount-identity-review/contract-edges.test.ts:134:7)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: unknown identity: string scope rejects before acquisition in both directions\nnot ok 3 - unknown identity: string scope rejects before acquisition in both directions\n  ---\n  duration_ms: 0.589375\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount-identity-review/.closure-archive-PBV23w/fixed/tests/fs/mount-identity-review/contract-edges.test.ts:1:5040'\n  failureType: 'testCodeFailure'\n  error: |-\n    The expression evaluated to a falsy value:\n    \n      assert.ok(result.failure instanceof FsError)\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: true\n  actual: false\n  operator: '=='\n  stack: |-\n    boundary (/Users/kjopek/Workspace/safe-bash/tests/fs/mount-identity-review/.closure-archive-PBV23w/fixed/tests/fs/mount-identity-review/contract-edges.test.ts:98:10)\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount-identity-review/.closure-archive-PBV23w/fixed/tests/fs/mount-identity-review/contract-edges.test.ts:134:7)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: unknown identity: function scope rejects before acquisition in both directions\nnot ok 4 - unknown identity: function scope rejects before acquisition in both directions\n  ---\n  duration_ms: 0.434958\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount-identity-review/.closure-archive-PBV23w/fixed/tests/fs/mount-identity-review/contract-edges.test.ts:1:5040'\n  failureType: 'testCodeFailure'\n  error: |-\n    The expression evaluated to a falsy value:\n    \n      assert.ok(result.failure instanceof FsError)\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: true\n  actual: false\n  operator: '=='\n  stack: |-\n    boundary (/Users/kjopek/Workspace/safe-bash/tests/fs/mount-identity-review/.closure-archive-PBV23w/fixed/tests/fs/mount-identity-review/contract-edges.test.ts:98:10)\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount-identity-review/.closure-archive-PBV23w/fixed/tests/fs/mount-identity-review/contract-edges.test.ts:134:7)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: unknown identity: negative device rejects before acquisition in both directions\nnot ok 5 - unknown identity: negative device rejects before acquisition in both directions\n  ---\n  duration_ms: 0.561209\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount-identity-review/.closure-archive-PBV23w/fixed/tests/fs/mount-identity-review/contract-edges.test.ts:1:5040'\n  failureType: 'testCodeFailure'\n  error: |-\n    The expression evaluated to a falsy value:\n    \n      assert.ok(result.failure instanceof FsError)\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: true\n  actual: false\n  operator: '=='\n  stack: |-\n    boundary (/Users/kjopek/Workspace/safe-bash/tests/fs/mount-identity-review/.closure-archive-PBV23w/fixed/tests/fs/mount-identity-review/contract-edges.test.ts:98:10)\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount-identity-review/.closure-archive-PBV23w/fixed/tests/fs/mount-identity-review/contract-edges.test.ts:134:7)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: unknown identity: negative inode rejects before acquisition in both directions\nnot ok 6 - unknown identity: negative inode rejects before acquisition in both directions\n  ---\n  duration_ms: 0.337958\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount-identity-review/.closure-archive-PBV23w/fixed/tests/fs/mount-identity-review/contract-edges.test.ts:1:5040'\n  failureType: 'testCodeFailure'\n  error: |-\n    The expression evaluated to a falsy value:\n    \n      assert.ok(result.failure instanceof FsError)\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: true\n  actual: false\n  operator: '=='\n  stack: |-\n    boundary (/Users/kjopek/Workspace/safe-bash/tests/fs/mount-identity-review/.closure-archive-PBV23w/fixed/tests/fs/mount-identity-review/contract-edges.test.ts:98:10)\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount-identity-review/.closure-archive-PBV23w/fixed/tests/fs/mount-identity-review/contract-edges.test.ts:134:7)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: unknown identity: unsafe inode rejects before acquisition in both directions\nnot ok 7 - unknown identity: unsafe inode rejects before acquisition in both directions\n  ---\n  duration_ms: 0.452958\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount-identity-review/.closure-archive-PBV23w/fixed/tests/fs/mount-identity-review/contract-edges.test.ts:1:5040'\n  failureType: 'testCodeFailure'\n  error: |-\n    The expression evaluated to a falsy value:\n    \n      assert.ok(result.failure instanceof FsError)\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: true\n  actual: false\n  operator: '=='\n  stack: |-\n    boundary (/Users/kjopek/Workspace/safe-bash/tests/fs/mount-identity-review/.closure-archive-PBV23w/fixed/tests/fs/mount-identity-review/contract-edges.test.ts:98:10)\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount-identity-review/.closure-archive-PBV23w/fixed/tests/fs/mount-identity-review/contract-edges.test.ts:134:7)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: unknown identity: nonfinite device rejects before acquisition in both directions\nnot ok 8 - unknown identity: nonfinite device rejects before acquisition in both directions\n  ---\n  duration_ms: 0.74725\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount-identity-review/.closure-archive-PBV23w/fixed/tests/fs/mount-identity-review/contract-edges.test.ts:1:5040'\n  failureType: 'testCodeFailure'\n  error: |-\n    The expression evaluated to a falsy value:\n    \n      assert.ok(result.failure instanceof FsError)\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: true\n  actual: false\n  operator: '=='\n  stack: |-\n    boundary (/Users/kjopek/Workspace/safe-bash/tests/fs/mount-identity-review/.closure-archive-PBV23w/fixed/tests/fs/mount-identity-review/contract-edges.test.ts:98:10)\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount-identity-review/.closure-archive-PBV23w/fixed/tests/fs/mount-identity-review/contract-edges.test.ts:134:7)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: unknown identity: missing inode rejects before acquisition in both directions\nnot ok 9 - unknown identity: missing inode rejects before acquisition in both directions\n  ---\n  duration_ms: 0.668666\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount-identity-review/.closure-archive-PBV23w/fixed/tests/fs/mount-identity-review/contract-edges.test.ts:1:5040'\n  failureType: 'testCodeFailure'\n  error: |-\n    The expression evaluated to a falsy value:\n    \n      assert.ok(result.failure instanceof FsError)\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: true\n  actual: false\n  operator: '=='\n  stack: |-\n    boundary (/Users/kjopek/Workspace/safe-bash/tests/fs/mount-identity-review/.closure-archive-PBV23w/fixed/tests/fs/mount-identity-review/contract-edges.test.ts:98:10)\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount-identity-review/.closure-archive-PBV23w/fixed/tests/fs/mount-identity-review/contract-edges.test.ts:134:7)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: truthful disjoint object scopes permit synthetic coordinate collisions without coercion\nok 10 - truthful disjoint object scopes permit synthetic coordinate collisions without coercion\n  ---\n  duration_ms: 0.985958\n  type: 'test'\n  ...\n# Subtest: prototype scope getter survives readonly and nested mount without premature source acquisition\nok 11 - prototype scope getter survives readonly and nested mount without premature source acquisition\n  ---\n  duration_ms: 0.653583\n  type: 'test'\n  ...\n# Subtest: overlay copy-up replaces exposed backing identity and permits a truly distinct subsequent copy\nok 12 - overlay copy-up replaces exposed backing identity and permits a truly distinct subsequent copy\n  ---\n  duration_ms: 2.081083\n  type: 'test'\n  ...\n# Subtest: new repeated-backend constructor input retains hardlink protection and rejects duplicate mount paths\nok 13 - new repeated-backend constructor input retains hardlink protection and rejects duplicate mount paths\n  ---\n  duration_ms: 0.457958\n  type: 'test'\n  ...\n# Subtest: default missing-target alias race uses exclusive creation, streaming=true\nok 14 - default missing-target alias race uses exclusive creation, streaming=true\n  ---\n  duration_ms: 0.399833\n  type: 'test'\n  ...\n# Subtest: default missing-target alias race uses exclusive creation, streaming=false\nok 15 - default missing-target alias race uses exclusive creation, streaming=false\n  ---\n  duration_ms: 0.291833\n  type: 'test'\n  ...\n# Subtest: ENOENT-shaped cancellation during target lookup is not missing-file permission, overlay=false\nok 16 - ENOENT-shaped cancellation during target lookup is not missing-file permission, overlay=false\n  ---\n  duration_ms: 0.258875\n  type: 'test'\n  ...\n# Subtest: ENOENT-shaped cancellation during target lookup is not missing-file permission, overlay=true\nok 17 - ENOENT-shaped cancellation during target lookup is not missing-file permission, overlay=true\n  ---\n  duration_ms: 0.404458\n  type: 'test'\n  ...\n# Subtest: unknown same-mount identity cannot delegate to an arbitrary destructive copyFile method\nnot ok 18 - unknown same-mount identity cannot delegate to an arbitrary destructive copyFile method\n  ---\n  duration_ms: 0.468666\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount-identity-review/.closure-archive-PBV23w/fixed/tests/fs/mount-identity-review/contract-edges.test.ts:1:12569'\n  failureType: 'testCodeFailure'\n  error: |-\n    The expression evaluated to a falsy value:\n    \n      assert.ok(result.failure instanceof FsError)\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: true\n  actual: false\n  operator: '=='\n  stack: |-\n    boundary (/Users/kjopek/Workspace/safe-bash/tests/fs/mount-identity-review/.closure-archive-PBV23w/fixed/tests/fs/mount-identity-review/contract-edges.test.ts:98:10)\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount-identity-review/.closure-archive-PBV23w/fixed/tests/fs/mount-identity-review/contract-edges.test.ts:297:3)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n1..18\n# tests 18\n# suites 0\n# pass 8\n# fail 10\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 138.194916\n",
+  "stderr": "",
+  "summary": {
+    "tests": 18,
+    "pass": 8,
+    "fail": 10,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failures": [
+    "unknown identity: missing scope rejects before acquisition in both directions",
+    "unknown identity: null scope rejects before acquisition in both directions",
+    "unknown identity: string scope rejects before acquisition in both directions",
+    "unknown identity: function scope rejects before acquisition in both directions",
+    "unknown identity: negative device rejects before acquisition in both directions",
+    "unknown identity: negative inode rejects before acquisition in both directions",
+    "unknown identity: unsafe inode rejects before acquisition in both directions",
+    "unknown identity: nonfinite device rejects before acquisition in both directions",
+    "unknown identity: missing inode rejects before acquisition in both directions",
+    "unknown same-mount identity cannot delegate to an arbitrary destructive copyFile method"
+  ],
+  "observations": {
+    "IDENTITY_EDGE_EVIDENCE": [
+      {
+        "name": "missing scope",
+        "source": "/left/file",
+        "destination": "/right/file",
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 1
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 1,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 2
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 2,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 1
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 1,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 2
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 2,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          }
+        },
+        "events": [
+          {
+            "backend": "broken",
+            "operation": "readStream.acquire",
+            "path": "/file"
+          },
+          {
+            "backend": "complete",
+            "operation": "writeStream.enter",
+            "path": "/file",
+            "flag": "w"
+          },
+          {
+            "backend": "broken",
+            "operation": "readStream.next",
+            "path": "/file"
+          },
+          {
+            "backend": "broken",
+            "operation": "readStream.chunk",
+            "path": "/file",
+            "size": 8
+          }
+        ],
+        "failure": null
+      },
+      {
+        "name": "null scope",
+        "source": "/left/file",
+        "destination": "/right/file",
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 3
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 3,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 4
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 4,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 3
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 3,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 4
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 4,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          }
+        },
+        "events": [
+          {
+            "backend": "broken",
+            "operation": "readStream.acquire",
+            "path": "/file"
+          },
+          {
+            "backend": "complete",
+            "operation": "writeStream.enter",
+            "path": "/file",
+            "flag": "w"
+          },
+          {
+            "backend": "broken",
+            "operation": "readStream.next",
+            "path": "/file"
+          },
+          {
+            "backend": "broken",
+            "operation": "readStream.chunk",
+            "path": "/file",
+            "size": 8
+          }
+        ],
+        "failure": null
+      },
+      {
+        "name": "string scope",
+        "source": "/left/file",
+        "destination": "/right/file",
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 5
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 5,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 6
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 6,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 5
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 5,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 6
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 6,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          }
+        },
+        "events": [
+          {
+            "backend": "broken",
+            "operation": "readStream.acquire",
+            "path": "/file"
+          },
+          {
+            "backend": "complete",
+            "operation": "writeStream.enter",
+            "path": "/file",
+            "flag": "w"
+          },
+          {
+            "backend": "broken",
+            "operation": "readStream.next",
+            "path": "/file"
+          },
+          {
+            "backend": "broken",
+            "operation": "readStream.chunk",
+            "path": "/file",
+            "size": 8
+          }
+        ],
+        "failure": null
+      },
+      {
+        "name": "function scope",
+        "source": "/left/file",
+        "destination": "/right/file",
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 7
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 7,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 8
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 8,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 7
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 7,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 8
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 8,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          }
+        },
+        "events": [
+          {
+            "backend": "broken",
+            "operation": "readStream.acquire",
+            "path": "/file"
+          },
+          {
+            "backend": "complete",
+            "operation": "writeStream.enter",
+            "path": "/file",
+            "flag": "w"
+          },
+          {
+            "backend": "broken",
+            "operation": "readStream.next",
+            "path": "/file"
+          },
+          {
+            "backend": "broken",
+            "operation": "readStream.chunk",
+            "path": "/file",
+            "size": 8
+          }
+        ],
+        "failure": null
+      },
+      {
+        "name": "negative device",
+        "source": "/left/file",
+        "destination": "/right/file",
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 9
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 9,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 10
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 10,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 9
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 9,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 10
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 10,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          }
+        },
+        "events": [
+          {
+            "backend": "broken",
+            "operation": "readStream.acquire",
+            "path": "/file"
+          },
+          {
+            "backend": "complete",
+            "operation": "writeStream.enter",
+            "path": "/file",
+            "flag": "w"
+          },
+          {
+            "backend": "broken",
+            "operation": "readStream.next",
+            "path": "/file"
+          },
+          {
+            "backend": "broken",
+            "operation": "readStream.chunk",
+            "path": "/file",
+            "size": 8
+          }
+        ],
+        "failure": null
+      },
+      {
+        "name": "negative inode",
+        "source": "/left/file",
+        "destination": "/right/file",
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 11
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 11,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 12
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 12,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 11
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 11,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 12
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 12,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          }
+        },
+        "events": [
+          {
+            "backend": "broken",
+            "operation": "readStream.acquire",
+            "path": "/file"
+          },
+          {
+            "backend": "complete",
+            "operation": "writeStream.enter",
+            "path": "/file",
+            "flag": "w"
+          },
+          {
+            "backend": "broken",
+            "operation": "readStream.next",
+            "path": "/file"
+          },
+          {
+            "backend": "broken",
+            "operation": "readStream.chunk",
+            "path": "/file",
+            "size": 8
+          }
+        ],
+        "failure": null
+      },
+      {
+        "name": "unsafe inode",
+        "source": "/left/file",
+        "destination": "/right/file",
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 13
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 13,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 14
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 14,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 13
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 13,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 14
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 14,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          }
+        },
+        "events": [
+          {
+            "backend": "broken",
+            "operation": "readStream.acquire",
+            "path": "/file"
+          },
+          {
+            "backend": "complete",
+            "operation": "writeStream.enter",
+            "path": "/file",
+            "flag": "w"
+          },
+          {
+            "backend": "broken",
+            "operation": "readStream.next",
+            "path": "/file"
+          },
+          {
+            "backend": "broken",
+            "operation": "readStream.chunk",
+            "path": "/file",
+            "size": 8
+          }
+        ],
+        "failure": null
+      },
+      {
+        "name": "nonfinite device",
+        "source": "/left/file",
+        "destination": "/right/file",
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 15
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 15,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 16
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 16,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 15
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 15,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 16
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 16,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          }
+        },
+        "events": [
+          {
+            "backend": "broken",
+            "operation": "readStream.acquire",
+            "path": "/file"
+          },
+          {
+            "backend": "complete",
+            "operation": "writeStream.enter",
+            "path": "/file",
+            "flag": "w"
+          },
+          {
+            "backend": "broken",
+            "operation": "readStream.next",
+            "path": "/file"
+          },
+          {
+            "backend": "broken",
+            "operation": "readStream.chunk",
+            "path": "/file",
+            "size": 8
+          }
+        ],
+        "failure": null
+      },
+      {
+        "name": "missing inode",
+        "source": "/left/file",
+        "destination": "/right/file",
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 17
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 17,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 18
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 18,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 17
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 17,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 18
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 18,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          }
+        },
+        "events": [
+          {
+            "backend": "broken",
+            "operation": "readStream.acquire",
+            "path": "/file"
+          },
+          {
+            "backend": "complete",
+            "operation": "writeStream.enter",
+            "path": "/file",
+            "flag": "w"
+          },
+          {
+            "backend": "broken",
+            "operation": "readStream.next",
+            "path": "/file"
+          },
+          {
+            "backend": "broken",
+            "operation": "readStream.chunk",
+            "path": "/file",
+            "size": 8
+          }
+        ],
+        "failure": null
+      },
+      {
+        "name": "truthful disjoint object scopes",
+        "source": "/left/file",
+        "destination": "/right/file",
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 19
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 19,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 20
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 20,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 19
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 19,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 20
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 20,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          }
+        },
+        "events": [
+          {
+            "backend": "left",
+            "operation": "readStream.acquire",
+            "path": "/file"
+          },
+          {
+            "backend": "right",
+            "operation": "writeStream.enter",
+            "path": "/file",
+            "flag": "w"
+          },
+          {
+            "backend": "left",
+            "operation": "readStream.next",
+            "path": "/file"
+          },
+          {
+            "backend": "left",
+            "operation": "readStream.chunk",
+            "path": "/file",
+            "size": 8
+          }
+        ],
+        "failure": null
+      },
+      {
+        "name": "getter forwarding",
+        "source": "/left/nested/file",
+        "destination": "/right/target",
+        "before": {
+          "backend": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 21
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 2,
+              "scope": 21,
+              "bytesBase64": "c2NvcGUA/wo="
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 2,
+              "scope": 21,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          }
+        },
+        "after": {
+          "backend": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 21
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 2,
+              "scope": 21,
+              "bytesBase64": "c2NvcGUA/wo="
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 2,
+              "scope": 21,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          }
+        },
+        "events": [],
+        "failure": {
+          "code": "EINVAL",
+          "syscall": "copyFile",
+          "path": "/left/nested/file",
+          "dest": "/right/target"
+        },
+        "getterReads": 2
+      },
+      {
+        "name": "overlay before copy-up",
+        "source": "/left/file",
+        "destination": "/right/file",
+        "before": {
+          "upper": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 22
+            }
+          },
+          "lower": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 23
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 23,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          }
+        },
+        "after": {
+          "upper": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 22
+            }
+          },
+          "lower": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 23
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 23,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          }
+        },
+        "events": [],
+        "failure": {
+          "code": "EINVAL",
+          "syscall": "copyFile",
+          "path": "/left/file",
+          "dest": "/right/file"
+        }
+      },
+      {
+        "name": "overlay after copy-up",
+        "source": "/left/file",
+        "destination": "/right/file",
+        "before": {
+          "upper": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 22
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 3,
+              "nlink": 1,
+              "scope": 22,
+              "bytesBase64": "b2xkAP4="
+            }
+          },
+          "lower": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 23
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 23,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          }
+        },
+        "after": {
+          "upper": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 22
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 3,
+              "nlink": 1,
+              "scope": 22,
+              "bytesBase64": "b2xkAP4="
+            }
+          },
+          "lower": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 23
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 23,
+              "bytesBase64": "b2xkAP4="
+            }
+          }
+        },
+        "events": [
+          {
+            "backend": "target",
+            "operation": "writeStream.enter",
+            "path": "/file",
+            "flag": "w"
+          },
+          {
+            "backend": "upper",
+            "operation": "readStream.acquire",
+            "path": "/file"
+          },
+          {
+            "backend": "upper",
+            "operation": "readStream.next",
+            "path": "/file"
+          },
+          {
+            "backend": "upper",
+            "operation": "readStream.chunk",
+            "path": "/file",
+            "size": 5
+          }
+        ],
+        "failure": null
+      },
+      {
+        "name": "repeated backend hardlink",
+        "source": "/left/file",
+        "destination": "/right/target",
+        "before": {
+          "backend": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 24
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 2,
+              "scope": 24,
+              "bytesBase64": "c2NvcGUA/wo="
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 2,
+              "scope": 24,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          }
+        },
+        "after": {
+          "backend": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 24
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 2,
+              "scope": 24,
+              "bytesBase64": "c2NvcGUA/wo="
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 2,
+              "scope": 24,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          }
+        },
+        "events": [],
+        "failure": {
+          "code": "EINVAL",
+          "syscall": "copyFile",
+          "path": "/left/file",
+          "dest": "/right/target"
+        }
+      },
+      {
+        "name": "repeated backend distinct target",
+        "source": "/left/file",
+        "destination": "/right/new",
+        "before": {
+          "backend": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 24
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 2,
+              "scope": 24,
+              "bytesBase64": "c2NvcGUA/wo="
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 2,
+              "scope": 24,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          }
+        },
+        "after": {
+          "backend": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 24
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 2,
+              "scope": 24,
+              "bytesBase64": "c2NvcGUA/wo="
+            },
+            "/new": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 3,
+              "nlink": 1,
+              "scope": 24,
+              "bytesBase64": "c2NvcGUA/wo="
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 2,
+              "scope": 24,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          }
+        },
+        "events": [
+          {
+            "backend": "shared",
+            "operation": "readStream.acquire",
+            "path": "/file"
+          },
+          {
+            "backend": "shared",
+            "operation": "writeStream.enter",
+            "path": "/new",
+            "flag": "wx"
+          },
+          {
+            "backend": "shared",
+            "operation": "readStream.next",
+            "path": "/file"
+          },
+          {
+            "backend": "shared",
+            "operation": "readStream.chunk",
+            "path": "/file",
+            "size": 8
+          }
+        ],
+        "failure": null
+      },
+      {
+        "name": "default missing target race true",
+        "source": "/left/file",
+        "destination": "/right/new",
+        "before": {
+          "backend": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 25
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 25,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          }
+        },
+        "after": {
+          "backend": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 25
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 2,
+              "scope": 25,
+              "bytesBase64": "c2NvcGUA/wo="
+            },
+            "/new": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 2,
+              "scope": 25,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          }
+        },
+        "events": [
+          {
+            "backend": "source",
+            "operation": "readStream.acquire",
+            "path": "/file"
+          },
+          {
+            "backend": "target",
+            "operation": "writeStream.enter",
+            "path": "/new",
+            "flag": "wx"
+          },
+          {
+            "backend": "external-writer",
+            "operation": "link",
+            "path": "/new"
+          }
+        ],
+        "failure": {
+          "code": "EEXIST",
+          "syscall": "copyFile",
+          "path": "/left/file",
+          "dest": "/right/new"
+        },
+        "inserted": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "dev": 0,
+            "ino": 1,
+            "nlink": 2,
+            "scope": 25
+          },
+          "/file": {
+            "type": "file",
+            "mode": 33206,
+            "dev": 0,
+            "ino": 2,
+            "nlink": 2,
+            "scope": 25,
+            "bytesBase64": "c2NvcGUA/wo="
+          },
+          "/new": {
+            "type": "file",
+            "mode": 33206,
+            "dev": 0,
+            "ino": 2,
+            "nlink": 2,
+            "scope": 25,
+            "bytesBase64": "c2NvcGUA/wo="
+          }
+        }
+      },
+      {
+        "name": "default missing target race false",
+        "source": "/left/file",
+        "destination": "/right/new",
+        "before": {
+          "backend": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 26
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 26,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          }
+        },
+        "after": {
+          "backend": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 26
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 2,
+              "scope": 26,
+              "bytesBase64": "c2NvcGUA/wo="
+            },
+            "/new": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 2,
+              "scope": 26,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          }
+        },
+        "events": [
+          {
+            "backend": "source",
+            "operation": "readFile",
+            "path": "/file"
+          },
+          {
+            "backend": "target",
+            "operation": "writeFile",
+            "path": "/new",
+            "flag": "wx"
+          },
+          {
+            "backend": "external-writer",
+            "operation": "link",
+            "path": "/new"
+          }
+        ],
+        "failure": {
+          "code": "EEXIST",
+          "syscall": "copyFile",
+          "path": "/left/file",
+          "dest": "/right/new"
+        },
+        "inserted": {
+          "/": {
+            "type": "directory",
+            "mode": 16877,
+            "dev": 0,
+            "ino": 1,
+            "nlink": 2,
+            "scope": 26
+          },
+          "/file": {
+            "type": "file",
+            "mode": 33206,
+            "dev": 0,
+            "ino": 2,
+            "nlink": 2,
+            "scope": 26,
+            "bytesBase64": "c2NvcGUA/wo="
+          },
+          "/new": {
+            "type": "file",
+            "mode": 33206,
+            "dev": 0,
+            "ino": 2,
+            "nlink": 2,
+            "scope": 26,
+            "bytesBase64": "c2NvcGUA/wo="
+          }
+        }
+      },
+      {
+        "name": "ENOENT cancellation false",
+        "source": "/left/file",
+        "destination": "/right/target",
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 27
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 27,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 28
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 28,
+              "bytesBase64": "b2xkAP4="
+            }
+          },
+          "upper": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 29
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 27
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 27,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 28
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 28,
+              "bytesBase64": "b2xkAP4="
+            }
+          },
+          "upper": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 29
+            }
+          }
+        },
+        "events": [],
+        "failure": {
+          "code": "ENOENT",
+          "syscall": "caller-abort",
+          "path": "/cancellation"
+        },
+        "sameAbortReason": true
+      },
+      {
+        "name": "ENOENT cancellation true",
+        "source": "/left/file",
+        "destination": "/right/target",
+        "before": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 30
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 30,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 31
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 31,
+              "bytesBase64": "b2xkAP4="
+            }
+          },
+          "upper": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 32
+            }
+          }
+        },
+        "after": {
+          "left": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 30
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 30,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          },
+          "right": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 31
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 1,
+              "scope": 31,
+              "bytesBase64": "b2xkAP4="
+            }
+          },
+          "upper": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 32
+            }
+          }
+        },
+        "events": [],
+        "failure": {
+          "code": "ENOENT",
+          "syscall": "caller-abort",
+          "path": "/cancellation"
+        },
+        "sameAbortReason": true
+      },
+      {
+        "name": "unknown same-mount delegation",
+        "source": "/file",
+        "destination": "/target",
+        "before": {
+          "backend": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 33
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 2,
+              "scope": 33,
+              "bytesBase64": "c2NvcGUA/wo="
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 2,
+              "scope": 33,
+              "bytesBase64": "c2NvcGUA/wo="
+            }
+          }
+        },
+        "after": {
+          "backend": {
+            "/": {
+              "type": "directory",
+              "mode": 16877,
+              "dev": 0,
+              "ino": 1,
+              "nlink": 2,
+              "scope": 33
+            },
+            "/file": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 2,
+              "scope": 33,
+              "bytesBase64": ""
+            },
+            "/target": {
+              "type": "file",
+              "mode": 33206,
+              "dev": 0,
+              "ino": 2,
+              "nlink": 2,
+              "scope": 33,
+              "bytesBase64": ""
+            }
+          }
+        },
+        "events": [
+          {
+            "backend": "generic",
+            "operation": "copyFile.delegate",
+            "path": "/target"
+          },
+          {
+            "backend": "generic",
+            "operation": "readStream.acquire",
+            "path": "/file"
+          },
+          {
+            "backend": "generic",
+            "operation": "writeStream.enter",
+            "path": "/target",
+            "flag": "w"
+          },
+          {
+            "backend": "generic",
+            "operation": "readStream.next",
+            "path": "/file"
+          }
+        ],
+        "failure": null
+      }
+    ]
+  }
+}

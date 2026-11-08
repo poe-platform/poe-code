@@ -1,0 +1,60 @@
+# `@poe-platform/safe-bash/commands/pdfinfo`
+
+Inspect PDF document metadata, page geometry, boxes, encryption permissions, form fields, embedded URLs, JavaScript actions, and logical structure trees inside `safe-bash` virtual shells or directly from TypeScript.
+
+## Features
+
+| Capability | CLI Flag | Description |
+| --- | --- | --- |
+| Standard Info & Geometry | `pdfinfo file.pdf` | Extracts `Title`, `Author`, `Pages`, `Encrypted`, `Page size`, `Page rot`, `Form`, `JavaScript`, `Tagged`, `File size`, `PDF version`, and PDF/X subtype standards metadata. |
+| Page Bounding Boxes | `-box` | Prints `MediaBox`, `CropBox`, `BleedBox`, `TrimBox`, and `ArtBox` coordinates (`%8.2f`). |
+| Multi-Page Ranges | `-f <first> -l <last>` | Inspects page geometry and boxes across a specific range of pages. |
+| Custom Metadata | `-custom` | Prints only standard and custom `/Info` dictionary string entries, sorted by key. |
+| Raw XMP Stream | `-meta` | Outputs the raw `/Metadata` XML packet from the document catalog. |
+| Date Formatting | `-isodates` / `-rawdates` | Default dates use `TZ` (UTC when unset); formats PDF dates as ISO-8601 (`YYYY-MM-DDTHH:MM:SSZ`) or raw `D:...` strings. |
+| URL & Link Extraction | `-url` | Lists all `/URI` link actions and URLs across inspected pages. |
+| Structure & JS Inspection | `-struct` / `-struct-text` / `-js` / `-dests` | Dumps structure root children with block/inline role labels, JavaScript actions, or named destinations. |
+| Encrypted PDFs | `-upw <pw>` / `-opw <pw>` | Authenticates and inspects RC4/AES-encrypted PDFs and permission flags. |
+| Page Rasterization (`pdftoppm`) | `pdftoppm -png -r 150 file.pdf out` | Renders PDF pages to PNG (`-png`), PPM (`-ppm`), PGM (`-gray`), or PBM (`-mono`) with `-r`, `-scale-to`, `-f`/`-l`, and `-singlefile`. |
+| Image Extraction (`pdfimages`) | `pdfimages -list file.pdf` / `pdfimages -png file.pdf img` | Lists embedded images or extracts them as PNG/PPM files. |
+| PDF Merging (`pdfunite`) | `pdfunite a.pdf b.pdf out.pdf` | Merges multiple PDF documents into a single PDF. |
+| PDF Splitting (`pdfseparate`) | `pdfseparate -f 1 -l 2 in.pdf page-%d.pdf` | Splits selected pages into individual PDF files using a `%d` pattern. |
+
+`pdfinfoCommands()` registers `pdfinfo`, `pdfunite`, `pdfseparate`, `pdffonts` and `pdfdetach`. Register `pdfimagesCommands()` and `pdftoppmCommands()` from their dedicated command subpaths for image extraction and rendering (`pdftoppm` / `pdftocairo`). Rendering and image-extraction factories and CLI runners are exported from those dedicated subpaths.
+
+## Quick Start
+
+```ts
+import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";
+import { pdfinfoCommands } from "@poe-platform/safe-bash/commands/pdfinfo";
+
+const fs = createMemoryFileSystem();
+const shell = new Shell({ fs }).use(pdfinfoCommands());
+
+const result = await shell.exec("pdfinfo -box -isodates /report.pdf");
+console.log(result.stdout);
+```
+
+The workspace entrypoint exports `pdfinfoCommands()` for plugin registration,
+`createPdfinfoCommands()` for the command collection, and
+`createPdfinfoCommand()` for a single command. Each accepts an optional
+`PdfinfoCommandsOptions` object; existing factory names remain available.
+
+Configure `limits: { maxInputBytes: 16 * 1024 * 1024 }` to bound command input. `PdfinfoLimits` is exported for typed configuration; omitted limits default to `Infinity`. Long-running command loops yield to timers and cancellation, including Workers with frozen clocks.
+
+Output parent directories must already exist. Only input file operands count as file reads; existing output files and filenames matching option values are not preloaded.
+`pdfunite`, `pdfseparate`, `pdffonts`, and `pdfdetach` require explicit PDF operands and return exit code `99` without consuming stdin when they are omitted. Use `-` to read stdin with `pdffonts` or `pdfdetach`; `pdfinfo` also accepts an omitted input filename. Help, version, and `pdfinfo -listenc` leave stdin unread. `pdffonts` also rejects unknown options, missing option values, non-integer page arguments, and extra PDF operands with exit code `99` and usage on stderr before reading input.
+`pdffonts -subst` lists unembedded fonts with `[unresolved]` in the substitute font and file columns: this portable inspector does not resolve system fonts. Embedded fonts are omitted from this table.
+Embedded attachment filenames are reduced to their final path component when extracting, keeping them in the chosen output directory.
+
+`pdfinfo` / `pdfinfo(context, options)` and
+`pdffonts` / `executePdffonts(context, options)` inspect retained file ranges and
+stream inspection results. `pdfinfo` stages its output in injected storage before
+publishing, so inspection failures leave stdout empty. Custom metadata ordering uses caller-backed sort runs;
+individual metadata values remain subject to parser admission. `pdfdetach` / `executePdfdetach(context, options)` stream attachments into caller-backed staging before atomic publication. Provide
+an injected filesystem with retained reads, retained staging writes/cleanup and
+atomic ancestry-checked publication. The commands create `TMPDIR` (default `/tmp`)
+and any missing parent directories before staging input or output.
+Use external storage for large files; an in-memory filesystem stores its files in
+RAM. Input limits are checked before range reads, and file writes use the shared
+shell output budget. The map-based CLI runners remain buffering convenience APIs. Pass `timeZone` in `inspectPdfBytes` options or as the fifth argument to `runPdfinfoCli` to select the timezone for default date output; ISO and raw dates preserve the PDF values.

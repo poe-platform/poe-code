@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "deadline": 1788002503369,
+  "repo": "/Users/kjopek/Workspace/safe-bash",
+  "work": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-activation-review-v2",
+  "packet": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "mode": 493,
+    "version": "v22.22.2",
+    "qualification": "Version inherited; executable freshly hash-authenticated without running"
+  },
+  "sourceSealSha256": "6324119804436e77ee90c35676fe6d46d5c6a14b3a63c7528034faef3c062252",
+  "executor": {
+    "bytes": 4604,
+    "sha256": "8b5ee2c3da487bbb3446f76e02f79527a28170c0037d7646dc278811a5eca901"
+  },
+  "outer": {
+    "bytes": 3893,
+    "sha256": "9af54c32fd73a1f0e70dab4c25bd366464fbd28e34309489c95b09c3520846a5"
+  },
+  "pureInputs": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/finalization.mjs",
+      "bytes": 850,
+      "sha256": "d65f1c5f70069828b8c6417186b6d0abd76c3e27f48e9053b091c495f7a550b6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/finalization-controls.mjs",
+      "bytes": 3160,
+      "sha256": "4a2ce395c7af58d2eb5d9e588e993e7da394239a4069e375fc00ad676ea36ecf"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-activation-review-v2/pure-review.mjs",
+      "bytes": 4604,
+      "sha256": "8b5ee2c3da487bbb3446f76e02f79527a28170c0037d7646dc278811a5eca901"
+    }
+  ],
+  "groups": 6,
+  "authorRows": 18,
+  "novelRows": 8,
+  "roleGraph": [
+    "trusted outer owner",
+    "single permission-limited PURE Node"
+  ],
+  "runtimePeak": 2,
+  "productCalls": 0
+}

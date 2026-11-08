@@ -1,0 +1,35 @@
+# JSON and NDJSON typed input
+
+The reference is released csvkit 2.2.0, source SHA-256 `147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b`, with the CPython 3.14.2/Agate 1.14.2 dependency lock and environment in `docs/csvkit/reference-profile.json` and `reference-requalification-20260917.json`. This profile determines parser diagnostics; CPython 3.9.6 has different trailing-comma messages and is not qualified by the new diagnostic cases.
+
+`in2csv -f json` and `in2csv -f ndjson` use the same engine through executable argv and SDK settings. Neither invokes a host program. Input codecs, filesystem, clock, locale, sinks and cooperative cleanup are injected. Output waits for sink writes and preserves the caller's cancellation reason. Memory-only tests reject unexpected filesystem writes; independent shell tests preserve named inputs and reuse a mutable one-byte input buffer.
+
+Agate `Table.from_json` decodes object pairs into ordered dictionaries, integers into arbitrary-precision integers, fractional/exponent tokens into Decimal, and non-finite constants into float. Duplicate object keys replace the value without moving its first position. Object-field union follows encounter order and missing fields become null. Native integer/Decimal/boolean values enter inference as native values: locale and string null markers do not reinterpret them. Decimal and integer Number casts preserve their precision; string Number casts apply the Decimal context. Numeric zero and one, including scaled Decimals, qualify for Boolean. Mixed boolean/number columns cast booleans to numeric zero/one. Text casts use native spelling, including canonical Decimal exponents and lowercase float non-finite spelling. Raw numeric tokens are not an output policy.
+
+The key option is one literal dictionary lookup at the root. Dots and slashes are ordinary key characters. A key on an array root is ignored; any non-null key conflicts with newline mode, including an empty key. Empty/falsy keys cannot select a dictionary root. A selected dictionary is iterable over its keys; strings are iterable over Unicode characters. Scalars null/bool/int/Decimal/float are not iterable root containers. Scalar row values have an unnamed column, normalized by the existing Agate header/warning profile. That profile must supply warning provenance or explicitly suppress warnings; missing provenance remains status 78.
+
+Newline mode calls the JSON decoder for every physical line, including empty lines; it does not skip whitespace-only records or concatenate multiline documents. Borrowed stdin splits only on LF and preserves CR. Named text uses the existing universal-newline input layer. Each malformed line has its own decoder character offsets, and no typed table is published before all input parses. Explicit UTF-8 rejects a leading BOM with CPython's diagnostic; the default UTF-8-SIG codec consumes it. Decoder depth, field, digit, exponent, row, column and retained-memory budgets remain explicit admission limits.
+
+`-H`, `-K`, sniffing, CSV reader dialect/field-size options, schema, sheet and XLS encoding flags do not change these formats' JSON parsing. Inference, locale, string null policy, date/datetime formats, leading-zero policy, line numbers and output BOM retain their actual applicability. These converters emit a typed table, unlike the raw fixed and GeoJSON converters.
+
+## Dependency and original CLI case map
+
+The dependency test inventory is preserved in `docs/csvkit/feature-register.json`; source definitions are in `service-register-20260917.json`. Frozen CLI captures are consumed unchanged by canonical tests.
+
+| Dependency behavior / test family | Original CLI evidence and canonical coverage |
+| --- | --- |
+| `test_from_json`, file-like input, no type tester | `json-input-operation-reference.json`, `in2csv-reference.json`; engine/in2csv tests and actual-shell review; native-reference cases 0–16 |
+| `test_from_json_with_key`, ambiguous root, newline/key error | Native-reference cases 8–10, 19, 22–23, 30, 42–44; literal selected keys, dictionary/string iteration, dictionary without key, array ignoring key, empty key |
+| `test_from_json_mixed_keys`, `from_object` union and missing fields | Original JSON input cases 0, 2; native-reference cases 31–32; ordered numeric-looking keys, duplicate keys, union, missing/null cells |
+| Empty object rows / zero-column table | Original JSON input case 5; canonical zero-column regression uses the injected Agate package identity to reproduce the warning and all three LF bytes |
+| Native datatype `Boolean.cast`, `Number.cast`, `Text.cast` | Native-reference cases 0–7, 11–16, 17; precision, scaled 0/1, booleans with numbers, locale, native null-marker bypass, text fallback, non-finite constants |
+| Root and row shapes passed to `from_object` | Native-reference cases 17–21, 24–30, 37; scalar roots, iterable strings/dictionaries, object/array/scalar/null/bool rows, generated headers and warning collisions |
+| `test_from_json_newline_delimited` | Original JSON input cases 11–13; native-reference cases 37–42; heterogeneous values, empty input, empty lines, CRLF, bare CR, malformed final record; independent named/borrowed shell cases |
+| JSON decoder errors and codec boundary | Native-reference cases 24, 34–36, 38–41, 45–48; existing codec tests; independent BOM tests for JSON/NDJSON |
+| Truncated escape and astral-character diagnostics; canonical native Decimal Text spelling | `in2csv-json-user-edge-reference.json` cases 0–74; original executable exact stdout/stderr/status regressions. Cases 70–74 reproduced the terminal-backslash mismatch before the decoder fix. Independent actual-shell tests cover those cases in both formats and both input sources. |
+| Common option applicability | Original JSON input cases 8–10; native-reference cases 4–7, 15–16, 32–33; ignored CSV/header/skip/sniff/schema/sheet flags and actual string null/inference options |
+| `test_from_json_nested`, Agate `utils.parse_object` | Existing frozen JSON input cases 1, 14–15 prove recursive path flattening and slash collisions. Requested nested serialization conflicts with these originals and remains unresolved. No serialization parity is claimed. |
+
+## Explicit blockers
+
+Nested serialization has not been implemented: the request prohibits flattening while released Agate recursively flattens paths. Resolving this conflict is required before claiming the requested contract complete. Unnamed and zero-column warnings require an injected frozen Agate deployment identity, or explicit warning suppression. The zero-column warning uses the frozen sibling `table/from_object.py` location relative to `columnWarnings.utilsPath`; it does not read that file. Missing identity remains a blocker. Unpaired-surrogate output encoding, nesting beyond qualified depth, resource-budget rejection, arbitrary malformed-record diagnostics beyond measured captures, CPython 3.9.6 diagnostics, and unmeasured inference locales/codecs are not counted as compatibility passes. Existing skipped/todo tests remain separately reported.

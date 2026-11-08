@@ -1,0 +1,16 @@
+{
+  "startedAt": "2026-08-27T20:34:41.518Z",
+  "mode": "freeze",
+  "ref": "40fb77fb09a2145e8a767c96b64966dafdff5c2b",
+  "node": "v22.22.2",
+  "typescript": "5.9.3",
+  "platform": "darwin",
+  "architecture": "arm64",
+  "controlsSha256": "af54ea334b8a51a8dea47fc43e44483a83cbac5e2841968cbd208c8f42f2634d",
+  "driverSha256": "ca9f64cac5ff27224ad1a8108647cd13a835952504bfe0077d0c63914ae90030",
+  "tooling": {
+    "typescript/package.json": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6",
+    "typescript/lib/typescript.js": "3ae902c92cc44dace175c0e69e13a4b0899f6983c6121d76b9ab8dd5795e7675",
+    "@types/node/package.json": "1e6d3bbbc5082745123d236b38dce0eacdab987d4ac9e57e299e55f780c170de"
+  }
+}

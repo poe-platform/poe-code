@@ -1,0 +1,142 @@
+import type { ConvolveRequest } from "./convolve-kernel.js";
+
+interface ColorBin { count: number; sums: number[]; color: number[]; node?: ColorNode }
+interface ColorNode {
+    parent?: ColorNode;
+    children: Map<number, ColorNode>;
+    count: number;
+    sums: number[];
+    error: number;
+    removed: boolean;
+}
+
+/** A bounded histogram and error-pruned color tree shared by both raster backends. */
+export function* quantizePixelSteps(length: number, requested: number, grayscale = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    if (!Number.isSafeInteger(requested) || requested < 1) throw new Error("colors must be a positive integer");
+    const prepare = (source: Uint8Array): Uint8Array => {
+        if (!grayscale) return source;
+        const data = new Uint8Array(source);
+        for (let i = 0; i < data.length; i += 4) {
+            const luma = 0.212656 * data[i]! + 0.715158 * data[i + 1]! + 0.072186 * data[i + 2]!;
+            data[i] = data[i + 1] = data[i + 2] = requested === 2 ? (luma >= 127.5 ? 255 : 0) : Math.round(luma);
+            // ImageMagick's two-color gray shortcut produces an opaque bilevel image.
+            if (requested === 2) data[i + 3] = 255;
+        }
+        return data;
+    };
+    let bins = new Map<number, ColorBin>(), mask = 0xffffffff, precision = 8;
+    const key = (data: Uint8Array, i: number) => (data[i]! << 24 | data[i + 1]! << 16 | data[i + 2]! << 8 | data[i + 3]!) & mask;
+    for (let position = 0; position < length; position += 4096) {
+        yield;
+        const size = Math.min(4096, length - position), source = yield { kind: "read", position, length: size };
+        if (!source || source.length !== size) throw new Error("Truncated quantization pixels");
+        const data = prepare(source);
+        if (grayscale && requested === 2) {
+            yield { kind: "write", position, data };
+            continue;
+        }
+        for (let i = 0; i < size; i += 4) {
+            const id = key(data, i);
+            let bin = bins.get(id);
+            if (!bin) { bin = { count: 0, sums: [0, 0, 0, 0], color: [] }; bins.set(id, bin); }
+            bin.count++;
+            for (let c = 0; c < 4; c++) bin.sums[c]! += data[i + c]!;
+        }
+        // Reduce histogram precision only when necessary; small palettes stay exact.
+        if (bins.size > 65536) {
+            const channelMask = (255 << (8 - --precision)) & 255;
+            mask = channelMask * 0x01010101;
+            const reduced = new Map<number, ColorBin>();
+            let work = 0;
+            for (const [id, bin] of bins) {
+                if (++work % 1024 === 0) yield;
+                const next = id & mask, existing = reduced.get(next);
+                if (!existing) reduced.set(next, bin);
+                else { existing.count += bin.count; for (let c = 0; c < 4; c++) existing.sums[c]! += bin.sums[c]!; }
+            }
+            bins = reduced;
+        }
+    }
+    if (grayscale && requested === 2) return;
+    let work = 0;
+    if (bins.size <= requested) {
+        for (const bin of bins.values()) {
+            if (++work % 1024 === 0) yield;
+            bin.color = bin.sums.map(value => Math.round(value / bin.count));
+        }
+    } else {
+        const root: ColorNode = { children: new Map(), count: 0, sums: [0, 0, 0, 0], error: Infinity, removed: false };
+        const channels = [...bins.values()].some(bin => bin.sums[3] !== 255 * bin.count) ? 4 : 3;
+        for (const bin of bins.values()) {
+            if (++work % 1024 === 0) yield;
+            const pixel = bin.sums.map(value => value / bin.count), midpoint = [127.5, 127.5, 127.5, 127.5];
+            let node = root;
+            for (let bit = 7; bit >= 0; bit--) {
+                let id = 0, distance = 0;
+                for (let c = 0; c < channels; c++) {
+                    const high = (Math.round(pixel[c]!) >>> bit) & 1;
+                    id |= high << c;
+                    // ImageMagick's Q16 cube centers, expressed in byte units.
+                    midpoint[c]! += (high ? 1 : -1) * (128 << bit) / 257;
+                    distance += (pixel[c]! - midpoint[c]!) ** 2;
+                }
+                let child = node.children.get(id);
+                if (!child) {
+                    child = { parent: node, children: new Map(), count: 0, sums: [0, 0, 0, 0], error: 0, removed: false };
+                    node.children.set(id, child);
+                }
+                child.error += bin.count * Math.sqrt(distance);
+                node = child;
+            }
+            node.count += bin.count;
+            for (let c = 0; c < 4; c++) node.sums[c]! += bin.sums[c]!;
+            bin.node = node;
+        }
+        // Traverse octants in RGB bit order so equally costly colors reduce in
+        // native order, independent of where pixels appeared in the image.
+        const ordered: ColorNode[] = [];
+        let colors = 0;
+        function* visit(node: ColorNode): Generator<undefined> {
+            if (++work % 1024 === 0) yield;
+            for (let id = 0; id < 1 << channels; id++) {
+                const child = node.children.get(id);
+                if (child) yield* visit(child);
+            }
+            if (node.count) colors++;
+            if (node !== root) ordered.push(node);
+        }
+        yield* visit(root);
+        ordered.sort((a, b) => a.error - b.error);
+        function* prune(node: ColorNode): Generator<undefined> {
+            if (++work % 1024 === 0) yield;
+            for (const child of node.children.values()) if (!child.removed) yield* prune(child);
+            const parent = node.parent!;
+            if (node.count) {
+                if (parent.count) colors--;
+                parent.count += node.count;
+                for (let c = 0; c < 4; c++) parent.sums[c]! += node.sums[c]!;
+            }
+            node.children.clear();
+            node.removed = true;
+        }
+        for (const node of ordered) {
+            if (++work % 1024 === 0) yield;
+            if (colors <= requested) break;
+            if (!node.removed) yield* prune(node);
+        }
+        for (const bin of bins.values()) {
+            if (++work % 1024 === 0) yield;
+            let node = bin.node!;
+            while (node.removed) node = node.parent!;
+            bin.color = node.sums.map(value => Math.round(value / node.count));
+        }
+    }
+    for (let position = 0; position < length; position += 4096) {
+        yield;
+        const size = Math.min(4096, length - position), source = yield { kind: "read", position, length: size };
+        if (!source || source.length !== size) throw new Error("Truncated quantization pixels");
+        const data = new Uint8Array(size), pixels = prepare(source);
+        for (let i = 0; i < size; i += 4) data.set(bins.get(key(pixels, i))!.color, i);
+        yield { kind: "write", position, data };
+    }
+}

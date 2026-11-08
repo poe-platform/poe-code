@@ -1,0 +1,769 @@
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { basicCommands } from "../../src/commands/basic.js";
+import { standardCommands } from "../../src/commands/index.js";
+import { textProgramCommands } from "../../src/commands/text-programs/index.js";
+import { createCommandArguments, getCommandArguments } from "../../src/contracts/command.js";
+import { shellValueFromBytes } from "../../src/contracts/value.js";
+import { MemoryFileSystem } from "../../src/fs/memory/index.js";
+import { Shell } from "../../src/shell/shell.js";
+import { ShellLimitError } from "../../src/shell/types.js";
+import { setup } from "./helpers.js";
+
+for (const size of [5, 128, 65540]) test(`warm shell preserves binary output and retained results: ${size} bytes`, async () => {
+  const fs = new MemoryFileSystem();
+  const shell = new Shell({ fs }).use(standardCommands()).use(textProgramCommands());
+  const bytes = new Uint8Array(size).fill(65);
+  bytes.set([128, 255, 254]);
+  bytes[size - 1] = 10;
+  await fs.writeFile("/data.bin", bytes);
+  try {
+    await shell.exec("true");
+    await Promise.resolve();
+    await Promise.resolve();
+    await shell.exec("");
+    const stdout = await shell.exec("awk '{print}' /data.bin");
+    const stderr = await shell.exec("awk '{print}' /data.bin >&2");
+    assert.equal(stdout.exitCode, 0);
+    assert.equal(stderr.exitCode, 0);
+    assert.equal(stdout.stdout, new TextDecoder().decode(bytes));
+    assert.equal(stderr.stderr, new TextDecoder().decode(bytes));
+    await shell.exec("printf overwrite; printf overwrite >&2");
+    assert.deepEqual(new Uint8Array(stdout.stdoutBytes), bytes);
+    assert.deepEqual(new Uint8Array(stderr.stderrBytes), bytes);
+  } finally { await shell.dispose(); }
+});
+
+for (const [format, bytes] of [
+  ["ASCII\\000\\n", Uint8Array.of(65, 83, 67, 73, 73, 0, 10)],
+  ["\\357\\273\\277\\303\\251\\000", Uint8Array.of(239, 187, 191, 195, 169, 0)],
+] as const) test(`warm shell preserves ASCII and valid UTF-8 output: ${format}`, async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+  try {
+    await shell.exec("true");
+    await Promise.resolve();
+    await Promise.resolve();
+    await shell.exec("");
+    const result = await shell.exec(`printf '${format}'; printf '${format}' >&2`);
+    const decoder = new TextDecoder("utf-8", { ignoreBOM: true });
+    assert.equal(result.stdout, decoder.decode(bytes));
+    assert.equal(result.stderr, decoder.decode(bytes));
+    assert.deepEqual(new Uint8Array(result.stdoutBytes), bytes);
+    assert.deepEqual(new Uint8Array(result.stderrBytes), bytes);
+  } finally { await shell.dispose(); }
+});
+
+test("plugin file commands receive admitted string paths for byte-valued arguments", async () => {
+  const fs = new MemoryFileSystem();
+  const shell = new Shell({ fs }).use(standardCommands());
+  const bytes = Uint8Array.of(0, 255, 65);
+  await fs.writeFile("/�", bytes);
+  try {
+    const result = await shell.exec("cat $'\\377'");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.deepEqual(result.stdoutBytes, bytes);
+  } finally { await shell.dispose(); }
+});
+
+for (const [expression, expected] of [
+  ["$@", "COUNT:2\n<Changed\xff A>\n<Last Value>\n"],
+  ["$*", "COUNT:2\n<Changed\xff A>\n<Last Value>\n"],
+  ["pre$@post", "COUNT:2\n<preChanged\xff A>\n<Last Valuepost>\n"],
+  ["pre$*post", "COUNT:2\n<preChanged\xff A>\n<Last Valuepost>\n"],
+  ["\"$@\"", "COUNT:3\n<Changed\xff A>\n<>\n<Last Value>\n"],
+  ["\"$*\"", "COUNT:1\n<Changed\xff ALast Value>\n"],
+  ["\"pre$@post\"", "COUNT:3\n<preChanged\xff A>\n<>\n<Last Valuepost>\n"],
+  ["$owned", "COUNT:1\n<Changed\xff A>\n"],
+] as const) test(`empty IFS preserves positional boundaries and bytes for ${expression}`, async () => {
+  const { shell, fs } = fixture();
+  const script = `owned=$(printf 'Changed\\377 A'); set -- "$owned" "" "Last Value"; IFS=""; measure() { printf 'COUNT:%s\\n' "$#"; for item in "$@"; do printf '<%s>\\n' "$item"; done; }; measure ${expression}`;
+  await fs.writeFile("/empty-ifs.sh", new TextEncoder().encode(script));
+  try {
+    const result = await shell.exec("sh /empty-ifs.sh");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.deepEqual(result.stdoutBytes, Uint8Array.from(expected, character => character.charCodeAt(0)));
+  } finally { await shell.dispose(); }
+});
+
+
+const portableByteScripts = [
+  ["ANSI-C quote", "printf '%s' $'\\377'"],
+  ["command substitution", "printf '%s' \"$(printf '\\377')\""],
+] as const;
+
+for (const [name, script] of portableByteScripts) {
+  test(`${name} preserves raw bytes when fatal decoding throws a standard uncoded TypeError`, async context => {
+    const decode = TextDecoder.prototype.decode;
+    let rejected = 0;
+    context.mock.method(TextDecoder.prototype, "decode", function (this: InstanceType<typeof TextDecoder>, ...args: Parameters<typeof decode>) {
+      try { return decode.apply(this, args); }
+      catch (error) {
+        if (!this.fatal || !(error instanceof TypeError)) throw error;
+        rejected++;
+        throw new TypeError("Failed to decode input.");
+      }
+    });
+    const { shell } = fixture();
+    try {
+      const result = await shell.exec(script);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(result.stdoutBytes, Uint8Array.of(255));
+      assert.equal(rejected, 1);
+      const valid = await shell.exec("printf '%s' $'\\357\\273\\277é'; printf '%s' \"$(printf '\\357\\273\\277é')\"");
+      assert.equal(valid.exitCode, 0, valid.stderr);
+      assert.deepEqual(valid.stdoutBytes, Uint8Array.of(239, 187, 191, 195, 169, 239, 187, 191, 195, 169));
+      assert.equal(rejected, 1);
+    } finally { await shell.dispose(); }
+  });
+
+  for (const failure of [new Error("decoder infrastructure failed"), Object.assign(new TypeError("different decoder failure"), { code: "OTHER_FAILURE" })]) {
+    test(`${name} preserves unrelated decoder failure ${failure.message}`, async context => {
+      const decode = TextDecoder.prototype.decode;
+      context.mock.method(TextDecoder.prototype, "decode", function (this: InstanceType<typeof TextDecoder>, ...args: Parameters<typeof decode>) {
+        if (this.fatal) throw failure;
+        return decode.apply(this, args);
+      });
+      const { shell } = fixture();
+      const observed: unknown[] = [];
+      try {
+        try {
+          // A unique source exercises decoding even when earlier tests cached a parsed quote.
+          const result = await shell.exec(`${script}\n# ${name} decoder failure: ${failure.message}`, { onInternalError(error) { observed.push(error); } });
+          assert.notEqual(result.exitCode, 0);
+          assert.equal(result.stdoutBytes.length, 0);
+        } catch (error) { observed.push(error); }
+        assert.ok(observed.includes(failure));
+      } finally { await shell.dispose(); }
+    });
+  }
+
+  for (const reason of [false, 0, null, ""]) test(`${name} decoder cancellation preserves ${String(reason)}`, async context => {
+    const decode = TextDecoder.prototype.decode;
+    const controller = new AbortController();
+    context.mock.method(TextDecoder.prototype, "decode", function (this: InstanceType<typeof TextDecoder>, ...args: Parameters<typeof decode>) {
+      if (this.fatal) { controller.abort(reason); throw new TypeError("Failed to decode input."); }
+      return decode.apply(this, args);
+    });
+    const { shell } = fixture();
+    try {
+      await assert.rejects(shell.exec(`${script}\n# ${name} decoder cancellation: ${JSON.stringify(reason)}`, { signal: controller.signal }), error => error === reason);
+    } finally { await shell.dispose(); }
+  });
+}
+
+function fixture(options: Parameters<typeof setup>[0] = {}) {
+  const result = setup(options);
+  for (const command of basicCommands()) if (command.name === "printf" || command.name === "echo") result.commands.register(command);
+  return result;
+}
+
+test("direct printf preserves ff0041 without substitution", async () => {
+  const { shell, fs } = fixture();
+  const result = await shell.exec("printf '\\377\\000A' > bytes");
+  assert.equal(result.exitCode, 0);
+  assert.deepEqual(await fs.readFile("/bytes"), Uint8Array.of(255, 0, 65));
+});
+
+for (const [name, script, expected] of [
+  ["scalar substitution", "value=$(printf '\\377'); printf '%s' \"$value\" > bytes", [255]],
+  ["scalar copy", "value=$(printf '\\377'); copy=$value; printf '%s' \"$copy\" > bytes", [255]],
+  ["mixed concatenation", "value=$(printf '\\377'); copy=A${value}B; printf '%s' \"$copy\" > bytes", [65, 255, 66]],
+  ["multiple substitutions", "value=$(printf '\\303')$(printf '\\251'); printf '%s' \"$value\" > bytes", [195, 169]],
+  ["append assignment", "value=$(printf '\\377'); value+=A; printf '%s' \"$value\" > bytes", [255, 65]],
+  ["same-text overwrite", "value=$(printf '\\377'); value='�'; printf '%s' \"$value\" > bytes", [239, 191, 189]],
+  ["alias survives overwrite", "value=$(printf '\\377'); copy=$value; value='�'; printf '%s%s' \"$copy\" \"$value\" > bytes", [255, 239, 191, 189]],
+  ["readonly declaration", "readonly value=$(printf '\\377'); printf '%s' \"$value\" > bytes", [255]],
+  ["export declaration", "export value=$(printf '\\377'); printf '%s' \"$value\" > bytes", [255]],
+  ["local restoration", "value=$(printf '\\377'); f() { local value=A; printf '%s' \"$value\"; }; f > bytes; printf '%s' \"$value\" >> bytes", [65, 255]],
+  ["local byte initializer", "f() { local value=$(printf '\\377'); printf '%s' \"$value\"; }; f > bytes", [255]],
+  ["function positional", "value=$(printf '\\377'); f() { printf '%s' \"$1\"; }; f \"$value\" > bytes", [255]],
+  ["quoted positional forwarding", "value=$(printf '\\377'); f() { printf '%s' \"$@\"; }; f A \"$value\" B > bytes", [65, 255, 66]],
+  ["set and shift", "value=$(printf '\\377'); set -- A \"$value\"; shift; printf '%s' \"$1\" > bytes", [255]],
+  ["subshell clone", "value=$(printf '\\377'); (printf '%s' \"$value\" > bytes)", [255]],
+  ["temporary assignment restore", "value=$(printf '\\377'); value=A true; printf '%s' \"$value\" > bytes", [255]],
+  ["NUL removal before trailing LF trim", "value=$(printf '\\377\\000A\\n\\000\\n'); printf '%s' \"$value\" > bytes", [255, 65]],
+  ["for-loop scalar assignment", "value=$(printf '\\377'); for copy in \"$value\"; do printf '%s' \"$copy\"; done > bytes", [255]],
+  ["default assignment", "printf '%s' \"${value:=$(printf '\\377')}\" \"$value\" > bytes", [255, 255]],
+  ["command forwarding", "value=$(printf '\\377'); command -- printf '%s' \"$value\" > bytes", [255]],
+  ["ASCII IFS splitting", "value=$(printf 'A \\377 B'); printf '%s' $value > bytes", [65, 255, 66]],
+] as const) {
+  test(`lossless shell values: ${name}`, async () => {
+    const { shell, fs } = fixture();
+    const result = await shell.exec(script);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(await fs.readFile("/bytes"), Uint8Array.from(expected));
+  });
+}
+
+test("ordinary Unicode text keeps its text semantics", async () => {
+  const { shell, fs } = fixture();
+  const result = await shell.exec("value='é🙂�'; printf '%s' \"$value\" > bytes");
+  assert.equal(result.exitCode, 0);
+  assert.deepEqual(await fs.readFile("/bytes"), new TextEncoder().encode("é🙂�"));
+});
+
+test("IFS byte runs preserve invalid bytes and UTF8 across scanner checkpoints", async () => {
+  const { shell, commands } = fixture();
+  const payload = Uint8Array.from([...new TextEncoder().encode(`${"a".repeat(4095)}🙂`), 255, 32, 254]);
+  commands.register({ name: "emit", async execute({ stdout }) { await stdout.write(payload); return { exitCode: 0 }; } });
+  const result = await shell.exec('value=$(emit); printf "%s" $value');
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(result.stdoutBytes, Uint8Array.from([...payload.subarray(0, -2), 254]));
+  await shell.dispose();
+});
+
+test("IFS non-ASCII separators preserve Unicode substitution and quoted byte boundaries", async () => {
+  const { shell } = fixture();
+  assert.equal((await shell.exec('IFS=🙂; value="a🙂🙂b"; args $value')).stdout, '["a","","b"]');
+  const result = await shell.exec('value=$(printf "a b"); printf "%s" $\'\\xff\'${value}$\'\\xfe\'');
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(result.stdoutBytes, Uint8Array.of(255, 97, 98, 254));
+  await shell.dispose();
+});
+
+for (const [name, source, expected] of [
+  ["pattern does not decode merged bytes", String.raw`case 'é' in $'\xc3'$'\xa9') say yes;; *) say no;; esac`, "no\n"],
+  ["pattern keeps each fragment projection", String.raw`case '��' in $'\xc3'$'\xa9') say yes;; *) say no;; esac`, "yes\n"],
+  ["subject still decodes merged bytes", String.raw`case $'\xc3'$'\xa9' in 'é') say yes;; *) say no;; esac`, "yes\n"],
+  ["quoted glob escape stays literal", String.raw`case '��*' in $'\xc3'$'\xa9''*') say yes;; *) say no;; esac`, "yes\n"],
+] as const) {
+  test(`byte pattern fragment projection: ${name}`, async () => {
+    const { shell } = fixture();
+    const result = await shell.exec(source);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, expected);
+    await shell.dispose();
+  });
+}
+
+test("byte pattern fragment projection does not replace the raw argument value", async () => {
+  const { shell, commands } = fixture();
+  commands.register({ name: "inspect", async execute(context) {
+    const args = getCommandArguments(context);
+    assert.notEqual(typeof args.values[0], "string");
+    assert.deepEqual(args.bytes(0), Uint8Array.of(195, 169));
+    await context.stdout.write(args.bytes(0)!);
+    return { exitCode: 0 };
+  } });
+  const result = await shell.exec(String.raw`inspect $'\xc3'$'\xa9'`);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(result.stdoutBytes, Uint8Array.of(195, 169));
+  await shell.dispose();
+});
+
+test("execution-local bytes and copies do not become globals across exec", async () => {
+  const { shell } = fixture();
+  const first = await shell.exec("value=$(printf '\\377'); copy=$value; text='é🙂'; printf '%s' \"$value\" \"$copy\" \"$text\"; value='�'; printf '%s' \"$value\" \"$copy\"; unset value; printf '%s' \"$value\" \"$copy\"");
+  assert.equal(first.exitCode, 0, first.stderr);
+  const expected = Uint8Array.of(255, 255, ...new TextEncoder().encode("é🙂�"), 255, 255);
+  assert.deepEqual(first.stdoutBytes, expected);
+  assert.deepEqual((await shell.exec('printf "%s" "$value" "$copy" "$text"')).stdoutBytes, new Uint8Array());
+  assert.deepEqual(first.stdoutBytes, expected);
+  await shell.dispose();
+});
+
+test("configured and per-exec text environments never inherit equal projected raw bytes", async () => {
+  const { shell } = fixture({ env: { value: "�" } });
+  const first = await shell.exec("value=$(printf '\\377'); printf '%s' \"$value\"");
+  assert.deepEqual(first.stdoutBytes, Uint8Array.of(255));
+  assert.deepEqual((await shell.exec('printf "%s" "$value"', { env: { value: "é" } })).stdoutBytes, new TextEncoder().encode("é"));
+  assert.deepEqual((await shell.exec('printf "%s" "$value"')).stdoutBytes, Uint8Array.of(239, 191, 189));
+  assert.deepEqual(first.stdoutBytes, Uint8Array.of(255));
+  await shell.dispose();
+});
+
+test("readonly values and local restoration retain bytes only within their execution", async () => {
+  const { shell } = fixture();
+  const denied = await shell.exec("readonly frozen=$(printf '\\377'); frozen='�'");
+  assert.notEqual(denied.exitCode, 0);
+  const local = await shell.exec("readonly frozen=$(printf '\\377'); value=$(printf '\\376'); f() { local value=A; printf '%s' \"$value\"; }; f; printf '%s' \"$value\" \"$frozen\"");
+  assert.deepEqual(local.stdoutBytes, Uint8Array.of(65, 254, 255));
+  assert.deepEqual((await shell.exec('printf "%s" "$value" "$frozen"')).stdoutBytes, new Uint8Array());
+  const fresh = await shell.exec("frozen='�'; printf '%s' \"$frozen\"");
+  assert.equal(fresh.exitCode, 0, fresh.stderr);
+  assert.deepEqual(fresh.stdoutBytes, Uint8Array.of(239, 191, 189));
+  await shell.dispose();
+});
+
+test("cancelled exec cannot change configured values or earlier owned output", async () => {
+  const { shell, commands } = fixture({ env: { value: "é" } });
+  const controller = new AbortController();
+  const reason = Object.freeze({ cancelled: true });
+  commands.register({ name: "cancel", execute() { controller.abort(reason); return { exitCode: 0 }; } });
+  const first = await shell.exec("value=$(printf '\\377'); printf '%s' \"$value\"");
+  await assert.rejects(shell.exec("value=$(printf '\\376'); cancel", { signal: controller.signal }), error => error === reason);
+  assert.deepEqual((await shell.exec('printf "%s" "$value"')).stdoutBytes, new TextEncoder().encode("é"));
+  assert.deepEqual(first.stdoutBytes, Uint8Array.of(255));
+  await shell.dispose();
+});
+
+test("closed execution byte quota is not inherited and fresh bytes are admitted before effects", async () => {
+  const { shell, commands } = fixture({ limits: { maxExpansionBytes: 4096, maxExpansionFields: 128 } });
+  let effects = 0;
+  commands.register({ name: "emit", async execute(context) { await context.stdout.write(new Uint8Array(128).fill(255)); return { exitCode: 0 }; } });
+  commands.register({ name: "effect", execute() { effects++; return { exitCode: 0 }; } });
+  const first = await shell.exec("value=$(emit); printf '%s' \"$value\"");
+  assert.deepEqual(first.stdoutBytes, new Uint8Array(128).fill(255));
+  assert.equal((await shell.exec("effect", { limits: { maxExpansionBytes: 100 } })).exitCode, 0);
+  assert.equal(effects, 1);
+  await assert.rejects(shell.exec('effect "$(emit)"', { limits: { maxExpansionBytes: 100 } }), error => error instanceof ShellLimitError && error.limit === "maxExpansionBytes");
+  assert.equal(effects, 1);
+  assert.deepEqual((await shell.exec('printf "%s" "$value"')).stdoutBytes, new Uint8Array());
+  assert.deepEqual(first.stdoutBytes, new Uint8Array(128).fill(255));
+  await shell.dispose();
+});
+
+test("concurrent executions retain independent byte scopes without sharing scalar writes", async () => {
+  const { shell, commands } = fixture();
+  let started!: () => void;
+  let release!: () => void;
+  const entered = new Promise<void>(resolve => { started = resolve; });
+  const wait = new Promise<void>(resolve => { release = resolve; });
+  commands.register({ name: "pause", async execute() { started(); await wait; return { exitCode: 0 }; } });
+  const pending = shell.exec("left=$(printf '\\377'); pause; printf '%s' \"$left\" \"$right\"");
+  await entered;
+  let left: Awaited<typeof pending>;
+  try {
+    const right = await shell.exec("right=$(printf '\\376'); printf '%s' \"$left\" \"$right\"");
+    assert.equal(right.exitCode, 0, right.stderr);
+    assert.deepEqual(right.stdoutBytes, Uint8Array.of(254));
+  } finally { release(); left = await pending; }
+  assert.equal(left.exitCode, 0, left.stderr);
+  assert.deepEqual(left.stdoutBytes, Uint8Array.of(255));
+  assert.deepEqual((await shell.exec('printf "%s" "$left" "$right"')).stdoutBytes, new Uint8Array());
+  await shell.dispose();
+});
+
+test("repeated isolated executions release byte sharing and overwrite reservations", async () => {
+  const { shell } = fixture({ limits: { maxExpansionBytes: 2048, maxExpansionFields: 64 } });
+  for (let index = 0; index < 30; index++) {
+    const result = await shell.exec("value=$(printf '\\377'); copy=$value; value=text; value=$(printf '\\376'); printf '%s' \"$copy\" \"$value\"");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(result.stdoutBytes, Uint8Array.of(255, 254));
+    assert.deepEqual((await shell.exec('printf "%s" "$value" "$copy"')).stdoutBytes, new Uint8Array());
+  }
+  await shell.dispose();
+});
+
+test("isolated text-only executions retain ordinary low-budget admission", async () => {
+  const { shell } = fixture({ env: { value: "é" }, limits: { maxExpansionBytes: 6, maxExpansionFields: 3 } });
+  assert.equal((await shell.exec("value=x; printf %s \"$value\"")).stdout, "x");
+  const result = await shell.exec('printf %s "$value"');
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(result.stdoutBytes, new TextEncoder().encode("é"));
+  await shell.dispose();
+});
+
+test("text variable publications share an aggregate execution byte budget", async () => {
+  const { shell } = fixture({ limits: { maxExpansionBytes: 128 } });
+  try {
+    await assert.rejects(
+      shell.exec(`seed=${"x".repeat(60)}; first="\${seed}1"; second="\${seed}2"`),
+      error => error instanceof ShellLimitError && error.limit === "maxExpansionBytes",
+    );
+  } finally { await shell.dispose(); }
+});
+
+test("equal text bindings cannot bypass aggregate retained storage admission", async () => {
+  const { shell } = fixture({ limits: { maxExpansionBytes: 128 } });
+  try {
+    await assert.rejects(
+      shell.exec(`first=${"x".repeat(60)}; second="\${first:0}"`),
+      error => error instanceof ShellLimitError && error.limit === "maxExpansionBytes",
+    );
+  } finally { await shell.dispose(); }
+});
+
+test("nested locals keep shadowed text charged until restoration", async () => {
+  const { shell } = fixture({ limits: { maxExpansionBytes: 200 } });
+  try {
+    await assert.rejects(
+      shell.exec(`value=${"a".repeat(40)}; inner() { local value=${"c".repeat(40)}; }; outer() { local value=${"b".repeat(40)}; inner; }; outer`),
+      error => error instanceof ShellLimitError && error.limit === "maxExpansionBytes",
+    );
+  } finally { await shell.dispose(); }
+});
+
+test("text overwrite, unset and local restoration release execution quota", async () => {
+  const { shell } = fixture({ limits: { maxExpansionBytes: 128 } });
+  const mutations = `value=${"a".repeat(20)}; value=${"b".repeat(20)}; unset value; `;
+  const source = `${mutations.repeat(10)}value=outer; inner() { local value=deep; }; outer() { local value=inner; inner; printf %s "$value"; }; outer; printf %s "$value"`;
+  try {
+    for (let iteration = 0; iteration < 3; iteration++) {
+      const result = await shell.exec(source);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "innerouter");
+    }
+  } finally { await shell.dispose(); }
+});
+
+test("source arguments retain the caller positional storage budget", async () => {
+  const { shell, fs } = fixture({ limits: { maxExpansionBytes: 128 } });
+  await fs.writeFile("/inside", new TextEncoder().encode(`value=${"y".repeat(60)}`));
+  try {
+    await assert.rejects(
+      shell.exec(`set -- ${"x".repeat(60)}; . /inside short; args "$1" "$value"`),
+      error => error instanceof ShellLimitError && error.limit === "maxExpansionBytes",
+    );
+  } finally { await shell.dispose(); }
+});
+
+test("source positional restoration releases snapshots and preserves set semantics", async () => {
+  const { shell, fs } = fixture({ limits: { maxExpansionBytes: 128 } });
+  await fs.writeFile("/inside", new TextEncoder().encode('printf %s "$1"'));
+  await fs.writeFile("/replace", new TextEncoder().encode("set -- changed"));
+  try {
+    const result = await shell.exec(`set -- original; ${". /inside short; ".repeat(10)}printf %s "$1"; . /replace short; printf %s "$1"`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, `${"short".repeat(10)}originalchanged`);
+  } finally { await shell.dispose(); }
+});
+
+test("source arguments and restored positionals retain byte identity", async () => {
+  const { shell, fs } = fixture();
+  await fs.writeFile("/inside", new TextEncoder().encode('printf %s "$1"'));
+  try {
+    const result = await shell.exec("set -- $'\\xff'; . /inside $'\\xfe'; printf %s \"$1\"");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(result.stdoutBytes, Uint8Array.of(254, 255));
+  } finally { await shell.dispose(); }
+});
+
+for (const indexed of [false, true]) {
+  test(`middleware environment publications share retained storage with scalars (indexed=${indexed})`, async () => {
+    const { shell } = fixture({ limits: { maxExpansionBytes: 4096 } });
+    shell.use((context, next) => {
+      if (context.command === "f") Object.assign(context, { env: { ...context.env, injected: "x".repeat(1100) } });
+      return next();
+    });
+    try {
+      await assert.rejects(
+        shell.exec(`${indexed ? "injected=(x); " : ""}f() { value=${"y".repeat(1100)}; }; f`),
+        error => error instanceof ShellLimitError && error.limit === "maxExpansionBytes",
+      );
+    } finally { await shell.dispose(); }
+  });
+
+  test(`invoke environment publications share retained storage with scalars (indexed=${indexed})`, async () => {
+    const { shell, commands } = fixture({ limits: { maxExpansionBytes: 4096 } });
+    commands.register({ name: "forward", execute: context => context.invoke!("f", [], { env: { injected: "x".repeat(1100) }, replaceEnv: true }) });
+    try {
+      await assert.rejects(
+        shell.exec(`${indexed ? "injected=(x); " : ""}f() { value=${"y".repeat(1100)}; }; forward`),
+        error => error instanceof ShellLimitError && error.limit === "maxExpansionBytes",
+      );
+    } finally { await shell.dispose(); }
+  });
+}
+
+test("cleanup failure releases execution values without changing configured text", async () => {
+  const { shell, commands } = fixture({ env: { value: "�" }, limits: { maxExpansionBytes: 2048, maxExpansionFields: 64 } });
+  const reason = Object.freeze({ cleanup: true });
+  commands.register({ name: "bad_cleanup", execute(context) { context.registerCleanup!(() => { throw reason; }); return { exitCode: 0 }; } });
+  const first = await shell.exec("value=$(printf '\\377'); printf '%s' \"$value\"");
+  for (let index = 0; index < 10; index++) {
+    await assert.rejects(shell.exec("value=$(printf '\\376'); bad_cleanup"), error => error === reason);
+    assert.deepEqual((await shell.exec('printf "%s" "$value"')).stdoutBytes, Uint8Array.of(239, 191, 189));
+    assert.deepEqual(first.stdoutBytes, Uint8Array.of(255));
+  }
+  await shell.dispose();
+});
+
+test("disposing another Shell cannot close independent active byte ownership", async () => {
+  const first = fixture();
+  const second = fixture();
+  let started!: () => void;
+  let release!: () => void;
+  const entered = new Promise<void>(resolve => { started = resolve; });
+  const wait = new Promise<void>(resolve => { release = resolve; });
+  second.commands.register({ name: "pause", async execute() { started(); await wait; return { exitCode: 0 }; } });
+  const earlier = await first.shell.exec("value=$(printf '\\377'); printf '%s' \"$value\"");
+  const pending = second.shell.exec("value=$(printf '\\376'); pause; printf '%s' \"$value\"");
+  await entered;
+  let result: Awaited<typeof pending>;
+  try { await first.shell.dispose(); }
+  finally { release(); result = await pending; }
+  assert.deepEqual(result.stdoutBytes, Uint8Array.of(254));
+  assert.deepEqual(earlier.stdoutBytes, Uint8Array.of(255));
+  assert.deepEqual((await second.shell.exec('printf "%s" "$value"')).stdoutBytes, new Uint8Array());
+  await assert.rejects(first.shell.exec("true"), /disposed/u);
+  await second.shell.dispose();
+});
+
+test("ANSI-C byte fragments concatenate before projection while genuine Unicode stays distinct", async () => {
+  const { shell } = fixture();
+  const result = await shell.exec("printf '%s' A$'\\xff'B $'\\xc3'$'\\xa9' '�' $'\\xfe' $'A\\0B'");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(result.stdoutBytes, Uint8Array.of(65, 255, 66, 195, 169, 239, 191, 189, 254, 65));
+  await shell.dispose();
+});
+
+test("ANSI-C raw arguments are admitted before generic command effects", async () => {
+  const { shell, commands } = fixture();
+  let effects = 0;
+  commands.register({ name: "effect", execute() { effects++; return { exitCode: 0 }; } });
+  await assert.rejects(shell.exec("effect $'\\xff'", { limits: { maxExpansionBytes: 32 } }), error => error instanceof ShellLimitError && error.limit === "maxExpansionBytes");
+  assert.equal(effects, 0);
+  await shell.dispose();
+});
+
+test("builtin forwarding bypasses functions but never admits arbitrary registered commands", async () => {
+  const { shell, commands } = fixture();
+  let effects = 0;
+  commands.register({ name: "custom", execute() { effects++; return { exitCode: 0 }; } });
+  const result = await shell.exec("printf() { echo wrong; }; builtin printf '%s' $'\\xff'; command printf '%s' $'\\xfe'");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(result.stdoutBytes, Uint8Array.of(255, 254));
+  const denied = await shell.exec("builtin custom");
+  assert.equal(denied.exitCode, 1);
+  assert.match(denied.stderr, /not a shell builtin/u);
+  assert.equal(effects, 0);
+  await shell.dispose();
+});
+
+test("generic byte-aware command receives scalar values independently of printf", async () => {
+  const { shell, commands } = fixture();
+  commands.register({ name: "retain", async execute(context) {
+    const values = getCommandArguments(context);
+    for (let index = 0; index < values.args.length; index++) await context.stdout.write(values.bytes(index)!);
+    return { exitCode: 0 };
+  } });
+  const result = await shell.exec("value=$(printf '\\377'); copy=A${value}; copy+=B; retain \"$copy\"");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(result.stdoutBytes, Uint8Array.of(65, 255, 66));
+});
+
+for (const header of ["#!/usr/bin/env capture", "#!/usr/bin/env -S capture fixed"]) {
+  test(`env shebang rebinding retains literal and raw arguments: ${header}`, async () => {
+    const { shell, fs, commands } = fixture();
+    let calls = 0;
+    commands.register({ name: "capture", async execute(context) {
+      calls++;
+      const arguments_ = getCommandArguments(context);
+      assert.deepEqual(arguments_.args.slice(0, -2), header.includes("-S") ? ["fixed", "/program"] : ["/program"]);
+      await context.stdout.write(arguments_.bytes(arguments_.args.length - 2)!);
+      await context.stdout.write(arguments_.bytes(arguments_.args.length - 1)!);
+      return { exitCode: 0 };
+    } });
+    await fs.writeFile("/program", new TextEncoder().encode(`${header}\n`), { mode: 0o755 });
+    try {
+      const result = await shell.exec("/program $'\\xff' $'\\xfe'");
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.deepEqual(result.stdoutBytes, Uint8Array.of(255, 254));
+      assert.equal(calls, 1);
+    } finally { await shell.dispose(); }
+  });
+}
+
+test("env shebang stages reject stale middleware argv before target effects", async () => {
+  const { shell, fs, commands } = fixture();
+  let calls = 0;
+  commands.register({ name: "capture", execute() { calls++; return { exitCode: 0 }; } });
+  shell.use((context, next) => {
+    if (context.command === "capture") Object.defineProperty(context, "args", { value: [...context.args] });
+    return next();
+  });
+  await fs.writeFile("/program", new TextEncoder().encode("#!/usr/bin/env capture\n"), { mode: 0o755 });
+  try {
+    const result = await shell.exec("/program $'\\xff'");
+    assert.notEqual(result.exitCode, 0);
+    assert.match(result.stderr, /identity does not match/u);
+    assert.equal(calls, 0);
+  } finally { await shell.dispose(); }
+});
+
+test("byte-aware invocation preserves explicit owned values and literal argv", async () => {
+  const { shell, commands } = fixture();
+  commands.register({ name: "retain", async execute(context) {
+    await context.stdout.write(getCommandArguments(context).bytes(0)!);
+    return { exitCode: 0 };
+  } });
+  commands.register({ name: "forward", async execute(context) {
+    const carrier = getCommandArguments(context);
+    return context.invoke!("retain", carrier.args, { argumentValues: carrier });
+  } });
+  const result = await shell.exec("value=$(printf '\\377'); forward \"$value\"");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(result.stdoutBytes, Uint8Array.of(255));
+});
+
+test("same-text replacement argv cannot inherit a stale byte carrier", async () => {
+  const { shell, commands } = fixture();
+  let executed = 0;
+  commands.register({ name: "retain", execute() { executed++; return { exitCode: 0 }; } });
+  shell.use((context, next) => {
+    if (context.command === "retain") Object.defineProperty(context, "args", { value: [...context.args] });
+    return next();
+  });
+  const result = await shell.exec("value=$(printf '\\377'); retain \"$value\"");
+  assert.notEqual(result.exitCode, 0);
+  assert.match(result.stderr, /identity does not match/u);
+  assert.equal(executed, 0);
+});
+
+test("legacy text-only middleware can replace argv without acquiring byte provenance", async () => {
+  const { shell, commands } = fixture();
+  let executed = 0;
+  commands.register({ name: "observe", async execute(context) {
+    executed++;
+    assert.deepEqual(context.args, ["�", "é"]);
+    const arguments_ = getCommandArguments(context);
+    await context.stdout.write(arguments_.bytes(0)!);
+    await context.stdout.write(arguments_.bytes(1)!);
+    return { exitCode: 0 };
+  } });
+  shell.use((context, next) => {
+    if (context.command === "observe") {
+      assert.equal(context.argumentValues, undefined);
+      Object.assign(context, { args: ["�", "é"] });
+    }
+    return next();
+  });
+  try {
+    const result = await shell.exec("observe plain");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.deepEqual(result.stdoutBytes, new TextEncoder().encode("�é"));
+    assert.equal(executed, 1);
+  } finally { await shell.dispose(); }
+});
+
+for (const reason of [false, 0, null]) {
+  test(`text-only argv replacement reaches cancellation and retains ${String(reason)}`, async () => {
+    const { shell, commands } = fixture();
+    const controller = new AbortController();
+    let executed = 0;
+    commands.register({ name: "cancel", execute(context) {
+      executed++;
+      assert.deepEqual(context.args, ["replacement"]);
+      controller.abort(reason);
+      return { exitCode: 0 };
+    } });
+    shell.use((context, next) => {
+      if (context.command === "cancel") Object.assign(context, { args: ["replacement"] });
+      return next();
+    });
+    try {
+      await assert.rejects(shell.exec("cancel original", { signal: controller.signal }), error => error === reason);
+      assert.equal(executed, 1);
+    } finally { await shell.dispose(); }
+  });
+}
+
+test("replacement byte carriers are budget-admitted before their command runs", async () => {
+  const { shell, commands } = fixture();
+  const replacement = createCommandArguments([shellValueFromBytes(new Uint8Array(512).fill(255))]);
+  let executed = 0;
+  commands.register({ name: "retain", execute() { executed++; return { exitCode: 0 }; } });
+  shell.use((context, next) => {
+    Object.defineProperties(context, { args: { value: replacement.args }, argumentValues: { value: replacement } });
+    return next();
+  });
+  await assert.rejects(shell.exec("retain", { limits: { maxExpansionBytes: 256 } }), error => error instanceof ShellLimitError && error.limit === "maxExpansionBytes");
+  assert.equal(executed, 0);
+});
+
+test("repeated overwrites and closed command scopes release retained byte quota", async () => {
+  const { shell, commands } = fixture();
+  commands.register({ name: "retain", async execute(context) {
+    await context.stdout.write(getCommandArguments(context).bytes(0)!);
+    return { exitCode: 0 };
+  } });
+  const source = `${"value=$(printf '\\377'); value=text; ".repeat(100)}value=$(printf '\\377'); retain "$value"`;
+  const result = await shell.exec(source, { limits: { maxExpansionBytes: 1024, maxExpansionFields: 64 } });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(result.stdoutBytes, Uint8Array.of(255));
+});
+
+test("pipeline and subshell snapshots release byte references after completion", async () => {
+  const { shell } = fixture();
+  const source = `value=$(printf '\\377'); ${"(true); true | true; ".repeat(30)}printf '%s' "$value"`;
+  const result = await shell.exec(source, { limits: { maxExpansionBytes: 2048, maxExpansionFields: 64 } });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(result.stdoutBytes, Uint8Array.of(255));
+});
+
+test("ordinary text argv and valid UTF8 substitutions do not consume byte-retention quota", async () => {
+  const { shell } = fixture();
+  const result = await shell.exec('value=$(pass); printf "%s" "$value"', { stdin: "é", limits: { maxExpansionBytes: 6, maxExpansionFields: 3 } });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "é");
+});
+
+for (const [id, source, stdoutHex] of [
+  ["15-substitution-trailing-lf", "one=$(printf 'A\\n'); many=$(printf 'B\\n\\n\\n'); empty=$(printf '\\n\\n'); embedded=$(printf 'C\\nD\\n'); printf '<%s>|<%s>|<%s>|<%s>\\n' \"$one\" \"$many\" \"$empty\" \"$embedded\"", "3c413e7c3c423e7c3c3e7c3c430a443e0a"],
+  ["16-substitution-nul-warning", "value=$(printf '\\xff\\0\\xfe\\0Z\\n\\n'); printf '<%s>\\n' \"$value\"", "3cfffe5a3e0a"],
+  ["22-printf-missing-conversions", "printf '<%s>|<%b>|<%d>|<%.2s>\\n'", "3c3e7c3c3e7c3c303e7c3c3e0a"],
+  ["23-printf-byte-precision", "printf '<%.1s><%.2s><%.3s>\\n' '�' '�' '�'", "3cef3e3cefbf3e3cefbfbd3e0a"],
+  ["27-echo-escapes-no-newline", "echo -ne '\\xff\\0\\376'; printf '|end\\n'", "ff005c3337367c656e640a"],
+  ["32-nul-scalar-versus-output", "value=$'A\\0B'; printf '<%s>|' \"$value\"; printf 'A\\0B\\n'", "3c413e7c4100420a"],
+] as const) {
+  test(`captured Bash 5.3.15 C-locale golden ${id}`, async () => {
+    const { shell } = fixture();
+    const result = await shell.exec(source, { env: { LC_ALL: "C", LANG: "C" } });
+    assert.equal(result.exitCode, 0);
+    assert.equal(Buffer.from(result.stdoutBytes).toString("hex"), stdoutHex);
+    assert.equal(result.stderr, id === "16-substitution-nul-warning" ? "shell: line 1: warning: command substitution: ignored null byte in input\n" : "");
+  });
+}
+
+// File substitutions must preserve bytes through both inline and saved scripts.
+for (const expression of ["cat /raw", "cat </raw", "</raw", "cat /raw | tr A B", "cat </raw | tr A B"]) {
+  for (const saved of [false, true]) {
+    for (const [name, payload] of [
+      ["invalid UTF-8", Uint8Array.of(65, 128, 255, 10, 10)],
+      ["UTF-8 and BOM", Uint8Array.of(239, 187, 191, 65, 195, 169, 10, 10)],
+      ["NUL and newline cleanup", Uint8Array.of(65, 0, 128, 10, 0, 10)],
+      ["ASCII", Uint8Array.of(65, 90, 10, 10)],
+    ] as const) test(`file substitution ${expression}: ${name}, saved=${saved}`, async () => {
+      const fs = new MemoryFileSystem();
+      const shell = new Shell({ fs }).use(standardCommands());
+      await fs.writeFile("/raw", payload);
+      const script = `value=$(${expression}); printf '%s' "$value"`;
+      const expected = payload.filter(byte => byte !== 0);
+      let end = expected.length;
+      while (end && expected[end - 1] === 10) end--;
+      if (expression.includes("tr A B")) {
+        for (let i = 0; i < end; i++) if (expected[i] === 65) expected[i] = 66;
+      }
+      try {
+        if (saved) await fs.writeFile("/check.sh", new TextEncoder().encode(script));
+        const result = await shell.exec(saved ? "sh /check.sh" : script);
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.deepEqual(result.stdoutBytes, expected.subarray(0, end));
+      } finally { await shell.dispose(); }
+    });
+  }
+}
+
+for (const expression of ["cat /raw", "cat </raw", "</raw", "cat /raw | tr A B"]) {
+  test(`binary file substitution keeps output admission: ${expression}`, async () => {
+    const fs = new MemoryFileSystem();
+    const shell = new Shell({ fs }).use(standardCommands());
+    await fs.writeFile("/raw", Uint8Array.of(128, 255, 10));
+    try {
+      await assert.rejects(shell.exec(`value=$(${expression})`, { limits: { maxOutputBytes: 1 } }),
+        error => error instanceof ShellLimitError && error.limit === "maxOutputBytes");
+      const result = await shell.exec(`printf '%s' "$(${expression})"`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(result.stdoutBytes, Uint8Array.of(128, 255));
+    } finally { await shell.dispose(); }
+  });
+}
+
+for (const [format, value, expected] of [
+  ["%.1s", "é", Uint8Array.of(195)],
+  ["%4s", "é", Uint8Array.of(32, 32, 195, 169)],
+  ["%.3s", "🙂", Uint8Array.of(240, 159, 153)],
+] as const) test(`UTF-8 printf uses byte precision and padding: ${format}`, async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+  try {
+    const result = await shell.exec(`printf '${format}' '${value}'`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(result.stdoutBytes, expected);
+  } finally { await shell.dispose(); }
+});

@@ -1,0 +1,14 @@
+import fs from 'node:fs';
+import path from 'node:path';
+const root = path.dirname(new URL(import.meta.url).pathname);
+const read = index => JSON.parse(fs.readFileSync(path.join(root, 'packet', `${index}.data`), 'utf8'));
+const audit = read(1);
+const auth = read(2);
+const requests = read(14);
+const lines = [];
+lines.push(JSON.stringify({ auth: Object.fromEntries(Object.entries(auth).filter(([key]) => key !== 'programs')), tools: read(16) }));
+for (const row of audit.cases) lines.push(JSON.stringify({ id: row.id, program: row.program, disposition: row.disposition, request: requests.find(request => request.id === row.id), claims: Object.fromEntries(Object.entries(row).filter(([key]) => !['program','programSha256','programBytes','profile','family','id','disposition'].includes(key))) }));
+lines.push(JSON.stringify({ fixtures: audit.fixtures, bodies: audit.additionalExecutableBodies }));
+fs.writeFileSync(path.join(root, 'INSPECTION.jsonl'), lines.join('\n') + '\n', { flag: 'wx', mode: 0o600 });
+for (const row of audit.cases) console.log(`${row.id} ${JSON.stringify(row.program)}`);
+console.log(JSON.stringify({ authKeys: Object.keys(auth), authBindings: auth.bindings, tools: read(16) }, null, 2));

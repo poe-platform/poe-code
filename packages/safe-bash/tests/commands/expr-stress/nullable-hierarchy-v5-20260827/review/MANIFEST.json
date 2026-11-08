@@ -1,0 +1,127 @@
+{
+  "schema": 1,
+  "date": "2026-08-27T22:54:40.974Z",
+  "status": "PREPARATORY / SEALED AUTHOR CANDIDATE UNAVAILABLE / NO PROMOTION",
+  "controlsCommit": "18104988c32c467e4025743927c20ee80eaa1781",
+  "freezeCommit": "f561bd9fa33afdf8285154237f856ebfd8495ce4",
+  "counts": {
+    "groups": 8,
+    "suppliedPlans": 31,
+    "reusedPlans": 26,
+    "newHistories": 5,
+    "freezerHistoriesIndependentlyDerived": 36,
+    "precodeExpectedMatrices": 20,
+    "candidateControlExecutions": 0,
+    "authorSuiteExecutions": 0,
+    "mutantsExecuted": 0,
+    "actualWorkers": 0,
+    "nativeCalls": 0,
+    "oldCohortRuns": 0
+  },
+  "entries": [
+    {
+      "path": "AUTH-CONFIG-PREP.json",
+      "bytes": 846,
+      "sha256": "827b2dc420d7b7981ca978855577e33eddc839c481c03e6d79f6914c9b931a09"
+    },
+    {
+      "path": "BINDING.json",
+      "bytes": 601,
+      "sha256": "77acd2fa20f36e18d2113fef6a90220706864b95de22c12ac51803874897df1b"
+    },
+    {
+      "path": "CHECKPOINT.txt",
+      "bytes": 3513,
+      "sha256": "ecb889978eeba72df7fd297f08efb4cd61acd2822f44e5c7432d6f8574c56640"
+    },
+    {
+      "path": "CONTROLS.json",
+      "bytes": 4571,
+      "sha256": "af00f1e794152e8f69bfa1641c87cb1e78e9844a768b8220dd79333b45fdf409"
+    },
+    {
+      "path": "FREEZE.md",
+      "bytes": 6361,
+      "sha256": "7920430de1d009400bfaed4d3484b2490b8592f72fc1cf278c9dc41577080cbb"
+    },
+    {
+      "path": "POLICY-REVIEW.md",
+      "bytes": 5704,
+      "sha256": "ee377858a70390f40d84f4fae205ea67799a9ae7e90d2b8885921961486a0dae"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 6757,
+      "sha256": "fd177e76163aab0c01c8573b024e8cd5806584de1077c5f31f287971d3b8412e"
+    },
+    {
+      "path": "archive-final-check-01.json",
+      "bytes": 4323,
+      "sha256": "1654090c5a4ae094dc82d7d6163488fda9eb358d4f507939005112960a766494"
+    },
+    {
+      "path": "archive-preparatory-check-01.json",
+      "bytes": 4323,
+      "sha256": "9bbcad18462bbb96560482f6f15bf49c28540f0d3205682ec39e3ca3bd6d6df5"
+    },
+    {
+      "path": "authenticate.mjs",
+      "bytes": 3589,
+      "sha256": "8255048a1e04c2aa978c7fe1c8995203973355008f2b5bd12b8f484ebbb54188"
+    },
+    {
+      "path": "authentication-prep-01.json",
+      "bytes": 20142,
+      "sha256": "436158f34bb62ef4d8b013ff90ccf0738d61e36b87372f9b4343f9349f6157d4"
+    },
+    {
+      "path": "freezer-input-derivations-01.json",
+      "bytes": 15227,
+      "sha256": "46d5d53a1072102b421bd35fb891e162e38aeb131c40b50b2a67ef3f80fb790b"
+    },
+    {
+      "path": "historical-bindings-01.json",
+      "bytes": 23691,
+      "sha256": "7e11dff469993a36380c6a2f7c80745409c2a27c25814b0319cf3b97ab910905"
+    },
+    {
+      "path": "independent-oracle-precode-01.json",
+      "bytes": 4929,
+      "sha256": "14de560ddca4046b5d2e112bb976f3b3941d34c418e921758695ba6ff52adbb8"
+    },
+    {
+      "path": "input-derivations-01.json",
+      "bytes": 91299,
+      "sha256": "1f8942397c203e74d16e02f5e2d7cfe05abb13ebb3ea6e948bee3f77b6d1a5a2"
+    },
+    {
+      "path": "oracle.mjs",
+      "bytes": 3648,
+      "sha256": "bb380d38f3a9b25838f05c4e1e229a4dd55d6a080bdf26bc1b9c91cddb1cb134"
+    },
+    {
+      "path": "run-controls.mjs",
+      "bytes": 24175,
+      "sha256": "ca82b5c348604e4ae4cf55638dd0d8441a353cb294804901793a74312e938c07"
+    },
+    {
+      "path": "validate-inputs.mjs",
+      "bytes": 3618,
+      "sha256": "9626e2c1eb0363f9da51917b617dd399cdb0a203c15f960cef1a9024dc333cc9"
+    },
+    {
+      "path": "verify-archives.mjs",
+      "bytes": 1938,
+      "sha256": "208d51549d82860c83abb26b032dcd5a248b706948a79f7fe8b7bda03299d27b"
+    },
+    {
+      "path": "verify-frozen-inputs.mjs",
+      "bytes": 3319,
+      "sha256": "689a80333ef87bda1d7424ab4509fc0a8c454b4a5366f813548f51aaf187dc89"
+    }
+  ],
+  "inventory": "Exactly these files and MANIFEST.json itself; no child directories or symlinks. Self hash bound by Git and final receipt.",
+  "limits": "No source comparison to unsealed prototype yet; existing v4 caps bound in CONTROLS.json. No cap raise.",
+  "remaining": "Authenticate sealed author and execute modest suite, frozen independent controls, <=5 discriminating mutants; report old-C1 conflict separately. Root may route one bounded follow-up.",
+  "cleanup": "All commands synchronous/settled, no owned background workers or servers; unique scratch removed after committed-evidence copies and verified archive checks."
+}

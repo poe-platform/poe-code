@@ -1,0 +1,17 @@
+{
+  "kind": "independent-permission-review-with-reporter-blocker",
+  "entries": {
+    "README.md": "dfe9c89949e14c1b1740ecb97340e6da7458a2af2e1f6b930488aaa7a60b6991",
+    "REPORTER-NEIGHBOR.json": "54600d9771f8b2ba1416594b34d020d608e41764aa5483e7fe58a217c66c3b2e",
+    "attempt-1/": "directory",
+    "attempt-1/RESULT.json": "2dcce85d80c3aecb7c7d99e47eee07f8c0aed1f848b23203cf513ed31849baa7",
+    "attempt-1/run.mjs.txt": "f2eac61d38a60e935604fa5a807c13920d8be8c796cdaa436addda1fdaeda307",
+    "attempt-2/": "directory",
+    "attempt-2/FRESH-DIST.json": "0fb68723688e3fe046aee56119add5f000ebfbffc3803beea8dc7225e4e27514",
+    "attempt-2/RESULT.json": "7b6fe6b80abb9de4a27577aa7e451e023e83c6f86eaa698ed55059287f2ec361",
+    "attempt-2/UNCHANGED-AUTHOR.json": "c2c2b0dc89b2de79b941c001026cf0a30e7d8cb4884239e2a90f98725380428f",
+    "reporter-neighbor.mjs": "58fb7654b09e4edb363214b436aba6e28feeadd7cd41eab5a2756a6e9a109cb6",
+    "run.mjs": "b7b37339dc594e9e0e4b15a153d76fe9218676eb8e67e29ed533c110ba7ed3c5",
+    "verify.mjs": "8c8b465a99dc34047e63ca4f30ea2af331bd99afa37108e384cdd9864737ff19"
+  }
+}

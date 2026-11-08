@@ -1,0 +1,17 @@
+{
+  "id": "01-supported-facades",
+  "pid": 32682,
+  "started": 1787847585226,
+  "deadline": 1787847595226,
+  "timedOut": false,
+  "outputExceeded": false,
+  "code": 0,
+  "signal": null,
+  "closed": 1787847586503,
+  "parentAfter": {
+    "pid": 32545,
+    "at": "2026-08-27T16:19:46.503Z",
+    "alive": true,
+    "knownLiveChildren": []
+  }
+}

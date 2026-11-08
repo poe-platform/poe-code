@@ -1,0 +1,26 @@
+{
+  "name": "@poe-code/worktree",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "test:unit": "cd ../.. && vitest run packages/worktree/src"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@poe-code/user-error": "*",
+    "yaml": "^2.8.2",
+    "@poe-code/safe-fs": "*"
+  }
+}

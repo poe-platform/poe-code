@@ -1,0 +1,11 @@
+{
+  "candidateExecuted": false,
+  "baseline": "27a7793526830768484885afba5832bf8bb248b5",
+  "scriptSha256": "2e40da645ddb622654ff37d09cd677398f7870143ba15c67ca0f0c2779576f15",
+  "failure": "Assertion: src/tests inventory differs; splitting ls-tree records on every tab truncated two literal tab-in-name fixture paths.",
+  "paths": [
+    "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/controls/tab\tname",
+    "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/controls/tab\tname"
+  ],
+  "correction": "Split metadata at first tab only; preserve complete pathname. No excluded files or changed fixture bytes."
+}

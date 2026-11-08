@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "classification": "SOURCE_RECIPE_SYNTHETIC_DATA_ONLY",
+  "controls": [
+    "missing-root-binding-refuses",
+    "same-selected-origin-no-fake-commit",
+    "packet-reference-and-hash-required",
+    "independent-build-not-inherited",
+    "exact-ten-field-consumer-schema",
+    "source-273-versus-271-and-map",
+    "full-870-baseline-readme",
+    "readonly-fixture-translation-preserved",
+    "negative-type-declared-diagnostic-only",
+    "nonzero-worker-never-waived",
+    "timeout-fail-clean-continuation-only",
+    "integrity-or-reap-uncertainty-stops",
+    "all-194-routes-and-eight-overlays-unchanged",
+    "132-projection-149-jobs-not-recounted",
+    "all-80-gaps-retained",
+    "public-export-gap-retained"
+  ],
+  "deferred": ["Product executions, imports, builds and compiler runs remain root-routed; runtime composition is checked separately by core/check.mjs"]
+}

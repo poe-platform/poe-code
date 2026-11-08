@@ -1,0 +1,8256 @@
+/* eslint-disable -- Vendored Mozilla PDF.js image decoder distribution. */
+/**
+ * @licstart The following is the entire license notice for the
+ * JavaScript code in this page
+ *
+ * Copyright 2023 Mozilla Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * @licend The above is the entire license notice for the
+ * JavaScript code in this page
+ */
+
+/******/ // The require scope
+/******/ var __webpack_require__ = {};
+/******/ 
+/************************************************************************/
+/******/ /* webpack/runtime/define property getters */
+/******/ (() => {
+/******/ 	// define getter functions for harmony exports
+/******/ 	__webpack_require__.d = (exports, definition) => {
+/******/ 		for(var key in definition) {
+/******/ 			if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
+/******/ 				Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 			}
+/******/ 		}
+/******/ 	};
+/******/ })();
+/******/ 
+/******/ /* webpack/runtime/hasOwnProperty shorthand */
+/******/ (() => {
+/******/ 	__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ })();
+/******/ 
+/************************************************************************/
+var __webpack_exports__ = {};
+
+// EXPORTS
+__webpack_require__.d(__webpack_exports__, {
+  Jbig2Image: () => (/* reexport */ Jbig2Image),
+  JpegImage: () => (/* reexport */ JpegImage),
+  JpxImage: () => (/* reexport */ JpxImage),
+  VerbosityLevel: () => (/* reexport */ VerbosityLevel),
+  getVerbosityLevel: () => (/* reexport */ getVerbosityLevel),
+  setVerbosityLevel: () => (/* reexport */ setVerbosityLevel)
+});
+
+;// CONCATENATED MODULE: ./src/shared/util.js
+const isNodeJS = typeof process === "object" && process + "" === "[object process]" && !process.versions.nw && !(process.versions.electron && process.type && process.type !== "browser");
+const IDENTITY_MATRIX = (/* unused pure expression or super */ null && ([1, 0, 0, 1, 0, 0]));
+const FONT_IDENTITY_MATRIX = (/* unused pure expression or super */ null && ([0.001, 0, 0, 0.001, 0, 0]));
+const MAX_IMAGE_SIZE_TO_CACHE = 10e6;
+const LINE_FACTOR = 1.35;
+const LINE_DESCENT_FACTOR = 0.35;
+const BASELINE_FACTOR = LINE_DESCENT_FACTOR / LINE_FACTOR;
+const RenderingIntentFlag = {
+  ANY: 0x01,
+  DISPLAY: 0x02,
+  PRINT: 0x04,
+  SAVE: 0x08,
+  ANNOTATIONS_FORMS: 0x10,
+  ANNOTATIONS_STORAGE: 0x20,
+  ANNOTATIONS_DISABLE: 0x40,
+  OPLIST: 0x100
+};
+const AnnotationMode = {
+  DISABLE: 0,
+  ENABLE: 1,
+  ENABLE_FORMS: 2,
+  ENABLE_STORAGE: 3
+};
+const util_AnnotationEditorPrefix = "pdfjs_internal_editor_";
+const AnnotationEditorType = {
+  DISABLE: -1,
+  NONE: 0,
+  FREETEXT: 3,
+  HIGHLIGHT: 9,
+  STAMP: 13,
+  INK: 15
+};
+const AnnotationEditorParamsType = {
+  RESIZE: 1,
+  CREATE: 2,
+  FREETEXT_SIZE: 11,
+  FREETEXT_COLOR: 12,
+  FREETEXT_OPACITY: 13,
+  INK_COLOR: 21,
+  INK_THICKNESS: 22,
+  INK_OPACITY: 23,
+  HIGHLIGHT_COLOR: 31,
+  HIGHLIGHT_DEFAULT_COLOR: 32,
+  HIGHLIGHT_THICKNESS: 33,
+  HIGHLIGHT_FREE: 34,
+  HIGHLIGHT_SHOW_ALL: 35
+};
+const PermissionFlag = {
+  PRINT: 0x04,
+  MODIFY_CONTENTS: 0x08,
+  COPY: 0x10,
+  MODIFY_ANNOTATIONS: 0x20,
+  FILL_INTERACTIVE_FORMS: 0x100,
+  COPY_FOR_ACCESSIBILITY: 0x200,
+  ASSEMBLE: 0x400,
+  PRINT_HIGH_QUALITY: 0x800
+};
+const TextRenderingMode = {
+  FILL: 0,
+  STROKE: 1,
+  FILL_STROKE: 2,
+  INVISIBLE: 3,
+  FILL_ADD_TO_PATH: 4,
+  STROKE_ADD_TO_PATH: 5,
+  FILL_STROKE_ADD_TO_PATH: 6,
+  ADD_TO_PATH: 7,
+  FILL_STROKE_MASK: 3,
+  ADD_TO_PATH_FLAG: 4
+};
+const util_ImageKind = {
+  GRAYSCALE_1BPP: 1,
+  RGB_24BPP: 2,
+  RGBA_32BPP: 3
+};
+const AnnotationType = {
+  TEXT: 1,
+  LINK: 2,
+  FREETEXT: 3,
+  LINE: 4,
+  SQUARE: 5,
+  CIRCLE: 6,
+  POLYGON: 7,
+  POLYLINE: 8,
+  HIGHLIGHT: 9,
+  UNDERLINE: 10,
+  SQUIGGLY: 11,
+  STRIKEOUT: 12,
+  STAMP: 13,
+  CARET: 14,
+  INK: 15,
+  POPUP: 16,
+  FILEATTACHMENT: 17,
+  SOUND: 18,
+  MOVIE: 19,
+  WIDGET: 20,
+  SCREEN: 21,
+  PRINTERMARK: 22,
+  TRAPNET: 23,
+  WATERMARK: 24,
+  THREED: 25,
+  REDACT: 26
+};
+const AnnotationReplyType = {
+  GROUP: "Group",
+  REPLY: "R"
+};
+const AnnotationFlag = {
+  INVISIBLE: 0x01,
+  HIDDEN: 0x02,
+  PRINT: 0x04,
+  NOZOOM: 0x08,
+  NOROTATE: 0x10,
+  NOVIEW: 0x20,
+  READONLY: 0x40,
+  LOCKED: 0x80,
+  TOGGLENOVIEW: 0x100,
+  LOCKEDCONTENTS: 0x200
+};
+const AnnotationFieldFlag = {
+  READONLY: 0x0000001,
+  REQUIRED: 0x0000002,
+  NOEXPORT: 0x0000004,
+  MULTILINE: 0x0001000,
+  PASSWORD: 0x0002000,
+  NOTOGGLETOOFF: 0x0004000,
+  RADIO: 0x0008000,
+  PUSHBUTTON: 0x0010000,
+  COMBO: 0x0020000,
+  EDIT: 0x0040000,
+  SORT: 0x0080000,
+  FILESELECT: 0x0100000,
+  MULTISELECT: 0x0200000,
+  DONOTSPELLCHECK: 0x0400000,
+  DONOTSCROLL: 0x0800000,
+  COMB: 0x1000000,
+  RICHTEXT: 0x2000000,
+  RADIOSINUNISON: 0x2000000,
+  COMMITONSELCHANGE: 0x4000000
+};
+const AnnotationBorderStyleType = {
+  SOLID: 1,
+  DASHED: 2,
+  BEVELED: 3,
+  INSET: 4,
+  UNDERLINE: 5
+};
+const AnnotationActionEventType = {
+  E: "Mouse Enter",
+  X: "Mouse Exit",
+  D: "Mouse Down",
+  U: "Mouse Up",
+  Fo: "Focus",
+  Bl: "Blur",
+  PO: "PageOpen",
+  PC: "PageClose",
+  PV: "PageVisible",
+  PI: "PageInvisible",
+  K: "Keystroke",
+  F: "Format",
+  V: "Validate",
+  C: "Calculate"
+};
+const DocumentActionEventType = {
+  WC: "WillClose",
+  WS: "WillSave",
+  DS: "DidSave",
+  WP: "WillPrint",
+  DP: "DidPrint"
+};
+const PageActionEventType = {
+  O: "PageOpen",
+  C: "PageClose"
+};
+const VerbosityLevel = {
+  ERRORS: 0,
+  WARNINGS: 1,
+  INFOS: 5
+};
+const CMapCompressionType = {
+  NONE: 0,
+  BINARY: 1
+};
+const OPS = {
+  dependency: 1,
+  setLineWidth: 2,
+  setLineCap: 3,
+  setLineJoin: 4,
+  setMiterLimit: 5,
+  setDash: 6,
+  setRenderingIntent: 7,
+  setFlatness: 8,
+  setGState: 9,
+  save: 10,
+  restore: 11,
+  transform: 12,
+  moveTo: 13,
+  lineTo: 14,
+  curveTo: 15,
+  curveTo2: 16,
+  curveTo3: 17,
+  closePath: 18,
+  rectangle: 19,
+  stroke: 20,
+  closeStroke: 21,
+  fill: 22,
+  eoFill: 23,
+  fillStroke: 24,
+  eoFillStroke: 25,
+  closeFillStroke: 26,
+  closeEOFillStroke: 27,
+  endPath: 28,
+  clip: 29,
+  eoClip: 30,
+  beginText: 31,
+  endText: 32,
+  setCharSpacing: 33,
+  setWordSpacing: 34,
+  setHScale: 35,
+  setLeading: 36,
+  setFont: 37,
+  setTextRenderingMode: 38,
+  setTextRise: 39,
+  moveText: 40,
+  setLeadingMoveText: 41,
+  setTextMatrix: 42,
+  nextLine: 43,
+  showText: 44,
+  showSpacedText: 45,
+  nextLineShowText: 46,
+  nextLineSetSpacingShowText: 47,
+  setCharWidth: 48,
+  setCharWidthAndBounds: 49,
+  setStrokeColorSpace: 50,
+  setFillColorSpace: 51,
+  setStrokeColor: 52,
+  setStrokeColorN: 53,
+  setFillColor: 54,
+  setFillColorN: 55,
+  setStrokeGray: 56,
+  setFillGray: 57,
+  setStrokeRGBColor: 58,
+  setFillRGBColor: 59,
+  setStrokeCMYKColor: 60,
+  setFillCMYKColor: 61,
+  shadingFill: 62,
+  beginInlineImage: 63,
+  beginImageData: 64,
+  endInlineImage: 65,
+  paintXObject: 66,
+  markPoint: 67,
+  markPointProps: 68,
+  beginMarkedContent: 69,
+  beginMarkedContentProps: 70,
+  endMarkedContent: 71,
+  beginCompat: 72,
+  endCompat: 73,
+  paintFormXObjectBegin: 74,
+  paintFormXObjectEnd: 75,
+  beginGroup: 76,
+  endGroup: 77,
+  beginAnnotation: 80,
+  endAnnotation: 81,
+  paintImageMaskXObject: 83,
+  paintImageMaskXObjectGroup: 84,
+  paintImageXObject: 85,
+  paintInlineImageXObject: 86,
+  paintInlineImageXObjectGroup: 87,
+  paintImageXObjectRepeat: 88,
+  paintImageMaskXObjectRepeat: 89,
+  paintSolidColorImageMask: 90,
+  constructPath: 91
+};
+const PasswordResponses = {
+  NEED_PASSWORD: 1,
+  INCORRECT_PASSWORD: 2
+};
+let verbosity = VerbosityLevel.WARNINGS;
+function setVerbosityLevel(level) {
+  if (Number.isInteger(level)) {
+    verbosity = level;
+  }
+}
+function getVerbosityLevel() {
+  return verbosity;
+}
+function info(msg) {
+  if (verbosity >= VerbosityLevel.INFOS) {
+    console.log(`Info: ${msg}`);
+  }
+}
+function util_warn(msg) {
+  if (verbosity >= VerbosityLevel.WARNINGS) {
+    console.log(`Warning: ${msg}`);
+  }
+}
+function util_unreachable(msg) {
+  throw new Error(msg);
+}
+function util_assert(cond, msg) {
+  if (!cond) {
+    util_unreachable(msg);
+  }
+}
+function _isValidProtocol(url) {
+  switch (url?.protocol) {
+    case "http:":
+    case "https:":
+    case "ftp:":
+    case "mailto:":
+    case "tel:":
+      return true;
+    default:
+      return false;
+  }
+}
+function createValidAbsoluteUrl(url, baseUrl = null, options = null) {
+  if (!url) {
+    return null;
+  }
+  try {
+    if (options && typeof url === "string") {
+      if (options.addDefaultProtocol && url.startsWith("www.")) {
+        const dots = url.match(/\./g);
+        if (dots?.length >= 2) {
+          url = `http://${url}`;
+        }
+      }
+      if (options.tryConvertEncoding) {
+        try {
+          url = stringToUTF8String(url);
+        } catch {}
+      }
+    }
+    const absoluteUrl = baseUrl ? new URL(url, baseUrl) : new URL(url);
+    if (_isValidProtocol(absoluteUrl)) {
+      return absoluteUrl;
+    }
+  } catch {}
+  return null;
+}
+function util_shadow(obj, prop, value, nonSerializable = false) {
+  Object.defineProperty(obj, prop, {
+    value,
+    enumerable: !nonSerializable,
+    configurable: true,
+    writable: false
+  });
+  return value;
+}
+const BaseException = function BaseExceptionClosure() {
+  function BaseException(message, name) {
+    if (this.constructor === BaseException) {
+      util_unreachable("Cannot initialize BaseException.");
+    }
+    this.message = message;
+    this.name = name;
+  }
+  BaseException.prototype = new Error();
+  BaseException.constructor = BaseException;
+  return BaseException;
+}();
+class PasswordException extends BaseException {
+  constructor(msg, code) {
+    super(msg, "PasswordException");
+    this.code = code;
+  }
+}
+class UnknownErrorException extends BaseException {
+  constructor(msg, details) {
+    super(msg, "UnknownErrorException");
+    this.details = details;
+  }
+}
+class InvalidPDFException extends BaseException {
+  constructor(msg) {
+    super(msg, "InvalidPDFException");
+  }
+}
+class MissingPDFException extends BaseException {
+  constructor(msg) {
+    super(msg, "MissingPDFException");
+  }
+}
+class UnexpectedResponseException extends BaseException {
+  constructor(msg, status) {
+    super(msg, "UnexpectedResponseException");
+    this.status = status;
+  }
+}
+class FormatError extends BaseException {
+  constructor(msg) {
+    super(msg, "FormatError");
+  }
+}
+class AbortException extends BaseException {
+  constructor(msg) {
+    super(msg, "AbortException");
+  }
+}
+function util_bytesToString(bytes) {
+  if (typeof bytes !== "object" || bytes?.length === undefined) {
+    util_unreachable("Invalid argument for bytesToString");
+  }
+  const length = bytes.length;
+  const MAX_ARGUMENT_COUNT = 8192;
+  if (length < MAX_ARGUMENT_COUNT) {
+    return String.fromCharCode.apply(null, bytes);
+  }
+  const strBuf = [];
+  for (let i = 0; i < length; i += MAX_ARGUMENT_COUNT) {
+    const chunkEnd = Math.min(i + MAX_ARGUMENT_COUNT, length);
+    const chunk = bytes.subarray(i, chunkEnd);
+    strBuf.push(String.fromCharCode.apply(null, chunk));
+  }
+  return strBuf.join("");
+}
+function stringToBytes(str) {
+  if (typeof str !== "string") {
+    util_unreachable("Invalid argument for stringToBytes");
+  }
+  const length = str.length;
+  const bytes = new Uint8Array(length);
+  for (let i = 0; i < length; ++i) {
+    bytes[i] = str.charCodeAt(i) & 0xff;
+  }
+  return bytes;
+}
+function string32(value) {
+  return String.fromCharCode(value >> 24 & 0xff, value >> 16 & 0xff, value >> 8 & 0xff, value & 0xff);
+}
+function util_objectSize(obj) {
+  return Object.keys(obj).length;
+}
+function objectFromMap(map) {
+  const obj = Object.create(null);
+  for (const [key, value] of map) {
+    obj[key] = value;
+  }
+  return obj;
+}
+function isLittleEndian() {
+  const buffer8 = new Uint8Array(4);
+  buffer8[0] = 1;
+  const view32 = new Uint32Array(buffer8.buffer, 0, 1);
+  return view32[0] === 1;
+}
+function isEvalSupported() {
+  try {
+    new Function("");
+    return true;
+  } catch {
+    return false;
+  }
+}
+class util_FeatureTest {
+  static get isLittleEndian() {
+    return util_shadow(this, "isLittleEndian", isLittleEndian());
+  }
+  static get isEvalSupported() {
+    return util_shadow(this, "isEvalSupported", isEvalSupported());
+  }
+  static get isOffscreenCanvasSupported() {
+    return util_shadow(this, "isOffscreenCanvasSupported", typeof OffscreenCanvas !== "undefined");
+  }
+  static get platform() {
+    if (typeof navigator !== "undefined" && typeof navigator?.platform === "string") {
+      return util_shadow(this, "platform", {
+        isMac: navigator.platform.includes("Mac")
+      });
+    }
+    return util_shadow(this, "platform", {
+      isMac: false
+    });
+  }
+  static get isCSSRoundSupported() {
+    return util_shadow(this, "isCSSRoundSupported", globalThis.CSS?.supports?.("width: round(1.5px, 1px)"));
+  }
+}
+const hexNumbers = Array.from(Array(256).keys(), n => n.toString(16).padStart(2, "0"));
+class Util {
+  static makeHexColor(r, g, b) {
+    return `#${hexNumbers[r]}${hexNumbers[g]}${hexNumbers[b]}`;
+  }
+  static scaleMinMax(transform, minMax) {
+    let temp;
+    if (transform[0]) {
+      if (transform[0] < 0) {
+        temp = minMax[0];
+        minMax[0] = minMax[2];
+        minMax[2] = temp;
+      }
+      minMax[0] *= transform[0];
+      minMax[2] *= transform[0];
+      if (transform[3] < 0) {
+        temp = minMax[1];
+        minMax[1] = minMax[3];
+        minMax[3] = temp;
+      }
+      minMax[1] *= transform[3];
+      minMax[3] *= transform[3];
+    } else {
+      temp = minMax[0];
+      minMax[0] = minMax[1];
+      minMax[1] = temp;
+      temp = minMax[2];
+      minMax[2] = minMax[3];
+      minMax[3] = temp;
+      if (transform[1] < 0) {
+        temp = minMax[1];
+        minMax[1] = minMax[3];
+        minMax[3] = temp;
+      }
+      minMax[1] *= transform[1];
+      minMax[3] *= transform[1];
+      if (transform[2] < 0) {
+        temp = minMax[0];
+        minMax[0] = minMax[2];
+        minMax[2] = temp;
+      }
+      minMax[0] *= transform[2];
+      minMax[2] *= transform[2];
+    }
+    minMax[0] += transform[4];
+    minMax[1] += transform[5];
+    minMax[2] += transform[4];
+    minMax[3] += transform[5];
+  }
+  static transform(m1, m2) {
+    return [m1[0] * m2[0] + m1[2] * m2[1], m1[1] * m2[0] + m1[3] * m2[1], m1[0] * m2[2] + m1[2] * m2[3], m1[1] * m2[2] + m1[3] * m2[3], m1[0] * m2[4] + m1[2] * m2[5] + m1[4], m1[1] * m2[4] + m1[3] * m2[5] + m1[5]];
+  }
+  static applyTransform(p, m) {
+    const xt = p[0] * m[0] + p[1] * m[2] + m[4];
+    const yt = p[0] * m[1] + p[1] * m[3] + m[5];
+    return [xt, yt];
+  }
+  static applyInverseTransform(p, m) {
+    const d = m[0] * m[3] - m[1] * m[2];
+    const xt = (p[0] * m[3] - p[1] * m[2] + m[2] * m[5] - m[4] * m[3]) / d;
+    const yt = (-p[0] * m[1] + p[1] * m[0] + m[4] * m[1] - m[5] * m[0]) / d;
+    return [xt, yt];
+  }
+  static getAxialAlignedBoundingBox(r, m) {
+    const p1 = this.applyTransform(r, m);
+    const p2 = this.applyTransform(r.slice(2, 4), m);
+    const p3 = this.applyTransform([r[0], r[3]], m);
+    const p4 = this.applyTransform([r[2], r[1]], m);
+    return [Math.min(p1[0], p2[0], p3[0], p4[0]), Math.min(p1[1], p2[1], p3[1], p4[1]), Math.max(p1[0], p2[0], p3[0], p4[0]), Math.max(p1[1], p2[1], p3[1], p4[1])];
+  }
+  static inverseTransform(m) {
+    const d = m[0] * m[3] - m[1] * m[2];
+    return [m[3] / d, -m[1] / d, -m[2] / d, m[0] / d, (m[2] * m[5] - m[4] * m[3]) / d, (m[4] * m[1] - m[5] * m[0]) / d];
+  }
+  static singularValueDecompose2dScale(m) {
+    const transpose = [m[0], m[2], m[1], m[3]];
+    const a = m[0] * transpose[0] + m[1] * transpose[2];
+    const b = m[0] * transpose[1] + m[1] * transpose[3];
+    const c = m[2] * transpose[0] + m[3] * transpose[2];
+    const d = m[2] * transpose[1] + m[3] * transpose[3];
+    const first = (a + d) / 2;
+    const second = Math.sqrt((a + d) ** 2 - 4 * (a * d - c * b)) / 2;
+    const sx = first + second || 1;
+    const sy = first - second || 1;
+    return [Math.sqrt(sx), Math.sqrt(sy)];
+  }
+  static normalizeRect(rect) {
+    const r = rect.slice(0);
+    if (rect[0] > rect[2]) {
+      r[0] = rect[2];
+      r[2] = rect[0];
+    }
+    if (rect[1] > rect[3]) {
+      r[1] = rect[3];
+      r[3] = rect[1];
+    }
+    return r;
+  }
+  static intersect(rect1, rect2) {
+    const xLow = Math.max(Math.min(rect1[0], rect1[2]), Math.min(rect2[0], rect2[2]));
+    const xHigh = Math.min(Math.max(rect1[0], rect1[2]), Math.max(rect2[0], rect2[2]));
+    if (xLow > xHigh) {
+      return null;
+    }
+    const yLow = Math.max(Math.min(rect1[1], rect1[3]), Math.min(rect2[1], rect2[3]));
+    const yHigh = Math.min(Math.max(rect1[1], rect1[3]), Math.max(rect2[1], rect2[3]));
+    if (yLow > yHigh) {
+      return null;
+    }
+    return [xLow, yLow, xHigh, yHigh];
+  }
+  static #getExtremumOnCurve(x0, x1, x2, x3, y0, y1, y2, y3, t, minMax) {
+    if (t <= 0 || t >= 1) {
+      return;
+    }
+    const mt = 1 - t;
+    const tt = t * t;
+    const ttt = tt * t;
+    const x = mt * (mt * (mt * x0 + 3 * t * x1) + 3 * tt * x2) + ttt * x3;
+    const y = mt * (mt * (mt * y0 + 3 * t * y1) + 3 * tt * y2) + ttt * y3;
+    minMax[0] = Math.min(minMax[0], x);
+    minMax[1] = Math.min(minMax[1], y);
+    minMax[2] = Math.max(minMax[2], x);
+    minMax[3] = Math.max(minMax[3], y);
+  }
+  static #getExtremum(x0, x1, x2, x3, y0, y1, y2, y3, a, b, c, minMax) {
+    if (Math.abs(a) < 1e-12) {
+      if (Math.abs(b) >= 1e-12) {
+        this.#getExtremumOnCurve(x0, x1, x2, x3, y0, y1, y2, y3, -c / b, minMax);
+      }
+      return;
+    }
+    const delta = b ** 2 - 4 * c * a;
+    if (delta < 0) {
+      return;
+    }
+    const sqrtDelta = Math.sqrt(delta);
+    const a2 = 2 * a;
+    this.#getExtremumOnCurve(x0, x1, x2, x3, y0, y1, y2, y3, (-b + sqrtDelta) / a2, minMax);
+    this.#getExtremumOnCurve(x0, x1, x2, x3, y0, y1, y2, y3, (-b - sqrtDelta) / a2, minMax);
+  }
+  static bezierBoundingBox(x0, y0, x1, y1, x2, y2, x3, y3, minMax) {
+    if (minMax) {
+      minMax[0] = Math.min(minMax[0], x0, x3);
+      minMax[1] = Math.min(minMax[1], y0, y3);
+      minMax[2] = Math.max(minMax[2], x0, x3);
+      minMax[3] = Math.max(minMax[3], y0, y3);
+    } else {
+      minMax = [Math.min(x0, x3), Math.min(y0, y3), Math.max(x0, x3), Math.max(y0, y3)];
+    }
+    this.#getExtremum(x0, x1, x2, x3, y0, y1, y2, y3, 3 * (-x0 + 3 * (x1 - x2) + x3), 6 * (x0 - 2 * x1 + x2), 3 * (x1 - x0), minMax);
+    this.#getExtremum(x0, x1, x2, x3, y0, y1, y2, y3, 3 * (-y0 + 3 * (y1 - y2) + y3), 6 * (y0 - 2 * y1 + y2), 3 * (y1 - y0), minMax);
+    return minMax;
+  }
+}
+const PDFStringTranslateTable = (/* unused pure expression or super */ null && ([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x2d8, 0x2c7, 0x2c6, 0x2d9, 0x2dd, 0x2db, 0x2da, 0x2dc, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x2022, 0x2020, 0x2021, 0x2026, 0x2014, 0x2013, 0x192, 0x2044, 0x2039, 0x203a, 0x2212, 0x2030, 0x201e, 0x201c, 0x201d, 0x2018, 0x2019, 0x201a, 0x2122, 0xfb01, 0xfb02, 0x141, 0x152, 0x160, 0x178, 0x17d, 0x131, 0x142, 0x153, 0x161, 0x17e, 0, 0x20ac]));
+function util_stringToPDFString(str) {
+  if (str[0] >= "\xEF") {
+    let encoding;
+    if (str[0] === "\xFE" && str[1] === "\xFF") {
+      encoding = "utf-16be";
+      if (str.length % 2 === 1) {
+        str = str.slice(0, -1);
+      }
+    } else if (str[0] === "\xFF" && str[1] === "\xFE") {
+      encoding = "utf-16le";
+      if (str.length % 2 === 1) {
+        str = str.slice(0, -1);
+      }
+    } else if (str[0] === "\xEF" && str[1] === "\xBB" && str[2] === "\xBF") {
+      encoding = "utf-8";
+    }
+    if (encoding) {
+      try {
+        const decoder = new TextDecoder(encoding, {
+          fatal: true
+        });
+        const buffer = stringToBytes(str);
+        const decoded = decoder.decode(buffer);
+        if (!decoded.includes("\x1b")) {
+          return decoded;
+        }
+        return decoded.replaceAll(/\x1b[^\x1b]*(?:\x1b|$)/g, "");
+      } catch (ex) {
+        util_warn(`stringToPDFString: "${ex}".`);
+      }
+    }
+  }
+  const strBuf = [];
+  for (let i = 0, ii = str.length; i < ii; i++) {
+    const charCode = str.charCodeAt(i);
+    if (charCode === 0x1b) {
+      while (++i < ii && str.charCodeAt(i) !== 0x1b) {}
+      continue;
+    }
+    const code = PDFStringTranslateTable[charCode];
+    strBuf.push(code ? String.fromCharCode(code) : str.charAt(i));
+  }
+  return strBuf.join("");
+}
+function stringToUTF8String(str) {
+  return decodeURIComponent(escape(str));
+}
+function utf8StringToString(str) {
+  return unescape(encodeURIComponent(str));
+}
+function isArrayEqual(arr1, arr2) {
+  if (arr1.length !== arr2.length) {
+    return false;
+  }
+  for (let i = 0, ii = arr1.length; i < ii; i++) {
+    if (arr1[i] !== arr2[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+function getModificationDate(date = new Date()) {
+  const buffer = [date.getUTCFullYear().toString(), (date.getUTCMonth() + 1).toString().padStart(2, "0"), date.getUTCDate().toString().padStart(2, "0"), date.getUTCHours().toString().padStart(2, "0"), date.getUTCMinutes().toString().padStart(2, "0"), date.getUTCSeconds().toString().padStart(2, "0")];
+  return buffer.join("");
+}
+let NormalizeRegex = null;
+let NormalizationMap = null;
+function normalizeUnicode(str) {
+  if (!NormalizeRegex) {
+    NormalizeRegex = /([\u00a0\u00b5\u037e\u0eb3\u2000-\u200a\u202f\u2126\ufb00-\ufb04\ufb06\ufb20-\ufb36\ufb38-\ufb3c\ufb3e\ufb40-\ufb41\ufb43-\ufb44\ufb46-\ufba1\ufba4-\ufba9\ufbae-\ufbb1\ufbd3-\ufbdc\ufbde-\ufbe7\ufbea-\ufbf8\ufbfc-\ufbfd\ufc00-\ufc5d\ufc64-\ufcf1\ufcf5-\ufd3d\ufd88\ufdf4\ufdfa-\ufdfb\ufe71\ufe77\ufe79\ufe7b\ufe7d]+)|(\ufb05+)/gu;
+    NormalizationMap = new Map([["ﬅ", "ſt"]]);
+  }
+  return str.replaceAll(NormalizeRegex, (_, p1, p2) => p1 ? p1.normalize("NFKC") : NormalizationMap.get(p2));
+}
+function getUuid() {
+  if (typeof crypto !== "undefined" && typeof crypto?.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  const buf = new Uint8Array(32);
+  if (typeof crypto !== "undefined" && typeof crypto?.getRandomValues === "function") {
+    crypto.getRandomValues(buf);
+  } else {
+    for (let i = 0; i < 32; i++) {
+      buf[i] = Math.floor(Math.random() * 255);
+    }
+  }
+  return util_bytesToString(buf);
+}
+const AnnotationPrefix = "pdfjs_internal_id_";
+
+;// CONCATENATED MODULE: ./src/core/primitives.js
+
+const CIRCULAR_REF = Symbol("CIRCULAR_REF");
+const EOF = Symbol("EOF");
+let CmdCache = Object.create(null);
+let NameCache = Object.create(null);
+let RefCache = Object.create(null);
+function clearPrimitiveCaches() {
+  CmdCache = Object.create(null);
+  NameCache = Object.create(null);
+  RefCache = Object.create(null);
+}
+class Name {
+  constructor(name) {
+    this.name = name;
+  }
+  static get(name) {
+    return NameCache[name] ||= new Name(name);
+  }
+}
+class Cmd {
+  constructor(cmd) {
+    this.cmd = cmd;
+  }
+  static get(cmd) {
+    return CmdCache[cmd] ||= new Cmd(cmd);
+  }
+}
+const nonSerializable = function nonSerializableClosure() {
+  return nonSerializable;
+};
+class primitives_Dict {
+  constructor(xref = null) {
+    this._map = Object.create(null);
+    this.xref = xref;
+    this.objId = null;
+    this.suppressEncryption = false;
+    this.__nonSerializable__ = nonSerializable;
+  }
+  assignXref(newXref) {
+    this.xref = newXref;
+  }
+  get size() {
+    return Object.keys(this._map).length;
+  }
+  get(key1, key2, key3) {
+    let value = this._map[key1];
+    if (value === undefined && key2 !== undefined) {
+      value = this._map[key2];
+      if (value === undefined && key3 !== undefined) {
+        value = this._map[key3];
+      }
+    }
+    if (value instanceof primitives_Ref && this.xref) {
+      return this.xref.fetch(value, this.suppressEncryption);
+    }
+    return value;
+  }
+  async getAsync(key1, key2, key3) {
+    let value = this._map[key1];
+    if (value === undefined && key2 !== undefined) {
+      value = this._map[key2];
+      if (value === undefined && key3 !== undefined) {
+        value = this._map[key3];
+      }
+    }
+    if (value instanceof primitives_Ref && this.xref) {
+      return this.xref.fetchAsync(value, this.suppressEncryption);
+    }
+    return value;
+  }
+  getArray(key1, key2, key3) {
+    let value = this._map[key1];
+    if (value === undefined && key2 !== undefined) {
+      value = this._map[key2];
+      if (value === undefined && key3 !== undefined) {
+        value = this._map[key3];
+      }
+    }
+    if (value instanceof primitives_Ref && this.xref) {
+      value = this.xref.fetch(value, this.suppressEncryption);
+    }
+    if (Array.isArray(value)) {
+      value = value.slice();
+      for (let i = 0, ii = value.length; i < ii; i++) {
+        if (value[i] instanceof primitives_Ref && this.xref) {
+          value[i] = this.xref.fetch(value[i], this.suppressEncryption);
+        }
+      }
+    }
+    return value;
+  }
+  getRaw(key) {
+    return this._map[key];
+  }
+  getKeys() {
+    return Object.keys(this._map);
+  }
+  getRawValues() {
+    return Object.values(this._map);
+  }
+  set(key, value) {
+    this._map[key] = value;
+  }
+  has(key) {
+    return this._map[key] !== undefined;
+  }
+  forEach(callback) {
+    for (const key in this._map) {
+      callback(key, this.get(key));
+    }
+  }
+  static get empty() {
+    const emptyDict = new primitives_Dict(null);
+    emptyDict.set = (key, value) => {
+      unreachable("Should not call `set` on the empty dictionary.");
+    };
+    return shadow(this, "empty", emptyDict);
+  }
+  static merge({
+    xref,
+    dictArray,
+    mergeSubDicts = false
+  }) {
+    const mergedDict = new primitives_Dict(xref),
+      properties = new Map();
+    for (const dict of dictArray) {
+      if (!(dict instanceof primitives_Dict)) {
+        continue;
+      }
+      for (const [key, value] of Object.entries(dict._map)) {
+        let property = properties.get(key);
+        if (property === undefined) {
+          property = [];
+          properties.set(key, property);
+        } else if (!mergeSubDicts || !(value instanceof primitives_Dict)) {
+          continue;
+        }
+        property.push(value);
+      }
+    }
+    for (const [name, values] of properties) {
+      if (values.length === 1 || !(values[0] instanceof primitives_Dict)) {
+        mergedDict._map[name] = values[0];
+        continue;
+      }
+      const subDict = new primitives_Dict(xref);
+      for (const dict of values) {
+        for (const [key, value] of Object.entries(dict._map)) {
+          if (subDict._map[key] === undefined) {
+            subDict._map[key] = value;
+          }
+        }
+      }
+      if (subDict.size > 0) {
+        mergedDict._map[name] = subDict;
+      }
+    }
+    properties.clear();
+    return mergedDict.size > 0 ? mergedDict : primitives_Dict.empty;
+  }
+  clone() {
+    const dict = new primitives_Dict(this.xref);
+    for (const key of this.getKeys()) {
+      dict.set(key, this.getRaw(key));
+    }
+    return dict;
+  }
+}
+class primitives_Ref {
+  constructor(num, gen) {
+    this.num = num;
+    this.gen = gen;
+  }
+  toString() {
+    if (this.gen === 0) {
+      return `${this.num}R`;
+    }
+    return `${this.num}R${this.gen}`;
+  }
+  static fromString(str) {
+    const ref = RefCache[str];
+    if (ref) {
+      return ref;
+    }
+    const m = /^(\d+)R(\d*)$/.exec(str);
+    if (!m || m[1] === "0") {
+      return null;
+    }
+    return RefCache[str] = new primitives_Ref(parseInt(m[1]), !m[2] ? 0 : parseInt(m[2]));
+  }
+  static get(num, gen) {
+    const key = gen === 0 ? `${num}R` : `${num}R${gen}`;
+    return RefCache[key] ||= new primitives_Ref(num, gen);
+  }
+}
+class primitives_RefSet {
+  constructor(parent = null) {
+    this._set = new Set(parent?._set);
+  }
+  has(ref) {
+    return this._set.has(ref.toString());
+  }
+  put(ref) {
+    this._set.add(ref.toString());
+  }
+  remove(ref) {
+    this._set.delete(ref.toString());
+  }
+  [Symbol.iterator]() {
+    return this._set.values();
+  }
+  clear() {
+    this._set.clear();
+  }
+}
+class RefSetCache {
+  constructor() {
+    this._map = new Map();
+  }
+  get size() {
+    return this._map.size;
+  }
+  get(ref) {
+    return this._map.get(ref.toString());
+  }
+  has(ref) {
+    return this._map.has(ref.toString());
+  }
+  put(ref, obj) {
+    this._map.set(ref.toString(), obj);
+  }
+  putAlias(ref, aliasRef) {
+    this._map.set(ref.toString(), this.get(aliasRef));
+  }
+  [Symbol.iterator]() {
+    return this._map.values();
+  }
+  clear() {
+    this._map.clear();
+  }
+}
+function primitives_isName(v, name) {
+  return v instanceof Name && (name === undefined || v.name === name);
+}
+function isCmd(v, cmd) {
+  return v instanceof Cmd && (cmd === undefined || v.cmd === cmd);
+}
+function isDict(v, type) {
+  return v instanceof primitives_Dict && (type === undefined || primitives_isName(v.get("Type"), type));
+}
+function isRefsEqual(v1, v2) {
+  return v1.num === v2.num && v1.gen === v2.gen;
+}
+
+;// CONCATENATED MODULE: ./src/core/base_stream.js
+
+class base_stream_BaseStream {
+  constructor() {
+    if (this.constructor === base_stream_BaseStream) {
+      unreachable("Cannot initialize BaseStream.");
+    }
+  }
+  get length() {
+    unreachable("Abstract getter `length` accessed");
+  }
+  get isEmpty() {
+    unreachable("Abstract getter `isEmpty` accessed");
+  }
+  get isDataLoaded() {
+    return shadow(this, "isDataLoaded", true);
+  }
+  getByte() {
+    unreachable("Abstract method `getByte` called");
+  }
+  getBytes(length) {
+    unreachable("Abstract method `getBytes` called");
+  }
+  peekByte() {
+    const peekedByte = this.getByte();
+    if (peekedByte !== -1) {
+      this.pos--;
+    }
+    return peekedByte;
+  }
+  peekBytes(length) {
+    const bytes = this.getBytes(length);
+    this.pos -= bytes.length;
+    return bytes;
+  }
+  getUint16() {
+    const b0 = this.getByte();
+    const b1 = this.getByte();
+    if (b0 === -1 || b1 === -1) {
+      return -1;
+    }
+    return (b0 << 8) + b1;
+  }
+  getInt32() {
+    const b0 = this.getByte();
+    const b1 = this.getByte();
+    const b2 = this.getByte();
+    const b3 = this.getByte();
+    return (b0 << 24) + (b1 << 16) + (b2 << 8) + b3;
+  }
+  getByteRange(begin, end) {
+    unreachable("Abstract method `getByteRange` called");
+  }
+  getString(length) {
+    return bytesToString(this.getBytes(length));
+  }
+  skip(n) {
+    this.pos += n || 1;
+  }
+  reset() {
+    unreachable("Abstract method `reset` called");
+  }
+  moveStart() {
+    unreachable("Abstract method `moveStart` called");
+  }
+  makeSubStream(start, length, dict = null) {
+    unreachable("Abstract method `makeSubStream` called");
+  }
+  getBaseStreams() {
+    return null;
+  }
+}
+
+;// CONCATENATED MODULE: ./src/core/core_utils.js
+
+
+
+const PDF_VERSION_REGEXP = /^[1-9]\.\d$/;
+function getLookupTableFactory(initializer) {
+  let lookup;
+  return function () {
+    if (initializer) {
+      lookup = Object.create(null);
+      initializer(lookup);
+      initializer = null;
+    }
+    return lookup;
+  };
+}
+class MissingDataException extends BaseException {
+  constructor(begin, end) {
+    super(`Missing data [${begin}, ${end})`, "MissingDataException");
+    this.begin = begin;
+    this.end = end;
+  }
+}
+class ParserEOFException extends BaseException {
+  constructor(msg) {
+    super(msg, "ParserEOFException");
+  }
+}
+class XRefEntryException extends BaseException {
+  constructor(msg) {
+    super(msg, "XRefEntryException");
+  }
+}
+class XRefParseException extends BaseException {
+  constructor(msg) {
+    super(msg, "XRefParseException");
+  }
+}
+function arrayBuffersToBytes(arr) {
+  const length = arr.length;
+  if (length === 0) {
+    return new Uint8Array(0);
+  }
+  if (length === 1) {
+    return new Uint8Array(arr[0]);
+  }
+  let dataLength = 0;
+  for (let i = 0; i < length; i++) {
+    dataLength += arr[i].byteLength;
+  }
+  const data = new Uint8Array(dataLength);
+  let pos = 0;
+  for (let i = 0; i < length; i++) {
+    const item = new Uint8Array(arr[i]);
+    data.set(item, pos);
+    pos += item.byteLength;
+  }
+  return data;
+}
+function getInheritableProperty({
+  dict,
+  key,
+  getArray = false,
+  stopWhenFound = true
+}) {
+  let values;
+  const visited = new RefSet();
+  while (dict instanceof Dict && !(dict.objId && visited.has(dict.objId))) {
+    if (dict.objId) {
+      visited.put(dict.objId);
+    }
+    const value = getArray ? dict.getArray(key) : dict.get(key);
+    if (value !== undefined) {
+      if (stopWhenFound) {
+        return value;
+      }
+      (values ||= []).push(value);
+    }
+    dict = dict.get("Parent");
+  }
+  return values;
+}
+const ROMAN_NUMBER_MAP = (/* unused pure expression or super */ null && (["", "C", "CC", "CCC", "CD", "D", "DC", "DCC", "DCCC", "CM", "", "X", "XX", "XXX", "XL", "L", "LX", "LXX", "LXXX", "XC", "", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX"]));
+function toRomanNumerals(number, lowerCase = false) {
+  assert(Number.isInteger(number) && number > 0, "The number should be a positive integer.");
+  const romanBuf = [];
+  let pos;
+  while (number >= 1000) {
+    number -= 1000;
+    romanBuf.push("M");
+  }
+  pos = number / 100 | 0;
+  number %= 100;
+  romanBuf.push(ROMAN_NUMBER_MAP[pos]);
+  pos = number / 10 | 0;
+  number %= 10;
+  romanBuf.push(ROMAN_NUMBER_MAP[10 + pos]);
+  romanBuf.push(ROMAN_NUMBER_MAP[20 + number]);
+  const romanStr = romanBuf.join("");
+  return lowerCase ? romanStr.toLowerCase() : romanStr;
+}
+function log2(x) {
+  if (x <= 0) {
+    return 0;
+  }
+  return Math.ceil(Math.log2(x));
+}
+function readInt8(data, offset) {
+  return data[offset] << 24 >> 24;
+}
+function readUint16(data, offset) {
+  return data[offset] << 8 | data[offset + 1];
+}
+function readUint32(data, offset) {
+  return (data[offset] << 24 | data[offset + 1] << 16 | data[offset + 2] << 8 | data[offset + 3]) >>> 0;
+}
+function isWhiteSpace(ch) {
+  return ch === 0x20 || ch === 0x09 || ch === 0x0d || ch === 0x0a;
+}
+function parseXFAPath(path) {
+  const positionPattern = /(.+)\[(\d+)\]$/;
+  return path.split(".").map(component => {
+    const m = component.match(positionPattern);
+    if (m) {
+      return {
+        name: m[1],
+        pos: parseInt(m[2], 10)
+      };
+    }
+    return {
+      name: component,
+      pos: 0
+    };
+  });
+}
+function escapePDFName(str) {
+  const buffer = [];
+  let start = 0;
+  for (let i = 0, ii = str.length; i < ii; i++) {
+    const char = str.charCodeAt(i);
+    if (char < 0x21 || char > 0x7e || char === 0x23 || char === 0x28 || char === 0x29 || char === 0x3c || char === 0x3e || char === 0x5b || char === 0x5d || char === 0x7b || char === 0x7d || char === 0x2f || char === 0x25) {
+      if (start < i) {
+        buffer.push(str.substring(start, i));
+      }
+      buffer.push(`#${char.toString(16)}`);
+      start = i + 1;
+    }
+  }
+  if (buffer.length === 0) {
+    return str;
+  }
+  if (start < str.length) {
+    buffer.push(str.substring(start, str.length));
+  }
+  return buffer.join("");
+}
+function escapeString(str) {
+  return str.replaceAll(/([()\\\n\r])/g, match => {
+    if (match === "\n") {
+      return "\\n";
+    } else if (match === "\r") {
+      return "\\r";
+    }
+    return `\\${match}`;
+  });
+}
+function _collectJS(entry, xref, list, parents) {
+  if (!entry) {
+    return;
+  }
+  let parent = null;
+  if (entry instanceof Ref) {
+    if (parents.has(entry)) {
+      return;
+    }
+    parent = entry;
+    parents.put(parent);
+    entry = xref.fetch(entry);
+  }
+  if (Array.isArray(entry)) {
+    for (const element of entry) {
+      _collectJS(element, xref, list, parents);
+    }
+  } else if (entry instanceof Dict) {
+    if (isName(entry.get("S"), "JavaScript")) {
+      const js = entry.get("JS");
+      let code;
+      if (js instanceof BaseStream) {
+        code = js.getString();
+      } else if (typeof js === "string") {
+        code = js;
+      }
+      code &&= stringToPDFString(code).replaceAll("\x00", "");
+      if (code) {
+        list.push(code);
+      }
+    }
+    _collectJS(entry.getRaw("Next"), xref, list, parents);
+  }
+  if (parent) {
+    parents.remove(parent);
+  }
+}
+function collectActions(xref, dict, eventType) {
+  const actions = Object.create(null);
+  const additionalActionsDicts = getInheritableProperty({
+    dict,
+    key: "AA",
+    stopWhenFound: false
+  });
+  if (additionalActionsDicts) {
+    for (let i = additionalActionsDicts.length - 1; i >= 0; i--) {
+      const additionalActions = additionalActionsDicts[i];
+      if (!(additionalActions instanceof Dict)) {
+        continue;
+      }
+      for (const key of additionalActions.getKeys()) {
+        const action = eventType[key];
+        if (!action) {
+          continue;
+        }
+        const actionDict = additionalActions.getRaw(key);
+        const parents = new RefSet();
+        const list = [];
+        _collectJS(actionDict, xref, list, parents);
+        if (list.length > 0) {
+          actions[action] = list;
+        }
+      }
+    }
+  }
+  if (dict.has("A")) {
+    const actionDict = dict.get("A");
+    const parents = new RefSet();
+    const list = [];
+    _collectJS(actionDict, xref, list, parents);
+    if (list.length > 0) {
+      actions.Action = list;
+    }
+  }
+  return objectSize(actions) > 0 ? actions : null;
+}
+const XMLEntities = {
+  0x3c: "&lt;",
+  0x3e: "&gt;",
+  0x26: "&amp;",
+  0x22: "&quot;",
+  0x27: "&apos;"
+};
+function* codePointIter(str) {
+  for (let i = 0, ii = str.length; i < ii; i++) {
+    const char = str.codePointAt(i);
+    if (char > 0xd7ff && (char < 0xe000 || char > 0xfffd)) {
+      i++;
+    }
+    yield char;
+  }
+}
+function encodeToXmlString(str) {
+  const buffer = [];
+  let start = 0;
+  for (let i = 0, ii = str.length; i < ii; i++) {
+    const char = str.codePointAt(i);
+    if (0x20 <= char && char <= 0x7e) {
+      const entity = XMLEntities[char];
+      if (entity) {
+        if (start < i) {
+          buffer.push(str.substring(start, i));
+        }
+        buffer.push(entity);
+        start = i + 1;
+      }
+    } else {
+      if (start < i) {
+        buffer.push(str.substring(start, i));
+      }
+      buffer.push(`&#x${char.toString(16).toUpperCase()};`);
+      if (char > 0xd7ff && (char < 0xe000 || char > 0xfffd)) {
+        i++;
+      }
+      start = i + 1;
+    }
+  }
+  if (buffer.length === 0) {
+    return str;
+  }
+  if (start < str.length) {
+    buffer.push(str.substring(start, str.length));
+  }
+  return buffer.join("");
+}
+function validateFontName(fontFamily, mustWarn = false) {
+  const m = /^("|').*("|')$/.exec(fontFamily);
+  if (m && m[1] === m[2]) {
+    const re = new RegExp(`[^\\\\]${m[1]}`);
+    if (re.test(fontFamily.slice(1, -1))) {
+      if (mustWarn) {
+        warn(`FontFamily contains unescaped ${m[1]}: ${fontFamily}.`);
+      }
+      return false;
+    }
+  } else {
+    for (const ident of fontFamily.split(/[ \t]+/)) {
+      if (/^(\d|(-(\d|-)))/.test(ident) || !/^[\w-\\]+$/.test(ident)) {
+        if (mustWarn) {
+          warn(`FontFamily contains invalid <custom-ident>: ${fontFamily}.`);
+        }
+        return false;
+      }
+    }
+  }
+  return true;
+}
+function validateCSSFont(cssFontInfo) {
+  const DEFAULT_CSS_FONT_OBLIQUE = "14";
+  const DEFAULT_CSS_FONT_WEIGHT = "400";
+  const CSS_FONT_WEIGHT_VALUES = new Set(["100", "200", "300", "400", "500", "600", "700", "800", "900", "1000", "normal", "bold", "bolder", "lighter"]);
+  const {
+    fontFamily,
+    fontWeight,
+    italicAngle
+  } = cssFontInfo;
+  if (!validateFontName(fontFamily, true)) {
+    return false;
+  }
+  const weight = fontWeight ? fontWeight.toString() : "";
+  cssFontInfo.fontWeight = CSS_FONT_WEIGHT_VALUES.has(weight) ? weight : DEFAULT_CSS_FONT_WEIGHT;
+  const angle = parseFloat(italicAngle);
+  cssFontInfo.italicAngle = isNaN(angle) || angle < -90 || angle > 90 ? DEFAULT_CSS_FONT_OBLIQUE : italicAngle.toString();
+  return true;
+}
+function recoverJsURL(str) {
+  const URL_OPEN_METHODS = ["app.launchURL", "window.open", "xfa.host.gotoURL"];
+  const regex = new RegExp("^\\s*(" + URL_OPEN_METHODS.join("|").replaceAll(".", "\\.") + ")\\((?:'|\")([^'\"]*)(?:'|\")(?:,\\s*(\\w+)\\)|\\))", "i");
+  const jsUrl = regex.exec(str);
+  if (jsUrl?.[2]) {
+    const url = jsUrl[2];
+    let newWindow = false;
+    if (jsUrl[3] === "true" && jsUrl[1] === "app.launchURL") {
+      newWindow = true;
+    }
+    return {
+      url,
+      newWindow
+    };
+  }
+  return null;
+}
+function numberToString(value) {
+  if (Number.isInteger(value)) {
+    return value.toString();
+  }
+  const roundedValue = Math.round(value * 100);
+  if (roundedValue % 100 === 0) {
+    return (roundedValue / 100).toString();
+  }
+  if (roundedValue % 10 === 0) {
+    return value.toFixed(1);
+  }
+  return value.toFixed(2);
+}
+function getNewAnnotationsMap(annotationStorage) {
+  if (!annotationStorage) {
+    return null;
+  }
+  const newAnnotationsByPage = new Map();
+  for (const [key, value] of annotationStorage) {
+    if (!key.startsWith(AnnotationEditorPrefix)) {
+      continue;
+    }
+    let annotations = newAnnotationsByPage.get(value.pageIndex);
+    if (!annotations) {
+      annotations = [];
+      newAnnotationsByPage.set(value.pageIndex, annotations);
+    }
+    annotations.push(value);
+  }
+  return newAnnotationsByPage.size > 0 ? newAnnotationsByPage : null;
+}
+function isAscii(str) {
+  return /^[\x00-\x7F]*$/.test(str);
+}
+function stringToUTF16HexString(str) {
+  const buf = [];
+  for (let i = 0, ii = str.length; i < ii; i++) {
+    const char = str.charCodeAt(i);
+    buf.push((char >> 8 & 0xff).toString(16).padStart(2, "0"), (char & 0xff).toString(16).padStart(2, "0"));
+  }
+  return buf.join("");
+}
+function stringToUTF16String(str, bigEndian = false) {
+  const buf = [];
+  if (bigEndian) {
+    buf.push("\xFE\xFF");
+  }
+  for (let i = 0, ii = str.length; i < ii; i++) {
+    const char = str.charCodeAt(i);
+    buf.push(String.fromCharCode(char >> 8 & 0xff), String.fromCharCode(char & 0xff));
+  }
+  return buf.join("");
+}
+function getRotationMatrix(rotation, width, height) {
+  switch (rotation) {
+    case 90:
+      return [0, 1, -1, 0, width, 0];
+    case 180:
+      return [-1, 0, 0, -1, width, height];
+    case 270:
+      return [0, -1, 1, 0, 0, height];
+    default:
+      throw new Error("Invalid rotation");
+  }
+}
+function getSizeInBytes(x) {
+  return Math.ceil(Math.ceil(Math.log2(1 + x)) / 8);
+}
+
+;// CONCATENATED MODULE: ./src/core/arithmetic_decoder.js
+const QeTable = [{
+  qe: 0x5601,
+  nmps: 1,
+  nlps: 1,
+  switchFlag: 1
+}, {
+  qe: 0x3401,
+  nmps: 2,
+  nlps: 6,
+  switchFlag: 0
+}, {
+  qe: 0x1801,
+  nmps: 3,
+  nlps: 9,
+  switchFlag: 0
+}, {
+  qe: 0x0ac1,
+  nmps: 4,
+  nlps: 12,
+  switchFlag: 0
+}, {
+  qe: 0x0521,
+  nmps: 5,
+  nlps: 29,
+  switchFlag: 0
+}, {
+  qe: 0x0221,
+  nmps: 38,
+  nlps: 33,
+  switchFlag: 0
+}, {
+  qe: 0x5601,
+  nmps: 7,
+  nlps: 6,
+  switchFlag: 1
+}, {
+  qe: 0x5401,
+  nmps: 8,
+  nlps: 14,
+  switchFlag: 0
+}, {
+  qe: 0x4801,
+  nmps: 9,
+  nlps: 14,
+  switchFlag: 0
+}, {
+  qe: 0x3801,
+  nmps: 10,
+  nlps: 14,
+  switchFlag: 0
+}, {
+  qe: 0x3001,
+  nmps: 11,
+  nlps: 17,
+  switchFlag: 0
+}, {
+  qe: 0x2401,
+  nmps: 12,
+  nlps: 18,
+  switchFlag: 0
+}, {
+  qe: 0x1c01,
+  nmps: 13,
+  nlps: 20,
+  switchFlag: 0
+}, {
+  qe: 0x1601,
+  nmps: 29,
+  nlps: 21,
+  switchFlag: 0
+}, {
+  qe: 0x5601,
+  nmps: 15,
+  nlps: 14,
+  switchFlag: 1
+}, {
+  qe: 0x5401,
+  nmps: 16,
+  nlps: 14,
+  switchFlag: 0
+}, {
+  qe: 0x5101,
+  nmps: 17,
+  nlps: 15,
+  switchFlag: 0
+}, {
+  qe: 0x4801,
+  nmps: 18,
+  nlps: 16,
+  switchFlag: 0
+}, {
+  qe: 0x3801,
+  nmps: 19,
+  nlps: 17,
+  switchFlag: 0
+}, {
+  qe: 0x3401,
+  nmps: 20,
+  nlps: 18,
+  switchFlag: 0
+}, {
+  qe: 0x3001,
+  nmps: 21,
+  nlps: 19,
+  switchFlag: 0
+}, {
+  qe: 0x2801,
+  nmps: 22,
+  nlps: 19,
+  switchFlag: 0
+}, {
+  qe: 0x2401,
+  nmps: 23,
+  nlps: 20,
+  switchFlag: 0
+}, {
+  qe: 0x2201,
+  nmps: 24,
+  nlps: 21,
+  switchFlag: 0
+}, {
+  qe: 0x1c01,
+  nmps: 25,
+  nlps: 22,
+  switchFlag: 0
+}, {
+  qe: 0x1801,
+  nmps: 26,
+  nlps: 23,
+  switchFlag: 0
+}, {
+  qe: 0x1601,
+  nmps: 27,
+  nlps: 24,
+  switchFlag: 0
+}, {
+  qe: 0x1401,
+  nmps: 28,
+  nlps: 25,
+  switchFlag: 0
+}, {
+  qe: 0x1201,
+  nmps: 29,
+  nlps: 26,
+  switchFlag: 0
+}, {
+  qe: 0x1101,
+  nmps: 30,
+  nlps: 27,
+  switchFlag: 0
+}, {
+  qe: 0x0ac1,
+  nmps: 31,
+  nlps: 28,
+  switchFlag: 0
+}, {
+  qe: 0x09c1,
+  nmps: 32,
+  nlps: 29,
+  switchFlag: 0
+}, {
+  qe: 0x08a1,
+  nmps: 33,
+  nlps: 30,
+  switchFlag: 0
+}, {
+  qe: 0x0521,
+  nmps: 34,
+  nlps: 31,
+  switchFlag: 0
+}, {
+  qe: 0x0441,
+  nmps: 35,
+  nlps: 32,
+  switchFlag: 0
+}, {
+  qe: 0x02a1,
+  nmps: 36,
+  nlps: 33,
+  switchFlag: 0
+}, {
+  qe: 0x0221,
+  nmps: 37,
+  nlps: 34,
+  switchFlag: 0
+}, {
+  qe: 0x0141,
+  nmps: 38,
+  nlps: 35,
+  switchFlag: 0
+}, {
+  qe: 0x0111,
+  nmps: 39,
+  nlps: 36,
+  switchFlag: 0
+}, {
+  qe: 0x0085,
+  nmps: 40,
+  nlps: 37,
+  switchFlag: 0
+}, {
+  qe: 0x0049,
+  nmps: 41,
+  nlps: 38,
+  switchFlag: 0
+}, {
+  qe: 0x0025,
+  nmps: 42,
+  nlps: 39,
+  switchFlag: 0
+}, {
+  qe: 0x0015,
+  nmps: 43,
+  nlps: 40,
+  switchFlag: 0
+}, {
+  qe: 0x0009,
+  nmps: 44,
+  nlps: 41,
+  switchFlag: 0
+}, {
+  qe: 0x0005,
+  nmps: 45,
+  nlps: 42,
+  switchFlag: 0
+}, {
+  qe: 0x0001,
+  nmps: 45,
+  nlps: 43,
+  switchFlag: 0
+}, {
+  qe: 0x5601,
+  nmps: 46,
+  nlps: 46,
+  switchFlag: 0
+}];
+class ArithmeticDecoder {
+  constructor(data, start, end) {
+    this.data = data;
+    if (data) this.drive(this.initializeSteps(start, end));
+  }
+  drive(steps) {
+    let next = steps.next();
+    while (!next.done) next = steps.next(this.data[next.value]);
+    return next.value;
+  }
+  *initializeSteps(start, end) {
+    this.bp = start;
+    this.dataEnd = end;
+    this.chigh = yield start;
+    this.clow = 0;
+    yield* this.byteInSteps();
+    this.chigh = this.chigh << 7 & 0xffff | this.clow >> 9 & 0x7f;
+    this.clow = this.clow << 7 & 0xffff;
+    this.ct -= 7;
+    this.a = 0x8000;
+  }
+  *byteInSteps() {
+    let bp = this.bp;
+    if ((yield bp) === 0xff) {
+      if ((yield bp + 1) > 0x8f) {
+        this.clow += 0xff00;
+        this.ct = 8;
+      } else {
+        bp++;
+        this.clow += (yield bp) << 9;
+        this.ct = 7;
+        this.bp = bp;
+      }
+    } else {
+      bp++;
+      this.clow += bp < this.dataEnd ? (yield bp) << 8 : 0xff00;
+      this.ct = 8;
+      this.bp = bp;
+    }
+    if (this.clow > 0xffff) {
+      this.chigh += this.clow >> 16;
+      this.clow &= 0xffff;
+    }
+  }
+  readBit(contexts, pos) {
+    return this.drive(this.readBitSteps(contexts, pos));
+  }
+  *readBitSteps(contexts, pos) {
+    let cx_index = contexts[pos] >> 1,
+      cx_mps = contexts[pos] & 1;
+    const qeTableIcx = QeTable[cx_index];
+    const qeIcx = qeTableIcx.qe;
+    let d;
+    let a = this.a - qeIcx;
+    if (this.chigh < qeIcx) {
+      if (a < qeIcx) {
+        a = qeIcx;
+        d = cx_mps;
+        cx_index = qeTableIcx.nmps;
+      } else {
+        a = qeIcx;
+        d = 1 ^ cx_mps;
+        if (qeTableIcx.switchFlag === 1) {
+          cx_mps = d;
+        }
+        cx_index = qeTableIcx.nlps;
+      }
+    } else {
+      this.chigh -= qeIcx;
+      if ((a & 0x8000) !== 0) {
+        this.a = a;
+        return cx_mps;
+      }
+      if (a < qeIcx) {
+        d = 1 ^ cx_mps;
+        if (qeTableIcx.switchFlag === 1) {
+          cx_mps = d;
+        }
+        cx_index = qeTableIcx.nlps;
+      } else {
+        d = cx_mps;
+        cx_index = qeTableIcx.nmps;
+      }
+    }
+    do {
+      if (this.ct === 0) {
+        yield* this.byteInSteps();
+      }
+      a <<= 1;
+      this.chigh = this.chigh << 1 & 0xffff | this.clow >> 15 & 1;
+      this.clow = this.clow << 1 & 0xffff;
+      this.ct--;
+    } while ((a & 0x8000) === 0);
+    this.a = a;
+    contexts[pos] = cx_index << 1 | cx_mps;
+    return d;
+  }
+}
+
+;// CONCATENATED MODULE: ./src/core/ccitt.js
+
+const ccittEOL = -2;
+const ccittEOF = -1;
+const twoDimPass = 0;
+const twoDimHoriz = 1;
+const twoDimVert0 = 2;
+const twoDimVertR1 = 3;
+const twoDimVertL1 = 4;
+const twoDimVertR2 = 5;
+const twoDimVertL2 = 6;
+const twoDimVertR3 = 7;
+const twoDimVertL3 = 8;
+const twoDimTable = [[-1, -1], [-1, -1], [7, twoDimVertL3], [7, twoDimVertR3], [6, twoDimVertL2], [6, twoDimVertL2], [6, twoDimVertR2], [6, twoDimVertR2], [4, twoDimPass], [4, twoDimPass], [4, twoDimPass], [4, twoDimPass], [4, twoDimPass], [4, twoDimPass], [4, twoDimPass], [4, twoDimPass], [3, twoDimHoriz], [3, twoDimHoriz], [3, twoDimHoriz], [3, twoDimHoriz], [3, twoDimHoriz], [3, twoDimHoriz], [3, twoDimHoriz], [3, twoDimHoriz], [3, twoDimHoriz], [3, twoDimHoriz], [3, twoDimHoriz], [3, twoDimHoriz], [3, twoDimHoriz], [3, twoDimHoriz], [3, twoDimHoriz], [3, twoDimHoriz], [3, twoDimVertL1], [3, twoDimVertL1], [3, twoDimVertL1], [3, twoDimVertL1], [3, twoDimVertL1], [3, twoDimVertL1], [3, twoDimVertL1], [3, twoDimVertL1], [3, twoDimVertL1], [3, twoDimVertL1], [3, twoDimVertL1], [3, twoDimVertL1], [3, twoDimVertL1], [3, twoDimVertL1], [3, twoDimVertL1], [3, twoDimVertL1], [3, twoDimVertR1], [3, twoDimVertR1], [3, twoDimVertR1], [3, twoDimVertR1], [3, twoDimVertR1], [3, twoDimVertR1], [3, twoDimVertR1], [3, twoDimVertR1], [3, twoDimVertR1], [3, twoDimVertR1], [3, twoDimVertR1], [3, twoDimVertR1], [3, twoDimVertR1], [3, twoDimVertR1], [3, twoDimVertR1], [3, twoDimVertR1], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0], [1, twoDimVert0]];
+const whiteTable1 = [[-1, -1], [12, ccittEOL], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [11, 1792], [11, 1792], [12, 1984], [12, 2048], [12, 2112], [12, 2176], [12, 2240], [12, 2304], [11, 1856], [11, 1856], [11, 1920], [11, 1920], [12, 2368], [12, 2432], [12, 2496], [12, 2560]];
+const whiteTable2 = [[-1, -1], [-1, -1], [-1, -1], [-1, -1], [8, 29], [8, 29], [8, 30], [8, 30], [8, 45], [8, 45], [8, 46], [8, 46], [7, 22], [7, 22], [7, 22], [7, 22], [7, 23], [7, 23], [7, 23], [7, 23], [8, 47], [8, 47], [8, 48], [8, 48], [6, 13], [6, 13], [6, 13], [6, 13], [6, 13], [6, 13], [6, 13], [6, 13], [7, 20], [7, 20], [7, 20], [7, 20], [8, 33], [8, 33], [8, 34], [8, 34], [8, 35], [8, 35], [8, 36], [8, 36], [8, 37], [8, 37], [8, 38], [8, 38], [7, 19], [7, 19], [7, 19], [7, 19], [8, 31], [8, 31], [8, 32], [8, 32], [6, 1], [6, 1], [6, 1], [6, 1], [6, 1], [6, 1], [6, 1], [6, 1], [6, 12], [6, 12], [6, 12], [6, 12], [6, 12], [6, 12], [6, 12], [6, 12], [8, 53], [8, 53], [8, 54], [8, 54], [7, 26], [7, 26], [7, 26], [7, 26], [8, 39], [8, 39], [8, 40], [8, 40], [8, 41], [8, 41], [8, 42], [8, 42], [8, 43], [8, 43], [8, 44], [8, 44], [7, 21], [7, 21], [7, 21], [7, 21], [7, 28], [7, 28], [7, 28], [7, 28], [8, 61], [8, 61], [8, 62], [8, 62], [8, 63], [8, 63], [8, 0], [8, 0], [8, 320], [8, 320], [8, 384], [8, 384], [5, 10], [5, 10], [5, 10], [5, 10], [5, 10], [5, 10], [5, 10], [5, 10], [5, 10], [5, 10], [5, 10], [5, 10], [5, 10], [5, 10], [5, 10], [5, 10], [5, 11], [5, 11], [5, 11], [5, 11], [5, 11], [5, 11], [5, 11], [5, 11], [5, 11], [5, 11], [5, 11], [5, 11], [5, 11], [5, 11], [5, 11], [5, 11], [7, 27], [7, 27], [7, 27], [7, 27], [8, 59], [8, 59], [8, 60], [8, 60], [9, 1472], [9, 1536], [9, 1600], [9, 1728], [7, 18], [7, 18], [7, 18], [7, 18], [7, 24], [7, 24], [7, 24], [7, 24], [8, 49], [8, 49], [8, 50], [8, 50], [8, 51], [8, 51], [8, 52], [8, 52], [7, 25], [7, 25], [7, 25], [7, 25], [8, 55], [8, 55], [8, 56], [8, 56], [8, 57], [8, 57], [8, 58], [8, 58], [6, 192], [6, 192], [6, 192], [6, 192], [6, 192], [6, 192], [6, 192], [6, 192], [6, 1664], [6, 1664], [6, 1664], [6, 1664], [6, 1664], [6, 1664], [6, 1664], [6, 1664], [8, 448], [8, 448], [8, 512], [8, 512], [9, 704], [9, 768], [8, 640], [8, 640], [8, 576], [8, 576], [9, 832], [9, 896], [9, 960], [9, 1024], [9, 1088], [9, 1152], [9, 1216], [9, 1280], [9, 1344], [9, 1408], [7, 256], [7, 256], [7, 256], [7, 256], [4, 2], [4, 2], [4, 2], [4, 2], [4, 2], [4, 2], [4, 2], [4, 2], [4, 2], [4, 2], [4, 2], [4, 2], [4, 2], [4, 2], [4, 2], [4, 2], [4, 2], [4, 2], [4, 2], [4, 2], [4, 2], [4, 2], [4, 2], [4, 2], [4, 2], [4, 2], [4, 2], [4, 2], [4, 2], [4, 2], [4, 2], [4, 2], [4, 3], [4, 3], [4, 3], [4, 3], [4, 3], [4, 3], [4, 3], [4, 3], [4, 3], [4, 3], [4, 3], [4, 3], [4, 3], [4, 3], [4, 3], [4, 3], [4, 3], [4, 3], [4, 3], [4, 3], [4, 3], [4, 3], [4, 3], [4, 3], [4, 3], [4, 3], [4, 3], [4, 3], [4, 3], [4, 3], [4, 3], [4, 3], [5, 128], [5, 128], [5, 128], [5, 128], [5, 128], [5, 128], [5, 128], [5, 128], [5, 128], [5, 128], [5, 128], [5, 128], [5, 128], [5, 128], [5, 128], [5, 128], [5, 8], [5, 8], [5, 8], [5, 8], [5, 8], [5, 8], [5, 8], [5, 8], [5, 8], [5, 8], [5, 8], [5, 8], [5, 8], [5, 8], [5, 8], [5, 8], [5, 9], [5, 9], [5, 9], [5, 9], [5, 9], [5, 9], [5, 9], [5, 9], [5, 9], [5, 9], [5, 9], [5, 9], [5, 9], [5, 9], [5, 9], [5, 9], [6, 16], [6, 16], [6, 16], [6, 16], [6, 16], [6, 16], [6, 16], [6, 16], [6, 17], [6, 17], [6, 17], [6, 17], [6, 17], [6, 17], [6, 17], [6, 17], [4, 4], [4, 4], [4, 4], [4, 4], [4, 4], [4, 4], [4, 4], [4, 4], [4, 4], [4, 4], [4, 4], [4, 4], [4, 4], [4, 4], [4, 4], [4, 4], [4, 4], [4, 4], [4, 4], [4, 4], [4, 4], [4, 4], [4, 4], [4, 4], [4, 4], [4, 4], [4, 4], [4, 4], [4, 4], [4, 4], [4, 4], [4, 4], [4, 5], [4, 5], [4, 5], [4, 5], [4, 5], [4, 5], [4, 5], [4, 5], [4, 5], [4, 5], [4, 5], [4, 5], [4, 5], [4, 5], [4, 5], [4, 5], [4, 5], [4, 5], [4, 5], [4, 5], [4, 5], [4, 5], [4, 5], [4, 5], [4, 5], [4, 5], [4, 5], [4, 5], [4, 5], [4, 5], [4, 5], [4, 5], [6, 14], [6, 14], [6, 14], [6, 14], [6, 14], [6, 14], [6, 14], [6, 14], [6, 15], [6, 15], [6, 15], [6, 15], [6, 15], [6, 15], [6, 15], [6, 15], [5, 64], [5, 64], [5, 64], [5, 64], [5, 64], [5, 64], [5, 64], [5, 64], [5, 64], [5, 64], [5, 64], [5, 64], [5, 64], [5, 64], [5, 64], [5, 64], [4, 6], [4, 6], [4, 6], [4, 6], [4, 6], [4, 6], [4, 6], [4, 6], [4, 6], [4, 6], [4, 6], [4, 6], [4, 6], [4, 6], [4, 6], [4, 6], [4, 6], [4, 6], [4, 6], [4, 6], [4, 6], [4, 6], [4, 6], [4, 6], [4, 6], [4, 6], [4, 6], [4, 6], [4, 6], [4, 6], [4, 6], [4, 6], [4, 7], [4, 7], [4, 7], [4, 7], [4, 7], [4, 7], [4, 7], [4, 7], [4, 7], [4, 7], [4, 7], [4, 7], [4, 7], [4, 7], [4, 7], [4, 7], [4, 7], [4, 7], [4, 7], [4, 7], [4, 7], [4, 7], [4, 7], [4, 7], [4, 7], [4, 7], [4, 7], [4, 7], [4, 7], [4, 7], [4, 7], [4, 7]];
+const blackTable1 = [[-1, -1], [-1, -1], [12, ccittEOL], [12, ccittEOL], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [11, 1792], [11, 1792], [11, 1792], [11, 1792], [12, 1984], [12, 1984], [12, 2048], [12, 2048], [12, 2112], [12, 2112], [12, 2176], [12, 2176], [12, 2240], [12, 2240], [12, 2304], [12, 2304], [11, 1856], [11, 1856], [11, 1856], [11, 1856], [11, 1920], [11, 1920], [11, 1920], [11, 1920], [12, 2368], [12, 2368], [12, 2432], [12, 2432], [12, 2496], [12, 2496], [12, 2560], [12, 2560], [10, 18], [10, 18], [10, 18], [10, 18], [10, 18], [10, 18], [10, 18], [10, 18], [12, 52], [12, 52], [13, 640], [13, 704], [13, 768], [13, 832], [12, 55], [12, 55], [12, 56], [12, 56], [13, 1280], [13, 1344], [13, 1408], [13, 1472], [12, 59], [12, 59], [12, 60], [12, 60], [13, 1536], [13, 1600], [11, 24], [11, 24], [11, 24], [11, 24], [11, 25], [11, 25], [11, 25], [11, 25], [13, 1664], [13, 1728], [12, 320], [12, 320], [12, 384], [12, 384], [12, 448], [12, 448], [13, 512], [13, 576], [12, 53], [12, 53], [12, 54], [12, 54], [13, 896], [13, 960], [13, 1024], [13, 1088], [13, 1152], [13, 1216], [10, 64], [10, 64], [10, 64], [10, 64], [10, 64], [10, 64], [10, 64], [10, 64]];
+const blackTable2 = [[8, 13], [8, 13], [8, 13], [8, 13], [8, 13], [8, 13], [8, 13], [8, 13], [8, 13], [8, 13], [8, 13], [8, 13], [8, 13], [8, 13], [8, 13], [8, 13], [11, 23], [11, 23], [12, 50], [12, 51], [12, 44], [12, 45], [12, 46], [12, 47], [12, 57], [12, 58], [12, 61], [12, 256], [10, 16], [10, 16], [10, 16], [10, 16], [10, 17], [10, 17], [10, 17], [10, 17], [12, 48], [12, 49], [12, 62], [12, 63], [12, 30], [12, 31], [12, 32], [12, 33], [12, 40], [12, 41], [11, 22], [11, 22], [8, 14], [8, 14], [8, 14], [8, 14], [8, 14], [8, 14], [8, 14], [8, 14], [8, 14], [8, 14], [8, 14], [8, 14], [8, 14], [8, 14], [8, 14], [8, 14], [7, 10], [7, 10], [7, 10], [7, 10], [7, 10], [7, 10], [7, 10], [7, 10], [7, 10], [7, 10], [7, 10], [7, 10], [7, 10], [7, 10], [7, 10], [7, 10], [7, 10], [7, 10], [7, 10], [7, 10], [7, 10], [7, 10], [7, 10], [7, 10], [7, 10], [7, 10], [7, 10], [7, 10], [7, 10], [7, 10], [7, 10], [7, 10], [7, 11], [7, 11], [7, 11], [7, 11], [7, 11], [7, 11], [7, 11], [7, 11], [7, 11], [7, 11], [7, 11], [7, 11], [7, 11], [7, 11], [7, 11], [7, 11], [7, 11], [7, 11], [7, 11], [7, 11], [7, 11], [7, 11], [7, 11], [7, 11], [7, 11], [7, 11], [7, 11], [7, 11], [7, 11], [7, 11], [7, 11], [7, 11], [9, 15], [9, 15], [9, 15], [9, 15], [9, 15], [9, 15], [9, 15], [9, 15], [12, 128], [12, 192], [12, 26], [12, 27], [12, 28], [12, 29], [11, 19], [11, 19], [11, 20], [11, 20], [12, 34], [12, 35], [12, 36], [12, 37], [12, 38], [12, 39], [11, 21], [11, 21], [12, 42], [12, 43], [10, 0], [10, 0], [10, 0], [10, 0], [7, 12], [7, 12], [7, 12], [7, 12], [7, 12], [7, 12], [7, 12], [7, 12], [7, 12], [7, 12], [7, 12], [7, 12], [7, 12], [7, 12], [7, 12], [7, 12], [7, 12], [7, 12], [7, 12], [7, 12], [7, 12], [7, 12], [7, 12], [7, 12], [7, 12], [7, 12], [7, 12], [7, 12], [7, 12], [7, 12], [7, 12], [7, 12]];
+const blackTable3 = [[-1, -1], [-1, -1], [-1, -1], [-1, -1], [6, 9], [6, 8], [5, 7], [5, 7], [4, 6], [4, 6], [4, 6], [4, 6], [4, 5], [4, 5], [4, 5], [4, 5], [3, 1], [3, 1], [3, 1], [3, 1], [3, 1], [3, 1], [3, 1], [3, 1], [3, 4], [3, 4], [3, 4], [3, 4], [3, 4], [3, 4], [3, 4], [3, 4], [2, 3], [2, 3], [2, 3], [2, 3], [2, 3], [2, 3], [2, 3], [2, 3], [2, 3], [2, 3], [2, 3], [2, 3], [2, 3], [2, 3], [2, 3], [2, 3], [2, 2], [2, 2], [2, 2], [2, 2], [2, 2], [2, 2], [2, 2], [2, 2], [2, 2], [2, 2], [2, 2], [2, 2], [2, 2], [2, 2], [2, 2], [2, 2]];
+class CCITTFaxDecoder {
+  constructor(source, options = {}) {
+    if (!source || typeof source.next !== "function") {
+      throw new Error('CCITTFaxDecoder - invalid "source" parameter.');
+    }
+    this.source = source;
+    this.eof = false;
+    this.encoding = options.K || 0;
+    this.eoline = options.EndOfLine || false;
+    this.byteAlign = options.EncodedByteAlign || false;
+    this.columns = options.Columns || 1728;
+    this.rows = options.Rows || 0;
+    this.eoblock = options.EndOfBlock ?? true;
+    this.black = options.BlackIs1 || false;
+    this.codingLine = new Uint32Array(this.columns + 1);
+    this.refLine = new Uint32Array(this.columns + 2);
+    this.codingLine[0] = this.columns;
+    this.codingPos = 0;
+    this.row = 0;
+    this.nextLine2D = this.encoding < 0;
+    this.inputBits = 0;
+    this.inputBuf = 0;
+    this.outputBits = 0;
+    this.rowsDone = false;
+  }
+  *initialize() {
+    let code1;
+    while ((code1 = (yield* this._lookBits(12))) === 0) {
+      this._eatBits(1);
+    }
+    if (code1 === 1) {
+      this._eatBits(12);
+    }
+    if (this.encoding > 0) {
+      this.nextLine2D = !(yield* this._lookBits(1));
+      this._eatBits(1);
+    }
+  }
+  *readNextChar() {
+    if (this.eof) {
+      return -1;
+    }
+    const refLine = this.refLine;
+    const codingLine = this.codingLine;
+    const columns = this.columns;
+    let refPos, blackPixels, bits, i;
+    if (this.outputBits === 0) {
+      if (this.rowsDone) {
+        this.eof = true;
+      }
+      if (this.eof) {
+        return -1;
+      }
+      this.err = false;
+      let code1, code2, code3;
+      if (this.nextLine2D) {
+        for (i = 0; codingLine[i] < columns; ++i) {
+          refLine[i] = codingLine[i];
+        }
+        refLine[i++] = columns;
+        refLine[i] = columns;
+        codingLine[0] = 0;
+        this.codingPos = 0;
+        refPos = 0;
+        blackPixels = 0;
+        while (codingLine[this.codingPos] < columns) {
+          code1 = (yield* this._getTwoDimCode());
+          switch (code1) {
+            case twoDimPass:
+              this._addPixels(refLine[refPos + 1], blackPixels);
+              if (refLine[refPos + 1] < columns) {
+                refPos += 2;
+              }
+              break;
+            case twoDimHoriz:
+              code1 = code2 = 0;
+              if (blackPixels) {
+                do {
+                  code1 += code3 = (yield* this._getBlackCode());
+                } while (code3 >= 64);
+                do {
+                  code2 += code3 = (yield* this._getWhiteCode());
+                } while (code3 >= 64);
+              } else {
+                do {
+                  code1 += code3 = (yield* this._getWhiteCode());
+                } while (code3 >= 64);
+                do {
+                  code2 += code3 = (yield* this._getBlackCode());
+                } while (code3 >= 64);
+              }
+              this._addPixels(codingLine[this.codingPos] + code1, blackPixels);
+              if (codingLine[this.codingPos] < columns) {
+                this._addPixels(codingLine[this.codingPos] + code2, blackPixels ^ 1);
+              }
+              while (refLine[refPos] <= codingLine[this.codingPos] && refLine[refPos] < columns) {
+                refPos += 2;
+              }
+              break;
+            case twoDimVertR3:
+              this._addPixels(refLine[refPos] + 3, blackPixels);
+              blackPixels ^= 1;
+              if (codingLine[this.codingPos] < columns) {
+                ++refPos;
+                while (refLine[refPos] <= codingLine[this.codingPos] && refLine[refPos] < columns) {
+                  refPos += 2;
+                }
+              }
+              break;
+            case twoDimVertR2:
+              this._addPixels(refLine[refPos] + 2, blackPixels);
+              blackPixels ^= 1;
+              if (codingLine[this.codingPos] < columns) {
+                ++refPos;
+                while (refLine[refPos] <= codingLine[this.codingPos] && refLine[refPos] < columns) {
+                  refPos += 2;
+                }
+              }
+              break;
+            case twoDimVertR1:
+              this._addPixels(refLine[refPos] + 1, blackPixels);
+              blackPixels ^= 1;
+              if (codingLine[this.codingPos] < columns) {
+                ++refPos;
+                while (refLine[refPos] <= codingLine[this.codingPos] && refLine[refPos] < columns) {
+                  refPos += 2;
+                }
+              }
+              break;
+            case twoDimVert0:
+              this._addPixels(refLine[refPos], blackPixels);
+              blackPixels ^= 1;
+              if (codingLine[this.codingPos] < columns) {
+                ++refPos;
+                while (refLine[refPos] <= codingLine[this.codingPos] && refLine[refPos] < columns) {
+                  refPos += 2;
+                }
+              }
+              break;
+            case twoDimVertL3:
+              this._addPixelsNeg(refLine[refPos] - 3, blackPixels);
+              blackPixels ^= 1;
+              if (codingLine[this.codingPos] < columns) {
+                if (refPos > 0) {
+                  --refPos;
+                } else {
+                  ++refPos;
+                }
+                while (refLine[refPos] <= codingLine[this.codingPos] && refLine[refPos] < columns) {
+                  refPos += 2;
+                }
+              }
+              break;
+            case twoDimVertL2:
+              this._addPixelsNeg(refLine[refPos] - 2, blackPixels);
+              blackPixels ^= 1;
+              if (codingLine[this.codingPos] < columns) {
+                if (refPos > 0) {
+                  --refPos;
+                } else {
+                  ++refPos;
+                }
+                while (refLine[refPos] <= codingLine[this.codingPos] && refLine[refPos] < columns) {
+                  refPos += 2;
+                }
+              }
+              break;
+            case twoDimVertL1:
+              this._addPixelsNeg(refLine[refPos] - 1, blackPixels);
+              blackPixels ^= 1;
+              if (codingLine[this.codingPos] < columns) {
+                if (refPos > 0) {
+                  --refPos;
+                } else {
+                  ++refPos;
+                }
+                while (refLine[refPos] <= codingLine[this.codingPos] && refLine[refPos] < columns) {
+                  refPos += 2;
+                }
+              }
+              break;
+            case ccittEOF:
+              this._addPixels(columns, 0);
+              this.eof = true;
+              break;
+            default:
+              info("bad 2d code");
+              this._addPixels(columns, 0);
+              this.err = true;
+          }
+        }
+      } else {
+        codingLine[0] = 0;
+        this.codingPos = 0;
+        blackPixels = 0;
+        while (codingLine[this.codingPos] < columns) {
+          code1 = 0;
+          if (blackPixels) {
+            do {
+              code1 += code3 = (yield* this._getBlackCode());
+            } while (code3 >= 64);
+          } else {
+            do {
+              code1 += code3 = (yield* this._getWhiteCode());
+            } while (code3 >= 64);
+          }
+          this._addPixels(codingLine[this.codingPos] + code1, blackPixels);
+          blackPixels ^= 1;
+        }
+      }
+      let gotEOL = false;
+      if (this.byteAlign) {
+        this.inputBits &= ~7;
+      }
+      if (!this.eoblock && this.row === this.rows - 1) {
+        this.rowsDone = true;
+      } else {
+        code1 = (yield* this._lookBits(12));
+        if (this.eoline) {
+          while (code1 !== ccittEOF && code1 !== 1) {
+            this._eatBits(1);
+            code1 = (yield* this._lookBits(12));
+          }
+        } else {
+          while (code1 === 0) {
+            this._eatBits(1);
+            code1 = (yield* this._lookBits(12));
+          }
+        }
+        if (code1 === 1) {
+          this._eatBits(12);
+          gotEOL = true;
+        } else if (code1 === ccittEOF) {
+          this.eof = true;
+        }
+      }
+      if (!this.eof && this.encoding > 0 && !this.rowsDone) {
+        this.nextLine2D = !(yield* this._lookBits(1));
+        this._eatBits(1);
+      }
+      if (this.eoblock && gotEOL && this.byteAlign) {
+        code1 = (yield* this._lookBits(12));
+        if (code1 === 1) {
+          this._eatBits(12);
+          if (this.encoding > 0) {
+            (yield* this._lookBits(1));
+            this._eatBits(1);
+          }
+          if (this.encoding >= 0) {
+            for (i = 0; i < 4; ++i) {
+              code1 = (yield* this._lookBits(12));
+              if (code1 !== 1) {
+                info("bad rtc code: " + code1);
+              }
+              this._eatBits(12);
+              if (this.encoding > 0) {
+                (yield* this._lookBits(1));
+                this._eatBits(1);
+              }
+            }
+          }
+          this.eof = true;
+        }
+      } else if (this.err && this.eoline) {
+        while (true) {
+          code1 = (yield* this._lookBits(13));
+          if (code1 === ccittEOF) {
+            this.eof = true;
+            return -1;
+          }
+          if (code1 >> 1 === 1) {
+            break;
+          }
+          this._eatBits(1);
+        }
+        this._eatBits(12);
+        if (this.encoding > 0) {
+          this._eatBits(1);
+          this.nextLine2D = !(code1 & 1);
+        }
+      }
+      this.outputBits = codingLine[0] > 0 ? codingLine[this.codingPos = 0] : codingLine[this.codingPos = 1];
+      this.row++;
+    }
+    let c;
+    if (this.outputBits >= 8) {
+      c = this.codingPos & 1 ? 0 : 0xff;
+      this.outputBits -= 8;
+      if (this.outputBits === 0 && codingLine[this.codingPos] < columns) {
+        this.codingPos++;
+        this.outputBits = codingLine[this.codingPos] - codingLine[this.codingPos - 1];
+      }
+    } else {
+      bits = 8;
+      c = 0;
+      do {
+        if (typeof this.outputBits !== "number") {
+          throw new FormatError('Invalid /CCITTFaxDecode data, "outputBits" must be a number.');
+        }
+        if (this.outputBits > bits) {
+          c <<= bits;
+          if (!(this.codingPos & 1)) {
+            c |= 0xff >> 8 - bits;
+          }
+          this.outputBits -= bits;
+          bits = 0;
+        } else {
+          c <<= this.outputBits;
+          if (!(this.codingPos & 1)) {
+            c |= 0xff >> 8 - this.outputBits;
+          }
+          bits -= this.outputBits;
+          this.outputBits = 0;
+          if (codingLine[this.codingPos] < columns) {
+            this.codingPos++;
+            this.outputBits = codingLine[this.codingPos] - codingLine[this.codingPos - 1];
+          } else if (bits > 0) {
+            c <<= bits;
+            bits = 0;
+          }
+        }
+      } while (bits);
+    }
+    if (this.black) {
+      c ^= 0xff;
+    }
+    return c;
+  }
+  _addPixels(a1, blackPixels) {
+    const codingLine = this.codingLine;
+    let codingPos = this.codingPos;
+    if (a1 > codingLine[codingPos]) {
+      if (a1 > this.columns) {
+        info("row is wrong length");
+        this.err = true;
+        a1 = this.columns;
+      }
+      if (codingPos & 1 ^ blackPixels) {
+        ++codingPos;
+      }
+      codingLine[codingPos] = a1;
+    }
+    this.codingPos = codingPos;
+  }
+  _addPixelsNeg(a1, blackPixels) {
+    const codingLine = this.codingLine;
+    let codingPos = this.codingPos;
+    if (a1 > codingLine[codingPos]) {
+      if (a1 > this.columns) {
+        info("row is wrong length");
+        this.err = true;
+        a1 = this.columns;
+      }
+      if (codingPos & 1 ^ blackPixels) {
+        ++codingPos;
+      }
+      codingLine[codingPos] = a1;
+    } else if (a1 < codingLine[codingPos]) {
+      if (a1 < 0) {
+        info("invalid code");
+        this.err = true;
+        a1 = 0;
+      }
+      while (codingPos > 0 && a1 < codingLine[codingPos - 1]) {
+        --codingPos;
+      }
+      codingLine[codingPos] = a1;
+    }
+    this.codingPos = codingPos;
+  }
+  *_findTableCode(start, end, table, limit) {
+    const limitValue = limit || 0;
+    for (let i = start; i <= end; ++i) {
+      let code = (yield* this._lookBits(i));
+      if (code === ccittEOF) {
+        return [true, 1, false];
+      }
+      if (i < end) {
+        code <<= end - i;
+      }
+      if (!limitValue || code >= limitValue) {
+        const p = table[code - limitValue];
+        if (p[0] === i) {
+          this._eatBits(i);
+          return [true, p[1], true];
+        }
+      }
+    }
+    return [false, 0, false];
+  }
+  *_getTwoDimCode() {
+    let code = 0;
+    let p;
+    if (this.eoblock) {
+      code = (yield* this._lookBits(7));
+      p = twoDimTable[code];
+      if (p?.[0] > 0) {
+        this._eatBits(p[0]);
+        return p[1];
+      }
+    } else {
+      const result = (yield* this._findTableCode(1, 7, twoDimTable));
+      if (result[0] && result[2]) {
+        return result[1];
+      }
+    }
+    info("Bad two dim code");
+    return ccittEOF;
+  }
+  *_getWhiteCode() {
+    let code = 0;
+    let p;
+    if (this.eoblock) {
+      code = (yield* this._lookBits(12));
+      if (code === ccittEOF) {
+        return 1;
+      }
+      p = code >> 5 === 0 ? whiteTable1[code] : whiteTable2[code >> 3];
+      if (p[0] > 0) {
+        this._eatBits(p[0]);
+        return p[1];
+      }
+    } else {
+      let result = (yield* this._findTableCode(1, 9, whiteTable2));
+      if (result[0]) {
+        return result[1];
+      }
+      result = (yield* this._findTableCode(11, 12, whiteTable1));
+      if (result[0]) {
+        return result[1];
+      }
+    }
+    info("bad white code");
+    this._eatBits(1);
+    return 1;
+  }
+  *_getBlackCode() {
+    let code, p;
+    if (this.eoblock) {
+      code = (yield* this._lookBits(13));
+      if (code === ccittEOF) {
+        return 1;
+      }
+      if (code >> 7 === 0) {
+        p = blackTable1[code];
+      } else if (code >> 9 === 0 && code >> 7 !== 0) {
+        p = blackTable2[(code >> 1) - 64];
+      } else {
+        p = blackTable3[code >> 7];
+      }
+      if (p[0] > 0) {
+        this._eatBits(p[0]);
+        return p[1];
+      }
+    } else {
+      let result = (yield* this._findTableCode(2, 6, blackTable3));
+      if (result[0]) {
+        return result[1];
+      }
+      result = (yield* this._findTableCode(7, 12, blackTable2, 64));
+      if (result[0]) {
+        return result[1];
+      }
+      result = (yield* this._findTableCode(10, 13, blackTable1));
+      if (result[0]) {
+        return result[1];
+      }
+    }
+    info("bad black code");
+    this._eatBits(1);
+    return 1;
+  }
+  *_lookBits(n) {
+    let c;
+    while (this.inputBits < n) {
+      if ((c = (yield* this.source.next())) === -1) {
+        if (this.inputBits === 0) {
+          return ccittEOF;
+        }
+        return this.inputBuf << n - this.inputBits & 0xffff >> 16 - n;
+      }
+      this.inputBuf = this.inputBuf << 8 | c;
+      this.inputBits += 8;
+    }
+    return this.inputBuf >> this.inputBits - n & 0xffff >> 16 - n;
+  }
+  _eatBits(n) {
+    if ((this.inputBits -= n) < 0) {
+      this.inputBits = 0;
+    }
+  }
+}
+
+;// CONCATENATED MODULE: ./src/core/jbig2.js
+
+
+
+
+class Jbig2Error extends BaseException {
+  constructor(msg) {
+    super(`JBIG2 error: ${msg}`, "Jbig2Error");
+  }
+}
+class ContextCache {
+  constructor(onAllocation) { this.onAllocation = onAllocation; }
+  getContexts(id) {
+    if (id in this) {
+      return this[id];
+    }
+    this.onAllocation?.((1 << 16) + 256);
+    return this[id] = new Int8Array(1 << 16);
+  }
+}
+class DecodingContext {
+  constructor(data, start, end, onImageDimensions, onAllocation, storedBitmap) {
+    this.storedBitmap = storedBitmap;
+    this.onAllocation = onAllocation;
+    onAllocation?.(1024);
+    this.onImageDimensions = onImageDimensions;
+    this.data = data;
+    this.start = start;
+    this.end = end;
+  }
+  admitBitmap(bytes) {
+    if (!this.storedBitmap) { this.onAllocation?.(bytes); return; }
+    const peak = this.bitmapBytes ?? 0;
+    if (bytes > peak) { this.onAllocation?.(bytes - peak); this.bitmapBytes = bytes; }
+  }
+  *getDecoder() {
+    if (this.cachedDecoder) return this.cachedDecoder;
+    const decoder = new ArithmeticDecoder();
+    decoder.jbigSource = this.data;
+    yield* jbigArithmetic(decoder, decoder.initializeSteps(this.start, this.end));
+    return this.cachedDecoder = decoder;
+  }
+  get contextCache() {
+    const cache = new ContextCache(this.onAllocation);
+    return util_shadow(this, "contextCache", cache);
+  }
+}
+const MAX_INT_32 = 2 ** 31 - 1;
+const MIN_INT_32 = -(2 ** 31);
+function* decodeInteger(contextCache, procedure, decoder) {
+  const contexts = contextCache.getContexts(procedure);
+  let prev = 1;
+  function* readBits(length) {
+    let v = 0;
+    for (let i = 0; i < length; i++) {
+      const bit = (yield* jbigArithmetic(decoder, decoder.readBitSteps(contexts, prev)));
+      prev = prev < 256 ? prev << 1 | bit : (prev << 1 | bit) & 511 | 256;
+      v = v << 1 | bit;
+    }
+    return v >>> 0;
+  }
+  const sign = (yield* readBits(1));
+  const value = (yield* readBits(1)) ? (yield* readBits(1)) ? (yield* readBits(1)) ? (yield* readBits(1)) ? (yield* readBits(1)) ? (yield* readBits(32)) + 4436 : (yield* readBits(12)) + 340 : (yield* readBits(8)) + 84 : (yield* readBits(6)) + 20 : (yield* readBits(4)) + 4 : (yield* readBits(2));
+  let signedValue;
+  if (sign === 0) {
+    signedValue = value;
+  } else if (value > 0) {
+    signedValue = -value;
+  }
+  if (signedValue >= MIN_INT_32 && signedValue <= MAX_INT_32) {
+    return signedValue;
+  }
+  return null;
+}
+function* decodeIAID(contextCache, decoder, codeLength) {
+  const contexts = contextCache.getContexts("IAID");
+  let prev = 1;
+  for (let i = 0; i < codeLength; i++) {
+    const bit = (yield* jbigArithmetic(decoder, decoder.readBitSteps(contexts, prev)));
+    prev = prev << 1 | bit;
+  }
+  if (codeLength < 31) {
+    return prev & (1 << codeLength) - 1;
+  }
+  return prev & 0x7fffffff;
+}
+const SegmentTypes = ["SymbolDictionary", null, null, null, "IntermediateTextRegion", null, "ImmediateTextRegion", "ImmediateLosslessTextRegion", null, null, null, null, null, null, null, null, "PatternDictionary", null, null, null, "IntermediateHalftoneRegion", null, "ImmediateHalftoneRegion", "ImmediateLosslessHalftoneRegion", null, null, null, null, null, null, null, null, null, null, null, null, "IntermediateGenericRegion", null, "ImmediateGenericRegion", "ImmediateLosslessGenericRegion", "IntermediateGenericRefinementRegion", null, "ImmediateGenericRefinementRegion", "ImmediateLosslessGenericRefinementRegion", null, null, null, null, "PageInformation", "EndOfPage", "EndOfStripe", "EndOfFile", "Profiles", "Tables", null, null, null, null, null, null, null, null, "Extension"];
+const CodingTemplates = [[{
+  x: -1,
+  y: -2
+}, {
+  x: 0,
+  y: -2
+}, {
+  x: 1,
+  y: -2
+}, {
+  x: -2,
+  y: -1
+}, {
+  x: -1,
+  y: -1
+}, {
+  x: 0,
+  y: -1
+}, {
+  x: 1,
+  y: -1
+}, {
+  x: 2,
+  y: -1
+}, {
+  x: -4,
+  y: 0
+}, {
+  x: -3,
+  y: 0
+}, {
+  x: -2,
+  y: 0
+}, {
+  x: -1,
+  y: 0
+}], [{
+  x: -1,
+  y: -2
+}, {
+  x: 0,
+  y: -2
+}, {
+  x: 1,
+  y: -2
+}, {
+  x: 2,
+  y: -2
+}, {
+  x: -2,
+  y: -1
+}, {
+  x: -1,
+  y: -1
+}, {
+  x: 0,
+  y: -1
+}, {
+  x: 1,
+  y: -1
+}, {
+  x: 2,
+  y: -1
+}, {
+  x: -3,
+  y: 0
+}, {
+  x: -2,
+  y: 0
+}, {
+  x: -1,
+  y: 0
+}], [{
+  x: -1,
+  y: -2
+}, {
+  x: 0,
+  y: -2
+}, {
+  x: 1,
+  y: -2
+}, {
+  x: -2,
+  y: -1
+}, {
+  x: -1,
+  y: -1
+}, {
+  x: 0,
+  y: -1
+}, {
+  x: 1,
+  y: -1
+}, {
+  x: -2,
+  y: 0
+}, {
+  x: -1,
+  y: 0
+}], [{
+  x: -3,
+  y: -1
+}, {
+  x: -2,
+  y: -1
+}, {
+  x: -1,
+  y: -1
+}, {
+  x: 0,
+  y: -1
+}, {
+  x: 1,
+  y: -1
+}, {
+  x: -4,
+  y: 0
+}, {
+  x: -3,
+  y: 0
+}, {
+  x: -2,
+  y: 0
+}, {
+  x: -1,
+  y: 0
+}]];
+const RefinementTemplates = [{
+  coding: [{
+    x: 0,
+    y: -1
+  }, {
+    x: 1,
+    y: -1
+  }, {
+    x: -1,
+    y: 0
+  }],
+  reference: [{
+    x: 0,
+    y: -1
+  }, {
+    x: 1,
+    y: -1
+  }, {
+    x: -1,
+    y: 0
+  }, {
+    x: 0,
+    y: 0
+  }, {
+    x: 1,
+    y: 0
+  }, {
+    x: -1,
+    y: 1
+  }, {
+    x: 0,
+    y: 1
+  }, {
+    x: 1,
+    y: 1
+  }]
+}, {
+  coding: [{
+    x: -1,
+    y: -1
+  }, {
+    x: 0,
+    y: -1
+  }, {
+    x: 1,
+    y: -1
+  }, {
+    x: -1,
+    y: 0
+  }],
+  reference: [{
+    x: 0,
+    y: -1
+  }, {
+    x: -1,
+    y: 0
+  }, {
+    x: 0,
+    y: 0
+  }, {
+    x: 1,
+    y: 0
+  }, {
+    x: 0,
+    y: 1
+  }, {
+    x: 1,
+    y: 1
+  }]
+}];
+const ReusedContexts = [0x9b25, 0x0795, 0x00e5, 0x0195];
+const RefinementReusedContexts = [0x0020, 0x0008];
+function* decodeBitmapTemplate0(width, height, decodingContext, onRow) {
+  const decoder = (yield* decodingContext.getDecoder());
+  const contexts = decodingContext.contextCache.getContexts("GB");
+  const bitmap = [];
+  let contextLabel, i, j, pixel, row, row1, row2;
+  const OLD_PIXEL_MASK = 0x7bf7;
+  for (i = 0; i < height; i++) {
+    row = bitmap[onRow ? i % 3 : i] = new Uint8Array(width);
+    row1 = i < 1 ? row : bitmap[onRow ? (i - 1) % 3 : i - 1];
+    row2 = i < 2 ? row : bitmap[onRow ? (i - 2) % 3 : i - 2];
+    contextLabel = row2[0] << 13 | row2[1] << 12 | row2[2] << 11 | row1[0] << 7 | row1[1] << 6 | row1[2] << 5 | row1[3] << 4;
+    for (j = 0; j < width; j++) {
+      row[j] = pixel = (yield* jbigArithmetic(decoder, decoder.readBitSteps(contexts, contextLabel)));
+      contextLabel = (contextLabel & OLD_PIXEL_MASK) << 1 | (j + 3 < width ? row2[j + 3] << 11 : 0) | (j + 4 < width ? row1[j + 4] << 4 : 0) | pixel;
+    }
+    if (onRow) yield* onRow(row, i);
+  }
+  return bitmap;
+}
+function* decodeBitmap(mmr, width, height, templateIndex, prediction, skip, at, decodingContext, onRow) {
+  decodingContext.onImageDimensions?.(width, height);
+  let retained;
+  if (decodingContext.storedBitmap && !onRow) {
+    decodingContext.admitBitmap(512);
+    retained = yield* createStoredJbigBitmap(width, height);
+    onRow = storeJbigRow.bind(null, retained);
+  }
+  if (!onRow) decodingContext.admitBitmap((width + 256) * (height + 1) + 4096);
+  if (mmr) {
+    const input = new Reader(decodingContext.data, decodingContext.start, decodingContext.end);
+    const bitmap = yield* decodeMMRBitmap(input, width, height, false, decodingContext.admitBitmap.bind(decodingContext), onRow);
+    return retained ?? bitmap;
+  }
+  if (templateIndex === 0 && !skip && !prediction && at.length === 4 && at[0].x === 3 && at[0].y === -1 && at[1].x === -3 && at[1].y === -1 && at[2].x === 2 && at[2].y === -2 && at[3].x === -2 && at[3].y === -2) {
+    if (onRow) decodingContext.admitBitmap((width + 256) * 4 + 4096);
+    const bitmap = yield* decodeBitmapTemplate0(width, height, decodingContext, onRow);
+    return retained ?? bitmap;
+  }
+  const useskip = !!skip;
+  const template = CodingTemplates[templateIndex].concat(at);
+  template.sort(function (a, b) {
+    return a.y - b.y || a.x - b.x;
+  });
+  const templateLength = template.length;
+  const templateX = new Int8Array(templateLength);
+  const templateY = new Int8Array(templateLength);
+  const changingTemplateEntries = [];
+  let reuseMask = 0,
+    minX = 0,
+    maxX = 0,
+    minY = 0;
+  let c, k;
+  for (k = 0; k < templateLength; k++) {
+    templateX[k] = template[k].x;
+    templateY[k] = template[k].y;
+    minX = Math.min(minX, template[k].x);
+    maxX = Math.max(maxX, template[k].x);
+    minY = Math.min(minY, template[k].y);
+    if (k < templateLength - 1 && template[k].y === template[k + 1].y && template[k].x === template[k + 1].x - 1) {
+      reuseMask |= 1 << templateLength - 1 - k;
+    } else {
+      changingTemplateEntries.push(k);
+    }
+  }
+  const changingEntriesLength = changingTemplateEntries.length;
+  const changingTemplateX = new Int8Array(changingEntriesLength);
+  const changingTemplateY = new Int8Array(changingEntriesLength);
+  const changingTemplateBit = new Uint16Array(changingEntriesLength);
+  for (c = 0; c < changingEntriesLength; c++) {
+    k = changingTemplateEntries[c];
+    changingTemplateX[c] = template[k].x;
+    changingTemplateY[c] = template[k].y;
+    changingTemplateBit[c] = 1 << templateLength - 1 - k;
+  }
+  const sbb_left = -minX;
+  const sbb_top = -minY;
+  const sbb_right = width - maxX;
+  // The adaptive coordinates are signed bytes. Keep only the template's
+  // preceding rows plus the current row; prediction can alias the prior row.
+  const rowCount = Math.max(sbb_top, 1) + 1;
+  if (onRow) decodingContext.admitBitmap((width + 256) * (rowCount + 1) + 4096);
+  const pseudoPixelContext = ReusedContexts[templateIndex];
+  let row = new Uint8Array(width);
+  const bitmap = [];
+  const decoder = (yield* decodingContext.getDecoder());
+  const contexts = decodingContext.contextCache.getContexts("GB");
+  let ltp = 0,
+    j,
+    i0,
+    j0,
+    contextLabel = 0,
+    bit,
+    shift;
+  for (let i = 0; i < height; i++) {
+    if (prediction) {
+      const sltp = (yield* jbigArithmetic(decoder, decoder.readBitSteps(contexts, pseudoPixelContext)));
+      ltp ^= sltp;
+      if (ltp) {
+        if (onRow) { bitmap[i % rowCount] = row; yield* onRow(row, i); }
+        else bitmap.push(row);
+        continue;
+      }
+    }
+    row = new Uint8Array(row);
+    if (onRow) bitmap[i % rowCount] = row;
+    else bitmap.push(row);
+    for (j = 0; j < width; j++) {
+      if (useskip && skip[i][j]) {
+        row[j] = 0;
+        continue;
+      }
+      if (j >= sbb_left && j < sbb_right && i >= sbb_top) {
+        contextLabel = contextLabel << 1 & reuseMask;
+        for (k = 0; k < changingEntriesLength; k++) {
+          i0 = i + changingTemplateY[k];
+          j0 = j + changingTemplateX[k];
+          bit = bitmap[onRow && i0 <= i ? i0 % rowCount : i0][j0];
+          if (bit) {
+            bit = changingTemplateBit[k];
+            contextLabel |= bit;
+          }
+        }
+      } else {
+        contextLabel = 0;
+        shift = templateLength - 1;
+        for (k = 0; k < templateLength; k++, shift--) {
+          j0 = j + templateX[k];
+          if (j0 >= 0 && j0 < width) {
+            i0 = i + templateY[k];
+            if (i0 >= 0) {
+              bit = bitmap[onRow && i0 <= i ? i0 % rowCount : i0][j0];
+              if (bit) {
+                contextLabel |= bit << shift;
+              }
+            }
+          }
+        }
+      }
+      const pixel = (yield* jbigArithmetic(decoder, decoder.readBitSteps(contexts, contextLabel)));
+      row[j] = pixel;
+    }
+    if (onRow) yield* onRow(row, i);
+  }
+  return retained ?? bitmap;
+}
+function* decodeRefinement(width, height, templateIndex, referenceBitmap, offsetX, offsetY, prediction, at, decodingContext) {
+  decodingContext.onImageDimensions?.(width, height);
+  if (!decodingContext.storedBitmap) decodingContext.admitBitmap((width + 256) * (height + 1) + 4096);
+  let codingTemplate = RefinementTemplates[templateIndex].coding;
+  if (templateIndex === 0) {
+    codingTemplate = codingTemplate.concat([at[0]]);
+  }
+  const codingTemplateLength = codingTemplate.length;
+  const codingTemplateX = new Int32Array(codingTemplateLength);
+  const codingTemplateY = new Int32Array(codingTemplateLength);
+  let k;
+  for (k = 0; k < codingTemplateLength; k++) {
+    codingTemplateX[k] = codingTemplate[k].x;
+    codingTemplateY[k] = codingTemplate[k].y;
+  }
+  let referenceTemplate = RefinementTemplates[templateIndex].reference;
+  if (templateIndex === 0) {
+    referenceTemplate = referenceTemplate.concat([at[1]]);
+  }
+  const referenceTemplateLength = referenceTemplate.length;
+  const referenceTemplateX = new Int32Array(referenceTemplateLength);
+  const referenceTemplateY = new Int32Array(referenceTemplateLength);
+  for (k = 0; k < referenceTemplateLength; k++) {
+    referenceTemplateX[k] = referenceTemplate[k].x;
+    referenceTemplateY[k] = referenceTemplate[k].y;
+  }
+  const referenceWidth = referenceBitmap.width ?? referenceBitmap[0].length;
+  const referenceHeight = referenceBitmap.height ?? referenceBitmap.length;
+  const pseudoPixelContext = RefinementReusedContexts[templateIndex];
+  const rowCount = Math.max(1, ...codingTemplateY.map(y => -y)) + 1;
+  if (decodingContext.storedBitmap) decodingContext.admitBitmap((width + 256) * (rowCount + 1) + 4096);
+  const stored = decodingContext.storedBitmap ? yield* createStoredJbigBitmap(width, height) : undefined;
+  const bitmap = [];
+  const decoder = (yield* decodingContext.getDecoder());
+  const contexts = decodingContext.contextCache.getContexts("GR");
+  let ltp = 0;
+  for (let i = 0; i < height; i++) {
+    if (prediction) {
+      const sltp = (yield* jbigArithmetic(decoder, decoder.readBitSteps(contexts, pseudoPixelContext)));
+      ltp ^= sltp;
+      if (ltp) {
+        throw new Jbig2Error("prediction is not supported");
+      }
+    }
+    const row = new Uint8Array(width);
+    if (stored) bitmap[i % rowCount] = row;
+    else bitmap.push(row);
+    for (let j = 0; j < width; j++) {
+      let i0, j0;
+      let contextLabel = 0;
+      for (k = 0; k < codingTemplateLength; k++) {
+        i0 = i + codingTemplateY[k];
+        j0 = j + codingTemplateX[k];
+        if (i0 < 0 || j0 < 0 || j0 >= width) {
+          contextLabel <<= 1;
+        } else {
+          contextLabel = contextLabel << 1 | bitmap[stored && i0 <= i ? i0 % rowCount : i0][j0];
+        }
+      }
+      for (k = 0; k < referenceTemplateLength; k++) {
+        i0 = i + referenceTemplateY[k] - offsetY;
+        j0 = j + referenceTemplateX[k] - offsetX;
+        if (i0 < 0 || i0 >= referenceHeight || j0 < 0 || j0 >= referenceWidth) {
+          contextLabel <<= 1;
+        } else {
+          contextLabel = contextLabel << 1 | (yield* jbigBitmapPixel(referenceBitmap, j0, i0));
+        }
+      }
+      const pixel = (yield* jbigArithmetic(decoder, decoder.readBitSteps(contexts, contextLabel)));
+      row[j] = pixel;
+    }
+    if (stored) yield* storeJbigRow(stored, row, i);
+  }
+  return stored ?? bitmap;
+}
+const JbigSymbolFields = ["position", "length", "rowSize", "width", "height", "xOffset"];
+class StoredJbigList {
+  constructor(capacity, fields, buffer) {
+    this.capacity = capacity; this.fields = fields; this.buffer = buffer;
+    this.length = 0; this.stride = (fields?.length ?? 1) * 8;
+  }
+  static *create(capacity, fields) {
+    const length = capacity * (fields?.length ?? 1) * 8;
+    return new StoredJbigList(capacity, fields, {length, position: yield {kind: "bitmap-allocate", length, fill: 0}});
+  }
+  *get(index) {
+    if (!Number.isInteger(index) || index < 0 || index >= this.length) return undefined;
+    if (!this.fields) return yield {kind: "number-read", buffer: this.buffer, offset: index * 8};
+    const value = {};
+    for (let i = 0; i < this.fields.length; i++)
+      value[this.fields[i]] = yield {kind: "number-read", buffer: this.buffer, offset: index * this.stride + i * 8};
+    return value;
+  }
+  *push(value) {
+    if (this.length === this.capacity) {
+      const capacity = Math.max(1, this.capacity * 2), length = capacity * this.stride;
+      const buffer = {length, position: yield {kind: "bitmap-allocate", length, fill: 0}};
+      for (let offset = 0; offset < this.length * this.stride; offset += 8) {
+        const value = yield {kind: "number-read", buffer: this.buffer, offset};
+        yield {kind: "number-write", buffer, offset, value};
+      }
+      this.buffer = buffer; this.capacity = capacity;
+    }
+    for (let i = 0; i < this.stride / 8; i++)
+      yield {kind: "number-write", buffer: this.buffer, offset: this.length * this.stride + i * 8,
+        value: this.fields ? value[this.fields[i]] ?? 0 : value};
+    this.length++;
+  }
+}
+// Four radix levels bound lookup state independently of the segment count.
+// Zero denotes an absent child; stored positions are represented as position + 1.
+class StoredJbigIndex {
+  *find(key, create) {
+    if (!this.root) {
+      if (!create) return;
+      this.root = {length: 2048, position: yield {kind: "bitmap-allocate", length: 2048, fill: 0}};
+    }
+    let buffer = this.root;
+    for (let shift = 24; shift >= 0; shift -= 8) {
+      const offset = ((key >>> shift) & 255) * 8;
+      if (shift === 0) return {buffer, offset};
+      let child = yield {kind: "number-read", buffer, offset};
+      if (!child) {
+        if (!create) return;
+        child = 1 + (yield {kind: "bitmap-allocate", length: 2048, fill: 0});
+        yield {kind: "number-write", buffer, offset, value: child};
+      }
+      buffer = {length: 2048, position: child - 1};
+    }
+  }
+  *get(key) {
+    const slot = yield* this.find(key, false);
+    if (!slot) return;
+    const position = yield {kind: "number-read", ...slot};
+    if (!position) return;
+    const record = new StoredJbigList(9, undefined, {length: 72, position: position - 1});
+    record.length = 9;
+    const kind = yield* record.get(0);
+    if (kind === 2) {
+      const nodes = new StoredJbigList(yield* record.get(2), JbigHuffmanNodeFields,
+        {position: yield* record.get(3), length: yield* record.get(4)});
+      nodes.length = yield* record.get(1);
+      return new StoredJbigHuffman(nodes);
+    }
+    if (kind === 0) {
+      const list = new StoredJbigList(yield* record.get(2), JbigSymbolFields,
+        {position: yield* record.get(3), length: yield* record.get(4)});
+      list.length = yield* record.get(1);
+      return list;
+    }
+    return {width: yield* record.get(1), height: yield* record.get(2), length: yield* record.get(3),
+      bitmap: {position: yield* record.get(4), length: yield* record.get(5), rowSize: yield* record.get(6),
+        width: yield* record.get(7), height: yield* record.get(8)}};
+  }
+  *set(key, value) {
+    const record = yield* StoredJbigList.create(9);
+    const fields = value instanceof StoredJbigHuffman ? [2, value.nodes.length, value.nodes.capacity, value.nodes.buffer.position, value.nodes.buffer.length]
+      : value instanceof StoredJbigList ? [0, value.length, value.capacity, value.buffer.position, value.buffer.length]
+      : [1, value.width, value.height, value.length, value.bitmap.position, value.bitmap.length, value.bitmap.rowSize, value.bitmap.width, value.bitmap.height];
+    for (const field of fields) yield* record.push(field);
+    const slot = yield* this.find(key, true);
+    yield {kind: "number-write", ...slot, value: record.buffer.position + 1};
+  }
+}
+function* jbigDictionaryGet(index, key) {
+  return index instanceof StoredJbigIndex ? yield* index.get(key) : index?.[key];
+}
+class JbigSourceList {
+  constructor(data, start, length, width) { this.data = data; this.start = start; this.length = length; this.width = width; }
+}
+function* jbigListGet(list, index) {
+  if (list instanceof JbigSourceList) {
+    if (!Number.isInteger(index) || index < 0 || index >= list.length) return undefined;
+    return yield* jbigReadUint(list.data, list.start + index * list.width, list.width);
+  }
+  if (list.parts) return yield* jbigListGet(index < list.parts[0].length ? list.parts[0] : list.parts[1],
+    index < list.parts[0].length ? index : index - list.parts[0].length);
+  if (list instanceof StoredJbigList) return yield* list.get(index);
+  return list[index];
+}
+function* jbigListPush(list, value) {
+  if (list instanceof StoredJbigList) yield* list.push(value);
+  else list.push(value);
+}
+function* decodeSymbolDictionary(huffman, refinement, symbols, numberOfNewSymbols, numberOfExportedSymbols, huffmanTables, templateIndex, at, refinementTemplateIndex, refinementAt, decodingContext, huffmanInput) {
+  if (huffman && refinement) {
+    throw new Jbig2Error("symbol refinement with Huffman is not supported");
+  }
+  const backed = decodingContext.storedBitmap;
+  decodingContext.onAllocation?.(backed ? 4096 : (symbols.length + numberOfNewSymbols + numberOfExportedSymbols) * 256 + 1024);
+  const newSymbols = backed ? yield* StoredJbigList.create(numberOfNewSymbols, JbigSymbolFields) : [];
+  let currentHeight = 0;
+  let symbolCodeLength = log2(symbols.length + numberOfNewSymbols);
+  const decoder = (yield* decodingContext.getDecoder());
+  const contextCache = decodingContext.contextCache;
+  let tableB1, symbolWidths;
+  if (huffman) {
+    tableB1 = getStandardTable(1);
+    symbolWidths = backed ? yield* StoredJbigList.create(numberOfNewSymbols) : [];
+    symbolCodeLength = Math.max(symbolCodeLength, 1);
+  }
+  while (newSymbols.length < numberOfNewSymbols) {
+    const deltaHeight = huffman ? (yield* huffmanTables.tableDeltaHeight.decode(huffmanInput)) : (yield* decodeInteger(contextCache, "IADH", decoder));
+    currentHeight += deltaHeight;
+    let currentWidth = 0,
+      totalWidth = 0;
+    const firstSymbol = huffman ? symbolWidths.length : 0;
+    while (true) {
+      const deltaWidth = huffman ? (yield* huffmanTables.tableDeltaWidth.decode(huffmanInput)) : (yield* decodeInteger(contextCache, "IADW", decoder));
+      if (deltaWidth === null) {
+        break;
+      }
+      currentWidth += deltaWidth;
+      totalWidth += currentWidth;
+      let bitmap;
+      if (refinement) {
+        const numberOfInstances = (yield* decodeInteger(contextCache, "IAAI", decoder));
+        if (numberOfInstances > 1) {
+          if (!backed) decodingContext.onAllocation?.((symbols.length + newSymbols.length) * 16 + 128);
+          bitmap = (yield* decodeTextRegion(huffman, refinement, currentWidth, currentHeight, 0, numberOfInstances, 1, backed ? {parts: [symbols, newSymbols], length: symbols.length + newSymbols.length} : symbols.concat(newSymbols), symbolCodeLength, 0, 0, 1, 0, huffmanTables, refinementTemplateIndex, refinementAt, decodingContext, 0, huffmanInput));
+        } else {
+          const symbolId = (yield* decodeIAID(contextCache, decoder, symbolCodeLength));
+          const rdx = (yield* decodeInteger(contextCache, "IARDX", decoder));
+          const rdy = (yield* decodeInteger(contextCache, "IARDY", decoder));
+          const symbol = symbolId < symbols.length ? yield* jbigListGet(symbols, symbolId) : yield* jbigListGet(newSymbols, symbolId - symbols.length);
+          bitmap = (yield* decodeRefinement(currentWidth, currentHeight, refinementTemplateIndex, symbol, rdx, rdy, false, refinementAt, decodingContext));
+        }
+        if (!backed) decodingContext.onAllocation?.(128);
+        yield* jbigListPush(newSymbols, bitmap);
+      } else if (huffman) {
+        if (!backed) decodingContext.onAllocation?.(16);
+        yield* jbigListPush(symbolWidths, currentWidth);
+      } else {
+        bitmap = (yield* decodeBitmap(false, currentWidth, currentHeight, templateIndex, false, null, at, decodingContext));
+        if (!backed) decodingContext.onAllocation?.(128);
+        yield* jbigListPush(newSymbols, bitmap);
+      }
+    }
+    if (huffman && !refinement) {
+      const bitmapSize = (yield* huffmanTables.tableBitmapSize.decode(huffmanInput));
+      huffmanInput.byteAlign();
+      let collectiveBitmap;
+      if (backed) decodingContext.admitBitmap(512);
+      const stored = decodingContext.storedBitmap ? yield* createStoredJbigBitmap(totalWidth, currentHeight) : undefined;
+      const onRow = stored ? storeJbigRow.bind(null, stored) : undefined;
+      if (bitmapSize === 0) {
+        collectiveBitmap = (yield* readUncompressedBitmap(huffmanInput, totalWidth, currentHeight, decodingContext.admitBitmap.bind(decodingContext), onRow));
+      } else {
+        const originalEnd = huffmanInput.end;
+        const bitmapEnd = huffmanInput.position + bitmapSize;
+        huffmanInput.end = bitmapEnd;
+        collectiveBitmap = (yield* decodeMMRBitmap(huffmanInput, totalWidth, currentHeight, false, decodingContext.admitBitmap.bind(decodingContext), onRow));
+        huffmanInput.end = originalEnd;
+        huffmanInput.position = bitmapEnd;
+      }
+      if (stored) collectiveBitmap = stored;
+      const numberOfSymbolsDecoded = symbolWidths.length;
+      if (firstSymbol === numberOfSymbolsDecoded - 1) {
+        if (!backed) decodingContext.onAllocation?.(128);
+        yield* jbigListPush(newSymbols, collectiveBitmap);
+      } else {
+        let i,
+          y,
+          xMin = 0,
+          xMax,
+          bitmapWidth,
+          symbolBitmap;
+        for (i = firstSymbol; i < numberOfSymbolsDecoded; i++) {
+          bitmapWidth = yield* jbigListGet(symbolWidths, i);
+          xMax = xMin + bitmapWidth;
+          if (!backed) decodingContext.onAllocation?.(currentHeight * 256 + 128);
+          symbolBitmap = stored ? {...stored, width: bitmapWidth, xOffset: xMin} : [];
+          if (!stored) for (y = 0; y < currentHeight; y++) {
+            symbolBitmap.push(collectiveBitmap[y].subarray(xMin, xMax));
+          }
+          if (!backed) decodingContext.onAllocation?.(128);
+          yield* jbigListPush(newSymbols, symbolBitmap);
+          xMin = xMax;
+        }
+      }
+    }
+  }
+  if (backed) {
+    const total = symbols.length + numberOfNewSymbols, length = Math.ceil(total / 8);
+    const flags = {length, position: yield {kind: "bitmap-allocate", length, fill: 0}};
+    let at = 0, selected = false, count = 0;
+    while (at < total) {
+      const run = huffman ? yield* tableB1.decode(huffmanInput) : yield* decodeInteger(contextCache, "IAEX", decoder);
+      if (!Number.isSafeInteger(run) || run < 0) throw new Jbig2Error("invalid symbol export run");
+      const end = Math.min(total, at + run);
+      if (selected) {
+        count += end - at;
+        for (let cursor = at; cursor < end;) {
+          const bits = Math.min(8 - (cursor & 7), end - cursor);
+          yield {kind: "bitmap-update", bitmap: flags, offset: cursor >> 3,
+            mask: ((1 << bits) - 1) << (8 - (cursor & 7) - bits), operator: "or"};
+          cursor += bits;
+        }
+      }
+      at = end; selected = !selected;
+    }
+    const exported = yield* StoredJbigList.create(count, JbigSymbolFields);
+    let byte;
+    for (let i = 0; i < total; i++) {
+      if ((i & 7) === 0) byte = yield {kind: "bitmap-read", bitmap: flags, offset: i >> 3};
+      if (byte & (128 >> (i & 7)))
+        yield* exported.push(i < symbols.length ? yield* jbigListGet(symbols, i) : yield* jbigListGet(newSymbols, i - symbols.length));
+    }
+    return exported;
+  }
+  const exportedSymbols = [],
+    flags = [];
+  let currentFlag = false,
+    i,
+    ii;
+  const totalSymbolsLength = symbols.length + numberOfNewSymbols;
+  while (flags.length < totalSymbolsLength) {
+    let runLength = huffman ? (yield* tableB1.decode(huffmanInput)) : (yield* decodeInteger(contextCache, "IAEX", decoder));
+    decodingContext.onAllocation?.(runLength * 16);
+    while (runLength--) {
+      flags.push(currentFlag);
+    }
+    currentFlag = !currentFlag;
+  }
+  for (i = 0, ii = symbols.length; i < ii; i++) {
+    if (flags[i]) {
+      exportedSymbols.push(symbols[i]);
+    }
+  }
+  for (let j = 0; j < numberOfNewSymbols; i++, j++) {
+    if (flags[i]) {
+      exportedSymbols.push(newSymbols[j]);
+    }
+  }
+  return exportedSymbols;
+}
+function* createStoredJbigBitmap(width, height, fill = 0) {
+  const rowSize = Math.ceil(width / 8), length = rowSize * height;
+  return {width, height, rowSize, length,
+    position: yield {kind: "bitmap-allocate", length, fill: fill ? 255 : 0}};
+}
+function* storeJbigRow(bitmap, row, y) {
+  for (let x = 0; x < bitmap.width; x++) if (row[x])
+    yield {kind: "bitmap-update", bitmap, offset: y * bitmap.rowSize + (x >> 3), mask: 128 >> (x & 7), operator: "or"};
+}
+function* jbigBitmapPixel(bitmap, x, y) {
+  if (bitmap.position === undefined) return bitmap[y][x];
+  x += bitmap.xOffset ?? 0;
+  const byte = yield {kind: "bitmap-read", bitmap, offset: y * bitmap.rowSize + (x >> 3)};
+  return (byte >> (7 - (x & 7))) & 1;
+}
+function* decodeTextRegion(huffman, refinement, width, height, defaultPixelValue, numberOfSymbolInstances, stripSize, inputSymbols, symbolCodeLength, transposed, dsOffset, referenceCorner, combinationOperator, huffmanTables, refinementTemplateIndex, refinementAt, decodingContext, logStripSize, huffmanInput, stored = decodingContext.storedBitmap) {
+  decodingContext.onImageDimensions?.(width, height);
+  decodingContext.admitBitmap(stored ? 512 : (width + 256) * (height + 1) + 4096);
+  if (huffman && refinement) {
+    throw new Jbig2Error("refinement with Huffman is not supported");
+  }
+  const rowSize = Math.ceil(width / 8);
+  const bitmap = stored ? yield* createStoredJbigBitmap(width, height, defaultPixelValue) : [];
+  let i, row;
+  for (i = 0; !stored && i < height; i++) {
+    row = new Uint8Array(width);
+    if (defaultPixelValue) {
+      for (let j = 0; j < width; j++) {
+        row[j] = defaultPixelValue;
+      }
+    }
+    bitmap.push(row);
+  }
+  const decoder = (yield* decodingContext.getDecoder());
+  const contextCache = decodingContext.contextCache;
+  let stripT = huffman ? -(yield* huffmanTables.tableDeltaT.decode(huffmanInput)) : -(yield* decodeInteger(contextCache, "IADT", decoder));
+  let firstS = 0;
+  i = 0;
+  while (i < numberOfSymbolInstances) {
+    const deltaT = huffman ? (yield* huffmanTables.tableDeltaT.decode(huffmanInput)) : (yield* decodeInteger(contextCache, "IADT", decoder));
+    stripT += deltaT;
+    const deltaFirstS = huffman ? (yield* huffmanTables.tableFirstS.decode(huffmanInput)) : (yield* decodeInteger(contextCache, "IAFS", decoder));
+    firstS += deltaFirstS;
+    let currentS = firstS;
+    do {
+      let currentT = 0;
+      if (stripSize > 1) {
+        currentT = huffman ? (yield* huffmanInput.readBits(logStripSize)) : (yield* decodeInteger(contextCache, "IAIT", decoder));
+      }
+      const t = stripSize * stripT + currentT;
+      const symbolId = huffman ? (yield* huffmanTables.symbolIDTable.decode(huffmanInput)) : (yield* decodeIAID(contextCache, decoder, symbolCodeLength));
+      const applyRefinement = refinement && (huffman ? (yield* huffmanInput.readBit()) : (yield* decodeInteger(contextCache, "IARI", decoder)));
+      let symbolBitmap = yield* jbigListGet(inputSymbols, symbolId);
+      let symbolWidth = symbolBitmap.width ?? symbolBitmap[0].length;
+      let symbolHeight = symbolBitmap.height ?? symbolBitmap.length;
+      if (applyRefinement) {
+        const rdw = (yield* decodeInteger(contextCache, "IARDW", decoder));
+        const rdh = (yield* decodeInteger(contextCache, "IARDH", decoder));
+        const rdx = (yield* decodeInteger(contextCache, "IARDX", decoder));
+        const rdy = (yield* decodeInteger(contextCache, "IARDY", decoder));
+        symbolWidth += rdw;
+        symbolHeight += rdh;
+        symbolBitmap = (yield* decodeRefinement(symbolWidth, symbolHeight, refinementTemplateIndex, symbolBitmap, (rdw >> 1) + rdx, (rdh >> 1) + rdy, false, refinementAt, decodingContext));
+      }
+      let increment = 0;
+      if (!transposed) {
+        if (referenceCorner > 1) {
+          currentS += symbolWidth - 1;
+        } else {
+          increment = symbolWidth - 1;
+        }
+      } else if (!(referenceCorner & 1)) {
+        currentS += symbolHeight - 1;
+      } else {
+        increment = symbolHeight - 1;
+      }
+      const offsetT = t - (referenceCorner & 1 ? 0 : symbolHeight - 1);
+      const offsetS = currentS - (referenceCorner & 2 ? symbolWidth - 1 : 0);
+      const left = transposed ? offsetT : offsetS, top = transposed ? offsetS : offsetT;
+      const maxWidth = transposed ? Math.min(width - left, symbolWidth) : symbolWidth;
+      for (let y = 0; y < symbolHeight; y++) {
+        const destY = top + y;
+        row = stored ? (destY >= 0 && destY < height ? bitmap : undefined) : bitmap[destY];
+        if (!row) continue;
+        if (combinationOperator !== 0 && combinationOperator !== 2)
+          throw new Jbig2Error(`operator ${combinationOperator} is not supported`);
+        for (let x = 0; x < maxWidth; x++) {
+          const destX = left + x;
+          const pixel = yield* jbigBitmapPixel(symbolBitmap, x, y);
+          if (stored) {
+            if (destX >= 0 && destX < width && pixel)
+              yield {kind: "bitmap-update", bitmap, offset: destY * rowSize + (destX >> 3), mask: 128 >> (destX & 7), operator: combinationOperator === 0 ? "or" : "xor"};
+          } else if (combinationOperator === 0) row[destX] |= pixel;
+          else row[destX] ^= pixel;
+        }
+      }
+      i++;
+      const deltaS = huffman ? (yield* huffmanTables.tableDeltaS.decode(huffmanInput)) : (yield* decodeInteger(contextCache, "IADS", decoder));
+      if (deltaS === null) {
+        break;
+      }
+      currentS += increment + deltaS + dsOffset;
+    } while (true);
+  }
+  return bitmap;
+}
+function* decodePatternDictionary(mmr, patternWidth, patternHeight, maxPatternIndex, template, decodingContext, stored) {
+  const at = [];
+  if (!mmr) {
+    at.push({
+      x: -patternWidth,
+      y: 0
+    });
+    if (template === 0) {
+      at.push({
+        x: -3,
+        y: -1
+      }, {
+        x: 2,
+        y: -2
+      }, {
+        x: -2,
+        y: -2
+      });
+    }
+  }
+  const collectiveWidth = (maxPatternIndex + 1) * patternWidth;
+  if (stored) {
+    decodingContext.onAllocation?.(4096);
+    const bitmap = yield* createStoredJbigBitmap(collectiveWidth, patternHeight);
+    yield* decodeBitmap(mmr, collectiveWidth, patternHeight, template, false, null, at, decodingContext, storeJbigRow.bind(null, bitmap));
+    return {bitmap, width: patternWidth, height: patternHeight, length: maxPatternIndex + 1};
+  }
+  const collectiveBitmap = (yield* decodeBitmap(mmr, collectiveWidth, patternHeight, template, false, null, at, decodingContext));
+  decodingContext.onAllocation?.((maxPatternIndex + 1) * (patternHeight * 256 + 128));
+  const patterns = [];
+  for (let i = 0; i <= maxPatternIndex; i++) {
+    const patternBitmap = [];
+    const xMin = patternWidth * i;
+    const xMax = xMin + patternWidth;
+    for (let y = 0; y < patternHeight; y++) {
+      patternBitmap.push(collectiveBitmap[y].subarray(xMin, xMax));
+    }
+    patterns.push(patternBitmap);
+  }
+  return patterns;
+}
+function* decodeHalftoneRegion(mmr, patterns, template, regionWidth, regionHeight, defaultPixelValue, enableSkip, combinationOperator, gridWidth, gridHeight, gridOffsetX, gridOffsetY, gridVectorX, gridVectorY, decodingContext, stored) {
+  decodingContext.onImageDimensions?.(regionWidth, regionHeight);
+  decodingContext.onAllocation?.(stored ? 4096 : (regionWidth + 256) * regionHeight + 4096);
+  const skip = null;
+  if (enableSkip) {
+    throw new Jbig2Error("skip is not supported");
+  }
+  if (combinationOperator !== 0) {
+    throw new Jbig2Error(`operator "${combinationOperator}" is not supported in halftone region`);
+  }
+  const regionBitmap = stored ? yield* createStoredJbigBitmap(regionWidth, regionHeight, defaultPixelValue) : [];
+  let i, j, row;
+  for (i = 0; !stored && i < regionHeight; i++) {
+    row = new Uint8Array(regionWidth);
+    if (defaultPixelValue) {
+      for (j = 0; j < regionWidth; j++) {
+        row[j] = defaultPixelValue;
+      }
+    }
+    regionBitmap.push(row);
+  }
+  const numberOfPatterns = patterns.length;
+  const patternWidth = patterns.bitmap ? patterns.width : patterns[0][0].length,
+    patternHeight = patterns.bitmap ? patterns.height : patterns[0].length;
+  const bitsPerValue = log2(numberOfPatterns);
+  const at = [];
+  if (!mmr) {
+    at.push({
+      x: template <= 1 ? 3 : 2,
+      y: -1
+    });
+    if (template === 0) {
+      at.push({
+        x: -3,
+        y: -1
+      }, {
+        x: 2,
+        y: -2
+      }, {
+        x: -2,
+        y: -2
+      });
+    }
+  }
+  const grayScaleBitPlanes = [];
+  let mmrInput, bitmap;
+  if (mmr) {
+    mmrInput = new Reader(decodingContext.data, decodingContext.start, decodingContext.end);
+  }
+  for (i = bitsPerValue - 1; i >= 0; i--) {
+    const plane = stored ? yield* createStoredJbigBitmap(gridWidth, gridHeight) : undefined;
+    const onRow = plane ? storeJbigRow.bind(null, plane) : undefined;
+    if (mmr) {
+      bitmap = (yield* decodeMMRBitmap(mmrInput, gridWidth, gridHeight, true, decodingContext.onAllocation, onRow));
+    } else {
+      bitmap = (yield* decodeBitmap(false, gridWidth, gridHeight, template, false, skip, at, decodingContext, onRow));
+    }
+    grayScaleBitPlanes[i] = plane ?? bitmap;
+  }
+  let mg, ng, bit, patternIndex, patternBitmap, x, y;
+  for (mg = 0; mg < gridHeight; mg++) {
+    for (ng = 0; ng < gridWidth; ng++) {
+      bit = 0;
+      patternIndex = 0;
+      for (j = bitsPerValue - 1; j >= 0; j--) {
+        bit ^= yield* jbigBitmapPixel(grayScaleBitPlanes[j], ng, mg);
+        patternIndex |= bit << j;
+      }
+      patternBitmap = patterns.bitmap && patternIndex >= 0 && patternIndex < patterns.length
+        ? {...patterns.bitmap, width: patternWidth, height: patternHeight, xOffset: patternIndex * patternWidth}
+        : patterns[patternIndex];
+      x = gridOffsetX + mg * gridVectorY + ng * gridVectorX >> 8;
+      y = gridOffsetY + mg * gridVectorX - ng * gridVectorY >> 8;
+      for (i = 0; i < patternHeight; i++) {
+        const regionY = y + i;
+        if (regionY < 0 || regionY >= regionHeight) continue;
+        for (j = 0; j < patternWidth; j++) {
+          const regionX = x + j;
+          if (regionX < 0 || regionX >= regionWidth) continue;
+          const pixel = yield* jbigBitmapPixel(patternBitmap, j, i);
+          if (stored) {
+            if (pixel) yield {kind: "bitmap-update", bitmap: regionBitmap, offset: regionY * regionBitmap.rowSize + (regionX >> 3), mask: 128 >> (regionX & 7), operator: "or"};
+          } else regionBitmap[regionY][regionX] |= pixel;
+        }
+      }
+    }
+  }
+  return regionBitmap;
+}
+function* readSegmentHeader(data, start, onAllocation, stored) {
+  onAllocation?.(4096);
+  const segmentHeader = {};
+  segmentHeader.number = (yield* jbigReadUint(data, start, 4));
+  const flags = (yield {source: data, position: start + 4});
+  const segmentType = flags & 0x3f;
+  if (!SegmentTypes[segmentType]) {
+    throw new Jbig2Error("invalid segment type: " + segmentType);
+  }
+  segmentHeader.type = segmentType;
+  segmentHeader.typeName = SegmentTypes[segmentType];
+  segmentHeader.deferredNonRetain = !!(flags & 0x80);
+  const pageAssociationFieldSize = !!(flags & 0x40);
+  const referredFlags = (yield {source: data, position: start + 5});
+  let referredToCount = referredFlags >> 5 & 7;
+  const retainBits = [referredFlags & 31];
+  let position = start + 6;
+  if (referredToCount === 7) {
+    referredToCount = (yield* jbigReadUint(data, position - 1, 4)) & 0x1fffffff;
+    position += 3;
+    const bytes = Math.ceil((referredToCount + 1) / 8);
+    if (stored) position += bytes; // Retention flags are not consumed by this visitor.
+    else {
+      onAllocation?.(bytes * 16);
+      retainBits.length = 0;
+      for (let i = 0; i < bytes; i++) retainBits.push((yield {source: data, position: position++}));
+    }
+  } else if (referredToCount === 5 || referredToCount === 6) {
+    throw new Jbig2Error("invalid referred-to flags");
+  }
+  segmentHeader.retainBits = retainBits;
+  let referredToSegmentNumberSize = 4;
+  if (segmentHeader.number <= 256) {
+    referredToSegmentNumberSize = 1;
+  } else if (segmentHeader.number <= 65536) {
+    referredToSegmentNumberSize = 2;
+  }
+  if (!stored) onAllocation?.(referredToCount * 16);
+  const referencesEnd = position + referredToCount * referredToSegmentNumberSize;
+  if (referencesEnd + (pageAssociationFieldSize ? 4 : 1) + 4 > data.length) throw new Jbig2Error("truncated segment header");
+  const referredTo = stored ? new JbigSourceList(data, position, referredToCount, referredToSegmentNumberSize) : [];
+  let i, ii;
+  for (i = 0; !stored && i < referredToCount; i++) {
+    let number;
+    if (referredToSegmentNumberSize === 1) {
+      number = (yield {source: data, position: position});
+    } else if (referredToSegmentNumberSize === 2) {
+      number = (yield* jbigReadUint(data, position, 2));
+    } else {
+      number = (yield* jbigReadUint(data, position, 4));
+    }
+    referredTo.push(number);
+    position += referredToSegmentNumberSize;
+  }
+  position = referencesEnd;
+  segmentHeader.referredTo = referredTo;
+  if (!pageAssociationFieldSize) {
+    segmentHeader.pageAssociation = (yield {source: data, position: position++});
+  } else {
+    segmentHeader.pageAssociation = (yield* jbigReadUint(data, position, 4));
+    position += 4;
+  }
+  segmentHeader.length = (yield* jbigReadUint(data, position, 4));
+  position += 4;
+  if (segmentHeader.length === 0xffffffff) {
+    if (segmentType === 38) {
+      const genericRegionInfo = (yield* readRegionSegmentInformation(data, position));
+      const genericRegionSegmentFlags = (yield {source: data, position: position + RegionSegmentInformationFieldLength});
+      const genericRegionMmr = !!(genericRegionSegmentFlags & 1);
+      const searchPatternLength = 6;
+      const searchPattern = new Uint8Array(searchPatternLength);
+      if (!genericRegionMmr) {
+        searchPattern[0] = 0xff;
+        searchPattern[1] = 0xac;
+      }
+      searchPattern[2] = genericRegionInfo.height >>> 24 & 0xff;
+      searchPattern[3] = genericRegionInfo.height >> 16 & 0xff;
+      searchPattern[4] = genericRegionInfo.height >> 8 & 0xff;
+      searchPattern[5] = genericRegionInfo.height & 0xff;
+      for (i = position, ii = data.length; i < ii; i++) {
+        let j = 0;
+        while (j < searchPatternLength && searchPattern[j] === (yield {source: data, position: i + j})) {
+          j++;
+        }
+        if (j === searchPatternLength) {
+          segmentHeader.length = i + searchPatternLength;
+          break;
+        }
+      }
+      if (segmentHeader.length === 0xffffffff) {
+        throw new Jbig2Error("segment end was not found");
+      }
+    } else {
+      throw new Jbig2Error("invalid unknown segment length");
+    }
+  }
+  segmentHeader.headerEnd = position;
+  return segmentHeader;
+}
+function* readSegments(header, data, start, end, onAllocation) {
+  const segments = [];
+  let position = start;
+  while (position < end) {
+    const segmentHeader = (yield* readSegmentHeader(data, position, onAllocation));
+    position = segmentHeader.headerEnd;
+    const segment = {
+      header: segmentHeader,
+      data
+    };
+    if (!header.randomAccess) {
+      segment.start = position;
+      position += segmentHeader.length;
+      segment.end = position;
+    }
+    segments.push(segment);
+    if (segmentHeader.type === 51) {
+      break;
+    }
+  }
+  if (header.randomAccess) {
+    for (let i = 0, ii = segments.length; i < ii; i++) {
+      segments[i].start = position;
+      position += segments[i].header.length;
+      segments[i].end = position;
+    }
+  }
+  return segments;
+}
+function* readRegionSegmentInformation(data, start) {
+  return {
+    width: (yield* jbigReadUint(data, start, 4)),
+    height: (yield* jbigReadUint(data, start + 4, 4)),
+    x: (yield* jbigReadUint(data, start + 8, 4)),
+    y: (yield* jbigReadUint(data, start + 12, 4)),
+    combinationOperator: (yield {source: data, position: start + 16}) & 7
+  };
+}
+const RegionSegmentInformationFieldLength = 17;
+function* processSegment(segment, visitor) {
+  const header = segment.header;
+  const data = segment.data,
+    end = segment.end;
+  let position = segment.start;
+  let args, at, i, atLength;
+  switch (header.type) {
+    case 0:
+      const dictionary = {};
+      const dictionaryFlags = (yield* jbigReadUint(data, position, 2));
+      dictionary.huffman = !!(dictionaryFlags & 1);
+      dictionary.refinement = !!(dictionaryFlags & 2);
+      dictionary.huffmanDHSelector = dictionaryFlags >> 2 & 3;
+      dictionary.huffmanDWSelector = dictionaryFlags >> 4 & 3;
+      dictionary.bitmapSizeSelector = dictionaryFlags >> 6 & 1;
+      dictionary.aggregationInstancesSelector = dictionaryFlags >> 7 & 1;
+      dictionary.bitmapCodingContextUsed = !!(dictionaryFlags & 256);
+      dictionary.bitmapCodingContextRetained = !!(dictionaryFlags & 512);
+      dictionary.template = dictionaryFlags >> 10 & 3;
+      dictionary.refinementTemplate = dictionaryFlags >> 12 & 1;
+      position += 2;
+      if (!dictionary.huffman) {
+        atLength = dictionary.template === 0 ? 4 : 1;
+        at = [];
+        for (i = 0; i < atLength; i++) {
+          at.push({
+            x: (yield* jbigReadUint(data, position, 1, true)),
+            y: (yield* jbigReadUint(data, position + 1, 1, true))
+          });
+          position += 2;
+        }
+        dictionary.at = at;
+      }
+      if (dictionary.refinement && !dictionary.refinementTemplate) {
+        at = [];
+        for (i = 0; i < 2; i++) {
+          at.push({
+            x: (yield* jbigReadUint(data, position, 1, true)),
+            y: (yield* jbigReadUint(data, position + 1, 1, true))
+          });
+          position += 2;
+        }
+        dictionary.refinementAt = at;
+      }
+      dictionary.numberOfExportedSymbols = (yield* jbigReadUint(data, position, 4));
+      position += 4;
+      dictionary.numberOfNewSymbols = (yield* jbigReadUint(data, position, 4));
+      position += 4;
+      args = [dictionary, header.number, header.referredTo, data, position, end];
+      break;
+    case 6:
+    case 7:
+      const textRegion = {};
+      textRegion.info = (yield* readRegionSegmentInformation(data, position));
+      position += RegionSegmentInformationFieldLength;
+      const textRegionSegmentFlags = (yield* jbigReadUint(data, position, 2));
+      position += 2;
+      textRegion.huffman = !!(textRegionSegmentFlags & 1);
+      textRegion.refinement = !!(textRegionSegmentFlags & 2);
+      textRegion.logStripSize = textRegionSegmentFlags >> 2 & 3;
+      textRegion.stripSize = 1 << textRegion.logStripSize;
+      textRegion.referenceCorner = textRegionSegmentFlags >> 4 & 3;
+      textRegion.transposed = !!(textRegionSegmentFlags & 64);
+      textRegion.combinationOperator = textRegionSegmentFlags >> 7 & 3;
+      textRegion.defaultPixelValue = textRegionSegmentFlags >> 9 & 1;
+      textRegion.dsOffset = textRegionSegmentFlags << 17 >> 27;
+      textRegion.refinementTemplate = textRegionSegmentFlags >> 15 & 1;
+      if (textRegion.huffman) {
+        const textRegionHuffmanFlags = (yield* jbigReadUint(data, position, 2));
+        position += 2;
+        textRegion.huffmanFS = textRegionHuffmanFlags & 3;
+        textRegion.huffmanDS = textRegionHuffmanFlags >> 2 & 3;
+        textRegion.huffmanDT = textRegionHuffmanFlags >> 4 & 3;
+        textRegion.huffmanRefinementDW = textRegionHuffmanFlags >> 6 & 3;
+        textRegion.huffmanRefinementDH = textRegionHuffmanFlags >> 8 & 3;
+        textRegion.huffmanRefinementDX = textRegionHuffmanFlags >> 10 & 3;
+        textRegion.huffmanRefinementDY = textRegionHuffmanFlags >> 12 & 3;
+        textRegion.huffmanRefinementSizeSelector = !!(textRegionHuffmanFlags & 0x4000);
+      }
+      if (textRegion.refinement && !textRegion.refinementTemplate) {
+        at = [];
+        for (i = 0; i < 2; i++) {
+          at.push({
+            x: (yield* jbigReadUint(data, position, 1, true)),
+            y: (yield* jbigReadUint(data, position + 1, 1, true))
+          });
+          position += 2;
+        }
+        textRegion.refinementAt = at;
+      }
+      textRegion.numberOfSymbolInstances = (yield* jbigReadUint(data, position, 4));
+      position += 4;
+      args = [textRegion, header.referredTo, data, position, end];
+      break;
+    case 16:
+      const patternDictionary = {};
+      const patternDictionaryFlags = (yield {source: data, position: position++});
+      patternDictionary.mmr = !!(patternDictionaryFlags & 1);
+      patternDictionary.template = patternDictionaryFlags >> 1 & 3;
+      patternDictionary.patternWidth = (yield {source: data, position: position++});
+      patternDictionary.patternHeight = (yield {source: data, position: position++});
+      patternDictionary.maxPatternIndex = (yield* jbigReadUint(data, position, 4));
+      position += 4;
+      args = [patternDictionary, header.number, data, position, end];
+      break;
+    case 22:
+    case 23:
+      const halftoneRegion = {};
+      halftoneRegion.info = (yield* readRegionSegmentInformation(data, position));
+      position += RegionSegmentInformationFieldLength;
+      const halftoneRegionFlags = (yield {source: data, position: position++});
+      halftoneRegion.mmr = !!(halftoneRegionFlags & 1);
+      halftoneRegion.template = halftoneRegionFlags >> 1 & 3;
+      halftoneRegion.enableSkip = !!(halftoneRegionFlags & 8);
+      halftoneRegion.combinationOperator = halftoneRegionFlags >> 4 & 7;
+      halftoneRegion.defaultPixelValue = halftoneRegionFlags >> 7 & 1;
+      halftoneRegion.gridWidth = (yield* jbigReadUint(data, position, 4));
+      position += 4;
+      halftoneRegion.gridHeight = (yield* jbigReadUint(data, position, 4));
+      position += 4;
+      halftoneRegion.gridOffsetX = (yield* jbigReadUint(data, position, 4)) & 0xffffffff;
+      position += 4;
+      halftoneRegion.gridOffsetY = (yield* jbigReadUint(data, position, 4)) & 0xffffffff;
+      position += 4;
+      halftoneRegion.gridVectorX = (yield* jbigReadUint(data, position, 2));
+      position += 2;
+      halftoneRegion.gridVectorY = (yield* jbigReadUint(data, position, 2));
+      position += 2;
+      args = [halftoneRegion, header.referredTo, data, position, end];
+      break;
+    case 38:
+    case 39:
+      const genericRegion = {};
+      genericRegion.info = (yield* readRegionSegmentInformation(data, position));
+      position += RegionSegmentInformationFieldLength;
+      const genericRegionSegmentFlags = (yield {source: data, position: position++});
+      genericRegion.mmr = !!(genericRegionSegmentFlags & 1);
+      genericRegion.template = genericRegionSegmentFlags >> 1 & 3;
+      genericRegion.prediction = !!(genericRegionSegmentFlags & 8);
+      if (!genericRegion.mmr) {
+        atLength = genericRegion.template === 0 ? 4 : 1;
+        at = [];
+        for (i = 0; i < atLength; i++) {
+          at.push({
+            x: (yield* jbigReadUint(data, position, 1, true)),
+            y: (yield* jbigReadUint(data, position + 1, 1, true))
+          });
+          position += 2;
+        }
+        genericRegion.at = at;
+      }
+      args = [genericRegion, data, position, end];
+      break;
+    case 48:
+      const pageInfo = {
+        width: (yield* jbigReadUint(data, position, 4)),
+        height: (yield* jbigReadUint(data, position + 4, 4)),
+        resolutionX: (yield* jbigReadUint(data, position + 8, 4)),
+        resolutionY: (yield* jbigReadUint(data, position + 12, 4))
+      };
+      if (pageInfo.height === 0xffffffff) {
+        delete pageInfo.height;
+      }
+      const pageSegmentFlags = (yield {source: data, position: position + 16});
+      (yield* jbigReadUint(data, position + 17, 2));
+      pageInfo.lossless = !!(pageSegmentFlags & 1);
+      pageInfo.refinement = !!(pageSegmentFlags & 2);
+      pageInfo.defaultPixelValue = pageSegmentFlags >> 2 & 1;
+      pageInfo.combinationOperator = pageSegmentFlags >> 3 & 3;
+      pageInfo.requiresBuffer = !!(pageSegmentFlags & 32);
+      pageInfo.combinationOperatorOverride = !!(pageSegmentFlags & 64);
+      args = [pageInfo];
+      break;
+    case 49:
+      break;
+    case 50:
+      break;
+    case 51:
+      break;
+    case 53:
+      args = [header.number, data, position, end];
+      break;
+    case 62:
+      break;
+    default:
+      throw new Jbig2Error(`segment type ${header.typeName}(${header.type}) is not implemented`);
+  }
+  const callbackName = "on" + header.typeName;
+  if (callbackName in visitor) {
+    (yield* visitor[callbackName].apply(visitor, args));
+  }
+}
+function* processSegments(segments, visitor) {
+  for (let i = 0, ii = segments.length; i < ii; i++) {
+    (yield* processSegment(segments[i], visitor));
+  }
+}
+// Sequential chunks consume each header immediately. Random-access files first
+// locate the payload area, then rescan headers while advancing one payload cursor.
+// Neither layout needs a resident segment index.
+function* processStoredSegments(fileHeader, data, start, end, visitor) {
+  let currentBytes = 0;
+  const admit = bytes => {
+    currentBytes += bytes;
+    const peak = visitor.headerBytes ?? 0;
+    if (currentBytes > peak) {
+      visitor.onAllocation?.(currentBytes - peak);
+      visitor.headerBytes = currentBytes;
+    }
+  };
+  let payload = start;
+  if (fileHeader.randomAccess) {
+    while (payload < end) {
+      currentBytes = 0;
+      const header = yield* readSegmentHeader(data, payload, admit, true);
+      payload = header.headerEnd;
+      if (header.type === 51) break;
+    }
+  }
+  const headersEnd = fileHeader.randomAccess ? payload : end;
+  while (start < headersEnd) {
+    currentBytes = 0;
+    const header = yield* readSegmentHeader(data, start, admit, true);
+    const position = fileHeader.randomAccess ? payload : header.headerEnd;
+    const segmentEnd = position + header.length;
+    yield* processSegment({header, data, start: position, end: segmentEnd}, visitor);
+    start = fileHeader.randomAccess ? header.headerEnd : segmentEnd;
+    payload = segmentEnd;
+    if (header.type === 51) break;
+  }
+}
+function* parseJbig2Chunks(chunks, onImageDimensions, onAllocation, storedBitmap) {
+  const visitor = new SimpleSegmentVisitor(onImageDimensions, onAllocation, storedBitmap);
+  for (let i = 0, ii = chunks.length; i < ii; i++) {
+    const chunk = chunks[i];
+    if (storedBitmap) yield* processStoredSegments({}, chunk.data, chunk.start, chunk.end, visitor);
+    else {
+      const segments = (yield* readSegments({}, chunk.data, chunk.start, chunk.end, onAllocation));
+      (yield* processSegments(segments, visitor));
+    }
+  }
+  return visitor.buffer;
+}
+function* parseJbig2(data, onImageDimensions, onAllocation, packed, storedBitmap) {
+  const end = data.length;
+  let position = 0;
+  if ((yield {source: data, position: position}) !== 0x97 || (yield {source: data, position: position + 1}) !== 0x4a || (yield {source: data, position: position + 2}) !== 0x42 || (yield {source: data, position: position + 3}) !== 0x32 || (yield {source: data, position: position + 4}) !== 0x0d || (yield {source: data, position: position + 5}) !== 0x0a || (yield {source: data, position: position + 6}) !== 0x1a || (yield {source: data, position: position + 7}) !== 0x0a) {
+    throw new Jbig2Error("parseJbig2 - invalid header.");
+  }
+  const header = Object.create(null);
+  position += 8;
+  const flags = (yield {source: data, position: position++});
+  header.randomAccess = !(flags & 1);
+  if (!(flags & 2)) {
+    header.numberOfPages = (yield* jbigReadUint(data, position, 4));
+    position += 4;
+  }
+  const visitor = new SimpleSegmentVisitor(onImageDimensions, onAllocation, storedBitmap);
+  if (storedBitmap) yield* processStoredSegments(header, data, position, end, visitor);
+  else {
+    const segments = (yield* readSegments(header, data, position, end, onAllocation));
+    (yield* processSegments(segments, visitor));
+  }
+  const {
+    width,
+    height
+  } = visitor.currentPageInfo;
+  const bitPacked = visitor.buffer;
+  if (packed) return { imgData: bitPacked, width, height };
+  onAllocation?.(width * height + 128);
+  const imgData = new Uint8ClampedArray(width * height);
+  let q = 0,
+    k = 0;
+  for (let i = 0; i < height; i++) {
+    let mask = 0,
+      buffer;
+    for (let j = 0; j < width; j++) {
+      if (!mask) {
+        mask = 128;
+        buffer = bitPacked[k++];
+      }
+      imgData[q++] = buffer & mask ? 0 : 255;
+      mask >>= 1;
+    }
+  }
+  return {
+    imgData,
+    width,
+    height
+  };
+}
+class SimpleSegmentVisitor {
+  constructor(onImageDimensions, onAllocation, storedBitmap) { this.onImageDimensions = onImageDimensions; this.onAllocation = onAllocation; this.storedBitmap = storedBitmap; }
+  regionAllocation() {
+    if (!this.storedBitmap) return this.onAllocation;
+    // Dictionary/region contexts, tables and row windows are released after use.
+    // Persistent caller-backed records and page state have separate ownership.
+    let regionBytes = 0;
+    return bytes => {
+      regionBytes += bytes;
+      const peak = this.regionBytes ?? 0;
+      if (regionBytes > peak) {
+        this.onAllocation?.(regionBytes - peak);
+        this.regionBytes = regionBytes;
+      }
+    };
+  }
+  *onPageInformation(info) {
+    this.onImageDimensions?.(info.width, info.height);
+    this.currentPageInfo = info;
+    const rowSize = info.width + 7 >> 3;
+    this.onAllocation?.(this.storedBitmap ? 512 : rowSize * info.height + 256);
+    if (this.storedBitmap) {
+      const length = rowSize * info.height;
+      this.buffer = {length, position: yield {kind: "bitmap-allocate", length, fill: info.defaultPixelValue ? 255 : 0}};
+      return;
+    }
+    const buffer = new Uint8ClampedArray(rowSize * info.height);
+    if (info.defaultPixelValue) {
+      buffer.fill(0xff);
+    }
+    this.buffer = buffer;
+  }
+  *drawBitmap(regionInfo, bitmap) {
+    const pageInfo = this.currentPageInfo;
+    const width = regionInfo.width,
+      height = regionInfo.height;
+    const rowSize = pageInfo.width + 7 >> 3;
+    const combinationOperator = pageInfo.combinationOperatorOverride ? regionInfo.combinationOperator : pageInfo.combinationOperator;
+    const buffer = this.buffer;
+    const mask0 = 128 >> (regionInfo.x & 7);
+    let offset0 = regionInfo.y * rowSize + (regionInfo.x >> 3);
+    let i, j, mask, offset, byte;
+    switch (combinationOperator) {
+      case 0:
+        for (i = 0; i < height; i++) {
+          mask = mask0;
+          offset = offset0;
+          for (j = 0; j < width; j++) {
+            if (bitmap.position !== undefined && (j & 7) === 0)
+              byte = yield {kind: "bitmap-read", bitmap, offset: i * bitmap.rowSize + (j >> 3)};
+            if (bitmap.position !== undefined ? (byte >> (7 - (j & 7))) & 1 : bitmap[i][j]) {
+              if (this.storedBitmap) yield {kind: "bitmap-update", bitmap: buffer, offset, mask, operator: "or"};
+              else buffer[offset] |= mask;
+            }
+            mask >>= 1;
+            if (!mask) {
+              mask = 128;
+              offset++;
+            }
+          }
+          offset0 += rowSize;
+        }
+        break;
+      case 2:
+        for (i = 0; i < height; i++) {
+          mask = mask0;
+          offset = offset0;
+          for (j = 0; j < width; j++) {
+            if (bitmap.position !== undefined && (j & 7) === 0)
+              byte = yield {kind: "bitmap-read", bitmap, offset: i * bitmap.rowSize + (j >> 3)};
+            if (bitmap.position !== undefined ? (byte >> (7 - (j & 7))) & 1 : bitmap[i][j]) {
+              if (this.storedBitmap) yield {kind: "bitmap-update", bitmap: buffer, offset, mask, operator: "xor"};
+              else buffer[offset] ^= mask;
+            }
+            mask >>= 1;
+            if (!mask) {
+              mask = 128;
+              offset++;
+            }
+          }
+          offset0 += rowSize;
+        }
+        break;
+      default:
+        throw new Jbig2Error(`operator ${combinationOperator} is not supported`);
+    }
+  }
+  *onImmediateGenericRegion(region, data, start, end) {
+    const regionInfo = region.info;
+    const admit = this.regionAllocation();
+    const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions, admit);
+    if (this.storedBitmap) {
+      const visitor = this;
+      yield* decodeBitmap(region.mmr, regionInfo.width, regionInfo.height, region.template, region.prediction, null, region.at, decodingContext, function* (row, y) {
+        yield* visitor.drawBitmap({...regionInfo, y: regionInfo.y + y, height: 1}, [row]);
+      });
+      return;
+    }
+    const bitmap = (yield* decodeBitmap(region.mmr, regionInfo.width, regionInfo.height, region.template, region.prediction, null, region.at, decodingContext));
+    (yield* this.drawBitmap(regionInfo, bitmap));
+  }
+  *onImmediateLosslessGenericRegion() {
+    (yield* this.onImmediateGenericRegion(...arguments));
+  }
+  *onSymbolDictionary(dictionary, currentSegment, referredSegments, data, start, end) {
+    let huffmanTables, huffmanInput;
+    if (dictionary.huffman) {
+      huffmanTables = yield* getSymbolDictionaryHuffmanTables(dictionary, referredSegments, this.customTables);
+      huffmanInput = new Reader(data, start, end);
+    }
+    let symbols = this.symbols;
+    if (!symbols) {
+      this.symbols = symbols = this.storedBitmap ? new StoredJbigIndex() : {};
+    }
+    let capacity = 0;
+    if (this.storedBitmap) for (let i = 0; i < referredSegments.length; i++) capacity += (yield* jbigDictionaryGet(symbols, yield* jbigListGet(referredSegments, i)))?.length ?? 0;
+    const inputSymbols = this.storedBitmap ? yield* StoredJbigList.create(capacity, JbigSymbolFields) : [];
+    for (let i = 0; i < referredSegments.length; i++) {
+      const referredSegment = yield* jbigListGet(referredSegments, i);
+      const referredSymbols = yield* jbigDictionaryGet(symbols, referredSegment);
+      if (referredSymbols) {
+        if (!this.storedBitmap) this.onAllocation?.(referredSymbols.length * 16 + 128);
+        for (let i = 0; i < referredSymbols.length; i++) yield* jbigListPush(inputSymbols, yield* jbigListGet(referredSymbols, i));
+      }
+    }
+    const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions, this.regionAllocation(), this.storedBitmap);
+    const decoded = (yield* decodeSymbolDictionary(dictionary.huffman, dictionary.refinement, inputSymbols, dictionary.numberOfNewSymbols, dictionary.numberOfExportedSymbols, huffmanTables, dictionary.template, dictionary.at, dictionary.refinementTemplate, dictionary.refinementAt, decodingContext, huffmanInput));
+    if (this.storedBitmap) yield* symbols.set(currentSegment, decoded);
+    else symbols[currentSegment] = decoded;
+  }
+  *onImmediateTextRegion(region, referredSegments, data, start, end) {
+    const regionInfo = region.info, admit = this.regionAllocation();
+    let huffmanTables, huffmanInput;
+    const symbols = this.symbols;
+    let capacity = 0;
+    if (this.storedBitmap) for (let i = 0; i < referredSegments.length; i++) capacity += (yield* jbigDictionaryGet(symbols, yield* jbigListGet(referredSegments, i)))?.length ?? 0;
+    const inputSymbols = this.storedBitmap ? yield* StoredJbigList.create(capacity, JbigSymbolFields) : [];
+    for (let i = 0; i < referredSegments.length; i++) {
+      const referredSegment = yield* jbigListGet(referredSegments, i);
+      const referredSymbols = yield* jbigDictionaryGet(symbols, referredSegment);
+      if (referredSymbols) {
+        if (!this.storedBitmap) admit?.(referredSymbols.length * 16 + 128);
+        for (let i = 0; i < referredSymbols.length; i++) yield* jbigListPush(inputSymbols, yield* jbigListGet(referredSymbols, i));
+      }
+    }
+    const symbolCodeLength = log2(inputSymbols.length);
+    if (region.huffman) {
+      huffmanInput = new Reader(data, start, end);
+      huffmanTables = (yield* getTextRegionHuffmanTables(region, referredSegments, this.customTables, inputSymbols.length, huffmanInput, admit, this.storedBitmap));
+    }
+    const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions, admit, this.storedBitmap);
+    const bitmap = (yield* decodeTextRegion(region.huffman, region.refinement, regionInfo.width, regionInfo.height, region.defaultPixelValue, region.numberOfSymbolInstances, region.stripSize, inputSymbols, symbolCodeLength, region.transposed, region.dsOffset, region.referenceCorner, region.combinationOperator, huffmanTables, region.refinementTemplate, region.refinementAt, decodingContext, region.logStripSize, huffmanInput, this.storedBitmap));
+    (yield* this.drawBitmap(regionInfo, bitmap));
+  }
+  *onImmediateLosslessTextRegion() {
+    (yield* this.onImmediateTextRegion(...arguments));
+  }
+  *onPatternDictionary(dictionary, currentSegment, data, start, end) {
+    let patterns = this.patterns;
+    if (!patterns) {
+      this.patterns = patterns = this.storedBitmap ? new StoredJbigIndex() : {};
+    }
+    const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions, this.regionAllocation());
+    const decoded = (yield* decodePatternDictionary(dictionary.mmr, dictionary.patternWidth, dictionary.patternHeight, dictionary.maxPatternIndex, dictionary.template, decodingContext, this.storedBitmap));
+    if (this.storedBitmap) yield* patterns.set(currentSegment, decoded);
+    else patterns[currentSegment] = decoded;
+  }
+  *onImmediateHalftoneRegion(region, referredSegments, data, start, end) {
+    const patterns = yield* jbigDictionaryGet(this.patterns, yield* jbigListGet(referredSegments, 0));
+    const regionInfo = region.info, admit = this.regionAllocation();
+    const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions, admit);
+    const bitmap = (yield* decodeHalftoneRegion(region.mmr, patterns, region.template, regionInfo.width, regionInfo.height, region.defaultPixelValue, region.enableSkip, region.combinationOperator, region.gridWidth, region.gridHeight, region.gridOffsetX, region.gridOffsetY, region.gridVectorX, region.gridVectorY, decodingContext, this.storedBitmap));
+    (yield* this.drawBitmap(regionInfo, bitmap));
+  }
+  *onImmediateLosslessHalftoneRegion() {
+    (yield* this.onImmediateHalftoneRegion(...arguments));
+  }
+  *onTables(currentSegment, data, start, end) {
+    let customTables = this.customTables;
+    if (!customTables) {
+      this.customTables = customTables = this.storedBitmap ? new StoredJbigIndex() : {};
+    }
+    const table = yield* decodeTablesSegment(data, start, end, this.regionAllocation(), this.storedBitmap);
+    if (this.storedBitmap) yield* customTables.set(currentSegment, table);
+    else customTables[currentSegment] = table;
+  }
+}
+class HuffmanLine {
+  constructor(lineData) {
+    if (lineData.length === 2) {
+      this.isOOB = true;
+      this.rangeLow = 0;
+      this.prefixLength = lineData[0];
+      this.rangeLength = 0;
+      this.prefixCode = lineData[1];
+      this.isLowerRange = false;
+    } else {
+      this.isOOB = false;
+      this.rangeLow = lineData[0];
+      this.prefixLength = lineData[1];
+      this.rangeLength = lineData[2];
+      this.prefixCode = lineData[3];
+      this.isLowerRange = lineData[4] === "lower";
+    }
+  }
+}
+class HuffmanTreeNode {
+  constructor(line, onAllocation) {
+    this.onAllocation = onAllocation;
+    onAllocation?.(256);
+    this.children = [];
+    if (line) {
+      this.isLeaf = true;
+      this.rangeLength = line.rangeLength;
+      this.rangeLow = line.rangeLow;
+      this.isLowerRange = line.isLowerRange;
+      this.isOOB = line.isOOB;
+    } else {
+      this.isLeaf = false;
+    }
+  }
+  buildTree(line, shift) {
+    const bit = line.prefixCode >> shift & 1;
+    if (shift <= 0) {
+      this.children[bit] = new HuffmanTreeNode(line, this.onAllocation);
+    } else {
+      let node = this.children[bit];
+      if (!node) {
+        this.children[bit] = node = new HuffmanTreeNode(null, this.onAllocation);
+      }
+      node.buildTree(line, shift - 1);
+    }
+  }
+  *decodeNode(reader) {
+    if (this.isLeaf) {
+      if (this.isOOB) {
+        return null;
+      }
+      const htOffset = (yield* reader.readBits(this.rangeLength));
+      return this.rangeLow + (this.isLowerRange ? -htOffset : htOffset);
+    }
+    const node = this.children[(yield* reader.readBit())];
+    if (!node) {
+      throw new Jbig2Error("invalid Huffman data");
+    }
+    return (yield* node.decodeNode(reader));
+  }
+}
+class HuffmanTable {
+  constructor(lines, prefixCodesDone, onAllocation) {
+    this.onAllocation = onAllocation;
+    onAllocation?.(256);
+    if (!prefixCodesDone) {
+      this.assignPrefixCodes(lines);
+    }
+    this.rootNode = new HuffmanTreeNode(null, this.onAllocation);
+    for (let i = 0, ii = lines.length; i < ii; i++) {
+      const line = lines[i];
+      if (line.prefixLength > 0) {
+        this.rootNode.buildTree(line, line.prefixLength - 1);
+      }
+    }
+  }
+  *decode(reader) {
+    return (yield* this.rootNode.decodeNode(reader));
+  }
+  assignPrefixCodes(lines) {
+    const linesLength = lines.length;
+    let prefixLengthMax = 0;
+    for (let i = 0; i < linesLength; i++) {
+      prefixLengthMax = Math.max(prefixLengthMax, lines[i].prefixLength);
+    }
+    this.onAllocation?.((prefixLengthMax + 1) * 4 + 128);
+    const histogram = new Uint32Array(prefixLengthMax + 1);
+    for (let i = 0; i < linesLength; i++) {
+      histogram[lines[i].prefixLength]++;
+    }
+    let currentLength = 1,
+      firstCode = 0,
+      currentCode,
+      currentTemp,
+      line;
+    histogram[0] = 0;
+    while (currentLength <= prefixLengthMax) {
+      firstCode = firstCode + histogram[currentLength - 1] << 1;
+      currentCode = firstCode;
+      currentTemp = 0;
+      while (currentTemp < linesLength) {
+        line = lines[currentTemp];
+        if (line.prefixLength === currentLength) {
+          line.prefixCode = currentCode;
+          currentCode++;
+        }
+        currentTemp++;
+      }
+      currentLength++;
+    }
+  }
+}
+const JbigHuffmanLineFields = ["rangeLow", "prefixLength", "rangeLength", "isLowerRange", "isOOB"];
+const JbigHuffmanNodeFields = ["zero", "one", "leaf", "rangeLow", "rangeLength", "isLowerRange", "isOOB"];
+class StoredJbigHuffman {
+  constructor(nodes) { this.nodes = nodes; }
+  static *create(lines) {
+    // Prefix lengths in a custom table are at most 255. Canonical code assignment
+    // needs only these fixed histograms; line records and trie nodes use backing.
+    const histogram = new Uint32Array(256), codes = new Int32Array(256);
+    let maximum = 0;
+    for (let i = 0; i < lines.length; i++) {
+      const line = yield* lines.get(i);
+      histogram[line.prefixLength]++; maximum = Math.max(maximum, line.prefixLength);
+    }
+    histogram[0] = 0;
+    for (let i = 1; i <= maximum; i++) codes[i] = (codes[i - 1] + histogram[i - 1]) << 1;
+    const nodes = yield* StoredJbigList.create(lines.length * 2 + 1, JbigHuffmanNodeFields);
+    yield* nodes.push({});
+    for (let i = 0; i < lines.length; i++) {
+      const line = yield* lines.get(i);
+      if (!line.prefixLength) continue;
+      const code = codes[line.prefixLength]++;
+      let index = 0;
+      for (let shift = line.prefixLength - 1; shift >= 0; shift--) {
+        const bit = (code >> shift) & 1;
+        let child = yield {kind: "number-read", buffer: nodes.buffer, offset: index * nodes.stride + bit * 8};
+        if (shift === 0 || !child) {
+          child = nodes.length + 1;
+          yield* nodes.push(shift === 0 ? {...line, leaf: 1} : {});
+          yield {kind: "number-write", buffer: nodes.buffer, offset: index * nodes.stride + bit * 8, value: child};
+        }
+        index = child - 1;
+      }
+    }
+    return new StoredJbigHuffman(nodes);
+  }
+  *decode(reader) {
+    let index = 0;
+    for (;;) {
+      const node = yield* this.nodes.get(index);
+      if (node.leaf) {
+        if (node.isOOB) return null;
+        const offset = yield* reader.readBits(node.rangeLength);
+        return node.rangeLow + (node.isLowerRange ? -offset : offset);
+      }
+      const child = (yield* reader.readBit()) ? node.one : node.zero;
+      if (!child) throw new Jbig2Error("invalid Huffman data");
+      index = child - 1;
+    }
+  }
+}
+function* decodeTablesSegment(data, start, end, onAllocation, stored) {
+  onAllocation?.(stored ? 8192 : 1024);
+  const flags = (yield {source: data, position: start});
+  const lowestValue = (yield* jbigReadUint(data, start + 1, 4)) & 0xffffffff;
+  const highestValue = (yield* jbigReadUint(data, start + 5, 4)) & 0xffffffff;
+  const reader = new Reader(data, start + 9, end);
+  const prefixSizeBits = (flags >> 1 & 7) + 1;
+  const rangeSizeBits = (flags >> 4 & 7) + 1;
+  const lines = stored ? yield* StoredJbigList.create(16, JbigHuffmanLineFields) : [];
+  let prefixLength,
+    rangeLength,
+    currentRangeLow = lowestValue;
+  do {
+    prefixLength = (yield* reader.readBits(prefixSizeBits));
+    rangeLength = (yield* reader.readBits(rangeSizeBits));
+    if (!stored) onAllocation?.(256);
+    yield* jbigListPush(lines, new HuffmanLine([currentRangeLow, prefixLength, rangeLength, 0]));
+    currentRangeLow += 1 << rangeLength;
+  } while (currentRangeLow < highestValue);
+  prefixLength = (yield* reader.readBits(prefixSizeBits));
+  yield* jbigListPush(lines, new HuffmanLine([lowestValue - 1, prefixLength, 32, 0, "lower"]));
+  prefixLength = (yield* reader.readBits(prefixSizeBits));
+  yield* jbigListPush(lines, new HuffmanLine([highestValue, prefixLength, 32, 0]));
+  if (flags & 1) {
+    prefixLength = (yield* reader.readBits(prefixSizeBits));
+    yield* jbigListPush(lines, new HuffmanLine([prefixLength, 0]));
+  }
+  return stored ? yield* StoredJbigHuffman.create(lines) : new HuffmanTable(lines, false, onAllocation);
+}
+const standardTablesCache = {};
+function getStandardTable(number) {
+  let table = standardTablesCache[number];
+  if (table) {
+    return table;
+  }
+  let lines;
+  switch (number) {
+    case 1:
+      lines = [[0, 1, 4, 0x0], [16, 2, 8, 0x2], [272, 3, 16, 0x6], [65808, 3, 32, 0x7]];
+      break;
+    case 2:
+      lines = [[0, 1, 0, 0x0], [1, 2, 0, 0x2], [2, 3, 0, 0x6], [3, 4, 3, 0xe], [11, 5, 6, 0x1e], [75, 6, 32, 0x3e], [6, 0x3f]];
+      break;
+    case 3:
+      lines = [[-256, 8, 8, 0xfe], [0, 1, 0, 0x0], [1, 2, 0, 0x2], [2, 3, 0, 0x6], [3, 4, 3, 0xe], [11, 5, 6, 0x1e], [-257, 8, 32, 0xff, "lower"], [75, 7, 32, 0x7e], [6, 0x3e]];
+      break;
+    case 4:
+      lines = [[1, 1, 0, 0x0], [2, 2, 0, 0x2], [3, 3, 0, 0x6], [4, 4, 3, 0xe], [12, 5, 6, 0x1e], [76, 5, 32, 0x1f]];
+      break;
+    case 5:
+      lines = [[-255, 7, 8, 0x7e], [1, 1, 0, 0x0], [2, 2, 0, 0x2], [3, 3, 0, 0x6], [4, 4, 3, 0xe], [12, 5, 6, 0x1e], [-256, 7, 32, 0x7f, "lower"], [76, 6, 32, 0x3e]];
+      break;
+    case 6:
+      lines = [[-2048, 5, 10, 0x1c], [-1024, 4, 9, 0x8], [-512, 4, 8, 0x9], [-256, 4, 7, 0xa], [-128, 5, 6, 0x1d], [-64, 5, 5, 0x1e], [-32, 4, 5, 0xb], [0, 2, 7, 0x0], [128, 3, 7, 0x2], [256, 3, 8, 0x3], [512, 4, 9, 0xc], [1024, 4, 10, 0xd], [-2049, 6, 32, 0x3e, "lower"], [2048, 6, 32, 0x3f]];
+      break;
+    case 7:
+      lines = [[-1024, 4, 9, 0x8], [-512, 3, 8, 0x0], [-256, 4, 7, 0x9], [-128, 5, 6, 0x1a], [-64, 5, 5, 0x1b], [-32, 4, 5, 0xa], [0, 4, 5, 0xb], [32, 5, 5, 0x1c], [64, 5, 6, 0x1d], [128, 4, 7, 0xc], [256, 3, 8, 0x1], [512, 3, 9, 0x2], [1024, 3, 10, 0x3], [-1025, 5, 32, 0x1e, "lower"], [2048, 5, 32, 0x1f]];
+      break;
+    case 8:
+      lines = [[-15, 8, 3, 0xfc], [-7, 9, 1, 0x1fc], [-5, 8, 1, 0xfd], [-3, 9, 0, 0x1fd], [-2, 7, 0, 0x7c], [-1, 4, 0, 0xa], [0, 2, 1, 0x0], [2, 5, 0, 0x1a], [3, 6, 0, 0x3a], [4, 3, 4, 0x4], [20, 6, 1, 0x3b], [22, 4, 4, 0xb], [38, 4, 5, 0xc], [70, 5, 6, 0x1b], [134, 5, 7, 0x1c], [262, 6, 7, 0x3c], [390, 7, 8, 0x7d], [646, 6, 10, 0x3d], [-16, 9, 32, 0x1fe, "lower"], [1670, 9, 32, 0x1ff], [2, 0x1]];
+      break;
+    case 9:
+      lines = [[-31, 8, 4, 0xfc], [-15, 9, 2, 0x1fc], [-11, 8, 2, 0xfd], [-7, 9, 1, 0x1fd], [-5, 7, 1, 0x7c], [-3, 4, 1, 0xa], [-1, 3, 1, 0x2], [1, 3, 1, 0x3], [3, 5, 1, 0x1a], [5, 6, 1, 0x3a], [7, 3, 5, 0x4], [39, 6, 2, 0x3b], [43, 4, 5, 0xb], [75, 4, 6, 0xc], [139, 5, 7, 0x1b], [267, 5, 8, 0x1c], [523, 6, 8, 0x3c], [779, 7, 9, 0x7d], [1291, 6, 11, 0x3d], [-32, 9, 32, 0x1fe, "lower"], [3339, 9, 32, 0x1ff], [2, 0x0]];
+      break;
+    case 10:
+      lines = [[-21, 7, 4, 0x7a], [-5, 8, 0, 0xfc], [-4, 7, 0, 0x7b], [-3, 5, 0, 0x18], [-2, 2, 2, 0x0], [2, 5, 0, 0x19], [3, 6, 0, 0x36], [4, 7, 0, 0x7c], [5, 8, 0, 0xfd], [6, 2, 6, 0x1], [70, 5, 5, 0x1a], [102, 6, 5, 0x37], [134, 6, 6, 0x38], [198, 6, 7, 0x39], [326, 6, 8, 0x3a], [582, 6, 9, 0x3b], [1094, 6, 10, 0x3c], [2118, 7, 11, 0x7d], [-22, 8, 32, 0xfe, "lower"], [4166, 8, 32, 0xff], [2, 0x2]];
+      break;
+    case 11:
+      lines = [[1, 1, 0, 0x0], [2, 2, 1, 0x2], [4, 4, 0, 0xc], [5, 4, 1, 0xd], [7, 5, 1, 0x1c], [9, 5, 2, 0x1d], [13, 6, 2, 0x3c], [17, 7, 2, 0x7a], [21, 7, 3, 0x7b], [29, 7, 4, 0x7c], [45, 7, 5, 0x7d], [77, 7, 6, 0x7e], [141, 7, 32, 0x7f]];
+      break;
+    case 12:
+      lines = [[1, 1, 0, 0x0], [2, 2, 0, 0x2], [3, 3, 1, 0x6], [5, 5, 0, 0x1c], [6, 5, 1, 0x1d], [8, 6, 1, 0x3c], [10, 7, 0, 0x7a], [11, 7, 1, 0x7b], [13, 7, 2, 0x7c], [17, 7, 3, 0x7d], [25, 7, 4, 0x7e], [41, 8, 5, 0xfe], [73, 8, 32, 0xff]];
+      break;
+    case 13:
+      lines = [[1, 1, 0, 0x0], [2, 3, 0, 0x4], [3, 4, 0, 0xc], [4, 5, 0, 0x1c], [5, 4, 1, 0xd], [7, 3, 3, 0x5], [15, 6, 1, 0x3a], [17, 6, 2, 0x3b], [21, 6, 3, 0x3c], [29, 6, 4, 0x3d], [45, 6, 5, 0x3e], [77, 7, 6, 0x7e], [141, 7, 32, 0x7f]];
+      break;
+    case 14:
+      lines = [[-2, 3, 0, 0x4], [-1, 3, 0, 0x5], [0, 1, 0, 0x0], [1, 3, 0, 0x6], [2, 3, 0, 0x7]];
+      break;
+    case 15:
+      lines = [[-24, 7, 4, 0x7c], [-8, 6, 2, 0x3c], [-4, 5, 1, 0x1c], [-2, 4, 0, 0xc], [-1, 3, 0, 0x4], [0, 1, 0, 0x0], [1, 3, 0, 0x5], [2, 4, 0, 0xd], [3, 5, 1, 0x1d], [5, 6, 2, 0x3d], [9, 7, 4, 0x7d], [-25, 7, 32, 0x7e, "lower"], [25, 7, 32, 0x7f]];
+      break;
+    default:
+      throw new Jbig2Error(`standard table B.${number} does not exist`);
+  }
+  for (let i = 0, ii = lines.length; i < ii; i++) {
+    lines[i] = new HuffmanLine(lines[i]);
+  }
+  table = new HuffmanTable(lines, true);
+  standardTablesCache[number] = table;
+  return table;
+}
+class Reader {
+  constructor(data, start, end) {
+    this.data = data;
+    this.start = start;
+    this.end = end;
+    this.position = start;
+    this.shift = -1;
+    this.currentByte = 0;
+  }
+  *readBit() {
+    if (this.shift < 0) {
+      if (this.position >= this.end) {
+        throw new Jbig2Error("end of data while reading bit");
+      }
+      this.currentByte = (yield {source: this.data, position: this.position++});
+      this.shift = 7;
+    }
+    const bit = this.currentByte >> this.shift & 1;
+    this.shift--;
+    return bit;
+  }
+  *readBits(numBits) {
+    let result = 0,
+      i;
+    for (i = numBits - 1; i >= 0; i--) {
+      result |= (yield* this.readBit()) << i;
+    }
+    return result;
+  }
+  byteAlign() {
+    this.shift = -1;
+  }
+  *next() {
+    if (this.position >= this.end) {
+      return -1;
+    }
+    return (yield {source: this.data, position: this.position++});
+  }
+}
+function* getCustomHuffmanTable(index, referredTo, customTables) {
+  let currentIndex = 0;
+  for (let i = 0, ii = referredTo.length; i < ii; i++) {
+    const table = yield* jbigDictionaryGet(customTables, yield* jbigListGet(referredTo, i));
+    if (table) {
+      if (index === currentIndex) {
+        return table;
+      }
+      currentIndex++;
+    }
+  }
+  throw new Jbig2Error("can't find custom Huffman table");
+}
+function* getTextRegionHuffmanTables(textRegion, referredTo, customTables, numberOfSymbols, reader, onAllocation, stored) {
+  onAllocation?.(((stored ? 0 : numberOfSymbols) + 173) * 256);
+  const codes = [];
+  for (let i = 0; i <= 34; i++) {
+    const codeLength = (yield* reader.readBits(4));
+    codes.push(new HuffmanLine([i, codeLength, 0, 0]));
+  }
+  const runCodesTable = new HuffmanTable(codes, false, onAllocation);
+  codes.length = 0;
+  const symbolCodes = stored ? yield* StoredJbigList.create(numberOfSymbols, JbigHuffmanLineFields) : codes;
+  for (let i = 0; i < numberOfSymbols;) {
+    const codeLength = (yield* runCodesTable.decode(reader));
+    if (codeLength >= 32) {
+      let repeatedLength, numberOfRepeats, j;
+      switch (codeLength) {
+        case 32:
+          if (i === 0) {
+            throw new Jbig2Error("no previous value in symbol ID table");
+          }
+          numberOfRepeats = (yield* reader.readBits(2)) + 3;
+          repeatedLength = (yield* jbigListGet(symbolCodes, i - 1)).prefixLength;
+          break;
+        case 33:
+          numberOfRepeats = (yield* reader.readBits(3)) + 3;
+          repeatedLength = 0;
+          break;
+        case 34:
+          numberOfRepeats = (yield* reader.readBits(7)) + 11;
+          repeatedLength = 0;
+          break;
+        default:
+          throw new Jbig2Error("invalid code length in symbol ID table");
+      }
+      for (j = 0; j < numberOfRepeats; j++) {
+        yield* jbigListPush(symbolCodes, new HuffmanLine([i, repeatedLength, 0, 0]));
+        i++;
+      }
+    } else {
+      yield* jbigListPush(symbolCodes, new HuffmanLine([i, codeLength, 0, 0]));
+      i++;
+    }
+  }
+  reader.byteAlign();
+  const symbolIDTable = stored ? yield* StoredJbigHuffman.create(symbolCodes) : new HuffmanTable(codes, false, onAllocation);
+  let customIndex = 0,
+    tableFirstS,
+    tableDeltaS,
+    tableDeltaT;
+  switch (textRegion.huffmanFS) {
+    case 0:
+    case 1:
+      tableFirstS = getStandardTable(textRegion.huffmanFS + 6);
+      break;
+    case 3:
+      tableFirstS = yield* getCustomHuffmanTable(customIndex, referredTo, customTables);
+      customIndex++;
+      break;
+    default:
+      throw new Jbig2Error("invalid Huffman FS selector");
+  }
+  switch (textRegion.huffmanDS) {
+    case 0:
+    case 1:
+    case 2:
+      tableDeltaS = getStandardTable(textRegion.huffmanDS + 8);
+      break;
+    case 3:
+      tableDeltaS = yield* getCustomHuffmanTable(customIndex, referredTo, customTables);
+      customIndex++;
+      break;
+    default:
+      throw new Jbig2Error("invalid Huffman DS selector");
+  }
+  switch (textRegion.huffmanDT) {
+    case 0:
+    case 1:
+    case 2:
+      tableDeltaT = getStandardTable(textRegion.huffmanDT + 11);
+      break;
+    case 3:
+      tableDeltaT = yield* getCustomHuffmanTable(customIndex, referredTo, customTables);
+      customIndex++;
+      break;
+    default:
+      throw new Jbig2Error("invalid Huffman DT selector");
+  }
+  if (textRegion.refinement) {
+    throw new Jbig2Error("refinement with Huffman is not supported");
+  }
+  return {
+    symbolIDTable,
+    tableFirstS,
+    tableDeltaS,
+    tableDeltaT
+  };
+}
+function* getSymbolDictionaryHuffmanTables(dictionary, referredTo, customTables) {
+  let customIndex = 0,
+    tableDeltaHeight,
+    tableDeltaWidth;
+  switch (dictionary.huffmanDHSelector) {
+    case 0:
+    case 1:
+      tableDeltaHeight = getStandardTable(dictionary.huffmanDHSelector + 4);
+      break;
+    case 3:
+      tableDeltaHeight = yield* getCustomHuffmanTable(customIndex, referredTo, customTables);
+      customIndex++;
+      break;
+    default:
+      throw new Jbig2Error("invalid Huffman DH selector");
+  }
+  switch (dictionary.huffmanDWSelector) {
+    case 0:
+    case 1:
+      tableDeltaWidth = getStandardTable(dictionary.huffmanDWSelector + 2);
+      break;
+    case 3:
+      tableDeltaWidth = yield* getCustomHuffmanTable(customIndex, referredTo, customTables);
+      customIndex++;
+      break;
+    default:
+      throw new Jbig2Error("invalid Huffman DW selector");
+  }
+  let tableBitmapSize, tableAggregateInstances;
+  if (dictionary.bitmapSizeSelector) {
+    tableBitmapSize = yield* getCustomHuffmanTable(customIndex, referredTo, customTables);
+    customIndex++;
+  } else {
+    tableBitmapSize = getStandardTable(1);
+  }
+  if (dictionary.aggregationInstancesSelector) {
+    tableAggregateInstances = yield* getCustomHuffmanTable(customIndex, referredTo, customTables);
+  } else {
+    tableAggregateInstances = getStandardTable(1);
+  }
+  return {
+    tableDeltaHeight,
+    tableDeltaWidth,
+    tableBitmapSize,
+    tableAggregateInstances
+  };
+}
+function* readUncompressedBitmap(reader, width, height, onAllocation, onRow) {
+  onAllocation?.((width + 256) * (onRow ? 1 : height) + 128);
+  const bitmap = [];
+  const scratch = onRow ? new Uint8Array(width) : undefined;
+  for (let y = 0; y < height; y++) {
+    const row = scratch ?? new Uint8Array(width);
+    if (!onRow) bitmap.push(row);
+    for (let x = 0; x < width; x++) {
+      row[x] = (yield* reader.readBit());
+    }
+    reader.byteAlign();
+    if (onRow) yield* onRow(row, y);
+  }
+  return bitmap;
+}
+function* decodeMMRBitmap(input, width, height, endOfBlock, onAllocation, onRow) {
+  onAllocation?.((width + 256) * (onRow ? 1 : height) + (width + 2) * 8 + 1024);
+  const params = {
+    K: -1,
+    Columns: width,
+    Rows: height,
+    BlackIs1: true,
+    EndOfBlock: endOfBlock
+  };
+  const decoder = new CCITTFaxDecoder(input, params);
+  yield* decoder.initialize();
+  const bitmap = [];
+  const scratch = onRow ? new Uint8Array(width) : undefined;
+  let currentByte,
+    eof = false;
+  for (let y = 0; y < height; y++) {
+    const row = scratch ?? new Uint8Array(width);
+    if (!onRow) bitmap.push(row);
+    let shift = -1;
+    for (let x = 0; x < width; x++) {
+      if (shift < 0) {
+        currentByte = (yield* decoder.readNextChar());
+        if (currentByte === -1) {
+          currentByte = 0;
+          eof = true;
+        }
+        shift = 7;
+      }
+      row[x] = currentByte >> shift & 1;
+      shift--;
+    }
+    if (onRow) yield* onRow(row, y);
+  }
+  if (endOfBlock && !eof) {
+    const lookForEOFLimit = 5;
+    for (let i = 0; i < lookForEOFLimit; i++) {
+      if ((yield* decoder.readNextChar()) === -1) {
+        break;
+      }
+    }
+  }
+  return bitmap;
+}
+function* jbigReadUint(source, position, count, signed = false) {
+  let value = 0;
+  for (let i = 0; i < count; i++) value = (value << 8) | (yield {source, position: position + i});
+  return signed ? value << 24 >> 24 : value >>> 0;
+}
+function* jbigArithmetic(decoder, program) {
+  let step = program.next();
+  try { while (!step.done) step = program.next(yield {source: decoder.jbigSource, position: step.value}); return step.value; }
+  finally { program.return(); }
+}
+function runJbigSteps(program) {
+  let step = program.next();
+  try { while (!step.done) { if (step.value.kind) throw new Jbig2Error("Stored JBIG2 bitmaps require a cooperative driver"); step = program.next(step.value.source[step.value.position]); } return step.value; }
+  finally { program.return(); }
+}
+class Jbig2Image {
+  constructor(onImageDimensions, onAllocation, options = {}) { this.onImageDimensions = onImageDimensions; this.onAllocation = onAllocation; this.storedBitmap = options.storedBitmap; }
+  parseChunks(chunks) {
+    return runJbigSteps(this.parseChunksSteps(chunks));
+  }
+  *parseChunksSteps(chunks) {
+    return yield* parseJbig2Chunks(chunks, this.onImageDimensions, this.onAllocation, this.storedBitmap);
+  }
+  parse(data, options = {}) { return runJbigSteps(this.parseSteps(data, options)); }
+  *parseSteps(data, { packed = false } = {}) {
+    const {
+      imgData,
+      width,
+      height
+    } = yield* parseJbig2(data, this.onImageDimensions, this.onAllocation, packed, this.storedBitmap);
+    this.width = width;
+    this.height = height;
+    return imgData;
+  }
+}
+
+;// CONCATENATED MODULE: ./src/shared/image_utils.js
+
+function convertToRGBA(params) {
+  switch (params.kind) {
+    case ImageKind.GRAYSCALE_1BPP:
+      return convertBlackAndWhiteToRGBA(params);
+    case ImageKind.RGB_24BPP:
+      return convertRGBToRGBA(params);
+  }
+  return null;
+}
+function convertBlackAndWhiteToRGBA({
+  src,
+  srcPos = 0,
+  dest,
+  width,
+  height,
+  nonBlackColor = 0xffffffff,
+  inverseDecode = false
+}) {
+  const black = FeatureTest.isLittleEndian ? 0xff000000 : 0x000000ff;
+  const [zeroMapping, oneMapping] = inverseDecode ? [nonBlackColor, black] : [black, nonBlackColor];
+  const widthInSource = width >> 3;
+  const widthRemainder = width & 7;
+  const srcLength = src.length;
+  dest = new Uint32Array(dest.buffer);
+  let destPos = 0;
+  for (let i = 0; i < height; i++) {
+    for (const max = srcPos + widthInSource; srcPos < max; srcPos++) {
+      const elem = srcPos < srcLength ? src[srcPos] : 255;
+      dest[destPos++] = elem & 0b10000000 ? oneMapping : zeroMapping;
+      dest[destPos++] = elem & 0b1000000 ? oneMapping : zeroMapping;
+      dest[destPos++] = elem & 0b100000 ? oneMapping : zeroMapping;
+      dest[destPos++] = elem & 0b10000 ? oneMapping : zeroMapping;
+      dest[destPos++] = elem & 0b1000 ? oneMapping : zeroMapping;
+      dest[destPos++] = elem & 0b100 ? oneMapping : zeroMapping;
+      dest[destPos++] = elem & 0b10 ? oneMapping : zeroMapping;
+      dest[destPos++] = elem & 0b1 ? oneMapping : zeroMapping;
+    }
+    if (widthRemainder === 0) {
+      continue;
+    }
+    const elem = srcPos < srcLength ? src[srcPos++] : 255;
+    for (let j = 0; j < widthRemainder; j++) {
+      dest[destPos++] = elem & 1 << 7 - j ? oneMapping : zeroMapping;
+    }
+  }
+  return {
+    srcPos,
+    destPos
+  };
+}
+function convertRGBToRGBA({
+  src,
+  srcPos = 0,
+  dest,
+  destPos = 0,
+  width,
+  height
+}) {
+  let i = 0;
+  const len32 = src.length >> 2;
+  const src32 = new Uint32Array(src.buffer, srcPos, len32);
+  if (FeatureTest.isLittleEndian) {
+    for (; i < len32 - 2; i += 3, destPos += 4) {
+      const s1 = src32[i];
+      const s2 = src32[i + 1];
+      const s3 = src32[i + 2];
+      dest[destPos] = s1 | 0xff000000;
+      dest[destPos + 1] = s1 >>> 24 | s2 << 8 | 0xff000000;
+      dest[destPos + 2] = s2 >>> 16 | s3 << 16 | 0xff000000;
+      dest[destPos + 3] = s3 >>> 8 | 0xff000000;
+    }
+    for (let j = i * 4, jj = src.length; j < jj; j += 3) {
+      dest[destPos++] = src[j] | src[j + 1] << 8 | src[j + 2] << 16 | 0xff000000;
+    }
+  } else {
+    for (; i < len32 - 2; i += 3, destPos += 4) {
+      const s1 = src32[i];
+      const s2 = src32[i + 1];
+      const s3 = src32[i + 2];
+      dest[destPos] = s1 | 0xff;
+      dest[destPos + 1] = s1 << 24 | s2 >>> 8 | 0xff;
+      dest[destPos + 2] = s2 << 16 | s3 >>> 16 | 0xff;
+      dest[destPos + 3] = s3 << 8 | 0xff;
+    }
+    for (let j = i * 4, jj = src.length; j < jj; j += 3) {
+      dest[destPos++] = src[j] << 24 | src[j + 1] << 16 | src[j + 2] << 8 | 0xff;
+    }
+  }
+  return {
+    srcPos,
+    destPos
+  };
+}
+function grayToRGBA(src, dest) {
+  if (util_FeatureTest.isLittleEndian) {
+    for (let i = 0, ii = src.length; i < ii; i++) {
+      dest[i] = src[i] * 0x10101 | 0xff000000;
+    }
+  } else {
+    for (let i = 0, ii = src.length; i < ii; i++) {
+      dest[i] = src[i] * 0x1010100 | 0x000000ff;
+    }
+  }
+}
+
+;// CONCATENATED MODULE: ./src/core/jpg.js
+
+
+
+class JpegError extends BaseException {
+  constructor(msg) {
+    super(`JPEG error: ${msg}`, "JpegError");
+  }
+}
+class DNLMarkerError extends BaseException {
+  constructor(message, scanLines) {
+    super(message, "DNLMarkerError");
+    this.scanLines = scanLines;
+  }
+}
+class EOIMarkerError extends BaseException {
+  constructor(msg) {
+    super(msg, "EOIMarkerError");
+  }
+}
+const dctZigZag = new Uint8Array([0, 1, 8, 16, 9, 2, 3, 10, 17, 24, 32, 25, 18, 11, 4, 5, 12, 19, 26, 33, 40, 48, 41, 34, 27, 20, 13, 6, 7, 14, 21, 28, 35, 42, 49, 56, 57, 50, 43, 36, 29, 22, 15, 23, 30, 37, 44, 51, 58, 59, 52, 45, 38, 31, 39, 46, 53, 60, 61, 54, 47, 55, 62, 63]);
+const dctCos1 = 4017;
+const dctSin1 = 799;
+const dctCos3 = 3406;
+const dctSin3 = 2276;
+const dctCos6 = 1567;
+const dctSin6 = 3784;
+const dctSqrt2 = 5793;
+const dctSqrt1d2 = 2896;
+function buildHuffmanTable(codeLengths, values, onAllocation) {
+  onAllocation?.(256);
+  let k = 0,
+    i,
+    j,
+    length = 16;
+  while (length > 0 && !codeLengths[length - 1]) {
+    length--;
+  }
+  const code = [{
+    children: [],
+    index: 0
+  }];
+  let p = code[0],
+    q;
+  for (i = 0; i < length; i++) {
+    for (j = 0; j < codeLengths[i]; j++) {
+      p = code.pop();
+      p.children[p.index] = values[k];
+      while (p.index > 0) {
+        p = code.pop();
+      }
+      p.index++;
+      code.push(p);
+      while (code.length <= i) {
+        onAllocation?.(128);
+        code.push(q = {
+          children: [],
+          index: 0
+        });
+        p.children[p.index] = q.children;
+        p = q;
+      }
+      k++;
+    }
+    if (i + 1 < length) {
+      onAllocation?.(128);
+      code.push(q = {
+        children: [],
+        index: 0
+      });
+      p.children[p.index] = q.children;
+      p = q;
+    }
+  }
+  return code[0].children;
+}
+function getBlockBufferOffset(component, row, col) {
+  return 64 * ((component.blocksPerLine + 1) * row + col);
+}
+function* readJpegUint16(offset) { return ((yield offset) << 8) | (yield offset + 1); }
+function* decodeScan(data, offset, frame, components, resetInterval, spectralStart, spectralEnd, successivePrev, successive, parseDNLMarker = false) {
+    const mcusPerLine = frame.mcusPerLine;
+    const progressive = frame.progressive;
+    const startOffset = offset;
+    let bitsData = 0, bitsCount = 0;
+    function* readBit() {
+        if (bitsCount > 0) {
+            bitsCount--;
+            return bitsData >> bitsCount & 1;
+        }
+        bitsData = (yield offset++);
+        if (bitsData === 0xff) {
+            const nextByte = (yield offset++);
+            if (nextByte) {
+                if (nextByte === 0xdc && parseDNLMarker) {
+                    offset += 2;
+                    const scanLines = (yield* readJpegUint16(offset));
+                    offset += 2;
+                    if (scanLines > 0 && scanLines !== frame.scanLines) {
+                        throw new DNLMarkerError("Found DNL marker (0xFFDC) while parsing scan data", scanLines);
+                    }
+                }
+                else if (nextByte === 0xd9) {
+                    if (parseDNLMarker) {
+                        const maybeScanLines = blockRow * (frame.precision === 8 ? 8 : 0);
+                        if (maybeScanLines > 0 && Math.round(frame.scanLines / maybeScanLines) >= 5) {
+                            throw new DNLMarkerError("Found EOI marker (0xFFD9) while parsing scan data, " + "possibly caused by incorrect `scanLines` parameter", maybeScanLines);
+                        }
+                    }
+                    throw new EOIMarkerError("Found EOI marker (0xFFD9) while parsing scan data");
+                }
+                throw new JpegError(`unexpected marker ${(bitsData << 8 | nextByte).toString(16)}`);
+            }
+        }
+        bitsCount = 7;
+        return bitsData >>> 7;
+    }
+    function* decodeHuffman(tree) {
+        let node = tree;
+        while (true) {
+            node = node[(yield* readBit())];
+            switch (typeof node) {
+                case "number":
+                    return node;
+                case "object":
+                    continue;
+            }
+            throw new JpegError("invalid huffman sequence");
+        }
+    }
+    function* receive(length) {
+        let n = 0;
+        while (length > 0) {
+            n = n << 1 | (yield* readBit());
+            length--;
+        }
+        return n;
+    }
+    function* receiveAndExtend(length) {
+        if (length === 1) {
+            return (yield* readBit()) === 1 ? 1 : -1;
+        }
+        const n = (yield* receive(length));
+        if (n >= 1 << length - 1) {
+            return n;
+        }
+        return n + (-1 << length) + 1;
+    }
+    function* decodeBaseline(component, blockOffset) {
+        const t = (yield* decodeHuffman(component.huffmanTableDC));
+        const diff = t === 0 ? 0 : (yield* receiveAndExtend(t));
+        component.blockData[blockOffset] = component.pred += diff;
+        let k = 1;
+        while (k < 64) {
+            const rs = (yield* decodeHuffman(component.huffmanTableAC));
+            const s = rs & 15, r = rs >> 4;
+            if (s === 0) {
+                if (r < 15) {
+                    break;
+                }
+                k += 16;
+                continue;
+            }
+            k += r;
+            const z = dctZigZag[k];
+            component.blockData[blockOffset + z] = (yield* receiveAndExtend(s));
+            k++;
+        }
+    }
+    function* decodeDCFirst(component, blockOffset) {
+        const t = (yield* decodeHuffman(component.huffmanTableDC));
+        const diff = t === 0 ? 0 : (yield* receiveAndExtend(t)) << successive;
+        component.blockData[blockOffset] = component.pred += diff;
+    }
+    function* decodeDCSuccessive(component, blockOffset) {
+        component.blockData[blockOffset] |= (yield* readBit()) << successive;
+    }
+    let eobrun = 0;
+    function* decodeACFirst(component, blockOffset) {
+        if (eobrun > 0) {
+            eobrun--;
+            return;
+        }
+        let k = spectralStart;
+        const e = spectralEnd;
+        while (k <= e) {
+            const rs = (yield* decodeHuffman(component.huffmanTableAC));
+            const s = rs & 15, r = rs >> 4;
+            if (s === 0) {
+                if (r < 15) {
+                    eobrun = (yield* receive(r)) + (1 << r) - 1;
+                    break;
+                }
+                k += 16;
+                continue;
+            }
+            k += r;
+            const z = dctZigZag[k];
+            component.blockData[blockOffset + z] = (yield* receiveAndExtend(s)) * (1 << successive);
+            k++;
+        }
+    }
+    let successiveACState = 0, successiveACNextValue;
+    function* decodeACSuccessive(component, blockOffset) {
+        let k = spectralStart;
+        const e = spectralEnd;
+        let r = 0;
+        let s;
+        let rs;
+        while (k <= e) {
+            const offsetZ = blockOffset + dctZigZag[k];
+            const sign = component.blockData[offsetZ] < 0 ? -1 : 1;
+            switch (successiveACState) {
+                case 0:
+                    rs = (yield* decodeHuffman(component.huffmanTableAC));
+                    s = rs & 15;
+                    r = rs >> 4;
+                    if (s === 0) {
+                        if (r < 15) {
+                            eobrun = (yield* receive(r)) + (1 << r);
+                            successiveACState = 4;
+                        }
+                        else {
+                            r = 16;
+                            successiveACState = 1;
+                        }
+                    }
+                    else {
+                        if (s !== 1) {
+                            throw new JpegError("invalid ACn encoding");
+                        }
+                        successiveACNextValue = (yield* receiveAndExtend(s));
+                        successiveACState = r ? 2 : 3;
+                    }
+                    continue;
+                case 1:
+                case 2:
+                    if (component.blockData[offsetZ]) {
+                        component.blockData[offsetZ] += sign * ((yield* readBit()) << successive);
+                    }
+                    else {
+                        r--;
+                        if (r === 0) {
+                            successiveACState = successiveACState === 2 ? 3 : 0;
+                        }
+                    }
+                    break;
+                case 3:
+                    if (component.blockData[offsetZ]) {
+                        component.blockData[offsetZ] += sign * ((yield* readBit()) << successive);
+                    }
+                    else {
+                        component.blockData[offsetZ] = successiveACNextValue << successive;
+                        successiveACState = 0;
+                    }
+                    break;
+                case 4:
+                    if (component.blockData[offsetZ]) {
+                        component.blockData[offsetZ] += sign * ((yield* readBit()) << successive);
+                    }
+                    break;
+            }
+            k++;
+        }
+        if (successiveACState === 4) {
+            eobrun--;
+            if (eobrun === 0) {
+                successiveACState = 0;
+            }
+        }
+    }
+    let blockRow = 0;
+    function* decodeMcu(component, decode, mcu, row, col) {
+        const mcuRow = mcu / mcusPerLine | 0;
+        const mcuCol = mcu % mcusPerLine;
+        blockRow = mcuRow * component.v + row;
+        const blockCol = mcuCol * component.h + col;
+        const blockOffset = getBlockBufferOffset(component, blockRow, blockCol);
+        if (component.blockPosition !== undefined) {
+            component.blockData = yield {kind:"block-read",position:component.blockPosition+blockOffset*2};
+            yield* decode(component, 0);
+            yield {kind:"block-write",position:component.blockPosition+blockOffset*2,values:component.blockData};
+            component.blockData = undefined;
+        } else yield* decode(component, blockOffset);
+    }
+    function* decodeBlock(component, decode, mcu) {
+        blockRow = mcu / component.blocksPerLine | 0;
+        const blockCol = mcu % component.blocksPerLine;
+        const blockOffset = getBlockBufferOffset(component, blockRow, blockCol);
+        if (component.blockPosition !== undefined) {
+            component.blockData = yield {kind:"block-read",position:component.blockPosition+blockOffset*2};
+            yield* decode(component, 0);
+            yield {kind:"block-write",position:component.blockPosition+blockOffset*2,values:component.blockData};
+            component.blockData = undefined;
+        } else yield* decode(component, blockOffset);
+    }
+    const componentsLength = components.length;
+    let component, i, j, k, n;
+    let decodeFn;
+    if (progressive) {
+        if (spectralStart === 0) {
+            decodeFn = successivePrev === 0 ? decodeDCFirst : decodeDCSuccessive;
+        }
+        else {
+            decodeFn = successivePrev === 0 ? decodeACFirst : decodeACSuccessive;
+        }
+    }
+    else {
+        decodeFn = decodeBaseline;
+    }
+    let mcu = 0, fileMarker;
+    const mcuExpected = componentsLength === 1 ? components[0].blocksPerLine * components[0].blocksPerColumn : mcusPerLine * frame.mcusPerColumn;
+    let h, v;
+    while (mcu <= mcuExpected) {
+        const mcuToRead = resetInterval ? Math.min(mcuExpected - mcu, resetInterval) : mcuExpected;
+        if (mcuToRead > 0) {
+            for (i = 0; i < componentsLength; i++) {
+                components[i].pred = 0;
+            }
+            eobrun = 0;
+            if (componentsLength === 1) {
+                component = components[0];
+                for (n = 0; n < mcuToRead; n++) {
+                    (yield* decodeBlock(component, decodeFn, mcu));
+                    mcu++;
+                }
+            }
+            else {
+                for (n = 0; n < mcuToRead; n++) {
+                    for (i = 0; i < componentsLength; i++) {
+                        component = components[i];
+                        h = component.h;
+                        v = component.v;
+                        for (j = 0; j < v; j++) {
+                            for (k = 0; k < h; k++) {
+                                (yield* decodeMcu(component, decodeFn, mcu, j, k));
+                            }
+                        }
+                    }
+                    mcu++;
+                }
+            }
+        }
+        bitsCount = 0;
+        fileMarker = (yield* findNextFileMarker(data, offset));
+        if (!fileMarker) {
+            break;
+        }
+        if (fileMarker.invalid) {
+            const partialMsg = mcuToRead > 0 ? "unexpected" : "excessive";
+            util_warn(`decodeScan - ${partialMsg} MCU data, current marker is: ${fileMarker.invalid}`);
+            offset = fileMarker.offset;
+        }
+        if (fileMarker.marker >= 0xffd0 && fileMarker.marker <= 0xffd7) {
+            offset += 2;
+        }
+        else {
+            break;
+        }
+    }
+    return offset - startOffset;
+}
+function quantizeAndInverse(component, blockBufferOffset, p) {
+  const qt = component.quantizationTable,
+    blockData = component.blockData;
+  let v0, v1, v2, v3, v4, v5, v6, v7;
+  let p0, p1, p2, p3, p4, p5, p6, p7;
+  let t;
+  if (!qt) {
+    throw new JpegError("missing required Quantization Table.");
+  }
+  for (let row = 0; row < 64; row += 8) {
+    p0 = blockData[blockBufferOffset + row];
+    p1 = blockData[blockBufferOffset + row + 1];
+    p2 = blockData[blockBufferOffset + row + 2];
+    p3 = blockData[blockBufferOffset + row + 3];
+    p4 = blockData[blockBufferOffset + row + 4];
+    p5 = blockData[blockBufferOffset + row + 5];
+    p6 = blockData[blockBufferOffset + row + 6];
+    p7 = blockData[blockBufferOffset + row + 7];
+    p0 *= qt[row];
+    if ((p1 | p2 | p3 | p4 | p5 | p6 | p7) === 0) {
+      t = dctSqrt2 * p0 + 512 >> 10;
+      p[row] = t;
+      p[row + 1] = t;
+      p[row + 2] = t;
+      p[row + 3] = t;
+      p[row + 4] = t;
+      p[row + 5] = t;
+      p[row + 6] = t;
+      p[row + 7] = t;
+      continue;
+    }
+    p1 *= qt[row + 1];
+    p2 *= qt[row + 2];
+    p3 *= qt[row + 3];
+    p4 *= qt[row + 4];
+    p5 *= qt[row + 5];
+    p6 *= qt[row + 6];
+    p7 *= qt[row + 7];
+    v0 = dctSqrt2 * p0 + 128 >> 8;
+    v1 = dctSqrt2 * p4 + 128 >> 8;
+    v2 = p2;
+    v3 = p6;
+    v4 = dctSqrt1d2 * (p1 - p7) + 128 >> 8;
+    v7 = dctSqrt1d2 * (p1 + p7) + 128 >> 8;
+    v5 = p3 << 4;
+    v6 = p5 << 4;
+    v0 = v0 + v1 + 1 >> 1;
+    v1 = v0 - v1;
+    t = v2 * dctSin6 + v3 * dctCos6 + 128 >> 8;
+    v2 = v2 * dctCos6 - v3 * dctSin6 + 128 >> 8;
+    v3 = t;
+    v4 = v4 + v6 + 1 >> 1;
+    v6 = v4 - v6;
+    v7 = v7 + v5 + 1 >> 1;
+    v5 = v7 - v5;
+    v0 = v0 + v3 + 1 >> 1;
+    v3 = v0 - v3;
+    v1 = v1 + v2 + 1 >> 1;
+    v2 = v1 - v2;
+    t = v4 * dctSin3 + v7 * dctCos3 + 2048 >> 12;
+    v4 = v4 * dctCos3 - v7 * dctSin3 + 2048 >> 12;
+    v7 = t;
+    t = v5 * dctSin1 + v6 * dctCos1 + 2048 >> 12;
+    v5 = v5 * dctCos1 - v6 * dctSin1 + 2048 >> 12;
+    v6 = t;
+    p[row] = v0 + v7;
+    p[row + 7] = v0 - v7;
+    p[row + 1] = v1 + v6;
+    p[row + 6] = v1 - v6;
+    p[row + 2] = v2 + v5;
+    p[row + 5] = v2 - v5;
+    p[row + 3] = v3 + v4;
+    p[row + 4] = v3 - v4;
+  }
+  for (let col = 0; col < 8; ++col) {
+    p0 = p[col];
+    p1 = p[col + 8];
+    p2 = p[col + 16];
+    p3 = p[col + 24];
+    p4 = p[col + 32];
+    p5 = p[col + 40];
+    p6 = p[col + 48];
+    p7 = p[col + 56];
+    if ((p1 | p2 | p3 | p4 | p5 | p6 | p7) === 0) {
+      t = dctSqrt2 * p0 + 8192 >> 14;
+      if (t < -2040) {
+        t = 0;
+      } else if (t >= 2024) {
+        t = 255;
+      } else {
+        t = t + 2056 >> 4;
+      }
+      blockData[blockBufferOffset + col] = t;
+      blockData[blockBufferOffset + col + 8] = t;
+      blockData[blockBufferOffset + col + 16] = t;
+      blockData[blockBufferOffset + col + 24] = t;
+      blockData[blockBufferOffset + col + 32] = t;
+      blockData[blockBufferOffset + col + 40] = t;
+      blockData[blockBufferOffset + col + 48] = t;
+      blockData[blockBufferOffset + col + 56] = t;
+      continue;
+    }
+    v0 = dctSqrt2 * p0 + 2048 >> 12;
+    v1 = dctSqrt2 * p4 + 2048 >> 12;
+    v2 = p2;
+    v3 = p6;
+    v4 = dctSqrt1d2 * (p1 - p7) + 2048 >> 12;
+    v7 = dctSqrt1d2 * (p1 + p7) + 2048 >> 12;
+    v5 = p3;
+    v6 = p5;
+    v0 = (v0 + v1 + 1 >> 1) + 4112;
+    v1 = v0 - v1;
+    t = v2 * dctSin6 + v3 * dctCos6 + 2048 >> 12;
+    v2 = v2 * dctCos6 - v3 * dctSin6 + 2048 >> 12;
+    v3 = t;
+    v4 = v4 + v6 + 1 >> 1;
+    v6 = v4 - v6;
+    v7 = v7 + v5 + 1 >> 1;
+    v5 = v7 - v5;
+    v0 = v0 + v3 + 1 >> 1;
+    v3 = v0 - v3;
+    v1 = v1 + v2 + 1 >> 1;
+    v2 = v1 - v2;
+    t = v4 * dctSin3 + v7 * dctCos3 + 2048 >> 12;
+    v4 = v4 * dctCos3 - v7 * dctSin3 + 2048 >> 12;
+    v7 = t;
+    t = v5 * dctSin1 + v6 * dctCos1 + 2048 >> 12;
+    v5 = v5 * dctCos1 - v6 * dctSin1 + 2048 >> 12;
+    v6 = t;
+    p0 = v0 + v7;
+    p7 = v0 - v7;
+    p1 = v1 + v6;
+    p6 = v1 - v6;
+    p2 = v2 + v5;
+    p5 = v2 - v5;
+    p3 = v3 + v4;
+    p4 = v3 - v4;
+    if (p0 < 16) {
+      p0 = 0;
+    } else if (p0 >= 4080) {
+      p0 = 255;
+    } else {
+      p0 >>= 4;
+    }
+    if (p1 < 16) {
+      p1 = 0;
+    } else if (p1 >= 4080) {
+      p1 = 255;
+    } else {
+      p1 >>= 4;
+    }
+    if (p2 < 16) {
+      p2 = 0;
+    } else if (p2 >= 4080) {
+      p2 = 255;
+    } else {
+      p2 >>= 4;
+    }
+    if (p3 < 16) {
+      p3 = 0;
+    } else if (p3 >= 4080) {
+      p3 = 255;
+    } else {
+      p3 >>= 4;
+    }
+    if (p4 < 16) {
+      p4 = 0;
+    } else if (p4 >= 4080) {
+      p4 = 255;
+    } else {
+      p4 >>= 4;
+    }
+    if (p5 < 16) {
+      p5 = 0;
+    } else if (p5 >= 4080) {
+      p5 = 255;
+    } else {
+      p5 >>= 4;
+    }
+    if (p6 < 16) {
+      p6 = 0;
+    } else if (p6 >= 4080) {
+      p6 = 255;
+    } else {
+      p6 >>= 4;
+    }
+    if (p7 < 16) {
+      p7 = 0;
+    } else if (p7 >= 4080) {
+      p7 = 255;
+    } else {
+      p7 >>= 4;
+    }
+    blockData[blockBufferOffset + col] = p0;
+    blockData[blockBufferOffset + col + 8] = p1;
+    blockData[blockBufferOffset + col + 16] = p2;
+    blockData[blockBufferOffset + col + 24] = p3;
+    blockData[blockBufferOffset + col + 32] = p4;
+    blockData[blockBufferOffset + col + 40] = p5;
+    blockData[blockBufferOffset + col + 48] = p6;
+    blockData[blockBufferOffset + col + 56] = p7;
+  }
+}
+function* buildComponentData(frame, component, onAllocation) {
+  onAllocation?.(128);
+  const blocksPerLine = component.blocksPerLine;
+  const blocksPerColumn = component.blocksPerColumn;
+  const computationBuffer = new Int16Array(64);
+  for (let blockRow = 0; blockRow < blocksPerColumn; blockRow++) {
+    for (let blockCol = 0; blockCol < blocksPerLine; blockCol++) {
+      const offset = getBlockBufferOffset(component, blockRow, blockCol);
+      if (component.blockPosition !== undefined) {
+        component.blockData = yield {kind:"block-read",position:component.blockPosition+offset*2};
+        quantizeAndInverse(component, 0, computationBuffer);
+        yield {kind:"block-write",position:component.blockPosition+offset*2,values:component.blockData};
+        component.blockData = undefined;
+      } else quantizeAndInverse(component, offset, computationBuffer);
+    }
+  }
+  return component.blockPosition ?? component.blockData;
+}
+function* findNextFileMarker(data, currentPos, startPos = currentPos) {
+    const maxPos = data.length - 1;
+    let newPos = startPos < currentPos ? startPos : currentPos;
+    if (currentPos >= maxPos) {
+        return null;
+    }
+    const currentMarker = (yield* readJpegUint16(currentPos));
+    if (currentMarker >= 0xffc0 && currentMarker <= 0xfffe) {
+        return {
+            invalid: null,
+            marker: currentMarker,
+            offset: currentPos
+        };
+    }
+    let newMarker = (yield* readJpegUint16(newPos));
+    while (!(newMarker >= 0xffc0 && newMarker <= 0xfffe)) {
+        if (++newPos >= maxPos) {
+            return null;
+        }
+        newMarker = (yield* readJpegUint16(newPos));
+    }
+    return {
+        invalid: currentMarker.toString(16),
+        marker: newMarker,
+        offset: newPos
+    };
+}
+class JpegImage {
+  constructor({
+    decodeTransform = null,
+    colorTransform = -1,
+    storedBlocks = false,
+    onImageDimensions,
+    onAllocation
+  } = {}) {
+    this.onAllocation = onAllocation;
+    this.onImageDimensions = onImageDimensions;
+    this.storedBlocks = storedBlocks;
+    this._decodeTransform = decodeTransform;
+    this._colorTransform = colorTransform;
+  }
+  parse(data, options) {
+    const program = this.parseSteps(data, options);
+    let step = program.next();
+    while (!step.done) {
+      const request = step.value;
+      step = program.next(typeof request === "number" ? data[request] : data.subarray(request.start, request.end));
+    }
+    return step.value;
+  }
+  *parseSteps(data, { dnlScanLines = null } = {}) {
+    const onAllocation = this.onAllocation;
+    const storedBlocks = this.storedBlocks;
+    onAllocation?.(512);
+    if (storedBlocks) onAllocation?.(512);
+    function* readDataBlock(marker) {
+        const length = (yield* readJpegUint16(offset));
+        offset += 2;
+        let endOffset = offset + length - 2;
+        const fileMarker = (yield* findNextFileMarker(data, endOffset, offset));
+        if (fileMarker?.invalid) {
+            util_warn("readDataBlock - incorrect length, current marker is: " + fileMarker.invalid);
+            endOffset = fileMarker.offset;
+        }
+        // Only JFIF's bounded thumbnail and Adobe's header are consumed.
+        // Malformed marker recovery may span arbitrary padding; skip that tail.
+        const array = (yield { start: offset, end: Math.min(endOffset, offset + (marker === 0xffe0 ? 14 + 3 * 255 * 255 : marker === 0xffee ? 12 : 0)) });
+        offset += Math.max(0, Math.min(data.length, endOffset) - Math.min(data.length, offset));
+        return array;
+    }
+    function* prepareComponents(frame) {
+        const mcusPerLine = Math.ceil(frame.samplesPerLine / 8 / frame.maxH);
+        const mcusPerColumn = Math.ceil(frame.scanLines / 8 / frame.maxV);
+        for (const component of frame.components) {
+            const blocksPerLine = Math.ceil(Math.ceil(frame.samplesPerLine / 8) * component.h / frame.maxH);
+            const blocksPerColumn = Math.ceil(Math.ceil(frame.scanLines / 8) * component.v / frame.maxV);
+            const blocksPerLineForMcu = mcusPerLine * component.h;
+            const blocksPerColumnForMcu = mcusPerColumn * component.v;
+            const blocksBufferSize = 64 * blocksPerColumnForMcu * (blocksPerLineForMcu + 1);
+            if (storedBlocks) component.blockPosition = yield { kind: "block-allocate", length: blocksBufferSize * 2 };
+            else {
+                onAllocation?.(blocksBufferSize * 2);
+                component.blockData = new Int16Array(blocksBufferSize);
+            }
+            component.blocksPerLine = blocksPerLine;
+            component.blocksPerColumn = blocksPerColumn;
+        }
+        frame.mcusPerLine = mcusPerLine;
+        frame.mcusPerColumn = mcusPerColumn;
+    }
+    let offset = 0;
+    let jfif = null;
+    let adobe = null;
+    let frame, resetInterval;
+    let numSOSMarkers = 0;
+    const quantizationTables = [];
+    const huffmanTablesAC = [], huffmanTablesDC = [];
+    let fileMarker = (yield* readJpegUint16(offset));
+    offset += 2;
+    if (fileMarker !== 0xffd8) {
+        throw new JpegError("SOI not found");
+    }
+    fileMarker = (yield* readJpegUint16(offset));
+    offset += 2;
+    markerLoop: while (fileMarker !== 0xffd9) {
+        let i, j, l;
+        switch (fileMarker) {
+            case 0xffe0:
+            case 0xffe1:
+            case 0xffe2:
+            case 0xffe3:
+            case 0xffe4:
+            case 0xffe5:
+            case 0xffe6:
+            case 0xffe7:
+            case 0xffe8:
+            case 0xffe9:
+            case 0xffea:
+            case 0xffeb:
+            case 0xffec:
+            case 0xffed:
+            case 0xffee:
+            case 0xffef:
+            case 0xfffe:
+                const appData = (yield* readDataBlock(fileMarker));
+                if (fileMarker === 0xffe0) {
+                    if (appData[0] === 0x4a && appData[1] === 0x46 && appData[2] === 0x49 && appData[3] === 0x46 && appData[4] === 0) {
+                        jfif = {
+                            version: {
+                                major: appData[5],
+                                minor: appData[6]
+                            },
+                            densityUnits: appData[7],
+                            xDensity: appData[8] << 8 | appData[9],
+                            yDensity: appData[10] << 8 | appData[11],
+                            thumbWidth: appData[12],
+                            thumbHeight: appData[13],
+                            thumbData: appData.subarray(14, 14 + 3 * appData[12] * appData[13])
+                        };
+                    }
+                }
+                if (fileMarker === 0xffee) {
+                    if (appData[0] === 0x41 && appData[1] === 0x64 && appData[2] === 0x6f && appData[3] === 0x62 && appData[4] === 0x65) {
+                        adobe = {
+                            version: appData[5] << 8 | appData[6],
+                            flags0: appData[7] << 8 | appData[8],
+                            flags1: appData[9] << 8 | appData[10],
+                            transformCode: appData[11]
+                        };
+                    }
+                }
+                break;
+            case 0xffdb:
+                const quantizationTablesLength = (yield* readJpegUint16(offset));
+                offset += 2;
+                const quantizationTablesEnd = quantizationTablesLength + offset - 2;
+                let z;
+                while (offset < quantizationTablesEnd) {
+                    const quantizationTableSpec = (yield offset++);
+                    onAllocation?.(128);
+                    const tableData = new Uint16Array(64);
+                    if (quantizationTableSpec >> 4 === 0) {
+                        for (j = 0; j < 64; j++) {
+                            z = dctZigZag[j];
+                            tableData[z] = (yield offset++);
+                        }
+                    }
+                    else if (quantizationTableSpec >> 4 === 1) {
+                        for (j = 0; j < 64; j++) {
+                            z = dctZigZag[j];
+                            tableData[z] = (yield* readJpegUint16(offset));
+                            offset += 2;
+                        }
+                    }
+                    else {
+                        throw new JpegError("DQT - invalid table spec");
+                    }
+                    quantizationTables[quantizationTableSpec & 15] = tableData;
+                }
+                break;
+            case 0xffc0:
+            case 0xffc1:
+            case 0xffc2:
+                if (frame) {
+                    throw new JpegError("Only single frame JPEGs supported");
+                }
+                offset += 2;
+                frame = {};
+                frame.extended = fileMarker === 0xffc1;
+                frame.progressive = fileMarker === 0xffc2;
+                frame.precision = (yield offset++);
+                const sofScanLines = (yield* readJpegUint16(offset));
+                offset += 2;
+                frame.scanLines = dnlScanLines || sofScanLines;
+                frame.samplesPerLine = (yield* readJpegUint16(offset));
+                offset += 2;
+                frame.components = [];
+                frame.componentIds = {};
+                const componentsCount = (yield offset++);
+                let maxH = 0, maxV = 0;
+                for (i = 0; i < componentsCount; i++) {
+                    const componentId = (yield offset);
+                    const h = (yield offset + 1) >> 4;
+                    const v = (yield offset + 1) & 15;
+                    if (maxH < h) {
+                        maxH = h;
+                    }
+                    if (maxV < v) {
+                        maxV = v;
+                    }
+                    const qId = (yield offset + 2);
+                    onAllocation?.(128);
+                    l = frame.components.push({
+                        h,
+                        v,
+                        quantizationId: qId,
+                        quantizationTable: null
+                    });
+                    frame.componentIds[componentId] = l - 1;
+                    offset += 3;
+                }
+                frame.maxH = maxH;
+                frame.maxV = maxV;
+                this.onImageDimensions?.(frame.samplesPerLine, frame.scanLines);
+                yield* prepareComponents(frame);
+                break;
+            case 0xffc4:
+                const huffmanLength = (yield* readJpegUint16(offset));
+                offset += 2;
+                for (i = 2; i < huffmanLength;) {
+                    const huffmanTableSpec = (yield offset++);
+                    onAllocation?.(16);
+                    const codeLengths = new Uint8Array(16);
+                    let codeLengthSum = 0;
+                    for (j = 0; j < 16; j++, offset++) {
+                        codeLengthSum += codeLengths[j] = (yield offset);
+                    }
+                    onAllocation?.(codeLengthSum);
+                    const huffmanValues = new Uint8Array(codeLengthSum);
+                    for (j = 0; j < codeLengthSum; j++, offset++) {
+                        huffmanValues[j] = (yield offset);
+                    }
+                    i += 17 + codeLengthSum;
+                    (huffmanTableSpec >> 4 === 0 ? huffmanTablesDC : huffmanTablesAC)[huffmanTableSpec & 15] = buildHuffmanTable(codeLengths, huffmanValues, onAllocation);
+                }
+                break;
+            case 0xffdd:
+                offset += 2;
+                resetInterval = (yield* readJpegUint16(offset));
+                offset += 2;
+                break;
+            case 0xffda:
+                const parseDNLMarker = ++numSOSMarkers === 1 && !dnlScanLines;
+                offset += 2;
+                const selectorsCount = (yield offset++), components = [];
+                onAllocation?.(64 + selectorsCount * 8);
+                for (i = 0; i < selectorsCount; i++) {
+                    const index = (yield offset++);
+                    const componentIndex = frame.componentIds[index];
+                    const component = frame.components[componentIndex];
+                    component.index = index;
+                    const tableSpec = (yield offset++);
+                    component.huffmanTableDC = huffmanTablesDC[tableSpec >> 4];
+                    component.huffmanTableAC = huffmanTablesAC[tableSpec & 15];
+                    components.push(component);
+                }
+                const spectralStart = (yield offset++), spectralEnd = (yield offset++), successiveApproximation = (yield offset++);
+                try {
+                    const processed = (yield* decodeScan(data, offset, frame, components, resetInterval, spectralStart, spectralEnd, successiveApproximation >> 4, successiveApproximation & 15, parseDNLMarker));
+                    offset += processed;
+                }
+                catch (ex) {
+                    if (ex instanceof DNLMarkerError) {
+                        util_warn(`${ex.message} -- attempting to re-parse the JPEG image.`);
+                        return (yield* this.parseSteps(data, {
+                            dnlScanLines: ex.scanLines
+                        }));
+                    }
+                    else if (ex instanceof EOIMarkerError) {
+                        util_warn(`${ex.message} -- ignoring the rest of the image data.`);
+                        break markerLoop;
+                    }
+                    throw ex;
+                }
+                break;
+            case 0xffdc:
+                offset += 4;
+                break;
+            case 0xffff:
+                if ((yield offset) !== 0xff) {
+                    offset--;
+                }
+                break;
+            default:
+                const nextFileMarker = (yield* findNextFileMarker(data, offset - 2, offset - 3));
+                if (nextFileMarker?.invalid) {
+                    util_warn("JpegImage.parse - unexpected data, current marker is: " + nextFileMarker.invalid);
+                    offset = nextFileMarker.offset;
+                    break;
+                }
+                if (!nextFileMarker || offset >= data.length - 1) {
+                    util_warn("JpegImage.parse - reached the end of the image data " + "without finding an EOI marker (0xFFD9).");
+                    break markerLoop;
+                }
+                throw new JpegError("JpegImage.parse - unknown marker: " + fileMarker.toString(16));
+        }
+        fileMarker = (yield* readJpegUint16(offset));
+        offset += 2;
+    }
+    if (!frame) {
+        throw new JpegError("JpegImage.parse - no frame data found.");
+    }
+    this.width = frame.samplesPerLine;
+    this.height = frame.scanLines;
+    this.jfif = jfif;
+    this.adobe = adobe;
+    this.components = [];
+    for (const component of frame.components) {
+        const quantizationTable = quantizationTables[component.quantizationId];
+        if (quantizationTable) {
+            component.quantizationTable = quantizationTable;
+        }
+        onAllocation?.(96);
+        this.components.push({
+            index: component.index,
+            output: yield* buildComponentData(frame, component, onAllocation),
+            scaleX: component.h / frame.maxH,
+            scaleY: component.v / frame.maxV,
+            blocksPerLine: component.blocksPerLine,
+            blocksPerColumn: component.blocksPerColumn
+        });
+    }
+    this.numComponents = this.components.length;
+    return undefined;
+}
+  *_getLinearizedBlockDataSteps(width, height, isSourcePDF = false, rowStart = 0, rowCount = height) {
+    const scaleX = this.width / width,
+      scaleY = this.height / height;
+    let component, componentScaleX, componentScaleY, blocksPerScanline;
+    let x, y, i, j, k;
+    let index;
+    let offset = 0;
+    let output;
+    const numComponents = this.components.length;
+    const dataLength = width * rowCount * numComponents;
+    this.onAllocation?.(dataLength + width * 4);
+    const data = new Uint8ClampedArray(dataLength);
+    const xScaleBlockOffset = new Uint32Array(width);
+    const mask3LSB = 0xfffffff8;
+    let lastComponentScaleX;
+    for (i = 0; i < numComponents; i++) {
+      component = this.components[i];
+      componentScaleX = component.scaleX * scaleX;
+      componentScaleY = component.scaleY * scaleY;
+      offset = i;
+      output = component.output;
+      blocksPerScanline = component.blocksPerLine + 1 << 3;
+      if (componentScaleX !== lastComponentScaleX) {
+        for (x = 0; x < width; x++) {
+          j = 0 | x * componentScaleX;
+          xScaleBlockOffset[x] = (j & mask3LSB) << 3 | j & 7;
+        }
+        lastComponentScaleX = componentScaleX;
+      }
+      for (y = rowStart; y < rowStart + rowCount; y++) {
+        j = 0 | y * componentScaleY;
+        index = blocksPerScanline * (j & mask3LSB) | (j & 7) << 3;
+        for (x = 0; x < width; x++) {
+          if (numComponents === 4 && scaleX === 1 && scaleY === 1 && component.scaleX === 0.5 && component.scaleY === 0.5) {
+            // Centered 2:1 chroma interpolation, including the adjacent row when
+            // the caller requests a single retained row. Clamp at image edges.
+            const sx = x >> 1, sy = y >> 1;
+            const nx = Math.max(0, Math.min(Math.ceil(this.width / 2) - 1, sx + (x & 1 ? 1 : -1)));
+            const ny = Math.max(0, Math.min(Math.ceil(this.height / 2) - 1, sy + (y & 1 ? 1 : -1)));
+            let sum = 0;
+            for (let tap = 0; tap < 4; tap++) {
+              const tx = tap & 1 ? nx : sx, ty = tap & 2 ? ny : sy;
+              const at = blocksPerScanline * (ty & mask3LSB) + ((ty & 7) << 3)
+                + ((tx & mask3LSB) << 3) + (tx & 7);
+              const value = typeof output === "number" ? yield {kind:"sample",position:output,index:at} : output[at];
+              sum += value * (tap & 1 ? 1 : 3) * (tap & 2 ? 1 : 3);
+            }
+            data[offset] = (sum + (x & 1 ? 8 : 7)) >> 4;
+          } else {
+            data[offset] = typeof output === "number" ? yield {kind:"sample",position:output,index:index+xScaleBlockOffset[x]} : output[index + xScaleBlockOffset[x]];
+          }
+          offset += numComponents;
+        }
+      }
+    }
+    let transform = this._decodeTransform;
+    if (!isSourcePDF && numComponents === 4 && !transform) {
+      this.onAllocation?.(32);
+      transform = new Int32Array([-256, 255, -256, 255, -256, 255, -256, 255]);
+    }
+    if (transform) {
+      for (i = 0; i < dataLength;) {
+        for (j = 0, k = 0; j < numComponents; j++, i++, k += 2) {
+          data[i] = (data[i] * transform[k] >> 8) + transform[k + 1];
+        }
+      }
+    }
+    return data;
+  }
+  get _isColorConversionNeeded() {
+    if (this.adobe) {
+      return !!this.adobe.transformCode;
+    }
+    if (this.numComponents === 3) {
+      if (this._colorTransform === 0) {
+        return false;
+      } else if (this.components[0].index === 0x52 && this.components[1].index === 0x47 && this.components[2].index === 0x42) {
+        return false;
+      }
+      return true;
+    }
+    if (this._colorTransform === 1) {
+      return true;
+    }
+    return false;
+  }
+  _convertYccToRgb(data) {
+    let Y, Cb, Cr;
+    for (let i = 0, length = data.length; i < length; i += 3) {
+      Y = data[i];
+      Cb = data[i + 1];
+      Cr = data[i + 2];
+      data[i] = Y - 179.456 + 1.402 * Cr;
+      data[i + 1] = Y + 135.459 - 0.344 * Cb - 0.714 * Cr;
+      data[i + 2] = Y - 226.816 + 1.772 * Cb;
+    }
+    return data;
+  }
+  _convertYccToRgba(data, out) {
+    for (let i = 0, j = 0, length = data.length; i < length; i += 3, j += 4) {
+      const Y = data[i];
+      const Cb = data[i + 1];
+      const Cr = data[i + 2];
+      out[j] = Y - 179.456 + 1.402 * Cr;
+      out[j + 1] = Y + 135.459 - 0.344 * Cb - 0.714 * Cr;
+      out[j + 2] = Y - 226.816 + 1.772 * Cb;
+      out[j + 3] = 255;
+    }
+    return out;
+  }
+  _convertYcckToRgb(data) {
+    let Y, Cb, Cr, k;
+    let offset = 0;
+    for (let i = 0, length = data.length; i < length; i += 4) {
+      Y = data[i];
+      Cb = data[i + 1];
+      Cr = data[i + 2];
+      k = data[i + 3];
+      data[offset++] = -122.67195406894 + Cb * (-6.60635669420364e-5 * Cb + 0.000437130475926232 * Cr - 5.4080610064599e-5 * Y + 0.00048449797120281 * k - 0.154362151871126) + Cr * (-0.000957964378445773 * Cr + 0.000817076911346625 * Y - 0.00477271405408747 * k + 1.53380253221734) + Y * (0.000961250184130688 * Y - 0.00266257332283933 * k + 0.48357088451265) + k * (-0.000336197177618394 * k + 0.484791561490776);
+      data[offset++] = 107.268039397724 + Cb * (2.19927104525741e-5 * Cb - 0.000640992018297945 * Cr + 0.000659397001245577 * Y + 0.000426105652938837 * k - 0.176491792462875) + Cr * (-0.000778269941513683 * Cr + 0.00130872261408275 * Y + 0.000770482631801132 * k - 0.151051492775562) + Y * (0.00126935368114843 * Y - 0.00265090189010898 * k + 0.25802910206845) + k * (-0.000318913117588328 * k - 0.213742400323665);
+      data[offset++] = -20.810012546947 + Cb * (-0.000570115196973677 * Cb - 2.63409051004589e-5 * Cr + 0.0020741088115012 * Y - 0.00288260236853442 * k + 0.814272968359295) + Cr * (-1.53496057440975e-5 * Cr - 0.000132689043961446 * Y + 0.000560833691242812 * k - 0.195152027534049) + Y * (0.00174418132927582 * Y - 0.00255243321439347 * k + 0.116935020465145) + k * (-0.000343531996510555 * k + 0.24165260232407);
+    }
+    return data.subarray(0, offset);
+  }
+  _convertYcckToRgba(data) {
+    for (let i = 0, length = data.length; i < length; i += 4) {
+      const Y = data[i];
+      const Cb = data[i + 1];
+      const Cr = data[i + 2];
+      const k = data[i + 3];
+      data[i] = -122.67195406894 + Cb * (-6.60635669420364e-5 * Cb + 0.000437130475926232 * Cr - 5.4080610064599e-5 * Y + 0.00048449797120281 * k - 0.154362151871126) + Cr * (-0.000957964378445773 * Cr + 0.000817076911346625 * Y - 0.00477271405408747 * k + 1.53380253221734) + Y * (0.000961250184130688 * Y - 0.00266257332283933 * k + 0.48357088451265) + k * (-0.000336197177618394 * k + 0.484791561490776);
+      data[i + 1] = 107.268039397724 + Cb * (2.19927104525741e-5 * Cb - 0.000640992018297945 * Cr + 0.000659397001245577 * Y + 0.000426105652938837 * k - 0.176491792462875) + Cr * (-0.000778269941513683 * Cr + 0.00130872261408275 * Y + 0.000770482631801132 * k - 0.151051492775562) + Y * (0.00126935368114843 * Y - 0.00265090189010898 * k + 0.25802910206845) + k * (-0.000318913117588328 * k - 0.213742400323665);
+      data[i + 2] = -20.810012546947 + Cb * (-0.000570115196973677 * Cb - 2.63409051004589e-5 * Cr + 0.0020741088115012 * Y - 0.00288260236853442 * k + 0.814272968359295) + Cr * (-1.53496057440975e-5 * Cr - 0.000132689043961446 * Y + 0.000560833691242812 * k - 0.195152027534049) + Y * (0.00174418132927582 * Y - 0.00255243321439347 * k + 0.116935020465145) + k * (-0.000343531996510555 * k + 0.24165260232407);
+      data[i + 3] = 255;
+    }
+    return data;
+  }
+  _convertYcckToCmyk(data) {
+    let Y, Cb, Cr;
+    for (let i = 0, length = data.length; i < length; i += 4) {
+      Y = data[i];
+      Cb = data[i + 1];
+      Cr = data[i + 2];
+      data[i] = 434.456 - Y - 1.402 * Cr;
+      data[i + 1] = 119.541 - Y + 0.344 * Cb + 0.714 * Cr;
+      data[i + 2] = 481.816 - Y - 1.772 * Cb;
+    }
+    return data;
+  }
+  _convertCmykToRgb(data) {
+    let c, m, y, k;
+    let offset = 0;
+    for (let i = 0, length = data.length; i < length; i += 4) {
+      c = data[i];
+      m = data[i + 1];
+      y = data[i + 2];
+      k = data[i + 3];
+      data[offset++] = 255 + c * (-0.00006747147073602441 * c + 0.0008379262121013727 * m + 0.0002894718188643294 * y + 0.003264231057537806 * k - 1.1185611867203937) + m * (0.000026374107616089405 * m - 0.00008626949158638572 * y - 0.0002748769067499491 * k - 0.02155688794978967) + y * (-0.00003878099212869363 * y - 0.0003267808279485286 * k + 0.0686742238595345) - k * (0.0003361971776183937 * k + 0.7430659151342254);
+      data[offset++] = 255 + c * (0.00013596372813588848 * c + 0.000924537132573585 * m + 0.00010567359618683593 * y + 0.0004791864687436512 * k - 0.3109689587515875) + m * (-0.00023545346108370344 * m + 0.0002702845253534714 * y + 0.0020200308977307156 * k - 0.7488052167015494) + y * (0.00006834815998235662 * y + 0.00015168452363460973 * k - 0.09751927774728933) - k * (0.0003189131175883281 * k + 0.7364883807733168);
+      data[offset++] = 255 + c * (0.000013598650411385307 * c + 0.00012423956175490851 * m + 0.0004751985097583589 * y - 0.0000036729317476630422 * k - 0.05562186980264034) + m * (0.00016141380598724676 * m + 0.0009692239130725186 * y + 0.0007782692450036253 * k - 0.44015232367526463) + y * (5.068882914068769e-7 * y + 0.0017778369011375071 * k - 0.7591454649749609) - k * (0.0003435319965105553 * k + 0.7063770186160144);
+    }
+    return data.subarray(0, offset);
+  }
+  _convertCmykToRgba(data) {
+    for (let i = 0, length = data.length; i < length; i += 4) {
+      const c = data[i];
+      const m = data[i + 1];
+      const y = data[i + 2];
+      const k = data[i + 3];
+      data[i] = 255 + c * (-0.00006747147073602441 * c + 0.0008379262121013727 * m + 0.0002894718188643294 * y + 0.003264231057537806 * k - 1.1185611867203937) + m * (0.000026374107616089405 * m - 0.00008626949158638572 * y - 0.0002748769067499491 * k - 0.02155688794978967) + y * (-0.00003878099212869363 * y - 0.0003267808279485286 * k + 0.0686742238595345) - k * (0.0003361971776183937 * k + 0.7430659151342254);
+      data[i + 1] = 255 + c * (0.00013596372813588848 * c + 0.000924537132573585 * m + 0.00010567359618683593 * y + 0.0004791864687436512 * k - 0.3109689587515875) + m * (-0.00023545346108370344 * m + 0.0002702845253534714 * y + 0.0020200308977307156 * k - 0.7488052167015494) + y * (0.00006834815998235662 * y + 0.00015168452363460973 * k - 0.09751927774728933) - k * (0.0003189131175883281 * k + 0.7364883807733168);
+      data[i + 2] = 255 + c * (0.000013598650411385307 * c + 0.00012423956175490851 * m + 0.0004751985097583589 * y - 0.0000036729317476630422 * k - 0.05562186980264034) + m * (0.00016141380598724676 * m + 0.0009692239130725186 * y + 0.0007782692450036253 * k - 0.44015232367526463) + y * (5.068882914068769e-7 * y + 0.0017778369011375071 * k - 0.7591454649749609) - k * (0.0003435319965105553 * k + 0.7063770186160144);
+      data[i + 3] = 255;
+    }
+    return data;
+  }
+  getData(options) {
+    const step = this.getDataSteps(options).next();
+    if (!step.done) throw new JpegError("Stored JPEG samples require a retained driver");
+    return step.value;
+  }
+  *getDataSteps({
+    width,
+    height,
+    forceRGBA = false,
+    forceRGB = false,
+    isSourcePDF = false,
+    rowStart = 0,
+    rowCount = height
+  }) {
+    if (!Number.isSafeInteger(rowStart) || !Number.isSafeInteger(rowCount) || rowStart < 0 || rowCount < 0 || rowStart > height || rowCount > height - rowStart) {
+      throw new JpegError("Invalid JPEG row range");
+    }
+    if (this.numComponents > 4) {
+      throw new JpegError("Unsupported color mode");
+    }
+    const data = yield* this._getLinearizedBlockDataSteps(width, height, isSourcePDF, rowStart, rowCount);
+    if (this.numComponents === 1 && (forceRGBA || forceRGB)) {
+      const len = data.length * (forceRGBA ? 4 : 3);
+      this.onAllocation?.(len);
+      const rgbaData = new Uint8ClampedArray(len);
+      let offset = 0;
+      if (forceRGBA) {
+        grayToRGBA(data, new Uint32Array(rgbaData.buffer));
+      } else {
+        for (const grayColor of data) {
+          rgbaData[offset++] = grayColor;
+          rgbaData[offset++] = grayColor;
+          rgbaData[offset++] = grayColor;
+        }
+      }
+      return rgbaData;
+    } else if (this.numComponents === 3 && this._isColorConversionNeeded) {
+      if (forceRGBA) {
+        this.onAllocation?.(data.length / 3 * 4);
+        const rgbaData = new Uint8ClampedArray(data.length / 3 * 4);
+        return this._convertYccToRgba(data, rgbaData);
+      }
+      return this._convertYccToRgb(data);
+    } else if (this.numComponents === 4) {
+      if (this._isColorConversionNeeded) {
+        if (forceRGBA) {
+          return this._convertYcckToRgba(data);
+        }
+        if (forceRGB) {
+          return this._convertYcckToRgb(data);
+        }
+        return this._convertYcckToCmyk(data);
+      } else if (forceRGBA) {
+        return this._convertCmykToRgba(data);
+      } else if (forceRGB) {
+        return this._convertCmykToRgb(data);
+      }
+    }
+    return data;
+  }
+}
+
+;// CONCATENATED MODULE: ./src/core/jpx.js
+
+
+
+class JpxError extends BaseException {
+  constructor(msg) {
+    super(`JPX error: ${msg}`, "JpxError");
+  }
+}
+const SubbandsGainLog2 = {
+  LL: 0,
+  LH: 1,
+  HL: 1,
+  HH: 2
+};
+function* jpxVectorAllocate(length, bytesPerElement, stored, integer = false) {
+  if (!stored && integer) return bytesPerElement === 4 ? new Uint32Array(length) : bytesPerElement === 2 ? new Uint16Array(length) : new Uint8Array(length);
+  if (!stored && bytesPerElement === 8) return new Float64Array(length);
+  if (!stored) return bytesPerElement === 4 ? new Float32Array(length) : new Uint8ClampedArray(length);
+  return {length, bytesPerElement, integer, position: yield {kind: "vector-allocate", length: length * bytesPerElement}};
+}
+function* jpxVectorRead(vector, index) {
+  if (!Number.isInteger(index) || index < 0 || index >= vector.length) return undefined;
+  if (vector.position === undefined) return vector[index];
+  return yield {kind: "vector-read", vector, index};
+}
+function* jpxVectorWrite(vector, index, value) {
+  if (!Number.isInteger(index) || index < 0 || index >= vector.length) return value;
+  if (vector.position === undefined) vector[index] = value;
+  else yield {kind: "vector-write", vector, index, value};
+  return value;
+}
+function* jpxVectorUpdate(vector, index, operator, value) {
+  const previous = yield* jpxVectorRead(vector, index);
+  if (operator === "+") value = previous + value;
+  else if (operator === "-") value = previous - value;
+  else if (operator === "*") value = previous * value;
+  else if (operator === "&") value = previous & value;
+  else if (operator === "|") value = previous | value;
+  else if (operator === "^") value = previous ^ value;
+  else throw new Error("Unknown JPEG 2000 vector operation");
+  return yield* jpxVectorWrite(vector, index, value);
+}
+function* jpxVectorCopy(target, targetStart, source, start, end) {
+  if (target.position === undefined && source.position === undefined) { target.set(source.subarray(start, end), targetStart); return; }
+  for (let index = start; index < end; index++) yield* jpxVectorWrite(target, targetStart++, yield* jpxVectorRead(source, index));
+}
+function* jpxReadUint(position, count) {
+  let value = 0;
+  for (let i = 0; i < count; i++) value = (value << 8) | (yield position + i);
+  return value >>> 0;
+}
+function runJpxSteps(program, data) {
+  let step = program.next();
+  try { while (!step.done) { const request=step.value; if (typeof request !== "number" && "kind" in request) throw new JpxError("Stored JPEG 2000 planes require a cooperative driver"); step=program.next(typeof request === "number" ? data[request] : data.subarray(request.start, request.end)); } }
+  finally { program.return(); }
+}
+function* readJpxSize(position, length) {
+  const siz = {};
+  siz.Xsiz = (yield* jpxReadUint(position + 4,4));
+  siz.Ysiz = (yield* jpxReadUint(position + 8,4));
+  siz.XOsiz = (yield* jpxReadUint(position + 12,4));
+  siz.YOsiz = (yield* jpxReadUint(position + 16,4));
+  siz.XTsiz = (yield* jpxReadUint(position + 20,4));
+  siz.YTsiz = (yield* jpxReadUint(position + 24,4));
+  siz.XTOsiz = (yield* jpxReadUint(position + 28,4));
+  siz.YTOsiz = (yield* jpxReadUint(position + 32,4));
+  const componentsCount = (yield* jpxReadUint(position + 36,2));
+  siz.Csiz = componentsCount;
+  if (length !== 38 + 3 * componentsCount || componentsCount === 0 ||
+      siz.Xsiz <= siz.XOsiz || siz.Ysiz <= siz.YOsiz ||
+      siz.XTsiz === 0 || siz.YTsiz === 0 ||
+      siz.XTOsiz > siz.XOsiz || siz.YTOsiz > siz.YOsiz) {
+    throw new JpxError("Invalid SIZ dimensions");
+  }
+  return siz;
+}
+class JpxImage {
+  constructor(onImageDimensions, onAllocation, options = {}) {
+    this.storedPlanes = options.storedPlanes;
+    this.onAllocation = onAllocation;
+    this.onImageDimensions = onImageDimensions;
+    this.failOnCorruptedImage = false;
+  }
+  parse(data) { runJpxSteps(this.parseSteps(data), data); }
+  *parseSteps(data) {
+    const head = (yield* jpxReadUint(0,2));
+    if (head === 0xff4f) {
+      yield* this.parseCodestreamSteps(data, 0, data.length);
+      return;
+    }
+    const length = data.length;
+    let position = 0;
+    while (position < length) {
+      if (position + 8 > length) throw new JpxError("Truncated box header");
+      let headerSize = 8;
+      let lbox = (yield* jpxReadUint(position,4));
+      const tbox = (yield* jpxReadUint(position + 4,4));
+      position += headerSize;
+      if (lbox === 1) {
+        if (position + 8 > length) throw new JpxError("Truncated extended box header");
+        lbox = (yield* jpxReadUint(position,4)) * 4294967296 + (yield* jpxReadUint(position + 4,4));
+        position += 8;
+        headerSize += 8;
+      }
+      if (lbox === 0) {
+        lbox = length - position + headerSize;
+      }
+      if (!Number.isSafeInteger(lbox) || lbox > length - position + headerSize) {
+        throw new JpxError("Truncated box data");
+      }
+      if (lbox < headerSize) {
+        throw new JpxError("Invalid box field size");
+      }
+      const dataLength = lbox - headerSize;
+      let jumpDataLength = true;
+      switch (tbox) {
+        case 0x6a703268:
+          jumpDataLength = false;
+          break;
+        case 0x636f6c72:
+          const method = (yield position);
+          if (method === 1) {
+            const colorspace = (yield* jpxReadUint(position + 3,4));
+            switch (colorspace) {
+              case 16:
+              case 17:
+              case 18:
+                break;
+              default:
+                util_warn("Unknown colorspace " + colorspace);
+                break;
+            }
+          } else if (method === 2) {
+            info("ICC profile not supported");
+          }
+          break;
+        case 0x6a703263:
+          yield* this.parseCodestreamSteps(data, position, position + dataLength);
+          break;
+        case 0x6a502020:
+          if ((yield* jpxReadUint(position,4)) !== 0x0d0a870a) {
+            util_warn("Invalid JP2 signature");
+          }
+          break;
+        case 0x6a501a1a:
+        case 0x66747970:
+        case 0x72726571:
+        case 0x72657320:
+        case 0x69686472:
+          break;
+        default:
+          const headerType = String.fromCharCode(tbox >> 24 & 0xff, tbox >> 16 & 0xff, tbox >> 8 & 0xff, tbox & 0xff);
+          util_warn(`Unsupported header type ${tbox} (${headerType}).`);
+          break;
+      }
+      if (jumpDataLength) {
+        position += dataLength;
+      }
+    }
+  }
+  parseImageProperties(stream) {
+    let newByte = stream.getByte();
+    while (newByte >= 0) {
+      const oldByte = newByte;
+      newByte = stream.getByte();
+      const code = oldByte << 8 | newByte;
+      if (code === 0xff51) {
+        stream.skip(4);
+        const Xsiz = stream.getInt32() >>> 0;
+        const Ysiz = stream.getInt32() >>> 0;
+        const XOsiz = stream.getInt32() >>> 0;
+        const YOsiz = stream.getInt32() >>> 0;
+        stream.skip(16);
+        const Csiz = stream.getUint16();
+        this.width = Xsiz - XOsiz;
+        this.height = Ysiz - YOsiz;
+        this.componentsCount = Csiz;
+        this.bitsPerComponent = 8;
+        return;
+      }
+    }
+    throw new JpxError("No size marker found in JPX stream");
+  }
+  parseCodestream(data, start, end) { runJpxSteps(this.parseCodestreamSteps(data, start, end), data); }
+  *parseCodestreamSteps(data, start, end) {
+    if (!this.storedPlanes) { yield* this.parseCodestreamTileSteps(data, start, end); return; }
+    // Index encoded tile parts once. A tile can span interleaved parts, but only
+    // one tile's packet iterator and component graph need to be resident.
+    this.onAllocation?.(2048);
+    let index, count, mainEnd = end, position = start;
+    while (position + 1 < end) {
+      const marker = yield* jpxReadUint(position, 2);
+      if (marker === 0xff4f) { position += 2; continue; }
+      if (marker === 0xffd9) break;
+      const length = yield* jpxReadUint(position + 2, 2);
+      if (length < 2 || position + 2 + length > end) throw new JpxError("Truncated marker segment");
+      if (marker === 0xff51) {
+        if (length < 38) throw new JpxError("Invalid SIZ marker length");
+        const siz = yield* readJpxSize(position + 2, length);
+        this.onImageDimensions?.(siz.Xsiz - siz.XOsiz, siz.Ysiz - siz.YOsiz);
+        count = Math.ceil((siz.Xsiz - siz.XTOsiz) / siz.XTsiz) * Math.ceil((siz.Ysiz - siz.YTOsiz) / siz.YTsiz);
+        index = yield* jpxVectorAllocate(count * 2, 8, true);
+      }
+      if (marker === 0xff90) {
+        if (!index || length !== 10) throw new JpxError("Invalid tile part");
+        mainEnd = Math.min(mainEnd, position);
+        const number = yield* jpxReadUint(position + 4, 2), size = yield* jpxReadUint(position + 6, 4);
+        if (number >= count || size < 14 || position + size > end) throw new JpxError("Truncated tile part");
+        const part = yield* jpxVectorAllocate(3, 8, true);
+        yield* jpxVectorWrite(part, 1, position);
+        yield* jpxVectorWrite(part, 2, position + size);
+        const previous = yield* jpxVectorRead(index, number * 2 + 1);
+        if (previous) yield* jpxVectorWrite({position: previous - 1, length: 3, bytesPerElement: 8}, 0, part.position + 1);
+        else yield* jpxVectorWrite(index, number * 2, part.position + 1);
+        yield* jpxVectorWrite(index, number * 2 + 1, part.position + 1);
+        position += size;
+      } else position += length + 2;
+    }
+    if (!index) throw new JpxError("No size marker found in JPX stream");
+    const records = yield* jpxVectorAllocate(count * 6, 8, true);
+    let peak = 0;
+    for (let number = 0; number < count; number++) {
+      let admitted = 0;
+      const selected = {number, mainEnd, next: yield* jpxVectorRead(index, number * 2), onAllocation: bytes => {
+        admitted += bytes;
+        if (admitted > peak) { this.onAllocation?.(admitted - peak); peak = admitted; }
+      }};
+      const tile = yield* this.parseCodestreamTileSteps(data, start, end, selected);
+      const values = [tile.left, tile.top, tile.width, tile.height, tile.items.position, tile.items.length];
+      for (let field = 0; field < 6; field++) yield* jpxVectorWrite(records, number * 6 + field, values[field]);
+    }
+    this.storedTiles = {length: count, records};
+  }
+  *parseCodestreamTileSteps(data, start, end, selected) {
+    // Local bounds guards: truncated SIZ fields can otherwise yield an infinite
+    // tile count before the upstream decoder detects the missing input.
+    if (start < 0 || end > data.length || end - start < 4) {
+      throw new JpxError("Truncated codestream");
+    }
+    const context = { onAllocation: selected?.onAllocation ?? this.onAllocation, storedPlanes: this.storedPlanes, selectedTile: selected?.number };
+    context.onAllocation?.(1024);
+    let doNotRecover = false;
+    try {
+      let position = start, partEnd = selected?.mainEnd;
+      while (position + 1 < end) {
+        if (selected && position >= partEnd) {
+          if (!selected.next) break;
+          const part = {position: selected.next - 1, length: 3, bytesPerElement: 8};
+          selected.next = yield* jpxVectorRead(part, 0);
+          position = yield* jpxVectorRead(part, 1);
+          partEnd = yield* jpxVectorRead(part, 2);
+        }
+        const code = (yield* jpxReadUint(position,2));
+        position += 2;
+        let length = 0,
+          j,
+          sqcd,
+          spqcds,
+          spqcdSize,
+          scalarExpounded,
+          tile;
+        if (code !== 0xff4f && code !== 0xffd9 && code !== 0xff93) {
+          if (position + 2 > end) throw new JpxError("Truncated marker length");
+          const markerLength = (yield* jpxReadUint(position,2));
+          // Marker-derived objects, array slots, and tile-part copies.
+          if (context.storedPlanes) {
+            if (!context.markerAdmission) {context.onAllocation?.(4096); context.markerAdmission = true;}
+          } else context.onAllocation?.(512 + markerLength * 128);
+          if (markerLength < 2 || position + markerLength > end) {
+            throw new JpxError("Truncated marker segment");
+          }
+        }
+        switch (code) {
+          case 0xff4f:
+            context.mainHeader = true;
+            break;
+          case 0xffd9:
+            break;
+          case 0xff51:
+            length = (yield* jpxReadUint(position,2));
+            if (length < 38) throw new JpxError("Invalid SIZ marker length");
+            const siz = yield* readJpxSize(position, length);
+            const componentsCount = siz.Csiz;
+            this.onImageDimensions?.(siz.Xsiz - siz.XOsiz, siz.Ysiz - siz.YOsiz);
+            context.onAllocation?.(context.storedPlanes ? 2048 : componentsCount * 512);
+            siz.Csiz = componentsCount;
+            const components = [];
+            j = position + 38;
+            for (let i = 0; i < componentsCount; i++) {
+              const component = {
+                precision: ((yield j) & 0x7f) + 1,
+                isSigned: !!((yield j) & 0x80),
+                XRsiz: (yield j + 1),
+                YRsiz: (yield j + 2)
+              };
+              j += 3;
+              if (!component.XRsiz || !component.YRsiz) {
+                throw new JpxError("Invalid component sampling dimensions");
+              }
+              calculateComponentDimensions(component, siz);
+              if (!context.storedPlanes) components.push(component);
+            }
+            context.SIZ = siz;
+            context.components = context.storedPlanes ? {length: componentsCount, start: position + 38, cache: []} : components;
+            yield* calculateTileGrids(context, context.components);
+            context.QCC = context.storedPlanes ? {length: componentsCount, records: yield* jpxVectorAllocate(componentsCount * 3, 8, true)} : [];
+            context.COC = [];
+            break;
+          case 0xff5c:
+            length = (yield* jpxReadUint(position,2));
+            const qcd = {};
+            j = position + 2;
+            sqcd = (yield j++);
+            switch (sqcd & 0x1f) {
+              case 0:
+                spqcdSize = 8;
+                scalarExpounded = true;
+                break;
+              case 1:
+                spqcdSize = 16;
+                scalarExpounded = false;
+                break;
+              case 2:
+                spqcdSize = 16;
+                scalarExpounded = true;
+                break;
+              default:
+                throw new Error("Invalid SQcd value " + sqcd);
+            }
+            qcd.noQuantization = spqcdSize === 8;
+            qcd.scalarExpounded = scalarExpounded;
+            qcd.guardBits = sqcd >> 5;
+            spqcds = context.storedPlanes ? {start: j, length: Math.ceil((length + position - j) / (spqcdSize / 8)), width: spqcdSize / 8} : [];
+            while (!context.storedPlanes && j < length + position) {
+              const spqcd = {};
+              if (spqcdSize === 8) {
+                spqcd.epsilon = (yield j++) >> 3;
+                spqcd.mu = 0;
+              } else {
+                spqcd.epsilon = (yield j) >> 3;
+                spqcd.mu = ((yield j) & 0x7) << 8 | (yield j + 1);
+                j += 2;
+              }
+              spqcds.push(spqcd);
+            }
+            qcd.SPqcds = spqcds;
+            if (context.mainHeader) {
+              context.QCD = qcd;
+            } else {
+              context.currentTile.QCD = qcd;
+              context.currentTile.QCC = context.storedPlanes ? {length: context.SIZ.Csiz, records: yield* jpxVectorAllocate(context.SIZ.Csiz * 3, 8, true)} : [];
+            }
+            break;
+          case 0xff5d:
+            length = (yield* jpxReadUint(position,2));
+            const qcc = {};
+            j = position + 2;
+            let cqcc;
+            if (context.SIZ.Csiz < 257) {
+              cqcc = (yield j++);
+            } else {
+              cqcc = (yield* jpxReadUint(j,2));
+              j += 2;
+            }
+            sqcd = (yield j++);
+            switch (sqcd & 0x1f) {
+              case 0:
+                spqcdSize = 8;
+                scalarExpounded = true;
+                break;
+              case 1:
+                spqcdSize = 16;
+                scalarExpounded = false;
+                break;
+              case 2:
+                spqcdSize = 16;
+                scalarExpounded = true;
+                break;
+              default:
+                throw new Error("Invalid SQcd value " + sqcd);
+            }
+            qcc.noQuantization = spqcdSize === 8;
+            qcc.scalarExpounded = scalarExpounded;
+            qcc.guardBits = sqcd >> 5;
+            spqcds = context.storedPlanes ? {start: j, length: Math.ceil((length + position - j) / (spqcdSize / 8)), width: spqcdSize / 8} : [];
+            while (!context.storedPlanes && j < length + position) {
+              const spqcd = {};
+              if (spqcdSize === 8) {
+                spqcd.epsilon = (yield j++) >> 3;
+                spqcd.mu = 0;
+              } else {
+                spqcd.epsilon = (yield j) >> 3;
+                spqcd.mu = ((yield j) & 0x7) << 8 | (yield j + 1);
+                j += 2;
+              }
+              spqcds.push(spqcd);
+            }
+            qcc.SPqcds = spqcds;
+            const overrides = context.mainHeader ? context.QCC : context.currentTile.QCC;
+            if (context.storedPlanes) {
+              if (cqcc < overrides.length) {
+                yield* jpxVectorWrite(overrides.records, cqcc * 3, sqcd + 1);
+                yield* jpxVectorWrite(overrides.records, cqcc * 3 + 1, spqcds.start);
+                yield* jpxVectorWrite(overrides.records, cqcc * 3 + 2, spqcds.length);
+              }
+            } else overrides[cqcc] = qcc;
+            break;
+          case 0xff52:
+            length = (yield* jpxReadUint(position,2));
+            const cod = {};
+            j = position + 2;
+            const scod = (yield j++);
+            cod.entropyCoderWithCustomPrecincts = !!(scod & 1);
+            cod.sopMarkerUsed = !!(scod & 2);
+            cod.ephMarkerUsed = !!(scod & 4);
+            cod.progressionOrder = (yield j++);
+            cod.layersCount = (yield* jpxReadUint(j,2));
+            j += 2;
+            cod.multipleComponentTransform = (yield j++);
+            cod.decompositionLevelsCount = (yield j++);
+            cod.xcb = ((yield j++) & 0xf) + 2;
+            cod.ycb = ((yield j++) & 0xf) + 2;
+            const blockStyle = (yield j++);
+            cod.selectiveArithmeticCodingBypass = !!(blockStyle & 1);
+            cod.resetContextProbabilities = !!(blockStyle & 2);
+            cod.terminationOnEachCodingPass = !!(blockStyle & 4);
+            cod.verticallyStripe = !!(blockStyle & 8);
+            cod.predictableTermination = !!(blockStyle & 16);
+            cod.segmentationSymbolUsed = !!(blockStyle & 32);
+            cod.reversibleTransformation = (yield j++);
+            if (cod.entropyCoderWithCustomPrecincts) {
+              const precinctsSizes = context.storedPlanes ? {start: j, length: length + position - j} : [];
+              while (!context.storedPlanes && j < length + position) {
+                const precinctsSize = (yield j++);
+                precinctsSizes.push({
+                  PPx: precinctsSize & 0xf,
+                  PPy: precinctsSize >> 4
+                });
+              }
+              cod.precinctsSizes = precinctsSizes;
+            }
+            const unsupported = [];
+            if (cod.selectiveArithmeticCodingBypass) {
+              unsupported.push("selectiveArithmeticCodingBypass");
+            }
+            if (cod.terminationOnEachCodingPass) {
+              unsupported.push("terminationOnEachCodingPass");
+            }
+            if (cod.verticallyStripe) {
+              unsupported.push("verticallyStripe");
+            }
+            if (cod.predictableTermination) {
+              unsupported.push("predictableTermination");
+            }
+            if (unsupported.length > 0) {
+              doNotRecover = true;
+              util_warn(`JPX: Unsupported COD options (${unsupported.join(", ")}).`);
+            }
+            if (context.mainHeader) {
+              context.COD = cod;
+            } else {
+              context.currentTile.COD = cod;
+              context.currentTile.COC = [];
+            }
+            break;
+          case 0xff90:
+            length = (yield* jpxReadUint(position,2));
+            tile = {};
+            tile.index = (yield* jpxReadUint(position + 2,2));
+            tile.length = (yield* jpxReadUint(position + 4,4));
+            tile.dataEnd = tile.length + position - 2;
+            if (length !== 10 || tile.dataEnd > end) {
+              throw new JpxError("Truncated tile part");
+            }
+            tile.partIndex = (yield position + 8);
+            tile.partsCount = (yield position + 9);
+            context.mainHeader = false;
+            if (tile.partIndex === 0) {
+              tile.COD = context.COD;
+              context.onAllocation?.(context.storedPlanes ? 512 : (context.COC.length + context.QCC.length) * 16 + 256);
+              tile.COC = context.COC.slice(0);
+              tile.QCD = context.QCD;
+              if (context.storedPlanes) {
+                tile.QCC = {length: context.QCC.length, records: yield* jpxVectorAllocate(context.QCC.records.length, 8, true)};
+                yield* jpxVectorCopy(tile.QCC.records, 0, context.QCC.records, 0, context.QCC.records.length);
+              } else tile.QCC = context.QCC.slice(0);
+            }
+            context.currentTile = tile;
+            break;
+          case 0xff93:
+            tile = context.currentTile;
+            if (tile.partIndex === 0) {
+              yield* initializeTile(context, tile.index);
+              yield* buildPackets(context);
+            }
+            length = tile.dataEnd - position;
+            (yield* parseTilePackets(context, data, position, length));
+            break;
+          case 0xff53:
+            util_warn("JPX: Codestream code 0xFF53 (COC) is not implemented.");
+          case 0xff55:
+          case 0xff57:
+          case 0xff58:
+          case 0xff64:
+            length = (yield* jpxReadUint(position,2));
+            break;
+          default:
+            throw new Error("Unknown codestream code: " + code.toString(16));
+        }
+        position += length;
+      }
+    } catch (e) {
+      if (e?.code === "E_LIMIT") throw e;
+      if (doNotRecover || this.failOnCorruptedImage) {
+        throw new JpxError(e.message);
+      } else {
+        util_warn(`JPX: Trying to recover from: "${e.message}".`);
+      }
+    }
+    const tiles = (yield* transformComponents(context));
+    if (!selected) this.tiles = tiles;
+    this.width = context.SIZ.Xsiz - context.SIZ.XOsiz;
+    this.height = context.SIZ.Ysiz - context.SIZ.YOsiz;
+    this.componentsCount = context.SIZ.Csiz;
+    if (selected) return tiles[0];
+  }
+}
+function calculateComponentDimensions(component, siz) {
+  component.x0 = Math.ceil(siz.XOsiz / component.XRsiz);
+  component.x1 = Math.ceil(siz.Xsiz / component.XRsiz);
+  component.y0 = Math.ceil(siz.YOsiz / component.YRsiz);
+  component.y1 = Math.ceil(siz.Ysiz / component.YRsiz);
+  component.width = component.x1 - component.x0;
+  component.height = component.y1 - component.y0;
+}
+function* calculateTileGrids(context, components) {
+  const siz = context.SIZ;
+  const tiles = context.selectedTile === undefined ? [] : {length: context.selectedTile + 1};
+  let tile;
+  const numXtiles = Math.ceil((siz.Xsiz - siz.XTOsiz) / siz.XTsiz);
+  const numYtiles = Math.ceil((siz.Ysiz - siz.YTOsiz) / siz.YTsiz);
+  context.onAllocation?.((context.selectedTile === undefined ? numXtiles * numYtiles : 1) * (512 + (context.storedPlanes ? 2048 : siz.Csiz * 512)));
+  const firstRow = context.selectedTile === undefined ? 0 : Math.floor(context.selectedTile / numXtiles);
+  const lastRow = context.selectedTile === undefined ? numYtiles : firstRow + 1;
+  for (let q = firstRow; q < lastRow; q++) {
+    const firstColumn = context.selectedTile === undefined ? 0 : context.selectedTile % numXtiles;
+    const lastColumn = context.selectedTile === undefined ? numXtiles : firstColumn + 1;
+    for (let p = firstColumn; p < lastColumn; p++) {
+      tile = { onAllocation: context.onAllocation };
+      tile.tx0 = Math.max(siz.XTOsiz + p * siz.XTsiz, siz.XOsiz);
+      tile.ty0 = Math.max(siz.YTOsiz + q * siz.YTsiz, siz.YOsiz);
+      tile.tx1 = Math.min(siz.XTOsiz + (p + 1) * siz.XTsiz, siz.Xsiz);
+      tile.ty1 = Math.min(siz.YTOsiz + (q + 1) * siz.YTsiz, siz.Ysiz);
+      tile.width = tile.tx1 - tile.tx0;
+      tile.height = tile.ty1 - tile.ty0;
+      tile.components = context.storedPlanes ? {length: siz.Csiz, records: yield* jpxVectorAllocate(siz.Csiz * 2, 8, true)} : [];
+      if (context.storedPlanes) tile.context = context;
+      tiles[q * numXtiles + p] = tile;
+    }
+  }
+  context.tiles = tiles;
+  const componentsCount = siz.Csiz;
+  if (context.storedPlanes) return;
+  for (let i = 0, ii = componentsCount; i < ii; i++) {
+    const component = components[i];
+    for (let j = context.selectedTile ?? 0, jj = tiles.length; j < jj; j++) {
+      const tileComponent = {};
+      tile = tiles[j];
+      tileComponent.tcx0 = Math.ceil(tile.tx0 / component.XRsiz);
+      tileComponent.tcy0 = Math.ceil(tile.ty0 / component.YRsiz);
+      tileComponent.tcx1 = Math.ceil(tile.tx1 / component.XRsiz);
+      tileComponent.tcy1 = Math.ceil(tile.ty1 / component.YRsiz);
+      tileComponent.width = tileComponent.tcx1 - tileComponent.tcx0;
+      tileComponent.height = tileComponent.tcy1 - tileComponent.tcy0;
+      tile.components[i] = tileComponent;
+    }
+  }
+}
+function* readJpxComponent(context, index) {
+  const components = context.components;
+  if (!components.cache) return components[index];
+  const found = components.cache.findIndex(entry => entry.index === index);
+  if (found >= 0) {const entry = components.cache.splice(found, 1)[0]; components.cache.push(entry); return entry.value;}
+  const at = components.start + index * 3, flags = yield at;
+  const value = {precision: (flags & 127) + 1, isSigned: !!(flags & 128), XRsiz: yield at + 1, YRsiz: yield at + 2};
+  calculateComponentDimensions(value, context.SIZ);
+  if (components.cache.length === 4) components.cache.shift();
+  components.cache.push({index, value});
+  return value;
+}
+function* readJpxTileComponent(tile, index) {
+  if (!tile.components.records) return tile.components[index];
+  const context = tile.context, cache = context.componentCache ??= [];
+  const found = cache.findIndex(entry => entry.tile === tile && entry.index === index);
+  if (found >= 0) {const entry = cache.splice(found, 1)[0]; cache.push(entry); return entry.value;}
+  const base = yield* readJpxComponent(context, index);
+  const value = {tcx0: Math.ceil(tile.tx0 / base.XRsiz), tcy0: Math.ceil(tile.ty0 / base.YRsiz),
+    tcx1: Math.ceil(tile.tx1 / base.XRsiz), tcy1: Math.ceil(tile.ty1 / base.YRsiz),
+    codingStyleParameters: tile.initialCOC[index] ?? tile.initialCOD,
+    quantizationParameters: (yield* readJpxQuantizationOverride(tile.initialQCC, index)) ?? tile.initialQCD};
+  value.width = value.tcx1 - value.tcx0; value.height = value.tcy1 - value.tcy0;
+  const length = yield* jpxVectorRead(tile.components.records, index * 2 + 1);
+  if (length) value.resolutions = {context, length, records: {position: yield* jpxVectorRead(tile.components.records, index * 2), length: length * 55, bytesPerElement: 8, integer: false}};
+  if (cache.length === 4) cache.shift();
+  cache.push({tile, index, value}); return value;
+}
+function* readJpxQuantizationOverride(overrides, index) {
+  if (!overrides.records) return overrides[index];
+  const encoded = yield* jpxVectorRead(overrides.records, index * 3);
+  if (!encoded) return undefined;
+  const flags = encoded - 1, mode = flags & 31;
+  return {noQuantization: mode === 0, scalarExpounded: mode !== 1, guardBits: flags >> 5,
+    SPqcds: {start: yield* jpxVectorRead(overrides.records, index * 3 + 1), length: yield* jpxVectorRead(overrides.records, index * 3 + 2), width: mode === 0 ? 1 : 2}};
+}
+function* readJpxQuantizationEntry(entries, index) {
+  if (entries.start === undefined) return entries[index];
+  if (index < 0 || index >= entries.length) return undefined;
+  const at = entries.start + index * entries.width, first = yield at;
+  return {epsilon: first >> 3, mu: entries.width === 1 ? 0 : ((first & 7) << 8) | (yield at + 1)};
+}
+function* getBlocksDimensions(context, component, r) {
+  const codOrCoc = component.codingStyleParameters;
+  const result = {};
+  if (!codOrCoc.entropyCoderWithCustomPrecincts) {
+    result.PPx = 15;
+    result.PPy = 15;
+  } else if (codOrCoc.precinctsSizes.start !== undefined) {
+    if (r >= codOrCoc.precinctsSizes.length) throw new JpxError("Missing precinct size");
+    const value = yield codOrCoc.precinctsSizes.start + r;
+    result.PPx = value & 15; result.PPy = value >> 4;
+  } else {
+    result.PPx = codOrCoc.precinctsSizes[r].PPx;
+    result.PPy = codOrCoc.precinctsSizes[r].PPy;
+  }
+  result.xcb_ = r > 0 ? Math.min(codOrCoc.xcb, result.PPx - 1) : Math.min(codOrCoc.xcb, result.PPx);
+  result.ycb_ = r > 0 ? Math.min(codOrCoc.ycb, result.PPy - 1) : Math.min(codOrCoc.ycb, result.PPy);
+  return result;
+}
+function buildPrecincts(context, resolution, dimensions) {
+  const precinctWidth = 1 << dimensions.PPx;
+  const precinctHeight = 1 << dimensions.PPy;
+  const isZeroRes = resolution.resLevel === 0;
+  const precinctWidthInSubband = 1 << dimensions.PPx + (isZeroRes ? 0 : -1);
+  const precinctHeightInSubband = 1 << dimensions.PPy + (isZeroRes ? 0 : -1);
+  const numprecinctswide = resolution.trx1 > resolution.trx0 ? Math.ceil(resolution.trx1 / precinctWidth) - Math.floor(resolution.trx0 / precinctWidth) : 0;
+  const numprecinctshigh = resolution.try1 > resolution.try0 ? Math.ceil(resolution.try1 / precinctHeight) - Math.floor(resolution.try0 / precinctHeight) : 0;
+  const numprecincts = numprecinctswide * numprecinctshigh;
+  resolution.precinctParameters = {
+    precinctWidth,
+    precinctHeight,
+    numprecinctswide,
+    numprecinctshigh,
+    numprecincts,
+    precinctWidthInSubband,
+    precinctHeightInSubband
+  };
+}
+function* buildCodeblocks(context, subband, dimensions) {
+  const xcb_ = dimensions.xcb_;
+  const ycb_ = dimensions.ycb_;
+  const codeblockWidth = 1 << xcb_;
+  const codeblockHeight = 1 << ycb_;
+  const cbx0 = subband.tbx0 >> xcb_;
+  const cby0 = subband.tby0 >> ycb_;
+  const cbx1 = subband.tbx1 + codeblockWidth - 1 >> xcb_;
+  const cby1 = subband.tby1 + codeblockHeight - 1 >> ycb_;
+  const precinctParameters = subband.resolution.precinctParameters;
+  const count = Math.max(0, cbx1 - cbx0) * Math.max(0, cby1 - cby0);
+  if (!context.storedPlanes) context.onAllocation?.(count * 1024 + precinctParameters.numprecincts * 16);
+  const codeblocks = context.storedPlanes
+    ? {length: 0, records: yield* jpxVectorAllocate(count * 18, 8, true)} : [];
+  const precincts = context.storedPlanes
+    ? {records: yield* jpxVectorAllocate(precinctParameters.numprecincts * 8, 8, true), treeAdmission: 0} : [];
+  let i, j, codeblock, precinctNumber;
+  for (j = cby0; j < cby1; j++) {
+    for (i = cbx0; i < cbx1; i++) {
+      codeblock = {
+        cbx: i,
+        cby: j,
+        tbx0: codeblockWidth * i,
+        tby0: codeblockHeight * j,
+        tbx1: codeblockWidth * (i + 1),
+        tby1: codeblockHeight * (j + 1)
+      };
+      codeblock.tbx0_ = Math.max(subband.tbx0, codeblock.tbx0);
+      codeblock.tby0_ = Math.max(subband.tby0, codeblock.tby0);
+      codeblock.tbx1_ = Math.min(subband.tbx1, codeblock.tbx1);
+      codeblock.tby1_ = Math.min(subband.tby1, codeblock.tby1);
+      const pi = Math.floor((codeblock.tbx0_ - subband.tbx0) / precinctParameters.precinctWidthInSubband);
+      const pj = Math.floor((codeblock.tby0_ - subband.tby0) / precinctParameters.precinctHeightInSubband);
+      precinctNumber = pi + pj * precinctParameters.numprecinctswide;
+      codeblock.precinctNumber = precinctNumber;
+      codeblock.subbandType = subband.type;
+      codeblock.Lblock = 3;
+      if (codeblock.tbx1_ <= codeblock.tbx0_ || codeblock.tby1_ <= codeblock.tby0_) {
+        continue;
+      }
+      if (context.storedPlanes) {
+        codeblock.record = codeblocks.records;
+        codeblock.recordIndex = codeblocks.length++;
+        for (let field = 0; field < jpxCodeblockGeometry.length; field++) {
+          yield* jpxVectorWrite(codeblock.record, codeblock.recordIndex * 18 + field, codeblock[jpxCodeblockGeometry[field]]);
+        }
+        yield* writeJpxCodeblock(codeblock);
+      } else codeblocks.push(codeblock);
+      let precinct = yield* readJpxPrecinct(precincts, precinctNumber);
+      if (precinct !== undefined) {
+        if (i < precinct.cbxMin) {
+          precinct.cbxMin = i;
+        } else if (i > precinct.cbxMax) {
+          precinct.cbxMax = i;
+        }
+        if (j < precinct.cbyMin) {
+          precinct.cbxMin = j;
+        } else if (j > precinct.cbyMax) {
+          precinct.cbyMax = j;
+        }
+      } else {
+        precinct = {
+          cbxMin: i,
+          cbyMin: j,
+          cbxMax: i,
+          cbyMax: j
+        };
+      }
+      if (precincts.records) {
+        precinct.collection = precincts; precinct.number = precinctNumber;
+        yield* writeJpxPrecinct(precinct);
+      } else precincts[precinctNumber] = precinct;
+      codeblock.precinct = precinct;
+    }
+  }
+  subband.codeblockParameters = {
+    codeblockWidth: xcb_,
+    codeblockHeight: ycb_,
+    numcodeblockwide: cbx1 - cbx0 + 1,
+    numcodeblockhigh: cby1 - cby0 + 1
+  };
+  subband.codeblocks = codeblocks;
+  subband.precincts = precincts;
+}
+// Only the current precinct and its tree level views are resident. Roots and
+// bounds survive eviction in caller-owned storage.
+function* writeJpxPrecinct(precinct) {
+  const collection = precinct.collection;
+  if (!collection) return;
+  const values = [1, precinct.cbxMin, precinct.cbyMin, precinct.cbxMax, precinct.cbyMax,
+    precinct.inclusionTree ? precinct.inclusionTree.root.position + 1 : 0,
+    precinct.zeroBitPlanesTree ? precinct.zeroBitPlanesTree.root.position + 1 : 0,
+    precinct.zeroBitPlanesTree ? precinct.zeroBitPlanesTree.presence.position + 1 : 0];
+  for (let field = 0; field < values.length; field++) {
+    yield* jpxVectorWrite(collection.records, precinct.number * 8 + field, values[field]);
+  }
+  collection.cached = precinct;
+}
+function* readJpxPrecinct(collection, number) {
+  if (!collection.records) return collection[number];
+  if (collection.cached?.number === number) return collection.cached;
+  if (!(yield* jpxVectorRead(collection.records, number * 8))) return undefined;
+  const values = [];
+  for (let field = 1; field < 8; field++) values.push(yield* jpxVectorRead(collection.records, number * 8 + field));
+  const precinct = {collection, number, cbxMin: values[0], cbyMin: values[1], cbxMax: values[2], cbyMax: values[3]};
+  if (values[4]) {
+    const width = precinct.cbxMax - precinct.cbxMin + 1, height = precinct.cbyMax - precinct.cbyMin + 1;
+    precinct.inclusionTree = new InclusionTree();
+    yield* precinct.inclusionTree.initialize(width, height, 0, undefined, true, values[4] - 1);
+    precinct.zeroBitPlanesTree = new TagTree();
+    yield* precinct.zeroBitPlanesTree.initialize(width, height, undefined, true, values[5] - 1, values[6] - 1);
+  }
+  collection.cached = precinct;
+  return precinct;
+}
+const jpxCodeblockGeometry = ["cbx", "cby", "tbx0_", "tby0_", "tbx1_", "tby1_", "precinctNumber"];
+function* writeJpxCodeblock(block) {
+  if (!block.record) return;
+  const data = block.data;
+  const values = [block.Lblock, block.included === undefined ? 0 : 1,
+    block.zeroBitPlanes ?? NaN, data ? 1 : 0, data?.head ? data.head.position + 1 : 0,
+    data?.tail ? data.tail.position + 1 : 0, data?.used ?? 0, data?.length ?? 0,
+    data?.sourceLength ?? 0, data?.totalLength ?? 0, data?.codingpasses ?? 0];
+  for (let field = 0; field < values.length; field++) {
+    yield* jpxVectorWrite(block.record, block.recordIndex * 18 + 7 + field, values[field]);
+  }
+}
+function* readJpxCodeblock(subband, index, withPrecinct = true) {
+  const blocks = subband.codeblocks;
+  if (!blocks.records) return blocks[index];
+  const block = {record: blocks.records, recordIndex: index, subbandType: subband.type};
+  const values = [];
+  for (let field = 0; field < 18; field++) values.push(yield* jpxVectorRead(blocks.records, index * 18 + field));
+  for (let field = 0; field < jpxCodeblockGeometry.length; field++) block[jpxCodeblockGeometry[field]] = values[field];
+  if (withPrecinct) block.precinct = yield* readJpxPrecinct(subband.precincts, block.precinctNumber);
+  block.Lblock = values[7];
+  if (values[8]) block.included = true;
+  if (!Number.isNaN(values[9])) block.zeroBitPlanes = values[9];
+  if (values[10]) {
+    const data = block.data = createJpxRecords(2);
+    const vector = position => ({position: position - 1, length: 1 + data.capacity * 2, bytesPerElement: 8, integer: false});
+    if (values[11]) data.head = vector(values[11]);
+    if (values[12]) data.tail = vector(values[12]);
+    data.used = values[13]; data.length = values[14]; data.sourceLength = values[15];
+    data.totalLength = values[16]; data.codingpasses = values[17];
+  }
+  return block;
+}
+function createPacket(resolution, precinctNumber, layerNumber) {
+  if (resolution.packetAdmission === undefined) {
+    resolution.onAllocation?.(128);
+    resolution.packetAdmission = 128;
+  }
+  return {layerNumber, resolution, precinctNumber};
+}
+function* nextJpxPacketCodeblock(packet, cursor) {
+  while (cursor.subband < packet.resolution.subbands.length) {
+    const subband = packet.resolution.subbands[cursor.subband];
+    while (cursor.index < subband.codeblocks.length) {
+      const index = cursor.index++;
+      if (subband.codeblocks.records && (yield* jpxVectorRead(subband.codeblocks.records, index * 18 + 6)) !== packet.precinctNumber) continue;
+      const block = yield* readJpxCodeblock(subband, index);
+      if (block.precinctNumber === packet.precinctNumber) return block;
+    }
+    cursor.subband++;
+    cursor.index = 0;
+  }
+}
+function* LayerResolutionComponentPositionIterator(context) {
+  const siz = context.SIZ;
+  const tileIndex = context.currentTile.index;
+  const tile = context.tiles[tileIndex];
+  const layersCount = tile.codingStyleDefaultParameters.layersCount;
+  const componentsCount = siz.Csiz;
+  let maxDecompositionLevelsCount = 0;
+  for (let q = 0; q < componentsCount; q++) {
+    maxDecompositionLevelsCount = Math.max(maxDecompositionLevelsCount, (yield* readJpxTileComponent(tile, q)).codingStyleParameters.decompositionLevelsCount);
+  }
+  let l = 0,
+    r = 0,
+    i = 0,
+    k = 0;
+  return {nextPacket: function* JpxImage_nextPacket() {
+    for (; l < layersCount; l++) {
+      for (; r <= maxDecompositionLevelsCount; r++) {
+        for (; i < componentsCount; i++) {
+          const component = (yield* readJpxTileComponent(tile, i));
+          if (r > component.codingStyleParameters.decompositionLevelsCount) {
+            continue;
+          }
+          const resolution = (yield* readJpxResolution(component.resolutions, r));
+          const numprecincts = resolution.precinctParameters.numprecincts;
+          for (; k < numprecincts;) {
+            const packet = createPacket(resolution, k, l);
+            k++;
+            return packet;
+          }
+          k = 0;
+        }
+        i = 0;
+      }
+      r = 0;
+    }
+    throw new JpxError("Out of packets");
+  }};
+}
+function* ResolutionLayerComponentPositionIterator(context) {
+  const siz = context.SIZ;
+  const tileIndex = context.currentTile.index;
+  const tile = context.tiles[tileIndex];
+  const layersCount = tile.codingStyleDefaultParameters.layersCount;
+  const componentsCount = siz.Csiz;
+  let maxDecompositionLevelsCount = 0;
+  for (let q = 0; q < componentsCount; q++) {
+    maxDecompositionLevelsCount = Math.max(maxDecompositionLevelsCount, (yield* readJpxTileComponent(tile, q)).codingStyleParameters.decompositionLevelsCount);
+  }
+  let r = 0,
+    l = 0,
+    i = 0,
+    k = 0;
+  return {nextPacket: function* JpxImage_nextPacket() {
+    for (; r <= maxDecompositionLevelsCount; r++) {
+      for (; l < layersCount; l++) {
+        for (; i < componentsCount; i++) {
+          const component = (yield* readJpxTileComponent(tile, i));
+          if (r > component.codingStyleParameters.decompositionLevelsCount) {
+            continue;
+          }
+          const resolution = (yield* readJpxResolution(component.resolutions, r));
+          const numprecincts = resolution.precinctParameters.numprecincts;
+          for (; k < numprecincts;) {
+            const packet = createPacket(resolution, k, l);
+            k++;
+            return packet;
+          }
+          k = 0;
+        }
+        i = 0;
+      }
+      l = 0;
+    }
+    throw new JpxError("Out of packets");
+  }};
+}
+function* ResolutionPositionComponentLayerIterator(context) {
+  const siz = context.SIZ;
+  const tileIndex = context.currentTile.index;
+  const tile = context.tiles[tileIndex];
+  const layersCount = tile.codingStyleDefaultParameters.layersCount;
+  const componentsCount = siz.Csiz;
+  let l, r, c, p;
+  let maxDecompositionLevelsCount = 0;
+  for (c = 0; c < componentsCount; c++) {
+    const component = (yield* readJpxTileComponent(tile, c));
+    maxDecompositionLevelsCount = Math.max(maxDecompositionLevelsCount, component.codingStyleParameters.decompositionLevelsCount);
+  }
+  context.onAllocation?.((maxDecompositionLevelsCount + 1) * 4 + 128);
+  const maxNumPrecinctsInLevel = new Int32Array(maxDecompositionLevelsCount + 1);
+  for (r = 0; r <= maxDecompositionLevelsCount; ++r) {
+    let maxNumPrecincts = 0;
+    for (c = 0; c < componentsCount; ++c) {
+      const resolutions = (yield* readJpxTileComponent(tile, c)).resolutions;
+      if (r < resolutions.length) {
+        maxNumPrecincts = Math.max(maxNumPrecincts, (yield* readJpxResolution(resolutions, r)).precinctParameters.numprecincts);
+      }
+    }
+    maxNumPrecinctsInLevel[r] = maxNumPrecincts;
+  }
+  l = 0;
+  r = 0;
+  c = 0;
+  p = 0;
+  return {nextPacket: function* JpxImage_nextPacket() {
+    for (; r <= maxDecompositionLevelsCount; r++) {
+      for (; p < maxNumPrecinctsInLevel[r]; p++) {
+        for (; c < componentsCount; c++) {
+          const component = (yield* readJpxTileComponent(tile, c));
+          if (r > component.codingStyleParameters.decompositionLevelsCount) {
+            continue;
+          }
+          const resolution = (yield* readJpxResolution(component.resolutions, r));
+          const numprecincts = resolution.precinctParameters.numprecincts;
+          if (p >= numprecincts) {
+            continue;
+          }
+          for (; l < layersCount;) {
+            const packet = createPacket(resolution, p, l);
+            l++;
+            return packet;
+          }
+          l = 0;
+        }
+        c = 0;
+      }
+      p = 0;
+    }
+    throw new JpxError("Out of packets");
+  }};
+}
+function* PositionComponentResolutionLayerIterator(context) {
+  const siz = context.SIZ;
+  const tileIndex = context.currentTile.index;
+  const tile = context.tiles[tileIndex];
+  const layersCount = tile.codingStyleDefaultParameters.layersCount;
+  const componentsCount = siz.Csiz;
+  const precinctsSizes = yield* getPrecinctSizesInImageScale(tile);
+  const precinctsIterationSizes = precinctsSizes;
+  let l = 0,
+    r = 0,
+    c = 0,
+    px = 0,
+    py = 0;
+  return {nextPacket: function* JpxImage_nextPacket() {
+    for (; py < precinctsIterationSizes.maxNumHigh; py++) {
+      for (; px < precinctsIterationSizes.maxNumWide; px++) {
+        for (; c < componentsCount; c++) {
+          const component = (yield* readJpxTileComponent(tile, c));
+          const decompositionLevelsCount = component.codingStyleParameters.decompositionLevelsCount;
+          for (; r <= decompositionLevelsCount; r++) {
+            const resolution = (yield* readJpxResolution(component.resolutions, r));
+            const scale = 1 << (decompositionLevelsCount - r);
+            const sizeInImageScale = {width: scale * resolution.precinctParameters.precinctWidth, height: scale * resolution.precinctParameters.precinctHeight};
+            const k = getPrecinctIndexIfExist(px, py, sizeInImageScale, precinctsIterationSizes, resolution);
+            if (k === null) {
+              continue;
+            }
+            for (; l < layersCount;) {
+              const packet = createPacket(resolution, k, l);
+              l++;
+              return packet;
+            }
+            l = 0;
+          }
+          r = 0;
+        }
+        c = 0;
+      }
+      px = 0;
+    }
+    throw new JpxError("Out of packets");
+  }};
+}
+function* ComponentPositionResolutionLayerIterator(context) {
+  const siz = context.SIZ;
+  const tileIndex = context.currentTile.index;
+  const tile = context.tiles[tileIndex];
+  const layersCount = tile.codingStyleDefaultParameters.layersCount;
+  const componentsCount = siz.Csiz;
+  const precinctsSizes = yield* getPrecinctSizesInImageScale(tile);
+  let l = 0,
+    r = 0,
+    c = 0,
+    px = 0,
+    py = 0;
+  return {nextPacket: function* JpxImage_nextPacket() {
+    for (; c < componentsCount; ++c) {
+      const component = (yield* readJpxTileComponent(tile, c));
+      const precinctsIterationSizes = yield* readJpxPrecinctBounds(precinctsSizes.components, c);
+      const decompositionLevelsCount = component.codingStyleParameters.decompositionLevelsCount;
+      for (; py < precinctsIterationSizes.maxNumHigh; py++) {
+        for (; px < precinctsIterationSizes.maxNumWide; px++) {
+          for (; r <= decompositionLevelsCount; r++) {
+            const resolution = (yield* readJpxResolution(component.resolutions, r));
+            const scale = 1 << (decompositionLevelsCount - r);
+            const sizeInImageScale = {width: scale * resolution.precinctParameters.precinctWidth, height: scale * resolution.precinctParameters.precinctHeight};
+            const k = getPrecinctIndexIfExist(px, py, sizeInImageScale, precinctsIterationSizes, resolution);
+            if (k === null) {
+              continue;
+            }
+            for (; l < layersCount;) {
+              const packet = createPacket(resolution, k, l);
+              l++;
+              return packet;
+            }
+            l = 0;
+          }
+          r = 0;
+        }
+        px = 0;
+      }
+      py = 0;
+    }
+    throw new JpxError("Out of packets");
+  }};
+}
+function getPrecinctIndexIfExist(pxIndex, pyIndex, sizeInImageScale, precinctIterationSizes, resolution) {
+  const posX = pxIndex * precinctIterationSizes.minWidth;
+  const posY = pyIndex * precinctIterationSizes.minHeight;
+  if (posX % sizeInImageScale.width !== 0 || posY % sizeInImageScale.height !== 0) {
+    return null;
+  }
+  const startPrecinctRowIndex = posY / sizeInImageScale.width * resolution.precinctParameters.numprecinctswide;
+  return posX / sizeInImageScale.height + startPrecinctRowIndex;
+}
+function* readJpxPrecinctBounds(components, index) {
+  if (!components.records) return components[index];
+  return {minWidth: yield* jpxVectorRead(components.records, index * 4), minHeight: yield* jpxVectorRead(components.records, index * 4 + 1),
+    maxNumWide: yield* jpxVectorRead(components.records, index * 4 + 2), maxNumHigh: yield* jpxVectorRead(components.records, index * 4 + 3)};
+}
+function* getPrecinctSizesInImageScale(tile) {
+  const componentsCount = tile.components.length;
+  let minWidth = Number.MAX_VALUE;
+  let minHeight = Number.MAX_VALUE;
+  let maxNumWide = 0;
+  let maxNumHigh = 0;
+  tile.onAllocation?.(tile.context ? 512 : componentsCount * 256 + 128);
+  const sizePerComponent = tile.context ? {records: yield* jpxVectorAllocate(componentsCount * 4, 8, true)} : new Array(componentsCount);
+  for (let c = 0; c < componentsCount; c++) {
+    const component = (yield* readJpxTileComponent(tile, c));
+    const decompositionLevelsCount = component.codingStyleParameters.decompositionLevelsCount;
+
+    let minWidthCurrentComponent = Number.MAX_VALUE;
+    let minHeightCurrentComponent = Number.MAX_VALUE;
+    let maxNumWideCurrentComponent = 0;
+    let maxNumHighCurrentComponent = 0;
+    let scale = 1;
+    for (let r = decompositionLevelsCount; r >= 0; --r) {
+      const resolution = (yield* readJpxResolution(component.resolutions, r));
+      const widthCurrentResolution = scale * resolution.precinctParameters.precinctWidth;
+      const heightCurrentResolution = scale * resolution.precinctParameters.precinctHeight;
+      minWidthCurrentComponent = Math.min(minWidthCurrentComponent, widthCurrentResolution);
+      minHeightCurrentComponent = Math.min(minHeightCurrentComponent, heightCurrentResolution);
+      maxNumWideCurrentComponent = Math.max(maxNumWideCurrentComponent, resolution.precinctParameters.numprecinctswide);
+      maxNumHighCurrentComponent = Math.max(maxNumHighCurrentComponent, resolution.precinctParameters.numprecinctshigh);
+      scale <<= 1;
+    }
+    minWidth = Math.min(minWidth, minWidthCurrentComponent);
+    minHeight = Math.min(minHeight, minHeightCurrentComponent);
+    maxNumWide = Math.max(maxNumWide, maxNumWideCurrentComponent);
+    maxNumHigh = Math.max(maxNumHigh, maxNumHighCurrentComponent);
+    const bounds = {minWidth: minWidthCurrentComponent, minHeight: minHeightCurrentComponent,
+      maxNumWide: maxNumWideCurrentComponent, maxNumHigh: maxNumHighCurrentComponent};
+    if (sizePerComponent.records) {
+      const values = [bounds.minWidth, bounds.minHeight, bounds.maxNumWide, bounds.maxNumHigh];
+      for (let i = 0; i < 4; i++) yield* jpxVectorWrite(sizePerComponent.records, c * 4 + i, values[i]);
+    } else sizePerComponent[c] = bounds;
+  }
+  return {
+    components: sizePerComponent,
+    minWidth,
+    minHeight,
+    maxNumWide,
+    maxNumHigh
+  };
+}
+const jpxResolutionFields = ["trx0", "try0", "trx1", "try1", "resLevel"];
+const jpxPrecinctFields = ["precinctWidth", "precinctHeight", "numprecinctswide", "numprecinctshigh", "numprecincts", "precinctWidthInSubband", "precinctHeightInSubband"];
+const jpxSubbandFields = ["tbx0", "tby0", "tbx1", "tby1"];
+const jpxBlockFields = ["codeblockWidth", "codeblockHeight", "numcodeblockwide", "numcodeblockhigh"];
+const jpxSubbandTypes = ["LL", "HL", "LH", "HH"];
+function* writeJpxResolution(collection, resolution) {
+  const values = jpxResolutionFields.map(field => resolution[field]);
+  values.push(...jpxPrecinctFields.map(field => resolution.precinctParameters[field]), resolution.subbands.length);
+  for (const band of resolution.subbands) values.push(jpxSubbandTypes.indexOf(band.type),
+    ...jpxSubbandFields.map(field => band[field]), ...jpxBlockFields.map(field => band.codeblockParameters[field]),
+    band.codeblocks.length, band.codeblocks.records.position, band.codeblocks.records.length,
+    band.precincts.records.position, band.precincts.records.length);
+  for (let i = 0; i < values.length; i++) yield* jpxVectorWrite(collection.records, resolution.resLevel * 55 + i, values[i]);
+}
+function* readJpxResolution(collection, index) {
+  if (!collection.records) return collection[index];
+  const context = collection.context;
+  const cache = context.cachedResolutions ??= [];
+  const found = cache.findIndex(entry => entry.collection.records.position === collection.records.position && entry.index === index);
+  if (found >= 0) {const entry = cache.splice(found, 1)[0]; cache.push(entry); return entry.value;}
+  const entry = cache.length === 4 ? cache.shift() : {trees: [{treeAdmission: 0}, {treeAdmission: 0}, {treeAdmission: 0}]};
+  let offset = index * 55;
+  const read = function* () { return yield* jpxVectorRead(collection.records, offset++); };
+  const resolution = {onAllocation: context.onAllocation, packetAdmission: 128, precinctParameters: {}, subbands: []};
+  for (const field of jpxResolutionFields) resolution[field] = yield* read();
+  for (const field of jpxPrecinctFields) resolution.precinctParameters[field] = yield* read();
+  const count = yield* read();
+  for (let i = 0; i < count; i++) {
+    const band = {type: jpxSubbandTypes[yield* read()], resolution, codeblockParameters: {}};
+    for (const field of jpxSubbandFields) band[field] = yield* read();
+    for (const field of jpxBlockFields) band.codeblockParameters[field] = yield* read();
+    band.codeblocks = {length: yield* read(), records: {position: yield* read(), length: yield* read(), bytesPerElement: 8, integer: false}};
+    band.precincts = {records: {position: yield* read(), length: yield* read(), bytesPerElement: 8, integer: false}, admission: entry.trees[i]};
+    resolution.subbands.push(band);
+  }
+  Object.assign(entry, {collection, index, value: resolution}); cache.push(entry);
+  return resolution;
+}
+function* buildPackets(context) {
+  const siz = context.SIZ;
+  const tileIndex = context.currentTile.index;
+  const tile = context.tiles[tileIndex];
+  const componentsCount = siz.Csiz;
+  for (let c = 0; c < componentsCount; c++) {
+    const component = (yield* readJpxTileComponent(tile, c));
+    const decompositionLevelsCount = component.codingStyleParameters.decompositionLevelsCount;
+    if (context.storedPlanes) {
+      if (!context.resolutionAdmission) {context.onAllocation?.(16384); context.resolutionAdmission = true;}
+    } else context.onAllocation?.((decompositionLevelsCount + 1) * 2048);
+    const resolutions = context.storedPlanes ? {length: decompositionLevelsCount + 1, context,
+      records: yield* jpxVectorAllocate((decompositionLevelsCount + 1) * 55, 8, true)} : [];
+    const subbands = [];
+    for (let r = 0; r <= decompositionLevelsCount; r++) {
+      const blocksDimensions = yield* getBlocksDimensions(context, component, r);
+      const resolution = { onAllocation: context.onAllocation };
+      const scale = 1 << decompositionLevelsCount - r;
+      resolution.trx0 = Math.ceil(component.tcx0 / scale);
+      resolution.try0 = Math.ceil(component.tcy0 / scale);
+      resolution.trx1 = Math.ceil(component.tcx1 / scale);
+      resolution.try1 = Math.ceil(component.tcy1 / scale);
+      resolution.resLevel = r;
+      buildPrecincts(context, resolution, blocksDimensions);
+      let subband;
+      if (r === 0) {
+        subband = {};
+        subband.type = "LL";
+        subband.tbx0 = Math.ceil(component.tcx0 / scale);
+        subband.tby0 = Math.ceil(component.tcy0 / scale);
+        subband.tbx1 = Math.ceil(component.tcx1 / scale);
+        subband.tby1 = Math.ceil(component.tcy1 / scale);
+        subband.resolution = resolution;
+        yield* buildCodeblocks(context, subband, blocksDimensions);
+        if (!context.storedPlanes) subbands.push(subband);
+        resolution.subbands = [subband];
+      } else {
+        const bscale = 1 << decompositionLevelsCount - r + 1;
+        const resolutionSubbands = [];
+        subband = {};
+        subband.type = "HL";
+        subband.tbx0 = Math.ceil(component.tcx0 / bscale - 0.5);
+        subband.tby0 = Math.ceil(component.tcy0 / bscale);
+        subband.tbx1 = Math.ceil(component.tcx1 / bscale - 0.5);
+        subband.tby1 = Math.ceil(component.tcy1 / bscale);
+        subband.resolution = resolution;
+        yield* buildCodeblocks(context, subband, blocksDimensions);
+        if (!context.storedPlanes) subbands.push(subband);
+        resolutionSubbands.push(subband);
+        subband = {};
+        subband.type = "LH";
+        subband.tbx0 = Math.ceil(component.tcx0 / bscale);
+        subband.tby0 = Math.ceil(component.tcy0 / bscale - 0.5);
+        subband.tbx1 = Math.ceil(component.tcx1 / bscale);
+        subband.tby1 = Math.ceil(component.tcy1 / bscale - 0.5);
+        subband.resolution = resolution;
+        yield* buildCodeblocks(context, subband, blocksDimensions);
+        if (!context.storedPlanes) subbands.push(subband);
+        resolutionSubbands.push(subband);
+        subband = {};
+        subband.type = "HH";
+        subband.tbx0 = Math.ceil(component.tcx0 / bscale - 0.5);
+        subband.tby0 = Math.ceil(component.tcy0 / bscale - 0.5);
+        subband.tbx1 = Math.ceil(component.tcx1 / bscale - 0.5);
+        subband.tby1 = Math.ceil(component.tcy1 / bscale - 0.5);
+        subband.resolution = resolution;
+        yield* buildCodeblocks(context, subband, blocksDimensions);
+        if (!context.storedPlanes) subbands.push(subband);
+        resolutionSubbands.push(subband);
+        resolution.subbands = resolutionSubbands;
+      }
+      if (context.storedPlanes) yield* writeJpxResolution(resolutions, resolution);
+      else resolutions.push(resolution);
+    }
+    component.resolutions = resolutions;
+    component.subbands = subbands;
+    if (context.storedPlanes) {
+      yield* jpxVectorWrite(tile.components.records, c * 2, resolutions.records.position);
+      yield* jpxVectorWrite(tile.components.records, c * 2 + 1, resolutions.length);
+    }
+  }
+  const progressionOrder = tile.codingStyleDefaultParameters.progressionOrder;
+  switch (progressionOrder) {
+    case 0:
+      tile.packetsIterator = yield* LayerResolutionComponentPositionIterator(context);
+      break;
+    case 1:
+      tile.packetsIterator = yield* ResolutionLayerComponentPositionIterator(context);
+      break;
+    case 2:
+      tile.packetsIterator = yield* ResolutionPositionComponentLayerIterator(context);
+      break;
+    case 3:
+      tile.packetsIterator = yield* PositionComponentResolutionLayerIterator(context);
+      break;
+    case 4:
+      tile.packetsIterator = yield* ComponentPositionResolutionLayerIterator(context);
+      break;
+    default:
+      throw new JpxError(`Unsupported progression order ${progressionOrder}`);
+  }
+}
+function* parseTilePackets(context, data, offset, dataLength) {
+  let position = 0;
+  let buffer,
+    bufferSize = 0,
+    skipNextBit = false;
+  function* readBits(count) {
+    while (bufferSize < count) {
+      const b = (yield offset + position);
+      position++;
+      if (skipNextBit) {
+        buffer = buffer << 7 | b;
+        bufferSize += 7;
+        skipNextBit = false;
+      } else {
+        buffer = buffer << 8 | b;
+        bufferSize += 8;
+      }
+      if (b === 0xff) {
+        skipNextBit = true;
+      }
+    }
+    bufferSize -= count;
+    return buffer >>> bufferSize & (1 << count) - 1;
+  }
+  function* skipMarkerIfEqual(value) {
+    if ((yield offset + position - 1) === 0xff && (yield offset + position) === value) {
+      skipBytes(1);
+      return true;
+    } else if ((yield offset + position) === 0xff && (yield offset + position + 1) === value) {
+      skipBytes(2);
+      return true;
+    }
+    return false;
+  }
+  function skipBytes(count) {
+    position += count;
+  }
+  function alignToByte() {
+    bufferSize = 0;
+    if (skipNextBit) {
+      position++;
+      skipNextBit = false;
+    }
+  }
+  function* readCodingpasses() {
+    if ((yield* readBits(1)) === 0) {
+      return 1;
+    }
+    if ((yield* readBits(1)) === 0) {
+      return 2;
+    }
+    let value = (yield* readBits(2));
+    if (value < 3) {
+      return value + 3;
+    }
+    value = (yield* readBits(5));
+    if (value < 31) {
+      return value + 6;
+    }
+    value = (yield* readBits(7));
+    return value + 37;
+  }
+  const tileIndex = context.currentTile.index;
+  const tile = context.tiles[tileIndex];
+  const sopMarkerUsed = context.COD.sopMarkerUsed;
+  const ephMarkerUsed = context.COD.ephMarkerUsed;
+  const packetsIterator = tile.packetsIterator;
+  while (position < dataLength) {
+    alignToByte();
+    if (sopMarkerUsed && (yield* skipMarkerIfEqual(0x91))) {
+      skipBytes(4);
+    }
+    const packet = yield* packetsIterator.nextPacket();
+    if (!(yield* readBits(1))) {
+      continue;
+    }
+    const layerNumber = packet.layerNumber;
+    let queue;
+    if (context.storedPlanes) {
+      queue = context.packetQueue;
+      if (!queue) {
+        context.onAllocation?.(256);
+        context.packetQueue = queue = createJpxRecords(3);
+      }
+      queue.tail = queue.head;
+      queue.used = queue.length = 0;
+    } else queue = [];
+    let codeblock, codeblockIndex = 0;
+    const packetCursor = {subband: 0, index: 0};
+    while ((codeblock = yield* nextJpxPacketCodeblock(packet, packetCursor))) {
+      const index = codeblockIndex++;
+      let precinct = codeblock.precinct;
+      const codeblockColumn = codeblock.cbx - precinct.cbxMin;
+      const codeblockRow = codeblock.cby - precinct.cbyMin;
+      let codeblockIncluded = false;
+      let firstTimeInclusion = false;
+      let valueReady, zeroBitPlanesTree;
+      if (codeblock.included !== undefined) {
+        codeblockIncluded = !!(yield* readBits(1));
+      } else {
+        precinct = codeblock.precinct;
+        let inclusionTree;
+        if (precinct.inclusionTree !== undefined) {
+          inclusionTree = precinct.inclusionTree;
+        } else {
+          const width = precinct.cbxMax - precinct.cbxMin + 1;
+          const height = precinct.cbyMax - precinct.cbyMin + 1;
+          let treeAllocation = context.onAllocation;
+          if (precinct.collection) {
+            const admission = (log2(Math.max(width, height)) + 1) * 768;
+            // Cache slots retain scratch peaks after their resolution is evicted.
+            const budget = precinct.collection.admission ?? precinct.collection;
+            if (admission > budget.treeAdmission) {
+              context.onAllocation?.(admission - budget.treeAdmission);
+              budget.treeAdmission = admission;
+            }
+            treeAllocation = undefined;
+          }
+          inclusionTree = new InclusionTree();
+          yield* inclusionTree.initialize(width, height, layerNumber, treeAllocation, context.storedPlanes);
+          zeroBitPlanesTree = new TagTree();
+          yield* zeroBitPlanesTree.initialize(width, height, treeAllocation, context.storedPlanes);
+          precinct.inclusionTree = inclusionTree;
+          precinct.zeroBitPlanesTree = zeroBitPlanesTree;
+          yield* writeJpxPrecinct(precinct);
+          for (let l = 0; l < layerNumber; l++) {
+            if ((yield* readBits(1)) !== 0) {
+              throw new JpxError("Invalid tag tree");
+            }
+          }
+        }
+        if (yield* inclusionTree.reset(codeblockColumn, codeblockRow, layerNumber)) {
+          while (true) {
+            if ((yield* readBits(1))) {
+              valueReady = !(yield* inclusionTree.nextLevel());
+              if (valueReady) {
+                codeblock.included = true;
+                codeblockIncluded = firstTimeInclusion = true;
+                break;
+              }
+            } else {
+              yield* inclusionTree.incrementValue(layerNumber);
+              break;
+            }
+          }
+        }
+      }
+      if (!codeblockIncluded) {
+        continue;
+      }
+      if (firstTimeInclusion) {
+        zeroBitPlanesTree = precinct.zeroBitPlanesTree;
+        yield* zeroBitPlanesTree.reset(codeblockColumn, codeblockRow);
+        while (true) {
+          if ((yield* readBits(1))) {
+            valueReady = !(yield* zeroBitPlanesTree.nextLevel());
+            if (valueReady) {
+              break;
+            }
+          } else {
+            yield* zeroBitPlanesTree.incrementValue();
+          }
+        }
+        codeblock.zeroBitPlanes = zeroBitPlanesTree.value;
+      }
+      const codingpasses = (yield* readCodingpasses());
+      while ((yield* readBits(1))) {
+        codeblock.Lblock++;
+      }
+      const codingpassesLog2 = log2(codingpasses);
+      const bits = (codingpasses < 1 << codingpassesLog2 ? codingpassesLog2 - 1 : codingpassesLog2) + codeblock.Lblock;
+      const codedDataLength = (yield* readBits(bits));
+      yield* writeJpxCodeblock(codeblock);
+      if (context.storedPlanes) {
+        yield* appendJpxRecord(queue, [index, codingpasses, codedDataLength]);
+      } else {
+        if (queue.length >= (context.packetQueueAdmission ?? 0)) {
+          context.onAllocation?.(256);
+          context.packetQueueAdmission = queue.length + 1;
+        }
+        queue.push([index, codingpasses, codedDataLength]);
+      }
+    }
+    alignToByte();
+    if (ephMarkerUsed) {
+      (yield* skipMarkerIfEqual(0x92));
+    }
+    const queueCursor = {}, codeblocks = {subband: 0, index: 0};
+    let ordinal = -1;
+    for (let i = 0; i < queue.length; i++) {
+      const [index, codingpasses, dataLength] = context.storedPlanes
+        ? yield* readJpxRecord(queue, i, queueCursor) : queue[i];
+      while (ordinal < index) { codeblock = yield* nextJpxPacketCodeblock(packet, codeblocks); ordinal++; }
+      yield* appendJpxSegment(codeblock, data, offset + position,
+        offset + position + dataLength, codingpasses, context);
+      yield* writeJpxCodeblock(codeblock);
+      position += dataLength;
+    }
+  }
+  return position;
+}
+// Fixed numeric record blocks share the bounded vector cache. Queues reset
+// their tail and reuse existing blocks; codeblock segments append persistently.
+function createJpxRecords(stride) {
+  const capacity = Math.floor(511 / stride);
+  return {head: undefined, tail: undefined, used: 0, length: 0, stride, capacity};
+}
+function* appendJpxRecord(list, values) {
+  if (!list.head) list.head = list.tail = yield* jpxVectorAllocate(1 + list.capacity * list.stride, 8, true);
+  if (list.used === list.capacity) {
+    const next = yield* jpxVectorRead(list.tail, 0);
+    let block;
+    if (next) block = {...list.head, position: next - 1};
+    else {
+      block = yield* jpxVectorAllocate(list.head.length, 8, true);
+      yield* jpxVectorWrite(list.tail, 0, block.position + 1);
+    }
+    list.tail = block;
+    list.used = 0;
+  }
+  for (let i = 0; i < list.stride; i++) {
+    yield* jpxVectorWrite(list.tail, 1 + list.used * list.stride + i, values[i]);
+  }
+  list.used++;
+  list.length++;
+}
+function* readJpxRecord(list, index, cursor) {
+  const blockIndex = Math.floor(index / list.capacity);
+  if (!cursor.block || cursor.index > blockIndex) {
+    cursor.block = list.head;
+    cursor.index = 0;
+  }
+  while (cursor.index < blockIndex) {
+    const position = (yield* jpxVectorRead(cursor.block, 0)) - 1;
+    if (position < 0) throw new JpxError("Missing packet record backing");
+    cursor.block = {...list.head, position};
+    cursor.index++;
+  }
+  const values = [], slot = index % list.capacity;
+  for (let i = 0; i < list.stride; i++) {
+    values.push(yield* jpxVectorRead(cursor.block, 1 + slot * list.stride + i));
+  }
+  return values;
+}
+function* appendJpxSegment(codeblock, data, start, end, codingpasses, context) {
+  if (!context.storedPlanes) {
+    context.onAllocation?.(256);
+    (codeblock.data ??= []).push({data, start, end, codingpasses});
+    return;
+  }
+  let list = codeblock.data;
+  if (!list) {
+    // The list descriptor is part of the admitted transient codeblock record.
+    codeblock.data = list = createJpxRecords(2);
+    list.sourceLength = data.length;
+    list.totalLength = list.codingpasses = 0;
+  }
+  // Empty segments contribute coding passes but no concatenated input bytes.
+  if (end !== start) yield* appendJpxRecord(list, [start, end]);
+  list.totalLength += end - start;
+  list.codingpasses += codingpasses;
+}
+function* readJpxSegment(list, index, cursor) {
+  if (Array.isArray(list)) return list[index];
+  const [start, end] = yield* readJpxRecord(list, index, cursor);
+  return {data: {length: list.sourceLength}, start, end};
+}
+function* copyCoefficients(coefficients, levelWidth, levelHeight, subband, delta, mb, reversible, segmentationSymbolUsed, resetContextProbabilities, onAllocation, stored, admission) {
+  const x0 = subband.tbx0;
+  const y0 = subband.tby0;
+  const width = subband.tbx1 - subband.tbx0;
+  const codeblocks = subband.codeblocks;
+  const right = subband.type.charAt(0) === "H" ? 1 : 0;
+  const bottom = subband.type.charAt(1) === "H" ? levelWidth : 0;
+  for (let i = 0, ii = codeblocks.length; i < ii; ++i) {
+    const codeblock = yield* readJpxCodeblock(subband, i, false);
+    const blockWidth = codeblock.tbx1_ - codeblock.tbx0_;
+    const blockHeight = codeblock.tby1_ - codeblock.tby0_;
+    if (blockWidth === 0 || blockHeight === 0) {
+      continue;
+    }
+    if (codeblock.data === undefined) {
+      continue;
+    }
+    if (stored && !admission.codeblockScratch) {
+      onAllocation?.(1280);
+      admission.codeblockScratch = true;
+    }
+    const bitModel = new BitModel();
+    yield* bitModel.initialize(blockWidth, blockHeight, codeblock.subbandType, codeblock.zeroBitPlanes, mb, stored ? undefined : onAllocation, stored);
+    let currentCodingpassType = 2;
+    const data = codeblock.data;
+    let totalLength = data.totalLength ?? 0,
+      codingpasses = data.codingpasses ?? 0;
+    let j, jj, dataItem;
+    for (j = 0, jj = Array.isArray(data) ? data.length : 0; j < jj; j++) {
+      dataItem = data[j];
+      totalLength += dataItem.end - dataItem.start;
+      codingpasses += dataItem.codingpasses;
+    }
+    if (!stored) onAllocation?.(256);
+    // Arithmetic offsets address the concatenation, including its zero-filled
+    // truncated tail. Walk existing segments without copying compressed bytes.
+    let segment = 0, logicalStart = 0, first = 0, count = 0;
+    const decoder = new ArithmeticDecoder(null);
+    const segmentCursor = {};
+    function* driveCodeblock(steps) {
+      let next = steps.next();
+      while (!next.done) {
+        const offset = next.value;
+        let value;
+        if (offset >= 0 && offset < totalLength) {
+          if (offset < logicalStart) { segment = 0; logicalStart = 0; count = 0; }
+          while (offset >= logicalStart + count && segment < data.length) {
+            logicalStart += count;
+            const item = yield* readJpxSegment(data, segment++, segmentCursor), size = item.data.length;
+            first = item.start < 0 ? Math.max(size + item.start, 0) : Math.min(item.start, size);
+            const last = item.end < 0 ? Math.max(size + item.end, 0) : Math.min(item.end, size);
+            count = Math.max(0, last - first);
+          }
+          value = offset < logicalStart + count ? yield first + offset - logicalStart : 0;
+        }
+        next = steps.next(value);
+      }
+      return next.value;
+    }
+    yield* driveCodeblock(decoder.initializeSteps(0, totalLength));
+    const readBitSteps = decoder.readBitSteps.bind(decoder);
+    decoder.readBitSteps = function* (contexts, pos) {
+      return yield* driveCodeblock(readBitSteps(contexts, pos));
+    };
+    bitModel.setDecoder(decoder);
+    for (j = 0; j < codingpasses; j++) {
+      switch (currentCodingpassType) {
+        case 0:
+          (yield* bitModel.runSignificancePropagationPass());
+          break;
+        case 1:
+          (yield* bitModel.runMagnitudeRefinementPass());
+          break;
+        case 2:
+          (yield* bitModel.runCleanupPass());
+          if (segmentationSymbolUsed) {
+            yield* bitModel.checkSegmentationSymbol();
+          }
+          break;
+      }
+      if (resetContextProbabilities) {
+        bitModel.reset();
+      }
+      currentCodingpassType = (currentCodingpassType + 1) % 3;
+    }
+    let offset = codeblock.tbx0_ - x0 + (codeblock.tby0_ - y0) * width;
+    const sign = bitModel.coefficentsSign;
+    const magnitude = bitModel.coefficentsMagnitude;
+    const bitsDecoded = bitModel.bitsDecoded;
+    const magnitudeCorrection = reversible ? 0 : 0.5;
+    let k, n, nb;
+    let position = 0;
+    const interleave = subband.type !== "LL";
+    for (j = 0; j < blockHeight; j++) {
+      const row = offset / width | 0;
+      const levelOffset = 2 * row * (levelWidth - width) + right + bottom;
+      for (k = 0; k < blockWidth; k++) {
+        n = (yield* jpxVectorRead(magnitude,position));
+        if (n !== 0) {
+          n = (n + magnitudeCorrection) * delta;
+          if ((yield* jpxVectorRead(sign,position)) !== 0) {
+            n = -n;
+          }
+          nb = (yield* jpxVectorRead(bitsDecoded,position));
+          const pos = interleave ? levelOffset + (offset << 1) : offset;
+          (yield* jpxVectorWrite(coefficients,pos,reversible && nb >= mb ? n : n * (1 << mb - nb)));
+        }
+        offset++;
+        position++;
+      }
+      offset += width - blockWidth;
+    }
+  }
+}
+function* transformTile(context, tile, c) {
+  const component = (yield* readJpxTileComponent(tile, c));
+  const codingStyleParameters = component.codingStyleParameters;
+  const quantizationParameters = component.quantizationParameters;
+  const decompositionLevelsCount = codingStyleParameters.decompositionLevelsCount;
+  const spqcds = quantizationParameters.SPqcds;
+  const scalarExpounded = quantizationParameters.scalarExpounded;
+  const guardBits = quantizationParameters.guardBits;
+  const segmentationSymbolUsed = codingStyleParameters.segmentationSymbolUsed;
+  const resetContextProbabilities = codingStyleParameters.resetContextProbabilities;
+  const precision = (yield* readJpxComponent(context, c)).precision;
+  const reversible = codingStyleParameters.reversibleTransformation;
+  let scratchBytes = 0;
+  const admit = context.storedPlanes ? bytes => {
+    scratchBytes += bytes;
+    const peak = context.waveletScratch ?? 0;
+    if (scratchBytes > peak) {context.onAllocation?.(scratchBytes - peak); context.waveletScratch = scratchBytes;}
+  } : context.onAllocation;
+  const transform = reversible ? new ReversibleTransform(admit, context.storedPlanes) : new IrreversibleTransform(admit, context.storedPlanes);
+  const subbandCoefficients = [];
+  let b = 0, result;
+  for (let i = 0; i <= decompositionLevelsCount; i++) {
+    const resolution = (yield* readJpxResolution(component.resolutions, i));
+    const width = resolution.trx1 - resolution.trx0;
+    const height = resolution.try1 - resolution.try0;
+    scratchBytes = 0;
+    admit?.(context.storedPlanes ? 256 : width * height * 4 + 256);
+    const coefficients = (yield* jpxVectorAllocate(width * height,4,context.storedPlanes));
+    for (let j = 0, jj = resolution.subbands.length; j < jj; j++) {
+      const quantization = yield* readJpxQuantizationEntry(spqcds, scalarExpounded ? b++ : 0);
+      const mu = quantization.mu, epsilon = quantization.epsilon + (!scalarExpounded && i > 0 ? 1 - i : 0);
+      const subband = resolution.subbands[j];
+      const gainLog2 = SubbandsGainLog2[subband.type];
+      const delta = reversible ? 1 : 2 ** (precision + gainLog2 - epsilon) * (1 + mu / 2048);
+      const mb = guardBits + epsilon - 1;
+      (yield* copyCoefficients(coefficients, width, height, subband, delta, mb, reversible, segmentationSymbolUsed, resetContextProbabilities, context.onAllocation, context.storedPlanes, context));
+    }
+    const next = {width, height, items: coefficients};
+    if (context.storedPlanes) result = i === 0 ? next : yield* transform.iterate(result, next, component.tcx0, component.tcy0);
+    else subbandCoefficients.push(next);
+  }
+  if (!context.storedPlanes) result = yield* transform.calculate(subbandCoefficients,component.tcx0,component.tcy0);
+  return {
+    left: component.tcx0,
+    top: component.tcy0,
+    width: result.width,
+    height: result.height,
+    items: result.items
+  };
+}
+function* transformComponents(context) {
+  const siz = context.SIZ;
+  const components = context.components;
+  const componentsCount = siz.Csiz;
+  const resultImages = [];
+  for (let i = context.selectedTile ?? 0, ii = context.tiles.length; i < ii; i++) {
+    const tile = context.tiles[i];
+    context.onAllocation?.(context.storedPlanes ? 2048 : componentsCount * 256 + 256);
+    if (context.storedPlanes && !tile.codingStyleDefaultParameters.multipleComponentTransform) {
+      let result;
+      for (let c = 0; c < componentsCount; c++) {
+        const transformed = yield* transformTile(context, tile, c);
+        if (!result) result = {left: transformed.left, top: transformed.top, width: transformed.width, height: transformed.height,
+          items: yield* jpxVectorAllocate(transformed.items.length * componentsCount, 1, true)};
+        const shift = (yield* readJpxComponent(context, c)).precision - 8, offset = (128 << shift) + 0.5;
+        for (let j = 0; j < transformed.items.length; j++)
+          yield* jpxVectorWrite(result.items, c + j * componentsCount, (yield* jpxVectorRead(transformed.items, j)) + offset >> shift);
+      }
+      resultImages.push(result); continue;
+    }
+    const transformedTiles = [];
+    for (let c = 0; c < componentsCount; c++) {
+      const transformed = yield* transformTile(context, tile, c);
+      if (!context.storedPlanes || c < 4) transformedTiles[c] = transformed;
+    }
+    const tile0 = transformedTiles[0];
+    context.onAllocation?.(context.storedPlanes ? 256 : tile0.items.length * componentsCount + 256);
+    const out = (yield* jpxVectorAllocate(tile0.items.length * componentsCount,1,context.storedPlanes));
+    const result = {
+      left: tile0.left,
+      top: tile0.top,
+      width: tile0.width,
+      height: tile0.height,
+      items: out
+    };
+    let shift, offset;
+    let pos = 0,
+      j,
+      jj,
+      y0,
+      y1,
+      y2;
+    if (tile.codingStyleDefaultParameters.multipleComponentTransform) {
+      const fourComponents = componentsCount === 4;
+      const y0items = transformedTiles[0].items;
+      const y1items = transformedTiles[1].items;
+      const y2items = transformedTiles[2].items;
+      const y3items = fourComponents ? transformedTiles[3].items : null;
+      shift = (yield* readJpxComponent(context, 0)).precision - 8;
+      offset = (128 << shift) + 0.5;
+      const component0 = (yield* readJpxTileComponent(tile, 0));
+      const alpha01 = componentsCount - 3;
+      jj = y0items.length;
+      if (!component0.codingStyleParameters.reversibleTransformation) {
+        for (j = 0; j < jj; j++, pos += alpha01) {
+          y0 = (yield* jpxVectorRead(y0items,j)) + offset;
+          y1 = (yield* jpxVectorRead(y1items,j));
+          y2 = (yield* jpxVectorRead(y2items,j));
+          (yield* jpxVectorWrite(out,pos++,y0 + 1.402 * y2 >> shift));
+          (yield* jpxVectorWrite(out,pos++,y0 - 0.34413 * y1 - 0.71414 * y2 >> shift));
+          (yield* jpxVectorWrite(out,pos++,y0 + 1.772 * y1 >> shift));
+        }
+      } else {
+        for (j = 0; j < jj; j++, pos += alpha01) {
+          y0 = (yield* jpxVectorRead(y0items,j)) + offset;
+          y1 = (yield* jpxVectorRead(y1items,j));
+          y2 = (yield* jpxVectorRead(y2items,j));
+          const g = y0 - (y2 + y1 >> 2);
+          (yield* jpxVectorWrite(out,pos++,g + y2 >> shift));
+          (yield* jpxVectorWrite(out,pos++,g >> shift));
+          (yield* jpxVectorWrite(out,pos++,g + y1 >> shift));
+        }
+      }
+      if (fourComponents) {
+        for (j = 0, pos = 3; j < jj; j++, pos += 4) {
+          (yield* jpxVectorWrite(out,pos,(yield* jpxVectorRead(y3items,j)) + offset >> shift));
+        }
+      }
+    } else {
+      for (let c = 0; c < componentsCount; c++) {
+        const items = transformedTiles[c].items;
+        shift = (yield* readJpxComponent(context, c)).precision - 8;
+        offset = (128 << shift) + 0.5;
+        for (pos = c, j = 0, jj = items.length; j < jj; j++) {
+          (yield* jpxVectorWrite(out,pos,(yield* jpxVectorRead(items,j)) + offset >> shift));
+          pos += componentsCount;
+        }
+      }
+    }
+    resultImages.push(result);
+  }
+  return resultImages;
+}
+function* initializeTile(context, tileIndex) {
+  const siz = context.SIZ;
+  const componentsCount = siz.Csiz;
+  const tile = context.tiles[tileIndex];
+  if (context.storedPlanes) {
+    tile.initialCOD = tile.codingStyleDefaultParameters = context.currentTile.COD;
+    tile.initialCOC = context.currentTile.COC; tile.initialQCD = context.currentTile.QCD; tile.initialQCC = context.currentTile.QCC;
+    return;
+  }
+  for (let c = 0; c < componentsCount; c++) {
+    const component = (yield* readJpxTileComponent(tile, c));
+    const qcdOrQcc = context.currentTile.QCC[c] !== undefined ? context.currentTile.QCC[c] : context.currentTile.QCD;
+    component.quantizationParameters = qcdOrQcc;
+    const codOrCoc = context.currentTile.COC[c] !== undefined ? context.currentTile.COC[c] : context.currentTile.COD;
+    component.codingStyleParameters = codOrCoc;
+  }
+  tile.codingStyleDefaultParameters = context.currentTile.COD;
+}
+function* jpxTagRead(level, index) {
+  if (!level.present) return level.items[index];
+  if (!(yield* jpxVectorRead(level.present, index))) return undefined;
+  return yield* jpxVectorRead(level.items, index);
+}
+function* jpxTagWrite(level, index, value) {
+  if (!level.present) { level.items[index] = value; return; }
+  yield* jpxVectorWrite(level.present, index, 1);
+  yield* jpxVectorWrite(level.items, index, value);
+}
+function jpxTreeLength(width, height) {
+  const levels = log2(Math.max(width, height)) + 1;
+  let length = 0;
+  for (let i = 0; i < levels; i++) {
+    length += width * height;
+    width = Math.ceil(width / 2); height = Math.ceil(height / 2);
+  }
+  return length;
+}
+function jpxTreeView(root, offset, length) {
+  return {...root, position: root.position + offset * root.bytesPerElement, length};
+}
+class TagTree {
+  *initialize(width, height, onAllocation, stored, rootPosition, presencePosition) {
+    const levelsLength = log2(Math.max(width, height)) + 1;
+    this.levels = [];
+    let offset = 0;
+    if (stored) {
+      const length = jpxTreeLength(width, height);
+      this.root = rootPosition === undefined ? yield* jpxVectorAllocate(length, 8, true)
+        : {position: rootPosition, length, bytesPerElement: 8, integer: false};
+      this.presence = presencePosition === undefined ? yield* jpxVectorAllocate(length, 1, true, true)
+        : {position: presencePosition, length, bytesPerElement: 1, integer: true};
+    }
+    for (let i = 0; i < levelsLength; i++) {
+      onAllocation?.((stored ? 0 : width * height * 16) + 256);
+      const level = {
+        width,
+        height,
+        items: stored ? jpxTreeView(this.root, offset, width * height) : [],
+        present: stored ? jpxTreeView(this.presence, offset, width * height) : undefined
+      };
+      this.levels.push(level);
+      offset += width * height;
+      width = Math.ceil(width / 2);
+      height = Math.ceil(height / 2);
+    }
+  }
+  *reset(i, j) {
+    let currentLevel = 0,
+      value = 0,
+      level;
+    while (currentLevel < this.levels.length) {
+      level = this.levels[currentLevel];
+      const index = i + j * level.width;
+      const item = yield* jpxTagRead(level, index);
+      if (item !== undefined) {
+        value = item;
+        break;
+      }
+      level.index = index;
+      i >>= 1;
+      j >>= 1;
+      currentLevel++;
+    }
+    currentLevel--;
+    level = this.levels[currentLevel];
+    yield* jpxTagWrite(level, level.index, value);
+    this.currentLevel = currentLevel;
+    delete this.value;
+  }
+  *incrementValue() {
+    const level = this.levels[this.currentLevel];
+    yield* jpxTagWrite(level, level.index, (yield* jpxTagRead(level, level.index)) + 1);
+  }
+  *nextLevel() {
+    let currentLevel = this.currentLevel;
+    let level = this.levels[currentLevel];
+    const value = yield* jpxTagRead(level, level.index);
+    currentLevel--;
+    if (currentLevel < 0) {
+      this.value = value;
+      return false;
+    }
+    this.currentLevel = currentLevel;
+    level = this.levels[currentLevel];
+    yield* jpxTagWrite(level, level.index, value);
+    return true;
+  }
+}
+class InclusionTree {
+  *initialize(width, height, defaultValue, onAllocation, stored, rootPosition) {
+    const levelsLength = log2(Math.max(width, height)) + 1;
+    this.levels = [];
+    let offset = 0;
+    if (stored) {
+      const length = jpxTreeLength(width, height);
+      this.root = rootPosition === undefined ? yield* jpxVectorAllocate(length, 1, true, true)
+        : {position: rootPosition, length, bytesPerElement: 1, integer: true};
+    }
+    for (let i = 0; i < levelsLength; i++) {
+      onAllocation?.((stored ? 0 : width * height) + 256);
+      const items = stored ? jpxTreeView(this.root, offset, width * height) : yield* jpxVectorAllocate(width * height, 1, false, true);
+      if (rootPosition === undefined && defaultValue !== 0) for (let j = 0, jj = items.length; j < jj; j++) {
+        yield* jpxVectorWrite(items, j, defaultValue);
+      }
+      onAllocation?.((stored ? 0 : width * height * 16) + 256);
+      const level = {
+        width,
+        height,
+        items
+      };
+      this.levels.push(level);
+      offset += width * height;
+      width = Math.ceil(width / 2);
+      height = Math.ceil(height / 2);
+    }
+  }
+  *reset(i, j, stopValue) {
+    let currentLevel = 0;
+    while (currentLevel < this.levels.length) {
+      const level = this.levels[currentLevel];
+      const index = i + j * level.width;
+      level.index = index;
+      const value = yield* jpxVectorRead(level.items, index);
+      if (value === 0xff) {
+        break;
+      }
+      if (value > stopValue) {
+        this.currentLevel = currentLevel;
+        yield* this.propagateValues();
+        return false;
+      }
+      i >>= 1;
+      j >>= 1;
+      currentLevel++;
+    }
+    this.currentLevel = currentLevel - 1;
+    return true;
+  }
+  *incrementValue(stopValue) {
+    const level = this.levels[this.currentLevel];
+    yield* jpxVectorWrite(level.items, level.index, stopValue + 1);
+    yield* this.propagateValues();
+  }
+  *propagateValues() {
+    let levelIndex = this.currentLevel;
+    let level = this.levels[levelIndex];
+    const currentValue = yield* jpxVectorRead(level.items, level.index);
+    while (--levelIndex >= 0) {
+      level = this.levels[levelIndex];
+      yield* jpxVectorWrite(level.items, level.index, currentValue);
+    }
+  }
+  *nextLevel() {
+    let currentLevel = this.currentLevel;
+    let level = this.levels[currentLevel];
+    const value = yield* jpxVectorRead(level.items, level.index);
+    yield* jpxVectorWrite(level.items, level.index, 0xff);
+    currentLevel--;
+    if (currentLevel < 0) {
+      return false;
+    }
+    this.currentLevel = currentLevel;
+    level = this.levels[currentLevel];
+    yield* jpxVectorWrite(level.items, level.index, value);
+    return true;
+  }
+}
+class BitModel {
+  static UNIFORM_CONTEXT = 17;
+  static RUNLENGTH_CONTEXT = 18;
+  static LLAndLHContextsLabel = new Uint8Array([0, 5, 8, 0, 3, 7, 8, 0, 4, 7, 8, 0, 0, 0, 0, 0, 1, 6, 8, 0, 3, 7, 8, 0, 4, 7, 8, 0, 0, 0, 0, 0, 2, 6, 8, 0, 3, 7, 8, 0, 4, 7, 8, 0, 0, 0, 0, 0, 2, 6, 8, 0, 3, 7, 8, 0, 4, 7, 8, 0, 0, 0, 0, 0, 2, 6, 8, 0, 3, 7, 8, 0, 4, 7, 8]);
+  static HLContextLabel = new Uint8Array([0, 3, 4, 0, 5, 7, 7, 0, 8, 8, 8, 0, 0, 0, 0, 0, 1, 3, 4, 0, 6, 7, 7, 0, 8, 8, 8, 0, 0, 0, 0, 0, 2, 3, 4, 0, 6, 7, 7, 0, 8, 8, 8, 0, 0, 0, 0, 0, 2, 3, 4, 0, 6, 7, 7, 0, 8, 8, 8, 0, 0, 0, 0, 0, 2, 3, 4, 0, 6, 7, 7, 0, 8, 8, 8]);
+  static HHContextLabel = new Uint8Array([0, 1, 2, 0, 1, 2, 2, 0, 2, 2, 2, 0, 0, 0, 0, 0, 3, 4, 5, 0, 4, 5, 5, 0, 5, 5, 5, 0, 0, 0, 0, 0, 6, 7, 7, 0, 7, 7, 7, 0, 7, 7, 7, 0, 0, 0, 0, 0, 8, 8, 8, 0, 8, 8, 8, 0, 8, 8, 8, 0, 0, 0, 0, 0, 8, 8, 8, 0, 8, 8, 8, 0, 8, 8, 8]);
+  *initialize(width, height, subband, zeroBitPlanes, mb, onAllocation, stored) {
+    this.onAllocation = onAllocation;
+    this.width = width;
+    this.height = height;
+    let contextLabelTable;
+    if (subband === "HH") {
+      contextLabelTable = BitModel.HHContextLabel;
+    } else if (subband === "HL") {
+      contextLabelTable = BitModel.HLContextLabel;
+    } else {
+      contextLabelTable = BitModel.LLAndLHContextsLabel;
+    }
+    this.contextLabelTable = contextLabelTable;
+    const coefficientCount = width * height;
+    onAllocation?.(stored ? 1024 : coefficientCount * (4 + (mb > 14 ? 4 : mb > 6 ? 2 : 1)) + 1024);
+    this.neighborsSignificance = (yield* jpxVectorAllocate(coefficientCount,1,stored,true));
+    this.coefficentsSign = (yield* jpxVectorAllocate(coefficientCount,1,stored,true));
+    let coefficentsMagnitude;
+    if (mb > 14) {
+      coefficentsMagnitude = (yield* jpxVectorAllocate(coefficientCount,4,stored,true));
+    } else if (mb > 6) {
+      coefficentsMagnitude = (yield* jpxVectorAllocate(coefficientCount,2,stored,true));
+    } else {
+      coefficentsMagnitude = (yield* jpxVectorAllocate(coefficientCount,1,stored,true));
+    }
+    this.coefficentsMagnitude = coefficentsMagnitude;
+    this.processingFlags = (yield* jpxVectorAllocate(coefficientCount,1,stored,true));
+    const bitsDecoded = (yield* jpxVectorAllocate(coefficientCount,1,stored,true));
+    if (zeroBitPlanes !== 0) {
+      for (let i = 0; i < coefficientCount; i++) {
+        (yield* jpxVectorWrite(bitsDecoded,i,zeroBitPlanes));
+      }
+    }
+    this.bitsDecoded = bitsDecoded;
+    this.reset();
+  }
+  setDecoder(decoder) {
+    this.decoder = decoder;
+  }
+  reset() {
+    this.onAllocation?.(19 + 128);
+    this.contexts = new Int8Array(19);
+    this.contexts[0] = 4 << 1 | 0;
+    this.contexts[BitModel.UNIFORM_CONTEXT] = 46 << 1 | 0;
+    this.contexts[BitModel.RUNLENGTH_CONTEXT] = 3 << 1 | 0;
+  }
+  *setNeighborsSignificance(row, column, index) {
+    const neighborsSignificance = this.neighborsSignificance;
+    const width = this.width,
+      height = this.height;
+    const left = column > 0;
+    const right = column + 1 < width;
+    let i;
+    if (row > 0) {
+      i = index - width;
+      if (left) {
+        (yield* jpxVectorUpdate(neighborsSignificance,i - 1,"+",0x10));
+      }
+      if (right) {
+        (yield* jpxVectorUpdate(neighborsSignificance,i + 1,"+",0x10));
+      }
+      (yield* jpxVectorUpdate(neighborsSignificance,i,"+",0x04));
+    }
+    if (row + 1 < height) {
+      i = index + width;
+      if (left) {
+        (yield* jpxVectorUpdate(neighborsSignificance,i - 1,"+",0x10));
+      }
+      if (right) {
+        (yield* jpxVectorUpdate(neighborsSignificance,i + 1,"+",0x10));
+      }
+      (yield* jpxVectorUpdate(neighborsSignificance,i,"+",0x04));
+    }
+    if (left) {
+      (yield* jpxVectorUpdate(neighborsSignificance,index - 1,"+",0x01));
+    }
+    if (right) {
+      (yield* jpxVectorUpdate(neighborsSignificance,index + 1,"+",0x01));
+    }
+    (yield* jpxVectorUpdate(neighborsSignificance,index,"|",0x80));
+  }
+  *runSignificancePropagationPass() {
+    const decoder = this.decoder;
+    const width = this.width,
+      height = this.height;
+    const coefficentsMagnitude = this.coefficentsMagnitude;
+    const coefficentsSign = this.coefficentsSign;
+    const neighborsSignificance = this.neighborsSignificance;
+    const processingFlags = this.processingFlags;
+    const contexts = this.contexts;
+    const labels = this.contextLabelTable;
+    const bitsDecoded = this.bitsDecoded;
+    const processedInverseMask = ~1;
+    const processedMask = 1;
+    const firstMagnitudeBitMask = 2;
+    for (let i0 = 0; i0 < height; i0 += 4) {
+      for (let j = 0; j < width; j++) {
+        let index = i0 * width + j;
+        for (let i1 = 0; i1 < 4; i1++, index += width) {
+          const i = i0 + i1;
+          if (i >= height) {
+            break;
+          }
+          (yield* jpxVectorUpdate(processingFlags,index,"&",processedInverseMask));
+          if ((yield* jpxVectorRead(coefficentsMagnitude,index)) || !(yield* jpxVectorRead(neighborsSignificance,index))) {
+            continue;
+          }
+          const contextLabel = labels[(yield* jpxVectorRead(neighborsSignificance,index))];
+          const decision = (yield* decoder.readBitSteps(contexts, contextLabel));
+          if (decision) {
+            const sign = (yield* this.decodeSignBit(i,j,index));
+            (yield* jpxVectorWrite(coefficentsSign,index,sign));
+            (yield* jpxVectorWrite(coefficentsMagnitude,index,1));
+            (yield* this.setNeighborsSignificance(i,j,index));
+            (yield* jpxVectorUpdate(processingFlags,index,"|",firstMagnitudeBitMask));
+          }
+          (yield* jpxVectorUpdate(bitsDecoded,index,"+",1));
+          (yield* jpxVectorUpdate(processingFlags,index,"|",processedMask));
+        }
+      }
+    }
+  }
+  *decodeSignBit(row, column, index) {
+    const width = this.width,
+      height = this.height;
+    const coefficentsMagnitude = this.coefficentsMagnitude;
+    const coefficentsSign = this.coefficentsSign;
+    let contribution, sign0, sign1, significance1;
+    let contextLabel, decoded;
+    significance1 = column > 0 && (yield* jpxVectorRead(coefficentsMagnitude,index - 1)) !== 0;
+    if (column + 1 < width && (yield* jpxVectorRead(coefficentsMagnitude,index + 1)) !== 0) {
+      sign1 = (yield* jpxVectorRead(coefficentsSign,index + 1));
+      if (significance1) {
+        sign0 = (yield* jpxVectorRead(coefficentsSign,index - 1));
+        contribution = 1 - sign1 - sign0;
+      } else {
+        contribution = 1 - sign1 - sign1;
+      }
+    } else if (significance1) {
+      sign0 = (yield* jpxVectorRead(coefficentsSign,index - 1));
+      contribution = 1 - sign0 - sign0;
+    } else {
+      contribution = 0;
+    }
+    const horizontalContribution = 3 * contribution;
+    significance1 = row > 0 && (yield* jpxVectorRead(coefficentsMagnitude,index - width)) !== 0;
+    if (row + 1 < height && (yield* jpxVectorRead(coefficentsMagnitude,index + width)) !== 0) {
+      sign1 = (yield* jpxVectorRead(coefficentsSign,index + width));
+      if (significance1) {
+        sign0 = (yield* jpxVectorRead(coefficentsSign,index - width));
+        contribution = 1 - sign1 - sign0 + horizontalContribution;
+      } else {
+        contribution = 1 - sign1 - sign1 + horizontalContribution;
+      }
+    } else if (significance1) {
+      sign0 = (yield* jpxVectorRead(coefficentsSign,index - width));
+      contribution = 1 - sign0 - sign0 + horizontalContribution;
+    } else {
+      contribution = horizontalContribution;
+    }
+    if (contribution >= 0) {
+      contextLabel = 9 + contribution;
+      decoded = (yield* this.decoder.readBitSteps(this.contexts, contextLabel));
+    } else {
+      contextLabel = 9 - contribution;
+      decoded = (yield* this.decoder.readBitSteps(this.contexts, contextLabel)) ^ 1;
+    }
+    return decoded;
+  }
+  *runMagnitudeRefinementPass() {
+    const decoder = this.decoder;
+    const width = this.width,
+      height = this.height;
+    const coefficentsMagnitude = this.coefficentsMagnitude;
+    const neighborsSignificance = this.neighborsSignificance;
+    const contexts = this.contexts;
+    const bitsDecoded = this.bitsDecoded;
+    const processingFlags = this.processingFlags;
+    const processedMask = 1;
+    const firstMagnitudeBitMask = 2;
+    const length = width * height;
+    const width4 = width * 4;
+    for (let index0 = 0, indexNext; index0 < length; index0 = indexNext) {
+      indexNext = Math.min(length, index0 + width4);
+      for (let j = 0; j < width; j++) {
+        for (let index = index0 + j; index < indexNext; index += width) {
+          if (!(yield* jpxVectorRead(coefficentsMagnitude,index)) || ((yield* jpxVectorRead(processingFlags,index)) & processedMask) !== 0) {
+            continue;
+          }
+          let contextLabel = 16;
+          if (((yield* jpxVectorRead(processingFlags,index)) & firstMagnitudeBitMask) !== 0) {
+            (yield* jpxVectorUpdate(processingFlags,index,"^",firstMagnitudeBitMask));
+            const significance = (yield* jpxVectorRead(neighborsSignificance,index)) & 127;
+            contextLabel = significance === 0 ? 15 : 14;
+          }
+          const bit = (yield* decoder.readBitSteps(contexts, contextLabel));
+          (yield* jpxVectorWrite(coefficentsMagnitude,index,(yield* jpxVectorRead(coefficentsMagnitude,index)) << 1 | bit));
+          (yield* jpxVectorUpdate(bitsDecoded,index,"+",1));
+          (yield* jpxVectorUpdate(processingFlags,index,"|",processedMask));
+        }
+      }
+    }
+  }
+  *runCleanupPass() {
+    const decoder = this.decoder;
+    const width = this.width,
+      height = this.height;
+    const neighborsSignificance = this.neighborsSignificance;
+    const coefficentsMagnitude = this.coefficentsMagnitude;
+    const coefficentsSign = this.coefficentsSign;
+    const contexts = this.contexts;
+    const labels = this.contextLabelTable;
+    const bitsDecoded = this.bitsDecoded;
+    const processingFlags = this.processingFlags;
+    const processedMask = 1;
+    const firstMagnitudeBitMask = 2;
+    const oneRowDown = width;
+    const twoRowsDown = width * 2;
+    const threeRowsDown = width * 3;
+    let iNext;
+    for (let i0 = 0; i0 < height; i0 = iNext) {
+      iNext = Math.min(i0 + 4, height);
+      const indexBase = i0 * width;
+      const checkAllEmpty = i0 + 3 < height;
+      for (let j = 0; j < width; j++) {
+        const index0 = indexBase + j;
+        const allEmpty = checkAllEmpty && (yield* jpxVectorRead(processingFlags,index0)) === 0 && (yield* jpxVectorRead(processingFlags,index0 + oneRowDown)) === 0 && (yield* jpxVectorRead(processingFlags,index0 + twoRowsDown)) === 0 && (yield* jpxVectorRead(processingFlags,index0 + threeRowsDown)) === 0 && (yield* jpxVectorRead(neighborsSignificance,index0)) === 0 && (yield* jpxVectorRead(neighborsSignificance,index0 + oneRowDown)) === 0 && (yield* jpxVectorRead(neighborsSignificance,index0 + twoRowsDown)) === 0 && (yield* jpxVectorRead(neighborsSignificance,index0 + threeRowsDown)) === 0;
+        let i1 = 0,
+          index = index0;
+        let i = i0,
+          sign;
+        if (allEmpty) {
+          const hasSignificantCoefficent = (yield* decoder.readBitSteps(contexts, BitModel.RUNLENGTH_CONTEXT));
+          if (!hasSignificantCoefficent) {
+            (yield* jpxVectorUpdate(bitsDecoded,index0,"+",1));
+            (yield* jpxVectorUpdate(bitsDecoded,index0 + oneRowDown,"+",1));
+            (yield* jpxVectorUpdate(bitsDecoded,index0 + twoRowsDown,"+",1));
+            (yield* jpxVectorUpdate(bitsDecoded,index0 + threeRowsDown,"+",1));
+            continue;
+          }
+          i1 = (yield* decoder.readBitSteps(contexts, BitModel.UNIFORM_CONTEXT)) << 1 | (yield* decoder.readBitSteps(contexts, BitModel.UNIFORM_CONTEXT));
+          if (i1 !== 0) {
+            i = i0 + i1;
+            index += i1 * width;
+          }
+          sign = (yield* this.decodeSignBit(i,j,index));
+          (yield* jpxVectorWrite(coefficentsSign,index,sign));
+          (yield* jpxVectorWrite(coefficentsMagnitude,index,1));
+          (yield* this.setNeighborsSignificance(i,j,index));
+          (yield* jpxVectorUpdate(processingFlags,index,"|",firstMagnitudeBitMask));
+          index = index0;
+          for (let i2 = i0; i2 <= i; i2++, index += width) {
+            (yield* jpxVectorUpdate(bitsDecoded,index,"+",1));
+          }
+          i1++;
+        }
+        for (i = i0 + i1; i < iNext; i++, index += width) {
+          if ((yield* jpxVectorRead(coefficentsMagnitude,index)) || ((yield* jpxVectorRead(processingFlags,index)) & processedMask) !== 0) {
+            continue;
+          }
+          const contextLabel = labels[(yield* jpxVectorRead(neighborsSignificance,index))];
+          const decision = (yield* decoder.readBitSteps(contexts, contextLabel));
+          if (decision === 1) {
+            sign = (yield* this.decodeSignBit(i,j,index));
+            (yield* jpxVectorWrite(coefficentsSign,index,sign));
+            (yield* jpxVectorWrite(coefficentsMagnitude,index,1));
+            (yield* this.setNeighborsSignificance(i,j,index));
+            (yield* jpxVectorUpdate(processingFlags,index,"|",firstMagnitudeBitMask));
+          }
+          (yield* jpxVectorUpdate(bitsDecoded,index,"+",1));
+        }
+      }
+    }
+  }
+  *checkSegmentationSymbol() {
+    const decoder = this.decoder;
+    const contexts = this.contexts;
+    const symbol = (yield* decoder.readBitSteps(contexts, BitModel.UNIFORM_CONTEXT)) << 3 | (yield* decoder.readBitSteps(contexts, BitModel.UNIFORM_CONTEXT)) << 2 | (yield* decoder.readBitSteps(contexts, BitModel.UNIFORM_CONTEXT)) << 1 | (yield* decoder.readBitSteps(contexts, BitModel.UNIFORM_CONTEXT));
+    if (symbol !== 0xa) {
+      throw new JpxError("Invalid segmentation symbol");
+    }
+  }
+}
+class Transform {
+  constructor(onAllocation, storedPlanes) {
+    this.storedPlanes = storedPlanes;
+    this.onAllocation = onAllocation;
+    if (this.constructor === Transform) {
+      util_unreachable("Cannot initialize Transform.");
+    }
+  }
+  *calculate(subbands, u0, v0) {
+    let ll = subbands[0];
+    for (let i = 1, ii = subbands.length; i < ii; i++) {
+      ll = (yield* this.iterate(ll,subbands[i],u0,v0));
+    }
+    return ll;
+  }
+  *extend(buffer, offset, size) {
+    let i1 = offset - 1,
+      j1 = offset + 1;
+    let i2 = offset + size - 2,
+      j2 = offset + size;
+    (yield* jpxVectorWrite(buffer,i1--,(yield* jpxVectorRead(buffer,j1++))));
+    (yield* jpxVectorWrite(buffer,j2++,(yield* jpxVectorRead(buffer,i2--))));
+    (yield* jpxVectorWrite(buffer,i1--,(yield* jpxVectorRead(buffer,j1++))));
+    (yield* jpxVectorWrite(buffer,j2++,(yield* jpxVectorRead(buffer,i2--))));
+    (yield* jpxVectorWrite(buffer,i1--,(yield* jpxVectorRead(buffer,j1++))));
+    (yield* jpxVectorWrite(buffer,j2++,(yield* jpxVectorRead(buffer,i2--))));
+    (yield* jpxVectorWrite(buffer,i1,(yield* jpxVectorRead(buffer,j1))));
+    (yield* jpxVectorWrite(buffer,j2,(yield* jpxVectorRead(buffer,i2))));
+  }
+  *filter(x, offset, length) {
+    util_unreachable("Abstract method `filter` called");
+  }
+  *iterate(ll, hl_lh_hh, u0, v0) {
+    const llWidth = ll.width,
+      llHeight = ll.height;
+    let llItems = ll.items;
+    const width = hl_lh_hh.width;
+    const height = hl_lh_hh.height;
+    const items = hl_lh_hh.items;
+    let i, j, k, l, u, v;
+    for (k = 0, i = 0; i < llHeight; i++) {
+      l = i * 2 * width;
+      for (j = 0; j < llWidth; j++, k++, l += 2) {
+        (yield* jpxVectorWrite(items,l,(yield* jpxVectorRead(llItems,k))));
+      }
+    }
+    llItems = ll.items = null;
+    const bufferPadding = 4;
+    this.onAllocation?.(this.storedPlanes ? 128 : (width + 2 * bufferPadding) * 4 + 128);
+    const rowBuffer = (yield* jpxVectorAllocate(width + 2 * bufferPadding,4,this.storedPlanes));
+    if (width === 1) {
+      if ((u0 & 1) !== 0) {
+        for (v = 0, k = 0; v < height; v++, k += width) {
+          (yield* jpxVectorUpdate(items,k,"*",0.5));
+        }
+      }
+    } else {
+      for (v = 0, k = 0; v < height; v++, k += width) {
+        (yield* jpxVectorCopy(rowBuffer,bufferPadding,items,k,k + width));
+        (yield* this.extend(rowBuffer,bufferPadding,width));
+        (yield* this.filter(rowBuffer,bufferPadding,width));
+        (yield* jpxVectorCopy(items,k,rowBuffer,bufferPadding,bufferPadding + width));
+      }
+    }
+    // Four active columns fit the retained decoder's bounded page cache.
+    let numBuffers = this.storedPlanes ? 4 : 16;
+    const colBuffers = [];
+    for (i = 0; i < numBuffers; i++) {
+      this.onAllocation?.(this.storedPlanes ? 128 : (height + 2 * bufferPadding) * 4 + 128);
+      colBuffers.push((yield* jpxVectorAllocate(height + 2 * bufferPadding,4,this.storedPlanes)));
+    }
+    let b,
+      currentBuffer = 0;
+    ll = bufferPadding + height;
+    if (height === 1) {
+      if ((v0 & 1) !== 0) {
+        for (u = 0; u < width; u++) {
+          (yield* jpxVectorUpdate(items,u,"*",0.5));
+        }
+      }
+    } else {
+      for (u = 0; u < width; u++) {
+        if (currentBuffer === 0) {
+          numBuffers = Math.min(width - u, numBuffers);
+          for (k = u, l = bufferPadding; l < ll; k += width, l++) {
+            for (b = 0; b < numBuffers; b++) {
+              (yield* jpxVectorWrite(colBuffers[b],l,(yield* jpxVectorRead(items,k + b))));
+            }
+          }
+          currentBuffer = numBuffers;
+        }
+        currentBuffer--;
+        const buffer = colBuffers[currentBuffer];
+        (yield* this.extend(buffer,bufferPadding,height));
+        (yield* this.filter(buffer,bufferPadding,height));
+        if (currentBuffer === 0) {
+          k = u - numBuffers + 1;
+          for (l = bufferPadding; l < ll; k += width, l++) {
+            for (b = 0; b < numBuffers; b++) {
+              (yield* jpxVectorWrite(items,k + b,(yield* jpxVectorRead(colBuffers[b],l))));
+            }
+          }
+        }
+      }
+    }
+    return {
+      width,
+      height,
+      items
+    };
+  }
+}
+class IrreversibleTransform extends Transform {
+  *filter(x, offset, length) {
+    const len = length >> 1;
+    offset |= 0;
+    let j, n, current, next;
+    const alpha = -1.586134342059924;
+    const beta = -0.052980118572961;
+    const gamma = 0.882911075530934;
+    const delta = 0.443506852043971;
+    const K = 1.230174104914001;
+    const K_ = 1 / K;
+    j = offset - 3;
+    for (n = len + 4; n--; j += 2) {
+      (yield* jpxVectorUpdate(x,j,"*",K_));
+    }
+    j = offset - 2;
+    current = delta * (yield* jpxVectorRead(x,j - 1));
+    for (n = len + 3; n--; j += 2) {
+      next = delta * (yield* jpxVectorRead(x,j + 1));
+      (yield* jpxVectorWrite(x,j,K * (yield* jpxVectorRead(x,j)) - current - next));
+      if (n--) {
+        j += 2;
+        current = delta * (yield* jpxVectorRead(x,j + 1));
+        (yield* jpxVectorWrite(x,j,K * (yield* jpxVectorRead(x,j)) - current - next));
+      } else {
+        break;
+      }
+    }
+    j = offset - 1;
+    current = gamma * (yield* jpxVectorRead(x,j - 1));
+    for (n = len + 2; n--; j += 2) {
+      next = gamma * (yield* jpxVectorRead(x,j + 1));
+      (yield* jpxVectorUpdate(x,j,"-",current + next));
+      if (n--) {
+        j += 2;
+        current = gamma * (yield* jpxVectorRead(x,j + 1));
+        (yield* jpxVectorUpdate(x,j,"-",current + next));
+      } else {
+        break;
+      }
+    }
+    j = offset;
+    current = beta * (yield* jpxVectorRead(x,j - 1));
+    for (n = len + 1; n--; j += 2) {
+      next = beta * (yield* jpxVectorRead(x,j + 1));
+      (yield* jpxVectorUpdate(x,j,"-",current + next));
+      if (n--) {
+        j += 2;
+        current = beta * (yield* jpxVectorRead(x,j + 1));
+        (yield* jpxVectorUpdate(x,j,"-",current + next));
+      } else {
+        break;
+      }
+    }
+    if (len !== 0) {
+      j = offset + 1;
+      current = alpha * (yield* jpxVectorRead(x,j - 1));
+      for (n = len; n--; j += 2) {
+        next = alpha * (yield* jpxVectorRead(x,j + 1));
+        (yield* jpxVectorUpdate(x,j,"-",current + next));
+        if (n--) {
+          j += 2;
+          current = alpha * (yield* jpxVectorRead(x,j + 1));
+          (yield* jpxVectorUpdate(x,j,"-",current + next));
+        } else {
+          break;
+        }
+      }
+    }
+  }
+}
+class ReversibleTransform extends Transform {
+  *filter(x, offset, length) {
+    const len = length >> 1;
+    offset |= 0;
+    let j, n;
+    for (j = offset, n = len + 1; n--; j += 2) {
+      (yield* jpxVectorUpdate(x,j,"-",(yield* jpxVectorRead(x,j - 1)) + (yield* jpxVectorRead(x,j + 1)) + 2 >> 2));
+    }
+    for (j = offset + 1, n = len; n--; j += 2) {
+      (yield* jpxVectorUpdate(x,j,"+",(yield* jpxVectorRead(x,j - 1)) + (yield* jpxVectorRead(x,j + 1)) >> 1));
+    }
+  }
+}
+
+;// CONCATENATED MODULE: ./src/pdf.image_decoders.js
+
+
+
+
+const pdfjsVersion = "4.1.392";
+const pdfjsBuild = "fcb76a78d";
+
+var __webpack_exports__Jbig2Image = __webpack_exports__.Jbig2Image;
+var __webpack_exports__JpegImage = __webpack_exports__.JpegImage;
+var __webpack_exports__JpxImage = __webpack_exports__.JpxImage;
+var __webpack_exports__VerbosityLevel = __webpack_exports__.VerbosityLevel;
+var __webpack_exports__getVerbosityLevel = __webpack_exports__.getVerbosityLevel;
+var __webpack_exports__setVerbosityLevel = __webpack_exports__.setVerbosityLevel;
+export { __webpack_exports__Jbig2Image as Jbig2Image, __webpack_exports__JpegImage as JpegImage, __webpack_exports__JpxImage as JpxImage, __webpack_exports__VerbosityLevel as VerbosityLevel, __webpack_exports__getVerbosityLevel as getVerbosityLevel, __webpack_exports__setVerbosityLevel as setVerbosityLevel };
+

@@ -1,0 +1,9 @@
+{
+  "role": "OUTER_METADATA_CAPTURE_BEFORE_PATH_LOOKUPS",
+  "startedAt": "2026-08-29T04:29:26.828Z",
+  "plannedPaths": 32,
+  "children": 0,
+  "bashExecutions": 0,
+  "buildToolExecutions": 0,
+  "archiveFetches": 0
+}

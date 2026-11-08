@@ -1,0 +1,358 @@
+{
+  "sourceSha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "python": "3.14.2 (main, Jan 27 2026, 23:32:07) [Clang 21.1.4 ]",
+  "dependencies": {
+    "csvkit": "2.2.0",
+    "agate": "1.14.2",
+    "SQLAlchemy": "2.0.54"
+  },
+  "cases": [
+    {
+      "files": {},
+      "argv": [
+        "-l"
+      ],
+      "stdin": "line_number,a\noriginal,x\nother,y\n",
+      "stdout": "line_number,line_number,a\n1,1,x\n2,2,y\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {},
+      "argv": [
+        "-l",
+        "-g",
+        "G",
+        "-n",
+        "line_number"
+      ],
+      "stdin": "a\nx\ny\n",
+      "stdout": "line_number,line_number,a\n1,1,x\n2,2,y\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "b,a\nB,A\n",
+        "/b": "a,c\nA2,C\n"
+      },
+      "argv": [
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "b,a,c\nB,A,\n,A2,C\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "x,x,y\nfirst,last\none\n",
+        "/b": "y,z\nY,Z\n"
+      },
+      "argv": [
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "x,y,z\nlast,,\n,,\n,Y,Z\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "group,a\nold,x\n",
+        "/b": "a,group\ny,old2\n"
+      },
+      "argv": [
+        "-g",
+        "G,H",
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "group,group,a\nG,G,x\nH,H,y\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "line_number,a\nold,x\n",
+        "/b": "a,line_number\ny,old2\n"
+      },
+      "argv": [
+        "-l",
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "line_number,line_number,a\n1,1,x\n2,2,y\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "a\nx\ny,z\n"
+      },
+      "argv": [
+        "a"
+      ],
+      "stdin": "",
+      "stdout": "a\nx\n",
+      "stderr": "ValueError: dict contains fields not in fieldnames: None\n",
+      "status": 1
+    },
+    {
+      "files": {
+        "/a": "a\nx\n",
+        "/b": "b\ny,z\n"
+      },
+      "argv": [
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "a,b\nx,\n",
+      "stderr": "ValueError: dict contains fields not in fieldnames: None\n",
+      "status": 1
+    },
+    {
+      "files": {
+        "/a": "x,y\nz\n",
+        "/b": "1,2,3\n"
+      },
+      "argv": [
+        "-H",
+        "-g",
+        "G,H",
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "group,a,b\nG,x,y\nG,z\nH,1,2,3\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {},
+      "argv": [
+        "-H",
+        "-g",
+        "G",
+        "-l"
+      ],
+      "stdin": "x,y\nz,w\n",
+      "stdout": "line_number,group,a,b\n1,x,y\n2,G,z,w\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "x,y\n"
+      },
+      "argv": [
+        "-H",
+        "-g",
+        "G,H",
+        "-",
+        "a"
+      ],
+      "stdin": "one,two\nthree,four\n",
+      "stdout": "group,a,b\none,two\nG,three,four\nH,x,y\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "x,y\n"
+      },
+      "argv": [
+        "-H",
+        "-g",
+        "G,H",
+        "a",
+        "-"
+      ],
+      "stdin": "one,two\nthree,four\n",
+      "stdout": "group,a,b\nG,x,y\nH,one,two\nH,three,four\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "ignore\na\nx\n",
+        "/b": "ignore\nb\ny\n"
+      },
+      "argv": [
+        "-K1",
+        "-l",
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "line_number,a,b\n1,x,\n2,,y\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "ignore\nx,y\n"
+      },
+      "argv": [
+        "-H",
+        "-K1",
+        "-",
+        "a"
+      ],
+      "stdin": "ignore\none,two\nthree,four\n",
+      "stdout": "a,b\none,two\nthree,four\nx,y\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "a\nx\n"
+      },
+      "argv": [
+        "--filenames",
+        "-g",
+        "ignored",
+        "-",
+        "a"
+      ],
+      "stdin": "b\ny\n",
+      "stdout": "group,b,a\n<stdin>,y,\na,,x\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {},
+      "argv": [
+        "-",
+        "-"
+      ],
+      "stdin": "a\nx\n",
+      "stdout": "",
+      "stderr": "UnsupportedOperation: It is not possible to set the encoding or newline of stream after the first read\n",
+      "status": 1
+    },
+    {
+      "files": {},
+      "argv": [
+        "-",
+        "-"
+      ],
+      "stdin": "",
+      "stdout": "\n",
+      "stderr": "ValueError: I/O operation on closed file.\n",
+      "status": 1
+    },
+    {
+      "files": {},
+      "argv": [
+        "-H",
+        "-",
+        "-"
+      ],
+      "stdin": "a\nx\n",
+      "stdout": "a\na\nx\n",
+      "stderr": "ValueError: I/O operation on closed file.\n",
+      "status": 1
+    },
+    {
+      "files": {
+        "/a": "",
+        "/b": "a\nx\n"
+      },
+      "argv": [
+        "a",
+        "b"
+      ],
+      "stdin": "",
+      "stdout": "a\nx\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {
+        "/a": "\nx\n"
+      },
+      "argv": [
+        "a"
+      ],
+      "stdin": "",
+      "stdout": "\n",
+      "stderr": "ValueError: dict contains fields not in fieldnames: None\n",
+      "status": 1
+    },
+    {
+      "files": {},
+      "argv": [
+        "-g",
+        "a,b"
+      ],
+      "stdin": "x\ny\n",
+      "stdout": "",
+      "stderr": "usage: csvstack [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}]\n                [-b] [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-S]\n                [-H] [-K SKIP_LINES] [-v] [-l] [--add-bom] [--zero] [-V]\n                [-g GROUPS] [-n GROUP_NAME] [--filenames]\n                [FILE ...]\ncsvstack: error: The number of grouping values must be equal to the number of CSV files being stacked.\n",
+      "status": 2
+    },
+    {
+      "files": {},
+      "argv": [
+        "-g",
+        ""
+      ],
+      "stdin": "x\ny\n",
+      "stdout": "group,x\n,y\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {},
+      "argv": [
+        "-n",
+        "ignored"
+      ],
+      "stdin": "a\nx\n",
+      "stdout": "a\nx\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {},
+      "argv": [
+        "-S",
+        "-t"
+      ],
+      "stdin": "a\tb\nx\t y\n",
+      "stdout": "a,b\nx,y\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {},
+      "argv": [
+        "-u3",
+        "-p",
+        "\\"
+      ],
+      "stdin": "a,b\nx\\,y,z\n",
+      "stdout": "a,b\n\"x,y\",z\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "files": {},
+      "argv": [
+        "--add-bom",
+        "--zero",
+        "-l"
+      ],
+      "stdin": "a\n02\n",
+      "stdout": "\ufeffline_number,a\n1,02\n",
+      "stderr": "",
+      "status": 0
+    }
+  ]
+}

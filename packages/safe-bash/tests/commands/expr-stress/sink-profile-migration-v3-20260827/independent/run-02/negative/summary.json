@@ -1,0 +1,539 @@
+{
+  "positives": 4,
+  "rejectedMutants": 20,
+  "results": [
+    {
+      "target": "canonical",
+      "mutation": "none",
+      "expectedPositive": true,
+      "detected": false,
+      "failure": "✔ sink failure preserves its reason without a diagnostic and diagnostic failure is not swallowed (1.919542ms)\nℹ tests 1\nℹ suites 0\nℹ pass 1\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 67.644166\n",
+      "triggers": [
+        {
+          "mutation": "none",
+          "args": [
+            "1"
+          ],
+          "options": {},
+          "caughtReasonType": "object",
+          "caughtMessage": "sink failure"
+        },
+        {
+          "mutation": "none",
+          "args": [],
+          "options": {},
+          "caughtReasonType": "object",
+          "caughtMessage": "diagnostic sink failure"
+        }
+      ]
+    },
+    {
+      "target": "canonical",
+      "mutation": "swallow",
+      "expectedPositive": false,
+      "detected": true,
+      "failure": "✖ sink failure preserves its reason without a diagnostic and diagnostic failure is not swallowed (2.187042ms)\nℹ tests 1\nℹ suites 0\nℹ pass 0\nℹ fail 1\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 59.592958\n\n✖ failing tests:\n\ntest at ../negative/canonical/contracts.test.js:149:1\n✖ sink failure preserves its reason without a diagnostic and diagnostic failure is not swallowed (2.187042ms)\n  AssertionError [ERR_ASSERTION]: Missing expected rejection.\n      at async TestContext.<anonymous> (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/negative/canonical/contracts.test.js:152:5)\n      at async Test.run (node:internal/test_runner/test:1054:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: undefined,\n    operator: 'rejects',\n    diff: 'simple'\n  }\n",
+      "triggers": [
+        {
+          "mutation": "swallow",
+          "args": [
+            "1"
+          ],
+          "options": {},
+          "caughtReasonType": "object",
+          "caughtMessage": "sink failure"
+        }
+      ]
+    },
+    {
+      "target": "canonical",
+      "mutation": "recast",
+      "expectedPositive": false,
+      "detected": true,
+      "failure": "✖ sink failure preserves its reason without a diagnostic and diagnostic failure is not swallowed (1.888ms)\nℹ tests 1\nℹ suites 0\nℹ pass 0\nℹ fail 1\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 59.852417\n\n✖ failing tests:\n\ntest at ../negative/canonical/contracts.test.js:149:1\n✖ sink failure preserves its reason without a diagnostic and diagnostic failure is not swallowed (1.888ms)\n  AssertionError [ERR_ASSERTION]: Missing expected rejection.\n      at async TestContext.<anonymous> (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/negative/canonical/contracts.test.js:152:5)\n      at async Test.run (node:internal/test_runner/test:1054:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: undefined,\n    operator: 'rejects',\n    diff: 'simple'\n  }\n",
+      "triggers": [
+        {
+          "mutation": "recast",
+          "args": [
+            "1"
+          ],
+          "options": {},
+          "caughtReasonType": "object",
+          "caughtMessage": "sink failure"
+        }
+      ]
+    },
+    {
+      "target": "canonical",
+      "mutation": "wrong-error-copy",
+      "expectedPositive": false,
+      "detected": true,
+      "failure": "✖ sink failure preserves its reason without a diagnostic and diagnostic failure is not swallowed (3.240666ms)\nℹ tests 1\nℹ suites 0\nℹ pass 0\nℹ fail 1\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 68.3685\n\n✖ failing tests:\n\ntest at ../negative/canonical/contracts.test.js:149:1\n✖ sink failure preserves its reason without a diagnostic and diagnostic failure is not swallowed (3.240666ms)\n  AssertionError [ERR_ASSERTION]: The validation function is expected to return \"true\". Received false\n  \n  Caught error:\n  \n  Error: sink failure\n      at async TestContext.<anonymous> (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/negative/canonical/contracts.test.js:152:5)\n      at async Test.run (node:internal/test_runner/test:1054:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3) {\n    generatedMessage: true,\n    code: 'ERR_ASSERTION',\n    actual: Error: sink failure\n        at Object.execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/sink-profile-migration-v3-20260827/independent/mutant-expr.mjs:19:40)\n        at async run (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/negative/canonical/helpers.js:13:20)\n        at async waitForActual (node:assert:644:5)\n        at async Function.rejects (node:assert:767:25)\n        at async TestContext.<anonymous> (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/negative/canonical/contracts.test.js:152:5)\n        at async Test.run (node:internal/test_runner/test:1054:7)\n        at async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3),\n    operator: 'rejects',\n    diff: 'simple'\n  }\n",
+      "triggers": [
+        {
+          "mutation": "wrong-error-copy",
+          "args": [
+            "1"
+          ],
+          "options": {},
+          "caughtReasonType": "object",
+          "caughtMessage": "sink failure"
+        }
+      ]
+    },
+    {
+      "target": "canonical",
+      "mutation": "wrong-sentinel",
+      "expectedPositive": false,
+      "detected": true,
+      "failure": "✖ sink failure preserves its reason without a diagnostic and diagnostic failure is not swallowed (2.220583ms)\nℹ tests 1\nℹ suites 0\nℹ pass 0\nℹ fail 1\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 65.44025\n\n✖ failing tests:\n\ntest at ../negative/canonical/contracts.test.js:149:1\n✖ sink failure preserves its reason without a diagnostic and diagnostic failure is not swallowed (2.220583ms)\n  AssertionError [ERR_ASSERTION]: The validation function is expected to return \"true\". Received false\n      at async TestContext.<anonymous> (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/negative/canonical/contracts.test.js:152:5)\n      at async Test.run (node:internal/test_runner/test:1054:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3) {\n    generatedMessage: true,\n    code: 'ERR_ASSERTION',\n    actual: { sentinel: 'independent wrong reason' },\n    operator: 'rejects',\n    diff: 'simple'\n  }\n",
+      "triggers": [
+        {
+          "mutation": "wrong-sentinel",
+          "args": [
+            "1"
+          ],
+          "options": {},
+          "caughtReasonType": "object",
+          "caughtMessage": "sink failure"
+        }
+      ]
+    },
+    {
+      "target": "canonical",
+      "mutation": "duplicate-diagnostic",
+      "expectedPositive": false,
+      "detected": true,
+      "failure": "✖ sink failure preserves its reason without a diagnostic and diagnostic failure is not swallowed (2.722959ms)\nℹ tests 1\nℹ suites 0\nℹ pass 0\nℹ fail 1\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 63.025584\n\n✖ failing tests:\n\ntest at ../negative/canonical/contracts.test.js:149:1\n✖ sink failure preserves its reason without a diagnostic and diagnostic failure is not swallowed (2.722959ms)\n  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n  \n  2 !== 0\n  \n      at TestContext.<anonymous> (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/negative/canonical/contracts.test.js:156:12)\n      at async Test.run (node:internal/test_runner/test:1054:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3) {\n    generatedMessage: true,\n    code: 'ERR_ASSERTION',\n    actual: 2,\n    expected: 0,\n    operator: 'strictEqual',\n    diff: 'simple'\n  }\n",
+      "triggers": [
+        {
+          "mutation": "duplicate-diagnostic",
+          "args": [
+            "1"
+          ],
+          "options": {},
+          "caughtReasonType": "object",
+          "caughtMessage": "sink failure"
+        }
+      ]
+    },
+    {
+      "target": "core",
+      "mutation": "none",
+      "expectedPositive": true,
+      "detected": false,
+      "triggers": [
+        {
+          "mutation": "none",
+          "args": [
+            "41",
+            "+",
+            "1"
+          ],
+          "options": {},
+          "caughtReasonType": "object"
+        }
+      ]
+    },
+    {
+      "target": "core",
+      "mutation": "swallow",
+      "expectedPositive": false,
+      "detected": true,
+      "failure": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'fulfilled'\n- 'rejected'\n",
+      "triggers": [
+        {
+          "mutation": "swallow",
+          "args": [
+            "41",
+            "+",
+            "1"
+          ],
+          "options": {},
+          "caughtReasonType": "object"
+        }
+      ]
+    },
+    {
+      "target": "core",
+      "mutation": "recast",
+      "expectedPositive": false,
+      "detected": true,
+      "failure": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'fulfilled'\n- 'rejected'\n",
+      "triggers": [
+        {
+          "mutation": "recast",
+          "args": [
+            "41",
+            "+",
+            "1"
+          ],
+          "options": {},
+          "caughtReasonType": "object"
+        }
+      ]
+    },
+    {
+      "target": "core",
+      "mutation": "wrong-error-copy",
+      "expectedPositive": false,
+      "detected": true,
+      "failure": "Expected \"actual\" to be reference-equal to \"expected\":\n+ actual - expected\n\n+ Error\n+     at Object.execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/sink-profile-migration-v3-20260827/independent/mutant-expr.mjs:19:40)\n+     at async direct (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/negative/core/driver.mjs:65:22)\n+     at async run (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/negative/core/driver.mjs:103:13)\n+     at async file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/negative/core/entry.mjs:2:28\n- {\n-   sentinel: 'stdout'\n- }\n",
+      "triggers": [
+        {
+          "mutation": "wrong-error-copy",
+          "args": [
+            "41",
+            "+",
+            "1"
+          ],
+          "options": {},
+          "caughtReasonType": "object"
+        }
+      ]
+    },
+    {
+      "target": "core",
+      "mutation": "wrong-sentinel",
+      "expectedPositive": false,
+      "detected": true,
+      "failure": "Expected \"actual\" to be reference-equal to \"expected\":\n+ actual - expected\n\n  {\n+   sentinel: 'independent wrong reason'\n-   sentinel: 'stdout'\n  }\n",
+      "triggers": [
+        {
+          "mutation": "wrong-sentinel",
+          "args": [
+            "41",
+            "+",
+            "1"
+          ],
+          "options": {},
+          "caughtReasonType": "object"
+        }
+      ]
+    },
+    {
+      "target": "core",
+      "mutation": "duplicate-diagnostic",
+      "expectedPositive": false,
+      "detected": true,
+      "failure": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n    'stdout',\n+   'stderr',\n+   'stderr'\n  ]\n",
+      "triggers": [
+        {
+          "mutation": "duplicate-diagnostic",
+          "args": [
+            "41",
+            "+",
+            "1"
+          ],
+          "options": {},
+          "caughtReasonType": "object"
+        }
+      ]
+    },
+    {
+      "target": "quota",
+      "mutation": "none",
+      "expectedPositive": true,
+      "detected": false,
+      "failure": [],
+      "triggers": [
+        {
+          "mutation": "none",
+          "args": [
+            "1"
+          ],
+          "options": {
+            "limits": {
+              "maxOutputBytes": 2
+            }
+          },
+          "caughtReasonType": "object",
+          "caughtMessage": "ATTACKER_SINK_MESSAGE"
+        }
+      ]
+    },
+    {
+      "target": "quota",
+      "mutation": "swallow",
+      "expectedPositive": false,
+      "detected": true,
+      "failure": [
+        "exact result and rejection identity"
+      ],
+      "triggers": [
+        {
+          "mutation": "swallow",
+          "args": [
+            "1"
+          ],
+          "options": {
+            "limits": {
+              "maxOutputBytes": 2
+            }
+          },
+          "caughtReasonType": "object",
+          "caughtMessage": "ATTACKER_SINK_MESSAGE"
+        }
+      ]
+    },
+    {
+      "target": "quota",
+      "mutation": "recast",
+      "expectedPositive": false,
+      "detected": true,
+      "failure": [
+        "exact result and rejection identity",
+        "normal attempted bytes obey normal quota"
+      ],
+      "triggers": [
+        {
+          "mutation": "recast",
+          "args": [
+            "1"
+          ],
+          "options": {
+            "limits": {
+              "maxOutputBytes": 2
+            }
+          },
+          "caughtReasonType": "object",
+          "caughtMessage": "ATTACKER_SINK_MESSAGE"
+        }
+      ]
+    },
+    {
+      "target": "quota",
+      "mutation": "wrong-error-copy",
+      "expectedPositive": false,
+      "detected": true,
+      "failure": [
+        "exact result and rejection identity"
+      ],
+      "triggers": [
+        {
+          "mutation": "wrong-error-copy",
+          "args": [
+            "1"
+          ],
+          "options": {
+            "limits": {
+              "maxOutputBytes": 2
+            }
+          },
+          "caughtReasonType": "object",
+          "caughtMessage": "ATTACKER_SINK_MESSAGE"
+        }
+      ]
+    },
+    {
+      "target": "quota",
+      "mutation": "wrong-sentinel",
+      "expectedPositive": false,
+      "detected": true,
+      "failure": [
+        "exact result and rejection identity"
+      ],
+      "triggers": [
+        {
+          "mutation": "wrong-sentinel",
+          "args": [
+            "1"
+          ],
+          "options": {
+            "limits": {
+              "maxOutputBytes": 2
+            }
+          },
+          "caughtReasonType": "object",
+          "caughtMessage": "ATTACKER_SINK_MESSAGE"
+        }
+      ]
+    },
+    {
+      "target": "quota",
+      "mutation": "duplicate-diagnostic",
+      "expectedPositive": false,
+      "detected": true,
+      "failure": [
+        "exact result and rejection identity",
+        "normal attempted bytes obey normal quota",
+        "at most one stderr attempt"
+      ],
+      "triggers": [
+        {
+          "mutation": "duplicate-diagnostic",
+          "args": [
+            "1"
+          ],
+          "options": {
+            "limits": {
+              "maxOutputBytes": 2
+            }
+          },
+          "caughtReasonType": "object",
+          "caughtMessage": "ATTACKER_SINK_MESSAGE"
+        }
+      ]
+    },
+    {
+      "target": "nearby",
+      "mutation": "none",
+      "expectedPositive": true,
+      "detected": false,
+      "failure": [],
+      "triggers": [
+        {
+          "mutation": "none",
+          "args": [
+            "a",
+            ":",
+            "a"
+          ],
+          "options": {
+            "regex": {
+              "startupTimeoutMs": 10000,
+              "requestTimeoutMs": 3000
+            }
+          },
+          "caughtReasonType": "object",
+          "caughtMessage": "independent sink failure"
+        }
+      ]
+    },
+    {
+      "target": "nearby",
+      "mutation": "swallow",
+      "expectedPositive": false,
+      "detected": true,
+      "failure": [
+        "rejection identity/output"
+      ],
+      "triggers": [
+        {
+          "mutation": "swallow",
+          "args": [
+            "a",
+            ":",
+            "a"
+          ],
+          "options": {
+            "regex": {
+              "startupTimeoutMs": 10000,
+              "requestTimeoutMs": 3000
+            }
+          },
+          "caughtReasonType": "object",
+          "caughtMessage": "independent sink failure"
+        }
+      ]
+    },
+    {
+      "target": "nearby",
+      "mutation": "recast",
+      "expectedPositive": false,
+      "detected": true,
+      "failure": [
+        "rejection identity/output"
+      ],
+      "triggers": [
+        {
+          "mutation": "recast",
+          "args": [
+            "a",
+            ":",
+            "a"
+          ],
+          "options": {
+            "regex": {
+              "startupTimeoutMs": 10000,
+              "requestTimeoutMs": 3000
+            }
+          },
+          "caughtReasonType": "object",
+          "caughtMessage": "independent sink failure"
+        }
+      ]
+    },
+    {
+      "target": "nearby",
+      "mutation": "wrong-error-copy",
+      "expectedPositive": false,
+      "detected": true,
+      "failure": [
+        "rejection identity/output"
+      ],
+      "triggers": [
+        {
+          "mutation": "wrong-error-copy",
+          "args": [
+            "a",
+            ":",
+            "a"
+          ],
+          "options": {
+            "regex": {
+              "startupTimeoutMs": 10000,
+              "requestTimeoutMs": 3000
+            }
+          },
+          "caughtReasonType": "object",
+          "caughtMessage": "independent sink failure"
+        }
+      ]
+    },
+    {
+      "target": "nearby",
+      "mutation": "wrong-sentinel",
+      "expectedPositive": false,
+      "detected": true,
+      "failure": [
+        "rejection identity/output"
+      ],
+      "triggers": [
+        {
+          "mutation": "wrong-sentinel",
+          "args": [
+            "a",
+            ":",
+            "a"
+          ],
+          "options": {
+            "regex": {
+              "startupTimeoutMs": 10000,
+              "requestTimeoutMs": 3000
+            }
+          },
+          "caughtReasonType": "object",
+          "caughtMessage": "independent sink failure"
+        }
+      ]
+    },
+    {
+      "target": "nearby",
+      "mutation": "duplicate-diagnostic",
+      "expectedPositive": false,
+      "detected": true,
+      "failure": [
+        "rejection identity/output"
+      ],
+      "triggers": [
+        {
+          "mutation": "duplicate-diagnostic",
+          "args": [
+            "a",
+            ":",
+            "a"
+          ],
+          "options": {
+            "regex": {
+              "startupTimeoutMs": 10000,
+              "requestTimeoutMs": 3000
+            }
+          },
+          "caughtReasonType": "object",
+          "caughtMessage": "independent sink failure"
+        }
+      ]
+    }
+  ]
+}

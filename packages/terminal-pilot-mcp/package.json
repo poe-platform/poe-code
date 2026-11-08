@@ -1,0 +1,55 @@
+{
+  "name": "terminal-pilot-mcp",
+  "version": "0.0.1",
+  "description": "MCP server that exposes terminal pilot automation as tools.",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "terminal-pilot-mcp": "dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "rm -rf dist && tsc --emitDeclarationOnly && node scripts/build.mjs",
+    "prepack": "node ../../scripts/set-bin-executable.mjs",
+    "prepublishOnly": "rm -rf dist && tsc --emitDeclarationOnly && node scripts/build.mjs",
+    "install-local-package": "TMPD=$(mktemp -d) && npm pack --pack-destination $TMPD && npm install -g $TMPD/terminal-pilot-mcp-*.tgz && rm -rf $TMPD",
+    "test:unit": "cd ../.. && vitest run packages/terminal-pilot-mcp/src"
+  },
+  "files": [
+    "LICENSE",
+    "dist",
+    "assets"
+  ],
+  "engines": {
+    "node": ">=18.18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poe-platform/poe-code.git",
+    "directory": "packages/terminal-pilot-mcp"
+  },
+  "license": "MIT",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "terminal",
+    "pty",
+    "headless"
+  ],
+  "dependencies": {
+    "toolcraft": "^0.0.51",
+    "@resvg/resvg-js": "^2.6.2",
+    "commander": "^13.1.0",
+    "jetbrains-mono": "^1.0.6",
+    "jsonc-parser": "^3.3.1",
+    "node-pty": "^1.1.0",
+    "smol-toml": "^1.6.0",
+    "terminal-pilot": "*"
+  }
+}

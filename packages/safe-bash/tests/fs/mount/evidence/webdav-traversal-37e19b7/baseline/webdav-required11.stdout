@@ -1,0 +1,442 @@
+TAP version 13
+# Subtest: REQUIRED webdav one-mount copy, target missing
+not ok 1 - REQUIRED webdav one-mount copy, target missing
+  ---
+  duration_ms: 25.162334
+  type: 'test'
+  location: '/private/tmp/safe-bash-webdav-traversal-g9KWA8/baseline/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:1:8880'
+  failureType: 'testCodeFailure'
+  error: |-
+    REQUIRED compatibility: distinct-file operation must succeed
+    + actual - expected
+    
+      {
+    +   cause: "ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'",
+    +   code: 'ENOTSUP',
+    +   dest: '/target',
+    +   path: '/source',
+    +   status: 'filesystem-error',
+    +   syscall: 'copyFile'
+    -   status: 'success'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 'success'
+  actual:
+    status: 'filesystem-error'
+    code: 'ENOTSUP'
+    syscall: 'copyFile'
+    path: '/source'
+    dest: '/target'
+    cause: "ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'"
+  operator: 'deepStrictEqual'
+  stack: |-
+    exercise (/private/tmp/safe-bash-webdav-traversal-g9KWA8/baseline/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:119:10)
+    async TestContext.<anonymous> (/private/tmp/safe-bash-webdav-traversal-g9KWA8/baseline/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:214:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# {"case":"REQUIRED webdav one-mount copy, target missing","outcome":{"status":"filesystem-error","code":"ENOTSUP","syscall":"copyFile","path":"/source","dest":"/target","cause":"ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'"},"source":"/source","target":"/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"}]}
+# Subtest: REQUIRED webdav one-mount copy, target existing
+not ok 2 - REQUIRED webdav one-mount copy, target existing
+  ---
+  duration_ms: 7.866916
+  type: 'test'
+  location: '/private/tmp/safe-bash-webdav-traversal-g9KWA8/baseline/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:1:8880'
+  failureType: 'testCodeFailure'
+  error: |-
+    REQUIRED compatibility: distinct-file operation must succeed
+    + actual - expected
+    
+      {
+    +   cause: "ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'",
+    +   code: 'ENOTSUP',
+    +   dest: '/target',
+    +   path: '/source',
+    +   status: 'filesystem-error',
+    +   syscall: 'copyFile'
+    -   status: 'success'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 'success'
+  actual:
+    status: 'filesystem-error'
+    code: 'ENOTSUP'
+    syscall: 'copyFile'
+    path: '/source'
+    dest: '/target'
+    cause: "ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'"
+  operator: 'deepStrictEqual'
+  stack: |-
+    exercise (/private/tmp/safe-bash-webdav-traversal-g9KWA8/baseline/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:119:10)
+    async TestContext.<anonymous> (/private/tmp/safe-bash-webdav-traversal-g9KWA8/baseline/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:214:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"case":"REQUIRED webdav one-mount copy, target existing","outcome":{"status":"filesystem-error","code":"ENOTSUP","syscall":"copyFile","path":"/source","dest":"/target","cause":"ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'"},"source":"/source","target":"/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"}]}
+# Subtest: REQUIRED webdav separate-clients copy, target missing
+not ok 3 - REQUIRED webdav separate-clients copy, target missing
+  ---
+  duration_ms: 5.255791
+  type: 'test'
+  location: '/private/tmp/safe-bash-webdav-traversal-g9KWA8/baseline/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:1:8880'
+  failureType: 'testCodeFailure'
+  error: |-
+    REQUIRED compatibility: distinct-file operation must succeed
+    + actual - expected
+    
+      {
+    +   cause: "ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'",
+    +   code: 'ENOTSUP',
+    +   dest: '/right/target',
+    +   path: '/left/source',
+    +   status: 'filesystem-error',
+    +   syscall: 'copyFile'
+    -   status: 'success'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 'success'
+  actual:
+    status: 'filesystem-error'
+    code: 'ENOTSUP'
+    syscall: 'copyFile'
+    path: '/left/source'
+    dest: '/right/target'
+    cause: "ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'"
+  operator: 'deepStrictEqual'
+  stack: |-
+    exercise (/private/tmp/safe-bash-webdav-traversal-g9KWA8/baseline/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:119:10)
+    async TestContext.<anonymous> (/private/tmp/safe-bash-webdav-traversal-g9KWA8/baseline/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:214:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"case":"REQUIRED webdav separate-clients copy, target missing","outcome":{"status":"filesystem-error","code":"ENOTSUP","syscall":"copyFile","path":"/left/source","dest":"/right/target","cause":"ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"}]}
+# Subtest: REQUIRED webdav separate-clients copy, target existing
+not ok 4 - REQUIRED webdav separate-clients copy, target existing
+  ---
+  duration_ms: 6.131291
+  type: 'test'
+  location: '/private/tmp/safe-bash-webdav-traversal-g9KWA8/baseline/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:1:8880'
+  failureType: 'testCodeFailure'
+  error: |-
+    REQUIRED compatibility: distinct-file operation must succeed
+    + actual - expected
+    
+      {
+    +   cause: "ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'",
+    +   code: 'ENOTSUP',
+    +   dest: '/right/target',
+    +   path: '/left/source',
+    +   status: 'filesystem-error',
+    +   syscall: 'copyFile'
+    -   status: 'success'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 'success'
+  actual:
+    status: 'filesystem-error'
+    code: 'ENOTSUP'
+    syscall: 'copyFile'
+    path: '/left/source'
+    dest: '/right/target'
+    cause: "ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'"
+  operator: 'deepStrictEqual'
+  stack: |-
+    exercise (/private/tmp/safe-bash-webdav-traversal-g9KWA8/baseline/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:119:10)
+    async TestContext.<anonymous> (/private/tmp/safe-bash-webdav-traversal-g9KWA8/baseline/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:214:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"case":"REQUIRED webdav separate-clients copy, target existing","outcome":{"status":"filesystem-error","code":"ENOTSUP","syscall":"copyFile","path":"/left/source","dest":"/right/target","cause":"ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"}]}
+# Subtest: positive webdav one-mount existing-target rename (default lock policy)
+not ok 5 - positive webdav one-mount existing-target rename (default lock policy)
+  ---
+  duration_ms: 4.773917
+  type: 'test'
+  location: '/private/tmp/safe-bash-webdav-traversal-g9KWA8/baseline/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:1:9537'
+  failureType: 'testCodeFailure'
+  error: |-
+    REQUIRED compatibility: distinct-file operation must succeed
+    + actual - expected
+    
+      {
+    +   cause: "ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'",
+    +   code: 'ENOTSUP',
+    +   dest: '/target',
+    +   path: '/source',
+    +   status: 'filesystem-error',
+    +   syscall: 'rename'
+    -   status: 'success'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 'success'
+  actual:
+    status: 'filesystem-error'
+    code: 'ENOTSUP'
+    syscall: 'rename'
+    path: '/source'
+    dest: '/target'
+    cause: "ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'"
+  operator: 'deepStrictEqual'
+  stack: |-
+    exercise (/private/tmp/safe-bash-webdav-traversal-g9KWA8/baseline/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:119:10)
+    async TestContext.<anonymous> (/private/tmp/safe-bash-webdav-traversal-g9KWA8/baseline/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:225:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"case":"positive webdav one-mount existing-target rename (default lock policy)","outcome":{"status":"filesystem-error","code":"ENOTSUP","syscall":"rename","path":"/source","dest":"/target","cause":"ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'"},"source":"/source","target":"/target","action":"rename","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"}]}
+# Subtest: REQUIRED webdav separate-clients cross-mount mv, target missing
+not ok 6 - REQUIRED webdav separate-clients cross-mount mv, target missing
+  ---
+  duration_ms: 7.440084
+  type: 'test'
+  location: '/private/tmp/safe-bash-webdav-traversal-g9KWA8/baseline/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:1:9937'
+  failureType: 'testCodeFailure'
+  error: |-
+    REQUIRED compatibility: distinct-file operation must succeed
+    + actual - expected
+    
+      {
+    +   exitCode: 1,
+    +   status: 'command-error',
+    +   stderr: "mv: ENOTSUP: operation not supported, stat '/right/target'\n"
+    -   status: 'success'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 'success'
+  actual:
+    status: 'command-error'
+    exitCode: 1
+    stderr: |-
+      mv: ENOTSUP: operation not supported, stat '/right/target'
+      
+  operator: 'deepStrictEqual'
+  stack: |-
+    exercise (/private/tmp/safe-bash-webdav-traversal-g9KWA8/baseline/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:119:10)
+    async TestContext.<anonymous> (/private/tmp/safe-bash-webdav-traversal-g9KWA8/baseline/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:234:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"case":"REQUIRED webdav separate-clients cross-mount mv, target missing","outcome":{"status":"command-error","exitCode":1,"stderr":"mv: ENOTSUP: operation not supported, stat '/right/target'\\n"},"source":"/left/source","target":"/right/target","action":"mv","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"}]}
+# Subtest: REQUIRED webdav separate-clients cross-mount mv, target existing
+not ok 7 - REQUIRED webdav separate-clients cross-mount mv, target existing
+  ---
+  duration_ms: 9.168667
+  type: 'test'
+  location: '/private/tmp/safe-bash-webdav-traversal-g9KWA8/baseline/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:1:9937'
+  failureType: 'testCodeFailure'
+  error: |-
+    REQUIRED compatibility: distinct-file operation must succeed
+    + actual - expected
+    
+      {
+    +   exitCode: 1,
+    +   status: 'command-error',
+    +   stderr: "mv: ENOTSUP: operation not supported, stat '/right/target'\n"
+    -   status: 'success'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 'success'
+  actual:
+    status: 'command-error'
+    exitCode: 1
+    stderr: |-
+      mv: ENOTSUP: operation not supported, stat '/right/target'
+      
+  operator: 'deepStrictEqual'
+  stack: |-
+    exercise (/private/tmp/safe-bash-webdav-traversal-g9KWA8/baseline/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:119:10)
+    async TestContext.<anonymous> (/private/tmp/safe-bash-webdav-traversal-g9KWA8/baseline/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:234:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"case":"REQUIRED webdav separate-clients cross-mount mv, target existing","outcome":{"status":"command-error","exitCode":1,"stderr":"mv: ENOTSUP: operation not supported, stat '/right/target'\\n"},"source":"/left/source","target":"/right/target","action":"mv","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"}]}
+# Subtest: REQUIRED memory to-remote webdav copy, target missing
+not ok 8 - REQUIRED memory to-remote webdav copy, target missing
+  ---
+  duration_ms: 1.679625
+  type: 'test'
+  location: '/private/tmp/safe-bash-webdav-traversal-g9KWA8/baseline/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:1:11543'
+  failureType: 'testCodeFailure'
+  error: |-
+    REQUIRED compatibility: distinct-file operation must succeed
+    + actual - expected
+    
+      {
+    +   cause: "ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'",
+    +   code: 'ENOTSUP',
+    +   dest: '/right/target',
+    +   path: '/left/source',
+    +   status: 'filesystem-error',
+    +   syscall: 'copyFile'
+    -   status: 'success'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 'success'
+  actual:
+    status: 'filesystem-error'
+    code: 'ENOTSUP'
+    syscall: 'copyFile'
+    path: '/left/source'
+    dest: '/right/target'
+    cause: "ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'"
+  operator: 'deepStrictEqual'
+  stack: |-
+    exercise (/private/tmp/safe-bash-webdav-traversal-g9KWA8/baseline/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:119:10)
+    async TestContext.<anonymous> (/private/tmp/safe-bash-webdav-traversal-g9KWA8/baseline/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:272:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"case":"REQUIRED memory to-remote webdav copy, target missing","outcome":{"status":"filesystem-error","code":"ENOTSUP","syscall":"copyFile","path":"/left/source","dest":"/right/target","cause":"ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"}]}
+# Subtest: REQUIRED memory to-remote webdav copy, target existing
+not ok 9 - REQUIRED memory to-remote webdav copy, target existing
+  ---
+  duration_ms: 3.063333
+  type: 'test'
+  location: '/private/tmp/safe-bash-webdav-traversal-g9KWA8/baseline/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:1:11543'
+  failureType: 'testCodeFailure'
+  error: |-
+    REQUIRED compatibility: distinct-file operation must succeed
+    + actual - expected
+    
+      {
+    +   cause: "ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'",
+    +   code: 'ENOTSUP',
+    +   dest: '/right/target',
+    +   path: '/left/source',
+    +   status: 'filesystem-error',
+    +   syscall: 'copyFile'
+    -   status: 'success'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 'success'
+  actual:
+    status: 'filesystem-error'
+    code: 'ENOTSUP'
+    syscall: 'copyFile'
+    path: '/left/source'
+    dest: '/right/target'
+    cause: "ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'"
+  operator: 'deepStrictEqual'
+  stack: |-
+    exercise (/private/tmp/safe-bash-webdav-traversal-g9KWA8/baseline/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:119:10)
+    async TestContext.<anonymous> (/private/tmp/safe-bash-webdav-traversal-g9KWA8/baseline/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:272:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"case":"REQUIRED memory to-remote webdav copy, target existing","outcome":{"status":"filesystem-error","code":"ENOTSUP","syscall":"copyFile","path":"/left/source","dest":"/right/target","cause":"ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"}]}
+# Subtest: REQUIRED memory from-remote webdav copy, target missing
+not ok 10 - REQUIRED memory from-remote webdav copy, target missing
+  ---
+  duration_ms: 2.582959
+  type: 'test'
+  location: '/private/tmp/safe-bash-webdav-traversal-g9KWA8/baseline/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:1:11543'
+  failureType: 'testCodeFailure'
+  error: |-
+    REQUIRED compatibility: distinct-file operation must succeed
+    + actual - expected
+    
+      {
+    +   cause: "ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'",
+    +   code: 'ENOTSUP',
+    +   dest: '/right/target',
+    +   path: '/left/source',
+    +   status: 'filesystem-error',
+    +   syscall: 'copyFile'
+    -   status: 'success'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 'success'
+  actual:
+    status: 'filesystem-error'
+    code: 'ENOTSUP'
+    syscall: 'copyFile'
+    path: '/left/source'
+    dest: '/right/target'
+    cause: "ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'"
+  operator: 'deepStrictEqual'
+  stack: |-
+    exercise (/private/tmp/safe-bash-webdav-traversal-g9KWA8/baseline/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:119:10)
+    async TestContext.<anonymous> (/private/tmp/safe-bash-webdav-traversal-g9KWA8/baseline/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:272:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"case":"REQUIRED memory from-remote webdav copy, target missing","outcome":{"status":"filesystem-error","code":"ENOTSUP","syscall":"copyFile","path":"/left/source","dest":"/right/target","cause":"ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"}]}
+# Subtest: REQUIRED memory from-remote webdav copy, target existing
+not ok 11 - REQUIRED memory from-remote webdav copy, target existing
+  ---
+  duration_ms: 2.542375
+  type: 'test'
+  location: '/private/tmp/safe-bash-webdav-traversal-g9KWA8/baseline/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:1:11543'
+  failureType: 'testCodeFailure'
+  error: |-
+    REQUIRED compatibility: distinct-file operation must succeed
+    + actual - expected
+    
+      {
+    +   cause: "ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'",
+    +   code: 'ENOTSUP',
+    +   dest: '/right/target',
+    +   path: '/left/source',
+    +   status: 'filesystem-error',
+    +   syscall: 'copyFile'
+    -   status: 'success'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 'success'
+  actual:
+    status: 'filesystem-error'
+    code: 'ENOTSUP'
+    syscall: 'copyFile'
+    path: '/left/source'
+    dest: '/right/target'
+    cause: "ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'"
+  operator: 'deepStrictEqual'
+  stack: |-
+    exercise (/private/tmp/safe-bash-webdav-traversal-g9KWA8/baseline/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:119:10)
+    async TestContext.<anonymous> (/private/tmp/safe-bash-webdav-traversal-g9KWA8/baseline/archive/tests/fs/mount/identity-compatibility-review/compatibility.test.ts:272:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"case":"REQUIRED memory from-remote webdav copy, target existing","outcome":{"status":"filesystem-error","code":"ENOTSUP","syscall":"copyFile","path":"/left/source","dest":"/right/target","cause":"ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"}]}
+1..11
+# tests 11
+# suites 0
+# pass 0
+# fail 11
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 255.891417

@@ -1,0 +1,16 @@
+{
+  "bytes": 2340945920,
+  "chunks": 46066,
+  "maxChunkBytes": 65536,
+  "maxProducerChunkBytes": 65536,
+  "maxRssBytes": 175259648,
+  "maxPendingConsumers": 1,
+  "sha256": "cb7f6b6d68f5946c3300e28156367ba42d1af83b12cb1b4be88832c50dfbfd07",
+  "process": {
+    "status": 0,
+    "signal": null,
+    "stderr": "",
+    "timedOut": false,
+    "stderrOverflow": false
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "action": "synchronize",
+  "number": 301,
+  "pull_request": {
+    "number": 301,
+    "title": "Fixture pull request synchronized event",
+    "head": {
+      "ref": "feature/fixture-pr",
+      "sha": "2222222222222222222222222222222222222222"
+    },
+    "base": {
+      "ref": "main"
+    },
+    "user": {
+      "login": "pr-author"
+    },
+    "draft": false
+  },
+  "repository": {
+    "full_name": "test-org/test-repo",
+    "name": "test-repo",
+    "owner": {
+      "login": "test-org"
+    }
+  }
+}

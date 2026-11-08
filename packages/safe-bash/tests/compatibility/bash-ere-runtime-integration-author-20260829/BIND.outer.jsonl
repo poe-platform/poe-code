@@ -1,0 +1,5 @@
+{"pid":15649,"started":"2026-08-29T11:27:28.138Z","role":"source-only scoped stored blobs"}
+{"name":"engine","args":["ls-tree","-r","-z","72187e5abc1179883f85a63e1ef558f2e141c542","--","src/commands/regex-execution/ere/types.ts","src/commands/regex-execution/ere/errors.ts","src/commands/regex-execution/ere/limits.ts","src/commands/regex-execution/ere/syntax.ts","src/commands/regex-execution/ere/matcher.ts"],"pid":15652,"closed":true,"code":0}
+{"name":"transport","args":["ls-tree","-r","-z","02782056c436c9f2a8319f73a9eb8e2b4b5aebd5","--","src/commands/regex-execution/ere/transport"],"pid":15654,"closed":true,"code":0}
+{"name":"blobs","args":["cat-file","--batch"],"pid":15655,"closed":true,"code":0}
+{"name":"index-before","args":["diff","--cached","--raw","--no-abbrev","-z"],"pid":15663,"closed":true,"code":0}

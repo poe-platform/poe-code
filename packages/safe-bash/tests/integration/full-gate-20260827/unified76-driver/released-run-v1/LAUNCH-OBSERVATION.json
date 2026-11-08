@@ -1,0 +1,12 @@
+{
+  "at": "2026-08-28T09:20:59.523Z",
+  "toolSession": 92296,
+  "launcherInvocations": 1,
+  "outputExists": true,
+  "observedFiles": [
+    "ADMISSION.json"
+  ],
+  "authorizationCommit": "8e6b40ecd2cec2b6dcaf2ce80c0cff477d39e6eb",
+  "receiptSha256": "f29a198d05e113a2a0b913a57bd7a2b088a7f731d6121947527652c40d2b8e74",
+  "scope": "One actual CLI --run started; this observation is not phase completion."
+}

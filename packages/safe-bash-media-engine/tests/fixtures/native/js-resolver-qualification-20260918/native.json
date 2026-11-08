@@ -1,0 +1,199 @@
+{
+  "qualification": "advisory libc interposition; attempted opens only; not a syscall trace or runtime mediation",
+  "cwd": "/scratch",
+  "sha256": {
+    "/opt/ffmpeg/ffprobe": "91dae15342bcbd3b8b3935d0fa0299ae47c5b59ef9cbd80f9d34547adb10fc9d",
+    "/opt/ffmpeg/ffmpeg": "693997243e25684ab5976522d97111f44dbc14cfb47f968c2e2283b8fe070a17"
+  },
+  "results": [
+    {
+      "id": "shared-nested-decode",
+      "exe": "/opt/ffmpeg/ffmpeg",
+      "argv": [
+        "-v",
+        "error",
+        "-safe",
+        "0",
+        "-f",
+        "concat",
+        "-i",
+        "lists/root",
+        "-f",
+        "null",
+        "-"
+      ],
+      "status": 0,
+      "signal": null,
+      "accesses": [
+        {
+          "operation": "open64",
+          "flags": 0,
+          "path_hex": "6c697374732f726f6f74",
+          "path": "lists/root"
+        },
+        {
+          "operation": "open64",
+          "flags": 0,
+          "path_hex": "6c697374732f6368696c64",
+          "path": "lists/child"
+        },
+        {
+          "operation": "open64",
+          "flags": 0,
+          "path_hex": "6c697374732f2e2e2f6672616d65732f436173652e70706d",
+          "path": "lists/../frames/Case.ppm"
+        },
+        {
+          "operation": "open64",
+          "flags": 0,
+          "path_hex": "6c697374732f2e2e2f6672616d65732f636173652e70706d",
+          "path": "lists/../frames/case.ppm"
+        },
+        {
+          "operation": "open64",
+          "flags": 0,
+          "path_hex": "6c697374732f6368696c64",
+          "path": "lists/child"
+        },
+        {
+          "operation": "open64",
+          "flags": 0,
+          "path_hex": "6c697374732f2e2e2f6672616d65732f436173652e70706d",
+          "path": "lists/../frames/Case.ppm"
+        },
+        {
+          "operation": "open64",
+          "flags": 0,
+          "path_hex": "6c697374732f2e2e2f6672616d65732f636173652e70706d",
+          "path": "lists/../frames/case.ppm"
+        }
+      ],
+      "stdout_base64": "",
+      "stderr_base64": "QUNDRVNTIG9wZW42NCAwIDZjNjk3Mzc0NzMyZjcyNmY2Zjc0CkFDQ0VTUyBvcGVuNjQgMCA2YzY5NzM3NDczMmY2MzY4Njk2YzY0CkFDQ0VTUyBvcGVuNjQgMCA2YzY5NzM3NDczMmYyZTJlMmY2NjcyNjE2ZDY1NzMyZjQzNjE3MzY1MmU3MDcwNmQKQUNDRVNTIG9wZW42NCAwIDZjNjk3Mzc0NzMyZjJlMmUyZjY2NzI2MTZkNjU3MzJmNjM2MTczNjUyZTcwNzA2ZApBQ0NFU1Mgb3BlbjY0IDAgNmM2OTczNzQ3MzJmNjM2ODY5NmM2NApBQ0NFU1Mgb3BlbjY0IDAgNmM2OTczNzQ3MzJmMmUyZTJmNjY3MjYxNmQ2NTczMmY0MzYxNzM2NTJlNzA3MDZkCkFDQ0VTUyBvcGVuNjQgMCA2YzY5NzM3NDczMmYyZTJlMmY2NjcyNjE2ZDY1NzMyZjYzNjE3MzY1MmU3MDcwNmQKW251bGwgQCAweDU1NTU1NTVhZGUwMF0gQXBwbGljYXRpb24gcHJvdmlkZWQgaW52YWxpZCwgbm9uIG1vbm90b25pY2FsbHkgaW5jcmVhc2luZyBkdHMgdG8gbXV4ZXIgaW4gc3RyZWFtIDA6IDEgPj0gMQo="
+    },
+    {
+      "id": "shared-nested",
+      "exe": "/opt/ffmpeg/ffprobe",
+      "argv": [
+        "-v",
+        "error",
+        "-safe",
+        "0",
+        "-f",
+        "concat",
+        "lists/root"
+      ],
+      "status": 0,
+      "signal": null,
+      "accesses": [
+        {
+          "operation": "open64",
+          "flags": 0,
+          "path_hex": "6c697374732f726f6f74",
+          "path": "lists/root"
+        },
+        {
+          "operation": "open64",
+          "flags": 0,
+          "path_hex": "6c697374732f6368696c64",
+          "path": "lists/child"
+        },
+        {
+          "operation": "open64",
+          "flags": 0,
+          "path_hex": "6c697374732f2e2e2f6672616d65732f436173652e70706d",
+          "path": "lists/../frames/Case.ppm"
+        }
+      ],
+      "stdout_base64": "",
+      "stderr_base64": "QUNDRVNTIG9wZW42NCAwIDZjNjk3Mzc0NzMyZjcyNmY2Zjc0CkFDQ0VTUyBvcGVuNjQgMCA2YzY5NzM3NDczMmY2MzY4Njk2YzY0CkFDQ0VTUyBvcGVuNjQgMCA2YzY5NzM3NDczMmYyZTJlMmY2NjcyNjE2ZDY1NzMyZjQzNjE3MzY1MmU3MDcwNmQK"
+    },
+    {
+      "id": "symlink-reader-base",
+      "exe": "/opt/ffmpeg/ffprobe",
+      "argv": [
+        "-v",
+        "error",
+        "-safe",
+        "0",
+        "-f",
+        "concat",
+        "else/root"
+      ],
+      "status": 1,
+      "signal": null,
+      "accesses": [
+        {
+          "operation": "open64",
+          "flags": 0,
+          "path_hex": "656c73652f726f6f74",
+          "path": "else/root"
+        },
+        {
+          "operation": "open64",
+          "flags": 0,
+          "path_hex": "656c73652f6368696c64",
+          "path": "else/child"
+        }
+      ],
+      "stdout_base64": "",
+      "stderr_base64": "QUNDRVNTIG9wZW42NCAwIDY1NmM3MzY1MmY3MjZmNmY3NApBQ0NFU1Mgb3BlbjY0IDAgNjU2YzczNjUyZjYzNjg2OTZjNjQKW2NvbmNhdCBAIDB4NTU1NTU1NTkzMjgwXSBJbXBvc3NpYmxlIHRvIG9wZW4gJ2Vsc2UvY2hpbGQnCmVsc2Uvcm9vdDogTm8gc3VjaCBmaWxlIG9yIGRpcmVjdG9yeQo="
+    },
+    {
+      "id": "nested-policy",
+      "exe": "/opt/ffmpeg/ffprobe",
+      "argv": [
+        "-v",
+        "error",
+        "-protocol_whitelist",
+        "concat",
+        "concat:file:frames/Case.ppm|pipe:3"
+      ],
+      "status": 1,
+      "signal": null,
+      "accesses": [],
+      "stdout_base64": "",
+      "stderr_base64": "W2ZpbGUgQCAweDU1NTU1NTU5NDA4MF0gUHJvdG9jb2wgJ2ZpbGUnIG5vdCBvbiB3aGl0ZWxpc3QgJ2NvbmNhdCchCmNvbmNhdDpmaWxlOmZyYW1lcy9DYXNlLnBwbXxwaXBlOjM6IEludmFsaWQgYXJndW1lbnQK"
+    },
+    {
+      "id": "newline",
+      "exe": "/opt/ffmpeg/ffprobe",
+      "argv": [
+        "-v",
+        "error",
+        "frames/雪\n.ppm"
+      ],
+      "status": 0,
+      "signal": null,
+      "accesses": [
+        {
+          "operation": "open64",
+          "flags": 0,
+          "path_hex": "6672616d65732fe99baa0a2e70706d",
+          "path": "frames/雪\n.ppm"
+        }
+      ],
+      "stdout_base64": "",
+      "stderr_base64": "QUNDRVNTIG9wZW42NCAwIDY2NzI2MTZkNjU3MzJmZTk5YmFhMGEyZTcwNzA2ZAo="
+    }
+  ],
+  "captured_utc": "2026-09-18T04:34:09.677174+00:00",
+  "image": "sha256:b1948740b8c8545eb21870f50d817f40c7fef5ab3f29700507e1a2cea9fd0663",
+  "tracer_source": "#define _GNU_SOURCE\n#include <dlfcn.h>\n#include <fcntl.h>\n#include <stdarg.h>\n#include <stdio.h>\n#include <unistd.h>\nstatic void trace(const char *operation,const char *path,int flags) {\n  char buf[16384]; int n=snprintf(buf,sizeof(buf),\"ACCESS %s %d \",operation,flags);\n  for(const unsigned char *p=(const unsigned char *)path;*p && n+3<sizeof(buf);p++) n+=snprintf(buf+n,sizeof(buf)-n,\"%02x\",*p);\n  buf[n++]='\\n'; write(2,buf,n);\n}\n#define OPEN(NAME) int NAME(const char *path,int flags,...) { mode_t mode=0; if(flags&O_CREAT){va_list ap;va_start(ap,flags);mode=va_arg(ap,int);va_end(ap);} int(*next)(const char*,int,...)=dlsym(RTLD_NEXT,#NAME);trace(#NAME,path,flags);return next(path,flags,mode); }\nOPEN(open)\nOPEN(open64)\n#define FOPEN(NAME) FILE *NAME(const char *path,const char *mode) { FILE*(*next)(const char*,const char*)=dlsym(RTLD_NEXT,#NAME);trace(#NAME,path,mode[0]=='r'?O_RDONLY:O_WRONLY);return next(path,mode); }\nFOPEN(fopen)\nFOPEN(fopen64)\n",
+  "fixtures": {
+    "lists/root": "ffconcat version 1.0\nfile child\noption safe 0\nfile child\noption safe 0\n",
+    "lists/child": "ffconcat version 1.0\nfile '../frames/Case.ppm'\nfile '../frames/case.ppm'\n",
+    "frames/Case.ppm": {
+      "hex": "50360a3120310a3235350a132f71"
+    },
+    "frames/case.ppm": {
+      "hex": "50360a3120310a3235350a132f71"
+    },
+    "frames/雪\n.ppm": {
+      "hex": "50360a3120310a3235350a132f71"
+    },
+    "else/root": {
+      "symlink": "/scratch/lists/root"
+    }
+  }
+}

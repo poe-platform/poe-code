@@ -1,0 +1,224 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const strict_1 = __importDefault(require("node:assert/strict"));
+const node_test_1 = __importDefault(require("node:test"));
+const index_js_1 = require("../../../src/contracts/index.js");
+const index_js_2 = require("../../../src/commands/file/index.js");
+const shared_js_1 = require("../../../src/commands/file/shared.js");
+const index_js_3 = require("../../../src/fs/memory/index.js");
+const shell_js_1 = require("../../../src/shell/shell.js");
+const helpers_js_1 = require("./helpers.js");
+async function linkFs(target) {
+    const memory = (0, index_js_3.createMemoryFileSystem)();
+    await memory.symlink("placeholder", "/link");
+    return (0, helpers_js_1.proxyFs)(memory, { async readlink() { return target; } });
+}
+function directBudget(limits) {
+    const chunks = [];
+    const context = { command: "file", args: [], cwd: "/", env: {}, fs: (0, index_js_3.createMemoryFileSystem)(),
+        stdin: (0, index_js_1.toByteSource)(""), signal: new AbortController().signal,
+        stdout: { async write(bytes) { chunks.push(bytes.slice()); } }, stderr: { async write(bytes) { chunks.push(bytes.slice()); } } };
+    const budget = new shared_js_1.SharedBudget(context, { maxSniffBytes: 64, maxReadFileBytes: 1024, maxInputBytes: 1024,
+        maxOutputBytes: 1024, maxChunkBytes: 1024, maxEntries: 64, maxSteps: 4096,
+        maxArgumentBytes: 1024, maxDurationMs: 1000, ...limits });
+    return { budget, context, chunks };
+}
+(0, node_test_1.default)("TEXT-BOUND-001: direct readlink metadata is admitted before escaping", async () => {
+    const result = await (0, helpers_js_1.run)(["-b", "/link"], { limits: { maxInputBytes: 16, maxOutputBytes: 4096 } }, { fs: await linkFs("\n".repeat(128)) });
+    strict_1.default.equal(result.exitCode, 1);
+    strict_1.default.equal(result.stdout, "");
+    strict_1.default.match(result.stderr, /input limit exceeded/);
+});
+(0, node_test_1.default)("TEXT-BOUND-001: actual Shell rejects oversized link text without changing stored target", async () => {
+    const fs = (0, index_js_3.createMemoryFileSystem)();
+    const target = "\u202e".repeat(128);
+    await fs.symlink(target, "/link");
+    const shell = new shell_js_1.Shell({ fs });
+    shell.use((0, index_js_2.fileCommands)({ limits: { maxInputBytes: 16, maxOutputBytes: 4096 } }));
+    try {
+        const result = await shell.exec("file -b /link");
+        strict_1.default.equal(result.exitCode, 1);
+        strict_1.default.equal(result.stdout, "");
+        strict_1.default.match(result.stderr, /input limit exceeded/);
+        strict_1.default.equal(await fs.readlink("/link"), target);
+    }
+    finally {
+        await shell.dispose();
+    }
+});
+(0, node_test_1.default)("TEXT-BOUND-001: backend error messages consume bounded input before expansion", async () => {
+    const fs = (0, helpers_js_1.proxyFs)((0, index_js_3.createMemoryFileSystem)(), { async lstat() { throw new index_js_1.FsError("EACCES", { message: "\n".repeat(128) }); } });
+    const result = await (0, helpers_js_1.run)(["/denied"], { limits: { maxInputBytes: 16, maxOutputBytes: 4096 } }, { fs });
+    strict_1.default.equal(result.exitCode, 1);
+    strict_1.default.equal(result.stdout, "");
+    strict_1.default.match(result.stderr, /input limit exceeded/);
+    strict_1.default.ok(result.stderrBytes.length < 64);
+});
+(0, node_test_1.default)("TEXT-BOUND-001: MIME-only links do not escape an unused target description", async (context) => {
+    const target = "\n".repeat(64);
+    const fs = await linkFs(target);
+    const original = String.prototype.replace;
+    let targetEscapes = 0;
+    context.mock.method(String.prototype, "replace", function (...args) {
+        if (String(this) === target)
+            targetEscapes++;
+        return Reflect.apply(original, this, args);
+    });
+    const result = await (0, helpers_js_1.run)(["-bi", "/link"], { limits: { maxInputBytes: 128, maxOutputBytes: 32 } }, { fs });
+    strict_1.default.equal(result.exitCode, 0);
+    strict_1.default.equal(result.stdout, "inode/symlink; charset=binary\n");
+    strict_1.default.equal(targetEscapes, 0);
+});
+(0, node_test_1.default)("TEXT-BOUND-001: output length is admitted before encoding", async (context) => {
+    const { budget, context: command } = directBudget({ maxOutputBytes: 16 });
+    const original = TextEncoder.prototype.encode;
+    const lengths = [];
+    context.mock.method(TextEncoder.prototype, "encode", function (text) {
+        lengths.push(text?.length ?? 0);
+        return Reflect.apply(original, this, [text]);
+    });
+    try {
+        await strict_1.default.rejects(budget.output(command.stdout, "x".repeat(128)), /output limit exceeded/);
+        strict_1.default.ok(lengths.every(length => length <= 16), `encoded lengths: ${lengths}`);
+    }
+    finally {
+        budget.dispose();
+    }
+});
+(0, node_test_1.default)("TEXT-BOUND-001: failure prefix is bounded before encoding and preserves codepoints", async (context) => {
+    const { budget, chunks } = directBudget({ maxOutputBytes: 17 });
+    const original = TextEncoder.prototype.encode;
+    const lengths = [];
+    context.mock.method(TextEncoder.prototype, "encode", function (text) {
+        lengths.push(text?.length ?? 0);
+        return Reflect.apply(original, this, [text]);
+    });
+    try {
+        await budget.failure("😀".repeat(128));
+        strict_1.default.ok(lengths.every(length => length <= 17), `encoded lengths: ${lengths}`);
+        const bytes = Buffer.concat(chunks);
+        strict_1.default.ok(bytes.length <= 17);
+        strict_1.default.equal(new TextDecoder("utf-8", { fatal: true }).decode(bytes), "😀".repeat(4));
+    }
+    finally {
+        budget.dispose();
+    }
+});
+(0, node_test_1.default)("TEXT-BOUND-001: metadata input is cumulative across multiple operands", async () => {
+    const fs = await linkFs("abcd");
+    const result = await (0, helpers_js_1.run)(Array.from({ length: 10 }, () => "/link"), { limits: { maxInputBytes: 12 } }, { fs });
+    strict_1.default.equal(result.exitCode, 1);
+    strict_1.default.equal(result.stdout.split("\n").filter(Boolean).length, 3);
+    strict_1.default.match(result.stderr, /input limit exceeded/);
+});
+(0, node_test_1.default)("TEXT-BOUND-001: metadata and output work are cumulative across entries", async () => {
+    const fs = await linkFs("abcdef");
+    const result = await (0, helpers_js_1.run)(Array.from({ length: 10 }, () => "/link"), { limits: { maxSteps: 128 } }, { fs });
+    strict_1.default.equal(result.exitCode, 1);
+    strict_1.default.ok(result.stdout.split("\n").filter(Boolean).length < 10);
+    strict_1.default.match(result.stderr, /step limit exceeded/);
+});
+(0, node_test_1.default)("TEXT-BOUND-001: backend diagnostic input is cumulative, not reset for each error", async () => {
+    let calls = 0;
+    const fs = (0, helpers_js_1.proxyFs)((0, index_js_3.createMemoryFileSystem)(), { async lstat() { calls++; throw new index_js_1.FsError("EACCES", { message: "permission denied" }); } });
+    const result = await (0, helpers_js_1.run)(Array.from({ length: 10 }, () => "/denied"), { limits: { maxInputBytes: 40 } }, { fs });
+    strict_1.default.equal(result.exitCode, 1);
+    strict_1.default.ok(calls < 10);
+    strict_1.default.match(result.stderr, /input limit exceeded/);
+});
+(0, node_test_1.default)("TEXT-BOUND-001: argument string length is checked before UTF-8 scanning", async (context) => {
+    const argument = "x".repeat(128);
+    const original = Buffer.byteLength;
+    let scans = 0;
+    context.mock.method(Buffer, "byteLength", (...args) => {
+        if (args[0] === argument)
+            scans++;
+        return Reflect.apply(original, Buffer, args);
+    });
+    const result = await (0, helpers_js_1.run)([argument], { limits: { maxArgumentBytes: 16 } });
+    strict_1.default.equal(result.exitCode, 1);
+    strict_1.default.match(result.stderr, /argument limit exceeded/);
+    strict_1.default.equal(scans, 0);
+});
+(0, node_test_1.default)("TEXT-BOUND-001: small Unicode links and permission diagnostics retain their profile", async () => {
+    const target = "😀雪\n\\\u202e";
+    const result = await (0, helpers_js_1.run)(["/link"], {}, { fs: await linkFs(target) });
+    strict_1.default.equal(result.exitCode, 0);
+    strict_1.default.equal(result.stdout, "/link: symbolic link to 😀雪\\u{a}\\\\\\u{202e}\n");
+    const fs = (0, helpers_js_1.proxyFs)((0, index_js_3.createMemoryFileSystem)(), { async lstat() { throw new index_js_1.FsError("EACCES", { message: "permission denied: 雪\n" }); } });
+    const error = await (0, helpers_js_1.run)(["/denied"], {}, { fs });
+    strict_1.default.equal(error.exitCode, 1);
+    strict_1.default.equal(error.stderr, "file: /denied: EACCES: permission denied: 雪\\u{a}\n");
+});
+(0, node_test_1.default)("TEXT-BOUND-001: exact UTF-8 output bytes and work are admitted before encoding", async (context) => {
+    const cases = [
+        [directBudget({ maxOutputBytes: 16 }), "雪".repeat(8), /output limit exceeded/],
+        [directBudget({ maxSteps: 1 }), "word", /step limit exceeded/],
+    ];
+    const original = TextEncoder.prototype.encode;
+    const lengths = [];
+    context.mock.method(TextEncoder.prototype, "encode", function (text) {
+        lengths.push(text?.length ?? 0);
+        return Reflect.apply(original, this, [text]);
+    });
+    for (const [{ budget, context: command }, text, failure] of cases) {
+        try {
+            await strict_1.default.rejects(budget.output(command.stdout, text), failure);
+        }
+        finally {
+            budget.dispose();
+        }
+    }
+    strict_1.default.deepEqual(lengths, []);
+});
+(0, node_test_1.default)("TEXT-BOUND-001: emergency diagnostic reserve is cumulative and independent of exhausted normal work", async () => {
+    const { budget, chunks } = directBudget({ maxSteps: 1 });
+    try {
+        budget.work(1);
+        await budget.failure("x".repeat(256));
+        await budget.failure("y".repeat(256));
+        strict_1.default.equal(Buffer.concat(chunks).toString(), "x".repeat(64));
+    }
+    finally {
+        budget.dispose();
+    }
+});
+(0, node_test_1.default)("TEXT-BOUND-001: metadata admission accounts for UTF-8 bytes, not only UTF-16 length", async () => {
+    const fs = await linkFs("😀");
+    const denied = await (0, helpers_js_1.run)(["-bi", "/link"], { limits: { maxInputBytes: 3 } }, { fs });
+    strict_1.default.equal(denied.exitCode, 1);
+    strict_1.default.match(denied.stderr, /input limit exceeded/);
+    const accepted = await (0, helpers_js_1.run)(["-bi", "/link"], { limits: { maxInputBytes: 4 } }, { fs });
+    strict_1.default.equal(accepted.exitCode, 0);
+    strict_1.default.equal(accepted.stdout, "inode/symlink; charset=binary\n");
+});
+(0, node_test_1.default)("TEXT-BOUND-001: MIME-only mode preserves readlink permission failures", async () => {
+    const fs = (0, helpers_js_1.proxyFs)(await linkFs("target"), { async readlink() { throw new index_js_1.FsError("EACCES", { path: "/link" }); } });
+    const result = await (0, helpers_js_1.run)(["-bi", "/link"], {}, { fs });
+    strict_1.default.equal(result.exitCode, 1);
+    strict_1.default.equal(result.stdout, "");
+    strict_1.default.match(result.stderr, /permission denied.*link/);
+});
+(0, node_test_1.default)("TEXT-BOUND-001: long admitted metadata yields to cancellation without output", async () => {
+    const fs = await linkFs("x".repeat(12288));
+    const controller = new AbortController(), reason = new index_js_1.FsError("ENOENT", { message: "cancel metadata escaping" });
+    const running = (0, helpers_js_1.run)(["-b", "/link"], {}, { fs, signal: controller.signal });
+    const check = strict_1.default.rejects(running, error => error === reason);
+    const timer = setImmediate(() => controller.abort(reason));
+    try {
+        await check;
+    }
+    finally {
+        clearImmediate(timer);
+    }
+});
+(0, node_test_1.default)("TEXT-BOUND-001: admitted long usage errors retain complete diagnostics", async () => {
+    const option = "--" + "x".repeat(128);
+    const result = await (0, helpers_js_1.run)([option]);
+    strict_1.default.equal(result.exitCode, 2);
+    strict_1.default.equal(result.stdout, "");
+    strict_1.default.equal(result.stderr, `file: unsupported option '${option}'\n`);
+});

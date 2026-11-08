@@ -1,0 +1,198 @@
+[
+  {
+    "name": "baseline-caps",
+    "rows": 11,
+    "semanticPasses": 11,
+    "failures": [],
+    "shellsDisposed": 11,
+    "authenticatedModules": 174,
+    "packageBeforeAfterEqual": true
+  },
+  {
+    "name": "candidate-caps",
+    "rows": 11,
+    "semanticPasses": 11,
+    "failures": [],
+    "shellsDisposed": 11,
+    "authenticatedModules": 174,
+    "packageBeforeAfterEqual": true
+  },
+  {
+    "name": "baseline-instrumented",
+    "rows": 66,
+    "semanticPasses": 66,
+    "failures": [],
+    "shellsDisposed": 66,
+    "authenticatedModules": 174,
+    "packageBeforeAfterEqual": true
+  },
+  {
+    "name": "candidate-instrumented",
+    "rows": 66,
+    "semanticPasses": 66,
+    "failures": [],
+    "shellsDisposed": 66,
+    "authenticatedModules": 174,
+    "packageBeforeAfterEqual": true
+  },
+  {
+    "name": "mutant-float-precision",
+    "rows": 2,
+    "semanticPasses": 1,
+    "failures": [
+      {
+        "id": "precision-integers",
+        "kind": "semantic"
+      }
+    ],
+    "mutantDetected": true,
+    "shellsDisposed": 2,
+    "authenticatedModules": 174,
+    "packageBeforeAfterEqual": true
+  },
+  {
+    "name": "mutant-whole-byte-fallback",
+    "rows": 2,
+    "semanticPasses": 0,
+    "failures": [
+      {
+        "id": "ties-byte-fallback",
+        "kind": "semantic"
+      },
+      {
+        "id": "ties-reverse-fallback",
+        "kind": "semantic"
+      }
+    ],
+    "mutantDetected": true,
+    "shellsDisposed": 2,
+    "authenticatedModules": 174,
+    "packageBeforeAfterEqual": true
+  },
+  {
+    "name": "mutant-stable-fallback",
+    "rows": 3,
+    "semanticPasses": 0,
+    "failures": [
+      {
+        "id": "ties-stable",
+        "kind": "semantic"
+      },
+      {
+        "id": "ties-reverse-stable",
+        "kind": "semantic"
+      },
+      {
+        "id": "ties-unique-first",
+        "kind": "semantic"
+      }
+    ],
+    "mutantDetected": true,
+    "shellsDisposed": 3,
+    "authenticatedModules": 174,
+    "packageBeforeAfterEqual": true
+  },
+  {
+    "name": "mutant-guard-bypass",
+    "rows": 6,
+    "semanticPasses": 6,
+    "failures": [
+      {
+        "id": "guard-explicit-numeric-key",
+        "kind": "guard-admission"
+      },
+      {
+        "id": "guard-multiple-keys",
+        "kind": "guard-admission"
+      },
+      {
+        "id": "guard-blanks",
+        "kind": "guard-admission"
+      },
+      {
+        "id": "guard-fold",
+        "kind": "guard-admission"
+      },
+      {
+        "id": "guard-plain",
+        "kind": "guard-admission"
+      },
+      {
+        "id": "guard-check-success",
+        "kind": "guard-admission"
+      }
+    ],
+    "mutantDetected": true,
+    "shellsDisposed": 6,
+    "authenticatedModules": 174,
+    "packageBeforeAfterEqual": true
+  },
+  {
+    "name": "mutant-entry-cap",
+    "rows": 1,
+    "semanticPasses": 1,
+    "failures": [
+      {
+        "id": "empty-entry-above",
+        "kind": "entry-cap"
+      }
+    ],
+    "mutantDetected": true,
+    "shellsDisposed": 1,
+    "authenticatedModules": 174,
+    "packageBeforeAfterEqual": true
+  },
+  {
+    "name": "mutant-character-cap",
+    "rows": 2,
+    "semanticPasses": 2,
+    "failures": [
+      {
+        "id": "characters-above",
+        "kind": "character-cap"
+      },
+      {
+        "id": "huge-short-prefix",
+        "kind": "character-cap"
+      }
+    ],
+    "mutantDetected": true,
+    "shellsDisposed": 2,
+    "authenticatedModules": 174,
+    "packageBeforeAfterEqual": true
+  },
+  {
+    "name": "mutant-fallback-rejection",
+    "rows": 1,
+    "semanticPasses": 0,
+    "failures": [
+      {
+        "id": "characters-above",
+        "kind": "semantic"
+      }
+    ],
+    "mutantDetected": true,
+    "shellsDisposed": 1,
+    "authenticatedModules": 174,
+    "packageBeforeAfterEqual": true
+  },
+  {
+    "name": "mutant-owned-copy",
+    "rows": 2,
+    "semanticPasses": 0,
+    "failures": [
+      {
+        "id": "owned-offset-10-7",
+        "kind": "semantic"
+      },
+      {
+        "id": "owned-offset-0-7",
+        "kind": "semantic"
+      }
+    ],
+    "mutantDetected": true,
+    "shellsDisposed": 2,
+    "authenticatedModules": 174,
+    "packageBeforeAfterEqual": true
+  }
+]

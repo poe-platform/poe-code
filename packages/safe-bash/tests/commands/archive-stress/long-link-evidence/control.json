@@ -1,0 +1,308 @@
+{
+  "classification": "Causal raw-header intervention, not eight successful product cases: two original BSD failures are intentionally preserved as observations.",
+  "runtime": {
+    "node": "v22.22.2",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "baselineReportSha256": "08adf4d5646973aa1d94b91ca7ec8cadca77baec38c015f03e34ab6c3d74f47d",
+  "originalSha256": "dbdf036554759d9140f01da78e97e974d8445085ce333e3c3acdfa0ecaef5ad0",
+  "changedSha256": "6f9dfdd3025c52a19b62713f4276c4a392d1578a5b9ea3d6fcc851b99f6a011e",
+  "changedArchiveBase64": "UGF4SGVhZGVyAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAwMDA2NDQAMDAwMDAwMAAwMDAwMDAwADAwMDAwMDAwMjE0ADE0NTI0NzcwNDAwADAxMTE0MAAgeAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB1c3RhcgAwMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwMDAwMDAwADAwMDAwMDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAxNDAgbGlua3BhdGg9Y3Jvc3MteHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHguYmluCgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHN5bWJvbAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwMDAwNzc3ADAwMDAwMDAAMDAwMDAwMAAwMDAwMDAwMDAwMAAxNDUyNDc3MDQwMAAwMTE3NjUAIDJQYXhMaW5rAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAdXN0YXIAMDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMDAwMDAwMAAwMDAwMDAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+  "changedHeaderBase64": "c3ltYm9sAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAwMDA3NzcAMDAwMDAwMAAwMDAwMDAwADAwMDAwMDAwMDAwADE0NTI0NzcwNDAwADAxMTc2NQAgMlBheExpbmsAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB1c3RhcgAwMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwMDAwMDAwADAwMDAwMDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+  "changedOffsets": [
+    1174,
+    1175,
+    1176,
+    1177,
+    1181,
+    1182,
+    1183,
+    1184,
+    1185,
+    1186,
+    1187
+  ],
+  "observations": [
+    {
+      "consumer": "GNU 1.35",
+      "binary": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+      "binarySha256": "49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66",
+      "variant": "original-empty",
+      "format": "plain",
+      "archiveSha256": "dbdf036554759d9140f01da78e97e974d8445085ce333e3c3acdfa0ecaef5ad0",
+      "listing": {
+        "args": [
+          "-tf",
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/long-link-evidence/.native-control-GLkAsF/0.tar"
+        ],
+        "status": 0,
+        "signal": null,
+        "stdout": "symbol\n",
+        "stderr": ""
+      },
+      "extraction": {
+        "args": [
+          "-xf",
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/long-link-evidence/.native-control-GLkAsF/0.tar",
+          "-C",
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/long-link-evidence/.native-control-GLkAsF/0"
+        ],
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      "type": "symlink",
+      "size": 126,
+      "target": "cross-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.bin",
+      "throughLinkBase64": "aW5kZXBlbmRlbnQgbG9uZy1saW5rIHRhcmdldAo=",
+      "seededTargetBase64": "aW5kZXBlbmRlbnQgbG9uZy1saW5rIHRhcmdldAo="
+    },
+    {
+      "consumer": "GNU 1.35",
+      "binary": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+      "binarySha256": "49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66",
+      "variant": "original-empty",
+      "format": "gzip",
+      "archiveSha256": "c5c4f85b64e9887a0ec561f85db4d84cc91f9ffad9ed4d1fac72095164418dc6",
+      "listing": {
+        "args": [
+          "-tzf",
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/long-link-evidence/.native-control-GLkAsF/1.tar.gz"
+        ],
+        "status": 0,
+        "signal": null,
+        "stdout": "symbol\n",
+        "stderr": ""
+      },
+      "extraction": {
+        "args": [
+          "-xzf",
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/long-link-evidence/.native-control-GLkAsF/1.tar.gz",
+          "-C",
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/long-link-evidence/.native-control-GLkAsF/1"
+        ],
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      "type": "symlink",
+      "size": 126,
+      "target": "cross-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.bin",
+      "throughLinkBase64": "aW5kZXBlbmRlbnQgbG9uZy1saW5rIHRhcmdldAo=",
+      "seededTargetBase64": "aW5kZXBlbmRlbnQgbG9uZy1saW5rIHRhcmdldAo="
+    },
+    {
+      "consumer": "GNU 1.35",
+      "binary": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+      "binarySha256": "49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66",
+      "variant": "header-only-PaxLink",
+      "format": "plain",
+      "archiveSha256": "6f9dfdd3025c52a19b62713f4276c4a392d1578a5b9ea3d6fcc851b99f6a011e",
+      "listing": {
+        "args": [
+          "-tf",
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/long-link-evidence/.native-control-GLkAsF/2.tar"
+        ],
+        "status": 0,
+        "signal": null,
+        "stdout": "symbol\n",
+        "stderr": ""
+      },
+      "extraction": {
+        "args": [
+          "-xf",
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/long-link-evidence/.native-control-GLkAsF/2.tar",
+          "-C",
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/long-link-evidence/.native-control-GLkAsF/2"
+        ],
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      "type": "symlink",
+      "size": 126,
+      "target": "cross-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.bin",
+      "throughLinkBase64": "aW5kZXBlbmRlbnQgbG9uZy1saW5rIHRhcmdldAo=",
+      "seededTargetBase64": "aW5kZXBlbmRlbnQgbG9uZy1saW5rIHRhcmdldAo="
+    },
+    {
+      "consumer": "GNU 1.35",
+      "binary": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+      "binarySha256": "49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66",
+      "variant": "header-only-PaxLink",
+      "format": "gzip",
+      "archiveSha256": "e426720d4e2fe936cf68a447ea65260070a6fe0f75ae78d0550fcf8de3b25356",
+      "listing": {
+        "args": [
+          "-tzf",
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/long-link-evidence/.native-control-GLkAsF/3.tar.gz"
+        ],
+        "status": 0,
+        "signal": null,
+        "stdout": "symbol\n",
+        "stderr": ""
+      },
+      "extraction": {
+        "args": [
+          "-xzf",
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/long-link-evidence/.native-control-GLkAsF/3.tar.gz",
+          "-C",
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/long-link-evidence/.native-control-GLkAsF/3"
+        ],
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      "type": "symlink",
+      "size": 126,
+      "target": "cross-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.bin",
+      "throughLinkBase64": "aW5kZXBlbmRlbnQgbG9uZy1saW5rIHRhcmdldAo=",
+      "seededTargetBase64": "aW5kZXBlbmRlbnQgbG9uZy1saW5rIHRhcmdldAo="
+    },
+    {
+      "consumer": "BSD 3.5.3",
+      "binary": "/usr/bin/bsdtar",
+      "binarySha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9",
+      "variant": "original-empty",
+      "format": "plain",
+      "archiveSha256": "dbdf036554759d9140f01da78e97e974d8445085ce333e3c3acdfa0ecaef5ad0",
+      "listing": {
+        "args": [
+          "-tf",
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/long-link-evidence/.native-control-GLkAsF/4.tar"
+        ],
+        "status": 0,
+        "signal": null,
+        "stdout": "symbol\n",
+        "stderr": ""
+      },
+      "extraction": {
+        "args": [
+          "-xf",
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/long-link-evidence/.native-control-GLkAsF/4.tar",
+          "-C",
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/long-link-evidence/.native-control-GLkAsF/4"
+        ],
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      "type": "regular",
+      "size": 0,
+      "target": null,
+      "throughLinkBase64": "",
+      "seededTargetBase64": "aW5kZXBlbmRlbnQgbG9uZy1saW5rIHRhcmdldAo="
+    },
+    {
+      "consumer": "BSD 3.5.3",
+      "binary": "/usr/bin/bsdtar",
+      "binarySha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9",
+      "variant": "original-empty",
+      "format": "gzip",
+      "archiveSha256": "c5c4f85b64e9887a0ec561f85db4d84cc91f9ffad9ed4d1fac72095164418dc6",
+      "listing": {
+        "args": [
+          "-tzf",
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/long-link-evidence/.native-control-GLkAsF/5.tar.gz"
+        ],
+        "status": 0,
+        "signal": null,
+        "stdout": "symbol\n",
+        "stderr": ""
+      },
+      "extraction": {
+        "args": [
+          "-xzf",
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/long-link-evidence/.native-control-GLkAsF/5.tar.gz",
+          "-C",
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/long-link-evidence/.native-control-GLkAsF/5"
+        ],
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      "type": "regular",
+      "size": 0,
+      "target": null,
+      "throughLinkBase64": "",
+      "seededTargetBase64": "aW5kZXBlbmRlbnQgbG9uZy1saW5rIHRhcmdldAo="
+    },
+    {
+      "consumer": "BSD 3.5.3",
+      "binary": "/usr/bin/bsdtar",
+      "binarySha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9",
+      "variant": "header-only-PaxLink",
+      "format": "plain",
+      "archiveSha256": "6f9dfdd3025c52a19b62713f4276c4a392d1578a5b9ea3d6fcc851b99f6a011e",
+      "listing": {
+        "args": [
+          "-tf",
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/long-link-evidence/.native-control-GLkAsF/6.tar"
+        ],
+        "status": 0,
+        "signal": null,
+        "stdout": "symbol\n",
+        "stderr": ""
+      },
+      "extraction": {
+        "args": [
+          "-xf",
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/long-link-evidence/.native-control-GLkAsF/6.tar",
+          "-C",
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/long-link-evidence/.native-control-GLkAsF/6"
+        ],
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      "type": "symlink",
+      "size": 126,
+      "target": "cross-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.bin",
+      "throughLinkBase64": "aW5kZXBlbmRlbnQgbG9uZy1saW5rIHRhcmdldAo=",
+      "seededTargetBase64": "aW5kZXBlbmRlbnQgbG9uZy1saW5rIHRhcmdldAo="
+    },
+    {
+      "consumer": "BSD 3.5.3",
+      "binary": "/usr/bin/bsdtar",
+      "binarySha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9",
+      "variant": "header-only-PaxLink",
+      "format": "gzip",
+      "archiveSha256": "e426720d4e2fe936cf68a447ea65260070a6fe0f75ae78d0550fcf8de3b25356",
+      "listing": {
+        "args": [
+          "-tzf",
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/long-link-evidence/.native-control-GLkAsF/7.tar.gz"
+        ],
+        "status": 0,
+        "signal": null,
+        "stdout": "symbol\n",
+        "stderr": ""
+      },
+      "extraction": {
+        "args": [
+          "-xzf",
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/long-link-evidence/.native-control-GLkAsF/7.tar.gz",
+          "-C",
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/long-link-evidence/.native-control-GLkAsF/7"
+        ],
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      "type": "symlink",
+      "size": 126,
+      "target": "cross-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.bin",
+      "throughLinkBase64": "aW5kZXBlbmRlbnQgbG9uZy1saW5rIHRhcmdldAo=",
+      "seededTargetBase64": "aW5kZXBlbmRlbnQgbG9uZy1saW5rIHRhcmdldAo="
+    }
+  ]
+}

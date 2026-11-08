@@ -1,0 +1,20 @@
+{
+  "schema": "B2_R7_STOP_PUBLICATION_ONLY",
+  "helper": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/actual-v1/preserve.mjs",
+    "bytes": 11311,
+    "sha256": "f14426a8fc69e0881d916ee1f05a0e3131958d02db1ae74dd0b0f59592b057b3"
+  },
+  "frozenPacket": "f97901065a7803f72edb92c19f219e66f35dc2f050917d10dd25cb411ba5f65a",
+  "runtimeAlreadyStopped": true,
+  "deadline": "2026-08-29T16:22:01.060Z",
+  "newProductCalls": 0,
+  "knownRoles": {
+    "runtimeOwner": 1,
+    "observedRuntimeChildren": 9,
+    "preservationHelper": 1,
+    "administrationMaximum": 22,
+    "phaseTotalMaximum": 64
+  },
+  "scope": "Preserve raw outputs; DATA-only exact identities and post-retirement inventory, no runtime retry"
+}

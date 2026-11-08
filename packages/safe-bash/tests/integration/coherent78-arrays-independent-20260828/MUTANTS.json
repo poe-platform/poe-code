@@ -1,0 +1,4 @@
+[
+ {"id":"U-zero","member":"dist/shell/arrays/bindings.js","needle":"return this.values.get(index)?.text.value;","replacement":"return index === 0 ? (globalThis.__coherentMutationHits = (globalThis.__coherentMutationHits ?? 0) + 1, '__ZERO_MUTANT__') : this.values.get(index)?.text.value;","fail":"F02","pass":"D03-preabort"},
+ {"id":"U-jq-unicode","member":"dist/commands/structured/interpreter.js","needle":"for (const _ of input)\n                    length++;","replacement":"for (const _ of input)\n                    (globalThis.__coherentMutationHits = (globalThis.__coherentMutationHits ?? 0) + 1, length += _.length);","fail":"F12","pass":"F09"}
+]

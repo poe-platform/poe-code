@@ -1,0 +1,35 @@
+--- a/src/commands/network/curl.ts
++++ b/src/commands/network/curl.ts
+@@ -139,6 +139,14 @@
+     } finally { await writing.close(); }
+   };
+   try {
++    let body: ReturnType<typeof createBody>;
++    let bodyFailure: { error: unknown } | undefined;
++    try { body = createBody({ ...context, stdin: borrowed }, args, limits); }
++    catch (error) { bodyFailure = { error }; }
++    if (format !== "@-" && !body?.usesStdin) {
++      operation = createOutputOperation({ ...context, signal: transferSignal }, hasFileOutput ? { write: chunk => context.stdout.write(chunk) } : context.stdout);
++      signal = operation.signal;
++    }
+     if (format?.startsWith("@")) {
+       try {
+         const bytes = format === "@-"
+@@ -150,7 +158,7 @@
+     if (format !== undefined) { writeOutFormat(format, values); formatReady = true; }
+     const parsed = parseUrl(input, args.globoff);
+     const initial = parsed.url;
+-    let body = createBody({ ...context, stdin: borrowed }, args, limits);
++    if (bodyFailure) throw bodyFailure.error;
+     if (body?.usesStdin) {
+       const bytes = await collectBytes(body.open(signal), { signal, maxBytes: limits.maxUploadBytes });
+       body = { ...(body.contentType === undefined ? {} : { contentType: body.contentType }), open: () => toByteSource(bytes) };
+@@ -169,7 +177,7 @@
+     }
+     const initialMethod = args.method ?? (args.head ? "HEAD" : args.get ? "GET" : args.upload !== undefined ? "PUT" : body ? "POST" : "GET");
+     requestHeaders(args, body?.contentType, args.user ?? parsed.user, true, limits.maxHeaderBytes);
+-    operation = createOutputOperation({ ...context, signal: transferSignal }, hasFileOutput ? { write: chunk => context.stdout.write(chunk) } : context.stdout);
++    operation ??= createOutputOperation({ ...context, signal: transferSignal }, hasFileOutput ? { write: chunk => context.stdout.write(chunk) } : context.stdout);
+     signal = operation.signal;
+     for (let attempt = 0; attempt <= args.retries; attempt++) {
+       values.num_retries = String(attempt);

@@ -1,0 +1,202 @@
+{
+  "schema": 1,
+  "classification": "pre-v2-declaration-preparation-only",
+  "frozenAt": "2026-08-27T10:03:29.759Z",
+  "logicalCaseCount": 7,
+  "maximumLogicalCaseCount": 7,
+  "productExecutions": 0,
+  "inspected": {
+    "historicalIndependentCriteriaAndV1Binding": true,
+    "directAuthorApiDeclarationFile": false,
+    "v2Api": false,
+    "authorImplementation": false,
+    "authorTests": false,
+    "candidate": false
+  },
+  "files": [
+    {
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-direction-review/INTENT.md",
+      "bytes": 7588,
+      "sha256": "261d382d9638c13b3d3ce7e3b6d4ec80d6abc8f88b9e548293176b3517b7d4d6"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-direction-review/cases.json",
+      "bytes": 15306,
+      "sha256": "7efe0a97562c21874b6334a5acde6c5bc98c5578e952ba0d76409c2104fee1f6"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-direction-review/inputs.json",
+      "bytes": 3803,
+      "sha256": "5272216a9e1cf58782fe7d5bd32a3a93b58f551e395de94b8bc0c8196947ff3e"
+    }
+  ],
+  "acceptedOriginal": {
+    "commit": "3eba797a2f286c80149dff22afbcd177e3ffea08",
+    "tree": "4280aca30f4a9724fc964803159cab6076562bff",
+    "sourceBase": "c9b96263d1204bdf54e89324cc0c7d1ef6bd3f79",
+    "preservedDirtySourceCount": 3,
+    "sourceManifestSha256": "6d8589043618e623e35a63e92cbecc160b7f587335a69bba3e0b0f57e34dca8b",
+    "authentication": "historical reference only; no candidate restored"
+  },
+  "priorIndependent": {
+    "intentionCommit": "f412eece4cd2101a173fe955dd3fce8ddc7aa2dc",
+    "preparationCommit": "044aaacaad928d78c9c5889ef861cf6e36303aa2",
+    "logicalCaseCount": 16,
+    "files": [
+      {
+        "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/BINDING.md",
+        "bytes": 5339,
+        "sha256": "655ca6cae539cf115f265b0e9005fa7dc476678bd4cb5f19d8c49ef130445a48"
+      },
+      {
+        "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/INTENT.md",
+        "bytes": 8316,
+        "sha256": "e071dd294ee7d5f971b131bd4764db95380cf41cd1647cd527b204ea16f4ca92"
+      },
+      {
+        "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/REPORT.md",
+        "bytes": 7575,
+        "sha256": "bfaa026c78fd84e99ee4eeccabfa6739a85f55bdc5e23c15900813cf312c107c"
+      },
+      {
+        "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/artifacts.json",
+        "bytes": 4439,
+        "sha256": "05675ff35618bf0b4e2a4c16e52d31e6e7794f716273fe1918ec38b6237408f4"
+      },
+      {
+        "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/author-api-v1.1.txt.data",
+        "bytes": 4884,
+        "sha256": "942339d7b0ac90268e9f7e3d4fd735cba398c23774a6df184d7b6bbf3f4f2e8e"
+      },
+      {
+        "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/binding-freeze.json",
+        "bytes": 1193,
+        "sha256": "ed00497a9503623e51922f3d0b65ed15aec5a5c03608d06f265e223cb923b8b1"
+      },
+      {
+        "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/binding.mjs",
+        "bytes": 2344,
+        "sha256": "c77c9825e07c178aecb33de4ba99cca62da24525c9a127ea7fa2ba0298e19675"
+      },
+      {
+        "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/checks.json",
+        "bytes": 6550,
+        "sha256": "8b551e4859917e513d4efb3fbdd3bd97363ea7e145ae03f9ea5123385c2002ac"
+      },
+      {
+        "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/finalize-prep.mjs",
+        "bytes": 6996,
+        "sha256": "aba4f62a978c51bf0b037b399ae9fd0ae91b03ccb1e82a64346fa0b4e3804230"
+      },
+      {
+        "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/freeze.mjs",
+        "bytes": 4849,
+        "sha256": "d4d28c789218286a0ab18ad78abc45c56bf507cc43b7b0239995584ac79337c6"
+      },
+      {
+        "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/holdouts.json",
+        "bytes": 13410,
+        "sha256": "ab06112aaaeb74edf48b673538044ad7eb5edd6f7d03046d973505916c08466f"
+      },
+      {
+        "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/intentions-freeze.json",
+        "bytes": 2331021,
+        "sha256": "aabc0ea5c7d7f03b4c4038b3c94952e7a08d9c98e2d40b9dbbf76417503be972"
+      },
+      {
+        "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/prep-check-1.stderr.data",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/prep-check-1.stdout.data",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/prep-check-2.stderr.data",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/prep-check-2.stdout.data",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/prep-check-3.stderr.data",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/prep-check-3.stdout.data",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/prep-check-4.stderr.data",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/prep-check-4.stdout.data",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/prep-check-5.stderr.data",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/prep-check-5.stdout.data",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/prep-check-6.stderr.data",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/prep-check-6.stdout.data",
+        "bytes": 137,
+        "sha256": "e0ecdc2f8170568187d8a8fb1b4eee6654162f58e0699cb27463ee85a8606ba3"
+      },
+      {
+        "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/prep-check-7.stderr.data",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/prep-check-7.stdout.data",
+        "bytes": 1437,
+        "sha256": "94de192a8971a5f62b54321275fcc9fff978f2b7a30a594b9455aadba544b083"
+      },
+      {
+        "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/prep-closure.json",
+        "bytes": 4252,
+        "sha256": "c33b51cadae877a3fcaa75b15dec85250b573faa18145c919b5739fe3d6e784b"
+      },
+      {
+        "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/scaffold-check.mjs",
+        "bytes": 3707,
+        "sha256": "1b124b33c3c56404b3a7665828a158045e2a12dbb2409b30ff00cedca7de387d"
+      },
+      {
+        "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/support.mjs",
+        "bytes": 3793,
+        "sha256": "93628fb0b95124bcfb995121191d7465145629bfa00f2e921cd3d693e28be8f7"
+      }
+    ]
+  },
+  "checkoutHeadNotCandidate": "5009ba8146c73bd5628147707e733384e5cd4aee",
+  "indexNamesAtFreeze": "",
+  "coordinationAtFreeze": {
+    "path": "/tmp/safe-bash-owned-output-coordination.txt",
+    "bytes": 8448,
+    "sha256": "f3880240ce1214baa5bac79e4506f28c66c46d2b30dc2efcbe3e6e6ff4df7675"
+  },
+  "nodeVersion": "v22.22.2",
+  "authority": "User PREPARATION ONLY assignment; no v2 declaration read, candidate inspection/execution, source fixes or author closure inference"
+}

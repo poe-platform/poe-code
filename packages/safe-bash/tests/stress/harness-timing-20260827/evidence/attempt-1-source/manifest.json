@@ -1,0 +1,12 @@
+{
+  "tests/commands/structured-stress/jq-grammar-author-20260827/scan-boundaries.test.ts": "107a7169371234bd4d2e4636d5ff5f9cc70e3afccc2ed0299520a709abb816b1",
+  "tests/commands/search-stress/streaming-cases.ts": "c95f952ea2d9a80248a21677c1486113bd2cad322e78506af3d41f5803163b2e",
+  "tests/commands/search-stress/streaming.test.ts": "8df0258324e0694a1712ac9e614f1fea690aa9581180b4bed3a1ac9455c2fa80",
+  "tests/stress/harness-timing-20260827/native-delivery.ts": "99b21733e0051df6bf2581814446262c1f364eb08d582251e4155f1909afb554",
+  "tests/stress/harness-timing-20260827/scan-execution.ts": "ebf67b88b6f7a5c6192ee0075db0579f901e57b102d836c0f0e8229a3c91c269",
+  "tests/stress/harness-timing-20260827/trace.ts": "87b108fb8c6361c5a12ea5a76e835eca77bf34fec90b0ac33a6aa5e6fb0f29fc",
+  "tests/stress/harness-timing-20260827/watchdog.ts": "a2d1d32a270b65004b45112ca1d49f80d768b883d7354f21bbd143c8e496091c",
+  "tests/stress/harness-timing-20260827/negative-controls.ts": "b763894ba495121da2b5a6d7ac2e05b756bb7a3eaa6c3a3672f2ed6027ee4670",
+  "tests/stress/harness-timing-20260827/schedule.mjs": "4576cbdbac6a6aa948129b051002faf078c01002f7577341262353f601b05a0e",
+  "tests/stress/harness-timing-20260827/evidence-tools.mjs": "1ee2a554c0a3ec8ee032b2679ca94c02edceabd0c043e1f1512cbebb733bb9e9"
+}

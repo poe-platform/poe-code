@@ -1,0 +1,52 @@
+import { createHash } from "node:crypto";
+import { constants, closeSync, fstatSync, lstatSync, openSync, readSync, realpathSync } from "node:fs";
+import { isAbsolute, relative, resolve, sep } from "node:path";
+import { readCaps } from "./gate.mjs";
+
+const within = (root, filename) => {
+  const suffix = relative(root, filename);
+  return suffix !== ".." && !suffix.startsWith(`..${sep}`) && !isAbsolute(suffix);
+};
+
+export function createReader(repositoryRoot, temporaryRoot = "/tmp") {
+  const root = realpathSync(repositoryRoot);
+  const roots = [root, realpathSync(temporaryRoot)];
+  let totalBytes = 0;
+  let files = 0;
+  function inspect(filename, cap, collect = false, expectedBytes) {
+    if (typeof filename !== "string" || filename.includes("\0") || filename.split(/[\\/]/u).includes("..")) throw new Error("Unsafe input path");
+    const declaredPath = resolve(root, filename);
+    if (!lstatSync(declaredPath).isFile()) throw new Error("Only regular, non-symlink inputs are accepted");
+    const resolvedPath = realpathSync(declaredPath);
+    if (!roots.some(allowedRoot => within(allowedRoot, resolvedPath))) throw new Error("Input outside repository and explicit temporary root");
+    if (++files > readCaps.files + 3) throw new Error("Reader file count cap");
+    const descriptor = openSync(resolvedPath, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
+    try {
+      const before = fstatSync(descriptor);
+      if (!before.isFile() || before.size > cap || (expectedBytes !== undefined && before.size !== expectedBytes)) throw new Error("Regular input size/cap mismatch");
+      const hash = createHash("sha256");
+      const chunks = [];
+      const buffer = Buffer.alloc(65536);
+      let bytes = 0;
+      while (true) {
+        const count = readSync(descriptor, buffer, 0, Math.min(buffer.length, cap - bytes + 1), null);
+        if (!count) break;
+        bytes += count;
+        totalBytes += count;
+        if (bytes > cap || totalBytes > readCaps.totalBytes + readCaps.manifestBytes + readCaps.approvalBytes + readCaps.keyBytes) throw new Error("Reader byte cap");
+        hash.update(buffer.subarray(0, count));
+        if (collect) chunks.push(Buffer.from(buffer.subarray(0, count)));
+      }
+      const after = fstatSync(descriptor);
+      const finalPath = lstatSync(resolvedPath);
+      if (before.dev !== after.dev || before.ino !== after.ino || before.size !== after.size || before.mtimeMs !== after.mtimeMs || before.ctimeMs !== after.ctimeMs || bytes !== before.size || finalPath.dev !== after.dev || finalPath.ino !== after.ino || !finalPath.isFile() || realpathSync(declaredPath) !== resolvedPath) throw new Error("Input changed while reading");
+      return { bytes, sha256: hash.digest("hex"), resolvedPath, ...(collect ? { data: Buffer.concat(chunks) } : {}) };
+    } finally {
+      closeSync(descriptor);
+    }
+  }
+  return {
+    readJsonInput: (filename, cap) => inspect(filename, cap, true).data,
+    inspectArtifact: artifact => inspect(artifact.path, readCaps.artifactBytes, false, artifact.bytes),
+  };
+}

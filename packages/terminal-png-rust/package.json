@@ -1,0 +1,56 @@
+{
+  "name": "terminal-png-rust",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Independent Rust terminal display and rendering with native Node bindings",
+  "type": "module",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./cli": {
+      "types": "./dist/cli.d.ts",
+      "import": "./dist/cli.js"
+    }
+  },
+  "scripts": {
+    "build": "node scripts/prepare-host.mjs && node ../mcp-protocol-rust/scripts/cargo.mjs build",
+    "test:unit": "node scripts/prepare-host.mjs && node ../mcp-protocol-rust/scripts/cargo.mjs test && tsc --project tsconfig.types.json && cd ../.. && vitest run --config packages/terminal-png-rust/vitest.sdk.config.mjs",
+    "lint": "node ../mcp-protocol-rust/scripts/cargo.mjs lint",
+    "prepack": "node ../../scripts/set-bin-executable.mjs"
+  },
+  "devDependencies": {
+    "@napi-rs/cli": "3.10.4",
+    "mcp-protocol-rust": "*",
+    "terminal-png": "*",
+    "typescript": "5.9.3",
+    "vitest": "4.1.11",
+    "jetbrains-mono": "1.0.6",
+    "@resvg/resvg-js": "2.6.2"
+  },
+  "files": [
+    "dist",
+    "assets",
+    "LICENSE",
+    "LICENSE.FONT",
+    "LICENSE.UNICODE"
+  ],
+  "engines": {
+    "node": ">=18.18"
+  },
+  "napi": {
+    "binaryName": "terminal-png-rust"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poe-platform/poe-code.git",
+    "directory": "packages/terminal-png-rust"
+  },
+  "bin": {
+    "terminal-png-rust": "dist/cli.js"
+  }
+}

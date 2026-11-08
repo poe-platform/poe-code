@@ -1,0 +1,13 @@
+{
+  "before": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/owned-writer.mjs",
+    "bytes": 6530,
+    "mode": 420,
+    "sha256": "4c9fd26187c80b7b725acab5e3370fbc7e3778e26fccfbae274e7d042f5c5837"
+  },
+  "passed": 1,
+  "pid": 35509,
+  "status": 0,
+  "sourceOnly": true,
+  "noImports": true
+}

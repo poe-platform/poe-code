@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: exactly 38 unique independently frozen intended cases, 20 native captures
+ok 1 - exactly 38 unique independently frozen intended cases, 20 native captures
+  ---
+  duration_ms: 0.270417
+  type: 'test'
+  ...
+# Subtest: native bytes match every original hash and mandatory successful captures
+ok 2 - native bytes match every original hash and mandatory successful captures
+  ---
+  duration_ms: 0.431833
+  type: 'test'
+  ...
+# Subtest: native JSON round trips every control/Unicode filename without normalization
+ok 3 - native JSON round trips every control/Unicode filename without normalization
+  ---
+  duration_ms: 0.266625
+  type: 'test'
+  ...
+# Subtest: independent fixture resolves root symlinks, alias siblings and ancestors
+ok 4 - independent fixture resolves root symlinks, alias siblings and ancestors
+  ---
+  duration_ms: 1.269625
+  type: 'test'
+  ...
+# Subtest: disjoint identities and unknown identities are independent fixture facts
+ok 5 - disjoint identities and unknown identities are independent fixture facts
+  ---
+  duration_ms: 0.362792
+  type: 'test'
+  ...
+# Subtest: fixture abort signal is propagated and content/mutation tripwires fail
+ok 6 - fixture abort signal is propagated and content/mutation tripwires fail
+  ---
+  duration_ms: 0.212583
+  type: 'test'
+  ...
+# Subtest: sink harness retains bytes and exposes pending ownership/backpressure
+ok 7 - sink harness retains bytes and exposes pending ownership/backpressure
+  ---
+  duration_ms: 0.574292
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 47.31775

@@ -1,0 +1,175 @@
+{
+  "schema": "timeout-public-preparation-validation/1",
+  "manifestHash": "45d41c9e97d69febabaa700766f84950a9c36db3ca6fd99c921492296a518813",
+  "completedAt": "2026-08-28T04:58:06.910Z",
+  "outcomes": [
+    {
+      "id": "P01",
+      "name": "explicit synthetically valid gate",
+      "status": "PASS"
+    },
+    {
+      "id": "P02",
+      "name": "no implicit authorization",
+      "status": "PASS"
+    },
+    {
+      "id": "P03",
+      "name": "wrong candidate token",
+      "status": "PASS"
+    },
+    {
+      "id": "P04",
+      "name": "wrong baseline",
+      "status": "PASS"
+    },
+    {
+      "id": "P05",
+      "name": "missing exact pack",
+      "status": "PASS"
+    },
+    {
+      "id": "P06",
+      "name": "wrong mutant predicate",
+      "status": "PASS"
+    },
+    {
+      "id": "P07",
+      "name": "multiline compiler message/token",
+      "status": "PASS"
+    },
+    {
+      "id": "P08",
+      "name": "unrelated compiler envelope",
+      "status": "PASS"
+    },
+    {
+      "id": "P09",
+      "name": "wrong compiler token location",
+      "status": "PASS"
+    },
+    {
+      "id": "P10",
+      "name": "leaf-only actual-read receipt classifier",
+      "status": "PASS"
+    },
+    {
+      "id": "P11",
+      "name": "wrong required entrypoint",
+      "status": "PASS"
+    },
+    {
+      "id": "P12",
+      "name": "unbound declaration read",
+      "status": "PASS"
+    },
+    {
+      "id": "P13",
+      "name": "tampered declaration",
+      "status": "PASS"
+    },
+    {
+      "id": "P14",
+      "name": "missing actual compiler load",
+      "status": "PASS"
+    },
+    {
+      "id": "P15",
+      "name": "exact legacy transformation and no automatic cohort",
+      "status": "PASS"
+    },
+    {
+      "id": "P16",
+      "name": "wrong accepted legacy hash",
+      "status": "PASS"
+    },
+    {
+      "id": "P17",
+      "name": "exact scoped synthetic mutant",
+      "status": "PASS"
+    },
+    {
+      "id": "P18",
+      "name": "ambiguous mutant refused",
+      "status": "PASS"
+    },
+    {
+      "id": "P19",
+      "name": "actual fresh metadata guard controls",
+      "status": "PASS"
+    },
+    {
+      "id": "P20",
+      "name": "unknown empty fresh directory refused",
+      "status": "PASS"
+    },
+    {
+      "id": "P21",
+      "name": "wrong package mode gate",
+      "status": "PASS"
+    },
+    {
+      "id": "P22",
+      "name": "original case omission refused",
+      "status": "PASS"
+    },
+    {
+      "id": "P23",
+      "name": "executor rejects without handoff before product work",
+      "status": "PASS"
+    },
+    {
+      "id": "P24",
+      "name": "preload rejects disabled product authorization",
+      "status": "PASS"
+    },
+    {
+      "id": "P25",
+      "name": "preload rejection produces no product trace",
+      "status": "PASS"
+    },
+    {
+      "id": "P26",
+      "name": "immutable freeze postguard",
+      "status": "PASS"
+    }
+  ],
+  "passed": 26,
+  "failed": 0,
+  "children": [
+    {
+      "id": "P23",
+      "pid": 36839,
+      "reaped": true,
+      "forced": false,
+      "exit": {
+        "code": 1,
+        "signal": null
+      }
+    },
+    {
+      "id": "P24",
+      "pid": 36840,
+      "reaped": true,
+      "forced": false,
+      "exit": {
+        "code": 1,
+        "signal": null
+      }
+    }
+  ],
+  "archive": {
+    "archiveSha256": "e5f48c0727df32e9974a0d40bd3549b6d2bc7014aeb579b340e41f76b6c2e2d8",
+    "retainedFiles": 5,
+    "workFiles": 2,
+    "rawFiles": 3,
+    "removed": true
+  },
+  "actualPublicCases": 0,
+  "actualPublicTypes": 0,
+  "actualProductImports": 0,
+  "actualBuilds": 0,
+  "native": 0,
+  "safeJS": 0,
+  "retries": 0
+}

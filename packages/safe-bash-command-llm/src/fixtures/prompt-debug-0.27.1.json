@@ -1,0 +1,65 @@
+[
+  {
+    "name": "text",
+    "value": "found one",
+    "stdout": "thinkinganswer\n",
+    "stderr": "\nTool call: lookup({'q': 'one'})\n  found one\n\n",
+    "exitCode": 0
+  },
+  {
+    "name": "json",
+    "value": "{\"a\": [1, true, null, \"é\"], \"empty\": {}}",
+    "stdout": "thinkinganswer\n",
+    "stderr": "\nTool call: lookup({'q': 'one'})\n  {\n    \"a\": [\n      1,\n      true,\n      null,\n      \"\\u00e9\"\n    ],\n    \"empty\": {}\n  }\n\n",
+    "exitCode": 0
+  },
+  {
+    "name": "duplicate",
+    "value": "{\"a\": 1, \"b\": 3, \"a\": 2}",
+    "stdout": "thinkinganswer\n",
+    "stderr": "\nTool call: lookup({'q': 'one'})\n  {\n    \"a\": 2,\n    \"b\": 3\n  }\n\n",
+    "exitCode": 0
+  },
+  {
+    "name": "whitespace",
+    "value": "\n \t\r\nline\n",
+    "stdout": "thinkinganswer\n",
+    "stderr": "\nTool call: lookup({'q': 'one'})\n\n \t\r\n  line\n\n\n",
+    "exitCode": 0
+  },
+  {
+    "name": "invalid",
+    "value": "1 2",
+    "stdout": "thinkinganswer\n",
+    "stderr": "\nTool call: lookup({'q': 'one'})\n  1 2\n\n",
+    "exitCode": 0
+  },
+  {
+    "name": "empty",
+    "value": "",
+    "stdout": "thinkinganswer\n",
+    "stderr": "\nTool call: lookup({'q': 'one'})\n\n\n",
+    "exitCode": 0
+  },
+  {
+    "name": "exception",
+    "value": "broken",
+    "stdout": "thinkinganswer\n",
+    "stderr": "\nTool call: lookup({'q': 'one'})\n  Error: broken\n  Exception: broken\n",
+    "exitCode": 0
+  },
+  {
+    "name": "attachment",
+    "value": "ok",
+    "stdout": "thinkinganswer\n",
+    "stderr": "\nTool call: lookup({'q': 'one'})\n  ok\n  Attachments:\n    <Attachment: ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad type=\"image/png\" content=3 bytes>\n    <Attachment: d3206421a17495b2b4cc1ee5a02bcc1e92086622946e350657ab5ae2cfcc4e5a type=\"image/png\" url=\"https://example.test/a.png\">\n\n\n",
+    "exitCode": 0
+  },
+  {
+    "name": "numbers",
+    "value": "{\"big\":12345678901234567890,\"zero\":-0.0,\"small\":0.000001,\"large\":1e20,\"nan\":NaN,\"inf\":Infinity}",
+    "stdout": "thinkinganswer\n",
+    "stderr": "\nTool call: lookup({'q': 'one'})\n  {\n    \"big\": 12345678901234567890,\n    \"zero\": -0.0,\n    \"small\": 1e-06,\n    \"large\": 1e+20,\n    \"nan\": NaN,\n    \"inf\": Infinity\n  }\n\n",
+    "exitCode": 0
+  }
+]

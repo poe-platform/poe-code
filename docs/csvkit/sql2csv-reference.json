@@ -1,0 +1,491 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "sourceSha256": "49dd82faaf9809415f4fd69f476c26c1651cdb801a4f85b89ad5da968e44f211",
+  "cases": [
+    {
+      "name": "labels-values-",
+      "argv": [
+        "--query",
+        "SELECT 1 AS same, 2 AS same, 3 AS '', NULL AS blank, 1.0 AS float, x'00ff' AS blob"
+      ],
+      "stdin": "",
+      "files": {},
+      "stdout": "same,same,,blank,float,blob\n1,2,3,,1.0,b'\\x00\\xff'\n",
+      "stderr": "",
+      "status": 0,
+      "columns": [
+        "same",
+        "same",
+        "",
+        "blank",
+        "float",
+        "blob"
+      ],
+      "rows": [
+        [
+          1,
+          2,
+          3,
+          null,
+          {
+            "kind": "float",
+            "value": "1.0"
+          },
+          {
+            "kind": "bytes",
+            "hex": "00ff"
+          }
+        ]
+      ],
+      "query": "SELECT 1 AS same, 2 AS same, 3 AS '', NULL AS blank, 1.0 AS float, x'00ff' AS blob"
+    },
+    {
+      "name": "labels-values--H",
+      "argv": [
+        "-H",
+        "--query",
+        "SELECT 1 AS same, 2 AS same, 3 AS '', NULL AS blank, 1.0 AS float, x'00ff' AS blob"
+      ],
+      "stdin": "",
+      "files": {},
+      "stdout": "1,2,3,,1.0,b'\\x00\\xff'\n",
+      "stderr": "",
+      "status": 0,
+      "columns": [
+        "same",
+        "same",
+        "",
+        "blank",
+        "float",
+        "blob"
+      ],
+      "rows": [
+        [
+          1,
+          2,
+          3,
+          null,
+          {
+            "kind": "float",
+            "value": "1.0"
+          },
+          {
+            "kind": "bytes",
+            "hex": "00ff"
+          }
+        ]
+      ],
+      "query": "SELECT 1 AS same, 2 AS same, 3 AS '', NULL AS blank, 1.0 AS float, x'00ff' AS blob"
+    },
+    {
+      "name": "labels-values--l",
+      "argv": [
+        "-l",
+        "--query",
+        "SELECT 1 AS same, 2 AS same, 3 AS '', NULL AS blank, 1.0 AS float, x'00ff' AS blob"
+      ],
+      "stdin": "",
+      "files": {},
+      "stdout": "line_number,same,same,,blank,float,blob\n1,1,2,3,,1.0,b'\\x00\\xff'\n",
+      "stderr": "",
+      "status": 0,
+      "columns": [
+        "same",
+        "same",
+        "",
+        "blank",
+        "float",
+        "blob"
+      ],
+      "rows": [
+        [
+          1,
+          2,
+          3,
+          null,
+          {
+            "kind": "float",
+            "value": "1.0"
+          },
+          {
+            "kind": "bytes",
+            "hex": "00ff"
+          }
+        ]
+      ],
+      "query": "SELECT 1 AS same, 2 AS same, 3 AS '', NULL AS blank, 1.0 AS float, x'00ff' AS blob"
+    },
+    {
+      "name": "labels-values--H-l",
+      "argv": [
+        "-H",
+        "-l",
+        "--query",
+        "SELECT 1 AS same, 2 AS same, 3 AS '', NULL AS blank, 1.0 AS float, x'00ff' AS blob"
+      ],
+      "stdin": "",
+      "files": {},
+      "stdout": "line_number,1,2,3,,1.0,b'\\x00\\xff'\n",
+      "stderr": "",
+      "status": 0,
+      "columns": [
+        "same",
+        "same",
+        "",
+        "blank",
+        "float",
+        "blob"
+      ],
+      "rows": [
+        [
+          1,
+          2,
+          3,
+          null,
+          {
+            "kind": "float",
+            "value": "1.0"
+          },
+          {
+            "kind": "bytes",
+            "hex": "00ff"
+          }
+        ]
+      ],
+      "query": "SELECT 1 AS same, 2 AS same, 3 AS '', NULL AS blank, 1.0 AS float, x'00ff' AS blob"
+    },
+    {
+      "name": "empty-result-",
+      "argv": [
+        "--query",
+        "SELECT 1 AS a WHERE 0"
+      ],
+      "stdin": "",
+      "files": {},
+      "stdout": "a\n",
+      "stderr": "",
+      "status": 0,
+      "columns": [
+        "a"
+      ],
+      "rows": [],
+      "query": "SELECT 1 AS a WHERE 0"
+    },
+    {
+      "name": "empty-result--H-l",
+      "argv": [
+        "-H",
+        "-l",
+        "--query",
+        "SELECT 1 AS a WHERE 0"
+      ],
+      "stdin": "",
+      "files": {},
+      "stdout": "",
+      "stderr": "",
+      "status": 0,
+      "columns": [
+        "a"
+      ],
+      "rows": [],
+      "query": "SELECT 1 AS a WHERE 0"
+    },
+    {
+      "name": "empty-result--l",
+      "argv": [
+        "-l",
+        "--query",
+        "SELECT 1 AS a WHERE 0"
+      ],
+      "stdin": "",
+      "files": {},
+      "stdout": "line_number,a\n",
+      "stderr": "",
+      "status": 0,
+      "columns": [
+        "a"
+      ],
+      "rows": [],
+      "query": "SELECT 1 AS a WHERE 0"
+    },
+    {
+      "name": "full-file",
+      "argv": [
+        "query.sql"
+      ],
+      "stdin": "",
+      "files": {
+        "query.sql": "IA0KU0VMRUNUDQoxIEFTIGENCiA="
+      },
+      "stdout": "a\n1\n",
+      "stderr": "",
+      "status": 0,
+      "columns": [
+        "a"
+      ],
+      "rows": [
+        [
+          1
+        ]
+      ],
+      "query": " \nSELECT\n1 AS a\n "
+    },
+    {
+      "name": "encoding",
+      "argv": [
+        "-e",
+        "latin1",
+        "query.sql"
+      ],
+      "stdin": "",
+      "files": {
+        "query.sql": "U0VMRUNUICdjYWbpJyBBUyBh"
+      },
+      "stdout": "a\ncafé\n",
+      "stderr": "",
+      "status": 0,
+      "columns": [
+        "a"
+      ],
+      "rows": [
+        [
+          "café"
+        ]
+      ],
+      "query": "SELECT 'café' AS a"
+    },
+    {
+      "name": "override-file",
+      "argv": [
+        "missing.sql",
+        "--query",
+        "  SELECT 1 AS a  "
+      ],
+      "stdin": "broken",
+      "files": {},
+      "stdout": "a\n1\n",
+      "stderr": "",
+      "status": 0,
+      "columns": [
+        "a"
+      ],
+      "rows": [
+        [
+          1
+        ]
+      ],
+      "query": "SELECT 1 AS a"
+    },
+    {
+      "name": "empty-query-falls-through",
+      "argv": [
+        "--query",
+        ""
+      ],
+      "stdin": "SELECT 2 AS a",
+      "files": {},
+      "stdout": "a\n2\n",
+      "stderr": "",
+      "status": 0,
+      "columns": [
+        "a"
+      ],
+      "rows": [
+        [
+          2
+        ]
+      ],
+      "query": "SELECT 2 AS a"
+    },
+    {
+      "name": "stdin-full",
+      "argv": [],
+      "stdin": "\n SELECT\n 2 AS a \n",
+      "files": {},
+      "stdout": "a\n2\n",
+      "stderr": "",
+      "status": 0,
+      "columns": [
+        "a"
+      ],
+      "rows": [
+        [
+          2
+        ]
+      ],
+      "query": "\n SELECT\n 2 AS a \n"
+    },
+    {
+      "name": "single-driver-statement",
+      "argv": [
+        "--query",
+        "SELECT 1; SELECT 2"
+      ],
+      "stdin": "",
+      "files": {},
+      "stdout": "",
+      "stderr": "ProgrammingError: (sqlite3.ProgrammingError) You can only execute one statement at a time.\n[SQL: SELECT 1; SELECT 2]\n(Background on this error at: https://sqlalche.me/e/20/f405)\n",
+      "status": 1
+    },
+    {
+      "name": "nonrow",
+      "argv": [
+        "--query",
+        "CREATE TABLE t (a TEXT)"
+      ],
+      "stdin": "",
+      "files": {},
+      "stdout": "",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "empty-stdin",
+      "argv": [],
+      "stdin": "",
+      "files": {},
+      "stdout": "",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "omitted---add-bom",
+      "argv": [
+        "--add-bom"
+      ],
+      "stdin": "",
+      "files": {},
+      "stdout": "",
+      "stderr": "usage: sql2csv [-h] [-v] [-l] [-V] [--db CONNECTION_STRING]\n               [--engine-option ENGINE_OPTION ENGINE_OPTION]\n               [--execution-option EXECUTION_OPTION EXECUTION_OPTION]\n               [--query QUERY] [-e ENCODING] [-H]\n               [FILE]\nsql2csv: error: unrecognized arguments: --add-bom\n",
+      "status": 2
+    },
+    {
+      "name": "omitted--d",
+      "argv": [
+        "-d"
+      ],
+      "stdin": "",
+      "files": {},
+      "stdout": "",
+      "stderr": "usage: sql2csv [-h] [-v] [-l] [-V] [--db CONNECTION_STRING]\n               [--engine-option ENGINE_OPTION ENGINE_OPTION]\n               [--execution-option EXECUTION_OPTION EXECUTION_OPTION]\n               [--query QUERY] [-e ENCODING] [-H]\n               [FILE]\nsql2csv: error: unrecognized arguments: -d\n",
+      "status": 2
+    },
+    {
+      "name": "omitted--I",
+      "argv": [
+        "-I"
+      ],
+      "stdin": "",
+      "files": {},
+      "stdout": "",
+      "stderr": "usage: sql2csv [-h] [-v] [-l] [-V] [--db CONNECTION_STRING]\n               [--engine-option ENGINE_OPTION ENGINE_OPTION]\n               [--execution-option EXECUTION_OPTION EXECUTION_OPTION]\n               [--query QUERY] [-e ENCODING] [-H]\n               [FILE]\nsql2csv: error: unrecognized arguments: -I\n",
+      "status": 2
+    },
+    {
+      "name": "omitted---blanks",
+      "argv": [
+        "--blanks"
+      ],
+      "stdin": "",
+      "files": {},
+      "stdout": "",
+      "stderr": "usage: sql2csv [-h] [-v] [-l] [-V] [--db CONNECTION_STRING]\n               [--engine-option ENGINE_OPTION ENGINE_OPTION]\n               [--execution-option EXECUTION_OPTION EXECUTION_OPTION]\n               [--query QUERY] [-e ENCODING] [-H]\n               [FILE]\nsql2csv: error: unrecognized arguments: --blanks\n",
+      "status": 2
+    },
+    {
+      "name": "omitted---sql-delimiter",
+      "argv": [
+        "--sql-delimiter"
+      ],
+      "stdin": "",
+      "files": {},
+      "stdout": "",
+      "stderr": "usage: sql2csv [-h] [-v] [-l] [-V] [--db CONNECTION_STRING]\n               [--engine-option ENGINE_OPTION ENGINE_OPTION]\n               [--execution-option EXECUTION_OPTION EXECUTION_OPTION]\n               [--query QUERY] [-e ENCODING] [-H]\n               [FILE]\nsql2csv: error: unrecognized arguments: --sql-delimiter\n",
+      "status": 2
+    },
+    {
+      "name": "version",
+      "argv": [
+        "-V"
+      ],
+      "stdin": "",
+      "files": {},
+      "stdout": "sql2csv 2.2.0\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "help",
+      "argv": [
+        "--help"
+      ],
+      "stdin": "",
+      "files": {},
+      "stdout": "usage: sql2csv [-h] [-v] [-l] [-V] [--db CONNECTION_STRING]\n               [--engine-option ENGINE_OPTION ENGINE_OPTION]\n               [--execution-option EXECUTION_OPTION EXECUTION_OPTION]\n               [--query QUERY] [-e ENCODING] [-H]\n               [FILE]\n\nExecute a SQL query on a database and output the result to a CSV file.\n\npositional arguments:\n  FILE                  The file to use as SQL query. If FILE and --query are\n                        omitted, the query is piped data via STDIN.\n\noptions:\n  -h, --help            show this help message and exit\n  -v, --verbose         Print detailed tracebacks when errors occur.\n  -l, --linenumbers     Insert a column of line numbers at the front of the\n                        output. Useful when piping to grep or as a simple\n                        primary key.\n  -V, --version         Display version information and exit.\n  --db CONNECTION_STRING\n                        A SQLAlchemy connection string to connect to a\n                        database.\n  --engine-option ENGINE_OPTION ENGINE_OPTION\n                        A keyword argument to SQLAlchemy's create_engine(), as\n                        a space-separated pair. This option can be specified\n                        multiple times. For example: thick_mode True\n  --execution-option EXECUTION_OPTION EXECUTION_OPTION\n                        A keyword argument to SQLAlchemy's\n                        execution_options(), as a space-separated pair. This\n                        option can be specified multiple times. For example:\n                        stream_results True\n  --query QUERY         The SQL query to execute. Overrides FILE and STDIN.\n  -e, --encoding ENCODING\n                        Specify the encoding of the input query file.\n  -H, --no-header-row   Do not output column names.\n",
+      "stderr": "",
+      "status": 0
+    }
+  ],
+  "databaseEffects": [
+    {
+      "isolation": null,
+      "stdout": "",
+      "stderr": "",
+      "status": 0,
+      "rows": [
+        [
+          1
+        ]
+      ]
+    },
+    {
+      "isolation": "AUTOCOMMIT",
+      "stdout": "",
+      "stderr": "",
+      "status": 0,
+      "rows": [
+        [
+          1
+        ],
+        [
+          2
+        ]
+      ]
+    }
+  ],
+  "sourceEvents": [
+    [
+      "engine",
+      "sqlite://",
+      {}
+    ],
+    "connect",
+    [
+      "options",
+      {
+        "no_parameters": true,
+        "stream_results": false
+      }
+    ],
+    [
+      "query",
+      "SELECT 1; SELECT 2"
+    ],
+    "connection-close",
+    "dispose"
+  ],
+  "sourceArchiveSha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+  "sourceFile": "csvkit/utilities/sql2csv.py",
+  "runtime": {
+    "implementation": "CPython",
+    "python": "3.14.2",
+    "agate": "1.14.2",
+    "agateSql": "0.7.3",
+    "sqlalchemy": "2.0.54",
+    "sqlite": "3.50.4",
+    "driver": "stdlib sqlite3, legacy implicit DML transactions",
+    "locale": "C",
+    "timezone": "UTC",
+    "executableSha256": "3d6400b63b150164e89a690d9813af8b0eb420af9f336ef1f6c5102c6da60eae"
+  }
+}

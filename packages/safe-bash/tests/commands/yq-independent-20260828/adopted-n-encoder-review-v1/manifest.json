@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-08-28",
+  "state": "prepared-first-stage-static-only",
+  "reviewerRole": "fresh-independent-reviewer-not-author-or-product-implementer",
+  "ownership": "tests/commands/yq-independent-20260828/adopted-n-encoder-review-v1/**",
+  "initialObservedHead": "08dd69d06a2f40edd31263631605ae153a9cf318",
+  "authorizedCheckpoint": "544f8279138cb1335ded08f9db638410e91c1324",
+  "authorPacketRead": false,
+  "rootRoutedAuthorCommit": null,
+  "implementationAuthorized": false,
+  "productExecuted": false,
+  "nativeOracleExecuted": false,
+  "authorReviewResult": null,
+  "mutationReviewResult": null,
+  "productPassCount": null,
+  "witnessCountNotPasses": 18,
+  "negativeControlFamilies": 7,
+  "originalCohorts": {"counts": [194, 80, 62], "overlap": true, "rescored": false},
+  "resourceMechanism": "pending-product-author-proposal-no-acceptance",
+  "primary": {"url": "https://yaml.org/spec/1.2.2/", "revisionDate": "2021-10-01", "accessed": "2026-08-28", "method": "web.run", "retainedSnapshot": false, "sections": ["6.4", "6.5", "7.3.1", "7.4.2", "7.5", "8.2.2", "10.2.1.4", "10.3.1", "10.3.2"]},
+  "packet": [
+    {"path": "PROTOCOL.md", "sha256": "6478619ec64844b41f59edc0087ff0079f70d5ceae05e33cdee58a375009fe6e"},
+    {"path": "witnesses.json", "sha256": "86ddb817e442e7ea274c0d4be3f8bda205e4b6e5294bd09186af8e2ff2ff510c"}
+  ],
+  "manifestSeal": "The atomic Git commit seals this manifest and the exact three-file inventory; no self-hash is claimed.",
+  "selectedFilesAtCheckpoint": [
+    {"path": "tests/commands/yq-design-20260828/initial-profile-v1/README.md", "blob": "4d74b959588b2708cca6d4d8e8f2aa8ee465da68", "sha256": "75af84bd5e888a3080e9096b86ed0a25be95105524011851193b9bf39192ba50"},
+    {"path": "tests/commands/yq-design-20260828/final-contract-v1/contract.json", "blob": "a902a481993cbfd3b1a85ce8c54112ade65fbc81", "sha256": "1b2cf2740586d6847286d5a28788beb748d09e8b2181f02e6476d3b7634cefb8"},
+    {"path": "tests/commands/yq-design-20260828/final-adoption-v1/adoption.json", "blob": "403173f53d1674cbe35c8166e6fcb3c56c25ab5b", "sha256": "22e83a0e6f602103ac9378654dd62fc7098c461ac90b7385e5d6b06cec156be6"},
+    {"path": "src/commands/structured/numbers.ts", "blob": "fe90b5fcbef68a4a2a4aed164d7599d0dcd22630", "sha256": "1ef4803e8311e554c8b11a590e75f4c9a96fb81614872587f534514fadfc7ae2", "adoptedNumericRangeLines": "48-74", "canonicalTextLines": "39-45"}
+  ],
+  "protectedTreesAtCheckpoint": [
+    {"path": "tests/commands/yq-independent-20260828/normative", "tree": "3dd68fd76a50082c690c442bc2e0fde8fd79abac", "originalCommit": "c75fad948ab185fc68e5fdbd49dce4727a279514", "originalTree": "3dd68fd76a50082c690c442bc2e0fde8fd79abac"},
+    {"path": "tests/commands/yq-independent-20260828/query-budget", "tree": "2b39f4898553dbdae8e2bc399fc55a2e1271cbdd", "originalCommit": "3bc2ee8aa38e82773a1fbec1f0b67673b0928105", "originalTree": "58f001d04b85463af2cf06df210cbec74957a43a", "alreadyPresentAddition": "LENGTH-ACCEPTANCE-ADDENDUM.md", "originalFilesUnchanged": true},
+    {"path": "tests/commands/yq-independent-20260828/freeze", "tree": "7ec5e3e15684a0799b7ab9d52f0d3335e56db013", "originalCommit": "f074c142411ba839cbd9da45a499cc798965149d", "originalTree": "7ec5e3e15684a0799b7ab9d52f0d3335e56db013"},
+    {"path": "tests/commands/yq-independent-20260828/reconciliation-v1", "tree": "57e189f0b53a32a9479bd855c754dbb9a2258ba4"},
+    {"path": "tests/commands/yq-design-20260828/initial-profile-v1", "tree": "8f8015b9fc4608020fdf80fa9929e1293a1ea323"},
+    {"path": "tests/commands/yq-design-20260828/final-contract-v1", "tree": "d46b788ffe8d0209e60e7a1cfe41b2a7b6ac3f8d", "originalCommit": "5783b8e03912f7774d2a86ba1dae9de778121273", "originalTree": "d46b788ffe8d0209e60e7a1cfe41b2a7b6ac3f8d"},
+    {"path": "tests/commands/yq-design-20260828/final-adoption-v1", "tree": "3dd7c5531aed1d6afa515de25db6dc1d18e11c1a", "originalCommit": "cfa6fbcb72c5a3e228c4ffbea7cb1719827b2707", "originalTree": "3dd7c5531aed1d6afa515de25db6dc1d18e11c1a"}
+  ],
+  "integrityLimit": "Whole committed protected subtrees include added/deleted entries and modes. No live-untracked append-proof or whole-repository candidate acceptance is claimed."
+}

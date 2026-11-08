@@ -1,0 +1,12 @@
+{
+  "id": "F26",
+  "expected": "Nine actual window wrong-arity/order/type/prefix/extra-query controls prevent factory despite caught violations.",
+  "pass": true,
+  "started": "2026-08-28T15:01:02.863Z",
+  "finished": "2026-08-28T15:01:02.866Z",
+  "detail": {
+    "negativeControls": 9,
+    "nativeCalls": 0,
+    "factoryCalls": 0
+  }
+}

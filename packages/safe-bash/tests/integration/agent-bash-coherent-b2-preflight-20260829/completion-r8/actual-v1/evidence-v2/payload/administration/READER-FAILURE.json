@@ -1,0 +1,1 @@
+{"phase":"post-terminal DATA display only","message":"partial.retirement.children.map is not a function","cause":"assumed array before inspecting recorded children counter","newChildProcesses":0,"runtimeRetry":false,"recordedUTC":"2026-08-29T17:01:42.884Z","qualification":"Exact tool-reported message transcribed; not reconstructed process stderr"}

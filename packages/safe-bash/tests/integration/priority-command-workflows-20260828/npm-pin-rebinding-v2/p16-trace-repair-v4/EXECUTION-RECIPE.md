@@ -1,0 +1,3 @@
+# Future execution only
+
+Use the sealed versioned future-supervisor with GO.json and a separately activated PARENT-BUDGET.json in this directory, after different review and ROOT GO. Neither file is created by preparation. Run root is the original priority directory/future-run-02. Select source P16 then P17-P24/C01-C07, all 31 installed, all 31 physically moved: 78 subjects, three setup and four admission children. No source P01-P15 replay. New actual start plus 20 minutes is capped by 1788026556000. Old future-run-01 reservation remains closed with unknown aggregate and four withheld starts; no refund, release, reset or reuse. Product source composition and package are unchanged; F1-F4 and the sealed terminal finalizer remain unchanged.

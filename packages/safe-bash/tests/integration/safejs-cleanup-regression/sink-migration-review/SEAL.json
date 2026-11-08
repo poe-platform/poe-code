@@ -1,0 +1,56 @@
+{
+  "verifiedAt": "2026-08-27T10:40:27.578Z",
+  "reviewer": "surfaceauditor01a04292-5421-7363-8bcb-a70b97fae4e9",
+  "candidate": "656ee2b04aa91b1cc40da865173be1b472a2c4ce",
+  "original": "5009ba8146c73bd5628147707e733384e5cd4aee",
+  "product": "f44958bf48778737a58535e2bc9b37c292ac28c4",
+  "verdict": "accept-single-fixture-migration-only",
+  "changedPreviouslyTrackedIntegrationFiles": [
+    "tests/integration/safejs-cleanup-regression/integration/child.mjs"
+  ],
+  "otherOriginalFilesUnchanged": 572,
+  "cohorts": [
+    {
+      "profile": "revised",
+      "total": 19,
+      "passing": 19,
+      "nativeWorkersSettledBeforePublicExec": 18,
+      "normallyClosedEsbuildServices": 19,
+      "importsVerified": 9866,
+      "actualEngineFiles": 63,
+      "privateUnchanged": true,
+      "allFourArchivePhases": true,
+      "noRescue": true,
+      "scratchRemoved": true
+    },
+    {
+      "profile": "original",
+      "total": 19,
+      "passing": 18,
+      "nativeWorkersSettledBeforePublicExec": 18,
+      "normallyClosedEsbuildServices": 19,
+      "importsVerified": 9866,
+      "actualEngineFiles": 63,
+      "privateUnchanged": true,
+      "allFourArchivePhases": true,
+      "noRescue": true,
+      "scratchRemoved": true
+    }
+  ],
+  "comparison": {
+    "all19InputsArgvResultsErrorsAndNormalizedSettlementEqual": true,
+    "originalSinkMatchesImmutableAttempt08": true,
+    "result": {
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "grep: sink:literal-grep-caller-sink-error\n"
+    },
+    "error": null,
+    "originalAssertion": "Expected values to be strictly equal:\n\nfalse !== true\n",
+    "revisedStatus": "pass",
+    "originalStatus": "fail"
+  },
+  "actualSourceHookInjectionNotPrivatePackageImport": true,
+  "historicalV1ZeroCaseFailurePreserved": true,
+  "noAdditionalCohorts": true
+}

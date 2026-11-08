@@ -1,0 +1,4 @@
+{"event":"capture-ready-before-admission","owner":320,"at":1787960109753}
+{"event":"spawn","pid":323}
+{"event":"closed","pid":323,"code":0,"absent":true}
+{"event":"terminal","schema":"manifest-qualification-owner-v1","owner":320,"child":323,"allOwnedProcesses":2,"totalPeak":2,"closed":true,"absent":true,"code":0,"signal":null,"observedBytes":3751,"retainedBytes":3751,"sourceAuthenticated":true,"primary":null,"elapsedMs":17384}

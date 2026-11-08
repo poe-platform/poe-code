@@ -1,0 +1,290 @@
+{
+  "sourceCommit": "730aee6b57af47930f0d8135607ffb144fb82624",
+  "preseal": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/fixture-v2/PRESEAL.json",
+    "bytes": 3421,
+    "sha256": "97141a41039c1c7e77082662e6f291aba5ca0352a991da54fec34d8c9e3df04e"
+  },
+  "finalIdentity": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/FINAL.json",
+    "bytes": 24620,
+    "sha256": "8bd385557c356994062d62fb10d9aef485e3c440dd509e68220425ae770e03a9"
+  },
+  "results": [
+    {
+      "id": "S01-zero-streams",
+      "outcome": "PASS",
+      "role": "PURE_EXACT_HELPER"
+    },
+    {
+      "id": "S02-one-stream",
+      "outcome": "PASS",
+      "role": "PURE_EXACT_HELPER"
+    },
+    {
+      "id": "S03-four-streams-unique-bound",
+      "outcome": "PASS",
+      "role": "PURE_EXACT_HELPER"
+    },
+    {
+      "id": "S04-safeinteger-sum",
+      "outcome": "PASS",
+      "role": "PURE_EXACT_HELPER"
+    },
+    {
+      "id": "S05-late-per-stream-overrun",
+      "outcome": "PASS",
+      "role": "PURE_EXACT_HELPER"
+    },
+    {
+      "id": "S06-aggregate-headroom",
+      "outcome": "PASS",
+      "role": "PURE_EXACT_HELPER"
+    },
+    {
+      "id": "D01-constructor-refusal-distinct",
+      "outcome": "PASS",
+      "role": "PURE_EXACT_HELPER"
+    },
+    {
+      "id": "D02-admitted-charge-boundary",
+      "outcome": "PASS",
+      "role": "PURE_EXACT_HELPER"
+    }
+  ],
+  "window": {
+    "issuedUTC": "2026-08-29T15:57:10.730Z",
+    "latestStartUTC": "2026-08-29T16:17:10.730Z",
+    "expiresUTC": "2026-08-29T16:47:10.730Z",
+    "observedUTC": "2026-08-29T16:02:02.165Z",
+    "staleForStart": false,
+    "renewed": false,
+    "actualGo": false
+  },
+  "snapshot": {
+    "schema": "administrative-owner-r1",
+    "self": {
+      "id": "owner-52020",
+      "role": "administrative-owner",
+      "pid": 52020,
+      "startUTC": "2026-08-29T16:02:01.556Z",
+      "startObserved": true,
+      "exitObserved": false,
+      "closeObserved": false,
+      "state": "LIVE_COORDINATOR"
+    },
+    "starts": [
+      {
+        "id": "git-root-52022",
+        "role": "git-root",
+        "pid": 52022,
+        "tool": "/usr/bin/git",
+        "argv": [
+          "rev-parse",
+          "--show-toplevel"
+        ],
+        "startUTC": "2026-08-29T16:02:01.615Z",
+        "startObserved": true,
+        "exitObserved": true,
+        "closeObserved": true,
+        "stdoutEnd": true,
+        "stderrEnd": true,
+        "signals": [],
+        "exitCode": 0,
+        "exitSignal": null,
+        "exitUTC": "2026-08-29T16:02:01.801Z",
+        "closeCode": 0,
+        "closeSignal": null,
+        "closeUTC": "2026-08-29T16:02:01.801Z"
+      },
+      {
+        "id": "git-scoped-status-52025",
+        "role": "git-scoped-status",
+        "pid": 52025,
+        "tool": "/usr/bin/git",
+        "argv": [
+          "status",
+          "--porcelain=v1",
+          "-z",
+          "--",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/fixture-v2"
+        ],
+        "startUTC": "2026-08-29T16:02:01.802Z",
+        "startObserved": true,
+        "exitObserved": true,
+        "closeObserved": true,
+        "stdoutEnd": true,
+        "stderrEnd": true,
+        "signals": [],
+        "exitCode": 0,
+        "exitSignal": null,
+        "exitUTC": "2026-08-29T16:02:01.852Z",
+        "closeCode": 0,
+        "closeSignal": null,
+        "closeUTC": "2026-08-29T16:02:01.852Z"
+      },
+      {
+        "id": "git-source-add-52026",
+        "role": "git-source-add",
+        "pid": 52026,
+        "tool": "/usr/bin/git",
+        "argv": [
+          "add",
+          "--",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/fixture-v2/controls.mjs",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/fixture-v2/run.mjs",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/fixture-v2/launch.sh",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/fixture-v2/HANDOFF.md",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/fixture-v2/PRESEAL.json"
+        ],
+        "startUTC": "2026-08-29T16:02:01.857Z",
+        "startObserved": true,
+        "exitObserved": true,
+        "closeObserved": true,
+        "stdoutEnd": true,
+        "stderrEnd": true,
+        "signals": [],
+        "exitCode": 0,
+        "exitSignal": null,
+        "exitUTC": "2026-08-29T16:02:01.926Z",
+        "closeCode": 0,
+        "closeSignal": null,
+        "closeUTC": "2026-08-29T16:02:01.926Z"
+      },
+      {
+        "id": "git-source-commit-52027",
+        "role": "git-source-commit",
+        "pid": 52027,
+        "tool": "/usr/bin/git",
+        "argv": [
+          "-c",
+          "core.hooksPath=/dev/null",
+          "commit",
+          "--only",
+          "-m",
+          "Preseal fixture-only r6 active-tail setup correction",
+          "--",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/fixture-v2/controls.mjs",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/fixture-v2/run.mjs",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/fixture-v2/launch.sh",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/fixture-v2/HANDOFF.md",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/fixture-v2/PRESEAL.json"
+        ],
+        "startUTC": "2026-08-29T16:02:01.927Z",
+        "startObserved": true,
+        "exitObserved": true,
+        "closeObserved": true,
+        "stdoutEnd": true,
+        "stderrEnd": true,
+        "signals": [],
+        "exitCode": 0,
+        "exitSignal": null,
+        "exitUTC": "2026-08-29T16:02:02.132Z",
+        "closeCode": 0,
+        "closeSignal": null,
+        "closeUTC": "2026-08-29T16:02:02.132Z"
+      },
+      {
+        "id": "git-source-receipt-52030",
+        "role": "git-source-receipt",
+        "pid": 52030,
+        "tool": "/usr/bin/git",
+        "argv": [
+          "rev-parse",
+          "HEAD"
+        ],
+        "startUTC": "2026-08-29T16:02:02.134Z",
+        "startObserved": true,
+        "exitObserved": true,
+        "closeObserved": true,
+        "stdoutEnd": true,
+        "stderrEnd": true,
+        "signals": [],
+        "exitCode": 0,
+        "exitSignal": null,
+        "exitUTC": "2026-08-29T16:02:02.159Z",
+        "closeCode": 0,
+        "closeSignal": null,
+        "closeUTC": "2026-08-29T16:02:02.159Z"
+      }
+    ],
+    "attempts": [
+      {
+        "role": "git-root",
+        "tool": "/usr/bin/git",
+        "argv": [
+          "rev-parse",
+          "--show-toplevel"
+        ],
+        "atUTC": "2026-08-29T16:02:01.613Z",
+        "spawned": true
+      },
+      {
+        "role": "git-scoped-status",
+        "tool": "/usr/bin/git",
+        "argv": [
+          "status",
+          "--porcelain=v1",
+          "-z",
+          "--",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/fixture-v2"
+        ],
+        "atUTC": "2026-08-29T16:02:01.802Z",
+        "spawned": true
+      },
+      {
+        "role": "git-source-add",
+        "tool": "/usr/bin/git",
+        "argv": [
+          "add",
+          "--",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/fixture-v2/controls.mjs",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/fixture-v2/run.mjs",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/fixture-v2/launch.sh",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/fixture-v2/HANDOFF.md",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/fixture-v2/PRESEAL.json"
+        ],
+        "atUTC": "2026-08-29T16:02:01.856Z",
+        "spawned": true
+      },
+      {
+        "role": "git-source-commit",
+        "tool": "/usr/bin/git",
+        "argv": [
+          "-c",
+          "core.hooksPath=/dev/null",
+          "commit",
+          "--only",
+          "-m",
+          "Preseal fixture-only r6 active-tail setup correction",
+          "--",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/fixture-v2/controls.mjs",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/fixture-v2/run.mjs",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/fixture-v2/launch.sh",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/fixture-v2/HANDOFF.md",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/fixture-v2/PRESEAL.json"
+        ],
+        "atUTC": "2026-08-29T16:02:01.927Z",
+        "spawned": true
+      },
+      {
+        "role": "git-source-receipt",
+        "tool": "/usr/bin/git",
+        "argv": [
+          "rev-parse",
+          "HEAD"
+        ],
+        "atUTC": "2026-08-29T16:02:02.133Z",
+        "spawned": true
+      }
+    ],
+    "knownStarts": 6,
+    "activeKnownPIDs": [],
+    "captureBytes": 1305,
+    "metadataBytes": 3895,
+    "elapsedMs": 608.452083,
+    "poisoned": false
+  },
+  "inheritedFailure": "1cfff67d and N08/7of8 unchanged, not rescored",
+  "publisherMain": 0
+}

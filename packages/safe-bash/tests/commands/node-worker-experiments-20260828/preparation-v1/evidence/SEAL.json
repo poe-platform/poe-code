@@ -1,0 +1,18 @@
+{
+  "schema": "wrq-evidence-seal-v1",
+  "date": "2026-08-28",
+  "sourceCommit": "f9bf774409eca40b0518b322db6fcb652cd6cd7f",
+  "files": [
+    { "path": "RESULT.json", "bytes": 1069, "sha256": "e75cd926d00270d0f0029de1b4c26205a7b1257bbedcb7e0c02d024c301fac01" },
+    { "path": "ACTIVITY.md", "bytes": 5471, "sha256": "39960248774d37927ded778e252d1a864539a87c89062e785866fd40000e2e44" },
+    { "path": "HANDOFF.md", "bytes": 2368, "sha256": "1f07732f16d963c6a3bd1b77f5c4e936ba70b04c0e07707818bfe3e6f28af813" }
+  ],
+  "sourceDesignSealSha256": "7a89d5911ddadcd7154c84553ce35442e744f2ded14d484af2b4e1bc92fcdacd",
+  "sourcePreparationSealSha256": "12f754bcb5cbd68bc4fbd7e187a2d529a20769d61b355fd74c3693f50c7d38a9",
+  "dataCheckerFileSha256": "041dee5a81f5593faa86317a8b697339c836cc3a703728d9419caa320c474b2a",
+  "submittedDataCodeSha256": "3114c53c55783f7fe2ab1919f0521cdfb88fade756ee6b9a04f36c4be81eff4b",
+  "submittedCodeDifference": "final file LF omitted only; no harness import or source evaluation",
+  "outputCaptureBytes": 1068,
+  "inventoryRule": "Exact three regular evidence files plus SEAL.json; complete seal hash and evidence commit reported externally; no recursive self-hash",
+  "runtimeAuthorized": false
+}

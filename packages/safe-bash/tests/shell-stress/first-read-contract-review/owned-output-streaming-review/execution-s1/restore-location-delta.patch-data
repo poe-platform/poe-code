@@ -1,0 +1,13 @@
+diff --git a/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-streaming-prototype/restore.mjs.data b/tmp/safe-bash-owned-output-streaming-execution-F9JeT9/restore.mjs
+index afd919c9..ed1019b7 100644
+--- a/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-streaming-prototype/restore.mjs.data
++++ b/tmp/safe-bash-owned-output-streaming-execution-F9JeT9/restore.mjs
+@@ -14,7 +14,7 @@ for(const entry of [...manifest.restoreInputs,...manifest.tooling]) assert.equal
+ assert.equal(hash(readFileSync(process.execPath)),manifest.tools.node.sha256);
+ for(const entry of manifest.tools.compiler) assert.equal(hash(readFileSync(entry.path)),entry.sha256);
+ for(const entry of manifest.compilerInputs.filter(entry=>entry.classification==='existing-authenticated-development-tooling')) assert.equal(hash(readFileSync(entry.path)),entry.sha256);
+-const temp = mkdtempSync('/tmp/safe-bash-owned-output-streaming-prototype-restore-');
++const temp = mkdtempSync('/tmp/safe-bash-owned-output-streaming-execution-restore-');
+ const candidate = resolve(temp,'candidate'); mkdirSync(candidate);
+ const children = [];
+ const run = (command,args) => {

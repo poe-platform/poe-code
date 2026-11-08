@@ -1,0 +1,2345 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "executableSha256": "3d6400b63b150164e89a690d9813af8b0eb420af9f336ef1f6c5102c6da60eae",
+  "csvkit": "2.2.0",
+  "sqlalchemy": "2.0.54",
+  "sqlite": "3.50.4",
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "PYTHONIOENCODING": "utf-8",
+    "COLUMNS": "80",
+    "LINES": "24"
+  },
+  "functions": [
+    [
+      "pow",
+      1,
+      "s",
+      "utf8",
+      2,
+      2099200
+    ],
+    [
+      "group_concat",
+      1,
+      "w",
+      "utf8",
+      1,
+      2097152
+    ],
+    [
+      "group_concat",
+      1,
+      "w",
+      "utf8",
+      2,
+      2097152
+    ],
+    [
+      "json_type",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "json_type",
+      1,
+      "s",
+      "utf8",
+      2,
+      2099200
+    ],
+    [
+      "jsonb_set",
+      1,
+      "s",
+      "utf8",
+      -1,
+      3147776
+    ],
+    [
+      "julianday",
+      1,
+      "s",
+      "utf8",
+      -1,
+      2099200
+    ],
+    [
+      "ntile",
+      1,
+      "w",
+      "utf8",
+      1,
+      2097152
+    ],
+    [
+      "nullif",
+      1,
+      "s",
+      "utf8",
+      2,
+      2099200
+    ],
+    [
+      "sqlite_compileoption_get",
+      1,
+      "s",
+      "utf8",
+      1,
+      2097152
+    ],
+    [
+      "json_valid",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "json_valid",
+      1,
+      "s",
+      "utf8",
+      2,
+      2099200
+    ],
+    [
+      "json_quote",
+      1,
+      "s",
+      "utf8",
+      1,
+      3147776
+    ],
+    [
+      "json_patch",
+      1,
+      "s",
+      "utf8",
+      2,
+      2099200
+    ],
+    [
+      "->",
+      1,
+      "s",
+      "utf8",
+      2,
+      2099200
+    ],
+    [
+      "json_array",
+      1,
+      "s",
+      "utf8",
+      -1,
+      3147776
+    ],
+    [
+      "current_timestamp",
+      1,
+      "s",
+      "utf8",
+      0,
+      2097152
+    ],
+    [
+      "power",
+      1,
+      "s",
+      "utf8",
+      2,
+      2099200
+    ],
+    [
+      "sqlite_compileoption_used",
+      1,
+      "s",
+      "utf8",
+      1,
+      2097152
+    ],
+    [
+      "json_remove",
+      1,
+      "s",
+      "utf8",
+      -1,
+      2099200
+    ],
+    [
+      "json_pretty",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "json_pretty",
+      1,
+      "s",
+      "utf8",
+      2,
+      2099200
+    ],
+    [
+      "jsonb_patch",
+      1,
+      "s",
+      "utf8",
+      2,
+      2099200
+    ],
+    [
+      "json_object",
+      1,
+      "s",
+      "utf8",
+      -1,
+      3147776
+    ],
+    [
+      "json_insert",
+      1,
+      "s",
+      "utf8",
+      -1,
+      3147776
+    ],
+    [
+      "->>",
+      1,
+      "s",
+      "utf8",
+      2,
+      2099200
+    ],
+    [
+      "jsonb_array",
+      1,
+      "s",
+      "utf8",
+      -1,
+      3147776
+    ],
+    [
+      "sin",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "sum",
+      1,
+      "w",
+      "utf8",
+      1,
+      2097152
+    ],
+    [
+      "quote",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "printf",
+      1,
+      "s",
+      "utf8",
+      -1,
+      2099200
+    ],
+    [
+      "likelihood",
+      1,
+      "s",
+      "utf8",
+      2,
+      2099200
+    ],
+    [
+      "json_replace",
+      1,
+      "s",
+      "utf8",
+      -1,
+      3147776
+    ],
+    [
+      "jsonb_remove",
+      1,
+      "s",
+      "utf8",
+      -1,
+      2099200
+    ],
+    [
+      "jsonb_object",
+      1,
+      "s",
+      "utf8",
+      -1,
+      3147776
+    ],
+    [
+      "jsonb_insert",
+      1,
+      "s",
+      "utf8",
+      -1,
+      3147776
+    ],
+    [
+      "json_extract",
+      1,
+      "s",
+      "utf8",
+      -1,
+      2099200
+    ],
+    [
+      "last_value",
+      1,
+      "w",
+      "utf8",
+      1,
+      2097152
+    ],
+    [
+      "rank",
+      1,
+      "w",
+      "utf8",
+      0,
+      2097152
+    ],
+    [
+      "sign",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "sqrt",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "sinh",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "tan",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "round",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "round",
+      1,
+      "s",
+      "utf8",
+      2,
+      2099200
+    ],
+    [
+      "rtrim",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "rtrim",
+      1,
+      "s",
+      "utf8",
+      2,
+      2099200
+    ],
+    [
+      "jsonb_replace",
+      1,
+      "s",
+      "utf8",
+      -1,
+      3147776
+    ],
+    [
+      "jsonb_extract",
+      1,
+      "s",
+      "utf8",
+      -1,
+      2099200
+    ],
+    [
+      "nth_value",
+      1,
+      "w",
+      "utf8",
+      2,
+      2097152
+    ],
+    [
+      "tanh",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "random",
+      1,
+      "s",
+      "utf8",
+      0,
+      2097152
+    ],
+    [
+      "trim",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "trim",
+      1,
+      "s",
+      "utf8",
+      2,
+      2099200
+    ],
+    [
+      "time",
+      1,
+      "s",
+      "utf8",
+      -1,
+      2099200
+    ],
+    [
+      "radians",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "trunc",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "total",
+      1,
+      "w",
+      "utf8",
+      1,
+      2097152
+    ],
+    [
+      "substr",
+      1,
+      "s",
+      "utf8",
+      2,
+      2099200
+    ],
+    [
+      "substr",
+      1,
+      "s",
+      "utf8",
+      3,
+      2099200
+    ],
+    [
+      "replace",
+      1,
+      "s",
+      "utf8",
+      3,
+      2099200
+    ],
+    [
+      "unhex",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "unhex",
+      1,
+      "s",
+      "utf8",
+      2,
+      2099200
+    ],
+    [
+      "upper",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "subtype",
+      1,
+      "s",
+      "utf8",
+      1,
+      3147776
+    ],
+    [
+      "typeof",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "load_extension",
+      1,
+      "s",
+      "utf8",
+      1,
+      524288
+    ],
+    [
+      "load_extension",
+      1,
+      "s",
+      "utf8",
+      2,
+      524288
+    ],
+    [
+      "json_group_array",
+      1,
+      "w",
+      "utf8",
+      1,
+      3147776
+    ],
+    [
+      "avg",
+      1,
+      "w",
+      "utf8",
+      1,
+      2097152
+    ],
+    [
+      "unistr",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "abs",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "octet_length",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "json_group_object",
+      1,
+      "w",
+      "utf8",
+      2,
+      3147776
+    ],
+    [
+      "jsonb_group_array",
+      1,
+      "w",
+      "utf8",
+      1,
+      3147776
+    ],
+    [
+      "json_array_length",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "json_array_length",
+      1,
+      "s",
+      "utf8",
+      2,
+      2099200
+    ],
+    [
+      "strftime",
+      1,
+      "s",
+      "utf8",
+      -1,
+      2099200
+    ],
+    [
+      "atan",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "asin",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "acos",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "substring",
+      1,
+      "s",
+      "utf8",
+      2,
+      2099200
+    ],
+    [
+      "substring",
+      1,
+      "s",
+      "utf8",
+      3,
+      2099200
+    ],
+    [
+      "randomblob",
+      1,
+      "s",
+      "utf8",
+      1,
+      2097152
+    ],
+    [
+      "unicode",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "jsonb_group_object",
+      1,
+      "w",
+      "utf8",
+      2,
+      3147776
+    ],
+    [
+      "timediff",
+      1,
+      "s",
+      "utf8",
+      2,
+      2099200
+    ],
+    [
+      "percent_rank",
+      1,
+      "w",
+      "utf8",
+      0,
+      2097152
+    ],
+    [
+      "row_number",
+      1,
+      "w",
+      "utf8",
+      0,
+      2097152
+    ],
+    [
+      "atanh",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "asinh",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "acosh",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "cos",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "atan2",
+      1,
+      "s",
+      "utf8",
+      2,
+      2099200
+    ],
+    [
+      "string_agg",
+      1,
+      "w",
+      "utf8",
+      2,
+      2097152
+    ],
+    [
+      "last_insert_rowid",
+      1,
+      "s",
+      "utf8",
+      0,
+      2097152
+    ],
+    [
+      "sqlite_log",
+      1,
+      "s",
+      "utf8",
+      2,
+      2099200
+    ],
+    [
+      "unlikely",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "json_error_position",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "cosh",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "ceil",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "char",
+      1,
+      "s",
+      "utf8",
+      -1,
+      2099200
+    ],
+    [
+      "unixepoch",
+      1,
+      "s",
+      "utf8",
+      -1,
+      2099200
+    ],
+    [
+      "exp",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "count",
+      1,
+      "w",
+      "utf8",
+      0,
+      2097152
+    ],
+    [
+      "count",
+      1,
+      "w",
+      "utf8",
+      1,
+      2097152
+    ],
+    [
+      "date",
+      1,
+      "s",
+      "utf8",
+      -1,
+      2099200
+    ],
+    [
+      "concat",
+      1,
+      "s",
+      "utf8",
+      -3,
+      2099200
+    ],
+    [
+      "ceiling",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "total_changes",
+      1,
+      "s",
+      "utf8",
+      0,
+      2097152
+    ],
+    [
+      "changes",
+      1,
+      "s",
+      "utf8",
+      0,
+      2097152
+    ],
+    [
+      "unistr_quote",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "sqlite_version",
+      1,
+      "s",
+      "utf8",
+      0,
+      2097152
+    ],
+    [
+      "if",
+      1,
+      "s",
+      "utf8",
+      -4,
+      2099200
+    ],
+    [
+      "coalesce",
+      1,
+      "s",
+      "utf8",
+      -4,
+      2099200
+    ],
+    [
+      "degrees",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "floor",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "glob",
+      1,
+      "s",
+      "utf8",
+      2,
+      2099200
+    ],
+    [
+      "zeroblob",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "hex",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "iif",
+      1,
+      "s",
+      "utf8",
+      -4,
+      2099200
+    ],
+    [
+      "sqlite_source_id",
+      1,
+      "s",
+      "utf8",
+      0,
+      2097152
+    ],
+    [
+      "concat_ws",
+      1,
+      "s",
+      "utf8",
+      -4,
+      2099200
+    ],
+    [
+      "format",
+      1,
+      "s",
+      "utf8",
+      -1,
+      2099200
+    ],
+    [
+      "datetime",
+      1,
+      "s",
+      "utf8",
+      -1,
+      2099200
+    ],
+    [
+      "cume_dist",
+      1,
+      "w",
+      "utf8",
+      0,
+      2097152
+    ],
+    [
+      "ln",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "instr",
+      1,
+      "s",
+      "utf8",
+      2,
+      2099200
+    ],
+    [
+      "json",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "dense_rank",
+      1,
+      "w",
+      "utf8",
+      0,
+      2097152
+    ],
+    [
+      "log",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "log",
+      1,
+      "s",
+      "utf8",
+      2,
+      2099200
+    ],
+    [
+      "ifnull",
+      1,
+      "s",
+      "utf8",
+      2,
+      2099200
+    ],
+    [
+      "jsonb",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "current_date",
+      1,
+      "s",
+      "utf8",
+      0,
+      2097152
+    ],
+    [
+      "current_time",
+      1,
+      "s",
+      "utf8",
+      0,
+      2097152
+    ],
+    [
+      "lag",
+      1,
+      "w",
+      "utf8",
+      1,
+      2097152
+    ],
+    [
+      "lag",
+      1,
+      "w",
+      "utf8",
+      3,
+      2097152
+    ],
+    [
+      "lag",
+      1,
+      "w",
+      "utf8",
+      2,
+      2097152
+    ],
+    [
+      "mod",
+      1,
+      "s",
+      "utf8",
+      2,
+      2099200
+    ],
+    [
+      "log2",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "like",
+      1,
+      "s",
+      "utf8",
+      2,
+      2099200
+    ],
+    [
+      "like",
+      1,
+      "s",
+      "utf8",
+      3,
+      2099200
+    ],
+    [
+      "max",
+      1,
+      "s",
+      "utf8",
+      -3,
+      2099200
+    ],
+    [
+      "max",
+      1,
+      "w",
+      "utf8",
+      1,
+      2097152
+    ],
+    [
+      "min",
+      1,
+      "s",
+      "utf8",
+      -3,
+      2099200
+    ],
+    [
+      "min",
+      1,
+      "w",
+      "utf8",
+      1,
+      2097152
+    ],
+    [
+      "lead",
+      1,
+      "w",
+      "utf8",
+      1,
+      2097152
+    ],
+    [
+      "lead",
+      1,
+      "w",
+      "utf8",
+      3,
+      2097152
+    ],
+    [
+      "lead",
+      1,
+      "w",
+      "utf8",
+      2,
+      2097152
+    ],
+    [
+      "log10",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "lower",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "ltrim",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "ltrim",
+      1,
+      "s",
+      "utf8",
+      2,
+      2099200
+    ],
+    [
+      "first_value",
+      1,
+      "w",
+      "utf8",
+      1,
+      2097152
+    ],
+    [
+      "pi",
+      1,
+      "s",
+      "utf8",
+      0,
+      2099200
+    ],
+    [
+      "length",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "likely",
+      1,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "json_set",
+      1,
+      "s",
+      "utf8",
+      -1,
+      3147776
+    ],
+    [
+      "offsets",
+      0,
+      "s",
+      "utf8",
+      1,
+      0
+    ],
+    [
+      "fts5_get_locale",
+      0,
+      "s",
+      "utf8",
+      -1,
+      0
+    ],
+    [
+      "snippet",
+      0,
+      "s",
+      "utf8",
+      -1,
+      0
+    ],
+    [
+      "fts3_tokenizer",
+      0,
+      "s",
+      "utf8",
+      2,
+      524288
+    ],
+    [
+      "fts3_tokenizer",
+      0,
+      "s",
+      "utf8",
+      1,
+      524288
+    ],
+    [
+      "highlight",
+      0,
+      "s",
+      "utf8",
+      -1,
+      0
+    ],
+    [
+      "geopoly_group_bbox",
+      0,
+      "a",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "geopoly_svg",
+      0,
+      "s",
+      "utf8",
+      -1,
+      2099200
+    ],
+    [
+      "matchinfo",
+      0,
+      "s",
+      "utf8",
+      2,
+      0
+    ],
+    [
+      "matchinfo",
+      0,
+      "s",
+      "utf8",
+      1,
+      0
+    ],
+    [
+      "floor",
+      0,
+      "s",
+      "utf8",
+      1,
+      2048
+    ],
+    [
+      "fts5",
+      0,
+      "s",
+      "utf8",
+      1,
+      0
+    ],
+    [
+      "rtreedepth",
+      0,
+      "s",
+      "utf8",
+      1,
+      0
+    ],
+    [
+      "geopoly_area",
+      0,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "match",
+      0,
+      "s",
+      "utf8",
+      2,
+      0
+    ],
+    [
+      "geopoly_blob",
+      0,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "geopoly_debug",
+      0,
+      "s",
+      "utf8",
+      1,
+      524288
+    ],
+    [
+      "optimize",
+      0,
+      "s",
+      "utf8",
+      1,
+      0
+    ],
+    [
+      "geopoly_ccw",
+      0,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "bm25",
+      0,
+      "s",
+      "utf8",
+      -1,
+      0
+    ],
+    [
+      "geopoly_xform",
+      0,
+      "s",
+      "utf8",
+      7,
+      2099200
+    ],
+    [
+      "fts5_source_id",
+      0,
+      "s",
+      "utf8",
+      0,
+      2099200
+    ],
+    [
+      "rtreenode",
+      0,
+      "s",
+      "utf8",
+      2,
+      0
+    ],
+    [
+      "geopoly_within",
+      0,
+      "s",
+      "utf8",
+      2,
+      2099200
+    ],
+    [
+      "fts5_locale",
+      0,
+      "s",
+      "utf8",
+      2,
+      3145728
+    ],
+    [
+      "geopoly_json",
+      0,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "fts5_insttoken",
+      0,
+      "s",
+      "utf8",
+      1,
+      2097152
+    ],
+    [
+      "rtreecheck",
+      0,
+      "s",
+      "utf8",
+      -1,
+      0
+    ],
+    [
+      "geopoly_regular",
+      0,
+      "s",
+      "utf8",
+      4,
+      2099200
+    ],
+    [
+      "geopoly_contains_point",
+      0,
+      "s",
+      "utf8",
+      3,
+      2099200
+    ],
+    [
+      "geopoly_overlap",
+      0,
+      "s",
+      "utf8",
+      2,
+      2099200
+    ],
+    [
+      "geopoly_bbox",
+      0,
+      "s",
+      "utf8",
+      1,
+      2099200
+    ],
+    [
+      "regexp",
+      0,
+      "s",
+      "utf8",
+      2,
+      2048
+    ]
+  ],
+  "reflection": [
+    {
+      "name": "owned",
+      "schema": null,
+      "exists": true
+    },
+    {
+      "name": "temporary",
+      "schema": null,
+      "exists": true
+    },
+    {
+      "name": "visible",
+      "schema": null,
+      "exists": true
+    },
+    {
+      "name": "temporary",
+      "schema": "main",
+      "exists": false
+    },
+    {
+      "name": "temporary",
+      "schema": "temp",
+      "exists": false
+    }
+  ],
+  "cases": [
+    {
+      "sql": "SELECT \"unknown\" AS x",
+      "columns": [
+        "x"
+      ],
+      "rows": [
+        [
+          {
+            "type": "str",
+            "repr": "'unknown'"
+          }
+        ]
+      ]
+    },
+    {
+      "sql": "SELECT CAST(x'80' AS TEXT) AS invalid",
+      "errorType": "OperationalError",
+      "error": "(sqlite3.OperationalError) Could not decode to UTF-8 column 'invalid' with text '\ufffd'\n(Background on this error at: https://sqlalche.me/e/20/e3q8)"
+    },
+    {
+      "sql": "SELECT x'00275c80ff' AS blob",
+      "columns": [
+        "blob"
+      ],
+      "rows": [
+        [
+          {
+            "type": "bytes",
+            "repr": "b\"\\x00'\\\\\\x80\\xff\""
+          }
+        ]
+      ]
+    },
+    {
+      "sql": "SELECT 9223372036854775807 AS large, 1.0 AS float, null AS missing",
+      "columns": [
+        "large",
+        "float",
+        "missing"
+      ],
+      "rows": [
+        [
+          {
+            "type": "int",
+            "repr": "9223372036854775807"
+          },
+          {
+            "type": "float",
+            "repr": "1.0"
+          },
+          {
+            "type": "NoneType",
+            "repr": "None"
+          }
+        ]
+      ]
+    },
+    {
+      "sql": "PRAGMA encoding",
+      "columns": [
+        "encoding"
+      ],
+      "rows": [
+        [
+          {
+            "type": "str",
+            "repr": "'UTF-8'"
+          }
+        ]
+      ]
+    },
+    {
+      "sql": "PRAGMA page_size",
+      "columns": [
+        "page_size"
+      ],
+      "rows": [
+        [
+          {
+            "type": "int",
+            "repr": "4096"
+          }
+        ]
+      ]
+    },
+    {
+      "sql": "PRAGMA cache_size",
+      "columns": [
+        "cache_size"
+      ],
+      "rows": [
+        [
+          {
+            "type": "int",
+            "repr": "-2000"
+          }
+        ]
+      ]
+    },
+    {
+      "sql": "SELECT floor(1.5) AS floored",
+      "columns": [
+        "floored"
+      ],
+      "rows": [
+        [
+          {
+            "type": "int",
+            "repr": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "sql": "SELECT 'abc' REGEXP '^a' AS matches",
+      "columns": [
+        "matches"
+      ],
+      "rows": [
+        [
+          {
+            "type": "int",
+            "repr": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "sql": "CREATE VIRTUAL TABLE docs USING fts3(content)",
+      "errorType": "ResourceClosedError",
+      "error": "This result object does not return rows. It has been closed automatically."
+    },
+    {
+      "sql": "CREATE VIRTUAL TABLE docs4 USING fts4(content)",
+      "errorType": "ResourceClosedError",
+      "error": "This result object does not return rows. It has been closed automatically."
+    },
+    {
+      "sql": "CREATE VIRTUAL TABLE geo USING geopoly(a,b,c)",
+      "errorType": "ResourceClosedError",
+      "error": "This result object does not return rows. It has been closed automatically."
+    },
+    {
+      "sql": "SELECT sqlite_version(), sqlite_source_id()",
+      "columns": [
+        "sqlite_version()",
+        "sqlite_source_id()"
+      ],
+      "rows": [
+        [
+          {
+            "type": "str",
+            "repr": "'3.50.4'"
+          },
+          {
+            "type": "str",
+            "repr": "'2025-07-30 19:33:53 4d8adfb30e03f9cf27f800a2c1ba3c48fb4ca1b08b0f5ed59a4d5ecbf45e20a3'"
+          }
+        ]
+      ]
+    },
+    {
+      "sql": "PRAGMA compile_options",
+      "columns": [
+        "compile_options"
+      ],
+      "rows": [
+        [
+          {
+            "type": "str",
+            "repr": "'ATOMIC_INTRINSICS=1'"
+          }
+        ],
+        [
+          {
+            "type": "str",
+            "repr": "'COMPILER=clang-21.1.4'"
+          }
+        ],
+        [
+          {
+            "type": "str",
+            "repr": "'DEFAULT_AUTOVACUUM'"
+          }
+        ],
+        [
+          {
+            "type": "str",
+            "repr": "'DEFAULT_CACHE_SIZE=-2000'"
+          }
+        ],
+        [
+          {
+            "type": "str",
+            "repr": "'DEFAULT_FILE_FORMAT=4'"
+          }
+        ],
+        [
+          {
+            "type": "str",
+            "repr": "'DEFAULT_JOURNAL_SIZE_LIMIT=-1'"
+          }
+        ],
+        [
+          {
+            "type": "str",
+            "repr": "'DEFAULT_MMAP_SIZE=0'"
+          }
+        ],
+        [
+          {
+            "type": "str",
+            "repr": "'DEFAULT_PAGE_SIZE=4096'"
+          }
+        ],
+        [
+          {
+            "type": "str",
+            "repr": "'DEFAULT_PCACHE_INITSZ=20'"
+          }
+        ],
+        [
+          {
+            "type": "str",
+            "repr": "'DEFAULT_RECURSIVE_TRIGGERS'"
+          }
+        ],
+        [
+          {
+            "type": "str",
+            "repr": "'DEFAULT_SECTOR_SIZE=4096'"
+          }
+        ],
+        [
+          {
+            "type": "str",
+            "repr": "'DEFAULT_SYNCHRONOUS=2'"
+          }
+        ],
+        [
+          {
+            "type": "str",
+            "repr": "'DEFAULT_WAL_AUTOCHECKPOINT=1000'"
+          }
+        ],
+        [
+          {
+            "type": "str",
+            "repr": "'DEFAULT_WAL_SYNCHRONOUS=2'"
+          }
+        ],
+        [
+          {
+            "type": "str",
+            "repr": "'DEFAULT_WORKER_THREADS=0'"
+          }
+        ],
+        [
+          {
+            "type": "str",
+            "repr": "'DIRECT_OVERFLOW_READ'"
+          }
+        ],
+        [
+          {
+            "type": "str",
+            "repr": "'ENABLE_DBSTAT_VTAB'"
+          }
+        ],
+        [
+          {
+            "type": "str",
+            "repr": "'ENABLE_FTS3'"
+          }
+        ],
+        [
+          {
+            "type": "str",
+            "repr": "'ENABLE_FTS3_PARENTHESIS'"
+          }
+        ],
+        [
+          {
+            "type": "str",
+            "repr": "'ENABLE_FTS4'"
+          }
+        ],
+        [
+          {
+            "type": "str",
+            "repr": "'ENABLE_FTS5'"
+          }
+        ],
+        [
+          {
+            "type": "str",
+            "repr": "'ENABLE_GEOPOLY'"
+          }
+        ],
+        [
+          {
+            "type": "str",
+            "repr": "'ENABLE_MATH_FUNCTIONS'"
+          }
+        ],
+        [
+          {
+            "type": "str",
+            "repr": "'ENABLE_RTREE'"
+          }
+        ],
+        [
+          {
+            "type": "str",
+            "repr": "'MALLOC_SOFT_LIMIT=1024'"
+          }
+        ],
+        [
+          {
+            "type": "str",
+            "repr": "'MAX_ATTACHED=10'"
+          }
+        ],
+        [
+          {
+            "type": "str",
+            "repr": "'MAX_COLUMN=2000'"
+          }
+        ],
+        [
+          {
+            "type": "str",
+            "repr": "'MAX_COMPOUND_SELECT=500'"
+          }
+        ],
+        [
+          {
+            "type": "str",
+            "repr": "'MAX_DEFAULT_PAGE_SIZE=8192'"
+          }
+        ],
+        [
+          {
+            "type": "str",
+            "repr": "'MAX_EXPR_DEPTH=1000'"
+          }
+        ],
+        [
+          {
+            "type": "str",
+            "repr": "'MAX_FUNCTION_ARG=1000'"
+          }
+        ],
+        [
+          {
+            "type": "str",
+            "repr": "'MAX_LENGTH=1000000000'"
+          }
+        ],
+        [
+          {
+            "type": "str",
+            "repr": "'MAX_LIKE_PATTERN_LENGTH=50000'"
+          }
+        ],
+        [
+          {
+            "type": "str",
+            "repr": "'MAX_MMAP_SIZE=0x7fff0000'"
+          }
+        ],
+        [
+          {
+            "type": "str",
+            "repr": "'MAX_PAGE_COUNT=0xfffffffe'"
+          }
+        ],
+        [
+          {
+            "type": "str",
+            "repr": "'MAX_PAGE_SIZE=65536'"
+          }
+        ],
+        [
+          {
+            "type": "str",
+            "repr": "'MAX_SQL_LENGTH=1000000000'"
+          }
+        ],
+        [
+          {
+            "type": "str",
+            "repr": "'MAX_TRIGGER_DEPTH=1000'"
+          }
+        ],
+        [
+          {
+            "type": "str",
+            "repr": "'MAX_VARIABLE_NUMBER=32766'"
+          }
+        ],
+        [
+          {
+            "type": "str",
+            "repr": "'MAX_VDBE_OP=250000000'"
+          }
+        ],
+        [
+          {
+            "type": "str",
+            "repr": "'MAX_WORKER_THREADS=8'"
+          }
+        ],
+        [
+          {
+            "type": "str",
+            "repr": "'MUTEX_PTHREADS'"
+          }
+        ],
+        [
+          {
+            "type": "str",
+            "repr": "'SYSTEM_MALLOC'"
+          }
+        ],
+        [
+          {
+            "type": "str",
+            "repr": "'TEMP_STORE=1'"
+          }
+        ],
+        [
+          {
+            "type": "str",
+            "repr": "'THREADSAFE=1'"
+          }
+        ]
+      ]
+    },
+    {
+      "sql": "SELECT soundex('hello') AS s",
+      "errorType": "OperationalError",
+      "error": "(sqlite3.OperationalError) no such function: soundex\n[SQL: SELECT soundex('hello') AS s]\n(Background on this error at: https://sqlalche.me/e/20/e3q8)"
+    },
+    {
+      "sql": "SELECT json('{\"x\":1}') AS j",
+      "errorType": "StatementError",
+      "error": "(sqlalchemy.exc.InvalidRequestError) A value is required for bind parameter '1'\n[SQL: SELECT json('{\"x\"?}') AS j]\n(Background on this error at: https://sqlalche.me/e/20/cd3x)"
+    },
+    {
+      "sql": "SELECT log(100), sqrt(4), unhex('6162')",
+      "columns": [
+        "log(100)",
+        "sqrt(4)",
+        "unhex('6162')"
+      ],
+      "rows": [
+        [
+          {
+            "type": "float",
+            "repr": "2.0"
+          },
+          {
+            "type": "float",
+            "repr": "2.0"
+          },
+          {
+            "type": "bytes",
+            "repr": "b'ab'"
+          }
+        ]
+      ]
+    },
+    {
+      "sql": "WITH RECURSIVE n(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM n WHERE x<4) SELECT x,row_number() OVER (ORDER BY x DESC) AS rn FROM n ORDER BY x",
+      "columns": [
+        "x",
+        "rn"
+      ],
+      "rows": [
+        [
+          {
+            "type": "int",
+            "repr": "1"
+          },
+          {
+            "type": "int",
+            "repr": "4"
+          }
+        ],
+        [
+          {
+            "type": "int",
+            "repr": "2"
+          },
+          {
+            "type": "int",
+            "repr": "3"
+          }
+        ],
+        [
+          {
+            "type": "int",
+            "repr": "3"
+          },
+          {
+            "type": "int",
+            "repr": "2"
+          }
+        ],
+        [
+          {
+            "type": "int",
+            "repr": "4"
+          },
+          {
+            "type": "int",
+            "repr": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "sql": "SELECT 1 AS value; SELECT 2",
+      "errorType": "ProgrammingError",
+      "error": "(sqlite3.ProgrammingError) You can only execute one statement at a time.\n[SQL: SELECT 1 AS value; SELECT 2]\n(Background on this error at: https://sqlalche.me/e/20/f405)"
+    },
+    {
+      "sql": "SELECT 'a;b' AS value; -- harmless trailing comment",
+      "columns": [
+        "value"
+      ],
+      "rows": [
+        [
+          {
+            "type": "str",
+            "repr": "'a;b'"
+          }
+        ]
+      ]
+    },
+    {
+      "sql": "SELECT char(65279) AS bom, char(0) AS nul",
+      "columns": [
+        "bom",
+        "nul"
+      ],
+      "rows": [
+        [
+          {
+            "type": "str",
+            "repr": "'\\ufeff'"
+          },
+          {
+            "type": "str",
+            "repr": "'\\x00'"
+          }
+        ]
+      ]
+    }
+  ],
+  "executables": [
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--query",
+        "SELECT \"unknown\" AS x"
+      ],
+      "stdout": "x\nunknown\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--query",
+        "SELECT CAST(x'80' AS TEXT) AS invalid"
+      ],
+      "stdout": "invalid\n",
+      "stderr": "OperationalError: (sqlite3.OperationalError) Could not decode to UTF-8 column 'invalid' with text '\ufffd'\n(Background on this error at: https://sqlalche.me/e/20/e3q8)\n",
+      "status": 1
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--query",
+        "SELECT x'00275c80ff' AS blob"
+      ],
+      "stdout": "blob\n\"b\"\"\\x00'\\\\\\x80\\xff\"\"\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--query",
+        "SELECT 9223372036854775807 AS large, 1.0 AS float, null AS missing"
+      ],
+      "stdout": "large,float,missing\n9223372036854775807,1.0,\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--query",
+        "PRAGMA encoding"
+      ],
+      "stdout": "encoding\nUTF-8\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--query",
+        "PRAGMA page_size"
+      ],
+      "stdout": "page_size\n4096\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--query",
+        "PRAGMA cache_size"
+      ],
+      "stdout": "cache_size\n-2000\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--query",
+        "SELECT floor(1.5) AS floored"
+      ],
+      "stdout": "floored\n1\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--query",
+        "SELECT 'abc' REGEXP '^a' AS matches"
+      ],
+      "stdout": "matches\n1\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--query",
+        "CREATE VIRTUAL TABLE docs USING fts3(content)"
+      ],
+      "stdout": "",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--query",
+        "CREATE VIRTUAL TABLE docs4 USING fts4(content)"
+      ],
+      "stdout": "",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--query",
+        "CREATE VIRTUAL TABLE geo USING geopoly(a,b,c)"
+      ],
+      "stdout": "",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--query",
+        "SELECT sqlite_version(), sqlite_source_id()"
+      ],
+      "stdout": "sqlite_version(),sqlite_source_id()\n3.50.4,2025-07-30 19:33:53 4d8adfb30e03f9cf27f800a2c1ba3c48fb4ca1b08b0f5ed59a4d5ecbf45e20a3\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--query",
+        "SELECT soundex('hello') AS s"
+      ],
+      "stdout": "",
+      "stderr": "OperationalError: (sqlite3.OperationalError) no such function: soundex\n[SQL: SELECT soundex('hello') AS s]\n(Background on this error at: https://sqlalche.me/e/20/e3q8)\n",
+      "status": 1
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--query",
+        "SELECT json('{\"x\":1}') AS j"
+      ],
+      "stdout": "j\n\"{\"\"x\"\":1}\"\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--query",
+        "SELECT log(100), sqrt(4), unhex('6162')"
+      ],
+      "stdout": "log(100),sqrt(4),unhex('6162')\n2.0,2.0,b'ab'\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--query",
+        "WITH RECURSIVE n(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM n WHERE x<4) SELECT x,row_number() OVER (ORDER BY x DESC) AS rn FROM n ORDER BY x"
+      ],
+      "stdout": "x,rn\n1,4\n2,3\n3,2\n4,1\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--query",
+        "SELECT 1 AS value; SELECT 2"
+      ],
+      "stdout": "",
+      "stderr": "ProgrammingError: (sqlite3.ProgrammingError) You can only execute one statement at a time.\n[SQL: SELECT 1 AS value; SELECT 2]\n(Background on this error at: https://sqlalche.me/e/20/f405)\n",
+      "status": 1
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--query",
+        "SELECT 'a;b' AS value; -- harmless trailing comment"
+      ],
+      "stdout": "value\na;b\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "command": "sql2csv",
+      "argv": [
+        "--query",
+        "SELECT char(65279) AS bom, char(0) AS nul"
+      ],
+      "stdout": "bom,nul\n\ufeff,\u0000\n",
+      "stderr": "",
+      "status": 0
+    }
+  ]
+}

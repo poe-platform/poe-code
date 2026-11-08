@@ -1,0 +1,29 @@
+diff --git a/tests/shell/env-shebang.test.ts b/tests/shell/env-shebang.test.ts
+index 48e73a55..a466ea36 100644
+--- a/tests/shell/env-shebang.test.ts
++++ b/tests/shell/env-shebang.test.ts
+@@ -140,7 +140,7 @@ test("env errors retain parser, usage and VFS status and ordering", async () =>
+   await shell.dispose();
+ });
+ 
+-test("registry, function and PATH names cannot hijack the reserved interpreter", async () => {
++test("reserved interpreter resists hijacks while exact registered targets execute", async () => {
+   const { shell, fs, commands } = setup();
+   let hijacks = 0;
+   for (const name of ["env", "alien"]) commands.register({ name, execute() { hijacks++; return { exitCode: 37 }; } });
+@@ -150,9 +150,13 @@ test("registry, function and PATH names cannot hijack the reserved interpreter",
+   const overridden = await shell.exec("/program");
+   assert.equal(overridden.exitCode, 126);
+   assert.match(overridden.stderr, /unsupported interpreter override: bash/u);
+-  await fs.writeFile("/program", encode("#!/usr/bin/env -S alien\nsay BAD"));
+-  assert.equal((await shell.exec("/program")).exitCode, 127);
+   assert.equal(hijacks, 0);
++  await fs.writeFile("/program", encode("#!/usr/bin/env -S alien\nsay BAD"));
++  const registered = await shell.exec("/program");
++  assert.equal(registered.exitCode, 37);
++  assert.equal(registered.stdout, "");
++  assert.equal(registered.stderr, "");
++  assert.equal(hijacks, 1);
+   await shell.dispose();
+ });
+ 

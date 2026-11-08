@@ -1,0 +1,26 @@
+{
+  "candidate": "7623599c995c42f62ec1cd9ad78ced2913970f66",
+  "startedAt": "2026-08-27T20:12:43.741Z",
+  "finishedAt": "2026-08-27T20:12:46.340Z",
+  "archiveSha256": "6d6b7ca9a07b910b452f6d041e96460ba189b7de2d480531e8917ff804c5cc2e",
+  "archiveAndBuiltAppendAwareUnchanged": true,
+  "dependencyAppendAwareUnchanged": true,
+  "historicalAppendAwareUnchanged": true,
+  "controlsUnchanged": true,
+  "passed": 36,
+  "total": 47,
+  "failed": [
+    "division-cap-1",
+    "division-cap-22",
+    "modulo-cap-one",
+    "noninteger-cap-one",
+    "nul-cap-one",
+    "unicode-cap-one",
+    "argument-budget-cap-one",
+    "work-budget-cap-one",
+    "regex-invalid-cap-one",
+    "stdout-rejection-normal-quota",
+    "shell-division-quota"
+  ],
+  "resultMeaning": "Capture success is NOT acceptance success. Every failed assertion is retained."
+}

@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:poe:remote-execution:dependency-manifest:v1",
+  "title": "Dependency manifest v1 review profile",
+  "description": "Design only. Select with Execution-Profile: dependency-manifest-v1. Preparation changes private server state, never canonical user files. Shapes require the semantic admission in admission-map.json and dependency-manifests.md; no runtime schema fetches.",
+  "$ref": "#/$defs/DependencyManifest",
+  "$defs": {
+    "Id": { "type": "string", "minLength": 1, "maxLength": 256 },
+    "NullableId": { "anyOf": [{ "$ref": "#/$defs/Id" }, { "type": "null" }] },
+    "Path": {
+      "type": "array", "minItems": 1,
+      "items": { "type": "integer", "minimum": 1, "maximum": 255 },
+      "description": "Owned nonempty NUL-free octets; absolute paths start with slash. Canonical resolution and negotiated aggregate limits are mandatory."
+    },
+    "AbsolutePath": {
+      "allOf": [{ "$ref": "#/$defs/Path" }],
+      "prefixItems": [{ "const": 47 }],
+      "type": "array"
+    },
+    "Component": {
+      "allOf": [{ "$ref": "#/$defs/Path" }],
+      "type": "array",
+      "items": { "not": { "const": 47 } },
+      "not": { "enum": [[46], [46, 46]] }
+    },
+    "EntryPath": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/Component" } },
+    "FileSize": {
+      "type": "string", "minLength": 1, "maxLength": 19,
+      "description": "Semantic parser requires canonical unsigned decimal 0 through 9223372036854775807. Lexical shape alone is insufficient."
+    },
+    "Timestamp": {
+      "type": "string", "minLength": 1, "maxLength": 20,
+      "description": "Semantic parser requires canonical signed decimal nanoseconds in signed 64-bit range; reject leading zeros, negative zero and overflow."
+    },
+    "Digest": {
+      "type": "string", "minLength": 64, "maxLength": 64,
+      "description": "Semantic parser admits exactly 64 lowercase hexadecimal SHA-256 digits."
+    },
+    "Source": {
+      "type": "object", "additionalProperties": false,
+      "required": ["authorityId", "path", "freshness", "observedVersion", "retainedIdentity"],
+      "properties": {
+        "authorityId": { "$ref": "#/$defs/Id" },
+        "path": { "$ref": "#/$defs/AbsolutePath" },
+        "freshness": { "enum": ["immutable", "revalidate-on-open", "live"] },
+        "observedVersion": { "$ref": "#/$defs/NullableId" },
+        "retainedIdentity": { "$ref": "#/$defs/NullableId" },
+        "snapshotId": { "$ref": "#/$defs/Id" },
+        "callbackGrantId": { "$ref": "#/$defs/Id" }
+      },
+      "allOf": [{
+        "if": { "properties": { "freshness": { "const": "immutable" } }, "required": ["freshness"] },
+        "then": { "required": ["snapshotId"] },
+        "else": { "required": ["callbackGrantId"] }
+      }]
+    },
+    "Metadata": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "mode": { "type": "integer", "minimum": 0, "maximum": 4095 },
+        "atimeNs": { "$ref": "#/$defs/Timestamp" },
+        "mtimeNs": { "$ref": "#/$defs/Timestamp" }
+      }
+    },
+    "Blob": {
+      "type": "object", "additionalProperties": false,
+      "required": ["blobId", "size", "sha256"],
+      "properties": {
+        "blobId": { "$ref": "#/$defs/Id" },
+        "size": { "$ref": "#/$defs/FileSize" },
+        "sha256": { "$ref": "#/$defs/Digest" }
+      }
+    },
+    "Entry": {
+      "type": "object",
+      "required": ["kind", "path", "source"],
+      "properties": {
+        "kind": { "enum": ["directory", "file", "symlink", "hardlink", "output-intent"] },
+        "path": { "$ref": "#/$defs/EntryPath" },
+        "source": { "$ref": "#/$defs/Source" },
+        "metadata": { "$ref": "#/$defs/Metadata" }
+      },
+      "oneOf": [
+        { "properties": { "kind": { "const": "directory" } } },
+        { "required": ["blob"], "properties": {
+          "kind": { "const": "file" }, "blob": { "$ref": "#/$defs/Blob" }, "identityRef": { "$ref": "#/$defs/Id" }
+        } },
+        { "required": ["target"], "properties": {
+          "kind": { "const": "symlink" }, "target": { "$ref": "#/$defs/Path" }
+        } },
+        { "required": ["identityRef"], "properties": {
+          "kind": { "const": "hardlink" }, "identityRef": { "$ref": "#/$defs/Id" }
+        } },
+        { "required": ["operations"], "properties": {
+          "kind": { "const": "output-intent" },
+          "operations": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "enum": ["create", "truncate", "append", "replace"] } },
+          "source": { "type": "object", "properties": { "freshness": { "not": { "const": "immutable" } } } }
+        }, "not": { "required": ["metadata"] } }
+      ],
+      "unevaluatedProperties": false
+    },
+    "DependencyManifest": {
+      "type": "object", "additionalProperties": false,
+      "required": ["version", "sessionId", "epoch", "namespaceId", "revision", "logicalRoot", "cwd", "sourceAuthorityId", "entries"],
+      "properties": {
+        "version": { "const": 1 },
+        "sessionId": { "$ref": "#/$defs/Id" }, "epoch": { "$ref": "#/$defs/Id" },
+        "namespaceId": { "$ref": "#/$defs/Id" }, "revision": { "$ref": "#/$defs/Id" },
+        "logicalRoot": { "$ref": "#/$defs/AbsolutePath" }, "cwd": { "$ref": "#/$defs/AbsolutePath" },
+        "sourceAuthorityId": { "$ref": "#/$defs/Id" },
+        "entries": { "type": "array", "items": { "$ref": "#/$defs/Entry" } }
+      }
+    },
+    "StoredManifest": {
+      "type": "object", "additionalProperties": false,
+      "required": ["manifestId", "revision", "sha256"],
+      "properties": {
+        "manifestId": { "$ref": "#/$defs/Id" }, "revision": { "$ref": "#/$defs/Id" },
+        "sha256": { "$ref": "#/$defs/Digest" }
+      }
+    },
+    "DependencyMaterializeRequest": {
+      "type": "object", "additionalProperties": false,
+      "required": ["sessionId", "epoch", "manifestId", "manifestRevision", "bindingId", "expectedDirectoryRevision", "operationKey"],
+      "properties": {
+        "sessionId": { "$ref": "#/$defs/Id" }, "epoch": { "$ref": "#/$defs/Id" },
+        "manifestId": { "$ref": "#/$defs/Id" }, "manifestRevision": { "$ref": "#/$defs/Id" },
+        "bindingId": { "$ref": "#/$defs/Id" }, "operationKey": { "$ref": "#/$defs/Id" },
+        "expectedDirectoryRevision": { "$ref": "#/$defs/NullableId" }
+      }
+    },
+    "DependencyMaterialization": {
+      "type": "object", "additionalProperties": false,
+      "required": ["operationId", "manifestId", "manifestRevision", "directoryRevision", "state", "entries", "callbackGrantIds"],
+      "properties": {
+        "operationId": { "$ref": "#/$defs/Id" }, "manifestId": { "$ref": "#/$defs/Id" },
+        "manifestRevision": { "$ref": "#/$defs/Id" }, "directoryRevision": { "$ref": "#/$defs/NullableId" },
+        "state": { "enum": ["accepted", "applying", "ready", "partial", "failed", "unknown"] },
+        "entries": { "type": "array", "items": {
+          "type": "object", "additionalProperties": false, "required": ["index", "state", "revision"],
+          "properties": {
+            "index": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+            "state": { "enum": ["pending", "applied", "failed", "unknown"] },
+            "revision": { "$ref": "#/$defs/NullableId" }, "error": { "type": "string" }
+          }
+        } },
+        "callbackGrantIds": { "type": "array", "items": { "$ref": "#/$defs/Id" } },
+        "error": { "enum": ["missing-blob", "wrong-length", "wrong-hash", "stale-revision", "collision", "unauthorized", "unsupported", "unstable-capture"] }
+      }
+    },
+    "DependencyBinding": {
+      "type": "object", "additionalProperties": false,
+      "required": ["bindingId", "sourceAuthorityId", "materializationId", "invocation"],
+      "properties": {
+        "bindingId": { "$ref": "#/$defs/Id" }, "sourceAuthorityId": { "$ref": "#/$defs/Id" },
+        "materializationId": { "$ref": "#/$defs/Id" }, "invocation": { "$ref": "#/$defs/ManifestInvocation" }
+      }
+    },
+    "ManifestInvocation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["manifestId", "manifestRevision", "directoryRevision", "cwd", "originalArgv"],
+      "properties": {
+        "manifestId": { "$ref": "#/$defs/Id" }, "manifestRevision": { "$ref": "#/$defs/Id" },
+        "directoryRevision": { "$ref": "#/$defs/Id" }, "cwd": { "$ref": "#/$defs/AbsolutePath" },
+        "originalArgv": { "type": "array", "items": { "type": "array", "items": { "type": "integer", "minimum": 1, "maximum": 255 } } }
+      }
+    }
+  }
+}

@@ -1,0 +1,187 @@
+{
+  "schema": "timeout-public-continuation-recipe/1",
+  "sealedAt": "2026-08-28T05:44:25.810Z",
+  "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+  "files": [
+    {
+      "path": "common.mjs",
+      "bytes": 4447,
+      "sha256": "317e7796a803443614b63e0191bfd8512f0a6b8cd8bf2b74162eae09d24fbb6e"
+    },
+    {
+      "path": "admission.mjs",
+      "bytes": 7673,
+      "sha256": "3431c94223e68ec8f852029f0b187a57935a2336e8a54a99f8f0fbe90cf4cac6"
+    },
+    {
+      "path": "preload.mjs",
+      "bytes": 3456,
+      "sha256": "80071d9a9e2e2e7162e8891975abb43b618bc064bac95835d77856b3fdb94f18"
+    },
+    {
+      "path": "supervisor.mjs",
+      "bytes": 3246,
+      "sha256": "ac4d3e1be95bf86c394be49347c0d515d14cb282e8d28fdbc550606f26252155"
+    },
+    {
+      "path": "archive.mjs",
+      "bytes": 2546,
+      "sha256": "bdd6fd8c23bf43f53f4216936bf4c37eff94653e61bdb47f85dedf5f99648772"
+    },
+    {
+      "path": "legacy-adapter.mjs",
+      "bytes": 17244,
+      "sha256": "3ef48e5a018a90ae34fe837eb678c37e85d914d543d2379638b13a843dc64a85"
+    },
+    {
+      "path": "runtime.mjs",
+      "bytes": 32546,
+      "sha256": "f58097a631a3272e3cb6bb30df79497e94fdda74c7a7cfa3da22ce69a1749027"
+    },
+    {
+      "path": "execute.mjs",
+      "bytes": 17566,
+      "sha256": "0f396dd1be979d0ab8741ee795c938c7b6e89a7977b2a062a11cd9bb81b83124"
+    },
+    {
+      "path": "boundaries.mjs",
+      "bytes": 2435,
+      "sha256": "ce78b6e53d2a82894856f6d558d35f8ca24aec2c858145410620f4b899c1fb4a"
+    },
+    {
+      "path": "admission-probe.data",
+      "bytes": 1012,
+      "sha256": "8dd16ef8501e704dd5c57322f8d0c9c9ce3a9aaa1f702c1acded03d39f9bdb86"
+    },
+    {
+      "path": "r12.data",
+      "bytes": 3611,
+      "sha256": "fb871303f188045f73d1d11c2546c86e0f20f8d3625591540292c108495f5b46"
+    },
+    {
+      "path": "execution-tail.data",
+      "bytes": 7114,
+      "sha256": "5a1c272529dad0d7d0fdcf32626f75e3a18497453746e1d82f7a5f871e65332f"
+    },
+    {
+      "path": "controls.mjs",
+      "bytes": 4317,
+      "sha256": "17c929f1eb8acae7e8c6d6c60f7146b1e2054cd3b50fe97977beac86cdb9c721"
+    },
+    {
+      "path": "README.md",
+      "bytes": 2933,
+      "sha256": "5dcd5bc8f8611ea9fefe46d4d4377d21cd4d9ef631d719f36d0db33bd45ccfc5"
+    },
+    {
+      "path": "seal.mjs",
+      "bytes": 13895,
+      "sha256": "36710c8d43e72d4d14e197c898564d81be30ab2b609e3e81530a2c3d3cead6e1"
+    },
+    {
+      "path": "CONTINUATION.json",
+      "bytes": 9013,
+      "sha256": "ccc548c804718c3a3a58d0801d889d1317629e8e160a177b5090827ef8baed3e"
+    },
+    {
+      "path": "OVERLAY.json",
+      "bytes": 33999,
+      "sha256": "68b4b440f15489ad202a66f43a323d2bf288f25f1c6dfdc1a33829d00c0d1119"
+    }
+  ],
+  "references": [
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-integration-freeze-v1/MANIFEST.json",
+      "repositoryRelative": true,
+      "sha256": "18e3c23c425065f79c92ff6a17e7853c643e316db3e38d5806c3450a63448991",
+      "bytes": 1734
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-integration-freeze-v1/BINDINGS.json",
+      "repositoryRelative": true,
+      "sha256": "7a32cb77fac733116f12e5f08ca38c883ddcda85cfa5c7ac3927c6520362014e",
+      "bytes": 304012
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-integration-freeze-v1/cases.mjs",
+      "repositoryRelative": true,
+      "sha256": "e9b6408731e74c9e61523684146f9863d42a9b5e1d5208e4e6f29a055a5966e2",
+      "bytes": 21906
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-integration-freeze-v1/types.mjs",
+      "repositoryRelative": true,
+      "sha256": "166ace4eaaa37a6cd7ffdeea615ddc31a01591cf06b354311bf2220e9d4879e1",
+      "bytes": 4613
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-integration-freeze-v1/predicates.mjs",
+      "repositoryRelative": true,
+      "sha256": "619f0ad371ad5d7134318bdb63519136b430062be187637f8a463e9a53e55aec",
+      "bytes": 4181
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/repaired-f22-v1/recipe/cases.mjs",
+      "repositoryRelative": true,
+      "sha256": "e8d4c902c7984acd098728a62f72a0e2aa692b030144d9cb439d5d6c96c9ec74",
+      "bytes": 48255
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/repaired-f22-v1/recipe/io.mjs",
+      "repositoryRelative": true,
+      "sha256": "78262115a1350aea9654be67f4b530c11c3639c16a74758cf50ee9e09533f112",
+      "bytes": 4665
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/repaired-f22-v1/recipe/tool-observer.cjs",
+      "repositoryRelative": true,
+      "sha256": "318f0ce280bdeddb86ef49691094b46ddfc4b8d12ba05f6abd04900f7df61967",
+      "bytes": 5913
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/repaired-f22-v1/recipe/borrowed-boundary.mjs",
+      "repositoryRelative": true,
+      "sha256": "57205242ad82f7ee57a59c5c3d8d93769b373f9a3eca1c49a24e3518c0d5f047",
+      "bytes": 2043
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/repaired-f22-v1/recipe/BINDINGS.json",
+      "repositoryRelative": true,
+      "sha256": "1b5604ae518b793f18a0c940a1fb461d0010ea1746cd03ca095bc5b196aaee93",
+      "bytes": 321801
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/clock.mjs",
+      "repositoryRelative": true,
+      "sha256": "86b98eee4ec0b3d2aeb740eb8922b7dcff31a050c52b7088e0878d0e3f08d61d",
+      "bytes": 1987
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/review-preparation-v1/recipe/support.mjs",
+      "repositoryRelative": true,
+      "sha256": "cfcdc9008e2b5f8e937a7a3072c1b2980b7ed50d32a73aa3fe91ee05aa15fde0",
+      "bytes": 5730
+    },
+    {
+      "path": "tests/integration/du-public-independent-evidence-20260827/admission-v2/closure.json",
+      "repositoryRelative": true,
+      "sha256": "b4263e32e6b2ea91a7f8eccceb1133a04ef09d614adca2c8021737572dbd0ad7",
+      "bytes": 628683
+    }
+  ],
+  "selected": [
+    "R01",
+    "R12",
+    "R21",
+    "R23",
+    "R24",
+    "R25",
+    "R28",
+    "R29"
+  ],
+  "runtimeLayouts": 3,
+  "publicTypeExecutions": 0,
+  "productMutants": 1,
+  "boundaryMutants": 4,
+  "focusedControls": 18
+}

@@ -1,0 +1,57 @@
+{
+  "startedAt": "2026-08-27T10:19:22.990Z",
+  "sourceCommit": "847dfd766eddbc8f0438f5f999f27ba6a20b8ca7",
+  "originalQualified": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-izSmkB",
+  "experiments": [
+    {
+      "mode": "declared-runtime",
+      "rejected": true,
+      "compiled": "pass",
+      "runtimeResults": [],
+      "sentinelObserved": true
+    },
+    {
+      "mode": "omitted-runtime",
+      "rejected": false,
+      "compiled": "pass",
+      "runtimeResults": [],
+      "sentinelObserved": false
+    }
+  ],
+  "selfContainedAtomic": {
+    "status": "passes-without-service",
+    "observations": {
+      "consumerPackage": {
+        "name": "independent-atomic-public-consumer",
+        "private": true,
+        "type": "module"
+      },
+      "methods": [
+        "PROPFIND",
+        "PROPFIND",
+        "PROPFIND"
+      ],
+      "calls": 1,
+      "modules": [
+        {
+          "specifier": "virtual-bash",
+          "resolved": "file:///Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-izSmkB/consumer/node_modules/virtual-bash/dist/index.js",
+          "actualPath": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-izSmkB/consumer/node_modules/virtual-bash/dist/index.js",
+          "sha256": "0b5b5b39167ca71c69f52ff8b363e6b626136f3bfab12abda434b2f94503d4c8"
+        },
+        {
+          "specifier": "virtual-bash/fs/webdav",
+          "resolved": "file:///Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-izSmkB/consumer/node_modules/virtual-bash/dist/fs/webdav/index.js",
+          "actualPath": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-izSmkB/consumer/node_modules/virtual-bash/dist/fs/webdav/index.js",
+          "sha256": "f66f1fe8cfe2378a7bce4fd0cf42361909b6442694a9f7b6ac9012e0b6131cc1"
+        }
+      ],
+      "passed": true
+    },
+    "fixtureSha256": "097fb4af66360dde04e79a9520bfd06a00e8213bc9f686d88c5a7ed52310dc46",
+    "setup": "only a consumer identity package.json beside emitted program, as required by original fixture; no source/fixture edits or service"
+  },
+  "status": "review-found-runtime-routing-gaps",
+  "cleaned": true,
+  "finishedAt": "2026-08-27T10:19:33.436Z"
+}

@@ -1,0 +1,10 @@
+{
+  "forward": "exact-v2",
+  "reverse": "exact-v1",
+  "method": "pure builtin unified-diff application, no external diff/patch process",
+  "v1Sha256": "f4671ade2c36b0c4aaa6fddf04f37d9ebe593f2d28aaadd8061f284ad12b0691",
+  "v2Sha256": "c38705fdc2afbecfd3dda00b4867bd6eae82074206001eadbc927e516f22171c",
+  "diffSha256": "e3cddd1f60fa4ccf15d38ef59ee43237efca4d343cd1cc1ac7e03f53fb7eefe3",
+  "productExecutions": 0,
+  "nativeExecutions": 0
+}

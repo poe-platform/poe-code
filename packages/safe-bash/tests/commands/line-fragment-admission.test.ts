@@ -1,0 +1,586 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+// Command initialization is outside the invocation allocation measurements.
+import "../../src/commands/index.js";
+import { lines } from "../../src/commands/internal.js";
+import { RecordBuffer } from "../../src/commands/record-buffer.js";
+import { SortRecordBudget } from "../../src/commands/sort-admission.js";
+import { textCommands } from "../../src/commands/text.js";
+import { FsError, toByteSource, type ByteSource } from "../../src/contracts/index.js";
+import { registerYieldCheckpoint } from "../../src/contracts/yield.js";
+import { fixture, run } from "./helpers.js";
+
+function synchronousFragments(fragments: readonly string[], beforePull?: (index: number) => void): ByteSource {
+  let index = 0;
+  const iterator = {
+    tryNextSync(): IteratorResult<Uint8Array> {
+      beforePull?.(index);
+      if (index === fragments.length) return { done: true, value: undefined };
+      return { done: false, value: Buffer.from(fragments[index++]!) };
+    },
+    async next(): Promise<IteratorResult<Uint8Array>> { return this.tryNextSync(); },
+  };
+  return { [Symbol.asyncIterator]: () => iterator };
+}
+
+for (const args of [[], ["-r"]]) {
+  for (const fragments of [["x"], ["b\n", "a"], ["", "x"]]) {
+    test(`sort ${args.join(" ")} bounds synchronous fallback to admitted fragment bytes: ${JSON.stringify(fragments)}`, async () => {
+      const expected = fragments.length === 2 && fragments[0] === "b\n" ? (args.length ? "b\na\n" : "a\nb\n") : "x\n";
+      const result = await run("sort", args, { stdin: synchronousFragments(fragments), commands: textCommands() });
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdoutBytes.length, expected.length);
+      assert.equal(result.stdout, expected);
+    });
+  }
+}
+
+test("sort fallback does not expose bytes retained from a preceding invocation", async () => {
+  const commands = textCommands();
+  const prior = await run("sort", [], { stdin: synchronousFragments(["private-marker\n"]), commands });
+  assert.equal(prior.stdout, "private-marker\n");
+  const result = await run("sort", [], { stdin: synchronousFragments(["x"]), commands });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdoutBytes.length, 2);
+  assert.equal(result.stdout, "x\n");
+});
+
+test("sort owns its first fragment across a reentrant next-input pull", async () => {
+  const fs = await fixture();
+  const commands = textCommands();
+  let nested: ReturnType<typeof run> | undefined;
+  const stdin = synchronousFragments(["b\na\n"], index => {
+    if (index === 1 && !nested) nested = run("sort", [], { fs, stdin: synchronousFragments(["z\ny\n"]), commands });
+  });
+  const outer = await run("sort", [], { fs, stdin, commands });
+  const inner = await nested;
+  assert.ok(inner);
+  assert.equal(inner.exitCode, 0, inner.stderr);
+  assert.equal(inner.stdout, "y\nz\n");
+  assert.equal(outer.exitCode, 0, outer.stderr);
+  assert.equal(outer.stdoutBytes.length, 4);
+  assert.equal(outer.stdout, "a\nb\n");
+});
+
+test("sort preserves borrowed input when a repeated prefix is followed by another fragment", async () => {
+  const commands = textCommands();
+  const signal = new AbortController().signal;
+  const prefix = "b\n" + "a\n".repeat(128);
+  const initialInput = { ...synchronousFragments([prefix]), abortSignal: signal };
+  const first = await run("sort", [], { commands, signal, stdin: initialInput });
+  assert.equal(first.stdout, "a\n".repeat(128) + "b\n");
+  const borrowed = Buffer.from(prefix);
+  let index = 0;
+  const iterator = {
+    tryNextSync(): IteratorResult<Uint8Array> {
+      if (index++ === 0) return { done: false, value: borrowed };
+      borrowed.fill(0);
+      return index === 2 ? { done: false, value: Buffer.from("c\n") } : { done: true, value: undefined };
+    },
+    async next(): Promise<IteratorResult<Uint8Array>> { return this.tryNextSync(); },
+  };
+  const stdin = { abortSignal: signal, [Symbol.asyncIterator]: () => iterator };
+  const result = await run("sort", [], { commands, signal, stdin });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "a\n".repeat(128) + "b\nc\n");
+});
+
+test("sort preserves a repeated input result across a reentrant EOF pull", async () => {
+  const commands = textCommands();
+  const fs = await fixture();
+  const signal = new AbortController().signal;
+  const input = "b\n" + "a\n".repeat(128);
+  const expected = "a\n".repeat(128) + "b\n";
+  const initialInput = { ...synchronousFragments([input]), abortSignal: signal };
+  const first = await run("sort", [], { fs, commands, signal, stdin: initialInput });
+  assert.equal(first.stdout, expected);
+  let nested: ReturnType<typeof run> | undefined;
+  const stdin = {
+    ...synchronousFragments([input], index => {
+      if (index === 1 && !nested) {
+        const nestedInput = { ...synchronousFragments(["z\n".repeat(128)]), abortSignal: signal };
+        nested = run("sort", [], { fs, commands, signal, stdin: nestedInput });
+      }
+    }),
+    abortSignal: signal,
+  };
+  const result = await run("sort", [], { fs, commands, signal, stdin });
+  const inner = await nested;
+  assert.ok(inner);
+  assert.equal(inner.stdout, "z\n".repeat(128));
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, expected);
+});
+
+test("sort retains indexed record boundaries across a cooperative host turn", async t => {
+  const fs = await fixture();
+  const commands = textCommands();
+  let now = 0;
+  t.mock.method(performance, "now", () => now);
+  const records = Array.from({ length: 4096 }, (_, index) => String(index).padStart(4, "0"));
+  const expected = records.join("\n") + "\n";
+  const input = records.reverse().join("\n") + "\n";
+  const signal = new AbortController().signal;
+  let checkpoints = 0;
+  const stdin = synchronousFragments([input], index => {
+    // Bind after input admission so the indexed path suspends during sorting.
+    if (index === 1) {
+      // Expire the native-work quantum independently of host/JIT speed.
+      now = 100;
+      registerYieldCheckpoint(signal, () => { checkpoints++; });
+    }
+  });
+  let outerFinished = false;
+  const outer = run("sort", ["-s"], { fs, stdin, commands, signal }).then(result => {
+    outerFinished = true;
+    return result;
+  });
+  let observedPending = false;
+  const inner = new Promise<Awaited<ReturnType<typeof run>>>((resolve, reject) => {
+    setImmediate(() => {
+      observedPending = !outerFinished;
+      void run("sort", [], { fs, stdin: synchronousFragments(["z\naaa\nm\n"]), commands }).then(resolve, reject);
+    });
+  });
+  const [first, second] = await Promise.all([outer, inner]);
+  assert.equal(observedPending, true);
+  assert.ok(checkpoints > 0);
+  assert.equal(second.exitCode, 0, second.stderr);
+  assert.equal(second.stdout, "aaa\nm\nz\n");
+  assert.equal(first.exitCode, 0, first.stderr);
+  assert.equal(first.stdoutBytes.length, expected.length);
+  const actualRecords = first.stdout.split("\n");
+  assert.equal(actualRecords.length, 4097);
+  for (let index = 0; index < 4096; index++) {
+    assert.equal(actualRecords[index], String(index).padStart(4, "0"), `record ${index}`);
+  }
+  assert.equal(actualRecords[4096], "");
+});
+
+test("sort retains asynchronous output bytes while another invocation completes", async () => {
+  const commands = textCommands();
+  const base = await run("sort", [], { stdin: "", commands });
+  const sort = commands.find(command => command.name === "sort")!;
+  const observed: Uint8Array[] = [];
+  let writes = 0;
+  const result = await sort.execute({
+    ...base.context,
+    stdin: (async function* () { yield Buffer.from("b\na\n"); })(),
+    stdout: {
+      async write(chunk) {
+        writes++;
+        assert.equal(chunk.length, 4);
+        const nested = await run("sort", [], { fs: base.fs, stdin: synchronousFragments(["z\ny\n"]), commands });
+        assert.equal(nested.exitCode, 0, nested.stderr);
+        assert.equal(nested.stdout, "y\nz\n");
+        observed.push(Buffer.from(chunk));
+      },
+    },
+  });
+  assert.equal(result.exitCode, 0);
+  assert.equal(writes, 1);
+  assert.equal(Buffer.concat(observed).toString(), "a\nb\n");
+});
+
+async function withAllocations(action: (allocations: number[]) => Promise<void>): Promise<void> {
+  const original = Uint8Array;
+  const allocations: number[] = [];
+  globalThis.Uint8Array = new Proxy(original, {
+    construct(target, argumentsList) {
+      const result = Reflect.construct(target, argumentsList) as Uint8Array;
+      allocations.push(result.length);
+      return result;
+    },
+  });
+  try { await action(allocations); }
+  finally { globalThis.Uint8Array = original; }
+}
+
+function reusedBytes(): ByteSource {
+  const window = Buffer.alloc(1);
+  return (async function* () {
+    try {
+      for (let value = 65; value < 73; value++) {
+        window[0] = value;
+        yield window;
+      }
+    } finally { window.fill(0); }
+  })();
+}
+
+for (const args of [[], ["-r"], ["-n"], ["-k1,1n"]]) {
+  test(`sort ${args.join(" ")} owns producer bytes before advancing or closing input`, async () => {
+    for (const fragmented of [false, true]) {
+      const window = Buffer.from(fragmented ? "20\n" : "20\n10\n");
+      const stdin = (async function* () {
+        try {
+          yield window;
+          if (fragmented) {
+            window.set(Buffer.from("10\n"));
+            yield window;
+          }
+        } finally { window.fill(0); }
+      })();
+      const result = await run("sort", args, { stdin });
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, args.includes("-r") ? "20\n10\n" : "10\n20\n");
+      assert.ok(window.every(byte => byte === 0));
+    }
+  });
+}
+
+test("sort output retained by a sink survives later optimized invocations", async () => {
+  const fs = await fixture();
+  const definition = textCommands().find(command => command.name === "sort")!;
+  const retained: Uint8Array[] = [];
+  for (const text of ["b\na\n", "z\ny\n"]) {
+    const result = await definition.execute({
+      command: "sort", args: [], stdin: toByteSource(text), fs, cwd: "/work", env: {},
+      signal: new AbortController().signal,
+      stdout: { async write(bytes) { retained.push(bytes); } },
+      stderr: { async write(bytes) { assert.fail(new TextDecoder().decode(bytes)); } },
+    });
+    assert.equal(result.exitCode, 0);
+  }
+  assert.deepEqual(retained.map(bytes => new TextDecoder().decode(bytes)), ["a\nb\n", "y\nz\n"]);
+});
+
+test("lines retains eight one-byte fragments in one owned segment", async () => {
+  await withAllocations(async allocations => {
+    const records = [];
+    for await (const line of lines(reusedBytes())) records.push(line);
+    assert.deepEqual([...records[0]!.bytes], [65, 66, 67, 68, 69, 70, 71, 72]);
+    assert.equal(records[0]!.terminated, false);
+    assert.deepEqual(allocations, [4096, 8]);
+  });
+});
+
+test("sort retains eight one-byte fragments without per-fragment owned copies", async () => {
+  const commands = textCommands();
+  await withAllocations(async allocations => {
+    const result = await run("sort", [], { stdin: reusedBytes(), commands });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "ABCDEFGH\n");
+    assert.equal(allocations.filter(length => length === 1).length, 0);
+  });
+});
+
+for (const args of [[], ["-r"], ["-s"], ["-k1,1n"]]) {
+  test(`sort ${args.join(" ")} snapshots each borrowed input fragment before advancing`, async () => {
+    const result = await run("sort", args, { stdin: reusedBytes(), commands: textCommands() });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "ABCDEFGH\n");
+  });
+}
+
+for (const fragments of [["b"], ["b\n", "a\n"]]) {
+  test(`sort preserves a short synchronous input before fallback: ${JSON.stringify(fragments)}`, async () => {
+    const signal = new AbortController().signal;
+    const stdin = {
+      abortSignal: signal,
+      [Symbol.asyncIterator]() {
+        let index = 0;
+        return {
+          tryNextSync() {
+            if (index === 0) return { done: false as const, value: Buffer.from(fragments[index++]!) };
+            return index === fragments.length ? { done: true as const, value: undefined } : undefined;
+          },
+          async next() {
+            return index < fragments.length
+              ? { done: false as const, value: Buffer.from(fragments[index++]!) }
+              : { done: true as const, value: undefined };
+          },
+        };
+      },
+    };
+    const result = await run("sort", [], { stdin, signal, commands: textCommands() });
+    const expected = fragments.length === 1 ? "b\n" : "a\nb\n";
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout.length, expected.length);
+    assert.equal(result.stdout, expected);
+  });
+}
+
+for (const count of [8, 16]) {
+  for (const command of ["lines", "sort", "sort -c"] as const) {
+    test(`${command} directly finalizes ${count} complete short records without scratch segments`, async () => {
+      const input = Buffer.from("a\n".repeat(count));
+      const commands = textCommands();
+      await withAllocations(async allocations => {
+        let inputAllocations: number[] | undefined;
+        async function* source(): ByteSource {
+          try { yield input; }
+          finally {
+            input.fill(0);
+            inputAllocations = allocations.slice();
+          }
+        }
+        if (command === "lines") {
+          const records = [];
+          for await (const record of lines(source())) records.push(record);
+          assert.equal(records.length, count);
+          for (const record of records) {
+            assert.deepEqual([...record.bytes], [97]);
+            assert.equal(record.terminated, true);
+          }
+        } else {
+          const result = await run("sort", command === "sort -c" ? ["-c"] : [], { stdin: source(), commands });
+          assert.equal(result.exitCode, 0, result.stderr);
+          assert.equal(result.stdout, command === "sort" ? "a\n".repeat(count) : "");
+        }
+        assert.deepEqual(inputAllocations, Array<number>(count).fill(1));
+      });
+      assert.ok(input.every(byte => byte === 0));
+    });
+  }
+}
+
+test("record directly finalizes an owned offset span after all admission", async () => {
+  const record = new RecordBuffer(5, 5);
+  const input = Buffer.from([255, 1, 2, 3, 4, 5, 255]);
+  await withAllocations(async allocations => {
+    const output = record.finish(size => {
+      assert.equal(size, 5);
+      assert.deepEqual(allocations, []);
+    }, input, 1, 6);
+    assert.deepEqual(allocations, [5]);
+    input.fill(0, 1, 6);
+    assert.deepEqual([...output], [1, 2, 3, 4, 5]);
+    assert.equal(record.size, 0);
+    assert.equal(input[0], 255);
+    assert.equal(input[6], 255);
+  });
+});
+
+test("record rejects direct final spans before line, aggregate or overlap copying", async () => {
+  const input = Buffer.from([1, 2, 3]);
+  Object.defineProperty(input, "subarray", { value() { return assert.fail("copied rejected final span"); } });
+  const failure = new FsError("EFBIG", { message: "aggregate full" });
+  await withAllocations(async allocations => {
+    assert.throws(() => new RecordBuffer(2).finish(() => {
+      assert.fail("aggregate called before line admission");
+    }, input), { code: "EFBIG", message: "EFBIG: line buffer limit exceeded" });
+    assert.throws(() => new RecordBuffer(3).finish(size => {
+      assert.equal(size, 3);
+      throw failure;
+    }, input), error => error === failure);
+    assert.throws(() => new RecordBuffer(3, 2).finish(undefined, input), {
+      code: "EFBIG", message: "EFBIG: line finalization buffer limit exceeded",
+    });
+    assert.deepEqual(allocations, []);
+  });
+});
+
+test("record final span shares admission with pending fragments without another segment", async () => {
+  const record = new RecordBuffer(5);
+  const input = Buffer.from([3, 4, 5, 6]);
+  await withAllocations(async allocations => {
+    record.append(Buffer.from([1, 2]));
+    assert.throws(() => record.finish(() => {
+      assert.fail("aggregate called before pending plus final span admission");
+    }, input), { code: "EFBIG", message: "EFBIG: line buffer limit exceeded" });
+    assert.equal(record.size, 2);
+    assert.deepEqual(allocations, [5]);
+    const output = record.finish(size => { assert.equal(size, 5); }, input, 0, 3);
+    assert.deepEqual([...output], [1, 2, 3, 4, 5]);
+    assert.deepEqual(allocations, [5, 5]);
+    input.fill(0);
+    assert.deepEqual([...output], [1, 2, 3, 4, 5]);
+  });
+});
+
+test("record admission rejects the whole span before allocation or copying", async () => {
+  const record = new RecordBuffer(5);
+  const first = Buffer.from([1, 2, 3]);
+  const overflow = Buffer.from([4, 5, 6]);
+  Object.defineProperty(overflow, "subarray", { value() { return assert.fail("copied rejected span"); } });
+  await withAllocations(async allocations => {
+    record.append(first);
+    assert.deepEqual(allocations, [5]);
+    assert.throws(() => record.append(overflow), { code: "EFBIG", message: "EFBIG: line buffer limit exceeded" });
+    assert.deepEqual(allocations, [5]);
+    assert.equal(record.size, 3);
+    record.append(Buffer.from([4, 5]));
+    assert.deepEqual([...record.finish()], [1, 2, 3, 4, 5]);
+    assert.deepEqual(allocations, [5, 5]);
+    assert.equal(record.size, 0);
+  });
+});
+
+test("record segments are lazy and cap the last allocation to logical capacity", async () => {
+  const record = new RecordBuffer(4099);
+  const first = Buffer.alloc(4096, 65);
+  await withAllocations(async allocations => {
+    record.append(Buffer.alloc(0));
+    assert.deepEqual(allocations, []);
+    record.append(first);
+    record.append(Buffer.from([66, 67, 68]));
+    assert.deepEqual(allocations, [4096, 3]);
+    const result = record.finish();
+    assert.equal(result.length, 4099);
+    assert.ok(result.subarray(0, 4096).every(byte => byte === 65));
+    assert.deepEqual([...result.subarray(4096)], [66, 67, 68]);
+    assert.deepEqual(allocations, [4096, 3, 4099]);
+  });
+});
+
+test("record finalization admits segment/output overlap before exact allocation", async () => {
+  const record = new RecordBuffer(5, 8);
+  await withAllocations(async allocations => {
+    record.append(Buffer.from([1, 2, 3, 4]));
+    assert.throws(() => record.finish(), { code: "EFBIG", message: "EFBIG: line finalization buffer limit exceeded" });
+    assert.deepEqual(allocations, [5]);
+    assert.equal(record.size, 4);
+    record.clear();
+    record.append(Buffer.from([5, 6, 7]));
+    assert.deepEqual([...record.finish()], [5, 6, 7]);
+    assert.deepEqual(allocations, [5, 5, 3]);
+  });
+});
+
+test("record aggregate admission runs before exact allocation and preserves rejected bytes", async () => {
+  const record = new RecordBuffer(5);
+  const failure = new FsError("EFBIG", { message: "aggregate full" });
+  await withAllocations(async allocations => {
+    record.append(Buffer.from([1, 2]));
+    assert.throws(() => record.finish(size => {
+      assert.equal(size, 2);
+      throw failure;
+    }), error => error === failure);
+    assert.deepEqual(allocations, [5]);
+    assert.equal(record.size, 2);
+    assert.deepEqual([...record.finish()], [1, 2]);
+  });
+});
+
+for (const kind of ["Buffer", "Uint8Array"] as const) {
+  test(`record owns offset ${kind} spans and never reuses returned output`, () => {
+    const backing = kind === "Buffer" ? Buffer.alloc(7, 255) : new Uint8Array(7).fill(255);
+    const record = new RecordBuffer(5);
+    backing.set([65, 66, 67], 2);
+    record.append(backing, 2, 5);
+    backing.fill(0, 2, 5);
+    const first = record.finish();
+    backing.set([68, 69], 2);
+    record.append(backing, 2, 4);
+    const second = record.finish();
+    backing.fill(0, 2, 5);
+    assert.deepEqual([...first], [65, 66, 67]);
+    assert.deepEqual([...second], [68, 69]);
+    assert.equal(backing[1], 255);
+    assert.equal(backing[5], 255);
+  });
+}
+
+for (const delimiter of [10, 0]) {
+  test(`lines preserves empty, split and EOF records with separator ${delimiter}`, async () => {
+    const window = Buffer.alloc(2);
+    let closed = false;
+    async function* source(): ByteSource {
+      try {
+        yield Buffer.alloc(0);
+        for (const payload of [[delimiter, 65], [66, delimiter], [delimiter, 67], [68]]) {
+          window.set(payload);
+          yield window.subarray(0, payload.length);
+        }
+      } finally { window.fill(0); closed = true; }
+    }
+    const admitted: number[] = [];
+    const records = [];
+    for await (const record of lines(source(), delimiter, size => { admitted.push(size); })) records.push(record);
+    assert.deepEqual(records.map(record => [[...record.bytes], record.terminated]), [
+      [[], true], [[65, 66], true], [[], true], [[67, 68], false],
+    ]);
+    assert.deepEqual(admitted, [0, 2, 0, 2]);
+    assert.equal(closed, true);
+  });
+}
+
+test("lines closes its producer on early return or rejected finalization", async () => {
+  let closed = 0;
+  let reads = 0;
+  async function* source(): ByteSource {
+    try {
+      reads++;
+      yield Buffer.from([65, 10, 66]);
+      reads++;
+      yield Buffer.from([67]);
+    } finally { closed++; }
+  }
+  for await (const line of lines(source())) {
+    assert.deepEqual([...line.bytes], [65]);
+    break;
+  }
+  const failure = new Error("admission refused");
+  await withAllocations(async allocations => {
+    await assert.rejects(async () => {
+      for await (const line of lines(source(), 10, () => { throw failure; })) assert.fail(String(line));
+    }, error => error === failure);
+    assert.deepEqual(allocations, []);
+  });
+  assert.equal(reads, 2);
+  assert.equal(closed, 2);
+});
+
+for (const reason of [0, false, "", null]) {
+  test(`lines preserves falsey source failure ${JSON.stringify(reason)} and cleanup`, async () => {
+    let closed = false;
+    async function* source(): ByteSource {
+      try { yield Buffer.from([65]); throw reason; }
+      finally { closed = true; }
+    }
+    await assert.rejects(async () => {
+      for await (const line of lines(source())) assert.fail(String(line));
+    }, error => error === reason);
+    assert.equal(closed, true);
+  });
+
+  for (const args of [[], ["-c"]]) {
+    test(`sort ${args.join(" ")} preserves falsey cancellation ${JSON.stringify(reason)} and cleanup`, async () => {
+      const controller = new AbortController();
+      let closed = false;
+      async function* source(): ByteSource {
+        try {
+          yield Buffer.from([65]);
+          controller.abort(reason);
+          yield Buffer.from([10]);
+        } finally { closed = true; }
+      }
+      await assert.rejects(run("sort", args, { stdin: source(), signal: controller.signal }), error => error === reason);
+      assert.equal(closed, true);
+    });
+  }
+}
+
+for (const args of [[], ["-c"]]) {
+  for (const specimen of [
+    { name: "exact capacity with no extra EOF record", records: [[10], [10]], admitted: [0, 0], exitCode: 0 },
+    { name: "separator alone exceeds capacity", records: [[10], [10], [10]], admitted: [0, 0], exitCode: 2 },
+    { name: "unterminated record still charges separator", records: [[10], [65]], admitted: [0], exitCode: 2 },
+  ]) {
+    test(`sort ${args.join(" ")} retains delimiter admission: ${specimen.name} (synthetic prior charge)`, async context => {
+      const admit = SortRecordBudget.prototype.admit;
+      const bounded = new SortRecordBudget(Infinity, 8);
+      const admitted: number[] = [];
+      let calls = 0;
+      let closed = false;
+      let reads = 0;
+      context.mock.method(SortRecordBudget.prototype, "admit", function(this: SortRecordBudget, size: number) {
+        admit.call(bounded, calls++ === 0 ? 6 : size);
+        admitted.push(size);
+      });
+      async function* source(): ByteSource {
+        try {
+          for (const bytes of specimen.records) { reads++; yield Buffer.from(bytes); }
+        } finally { closed = true; }
+      }
+      const result = await run("sort", args, { stdin: source() });
+      assert.equal(result.exitCode, specimen.exitCode, result.stderr);
+      assert.equal(result.stderr, specimen.exitCode ? "sort: EFBIG: sort buffer limit exceeded\n" : "");
+      assert.equal(result.stdout, !specimen.exitCode && !args.length ? "\n\n" : "");
+      assert.deepEqual(admitted, specimen.admitted);
+      assert.equal(reads, specimen.records.length);
+      assert.equal(closed, true);
+    });
+  }
+}

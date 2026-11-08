@@ -1,0 +1,42 @@
+{
+  "license": "MIT AND LGPL-2.1-or-later",
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc && cp LICENSE COPYING COPYING.LESSER dist/ && cp src/width-data.ts dist/width-data.ts",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
+    "lint": "eslint src && npm run typecheck",
+    "test": "node --import tsx --test src/*.test.ts",
+    "test:unit": "node --import tsx --test src/*.test.ts"
+  },
+  "main": "dist/index.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
+      "import": "./dist/index.js"
+    },
+    "./family": {
+      "types": "./dist/family.d.ts",
+      "workerd": "./dist/family.js",
+      "browser": "./dist/family.js",
+      "import": "./dist/family.js"
+    }
+  },
+  "name": "safe-bash-command-fold",
+  "devDependencies": {
+    "safe-bash-io-engine": "*",
+    "safe-bash-contracts": "*",
+    "safe-bash-text-stream-engine": "*"
+  },
+  "version": "0.0.1",
+  "type": "module",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "LICENSE",
+    "COPYING",
+    "COPYING.LESSER"
+  ],
+  "dependencies": {},
+  "private": true
+}

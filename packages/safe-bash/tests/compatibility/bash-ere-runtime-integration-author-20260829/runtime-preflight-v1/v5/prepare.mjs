@@ -1,0 +1,68 @@
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { SourceTextModule } from 'node:vm';
+import { repositoryRoot, sourcePaths, copyNames, resolveInventoryPath } from './root-binding.mjs';
+
+const root = '/private/tmp/safe-bash-core70-v5-20260829';
+const scope = repositoryRoot + '/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/';
+const digest = bytes => createHash('sha256').update(bytes).digest('hex');
+const read = (file, cap = 262144) => {
+  const stat = fs.lstatSync(file);
+  assert.ok(stat.isFile() && !stat.isSymbolicLink() && stat.size <= cap);
+  const bytes = fs.readFileSync(file); assert.equal(bytes.length, stat.size); return bytes;
+};
+for (const [descriptor, suffix] of [[1, '.stdout'], [2, '.stderr']]) {
+  const actual = fs.fstatSync(descriptor), declared = fs.lstatSync(root + '/prepare' + suffix);
+  assert.ok(actual.isFile() && declared.isFile()); assert.equal(actual.ino, declared.ino); assert.equal(actual.dev, declared.dev);
+}
+const phase = JSON.parse(read(root + '/PHASE.json'));
+assert.ok(Number.isSafeInteger(phase.deadlineMs) && Date.now() < phase.deadlineMs);
+assert.equal(process.execPath, '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node');
+assert.equal(fs.lstatSync(process.execPath).size, 112989184);
+const binaryHash = createHash('sha256'); for await (const chunk of fs.createReadStream(process.execPath, { highWaterMark: 65536 })) binaryHash.update(chunk);
+assert.equal(binaryHash.digest('hex'), '5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011');
+const controls = root + '/controls'; fs.mkdirSync(controls, { mode: 0o700 });
+const originals = [
+  ['pure-controls.mjs', '32f780a3262c59a9ec9e3c43ef5c7f39191f9231d60dbec7071777e02418e40f'],
+  ['guards.mjs', '6bc787789a4d09486ce04f5bbd44eef87121441013027b01849d7540f1f0d65b'],
+  ['array-observer.mjs', '039d593cfd9e53773d6218a6aa404cdd300a1bffe120a7a33d766e9d097ad4b4'],
+];
+let original;
+for (const [name, hash] of originals) {
+  const bytes = read(scope + 'v4/' + name); assert.equal(digest(bytes), hash);
+  if (name === 'pure-controls.mjs') original = bytes.toString('utf8');
+  else fs.writeFileSync(controls + '/' + name, bytes, { flag: 'wx' });
+}
+function replaceOnce(text, before, after) { assert.equal(text.split(before).length, 2); return text.replace(before, after); }
+let source = replaceOnce(original, "import { observeArrays } from './array-observer.mjs';", "import { observeArrays } from './array-observer.mjs';\nimport { repositoryRoot, resolveInventoryPath } from './root-binding.mjs';");
+source = replaceOnce(source, 'return { path: match[2], sha256: match[1] };', 'return { path: resolveInventoryPath(match[2], repositoryRoot, root), sha256: match[1] };');
+const added = `await control('inventory/explicit-root-from-isolated-cwd', () => { assert.notEqual(process.cwd(), repositoryRoot); assert.equal(resolveInventoryPath('${sourcePaths[0]}', repositoryRoot, root), repositoryRoot + '/${sourcePaths[0]}'); });
+await control('inventory/wrong-root-refused', () => assert.throws(() => resolveInventoryPath('${sourcePaths[0]}', '/', root), /root authority/));
+await control('inventory/traversal-refused', () => assert.throws(() => resolveInventoryPath('../pure-controls.mjs', repositoryRoot, root), /not declared/));
+await control('inventory/undeclared-absolute-refused', () => assert.throws(() => resolveInventoryPath('/private/tmp/unbound.mjs', repositoryRoot, root), /not declared/));
+await control('inventory/copied-entry-exact', () => assert.equal(resolveInventoryPath(root + '/pure-controls.mjs', repositoryRoot, root), root + '/pure-controls.mjs'));
+`;
+source = replaceOnce(source, "await control('own/null-prototype-accepted'", added + "await control('own/null-prototype-accepted'");
+new SourceTextModule(source, { identifier: 'v5/pure-controls.mjs' });
+new SourceTextModule(read(scope + 'v5/root-binding.mjs').toString('utf8'), { identifier: 'v5/root-binding.mjs' });
+fs.writeFileSync(controls + '/pure-controls.mjs', source, { flag: 'wx' });
+fs.writeFileSync(scope + 'v5/pure-controls.mjs', source, { flag: 'wx' });
+fs.writeFileSync(controls + '/root-binding.mjs', read(scope + 'v5/root-binding.mjs'), { flag: 'wx' });
+const oldControlRoot = '/private/tmp/safe-bash-core70-v4-20260829/controls';
+const oldInventory = read(scope + 'v4/raw/SHA256SUMS').toString().trimEnd().split('\n').map(line => { const match = /^([a-f0-9]{64})  ([a-zA-Z0-9.-]+)$/.exec(line); assert.ok(match); return { name: match[2], sha256: match[1] }; });
+assert.deepEqual(oldInventory.map(row => row.name), ['owner.mjs', 'harmless.mjs', 'controls.mjs', 'PRESEAL.md', 'START.json']);
+for (const row of oldInventory) {
+  const bytes = read(oldControlRoot + '/' + row.name); assert.equal(digest(bytes), row.sha256);
+  fs.writeFileSync(controls + '/' + row.name, row.name === 'START.json' ? JSON.stringify(phase) + '\n' : bytes, { flag: 'wx' });
+}
+fs.writeFileSync(controls + '/SHA256SUMS', oldInventory.map(row => digest(read(controls + '/' + row.name)) + '  ' + row.name).join('\n') + '\n', { flag: 'wx' });
+const members = [...sourcePaths, ...copyNames.map(name => controls + '/' + name)];
+fs.writeFileSync(controls + '/CUSTOM-SHA256SUMS', members.map(member => digest(read(resolveInventoryPath(member, repositoryRoot, controls))) + '  ' + member).join('\n') + '\n', { flag: 'wx' });
+const sealBytes = read(scope + 'v4/EXECUTION-SEAL.json');
+assert.equal(digest(sealBytes), 'ea3c82e4192729f4cbd2172e9548d5e21da3d4e3d8ccbfbfa7ad591a47736301');
+const result = { status: 'DATA_PREPARED', pid: process.pid, originalDependencies: originals, sourceRoot: repositoryRoot, syntaxChecks: 2, inventory: members, entrySha256: digest(Buffer.from(source)), rootBindingSha256: digest(read(controls + '/root-binding.mjs')), inheritedExecutionSealSha256: digest(sealBytes), productImports: 0, Workers: 0, finishedMs: Date.now() };
+assert.ok(result.finishedMs < phase.deadlineMs);
+fs.writeFileSync(root + '/PREPARED.json', JSON.stringify(result, null, 2) + '\n', { flag: 'wx' });
+console.log(JSON.stringify(result));

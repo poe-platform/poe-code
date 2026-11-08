@@ -1,0 +1,25 @@
+{
+  "name": "serial-wrapper",
+  "kind": "wrapper",
+  "durationMs": 360.42720800000006,
+  "checks": [
+    {
+      "name": "exact direct child and streams closed successfully",
+      "pass": true
+    },
+    {
+      "name": "canonical child retains six passes and zero failures/skips",
+      "pass": true
+    },
+    {
+      "name": "three exact native profiles, output triples and real retirement",
+      "pass": true
+    },
+    {
+      "name": "virtual suffix follows actual prefix output for all three repetitions",
+      "pass": true
+    }
+  ],
+  "traceEvents": 19,
+  "pass": true
+}

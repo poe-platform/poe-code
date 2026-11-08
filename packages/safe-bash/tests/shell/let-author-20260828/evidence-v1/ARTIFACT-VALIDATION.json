@@ -1,0 +1,26 @@
+{
+  "schema": "let-author-artifact-validation-v2",
+  "sourceArchive": {
+    "filename": "/Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/evidence-v1/selected-inputs-v2.tar.gz",
+    "sha256": "0ba67572a10e707f7e7210577f9497fe78a8d4d30053dcaa9078876e67f99c1d",
+    "members": 265,
+    "totalBytes": 2411379,
+    "regularFilesOnly": true,
+    "materialized": false
+  },
+  "packageArchive": {
+    "filename": "/Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/evidence-v1/pack-first/virtual-bash-0.0.0.tgz",
+    "sha256": "21c4858e6e4b857cd5e0d526159667621bcd206b4f1fd1ce1f84b54ad7abbace",
+    "members": 846,
+    "totalBytes": 4132535,
+    "regularFilesOnly": true,
+    "materialized": false
+  },
+  "commandReceipts": 32,
+  "sourceAndMovedHistoricalFailuresPreserved": true,
+  "mutantsQualified": 7,
+  "originalTypeMatcherRejectPreserved": true,
+  "rejectedArchiveV1Preserved": true,
+  "productReruns": 0,
+  "nativeExecutions": 0
+}

@@ -1,0 +1,1923 @@
+{
+  "coreCommit": "84fc74259706ee8d7a39680f098aa61d43b0085e",
+  "initial": {
+    "head": "b43c994e1bf94bccef78d1f1ff05228993f19e01",
+    "node": "v22.22.2",
+    "runs": [
+      {
+        "name": "env-author",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--import",
+          "tsx",
+          "--import",
+          "./tests/shell/invocation-discovery-fixes-imports.mjs",
+          "--test",
+          "--test-concurrency=1",
+          "tests/shell/env-replacement.test.ts",
+          "tests/shell/env-replacement-bounds.test.ts"
+        ],
+        "status": 0,
+        "counts": {
+          "tests": 30,
+          "pass": 30,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "before": {
+          "entries": 295,
+          "sha256": "ce5f58c3cd8a7310c89f792699b54b83eb0de72ae54736ce5db3584ec720d51d"
+        },
+        "after": {
+          "entries": 295,
+          "sha256": "ce5f58c3cd8a7310c89f792699b54b83eb0de72ae54736ce5db3584ec720d51d"
+        },
+        "changed": [],
+        "importedMismatch": [],
+        "imports": [
+          {
+            "pid": 67095,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/index.ts",
+            "hash": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+            "format": "module"
+          },
+          {
+            "pid": 67095,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/index.ts",
+            "hash": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+            "format": "module"
+          },
+          {
+            "pid": 67095,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/command.ts",
+            "hash": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+            "format": "module"
+          },
+          {
+            "pid": 67095,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/errors.ts",
+            "hash": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+            "format": "module"
+          },
+          {
+            "pid": 67095,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/filesystem.ts",
+            "hash": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+            "format": "module"
+          },
+          {
+            "pid": 67095,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts",
+            "hash": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+            "format": "module"
+          },
+          {
+            "pid": 67095,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/path.ts",
+            "hash": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+            "format": "module"
+          },
+          {
+            "pid": 67095,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts",
+            "hash": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+            "format": "module"
+          },
+          {
+            "pid": 67095,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/shell.ts",
+            "hash": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+            "format": "module"
+          },
+          {
+            "pid": 67095,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/parser.ts",
+            "hash": "cd31afa92e6e54a3e3fceb328064e1e2421e0461529c354794d7b7198c80e4ec",
+            "format": "module"
+          },
+          {
+            "pid": 67095,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/types.ts",
+            "hash": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+            "format": "module"
+          },
+          {
+            "pid": 67095,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/arithmetic.ts",
+            "hash": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+            "format": "module"
+          },
+          {
+            "pid": 67095,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/input.ts",
+            "hash": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+            "format": "module"
+          },
+          {
+            "pid": 67095,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/locale.ts",
+            "hash": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+            "format": "module"
+          },
+          {
+            "pid": 67095,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts",
+            "hash": "7aaaaff3ebc18c65556036878e48a4977b55bc2689adfc647c20be663f3cdd42",
+            "format": "module"
+          },
+          {
+            "pid": 67095,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/pattern.ts",
+            "hash": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+            "format": "module"
+          },
+          {
+            "pid": 67095,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/display.ts",
+            "hash": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+            "format": "module"
+          }
+        ],
+        "compilerInputs": 0,
+        "compilerInputPathsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "unguardedCompilerPaths": []
+      },
+      {
+        "name": "current-shell43",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--import",
+          "tsx",
+          "--import",
+          "./tests/shell/invocation-discovery-fixes-imports.mjs",
+          "--test",
+          "--test-concurrency=1",
+          "tests/shell-stress/current-shell/current-shell.test.ts"
+        ],
+        "status": 0,
+        "counts": {
+          "tests": 44,
+          "pass": 44,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "before": {
+          "entries": 295,
+          "sha256": "ce5f58c3cd8a7310c89f792699b54b83eb0de72ae54736ce5db3584ec720d51d"
+        },
+        "after": {
+          "entries": 295,
+          "sha256": "ce5f58c3cd8a7310c89f792699b54b83eb0de72ae54736ce5db3584ec720d51d"
+        },
+        "changed": [],
+        "importedMismatch": [
+          {
+            "pid": 67097,
+            "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/current-shell/current-shell.test.ts",
+            "hash": "fa803152d6d4f179345e476202c7dafc5dc3f5af1006b49404dcec0a23770253",
+            "format": "module"
+          }
+        ],
+        "imports": [],
+        "compilerInputs": 0,
+        "compilerInputPathsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "unguardedCompilerPaths": []
+      },
+      {
+        "name": "previous86",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--import",
+          "tsx",
+          "--import",
+          "./tests/shell/invocation-discovery-fixes-imports.mjs",
+          "--test",
+          "--test-concurrency=1",
+          "tests/shell/source-dot-eval-source.test.ts",
+          "tests/shell/source-dot-eval-source-host.test.ts",
+          "tests/shell/source-dot-eval-eval.test.ts",
+          "tests/shell/source-dot-eval-eval-host.test.ts"
+        ],
+        "status": 0,
+        "counts": {
+          "tests": 86,
+          "pass": 86,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "before": {
+          "entries": 295,
+          "sha256": "ce5f58c3cd8a7310c89f792699b54b83eb0de72ae54736ce5db3584ec720d51d"
+        },
+        "after": {
+          "entries": 295,
+          "sha256": "ce5f58c3cd8a7310c89f792699b54b83eb0de72ae54736ce5db3584ec720d51d"
+        },
+        "changed": [],
+        "importedMismatch": [],
+        "imports": [
+          {
+            "pid": 67199,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/index.ts",
+            "hash": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+            "format": "module"
+          },
+          {
+            "pid": 67199,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/index.ts",
+            "hash": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+            "format": "module"
+          },
+          {
+            "pid": 67199,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/command.ts",
+            "hash": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+            "format": "module"
+          },
+          {
+            "pid": 67199,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/errors.ts",
+            "hash": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+            "format": "module"
+          },
+          {
+            "pid": 67199,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/filesystem.ts",
+            "hash": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+            "format": "module"
+          },
+          {
+            "pid": 67199,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts",
+            "hash": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+            "format": "module"
+          },
+          {
+            "pid": 67199,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/path.ts",
+            "hash": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+            "format": "module"
+          },
+          {
+            "pid": 67199,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts",
+            "hash": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+            "format": "module"
+          },
+          {
+            "pid": 67199,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/parser.ts",
+            "hash": "cd31afa92e6e54a3e3fceb328064e1e2421e0461529c354794d7b7198c80e4ec",
+            "format": "module"
+          },
+          {
+            "pid": 67199,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/types.ts",
+            "hash": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+            "format": "module"
+          },
+          {
+            "pid": 67199,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/shell.ts",
+            "hash": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+            "format": "module"
+          },
+          {
+            "pid": 67199,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/arithmetic.ts",
+            "hash": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+            "format": "module"
+          },
+          {
+            "pid": 67199,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/input.ts",
+            "hash": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+            "format": "module"
+          },
+          {
+            "pid": 67199,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/locale.ts",
+            "hash": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+            "format": "module"
+          },
+          {
+            "pid": 67199,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts",
+            "hash": "7aaaaff3ebc18c65556036878e48a4977b55bc2689adfc647c20be663f3cdd42",
+            "format": "module"
+          },
+          {
+            "pid": 67199,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/pattern.ts",
+            "hash": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+            "format": "module"
+          },
+          {
+            "pid": 67199,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/display.ts",
+            "hash": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+            "format": "module"
+          },
+          {
+            "pid": 67203,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/index.ts",
+            "hash": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+            "format": "module"
+          },
+          {
+            "pid": 67203,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/index.ts",
+            "hash": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+            "format": "module"
+          },
+          {
+            "pid": 67203,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/command.ts",
+            "hash": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+            "format": "module"
+          },
+          {
+            "pid": 67203,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/errors.ts",
+            "hash": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+            "format": "module"
+          },
+          {
+            "pid": 67203,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/filesystem.ts",
+            "hash": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+            "format": "module"
+          },
+          {
+            "pid": 67203,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts",
+            "hash": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+            "format": "module"
+          },
+          {
+            "pid": 67203,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/path.ts",
+            "hash": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+            "format": "module"
+          },
+          {
+            "pid": 67203,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts",
+            "hash": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+            "format": "module"
+          },
+          {
+            "pid": 67203,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/shell.ts",
+            "hash": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+            "format": "module"
+          },
+          {
+            "pid": 67203,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/parser.ts",
+            "hash": "cd31afa92e6e54a3e3fceb328064e1e2421e0461529c354794d7b7198c80e4ec",
+            "format": "module"
+          },
+          {
+            "pid": 67203,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/types.ts",
+            "hash": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+            "format": "module"
+          },
+          {
+            "pid": 67203,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/input.ts",
+            "hash": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+            "format": "module"
+          },
+          {
+            "pid": 67203,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/locale.ts",
+            "hash": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+            "format": "module"
+          },
+          {
+            "pid": 67203,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts",
+            "hash": "7aaaaff3ebc18c65556036878e48a4977b55bc2689adfc647c20be663f3cdd42",
+            "format": "module"
+          },
+          {
+            "pid": 67203,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/arithmetic.ts",
+            "hash": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+            "format": "module"
+          },
+          {
+            "pid": 67203,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/pattern.ts",
+            "hash": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+            "format": "module"
+          },
+          {
+            "pid": 67203,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/display.ts",
+            "hash": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+            "format": "module"
+          }
+        ],
+        "compilerInputs": 0,
+        "compilerInputPathsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "unguardedCompilerPaths": []
+      },
+      {
+        "name": "legacy415",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--import",
+          "tsx",
+          "--import",
+          "./tests/shell/invocation-discovery-fixes-imports.mjs",
+          "--test",
+          "--test-concurrency=1",
+          "tests/shell-stress/invocation-modes/holdout.test.ts",
+          "tests/shell/invocation-modes.test.ts",
+          "tests/shell/invocation-closure-discovery.test.ts",
+          "tests/shell/invocation-closure-read.test.ts",
+          "tests/shell/invocation-closure-sh.test.ts"
+        ],
+        "status": 0,
+        "counts": {
+          "tests": 415,
+          "pass": 415,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "before": {
+          "entries": 295,
+          "sha256": "ce5f58c3cd8a7310c89f792699b54b83eb0de72ae54736ce5db3584ec720d51d"
+        },
+        "after": {
+          "entries": 295,
+          "sha256": "ce5f58c3cd8a7310c89f792699b54b83eb0de72ae54736ce5db3584ec720d51d"
+        },
+        "changed": [],
+        "importedMismatch": [],
+        "imports": [
+          {
+            "pid": 68398,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/index.ts",
+            "hash": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+            "format": "module"
+          },
+          {
+            "pid": 68398,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/index.ts",
+            "hash": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+            "format": "module"
+          },
+          {
+            "pid": 68398,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/command.ts",
+            "hash": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+            "format": "module"
+          },
+          {
+            "pid": 68398,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/errors.ts",
+            "hash": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+            "format": "module"
+          },
+          {
+            "pid": 68398,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/filesystem.ts",
+            "hash": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+            "format": "module"
+          },
+          {
+            "pid": 68398,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts",
+            "hash": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+            "format": "module"
+          },
+          {
+            "pid": 68398,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/path.ts",
+            "hash": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+            "format": "module"
+          },
+          {
+            "pid": 68398,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts",
+            "hash": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+            "format": "module"
+          },
+          {
+            "pid": 68398,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/shell.ts",
+            "hash": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+            "format": "module"
+          },
+          {
+            "pid": 68398,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/parser.ts",
+            "hash": "cd31afa92e6e54a3e3fceb328064e1e2421e0461529c354794d7b7198c80e4ec",
+            "format": "module"
+          },
+          {
+            "pid": 68398,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/types.ts",
+            "hash": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+            "format": "module"
+          },
+          {
+            "pid": 68398,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/input.ts",
+            "hash": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+            "format": "module"
+          },
+          {
+            "pid": 68398,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/locale.ts",
+            "hash": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+            "format": "module"
+          },
+          {
+            "pid": 68398,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts",
+            "hash": "7aaaaff3ebc18c65556036878e48a4977b55bc2689adfc647c20be663f3cdd42",
+            "format": "module"
+          },
+          {
+            "pid": 68398,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/arithmetic.ts",
+            "hash": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+            "format": "module"
+          },
+          {
+            "pid": 68398,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/pattern.ts",
+            "hash": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+            "format": "module"
+          },
+          {
+            "pid": 68398,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/display.ts",
+            "hash": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+            "format": "module"
+          },
+          {
+            "pid": 69037,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/index.ts",
+            "hash": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+            "format": "module"
+          },
+          {
+            "pid": 69037,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/index.ts",
+            "hash": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+            "format": "module"
+          },
+          {
+            "pid": 69037,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/command.ts",
+            "hash": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+            "format": "module"
+          },
+          {
+            "pid": 69037,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/errors.ts",
+            "hash": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+            "format": "module"
+          },
+          {
+            "pid": 69037,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/filesystem.ts",
+            "hash": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+            "format": "module"
+          },
+          {
+            "pid": 69037,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts",
+            "hash": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+            "format": "module"
+          },
+          {
+            "pid": 69037,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/path.ts",
+            "hash": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+            "format": "module"
+          },
+          {
+            "pid": 69037,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts",
+            "hash": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+            "format": "module"
+          },
+          {
+            "pid": 69037,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/shell.ts",
+            "hash": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+            "format": "module"
+          },
+          {
+            "pid": 69037,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/parser.ts",
+            "hash": "cd31afa92e6e54a3e3fceb328064e1e2421e0461529c354794d7b7198c80e4ec",
+            "format": "module"
+          },
+          {
+            "pid": 69037,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/types.ts",
+            "hash": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+            "format": "module"
+          },
+          {
+            "pid": 69037,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/arithmetic.ts",
+            "hash": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+            "format": "module"
+          },
+          {
+            "pid": 69037,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/input.ts",
+            "hash": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+            "format": "module"
+          },
+          {
+            "pid": 69037,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/locale.ts",
+            "hash": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+            "format": "module"
+          },
+          {
+            "pid": 69037,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts",
+            "hash": "7aaaaff3ebc18c65556036878e48a4977b55bc2689adfc647c20be663f3cdd42",
+            "format": "module"
+          },
+          {
+            "pid": 69037,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/pattern.ts",
+            "hash": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+            "format": "module"
+          },
+          {
+            "pid": 69037,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/display.ts",
+            "hash": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+            "format": "module"
+          },
+          {
+            "pid": 69248,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/index.ts",
+            "hash": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+            "format": "module"
+          },
+          {
+            "pid": 69248,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/index.ts",
+            "hash": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+            "format": "module"
+          },
+          {
+            "pid": 69248,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/command.ts",
+            "hash": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+            "format": "module"
+          },
+          {
+            "pid": 69248,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/errors.ts",
+            "hash": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+            "format": "module"
+          },
+          {
+            "pid": 69248,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/filesystem.ts",
+            "hash": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+            "format": "module"
+          },
+          {
+            "pid": 69248,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts",
+            "hash": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+            "format": "module"
+          },
+          {
+            "pid": 69248,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/path.ts",
+            "hash": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+            "format": "module"
+          },
+          {
+            "pid": 69248,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts",
+            "hash": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+            "format": "module"
+          },
+          {
+            "pid": 69248,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/shell.ts",
+            "hash": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+            "format": "module"
+          },
+          {
+            "pid": 69248,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/parser.ts",
+            "hash": "cd31afa92e6e54a3e3fceb328064e1e2421e0461529c354794d7b7198c80e4ec",
+            "format": "module"
+          },
+          {
+            "pid": 69248,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/types.ts",
+            "hash": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+            "format": "module"
+          },
+          {
+            "pid": 69248,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/arithmetic.ts",
+            "hash": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+            "format": "module"
+          },
+          {
+            "pid": 69248,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/input.ts",
+            "hash": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+            "format": "module"
+          },
+          {
+            "pid": 69248,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/locale.ts",
+            "hash": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+            "format": "module"
+          },
+          {
+            "pid": 69248,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts",
+            "hash": "7aaaaff3ebc18c65556036878e48a4977b55bc2689adfc647c20be663f3cdd42",
+            "format": "module"
+          },
+          {
+            "pid": 69248,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/pattern.ts",
+            "hash": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+            "format": "module"
+          },
+          {
+            "pid": 69248,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/display.ts",
+            "hash": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+            "format": "module"
+          },
+          {
+            "pid": 69263,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/index.ts",
+            "hash": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+            "format": "module"
+          },
+          {
+            "pid": 69263,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/index.ts",
+            "hash": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+            "format": "module"
+          },
+          {
+            "pid": 69263,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/command.ts",
+            "hash": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+            "format": "module"
+          },
+          {
+            "pid": 69263,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/errors.ts",
+            "hash": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+            "format": "module"
+          },
+          {
+            "pid": 69263,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/filesystem.ts",
+            "hash": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+            "format": "module"
+          },
+          {
+            "pid": 69263,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts",
+            "hash": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+            "format": "module"
+          },
+          {
+            "pid": 69263,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/path.ts",
+            "hash": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+            "format": "module"
+          },
+          {
+            "pid": 69263,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts",
+            "hash": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+            "format": "module"
+          },
+          {
+            "pid": 69263,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/shell.ts",
+            "hash": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+            "format": "module"
+          },
+          {
+            "pid": 69263,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/parser.ts",
+            "hash": "cd31afa92e6e54a3e3fceb328064e1e2421e0461529c354794d7b7198c80e4ec",
+            "format": "module"
+          },
+          {
+            "pid": 69263,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/types.ts",
+            "hash": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+            "format": "module"
+          },
+          {
+            "pid": 69263,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/input.ts",
+            "hash": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+            "format": "module"
+          },
+          {
+            "pid": 69263,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/locale.ts",
+            "hash": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+            "format": "module"
+          },
+          {
+            "pid": 69263,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts",
+            "hash": "7aaaaff3ebc18c65556036878e48a4977b55bc2689adfc647c20be663f3cdd42",
+            "format": "module"
+          },
+          {
+            "pid": 69263,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/arithmetic.ts",
+            "hash": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+            "format": "module"
+          },
+          {
+            "pid": 69263,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/pattern.ts",
+            "hash": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+            "format": "module"
+          },
+          {
+            "pid": 69263,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/display.ts",
+            "hash": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+            "format": "module"
+          }
+        ],
+        "compilerInputs": 0,
+        "compilerInputPathsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "unguardedCompilerPaths": []
+      },
+      {
+        "name": "global",
+        "executable": "./node_modules/.bin/tsc",
+        "args": [
+          "--noEmit",
+          "--listFiles"
+        ],
+        "status": 2,
+        "counts": {},
+        "before": {
+          "entries": 1049,
+          "sha256": "7da98ae0d0a38214c328d5800a99995c215642274b24046bc154067422c15994"
+        },
+        "after": {
+          "entries": 1049,
+          "sha256": "7da98ae0d0a38214c328d5800a99995c215642274b24046bc154067422c15994"
+        },
+        "changed": [],
+        "importedMismatch": [],
+        "imports": [],
+        "compilerInputs": 975,
+        "compilerInputPathsSha256": "1a3e315b565221f3180906027089bc3e01306ac9157862dc66d7d58de39376e0",
+        "unguardedCompilerPaths": [],
+        "stdout": "tests/shell/env-replacement-bounds.test.ts(7,173): error TS2769: No overload matches this call.\n  Overload 1 of 8, '(command: string, args: readonly string[], options: SpawnSyncOptionsWithStringEncoding): SpawnSyncReturns<string>', gave the following error.\n    Object literal may only specify known properties, and 'detached' does not exist in type 'SpawnSyncOptionsWithStringEncoding'.\n  Overload 2 of 8, '(command: string, args: readonly string[], options: SpawnSyncOptionsWithBufferEncoding): SpawnSyncReturns<NonSharedBuffer>', gave the following error.\n    Object literal may only specify known properties, and 'detached' does not exist in type 'SpawnSyncOptionsWithBufferEncoding'.\n  Overload 3 of 8, '(command: string, args?: readonly string[] | undefined, options?: SpawnSyncOptions | undefined): SpawnSyncReturns<string | NonSharedBuffer>', gave the following error.\n    Object literal may only specify known properties, and 'detached' does not exist in type 'SpawnSyncOptions'.\ntests/shell/env-replacement-native.ts(36,87): error TS2769: No overload matches this call.\n  Overload 1 of 8, '(command: string, args: readonly string[], options: SpawnSyncOptionsWithStringEncoding): SpawnSyncReturns<string>', gave the following error.\n    Object literal may only specify known properties, and 'detached' does not exist in type 'SpawnSyncOptionsWithStringEncoding'.\n  Overload 2 of 8, '(command: string, args: readonly string[], options: SpawnSyncOptionsWithBufferEncoding): SpawnSyncReturns<NonSharedBuffer>', gave the following error.\n    Object literal may only specify known properties, and 'detached' does not exist in type 'SpawnSyncOptionsWithBufferEncoding'.\n  Overload 3 of 8, '(command: string, args?: readonly string[] | undefined, options?: SpawnSyncOptions | undefined): SpawnSyncReturns<string | NonSharedBuffer>', gave the following error.\n    Object literal may only specify known properties, and 'detached' does not exist in type 'SpawnSyncOptions'.\n",
+        "stderr": ""
+      },
+      {
+        "name": "build",
+        "executable": "./node_modules/.bin/tsc",
+        "args": [
+          "-p",
+          "tsconfig.build.json",
+          "--noEmit",
+          "--listFiles"
+        ],
+        "status": 0,
+        "counts": {},
+        "before": {
+          "entries": 461,
+          "sha256": "ed21102d9ebd086698b42af85d5a26f0b7c7e49df42c4670160a39ff954166ee"
+        },
+        "after": {
+          "entries": 461,
+          "sha256": "ed21102d9ebd086698b42af85d5a26f0b7c7e49df42c4670160a39ff954166ee"
+        },
+        "changed": [],
+        "importedMismatch": [],
+        "imports": [],
+        "compilerInputs": 296,
+        "compilerInputPathsSha256": "3f814a603113a9d26c5893a2c9fceb0ccdec2393d238a81aa9385ad2d313a64e",
+        "unguardedCompilerPaths": []
+      },
+      {
+        "name": "benchmark",
+        "executable": "./node_modules/.bin/tsc",
+        "args": [
+          "-p",
+          "benchmarks/tsconfig.json",
+          "--noEmit",
+          "--listFiles"
+        ],
+        "status": 0,
+        "counts": {},
+        "before": {
+          "entries": 576,
+          "sha256": "4b021656ca423e2a4781982f002e844ab8833fa4947e9956afb2540b5028b0b0"
+        },
+        "after": {
+          "entries": 576,
+          "sha256": "4b021656ca423e2a4781982f002e844ab8833fa4947e9956afb2540b5028b0b0"
+        },
+        "changed": [],
+        "importedMismatch": [],
+        "imports": [],
+        "compilerInputs": 411,
+        "compilerInputPathsSha256": "9568aa1153b2dfbf124137380c32e9522217d596f8ffbdb9cad40c175514265d",
+        "unguardedCompilerPaths": []
+      }
+    ]
+  },
+  "final": {
+    "head": "1d931865638895aff6dec0b8c72e08f8a90c4379",
+    "node": "v22.22.2",
+    "runs": [
+      {
+        "name": "env-author",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--import",
+          "tsx",
+          "--import",
+          "./tests/shell/invocation-discovery-fixes-imports.mjs",
+          "--test",
+          "--test-concurrency=1",
+          "tests/shell/env-replacement.test.ts",
+          "tests/shell/env-replacement-bounds.test.ts"
+        ],
+        "status": 0,
+        "counts": {
+          "tests": 31,
+          "pass": 31,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "before": {
+          "entries": 334,
+          "sha256": "e5325461e9fcd93de31bf35bffd3c918ffef7934c4429df15e067f5d4e7fb2bf"
+        },
+        "after": {
+          "entries": 334,
+          "sha256": "e5325461e9fcd93de31bf35bffd3c918ffef7934c4429df15e067f5d4e7fb2bf"
+        },
+        "changed": [],
+        "importedMismatch": [],
+        "imports": [
+          {
+            "pid": 74481,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/index.ts",
+            "hash": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+            "format": "module"
+          },
+          {
+            "pid": 74481,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/index.ts",
+            "hash": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+            "format": "module"
+          },
+          {
+            "pid": 74481,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/command.ts",
+            "hash": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+            "format": "module"
+          },
+          {
+            "pid": 74481,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/errors.ts",
+            "hash": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+            "format": "module"
+          },
+          {
+            "pid": 74481,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/filesystem.ts",
+            "hash": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+            "format": "module"
+          },
+          {
+            "pid": 74481,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts",
+            "hash": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+            "format": "module"
+          },
+          {
+            "pid": 74481,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/path.ts",
+            "hash": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+            "format": "module"
+          },
+          {
+            "pid": 74481,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts",
+            "hash": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+            "format": "module"
+          },
+          {
+            "pid": 74481,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/shell.ts",
+            "hash": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+            "format": "module"
+          },
+          {
+            "pid": 74481,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/parser.ts",
+            "hash": "cd31afa92e6e54a3e3fceb328064e1e2421e0461529c354794d7b7198c80e4ec",
+            "format": "module"
+          },
+          {
+            "pid": 74481,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/types.ts",
+            "hash": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+            "format": "module"
+          },
+          {
+            "pid": 74481,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/input.ts",
+            "hash": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+            "format": "module"
+          },
+          {
+            "pid": 74481,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/locale.ts",
+            "hash": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+            "format": "module"
+          },
+          {
+            "pid": 74481,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts",
+            "hash": "7aaaaff3ebc18c65556036878e48a4977b55bc2689adfc647c20be663f3cdd42",
+            "format": "module"
+          },
+          {
+            "pid": 74481,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/arithmetic.ts",
+            "hash": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+            "format": "module"
+          },
+          {
+            "pid": 74481,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/pattern.ts",
+            "hash": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+            "format": "module"
+          },
+          {
+            "pid": 74481,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/display.ts",
+            "hash": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+            "format": "module"
+          }
+        ],
+        "compilerInputs": 0,
+        "compilerInputPathsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "unguardedCompilerPaths": []
+      },
+      {
+        "name": "current-shell43",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--import",
+          "tsx",
+          "--import",
+          "./tests/shell/invocation-discovery-fixes-imports.mjs",
+          "--test",
+          "--test-concurrency=1",
+          "tests/shell-stress/current-shell/current-shell.test.ts"
+        ],
+        "status": 0,
+        "counts": {
+          "tests": 44,
+          "pass": 44,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "before": {
+          "entries": 334,
+          "sha256": "e5325461e9fcd93de31bf35bffd3c918ffef7934c4429df15e067f5d4e7fb2bf"
+        },
+        "after": {
+          "entries": 334,
+          "sha256": "e5325461e9fcd93de31bf35bffd3c918ffef7934c4429df15e067f5d4e7fb2bf"
+        },
+        "changed": [],
+        "importedMismatch": [],
+        "imports": [],
+        "compilerInputs": 0,
+        "compilerInputPathsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "unguardedCompilerPaths": []
+      },
+      {
+        "name": "previous86",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--import",
+          "tsx",
+          "--import",
+          "./tests/shell/invocation-discovery-fixes-imports.mjs",
+          "--test",
+          "--test-concurrency=1",
+          "tests/shell/source-dot-eval-source.test.ts",
+          "tests/shell/source-dot-eval-source-host.test.ts",
+          "tests/shell/source-dot-eval-eval.test.ts",
+          "tests/shell/source-dot-eval-eval-host.test.ts"
+        ],
+        "status": 0,
+        "counts": {
+          "tests": 86,
+          "pass": 86,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "before": {
+          "entries": 334,
+          "sha256": "e5325461e9fcd93de31bf35bffd3c918ffef7934c4429df15e067f5d4e7fb2bf"
+        },
+        "after": {
+          "entries": 334,
+          "sha256": "e5325461e9fcd93de31bf35bffd3c918ffef7934c4429df15e067f5d4e7fb2bf"
+        },
+        "changed": [],
+        "importedMismatch": [],
+        "imports": [
+          {
+            "pid": 74734,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/index.ts",
+            "hash": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+            "format": "module"
+          },
+          {
+            "pid": 74734,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/index.ts",
+            "hash": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+            "format": "module"
+          },
+          {
+            "pid": 74734,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/command.ts",
+            "hash": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+            "format": "module"
+          },
+          {
+            "pid": 74734,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/errors.ts",
+            "hash": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+            "format": "module"
+          },
+          {
+            "pid": 74734,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/filesystem.ts",
+            "hash": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+            "format": "module"
+          },
+          {
+            "pid": 74734,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts",
+            "hash": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+            "format": "module"
+          },
+          {
+            "pid": 74734,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/path.ts",
+            "hash": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+            "format": "module"
+          },
+          {
+            "pid": 74734,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts",
+            "hash": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+            "format": "module"
+          },
+          {
+            "pid": 74734,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/shell.ts",
+            "hash": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+            "format": "module"
+          },
+          {
+            "pid": 74734,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/parser.ts",
+            "hash": "cd31afa92e6e54a3e3fceb328064e1e2421e0461529c354794d7b7198c80e4ec",
+            "format": "module"
+          },
+          {
+            "pid": 74734,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/types.ts",
+            "hash": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+            "format": "module"
+          },
+          {
+            "pid": 74734,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/input.ts",
+            "hash": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+            "format": "module"
+          },
+          {
+            "pid": 74734,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/locale.ts",
+            "hash": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+            "format": "module"
+          },
+          {
+            "pid": 74734,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts",
+            "hash": "7aaaaff3ebc18c65556036878e48a4977b55bc2689adfc647c20be663f3cdd42",
+            "format": "module"
+          },
+          {
+            "pid": 74734,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/arithmetic.ts",
+            "hash": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+            "format": "module"
+          },
+          {
+            "pid": 74734,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/pattern.ts",
+            "hash": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+            "format": "module"
+          },
+          {
+            "pid": 74734,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/display.ts",
+            "hash": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+            "format": "module"
+          },
+          {
+            "pid": 74743,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/index.ts",
+            "hash": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+            "format": "module"
+          },
+          {
+            "pid": 74743,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/index.ts",
+            "hash": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+            "format": "module"
+          },
+          {
+            "pid": 74743,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/command.ts",
+            "hash": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+            "format": "module"
+          },
+          {
+            "pid": 74743,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/errors.ts",
+            "hash": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+            "format": "module"
+          },
+          {
+            "pid": 74743,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/filesystem.ts",
+            "hash": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+            "format": "module"
+          },
+          {
+            "pid": 74743,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts",
+            "hash": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+            "format": "module"
+          },
+          {
+            "pid": 74743,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/path.ts",
+            "hash": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+            "format": "module"
+          },
+          {
+            "pid": 74743,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts",
+            "hash": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+            "format": "module"
+          },
+          {
+            "pid": 74743,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/shell.ts",
+            "hash": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+            "format": "module"
+          },
+          {
+            "pid": 74743,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/parser.ts",
+            "hash": "cd31afa92e6e54a3e3fceb328064e1e2421e0461529c354794d7b7198c80e4ec",
+            "format": "module"
+          },
+          {
+            "pid": 74743,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/types.ts",
+            "hash": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+            "format": "module"
+          },
+          {
+            "pid": 74743,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/input.ts",
+            "hash": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+            "format": "module"
+          },
+          {
+            "pid": 74743,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/locale.ts",
+            "hash": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+            "format": "module"
+          },
+          {
+            "pid": 74743,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts",
+            "hash": "7aaaaff3ebc18c65556036878e48a4977b55bc2689adfc647c20be663f3cdd42",
+            "format": "module"
+          },
+          {
+            "pid": 74743,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/arithmetic.ts",
+            "hash": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+            "format": "module"
+          },
+          {
+            "pid": 74743,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/pattern.ts",
+            "hash": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+            "format": "module"
+          },
+          {
+            "pid": 74743,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/display.ts",
+            "hash": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+            "format": "module"
+          }
+        ],
+        "compilerInputs": 0,
+        "compilerInputPathsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "unguardedCompilerPaths": []
+      },
+      {
+        "name": "legacy415",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--import",
+          "tsx",
+          "--import",
+          "./tests/shell/invocation-discovery-fixes-imports.mjs",
+          "--test",
+          "--test-concurrency=1",
+          "tests/shell-stress/invocation-modes/holdout.test.ts",
+          "tests/shell/invocation-modes.test.ts",
+          "tests/shell/invocation-closure-discovery.test.ts",
+          "tests/shell/invocation-closure-read.test.ts",
+          "tests/shell/invocation-closure-sh.test.ts"
+        ],
+        "status": 0,
+        "counts": {
+          "tests": 415,
+          "pass": 415,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "before": {
+          "entries": 334,
+          "sha256": "e5325461e9fcd93de31bf35bffd3c918ffef7934c4429df15e067f5d4e7fb2bf"
+        },
+        "after": {
+          "entries": 334,
+          "sha256": "e5325461e9fcd93de31bf35bffd3c918ffef7934c4429df15e067f5d4e7fb2bf"
+        },
+        "changed": [],
+        "importedMismatch": [],
+        "imports": [
+          {
+            "pid": 74893,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/index.ts",
+            "hash": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+            "format": "module"
+          },
+          {
+            "pid": 74893,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/index.ts",
+            "hash": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+            "format": "module"
+          },
+          {
+            "pid": 74893,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/command.ts",
+            "hash": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+            "format": "module"
+          },
+          {
+            "pid": 74893,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/errors.ts",
+            "hash": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+            "format": "module"
+          },
+          {
+            "pid": 74893,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/filesystem.ts",
+            "hash": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+            "format": "module"
+          },
+          {
+            "pid": 74893,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts",
+            "hash": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+            "format": "module"
+          },
+          {
+            "pid": 74893,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/path.ts",
+            "hash": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+            "format": "module"
+          },
+          {
+            "pid": 74893,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts",
+            "hash": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+            "format": "module"
+          },
+          {
+            "pid": 74893,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/shell.ts",
+            "hash": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+            "format": "module"
+          },
+          {
+            "pid": 74893,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/parser.ts",
+            "hash": "cd31afa92e6e54a3e3fceb328064e1e2421e0461529c354794d7b7198c80e4ec",
+            "format": "module"
+          },
+          {
+            "pid": 74893,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/types.ts",
+            "hash": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+            "format": "module"
+          },
+          {
+            "pid": 74893,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/arithmetic.ts",
+            "hash": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+            "format": "module"
+          },
+          {
+            "pid": 74893,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/input.ts",
+            "hash": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+            "format": "module"
+          },
+          {
+            "pid": 74893,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/locale.ts",
+            "hash": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+            "format": "module"
+          },
+          {
+            "pid": 74893,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts",
+            "hash": "7aaaaff3ebc18c65556036878e48a4977b55bc2689adfc647c20be663f3cdd42",
+            "format": "module"
+          },
+          {
+            "pid": 74893,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/pattern.ts",
+            "hash": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+            "format": "module"
+          },
+          {
+            "pid": 74893,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/display.ts",
+            "hash": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+            "format": "module"
+          },
+          {
+            "pid": 74910,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/index.ts",
+            "hash": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+            "format": "module"
+          },
+          {
+            "pid": 74910,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/index.ts",
+            "hash": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+            "format": "module"
+          },
+          {
+            "pid": 74910,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/command.ts",
+            "hash": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+            "format": "module"
+          },
+          {
+            "pid": 74910,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/errors.ts",
+            "hash": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+            "format": "module"
+          },
+          {
+            "pid": 74910,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/filesystem.ts",
+            "hash": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+            "format": "module"
+          },
+          {
+            "pid": 74910,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts",
+            "hash": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+            "format": "module"
+          },
+          {
+            "pid": 74910,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/path.ts",
+            "hash": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+            "format": "module"
+          },
+          {
+            "pid": 74910,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts",
+            "hash": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+            "format": "module"
+          },
+          {
+            "pid": 74910,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/shell.ts",
+            "hash": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+            "format": "module"
+          },
+          {
+            "pid": 74910,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/parser.ts",
+            "hash": "cd31afa92e6e54a3e3fceb328064e1e2421e0461529c354794d7b7198c80e4ec",
+            "format": "module"
+          },
+          {
+            "pid": 74910,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/types.ts",
+            "hash": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+            "format": "module"
+          },
+          {
+            "pid": 74910,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/input.ts",
+            "hash": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+            "format": "module"
+          },
+          {
+            "pid": 74910,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/locale.ts",
+            "hash": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+            "format": "module"
+          },
+          {
+            "pid": 74910,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts",
+            "hash": "7aaaaff3ebc18c65556036878e48a4977b55bc2689adfc647c20be663f3cdd42",
+            "format": "module"
+          },
+          {
+            "pid": 74910,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/arithmetic.ts",
+            "hash": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+            "format": "module"
+          },
+          {
+            "pid": 74910,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/pattern.ts",
+            "hash": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+            "format": "module"
+          },
+          {
+            "pid": 74910,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/display.ts",
+            "hash": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+            "format": "module"
+          },
+          {
+            "pid": 74915,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/index.ts",
+            "hash": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+            "format": "module"
+          },
+          {
+            "pid": 74915,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/index.ts",
+            "hash": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+            "format": "module"
+          },
+          {
+            "pid": 74915,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/command.ts",
+            "hash": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+            "format": "module"
+          },
+          {
+            "pid": 74915,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/errors.ts",
+            "hash": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+            "format": "module"
+          },
+          {
+            "pid": 74915,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/filesystem.ts",
+            "hash": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+            "format": "module"
+          },
+          {
+            "pid": 74915,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts",
+            "hash": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+            "format": "module"
+          },
+          {
+            "pid": 74915,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/path.ts",
+            "hash": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+            "format": "module"
+          },
+          {
+            "pid": 74915,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts",
+            "hash": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+            "format": "module"
+          },
+          {
+            "pid": 74915,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/shell.ts",
+            "hash": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+            "format": "module"
+          },
+          {
+            "pid": 74915,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/parser.ts",
+            "hash": "cd31afa92e6e54a3e3fceb328064e1e2421e0461529c354794d7b7198c80e4ec",
+            "format": "module"
+          },
+          {
+            "pid": 74915,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/types.ts",
+            "hash": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+            "format": "module"
+          },
+          {
+            "pid": 74915,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/input.ts",
+            "hash": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+            "format": "module"
+          },
+          {
+            "pid": 74915,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/locale.ts",
+            "hash": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+            "format": "module"
+          },
+          {
+            "pid": 74915,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts",
+            "hash": "7aaaaff3ebc18c65556036878e48a4977b55bc2689adfc647c20be663f3cdd42",
+            "format": "module"
+          },
+          {
+            "pid": 74915,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/arithmetic.ts",
+            "hash": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+            "format": "module"
+          },
+          {
+            "pid": 74915,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/pattern.ts",
+            "hash": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+            "format": "module"
+          },
+          {
+            "pid": 74915,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/display.ts",
+            "hash": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+            "format": "module"
+          },
+          {
+            "pid": 74924,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/index.ts",
+            "hash": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+            "format": "module"
+          },
+          {
+            "pid": 74924,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/index.ts",
+            "hash": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+            "format": "module"
+          },
+          {
+            "pid": 74924,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/command.ts",
+            "hash": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+            "format": "module"
+          },
+          {
+            "pid": 74924,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/errors.ts",
+            "hash": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+            "format": "module"
+          },
+          {
+            "pid": 74924,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/filesystem.ts",
+            "hash": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+            "format": "module"
+          },
+          {
+            "pid": 74924,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts",
+            "hash": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+            "format": "module"
+          },
+          {
+            "pid": 74924,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/path.ts",
+            "hash": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+            "format": "module"
+          },
+          {
+            "pid": 74924,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts",
+            "hash": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+            "format": "module"
+          },
+          {
+            "pid": 74924,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/shell.ts",
+            "hash": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+            "format": "module"
+          },
+          {
+            "pid": 74924,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/parser.ts",
+            "hash": "cd31afa92e6e54a3e3fceb328064e1e2421e0461529c354794d7b7198c80e4ec",
+            "format": "module"
+          },
+          {
+            "pid": 74924,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/types.ts",
+            "hash": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+            "format": "module"
+          },
+          {
+            "pid": 74924,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/input.ts",
+            "hash": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+            "format": "module"
+          },
+          {
+            "pid": 74924,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/locale.ts",
+            "hash": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+            "format": "module"
+          },
+          {
+            "pid": 74924,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts",
+            "hash": "7aaaaff3ebc18c65556036878e48a4977b55bc2689adfc647c20be663f3cdd42",
+            "format": "module"
+          },
+          {
+            "pid": 74924,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/arithmetic.ts",
+            "hash": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+            "format": "module"
+          },
+          {
+            "pid": 74924,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/pattern.ts",
+            "hash": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+            "format": "module"
+          },
+          {
+            "pid": 74924,
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/display.ts",
+            "hash": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+            "format": "module"
+          }
+        ],
+        "compilerInputs": 0,
+        "compilerInputPathsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "unguardedCompilerPaths": []
+      },
+      {
+        "name": "global",
+        "executable": "./node_modules/.bin/tsc",
+        "args": [
+          "--noEmit",
+          "--listFiles"
+        ],
+        "status": 0,
+        "counts": {},
+        "before": {
+          "entries": 1088,
+          "sha256": "3979bb8965cddf64bcca9bcf9952c046df4119f7c5aa0a96a1aafc2e68b865b8"
+        },
+        "after": {
+          "entries": 1088,
+          "sha256": "3979bb8965cddf64bcca9bcf9952c046df4119f7c5aa0a96a1aafc2e68b865b8"
+        },
+        "changed": [],
+        "importedMismatch": [],
+        "imports": [],
+        "compilerInputs": 976,
+        "compilerInputPathsSha256": "fe1318ddea559b597534d880397a9db500e60d8a46b6135374a22bb54dc9c702",
+        "unguardedCompilerPaths": []
+      },
+      {
+        "name": "build",
+        "executable": "./node_modules/.bin/tsc",
+        "args": [
+          "-p",
+          "tsconfig.build.json",
+          "--noEmit",
+          "--listFiles"
+        ],
+        "status": 0,
+        "counts": {},
+        "before": {
+          "entries": 500,
+          "sha256": "3d91352219afdd07802cab61f393dc3cd1f520cab1f91caeda952fb1732466d0"
+        },
+        "after": {
+          "entries": 500,
+          "sha256": "3d91352219afdd07802cab61f393dc3cd1f520cab1f91caeda952fb1732466d0"
+        },
+        "changed": [],
+        "importedMismatch": [],
+        "imports": [],
+        "compilerInputs": 296,
+        "compilerInputPathsSha256": "3f814a603113a9d26c5893a2c9fceb0ccdec2393d238a81aa9385ad2d313a64e",
+        "unguardedCompilerPaths": []
+      },
+      {
+        "name": "benchmark",
+        "executable": "./node_modules/.bin/tsc",
+        "args": [
+          "-p",
+          "benchmarks/tsconfig.json",
+          "--noEmit",
+          "--listFiles"
+        ],
+        "status": 0,
+        "counts": {},
+        "before": {
+          "entries": 615,
+          "sha256": "73c5c4369b904d634dd329bf63cced9752f3de935e516e4ed8580338ee7011de"
+        },
+        "after": {
+          "entries": 615,
+          "sha256": "73c5c4369b904d634dd329bf63cced9752f3de935e516e4ed8580338ee7011de"
+        },
+        "changed": [],
+        "importedMismatch": [],
+        "imports": [],
+        "compilerInputs": 411,
+        "compilerInputPathsSha256": "9568aa1153b2dfbf124137380c32e9522217d596f8ffbdb9cad40c175514265d",
+        "unguardedCompilerPaths": []
+      }
+    ]
+  },
+  "qualification": "Initial global errors were owned SpawnSyncOptions excess-property checks; fixed without casts using options variables. Initial current-shell import mismatch was a missing guard enumeration for its test entrypoint, not changed source; final snapshot includes current-shell. All final guards stable. Native initial /tmp versus /private/tmp cwd mismatch retained separately; canonical preexecution cwd makes all14 cases exact in each whole profile."
+}

@@ -1,0 +1,76 @@
+{
+  "classification": "two-existing-failure-diagnostic-observations-not-new-product-passes",
+  "publicRootUrl": "file:///private/tmp/safe-bash-alias-final-0123-20260827T1634-02/physically-moved-offline-consumer/node_modules/virtual-bash/dist/index.js",
+  "aliasUrl": "file:///private/tmp/safe-bash-alias-final-0123-20260827T1634-02/physically-moved-offline-consumer/node_modules/virtual-bash/dist/commands/grep-aliases/index.js",
+  "rows": [
+    {
+      "command": "egrep -q keep",
+      "inputChunkHex": "6b6565703a30310a",
+      "priorAssertion": "fulfilled ShellResult exitCode 2 and stderr containing return sentinel",
+      "stdoutHex": null,
+      "stderrHex": null,
+      "status": null,
+      "settlement": "rejected",
+      "exactReturnReasonIdentity": true,
+      "error": {
+        "name": "Error",
+        "message": "external-return-sentinel",
+        "stack": "Error: external-return-sentinel\n    at file:///private/tmp/safe-bash-alias-final-0123-20260827T1634-02/physically-moved-offline-consumer/run-diagnosis/diagnose-return.mjs:39:19"
+      },
+      "unavailableResultBytes": "No ShellResult was returned; null is not an assertion of empty byte output.",
+      "returns": 1,
+      "nextCalls": 1,
+      "activeWorkersAfterDispose": 0,
+      "filesAfter": []
+    },
+    {
+      "command": "grep -q keep",
+      "inputChunkHex": "6b6565703a30310a",
+      "priorAssertion": "fulfilled ShellResult exitCode 2 and stderr containing return sentinel",
+      "stdoutHex": null,
+      "stderrHex": null,
+      "status": null,
+      "settlement": "rejected",
+      "exactReturnReasonIdentity": true,
+      "error": {
+        "name": "Error",
+        "message": "shared-grep-return-sentinel",
+        "stack": "Error: shared-grep-return-sentinel\n    at file:///private/tmp/safe-bash-alias-final-0123-20260827T1634-02/physically-moved-offline-consumer/run-diagnosis/diagnose-return.mjs:39:19\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+      },
+      "unavailableResultBytes": "No ShellResult was returned; null is not an assertion of empty byte output.",
+      "returns": 1,
+      "nextCalls": 1,
+      "activeWorkersAfterDispose": 0,
+      "filesAfter": []
+    }
+  ],
+  "events": [
+    {
+      "event": "create",
+      "identity": 1,
+      "case": "egrep",
+      "url": "file:///private/tmp/safe-bash-alias-final-0123-20260827T1634-02/physically-moved-offline-consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js"
+    },
+    {
+      "event": "exit",
+      "identity": 1,
+      "case": "egrep",
+      "code": 1
+    },
+    {
+      "event": "create",
+      "identity": 2,
+      "case": "grep",
+      "url": "file:///private/tmp/safe-bash-alias-final-0123-20260827T1634-02/physically-moved-offline-consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js"
+    },
+    {
+      "event": "exit",
+      "identity": 2,
+      "case": "grep",
+      "code": 1
+    }
+  ],
+  "activeWorkers": 0,
+  "lateErrors": [],
+  "verifierForcedTermination": 0
+}

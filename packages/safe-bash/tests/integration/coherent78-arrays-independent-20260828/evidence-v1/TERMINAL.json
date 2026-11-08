@@ -1,0 +1,8 @@
+{
+  "sessionId": 4020,
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/run.mjs c9ad1b06247602063001f2b87f8e42d28751d3aaf47c606b718fb5d799cd38db COHERENT78-ARRAYS-20260828-01",
+  "exitCode": 1,
+  "stdout": "{\"receipt\":{\"path\":\"/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/records/FINAL.json\",\"sha256\":\"d05296cfd27314c76f0cfcf9929e2e74ce48afa4e3667ac909d422aaeb720b91\"},\"accepted\":false,\"unsafeStop\":false,\"elapsedBeforeAnnouncementMs\":419155.962041,\"work\":\"/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01\",\"childrenRetired\":true,\"requiresZeroCoordinatorExit\":true}\n",
+  "stderr": "",
+  "qualification": "Actual supervisor terminal output and tool exit. Exit1 is preserved ordinary assertion failure, not acceptance. No retry."
+}

@@ -1,0 +1,273 @@
+import assert from "node:assert/strict";
+import { spawnSync, execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import { chmodSync, closeSync, existsSync, lstatSync, mkdirSync, mkdtempSync, openSync, readFileSync, readdirSync, readSync, realpathSync, rmSync, writeFileSync } from "node:fs";
+import { dirname, join, relative, resolve } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { cases } from "./cases.mjs";
+
+const pin = "f44958bf48778737a58535e2bc9b37c292ac28c4";
+const harness = dirname(fileURLToPath(import.meta.url));
+const repository = resolve(harness, "../../../..");
+assert.equal(repository, "/Users/kjopek/Workspace/safe-bash");
+assert.equal(Number(process.versions.node.split(".")[0]), 22, "Use plain Node 22 for this cohort");
+assert.ok(process.argv[2], "Usage: node run.mjs NEW_OWNED_EVIDENCE_DIRECTORY [case-id ...]");
+const output = resolve(process.argv[2]);
+assert.ok(output.startsWith(`${harness}/evidence/`), "Evidence belongs to this owned subtree");
+assert.equal(existsSync(output), false, "Never overwrite original evidence");
+mkdirSync(output, { recursive: true });
+const temporary = realpathSync(mkdtempSync("/tmp/safe-bash-safejs-cleanup-integration-"));
+const privateRoot = "/Users/kjopek/Workspace/poe-code";
+const product = join(temporary, "product");
+const consumer = join(temporary, "consumer");
+const tools = join(temporary, "node_modules");
+const engine = join(consumer, "packages/safejs");
+const copiedHarness = join(consumer, "harness");
+for (const directory of [product, consumer, tools, copiedHarness, join(temporary, "home"), join(temporary, "tmp")]) mkdirSync(directory, { recursive: true });
+const environment = {
+  PATH: `${dirname(process.execPath)}:/usr/bin:/bin`, HOME: join(temporary, "home"),
+  TMPDIR: join(temporary, "tmp"), TMP: join(temporary, "tmp"), TEMP: join(temporary, "tmp"),
+  XDG_CACHE_HOME: join(temporary, "tmp"), LC_ALL: "C", TZ: "UTC", GIT_OPTIONAL_LOCKS: "0",
+  TSX_DISABLE_CACHE: "1", npm_config_cache: join(temporary, "npm-cache"),
+  npm_config_userconfig: join(temporary, "npmrc"), npm_config_globalconfig: join(temporary, "global-npmrc"),
+  npm_config_registry: "http://127.0.0.1:1", npm_config_offline: "true", npm_config_ignore_scripts: "true",
+  npm_config_audit: "false", npm_config_fund: "false", npm_config_update_notifier: "false",
+};
+writeFileSync(environment.npm_config_userconfig, "");
+writeFileSync(environment.npm_config_globalconfig, "");
+const sha = bytes => createHash("sha256").update(bytes).digest("hex");
+function fileHash(filename) {
+  const hash = createHash("sha256");
+  const descriptor = openSync(filename, "r");
+  const buffer = Buffer.alloc(1024 * 1024);
+  try {
+    let size;
+    while ((size = readSync(descriptor, buffer)) > 0) hash.update(buffer.subarray(0, size));
+  } finally { closeSync(descriptor); }
+  return hash.digest("hex");
+}
+const save = (name, value) => writeFileSync(join(output, name), typeof value === "string" ? value : `${JSON.stringify(value, null, 2)}\n`);
+const git = (cwd, ...args) => execFileSync("git", args, { cwd, env: environment, encoding: "utf8", maxBuffer: 16 * 1024 * 1024 }).trimEnd();
+const omitted = new Set(["node_modules", ".git", "dist", ".cache", ".turbo"]);
+function inventory(root, ignored = new Set()) {
+  const files = {};
+  function visit(directory) {
+    for (const name of readdirSync(directory).sort()) {
+      if (ignored.has(name)) continue;
+      const filename = join(directory, name);
+      const stat = lstatSync(filename);
+      assert.equal(stat.isSymbolicLink(), false, `Symlink refused: ${filename}`);
+      if (stat.isDirectory()) visit(filename);
+      else {
+        assert.ok(stat.isFile(), `Nonregular file refused: ${filename}`);
+        files[relative(root, filename)] = { sha256: fileHash(filename), bytes: stat.size, mode: stat.mode & 0o777 };
+      }
+    }
+  }
+  visit(root);
+  return files;
+}
+function copyRegular(source, destination, ignored = omitted) {
+  const entries = inventory(source, ignored);
+  mkdirSync(destination, { recursive: true });
+  for (const [filename, info] of Object.entries(entries)) {
+    const target = join(destination, filename);
+    const bytes = readFileSync(join(source, filename));
+    assert.equal(sha(bytes), info.sha256, `Copy drift: ${filename}`);
+    mkdirSync(dirname(target), { recursive: true });
+    writeFileSync(target, bytes);
+    chmodSync(target, info.mode);
+  }
+  assert.deepEqual(inventory(destination, ignored), entries);
+  return entries;
+}
+function repositoryState(root) {
+  const head = git(root, "rev-parse", "HEAD");
+  const status = git(root, "status", "--porcelain=v1");
+  const index = fileHash(resolve(root, git(root, "rev-parse", "--git-path", "index")));
+  return { head, headSha256: sha(head), status, statusSha256: sha(status), indexSha256: index,
+    staged: git(root, "diff", "--cached", "--name-status") };
+}
+function privateState() {
+  const metadata = {};
+  for (const filename of ["AGENTS.md", "package.json", "package-lock.json", "tsconfig.json", "packages/poe-agent/package.json"]) metadata[filename] = fileHash(join(privateRoot, filename));
+  return { ...repositoryState(privateRoot), metadata, engine: inventory(join(privateRoot, "packages/safejs"), omitted) };
+}
+const report = { startedAt: new Date().toISOString(), pin, temporary, privateRoot, environment,
+  node: process.version, platform: process.platform, arch: process.arch, commands: [], cases: [], tooling: {}, status: "running",
+  limits: { cases: cases.length, childWatchdogMs: 9000, parentChildDeadlineMs: 13000, heapMb: 256 },
+  scope: "real injected SafeJS -> public Shell -> registered grep/rg; no raw-engine contract or global first-read claim" };
+function run(label, command, args, cwd = consumer, env = environment, timeout = 90000) {
+  const started = Date.now();
+  const result = spawnSync(command, args, { cwd, env, encoding: "utf8", timeout, killSignal: "SIGKILL", maxBuffer: 8 * 1024 * 1024 });
+  const entry = { label, command, args, cwd, elapsedMs: Date.now() - started, status: result.status, signal: result.signal, error: result.error?.message };
+  report.commands.push(entry);
+  save(`${label}.stdout.txt`, result.stdout ?? "");
+  save(`${label}.stderr.txt`, result.stderr ?? "");
+  return { ...entry, stdout: result.stdout ?? "", stderr: result.stderr ?? "" };
+}
+function success(result) {
+  assert.equal(result.error, undefined, `${result.label}: ${result.error}`);
+  assert.equal(result.status, 0, `${result.label}: ${result.stderr}`);
+}
+function copyTool(name, from = repository, optional = false) {
+  if (report.tooling[name]) return;
+  let parent = from;
+  let source;
+  while (true) {
+    const candidate = join(parent, "node_modules", name);
+    if (existsSync(candidate)) { source = realpathSync(candidate); break; }
+    if (dirname(parent) === parent) break;
+    parent = dirname(parent);
+  }
+  if (!source) { assert.ok(optional, `Required cached tool missing: ${name}`); return; }
+  assert.ok(!source.startsWith(`${privateRoot}/`), "Use public cached tooling, not private installs");
+  const manifest = JSON.parse(readFileSync(join(source, "package.json"), "utf8"));
+  const files = copyRegular(source, join(tools, name), new Set(["node_modules", ".git", ".cache"]));
+  report.tooling[name] = { source, version: manifest.version, files };
+  for (const dependency of Object.keys(manifest.dependencies ?? {})) copyTool(dependency, source);
+  for (const dependency of Object.keys(manifest.optionalDependencies ?? {})) copyTool(dependency, source, true);
+}
+function sourceClosure(root) {
+  const files = Object.fromEntries(Object.entries(inventory(join(root, "src"))).map(([name, info]) => [`src/${name}`, info.sha256]));
+  for (const filename of ["package.json", "package-lock.json", "tsconfig.json", "tsconfig.build.json"]) files[filename] = fileHash(join(root, filename));
+  return files;
+}
+
+let audited;
+try {
+  report.publicBefore = repositoryState(repository);
+  report.privateBefore = privateState();
+  save("private-before.json", report.privateBefore);
+  report.instructions = Object.fromEntries([join(repository, "AGENTS.md"), "/Users/kjopek/Workspace/AGENTS.md", join(privateRoot, "AGENTS.md")].map(filename => [filename, fileHash(filename)]));
+  assert.equal(git(repository, "rev-parse", `${pin}^{commit}`), pin);
+  const tree = git(repository, "ls-tree", "-r", pin).split("\n").map(line => {
+    const [mode, kind, oid, filename] = /^(\S+) (\S+) (\S+)\t(.*)$/u.exec(line).slice(1);
+    assert.equal(kind, "blob");
+    assert.ok(mode === "100644" || mode === "100755", `No archive links: ${filename}`);
+    return { mode, oid, filename };
+  });
+  const archive = join(temporary, "product.tar");
+  success(run("archive-product", "git", ["archive", "--format=tar", `--output=${archive}`, pin], repository));
+  report.archive = { sha256: fileHash(archive), bytes: lstatSync(archive).size, fullCommit: true, entries: tree.length };
+  success(run("extract-product", "tar", ["-xf", archive, "-C", product]));
+  const fullInventory = inventory(product);
+  assert.equal(Object.keys(fullInventory).length, tree.length);
+  for (const entry of tree) {
+    const bytes = readFileSync(join(product, entry.filename));
+    assert.equal(createHash("sha1").update(`blob ${bytes.length}\0`).update(bytes).digest("hex"), entry.oid, `Archive differs from committed blob: ${entry.filename}`);
+  }
+  report.archive.allBlobIdsVerified = true;
+  report.archive.inventorySha256 = sha(JSON.stringify(fullInventory));
+  report.sourceClosure = sourceClosure(product);
+  assert.deepEqual(sourceClosure(repository), report.sourceClosure, "Live source/config differs at capture; refuse hidden overlay");
+  save("source-closure.json", report.sourceClosure);
+  report.engineCopy = copyRegular(join(privateRoot, "packages/safejs"), engine);
+  writeFileSync(join(consumer, "tsconfig.json"), readFileSync(join(privateRoot, "tsconfig.json")));
+  report.privateAfterCopy = privateState();
+  assert.deepEqual(report.privateAfterCopy.engine, report.privateBefore.engine, "Private engine changed while copied");
+  for (const name of ["typescript", "tsx", "@types/node", "undici-types"]) copyTool(name);
+  success(run("build-product", process.execPath, [join(tools, "typescript/bin/tsc"), "-p", "tsconfig.build.json"], product));
+  const packed = run("pack-product", "npm", ["pack", "--offline", "--ignore-scripts", "--json", "--pack-destination", temporary], product);
+  success(packed);
+  const artifact = JSON.parse(packed.stdout)[0];
+  report.package = { name: artifact.name, version: artifact.version, sha256: fileHash(join(temporary, artifact.filename)) };
+  writeFileSync(join(consumer, "package.json"), JSON.stringify({ name: "owned-cleanup-consumer", private: true, type: "module" }));
+  success(run("install-packed-product", "npm", ["install", "--offline", "--ignore-scripts", "--omit=dev", "--no-package-lock", "--no-audit", "--no-fund", join(temporary, artifact.filename)]));
+  const installed = join(consumer, "node_modules/virtual-bash");
+  const manifest = JSON.parse(readFileSync(join(installed, "package.json"), "utf8"));
+  assert.deepEqual(manifest.dependencies ?? {}, {});
+  assert.equal(fileHash(join(installed, "package.json")), report.sourceClosure["package.json"]);
+  assert.equal(existsSync(join(installed, "src")), false);
+  assert.deepEqual(inventory(join(installed, "dist")), inventory(join(product, "dist")));
+  report.package.exports = manifest.exports;
+  report.package.zeroRuntimeDependencies = true;
+  report.harnessFreeze = {};
+  for (const filename of ["cases.mjs", "child.mjs", "guard.mjs", "run.mjs"]) {
+    const bytes = readFileSync(join(harness, filename));
+    report.harnessFreeze[filename] = sha(bytes);
+    if (filename !== "run.mjs") writeFileSync(join(copiedHarness, filename), bytes);
+  }
+  audited = {};
+  for (const directory of [consumer, tools]) {
+    for (const [filename, info] of Object.entries(inventory(directory))) audited[relative(temporary, join(directory, filename))] = info;
+  }
+  save("runtime-inventory.json", audited);
+  const manifestPath = join(temporary, "runtime-manifest.json");
+  writeFileSync(manifestPath, JSON.stringify(audited));
+  const guard = pathToFileURL(join(copiedHarness, "guard.mjs")).href;
+  const runtimeEnvironment = { ...environment, INTEGRATION_ROOT: temporary, INTEGRATION_MANIFEST: manifestPath };
+  const boundary = [
+    'import assert from "node:assert/strict";',
+    'const product = await import("virtual-bash");',
+    'for (const name of ["Shell", "safeJsCommands", "makeSafeJsShellModule", "standardCommands", "searchCommands"]) assert.equal(typeof product[name], "function");',
+    `await assert.rejects(import(${JSON.stringify(pathToFileURL(join(privateRoot, "packages/safejs/src/run.ts")).href)}), {code:"INTEGRATION_IMPORT_DENIED"});`,
+    `await assert.rejects(import(${JSON.stringify(pathToFileURL(join(product, "src/index.ts")).href)}), {code:"INTEGRATION_IMPORT_DENIED"});`,
+    `await assert.rejects(import(${JSON.stringify(pathToFileURL(join(repository, "dist/index.js")).href)}), {code:"INTEGRATION_IMPORT_DENIED"});`,
+    'await assert.rejects(import("virtual-bash/dist/commands/regex-execution/client.js"), {code:"ERR_PACKAGE_PATH_NOT_EXPORTED"});',
+    'console.log(JSON.stringify({plainNode:true, publicImports:true, privateFallbackDenied:true, archiveSourceDenied:true, liveDistDenied:true, privateSubpathDenied:true}));',
+  ].join("\n");
+  const control = run("public-boundary", process.execPath, ["--unhandled-rejections=strict", "--import", guard, "--input-type=module", "-e", boundary], consumer,
+    { ...runtimeEnvironment, INTEGRATION_IMPORTS: join(output, "public-boundary.imports.ndjson") });
+  success(control);
+  report.boundary = JSON.parse(control.stdout);
+  const requested = process.argv.slice(3);
+  const cohort = requested.length ? cases.filter(entry => requested.includes(entry.id)) : cases;
+  assert.equal(cohort.length, requested.length || cases.length, "Unknown or duplicate case selection");
+  save("freeze.json", { pin, privateHead: report.privateBefore.head, harness: report.harnessFreeze, cases: cohort, archive: report.archive, package: report.package });
+  for (const entry of cohort) {
+    const resultFile = join(output, `${entry.id}.json`);
+    const result = run(entry.id, process.execPath, ["--unhandled-rejections=strict", "--max-old-space-size=256", "--import", guard, "--import", "tsx", join(copiedHarness, "child.mjs"), entry.id], consumer,
+      { ...runtimeEnvironment, INTEGRATION_IMPORTS: join(output, `${entry.id}.imports.ndjson`), INTEGRATION_EVENTS: join(output, `${entry.id}.events.ndjson`), INTEGRATION_RESULT: resultFile }, 13000);
+    const captured = existsSync(resultFile) ? JSON.parse(readFileSync(resultFile, "utf8")) : null;
+    const accepted = result.status === 0 && captured?.status === "pass" && captured.containment === false;
+    report.cases.push({ id: entry.id, accepted, status: result.status, signal: result.signal, error: result.error, capture: captured?.status, assertion: captured?.assertion?.message });
+    console.log(JSON.stringify(report.cases.at(-1)));
+    save("progress.json", report.cases);
+  }
+  report.importsVerified = 0;
+  report.nativeThreads = new Set();
+  for (const filename of readdirSync(output).filter(name => name.endsWith(".imports.ndjson"))) {
+    for (const line of readFileSync(join(output, filename), "utf8").split("\n").filter(Boolean)) {
+      const entry = JSON.parse(line);
+      if (entry.loaded) {
+        assert.equal(entry.sha256, audited[entry.loaded]?.sha256);
+        report.importsVerified += 1;
+        if (entry.threadId !== 0) report.nativeThreads.add(`${entry.pid}:${entry.threadId}`);
+      } else assert.equal(filename, "public-boundary.imports.ndjson", "Unexpected rejected runtime import");
+    }
+  }
+  report.nativeThreads = [...report.nativeThreads];
+  report.status = report.cases.every(entry => entry.accepted) ? "pass" : "behavioral-failures";
+} catch (error) {
+  report.status = "infrastructure-failure";
+  report.error = { name: error.name, message: error.message, stack: error.stack };
+  console.error(error);
+} finally {
+  try {
+    report.privateAfter = privateState();
+    save("private-after.json", report.privateAfter);
+    report.privateUnchanged = JSON.stringify(report.privateBefore) === JSON.stringify(report.privateAfter);
+    report.privateEngineUnchanged = JSON.stringify(report.privateBefore.engine) === JSON.stringify(report.privateAfter.engine);
+    report.publicAfter = repositoryState(repository);
+    report.publicSourceUnchanged = JSON.stringify(sourceClosure(repository)) === JSON.stringify(report.sourceClosure);
+    if (audited) {
+      report.runtimeFilesUnchanged = Object.entries(audited).every(([filename, info]) => fileHash(join(temporary, filename)) === info.sha256);
+      assert.equal(report.runtimeFilesUnchanged, true);
+    }
+    if (existsSync(engine)) assert.deepEqual(inventory(engine, omitted), report.engineCopy);
+    report.toolSourcesUnchanged = Object.values(report.tooling).every(tool => JSON.stringify(inventory(tool.source, new Set(["node_modules", ".git", ".cache"]))) === JSON.stringify(tool.files));
+    report.privateCaptureQualification = report.privateUnchanged ? "unchanged" : "private state changed outside reviewer control; before/after preserved, no reset or attribution";
+    report.finishedAt = new Date().toISOString();
+    report.cleanup = { ownedTemporary: temporary, allChildrenReaped: report.commands.filter(entry => cases.some(test => test.id === entry.label)).every(entry => entry.status !== undefined), removed: false };
+    save("report.json", report);
+    rmSync(temporary, { recursive: true });
+    report.cleanup.removed = !existsSync(temporary);
+    save("report.json", report);
+  } catch (error) {
+    report.finalizationError = { message: error.message, stack: error.stack };
+    save("report.json", report);
+    console.error(error);
+  }
+}
+process.exitCode = report.status === "pass" && report.cleanup?.removed && !report.finalizationError ? 0 : 1;

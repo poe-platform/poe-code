@@ -1,0 +1,28 @@
+V2 FINITE ISOLATED SAFEJS PROPOSAL HANDOFF — FAIL / NOT APPROVED
+Date: 2026-08-26
+No commit/staging/private writes/dependencies/delegation.
+
+Root-authorized proposal revision only; accepted API and original tests unchanged.
+V1 patch 5a47508be5571601ccce1158c40e309ac406fd16db6f4f3b34747a9f7fe0ea09
+V2 patch c5419b5edc91a8883d72cb5fe08d08bf47c48fde21bee2fe1f926f836c243f2d
+V2 run.ts 4c7bebb540df03cfa66b367ab1f59284c300fb57aa1a3b8500f58d7811c00cc6
+Original nine 7f8ebc44fdb3cc313439ec1f3a88c7df3dd3d894b8557daec6c0367fcb7611ab
+New18 reason oracle bb782e0fe86410dee5f125f1a4e670514eec48d0ccbb3607e2cc95d96254790b
+
+Inspected investigator report and all 18 fixtures/helpers; integrated run.ts-only cause-preserving replacement relative to v1, applied through apply_patch to fresh regular copies. Other six patched engine outputs unchanged. No arbitrary-reason reads/mutations or quota canonicalization. Generic outer AbortError preserves exact object/function reason as cause; primitives exact. Only outer stack is sanitized.
+
+Current private source has EXTERNAL drift from pinned baseline in nine files. Default verifier correctly refused it before effects. Baseline manifest is unchanged; explicit --baseline-copy reads /tmp/safe-bash-safejs-isolated-gnP0gu/baseline and creates fresh /tmp/safe-bash-safejs-isolated-pu6gX6/{baseline,patched}. This validates pinned historical engine, NOT current private revision/rebase. See evidence/v2/private-drift-before.json for exact nine changes.
+
+Reproduce:
+node docs/upstream-patches/safejs/verify.mjs /Users/kjopek/Workspace/poe-code --baseline-copy /tmp/safe-bash-safejs-isolated-gnP0gu/baseline
+Output /tmp/safe-bash-safejs-v2-reproduction.log; exit1 / passed:false. Verifier STILL requires10/10 and collects all suites despite acceptance failure.
+Original9+action: baseline0pass/10fail -> v2 9pass/1fail, zero skips. Raw Error identity assertion :37 is untouched and fails; cause identity is NOT accepted as raw identity.
+Invariants0/9 ->8/9; conservative graph overcharge87vs49 unchanged.
+New reason checks0/18 ->18/18, zero skips; fixtures byte-identical to investigator.
+Full pinned slow/fuzz suite: baseline3225pass/0fail/38skip -> v2 3223pass/2fail/38skip, 3263tests/125files. Shape audit12/12 now passes (v1 11/12). Two new full failures are exact message spelling: run.test.ts and runner/run-harness.test.ts expect "This operation was aborted" vs investigator's "The operation was aborted." New18 pins latter too; no test changed to hide the discrepancy. Message spelling is separately fixable via explicit proposal-oracle versioning; not inherent to identity tradeoff.
+Guard tests2/2. Baseline/v2 typechecks both exit2 with same eight unresolved-workspace-declaration diagnostics; no typecheck pass claim.
+
+Actual import hooks load /private/tmp/safe-bash-safejs-isolated-pu6gX6/patched/packages/safejs/src/run.ts SHA4c7bebb540df03cfa66b367ab1f59284c300fb57aa1a3b8500f58d7811c00cc6, interpreter SHA9144707a43315e80cd75ff6dfdf650760d196c2b9fc09f5876b86ff551a3338d; no private/investigator/preserved-source aliases. Complete temporary engine manifests match after tests.
+Private before/after interval 2026-08-26T22:29:45.390Z to 2026-08-26T22:30:46.281Z: engine/revision/status/index/license all equal, reva7ec0f14c58db154896a68fbacc7c6d9e636b6a3, index998c133f8bc8985ea254cadca2b2437142bd947a53cd9b1609f64efcef003c1f. Earlier v1 drift and current nine-file engine drift remain preserved; no whole-assignment untouched-private claim.
+
+Current report docs/upstream-patches/safejs/EVIDENCE.md, evidence/v2/*; original v1 evidence/* unchanged, exact prior artifacts history/v1/*. Current artifact checksums updated after this report. Root will obtain separate final v2 verification; no independent v2 full-suite approval claimed. Stop at this finite revised handoff, no commit.

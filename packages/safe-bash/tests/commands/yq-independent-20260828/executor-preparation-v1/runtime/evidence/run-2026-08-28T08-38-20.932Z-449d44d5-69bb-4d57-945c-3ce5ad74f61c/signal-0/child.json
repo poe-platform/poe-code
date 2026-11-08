@@ -1,0 +1,13 @@
+{
+  "pid": 13899,
+  "group": 13899,
+  "exitCode": null,
+  "signal": "SIGTERM",
+  "timedOut": false,
+  "overflow": false,
+  "spawnError": null,
+  "closed": true,
+  "reaped": true,
+  "kills": [],
+  "elapsedMs": 47
+}

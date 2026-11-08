@@ -1,0 +1,67 @@
+{
+  "schema": "POST_EXECUTION_REPORT_REPAIR_SEAL",
+  "candidateCommit": "4d5d28b62c3253a613fd19cde11d7f2df0f98b1d",
+  "diagnosisCommit": "096c204c38fd7f1b6c096b9cb09e0ea877737fec",
+  "pass": 16,
+  "fail": 0,
+  "unrun": 0,
+  "engineExecutions": 0,
+  "builtinPolicyImplemented": false,
+  "wholeSuccessorAdmissionReady": false,
+  "files": [
+    {
+      "path": "SEAL.json",
+      "bytes": 4564,
+      "mode": 420,
+      "sha256": "2b1dfbf24d2251a1b2edf4617a97d737c21bfd99cfcb9115c1b2423eaacee3b4"
+    },
+    {
+      "path": "EVIDENCE.json",
+      "bytes": 13668,
+      "mode": 420,
+      "sha256": "3940176c2494cb305e4a9d46084695a5eca49ac93b648459de4380f384a6a07e"
+    },
+    {
+      "path": "HANDOFF.md",
+      "bytes": 4789,
+      "mode": 420,
+      "sha256": "d7943a3088a5c4561fe168fbe04e58728d552044c058953b35da7809c4d846da"
+    },
+    {
+      "path": "seal-evidence.mjs",
+      "bytes": 5632,
+      "mode": 420,
+      "sha256": "3a81ae4802b6c27802911e262c53e8116636f872ab6a2aefffe6c64d34eb60f0"
+    },
+    {
+      "path": "raw-synthetic-evidence.json.gz",
+      "bytes": 25740,
+      "mode": 420,
+      "sha256": "c19a60edf107ea6444636724591a6607bbd1aeb791d1a24b065f7616e84dfe4d"
+    },
+    {
+      "path": "runs/LAUNCH.json",
+      "bytes": 1069,
+      "mode": 420,
+      "sha256": "d4ffc709be4e5cf242036287ef8e7464b96640a9187b48238c465d8776447e59"
+    },
+    {
+      "path": "runs/LAUNCHED.json",
+      "bytes": 419,
+      "mode": 420,
+      "sha256": "903ed64c0dfdea4b9be9586f3083e528331e31bbdfd1edea9d623f4f762e84d6"
+    },
+    {
+      "path": "runs/ATTEMPT.lock",
+      "bytes": 65,
+      "mode": 420,
+      "sha256": "b138e72efed682d1ca519321d3a2df43dc0ac68fa0755c226dc52dd663bb78e1"
+    },
+    {
+      "path": "runs/synthetic-v1-01/RESULT.json",
+      "bytes": 4898,
+      "mode": 420,
+      "sha256": "c46a7f892c32d4fa9c97d33a1b873e97c2abb59e0b4a6207b22b916b0ce1c4bb"
+    }
+  ]
+}

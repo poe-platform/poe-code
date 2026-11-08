@@ -1,0 +1,54 @@
+TAP version 13
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoic3ViY2xhc3MtZGF2LWNvcHkiLCJkYXRhIjp7InJlc3VsdCI6ImRpc3RpbmN0IiwiY29kZSI6IkVJTyIsImVmZmVjdHMiOlsid3JpdGVTdHJlYW0iXSwic291cmNlIjoic3ViY2xhc3MgZGVzdGluYXRpb24gZGFtYWdlZCBzb3VyY2UifX0=
+# Subtest: WebDAV pre-construction data-method overrides cannot inherit resource authority over another backing store
+not ok 1 - WebDAV pre-construction data-method overrides cannot inherit resource authority over another backing store
+  ---
+  duration_ms: 19.492584
+  type: 'test'
+  location: '/private/tmp/safe-bash-webdav-override-1lISLE/baseline/archive/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:1:17913'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+    +   code: 'EIO',
+    +   effects: [
+    +     'writeStream'
+    +   ],
+    +   result: 'distinct',
+    +   source: 'subclass destination damaged source'
+    -   code: 'ENOTSUP',
+    -   effects: [],
+    -   result: 'unknown',
+    -   source: 'source sentinel'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    result: 'unknown'
+    code: 'ENOTSUP'
+    effects:
+    source: 'source sentinel'
+  actual:
+    result: 'distinct'
+    code: 'EIO'
+    effects:
+      0: 'writeStream'
+    source: 'subclass destination damaged source'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-webdav-override-1lISLE/baseline/archive/tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts:339:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 162.602375

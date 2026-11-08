@@ -1,0 +1,31 @@
+{
+  "date": "2026-08-26",
+  "phase": "Explicit native selection added; original semantic fixtures and test counts retained; before additional oracle calibration tests",
+  "selected": {
+    "diff": "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+    "patch": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch"
+  },
+  "sourceBefore": {
+    "diff-format.ts": "3d6e0dd8e3b588963b3487f5e42ab8d7ea673fe2404df1ff26cce47912352912",
+    "diff.ts": "769af5df58d829ed3733ad1a24d1fbcbb02af6397cd7f4ffbce5c0f08c517599",
+    "index.ts": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17",
+    "patch-envelope.ts": "9cae8b9b8e51b133e933dc96b9c8cf8c0dcfbc620f861a330e6711828579aad1",
+    "patch-formats.ts": "ef67097df66662e6b0ed74d707e2c75332b434464e7aafb9bd0164be40c37c6c",
+    "patch-path.ts": "b45660d4d422933ae31db3839bc6af0678bfd6b1faa309b67f9187ad99423266",
+    "patch.ts": "18863f4a10e1a157877c6627bad4d0c46e7dcb9b6ae0ea1c4ebb032714264ce6",
+    "shared.ts": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+    "unified.ts": "d2d9db844bebb1a2f142854b050978b488d36552b2c496e52fbdf84cf6c0e9e8"
+  },
+  "sourceAfterIdenticalToBefore": true,
+  "suites": {
+    "compatibility": { "tests": 99, "pass": 91, "fail": 8, "skip": 0, "todo": 0, "status": 1, "durationMs": 1653.728167 },
+    "fuzz": { "tests": 31, "pass": 28, "fail": 3, "skip": 0, "todo": 0, "status": 1, "durationMs": 24388.711917 },
+    "safety": { "tests": 135, "pass": 130, "fail": 5, "skip": 0, "todo": 0, "status": 1, "durationMs": 309.477792 }
+  },
+  "primaryFuzz": { "cases": 512, "propertiesPerCase": 14, "pass": 7168, "fail": 0 },
+  "limitations": [
+    "HEAD was not captured for this baseline; diff/patch source hashes identify the snapshot.",
+    "No baseline scoped typecheck was embedded in this initial invocation; subsequent snapshot runner records its own scoped result.",
+    "Only diff/patch source directory was hashed; transitive Shell and filesystem sources were not frozen."
+  ]
+}

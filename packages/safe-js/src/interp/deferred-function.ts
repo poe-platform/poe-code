@@ -1,0 +1,55 @@
+import { recordDeferredMaterialization, scopeDataRoots } from "./scope-data-roots.js";
+import {
+  registerDeferredClosureChargeIdentity,
+  type SandboxClosure,
+  type SandboxObject,
+  type SandboxValue
+} from "./values.js";
+
+const freeze = Object.freeze;
+const setPrototypeOf = Object.setPrototypeOf;
+
+// A pending binding retains its initializer and lexical roots, without creating
+// a guest function carrier. Its accounting identity survives materialization so
+// an older captured scope group can still retain the same function.
+export class DeferredFunction {
+  // Preserve the empty, frozen null-prototype identity while keeping V8's fast
+  // storage for its repeated visited-registry and scope-metadata lookups.
+  readonly root: SandboxObject = freeze(setPrototypeOf({}, null));
+  #value?: SandboxClosure;
+  #initialization?: {
+    create: () => SandboxClosure;
+    collect: (append: (value: SandboxValue) => void) => void;
+  };
+  #resolving = false;
+
+  constructor(
+    create: () => SandboxClosure,
+    collect: (append: (value: SandboxValue) => void) => void
+  ) {
+    this.#initialization = { create, collect };
+    scopeDataRoots.set(this.root, {
+      deferred: {
+        chargeIdentity: this.root,
+        read: () => this.#value,
+        collect: (append) => this.#initialization?.collect(append)
+      }
+    });
+  }
+
+  resolve(): SandboxClosure {
+    if (this.#value !== undefined) return this.#value;
+    if (this.#resolving) throw new TypeError("Cannot reenter deferred function initialization.");
+    this.#resolving = true;
+    try {
+      const value = this.#initialization!.create();
+      registerDeferredClosureChargeIdentity(value, this.root);
+      this.#value = value;
+      this.#initialization = undefined;
+      recordDeferredMaterialization();
+      return this.#value;
+    } finally {
+      this.#resolving = false;
+    }
+  }
+}

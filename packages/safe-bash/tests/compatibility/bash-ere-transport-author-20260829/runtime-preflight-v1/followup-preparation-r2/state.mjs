@@ -1,0 +1,1 @@
+export const state={config:null,journal:null,handles:[],roots:[],attempts:0,created:0,posts:0,posted:0,termination:{present:false},fault:{present:false}};export function event(kind,detail=''){if(!state.journal.emit(kind,detail,state.attempts)&&!state.fault.present)state.fault=state.journal.fault;}

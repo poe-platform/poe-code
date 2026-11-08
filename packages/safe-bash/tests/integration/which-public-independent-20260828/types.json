@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "placement": "Separate .mts consumers beside frozen cohort in each real installed/moved consumer root; bare package imports only",
+  "compilerOptions": ["--noEmit", "--strict", "--exactOptionalPropertyTypes", "--noUncheckedIndexedAccess", "--module", "NodeNext", "--moduleResolution", "NodeNext", "--target", "ES2023", "--lib", "ES2023", "--types", "node", "--skipLibCheck"],
+  "cases": [
+    {
+      "id": "T01",
+      "source": "import { createWhichCommand, createWhichCommands, whichCommands, type WhichCommandsOptions, type WhichLimits, type CommandDefinition, type VirtualShellPlugin } from 'virtual-bash';\nimport { createWhichCommand as subCommand, createWhichCommands as subCommands, whichCommands as subPlugin, type WhichCommandsOptions as SubOptions, type WhichLimits as SubLimits } from 'virtual-bash/commands/which';\nconst options: WhichCommandsOptions = { replace: true, limits: { maxProbes: 1 } };\nconst subOptions: SubOptions = options;\ndeclare const limits: WhichLimits; const subLimits: SubLimits = limits;\nconst factories: [typeof createWhichCommand, typeof createWhichCommands, typeof whichCommands] = [subCommand, subCommands, subPlugin];\nconst definition: CommandDefinition = createWhichCommand(subOptions);\nconst definitions: readonly CommandDefinition[] = createWhichCommands(options);\nconst plugin: VirtualShellPlugin = whichCommands({ limits: subLimits });\nvoid factories; void definition; void definitions; void plugin;\n// @ts-expect-error public declared collection is readonly\ncreateWhichCommands().push(definition);\n"
+    },
+    {
+      "id": "T02",
+      "source": "import { agentCommands, createAgentCommands, type AgentCommandsOptions, type WhichCommandsOptions } from 'virtual-bash';\ntype Equal<Left, Right> = (<Value>() => Value extends Left ? 1 : 2) extends (<Value>() => Value extends Right ? 1 : 2) ? true : false;\ntype Expect<Value extends true> = Value;\ntype ExactWhich = Expect<Equal<NonNullable<AgentCommandsOptions['which']>, Omit<WhichCommandsOptions, 'replace'>>>;\nconst options: AgentCommandsOptions = { replace: true, which: { limits: { maxOutputBytes: 8 } } };\nagentCommands(options); createAgentCommands(options); const exact: ExactWhich = true; void exact;\n// @ts-expect-error aggregate family cannot choose replacement policy\nagentCommands({ which: { replace: true } });\n// @ts-expect-error aggregate family cannot choose replacement policy\ncreateAgentCommands({ which: { replace: false } });\n// @ts-expect-error readonly aggregate option\noptions.which = {};\n// @ts-expect-error no invented host fallback option\nagentCommands({ which: { hostFallback: true } });\n"
+    },
+    {
+      "id": "T03",
+      "source": "import { createWhichCommand, agentCommands, type WhichLimits } from 'virtual-bash';\nimport { whichCommands } from 'virtual-bash/commands/which';\nconst limits: WhichLimits = { maxArguments: 4096, maxArgumentBytes: 65536, maxPathEnvBytes: 65536, maxPathComponents: 4096, maxPathBytes: 16384, maxProbes: 65536, maxOutputBytes: 8388608 };\ncreateWhichCommand({ limits }); whichCommands({ limits: { maxPathBytes: 32 } }); agentCommands({ which: { limits: { maxOutputBytes: 1 } } });\n// @ts-expect-error readonly limit\nlimits.maxProbes = 1;\n// @ts-expect-error numeric limit required\nagentCommands({ which: { limits: { maxProbes: '1' } } });\n// @ts-expect-error unknown command limit\nwhichCommands({ limits: { maxCommands: 1 } });\n"
+    },
+    {
+      "id": "T04",
+      "source": "import { createWhichCommand, type CommandContext, type CommandResult, type ByteSink } from 'virtual-bash';\nimport { createWhichCommand as subCommand } from 'virtual-bash/commands/which';\ndeclare const context: CommandContext; declare const sink: ByteSink;\nconst result: CommandResult | Promise<CommandResult> = createWhichCommand().execute(context);\nconst other: CommandResult | Promise<CommandResult> = subCommand().execute(context);\nvoid result; void other;\n// @ts-expect-error command context signal remains readonly\ncontext.signal = new AbortController().signal;\n// @ts-expect-error stdout is byte-oriented\nsink.write('not bytes');\n"
+    }
+  ]
+}

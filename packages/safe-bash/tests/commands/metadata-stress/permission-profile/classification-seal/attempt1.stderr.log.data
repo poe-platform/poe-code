@@ -1,0 +1,24 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
++ actual - expected
+
++ Uint8Array(3) [
+- Buffer(3) [Uint8Array] [
+    0,
+    255,
+    10
+  ]
+
+    at <anonymous> (/private/tmp/safe-bash-darwin-classification-b04J1M/replay.mjs:162:14) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: Uint8Array(3) [ 0, 255, 10 ],
+  expected: Buffer(3) [Uint8Array] [ 0, 255, 10 ],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.2

@@ -1,0 +1,39 @@
+{
+  "emittedModule": "getopts.js",
+  "emittedDeclarations": "getopts.d.ts",
+  "scannerCalls": 2,
+  "initial": {
+    "index": 0
+  },
+  "first": {
+    "state": {
+      "index": 1,
+      "active": {
+        "argument": 0,
+        "offset": 2
+      }
+    },
+    "kind": "option",
+    "status": 0,
+    "option": "a",
+    "optind": 1,
+    "argument": {
+      "kind": "unset"
+    },
+    "diagnostic": null
+  },
+  "second": {
+    "state": {
+      "index": 2
+    },
+    "kind": "option",
+    "status": 0,
+    "option": "b",
+    "optind": 2,
+    "argument": {
+      "kind": "set",
+      "value": "雪"
+    },
+    "diagnostic": null
+  }
+}

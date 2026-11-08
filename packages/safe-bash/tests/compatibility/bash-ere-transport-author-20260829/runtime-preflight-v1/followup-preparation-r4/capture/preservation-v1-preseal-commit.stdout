@@ -1,0 +1,4 @@
+[main b9ebe81a8] test: preseal separate L02 unknown-state DATA preservation
+ 2 files changed, 76 insertions(+)
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/preservation-v1/PRESEAL.md
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/preservation-v1/preserve.mjs

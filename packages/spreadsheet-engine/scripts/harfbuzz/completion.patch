@@ -1,0 +1,98 @@
+--- a/src/hb-buffer.cc
++++ b/src/hb-buffer.cc
+@@ -341,6 +341,9 @@
+ void
+ hb_buffer_t::leave ()
+ {
++  /* Preserve exhausted work before leave resets the counters. */
++  if (unlikely (max_ops <= 0))
++    successful = false;
+   max_len = HB_BUFFER_MAX_LEN_DEFAULT;
+   max_ops = HB_BUFFER_MAX_OPS_DEFAULT;
+   deallocate_var_all ();
+--- a/src/hb-shape.cc
++++ b/src/hb-shape.cc
+@@ -131,7 +131,7 @@
+ 	       const char * const *shaper_list)
+ {
+   if (unlikely (!buffer->len))
+-    return true;
++    return buffer->successful;
+ 
+   buffer->enter ();
+ 
+@@ -166,7 +166,7 @@
+ 
+   buffer->leave ();
+ 
+-  return res;
++  return res && buffer->successful;
+ }
+ 
+ /**
+--- a/src/hb-sanitize.hh
++++ b/src/hb-sanitize.hh
+@@ -119,6 +119,9 @@
+ #ifndef HB_SANITIZE_MAX_SUBTABLES
+ #define HB_SANITIZE_MAX_SUBTABLES 0x4000
+ #endif
++
++/* Owned build completion signal; no partial sanitized table is published. */
++extern "C" void ssconvert_hb_resource_failure (unsigned kind);
+ 
+ struct hb_sanitize_context_t :
+        hb_dispatch_context_t<hb_sanitize_context_t, bool, HB_DEBUG_SANITIZE>
+@@ -148,6 +151,8 @@
+   bool visit_subtables (unsigned count)
+   {
+     max_subtables += count;
++    if (unlikely (max_subtables >= HB_SANITIZE_MAX_SUBTABLES))
++      ssconvert_hb_resource_failure (2);
+     return max_subtables < HB_SANITIZE_MAX_SUBTABLES;
+   }
+ 
+@@ -250,6 +255,8 @@
+ 
+   void end_processing ()
+   {
++    if (unlikely (max_ops <= 0))
++      ssconvert_hb_resource_failure (1);
+     DEBUG_MSG_LEVEL (SANITIZE, this->start, 0, -1,
+ 		     "end [%p..%p]",
+ 		     this->start, this->end);
+@@ -266,6 +273,7 @@
+     if (unlikely (this->max_ops < 0 || count >= (unsigned) this->max_ops))
+     {
+       this->max_ops = -1;
++      ssconvert_hb_resource_failure (1);
+       return false;
+     }
+     this->max_ops -= (int) count;
+@@ -280,8 +288,12 @@
+   {
+     const char *p = (const char *) base;
+     bool ok = (uintptr_t) (p - this->start) <= this->length &&
+-	      (unsigned int) (this->end - p) >= len &&
+-	      ((this->max_ops -= len) > 0);
++	      (unsigned int) (this->end - p) >= len;
++    if (ok && (this->max_ops -= len) <= 0)
++    {
++      ssconvert_hb_resource_failure (1);
++      ok = false;
++    }
+ 
+     DEBUG_MSG_LEVEL (SANITIZE, p, this->debug_depth+1, 0,
+ 		     "check_range [%p..%p]"
+@@ -381,7 +393,11 @@
+ 
+   bool check_start_recursion (int max_depth)
+   {
+-    if (unlikely (recursion_depth >= max_depth)) return false;
++    if (unlikely (recursion_depth >= max_depth))
++    {
++      ssconvert_hb_resource_failure (3);
++      return false;
++    }
+     return ++recursion_depth;
+   }
+ 

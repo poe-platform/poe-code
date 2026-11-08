@@ -1,0 +1,10 @@
+{
+  "archivedGitBlobsAuthenticated": true,
+  "bothArchivesUnchangedIncludingAddedEntries": true,
+  "compiledUnchanged": true,
+  "identicalCompiledOldNew": true,
+  "fourHistoricalDirectoriesUnchangedIncludingAddedEntries": true,
+  "toolchainUnchanged": true,
+  "oracleUnchanged": true,
+  "scope": "Explicit selected archive inputs, named historical directories, and named toolchain packages only; not a global live-tree gate."
+}

@@ -1,0 +1,50 @@
+# @poe-code/poe-acp-client
+
+Client-side helpers for Agent Client Protocol sessions.
+
+This package contains the JSON-RPC transport, ACP client, session-update
+parsers, stream helpers, and run-report utilities used by agent integrations.
+
+## Usage
+
+```ts
+import { AcpClient, AcpTransport, parseSessionUpdate } from "@poe-code/poe-acp-client";
+
+const update = parseSessionUpdate({
+  sessionUpdate: "agent_message_chunk",
+  content: { type: "text", text: "done" }
+});
+```
+
+## Public API
+
+- `AcpClient`: high-level ACP client.
+- `AcpTransport`: process or injected transport wrapper.
+- `JsonRpcMessageLayer`: request/response/notification message layer.
+- JSON-RPC helpers: `parseJsonRpcMessage`, `serializeJsonRpcMessage`, and `createJsonRpcErrorResponse`.
+- Session-update helpers: `parseSessionUpdate` and `formatSessionUpdate`.
+- Stream helpers for messages, usage, tool-call summaries, and legacy event mapping.
+- Run-report helpers: `generateRunReportFromSessionUpdateStream`, `formatRunReportSummary`, and `saveRunReport`.
+- ACP protocol types and error-code helpers.
+
+## Validation
+
+ACP helpers validate protocol boundaries before forwarding data to callers:
+
+- JSON-RPC request ids must be finite integer ids.
+- Filesystem and terminal handler responses must match the declared ACP shapes.
+- Prompt responses must use supported stop reasons: `completed`, `end_turn`, `cancelled`, or `max_tokens`.
+- Run-report generation rejects blank run ids, malformed timestamps, invalid exit statuses, and impossible usage counters.
+
+## Config Options
+
+This package does not load a config file. Runtime behavior is controlled by
+constructor and function options such as transport process options, injected
+transport hooks, request handlers, filesystem handlers, terminal handlers, and
+run-report save options.
+
+## Environment Variables
+
+This package does not read or expose environment variables.
+
+For Workers without Node compatibility, import `AcpClient` from `@poe-code/poe-acp-client/client` and pass an injected `transport`. Process spawning remains a host capability.

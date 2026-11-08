@@ -1,0 +1,47 @@
+{
+  "freeze": {
+    "commit": "51f14914a0e7de15c3a23961424f232853bf5c33",
+    "manifestSHA256": "74f6db7a64bcb77a7223706e6461f712a753fd4404f8373c3487d0684d07f7b3",
+    "fileCount": 12,
+    "scripts": 16,
+    "invariants": 12
+  },
+  "profiles": [
+    {
+      "profile": "bash53",
+      "scripts": 16,
+      "selectedProfileMatches": 14,
+      "selectedProfileMismatches": 2,
+      "mismatches": [
+        "N05",
+        "N13"
+      ]
+    },
+    {
+      "profile": "bash32",
+      "scripts": 16,
+      "selectedProfileMatches": 9,
+      "selectedProfileMismatches": 7,
+      "mismatches": [
+        "N03",
+        "N04",
+        "N05",
+        "N12",
+        "N13",
+        "N14",
+        "N15"
+      ]
+    }
+  ],
+  "candidateStage2Executions": 0,
+  "originalPhase1Executions": 0,
+  "nativeScenarioInvocations": 32,
+  "distinctScripts": 16,
+  "frozenHostInvariants": 12,
+  "hostInvariantExecutions": 0,
+  "pendingRootDecisions": [
+    "D01",
+    "D02",
+    "D03"
+  ]
+}

@@ -1,0 +1,776 @@
+{
+  "schema": "independent-html-admission-v3.2-resource-result/1",
+  "at": "2026-08-28T00:39:53.783Z",
+  "recipeCommit": "c308fc79ea1e0a5ff7fe8d3bdcc116aadc09825b",
+  "recipeManifestSha256": "8970bef9f5b58b1c094fc08f70924b3209c683cc5a8f9e6542af63c218579f8d",
+  "invocations": 1,
+  "retries": 0,
+  "resourceProfile": {
+    "declared": 5,
+    "executed": 5,
+    "expected": 5,
+    "unexpected": 0,
+    "unrun": []
+  },
+  "launch": {
+    "at": "2026-08-28T00:36:37.734Z",
+    "pid": 96652,
+    "code": 0,
+    "signal": null,
+    "events": [
+      {
+        "type": "exit",
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T00:36:37.731Z"
+      },
+      {
+        "type": "close",
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T00:36:37.731Z"
+      }
+    ]
+  },
+  "start": {
+    "at": "2026-08-28T00:36:13.494Z",
+    "recipeCommit": "c308fc79ea1e0a5ff7fe8d3bdcc116aadc09825b",
+    "recipeManifestSha256": "8970bef9f5b58b1c094fc08f70924b3209c683cc5a8f9e6542af63c218579f8d",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--import",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/recipe/observe.mjs",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/recipe/coordinator.mjs",
+      "e27a62c40a317deae83fc1ef9d41d57f38d7d51d",
+      "968c52402f4c10507fb7c5410b33086bba33e7209b7030b42e7859b4c85c1980",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/raw/execution-01"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "env": {
+      "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/usr/bin:/bin",
+      "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/raw/tmp",
+      "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/raw/tmp",
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC"
+    },
+    "cases": [
+      "positive",
+      "producer-exit7",
+      "consumer-failure",
+      "timeout",
+      "allocation-mutant"
+    ],
+    "retries": 0
+  },
+  "settlement": {
+    "at": "2026-08-28T00:36:45.566Z",
+    "coordinatorCloseAwaited": true,
+    "spawnedSubjects": 11,
+    "ownedGroupsEmpty": true,
+    "allObservedChildrenExitedAndClosed": true,
+    "terminal": {
+      "code": 0,
+      "signal": null
+    }
+  },
+  "postcheck": {
+    "passed": 21,
+    "failed": 0,
+    "controlReruns": 0
+  },
+  "measurements": [
+    {
+      "control": "positive",
+      "savedOutcome": "expected-control-outcome",
+      "consumerPid": 96794,
+      "producerPid": 96795,
+      "consumerTerminal": {
+        "code": 0,
+        "signal": null
+      },
+      "producerTerminal": {
+        "code": 0,
+        "signal": null
+      },
+      "forwardedCode": null,
+      "forwardedMessage": null,
+      "consumerMemory": {
+        "baseline": {
+          "rss": 52477952,
+          "heapTotal": 6963200,
+          "heapUsed": 5107880,
+          "external": 2177625,
+          "arrayBuffers": 25023
+        },
+        "fieldwisePeaks": {
+          "rss": 106332160,
+          "heapTotal": 10371072,
+          "heapUsed": 6472760,
+          "external": 25044084,
+          "arrayBuffers": 22897051
+        },
+        "latest": {
+          "rss": 106332160,
+          "heapTotal": 10371072,
+          "heapUsed": 5481016,
+          "external": 8397978,
+          "arrayBuffers": 6250945
+        },
+        "samples": 67,
+        "fieldsUnit": "bytes",
+        "metric": "process.memoryUsage current samples; fieldwise maxima need not coincide"
+      },
+      "producerMemory": {
+        "baseline": {
+          "rss": 47104000,
+          "heapTotal": 5914624,
+          "heapUsed": 5274184,
+          "external": 2140093,
+          "arrayBuffers": 24847
+        },
+        "fieldwisePeaks": {
+          "rss": 58556416,
+          "heapTotal": 7749632,
+          "heapUsed": 5873224,
+          "external": 2205629,
+          "arrayBuffers": 90383
+        },
+        "latest": {
+          "rss": 58556416,
+          "heapTotal": 7749632,
+          "heapUsed": 5117072,
+          "external": 2205629,
+          "arrayBuffers": 90383
+        },
+        "samples": 67,
+        "fieldsUnit": "bytes",
+        "metric": "process.memoryUsage current samples; fieldwise maxima need not coincide"
+      },
+      "supervisorMemoryExcluded": {
+        "baseline": {
+          "rss": 58605568,
+          "heapTotal": 10895360,
+          "heapUsed": 7394672,
+          "external": 8199918,
+          "arrayBuffers": 5976335
+        },
+        "fieldwisePeaks": {
+          "rss": 60768256,
+          "heapTotal": 11485184,
+          "heapUsed": 7954208,
+          "external": 8199918,
+          "arrayBuffers": 5976335
+        },
+        "latest": {
+          "rss": 60768256,
+          "heapTotal": 11485184,
+          "heapUsed": 7954208,
+          "external": 2831011,
+          "arrayBuffers": 582104
+        },
+        "samples": 3,
+        "fieldsUnit": "bytes",
+        "metric": "process.memoryUsage current samples; fieldwise maxima need not coincide"
+      },
+      "consumerFlow": {
+        "chunks": 16386,
+        "bytes": 1073872896,
+        "maxChunkBytes": 65536,
+        "pending": 0,
+        "maxPending": 1,
+        "pendingBytes": 0,
+        "maxPendingBytes": 65536
+      },
+      "producerFlow": {
+        "writes": 16386,
+        "acceptedBytes": 1073872896,
+        "maxChunkBytes": 65536,
+        "falseWrites": 16345,
+        "drains": 16345,
+        "pendingDrains": 0,
+        "maxPendingDrains": 1,
+        "maxWritableLength": 65536,
+        "writableHighWaterMark": 65536,
+        "writableLength": 0
+      },
+      "mutation": {
+        "steps": 0,
+        "retainedBytes": 0,
+        "touchedByte": null
+      },
+      "resourceBoundary": null,
+      "coreMaxRss": 106315776,
+      "elapsedMs": 1991
+    },
+    {
+      "control": "producer-exit7",
+      "savedOutcome": "expected-control-outcome",
+      "consumerPid": 96964,
+      "producerPid": 96965,
+      "consumerTerminal": {
+        "code": 17,
+        "signal": null
+      },
+      "producerTerminal": {
+        "code": 7,
+        "signal": null
+      },
+      "forwardedCode": "STREAM_PROCESS",
+      "forwardedMessage": "BOUNDARY:STREAM_PROCESS {\"status\":7,\"signal\":null,\"stderr\":\"{\\\"emitted\\\":1073872896,\\\"drains\\\":16360}\\n\",\"timedOut\":false,\"stderrOverflow\":false}",
+      "consumerMemory": {
+        "baseline": {
+          "rss": 52707328,
+          "heapTotal": 6963200,
+          "heapUsed": 5107832,
+          "external": 2177625,
+          "arrayBuffers": 25023
+        },
+        "fieldwisePeaks": {
+          "rss": 97533952,
+          "heapTotal": 10371072,
+          "heapUsed": 6425152,
+          "external": 24585332,
+          "arrayBuffers": 22438299
+        },
+        "latest": {
+          "rss": 97533952,
+          "heapTotal": 10371072,
+          "heapUsed": 5461024,
+          "external": 7939226,
+          "arrayBuffers": 5792193
+        },
+        "samples": 67,
+        "fieldsUnit": "bytes",
+        "metric": "process.memoryUsage current samples; fieldwise maxima need not coincide"
+      },
+      "producerMemory": {
+        "baseline": {
+          "rss": 47022080,
+          "heapTotal": 5914624,
+          "heapUsed": 5274216,
+          "external": 2140093,
+          "arrayBuffers": 24847
+        },
+        "fieldwisePeaks": {
+          "rss": 58228736,
+          "heapTotal": 7749632,
+          "heapUsed": 5855576,
+          "external": 2205629,
+          "arrayBuffers": 90383
+        },
+        "latest": {
+          "rss": 58228736,
+          "heapTotal": 7749632,
+          "heapUsed": 5066360,
+          "external": 2205629,
+          "arrayBuffers": 90383
+        },
+        "samples": 67,
+        "fieldsUnit": "bytes",
+        "metric": "process.memoryUsage current samples; fieldwise maxima need not coincide"
+      },
+      "supervisorMemoryExcluded": {
+        "baseline": {
+          "rss": 62750720,
+          "heapTotal": 8208384,
+          "heapUsed": 6103760,
+          "external": 10078903,
+          "arrayBuffers": 25034
+        },
+        "fieldwisePeaks": {
+          "rss": 63406080,
+          "heapTotal": 8798208,
+          "heapUsed": 7396728,
+          "external": 10078903,
+          "arrayBuffers": 212457
+        },
+        "latest": {
+          "rss": 63406080,
+          "heapTotal": 8798208,
+          "heapUsed": 7396728,
+          "external": 2459188,
+          "arrayBuffers": 210281
+        },
+        "samples": 3,
+        "fieldsUnit": "bytes",
+        "metric": "process.memoryUsage current samples; fieldwise maxima need not coincide"
+      },
+      "consumerFlow": {
+        "chunks": 16386,
+        "bytes": 1073872896,
+        "maxChunkBytes": 65536,
+        "pending": 0,
+        "maxPending": 1,
+        "pendingBytes": 0,
+        "maxPendingBytes": 65536
+      },
+      "producerFlow": {
+        "writes": 16386,
+        "acceptedBytes": 1073872896,
+        "maxChunkBytes": 65536,
+        "falseWrites": 16360,
+        "drains": 16360,
+        "pendingDrains": 0,
+        "maxPendingDrains": 1,
+        "maxWritableLength": 65536,
+        "writableHighWaterMark": 65536,
+        "writableLength": 0
+      },
+      "mutation": {
+        "steps": 0,
+        "retainedBytes": 0,
+        "touchedByte": null
+      },
+      "resourceBoundary": null,
+      "coreMaxRss": null,
+      "elapsedMs": 2042
+    },
+    {
+      "control": "consumer-failure",
+      "savedOutcome": "expected-control-outcome",
+      "consumerPid": 97109,
+      "producerPid": 97110,
+      "consumerTerminal": {
+        "code": 17,
+        "signal": null
+      },
+      "producerTerminal": {
+        "code": 1,
+        "signal": null
+      },
+      "forwardedCode": "V3_CONSUMER_FAILURE",
+      "forwardedMessage": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+      "consumerMemory": {
+        "baseline": {
+          "rss": 52592640,
+          "heapTotal": 6963200,
+          "heapUsed": 5106992,
+          "external": 2177625,
+          "arrayBuffers": 25023
+        },
+        "fieldwisePeaks": {
+          "rss": 55967744,
+          "heapTotal": 7749632,
+          "heapUsed": 5507784,
+          "external": 3222934,
+          "arrayBuffers": 1073853
+        },
+        "latest": {
+          "rss": 55967744,
+          "heapTotal": 7749632,
+          "heapUsed": 5507784,
+          "external": 3222934,
+          "arrayBuffers": 1073853
+        },
+        "samples": 3,
+        "fieldsUnit": "bytes",
+        "metric": "process.memoryUsage current samples; fieldwise maxima need not coincide"
+      },
+      "producerMemory": {
+        "baseline": {
+          "rss": 47022080,
+          "heapTotal": 5914624,
+          "heapUsed": 5274216,
+          "external": 2140093,
+          "arrayBuffers": 24847
+        },
+        "fieldwisePeaks": {
+          "rss": 53149696,
+          "heapTotal": 6963200,
+          "heapUsed": 5300384,
+          "external": 2205629,
+          "arrayBuffers": 90383
+        },
+        "latest": {
+          "rss": 53149696,
+          "heapTotal": 6963200,
+          "heapUsed": 5005208,
+          "external": 2205629,
+          "arrayBuffers": 90383
+        },
+        "samples": 3,
+        "fieldsUnit": "bytes",
+        "metric": "process.memoryUsage current samples; fieldwise maxima need not coincide"
+      },
+      "supervisorMemoryExcluded": {
+        "baseline": {
+          "rss": 63750144,
+          "heapTotal": 8601600,
+          "heapUsed": 6536840,
+          "external": 7839721,
+          "arrayBuffers": 25041
+        },
+        "fieldwisePeaks": {
+          "rss": 63750144,
+          "heapTotal": 9125888,
+          "heapUsed": 6618544,
+          "external": 7839721,
+          "arrayBuffers": 211814
+        },
+        "latest": {
+          "rss": 61652992,
+          "heapTotal": 9125888,
+          "heapUsed": 6618544,
+          "external": 2459145,
+          "arrayBuffers": 210238
+        },
+        "samples": 3,
+        "fieldsUnit": "bytes",
+        "metric": "process.memoryUsage current samples; fieldwise maxima need not coincide"
+      },
+      "consumerFlow": {
+        "chunks": 16,
+        "bytes": 1048576,
+        "maxChunkBytes": 65536,
+        "pending": 0,
+        "maxPending": 1,
+        "pendingBytes": 0,
+        "maxPendingBytes": 65536
+      },
+      "producerFlow": {
+        "writes": 18,
+        "acceptedBytes": 1179648,
+        "maxChunkBytes": 65536,
+        "falseWrites": 12,
+        "drains": 11,
+        "pendingDrains": 1,
+        "maxPendingDrains": 1,
+        "maxWritableLength": 65536,
+        "writableHighWaterMark": 65536,
+        "writableLength": 0
+      },
+      "mutation": {
+        "steps": 0,
+        "retainedBytes": 0,
+        "touchedByte": null
+      },
+      "resourceBoundary": null,
+      "coreMaxRss": null,
+      "elapsedMs": 351
+    },
+    {
+      "control": "timeout",
+      "savedOutcome": "expected-control-outcome",
+      "consumerPid": 97252,
+      "producerPid": 97253,
+      "consumerTerminal": {
+        "code": 17,
+        "signal": null
+      },
+      "producerTerminal": {
+        "code": null,
+        "signal": "SIGTERM"
+      },
+      "forwardedCode": "V3_TIMEOUT",
+      "forwardedMessage": "CONTROL_BOUNDARY:V3_TIMEOUT",
+      "consumerMemory": {
+        "baseline": {
+          "rss": 52936704,
+          "heapTotal": 6963200,
+          "heapUsed": 5121040,
+          "external": 2177625,
+          "arrayBuffers": 25023
+        },
+        "fieldwisePeaks": {
+          "rss": 56360960,
+          "heapTotal": 7749632,
+          "heapUsed": 5605552,
+          "external": 3326423,
+          "arrayBuffers": 1139179
+        },
+        "latest": {
+          "rss": 56360960,
+          "heapTotal": 7749632,
+          "heapUsed": 5605552,
+          "external": 3326423,
+          "arrayBuffers": 1139179
+        },
+        "samples": 4,
+        "fieldsUnit": "bytes",
+        "metric": "process.memoryUsage current samples; fieldwise maxima need not coincide"
+      },
+      "producerMemory": {
+        "baseline": {
+          "rss": 47087616,
+          "heapTotal": 5914624,
+          "heapUsed": 5274184,
+          "external": 2140093,
+          "arrayBuffers": 24847
+        },
+        "fieldwisePeaks": {
+          "rss": 52084736,
+          "heapTotal": 6963200,
+          "heapUsed": 5297544,
+          "external": 2205629,
+          "arrayBuffers": 90383
+        },
+        "latest": {
+          "rss": 52084736,
+          "heapTotal": 6963200,
+          "heapUsed": 4931088,
+          "external": 2205629,
+          "arrayBuffers": 90383
+        },
+        "samples": 3,
+        "fieldsUnit": "bytes",
+        "metric": "process.memoryUsage current samples; fieldwise maxima need not coincide"
+      },
+      "supervisorMemoryExcluded": {
+        "baseline": {
+          "rss": 63455232,
+          "heapTotal": 8929280,
+          "heapUsed": 5905384,
+          "external": 7772054,
+          "arrayBuffers": 27906
+        },
+        "fieldwisePeaks": {
+          "rss": 63455232,
+          "heapTotal": 9125888,
+          "heapUsed": 6722632,
+          "external": 7772054,
+          "arrayBuffers": 212287
+        },
+        "latest": {
+          "rss": 63389696,
+          "heapTotal": 9125888,
+          "heapUsed": 6722632,
+          "external": 2459347,
+          "arrayBuffers": 210440
+        },
+        "samples": 4,
+        "fieldsUnit": "bytes",
+        "metric": "process.memoryUsage current samples; fieldwise maxima need not coincide"
+      },
+      "consumerFlow": {
+        "chunks": 16,
+        "bytes": 1048576,
+        "maxChunkBytes": 65536,
+        "pending": 0,
+        "maxPending": 1,
+        "pendingBytes": 0,
+        "maxPendingBytes": 65536
+      },
+      "producerFlow": {
+        "writes": 19,
+        "acceptedBytes": 1245184,
+        "maxChunkBytes": 65536,
+        "falseWrites": 15,
+        "drains": 14,
+        "pendingDrains": 1,
+        "maxPendingDrains": 1,
+        "maxWritableLength": 65536,
+        "writableHighWaterMark": 65536,
+        "writableLength": 65536
+      },
+      "mutation": {
+        "steps": 0,
+        "retainedBytes": 0,
+        "touchedByte": null
+      },
+      "resourceBoundary": null,
+      "coreMaxRss": null,
+      "elapsedMs": 675
+    },
+    {
+      "control": "allocation-mutant",
+      "savedOutcome": "expected-control-outcome",
+      "consumerPid": 97394,
+      "producerPid": 97395,
+      "consumerTerminal": {
+        "code": null,
+        "signal": "SIGTERM"
+      },
+      "producerTerminal": {
+        "code": null,
+        "signal": "SIGTERM"
+      },
+      "forwardedCode": "V3_RSS_LIMIT",
+      "forwardedMessage": "CONTROL_BOUNDARY:V3_RSS_LIMIT",
+      "consumerMemory": {
+        "baseline": {
+          "rss": 52822016,
+          "heapTotal": 6963200,
+          "heapUsed": 5107264,
+          "external": 2177625,
+          "arrayBuffers": 25023
+        },
+        "fieldwisePeaks": {
+          "rss": 273285120,
+          "heapTotal": 10108928,
+          "heapUsed": 5272000,
+          "external": 220578269,
+          "arrayBuffers": 218325450
+        },
+        "latest": {
+          "rss": 273285120,
+          "heapTotal": 8273920,
+          "heapUsed": 5227632,
+          "external": 220578269,
+          "arrayBuffers": 218259913
+        },
+        "samples": 29,
+        "fieldsUnit": "bytes",
+        "metric": "process.memoryUsage current samples; fieldwise maxima need not coincide"
+      },
+      "producerMemory": {
+        "baseline": {
+          "rss": 47038464,
+          "heapTotal": 5914624,
+          "heapUsed": 5274232,
+          "external": 2140093,
+          "arrayBuffers": 24847
+        },
+        "fieldwisePeaks": {
+          "rss": 53051392,
+          "heapTotal": 6963200,
+          "heapUsed": 5298400,
+          "external": 2205629,
+          "arrayBuffers": 90383
+        },
+        "latest": {
+          "rss": 53051392,
+          "heapTotal": 6963200,
+          "heapUsed": 4984224,
+          "external": 2205629,
+          "arrayBuffers": 90383
+        },
+        "samples": 3,
+        "fieldsUnit": "bytes",
+        "metric": "process.memoryUsage current samples; fieldwise maxima need not coincide"
+      },
+      "supervisorMemoryExcluded": {
+        "baseline": {
+          "rss": 63569920,
+          "heapTotal": 8929280,
+          "heapUsed": 6963216,
+          "external": 7780246,
+          "arrayBuffers": 5531339
+        },
+        "fieldwisePeaks": {
+          "rss": 65454080,
+          "heapTotal": 11878400,
+          "heapUsed": 8670040,
+          "external": 7780246,
+          "arrayBuffers": 5531339
+        },
+        "latest": {
+          "rss": 65454080,
+          "heapTotal": 11878400,
+          "heapUsed": 8670040,
+          "external": 2854348,
+          "arrayBuffers": 605441
+        },
+        "samples": 29,
+        "fieldsUnit": "bytes",
+        "metric": "process.memoryUsage current samples; fieldwise maxima need not coincide"
+      },
+      "consumerFlow": {
+        "chunks": 26,
+        "bytes": 1703936,
+        "maxChunkBytes": 65536,
+        "pending": 0,
+        "maxPending": 1,
+        "pendingBytes": 0,
+        "maxPendingBytes": 65536
+      },
+      "producerFlow": {
+        "writes": 29,
+        "acceptedBytes": 1900544,
+        "maxChunkBytes": 65536,
+        "falseWrites": 27,
+        "drains": 26,
+        "pendingDrains": 1,
+        "maxPendingDrains": 1,
+        "maxWritableLength": 65536,
+        "writableHighWaterMark": 65536,
+        "writableLength": 65536
+      },
+      "mutation": {
+        "steps": 26,
+        "retainedBytes": 218103808,
+        "touchedByte": 180
+      },
+      "resourceBoundary": {
+        "type": "memory",
+        "role": "fresh-consumer",
+        "pid": 97394,
+        "ppid": 96652,
+        "phase": "allocation-retained",
+        "sample": 28,
+        "memory": {
+          "rss": 272678912,
+          "heapTotal": 6701056,
+          "heapUsed": 5056048,
+          "external": 220472483,
+          "arrayBuffers": 218325450
+        },
+        "flow": {
+          "chunks": 26,
+          "bytes": 1703936,
+          "maxChunkBytes": 65536,
+          "pending": 1,
+          "maxPending": 1,
+          "pendingBytes": 65536,
+          "maxPendingBytes": 65536
+        },
+        "mutation": {
+          "steps": 26,
+          "retainedBytes": 218103808,
+          "touchedByte": 180
+        }
+      },
+      "coreMaxRss": null,
+      "elapsedMs": 1243
+    }
+  ],
+  "staticOnlyAuthorClaims": {
+    "realCases": 5,
+    "expected": 5,
+    "unexpected": 0,
+    "originalSynthetic": {
+      "declared": 28,
+      "executed": 28,
+      "expected": 28,
+      "accepted": 2,
+      "rejected": 26
+    },
+    "forwardingCohorts": 6,
+    "orderedPredicates": 8,
+    "readonlyChecks": 33
+  },
+  "acceptance": "Qualified five-case fresh-process stream resource profile only. Negative controls remain failures with expected exact reasons/statuses.",
+  "limits": [
+    "not whole-verifier RSS",
+    "instrumentation overhead is included",
+    "sampled current RSS, not continuous maximum",
+    "no historical RSS cause claim",
+    "hard-deadline unsafe fallback is not a universal reaping guarantee",
+    "fsync-completed file receipts, not directory/power-loss guarantees",
+    "PID/group absence snapshots are not identity leases"
+  ],
+  "metadataCorrectionsNoExecutionChange": [
+    "Frozen recipe manifest syntaxCheckedModules says7; its files contain six .mjs modules and all six were syntax checked. This count typo remains in immutable recipe; no module omitted or case rerun.",
+    "Frozen REVIEW launch paragraph orders original-binding authentication before exclusive lock. Actual sealed code creates lock first, then authenticates original bindings, then spawns the sole coordinator. Independent recipe authentication precedes lock. Both authentications precede every actual case."
+  ],
+  "unexecuted": {
+    "synthetic28": true,
+    "forwarding6": true,
+    "orderedSynthetic8": true,
+    "authorReadonly33": "static authenticated, not reexecuted",
+    "htmlActual34": 0,
+    "fullBuild410": false,
+    "pack830": false,
+    "twoPathReconstruction": false,
+    "productPublicHTML74": false,
+    "DU": false
+  },
+  "historicalHolds": [
+    "d28083dd admission-v2 34/35 RSS HOLD; numerical RSS lost/unrecoverable",
+    "e579a96c diagnosis not old cause or rescore",
+    "all v2/v3/v3.1 failures unchanged; no composite old gate pass",
+    "missing original first raw rejection; separate synthetic capture remains synthetic; three author development failures retained",
+    "partial independent recipe bf72a1f9d0eaa843e1e3a33949993a7d4a338d96 unchanged/unrerun",
+    "HTML34 awaits root release; DU29 and A06/P03 remain held"
+  ]
+}

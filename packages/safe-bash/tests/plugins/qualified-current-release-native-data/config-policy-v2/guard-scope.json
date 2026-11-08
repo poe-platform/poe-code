@@ -1,0 +1,19 @@
+{
+  "revision": "6699804ace9f5522aa67be6a017a8008bfc09f30",
+  "runnerSha256": "86f412f882d4d03df5f049e68916f15dffeff9fa7cfe48bb8b2cc8ddaf4dd1af",
+  "functionSha256": "a649d2e91bc0ccfe7762534e95b87657598185cee208e6ec805353144eabb44c",
+  "controls": [
+    "fresh exact archive and tracked post-check accept original bytes",
+    "post-check does not detect new src/unexpected.ts",
+    "fresh admission rejects new src/unexpected.ts",
+    "post-check does not detect new evidence/unexpected.json",
+    "fresh admission rejects new evidence/unexpected.json",
+    "post-check does not detect a new empty directory",
+    "fresh admission rejects a new empty directory",
+    "tracked byte mutation is detected",
+    "tracked mode mutation is detected",
+    "tracked deletion is detected"
+  ],
+  "scope": "Fresh admission compares exact files/directories. Post-phase verifySource only enumerates original tracked paths; new source/artifact entries are not detected. No guard change or universal integrity claim.",
+  "temporaryRemoved": true
+}

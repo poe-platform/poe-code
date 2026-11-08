@@ -1,0 +1,74 @@
+{
+  "schema": "one-bash32-readiness-source-seal-v1",
+  "at": 1787984121045,
+  "sourceDirectory": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/provider-v1/bash-readiness-v1",
+  "runRoot": "/private/tmp/safe-bash-reference-readiness-v1-abpaov",
+  "captureRoot": "/tmp/bash-reference-readiness-abpaov",
+  "deadline": 1787984807671,
+  "files": [
+    {
+      "path": "admin.mjs",
+      "bytes": 4044,
+      "sha256": "4572a2c43a1e2069f231ada04762dfd1fa8193514228634b76d3bd54c515f174"
+    },
+    {
+      "path": "launch-controller.mjs",
+      "bytes": 3694,
+      "sha256": "cd8b8a6d0debe49f264f4b0ec7a066eedbfbe4cdf50d0ee554a71dc7c663b54c"
+    },
+    {
+      "path": "controller.mjs",
+      "bytes": 10924,
+      "sha256": "5d49a8a0a5d9b268f4f26ae0d1121ecbfb38d346a74edc384551631051ab56de"
+    },
+    {
+      "path": "observer-state.mjs",
+      "bytes": 1240,
+      "sha256": "14ad6fd00f476722676fd590b2fc0774d7c1eb242d6525e885b1bfb53d3bce74"
+    },
+    {
+      "path": "group-observer.mjs",
+      "bytes": 759,
+      "sha256": "ba7ec9ff06c8b0867b9183b1242ade0f4b1ca1d9d6bb0c6b1abdbb574d830417"
+    },
+    {
+      "path": "DATA-PRESEAL.json",
+      "bytes": 968,
+      "sha256": "0775765ffb8c79ec759688c6bfe5db37731b1ece9c968a844d0f091219c5b69a"
+    },
+    {
+      "path": "DATA-RESULTS.json",
+      "bytes": 4929,
+      "sha256": "fbe34455fcc6db3ec5ca64991ee590143dc7bd3f02622ecabc37b0ca07b7455a"
+    },
+    {
+      "path": "PROFILE.sb.data",
+      "bytes": 5690,
+      "sha256": "17d2628a44e52c4fe245021ccdca8cc8ae7202b123800a3659a7fd79eee2c037"
+    },
+    {
+      "path": "PROFILE-DELTA.json",
+      "bytes": 2911,
+      "sha256": "e79368a5d03ec6766e33fc0a9dd5504261ad01364a70f12b19f244b3bef36ca1"
+    },
+    {
+      "path": "PLAN.json",
+      "bytes": 10832,
+      "sha256": "3a497e43a817985b46aa6d797f4f26cb1e09cd7d234d03f0fd2c979342f413e8"
+    },
+    {
+      "path": "TOOLS.json",
+      "bytes": 9204,
+      "sha256": "4c28e4a209e5a6277ae0ab807dc7f08a437b0e834906eb51086c9085fb3d141d"
+    },
+    {
+      "path": "PROTOCOL.md",
+      "bytes": 4392,
+      "sha256": "31a781ec0e0689a1576c49ad110e58693deb396e62456283515eebece6b8fca1"
+    }
+  ],
+  "priorTargetStarts": 0,
+  "permittedTargetStarts": 1,
+  "dataControlPasses": 8,
+  "existingRootNamespaceRequiredAbsent": true
+}

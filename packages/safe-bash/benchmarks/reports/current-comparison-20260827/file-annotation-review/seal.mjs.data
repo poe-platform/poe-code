@@ -1,0 +1,52 @@
+import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { lstatSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { gzipSync, gunzipSync } from 'node:zlib';
+
+const repository = '/Users/kjopek/Workspace/safe-bash';
+const owned = 'benchmarks/reports/current-comparison-20260827/file-annotation-review';
+const directory = join(repository, owned);
+const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+for (const label of ['before', 'after']) {
+  const original = join(directory, `${label}-archive.stdout.log`);
+  const bytes = readFileSync(original);
+  const packed = gzipSync(bytes, { level: 9 });
+  assert.ok(gunzipSync(packed).equals(bytes));
+  writeFileSync(join(directory, `${label}-archive.stdout.tar.gz.data`), packed, { flag: 'wx' });
+  unlinkSync(original);
+}
+const files = readdirSync(directory).sort();
+const entries = files.map(name => {
+  const path = join(directory, name);
+  assert.ok(lstatSync(path).isFile());
+  const bytes = readFileSync(path);
+  return { path: name, bytes: bytes.length, sha256: hash(bytes) };
+});
+writeFileSync(join(directory, 'HASHES.json'), `${JSON.stringify({ algorithm: 'sha256', excludesSelf: true, files: entries }, null, 2)}\n`, { flag: 'wx' });
+const calls = JSON.parse(readFileSync(join(directory, 'commands.json')));
+for (const call of calls) {
+  for (const stream of ['stdout', 'stderr']) {
+    const archived = call.name.endsWith('-archive') && stream === 'stdout';
+    const bytes = readFileSync(join(directory, `${call.name}.${stream}${archived ? '.tar.gz.data' : '.log'}`));
+    assert.equal(hash(archived ? gunzipSync(bytes) : bytes), call[`${stream}Sha256`]);
+  }
+}
+const git = args => {
+  const result = spawnSync('git', args, { cwd: repository, encoding: 'utf8', timeout: 60000, maxBuffer: 8 * 1024 * 1024 });
+  assert.equal(result.status, 0, result.stderr);
+  return result.stdout;
+};
+const unrelatedIndex = () => git(['diff', '--cached', '--raw', '--', '.', `:(exclude)${owned}/**`]);
+const initialIndex = unrelatedIndex();
+const paths = [...files, 'HASHES.json'].map(name => `${owned}/${name}`);
+assert.equal(git(['diff', '--check', '--', ...paths]), '');
+git(['add', '--', ...paths]);
+const output = git(['commit', '--only', '-m', 'docs: independently verify file callback type-only annotations', '--', ...paths]);
+assert.equal(unrelatedIndex(), initialIndex);
+const committed = git(['diff-tree', '--no-commit-id', '--name-only', '-r', 'HEAD']).trim().split('\n').sort();
+assert.deepEqual(committed, [...paths].sort());
+for (const entry of entries) assert.equal(hash(readFileSync(join(directory, entry.path))), entry.sha256);
+console.log(output);
+console.log(JSON.stringify({ commit: git(['rev-parse', 'HEAD']).trim(), regularFiles: paths.length, unrelatedIndexPreserved: true, sealedHashesVerified: true }, null, 2));

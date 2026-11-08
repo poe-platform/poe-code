@@ -1,0 +1,55 @@
+{
+  "started": "2026-08-27T04:58:22.126Z",
+  "finished": "2026-08-27T04:58:33.473Z",
+  "fixedCounts": {
+    "tests": 129,
+    "pass": 129,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "baselineCounts": {
+    "tests": 129,
+    "pass": 125,
+    "fail": 4,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failedNames": [
+    "not ok 39 - endpoint origin validation rejects normalized path: http://127.0.0.1\\\\unexpected",
+    "not ok 40 - endpoint origin validation rejects normalized path: https://example.invalid\\\\@path",
+    "not ok 50 - invalid XML comment is rejected: before",
+    "not ok 51 - invalid XML comment is rejected: after"
+  ],
+  "neighborCounts": {
+    "tests": 46,
+    "pass": 46,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "killedMutants": 5,
+  "currentSourceDifferences": 14,
+  "frozenHttpMatchesCurrent": true,
+  "sourceRestored": true,
+  "originalInputsUnchanged": true,
+  "serviceExecutions": 0,
+  "downloads": 0,
+  "activeChildren": 0,
+  "cleanup": {
+    "directory": "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/http/final-verification/protocol/.tmp/protocol-J6uFdi",
+    "removed": true
+  },
+  "commandLabels": [
+    "fixed-prepare",
+    "fixed-validate",
+    "fixed-mutants",
+    "fixed-neighbors",
+    "neighbor-strict-types",
+    "baseline-prepare",
+    "baseline-unchanged129"
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "actualExitObservedByRoot": true,
+  "exitCode": 0,
+  "sessionId": 17223,
+  "evidenceBasis": "fresh root assignment",
+  "closedAt": null,
+  "note": "Root reports actual exit, exact timestamp not supplied; executor does not claim direct observation."
+}

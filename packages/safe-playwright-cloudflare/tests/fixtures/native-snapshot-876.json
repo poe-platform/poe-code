@@ -1,0 +1,22 @@
+[
+  {
+    "role": "generic",
+    "ref": "e2",
+    "children": [
+      {
+        "role": "generic",
+        "ref": "e3",
+        "children": [
+          "Name",
+          { "role": "textbox", "name": "Name", "active": true, "ref": "e4", "text": "Ada" }
+        ]
+      },
+      { "role": "paragraph", "ref": "e5", "text": "Welcome" },
+      {
+        "role": "generic",
+        "ref": "e6",
+        "children": ["Before", { "role": "button", "name": "Save", "ref": "e7" }, "After"]
+      }
+    ]
+  }
+]

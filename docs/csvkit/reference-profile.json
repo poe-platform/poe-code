@@ -1,0 +1,1327 @@
+{
+  "schemaVersion": 1,
+  "target": "csvkit 2.2.0",
+  "source": {
+    "url": "https://files.pythonhosted.org/packages/9a/bf/59b035abead12d9498c96dc05b965ec77683d3c794305dec2648e23830cc/csvkit-2.2.0.tar.gz",
+    "sha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+    "manifest": "source-manifest.json",
+    "files": 209,
+    "manifestSha256": "373e84e792482061c1c18c2248a3d40c6657e0c26d5d72d0351950142878effe"
+  },
+  "profiles": [
+    {
+      "id": "darwin-cpython-3.14.2-csvkit-2.2.0",
+      "runtime": {
+        "implementation": "CPython",
+        "version": "3.14.2",
+        "build": [
+          "main",
+          "Jan 27 2026 23:32:07"
+        ],
+        "platform": "macOS-15.7.7-arm64-arm-64bit-Mach-O",
+        "machine": "arm64",
+        "sqlite": "3.50.4",
+        "zlib": "1.2.12",
+        "zlibRuntime": "1.2.12",
+        "bz2": "1.0.8, 13-Jul-2019",
+        "lzma": "5.4.3",
+        "compressionVersionProvenance": "BZ2_bzlibVersion and lzma_version_string, ctypes reference-only inspection: process exports on 3.14.2; explicit OS library bindings on 3.9.6",
+        "cldr": "47",
+        "cldrProvenance": "Babel 2.18.0 CHANGES.rst, source archive verified; babel.core.get_cldr_version() inspected on 3.14.2",
+        "shippedSqlAlchemyDialects": [
+          "mssql",
+          "mysql",
+          "oracle",
+          "postgresql",
+          "sqlite"
+        ],
+        "executableSha256": "3d6400b63b150164e89a690d9813af8b0eb420af9f336ef1f6c5102c6da60eae",
+        "executableSize": 49968,
+        "unicodeVersion": "16.0.0"
+      },
+      "decimal": {
+        "precision": 28,
+        "rounding": "ROUND_HALF_EVEN",
+        "Emin": -999999,
+        "Emax": 999999,
+        "capitals": 1,
+        "clamp": 0,
+        "traps": [
+          "InvalidOperation",
+          "DivisionByZero",
+          "Overflow"
+        ]
+      },
+      "quoteConstants": {
+        "QUOTE_ALL": 1,
+        "QUOTE_MINIMAL": 0,
+        "QUOTE_NONE": 3,
+        "QUOTE_NONNUMERIC": 2,
+        "QUOTE_NOTNULL": 5,
+        "QUOTE_STRINGS": 4
+      },
+      "captureEnvironment": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "PYTHONIOENCODING": "utf-8",
+        "COLUMNS": "80",
+        "LINES": "24"
+      },
+      "stdio": {
+        "stdin": "empty pipe, non-TTY",
+        "stdout": "captured pipe, non-TTY, utf-8",
+        "stderr": "captured pipe, non-TTY, utf-8",
+        "buffering": "CPython default; no -u; writes collected after process exit"
+      },
+      "entryPoints": {
+        "csvclean": "csvkit.utilities.csvclean:launch_new_instance",
+        "csvcut": "csvkit.utilities.csvcut:launch_new_instance",
+        "csvformat": "csvkit.utilities.csvformat:launch_new_instance",
+        "csvgrep": "csvkit.utilities.csvgrep:launch_new_instance",
+        "csvjoin": "csvkit.utilities.csvjoin:launch_new_instance",
+        "csvjson": "csvkit.utilities.csvjson:launch_new_instance",
+        "csvlook": "csvkit.utilities.csvlook:launch_new_instance",
+        "csvpy": "csvkit.utilities.csvpy:launch_new_instance",
+        "csvsort": "csvkit.utilities.csvsort:launch_new_instance",
+        "csvsql": "csvkit.utilities.csvsql:launch_new_instance",
+        "csvstack": "csvkit.utilities.csvstack:launch_new_instance",
+        "csvstat": "csvkit.utilities.csvstat:launch_new_instance",
+        "in2csv": "csvkit.utilities.in2csv:launch_new_instance",
+        "sql2csv": "csvkit.utilities.sql2csv:launch_new_instance"
+      },
+      "dialectEntryPoints": [],
+      "optionalModules": {
+        "zstandard": false,
+        "IPython": false,
+        "psycopg2": false,
+        "pymysql": false,
+        "MySQLdb": false,
+        "pyodbc": false,
+        "oracledb": false,
+        "dateutil": false
+      },
+      "distributions": [
+        {
+          "name": "agate",
+          "version": "1.14.2",
+          "requires": [
+            "Babel>=2.0",
+            "isodate>=0.5.4",
+            "leather>=0.3.2",
+            "parsedatetime!=2.5,>=2.1",
+            "python-slugify>=1.2.1",
+            "pytimeparse>=1.1.5",
+            "tzdata>=2023.3; platform_system == \"Windows\"",
+            "coverage>=3.7.1; extra == \"test\"",
+            "cssselect>=0.9.1; extra == \"test\"",
+            "lxml>=3.6.0; extra == \"test\"",
+            "PyICU>=2.4.2; sys_platform == \"linux\" and extra == \"test\"",
+            "pytest; extra == \"test\"",
+            "pytest-cov; extra == \"test\""
+          ],
+          "installedFileCount": 108,
+          "installedFileManifestSha256": "a4964c672245b48a09c94f9f4ae7c17c654fa5c80d94d225af30162ba03360bc",
+          "manifestDefinition": "UTF-8 JSON sort_keys=true compact separators; sorted distribution-relative path and sha256 records, excluding .pyc; installation-specific scripts included",
+          "metadataUrl": "https://pypi.org/pypi/agate/1.14.2/json",
+          "sourceArtifacts": [
+            {
+              "filename": "agate-1.14.2.tar.gz",
+              "url": "https://files.pythonhosted.org/packages/16/48/dc4d02dba00fbe62e966ed1a7d991e51654668ab343a2738bb816aa82256/agate-1.14.2.tar.gz",
+              "sha256": "7f29841c39d84b1de7fde762b8d792085371515324f3a01413b20f810398225b",
+              "size": 204186
+            }
+          ],
+          "requiresPython": null,
+          "sourceArtifactsVerified": true
+        },
+        {
+          "name": "agate-dbf",
+          "version": "0.2.4",
+          "requires": [
+            "agate>=1.5.0",
+            "dbfread>=2.0.5",
+            "pytest; extra == \"test\"",
+            "pytest-cov; extra == \"test\""
+          ],
+          "installedFileCount": 10,
+          "installedFileManifestSha256": "8baca9682cba9540d94ec73d7ea5c8284c047d6de67a72ad175b8f701d5e1230",
+          "manifestDefinition": "UTF-8 JSON sort_keys=true compact separators; sorted distribution-relative path and sha256 records, excluding .pyc; installation-specific scripts included",
+          "metadataUrl": "https://pypi.org/pypi/agate-dbf/0.2.4/json",
+          "sourceArtifacts": [
+            {
+              "filename": "agate_dbf-0.2.4.tar.gz",
+              "url": "https://files.pythonhosted.org/packages/ad/d8/abf6f39bd8c5767cc367472ea59f7d7cc4d5728388974a1b26a9472a971f/agate_dbf-0.2.4.tar.gz",
+              "sha256": "6554828b10048a76dbb5bc4eff8911e059ea2b47155b7a89351e382915ca16fc",
+              "size": 7547
+            }
+          ],
+          "requiresPython": null,
+          "sourceArtifactsVerified": true
+        },
+        {
+          "name": "agate-excel",
+          "version": "0.4.2",
+          "requires": [
+            "agate>=1.5.0",
+            "olefile",
+            "openpyxl>=2.3.0",
+            "xlrd>=0.9.4",
+            "pytest; extra == \"test\"",
+            "pytest-cov; extra == \"test\""
+          ],
+          "installedFileCount": 11,
+          "installedFileManifestSha256": "d5c5d70978812d28484ac8ca9072b7dfc0e666b924b8952b9604244431d780e7",
+          "manifestDefinition": "UTF-8 JSON sort_keys=true compact separators; sorted distribution-relative path and sha256 records, excluding .pyc; installation-specific scripts included",
+          "metadataUrl": "https://pypi.org/pypi/agate-excel/0.4.2/json",
+          "sourceArtifacts": [
+            {
+              "filename": "agate_excel-0.4.2.tar.gz",
+              "url": "https://files.pythonhosted.org/packages/83/e5/b2d1bc555fd91145de5d11a7b31241076586713d222881c6d7eac9e4fda9/agate_excel-0.4.2.tar.gz",
+              "sha256": "eed1dc6239f0e96720d962dc1bdfb4496e19687332c827fd8b1e587a917ea202",
+              "size": 271423
+            }
+          ],
+          "requiresPython": null,
+          "sourceArtifactsVerified": true
+        },
+        {
+          "name": "agate-sql",
+          "version": "0.7.3",
+          "requires": [
+            "agate>=1.5.0",
+            "sqlalchemy>=1.4",
+            "sqlalchemy-cratedb; extra == \"test\"",
+            "geojson; extra == \"test\"",
+            "pytest; extra == \"test\"",
+            "pytest-cov; extra == \"test\""
+          ],
+          "installedFileCount": 10,
+          "installedFileManifestSha256": "4d917460b2808c9c2ea854928968d2e778f6097feebf482e52007456650c8a1f",
+          "manifestDefinition": "UTF-8 JSON sort_keys=true compact separators; sorted distribution-relative path and sha256 records, excluding .pyc; installation-specific scripts included",
+          "metadataUrl": "https://pypi.org/pypi/agate-sql/0.7.3/json",
+          "sourceArtifacts": [
+            {
+              "filename": "agate_sql-0.7.3.tar.gz",
+              "url": "https://files.pythonhosted.org/packages/fe/fe/fc7662f1ec3c0917c377f74f143a479eb13c9ae5fe14d77ce28eb165564f/agate_sql-0.7.3.tar.gz",
+              "sha256": "4c588a28e80bc625c7d5f915e8f8dff4900140a8a6d8a350a098a2ba9adf9d33",
+              "size": 13936
+            }
+          ],
+          "requiresPython": null,
+          "sourceArtifactsVerified": true
+        },
+        {
+          "name": "babel",
+          "version": "2.18.0",
+          "requires": [
+            "pytz>=2015.7; python_version < \"3.9\"",
+            "tzdata; sys_platform == \"win32\" and extra == \"dev\"",
+            "backports.zoneinfo; python_version < \"3.9\" and extra == \"dev\"",
+            "freezegun~=1.0; extra == \"dev\"",
+            "jinja2>=3.0; extra == \"dev\"",
+            "pytest-cov; extra == \"dev\"",
+            "pytest>=6.0; extra == \"dev\"",
+            "pytz; extra == \"dev\"",
+            "setuptools; extra == \"dev\""
+          ],
+          "installedFileCount": 1122,
+          "installedFileManifestSha256": "bbf9757bb147d7dd30fa951d00936194b6d9d71f942c5c7a4dab9eea30df070d",
+          "manifestDefinition": "UTF-8 JSON sort_keys=true compact separators; sorted distribution-relative path and sha256 records, excluding .pyc; installation-specific scripts included",
+          "metadataUrl": "https://pypi.org/pypi/babel/2.18.0/json",
+          "sourceArtifacts": [
+            {
+              "filename": "babel-2.18.0.tar.gz",
+              "url": "https://files.pythonhosted.org/packages/7d/b2/51899539b6ceeeb420d40ed3cd4b7a40519404f9baf3d4ac99dc413a834b/babel-2.18.0.tar.gz",
+              "sha256": "b80b99a14bd085fcacfa15c9165f651fbb3406e66cc603abf11c5750937c992d",
+              "size": 9959554
+            }
+          ],
+          "requiresPython": ">=3.8",
+          "sourceArtifactsVerified": true
+        },
+        {
+          "name": "csvkit",
+          "version": "2.2.0",
+          "requires": [
+            "agate>=1.12.0",
+            "agate-excel>=0.4.0",
+            "agate-dbf>=0.2.3",
+            "agate-sql>=0.7.0",
+            "openpyxl",
+            "sqlalchemy",
+            "xlrd",
+            "importlib_metadata; python_version < \"3.10\"",
+            "zstandard; extra == \"zstandard\"",
+            "coverage>=4.4.2; extra == \"test\"",
+            "pytest; extra == \"test\"",
+            "pytest-cov; extra == \"test\""
+          ],
+          "installedFileCount": 63,
+          "installedFileManifestSha256": "6c5e88c77b86fb0bab291bb8ae8bab92a0f3ee30d295be7b7d0b85ad6069155a",
+          "manifestDefinition": "UTF-8 JSON sort_keys=true compact separators; sorted distribution-relative path and sha256 records, excluding .pyc; installation-specific scripts included",
+          "metadataUrl": "https://pypi.org/pypi/csvkit/2.2.0/json",
+          "sourceArtifacts": [
+            {
+              "filename": "csvkit-2.2.0.tar.gz",
+              "url": "https://files.pythonhosted.org/packages/9a/bf/59b035abead12d9498c96dc05b965ec77683d3c794305dec2648e23830cc/csvkit-2.2.0.tar.gz",
+              "sha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+              "size": 3820365
+            }
+          ],
+          "requiresPython": null,
+          "sourceArtifactsVerified": true
+        },
+        {
+          "name": "dbfread",
+          "version": "2.0.7",
+          "requires": [],
+          "installedFileCount": 25,
+          "installedFileManifestSha256": "6bdab660f503e5d8f5f3d698abe3e5824c61560526000e93dc2537afba0290cd",
+          "manifestDefinition": "UTF-8 JSON sort_keys=true compact separators; sorted distribution-relative path and sha256 records, excluding .pyc; installation-specific scripts included",
+          "metadataUrl": "https://pypi.org/pypi/dbfread/2.0.7/json",
+          "sourceArtifacts": [
+            {
+              "filename": "dbfread-2.0.7.tar.gz",
+              "url": "https://files.pythonhosted.org/packages/ad/ae/a5891681f5012724d062a4ca63ec2ff539c73d5804ba594e7e0e72099d3f/dbfread-2.0.7.tar.gz",
+              "sha256": "07c8a9af06ffad3f6f03e8fe91ad7d2733e31a26d2b72c4dd4cfbae07ee3b73d",
+              "size": 33212
+            }
+          ],
+          "requiresPython": "",
+          "sourceArtifactsVerified": true
+        },
+        {
+          "name": "et_xmlfile",
+          "version": "2.0.0",
+          "requires": [],
+          "installedFileCount": 12,
+          "installedFileManifestSha256": "1efef44d91d865bcc41cd6c3bf5c546bbf149a936597776d516de89f73302a4d",
+          "manifestDefinition": "UTF-8 JSON sort_keys=true compact separators; sorted distribution-relative path and sha256 records, excluding .pyc; installation-specific scripts included",
+          "metadataUrl": "https://pypi.org/pypi/et_xmlfile/2.0.0/json",
+          "sourceArtifacts": [
+            {
+              "filename": "et_xmlfile-2.0.0.tar.gz",
+              "url": "https://files.pythonhosted.org/packages/d3/38/af70d7ab1ae9d4da450eeec1fa3918940a5fafb9055e934af8d6eb0c2313/et_xmlfile-2.0.0.tar.gz",
+              "sha256": "dab3f4764309081ce75662649be815c4c9081e88f0837825f90fd28317d4da54",
+              "size": 17234
+            }
+          ],
+          "requiresPython": ">=3.8",
+          "sourceArtifactsVerified": true
+        },
+        {
+          "name": "isodate",
+          "version": "0.7.2",
+          "requires": [],
+          "installedFileCount": 18,
+          "installedFileManifestSha256": "5c68f4738965efe5272db0b676a2d2c7aaaca55ef6bb876183c490b1b07593d1",
+          "manifestDefinition": "UTF-8 JSON sort_keys=true compact separators; sorted distribution-relative path and sha256 records, excluding .pyc; installation-specific scripts included",
+          "metadataUrl": "https://pypi.org/pypi/isodate/0.7.2/json",
+          "sourceArtifacts": [
+            {
+              "filename": "isodate-0.7.2.tar.gz",
+              "url": "https://files.pythonhosted.org/packages/54/4d/e940025e2ce31a8ce1202635910747e5a87cc3a6a6bb2d00973375014749/isodate-0.7.2.tar.gz",
+              "sha256": "4cd1aa0f43ca76f4a6c6c0292a85f40b35ec2e43e315b59f06e6d32171a953e6",
+              "size": 29705
+            }
+          ],
+          "requiresPython": ">=3.7",
+          "sourceArtifactsVerified": true
+        },
+        {
+          "name": "leather",
+          "version": "0.4.1",
+          "requires": [
+            "pytest; extra == \"test\"",
+            "pytest-cov; extra == \"test\"",
+            "lxml>=3.6.0; extra == \"test\"",
+            "cssselect>=0.9.1; extra == \"test\""
+          ],
+          "installedFileCount": 35,
+          "installedFileManifestSha256": "330b5efc88852d645391629d519ade0f9e9207c2186728571dcd0ef228c59e89",
+          "manifestDefinition": "UTF-8 JSON sort_keys=true compact separators; sorted distribution-relative path and sha256 records, excluding .pyc; installation-specific scripts included",
+          "metadataUrl": "https://pypi.org/pypi/leather/0.4.1/json",
+          "sourceArtifacts": [
+            {
+              "filename": "leather-0.4.1.tar.gz",
+              "url": "https://files.pythonhosted.org/packages/9e/09/849cf129d7eae1e42f873f2dbd60323267c738390b686a7384fb3fb289ad/leather-0.4.1.tar.gz",
+              "sha256": "67119c2aee93be821f077193bd8534e296c05b38bd174d9c5a80c4aa31d1a4d3",
+              "size": 44072
+            }
+          ],
+          "requiresPython": null,
+          "sourceArtifactsVerified": true
+        },
+        {
+          "name": "olefile",
+          "version": "0.47",
+          "requires": [
+            "pytest ; extra == 'tests'",
+            "pytest-cov ; extra == 'tests'"
+          ],
+          "installedFileCount": 30,
+          "installedFileManifestSha256": "67a5aadf878ca92626e977b728d040f563e9df34199c88685a5f0871f0ef855d",
+          "manifestDefinition": "UTF-8 JSON sort_keys=true compact separators; sorted distribution-relative path and sha256 records, excluding .pyc; installation-specific scripts included",
+          "metadataUrl": "https://pypi.org/pypi/olefile/0.47/json",
+          "sourceArtifacts": [
+            {
+              "filename": "olefile-0.47.zip",
+              "url": "https://files.pythonhosted.org/packages/69/1b/077b508e3e500e1629d366249c3ccb32f95e50258b231705c09e3c7a4366/olefile-0.47.zip",
+              "sha256": "599383381a0bf3dfbd932ca0ca6515acd174ed48870cbf7fee123d698c192c1c",
+              "size": 112240
+            }
+          ],
+          "requiresPython": ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*",
+          "sourceArtifactsVerified": true
+        },
+        {
+          "name": "openpyxl",
+          "version": "3.1.5",
+          "requires": [
+            "et-xmlfile"
+          ],
+          "installedFileCount": 197,
+          "installedFileManifestSha256": "964d19b9c468da9af15502507db610547f5b83ab0d10395b4da3af5a2f25cb93",
+          "manifestDefinition": "UTF-8 JSON sort_keys=true compact separators; sorted distribution-relative path and sha256 records, excluding .pyc; installation-specific scripts included",
+          "metadataUrl": "https://pypi.org/pypi/openpyxl/3.1.5/json",
+          "sourceArtifacts": [
+            {
+              "filename": "openpyxl-3.1.5.tar.gz",
+              "url": "https://files.pythonhosted.org/packages/3d/f9/88d94a75de065ea32619465d2f77b29a0469500e99012523b91cc4141cd1/openpyxl-3.1.5.tar.gz",
+              "sha256": "cf0e3cf56142039133628b5acffe8ef0c12bc902d2aadd3e0fe5878dc08d1050",
+              "size": 186464
+            }
+          ],
+          "requiresPython": ">=3.8",
+          "sourceArtifactsVerified": true
+        },
+        {
+          "name": "parsedatetime",
+          "version": "2.6",
+          "requires": [],
+          "installedFileCount": 23,
+          "installedFileManifestSha256": "e401b6f0df77f7067491558b33c294dd84c6b6ce76917588ac40dd23393b07e7",
+          "manifestDefinition": "UTF-8 JSON sort_keys=true compact separators; sorted distribution-relative path and sha256 records, excluding .pyc; installation-specific scripts included",
+          "metadataUrl": "https://pypi.org/pypi/parsedatetime/2.6/json",
+          "sourceArtifacts": [
+            {
+              "filename": "parsedatetime-2.6.tar.gz",
+              "url": "https://files.pythonhosted.org/packages/a8/20/cb587f6672dbe585d101f590c3871d16e7aec5a576a1694997a3777312ac/parsedatetime-2.6.tar.gz",
+              "sha256": "4cb368fbb18a0b7231f4d76119165451c8d2e35951455dfee97c62a87b04d455",
+              "size": 60114
+            }
+          ],
+          "requiresPython": "",
+          "sourceArtifactsVerified": true
+        },
+        {
+          "name": "pip",
+          "version": "25.3",
+          "requires": [],
+          "installedFileCount": 474,
+          "installedFileManifestSha256": "97d3aa2c10861d48faef052348f7847c39fc5003e9e4b86354fcf78a8efb4406",
+          "manifestDefinition": "UTF-8 JSON sort_keys=true compact separators; sorted distribution-relative path and sha256 records, excluding .pyc; installation-specific scripts included"
+        },
+        {
+          "name": "python-slugify",
+          "version": "9.0.0",
+          "requires": [
+            "text-unidecode>=1.3",
+            "Unidecode>=1.1.1; extra == \"unidecode\"",
+            "anyascii>=0.3.2; extra == \"anyascii\""
+          ],
+          "installedFileCount": 15,
+          "installedFileManifestSha256": "47a5cbc775b47525baa7dbe49bdf2b99577678ec311efd179c1ba88a3e0a9be3",
+          "manifestDefinition": "UTF-8 JSON sort_keys=true compact separators; sorted distribution-relative path and sha256 records, excluding .pyc; installation-specific scripts included",
+          "metadataUrl": "https://pypi.org/pypi/python-slugify/9.0.0/json",
+          "sourceArtifacts": [
+            {
+              "filename": "python_slugify-9.0.0.tar.gz",
+              "url": "https://files.pythonhosted.org/packages/1c/e7/dc2331a18e4b18721d6382468d2ca163fabacba45d2185945557f364ab39/python_slugify-9.0.0.tar.gz",
+              "sha256": "1cd20fe7ebf941b11964a92aba9e5319edfe18606276c6e2481b92e737cde44a",
+              "size": 60189
+            }
+          ],
+          "requiresPython": ">=3.10",
+          "sourceArtifactsVerified": true
+        },
+        {
+          "name": "pytimeparse",
+          "version": "1.1.8",
+          "requires": [],
+          "installedFileCount": 13,
+          "installedFileManifestSha256": "6674201f971ba20d2100b331e80b6cddd0c8040de443e711d80aa186e3cbd44c",
+          "manifestDefinition": "UTF-8 JSON sort_keys=true compact separators; sorted distribution-relative path and sha256 records, excluding .pyc; installation-specific scripts included",
+          "metadataUrl": "https://pypi.org/pypi/pytimeparse/1.1.8/json",
+          "sourceArtifacts": [
+            {
+              "filename": "pytimeparse-1.1.8.tar.gz",
+              "url": "https://files.pythonhosted.org/packages/37/5d/231f5f33c81e09682708fb323f9e4041408d8223e2f0fb9742843328778f/pytimeparse-1.1.8.tar.gz",
+              "sha256": "e86136477be924d7e670646a98561957e8ca7308d44841e21f5ddea757556a0a",
+              "size": 9403
+            }
+          ],
+          "requiresPython": "",
+          "sourceArtifactsVerified": true
+        },
+        {
+          "name": "SQLAlchemy",
+          "version": "2.0.54",
+          "requires": [
+            "importlib-metadata; python_version < \"3.8\"",
+            "greenlet>=1; platform_machine == \"aarch64\" or (platform_machine == \"ppc64le\" or (platform_machine == \"x86_64\" or (platform_machine == \"amd64\" or (platform_machine == \"AMD64\" or (platform_machine == \"win32\" or platform_machine == \"WIN32\")))))",
+            "typing-extensions>=4.6.0",
+            "greenlet>=1; extra == \"asyncio\"",
+            "mypy>=0.910; extra == \"mypy\"",
+            "pyodbc; extra == \"mssql\"",
+            "pymssql; extra == \"mssql-pymssql\"",
+            "pyodbc; extra == \"mssql-pyodbc\"",
+            "mysqlclient>=1.4.0; extra == \"mysql\"",
+            "mysql-connector-python; extra == \"mysql-connector\"",
+            "mariadb!=1.1.10,!=1.1.2,!=1.1.5,>=1.0.1; extra == \"mariadb-connector\"",
+            "cx_oracle>=8; extra == \"oracle\"",
+            "oracledb>=1.0.1; extra == \"oracle-oracledb\"",
+            "psycopg2>=2.7; extra == \"postgresql\"",
+            "pg8000>=1.29.1; extra == \"postgresql-pg8000\"",
+            "greenlet>=1; extra == \"postgresql-asyncpg\"",
+            "asyncpg; extra == \"postgresql-asyncpg\"",
+            "psycopg2-binary; extra == \"postgresql-psycopg2binary\"",
+            "psycopg2cffi; extra == \"postgresql-psycopg2cffi\"",
+            "psycopg>=3.0.7; extra == \"postgresql-psycopg\"",
+            "psycopg[binary]>=3.0.7; extra == \"postgresql-psycopgbinary\"",
+            "pymysql; extra == \"pymysql\"",
+            "greenlet>=1; extra == \"aiomysql\"",
+            "aiomysql>=0.2.0; extra == \"aiomysql\"",
+            "greenlet>=1; extra == \"aioodbc\"",
+            "aioodbc; extra == \"aioodbc\"",
+            "greenlet>=1; extra == \"asyncmy\"",
+            "asyncmy>=0.2.12; extra == \"asyncmy\"",
+            "greenlet>=1; extra == \"aiosqlite\"",
+            "aiosqlite; extra == \"aiosqlite\"",
+            "typing_extensions!=3.10.0.1; extra == \"aiosqlite\"",
+            "sqlcipher3_binary; extra == \"sqlcipher\""
+          ],
+          "installedFileCount": 278,
+          "installedFileManifestSha256": "0c0f43a871d0e8b54e18be7f6e175cee904289ef5797e6760e4e0162b35795b9",
+          "manifestDefinition": "UTF-8 JSON sort_keys=true compact separators; sorted distribution-relative path and sha256 records, excluding .pyc; installation-specific scripts included",
+          "metadataUrl": "https://pypi.org/pypi/SQLAlchemy/2.0.54/json",
+          "sourceArtifacts": [
+            {
+              "filename": "sqlalchemy-2.0.54.tar.gz",
+              "url": "https://files.pythonhosted.org/packages/29/9c/271aa905cf2964f841371a97f3e63ab692bf51b4423d0491e67bc7f64037/sqlalchemy-2.0.54.tar.gz",
+              "sha256": "baa8521e8ee9f24e75dfc7aaabc08020e551ef0d48d7c3e3536f5cddf277586b",
+              "size": 9969559
+            }
+          ],
+          "requiresPython": ">=3.7",
+          "sourceArtifactsVerified": true
+        },
+        {
+          "name": "text-unidecode",
+          "version": "1.3",
+          "requires": [],
+          "installedFileCount": 11,
+          "installedFileManifestSha256": "395eab5bd223fa6d4b6f80cbd0d59a3b775e32fa3a06bc9fa83a2e9dc1f8f612",
+          "manifestDefinition": "UTF-8 JSON sort_keys=true compact separators; sorted distribution-relative path and sha256 records, excluding .pyc; installation-specific scripts included",
+          "metadataUrl": "https://pypi.org/pypi/text-unidecode/1.3/json",
+          "sourceArtifacts": [
+            {
+              "filename": "text-unidecode-1.3.tar.gz",
+              "url": "https://files.pythonhosted.org/packages/ab/e2/e9a00f0ccb71718418230718b3d900e71a5d16e701a3dae079a21e9cd8f8/text-unidecode-1.3.tar.gz",
+              "sha256": "bad6603bb14d279193107714b288be206cac565dfa49aa5b105294dd5c4aab93",
+              "size": 76885
+            }
+          ],
+          "requiresPython": "",
+          "sourceArtifactsVerified": true
+        },
+        {
+          "name": "typing_extensions",
+          "version": "4.16.0",
+          "requires": [],
+          "installedFileCount": 7,
+          "installedFileManifestSha256": "f2698ff9d2beaf334724e7d735a75bdce6e8c66355f12d0704f838f5da8932e4",
+          "manifestDefinition": "UTF-8 JSON sort_keys=true compact separators; sorted distribution-relative path and sha256 records, excluding .pyc; installation-specific scripts included",
+          "metadataUrl": "https://pypi.org/pypi/typing_extensions/4.16.0/json",
+          "sourceArtifacts": [
+            {
+              "filename": "typing_extensions-4.16.0.tar.gz",
+              "url": "https://files.pythonhosted.org/packages/f6/cc/6253133b5bb138fc3306cebfbda2c520f545d36b5be2c7255cc528bb45d6/typing_extensions-4.16.0.tar.gz",
+              "sha256": "dc983d19a509c94dba722ee6abd33940f7c05a89e243c47e907eb4db6f1a43e5",
+              "size": 113555
+            }
+          ],
+          "requiresPython": ">=3.9",
+          "sourceArtifactsVerified": true
+        },
+        {
+          "name": "xlrd",
+          "version": "2.0.2",
+          "requires": [
+            "wheel ; extra == 'build'",
+            "twine ; extra == 'build'",
+            "sphinx ; extra == 'docs'",
+            "pytest ; extra == 'test'",
+            "pytest-cov ; extra == 'test'"
+          ],
+          "installedFileCount": 18,
+          "installedFileManifestSha256": "61dd45936320ef93ae089271af736e746d1f1f922cb95a9aa1c75af157a178bf",
+          "manifestDefinition": "UTF-8 JSON sort_keys=true compact separators; sorted distribution-relative path and sha256 records, excluding .pyc; installation-specific scripts included",
+          "metadataUrl": "https://pypi.org/pypi/xlrd/2.0.2/json",
+          "sourceArtifacts": [
+            {
+              "filename": "xlrd-2.0.2.tar.gz",
+              "url": "https://files.pythonhosted.org/packages/07/5a/377161c2d3538d1990d7af382c79f3b2372e880b65de21b01b1a2b78691e/xlrd-2.0.2.tar.gz",
+              "sha256": "08b5e25de58f21ce71dc7db3b3b8106c1fa776f3024c54e45b45b374e89234c9",
+              "size": 100167
+            }
+          ],
+          "requiresPython": "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,>=2.7",
+          "sourceArtifactsVerified": true
+        }
+      ],
+      "unknowns": [
+        "TTY, interactive, SIGPIPE and native service behavior not captured",
+        "no product compatibility measured"
+      ],
+      "observationsFile": "oracle-3.14.2.json",
+      "referenceCaptureChecks": {
+        "exact14EntryPoints": true,
+        "56Statuses": true,
+        "28ExactVersions": true
+      },
+      "observationsSha256": "e303e86c44737a65c11f0847b634d196af05d33863f6a9067a6d47630ac57a7f",
+      "requalification": {
+        "file": "reference-requalification-20260917.json",
+        "profileId": "darwin-cpython-3.14.2-csvkit-2.2.0",
+        "runtimeLock": {
+          "file": "requirements-cpython-3.14.2.txt",
+          "sha256": "7ecb88fddc47bb86867cf738670b24ed88f11f671feef127246b0d422a71d7a8",
+          "scope": "all active runtime distributions; pip/setuptools are separately recorded installer/build tooling"
+        },
+        "originalCaptureExactlyReproduced": true
+      }
+    },
+    {
+      "id": "darwin-cpython-3.9.6-csvkit-2.2.0",
+      "runtime": {
+        "implementation": "CPython",
+        "version": "3.9.6",
+        "build": [
+          "default",
+          "Apr 30 2025 02:07:17"
+        ],
+        "platform": "macOS-15.7.7-arm64-arm-64bit",
+        "machine": "arm64",
+        "sqlite": "3.43.2",
+        "zlib": "1.2.12",
+        "zlibRuntime": "1.2.12",
+        "bz2": "1.0.8, 13-Jul-2019",
+        "lzma": "5.4.3",
+        "compressionVersionProvenance": "BZ2_bzlibVersion and lzma_version_string, ctypes reference-only inspection: process exports on 3.14.2; explicit OS library bindings on 3.9.6",
+        "cldr": "47",
+        "cldrProvenance": "Babel 2.18.0 CHANGES.rst, source archive verified; babel.core.get_cldr_version() inspected on 3.14.2",
+        "shippedSqlAlchemyDialects": [
+          "mssql",
+          "mysql",
+          "oracle",
+          "postgresql",
+          "sqlite"
+        ],
+        "executableSha256": "5c5950c62eee5fd227a67e4bdfcde81c9add59799bba0949635f3d5ba9661c26",
+        "executableSize": 102352,
+        "unicodeVersion": "13.0.0"
+      },
+      "decimal": {
+        "precision": 28,
+        "rounding": "ROUND_HALF_EVEN",
+        "Emin": -999999,
+        "Emax": 999999,
+        "capitals": 1,
+        "clamp": 0,
+        "traps": [
+          "InvalidOperation",
+          "DivisionByZero",
+          "Overflow"
+        ]
+      },
+      "quoteConstants": {
+        "QUOTE_ALL": 1,
+        "QUOTE_MINIMAL": 0,
+        "QUOTE_NONE": 3,
+        "QUOTE_NONNUMERIC": 2
+      },
+      "captureEnvironment": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "PYTHONIOENCODING": "utf-8",
+        "COLUMNS": "80",
+        "LINES": "24"
+      },
+      "stdio": {
+        "stdin": "empty pipe, non-TTY",
+        "stdout": "captured pipe, non-TTY, utf-8",
+        "stderr": "captured pipe, non-TTY, utf-8",
+        "buffering": "CPython default; no -u; writes collected after process exit"
+      },
+      "entryPoints": {
+        "csvclean": "csvkit.utilities.csvclean:launch_new_instance",
+        "csvcut": "csvkit.utilities.csvcut:launch_new_instance",
+        "csvformat": "csvkit.utilities.csvformat:launch_new_instance",
+        "csvgrep": "csvkit.utilities.csvgrep:launch_new_instance",
+        "csvjoin": "csvkit.utilities.csvjoin:launch_new_instance",
+        "csvjson": "csvkit.utilities.csvjson:launch_new_instance",
+        "csvlook": "csvkit.utilities.csvlook:launch_new_instance",
+        "csvpy": "csvkit.utilities.csvpy:launch_new_instance",
+        "csvsort": "csvkit.utilities.csvsort:launch_new_instance",
+        "csvsql": "csvkit.utilities.csvsql:launch_new_instance",
+        "csvstack": "csvkit.utilities.csvstack:launch_new_instance",
+        "csvstat": "csvkit.utilities.csvstat:launch_new_instance",
+        "in2csv": "csvkit.utilities.in2csv:launch_new_instance",
+        "sql2csv": "csvkit.utilities.sql2csv:launch_new_instance"
+      },
+      "dialectEntryPoints": [],
+      "optionalModules": {
+        "zstandard": false,
+        "IPython": false,
+        "psycopg2": false,
+        "pymysql": false,
+        "MySQLdb": false,
+        "pyodbc": false,
+        "oracledb": false,
+        "dateutil": false
+      },
+      "distributions": [
+        {
+          "name": "agate",
+          "version": "1.14.2",
+          "requires": [
+            "Babel>=2.0",
+            "isodate>=0.5.4",
+            "leather>=0.3.2",
+            "parsedatetime!=2.5,>=2.1",
+            "python-slugify>=1.2.1",
+            "pytimeparse>=1.1.5",
+            "tzdata>=2023.3; platform_system == \"Windows\"",
+            "coverage>=3.7.1; extra == \"test\"",
+            "cssselect>=0.9.1; extra == \"test\"",
+            "lxml>=3.6.0; extra == \"test\"",
+            "PyICU>=2.4.2; sys_platform == \"linux\" and extra == \"test\"",
+            "pytest; extra == \"test\"",
+            "pytest-cov; extra == \"test\""
+          ],
+          "installedFileCount": 108,
+          "installedFileManifestSha256": "b82b7f9e2fdfdc41fed8a98955af34f834f4c42e307a69d0113ac95fcc715253",
+          "manifestDefinition": "UTF-8 JSON sort_keys=true compact separators; sorted distribution-relative path and sha256 records, excluding .pyc; installation-specific scripts included",
+          "metadataUrl": "https://pypi.org/pypi/agate/1.14.2/json",
+          "sourceArtifacts": [
+            {
+              "filename": "agate-1.14.2.tar.gz",
+              "url": "https://files.pythonhosted.org/packages/16/48/dc4d02dba00fbe62e966ed1a7d991e51654668ab343a2738bb816aa82256/agate-1.14.2.tar.gz",
+              "sha256": "7f29841c39d84b1de7fde762b8d792085371515324f3a01413b20f810398225b",
+              "size": 204186
+            }
+          ],
+          "requiresPython": null,
+          "sourceArtifactsVerified": true
+        },
+        {
+          "name": "agate-dbf",
+          "version": "0.2.4",
+          "requires": [
+            "agate>=1.5.0",
+            "dbfread>=2.0.5",
+            "pytest; extra == \"test\"",
+            "pytest-cov; extra == \"test\""
+          ],
+          "installedFileCount": 10,
+          "installedFileManifestSha256": "77508a9eea019fab55d495e491e69369c5b1466ec292710b8dc2c713366b169d",
+          "manifestDefinition": "UTF-8 JSON sort_keys=true compact separators; sorted distribution-relative path and sha256 records, excluding .pyc; installation-specific scripts included",
+          "metadataUrl": "https://pypi.org/pypi/agate-dbf/0.2.4/json",
+          "sourceArtifacts": [
+            {
+              "filename": "agate_dbf-0.2.4.tar.gz",
+              "url": "https://files.pythonhosted.org/packages/ad/d8/abf6f39bd8c5767cc367472ea59f7d7cc4d5728388974a1b26a9472a971f/agate_dbf-0.2.4.tar.gz",
+              "sha256": "6554828b10048a76dbb5bc4eff8911e059ea2b47155b7a89351e382915ca16fc",
+              "size": 7547
+            }
+          ],
+          "requiresPython": null,
+          "sourceArtifactsVerified": true
+        },
+        {
+          "name": "agate-excel",
+          "version": "0.4.2",
+          "requires": [
+            "agate>=1.5.0",
+            "olefile",
+            "openpyxl>=2.3.0",
+            "xlrd>=0.9.4",
+            "pytest; extra == \"test\"",
+            "pytest-cov; extra == \"test\""
+          ],
+          "installedFileCount": 11,
+          "installedFileManifestSha256": "70a40c7e788c215de96fd6b3ee39232451cd50dd006dd66b6dffa2a7d8616d74",
+          "manifestDefinition": "UTF-8 JSON sort_keys=true compact separators; sorted distribution-relative path and sha256 records, excluding .pyc; installation-specific scripts included",
+          "metadataUrl": "https://pypi.org/pypi/agate-excel/0.4.2/json",
+          "sourceArtifacts": [
+            {
+              "filename": "agate_excel-0.4.2.tar.gz",
+              "url": "https://files.pythonhosted.org/packages/83/e5/b2d1bc555fd91145de5d11a7b31241076586713d222881c6d7eac9e4fda9/agate_excel-0.4.2.tar.gz",
+              "sha256": "eed1dc6239f0e96720d962dc1bdfb4496e19687332c827fd8b1e587a917ea202",
+              "size": 271423
+            }
+          ],
+          "requiresPython": null,
+          "sourceArtifactsVerified": true
+        },
+        {
+          "name": "agate-sql",
+          "version": "0.7.3",
+          "requires": [
+            "agate>=1.5.0",
+            "sqlalchemy>=1.4",
+            "sqlalchemy-cratedb; extra == \"test\"",
+            "geojson; extra == \"test\"",
+            "pytest; extra == \"test\"",
+            "pytest-cov; extra == \"test\""
+          ],
+          "installedFileCount": 10,
+          "installedFileManifestSha256": "00019ad544b3cd3b6972aaf052f9cd90fd78bd4fc6b05f0e600df9d1a74924b7",
+          "manifestDefinition": "UTF-8 JSON sort_keys=true compact separators; sorted distribution-relative path and sha256 records, excluding .pyc; installation-specific scripts included",
+          "metadataUrl": "https://pypi.org/pypi/agate-sql/0.7.3/json",
+          "sourceArtifacts": [
+            {
+              "filename": "agate_sql-0.7.3.tar.gz",
+              "url": "https://files.pythonhosted.org/packages/fe/fe/fc7662f1ec3c0917c377f74f143a479eb13c9ae5fe14d77ce28eb165564f/agate_sql-0.7.3.tar.gz",
+              "sha256": "4c588a28e80bc625c7d5f915e8f8dff4900140a8a6d8a350a098a2ba9adf9d33",
+              "size": 13936
+            }
+          ],
+          "requiresPython": null,
+          "sourceArtifactsVerified": true
+        },
+        {
+          "name": "babel",
+          "version": "2.18.0",
+          "requires": [
+            "pytz>=2015.7; python_version < \"3.9\"",
+            "tzdata; sys_platform == \"win32\" and extra == \"dev\"",
+            "backports.zoneinfo; python_version < \"3.9\" and extra == \"dev\"",
+            "freezegun~=1.0; extra == \"dev\"",
+            "jinja2>=3.0; extra == \"dev\"",
+            "pytest-cov; extra == \"dev\"",
+            "pytest>=6.0; extra == \"dev\"",
+            "pytz; extra == \"dev\"",
+            "setuptools; extra == \"dev\""
+          ],
+          "installedFileCount": 1121,
+          "installedFileManifestSha256": "c0642d0ffe394125b40cec06e908953be46771244521c8b1bc53f92c6d4f2eaa",
+          "manifestDefinition": "UTF-8 JSON sort_keys=true compact separators; sorted distribution-relative path and sha256 records, excluding .pyc; installation-specific scripts included",
+          "metadataUrl": "https://pypi.org/pypi/babel/2.18.0/json",
+          "sourceArtifacts": [
+            {
+              "filename": "babel-2.18.0.tar.gz",
+              "url": "https://files.pythonhosted.org/packages/7d/b2/51899539b6ceeeb420d40ed3cd4b7a40519404f9baf3d4ac99dc413a834b/babel-2.18.0.tar.gz",
+              "sha256": "b80b99a14bd085fcacfa15c9165f651fbb3406e66cc603abf11c5750937c992d",
+              "size": 9959554
+            }
+          ],
+          "requiresPython": ">=3.8",
+          "sourceArtifactsVerified": true
+        },
+        {
+          "name": "csvkit",
+          "version": "2.2.0",
+          "requires": [
+            "agate>=1.12.0",
+            "agate-excel>=0.4.0",
+            "agate-dbf>=0.2.3",
+            "agate-sql>=0.7.0",
+            "openpyxl",
+            "sqlalchemy",
+            "xlrd",
+            "importlib_metadata; python_version < \"3.10\"",
+            "coverage>=4.4.2; extra == \"test\"",
+            "pytest; extra == \"test\"",
+            "pytest-cov; extra == \"test\"",
+            "zstandard; extra == \"zstandard\""
+          ],
+          "installedFileCount": 23,
+          "installedFileManifestSha256": "6fc491756ee72bf69fcdf81e16f27e79f3207a11182ae97c4796b90281fae6e0",
+          "manifestDefinition": "UTF-8 JSON sort_keys=true compact separators; sorted distribution-relative path and sha256 records, excluding .pyc; installation-specific scripts included",
+          "metadataUrl": "https://pypi.org/pypi/csvkit/2.2.0/json",
+          "sourceArtifacts": [
+            {
+              "filename": "csvkit-2.2.0.tar.gz",
+              "url": "https://files.pythonhosted.org/packages/9a/bf/59b035abead12d9498c96dc05b965ec77683d3c794305dec2648e23830cc/csvkit-2.2.0.tar.gz",
+              "sha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+              "size": 3820365
+            }
+          ],
+          "requiresPython": null,
+          "sourceArtifactsVerified": true
+        },
+        {
+          "name": "dbfread",
+          "version": "2.0.7",
+          "requires": [],
+          "installedFileCount": 24,
+          "installedFileManifestSha256": "6487e1b133ebd7b58d690e39d290d1d7a4cddc105ff1aa83f73f3c3f44e0a5a6",
+          "manifestDefinition": "UTF-8 JSON sort_keys=true compact separators; sorted distribution-relative path and sha256 records, excluding .pyc; installation-specific scripts included",
+          "metadataUrl": "https://pypi.org/pypi/dbfread/2.0.7/json",
+          "sourceArtifacts": [
+            {
+              "filename": "dbfread-2.0.7.tar.gz",
+              "url": "https://files.pythonhosted.org/packages/ad/ae/a5891681f5012724d062a4ca63ec2ff539c73d5804ba594e7e0e72099d3f/dbfread-2.0.7.tar.gz",
+              "sha256": "07c8a9af06ffad3f6f03e8fe91ad7d2733e31a26d2b72c4dd4cfbae07ee3b73d",
+              "size": 33212
+            }
+          ],
+          "requiresPython": "",
+          "sourceArtifactsVerified": true
+        },
+        {
+          "name": "et_xmlfile",
+          "version": "2.0.0",
+          "requires": [],
+          "installedFileCount": 11,
+          "installedFileManifestSha256": "1a5a862cbb97405d66d80ef7a0216c2bdfb1dc89cb1a6bcd7c9dffc0571503a9",
+          "manifestDefinition": "UTF-8 JSON sort_keys=true compact separators; sorted distribution-relative path and sha256 records, excluding .pyc; installation-specific scripts included",
+          "metadataUrl": "https://pypi.org/pypi/et_xmlfile/2.0.0/json",
+          "sourceArtifacts": [
+            {
+              "filename": "et_xmlfile-2.0.0.tar.gz",
+              "url": "https://files.pythonhosted.org/packages/d3/38/af70d7ab1ae9d4da450eeec1fa3918940a5fafb9055e934af8d6eb0c2313/et_xmlfile-2.0.0.tar.gz",
+              "sha256": "dab3f4764309081ce75662649be815c4c9081e88f0837825f90fd28317d4da54",
+              "size": 17234
+            }
+          ],
+          "requiresPython": ">=3.8",
+          "sourceArtifactsVerified": true
+        },
+        {
+          "name": "importlib_metadata",
+          "version": "8.7.1",
+          "requires": [
+            "zipp>=3.20",
+            "pytest!=8.1.*,>=6; extra == \"test\"",
+            "packaging; extra == \"test\"",
+            "pyfakefs; extra == \"test\"",
+            "flufl.flake8; extra == \"test\"",
+            "pytest-perf>=0.9.2; extra == \"test\"",
+            "jaraco.test>=5.4; extra == \"test\"",
+            "sphinx>=3.5; extra == \"doc\"",
+            "jaraco.packaging>=9.3; extra == \"doc\"",
+            "rst.linker>=1.9; extra == \"doc\"",
+            "furo; extra == \"doc\"",
+            "sphinx-lint; extra == \"doc\"",
+            "jaraco.tidelift>=1.4; extra == \"doc\"",
+            "ipython; extra == \"perf\"",
+            "pytest-checkdocs>=2.4; extra == \"check\"",
+            "pytest-ruff>=0.2.1; sys_platform != \"cygwin\" and extra == \"check\"",
+            "pytest-cov; extra == \"cover\"",
+            "pytest-enabler>=3.4; extra == \"enabler\"",
+            "pytest-mypy>=1.0.1; extra == \"type\"",
+            "mypy<1.19; platform_python_implementation == \"PyPy\" and extra == \"type\""
+          ],
+          "installedFileCount": 20,
+          "installedFileManifestSha256": "23f6515e4ac702f80c4679603de448f88167070636b6461bd4df234769159d11",
+          "manifestDefinition": "UTF-8 JSON sort_keys=true compact separators; sorted distribution-relative path and sha256 records, excluding .pyc; installation-specific scripts included",
+          "metadataUrl": "https://pypi.org/pypi/importlib_metadata/8.7.1/json",
+          "sourceArtifacts": [
+            {
+              "filename": "importlib_metadata-8.7.1.tar.gz",
+              "url": "https://files.pythonhosted.org/packages/f3/49/3b30cad09e7771a4982d9975a8cbf64f00d4a1ececb53297f1d9a7be1b10/importlib_metadata-8.7.1.tar.gz",
+              "sha256": "49fef1ae6440c182052f407c8d34a68f72efc36db9ca90dc0113398f2fdde8bb",
+              "size": 57107
+            }
+          ],
+          "requiresPython": ">=3.9",
+          "sourceArtifactsVerified": true
+        },
+        {
+          "name": "isodate",
+          "version": "0.7.2",
+          "requires": [],
+          "installedFileCount": 17,
+          "installedFileManifestSha256": "2daaff10ddf0b9bb0df232d0472d8c94431e07c300a1a1a10f6bb479bb2d1214",
+          "manifestDefinition": "UTF-8 JSON sort_keys=true compact separators; sorted distribution-relative path and sha256 records, excluding .pyc; installation-specific scripts included",
+          "metadataUrl": "https://pypi.org/pypi/isodate/0.7.2/json",
+          "sourceArtifacts": [
+            {
+              "filename": "isodate-0.7.2.tar.gz",
+              "url": "https://files.pythonhosted.org/packages/54/4d/e940025e2ce31a8ce1202635910747e5a87cc3a6a6bb2d00973375014749/isodate-0.7.2.tar.gz",
+              "sha256": "4cd1aa0f43ca76f4a6c6c0292a85f40b35ec2e43e315b59f06e6d32171a953e6",
+              "size": 29705
+            }
+          ],
+          "requiresPython": ">=3.7",
+          "sourceArtifactsVerified": true
+        },
+        {
+          "name": "leather",
+          "version": "0.4.1",
+          "requires": [
+            "pytest; extra == \"test\"",
+            "pytest-cov; extra == \"test\"",
+            "lxml>=3.6.0; extra == \"test\"",
+            "cssselect>=0.9.1; extra == \"test\""
+          ],
+          "installedFileCount": 34,
+          "installedFileManifestSha256": "e5db5304b3d00a59fe6cca49fdd3354587978acb9daab81372f79a34e9368dbc",
+          "manifestDefinition": "UTF-8 JSON sort_keys=true compact separators; sorted distribution-relative path and sha256 records, excluding .pyc; installation-specific scripts included",
+          "metadataUrl": "https://pypi.org/pypi/leather/0.4.1/json",
+          "sourceArtifacts": [
+            {
+              "filename": "leather-0.4.1.tar.gz",
+              "url": "https://files.pythonhosted.org/packages/9e/09/849cf129d7eae1e42f873f2dbd60323267c738390b686a7384fb3fb289ad/leather-0.4.1.tar.gz",
+              "sha256": "67119c2aee93be821f077193bd8534e296c05b38bd174d9c5a80c4aa31d1a4d3",
+              "size": 44072
+            }
+          ],
+          "requiresPython": null,
+          "sourceArtifactsVerified": true
+        },
+        {
+          "name": "olefile",
+          "version": "0.47",
+          "requires": [
+            "pytest ; extra == 'tests'",
+            "pytest-cov ; extra == 'tests'"
+          ],
+          "installedFileCount": 29,
+          "installedFileManifestSha256": "b06f68405a9641d4b43ea2ec255e30d46534b362290762941a24d6c8a1f71c8a",
+          "manifestDefinition": "UTF-8 JSON sort_keys=true compact separators; sorted distribution-relative path and sha256 records, excluding .pyc; installation-specific scripts included",
+          "metadataUrl": "https://pypi.org/pypi/olefile/0.47/json",
+          "sourceArtifacts": [
+            {
+              "filename": "olefile-0.47.zip",
+              "url": "https://files.pythonhosted.org/packages/69/1b/077b508e3e500e1629d366249c3ccb32f95e50258b231705c09e3c7a4366/olefile-0.47.zip",
+              "sha256": "599383381a0bf3dfbd932ca0ca6515acd174ed48870cbf7fee123d698c192c1c",
+              "size": 112240
+            }
+          ],
+          "requiresPython": ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*",
+          "sourceArtifactsVerified": true
+        },
+        {
+          "name": "openpyxl",
+          "version": "3.1.5",
+          "requires": [
+            "et-xmlfile"
+          ],
+          "installedFileCount": 196,
+          "installedFileManifestSha256": "b6c86fce3eb738a36ce268e1177bd35e824f7e5ea2c398f13a80ee19ad53405d",
+          "manifestDefinition": "UTF-8 JSON sort_keys=true compact separators; sorted distribution-relative path and sha256 records, excluding .pyc; installation-specific scripts included",
+          "metadataUrl": "https://pypi.org/pypi/openpyxl/3.1.5/json",
+          "sourceArtifacts": [
+            {
+              "filename": "openpyxl-3.1.5.tar.gz",
+              "url": "https://files.pythonhosted.org/packages/3d/f9/88d94a75de065ea32619465d2f77b29a0469500e99012523b91cc4141cd1/openpyxl-3.1.5.tar.gz",
+              "sha256": "cf0e3cf56142039133628b5acffe8ef0c12bc902d2aadd3e0fe5878dc08d1050",
+              "size": 186464
+            }
+          ],
+          "requiresPython": ">=3.8",
+          "sourceArtifactsVerified": true
+        },
+        {
+          "name": "parsedatetime",
+          "version": "2.6",
+          "requires": [],
+          "installedFileCount": 22,
+          "installedFileManifestSha256": "814abc50c9c4e3e271b898b2cdeddc214f2c25cd762999771708777fb687b9bf",
+          "manifestDefinition": "UTF-8 JSON sort_keys=true compact separators; sorted distribution-relative path and sha256 records, excluding .pyc; installation-specific scripts included",
+          "metadataUrl": "https://pypi.org/pypi/parsedatetime/2.6/json",
+          "sourceArtifacts": [
+            {
+              "filename": "parsedatetime-2.6.tar.gz",
+              "url": "https://files.pythonhosted.org/packages/a8/20/cb587f6672dbe585d101f590c3871d16e7aec5a576a1694997a3777312ac/parsedatetime-2.6.tar.gz",
+              "sha256": "4cb368fbb18a0b7231f4d76119165451c8d2e35951455dfee97c62a87b04d455",
+              "size": 60114
+            }
+          ],
+          "requiresPython": "",
+          "sourceArtifactsVerified": true
+        },
+        {
+          "name": "pip",
+          "version": "21.2.4",
+          "requires": [],
+          "installedFileCount": 407,
+          "installedFileManifestSha256": "58feff2ec5a836b379d4dd8f02df6c58771468e6007be5728b7b86443a6b4567",
+          "manifestDefinition": "UTF-8 JSON sort_keys=true compact separators; sorted distribution-relative path and sha256 records, excluding .pyc; installation-specific scripts included"
+        },
+        {
+          "name": "python-slugify",
+          "version": "8.0.4",
+          "requires": [
+            "text-unidecode (>=1.3)",
+            "Unidecode (>=1.1.1) ; extra == 'unidecode'"
+          ],
+          "installedFileCount": 14,
+          "installedFileManifestSha256": "861c0df707b0e8c3e90595061b5a89e5e1417289f822952e31f3627ae7477f46",
+          "manifestDefinition": "UTF-8 JSON sort_keys=true compact separators; sorted distribution-relative path and sha256 records, excluding .pyc; installation-specific scripts included",
+          "metadataUrl": "https://pypi.org/pypi/python-slugify/8.0.4/json",
+          "sourceArtifacts": [
+            {
+              "filename": "python-slugify-8.0.4.tar.gz",
+              "url": "https://files.pythonhosted.org/packages/87/c7/5e1547c44e31da50a460df93af11a535ace568ef89d7a811069ead340c4a/python-slugify-8.0.4.tar.gz",
+              "sha256": "59202371d1d05b54a9e7720c5e038f928f45daaffe41dd10822f3907b937c856",
+              "size": 10921
+            }
+          ],
+          "requiresPython": ">=3.7",
+          "sourceArtifactsVerified": true
+        },
+        {
+          "name": "pytimeparse",
+          "version": "1.1.8",
+          "requires": [],
+          "installedFileCount": 12,
+          "installedFileManifestSha256": "16e84066bc41eba307c19e8b45f7cc9babe9d9405f11bb7c7cde050a309cf98c",
+          "manifestDefinition": "UTF-8 JSON sort_keys=true compact separators; sorted distribution-relative path and sha256 records, excluding .pyc; installation-specific scripts included",
+          "metadataUrl": "https://pypi.org/pypi/pytimeparse/1.1.8/json",
+          "sourceArtifacts": [
+            {
+              "filename": "pytimeparse-1.1.8.tar.gz",
+              "url": "https://files.pythonhosted.org/packages/37/5d/231f5f33c81e09682708fb323f9e4041408d8223e2f0fb9742843328778f/pytimeparse-1.1.8.tar.gz",
+              "sha256": "e86136477be924d7e670646a98561957e8ca7308d44841e21f5ddea757556a0a",
+              "size": 9403
+            }
+          ],
+          "requiresPython": "",
+          "sourceArtifactsVerified": true
+        },
+        {
+          "name": "setuptools",
+          "version": "58.0.4",
+          "requires": [
+            "sphinx ; extra == 'docs'",
+            "jaraco.packaging (>=8.2) ; extra == 'docs'",
+            "rst.linker (>=1.9) ; extra == 'docs'",
+            "jaraco.tidelift (>=1.4) ; extra == 'docs'",
+            "pygments-github-lexers (==0.0.5) ; extra == 'docs'",
+            "sphinx-inline-tabs ; extra == 'docs'",
+            "sphinxcontrib-towncrier ; extra == 'docs'",
+            "furo ; extra == 'docs'",
+            "pytest (>=4.6) ; extra == 'testing'",
+            "pytest-checkdocs (>=2.4) ; extra == 'testing'",
+            "pytest-flake8 ; extra == 'testing'",
+            "pytest-cov ; extra == 'testing'",
+            "pytest-enabler (>=1.0.1) ; extra == 'testing'",
+            "mock ; extra == 'testing'",
+            "flake8-2020 ; extra == 'testing'",
+            "virtualenv (>=13.0.0) ; extra == 'testing'",
+            "pytest-virtualenv (>=1.2.7) ; extra == 'testing'",
+            "wheel ; extra == 'testing'",
+            "paver ; extra == 'testing'",
+            "pip (>=19.1) ; extra == 'testing'",
+            "jaraco.envs ; extra == 'testing'",
+            "pytest-xdist ; extra == 'testing'",
+            "sphinx ; extra == 'testing'",
+            "jaraco.path (>=3.2.0) ; extra == 'testing'",
+            "pytest-black (>=0.3.7) ; (platform_python_implementation != \"PyPy\") and extra == 'testing'",
+            "pytest-mypy ; (platform_python_implementation != \"PyPy\") and extra == 'testing'"
+          ],
+          "installedFileCount": 157,
+          "installedFileManifestSha256": "5f2af7f8f317aa31353b1ee142a49e6e52edbb3f30144d68777c901ae46bd685",
+          "manifestDefinition": "UTF-8 JSON sort_keys=true compact separators; sorted distribution-relative path and sha256 records, excluding .pyc; installation-specific scripts included"
+        },
+        {
+          "name": "SQLAlchemy",
+          "version": "2.0.54",
+          "requires": [
+            "importlib-metadata; python_version < \"3.8\"",
+            "greenlet>=1; platform_machine == \"aarch64\" or (platform_machine == \"ppc64le\" or (platform_machine == \"x86_64\" or (platform_machine == \"amd64\" or (platform_machine == \"AMD64\" or (platform_machine == \"win32\" or platform_machine == \"WIN32\")))))",
+            "typing-extensions>=4.6.0",
+            "greenlet>=1; extra == \"asyncio\"",
+            "mypy>=0.910; extra == \"mypy\"",
+            "pyodbc; extra == \"mssql\"",
+            "pymssql; extra == \"mssql-pymssql\"",
+            "pyodbc; extra == \"mssql-pyodbc\"",
+            "mysqlclient>=1.4.0; extra == \"mysql\"",
+            "mysql-connector-python; extra == \"mysql-connector\"",
+            "mariadb!=1.1.10,!=1.1.2,!=1.1.5,>=1.0.1; extra == \"mariadb-connector\"",
+            "cx_oracle>=8; extra == \"oracle\"",
+            "oracledb>=1.0.1; extra == \"oracle-oracledb\"",
+            "psycopg2>=2.7; extra == \"postgresql\"",
+            "pg8000>=1.29.1; extra == \"postgresql-pg8000\"",
+            "greenlet>=1; extra == \"postgresql-asyncpg\"",
+            "asyncpg; extra == \"postgresql-asyncpg\"",
+            "psycopg2-binary; extra == \"postgresql-psycopg2binary\"",
+            "psycopg2cffi; extra == \"postgresql-psycopg2cffi\"",
+            "psycopg>=3.0.7; extra == \"postgresql-psycopg\"",
+            "psycopg[binary]>=3.0.7; extra == \"postgresql-psycopgbinary\"",
+            "pymysql; extra == \"pymysql\"",
+            "greenlet>=1; extra == \"aiomysql\"",
+            "aiomysql>=0.2.0; extra == \"aiomysql\"",
+            "greenlet>=1; extra == \"aioodbc\"",
+            "aioodbc; extra == \"aioodbc\"",
+            "greenlet>=1; extra == \"asyncmy\"",
+            "asyncmy>=0.2.12; extra == \"asyncmy\"",
+            "greenlet>=1; extra == \"aiosqlite\"",
+            "aiosqlite; extra == \"aiosqlite\"",
+            "typing_extensions!=3.10.0.1; extra == \"aiosqlite\"",
+            "sqlcipher3_binary; extra == \"sqlcipher\""
+          ],
+          "installedFileCount": 277,
+          "installedFileManifestSha256": "3d3034a22325c0d15c4c646cab4d51ed48850dd7f1f7b8a5a637028c9753620b",
+          "manifestDefinition": "UTF-8 JSON sort_keys=true compact separators; sorted distribution-relative path and sha256 records, excluding .pyc; installation-specific scripts included",
+          "metadataUrl": "https://pypi.org/pypi/SQLAlchemy/2.0.54/json",
+          "sourceArtifacts": [
+            {
+              "filename": "sqlalchemy-2.0.54.tar.gz",
+              "url": "https://files.pythonhosted.org/packages/29/9c/271aa905cf2964f841371a97f3e63ab692bf51b4423d0491e67bc7f64037/sqlalchemy-2.0.54.tar.gz",
+              "sha256": "baa8521e8ee9f24e75dfc7aaabc08020e551ef0d48d7c3e3536f5cddf277586b",
+              "size": 9969559
+            }
+          ],
+          "requiresPython": ">=3.7",
+          "sourceArtifactsVerified": true
+        },
+        {
+          "name": "text-unidecode",
+          "version": "1.3",
+          "requires": [],
+          "installedFileCount": 10,
+          "installedFileManifestSha256": "1177bd54ebad38b9b297169c3ed9d16955c407688a0a8efbb938a5578cef55b7",
+          "manifestDefinition": "UTF-8 JSON sort_keys=true compact separators; sorted distribution-relative path and sha256 records, excluding .pyc; installation-specific scripts included",
+          "metadataUrl": "https://pypi.org/pypi/text-unidecode/1.3/json",
+          "sourceArtifacts": [
+            {
+              "filename": "text-unidecode-1.3.tar.gz",
+              "url": "https://files.pythonhosted.org/packages/ab/e2/e9a00f0ccb71718418230718b3d900e71a5d16e701a3dae079a21e9cd8f8/text-unidecode-1.3.tar.gz",
+              "sha256": "bad6603bb14d279193107714b288be206cac565dfa49aa5b105294dd5c4aab93",
+              "size": 76885
+            }
+          ],
+          "requiresPython": "",
+          "sourceArtifactsVerified": true
+        },
+        {
+          "name": "typing_extensions",
+          "version": "4.16.0",
+          "requires": [],
+          "installedFileCount": 6,
+          "installedFileManifestSha256": "977d73267ae6c3280ef9d52398fc09ba7a79bdebf3ad940f0681c09401506a39",
+          "manifestDefinition": "UTF-8 JSON sort_keys=true compact separators; sorted distribution-relative path and sha256 records, excluding .pyc; installation-specific scripts included",
+          "metadataUrl": "https://pypi.org/pypi/typing_extensions/4.16.0/json",
+          "sourceArtifacts": [
+            {
+              "filename": "typing_extensions-4.16.0.tar.gz",
+              "url": "https://files.pythonhosted.org/packages/f6/cc/6253133b5bb138fc3306cebfbda2c520f545d36b5be2c7255cc528bb45d6/typing_extensions-4.16.0.tar.gz",
+              "sha256": "dc983d19a509c94dba722ee6abd33940f7c05a89e243c47e907eb4db6f1a43e5",
+              "size": 113555
+            }
+          ],
+          "requiresPython": ">=3.9",
+          "sourceArtifactsVerified": true
+        },
+        {
+          "name": "xlrd",
+          "version": "2.0.2",
+          "requires": [
+            "wheel ; extra == 'build'",
+            "twine ; extra == 'build'",
+            "sphinx ; extra == 'docs'",
+            "pytest ; extra == 'test'",
+            "pytest-cov ; extra == 'test'"
+          ],
+          "installedFileCount": 17,
+          "installedFileManifestSha256": "0486443f1f94abdd60e963a7208afad140db43586687f1cb96eadbdf6f0b8387",
+          "manifestDefinition": "UTF-8 JSON sort_keys=true compact separators; sorted distribution-relative path and sha256 records, excluding .pyc; installation-specific scripts included",
+          "metadataUrl": "https://pypi.org/pypi/xlrd/2.0.2/json",
+          "sourceArtifacts": [
+            {
+              "filename": "xlrd-2.0.2.tar.gz",
+              "url": "https://files.pythonhosted.org/packages/07/5a/377161c2d3538d1990d7af382c79f3b2372e880b65de21b01b1a2b78691e/xlrd-2.0.2.tar.gz",
+              "sha256": "08b5e25de58f21ce71dc7db3b3b8106c1fa776f3024c54e45b45b374e89234c9",
+              "size": 100167
+            }
+          ],
+          "requiresPython": "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,>=2.7",
+          "sourceArtifactsVerified": true
+        },
+        {
+          "name": "zipp",
+          "version": "3.23.1",
+          "requires": [
+            "pytest!=8.1.*,>=6; extra == \"test\"",
+            "jaraco.itertools; extra == \"test\"",
+            "jaraco.functools; extra == \"test\"",
+            "more_itertools; extra == \"test\"",
+            "big-O; extra == \"test\"",
+            "pytest-ignore-flaky; extra == \"test\"",
+            "jaraco.test; extra == \"test\"",
+            "sphinx>=3.5; extra == \"doc\"",
+            "jaraco.packaging>=9.3; extra == \"doc\"",
+            "rst.linker>=1.9; extra == \"doc\"",
+            "furo; extra == \"doc\"",
+            "sphinx-lint; extra == \"doc\"",
+            "jaraco.tidelift>=1.4; extra == \"doc\"",
+            "pytest-checkdocs>=2.4; extra == \"check\"",
+            "pytest-ruff>=0.2.1; sys_platform != \"cygwin\" and extra == \"check\"",
+            "pytest-cov; extra == \"cover\"",
+            "pytest-enabler>=2.2; extra == \"enabler\"",
+            "pytest-mypy; extra == \"type\""
+          ],
+          "installedFileCount": 13,
+          "installedFileManifestSha256": "b6907f3486f80922beb40c2fd3ac46bf82fac2cf307f891fd4976cb9015f7bb1",
+          "manifestDefinition": "UTF-8 JSON sort_keys=true compact separators; sorted distribution-relative path and sha256 records, excluding .pyc; installation-specific scripts included",
+          "metadataUrl": "https://pypi.org/pypi/zipp/3.23.1/json",
+          "sourceArtifacts": [
+            {
+              "filename": "zipp-3.23.1.tar.gz",
+              "url": "https://files.pythonhosted.org/packages/30/21/093488dfc7cc8964ded15ab726fad40f25fd3d788fd741cc1c5a17d78ee8/zipp-3.23.1.tar.gz",
+              "sha256": "32120e378d32cd9714ad503c1d024619063ec28aad2248dc6672ad13edfa5110",
+              "size": 25965
+            }
+          ],
+          "requiresPython": ">=3.9",
+          "sourceArtifactsVerified": true
+        }
+      ],
+      "unknowns": [
+        "TTY, interactive, SIGPIPE and native service behavior not captured",
+        "no product compatibility measured"
+      ],
+      "observationsFile": "oracle-3.9.6.json",
+      "referenceCaptureChecks": {
+        "exact14EntryPoints": true,
+        "56Statuses": true,
+        "28ExactVersions": true
+      },
+      "observationsSha256": "41b28ebda8e29f9c4595a7e5464484770b3c62ea6da3b6325f5f664f9d93ae95",
+      "requalification": {
+        "file": "reference-requalification-20260917.json",
+        "profileId": "darwin-cpython-3.9.6-csvkit-2.2.0",
+        "runtimeLock": {
+          "file": "requirements-cpython-3.9.6.txt",
+          "sha256": "243da169b6651bd57187b2f98f946245898b3505b4f73a6d7a15945cc505fdab",
+          "scope": "all active runtime distributions; pip/setuptools are separately recorded installer/build tooling"
+        },
+        "originalCaptureExactlyReproduced": true
+      }
+    }
+  ],
+  "qualification": "reference acquisition and 112 native CLI observations only; no JavaScript product or compatibility gate executed",
+  "requalification": {
+    "date": "2026-09-17",
+    "file": "reference-requalification-20260917.json",
+    "sha256": "13443880904bcabd7692dd1a76e27cb5cec1bdf10fe71f466e88c29b9cfa2bdf",
+    "originalProfilesPreserved": true,
+    "sourceManifestExactlyReproduced": true,
+    "original112ObservationsExactlyReproduced": true,
+    "additionalParserErrorObservations": 56,
+    "quotingCommandObservations": 8,
+    "verifiedSourceWheelToolArtifacts": 48,
+    "installedManifestRecordsRetained": true,
+    "frozenEnvironment": "exact minimal environment in requalification file; no ambient Python startup/search/warning overrides",
+    "qualification": "native reference only; no product changes or compatibility gate",
+    "bothHashPinnedLockReplaysStatus0": true
+  }
+}

@@ -1,0 +1,399 @@
+{
+  "schema": "readonly-release-packet-binding/1",
+  "status": "STATIC_BINDINGS_MATCH_RELEASE_HOLD",
+  "role": "Bounded READONLY-BINDING leaf; not gate executor or independent-driver acceptance authority",
+  "authority": "Current routed root assignment: HTML74, DU75 and composed Expr76 scoped prerequisites accepted; shared-v6 review pending seal; explicit full-gate release absent.",
+  "method": "Only pinned git show/rev-parse/cat-file/diff-tree/ls-tree, JSON parsing, SHA256 and static source-text inspection. No repository code imported or executed.",
+  "identities": {
+    "packetCommit": "39dd983bf60c6934d9d8721e39557eae487d88ef",
+    "driverSourceCommit": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a",
+    "authorDriverEvidenceCommit": "69a77055fb180f34d47c7e3e4306a666c0d96f68",
+    "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+    "candidateTree": "5687cbdebc46ec6d3618d32072c4de708118b9bb",
+    "base": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+    "baseTree": "5905cf8d43233c68ea2bd499275ada2641223d9a",
+    "unchangedSourceTree": "5876c6bf4ad9bc07f22cc46f8dbee99461981862",
+    "fixtureSourceCommit": "284a4c5a193e2001c373fd35806e920bf3ffb90f",
+    "rawCandidateCommitSha256": "c97a53f90fa4abac622e5a854138b12cbb5bee09027a8597a1a56a38abd6e30e",
+    "driverNormalizedJsonSha256": "3d8d2a15214f12c07b64e3223f5e0088989845b8f60a74abb0a521dba32fa018",
+    "profileNormalizedJsonSha256": "8c9363ea17f6a319acc783b1e7ec2a4d4dc0a00529692b9f2331f60571ab149f",
+    "packageManifestSha256": "513f26e135e7f499b8fb92b7981b2e82a2e91d512db88518f48daf81c1bbf74a",
+    "expectedTarballSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd"
+  },
+  "packetFiles": {
+    "commit": "39dd983bf60c6934d9d8721e39557eae487d88ef",
+    "directory": "tests/integration/full-gate-20260827/unified76-driver/release-packet-v1",
+    "seal": {
+      "path": "SEAL.json",
+      "sha256": "1aede30496ef11bd5c408ba2c4bcde141c6482aabc258047f17bb7fdc8ba8aaa",
+      "bytes": 1413,
+      "qualification": "Independently computed identity; not an external attestation of the seal."
+    },
+    "sealedFiles": {
+      "PACKET.json": {
+        "bytes": 66567,
+        "sha256": "078673186ca484ac3d92a20fa9b28c7305755162483e0755b0826187ea054cbf"
+      },
+      "PHASES.json": {
+        "bytes": 6306,
+        "sha256": "a568c1a938b4ef97aa36b96999c92bbe4e644d9cef4509504b4a0147806e974c"
+      },
+      "ROOT-RECEIPT.template.json": {
+        "bytes": 703,
+        "sha256": "f934f5792b3cf397ce7597a87ad3a73fd9e391c8e11d1f3346828a11c15e77f4"
+      },
+      "LAUNCH.md": {
+        "bytes": 9478,
+        "sha256": "8b32bae6feb687c21381d3370da6df9e0904ef694f1057cc8ecd9b48ebd931bf"
+      },
+      "VALIDATION.json": {
+        "bytes": 4722,
+        "sha256": "9335965d1fea3998f51b2ed18f87b4e64262af5b5b01e5bafb392e73dc0126ec"
+      }
+    }
+  },
+  "staticChecks": {
+    "result": "MATCH_IN_CHECKED_SCOPE",
+    "mismatches": [],
+    "uniqueCommitPathHashBindings": 81,
+    "scope": [
+      {
+        "commit": "39dd983bf60c6934d9d8721e39557eae487d88ef",
+        "selector": "SEAL.json#/files",
+        "checked": 5
+      },
+      {
+        "commit": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a",
+        "selector": "PACKET.json#/driver/manifestBindings",
+        "checked": 7
+      },
+      {
+        "commit": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a",
+        "directory": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3",
+        "selector": "PACKET.json#/driver/files",
+        "checked": 30
+      },
+      {
+        "commit": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a",
+        "selector": "PACKET.json#/profile/support",
+        "checked": 10
+      },
+      {
+        "selector": "PACKET.json#/driver/authorHandoff and /authorResult",
+        "checked": 2
+      },
+      {
+        "selector": "PACKET.json#/release/publicPrerequisites/public76/matrix",
+        "checked": 1
+      },
+      {
+        "commit": "a316d868fd6b330653f893276b8f5970dfe8800f",
+        "directory": "tests/integration/expr-public-independent-20260827/r21-composed-public-v1",
+        "paths": [
+          "BINDINGS.json",
+          "RECIPE-SEAL.json"
+        ],
+        "checked": 2
+      },
+      {
+        "commits": [
+          "44f00bf84278e3361b52106478d59c707ab7b2bc",
+          "f5e9fc49b6abb38e180cc9de16c95fced102ff75"
+        ],
+        "selector": "PACKET.json#/product/fixturePaths before/after SHA256 and Git blobs",
+        "checked": 8
+      },
+      {
+        "commits": [
+          "44f00bf84278e3361b52106478d59c707ab7b2bc",
+          "f5e9fc49b6abb38e180cc9de16c95fced102ff75"
+        ],
+        "selector": "MATRIX.json#/sourceAndPackageBindings/acceptedEngineBindings and /sourceTrace",
+        "uniquePathsPerCommit": 11,
+        "checked": 22
+      }
+    ],
+    "qualifications": [
+      "Selectors identify exact hash/path records in the pinned files, not moving HEAD. Overlapping manifest and source selectors are deduplicated in the 81 binding count. These are static metadata checks, not tests or coverage.",
+      "All 13 primary commit identities (packet, candidate, base, fixture, driver, author evidence, prior independent evidence, expr evidence/recipe, HTML candidate/evidence, two DU evidence commits) resolve to the exact full commit IDs.",
+      "Candidate raw Git commit and envelope rawCommitBase64 SHA256 match; candidate tree, base tree and unchanged src tree match.",
+      "Base-to-candidate Git diff contains exactly the four declared fixture paths. Before/after hashes and blobs match; each after hash also matches the declared fixture-source commit. No fixture or source execution.",
+      "JSON.stringify(parsed DRIVER.json) SHA256 independently matches the normalized driver identity; raw DRIVER.json has its separate manifest hash.",
+      "Encoded PROFILE and EXTERNAL manifest bytes were hashed only, not decoded or traversed; normalized profile hash is cross-bound to PROFILE-RECEIPT.json, not independently recomputed.",
+      "MATRIX sourceAndPackageBindings equals parsed recipe BINDINGS.json; recipe seal raw hash matches recipeManifestSha256. Nine accepted-engine entries plus four trace entries match at both base and candidate (11 distinct paths); no accepted-engine runtime rerun.",
+      "All 14 phase names/statuses match literal PHASES in pinned policy.mjs by static text extraction. No policy function, requireRelease or launcher admission was called."
+    ]
+  },
+  "manifestBindings": {
+    "CANDIDATE.json": {
+      "commit": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a",
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/CANDIDATE.json",
+      "sha256": "b46ac2defc2ae1c199f291f37099445d401a561e43bc4acb1cca563476d0bddd",
+      "bytes": 4663
+    },
+    "DRIVER.json": {
+      "commit": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a",
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/DRIVER.json",
+      "sha256": "e8ac0521c44d6c76c5a1b670f89296caa65640291a24703f36bdbd8abfc8ce10",
+      "bytes": 3386
+    },
+    "PROFILE.json.gz.base64": {
+      "commit": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a",
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/PROFILE.json.gz.base64",
+      "sha256": "a98b340fbede2d12e9cb0264726a13bc9d7ace4853a8705e17fc69c07df60d37",
+      "bytes": 1409701
+    },
+    "PROFILE-RECEIPT.json": {
+      "commit": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a",
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/PROFILE-RECEIPT.json",
+      "sha256": "bae07fe064489bf3c2eab1f49520d784b43b9deda5cc579a0af6af6b4a512ca0",
+      "bytes": 976
+    },
+    "CLEANUP.json": {
+      "commit": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a",
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/CLEANUP.json",
+      "sha256": "0bf253f75c9ef32f37c1bc154e06c055b5db640f09a7db89e98c1bc5ded27fde",
+      "bytes": 27233
+    },
+    "EXTERNAL.json.gz.base64": {
+      "commit": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a",
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/EXTERNAL.json.gz.base64",
+      "sha256": "ee7a51bc076144312e694b94a19d81f9349f438253d43465e7497616ed9f379e",
+      "bytes": 476241
+    },
+    "EXTERNAL-RECEIPT.json": {
+      "commit": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a",
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/EXTERNAL-RECEIPT.json",
+      "sha256": "0374aad612ced6941f849de615d89bfedc7a6bcdd2708c017ba13fe57417ac84",
+      "bytes": 592
+    }
+  },
+  "exprAuthorityAddendum": {
+    "rootAccepted": true,
+    "authority": "Routed root acceptance, not acceptance newly inferred by this leaf from a successful report.",
+    "recipeCommit": "a316d868fd6b330653f893276b8f5970dfe8800f",
+    "evidenceCommit": "dc5ca91d8405961784ca40a8b439aa8936ecbba3",
+    "matrix": {
+      "commit": "dc5ca91d8405961784ca40a8b439aa8936ecbba3",
+      "path": "tests/integration/expr-public-independent-20260827/r21-composed-public-v1/MATRIX.json",
+      "sha256": "c4be9baa4b72bccd0311e70fbbcf74332dd4b7d3476f40b9eefaf3bce29ab595",
+      "bytes": 50115
+    },
+    "recipeBindings": {
+      "commit": "a316d868fd6b330653f893276b8f5970dfe8800f",
+      "path": "tests/integration/expr-public-independent-20260827/r21-composed-public-v1/BINDINGS.json",
+      "sha256": "f63ce48f9d3414a704fe5186877512d7b75df532d59a5d339977b92951e3dc1c",
+      "bytes": 30397
+    },
+    "recipeSeal": {
+      "commit": "a316d868fd6b330653f893276b8f5970dfe8800f",
+      "path": "tests/integration/expr-public-independent-20260827/r21-composed-public-v1/RECIPE-SEAL.json",
+      "sha256": "99397e6ec5d95d158002e23b65699d41ab20ccea39dbfe6f45f36800148afd9c",
+      "bytes": 2612
+    },
+    "candidate": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+    "packageSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+    "composed": {
+      "runtimeCaseGroups": {
+        "retained": 100,
+        "amended": 4,
+        "covered": 104,
+        "amendedBoundaryOutcomes": 16
+      },
+      "typeOutcomes": {
+        "retained": 32,
+        "separatelyAcceptedTargeted": 8,
+        "covered": 40
+      },
+      "packageControlsRetained": 36
+    },
+    "boundNotRerun": [
+      "package36",
+      "P01",
+      "R25",
+      "R26",
+      "accepted DU29"
+    ],
+    "historical104And40FailuresRescored": false,
+    "independentFullCandidateArchive": false,
+    "authorArchive": {
+      "location": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-public-author-Lbj5md/candidate.tar",
+      "bytes": 9195520,
+      "sha256": "75b2561e942e654399297d70e9d9206e18805c13aacde9acb379f182751f9cea",
+      "qualification": "BOUND admission-era read-only author archive hash; no new full archive stream/extraction/build. Independent P01 uses selected Git objects, not this archive."
+    },
+    "correction": "Any prior pending-expr wording in the main independent receipt is historical for this routed root state. Do not alter that receipt or treat this addendum as acceptance of the shared driver. MATRIX remaining coordinator acceptance wording likewise predates the routed root acceptance; full-gate release remains absent."
+  },
+  "authorizationFields": {
+    "readyFromRootAndPacket": {
+      "public74": {
+        "rootAccepted": true,
+        "productCandidate": "aff899aa94ed0c57a936b08fd36d185688f5c0bb",
+        "evidenceCommit": "9d84903356a4c33402814bdc367e3bbe9894d1c2",
+        "scope": "Same34 installed/moved runtime cases on Node22,10 type and10 package classes; existing build/archive proofs bound, not rerun. Prior close-disposition/stderr/title/HTML5/non-sanitizer qualifications remain.",
+        "packageSha256": "d9c1a97388357c5cb0c810cf2fa5181dc7bebff49efe517db414a5833096eed7"
+      },
+      "public75": {
+        "rootAccepted": true,
+        "evidenceCommits": [
+          "4343b6466c5ba8d0f5d4654ad2bb47839fc5c0c1",
+          "83645ad032238edb6d0887ae445c3b8c9d7c7f2a"
+        ],
+        "scope": "Composed29 root acceptance; original19 runtime cases source/moved and supplemental exact typing/guards retain their separate evidence. Bound here, not rerun."
+      },
+      "public76": true
+    },
+    "packet": {
+      "status": "PREPARED_NOT_RELEASED",
+      "executionAuthorized": false,
+      "fullGateLaunched": false,
+      "independentDriverAccepted": false,
+      "rootReleaseAuthorized": false,
+      "fullGateExecuted": false
+    },
+    "template": {
+      "action": "PENDING_ROOT_RELEASE_UNIFIED76",
+      "public74": true,
+      "public75": true,
+      "public76": true,
+      "independentDriverAccepted": false,
+      "authorization": "",
+      "independentEvidence": ""
+    },
+    "exprMatrix": {
+      "releasePrerequisiteProofsSatisfied": true,
+      "releaseExecuted": false,
+      "fullGate": false,
+      "original104or40Replay": false,
+      "historicalRescore": false
+    },
+    "staticContract": "Pinned admission.mjs requires action ROOT_RELEASE_UNIFIED76; exact candidate/normalized driver/normalized profile/package hashes; public74/public75/public76 and independentDriverAccepted true; non-whitespace authorization and independentEvidence. No valid receipt is generated here.",
+    "templateRefusal": "VALIDATION.json pendingTemplateRefused=true is ROOT/AUTHOR evidence only. This leaf observes nonconforming pending fields statically; no independent admission/refusal execution.",
+    "finalBlocker": "Root must first receive exact independent driver acceptance bound to e062/3d8d, unchanged f5/profile/c109, then issue a matching explicit release receipt. A10 completion, packet completion, public prerequisite acceptance and this static receipt do not authorize full gate. Fresh launch-time guards remain mandatory after authorization."
+  },
+  "roleDifferencesNotHashMismatches": [
+    {
+      "field": "Expr MATRIX sourceAndPackageBindings.candidate",
+      "value": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+      "notCandidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "explanation": "Expr prerequisite binds the base commit, not f5. Static src-tree equality, four-fixture-only delta and c109 metadata establish the stated relationship; no fresh package equality proof is claimed."
+    },
+    {
+      "field": "Driver/source versus author evidence",
+      "source": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a",
+      "evidence": "69a77055fb180f34d47c7e3e4306a666c0d96f68",
+      "explanation": "Different commits by role. Author evidence is not a substitute source seal or independent acceptance."
+    },
+    {
+      "field": "HTML prerequisite candidate/evidence",
+      "candidate": "aff899aa94ed0c57a936b08fd36d185688f5c0bb",
+      "evidence": "9d84903356a4c33402814bdc367e3bbe9894d1c2",
+      "explanation": "Separate prerequisite candidate and evidence, neither substituted for f5. Not expanded from the ambiguous historical aff9d849033 shorthand in expr MATRIX."
+    },
+    {
+      "field": "CANDIDATE.json.release",
+      "value": "HOLD_PUBLIC_AND_DRIVER_REVIEW",
+      "explanation": "Historical HOLD_PUBLIC_AND_DRIVER_REVIEW preserved; current public acceptance comes from root and the packet, while driver acceptance/release remain pending."
+    }
+  ],
+  "declaredProfileNotCoverage": {
+    "defaultCommands": 76,
+    "canonicalPaths": 632,
+    "classifiedMts": 192,
+    "sourceFiles": 249,
+    "cleanupInputs": 256,
+    "nativeBase": 49,
+    "nativeExtensions": 2,
+    "phases": [
+      {
+        "name": "safejs-availability",
+        "expectedStatus": 0
+      },
+      {
+        "name": "cold-typecheck",
+        "expectedStatus": 78
+      },
+      {
+        "name": "typecheck-all",
+        "expectedStatus": 0
+      },
+      {
+        "name": "benchmark-types",
+        "expectedStatus": 0
+      },
+      {
+        "name": "env-source-binding",
+        "expectedStatus": 0
+      },
+      {
+        "name": "canonical",
+        "expectedStatus": 0
+      },
+      {
+        "name": "current-consumers",
+        "expectedStatus": 0
+      },
+      {
+        "name": "pack",
+        "expectedStatus": 0
+      },
+      {
+        "name": "public-runtime",
+        "expectedStatus": 0
+      },
+      {
+        "name": "public-types",
+        "expectedStatus": 0
+      },
+      {
+        "name": "negative-types",
+        "expectedStatus": 2
+      },
+      {
+        "name": "missing-root",
+        "expectedStatus": 1
+      },
+      {
+        "name": "missing-contracts",
+        "expectedStatus": 1
+      },
+      {
+        "name": "final-sweep",
+        "expectedStatus": 0
+      }
+    ],
+    "expectedTestCaseCount": null,
+    "limits": {
+      "archiveEntries": 37397,
+      "archiveBytes": 2382440321,
+      "archiveTransferBytes": 3221225472,
+      "historyTransferBytes": 8589934592,
+      "dependencyBytes": 1073741824,
+      "setupStderrBytes": 1048576,
+      "phaseOutputBytes": 268435456,
+      "allPhaseOutputBytes": 4294967296,
+      "setupTimeoutMs": 600000,
+      "phaseTimeoutMs": 1800000,
+      "cleanupTimeoutMs": 5000,
+      "chunkBytes": 65536,
+      "maximumLineBytes": 1048576,
+      "tapMaximumCases": 100000,
+      "secondaryEvidenceTextBytes": 8388608,
+      "outerTimeoutMs": 25805000,
+      "qualification": "No new bound or buffer increase. Stream full conservative input and large outputs; retained output directories are evidence, not permission to leave owned children."
+    },
+    "outcomePolicy": "Pinned policy source declares nonzero HOLD_OR_QUALIFIED_RED for incomplete bindings/guards/phases/cleanup or nonzero fail/SKIP/TODO/cancel. This is read-only policy inspection, not executed validation."
+  },
+  "historicalEvidence": {
+    "priorIndependentCommit": "37b3c9c3c9c3e911286d0d8542c494f762e17015",
+    "priorResult": "21 bounded PASS / 1 A10 HOLD; six refusal proofs and complete-binding HOLD remain historical, unrescored.",
+    "currentSharedReview": "Pending seal per routed root assignment; shared-v6 work/results not read. No acceptance inferred from another worker progress."
+  },
+  "limits": [
+    "No gate/product/build/type/native/control/admission execution; no author-helper imports. No independent runtime execution performed.",
+    "No private checkout or external author archive inspected; no source archive materialized; no dependency/install/private writes. Expected c109 is receipt-bound, not rehashed from a tarball.",
+    "No profile tree traversal, external runtime/native/dependency scan, old evidence rereview, full input classification audit or coverage proof. No universal public parity or full completion claim.",
+    "Only two new owned files written; parent reports/history, live product/configs, writer temporary files and staging are outside scope.",
+    "Only synchronous Git reads/static checks and owned-file commit operations are used; no gate/native/test children were launched or left running."
+  ]
+}

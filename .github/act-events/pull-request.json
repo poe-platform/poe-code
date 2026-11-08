@@ -1,0 +1,28 @@
+{
+  "action": "opened",
+  "number": 1,
+  "pull_request": {
+    "number": 1,
+    "title": "Test PR for local act run",
+    "body": "This is a test pull request for local workflow testing.",
+    "head": {
+      "ref": "feature/test-branch",
+      "sha": "abc123"
+    },
+    "base": {
+      "ref": "main"
+    },
+    "user": {
+      "login": "test-user"
+    },
+    "labels": [],
+    "draft": false
+  },
+  "repository": {
+    "full_name": "anthropics/poe-setup-scripts",
+    "name": "poe-setup-scripts",
+    "owner": {
+      "login": "anthropics"
+    }
+  }
+}

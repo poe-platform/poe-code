@@ -1,0 +1,2067 @@
+{
+  "role": "Raw remaining strict-native losses. No unsupported loss receives success/core credit.",
+  "hidden": [
+    {
+      "id": "packed-non-s-single-operand",
+      "category": "command",
+      "profile": "gnu97-darwin-primary",
+      "fullLiteralNativeArgv": [
+        "env",
+        "argvprobe two words"
+      ],
+      "virtualSource": "'env' 'argvprobe two words'",
+      "inputHash": "478a64550d4e2581e2e3b3407cacec65a7141b793ed5f3f570e9dbeeaa0842a0",
+      "native": {
+        "status": 127,
+        "stdout": "",
+        "stderr": "ZW52OiAnYXJndnByb2JlIHR3byB3b3Jkcyc6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkKZW52OiB1c2UgLVt2XVMgdG8gcGFzcyBvcHRpb25zIGluIHNoZWJhbmcgbGluZXMK",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "virtual": {
+        "status": 127,
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogYXJndnByb2JlIHR3byB3b3JkczogY29tbWFuZCBub3QgZm91bmQK",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "fields": {
+        "status": true,
+        "stdout": true,
+        "stderr": false,
+        "effects": true
+      },
+      "nativeStderrUtf8": "env: 'argvprobe two words': No such file or directory\nenv: use -[v]S to pass options in shebang lines\n",
+      "virtualStderrUtf8": "shell: line 1: argvprobe two words: command not found\n",
+      "additionalVirtualDiagnosticProfile": true,
+      "classification": "command dispatch diagnostic profile, not grammar loss"
+    },
+    {
+      "id": "missing-command-negative",
+      "category": "command",
+      "profile": "gnu97-darwin-primary",
+      "fullLiteralNativeArgv": [
+        "env",
+        "-S",
+        "env-split-never-a-real-command argument"
+      ],
+      "virtualSource": "'env' '-S' 'env-split-never-a-real-command argument'",
+      "inputHash": "9de163fc57cc315235b10f252d94daa2dd7bf3d087e34cdc86bc132090d2a552",
+      "native": {
+        "status": 127,
+        "stdout": "",
+        "stderr": "ZW52OiAnZW52LXNwbGl0LW5ldmVyLWEtcmVhbC1jb21tYW5kJzogTm8gc3VjaCBmaWxlIG9yIGRpcmVjdG9yeQo=",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "virtual": {
+        "status": 127,
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogZW52LXNwbGl0LW5ldmVyLWEtcmVhbC1jb21tYW5kOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "fields": {
+        "status": true,
+        "stdout": true,
+        "stderr": false,
+        "effects": true
+      },
+      "nativeStderrUtf8": "env: 'env-split-never-a-real-command': No such file or directory\n",
+      "virtualStderrUtf8": "shell: line 1: env-split-never-a-real-command: command not found\n",
+      "additionalVirtualDiagnosticProfile": true,
+      "classification": "command dispatch diagnostic profile, not grammar loss"
+    },
+    {
+      "id": "nonexecutable-command-negative",
+      "category": "command",
+      "profile": "gnu97-darwin-primary",
+      "fullLiteralNativeArgv": [
+        "env",
+        "-S",
+        "./nonexec argument"
+      ],
+      "virtualSource": "'env' '-S' './nonexec argument'",
+      "inputHash": "88d4fae56d188c5b57fcf6ae6043808a7adbb7f6bac2d817d0a806726cb2e199",
+      "native": {
+        "status": 126,
+        "stdout": "",
+        "stderr": "ZW52OiAnLi9ub25leGVjJzogUGVybWlzc2lvbiBkZW5pZWQK",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          },
+          "nonexec": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6e6f742065786563757461626c650a"
+          }
+        }
+      },
+      "virtual": {
+        "status": 126,
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogLi9ub25leGVjOiBQZXJtaXNzaW9uIGRlbmllZAo=",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          },
+          "nonexec": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6e6f742065786563757461626c650a"
+          }
+        }
+      },
+      "fields": {
+        "status": true,
+        "stdout": true,
+        "stderr": false,
+        "effects": true
+      },
+      "nativeStderrUtf8": "env: './nonexec': Permission denied\n",
+      "virtualStderrUtf8": "shell: line 1: ./nonexec: Permission denied\n",
+      "additionalVirtualDiagnosticProfile": true,
+      "classification": "command dispatch diagnostic profile, not grammar loss"
+    },
+    {
+      "id": "non-s-packed-bash-option",
+      "category": "single-optional",
+      "profile": "gnu97-darwin-primary",
+      "fullLiteralNativeArgv": [
+        "env",
+        "bash -e",
+        "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-env-hidden-zxAFGl/gnu97-darwin-primary/single-optional-non-s-packed-bash-option/entry.sh",
+        "argument with spaces",
+        ""
+      ],
+      "virtualSource": "'/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-env-hidden-zxAFGl/gnu97-darwin-primary/single-optional-non-s-packed-bash-option/entry.sh' 'argument with spaces' ''",
+      "inputHash": "16686aaf6c6cd686ef93e97eae80057bc825f81155576bbf8305ea8c0f22df87",
+      "native": {
+        "status": 127,
+        "stdout": "",
+        "stderr": "ZW52OiAnYmFzaCAtZSc6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkKZW52OiB1c2UgLVt2XVMgdG8gcGFzcyBvcHRpb25zIGluIHNoZWJhbmcgbGluZXMK",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "virtual": {
+        "status": 126,
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogL3ByaXZhdGUvdmFyL2ZvbGRlcnMvcncvczRjeTc2aG42djU1cXJwMGRoY2J0cGxjMDAwMGduL1Qvc2FmZS1iYXNoLWVudi1oaWRkZW4tenhBRkdsL2dudTk3LWRhcndpbi1wcmltYXJ5L3NpbmdsZS1vcHRpb25hbC1ub24tcy1wYWNrZWQtYmFzaC1vcHRpb24vZW50cnkuc2g6IHVuc3VwcG9ydGVkIGludGVycHJldGVyOiAvdXNyL2Jpbi9lbnYgYmFzaCAtZQo=",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "fields": {
+        "status": false,
+        "stdout": true,
+        "stderr": false,
+        "effects": true
+      },
+      "nativeStderrUtf8": "env: 'bash -e': No such file or directory\nenv: use -[v]S to pass options in shebang lines\n",
+      "virtualStderrUtf8": "shell: line 1: /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-env-hidden-zxAFGl/gnu97-darwin-primary/single-optional-non-s-packed-bash-option/entry.sh: unsupported interpreter: /usr/bin/env bash -e\n",
+      "additionalVirtualDiagnosticProfile": false,
+      "classification": "unsupported runtime/shebang protocol; no core credit"
+    },
+    {
+      "id": "split-errexit",
+      "category": "single-optional",
+      "profile": "gnu97-darwin-primary",
+      "fullLiteralNativeArgv": [
+        "env",
+        "-S bash -e",
+        "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-env-hidden-zxAFGl/gnu97-darwin-primary/single-optional-split-errexit/entry.sh",
+        "argument with spaces",
+        ""
+      ],
+      "virtualSource": "'/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-env-hidden-zxAFGl/gnu97-darwin-primary/single-optional-split-errexit/entry.sh' 'argument with spaces' ''",
+      "inputHash": "eab52e3fcc4f2ddb7c9218aec3dda5f1037f9bdc0a6646e0070c2daf03f6217c",
+      "native": {
+        "status": 1,
+        "stdout": "ZT1vbgphcmdjPTIKPGFyZ3VtZW50IHdpdGggc3BhY2VzPgo8Pgo=",
+        "stderr": "",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "756e736574"
+          }
+        }
+      },
+      "virtual": {
+        "status": 126,
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogL3ByaXZhdGUvdmFyL2ZvbGRlcnMvcncvczRjeTc2aG42djU1cXJwMGRoY2J0cGxjMDAwMGduL1Qvc2FmZS1iYXNoLWVudi1oaWRkZW4tenhBRkdsL2dudTk3LWRhcndpbi1wcmltYXJ5L3NpbmdsZS1vcHRpb25hbC1zcGxpdC1lcnJleGl0L2VudHJ5LnNoOiB1bnN1cHBvcnRlZCBpbnRlcnByZXRlcjogL3Vzci9iaW4vZW52IC1TIGJhc2ggLWUK",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "fields": {
+        "status": false,
+        "stdout": false,
+        "stderr": false,
+        "effects": false
+      },
+      "nativeStderrUtf8": "",
+      "virtualStderrUtf8": "shell: line 1: /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-env-hidden-zxAFGl/gnu97-darwin-primary/single-optional-split-errexit/entry.sh: unsupported interpreter: /usr/bin/env -S bash -e\n",
+      "additionalVirtualDiagnosticProfile": false,
+      "classification": "unsupported runtime/shebang protocol; no core credit"
+    },
+    {
+      "id": "split-assignment-and-clear",
+      "category": "single-optional",
+      "profile": "gnu97-darwin-primary",
+      "fullLiteralNativeArgv": [
+        "env",
+        "-S -i PATH=${PATH} MARK=kept bash -e",
+        "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-env-hidden-zxAFGl/gnu97-darwin-primary/single-optional-split-assignment-and-clear/entry.sh",
+        "argument with spaces",
+        ""
+      ],
+      "virtualSource": "'/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-env-hidden-zxAFGl/gnu97-darwin-primary/single-optional-split-assignment-and-clear/entry.sh' 'argument with spaces' ''",
+      "inputHash": "12a81e9e32ecd44d02df3d0bfc8af6b8b7d41689bb041e118a50b7d5c03da4f7",
+      "native": {
+        "status": 1,
+        "stdout": "ZT1vbgphcmdjPTIKPGFyZ3VtZW50IHdpdGggc3BhY2VzPgo8Pgo=",
+        "stderr": "",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6b657074"
+          }
+        }
+      },
+      "virtual": {
+        "status": 126,
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogL3ByaXZhdGUvdmFyL2ZvbGRlcnMvcncvczRjeTc2aG42djU1cXJwMGRoY2J0cGxjMDAwMGduL1Qvc2FmZS1iYXNoLWVudi1oaWRkZW4tenhBRkdsL2dudTk3LWRhcndpbi1wcmltYXJ5L3NpbmdsZS1vcHRpb25hbC1zcGxpdC1hc3NpZ25tZW50LWFuZC1jbGVhci9lbnRyeS5zaDogdW5zdXBwb3J0ZWQgaW50ZXJwcmV0ZXI6IC91c3IvYmluL2VudiAtUyAtaSBQQVRIPSR7UEFUSH0gTUFSSz1rZXB0IGJhc2ggLWUK",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "fields": {
+        "status": false,
+        "stdout": false,
+        "stderr": false,
+        "effects": false
+      },
+      "nativeStderrUtf8": "",
+      "virtualStderrUtf8": "shell: line 1: /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-env-hidden-zxAFGl/gnu97-darwin-primary/single-optional-split-assignment-and-clear/entry.sh: unsupported interpreter: /usr/bin/env -S -i PATH=${PATH} MARK=kept bash -e\n",
+      "additionalVirtualDiagnosticProfile": false,
+      "classification": "unsupported runtime/shebang protocol; no core credit"
+    },
+    {
+      "id": "split-long-plus-option",
+      "category": "single-optional",
+      "profile": "gnu97-darwin-primary",
+      "fullLiteralNativeArgv": [
+        "env",
+        "--split-string=bash +e",
+        "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-env-hidden-zxAFGl/gnu97-darwin-primary/single-optional-split-long-plus-option/entry.sh",
+        "argument with spaces",
+        ""
+      ],
+      "virtualSource": "'/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-env-hidden-zxAFGl/gnu97-darwin-primary/single-optional-split-long-plus-option/entry.sh' 'argument with spaces' ''",
+      "inputHash": "a0c63ef55972bb2a6980f0a285a69dd6ba12c49aba903190c731547e7301382d",
+      "native": {
+        "status": 0,
+        "stdout": "ZT1vZmYKYXJnYz0yCjxhcmd1bWVudCB3aXRoIHNwYWNlcz4KPD4Kc3Vydml2ZWQK",
+        "stderr": "",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "756e736574"
+          }
+        }
+      },
+      "virtual": {
+        "status": 126,
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogL3ByaXZhdGUvdmFyL2ZvbGRlcnMvcncvczRjeTc2aG42djU1cXJwMGRoY2J0cGxjMDAwMGduL1Qvc2FmZS1iYXNoLWVudi1oaWRkZW4tenhBRkdsL2dudTk3LWRhcndpbi1wcmltYXJ5L3NpbmdsZS1vcHRpb25hbC1zcGxpdC1sb25nLXBsdXMtb3B0aW9uL2VudHJ5LnNoOiB1bnN1cHBvcnRlZCBpbnRlcnByZXRlcjogL3Vzci9iaW4vZW52IC0tc3BsaXQtc3RyaW5nPWJhc2ggK2UK",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "fields": {
+        "status": false,
+        "stdout": false,
+        "stderr": false,
+        "effects": false
+      },
+      "nativeStderrUtf8": "",
+      "virtualStderrUtf8": "shell: line 1: /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-env-hidden-zxAFGl/gnu97-darwin-primary/single-optional-split-long-plus-option/entry.sh: unsupported interpreter: /usr/bin/env --split-string=bash +e\n",
+      "additionalVirtualDiagnosticProfile": false,
+      "classification": "unsupported runtime/shebang protocol; no core credit"
+    },
+    {
+      "id": "split-quoted-marker",
+      "category": "single-optional",
+      "profile": "gnu97-darwin-primary",
+      "fullLiteralNativeArgv": [
+        "env",
+        "-S MARK=\"two words\" bash -e",
+        "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-env-hidden-zxAFGl/gnu97-darwin-primary/single-optional-split-quoted-marker/entry.sh",
+        "argument with spaces",
+        ""
+      ],
+      "virtualSource": "'/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-env-hidden-zxAFGl/gnu97-darwin-primary/single-optional-split-quoted-marker/entry.sh' 'argument with spaces' ''",
+      "inputHash": "68cbb53e6cc458a620811da0629d2ddfe95f34fe0ba12cd32b41c98041062b10",
+      "native": {
+        "status": 1,
+        "stdout": "ZT1vbgphcmdjPTIKPGFyZ3VtZW50IHdpdGggc3BhY2VzPgo8Pgo=",
+        "stderr": "",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "74776f20776f726473"
+          }
+        }
+      },
+      "virtual": {
+        "status": 126,
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogL3ByaXZhdGUvdmFyL2ZvbGRlcnMvcncvczRjeTc2aG42djU1cXJwMGRoY2J0cGxjMDAwMGduL1Qvc2FmZS1iYXNoLWVudi1oaWRkZW4tenhBRkdsL2dudTk3LWRhcndpbi1wcmltYXJ5L3NpbmdsZS1vcHRpb25hbC1zcGxpdC1xdW90ZWQtbWFya2VyL2VudHJ5LnNoOiB1bnN1cHBvcnRlZCBpbnRlcnByZXRlcjogL3Vzci9iaW4vZW52IC1TIE1BUks9InR3byB3b3JkcyIgYmFzaCAtZQo=",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "fields": {
+        "status": false,
+        "stdout": false,
+        "stderr": false,
+        "effects": false
+      },
+      "nativeStderrUtf8": "",
+      "virtualStderrUtf8": "shell: line 1: /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-env-hidden-zxAFGl/gnu97-darwin-primary/single-optional-split-quoted-marker/entry.sh: unsupported interpreter: /usr/bin/env -S MARK=\"two words\" bash -e\n",
+      "additionalVirtualDiagnosticProfile": false,
+      "classification": "unsupported runtime/shebang protocol; no core credit"
+    },
+    {
+      "id": "stop-inside-double-quote-error",
+      "category": "command",
+      "profile": "apple-env-bash32-historical",
+      "fullLiteralNativeArgv": [
+        "env",
+        "-S",
+        "argvprobe \"left\\cright\""
+      ],
+      "virtualSource": "'env' '-S' 'argvprobe \"left\\cright\"'",
+      "inputHash": "704bf3e3d2d43844991558f0221748fae2b4d8b34e980b5a7ba7f3af0a15da1c",
+      "native": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "ZW52OiBTZXF1ZW5jZSAnXGMnIGlzIG5vdCBhbGxvd2VkIGluIHF1b3RlZCBzdHJpbmdzCg==",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "virtual": {
+        "status": 125,
+        "stdout": "",
+        "stderr": "ZW52OiAnXGMnIG11c3Qgbm90IGFwcGVhciBpbiBkb3VibGUtcXVvdGVkIC1TIHN0cmluZwo=",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "fields": {
+        "status": false,
+        "stdout": true,
+        "stderr": false,
+        "effects": true
+      },
+      "nativeStderrUtf8": "env: Sequence '\\c' is not allowed in quoted strings\n",
+      "virtualStderrUtf8": "env: '\\c' must not appear in double-quoted -S string\n",
+      "additionalVirtualDiagnosticProfile": false,
+      "classification": "historical whole-profile difference; not a pass"
+    },
+    {
+      "id": "unmatched-single-quote",
+      "category": "command",
+      "profile": "apple-env-bash32-historical",
+      "fullLiteralNativeArgv": [
+        "env",
+        "-S",
+        "argvprobe before 'unfinished"
+      ],
+      "virtualSource": "'env' '-S' 'argvprobe before '\\''unfinished'",
+      "inputHash": "3ed9ca792ed33f86f2942e900bff19c56d72ab0f859eab625415441aece9bf22",
+      "native": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "ZW52OiBObyB0ZXJtaW5hdGluZyBxdW90ZSBmb3Igc3RyaW5nOiB1bmZpbmlzJ3VuZmluaXNoZWQK",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "virtual": {
+        "status": 125,
+        "stdout": "",
+        "stderr": "ZW52OiBubyB0ZXJtaW5hdGluZyBxdW90ZSBpbiAtUyBzdHJpbmcK",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "fields": {
+        "status": false,
+        "stdout": true,
+        "stderr": false,
+        "effects": true
+      },
+      "nativeStderrUtf8": "env: No terminating quote for string: unfinis'unfinished\n",
+      "virtualStderrUtf8": "env: no terminating quote in -S string\n",
+      "additionalVirtualDiagnosticProfile": false,
+      "classification": "historical whole-profile difference; not a pass"
+    },
+    {
+      "id": "unmatched-double-quote",
+      "category": "command",
+      "profile": "apple-env-bash32-historical",
+      "fullLiteralNativeArgv": [
+        "env",
+        "-S",
+        "argvprobe before \"unfinished"
+      ],
+      "virtualSource": "'env' '-S' 'argvprobe before \"unfinished'",
+      "inputHash": "1ad7ca0ac4a7ac2d7eeff0a7f6fd01bde214c5a8205083bcd46e46072e8f5371",
+      "native": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "ZW52OiBObyB0ZXJtaW5hdGluZyBxdW90ZSBmb3Igc3RyaW5nOiB1bmZpbmlzInVuZmluaXNoZWQK",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "virtual": {
+        "status": 125,
+        "stdout": "",
+        "stderr": "ZW52OiBubyB0ZXJtaW5hdGluZyBxdW90ZSBpbiAtUyBzdHJpbmcK",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "fields": {
+        "status": false,
+        "stdout": true,
+        "stderr": false,
+        "effects": true
+      },
+      "nativeStderrUtf8": "env: No terminating quote for string: unfinis\"unfinished\n",
+      "virtualStderrUtf8": "env: no terminating quote in -S string\n",
+      "additionalVirtualDiagnosticProfile": false,
+      "classification": "historical whole-profile difference; not a pass"
+    },
+    {
+      "id": "invalid-escape",
+      "category": "command",
+      "profile": "apple-env-bash32-historical",
+      "fullLiteralNativeArgv": [
+        "env",
+        "-S",
+        "argvprobe before \\q after"
+      ],
+      "virtualSource": "'env' '-S' 'argvprobe before \\q after'",
+      "inputHash": "4dd6de717461a9e30ad3495c5c9f570d1f15d76f5029bf0cc8e57f6de1c82272",
+      "native": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "ZW52OiBJbnZhbGlkIHNlcXVlbmNlICdccScgaW4gLVMK",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "virtual": {
+        "status": 125,
+        "stdout": "",
+        "stderr": "ZW52OiBpbnZhbGlkIHNlcXVlbmNlICdccScgaW4gLVMK",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "fields": {
+        "status": false,
+        "stdout": true,
+        "stderr": false,
+        "effects": true
+      },
+      "nativeStderrUtf8": "env: Invalid sequence '\\q' in -S\n",
+      "virtualStderrUtf8": "env: invalid sequence '\\q' in -S\n",
+      "additionalVirtualDiagnosticProfile": false,
+      "classification": "historical whole-profile difference; not a pass"
+    },
+    {
+      "id": "terminal-backslash",
+      "category": "command",
+      "profile": "apple-env-bash32-historical",
+      "fullLiteralNativeArgv": [
+        "env",
+        "-S",
+        "argvprobe before \\"
+      ],
+      "virtualSource": "'env' '-S' 'argvprobe before \\'",
+      "inputHash": "304a079d6d7030cf8a644ef957b083d88e582a81d57ff550cc2e34aadbbce6ea",
+      "native": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "ZW52OiBJbnZhbGlkIHNlcXVlbmNlICdcCg==",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "virtual": {
+        "status": 125,
+        "stdout": "",
+        "stderr": "ZW52OiBpbnZhbGlkIGJhY2tzbGFzaCBhdCBlbmQgb2Ygc3RyaW5nIGluIC1TCg==",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "fields": {
+        "status": false,
+        "stdout": true,
+        "stderr": false,
+        "effects": true
+      },
+      "nativeStderrUtf8": "env: Invalid sequence '\\\n",
+      "virtualStderrUtf8": "env: invalid backslash at end of string in -S\n",
+      "additionalVirtualDiagnosticProfile": false,
+      "classification": "historical whole-profile difference; not a pass"
+    },
+    {
+      "id": "empty-and-unset-boundaries",
+      "category": "command",
+      "profile": "apple-env-bash32-historical",
+      "fullLiteralNativeArgv": [
+        "env",
+        "-S",
+        "argvprobe ${EMPTY} ${ABSENT} \"${EMPTY}\" \"${ABSENT}\" x${EMPTY}y"
+      ],
+      "virtualSource": "'env' '-S' 'argvprobe ${EMPTY} ${ABSENT} \"${EMPTY}\" \"${ABSENT}\" x${EMPTY}y'",
+      "inputHash": "9bde20280427fad154bb0d40c02f9e9a09626d957dcf956c29c8db55dfe6eae5",
+      "native": {
+        "status": 0,
+        "stdout": "eyJhcmdjIjo0LCJhcmd2SGV4IjpbIjYxNzI2Nzc2NzA3MjZmNjI2NSIsIiIsIiIsIjc4NzkiXSwiZW52SGV4IjpbIjUwNDE1NDQ4M2QyZjcwNzI2OTc2NjE3NDY1MmY3NjYxNzIyZjY2NmY2YzY0NjU3MjczMmY3Mjc3MmY3MzM0NjM3OTM3MzY2ODZlMzY3NjM1MzU3MTcyNzAzMDY0Njg2MzYyNzQ3MDZjNjMzMDMwMzAzMDY3NmUyZjU0MmY3MzYxNjY2NTJkNjI2MTczNjgyZDY1NmU3NjJkNjg2OTY0NjQ2NTZlMmQ3YTc4NDE0NjQ3NmMyZjYxNzA3MDZjNjUyZDY1NmU3NjJkNjI2MTczNjgzMzMyMmQ2ODY5NzM3NDZmNzI2OTYzNjE2YzJmNjI2OTZlM2EyZjcwNzI2OTc2NjE3NDY1MmY3NjYxNzIyZjY2NmY2YzY0NjU3MjczMmY3Mjc3MmY3MzM0NjM3OTM3MzY2ODZlMzY3NjM1MzU3MTcyNzAzMDY0Njg2MzYyNzQ3MDZjNjMzMDMwMzAzMDY3NmUyZjU0MmY3MzYxNjY2NTJkNjI2MTczNjgyZDY1NmU3NjJkNjg2OTY0NjQ2NTZlMmQ3YTc4NDE0NjQ3NmMyZjYyNjk2ZSIsIjQ4NGY0ZDQ1M2QyZjcwNzI2OTc2NjE3NDY1MmY3NjYxNzIyZjY2NmY2YzY0NjU3MjczMmY3Mjc3MmY3MzM0NjM3OTM3MzY2ODZlMzY3NjM1MzU3MTcyNzAzMDY0Njg2MzYyNzQ3MDZjNjMzMDMwMzAzMDY3NmUyZjU0MmY3MzYxNjY2NTJkNjI2MTczNjgyZDY1NmU3NjJkNjg2OTY0NjQ2NTZlMmQ3YTc4NDE0NjQ3NmMyZjYxNzA3MDZjNjUyZDY1NmU3NjJkNjI2MTczNjgzMzMyMmQ2ODY5NzM3NDZmNzI2OTYzNjE2YzJmNjM2ZjZkNmQ2MTZlNjQyZDY1NmQ3MDc0NzkyZDYxNmU2NDJkNzU2ZTczNjU3NDJkNjI2Zjc1NmU2NDYxNzI2OTY1NzMyZjc3NmY3MjZiIiwiNTQ0ZDUwNDQ0OTUyM2QyZjcwNzI2OTc2NjE3NDY1MmY3NjYxNzIyZjY2NmY2YzY0NjU3MjczMmY3Mjc3MmY3MzM0NjM3OTM3MzY2ODZlMzY3NjM1MzU3MTcyNzAzMDY0Njg2MzYyNzQ3MDZjNjMzMDMwMzAzMDY3NmUyZjU0MmY3MzYxNjY2NTJkNjI2MTczNjgyZDY1NmU3NjJkNjg2OTY0NjQ2NTZlMmQ3YTc4NDE0NjQ3NmMyZjYxNzA3MDZjNjUyZDY1NmU3NjJkNjI2MTczNjgzMzMyMmQ2ODY5NzM3NDZmNzI2OTYzNjE2YzJmNjM2ZjZkNmQ2MTZlNjQyZDY1NmQ3MDc0NzkyZDYxNmU2NDJkNzU2ZTczNjU3NDJkNjI2Zjc1NmU2NDYxNzI2OTY1NzMyZjc3NmY3MjZiIiwiNTA1NzQ0M2QyZjcwNzI2OTc2NjE3NDY1MmY3NjYxNzIyZjY2NmY2YzY0NjU3MjczMmY3Mjc3MmY3MzM0NjM3OTM3MzY2ODZlMzY3NjM1MzU3MTcyNzAzMDY0Njg2MzYyNzQ3MDZjNjMzMDMwMzAzMDY3NmUyZjU0MmY3MzYxNjY2NTJkNjI2MTczNjgyZDY1NmU3NjJkNjg2OTY0NjQ2NTZlMmQ3YTc4NDE0NjQ3NmMyZjYxNzA3MDZjNjUyZDY1NmU3NjJkNjI2MTczNjgzMzMyMmQ2ODY5NzM3NDZmNzI2OTYzNjE2YzJmNjM2ZjZkNmQ2MTZlNjQyZDY1NmQ3MDc0NzkyZDYxNmU2NDJkNzU2ZTczNjU3NDJkNjI2Zjc1NmU2NDYxNzI2OTY1NzMyZjc3NmY3MjZiIiwiNGM0MTRlNDczZDQzIiwiNGM0MzVmNDE0YzRjM2Q0MyIsIjU0NWEzZDU1NTQ0MyIsIjU3NGY1MjQ0NTMzZDZlNmY3Mjc0NjgyMDczNmY3NTc0NjgwOTY1NjE3Mzc0MGE3NzY1NzM3NCIsIjQ1NGQ1MDU0NTkzZCIsIjUwNDE1OTRjNGY0MTQ0M2QyNDI4NzA3MjY5NmU3NDY2MjA0MjQxNDQzZTY5NmU2YTY1NjM3NDY1NjQyOTNiMjAzZTY5NmU2YTY1NjM3NDY1NjQyMDdjMjA2MDc0NmY3NTYzNjgyMDY5NmU2YTY1NjM3NDY1NjQ2MCIsIjUxNTU0ZjU0NDU0NDNkMjI2MTIwNjIyMjIwMjc2MzIwNjQyNzIwNWM1ZjIwMjM2MzZmNmQ2ZDY1NmU3NCIsIjQ0NGY0YzRjNDE1MjUzM2QyNDdiNTc0ZjUyNDQ1MzdkMjAyNDQwMjAyNDI0IiwiNDc1MjRmNTc1NDQ4M2Q3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Il0sInN0ZGluSGV4IjoiMDA0MWZmMGEiLCJjd2RIZXgiOiIyZjcwNzI2OTc2NjE3NDY1MmY3NjYxNzIyZjY2NmY2YzY0NjU3MjczMmY3Mjc3MmY3MzM0NjM3OTM3MzY2ODZlMzY3NjM1MzU3MTcyNzAzMDY0Njg2MzYyNzQ3MDZjNjMzMDMwMzAzMDY3NmUyZjU0MmY3MzYxNjY2NTJkNjI2MTczNjgyZDY1NmU3NjJkNjg2OTY0NjQ2NTZlMmQ3YTc4NDE0NjQ3NmMyZjYxNzA3MDZjNjUyZDY1NmU3NjJkNjI2MTczNjgzMzMyMmQ2ODY5NzM3NDZmNzI2OTYzNjE2YzJmNjM2ZjZkNmQ2MTZlNjQyZDY1NmQ3MDc0NzkyZDYxNmU2NDJkNzU2ZTczNjU3NDJkNjI2Zjc1NmU2NDYxNzI2OTY1NzMyZjc3NmY3MjZiIn0K",
+        "stderr": "",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "virtual": {
+        "status": 0,
+        "stdout": "eyJhcmdjIjo1LCJhcmd2SGV4IjpbIjYxNzI2Nzc2NzA3MjZmNjI2NSIsIiIsIiIsIiIsIjc4NzkiXSwiZW52SGV4IjpbIjUwNDE1NDQ4M2QyZjcwNzI2OTc2NjE3NDY1MmY3NjYxNzIyZjY2NmY2YzY0NjU3MjczMmY3Mjc3MmY3MzM0NjM3OTM3MzY2ODZlMzY3NjM1MzU3MTcyNzAzMDY0Njg2MzYyNzQ3MDZjNjMzMDMwMzAzMDY3NmUyZjU0MmY3MzYxNjY2NTJkNjI2MTczNjgyZDY1NmU3NjJkNjg2OTY0NjQ2NTZlMmQ3YTc4NDE0NjQ3NmMyZjYxNzA3MDZjNjUyZDY1NmU3NjJkNjI2MTczNjgzMzMyMmQ2ODY5NzM3NDZmNzI2OTYzNjE2YzJmNjI2OTZlM2EyZjcwNzI2OTc2NjE3NDY1MmY3NjYxNzIyZjY2NmY2YzY0NjU3MjczMmY3Mjc3MmY3MzM0NjM3OTM3MzY2ODZlMzY3NjM1MzU3MTcyNzAzMDY0Njg2MzYyNzQ3MDZjNjMzMDMwMzAzMDY3NmUyZjU0MmY3MzYxNjY2NTJkNjI2MTczNjgyZDY1NmU3NjJkNjg2OTY0NjQ2NTZlMmQ3YTc4NDE0NjQ3NmMyZjYyNjk2ZSIsIjQ4NGY0ZDQ1M2QyZjcwNzI2OTc2NjE3NDY1MmY3NjYxNzIyZjY2NmY2YzY0NjU3MjczMmY3Mjc3MmY3MzM0NjM3OTM3MzY2ODZlMzY3NjM1MzU3MTcyNzAzMDY0Njg2MzYyNzQ3MDZjNjMzMDMwMzAzMDY3NmUyZjU0MmY3MzYxNjY2NTJkNjI2MTczNjgyZDY1NmU3NjJkNjg2OTY0NjQ2NTZlMmQ3YTc4NDE0NjQ3NmMyZjYxNzA3MDZjNjUyZDY1NmU3NjJkNjI2MTczNjgzMzMyMmQ2ODY5NzM3NDZmNzI2OTYzNjE2YzJmNjM2ZjZkNmQ2MTZlNjQyZDY1NmQ3MDc0NzkyZDYxNmU2NDJkNzU2ZTczNjU3NDJkNjI2Zjc1NmU2NDYxNzI2OTY1NzMyZjc3NmY3MjZiIiwiNTQ0ZDUwNDQ0OTUyM2QyZjcwNzI2OTc2NjE3NDY1MmY3NjYxNzIyZjY2NmY2YzY0NjU3MjczMmY3Mjc3MmY3MzM0NjM3OTM3MzY2ODZlMzY3NjM1MzU3MTcyNzAzMDY0Njg2MzYyNzQ3MDZjNjMzMDMwMzAzMDY3NmUyZjU0MmY3MzYxNjY2NTJkNjI2MTczNjgyZDY1NmU3NjJkNjg2OTY0NjQ2NTZlMmQ3YTc4NDE0NjQ3NmMyZjYxNzA3MDZjNjUyZDY1NmU3NjJkNjI2MTczNjgzMzMyMmQ2ODY5NzM3NDZmNzI2OTYzNjE2YzJmNjM2ZjZkNmQ2MTZlNjQyZDY1NmQ3MDc0NzkyZDYxNmU2NDJkNzU2ZTczNjU3NDJkNjI2Zjc1NmU2NDYxNzI2OTY1NzMyZjc3NmY3MjZiIiwiNTA1NzQ0M2QyZjcwNzI2OTc2NjE3NDY1MmY3NjYxNzIyZjY2NmY2YzY0NjU3MjczMmY3Mjc3MmY3MzM0NjM3OTM3MzY2ODZlMzY3NjM1MzU3MTcyNzAzMDY0Njg2MzYyNzQ3MDZjNjMzMDMwMzAzMDY3NmUyZjU0MmY3MzYxNjY2NTJkNjI2MTczNjgyZDY1NmU3NjJkNjg2OTY0NjQ2NTZlMmQ3YTc4NDE0NjQ3NmMyZjYxNzA3MDZjNjUyZDY1NmU3NjJkNjI2MTczNjgzMzMyMmQ2ODY5NzM3NDZmNzI2OTYzNjE2YzJmNjM2ZjZkNmQ2MTZlNjQyZDY1NmQ3MDc0NzkyZDYxNmU2NDJkNzU2ZTczNjU3NDJkNjI2Zjc1NmU2NDYxNzI2OTY1NzMyZjc3NmY3MjZiIiwiNGM0MTRlNDczZDQzIiwiNGM0MzVmNDE0YzRjM2Q0MyIsIjU0NWEzZDU1NTQ0MyIsIjU3NGY1MjQ0NTMzZDZlNmY3Mjc0NjgyMDczNmY3NTc0NjgwOTY1NjE3Mzc0MGE3NzY1NzM3NCIsIjQ1NGQ1MDU0NTkzZCIsIjUwNDE1OTRjNGY0MTQ0M2QyNDI4NzA3MjY5NmU3NDY2MjA0MjQxNDQzZTY5NmU2YTY1NjM3NDY1NjQyOTNiMjAzZTY5NmU2YTY1NjM3NDY1NjQyMDdjMjA2MDc0NmY3NTYzNjgyMDY5NmU2YTY1NjM3NDY1NjQ2MCIsIjUxNTU0ZjU0NDU0NDNkMjI2MTIwNjIyMjIwMjc2MzIwNjQyNzIwNWM1ZjIwMjM2MzZmNmQ2ZDY1NmU3NCIsIjQ0NGY0YzRjNDE1MjUzM2QyNDdiNTc0ZjUyNDQ1MzdkMjAyNDQwMjAyNDI0IiwiNDc1MjRmNTc1NDQ4M2Q3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Il0sInN0ZGluSGV4IjoiMDA0MWZmMGEiLCJjd2RIZXgiOiIyZjcwNzI2OTc2NjE3NDY1MmY3NjYxNzIyZjY2NmY2YzY0NjU3MjczMmY3Mjc3MmY3MzM0NjM3OTM3MzY2ODZlMzY3NjM1MzU3MTcyNzAzMDY0Njg2MzYyNzQ3MDZjNjMzMDMwMzAzMDY3NmUyZjU0MmY3MzYxNjY2NTJkNjI2MTczNjgyZDY1NmU3NjJkNjg2OTY0NjQ2NTZlMmQ3YTc4NDE0NjQ3NmMyZjYxNzA3MDZjNjUyZDY1NmU3NjJkNjI2MTczNjgzMzMyMmQ2ODY5NzM3NDZmNzI2OTYzNjE2YzJmNjM2ZjZkNmQ2MTZlNjQyZDY1NmQ3MDc0NzkyZDYxNmU2NDJkNzU2ZTczNjU3NDJkNjI2Zjc1NmU2NDYxNzI2OTY1NzMyZjc3NmY3MjZiIn0K",
+        "stderr": "",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "fields": {
+        "status": true,
+        "stdout": false,
+        "stderr": true,
+        "effects": true
+      },
+      "nativeStderrUtf8": "",
+      "virtualStderrUtf8": "",
+      "additionalVirtualDiagnosticProfile": false,
+      "classification": "historical whole-profile difference; not a pass"
+    },
+    {
+      "id": "lookup-before-ignore-and-unset",
+      "category": "command",
+      "profile": "apple-env-bash32-historical",
+      "fullLiteralNativeArgv": [
+        "env",
+        "-S",
+        "-i -u WORDS PATH=${PATH} COPY=${WORDS} argvprobe ${WORDS}"
+      ],
+      "virtualSource": "'env' '-S' '-i -u WORDS PATH=${PATH} COPY=${WORDS} argvprobe ${WORDS}'",
+      "inputHash": "2b04dfed78b2252402db5ce4e60809423ea5d43dd68b2a227c9efd9c7b9f4f17",
+      "native": {
+        "status": 0,
+        "stdout": "eyJhcmdjIjoyLCJhcmd2SGV4IjpbIjYxNzI2Nzc2NzA3MjZmNjI2NSIsIjZlNmY3Mjc0NjgyMDczNmY3NTc0NjgwOTY1NjE3Mzc0MGE3NzY1NzM3NCJdLCJlbnZIZXgiOlsiNTA0MTU0NDgzZDJmNzA3MjY5NzY2MTc0NjUyZjc2NjE3MjJmNjY2ZjZjNjQ2NTcyNzMyZjcyNzcyZjczMzQ2Mzc5MzczNjY4NmUzNjc2MzUzNTcxNzI3MDMwNjQ2ODYzNjI3NDcwNmM2MzMwMzAzMDMwNjc2ZTJmNTQyZjczNjE2NjY1MmQ2MjYxNzM2ODJkNjU2ZTc2MmQ2ODY5NjQ2NDY1NmUyZDdhNzg0MTQ2NDc2YzJmNjE3MDcwNmM2NTJkNjU2ZTc2MmQ2MjYxNzM2ODMzMzIyZDY4Njk3Mzc0NmY3MjY5NjM2MTZjMmY2MjY5NmUzYTJmNzA3MjY5NzY2MTc0NjUyZjc2NjE3MjJmNjY2ZjZjNjQ2NTcyNzMyZjcyNzcyZjczMzQ2Mzc5MzczNjY4NmUzNjc2MzUzNTcxNzI3MDMwNjQ2ODYzNjI3NDcwNmM2MzMwMzAzMDMwNjc2ZTJmNTQyZjczNjE2NjY1MmQ2MjYxNzM2ODJkNjU2ZTc2MmQ2ODY5NjQ2NDY1NmUyZDdhNzg0MTQ2NDc2YzJmNjI2OTZlIiwiNDM0ZjUwNTkzZDZlNmY3Mjc0NjgyMDczNmY3NTc0NjgwOTY1NjE3Mzc0MGE3NzY1NzM3NCJdLCJzdGRpbkhleCI6IjAwNDFmZjBhIiwiY3dkSGV4IjoiMmY3MDcyNjk3NjYxNzQ2NTJmNzY2MTcyMmY2NjZmNmM2NDY1NzI3MzJmNzI3NzJmNzMzNDYzNzkzNzM2Njg2ZTM2NzYzNTM1NzE3MjcwMzA2NDY4NjM2Mjc0NzA2YzYzMzAzMDMwMzA2NzZlMmY1NDJmNzM2MTY2NjUyZDYyNjE3MzY4MmQ2NTZlNzYyZDY4Njk2NDY0NjU2ZTJkN2E3ODQxNDY0NzZjMmY2MTcwNzA2YzY1MmQ2NTZlNzYyZDYyNjE3MzY4MzMzMjJkNjg2OTczNzQ2ZjcyNjk2MzYxNmMyZjYzNmY2ZDZkNjE2ZTY0MmQ2YzZmNmY2Yjc1NzAyZDYyNjU2NjZmNzI2NTJkNjk2NzZlNmY3MjY1MmQ2MTZlNjQyZDc1NmU3MzY1NzQyZjc3NmY3MjZiIn0K",
+        "stderr": "",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "virtual": {
+        "status": 0,
+        "stdout": "eyJhcmdjIjoyLCJhcmd2SGV4IjpbIjYxNzI2Nzc2NzA3MjZmNjI2NSIsIjZlNmY3Mjc0NjgyMDczNmY3NTc0NjgwOTY1NjE3Mzc0MGE3NzY1NzM3NCJdLCJlbnZIZXgiOlsiNDM0ZjUwNTkzZDZlNmY3Mjc0NjgyMDczNmY3NTc0NjgwOTY1NjE3Mzc0MGE3NzY1NzM3NCIsIjUwNDE1NDQ4M2QyZjcwNzI2OTc2NjE3NDY1MmY3NjYxNzIyZjY2NmY2YzY0NjU3MjczMmY3Mjc3MmY3MzM0NjM3OTM3MzY2ODZlMzY3NjM1MzU3MTcyNzAzMDY0Njg2MzYyNzQ3MDZjNjMzMDMwMzAzMDY3NmUyZjU0MmY3MzYxNjY2NTJkNjI2MTczNjgyZDY1NmU3NjJkNjg2OTY0NjQ2NTZlMmQ3YTc4NDE0NjQ3NmMyZjYxNzA3MDZjNjUyZDY1NmU3NjJkNjI2MTczNjgzMzMyMmQ2ODY5NzM3NDZmNzI2OTYzNjE2YzJmNjI2OTZlM2EyZjcwNzI2OTc2NjE3NDY1MmY3NjYxNzIyZjY2NmY2YzY0NjU3MjczMmY3Mjc3MmY3MzM0NjM3OTM3MzY2ODZlMzY3NjM1MzU3MTcyNzAzMDY0Njg2MzYyNzQ3MDZjNjMzMDMwMzAzMDY3NmUyZjU0MmY3MzYxNjY2NTJkNjI2MTczNjgyZDY1NmU3NjJkNjg2OTY0NjQ2NTZlMmQ3YTc4NDE0NjQ3NmMyZjYyNjk2ZSJdLCJzdGRpbkhleCI6IjAwNDFmZjBhIiwiY3dkSGV4IjoiMmY3MDcyNjk3NjYxNzQ2NTJmNzY2MTcyMmY2NjZmNmM2NDY1NzI3MzJmNzI3NzJmNzMzNDYzNzkzNzM2Njg2ZTM2NzYzNTM1NzE3MjcwMzA2NDY4NjM2Mjc0NzA2YzYzMzAzMDMwMzA2NzZlMmY1NDJmNzM2MTY2NjUyZDYyNjE3MzY4MmQ2NTZlNzYyZDY4Njk2NDY0NjU2ZTJkN2E3ODQxNDY0NzZjMmY2MTcwNzA2YzY1MmQ2NTZlNzYyZDYyNjE3MzY4MzMzMjJkNjg2OTczNzQ2ZjcyNjk2MzYxNmMyZjYzNmY2ZDZkNjE2ZTY0MmQ2YzZmNmY2Yjc1NzAyZDYyNjU2NjZmNzI2NTJkNjk2NzZlNmY3MjY1MmQ2MTZlNjQyZDc1NmU3MzY1NzQyZjc3NmY3MjZiIn0K",
+        "stderr": "",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "fields": {
+        "status": true,
+        "stdout": false,
+        "stderr": true,
+        "effects": true
+      },
+      "nativeStderrUtf8": "",
+      "virtualStderrUtf8": "",
+      "additionalVirtualDiagnosticProfile": false,
+      "classification": "historical whole-profile difference; not a pass"
+    },
+    {
+      "id": "lookup-before-assignment",
+      "category": "command",
+      "profile": "apple-env-bash32-historical",
+      "fullLiteralNativeArgv": [
+        "env",
+        "-S",
+        "WORDS=replaced COPY=${WORDS} argvprobe ${WORDS}"
+      ],
+      "virtualSource": "'env' '-S' 'WORDS=replaced COPY=${WORDS} argvprobe ${WORDS}'",
+      "inputHash": "c184a8e59574dfe6ddb8f89be4f64cf79e6f6caa0207730394fec432cb920aaa",
+      "native": {
+        "status": 0,
+        "stdout": "eyJhcmdjIjoyLCJhcmd2SGV4IjpbIjYxNzI2Nzc2NzA3MjZmNjI2NSIsIjZlNmY3Mjc0NjgyMDczNmY3NTc0NjgwOTY1NjE3Mzc0MGE3NzY1NzM3NCJdLCJlbnZIZXgiOlsiNTA0MTU0NDgzZDJmNzA3MjY5NzY2MTc0NjUyZjc2NjE3MjJmNjY2ZjZjNjQ2NTcyNzMyZjcyNzcyZjczMzQ2Mzc5MzczNjY4NmUzNjc2MzUzNTcxNzI3MDMwNjQ2ODYzNjI3NDcwNmM2MzMwMzAzMDMwNjc2ZTJmNTQyZjczNjE2NjY1MmQ2MjYxNzM2ODJkNjU2ZTc2MmQ2ODY5NjQ2NDY1NmUyZDdhNzg0MTQ2NDc2YzJmNjE3MDcwNmM2NTJkNjU2ZTc2MmQ2MjYxNzM2ODMzMzIyZDY4Njk3Mzc0NmY3MjY5NjM2MTZjMmY2MjY5NmUzYTJmNzA3MjY5NzY2MTc0NjUyZjc2NjE3MjJmNjY2ZjZjNjQ2NTcyNzMyZjcyNzcyZjczMzQ2Mzc5MzczNjY4NmUzNjc2MzUzNTcxNzI3MDMwNjQ2ODYzNjI3NDcwNmM2MzMwMzAzMDMwNjc2ZTJmNTQyZjczNjE2NjY1MmQ2MjYxNzM2ODJkNjU2ZTc2MmQ2ODY5NjQ2NDY1NmUyZDdhNzg0MTQ2NDc2YzJmNjI2OTZlIiwiNDg0ZjRkNDUzZDJmNzA3MjY5NzY2MTc0NjUyZjc2NjE3MjJmNjY2ZjZjNjQ2NTcyNzMyZjcyNzcyZjczMzQ2Mzc5MzczNjY4NmUzNjc2MzUzNTcxNzI3MDMwNjQ2ODYzNjI3NDcwNmM2MzMwMzAzMDMwNjc2ZTJmNTQyZjczNjE2NjY1MmQ2MjYxNzM2ODJkNjU2ZTc2MmQ2ODY5NjQ2NDY1NmUyZDdhNzg0MTQ2NDc2YzJmNjE3MDcwNmM2NTJkNjU2ZTc2MmQ2MjYxNzM2ODMzMzIyZDY4Njk3Mzc0NmY3MjY5NjM2MTZjMmY2MzZmNmQ2ZDYxNmU2NDJkNmM2ZjZmNmI3NTcwMmQ2MjY1NjY2ZjcyNjUyZDYxNzM3MzY5Njc2ZTZkNjU2ZTc0MmY3NzZmNzI2YiIsIjU0NGQ1MDQ0NDk1MjNkMmY3MDcyNjk3NjYxNzQ2NTJmNzY2MTcyMmY2NjZmNmM2NDY1NzI3MzJmNzI3NzJmNzMzNDYzNzkzNzM2Njg2ZTM2NzYzNTM1NzE3MjcwMzA2NDY4NjM2Mjc0NzA2YzYzMzAzMDMwMzA2NzZlMmY1NDJmNzM2MTY2NjUyZDYyNjE3MzY4MmQ2NTZlNzYyZDY4Njk2NDY0NjU2ZTJkN2E3ODQxNDY0NzZjMmY2MTcwNzA2YzY1MmQ2NTZlNzYyZDYyNjE3MzY4MzMzMjJkNjg2OTczNzQ2ZjcyNjk2MzYxNmMyZjYzNmY2ZDZkNjE2ZTY0MmQ2YzZmNmY2Yjc1NzAyZDYyNjU2NjZmNzI2NTJkNjE3MzczNjk2NzZlNmQ2NTZlNzQyZjc3NmY3MjZiIiwiNTA1NzQ0M2QyZjcwNzI2OTc2NjE3NDY1MmY3NjYxNzIyZjY2NmY2YzY0NjU3MjczMmY3Mjc3MmY3MzM0NjM3OTM3MzY2ODZlMzY3NjM1MzU3MTcyNzAzMDY0Njg2MzYyNzQ3MDZjNjMzMDMwMzAzMDY3NmUyZjU0MmY3MzYxNjY2NTJkNjI2MTczNjgyZDY1NmU3NjJkNjg2OTY0NjQ2NTZlMmQ3YTc4NDE0NjQ3NmMyZjYxNzA3MDZjNjUyZDY1NmU3NjJkNjI2MTczNjgzMzMyMmQ2ODY5NzM3NDZmNzI2OTYzNjE2YzJmNjM2ZjZkNmQ2MTZlNjQyZDZjNmY2ZjZiNzU3MDJkNjI2NTY2NmY3MjY1MmQ2MTczNzM2OTY3NmU2ZDY1NmU3NDJmNzc2ZjcyNmIiLCI0YzQxNGU0NzNkNDMiLCI0YzQzNWY0MTRjNGMzZDQzIiwiNTQ1YTNkNTU1NDQzIiwiNTc0ZjUyNDQ1MzNkNzI2NTcwNmM2MTYzNjU2NCIsIjQ1NGQ1MDU0NTkzZCIsIjUwNDE1OTRjNGY0MTQ0M2QyNDI4NzA3MjY5NmU3NDY2MjA0MjQxNDQzZTY5NmU2YTY1NjM3NDY1NjQyOTNiMjAzZTY5NmU2YTY1NjM3NDY1NjQyMDdjMjA2MDc0NmY3NTYzNjgyMDY5NmU2YTY1NjM3NDY1NjQ2MCIsIjUxNTU0ZjU0NDU0NDNkMjI2MTIwNjIyMjIwMjc2MzIwNjQyNzIwNWM1ZjIwMjM2MzZmNmQ2ZDY1NmU3NCIsIjQ0NGY0YzRjNDE1MjUzM2QyNDdiNTc0ZjUyNDQ1MzdkMjAyNDQwMjAyNDI0IiwiNDc1MjRmNTc1NDQ4M2Q3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5IiwiNDM0ZjUwNTkzZDZlNmY3Mjc0NjgyMDczNmY3NTc0NjgwOTY1NjE3Mzc0MGE3NzY1NzM3NCJdLCJzdGRpbkhleCI6IjAwNDFmZjBhIiwiY3dkSGV4IjoiMmY3MDcyNjk3NjYxNzQ2NTJmNzY2MTcyMmY2NjZmNmM2NDY1NzI3MzJmNzI3NzJmNzMzNDYzNzkzNzM2Njg2ZTM2NzYzNTM1NzE3MjcwMzA2NDY4NjM2Mjc0NzA2YzYzMzAzMDMwMzA2NzZlMmY1NDJmNzM2MTY2NjUyZDYyNjE3MzY4MmQ2NTZlNzYyZDY4Njk2NDY0NjU2ZTJkN2E3ODQxNDY0NzZjMmY2MTcwNzA2YzY1MmQ2NTZlNzYyZDYyNjE3MzY4MzMzMjJkNjg2OTczNzQ2ZjcyNjk2MzYxNmMyZjYzNmY2ZDZkNjE2ZTY0MmQ2YzZmNmY2Yjc1NzAyZDYyNjU2NjZmNzI2NTJkNjE3MzczNjk2NzZlNmQ2NTZlNzQyZjc3NmY3MjZiIn0K",
+        "stderr": "",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "virtual": {
+        "status": 0,
+        "stdout": "eyJhcmdjIjoyLCJhcmd2SGV4IjpbIjYxNzI2Nzc2NzA3MjZmNjI2NSIsIjZlNmY3Mjc0NjgyMDczNmY3NTc0NjgwOTY1NjE3Mzc0MGE3NzY1NzM3NCJdLCJlbnZIZXgiOlsiNDM0ZjUwNTkzZDZlNmY3Mjc0NjgyMDczNmY3NTc0NjgwOTY1NjE3Mzc0MGE3NzY1NzM3NCIsIjUwNDE1NDQ4M2QyZjcwNzI2OTc2NjE3NDY1MmY3NjYxNzIyZjY2NmY2YzY0NjU3MjczMmY3Mjc3MmY3MzM0NjM3OTM3MzY2ODZlMzY3NjM1MzU3MTcyNzAzMDY0Njg2MzYyNzQ3MDZjNjMzMDMwMzAzMDY3NmUyZjU0MmY3MzYxNjY2NTJkNjI2MTczNjgyZDY1NmU3NjJkNjg2OTY0NjQ2NTZlMmQ3YTc4NDE0NjQ3NmMyZjYxNzA3MDZjNjUyZDY1NmU3NjJkNjI2MTczNjgzMzMyMmQ2ODY5NzM3NDZmNzI2OTYzNjE2YzJmNjI2OTZlM2EyZjcwNzI2OTc2NjE3NDY1MmY3NjYxNzIyZjY2NmY2YzY0NjU3MjczMmY3Mjc3MmY3MzM0NjM3OTM3MzY2ODZlMzY3NjM1MzU3MTcyNzAzMDY0Njg2MzYyNzQ3MDZjNjMzMDMwMzAzMDY3NmUyZjU0MmY3MzYxNjY2NTJkNjI2MTczNjgyZDY1NmU3NjJkNjg2OTY0NjQ2NTZlMmQ3YTc4NDE0NjQ3NmMyZjYyNjk2ZSIsIjQ4NGY0ZDQ1M2QyZjcwNzI2OTc2NjE3NDY1MmY3NjYxNzIyZjY2NmY2YzY0NjU3MjczMmY3Mjc3MmY3MzM0NjM3OTM3MzY2ODZlMzY3NjM1MzU3MTcyNzAzMDY0Njg2MzYyNzQ3MDZjNjMzMDMwMzAzMDY3NmUyZjU0MmY3MzYxNjY2NTJkNjI2MTczNjgyZDY1NmU3NjJkNjg2OTY0NjQ2NTZlMmQ3YTc4NDE0NjQ3NmMyZjYxNzA3MDZjNjUyZDY1NmU3NjJkNjI2MTczNjgzMzMyMmQ2ODY5NzM3NDZmNzI2OTYzNjE2YzJmNjM2ZjZkNmQ2MTZlNjQyZDZjNmY2ZjZiNzU3MDJkNjI2NTY2NmY3MjY1MmQ2MTczNzM2OTY3NmU2ZDY1NmU3NDJmNzc2ZjcyNmIiLCI1NDRkNTA0NDQ5NTIzZDJmNzA3MjY5NzY2MTc0NjUyZjc2NjE3MjJmNjY2ZjZjNjQ2NTcyNzMyZjcyNzcyZjczMzQ2Mzc5MzczNjY4NmUzNjc2MzUzNTcxNzI3MDMwNjQ2ODYzNjI3NDcwNmM2MzMwMzAzMDMwNjc2ZTJmNTQyZjczNjE2NjY1MmQ2MjYxNzM2ODJkNjU2ZTc2MmQ2ODY5NjQ2NDY1NmUyZDdhNzg0MTQ2NDc2YzJmNjE3MDcwNmM2NTJkNjU2ZTc2MmQ2MjYxNzM2ODMzMzIyZDY4Njk3Mzc0NmY3MjY5NjM2MTZjMmY2MzZmNmQ2ZDYxNmU2NDJkNmM2ZjZmNmI3NTcwMmQ2MjY1NjY2ZjcyNjUyZDYxNzM3MzY5Njc2ZTZkNjU2ZTc0MmY3NzZmNzI2YiIsIjUwNTc0NDNkMmY3MDcyNjk3NjYxNzQ2NTJmNzY2MTcyMmY2NjZmNmM2NDY1NzI3MzJmNzI3NzJmNzMzNDYzNzkzNzM2Njg2ZTM2NzYzNTM1NzE3MjcwMzA2NDY4NjM2Mjc0NzA2YzYzMzAzMDMwMzA2NzZlMmY1NDJmNzM2MTY2NjUyZDYyNjE3MzY4MmQ2NTZlNzYyZDY4Njk2NDY0NjU2ZTJkN2E3ODQxNDY0NzZjMmY2MTcwNzA2YzY1MmQ2NTZlNzYyZDYyNjE3MzY4MzMzMjJkNjg2OTczNzQ2ZjcyNjk2MzYxNmMyZjYzNmY2ZDZkNjE2ZTY0MmQ2YzZmNmY2Yjc1NzAyZDYyNjU2NjZmNzI2NTJkNjE3MzczNjk2NzZlNmQ2NTZlNzQyZjc3NmY3MjZiIiwiNGM0MTRlNDczZDQzIiwiNGM0MzVmNDE0YzRjM2Q0MyIsIjU0NWEzZDU1NTQ0MyIsIjU3NGY1MjQ0NTMzZDcyNjU3MDZjNjE2MzY1NjQiLCI0NTRkNTA1NDU5M2QiLCI1MDQxNTk0YzRmNDE0NDNkMjQyODcwNzI2OTZlNzQ2NjIwNDI0MTQ0M2U2OTZlNmE2NTYzNzQ2NTY0MjkzYjIwM2U2OTZlNmE2NTYzNzQ2NTY0MjA3YzIwNjA3NDZmNzU2MzY4MjA2OTZlNmE2NTYzNzQ2NTY0NjAiLCI1MTU1NGY1NDQ1NDQzZDIyNjEyMDYyMjIyMDI3NjMyMDY0MjcyMDVjNWYyMDIzNjM2ZjZkNmQ2NTZlNzQiLCI0NDRmNGM0YzQxNTI1MzNkMjQ3YjU3NGY1MjQ0NTM3ZDIwMjQ0MDIwMjQyNCIsIjQ3NTI0ZjU3NTQ0ODNkNzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OSJdLCJzdGRpbkhleCI6IjAwNDFmZjBhIiwiY3dkSGV4IjoiMmY3MDcyNjk3NjYxNzQ2NTJmNzY2MTcyMmY2NjZmNmM2NDY1NzI3MzJmNzI3NzJmNzMzNDYzNzkzNzM2Njg2ZTM2NzYzNTM1NzE3MjcwMzA2NDY4NjM2Mjc0NzA2YzYzMzAzMDMwMzA2NzZlMmY1NDJmNzM2MTY2NjUyZDYyNjE3MzY4MmQ2NTZlNzYyZDY4Njk2NDY0NjU2ZTJkN2E3ODQxNDY0NzZjMmY2MTcwNzA2YzY1MmQ2NTZlNzYyZDYyNjE3MzY4MzMzMjJkNjg2OTczNzQ2ZjcyNjk2MzYxNmMyZjYzNmY2ZDZkNjE2ZTY0MmQ2YzZmNmY2Yjc1NzAyZDYyNjU2NjZmNzI2NTJkNjE3MzczNjk2NzZlNmQ2NTZlNzQyZjc3NmY3MjZiIn0K",
+        "stderr": "",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "fields": {
+        "status": true,
+        "stdout": false,
+        "stderr": true,
+        "effects": true
+      },
+      "nativeStderrUtf8": "",
+      "virtualStderrUtf8": "",
+      "additionalVirtualDiagnosticProfile": false,
+      "classification": "historical whole-profile difference; not a pass"
+    },
+    {
+      "id": "earlier-option-unset-lookup",
+      "category": "command",
+      "profile": "apple-env-bash32-historical",
+      "fullLiteralNativeArgv": [
+        "env",
+        "-u",
+        "WORDS",
+        "-S",
+        "argvprobe ${WORDS}"
+      ],
+      "virtualSource": "'env' '-u' 'WORDS' '-S' 'argvprobe ${WORDS}'",
+      "inputHash": "2d874d173cad07231a9226b0c9a16984526aa83a2241be1eb0cff0d9dbae93fd",
+      "native": {
+        "status": 0,
+        "stdout": "eyJhcmdjIjoxLCJhcmd2SGV4IjpbIjYxNzI2Nzc2NzA3MjZmNjI2NSJdLCJlbnZIZXgiOlsiNTA0MTU0NDgzZDJmNzA3MjY5NzY2MTc0NjUyZjc2NjE3MjJmNjY2ZjZjNjQ2NTcyNzMyZjcyNzcyZjczMzQ2Mzc5MzczNjY4NmUzNjc2MzUzNTcxNzI3MDMwNjQ2ODYzNjI3NDcwNmM2MzMwMzAzMDMwNjc2ZTJmNTQyZjczNjE2NjY1MmQ2MjYxNzM2ODJkNjU2ZTc2MmQ2ODY5NjQ2NDY1NmUyZDdhNzg0MTQ2NDc2YzJmNjE3MDcwNmM2NTJkNjU2ZTc2MmQ2MjYxNzM2ODMzMzIyZDY4Njk3Mzc0NmY3MjY5NjM2MTZjMmY2MjY5NmUzYTJmNzA3MjY5NzY2MTc0NjUyZjc2NjE3MjJmNjY2ZjZjNjQ2NTcyNzMyZjcyNzcyZjczMzQ2Mzc5MzczNjY4NmUzNjc2MzUzNTcxNzI3MDMwNjQ2ODYzNjI3NDcwNmM2MzMwMzAzMDMwNjc2ZTJmNTQyZjczNjE2NjY1MmQ2MjYxNzM2ODJkNjU2ZTc2MmQ2ODY5NjQ2NDY1NmUyZDdhNzg0MTQ2NDc2YzJmNjI2OTZlIiwiNDg0ZjRkNDUzZDJmNzA3MjY5NzY2MTc0NjUyZjc2NjE3MjJmNjY2ZjZjNjQ2NTcyNzMyZjcyNzcyZjczMzQ2Mzc5MzczNjY4NmUzNjc2MzUzNTcxNzI3MDMwNjQ2ODYzNjI3NDcwNmM2MzMwMzAzMDMwNjc2ZTJmNTQyZjczNjE2NjY1MmQ2MjYxNzM2ODJkNjU2ZTc2MmQ2ODY5NjQ2NDY1NmUyZDdhNzg0MTQ2NDc2YzJmNjE3MDcwNmM2NTJkNjU2ZTc2MmQ2MjYxNzM2ODMzMzIyZDY4Njk3Mzc0NmY3MjY5NjM2MTZjMmY2MzZmNmQ2ZDYxNmU2NDJkNjU2MTcyNmM2OTY1NzIyZDZmNzA3NDY5NmY2ZTJkNzU2ZTczNjU3NDJkNmM2ZjZmNmI3NTcwMmY3NzZmNzI2YiIsIjU0NGQ1MDQ0NDk1MjNkMmY3MDcyNjk3NjYxNzQ2NTJmNzY2MTcyMmY2NjZmNmM2NDY1NzI3MzJmNzI3NzJmNzMzNDYzNzkzNzM2Njg2ZTM2NzYzNTM1NzE3MjcwMzA2NDY4NjM2Mjc0NzA2YzYzMzAzMDMwMzA2NzZlMmY1NDJmNzM2MTY2NjUyZDYyNjE3MzY4MmQ2NTZlNzYyZDY4Njk2NDY0NjU2ZTJkN2E3ODQxNDY0NzZjMmY2MTcwNzA2YzY1MmQ2NTZlNzYyZDYyNjE3MzY4MzMzMjJkNjg2OTczNzQ2ZjcyNjk2MzYxNmMyZjYzNmY2ZDZkNjE2ZTY0MmQ2NTYxNzI2YzY5NjU3MjJkNmY3MDc0Njk2ZjZlMmQ3NTZlNzM2NTc0MmQ2YzZmNmY2Yjc1NzAyZjc3NmY3MjZiIiwiNTA1NzQ0M2QyZjcwNzI2OTc2NjE3NDY1MmY3NjYxNzIyZjY2NmY2YzY0NjU3MjczMmY3Mjc3MmY3MzM0NjM3OTM3MzY2ODZlMzY3NjM1MzU3MTcyNzAzMDY0Njg2MzYyNzQ3MDZjNjMzMDMwMzAzMDY3NmUyZjU0MmY3MzYxNjY2NTJkNjI2MTczNjgyZDY1NmU3NjJkNjg2OTY0NjQ2NTZlMmQ3YTc4NDE0NjQ3NmMyZjYxNzA3MDZjNjUyZDY1NmU3NjJkNjI2MTczNjgzMzMyMmQ2ODY5NzM3NDZmNzI2OTYzNjE2YzJmNjM2ZjZkNmQ2MTZlNjQyZDY1NjE3MjZjNjk2NTcyMmQ2ZjcwNzQ2OTZmNmUyZDc1NmU3MzY1NzQyZDZjNmY2ZjZiNzU3MDJmNzc2ZjcyNmIiLCI0YzQxNGU0NzNkNDMiLCI0YzQzNWY0MTRjNGMzZDQzIiwiNTQ1YTNkNTU1NDQzIiwiNDU0ZDUwNTQ1OTNkIiwiNTA0MTU5NGM0ZjQxNDQzZDI0Mjg3MDcyNjk2ZTc0NjYyMDQyNDE0NDNlNjk2ZTZhNjU2Mzc0NjU2NDI5M2IyMDNlNjk2ZTZhNjU2Mzc0NjU2NDIwN2MyMDYwNzQ2Zjc1NjM2ODIwNjk2ZTZhNjU2Mzc0NjU2NDYwIiwiNTE1NTRmNTQ0NTQ0M2QyMjYxMjA2MjIyMjAyNzYzMjA2NDI3MjA1YzVmMjAyMzYzNmY2ZDZkNjU2ZTc0IiwiNDQ0ZjRjNGM0MTUyNTMzZDI0N2I1NzRmNTI0NDUzN2QyMDI0NDAyMDI0MjQiLCI0NzUyNGY1NzU0NDgzZDc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4NzkiXSwic3RkaW5IZXgiOiIwMDQxZmYwYSIsImN3ZEhleCI6IjJmNzA3MjY5NzY2MTc0NjUyZjc2NjE3MjJmNjY2ZjZjNjQ2NTcyNzMyZjcyNzcyZjczMzQ2Mzc5MzczNjY4NmUzNjc2MzUzNTcxNzI3MDMwNjQ2ODYzNjI3NDcwNmM2MzMwMzAzMDMwNjc2ZTJmNTQyZjczNjE2NjY1MmQ2MjYxNzM2ODJkNjU2ZTc2MmQ2ODY5NjQ2NDY1NmUyZDdhNzg0MTQ2NDc2YzJmNjE3MDcwNmM2NTJkNjU2ZTc2MmQ2MjYxNzM2ODMzMzIyZDY4Njk3Mzc0NmY3MjY5NjM2MTZjMmY2MzZmNmQ2ZDYxNmU2NDJkNjU2MTcyNmM2OTY1NzIyZDZmNzA3NDY5NmY2ZTJkNzU2ZTczNjU3NDJkNmM2ZjZmNmI3NTcwMmY3NzZmNzI2YiJ9Cg==",
+        "stderr": "",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "virtual": {
+        "status": 0,
+        "stdout": "eyJhcmdjIjoyLCJhcmd2SGV4IjpbIjYxNzI2Nzc2NzA3MjZmNjI2NSIsIjZlNmY3Mjc0NjgyMDczNmY3NTc0NjgwOTY1NjE3Mzc0MGE3NzY1NzM3NCJdLCJlbnZIZXgiOlsiNTA0MTU0NDgzZDJmNzA3MjY5NzY2MTc0NjUyZjc2NjE3MjJmNjY2ZjZjNjQ2NTcyNzMyZjcyNzcyZjczMzQ2Mzc5MzczNjY4NmUzNjc2MzUzNTcxNzI3MDMwNjQ2ODYzNjI3NDcwNmM2MzMwMzAzMDMwNjc2ZTJmNTQyZjczNjE2NjY1MmQ2MjYxNzM2ODJkNjU2ZTc2MmQ2ODY5NjQ2NDY1NmUyZDdhNzg0MTQ2NDc2YzJmNjE3MDcwNmM2NTJkNjU2ZTc2MmQ2MjYxNzM2ODMzMzIyZDY4Njk3Mzc0NmY3MjY5NjM2MTZjMmY2MjY5NmUzYTJmNzA3MjY5NzY2MTc0NjUyZjc2NjE3MjJmNjY2ZjZjNjQ2NTcyNzMyZjcyNzcyZjczMzQ2Mzc5MzczNjY4NmUzNjc2MzUzNTcxNzI3MDMwNjQ2ODYzNjI3NDcwNmM2MzMwMzAzMDMwNjc2ZTJmNTQyZjczNjE2NjY1MmQ2MjYxNzM2ODJkNjU2ZTc2MmQ2ODY5NjQ2NDY1NmUyZDdhNzg0MTQ2NDc2YzJmNjI2OTZlIiwiNDg0ZjRkNDUzZDJmNzA3MjY5NzY2MTc0NjUyZjc2NjE3MjJmNjY2ZjZjNjQ2NTcyNzMyZjcyNzcyZjczMzQ2Mzc5MzczNjY4NmUzNjc2MzUzNTcxNzI3MDMwNjQ2ODYzNjI3NDcwNmM2MzMwMzAzMDMwNjc2ZTJmNTQyZjczNjE2NjY1MmQ2MjYxNzM2ODJkNjU2ZTc2MmQ2ODY5NjQ2NDY1NmUyZDdhNzg0MTQ2NDc2YzJmNjE3MDcwNmM2NTJkNjU2ZTc2MmQ2MjYxNzM2ODMzMzIyZDY4Njk3Mzc0NmY3MjY5NjM2MTZjMmY2MzZmNmQ2ZDYxNmU2NDJkNjU2MTcyNmM2OTY1NzIyZDZmNzA3NDY5NmY2ZTJkNzU2ZTczNjU3NDJkNmM2ZjZmNmI3NTcwMmY3NzZmNzI2YiIsIjU0NGQ1MDQ0NDk1MjNkMmY3MDcyNjk3NjYxNzQ2NTJmNzY2MTcyMmY2NjZmNmM2NDY1NzI3MzJmNzI3NzJmNzMzNDYzNzkzNzM2Njg2ZTM2NzYzNTM1NzE3MjcwMzA2NDY4NjM2Mjc0NzA2YzYzMzAzMDMwMzA2NzZlMmY1NDJmNzM2MTY2NjUyZDYyNjE3MzY4MmQ2NTZlNzYyZDY4Njk2NDY0NjU2ZTJkN2E3ODQxNDY0NzZjMmY2MTcwNzA2YzY1MmQ2NTZlNzYyZDYyNjE3MzY4MzMzMjJkNjg2OTczNzQ2ZjcyNjk2MzYxNmMyZjYzNmY2ZDZkNjE2ZTY0MmQ2NTYxNzI2YzY5NjU3MjJkNmY3MDc0Njk2ZjZlMmQ3NTZlNzM2NTc0MmQ2YzZmNmY2Yjc1NzAyZjc3NmY3MjZiIiwiNTA1NzQ0M2QyZjcwNzI2OTc2NjE3NDY1MmY3NjYxNzIyZjY2NmY2YzY0NjU3MjczMmY3Mjc3MmY3MzM0NjM3OTM3MzY2ODZlMzY3NjM1MzU3MTcyNzAzMDY0Njg2MzYyNzQ3MDZjNjMzMDMwMzAzMDY3NmUyZjU0MmY3MzYxNjY2NTJkNjI2MTczNjgyZDY1NmU3NjJkNjg2OTY0NjQ2NTZlMmQ3YTc4NDE0NjQ3NmMyZjYxNzA3MDZjNjUyZDY1NmU3NjJkNjI2MTczNjgzMzMyMmQ2ODY5NzM3NDZmNzI2OTYzNjE2YzJmNjM2ZjZkNmQ2MTZlNjQyZDY1NjE3MjZjNjk2NTcyMmQ2ZjcwNzQ2OTZmNmUyZDc1NmU3MzY1NzQyZDZjNmY2ZjZiNzU3MDJmNzc2ZjcyNmIiLCI0YzQxNGU0NzNkNDMiLCI0YzQzNWY0MTRjNGMzZDQzIiwiNTQ1YTNkNTU1NDQzIiwiNDU0ZDUwNTQ1OTNkIiwiNTA0MTU5NGM0ZjQxNDQzZDI0Mjg3MDcyNjk2ZTc0NjYyMDQyNDE0NDNlNjk2ZTZhNjU2Mzc0NjU2NDI5M2IyMDNlNjk2ZTZhNjU2Mzc0NjU2NDIwN2MyMDYwNzQ2Zjc1NjM2ODIwNjk2ZTZhNjU2Mzc0NjU2NDYwIiwiNTE1NTRmNTQ0NTQ0M2QyMjYxMjA2MjIyMjAyNzYzMjA2NDI3MjA1YzVmMjAyMzYzNmY2ZDZkNjU2ZTc0IiwiNDQ0ZjRjNGM0MTUyNTMzZDI0N2I1NzRmNTI0NDUzN2QyMDI0NDAyMDI0MjQiLCI0NzUyNGY1NzU0NDgzZDc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4NzkiXSwic3RkaW5IZXgiOiIwMDQxZmYwYSIsImN3ZEhleCI6IjJmNzA3MjY5NzY2MTc0NjUyZjc2NjE3MjJmNjY2ZjZjNjQ2NTcyNzMyZjcyNzcyZjczMzQ2Mzc5MzczNjY4NmUzNjc2MzUzNTcxNzI3MDMwNjQ2ODYzNjI3NDcwNmM2MzMwMzAzMDMwNjc2ZTJmNTQyZjczNjE2NjY1MmQ2MjYxNzM2ODJkNjU2ZTc2MmQ2ODY5NjQ2NDY1NmUyZDdhNzg0MTQ2NDc2YzJmNjE3MDcwNmM2NTJkNjU2ZTc2MmQ2MjYxNzM2ODMzMzIyZDY4Njk3Mzc0NmY3MjY5NjM2MTZjMmY2MzZmNmQ2ZDYxNmU2NDJkNjU2MTcyNmM2OTY1NzIyZDZmNzA3NDY5NmY2ZTJkNzU2ZTczNjU3NDJkNmM2ZjZmNmI3NTcwMmY3NzZmNzI2YiJ9Cg==",
+        "stderr": "",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "fields": {
+        "status": true,
+        "stdout": false,
+        "stderr": true,
+        "effects": true
+      },
+      "nativeStderrUtf8": "",
+      "virtualStderrUtf8": "",
+      "additionalVirtualDiagnosticProfile": false,
+      "classification": "historical whole-profile difference; not a pass"
+    },
+    {
+      "id": "earlier-ignore-lookup",
+      "category": "command",
+      "profile": "apple-env-bash32-historical",
+      "fullLiteralNativeArgv": [
+        "env",
+        "-i",
+        "-S",
+        "PATH=${PATH} SNAP=${WORDS} argvprobe ${WORDS}"
+      ],
+      "virtualSource": "'env' '-i' '-S' 'PATH=${PATH} SNAP=${WORDS} argvprobe ${WORDS}'",
+      "inputHash": "7480de456bea377d3ddd93ec268476820c38871a1b690bf9a2decec7030f2ad7",
+      "native": {
+        "status": 0,
+        "stdout": "eyJhcmdjIjoyLCJhcmd2SGV4IjpbIjYxNzI2Nzc2NzA3MjZmNjI2NSIsIjZlNmY3Mjc0NjgyMDczNmY3NTc0NjgwOTY1NjE3Mzc0MGE3NzY1NzM3NCJdLCJlbnZIZXgiOlsiNTA0MTU0NDgzZDJmNzA3MjY5NzY2MTc0NjUyZjc2NjE3MjJmNjY2ZjZjNjQ2NTcyNzMyZjcyNzcyZjczMzQ2Mzc5MzczNjY4NmUzNjc2MzUzNTcxNzI3MDMwNjQ2ODYzNjI3NDcwNmM2MzMwMzAzMDMwNjc2ZTJmNTQyZjczNjE2NjY1MmQ2MjYxNzM2ODJkNjU2ZTc2MmQ2ODY5NjQ2NDY1NmUyZDdhNzg0MTQ2NDc2YzJmNjE3MDcwNmM2NTJkNjU2ZTc2MmQ2MjYxNzM2ODMzMzIyZDY4Njk3Mzc0NmY3MjY5NjM2MTZjMmY2MjY5NmUzYTJmNzA3MjY5NzY2MTc0NjUyZjc2NjE3MjJmNjY2ZjZjNjQ2NTcyNzMyZjcyNzcyZjczMzQ2Mzc5MzczNjY4NmUzNjc2MzUzNTcxNzI3MDMwNjQ2ODYzNjI3NDcwNmM2MzMwMzAzMDMwNjc2ZTJmNTQyZjczNjE2NjY1MmQ2MjYxNzM2ODJkNjU2ZTc2MmQ2ODY5NjQ2NDY1NmUyZDdhNzg0MTQ2NDc2YzJmNjI2OTZlIiwiNTM0ZTQxNTAzZDZlNmY3Mjc0NjgyMDczNmY3NTc0NjgwOTY1NjE3Mzc0MGE3NzY1NzM3NCJdLCJzdGRpbkhleCI6IjAwNDFmZjBhIiwiY3dkSGV4IjoiMmY3MDcyNjk3NjYxNzQ2NTJmNzY2MTcyMmY2NjZmNmM2NDY1NzI3MzJmNzI3NzJmNzMzNDYzNzkzNzM2Njg2ZTM2NzYzNTM1NzE3MjcwMzA2NDY4NjM2Mjc0NzA2YzYzMzAzMDMwMzA2NzZlMmY1NDJmNzM2MTY2NjUyZDYyNjE3MzY4MmQ2NTZlNzYyZDY4Njk2NDY0NjU2ZTJkN2E3ODQxNDY0NzZjMmY2MTcwNzA2YzY1MmQ2NTZlNzYyZDYyNjE3MzY4MzMzMjJkNjg2OTczNzQ2ZjcyNjk2MzYxNmMyZjYzNmY2ZDZkNjE2ZTY0MmQ2NTYxNzI2YzY5NjU3MjJkNjk2NzZlNmY3MjY1MmQ2YzZmNmY2Yjc1NzAyZjc3NmY3MjZiIn0K",
+        "stderr": "",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "virtual": {
+        "status": 0,
+        "stdout": "eyJhcmdjIjoyLCJhcmd2SGV4IjpbIjYxNzI2Nzc2NzA3MjZmNjI2NSIsIjZlNmY3Mjc0NjgyMDczNmY3NTc0NjgwOTY1NjE3Mzc0MGE3NzY1NzM3NCJdLCJlbnZIZXgiOlsiNTM0ZTQxNTAzZDZlNmY3Mjc0NjgyMDczNmY3NTc0NjgwOTY1NjE3Mzc0MGE3NzY1NzM3NCIsIjUwNDE1NDQ4M2QyZjcwNzI2OTc2NjE3NDY1MmY3NjYxNzIyZjY2NmY2YzY0NjU3MjczMmY3Mjc3MmY3MzM0NjM3OTM3MzY2ODZlMzY3NjM1MzU3MTcyNzAzMDY0Njg2MzYyNzQ3MDZjNjMzMDMwMzAzMDY3NmUyZjU0MmY3MzYxNjY2NTJkNjI2MTczNjgyZDY1NmU3NjJkNjg2OTY0NjQ2NTZlMmQ3YTc4NDE0NjQ3NmMyZjYxNzA3MDZjNjUyZDY1NmU3NjJkNjI2MTczNjgzMzMyMmQ2ODY5NzM3NDZmNzI2OTYzNjE2YzJmNjI2OTZlM2EyZjcwNzI2OTc2NjE3NDY1MmY3NjYxNzIyZjY2NmY2YzY0NjU3MjczMmY3Mjc3MmY3MzM0NjM3OTM3MzY2ODZlMzY3NjM1MzU3MTcyNzAzMDY0Njg2MzYyNzQ3MDZjNjMzMDMwMzAzMDY3NmUyZjU0MmY3MzYxNjY2NTJkNjI2MTczNjgyZDY1NmU3NjJkNjg2OTY0NjQ2NTZlMmQ3YTc4NDE0NjQ3NmMyZjYyNjk2ZSJdLCJzdGRpbkhleCI6IjAwNDFmZjBhIiwiY3dkSGV4IjoiMmY3MDcyNjk3NjYxNzQ2NTJmNzY2MTcyMmY2NjZmNmM2NDY1NzI3MzJmNzI3NzJmNzMzNDYzNzkzNzM2Njg2ZTM2NzYzNTM1NzE3MjcwMzA2NDY4NjM2Mjc0NzA2YzYzMzAzMDMwMzA2NzZlMmY1NDJmNzM2MTY2NjUyZDYyNjE3MzY4MmQ2NTZlNzYyZDY4Njk2NDY0NjU2ZTJkN2E3ODQxNDY0NzZjMmY2MTcwNzA2YzY1MmQ2NTZlNzYyZDYyNjE3MzY4MzMzMjJkNjg2OTczNzQ2ZjcyNjk2MzYxNmMyZjYzNmY2ZDZkNjE2ZTY0MmQ2NTYxNzI2YzY5NjU3MjJkNjk2NzZlNmY3MjY1MmQ2YzZmNmY2Yjc1NzAyZjc3NmY3MjZiIn0K",
+        "stderr": "",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "fields": {
+        "status": true,
+        "stdout": false,
+        "stderr": true,
+        "effects": true
+      },
+      "nativeStderrUtf8": "",
+      "virtualStderrUtf8": "",
+      "additionalVirtualDiagnosticProfile": false,
+      "classification": "historical whole-profile difference; not a pass"
+    },
+    {
+      "id": "invalid-bare-dollar",
+      "category": "command",
+      "profile": "apple-env-bash32-historical",
+      "fullLiteralNativeArgv": [
+        "env",
+        "-S",
+        "argvprobe $WORDS"
+      ],
+      "virtualSource": "'env' '-S' 'argvprobe $WORDS'",
+      "inputHash": "728aaa6b7b11fefa4d8914a7184ea97f51bf74b0cf8bf1d5fdeef11f7143a469",
+      "native": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "ZW52OiBPbmx5ICR7VkFSTkFNRX0gZXhwYW5zaW9uIGlzIHN1cHBvcnRlZCwgZXJyb3IgYXQ6ICRXT1JEUwo=",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "virtual": {
+        "status": 125,
+        "stdout": "",
+        "stderr": "ZW52OiBvbmx5ICR7VkFSTkFNRX0gZXhwYW5zaW9uIGlzIHN1cHBvcnRlZCwgZXJyb3IgYXQ6ICRXT1JEUwo=",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "fields": {
+        "status": false,
+        "stdout": true,
+        "stderr": false,
+        "effects": true
+      },
+      "nativeStderrUtf8": "env: Only ${VARNAME} expansion is supported, error at: $WORDS\n",
+      "virtualStderrUtf8": "env: only ${VARNAME} expansion is supported, error at: $WORDS\n",
+      "additionalVirtualDiagnosticProfile": false,
+      "classification": "historical whole-profile difference; not a pass"
+    },
+    {
+      "id": "invalid-special-dollar",
+      "category": "command",
+      "profile": "apple-env-bash32-historical",
+      "fullLiteralNativeArgv": [
+        "env",
+        "-S",
+        "argvprobe $$ $@"
+      ],
+      "virtualSource": "'env' '-S' 'argvprobe $$ $@'",
+      "inputHash": "42f661de3f4e62cbc3ed199a0d360ee529ad45741b5dd07d24fd8b6cf3bb4ebf",
+      "native": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "ZW52OiBPbmx5ICR7VkFSTkFNRX0gZXhwYW5zaW9uIGlzIHN1cHBvcnRlZCwgZXJyb3IgYXQ6ICQkICRACg==",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "virtual": {
+        "status": 125,
+        "stdout": "",
+        "stderr": "ZW52OiBvbmx5ICR7VkFSTkFNRX0gZXhwYW5zaW9uIGlzIHN1cHBvcnRlZCwgZXJyb3IgYXQ6ICQkICRACg==",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "fields": {
+        "status": false,
+        "stdout": true,
+        "stderr": false,
+        "effects": true
+      },
+      "nativeStderrUtf8": "env: Only ${VARNAME} expansion is supported, error at: $$ $@\n",
+      "virtualStderrUtf8": "env: only ${VARNAME} expansion is supported, error at: $$ $@\n",
+      "additionalVirtualDiagnosticProfile": false,
+      "classification": "historical whole-profile difference; not a pass"
+    },
+    {
+      "id": "invalid-parameter-operator",
+      "category": "command",
+      "profile": "apple-env-bash32-historical",
+      "fullLiteralNativeArgv": [
+        "env",
+        "-S",
+        "argvprobe ${ABSENT:-fallback}"
+      ],
+      "virtualSource": "'env' '-S' 'argvprobe ${ABSENT:-fallback}'",
+      "inputHash": "7929797e1f016c12b9d455d960c50961b235ce1f55a54178105b3633535c86f2",
+      "native": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "ZW52OiBPbmx5ICR7VkFSTkFNRX0gZXhwYW5zaW9uIGlzIHN1cHBvcnRlZCwgZXJyb3IgYXQ6ICR7QUJTRU5UOi1mYWxsYmFja30K",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "virtual": {
+        "status": 125,
+        "stdout": "",
+        "stderr": "ZW52OiBvbmx5ICR7VkFSTkFNRX0gZXhwYW5zaW9uIGlzIHN1cHBvcnRlZCwgZXJyb3IgYXQ6ICR7QUJTRU5UOi1mYWxsYmFja30K",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "fields": {
+        "status": false,
+        "stdout": true,
+        "stderr": false,
+        "effects": true
+      },
+      "nativeStderrUtf8": "env: Only ${VARNAME} expansion is supported, error at: ${ABSENT:-fallback}\n",
+      "virtualStderrUtf8": "env: only ${VARNAME} expansion is supported, error at: ${ABSENT:-fallback}\n",
+      "additionalVirtualDiagnosticProfile": false,
+      "classification": "historical whole-profile difference; not a pass"
+    },
+    {
+      "id": "command-substitution-not-shell",
+      "category": "command",
+      "profile": "apple-env-bash32-historical",
+      "fullLiteralNativeArgv": [
+        "env",
+        "-S",
+        "argvprobe $(printf BAD>injected)"
+      ],
+      "virtualSource": "'env' '-S' 'argvprobe $(printf BAD>injected)'",
+      "inputHash": "ac2ce1b0a68e5e8913ea0051407dab0020dab8783b791ff0057bfb105c381752",
+      "native": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "ZW52OiBPbmx5ICR7VkFSTkFNRX0gZXhwYW5zaW9uIGlzIHN1cHBvcnRlZCwgZXJyb3IgYXQ6ICQocHJpbnRmIEJBRD5pbmplY3RlZCkK",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "virtual": {
+        "status": 125,
+        "stdout": "",
+        "stderr": "ZW52OiBvbmx5ICR7VkFSTkFNRX0gZXhwYW5zaW9uIGlzIHN1cHBvcnRlZCwgZXJyb3IgYXQ6ICQocHJpbnRmIEJBRD5pbmplY3RlZCkK",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "fields": {
+        "status": false,
+        "stdout": true,
+        "stderr": false,
+        "effects": true
+      },
+      "nativeStderrUtf8": "env: Only ${VARNAME} expansion is supported, error at: $(printf BAD>injected)\n",
+      "virtualStderrUtf8": "env: only ${VARNAME} expansion is supported, error at: $(printf BAD>injected)\n",
+      "additionalVirtualDiagnosticProfile": false,
+      "classification": "historical whole-profile difference; not a pass"
+    },
+    {
+      "id": "long-split-equals-tail",
+      "category": "command",
+      "profile": "apple-env-bash32-historical",
+      "fullLiteralNativeArgv": [
+        "env",
+        "--split-string=argvprobe \"left right\"",
+        "tail",
+        ""
+      ],
+      "virtualSource": "'env' '--split-string=argvprobe \"left right\"' 'tail' ''",
+      "inputHash": "1933e725c962691424e794dc5083813edb54f838d2f09d2092f08b14d5d5aae7",
+      "native": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "ZW52OiBpbGxlZ2FsIG9wdGlvbiAtLSBzCnVzYWdlOiBlbnYgWy0waXZdIFstQyB3b3JrZGlyXSBbLVAgdXRpbHBhdGhdIFstUyBzdHJpbmddCiAgICAgICAgICAgWy11IG5hbWVdIFtuYW1lPXZhbHVlIC4uLl0gW3V0aWxpdHkgW2FyZ3VtZW50IC4uLl1dCg==",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "virtual": {
+        "status": 0,
+        "stdout": "eyJhcmdjIjo0LCJhcmd2SGV4IjpbIjYxNzI2Nzc2NzA3MjZmNjI2NSIsIjZjNjU2Njc0MjA3MjY5Njc2ODc0IiwiNzQ2MTY5NmMiLCIiXSwiZW52SGV4IjpbIjUwNDE1NDQ4M2QyZjcwNzI2OTc2NjE3NDY1MmY3NjYxNzIyZjY2NmY2YzY0NjU3MjczMmY3Mjc3MmY3MzM0NjM3OTM3MzY2ODZlMzY3NjM1MzU3MTcyNzAzMDY0Njg2MzYyNzQ3MDZjNjMzMDMwMzAzMDY3NmUyZjU0MmY3MzYxNjY2NTJkNjI2MTczNjgyZDY1NmU3NjJkNjg2OTY0NjQ2NTZlMmQ3YTc4NDE0NjQ3NmMyZjYxNzA3MDZjNjUyZDY1NmU3NjJkNjI2MTczNjgzMzMyMmQ2ODY5NzM3NDZmNzI2OTYzNjE2YzJmNjI2OTZlM2EyZjcwNzI2OTc2NjE3NDY1MmY3NjYxNzIyZjY2NmY2YzY0NjU3MjczMmY3Mjc3MmY3MzM0NjM3OTM3MzY2ODZlMzY3NjM1MzU3MTcyNzAzMDY0Njg2MzYyNzQ3MDZjNjMzMDMwMzAzMDY3NmUyZjU0MmY3MzYxNjY2NTJkNjI2MTczNjgyZDY1NmU3NjJkNjg2OTY0NjQ2NTZlMmQ3YTc4NDE0NjQ3NmMyZjYyNjk2ZSIsIjQ4NGY0ZDQ1M2QyZjcwNzI2OTc2NjE3NDY1MmY3NjYxNzIyZjY2NmY2YzY0NjU3MjczMmY3Mjc3MmY3MzM0NjM3OTM3MzY2ODZlMzY3NjM1MzU3MTcyNzAzMDY0Njg2MzYyNzQ3MDZjNjMzMDMwMzAzMDY3NmUyZjU0MmY3MzYxNjY2NTJkNjI2MTczNjgyZDY1NmU3NjJkNjg2OTY0NjQ2NTZlMmQ3YTc4NDE0NjQ3NmMyZjYxNzA3MDZjNjUyZDY1NmU3NjJkNjI2MTczNjgzMzMyMmQ2ODY5NzM3NDZmNzI2OTYzNjE2YzJmNjM2ZjZkNmQ2MTZlNjQyZDZjNmY2ZTY3MmQ3MzcwNmM2OTc0MmQ2NTcxNzU2MTZjNzMyZDc0NjE2OTZjMmY3NzZmNzI2YiIsIjU0NGQ1MDQ0NDk1MjNkMmY3MDcyNjk3NjYxNzQ2NTJmNzY2MTcyMmY2NjZmNmM2NDY1NzI3MzJmNzI3NzJmNzMzNDYzNzkzNzM2Njg2ZTM2NzYzNTM1NzE3MjcwMzA2NDY4NjM2Mjc0NzA2YzYzMzAzMDMwMzA2NzZlMmY1NDJmNzM2MTY2NjUyZDYyNjE3MzY4MmQ2NTZlNzYyZDY4Njk2NDY0NjU2ZTJkN2E3ODQxNDY0NzZjMmY2MTcwNzA2YzY1MmQ2NTZlNzYyZDYyNjE3MzY4MzMzMjJkNjg2OTczNzQ2ZjcyNjk2MzYxNmMyZjYzNmY2ZDZkNjE2ZTY0MmQ2YzZmNmU2NzJkNzM3MDZjNjk3NDJkNjU3MTc1NjE2YzczMmQ3NDYxNjk2YzJmNzc2ZjcyNmIiLCI1MDU3NDQzZDJmNzA3MjY5NzY2MTc0NjUyZjc2NjE3MjJmNjY2ZjZjNjQ2NTcyNzMyZjcyNzcyZjczMzQ2Mzc5MzczNjY4NmUzNjc2MzUzNTcxNzI3MDMwNjQ2ODYzNjI3NDcwNmM2MzMwMzAzMDMwNjc2ZTJmNTQyZjczNjE2NjY1MmQ2MjYxNzM2ODJkNjU2ZTc2MmQ2ODY5NjQ2NDY1NmUyZDdhNzg0MTQ2NDc2YzJmNjE3MDcwNmM2NTJkNjU2ZTc2MmQ2MjYxNzM2ODMzMzIyZDY4Njk3Mzc0NmY3MjY5NjM2MTZjMmY2MzZmNmQ2ZDYxNmU2NDJkNmM2ZjZlNjcyZDczNzA2YzY5NzQyZDY1NzE3NTYxNmM3MzJkNzQ2MTY5NmMyZjc3NmY3MjZiIiwiNGM0MTRlNDczZDQzIiwiNGM0MzVmNDE0YzRjM2Q0MyIsIjU0NWEzZDU1NTQ0MyIsIjU3NGY1MjQ0NTMzZDZlNmY3Mjc0NjgyMDczNmY3NTc0NjgwOTY1NjE3Mzc0MGE3NzY1NzM3NCIsIjQ1NGQ1MDU0NTkzZCIsIjUwNDE1OTRjNGY0MTQ0M2QyNDI4NzA3MjY5NmU3NDY2MjA0MjQxNDQzZTY5NmU2YTY1NjM3NDY1NjQyOTNiMjAzZTY5NmU2YTY1NjM3NDY1NjQyMDdjMjA2MDc0NmY3NTYzNjgyMDY5NmU2YTY1NjM3NDY1NjQ2MCIsIjUxNTU0ZjU0NDU0NDNkMjI2MTIwNjIyMjIwMjc2MzIwNjQyNzIwNWM1ZjIwMjM2MzZmNmQ2ZDY1NmU3NCIsIjQ0NGY0YzRjNDE1MjUzM2QyNDdiNTc0ZjUyNDQ1MzdkMjAyNDQwMjAyNDI0IiwiNDc1MjRmNTc1NDQ4M2Q3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Il0sInN0ZGluSGV4IjoiMDA0MWZmMGEiLCJjd2RIZXgiOiIyZjcwNzI2OTc2NjE3NDY1MmY3NjYxNzIyZjY2NmY2YzY0NjU3MjczMmY3Mjc3MmY3MzM0NjM3OTM3MzY2ODZlMzY3NjM1MzU3MTcyNzAzMDY0Njg2MzYyNzQ3MDZjNjMzMDMwMzAzMDY3NmUyZjU0MmY3MzYxNjY2NTJkNjI2MTczNjgyZDY1NmU3NjJkNjg2OTY0NjQ2NTZlMmQ3YTc4NDE0NjQ3NmMyZjYxNzA3MDZjNjUyZDY1NmU3NjJkNjI2MTczNjgzMzMyMmQ2ODY5NzM3NDZmNzI2OTYzNjE2YzJmNjM2ZjZkNmQ2MTZlNjQyZDZjNmY2ZTY3MmQ3MzcwNmM2OTc0MmQ2NTcxNzU2MTZjNzMyZDc0NjE2OTZjMmY3NzZmNzI2YiJ9Cg==",
+        "stderr": "",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "fields": {
+        "status": false,
+        "stdout": false,
+        "stderr": false,
+        "effects": true
+      },
+      "nativeStderrUtf8": "env: illegal option -- s\nusage: env [-0iv] [-C workdir] [-P utilpath] [-S string]\n           [-u name] [name=value ...] [utility [argument ...]]\n",
+      "virtualStderrUtf8": "",
+      "additionalVirtualDiagnosticProfile": false,
+      "classification": "historical whole-profile difference; not a pass"
+    },
+    {
+      "id": "long-split-separate",
+      "category": "command",
+      "profile": "apple-env-bash32-historical",
+      "fullLiteralNativeArgv": [
+        "env",
+        "--split-string",
+        "argvprobe a\tb",
+        "--literal",
+        "tail"
+      ],
+      "virtualSource": "'env' '--split-string' 'argvprobe a\tb' '--literal' 'tail'",
+      "inputHash": "3dd2f07c0aadc835eb235a621a24913d549168986eb9a82e269ed691a1a61436",
+      "native": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "ZW52OiBpbGxlZ2FsIG9wdGlvbiAtLSBzCnVzYWdlOiBlbnYgWy0waXZdIFstQyB3b3JrZGlyXSBbLVAgdXRpbHBhdGhdIFstUyBzdHJpbmddCiAgICAgICAgICAgWy11IG5hbWVdIFtuYW1lPXZhbHVlIC4uLl0gW3V0aWxpdHkgW2FyZ3VtZW50IC4uLl1dCg==",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "virtual": {
+        "status": 0,
+        "stdout": "eyJhcmdjIjo1LCJhcmd2SGV4IjpbIjYxNzI2Nzc2NzA3MjZmNjI2NSIsIjYxIiwiNjIiLCIyZDJkNmM2OTc0NjU3MjYxNmMiLCI3NDYxNjk2YyJdLCJlbnZIZXgiOlsiNTA0MTU0NDgzZDJmNzA3MjY5NzY2MTc0NjUyZjc2NjE3MjJmNjY2ZjZjNjQ2NTcyNzMyZjcyNzcyZjczMzQ2Mzc5MzczNjY4NmUzNjc2MzUzNTcxNzI3MDMwNjQ2ODYzNjI3NDcwNmM2MzMwMzAzMDMwNjc2ZTJmNTQyZjczNjE2NjY1MmQ2MjYxNzM2ODJkNjU2ZTc2MmQ2ODY5NjQ2NDY1NmUyZDdhNzg0MTQ2NDc2YzJmNjE3MDcwNmM2NTJkNjU2ZTc2MmQ2MjYxNzM2ODMzMzIyZDY4Njk3Mzc0NmY3MjY5NjM2MTZjMmY2MjY5NmUzYTJmNzA3MjY5NzY2MTc0NjUyZjc2NjE3MjJmNjY2ZjZjNjQ2NTcyNzMyZjcyNzcyZjczMzQ2Mzc5MzczNjY4NmUzNjc2MzUzNTcxNzI3MDMwNjQ2ODYzNjI3NDcwNmM2MzMwMzAzMDMwNjc2ZTJmNTQyZjczNjE2NjY1MmQ2MjYxNzM2ODJkNjU2ZTc2MmQ2ODY5NjQ2NDY1NmUyZDdhNzg0MTQ2NDc2YzJmNjI2OTZlIiwiNDg0ZjRkNDUzZDJmNzA3MjY5NzY2MTc0NjUyZjc2NjE3MjJmNjY2ZjZjNjQ2NTcyNzMyZjcyNzcyZjczMzQ2Mzc5MzczNjY4NmUzNjc2MzUzNTcxNzI3MDMwNjQ2ODYzNjI3NDcwNmM2MzMwMzAzMDMwNjc2ZTJmNTQyZjczNjE2NjY1MmQ2MjYxNzM2ODJkNjU2ZTc2MmQ2ODY5NjQ2NDY1NmUyZDdhNzg0MTQ2NDc2YzJmNjE3MDcwNmM2NTJkNjU2ZTc2MmQ2MjYxNzM2ODMzMzIyZDY4Njk3Mzc0NmY3MjY5NjM2MTZjMmY2MzZmNmQ2ZDYxNmU2NDJkNmM2ZjZlNjcyZDczNzA2YzY5NzQyZDczNjU3MDYxNzI2MTc0NjUyZjc3NmY3MjZiIiwiNTQ0ZDUwNDQ0OTUyM2QyZjcwNzI2OTc2NjE3NDY1MmY3NjYxNzIyZjY2NmY2YzY0NjU3MjczMmY3Mjc3MmY3MzM0NjM3OTM3MzY2ODZlMzY3NjM1MzU3MTcyNzAzMDY0Njg2MzYyNzQ3MDZjNjMzMDMwMzAzMDY3NmUyZjU0MmY3MzYxNjY2NTJkNjI2MTczNjgyZDY1NmU3NjJkNjg2OTY0NjQ2NTZlMmQ3YTc4NDE0NjQ3NmMyZjYxNzA3MDZjNjUyZDY1NmU3NjJkNjI2MTczNjgzMzMyMmQ2ODY5NzM3NDZmNzI2OTYzNjE2YzJmNjM2ZjZkNmQ2MTZlNjQyZDZjNmY2ZTY3MmQ3MzcwNmM2OTc0MmQ3MzY1NzA2MTcyNjE3NDY1MmY3NzZmNzI2YiIsIjUwNTc0NDNkMmY3MDcyNjk3NjYxNzQ2NTJmNzY2MTcyMmY2NjZmNmM2NDY1NzI3MzJmNzI3NzJmNzMzNDYzNzkzNzM2Njg2ZTM2NzYzNTM1NzE3MjcwMzA2NDY4NjM2Mjc0NzA2YzYzMzAzMDMwMzA2NzZlMmY1NDJmNzM2MTY2NjUyZDYyNjE3MzY4MmQ2NTZlNzYyZDY4Njk2NDY0NjU2ZTJkN2E3ODQxNDY0NzZjMmY2MTcwNzA2YzY1MmQ2NTZlNzYyZDYyNjE3MzY4MzMzMjJkNjg2OTczNzQ2ZjcyNjk2MzYxNmMyZjYzNmY2ZDZkNjE2ZTY0MmQ2YzZmNmU2NzJkNzM3MDZjNjk3NDJkNzM2NTcwNjE3MjYxNzQ2NTJmNzc2ZjcyNmIiLCI0YzQxNGU0NzNkNDMiLCI0YzQzNWY0MTRjNGMzZDQzIiwiNTQ1YTNkNTU1NDQzIiwiNTc0ZjUyNDQ1MzNkNmU2ZjcyNzQ2ODIwNzM2Zjc1NzQ2ODA5NjU2MTczNzQwYTc3NjU3Mzc0IiwiNDU0ZDUwNTQ1OTNkIiwiNTA0MTU5NGM0ZjQxNDQzZDI0Mjg3MDcyNjk2ZTc0NjYyMDQyNDE0NDNlNjk2ZTZhNjU2Mzc0NjU2NDI5M2IyMDNlNjk2ZTZhNjU2Mzc0NjU2NDIwN2MyMDYwNzQ2Zjc1NjM2ODIwNjk2ZTZhNjU2Mzc0NjU2NDYwIiwiNTE1NTRmNTQ0NTQ0M2QyMjYxMjA2MjIyMjAyNzYzMjA2NDI3MjA1YzVmMjAyMzYzNmY2ZDZkNjU2ZTc0IiwiNDQ0ZjRjNGM0MTUyNTMzZDI0N2I1NzRmNTI0NDUzN2QyMDI0NDAyMDI0MjQiLCI0NzUyNGY1NzU0NDgzZDc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4Nzk3ODc5Nzg3OTc4NzkiXSwic3RkaW5IZXgiOiIwMDQxZmYwYSIsImN3ZEhleCI6IjJmNzA3MjY5NzY2MTc0NjUyZjc2NjE3MjJmNjY2ZjZjNjQ2NTcyNzMyZjcyNzcyZjczMzQ2Mzc5MzczNjY4NmUzNjc2MzUzNTcxNzI3MDMwNjQ2ODYzNjI3NDcwNmM2MzMwMzAzMDMwNjc2ZTJmNTQyZjczNjE2NjY1MmQ2MjYxNzM2ODJkNjU2ZTc2MmQ2ODY5NjQ2NDY1NmUyZDdhNzg0MTQ2NDc2YzJmNjE3MDcwNmM2NTJkNjU2ZTc2MmQ2MjYxNzM2ODMzMzIyZDY4Njk3Mzc0NmY3MjY5NjM2MTZjMmY2MzZmNmQ2ZDYxNmU2NDJkNmM2ZjZlNjcyZDczNzA2YzY5NzQyZDczNjU3MDYxNzI2MTc0NjUyZjc3NmY3MjZiIn0K",
+        "stderr": "",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "fields": {
+        "status": false,
+        "stdout": false,
+        "stderr": false,
+        "effects": true
+      },
+      "nativeStderrUtf8": "env: illegal option -- s\nusage: env [-0iv] [-C workdir] [-P utilpath] [-S string]\n           [-u name] [name=value ...] [utility [argument ...]]\n",
+      "virtualStderrUtf8": "",
+      "additionalVirtualDiagnosticProfile": false,
+      "classification": "historical whole-profile difference; not a pass"
+    },
+    {
+      "id": "assignment-options-stop",
+      "category": "command",
+      "profile": "apple-env-bash32-historical",
+      "fullLiteralNativeArgv": [
+        "env",
+        "-S",
+        "-i PATH=${PATH} KEEP=one KEEP=two argvprobe -u KEEP"
+      ],
+      "virtualSource": "'env' '-S' '-i PATH=${PATH} KEEP=one KEEP=two argvprobe -u KEEP'",
+      "inputHash": "2c40924b013f5d02d14532b26a06a77f70725c33eaae05fe5505354cbd15599f",
+      "native": {
+        "status": 0,
+        "stdout": "eyJhcmdjIjozLCJhcmd2SGV4IjpbIjYxNzI2Nzc2NzA3MjZmNjI2NSIsIjJkNzUiLCI0YjQ1NDU1MCJdLCJlbnZIZXgiOlsiNTA0MTU0NDgzZDJmNzA3MjY5NzY2MTc0NjUyZjc2NjE3MjJmNjY2ZjZjNjQ2NTcyNzMyZjcyNzcyZjczMzQ2Mzc5MzczNjY4NmUzNjc2MzUzNTcxNzI3MDMwNjQ2ODYzNjI3NDcwNmM2MzMwMzAzMDMwNjc2ZTJmNTQyZjczNjE2NjY1MmQ2MjYxNzM2ODJkNjU2ZTc2MmQ2ODY5NjQ2NDY1NmUyZDdhNzg0MTQ2NDc2YzJmNjE3MDcwNmM2NTJkNjU2ZTc2MmQ2MjYxNzM2ODMzMzIyZDY4Njk3Mzc0NmY3MjY5NjM2MTZjMmY2MjY5NmUzYTJmNzA3MjY5NzY2MTc0NjUyZjc2NjE3MjJmNjY2ZjZjNjQ2NTcyNzMyZjcyNzcyZjczMzQ2Mzc5MzczNjY4NmUzNjc2MzUzNTcxNzI3MDMwNjQ2ODYzNjI3NDcwNmM2MzMwMzAzMDMwNjc2ZTJmNTQyZjczNjE2NjY1MmQ2MjYxNzM2ODJkNjU2ZTc2MmQ2ODY5NjQ2NDY1NmUyZDdhNzg0MTQ2NDc2YzJmNjI2OTZlIiwiNGI0NTQ1NTAzZDc0Nzc2ZiJdLCJzdGRpbkhleCI6IjAwNDFmZjBhIiwiY3dkSGV4IjoiMmY3MDcyNjk3NjYxNzQ2NTJmNzY2MTcyMmY2NjZmNmM2NDY1NzI3MzJmNzI3NzJmNzMzNDYzNzkzNzM2Njg2ZTM2NzYzNTM1NzE3MjcwMzA2NDY4NjM2Mjc0NzA2YzYzMzAzMDMwMzA2NzZlMmY1NDJmNzM2MTY2NjUyZDYyNjE3MzY4MmQ2NTZlNzYyZDY4Njk2NDY0NjU2ZTJkN2E3ODQxNDY0NzZjMmY2MTcwNzA2YzY1MmQ2NTZlNzYyZDYyNjE3MzY4MzMzMjJkNjg2OTczNzQ2ZjcyNjk2MzYxNmMyZjYzNmY2ZDZkNjE2ZTY0MmQ2MTczNzM2OTY3NmU2ZDY1NmU3NDJkNmY3MDc0Njk2ZjZlNzMyZDczNzQ2ZjcwMmY3NzZmNzI2YiJ9Cg==",
+        "stderr": "",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "virtual": {
+        "status": 0,
+        "stdout": "eyJhcmdjIjozLCJhcmd2SGV4IjpbIjYxNzI2Nzc2NzA3MjZmNjI2NSIsIjJkNzUiLCI0YjQ1NDU1MCJdLCJlbnZIZXgiOlsiNGI0NTQ1NTAzZDc0Nzc2ZiIsIjUwNDE1NDQ4M2QyZjcwNzI2OTc2NjE3NDY1MmY3NjYxNzIyZjY2NmY2YzY0NjU3MjczMmY3Mjc3MmY3MzM0NjM3OTM3MzY2ODZlMzY3NjM1MzU3MTcyNzAzMDY0Njg2MzYyNzQ3MDZjNjMzMDMwMzAzMDY3NmUyZjU0MmY3MzYxNjY2NTJkNjI2MTczNjgyZDY1NmU3NjJkNjg2OTY0NjQ2NTZlMmQ3YTc4NDE0NjQ3NmMyZjYxNzA3MDZjNjUyZDY1NmU3NjJkNjI2MTczNjgzMzMyMmQ2ODY5NzM3NDZmNzI2OTYzNjE2YzJmNjI2OTZlM2EyZjcwNzI2OTc2NjE3NDY1MmY3NjYxNzIyZjY2NmY2YzY0NjU3MjczMmY3Mjc3MmY3MzM0NjM3OTM3MzY2ODZlMzY3NjM1MzU3MTcyNzAzMDY0Njg2MzYyNzQ3MDZjNjMzMDMwMzAzMDY3NmUyZjU0MmY3MzYxNjY2NTJkNjI2MTczNjgyZDY1NmU3NjJkNjg2OTY0NjQ2NTZlMmQ3YTc4NDE0NjQ3NmMyZjYyNjk2ZSJdLCJzdGRpbkhleCI6IjAwNDFmZjBhIiwiY3dkSGV4IjoiMmY3MDcyNjk3NjYxNzQ2NTJmNzY2MTcyMmY2NjZmNmM2NDY1NzI3MzJmNzI3NzJmNzMzNDYzNzkzNzM2Njg2ZTM2NzYzNTM1NzE3MjcwMzA2NDY4NjM2Mjc0NzA2YzYzMzAzMDMwMzA2NzZlMmY1NDJmNzM2MTY2NjUyZDYyNjE3MzY4MmQ2NTZlNzYyZDY4Njk2NDY0NjU2ZTJkN2E3ODQxNDY0NzZjMmY2MTcwNzA2YzY1MmQ2NTZlNzYyZDYyNjE3MzY4MzMzMjJkNjg2OTczNzQ2ZjcyNjk2MzYxNmMyZjYzNmY2ZDZkNjE2ZTY0MmQ2MTczNzM2OTY3NmU2ZDY1NmU3NDJkNmY3MDc0Njk2ZjZlNzMyZDczNzQ2ZjcwMmY3NzZmNzI2YiJ9Cg==",
+        "stderr": "",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "fields": {
+        "status": true,
+        "stdout": false,
+        "stderr": true,
+        "effects": true
+      },
+      "nativeStderrUtf8": "",
+      "virtualStderrUtf8": "",
+      "additionalVirtualDiagnosticProfile": false,
+      "classification": "historical whole-profile difference; not a pass"
+    },
+    {
+      "id": "packed-non-s-single-operand",
+      "category": "command",
+      "profile": "apple-env-bash32-historical",
+      "fullLiteralNativeArgv": [
+        "env",
+        "argvprobe two words"
+      ],
+      "virtualSource": "'env' 'argvprobe two words'",
+      "inputHash": "22e37bfbbe254ecff31a05ac8d301af109486b09508ee4bc0516d4fd34d83684",
+      "native": {
+        "status": 127,
+        "stdout": "",
+        "stderr": "ZW52OiBhcmd2cHJvYmUgdHdvIHdvcmRzOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5Cg==",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "virtual": {
+        "status": 127,
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogYXJndnByb2JlIHR3byB3b3JkczogY29tbWFuZCBub3QgZm91bmQK",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "fields": {
+        "status": true,
+        "stdout": true,
+        "stderr": false,
+        "effects": true
+      },
+      "nativeStderrUtf8": "env: argvprobe two words: No such file or directory\n",
+      "virtualStderrUtf8": "shell: line 1: argvprobe two words: command not found\n",
+      "additionalVirtualDiagnosticProfile": false,
+      "classification": "historical whole-profile difference; not a pass"
+    },
+    {
+      "id": "missing-command-negative",
+      "category": "command",
+      "profile": "apple-env-bash32-historical",
+      "fullLiteralNativeArgv": [
+        "env",
+        "-S",
+        "env-split-never-a-real-command argument"
+      ],
+      "virtualSource": "'env' '-S' 'env-split-never-a-real-command argument'",
+      "inputHash": "f10599b17768fe5e3d26992019125f746d3b601547108b8a5755e4b986a631b8",
+      "native": {
+        "status": 127,
+        "stdout": "",
+        "stderr": "ZW52OiBlbnYtc3BsaXQtbmV2ZXItYS1yZWFsLWNvbW1hbmQ6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkK",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "virtual": {
+        "status": 127,
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogZW52LXNwbGl0LW5ldmVyLWEtcmVhbC1jb21tYW5kOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "fields": {
+        "status": true,
+        "stdout": true,
+        "stderr": false,
+        "effects": true
+      },
+      "nativeStderrUtf8": "env: env-split-never-a-real-command: No such file or directory\n",
+      "virtualStderrUtf8": "shell: line 1: env-split-never-a-real-command: command not found\n",
+      "additionalVirtualDiagnosticProfile": false,
+      "classification": "historical whole-profile difference; not a pass"
+    },
+    {
+      "id": "nonexecutable-command-negative",
+      "category": "command",
+      "profile": "apple-env-bash32-historical",
+      "fullLiteralNativeArgv": [
+        "env",
+        "-S",
+        "./nonexec argument"
+      ],
+      "virtualSource": "'env' '-S' './nonexec argument'",
+      "inputHash": "a69df21abc37895dc5634e8184ca5ceb847fe923a8a1ce6a62dc4acb43f9fe11",
+      "native": {
+        "status": 126,
+        "stdout": "",
+        "stderr": "ZW52OiAuL25vbmV4ZWM6IFBlcm1pc3Npb24gZGVuaWVkCg==",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          },
+          "nonexec": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6e6f742065786563757461626c650a"
+          }
+        }
+      },
+      "virtual": {
+        "status": 126,
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogLi9ub25leGVjOiBQZXJtaXNzaW9uIGRlbmllZAo=",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          },
+          "nonexec": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6e6f742065786563757461626c650a"
+          }
+        }
+      },
+      "fields": {
+        "status": true,
+        "stdout": true,
+        "stderr": false,
+        "effects": true
+      },
+      "nativeStderrUtf8": "env: ./nonexec: Permission denied\n",
+      "virtualStderrUtf8": "shell: line 1: ./nonexec: Permission denied\n",
+      "additionalVirtualDiagnosticProfile": false,
+      "classification": "historical whole-profile difference; not a pass"
+    },
+    {
+      "id": "non-s-packed-bash-option",
+      "category": "single-optional",
+      "profile": "apple-env-bash32-historical",
+      "fullLiteralNativeArgv": [
+        "env",
+        "bash -e",
+        "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-env-hidden-zxAFGl/apple-env-bash32-historical/single-optional-non-s-packed-bash-option/entry.sh",
+        "argument with spaces",
+        ""
+      ],
+      "virtualSource": "'/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-env-hidden-zxAFGl/apple-env-bash32-historical/single-optional-non-s-packed-bash-option/entry.sh' 'argument with spaces' ''",
+      "inputHash": "23e7fea1a3b17a3cb5f1678ba860e9bfa9c51fc2e88a9cfeec369063006749e9",
+      "native": {
+        "status": 127,
+        "stdout": "",
+        "stderr": "ZW52OiBiYXNoIC1lOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5Cg==",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "virtual": {
+        "status": 126,
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogL3ByaXZhdGUvdmFyL2ZvbGRlcnMvcncvczRjeTc2aG42djU1cXJwMGRoY2J0cGxjMDAwMGduL1Qvc2FmZS1iYXNoLWVudi1oaWRkZW4tenhBRkdsL2FwcGxlLWVudi1iYXNoMzItaGlzdG9yaWNhbC9zaW5nbGUtb3B0aW9uYWwtbm9uLXMtcGFja2VkLWJhc2gtb3B0aW9uL2VudHJ5LnNoOiB1bnN1cHBvcnRlZCBpbnRlcnByZXRlcjogL3Vzci9iaW4vZW52IGJhc2ggLWUK",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "fields": {
+        "status": false,
+        "stdout": true,
+        "stderr": false,
+        "effects": true
+      },
+      "nativeStderrUtf8": "env: bash -e: No such file or directory\n",
+      "virtualStderrUtf8": "shell: line 1: /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-env-hidden-zxAFGl/apple-env-bash32-historical/single-optional-non-s-packed-bash-option/entry.sh: unsupported interpreter: /usr/bin/env bash -e\n",
+      "additionalVirtualDiagnosticProfile": false,
+      "classification": "unsupported runtime/shebang protocol; no core credit"
+    },
+    {
+      "id": "split-errexit",
+      "category": "single-optional",
+      "profile": "apple-env-bash32-historical",
+      "fullLiteralNativeArgv": [
+        "env",
+        "-S bash -e",
+        "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-env-hidden-zxAFGl/apple-env-bash32-historical/single-optional-split-errexit/entry.sh",
+        "argument with spaces",
+        ""
+      ],
+      "virtualSource": "'/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-env-hidden-zxAFGl/apple-env-bash32-historical/single-optional-split-errexit/entry.sh' 'argument with spaces' ''",
+      "inputHash": "8c4da4010db8fd758da5c5b8c36e2600ab898a6bc80c712b4827519ffd810d13",
+      "native": {
+        "status": 1,
+        "stdout": "ZT1vbgphcmdjPTIKPGFyZ3VtZW50IHdpdGggc3BhY2VzPgo8Pgo=",
+        "stderr": "",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "756e736574"
+          }
+        }
+      },
+      "virtual": {
+        "status": 126,
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogL3ByaXZhdGUvdmFyL2ZvbGRlcnMvcncvczRjeTc2aG42djU1cXJwMGRoY2J0cGxjMDAwMGduL1Qvc2FmZS1iYXNoLWVudi1oaWRkZW4tenhBRkdsL2FwcGxlLWVudi1iYXNoMzItaGlzdG9yaWNhbC9zaW5nbGUtb3B0aW9uYWwtc3BsaXQtZXJyZXhpdC9lbnRyeS5zaDogdW5zdXBwb3J0ZWQgaW50ZXJwcmV0ZXI6IC91c3IvYmluL2VudiAtUyBiYXNoIC1lCg==",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "fields": {
+        "status": false,
+        "stdout": false,
+        "stderr": false,
+        "effects": false
+      },
+      "nativeStderrUtf8": "",
+      "virtualStderrUtf8": "shell: line 1: /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-env-hidden-zxAFGl/apple-env-bash32-historical/single-optional-split-errexit/entry.sh: unsupported interpreter: /usr/bin/env -S bash -e\n",
+      "additionalVirtualDiagnosticProfile": false,
+      "classification": "unsupported runtime/shebang protocol; no core credit"
+    },
+    {
+      "id": "split-assignment-and-clear",
+      "category": "single-optional",
+      "profile": "apple-env-bash32-historical",
+      "fullLiteralNativeArgv": [
+        "env",
+        "-S -i PATH=${PATH} MARK=kept bash -e",
+        "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-env-hidden-zxAFGl/apple-env-bash32-historical/single-optional-split-assignment-and-clear/entry.sh",
+        "argument with spaces",
+        ""
+      ],
+      "virtualSource": "'/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-env-hidden-zxAFGl/apple-env-bash32-historical/single-optional-split-assignment-and-clear/entry.sh' 'argument with spaces' ''",
+      "inputHash": "6676581ac05f65cf04a96cd20e4215407439f902581d9ea5d3e277952f2605ea",
+      "native": {
+        "status": 1,
+        "stdout": "ZT1vbgphcmdjPTIKPGFyZ3VtZW50IHdpdGggc3BhY2VzPgo8Pgo=",
+        "stderr": "",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6b657074"
+          }
+        }
+      },
+      "virtual": {
+        "status": 126,
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogL3ByaXZhdGUvdmFyL2ZvbGRlcnMvcncvczRjeTc2aG42djU1cXJwMGRoY2J0cGxjMDAwMGduL1Qvc2FmZS1iYXNoLWVudi1oaWRkZW4tenhBRkdsL2FwcGxlLWVudi1iYXNoMzItaGlzdG9yaWNhbC9zaW5nbGUtb3B0aW9uYWwtc3BsaXQtYXNzaWdubWVudC1hbmQtY2xlYXIvZW50cnkuc2g6IHVuc3VwcG9ydGVkIGludGVycHJldGVyOiAvdXNyL2Jpbi9lbnYgLVMgLWkgUEFUSD0ke1BBVEh9IE1BUks9a2VwdCBiYXNoIC1lCg==",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "fields": {
+        "status": false,
+        "stdout": false,
+        "stderr": false,
+        "effects": false
+      },
+      "nativeStderrUtf8": "",
+      "virtualStderrUtf8": "shell: line 1: /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-env-hidden-zxAFGl/apple-env-bash32-historical/single-optional-split-assignment-and-clear/entry.sh: unsupported interpreter: /usr/bin/env -S -i PATH=${PATH} MARK=kept bash -e\n",
+      "additionalVirtualDiagnosticProfile": false,
+      "classification": "unsupported runtime/shebang protocol; no core credit"
+    },
+    {
+      "id": "split-long-plus-option",
+      "category": "single-optional",
+      "profile": "apple-env-bash32-historical",
+      "fullLiteralNativeArgv": [
+        "env",
+        "--split-string=bash +e",
+        "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-env-hidden-zxAFGl/apple-env-bash32-historical/single-optional-split-long-plus-option/entry.sh",
+        "argument with spaces",
+        ""
+      ],
+      "virtualSource": "'/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-env-hidden-zxAFGl/apple-env-bash32-historical/single-optional-split-long-plus-option/entry.sh' 'argument with spaces' ''",
+      "inputHash": "560f1b21f5d80d15b640b04626eb7f5e771cb0b9eaa4522d6c8f6eb6e8a9e80a",
+      "native": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "ZW52OiBpbGxlZ2FsIG9wdGlvbiAtLSBzCnVzYWdlOiBlbnYgWy0waXZdIFstQyB3b3JrZGlyXSBbLVAgdXRpbHBhdGhdIFstUyBzdHJpbmddCiAgICAgICAgICAgWy11IG5hbWVdIFtuYW1lPXZhbHVlIC4uLl0gW3V0aWxpdHkgW2FyZ3VtZW50IC4uLl1dCg==",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "virtual": {
+        "status": 126,
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogL3ByaXZhdGUvdmFyL2ZvbGRlcnMvcncvczRjeTc2aG42djU1cXJwMGRoY2J0cGxjMDAwMGduL1Qvc2FmZS1iYXNoLWVudi1oaWRkZW4tenhBRkdsL2FwcGxlLWVudi1iYXNoMzItaGlzdG9yaWNhbC9zaW5nbGUtb3B0aW9uYWwtc3BsaXQtbG9uZy1wbHVzLW9wdGlvbi9lbnRyeS5zaDogdW5zdXBwb3J0ZWQgaW50ZXJwcmV0ZXI6IC91c3IvYmluL2VudiAtLXNwbGl0LXN0cmluZz1iYXNoICtlCg==",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "fields": {
+        "status": false,
+        "stdout": true,
+        "stderr": false,
+        "effects": true
+      },
+      "nativeStderrUtf8": "env: illegal option -- s\nusage: env [-0iv] [-C workdir] [-P utilpath] [-S string]\n           [-u name] [name=value ...] [utility [argument ...]]\n",
+      "virtualStderrUtf8": "shell: line 1: /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-env-hidden-zxAFGl/apple-env-bash32-historical/single-optional-split-long-plus-option/entry.sh: unsupported interpreter: /usr/bin/env --split-string=bash +e\n",
+      "additionalVirtualDiagnosticProfile": false,
+      "classification": "unsupported runtime/shebang protocol; no core credit"
+    },
+    {
+      "id": "split-quoted-marker",
+      "category": "single-optional",
+      "profile": "apple-env-bash32-historical",
+      "fullLiteralNativeArgv": [
+        "env",
+        "-S MARK=\"two words\" bash -e",
+        "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-env-hidden-zxAFGl/apple-env-bash32-historical/single-optional-split-quoted-marker/entry.sh",
+        "argument with spaces",
+        ""
+      ],
+      "virtualSource": "'/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-env-hidden-zxAFGl/apple-env-bash32-historical/single-optional-split-quoted-marker/entry.sh' 'argument with spaces' ''",
+      "inputHash": "e6b4b3512c0ca28b915263a2ccfd6157ba69957a74cf35bfc8d1d3b3064acabf",
+      "native": {
+        "status": 1,
+        "stdout": "ZT1vbgphcmdjPTIKPGFyZ3VtZW50IHdpdGggc3BhY2VzPgo8Pgo=",
+        "stderr": "",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "74776f20776f726473"
+          }
+        }
+      },
+      "virtual": {
+        "status": 126,
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogL3ByaXZhdGUvdmFyL2ZvbGRlcnMvcncvczRjeTc2aG42djU1cXJwMGRoY2J0cGxjMDAwMGduL1Qvc2FmZS1iYXNoLWVudi1oaWRkZW4tenhBRkdsL2FwcGxlLWVudi1iYXNoMzItaGlzdG9yaWNhbC9zaW5nbGUtb3B0aW9uYWwtc3BsaXQtcXVvdGVkLW1hcmtlci9lbnRyeS5zaDogdW5zdXBwb3J0ZWQgaW50ZXJwcmV0ZXI6IC91c3IvYmluL2VudiAtUyBNQVJLPSJ0d28gd29yZHMiIGJhc2ggLWUK",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "fields": {
+        "status": false,
+        "stdout": false,
+        "stderr": false,
+        "effects": false
+      },
+      "nativeStderrUtf8": "",
+      "virtualStderrUtf8": "shell: line 1: /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-env-hidden-zxAFGl/apple-env-bash32-historical/single-optional-split-quoted-marker/entry.sh: unsupported interpreter: /usr/bin/env -S MARK=\"two words\" bash -e\n",
+      "additionalVirtualDiagnosticProfile": false,
+      "classification": "unsupported runtime/shebang protocol; no core credit"
+    }
+  ],
+  "consumer": [
+    {
+      "id": "shebang-split-bash-errexit",
+      "profile": "primary",
+      "input": {
+        "id": "shebang-split-bash-errexit",
+        "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "./script \"a b\"",
+          "shell"
+        ],
+        "argv0": "bash",
+        "shellArg0": "shell",
+        "cwd": "/private/tmp/safe-bash-packed-env-native-qJ0oBV",
+        "env": {
+          "HOME": "/nonexistent",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "DROP": "remove-me",
+          "PUBLIC": "parent-public",
+          "TEXT": "two words;$(printf INJECTED > marker)",
+          "EMPTY": "",
+          "PATH": "/private/tmp/safe-bash-packed-env-native-qJ0oBV/bin"
+        },
+        "fixtures": {
+          "recorder": "#!/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash\nprintf \"%s\\0\" \"$#\" \"$@\"\nprintf \"%s\\0\" \"${KEEP+x}\" \"${KEEP-}\"\nprintf \"%s\\0\" \"${DROP+x}\" \"${DROP-}\"\nprintf \"%s\\0\" \"${PUBLIC+x}\" \"${PUBLIC-}\"\nprintf \"%s\\0\" \"${SECRET+x}\" \"${SECRET-}\"\nprintf \"%s\\0\" \"${TEXT+x}\" \"${TEXT-}\"\n",
+          "script": "#!/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env -S bash -e\nprintf before > phase\nfalse\nprintf forbidden >> phase\n",
+          "phase": {
+            "hex": "73656564",
+            "mode": 420
+          }
+        },
+        "run": {
+          "pid": 63805,
+          "status": 1,
+          "signal": null,
+          "timedOut": false,
+          "overflow": false,
+          "groupAlive": false,
+          "stdoutHex": "",
+          "stderrHex": ""
+        },
+        "tuple": {
+          "status": 1,
+          "stdoutHex": "",
+          "stderrHex": "",
+          "effects": {
+            "phase": {
+              "hex": "6265666f7265",
+              "mode": 420
+            }
+          }
+        }
+      },
+      "native": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "",
+        "effects": {
+          "phase": {
+            "hex": "6265666f7265",
+            "mode": 420
+          }
+        }
+      },
+      "virtual": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202e2f7363726970743a20756e737570706f7274656420696e7465727072657465723a202f7573722f62696e2f656e76202d532062617368202d650a",
+        "effects": {
+          "phase": {
+            "hex": "73656564",
+            "mode": 420
+          }
+        }
+      },
+      "nativeStderrUtf8": "",
+      "virtualStderrUtf8": "shell: line 1: ./script: unsupported interpreter: /usr/bin/env -S bash -e\n",
+      "classification": "unsupported runtime/shebang protocol; no core credit"
+    },
+    {
+      "id": "shebang-split-bash-errexit",
+      "profile": "historical",
+      "input": {
+        "id": "shebang-split-bash-errexit",
+        "executable": "/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "./script \"a b\"",
+          "shell"
+        ],
+        "argv0": "bash",
+        "shellArg0": "shell",
+        "cwd": "/private/tmp/safe-bash-packed-env-native-2IqBmQ",
+        "env": {
+          "HOME": "/nonexistent",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "DROP": "remove-me",
+          "PUBLIC": "parent-public",
+          "TEXT": "two words;$(printf INJECTED > marker)",
+          "EMPTY": "",
+          "PATH": "/private/tmp/safe-bash-packed-env-native-2IqBmQ/bin"
+        },
+        "fixtures": {
+          "recorder": "#!/bin/bash\nprintf \"%s\\0\" \"$#\" \"$@\"\nprintf \"%s\\0\" \"${KEEP+x}\" \"${KEEP-}\"\nprintf \"%s\\0\" \"${DROP+x}\" \"${DROP-}\"\nprintf \"%s\\0\" \"${PUBLIC+x}\" \"${PUBLIC-}\"\nprintf \"%s\\0\" \"${SECRET+x}\" \"${SECRET-}\"\nprintf \"%s\\0\" \"${TEXT+x}\" \"${TEXT-}\"\n",
+          "script": "#!/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env -S bash -e\nprintf before > phase\nfalse\nprintf forbidden >> phase\n",
+          "phase": {
+            "hex": "73656564",
+            "mode": 420
+          }
+        },
+        "run": {
+          "pid": 63820,
+          "status": 1,
+          "signal": null,
+          "timedOut": false,
+          "overflow": false,
+          "groupAlive": false,
+          "stdoutHex": "",
+          "stderrHex": ""
+        },
+        "tuple": {
+          "status": 1,
+          "stdoutHex": "",
+          "stderrHex": "",
+          "effects": {
+            "phase": {
+              "hex": "6265666f7265",
+              "mode": 420
+            }
+          }
+        }
+      },
+      "native": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "",
+        "effects": {
+          "phase": {
+            "hex": "6265666f7265",
+            "mode": 420
+          }
+        }
+      },
+      "virtual": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202e2f7363726970743a20756e737570706f7274656420696e7465727072657465723a202f7573722f62696e2f656e76202d532062617368202d650a",
+        "effects": {
+          "phase": {
+            "hex": "73656564",
+            "mode": 420
+          }
+        }
+      },
+      "nativeStderrUtf8": "",
+      "virtualStderrUtf8": "shell: line 1: ./script: unsupported interpreter: /usr/bin/env -S bash -e\n",
+      "classification": "unsupported runtime/shebang protocol; no core credit"
+    },
+    {
+      "id": "shebang-long-split-sh-argv",
+      "profile": "primary",
+      "input": {
+        "id": "shebang-long-split-sh-argv",
+        "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "./script \"a b\"",
+          "shell"
+        ],
+        "argv0": "bash",
+        "shellArg0": "shell",
+        "cwd": "/private/tmp/safe-bash-packed-env-native-CemPws",
+        "env": {
+          "HOME": "/nonexistent",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "DROP": "remove-me",
+          "PUBLIC": "parent-public",
+          "TEXT": "two words;$(printf INJECTED > marker)",
+          "EMPTY": "",
+          "PATH": "/private/tmp/safe-bash-packed-env-native-CemPws/bin"
+        },
+        "fixtures": {
+          "recorder": "#!/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash\nprintf \"%s\\0\" \"$#\" \"$@\"\nprintf \"%s\\0\" \"${KEEP+x}\" \"${KEEP-}\"\nprintf \"%s\\0\" \"${DROP+x}\" \"${DROP-}\"\nprintf \"%s\\0\" \"${PUBLIC+x}\" \"${PUBLIC-}\"\nprintf \"%s\\0\" \"${SECRET+x}\" \"${SECRET-}\"\nprintf \"%s\\0\" \"${TEXT+x}\" \"${TEXT-}\"\n",
+          "script": "#!/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env --split-string=sh -e\nprintf \"<%s>|<%s>|<%s>\\n\" \"$0\" \"$#\" \"$1\"\nprintf kept > phase\n",
+          "phase": {
+            "hex": "73656564",
+            "mode": 420
+          }
+        },
+        "run": {
+          "pid": 63808,
+          "status": 0,
+          "signal": null,
+          "timedOut": false,
+          "overflow": false,
+          "groupAlive": false,
+          "stdoutHex": "3c2e2f7363726970743e7c3c313e7c3c6120623e0a",
+          "stderrHex": ""
+        },
+        "tuple": {
+          "status": 0,
+          "stdoutHex": "3c2e2f7363726970743e7c3c313e7c3c6120623e0a",
+          "stderrHex": "",
+          "effects": {
+            "phase": {
+              "hex": "6b657074",
+              "mode": 420
+            }
+          }
+        }
+      },
+      "native": {
+        "status": 0,
+        "stdoutHex": "3c2e2f7363726970743e7c3c313e7c3c6120623e0a",
+        "stderrHex": "",
+        "effects": {
+          "phase": {
+            "hex": "6b657074",
+            "mode": 420
+          }
+        }
+      },
+      "virtual": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202e2f7363726970743a20756e737570706f7274656420696e7465727072657465723a202f7573722f62696e2f656e76202d2d73706c69742d737472696e673d7368202d650a",
+        "effects": {
+          "phase": {
+            "hex": "73656564",
+            "mode": 420
+          }
+        }
+      },
+      "nativeStderrUtf8": "",
+      "virtualStderrUtf8": "shell: line 1: ./script: unsupported interpreter: /usr/bin/env --split-string=sh -e\n",
+      "classification": "unsupported runtime/shebang protocol; no core credit"
+    },
+    {
+      "id": "shebang-long-split-sh-argv",
+      "profile": "historical",
+      "input": {
+        "id": "shebang-long-split-sh-argv",
+        "executable": "/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "./script \"a b\"",
+          "shell"
+        ],
+        "argv0": "bash",
+        "shellArg0": "shell",
+        "cwd": "/private/tmp/safe-bash-packed-env-native-L9rtMm",
+        "env": {
+          "HOME": "/nonexistent",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "DROP": "remove-me",
+          "PUBLIC": "parent-public",
+          "TEXT": "two words;$(printf INJECTED > marker)",
+          "EMPTY": "",
+          "PATH": "/private/tmp/safe-bash-packed-env-native-L9rtMm/bin"
+        },
+        "fixtures": {
+          "recorder": "#!/bin/bash\nprintf \"%s\\0\" \"$#\" \"$@\"\nprintf \"%s\\0\" \"${KEEP+x}\" \"${KEEP-}\"\nprintf \"%s\\0\" \"${DROP+x}\" \"${DROP-}\"\nprintf \"%s\\0\" \"${PUBLIC+x}\" \"${PUBLIC-}\"\nprintf \"%s\\0\" \"${SECRET+x}\" \"${SECRET-}\"\nprintf \"%s\\0\" \"${TEXT+x}\" \"${TEXT-}\"\n",
+          "script": "#!/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env --split-string=sh -e\nprintf \"<%s>|<%s>|<%s>\\n\" \"$0\" \"$#\" \"$1\"\nprintf kept > phase\n",
+          "phase": {
+            "hex": "73656564",
+            "mode": 420
+          }
+        },
+        "run": {
+          "pid": 63822,
+          "status": 0,
+          "signal": null,
+          "timedOut": false,
+          "overflow": false,
+          "groupAlive": false,
+          "stdoutHex": "3c2e2f7363726970743e7c3c313e7c3c6120623e0a",
+          "stderrHex": ""
+        },
+        "tuple": {
+          "status": 0,
+          "stdoutHex": "3c2e2f7363726970743e7c3c313e7c3c6120623e0a",
+          "stderrHex": "",
+          "effects": {
+            "phase": {
+              "hex": "6b657074",
+              "mode": 420
+            }
+          }
+        }
+      },
+      "native": {
+        "status": 0,
+        "stdoutHex": "3c2e2f7363726970743e7c3c313e7c3c6120623e0a",
+        "stderrHex": "",
+        "effects": {
+          "phase": {
+            "hex": "6b657074",
+            "mode": 420
+          }
+        }
+      },
+      "virtual": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202e2f7363726970743a20756e737570706f7274656420696e7465727072657465723a202f7573722f62696e2f656e76202d2d73706c69742d737472696e673d7368202d650a",
+        "effects": {
+          "phase": {
+            "hex": "73656564",
+            "mode": 420
+          }
+        }
+      },
+      "nativeStderrUtf8": "",
+      "virtualStderrUtf8": "shell: line 1: ./script: unsupported interpreter: /usr/bin/env --split-string=sh -e\n",
+      "classification": "unsupported runtime/shebang protocol; no core credit"
+    },
+    {
+      "id": "non-split-header-one-argument",
+      "profile": "primary",
+      "input": {
+        "id": "non-split-header-one-argument",
+        "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "./script",
+          "shell"
+        ],
+        "argv0": "bash",
+        "shellArg0": "shell",
+        "cwd": "/private/tmp/safe-bash-packed-env-native-Y1lhav",
+        "env": {
+          "HOME": "/nonexistent",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "DROP": "remove-me",
+          "PUBLIC": "parent-public",
+          "TEXT": "two words;$(printf INJECTED > marker)",
+          "EMPTY": "",
+          "PATH": "/private/tmp/safe-bash-packed-env-native-Y1lhav/bin"
+        },
+        "fixtures": {
+          "recorder": "#!/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash\nprintf \"%s\\0\" \"$#\" \"$@\"\nprintf \"%s\\0\" \"${KEEP+x}\" \"${KEEP-}\"\nprintf \"%s\\0\" \"${DROP+x}\" \"${DROP-}\"\nprintf \"%s\\0\" \"${PUBLIC+x}\" \"${PUBLIC-}\"\nprintf \"%s\\0\" \"${SECRET+x}\" \"${SECRET-}\"\nprintf \"%s\\0\" \"${TEXT+x}\" \"${TEXT-}\"\n",
+          "script": "#!/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env bash -e\nprintf reached > phase\n",
+          "phase": {
+            "hex": "73656564",
+            "mode": 420
+          }
+        },
+        "run": {
+          "pid": 63810,
+          "status": 0,
+          "signal": null,
+          "timedOut": false,
+          "overflow": false,
+          "groupAlive": false,
+          "stdoutHex": "",
+          "stderrHex": ""
+        },
+        "tuple": {
+          "status": 0,
+          "stdoutHex": "",
+          "stderrHex": "",
+          "effects": {
+            "phase": {
+              "hex": "72656163686564",
+              "mode": 420
+            }
+          }
+        }
+      },
+      "native": {
+        "status": 0,
+        "stdoutHex": "",
+        "stderrHex": "",
+        "effects": {
+          "phase": {
+            "hex": "72656163686564",
+            "mode": 420
+          }
+        }
+      },
+      "virtual": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202e2f7363726970743a20756e737570706f7274656420696e7465727072657465723a202f7573722f62696e2f656e762062617368202d650a",
+        "effects": {
+          "phase": {
+            "hex": "73656564",
+            "mode": 420
+          }
+        }
+      },
+      "nativeStderrUtf8": "",
+      "virtualStderrUtf8": "shell: line 1: ./script: unsupported interpreter: /usr/bin/env bash -e\n",
+      "classification": "unsupported runtime/shebang protocol; no core credit"
+    },
+    {
+      "id": "non-split-header-one-argument",
+      "profile": "historical",
+      "input": {
+        "id": "non-split-header-one-argument",
+        "executable": "/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "./script",
+          "shell"
+        ],
+        "argv0": "bash",
+        "shellArg0": "shell",
+        "cwd": "/private/tmp/safe-bash-packed-env-native-qseihg",
+        "env": {
+          "HOME": "/nonexistent",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "DROP": "remove-me",
+          "PUBLIC": "parent-public",
+          "TEXT": "two words;$(printf INJECTED > marker)",
+          "EMPTY": "",
+          "PATH": "/private/tmp/safe-bash-packed-env-native-qseihg/bin"
+        },
+        "fixtures": {
+          "recorder": "#!/bin/bash\nprintf \"%s\\0\" \"$#\" \"$@\"\nprintf \"%s\\0\" \"${KEEP+x}\" \"${KEEP-}\"\nprintf \"%s\\0\" \"${DROP+x}\" \"${DROP-}\"\nprintf \"%s\\0\" \"${PUBLIC+x}\" \"${PUBLIC-}\"\nprintf \"%s\\0\" \"${SECRET+x}\" \"${SECRET-}\"\nprintf \"%s\\0\" \"${TEXT+x}\" \"${TEXT-}\"\n",
+          "script": "#!/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env bash -e\nprintf reached > phase\n",
+          "phase": {
+            "hex": "73656564",
+            "mode": 420
+          }
+        },
+        "run": {
+          "pid": 63827,
+          "status": 0,
+          "signal": null,
+          "timedOut": false,
+          "overflow": false,
+          "groupAlive": false,
+          "stdoutHex": "",
+          "stderrHex": ""
+        },
+        "tuple": {
+          "status": 0,
+          "stdoutHex": "",
+          "stderrHex": "",
+          "effects": {
+            "phase": {
+              "hex": "72656163686564",
+              "mode": 420
+            }
+          }
+        }
+      },
+      "native": {
+        "status": 0,
+        "stdoutHex": "",
+        "stderrHex": "",
+        "effects": {
+          "phase": {
+            "hex": "72656163686564",
+            "mode": 420
+          }
+        }
+      },
+      "virtual": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202e2f7363726970743a20756e737570706f7274656420696e7465727072657465723a202f7573722f62696e2f656e762062617368202d650a",
+        "effects": {
+          "phase": {
+            "hex": "73656564",
+            "mode": 420
+          }
+        }
+      },
+      "nativeStderrUtf8": "",
+      "virtualStderrUtf8": "shell: line 1: ./script: unsupported interpreter: /usr/bin/env bash -e\n",
+      "classification": "unsupported runtime/shebang protocol; no core credit"
+    }
+  ]
+}

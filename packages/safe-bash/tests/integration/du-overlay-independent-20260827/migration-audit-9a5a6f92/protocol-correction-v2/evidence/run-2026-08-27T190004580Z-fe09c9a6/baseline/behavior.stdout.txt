@@ -1,0 +1,16 @@
+TAP version 13
+# Subtest: all argument and environment validation happens before any filesystem call
+ok 1 - all argument and environment validation happens before any filesystem call
+  ---
+  duration_ms: 3.130625
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 282.162042

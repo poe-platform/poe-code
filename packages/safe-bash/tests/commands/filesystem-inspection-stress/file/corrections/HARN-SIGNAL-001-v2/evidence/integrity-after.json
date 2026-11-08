@@ -1,0 +1,19 @@
+{
+  "checkedAt": "2026-08-27T09:06:39.067Z",
+  "originalPreseal": "8b4a48a3c4f189b1d98707354a2eb469af3527250cca7e6bc36f02ed86e04297",
+  "sealedArtifactsUnchanged": 54,
+  "verifiedHistory": [
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/filesystem-inspection-stress/file",
+      "files": 285,
+      "publicationRoot": "645a3bc0c768987ac35cc28b3e96aee753d46397ccfad5762a494a3ce45dbc36"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/filesystem-inspection-stress/file/corrections/HARN-SIGNAL-001",
+      "files": 37,
+      "publicationRoot": "5a816d16fc208ea52e674875c8adffd380b97bbeeebb6b4749d729dfc8488530"
+    }
+  ],
+  "peerCopiesIntact": true,
+  "v2RunnerUnchangedDuringMockWiringRepair": true
+}

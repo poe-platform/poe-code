@@ -1,0 +1,10 @@
+{
+  "schedule": "0 * * * *",
+  "repository": {
+    "full_name": "poe-platform/poe-code",
+    "name": "poe-code",
+    "owner": {
+      "login": "poe-platform"
+    }
+  }
+}

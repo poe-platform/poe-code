@@ -1,0 +1,14 @@
+import fs from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {runCapturedStartup,startupReceipt} from './startup-capture-v3.mjs';
+import {actualIO} from './capture-v1.mjs';
+const home=fileURLToPath(new URL('.',import.meta.url)).slice(0,-1);const base=home+'/startup-controls';const rows=[];
+const read=file=>{const stat=fs.lstatSync(file);if(!stat.isFile()||stat.isSymbolicLink()||stat.size>65536)throw Error('control capture admission');return fs.readFileSync(file);};
+const pair=id=>[base+'/'+id+'.stdout',base+'/'+id+'.stderr'];
+const check=(id,pass,record,extra={})=>{const row={id,pass:pass===true,...startupReceipt(record),...extra};rows.push(row);process.stdout.write(JSON.stringify(row)+'\n');if(!row.pass)throw Error('startup control '+id);};
+let record=await runCapturedStartup({paths:pair('S05-v2'),authenticate:()=>({executable:process.execPath,args:['--experimental-permission','--allow-fs-read='+home+'/harmless-v3.mjs',home+'/harmless-v3.mjs'],cwd:home,env:{NO_COLOR:'1',TZ:'UTC',LANG:'C.UTF-8'},timeoutMs:5000,captureBytes:65536})});
+const template=read(home+'/S05-RETAINED-WARNING.txt').toString('utf8');if(!Number.isSafeInteger(record.pid)||record.pid<=0||template.split('(node:71740)').length!==2)throw Error('warning PID template admission');const expected=Buffer.from(template.replace('(node:71740)','(node:'+record.pid+')'));
+check('S05-v2',record.spawned&&record.closed&&record.code===0&&record.signal===null&&!record.timedOut&&!record.primary&&!record.cleanup.length&&read(pair('S05-v2')[0]).equals(Buffer.from('startup-ok\n'))&&read(pair('S05-v2')[1]).equals(expected),record,{exactWarning:true,onlySubstitution:'observed child PID',historical:'c24c48876debbdb0bf5219f71ba53b9cc44d2586'});
+let closes=0;record=await runCapturedStartup({paths:pair('S06'),io:{...actualIO,close(descriptor){actualIO.close(descriptor);closes++;throw closes===1?undefined:0;}},authenticate:()=>{throw false;}});
+check('S06',!record.spawned&&record.primary?.value===false&&closes===2&&record.cleanup.length===2&&record.cleanup[0].value===undefined&&record.cleanup[1].value===0,record,{bothActuallyClosed:true,rawPrimaryFalse:true});
+const result={role:'node-startup-controls-v4',pass:rows.length===2&&rows.every(row=>row.pass),count:2,children:1,rows};fs.writeFileSync(base+'/RESULTS.json',JSON.stringify(result)+'\n',{flag:'wx',mode:0o600});process.stdout.write(JSON.stringify({role:result.role,pass:result.pass,count:2,children:1})+'\n');

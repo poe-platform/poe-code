@@ -1,0 +1,20 @@
+import type { PromptStateName } from "./prompt-core.js";
+export declare const UNICODE: boolean;
+export declare const GLYPHS: {
+    readonly stepActive: string;
+    readonly stepCancel: string;
+    readonly stepError: string;
+    readonly stepSubmit: string;
+    readonly barStart: string;
+    readonly bar: string;
+    readonly barEnd: string;
+    readonly radioActive: string;
+    readonly radioInactive: string;
+    readonly checkboxActive: "[ ]";
+    readonly checkboxSelected: "[x]";
+    readonly checkboxInactive: "[ ]";
+    readonly passwordMask: string;
+    readonly ellipsis: "...";
+};
+export declare function symbol(state: PromptStateName): string;
+export declare function symbolBar(state: PromptStateName): string;

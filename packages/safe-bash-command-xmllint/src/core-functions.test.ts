@@ -1,0 +1,416 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { createMemoryFileSystem } from "@poe-code/safe-fs";
+import { createCommandArguments, toByteSource, type CommandContext } from "safe-bash-contracts";
+import { createXmllintCommand, type XmllintCommandsOptions } from "./index.js";
+
+const document = '<root><item id="a" n="10">First</item><item id="b" n="20"><sub>Second</sub></item></root>';
+async function run(args: string[], input = document, options: XmllintCommandsOptions = {}) {
+  let output = "", errors = "";
+  const files = new Map<string, Uint8Array>();
+  const fs = createMemoryFileSystem();
+  const carrier = createCommandArguments(args);
+  const context = {
+    args: carrier.args, arguments: carrier, command: "xmllint", cwd: "/", env: {},
+    signal: new AbortController().signal, stdin: toByteSource(input),
+    fs,
+    stdout: { async write(bytes: Uint8Array) { output += new TextDecoder().decode(bytes); } },
+    stderr: { async write(bytes: Uint8Array) { errors += new TextDecoder().decode(bytes); } },
+  } as unknown as CommandContext;
+  const result = await createXmllintCommand(options).execute(context);
+  for (const entry of await fs.readdir("/")) if (entry.type === "file") files.set("/" + entry.name, await fs.readFile("/" + entry.name));
+  return { ...result, output, errors, files };
+}
+for (const [query, expected] of [
+  ['concat(/root/item[1], "-", /root/item[2]/sub)', "First-Second"],
+  ['//item[contains(., "Fir")]/@id', ' id="a"'],
+  ['//item[starts-with(@id, "a")]/text()', "First"],
+  ['string-length(/root/item[1])', "5"],
+  ['normalize-space("  a   b  ")', "a b"],
+  ['substring("12345", 1.5, 2.6)', "234"],
+  ['substring("12345", 0, 3)', "12"],
+  ['substring-before("a-b-c", "-")', "a"],
+  ['substring-after("a-b-c", "-")', "b-c"],
+  ['translate("bar", "abc", "ABC")', "BAr"],
+  ['name(/root/*[1])', "item"],
+  ['local-name(/root/*[1])', "item"],
+  ['namespace-uri(/root)', ""],
+  ['not(/root/nonexistent)', "true"],
+  ['boolean(/root/item)', "true"],
+  ['true()', "true"], ['false()', "false"],
+  ['sum(//item/@n)', "30"],
+  ['number(/root/item[1]/@n)', "10"],
+  ['floor(1.9)', "1"], ['ceiling(1.1)', "2"], ['round(-1.5)', "-1"],
+  ['concat(substring("😀abc", 2), string-length("😀a"))', "abc2"],
+  ['//item[string-length(.) > 5]/@id', ' id="b"'],
+  ['//item[name() = "item" and number(@n) > 15]/@id', ' id="b"'],
+  ['string()', "FirstSecond"],
+  ['normalize-space()', "FirstSecond"],
+  ['name()', ""],
+  ['number("1e3")', "1000"],
+  ['sum(/root/item[1]/@n | /root/item[2]/@n)', "30"],
+  ['substring("abc", number(""))', ""],
+  ['//item[sum(@n)>15]/@id', ' id="b"'],
+  ['//item[contains(sub/text(), "Sec")]/@id', ' id="b"'],
+  ['concat(true(), "-", false(), "-", number("bad"))', "true-false-NaN"],
+] as const) test(query, async () => {
+  const result = await run(["--xpath", query]);
+  assert.equal(result.exitCode, 0, result.errors);
+  assert.equal(result.output, expected + "\n");
+});
+
+for (const [query, expected] of [
+  ["sum(//price)", "30"],
+  ["number(//price[1])", "10"],
+  ["normalize-space(//title[1])", "XML Guide"],
+  ["concat(//title[1], ' - ', //title[2])", "  XML  Guide  - Reference"],
+  ["contains(//title[1], 'XML')", "true"],
+  ["starts-with(//title[2], 'Ref')", "true"],
+  ["substring(//title[2], 2, 3)", "efe"],
+  ["string-length(//title[2])", "9"],
+  ["name(/*)", "books"],
+  ["local-name(/*)", "books"],
+] as const) test(`core functions on element node sets: ${query}`, async () => {
+  const result = await run(["--xpath", query],
+    "<books><title>  XML  Guide </title><title>Reference</title><price>10</price><price>20</price></books>");
+  assert.equal(result.exitCode, 0, result.errors);
+  assert.equal(result.output, expected + "\n");
+});
+
+for (const [input, query] of [
+  ['<catalog xml:lang="en-US"><item id="a" xml:id="first"><n>1</n><n>2</n><s>AB</s></item><item id="b" xml:lang="fr"><n>2</n><s>xy</s></item><item id="c"><n>03</n><n>3</n></item></catalog>', 'count(//item[*[local-name()="n"]="2"])'],
+  ['<feed xmlns="urn:feed"><entry><title>A</title><title>B</title></entry><entry><title>B</title></entry><entry><title>C</title></entry></feed>', 'count(//*[local-name()="entry"][*[local-name()="title"]="B"])'],
+] as const) test(`wildcard child comparison: ${query}`, async () => {
+  const result = await run(["--xpath", query, "-"], input);
+  assert.equal(result.exitCode, 0, result.errors);
+  assert.equal(result.output, "2\n");
+});
+
+for (const [query, expected] of [
+  ["5 div 2", "2.5"], ["5 mod 2", "1"], ["3+4*2", "11"],
+  ["count(//item[position() mod 2=1])", "2"],
+  ["count(//item[position()*2=4])", "1"],
+  ["count(//item[position() div 2=1])", "1"],
+  ["count(//item[n*2=4])", "1"],
+  ["count(//item[* * 2=4])", "1"],
+  ["count(//item[n div 2=1])", "1"],
+  ["count(//item[n mod 2=1])", "2"],
+  ["/catalog/item[1]/n*2", "2"],
+  ["count(/catalog/*)", "3"],
+] as const) test(`multiplicative XPath: ${query}`, async () => {
+  const result = await run(["--xpath", query, "-"],
+    '<catalog xml:lang="en-US"><item id="a" xml:id="first"><n>1</n><n>2</n><s>AB</s></item><item id="b" xml:lang="fr"><n>2</n><s>xy</s></item><item id="c"><n>03</n><n>3</n></item></catalog>');
+  assert.equal(result.exitCode, 0, result.errors);
+  assert.equal(result.output, expected + "\n");
+});
+
+test("namespace naming functions", async () => {
+  const result = await run(["--xpath", 'concat(name(/*), "|", local-name(/*), "|", namespace-uri(/*))'], '<p:root xmlns:p="urn:p"/>');
+  assert.equal(result.exitCode, 0, result.errors);
+  assert.equal(result.output, "p:root|root|urn:p\n");
+});
+
+const namespacedDocument = '<w:document xmlns:w="urn:word" xmlns:custom="urn:custom"><w:p custom:id="1" xml:space="preserve"/><w:p/></w:document>';
+for (const query of ['count(//w:p)', '//w:p', 'count(//@custom:id)', 'count(//*[ @custom:id = "1" ])']) {
+  test(`XPath does not register document prefixes: ${query}`, async () => {
+    const result = await run(["--xpath", query, "-"], namespacedDocument);
+    assert.equal(result.exitCode, 10, result.errors);
+    assert.equal(result.output, "");
+    assert.ok(result.errors.includes("undefined XPath namespace prefix"), result.errors);
+  });
+}
+for (const [query, expected] of [
+  ['count(//*[local-name()="p"])', "2\n"],
+  ['count(//@xml:space)', "1\n"],
+  ['count(//*[local-name()="p"][@xml:space="preserve"])', "1\n"],
+  ['string("custom:id")', "custom:id\n"],
+] as const) {
+  test(`XPath namespace controls: ${query}`, async () => {
+    const result = await run(["--xpath", query, "-"], namespacedDocument);
+    assert.equal(result.exitCode, 0, result.errors);
+    assert.equal(result.output, expected);
+  });
+}
+
+for (const flag of ["--output", "-o"]) test(flag, async () => {
+  const result = await run([flag, "out.xml", "--noblanks", "--format", "--encode", "UTF-8", "-"], "<root>\n <item/>\n</root>");
+  assert.equal(result.exitCode, 0, result.errors);
+  assert.equal(result.output, "");
+  assert.equal(new TextDecoder().decode(result.files.get("/out.xml")), '<?xml version="1.0" encoding="UTF-8"?>\n<root>\n  <item/>\n</root>\n');
+});
+test("noblanks affects XPath text nodes", async () => {
+  const result = await run(["--noblanks", "--xpath", "count(/root/text())"], "<root>\n <item/>\n</root>");
+  assert.equal(result.exitCode, 0, result.errors);
+  assert.equal(result.output, "0\n");
+});
+test("exclusive canonicalization omits unused namespaces", async () => {
+  const result = await run(["--exc-c14n"], '<root xmlns:p="urn:p"><p:item/></root>');
+  assert.equal(result.exitCode, 0, result.errors);
+  assert.equal(result.output, '<root><p:item xmlns:p="urn:p"></p:item></root>');
+});
+test("recover closes truncated elements", async () => {
+  const result = await run(["--recover"], "<root><item>value");
+  assert.equal(result.exitCode, 0, result.errors);
+  assert.equal(result.output, '<?xml version="1.0"?>\n<root><item>value</item></root>\n');
+});
+
+test("output is admitted before a destination file is replaced", async () => {
+  const result = await run(["--output", "out.xml"], "<root/>", { limits: { maxOutputBytes: 3 } });
+  assert.equal(result.exitCode, 5);
+  assert.equal(result.files.size, 0);
+});
+test("function results obey output, source, results and nesting limits", async () => {
+  for (const [query, limits] of [
+    ['concat("abc", "def")', { maxOutputBytes: 5 }],
+    ['sum(//item/@n)', { maxResults: 1 }],
+    ['not(not(true()))', { maxDepth: 2 }],
+    ['string-length("abc")', { maxSourceBytes: 5 }]
+  ] as const) {
+    const result = await run(["--xpath", query], document, { limits });
+    assert.equal(result.exitCode, 5, result.errors);
+    assert.equal(result.output, "");
+  }
+});
+test("malformed function arguments are rejected without input reads", async () => {
+  const carrier = createCommandArguments(["--xpath", 'concat(/root/, "x")']);
+  const context = { command: "xmllint", ...carrier, signal: new AbortController().signal,
+    stdin: { [Symbol.asyncIterator]() { return { async next() { assert.fail("input was read"); } }; } },
+    stderr: { async write() {} }
+  } as unknown as CommandContext;
+  assert.equal((await createXmllintCommand().execute(context)).exitCode, 10);
+});
+test("noout does not create an output file", async () => {
+  const result = await run(["--noout", "-o", "out.xml"]);
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.files.size, 0);
+});
+test("noblanks preserves xml:space and text-only whitespace", async () => {
+  const result = await run(["--noblanks"], '<root xml:space="preserve"> <item> </item> </root>');
+  assert.equal(result.output, '<?xml version="1.0"?>\n<root xml:space="preserve"> <item> </item> </root>\n');
+});
+for (const query of ['concat("a")', 'sum("1")', 'name("x")', 'contains("a")', 'true(1)']) test(`reject ${query}`, async () => {
+  assert.equal((await run(["--xpath", query])).exitCode, 10);
+});
+
+test("output encoding preserves XML declaration attribute order", async () => {
+  const result = await run(["--encode", "UTF-8"], '<?xml version="1.0" standalone="yes"?><root/>');
+  assert.equal(result.output, '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<root/>\n');
+});
+for (const [encoding, expected] of [
+  ["US-ASCII", '<?xml version="1.0" encoding="US-ASCII"?>\n<root>&#233;&#128512;</root>\n'],
+  ["ISO-8859-1", '<?xml version="1.0" encoding="ISO-8859-1"?>\n<root>é&#128512;</root>\n']
+] as const) test(encoding + " output bytes", async () => {
+  const result = await run(["--encode", encoding, "-o", "out.xml"], "<root>é😀</root>");
+  assert.equal(result.exitCode, 0, result.errors);
+  assert.deepEqual(result.files.get("/out.xml"), Uint8Array.from(expected, char => char.charCodeAt(0)));
+});
+test("UTF-16 output includes its BOM and is limited by bytes", async () => {
+  const result = await run(["--encode", "UTF-16", "-o", "out.xml"], "<root>😀</root>");
+  const bytes = result.files.get("/out.xml")!;
+  assert.deepEqual([...bytes.slice(0, 2)], [255, 254]);
+  assert.equal(new TextDecoder("utf-16").decode(bytes), '<?xml version="1.0" encoding="UTF-16"?>\n<root>😀</root>\n');
+  const limited = await run(["--encode", "UTF-16", "-o", "out.xml"], "<root>😀</root>", { limits: { maxOutputBytes: bytes.length - 1 } });
+  assert.equal(limited.exitCode, 5);
+  assert.equal(limited.files.size, 0);
+});
+
+for (const [query, expected] of [
+  ["string(//item[@id=2])", "Beta"],
+  ["//item[@id!=1]/text()", "Beta"],
+  ["//item[@id<2]/text()", "Alpha"],
+  ["//item[@id<=1]/text()", "Alpha"],
+  ["//item[@id>1]/text()", "Beta"],
+  ["//item[@id>=2]/text()", "Beta"],
+  ["//item[contains(@class, 'foo')]/text()", "Alpha"],
+  ["//item[starts-with(@class, 'ba')]/text()", "Beta"],
+  ["//item[not(@id='1')]/text()", "Beta"],
+  ["//item[@id='1' and @class='foo bar']/text()", "Alpha"],
+  ["//item[@id='1' or @id='2']/text()", "Alpha\nBeta"],
+  ["number(//item/@id)", "1"],
+  ["concat(//item[1]/text(), '-', //item[2]/text())", "Alpha-Beta"],
+] as const) test(`attribute predicate parity: ${query}`, async () => {
+  const result = await run(["--xpath", query],
+    '<root><item id="1" class="foo bar">Alpha</item><item id="2" class="bar">Beta</item></root>');
+  assert.equal(result.exitCode, 0, result.errors);
+  assert.equal(result.output, expected + "\n");
+});
+
+for (const [query, expected] of [["-1 + 2", "1\n"], ["-number(/root/item[1]/@n)", "-10\n"]]) {
+  test(`XPath accepts unary minus: ${query}`, async () => {
+    const result = await run(["--xpath", query!]);
+    assert.equal(result.exitCode, 0, result.errors);
+    assert.equal(result.output, expected);
+  });
+}
+
+for (const flags of [[], ["--noblanks"], ["--xpath", "/root"]]) {
+  test(`nocdata converts nested CDATA with ${flags.join(" ")}`, async () => {
+    const input = '<root><![CDATA[a<&]]><child><![CDATA[b]]></child></root>';
+    const result = await run(["--nocdata", ...flags], input);
+    assert.equal(result.exitCode, 0, result.errors);
+    assert.equal(result.output, (flags.includes("--xpath") ? "" : '<?xml version="1.0"?>\n') + '<root>a&lt;&amp;<child>b</child></root>\n');
+    const unchanged = await run([], input);
+    assert.ok(unchanged.output.includes("<![CDATA[a<&]]>"));
+  });
+}
+
+test("nocdata supports encoded file output and output limits", async () => {
+  const result = await run(["--nocdata", "--encode", "US-ASCII", "-o", "out.xml"], '<root><![CDATA[é<&]]></root>');
+  assert.equal(result.exitCode, 0, result.errors);
+  assert.equal(result.output, "");
+  assert.equal(new TextDecoder().decode(result.files.get("/out.xml")), '<?xml version="1.0" encoding="US-ASCII"?>\n<root>&#233;&lt;&amp;</root>\n');
+  const limited = await run(["--nocdata"], '<root><![CDATA[<&]]></root>', { limits: { maxOutputBytes: 10 } });
+  assert.equal(limited.exitCode, 5);
+  assert.match(limited.errors, /maxOutputBytes/);
+});
+
+for (const [input, expected] of [
+  ['<root>a<![CDATA[b]]>c<![CDATA[d]]></root>', '1\n'],
+  ['<root><![CDATA[]]></root>', '1\n'],
+]) {
+  test(`nocdata coalesces text nodes: ${input}`, async () => {
+    const result = await run(["--nocdata", "--xpath", "count(/root/text())"], input!);
+    assert.equal(result.exitCode, 0, result.errors);
+    assert.equal(result.output, expected);
+  });
+}
+
+for (const [query, expected] of [
+  ["sum(//book/price)", "50.9"],
+  ["//book[price > 10]/@id", ' id="bk101"'],
+  ["//book[price != 9.95]/@id", ' id="bk101"'],
+  ["//book[price < 10]/@id", ' id="bk102"'],
+  ["//book[price <= 9.95]/@id", ' id="bk102"'],
+  ["//book[price >= 40.95]/@id", ' id="bk101"'],
+  ["//book[price > 10 and price < 50]/@id", ' id="bk101"'],
+  ["//book[price < 10 or not(price)]/@id", ' id="bk102"\n id="bk103"'],
+  ["//book[price]/@id", ' id="bk101"\n id="bk102"'],
+  ["concat(//book[1]/@id, '-', //book[2]/@id)", "bk101-bk102"],
+] as const) test(`catalog child predicate parity: ${query}`, async () => {
+  const result = await run(["--xpath", query],
+    '<catalog><book id="bk101"><price>40.95</price></book><book id="bk102"><price>9.95</price></book><book id="bk103"/></catalog>');
+  assert.equal(result.exitCode, 0, result.errors);
+  assert.equal(result.output, expected + "\n");
+});
+
+test("local-name selection and xml attributes work together in the command", async () => {
+  const result = await run(["--xpath", "//*[local-name()='book'][@xml:lang='en']/@id"],
+    '<catalog xmlns:ns="urn:books"><ns:book id="bk101" xml:lang="en"/><ns:book id="bk102" xml:lang="fr"/></catalog>');
+  assert.equal(result.exitCode, 0, result.errors);
+  assert.equal(result.output, ' id="bk101"\n');
+});
+
+for (const [query, expected] of [
+  ["1.23456789", "1.23457"], ["999999.9", "1e+06"],
+  ["0.00001", "1e-05"], ["0.0001", "0.0001"],
+  ["-0", "-0"], ["number('bad')", "NaN"],
+  ["number('1e309')", "Infinity"], ["number('-1e309')", "-Infinity"],
+  ["1.23456789 > 1.234567", "true"],
+] as const) test(`native scalar number formatting: ${query}`, async () => {
+  const result = await run(["--xpath", query]);
+  assert.equal(result.exitCode, 0, result.errors);
+  assert.equal(result.output, expected + "\n");
+});
+
+for (const flags of [[], ["--format"], ["--c14n"], ["--exc-c14n"], ["--encode", "UTF-8"]]) {
+  test(`stored whitespace removal preserves tree semantics (${flags.join(" ")})`, async () => {
+    for (const input of [
+      '<r> <a/> <b/> </r>',
+      '<r> <a/> text <b/> </r>',
+      '<r xml:space="preserve"> <a xml:space="default"> <b/> </a> </r>',
+      '<r xml:space="preserve"> <a xml:space="invalid"> <b/> </a> </r>',
+      '<r><a> </a><b><![CDATA[ ]]><c/> </b></r>',
+    ]) {
+      const actual = await run(["--noblanks", ...flags], input);
+      // Recovery selects the established tree transformation on valid XML.
+      const expected = await run(["--recover", "--noblanks", ...flags], input);
+      assert.equal(actual.exitCode, 0);
+      assert.equal(actual.output, expected.output, input);
+      assert.equal(actual.errors, expected.errors);
+    }
+  });
+}
+
+test("format preserves inline descendants of mixed content", async () => {
+  const input = '<r xml:space="preserve"> <a xml:space="default"> <b/> </a> </r>';
+  const result = await run(["--noblanks", "--format"], input);
+  assert.equal(result.output, '<?xml version="1.0"?>\n<r xml:space="preserve"> <a xml:space="default"><b/></a> </r>\n');
+});
+
+for (const mode of [[], ["--format"], ["--c14n"], ["--exc-c14n"], ["--xpath", "/r/text()"], ["--xpath", "count(//text())"], ["--xpath", "string(/r)"]]) {
+  test(`stored CDATA transforms preserve tree semantics (${mode.join(" ")})`, async () => {
+    for (const flags of [["--nocdata"], ["--nocdata", "--noblanks"]]) for (const input of [
+      '<r><![CDATA[ ]]><![CDATA[x]]><a/> tail<![CDATA[é😀]]></r>',
+      '<r><![CDATA[ ]]><![CDATA[ ]]><a/> </r>',
+      '<r><![CDATA[ ]]><![CDATA[ ]]></r>',
+      '<r> <a/> <![CDATA[x]]> <b/> </r>',
+      '<r xml:space="preserve"> <a xml:space="default"> <![CDATA[ ]]><b/> </a> </r>',
+    ]) {
+      const actual = await run([...flags, ...mode], input);
+      const expected = await run(["--recover", ...flags, ...mode], input);
+      assert.equal(actual.exitCode, expected.exitCode, input);
+      assert.equal(actual.output, expected.output, input);
+      assert.equal(actual.errors, expected.errors, input);
+    }
+  });
+}
+
+for (const [query, expected] of [
+  ['count(/*/namespace::*)', '3'],
+  ['count(/*/namespace::node())', '3'],
+  ['count(/*/@*)', '1'],
+  ['string(/*/namespace::x)', 'urn:extra'],
+  ['name(/*/namespace::x)', 'x'],
+  ['local-name(/*/namespace::x)', 'x'],
+  ['namespace-uri(/*/namespace::x)', ''],
+  ['count(/*/namespace::*[name()=""])', '1'],
+  ['count(/*/namespace::* | /*/namespace::*)', '3'],
+  ['count(/*/namespace::x/..)', '1'],
+  ['/*/namespace::x', ' xmlns:x="urn:extra"'],
+] as const) test(`namespace axis: ${query}`, async () => {
+  const result = await run(['--xpath', query, '-'], '<feed xmlns="urn:atom" xmlns:x="urn:extra" xml:lang="en-US"/>');
+  assert.equal(result.exitCode, 0, result.errors);
+  assert.equal(result.output, expected + '\n');
+});
+
+for (const [query, expected] of [
+  ['string((//*[local-name()="t"])[1])', 'zip'],
+  ['name((//@*)[1])', 'w:id'],
+  ['(//*[local-name()="t"])[1]', '<w:t>zip</w:t>'],
+  ['count((//*[local-name()="t"])[1])', '1'],
+  ['count(//*[local-name()="t"][1])', '2'],
+] as const) test(`parenthesized node-set filter: ${query}`, async () => {
+  const result = await run(['--xpath', query, '-'], '<w:document xmlns:w="urn:word"><w:p w:id="1"><w:t>zip</w:t></w:p><w:p><w:t>other</w:t></w:p></w:document>');
+  assert.equal(result.exitCode, 0, result.errors);
+  assert.equal(result.output, expected + "\n");
+});
+
+
+test('namespace-only declarations are excluded from attributes', async () => {
+  const input = '<w:document ' + Array.from({ length: 9 }, (_, i) => `xmlns:${i === 0 ? 'w' : 'p' + i}="urn:${i}"`).join(' ') + '/>';
+  for (const [query, expected] of [['count(/*/namespace::*)', '10\n'], ['count(/*/@*)', '0\n']]) {
+    const result = await run(['--xpath', query!, '-'], input);
+    assert.equal(result.exitCode, 0, result.errors);
+    assert.equal(result.output, expected);
+  }
+});
+
+test("lang matches inherited regional languages through the public command", async () => {
+  const result = await run(["--xpath", 'count(//item[lang("en")])', "-"],
+    '<catalog xml:lang="en-US"><item id="a" xml:id="first"><n>1</n><n>2</n><s>AB</s></item><item id="b" xml:lang="fr"><n>2</n><s>xy</s></item><item id="c"><n>03</n><n>3</n></item></catalog>');
+  assert.equal(result.exitCode, 0, result.errors);
+  assert.equal(result.output, "2\n");
+});
+
+for (const [query, expected] of [
+  ['count(//*[local-name()="sub"]/ancestor::*)', '2'],
+  ['count(//*[local-name()="item"][preceding-sibling::*])', '1'],
+  ['//sub/parent::item/attribute::id', ' id="b"'],
+  ['//item[2]/preceding-sibling::item/attribute::id', ' id="a"'],
+  ['//item[1]/following::sub/child::text()', 'Second'],
+  ['//item/ancestor-or-self::*/self::item/@id', ' id="a"\n id="b"'],
+] as const) test(`explicit axes through xmllint: ${query}`, async () => {
+  const result = await run(["--xpath", query, "-"]);
+  assert.equal(result.exitCode, 0, result.errors);
+  assert.equal(result.output, expected + "\n");
+});

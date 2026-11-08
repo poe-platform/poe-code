@@ -1,0 +1,225 @@
+{
+  "sealedAt": "2026-08-27T18:07:26.915Z",
+  "head": "326ca8e758ac0ac4167ba09418e7b7667d6ee5e1",
+  "status": "M tests/integration/full-gate-20260827/combined-8670ebe8/run.mjs\n M tests/plugins/qualified-current-release/snapshot.mjs\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/expr-stress/extension-review/after-abort-fix/replay/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/fs/overlay/metadata-purity-evidence/\n?? tests/integration/aliases-column-public-independent-20260827/candidate-3dc0ac26-provenance/\n?? tests/integration/full-gate-20260827/integrity-73/\n?? tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/author/execution-v1/",
+  "node": "v22.22.2",
+  "allCopiesVerified": true,
+  "records": [
+    {
+      "source": "/tmp/safe-bash-overlay-readpurity-JuB9ca/manifest-after.json",
+      "destination": "tests/fs/overlay/metadata-purity-evidence/history-20260827-v1/investigation/manifest-after.json.txt",
+      "sha256": "cae8ba96d5840b1275329c33cedc0e3014fc25ffb69e65652b26700b833687f5",
+      "bytes": 25590
+    },
+    {
+      "source": "/tmp/safe-bash-overlay-readpurity-JuB9ca/manifest-before.json",
+      "destination": "tests/fs/overlay/metadata-purity-evidence/history-20260827-v1/investigation/manifest-before.json.txt",
+      "sha256": "cae8ba96d5840b1275329c33cedc0e3014fc25ffb69e65652b26700b833687f5",
+      "bytes": 25590
+    },
+    {
+      "source": "/tmp/safe-bash-overlay-readpurity-JuB9ca/PROPOSAL.md",
+      "destination": "tests/fs/overlay/metadata-purity-evidence/history-20260827-v1/investigation/PROPOSAL.md.txt",
+      "sha256": "a0b20c8667ff7116a60926662de539fc6fbcfd0e131b4209527be5a1ce5a07d8",
+      "bytes": 11146
+    },
+    {
+      "source": "/tmp/safe-bash-overlay-readpurity-JuB9ca/provenance.json",
+      "destination": "tests/fs/overlay/metadata-purity-evidence/history-20260827-v1/investigation/provenance.json.txt",
+      "sha256": "6988a4dfd03abc55cefc8b2ecf6edad30df4846c6810304ca3ea900907af40fa",
+      "bytes": 909
+    },
+    {
+      "source": "/tmp/safe-bash-overlay-readpurity-JuB9ca/replay-XMttPc/exit.json",
+      "destination": "tests/fs/overlay/metadata-purity-evidence/history-20260827-v1/investigation/replay-XMttPc/exit.json.txt",
+      "sha256": "374c764901d30bfa972be5d808851bc2d758f5f1dedbdaa8eaa7eabcb291f91a",
+      "bytes": 193
+    },
+    {
+      "source": "/tmp/safe-bash-overlay-readpurity-JuB9ca/replay-XMttPc/manifest-after.json",
+      "destination": "tests/fs/overlay/metadata-purity-evidence/history-20260827-v1/investigation/replay-XMttPc/manifest-after.json.txt",
+      "sha256": "cae8ba96d5840b1275329c33cedc0e3014fc25ffb69e65652b26700b833687f5",
+      "bytes": 25590
+    },
+    {
+      "source": "/tmp/safe-bash-overlay-readpurity-JuB9ca/replay-XMttPc/manifest-before.json",
+      "destination": "tests/fs/overlay/metadata-purity-evidence/history-20260827-v1/investigation/replay-XMttPc/manifest-before.json.txt",
+      "sha256": "cae8ba96d5840b1275329c33cedc0e3014fc25ffb69e65652b26700b833687f5",
+      "bytes": 25590
+    },
+    {
+      "source": "/tmp/safe-bash-overlay-readpurity-JuB9ca/replay-XMttPc/original-detector.exit.json",
+      "destination": "tests/fs/overlay/metadata-purity-evidence/history-20260827-v1/investigation/replay-XMttPc/original-detector.exit.json.txt",
+      "sha256": "5423b7a5a6847f98cf436db83d05ae2403aa8c4e37ed17783b6b0d491d34f1fb",
+      "bytes": 221
+    },
+    {
+      "source": "/tmp/safe-bash-overlay-readpurity-JuB9ca/replay-XMttPc/original-detector.stderr.log",
+      "destination": "tests/fs/overlay/metadata-purity-evidence/history-20260827-v1/investigation/replay-XMttPc/original-detector.stderr.log.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "source": "/tmp/safe-bash-overlay-readpurity-JuB9ca/replay-XMttPc/original-detector.stdout.log",
+      "destination": "tests/fs/overlay/metadata-purity-evidence/history-20260827-v1/investigation/replay-XMttPc/original-detector.stdout.log.txt",
+      "sha256": "d134598b28636501bc0afd7cce84920d922a673c91cb3b42d173da7a92ddcef0",
+      "bytes": 365
+    },
+    {
+      "source": "/tmp/safe-bash-overlay-readpurity-JuB9ca/replay-XMttPc/provenance.json",
+      "destination": "tests/fs/overlay/metadata-purity-evidence/history-20260827-v1/investigation/replay-XMttPc/provenance.json.txt",
+      "sha256": "9fbd922be18f6ab5f0d1718d45fc233367fb1e1bf0d6b5d8ff5402d1b6ff82e4",
+      "bytes": 10817
+    },
+    {
+      "source": "/tmp/safe-bash-overlay-readpurity-JuB9ca/replay-XMttPc/result.json",
+      "destination": "tests/fs/overlay/metadata-purity-evidence/history-20260827-v1/investigation/replay-XMttPc/result.json.txt",
+      "sha256": "33d4163fe808542483fc9685e40a54da3046f62bf7f1513b232c677c4b002dfd",
+      "bytes": 780
+    },
+    {
+      "source": "/tmp/safe-bash-overlay-readpurity-JuB9ca/replay-XMttPc/stability.json",
+      "destination": "tests/fs/overlay/metadata-purity-evidence/history-20260827-v1/investigation/replay-XMttPc/stability.json.txt",
+      "sha256": "ce99502373d289b0330fd34f4419da807f809f40177f3f932cb12656e80bde95",
+      "bytes": 202
+    },
+    {
+      "source": "/tmp/safe-bash-overlay-readpurity-JuB9ca/replay-XMttPc/strict-repro.mjs",
+      "destination": "tests/fs/overlay/metadata-purity-evidence/history-20260827-v1/investigation/replay-XMttPc/strict-repro.mjs.txt",
+      "sha256": "602888149ef97c59a463d5cf36d91f8bfc6ae7ae7637b578ad9812d11b5c554b",
+      "bytes": 3787
+    },
+    {
+      "source": "/tmp/safe-bash-overlay-readpurity-JuB9ca/replay-XMttPc/strict.stderr.log",
+      "destination": "tests/fs/overlay/metadata-purity-evidence/history-20260827-v1/investigation/replay-XMttPc/strict.stderr.log.txt",
+      "sha256": "9047702473c0278ba80d456a7f127859f65b93e3c2996d1b6c25f9440bc416a9",
+      "bytes": 603
+    },
+    {
+      "source": "/tmp/safe-bash-overlay-readpurity-JuB9ca/replay-XMttPc/strict.stdout.log",
+      "destination": "tests/fs/overlay/metadata-purity-evidence/history-20260827-v1/investigation/replay-XMttPc/strict.stdout.log.txt",
+      "sha256": "a0f777c98ce504180e8b7ab4e0f73893c753d1b55695aba9e8d8abd4c34e3cdc",
+      "bytes": 745
+    },
+    {
+      "source": "/tmp/safe-bash-overlay-readpurity-JuB9ca/replay-XMttPc/tests__commands__du__backends.test.ts.txt",
+      "destination": "tests/fs/overlay/metadata-purity-evidence/history-20260827-v1/investigation/replay-XMttPc/tests__commands__du__backends.test.ts.txt.txt",
+      "sha256": "c050fcd31ab1611355170caa77c6b430e3e52004db6637da3e837983493512c5",
+      "bytes": 5941
+    },
+    {
+      "source": "/tmp/safe-bash-overlay-readpurity-JuB9ca/replay-XMttPc/tests__commands__du__independent__evidence__review-MduamP__harness__contracts.mjs.txt.txt",
+      "destination": "tests/fs/overlay/metadata-purity-evidence/history-20260827-v1/investigation/replay-XMttPc/tests__commands__du__independent__evidence__review-MduamP__harness__contracts.mjs.txt.txt.txt",
+      "sha256": "47c934736920291916ff657bfba497867eb40f3f6a87c1aa26cdcbf209509483",
+      "bytes": 19413
+    },
+    {
+      "source": "/tmp/safe-bash-overlay-readpurity-JuB9ca/replay-XMttPc/tests__commands__du__independent__evidence__review-MduamP__independent.json.txt",
+      "destination": "tests/fs/overlay/metadata-purity-evidence/history-20260827-v1/investigation/replay-XMttPc/tests__commands__du__independent__evidence__review-MduamP__independent.json.txt.txt",
+      "sha256": "aae689ff0b3316f35663122ac3d7e1c1a43686644f082967168ca8b893907c5b",
+      "bytes": 94858
+    },
+    {
+      "source": "/tmp/safe-bash-overlay-readpurity-JuB9ca/result.json",
+      "destination": "tests/fs/overlay/metadata-purity-evidence/history-20260827-v1/investigation/result.json.txt",
+      "sha256": "de0f8e33cd2c325e205f32532e86fbe465005433460479c0c246b075ad9ff06c",
+      "bytes": 780
+    },
+    {
+      "source": "/tmp/safe-bash-overlay-readpurity-JuB9ca/stability.json",
+      "destination": "tests/fs/overlay/metadata-purity-evidence/history-20260827-v1/investigation/stability.json.txt",
+      "sha256": "6d56ae29200ac8e578dbb6c8208bef3596a5c3cbb90f1d35c8529ca441cbc1e8",
+      "bytes": 202
+    },
+    {
+      "source": "/tmp/safe-bash-overlay-readpurity-JuB9ca/strict-current.exit.json",
+      "destination": "tests/fs/overlay/metadata-purity-evidence/history-20260827-v1/investigation/strict-current.exit.json.txt",
+      "sha256": "56a9c55a979af4709222ba7819f55db4acd8c0d6d0d3a34ac127e433eb3f6835",
+      "bytes": 181
+    },
+    {
+      "source": "/tmp/safe-bash-overlay-readpurity-JuB9ca/strict-current.mjs",
+      "destination": "tests/fs/overlay/metadata-purity-evidence/history-20260827-v1/investigation/strict-current.mjs.txt",
+      "sha256": "5426226184d80611a19e24678f85c31864e2e97a49d781130fe0cb5cbe486175",
+      "bytes": 1857
+    },
+    {
+      "source": "/tmp/safe-bash-overlay-readpurity-JuB9ca/strict-current.stderr.log",
+      "destination": "tests/fs/overlay/metadata-purity-evidence/history-20260827-v1/investigation/strict-current.stderr.log.txt",
+      "sha256": "d71d4f05049ef0e072dcf06ab18c0e043753803d5c7823340f4fa53d9b8a0477",
+      "bytes": 550
+    },
+    {
+      "source": "/tmp/safe-bash-overlay-readpurity-JuB9ca/strict-current.stdout.log",
+      "destination": "tests/fs/overlay/metadata-purity-evidence/history-20260827-v1/investigation/strict-current.stdout.log.txt",
+      "sha256": "929e97b0f1512fededb0b8f687ef34e449cfab1403860c00f4419c52c762c1df",
+      "bytes": 497
+    },
+    {
+      "source": "/tmp/safe-bash-overlay-readpurity-JuB9ca/strict-repro.mjs",
+      "destination": "tests/fs/overlay/metadata-purity-evidence/history-20260827-v1/investigation/strict-repro.mjs.txt",
+      "sha256": "602888149ef97c59a463d5cf36d91f8bfc6ae7ae7637b578ad9812d11b5c554b",
+      "bytes": 3787
+    },
+    {
+      "source": "/tmp/safe-bash-overlay-readpurity-JuB9ca/strict.stderr.log",
+      "destination": "tests/fs/overlay/metadata-purity-evidence/history-20260827-v1/investigation/strict.stderr.log.txt",
+      "sha256": "492ee6567b32ca771326063158f2dd8c4d83148cb2793dd23007a82e502d7667",
+      "bytes": 589
+    },
+    {
+      "source": "/tmp/safe-bash-overlay-readpurity-JuB9ca/strict.stdout.log",
+      "destination": "tests/fs/overlay/metadata-purity-evidence/history-20260827-v1/investigation/strict.stdout.log.txt",
+      "sha256": "f30e2a66d7bfb6e7f1e145f9130967d5f67279f90cc35eb038b743b52951bd16",
+      "bytes": 745
+    },
+    {
+      "source": "/tmp/safe-bash-overlay-readpurity-JuB9ca/tests__commands__du__backends.test.ts.txt",
+      "destination": "tests/fs/overlay/metadata-purity-evidence/history-20260827-v1/investigation/tests__commands__du__backends.test.ts.txt.txt",
+      "sha256": "c050fcd31ab1611355170caa77c6b430e3e52004db6637da3e837983493512c5",
+      "bytes": 5941
+    },
+    {
+      "source": "/tmp/safe-bash-overlay-readpurity-JuB9ca/tests__commands__du__independent__evidence__review-MduamP__harness__contracts.mjs.txt.txt",
+      "destination": "tests/fs/overlay/metadata-purity-evidence/history-20260827-v1/investigation/tests__commands__du__independent__evidence__review-MduamP__harness__contracts.mjs.txt.txt.txt",
+      "sha256": "47c934736920291916ff657bfba497867eb40f3f6a87c1aa26cdcbf209509483",
+      "bytes": 19413
+    },
+    {
+      "source": "/tmp/safe-bash-overlay-readpurity-JuB9ca/tests__commands__du__independent__evidence__review-MduamP__independent.json.txt",
+      "destination": "tests/fs/overlay/metadata-purity-evidence/history-20260827-v1/investigation/tests__commands__du__independent__evidence__review-MduamP__independent.json.txt.txt",
+      "sha256": "aae689ff0b3316f35663122ac3d7e1c1a43686644f082967168ca8b893907c5b",
+      "bytes": 94858
+    },
+    {
+      "source": "src/fs/overlay/index.ts",
+      "destination": "tests/fs/overlay/metadata-purity-evidence/history-20260827-v1/canonical-before/src/fs/overlay/index.ts.txt",
+      "sha256": "e5ac4a650662656f4256455ecabb965cb6fb6eb7ab8f01315115aa70a3aa3640",
+      "bytes": 41519
+    },
+    {
+      "source": "tests/fs/overlay/allocation.test.ts",
+      "destination": "tests/fs/overlay/metadata-purity-evidence/history-20260827-v1/canonical-before/tests/fs/overlay/allocation.test.ts.txt",
+      "sha256": "7aae002d44231ee2eb776ad9b4b721c25bdac6702901e2d4eef80c022ebda529",
+      "bytes": 13794
+    },
+    {
+      "source": "tests/commands/du/backends.test.ts",
+      "destination": "tests/fs/overlay/metadata-purity-evidence/history-20260827-v1/canonical-before/tests/commands/du/backends.test.ts.txt",
+      "sha256": "c050fcd31ab1611355170caa77c6b430e3e52004db6637da3e837983493512c5",
+      "bytes": 5941
+    },
+    {
+      "source": "tests/commands/du/helpers.ts",
+      "destination": "tests/fs/overlay/metadata-purity-evidence/history-20260827-v1/canonical-before/tests/commands/du/helpers.ts.txt",
+      "sha256": "0d721aeb1a602794f22dca7874cad1f64efab21db27df022b7499e9e31d4f802",
+      "bytes": 3047
+    },
+    {
+      "source": "tests/fs/overlay/helpers.ts",
+      "destination": "tests/fs/overlay/metadata-purity-evidence/history-20260827-v1/canonical-before/tests/fs/overlay/helpers.ts.txt",
+      "sha256": "eea3cd58d312d40b3a3903a8d3e4a4f3ad9ffc26a359acb581ac530d67f0718a",
+      "bytes": 3297
+    }
+  ]
+}

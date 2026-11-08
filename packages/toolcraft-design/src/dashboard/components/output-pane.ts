@@ -1,0 +1,476 @@
+import { selectViewportTail } from "../../viewport.js";
+import { getTheme } from "../../internal/theme-detect.js";
+import { supportsColor } from "../../internal/color-support.js";
+import { parse, render, type MdNode } from "../../terminal-markdown/index.js";
+import { hasAnsi, parseAnsi, type StyledSegment } from "../ansi.js";
+import { ScreenBuffer } from "../buffer.js";
+import { formatElapsed } from "../elapsed.js";
+import { displayWidth, expandTabs, graphemes, graphemeWidth } from "../terminal-width.js";
+import type { CellStyle, OutputItem, OutputItemKind, Rect } from "../types.js";
+
+const TEXT_OFFSET = 3;
+const CONTINUATION_PREFIX = "│";
+
+type WrapToken = { kind: "space"; value: string } | { kind: "word"; value: string };
+
+export type VisualLine = {
+  text: string;
+  style: CellStyle;
+  prefix: string;
+  prefixStyle: CellStyle;
+  segments?: StyledSegment[];
+};
+
+const agentLines = new WeakMap<OutputItem, {
+  text: string;
+  width: number;
+  theme: ReturnType<typeof getTheme>;
+  color: boolean;
+  budget: number;
+  complete: boolean;
+  lines: VisualLine[];
+}>();
+
+export function renderOutputPane(
+  buffer: ScreenBuffer,
+  rect: Rect,
+  items: OutputItem[],
+  scrollOffset = 0,
+  options: { conversation?: boolean; details?: boolean; now?: number } = {}
+): number {
+  buffer.clearRect(rect);
+
+  if (rect.width <= 0 || rect.height <= 0) {
+    return 0;
+  }
+
+  const { rows: visualLines, offset: actualOffset } = selectViewportTail(
+    options.conversation && !options.details ? foldCompletedActions(items) : items, rect.height, scrollOffset, item => {
+      if (options.conversation && item.role === "reasoning" && !options.details) return [];
+      let label = item.text;
+      const elapsed = options.now === undefined ? 0 : options.now - item.ts;
+      if (options.conversation && item.role === "action" && item.kind === "tool" && Number.isFinite(elapsed) && elapsed >= 1000) {
+        const duration = formatElapsed(elapsed);
+        label += ` · ${elapsed >= 3_600_000 ? duration : duration.slice(3)}`;
+      }
+      const text = options.details && item.detail ? item.role === "plan" ? item.detail : `${label}\n${item.detail}` : label;
+      const agentReply = options.conversation && item.role === "agent"
+        ? renderAgentLines(item, rect.width, rect.height + scrollOffset + 4) : undefined;
+      const lines = agentReply?.lines ?? computeVisualLines([text === item.text ? item : { ...item, text }], rect.width);
+      if (!options.conversation) return lines;
+      const prose = item.role === "agent" || item.role === "user";
+      if (prose) {
+        while (lines.length > 0 && lines.at(-1)!.text.trim().length === 0) lines.pop();
+        while (lines.length > 0 && lines[0]!.text.trim().length === 0) lines.shift();
+      }
+      const style = item.kind === "error" ? getTheme().styles.error
+        : prose ? {} : getTheme().styles.muted;
+      const prefix = item.role === "user" ? "›" : item.role === "agent" ? "•"
+        : item.kind === "tool" ? "›" : item.kind === "success" ? "✓"
+          : item.kind === "error" ? "!" : "·";
+      for (let index = 0; index < lines.length; index++) {
+        const line = lines[index]!;
+        line.prefix = index === 0 && agentReply?.complete !== false ? prefix : "";
+        line.prefixStyle = style;
+        line.style = style;
+      }
+      if (prose && lines.length > 0) {
+        lines.push({ text: "", prefix: "", style: {}, prefixStyle: {} });
+      }
+      return lines;
+    }
+  );
+  const textRect: Rect = {
+    x: rect.x + TEXT_OFFSET,
+    y: rect.y,
+    width: rect.width - TEXT_OFFSET,
+    height: rect.height
+  };
+
+  for (let row = 0; row < rect.height; row += 1) {
+    const line = visualLines[row];
+    if (line === undefined) {
+      continue;
+    }
+
+    buffer.putInRect(rect, row, line.prefix, line.prefixStyle);
+
+    if (line.segments && line.segments.length > 0) {
+      let offsetX = 0;
+      for (const segment of line.segments) {
+        if (segment.text.length === 0) {
+          continue;
+        }
+        const remaining = textRect.width - offsetX;
+        if (remaining <= 0) {
+          break;
+        }
+        buffer.putInRect(
+          {
+            x: textRect.x + offsetX,
+            y: textRect.y,
+            width: remaining,
+            height: textRect.height
+          },
+          row,
+          segment.text,
+          segment.style
+        );
+        offsetX += displayWidth(segment.text, offsetX);
+      }
+      continue;
+    }
+
+    buffer.putInRect(textRect, row, line.text, line.style);
+  }
+  return actualOffset;
+}
+
+function renderAgentLines(item: OutputItem, width: number, budget: number): { lines: VisualLine[]; complete: boolean } {
+  const theme = getTheme();
+  const color = supportsColor();
+  const cached = agentLines.get(item);
+  if (cached?.text === item.text && cached.width === width && cached.theme === theme && cached.color === color
+    && (cached.complete || cached.budget >= budget)) {
+    return { lines: cached.lines.map((line) => ({ ...line })), complete: cached.complete };
+  }
+  let lines: VisualLine[];
+  let complete = true;
+  try {
+    const ast = parse(item.text).ast;
+    const options = { width: Math.max(1, width - TEXT_OFFSET), showFrontmatter: true };
+    let text: string;
+    if (ast.type !== "root" || containsFootnotes(ast)) text = render(ast, options);
+    else {
+      const fragments: string[] = [];
+      let rows = 0;
+      let index = ast.children.length - 1;
+      for (; index >= 0 && rows < budget; index--) {
+        const fragment = render(ast.children[index]!, options);
+        fragments.push(fragment);
+        rows += fragment.split("\n").length - 1;
+      }
+      complete = index < 0;
+      text = fragments.reverse().join("");
+    }
+    lines = computeVisualLines([{ ...item, text }], width, true);
+  } catch {
+    // A partially streamed document can contain invalid frontmatter or syntax.
+    lines = computeVisualLines([item], width);
+  }
+  agentLines.set(item, { text: item.text, width, theme, color, budget, complete, lines });
+  return { lines: lines.map((line) => ({ ...line })), complete };
+}
+
+function containsFootnotes(node: MdNode): boolean {
+  return node.type === "footnoteDefinition" || node.type === "footnoteReference"
+    || ("children" in node && node.children.some(containsFootnotes));
+}
+
+function foldCompletedActions(items: OutputItem[]): OutputItem[] {
+  const result: OutputItem[] = [];
+  let completed: OutputItem[] = [];
+  const flush = (): void => {
+    if (completed.length >= 4) {
+      result.push({ role: "action", kind: "status", ts: completed[0]!.ts,
+        text: `${completed.length - 2} earlier actions · d Details` }, ...completed.slice(-2));
+    } else result.push(...completed);
+    completed = [];
+  };
+  for (const item of items) {
+    if (item.role === "reasoning") continue;
+    if (item.role === "action" && item.kind === "success") completed.push(item);
+    else { flush(); result.push(item); }
+  }
+  flush();
+  return result;
+}
+
+export function computeVisualLines(items: OutputItem[], width: number, preformatted = false): VisualLine[] {
+  if (width <= 0) {
+    return [];
+  }
+
+  const mutedStyle = getTheme().styles.muted;
+  const textWidth = Math.max(width - TEXT_OFFSET, 0);
+  const visualLines: VisualLine[] = [];
+
+  for (const item of items) {
+    const itemStyle = getItemStyle(item.kind);
+
+    if (preformatted || hasAnsi(item.text) || hasCursorControls(item.text)) {
+      const styledLines = parseAnsi(item.text, preformatted || hasAnsi(item.text) ? {} : itemStyle);
+      let firstRow = true;
+      for (const styledLine of styledLines) {
+        const rows = hardWrapSegments(styledLine.segments, textWidth);
+        for (const rowSegments of rows) {
+          visualLines.push({
+            prefix: firstRow ? getPrefix(item.kind) : CONTINUATION_PREFIX,
+            prefixStyle: firstRow ? itemStyle : mutedStyle,
+            style: itemStyle,
+            text: rowSegments.map((segment) => segment.text).join(""),
+            segments: rowSegments
+          });
+          firstRow = false;
+        }
+      }
+      continue;
+    }
+
+    const wrappedLines = wrapText(item.text, textWidth);
+    for (let index = 0; index < wrappedLines.length; index += 1) {
+      visualLines.push({
+        prefix: index === 0 ? getPrefix(item.kind) : CONTINUATION_PREFIX,
+        prefixStyle: index === 0 ? itemStyle : mutedStyle,
+        style: itemStyle,
+        text: wrappedLines[index] ?? ""
+      });
+    }
+  }
+
+  return visualLines;
+}
+
+function hasCursorControls(text: string): boolean {
+  for (let index = 0; index < text.length; index += 1) {
+    const code = text.charCodeAt(index);
+    if ((code < 0x20 && code !== 0x0a && code !== 0x09) || (code >= 0x7f && code <= 0x9f)) return true;
+  }
+  return false;
+}
+
+function hardWrapSegments(segments: StyledSegment[], width: number): StyledSegment[][] {
+  if (width <= 0) {
+    return [[]];
+  }
+
+  const rows: StyledSegment[][] = [[]];
+  let rowWidth = 0;
+
+  for (const segment of segments) {
+    for (const grapheme of graphemes(expandTabs(segment.text, rowWidth))) {
+      const graphemeCells = graphemeWidth(grapheme);
+
+      if (rowWidth > 0 && rowWidth + graphemeCells > width) {
+        rows.push([]);
+        rowWidth = 0;
+      }
+
+      appendSegment(rows[rows.length - 1]!, grapheme, segment.style);
+      rowWidth += graphemeCells;
+    }
+  }
+
+  return rows;
+}
+
+function appendSegment(segments: StyledSegment[], text: string, style: CellStyle): void {
+  const last = segments[segments.length - 1];
+  if (last && stylesEqual(last.style, style)) {
+    last.text += text;
+  } else {
+    segments.push({ text, style: { ...style } });
+  }
+}
+
+function stylesEqual(left: CellStyle, right: CellStyle): boolean {
+  return (
+    left.fg === right.fg &&
+    left.bg === right.bg &&
+    left.bold === right.bold &&
+    left.dim === right.dim &&
+    left.inverse === right.inverse &&
+    left.underline === right.underline
+  );
+}
+
+function getPrefix(kind: OutputItemKind): string {
+  if (kind === "success") {
+    return "◆";
+  }
+
+  if (kind === "error") {
+    return "■";
+  }
+
+  if (kind === "tool") {
+    return CONTINUATION_PREFIX;
+  }
+
+  if (kind === "status") {
+    return "●";
+  }
+
+  return "◇";
+}
+
+function getItemStyle(kind: OutputItemKind): CellStyle {
+  const styles = getTheme().styles;
+  if (kind === "success") {
+    return styles.success;
+  }
+
+  if (kind === "error") {
+    return styles.error;
+  }
+
+  if (kind === "tool") {
+    return styles.muted;
+  }
+
+  if (kind === "status") {
+    return styles.info;
+  }
+
+  return styles.info;
+}
+
+function wrapText(value: string, width: number): string[] {
+  const logicalLines = splitLogicalLines(value);
+
+  if (logicalLines.length === 0) {
+    return [""];
+  }
+
+  if (width <= 0) {
+    return logicalLines.map(() => "");
+  }
+
+  return logicalLines.flatMap((line) => wrapParagraph(expandTabs(line), width));
+}
+
+function wrapParagraph(value: string, width: number): string[] {
+  if (value.length === 0) {
+    return [""];
+  }
+
+  const tokens = tokenize(value);
+  const lines: string[] = [];
+  let currentLine = "";
+  let currentWidth = 0;
+  let pendingSpace = "";
+
+  const flushLine = (): void => {
+    lines.push(currentLine);
+    currentLine = "";
+    currentWidth = 0;
+    pendingSpace = "";
+  };
+
+  for (const token of tokens) {
+    if (token.kind === "space") {
+      if (currentLine.length > 0) {
+        pendingSpace += token.value;
+      }
+      continue;
+    }
+
+    const chunks = splitWord(token.value, width);
+
+    for (let index = 0; index < chunks.length; index += 1) {
+      const chunk = chunks[index] ?? "";
+      const gap = index === 0 ? pendingSpace : "";
+      const chunkWidth = displayWidth(chunk);
+
+      if (currentLine.length > 0 && currentWidth + gap.length + chunkWidth > width) {
+        flushLine();
+      }
+
+      if (currentLine.length > 0 && gap.length > 0) {
+        currentLine += gap;
+        currentWidth += gap.length;
+      }
+
+      currentLine += chunk;
+      currentWidth += chunkWidth;
+      pendingSpace = "";
+
+      if (index < chunks.length - 1) {
+        flushLine();
+      }
+    }
+  }
+
+  if (currentLine.length > 0 || lines.length === 0) {
+    lines.push(currentLine);
+  }
+
+  return lines;
+}
+
+function splitWord(value: string, width: number): string[] {
+  if (displayWidth(value) <= width) {
+    return [value];
+  }
+
+  const chunks: string[] = [];
+  let chunk = "";
+  let chunkWidth = 0;
+
+  for (const grapheme of graphemes(value)) {
+    const graphemeCells = graphemeWidth(grapheme);
+    if (chunk.length > 0 && chunkWidth + graphemeCells > width) {
+      chunks.push(chunk);
+      chunk = "";
+      chunkWidth = 0;
+    }
+    chunk += grapheme;
+    chunkWidth += graphemeCells;
+  }
+
+  if (chunk.length > 0) {
+    chunks.push(chunk);
+  }
+
+  return chunks;
+}
+
+function tokenize(value: string): WrapToken[] {
+  const tokens: WrapToken[] = [];
+  let current = "";
+  let currentKind: WrapToken["kind"] | undefined;
+
+  for (const ch of value) {
+    const nextKind: WrapToken["kind"] = isWrappingSpace(ch) ? "space" : "word";
+
+    if (currentKind !== undefined && currentKind !== nextKind) {
+      tokens.push({ kind: currentKind, value: current });
+      current = "";
+    }
+
+    currentKind = nextKind;
+    current += ch;
+  }
+
+  if (currentKind !== undefined) {
+    tokens.push({ kind: currentKind, value: current });
+  }
+
+  return tokens;
+}
+
+function splitLogicalLines(value: string): string[] {
+  const lines: string[] = [];
+  let currentLine = "";
+
+  for (const ch of value) {
+    if (ch === "\r") {
+      continue;
+    }
+
+    if (ch === "\n") {
+      lines.push(currentLine);
+      currentLine = "";
+      continue;
+    }
+
+    currentLine += ch;
+  }
+
+  lines.push(currentLine);
+  return lines;
+}
+
+function isWrappingSpace(ch: string): boolean {
+  return ch === " " || ch === "\t";
+}

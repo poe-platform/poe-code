@@ -1,0 +1,35 @@
+{
+  "created": "2026-08-29T12:47:43.837Z",
+  "deadline": "2026-08-29T13:02:14.226Z",
+  "files": [
+    {
+      "path": "review-v2.mjs",
+      "bytes": 9611,
+      "sha256": "e3924cda050918ce5b14719fba9ac88f9379190968abe86cbfa67bfebc2964b4"
+    },
+    {
+      "path": "CONTROL-PROFILE.md",
+      "bytes": 2055,
+      "sha256": "93e87d1f449ad87357ea17867244c6f714ea30f4e8aae14d5d1df0ca4eb13046"
+    },
+    {
+      "path": "HELPER-CORRECTION-v2.md",
+      "bytes": 734,
+      "sha256": "9e9cf4d96db17417de01fe6f027fe20aba6c1b51ec48beeb6ce12d641a15230c"
+    },
+    {
+      "path": "INPUTS.json",
+      "bytes": 2127211,
+      "sha256": "14299d0468effaee61b8fe8ee7bc7164f334a088b85d822a441e4d253cdfef60"
+    },
+    {
+      "path": "DEPENDENCIES.json",
+      "bytes": 5670835,
+      "sha256": "3a7dbb3df9d7792038e9c112bbba138c1cb49c610d4077051d34d94b00ccfcbc"
+    }
+  ],
+  "entry": "review-v2.mjs",
+  "seconds": 120,
+  "captureBytes": 4194304,
+  "correction": "Versioned reviewer path typo only; original preserved"
+}

@@ -1,0 +1,148 @@
+{
+  "revision": "774644f9ea39b41f824db4c829e7a97e6e1386be",
+  "product": "8670ebe8f0d39966c2de2638780437398e5f8490",
+  "runnerSha256": "f2eac61d38a60e935604fa5a807c13920d8be8c796cdaa436addda1fdaeda307",
+  "startedAt": "2026-08-27T15:58:27.595Z",
+  "staged": [
+    {
+      "commit": "774644f9ea39b41f824db4c829e7a97e6e1386be",
+      "path": "tests/integration/runtime-permission-compatibility-20260827/controls.mjs",
+      "destination": "/private/tmp/permission-independent-Il65pM/author/tests/integration/runtime-permission-compatibility-20260827/controls.mjs",
+      "sha256": "8c44a150418968b65000994b89165d2cf4ca645279d9a83b2c5daff4245fabab"
+    },
+    {
+      "commit": "774644f9ea39b41f824db4c829e7a97e6e1386be",
+      "path": "scripts/verify-current-consumers.mjs",
+      "destination": "/private/tmp/permission-independent-Il65pM/author/scripts/verify-current-consumers.mjs",
+      "sha256": "0877c045fb2c7feb093903ae528ddc518c7d371a73460f69f3ccf853938ed632"
+    },
+    {
+      "commit": "774644f9ea39b41f824db4c829e7a97e6e1386be",
+      "path": "tests/plugins/stream-five-public/harness.mjs",
+      "destination": "/private/tmp/permission-independent-Il65pM/author/tests/plugins/stream-five-public/harness.mjs",
+      "sha256": "bc1c0ba95a0b928b6f35bfc6de40ec60006707b162c97b49474ba33ad8ae55dd"
+    },
+    {
+      "commit": "774644f9ea39b41f824db4c829e7a97e6e1386be",
+      "path": "tests/plugins/stream-five-public/current-profile.mjs",
+      "destination": "/private/tmp/permission-independent-Il65pM/author/tests/plugins/stream-five-public/current-profile.mjs",
+      "sha256": "929e019df6e9ae45689ef06ff2d3b495d0dbe7ab2a9a6a30e5d2a7666acde958"
+    },
+    {
+      "commit": "774644f9ea39b41f824db4c829e7a97e6e1386be",
+      "path": "tests/plugins/qualified-current-release/consumers.mjs",
+      "destination": "/private/tmp/permission-independent-Il65pM/author/tests/plugins/qualified-current-release/consumers.mjs",
+      "sha256": "79fcad55906f7d9d0d9d44423e0972104dc642ea7ea52d4954b6ce870739f7f4"
+    },
+    {
+      "commit": "774644f9ea39b41f824db4c829e7a97e6e1386be",
+      "path": "tests/plugins/qualified-current-release/runtime-coverage.mjs",
+      "destination": "/private/tmp/permission-independent-Il65pM/author/tests/plugins/qualified-current-release/runtime-coverage.mjs",
+      "sha256": "96403245ff2ff31b27708d20a56c96c36466551b1a19fcf892e0b0d19ce9e9f5"
+    },
+    {
+      "commit": "774644f9ea39b41f824db4c829e7a97e6e1386be",
+      "path": "tests/plugins/qualified-current-release/snapshot.mjs",
+      "destination": "/private/tmp/permission-independent-Il65pM/author/tests/plugins/qualified-current-release/snapshot.mjs",
+      "sha256": "cfe5b508a670e9d1cfd9281381558c0a3c842be3e3060d1f8f8c8c0c66277508"
+    },
+    {
+      "commit": "774644f9ea39b41f824db4c829e7a97e6e1386be",
+      "path": "tests/plugins/qualified-current-release/inventory-check.mjs",
+      "destination": "/private/tmp/permission-independent-Il65pM/author/tests/plugins/qualified-current-release/inventory-check.mjs",
+      "sha256": "1afd5cf0b4a1f42ed86330fde6655f5b606eed3be79a4f1026b4c2bf6294b9f3"
+    },
+    {
+      "commit": "774644f9ea39b41f824db4c829e7a97e6e1386be",
+      "path": "scripts/verify-qualified-release.mjs",
+      "destination": "/private/tmp/permission-independent-Il65pM/author/scripts/verify-qualified-release.mjs",
+      "sha256": "830043ed51632f12ea1049ef0ed8d4fa369519ef4d3cc3fb7c3a797fc6f69768"
+    },
+    {
+      "commit": "774644f9ea39b41f824db4c829e7a97e6e1386be",
+      "path": "tests/plugins/stream-five-public/current-profile.mjs",
+      "destination": "/private/tmp/permission-independent-Il65pM/author/tests/plugins/stream-five-public/current-profile.mjs",
+      "sha256": "929e019df6e9ae45689ef06ff2d3b495d0dbe7ab2a9a6a30e5d2a7666acde958"
+    },
+    {
+      "commit": "774644f9ea39b41f824db4c829e7a97e6e1386be",
+      "path": "tests/plugins/stream-five-public/harness.mjs",
+      "destination": "/private/tmp/permission-independent-Il65pM/author/tests/plugins/stream-five-public/harness.mjs",
+      "sha256": "bc1c0ba95a0b928b6f35bfc6de40ec60006707b162c97b49474ba33ad8ae55dd"
+    },
+    {
+      "commit": "774644f9ea39b41f824db4c829e7a97e6e1386be",
+      "path": "tests/plugins/stream-five-public/public-checks.mjs",
+      "destination": "/private/tmp/permission-independent-Il65pM/author/tests/plugins/stream-five-public/public-checks.mjs",
+      "sha256": "352147bb6e11be7c0f7796be4adba24562b44b8157e86680a4f73db43661a365"
+    },
+    {
+      "commit": "774644f9ea39b41f824db4c829e7a97e6e1386be",
+      "path": "tests/plugins/qualified-current-release/snapshot.mjs",
+      "destination": "/private/tmp/permission-independent-Il65pM/author/tests/plugins/qualified-current-release/snapshot.mjs",
+      "sha256": "cfe5b508a670e9d1cfd9281381558c0a3c842be3e3060d1f8f8c8c0c66277508"
+    },
+    {
+      "commit": "774644f9ea39b41f824db4c829e7a97e6e1386be",
+      "path": "tests/plugins/qualified-current-release/consumers.mjs",
+      "destination": "/private/tmp/permission-independent-Il65pM/author/tests/plugins/qualified-current-release/consumers.mjs",
+      "sha256": "79fcad55906f7d9d0d9d44423e0972104dc642ea7ea52d4954b6ce870739f7f4"
+    },
+    {
+      "commit": "774644f9ea39b41f824db4c829e7a97e6e1386be",
+      "path": "tests/plugins/qualified-current-release/inventory-check.mjs",
+      "destination": "/private/tmp/permission-independent-Il65pM/author/tests/plugins/qualified-current-release/inventory-check.mjs",
+      "sha256": "1afd5cf0b4a1f42ed86330fde6655f5b606eed3be79a4f1026b4c2bf6294b9f3"
+    },
+    {
+      "commit": "774644f9ea39b41f824db4c829e7a97e6e1386be",
+      "path": "tests/plugins/qualified-current-release/prerequisites.mjs",
+      "destination": "/private/tmp/permission-independent-Il65pM/author/tests/plugins/qualified-current-release/prerequisites.mjs",
+      "sha256": "052dc58ece76f3136ad03212b9f938502cf2f0ca5ebfd03876c3be9ea11eaf39"
+    },
+    {
+      "commit": "774644f9ea39b41f824db4c829e7a97e6e1386be",
+      "path": "scripts/verify-current-consumers.mjs",
+      "destination": "/private/tmp/permission-independent-Il65pM/author/scripts/verify-current-consumers.mjs",
+      "sha256": "0877c045fb2c7feb093903ae528ddc518c7d371a73460f69f3ccf853938ed632"
+    },
+    {
+      "commit": "774644f9ea39b41f824db4c829e7a97e6e1386be",
+      "path": "tests/plugins/qualified-current-release/runtime-coverage.mjs",
+      "destination": "/private/tmp/permission-independent-Il65pM/author/tests/plugins/qualified-current-release/runtime-coverage.mjs",
+      "sha256": "96403245ff2ff31b27708d20a56c96c36466551b1a19fcf892e0b0d19ce9e9f5"
+    }
+  ],
+  "checks": [],
+  "children": [
+    {
+      "name": "unchanged-author-26",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/private/tmp/permission-independent-Il65pM/author/tests/integration/runtime-permission-compatibility-20260827/controls.mjs",
+        "/private/tmp/permission-independent-Il65pM/author-results.json"
+      ],
+      "cwd": "/private/tmp/permission-independent-Il65pM/author",
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(output.startsWith('/tmp/') && !existsSync(output))\n\n    at file:///private/tmp/permission-independent-Il65pM/author/tests/integration/runtime-permission-compatibility-20260827/controls.mjs:11:8\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {\n  generatedMessage: true,\n  code: 'ERR_ASSERTION',\n  actual: false,\n  expected: true,\n  operator: '==',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n"
+    }
+  ],
+  "admissions": [],
+  "importMap": [],
+  "fullRuntimeGroupsExecuted": false,
+  "privateAccess": false,
+  "error": {
+    "message": "ENOENT: no such file or directory, open '/private/tmp/permission-independent-Il65pM/author-results.json'",
+    "stack": "Error: ENOENT: no such file or directory, open '/private/tmp/permission-independent-Il65pM/author-results.json'\n    at Object.openSync (node:fs:560:18)\n    at readFileSync (node:fs:444:35)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/runtime-permission-independent-20260827/run.mjs:48:30\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)"
+  },
+  "cleaned": true,
+  "finishedAt": "2026-08-27T15:58:28.614Z",
+  "counts": {
+    "independent": 0,
+    "pass": 0,
+    "fail": 0
+  }
+}

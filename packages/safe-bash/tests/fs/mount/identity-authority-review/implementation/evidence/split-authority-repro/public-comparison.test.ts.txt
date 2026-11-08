@@ -1,0 +1,202 @@
+import assert from "node:assert/strict";
+import { mkdir, mkdtemp, rm } from "node:fs/promises";
+import test from "node:test";
+import { fileURLToPath } from "node:url";
+import { FsError } from "../../../../../src/contracts/errors.js";
+import type { EntryComparison, FileSystem } from "../../../../../src/contracts/filesystem.js";
+import { createMemoryFileSystem } from "../../../../../src/fs/memory/index.js";
+import { createRealFileSystem } from "../../../../../src/fs/real/index.js";
+import { createMountFileSystem } from "../../../../../src/fs/mount/index.js";
+import { createReadOnlyFileSystem } from "../../../../../src/fs/readonly/index.js";
+import { createOverlayFileSystem } from "../../../../../src/fs/overlay/index.js";
+import { bytes, comparison, opaque, seeded, text, wrapped } from "./support.js";
+
+function forbidden(filesystem: FileSystem, events: string[]): FileSystem {
+  const reject = (operation: string): never => { events.push(operation); throw new Error(`FORBIDDEN EFFECT: ${operation}`); };
+  return opaque(filesystem, {
+    readFile: async () => reject("readFile"), readStream: () => reject("readStream"),
+    writeFile: async () => reject("writeFile"), writeStream: async () => reject("writeStream"),
+    copyFile: async () => reject("copyFile"), rename: async () => reject("rename"),
+    rm: async () => reject("rm"), mkdir: async () => reject("mkdir"),
+    truncate: async () => reject("truncate"),
+  });
+}
+
+test("public memory comparison: independent stores are distinct, aliases follow backing entries", async () => {
+  const left = await seeded();
+  const right = await seeded();
+  await left.link!("/source", "/hard");
+  await left.symlink!("/hard", "/soft");
+  assert.equal(await comparison(left, "/source", left, "/soft"), "same");
+  assert.equal(await comparison(left, "/source", right, "/source"), "distinct");
+  assert.equal(await comparison(left, "/source", left, "/target"), "distinct");
+});
+
+test("public real comparison: different roots and clients preserve shared native identity", async context => {
+  const scratch = fileURLToPath(new URL("./.runs/", import.meta.url));
+  await mkdir(scratch, { recursive: true });
+  const directory = await mkdtemp(`${scratch}native-`);
+  context.after(() => rm(directory, { recursive: true }));
+  await mkdir(`${directory}/nested`);
+  const outer = await createRealFileSystem({ root: directory });
+  const inner = await createRealFileSystem({ root: `${directory}/nested` });
+  await outer.writeFile("/nested/source", bytes("native source"));
+  await inner.link!("/source", "/alias");
+  await inner.writeFile("/target", bytes("native target"));
+  assert.equal(await comparison(outer, "/nested/source", inner, "/alias"), "same");
+  assert.equal(await comparison(outer, "/nested/source", inner, "/target"), "distinct");
+});
+
+test("public comparison resolves BOTH operands through nested mounts and readonly wrappers", async () => {
+  const store = await seeded();
+  const left = createReadOnlyFileSystem(createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/left": createReadOnlyFileSystem(store) } }));
+  const right = createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/outer": createReadOnlyFileSystem(createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/right": store } })) } });
+  assert.equal(await comparison(left, "/left/source", right, "/outer/right/source"), "same");
+  assert.equal(await comparison(right, "/outer/right/target", left, "/left/source"), "distinct");
+  await assert.rejects(right.copyFile("/outer/right/source", "/outer/right/target"), { code: "EROFS" });
+  assert.equal(await text(store, "/target"), "target sentinel");
+});
+
+test("overlay public comparison follows current selection without copy-up; new selection is re-observed", async () => {
+  const lower = await seeded();
+  const upper = createMemoryFileSystem();
+  const overlay = createOverlayFileSystem({ lower, upper });
+  const readonly = createReadOnlyFileSystem(overlay);
+  assert.equal(await comparison(readonly, "/source", lower, "/source"), "same");
+  assert.deepEqual(await upper.readdir("/"), []);
+  await overlay.writeFile("/source", bytes("upper source"));
+  assert.equal(await comparison(lower, "/source", readonly, "/source"), "distinct");
+  assert.equal(await text(lower, "/source"), "source sentinel");
+});
+
+test("unknown custom views remain unknown and public comparison acquires no content or mutation", async () => {
+  const store = await seeded();
+  const effects: string[] = [];
+  const first = forbidden(store, effects);
+  const second = forbidden(store, effects);
+  const mount = createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/one": first, "/two": second } });
+  assert.equal(await comparison(mount, "/one/source", mount, "/two/source"), "unknown");
+  await assert.rejects(mount.copyFile("/one/source", "/two/source"), { code: "ENOTSUP" });
+  assert.deepEqual(effects, []);
+  assert.equal(await text(store, "/source"), "source sentinel");
+});
+
+for (const failingSide of ["source", "peer"] as const) {
+  for (const code of ["ENOENT", "EACCES", "EIO"] as const) {
+    test(`public comparison propagates ${failingSide} ${code}, never unknown`, async () => {
+      const store = await seeded();
+      const failure = new FsError(code);
+      const broken = opaque(store, { stat: async () => { throw failure; }, lstat: async () => { throw failure; } });
+      const owner = createReadOnlyFileSystem(failingSide === "source" ? broken : store);
+      await assert.rejects(comparison(owner, "/source", failingSide === "peer" ? broken : store, "/target"), { code });
+    });
+  }
+}
+
+test("complete known aliases override incompatible callback answers without querying either callback", async () => {
+  const store = await seeded();
+  await store.link!("/source", "/alias");
+  let calls = 0;
+  const callback = async (): Promise<EntryComparison> => { calls++; return "distinct"; };
+  const first = wrapped(store, { compareEntry: callback });
+  const second = wrapped(store, { compareEntry: callback });
+  const mount = createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/left": first, "/right": second } });
+  assert.equal(await comparison(mount, "/left/source", mount, "/right/alias"), "same");
+  await assert.rejects(mount.copyFile("/left/source", "/right/alias"), { code: "EINVAL" });
+  assert.equal(calls, 0);
+  assert.equal(await text(store, "/source"), "source sentinel");
+});
+
+for (const answers of [["same", "distinct"], ["unknown", "invalid"]] as const) {
+  test(`public comparison rejects ${answers.join("/")} before effects and queries each terminal at most once`, async () => {
+    const store = await seeded();
+    const effects: string[] = [];
+    const calls: string[] = [];
+    const first = wrapped(forbidden(store, effects), { compareEntry: async () => { calls.push("first"); return answers[0]; } });
+    const second = wrapped(forbidden(store, effects), { compareEntry: async () => { calls.push("second"); return answers[1] as EntryComparison; } });
+    const mount = createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/first": createReadOnlyFileSystem(first), "/second": second } });
+    await assert.rejects(comparison(mount, "/first/source", mount, "/second/target"), { code: "EIO" });
+    assert.deepEqual(calls, ["first", "second"]);
+    assert.deepEqual(effects, []);
+  });
+}
+
+test("one backend exposed twice negotiates once, not recursively through wrappers", async () => {
+  const store = await seeded();
+  const calls: string[] = [];
+  const terminal = opaque(store, { compareEntry: async (path, peer, peerPath) => {
+    calls.push(`${path}:${peerPath}`);
+    assert.equal(peer, terminal);
+    return path === peerPath ? "same" : "unknown";
+  } });
+  const mount = createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/left": createReadOnlyFileSystem(terminal), "/right": createReadOnlyFileSystem(createReadOnlyFileSystem(terminal)) } });
+  assert.equal(await comparison(mount, "/left/source", mount, "/right/source"), "same");
+  assert.deepEqual(calls, ["/source:/source"]);
+});
+
+for (const reject of [false, true]) {
+  test(`ENOENT-shaped cancellation between terminal queries stops peer (${reject ? "rejection" : "return"})`, async () => {
+    const store = await seeded();
+    const controller = new AbortController();
+    const reason = new FsError("ENOENT", { message: "caller cancellation" });
+    const calls: string[] = [];
+    const first = opaque(store, { compareEntry: async (_path, _peer, _peerPath, options) => {
+      assert.equal(options?.signal, controller.signal);
+      calls.push("first"); controller.abort(reason);
+      if (reject) throw new FsError("ENOENT", { message: "host late missing" });
+      return "distinct";
+    } });
+    const second = opaque(store, { compareEntry: async () => { calls.push("second"); return "distinct"; } });
+    const mount = createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/left": first, "/right": second } });
+    await assert.rejects(comparison(mount, "/left/source", mount, "/right/target", { signal: controller.signal }), error => error === reason);
+    assert.deepEqual(calls, ["first"]);
+    assert.equal(await text(store, "/target"), "target sentinel");
+  });
+}
+
+test("exclusive insertion race preserves source and newly arrived target bytes", async () => {
+  const source = await seeded();
+  const destination = createMemoryFileSystem();
+  const intercepted = wrapped(destination, {
+    writeStream: async (path, input, options) => {
+      await destination.writeFile(path, bytes("raced target"));
+      await destination.writeStream!(path, input, options);
+    },
+    writeFile: async (path, data, options) => {
+      await destination.writeFile(path, bytes("raced target"));
+      await destination.writeFile(path, data, options);
+    },
+  });
+  const mount = createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/left": source, "/right": intercepted } });
+  await assert.rejects(mount.copyFile("/left/source", "/right/new", { exclusive: true }), { code: "EEXIST" });
+  assert.equal(await text(source, "/source"), "source sentinel");
+  assert.equal(await text(destination, "/new"), "raced target");
+});
+
+test("overlay future upper writer alias cannot be authorized by distinct selected lower read views", async () => {
+  const actualLower = await seeded();
+  const actualUpper = createMemoryFileSystem();
+  await actualUpper.writeFile("/source", bytes("upper source"));
+  const effects: string[] = [];
+  let insert = false;
+  const lower = wrapped(actualLower, { lstat: async (path, options) => {
+    const stat = await actualLower.lstat(path, options);
+    if (insert && path === "/target") {
+      insert = false;
+      await actualUpper.link!("/source", "/target");
+    }
+    return stat;
+  } });
+  const upper = wrapped(actualUpper, {
+    writeFile: async () => { effects.push("writeFile"); throw new Error("must guard upper alias"); },
+    writeStream: async () => { effects.push("writeStream"); throw new Error("must guard upper alias"); },
+    copyFile: async () => { effects.push("copyFile"); throw new Error("must guard upper alias"); },
+  });
+  const overlay = createOverlayFileSystem({ lower, upper });
+  assert.equal(await comparison(overlay, "/source", overlay, "/target"), "distinct");
+  insert = true;
+  await assert.rejects(overlay.copyFile("/source", "/target"), { code: "EINVAL" });
+  assert.deepEqual(effects, []);
+  assert.equal(await text(actualUpper, "/source"), "upper source");
+  assert.equal(await text(lower, "/target"), "target sentinel");
+});

@@ -1,0 +1,184 @@
+{
+  "initial": {
+    "at": "2026-08-27T03:04:51.613Z",
+    "links": [
+      {
+        "path": "/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/.bin/esbuild",
+        "target": "/Users/kjopek/Workspace/safe-bash/node_modules/esbuild/bin/esbuild",
+        "relative": "node_modules/esbuild/bin/esbuild",
+        "copiedTargetSha256": "10b6243df618d374bb2d5c9cfbe7052e1405f6aa4e53a6164f11a91b9f2e1384",
+        "liveTargetSha256": "10b6243df618d374bb2d5c9cfbe7052e1405f6aa4e53a6164f11a91b9f2e1384",
+        "recordedCopiedTargetSha256": "10b6243df618d374bb2d5c9cfbe7052e1405f6aa4e53a6164f11a91b9f2e1384"
+      },
+      {
+        "path": "/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/.bin/tsc",
+        "target": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+        "relative": "node_modules/typescript/bin/tsc",
+        "copiedTargetSha256": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0",
+        "liveTargetSha256": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0",
+        "recordedCopiedTargetSha256": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0"
+      },
+      {
+        "path": "/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/.bin/tsserver",
+        "target": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsserver",
+        "relative": "node_modules/typescript/bin/tsserver",
+        "copiedTargetSha256": "a088f0c3419bcb2f7b860ad42e4c9f25ead067eda70af6a10d0a7d453954aada",
+        "liveTargetSha256": "a088f0c3419bcb2f7b860ad42e4c9f25ead067eda70af6a10d0a7d453954aada",
+        "recordedCopiedTargetSha256": "a088f0c3419bcb2f7b860ad42e4c9f25ead067eda70af6a10d0a7d453954aada"
+      },
+      {
+        "path": "/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/.bin/tsx",
+        "target": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/cli.mjs",
+        "relative": "node_modules/tsx/dist/cli.mjs",
+        "copiedTargetSha256": "fd00586b96028510c228365a4eeb1f163dac5245f1d0e40649969cf9560d376b",
+        "liveTargetSha256": "fd00586b96028510c228365a4eeb1f163dac5245f1d0e40649969cf9560d376b",
+        "recordedCopiedTargetSha256": "fd00586b96028510c228365a4eeb1f163dac5245f1d0e40649969cf9560d376b"
+      }
+    ],
+    "explicitLauncherEntryPoints": [
+      "node --import tsx",
+      "node node_modules/typescript/bin/tsc"
+    ],
+    "note": ".bin aliases are not invoked by recorded argv; full zero-symlink assertion failed in archival bookkeeping. No source/input hash change.",
+    "sourceDigest": "e796b3ca1b3cc3582b40e8fac18877aa93e3d1203dcd08e82ffccc6e61eb81af",
+    "tableDigest": "e4315fd33a56aa30ec9c390115c714ca958e60f13cb3f0f39a5d52592e77c7e6"
+  },
+  "initialArchiveError": {
+    "exitCode": 1,
+    "sourceLog": "/tmp/safe-bash-comm-final-review.log",
+    "excerptStart": 905520,
+    "excerptEnd": 906955,
+    "stderrSha256": "0783e082bb1a07a87116e8e4764f8707f172bb67823d777d34fee52c50ec5bb8",
+    "archive": "tests/commands/table-text-stress/shared-stdin-review/logs/archive-audit-initial.stderr"
+  },
+  "initialStaticResolution": {
+    "at": "2026-08-27T03:05:31.242Z",
+    "resolutions": [
+      {
+        "specifier": "tsx",
+        "path": "/private/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/tsx/dist/loader.mjs",
+        "relativePath": "node_modules/tsx/dist/loader.mjs",
+        "sha256": "49fb46730ddeb226ac4fa9fb990d3573ac8f18fa4de02f1bf723c61d715710c2"
+      },
+      {
+        "specifier": "esbuild",
+        "path": "/private/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/esbuild/lib/main.js",
+        "relativePath": "node_modules/esbuild/lib/main.js",
+        "sha256": "61ec0ba144ff93f4bf0e96ad6fab6f430ede0aa13e27ace8063ed63ba416b3cd"
+      },
+      {
+        "specifier": "@esbuild/darwin-arm64/bin/esbuild",
+        "path": "/private/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/@esbuild/darwin-arm64/bin/esbuild",
+        "relativePath": "node_modules/@esbuild/darwin-arm64/bin/esbuild",
+        "sha256": "10b6243df618d374bb2d5c9cfbe7052e1405f6aa4e53a6164f11a91b9f2e1384"
+      },
+      {
+        "specifier": "./node_modules/typescript/bin/tsc",
+        "path": "/private/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/typescript/bin/tsc",
+        "relativePath": "node_modules/typescript/bin/tsc",
+        "sha256": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0"
+      }
+    ],
+    "relevantEnv": {
+      "ESBUILD_BINARY_PATH": null,
+      "NODE_OPTIONS": null,
+      "NODE_PATH": null,
+      "TSX_TSCONFIG_PATH": null
+    },
+    "note": "Post-run static resolver audit: exact copied package/compiler/esbuild binary paths are internal and match frozen hashes. Not a trace of every loaded module or a new product replay."
+  },
+  "correction": {
+    "release": {
+      "path": "/tmp/safe-bash-comm-final-review-dependency.ready",
+      "text": "ROOT AUTHORIZATION: correct ONLY the four documented .bin launcher symlink aliases INSIDE your owned snapshot, then perform ONE separately labeled final replay of the SAME bounded gate. No live repository/dependency/source/helper/oracle edits; no new corpus.\nPreserve original runs and the failed wholly-symlink-free archive audit exactly. Record all four old/new link targets and verify each new alias resolves to the existing physical, hashed, read-only dependency copy inside the snapshot. Prefer relative links within the snapshot. Do not change any of the570 regular input files; their full source/test/helper/dependency/native hashes must stay byteidentical and source/table digests must remain e796b3ca1b3cc3582b40e8fac18877aa93e3d1203dcd08e82ffccc6e61eb81af / e4315fd33a56aa30ec9c390115c714ca958e60f13cb3f0f39a5d52592e77c7e6. Record positive runtime resolver paths and symlink containment checks. No claim of a symlink-free tree: corrected links are allowed but must be contained.\nRun the same selectedGNU216, original104/311 (retain obsolete assertions), selectedGNU311, authorfocused/native controls234, metadata43, scopednoEmit, isolatedbuild and current public71x2, plus bounded prior-source semantic control with all other inputs identical. All acceptance runs use the single SAME corrected-alias snapshot and regular file hashes; negativecontrol remains separately labeled with source restoration verified. Retain first-pass and corrected-alias runs separately, never rewrite failures or imply an existing nativeoracle change. Native216 inputs/expectedbytes/pins unchanged; prior native records plus existing exact216 recheck sufficient, no new captures/cases required.\nIf a runtime dependency was actually loaded live or hashes disagree, report exact affected run rather than assuming harmlessness. Otherwise archive the complete bounded corrected gate and first audit issue compactly, commit only owned new shared-stdin-review paths, clean verifiedownedfixtures, and exitnormally with allchildrenclosed. Root authorizes this finite harness-isolation correction, not source fixes or broad repeated validation. No SGID retries, benchmark, FS, newtool or wholeproject expansion.\n",
+      "sha256": "0c68b1cbccdad0ead5ffe38580445b675066ae73987f0c609b61892832b3c36b"
+    },
+    "corrections": [
+      {
+        "path": "node_modules/.bin/esbuild",
+        "oldTarget": "/Users/kjopek/Workspace/safe-bash/node_modules/esbuild/bin/esbuild",
+        "newTarget": "../esbuild/bin/esbuild",
+        "resolved": "/private/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/esbuild/bin/esbuild",
+        "sha256": "10b6243df618d374bb2d5c9cfbe7052e1405f6aa4e53a6164f11a91b9f2e1384"
+      },
+      {
+        "path": "node_modules/.bin/tsc",
+        "oldTarget": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+        "newTarget": "../typescript/bin/tsc",
+        "resolved": "/private/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/typescript/bin/tsc",
+        "sha256": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0"
+      },
+      {
+        "path": "node_modules/.bin/tsserver",
+        "oldTarget": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsserver",
+        "newTarget": "../typescript/bin/tsserver",
+        "resolved": "/private/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/typescript/bin/tsserver",
+        "sha256": "a088f0c3419bcb2f7b860ad42e4c9f25ead067eda70af6a10d0a7d453954aada"
+      },
+      {
+        "path": "node_modules/.bin/tsx",
+        "oldTarget": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/cli.mjs",
+        "newTarget": "../tsx/dist/cli.mjs",
+        "resolved": "/private/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/tsx/dist/cli.mjs",
+        "sha256": "fd00586b96028510c228365a4eeb1f163dac5245f1d0e40649969cf9560d376b"
+      }
+    ],
+    "containedBefore": [
+      {
+        "path": "node_modules/.bin/esbuild",
+        "target": "../esbuild/bin/esbuild",
+        "resolved": "/private/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/esbuild/bin/esbuild",
+        "sha256": "10b6243df618d374bb2d5c9cfbe7052e1405f6aa4e53a6164f11a91b9f2e1384"
+      },
+      {
+        "path": "node_modules/.bin/tsc",
+        "target": "../typescript/bin/tsc",
+        "resolved": "/private/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/typescript/bin/tsc",
+        "sha256": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0"
+      },
+      {
+        "path": "node_modules/.bin/tsserver",
+        "target": "../typescript/bin/tsserver",
+        "resolved": "/private/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/typescript/bin/tsserver",
+        "sha256": "a088f0c3419bcb2f7b860ad42e4c9f25ead067eda70af6a10d0a7d453954aada"
+      },
+      {
+        "path": "node_modules/.bin/tsx",
+        "target": "../tsx/dist/cli.mjs",
+        "resolved": "/private/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/tsx/dist/cli.mjs",
+        "sha256": "fd00586b96028510c228365a4eeb1f163dac5245f1d0e40649969cf9560d376b"
+      }
+    ],
+    "unchangedRegularFiles": 570,
+    "sourceDigest": "e796b3ca1b3cc3582b40e8fac18877aa93e3d1203dcd08e82ffccc6e61eb81af",
+    "tableDigest": "e4315fd33a56aa30ec9c390115c714ca958e60f13cb3f0f39a5d52592e77c7e6"
+  },
+  "after": [
+    {
+      "path": "node_modules/.bin/esbuild",
+      "target": "../esbuild/bin/esbuild",
+      "resolved": "/private/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/esbuild/bin/esbuild",
+      "sha256": "10b6243df618d374bb2d5c9cfbe7052e1405f6aa4e53a6164f11a91b9f2e1384"
+    },
+    {
+      "path": "node_modules/.bin/tsc",
+      "target": "../typescript/bin/tsc",
+      "resolved": "/private/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/typescript/bin/tsc",
+      "sha256": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0"
+    },
+    {
+      "path": "node_modules/.bin/tsserver",
+      "target": "../typescript/bin/tsserver",
+      "resolved": "/private/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/typescript/bin/tsserver",
+      "sha256": "a088f0c3419bcb2f7b860ad42e4c9f25ead067eda70af6a10d0a7d453954aada"
+    },
+    {
+      "path": "node_modules/.bin/tsx",
+      "target": "../tsx/dist/cli.mjs",
+      "resolved": "/private/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/tsx/dist/cli.mjs",
+      "sha256": "fd00586b96028510c228365a4eeb1f163dac5245f1d0e40649969cf9560d376b"
+    }
+  ],
+  "regularInputFileDrift": [],
+  "initialManifestWordingCorrection": "The initial immutable field overlooked four unused live .bin aliases. Root authorized changing only those aliases to contained relative links; the570 regular files stayed read-only and byte-identical. This is not a symlink-free tree. Final corrected replay is separate from first-pass.json."
+}

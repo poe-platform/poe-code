@@ -1,0 +1,84 @@
+{
+  "startedAt": "2026-08-29T04:34:05.042Z",
+  "endedAt": "2026-08-29T04:34:05.691Z",
+  "elapsedMs": 650.091875,
+  "results": [
+    {
+      "method": "GET",
+      "url": "https://ftp.gnu.org/gnu/bash/",
+      "startedAt": "2026-08-29T04:34:05.042Z",
+      "status": 200,
+      "headers": {
+        "date": "Sat, 29 Aug 2026 04:34:04 GMT",
+        "last-modified": null,
+        "etag": null,
+        "content-type": "text/html;charset=UTF-8",
+        "content-length": null,
+        "location": null
+      },
+      "body": {
+        "path": "1.body.data",
+        "bytes": 38942,
+        "sha256": "f21ff7373237cec92a11396ead0a53065d6795b9fa54df835e6ab86bc3c9fd20"
+      },
+      "disposition": "HTTP_METADATA_ONLY",
+      "endedAt": "2026-08-29T04:34:05.442Z"
+    },
+    {
+      "method": "GET",
+      "url": "https://ftp.gnu.org/gnu/bash/bash-5.3-patches/",
+      "startedAt": "2026-08-29T04:34:05.443Z",
+      "status": 200,
+      "headers": {
+        "date": "Sat, 29 Aug 2026 04:34:04 GMT",
+        "last-modified": null,
+        "etag": null,
+        "content-type": "text/html;charset=UTF-8",
+        "content-length": "6950",
+        "location": null
+      },
+      "body": {
+        "path": "2.body.data",
+        "bytes": 6950,
+        "sha256": "e33744fd95ad3ba7cd1112f780074a0be3fa7406b8b0905ba94c1c9a9c48d4fa"
+      },
+      "disposition": "HTTP_METADATA_ONLY",
+      "endedAt": "2026-08-29T04:34:05.493Z"
+    },
+    {
+      "method": "HEAD",
+      "url": "https://ftp.gnu.org/gnu/bash/bash-5.3.tar.gz",
+      "startedAt": "2026-08-29T04:34:05.493Z",
+      "status": 200,
+      "headers": {
+        "date": "Sat, 29 Aug 2026 04:34:04 GMT",
+        "last-modified": "Wed, 30 Jul 2025 14:07:20 GMT",
+        "etag": "\"ad46ce-63b260b149c00\"",
+        "content-type": "application/x-gzip",
+        "content-length": "11355854",
+        "location": null
+      },
+      "disposition": "HTTP_METADATA_ONLY",
+      "endedAt": "2026-08-29T04:34:05.546Z"
+    },
+    {
+      "method": "HEAD",
+      "url": "https://ftp.gnu.org/gnu/bash/bash-5.3.tar.gz.sig",
+      "startedAt": "2026-08-29T04:34:05.546Z",
+      "status": 200,
+      "headers": {
+        "date": "Sat, 29 Aug 2026 04:34:05 GMT",
+        "last-modified": "Wed, 30 Jul 2025 14:07:21 GMT",
+        "etag": "\"5f-63b260b178a00\"",
+        "content-type": "application/pgp-signature",
+        "content-length": "95",
+        "location": null
+      },
+      "disposition": "HTTP_METADATA_ONLY",
+      "endedAt": "2026-08-29T04:34:05.690Z"
+    }
+  ],
+  "children": 0,
+  "archiveBodyFetches": 0,
+  "codeExecutions": 0
+}

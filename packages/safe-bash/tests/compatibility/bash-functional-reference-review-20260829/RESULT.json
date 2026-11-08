@@ -1,0 +1,185 @@
+{
+  "status": "DATA_ASSERTION_FAILURE_RETAINED",
+  "source": "9afc9c5a321711fb566817916a281fe4776935fd",
+  "evidence": "807b6ea5f934e7b9d23092c6d7f518b757b8fbea",
+  "presealSha256": "657d5ef886db90c625d40ba4f461ccea64c1ff9e2d48f3b1c72190bc0d52dea6",
+  "launcherSha256": "c93248b64eb33cd2c363351ba393a42f7858210b95537fdd6bbef257d1664147",
+  "checks": [
+    {
+      "id": "C01",
+      "disposition": "PASS_DATA_OR_SOURCE_ASSERTION",
+      "detail": {
+        "sourceFiles": 16,
+        "launcherSha256": "c93248b64eb33cd2c363351ba393a42f7858210b95537fdd6bbef257d1664147"
+      }
+    },
+    {
+      "id": "C02",
+      "disposition": "PASS_DATA_OR_SOURCE_ASSERTION",
+      "detail": {
+        "immutablePrograms": 40,
+        "executed": 0
+      }
+    },
+    {
+      "id": "C03",
+      "disposition": "PASS_DATA_OR_SOURCE_ASSERTION",
+      "detail": {
+        "fixtures": 4,
+        "fixtureBody": "v=sourced; printf 'source:%s\\n' \"$1\"\n",
+        "nestedEval": "v=eval",
+        "nestedTrap": "printf cleanup"
+      }
+    },
+    {
+      "id": "C04",
+      "disposition": "PASS_DATA_OR_SOURCE_ASSERTION",
+      "detail": {
+        "observationsProposed": 37,
+        "allUnrun": true,
+        "successfulExternalExecutionAuthorized": false
+      }
+    },
+    {
+      "id": "C05",
+      "disposition": "FAIL_DATA_OR_SOURCE_ASSERTION",
+      "message": "B21"
+    },
+    {
+      "id": "C06",
+      "disposition": "PASS_DATA_OR_SOURCE_ASSERTION",
+      "detail": {
+        "planned": 64,
+        "directBash": 37,
+        "internalSourceReservations": 13,
+        "controller": 1,
+        "toolShell": 1,
+        "unspecifiedAdministrativeAllowance": 12,
+        "peakPlanningOnly": 6,
+        "runtimeAllStartsCensus": false,
+        "workingByteEnforcementInLauncher": false
+      }
+    },
+    {
+      "id": "C07",
+      "disposition": "PASS_DATA_OR_SOURCE_ASSERTION",
+      "detail": {
+        "priorCommit": "822e82a70dfebc071d3b6e27bc78967afa40a993",
+        "versionStdout": "GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)\nCopyright (C) 2007 Free Software Foundation, Inc.\n",
+        "versionResult": {
+          "events": [
+            {
+              "event": "spawn-request",
+              "elapsedMs": 3.1910000000000025,
+              "pid": 81760
+            },
+            {
+              "event": "exit",
+              "code": 0,
+              "signal": null,
+              "elapsedMs": 13.590958999999998
+            },
+            {
+              "event": "close",
+              "code": 0,
+              "signal": null,
+              "elapsedMs": 13.609959000000003
+            }
+          ],
+          "lengths": {
+            "stdout": 109,
+            "stderr": 0
+          },
+          "termination": null,
+          "ownedClosed": true,
+          "elapsedMs": 13.845833999999996,
+          "starts": 1,
+          "status": "CLOSED_METADATA_ONLY"
+        },
+        "currentToolMetadata": [
+          {
+            "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+            "bytes": 112989184,
+            "mode": 493,
+            "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+            "role": "STREAM_HASH_METADATA_NO_VERSION_PROBE"
+          },
+          {
+            "path": "/bin/bash",
+            "bytes": 1293840,
+            "mode": 365,
+            "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+            "role": "STREAM_HASH_METADATA_NO_VERSION_PROBE"
+          },
+          {
+            "path": "/usr/bin/env",
+            "bytes": 102368,
+            "mode": 493,
+            "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776",
+            "role": "STREAM_HASH_METADATA_NO_VERSION_PROBE"
+          }
+        ],
+        "versionExecutionsThisReview": 0
+      }
+    },
+    {
+      "id": "C08",
+      "disposition": "PASS_DATA_OR_SOURCE_ASSERTION",
+      "detail": {
+        "identities": 40,
+        "eligible": 37,
+        "withheld": 3,
+        "noAdditionalLiteralExclusionFound": true,
+        "reviewerRole": "independent manual source classification, not general shell parser proof"
+      }
+    },
+    {
+      "id": "C09",
+      "disposition": "PASS_DATA_OR_SOURCE_ASSERTION",
+      "detail": {
+        "role": "source-linked synthetic state, NOT actual fsync injection",
+        "halted": true,
+        "errors": [
+          {
+            "phase": "fsync",
+            "code": "EIO"
+          }
+        ],
+        "regularCaptureCompletion": true,
+        "consequence": "completed++ remains reachable despite capture finalization error"
+      }
+    },
+    {
+      "id": "C10",
+      "disposition": "PASS_DATA_OR_SOURCE_ASSERTION",
+      "detail": {
+        "role": "source-linked ordering model; no real children",
+        "possibleTrace": [
+          "direct exit/close",
+          "group present",
+          "send SIGKILL",
+          "clear remaining timers",
+          "no subsequent group observation",
+          "publish STOP with unresolved retirement"
+        ],
+        "rawCaptureGap": "mkdir/open/import failures precede durable journal/catch",
+        "firstStopReasonRetainedBy": "stop assigns row.stop only once",
+        "runtimeLifecycleProof": "UNRUN"
+      }
+    }
+  ],
+  "syntax": {
+    "status": 0,
+    "bodyExecuted": false
+  },
+  "metadataChildren": 4,
+  "syntaxChildren": 1,
+  "childrenRetired": 5,
+  "runtimeChildren": 0,
+  "lifecycleChildren": 0,
+  "bashExecutions": 0,
+  "eligibleUnrun": 37,
+  "withheldUnrun": 3,
+  "begun": 1787986357918,
+  "ended": 1787986358370
+}

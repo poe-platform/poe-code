@@ -1,0 +1,646 @@
+{
+  "verifiedAt": "2026-08-27T12:42:44.434Z",
+  "summaries": [
+    {
+      "candidate": "frozen",
+      "failures": 17,
+      "exactOriginalDifferentialIndices": [
+        7,
+        31,
+        55,
+        79,
+        103,
+        127,
+        151,
+        175,
+        199,
+        223,
+        247,
+        271,
+        295,
+        319,
+        343,
+        367
+      ],
+      "gnuAllMetadataUnchanged": true,
+      "nodeAndRealFsCtimeChanged": true,
+      "positiveScenarios": 4,
+      "permissionDenial": "EACCES preserved; status1; child metadata and 00ff0a bytes unchanged",
+      "table": [
+        {
+          "id": "setid-control",
+          "initialRequested": "6755",
+          "initialMeasured": "4755",
+          "umask": "0022",
+          "gnu": "1/4755",
+          "nodeRealFs": "0/4755",
+          "memory": "0/6755"
+        },
+        {
+          "id": "differential-7",
+          "initialRequested": "0051",
+          "initialMeasured": "0051",
+          "umask": "0000",
+          "gnu": "1/0051",
+          "nodeRealFs": "0/4051",
+          "memory": "0/6051"
+        },
+        {
+          "id": "differential-31",
+          "initialRequested": "0601",
+          "initialMeasured": "0601",
+          "umask": "0022",
+          "gnu": "1/0601",
+          "nodeRealFs": "0/4601",
+          "memory": "0/6601"
+        },
+        {
+          "id": "differential-55",
+          "initialRequested": "0731",
+          "initialMeasured": "0731",
+          "umask": "0077",
+          "gnu": "1/0731",
+          "nodeRealFs": "0/4731",
+          "memory": "0/6731"
+        },
+        {
+          "id": "differential-79",
+          "initialRequested": "0461",
+          "initialMeasured": "0461",
+          "umask": "0200",
+          "gnu": "1/0461",
+          "nodeRealFs": "0/4461",
+          "memory": "0/6461"
+        },
+        {
+          "id": "differential-103",
+          "initialRequested": "0611",
+          "initialMeasured": "0611",
+          "umask": "0000",
+          "gnu": "1/0611",
+          "nodeRealFs": "0/4611",
+          "memory": "0/6611"
+        },
+        {
+          "id": "differential-127",
+          "initialRequested": "0341",
+          "initialMeasured": "0341",
+          "umask": "0022",
+          "gnu": "1/0341",
+          "nodeRealFs": "0/4341",
+          "memory": "0/6341"
+        },
+        {
+          "id": "differential-151",
+          "initialRequested": "0471",
+          "initialMeasured": "0471",
+          "umask": "0077",
+          "gnu": "1/0471",
+          "nodeRealFs": "0/4471",
+          "memory": "0/6471"
+        },
+        {
+          "id": "differential-175",
+          "initialRequested": "0221",
+          "initialMeasured": "0221",
+          "umask": "0200",
+          "gnu": "1/0221",
+          "nodeRealFs": "0/4221",
+          "memory": "0/6221"
+        },
+        {
+          "id": "differential-199",
+          "initialRequested": "0351",
+          "initialMeasured": "0351",
+          "umask": "0000",
+          "gnu": "1/0351",
+          "nodeRealFs": "0/4351",
+          "memory": "0/6351"
+        },
+        {
+          "id": "differential-223",
+          "initialRequested": "0101",
+          "initialMeasured": "0101",
+          "umask": "0022",
+          "gnu": "1/0101",
+          "nodeRealFs": "0/4101",
+          "memory": "0/6101"
+        },
+        {
+          "id": "differential-247",
+          "initialRequested": "0231",
+          "initialMeasured": "0231",
+          "umask": "0077",
+          "gnu": "1/0231",
+          "nodeRealFs": "0/4231",
+          "memory": "0/6231"
+        },
+        {
+          "id": "differential-271",
+          "initialRequested": "0761",
+          "initialMeasured": "0761",
+          "umask": "0200",
+          "gnu": "1/0761",
+          "nodeRealFs": "0/4761",
+          "memory": "0/6761"
+        },
+        {
+          "id": "differential-295",
+          "initialRequested": "0111",
+          "initialMeasured": "0111",
+          "umask": "0000",
+          "gnu": "1/0111",
+          "nodeRealFs": "0/4111",
+          "memory": "0/6111"
+        },
+        {
+          "id": "differential-319",
+          "initialRequested": "0641",
+          "initialMeasured": "0641",
+          "umask": "0022",
+          "gnu": "1/0641",
+          "nodeRealFs": "0/4641",
+          "memory": "0/6641"
+        },
+        {
+          "id": "differential-343",
+          "initialRequested": "0771",
+          "initialMeasured": "0771",
+          "umask": "0077",
+          "gnu": "1/0771",
+          "nodeRealFs": "0/4771",
+          "memory": "0/6771"
+        },
+        {
+          "id": "differential-367",
+          "initialRequested": "0521",
+          "initialMeasured": "0521",
+          "umask": "0200",
+          "gnu": "1/0521",
+          "nodeRealFs": "0/4521",
+          "memory": "0/6521"
+        }
+      ]
+    },
+    {
+      "candidate": "current",
+      "failures": 17,
+      "exactOriginalDifferentialIndices": [
+        7,
+        31,
+        55,
+        79,
+        103,
+        127,
+        151,
+        175,
+        199,
+        223,
+        247,
+        271,
+        295,
+        319,
+        343,
+        367
+      ],
+      "gnuAllMetadataUnchanged": true,
+      "nodeAndRealFsCtimeChanged": true,
+      "positiveScenarios": 4,
+      "permissionDenial": "EACCES preserved; status1; child metadata and 00ff0a bytes unchanged",
+      "table": [
+        {
+          "id": "setid-control",
+          "initialRequested": "6755",
+          "initialMeasured": "4755",
+          "umask": "0022",
+          "gnu": "1/4755",
+          "nodeRealFs": "0/4755",
+          "memory": "0/6755"
+        },
+        {
+          "id": "differential-7",
+          "initialRequested": "0051",
+          "initialMeasured": "0051",
+          "umask": "0000",
+          "gnu": "1/0051",
+          "nodeRealFs": "0/4051",
+          "memory": "0/6051"
+        },
+        {
+          "id": "differential-31",
+          "initialRequested": "0601",
+          "initialMeasured": "0601",
+          "umask": "0022",
+          "gnu": "1/0601",
+          "nodeRealFs": "0/4601",
+          "memory": "0/6601"
+        },
+        {
+          "id": "differential-55",
+          "initialRequested": "0731",
+          "initialMeasured": "0731",
+          "umask": "0077",
+          "gnu": "1/0731",
+          "nodeRealFs": "0/4731",
+          "memory": "0/6731"
+        },
+        {
+          "id": "differential-79",
+          "initialRequested": "0461",
+          "initialMeasured": "0461",
+          "umask": "0200",
+          "gnu": "1/0461",
+          "nodeRealFs": "0/4461",
+          "memory": "0/6461"
+        },
+        {
+          "id": "differential-103",
+          "initialRequested": "0611",
+          "initialMeasured": "0611",
+          "umask": "0000",
+          "gnu": "1/0611",
+          "nodeRealFs": "0/4611",
+          "memory": "0/6611"
+        },
+        {
+          "id": "differential-127",
+          "initialRequested": "0341",
+          "initialMeasured": "0341",
+          "umask": "0022",
+          "gnu": "1/0341",
+          "nodeRealFs": "0/4341",
+          "memory": "0/6341"
+        },
+        {
+          "id": "differential-151",
+          "initialRequested": "0471",
+          "initialMeasured": "0471",
+          "umask": "0077",
+          "gnu": "1/0471",
+          "nodeRealFs": "0/4471",
+          "memory": "0/6471"
+        },
+        {
+          "id": "differential-175",
+          "initialRequested": "0221",
+          "initialMeasured": "0221",
+          "umask": "0200",
+          "gnu": "1/0221",
+          "nodeRealFs": "0/4221",
+          "memory": "0/6221"
+        },
+        {
+          "id": "differential-199",
+          "initialRequested": "0351",
+          "initialMeasured": "0351",
+          "umask": "0000",
+          "gnu": "1/0351",
+          "nodeRealFs": "0/4351",
+          "memory": "0/6351"
+        },
+        {
+          "id": "differential-223",
+          "initialRequested": "0101",
+          "initialMeasured": "0101",
+          "umask": "0022",
+          "gnu": "1/0101",
+          "nodeRealFs": "0/4101",
+          "memory": "0/6101"
+        },
+        {
+          "id": "differential-247",
+          "initialRequested": "0231",
+          "initialMeasured": "0231",
+          "umask": "0077",
+          "gnu": "1/0231",
+          "nodeRealFs": "0/4231",
+          "memory": "0/6231"
+        },
+        {
+          "id": "differential-271",
+          "initialRequested": "0761",
+          "initialMeasured": "0761",
+          "umask": "0200",
+          "gnu": "1/0761",
+          "nodeRealFs": "0/4761",
+          "memory": "0/6761"
+        },
+        {
+          "id": "differential-295",
+          "initialRequested": "0111",
+          "initialMeasured": "0111",
+          "umask": "0000",
+          "gnu": "1/0111",
+          "nodeRealFs": "0/4111",
+          "memory": "0/6111"
+        },
+        {
+          "id": "differential-319",
+          "initialRequested": "0641",
+          "initialMeasured": "0641",
+          "umask": "0022",
+          "gnu": "1/0641",
+          "nodeRealFs": "0/4641",
+          "memory": "0/6641"
+        },
+        {
+          "id": "differential-343",
+          "initialRequested": "0771",
+          "initialMeasured": "0771",
+          "umask": "0077",
+          "gnu": "1/0771",
+          "nodeRealFs": "0/4771",
+          "memory": "0/6771"
+        },
+        {
+          "id": "differential-367",
+          "initialRequested": "0521",
+          "initialMeasured": "0521",
+          "umask": "0200",
+          "gnu": "1/0521",
+          "nodeRealFs": "0/4521",
+          "memory": "0/6521"
+        }
+      ]
+    }
+  ],
+  "copyVerification": [
+    {
+      "candidate": "frozen",
+      "files": 216,
+      "unchanged": true
+    },
+    {
+      "candidate": "current",
+      "files": 216,
+      "unchanged": true
+    }
+  ],
+  "archiveChecks": [
+    {
+      "path": "safe-bash-metadata-sgid-feasibility.txt",
+      "sha256": "92777ed384b1512d537c042b12c3bbeeae857211714a50593026ee9016b52737",
+      "bytes": 16540,
+      "authenticated": true
+    },
+    {
+      "path": "safe-bash-metadata-sgid-status.txt",
+      "sha256": "59d43720a03a9492b0ee31eb47aa4f43892af462997c3074e3564e26d69b14f5",
+      "bytes": 678,
+      "authenticated": true
+    },
+    {
+      "path": "safe-bash-metadata-sgid-replay.mjs",
+      "sha256": "0725f3aa137c0a86d6fb0d6cb9fe067508178f694e465a61878427d6f225df49",
+      "bytes": 17181,
+      "authenticated": true
+    },
+    {
+      "path": "safe-bash-metadata-sgid-replay.json",
+      "sha256": "0fa98f7ded51eb0024f631c35aefcc5b1592c2aa5395622c8da965be42825328",
+      "bytes": 287688,
+      "authenticated": true
+    },
+    {
+      "path": "safe-bash-metadata-sgid-controls.mjs",
+      "sha256": "34a1dfc0df80ef3a0b333c997162b2e2766e7ecba291290849ef261554fcb842",
+      "bytes": 8797,
+      "authenticated": true
+    },
+    {
+      "path": "safe-bash-metadata-sgid-controls.json",
+      "sha256": "44a87a141f596bef65418723ad35b460ec3376d294d77d08573a89e387af382a",
+      "bytes": 32313,
+      "authenticated": true
+    },
+    {
+      "path": "support/source-proof.json",
+      "sha256": "010a22e7ddffc00436f258274d500b9432fb13841aeb40207e7cf77afbe3a67f",
+      "bytes": 5160,
+      "authenticated": true
+    },
+    {
+      "path": "support/source-proof.mjs",
+      "sha256": "92b88ad09ea8e199ccfd4b1540bb294902902aa2c8d2bd033a8cddb34b5ac438",
+      "bytes": 3470,
+      "authenticated": true
+    },
+    {
+      "path": "support/syscall-probe.c",
+      "sha256": "86e14248249ec20ca08e9c5a04008028883e0f19c254230353bbfe71f619cb40",
+      "bytes": 1084,
+      "authenticated": true
+    },
+    {
+      "path": "support/trace-fchmodat.c",
+      "sha256": "b87b6da606aa4213c867745b5efafce76b709515c2296e4e23da342dec8b2045",
+      "bytes": 737,
+      "authenticated": true
+    }
+  ],
+  "nativeCleanup": [
+    {
+      "path": "/private/tmp/safe-bash-darwin-classification-b04J1M/frozen/tests/commands/metadata-stress/.native-bounded-dMCqrW",
+      "absent": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-darwin-classification-b04J1M/frozen/tests/commands/metadata-stress/.native-bounded-q0Dge3",
+      "absent": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-darwin-classification-b04J1M/frozen/tests/commands/metadata-stress/.native-bounded-ah4dRJ",
+      "absent": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-darwin-classification-b04J1M/current/tests/commands/metadata-stress/.native-bounded-2KZKta",
+      "absent": true
+    }
+  ],
+  "sourceCopiesRemoved": true,
+  "productionBuilds": 0,
+  "nativeBuilds": 0,
+  "allReplayProcessesSettled": true,
+  "concurrentIndexPaths": [
+    "package.json",
+    "tests/integration/full-gate-20260827/preflight-repair/native-readiness/README.md",
+    "tests/integration/full-gate-20260827/preflight-repair/native-readiness/audit.mjs",
+    "tests/integration/full-gate-20260827/preflight-repair/native-readiness/evidence.json",
+    "tests/integration/typecheck-workflow-independent-20260827/MANIFEST.json",
+    "tests/integration/typecheck-workflow-independent-20260827/README.md",
+    "tests/integration/typecheck-workflow-independent-20260827/audit.mjs",
+    "tests/integration/typecheck-workflow-independent-20260827/authenticate-author.mjs",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/author-authentication.json",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/broad-exclusion.report.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/broad-exclusion.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/broad-exclusion.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/capture-tamper.report.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/capture-tamper.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/capture-tamper.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/cold.report.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/cold.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/cold.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/combined.report.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/combined.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/combined.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/coverage-controls.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/coverage-controls.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/emitted.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/extract.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/extract.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/failed-build.report.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/failed-build.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/failed-build.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/foreign-build-resolution-full.report.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/foreign-build-resolution-full.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/foreign-build-resolution-full.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/foreign-build-resolution.report.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/foreign-build-resolution.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/foreign-build-resolution.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/input-discovery.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/input-discovery.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/isolated-git-init.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/isolated-git-init.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/isolated-index.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/isolated-index.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/missing-built-subpath.report.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/missing-built-subpath.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/missing-built-subpath.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/missing-contract.report.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/missing-contract.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/missing-contract.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/missing-include.report.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/missing-include.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/missing-include.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/missing-moved-consumer.report.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/missing-moved-consumer.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/missing-moved-consumer.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/missing-source-consumer.report.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/missing-source-consumer.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/missing-source-consumer.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/moved-consumer-negative.report.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/moved-consumer-negative.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/moved-consumer-negative.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/neighbor-negative.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/neighbor-negative.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/removed-route.report.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/removed-route.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/removed-route.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/report.json",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/resolve-candidate.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/resolve-candidate.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/resolve-tree.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/resolve-tree.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/source-after.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/source-before.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/source-consumer-negative.report.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/source-consumer-negative.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/source-consumer-negative.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/source-fallback-negative.report.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/source-fallback-negative.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/source-fallback-negative.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/tools.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/track-new-consumer.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/track-new-consumer.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/tracked-inputs.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/tracked-inputs.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/unknown-consumer.report.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/unknown-consumer.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/unknown-consumer.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/untrack-new-consumer.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/final/untrack-new-consumer.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/audit.mjs.data",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/broad-exclusion.report.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/broad-exclusion.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/broad-exclusion.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/capture-tamper.report.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/capture-tamper.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/capture-tamper.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/cold.report.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/cold.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/cold.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/combined.report.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/combined.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/combined.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/coverage-controls.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/coverage-controls.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/emitted.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/extract.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/extract.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/failed-build.report.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/failed-build.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/failed-build.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/foreign-build-resolution.report.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/foreign-build-resolution.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/foreign-build-resolution.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/input-discovery.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/input-discovery.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/isolated-git-init.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/isolated-git-init.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/isolated-index.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/isolated-index.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/missing-built-subpath.report.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/missing-built-subpath.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/missing-built-subpath.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/missing-contract.report.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/missing-contract.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/missing-contract.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/missing-include.report.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/missing-include.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/missing-include.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/missing-moved-consumer.report.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/missing-moved-consumer.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/missing-moved-consumer.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/missing-source-consumer.report.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/missing-source-consumer.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/missing-source-consumer.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/moved-consumer-negative.report.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/moved-consumer-negative.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/moved-consumer-negative.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/neighbor-negative.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/neighbor-negative.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/removed-route.report.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/removed-route.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/removed-route.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/report.json",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/resolve-candidate.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/resolve-candidate.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/resolve-tree.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/resolve-tree.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/source-after.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/source-before.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/source-consumer-negative.report.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/source-consumer-negative.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/source-consumer-negative.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/source-fallback-negative.report.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/source-fallback-negative.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/source-fallback-negative.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/tools.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/track-new-consumer.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/track-new-consumer.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/tracked-inputs.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/tracked-inputs.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/unknown-consumer.report.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/unknown-consumer.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/unknown-consumer.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/untrack-new-consumer.stderr.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/evidence/first/untrack-new-consumer.stdout.gz.base64",
+    "tests/integration/typecheck-workflow-independent-20260827/verify.mjs"
+  ],
+  "priorRunnerIssues": [
+    "attempt1 owned harness compared Uint8Array with Buffer using deepStrictEqual; same bytes; failed before row retention; fixture cleaned",
+    "attempt2 denial baseline was captured before ls -ldeO@; atime changed during inspection; ctime/mode did not; corrected own measurement ordering, not canonical assertions",
+    "attempt3 retained the 21 completed frozen observations from attempt2 rather than replaying them; completed frozen denial and current22 scenarios"
+  ],
+  "finalIntegrity": {
+    "beforeHead": "46447153e5f6d6428f70027c9aeee00ac248b47f",
+    "afterHead": "c5d44262ecca11009df6ce32a180005d3f3cb574",
+    "beforeDigest": "3ca4d54fa321fc4339e08db31a9ed2e46e9e3524f5354456b0878aad77d5b36d",
+    "afterDigest": "3ca4d54fa321fc4339e08db31a9ed2e46e9e3524f5354456b0878aad77d5b36d",
+    "changed": [],
+    "indexUnchanged": false,
+    "statusUnchanged": false,
+    "files": 1804
+  },
+  "concurrentIndexPathsCapture": "intermediate after snapshot at31e24055; final status/index separately retained in after.json",
+  "finalOwnedProcessMatches": []
+}

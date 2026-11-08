@@ -1,0 +1,10 @@
+{
+  "scope": "STAGE_A_PRODUCER_ONLY",
+  "authorization": "ROOT fresh StageA-r2 preparation and conditional one producer-only attempt after preflight PASS, August29 2026; no StageB",
+  "presealSha256": "8acc5e35686a4fa20bf1f8a871b2c23edff4cb29b09a9b9f1848ffc1332006db",
+  "presealBytes": 47291,
+  "sourceTree": "3adc676a0ab638c9788ef007e465931d65d2c6fe",
+  "physicalRoot": "/private/tmp/safe-bash-coherent-stage-a-20260829-r2",
+  "oldAttempt": "f89cfd7a/0cd47070 unchanged and consumed",
+  "stageB": "UNRUN_NO_AUTHORITY"
+}

@@ -1,0 +1,299 @@
+{
+  "captured": "2026-08-26T20:43:05.365Z",
+  "binaries": {
+    "gnuPatch": {
+      "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "version": "GNU patch 2.8",
+      "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00"
+    },
+    "gnuDiff": {
+      "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+      "version": "diff (GNU diffutils) 3.12",
+      "sha256": "f13ef516c397b0281818ffe8685aa763100b56a6549295c91849c6af937a83c9"
+    },
+    "applePatch": {
+      "path": "/usr/bin/patch",
+      "version": "patch 2.0-12u11-Apple",
+      "sha256": "ca8aaa5fa4bd9dfaf4b3be251b18372f25f07483946e7d06b505e5a5fb0a6a84"
+    },
+    "git": {
+      "path": "/usr/bin/git",
+      "version": "git version 2.50.1 (Apple Git-155)",
+      "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba"
+    }
+  },
+  "paths": [
+    {
+      "binary": "gnuPatch",
+      "header": "a///dir//leaf",
+      "strip": 1,
+      "target": "dir/leaf",
+      "status": 0,
+      "stdout": "patching file dir//leaf\n",
+      "stderr": "",
+      "content": "new\n"
+    },
+    {
+      "binary": "gnuPatch",
+      "header": "./leaf",
+      "strip": 1,
+      "target": "leaf",
+      "status": 0,
+      "stdout": "patching file leaf\n",
+      "stderr": "",
+      "content": "new\n"
+    },
+    {
+      "binary": "gnuPatch",
+      "header": "a/./leaf",
+      "strip": 2,
+      "target": "leaf",
+      "status": 0,
+      "stdout": "patching file leaf\n",
+      "stderr": "",
+      "content": "new\n"
+    },
+    {
+      "binary": "gnuPatch",
+      "header": "a/dir/./leaf",
+      "strip": 1,
+      "target": "dir/leaf",
+      "status": 0,
+      "stdout": "patching file dir/./leaf\n",
+      "stderr": "",
+      "content": "new\n"
+    },
+    {
+      "binary": "gnuPatch",
+      "header": "a///./dir//leaf",
+      "strip": 2,
+      "target": "dir/leaf",
+      "status": 0,
+      "stdout": "patching file dir//leaf\n",
+      "stderr": "",
+      "content": "new\n"
+    },
+    {
+      "binary": "gnuPatch",
+      "header": "a/leaf/",
+      "strip": 1,
+      "target": "leaf",
+      "status": 1,
+      "stdout": "can't find file to patch at input line 3\nPerhaps you used the wrong -p or --strip option?\nThe text leading up to this was:\n--------------------------\n|--- a/leaf/\n|+++ a/leaf/\n--------------------------\nNo file to patch.  Skipping patch.\n1 out of 1 hunk ignored\n",
+      "stderr": "",
+      "content": "old\n"
+    },
+    {
+      "binary": "gnuPatch",
+      "header": "a/leaf//",
+      "strip": 1,
+      "target": "leaf",
+      "status": 1,
+      "stdout": "can't find file to patch at input line 3\nPerhaps you used the wrong -p or --strip option?\nThe text leading up to this was:\n--------------------------\n|--- a/leaf//\n|+++ a/leaf//\n--------------------------\nNo file to patch.  Skipping patch.\n1 out of 1 hunk ignored\n",
+      "stderr": "",
+      "content": "old\n"
+    },
+    {
+      "binary": "gnuPatch",
+      "header": "a/leaf/.",
+      "strip": 1,
+      "target": "leaf",
+      "status": 1,
+      "stdout": "can't find file to patch at input line 3\nPerhaps you used the wrong -p or --strip option?\nThe text leading up to this was:\n--------------------------\n|--- a/leaf/.\n|+++ a/leaf/.\n--------------------------\nNo file to patch.  Skipping patch.\n1 out of 1 hunk ignored\n",
+      "stderr": "",
+      "content": "old\n"
+    },
+    {
+      "binary": "gnuPatch",
+      "header": "a/leaf/./",
+      "strip": 1,
+      "target": "leaf",
+      "status": 1,
+      "stdout": "can't find file to patch at input line 3\nPerhaps you used the wrong -p or --strip option?\nThe text leading up to this was:\n--------------------------\n|--- a/leaf/./\n|+++ a/leaf/./\n--------------------------\nNo file to patch.  Skipping patch.\n1 out of 1 hunk ignored\n",
+      "stderr": "",
+      "content": "old\n"
+    },
+    {
+      "binary": "gnuPatch",
+      "header": "a/leaf/./.",
+      "strip": 1,
+      "target": "leaf",
+      "status": 1,
+      "stdout": "can't find file to patch at input line 3\nPerhaps you used the wrong -p or --strip option?\nThe text leading up to this was:\n--------------------------\n|--- a/leaf/./.\n|+++ a/leaf/./.\n--------------------------\nNo file to patch.  Skipping patch.\n1 out of 1 hunk ignored\n",
+      "stderr": "",
+      "content": "old\n"
+    },
+    {
+      "binary": "applePatch",
+      "header": "a///dir//leaf",
+      "strip": 1,
+      "target": "dir/leaf",
+      "status": 0,
+      "stdout": "patching file 'dir//leaf'\n",
+      "stderr": "",
+      "content": "new\n"
+    },
+    {
+      "binary": "applePatch",
+      "header": "./leaf",
+      "strip": 1,
+      "target": "leaf",
+      "status": 0,
+      "stdout": "patching file leaf\n",
+      "stderr": "",
+      "content": "new\n"
+    },
+    {
+      "binary": "applePatch",
+      "header": "a/./leaf",
+      "strip": 2,
+      "target": "leaf",
+      "status": 0,
+      "stdout": "patching file leaf\n",
+      "stderr": "",
+      "content": "new\n"
+    },
+    {
+      "binary": "applePatch",
+      "header": "a/dir/./leaf",
+      "strip": 1,
+      "target": "dir/leaf",
+      "status": 0,
+      "stdout": "patching file 'dir/./leaf'\n",
+      "stderr": "",
+      "content": "new\n"
+    },
+    {
+      "binary": "applePatch",
+      "header": "a///./dir//leaf",
+      "strip": 2,
+      "target": "dir/leaf",
+      "status": 0,
+      "stdout": "patching file 'dir//leaf'\n",
+      "stderr": "",
+      "content": "new\n"
+    },
+    {
+      "binary": "applePatch",
+      "header": "a/leaf/",
+      "strip": 1,
+      "target": "leaf",
+      "status": 1,
+      "stdout": "No file to patch.  Skipping...\n1 out of 1 hunks ignored--saving rejects to 'leaf/.rej'\nCan't create '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/.oracle-ZaDWs1/patchrpwlpiFWImx', output is in '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/.oracle-ZaDWs1/patchrpwlpiFWImx': Not a directory\n",
+      "stderr": "",
+      "content": "old\n"
+    },
+    {
+      "binary": "applePatch",
+      "header": "a/leaf//",
+      "strip": 1,
+      "target": "leaf",
+      "status": 1,
+      "stdout": "No file to patch.  Skipping...\n1 out of 1 hunks ignored--saving rejects to 'leaf//.rej'\nCan't create '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/.oracle-ZaDWs1/patchryHigi6jcER', output is in '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/.oracle-ZaDWs1/patchryHigi6jcER': Not a directory\n",
+      "stderr": "",
+      "content": "old\n"
+    },
+    {
+      "binary": "applePatch",
+      "header": "a/leaf/.",
+      "strip": 1,
+      "target": "leaf",
+      "status": 1,
+      "stdout": "No file to patch.  Skipping...\n1 out of 1 hunks ignored--saving rejects to 'leaf/..rej'\nCan't create '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/.oracle-ZaDWs1/patchrymWY47zT25', output is in '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/.oracle-ZaDWs1/patchrymWY47zT25': Not a directory\n",
+      "stderr": "",
+      "content": "old\n"
+    },
+    {
+      "binary": "applePatch",
+      "header": "a/leaf/./",
+      "strip": 1,
+      "target": "leaf",
+      "status": 1,
+      "stdout": "No file to patch.  Skipping...\n1 out of 1 hunks ignored--saving rejects to 'leaf/./.rej'\nCan't create '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/.oracle-ZaDWs1/patchrqHJAqUHnSn', output is in '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/.oracle-ZaDWs1/patchrqHJAqUHnSn': Not a directory\n",
+      "stderr": "",
+      "content": "old\n"
+    },
+    {
+      "binary": "applePatch",
+      "header": "a/leaf/./.",
+      "strip": 1,
+      "target": "leaf",
+      "status": 1,
+      "stdout": "No file to patch.  Skipping...\n1 out of 1 hunks ignored--saving rejects to 'leaf/./..rej'\nCan't create '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/.oracle-ZaDWs1/patchrRq10H7E3F2', output is in '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/.oracle-ZaDWs1/patchrRq10H7E3F2': Not a directory\n",
+      "stderr": "",
+      "content": "old\n"
+    }
+  ],
+  "git": [
+    {
+      "name": "café-漢字-🙂",
+      "generated": {
+        "status": 1,
+        "stdout": "diff --git \"left/caf\\303\\251-\\346\\274\\242\\345\\255\\227-\\360\\237\\231\\202\" \"right/caf\\303\\251-\\346\\274\\242\\345\\255\\227-\\360\\237\\231\\202\"\nindex 3367afd..3e75765 100644\n--- \"left/caf\\303\\251-\\346\\274\\242\\345\\255\\227-\\360\\237\\231\\202\"\n+++ \"right/caf\\303\\251-\\346\\274\\242\\345\\255\\227-\\360\\237\\231\\202\"\n@@ -1 +1 @@\n-old\n+new\n",
+        "stderr": ""
+      },
+      "applied": {
+        "status": 0,
+        "stdout": "patching file café-漢字-🙂\n",
+        "stderr": ""
+      },
+      "content": "new\n"
+    },
+    {
+      "name": "tab\tquote\"name",
+      "generated": {
+        "status": 1,
+        "stdout": "diff --git \"left/tab\\tquote\\\"name\" \"right/tab\\tquote\\\"name\"\nindex 3367afd..3e75765 100644\n--- \"left/tab\\tquote\\\"name\"\n+++ \"right/tab\\tquote\\\"name\"\n@@ -1 +1 @@\n-old\n+new\n",
+        "stderr": ""
+      },
+      "applied": {
+        "status": 0,
+        "stdout": "patching file 'tab\tquote\"name'\n",
+        "stderr": ""
+      },
+      "content": "new\n"
+    },
+    {
+      "name": "literal $(echo NO);&|[]*?",
+      "generated": {
+        "status": 1,
+        "stdout": "diff --git left/literal $(echo NO);&|[]*? right/literal $(echo NO);&|[]*?\nindex 3367afd..3e75765 100644\n--- left/literal $(echo NO);&|[]*?\t\n+++ right/literal $(echo NO);&|[]*?\t\n@@ -1 +1 @@\n-old\n+new\n",
+        "stderr": ""
+      },
+      "applied": {
+        "status": 0,
+        "stdout": "patching file 'literal $(echo NO);&|[]*?'\n",
+        "stderr": ""
+      },
+      "content": "new\n"
+    },
+    {
+      "name": "é",
+      "generated": {
+        "status": 1,
+        "stdout": "diff --git \"left/\\303\\251\" \"right/\\303\\251\"\nindex 3367afd..3e75765 100644\n--- \"left/\\303\\251\"\n+++ \"right/\\303\\251\"\n@@ -1 +1 @@\n-old\n+new\n",
+        "stderr": ""
+      },
+      "applied": {
+        "status": 0,
+        "stdout": "patching file é\n",
+        "stderr": ""
+      },
+      "content": "new\n"
+    },
+    {
+      "name": " trailing ",
+      "generated": {
+        "status": 1,
+        "stdout": "diff --git left/ trailing  right/ trailing \nindex 3367afd..3e75765 100644\n--- left/ trailing \t\n+++ right/ trailing \t\n@@ -1 +1 @@\n-old\n+new\n",
+        "stderr": ""
+      },
+      "applied": {
+        "status": 1,
+        "stdout": "can't find file to patch at input line 5\nPerhaps you used the wrong -p or --strip option?\nThe text leading up to this was:\n--------------------------\n|diff --git left/ trailing  right/ trailing \n|index 3367afd..3e75765 100644\n|--- left/ trailing \t\n|+++ right/ trailing \t\n--------------------------\nNo file to patch.  Skipping patch.\n1 out of 1 hunk ignored\n",
+        "stderr": ""
+      },
+      "content": "old\n"
+    }
+  ]
+}

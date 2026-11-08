@@ -1,0 +1,29 @@
+{
+  "role": "SOURCE_ONLY_PARSE_NO_MODULE_IMPORTS",
+  "results": [
+    {
+      "label": "syntax-prepare.mjs",
+      "status": 0,
+      "signal": null,
+      "errorPresent": false
+    },
+    {
+      "label": "syntax-run.mjs",
+      "status": 0,
+      "signal": null,
+      "errorPresent": false
+    },
+    {
+      "label": "syntax-novel.mjs",
+      "status": 0,
+      "signal": null,
+      "errorPresent": false
+    },
+    {
+      "label": "syntax-python",
+      "status": 0,
+      "signal": null,
+      "errorPresent": false
+    }
+  ]
+}

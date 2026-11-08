@@ -1,0 +1,169 @@
+{
+  "provenance": {
+    "oracle": "GNU coreutils fmt 8.30",
+    "oraclePath": "/usr/bin/fmt",
+    "oracleSha256": "f8f5ec4f7b888b0e249501497767d764d02682cfaf2d492c4b7616ad2eb79e98",
+    "glibc": "Ubuntu GLIBC 2.31-0ubuntu9.18",
+    "locales": [
+      "C",
+      "C.UTF-8"
+    ],
+    "evidencePath": "/tmp/fmt-675-cross-quoting-recheck.json",
+    "evidenceSha256": "c9badaa03d458088a75138f444e2eed1b7423e21dd18af53f56152596c49e578",
+    "nativeCwd": "/tmp/fmt-675-cross-quoting.CEgoYL",
+    "fmtSource": "/tmp/kamilio-675-gnu-fmt-8.30.c",
+    "fmtSourceSha256": "1698cd54ef770a60774b1aa80d2cb97062c8a4bd053d8ee6e60f2d94c2a03368",
+    "quotingSource": "/tmp/shuf-676-original/coreutils-8.30/lib/quotearg.c",
+    "quotingSourceSha256": "9b644b6e9d83e8293d6800f33e8c0ff67b764eb948a4e67f0be76b0aab4f5eea",
+    "sourceRule": "fmt.c quoteaf(file); quotearg.c case ? leaves c_and_shell_quote_compat false, disabling the apostrophe C-quoting shortcut.",
+    "captureDate": "2026-09-09",
+    "originalComparisons": 12,
+    "originalMismatches": 10
+  },
+  "cases": [
+    {
+      "name": "C \"'?\"",
+      "argv": [
+        "Jz8="
+      ],
+      "stdin": "",
+      "files": {},
+      "locale": "C",
+      "stdout": "",
+      "stderr": "Zm10OiBjYW5ub3Qgb3BlbiAnJ1wnJz8nIGZvciByZWFkaW5nOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5Cg==",
+      "status": 1
+    },
+    {
+      "name": "C \"?'\"",
+      "argv": [
+        "Pyc="
+      ],
+      "stdin": "",
+      "files": {},
+      "locale": "C",
+      "stdout": "",
+      "stderr": "Zm10OiBjYW5ub3Qgb3BlbiAnPydcJycnIGZvciByZWFkaW5nOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5Cg==",
+      "status": 1
+    },
+    {
+      "name": "C \"a'?b\"",
+      "argv": [
+        "YSc/Yg=="
+      ],
+      "stdin": "",
+      "files": {},
+      "locale": "C",
+      "stdout": "",
+      "stderr": "Zm10OiBjYW5ub3Qgb3BlbiAnYSdcJyc/YicgZm9yIHJlYWRpbmc6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkK",
+      "status": 1
+    },
+    {
+      "name": "C \"a?'b\"",
+      "argv": [
+        "YT8nYg=="
+      ],
+      "stdin": "",
+      "files": {},
+      "locale": "C",
+      "stdout": "",
+      "stderr": "Zm10OiBjYW5ub3Qgb3BlbiAnYT8nXCcnYicgZm9yIHJlYWRpbmc6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkK",
+      "status": 1
+    },
+    {
+      "name": "C \"é'?'\"",
+      "argv": [
+        "w6knPyc="
+      ],
+      "stdin": "",
+      "files": {},
+      "locale": "C",
+      "stdout": "",
+      "stderr": "Zm10OiBjYW5ub3Qgb3BlbiAnJyQnXDMwM1wyNTEnXCcnPydcJycnIGZvciByZWFkaW5nOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5Cg==",
+      "status": 1
+    },
+    {
+      "name": "C \"'é?\"",
+      "argv": [
+        "J8OpPw=="
+      ],
+      "stdin": "",
+      "files": {},
+      "locale": "C",
+      "stdout": "",
+      "stderr": "Zm10OiBjYW5ub3Qgb3BlbiAnJ1wnJyckJ1wzMDNcMjUxJyc/JyBmb3IgcmVhZGluZzogTm8gc3VjaCBmaWxlIG9yIGRpcmVjdG9yeQo=",
+      "status": 1
+    },
+    {
+      "name": "C.UTF-8 \"'?\"",
+      "argv": [
+        "Jz8="
+      ],
+      "stdin": "",
+      "files": {},
+      "locale": "C.UTF-8",
+      "stdout": "",
+      "stderr": "Zm10OiBjYW5ub3Qgb3BlbiAnJ1wnJz8nIGZvciByZWFkaW5nOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5Cg==",
+      "status": 1
+    },
+    {
+      "name": "C.UTF-8 \"?'\"",
+      "argv": [
+        "Pyc="
+      ],
+      "stdin": "",
+      "files": {},
+      "locale": "C.UTF-8",
+      "stdout": "",
+      "stderr": "Zm10OiBjYW5ub3Qgb3BlbiAnPydcJycnIGZvciByZWFkaW5nOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5Cg==",
+      "status": 1
+    },
+    {
+      "name": "C.UTF-8 \"a'?b\"",
+      "argv": [
+        "YSc/Yg=="
+      ],
+      "stdin": "",
+      "files": {},
+      "locale": "C.UTF-8",
+      "stdout": "",
+      "stderr": "Zm10OiBjYW5ub3Qgb3BlbiAnYSdcJyc/YicgZm9yIHJlYWRpbmc6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkK",
+      "status": 1
+    },
+    {
+      "name": "C.UTF-8 \"a?'b\"",
+      "argv": [
+        "YT8nYg=="
+      ],
+      "stdin": "",
+      "files": {},
+      "locale": "C.UTF-8",
+      "stdout": "",
+      "stderr": "Zm10OiBjYW5ub3Qgb3BlbiAnYT8nXCcnYicgZm9yIHJlYWRpbmc6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkK",
+      "status": 1
+    },
+    {
+      "name": "C.UTF-8 \"é'?'\"",
+      "argv": [
+        "w6knPyc="
+      ],
+      "stdin": "",
+      "files": {},
+      "locale": "C.UTF-8",
+      "stdout": "",
+      "stderr": "Zm10OiBjYW5ub3Qgb3BlbiAnw6knXCcnPydcJycnIGZvciByZWFkaW5nOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5Cg==",
+      "status": 1
+    },
+    {
+      "name": "C.UTF-8 \"'é?\"",
+      "argv": [
+        "J8OpPw=="
+      ],
+      "stdin": "",
+      "files": {},
+      "locale": "C.UTF-8",
+      "stdout": "",
+      "stderr": "Zm10OiBjYW5ub3Qgb3BlbiAnJ1wnJ8OpPycgZm9yIHJlYWRpbmc6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkK",
+      "status": 1
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "source": "3ef5811f98d61800b6d4c6f16be046d4f539eeef",
+  "freeze": "9a386630d12e79de0b1a2e53f819068fe6846f92",
+  "files": {
+    "adjacent-probe.mjs": "a60220b3e6bb44da5a8f03c5e9ca294dc30a2c8c3fe9c87b49e42f357c34bd07",
+    "archive-attempts.mjs": "f505f3ea4edd0ec5ca560607687566c45019303dfaab284c77aa6c82d389f672",
+    "ATTEMPT-01.md": "2802752de3e06a963a1b2034c373f21ed0a1bae58a0e60d5cbc9dcdcab3973f3",
+    "common.mjs": "b9b3b416b561d6c77d537736044dcf536e49db970e3685be8e21b9de906c3a46",
+    "EXPECTATION-v2.json": "037c849d0a8a60057d52808a01157b2abfb90c135f9e985bd4fd2cf0cdca0017",
+    "followup.mjs": "586654dfb1aef19b6d0a0a1bcf748a35655886c25384a0213d5d194f9bfb4b34",
+    "FREEZE.md": "235398c5c65d3b40c0e435d7b01d03dc8428c01e4d3de6ac0769278a5228a6f4",
+    "legacy-ast.mjs": "eed2118f9124fbf7442c23aecf19228f659c0fa1683260ccbbf8de18e0efdab1",
+    "NEIGHBORS.json": "bf4b7089d2360fb9ee0f3e930fffc65a01140ca84e54c0b77ef2595e7498472f",
+    "probe.mjs": "e631d9bb7aace7e4443dadf80efbb84c7f364cd60d3bc43ef15674e772e4500b",
+    "REPORT.md": "747525ee92df8449b311f3b1db88fd4ec80b9f12cbc9fe35f092593ecccf9f6d",
+    "retire.mjs": "dfbdb0a791bafc805a0906f351e7acad7552be86306e60f2a90cfed1c623a929",
+    "RETIREMENT.json": "f82e2ab276dcb97a68ca023dea53778181ded25a7571d334fd70c2796b48abbc",
+    "run.mjs": "17ff6bd3413c138e6d0b0dc3ca55b17d925acc167c7788fe2f53afe2a61fde19",
+    "run05.json.gz.base64": "118ffe17df5d1e9028f0c07cf9fc89fec22dc91ecdd7ed615d39641c32c6d054",
+    "run05.MANIFEST.json": "b194596da39cf6ce3ff43e48752e32afb7faac604f3a492da2be7fea8cfdd44e",
+    "seal.mjs": "3cd06522358f2c78a91ed3f100e58fb753c9720653f9da5901f95fbc6ed8e9de",
+    "SETUP-ATTEMPTS.json": "c254813dbc42bc2f8a512e876f94810c96e151dd1e241a27a064da45e03ab1ac",
+    "SETUP-ATTEMPTS.json.gz.base64": "6ca1e3df906b3a122c9c74f022c56494b0d9750221326631973196e0be761bae",
+    "setup.mjs": "f3f76d6bab93fe530d41cf71c03af7ff96d6e483c3cb827b7928c8387486a8e5",
+    "SUMMARY.json": "a5264330a23d129234ecbba360a50a3d3a7131b6e467fe15b8dfbd5b02c568a9",
+    "VERIFIED.json": "8e1a0a668adc98538dbb7515be814e2a9afd58f057fe075b6674c132ab948271",
+    "verify-evidence.mjs": "6150ca02d3542d1c170844a9dd93d185ed3ec2c5301680c87caa01640e60d569"
+  }
+}

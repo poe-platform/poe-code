@@ -1,0 +1,91 @@
+import { copyBoundedOAuthJson } from "./bounded-json.js";
+import type { OAuthClientRegistration, StoredOAuthClient } from "./types.js";
+import { loopbackTarget, validateHostedOAuthRedirect } from "./redirect-target.js";
+import { normalizeOAuthScope } from "./scope.js";
+import { normalizeOAuthTokenEndpointAuthMethod } from "./token-auth-method.js";
+
+/** Validate and copy a JSON DCR response without quoting credential input. */
+export function parseOAuthClientRegistration(value: unknown): OAuthClientRegistration {
+  const invalid = () => new Error("Invalid OAuth client registration metadata");
+  const result = copyBoundedOAuthJson(value, "Invalid OAuth client registration metadata");
+  if (typeof result !== "object" || result === null || Array.isArray(result)) throw invalid();
+  const record = result as Record<string, unknown>;
+  if (!Object.hasOwn(record, "client_id") || typeof record.client_id !== "string" || record.client_id.trim() === "")
+    throw new Error("OAuth client registration response missing client_id");
+  for (const key of ["client_id", "client_secret", "token_endpoint_auth_method", "application_type", "client_name", "client_uri", "logo_uri", "scope",
+    "tos_uri", "policy_uri", "jwks_uri", "software_id", "software_version", "software_statement", "registration_access_token", "registration_client_uri", "issuer"]) {
+    if (Object.hasOwn(record, key) && record[key] !== null && typeof record[key] !== "string") throw invalid();
+  }
+  if (typeof record.client_secret === "string" && record.client_secret.trim() === "") throw invalid();
+  for (const key of ["redirect_uris", "grant_types", "response_types", "contacts"]) {
+    const entry = record[key];
+    if (Object.hasOwn(record, key) && entry !== null && (!Array.isArray(entry) || entry.some(item => typeof item !== "string"))) throw invalid();
+  }
+  for (const key of ["client_id_issued_at", "client_secret_expires_at"]) {
+    const entry = record[key];
+    if (Object.hasOwn(record, key) && entry !== null && (typeof entry !== "number" || !Number.isSafeInteger(entry) || entry < 0)) throw invalid();
+  }
+  try { normalizeOAuthScope(Object.hasOwn(record, "scope") && record.scope !== null ? record.scope : undefined); } catch { throw invalid(); }
+  return record as OAuthClientRegistration;
+}
+
+export function normalizeStoredOAuthClient(value: unknown): StoredOAuthClient | null {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return null;
+  const record = value as Record<string, unknown>;
+  const clientId = Object.hasOwn(record, "clientId") ? record.clientId : undefined;
+  const clientSecret = Object.hasOwn(record, "clientSecret") ? record.clientSecret : undefined;
+  if (typeof clientId !== "string" || clientId.trim() === "" ||
+    (clientSecret !== undefined && (typeof clientSecret !== "string" || clientSecret.trim() === ""))) return null;
+  const client: StoredOAuthClient = { clientId: clientId.trim(), ...(clientSecret === undefined ? {} : { clientSecret: (clientSecret as string).trim() }) };
+  const requestedRedirectUri = Object.hasOwn(record, "requestedRedirectUri") ? record.requestedRedirectUri : undefined;
+  if (requestedRedirectUri !== undefined) {
+    try {
+      if (typeof requestedRedirectUri !== "string") throw new Error("Invalid redirect identity");
+      if (new URL(requestedRedirectUri).protocol === "https:")
+        validateHostedOAuthRedirect(requestedRedirectUri);
+      else loopbackTarget({ redirectUri: requestedRedirectUri });
+    } catch { throw new Error("Invalid stored OAuth registration redirect identity"); }
+    client.requestedRedirectUri = requestedRedirectUri as string;
+  }
+  const method = normalizeOAuthTokenEndpointAuthMethod(Object.hasOwn(record, "tokenEndpointAuthMethod") ? record.tokenEndpointAuthMethod : undefined);
+  if (Object.hasOwn(record, "registration") && record.registration !== undefined) {
+    const registration = parseOAuthClientRegistration(record.registration);
+    const registeredSecret = Object.hasOwn(registration, "client_secret") ? registration.client_secret?.trim() : undefined;
+    if (registration.client_id.trim() !== client.clientId || registeredSecret !== client.clientSecret)
+      throw new Error("OAuth client registration does not match the client identity");
+    client.registration = registration;
+    const registrationMethod = normalizeOAuthTokenEndpointAuthMethod(Object.hasOwn(registration, "token_endpoint_auth_method") ? registration.token_endpoint_auth_method : undefined);
+    if (method !== undefined && registrationMethod !== undefined && method !== registrationMethod)
+      throw new Error("OAuth token endpoint authentication conflicts with the client registration");
+    if (registrationMethod !== undefined) client.tokenEndpointAuthMethod = registrationMethod;
+  }
+  if (method !== undefined) client.tokenEndpointAuthMethod = method;
+  const ownership = Object.hasOwn(record, "registrationOwnership") ? record.registrationOwnership : undefined;
+  if (ownership !== undefined) {
+    if (ownership !== "caller" || client.registration === undefined)
+      throw new Error("Invalid stored OAuth registration ownership");
+    client.registrationOwnership = "caller";
+  }
+  return client;
+}
+
+/** Fresh DCR may describe a normalized loopback port; saved identity stays exact. */
+export function registrationMatchesRedirect(client: StoredOAuthClient, requestedUri: string, fresh = false): boolean {
+  if (client.requestedRedirectUri !== undefined) return client.requestedRedirectUri === requestedUri;
+  const redirects = client.registration?.redirect_uris;
+  if (redirects === undefined || redirects === null || redirects.length === 0) return true;
+  return redirects.some(returnedUri => {
+    if (returnedUri === requestedUri) return true;
+    if (!fresh) return false;
+    let returned: URL, requested: URL;
+    try { returned = new URL(returnedUri); requested = new URL(requestedUri); } catch { return false; }
+    if (requested.protocol !== "http:" || returned.protocol !== "http:" ||
+      !["127.0.0.1", "[::1]", "localhost"].includes(requested.hostname)) return false;
+    const sameHost = returned.hostname === requested.hostname;
+    const normalizedIpv4 = requested.hostname === "127.0.0.1" && returned.hostname === "localhost" && returned.port === "";
+    if (!sameHost && !normalizedIpv4) return false;
+    returned.hostname = requested.hostname;
+    returned.port = requested.port;
+    return returned.href === requested.href;
+  });
+}

@@ -1,0 +1,27 @@
+{
+  "at": "2026-08-27T02:27:11.826Z",
+  "observedHead": "b9db51671338d8759af8980758ea5f53bdae0112",
+  "runtimeSha256": "e886b64536c7496769fdbe856aafb0e73ee88ace47c2a3ca9cb3cc71f11f8c4a",
+  "actualRuntimeImportObservations": 7,
+  "shellSha256": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+  "recordedPidsAndGroupsAbsent": 16,
+  "nativeDirectoriesAbsent": 96,
+  "frozenPathsUnchanged": [
+    "tests/shell/source-dot-eval-source.test.ts",
+    "tests/shell/source-dot-eval-source-host.test.ts",
+    "tests/shell/source-dot-eval-eval.test.ts",
+    "tests/shell/source-dot-eval-eval-host.test.ts",
+    "tests/shell/invocation-modes.test.ts",
+    "tests/shell-stress/invocation-modes/holdout.test.ts",
+    "tests/shell/invocation-closure-discovery.test.ts",
+    "tests/shell/invocation-closure-read.test.ts",
+    "tests/shell/invocation-closure-sh.test.ts",
+    "tests/shell-stress/current-shell/REPORT.md",
+    "tests/shell-stress/current-shell/pre-ready-validation.json"
+  ],
+  "postValidationProductDelta": [
+    "/Users/kjopek/Workspace/safe-bash/src/commands/structured/interpreter.ts",
+    "/Users/kjopek/Workspace/safe-bash/src/commands/structured/parser.ts",
+    "/Users/kjopek/Workspace/safe-bash/src/commands/structured/values.ts"
+  ]
+}

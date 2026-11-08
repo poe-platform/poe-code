@@ -1,0 +1,185 @@
+{
+  "distribution": "llm",
+  "version": "0.27.1",
+  "model": "gpt-4o",
+  "cases": [
+    {
+      "option": "json_object",
+      "value": "true",
+      "accepted": true,
+      "kwargs": {
+        "response_format": {
+          "type": "json_object"
+        }
+      }
+    },
+    {
+      "option": "json_object",
+      "value": "false",
+      "accepted": true,
+      "kwargs": {}
+    },
+    {
+      "option": "json_object",
+      "value": "yes",
+      "accepted": true,
+      "kwargs": {
+        "response_format": {
+          "type": "json_object"
+        }
+      }
+    },
+    {
+      "option": "json_object",
+      "value": "no",
+      "accepted": true,
+      "kwargs": {}
+    },
+    {
+      "option": "json_object",
+      "value": "on",
+      "accepted": true,
+      "kwargs": {
+        "response_format": {
+          "type": "json_object"
+        }
+      }
+    },
+    {
+      "option": "json_object",
+      "value": "off",
+      "accepted": true,
+      "kwargs": {}
+    },
+    {
+      "option": "json_object",
+      "value": "1",
+      "accepted": true,
+      "kwargs": {
+        "response_format": {
+          "type": "json_object"
+        }
+      }
+    },
+    {
+      "option": "json_object",
+      "value": "0",
+      "accepted": true,
+      "kwargs": {}
+    },
+    {
+      "option": "json_object",
+      "value": "bad",
+      "accepted": false,
+      "error_type": "ValidationError",
+      "message": "Input should be a valid boolean, unable to interpret input"
+    },
+    {
+      "option": "json_object",
+      "value": "null",
+      "accepted": false,
+      "error_type": "ValidationError",
+      "message": "Input should be a valid boolean, unable to interpret input"
+    },
+    {
+      "option": "logit_bias",
+      "value": "{\"1712\":-100,\"892\":100}",
+      "accepted": true,
+      "kwargs": {
+        "logit_bias": {
+          "1712": -100,
+          "892": 100
+        }
+      }
+    },
+    {
+      "option": "logit_bias",
+      "value": "{\"1\":\"7\"}",
+      "accepted": true,
+      "kwargs": {
+        "logit_bias": {
+          "1": 7
+        }
+      }
+    },
+    {
+      "option": "logit_bias",
+      "value": "{\"1\":1.9}",
+      "accepted": true,
+      "kwargs": {
+        "logit_bias": {
+          "1": 1
+        }
+      }
+    },
+    {
+      "option": "logit_bias",
+      "value": "{\"1\":true}",
+      "accepted": true,
+      "kwargs": {
+        "logit_bias": {
+          "1": 1
+        }
+      }
+    },
+    {
+      "option": "logit_bias",
+      "value": "{\"-1\":0}",
+      "accepted": true,
+      "kwargs": {
+        "logit_bias": {
+          "-1": 0
+        }
+      }
+    },
+    {
+      "option": "logit_bias",
+      "value": "{\"1.0\":1}",
+      "accepted": false,
+      "error_type": "ValidationError",
+      "message": "Value error, Invalid key-value pair in logit_bias dictionary"
+    },
+    {
+      "option": "logit_bias",
+      "value": "{\"1\":101}",
+      "accepted": false,
+      "error_type": "ValidationError",
+      "message": "Value error, Invalid key-value pair in logit_bias dictionary"
+    },
+    {
+      "option": "logit_bias",
+      "value": "{\"a\":1}",
+      "accepted": false,
+      "error_type": "ValidationError",
+      "message": "Value error, Invalid key-value pair in logit_bias dictionary"
+    },
+    {
+      "option": "logit_bias",
+      "value": "bad",
+      "accepted": false,
+      "error_type": "ValidationError",
+      "message": "Value error, Invalid JSON in logit_bias string"
+    },
+    {
+      "option": "logit_bias",
+      "value": "[]",
+      "accepted": false,
+      "error_type": "AttributeError",
+      "message": "'list' object has no attribute 'items'"
+    },
+    {
+      "option": "logit_bias",
+      "value": "null",
+      "accepted": false,
+      "error_type": "AttributeError",
+      "message": "'NoneType' object has no attribute 'items'"
+    },
+    {
+      "option": "logit_bias",
+      "value": "1",
+      "accepted": false,
+      "error_type": "AttributeError",
+      "message": "'int' object has no attribute 'items'"
+    }
+  ]
+}

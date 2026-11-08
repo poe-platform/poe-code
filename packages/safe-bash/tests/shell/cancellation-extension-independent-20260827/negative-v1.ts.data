@@ -1,0 +1,12 @@
+import { createRootCancellationLink, prepareChildCancellation, activateChildCancellation, selectRuntimeCancellationOutcome } from './cancellation.js';
+const root = createRootCancellationLink({ admission: { depth: 0, maxDepth: 8, resourceLimit: 8 } });
+const controller = new AbortController();
+const prepared = prepareChildCancellation(root);
+prepareChildCancellation(root, { signal: null });
+prepareChildCancellation(root, { signal: controller });
+prepareChildCancellation(root, undefined, { depth: '1', maxDepth: 8, resourceLimit: 8 });
+prepareChildCancellation(root, undefined, undefined, [{ role: 'invoke-option', signal: controller.signal }]);
+prepareChildCancellation(root, undefined, undefined, [{ role: 'pipeline-control', signal: { aborted: false } }]);
+activateChildCancellation({ owned: true });
+prepared.owned = false;
+selectRuntimeCancellationOutcome(root, { kind: 'throw', reason: false }, 0);

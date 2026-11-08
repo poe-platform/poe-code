@@ -1,0 +1,36 @@
+{
+  "name": "backend-overlay",
+  "command": [
+    "node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-reporter=tap",
+    "tests/fs/overlay/adversarial.test.ts",
+    "tests/fs/overlay/conformance.test.ts",
+    "tests/fs/overlay/copy-identity.test.ts",
+    "tests/fs/overlay/review-regressions.test.ts",
+    "tests/fs/overlay/rmdir-static-lower.test.ts",
+    "tests/fs/overlay/rmdir.test.ts",
+    "tests/fs/overlay/scoped-links.test.ts",
+    "tests/fs/overlay/streaming.test.ts"
+  ],
+  "environment": {},
+  "startedAt": "2026-08-27T01:40:00.461Z",
+  "finishedAt": "2026-08-27T01:40:00.925Z",
+  "code": 0,
+  "signal": null,
+  "timedOut": false,
+  "residualGroup": false,
+  "counts": {
+    "tests": 184,
+    "pass": 184,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "stdoutSha256": "06ef92532b645063febff6b73b44814f9316b5a56ee704ec34fa391c5b2280b4",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

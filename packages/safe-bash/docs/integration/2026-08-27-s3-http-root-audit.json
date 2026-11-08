@@ -1,0 +1,142 @@
+{
+  "capturedAt": "2026-08-27T03:57:34.318Z",
+  "revision": "42bffab57cbaccbf08648527fc88d85e21a2ee4a",
+  "movingHeadAtEnd": "14b872cd3e038d5e16c4809b7078aee83a8cb5e1",
+  "sourceHashes": {
+    "package.json": "216554f6115e7254b471b1e3b91319e516a80682b59a0b7fe6d8df16b2cb164b",
+    "package-lock.json": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b",
+    "src/index.ts": "76a17e2be09c743f8522a5f45868c1da84a80f107a2aae7e72b2e564bfff88b1",
+    "src/fs/s3/index.ts": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+    "src/fs/s3/http/index.ts": "bd414ce2de1aeb4becff1375ba994ee5bea6ca46600234807515c28385130dd4",
+    "src/fs/s3/http/types.ts": "b8ee451a00d17355919024c542dd5c7cbd027d74c7d2f5686f37fd6c0a5ab39e",
+    "src/fs/s3/http/transport.ts": "452cf4192a887ecf3ec03d10471e57ebf0432dae6e58bf1150cfa54d884686ad",
+    "src/fs/s3/http/request.ts": "33e2232404d05c08db2ccce200b6ca1d10af36f6a72f197e196fe1fa3f5ba618",
+    "src/fs/s3/http/signature.ts": "094b2e6fce2657757bf168ae694213f874e644d81cc9ead75faa1120f0910b3b",
+    "src/fs/s3/http/xml.ts": "8d1a20c393b193ba9b9d3e06e4348d191a2f950d0b63a99a5d1bd57eefe350a8",
+    "src/fs/s3/http/README.md": "67494abd767b494e1f062eefb746fc962ad9412e7d6f99d0669034e7b93c964b",
+    "tsconfig.json": "21c3c30b8995b180e079fa8516150f889950d648528de116a32f254f892301cd",
+    "tsconfig.build.json": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e"
+  },
+  "runtime": {
+    "node": "v22.22.2",
+    "platform": "darwin"
+  },
+  "metadata": {
+    "name": "virtual-bash",
+    "private": true,
+    "engines": {
+      "node": ">=22"
+    },
+    "runtimeDependencies": {},
+    "optionalDependencies": {},
+    "peerDependencies": {},
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js"
+      },
+      "./contracts": {
+        "types": "./dist/contracts/index.d.ts",
+        "import": "./dist/contracts/index.js"
+      },
+      "./contracts/*": {
+        "types": "./dist/contracts/*.d.ts",
+        "import": "./dist/contracts/*.js"
+      },
+      "./commands/network": {
+        "types": "./dist/commands/network/index.d.ts",
+        "import": "./dist/commands/network/index.js"
+      },
+      "./commands/metadata": {
+        "types": "./dist/commands/metadata/index.d.ts",
+        "import": "./dist/commands/metadata/index.js"
+      },
+      "./commands/archive": {
+        "types": "./dist/commands/archive/index.d.ts",
+        "import": "./dist/commands/archive/index.js"
+      },
+      "./commands/table-text": {
+        "types": "./dist/commands/table-text/index.d.ts",
+        "import": "./dist/commands/table-text/index.js"
+      },
+      "./fs/s3": {
+        "types": "./dist/fs/s3/index.d.ts",
+        "import": "./dist/fs/s3/index.js"
+      },
+      "./fs/webdav": {
+        "types": "./dist/fs/webdav/index.d.ts",
+        "import": "./dist/fs/webdav/index.js"
+      },
+      "./fs/readonly": {
+        "types": "./dist/fs/readonly/index.d.ts",
+        "import": "./dist/fs/readonly/index.js"
+      },
+      "./fs/mount": {
+        "types": "./dist/fs/mount/index.d.ts",
+        "import": "./dist/fs/mount/index.js"
+      },
+      "./fs/overlay": {
+        "types": "./dist/fs/overlay/index.d.ts",
+        "import": "./dist/fs/overlay/index.js"
+      }
+    }
+  },
+  "build": {
+    "status": 0,
+    "stdout": "\n> virtual-bash@0.0.0 build\n> tsc -p tsconfig.build.json\n\n",
+    "stderr": "",
+    "error": null
+  },
+  "smoke": {
+    "status": 0,
+    "stdout": "{\"rootHasHttpFactory\":false,\"s3HasHttpFactory\":false,\"internalFactoryType\":\"function\",\"publicHttpError\":\"ERR_PACKAGE_PATH_NOT_EXPORTED\",\"httpJsEmitted\":true,\"httpTypesEmitted\":true,\"existingS3Type\":\"function\",\"existingClientAdapterType\":\"function\",\"defaultCommandCount\":56,\"optionalCurlExcluded\":true,\"optionalSafeJsExcluded\":true}\n",
+    "stderr": "",
+    "error": null,
+    "result": {
+      "rootHasHttpFactory": false,
+      "s3HasHttpFactory": false,
+      "internalFactoryType": "function",
+      "publicHttpError": "ERR_PACKAGE_PATH_NOT_EXPORTED",
+      "httpJsEmitted": true,
+      "httpTypesEmitted": true,
+      "existingS3Type": "function",
+      "existingClientAdapterType": "function",
+      "defaultCommandCount": 56,
+      "optionalCurlExcluded": true,
+      "optionalSafeJsExcluded": true
+    }
+  },
+  "pack": {
+    "status": 0,
+    "stderr": "",
+    "error": null,
+    "entryCount": 545,
+    "httpFiles": [
+      "dist/fs/s3/http/index.d.ts",
+      "dist/fs/s3/http/index.d.ts.map",
+      "dist/fs/s3/http/index.js",
+      "dist/fs/s3/http/index.js.map",
+      "dist/fs/s3/http/request.d.ts",
+      "dist/fs/s3/http/request.d.ts.map",
+      "dist/fs/s3/http/request.js",
+      "dist/fs/s3/http/request.js.map",
+      "dist/fs/s3/http/signature.d.ts",
+      "dist/fs/s3/http/signature.d.ts.map",
+      "dist/fs/s3/http/signature.js",
+      "dist/fs/s3/http/signature.js.map",
+      "dist/fs/s3/http/transport.d.ts",
+      "dist/fs/s3/http/transport.d.ts.map",
+      "dist/fs/s3/http/transport.js",
+      "dist/fs/s3/http/transport.js.map",
+      "dist/fs/s3/http/types.d.ts",
+      "dist/fs/s3/http/types.d.ts.map",
+      "dist/fs/s3/http/types.js",
+      "dist/fs/s3/http/types.js.map",
+      "dist/fs/s3/http/xml.d.ts",
+      "dist/fs/s3/http/xml.d.ts.map",
+      "dist/fs/s3/http/xml.js",
+      "dist/fs/s3/http/xml.js.map"
+    ]
+  },
+  "scope": "Read-only product audit of isolated committed42bffab source with cached dev tooling. No service contacts, credentials, external upload, competing test suites, private checkout access, source/manifest/export changes or shared dist writes. Emitted/packed internal files are not a public package API or deployed-provider acceptance."
+}

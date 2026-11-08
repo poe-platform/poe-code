@@ -1,0 +1,20 @@
+import './chunks/chunk-NCUTH6QL.js';
+import './chunks/chunk-ZBUZKIPX.js';
+import fs from 'node:fs';
+const variant = '__VARIANT__';
+function denied() {
+  let caught;
+  try { fs.lstatSync(new URL(import.meta.url)); } catch (error) { caught = error; }
+  if (caught?.code !== 'OFFLINE_DENIED') throw new Error('STUB_GUARD_NOT_ACTIVE');
+}
+if (variant === 'guard-evaluation') denied();
+export class Bash {}
+export const stdoutAsBytes = value => value;
+export class InMemoryFs {
+  constructor() { this.mode = 0; if (variant === 'late-filesystem') denied(); }
+  async mkdir() {}
+  async writeFile() {}
+  async chmod(filename, mode) { this.mode = mode; }
+  async stat() { return { mode: this.mode }; }
+  async access() {}
+}

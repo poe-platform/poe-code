@@ -1,0 +1,20 @@
+{
+  "frozenAt": "2026-08-27T09:49:15.332Z",
+  "files": [
+    {
+      "path": "candidate/tests/shell/owned-output-author.test.ts",
+      "sha256": "10bc59cea77b1f6767f04cc7fd5ee43831a9c7a5935759b6ce8d577cb4f69454"
+    },
+    {
+      "path": "candidate/tests/shell/adapted-first-read-probe.ts",
+      "sha256": "743f93c910422eb4ad64ac77caacb9aacf71837f28b92a51a1993e8651c6b771"
+    },
+    {
+      "path": "candidate/tests/shell/adapted-remote-close.test.ts",
+      "sha256": "913548f801bad996dc1d95767380bf48075129d3eeaaff096f13a99983b95cae"
+    }
+  ],
+  "logicalAuthorCases": 12,
+  "adaptedFive": 5,
+  "originalDeadlines": "1200ms inner / 3000ms child and 1MiB unchanged"
+}

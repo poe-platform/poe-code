@@ -1,0 +1,12 @@
+import { describe, expect, it } from "vitest";
+
+describe("@poe-code/acp-telemetry", () => {
+  it("exports telemetry helpers", async () => {
+    const telemetry = await import("./index.js");
+
+    expect(telemetry.redact).toEqual(expect.any(Function));
+    expect(telemetry.acpToTrace).toEqual(expect.any(Function));
+    expect(telemetry).not.toHaveProperty("emitToBraintrust");
+    expect(telemetry.emitToOtel).toEqual(expect.any(Function));
+  });
+});

@@ -1,0 +1,12 @@
+{
+  "name": "exact-metadata-and410-inputs",
+  "expectedBoundary": "positive",
+  "started": "2026-08-27T22:23:32.498Z",
+  "status": "pass",
+  "result": {
+    "entries": 36351,
+    "inputs": 410,
+    "links": 12
+  },
+  "finished": "2026-08-27T22:23:32.565Z"
+}

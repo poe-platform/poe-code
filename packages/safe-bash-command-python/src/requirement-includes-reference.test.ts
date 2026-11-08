@@ -1,0 +1,130 @@
+import assert from 'node:assert/strict';
+import {spawnSync} from 'node:child_process';
+import test from 'node:test';
+import {MemoryFileSystem} from '@poe-code/safe-fs/core';
+import {createPythonPackageEnvironment} from './provisioning.js';
+
+const python=process.env.LLM_TEST_PYTHON??'python3';
+const available=spawnSync(python,['-B','-c','import pip; assert pip.__version__ == "21.2.4"'],{timeout:5000}).status===0;
+const reference={skip:!available&&!process.env.LLM_TEST_PYTHON?'Requires pinned pip==21.2.4':false};
+
+test('nested local requirement files match native pip ordering and relative includes',reference,async()=>{
+ const files:Record<string,string>={
+  '/project/requirements.txt':'alpha==1\n-r nested/one.txt\n--requirement=nested/two.txt\n-rnested/one.txt\n--requirem=nested/one.txt\n--requiremen nested/two.txt\n-r nested/two.txt -r nested/one.txt\nomega==2',
+  '/project/nested/one.txt':'beta==3\n--requirement "more packages.txt"',
+  '/project/nested/two.txt':'delta==5',
+  '/project/nested/more packages.txt':'gamma==4',
+ };
+ const native=spawnSync(process.env.LLM_TEST_PYTHON??'python3',['-B','-c',`import json,sys,os,pip
+assert pip.__version__ == '21.2.4'
+from unittest.mock import patch
+from pip._internal.req.req_file import RequirementsFileParser,get_line_parser
+files=json.load(sys.stdin)
+with patch('pip._internal.req.req_file.get_file_content',side_effect=lambda path,session:(path,files[os.path.normpath(path)])):
+ print(json.dumps([line.requirement for line in RequirementsFileParser(None,get_line_parser(None)).parse('/project/requirements.txt',False)]))
+`],{input:JSON.stringify(files),encoding:'utf8',timeout:5000});
+ assert.ifError(native.error);assert.equal(native.status,0,native.stderr);
+ const fs=new MemoryFileSystem();await fs.mkdir('/project/nested',{recursive:true});
+ for(const [path,source] of Object.entries(files))await fs.writeFile(path,new TextEncoder().encode(source));
+ const environment=createPythonPackageEnvironment();
+ try{
+  const prepared=await environment.prepare({fs,cwd:'/project',requirementFiles:['requirements.txt'],signal:new AbortController().signal});
+  assert.deepEqual(prepared.requested,[...new Set(JSON.parse(native.stdout) as string[])]);
+  await environment.finish(prepared);
+ }finally{await environment.dispose();}
+});
+
+test('requirements reject active cycles including directory symlinks and permit later reuse',async()=>{
+ const fs=new MemoryFileSystem();await fs.mkdir('/project',{recursive:true});
+ await fs.symlink('/project','/project/link');
+ await fs.writeFile('/project/requirements.txt',new TextEncoder().encode('-r link/requirements.txt'));
+ const environment=createPythonPackageEnvironment();
+ try{
+  await assert.rejects(environment.prepare({fs,cwd:'/project',requirementFiles:['requirements.txt'],signal:new AbortController().signal}),/Recursive Python requirements/);
+  await fs.writeFile('/project/requirements.txt',new TextEncoder().encode('alpha==1'));
+  const prepared=await environment.prepare({fs,cwd:'/project',requirementFiles:['requirements.txt','requirements.txt'],signal:new AbortController().signal});
+  assert.deepEqual(prepared.requested,['alpha==1']);await environment.finish(prepared);
+ }finally{await environment.dispose();}
+});
+
+test('nested requirements share the caller byte allowance and retain cancellation',async()=>{
+ const fs=new MemoryFileSystem();
+ await fs.writeFile('/one',new TextEncoder().encode('-r two'));
+ await fs.writeFile('/two',new TextEncoder().encode('alpha'));
+ for(const maxRequirementBytes of [1,6,10,11]){
+  const environment=createPythonPackageEnvironment({maxRequirementBytes});
+  try{
+   const prepare=()=>environment.prepare({fs,cwd:'/',requirementFiles:['one'],signal:new AbortController().signal});
+   if(maxRequirementBytes<11)await assert.rejects(prepare);
+   else{const prepared=await prepare();assert.deepEqual(prepared.requested,['alpha']);await environment.finish(prepared);}
+  }finally{await environment.dispose();}
+ }
+ const controller=new AbortController(),reason=new Error('stop includes');
+ const read=fs.readFile.bind(fs);fs.readFile=async(path,options)=>{const bytes=await read(path,options);if(path==='/one')controller.abort(reason);return bytes;};
+ const environment=createPythonPackageEnvironment();
+ try{await assert.rejects(environment.prepare({fs,cwd:'/',requirementFiles:['one'],signal:controller.signal}),error=>error===reason);}
+ finally{await environment.dispose();}
+});
+
+test('constraint files remain separate from roots with native nested include roles',reference,async()=>{
+ const files:Record<string,string>={'/req':'alpha>=1\n-c pins','/pins':'alpha<3\nunused==4\n-r extra\n-c other','/extra':'gamma','/other':'gamma!=2'};
+ const native=spawnSync(process.env.LLM_TEST_PYTHON??'python3',['-B','-c',`import json,sys,os,pip
+assert pip.__version__ == '21.2.4'
+from unittest.mock import patch
+from pip._internal.req.req_file import RequirementsFileParser,get_line_parser
+files=json.load(sys.stdin)
+with patch('pip._internal.req.req_file.get_file_content',side_effect=lambda path,session:(path,files[os.path.normpath(path)])):
+ print(json.dumps([[line.requirement,line.constraint] for line in RequirementsFileParser(None,get_line_parser(None)).parse('/req',False)]))
+`],{input:JSON.stringify(files),encoding:'utf8',timeout:5000});
+ assert.ifError(native.error);assert.equal(native.status,0,native.stderr);
+ const expected=JSON.parse(native.stdout) as [string,boolean][];
+ const fs=new MemoryFileSystem();for(const [path,value]of Object.entries(files))await fs.writeFile(path,new TextEncoder().encode(value));
+ const environment=createPythonPackageEnvironment();
+ try{
+  const prepared=await environment.prepare({fs,cwd:'/',requirementFiles:['req'],signal:new AbortController().signal});
+  assert.deepEqual(prepared.requested,expected.filter(([,constraint])=>!constraint).map(([requirement])=>requirement));
+  assert.deepEqual(prepared.constraints,expected.filter(([,constraint])=>constraint).map(([requirement])=>requirement));
+  await environment.finish(prepared);
+ }finally{await environment.dispose();}
+});
+
+for(const lines of [
+ '--index-url https://first/simple\n--extra-index-url https://extra/simple\nalpha',
+ '--extra-index-url https://ignored/simple\n-i "https://last/simple"\nalpha',
+ '--no-index\nalpha',
+ '--no-index --extra-index-url https://extra/simple\nalpha',
+ '--no-index\n--index-url https://restored/simple\nalpha',
+ '-r /child --index-url https://ignored/simple\nalpha',
+ '--pre\n--index-url ${INDEX}\nalpha',
+ 'alpha --index-url https://ignored/simple',
+ 'alpha --pre',
+ 'alpha -r /missing',
+])test('requirements file index directives match native pip: '+JSON.stringify(lines),reference,async()=>{
+ const files={'/req':lines,'/child':'beta','/pins':'--index-url https://constraint/simple\nalpha<3'};
+ const native=spawnSync(process.env.LLM_TEST_PYTHON??'python3',['-B','-c',String.raw`
+import json,sys,os,pip
+assert pip.__version__ == '21.2.4'
+from unittest.mock import patch
+from pip._internal.commands.install import InstallCommand
+from pip._internal.network.session import PipSession
+files=json.load(sys.stdin)
+command=InstallCommand('install','install')
+options,args=command.parse_args(['-r','/req','-c','/pins'])
+session=PipSession()
+finder=command._build_package_finder(options,session)
+with patch.dict(os.environ,{'INDEX':'https://expanded/simple'}),patch('pip._internal.req.req_file.get_file_content',side_effect=lambda path,session:(path,files[path])):
+ roots=command.get_requirements(args,options,finder,session)
+ print(json.dumps({'indexes':finder.index_urls,'pre':finder.allow_all_prereleases,'roots':[str(req.req) for req in roots if not req.constraint]}))
+session.close()
+`],{input:JSON.stringify(files),encoding:'utf8',timeout:5000});
+ assert.ifError(native.error);assert.equal(native.status,0,native.stderr);
+ const expected=JSON.parse(native.stdout) as {indexes:string[];pre:boolean;roots:string[]};
+ const fs=new MemoryFileSystem();for(const [path,value]of Object.entries(files))await fs.writeFile(path,new TextEncoder().encode(value));
+ let sourceControls:unknown;
+ const environment=createPythonPackageEnvironment({prepareRequirements:async(requirements,context)=>{sourceControls={indexes:context.noIndex?[]:[context.indexUrl,...context.extraIndexUrls??[]],pre:!!context.pre};return requirements;}});
+ try{
+  const prepared=await environment.prepare({fs,cwd:'/',requirementFiles:['/req'],constraintFiles:['/pins'],env:{INDEX:'https://expanded/simple'},signal:new AbortController().signal});
+  assert.deepEqual(prepared.indexUrls,expected.indexes);assert.equal(!!prepared.pre,expected.pre);assert.deepEqual(prepared.requested,expected.roots);
+  assert.deepEqual(sourceControls,{indexes:expected.indexes,pre:expected.pre});await environment.finish(prepared);
+ }finally{await environment.dispose();}
+});

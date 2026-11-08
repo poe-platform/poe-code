@@ -1,0 +1,16 @@
+{
+  "capturedAt": "2026-08-29T11:36:46.563Z",
+  "sourceKind": "retained author-owned REPL function and object references, read only; not a presealed historical source file",
+  "functionSource": "async function vCountOwned(dir){for(var name of await vFs.readdir(dir)){if(++vWorkCount.entries>15000)throw Error('FINAL_WORK_ENTRY_STOP');const filename=dir+'/'+name;const st=await vFs.lstat(filename);if(st.isSymbolicLink())throw Error('FINAL_WORK_LINK_STOP');if(st.isDirectory())await vCountOwned(filename);else if(st.isFile()){vWorkCount.bytes+=st.size;if(vWorkCount.bytes>536870912)throw Error('FINAL_WORK_BYTES_STOP');}else throw Error('FINAL_WORK_TYPE_STOP');}}",
+  "functionSha256": "9acbf46c356747c8fe0d108c317417a472c506d09d665ed80be176127f9ed315",
+  "displayedResetCounter": {
+    "bytes": 0,
+    "entries": 0
+  },
+  "earlierPublishedObjectLiveCounter": {
+    "bytes": 217990012,
+    "entries": 7231
+  },
+  "sameObject": false,
+  "invocation": "NONE; no census/helper/product execution"
+}

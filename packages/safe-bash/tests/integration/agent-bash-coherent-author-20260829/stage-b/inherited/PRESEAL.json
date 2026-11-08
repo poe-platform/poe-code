@@ -1,0 +1,231 @@
+{
+  "role": "SOURCE_FIXTURE_PRESEAL_NOT_EXECUTION_READY",
+  "sourceTree": "3adc676a0ab638c9788ef007e465931d65d2c6fe",
+  "sourceManifestSha256": "ef0b79dbd30cebec3f8b939a98928b9441947ff4be724e5031b2ee03925f26ae",
+  "sourceInputCount": 309,
+  "sourceChanged": false,
+  "predictedPackageMembers": 1014,
+  "actualPackageSha256": null,
+  "fixtureFiles": [
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/ADMISSION-CONTROLS.json",
+      "bytes": 1390,
+      "sha256": "dc14793bf3f0116f315d8d32164138187e997d9f87dfecd1c08cfe1a08d6468c"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/INHERITED-TOOL-BINDINGS.json",
+      "bytes": 1052,
+      "sha256": "724b7c54ec353a5a80d8c3d94f4eb03b0f1235c029e0bec4488979c6178b6d96"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/NEUTRAL-FIXTURE.json",
+      "bytes": 4160,
+      "sha256": "fcb7bae1505a86b2b676396742d7bf362ad779c77192770ed94085646f8d0074"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/RECEIPTS.json",
+      "bytes": 2274,
+      "sha256": "2c7651f22143179e371d10fc00837d6282254c389702977d3932988678a3f4bb"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/RETAINED-FIXTURES.json",
+      "bytes": 6145,
+      "sha256": "e33d38a330051778877e28fccec1b5a08a4cd4639c9671be3ca70f7dfa3c54fe"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/SHIPPING-PATHS.nul",
+      "bytes": 9444,
+      "sha256": "8bf61c57d048285d356b60de94089d7b4e96b66d5806b6fa2236417e269000ef"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/SOURCE-AUTHORITIES.json",
+      "bytes": 2009,
+      "sha256": "1cf6c9e09271edb43f64a77191d1a5a94bd2bacee4ffa7f3bbd314f5ce9ac156"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/SOURCE-TREE.json",
+      "bytes": 40195,
+      "sha256": "31b01421fb67dac779d4238ffafb03720a7610430f0295b7407a5f740abdf911"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/SOURCE.json",
+      "bytes": 137864,
+      "sha256": "ef0b79dbd30cebec3f8b939a98928b9441947ff4be724e5031b2ee03925f26ae"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/TOOLS-PREP.json",
+      "bytes": 371,
+      "sha256": "eb945189a5106a6bd0658b562b15dfad62f177bc006bb9d5e81b7c1004afa989"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/TOOLS.json",
+      "bytes": 558790,
+      "sha256": "ba8c249f94d3ce894754ceff84aaba11d2fcb0f517624f5c2427c8b21da825b2"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/TREE-WITNESSES.json",
+      "bytes": 163171,
+      "sha256": "a51d6e917e43161cc059522e236292ebc5a4d0d2b70c341726d602a6661b23f4"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/admission.mjs",
+      "bytes": 1629,
+      "sha256": "e3e1b120fa4f97c18be4603d731c8c4639789139c8114125038796f7ac89f6a1"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/consumer.ts.fixture",
+      "bytes": 870,
+      "sha256": "6694676de2c93256dc3895a066b0a950aa4b4a6e9a2889fa04dd142995b6b5ab"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/negative.ts.fixture",
+      "bytes": 805,
+      "sha256": "db35c361825e452f0d80b3c5dbb12cf85fe76078cef76238279319b01dabc750"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs",
+      "bytes": 24171,
+      "sha256": "fbfe05cd3b41abdf8fb49ab3b1b42b4bbd21c11e615a60325fb1b61ff862c86b"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/prepare.sh",
+      "bytes": 388,
+      "sha256": "aa007522f6ee2500678529208870739edf8a02396627c46fbc7dbc6c328ca3e2"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/workflow-entry.mjs",
+      "bytes": 3593,
+      "sha256": "eb66a961ae08b04133c55e591a53b3e82540fe037b3c5d3ff9ca96d3d2fb8e77"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v4/workflows.mjs",
+      "bytes": 15763,
+      "sha256": "6d8a19854a6e96986013ed3d94ee15dd774e225259dea922bf4749799c60d89b"
+    }
+  ],
+  "packetFiles": [
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v4/prepare.mjs",
+      "bytes": 16053,
+      "sha256": "d708263a57d00656f1b764d379885c704aecf995ef2bdfb5eeb5b402a5580a7b"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v4/outer.sh",
+      "bytes": 518,
+      "sha256": "02cd73e0e58c20fc5195516e39db08601d445dfea677f234237ebcbbda9b55f6"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v4/HANDOFF.md",
+      "bytes": 4867,
+      "sha256": "bd68d35cb77a17c43cdcc22d531729a7a571edab900c97a2a9be0c0de6a1b5e9"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v4/ADJUDICATION.json",
+      "bytes": 1692,
+      "sha256": "103cf3010a53ca0930d07f371710955ee849806a8854850a9c6c00e74e6f0b3d"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v4/AUTHORITIES.json",
+      "bytes": 4451,
+      "sha256": "f656704a4b2a0a4b5a25efe7505ce282421020de5d66547888b0a8a4ceb6e92a"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v4/CORRECTION-PLAN.json",
+      "bytes": 498,
+      "sha256": "4b555fcbc9eef1583cbef8f8c774aec130c853858a7e0bb13b3f5e97f526a46d"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v4/CORRECTION.patch",
+      "bytes": 16024,
+      "sha256": "0c7f3e0e0b843052af327dd6d6713480be55aa3a841b3e997a2d8b08c1d88a50"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v4/TOOLS.json",
+      "bytes": 348,
+      "sha256": "b2cc8843d31ed494b86fb5d1e280e5d3e0472228e113bf85b91af1089783974d"
+    }
+  ],
+  "planned": {
+    "layouts": [
+      "source-built",
+      "installed",
+      "physically-moved"
+    ],
+    "retainedPerLayout": {
+      "unit1": 48,
+      "unit2": 50,
+      "conditional": 67,
+      "extension": 35,
+      "arrays": 12
+    },
+    "retainedTotal": 636,
+    "n14Separate": 36,
+    "authorWorkflows": {
+      "engineFree": 39,
+      "publicEngineSeparateGrant": 15,
+      "totalFuture": 54
+    },
+    "independentProposals": {
+      "engineFree": 18,
+      "publicEngine": 6,
+      "total": 24,
+      "implementedHere": false
+    },
+    "unit2Rule": "All50 exact IDs/layout; collector rejects duplicate IDs; do not add a second Unit2 corpus.",
+    "node61AndPublic24": "Separate future engine regression recipes with exact version maps; not included in engine-free count or claimed executed."
+  },
+  "proposedActual": {
+    "seconds": 2700,
+    "knownOSStarts": 112,
+    "peak": 4,
+    "captureBytes": 201326592,
+    "workingBytes": 1073741824,
+    "caseSeconds": 30,
+    "buildSeconds": 120,
+    "loaderAdmissions": 40,
+    "regexWorkers": 8,
+    "publicEngineWorkers": 0,
+    "privateInputs": 0
+  },
+  "inheritedDataControls": {
+    "count": 12,
+    "rerun": false,
+    "authority": {
+      "commit": "cf23ba11",
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/ADMISSION-CONTROLS.json",
+      "reference": "cf23ba11:tests/integration/agent-bash-coherent-author-20260829/v2/ADMISSION-CONTROLS.json",
+      "blob": "270c3c8e4734d983d339df24b9ba3b0310b330e6",
+      "mode": "100644",
+      "bytes": 1390,
+      "sha256": "dc14793bf3f0116f315d8d32164138187e997d9f87dfecd1c08cfe1a08d6468c"
+    }
+  },
+  "tools": {
+    "node": {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    "developmentGit": {
+      "path": "/usr/bin/git",
+      "bytes": 118928,
+      "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba"
+    }
+  },
+  "correction": {
+    "expectedSha256": "6d8a19854a6e96986013ed3d94ee15dd774e225259dea922bf4749799c60d89b",
+    "bytes": 15763,
+    "exactIntendedBufferEquality": true,
+    "historicalActualSha256": "298fce206c0c4abf5a9960e9140d5b430267cf9819089a0bbfbb3936af9dabbc",
+    "historicalStopUnchanged": true
+  },
+  "public95": "EXTERNAL_HANDOFF_PENDING_POINCARE_NO_DISCOVERY",
+  "blockers": [
+    "Integrated bounded product supervisor/capture/teardown controls not implemented",
+    "Complete staged retained-helper/import and mutation/restore dispatch not sealed",
+    "PUBLIC95 exact closure pending Poincare for five separate workflows",
+    "Build/full package and actual membership UNRUN; 1014 remains prediction",
+    "Maintained smoke selector writepaths remain proposal only"
+  ],
+  "runAuthority": "NONE: all eighteen workflows UNRUN; no build/compiler/product/Worker/engine/native/private execution"
+}

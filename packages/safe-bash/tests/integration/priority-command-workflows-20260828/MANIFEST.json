@@ -1,0 +1,49 @@
+{
+  "schema": "priority-packet-manifest-v1",
+  "date": "2026-08-28",
+  "role": "Preparation artifact binding; commit binds this manifest; no product result",
+  "files": [
+    {
+      "path": "READY.md",
+      "bytes": 11419,
+      "sha256": "2810bc898e6368c87e3431396845358f9b13f3bf0d991141fdc966f59387b9f7"
+    },
+    {
+      "path": "CASES.json",
+      "bytes": 47429,
+      "sha256": "68a4def2ab0186cdfb4d3715358757a23bb7a2599c8c6ac579fd07f2b5b441da"
+    },
+    {
+      "path": "FIXTURES.json",
+      "bytes": 15139,
+      "sha256": "2784e925e57619b9e0a1285c890f09293345ea414fee27a8d9aa507bfe0e00f1"
+    },
+    {
+      "path": "SCHEMA.json",
+      "bytes": 3969,
+      "sha256": "ee85c9c3d519a20fe427962504a222ee1abba1cc558f19b65d4b491129b54298"
+    },
+    {
+      "path": "BINDINGS.json",
+      "bytes": 30714,
+      "sha256": "95a3a22316c56af800112335a3591dbd8590418f13b7f62525b3d9090193f11a"
+    },
+    {
+      "path": "EXECUTION-RECIPE.md",
+      "bytes": 11958,
+      "sha256": "3ba556ed591da4abd2d7adfcb020e0ab895e5928fc77e7e50d3a81ae9428519d"
+    },
+    {
+      "path": "verify.mjs",
+      "bytes": 8822,
+      "sha256": "5cfa86b17d4384da8a75cda0d78990b79da009e41d25046f4bc64ffd6e08e6c6"
+    }
+  ],
+  "counts": {
+    "workflows": 24,
+    "controls": 7,
+    "syntheticMutationControls": 8,
+    "productExecutions": 0
+  },
+  "directoryValidation": "Only these seven files are digest-bound; arbitrary future additions are not checked by this manifest. Future runtime source/package/tool inventories require append-detecting checks."
+}

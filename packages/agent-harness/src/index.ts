@@ -1,0 +1,16 @@
+export { makeSchemaModule } from "./modules/schema.js";
+export { runHarnessCodegen, type RunHarnessCodegenOptions } from "./codegen/emit-schemas.js";
+export { discoverHarnesses } from "./discovery/discover.js";
+export { extractSchema, type ExtractSchemaOptions } from "./loader/extract-schema.js";
+export { runHarnessPair } from "./loader/run.js";
+export { assertReplayEquivalent, type ReplayEquivalenceOptions } from "./testing/replay-equivalence.js";
+export { listBuiltinTemplates } from "./templates/index.js";
+export { FrontmatterValidationError, validateFrontmatter } from "./loader/validate.js";
+export { InvalidPairExtensionError, MissingPairError, resolvePair } from "./loader/pair.js";
+export type {
+  HarnessImportMeta,
+  HarnessRunEvent,
+  RunHarnessPairOptions,
+  RunResult
+} from "./loader/run.js";
+export type { HarnessFs, HarnessPair } from "./loader/pair.js";

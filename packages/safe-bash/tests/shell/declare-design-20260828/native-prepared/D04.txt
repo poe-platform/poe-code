@@ -1,0 +1,8 @@
+declare -r decl_ro=old
+declare decl_ro=${decl_seen:=scalar_rhs}
+printf 'scalar=%s seen=%s\n' "$?" "${decl_seen-unset}"
+declare -ar decl_arr=(old)
+declare -a decl_arr=("${decl_other:=compound_rhs}")
+printf 'compound=%s other=%s\n' "$?" "${decl_other-unset}"
+declare -p decl_ro decl_arr
+printf 'END D04\n'

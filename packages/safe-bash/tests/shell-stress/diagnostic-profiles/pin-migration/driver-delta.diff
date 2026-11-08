@@ -1,0 +1,50 @@
+diff --git a/tests/shell-stress/current-gaps/compatibility.test.ts b/tests/shell-stress/current-gaps/compatibility.test.ts
+index 4255873f..4c8d05d6 100644
+--- a/tests/shell-stress/current-gaps/compatibility.test.ts
++++ b/tests/shell-stress/current-gaps/compatibility.test.ts
+@@ -1,11 +1,11 @@
+ import assert from "node:assert/strict";
+ import { test } from "node:test";
+ import { additionalCases } from "./cases.js";
+-import { independentBash } from "./reference.js";
++import { primaryObservation as independentBash } from "../canonical-profile-migration/primary-reference.js";
+ import { runVirtualScript } from "../helpers.js";
+ 
+ for (const fixture of additionalCases) {
+-  test(`remaining-gap independent Bash: ${fixture.name}`, { timeout: 8000 }, async () => {
++  test(`remaining-gap GNU5.3 declared profile: ${fixture.name}`, { timeout: 8000 }, async () => {
+     const expected = await independentBash(fixture);
+     const actual = await runVirtualScript(fixture);
+     assert.deepEqual(actual, expected, `${fixture.name}\nscript: ${fixture.script}\nBash: ${JSON.stringify(expected)}\nvirtual: ${JSON.stringify(actual)}`);
+diff --git a/tests/shell-stress/differential.test.ts b/tests/shell-stress/differential.test.ts
+index b87954f4..05d69956 100644
+--- a/tests/shell-stress/differential.test.ts
++++ b/tests/shell-stress/differential.test.ts
+@@ -1,7 +1,8 @@
+ import assert from "node:assert/strict";
+ import { test } from "node:test";
+ import { differentialCases, syntaxCases } from "./cases.js";
+-import { bashVersion, runBash, runVirtualScript, sourceEvidence } from "./helpers.js";
++import { runVirtualScript, sourceEvidence } from "./helpers.js";
++import { primaryObservation as runBash, primaryVersion as bashVersion } from "./canonical-profile-migration/primary-reference.js";
+ 
+ test("shell stress reference identity and source provenance", context => {
+   context.diagnostic(bashVersion());
+@@ -10,7 +11,7 @@ test("shell stress reference identity and source provenance", context => {
+ });
+ 
+ for (const fixture of differentialCases) {
+-  test(`Bash differential: ${fixture.name}`, async () => {
++  test(`GNU5.3 declared-profile differential: ${fixture.name}`, async () => {
+     const expected = await runBash(fixture);
+     const actual = await runVirtualScript(fixture);
+     assert.deepEqual(actual, expected, `${fixture.name}\nscript: ${fixture.script}\nBash: ${JSON.stringify(expected)}\nvirtual: ${JSON.stringify(actual)}`);
+@@ -18,7 +19,7 @@ for (const fixture of differentialCases) {
+ }
+ 
+ for (const fixture of syntaxCases) {
+-  test(`Bash parse-before-effects: ${fixture.name}`, async context => {
++  test(`GNU5.3 declared-profile parse-before-effects: ${fixture.name}`, async context => {
+     const expected = await runBash(fixture);
+     const actual = await runVirtualScript(fixture);
+     context.diagnostic(JSON.stringify({ script: fixture.script, expected, actual }));

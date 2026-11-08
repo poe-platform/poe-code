@@ -1,0 +1,246 @@
+{
+  "timestamp": "2026-08-26T23:50:07.710Z",
+  "ready": "NOT READY: preparatory baseline only",
+  "stage": "baseline",
+  "beforeHead": "4fa4ba9502dac843bd13aa5031d128a3171f597d",
+  "afterHead": "4fa4ba9502dac843bd13aa5031d128a3171f597d",
+  "importedSource": {
+    "src/commands/basic.ts": {
+      "before": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+      "after": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f"
+    },
+    "src/commands/execution.ts": {
+      "before": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de",
+      "after": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de"
+    },
+    "src/commands/filesystem.ts": {
+      "before": "a7280538f4168ae40939a56181feac8bac06fdf071fe566293f77425bce678d1",
+      "after": "a7280538f4168ae40939a56181feac8bac06fdf071fe566293f77425bce678d1"
+    },
+    "src/commands/find.ts": {
+      "before": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+      "after": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2"
+    },
+    "src/commands/grep.ts": {
+      "before": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+      "after": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d"
+    },
+    "src/commands/index.ts": {
+      "before": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2",
+      "after": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2"
+    },
+    "src/commands/internal.ts": {
+      "before": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+      "after": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5"
+    },
+    "src/commands/predicates.ts": {
+      "before": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+      "after": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347"
+    },
+    "src/commands/streams.ts": {
+      "before": "0b49e7f14ae8a399fcbea5454c48e930f047472f8631c2d5fe3ca385d14437d5",
+      "after": "0b49e7f14ae8a399fcbea5454c48e930f047472f8631c2d5fe3ca385d14437d5"
+    },
+    "src/commands/text.ts": {
+      "before": "d9411fd868ad8ef04749937024c0f0ff77267c5db5a2cece1f0cdf80c9b48490",
+      "after": "d9411fd868ad8ef04749937024c0f0ff77267c5db5a2cece1f0cdf80c9b48490"
+    },
+    "src/contracts/command.ts": {
+      "before": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+      "after": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd"
+    },
+    "src/contracts/errors.ts": {
+      "before": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "after": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840"
+    },
+    "src/contracts/filesystem.ts": {
+      "before": "fc3c8ee2c6d2d1dade397567779543a38a4fb0092a7225975fecf7cfd553b915",
+      "after": "fc3c8ee2c6d2d1dade397567779543a38a4fb0092a7225975fecf7cfd553b915"
+    },
+    "src/contracts/index.ts": {
+      "before": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+      "after": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50"
+    },
+    "src/contracts/io.ts": {
+      "before": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+      "after": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb"
+    },
+    "src/contracts/path.ts": {
+      "before": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "after": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34"
+    },
+    "src/contracts/plugin.ts": {
+      "before": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "after": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae"
+    },
+    "src/fs/memory/index.ts": {
+      "before": "98704037c57bae8bd5c3782c65aceb98e967837df375b33eda52a00ce762b1a0",
+      "after": "98704037c57bae8bd5c3782c65aceb98e967837df375b33eda52a00ce762b1a0"
+    },
+    "src/shell/arithmetic.ts": {
+      "before": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "after": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd"
+    },
+    "src/shell/index.ts": {
+      "before": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "after": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383"
+    },
+    "src/shell/input.ts": {
+      "before": "c7492bb41555d865a0dcda9e3c7e8b2b3f5c5a1e73dc6e1bdb9b3fe6e7ed9a6d",
+      "after": "c7492bb41555d865a0dcda9e3c7e8b2b3f5c5a1e73dc6e1bdb9b3fe6e7ed9a6d"
+    },
+    "src/shell/locale.ts": {
+      "before": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "after": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2"
+    },
+    "src/shell/parser.ts": {
+      "before": "73749cb5af6b6affe91014153aa4a6358bc8441807e8ad47fe09f74927c8c7b0",
+      "after": "73749cb5af6b6affe91014153aa4a6358bc8441807e8ad47fe09f74927c8c7b0"
+    },
+    "src/shell/pattern.ts": {
+      "before": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "after": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a"
+    },
+    "src/shell/runtime.ts": {
+      "before": "dabbb60ffc499a7e64fae8071f12b465b5845e7246510e19da15b406f8481d10",
+      "after": "dabbb60ffc499a7e64fae8071f12b465b5845e7246510e19da15b406f8481d10"
+    },
+    "src/shell/shell.ts": {
+      "before": "f4b9e55515e00ef456d48f6a3da60cf5b19b5af7fb91c700c151bd92726f6bb7",
+      "after": "f4b9e55515e00ef456d48f6a3da60cf5b19b5af7fb91c700c151bd92726f6bb7"
+    },
+    "src/shell/types.ts": {
+      "before": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874",
+      "after": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874"
+    }
+  },
+  "changedImported": [],
+  "changedAll": [],
+  "imports": [
+    "src/commands/basic.ts",
+    "src/commands/execution.ts",
+    "src/commands/filesystem.ts",
+    "src/commands/find.ts",
+    "src/commands/grep.ts",
+    "src/commands/index.ts",
+    "src/commands/internal.ts",
+    "src/commands/predicates.ts",
+    "src/commands/streams.ts",
+    "src/commands/text.ts",
+    "src/contracts/command.ts",
+    "src/contracts/errors.ts",
+    "src/contracts/filesystem.ts",
+    "src/contracts/index.ts",
+    "src/contracts/io.ts",
+    "src/contracts/path.ts",
+    "src/contracts/plugin.ts",
+    "src/fs/memory/index.ts",
+    "src/shell/arithmetic.ts",
+    "src/shell/index.ts",
+    "src/shell/input.ts",
+    "src/shell/locale.ts",
+    "src/shell/parser.ts",
+    "src/shell/pattern.ts",
+    "src/shell/runtime.ts",
+    "src/shell/shell.ts",
+    "src/shell/types.ts"
+  ],
+  "runs": [
+    {
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--import",
+        "./tests/shell-stress/invocation-modes/trace.mjs",
+        "tests/shell-stress/invocation-modes/virtual-child.ts",
+        "bash-c-literal-args-0"
+      ],
+      "argv0": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/nonexistent",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "INVOCATION_TRACE": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-modes/.verify-enajfj/imports.log"
+      },
+      "pid": 13031,
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "overflow": false,
+      "stdoutHex": "7b226964223a22626173682d632d6c69746572616c2d617267732d30222c2265786974436f6465223a322c227374646f7574486578223a22222c22737464657272486578223a223733363836353663366333613230366336393665363532303331336132303632363137333638336132303735366537333735373037303666373237343635363432303666373037343639366636653362323037333735373037303666373237343635363432303636366637323664336132303632363137333638323035623264326435643230363636393663363532303562363137323637373332653265326535643061222c227374646f7574223a22222c22737464657272223a227368656c6c3a206c696e6520313a20626173683a20756e737570706f72746564206f7074696f6e3b20737570706f7274656420666f726d3a2062617368205b2d2d5d2066696c65205b617267732e2e2e5d5c6e222c2265666665637473223a7b7d2c2272656e64657265644669787475726573223a5b5d7d0a",
+      "stderrHex": "",
+      "stdout": "{\"id\":\"bash-c-literal-args-0\",\"exitCode\":2,\"stdoutHex\":\"\",\"stderrHex\":\"7368656c6c3a206c696e6520313a20626173683a20756e737570706f72746564206f7074696f6e3b20737570706f7274656420666f726d3a2062617368205b2d2d5d2066696c65205b617267732e2e2e5d0a\",\"stdout\":\"\",\"stderr\":\"shell: line 1: bash: unsupported option; supported form: bash [--] file [args...]\\n\",\"effects\":{},\"renderedFixtures\":[]}\n",
+      "stderr": "",
+      "elapsedMs": 255.64875
+    },
+    {
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--import",
+        "./tests/shell-stress/invocation-modes/trace.mjs",
+        "tests/shell-stress/invocation-modes/virtual-child.ts",
+        "bash-read-same-chunk"
+      ],
+      "argv0": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/nonexistent",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "INVOCATION_TRACE": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-modes/.verify-enajfj/imports.log"
+      },
+      "pid": 13131,
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "overflow": false,
+      "stdoutHex": "7b226964223a22626173682d726561642d73616d652d6368756e6b222c2265786974436f6465223a322c227374646f7574486578223a22222c22737464657272486578223a223733363836353663366333613230366336393665363532303331336132303632363137333638336132303735366537333735373037303666373237343635363432303666373037343639366636653362323037333735373037303666373237343635363432303636366637323664336132303632363137333638323035623264326435643230363636393663363532303562363137323637373332653265326535643061222c227374646f7574223a22222c22737464657272223a227368656c6c3a206c696e6520313a20626173683a20756e737570706f72746564206f7074696f6e3b20737570706f7274656420666f726d3a2062617368205b2d2d5d2066696c65205b617267732e2e2e5d5c6e222c2265666665637473223a7b7d2c2272656e64657265644669787475726573223a5b5d7d0a",
+      "stderrHex": "",
+      "stdout": "{\"id\":\"bash-read-same-chunk\",\"exitCode\":2,\"stdoutHex\":\"\",\"stderrHex\":\"7368656c6c3a206c696e6520313a20626173683a20756e737570706f72746564206f7074696f6e3b20737570706f7274656420666f726d3a2062617368205b2d2d5d2066696c65205b617267732e2e2e5d0a\",\"stdout\":\"\",\"stderr\":\"shell: line 1: bash: unsupported option; supported form: bash [--] file [args...]\\n\",\"effects\":{},\"renderedFixtures\":[]}\n",
+      "stderr": "",
+      "elapsedMs": 219.09679199999994
+    },
+    {
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--import",
+        "./tests/shell-stress/invocation-modes/trace.mjs",
+        "tests/shell-stress/invocation-modes/virtual-child.ts",
+        "path-first-usable"
+      ],
+      "argv0": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/nonexistent",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "INVOCATION_TRACE": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-modes/.verify-enajfj/imports.log"
+      },
+      "pid": 13231,
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "overflow": false,
+      "stdoutHex": "7b226964223a22706174682d66697273742d757361626c65222c2265786974436f6465223a3132372c227374646f7574486578223a22222c22737464657272486578223a22363936653736373436663666366333613230363336663664366436313665363432303665366637343230363636663735366536343061222c227374646f7574223a22222c22737464657272223a22696e76746f6f6c3a20636f6d6d616e64206e6f7420666f756e645c6e222c2265666665637473223a7b7d2c2272656e64657265644669787475726573223a5b7b2270617468223a222f776f726b2f66697273742f696e76746f6f6c222c22686578223a223233323132663632363936653266363236313733363830613730373236393665373436363230323736363639373237333734336132353733356336653237323032323234343032323061222c226d6f6465223a3439337d2c7b2270617468223a222f776f726b2f7365636f6e642f696e76746f6f6c222c22686578223a2232333231326636323639366532663632363137333638306137303732363936653734363632303237373336353633366636653634336132353733356336653237323032323234343032323061222c226d6f6465223a3439337d5d7d0a",
+      "stderrHex": "",
+      "stdout": "{\"id\":\"path-first-usable\",\"exitCode\":127,\"stdoutHex\":\"\",\"stderrHex\":\"696e76746f6f6c3a20636f6d6d616e64206e6f7420666f756e640a\",\"stdout\":\"\",\"stderr\":\"invtool: command not found\\n\",\"effects\":{},\"renderedFixtures\":[{\"path\":\"/work/first/invtool\",\"hex\":\"23212f62696e2f626173680a7072696e7466202766697273743a25735c6e2720222440220a\",\"mode\":493},{\"path\":\"/work/second/invtool\",\"hex\":\"23212f62696e2f626173680a7072696e746620277365636f6e643a25735c6e2720222440220a\",\"mode\":493}]}\n",
+      "stderr": "",
+      "elapsedMs": 212.72495800000013
+    }
+  ]
+}

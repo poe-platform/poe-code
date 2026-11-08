@@ -1,0 +1,389 @@
+# safe-bash-command-ffmpeg
+
+Pure in-memory `ffmpeg` and `ffprobe` commands for `safe-bash`, backed by `@poe-code/mp4-ast` and pluggable media container ASTs (`mp4Ast`, `movAst`, `mkvAst`, `webmAst`, `mpegtsAst`, `aviAst`, `flvAst`, `y4mAst`, `aacAst`, `wavAst`, `auAst`, `cafAst`, `aiffAst`, `mp3Ast`, `flacAst`, `oggAst`, `gifAst`, `image2Ast`). Targa output (`.tga` or `-c:v targa`) preserves RGBA pixels with top-left origin; RLE is enabled by default (`-rle 1`), and `-rle 0` writes uncompressed pixels. MP3 output retains Xing and gapless playback metadata by default; `-write_xing 0` omits them and `-write_xing 1` explicitly enables them. ICO and CUR inputs expose each PNG- or DIB-backed entry as a separate video stream, preserving transparency. FFmpeg selects the largest image automatically; use `-map 0:v:1` to select the second entry.
+
+```ts
+import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";
+import { ffmpegCommands, cloudflareWorkerLimits } from "@poe-platform/safe-bash/commands/ffmpeg";
+
+const shell = new Shell({ fs: createMemoryFileSystem() })
+  .use(ffmpegCommands({ limits: cloudflareWorkerLimits() }));
+await shell.exec("ffmpeg -f lavfi -i color=c=red:s=16x16:r=2:d=1 -an /clip.mp4");
+const probe = await shell.exec("ffprobe -show_streams -of json /clip.mp4");
+await shell.dispose();
+```
+
+Register the plugin explicitly; importing it does not enable commands. Media I/O
+uses the shell's virtual filesystem and byte streams. Input accepts `/dev/stdin`
+and `/dev/fd/0`; output accepts `/dev/stdout` and `/dev/fd/1`, alongside `-`
+and `pipe:` aliases. Shell and media input limits count bytes cumulatively across
+stdin chunks, media files, playlists, image sequences, and subtitles. The portable command bundle
+requires no Node builtins and supports browser and Worker runtimes. These commands
+implement the listed AST capabilities, not every native FFmpeg codec or option.
+The `lavfi` color source uses FFmpeg 7's limited-range BT.601 RGB samples: red
+becomes `(253, 0, 0)` in PNG output; existing RGB PNG inputs retain their samples.
+Use `-abort_on empty_output` to fail with status 234 when processing produces no
+media frames across all outputs. Empty streams remain valid without this flag.
+Use `-max_error_rate N` to set the decoder failure threshold (default `2/3`);
+exceeding it returns status 69 after writing output. Error accounting matches
+FFmpeg 7.0.2: partial decode failures have rate 0, wholly failed decoding has rate 1.
+`-xerror` still fails on individual errors; stream copy does not decode.
+Use `-progress pipe:1` for a machine-readable completion record on stdout, including
+`out_time` and `progress=end`. `-nostats` is accepted and leaves these records enabled.
+Progress currently supports stdout destinations and emits a final record after processing.
+`ebur128=peak=sample` reports loudness every 100 ms and a final integrated
+loudness, loudness range, and sample-peak summary without changing PCM samples.
+Plain `ebur128` omits sample peaks; true peaks, video, and metadata options are unsupported.
+`atrim=start_sample=2025:end_sample=3123` keeps sample frames 2025 through 3122 unchanged.
+Use `atrim=start=0.253:end=0.390` for time bounds in seconds; end bounds are exclusive.
+`asetpts=PTS-STARTPTS` resets audio timestamps; `asetpts=PTS+0.5/TB` shifts them by half a second. Output time limits honor shifted audio frame timestamps while preserving the retained PCM samples.
+Both forms apply to every channel and may omit either bound.
+`compensationdelay=cm=34:mm=3:dry=0:wet=1` delays every channel by the sound travel time for the supplied distance, preserving sample rate and frame count. Supports `mm`, `cm`, `m`, `dry`, `wet`, and `temp` (Celsius), including positional options. Delayed samples start with silence and the tail is trimmed to the original length.
+
+`adelay=0S|1S` delays each audio channel independently and pads with silence.
+Use uppercase `S` for sample frames, lowercase `s` for seconds, or no suffix for
+milliseconds. `adelay=1S:all=1` repeats the last delay for remaining channels;
+without `all=1`, unspecified channels are unchanged.
+`asetrate=16000` changes the sample rate without resampling PCM, changing playback speed and duration. Later filters use the new rate; `r` and `sample_rate` are accepted option names.
+Default `scale` on decoded H.264 uses native YUV pixels before RGB conversion.
+`datascope=size=320x240` renders monochrome hexadecimal RGB pixel values for each frame, preserving timing. `s` and positional size are also accepted; the default is `1280x720` (`hd720`). Other datascope options are unsupported.
+
+`untile=3x1` splits contact sheets into frames in row order, including blank cells. It accepts `layout=3x1`, defaults to `6x5`, and requires sheet dimensions divisible by the grid.
+
+`tile=3x1:init_padding=1` leaves the first cell blank before placing input frames. Initial blank cells use the background color and participate in overlap; values at or above the frame capacity are ignored.
+
+`tile=3x1:overlap=1` carries the last frame of each contact sheet into the next sheet. Overlap is capped at one less than `nb_frames` (or the grid capacity); a partial final sheet is padded with the tile background color.
+
+`mpdecimate` removes near-duplicate decoded RGB frames using default 8×8 block thresholds against the last retained frame. Use `-fps_mode passthrough` to preserve their original timestamps. Custom mpdecimate options are unsupported.
+`decimate=cycle=4` (or `decimate=4`) drops one frame per complete cycle, preferring duplicates and otherwise using scene changes and overlapping 32×32 block differences. The default cycle is 5; supported cycles are 2–25. Incomplete final cycles are retained, and output timestamps use the reduced frame rate. Use `-fps_mode passthrough` to write each retained frame once. Options other than `cycle` are unsupported.
+
+`vectorscope` renders each decoded RGB frame as a 256×256 plot of blue against inverted red, preserving frame timing. The default grayscale mode adds 1/255 intensity per sample and resets for each frame; custom options are unsupported.
+
+`oscilloscope` overlays the default RGB sampling line, component traces, grid, and statistics on each frame, preserving dimensions and timing. It processes decoded RGB pixels; custom oscilloscope options are unsupported.
+
+`waveform` renders each decoded RGB frame as a 256-row red-component waveform monitor, preserving width and timing. It supports the default column, mirrored, intensity-0.04 mode; waveform options are not supported.
+Explicit `-f` raw audio output writes headerless `s8`, `u8`, `s16le/be`, `s24le/be`,
+`s32le/be`, `f32le/be`, `f64le/be`, `mulaw`, and `alaw` samples, for example
+`ffmpeg -i input.wav -f s16le output.pcm`.
+Verify a single audio stream with `-f hash -` (SHA256), `-f md5 -`, or
+`-f crc -` (Adler-32). These hash decoded PCM16 samples, without container
+headers; `-f hash -hash sha512 digest.txt` selects another digest and writes a file.
+Use `-map 0:a -map 1:a -f streamhash -` for a separate digest per mapped audio
+stream, in output order, labeled `0,a,SHA256=...`, `1,a,SHA256=...`, and so on.
+Hash selection supports MD5, SHA160, SHA224, SHA256, SHA384, and SHA512.
+Audio filters and explicit PCM encoders apply before hashing; `-c:a copy` hashes
+the encoded audio packets. Use `-vn` to exclude video.
+Read headerless samples with input format, rate, and channel options:
+`ffmpeg -f s16be -ar 8000 -ac 1 -i input.pcm -c:a pcm_s16le output.wav`.
+
+WAV output to stdout uses unknown (`0xffffffff`) RIFF and data lengths; regular files contain finalized lengths. WAV output writes the encoder identification in LIST/INFO even with `-map_metadata -1`. Use `-bitexact` or `-fflags +bitexact` to omit it while preserving user tags and PCM audio.
+
+WAV output accepts `-write_bext 1` to write Broadcast Wave metadata (`description`, `originator`, `originator_reference`, `origination_date`, `origination_time`, `time_reference`, and `coding_history`) supplied with `-metadata`. The default and `-write_bext 0` omit the extension.
+
+WAV output accepts `-write_peak on` to append a peak envelope, `-write_peak only` for the envelope without audio, and `-write_peak off` (the default) to omit it. Numeric values `1`, `2`, and `0` are also accepted. Peak envelopes require 16-bit PCM output and default to 256-frame blocks with positive and negative peaks per channel. Set `-peak_block_size 0..65536` (0 omits the envelope), `-peak_format 1|2` for byte width, and `-peak_ppv 1|2` for one magnitude or separate positive/negative peaks.
+
+WAV output accepts `-rf64 always` for RF64 with 64-bit sizes, `-rf64 auto` to reserve a size chunk and use RF64 when RIFF overflows, and `-rf64 never` (the default) for ordinary RIFF.
+
+Read and write Sony Wave64 with `ffmpeg -i input.wav output.w64` or `ffmpeg -i input.w64 -c:a pcm_s16le output.wav`; `-f w64` selects the format explicitly.
+
+Read and write uncompressed AIFF (`.aiff`, `.aif`, or `-f aiff`) with signed 8/16/24/32-bit PCM; output defaults to `pcm_s16be`.
+
+Read and write CAF audio (`.caf` or `-f caf`) with signed 8/16/24/32-bit PCM or 32/64-bit floating-point samples in either byte order. Output defaults to `pcm_s16be`; `-c:a copy` preserves encoded PCM samples.
+
+Read and write Sun AU audio with `ffmpeg -i input.wav output.au` or
+`ffmpeg -i input.au -c:a pcm_s16le output.wav`. AU defaults to big-endian PCM16.
+
+Encode mono or stereo IMA ADPCM WAV with `-c:a adpcm_ima_wav output.wav`.
+
+MP3 output supports `-id3v2_version 0|3|4` (default `4`; `0` omits ID3v2) and `-write_id3v1 0|1` (default `0`). Stream copy preserves audio packets while rewriting tags.
+
+Ogg Opus input supports audio filters such as `-af volume=0`, with encoder delay and final padding removed.
+WAV extraction decodes Ogg Opus/Vorbis, AAC and CBR/VBR MP3 in memory, honoring MP4 edit timing
+and MP3 encoder delay and padding:
+`ffmpeg -y -i input.mp4 -vn -c:a pcm_s16le audio.wav`. Corrupt or unsupported
+audio fails without replacing an existing output. Audio filters, `-ar`, and `-ac` accept AAC input as well as decoded PCM
+input, such as WAV or a `lavfi` source. `[0:a][1:a]amix=inputs=2:duration=shortest:normalize=0[mix]` mixes two decoded PCM inputs with matching sample rates and channel layouts. `duration` accepts `longest` (default), `shortest`, or `first`; `weights` sets input gains, and `dropout_transition` controls normalization after an input ends (default 2 seconds, 0 for an immediate change). WAV PCM dropout transitions follow native frame boundaries. Single-input filters before amix are not supported. `[0:a][1:a]acrossfade=ns=2000[mix]` crossfades matching decoded PCM inputs with triangular fades. Use `d` for duration in seconds or `o=0` for sequential fades without overlap. The transition must fit both inputs; other curves and single-input filters before acrossfade are rejected. Labeled single-input audio chains in `-filter_complex` resolve input stream selectors and linked labels, then apply the filters selected by `-map "[label]"`. Unsupported audio filters fail without writing unfiltered output. Audio filters run in chain order; each
+`atempo` stage processes the preceding stage’s samples, including `areverse`.
+`compand=attacks=0:decays=0:points=-80/-80|-40/-40|-20/-30|0/-20` applies a dB transfer curve to PCM without changing its length. Per-channel attack/decay times, soft knees, output gain, and initial volume are supported; nonzero delay is rejected.
+
+`mcompand` applies FFmpeg’s default five-band companding curve at 48 kHz. Custom quoted band specifications support attack/decay pairs, soft knees, transfer points, crossover frequencies, and initial volume. Crossovers must be below half the sample rate; nonzero delay and gain are rejected.
+`anull` passes audio through unchanged, alone or in a filter chain.
+`deesser=i=0.8:m=0.5:f=0.5` reduces sibilance independently per channel. Intensity (`i`, default 0), maximum deessing (`m`, default 0.5), and frequency (`f`, default 0.5) accept values from 0 to 1. Output mode `s` selects input (`i`/`0`), processed audio (`o`/`1`, default), or removed sibilance (`e`/`2`). Positional options follow `i:m:f:s`.
+
+`adeclick` removes impulsive noise from decoded PCM using autoregressive interpolation.
+It accepts `window`/`w`, `overlap`/`o`, `arorder`/`a`, `threshold`/`t`,
+`burst`/`b`, and `method`/`m` (`add` or `save`), with native defaults.
+`[0:a][1:a]join=inputs=2:channel_layout=stereo:map=1.0-FL|0.0-FR[mix]`
+routes the second input's first channel to left and the first input's first channel
+to right, stopping at the shorter input. Join supports two decoded PCM inputs with
+matching sample rates, stereo output, and an explicit map of numeric input channels
+to both `FL` and `FR`. Filters after join are supported; filters before join,
+other layouts, and implicit channel selection are rejected.
+`agate=threshold=0.05:ratio=4:attack=0.1:release=1` attenuates quiet PCM sections
+while preserving sample count and timing. It supports native defaults, range, knee,
+attack/release, peak/RMS detection, channel linking, input/makeup gain, and downward/upward modes.
+
+`acompressor=threshold=0.1:ratio=4:attack=1:release=20` compresses changing PCM levels
+with attack and release in milliseconds. It supports soft knees, peak/RMS detection,
+average/maximum channel linking, upward/downward modes, input gain, makeup and wet/dry mix.
+
+`axcorrelate` computes per-channel cross-correlation from two PCM inputs with matching
+sample rates and channel layouts, stopping at the shorter input. For example,
+`[0:a][1:a]axcorrelate=size=128:algo=slow[mix]`. `size` accepts 2–131072 samples
+(default 256); `algo` accepts `slow`, `fast` (assumes zero means), or `best`
+(default). Windows look forward and use silence past each input's end. Filters
+can follow axcorrelate; preceding single-input filters are rejected.
+
+`sidechaingate` uses the second audio input to gate the first, stopping at the shorter
+input. For example, `[0:a][1:a]sidechaingate=threshold=0.1:ratio=8:attack=1:release=20[mix]`
+attenuates the program when the control signal becomes quiet. Supports `range`,
+`knee`, `detection=peak|rms`, `link=average|maximum`, `mode=downward|upward`,
+`level_in`, `level_sc`, and `makeup`; the control input can have a different channel count.
+Inputs must share a sample rate. Filters after the gate are supported; filters before
+the gate are currently unsupported.
+
+`sidechaincompress` uses a second audio input to control compression of the first,
+for example `[0:a][1:a]sidechaincompress=threshold=0.05:ratio=8:attack=1:release=20[mix]`.
+Output retains the first input’s channels and ends with the shorter input. Inputs
+must have matching sample rates; preceding filters other than `anull` are unsupported.
+
+`dynaudnorm=f=100:g=5:p=0.5` normalizes changing PCM levels with smoothed frame gains and coupled channels. Supports frame length (`f`/`framelen`), Gaussian window (`g`/`gausssize`), peak (`p`/`peak`), and maximum gain (`m`/`maxgain`); other options fail explicitly.
+
+`acontrast=contrast=50` applies a nonlinear audio contrast transfer while preserving sample rate, channels, and frame count. Contrast ranges from 0 to 100 (default 33); positional `acontrast=50` is also supported. Zero contrast still applies the native sine transfer.
+
+`tremolo=f=5:d=0.75` modulates PCM volume while preserving sample rate, channels, and frame count. Frequency (`f`, 0.1–20000 Hz) defaults to 5 Hz; depth (`d`, 0–1) defaults to 0.5. Positional `tremolo=5:0.75` is also supported.
+
+`afade=t=in:ss=1000:ns=2000` fades PCM without changing its length. Fade out with `t=out`; use `st`/`d` for timing in seconds or `ss`/`ns` for sample counts. Linear (`tri`, default) and quadratic (`qua`) curves support fractional `silence` and `unity` gains. Long option names are also accepted.
+
+`aselect='not(mod(n,2))'` keeps even-numbered decoded audio frames; `aselect='eq(n,1)'` keeps only the second frame. Frame numbers start at zero. Selected frames retain both channels, partial final frames, and timestamps; WAV output concatenates their samples.
+
+`aloop=loop=2:size=8:start=0` repeats the first eight samples per channel twice, then keeps the remaining samples in order. Positional options (`aloop=2:8:0`) are also accepted. `loop=0` or `size=0` leaves the audio unchanged. Active loops require `start=0` and a finite nonnegative loop count; output duration and memory limits apply before allocation.
+
+`apad=pad_len=19` appends 19 silent samples per channel; `whole_len=16100` pads only until the minimum sample count is reached. `pad_dur` and `whole_dur` accept durations in seconds. Infinite padding and combining padding with a minimum length are rejected.
+`showinfo` reports video frame timestamps, durations, dimensions, pixel format, Adler-32 plane checksums, means, and standard deviations on stderr at info log level or above, without changing pixels. Use `showinfo=checksum=0` to omit checksum statistics. It measures the frames at its position in the filter chain; RGB/RGBA images and retained native planar YUV pixels are supported.
+
+`signalstats` measures per-frame Y/U/V levels, saturation, hue, temporal differences, and effective bit depths. Add `stat=brng` to count broadcast-range violations and `out=brng` to highlight them (yellow by default; `color`/`c` selects another color). Read measurements with `signalstats=stat=brng,metadata=print`. RGB inputs convert to limited-range BT.601 YUV444; retained 8-bit planar YUV inputs preserve their sampling. Temporal-outlier (`tout`) and vertical-repetition (`vrep`) modes are unsupported.
+
+`ashowinfo` reports audio frame timestamps, sample counts, and PCM Adler-32 checksums on stderr at info log level or above, without changing the samples.
+
+`silencedetect=noise=-40dB:d=0.1` reports silence starts, ends, and durations on stderr without changing PCM. Add `:mono=1` to measure each channel separately; trailing silence closes at end of input.
+`volumedetect` reports interleaved sample count, mean volume, and maximum volume
+in dB on stderr, measuring audio after preceding filters without changing PCM samples.
+`astats` (also `astats=metadata=0:reset=0`) reports per-channel and overall peak/RMS
+levels in dB and the overall sample count on stderr without changing PCM samples.
+Metadata injection, periodic resets, and other statistics options are not supported.
+`crystalizer=i=2` sharpens changes between successive samples independently per channel.
+Intensity defaults to 2 (range -10 to 10); negative values smooth the audio.
+Clipping is enabled by default; `c=0` preserves peaks for subsequent filters.
+`extrastereo=m=0` averages left and right while retaining stereo; `m=-1` swaps them.
+The width multiplier defaults to 2.5 (range -10 to 10); `c=0` disables clipping.
+`stereotools` supports stereo channel mute (`mutel`, `muter`), phase inversion
+(`phasel`, `phaser`), and all `mode` channel conversions, including `lr>ms` and
+`ms>lr`. For example, `-af stereotools=mutel=1` silences only the left channel.
+Other stereotools options are rejected.
+`crossfeed=strength=0.5` applies frequency-dependent headphone crossfeed to stereo audio.
+Strength and range default to 0.2 and 0.5 (0–1); slope defaults to 0.5 (0.01–1).
+`level_in` and `level_out` default to 0.9 and 1 (0–1).
+`crossfeed=strength=0:level_in=1:level_out=1` preserves every sample.
+Block processing (`block_size`) is unsupported.
+`stereowiden=delay=5:feedback=0.3:crossfeed=0.3:drymix=0.8` widens stereo
+with delayed cross-channel subtraction. Delay is in milliseconds (1–100, default 20);
+feedback (0–0.9), crossfeed (0–0.8), and drymix (0–1) default to 0.3, 0.3, and 0.8.
+Setting `feedback=0:crossfeed=0:drymix=1` preserves the input samples.
+`haas` applies the default stereo enhancer: the channel average plus a 2.05 ms
+delayed tap on the right and minus a 2.12 ms delayed tap on the left. It preserves
+the sample rate and frame count. Custom Haas options are not supported.
+`earwax` applies the headphone stereo filter to 44100 Hz stereo input, preserving
+the frame count with native signed 16-bit filtering and clipping. Other input
+rates and channel counts are rejected.
+
+Swap stereo PCM channels with `-af 'channelmap=map=1|0:channel_layout=stereo'`.
+Numeric channel maps support mono/stereo output and reject unavailable input channels.
+`aeval=val(1)|val(0)` evaluates separate expressions against the input samples to swap
+stereo channels. Mono/stereo expressions support arithmetic, `val(channel)`, `ch`,
+`n`, `t`, `s`, `nb_in_channels`, and `nb_out_channels`; `c=same` retains the input
+layout and repeats the last expression when needed.
+Split stereo PCM into distinct mono files with
+`-filter_complex '[0:a]channelsplit=channel_layout=stereo[L][R]' -map '[L]' left.wav -map '[R]' right.wav`.
+Use `-af channelsplit=channel_layout=stereo:channels=FR` to extract only the right
+channel (`FL` selects the left). Other channel layouts are not supported.
+`pan` supports mono/stereo output, numbered channels and named channels from the
+input layout: `-af 'pan=mono|c0=c1'` extracts the right channel and
+`-af 'pan=stereo|FL=FR|FR=FL'` swaps stereo channels. Weighted sums use `=`,
+and `<` normalizes gains, for example `pan=mono|c0<2*c0+c1`.
+Use `-ch_layout mono` or `-channel_layout mono` for mono output, equivalent to `-ac 1`. Other output layouts are not supported by these options.
+`aformat=channel_layouts=mono` (or `aformat=cl=mono`) downmixes stereo by
+averaging left and right samples, or preserves mono input. Other `aformat`
+options and layouts are not supported.
+These filters also work in labeled single-input audio graphs with `-map`.
+`volume` and `atempo` default to 1 and accept named primary arguments, such as
+`volume=volume=0.5` and `atempo=tempo=2`, as well as positional values.
+`atempo` accepts arithmetic such as `atempo=1/2`; the result must be between 0.5 and 100.
+Audio filters accept instance labels, such as `areverse@flip`, `volume@quiet=0.5`,
+and `atempo@fast=2`, with the same behavior as their unlabeled forms.
+`volume=if(lt(t\,0.5)\,0\,1):eval=frame` changes gain at audio frame timestamps;
+`eval=once` (the default) evaluates a constant gain. Numeric modes are `precision=0/1/2` for fixed/float/double and `eval=0/1` for once/frame. Expressions accept escaped commas or single quotes.
+`volume` in an expression holds the previous gain, starting as NaN during setup; `eval=frame` evaluates again for each audio frame.
+`asendcmd=c='0.25 volume@v volume 0.25',volume@v=1` changes the named gain on the first audio frame at or after 0.25 seconds. Inline `c`/`commands` schedules support semicolon-separated time/target/volume/gain commands (optionally `[enter]`) targeting subsequent volume filters; target `volume` addresses all subsequent volume instances. Other command actions, interval flags, and command files are unsupported.
+The volume counters `nb_samples` and `nb_consumed_samples` are unavailable (NaN), as in native FFmpeg.
+`volume` supports ReplayGain `drop` (default), `ignore`, `track`, and `album` modes,
+with `replaygain_preamp` (-60–60 dB) and `replaygain_noclip` (enabled by default).
+Tagged gain replaces the volume multiplier; untagged audio keeps the requested volume.
+With `eval=frame`, `startt` and `startpts` retain the first audio frame's timestamp in seconds and sample time-base units; both are NaN with `eval=once`.
+With `eval=frame`, a NaN gain becomes silence; `isnan()` can supply a fallback gain.
+`atempo=1` still aligns and blends audio windows, so it can change PCM samples and clip length.
+`-filter:a:0 volume=0` (or `-af:0 volume=0`)
+mutes the first output audio stream; numeric audio selectors follow output mapping
+and leave nonmatching streams unchanged. Filtering a matching stream with `-c:a copy`
+fails without writing output. `-ac -1` retains the input channel count. `-ac 1` downmixes stereo and
+5.1 WAV audio (back or side surrounds) using normalized FFmpeg weights, preserving
+center dialogue and omitting LFE. Stereo upmixing with `-ac 3` or `-ac 4` preserves
+left and right audio and leaves added channels silent. Other conversions from
+multichannel inputs fail explicitly. Unsupported audio filters fail
+without creating or replacing the output. Stream copying remains supported. Without `-map`, automatic audio selection keeps one track, preferring the default track, then the most channels, then input order. Use `-map 0:a` to copy every audio track from the first input. Global metadata defaults to the first input;
+`-map_metadata N` copies it from input N, and `-map_metadata -1` suppresses copying.
+Explicit `-metadata key=value` tags override copied metadata.
+Each output filename closes its option group: `-t 0.025 a.wav -t 0.075 b.wav`
+writes both files with independent durations. Output options reset after each filename;
+trailing options without a filename do not change earlier outputs.
+`-stream_loop -1` repeats an input up to a finite output `-t` or `-to`, subject to
+media resource limits. Without either output bound, infinite looping fails explicitly.
+`-metadata:s:a:0 language=fra` sets the first output audio track’s language;
+stream selectors also accept an absolute index (`s:1`), a type (`s:a`), or all streams (`s`).
+`-disposition:a:0 0 -disposition:a:1 default` selects the second output audio track as the MP4 default.
+Disposition selectors accept a type, an absolute index, or all streams; supported values are
+`0`, `1`, `default`, `+default`, `-default`, and `attached_pic`. Other disposition values fail explicitly.
+For FLAC cover art, map the audio and PNG/JPEG inputs with `-map 0:a -map 1:v -c copy -disposition:v:0 attached_pic`; unmarked video streams are omitted.
+`-map_chapters -1` removes output chapters; `-map_chapters N` copies chapters from input N. FFmetadata export preserves imported chapter time bases, including sample-accurate boundaries.
+`xfade` supports the default `fade` and `transition=wipeleft`; other transitions fail
+without creating or replacing output.
+`trim` supports `start`, `end`, `duration`, `start_frame`, and `end_frame`; frame
+numbers are zero-based and the end frame is excluded. Unsupported trim options fail
+without replacing output.
+`framestep=3` (or `framestep=step=3`) keeps frames 0, 3, 6, and so on, preserving their timestamps. The default step is 1; use `-fps_mode passthrough` to write each selected frame once.
+`loop=loop=2:size=2:start=3` (or `loop=2:2:3`) repeats the buffered two-frame sequence twice, then resumes the remaining input with shifted timestamps. As in FFmpeg, `start=3` buffers input frames 2 and 3 (zero-based); starts 0 and 1 both begin at the first frame. A buffer ending at EOF repeats the available frames. Defaults disable looping. Only finite nonnegative loop counts, sizes up to 32767, and nonnegative frame starts are supported; infinite loops and time-based starts are rejected. Expansion respects media resource limits.
+`shuffleframes="2 0 1"` (or `shuffleframes=mapping=2|0|1`) reorders each group of three frames. Indices start at zero, repeated indices duplicate pictures, and `-1` drops an output slot. Output slots keep their original timestamps; incomplete final groups are dropped. The default mapping is `0`. Use `-fps_mode passthrough` to preserve gaps without duplicating frames.
+`tinterlace=mode=interleave_top` (or `tinterlace=4`) combines each pair of frames: even-numbered rows come from the first frame and odd-numbered rows from the second, counting from zero. Output keeps the first frame’s timestamp and spans both frames; an unmatched final frame is dropped. Other modes and options are unsupported. Use `-fps_mode passthrough` to write each resulting frame once.
+
+`telecine=pattern=23` applies a repeating field cadence to progressive frames, weaving alternating scan lines when a pair spans two input frames. The default pattern is `23`; `first_field=bottom` reverses field order (default: `top`). Pattern digits specify fields per input frame; zero skips a frame, and an unmatched final field is dropped. Output timing follows the cadence. Use `-fps_mode passthrough` to write each resulting frame once.
+
+`tblend=all_mode=difference` emits the absolute RGB difference between adjacent frames, starting with the second input frame and retaining its timestamp. Repeated frames produce black output. Other blend modes and options are unsupported. Use `-fps_mode passthrough` to preserve the resulting sequence.
+Burned SRT captions use bitmap lettering and bottom spacing that scale with video height.
+MicroDVD input (`-f microdvd` or automatic detection) uses the declared frame rate and converts `|` to line breaks; `-c:s copy -f microdvd` preserves caption frame numbers and text.
+SAMI input (`-f sami`, `.smi`, or `.sami`) preserves millisecond SYNC timing and `<br>` line breaks; each cue ends at the next SYNC.
+
+LRC lyrics support explicit `-f lrc` and automatic detection, infer cue ends from the next timestamp, and write each subtitle line with its own centisecond timestamp.
+
+TTML output (`-f ttml` or `.ttml`) preserves subtitle cue timing, line breaks, and XML-escaped text.
+PJS input (`-f pjs` or automatic detection) reads quoted cues with decisecond timing.
+MPL2 input (`-f mpl2`) reads decisecond cue timing and converts `|` to line breaks.
+
+SubViewer input (`-f subviewer` or detected `.sub` timecodes) preserves centisecond timing, skips information headers, and converts `[br]` to line breaks.
+ASS and SRT conversion preserves cue text and timing; ASS output uses a default style and centisecond timestamps. ASS input decodes line breaks and removes positioning/style overrides. Matroska output with `-c:s ass` encodes basic SRT styling and line breaks; `-c:s copy` retains ASS packets and the original script header.
+Matroska ASS-to-SRT conversion decodes event fields, basic style overrides and escaped line breaks while preserving cue timing.
+SRT-to-WebVTT conversion removes ASS override blocks and converts `\N` and `\n` to line breaks; `-c:s copy` preserves the original cue text.
+
+`ffprobe` uses the same audio/video implementation as `@poe-platform/safe-bash/commands/ffprobe`, with default limits of 32 MiB input and 1 MiB output. Pass `limits` to override them.
+
+## Features
+
+- **Dynamic AST-Driven Format Support**: Pass `asts: [...]` to `ffmpegCommands({ asts })` to dynamically determine which container formats, extensions, demuxers, muxers, and codecs are supported by `ffmpeg` and `ffprobe`.
+- **Video Merging & Concatenation**: Supports `-f concat -safe 0 -i list.txt -c copy`, `concat:clip1.mp4|clip2.mp4`, and `-filter_complex "concat=n=2:v=1:a=1"`. Manifests beginning with the exact `ffconcat version 1.0` signature are detected without `-f concat`. By default (or with `-safe 1`), concat filenames must be relative paths using ASCII letters, digits, underscores, hyphens, and periods, with no component starting with a period; `-safe 0` permits other filenames. Safe mode also rejects manifest `option` directives. Manifest `duration` sets the next segment’s timeline start without trimming samples; use `inpoint`/`outpoint` to trim. WAV concat retains the entire PCM packet that starts before `outpoint`. A missing later concat segment logs an error and preserves media already read; `-xerror` also makes the exit status nonzero. A missing first segment fails without creating output.
+- **Trimming, Muxing & Faststart**: Supports input `-itsoffset` and output `-output_ts_offset` to shift timestamps (seconds, duration strings, or `ms`/`us` units), input/output `-ss`, `-to`, `-t` (including lavfi sources), input `-itsscale[:stream_specifier]` to scale packet timestamps while preserving packet durations, input `-sseof` with a negative offset from the end (for example, `-sseof -0.125 -i in.wav` keeps the last 125 ms), `-map`, `-an`, `-vn`, `-shortest`, `-movflags +faststart`, and `-movflags frag_keyframe+empty_moov`.
+- **Filtergraphs & Frame Extraction**: Supports `scale`, `hqx` (HQ pixel-art scaling with `n=2`, default `n=3`, or `n=4`), `xbr` (edge-blended pixel-art scaling with `n=2`, `n=3` (default), or `n=4`), `super2xsai` (2× pixel-art scaling), `epx` (pixel-art scaling with `n=2` or the default `n=3`), `crop`, `pad`, `fps`, `hflip`, `vflip`, `transpose`, `rotate`, `negate`, `bitplanenoise` (measures the selected `bitplane=1..16`, default 1; `filter=1` renders its neighbor-agreement mask, and `metadata=print` reports per-plane noise), `histogram` (default 256×636 stacked RGB histograms for each frame; custom options are unsupported), `drawbox`, `overlay`, `hstack`, `vstack`, and `%03d.png` image sequences with independent input/output `-start_number` values and no default frame ceiling. Input searches five candidate indices from `-start_number` (default 0); `-start_number_range` changes that window. After the first image, the sequence stops at the first gap. Output `-atomic_writing 1` writes each image to a `.tmp` file and renames it into place; `-atomic_writing 0` (the default) writes directly. Output `-strftime 1` expands calendar patterns such as `stamp-%Y-%m-%d-%H-%M-%S-%%.png` using the current clock and virtual `TZ` (UTC by default); `%%` produces a literal percent. Frames with the same expanded filename replace earlier frames. `-strftime 0` keeps sequence numbering, and `-update 1` keeps the filename literal. Output `-frame_pts 1` names images by presentation timestamps in the output frame time base instead of sequence numbers; `-frame_pts 0` keeps default numbering. Both accept native case-insensitive boolean spellings such as `true`/`false`, `yes`/`no`, `on`/`off`, and `enabled`/`disabled`. `-pattern_type glob` reads matching image paths in sorted order; quote the pattern to keep the shell from expanding it. `-pattern_type none` reads the filename literally, including `%02d`. `-pattern_type sequence` selects the default numbered mode. `select` accepts arithmetic with `n`, `t`, `start_t`, `prev_t`, `selected_n`, `prev_selected_n`, `prev_selected_t`, and `key`, and `eq`, `lt`, `lte`, `gt`, `gte`, `between`, `isnan`, `not`, and `mod` functions. Selection counts and previous selected frame values update only when a frame is kept; previous values start as NaN, testable with `isnan`; invalid or unsupported expressions fail without replacing output. Image sequences duplicate or drop frames to preserve output cadence after `select` and `setpts`; use `-fps_mode passthrough` (or `-vsync 0`) to write each filtered frame once. `hstack` and `vstack` continue to the longer input by repeating the shorter input’s last frame; set `shortest=1` to stop at the shorter input. `crop` positions accept arithmetic with `iw`, `ih`, `ow`, `oh` (and their `in_w`, `in_h`, `out_w`, `out_h` aliases); unsupported expressions fail without replacing output. `overlay` defaults to even x/y positions on the YUV420 chroma grid; `format=yuv422` aligns only x, while `format=auto`, `format=rgb`, and `format=yuv444` preserve integer positions. `overlay` positions accept arithmetic with `main_w`, `main_h`, `overlay_w`, and `overlay_h` (or `W`, `H`, `w`, and `h`); invalid or unsupported expressions fail without replacing output. `rotate` accepts constant radian angles (including `PI` and arithmetic), keeps the input canvas size, and uses bilinear sampling with black fill. Decoded 8-bit planar YUV frames rotate before RGB conversion; `format=rgba,rotate=...` explicitly selects RGB sampling. `drawbox` width and height accept arithmetic with `iw`, `ih`, `in_w`, and `in_h`; omitted or nonpositive dimensions use the frame size, and invalid expressions fail without replacing output. It blends alpha colors such as `red@0.5` and `0xff000080` over existing pixels. GIF `-c:v copy` preserves original frame rectangles, palettes, and compressed image data. GIF `-global_palette 0` writes a local color table for each frame; `-global_palette 1` (the default) writes a global color table. GIF encoding enables rectangle offsetting and transparent differencing by default. Use `-gifflags -offsetting`, `-gifflags -transdiff`, or `-gifflags -offsetting-transdiff` to disable them independently or together; `0` disables both and `3` enables both. GIF input accepts `-min_delay`, `-default_delay` (0–6000), and `-max_gif_delay` (0–65535) before `-i`, in centiseconds; decoded frames retain their embedded delays. Animated GIF output preserves all frames and their timing; probing reports the full animation. `-final_delay N` sets only the last GIF frame delay in centiseconds (`0`–`65535`); `-1` preserves its delay, including stream copy. Output `-loop N` sets GIF repeats (`0` loops forever by default, `-1` omits the loop extension, `1`–`65535` sets a finite repeat count), including stream copy. Before `-i`, `-loop 0|1` controls image input repetition independently. GIF input `-ignore_loop 0` honors embedded loops, preserving frame order and delays; the default `-ignore_loop 1` reads one pass. Infinite GIFs require a finite `-frames:v`, `-t`, or `-to` bound. Input repetition is independent of output `-loop`. The `smptebars` source produces static SMPTE bars.
+- **Consumer-Defined Limits**: Imposes no default limits while offering `cloudflareWorkerLimits()` and opt-in/opt-out feature controls (`features: { videoTranscode, filterGraph, lavfiSources }`).
+
+`silenceremove` supports start/stop periods, durations, linear or dB thresholds,
+`any`/`all` channel modes, and `avg`, `rms` (default), or `peak` detection with
+a configurable window. Negative stop periods remove repeated silent sections.
+Extra retained silence and copied timestamps are unsupported; invalid or unsupported
+options fail without replacing output.
+
+WAV segment output (`-c copy -f segment part%02d.wav`) writes numbered files at audio packet boundaries, with a default target duration of two seconds. Use `-segment_time 1` to change the target and `-segment_list list.csv` to write filenames and actual start/end times. Segment output currently supports one audio track and WAV filenames. Existing segments and lists require `-y` to overwrite.
+
+`-hls_fmp4_init_filename` sets the separate fMP4 initialization filename and its `EXT-X-MAP` URI (default `init.mp4`, relative to the playlist directory). Single-file HLS keeps initialization in the combined media file. `-hls_time` accepts seconds, `s`/`ms`/`us` units, and `HH:MM:SS` or `MM:SS` durations. Invalid durations fail before writing output. HLS stream-copy segments cut at keyframes, so a long GOP can exceed `-hls_time`; the playlist reports actual segment durations. After a late keyframe, later cuts remain scheduled at multiples of the requested interval (for example, a 3-second interval with keyframes every 2 seconds yields 4/2/3-second segments for a 9-second video). `-hls_flags split_by_time` allows cuts between keyframes and disables the independent-segments declaration. `-hls_list_size` keeps the final N entries (default 5; 0 keeps all) and advances the media sequence. Segment files are preserved unless `-hls_flags delete_segments` is set; deletion retains one expired segment by default. `-hls_delete_threshold N` changes that count, capped by FFmpeg’s playlist-duration retention rule. Unlimited playlists do not delete segments. `-hls_playlist_type vod` or `event` emits the corresponding playlist type and keeps every entry and segment regardless of `-hls_list_size` or `delete_segments`. Language selectors `-map 0:m:language:fra` and `-map 0:a:m:language:fra` select French tracks; omit the language value to match any language tag. Negative `-map` selections remove previously selected streams by input, type, or stream index, and later positive maps can select them again.
+
+Multi-file HLS filename templates must contain a numbered placeholder such as `%d` or `%03d`; `%%` produces a literal percent sign. Invalid templates are rejected before writing output. `-hls_flags` accepts `delete_segments`, `omit_endlist`, `split_by_time`, `independent_segments`, `discont_start`, and `round_durations`, including `+`/`-` combinations. `round_durations` rounds playlist durations to integers instead of six decimal places. `discont_start` inserts `#EXT-X-DISCONTINUITY` immediately before the initial segment’s `#EXTINF`; the marker disappears when that segment leaves the playlist window. Unrecognized flags fail before writing output. `-hls_flags single_file` writes one media file with playlist byte ranges computed from the muxed bytes (MPEG-TS or fMP4, including an initialization range). Its default filename is the playlist basename with `.ts` or `.m4s`; an explicit segment filename is used literally without numbered expansion. Playlist windows retain the complete media file even with `delete_segments`.
+
+`-hls_base_url` prepends its value verbatim to media segment URIs in the playlist without changing local output paths or initialization map URIs.
+
+Explicit `-hls_segment_filename` paths resolve from the working directory; default segments are written beside the playlist. Missing HLS parent directories are created. Existing outputs are preserved with exit status 1 unless `-y` is specified; `-n` explicitly requests preservation.
+
+
+Both commands resolve local HLS and static DASH segment files from the virtual
+filesystem, including fMP4 initialization files, and report the actual media
+streams. HLS skips local media segments with disallowed file extensions before reading them; disallowed initialization files fail. Put `-allowed_extensions mp4,m4s,txt` before `-i` to replace the default media extension list for that input, or use `ALL` to allow any extension. Missing DASH media fragments are skipped when initialization is available,
+preserving surviving packet timestamps; missing initialization files and other read errors fail the command. DASH output (`-f dash` or
+`.mpd`) writes the manifest plus `init-stream*.m4s` and `chunk-stream*.m4s` files
+beside it. Use `-init_seg_name 'i-$RepresentationID$.mp4'` and
+`-media_seg_name 'm-$RepresentationID$-$Number$.m4s'` to customize the names.
+Use `-frag_type every_frame` for one fragment per frame inside each media segment, keeping `-seg_duration` unchanged; `none` (default) writes one fragment per segment.
+Use `-use_template 0` for explicit `SegmentList` output; the default (`1`) retains `SegmentTemplate`.
+Use `-use_timeline 0` for fixed-duration templates without a timeline (`-seg_duration` defaults to 5 seconds); `1` retains the default timeline.
+Use `-remove_at_exit 1` to delete the generated manifest and media files when output finishes; the default (`0`) preserves them.
+Use `-window_size N` to retain the last N segments per representation in timelines and lists, with their original segment numbers; `0` (default) retains all. Fixed-duration templates keep their full presentation.
+Use `-single_file 1` to write `<manifest>-stream<N>.mp4` per representation and a `SegmentList` with initialization, media, and index byte ranges.
+`-adaptation_sets "id=0,streams=a id=1,streams=v"` groups output streams into explicit
+adaptation sets. Select streams by `a`, `v`, or comma-separated output stream indices;
+each stream must belong to exactly one set of the same media type.
+Use `-hls_playlist 1` with DASH output to write `master.m3u8` and per-stream `media_N.m3u8` playlists alongside the MPD, sharing its media resources.
+DASH input supports a single Period with segment templates, timelines, or segment lists without byte ranges.
+Stream copy preserves relative audio/video timing, including AAC priming, and follows native DASH packet scheduling through EOF;
+HLS input supports clear and AES-128 encrypted media playlists (local 16-byte keys admitted by `-allowed_extensions`, explicit or media-sequence IVs, and clear initialization segments) with complete segment files or media and initialization byte ranges, including implicit offsets for consecutive ranges in the same media file.
+Native H.264 inputs decode with CAVLC/CABAC and reference-frame support. FLAC output accepts `-write_header 0` to emit only raw audio frames; `-write_header 1` retains the default stream header and metadata. FLAC output accepts `-metadata_header_padding` to reserve padding bytes (`0` removes padding, `-1` selects 8192 bytes); stream copy preserves compressed audio. FLAC encoding accepts `-exact_rice_parameters 0|1`: `0` (default) estimates Rice parameters and `1` searches exact residual bit costs, preserving PCM in FLAC and Ogg FLAC. FLAC encoding accepts `-min_partition_order` and `-max_partition_order` (0–8; `-1` selects defaults) for Rice residual partitioning in FLAC and Ogg FLAC. An explicit minimum requires an explicit maximum; short blocks reduce the bounds to valid partitions. FLAC encoding accepts `-multi_dim_quant 0|1` to control first-order LPC coefficient refinement for FLAC and Ogg FLAC, preserving exact PCM. FLAC encoding accepts `-min_prediction_order` and `-max_prediction_order` (1–32 for LPC, `-1` selects the default) and `-prediction_order_method estimation|2level|4level|8level|search|log`. FLAC encoding accepts `-lpc_coeff_precision` (1–15 bits; `0` selects the default 15) to quantize LPC coefficients; fixed and verbatim predictors ignore it. FLAC encoding accepts `-lpc_type none|fixed|levinson|cholesky`; LPC modes use autocorrelation or covariance fits, with verbatim fallback when smaller. FLAC encoding accepts `-ch_mode indep`, `left_side`, `right_side`, or `mid_side` for lossless stereo decorrelation in raw and Ogg FLAC. FLAC Cholesky prediction accepts `-lpc_passes` (positive integer, default `2`); extra passes refine the bounded fit using residual weights. Other predictor modes ignore this setting. FLAC encoding accepts `-frame_size` from 16 through 65535 samples per frame for raw and Ogg FLAC (`0` keeps the default 2048). FLAC encoding accepts `-sample_fmt s16` for explicit 16-bit conversion and `-sample_fmt s32` for 24-bit output. FLAC encoding accepts `-compression_level 0` through `12` (`-1` selects level 5), increasing fixed-predictor search effort while preserving exact 16-bit or 24-bit PCM; compressed bytes may differ from native FFmpeg. FLAC trimming re-encodes exact samples while preserving 16-bit or 24-bit precision; `-c copy -t` and `-c copy -frames:a` retain whole compressed packets. Ogg output accepts `-serial_offset` (0 through 2147483647) to number logical streams consecutively; `-fflags +bitexact` starts numbering at zero unless an offset is supplied. Ogg-to-Ogg `-c copy` preserves Opus or Vorbis packets and metadata without decoding; Opus `-t` copy retains whole packets. `-page_duration` sets the target page duration in integer microseconds for Opus copy and Opus/Vorbis encoding (default `1000000`); `20000` writes one page per 20 ms Opus packet, and `0` disables duration-based flushing. Pages also flush at the Ogg lacing limit. `.ogg` output defaults to Vorbis; use `-c:a libopus` or a `.opus` filename for Opus, or `-c:a flac` for lossless Ogg FLAC. Opus encoding honors `-b:a` in bits per second, including `k` and `M` suffixes (for example, `-b:a 128k`).
+
+`dialoguenhance` extracts dialogue from stereo into a third (front center) channel,
+retaining the input frame count and sample rate. Left and right are delayed by
+three quarters of the analysis window (1536 samples at 44100 Hz). It accepts
+`original` (0–1), `enhance` (0–3), and `voice` (2–32), with defaults `1:1:2`.
+
+`dcshift=0.125` adds a DC offset to every audio channel, preserving the sample rate and frame count and clipping samples to the full-scale range. `shift=0.125` is also accepted; shifts must be between -1 and 1. Limiter options are unsupported and fail explicitly.
+
+`speechnorm=p=0.5` adjusts PCM half-wave gains, limiting loud sections and gradually restoring gain in quiet sections. Supports peak (`p`/`peak`), expansion (`e`/`expansion`), compression (`c`/`compression`), threshold (`t`/`threshold`), and gain adjustment (`r`/`raise`, `f`/`fall`). Channels are processed independently; other options fail explicitly.
+
+`aphaser=in_gain=0.5:out_gain=0.8:delay=3:decay=0.4:speed=1` adds a phasing effect while preserving sample rate and frame count. Supports named or positional input/output gain, delay, decay, modulation speed, and triangular (`type=t`, default) or sinusoidal (`type=s`) modulation.
+
+`asoftclip=type=tanh:threshold=0.5` soft-clips signed PCM peaks. Supports `threshold`, `output`, and `param`, with named or positional options. The default type is `tanh`; other types and oversampling beyond `oversample=1` fail explicitly.
+
+`apsyclip=clip=0.2` applies psychoacoustic clipping to PCM audio using overlapping windows and iterative spectral masking. Supports `level_in`, `level_out`, `clip`, `diff`, `adaptive`, `iterations`, and automatic output leveling (`level`). Like FFmpeg, it preserves the sample count with a window delay and does not drain the delayed tail.
+
+`alimiter=limit=0.25:level=0:latency=1` limits PCM peaks with linked channels, lookahead attack, and gradual release. `latency=1` preserves sample positions and drains the delayed tail; the default retains the lookahead delay. Supports `level_in`, `level_out`, `limit`, `attack`, `release`, and automatic output leveling (`level`). Automatic release (`asc=1`) is unsupported and fails explicitly.
+
+`[0:a][1:a]amultiply[out]` multiplies corresponding PCM samples from two inputs
+with matching sample rates and channel layouts, ending with the shorter input.
+Single-input filters before `amultiply` are not supported.
+
+`[0:a][1:a]amerge=inputs=2[out]` merges two mono inputs at the same sample rate
+into stereo, in input order, ending with the shorter input. `amerge` defaults to
+two inputs; filters after the merge are supported. Other input layouts and
+filters before the merge are currently unsupported.
+
+`[0:a][1:a]astreamselect=inputs=2:map=1[out]` selects the second decoded PCM
+input, preserving its channels and samples and ending with the shortest input.
+Inputs must share a sample rate. `inputs` defaults to two; `map` must select one
+input. Filters after selection are supported; multiple output selections and
+filters before selection are currently unsupported.
+
+Use `-frames:s N` to retain at most N subtitle cues per output stream without shortening their intervals; `0` emits no cues.
+
+Use `-fix_sub_duration` before an input to shorten overlapping subtitle events during transcoding. Each event ends no later than the next event starts; the final buffered event is omitted, matching FFmpeg 7.0.2. Stream copy retains the original events.
+
+`asetnsamples=n=300:p=1` groups audio into 300-sample frames and pads the final frame with silence. Use `p=0` to keep a short final frame. Defaults are `n=1024:p=1`; `nb_out_samples` and `pad` are aliases. Frame boundaries are honored by `ashowinfo`, `asetpts`, `volume`, `aselect`, and `-frames:a`. For example, `asetnsamples=n=1:p=0,aselect='mod(n,2)'` keeps odd-numbered samples.
+
+ICO output (`out.ico` or `-f ico`) with `-c:v png` writes one PNG-backed entry per mapped video stream, in mapping order. Each entry uses the first frame and must be between 1 and 256 pixels in each dimension. For example: `ffmpeg -i small.png -i large.png -map 0:v -map 1:v -c:v png out.ico`.
+
+APNG output (`out.apng` or `-f apng`) writes all video frames into one animation. Use `-plays N` to set the play count (default `1`, `0` loops forever). Frame delays follow presentation timestamps; the final frame repeats the preceding interval.
+
+`apulsator=hz=2:amount=0.8:offset_l=0:offset_r=0.5` modulates stereo audio with independent channel phase offsets. Supports sine modulation with named `hz`, `amount`, `offset_l`, and `offset_r` options while preserving sample rate and frame count. Other pulsator options are rejected.
+
+`vibrato=f=5:d=0.5` modulates PCM pitch using an interpolated delay while preserving sample rate, channels, and frame count. Frequency (`f`, 0.1–20000 Hz) defaults to 5 Hz; depth (`d`, 0–1) defaults to 0.5. Positional `vibrato=5:0.5` is also supported. Like native FFmpeg, the filter introduces a short startup delay even at zero depth.
+
+`pixscope` magnifies the default central 7×7 RGB sample and overlays channel statistics on frames at least 640×480, preserving dimensions and timing. Custom pixscope options are unsupported.
+
+`ciescope=size=256` renders a square CIE 1931 xyY chromaticity plot using Rec.709/D65, with the spectral background and per-frame pixel density. `s` is an alias for `size`; the default is 512, with integer sizes from 256 to 8192 subject to media limits. Timing is preserved. Other ciescope options are unsupported.
+
+`aexciter` enhances high-frequency harmonics in decoded PCM. It supports `level_in`,
+`level_out`, `amount`, `drive`, `blend`, `freq`, `ceil`, and `listen`, including
+positional options and use in audio filter chains.
+
+`tmix=frames=3:weights=1 2 1` mixes a rolling window of frames with normalized weights, ordered oldest to newest. Startup repeats the first frame to fill the window, preserving every input timestamp. `frames` defaults to 3 (1–1024); weights default to 1 and the final weight repeats for remaining slots. Other options are unsupported.

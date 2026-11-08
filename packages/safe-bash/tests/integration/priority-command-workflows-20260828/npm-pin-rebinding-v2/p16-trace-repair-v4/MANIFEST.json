@@ -1,0 +1,48 @@
+{
+  "schema": "priority-packet-manifest-v1",
+  "role": "PREPARATION_ONLY_NOT_A_GRANT",
+  "files": [
+    {
+      "path": "READY.md",
+      "bytes": 390,
+      "sha256": "eb5447a156bac8d2995b3d276bd8c8369ebde3e7e67f739870cfc0a77b88ae3a"
+    },
+    {
+      "path": "CASES.json",
+      "bytes": 70220,
+      "sha256": "3e8a56b632daa16b360df52ab6528973db48c174db29735634e66759c4bc08a8"
+    },
+    {
+      "path": "FIXTURES.json",
+      "bytes": 15139,
+      "sha256": "2784e925e57619b9e0a1285c890f09293345ea414fee27a8d9aa507bfe0e00f1"
+    },
+    {
+      "path": "SCHEMA.json",
+      "bytes": 4225,
+      "sha256": "3aef826419c60d480e5f3f3e6e9dd9d36a861f71fd0dad319e3289e40374b155"
+    },
+    {
+      "path": "BINDINGS.json",
+      "bytes": 30714,
+      "sha256": "17a976b5644a8a0c4cfb6b1ff69789939dc67b2954a1aaec86ba0da06e8fea00"
+    },
+    {
+      "path": "EXECUTION-RECIPE.md",
+      "bytes": 747,
+      "sha256": "f31efec90ad0d0fb1816e62a2aff52121507984d7e128bbdbea901ef255b20f8"
+    },
+    {
+      "path": "verify.mjs",
+      "bytes": 8822,
+      "sha256": "5cfa86b17d4384da8a75cda0d78990b79da009e41d25046f4bc64ffd6e08e6c6"
+    }
+  ],
+  "counts": {
+    "workflows": 24,
+    "controls": 7,
+    "selected": 78,
+    "runtimeExecutions": 0
+  },
+  "directoryValidation": "Seven packet files digest-bound; SELECTION is separately seal-bound. No arbitrary appended-file coverage claim."
+}

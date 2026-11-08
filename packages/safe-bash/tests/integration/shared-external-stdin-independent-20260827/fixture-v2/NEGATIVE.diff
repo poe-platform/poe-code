@@ -1,0 +1,10 @@
+--- fixture-v2/probe.mjs
++++ fixture-v2/probe-wrong-primary.mjs
+@@ -125,1 +125,1 @@
+-    assert.equal(errors.join(""), `shell: line 1: ${spec.mode === "zero" ? "0" : primaryError.message}\n`);
++    assert.equal(errors.join(""), `shell: line 1: ${closeError.message}\n`);
+--- fixture-v2/column-close.mjs
++++ fixture-v2/column-wrong-code.mjs
+@@ -33,1 +33,1 @@
+-      assert.equal(Buffer.concat(errors).toString(), "column: EFBIG: column input limit exceeded\n");
++      assert.equal(Buffer.concat(errors).toString(), "column: EIO: column input limit exceeded\n");

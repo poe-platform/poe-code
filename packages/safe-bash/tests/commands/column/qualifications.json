@@ -1,0 +1,15 @@
+{
+  "classification": "Explicit post-capture profile correction; original cases.json and native.json retained unchanged",
+  "initialNativeTestRun": { "tests": 29, "passes": 27, "failures": 2, "claimedExact": 17, "actualExact": 15 },
+  "effectiveCounts": { "exact": 15, "qualified": 9, "native-unsupported": 2, "product-unsupported": 2 },
+  "overrides": {
+    "no-final-lf": {
+      "profile": "qualified",
+      "qualification": "Installed BSD treats an unterminated final record as line too long: status 1, stdout a<two spaces>b<LF>, stderr column: line too long<LF>. Virtual intentionally accepts the complete unterminated record: status 0, both rows retained. Original failed exact assertion (0 !== 1) remains recorded; no parity claim."
+    },
+    "vfs-multiple-files": {
+      "profile": "qualified",
+      "qualification": "First fixture file one is unterminated. Installed BSD discards it, returns 1 and emits only long<two spaces>z<LF>; virtual accepts both files and returns 0. Original failed exact assertion (0 !== 1) retained, input files unchanged. No parity claim."
+    }
+  }
+}

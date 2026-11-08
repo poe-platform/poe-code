@@ -1,0 +1,23 @@
+{
+  "rec": {
+    "role": "source-point-binding",
+    "start": "2026-08-29T12:52:01.726Z",
+    "pid": 49861,
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "close": {
+      "code": 0,
+      "signal": null
+    }
+  },
+  "selected": 13,
+  "mismatches": [
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/publish.mjs",
+      "expected": "48ac11169115389d4625acc72693ced8a98d0ffc",
+      "actual": "bd0f227d081829512bafc2936f0b33632e02890b:tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/publish.mjs missing"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+PRESEAL 949b0a8400254fa5e287a2752a4899edac1777cd ad9025605d6becf70267505e99a80e09e9df9cb166b6233ed9b42ac12d6e50f8
+{
+  "producerCommit": "ab46a006a0f324a42c563542e4545ce80de49731",
+  "producerReceipt": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-coherent-producer-20260829/PRODUCER-RECEIPT.json",
+    "bytes": 146948,
+    "sha256": "c5e2b614f775688d72e793fd88fad3044e8217c32a4aac8495d13d00d02f22ce"
+  },
+  "archive": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-coherent-producer-20260829/virtual-bash-0.0.0.tgz",
+    "bytes": 974493,
+    "sha256": "de8741c1be9c870650e92944020fa2785114b7046ef1774af2c27ea79238e17a"
+  },
+  "emitCount": 1068,
+  "sourceTree": "aaeb5e57d252aa19a7624656ecf3d8740e84357e",
+  "childrenInProducer": 11
+}

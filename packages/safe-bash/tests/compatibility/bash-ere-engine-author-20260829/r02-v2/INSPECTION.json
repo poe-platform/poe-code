@@ -1,0 +1,20 @@
+[
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/REPORT.md",
+    "size": 8020,
+    "mode": 420,
+    "sha256": "621bf7745ddb5e9f0d7d403561d55642dcc53bd4d818e2fe1976c123cc4280e9"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/novel.mjs",
+    "size": 6422,
+    "mode": 420,
+    "sha256": "87644ddc1086a05e5106528e268814dbe4c2ac995739864e3a0c4cb959b70cc6"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/syntax.ts",
+    "size": 13033,
+    "mode": 420,
+    "sha256": "be0082e84d90783731163aa3a92fa3fc56b379c2c8c522fee567bafc5654b64f"
+  }
+]

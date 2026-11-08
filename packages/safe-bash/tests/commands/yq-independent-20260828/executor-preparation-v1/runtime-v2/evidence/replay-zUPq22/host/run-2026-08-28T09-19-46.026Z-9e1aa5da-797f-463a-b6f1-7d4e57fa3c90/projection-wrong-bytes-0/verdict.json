@@ -1,0 +1,23 @@
+{
+  "jobId": "projection-wrong-bytes-0",
+  "admitted": true,
+  "outcome": "FAIL",
+  "failures": [
+    "assertion: AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n+ Buffer(7) [Uint8Array] [\n+   34,\n+   97,\n+   34,\n+   58,\n+   32,\n+   49,\n- Buffer(6) [Uint8Array] [\n-   119,\n-   114,\n-   111,\n-   110,\n-   103,\n    10\n  ]\n"
+  ],
+  "integrity": true,
+  "reapProof": true,
+  "metadata": {
+    "pid": 14167,
+    "group": 14167,
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "overflow": false,
+    "spawnError": null,
+    "closed": true,
+    "reaped": true,
+    "kills": [],
+    "elapsedMs": 44
+  }
+}

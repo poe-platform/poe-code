@@ -1,0 +1,57 @@
+{
+  "schema": 1,
+  "acceptedSource": "21220b465537bf45ffcfb36740956a69f43bf75e",
+  "inventory": {
+    "files": [
+      {
+        "path": "ATTEMPTS.md",
+        "sha256": "81daf9c1a9409269e9034c05fd371868bca1084a03b7b58b394d92a85960e4fb"
+      },
+      {
+        "path": "CONTROLS.json",
+        "sha256": "01426815163b7dec33904cf444781c87f34b520bb3bdebfd9ba6d1e6e4b2e030"
+      },
+      {
+        "path": "CORRECTED-RUNTIME-CAPTURE.json",
+        "sha256": "c12f53817731ae9433e254301c6c0fb5ed91aed1bd138d3d7a98a633d6a35d6a"
+      },
+      {
+        "path": "DESIGN.md",
+        "sha256": "957416be73c54b1ebe9f06acb8831666d4d5d989ebbbf7197b22f8c0334aa69c"
+      },
+      {
+        "path": "HISTORICAL10.json",
+        "sha256": "2df01dffb8da9786cffb045711e834b23ba1c79e7fe3aef3f52f3ab991594a14"
+      },
+      {
+        "path": "SOURCE_INPUTS.json",
+        "sha256": "cf445a1ed2904f901fec812f750d7f9c5e9bab4704168f786a446f67d4aa847d"
+      },
+      {
+        "path": "VALIDATION.md",
+        "sha256": "13d73d3b97281f4ba1f1fb955a5a234170979c6aa6714b76b2e6bedec6c27825"
+      },
+      {
+        "path": "control-inputs.mjs",
+        "sha256": "1798aa6593036d32a11e52a45d9f6c493e84565df1c5067333b275ae6c6ed32c"
+      },
+      {
+        "path": "policy-model.mjs",
+        "sha256": "ba7890c1d4b51b3807413fae8ae1137e64a7a18848cc28c1da3691a76f0c66ae"
+      },
+      {
+        "path": "runtime-driver.mjs",
+        "sha256": "db605d4d3be94e212978ec2120a28723c5b97982657622257ca4b6e389b9be6a"
+      },
+      {
+        "path": "verify.mjs",
+        "sha256": "1085e3f0f5bad2f1115a39525bfa511f067a40a6fc31b7fad6934ed26fc9369e"
+      }
+    ],
+    "directories": []
+  },
+  "excluded": [
+    "MANIFEST.json"
+  ],
+  "scope": "complete owned evidence file/directory inventory; new entries detected; not whole live worktree"
+}

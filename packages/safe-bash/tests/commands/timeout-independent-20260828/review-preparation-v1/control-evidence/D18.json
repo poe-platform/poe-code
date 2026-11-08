@@ -1,0 +1,6 @@
+{
+  "id": "D18",
+  "name": "PC02 rejects unobserved rejection paths",
+  "classification": "development-only-synthetic-control",
+  "status": "PASS"
+}

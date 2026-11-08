@@ -1,0 +1,25 @@
+Success. Updated the following files:
+A /Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-independent-20260829/stage-b1-r4-final-slot/PRESEAL.md
+A /Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-independent-20260829/stage-b1-r4-final-slot/review.mjs
+{
+  "decision": "ACCEPT_SCOPED_FINAL_SLOT_ONLY",
+  "at": "2026-08-29T15:06:02.082Z",
+  "resultPin": {
+    "bytes": 6208,
+    "sha256": "242621c6c21d00b37516d9fcc19433b86ca11fb7672229422794ed10afb4f89f"
+  },
+  "checked": {
+    "runtime": 55,
+    "publisher": 5,
+    "helpers": 2,
+    "byteIdenticalOrigins": 2,
+    "controls": 4,
+    "unusedSlots": 12
+  },
+  "window": {
+    "issued": "2026-08-29T15:01:24.888Z",
+    "latest": "2026-08-29T15:21:24.888Z",
+    "expires": "2026-08-29T15:51:24.888Z"
+  },
+  "phaseDeadline": 1788016158973.988
+}

@@ -1,0 +1,4589 @@
+TAP version 13
+# Subtest: contract: instances start with isolated, writable directory roots
+ok 1 - contract: instances start with isolated, writable directory roots
+  ---
+  duration_ms: 1.250416
+  type: 'test'
+  ...
+# Subtest: contract: byte writes and reads preserve arbitrary binary values and isolate buffers
+ok 2 - contract: byte writes and reads preserve arbitrary binary values and isolate buffers
+  ---
+  duration_ms: 0.324417
+  type: 'test'
+  ...
+# Subtest: contract: write flags distinguish creation, replacement, and appending
+ok 3 - contract: write flags distinguish creation, replacement, and appending
+  ---
+  duration_ms: 0.325333
+  type: 'test'
+  ...
+# Subtest: contract: directories support recursive creation and typed, immediate children
+ok 4 - contract: directories support recursive creation and typed, immediate children
+  ---
+  duration_ms: 0.395166
+  type: 'test'
+  ...
+# Subtest: contract: rename moves directory trees and preserves file identity
+ok 5 - contract: rename moves directory trees and preserves file identity
+  ---
+  duration_ms: 1.787875
+  type: 'test'
+  ...
+# Subtest: contract: copy is independent, overwrites, and respects exclusivity
+ok 6 - contract: copy is independent, overwrites, and respects exclusivity
+  ---
+  duration_ms: 3.109416
+  type: 'test'
+  ...
+# Subtest: contract: removal requires recursion for directories and force only ignores missing paths
+ok 7 - contract: removal requires recursion for directories and force only ignores missing paths
+  ---
+  duration_ms: 0.36975
+  type: 'test'
+  ...
+# Subtest: contract: symlinks distinguish stat, lstat, readlink, and realpath
+ok 8 - contract: symlinks distinguish stat, lstat, readlink, and realpath
+  ---
+  duration_ms: 0.31075
+  type: 'test'
+  ...
+# Subtest: contract: permissions and timestamps have usable optional methods
+ok 9 - contract: permissions and timestamps have usable optional methods
+  ---
+  duration_ms: 0.435
+  type: 'test'
+  ...
+# Subtest: contract: truncation shrinks or zero-fills and defaults to zero
+ok 10 - contract: truncation shrinks or zero-fills and defaults to zero
+  ---
+  duration_ms: 0.361958
+  type: 'test'
+  ...
+# Subtest: contract: hardlinks preserve shared contents, inode, and link count
+ok 11 - contract: hardlinks preserve shared contents, inode, and link count
+  ---
+  duration_ms: 0.185291
+  type: 'test'
+  ...
+# Subtest: contract: streaming round trips bytes and applies half-open read ranges
+ok 12 - contract: streaming round trips bytes and applies half-open read ranges
+  ---
+  duration_ms: 1.071875
+  type: 'test'
+  ...
+# Subtest: contract: bounded reads reject overflow and permit exact or empty reads
+ok 13 - contract: bounded reads reject overflow and permit exact or empty reads
+  ---
+  duration_ms: 0.116916
+  type: 'test'
+  ...
+# Subtest: relative paths, duplicate separators, dot components, and root-clamped parents
+ok 14 - relative paths, duplicate separators, dot components, and root-clamped parents
+  ---
+  duration_ms: 1.127792
+  type: 'test'
+  ...
+# Subtest: non-directory and missing components are not lexically erased by dot-dot
+ok 15 - non-directory and missing components are not lexically erased by dot-dot
+  ---
+  duration_ms: 1.119041
+  type: 'test'
+  ...
+# Subtest: symlink expansion happens before parent traversal
+ok 16 - symlink expansion happens before parent traversal
+  ---
+  duration_ms: 0.391292
+  type: 'test'
+  ...
+# Subtest: relative links resolve from their containing directory, including moved directories
+ok 17 - relative links resolve from their containing directory, including moved directories
+  ---
+  duration_ms: 0.237708
+  type: 'test'
+  ...
+# Subtest: dangling links are observable, exclusive writes refuse them, ordinary writes create targets
+ok 18 - dangling links are observable, exclusive writes refuse them, ordinary writes create targets
+  ---
+  duration_ms: 5.319625
+  type: 'test'
+  ...
+# Subtest: self loops, mutual loops, and intermediate loops report ELOOP
+ok 19 - self loops, mutual loops, and intermediate loops report ELOOP
+  ---
+  duration_ms: 0.652167
+  type: 'test'
+  ...
+# Subtest: exactly 40 symlink traversals succeed while 41 fail
+ok 20 - exactly 40 symlink traversals succeed while 41 fail
+  ---
+  duration_ms: 0.439625
+  type: 'test'
+  ...
+# Subtest: directory symlinks retain entry types but support traversals and trailing slash stats
+ok 21 - directory symlinks retain entry types but support traversals and trailing slash stats
+  ---
+  duration_ms: 0.227625
+  type: 'test'
+  ...
+# Subtest: copy follows links but exclusive copy never replaces a dangling link
+ok 22 - copy follows links but exclusive copy never replaces a dangling link
+  ---
+  duration_ms: 0.393208
+  type: 'test'
+  ...
+# Subtest: renaming symlinks moves the link and replacing one does not touch its target
+ok 23 - renaming symlinks moves the link and replacing one does not touch its target
+  ---
+  duration_ms: 0.335125
+  type: 'test'
+  ...
+# Subtest: rename rejects descendant destinations even through aliases and leaves state unchanged
+ok 24 - rename rejects descendant destinations even through aliases and leaves state unchanged
+  ---
+  duration_ms: 0.174167
+  type: 'test'
+  ...
+# Subtest: rename type mismatches and nonempty destinations preserve both operands
+ok 25 - rename type mismatches and nonempty destinations preserve both operands
+  ---
+  duration_ms: 0.228708
+  type: 'test'
+  ...
+# Subtest: root aliases cannot be removed or renamed
+ok 26 - root aliases cannot be removed or renamed
+  ---
+  duration_ms: 0.389875
+  type: 'test'
+  ...
+# Subtest: POSIX filenames keep Unicode, backslashes, shell characters, and prototype-like names literal
+ok 27 - POSIX filenames keep Unicode, backslashes, shell characters, and prototype-like names literal
+  ---
+  duration_ms: 0.19075
+  type: 'test'
+  ...
+# Subtest: invalid paths and overlong UTF-8 names fail without side effects
+ok 28 - invalid paths and overlong UTF-8 names fail without side effects
+  ---
+  duration_ms: 0.224
+  type: 'test'
+  ...
+# Subtest: readFile returns byte snapshots and readdir/stat return detached metadata
+ok 29 - readFile returns byte snapshots and readdir/stat return detached metadata
+  ---
+  duration_ms: 0.134125
+  type: 'test'
+  ...
+# Subtest: file modes enforce owner access without host identity or umask
+ok 30 - file modes enforce owner access without host identity or umask
+  ---
+  duration_ms: 0.178834
+  type: 'test'
+  ...
+# Subtest: directory permissions distinguish traversal, listing, and parent mutations
+ok 31 - directory permissions distinguish traversal, listing, and parent mutations
+  ---
+  duration_ms: 0.914541
+  type: 'test'
+  ...
+# Subtest: failed recursive removal is atomic and does not follow symlinks
+ok 32 - failed recursive removal is atomic and does not follow symlinks
+  ---
+  duration_ms: 0.302459
+  type: 'test'
+  ...
+# Subtest: hardlink metadata follows overwrite, rename, chmod, truncate, and recursive unlink
+ok 33 - hardlink metadata follows overwrite, rename, chmod, truncate, and recursive unlink
+  ---
+  duration_ms: 0.165375
+  type: 'test'
+  ...
+# Subtest: hardlinking a symlink preserves link identity and relative target context
+ok 34 - hardlinking a symlink preserves link identity and relative target context
+  ---
+  duration_ms: 0.08275
+  type: 'test'
+  ...
+# Subtest: rename replacement decrements displaced hardlink counts
+ok 35 - rename replacement decrements displaced hardlink counts
+  ---
+  duration_ms: 0.055416
+  type: 'test'
+  ...
+# Subtest: timestamps preserve birthtime and explicit values until the relevant operation
+ok 36 - timestamps preserve birthtime and explicit values until the relevant operation
+  ---
+  duration_ms: 0.3
+  type: 'test'
+  ...
+# Subtest: directory link counts reflect child directory moves
+ok 37 - directory link counts reflect child directory moves
+  ---
+  duration_ms: 0.113958
+  type: 'test'
+  ...
+# Subtest: invalid numeric options fail with EINVAL and preserve content
+ok 38 - invalid numeric options fail with EINVAL and preserve content
+  ---
+  duration_ms: 0.517667
+  type: 'test'
+  ...
+# Subtest: errno errors include Node-like codes, negative errno, syscall, source and destination
+ok 39 - errno errors include Node-like codes, negative errno, syscall, source and destination
+  ---
+  duration_ms: 0.164291
+  type: 'test'
+  ...
+# Subtest: parallel appends and exclusive creators are linearizable
+ok 40 - parallel appends and exclusive creators are linearizable
+  ---
+  duration_ms: 1.618708
+  type: 'test'
+  ...
+# Subtest: seeded mutation sequences match an independent byte-array model
+ok 41 - seeded mutation sequences match an independent byte-array model
+  ---
+  duration_ms: 9.586167
+  type: 'test'
+  ...
+# Subtest: pre-aborted operations never mutate or consume sources
+ok 42 - pre-aborted operations never mutate or consume sources
+  ---
+  duration_ms: 0.589375
+  type: 'test'
+  ...
+# Subtest: read streams use stable snapshots and chunks do not alias storage
+ok 43 - read streams use stable snapshots and chunks do not alias storage
+  ---
+  duration_ms: 0.101333
+  type: 'test'
+  ...
+# Subtest: read stream bounds handle empty ranges, EOF, and invalid options
+ok 44 - read stream bounds handle empty ranges, EOF, and invalid options
+  ---
+  duration_ms: 0.432625
+  type: 'test'
+  ...
+# Subtest: write streams preserve partial writes on source errors and close producers
+ok 45 - write streams preserve partial writes on source errors and close producers
+  ---
+  duration_ms: 0.1235
+  type: 'test'
+  ...
+# Subtest: stream cancellation closes generators and preserves only accepted chunks
+ok 46 - stream cancellation closes generators and preserves only accepted chunks
+  ---
+  duration_ms: 0.124042
+  type: 'test'
+  ...
+# Subtest: write streams target opened inodes rather than resolving paths after every chunk
+ok 47 - write streams target opened inodes rather than resolving paths after every chunk
+  ---
+  duration_ms: 0.072334
+  type: 'test'
+  ...
+# Subtest: invalid byte values are rejected before overwrite and while streaming
+ok 48 - invalid byte values are rejected before overwrite and while streaming
+  ---
+  duration_ms: 0.065667
+  type: 'test'
+  ...
+# Subtest: destructive operations on slash-suffixed symlinks never mutate their targets
+ok 49 - destructive operations on slash-suffixed symlinks never mutate their targets
+  ---
+  duration_ms: 0.127791
+  type: 'test'
+  ...
+# Subtest: terminal dot components do not remove or move their containing directory
+ok 50 - terminal dot components do not remove or move their containing directory
+  ---
+  duration_ms: 0.101625
+  type: 'test'
+  ...
+# Subtest: deep recursive removal uses bounded call-stack space
+ok 51 - deep recursive removal uses bounded call-stack space
+  ---
+  duration_ms: 27.764041
+  type: 'test'
+  ...
+# Subtest: directory rename accepts a new slash-suffixed destination
+ok 52 - directory rename accepts a new slash-suffixed destination
+  ---
+  duration_ms: 0.112584
+  type: 'test'
+  ...
+# Subtest: many-chunk streaming writes preserve byte order and logical size
+ok 53 - many-chunk streaming writes preserve byte order and logical size
+  ---
+  duration_ms: 82.866084
+  type: 'test'
+  ...
+# Subtest: append capacity does not expose unwritten bytes or alter in-flight read snapshots
+ok 54 - append capacity does not expose unwritten bytes or alter in-flight read snapshots
+  ---
+  duration_ms: 0.22725
+  type: 'test'
+  ...
+# Subtest: review: recursive rm of terminal dot component /dir/. rejects EINVAL and preserves the tree
+ok 55 - review: recursive rm of terminal dot component /dir/. rejects EINVAL and preserves the tree
+  ---
+  duration_ms: 1.664583
+  type: 'test'
+  ...
+# Subtest: review: rename from terminal dot component /dir/. rejects EINVAL and preserves the tree
+ok 56 - review: rename from terminal dot component /dir/. rejects EINVAL and preserves the tree
+  ---
+  duration_ms: 0.339125
+  type: 'test'
+  ...
+# Subtest: review: rename to terminal dot component /dir/. rejects EINVAL and preserves both operands
+ok 57 - review: rename to terminal dot component /dir/. rejects EINVAL and preserves both operands
+  ---
+  duration_ms: 0.148208
+  type: 'test'
+  ...
+# Subtest: review: recursive rm of terminal dot component /dir/./ rejects EINVAL and preserves the tree
+ok 58 - review: recursive rm of terminal dot component /dir/./ rejects EINVAL and preserves the tree
+  ---
+  duration_ms: 0.184833
+  type: 'test'
+  ...
+# Subtest: review: rename from terminal dot component /dir/./ rejects EINVAL and preserves the tree
+ok 59 - review: rename from terminal dot component /dir/./ rejects EINVAL and preserves the tree
+  ---
+  duration_ms: 0.20675
+  type: 'test'
+  ...
+# Subtest: review: rename to terminal dot component /dir/./ rejects EINVAL and preserves both operands
+ok 60 - review: rename to terminal dot component /dir/./ rejects EINVAL and preserves both operands
+  ---
+  duration_ms: 0.10225
+  type: 'test'
+  ...
+# Subtest: review: recursive rm of terminal dot component /dir//.// rejects EINVAL and preserves the tree
+ok 61 - review: recursive rm of terminal dot component /dir//.// rejects EINVAL and preserves the tree
+  ---
+  duration_ms: 0.254833
+  type: 'test'
+  ...
+# Subtest: review: rename from terminal dot component /dir//.// rejects EINVAL and preserves the tree
+ok 62 - review: rename from terminal dot component /dir//.// rejects EINVAL and preserves the tree
+  ---
+  duration_ms: 0.095208
+  type: 'test'
+  ...
+# Subtest: review: rename to terminal dot component /dir//.// rejects EINVAL and preserves both operands
+ok 63 - review: rename to terminal dot component /dir//.// rejects EINVAL and preserves both operands
+  ---
+  duration_ms: 0.253583
+  type: 'test'
+  ...
+# Subtest: review: recursive rm of terminal dot component /dir/child/.. rejects EINVAL and preserves the tree
+ok 64 - review: recursive rm of terminal dot component /dir/child/.. rejects EINVAL and preserves the tree
+  ---
+  duration_ms: 0.35625
+  type: 'test'
+  ...
+# Subtest: review: rename from terminal dot component /dir/child/.. rejects EINVAL and preserves the tree
+ok 65 - review: rename from terminal dot component /dir/child/.. rejects EINVAL and preserves the tree
+  ---
+  duration_ms: 0.180333
+  type: 'test'
+  ...
+# Subtest: review: rename to terminal dot component /dir/child/.. rejects EINVAL and preserves both operands
+ok 66 - review: rename to terminal dot component /dir/child/.. rejects EINVAL and preserves both operands
+  ---
+  duration_ms: 0.087292
+  type: 'test'
+  ...
+# Subtest: review: recursive rm of terminal dot component /dir/child/..// rejects EINVAL and preserves the tree
+ok 67 - review: recursive rm of terminal dot component /dir/child/..// rejects EINVAL and preserves the tree
+  ---
+  duration_ms: 0.128292
+  type: 'test'
+  ...
+# Subtest: review: rename from terminal dot component /dir/child/..// rejects EINVAL and preserves the tree
+ok 68 - review: rename from terminal dot component /dir/child/..// rejects EINVAL and preserves the tree
+  ---
+  duration_ms: 0.381708
+  type: 'test'
+  ...
+# Subtest: review: rename to terminal dot component /dir/child/..// rejects EINVAL and preserves both operands
+ok 69 - review: rename to terminal dot component /dir/child/..// rejects EINVAL and preserves both operands
+  ---
+  duration_ms: 0.1355
+  type: 'test'
+  ...
+# Subtest: review: exact directory rename to missing trailing-slash destination succeeds
+ok 70 - review: exact directory rename to missing trailing-slash destination succeeds
+  ---
+  duration_ms: 0.1415
+  type: 'test'
+  ...
+# Subtest: review: regular file cannot be renamed to a missing trailing-slash destination
+ok 71 - review: regular file cannot be renamed to a missing trailing-slash destination
+  ---
+  duration_ms: 0.10525
+  type: 'test'
+  ...
+# Subtest: review: existing regular-file destination with trailing slash rejects without replacement
+ok 72 - review: existing regular-file destination with trailing slash rejects without replacement
+  ---
+  duration_ms: 0.131166
+  type: 'test'
+  ...
+# Subtest: review: mixed symlink and parent traversal precedes trailing-directory rename validation
+ok 73 - review: mixed symlink and parent traversal precedes trailing-directory rename validation
+  ---
+  duration_ms: 0.299917
+  type: 'test'
+  ...
+# Subtest: review: mixed symlink paths with terminal dot and dotdot cannot mutate resolved directories
+ok 74 - review: mixed symlink paths with terminal dot and dotdot cannot mutate resolved directories
+  ---
+  duration_ms: 0.421458
+  type: 'test'
+  ...
+# Subtest: review: terminal-dot validation does not erase missing or non-directory traversal errors
+ok 75 - review: terminal-dot validation does not erase missing or non-directory traversal errors
+  ---
+  duration_ms: 0.334791
+  type: 'test'
+  ...
+# Subtest: review: operation paths and absolute or relative symlink targets preserve mixed components
+ok 76 - review: operation paths and absolute or relative symlink targets preserve mixed components
+  ---
+  duration_ms: 0.172
+  type: 'test'
+  ...
+# Subtest: review: ordinary mixed-component mutations resolve their physical parent
+ok 77 - review: ordinary mixed-component mutations resolve their physical parent
+  ---
+  duration_ms: 0.115042
+  type: 'test'
+  ...
+# Subtest: memory rmdir removes only empty directories without consulting rm or readdir
+ok 78 - memory rmdir removes only empty directories without consulting rm or readdir
+  ---
+  duration_ms: 1.348708
+  type: 'test'
+  ...
+# Subtest: memory rmdir /missing reports ENOENT with its exact operand
+ok 79 - memory rmdir /missing reports ENOENT with its exact operand
+  ---
+  duration_ms: 0.740958
+  type: 'test'
+  ...
+# Subtest: memory rmdir /file reports ENOTDIR with its exact operand
+ok 80 - memory rmdir /file reports ENOTDIR with its exact operand
+  ---
+  duration_ms: 0.189166
+  type: 'test'
+  ...
+# Subtest: memory rmdir /link reports ENOTDIR with its exact operand
+ok 81 - memory rmdir /link reports ENOTDIR with its exact operand
+  ---
+  duration_ms: 0.120625
+  type: 'test'
+  ...
+# Subtest: memory rmdir /link/ reports ENOTDIR with its exact operand
+ok 82 - memory rmdir /link/ reports ENOTDIR with its exact operand
+  ---
+  duration_ms: 0.125791
+  type: 'test'
+  ...
+# Subtest: memory rmdir /tree reports ENOTEMPTY with its exact operand
+ok 83 - memory rmdir /tree reports ENOTEMPTY with its exact operand
+  ---
+  duration_ms: 0.287
+  type: 'test'
+  ...
+# Subtest: memory rmdir / reports EBUSY with its exact operand
+ok 84 - memory rmdir / reports EBUSY with its exact operand
+  ---
+  duration_ms: 0.116583
+  type: 'test'
+  ...
+# Subtest: memory rmdir /empty/. reports EINVAL with its exact operand
+ok 85 - memory rmdir /empty/. reports EINVAL with its exact operand
+  ---
+  duration_ms: 0.107958
+  type: 'test'
+  ...
+# Subtest: memory rmdir and child creation cannot interleave emptiness check and deletion
+ok 86 - memory rmdir and child creation cannot interleave emptiness check and deletion
+  ---
+  duration_ms: 0.409042
+  type: 'test'
+  ...
+# Subtest: memory rmdir preserves directories on cancellation and parent permission denial
+ok 87 - memory rmdir preserves directories on cancellation and parent permission denial
+  ---
+  duration_ms: 1.398791
+  type: 'test'
+  ...
+# Subtest: memory rm semantics remain unchanged for an empty directory
+ok 88 - memory rm semantics remain unchanged for an empty directory
+  ---
+  duration_ms: 0.203125
+  type: 'test'
+  ...
+# Subtest: known complete tuples win without querying an advertised authority
+ok 89 - known complete tuples win without querying an advertised authority
+  ---
+  duration_ms: 0.955333
+  type: 'test'
+  ...
+# Subtest: recognized shared authority permits distinct overwrite, sharedStore=false
+ok 90 - recognized shared authority permits distinct overwrite, sharedStore=false
+  ---
+  duration_ms: 1.644792
+  type: 'test'
+  ...
+# Subtest: recognized shared authority permits distinct overwrite, sharedStore=true
+ok 91 - recognized shared authority permits distinct overwrite, sharedStore=true
+  ---
+  duration_ms: 0.479875
+  type: 'test'
+  ...
+# Subtest: same-mount unknown stat can use its recognized metadata authority
+ok 92 - same-mount unknown stat can use its recognized metadata authority
+  ---
+  duration_ms: 0.338875
+  type: 'test'
+  ...
+# Subtest: authority-proven alias fails before source acquisition or writes
+ok 93 - authority-proven alias fails before source acquisition or writes
+  ---
+  duration_ms: 0.720042
+  type: 'test'
+  ...
+# Subtest: both operands unwrap nested mounts and readonly views without erasing policy
+ok 94 - both operands unwrap nested mounts and readonly views without erasing policy
+  ---
+  duration_ms: 0.617416
+  type: 'test'
+  ...
+# Subtest: unrecognized peers stay unknown despite independent adapter objects
+ok 95 - unrecognized peers stay unknown despite independent adapter objects
+  ---
+  duration_ms: 0.144542
+  type: 'test'
+  ...
+# Subtest: invalid or conflicting terminal answers fail EIO: distinct/same
+ok 96 - invalid or conflicting terminal answers fail EIO: distinct/same
+  ---
+  duration_ms: 1.305125
+  type: 'test'
+  ...
+# Subtest: invalid or conflicting terminal answers fail EIO: invalid/unknown
+ok 97 - invalid or conflicting terminal answers fail EIO: invalid/unknown
+  ---
+  duration_ms: 0.431833
+  type: 'test'
+  ...
+# Subtest: terminal authorities are queried once each, including reverse-only proof
+ok 98 - terminal authorities are queried once each, including reverse-only proof
+  ---
+  duration_ms: 0.3835
+  type: 'test'
+  ...
+# Subtest: real metadata/authority ENOENT errors propagate without content effects
+ok 99 - real metadata/authority ENOENT errors propagate without content effects
+  ---
+  duration_ms: 0.24275
+  type: 'test'
+  ...
+# Subtest: real metadata/authority EACCES errors propagate without content effects
+ok 100 - real metadata/authority EACCES errors propagate without content effects
+  ---
+  duration_ms: 0.151208
+  type: 'test'
+  ...
+# Subtest: real metadata/authority EIO errors propagate without content effects
+ok 101 - real metadata/authority EIO errors propagate without content effects
+  ---
+  duration_ms: 0.172541
+  type: 'test'
+  ...
+# Subtest: ENOENT-shaped cancellation stops between authorities and remains the exact reason
+ok 102 - ENOENT-shaped cancellation stops between authorities and remains the exact reason
+  ---
+  duration_ms: 0.219958
+  type: 'test'
+  ...
+# Subtest: recursive negotiation and cyclic trusted views fail instead of requerying
+ok 103 - recursive negotiation and cyclic trusted views fail instead of requerying
+  ---
+  duration_ms: 0.155916
+  type: 'test'
+  ...
+# Subtest: overlay comparison observes selected backing without copy-up, then changes after a real copy-up
+ok 104 - overlay comparison observes selected backing without copy-up, then changes after a real copy-up
+  ---
+  duration_ms: 1.728791
+  type: 'test'
+  ...
+# Subtest: synthetic mount directories compare as unknown without inventing backing entries
+ok 105 - synthetic mount directories compare as unknown without inventing backing entries
+  ---
+  duration_ms: 0.180792
+  type: 'test'
+  ...
+# Subtest: direct same-path, reverse=false: rejects before I/O or publication
+ok 106 - direct same-path, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 26.777042
+  type: 'test'
+  ...
+# Subtest: direct same-path, reverse=true: rejects before I/O or publication
+ok 107 - direct same-path, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 33.875125
+  type: 'test'
+  ...
+# Subtest: direct hardlink, reverse=false: rejects before I/O or publication
+ok 108 - direct hardlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 66.918667
+  type: 'test'
+  ...
+# Subtest: direct hardlink, reverse=true: rejects before I/O or publication
+ok 109 - direct hardlink, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 18.730833
+  type: 'test'
+  ...
+# Subtest: direct symlink, reverse=false: rejects before I/O or publication
+ok 110 - direct symlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 22.871042
+  type: 'test'
+  ...
+# Subtest: direct symlink, reverse=true: rejects before I/O or publication
+ok 111 - direct symlink, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 29.811667
+  type: 'test'
+  ...
+# Subtest: readonly same-path, reverse=false: rejects before I/O or publication
+ok 112 - readonly same-path, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 17.772875
+  type: 'test'
+  ...
+# Subtest: readonly hardlink, reverse=false: rejects before I/O or publication
+ok 113 - readonly hardlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 24.925125
+  type: 'test'
+  ...
+# Subtest: readonly symlink, reverse=false: rejects before I/O or publication
+ok 114 - readonly symlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 23.301333
+  type: 'test'
+  ...
+# Subtest: nested same-path, reverse=false: rejects before I/O or publication
+ok 115 - nested same-path, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 18.044041
+  type: 'test'
+  ...
+# Subtest: nested same-path, reverse=true: rejects before I/O or publication
+ok 116 - nested same-path, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 14.040208
+  type: 'test'
+  ...
+# Subtest: nested hardlink, reverse=false: rejects before I/O or publication
+ok 117 - nested hardlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 28.075584
+  type: 'test'
+  ...
+# Subtest: nested hardlink, reverse=true: rejects before I/O or publication
+ok 118 - nested hardlink, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 18.839167
+  type: 'test'
+  ...
+# Subtest: nested symlink, reverse=false: rejects before I/O or publication
+ok 119 - nested symlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 31.827958
+  type: 'test'
+  ...
+# Subtest: nested symlink, reverse=true: rejects before I/O or publication
+ok 120 - nested symlink, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 16.418166
+  type: 'test'
+  ...
+# Subtest: overlay-lower same-path, reverse=false: rejects before I/O or publication
+ok 121 - overlay-lower same-path, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 14.083458
+  type: 'test'
+  ...
+# Subtest: overlay-lower same-path, reverse=true: rejects before I/O or publication
+ok 122 - overlay-lower same-path, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 7.853375
+  type: 'test'
+  ...
+# Subtest: overlay-lower hardlink, reverse=false: rejects before I/O or publication
+ok 123 - overlay-lower hardlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 10.109625
+  type: 'test'
+  ...
+# Subtest: overlay-lower hardlink, reverse=true: rejects before I/O or publication
+ok 124 - overlay-lower hardlink, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 22.448666
+  type: 'test'
+  ...
+# Subtest: overlay-lower symlink, reverse=false: rejects before I/O or publication
+ok 125 - overlay-lower symlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 23.138958
+  type: 'test'
+  ...
+# Subtest: overlay-lower symlink, reverse=true: rejects before I/O or publication
+ok 126 - overlay-lower symlink, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 15.498584
+  type: 'test'
+  ...
+# Subtest: overlay-upper same-path, reverse=false: rejects before I/O or publication
+ok 127 - overlay-upper same-path, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 8.327083
+  type: 'test'
+  ...
+# Subtest: overlay-upper same-path, reverse=true: rejects before I/O or publication
+ok 128 - overlay-upper same-path, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 12.646875
+  type: 'test'
+  ...
+# Subtest: overlay-upper hardlink, reverse=false: rejects before I/O or publication
+ok 129 - overlay-upper hardlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 11.642959
+  type: 'test'
+  ...
+# Subtest: overlay-upper hardlink, reverse=true: rejects before I/O or publication
+ok 130 - overlay-upper hardlink, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 9.105625
+  type: 'test'
+  ...
+# Subtest: overlay-upper symlink, reverse=false: rejects before I/O or publication
+ok 131 - overlay-upper symlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 10.201458
+  type: 'test'
+  ...
+# Subtest: overlay-upper symlink, reverse=true: rejects before I/O or publication
+ok 132 - overlay-upper symlink, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 9.549208
+  type: 'test'
+  ...
+# Subtest: readonly-overlay same-path, reverse=false: rejects before I/O or publication
+ok 133 - readonly-overlay same-path, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 5.765292
+  type: 'test'
+  ...
+# Subtest: readonly-overlay hardlink, reverse=false: rejects before I/O or publication
+ok 134 - readonly-overlay hardlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 6.926875
+  type: 'test'
+  ...
+# Subtest: readonly-overlay symlink, reverse=false: rejects before I/O or publication
+ok 135 - readonly-overlay symlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 8.806084
+  type: 'test'
+  ...
+# Subtest: same memory backend, multipleMounts=false: mount rejects before delegation
+ok 136 - same memory backend, multipleMounts=false: mount rejects before delegation
+  ---
+  duration_ms: 0.435458
+  type: 'test'
+  ...
+# Subtest: same memory backend, multipleMounts=true: mount rejects before delegation
+ok 137 - same memory backend, multipleMounts=true: mount rejects before delegation
+  ---
+  duration_ms: 0.11425
+  type: 'test'
+  ...
+# Subtest: overlapping native roots identify the same file without exposing host paths
+ok 138 - overlapping native roots identify the same file without exposing host paths
+  ---
+  duration_ms: 5.242333
+  type: 'test'
+  ...
+# Subtest: separate native roots and files remain copyable
+ok 139 - separate native roots and files remain copyable
+  ---
+  duration_ms: 6.150417
+  type: 'test'
+  ...
+# Subtest: unknown source identity rejects existing cross-mount target before effects
+ok 140 - unknown source identity rejects existing cross-mount target before effects
+  ---
+  duration_ms: 0.95075
+  type: 'test'
+  ...
+# Subtest: unknown target identity rejects existing cross-mount target before effects
+ok 141 - unknown target identity rejects existing cross-mount target before effects
+  ---
+  duration_ms: 0.222708
+  type: 'test'
+  ...
+# Subtest: unknown both identity rejects existing cross-mount target before effects
+ok 142 - unknown both identity rejects existing cross-mount target before effects
+  ---
+  duration_ms: 0.220083
+  type: 'test'
+  ...
+# Subtest: unknown providers can copy to missing targets using exclusive creation
+ok 143 - unknown providers can copy to missing targets using exclusive creation
+  ---
+  duration_ms: 0.461292
+  type: 'test'
+  ...
+# Subtest: destination races from missing to source alias, streaming=false: exclusive write preserves source
+ok 144 - destination races from missing to source alias, streaming=false: exclusive write preserves source
+  ---
+  duration_ms: 0.193625
+  type: 'test'
+  ...
+# Subtest: destination races from missing to source alias, streaming=true: exclusive write preserves source
+ok 145 - destination races from missing to source alias, streaming=true: exclusive write preserves source
+  ---
+  duration_ms: 0.1235
+  type: 'test'
+  ...
+# Subtest: disjoint failed writer, streaming=false: source survives genuine target failure
+ok 146 - disjoint failed writer, streaming=false: source survives genuine target failure
+  ---
+  duration_ms: 0.143625
+  type: 'test'
+  ...
+# Subtest: disjoint failed writer, streaming=true: source survives genuine target failure
+ok 147 - disjoint failed writer, streaming=true: source survives genuine target failure
+  ---
+  duration_ms: 0.155125
+  type: 'test'
+  ...
+# Subtest: direct cross-mount copy rejects a real same-path alias without touching source bytes
+ok 148 - direct cross-mount copy rejects a real same-path alias without touching source bytes
+  ---
+  duration_ms: 27.362958
+  type: 'test'
+  ...
+# Subtest: direct cross-mount copy rejects a real hardlink alias without touching source bytes
+ok 149 - direct cross-mount copy rejects a real hardlink alias without touching source bytes
+  ---
+  duration_ms: 12.020375
+  type: 'test'
+  ...
+# Subtest: direct cross-mount copy rejects a real symlink alias without touching source bytes
+ok 150 - direct cross-mount copy rejects a real symlink alias without touching source bytes
+  ---
+  duration_ms: 30.451333
+  type: 'test'
+  ...
+# Subtest: cross-mount copy does not treat unrelated synthetic dev/ino collisions as identity
+ok 151 - cross-mount copy does not treat unrelated synthetic dev/ino collisions as identity
+  ---
+  duration_ms: 1.612208
+  type: 'test'
+  ...
+# Subtest: complete opaque scopes compare only by reference and require both coordinates
+ok 152 - complete opaque scopes compare only by reference and require both coordinates
+  ---
+  duration_ms: 0.470958
+  type: 'test'
+  ...
+# Subtest: invalid identityScope never proves distinctness, in either direction, before effects
+not ok 153 - invalid identityScope never proves distinctness, in either direction, before effects
+  ---
+  duration_ms: 3.122583
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-scope.test.ts:1:1688'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'ENOSPC',
+    -   code: 'ENOTSUP',
+        dest: '/right/file',
+        path: '/left/file',
+        syscall: 'copyFile'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'ENOTSUP'
+    syscall: 'copyFile'
+    path: '/left/file'
+    dest: '/right/file'
+  actual:
+  error: "ENOSPC: no space left on device, copyFile '/left/file' -> '/right/file'"
+  stack: |-
+    MountFileSystem.error (/Users/kjopek/Workspace/safe-bash/src/fs/mount/index.ts:144:12)
+    MountFileSystem.operation (/Users/kjopek/Workspace/safe-bash/src/fs/mount/index.ts:159:18)
+    async waitForActual (node:assert:644:5)
+    async Function.rejects (node:assert:767:25)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-scope.test.ts:59:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-scope.test.ts:59:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: invalid dev never proves distinctness, in either direction, before effects
+not ok 154 - invalid dev never proves distinctness, in either direction, before effects
+  ---
+  duration_ms: 1.143916
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-scope.test.ts:1:1688'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'ENOSPC',
+    -   code: 'ENOTSUP',
+        dest: '/right/file',
+        path: '/left/file',
+        syscall: 'copyFile'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'ENOTSUP'
+    syscall: 'copyFile'
+    path: '/left/file'
+    dest: '/right/file'
+  actual:
+  error: "ENOSPC: no space left on device, copyFile '/left/file' -> '/right/file'"
+  stack: |-
+    MountFileSystem.error (/Users/kjopek/Workspace/safe-bash/src/fs/mount/index.ts:144:12)
+    MountFileSystem.operation (/Users/kjopek/Workspace/safe-bash/src/fs/mount/index.ts:159:18)
+    async waitForActual (node:assert:644:5)
+    async Function.rejects (node:assert:767:25)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-scope.test.ts:59:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-scope.test.ts:59:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: invalid ino never proves distinctness, in either direction, before effects
+not ok 155 - invalid ino never proves distinctness, in either direction, before effects
+  ---
+  duration_ms: 0.666125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-scope.test.ts:1:1688'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'ENOSPC',
+    -   code: 'ENOTSUP',
+        dest: '/right/file',
+        path: '/left/file',
+        syscall: 'copyFile'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'ENOTSUP'
+    syscall: 'copyFile'
+    path: '/left/file'
+    dest: '/right/file'
+  actual:
+  error: "ENOSPC: no space left on device, copyFile '/left/file' -> '/right/file'"
+  stack: |-
+    MountFileSystem.error (/Users/kjopek/Workspace/safe-bash/src/fs/mount/index.ts:144:12)
+    MountFileSystem.operation (/Users/kjopek/Workspace/safe-bash/src/fs/mount/index.ts:159:18)
+    async waitForActual (node:assert:644:5)
+    async Function.rejects (node:assert:767:25)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-scope.test.ts:59:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-scope.test.ts:59:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: memory scopes are store-specific; hardlinks and wrapper views preserve the backing tuple
+ok 156 - memory scopes are store-specific; hardlinks and wrapper views preserve the backing tuple
+  ---
+  duration_ms: 0.470459
+  type: 'test'
+  ...
+# Subtest: unknown same-mount destination cannot rely on arbitrary backend copyFile presence
+not ok 157 - unknown same-mount destination cannot rely on arbitrary backend copyFile presence
+  ---
+  duration_ms: 1.4605
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-scope.test.ts:1:4024'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'EINVAL',
+    -   code: 'ENOTSUP',
+        dest: '/alias',
+        path: '/file',
+        syscall: 'copyFile'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'ENOTSUP'
+    syscall: 'copyFile'
+    path: '/file'
+    dest: '/alias'
+  actual:
+  error: "EINVAL: invalid argument, copyFile '/file' -> '/alias'"
+  stack: |-
+    MountFileSystem.error (/Users/kjopek/Workspace/safe-bash/src/fs/mount/index.ts:144:12)
+    MountFileSystem.operation (/Users/kjopek/Workspace/safe-bash/src/fs/mount/index.ts:159:18)
+    async waitForActual (node:assert:644:5)
+    async Function.rejects (node:assert:767:25)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-scope.test.ts:96:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-scope.test.ts:96:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: native roots and instances publish the agreed host identity scope
+ok 158 - native roots and instances publish the agreed host identity scope
+  ---
+  duration_ms: 13.9425
+  type: 'test'
+  ...
+# Subtest: overlay copy-up changes exposed identity to the actual upper entry through wrappers
+ok 159 - overlay copy-up changes exposed identity to the actual upper entry through wrappers
+  ---
+  duration_ms: 2.939542
+  type: 'test'
+  ...
+# Subtest: pending overlay garbage is not mutated by direct or mounted alias rejection
+ok 160 - pending overlay garbage is not mutated by direct or mounted alias rejection
+  ---
+  duration_ms: 1.6855
+  type: 'test'
+  ...
+# Subtest: contract root: binary writes, append, exclusive flags, stat and remove
+ok 161 - contract root: binary writes, append, exclusive flags, stat and remove
+  ---
+  duration_ms: 3.52275
+  type: 'test'
+  ...
+# Subtest: contract root: mkdir, copy, rename, realpath and directory entries
+ok 162 - contract root: mkdir, copy, rename, realpath and directory entries
+  ---
+  duration_ms: 1.810459
+  type: 'test'
+  ...
+# Subtest: contract root: optional metadata, hardlinks and bounded streams
+ok 163 - contract root: optional metadata, hardlinks and bounded streams
+  ---
+  duration_ms: 1.859833
+  type: 'test'
+  ...
+# Subtest: contract /disk: binary writes, append, exclusive flags, stat and remove
+ok 164 - contract /disk: binary writes, append, exclusive flags, stat and remove
+  ---
+  duration_ms: 0.928375
+  type: 'test'
+  ...
+# Subtest: contract /disk: mkdir, copy, rename, realpath and directory entries
+ok 165 - contract /disk: mkdir, copy, rename, realpath and directory entries
+  ---
+  duration_ms: 1.103917
+  type: 'test'
+  ...
+# Subtest: contract /disk: optional metadata, hardlinks and bounded streams
+ok 166 - contract /disk: optional metadata, hardlinks and bounded streams
+  ---
+  duration_ms: 0.600125
+  type: 'test'
+  ...
+# Subtest: configuration snapshots mounts and rejects ambiguous normalized keys
+ok 167 - configuration snapshots mounts and rejects ambiguous normalized keys
+  ---
+  duration_ms: 0.306791
+  type: 'test'
+  ...
+# Subtest: one backing store can be mounted at multiple locations without losing alias identity
+ok 168 - one backing store can be mounted at multiple locations without losing alias identity
+  ---
+  duration_ms: 0.546584
+  type: 'test'
+  ...
+# Subtest: longest component prefix distinguishes siblings and nested mounts
+ok 169 - longest component prefix distinguishes siblings and nested mounts
+  ---
+  duration_ms: 0.479584
+  type: 'test'
+  ...
+# Subtest: nested synthetic parents provide consistent stat, access, realpath and merged listings
+ok 170 - nested synthetic parents provide consistent stat, access, realpath and merged listings
+  ---
+  duration_ms: 0.835666
+  type: 'test'
+  ...
+# Subtest: mount ancestors hide underlying file without leaking its descendants
+ok 171 - mount ancestors hide underlying file without leaking its descendants
+  ---
+  duration_ms: 1.235667
+  type: 'test'
+  ...
+# Subtest: mount ancestors hide underlying symlink without leaking its descendants
+ok 172 - mount ancestors hide underlying symlink without leaking its descendants
+  ---
+  duration_ms: 0.471875
+  type: 'test'
+  ...
+# Subtest: mount ancestors hide underlying directory without leaking its descendants
+ok 173 - mount ancestors hide underlying directory without leaking its descendants
+  ---
+  duration_ms: 0.791291
+  type: 'test'
+  ...
+# Subtest: mount roots hide underlying directories and nested mounts hide backend entries
+ok 174 - mount roots hide underlying directories and nested mounts hide backend entries
+  ---
+  duration_ms: 0.663125
+  type: 'test'
+  ...
+# Subtest: absolute symlinks are mount-local, and chains resolve before dotdot
+ok 175 - absolute symlinks are mount-local, and chains resolve before dotdot
+  ---
+  duration_ms: 3.521583
+  type: 'test'
+  ...
+# Subtest: dangling symlinks support inspection but require explicit target creation
+ok 176 - dangling symlinks support inspection but require explicit target creation
+  ---
+  duration_ms: 0.579875
+  type: 'test'
+  ...
+# Subtest: symlink expansion bound accepts 40 links and rejects chains and cycles beyond it
+ok 177 - symlink expansion bound accepts 40 links and rejects chains and cycles beyond it
+  ---
+  duration_ms: 3.846916
+  type: 'test'
+  ...
+# Subtest: symlink boundary rejects target ../victim without touching sibling or nested data
+ok 178 - symlink boundary rejects target ../victim without touching sibling or nested data
+  ---
+  duration_ms: 0.483708
+  type: 'test'
+  ...
+# Subtest: symlink boundary rejects target /../victim without touching sibling or nested data
+ok 179 - symlink boundary rejects target /../victim without touching sibling or nested data
+  ---
+  duration_ms: 0.327
+  type: 'test'
+  ...
+# Subtest: symlink boundary rejects target ../../disk/victim without touching sibling or nested data
+ok 180 - symlink boundary rejects target ../../disk/victim without touching sibling or nested data
+  ---
+  duration_ms: 0.307666
+  type: 'test'
+  ...
+# Subtest: symlink boundary rejects target /nested/victim without touching sibling or nested data
+ok 181 - symlink boundary rejects target /nested/victim without touching sibling or nested data
+  ---
+  duration_ms: 0.241958
+  type: 'test'
+  ...
+# Subtest: symlink boundary rejects target nested/../victim without touching sibling or nested data
+ok 182 - symlink boundary rejects target nested/../victim without touching sibling or nested data
+  ---
+  duration_ms: 0.274375
+  type: 'test'
+  ...
+# Subtest: symlink pinning also rejects caller suffix crossings and root aliases into mounted backends
+ok 183 - symlink pinning also rejects caller suffix crossings and root aliases into mounted backends
+  ---
+  duration_ms: 0.280667
+  type: 'test'
+  ...
+# Subtest: missing and nondirectory components cannot be removed by lexical dotdot normalization
+ok 184 - missing and nondirectory components cannot be removed by lexical dotdot normalization
+  ---
+  duration_ms: 0.283958
+  type: 'test'
+  ...
+# Subtest: trailing slash entry mutations cannot delete or rename a symlink referent
+ok 185 - trailing slash entry mutations cannot delete or rename a symlink referent
+  ---
+  duration_ms: 0.618375
+  type: 'test'
+  ...
+# Subtest: protected namespace / cannot be mutated through any writing dispatcher
+ok 186 - protected namespace / cannot be mutated through any writing dispatcher
+  ---
+  duration_ms: 0.519667
+  type: 'test'
+  ...
+# Subtest: protected namespace // cannot be mutated through any writing dispatcher
+ok 187 - protected namespace // cannot be mutated through any writing dispatcher
+  ---
+  duration_ms: 0.4615
+  type: 'test'
+  ...
+# Subtest: protected namespace /. cannot be mutated through any writing dispatcher
+ok 188 - protected namespace /. cannot be mutated through any writing dispatcher
+  ---
+  duration_ms: 0.427417
+  type: 'test'
+  ...
+# Subtest: protected namespace /.. cannot be mutated through any writing dispatcher
+ok 189 - protected namespace /.. cannot be mutated through any writing dispatcher
+  ---
+  duration_ms: 0.466208
+  type: 'test'
+  ...
+# Subtest: protected namespace /disk/.. cannot be mutated through any writing dispatcher
+ok 190 - protected namespace /disk/.. cannot be mutated through any writing dispatcher
+  ---
+  duration_ms: 0.767542
+  type: 'test'
+  ...
+# Subtest: protected namespace /disk cannot be mutated through any writing dispatcher
+ok 191 - protected namespace /disk cannot be mutated through any writing dispatcher
+  ---
+  duration_ms: 1.704375
+  type: 'test'
+  ...
+# Subtest: protected namespace /disk/ cannot be mutated through any writing dispatcher
+ok 192 - protected namespace /disk/ cannot be mutated through any writing dispatcher
+  ---
+  duration_ms: 0.626709
+  type: 'test'
+  ...
+# Subtest: protected namespace /parent cannot be mutated through any writing dispatcher
+ok 193 - protected namespace /parent cannot be mutated through any writing dispatcher
+  ---
+  duration_ms: 0.513959
+  type: 'test'
+  ...
+# Subtest: protected namespace /parent/deep cannot be mutated through any writing dispatcher
+ok 194 - protected namespace /parent/deep cannot be mutated through any writing dispatcher
+  ---
+  duration_ms: 0.503541
+  type: 'test'
+  ...
+# Subtest: existing directories containing mounts are protected even through same-backend symlinks
+ok 195 - existing directories containing mounts are protected even through same-backend symlinks
+  ---
+  duration_ms: 0.308042
+  type: 'test'
+  ...
+# Subtest: cross-mount copyFile transfers bytes without deleting its source
+ok 196 - cross-mount copyFile transfers bytes without deleting its source
+  ---
+  duration_ms: 0.377833
+  type: 'test'
+  ...
+# Subtest: cross-mount rename is EXDEV and never transfers or mutates data
+ok 197 - cross-mount rename is EXDEV and never transfers or mutates data
+  ---
+  duration_ms: 0.326417
+  type: 'test'
+  ...
+# Subtest: cross-mount link is EXDEV and never transfers or mutates data
+ok 198 - cross-mount link is EXDEV and never transfers or mutates data
+  ---
+  duration_ms: 0.1625
+  type: 'test'
+  ...
+# Subtest: same-mount copy failure retains backend partial semantics and global error metadata
+ok 199 - same-mount copy failure retains backend partial semantics and global error metadata
+  ---
+  duration_ms: 0.162958
+  type: 'test'
+  ...
+# Subtest: backend errors expose only global top-level metadata, preserving their cause
+ok 200 - backend errors expose only global top-level metadata, preserving their cause
+  ---
+  duration_ms: 0.144584
+  type: 'test'
+  ...
+# Subtest: heterogeneous capability intersections do not disable a capable selected mount
+ok 201 - heterogeneous capability intersections do not disable a capable selected mount
+  ---
+  duration_ms: 0.599583
+  type: 'test'
+  ...
+# Subtest: missing readlink fails closed on preexisting symlinks
+ok 202 - missing readlink fails closed on preexisting symlinks
+  ---
+  duration_ms: 0.203584
+  type: 'test'
+  ...
+# Subtest: explicit false capabilities are enforced even when optional methods exist
+ok 203 - explicit false capabilities are enforced even when optional methods exist
+  ---
+  duration_ms: 0.1275
+  type: 'test'
+  ...
+# Subtest: read-only mounted backend cannot be mutated through the wrapper
+ok 204 - read-only mounted backend cannot be mutated through the wrapper
+  ---
+  duration_ms: 0.150833
+  type: 'test'
+  ...
+# Subtest: pre-aborted readFile preserves abort identity without backend work
+ok 205 - pre-aborted readFile preserves abort identity without backend work
+  ---
+  duration_ms: 0.127625
+  type: 'test'
+  ...
+# Subtest: pre-aborted writeFile preserves abort identity without backend work
+ok 206 - pre-aborted writeFile preserves abort identity without backend work
+  ---
+  duration_ms: 0.046042
+  type: 'test'
+  ...
+# Subtest: pre-aborted appendFile preserves abort identity without backend work
+ok 207 - pre-aborted appendFile preserves abort identity without backend work
+  ---
+  duration_ms: 0.04025
+  type: 'test'
+  ...
+# Subtest: pre-aborted stat preserves abort identity without backend work
+ok 208 - pre-aborted stat preserves abort identity without backend work
+  ---
+  duration_ms: 0.037958
+  type: 'test'
+  ...
+# Subtest: pre-aborted lstat preserves abort identity without backend work
+ok 209 - pre-aborted lstat preserves abort identity without backend work
+  ---
+  duration_ms: 0.046167
+  type: 'test'
+  ...
+# Subtest: pre-aborted readdir preserves abort identity without backend work
+ok 210 - pre-aborted readdir preserves abort identity without backend work
+  ---
+  duration_ms: 0.038625
+  type: 'test'
+  ...
+# Subtest: pre-aborted mkdir preserves abort identity without backend work
+ok 211 - pre-aborted mkdir preserves abort identity without backend work
+  ---
+  duration_ms: 0.039459
+  type: 'test'
+  ...
+# Subtest: pre-aborted rm preserves abort identity without backend work
+ok 212 - pre-aborted rm preserves abort identity without backend work
+  ---
+  duration_ms: 0.038292
+  type: 'test'
+  ...
+# Subtest: pre-aborted rename preserves abort identity without backend work
+ok 213 - pre-aborted rename preserves abort identity without backend work
+  ---
+  duration_ms: 0.041583
+  type: 'test'
+  ...
+# Subtest: pre-aborted copyFile preserves abort identity without backend work
+ok 214 - pre-aborted copyFile preserves abort identity without backend work
+  ---
+  duration_ms: 0.041625
+  type: 'test'
+  ...
+# Subtest: pre-aborted realpath preserves abort identity without backend work
+ok 215 - pre-aborted realpath preserves abort identity without backend work
+  ---
+  duration_ms: 0.041042
+  type: 'test'
+  ...
+# Subtest: pre-aborted access preserves abort identity without backend work
+ok 216 - pre-aborted access preserves abort identity without backend work
+  ---
+  duration_ms: 0.036917
+  type: 'test'
+  ...
+# Subtest: pre-aborted readlink preserves abort identity without backend work
+ok 217 - pre-aborted readlink preserves abort identity without backend work
+  ---
+  duration_ms: 0.040792
+  type: 'test'
+  ...
+# Subtest: pre-aborted symlink preserves abort identity without backend work
+ok 218 - pre-aborted symlink preserves abort identity without backend work
+  ---
+  duration_ms: 0.038
+  type: 'test'
+  ...
+# Subtest: pre-aborted link preserves abort identity without backend work
+ok 219 - pre-aborted link preserves abort identity without backend work
+  ---
+  duration_ms: 0.035917
+  type: 'test'
+  ...
+# Subtest: pre-aborted chmod preserves abort identity without backend work
+ok 220 - pre-aborted chmod preserves abort identity without backend work
+  ---
+  duration_ms: 0.035416
+  type: 'test'
+  ...
+# Subtest: pre-aborted utimes preserves abort identity without backend work
+ok 221 - pre-aborted utimes preserves abort identity without backend work
+  ---
+  duration_ms: 0.034334
+  type: 'test'
+  ...
+# Subtest: pre-aborted truncate preserves abort identity without backend work
+ok 222 - pre-aborted truncate preserves abort identity without backend work
+  ---
+  duration_ms: 0.036042
+  type: 'test'
+  ...
+# Subtest: pre-aborted readStream preserves abort identity without backend work
+ok 223 - pre-aborted readStream preserves abort identity without backend work
+  ---
+  duration_ms: 0.05825
+  type: 'test'
+  ...
+# Subtest: pre-aborted writeStream preserves abort identity without backend work
+ok 224 - pre-aborted writeStream preserves abort identity without backend work
+  ---
+  duration_ms: 0.03775
+  type: 'test'
+  ...
+# Subtest: resolution and streaming operations forward signals, ranges, flags and sources
+ok 225 - resolution and streaming operations forward signals, ranges, flags and sources
+  ---
+  duration_ms: 0.339292
+  type: 'test'
+  ...
+# Subtest: read streams remain lazy and close their backend iterator on consumer return
+ok 226 - read streams remain lazy and close their backend iterator on consumer return
+  ---
+  duration_ms: 0.121584
+  type: 'test'
+  ...
+# Subtest: midstream cancellation closes backend readers and preserves the signal reason
+ok 227 - midstream cancellation closes backend readers and preserves the signal reason
+  ---
+  duration_ms: 0.293042
+  type: 'test'
+  ...
+# Subtest: streaming errors retain partial write behavior and global metadata
+ok 228 - streaming errors retain partial write behavior and global metadata
+  ---
+  duration_ms: 0.481208
+  type: 'test'
+  ...
+# Subtest: unsupported streaming write rejects before consuming or modifying anything
+ok 229 - unsupported streaming write rejects before consuming or modifying anything
+  ---
+  duration_ms: 0.317834
+  type: 'test'
+  ...
+# Subtest: malformed directory names from a backend cannot forge global namespace entries
+ok 230 - malformed directory names from a backend cannot forge global namespace entries
+  ---
+  duration_ms: 0.347833
+  type: 'test'
+  ...
+# Subtest: copyFile cannot read a hidden file beneath a synthetic mount ancestor
+ok 231 - copyFile cannot read a hidden file beneath a synthetic mount ancestor
+  ---
+  duration_ms: 0.160542
+  type: 'test'
+  ...
+# Subtest: ordinary native-style ENOENT errors still produce synthetic parents
+ok 232 - ordinary native-style ENOENT errors still produce synthetic parents
+  ---
+  duration_ms: 0.179834
+  type: 'test'
+  ...
+# Subtest: cancellation during metadata resolution prevents the next backend operation
+ok 233 - cancellation during metadata resolution prevents the next backend operation
+  ---
+  duration_ms: 0.130041
+  type: 'test'
+  ...
+# Subtest: backend metadata cannot complete successfully after aborting its supplied signal
+ok 234 - backend metadata cannot complete successfully after aborting its supplied signal
+  ---
+  duration_ms: 0.077667
+  type: 'test'
+  ...
+# Subtest: all path dispatchers reject intermediate escape links before touching another backend
+ok 235 - all path dispatchers reject intermediate escape links before touching another backend
+  ---
+  duration_ms: 2.329542
+  type: 'test'
+  ...
+# Subtest: permissions on traversed backing directories cannot be bypassed by dotdot or mounts
+ok 236 - permissions on traversed backing directories cannot be bypassed by dotdot or mounts
+  ---
+  duration_ms: 0.187209
+  type: 'test'
+  ...
+# Subtest: recursive mkdir denies unverifiable missing symlink suffixes before materialization
+ok 237 - recursive mkdir denies unverifiable missing symlink suffixes before materialization
+  ---
+  duration_ms: 0.295541
+  type: 'test'
+  ...
+# Subtest: same-backend hardlinked symlink targets are resolved at their new parent
+ok 238 - same-backend hardlinked symlink targets are resolved at their new parent
+  ---
+  duration_ms: 0.245375
+  type: 'test'
+  ...
+# Subtest: nested filesystem wrappers compose as backends without losing mount-local absolute targets
+ok 239 - nested filesystem wrappers compose as backends without losing mount-local absolute targets
+  ---
+  duration_ms: 0.553958
+  type: 'test'
+  ...
+# Subtest: cross-device errors remain EXDEV even when a backend is read-only
+ok 240 - cross-device errors remain EXDEV even when a backend is read-only
+  ---
+  duration_ms: 0.452375
+  type: 'test'
+  ...
+# Subtest: same-device backend rename failure preserves source and remaps both error paths
+ok 241 - same-device backend rename failure preserves source and remaps both error paths
+  ---
+  duration_ms: 0.143583
+  type: 'test'
+  ...
+# Subtest: many sibling and nested mounts retain routing and listing consistency under concurrent work
+ok 242 - many sibling and nested mounts retain routing and listing consistency under concurrent work
+  ---
+  duration_ms: 97.147583
+  type: 'test'
+  ...
+# Subtest: review: recursive mkdir preflights /a/new/../escape/created -> ../b without any backend changes
+ok 243 - review: recursive mkdir preflights /a/new/../escape/created -> ../b without any backend changes
+  ---
+  duration_ms: 2.621917
+  type: 'test'
+  ...
+# Subtest: review: recursive mkdir preflights /a/escape/created -> new/../../b without any backend changes
+ok 244 - review: recursive mkdir preflights /a/escape/created -> new/../../b without any backend changes
+  ---
+  duration_ms: 0.616875
+  type: 'test'
+  ...
+# Subtest: review: recursive mkdir preflights //a/new/../escape/created/ -> ../b without any backend changes
+ok 245 - review: recursive mkdir preflights //a/new/../escape/created/ -> ../b without any backend changes
+  ---
+  duration_ms: 0.45625
+  type: 'test'
+  ...
+# Subtest: review: recursive mkdir preflights //a/escape/created/ -> new/../../b without any backend changes
+ok 246 - review: recursive mkdir preflights //a/escape/created/ -> new/../../b without any backend changes
+  ---
+  duration_ms: 0.246916
+  type: 'test'
+  ...
+# Subtest: review: recursive mkdir rejects a later nested boundary without creating earlier prefixes
+ok 247 - review: recursive mkdir rejects a later nested boundary without creating earlier prefixes
+  ---
+  duration_ms: 0.300541
+  type: 'test'
+  ...
+# Subtest: review: unary errors never expose backend-local dest or messages
+ok 248 - review: unary errors never expose backend-local dest or messages
+  ---
+  duration_ms: 0.344333
+  type: 'test'
+  ...
+# Subtest: review: snapshots retain named metadata from nonenumerable own getters
+ok 249 - review: snapshots retain named metadata from nonenumerable own getters
+  ---
+  duration_ms: 0.636667
+  type: 'test'
+  ...
+# Subtest: review: snapshots retain named metadata from prototype getters
+ok 250 - review: snapshots retain named metadata from prototype getters
+  ---
+  duration_ms: 0.319083
+  type: 'test'
+  ...
+# Subtest: review: opaque ReadOnly(innerMount) at / fails closed on ambiguous or forbidden symlinks
+ok 251 - review: opaque ReadOnly(innerMount) at / fails closed on ambiguous or forbidden symlinks
+  ---
+  duration_ms: 11.106958
+  type: 'test'
+  ...
+# Subtest: review: opaque ReadOnly(innerMount) at /outer fails closed on ambiguous or forbidden symlinks
+ok 252 - review: opaque ReadOnly(innerMount) at /outer fails closed on ambiguous or forbidden symlinks
+  ---
+  duration_ms: 5.961083
+  type: 'test'
+  ...
+# Subtest: review: symlink verification preserves no-follow final entry operations through a directory link
+ok 253 - review: symlink verification preserves no-follow final entry operations through a directory link
+  ---
+  duration_ms: 0.879875
+  type: 'test'
+  ...
+# Subtest: review: recursive mkdir replays a complete plan in order across explicit mount paths
+ok 254 - review: recursive mkdir replays a complete plan in order across explicit mount paths
+  ---
+  duration_ms: 0.185708
+  type: 'test'
+  ...
+# Subtest: review: recursive mkdir execution failures retain documented partial-creation behavior
+ok 255 - review: recursive mkdir execution failures retain documented partial-creation behavior
+  ---
+  duration_ms: 0.208583
+  type: 'test'
+  ...
+# Subtest: review: an inconsistent backend realpath cannot redirect a symlink read
+ok 256 - review: an inconsistent backend realpath cannot redirect a symlink read
+  ---
+  duration_ms: 0.120333
+  type: 'test'
+  ...
+# Subtest: review: metadata snapshots omit absent optional fields rather than inventing undefined properties
+ok 257 - review: metadata snapshots omit absent optional fields rather than inventing undefined properties
+  ---
+  duration_ms: 0.104958
+  type: 'test'
+  ...
+# Subtest: review: conservative dangling-target denials do not mutate metadata or consume streams
+ok 258 - review: conservative dangling-target denials do not mutate metadata or consume streams
+  ---
+  duration_ms: 1.512583
+  type: 'test'
+  ...
+# Subtest: mount rmdir routes nested mounts with the original signal and no rm fallback
+ok 259 - mount rmdir routes nested mounts with the original signal and no rm fallback
+  ---
+  duration_ms: 1.992125
+  type: 'test'
+  ...
+# Subtest: mount rmdir /disk/missing reports ENOENT and preserves descendants
+ok 260 - mount rmdir /disk/missing reports ENOENT and preserves descendants
+  ---
+  duration_ms: 1.913708
+  type: 'test'
+  ...
+# Subtest: mount rmdir /disk/file reports ENOTDIR and preserves descendants
+ok 261 - mount rmdir /disk/file reports ENOTDIR and preserves descendants
+  ---
+  duration_ms: 0.423584
+  type: 'test'
+  ...
+# Subtest: mount rmdir /disk/link reports ENOTDIR and preserves descendants
+ok 262 - mount rmdir /disk/link reports ENOTDIR and preserves descendants
+  ---
+  duration_ms: 0.417375
+  type: 'test'
+  ...
+# Subtest: mount rmdir /disk/link/ reports ENOTDIR and preserves descendants
+ok 263 - mount rmdir /disk/link/ reports ENOTDIR and preserves descendants
+  ---
+  duration_ms: 0.254334
+  type: 'test'
+  ...
+# Subtest: mount rmdir /disk/tree reports ENOTEMPTY and preserves descendants
+ok 264 - mount rmdir /disk/tree reports ENOTEMPTY and preserves descendants
+  ---
+  duration_ms: 0.4515
+  type: 'test'
+  ...
+# Subtest: mount rmdir /disk reports EBUSY and preserves descendants
+ok 265 - mount rmdir /disk reports EBUSY and preserves descendants
+  ---
+  duration_ms: 0.204875
+  type: 'test'
+  ...
+# Subtest: mount rmdir /disk/empty/. reports EINVAL and preserves descendants
+ok 266 - mount rmdir /disk/empty/. reports EINVAL and preserves descendants
+  ---
+  duration_ms: 0.152083
+  type: 'test'
+  ...
+# Subtest: mount rmdir preserves a child created at the delegate boundary
+ok 267 - mount rmdir preserves a child created at the delegate boundary
+  ---
+  duration_ms: 0.529416
+  type: 'test'
+  ...
+# Subtest: mount rmdir missing provider support fails ENOTSUP without inspecting children or using rm
+ok 268 - mount rmdir missing provider support fails ENOTSUP without inspecting children or using rm
+  ---
+  duration_ms: 0.488667
+  type: 'test'
+  ...
+# Subtest: mount rmdir respects readonly mounts and protected synthetic ancestors
+ok 269 - mount rmdir respects readonly mounts and protected synthetic ancestors
+  ---
+  duration_ms: 0.430583
+  type: 'test'
+  ...
+# Subtest: mount rmdir propagates arbitrary delegate failures and cancellation without effects
+ok 270 - mount rmdir propagates arbitrary delegate failures and cancellation without effects
+  ---
+  duration_ms: 0.370125
+  type: 'test'
+  ...
+# Subtest: cross-mount streamed copy: 0 bytes, reverse=false
+ok 271 - cross-mount streamed copy: 0 bytes, reverse=false
+  ---
+  duration_ms: 2.422625
+  type: 'test'
+  ...
+# Subtest: cross-mount streamed copy: 0 bytes, reverse=true
+ok 272 - cross-mount streamed copy: 0 bytes, reverse=true
+  ---
+  duration_ms: 1.378125
+  type: 'test'
+  ...
+# Subtest: cross-mount streamed copy: 4099 bytes, reverse=false
+ok 273 - cross-mount streamed copy: 4099 bytes, reverse=false
+  ---
+  duration_ms: 0.700334
+  type: 'test'
+  ...
+# Subtest: cross-mount streamed copy: 4099 bytes, reverse=true
+ok 274 - cross-mount streamed copy: 4099 bytes, reverse=true
+  ---
+  duration_ms: 0.4085
+  type: 'test'
+  ...
+# Subtest: cross-mount bounded fallback omits unsupported mode and forwards cancellation
+ok 275 - cross-mount bounded fallback omits unsupported mode and forwards cancellation
+  ---
+  duration_ms: 0.476083
+  type: 'test'
+  ...
+# Subtest: cross-mount writer error keeps partial effects, global metadata, and original cause
+ok 276 - cross-mount writer error keeps partial effects, global metadata, and original cause
+  ---
+  duration_ms: 0.490458
+  type: 'test'
+  ...
+# Subtest: heterogeneous streams remain conditional and selected unsupported paths fail before input
+ok 277 - heterogeneous streams remain conditional and selected unsupported paths fail before input
+  ---
+  duration_ms: 1.061334
+  type: 'test'
+  ...
+# Subtest: mount aborts a blocked read and observes late reader rejection
+ok 278 - mount aborts a blocked read and observes late reader rejection
+  ---
+  duration_ms: 3.178917
+  type: 'test'
+  ...
+# Subtest: WebDAV loopback mounted tools copy missing target and rename existing target without execute fiction
+not ok 279 - WebDAV loopback mounted tools copy missing target and rename existing target without execute fiction
+  ---
+  duration_ms: 317.310084
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/webdav-traversal.test.ts:1:1704'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    ... Skipped lines
+    
+    + ResourceMap(5) {
+    - Map(5) {
+        '/' => null,
+        '/dir' => null,
+        '/dir/existing' => Uint8Array(7) [
+          0,
+          255,
+    ...
+        ],
+    +   identities: Map(5) {
+    +     '/' => {
+    +       identifier: 'urn:uuid:e019655e-3a8c-4809-9a45-1d2d0f733030'
+    +     },
+    +     '/dir' => {
+    +       identifier: 'urn:uuid:7fdb9fbc-d814-42bf-b638-df59979cd4d9'
+    +     },
+    +     '/dir/existing' => {
+    +       identifier: 'urn:uuid:998070c7-4678-4a55-861d-cdbb5f23fbfa'
+    +     },
+    +     '/dir/source' => {
+    +       identifier: 'urn:uuid:15dc689b-4b0b-4578-ba9b-c542ed3ce920'
+    +     },
+    +     '/sentinel' => {
+    +       identifier: 'urn:uuid:4b8bdfe9-20f4-4bf8-b5fd-cf2ac51cd02e'
+    +     }
+    +   }
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+  operator: 'deepStrictEqual'
+  stack: |-
+    <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/webdav-traversal.test.ts:68:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async withLoopbackDav (/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/property-fixture.ts:87:5)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/webdav-traversal.test.ts:53:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: WebDAV mounted writes missing file after server authorization
+ok 280 - WebDAV mounted writes missing file after server authorization
+  ---
+  duration_ms: 12.42925
+  type: 'test'
+  ...
+# Subtest: WebDAV mounted writes existing file after server authorization
+ok 281 - WebDAV mounted writes existing file after server authorization
+  ---
+  duration_ms: 2.354625
+  type: 'test'
+  ...
+# Subtest: WebDAV mounted PROPFIND denial, target existing, preserves exact backing state
+not ok 282 - WebDAV mounted PROPFIND denial, target existing, preserves exact backing state
+  ---
+  duration_ms: 10.013459
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/webdav-traversal.test.ts:1:3936'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    ... Skipped lines
+    
+    + ResourceMap(5) {
+    - Map(5) {
+        '/' => null,
+        '/dir' => null,
+        '/dir/existing' => Uint8Array(3) [
+          79,
+          76,
+    ...
+        ],
+    +   identities: Map(5) {
+    +     '/' => {
+    +       identifier: 'urn:uuid:5a17aff1-64a0-4675-af82-892f6cbb17ce'
+    +     },
+    +     '/dir' => {
+    +       identifier: 'urn:uuid:162d231e-da4f-40c9-b0e5-4f71814f4842'
+    +     },
+    +     '/dir/existing' => {
+    +       identifier: 'urn:uuid:3ddfe166-fd4d-49c6-9545-db559f5495bb'
+    +     },
+    +     '/dir/source' => {
+    +       identifier: 'urn:uuid:975ffdc0-d1b2-48b0-85cb-3841ba172dc2'
+    +     },
+    +     '/sentinel' => {
+    +       identifier: 'urn:uuid:9ad58a8c-0340-42f5-9d08-2f62cba7d05d'
+    +     }
+    +   }
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+  operator: 'deepStrictEqual'
+  stack: |-
+    <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/webdav-traversal.test.ts:114:14)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async withLoopbackDav (/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/property-fixture.ts:87:5)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/webdav-traversal.test.ts:104:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: WebDAV mounted GET denial, target existing, preserves exact backing state
+not ok 283 - WebDAV mounted GET denial, target existing, preserves exact backing state
+  ---
+  duration_ms: 10.449583
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/webdav-traversal.test.ts:1:3936'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    ... Skipped lines
+    
+    + ResourceMap(5) {
+    - Map(5) {
+        '/' => null,
+        '/dir' => null,
+        '/dir/existing' => Uint8Array(3) [
+          79,
+          76,
+    ...
+        ],
+    +   identities: Map(5) {
+    +     '/' => {
+    +       identifier: 'urn:uuid:bcaf942c-5e6d-40f7-b910-dd36bc4bf38c'
+    +     },
+    +     '/dir' => {
+    +       identifier: 'urn:uuid:27d78b53-69f6-4901-b27d-21e313352639'
+    +     },
+    +     '/dir/existing' => {
+    +       identifier: 'urn:uuid:a6e5e496-95d9-4868-8b2c-7a157547c8fa'
+    +     },
+    +     '/dir/source' => {
+    +       identifier: 'urn:uuid:b7069999-a275-480e-96fc-c4fde2a7d6fe'
+    +     },
+    +     '/sentinel' => {
+    +       identifier: 'urn:uuid:5cb8c28a-6c09-4932-8f07-ddbb8ad74802'
+    +     }
+    +   }
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+  operator: 'deepStrictEqual'
+  stack: |-
+    <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/webdav-traversal.test.ts:114:14)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async withLoopbackDav (/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/property-fixture.ts:87:5)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/webdav-traversal.test.ts:104:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: WebDAV mounted PUT denial, target missing, preserves exact backing state
+not ok 284 - WebDAV mounted PUT denial, target missing, preserves exact backing state
+  ---
+  duration_ms: 14.269166
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/webdav-traversal.test.ts:1:3936'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    ... Skipped lines
+    
+    + ResourceMap(5) {
+    - Map(5) {
+        '/' => null,
+        '/dir' => null,
+        '/dir/existing' => Uint8Array(3) [
+          79,
+          76,
+    ...
+        ],
+    +   identities: Map(5) {
+    +     '/' => {
+    +       identifier: 'urn:uuid:f3441bc3-7afc-4c15-aca0-b3e42dca78fa'
+    +     },
+    +     '/dir' => {
+    +       identifier: 'urn:uuid:2c4de1f8-b239-434f-b06d-1eed547db54b'
+    +     },
+    +     '/dir/existing' => {
+    +       identifier: 'urn:uuid:482e1b50-5bd5-4dca-b1ac-9c970a9ccdef'
+    +     },
+    +     '/dir/source' => {
+    +       identifier: 'urn:uuid:79d905c5-3091-43cd-aea4-30af42d187fe'
+    +     },
+    +     '/sentinel' => {
+    +       identifier: 'urn:uuid:ee553e41-01a5-4dba-a7aa-4b9c3b533d7e'
+    +     }
+    +   }
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+  operator: 'deepStrictEqual'
+  stack: |-
+    <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/webdav-traversal.test.ts:114:14)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async withLoopbackDav (/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/property-fixture.ts:87:5)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/webdav-traversal.test.ts:104:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: WebDAV mounted PUT denial, target existing, preserves exact backing state
+not ok 285 - WebDAV mounted PUT denial, target existing, preserves exact backing state
+  ---
+  duration_ms: 10.809167
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/webdav-traversal.test.ts:1:3936'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    ... Skipped lines
+    
+    + ResourceMap(5) {
+    - Map(5) {
+        '/' => null,
+        '/dir' => null,
+        '/dir/existing' => Uint8Array(3) [
+          79,
+          76,
+    ...
+        ],
+    +   identities: Map(5) {
+    +     '/' => {
+    +       identifier: 'urn:uuid:acd15bc5-a4f6-4851-a021-6f393f4f3686'
+    +     },
+    +     '/dir' => {
+    +       identifier: 'urn:uuid:76c64df4-794c-434c-99e4-cd8dff62f164'
+    +     },
+    +     '/dir/existing' => {
+    +       identifier: 'urn:uuid:50f32956-61cd-4b66-b8c7-492c8b984c1e'
+    +     },
+    +     '/dir/source' => {
+    +       identifier: 'urn:uuid:90632144-0e57-4825-92f7-a687234a9e62'
+    +     },
+    +     '/sentinel' => {
+    +       identifier: 'urn:uuid:87dea443-ed7e-444b-bc7a-3cdbf285e72b'
+    +     }
+    +   }
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+  operator: 'deepStrictEqual'
+  stack: |-
+    <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/webdav-traversal.test.ts:114:14)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async withLoopbackDav (/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/property-fixture.ts:87:5)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/webdav-traversal.test.ts:104:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: WebDAV mounted missing ancestors and file ancestors preserve typed errors without writes
+not ok 286 - WebDAV mounted missing ancestors and file ancestors preserve typed errors without writes
+  ---
+  duration_ms: 1.8645
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/webdav-traversal.test.ts:1:4730'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    ... Skipped lines
+    
+    + ResourceMap(5) {
+    - Map(5) {
+        '/' => null,
+        '/dir' => null,
+        '/dir/existing' => Uint8Array(3) [
+          79,
+          76,
+    ...
+        ],
+    +   identities: Map(5) {
+    +     '/' => {
+    +       identifier: 'urn:uuid:4f00c5ad-b706-4ed4-aca4-1e1e1ce8aba9'
+    +     },
+    +     '/dir' => {
+    +       identifier: 'urn:uuid:2b58f494-7e08-4d09-9c2f-05e5d1f3febb'
+    +     },
+    +     '/dir/existing' => {
+    +       identifier: 'urn:uuid:8c359c53-4fbf-4476-ad9a-43263b61adc7'
+    +     },
+    +     '/dir/source' => {
+    +       identifier: 'urn:uuid:ca5f51d9-5ecb-42c5-9b89-fe18a4d6512e'
+    +     },
+    +     '/sentinel' => {
+    +       identifier: 'urn:uuid:14d9ddd6-8164-4039-9d4c-05277abe3f97'
+    +     }
+    +   }
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/webdav-traversal.test.ts:126:10)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: WebDAV mounted cp propagates server COPY denial with nonzero status and no effects
+not ok 287 - WebDAV mounted cp propagates server COPY denial with nonzero status and no effects
+  ---
+  duration_ms: 85.048167
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/webdav-traversal.test.ts:1:5317'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    ... Skipped lines
+    
+    + ResourceMap(5) {
+    - Map(5) {
+        '/' => null,
+        '/dir' => null,
+        '/dir/existing' => Uint8Array(3) [
+          79,
+          76,
+    ...
+        ],
+    +   identities: Map(5) {
+    +     '/' => {
+    +       identifier: 'urn:uuid:af95b725-5dcc-47cc-827d-207a2862c78b'
+    +     },
+    +     '/dir' => {
+    +       identifier: 'urn:uuid:ee4af856-00a6-44bd-9aa8-17c612dcba4d'
+    +     },
+    +     '/dir/existing' => {
+    +       identifier: 'urn:uuid:8cf3fdd9-7a21-48c7-b047-bf96932f63a3'
+    +     },
+    +     '/dir/source' => {
+    +       identifier: 'urn:uuid:f83d7227-773f-40ac-96db-7c09d2448d57'
+    +     },
+    +     '/sentinel' => {
+    +       identifier: 'urn:uuid:4b77b91a-a984-4f6b-b1a8-0e1838e6c819'
+    +     }
+    +   }
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+  operator: 'deepStrictEqual'
+  stack: |-
+    <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/webdav-traversal.test.ts:145:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async withLoopbackDav (/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/property-fixture.ts:87:5)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/webdav-traversal.test.ts:134:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: WebDAV traversal does not turn explicit execute/write access into permission support
+ok 288 - WebDAV traversal does not turn explicit execute/write access into permission support
+  ---
+  duration_ms: 6.615125
+  type: 'test'
+  ...
+# Subtest: explicit non-permission traversal propagates EACCES, not an error-based fallback
+ok 289 - explicit non-permission traversal propagates EACCES, not an error-based fallback
+  ---
+  duration_ms: 0.668583
+  type: 'test'
+  ...
+# Subtest: explicit non-permission traversal propagates ENOTSUP, not an error-based fallback
+ok 290 - explicit non-permission traversal propagates ENOTSUP, not an error-based fallback
+  ---
+  duration_ms: 0.467417
+  type: 'test'
+  ...
+# Subtest: mixed mount retains execute probe for permissions=true
+ok 291 - mixed mount retains execute probe for permissions=true
+  ---
+  duration_ms: 0.540291
+  type: 'test'
+  ...
+# Subtest: mixed mount retains execute probe for permissions=undefined
+ok 292 - mixed mount retains execute probe for permissions=undefined
+  ---
+  duration_ms: 0.549334
+  type: 'test'
+  ...
+# Subtest: memory actual directory execute denial survives a mixed WebDAV mount
+ok 293 - memory actual directory execute denial survives a mixed WebDAV mount
+  ---
+  duration_ms: 0.990125
+  type: 'test'
+  ...
+# Subtest: real actual directory execute denial survives a mixed WebDAV mount
+ok 294 - real actual directory execute denial survives a mixed WebDAV mount
+  ---
+  duration_ms: 10.128458
+  type: 'test'
+  ...
+# Subtest: WebDAV traversal pre-abort retains caller reason and issues no request
+ok 295 - WebDAV traversal pre-abort retains caller reason and issues no request
+  ---
+  duration_ms: 0.271333
+  type: 'test'
+  ...
+# Subtest: WebDAV traversal in-flight cancellation propagates into the authorization request
+not ok 296 - WebDAV traversal in-flight cancellation propagates into the authorization request
+  ---
+  duration_ms: 0.968625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/webdav-traversal.test.ts:1:9319'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    ... Skipped lines
+    
+    + ResourceMap(5) {
+    - Map(5) {
+        '/' => null,
+        '/dir' => null,
+        '/dir/existing' => Uint8Array(3) [
+          79,
+          76,
+    ...
+        ],
+    +   identities: Map(5) {
+    +     '/' => {
+    +       identifier: 'urn:uuid:5a2fb6c6-5436-469a-b695-911320b2c44f'
+    +     },
+    +     '/dir' => {
+    +       identifier: 'urn:uuid:eae1791e-4cd1-474d-a953-e7bdff1b0359'
+    +     },
+    +     '/dir/existing' => {
+    +       identifier: 'urn:uuid:c1114735-1f5b-4174-bc5f-79a8356c795a'
+    +     },
+    +     '/dir/source' => {
+    +       identifier: 'urn:uuid:05dddfc7-6fdd-4f8f-9394-f15d4ef4d653'
+    +     },
+    +     '/sentinel' => {
+    +       identifier: 'urn:uuid:73eea2bf-19c0-4b23-a30f-d868c791919a'
+    +     }
+    +   }
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/webdav-traversal.test.ts:242:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: upper-first reads and merged typed listings do not mutate lower
+ok 297 - upper-first reads and merged typed listings do not mutate lower
+  ---
+  duration_ms: 3.46525
+  type: 'test'
+  ...
+# Subtest: whiteouts survive repeated upper recreation and deletion
+ok 298 - whiteouts survive repeated upper recreation and deletion
+  ---
+  duration_ms: 3.839041
+  type: 'test'
+  ...
+# Subtest: delete/recreate directories stay opaque at every depth
+ok 299 - delete/recreate directories stay opaque at every depth
+  ---
+  duration_ms: 3.438375
+  type: 'test'
+  ...
+# Subtest: lower parents copy up with mode and untouched file metadata
+ok 300 - lower parents copy up with mode and untouched file metadata
+  ---
+  duration_ms: 1.542666
+  type: 'test'
+  ...
+# Subtest: lower links read upper replacements and writes copy up overlay targets
+ok 301 - lower links read upper replacements and writes copy up overlay targets
+  ---
+  duration_ms: 2.663958
+  type: 'test'
+  ...
+# Subtest: upper links cannot bypass lower target whiteouts
+ok 302 - upper links cannot bypass lower target whiteouts
+  ---
+  duration_ms: 1.067625
+  type: 'test'
+  ...
+# Subtest: shadowed lower symlink directories never contribute children
+ok 303 - shadowed lower symlink directories never contribute children
+  ---
+  duration_ms: 0.475042
+  type: 'test'
+  ...
+# Subtest: lower path probing stops before any shadowed symlink ancestor
+ok 304 - lower path probing stops before any shadowed symlink ancestor
+  ---
+  duration_ms: 0.235083
+  type: 'test'
+  ...
+# Subtest: symlink loops spanning both layers are bounded
+ok 305 - symlink loops spanning both layers are bounded
+  ---
+  duration_ms: 2.699208
+  type: 'test'
+  ...
+# Subtest: renaming a lower symlink moves the link, not its target
+ok 306 - renaming a lower symlink moves the link, not its target
+  ---
+  duration_ms: 1.398958
+  type: 'test'
+  ...
+# Subtest: merged directory rename preserves whiteouts without resurrection
+ok 307 - merged directory rename preserves whiteouts without resurrection
+  ---
+  duration_ms: 4.728084
+  type: 'test'
+  ...
+# Subtest: multiple directory moves and recreation never reveal old lower children
+ok 308 - multiple directory moves and recreation never reveal old lower children
+  ---
+  duration_ms: 2.02125
+  type: 'test'
+  ...
+# Subtest: whiteout state is instance-local, explicitly not a persistent format
+ok 309 - whiteout state is instance-local, explicitly not a persistent format
+  ---
+  duration_ms: 0.451833
+  type: 'test'
+  ...
+# Subtest: failed write keeps old content and allows retry
+ok 310 - failed write keeps old content and allows retry
+  ---
+  duration_ms: 0.850208
+  type: 'test'
+  ...
+# Subtest: failed chmod keeps old content and allows retry
+ok 311 - failed chmod keeps old content and allows retry
+  ---
+  duration_ms: 0.505083
+  type: 'test'
+  ...
+# Subtest: failed utimes keeps old content and allows retry
+ok 312 - failed utimes keeps old content and allows retry
+  ---
+  duration_ms: 0.501125
+  type: 'test'
+  ...
+# Subtest: failed publish keeps old content and allows retry
+ok 313 - failed publish keeps old content and allows retry
+  ---
+  duration_ms: 0.522208
+  type: 'test'
+  ...
+# Subtest: failed rename materialization keeps source tree and deleted children hidden
+ok 314 - failed rename materialization keeps source tree and deleted children hidden
+  ---
+  duration_ms: 3.028333
+  type: 'test'
+  ...
+# Subtest: failed final rename leaves both source and destination intact
+ok 315 - failed final rename leaves both source and destination intact
+  ---
+  duration_ms: 0.803458
+  type: 'test'
+  ...
+# Subtest: cleanup failure cannot expose staging or undo committed whiteouts
+ok 316 - cleanup failure cannot expose staging or undo committed whiteouts
+  ---
+  duration_ms: 0.824292
+  type: 'test'
+  ...
+# Subtest: read errors are not interpreted as absence or permission to create
+ok 317 - read errors are not interpreted as absence or permission to create
+  ---
+  duration_ms: 0.1425
+  type: 'test'
+  ...
+# Subtest: optional capabilities reject unsupported operations honestly
+ok 318 - optional capabilities reject unsupported operations honestly
+  ---
+  duration_ms: 0.213833
+  type: 'test'
+  ...
+# Subtest: read-only upper allows overlay reads but rejects modifications
+ok 319 - read-only upper allows overlay reads but rejects modifications
+  ---
+  duration_ms: 0.143958
+  type: 'test'
+  ...
+# Subtest: missing upper timestamp method refuses metadata-losing copy-up
+ok 320 - missing upper timestamp method refuses metadata-losing copy-up
+  ---
+  duration_ms: 0.288458
+  type: 'test'
+  ...
+# Subtest: copy-up rejects hardlinked files rather than breaking aliases
+ok 321 - copy-up rejects hardlinked files rather than breaking aliases
+  ---
+  duration_ms: 0.6465
+  type: 'test'
+  ...
+# Subtest: per-file limits cover writes, reads, appends, truncates, and copy-up
+ok 322 - per-file limits cover writes, reads, appends, truncates, and copy-up
+  ---
+  duration_ms: 0.955417
+  type: 'test'
+  ...
+# Subtest: a failed stream never publishes even its first chunk
+ok 323 - a failed stream never publishes even its first chunk
+  ---
+  duration_ms: 0.783542
+  type: 'test'
+  ...
+# Subtest: source may call overlay; exclusive stream existence is rechecked
+ok 324 - source may call overlay; exclusive stream existence is rechecked
+  ---
+  duration_ms: 0.474041
+  type: 'test'
+  ...
+# Subtest: concurrent appends and exclusive creates serialize without lost updates
+ok 325 - concurrent appends and exclusive creates serialize without lost updates
+  ---
+  duration_ms: 42.542334
+  type: 'test'
+  ...
+# Subtest: stalled source cancellation is prompt and releases its iterator
+ok 326 - stalled source cancellation is prompt and releases its iterator
+  ---
+  duration_ms: 0.620625
+  type: 'test'
+  ...
+# Subtest: cancellation during staged mutation preserves original and passes signal
+ok 327 - cancellation during staged mutation preserves original and passes signal
+  ---
+  duration_ms: 0.325292
+  type: 'test'
+  ...
+# Subtest: queued cancellation rejects promptly without releasing the active writer
+ok 328 - queued cancellation rejects promptly without releasing the active writer
+  ---
+  duration_ms: 0.359667
+  type: 'test'
+  ...
+# Subtest: aborting parent copy-up does not publish a lower-only deletion
+ok 329 - aborting parent copy-up does not publish a lower-only deletion
+  ---
+  duration_ms: 0.395125
+  type: 'test'
+  ...
+# Subtest: truncate uses its bounded fallback when upper has no truncate method
+ok 330 - truncate uses its bounded fallback when upper has no truncate method
+  ---
+  duration_ms: 0.31075
+  type: 'test'
+  ...
+# Subtest: copy-up refuses unknown link counts from a hardlink-capable backend
+ok 331 - copy-up refuses unknown link counts from a hardlink-capable backend
+  ---
+  duration_ms: 0.211791
+  type: 'test'
+  ...
+# Subtest: read-stream output stays isolated from later writes and yielded chunk edits
+ok 332 - read-stream output stays isolated from later writes and yielded chunk edits
+  ---
+  duration_ms: 0.473792
+  type: 'test'
+  ...
+# Subtest: pre-aborted readFile rejects without modifying either backend
+ok 333 - pre-aborted readFile rejects without modifying either backend
+  ---
+  duration_ms: 0.235917
+  type: 'test'
+  ...
+# Subtest: pre-aborted writeFile rejects without modifying either backend
+ok 334 - pre-aborted writeFile rejects without modifying either backend
+  ---
+  duration_ms: 0.120583
+  type: 'test'
+  ...
+# Subtest: pre-aborted appendFile rejects without modifying either backend
+ok 335 - pre-aborted appendFile rejects without modifying either backend
+  ---
+  duration_ms: 0.105292
+  type: 'test'
+  ...
+# Subtest: pre-aborted stat rejects without modifying either backend
+ok 336 - pre-aborted stat rejects without modifying either backend
+  ---
+  duration_ms: 0.101708
+  type: 'test'
+  ...
+# Subtest: pre-aborted lstat rejects without modifying either backend
+ok 337 - pre-aborted lstat rejects without modifying either backend
+  ---
+  duration_ms: 0.094416
+  type: 'test'
+  ...
+# Subtest: pre-aborted readdir rejects without modifying either backend
+ok 338 - pre-aborted readdir rejects without modifying either backend
+  ---
+  duration_ms: 18.882667
+  type: 'test'
+  ...
+# Subtest: pre-aborted mkdir rejects without modifying either backend
+ok 339 - pre-aborted mkdir rejects without modifying either backend
+  ---
+  duration_ms: 0.282167
+  type: 'test'
+  ...
+# Subtest: pre-aborted rm rejects without modifying either backend
+ok 340 - pre-aborted rm rejects without modifying either backend
+  ---
+  duration_ms: 0.131167
+  type: 'test'
+  ...
+# Subtest: pre-aborted rename rejects without modifying either backend
+ok 341 - pre-aborted rename rejects without modifying either backend
+  ---
+  duration_ms: 0.1085
+  type: 'test'
+  ...
+# Subtest: pre-aborted copyFile rejects without modifying either backend
+ok 342 - pre-aborted copyFile rejects without modifying either backend
+  ---
+  duration_ms: 0.162042
+  type: 'test'
+  ...
+# Subtest: pre-aborted realpath rejects without modifying either backend
+ok 343 - pre-aborted realpath rejects without modifying either backend
+  ---
+  duration_ms: 0.11225
+  type: 'test'
+  ...
+# Subtest: pre-aborted access rejects without modifying either backend
+ok 344 - pre-aborted access rejects without modifying either backend
+  ---
+  duration_ms: 0.105875
+  type: 'test'
+  ...
+# Subtest: pre-aborted readlink rejects without modifying either backend
+ok 345 - pre-aborted readlink rejects without modifying either backend
+  ---
+  duration_ms: 0.091208
+  type: 'test'
+  ...
+# Subtest: pre-aborted symlink rejects without modifying either backend
+ok 346 - pre-aborted symlink rejects without modifying either backend
+  ---
+  duration_ms: 0.110292
+  type: 'test'
+  ...
+# Subtest: pre-aborted link rejects without modifying either backend
+ok 347 - pre-aborted link rejects without modifying either backend
+  ---
+  duration_ms: 0.104916
+  type: 'test'
+  ...
+# Subtest: pre-aborted chmod rejects without modifying either backend
+ok 348 - pre-aborted chmod rejects without modifying either backend
+  ---
+  duration_ms: 0.091792
+  type: 'test'
+  ...
+# Subtest: pre-aborted utimes rejects without modifying either backend
+ok 349 - pre-aborted utimes rejects without modifying either backend
+  ---
+  duration_ms: 0.107084
+  type: 'test'
+  ...
+# Subtest: pre-aborted truncate rejects without modifying either backend
+ok 350 - pre-aborted truncate rejects without modifying either backend
+  ---
+  duration_ms: 0.096084
+  type: 'test'
+  ...
+# Subtest: pre-aborted readStream rejects without modifying either backend
+ok 351 - pre-aborted readStream rejects without modifying either backend
+  ---
+  duration_ms: 0.190417
+  type: 'test'
+  ...
+# Subtest: pre-aborted writeStream rejects without modifying either backend
+ok 352 - pre-aborted writeStream rejects without modifying either backend
+  ---
+  duration_ms: 0.10775
+  type: 'test'
+  ...
+# Subtest: pre-aborted cleanup rejects without modifying either backend
+ok 353 - pre-aborted cleanup rejects without modifying either backend
+  ---
+  duration_ms: 0.091917
+  type: 'test'
+  ...
+# Subtest: bounded deterministic operation sequences match a single memory namespace
+ok 354 - bounded deterministic operation sequences match a single memory namespace
+  ---
+  duration_ms: 423.581916
+  type: 'test'
+  ...
+# Subtest: overlay exports construct independent FileSystem instances
+ok 355 - overlay exports construct independent FileSystem instances
+  ---
+  duration_ms: 4.86525
+  type: 'test'
+  ...
+# Subtest: binary payloads and read results are isolated at call time
+ok 356 - binary payloads and read results are isolated at call time
+  ---
+  duration_ms: 1.4935
+  type: 'test'
+  ...
+# Subtest: upper: write flags, append, mode, and truncation conform
+ok 357 - upper: write flags, append, mode, and truncation conform
+  ---
+  duration_ms: 2.397083
+  type: 'test'
+  ...
+# Subtest: upper: copyFile is independent and checks overlay exclusivity
+ok 358 - upper: copyFile is independent and checks overlay exclusivity
+  ---
+  duration_ms: 3.434833
+  type: 'test'
+  ...
+# Subtest: upper: metadata updates preserve content and lower
+ok 359 - upper: metadata updates preserve content and lower
+  ---
+  duration_ms: 1.858417
+  type: 'test'
+  ...
+# Subtest: upper: directory rename preserves complete tree and symlinks
+ok 360 - upper: directory rename preserves complete tree and symlinks
+  ---
+  duration_ms: 7.29575
+  type: 'test'
+  ...
+# Subtest: lower: write flags, append, mode, and truncation conform
+ok 361 - lower: write flags, append, mode, and truncation conform
+  ---
+  duration_ms: 15.53025
+  type: 'test'
+  ...
+# Subtest: lower: copyFile is independent and checks overlay exclusivity
+ok 362 - lower: copyFile is independent and checks overlay exclusivity
+  ---
+  duration_ms: 1.219083
+  type: 'test'
+  ...
+# Subtest: lower: metadata updates preserve content and lower
+ok 363 - lower: metadata updates preserve content and lower
+  ---
+  duration_ms: 2.410708
+  type: 'test'
+  ...
+# Subtest: lower: directory rename preserves complete tree and symlinks
+ok 364 - lower: directory rename preserves complete tree and symlinks
+  ---
+  duration_ms: 1.820917
+  type: 'test'
+  ...
+# Subtest: recursive mkdir, merged listings, and error types
+ok 365 - recursive mkdir, merged listings, and error types
+  ---
+  duration_ms: 3.605917
+  type: 'test'
+  ...
+# Subtest: rename replacement type and nonempty checks leave entries intact
+ok 366 - rename replacement type and nonempty checks leave entries intact
+  ---
+  duration_ms: 3.713583
+  type: 'test'
+  ...
+# Subtest: path validation does not collapse symlink-sensitive components
+ok 367 - path validation does not collapse symlink-sensitive components
+  ---
+  duration_ms: 1.3335
+  type: 'test'
+  ...
+# Subtest: invalid values and flags reject without data loss
+ok 368 - invalid values and flags reject without data loss
+  ---
+  duration_ms: 0.594
+  type: 'test'
+  ...
+# Subtest: owner permissions are checked before staged replacement
+ok 369 - owner permissions are checked before staged replacement
+  ---
+  duration_ms: 0.684125
+  type: 'test'
+  ...
+# Subtest: delegated stream methods preserve flags, slicing, and source isolation
+ok 370 - delegated stream methods preserve flags, slicing, and source isolation
+  ---
+  duration_ms: 1.36475
+  type: 'test'
+  ...
+# Subtest: upper same-path: overlay copy rejects before staging or reading source
+ok 371 - upper same-path: overlay copy rejects before staging or reading source
+  ---
+  duration_ms: 2.264125
+  type: 'test'
+  ...
+# Subtest: upper hardlink: overlay copy rejects before staging or reading source
+ok 372 - upper hardlink: overlay copy rejects before staging or reading source
+  ---
+  duration_ms: 1.63375
+  type: 'test'
+  ...
+# Subtest: upper symlink: overlay copy rejects before staging or reading source
+ok 373 - upper symlink: overlay copy rejects before staging or reading source
+  ---
+  duration_ms: 0.7405
+  type: 'test'
+  ...
+# Subtest: lower same-path: overlay copy rejects before staging or reading source
+ok 374 - lower same-path: overlay copy rejects before staging or reading source
+  ---
+  duration_ms: 0.669167
+  type: 'test'
+  ...
+# Subtest: lower hardlink: overlay copy rejects before staging or reading source
+ok 375 - lower hardlink: overlay copy rejects before staging or reading source
+  ---
+  duration_ms: 0.718125
+  type: 'test'
+  ...
+# Subtest: lower symlink: overlay copy rejects before staging or reading source
+ok 376 - lower symlink: overlay copy rejects before staging or reading source
+  ---
+  duration_ms: 0.562375
+  type: 'test'
+  ...
+# Subtest: overlay distinct lower/upper files with colliding local inode numbers remain copyable
+ok 377 - overlay distinct lower/upper files with colliding local inode numbers remain copyable
+  ---
+  duration_ms: 1.218875
+  type: 'test'
+  ...
+# Subtest: upper prototype getters: stat, lstat and listings snapshot every named metadata field
+ok 378 - upper prototype getters: stat, lstat and listings snapshot every named metadata field
+  ---
+  duration_ms: 2.580875
+  type: 'test'
+  ...
+# Subtest: lower prototype getters: stat, lstat and listings snapshot every named metadata field
+ok 379 - lower prototype getters: stat, lstat and listings snapshot every named metadata field
+  ---
+  duration_ms: 1.013541
+  type: 'test'
+  ...
+# Subtest: prototype getters: directory traversal and lower copy-up preserve shaped metadata
+ok 380 - prototype getters: directory traversal and lower copy-up preserve shaped metadata
+  ---
+  duration_ms: 2.007916
+  type: 'test'
+  ...
+# Subtest: upper nonenumerable properties: stat, lstat and listings snapshot every named metadata field
+ok 381 - upper nonenumerable properties: stat, lstat and listings snapshot every named metadata field
+  ---
+  duration_ms: 1.251875
+  type: 'test'
+  ...
+# Subtest: lower nonenumerable properties: stat, lstat and listings snapshot every named metadata field
+ok 382 - lower nonenumerable properties: stat, lstat and listings snapshot every named metadata field
+  ---
+  duration_ms: 1.2765
+  type: 'test'
+  ...
+# Subtest: nonenumerable properties: directory traversal and lower copy-up preserve shaped metadata
+ok 383 - nonenumerable properties: directory traversal and lower copy-up preserve shaped metadata
+  ---
+  duration_ms: 1.045083
+  type: 'test'
+  ...
+# Subtest: stat snapshots omit absent optional fields and backend-specific references
+ok 384 - stat snapshots omit absent optional fields and backend-specific references
+  ---
+  duration_ms: 0.368667
+  type: 'test'
+  ...
+# Subtest: capability metadata cannot be reassigned, redefined, or mutated
+ok 385 - capability metadata cannot be reassigned, redefined, or mutated
+  ---
+  duration_ms: 0.232458
+  type: 'test'
+  ...
+# Subtest: a metadata getter failure is not mistaken for backend absence
+ok 386 - a metadata getter failure is not mistaken for backend absence
+  ---
+  duration_ms: 0.488791
+  type: 'test'
+  ...
+# Subtest: writeFile cannot target a recorded private staging root
+ok 387 - writeFile cannot target a recorded private staging root
+  ---
+  duration_ms: 1.195458
+  type: 'test'
+  ...
+# Subtest: writeFile cannot target a recorded private staging descendant
+ok 388 - writeFile cannot target a recorded private staging descendant
+  ---
+  duration_ms: 2.086208
+  type: 'test'
+  ...
+# Subtest: appendFile cannot target a recorded private staging root
+ok 389 - appendFile cannot target a recorded private staging root
+  ---
+  duration_ms: 0.708959
+  type: 'test'
+  ...
+# Subtest: appendFile cannot target a recorded private staging descendant
+ok 390 - appendFile cannot target a recorded private staging descendant
+  ---
+  duration_ms: 0.521958
+  type: 'test'
+  ...
+# Subtest: writeStream cannot target a recorded private staging root
+ok 391 - writeStream cannot target a recorded private staging root
+  ---
+  duration_ms: 0.619708
+  type: 'test'
+  ...
+# Subtest: writeStream cannot target a recorded private staging descendant
+ok 392 - writeStream cannot target a recorded private staging descendant
+  ---
+  duration_ms: 0.574583
+  type: 'test'
+  ...
+# Subtest: mkdir cannot target a recorded private staging root
+ok 393 - mkdir cannot target a recorded private staging root
+  ---
+  duration_ms: 0.891834
+  type: 'test'
+  ...
+# Subtest: mkdir cannot target a recorded private staging descendant
+ok 394 - mkdir cannot target a recorded private staging descendant
+  ---
+  duration_ms: 0.615917
+  type: 'test'
+  ...
+# Subtest: recursiveMkdir cannot target a recorded private staging root
+ok 395 - recursiveMkdir cannot target a recorded private staging root
+  ---
+  duration_ms: 0.659334
+  type: 'test'
+  ...
+# Subtest: recursiveMkdir cannot target a recorded private staging descendant
+ok 396 - recursiveMkdir cannot target a recorded private staging descendant
+  ---
+  duration_ms: 0.664
+  type: 'test'
+  ...
+# Subtest: rm cannot target a recorded private staging root
+ok 397 - rm cannot target a recorded private staging root
+  ---
+  duration_ms: 0.503041
+  type: 'test'
+  ...
+# Subtest: rm cannot target a recorded private staging descendant
+ok 398 - rm cannot target a recorded private staging descendant
+  ---
+  duration_ms: 0.420792
+  type: 'test'
+  ...
+# Subtest: renameDestination cannot target a recorded private staging root
+ok 399 - renameDestination cannot target a recorded private staging root
+  ---
+  duration_ms: 1.314292
+  type: 'test'
+  ...
+# Subtest: renameDestination cannot target a recorded private staging descendant
+ok 400 - renameDestination cannot target a recorded private staging descendant
+  ---
+  duration_ms: 0.331709
+  type: 'test'
+  ...
+# Subtest: renameSource cannot target a recorded private staging root
+ok 401 - renameSource cannot target a recorded private staging root
+  ---
+  duration_ms: 0.335
+  type: 'test'
+  ...
+# Subtest: renameSource cannot target a recorded private staging descendant
+ok 402 - renameSource cannot target a recorded private staging descendant
+  ---
+  duration_ms: 0.340167
+  type: 'test'
+  ...
+# Subtest: copyDestination cannot target a recorded private staging root
+ok 403 - copyDestination cannot target a recorded private staging root
+  ---
+  duration_ms: 0.428667
+  type: 'test'
+  ...
+# Subtest: copyDestination cannot target a recorded private staging descendant
+ok 404 - copyDestination cannot target a recorded private staging descendant
+  ---
+  duration_ms: 0.470958
+  type: 'test'
+  ...
+# Subtest: copySource cannot target a recorded private staging root
+ok 405 - copySource cannot target a recorded private staging root
+  ---
+  duration_ms: 0.358875
+  type: 'test'
+  ...
+# Subtest: copySource cannot target a recorded private staging descendant
+ok 406 - copySource cannot target a recorded private staging descendant
+  ---
+  duration_ms: 0.379875
+  type: 'test'
+  ...
+# Subtest: symlink cannot target a recorded private staging root
+ok 407 - symlink cannot target a recorded private staging root
+  ---
+  duration_ms: 0.425583
+  type: 'test'
+  ...
+# Subtest: symlink cannot target a recorded private staging descendant
+ok 408 - symlink cannot target a recorded private staging descendant
+  ---
+  duration_ms: 0.402375
+  type: 'test'
+  ...
+# Subtest: linkDestination cannot target a recorded private staging root
+ok 409 - linkDestination cannot target a recorded private staging root
+  ---
+  duration_ms: 0.416875
+  type: 'test'
+  ...
+# Subtest: linkDestination cannot target a recorded private staging descendant
+ok 410 - linkDestination cannot target a recorded private staging descendant
+  ---
+  duration_ms: 0.496417
+  type: 'test'
+  ...
+# Subtest: linkSource cannot target a recorded private staging root
+ok 411 - linkSource cannot target a recorded private staging root
+  ---
+  duration_ms: 0.403959
+  type: 'test'
+  ...
+# Subtest: linkSource cannot target a recorded private staging descendant
+ok 412 - linkSource cannot target a recorded private staging descendant
+  ---
+  duration_ms: 0.40425
+  type: 'test'
+  ...
+# Subtest: chmod cannot target a recorded private staging root
+ok 413 - chmod cannot target a recorded private staging root
+  ---
+  duration_ms: 1.963667
+  type: 'test'
+  ...
+# Subtest: chmod cannot target a recorded private staging descendant
+ok 414 - chmod cannot target a recorded private staging descendant
+  ---
+  duration_ms: 0.445292
+  type: 'test'
+  ...
+# Subtest: utimes cannot target a recorded private staging root
+ok 415 - utimes cannot target a recorded private staging root
+  ---
+  duration_ms: 0.428
+  type: 'test'
+  ...
+# Subtest: utimes cannot target a recorded private staging descendant
+ok 416 - utimes cannot target a recorded private staging descendant
+  ---
+  duration_ms: 0.398459
+  type: 'test'
+  ...
+# Subtest: truncate cannot target a recorded private staging root
+ok 417 - truncate cannot target a recorded private staging root
+  ---
+  duration_ms: 0.50975
+  type: 'test'
+  ...
+# Subtest: truncate cannot target a recorded private staging descendant
+ok 418 - truncate cannot target a recorded private staging descendant
+  ---
+  duration_ms: 0.439959
+  type: 'test'
+  ...
+# Subtest: unsupported chmod rejects before copy-up or any upper mutation
+ok 419 - unsupported chmod rejects before copy-up or any upper mutation
+  ---
+  duration_ms: 0.236166
+  type: 'test'
+  ...
+# Subtest: unsupported utimes rejects before copy-up or any upper mutation
+ok 420 - unsupported utimes rejects before copy-up or any upper mutation
+  ---
+  duration_ms: 0.106458
+  type: 'test'
+  ...
+# Subtest: unsupported symlink rejects before copy-up or any upper mutation
+ok 421 - unsupported symlink rejects before copy-up or any upper mutation
+  ---
+  duration_ms: 0.095416
+  type: 'test'
+  ...
+# Subtest: unsupported link rejects before copy-up or any upper mutation
+ok 422 - unsupported link rejects before copy-up or any upper mutation
+  ---
+  duration_ms: 0.078416
+  type: 'test'
+  ...
+# Subtest: static lower hidden descendants, merged=false: removal and recreation preserve every lower entry
+ok 423 - static lower hidden descendants, merged=false: removal and recreation preserve every lower entry
+  ---
+  duration_ms: 11.285375
+  type: 'test'
+  ...
+# Subtest: static lower hidden descendants, merged=true: removal and recreation preserve every lower entry
+ok 424 - static lower hidden descendants, merged=true: removal and recreation preserve every lower entry
+  ---
+  duration_ms: 2.774417
+  type: 'test'
+  ...
+# Subtest: lower-only whiteout removal needs no upper deletion primitive or parent copy-up
+ok 425 - lower-only whiteout removal needs no upper deletion primitive or parent copy-up
+  ---
+  duration_ms: 0.718166
+  type: 'test'
+  ...
+# Subtest: a hidden physical upper child is not removed through a recursive fallback
+ok 426 - a hidden physical upper child is not removed through a recursive fallback
+  ---
+  duration_ms: 0.616791
+  type: 'test'
+  ...
+# Subtest: same-instance child queued before removal, merged=false, survives with ENOTEMPTY
+ok 427 - same-instance child queued before removal, merged=false, survives with ENOTEMPTY
+  ---
+  duration_ms: 0.879625
+  type: 'test'
+  ...
+# Subtest: same-instance child queued before removal, merged=true, survives with ENOTEMPTY
+ok 428 - same-instance child queued before removal, merged=true, survives with ENOTEMPTY
+  ---
+  duration_ms: 0.43025
+  type: 'test'
+  ...
+# Subtest: same-instance child queued after lower removal, recreate=false, follows namespace order
+ok 429 - same-instance child queued after lower removal, recreate=false, follows namespace order
+  ---
+  duration_ms: 0.695583
+  type: 'test'
+  ...
+# Subtest: same-instance child queued after lower removal, recreate=true, follows namespace order
+ok 430 - same-instance child queued after lower removal, recreate=true, follows namespace order
+  ---
+  duration_ms: 3.926583
+  type: 'test'
+  ...
+# Subtest: overlay rmdir uses only backing rmdir and preserves whiteouted lower descendants
+ok 431 - overlay rmdir uses only backing rmdir and preserves whiteouted lower descendants
+  ---
+  duration_ms: 8.679833
+  type: 'test'
+  ...
+# Subtest: overlay rmdir /missing reports ENOENT without hiding descendants
+ok 432 - overlay rmdir /missing reports ENOENT without hiding descendants
+  ---
+  duration_ms: 1.395709
+  type: 'test'
+  ...
+# Subtest: overlay rmdir /file reports ENOTDIR without hiding descendants
+ok 433 - overlay rmdir /file reports ENOTDIR without hiding descendants
+  ---
+  duration_ms: 1.7785
+  type: 'test'
+  ...
+# Subtest: overlay rmdir /link reports ENOTDIR without hiding descendants
+ok 434 - overlay rmdir /link reports ENOTDIR without hiding descendants
+  ---
+  duration_ms: 0.922042
+  type: 'test'
+  ...
+# Subtest: overlay rmdir /link/ reports ENOTDIR without hiding descendants
+ok 435 - overlay rmdir /link/ reports ENOTDIR without hiding descendants
+  ---
+  duration_ms: 0.99025
+  type: 'test'
+  ...
+# Subtest: overlay rmdir /tree reports ENOTEMPTY without hiding descendants
+ok 436 - overlay rmdir /tree reports ENOTEMPTY without hiding descendants
+  ---
+  duration_ms: 0.942625
+  type: 'test'
+  ...
+# Subtest: overlay rmdir / reports EBUSY without hiding descendants
+ok 437 - overlay rmdir / reports EBUSY without hiding descendants
+  ---
+  duration_ms: 1.250917
+  type: 'test'
+  ...
+# Subtest: overlay rmdir /empty/. reports EINVAL without hiding descendants
+ok 438 - overlay rmdir /empty/. reports EINVAL without hiding descendants
+  ---
+  duration_ms: 0.95575
+  type: 'test'
+  ...
+# Subtest: overlay rmdir retains a raced upper child and does not publish a whiteout
+ok 439 - overlay rmdir retains a raced upper child and does not publish a whiteout
+  ---
+  duration_ms: 0.9395
+  type: 'test'
+  ...
+# Subtest: overlay static lower directory, merged=false: removes only the visible empty directory
+ok 440 - overlay static lower directory, merged=false: removes only the visible empty directory
+  ---
+  duration_ms: 0.999417
+  type: 'test'
+  ...
+# Subtest: overlay static lower directory, merged=true: removes only the visible empty directory
+ok 441 - overlay static lower directory, merged=true: removes only the visible empty directory
+  ---
+  duration_ms: 0.592334
+  type: 'test'
+  ...
+# Subtest: overlay preexisting upper-only empty directory is removable above unchanged lower storage
+ok 442 - overlay preexisting upper-only empty directory is removable above unchanged lower storage
+  ---
+  duration_ms: 0.539
+  type: 'test'
+  ...
+# Subtest: overlay missing backing rmdir refuses without staging or changing namespace
+ok 443 - overlay missing backing rmdir refuses without staging or changing namespace
+  ---
+  duration_ms: 0.37675
+  type: 'test'
+  ...
+# Subtest: overlay rmdir propagates provider errors, cancellation and readonly denial
+ok 444 - overlay rmdir propagates provider errors, cancellation and readonly denial
+  ---
+  duration_ms: 0.416333
+  type: 'test'
+  ...
+# Subtest: overlay rmdir never retries recursive garbage cleanup
+ok 445 - overlay rmdir never retries recursive garbage cleanup
+  ---
+  duration_ms: 0.309541
+  type: 'test'
+  ...
+# Subtest: Mount: absolute scoped link never reads the wrong root backend
+ok 446 - Mount: absolute scoped link never reads the wrong root backend
+  ---
+  duration_ms: 7.360667
+  type: 'test'
+  ...
+# Subtest: Mount: dangling mounted target cannot fall back to existing root data
+ok 447 - Mount: dangling mounted target cannot fall back to existing root data
+  ---
+  duration_ms: 3.5055
+  type: 'test'
+  ...
+# Subtest: Mount: upper-only target does not prove an ambiguous link namespace
+ok 448 - Mount: upper-only target does not prove an ambiguous link namespace
+  ---
+  duration_ms: 3.008
+  type: 'test'
+  ...
+# Subtest: Mount: ambiguous lower link cannot acquire new semantics through copy-up
+ok 449 - Mount: ambiguous lower link cannot acquire new semantics through copy-up
+  ---
+  duration_ms: 2.962625
+  type: 'test'
+  ...
+# Subtest: Mount: followed-link mutations and streams reject before touching root data
+ok 450 - Mount: followed-link mutations and streams reject before touching root data
+  ---
+  duration_ms: 9.054292
+  type: 'test'
+  ...
+# Subtest: Mount: an upper file or provable upper link shadows the ambiguous lower link
+ok 451 - Mount: an upper file or provable upper link shadows the ambiguous lower link
+  ---
+  duration_ms: 0.939167
+  type: 'test'
+  ...
+# Subtest: opaque ReadOnly(Mount): absolute scoped link never reads the wrong root backend
+ok 452 - opaque ReadOnly(Mount): absolute scoped link never reads the wrong root backend
+  ---
+  duration_ms: 1.708708
+  type: 'test'
+  ...
+# Subtest: opaque ReadOnly(Mount): dangling mounted target cannot fall back to existing root data
+ok 453 - opaque ReadOnly(Mount): dangling mounted target cannot fall back to existing root data
+  ---
+  duration_ms: 0.811458
+  type: 'test'
+  ...
+# Subtest: opaque ReadOnly(Mount): upper-only target does not prove an ambiguous link namespace
+ok 454 - opaque ReadOnly(Mount): upper-only target does not prove an ambiguous link namespace
+  ---
+  duration_ms: 0.711916
+  type: 'test'
+  ...
+# Subtest: opaque ReadOnly(Mount): ambiguous lower link cannot acquire new semantics through copy-up
+ok 455 - opaque ReadOnly(Mount): ambiguous lower link cannot acquire new semantics through copy-up
+  ---
+  duration_ms: 1.926458
+  type: 'test'
+  ...
+# Subtest: opaque ReadOnly(Mount): followed-link mutations and streams reject before touching root data
+ok 456 - opaque ReadOnly(Mount): followed-link mutations and streams reject before touching root data
+  ---
+  duration_ms: 4.393125
+  type: 'test'
+  ...
+# Subtest: opaque ReadOnly(Mount): an upper file or provable upper link shadows the ambiguous lower link
+ok 457 - opaque ReadOnly(Mount): an upper file or provable upper link shadows the ambiguous lower link
+  ---
+  duration_ms: 0.608708
+  type: 'test'
+  ...
+# Subtest: matching backend realpaths through an alias cannot authorize a wrong upper override
+ok 458 - matching backend realpaths through an alias cannot authorize a wrong upper override
+  ---
+  duration_ms: 0.5965
+  type: 'test'
+  ...
+# Subtest: directory-link suffix traversal cannot escape an opaque mount boundary
+ok 459 - directory-link suffix traversal cannot escape an opaque mount boundary
+  ---
+  duration_ms: 1.51525
+  type: 'test'
+  ...
+# Subtest: copy-up and repeated relocation retain opaque lower directory-link boundaries
+ok 460 - copy-up and repeated relocation retain opaque lower directory-link boundaries
+  ---
+  duration_ms: 5.238417
+  type: 'test'
+  ...
+# Subtest: relative symlink relocation rejects an unprovable change to an external target
+ok 461 - relative symlink relocation rejects an unprovable change to an external target
+  ---
+  duration_ms: 0.980667
+  type: 'test'
+  ...
+# Subtest: cancellation at link publication cannot omit its lower validation origin
+ok 462 - cancellation at link publication cannot omit its lower validation origin
+  ---
+  duration_ms: 0.659208
+  type: 'test'
+  ...
+# Subtest: single-root links retain upper precedence, whiteouts, and target copy-up
+ok 463 - single-root links retain upper precedence, whiteouts, and target copy-up
+  ---
+  duration_ms: 1.046042
+  type: 'test'
+  ...
+# Subtest: single-root symlink chains resolve when the backend confirms the final namespace
+ok 464 - single-root symlink chains resolve when the backend confirms the final namespace
+  ---
+  duration_ms: 0.51625
+  type: 'test'
+  ...
+# Subtest: upper symlink override that changes a lower link's unprovable route rejects
+ok 465 - upper symlink override that changes a lower link's unprovable route rejects
+  ---
+  duration_ms: 0.43625
+  type: 'test'
+  ...
+# Subtest: dangling and cross-layer-only targets reject until their origin backend can prove them
+ok 466 - dangling and cross-layer-only targets reject until their origin backend can prove them
+  ---
+  duration_ms: 0.785917
+  type: 'test'
+  ...
+# Subtest: backend validation errors cannot fall through to content reads
+ok 467 - backend validation errors cannot fall through to content reads
+  ---
+  duration_ms: 0.200875
+  type: 'test'
+  ...
+# Subtest: backend delegates are private and cannot be replaced through ordinary properties
+ok 468 - backend delegates are private and cannot be replaced through ordinary properties
+  ---
+  duration_ms: 0.094167
+  type: 'test'
+  ...
+# Subtest: overlay streamed w does not collect through either backend readFile
+ok 469 - overlay streamed w does not collect through either backend readFile
+  ---
+  duration_ms: 3.951125
+  type: 'test'
+  ...
+# Subtest: overlay streamed a does not collect through either backend readFile
+ok 470 - overlay streamed a does not collect through either backend readFile
+  ---
+  duration_ms: 1.264167
+  type: 'test'
+  ...
+# Subtest: overlay streamed wx does not collect through either backend readFile
+ok 471 - overlay streamed wx does not collect through either backend readFile
+  ---
+  duration_ms: 1.805917
+  type: 'test'
+  ...
+# Subtest: overlay streamed ax does not collect through either backend readFile
+ok 472 - overlay streamed ax does not collect through either backend readFile
+  ---
+  duration_ms: 0.811666
+  type: 'test'
+  ...
+# Subtest: overlay with real upper streams exact empty/binary data and large ranged reads
+ok 473 - overlay with real upper streams exact empty/binary data and large ranged reads
+  ---
+  duration_ms: 132.928375
+  type: 'test'
+  ...
+# Subtest: streamed input awaits upper consumption instead of reading ahead
+ok 474 - streamed input awaits upper consumption instead of reading ahead
+  ---
+  duration_ms: 0.837125
+  type: 'test'
+  ...
+# Subtest: failed streamed publication preserves lower, whiteouts, and existing upper contents
+ok 475 - failed streamed publication preserves lower, whiteouts, and existing upper contents
+  ---
+  duration_ms: 1.163208
+  type: 'test'
+  ...
+# Subtest: conditional lower streaming keeps upper usable and retains bounded lower fallback
+ok 476 - conditional lower streaming keeps upper usable and retains bounded lower fallback
+  ---
+  duration_ms: 0.8095
+  type: 'test'
+  ...
+# Subtest: a non-atomic upper never consumes a mutation stream or gains atomic capability
+ok 477 - a non-atomic upper never consumes a mutation stream or gains atomic capability
+  ---
+  duration_ms: 0.333416
+  type: 'test'
+  ...
+# Subtest: overlay streamed read aborts blocked delegate and observes late failure
+ok 478 - overlay streamed read aborts blocked delegate and observes late failure
+  ---
+  duration_ms: 2.258583
+  type: 'test'
+  ...
+# Subtest: overlay read errors retain identity and close the selected iterator
+ok 479 - overlay read errors retain identity and close the selected iterator
+  ---
+  duration_ms: 0.412541
+  type: 'test'
+  ...
+# Subtest: overlay writer failure wins over failing input cleanup and never publishes
+ok 480 - overlay writer failure wins over failing input cleanup and never publishes
+  ---
+  duration_ms: 0.285958
+  type: 'test'
+  ...
+# Subtest: memory conformance: binary reads, directories, metadata, links, and access
+ok 481 - memory conformance: binary reads, directories, metadata, links, and access
+  ---
+  duration_ms: 1.936208
+  type: 'test'
+  ...
+# Subtest: memory conformance: delegate limits, streaming ranges, and missing paths
+ok 482 - memory conformance: delegate limits, streaming ranges, and missing paths
+  ---
+  duration_ms: 0.834958
+  type: 'test'
+  ...
+# Subtest: memory conformance: denied writes cannot mutate files through hard or symbolic aliases
+ok 483 - memory conformance: denied writes cannot mutate files through hard or symbolic aliases
+  ---
+  duration_ms: 1.925916
+  type: 'test'
+  ...
+# Subtest: memory conformance: read results are detached, while external writes remain visible
+ok 484 - memory conformance: read results are detached, while external writes remain visible
+  ---
+  duration_ms: 0.298916
+  type: 'test'
+  ...
+# Subtest: memory conformance: nested wrappers retain readonly behavior and streaming
+ok 485 - memory conformance: nested wrappers retain readonly behavior and streaming
+  ---
+  duration_ms: 0.282042
+  type: 'test'
+  ...
+# Subtest: stat snapshots all named fields from prototype-accessors without aliases
+ok 486 - stat snapshots all named fields from prototype-accessors without aliases
+  ---
+  duration_ms: 1.200375
+  type: 'test'
+  ...
+# Subtest: stat preserves optional absence for prototype-accessors
+ok 487 - stat preserves optional absence for prototype-accessors
+  ---
+  duration_ms: 0.140375
+  type: 'test'
+  ...
+# Subtest: stat preserves all 64 optional-field permutations for prototype-accessors
+ok 488 - stat preserves all 64 optional-field permutations for prototype-accessors
+  ---
+  duration_ms: 3.643167
+  type: 'test'
+  ...
+# Subtest: lstat snapshots all named fields from prototype-accessors without aliases
+ok 489 - lstat snapshots all named fields from prototype-accessors without aliases
+  ---
+  duration_ms: 0.127334
+  type: 'test'
+  ...
+# Subtest: lstat preserves optional absence for prototype-accessors
+ok 490 - lstat preserves optional absence for prototype-accessors
+  ---
+  duration_ms: 0.059417
+  type: 'test'
+  ...
+# Subtest: lstat preserves all 64 optional-field permutations for prototype-accessors
+ok 491 - lstat preserves all 64 optional-field permutations for prototype-accessors
+  ---
+  duration_ms: 4.505583
+  type: 'test'
+  ...
+# Subtest: readdir snapshots named fields from prototype-accessors without aliases
+ok 492 - readdir snapshots named fields from prototype-accessors without aliases
+  ---
+  duration_ms: 0.244875
+  type: 'test'
+  ...
+# Subtest: stat snapshots all named fields from nonenumerable-own without aliases
+ok 493 - stat snapshots all named fields from nonenumerable-own without aliases
+  ---
+  duration_ms: 0.214125
+  type: 'test'
+  ...
+# Subtest: stat preserves optional absence for nonenumerable-own
+ok 494 - stat preserves optional absence for nonenumerable-own
+  ---
+  duration_ms: 0.200334
+  type: 'test'
+  ...
+# Subtest: stat preserves all 64 optional-field permutations for nonenumerable-own
+ok 495 - stat preserves all 64 optional-field permutations for nonenumerable-own
+  ---
+  duration_ms: 1.148583
+  type: 'test'
+  ...
+# Subtest: lstat snapshots all named fields from nonenumerable-own without aliases
+ok 496 - lstat snapshots all named fields from nonenumerable-own without aliases
+  ---
+  duration_ms: 0.087666
+  type: 'test'
+  ...
+# Subtest: lstat preserves optional absence for nonenumerable-own
+ok 497 - lstat preserves optional absence for nonenumerable-own
+  ---
+  duration_ms: 0.041625
+  type: 'test'
+  ...
+# Subtest: lstat preserves all 64 optional-field permutations for nonenumerable-own
+ok 498 - lstat preserves all 64 optional-field permutations for nonenumerable-own
+  ---
+  duration_ms: 2.364875
+  type: 'test'
+  ...
+# Subtest: readdir snapshots named fields from nonenumerable-own without aliases
+ok 499 - readdir snapshots named fields from nonenumerable-own without aliases
+  ---
+  duration_ms: 0.063667
+  type: 'test'
+  ...
+# Subtest: class and synchronous factory satisfy FileSystem and compose
+ok 500 - class and synchronous factory satisfy FileSystem and compose
+  ---
+  duration_ms: 3.326
+  type: 'test'
+  ...
+# Subtest: writeFile rejects without delegation; optional methods absent
+ok 501 - writeFile rejects without delegation; optional methods absent
+  ---
+  duration_ms: 0.298042
+  type: 'test'
+  ...
+# Subtest: appendFile rejects without delegation; optional methods absent
+ok 502 - appendFile rejects without delegation; optional methods absent
+  ---
+  duration_ms: 0.148375
+  type: 'test'
+  ...
+# Subtest: writeStream rejects without delegation; optional methods absent
+ok 503 - writeStream rejects without delegation; optional methods absent
+  ---
+  duration_ms: 0.095584
+  type: 'test'
+  ...
+# Subtest: mkdir rejects without delegation; optional methods absent
+ok 504 - mkdir rejects without delegation; optional methods absent
+  ---
+  duration_ms: 0.282791
+  type: 'test'
+  ...
+# Subtest: rm rejects without delegation; optional methods absent
+ok 505 - rm rejects without delegation; optional methods absent
+  ---
+  duration_ms: 0.185458
+  type: 'test'
+  ...
+# Subtest: unlink rejects without delegation; optional methods absent
+ok 506 - unlink rejects without delegation; optional methods absent
+  ---
+  duration_ms: 0.102792
+  type: 'test'
+  ...
+# Subtest: rmdir rejects without delegation; optional methods absent
+ok 507 - rmdir rejects without delegation; optional methods absent
+  ---
+  duration_ms: 0.082583
+  type: 'test'
+  ...
+# Subtest: rename rejects without delegation; optional methods absent
+ok 508 - rename rejects without delegation; optional methods absent
+  ---
+  duration_ms: 0.28425
+  type: 'test'
+  ...
+# Subtest: copyFile rejects without delegation; optional methods absent
+ok 509 - copyFile rejects without delegation; optional methods absent
+  ---
+  duration_ms: 0.302666
+  type: 'test'
+  ...
+# Subtest: symlink rejects without delegation; optional methods absent
+ok 510 - symlink rejects without delegation; optional methods absent
+  ---
+  duration_ms: 0.09
+  type: 'test'
+  ...
+# Subtest: link rejects without delegation; optional methods absent
+ok 511 - link rejects without delegation; optional methods absent
+  ---
+  duration_ms: 0.06875
+  type: 'test'
+  ...
+# Subtest: chmod rejects without delegation; optional methods absent
+ok 512 - chmod rejects without delegation; optional methods absent
+  ---
+  duration_ms: 0.130667
+  type: 'test'
+  ...
+# Subtest: utimes rejects without delegation; optional methods absent
+ok 513 - utimes rejects without delegation; optional methods absent
+  ---
+  duration_ms: 0.077958
+  type: 'test'
+  ...
+# Subtest: truncate rejects without delegation; optional methods absent
+ok 514 - truncate rejects without delegation; optional methods absent
+  ---
+  duration_ms: 0.06075
+  type: 'test'
+  ...
+# Subtest: writeFile rejects without delegation; optional methods present
+ok 515 - writeFile rejects without delegation; optional methods present
+  ---
+  duration_ms: 0.058083
+  type: 'test'
+  ...
+# Subtest: appendFile rejects without delegation; optional methods present
+ok 516 - appendFile rejects without delegation; optional methods present
+  ---
+  duration_ms: 0.055291
+  type: 'test'
+  ...
+# Subtest: writeStream rejects without delegation; optional methods present
+ok 517 - writeStream rejects without delegation; optional methods present
+  ---
+  duration_ms: 0.057417
+  type: 'test'
+  ...
+# Subtest: mkdir rejects without delegation; optional methods present
+ok 518 - mkdir rejects without delegation; optional methods present
+  ---
+  duration_ms: 0.048667
+  type: 'test'
+  ...
+# Subtest: rm rejects without delegation; optional methods present
+ok 519 - rm rejects without delegation; optional methods present
+  ---
+  duration_ms: 0.050459
+  type: 'test'
+  ...
+# Subtest: unlink rejects without delegation; optional methods present
+ok 520 - unlink rejects without delegation; optional methods present
+  ---
+  duration_ms: 0.05625
+  type: 'test'
+  ...
+# Subtest: rmdir rejects without delegation; optional methods present
+ok 521 - rmdir rejects without delegation; optional methods present
+  ---
+  duration_ms: 0.049125
+  type: 'test'
+  ...
+# Subtest: rename rejects without delegation; optional methods present
+ok 522 - rename rejects without delegation; optional methods present
+  ---
+  duration_ms: 0.049542
+  type: 'test'
+  ...
+# Subtest: copyFile rejects without delegation; optional methods present
+ok 523 - copyFile rejects without delegation; optional methods present
+  ---
+  duration_ms: 0.073916
+  type: 'test'
+  ...
+# Subtest: symlink rejects without delegation; optional methods present
+ok 524 - symlink rejects without delegation; optional methods present
+  ---
+  duration_ms: 0.0745
+  type: 'test'
+  ...
+# Subtest: link rejects without delegation; optional methods present
+ok 525 - link rejects without delegation; optional methods present
+  ---
+  duration_ms: 0.05175
+  type: 'test'
+  ...
+# Subtest: chmod rejects without delegation; optional methods present
+ok 526 - chmod rejects without delegation; optional methods present
+  ---
+  duration_ms: 0.053708
+  type: 'test'
+  ...
+# Subtest: utimes rejects without delegation; optional methods present
+ok 527 - utimes rejects without delegation; optional methods present
+  ---
+  duration_ms: 0.064417
+  type: 'test'
+  ...
+# Subtest: truncate rejects without delegation; optional methods present
+ok 528 - truncate rejects without delegation; optional methods present
+  ---
+  duration_ms: 0.052083
+  type: 'test'
+  ...
+# Subtest: all write APIs deny adversarial flag undefined
+ok 529 - all write APIs deny adversarial flag undefined
+  ---
+  duration_ms: 0.076375
+  type: 'test'
+  ...
+# Subtest: all write APIs deny adversarial flag "w"
+ok 530 - all write APIs deny adversarial flag "w"
+  ---
+  duration_ms: 0.109
+  type: 'test'
+  ...
+# Subtest: all write APIs deny adversarial flag "wx"
+ok 531 - all write APIs deny adversarial flag "wx"
+  ---
+  duration_ms: 0.093792
+  type: 'test'
+  ...
+# Subtest: all write APIs deny adversarial flag "a"
+ok 532 - all write APIs deny adversarial flag "a"
+  ---
+  duration_ms: 0.071917
+  type: 'test'
+  ...
+# Subtest: all write APIs deny adversarial flag "ax"
+ok 533 - all write APIs deny adversarial flag "ax"
+  ---
+  duration_ms: 0.066125
+  type: 'test'
+  ...
+# Subtest: all write APIs deny adversarial flag "r"
+ok 534 - all write APIs deny adversarial flag "r"
+  ---
+  duration_ms: 0.035541
+  type: 'test'
+  ...
+# Subtest: all write APIs deny adversarial flag "r+"
+ok 535 - all write APIs deny adversarial flag "r+"
+  ---
+  duration_ms: 0.132542
+  type: 'test'
+  ...
+# Subtest: all write APIs deny adversarial flag "w+"
+ok 536 - all write APIs deny adversarial flag "w+"
+  ---
+  duration_ms: 0.131333
+  type: 'test'
+  ...
+# Subtest: all write APIs deny adversarial flag "a+"
+ok 537 - all write APIs deny adversarial flag "a+"
+  ---
+  duration_ms: 0.069708
+  type: 'test'
+  ...
+# Subtest: all write APIs deny adversarial flag "as"
+ok 538 - all write APIs deny adversarial flag "as"
+  ---
+  duration_ms: 0.078292
+  type: 'test'
+  ...
+# Subtest: all write APIs deny adversarial flag ""
+ok 539 - all write APIs deny adversarial flag ""
+  ---
+  duration_ms: 0.050542
+  type: 'test'
+  ...
+# Subtest: all write APIs deny adversarial flag "invalid"
+ok 540 - all write APIs deny adversarial flag "invalid"
+  ---
+  duration_ms: 0.038
+  type: 'test'
+  ...
+# Subtest: all write APIs deny adversarial flag 0
+ok 541 - all write APIs deny adversarial flag 0
+  ---
+  duration_ms: 0.153042
+  type: 'test'
+  ...
+# Subtest: all write APIs deny adversarial flag 1
+ok 542 - all write APIs deny adversarial flag 1
+  ---
+  duration_ms: 0.090834
+  type: 'test'
+  ...
+# Subtest: all write APIs deny adversarial flag 2
+ok 543 - all write APIs deny adversarial flag 2
+  ---
+  duration_ms: 0.051834
+  type: 'test'
+  ...
+# Subtest: all write APIs deny adversarial flag 64
+ok 544 - all write APIs deny adversarial flag 64
+  ---
+  duration_ms: 0.045333
+  type: 'test'
+  ...
+# Subtest: all write APIs deny adversarial flag null
+ok 545 - all write APIs deny adversarial flag null
+  ---
+  duration_ms: 0.042125
+  type: 'test'
+  ...
+# Subtest: mutation policy ignores poisoned options, source getters, and optional delegate getters
+ok 546 - mutation policy ignores poisoned options, source getters, and optional delegate getters
+  ---
+  duration_ms: 0.220041
+  type: 'test'
+  ...
+# Subtest: writeStream never starts or closes an async generator
+ok 547 - writeStream never starts or closes an async generator
+  ---
+  duration_ms: 0.217417
+  type: 'test'
+  ...
+# Subtest: empty writes, missing and invalid paths, and self-copies remain denied
+ok 548 - empty writes, missing and invalid paths, and self-copies remain denied
+  ---
+  duration_ms: 0.394875
+  type: 'test'
+  ...
+# Subtest: reads preserve exact paths, option identity, limits, receiver, and results
+ok 549 - reads preserve exact paths, option identity, limits, receiver, and results
+  ---
+  duration_ms: 0.341416
+  type: 'test'
+  ...
+# Subtest: readFile returns owned Uint8Array storage even for Buffer subviews
+ok 550 - readFile returns owned Uint8Array storage even for Buffer subviews
+  ---
+  duration_ms: 0.106042
+  type: 'test'
+  ...
+# Subtest: stat, lstat, and directory entries cannot mutate delegate metadata
+ok 551 - stat, lstat, and directory entries cannot mutate delegate metadata
+  ---
+  duration_ms: 0.076709
+  type: 'test'
+  ...
+# Subtest: access mode 0 delegates unchanged
+ok 552 - access mode 0 delegates unchanged
+  ---
+  duration_ms: 0.077333
+  type: 'test'
+  ...
+# Subtest: access mode 1 delegates unchanged
+ok 553 - access mode 1 delegates unchanged
+  ---
+  duration_ms: 0.030167
+  type: 'test'
+  ...
+# Subtest: access mode 4 delegates unchanged
+ok 554 - access mode 4 delegates unchanged
+  ---
+  duration_ms: 0.030042
+  type: 'test'
+  ...
+# Subtest: access mode 5 delegates unchanged
+ok 555 - access mode 5 delegates unchanged
+  ---
+  duration_ms: 0.029792
+  type: 'test'
+  ...
+# Subtest: access defaults to F_OK and denies every W_OK combination before delegation
+ok 556 - access defaults to F_OK and denies every W_OK combination before delegation
+  ---
+  duration_ms: 0.245542
+  type: 'test'
+  ...
+# Subtest: underlying read errors including arbitrary abort reasons retain their identity
+ok 557 - underlying read errors including arbitrary abort reasons retain their identity
+  ---
+  duration_ms: 0.42925
+  type: 'test'
+  ...
+# Subtest: supported reads preserve cancellation identity without starting pre-aborted streams
+ok 558 - supported reads preserve cancellation identity without starting pre-aborted streams
+  ---
+  duration_ms: 0.243791
+  type: 'test'
+  ...
+# Subtest: missing optional reads reject with ENOTSUP, including pre-aborted requests
+ok 559 - missing optional reads reject with ENOTSUP, including pre-aborted requests
+  ---
+  duration_ms: 0.141125
+  type: 'test'
+  ...
+# Subtest: readStream is lazy, preserves options, copies reused chunks, and closes on return
+ok 560 - readStream is lazy, preserves options, copies reused chunks, and closes on return
+  ---
+  duration_ms: 0.173708
+  type: 'test'
+  ...
+# Subtest: readStream closes the delegate when the consumer stops or cancellation arrives
+ok 561 - readStream closes the delegate when the consumer stops or cancellation arrives
+  ---
+  duration_ms: 5.837542
+  type: 'test'
+  ...
+# Subtest: readStream transfers synchronous method throws into next() rejection
+ok 562 - readStream transfers synchronous method throws into next() rejection
+  ---
+  duration_ms: 0.177375
+  type: 'test'
+  ...
+# Subtest: optional read capability permutation: link=false, stream=false, advertised=undefined
+ok 563 - optional read capability permutation: link=false, stream=false, advertised=undefined
+  ---
+  duration_ms: 0.141333
+  type: 'test'
+  ...
+# Subtest: optional read capability permutation: link=false, stream=false, advertised=false
+ok 564 - optional read capability permutation: link=false, stream=false, advertised=false
+  ---
+  duration_ms: 0.072833
+  type: 'test'
+  ...
+# Subtest: optional read capability permutation: link=false, stream=false, advertised=true
+ok 565 - optional read capability permutation: link=false, stream=false, advertised=true
+  ---
+  duration_ms: 0.14525
+  type: 'test'
+  ...
+# Subtest: optional read capability permutation: link=false, stream=true, advertised=undefined
+ok 566 - optional read capability permutation: link=false, stream=true, advertised=undefined
+  ---
+  duration_ms: 0.128625
+  type: 'test'
+  ...
+# Subtest: optional read capability permutation: link=false, stream=true, advertised=false
+ok 567 - optional read capability permutation: link=false, stream=true, advertised=false
+  ---
+  duration_ms: 0.06975
+  type: 'test'
+  ...
+# Subtest: optional read capability permutation: link=false, stream=true, advertised=true
+ok 568 - optional read capability permutation: link=false, stream=true, advertised=true
+  ---
+  duration_ms: 0.058791
+  type: 'test'
+  ...
+# Subtest: optional read capability permutation: link=true, stream=false, advertised=undefined
+ok 569 - optional read capability permutation: link=true, stream=false, advertised=undefined
+  ---
+  duration_ms: 0.045584
+  type: 'test'
+  ...
+# Subtest: optional read capability permutation: link=true, stream=false, advertised=false
+ok 570 - optional read capability permutation: link=true, stream=false, advertised=false
+  ---
+  duration_ms: 0.057625
+  type: 'test'
+  ...
+# Subtest: optional read capability permutation: link=true, stream=false, advertised=true
+ok 571 - optional read capability permutation: link=true, stream=false, advertised=true
+  ---
+  duration_ms: 0.081417
+  type: 'test'
+  ...
+# Subtest: optional read capability permutation: link=true, stream=true, advertised=undefined
+ok 572 - optional read capability permutation: link=true, stream=true, advertised=undefined
+  ---
+  duration_ms: 0.053666
+  type: 'test'
+  ...
+# Subtest: optional read capability permutation: link=true, stream=true, advertised=false
+ok 573 - optional read capability permutation: link=true, stream=true, advertised=false
+  ---
+  duration_ms: 0.04425
+  type: 'test'
+  ...
+# Subtest: optional read capability permutation: link=true, stream=true, advertised=true
+ok 574 - optional read capability permutation: link=true, stream=true, advertised=true
+  ---
+  duration_ms: 0.041833
+  type: 'test'
+  ...
+# Subtest: capabilities are immutable, detached, conservative, and omit unknown extensions
+ok 575 - capabilities are immutable, detached, conservative, and omit unknown extensions
+  ---
+  duration_ms: 0.099
+  type: 'test'
+  ...
+# Subtest: no delegate references or unknown convenience/native execution APIs are exposed
+ok 576 - no delegate references or unknown convenience/native execution APIs are exposed
+  ---
+  duration_ms: 0.054542
+  type: 'test'
+  ...
+# Subtest: readonly rmdir always rejects before delegate access, path checks, or options access
+ok 577 - readonly rmdir always rejects before delegate access, path checks, or options access
+  ---
+  duration_ms: 0.989042
+  type: 'test'
+  ...
+# Subtest: readonly real streams preserve 0 binary bytes and ranges without readFile
+ok 578 - readonly real streams preserve 0 binary bytes and ranges without readFile
+  ---
+  duration_ms: 14.848542
+  type: 'test'
+  ...
+# Subtest: readonly real streams preserve 4099 binary bytes and ranges without readFile
+ok 579 - readonly real streams preserve 4099 binary bytes and ranges without readFile
+  ---
+  duration_ms: 27.310458
+  type: 'test'
+  ...
+# Subtest: readonly preserves conditional mounted streaming without claiming universal support
+ok 580 - readonly preserves conditional mounted streaming without claiming universal support
+  ---
+  duration_ms: 1.532208
+  type: 'test'
+  ...
+# Subtest: readonly abort closes a blocked iterator and observes late next and cleanup rejections
+ok 581 - readonly abort closes a blocked iterator and observes late next and cleanup rejections
+  ---
+  duration_ms: 0.799959
+  type: 'test'
+  ...
+# Subtest: readonly preserves original stream errors even when cleanup also fails
+ok 582 - readonly preserves original stream errors even when cleanup also fails
+  ---
+  duration_ms: 0.273583
+  type: 'test'
+  ...
+# Subtest: readonly consumer return reports cleanup failure without reading ahead
+ok 583 - readonly consumer return reports cleanup failure without reading ahead
+  ---
+  duration_ms: 0.211417
+  type: 'test'
+  ...
+# Subtest: raw traversal cannot turn virtual absolute or parent paths into host paths
+ok 584 - raw traversal cannot turn virtual absolute or parent paths into host paths
+  ---
+  duration_ms: 31.863458
+  type: 'test'
+  ...
+# Subtest: POSIX names are not URL decoded or interpreted as Windows paths
+ok 585 - POSIX names are not URL decoded or interpreted as Windows paths
+  ---
+  duration_ms: 23.416792
+  type: 'test'
+  ...
+# Subtest: all following operations refuse absolute symlink escapes
+ok 586 - all following operations refuse absolute symlink escapes
+  ---
+  duration_ms: 23.319833
+  type: 'test'
+  ...
+# Subtest: all following operations refuse relative symlink escapes
+ok 587 - all following operations refuse relative symlink escapes
+  ---
+  duration_ms: 30.2505
+  type: 'test'
+  ...
+# Subtest: all following operations refuse nested symlink escapes
+ok 588 - all following operations refuse nested symlink escapes
+  ---
+  duration_ms: 26.86025
+  type: 'test'
+  ...
+# Subtest: all following operations refuse absolute-parent symlink escapes
+ok 589 - all following operations refuse absolute-parent symlink escapes
+  ---
+  duration_ms: 19.513292
+  type: 'test'
+  ...
+# Subtest: final external symlinks can be inspected, renamed, replaced, and removed without following
+ok 590 - final external symlinks can be inspected, renamed, replaced, and removed without following
+  ---
+  duration_ms: 9.493833
+  type: 'test'
+  ...
+# Subtest: recursive removal never follows symlink children to an outside tree
+ok 591 - recursive removal never follows symlink children to an outside tree
+  ---
+  duration_ms: 5.848125
+  type: 'test'
+  ...
+# Subtest: dangling external symlinks cannot create files or recursive directories outside
+ok 592 - dangling external symlinks cannot create files or recursive directories outside
+  ---
+  duration_ms: 5.914583
+  type: 'test'
+  ...
+# Subtest: symlink creation refuses relative escape, including prefix lookalikes
+ok 593 - symlink creation refuses relative escape, including prefix lookalikes
+  ---
+  duration_ms: 6.291334
+  type: 'test'
+  ...
+# Subtest: symlink target dot-dot follows actual directories rather than lexical shortcuts
+ok 594 - symlink target dot-dot follows actual directories rather than lexical shortcuts
+  ---
+  duration_ms: 9.251417
+  type: 'test'
+  ...
+# Subtest: self and multi-link cycles produce ELOOP, while lstat and rm do not follow them
+ok 595 - self and multi-link cycles produce ELOOP, while lstat and rm do not follow them
+  ---
+  duration_ms: 243.76475
+  type: 'test'
+  ...
+# Subtest: 40 symlink traversals succeed but 41 report ELOOP
+ok 596 - 40 symlink traversals succeed but 41 report ELOOP
+  ---
+  duration_ms: 32.943792
+  type: 'test'
+  ...
+# Subtest: all root aliases resist removal and replacement
+ok 597 - all root aliases resist removal and replacement
+  ---
+  duration_ms: 3.976583
+  type: 'test'
+  ...
+# Subtest: root aliases pin the initial canonical directory and refuse later canonical-root symlink replacement
+ok 598 - root aliases pin the initial canonical directory and refuse later canonical-root symlink replacement
+  ---
+  duration_ms: 6.180958
+  type: 'test'
+  ...
+# Subtest: invalid paths and numeric arguments are rejected without mutation
+ok 599 - invalid paths and numeric arguments are rejected without mutation
+  ---
+  duration_ms: 3.07725
+  type: 'test'
+  ...
+# Subtest: special filesystem nodes are rejected instead of pretending to be regular files
+ok 600 - special filesystem nodes are rejected instead of pretending to be regular files
+  ---
+  duration_ms: 3.145
+  type: 'test'
+  ...
+# Subtest: cancellation after rm resolution does not start a mutation
+ok 601 - cancellation after rm resolution does not start a mutation
+  ---
+  duration_ms: 16.369084
+  type: 'test'
+  ...
+# Subtest: cancellation after rename source resolution does not start a mutation
+ok 602 - cancellation after rename source resolution does not start a mutation
+  ---
+  duration_ms: 8.239542
+  type: 'test'
+  ...
+# Subtest: cancellation after rename destination resolution does not start a mutation
+ok 603 - cancellation after rename destination resolution does not start a mutation
+  ---
+  duration_ms: 10.374625
+  type: 'test'
+  ...
+# Subtest: cancellation after copyFile source resolution does not start a mutation
+ok 604 - cancellation after copyFile source resolution does not start a mutation
+  ---
+  duration_ms: 7.503208
+  type: 'test'
+  ...
+# Subtest: cancellation after copyFile destination resolution does not start a mutation
+ok 605 - cancellation after copyFile destination resolution does not start a mutation
+  ---
+  duration_ms: 7.726167
+  type: 'test'
+  ...
+# Subtest: cancellation after mkdir resolution does not start a mutation
+ok 606 - cancellation after mkdir resolution does not start a mutation
+  ---
+  duration_ms: 9.055084
+  type: 'test'
+  ...
+# Subtest: cancellation after symlink resolution does not start a mutation
+ok 607 - cancellation after symlink resolution does not start a mutation
+  ---
+  duration_ms: 7.711375
+  type: 'test'
+  ...
+# Subtest: cancellation after link resolution does not start a mutation
+ok 608 - cancellation after link resolution does not start a mutation
+  ---
+  duration_ms: 6.433208
+  type: 'test'
+  ...
+# Subtest: cancellation after chmod resolution does not start a mutation
+ok 609 - cancellation after chmod resolution does not start a mutation
+  ---
+  duration_ms: 7.31025
+  type: 'test'
+  ...
+# Subtest: cancellation after utimes resolution does not start a mutation
+ok 610 - cancellation after utimes resolution does not start a mutation
+  ---
+  duration_ms: 7.687583
+  type: 'test'
+  ...
+# Subtest: cancellation after truncate resolution does not start a mutation
+ok 611 - cancellation after truncate resolution does not start a mutation
+  ---
+  duration_ms: 7.020041
+  type: 'test'
+  ...
+# Subtest: cancellation after writeFile resolution does not start a mutation
+ok 612 - cancellation after writeFile resolution does not start a mutation
+  ---
+  duration_ms: 4.763709
+  type: 'test'
+  ...
+# Subtest: cancellation after appendFile resolution does not start a mutation
+ok 613 - cancellation after appendFile resolution does not start a mutation
+  ---
+  duration_ms: 5.801958
+  type: 'test'
+  ...
+# Subtest: rm checks cancellation after final root verification
+ok 614 - rm checks cancellation after final root verification
+  ---
+  duration_ms: 6.988292
+  type: 'test'
+  ...
+# Subtest: rename checks cancellation after final root verification
+ok 615 - rename checks cancellation after final root verification
+  ---
+  duration_ms: 5.821875
+  type: 'test'
+  ...
+# Subtest: recursive mkdir checks cancellation after root resolution before creating parents
+ok 616 - recursive mkdir checks cancellation after root resolution before creating parents
+  ---
+  duration_ms: 3.4425
+  type: 'test'
+  ...
+# Subtest: symlink checks cancellation after target traversal before creation
+ok 617 - symlink checks cancellation after target traversal before creation
+  ---
+  duration_ms: 3.835291
+  type: 'test'
+  ...
+# Subtest: cancellation keeps completed stream writes without promising rollback
+ok 618 - cancellation keeps completed stream writes without promising rollback
+  ---
+  duration_ms: 4.602625
+  type: 'test'
+  ...
+# Subtest: exports implement the FileSystem contract with an explicitly existing root
+ok 619 - exports implement the FileSystem contract with an explicitly existing root
+  ---
+  duration_ms: 10.35925
+  type: 'test'
+  ...
+# Subtest: binary data round-trips without text coercion or shared mutable views
+ok 620 - binary data round-trips without text coercion or shared mutable views
+  ---
+  duration_ms: 8.846542
+  type: 'test'
+  ...
+# Subtest: writes replace, append preserves bytes, and exclusive flags never overwrite
+ok 621 - writes replace, append preserves bytes, and exclusive flags never overwrite
+  ---
+  duration_ms: 15.567083
+  type: 'test'
+  ...
+# Subtest: empty writes and truncate shrink, extend with zeroes, and default to zero
+ok 622 - empty writes and truncate shrink, extend with zeroes, and default to zero
+  ---
+  duration_ms: 11.073417
+  type: 'test'
+  ...
+# Subtest: directories support recursive creation, typed entries, and removal
+ok 623 - directories support recursive creation, typed entries, and removal
+  ---
+  duration_ms: 19.8715
+  type: 'test'
+  ...
+# Subtest: stat metadata exposes host identity, mode, size, and millisecond times
+ok 624 - stat metadata exposes host identity, mode, size, and millisecond times
+  ---
+  duration_ms: 7.049792
+  type: 'test'
+  ...
+# Subtest: copy and rename overwrite files and preserve directory trees
+ok 625 - copy and rename overwrite files and preserve directory trees
+  ---
+  duration_ms: 18.09075
+  type: 'test'
+  ...
+# Subtest: relative and absolute symlinks have virtual readlink and realpath semantics
+ok 626 - relative and absolute symlinks have virtual readlink and realpath semantics
+  ---
+  duration_ms: 13.704416
+  type: 'test'
+  ...
+# Subtest: dangling links are inspectable and ordinary writes create their in-root targets
+ok 627 - dangling links are inspectable and ordinary writes create their in-root targets
+  ---
+  duration_ms: 8.213875
+  type: 'test'
+  ...
+# Subtest: copy follows symlinks while exclusive copy and rename operate on destination entries
+ok 628 - copy follows symlinks while exclusive copy and rename operate on destination entries
+  ---
+  duration_ms: 11.993292
+  type: 'test'
+  ...
+# Subtest: hardlinks share inode and data, and removing one preserves the other
+ok 629 - hardlinks share inode and data, and removing one preserves the other
+  ---
+  duration_ms: 7.318416
+  type: 'test'
+  ...
+# Subtest: common type errors use contract FsError with virtual paths and errno
+ok 630 - common type errors use contract FsError with virtual paths and errno
+  ---
+  duration_ms: 6.095209
+  type: 'test'
+  ...
+# Subtest: bounded reads enforce exact byte limits including an empty file
+ok 631 - bounded reads enforce exact byte limits including an empty file
+  ---
+  duration_ms: 5.677042
+  type: 'test'
+  ...
+# Subtest: byte streams honor offsets, chunk size, end-exclusive limits, and early return
+ok 632 - byte streams honor offsets, chunk size, end-exclusive limits, and early return
+  ---
+  duration_ms: 5.922417
+  type: 'test'
+  ...
+# Subtest: stream failure closes files and preserves explicitly documented partial writes
+ok 633 - stream failure closes files and preserves explicitly documented partial writes
+  ---
+  duration_ms: 4.828292
+  type: 'test'
+  ...
+# Subtest: cancellation preserves the abort reason and stops a streaming write
+ok 634 - cancellation preserves the abort reason and stops a streaming write
+  ---
+  duration_ms: 4.3165
+  type: 'test'
+  ...
+# Subtest: native copy rejects same-path, exclusive=false, before mutation
+ok 635 - native copy rejects same-path, exclusive=false, before mutation
+  ---
+  duration_ms: 12.648542
+  type: 'test'
+  ...
+# Subtest: native copy rejects same-path, exclusive=true, before mutation
+ok 636 - native copy rejects same-path, exclusive=true, before mutation
+  ---
+  duration_ms: 8.213416
+  type: 'test'
+  ...
+# Subtest: native copy rejects hardlink, exclusive=false, before mutation
+ok 637 - native copy rejects hardlink, exclusive=false, before mutation
+  ---
+  duration_ms: 12.498542
+  type: 'test'
+  ...
+# Subtest: native copy rejects hardlink, exclusive=true, before mutation
+ok 638 - native copy rejects hardlink, exclusive=true, before mutation
+  ---
+  duration_ms: 8.898959
+  type: 'test'
+  ...
+# Subtest: native copy rejects symlink, exclusive=false, before mutation
+ok 639 - native copy rejects symlink, exclusive=false, before mutation
+  ---
+  duration_ms: 12.417583
+  type: 'test'
+  ...
+# Subtest: native copy rejects symlink, exclusive=true, before mutation
+ok 640 - native copy rejects symlink, exclusive=true, before mutation
+  ---
+  duration_ms: 17.024667
+  type: 'test'
+  ...
+# Subtest: native identity guard keeps distinct overwrites and exclusive creation supported
+ok 641 - native identity guard keeps distinct overwrites and exclusive creation supported
+  ---
+  duration_ms: 11.995875
+  type: 'test'
+  ...
+# Subtest: real rmdir removes empty directories and preserves rm semantics
+ok 642 - real rmdir removes empty directories and preserves rm semantics
+  ---
+  duration_ms: 10.679
+  type: 'test'
+  ...
+# Subtest: real rmdir /missing reports ENOENT with its exact virtual operand
+ok 643 - real rmdir /missing reports ENOENT with its exact virtual operand
+  ---
+  duration_ms: 14.511833
+  type: 'test'
+  ...
+# Subtest: real rmdir /file reports ENOTDIR with its exact virtual operand
+ok 644 - real rmdir /file reports ENOTDIR with its exact virtual operand
+  ---
+  duration_ms: 13.020458
+  type: 'test'
+  ...
+# Subtest: real rmdir /link reports ENOTDIR with its exact virtual operand
+ok 645 - real rmdir /link reports ENOTDIR with its exact virtual operand
+  ---
+  duration_ms: 12.691292
+  type: 'test'
+  ...
+# Subtest: real rmdir /link/ reports ENOTDIR with its exact virtual operand
+ok 646 - real rmdir /link/ reports ENOTDIR with its exact virtual operand
+  ---
+  duration_ms: 13.652
+  type: 'test'
+  ...
+# Subtest: real rmdir /tree reports ENOTEMPTY with its exact virtual operand
+ok 647 - real rmdir /tree reports ENOTEMPTY with its exact virtual operand
+  ---
+  duration_ms: 11.58725
+  type: 'test'
+  ...
+# Subtest: real rmdir / reports EBUSY with its exact virtual operand
+ok 648 - real rmdir / reports EBUSY with its exact virtual operand
+  ---
+  duration_ms: 12.278291
+  type: 'test'
+  ...
+# Subtest: real rmdir /empty/. reports EINVAL with its exact virtual operand
+ok 649 - real rmdir /empty/. reports EINVAL with its exact virtual operand
+  ---
+  duration_ms: 8.630292
+  type: 'test'
+  ...
+# Subtest: real rmdir preserves a child inserted immediately before the native deletion
+ok 650 - real rmdir preserves a child inserted immediately before the native deletion
+  ---
+  duration_ms: 6.269667
+  type: 'test'
+  ...
+# Subtest: real rmdir preserves a directory replaced with a symlink just before native deletion
+ok 651 - real rmdir preserves a directory replaced with a symlink just before native deletion
+  ---
+  duration_ms: 7.102583
+  type: 'test'
+  ...
+# Subtest: real rmdir observes pre-aborted cancellation without removing its directory
+ok 652 - real rmdir observes pre-aborted cancellation without removing its directory
+  ---
+  duration_ms: 4.7
+  type: 'test'
+  ...
+# Subtest: 400 deterministic mixed operations agree with an independent native filesystem
+ok 653 - 400 deterministic mixed operations agree with an independent native filesystem
+  ---
+  duration_ms: 228.937125
+  type: 'test'
+  ...
+# Subtest: concurrent independent writes, appends, reads, and renames preserve all data
+ok 654 - concurrent independent writes, appends, reads, and renames preserve all data
+  ---
+  duration_ms: 32.191958
+  type: 'test'
+  ...
+# Subtest: exclusive concurrent creation has exactly one winner
+ok 655 - exclusive concurrent creation has exactly one winner
+  ---
+  duration_ms: 3.6555
+  type: 'test'
+  ...
+# Subtest: multi-megabyte streaming and bounded rejection leave subsequent access usable
+ok 656 - multi-megabyte streaming and bounded rejection leave subsequent access usable
+  ---
+  duration_ms: 17.807625
+  type: 'test'
+  ...
+# Subtest: utimes forwards exact historical millisecond Dates to the native host
+ok 657 - utimes forwards exact historical millisecond Dates to the native host
+  ---
+  duration_ms: 8.418417
+  type: 'test'
+  ...
+# HISTORICAL ATIME OBSERVATION: requested=10000 observed=10000; forwarding is asserted, host atime persistence is not
+# HISTORICAL ATIME OBSERVATION: requested=1600000000125 observed=1600000000125; forwarding is asserted, host atime persistence is not
+# Subtest: verifier: operation paths follow a symlink before dot-dot for reads and writes
+ok 658 - verifier: operation paths follow a symlink before dot-dot for reads and writes
+  ---
+  duration_ms: 21.197
+  type: 'test'
+  ...
+# Subtest: verifier: dot, dot-dot, and trailing slash require traversable existing prefixes
+ok 659 - verifier: dot, dot-dot, and trailing slash require traversable existing prefixes
+  ---
+  duration_ms: 9.946084
+  type: 'test'
+  ...
+# Subtest: verifier: trailing slash never lets rm delete a regular file
+ok 660 - verifier: trailing slash never lets rm delete a regular file
+  ---
+  duration_ms: 7.324958
+  type: 'test'
+  ...
+# Subtest: verifier: empty paths reject instead of silently referring to the root
+ok 661 - verifier: empty paths reject instead of silently referring to the root
+  ---
+  duration_ms: 5.67775
+  type: 'test'
+  ...
+# Subtest: verifier: destructive terminal . operands preserve directories and content
+ok 662 - verifier: destructive terminal . operands preserve directories and content
+  ---
+  duration_ms: 8.086291
+  type: 'test'
+  ...
+# Subtest: verifier: destructive terminal ./ operands preserve directories and content
+ok 663 - verifier: destructive terminal ./ operands preserve directories and content
+  ---
+  duration_ms: 7.472042
+  type: 'test'
+  ...
+# Subtest: verifier: destructive terminal ././ operands preserve directories and content
+ok 664 - verifier: destructive terminal ././ operands preserve directories and content
+  ---
+  duration_ms: 6.785666
+  type: 'test'
+  ...
+# Subtest: verifier: destructive terminal child/.. operands preserve directories and content
+ok 665 - verifier: destructive terminal child/.. operands preserve directories and content
+  ---
+  duration_ms: 7.314416
+  type: 'test'
+  ...
+# Subtest: verifier: destructive terminal child/..// operands preserve directories and content
+ok 666 - verifier: destructive terminal child/..// operands preserve directories and content
+  ---
+  duration_ms: 7.109458
+  type: 'test'
+  ...
+# Subtest: invalid prefixes retain their errno before destructive terminal validation
+ok 667 - invalid prefixes retain their errno before destructive terminal validation
+  ---
+  duration_ms: 4.428875
+  type: 'test'
+  ...
+# Subtest: verifier: absolute symlink targets retain their raw components and resolve before dot-dot
+ok 668 - verifier: absolute symlink targets retain their raw components and resolve before dot-dot
+  ---
+  duration_ms: 9.423416
+  type: 'test'
+  ...
+# Subtest: verifier: safe nontraversable symlink targets can be created without resolving them
+ok 669 - verifier: safe nontraversable symlink targets can be created without resolving them
+  ---
+  duration_ms: 69.90125
+  type: 'test'
+  ...
+# Subtest: verifier: missing trailing-slash destinations accept directories but never files
+ok 670 - verifier: missing trailing-slash destinations accept directories but never files
+  ---
+  duration_ms: 6.043125
+  type: 'test'
+  ...
+# Subtest: trailing directory requirements follow final symlinks, unlike ordinary lstat and rm
+ok 671 - trailing directory requirements follow final symlinks, unlike ordinary lstat and rm
+  ---
+  duration_ms: 5.041417
+  type: 'test'
+  ...
+# Subtest: recursive mkdir creates the prefixes actually traversed before dot-dot
+ok 672 - recursive mkdir creates the prefixes actually traversed before dot-dot
+  ---
+  duration_ms: 3.617083
+  type: 'test'
+  ...
+# Subtest: configured root resolution preserves symlink-before-dot-dot semantics
+ok 673 - configured root resolution preserves symlink-before-dot-dot semantics
+  ---
+  duration_ms: 2.901125
+  type: 'test'
+  ...
+# Subtest: verifier: public errors omit native host paths throughout inspection and cause chains
+ok 674 - verifier: public errors omit native host paths throughout inspection and cause chains
+  ---
+  duration_ms: 7.509
+  type: 'test'
+  ...
+# Subtest: 140 raw-path read operations match an independently populated native tree
+ok 675 - 140 raw-path read operations match an independently populated native tree
+  ---
+  duration_ms: 178.624125
+  type: 'test'
+  ...
+# Subtest: dot-dot never cancels an external symlink before containment checks
+ok 676 - dot-dot never cancels an external symlink before containment checks
+  ---
+  duration_ms: 4.122875
+  type: 'test'
+  ...
+# Subtest: 80 raw-path mutations match native outcomes and complete tree snapshots
+ok 677 - 80 raw-path mutations match native outcomes and complete tree snapshots
+  ---
+  duration_ms: 309.862417
+  type: 'test'
+  ...
+1..677
+# tests 677
+# suites 0
+# pass 665
+# fail 12
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1489.401834

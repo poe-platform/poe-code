@@ -1,0 +1,15 @@
+import {fs,path,scope,read,put,sha,assert} from './io.mjs';
+const retained=JSON.parse(read(path.join(scope,'RETAINED-SOURCES.json'),2097152));
+const audit=[];
+for(const row of retained){const text=row.text??row.body;assert.equal(sha(Buffer.from(text)),row.sha256);const lines=text.split('\n');const relevant=lines.flatMap((line,index)=>/Object\.(keys|values|entries|getOwnPropertyNames)|exportCount|exports|expectedNames|apiNames|exported/.test(line)?[{line:index+1,text:line}]:[]);audit.push({path:row.path,bytes:row.bytes,sha256:row.sha256,relevant});}
+put('RETAINED-EXPORT-AUDIT.json',{role:'SOURCE_ONLY_NOT_EXECUTED',rows:audit});
+const base=path.dirname(scope),memberFile=path.join(base,'stage-a-r2/evidence/PACKAGE-MEMBERS.json');
+const memberBody=read(memberFile,262144,{bytes:177394,sha256:'8d50d58c52875c6ba12c02c21bc0181565e2430d5dad1886ed6c859a7da70a57'});
+const members=JSON.parse(memberBody);assert.ok(Array.isArray(members));assert.equal(members.length,1014);
+const large=members.filter(row=>row.bytes>262144);const engineBody=read(path.join(scope,'PUBLIC-ENGINE-RECEIPT.json'),131072,{bytes:76582,sha256:'a4d3614d6d944660aaddc1fd95c8fe6ebef1d92fc0dd8607400578d9a82254de'});const engine=JSON.parse(engineBody);
+const workflows=read(path.join(base,'v4/workflows.mjs'),20000,{bytes:15763,sha256:'6d8a19854a6e96986013ed3d94ee15dd774e225259dea922bf4749799c60d89b'}).toString().split('\n');
+const engineLines=workflows.flatMap((line,index)=>/C10|C11|C15|C16|C17|C18|realProvider|addNode\(|node -[pe]/.test(line)?[{line:index+1,text:line}]:[]);
+put('DISPATCH-SOURCE-AUDIT.json',{largeMembersForExistingGuard:large,worker:engine.productWorker,engineLines,semanticRuns:0});
+console.log(JSON.stringify({largeMembers:large,worker:engine.productWorker,exports:audit.filter(row=>row.relevant.length),engineLines},null,2));
+const files=[];function walk(directory,prefix=''){for(const entry of fs.readdirSync(directory,{withFileTypes:true}).sort((left,right)=>Buffer.compare(Buffer.from(left.name),Buffer.from(right.name)))){assert.ok(!entry.isSymbolicLink());const relative=prefix?prefix+'/'+entry.name:entry.name;assert.notEqual(entry.name,'AGENTS.md');if(relative==='capture'||relative==='SOURCE-SEAL.json'||relative==='SEAL-RESULT.json')continue;const target=path.join(directory,entry.name);if(entry.isDirectory())walk(target,relative);else{assert.ok(entry.isFile());const body=read(target,4194304);files.push({path:relative,bytes:body.length,sha256:sha(body)});}}}
+walk(scope);const seal={schema:'coherent-stage-b-partial-source-seal-v1',created:new Date().toISOString(),status:'NOT_EXECUTABLE_PRESEAL_BLOCKERS_REMAIN',sourceTree:'3adc676a0ab638c9788ef007e465931d65d2c6fe',package:{bytes:930368,sha256:'2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca',members:1014},files,productImports:0,semanticRuns:0,harmlessFixtures:0,compilerRuns:0,workers:0,engineRuns:0};put('SOURCE-SEAL.json',seal);const sealed=read(path.join(scope,'SOURCE-SEAL.json'),1048576);put('SEAL-RESULT.json',{bytes:sealed.length,sha256:sha(sealed),status:seal.status});

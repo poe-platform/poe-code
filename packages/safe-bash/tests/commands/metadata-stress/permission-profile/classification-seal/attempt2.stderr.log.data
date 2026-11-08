@@ -1,0 +1,52 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
++ actual - expected
+
+  {
++   atimeNs: '1787834326804989866',
+-   atimeNs: '1787834326801060337',
+    birthtimeNs: '1787834326801060337',
+    ctimeNs: '1787834326801131214',
+    dev: '16777232',
+    gid: 0,
+    ino: '174053705',
+
+    at <anonymous> (/private/tmp/safe-bash-darwin-classification-b04J1M/replay.mjs:206:12) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: {
+    type: 'file',
+    mode: '0600',
+    uid: 501,
+    gid: 0,
+    ino: '174053705',
+    dev: '16777232',
+    nlink: '1',
+    size: '3',
+    atimeNs: '1787834326804989866',
+    mtimeNs: '1787834326801131214',
+    ctimeNs: '1787834326801131214',
+    birthtimeNs: '1787834326801060337'
+  },
+  expected: {
+    type: 'file',
+    mode: '0600',
+    uid: 501,
+    gid: 0,
+    ino: '174053705',
+    dev: '16777232',
+    nlink: '1',
+    size: '3',
+    atimeNs: '1787834326801060337',
+    mtimeNs: '1787834326801131214',
+    ctimeNs: '1787834326801131214',
+    birthtimeNs: '1787834326801060337'
+  },
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.2

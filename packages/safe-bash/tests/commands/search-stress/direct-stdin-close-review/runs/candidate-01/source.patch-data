@@ -1,0 +1,19 @@
+diff --git a/src/commands/search/rg.ts b/src/commands/search/rg.ts
+index 41f1569b..aa66ae5b 100644
+--- a/src/commands/search/rg.ts
++++ b/src/commands/search/rg.ts
+@@ -1,4 +1,4 @@
+-import { collectBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
++import { collectBytes, readBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
+ import { Matcher, type Match } from "./matcher.js";
+ import { parse, SearchError, type Arguments, type SearchOptions } from "./options.js";
+ import { data, elapsed, Printer, stats, type Stats } from "./output.js";
+@@ -35,7 +35,7 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
+   if (args.maxCount === 0) return { found: false, stats: totals };
+   const state: ReadState = { bytesRead: 0, bytesSearched: 0, binaryOffset: null, skipped: false };
+   const binary = args.binary === "text" ? "text" : args.binary === "binary" || target.explicit ? "binary" : "skip";
+-  const source = target.path === "-" ? stdin : fileInput(context, target.path, limits);
++  const source = target.path === "-" ? readBytes(stdin, limits.signal) : fileInput(context, target.path, limits);
+   const before: { line: Line; matches: Match[] }[] = [];
+   let beforeBytes = 0;
+   let lastPrinted = 0;

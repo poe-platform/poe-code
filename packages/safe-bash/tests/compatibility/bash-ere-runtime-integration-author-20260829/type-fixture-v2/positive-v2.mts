@@ -1,0 +1,10 @@
+import { Shell, parseShell } from "../TYPE-01/candidate/dist/index.js";
+import { Shell as SubpathShell } from "../TYPE-01/candidate/dist/shell/index.js";
+import { evaluateConditional } from "../TYPE-01/candidate/dist/shell/conditional.js";
+import type { ConditionalExpression } from "../TYPE-01/candidate/dist/shell/conditional.js";
+const same: typeof Shell = SubpathShell;
+const status: Awaited<ReturnType<typeof evaluateConditional>> = 2;
+const script = parseShell("[[ ! ( ! x =~ $bad ) ]]");
+declare const expression: ConditionalExpression;
+const kind: string = expression.kind;
+void same; void status; void script; void kind;

@@ -1,0 +1,24 @@
+{
+  "name": "strict-source",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+    "-p",
+    "tsconfig.independent.json",
+    "--listFiles"
+  ],
+  "cwd": "source",
+  "status": 0,
+  "signal": null,
+  "durationMs": 1321.8627090000005,
+  "counts": {
+    "tests": null,
+    "pass": null,
+    "fail": null,
+    "cancelled": null,
+    "skipped": null,
+    "todo": null
+  },
+  "names": [],
+  "failures": []
+}

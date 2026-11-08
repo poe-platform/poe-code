@@ -1,0 +1,622 @@
+{
+  "status": "HOLD",
+  "scope": "independent synthetic bridge review, not products",
+  "authorManifestSha256": "8a2130dfee34309ee5f5eb28869948e02a690c2f5e90031aa8693415b0c85b9a",
+  "executionTreeBefore": "6e89b6f7896fca23606d4ffdf9a278a32dec03f7755deb27d9426cddcbc744c9",
+  "executionTreeAfter": "6e89b6f7896fca23606d4ffdf9a278a32dec03f7755deb27d9426cddcbc744c9",
+  "sourceStable": true,
+  "temporary": "/private/tmp/safe-bash-independent-bridge-BBhHqv",
+  "reviewerSources": [
+    {
+      "path": "verify.mjs",
+      "bytes": 17676,
+      "sha256": "a23ee42027c30b54f1ad02694253921307ec79e6d1c5ae8044b24325a65b1690"
+    },
+    {
+      "path": "adapter-controls.mjs",
+      "bytes": 8231,
+      "sha256": "bf0aaaf145b97f9f48a7c9055b34eae44aa1bf97c7d39224be6b677cad05fa31"
+    },
+    {
+      "path": "sentinel.mjs.data",
+      "bytes": 1489,
+      "sha256": "ea4ada5cb95bd6a9b2348f0d1f2d5e4c59903778addcf409a6622b11ad808511"
+    }
+  ],
+  "process": {
+    "node": "v22.22.2",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "counters": {
+    "sentinelAttempts": 14,
+    "sentinelCoordinators": 14,
+    "sentinelEngines": 14,
+    "extraNodeDescendants": 1,
+    "workerThreads": 1,
+    "cliNegativeOrPreparationChildren": 3,
+    "syntheticAdapterInvocations": 12,
+    "actualProductImports": 0,
+    "mainCohortObservations": 0,
+    "nativeOracleCalls": 0,
+    "networkSocketsOpened": 0
+  },
+  "staticChecks": [
+    {
+      "name": "exact selected recipes/goldens and profile counts, no new24 prerequisite",
+      "satisfied": true,
+      "detail": {
+        "original": 448,
+        "aligned": 448,
+        "breadth": 136,
+        "breadthRecipes": {
+          "targets": 54,
+          "controls": 7,
+          "diagnostics": 7
+        },
+        "measured": 0
+      }
+    },
+    {
+      "name": "byte-identical historical predicate expanded-common.mjs",
+      "satisfied": true,
+      "detail": {
+        "historical": "0294afb6e690433aed994868e5ed437ecf58ae48:benchmarks/expanded/common.mjs",
+        "sha256": "28e51f7bb98aaf72550a76a159d79a09fb767b5780320fc1426740fedc311061"
+      }
+    },
+    {
+      "name": "byte-identical historical predicate breadth-assess.mjs",
+      "satisfied": true,
+      "detail": {
+        "historical": "849dbf18b1e865c7d12927c11f0e20ba0555c540:benchmarks/reports/baseline-only-20260827/coverage-execution/assess.mjs",
+        "sha256": "4e1ef722249987da598a0765f87e48c021cf5a2f1ec83c09e86d2489c39397eb"
+      }
+    },
+    {
+      "name": "fixed distinct expanded/breadth envelopes",
+      "satisfied": true
+    },
+    {
+      "name": "CLI PREPARE without ROOT cannot import products",
+      "satisfied": true
+    },
+    {
+      "name": "CLI PREFLIGHT without ROOT cannot import products",
+      "satisfied": true
+    },
+    {
+      "name": "CLI MEASURE without ROOT cannot import products",
+      "satisfied": true
+    },
+    {
+      "name": "exact synthetic closure positive, no import",
+      "satisfied": true
+    },
+    {
+      "name": "missing ROOT binding is explicitly unbound",
+      "satisfied": true
+    }
+  ],
+  "bindingCases": [
+    {
+      "name": "synthetic-cannot-masquerade-as-just-bash342",
+      "refused": true,
+      "expectedReason": true,
+      "error": {
+        "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'b22f41febfa5308d0aaa6983cf20c0664f8811fe230b820e87b75751a7d30f68'\n- '70dd1320d921b736e965b1545e50ab57af2b2807a26de7fa624d4f519a953b7c'\n",
+        "actual": "b22f41febfa5308d0aaa6983cf20c0664f8811fe230b820e87b75751a7d30f68",
+        "expected": "70dd1320d921b736e965b1545e50ab57af2b2807a26de7fa624d4f519a953b7c"
+      },
+      "syntheticReceiptNotActualAuthority": true
+    },
+    {
+      "name": "profile-rebinding",
+      "refused": true,
+      "expectedReason": true,
+      "error": {
+        "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   'aligned',\n    'original',\n-   'aligned',\n    'breadth'\n  ]\n",
+        "actual": [
+          "aligned",
+          "original",
+          "breadth"
+        ],
+        "expected": [
+          "original",
+          "aligned",
+          "breadth"
+        ]
+      },
+      "syntheticReceiptNotActualAuthority": true
+    },
+    {
+      "name": "source-rebinding",
+      "refused": true,
+      "expectedReason": true,
+      "error": {
+        "message": "bound hash changed\n+ actual - expected\n\n+ '04d58ddfae3eb8261b188db6fc5774d2ca3030eeb1c572bcd2b6e2c1b5c13bc4'\n- '0000000000000000000000000000000000000000000000000000000000000000'\n",
+        "actual": "04d58ddfae3eb8261b188db6fc5774d2ca3030eeb1c572bcd2b6e2c1b5c13bc4",
+        "expected": "0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "syntheticReceiptNotActualAuthority": true
+    },
+    {
+      "name": "pack-rebinding",
+      "refused": true,
+      "expectedReason": true,
+      "error": {
+        "message": "bound hash changed\n+ actual - expected\n\n+ '4a3afcb5023c85c8017ce8d33a5629388e79760f4ab33ed6f7e2ff07d1ec68cb'\n- '0000000000000000000000000000000000000000000000000000000000000000'\n",
+        "actual": "4a3afcb5023c85c8017ce8d33a5629388e79760f4ab33ed6f7e2ff07d1ec68cb",
+        "expected": "0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "syntheticReceiptNotActualAuthority": true
+    },
+    {
+      "name": "manifest-rebinding",
+      "refused": true,
+      "expectedReason": true,
+      "error": {
+        "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '0000000000000000000000000000000000000000000000000000000000000000'\n- 'fc83a39b801c55beab5c98c486e025b065be3d0356783551da275e7adaa88b02'\n",
+        "actual": "0000000000000000000000000000000000000000000000000000000000000000",
+        "expected": "fc83a39b801c55beab5c98c486e025b065be3d0356783551da275e7adaa88b02"
+      },
+      "syntheticReceiptNotActualAuthority": true
+    },
+    {
+      "name": "asset-rebinding",
+      "refused": true,
+      "expectedReason": true,
+      "error": {
+        "message": "bound hash changed\n+ actual - expected\n\n+ '3d700980f74407dc8ff35d0c36198c126d1953f47ee32c54f0bd6ffcbc15b07f'\n- '0000000000000000000000000000000000000000000000000000000000000000'\n",
+        "actual": "3d700980f74407dc8ff35d0c36198c126d1953f47ee32c54f0bd6ffcbc15b07f",
+        "expected": "0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "syntheticReceiptNotActualAuthority": true
+    },
+    {
+      "name": "path-traversal",
+      "refused": true,
+      "expectedReason": true,
+      "error": {
+        "message": "unsafe path",
+        "actual": false,
+        "expected": true
+      },
+      "syntheticReceiptNotActualAuthority": true
+    },
+    {
+      "name": "symlink-path",
+      "refused": true,
+      "expectedReason": true,
+      "error": {
+        "message": "symlink component forbidden",
+        "actual": false,
+        "expected": true
+      },
+      "syntheticReceiptNotActualAuthority": true
+    }
+  ],
+  "adapterIssues": [
+    {
+      "profile": "original",
+      "engine": "virtual-bash",
+      "configuration": "default",
+      "issues": [
+        {
+          "label": "actual adapter lifecycle matches supervisor order",
+          "detail": [
+            "exec-start",
+            "snapshot-complete",
+            "exec-settled",
+            "dispose-start",
+            "dispose-settled"
+          ]
+        },
+        {
+          "label": "raw public result retained as documented",
+          "detail": null
+        }
+      ]
+    },
+    {
+      "profile": "original",
+      "engine": "just-bash",
+      "configuration": "default",
+      "issues": [
+        {
+          "label": "actual adapter lifecycle matches supervisor order",
+          "detail": [
+            "exec-start",
+            "exec-settled",
+            "dispose-start",
+            "dispose-settled"
+          ]
+        },
+        {
+          "label": "raw public result retained as documented",
+          "detail": null
+        }
+      ]
+    },
+    {
+      "profile": "aligned",
+      "engine": "virtual-bash",
+      "configuration": "default",
+      "issues": [
+        {
+          "label": "actual adapter lifecycle matches supervisor order",
+          "detail": [
+            "exec-start",
+            "snapshot-complete",
+            "exec-settled",
+            "dispose-start",
+            "dispose-settled"
+          ]
+        },
+        {
+          "label": "raw public result retained as documented",
+          "detail": null
+        }
+      ]
+    },
+    {
+      "profile": "aligned",
+      "engine": "just-bash",
+      "configuration": "default",
+      "issues": [
+        {
+          "label": "actual adapter lifecycle matches supervisor order",
+          "detail": [
+            "exec-start",
+            "exec-settled",
+            "dispose-start",
+            "dispose-settled"
+          ]
+        },
+        {
+          "label": "raw public result retained as documented",
+          "detail": null
+        }
+      ]
+    }
+  ],
+  "attempts": [
+    {
+      "mode": "clean",
+      "controlSatisfied": true,
+      "observationStatus": "pass",
+      "clean": true,
+      "groupGone": true,
+      "signals": [],
+      "resources": {},
+      "raw": "sentinel-01-clean.json",
+      "coordinatorPid": 96051,
+      "enginePid": 96074
+    },
+    {
+      "mode": "wrong-output",
+      "controlSatisfied": true,
+      "observationStatus": "fail",
+      "clean": true,
+      "groupGone": true,
+      "signals": [],
+      "resources": {},
+      "raw": "sentinel-02-wrong-output.json",
+      "coordinatorPid": 96120,
+      "enginePid": 96140
+    },
+    {
+      "mode": "wrong-vfs",
+      "controlSatisfied": true,
+      "observationStatus": "fail",
+      "clean": true,
+      "groupGone": true,
+      "signals": [],
+      "resources": {},
+      "raw": "sentinel-03-wrong-vfs.json",
+      "coordinatorPid": 96174,
+      "enginePid": 96188
+    },
+    {
+      "mode": "wrong-status",
+      "controlSatisfied": true,
+      "observationStatus": "fail",
+      "clean": true,
+      "groupGone": true,
+      "signals": [],
+      "resources": {},
+      "raw": "sentinel-04-wrong-status.json",
+      "coordinatorPid": 96223,
+      "enginePid": 96224
+    },
+    {
+      "mode": "module-clean",
+      "controlSatisfied": true,
+      "observationStatus": "pass",
+      "clean": true,
+      "groupGone": true,
+      "signals": [],
+      "resources": {
+        "imported.json": {
+          "syntheticOnly": true,
+          "pid": 96228,
+          "mode": "module-clean"
+        }
+      },
+      "raw": "sentinel-05-module-clean.json",
+      "coordinatorPid": 96225,
+      "enginePid": 96228
+    },
+    {
+      "mode": "worker-leak",
+      "controlSatisfied": true,
+      "observationStatus": "lifecycle-or-capture-failure",
+      "clean": false,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "resources": {
+        "imported.json": {
+          "syntheticOnly": true,
+          "pid": 96230,
+          "mode": "worker-leak"
+        },
+        "owned-worker.json": {
+          "pid": 96230,
+          "threadId": 2
+        }
+      },
+      "raw": "sentinel-06-worker-leak.json",
+      "coordinatorPid": 96229,
+      "enginePid": 96230
+    },
+    {
+      "mode": "pipe-leak",
+      "controlSatisfied": true,
+      "observationStatus": "lifecycle-or-capture-failure",
+      "clean": false,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "resources": {
+        "imported.json": {
+          "syntheticOnly": true,
+          "pid": 96233,
+          "mode": "pipe-leak"
+        },
+        "owned-child.json": {
+          "pid": 96234,
+          "parent": 96233
+        }
+      },
+      "raw": "sentinel-07-pipe-leak.json",
+      "coordinatorPid": 96232,
+      "enginePid": 96233
+    },
+    {
+      "mode": "crash",
+      "controlSatisfied": true,
+      "observationStatus": "lifecycle-or-capture-failure",
+      "clean": false,
+      "groupGone": true,
+      "signals": [],
+      "resources": {
+        "imported.json": {
+          "syntheticOnly": true,
+          "pid": 96237,
+          "mode": "crash"
+        }
+      },
+      "raw": "sentinel-08-crash.json",
+      "coordinatorPid": 96236,
+      "enginePid": 96237
+    },
+    {
+      "mode": "late-rejection",
+      "controlSatisfied": true,
+      "observationStatus": "lifecycle-or-capture-failure",
+      "clean": false,
+      "groupGone": true,
+      "signals": [],
+      "resources": {
+        "imported.json": {
+          "syntheticOnly": true,
+          "pid": 96239,
+          "mode": "late-rejection"
+        }
+      },
+      "raw": "sentinel-09-late-rejection.json",
+      "coordinatorPid": 96238,
+      "enginePid": 96239
+    },
+    {
+      "mode": "malformed",
+      "controlSatisfied": true,
+      "observationStatus": "lifecycle-or-capture-failure",
+      "clean": false,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "resources": {
+        "imported.json": {
+          "syntheticOnly": true,
+          "pid": 96241,
+          "mode": "malformed"
+        }
+      },
+      "raw": "sentinel-10-malformed.json",
+      "coordinatorPid": 96240,
+      "enginePid": 96241
+    },
+    {
+      "mode": "oversize",
+      "controlSatisfied": true,
+      "observationStatus": "lifecycle-or-capture-failure",
+      "clean": false,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "resources": {
+        "imported.json": {
+          "syntheticOnly": true,
+          "pid": 96243,
+          "mode": "oversize"
+        }
+      },
+      "raw": "sentinel-11-oversize.json",
+      "coordinatorPid": 96242,
+      "enginePid": 96243
+    },
+    {
+      "mode": "unbound-module",
+      "controlSatisfied": true,
+      "observationStatus": "lifecycle-or-capture-failure",
+      "clean": false,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "resources": {
+        "imported.json": {
+          "syntheticOnly": true,
+          "pid": 96245,
+          "mode": "unbound-module"
+        }
+      },
+      "raw": "sentinel-12-unbound-module.json",
+      "coordinatorPid": 96244,
+      "enginePid": 96245
+    },
+    {
+      "mode": "changed-entry",
+      "controlSatisfied": true,
+      "observationStatus": "lifecycle-or-capture-failure",
+      "clean": false,
+      "groupGone": true,
+      "signals": [],
+      "resources": {},
+      "raw": "sentinel-13-changed-entry.json",
+      "coordinatorPid": 96246,
+      "enginePid": 96247
+    },
+    {
+      "mode": "wrong-public-entry",
+      "controlSatisfied": true,
+      "observationStatus": "lifecycle-or-capture-failure",
+      "clean": false,
+      "groupGone": true,
+      "signals": [],
+      "resources": {},
+      "raw": "sentinel-14-wrong-public-entry.json",
+      "coordinatorPid": 96249,
+      "enginePid": 96250
+    }
+  ],
+  "cleanup": [
+    {
+      "mode": "clean",
+      "coordinatorPid": 96051,
+      "enginePid": 96074,
+      "groupExists": false,
+      "descendant": null
+    },
+    {
+      "mode": "wrong-output",
+      "coordinatorPid": 96120,
+      "enginePid": 96140,
+      "groupExists": false,
+      "descendant": null
+    },
+    {
+      "mode": "wrong-vfs",
+      "coordinatorPid": 96174,
+      "enginePid": 96188,
+      "groupExists": false,
+      "descendant": null
+    },
+    {
+      "mode": "wrong-status",
+      "coordinatorPid": 96223,
+      "enginePid": 96224,
+      "groupExists": false,
+      "descendant": null
+    },
+    {
+      "mode": "module-clean",
+      "coordinatorPid": 96225,
+      "enginePid": 96228,
+      "groupExists": false,
+      "descendant": null
+    },
+    {
+      "mode": "worker-leak",
+      "coordinatorPid": 96229,
+      "enginePid": 96230,
+      "groupExists": false,
+      "descendant": null
+    },
+    {
+      "mode": "pipe-leak",
+      "coordinatorPid": 96232,
+      "enginePid": 96233,
+      "groupExists": false,
+      "descendant": 96234,
+      "descendantExists": false
+    },
+    {
+      "mode": "crash",
+      "coordinatorPid": 96236,
+      "enginePid": 96237,
+      "groupExists": false,
+      "descendant": null
+    },
+    {
+      "mode": "late-rejection",
+      "coordinatorPid": 96238,
+      "enginePid": 96239,
+      "groupExists": false,
+      "descendant": null
+    },
+    {
+      "mode": "malformed",
+      "coordinatorPid": 96240,
+      "enginePid": 96241,
+      "groupExists": false,
+      "descendant": null
+    },
+    {
+      "mode": "oversize",
+      "coordinatorPid": 96242,
+      "enginePid": 96243,
+      "groupExists": false,
+      "descendant": null
+    },
+    {
+      "mode": "unbound-module",
+      "coordinatorPid": 96244,
+      "enginePid": 96245,
+      "groupExists": false,
+      "descendant": null
+    },
+    {
+      "mode": "changed-entry",
+      "coordinatorPid": 96246,
+      "enginePid": 96247,
+      "groupExists": false,
+      "descendant": null
+    },
+    {
+      "mode": "wrong-public-entry",
+      "coordinatorPid": 96249,
+      "enginePid": 96250,
+      "groupExists": false,
+      "descendant": null
+    }
+  ],
+  "controlsSatisfied": true
+}

@@ -1,0 +1,17 @@
+{
+  "id": "C09",
+  "expected": "extra field rejected",
+  "observation": {
+    "rejected": true,
+    "reason": {
+      "type": "object",
+      "name": "AssertionError",
+      "message": "RECORD_EXTRA"
+    },
+    "accessorCalls": 0,
+    "actualChildren": 0,
+    "scope": "exact reconciler structural control, not composed engine proof",
+    "expectedObserved": true
+  },
+  "safeToContinue": true
+}

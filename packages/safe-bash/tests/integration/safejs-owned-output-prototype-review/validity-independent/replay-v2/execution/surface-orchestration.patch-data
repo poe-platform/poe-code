@@ -1,0 +1,116 @@
+--- 09ba85cef42898fbc2185d03acc4191f9a4689cd/run.mjs
++++ independent/surface-run.mjs
+@@ -5,9 +5,9 @@
+ import { dirname, join, relative, resolve } from "node:path";
+ import { fileURLToPath } from "node:url";
+ 
+-const owned = dirname(fileURLToPath(import.meta.url));
++const owned = "/private/tmp/safe-bash-independent-v2-inputs-5dho_5db/surface/execution-v2";
+ const surface = dirname(owned);
+-const repository = resolve(surface, "../../../..");
++const repository = "/Users/kjopek/Workspace/safe-bash";
+ const privateRoot = "/Users/kjopek/Workspace/poe-code";
+ const environment = { PATH: "/usr/bin:/bin", LC_ALL: "C", GIT_OPTIONAL_LOCKS: "0" };
+ const hash = bytes => createHash("sha256").update(bytes).digest("hex");
+@@ -70,7 +70,7 @@
+   return state;
+ }
+ 
+-const task = mkdtempSync("/private/tmp/safe-bash-owned-output-surface-execution-v2-");
++const task = mkdtempSync("/private/tmp/safe-bash-independent-surface-v2-");
+ const results = join(task, "results");
+ mkdirSync(results);
+ const journal = { task, started: new Date().toISOString(), status: "PREPARING", children: [], cases: [], copyProvenance: [], failures: [], release: null };
+@@ -78,6 +78,24 @@
+   mkdirSync(dirname(filename), { recursive: true });
+   writeFileSync(filename, typeof value === "string" || Buffer.isBuffer(value) ? value : JSON.stringify(value, null, 2) + "\n", { flag: "wx" });
+ };
++function independentDirectoryShape(roots) {
++  const output = {};
++  for (const root of roots) {
++    const entries = [];
++    const visit = directory => {
++      for (const entry of readdirSync(directory, { withFileTypes: true }).sort((left, right) => left.name.localeCompare(right.name))) {
++        assert.ok(entry.isDirectory() || entry.isFile(), `Nonregular independent input: ${entry.name}`);
++        const filename = join(directory, entry.name);
++        entries.push({ path: relative(root, filename), kind: entry.isDirectory() ? "directory" : "file" });
++        if (entry.isDirectory()) visit(filename);
++      }
++    };
++    visit(root); output[root] = entries;
++  }
++  return output;
++}
++let independentShapes;
++
+ let before;
+ let inputBaseline;
+ let sharedBaseline;
+@@ -227,10 +245,10 @@
+   journal.release = release;
+   const frozenRunner = JSON.parse(regular(join(owned, "RUNNER-FREEZE.json")));
+   for (const entry of frozenRunner.files) assert.equal(hash(regular(join(owned, entry.path))), entry.sha256, entry.path);
+-  const runnerCommit = git(repository, "log", "-1", "--format=%H", "--", relative(repository, join(owned, "RUNNER-FREEZE.json"))).trim();
++  const runnerCommit = "09ba85cef42898fbc2185d03acc4191f9a4689cd";
+   assert.ok(runnerCommit, "Runner must be committed before execution");
+   for (const entry of [...frozenRunner.files, { path: "RUNNER-FREEZE.json", sha256: hash(regular(join(owned, "RUNNER-FREEZE.json"))) }]) {
+-    assert.equal(hash(gitBytes(runnerCommit, relative(repository, join(owned, entry.path)))), entry.sha256);
++    assert.equal(hash(gitBytes(runnerCommit, `tests/integration/safejs-owned-output-prototype-review/surface/execution-v2/${entry.path}`)), entry.sha256);
+   }
+   journal.runnerCommit = runnerCommit;
+   for (const entry of release.receipts) {
+@@ -239,7 +257,7 @@
+     assert.deepEqual(regular(join(repository, entry.path)), bytes);
+   }
+   const freeze = JSON.parse(regular(join(surface, "FREEZE-v2.json")));
+-  assert.deepEqual(regular(join(surface, "FREEZE-v2.json")), gitBytes(release.inputCommit, relative(repository, join(surface, "FREEZE-v2.json"))));
++  assert.deepEqual(regular(join(surface, "FREEZE-v2.json")), gitBytes(release.inputCommit, "tests/integration/safejs-owned-output-prototype-review/surface/FREEZE-v2.json"));
+   for (const entry of freeze.files) assert.equal(hash(regular(join(surface, entry.path))), entry.sha256, entry.path);
+   pins = JSON.parse(regular(join(owned, "PINS.json")));
+   cohort = JSON.parse(regular(join(owned, "CASES.json")));
+@@ -270,7 +288,7 @@
+   assert.deepEqual(bytesOnly(inventory(join(shared, "engine"))), bytesOnly(before.engine));
+   copyTree(join(shared, "candidate"), join(task, "candidate"), candidateEntries);
+   copyTree(join(shared, "consumer/node_modules/virtual-bash"), join(task, "consumer/node_modules/virtual-bash"), consumerEntries);
+-  copyTree(join(privateRoot, "packages/safejs"), join(task, "engine"), bytesOnly(before.engine), new Set(before.qualification.exclusions));
++  copyTree(join(shared, "engine"), join(task, "engine"), bytesOnly(before.engine));
+   for (const tool of provenance.get("assembly.json").tooling) copyTree(join(shared, "node_modules", tool.name), join(task, "node_modules", tool.name), tool.files);
+   const loader = regular(join(shared, "loader.mjs"));
+   assert.equal(hash(loader), pins.tooling.loader.sha256);
+@@ -279,6 +297,8 @@
+   for (const filename of ["CASES.json", "PINS.json", ...cohort.cases.map(entry => entry.source.path)]) put(join(task, "inputs", filename), regular(join(filename === "CASES.json" || filename === "PINS.json" ? owned : surface, filename)));
+   inputRoots = [join(task, "candidate"), join(task, "consumer"), join(task, "engine"), join(task, "node_modules"), join(task, "inputs")];
+   inputBaseline = allInputs(inputRoots);
++  independentShapes = independentDirectoryShape([...inputRoots, ...sharedRoots]);
++  put(join(results, "independent-directory-before.json"), independentShapes);
+   put(join(results, "copy-provenance.json"), journal.copyProvenance);
+   put(join(results, "inputs-before.json"), inputBaseline);
+   const expectedImports = new Map();
+@@ -297,7 +317,7 @@
+     if (identityFindings.length || fieldFindings.length || actual?.engine?.returnValue?.exposurePath) {
+       const finding = { at: new Date().toISOString(), id: selected.id, runnerCommit, source: actual.source, runtimeIdentity: actual.runtimeIdentity, hostPremise: actual.premise, identityFindings, fieldFindings, returned: actual.engine?.returnValue, action: "STOP: finite facts only; no unplanned callback" };
+       put(join(results, "finding.json"), finding);
+-      put("/private/tmp/safe-bash-owned-output-surface-finding.txt", JSON.stringify(finding, null, 2) + "\n");
++      put(join(results, "independent-finding.txt"), JSON.stringify(finding, null, 2) + "\n");
+       console.log("ROOT FINDING " + JSON.stringify(finding));
+       journal.finding = finding;
+       const exactHost = identityFindings.some(entry => entry.path === "stdio.write.registerCleanup"
+@@ -306,7 +326,7 @@
+         || actual.engine?.returnValue?.exposurePath === "stdio.write.registerCleanup" && actual.engine?.returnValue?.type === "function";
+       if (exactHost && exactGuest) {
+         journal.conditionalPremise = { exactHost, exactGuest, findingPublishedBeforeEffect: true };
+-        await childCase(cohort.cases.find(entry => entry.id === "09-conditional-finite-marker"), journal.cohortDeadline, expectedImports);
++        journal.conditionalExecutionRefused = "Independent release authorizes only eight unconditional rows; no extra guest";
+       }
+       break;
+     }
+@@ -325,6 +345,9 @@
+   } catch (error) { journal.failures.push({ phase: "private-after", error: String(error) }); }
+   try {
+     if (inputBaseline) {
++      const shapesAfter = independentDirectoryShape([...inputRoots, ...sharedRoots]);
++      put(join(results, "independent-directory-after.json"), shapesAfter);
++      assert.deepEqual(shapesAfter, independentShapes);
+       const after = allInputs(inputRoots);
+       put(join(results, "inputs-after.json"), after);
+       assert.deepEqual(after, inputBaseline, "Owned input bytes/metadata/new entries changed");

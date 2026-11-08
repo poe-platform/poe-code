@@ -1,0 +1,2 @@
+import {message} from './payload.js';
+process.stdout.write(message+'\n');

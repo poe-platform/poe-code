@@ -1,0 +1,202 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "sourceSha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+  "cases": [
+    {
+      "command": "csvjson",
+      "argv": [
+        "-I",
+        "-y0",
+        "-k",
+        "b"
+      ],
+      "stdin": "a,b\nx,\n",
+      "status": 0,
+      "stdout": "{\"None\": {\"a\": \"x\", \"b\": null}}",
+      "stderr": ""
+    },
+    {
+      "command": "csvjson",
+      "argv": [
+        "-I",
+        "-y0",
+        "--blanks",
+        "-k",
+        "b"
+      ],
+      "stdin": "a,b\nx,None\ny,\n",
+      "status": 0,
+      "stdout": "{\"None\": {\"a\": \"x\", \"b\": \"None\"}, \"\": {\"a\": \"y\", \"b\": \"\"}}",
+      "stderr": ""
+    },
+    {
+      "command": "csvjson",
+      "argv": [
+        "-I",
+        "-y0",
+        "-k",
+        "missing"
+      ],
+      "stdin": "a,b\n",
+      "status": 0,
+      "stdout": "{}",
+      "stderr": ""
+    },
+    {
+      "command": "csvjson",
+      "argv": [
+        "-I",
+        "-y0"
+      ],
+      "stdin": "a,b\nx,y\nz,\n",
+      "status": 0,
+      "stdout": "[{\"a\": \"x\", \"b\": \"y\"}, {\"a\": \"z\", \"b\": null}]",
+      "stderr": ""
+    },
+    {
+      "command": "csvjson",
+      "argv": [
+        "-I",
+        "-y0",
+        "-i2"
+      ],
+      "stdin": "a,b\nx,y\nz,\n",
+      "status": 0,
+      "stdout": "[\n  {\n    \"a\": \"x\",\n    \"b\": \"y\"\n  },\n  {\n    \"a\": \"z\",\n    \"b\": null\n  }\n]",
+      "stderr": ""
+    },
+    {
+      "command": "csvjson",
+      "argv": [
+        "-I",
+        "-y0",
+        "-k",
+        "a"
+      ],
+      "stdin": "a,b\nx,y\nz,w\n",
+      "status": 0,
+      "stdout": "{\"x\": {\"a\": \"x\", \"b\": \"y\"}, \"z\": {\"a\": \"z\", \"b\": \"w\"}}",
+      "stderr": ""
+    },
+    {
+      "command": "csvjson",
+      "argv": [
+        "-I",
+        "-y0",
+        "-k",
+        "a"
+      ],
+      "stdin": "a,b\nx,y\nx,w\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "ValueError: Value x is not unique in the key column.\n"
+    },
+    {
+      "command": "csvjson",
+      "argv": [
+        "-I",
+        "-y0"
+      ],
+      "stdin": "",
+      "status": 0,
+      "stdout": "[]",
+      "stderr": ""
+    },
+    {
+      "command": "csvjson",
+      "argv": [
+        "-I",
+        "-y0"
+      ],
+      "stdin": "a,b\n",
+      "status": 0,
+      "stdout": "[]",
+      "stderr": ""
+    },
+    {
+      "command": "csvjson",
+      "argv": [
+        "-I",
+        "-y0"
+      ],
+      "stdin": "a,b\nx\n",
+      "status": 0,
+      "stdout": "[{\"a\": \"x\", \"b\": null}]",
+      "stderr": ""
+    },
+    {
+      "command": "csvjson",
+      "argv": [
+        "-I",
+        "-y0",
+        "-H",
+        "-l"
+      ],
+      "stdin": "x,y\nz,w\n",
+      "status": 0,
+      "stdout": "[{\"a\": \"x\", \"b\": \"y\"}, {\"a\": \"z\", \"b\": \"w\"}]",
+      "stderr": ""
+    },
+    {
+      "command": "csvjson",
+      "argv": [
+        "-I",
+        "-y0",
+        "--blanks"
+      ],
+      "stdin": "a,b\nnull,\n",
+      "status": 0,
+      "stdout": "[{\"a\": \"null\", \"b\": \"\"}]",
+      "stderr": ""
+    },
+    {
+      "command": "csvjson",
+      "argv": [
+        "-I",
+        "-y0",
+        "-i0"
+      ],
+      "stdin": "a,b\nx,y\n",
+      "status": 0,
+      "stdout": "[\n{\n\"a\": \"x\",\n\"b\": \"y\"\n}\n]",
+      "stderr": ""
+    },
+    {
+      "command": "csvjson",
+      "argv": [
+        "-I",
+        "-y0",
+        "-k",
+        "b"
+      ],
+      "stdin": "a,b\nx,\ny,\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "ValueError: Value None is not unique in the key column.\n"
+    },
+    {
+      "command": "csvjson",
+      "argv": [
+        "-I",
+        "-y0",
+        "-k",
+        "missing"
+      ],
+      "stdin": "a,b\nx,y\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "KeyError: 'missing'\n"
+    },
+    {
+      "command": "csvjson",
+      "argv": [
+        "-I",
+        "-y0"
+      ],
+      "stdin": "a,b\nx,y,z\n",
+      "status": 1,
+      "stdout": "",
+      "stderr": "ValueError: Row 0 has 3 values, but Table only has 2 columns.\n"
+    }
+  ]
+}

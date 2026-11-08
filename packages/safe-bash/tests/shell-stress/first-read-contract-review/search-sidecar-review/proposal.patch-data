@@ -1,0 +1,11 @@
+UNAPPLIED SEARCH-LOCAL PROPOSAL. Requires explicit root ownership transfer.
+No source edits or patched-product tests performed by this sidecar.
+
+--- a/src/commands/search/rg.ts
++++ b/src/commands/search/rg.ts
+@@
+-import { collectBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
++import { collectBytes, readBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
+@@
+-  const source = target.path === "-" ? stdin : fileInput(context, target.path, limits);
++  const source = target.path === "-" ? readBytes(stdin, limits.signal) : fileInput(context, target.path, limits);

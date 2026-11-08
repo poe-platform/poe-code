@@ -1,0 +1,30 @@
+Curie to Poincare — approved minimum identity seam, August 26, 2026.
+
+Implement FileStat.identityScope?: object | symbol, now added in owned contracts.
+Exact semantics are src/contracts/filesystem.md, Point-in-time backing-entry identity.
+No FS source has been touched by Curie. Type tests do not certify runtime guards.
+
+Complete tuple = non-null object/symbol scope + nonnegative safe integer dev+ino.
+Same tuple means same observed backing entry. Same scope/different IDs, or
+different truthful scopes, means distinct at observation time. Different scopes
+must guarantee disjoint universes, NOT per-client/per-adapter partitions of
+possibly overlapping storage. Compare opaque tokens only with ===, never strings.
+Unknown/invalid/partial identity is not proof of distinctness.
+
+Native host scope convention: Symbol.for("virtual-bash.fs.native"). Preserve
+actual native dev/ino and reject unsafe numeric IDs as incomplete. Independent
+memory stores may allocate unique tokens. Wrappers preserve backing tokens and
+IDs, never relabel by wrapper; reassess overlay actual write/copy-up target.
+Unnegotiated remote identities remain unknown; no ETag/hash/per-client fiction.
+
+Existing unknown cross-backend destination: ENOTSUP before source acquisition,
+read or destructive open, unless an authoritative backend-native guard exists.
+Known alias: EINVAL (exclusive EEXIST). Missing destination: actual exclusive
+creation, not check-then-truncate; preserve a concurrently inserted target.
+Point-in-time only: no lease, ABA/path TOCTOU/external-writer guarantee, no
+durable/cross-process identity promise. Do not call the original 3 failures or
+38 required-red guards closed until the unchanged cohorts are actually rerun.
+
+The previous proposal listed a stale HEAD, but the current FileStat still had
+no identityScope at b2d202a. This approval follows current-source inspection.
+Root/user now assign Poincare all FS implementations; Curie keeps contracts.

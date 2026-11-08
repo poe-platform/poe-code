@@ -1,0 +1,91 @@
+{
+  "name": "pending-exit",
+  "pid": 62953,
+  "readyAt": 33.90154099999995,
+  "killed": false,
+  "code": 0,
+  "signal": null,
+  "ipcBytes": 662,
+  "streamBytes": 0,
+  "stderr": "",
+  "events": [
+    {
+      "event": "disconnect",
+      "values": [],
+      "atMs": 62.58458299999995
+    },
+    {
+      "event": "stdout-close"
+    },
+    {
+      "event": "stderr-close"
+    },
+    {
+      "event": "exit",
+      "values": [
+        0,
+        null
+      ],
+      "atMs": 64.67887499999995
+    },
+    {
+      "event": "close",
+      "code": 0,
+      "signal": null,
+      "atMs": 64.68904099999997
+    }
+  ],
+  "messages": [
+    {
+      "type": "ready",
+      "name": "pending-exit"
+    },
+    {
+      "type": "done",
+      "name": "pending-exit",
+      "observations": [],
+      "cleanup": [
+        {
+          "metrics": {
+            "created": 1,
+            "terminated": 1,
+            "requests": 2,
+            "execCalls": 0,
+            "inputBytes": 2,
+            "responseBytes": 0,
+            "startupMs": 25.62275,
+            "workMs": 1.4392079999999936,
+            "terminationMs": 0.20074999999999932,
+            "peakInflight": 1,
+            "listenersAfter": 0,
+            "exitCode": 1
+          },
+          "pending": false,
+          "released": true,
+          "capacity": 0,
+          "threadId": -1,
+          "signalListeners": 0,
+          "workerListeners": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "elapsedMs": 27.564916,
+      "memory": {
+        "rss": 52510720,
+        "heapTotal": 6701056,
+        "heapUsed": 4699040,
+        "external": 1946937,
+        "arrayBuffers": 10698
+      },
+      "flags": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=64",
+        "--stack-size=2048"
+      ]
+    }
+  ]
+}

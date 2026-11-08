@@ -1,0 +1,143 @@
+import { readFileStream } from "safe-bash-contracts/filesystem";
+import { resolvePath } from '@poe-code/safe-fs/core';
+import { commandRuntimeIdentity, getCommandArguments, type CommandContext, type CommandDefinition } from 'safe-bash-contracts/command';
+import { FsError } from 'safe-bash-contracts/errors';
+import { readBytes, writeBytes } from 'safe-bash-contracts/io';
+import { createOutputOperation, type OutputOperation } from 'safe-bash-contracts/output';
+import type { VirtualShellPlugin } from 'safe-bash-contracts/plugin';
+import { Budget, UnrtfError, defaultUnrtfLimits, type UnrtfLimits, type UnrtfOptions } from './contracts.js';
+import { renderRtf } from './render.js';
+
+export interface UnrtfCommandOptions {
+  format?:'text'|'html'|'latex'; file?:string; limits?:Partial<UnrtfLimits>; quiet?:boolean; noremap?:boolean;
+  profile?:UnrtfOptions['profile']; replace?:boolean;
+}
+export interface UnrtfResult { readonly exitCode:0|1 }
+
+async function executeUnrtf(context:CommandContext, configuration:UnrtfCommandOptions = {}, cli = false):Promise<UnrtfResult> {
+  const controller = new AbortController(), signal = controller.signal;
+  const abort = ():void => controller.abort(context.signal.reason);
+  const limits = {...defaultUnrtfLimits,...configuration.limits};
+  let format = configuration.format ?? 'html', file = configuration.file;
+  let profile = configuration.profile, quiet = configuration.quiet, noremap = configuration.noremap;
+  let failed = false;
+  const scope = {signal,...(context.registerCleanup ? {registerCleanup:context.registerCleanup.bind(context)} : {})};
+  let stdout:OutputOperation | undefined, stderr:OutputOperation | undefined;
+  let pending:Promise<void> = Promise.resolve(), closing:Promise<void> | undefined;
+  const cleanup = ():Promise<void> => {
+    if (closing) return closing;
+    closing = Promise.resolve().then(async () => {
+      controller.abort(new UnrtfError('E_CANCELLED','RTF invocation closed',0));
+      await Promise.allSettled([pending]);
+      context.signal.removeEventListener('abort',abort);
+      const results = await Promise.allSettled([stdout?.close(),stderr?.close()]);
+      const errors = results.filter(result => result.status === 'rejected').map(result => result.reason);
+      if (errors.length) throw new AggregateError(errors,'RTF invocation cleanup failed');
+    });
+    return closing;
+  };
+  context.registerCleanup?.(cleanup);
+  pending = Promise.resolve().then(async () => {
+    context.signal.addEventListener('abort',abort,{once:true});
+    if (context.signal.aborted) abort();
+    signal.throwIfAborted();
+    stdout = createOutputOperation(scope,context.stdout);
+    stderr = createOutputOperation(scope,context.stderr);
+    const budget = new Budget({limits,signal});
+    const admit = (value:string):void => {
+      budget.bound('tokenBytes',value.length,0);
+      budget.charge('work',value.length,0);
+      const bytes = new TextEncoder().encode(value).length;
+      budget.bound('tokenBytes',bytes,0); budget.charge('retainedBytes',bytes + value.length * 2,0);
+    };
+    if (cli) {
+      const carrier = getCommandArguments(context);
+      budget.bound('tokens',carrier.args.length,0);
+      file = undefined;
+      let operands = false, expectFormat = false;
+      for (let i = 0; i < carrier.args.length; i++) {
+        const projected = carrier.args[i]!; admit(projected);
+        const bytes = carrier.bytes(i)!;
+        budget.charge('work',bytes.length,0); budget.bound('tokenBytes',bytes.length,0);
+        let arg:string;
+        try { arg = new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(bytes); }
+        catch { throw new UnrtfError('E_ENCODING','Arguments must be UTF-8',0); }
+        if (expectFormat || !operands && arg.startsWith('-t=')) {
+          const value = expectFormat ? arg : arg.slice(3);
+          if (value !== 'text' && value !== 'html' && value !== 'latex') throw new UnrtfError('E_PROFILE','Unsupported output format',0);
+          format = value; expectFormat = false; continue;
+        }
+        if (!operands && arg === '-t') { expectFormat = true; continue; }
+        if (!operands && arg === '--') { operands = true; continue; }
+        if (operands) { if (file !== undefined) throw new UnrtfError('E_PARSE','Only one input file is supported',0); file = arg; }
+        else if (arg === '--text') format = 'text';
+        else if (arg === '--html') format = 'html';
+        else if (arg === '--latex') format = 'latex';
+        else if (arg.startsWith('--profile=')) profile = arg.slice('--profile='.length) as UnrtfOptions['profile'];
+        else if (arg === '--quiet') quiet = true;
+        else if (arg === '--noremap') noremap = true;
+        else if (arg === '--nopict' || arg === '-n') { /* No profile exports pictures. */ }
+        else if (arg.startsWith('--') && arg !== '--' || arg.startsWith('-') && arg !== '-' && arg !== '--') throw new UnrtfError('E_PROFILE','Option requires an unadmitted personality/configuration profile',0);
+        else { if (file !== undefined) throw new UnrtfError('E_PARSE','Only one input file is supported',0); file = arg; }
+      }
+      if (expectFormat) throw new UnrtfError('E_PARSE','Missing output format after -t',0);
+    } else if (file !== undefined) admit(file);
+    if (profile === undefined && (format === 'latex' || noremap)) profile = 'gnu-0.21.10';
+    new Budget({limits,signal,...(profile === undefined ? {} : {profile})});
+    if (format !== 'text' && format !== 'html' && !(profile === 'gnu-0.21.10' && format === 'latex') || noremap && profile !== 'gnu-0.21.10') throw new UnrtfError('E_PROFILE','Option requires the GNU personality profile',0);
+    if (file?.includes('\0')) throw new UnrtfError('E_PARSE','NUL is unavailable in VFS paths',0);
+    let inputBytes = 0;
+    const admitInput = (bytes: Uint8Array): void => {
+      signal.throwIfAborted();
+      context.inputBudget?.check(inputBytes += bytes.byteLength);
+    };
+    async function* source():AsyncGenerator<Uint8Array> {
+      if (file === undefined || file === '-') { for await (const bytes of readBytes(context.stdin,signal)) { admitInput(bytes); yield bytes; } return; }
+      const path = resolvePath(context.cwd,file);
+      for (const candidate of [path,path + '.rtf']) {
+        let yielded = false;
+        try {
+          for await (const bytes of readBytes(readFileStream(context.fs, candidate, { signal,
+            chunkSize: Math.max(1, Math.min(65536, limits.inputBytes, limits.retainedBytes)),
+          }), signal)) { admitInput(bytes); yielded = true; yield bytes; }
+          return;
+        } catch (error) {
+          if (yielded || candidate !== path || !(error instanceof FsError) || error.code !== 'ENOENT') throw error;
+        }
+      }
+    }
+    for await (const bytes of renderRtf(source(),{format,limits,signal,...(quiet === undefined ? {} : {quiet}),...(noremap === undefined ? {} : {noremap}),...(profile === undefined ? {} : {profile})},budget))
+      await writeBytes(stdout.output,bytes,stdout.signal);
+  });
+  try { await pending; return {exitCode:0}; }
+  catch (error) {
+    failed = true;
+    if (signal.aborted) throw error;
+    if (!(error instanceof UnrtfError) && !(error instanceof FsError)) throw error;
+    const message = new TextEncoder().encode('unrtf: ' + error.code + ': ' + error.message + '\n');
+    // Diagnostics are separately bounded, so exhaustion can still be reported.
+    if (message.length > limits.tokenBytes + 1024) throw error;
+    if (!stderr) throw error;
+    await writeBytes(stderr.output,message,stderr.signal);
+    return {exitCode:1};
+  } finally {
+    await cleanup().catch((error:unknown) => { if (!failed) throw error; });
+  }
+}
+/** Stream stdin or one literal VFS file through the strict UTF-8 profile. */
+export const unrtf:(context:CommandContext, options?:UnrtfCommandOptions) => Promise<UnrtfResult> = executeUnrtf;
+export function createUnrtfCommand(options:UnrtfCommandOptions = {}):CommandDefinition {
+  const configuration = Object.freeze({...options,limits:Object.freeze({...options.limits})});
+  return Object.freeze({name:'unrtf',runtimeIdentity:commandRuntimeIdentity,description:'Project bounded RTF byte streams using the strict UTF-8 profile',execute(context:CommandContext) { return executeUnrtf(context,configuration,true); }});
+}
+export const unrtfCommand = createUnrtfCommand();
+export function unrtfCommands(options:UnrtfCommandOptions = {}):VirtualShellPlugin {
+  const command = createUnrtfCommand(options), replace = options.replace ?? false;
+  return {name:'unrtf',setup(host) { host.commands.register(command,{replace}); }};
+}
+
+export type UnrtfCommandsOptions = UnrtfCommandOptions;
+
+export function createUnrtfCommands(options: UnrtfCommandsOptions = {}): readonly CommandDefinition[] {
+    return [createUnrtfCommand(options)];
+}

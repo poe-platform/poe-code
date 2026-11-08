@@ -1,0 +1,22 @@
+{
+  "authority": "BENIGN_BENCHMARK_ONLY_NOT_DEFAULT_ACCEPTANCE",
+  "time": "2026-08-27T08:55:14.708Z",
+  "authorization": "Current explicit root-relayed user assignment authorizes only the prepared ordinary six-command benchmark and the archived 329eb272 baseline. It does not assert original benign green or authorize the risky dispatcher.",
+  "originalPrepared": "7/8 preserved, unrebaselined",
+  "riskyJobs": "four LOCKED; six additional UNUSED",
+  "commandsMaximum": 6,
+  "alternatingPairsMaximum": 3,
+  "commandRetries": 0,
+  "setupOnlyRecovery": 1,
+  "watchdogMs": 30000,
+  "preservedSetupFailure": {
+    "path": "result.json",
+    "sha256": "db3a8c49ea2c44460638a9e45453b0b62de44c9fb6a87046dd70258d8599eded",
+    "commandsStarted": 0,
+    "rootReported": "/tmp/regex-runtime-benchmark-ready.txt",
+    "correction": "Own private package boundary prevents repository package self-reference; no benchmark/observer byte changes."
+  },
+  "outputCapBytes": 16384,
+  "ipcCapBytes": 65536,
+  "defaultAcceptance": false
+}

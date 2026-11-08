@@ -1,0 +1,30 @@
+{
+  "integrityReplay": true,
+  "policyAcceptance": false,
+  "manifestSha256": "16988780a21753128be37222bace55a205d2e0eeb20d27be96cca6f58c74b2ac",
+  "childExitCode": 1,
+  "counts": {
+    "frozenGroups": 12,
+    "uniqueSuppliedHistories": 36,
+    "groupMemberships": 38,
+    "profiles": 4,
+    "predictionAndControlChecks": 94,
+    "failedChecks": 0,
+    "preservedTargetFailures": 6,
+    "permutationChecks": 360,
+    "relationChecks": 1666,
+    "nativeRegexCalls": 0,
+    "workerExecutions": 0,
+    "oldCohortRuns": 0,
+    "historical137Runs": 0
+  },
+  "sourceGuardPaths": 3,
+  "completeArchiveEntryInventoryBeforeAfter": true,
+  "detectsNewFilesDirectoriesSymlinks": true,
+  "liveGuardIsNotAppendProofSourceAudit": true,
+  "childrenSettled": true,
+  "meter": {
+    "work": 38333419,
+    "allocation": 28724875
+  }
+}

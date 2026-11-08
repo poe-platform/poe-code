@@ -1,0 +1,38 @@
+{
+  "baseCommit": "2e6d59787df9d1949d9e342fbd2769cb76240651",
+  "base": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/local-a-v1/runtime-base.data",
+    "bytes": 214992,
+    "sha256": "4265d397ae45c686ec564828b019237a00286ad75ec212f0668667a89149fd42"
+  },
+  "source": {
+    "path": "/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts",
+    "bytes": 218626,
+    "sha256": "d09c19a2f27d66deea9da57ae62cb1d3148db6e434b13dec5b65d5164b1ae670"
+  },
+  "files": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/local-a-v1/PRESEAL.md",
+      "bytes": 1740,
+      "sha256": "24563d90d8fbc268b78a19e6fe75bea058fd2b7fd0e1bd05ac66d67185e4f86a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/local-a-v1/cases.json",
+      "bytes": 1165,
+      "sha256": "44ca411e4ad54241ea23edac489710ecc4f50c51a65a1c375a5f06e29a4abc51"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/local-a-v1/prepare.mjs",
+      "bytes": 1840,
+      "sha256": "b5790eeb83f50aa0afdb58e91afbed3f8cbf577af0dcb66d89578ddba8f4ff56"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/local-a-v1/pure.mjs",
+      "bytes": 4184,
+      "sha256": "ee4ea72dfeb7d8e14ebcc306a887d38ab4d234330513d22b844850dd2e2e51d2"
+    }
+  ],
+  "groups": 20,
+  "fullRuntimeExecutions": 0,
+  "compilerCalls": 0
+}

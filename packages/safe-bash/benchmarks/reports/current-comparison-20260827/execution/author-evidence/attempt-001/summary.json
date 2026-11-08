@@ -1,0 +1,642 @@
+{
+  "schema": "safe-bash.execution-synthetic-checks.v1",
+  "directory": "/private/tmp/safe-bash-execution-author-3bLn2Q",
+  "syntheticOnly": true,
+  "productImports": 0,
+  "nativeCalls": 0,
+  "mainCohortObservations": 0,
+  "counts": {
+    "old224Planned": 896,
+    "breadthPlanned": 136
+  },
+  "checks": [
+    {
+      "mode": "clean",
+      "passed": true,
+      "assessment": {
+        "comparison": {
+          "pass": true,
+          "assertions": [
+            {
+              "field": "stdout",
+              "pass": true
+            },
+            {
+              "field": "stderr",
+              "pass": true
+            },
+            {
+              "field": "exitCode",
+              "pass": true
+            },
+            {
+              "field": "entries",
+              "pass": true
+            }
+          ]
+        },
+        "lifecycle": true,
+        "status": "pass"
+      },
+      "elapsedMs": 103.999,
+      "groupGone": true,
+      "signals": [],
+      "raw": "attempt-001-clean.json"
+    },
+    {
+      "mode": "wrong-output",
+      "passed": true,
+      "assessment": {
+        "comparison": {
+          "pass": false,
+          "assertions": [
+            {
+              "field": "stdout",
+              "pass": false
+            },
+            {
+              "field": "stderr",
+              "pass": true
+            },
+            {
+              "field": "exitCode",
+              "pass": true
+            },
+            {
+              "field": "entries",
+              "pass": true
+            }
+          ]
+        },
+        "lifecycle": true,
+        "status": "fail"
+      },
+      "elapsedMs": 117.007,
+      "groupGone": true,
+      "signals": [],
+      "raw": "attempt-002-wrong-output.json"
+    },
+    {
+      "mode": "wrong-vfs",
+      "passed": true,
+      "assessment": {
+        "comparison": {
+          "pass": false,
+          "assertions": [
+            {
+              "field": "stdout",
+              "pass": true
+            },
+            {
+              "field": "stderr",
+              "pass": true
+            },
+            {
+              "field": "exitCode",
+              "pass": true
+            },
+            {
+              "field": "entries",
+              "pass": false
+            }
+          ]
+        },
+        "lifecycle": true,
+        "status": "fail"
+      },
+      "elapsedMs": 105.393,
+      "groupGone": true,
+      "signals": [],
+      "raw": "attempt-003-wrong-vfs.json"
+    },
+    {
+      "mode": "wrong-status",
+      "passed": true,
+      "assessment": {
+        "comparison": {
+          "pass": false,
+          "assertions": [
+            {
+              "field": "stdout",
+              "pass": true
+            },
+            {
+              "field": "stderr",
+              "pass": true
+            },
+            {
+              "field": "exitCode",
+              "pass": false
+            },
+            {
+              "field": "entries",
+              "pass": true
+            }
+          ]
+        },
+        "lifecycle": true,
+        "status": "fail"
+      },
+      "elapsedMs": 113.839,
+      "groupGone": true,
+      "signals": [],
+      "raw": "attempt-004-wrong-status.json"
+    },
+    {
+      "mode": "leak",
+      "passed": true,
+      "assessment": {
+        "comparison": {
+          "pass": true,
+          "assertions": [
+            {
+              "field": "stdout",
+              "pass": true
+            },
+            {
+              "field": "stderr",
+              "pass": true
+            },
+            {
+              "field": "exitCode",
+              "pass": true
+            },
+            {
+              "field": "entries",
+              "pass": true
+            }
+          ]
+        },
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 287.522,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "raw": "attempt-005-leak.json"
+    },
+    {
+      "mode": "result-crash",
+      "passed": true,
+      "assessment": {
+        "comparison": {
+          "pass": true,
+          "assertions": [
+            {
+              "field": "stdout",
+              "pass": true
+            },
+            {
+              "field": "stderr",
+              "pass": true
+            },
+            {
+              "field": "exitCode",
+              "pass": true
+            },
+            {
+              "field": "entries",
+              "pass": true
+            }
+          ]
+        },
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 165.598,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "raw": "attempt-006-result-crash.json"
+    },
+    {
+      "mode": "crash",
+      "passed": true,
+      "assessment": {
+        "comparison": null,
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 104.83,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "raw": "attempt-007-crash.json"
+    },
+    {
+      "mode": "late-error",
+      "passed": true,
+      "assessment": {
+        "comparison": {
+          "pass": true,
+          "assertions": [
+            {
+              "field": "stdout",
+              "pass": true
+            },
+            {
+              "field": "stderr",
+              "pass": true
+            },
+            {
+              "field": "exitCode",
+              "pass": true
+            },
+            {
+              "field": "entries",
+              "pass": true
+            }
+          ]
+        },
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 137.661,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "raw": "attempt-008-late-error.json"
+    },
+    {
+      "mode": "late-reject",
+      "passed": true,
+      "assessment": {
+        "comparison": null,
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 335.294,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "raw": "attempt-009-late-reject.json"
+    },
+    {
+      "mode": "oversize",
+      "passed": true,
+      "assessment": {
+        "comparison": null,
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 134.214,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "raw": "attempt-010-oversize.json"
+    },
+    {
+      "mode": "diagnostic-flood",
+      "passed": true,
+      "assessment": {
+        "comparison": null,
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 98.59,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "raw": "attempt-011-diagnostic-flood.json"
+    },
+    {
+      "mode": "partial-frame",
+      "passed": true,
+      "assessment": {
+        "comparison": null,
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 92.546,
+      "groupGone": true,
+      "signals": [],
+      "raw": "attempt-012-partial-frame.json"
+    },
+    {
+      "mode": "duplicate",
+      "passed": true,
+      "assessment": {
+        "comparison": {
+          "pass": true,
+          "assertions": [
+            {
+              "field": "stdout",
+              "pass": true
+            },
+            {
+              "field": "stderr",
+              "pass": true
+            },
+            {
+              "field": "exitCode",
+              "pass": true
+            },
+            {
+              "field": "entries",
+              "pass": true
+            }
+          ]
+        },
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 109.003,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "raw": "attempt-013-duplicate.json"
+    },
+    {
+      "mode": "wrong-id",
+      "passed": true,
+      "assessment": {
+        "comparison": null,
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 103.485,
+      "groupGone": true,
+      "signals": [],
+      "raw": "attempt-014-wrong-id.json"
+    },
+    {
+      "mode": "ignore-term",
+      "passed": true,
+      "assessment": {
+        "comparison": null,
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 432.228,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "raw": "attempt-015-ignore-term.json"
+    },
+    {
+      "mode": "coordinator-stall",
+      "passed": true,
+      "assessment": {
+        "comparison": null,
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 2124.141,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM",
+        "SIGKILL"
+      ],
+      "raw": "attempt-016-coordinator-stall.json"
+    },
+    {
+      "mode": "binding-mutated",
+      "passed": true,
+      "assessment": {
+        "comparison": null,
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 103.598,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "raw": "attempt-017-binding-mutated.json"
+    },
+    {
+      "mode": "path-escape",
+      "passed": true,
+      "assessment": {
+        "comparison": null,
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 116.932,
+      "groupGone": true,
+      "signals": [],
+      "raw": "attempt-018-path-escape.json"
+    },
+    {
+      "mode": "binding-clean",
+      "passed": true,
+      "assessment": {
+        "comparison": {
+          "pass": true,
+          "assertions": [
+            {
+              "field": "stdout",
+              "pass": true
+            },
+            {
+              "field": "stderr",
+              "pass": true
+            },
+            {
+              "field": "exitCode",
+              "pass": true
+            },
+            {
+              "field": "entries",
+              "pass": true
+            }
+          ]
+        },
+        "lifecycle": true,
+        "status": "pass"
+      },
+      "elapsedMs": 112.388,
+      "groupGone": true,
+      "signals": [],
+      "raw": "attempt-019-binding-clean.json"
+    }
+  ],
+  "cleanup": [
+    {
+      "mode": "clean",
+      "coordinator": 58776,
+      "engine": 58777,
+      "groupGone": true,
+      "signals": [],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "wrong-output",
+      "coordinator": 58778,
+      "engine": 58780,
+      "groupGone": true,
+      "signals": [],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "wrong-vfs",
+      "coordinator": 58781,
+      "engine": 58782,
+      "groupGone": true,
+      "signals": [],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "wrong-status",
+      "coordinator": 58783,
+      "engine": 58784,
+      "groupGone": true,
+      "signals": [],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "leak",
+      "coordinator": 58785,
+      "engine": 58786,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "result-crash",
+      "coordinator": 58787,
+      "engine": 58788,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "crash",
+      "coordinator": 58789,
+      "engine": 58790,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "late-error",
+      "coordinator": 58791,
+      "engine": 58792,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "late-reject",
+      "coordinator": 58793,
+      "engine": 58794,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "oversize",
+      "coordinator": 58796,
+      "engine": 58797,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "diagnostic-flood",
+      "coordinator": 58799,
+      "engine": 58800,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "partial-frame",
+      "coordinator": 58801,
+      "engine": 58802,
+      "groupGone": true,
+      "signals": [],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "duplicate",
+      "coordinator": 58803,
+      "engine": 58804,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "wrong-id",
+      "coordinator": 58805,
+      "engine": 58806,
+      "groupGone": true,
+      "signals": [],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "ignore-term",
+      "coordinator": 58808,
+      "engine": 58809,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "coordinator-stall",
+      "coordinator": 58812,
+      "engine": 58817,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM",
+        "SIGKILL"
+      ],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "binding-mutated",
+      "coordinator": 58825,
+      "engine": 58826,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "path-escape",
+      "coordinator": 58827,
+      "engine": 58828,
+      "groupGone": true,
+      "signals": [],
+      "groupExistsAtEnd": false
+    },
+    {
+      "mode": "binding-clean",
+      "coordinator": 58829,
+      "engine": 58830,
+      "groupGone": true,
+      "signals": [],
+      "groupExistsAtEnd": false
+    }
+  ],
+  "success": true
+}

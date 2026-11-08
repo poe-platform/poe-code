@@ -1,0 +1,194 @@
+{
+  "patch": {
+    "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+    "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+    "version": "GNU patch 2.8\nCopyright 1989-2025 Free Software Foundation, Inc.\nCopyright 1984-1988 Larry Wall\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Larry Wall and Paul Eggert",
+    "dialect": "gnu",
+    "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00"
+  },
+  "diff": {
+    "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+    "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+    "version": "diff (GNU diffutils) 3.12\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Paul Eggert, Mike Haertel, David Hayes,\nRichard Stallman, and Len Tower.",
+    "dialect": "gnu",
+    "sha256": "f13ef516c397b0281818ffe8685aa763100b56a6549295c91849c6af937a83c9"
+  },
+  "timeoutMs": 3000,
+  "shell": false,
+  "records": [
+    {
+      "probe": {
+        "id": "default-normal-overlapping-old-hunks",
+        "input": "1c1\n< old\n---\n> new\n1c1\n< old\n---\n> new\n",
+        "args": [
+          "--batch",
+          "--fuzz=0",
+          "--no-backup-if-mismatch",
+          "--reject-file=reject",
+          "--",
+          "target"
+        ],
+        "files": {
+          "/sandbox/work/target": "old\nkeep\nend\n",
+          "/sandbox/work/other": "old\n"
+        }
+      },
+      "inputSha256": "0a04ddacac324e09bd5ddae48d545944e1b911f9557458e539cfa54d2faad029",
+      "native": {
+        "exitCode": 1,
+        "stdout": "patching file target\nmisordered hunks! output would be garbled\nHunk #2 FAILED at 1.\n1 out of 2 hunks FAILED -- saving rejects to file reject\n",
+        "stderr": "",
+        "before": [
+          {
+            "path": "/",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/other",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/target",
+            "type": "file",
+            "hex": "6f6c640a6b6565700a656e640a"
+          },
+          {
+            "path": "/sentinel",
+            "type": "file",
+            "hex": "666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a"
+          }
+        ],
+        "after": [
+          {
+            "path": "/",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/other",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/reject",
+            "type": "file",
+            "hex": "2a2a2a202f6465762f6e756c6c0a2d2d2d202f6465762f6e756c6c0a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a0a2a2a2a20310a2d206f6c640a2d2d2d2031202d2d2d2d2d0a2b206e65770a"
+          },
+          {
+            "path": "/sandbox/work/target",
+            "type": "file",
+            "hex": "6e65770a6b6565700a656e640a"
+          },
+          {
+            "path": "/sentinel",
+            "type": "file",
+            "hex": "666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a"
+          }
+        ]
+      }
+    },
+    {
+      "probe": {
+        "id": "default-context-overlapping-hunks",
+        "input": "*** target\n--- target\n***************\n*** 1 ****\n! old\n--- 1 ----\n! new\n***************\n*** 1 ****\n! old\n--- 1 ----\n! new\n",
+        "args": [
+          "--batch",
+          "--fuzz=0",
+          "--no-backup-if-mismatch",
+          "--reject-file=reject",
+          "--",
+          "target"
+        ],
+        "files": {
+          "/sandbox/work/target": "old\nkeep\nend\n",
+          "/sandbox/work/other": "old\n"
+        }
+      },
+      "inputSha256": "c13bdb73a0e9abe0b1ec0b3da5f58721d854c7e435d0004ffc4af74f32c60eae",
+      "native": {
+        "exitCode": 1,
+        "stdout": "patching file target\nmisordered hunks! output would be garbled\nHunk #2 FAILED at 1.\n1 out of 2 hunks FAILED -- saving rejects to file reject\n",
+        "stderr": "",
+        "before": [
+          {
+            "path": "/",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/other",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/target",
+            "type": "file",
+            "hex": "6f6c640a6b6565700a656e640a"
+          },
+          {
+            "path": "/sentinel",
+            "type": "file",
+            "hex": "666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a"
+          }
+        ],
+        "after": [
+          {
+            "path": "/",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/other",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/reject",
+            "type": "file",
+            "hex": "2a2a2a207461726765740a2d2d2d207461726765740a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a0a2a2a2a2031202a2a2a2a0a21206f6c640a2d2d2d2031202d2d2d2d0a21206e65770a"
+          },
+          {
+            "path": "/sandbox/work/target",
+            "type": "file",
+            "hex": "6e65770a6b6565700a656e640a"
+          },
+          {
+            "path": "/sentinel",
+            "type": "file",
+            "hex": "666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a"
+          }
+        ]
+      }
+    }
+  ]
+}

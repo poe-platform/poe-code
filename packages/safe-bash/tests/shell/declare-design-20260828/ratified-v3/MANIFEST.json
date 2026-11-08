@@ -1,0 +1,335 @@
+{
+  "schema": "virtual-bash-declare-author-ratified-v3",
+  "status": "DESIGN_ONLY_PREPARED_NOT_EXECUTED",
+  "date": "2026-08-28",
+  "ownership": "tests/shell/declare-design-20260828/ratified-v3/**",
+  "authority": {
+    "ratificationCommit": "7719f39e416a401588c83d355888f6b82202c109",
+    "ratificationPath": "tests/shell/declare-independent-20260828/ratification-v3/RATIFIED.md",
+    "ratificationSha256": "542b2a7013d343643cc703205cafe1cb9faba473e00730b81f2727d091a397bd",
+    "incorporatedPolicyCommit": "3d340bbdddcda6573abfcaae49d5c9268ee531b8",
+    "incorporatedPolicySha256": "64cac3896982586d0748f4e2040d221d880aa45b16877d64e5ab70d53f07984a",
+    "labels": {
+      "R": "Explicit ROOT ratification and its incorporated phase/status profile",
+      "I": "Inherited contracts; historical ROOT attribution remains attributed",
+      "A": "Unchanged author design carried forward in this complete revision; not separately ratified user mandate"
+    },
+    "coordination": {
+      "file": "ROOT-RESPONSE.txt",
+      "sha256": "fe0784920f52356861fabe2d80ac58895a23f538dff9caeeec6ce612ece41cfc",
+      "isNewNormativeRatification": false
+    }
+  },
+  "source": {
+    "commit": "c0adae539c736db0e4023d401562ce958d9ebb00",
+    "repositoryTree": "d58b443e477e7b5127ea93dc30f8e8b84f16c783",
+    "selectedCompositionTree": "30f88590b66b88dc9694a56c85f1ee690f02218b",
+    "compositionStatus": "INHERITED_RECEIPT_NOT_RECONSTRUCTED",
+    "packageFiles": 862,
+    "packageBytes": 787736,
+    "packageSha256": "e12ed19882b6722503a8fb962ca88e0d6c40300a7e76acc3f81aef5961e0a3a3",
+    "packageStatus": "FROZEN_UNACCEPTED_NOT_EXTRACTED_OR_REHASHED",
+    "reviewOwner": "Plato",
+    "actualProductionWrites": []
+  },
+  "semanticMatrix": {
+    "file": "MATRIX.md",
+    "rowIds": [
+      "V01",
+      "V02",
+      "V03",
+      "V04",
+      "V05",
+      "V06",
+      "V07",
+      "V08",
+      "V09",
+      "V10",
+      "V11",
+      "V12",
+      "V13",
+      "V14",
+      "V15",
+      "V16",
+      "V17",
+      "V18",
+      "V19",
+      "V20",
+      "V21",
+      "V22",
+      "V23",
+      "V24",
+      "V25",
+      "V26",
+      "V27",
+      "V28",
+      "V29",
+      "V30",
+      "V31",
+      "V32",
+      "V33",
+      "V34",
+      "V35",
+      "V36",
+      "V37",
+      "V38",
+      "V39",
+      "V40",
+      "V41",
+      "V42",
+      "V43",
+      "V44",
+      "V45",
+      "V46",
+      "V47",
+      "V48",
+      "V49",
+      "V50",
+      "V51",
+      "V52",
+      "V53",
+      "V54",
+      "V55",
+      "V56",
+      "V57",
+      "V58",
+      "V59",
+      "V60",
+      "V61",
+      "V62",
+      "V63",
+      "V64"
+    ],
+    "count": 64,
+    "status": "REQUIRED_FUTURE_PROOF_NOT_EXECUTED",
+    "passes": null
+  },
+  "historicalProfile": {
+    "path": "tests/shell/declare-design-20260828/MANIFEST.json",
+    "sha256": "c590980a8da12b2c5670e8482ee46b6680f447e3454dc7a99e51c35d5adc3a83",
+    "semanticRows": 40,
+    "nativePreparedRows": 8,
+    "scriptBytes": 2455,
+    "immutable": true,
+    "notRerun": true,
+    "oldRootCensusStatus": "HISTORICAL_NOT_RERUN_OR_WIDENED"
+  },
+  "dataClassification": {
+    "nativePrepared": "Inert UTF-8 txt data, never canonical TypeScript input or executable fixture",
+    "metadata": "JSON and Markdown only; no supervisor/harness or imports",
+    "discoveryOrExclusionChanges": []
+  },
+  "binary": {
+    "path": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+    "bytes": 1395864,
+    "modeOctal": "0755",
+    "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+    "identityStatus": "HISTORICAL_PIN_NOT_REQUALIFIED"
+  },
+  "manual": {
+    "path": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/bash-5.3/doc/bashref.texi",
+    "bytes": 415804,
+    "modeOctal": "0644",
+    "sha256": "f3d37d57a1061e24d266051de9bd47ffa43dc86584afea11576c535ad2be32d5",
+    "identityStatus": "HISTORICAL_PIN_NOT_REQUALIFIED",
+    "officialEdition": "5.3",
+    "editionUpdated": "2025-05-18",
+    "officialWebAccessed": "2026-08-28"
+  },
+  "launch": {
+    "executableIsBinaryPath": true,
+    "argvTemplate": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "<EXACT_ROW_FILE_UTF8_INCLUDING_FINAL_LF>",
+      "declare-native-ratified-v3"
+    ],
+    "shell": false,
+    "detached": true,
+    "cwd": "<ROOT>",
+    "stdin": "PIPE_CLOSED_TO_EOF",
+    "environmentReplacement": {
+      "PATH": "",
+      "HOME": "<ROOT>/home",
+      "TMPDIR": "<ROOT>/tmp",
+      "LANG": "C",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    },
+    "requiredAbsentEnvironmentKeys": [
+      "BASH_ENV",
+      "ENV",
+      "SHELLOPTS",
+      "BASHOPTS",
+      "CDPATH"
+    ]
+  },
+  "fixture": {
+    "rootTemplate": "/private/tmp/virtual-bash-declare-native-ratified-v3-<32-lowercase-hex-digits>",
+    "exclusive": true,
+    "collisionRetries": 0,
+    "modeOctal": "0700",
+    "children": [
+      {
+        "name": "home",
+        "modeOctal": "0700"
+      },
+      {
+        "name": "tmp",
+        "modeOctal": "0700"
+      }
+    ],
+    "externalFixtureAccess": false,
+    "scriptFilesystemEffects": false,
+    "captureTemplate": "tests/shell/declare-design-20260828/native-captures-ratified-v3/<same-suffix>",
+    "captureCurrentlyAuthorized": false,
+    "allocatedNow": false
+  },
+  "limits": {
+    "maxNativeLaunchAttempts": 4,
+    "maxNativeSuccessfulSpawns": 4,
+    "maxAllSupervisedProcessStarts": 6,
+    "maxNodeSupervisorStarts": 1,
+    "maxNodeWatchdogStarts": 1,
+    "maxOtherProcessStarts": 0,
+    "descendantProcessAllowance": 0,
+    "concurrency": 1,
+    "retries": 0,
+    "replacements": 0,
+    "maxScriptBytesEach": 1024,
+    "maxScriptBytesTotal": 4096,
+    "actualScriptBytesTotal": 1044,
+    "maxStdoutBytesEach": 8192,
+    "maxStderrBytesEach": 8192,
+    "maxOutputBytesTotal": 65536,
+    "executeDeadlineMsEach": 2000,
+    "termAtMs": 2000,
+    "killAtMs": 2250,
+    "terminalReportingDeadlineMsEach": 3000,
+    "acquisitionDeadlineMs": 5000,
+    "finalAuthenticationDeadlineMs": 5000,
+    "cleanupDeadlineMs": 5000,
+    "absoluteCohortDeadlineMs": 45000
+  },
+  "failClosed": {
+    "stopOnIdentityOrProtocolDrift": true,
+    "noFallback": true,
+    "noToolVersionOrHelpExecution": true,
+    "noEvalOrSource": true,
+    "noHostSubprocessesInsideScripts": true,
+    "noPartialResume": true,
+    "requireRealExitAndClose": true,
+    "requireGroupAbsentAfterCloseAndFinal": true,
+    "missingSettlementStatus": "STOPPED_UNREAPED",
+    "futureCensusIncludesNewEntries": true,
+    "oldCensusExclusionUnchanged": true
+  },
+  "supervisor": {
+    "implemented": false,
+    "approved": false,
+    "requiredSpecification": "NATIVE-RECIPE.md",
+    "futureExplicitRootGoRequired": true,
+    "futureControlSealRequired": true,
+    "exactNodeSupervisorWatchdogIdentitiesSealedNow": false,
+    "executableFilesSupplied": []
+  },
+  "rows": [
+    {
+      "id": "V301",
+      "file": "native-prepared/V301.txt",
+      "bytes": 200,
+      "sha256": "783a903e5d0d57f9a31a7ab219341b05af6560c45b2e0e60fb3b0c2b46db5265",
+      "question": "Named-p +x ignore versus unsupported +a and unnamed +x",
+      "ratificationIds": [
+        "P1"
+      ],
+      "status": "PREPARED_ONLY",
+      "semanticExpectedStdout": null,
+      "semanticExpectedStderr": null,
+      "semanticExpectedBuiltinStatuses": null,
+      "terminalProtocol": {
+        "directExitCode": 0,
+        "signal": null,
+        "finalStdoutLine": "END V301\n",
+        "isSemanticExpectation": false
+      }
+    },
+    {
+      "id": "V302",
+      "file": "native-prepared/V302.txt",
+      "bytes": 269,
+      "sha256": "350ebd9910e594b19d899ee44b0c672a12ed49fdd5ce45055bfde8b6c1f0a475",
+      "question": "Exported-unset entry guard, separate clear and requested indexed cancelled-x",
+      "ratificationIds": [
+        "P2"
+      ],
+      "status": "PREPARED_ONLY",
+      "semanticExpectedStdout": null,
+      "semanticExpectedStderr": null,
+      "semanticExpectedBuiltinStatuses": null,
+      "terminalProtocol": {
+        "directExitCode": 0,
+        "signal": null,
+        "finalStdoutLine": "END V302\n",
+        "isSemanticExpectation": false
+      }
+    },
+    {
+      "id": "V303",
+      "file": "native-prepared/V303.txt",
+      "bytes": 309,
+      "sha256": "07bbde15be520ec0e76723970f342a1d09c5bdd9a7863966099c43aafd29c4e3",
+      "question": "Nested caller-local unset then nested redeclaration and restoration",
+      "ratificationIds": [
+        "P3"
+      ],
+      "status": "PREPARED_ONLY",
+      "semanticExpectedStdout": null,
+      "semanticExpectedStderr": null,
+      "semanticExpectedBuiltinStatuses": null,
+      "terminalProtocol": {
+        "directExitCode": 0,
+        "signal": null,
+        "finalStdoutLine": "END V303\n",
+        "isSemanticExpectation": false
+      }
+    },
+    {
+      "id": "V304",
+      "file": "native-prepared/V304.txt",
+      "bytes": 266,
+      "sha256": "3db920bdab7dad0c1e36e0d428c30da5e549d662803f502096a4592d8d32766c",
+      "question": "Sticky scalar/missing-query refusal and readonly duplicate publication",
+      "ratificationIds": [
+        "P1",
+        "P4"
+      ],
+      "status": "PREPARED_ONLY",
+      "semanticExpectedStdout": null,
+      "semanticExpectedStderr": null,
+      "semanticExpectedBuiltinStatuses": null,
+      "terminalProtocol": {
+        "directExitCode": 0,
+        "signal": null,
+        "finalStdoutLine": "END V304\n",
+        "isSemanticExpectation": false
+      }
+    }
+  ],
+  "executions": {
+    "native": 0,
+    "product": 0,
+    "tests": 0,
+    "builds": 0,
+    "privateModules": 0,
+    "network": 0
+  },
+  "seal": {
+    "authentication": "AUTHENTICATION.json",
+    "payloadHashes": "HASHES.json",
+    "manifestSelfBinding": "HASHES.json binds exact MANIFEST.json bytes; HASHES.json is nonrecursively bound by its Git blob and the explicit owned documentation commit",
+    "referencesBoundIn": "AUTHENTICATION.json",
+    "oldRootHashesModified": false
+  }
+}

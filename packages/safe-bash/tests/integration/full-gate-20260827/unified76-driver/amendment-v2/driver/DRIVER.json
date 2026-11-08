@@ -1,0 +1,21 @@
+{
+  "schema": 2,
+  "candidate": "2ffcb23d6029250c48950030120ed0adad2e5769",
+  "profileSha256": "2fdedfe701553059038b0c4530574e8e3ec1874485bb99c4779ae2a94d6a7969",
+  "files": {
+    "CANDIDATE.json": "fe746b7f0c59f912c4f45e3e936564a52bde4350ff52db0560503abe2227f140",
+    "PROFILE.json.gz.base64": "1517de07a4804ba37f45428df3041efa89ba6406019dd94ac9ab4283b60290d4",
+    "PROFILE-RECEIPT.json": "77950f0781f791aab62cde58c111aca1daf0f0aadf1de413273b8f5e60760b2f",
+    "common.mjs": "69891096b119b013a863c58da0ce98f4a179032f9ae9c13ad79ef17264b1d62d",
+    "profile.mjs": "993790dbb6468d8f8769dc572599a1a2219e9628caebd36102a1406d2492f9f7",
+    "admission.mjs": "0cce85ae5b383aab16feb417c8ba31ffa371cc7806ce740e50597d7e2a135890",
+    "inventory.mjs": "075b6b0bc2f2f28de164248f51e1a8de5c48c78a7329021bcff5793beec9c4a2",
+    "run.mjs": "f7cd826f3da5bac74daf362b4a933fb682dfa3cdfc117183c5f8df55553e0d8a",
+    "public.mjs": "0e0398d2163368cfefd36fb3d5c50b7090aaf5f768271d518f6708daa37d1e70",
+    "consumer.mts.fixture": "8a9061761d0e22f2bc534ccbebc40a57393a907b9c4885977e8f6eccd9ebd9ba",
+    "negative.mts.fixture": "03c4aa908881ccdb3fd15ad5e752578dcd7713d50414089192c8b07b433f31a3"
+  },
+  "status": "AUTHOR_AMENDMENT_PENDING_DIFFERENT_REVIEW_AND_ROOT_RELEASE",
+  "previousDriver": "86f75025b423f9d25a9dbcb35d07e73e95d33f9d",
+  "fullGateLaunched": false
+}

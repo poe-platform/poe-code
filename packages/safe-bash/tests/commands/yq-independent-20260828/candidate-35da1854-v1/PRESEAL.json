@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "purpose": "PRE_MATERIALIZATION_DATA_ONLY_RECIPE",
+  "executionCommand": "node tests/commands/yq-independent-20260828/candidate-35da1854-v1/admit-data.mjs ROOT_ROUTED_PRESEAL_SHA256",
+  "files": {
+    "PRESEAL.md": {
+      "sha256": "87275436c926a1a42568fd66bae5bd5bd955645b9ccb5865a06e640c2f91243c",
+      "bytes": 8714,
+      "mode": 420
+    },
+    "admit-data.mjs": {
+      "sha256": "61622adcb914d3536b2d1c4c0501e08ca865300ee54a1ecf9e82433c332af792",
+      "bytes": 34337,
+      "mode": 420
+    }
+  },
+  "productExecutionAuthorized": false,
+  "onePassOnly": true
+}

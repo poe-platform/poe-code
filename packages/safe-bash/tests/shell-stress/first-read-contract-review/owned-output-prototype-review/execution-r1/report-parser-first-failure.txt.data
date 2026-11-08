@@ -1,0 +1,5 @@
+Post-execution reporting attempt failed before copying evidence:
+SyntaxError: Expected ',' or '}' after property value in JSON at position 169 (line 1 column 170)
+at finalize.mjs.data:43 while parsing a node:test TAP diagnostic with doubly escaped nested stdout.
+Node.js v22.22.2; exit 1. No test execution, candidate mutation, or assertion change occurred.
+Correction reads only the simple unescaped process-status prefix up to ,"stdout". Full raw TAP bytes remain unmodified in original-five-and-head-zero.stdout.data and its JSON capture. This is report parsing, not a product/harness rerun.

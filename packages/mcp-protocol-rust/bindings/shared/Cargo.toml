@@ -1,0 +1,11 @@
+[package]
+name = "mcp-protocol-rust-napi-core"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.88"
+license = "MIT"
+description = "Shared Node-API value conversion for additive MCP Rust bindings"
+
+[dependencies]
+mcp-protocol-rust = { path = "../.." }
+napi = { version = "=3.12.6", default-features = false, features = ["napi6"] }

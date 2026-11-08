@@ -1,0 +1,67 @@
+{
+  "schema": "preparation-packet-seal-v1",
+  "sealedAt": "2026-08-28T09:05:05.770Z",
+  "scope": "proposal-only; independent pre-execution freeze pending",
+  "files": [
+    {
+      "path": "BINDINGS.json",
+      "bytes": 11366,
+      "mode": 420,
+      "sha256": "d75356103715a979d786e903bd1739b26e95cc2d3bb849e4c1b6fa0e70ea52b3"
+    },
+    {
+      "path": "CONTROLS.json",
+      "bytes": 4890,
+      "mode": 420,
+      "sha256": "badc7f0bbd70ba2b12aa34d6aa1ed69665eec8aeb466a44673b11fc89fd4baaa"
+    },
+    {
+      "path": "ELIGIBILITY.json",
+      "bytes": 52493,
+      "mode": 420,
+      "sha256": "26b35af48c7b2335e00a337d5c5724a48488f3abee974d68311673f3f4204aad"
+    },
+    {
+      "path": "EXECUTION.md",
+      "bytes": 8166,
+      "mode": 420,
+      "sha256": "06016c427af92b91a2d50833a22f9ffb75bc4d09058fb3881d0ade5d7c20ec5a"
+    },
+    {
+      "path": "LEGACY-RECIPES.json",
+      "bytes": 31425,
+      "mode": 420,
+      "sha256": "0abf11b0d43532bad7038c9d26d65712c9f877dfbda9517537c0235709e29d7f"
+    },
+    {
+      "path": "READINESS.json",
+      "bytes": 9887,
+      "mode": 420,
+      "sha256": "fb4eebfb1246bd25d9f56776b4415725073fd0e5b9a10644e36dbcc6a08887a6"
+    },
+    {
+      "path": "README.md",
+      "bytes": 4027,
+      "mode": 420,
+      "sha256": "6b90439b33ba84e534094078c8f53a9356f96d2eda0f414cf6f81ecce4f35513"
+    },
+    {
+      "path": "VALIDATION.json",
+      "bytes": 927,
+      "mode": 420,
+      "sha256": "3f86830a4e934dcb048dc28e29044298ab51ee64c261e819734a6d1a13034170"
+    },
+    {
+      "path": "WORKFLOWS.json",
+      "bytes": 12679,
+      "mode": 420,
+      "sha256": "4349becef09b9b01487190ed6356dae7083b177771c153b102c72341f8a427d1"
+    },
+    {
+      "path": "verify.mjs",
+      "bytes": 8991,
+      "mode": 420,
+      "sha256": "d9c4a54619c9a5d0fbfe8046862d276beb5b612a3efac049332f963d2a08d883"
+    }
+  ]
+}

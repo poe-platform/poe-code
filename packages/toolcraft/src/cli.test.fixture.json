@@ -1,0 +1,57 @@
+[
+  {
+    "name": "first scenario",
+    "services": {
+      "fetch": [
+        {
+          "request": {
+            "method": "GET",
+            "url": "https://example.com/items"
+          },
+          "response": {
+            "status": 200,
+            "body": {
+              "scenario": "one"
+            }
+          }
+        }
+      ],
+      "fs": {
+        "readFile": {
+          "/config.json": "scenario one"
+        }
+      }
+    }
+  },
+  {
+    "name": "named scenario",
+    "services": {
+      "fetch": [
+        {
+          "request": {
+            "method": "GET",
+            "url": "https://example.com/items"
+          },
+          "response": {
+            "status": 200,
+            "body": {
+              "scenario": "named"
+            }
+          }
+        }
+      ],
+      "fs": {
+        "exists": {
+          "/config.json": true
+        },
+        "readFile": {
+          "/config.json": "named file"
+        }
+      }
+    }
+  },
+  {
+    "name": "no-op fallback",
+    "services": {}
+  }
+]

@@ -1,0 +1,17 @@
+import type { FormatDescriptor } from "../formats.js";
+import { htmlReader } from "../html.js";
+export default {
+  reader: htmlReader,
+  name: "html",
+  aliases: { read: ["html5"] },
+  read: true,
+  write: false,
+  media: "text",
+  inputEncoding: "utf8",
+  suffixes: ["html", "htm"],
+  extensions: {},
+  options: {
+    read: [],
+    write: []
+  }
+} satisfies FormatDescriptor;

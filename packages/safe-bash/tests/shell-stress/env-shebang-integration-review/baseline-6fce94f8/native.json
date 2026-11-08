@@ -1,0 +1,3208 @@
+[
+  {
+    "id": "s01",
+    "kind": "shebang",
+    "inputSha256": "eb72ff649ad1b78fccddfdeaf956bed27d49d123527b0adf8ac972389429fd0f",
+    "input": {
+      "id": "s01",
+      "category": "plain VFS Bash dispatch and positional binding",
+      "kind": "shebang",
+      "header": "/usr/bin/env bash",
+      "body": "printf \"<%s>|<%s>|<%s>\\n\" \"$0\" \"$#\" \"$1\"\n",
+      "expected": {
+        "status": 0,
+        "stdout": "<./script>|<1>|<a b>\n",
+        "stderr": "",
+        "effect": "seed"
+      },
+      "args": [
+        "a b"
+      ],
+      "scriptPath": "./script",
+      "files": {
+        "script": {
+          "text": "#!/usr/bin/env bash\nprintf \"<%s>|<%s>|<%s>\\n\" \"$0\" \"$#\" \"$1\"\n",
+          "mode": 493
+        },
+        "effect": {
+          "text": "seed",
+          "mode": 420
+        },
+        "sub/effect": {
+          "text": "seed",
+          "mode": 420
+        }
+      }
+    },
+    "env": {
+      "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+      "LC_ALL": "C",
+      "TOKEN": "two words",
+      "DROP": "parent",
+      "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s01"
+    },
+    "oracle": {
+      "profile": "Linux-optional-argv-model-GNU-env-on-Darwin",
+      "invocation": {
+        "file": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+        "args": [
+          "bash",
+          "./script",
+          "a b"
+        ],
+        "cwd": "/tmp/env-shebang-review-sDRaI8/cases/s01",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s01"
+        },
+        "stdinBase64": ""
+      },
+      "pid": 17341,
+      "status": 0,
+      "signal": null,
+      "timeout": false,
+      "overflow": false,
+      "stdout": "PC4vc2NyaXB0Pnw8MT58PGEgYj4K",
+      "stderr": "",
+      "effects": [
+        {
+          "path": "effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        },
+        {
+          "path": "script",
+          "type": "file",
+          "mode": 493,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgYmFzaApwcmludGYgIjwlcz58PCVzPnw8JXM+XG4iICIkMCIgIiQjIiAiJDEiCg=="
+        },
+        {
+          "path": "sub",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "sub/effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        }
+      ]
+    },
+    "kernel": {
+      "profile": "actual-Darwin-kernel-Apple-env-GNU-Bash-PATH",
+      "invocation": {
+        "file": "/tmp/env-shebang-review-sDRaI8/cases/s01/script",
+        "args": [
+          "a b"
+        ],
+        "cwd": "/tmp/env-shebang-review-sDRaI8/cases/s01",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s01"
+        },
+        "stdinBase64": ""
+      },
+      "pid": 17342,
+      "status": 0,
+      "signal": null,
+      "timeout": false,
+      "overflow": false,
+      "stdout": "PC90bXAvZW52LXNoZWJhbmctcmV2aWV3LXNEUmFJOC9jYXNlcy9zMDEvc2NyaXB0Pnw8MT58PGEgYj4K",
+      "stderr": "",
+      "effects": [
+        {
+          "path": "effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        },
+        {
+          "path": "script",
+          "type": "file",
+          "mode": 493,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgYmFzaApwcmludGYgIjwlcz58PCVzPnw8JXM+XG4iICIkMCIgIiQjIiAiJDEiCg=="
+        },
+        {
+          "path": "sub",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "sub/effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        }
+      ]
+    }
+  },
+  {
+    "id": "s02",
+    "kind": "shebang",
+    "inputSha256": "b894fba9f5ccb9e7b5b10806c60aee2e41b9dda5573fa8ae93c92fe7f4f9e39c",
+    "input": {
+      "id": "s02",
+      "category": "unknown non-env interpreter refuses body",
+      "kind": "shebang",
+      "header": "/no-such-review-interpreter",
+      "body": "printf unsafe > effect\n",
+      "expected": {
+        "status": 126,
+        "stdout": "",
+        "diagnostic": "unsupported interpreter: /no-such-review-interpreter",
+        "effect": "seed"
+      },
+      "args": [],
+      "native": "kernel-only-not-env-reference",
+      "scriptPath": "./script",
+      "files": {
+        "script": {
+          "text": "#!/no-such-review-interpreter\nprintf unsafe > effect\n",
+          "mode": 493
+        },
+        "effect": {
+          "text": "seed",
+          "mode": 420
+        },
+        "sub/effect": {
+          "text": "seed",
+          "mode": 420
+        }
+      }
+    },
+    "env": {
+      "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+      "LC_ALL": "C",
+      "TOKEN": "two words",
+      "DROP": "parent",
+      "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s02"
+    },
+    "oracle": {
+      "unavailable": true,
+      "reason": "kernel-only-not-env-reference"
+    },
+    "kernel": {
+      "profile": "actual-Darwin-kernel-Apple-env-GNU-Bash-PATH",
+      "invocation": {
+        "file": "/tmp/env-shebang-review-sDRaI8/cases/s02/script",
+        "args": [],
+        "cwd": "/tmp/env-shebang-review-sDRaI8/cases/s02",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s02"
+        },
+        "stdinBase64": ""
+      },
+      "status": -2,
+      "signal": null,
+      "timeout": false,
+      "overflow": false,
+      "error": {
+        "code": "ENOENT",
+        "message": "spawn /tmp/env-shebang-review-sDRaI8/cases/s02/script ENOENT"
+      },
+      "stdout": "",
+      "stderr": "",
+      "effects": [
+        {
+          "path": "effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        },
+        {
+          "path": "script",
+          "type": "file",
+          "mode": 493,
+          "base64": "IyEvbm8tc3VjaC1yZXZpZXctaW50ZXJwcmV0ZXIKcHJpbnRmIHVuc2FmZSA+IGVmZmVjdAo="
+        },
+        {
+          "path": "sub",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "sub/effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        }
+      ]
+    }
+  },
+  {
+    "id": "s03",
+    "kind": "shebang",
+    "inputSha256": "ca4db2370d6617f185f913ce539d4e8904744fb55549331e0bce9fac7e5af46e",
+    "input": {
+      "id": "s03",
+      "category": "Linux non-S entire optional argument stays literal",
+      "kind": "shebang",
+      "header": "/usr/bin/env bash -e",
+      "body": "printf before > effect\nfalse\nprintf after > effect\n",
+      "expected": {
+        "status": 127,
+        "stdout": "",
+        "diagnostic": "bash -e: command not found",
+        "effect": "seed"
+      },
+      "args": [],
+      "scriptPath": "./script",
+      "files": {
+        "script": {
+          "text": "#!/usr/bin/env bash -e\nprintf before > effect\nfalse\nprintf after > effect\n",
+          "mode": 493
+        },
+        "effect": {
+          "text": "seed",
+          "mode": 420
+        },
+        "sub/effect": {
+          "text": "seed",
+          "mode": 420
+        }
+      }
+    },
+    "env": {
+      "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+      "LC_ALL": "C",
+      "TOKEN": "two words",
+      "DROP": "parent",
+      "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s03"
+    },
+    "oracle": {
+      "profile": "Linux-optional-argv-model-GNU-env-on-Darwin",
+      "invocation": {
+        "file": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+        "args": [
+          "bash -e",
+          "./script"
+        ],
+        "cwd": "/tmp/env-shebang-review-sDRaI8/cases/s03",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s03"
+        },
+        "stdinBase64": ""
+      },
+      "pid": 17344,
+      "status": 127,
+      "signal": null,
+      "timeout": false,
+      "overflow": false,
+      "stdout": "",
+      "stderr": "ZW52OiAnYmFzaCAtZSc6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkKZW52OiB1c2UgLVt2XVMgdG8gcGFzcyBvcHRpb25zIGluIHNoZWJhbmcgbGluZXMK",
+      "effects": [
+        {
+          "path": "effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        },
+        {
+          "path": "script",
+          "type": "file",
+          "mode": 493,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgYmFzaCAtZQpwcmludGYgYmVmb3JlID4gZWZmZWN0CmZhbHNlCnByaW50ZiBhZnRlciA+IGVmZmVjdAo="
+        },
+        {
+          "path": "sub",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "sub/effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        }
+      ]
+    },
+    "kernel": {
+      "profile": "actual-Darwin-kernel-Apple-env-GNU-Bash-PATH",
+      "invocation": {
+        "file": "/tmp/env-shebang-review-sDRaI8/cases/s03/script",
+        "args": [],
+        "cwd": "/tmp/env-shebang-review-sDRaI8/cases/s03",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s03"
+        },
+        "stdinBase64": ""
+      },
+      "pid": 17345,
+      "status": 1,
+      "signal": null,
+      "timeout": false,
+      "overflow": false,
+      "stdout": "",
+      "stderr": "",
+      "effects": [
+        {
+          "path": "effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "YmVmb3Jl"
+        },
+        {
+          "path": "script",
+          "type": "file",
+          "mode": 493,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgYmFzaCAtZQpwcmludGYgYmVmb3JlID4gZWZmZWN0CmZhbHNlCnByaW50ZiBhZnRlciA+IGVmZmVjdAo="
+        },
+        {
+          "path": "sub",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "sub/effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        }
+      ]
+    }
+  },
+  {
+    "id": "s04",
+    "kind": "shebang",
+    "inputSha256": "0a487b0df006c198796b770e0ded1c999c006051d0535fec01cd88c3604f02b2",
+    "input": {
+      "id": "s04",
+      "category": "split Bash errexit stops effects",
+      "kind": "shebang",
+      "header": "/usr/bin/env -S bash -e",
+      "body": "printf before > effect\nfalse\nprintf after > effect\n",
+      "expected": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "",
+        "effect": "before"
+      },
+      "args": [],
+      "scriptPath": "./script",
+      "files": {
+        "script": {
+          "text": "#!/usr/bin/env -S bash -e\nprintf before > effect\nfalse\nprintf after > effect\n",
+          "mode": 493
+        },
+        "effect": {
+          "text": "seed",
+          "mode": 420
+        },
+        "sub/effect": {
+          "text": "seed",
+          "mode": 420
+        }
+      }
+    },
+    "env": {
+      "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+      "LC_ALL": "C",
+      "TOKEN": "two words",
+      "DROP": "parent",
+      "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s04"
+    },
+    "oracle": {
+      "profile": "Linux-optional-argv-model-GNU-env-on-Darwin",
+      "invocation": {
+        "file": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+        "args": [
+          "-S bash -e",
+          "./script"
+        ],
+        "cwd": "/tmp/env-shebang-review-sDRaI8/cases/s04",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s04"
+        },
+        "stdinBase64": ""
+      },
+      "pid": 17346,
+      "status": 1,
+      "signal": null,
+      "timeout": false,
+      "overflow": false,
+      "stdout": "",
+      "stderr": "",
+      "effects": [
+        {
+          "path": "effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "YmVmb3Jl"
+        },
+        {
+          "path": "script",
+          "type": "file",
+          "mode": 493,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgLVMgYmFzaCAtZQpwcmludGYgYmVmb3JlID4gZWZmZWN0CmZhbHNlCnByaW50ZiBhZnRlciA+IGVmZmVjdAo="
+        },
+        {
+          "path": "sub",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "sub/effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        }
+      ]
+    },
+    "kernel": {
+      "profile": "actual-Darwin-kernel-Apple-env-GNU-Bash-PATH",
+      "invocation": {
+        "file": "/tmp/env-shebang-review-sDRaI8/cases/s04/script",
+        "args": [],
+        "cwd": "/tmp/env-shebang-review-sDRaI8/cases/s04",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s04"
+        },
+        "stdinBase64": ""
+      },
+      "pid": 17350,
+      "status": 1,
+      "signal": null,
+      "timeout": false,
+      "overflow": false,
+      "stdout": "",
+      "stderr": "",
+      "effects": [
+        {
+          "path": "effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "YmVmb3Jl"
+        },
+        {
+          "path": "script",
+          "type": "file",
+          "mode": 493,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgLVMgYmFzaCAtZQpwcmludGYgYmVmb3JlID4gZWZmZWN0CmZhbHNlCnByaW50ZiBhZnRlciA+IGVmZmVjdAo="
+        },
+        {
+          "path": "sub",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "sub/effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        }
+      ]
+    }
+  },
+  {
+    "id": "s05",
+    "kind": "shebang",
+    "inputSha256": "40bf9318d2c1fefef0a3a1e0817352e598ab252ca2fe255c6c1c11af132d61d8",
+    "input": {
+      "id": "s05",
+      "category": "split Bash plus-e permits following effects",
+      "kind": "shebang",
+      "header": "/usr/bin/env -S bash +e",
+      "body": "printf before > effect\nfalse\nprintf after > effect\n",
+      "expected": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "effect": "after"
+      },
+      "args": [],
+      "scriptPath": "./script",
+      "files": {
+        "script": {
+          "text": "#!/usr/bin/env -S bash +e\nprintf before > effect\nfalse\nprintf after > effect\n",
+          "mode": 493
+        },
+        "effect": {
+          "text": "seed",
+          "mode": 420
+        },
+        "sub/effect": {
+          "text": "seed",
+          "mode": 420
+        }
+      }
+    },
+    "env": {
+      "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+      "LC_ALL": "C",
+      "TOKEN": "two words",
+      "DROP": "parent",
+      "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s05"
+    },
+    "oracle": {
+      "profile": "Linux-optional-argv-model-GNU-env-on-Darwin",
+      "invocation": {
+        "file": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+        "args": [
+          "-S bash +e",
+          "./script"
+        ],
+        "cwd": "/tmp/env-shebang-review-sDRaI8/cases/s05",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s05"
+        },
+        "stdinBase64": ""
+      },
+      "pid": 17365,
+      "status": 0,
+      "signal": null,
+      "timeout": false,
+      "overflow": false,
+      "stdout": "",
+      "stderr": "",
+      "effects": [
+        {
+          "path": "effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "YWZ0ZXI="
+        },
+        {
+          "path": "script",
+          "type": "file",
+          "mode": 493,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgLVMgYmFzaCArZQpwcmludGYgYmVmb3JlID4gZWZmZWN0CmZhbHNlCnByaW50ZiBhZnRlciA+IGVmZmVjdAo="
+        },
+        {
+          "path": "sub",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "sub/effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        }
+      ]
+    },
+    "kernel": {
+      "profile": "actual-Darwin-kernel-Apple-env-GNU-Bash-PATH",
+      "invocation": {
+        "file": "/tmp/env-shebang-review-sDRaI8/cases/s05/script",
+        "args": [],
+        "cwd": "/tmp/env-shebang-review-sDRaI8/cases/s05",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s05"
+        },
+        "stdinBase64": ""
+      },
+      "pid": 17366,
+      "status": 0,
+      "signal": null,
+      "timeout": false,
+      "overflow": false,
+      "stdout": "",
+      "stderr": "",
+      "effects": [
+        {
+          "path": "effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "YWZ0ZXI="
+        },
+        {
+          "path": "script",
+          "type": "file",
+          "mode": 493,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgLVMgYmFzaCArZQpwcmludGYgYmVmb3JlID4gZWZmZWN0CmZhbHNlCnByaW50ZiBhZnRlciA+IGVmZmVjdAo="
+        },
+        {
+          "path": "sub",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "sub/effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        }
+      ]
+    }
+  },
+  {
+    "id": "s06",
+    "kind": "shebang",
+    "inputSha256": "2bf7ada2f5ec91e97a2d915793cbad390eaf2b5baea07d55212b6a81edb44d78",
+    "input": {
+      "id": "s06",
+      "category": "long split sh flag and positional binding",
+      "kind": "shebang",
+      "header": "/usr/bin/env --split-string=sh -e",
+      "body": "printf \"<%s>|<%s>|<%s>\\n\" \"$0\" \"$#\" \"$1\"\n",
+      "expected": {
+        "status": 0,
+        "stdout": "<./script>|<2>|<a b>\n",
+        "stderr": "",
+        "effect": "seed"
+      },
+      "args": [
+        "a b",
+        "tail"
+      ],
+      "scriptPath": "./script",
+      "files": {
+        "script": {
+          "text": "#!/usr/bin/env --split-string=sh -e\nprintf \"<%s>|<%s>|<%s>\\n\" \"$0\" \"$#\" \"$1\"\n",
+          "mode": 493
+        },
+        "effect": {
+          "text": "seed",
+          "mode": 420
+        },
+        "sub/effect": {
+          "text": "seed",
+          "mode": 420
+        }
+      }
+    },
+    "env": {
+      "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+      "LC_ALL": "C",
+      "TOKEN": "two words",
+      "DROP": "parent",
+      "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s06"
+    },
+    "oracle": {
+      "profile": "Linux-optional-argv-model-GNU-env-on-Darwin",
+      "invocation": {
+        "file": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+        "args": [
+          "--split-string=sh -e",
+          "./script",
+          "a b",
+          "tail"
+        ],
+        "cwd": "/tmp/env-shebang-review-sDRaI8/cases/s06",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s06"
+        },
+        "stdinBase64": ""
+      },
+      "pid": 17367,
+      "status": 0,
+      "signal": null,
+      "timeout": false,
+      "overflow": false,
+      "stdout": "PC4vc2NyaXB0Pnw8Mj58PGEgYj4K",
+      "stderr": "",
+      "effects": [
+        {
+          "path": "effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        },
+        {
+          "path": "script",
+          "type": "file",
+          "mode": 493,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgLS1zcGxpdC1zdHJpbmc9c2ggLWUKcHJpbnRmICI8JXM+fDwlcz58PCVzPlxuIiAiJDAiICIkIyIgIiQxIgo="
+        },
+        {
+          "path": "sub",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "sub/effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        }
+      ]
+    },
+    "kernel": {
+      "profile": "actual-Darwin-kernel-Apple-env-GNU-Bash-PATH",
+      "invocation": {
+        "file": "/tmp/env-shebang-review-sDRaI8/cases/s06/script",
+        "args": [
+          "a b",
+          "tail"
+        ],
+        "cwd": "/tmp/env-shebang-review-sDRaI8/cases/s06",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s06"
+        },
+        "stdinBase64": ""
+      },
+      "pid": 17368,
+      "status": 1,
+      "signal": null,
+      "timeout": false,
+      "overflow": false,
+      "stdout": "",
+      "stderr": "L3Vzci9iaW4vZW52OiBpbGxlZ2FsIG9wdGlvbiAtLSBzCnVzYWdlOiBlbnYgWy0waXZdIFstQyB3b3JrZGlyXSBbLVAgdXRpbHBhdGhdIFstUyBzdHJpbmddCiAgICAgICAgICAgWy11IG5hbWVdIFtuYW1lPXZhbHVlIC4uLl0gW3V0aWxpdHkgW2FyZ3VtZW50IC4uLl1dCg==",
+      "effects": [
+        {
+          "path": "effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        },
+        {
+          "path": "script",
+          "type": "file",
+          "mode": 493,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgLS1zcGxpdC1zdHJpbmc9c2ggLWUKcHJpbnRmICI8JXM+fDwlcz58PCVzPlxuIiAiJDAiICIkIyIgIiQxIgo="
+        },
+        {
+          "path": "sub",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "sub/effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        }
+      ]
+    }
+  },
+  {
+    "id": "s07",
+    "kind": "shebang",
+    "inputSha256": "b942a5bfd0b17d9cb32c2bf9a65edbcefc6b8ab443b4ab49e72d80f8893d64f0",
+    "input": {
+      "id": "s07",
+      "category": "quote fragments and empty assignment",
+      "kind": "shebang",
+      "header": "/usr/bin/env -S MARK=pre\"two words\"'end' EMPTY=\"\" bash",
+      "body": "printf \"<%s>\\n\" \"$MARK\"\nprintf \"<%s>\\n\" \"$EMPTY\"\n",
+      "expected": {
+        "status": 0,
+        "stdout": "<pretwo wordsend>\n<>\n",
+        "stderr": "",
+        "effect": "seed"
+      },
+      "args": [],
+      "scriptPath": "./script",
+      "files": {
+        "script": {
+          "text": "#!/usr/bin/env -S MARK=pre\"two words\"'end' EMPTY=\"\" bash\nprintf \"<%s>\\n\" \"$MARK\"\nprintf \"<%s>\\n\" \"$EMPTY\"\n",
+          "mode": 493
+        },
+        "effect": {
+          "text": "seed",
+          "mode": 420
+        },
+        "sub/effect": {
+          "text": "seed",
+          "mode": 420
+        }
+      }
+    },
+    "env": {
+      "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+      "LC_ALL": "C",
+      "TOKEN": "two words",
+      "DROP": "parent",
+      "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s07"
+    },
+    "oracle": {
+      "profile": "Linux-optional-argv-model-GNU-env-on-Darwin",
+      "invocation": {
+        "file": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+        "args": [
+          "-S MARK=pre\"two words\"'end' EMPTY=\"\" bash",
+          "./script"
+        ],
+        "cwd": "/tmp/env-shebang-review-sDRaI8/cases/s07",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s07"
+        },
+        "stdinBase64": ""
+      },
+      "pid": 17370,
+      "status": 0,
+      "signal": null,
+      "timeout": false,
+      "overflow": false,
+      "stdout": "PHByZXR3byB3b3Jkc2VuZD4KPD4K",
+      "stderr": "",
+      "effects": [
+        {
+          "path": "effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        },
+        {
+          "path": "script",
+          "type": "file",
+          "mode": 493,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgLVMgTUFSSz1wcmUidHdvIHdvcmRzIidlbmQnIEVNUFRZPSIiIGJhc2gKcHJpbnRmICI8JXM+XG4iICIkTUFSSyIKcHJpbnRmICI8JXM+XG4iICIkRU1QVFkiCg=="
+        },
+        {
+          "path": "sub",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "sub/effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        }
+      ]
+    },
+    "kernel": {
+      "profile": "actual-Darwin-kernel-Apple-env-GNU-Bash-PATH",
+      "invocation": {
+        "file": "/tmp/env-shebang-review-sDRaI8/cases/s07/script",
+        "args": [],
+        "cwd": "/tmp/env-shebang-review-sDRaI8/cases/s07",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s07"
+        },
+        "stdinBase64": ""
+      },
+      "pid": 17372,
+      "status": 1,
+      "signal": null,
+      "timeout": false,
+      "overflow": false,
+      "stdout": "",
+      "stderr": "ZW52OiBObyB0ZXJtaW5hdGluZyBxdW90ZSBmb3Igc3RyaW5nOiBNQVJLPXByZSJ0d28K",
+      "effects": [
+        {
+          "path": "effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        },
+        {
+          "path": "script",
+          "type": "file",
+          "mode": 493,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgLVMgTUFSSz1wcmUidHdvIHdvcmRzIidlbmQnIEVNUFRZPSIiIGJhc2gKcHJpbnRmICI8JXM+XG4iICIkTUFSSyIKcHJpbnRmICI8JXM+XG4iICIkRU1QVFkiCg=="
+        },
+        {
+          "path": "sub",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "sub/effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        }
+      ]
+    }
+  },
+  {
+    "id": "s08",
+    "kind": "shebang",
+    "inputSha256": "189c140128b5f910b73cf9424c7e7d14abb354abf73e86dde7c3fd38d308ee7b",
+    "input": {
+      "id": "s08",
+      "category": "escaped tab underscore and hash",
+      "kind": "shebang",
+      "header": "/usr/bin/env -S MARK=\"left\\_right\\t\\#\" bash",
+      "body": "printf \"<%s>\\n\" \"$MARK\"\n",
+      "expected": {
+        "status": 0,
+        "stdout": "<left right\t#>\n",
+        "stderr": "",
+        "effect": "seed"
+      },
+      "args": [],
+      "scriptPath": "./script",
+      "files": {
+        "script": {
+          "text": "#!/usr/bin/env -S MARK=\"left\\_right\\t\\#\" bash\nprintf \"<%s>\\n\" \"$MARK\"\n",
+          "mode": 493
+        },
+        "effect": {
+          "text": "seed",
+          "mode": 420
+        },
+        "sub/effect": {
+          "text": "seed",
+          "mode": 420
+        }
+      }
+    },
+    "env": {
+      "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+      "LC_ALL": "C",
+      "TOKEN": "two words",
+      "DROP": "parent",
+      "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s08"
+    },
+    "oracle": {
+      "profile": "Linux-optional-argv-model-GNU-env-on-Darwin",
+      "invocation": {
+        "file": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+        "args": [
+          "-S MARK=\"left\\_right\\t\\#\" bash",
+          "./script"
+        ],
+        "cwd": "/tmp/env-shebang-review-sDRaI8/cases/s08",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s08"
+        },
+        "stdinBase64": ""
+      },
+      "pid": 17379,
+      "status": 0,
+      "signal": null,
+      "timeout": false,
+      "overflow": false,
+      "stdout": "PGxlZnQgcmlnaHQJIz4K",
+      "stderr": "",
+      "effects": [
+        {
+          "path": "effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        },
+        {
+          "path": "script",
+          "type": "file",
+          "mode": 493,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgLVMgTUFSSz0ibGVmdFxfcmlnaHRcdFwjIiBiYXNoCnByaW50ZiAiPCVzPlxuIiAiJE1BUksiCg=="
+        },
+        {
+          "path": "sub",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "sub/effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        }
+      ]
+    },
+    "kernel": {
+      "profile": "actual-Darwin-kernel-Apple-env-GNU-Bash-PATH",
+      "invocation": {
+        "file": "/tmp/env-shebang-review-sDRaI8/cases/s08/script",
+        "args": [],
+        "cwd": "/tmp/env-shebang-review-sDRaI8/cases/s08",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s08"
+        },
+        "stdinBase64": ""
+      },
+      "pid": 17380,
+      "status": 1,
+      "signal": null,
+      "timeout": false,
+      "overflow": false,
+      "stdout": "",
+      "stderr": "ZW52OiBJbnZhbGlkIHNlcXVlbmNlICdcCg==",
+      "effects": [
+        {
+          "path": "effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        },
+        {
+          "path": "script",
+          "type": "file",
+          "mode": 493,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgLVMgTUFSSz0ibGVmdFxfcmlnaHRcdFwjIiBiYXNoCnByaW50ZiAiPCVzPlxuIiAiJE1BUksiCg=="
+        },
+        {
+          "path": "sub",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "sub/effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        }
+      ]
+    }
+  },
+  {
+    "id": "s09",
+    "kind": "shebang",
+    "inputSha256": "6db65d4dcb9a7098463cd65a212934d49a643a21b3077d609542d0e16cbb0318",
+    "input": {
+      "id": "s09",
+      "category": "split expands exports but not local variables",
+      "kind": "shebang",
+      "header": "/usr/bin/env -S MARK=\"${TOKEN}\" OTHER=\"${LOCAL}\" bash",
+      "body": "printf \"<%s>\\n\" \"$MARK\"\nprintf \"<%s>\\n\" \"$OTHER\"\n",
+      "expected": {
+        "status": 0,
+        "stdout": "<two words>\n<>\n",
+        "stderr": "",
+        "effect": "seed"
+      },
+      "args": [],
+      "prelude": "LOCAL=private; ",
+      "scriptPath": "./script",
+      "files": {
+        "script": {
+          "text": "#!/usr/bin/env -S MARK=\"${TOKEN}\" OTHER=\"${LOCAL}\" bash\nprintf \"<%s>\\n\" \"$MARK\"\nprintf \"<%s>\\n\" \"$OTHER\"\n",
+          "mode": 493
+        },
+        "effect": {
+          "text": "seed",
+          "mode": 420
+        },
+        "sub/effect": {
+          "text": "seed",
+          "mode": 420
+        }
+      }
+    },
+    "env": {
+      "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+      "LC_ALL": "C",
+      "TOKEN": "two words",
+      "DROP": "parent",
+      "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s09"
+    },
+    "oracle": {
+      "profile": "Linux-optional-argv-model-GNU-env-on-Darwin",
+      "invocation": {
+        "file": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+        "args": [
+          "-S MARK=\"${TOKEN}\" OTHER=\"${LOCAL}\" bash",
+          "./script"
+        ],
+        "cwd": "/tmp/env-shebang-review-sDRaI8/cases/s09",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s09"
+        },
+        "stdinBase64": ""
+      },
+      "pid": 17381,
+      "status": 0,
+      "signal": null,
+      "timeout": false,
+      "overflow": false,
+      "stdout": "PHR3byB3b3Jkcz4KPD4K",
+      "stderr": "",
+      "effects": [
+        {
+          "path": "effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        },
+        {
+          "path": "script",
+          "type": "file",
+          "mode": 493,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgLVMgTUFSSz0iJHtUT0tFTn0iIE9USEVSPSIke0xPQ0FMfSIgYmFzaApwcmludGYgIjwlcz5cbiIgIiRNQVJLIgpwcmludGYgIjwlcz5cbiIgIiRPVEhFUiIK"
+        },
+        {
+          "path": "sub",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "sub/effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        }
+      ]
+    },
+    "kernel": {
+      "profile": "actual-Darwin-kernel-Apple-env-GNU-Bash-PATH",
+      "invocation": {
+        "file": "/tmp/env-shebang-review-sDRaI8/cases/s09/script",
+        "args": [],
+        "cwd": "/tmp/env-shebang-review-sDRaI8/cases/s09",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s09"
+        },
+        "stdinBase64": ""
+      },
+      "pid": 17382,
+      "status": 0,
+      "signal": null,
+      "timeout": false,
+      "overflow": false,
+      "stdout": "PHR3byB3b3Jkcz4KPCIke0xPQ0FMfSI+Cg==",
+      "stderr": "",
+      "effects": [
+        {
+          "path": "effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        },
+        {
+          "path": "script",
+          "type": "file",
+          "mode": 493,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgLVMgTUFSSz0iJHtUT0tFTn0iIE9USEVSPSIke0xPQ0FMfSIgYmFzaApwcmludGYgIjwlcz5cbiIgIiRNQVJLIgpwcmludGYgIjwlcz5cbiIgIiRPVEhFUiIK"
+        },
+        {
+          "path": "sub",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "sub/effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        }
+      ]
+    }
+  },
+  {
+    "id": "s10",
+    "kind": "shebang",
+    "inputSha256": "92aa1619a54c21ead87b8cdac9430dbae6044a57ea774beb0b287a897de2a627",
+    "input": {
+      "id": "s10",
+      "category": "ignore environment then explicit assignment",
+      "kind": "shebang",
+      "header": "/usr/bin/env -S -i PATH=/tmp/env-shebang-review-sDRaI8/bin MARK=clean bash",
+      "body": "printf \"<%s>\\n\" \"$MARK\"\nprintf \"<%s>\\n\" \"${DROP-unset}\"\n",
+      "expected": {
+        "status": 0,
+        "stdout": "<clean>\n<unset>\n",
+        "stderr": "",
+        "effect": "seed"
+      },
+      "args": [],
+      "scriptPath": "./script",
+      "files": {
+        "script": {
+          "text": "#!/usr/bin/env -S -i PATH=/tmp/env-shebang-review-sDRaI8/bin MARK=clean bash\nprintf \"<%s>\\n\" \"$MARK\"\nprintf \"<%s>\\n\" \"${DROP-unset}\"\n",
+          "mode": 493
+        },
+        "effect": {
+          "text": "seed",
+          "mode": 420
+        },
+        "sub/effect": {
+          "text": "seed",
+          "mode": 420
+        }
+      }
+    },
+    "env": {
+      "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+      "LC_ALL": "C",
+      "TOKEN": "two words",
+      "DROP": "parent",
+      "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s10"
+    },
+    "oracle": {
+      "profile": "Linux-optional-argv-model-GNU-env-on-Darwin",
+      "invocation": {
+        "file": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+        "args": [
+          "-S -i PATH=/tmp/env-shebang-review-sDRaI8/bin MARK=clean bash",
+          "./script"
+        ],
+        "cwd": "/tmp/env-shebang-review-sDRaI8/cases/s10",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s10"
+        },
+        "stdinBase64": ""
+      },
+      "pid": 17385,
+      "status": 0,
+      "signal": null,
+      "timeout": false,
+      "overflow": false,
+      "stdout": "PGNsZWFuPgo8dW5zZXQ+Cg==",
+      "stderr": "",
+      "effects": [
+        {
+          "path": "effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        },
+        {
+          "path": "script",
+          "type": "file",
+          "mode": 493,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgLVMgLWkgUEFUSD0vdG1wL2Vudi1zaGViYW5nLXJldmlldy1zRFJhSTgvYmluIE1BUks9Y2xlYW4gYmFzaApwcmludGYgIjwlcz5cbiIgIiRNQVJLIgpwcmludGYgIjwlcz5cbiIgIiR7RFJPUC11bnNldH0iCg=="
+        },
+        {
+          "path": "sub",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "sub/effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        }
+      ]
+    },
+    "kernel": {
+      "profile": "actual-Darwin-kernel-Apple-env-GNU-Bash-PATH",
+      "invocation": {
+        "file": "/tmp/env-shebang-review-sDRaI8/cases/s10/script",
+        "args": [],
+        "cwd": "/tmp/env-shebang-review-sDRaI8/cases/s10",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s10"
+        },
+        "stdinBase64": ""
+      },
+      "pid": 17386,
+      "status": 0,
+      "signal": null,
+      "timeout": false,
+      "overflow": false,
+      "stdout": "PGNsZWFuPgo8dW5zZXQ+Cg==",
+      "stderr": "",
+      "effects": [
+        {
+          "path": "effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        },
+        {
+          "path": "script",
+          "type": "file",
+          "mode": 493,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgLVMgLWkgUEFUSD0vdG1wL2Vudi1zaGViYW5nLXJldmlldy1zRFJhSTgvYmluIE1BUks9Y2xlYW4gYmFzaApwcmludGYgIjwlcz5cbiIgIiRNQVJLIgpwcmludGYgIjwlcz5cbiIgIiR7RFJPUC11bnNldH0iCg=="
+        },
+        {
+          "path": "sub",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "sub/effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        }
+      ]
+    }
+  },
+  {
+    "id": "s11",
+    "kind": "shebang",
+    "inputSha256": "3c2475a012e6c220613df8b9af9a3622173017305714afcffd566433a95508ea",
+    "input": {
+      "id": "s11",
+      "category": "unset and repeated assignment order",
+      "kind": "shebang",
+      "header": "/usr/bin/env -S -u DROP MARK=first MARK=last bash",
+      "body": "printf \"<%s>\\n\" \"$MARK\"\nprintf \"<%s>\\n\" \"${DROP-unset}\"\n",
+      "expected": {
+        "status": 0,
+        "stdout": "<last>\n<unset>\n",
+        "stderr": "",
+        "effect": "seed"
+      },
+      "args": [],
+      "scriptPath": "./script",
+      "files": {
+        "script": {
+          "text": "#!/usr/bin/env -S -u DROP MARK=first MARK=last bash\nprintf \"<%s>\\n\" \"$MARK\"\nprintf \"<%s>\\n\" \"${DROP-unset}\"\n",
+          "mode": 493
+        },
+        "effect": {
+          "text": "seed",
+          "mode": 420
+        },
+        "sub/effect": {
+          "text": "seed",
+          "mode": 420
+        }
+      }
+    },
+    "env": {
+      "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+      "LC_ALL": "C",
+      "TOKEN": "two words",
+      "DROP": "parent",
+      "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s11"
+    },
+    "oracle": {
+      "profile": "Linux-optional-argv-model-GNU-env-on-Darwin",
+      "invocation": {
+        "file": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+        "args": [
+          "-S -u DROP MARK=first MARK=last bash",
+          "./script"
+        ],
+        "cwd": "/tmp/env-shebang-review-sDRaI8/cases/s11",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s11"
+        },
+        "stdinBase64": ""
+      },
+      "pid": 17387,
+      "status": 0,
+      "signal": null,
+      "timeout": false,
+      "overflow": false,
+      "stdout": "PGxhc3Q+Cjx1bnNldD4K",
+      "stderr": "",
+      "effects": [
+        {
+          "path": "effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        },
+        {
+          "path": "script",
+          "type": "file",
+          "mode": 493,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgLVMgLXUgRFJPUCBNQVJLPWZpcnN0IE1BUks9bGFzdCBiYXNoCnByaW50ZiAiPCVzPlxuIiAiJE1BUksiCnByaW50ZiAiPCVzPlxuIiAiJHtEUk9QLXVuc2V0fSIK"
+        },
+        {
+          "path": "sub",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "sub/effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        }
+      ]
+    },
+    "kernel": {
+      "profile": "actual-Darwin-kernel-Apple-env-GNU-Bash-PATH",
+      "invocation": {
+        "file": "/tmp/env-shebang-review-sDRaI8/cases/s11/script",
+        "args": [],
+        "cwd": "/tmp/env-shebang-review-sDRaI8/cases/s11",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s11"
+        },
+        "stdinBase64": ""
+      },
+      "pid": 17388,
+      "status": 0,
+      "signal": null,
+      "timeout": false,
+      "overflow": false,
+      "stdout": "PGxhc3Q+Cjx1bnNldD4K",
+      "stderr": "",
+      "effects": [
+        {
+          "path": "effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        },
+        {
+          "path": "script",
+          "type": "file",
+          "mode": 493,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgLVMgLXUgRFJPUCBNQVJLPWZpcnN0IE1BUks9bGFzdCBiYXNoCnByaW50ZiAiPCVzPlxuIiAiJE1BUksiCnByaW50ZiAiPCVzPlxuIiAiJHtEUk9QLXVuc2V0fSIK"
+        },
+        {
+          "path": "sub",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "sub/effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        }
+      ]
+    }
+  },
+  {
+    "id": "s12",
+    "kind": "shebang",
+    "inputSha256": "6d9c3ee32d40323962bdeb2e827d0abbdee98391e79d652e68e44d5f3048524b",
+    "input": {
+      "id": "s12",
+      "category": "chdir absolute script and child pwd",
+      "kind": "shebang",
+      "header": "/usr/bin/env -S -C sub bash",
+      "body": "pwd\nprintf moved > effect\n",
+      "expected": {
+        "status": 0,
+        "stdout": "/tmp/env-shebang-review-sDRaI8/cases/s12/sub\n",
+        "stderr": "",
+        "effect": "seed"
+      },
+      "args": [],
+      "absolute": true,
+      "subEffect": "moved",
+      "scriptPath": "/tmp/env-shebang-review-sDRaI8/cases/s12/script",
+      "files": {
+        "script": {
+          "text": "#!/usr/bin/env -S -C sub bash\npwd\nprintf moved > effect\n",
+          "mode": 493
+        },
+        "effect": {
+          "text": "seed",
+          "mode": 420
+        },
+        "sub/effect": {
+          "text": "seed",
+          "mode": 420
+        }
+      }
+    },
+    "env": {
+      "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+      "LC_ALL": "C",
+      "TOKEN": "two words",
+      "DROP": "parent",
+      "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s12"
+    },
+    "oracle": {
+      "profile": "Linux-optional-argv-model-GNU-env-on-Darwin",
+      "invocation": {
+        "file": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+        "args": [
+          "-S -C sub bash",
+          "/tmp/env-shebang-review-sDRaI8/cases/s12/script"
+        ],
+        "cwd": "/tmp/env-shebang-review-sDRaI8/cases/s12",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s12"
+        },
+        "stdinBase64": ""
+      },
+      "pid": 17389,
+      "status": 0,
+      "signal": null,
+      "timeout": false,
+      "overflow": false,
+      "stdout": "L3ByaXZhdGUvdG1wL2Vudi1zaGViYW5nLXJldmlldy1zRFJhSTgvY2FzZXMvczEyL3N1Ygo=",
+      "stderr": "",
+      "effects": [
+        {
+          "path": "effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        },
+        {
+          "path": "script",
+          "type": "file",
+          "mode": 493,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgLVMgLUMgc3ViIGJhc2gKcHdkCnByaW50ZiBtb3ZlZCA+IGVmZmVjdAo="
+        },
+        {
+          "path": "sub",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "sub/effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "bW92ZWQ="
+        }
+      ]
+    },
+    "kernel": {
+      "profile": "actual-Darwin-kernel-Apple-env-GNU-Bash-PATH",
+      "invocation": {
+        "file": "/tmp/env-shebang-review-sDRaI8/cases/s12/script",
+        "args": [],
+        "cwd": "/tmp/env-shebang-review-sDRaI8/cases/s12",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s12"
+        },
+        "stdinBase64": ""
+      },
+      "pid": 17390,
+      "status": 0,
+      "signal": null,
+      "timeout": false,
+      "overflow": false,
+      "stdout": "L3ByaXZhdGUvdG1wL2Vudi1zaGViYW5nLXJldmlldy1zRFJhSTgvY2FzZXMvczEyL3N1Ygo=",
+      "stderr": "",
+      "effects": [
+        {
+          "path": "effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        },
+        {
+          "path": "script",
+          "type": "file",
+          "mode": 493,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgLVMgLUMgc3ViIGJhc2gKcHdkCnByaW50ZiBtb3ZlZCA+IGVmZmVjdAo="
+        },
+        {
+          "path": "sub",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "sub/effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "bW92ZWQ="
+        }
+      ]
+    }
+  },
+  {
+    "id": "s13",
+    "kind": "shebang",
+    "inputSha256": "cd29d0f031010527b7153ec9274d6f7c6786edc082a8eba52fee0f20a21b11a5",
+    "input": {
+      "id": "s13",
+      "category": "option terminator and literal trailing argv",
+      "kind": "shebang",
+      "header": "/usr/bin/env -S -- bash --",
+      "body": "printf \"<%s>|<%s>|<%s>\\n\" \"$0\" \"$#\" \"$1\"\n",
+      "expected": {
+        "status": 0,
+        "stdout": "<./script>|<2>|<-e>\n",
+        "stderr": "",
+        "effect": "seed"
+      },
+      "args": [
+        "-e",
+        ""
+      ],
+      "scriptPath": "./script",
+      "files": {
+        "script": {
+          "text": "#!/usr/bin/env -S -- bash --\nprintf \"<%s>|<%s>|<%s>\\n\" \"$0\" \"$#\" \"$1\"\n",
+          "mode": 493
+        },
+        "effect": {
+          "text": "seed",
+          "mode": 420
+        },
+        "sub/effect": {
+          "text": "seed",
+          "mode": 420
+        }
+      }
+    },
+    "env": {
+      "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+      "LC_ALL": "C",
+      "TOKEN": "two words",
+      "DROP": "parent",
+      "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s13"
+    },
+    "oracle": {
+      "profile": "Linux-optional-argv-model-GNU-env-on-Darwin",
+      "invocation": {
+        "file": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+        "args": [
+          "-S -- bash --",
+          "./script",
+          "-e",
+          ""
+        ],
+        "cwd": "/tmp/env-shebang-review-sDRaI8/cases/s13",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s13"
+        },
+        "stdinBase64": ""
+      },
+      "pid": 17391,
+      "status": 0,
+      "signal": null,
+      "timeout": false,
+      "overflow": false,
+      "stdout": "PC4vc2NyaXB0Pnw8Mj58PC1lPgo=",
+      "stderr": "",
+      "effects": [
+        {
+          "path": "effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        },
+        {
+          "path": "script",
+          "type": "file",
+          "mode": 493,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgLVMgLS0gYmFzaCAtLQpwcmludGYgIjwlcz58PCVzPnw8JXM+XG4iICIkMCIgIiQjIiAiJDEiCg=="
+        },
+        {
+          "path": "sub",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "sub/effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        }
+      ]
+    },
+    "kernel": {
+      "profile": "actual-Darwin-kernel-Apple-env-GNU-Bash-PATH",
+      "invocation": {
+        "file": "/tmp/env-shebang-review-sDRaI8/cases/s13/script",
+        "args": [
+          "-e",
+          ""
+        ],
+        "cwd": "/tmp/env-shebang-review-sDRaI8/cases/s13",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s13"
+        },
+        "stdinBase64": ""
+      },
+      "pid": 17392,
+      "status": 0,
+      "signal": null,
+      "timeout": false,
+      "overflow": false,
+      "stdout": "PC90bXAvZW52LXNoZWJhbmctcmV2aWV3LXNEUmFJOC9jYXNlcy9zMTMvc2NyaXB0Pnw8Mj58PC1lPgo=",
+      "stderr": "",
+      "effects": [
+        {
+          "path": "effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        },
+        {
+          "path": "script",
+          "type": "file",
+          "mode": 493,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgLVMgLS0gYmFzaCAtLQpwcmludGYgIjwlcz58PCVzPnw8JXM+XG4iICIkMCIgIiQjIiAiJDEiCg=="
+        },
+        {
+          "path": "sub",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "sub/effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        }
+      ]
+    }
+  },
+  {
+    "id": "s14",
+    "kind": "shebang",
+    "inputSha256": "bcf8aa5171abda51a19ad2982ee1f1c0dc9ee359f1171bb6d6cfcbc5b39da41a",
+    "input": {
+      "id": "s14",
+      "category": "Bash command-string arg0 and exit status",
+      "kind": "shebang",
+      "header": "/usr/bin/env -S bash -c 'printf \"<%s>|<%s>\\n\" \"$0\" \"$1\"; exit 7'",
+      "body": "printf unsafe > effect\n",
+      "expected": {
+        "status": 7,
+        "stdout": "<./script>|<tail>\n",
+        "stderr": "",
+        "effect": "seed"
+      },
+      "args": [
+        "tail"
+      ],
+      "scriptPath": "./script",
+      "files": {
+        "script": {
+          "text": "#!/usr/bin/env -S bash -c 'printf \"<%s>|<%s>\\n\" \"$0\" \"$1\"; exit 7'\nprintf unsafe > effect\n",
+          "mode": 493
+        },
+        "effect": {
+          "text": "seed",
+          "mode": 420
+        },
+        "sub/effect": {
+          "text": "seed",
+          "mode": 420
+        }
+      }
+    },
+    "env": {
+      "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+      "LC_ALL": "C",
+      "TOKEN": "two words",
+      "DROP": "parent",
+      "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s14"
+    },
+    "oracle": {
+      "profile": "Linux-optional-argv-model-GNU-env-on-Darwin",
+      "invocation": {
+        "file": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+        "args": [
+          "-S bash -c 'printf \"<%s>|<%s>\\n\" \"$0\" \"$1\"; exit 7'",
+          "./script",
+          "tail"
+        ],
+        "cwd": "/tmp/env-shebang-review-sDRaI8/cases/s14",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s14"
+        },
+        "stdinBase64": ""
+      },
+      "pid": 17393,
+      "status": 7,
+      "signal": null,
+      "timeout": false,
+      "overflow": false,
+      "stdout": "PC4vc2NyaXB0Pnw8dGFpbD4K",
+      "stderr": "",
+      "effects": [
+        {
+          "path": "effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        },
+        {
+          "path": "script",
+          "type": "file",
+          "mode": 493,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgLVMgYmFzaCAtYyAncHJpbnRmICI8JXM+fDwlcz5cbiIgIiQwIiAiJDEiOyBleGl0IDcnCnByaW50ZiB1bnNhZmUgPiBlZmZlY3QK"
+        },
+        {
+          "path": "sub",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "sub/effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        }
+      ]
+    },
+    "kernel": {
+      "profile": "actual-Darwin-kernel-Apple-env-GNU-Bash-PATH",
+      "invocation": {
+        "file": "/tmp/env-shebang-review-sDRaI8/cases/s14/script",
+        "args": [
+          "tail"
+        ],
+        "cwd": "/tmp/env-shebang-review-sDRaI8/cases/s14",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s14"
+        },
+        "stdinBase64": ""
+      },
+      "pid": 17394,
+      "status": 2,
+      "signal": null,
+      "timeout": false,
+      "overflow": false,
+      "stdout": "",
+      "stderr": "Ijwlcz58PCVzPlxuIjogLWM6IGxpbmUgMTogdW5leHBlY3RlZCBFT0Ygd2hpbGUgbG9va2luZyBmb3IgbWF0Y2hpbmcgYCcnCg==",
+      "effects": [
+        {
+          "path": "effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        },
+        {
+          "path": "script",
+          "type": "file",
+          "mode": 493,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgLVMgYmFzaCAtYyAncHJpbnRmICI8JXM+fDwlcz5cbiIgIiQwIiAiJDEiOyBleGl0IDcnCnByaW50ZiB1bnNhZmUgPiBlZmZlY3QK"
+        },
+        {
+          "path": "sub",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "sub/effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        }
+      ]
+    }
+  },
+  {
+    "id": "s15",
+    "kind": "shebang",
+    "inputSha256": "c6280dd33bc90a022fa82bfd45c353c3dd861293a634a431f9e81bd3189ed5ec",
+    "input": {
+      "id": "s15",
+      "category": "sh standard-input flag does not execute file body",
+      "kind": "shebang",
+      "header": "/usr/bin/env -S sh -s",
+      "body": "printf unsafe > effect\n",
+      "expected": {
+        "status": 0,
+        "stdout": "<sh>|<2>|<./script>\n",
+        "stderr": "",
+        "effect": "seed"
+      },
+      "args": [
+        "tail"
+      ],
+      "stdin": "printf \"<%s>|<%s>|<%s>\\n\" \"$0\" \"$#\" \"$1\"\n",
+      "scriptPath": "./script",
+      "files": {
+        "script": {
+          "text": "#!/usr/bin/env -S sh -s\nprintf unsafe > effect\n",
+          "mode": 493
+        },
+        "effect": {
+          "text": "seed",
+          "mode": 420
+        },
+        "sub/effect": {
+          "text": "seed",
+          "mode": 420
+        }
+      }
+    },
+    "env": {
+      "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+      "LC_ALL": "C",
+      "TOKEN": "two words",
+      "DROP": "parent",
+      "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s15"
+    },
+    "oracle": {
+      "profile": "Linux-optional-argv-model-GNU-env-on-Darwin",
+      "invocation": {
+        "file": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+        "args": [
+          "-S sh -s",
+          "./script",
+          "tail"
+        ],
+        "cwd": "/tmp/env-shebang-review-sDRaI8/cases/s15",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s15"
+        },
+        "stdinBase64": "cHJpbnRmICI8JXM+fDwlcz58PCVzPlxuIiAiJDAiICIkIyIgIiQxIgo="
+      },
+      "pid": 17395,
+      "status": 0,
+      "signal": null,
+      "timeout": false,
+      "overflow": false,
+      "stdout": "PHNoPnw8Mj58PC4vc2NyaXB0Pgo=",
+      "stderr": "",
+      "effects": [
+        {
+          "path": "effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        },
+        {
+          "path": "script",
+          "type": "file",
+          "mode": 493,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgLVMgc2ggLXMKcHJpbnRmIHVuc2FmZSA+IGVmZmVjdAo="
+        },
+        {
+          "path": "sub",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "sub/effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        }
+      ]
+    },
+    "kernel": {
+      "profile": "actual-Darwin-kernel-Apple-env-GNU-Bash-PATH",
+      "invocation": {
+        "file": "/tmp/env-shebang-review-sDRaI8/cases/s15/script",
+        "args": [
+          "tail"
+        ],
+        "cwd": "/tmp/env-shebang-review-sDRaI8/cases/s15",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s15"
+        },
+        "stdinBase64": "cHJpbnRmICI8JXM+fDwlcz58PCVzPlxuIiAiJDAiICIkIyIgIiQxIgo="
+      },
+      "pid": 17396,
+      "status": 0,
+      "signal": null,
+      "timeout": false,
+      "overflow": false,
+      "stdout": "PHNoPnw8Mj58PC90bXAvZW52LXNoZWJhbmctcmV2aWV3LXNEUmFJOC9jYXNlcy9zMTUvc2NyaXB0Pgo=",
+      "stderr": "",
+      "effects": [
+        {
+          "path": "effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        },
+        {
+          "path": "script",
+          "type": "file",
+          "mode": 493,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgLVMgc2ggLXMKcHJpbnRmIHVuc2FmZSA+IGVmZmVjdAo="
+        },
+        {
+          "path": "sub",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "sub/effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        }
+      ]
+    }
+  },
+  {
+    "id": "s16",
+    "kind": "shebang",
+    "inputSha256": "100737e7029d51e4097b97944faef6c1e46a62ac617d420583cd73d1c645d34f",
+    "input": {
+      "id": "s16",
+      "category": "malformed split quote rejects before dispatch",
+      "kind": "shebang",
+      "header": "/usr/bin/env -S MARK=\"unterminated bash",
+      "body": "printf unsafe > effect\n",
+      "expected": {
+        "status": 125,
+        "stdout": "",
+        "diagnostic": "env: .*quote",
+        "effect": "seed"
+      },
+      "args": [],
+      "scriptPath": "./script",
+      "files": {
+        "script": {
+          "text": "#!/usr/bin/env -S MARK=\"unterminated bash\nprintf unsafe > effect\n",
+          "mode": 493
+        },
+        "effect": {
+          "text": "seed",
+          "mode": 420
+        },
+        "sub/effect": {
+          "text": "seed",
+          "mode": 420
+        }
+      }
+    },
+    "env": {
+      "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+      "LC_ALL": "C",
+      "TOKEN": "two words",
+      "DROP": "parent",
+      "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s16"
+    },
+    "oracle": {
+      "profile": "Linux-optional-argv-model-GNU-env-on-Darwin",
+      "invocation": {
+        "file": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+        "args": [
+          "-S MARK=\"unterminated bash",
+          "./script"
+        ],
+        "cwd": "/tmp/env-shebang-review-sDRaI8/cases/s16",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s16"
+        },
+        "stdinBase64": ""
+      },
+      "pid": 17397,
+      "status": 125,
+      "signal": null,
+      "timeout": false,
+      "overflow": false,
+      "stdout": "",
+      "stderr": "ZW52OiBubyB0ZXJtaW5hdGluZyBxdW90ZSBpbiAtUyBzdHJpbmcK",
+      "effects": [
+        {
+          "path": "effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        },
+        {
+          "path": "script",
+          "type": "file",
+          "mode": 493,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgLVMgTUFSSz0idW50ZXJtaW5hdGVkIGJhc2gKcHJpbnRmIHVuc2FmZSA+IGVmZmVjdAo="
+        },
+        {
+          "path": "sub",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "sub/effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        }
+      ]
+    },
+    "kernel": {
+      "profile": "actual-Darwin-kernel-Apple-env-GNU-Bash-PATH",
+      "invocation": {
+        "file": "/tmp/env-shebang-review-sDRaI8/cases/s16/script",
+        "args": [],
+        "cwd": "/tmp/env-shebang-review-sDRaI8/cases/s16",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s16"
+        },
+        "stdinBase64": ""
+      },
+      "pid": 17398,
+      "status": 1,
+      "signal": null,
+      "timeout": false,
+      "overflow": false,
+      "stdout": "",
+      "stderr": "ZW52OiBObyB0ZXJtaW5hdGluZyBxdW90ZSBmb3Igc3RyaW5nOiBNQVJLPSJ1bnRlcm1pbmF0ZWQK",
+      "effects": [
+        {
+          "path": "effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        },
+        {
+          "path": "script",
+          "type": "file",
+          "mode": 493,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgLVMgTUFSSz0idW50ZXJtaW5hdGVkIGJhc2gKcHJpbnRmIHVuc2FmZSA+IGVmZmVjdAo="
+        },
+        {
+          "path": "sub",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "sub/effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        }
+      ]
+    }
+  },
+  {
+    "id": "s17",
+    "kind": "shebang",
+    "inputSha256": "99000be081358a4409ecdfb56a1c3486d2f35dddde44f483a227ca59808381b3",
+    "input": {
+      "id": "s17",
+      "category": "invalid interpreter flag preserves status two",
+      "kind": "shebang",
+      "header": "/usr/bin/env -S bash -Z",
+      "body": "printf unsafe > effect\n",
+      "expected": {
+        "status": 2,
+        "stdout": "",
+        "diagnostic": "bash: -Z: unsupported option",
+        "effect": "seed"
+      },
+      "args": [],
+      "scriptPath": "./script",
+      "files": {
+        "script": {
+          "text": "#!/usr/bin/env -S bash -Z\nprintf unsafe > effect\n",
+          "mode": 493
+        },
+        "effect": {
+          "text": "seed",
+          "mode": 420
+        },
+        "sub/effect": {
+          "text": "seed",
+          "mode": 420
+        }
+      }
+    },
+    "env": {
+      "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+      "LC_ALL": "C",
+      "TOKEN": "two words",
+      "DROP": "parent",
+      "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s17"
+    },
+    "oracle": {
+      "profile": "Linux-optional-argv-model-GNU-env-on-Darwin",
+      "invocation": {
+        "file": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+        "args": [
+          "-S bash -Z",
+          "./script"
+        ],
+        "cwd": "/tmp/env-shebang-review-sDRaI8/cases/s17",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s17"
+        },
+        "stdinBase64": ""
+      },
+      "pid": 17399,
+      "status": 2,
+      "signal": null,
+      "timeout": false,
+      "overflow": false,
+      "stdout": "",
+      "stderr": "YmFzaDogLVo6IGludmFsaWQgb3B0aW9uClVzYWdlOgliYXNoIFtHTlUgbG9uZyBvcHRpb25dIFtvcHRpb25dIC4uLgoJYmFzaCBbR05VIGxvbmcgb3B0aW9uXSBbb3B0aW9uXSBzY3JpcHQtZmlsZSAuLi4KR05VIGxvbmcgb3B0aW9uczoKCS0tZGVidWcKCS0tZGVidWdnZXIKCS0tZHVtcC1wby1zdHJpbmdzCgktLWR1bXAtc3RyaW5ncwoJLS1oZWxwCgktLWluaXQtZmlsZQoJLS1sb2dpbgoJLS1ub2VkaXRpbmcKCS0tbm9wcm9maWxlCgktLW5vcmMKCS0tcG9zaXgKCS0tcHJldHR5LXByaW50CgktLXJjZmlsZQoJLS1yZXN0cmljdGVkCgktLXZlcmJvc2UKCS0tdmVyc2lvbgpTaGVsbCBvcHRpb25zOgoJLWlscnNEIG9yIC1jIGNvbW1hbmQgb3IgLU8gc2hvcHRfb3B0aW9uCQkoaW52b2NhdGlvbiBvbmx5KQoJLWFiZWZoa21ucHR1dnhCQ0VIUFQgb3IgLW8gb3B0aW9uCg==",
+      "effects": [
+        {
+          "path": "effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        },
+        {
+          "path": "script",
+          "type": "file",
+          "mode": 493,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgLVMgYmFzaCAtWgpwcmludGYgdW5zYWZlID4gZWZmZWN0Cg=="
+        },
+        {
+          "path": "sub",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "sub/effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        }
+      ]
+    },
+    "kernel": {
+      "profile": "actual-Darwin-kernel-Apple-env-GNU-Bash-PATH",
+      "invocation": {
+        "file": "/tmp/env-shebang-review-sDRaI8/cases/s17/script",
+        "args": [],
+        "cwd": "/tmp/env-shebang-review-sDRaI8/cases/s17",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s17"
+        },
+        "stdinBase64": ""
+      },
+      "pid": 17401,
+      "status": 2,
+      "signal": null,
+      "timeout": false,
+      "overflow": false,
+      "stdout": "",
+      "stderr": "YmFzaDogLVo6IGludmFsaWQgb3B0aW9uClVzYWdlOgliYXNoIFtHTlUgbG9uZyBvcHRpb25dIFtvcHRpb25dIC4uLgoJYmFzaCBbR05VIGxvbmcgb3B0aW9uXSBbb3B0aW9uXSBzY3JpcHQtZmlsZSAuLi4KR05VIGxvbmcgb3B0aW9uczoKCS0tZGVidWcKCS0tZGVidWdnZXIKCS0tZHVtcC1wby1zdHJpbmdzCgktLWR1bXAtc3RyaW5ncwoJLS1oZWxwCgktLWluaXQtZmlsZQoJLS1sb2dpbgoJLS1ub2VkaXRpbmcKCS0tbm9wcm9maWxlCgktLW5vcmMKCS0tcG9zaXgKCS0tcHJldHR5LXByaW50CgktLXJjZmlsZQoJLS1yZXN0cmljdGVkCgktLXZlcmJvc2UKCS0tdmVyc2lvbgpTaGVsbCBvcHRpb25zOgoJLWlscnNEIG9yIC1jIGNvbW1hbmQgb3IgLU8gc2hvcHRfb3B0aW9uCQkoaW52b2NhdGlvbiBvbmx5KQoJLWFiZWZoa21ucHR1dnhCQ0VIUFQgb3IgLW8gb3B0aW9uCg==",
+      "effects": [
+        {
+          "path": "effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        },
+        {
+          "path": "script",
+          "type": "file",
+          "mode": 493,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgLVMgYmFzaCAtWgpwcmludGYgdW5zYWZlID4gZWZmZWN0Cg=="
+        },
+        {
+          "path": "sub",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "sub/effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        }
+      ]
+    }
+  },
+  {
+    "id": "s18",
+    "kind": "shebang",
+    "inputSha256": "e26c886580545ec264be48f12f6d051c84196f5370c73a3eed863d65901d4b18",
+    "input": {
+      "id": "s18",
+      "category": "unknown env target literal lookup failure",
+      "kind": "shebang",
+      "header": "/usr/bin/env -S review-missing-interpreter",
+      "body": "printf unsafe > effect\n",
+      "expected": {
+        "status": 127,
+        "stdout": "",
+        "diagnostic": "review-missing-interpreter: command not found",
+        "effect": "seed"
+      },
+      "args": [],
+      "scriptPath": "./script",
+      "files": {
+        "script": {
+          "text": "#!/usr/bin/env -S review-missing-interpreter\nprintf unsafe > effect\n",
+          "mode": 493
+        },
+        "effect": {
+          "text": "seed",
+          "mode": 420
+        },
+        "sub/effect": {
+          "text": "seed",
+          "mode": 420
+        }
+      }
+    },
+    "env": {
+      "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+      "LC_ALL": "C",
+      "TOKEN": "two words",
+      "DROP": "parent",
+      "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s18"
+    },
+    "oracle": {
+      "profile": "Linux-optional-argv-model-GNU-env-on-Darwin",
+      "invocation": {
+        "file": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+        "args": [
+          "-S review-missing-interpreter",
+          "./script"
+        ],
+        "cwd": "/tmp/env-shebang-review-sDRaI8/cases/s18",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s18"
+        },
+        "stdinBase64": ""
+      },
+      "pid": 17402,
+      "status": 127,
+      "signal": null,
+      "timeout": false,
+      "overflow": false,
+      "stdout": "",
+      "stderr": "ZW52OiAncmV2aWV3LW1pc3NpbmctaW50ZXJwcmV0ZXInOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5Cg==",
+      "effects": [
+        {
+          "path": "effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        },
+        {
+          "path": "script",
+          "type": "file",
+          "mode": 493,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgLVMgcmV2aWV3LW1pc3NpbmctaW50ZXJwcmV0ZXIKcHJpbnRmIHVuc2FmZSA+IGVmZmVjdAo="
+        },
+        {
+          "path": "sub",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "sub/effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        }
+      ]
+    },
+    "kernel": {
+      "profile": "actual-Darwin-kernel-Apple-env-GNU-Bash-PATH",
+      "invocation": {
+        "file": "/tmp/env-shebang-review-sDRaI8/cases/s18/script",
+        "args": [],
+        "cwd": "/tmp/env-shebang-review-sDRaI8/cases/s18",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s18"
+        },
+        "stdinBase64": ""
+      },
+      "pid": 17403,
+      "status": 127,
+      "signal": null,
+      "timeout": false,
+      "overflow": false,
+      "stdout": "",
+      "stderr": "ZW52OiByZXZpZXctbWlzc2luZy1pbnRlcnByZXRlcjogTm8gc3VjaCBmaWxlIG9yIGRpcmVjdG9yeQo=",
+      "effects": [
+        {
+          "path": "effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        },
+        {
+          "path": "script",
+          "type": "file",
+          "mode": 493,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgLVMgcmV2aWV3LW1pc3NpbmctaW50ZXJwcmV0ZXIKcHJpbnRmIHVuc2FmZSA+IGVmZmVjdAo="
+        },
+        {
+          "path": "sub",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "sub/effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        }
+      ]
+    }
+  },
+  {
+    "id": "s19",
+    "kind": "shebang",
+    "inputSha256": "c41500f993e62c8ab86fe1e7ce27d8459cdb6a0e9637734c63a6bf3197f297fd",
+    "input": {
+      "id": "s19",
+      "category": "literal metacharacter assignment cannot inject",
+      "kind": "shebang",
+      "header": "/usr/bin/env -S MARK='$(printf bad > injected); | & *' bash",
+      "body": "printf \"<%s>\\n\" \"$MARK\"\n",
+      "expected": {
+        "status": 0,
+        "stdout": "<$(printf bad > injected); | & *>\n",
+        "stderr": "",
+        "effect": "seed"
+      },
+      "args": [],
+      "scriptPath": "./script",
+      "files": {
+        "script": {
+          "text": "#!/usr/bin/env -S MARK='$(printf bad > injected); | & *' bash\nprintf \"<%s>\\n\" \"$MARK\"\n",
+          "mode": 493
+        },
+        "effect": {
+          "text": "seed",
+          "mode": 420
+        },
+        "sub/effect": {
+          "text": "seed",
+          "mode": 420
+        }
+      }
+    },
+    "env": {
+      "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+      "LC_ALL": "C",
+      "TOKEN": "two words",
+      "DROP": "parent",
+      "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s19"
+    },
+    "oracle": {
+      "profile": "Linux-optional-argv-model-GNU-env-on-Darwin",
+      "invocation": {
+        "file": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+        "args": [
+          "-S MARK='$(printf bad > injected); | & *' bash",
+          "./script"
+        ],
+        "cwd": "/tmp/env-shebang-review-sDRaI8/cases/s19",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s19"
+        },
+        "stdinBase64": ""
+      },
+      "pid": 17404,
+      "status": 0,
+      "signal": null,
+      "timeout": false,
+      "overflow": false,
+      "stdout": "PCQocHJpbnRmIGJhZCA+IGluamVjdGVkKTsgfCAmICo+Cg==",
+      "stderr": "",
+      "effects": [
+        {
+          "path": "effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        },
+        {
+          "path": "script",
+          "type": "file",
+          "mode": 493,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgLVMgTUFSSz0nJChwcmludGYgYmFkID4gaW5qZWN0ZWQpOyB8ICYgKicgYmFzaApwcmludGYgIjwlcz5cbiIgIiRNQVJLIgo="
+        },
+        {
+          "path": "sub",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "sub/effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        }
+      ]
+    },
+    "kernel": {
+      "profile": "actual-Darwin-kernel-Apple-env-GNU-Bash-PATH",
+      "invocation": {
+        "file": "/tmp/env-shebang-review-sDRaI8/cases/s19/script",
+        "args": [],
+        "cwd": "/tmp/env-shebang-review-sDRaI8/cases/s19",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s19"
+        },
+        "stdinBase64": ""
+      },
+      "pid": 17405,
+      "status": 1,
+      "signal": null,
+      "timeout": false,
+      "overflow": false,
+      "stdout": "",
+      "stderr": "ZW52OiBObyB0ZXJtaW5hdGluZyBxdW90ZSBmb3Igc3RyaW5nOiBNQVJLPSckKHByaW50Zgo=",
+      "effects": [
+        {
+          "path": "effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        },
+        {
+          "path": "script",
+          "type": "file",
+          "mode": 493,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgLVMgTUFSSz0nJChwcmludGYgYmFkID4gaW5qZWN0ZWQpOyB8ICYgKicgYmFzaApwcmludGYgIjwlcz5cbiIgIiRNQVJLIgo="
+        },
+        {
+          "path": "sub",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "sub/effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        }
+      ]
+    }
+  },
+  {
+    "id": "s20",
+    "kind": "shebang",
+    "inputSha256": "c246847cf39e132c48604522282e7a9d8180f1ee017146da3b6d538e90287b2b",
+    "input": {
+      "id": "s20",
+      "category": "env dispatches a second executable VFS script",
+      "kind": "shebang",
+      "header": "/usr/bin/env -S ./delegate",
+      "body": "printf unsafe > effect\n",
+      "expected": {
+        "status": 0,
+        "stdout": "delegate:<./script>|<tail>\n",
+        "stderr": "",
+        "effect": "seed"
+      },
+      "args": [
+        "tail"
+      ],
+      "delegate": "#!/usr/bin/env bash\nprintf \"delegate:<%s>|<%s>\\n\" \"$1\" \"$2\"\n",
+      "scriptPath": "./script",
+      "files": {
+        "script": {
+          "text": "#!/usr/bin/env -S ./delegate\nprintf unsafe > effect\n",
+          "mode": 493
+        },
+        "effect": {
+          "text": "seed",
+          "mode": 420
+        },
+        "sub/effect": {
+          "text": "seed",
+          "mode": 420
+        },
+        "delegate": {
+          "text": "#!/usr/bin/env bash\nprintf \"delegate:<%s>|<%s>\\n\" \"$1\" \"$2\"\n",
+          "mode": 493
+        }
+      }
+    },
+    "env": {
+      "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+      "LC_ALL": "C",
+      "TOKEN": "two words",
+      "DROP": "parent",
+      "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s20"
+    },
+    "oracle": {
+      "profile": "Linux-optional-argv-model-GNU-env-on-Darwin",
+      "invocation": {
+        "file": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+        "args": [
+          "-S ./delegate",
+          "./script",
+          "tail"
+        ],
+        "cwd": "/tmp/env-shebang-review-sDRaI8/cases/s20",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s20"
+        },
+        "stdinBase64": ""
+      },
+      "pid": 17406,
+      "status": 0,
+      "signal": null,
+      "timeout": false,
+      "overflow": false,
+      "stdout": "ZGVsZWdhdGU6PC4vc2NyaXB0Pnw8dGFpbD4K",
+      "stderr": "",
+      "effects": [
+        {
+          "path": "delegate",
+          "type": "file",
+          "mode": 493,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgYmFzaApwcmludGYgImRlbGVnYXRlOjwlcz58PCVzPlxuIiAiJDEiICIkMiIK"
+        },
+        {
+          "path": "effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        },
+        {
+          "path": "script",
+          "type": "file",
+          "mode": 493,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgLVMgLi9kZWxlZ2F0ZQpwcmludGYgdW5zYWZlID4gZWZmZWN0Cg=="
+        },
+        {
+          "path": "sub",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "sub/effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        }
+      ]
+    },
+    "kernel": {
+      "profile": "actual-Darwin-kernel-Apple-env-GNU-Bash-PATH",
+      "invocation": {
+        "file": "/tmp/env-shebang-review-sDRaI8/cases/s20/script",
+        "args": [
+          "tail"
+        ],
+        "cwd": "/tmp/env-shebang-review-sDRaI8/cases/s20",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-sDRaI8/cases/s20"
+        },
+        "stdinBase64": ""
+      },
+      "pid": 17407,
+      "status": 0,
+      "signal": null,
+      "timeout": false,
+      "overflow": false,
+      "stdout": "ZGVsZWdhdGU6PC90bXAvZW52LXNoZWJhbmctcmV2aWV3LXNEUmFJOC9jYXNlcy9zMjAvc2NyaXB0Pnw8dGFpbD4K",
+      "stderr": "",
+      "effects": [
+        {
+          "path": "delegate",
+          "type": "file",
+          "mode": 493,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgYmFzaApwcmludGYgImRlbGVnYXRlOjwlcz58PCVzPlxuIiAiJDEiICIkMiIK"
+        },
+        {
+          "path": "effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        },
+        {
+          "path": "script",
+          "type": "file",
+          "mode": 493,
+          "base64": "IyEvdXNyL2Jpbi9lbnYgLVMgLi9kZWxlZ2F0ZQpwcmludGYgdW5zYWZlID4gZWZmZWN0Cg=="
+        },
+        {
+          "path": "sub",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "sub/effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        }
+      ]
+    }
+  },
+  {
+    "id": "d01",
+    "kind": "direct-env",
+    "inputSha256": "c4469da56bff81ab14f530fb13ba39b3f9e0f6fe78ec6591149448e79a855144",
+    "input": {
+      "id": "d01",
+      "category": "accepted direct split quote control",
+      "kind": "direct-env",
+      "argv": [
+        "-S",
+        "MARK=\"two words\" bash",
+        "./script",
+        "tail"
+      ],
+      "body": "printf \"<%s>\\n\" \"$MARK\"\nprintf \"<%s>|<%s>|<%s>\\n\" \"$0\" \"$#\" \"$1\"\n",
+      "expected": {
+        "status": 0,
+        "stdout": "<two words>\n<./script>|<1>|<tail>\n",
+        "stderr": "",
+        "effect": "seed"
+      },
+      "args": [],
+      "scriptPath": "./script",
+      "files": {
+        "script": {
+          "text": "printf \"<%s>\\n\" \"$MARK\"\nprintf \"<%s>|<%s>|<%s>\\n\" \"$0\" \"$#\" \"$1\"\n",
+          "mode": 493
+        },
+        "effect": {
+          "text": "seed",
+          "mode": 420
+        },
+        "sub/effect": {
+          "text": "seed",
+          "mode": 420
+        }
+      }
+    },
+    "env": {
+      "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+      "LC_ALL": "C",
+      "TOKEN": "two words",
+      "DROP": "parent",
+      "PWD": "/tmp/env-shebang-review-sDRaI8/cases/d01"
+    },
+    "oracle": {
+      "profile": "direct-GNU-env-literal-argv",
+      "invocation": {
+        "file": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+        "args": [
+          "-S",
+          "MARK=\"two words\" bash",
+          "./script",
+          "tail"
+        ],
+        "cwd": "/tmp/env-shebang-review-sDRaI8/cases/d01",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-sDRaI8/cases/d01"
+        },
+        "stdinBase64": ""
+      },
+      "pid": 17408,
+      "status": 0,
+      "signal": null,
+      "timeout": false,
+      "overflow": false,
+      "stdout": "PHR3byB3b3Jkcz4KPC4vc2NyaXB0Pnw8MT58PHRhaWw+Cg==",
+      "stderr": "",
+      "effects": [
+        {
+          "path": "effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        },
+        {
+          "path": "script",
+          "type": "file",
+          "mode": 493,
+          "base64": "cHJpbnRmICI8JXM+XG4iICIkTUFSSyIKcHJpbnRmICI8JXM+fDwlcz58PCVzPlxuIiAiJDAiICIkIyIgIiQxIgo="
+        },
+        {
+          "path": "sub",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "sub/effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        }
+      ]
+    },
+    "kernel": null
+  },
+  {
+    "id": "d02",
+    "kind": "direct-env",
+    "inputSha256": "0e6ed7ac8b3dced939723d0cc654a1b3ee057bc06f2496ed2879cdb519687f83",
+    "input": {
+      "id": "d02",
+      "category": "accepted direct non-S literal control",
+      "kind": "direct-env",
+      "argv": [
+        "bash -e",
+        "./script"
+      ],
+      "body": "printf before > effect\nfalse\nprintf after > effect\n",
+      "expected": {
+        "status": 127,
+        "stdout": "",
+        "diagnostic": "bash -e: command not found",
+        "effect": "seed"
+      },
+      "args": [],
+      "scriptPath": "./script",
+      "files": {
+        "script": {
+          "text": "printf before > effect\nfalse\nprintf after > effect\n",
+          "mode": 493
+        },
+        "effect": {
+          "text": "seed",
+          "mode": 420
+        },
+        "sub/effect": {
+          "text": "seed",
+          "mode": 420
+        }
+      }
+    },
+    "env": {
+      "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+      "LC_ALL": "C",
+      "TOKEN": "two words",
+      "DROP": "parent",
+      "PWD": "/tmp/env-shebang-review-sDRaI8/cases/d02"
+    },
+    "oracle": {
+      "profile": "direct-GNU-env-literal-argv",
+      "invocation": {
+        "file": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+        "args": [
+          "bash -e",
+          "./script"
+        ],
+        "cwd": "/tmp/env-shebang-review-sDRaI8/cases/d02",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-sDRaI8/cases/d02"
+        },
+        "stdinBase64": ""
+      },
+      "pid": 17411,
+      "status": 127,
+      "signal": null,
+      "timeout": false,
+      "overflow": false,
+      "stdout": "",
+      "stderr": "ZW52OiAnYmFzaCAtZSc6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkKZW52OiB1c2UgLVt2XVMgdG8gcGFzcyBvcHRpb25zIGluIHNoZWJhbmcgbGluZXMK",
+      "effects": [
+        {
+          "path": "effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        },
+        {
+          "path": "script",
+          "type": "file",
+          "mode": 493,
+          "base64": "cHJpbnRmIGJlZm9yZSA+IGVmZmVjdApmYWxzZQpwcmludGYgYWZ0ZXIgPiBlZmZlY3QK"
+        },
+        {
+          "path": "sub",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "sub/effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        }
+      ]
+    },
+    "kernel": null
+  },
+  {
+    "id": "d03",
+    "kind": "direct-env",
+    "inputSha256": "7420524b5c89c399586e56032711324246c9ae489f53c9230277a9086e519118",
+    "input": {
+      "id": "d03",
+      "category": "accepted direct expansion before clear control",
+      "kind": "direct-env",
+      "argv": [
+        "-S",
+        "-i PATH=/tmp/env-shebang-review-sDRaI8/bin MARK=${TOKEN} bash",
+        "./script"
+      ],
+      "body": "printf \"<%s>\\n\" \"$MARK\"\nprintf \"<%s>\\n\" \"${DROP-unset}\"\n",
+      "expected": {
+        "status": 0,
+        "stdout": "<two words>\n<unset>\n",
+        "stderr": "",
+        "effect": "seed"
+      },
+      "args": [],
+      "scriptPath": "./script",
+      "files": {
+        "script": {
+          "text": "printf \"<%s>\\n\" \"$MARK\"\nprintf \"<%s>\\n\" \"${DROP-unset}\"\n",
+          "mode": 493
+        },
+        "effect": {
+          "text": "seed",
+          "mode": 420
+        },
+        "sub/effect": {
+          "text": "seed",
+          "mode": 420
+        }
+      }
+    },
+    "env": {
+      "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+      "LC_ALL": "C",
+      "TOKEN": "two words",
+      "DROP": "parent",
+      "PWD": "/tmp/env-shebang-review-sDRaI8/cases/d03"
+    },
+    "oracle": {
+      "profile": "direct-GNU-env-literal-argv",
+      "invocation": {
+        "file": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+        "args": [
+          "-S",
+          "-i PATH=/tmp/env-shebang-review-sDRaI8/bin MARK=${TOKEN} bash",
+          "./script"
+        ],
+        "cwd": "/tmp/env-shebang-review-sDRaI8/cases/d03",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-sDRaI8/cases/d03"
+        },
+        "stdinBase64": ""
+      },
+      "pid": 17412,
+      "status": 0,
+      "signal": null,
+      "timeout": false,
+      "overflow": false,
+      "stdout": "PHR3byB3b3Jkcz4KPHVuc2V0Pgo=",
+      "stderr": "",
+      "effects": [
+        {
+          "path": "effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        },
+        {
+          "path": "script",
+          "type": "file",
+          "mode": 493,
+          "base64": "cHJpbnRmICI8JXM+XG4iICIkTUFSSyIKcHJpbnRmICI8JXM+XG4iICIke0RST1AtdW5zZXR9Igo="
+        },
+        {
+          "path": "sub",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "sub/effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        }
+      ]
+    },
+    "kernel": null
+  },
+  {
+    "id": "d04",
+    "kind": "direct-env",
+    "inputSha256": "e5452f30e4d6870d1fa499e4215f5035d463c80c42b304be99ab9a82ac81bedb",
+    "input": {
+      "id": "d04",
+      "category": "accepted direct cwd control",
+      "kind": "direct-env",
+      "argv": [
+        "-S",
+        "-C sub bash",
+        "/tmp/env-shebang-review-sDRaI8/cases/d04/script"
+      ],
+      "body": "pwd\n",
+      "expected": {
+        "status": 0,
+        "stdout": "/tmp/env-shebang-review-sDRaI8/cases/d04/sub\n",
+        "stderr": "",
+        "effect": "seed"
+      },
+      "args": [],
+      "scriptPath": "./script",
+      "files": {
+        "script": {
+          "text": "pwd\n",
+          "mode": 493
+        },
+        "effect": {
+          "text": "seed",
+          "mode": 420
+        },
+        "sub/effect": {
+          "text": "seed",
+          "mode": 420
+        }
+      }
+    },
+    "env": {
+      "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+      "LC_ALL": "C",
+      "TOKEN": "two words",
+      "DROP": "parent",
+      "PWD": "/tmp/env-shebang-review-sDRaI8/cases/d04"
+    },
+    "oracle": {
+      "profile": "direct-GNU-env-literal-argv",
+      "invocation": {
+        "file": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+        "args": [
+          "-S",
+          "-C sub bash",
+          "/tmp/env-shebang-review-sDRaI8/cases/d04/script"
+        ],
+        "cwd": "/tmp/env-shebang-review-sDRaI8/cases/d04",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-sDRaI8/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-sDRaI8/cases/d04"
+        },
+        "stdinBase64": ""
+      },
+      "pid": 17413,
+      "status": 0,
+      "signal": null,
+      "timeout": false,
+      "overflow": false,
+      "stdout": "L3ByaXZhdGUvdG1wL2Vudi1zaGViYW5nLXJldmlldy1zRFJhSTgvY2FzZXMvZDA0L3N1Ygo=",
+      "stderr": "",
+      "effects": [
+        {
+          "path": "effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        },
+        {
+          "path": "script",
+          "type": "file",
+          "mode": 493,
+          "base64": "cHdkCg=="
+        },
+        {
+          "path": "sub",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "sub/effect",
+          "type": "file",
+          "mode": 420,
+          "base64": "c2VlZA=="
+        }
+      ]
+    },
+    "kernel": null
+  }
+]

@@ -1,0 +1,24 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "sourceSha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+  "argv": ["-f", "geojson"],
+  "inputEnvelope": { "type": "FeatureCollection", "features": "case.features" },
+  "rawCases": [
+    { "stdin": "{\"type\":\"FeatureCollection\",\"features\":[{\"id\":-0,\"properties\":{\"x\":[-0]},\"geometry\":null}]}", "stdout": "id,x,geojson,type,longitude,latitude\n0,[0],null,,,\n", "stderr": "", "status": 0 }
+  ],
+  "cases": [
+    { "features": [{"properties":{"x":["é",true,null,{"b":1},["a"]]},"geometry":null}], "stdout": "id,x,geojson,type,longitude,latitude\n,\"['é', True, None, OrderedDict({'b': 1}), ['a']]\",null,,,\n", "stderr": "", "status": 0 },
+    { "features": [{"properties":null,"geometry":null}], "stdout": "", "stderr": "AttributeError: 'NoneType' object has no attribute 'keys'\n", "status": 1 },
+    { "features": [{"properties":[],"geometry":null}], "stdout": "", "stderr": "AttributeError: 'list' object has no attribute 'keys'\n", "status": 1 },
+    { "features": null, "stdout": "", "stderr": "TypeError: 'NoneType' object is not iterable\n", "status": 1 },
+    { "features": {}, "stdout": "id,geojson,type,longitude,latitude\n", "stderr": "", "status": 0 },
+    { "features": {"foo":1}, "stdout": "", "stderr": "AttributeError: 'str' object has no attribute 'get'\n", "status": 1 },
+    { "features": [null], "stdout": "", "stderr": "AttributeError: 'NoneType' object has no attribute 'get'\n", "status": 1 },
+    { "features": [{"geometry":3}], "stdout": "", "stderr": "AttributeError: 'int' object has no attribute 'get'\n", "status": 1 },
+    { "features": [{"geometry":[]}], "stdout": "id,geojson,type,longitude,latitude\n,[],,,\n", "stderr": "", "status": 0 },
+    { "features": [{"geometry":{"type":"Point","coordinates":"ab"}}], "stdout": "id,geojson,type,longitude,latitude\n,\"{\"\"type\"\": \"\"Point\"\", \"\"coordinates\"\": \"\"ab\"\"}\",Point,a,b\n", "stderr": "", "status": 0 },
+    { "features": [{"geometry":{"type":"Point","coordinates":null}}], "stdout": "", "stderr": "TypeError: 'NoneType' object is not subscriptable\n", "status": 1 },
+    { "features": [{"geometry":{"type":"Point","coordinates":{}}}], "stdout": "", "stderr": "KeyError: slice(0, 2, None)\n", "status": 1 },
+    { "features": [{"geometry":{"type":"Point","coordinates":3}}], "stdout": "", "stderr": "TypeError: 'int' object is not subscriptable\n", "status": 1 }
+  ]
+}

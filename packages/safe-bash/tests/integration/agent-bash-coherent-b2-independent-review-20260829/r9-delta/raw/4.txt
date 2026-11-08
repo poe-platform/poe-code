@@ -1,0 +1,28 @@
+{
+  "parentPacketSha256": "6df866e7990386218848061128777008bfbd6cdd93a7c0f658559fc0d0aa23f9",
+  "packetSha256": "5b4a12e14081d6c95f7805358737d32008b0b7f5844413b485e77a81fb1b807d",
+  "changed": [
+    {
+      "path": "new/coordinator.mjs",
+      "before": "f0f8cda546e12e91e0a4b1b79738c5f9e84af937a007d7e09c7c61703b159ff5",
+      "after": "d65289d8d8903e16cda9b0db359fa4196c04ce2c12587f4c93bd7123c34dfdb6"
+    },
+    {
+      "path": "new/launch.sh",
+      "before": "eceb83b8f52e376327c251c5c79adfcabf37f2dff031dec8e2176f5c4dea96a4",
+      "after": "1e70e1ea1942ef4e78599d7dcc1ff05d9f77a6e8774271a3b6f438f5bea69203"
+    },
+    {
+      "path": "new/outer.mjs",
+      "before": "f545b57ab6373799a752a9747c53a90abc3fc3450c38c67d559dc1b52ab1c89e",
+      "after": "a2080b5298ab237c290c67ff4eaac93ba5ce951e73d2d46ddfc785674ceabb0a"
+    },
+    {
+      "path": "new/support.mjs",
+      "before": "ad950ba9f2807ad7b08131dc267b76132c5279cb31706441abf033bde46611e0",
+      "after": "fae2c6758881c46770079a166935eb8ac5b21ad1edcf6bfc94144d0fa9d98e92"
+    }
+  ],
+  "unchanged": 28,
+  "legacyConditionalEOF": "unchanged legacy whitespace retained"
+}

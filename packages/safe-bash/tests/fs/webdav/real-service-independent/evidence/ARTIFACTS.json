@@ -1,0 +1,368 @@
+[
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/final/run.json",
+    "capturedSha256": "77df780adc9314ae3c928adfe1092c5ddee86b525291f8c207cae4cf815eca49",
+    "archivedSha256": "0314d82e9ef13c5c1ed1171686e05696d67137a84c9676cbee4908640c535423",
+    "encoding": "lossless compact JSON"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/final/apache/baseline.json",
+    "capturedSha256": "c3a3cbf73f242f49d28763f0a80afe5e62fdf87510edf8efd564d0671022e586",
+    "archivedSha256": "6d54546cd5690ed00baca25f4dc0334e2551666ee5cbcb21262793d5796ee02f",
+    "encoding": "lossless compact JSON"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/final/apache/fixture-hashes.json",
+    "capturedSha256": "8c1b8277aab8a6e1eab4ba3871830292ee8292f840fe19b4f9219eb4a16226a3",
+    "archivedSha256": "67b567c06506cb33ed9bbe3e04f1ccf1735f4c904c5374dc63a595116f3b78e5",
+    "encoding": "lossless compact JSON"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/final/apache/package.json",
+    "capturedSha256": "d5698fdf47c57fbef39099f656c91ed41407b7f89535817fff8b39d90ee17dc8",
+    "archivedSha256": "5e01ffc0872e6b9e571af02e5768e90b8646b1769bb0fce54c9dcc0a39361035",
+    "encoding": "lossless compact JSON"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/final/apache/raw.json",
+    "capturedSha256": "0af35cbefdfb6a5745cc71e0ce5e542b24c7104fb49d955c9d29af72cffd330d",
+    "archivedSha256": "63b6efe9765d31617a2892464f07ab51d787e26c05391a8194e5aab49640c161",
+    "encoding": "lossless compact JSON"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/final/apache/consumer.json",
+    "capturedSha256": "ecf72edff1776988560251d9ec80599cda2ca13fdd423bea1996695d8045127a",
+    "archivedSha256": "f08fc5e816731aee9da5148dd83660b31c53304d5819cef37dffd97e35c6e1e2",
+    "encoding": "lossless compact JSON"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/final/apache/phase2-consumer.json",
+    "capturedSha256": "0540f794b3ae47e0acfa61b3c56ff0f7300b4224e7a6f2a2c8c29872b6a90bda",
+    "archivedSha256": "2d040584a62bf69e182b026d252652095966cb14af9dd2f5df6df3acd3daab91",
+    "encoding": "lossless compact JSON"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/final/apache/independent.json",
+    "capturedSha256": "9574def38a4c54b2c9e143276a9b236a2674f906742a18d7d312f39716ef06ab",
+    "archivedSha256": "a9e4eece70f20ecbc12d2ff6f1e7a46e6078463be887260ac7afc0c6de053b46",
+    "encoding": "lossless compact JSON"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/final/apache/independent-imports.jsonl",
+    "capturedSha256": "745390ca962b4fce65867fe30b9a81dfb50316336ed894ad537fc3cf21653002",
+    "archivedSha256": "745390ca962b4fce65867fe30b9a81dfb50316336ed894ad537fc3cf21653002",
+    "encoding": "original text, one trailing newline"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/final/apache/summary.json",
+    "capturedSha256": "38d5bd2039daa01fd42e567edba3df8c65aa685c89d0996bb9769ce29fc78d42",
+    "archivedSha256": "5f8ea47a626c9bbba6538d6d37ce99d30d5d5ca0d395d80b2a2ad6d4c1bbdf65",
+    "encoding": "lossless compact JSON"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/final/apache/commands.json",
+    "capturedSha256": "0f04e142f807ff295a96e3191d448382febda248c91ae045b5dec3c85991d552",
+    "archivedSha256": "85ebd9496b9f06053e3e7a41973bf6785273e890f39c10d86bfeec2ed9ed9bf7",
+    "encoding": "lossless compact JSON"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/final/apache/cleanup.json",
+    "capturedSha256": "6b02f1a9715a0ce1409307a9758fb652d94427b61cf0514119d056eb2ae0d103",
+    "archivedSha256": "1c36a41a8badae867bb13e8889658a9f8d5cdc67baa5a56132ee47f72e48cd24",
+    "encoding": "lossless compact JSON"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/final/apache/literal-config.json",
+    "capturedSha256": "86b838513c9d9bdf979398f52393c709abd1ef9d601c74e157f97a651c240198",
+    "archivedSha256": "7394ca8230f9ecdbdf43be2c925dde9bd707727201cad2684d19c166918e53e9",
+    "encoding": "lossless compact JSON"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/final/apache/server.log",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "encoding": "original text, one trailing newline"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/final/apache/cert.pem",
+    "capturedSha256": "680096f522e288b886270b51ea6b52e95d0d1590842d3ff001c303f5b1b13f62",
+    "archivedSha256": "680096f522e288b886270b51ea6b52e95d0d1590842d3ff001c303f5b1b13f62",
+    "encoding": "original text, one trailing newline"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/final/apache/apache-profile.json",
+    "capturedSha256": "af875c252f1ac9697cc2ceac0c877f8b2e1d0a05d752260cb369ab020ce14333",
+    "archivedSha256": "efed3611147592e09b35c954f907b57ff29274b5fab7074d2455e41620d39921",
+    "encoding": "lossless compact JSON"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/final/apache/apache-error.log",
+    "capturedSha256": "dbea2cb7b3d02aa376857f24598d7d69fe883516513bee3a9aff99e908bec747",
+    "archivedSha256": "dbea2cb7b3d02aa376857f24598d7d69fe883516513bee3a9aff99e908bec747",
+    "encoding": "original text, one trailing newline"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/final/apache/inputs/independent.mts",
+    "capturedSha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+    "archivedSha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+    "encoding": "original text, one trailing newline"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/final/apache/inputs/run.mjs",
+    "capturedSha256": "210a5f85544beca02396eeb2adbfd28169a48cef379a0aeea839f4e68edc1d2b",
+    "archivedSha256": "210a5f85544beca02396eeb2adbfd28169a48cef379a0aeea839f4e68edc1d2b",
+    "encoding": "original text, one trailing newline"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/final/apache/inputs/public-guard.mjs",
+    "capturedSha256": "1ea17afd3264589c748ceba5293b559c395c1fc452180cf3ea9d612d210aa6c4",
+    "archivedSha256": "1ea17afd3264589c748ceba5293b559c395c1fc452180cf3ea9d612d210aa6c4",
+    "encoding": "original text, one trailing newline"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/final/wsgidav/baseline.json",
+    "capturedSha256": "5342a82bb1e318a4be2d5030355828ec2e26f11fcb100112a037c279fbedcaa7",
+    "archivedSha256": "212e0cbd40da6737fe6b2c72ca83679107894f71027864d1f35e6269b180a427",
+    "encoding": "lossless compact JSON"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/final/wsgidav/fixture-hashes.json",
+    "capturedSha256": "8c1b8277aab8a6e1eab4ba3871830292ee8292f840fe19b4f9219eb4a16226a3",
+    "archivedSha256": "67b567c06506cb33ed9bbe3e04f1ccf1735f4c904c5374dc63a595116f3b78e5",
+    "encoding": "lossless compact JSON"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/final/wsgidav/package.json",
+    "capturedSha256": "d5698fdf47c57fbef39099f656c91ed41407b7f89535817fff8b39d90ee17dc8",
+    "archivedSha256": "5e01ffc0872e6b9e571af02e5768e90b8646b1769bb0fce54c9dcc0a39361035",
+    "encoding": "lossless compact JSON"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/final/wsgidav/raw.json",
+    "capturedSha256": "d5f8b541b65639ed6fe6f0e980749d6b898ea9275c05dd3472ab97145fe7c02b",
+    "archivedSha256": "4e842e5e3e392998553bb0854f2116b637efc6caf22aded221bf884d46ad9e87",
+    "encoding": "lossless compact JSON"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/final/wsgidav/consumer.json",
+    "capturedSha256": "811e9f7f7b6dcbd91f41a92412db0d8b817fb418c65762498537267ae53ca1b5",
+    "archivedSha256": "965758c52f29338a40ee7f6119815e69daccd4c9a124b457cefb460f68544dd3",
+    "encoding": "lossless compact JSON"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/final/wsgidav/phase2-consumer.json",
+    "capturedSha256": "afcd324809017cfe98a78dc3fb0165f7e5cf83010b3189e5196bbb4b73592fc7",
+    "archivedSha256": "535c42bd32cecd9c38ab5ecada0e260bf4f711dff9d0a5812aaca29c8a0f3eeb",
+    "encoding": "lossless compact JSON"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/final/wsgidav/independent.json",
+    "capturedSha256": "77acb6fb341d3c64606dfa35d64fe5a5c44133ca6b84b73de603e3da99335a47",
+    "archivedSha256": "e8788cd89ba411e3449297350bea4699e8e921574f328545db60fcb845e9360e",
+    "encoding": "lossless compact JSON"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/final/wsgidav/independent-imports.jsonl",
+    "capturedSha256": "01fff68aa6f7766f8c8515d6017315c38adb6510faeff8da16240c062fc7cce7",
+    "archivedSha256": "01fff68aa6f7766f8c8515d6017315c38adb6510faeff8da16240c062fc7cce7",
+    "encoding": "original text, one trailing newline"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/final/wsgidav/summary.json",
+    "capturedSha256": "71b1587201ae586c5d085fa467e021ee0515650d57b9dc0c6754be6950dfb574",
+    "archivedSha256": "37307a7ef2222c77ec9c36d88a5ed42aae53d0e5f141d57e5e23773b42a0e4a6",
+    "encoding": "lossless compact JSON"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/final/wsgidav/commands.json",
+    "capturedSha256": "34d090f2605b5d9930246cd66a29272498f3a5273d54cf8cb923e7e6bbd6c161",
+    "archivedSha256": "0b84e4be142556bc31143c36b842cc380335dbf6cb9b1ee5d7fee1a03ab00164",
+    "encoding": "lossless compact JSON"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/final/wsgidav/cleanup.json",
+    "capturedSha256": "d94897304231e89d1b6df9ce8ab6234a02f64a7e539f8f7d25b5e1b76d0c9f66",
+    "archivedSha256": "f0fcd007656065b7404908a124c1177b84cabd12b0289feb6c44f84030126189",
+    "encoding": "lossless compact JSON"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/final/wsgidav/literal-config.json",
+    "capturedSha256": "b5c0c7f25003565d18ee08fc71542e6468ec365c8bb5ad792e791735ee0d9c2d",
+    "archivedSha256": "19ca1370301fa0551ec2a5d84b85acc3f708e9e39bc66a880c65078f527f0055",
+    "encoding": "lossless compact JSON"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/final/wsgidav/server.log",
+    "capturedSha256": "3cc254e259c0e0750a778a5b71396a0f0184d5373f90af66d032616b1f6e88ed",
+    "archivedSha256": "3cc254e259c0e0750a778a5b71396a0f0184d5373f90af66d032616b1f6e88ed",
+    "encoding": "original text, one trailing newline"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/final/wsgidav/cert.pem",
+    "capturedSha256": "8b3545c9557efbde024253652ae58e9b86ddd84d8bd5f3540f2a6c9061555eef",
+    "archivedSha256": "8b3545c9557efbde024253652ae58e9b86ddd84d8bd5f3540f2a6c9061555eef",
+    "encoding": "original text, one trailing newline"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/final/wsgidav/dependencies.json",
+    "capturedSha256": "e80ca4a6c021a346ee88dfe6098f7b87d1fddae72fe470292e24931fd24752a9",
+    "archivedSha256": "4b2f35e0b3ee8502dd7d307390bac45a1600bdf93810f50b0613095efec0adbd",
+    "encoding": "lossless compact JSON"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/final/wsgidav/inputs/independent.mts",
+    "capturedSha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+    "archivedSha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+    "encoding": "original text, one trailing newline"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/final/wsgidav/inputs/run.mjs",
+    "capturedSha256": "210a5f85544beca02396eeb2adbfd28169a48cef379a0aeea839f4e68edc1d2b",
+    "archivedSha256": "210a5f85544beca02396eeb2adbfd28169a48cef379a0aeea839f4e68edc1d2b",
+    "encoding": "original text, one trailing newline"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/final/wsgidav/inputs/public-guard.mjs",
+    "capturedSha256": "1ea17afd3264589c748ceba5293b559c395c1fc452180cf3ea9d612d210aa6c4",
+    "archivedSha256": "1ea17afd3264589c748ceba5293b559c395c1fc452180cf3ea9d612d210aa6c4",
+    "encoding": "original text, one trailing newline"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/unchanged-validation/inputs.json",
+    "capturedSha256": "c946d56f1cb1962aa31d10e25ee3feebd3e4243000d5aa1e8cdf5235b50d4993",
+    "archivedSha256": "92d9d3209dd773ab9c3cd5b55c14b0f7c6362f54037d5e3bed12a2324015c5e6",
+    "encoding": "lossless compact JSON"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/unchanged-validation/commands.json",
+    "capturedSha256": "bb947439352e12381ac2f85e1f75078f91afe9eb4d9ee8f8b20eeafecd20be13",
+    "archivedSha256": "7c6fe4f122ffda89949fb0458700e78ffe1d67885703910b88111aa76f397c12",
+    "encoding": "lossless compact JSON"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/unchanged-validation/cleanup.json",
+    "capturedSha256": "f92d23db18e4fdb8352764d916d3b3f4376633dce9fb70ff106322333dcfecb1",
+    "archivedSha256": "8a3c906c829e0957f98a023f62c82cb8fe32650d158125a88c5eea6e8c5885a7",
+    "encoding": "lossless compact JSON"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/attempt1/run.json",
+    "capturedSha256": "0c7c2e7624c5d016dd0a9c2753d89d2e2861ae1160ec9bac1c2d33d6f09e74d3",
+    "archivedSha256": "3cb38c8fe39ba2e1c0202a1153158bc364fbb694dd4a5e00ed14a47a3bd9e735",
+    "encoding": "lossless compact JSON"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/attempt1/apache/cleanup.json",
+    "capturedSha256": "d63c686eef6610e9e5f636c5fcb2aedfd2d5d38c9df8a1098f6235d48a58db58",
+    "archivedSha256": "a782c865f6eb319aa0d42f022103dd02822834ce01a42720cf8f3be821f19f70",
+    "encoding": "lossless compact JSON"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/attempt1/apache.stderr.log",
+    "capturedSha256": "ad1d5370493f7679d1215c4be216914e9b8120a8f1bb8fcc9a80000c7f4ace41",
+    "archivedSha256": "ad1d5370493f7679d1215c4be216914e9b8120a8f1bb8fcc9a80000c7f4ace41",
+    "encoding": "original text, one trailing newline"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/attempt1/wsgidav/cleanup.json",
+    "capturedSha256": "5f25495c76d792cd3deb31ffd80f17e5d63923f200dc5905ef944cda90d8801f",
+    "archivedSha256": "f90e7e34cf88300e161da0a6a1d90289059d8d07eb20121245453d9088cbe5cf",
+    "encoding": "lossless compact JSON"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/attempt1/wsgidav.stderr.log",
+    "capturedSha256": "ad1d5370493f7679d1215c4be216914e9b8120a8f1bb8fcc9a80000c7f4ace41",
+    "archivedSha256": "ad1d5370493f7679d1215c4be216914e9b8120a8f1bb8fcc9a80000c7f4ace41",
+    "encoding": "original text, one trailing newline"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/attempt1/independent.mts",
+    "capturedSha256": "06e3ab5978349056f54824532baa5476e6116320846a6936c768bba50511c1b5",
+    "archivedSha256": "06e3ab5978349056f54824532baa5476e6116320846a6936c768bba50511c1b5",
+    "encoding": "original text, one trailing newline"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/attempt2/run.json",
+    "capturedSha256": "d011f287ebe5074984222f5bd50efb677d7de79bafe2a3e57bb2c286580dd75d",
+    "archivedSha256": "7f6158e332019f3b189d7fa6d9b3c2fcc74fd10784e019ecc179297479d594dd",
+    "encoding": "lossless compact JSON"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/attempt2/apache/independent.json",
+    "capturedSha256": "cca79c61f92d7edade15048ef393f07cdd4a38d36605eeeca9e9293baa9f2cc9",
+    "archivedSha256": "c2aa14342a43a42fa6ac9f3c4b9e48f546a88e913cc64b16e1cefc278878491b",
+    "encoding": "lossless compact JSON"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/attempt2/apache/cleanup.json",
+    "capturedSha256": "4e3cf6712dc173875e2344be9fa0e23980f271711f7effd8addf5cf7120c210e",
+    "archivedSha256": "58787fb4dab320d576234821da27d62d6972c32b167e9a524dc490e33eb8d6d3",
+    "encoding": "lossless compact JSON"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/attempt2/wsgidav/independent.json",
+    "capturedSha256": "3c4c44714a7efc82c248003dc247ea893146a060f33b2ed1466bc8cff3e91ea0",
+    "archivedSha256": "fa192b4e8508c74484029a31f34e61d7b9d3f427d3fca4cdcd4ede49758f7f4f",
+    "encoding": "lossless compact JSON"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/attempt2/wsgidav/cleanup.json",
+    "capturedSha256": "c2a3e7381f819bdacf39e02ba202da312be86c81805e612d08870555233cba17",
+    "archivedSha256": "9ccbd104b77ec75c2740737f272d6744dee22b344da46bd3212a7c8446c978c0",
+    "encoding": "lossless compact JSON"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/attempt2/independent.mts",
+    "capturedSha256": "d1f633592b40625a158a96fbca38286358215048d7959b44f02456ef00cbc7f2",
+    "archivedSha256": "d1f633592b40625a158a96fbca38286358215048d7959b44f02456ef00cbc7f2",
+    "encoding": "original text, one trailing newline"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/attempt3/run.json",
+    "capturedSha256": "8c8d5c1dbdd83e08969c874e211134306d6e5f726f1e089608c5674df01183fb",
+    "archivedSha256": "b89d0768842c9774dddca48e4e3596e16a3b812692bdba359d6d4d4313581539",
+    "encoding": "lossless compact JSON"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/attempt3/apache/independent.json",
+    "capturedSha256": "b2815fa51c0fed8b80af4317ee3fee6c8f8e413d382b9a2cab74d4acbeb0f23a",
+    "archivedSha256": "e472ed3d5696f5b50e851b15d9809429782b44c0aa5095ba8c2c0aa1a3997ef5",
+    "encoding": "lossless compact JSON"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/attempt3/apache/cleanup.json",
+    "capturedSha256": "9acc2a705f56d9804ccbb5c5ec665b39c1644ce2cb3c5ff82c0de9f88a16dea6",
+    "archivedSha256": "cc4480b511f9396ba90c965fa7374f7296a50e154ac9c359e9835749612b2f1f",
+    "encoding": "lossless compact JSON"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/attempt3/wsgidav/independent.json",
+    "capturedSha256": "1a37e95df14f967ed61775fac94a9c9f2c990cba642d8f516d74cebd8f19db59",
+    "archivedSha256": "712ba6c5cb09179a3f2046b0e00ecf468f382af9f2a9c9748926227e47927477",
+    "encoding": "lossless compact JSON"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/attempt3/wsgidav/cleanup.json",
+    "capturedSha256": "4738a0243786ce12dee12c8f5f0118c131a5c361d4b8c728f79d1af3b14d7a60",
+    "archivedSha256": "9fec9e0ea27070b2e98da8904dbb0971329f6d9e163a621b6a54979315e856be",
+    "encoding": "lossless compact JSON"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/attempt3/independent.mts",
+    "capturedSha256": "a3425f55a3041bc614f2b5e00c51db21df8cab644f70a2aeeed4e68358babbca",
+    "archivedSha256": "a3425f55a3041bc614f2b5e00c51db21df8cab644f70a2aeeed4e68358babbca",
+    "encoding": "original text, one trailing newline"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/primary.json",
+    "capturedSha256": "5deddb1640e4b6425ae2bff71e6a2744ecb4b2c5ba5dd69fc835360008a13662",
+    "archivedSha256": "b90433bc14aeee3bc5e92793f98df88e82e2b246b8a5526b788b91dd1ca89f2a",
+    "encoding": "lossless compact JSON"
+  },
+  {
+    "path": "tests/fs/webdav/real-service-independent/evidence/CHECKPOINT.json",
+    "capturedSha256": "850087e7f17fc8f953a0e28fc57ea64bc3b068b62ed8685da20e3794af41bb3b",
+    "archivedSha256": "850087e7f17fc8f953a0e28fc57ea64bc3b068b62ed8685da20e3794af41bb3b",
+    "encoding": "original text, one trailing newline"
+  }
+]

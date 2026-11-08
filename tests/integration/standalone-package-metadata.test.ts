@@ -1,0 +1,342 @@
+import fs from "node:fs";
+import path from "node:path";
+import { minVersion, satisfies } from "semver";
+import { describe, expect, it } from "vitest";
+
+const ROOT = path.resolve(import.meta.dirname, "..", "..");
+
+type PackageJson = {
+  bin?: Record<string, string>;
+  bundledDependencies?: string[];
+  bundleDependencies?: string[];
+  dependencies?: Record<string, string>;
+  devDependencies?: Record<string, string>;
+  engines?: Record<string, string>;
+  exports?: Record<string, unknown>;
+  files?: string[];
+  name?: string;
+  optionalDependencies?: Record<string, string>;
+  private?: boolean;
+  publishConfig?: {
+    access?: string;
+  };
+  repository?: {
+    directory?: string;
+  };
+};
+
+function readPackageJson(relativePath: string): PackageJson {
+  return JSON.parse(fs.readFileSync(path.join(ROOT, relativePath), "utf8")) as PackageJson;
+}
+
+function getUnbundledWorkspaceDeps(pkg: PackageJson): string[] {
+  const bundled = new Set([...(pkg.bundledDependencies ?? []), ...(pkg.bundleDependencies ?? [])]);
+  return Object.keys(pkg.dependencies ?? {}).filter(
+    (name) => name.startsWith("@poe-code/") && !bundled.has(name)
+  );
+}
+
+describe("standalone package publish metadata", () => {
+  it("installs the external SafeJS dependencies with the root package", () => {
+    const root = readPackageJson("package.json");
+    const safejs = readPackageJson("packages/safe-js/package.json");
+    const workspaces = new Set(
+      fs.readdirSync(path.join(ROOT, "packages"), { withFileTypes: true })
+        .filter(entry => entry.isDirectory() && fs.existsSync(path.join(ROOT, "packages", entry.name, "package.json")))
+        .map(entry => readPackageJson(`packages/${entry.name}/package.json`).name)
+    );
+    const external = Object.fromEntries(
+      Object.entries(safejs.dependencies ?? {}).filter(([name]) => !workspaces.has(name))
+    );
+    expect(root.dependencies).toMatchObject(external);
+  });
+
+  it.each(["package.json", "packages/poe-agent/package.json"])(
+    "%s requires a patched shell-quote consumer floor",
+    (relativePath) => {
+      const range = readPackageJson(relativePath).dependencies?.["shell-quote"];
+      expect(range).toBeDefined();
+      expect(satisfies(minVersion(range!)!, ">=1.9.0 <2")).toBe(true);
+    }
+  );
+
+  it("ships gray-matter with its locked patched YAML parser", () => {
+    const pkg = readPackageJson("package.json");
+    expect(pkg.dependencies?.["gray-matter"]).toBeDefined();
+    expect(pkg.bundleDependencies).toContain("gray-matter");
+    const lock = JSON.parse(fs.readFileSync(path.join(ROOT, "package-lock.json"), "utf8"));
+    const yaml = lock.packages["node_modules/gray-matter/node_modules/js-yaml"];
+    expect(satisfies(yaml.version, ">=3.15.1 <4")).toBe(true);
+    expect(yaml.inBundle).toBe(true);
+  });
+
+  it("does not pin poe-code to one 0.0.x Toolcraft release", () => {
+    const dependencies = readPackageJson("package.json").dependencies;
+    expect(dependencies?.toolcraft).toBe(">=0.0.51 <0.1.0");
+    expect(dependencies).not.toHaveProperty("poe-code");
+  });
+
+  it("does not publish removed cloud-runtime dependencies", () => {
+    expect(readPackageJson("package.json").dependencies).not.toHaveProperty("e2b");
+    expect(readPackageJson("package.json").devDependencies).not.toHaveProperty(
+      "@poe-code/runner-e2b"
+    );
+  });
+
+  it("bundles unpublished workspace dependencies for standalone toolcraft packages", () => {
+    const packagesToCheck = [
+      "packages/toolcraft/package.json",
+      "packages/toolcraft-openapi/package.json"
+    ];
+
+    expect(
+      packagesToCheck.flatMap((relativePath) => {
+        const pkg = readPackageJson(relativePath);
+        return getUnbundledWorkspaceDeps(pkg).map((name) => `${relativePath}:${name}`);
+      })
+    ).toEqual([]);
+  });
+
+  it("uses Toolcraft's public auth-store export", () => {
+    const openApiPackage = readPackageJson("packages/toolcraft-openapi/package.json");
+
+    expect(openApiPackage.dependencies?.["auth-store"]).toBeUndefined();
+    expect(openApiPackage.optionalDependencies?.["auth-store"]).toBeUndefined();
+    expect(openApiPackage.bundleDependencies).not.toContain("auth-store");
+  });
+
+  it("declares bundled toolcraft-design as optional in standalone consumers", () => {
+    expect(
+      readPackageJson("packages/toolcraft/package.json").optionalDependencies?.["toolcraft-design"]
+    ).toBe("*");
+    expect(
+      readPackageJson("packages/toolcraft-openapi/package.json").optionalDependencies?.[
+        "toolcraft-design"
+      ]
+    ).toBe("*");
+  });
+
+  it("records repository.directory for standalone toolcraft packages", () => {
+    expect(readPackageJson("packages/toolcraft/package.json").repository?.directory).toBe(
+      "packages/toolcraft"
+    );
+    expect(readPackageJson("packages/toolcraft-schema/package.json").repository?.directory).toBe(
+      "packages/toolcraft-schema"
+    );
+    expect(readPackageJson("packages/toolcraft-openapi/package.json").repository?.directory).toBe(
+      "packages/toolcraft-openapi"
+    );
+  });
+
+  it("bundles private workspace packages behind toolcraft exports", () => {
+    const designPackage = readPackageJson("packages/toolcraft-design/package.json");
+    const toolcraftPackage = readPackageJson("packages/toolcraft/package.json");
+
+    expect(designPackage).toMatchObject({
+      name: "toolcraft-design",
+      engines: { node: ">=18.18" },
+      files: ["dist", "LICENSE"],
+      exports: {
+        ".": {
+          types: "./dist/index.d.ts",
+          import: "./dist/index.js"
+        }
+      }
+    });
+    const bundledExports = [
+      ["agent-defs", "agent-defs"],
+      ["agent-mcp-config", "agent-mcp-config"],
+      ["auth-store", "auth-store"],
+      ["config-mutations", "config-mutations"],
+      ["toolcraft-design", "design"],
+      ["frontmatter", "frontmatter"],
+      ["process-runner", "process-runner"],
+      ["tiny-mcp-client", "tiny-mcp-client"]
+    ] as const;
+
+    for (const [packageDir, exportName] of bundledExports) {
+      expect(readPackageJson(`packages/${packageDir}/package.json`).private).toBe(true);
+      expect(toolcraftPackage.exports?.[`./${exportName}`]).toEqual({
+        types: `./dist/${exportName}.d.ts`,
+        import: `./dist/${exportName}.js`
+      });
+    }
+
+    // Bundled for the human-in-loop runtime only — reachable through
+    // toolcraft/human-in-loop, never as their own subpath exports.
+    for (const packageDir of ["agent-human-in-loop", "task-list"]) {
+      expect(readPackageJson(`packages/${packageDir}/package.json`).private).toBe(true);
+    }
+    expect(toolcraftPackage.exports?.["./agent-human-in-loop"]).toBeUndefined();
+    expect(toolcraftPackage.exports?.["./task-list"]).toBeUndefined();
+    expect(toolcraftPackage.exports?.["./human-in-loop"]).toEqual({
+      types: "./dist/human-in-loop/index.d.ts",
+      import: "./dist/human-in-loop/index.js"
+    });
+  });
+
+  it("inlines private mcp-oauth into tiny-mcp-client", () => {
+    const oauthPackage = readPackageJson("packages/mcp-oauth/package.json");
+    const clientPackage = readPackageJson("packages/tiny-mcp-client/package.json");
+    const toolcraftPackage = readPackageJson("packages/toolcraft/package.json");
+
+    expect(oauthPackage.private).toBe(true);
+    expect(oauthPackage.publishConfig).toBeUndefined();
+    expect(clientPackage.dependencies?.["mcp-oauth"]).toBeUndefined();
+    expect(clientPackage.devDependencies?.["mcp-oauth"]).toBe("*");
+    expect(toolcraftPackage.bundleDependencies).not.toContain("mcp-oauth");
+    expect(toolcraftPackage.optionalDependencies?.["mcp-oauth"]).toBeUndefined();
+  });
+  it.each(["shell", "registry", "full"])("publishes %s through a root-owned Node bundle", profile => {
+    const entry = readPackageJson("package.json").exports?.[`./safe-bash/${profile}`] as { import?: string };
+    expect(entry.import?.startsWith("./dist/")).toBe(true);
+  });
+
+  it("keeps root poe-code exports focused on supported SDK surfaces", () => {
+    expect(Object.keys(readPackageJson("package.json").exports ?? {}).sort()).toEqual([
+      ".", "./agent", "./config", "./config/testing", "./credentials", "./memory", "./skills", "./csvkit", "./csvkit/codecs/python", "./csvkit/codecs/utf8", "./ssconvert",
+      "./safe-bash", "./safe-bash/contracts", "./safe-bash/contracts/*", "./safe-bash/commands/media", "./media", "./media/server",
+      "./safe-bash/graphviz",
+      "./safe-bash/ts-ast", "./safe-bash/ast-grep", "./safe-bash/commands/ast-grep",
+      "./safe-bash/audio-ast", "./safe-bash/commands/audio", "./safe-bash/commands/ffprobe", "./safe-bash/commands/sox", "./safe-bash/commands/soxi",
+      "./safe-bash/image-ast", "./safe-bash/pdf-ast", "./safe-bash/sharp", "./safe-bash/spreadsheet-ast",
+      "./safe-bash/shell",
+      "./safe-bash/registry",
+      "./safe-bash/full",
+      "./ssconvert/core", "./ssconvert/commands", "./ssconvert/formats/csv", "./ssconvert/formats/dbf", "./ssconvert/formats/html", "./ssconvert/formats/xlsx", "./ssconvert/formats/ods", "./ssconvert/formats/xls", "./ssconvert/formats/spreadsheetml",
+      "./remote-execution", "./remote-execution/server", "./remote-execution/providers/*",
+      "./safe-fs", "./safe-fs/core", "./safe-fs/node", "./safe-fs/node/filesystem",
+      "./safe-js", "./safe-js/core", "./safe-js/cli", "./safe-js/workerd", "./safejs", "./safejs/core", "./safejs/cli",
+      "./safe-playwright", "./safe-playwright/adapter"
+    ].sort());
+    const rootPackage = readPackageJson("package.json");
+    expect(rootPackage.exports?.["./ssconvert"]).toEqual({
+      types: "./dist/types/safe-bash-command-ssconvert/index.d.ts",
+      import: "./dist/ssconvert/index.js"
+    });
+    expect(rootPackage.files).toContain("dist");
+    expect(rootPackage.files).toContain("!packages/*/dist/**/*.d.ts");
+    expect(rootPackage.exports?.["./ssconvert/commands"]).toEqual({
+      types: "./dist/types/safe-bash-command-ssconvert/commands.d.ts",
+      import: "./dist/ssconvert/commands.js"
+    });
+    expect(rootPackage.files).not.toContain("packages/safe-bash-command-ssconvert/dist/**/*.d.ts");
+  });
+
+  it("publishes the superintendent MCP server bin with the root package", () => {
+    const rootPackage = readPackageJson("package.json");
+
+    expect(rootPackage.bin?.["poe-superintendent-mcp"]).toBe("packages/superintendent/dist/mcp.js");
+    expect(rootPackage.files).toContain("packages/superintendent/dist");
+  });
+
+  it("publishes only the supported bins", () => {
+    const rootPackage = readPackageJson("package.json");
+
+    expect(Object.keys(rootPackage.bin ?? {}).sort()).toEqual([
+      "poe",
+      "poe-agent",
+      "poe-code",
+
+
+      "poe-superintendent-mcp"
+    ]);
+  });
+
+  it("does not publish a generic safe-bash MCP server", () => {
+    const rootPackage = readPackageJson("package.json");
+
+    expect(rootPackage.exports?.["./safe-bash-mcp"]).toBeUndefined();
+    expect(rootPackage.bin?.["poe-safe-bash-mcp"]).toBeUndefined();
+    expect(rootPackage.files).not.toContain("packages/safe-bash-command-mcp/dist");
+    // Test/build registration does not add a published runtime entry point.
+    expect(rootPackage.dependencies?.["safe-bash-command-mcp"]).toBeUndefined();
+    expect(rootPackage.devDependencies?.["safe-bash-command-mcp"]).toBe("*");
+    expect(readPackageJson("packages/safe-bash-command-mcp/package.json").private).toBe(true);
+  });
+
+  it("keeps dev-only tiny test servers out of the published package", () => {
+    const rootPackage = readPackageJson("package.json");
+
+    expect(rootPackage.files).not.toEqual(
+      expect.arrayContaining([
+        "packages/tiny-oauth-test-server/package.json",
+        "packages/tiny-oauth-test-server/dist",
+        "packages/tiny-stdio-mcp-test-server/package.json",
+        "packages/tiny-stdio-mcp-test-server/dist"
+      ])
+    );
+    expect(rootPackage.devDependencies?.["tiny-oauth-test-server"]).toBe("*");
+    expect(rootPackage.devDependencies?.["tiny-stdio-mcp-test-server"]).toBe("*");
+  });
+
+  it("brands the sandboxed JavaScript package as SafeJS", () => {
+    const rootPackage = readPackageJson("package.json");
+    const safejsPackage = readPackageJson("packages/safe-js/package.json");
+
+    expect(rootPackage.devDependencies?.["@poe-code/safe-js"]).toBe("*");
+    expect(rootPackage.devDependencies?.["@poe-code/agent-script"]).toBeUndefined();
+    expect(rootPackage.files).toContain("dist");
+    expect(rootPackage.files).not.toContain("packages/safe-js/dist");
+    expect(rootPackage.exports?.["./safe-js"]).toEqual({
+      types: {
+        workerd: "./dist/types/safe-js/workerd.d.ts",
+        browser: "./dist/types/safe-fs/node-unavailable.d.ts",
+        default: "./dist/types/safe-js/index.d.ts"
+      },
+      workerd: "./packages/safe-js/dist/workerd.js",
+      browser: null,
+      import: "./dist/shared/safe-js/index.js"
+    });
+    expect(rootPackage.exports?.["./safe-js/workerd"]).toEqual({
+      types: {
+        workerd: "./dist/types/safe-js/workerd.d.ts",
+        browser: "./dist/types/safe-fs/node-unavailable.d.ts",
+        default: "./dist/types/safe-js/workerd.d.ts"
+      },
+      workerd: "./packages/safe-js/dist/workerd.js",
+      browser: null,
+      import: "./packages/safe-js/dist/workerd.js"
+    });
+    expect(rootPackage.files).toContain("!packages/safe-js/dist/package.json");
+    expect(rootPackage.files).not.toContain("packages/agent-script/dist");
+    expect(safejsPackage).toMatchObject({
+      name: "@poe-code/safe-js",
+      bin: {
+        "poe-safejs": "dist/cli.js",
+        "poe-safe-js": "dist/cli.js"
+      }
+    });
+  });
+
+  it("brands the maestro package without the agent prefix", () => {
+    const rootPackage = readPackageJson("package.json");
+    const maestroPackage = readPackageJson("packages/maestro/package.json");
+
+    expect(rootPackage.devDependencies?.["@poe-code/maestro"]).toBe("*");
+    expect(rootPackage.devDependencies?.["@poe-code/agent-maestro"]).toBeUndefined();
+    expect(rootPackage.files).toContain("packages/maestro/dist");
+    expect(rootPackage.files).not.toContain("packages/agent-maestro/dist");
+    expect(maestroPackage).toMatchObject({
+      name: "@poe-code/maestro"
+    });
+  });
+
+  it("keeps private Python host integrations explicit and Node-only", () => {
+    const root = readPackageJson("package.json");
+    const standalone = readPackageJson("packages/safe-bash/package.json");
+    for (const host of ["node", "docker"]) {
+      expect(root.exports?.[`./safe-bash/commands/python/${host}`]).toBeUndefined();
+      expect(standalone.exports?.[`./commands/python/${host}`]).toEqual({
+        types: {
+          workerd: "./dist/node-unavailable.d.ts",
+          browser: "./dist/node-unavailable.d.ts",
+          default: `./dist/commands/python/${host}.d.ts`
+        },
+        workerd: null,
+        browser: null,
+        import: `./dist/commands/python/${host}.js`
+      });
+    }
+  });
+});

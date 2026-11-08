@@ -1,0 +1,14 @@
+{
+  "kind": "data-only-overlay-validation-no-runtime",
+  "actualValidatorOutcome": "V2_STATIC_BINDINGS_VALID_NOT_EXECUTION_ACCEPTANCE",
+  "originalFilesUnchanged": 11,
+  "pristineAndPatchedIdentitiesValidated": 2,
+  "moduleSyntaxChecks": "all overlay .mjs files accepted by Node --check; no evaluation",
+  "productExecutions": 0,
+  "comparatorExecutions": 0,
+  "controlExecutions": 0,
+  "nativeExecutions": 0,
+  "timingExecutions": 0,
+  "originalPeerResult": { "passed": 400, "assertions": 402, "failed": 2, "rescored": false },
+  "scope": "Only byte bindings, exact data oracles, deltas, historical scaffold projections and declared arithmetic limits; no adapter, predicate, loader, supervisor, product or control functions executed."
+}

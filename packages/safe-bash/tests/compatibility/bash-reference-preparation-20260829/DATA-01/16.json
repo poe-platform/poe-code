@@ -1,0 +1,23 @@
+{
+  "role": "compiler",
+  "path": "/Library/Developer/CommandLineTools/usr/bin/clang",
+  "initial": {
+    "mode": 493,
+    "bytes": 290664032,
+    "dev": 16777232,
+    "ino": 142104026,
+    "mtimeMs": 1779457177000,
+    "ctimeMs": 1785171104468.7375
+  },
+  "symbolicLink": false,
+  "resolved": "/Library/Developer/CommandLineTools/usr/bin/clang",
+  "target": {
+    "mode": 493,
+    "bytes": 290664032,
+    "dev": 16777232,
+    "ino": 142104026,
+    "mtimeMs": 1779457177000,
+    "ctimeMs": 1785171104468.7375
+  },
+  "disposition": "FILE_OR_CUMULATIVE_READ_BOUND_NOT_HASHED"
+}

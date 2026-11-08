@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "/Users/kjopek/Workspace/safe-bash/tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/independent/replay-v1/execution/run.py", line 322, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "/Users/kjopek/Workspace/safe-bash/tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/independent/replay-v1/execution/run.py", line 253, in main
+    authenticate()
+    ~~~~~~~~~~~~^^
+  File "/Users/kjopek/Workspace/safe-bash/tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/independent/replay-v1/execution/run.py", line 78, in authenticate
+    assert inventory(AUTHOR) == BINDINGS['authorFiles']
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError

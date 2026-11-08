@@ -1,0 +1,23 @@
+{
+  "variant": "candidate",
+  "commit": "08a26051438f5c6bdde100a4fe724dbb84f6fca4",
+  "cohortVersion": "v2",
+  "scratch": "/private/tmp/sort-unkeyed-review-candidate-ABZsMQ",
+  "archiveSha256": "044399eb6baecef1d4660b012e1b2e68c03295edf22aeb2c2ec668d7c14d73f2",
+  "packageFiles": 733,
+  "loadedModules": 174,
+  "acceptance": {
+    "passed": 21,
+    "total": 21
+  },
+  "independent": {
+    "passed": 34,
+    "total": 34
+  },
+  "failed": [],
+  "sourceBeforeAfterEqual": true,
+  "packageBeforeAfterEqual": true,
+  "exactChildClosure": true,
+  "shellsDisposed": 55,
+  "candidateAcceptance": false
+}

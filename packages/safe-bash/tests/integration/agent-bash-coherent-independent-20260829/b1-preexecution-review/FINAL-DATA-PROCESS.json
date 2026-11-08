@@ -1,0 +1,17 @@
+{
+  "role": "third-final-PURE-DATA",
+  "start": "2026-08-29T12:51:47.494Z",
+  "seal": "ccb288bfaf59011f8e89819729ce05f0e1ea1ece4b7101de5f40dcdb85667778",
+  "pid": 49013,
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  },
+  "end": "2026-08-29T12:51:47.599Z",
+  "stdoutBytes": 114,
+  "stderrBytes": 0
+}

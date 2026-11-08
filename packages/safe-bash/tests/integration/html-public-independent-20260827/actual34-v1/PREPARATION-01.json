@@ -1,0 +1,16 @@
+{
+  "phase": "unsealed-authentication-development",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node tests/integration/html-public-independent-20260827/actual34-v1/prepare.mjs",
+  "exit": 1,
+  "productExecuted": false,
+  "error": {
+    "name": "AssertionError",
+    "code": "ERR_ASSERTION",
+    "location": "prepare.mjs:66:15",
+    "actual": "71a64d1829bb916e3b9260eb11b4b7d0ed893a742fbcc52b7a155895264445d7",
+    "expected": "361c841e2f4c4d84c45614ae0872029da51392e8fb33c508f2b82c558d07532b",
+    "operator": "strictEqual"
+  },
+  "cause": "Draft mistakenly required the HTML README to match 9ae, in addition to the seven unchanged non-index TypeScript files. Git diff confirms only README.md and index.ts differ. README is still authenticated to the immutable candidate; the seven other HTML TypeScript files still must match 9ae.",
+  "classification": "Preparation adapter defect, not product failure or actual34/control retry. No PREAUTH or execution directory was produced."
+}

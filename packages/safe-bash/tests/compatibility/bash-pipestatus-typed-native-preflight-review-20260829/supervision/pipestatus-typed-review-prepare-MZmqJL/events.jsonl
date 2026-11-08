@@ -1,0 +1,5 @@
+{"at":"2026-08-29T14:08:43.163Z","event":"owner-start","pid":34369,"mode":"prepare","capture":"/tmp/pipestatus-typed-review-prepare-MZmqJL"}
+{"at":"2026-08-29T14:08:43.196Z","event":"enrolled","label":"syntax-replay","pid":34370,"exe":"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","args":["--check","/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-preflight-review-20260829/replay.mjs"]}
+{"at":"2026-08-29T14:08:43.231Z","event":"exit","label":"syntax-replay","pid":34370,"code":0,"signal":null}
+{"at":"2026-08-29T14:08:43.244Z","event":"close","label":"syntax-replay","pid":34370,"code":0,"signal":null,"exit":true,"error":false,"expired":false}
+{"at":"2026-08-29T14:08:43.250Z","event":"owner-complete","pid":34369,"mode":"prepare","code":0}

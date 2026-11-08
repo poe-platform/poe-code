@@ -1,0 +1,266 @@
+import { expect, it, vi } from "vitest";
+import { createStandalonePandocCommand } from "./safe-bash.js";
+import { convert } from "./engine.js";
+import { Volume } from "memfs";
+import type { ResourceFileSystem } from "./types.js";
+
+const encode = (text: string) => new TextEncoder().encode(text);
+function context(args: readonly string[], input = "a,b\nx,y\n") {
+  return {args, stdin: (async function* () {for(const byte of encode(input)) yield Uint8Array.of(byte);})(),
+    stdout: {write: vi.fn(async (_bytes: Uint8Array) => {})},
+    stderr: {write: vi.fn(async (_bytes: Uint8Array) => {})}, signal: new AbortController().signal};
+}
+function text(sink: ReturnType<typeof context>["stdout"]): string {
+  return sink.write.mock.calls.map(call => new TextDecoder().decode(call[0])).join("");
+}
+it.each(["html", "json"])("preserves HTML mark highlighting in %s output", async to => {
+  const ctx = context(["-f", "html", "-t", to], "<p>A <mark>highlight</mark> B</p>");
+  expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 0});
+  expect(text(ctx.stderr)).toBe("");
+  if (to === "html") expect(text(ctx.stdout)).toBe('<p>A <span class="mark">highlight</span> B</p>\n');
+  else expect(JSON.parse(text(ctx.stdout)).blocks).toEqual([
+    {t: "Para", c: [{t: "Str", c: "A"}, {t: "Space"}, {t: "Span", c: [["", ["mark"], []], [{t: "Str", c: "highlight"}]]}, {t: "Space"}, {t: "Str", c: "B"}]}
+  ]);
+});
+it("thin command converts byte stdin using SDK format/options, with no ambient filesystem", async () => {
+  const ctx = context(["-f", "csv", "--to=gfm"]);
+  expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 0});
+  expect(text(ctx.stdout)).toBe("| a | b |\n| --- | --- |\n| x | y |\n");
+  expect(text(ctx.stderr)).toBe("");
+});
+it.each([[], ["-"], ["-o", "-"], ["--yes"]])("converts Markdown stdin to HTML with inferred defaults: %s", async (...args) => {
+  const ctx = context(args, "# Orchard\n");
+  expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 0});
+  expect(text(ctx.stdout)).toBe('<h1 id="orchard">Orchard</h1>\n');
+  expect(text(ctx.stderr)).toBe("");
+});
+it("infers file input and HTML output without yes", async () => {
+  const volume = Volume.fromJSON({"/doc.md": "# Orchard\n"});
+  const ctx = {...context(["/doc.md", "-o", "/doc.html"]),
+    readFile: async (path: string) => new Uint8Array(volume.readFileSync(path) as Buffer),
+    writeFile: async (path: string, bytes: Uint8Array) => {volume.writeFileSync(path, bytes);}};
+  expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 0});
+  expect(volume.readFileSync("/doc.html", "utf8")).toBe('<h1 id="orchard">Orchard</h1>\n');
+  expect(text(ctx.stdout)).toBe("");
+  expect(text(ctx.stderr)).toBe("");
+});
+it("defaults CLI conversion to lossy and prints deterministic paths separately from content", async () => {
+  const table = {t: "Table", c: [["", [], []], [null, []], [[{t: "AlignDefault"}, {t: "ColWidthDefault"}], [{t: "AlignDefault"}, {t: "ColWidthDefault"}]],
+    [["", [], []], [[["", [], []], [[["", [], []], {t: "AlignDefault"}, 1, 1, [{t: "Plain", c: [{t: "Str", c: "H1"}]}]], [["", [], []], {t: "AlignDefault"}, 1, 1, [{t: "Plain", c: [{t: "Str", c: "H2"}]}]]]]]],
+    [[["", [], []], 0, [], [[["", [], []], [[["", [], []], {t: "AlignDefault"}, 1, 2, [{t: "Plain", c: [{t: "Str", c: "span"}]}]]]]]]], [["", [], []], []]]};
+  const input = JSON.stringify({"pandoc-api-version": [1, 23, 1, 2], meta: {}, blocks: [table]});
+  await expect(convert([{bytes: encode(input)}], {from: "json", to: "gfm"}, {})).rejects.toMatchObject({code: "E_CAPABILITY"});
+  for (const flags of [[], ["--lossy"]]) {
+    const lossy = context(["--from", "json", "--to", "gfm", ...flags], input);
+    expect(await createStandalonePandocCommand().execute(lossy)).toEqual({exitCode: 0});
+    expect(text(lossy.stdout)).toBe("| H1 | H2 |\n| --- | --- |\n| span |  |\n");
+    expect(text(lossy.stderr)).toBe("W_TABLE_LOSS: $.blocks[0].c[4][0][3][0][1][0]: Flattened cell span\n");
+  }
+});
+it("rejects missing, duplicate, unknown and file arguments before acquiring stdin", async () => {
+  for(const args of [["-f", "csv", "-t"], ["-f", "csv", "-t", "plain", "--lossy=false"], ["-f", "csv", "-t", "plain", "input.csv"], ["-f", "csv", "--from=json", "-t", "plain"]]) {
+    const ctx = context(args);
+    const next = vi.fn(async () => ({done: true as const, value: undefined}));
+    const stdin = {[Symbol.asyncIterator]: () => ({next})};
+    expect(await createStandalonePandocCommand().execute({...ctx, stdin})).toEqual({exitCode: 2});
+    expect(next).not.toHaveBeenCalled(); expect(text(ctx.stdout)).toBe("");
+    expect(text(ctx.stderr)).toContain("E_OPTION:");
+  }
+});
+it("preserves inspection, honors cancellation and awaits diagnostic/content byte sinks", async () => {
+  const ctx = context(["--list-output-formats"]);
+  expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 0});
+  expect(text(ctx.stdout)).toBe("commonmark\ncommonmark_x\ndocx\nepub\nepub3\ngfm\nhtml\nhtml5\njson\nlatex\nmarkdown\nmarkdown_github\nmarkdown_mmd\nmarkdown_phpextra\nmarkdown_strict\nmd\nodt\npdf\nplain\npptx\nrst\nrtf\n");
+  const controller = new AbortController(); controller.abort();
+  await expect(createStandalonePandocCommand().execute({...context(["-f", "csv", "-t", "gfm"]), signal: controller.signal})).rejects.toThrow();
+  const failing = context(["-f", "csv", "-t", "gfm"]);
+  failing.stdout.write.mockRejectedValue(new Error("original sink failure"));
+  await expect(createStandalonePandocCommand().execute(failing)).rejects.toThrow("original sink failure");
+});
+it("matches SDK standalone metadata options through the byte-only CLI", async () => {
+  const input = JSON.stringify({"pandoc-api-version": [1, 23, 1, 2], meta: {title: {t: "MetaString", c: "old"}}, blocks: [{t: "Para", c: [{t: "Str", c: "你好"}]}]});
+  const ctx = context(["-f", "json", "-t", "html", "--standalone", "--metadata", 'title=<New & "字"', "-M", "lang=ar", "--metadata=dir=rtl"], input);
+  expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 0});
+  const result = await convert([{bytes: encode(input)}], {from: "json", to: "html5", standalone: true,
+    metadata: {title: {t: "MetaString", c: '<New & "字"'}, lang: {t: "MetaString", c: "ar"}, dir: {t: "MetaString", c: "rtl"}}} as import("./types.js").ConversionOptions, {});
+  expect(result).toMatchObject({text: text(ctx.stdout)});
+  expect(text(ctx.stdout)).toContain('<html lang="ar" dir="rtl">');
+  expect(text(ctx.stdout)).toContain('&lt;New &amp; "字"');
+  expect(text(ctx.stderr)).toBe("");
+});
+it("accepts -s, metadata colon syntax, and explicit CLI raw-content policy", async () => {
+  const input = JSON.stringify({"pandoc-api-version": [1, 23, 1, 2], meta: {}, blocks: [{t: "RawBlock", c: ["html", "<script>x</script>"]}]});
+  const ctx = context(["-f=json", "-t=html", "-s", "-Mtitle:raw", "--raw-content=escape"], input);
+  expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 0});
+  expect(text(ctx.stdout)).toContain("<title>raw</title>");
+  expect(text(ctx.stdout)).toContain("&lt;script&gt;x&lt;/script&gt;");
+});
+it("rejects unconfigured local files and malformed metadata/options before reading stdin", async () => {
+  for(const extra of [["--template=x"], ["--template", "x"], ["--variable", "=x"], ["--variable-json=x:not-json"], ["--css=x"], ["--include-in-header=x"], ["--metadata"], ["-M", "=x"], ["--standalone", "-s"], ["--raw-content=wrong"]]) {
+    const ctx = context(["-f", "json", "-t", "html", ...extra]);
+    const next = vi.fn(async () => ({done: true as const, value: undefined}));
+    expect(await createStandalonePandocCommand().execute({...ctx, stdin: {[Symbol.asyncIterator]: () => ({next})}})).toEqual({exitCode: 2});
+    expect(next).not.toHaveBeenCalled(); expect(text(ctx.stdout)).toBe(""); expect(text(ctx.stderr)).toContain("E_OPTION:");
+  }
+});
+it("accepts Markdown wrapping policies", async () => {
+  const ctx = context(["-f", "commonmark", "-t", "commonmark", "--wrap=none"], "hi\nthere\n");
+  expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 0});
+  expect(text(ctx.stdout)).toBe("hi there\n");
+  for(const wrap of ["auto", "preserve"]) {
+    const wrapped = context(["-f", "commonmark", "-t", "gfm", `--wrap=${wrap}`], "hi");
+    expect(await createStandalonePandocCommand().execute(wrapped)).toEqual({exitCode: 0}); expect(text(wrapped.stdout)).toBe("hi\n");
+  }
+});
+it.each(["html", "html5", "json"])("accepts wrap none for %s file conversion with matching SDK bytes", async to => {
+  const input = "Hello world.\n";
+  const volume = Volume.fromJSON({"/input.md": input});
+  const expected = to === "json"
+    ? JSON.stringify({"pandoc-api-version": [1, 23, 1, 2], meta: {}, blocks: [{t: "Para", c: [{t: "Str", c: "Hello"}, {t: "Space"}, {t: "Str", c: "world."}]}]}) + "\n"
+    : "<p>Hello world.</p>\n";
+  const ctx = {...context(["-f", "commonmark", "-t", to, "--wrap=none", "/input.md"]),
+    readFile: async (path: string) => new Uint8Array(volume.readFileSync(path) as Buffer)};
+  expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 0});
+  expect(text(ctx.stdout)).toBe(expected);
+  expect(text(ctx.stderr)).toBe("");
+  expect(await convert([{bytes: encode(input)}], {from: "commonmark", to, wrap: "none"}, {})).toMatchObject({kind: "text", text: expected});
+  for (const wrap of ["auto", "preserve", "invalid"]) {
+    const rejected = context(["-f", "commonmark", "-t", to, `--wrap=${wrap}`], input);
+    expect(await createStandalonePandocCommand().execute(rejected)).toEqual({exitCode: 2});
+    expect(text(rejected.stdout)).toBe("");
+    await expect(convert([{bytes: encode(input)}], {from: "commonmark", to, wrap} as import("./types.js").ConversionOptions, {})).rejects.toMatchObject({code: "E_OPTION"});
+  }
+});
+it("reads explicit JSON metadata files in order, with repeated metadata overriding files", async () => {
+  const fs = Volume.fromJSON({"/one.json": '{"config":{"a":true,"list":[1]},"title":"file"}', "/two.json": '{"config":{"b":false,"list":[],"a":null}}', "/input.md": "hello"});
+  const readFile = vi.fn(async (path: string) => new Uint8Array(fs.readFileSync(path) as Buffer));
+  const ctx = {...context(["-f=commonmark", "-t=json", "--metadata-file=/one.json", "--metadata-file", "/two.json", "-Mtitle=first", "--metadata=title=last", "/input.md"]), readFile};
+  expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 0});
+  expect(JSON.parse(text(ctx.stdout)).meta).toEqual({config: {t: "MetaMap", c: {b: {t: "MetaBool", c: false}, list: {t: "MetaList", c: []}}}, title: {t: "MetaString", c: "last"}});
+  expect(readFile.mock.calls.map(call => call[0])).toEqual(["/input.md", "/one.json", "/two.json"]);
+});
+it("rejects YAML, unavailable processing and unknown flags before any acquisition", async () => {
+  for (const option of ["--metadata-file=x.yaml", "--filter=x", "--lua-filter=x", "--citeproc", "--pdf-engine=x", "--unknown"]) {
+    const ctx = context(["-f=commonmark", "-t=plain", "/input.md", option]);
+    const readFile = vi.fn(async () => encode(""));
+    const processing = ["--filter=x", "--lua-filter=x", "--citeproc"].includes(option);
+    expect(await createStandalonePandocCommand().execute({...ctx, readFile})).toEqual({exitCode: processing ? 3 : 2});
+    expect(text(ctx.stderr)).toContain(processing ? "E_CAPABILITY" : "E_OPTION");
+    expect(readFile).not.toHaveBeenCalled(); expect(text(ctx.stdout)).toBe("");
+  }
+});
+it("publishes files through memfs only after warning preflight and keeps destination failures distinct", async () => {
+  const fs = Volume.fromJSON({"/output.txt": "original"});
+  const writeFile = vi.fn(async (path: string, bytes: Uint8Array) => {fs.writeFileSync(path, bytes);});
+  const args = ["-f=commonmark", "-t=plain", "-o", "/output.txt", "--fail-if-warnings"];
+  const ctx = {...context(args, "hello"), writeFile};
+  expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 0});
+  expect(fs.readFileSync("/output.txt", "utf8")).toBe("hello\n");
+  expect(text(ctx.stdout)).toBe("");
+  writeFile.mockClear();
+  expect(await createStandalonePandocCommand({writer: {format: "plain", write: async (_doc, adapter) => {adapter.report({code: "W_RAW_CONTENT", operation: "convert", message: "loss"}); return {kind: "text", text: "changed"};}}}).execute({...context(args), writeFile})).toEqual({exitCode: 2});
+  expect(writeFile).not.toHaveBeenCalled();
+  expect(fs.readFileSync("/output.txt", "utf8")).toBe("hello\n");
+  writeFile.mockRejectedValue(new Error("destination denied"));
+  const denied = {...context(args, "hello"), writeFile};
+  expect(await createStandalonePandocCommand().execute(denied)).toEqual({exitCode: 9});
+  expect(text(denied.stderr)).toContain("E_IO:");
+});
+it("joins file and explicit stdin operands in their supplied order", async () => {
+  const ctx = {...context(["-f=commonmark", "-t=plain", "a.md", "-", "b.md"], "middle"), readFile: vi.fn(async (path: string) => encode(path === "a.md" ? "first" : "last"))};
+  expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 0});
+  expect(text(ctx.stdout)).toBe("first\n\nmiddle\n\nlast\n");
+});
+it("supplies only its configured VFS for CLI resource search and extraction", async () => {
+  const volume = Volume.fromJSON({"/work/doc.md": "![x](p.png)", "/assets/p.png": "image"});
+  const fs: ResourceFileSystem & {readFile(path: string): Promise<Uint8Array>} = {
+    readFile: async path => new Uint8Array(volume.readFileSync(path) as Buffer),
+    readStream: async function* (path) {yield new Uint8Array(volume.readFileSync(path) as Buffer);},
+    lstat: async path => ({type: volume.lstatSync(path).isDirectory() ? "directory" : "file"}),
+    mkdir: async path => {volume.mkdirSync(path, {recursive: true});},
+    writeFile: async (path, bytes) => {volume.writeFileSync(path, bytes);}
+  };
+  const ctx = {...context(["-f=commonmark", "-t=html", "--resource-path=/none:/assets", "--extract-media=media", "doc.md"]), fs, cwd: "/work"};
+  expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 0});
+  expect(volume.readFileSync("/work/media/p.png", "utf8")).toBe("image");
+  expect(text(ctx.stdout)).toContain('src="/work/media/p.png"');
+  const denied = context(["-f=commonmark", "-t=html", "--extract-media=media"], "![x](p.png)");
+  expect(await createStandalonePandocCommand().execute(denied)).toEqual({exitCode: 3});
+  expect(text(denied.stderr)).toContain("E_CAPABILITY:");
+});
+it("accepts iterable stdin and a configured VFS with bounded reads but no readStream", async () => {
+  const volume = Volume.fromJSON({"/work/p.png": "image"});
+  const readFile = vi.fn(async (path: string, _options?: {maxBytes?: number}) => new Uint8Array(volume.readFileSync(path) as Buffer));
+  const fs = {
+    readFile,
+    lstat: async (path: string) => ({type: volume.lstatSync(path).isDirectory() ? "directory" : "file"}),
+    mkdir: async (path: string) => {volume.mkdirSync(path, {recursive: true});},
+    writeFile: async (path: string, bytes: Uint8Array) => {volume.writeFileSync(path, bytes);}
+  };
+  const ctx = {...context(["-f=commonmark", "-t=html", "--extract-media=media"]), stdin: [encode("![x](p.png)")], fs, cwd: "/work"};
+  expect(await createStandalonePandocCommand({limits: {resourceBytes: 5}}).execute(ctx)).toEqual({exitCode: 0});
+  expect(readFile).toHaveBeenCalledWith("/work/p.png", expect.objectContaining({maxBytes: 5}));
+});
+it("preflights CLI media/output conflicts and malformed flags before VFS acquisition", async () => {
+  for (const extra of [["--extract-media=/media", "-o=/media/./p.png"], ["--extract-media"], ["--resource-path=/a::/b"], ["--extract-media=../outside"], ["--extract-media=/media", "--extract-media=/other"]]) {
+    const readFile = vi.fn(async () => encode("![x](p.png)"));
+    const writeFile = vi.fn(async () => {});
+    const ctx = {...context(["-f=commonmark", "-t=html", "doc.md", ...extra]), readFile, writeFile};
+    expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 2});
+    expect(readFile).not.toHaveBeenCalled(); expect(writeFile).not.toHaveBeenCalled();
+  }
+});
+it("does not accept resource providers through untyped command configuration", async () => {
+  const resolve = vi.fn(async () => encode("forbidden"));
+  const lstat = vi.fn(async () => ({type: "file"}));
+  const injected = {resources: {resolve}, resourceFiles: {lstat}} as unknown as Parameters<typeof createStandalonePandocCommand>[0];
+  const ctx = context(["-f=commonmark", "-t=html", "--extract-media=/media"], "![x](p.png)");
+  expect(await createStandalonePandocCommand(injected).execute(ctx)).toEqual({exitCode: 3});
+  expect(lstat).not.toHaveBeenCalled(); expect(resolve).not.toHaveBeenCalled();
+});
+it("injects LaTeX include resources from memfs for file and stdin conversion", async () => {
+  const volume = Volume.fromJSON({"/book/main.tex": "\\input{chapter}", "/book/chapter.tex": "\\input{sub/part}", "/book/sub/part.tex": "Original"});
+  const fs = {
+    readFile: vi.fn(async (path: string) => new Uint8Array(volume.readFileSync(path) as Buffer)),
+    lstat: async (path: string) => ({type: volume.lstatSync(path).isFile() ? "file" : "directory"}),
+    mkdir: async (path: string) => {volume.mkdirSync(path, {recursive: true});},
+    writeFile: async (path: string, data: Uint8Array) => {volume.writeFileSync(path, data);}
+  };
+  for (const operand of [["main.tex"], []]) {
+    const ctx = {...context(["-f", "latex", "-t", "plain", ...operand], "\\input{chapter}"), fs, cwd: "/book"};
+    expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 0});
+    expect(text(ctx.stdout)).toBe("Original\n");
+  }
+  const missing = {...context(["-f", "latex", "-t", "plain", "-o", "result.txt"], "\\input{missing}"), fs, cwd: "/book"};
+  expect(await createStandalonePandocCommand().execute(missing)).toEqual({exitCode: 9});
+  expect(text(missing.stdout)).toBe("");
+  expect(volume.existsSync("/book/result.txt")).toBe(false);
+});
+
+it.each(["markdown", "markdown_strict", "markdown_github", "md", "commonmark_x"])("converts the %s alias in both directions", async alias => {
+  for (const [from, to, input, expected] of [[alias, "html", "Hello\n", "<p>Hello</p>\n"], ["html", alias, "<p>Hello</p>", "Hello\n"]]) {
+    const ctx = context(["-f", from!, "-t", to!], input);
+    expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 0});
+    expect(text(ctx.stdout)).toBe(expected);
+    expect(text(ctx.stderr)).toBe("");
+  }
+});
+it.each(["markdown", "mkd", "mdown", "mdwn"])("infers .%s input and output through memfs", async suffix => {
+  const volume = Volume.fromJSON({[`/doc.${suffix}`]: "Hello\n", "/source.html": "<p>Hello</p>"});
+  for (const [input, output, expected] of [[`/doc.${suffix}`, "/out.html", "<p>Hello</p>\n"], ["/source.html", `/out.${suffix}`, "Hello\n"]]) {
+    const ctx = {...context([input!, "-o", output!]),
+      readFile: async (path: string) => new Uint8Array(volume.readFileSync(path) as Buffer),
+      writeFile: async (path: string, bytes: Uint8Array) => {volume.writeFileSync(path, bytes);}};
+    expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 0});
+    expect(volume.readFileSync(output!, "utf8")).toBe(expected);
+    expect(text(ctx.stderr)).toBe("");
+  }
+});
+
+it.each(["html", "html5"])("passes HTML RawBlock markup through %s without warnings", async to => {
+  const input = JSON.stringify({"pandoc-api-version": [1, 23, 1, 2], meta: {}, blocks: [{t: "RawBlock", c: ["html", "<aside>hello</aside>"]}]});
+  const ctx = context(["-f", "json", "-t", to, "--fail-if-warnings"], input);
+  expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 0});
+  expect(text(ctx.stdout)).toBe("<aside>hello</aside>\n");
+  expect(text(ctx.stderr)).toBe("");
+});

@@ -1,0 +1,854 @@
+{
+  "capturedAt": "2026-08-27T03:08:53.624Z",
+  "cwd": "/private/tmp/safe-bash-expanded-gaps-uBY4Mi/work",
+  "environment": {
+    "PATH": "/private/tmp/safe-bash-expanded-gaps-uBY4Mi/bin",
+    "HOME": "/private/tmp/safe-bash-expanded-gaps-uBY4Mi/work",
+    "LC_ALL": "en_US.UTF-8",
+    "LANG": "en_US.UTF-8",
+    "TZ": "UTC"
+  },
+  "scenariosHash": "b6cc09a2a9ab098d72cb2d54ef92f65b26edac6544ec3de64a3041167bd5344d",
+  "envExecutable": {
+    "path": "/usr/bin/env",
+    "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776"
+  },
+  "results": [
+    {
+      "name": "GNU5.3-primary",
+      "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+      "version": {
+        "stdout": "R05VIGJhc2gsIHZlcnNpb24gNS4zLjAoMSktcmVsZWFzZSAoYWFyY2g2NC1hcHBsZS1kYXJ3aW4yNS40LjApCkNvcHlyaWdodCAoQykgMjAyNSBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb24sIEluYy4KTGljZW5zZSBHUEx2Mys6IEdOVSBHUEwgdmVyc2lvbiAzIG9yIGxhdGVyIDxodHRwOi8vZ251Lm9yZy9saWNlbnNlcy9ncGwuaHRtbD4KClRoaXMgaXMgZnJlZSBzb2Z0d2FyZTsgeW91IGFyZSBmcmVlIHRvIGNoYW5nZSBhbmQgcmVkaXN0cmlidXRlIGl0LgpUaGVyZSBpcyBOTyBXQVJSQU5UWSwgdG8gdGhlIGV4dGVudCBwZXJtaXR0ZWQgYnkgbGF3Lgo=",
+        "stderr": "",
+        "status": 0
+      },
+      "childProfiles": "headerless uses parent Bash fallback; env shebang uses actual /usr/bin/env with PATH bash/sh symlinks to this profile",
+      "rows": [
+        {
+          "name": "frozen-headerless",
+          "group": "fallback",
+          "actual": {
+            "stdout": "cmFuOmFyZ3VtZW50",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "argv-empty",
+          "group": "fallback",
+          "actual": {
+            "stdout": "PC4vc2NyaXB0Pgo8Mz4KPD4KPGEgYj4KPCRsaXRlcmFsPgo=",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "shift",
+          "group": "fallback",
+          "actual": {
+            "stdout": "PDI+Cjw+Cjx0aHJlZT4K",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "exit",
+          "group": "fallback",
+          "actual": {
+            "stdout": "Nwo=",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "private-and-functions",
+          "group": "fallback",
+          "actual": {
+            "stdout": "OnB1YmxpYwo=",
+            "stderr": "Li9zY3JpcHQ6IGxpbmUgMTogaGlkZGVuOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127
+          }
+        },
+        {
+          "name": "parent-isolation",
+          "group": "fallback",
+          "actual": {
+            "stdout": "cGFyZW50OnBhcmVudDpwYXJlbnQKL3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1leHBhbmRlZC1nYXBzLXVCWTRNaS93b3JrCg==",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "path",
+          "group": "fallback",
+          "actual": {
+            "stdout": "Li9zY3JpcHQ6YXJndW1lbnQ=",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "prefix-env",
+          "group": "fallback",
+          "actual": {
+            "stdout": "dmFsdWU6",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "empty",
+          "group": "fallback",
+          "actual": {
+            "stdout": "",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "comments",
+          "group": "fallback",
+          "actual": {
+            "stdout": "b2s=",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "stdin",
+          "group": "fallback",
+          "actual": {
+            "stdout": "cGF5bG9hZA==",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "subshell",
+          "group": "fallback",
+          "actual": {
+            "stdout": "Y2hpbGRwYXJlbnQ=",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "pipeline",
+          "group": "fallback",
+          "actual": {
+            "stdout": "Ynl0ZXM=",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "nested",
+          "group": "fallback",
+          "actual": {
+            "stdout": "JGFyZw==",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "options-reset",
+          "group": "fallback",
+          "actual": {
+            "stdout": "MA==",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "frozen-env",
+          "group": "env",
+          "actual": {
+            "stdout": "ZW52OmFyZ3VtZW50",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "env-sh",
+          "group": "env",
+          "actual": {
+            "stdout": "Li9zY3JpcHQ6YXJndW1lbnQ=",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "env-empty-argv",
+          "group": "env",
+          "actual": {
+            "stdout": "PDM+Cjw+CjxhIGI+CjwkbGl0ZXJhbD4K",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "env-private-isolation",
+          "group": "env",
+          "actual": {
+            "stdout": "PD46cHVibGlj",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "env-exit",
+          "group": "env",
+          "actual": {
+            "stdout": "OQ==",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "env-sh-special",
+          "group": "env",
+          "actual": {
+            "stdout": "bmV3",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "env-bash-special",
+          "group": "env",
+          "actual": {
+            "stdout": "b2xk",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "env-whitespace",
+          "group": "env",
+          "actual": {
+            "stdout": "b2s=",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "env-pipeline",
+          "group": "env",
+          "actual": {
+            "stdout": "Ynl0ZXM=",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "env-stdin",
+          "group": "env",
+          "actual": {
+            "stdout": "cGF5bG9hZA==",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "frozen-parameter",
+          "group": "parameter",
+          "actual": {
+            "stdout": "YWJjOmFiYzpYYmNYYmM=",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "first",
+          "group": "parameter",
+          "actual": {
+            "stdout": "WGJjYWJj",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "delete",
+          "group": "parameter",
+          "actual": {
+            "stdout": "YmFiYTpiYg==",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "anchors",
+          "group": "parameter",
+          "actual": {
+            "stdout": "WGJhYmE6YWJhYlg=",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "longest",
+          "group": "parameter",
+          "actual": {
+            "stdout": "WDpY",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "glob-any",
+          "group": "parameter",
+          "actual": {
+            "stdout": "WGNYYw==",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "class",
+          "group": "parameter",
+          "actual": {
+            "stdout": "YVhiWA==",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "quoted-pattern",
+          "group": "parameter",
+          "actual": {
+            "stdout": "YVhiWGM=",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "slash-escape",
+          "group": "parameter",
+          "actual": {
+            "stdout": "YTpiOmM=",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "replacement-variable",
+          "group": "parameter",
+          "actual": {
+            "stdout": "PHggeWJ4IHk+",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "nested-default",
+          "group": "parameter",
+          "actual": {
+            "stdout": "WmJa",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "empty",
+          "group": "parameter",
+          "actual": {
+            "stdout": "PD46PD4=",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "empty-pattern",
+          "group": "parameter",
+          "actual": {
+            "stdout": "PGFiYz4=",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "removal-short-long",
+          "group": "parameter",
+          "actual": {
+            "stdout": "Y2JjOmM6YWJjOmE=",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "newline",
+          "group": "parameter",
+          "actual": {
+            "stdout": "PFhYWD4=",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "unicode",
+          "group": "parameter",
+          "actual": {
+            "stdout": "WOeMq1g654yrw6k=",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "quoted-replacement-ampersand",
+          "group": "parameter",
+          "actual": {
+            "stdout": "JmIm",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "unquoted-replacement-ampersand",
+          "group": "parameter",
+          "actual": {
+            "stdout": "YWJh",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "literal-pattern-variable",
+          "group": "parameter",
+          "actual": {
+            "stdout": "YVhi",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "substitution-word",
+          "group": "parameter",
+          "actual": {
+            "stdout": "WmJa",
+            "stderr": "",
+            "status": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bash3.2-historical",
+      "executable": "/bin/bash",
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "version": {
+        "stdout": "R05VIGJhc2gsIHZlcnNpb24gMy4yLjU3KDEpLXJlbGVhc2UgKGFybTY0LWFwcGxlLWRhcndpbjI1KQpDb3B5cmlnaHQgKEMpIDIwMDcgRnJlZSBTb2Z0d2FyZSBGb3VuZGF0aW9uLCBJbmMuCg==",
+        "stderr": "",
+        "status": 0
+      },
+      "childProfiles": "headerless uses parent Bash fallback; env shebang uses actual /usr/bin/env with PATH bash/sh symlinks to this profile",
+      "rows": [
+        {
+          "name": "frozen-headerless",
+          "group": "fallback",
+          "actual": {
+            "stdout": "cmFuOmFyZ3VtZW50",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "argv-empty",
+          "group": "fallback",
+          "actual": {
+            "stdout": "PC4vc2NyaXB0Pgo8Mz4KPD4KPGEgYj4KPCRsaXRlcmFsPgo=",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "shift",
+          "group": "fallback",
+          "actual": {
+            "stdout": "PDI+Cjw+Cjx0aHJlZT4K",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "exit",
+          "group": "fallback",
+          "actual": {
+            "stdout": "Nwo=",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "private-and-functions",
+          "group": "fallback",
+          "actual": {
+            "stdout": "OnB1YmxpYwo=",
+            "stderr": "Li9zY3JpcHQ6IGxpbmUgMTogaGlkZGVuOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127
+          }
+        },
+        {
+          "name": "parent-isolation",
+          "group": "fallback",
+          "actual": {
+            "stdout": "cGFyZW50OnBhcmVudDpwYXJlbnQKL3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1leHBhbmRlZC1nYXBzLXVCWTRNaS93b3JrCg==",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "path",
+          "group": "fallback",
+          "actual": {
+            "stdout": "Li9zY3JpcHQ6YXJndW1lbnQ=",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "prefix-env",
+          "group": "fallback",
+          "actual": {
+            "stdout": "dmFsdWU6",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "empty",
+          "group": "fallback",
+          "actual": {
+            "stdout": "",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "comments",
+          "group": "fallback",
+          "actual": {
+            "stdout": "b2s=",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "stdin",
+          "group": "fallback",
+          "actual": {
+            "stdout": "cGF5bG9hZA==",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "subshell",
+          "group": "fallback",
+          "actual": {
+            "stdout": "Y2hpbGRwYXJlbnQ=",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "pipeline",
+          "group": "fallback",
+          "actual": {
+            "stdout": "Ynl0ZXM=",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "nested",
+          "group": "fallback",
+          "actual": {
+            "stdout": "JGFyZw==",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "options-reset",
+          "group": "fallback",
+          "actual": {
+            "stdout": "MA==",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "frozen-env",
+          "group": "env",
+          "actual": {
+            "stdout": "ZW52OmFyZ3VtZW50",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "env-sh",
+          "group": "env",
+          "actual": {
+            "stdout": "Li9zY3JpcHQ6YXJndW1lbnQ=",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "env-empty-argv",
+          "group": "env",
+          "actual": {
+            "stdout": "PDM+Cjw+CjxhIGI+CjwkbGl0ZXJhbD4K",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "env-private-isolation",
+          "group": "env",
+          "actual": {
+            "stdout": "PD46cHVibGlj",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "env-exit",
+          "group": "env",
+          "actual": {
+            "stdout": "OQ==",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "env-sh-special",
+          "group": "env",
+          "actual": {
+            "stdout": "bmV3",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "env-bash-special",
+          "group": "env",
+          "actual": {
+            "stdout": "b2xk",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "env-whitespace",
+          "group": "env",
+          "actual": {
+            "stdout": "b2s=",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "env-pipeline",
+          "group": "env",
+          "actual": {
+            "stdout": "Ynl0ZXM=",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "env-stdin",
+          "group": "env",
+          "actual": {
+            "stdout": "cGF5bG9hZA==",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "frozen-parameter",
+          "group": "parameter",
+          "actual": {
+            "stdout": "YWJjOmFiYzpYYmNYYmM=",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "first",
+          "group": "parameter",
+          "actual": {
+            "stdout": "WGJjYWJj",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "delete",
+          "group": "parameter",
+          "actual": {
+            "stdout": "YmFiYTpiYg==",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "anchors",
+          "group": "parameter",
+          "actual": {
+            "stdout": "WGJhYmE6YWJhYlg=",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "longest",
+          "group": "parameter",
+          "actual": {
+            "stdout": "WDpY",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "glob-any",
+          "group": "parameter",
+          "actual": {
+            "stdout": "WGNYYw==",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "class",
+          "group": "parameter",
+          "actual": {
+            "stdout": "YVhiWA==",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "quoted-pattern",
+          "group": "parameter",
+          "actual": {
+            "stdout": "YVhiWGM=",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "slash-escape",
+          "group": "parameter",
+          "actual": {
+            "stdout": "YTpiOmM=",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "replacement-variable",
+          "group": "parameter",
+          "actual": {
+            "stdout": "PHggeWJ4IHk+",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "nested-default",
+          "group": "parameter",
+          "actual": {
+            "stdout": "WmJa",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "empty",
+          "group": "parameter",
+          "actual": {
+            "stdout": "PD46PD4=",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "empty-pattern",
+          "group": "parameter",
+          "actual": {
+            "stdout": "PGFiYz4=",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "removal-short-long",
+          "group": "parameter",
+          "actual": {
+            "stdout": "Y2JjOmM6YWJjOmE=",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "newline",
+          "group": "parameter",
+          "actual": {
+            "stdout": "PFhYWD4=",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "unicode",
+          "group": "parameter",
+          "actual": {
+            "stdout": "WOeMq1g654yrw6k=",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "quoted-replacement-ampersand",
+          "group": "parameter",
+          "actual": {
+            "stdout": "JyYnYicmJw==",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "unquoted-replacement-ampersand",
+          "group": "parameter",
+          "actual": {
+            "stdout": "JmIm",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "literal-pattern-variable",
+          "group": "parameter",
+          "actual": {
+            "stdout": "YVhi",
+            "stderr": "",
+            "status": 0
+          }
+        },
+        {
+          "name": "substitution-word",
+          "group": "parameter",
+          "actual": {
+            "stdout": "WmJa",
+            "stderr": "",
+            "status": 0
+          }
+        }
+      ]
+    }
+  ]
+}

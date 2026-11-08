@@ -1,0 +1,14 @@
+{
+  "name": "public-boundary",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--import",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/observe.mjs",
+    "probe.mjs"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe/consumer",
+  "startedAt": "2026-08-27T09:14:50.190Z",
+  "finishedAt": "2026-08-27T09:14:50.304Z",
+  "status": 0,
+  "signal": null
+}

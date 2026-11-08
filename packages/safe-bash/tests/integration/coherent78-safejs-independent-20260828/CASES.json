@@ -1,0 +1,93 @@
+{
+  "schema": "coherent78-safejs-inert-fixtures-v1",
+  "executionAuthorized": false,
+  "filesystem": {
+    "directories": ["/work", "/search", "/search/project"],
+    "files": {
+      "/search/project/.hidden": "hidden\n",
+      "/search/project/visible": "visible\n",
+      "/work/locked": "seed\n",
+      "/work/opts": "shopt -s dotglob; let 'total+=3'; getopts xy sourced\n",
+      "/work/flow.sh": "total=4; set -- -xy; getopts xy first\nflow(){ local OPTIND=1; CDPATH=/search; pushd project >/work/sink; . /work/opts; getopts xy second; printf 'flow:%s|%s|%s|%s\\n' \"$total\" \"$sourced\" \"$second\" \"$PWD\"; printf '<%s>\\n' * | cat; popd >/work/sink; }\nflow \"$@\"; getopts xy last; printf 'opts:%s|%s|%s\\n' \"$first\" \"$last\" \"$total\"; cat; dirs -l -p\n"
+    }
+  },
+  "shellOptions": { "cwd": "/work", "env": { "C78": "parent" } },
+  "cases": [
+    {
+      "id": "G01",
+      "guestFile": "g01.mjs.data",
+      "guestPath": "/work/g01.ajs",
+      "outer": "total=40; shopt -u dotglob; printf 'guest-input\\n' | safejs /work/g01.ajs; result=$?; printf 'parent:%s|%s\\n' \"$total\" \"$PWD\"; dirs -l -p; shopt -q dotglob; printf 'parent-dotglob:%s\\n' \"$?\"; exit \"$result\"\n",
+      "stdin": "",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "G01:enter\nflow:7|x|y|/search/project\n<.hidden>\n<visible>\nopts:x|y|7\nguest-input\n/work\nG01:done:0\nparent:40|/work\n/work\nparent-dotglob:1\n",
+        "stderr": "",
+        "parent": { "total": "40", "cwd": "/work", "stack": ["/work"], "dotglob": false, "C78": "parent" },
+        "filesystemDelta": { "/work/sink": "/work\n" },
+        "bridgeCalls": 1,
+        "guestEntries": 1,
+        "evaluations": 1
+      },
+      "provenance": "New integrated guest workflow, structurally informed by author C02 and inspected source. Not blind, not a native oracle, not a rerun of C02. Exact planned expectations are not observations."
+    },
+    {
+      "id": "G02",
+      "guestFile": "g02.mjs.data",
+      "guestPath": "/work/g02.ajs",
+      "outer": "timeout .010 safejs /work/g02.ajs\n",
+      "stdin": "",
+      "url": "https://coherent78.invalid/data",
+      "expected": {
+        "exitCode": 124,
+        "stdout": "G02:enter\n",
+        "stderr": "",
+        "guestEntries": 1,
+        "evaluations": 1,
+        "bridgeCalls": 1,
+        "authorizations": 1,
+        "requests": 1,
+        "bodyAcquisitions": 1,
+        "bodyNextCalls": 1,
+        "bodyReturns": 1,
+        "responseDisposals": 1,
+        "registeredTransportCleanups": 1,
+        "timerArms": 1,
+        "timerDeliveries": 1,
+        "timerClears": 1,
+        "lateGuestMarkers": 0,
+        "filesystemDelta": {}
+      },
+      "schedule": [
+        "Register invocation cleanup synchronously before engine admission; transport cleanup before body/response acquisition.",
+        "Observe real G02:enter receipt, bridge invoke, authorization, body acquisition and first next. Body next blocks on request.signal with a detachable listener.",
+        "After body-next gate, offer controlledClock.wake(0,10) exactly once; no elapsed-time race.",
+        "Observe request abort, next rejection and response disposal entry. Hold idempotent disposal/registered cleanup on an explicit release gate.",
+        "At disposal gate plus bounded microtask checkpoint require outer exec and owned cleanup pending. Record actual engine settlement separately; signal.aborted is not a retirement predicate.",
+        "Release cleanup; require iterator.return, disposal and registered cleanup completion, bridge and actual engine settlement before accepting public result.",
+        "Await shell.dispose; require all admitted work settled, no late marker/unhandled rejection and zero live fixture scheduler handles."
+      ],
+      "provenance": "Injected mock HTTP only. No caller-priority collision, cross-realm reason identity, replay, native timing or preemption coverage."
+    },
+    {
+      "id": "G03",
+      "guestFile": "g03.mjs.data",
+      "guestPath": "/work/g03.ajs",
+      "outer": "readonly LOCK=seed; safejs /work/g03.ajs; result=$?; printf 'parent:%s|%s|%s\\n' \"$result\" \"$LOCK\" \"$C78\"; exit \"$result\"\n",
+      "stdin": "",
+      "readOnly": true,
+      "expected": {
+        "exitCode": 1,
+        "stdout": "G03:enter\nreadonly:EROFS\nseed\nchild:child\nparent:1|seed|parent\n",
+        "stderr": "safejs: C78 guest failure\n",
+        "filesystemDelta": {},
+        "parent": { "LOCK": "seed", "C78": "parent", "cwd": "/work" },
+        "bridgeCalls": 1,
+        "guestEntries": 1,
+        "evaluations": 1
+      },
+      "provenance": "Seed VFS before public ReadOnlyFileSystem wrapping. Expected EROFS code is serialized data, not host error identity or native permissions."
+    }
+  ],
+  "allCases": "Snapshot seeded VFS after guest-file injection and before execution; compare exact paths/types/file bytes after execution with only declared deltas. Capture state through actual parent shell output and middleware, not nonexistent Shell state getters. Do not invoke an extra guest, helper or empty admission exec. Await idempotent cleanup and dispose exactly one Shell per case."
+}

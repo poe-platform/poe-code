@@ -1,0 +1,26 @@
+import './chunks/chunk-NCUTH6QL.js';
+import './chunks/chunk-ZBUZKIPX.js';
+import fs from 'node:fs';
+const variant = '__VARIANT__';
+const captured = process.getBuiltinModule;
+if (variant === 'caught-after-slots') {
+  try { captured('module'); } catch {}
+}
+if (variant === 'guard-evaluation') {
+  let failure;
+  try { fs.lstatSync(new URL(import.meta.url)); } catch (error) { failure = error; }
+  if (failure?.code !== 'OFFLINE_DENIED') throw new Error('STUB_GUARD_NOT_ACTIVE');
+}
+export class Bash {}
+export const stdoutAsBytes = value => value;
+export class InMemoryFs {
+  constructor() {
+    this.mode = 0;
+    if (variant === 'late-alias') { try { captured('worker_threads'); } catch {} }
+  }
+  async mkdir() {}
+  async writeFile() {}
+  async chmod(filename, mode) { this.mode = mode; }
+  async stat() { return { mode: this.mode }; }
+  async access() {}
+}

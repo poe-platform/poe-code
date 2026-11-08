@@ -1,0 +1,24 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--import",
+    "tsx",
+    "--test",
+    "--test-concurrency=1",
+    "tests/fs/overlay/metadata-purity.test.ts",
+    "tests/commands/du/overlay-purity.test.ts"
+  ],
+  "startedAt": "2026-08-27T18:14:14.924Z",
+  "finishedAt": "2026-08-27T18:14:15.459Z",
+  "status": 1,
+  "signal": null,
+  "counts": {
+    "tests": 30,
+    "suites": 0,
+    "pass": 11,
+    "fail": 19,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  }
+}

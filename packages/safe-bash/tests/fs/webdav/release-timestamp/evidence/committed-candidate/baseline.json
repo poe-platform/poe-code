@@ -1,0 +1,28 @@
+{
+  "source": "456a0738b0d2dc130ebbd9b7ccf5e299bcf177da",
+  "requested": "456a073",
+  "overlay": false,
+  "node": "v22.22.2",
+  "nodeBinarySha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "archiveSha256": "64f719e8bf5a186bac53202af86fb69e6b8372ed0b46da251a6ccfbe0765c1ad",
+  "inputs": {
+    "tests/fs/webdav/real-service/timestamp-postcondition.test.ts": "4aa5f6f6b79b4952e282cdbc68d00c43869ff5536ebcd35ba23dba8fbbd6a263",
+    "tests/fs/webdav/consumer/consumer.test.mts": "b69e78c54d5afb844cef7f59c4d530e1ddad6634394a32e56e455b7a7bce752a",
+    "tests/fs/webdav/consumer/example.mts": "7a51aed0e78cc30d54dfa1b616c9e659710bed4f0a4cd7e42e28258a974f7b15",
+    "tests/fs/webdav/consumer/provider.mts": "af9ffdb0f991696818512c5f50dab94fdb76387d3b66a2abca80fb799d6d30b6",
+    "tests/fs/webdav/consumer/types.mts": "90ad547d0b4ff13cb0b5fc4f79b26b8b59ceac144adea8de4f511b421663d028"
+  },
+  "harnessHashes": {
+    "run.mjs": "debac2a1763b4d52049a1522f356ed7eedabbff2c46d7d99d4050d77097c970a",
+    "closure-loader.mjs": "a7188e6cf8e801bc4bdb346be9838ef6e17276db1217229995bda458055c7f61",
+    "timestamps.test.mjs": "49b8d03876f3d7912018d54bb2a2f1c6631668fd0f7353afc0ca904ff3eccd21"
+  },
+  "sourceHashes": {
+    "src/fs/webdav/webdav.ts": "e66a66e2745852c6bd12be12a18c855df069152cf6b8089d2ecee8880c62de94",
+    "src/fs/webdav/index.ts": "d359fa8a89c30fa7fa06b256c524b4bc1022b3217763051961e579c5fcfd7764",
+    "src/fs/webdav/xml.ts": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1"
+  },
+  "compilerSha256": "e8f349eabd48486bdb2bf9dc1a00c89d58297270c54b745838879e2859194419",
+  "movingHead": "456a0738b0d2dc130ebbd9b7ccf5e299bcf177da",
+  "status": " M tests/stress/regex-execution/runtime-containment-final-review/evidence/journal.jsonl\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/filesystem-inspection-stress/file/\n?? tests/commands/filesystem-inspection-stress/harness-review/\n?? tests/commands/filesystem-inspection-stress/tree/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/fs/webdav/release-timestamp/.work-wCY28b/\n?? tests/fs/webdav/release-timestamp/evidence/\n?? tests/shell-stress/first-read-contract-review/\n?? tests/stress/regex-execution/runtime-containment-final-review/evidence/STOP.json\n?? tests/stress/regex-execution/runtime-containment-final-review/evidence/grep-abort-claim.json\n?? tests/stress/regex-execution/runtime-containment-final-review/evidence/grep-abort-inspection.json\n?? tests/stress/regex-execution/runtime-containment-final-review/evidence/grep-abort.json\n?? tests/stress/regex-execution/runtime-containment-final-review/evidence/grep-default-claim.json\n?? tests/stress/regex-execution/runtime-containment-final-review/evidence/grep-default-inspection.json\n?? tests/stress/regex-execution/runtime-containment-final-review/evidence/grep-default.json\n?? tests/stress/regex-execution/runtime-containment-final-review/evidence/grep-queued-abort-claim.json\n?? tests/stress/regex-execution/runtime-containment-final-review/evidence/grep-queued-abort.json\n?? tests/stress/regex-execution/runtime-containment-final-review/evidence/rg-abort-claim.json\n?? tests/stress/regex-execution/runtime-containment-final-review/evidence/rg-abort-inspection.json\n?? tests/stress/regex-execution/runtime-containment-final-review/evidence/rg-abort.json\n?? tests/stress/regex-execution/runtime-containment-final-review/evidence/rg-default-claim.json\n?? tests/stress/regex-execution/runtime-containment-final-review/evidence/rg-default-inspection.json\n?? tests/stress/regex-execution/runtime-containment-final-review/evidence/rg-default.json\n"
+}

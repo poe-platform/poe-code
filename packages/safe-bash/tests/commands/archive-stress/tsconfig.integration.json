@@ -1,0 +1,6 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": { "noEmit": true },
+  "include": ["./*.ts", "../archive/*.test.ts", "../archive/helpers.ts"],
+  "exclude": [".runs", ".native-*"]
+}

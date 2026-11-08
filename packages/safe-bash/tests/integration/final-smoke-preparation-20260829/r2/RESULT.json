@@ -1,0 +1,92 @@
+{
+  "status": "SOURCE_PURE_READY_FINAL_ARTIFACT_AND_ACTIVATION_PENDING",
+  "groups": [
+    {
+      "id": "F01-primary0-cleanupfalse-reportundefined",
+      "status": "PASS",
+      "role": "PURE_STUB_NO_PRODUCT",
+      "events": [
+        "use",
+        "exec",
+        "dispose",
+        "observe"
+      ]
+    },
+    {
+      "id": "F02-cleanupfalse-reportundefined",
+      "status": "PASS",
+      "role": "PURE_STUB_NO_PRODUCT",
+      "events": [
+        "use",
+        "exec",
+        "dispose",
+        "observe"
+      ]
+    },
+    {
+      "id": "F03-reportundefined-only",
+      "status": "PASS",
+      "role": "PURE_STUB_NO_PRODUCT",
+      "events": [
+        "use",
+        "exec",
+        "dispose",
+        "observe"
+      ]
+    },
+    {
+      "id": "F04-primaryundefined-cleanupfalse-report0",
+      "status": "PASS",
+      "role": "PURE_STUB_NO_PRODUCT",
+      "events": [
+        "use",
+        "exec",
+        "dispose",
+        "observe"
+      ]
+    },
+    {
+      "id": "F05-success24-shape",
+      "status": "PASS",
+      "role": "PURE_STUB_NO_PRODUCT",
+      "events": [
+        "use",
+        "exec",
+        "dispose",
+        "observe",
+        "use",
+        "exec",
+        "dispose",
+        "observe"
+      ]
+    },
+    {
+      "id": "T01-short-writes-close",
+      "status": "PASS",
+      "role": "PURE_IO_NOT_NATIVE_FD"
+    },
+    {
+      "id": "T02-zero-write-close-poison",
+      "status": "PASS",
+      "role": "PURE_IO_NOT_NATIVE_FD"
+    },
+    {
+      "id": "T03-writefalse-closeundefined",
+      "status": "PASS",
+      "role": "PURE_IO_NOT_NATIVE_FD"
+    }
+  ],
+  "postguards": 17,
+  "productExecutions": 0,
+  "loaderExecutions": 0,
+  "childSpawns": 0,
+  "startedUTC": "2026-08-29T17:22:57.756Z",
+  "endedUTC": "2026-08-29T17:26:26.104Z",
+  "qualifications": [
+    "Original057d HOLD unchanged",
+    "No actual coordinator/install/loader/native trace execution",
+    "IO mocks are not native FD or crash durability proof",
+    "Known owned role observation is not full transitive census",
+    "512MiB sampled/quiescent fit required after actual producer; cache post-close only"
+  ]
+}

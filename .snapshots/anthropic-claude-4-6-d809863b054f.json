@@ -1,0 +1,21 @@
+{
+  "key": "anthropic-claude-4-6-d809863b054f",
+  "request": {
+    "model": "anthropic/claude-4.6",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Say hello in one word."
+      }
+    ],
+    "type": "text"
+  },
+  "response": {
+    "content": "Hello!"
+  },
+  "metadata": {
+    "recordedAt": "2026-01-30T17:52:47.311Z",
+    "model": "anthropic/claude-4.6",
+    "type": "text"
+  }
+}

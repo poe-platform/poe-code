@@ -1,0 +1,112 @@
+--- /private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/driver-original.mjs.data	2026-08-27 06:51:22
++++ /private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/driver-r1.mjs	2026-08-27 06:52:16
+@@ -135,14 +135,30 @@
+   const failures = [];
+   const server = createServer((request, response) => {
+     let received = 0;
++    const body = { first: gate(), complete: gate(), chunks: [] };
+     request.on('data', chunk => {
+       received += chunk.length;
+       if (received > outputLimitBytes) {
+-        failures.push(new Error('bounded loopback request exceeded 1 MiB'));
++        const error = new Error('bounded loopback request exceeded 1 MiB');
++        failures.push(error);
++        body.first.reject(error);
++        body.complete.reject(error);
+         request.destroy();
++        return;
+       }
++      body.chunks.push(Buffer.from(chunk));
++      scope.event('fixture.capture.data', { bytes: chunk.length, total: received, dataListeners: request.listenerCount('data') });
++      body.first.resolve();
+     });
+-    const task = Promise.resolve().then(() => handler(request, response)).catch(error => {
++    request.once('end', () => {
++      scope.event('fixture.capture.end', { bytes: received });
++      body.complete.resolve(body.chunks);
++    });
++    const rejectBody = error => { body.first.reject(error); body.complete.reject(error); };
++    request.once('aborted', () => rejectBody(new Error('fixture upload aborted before data/end')));
++    request.once('error', rejectBody);
++    scope.event('fixture.capture.installed', { dataListeners: request.listenerCount('data') });
++    const task = Promise.resolve().then(() => handler(request, response, body)).catch(error => {
+       if (!request.aborted && !response.destroyed) failures.push(error);
+       response.destroy();
+     });
+@@ -383,13 +399,12 @@
+   let eof = false;
+   const uploaded = [];
+   scope.releases.push(() => permitEof.resolve());
+-  const fixture = await loopback(scope, async (request, response) => {
++  const fixture = await loopback(scope, async (request, response, body) => {
+     assert.equal(request.method, 'PUT');
+-    for await (const chunk of request) {
+-      uploaded.push(Buffer.from(chunk));
+-      scope.event('server.body.bytes', { bytes: chunk.length, eof });
+-      serverBytes.resolve();
+-    }
++    await body.first.promise;
++    scope.event('server.body.bytes', { bytes: body.chunks[0].length, eof });
++    serverBytes.resolve();
++    uploaded.push(...await body.complete.promise);
+     response.writeHead(200);
+     response.end('uploaded');
+     finished.resolve();
+@@ -473,15 +488,11 @@
+   const started = gate();
+   const serverClosed = gate();
+   const upload = entry.parameter === 'stdout-only-streaming-upload';
+-  const fixture = await loopback(scope, async (request, response) => {
++  const fixture = await loopback(scope, async (request, response, body) => {
+     response.once('close', () => serverClosed.resolve());
+     if (upload) {
+-      await new Promise((resolveData, rejectData) => {
+-        request.once('data', () => { scope.event('server.upload.bytes'); resolveData(); });
+-        request.once('aborted', () => rejectData(new Error('fixture upload aborted before data')));
+-        request.once('error', rejectData);
+-        request.once('close', () => rejectData(new Error('fixture upload closed before data')));
+-      });
++      await body.first.promise;
++      scope.event('server.upload.bytes');
+     }
+     started.resolve();
+   });
+@@ -570,6 +581,7 @@
+       await scope.bound(responseFinished.promise, 'required response emitted');
+       result.nestedPublicResult = await scope.bound(child.promise, 'mixed required effects settle');
+       assertProfile(result.nestedPublicResult, profile.nestedPublicResult, 'mixed curl public result');
++      if (bodyFile) result.bodyFileObservation = text(await fs.readFile('/body', { signal: context.signal }));
+       if (bodyFile) assert.equal(text(await fs.readFile('/body', { signal: context.signal })), 'required-body\n');
+       if (headerFile) {
+         const headers = text(await fs.readFile('/headers', { signal: context.signal }));
+@@ -847,8 +859,11 @@
+ 
+ async function executionConfig(configPath) {
+   const physicalDirectory = await realpath(directory);
+-  assert.match(physicalDirectory, /^\/(?:private\/)?tmp\/safe-bash-owned-output-streaming-execution-[^/]+$/);
++  assert.match(physicalDirectory, /^\/(?:private\/)?tmp\/safe-bash-owned-output-streaming-fixture-replay-[^/]+$/);
++  assert.equal(process.env.TSX_DISABLE_CACHE, '1');
++  assert.equal(await realpath(process.env.TMPDIR), join(physicalDirectory, 'tmp'));
+   const config = JSON.parse(await readFile(configPath, 'utf8'));
++  await verifiedArtifact(config.importClosureProof, 'pre-acceptance complete selected fixture import proof');
+   if (!config.sourceIdentity || config.sourceIdentity === 'UNBOUND') throw new Blocked('new immutable streaming source identity UNBOUND');
+   const authorization = JSON.parse(await verifiedArtifact(config.rootFreshExecutorAuthorization, 'root fresh executor authorization'));
+   const closure = JSON.parse(await verifiedArtifact(config.authorActualClosedEvidence, 'author ACTUAL CLOSED evidence'));
+@@ -882,7 +897,7 @@
+   assert.equal(config.historicalHelper.sha256, '9e76ecf9ba6604fc2c4b94a96cf5b46ffed97de5e7d0c2524e138b4410e17678');
+   assert.equal(config.historicalProbe.sha256, 'b138e5572240533efb8cde733e0c5a9bbd1c960e431b9291c0a17a300b1c7ed6');
+   const candidatePhysical = await realpath(config.candidateEntry.path);
+-  assert.match(candidatePhysical, /^\/(?:private\/)?tmp\/safe-bash-owned-output-streaming-execution-[^/]+\//, 'candidate copy must be task TMP, not live product or root dist');
++  assert.equal(candidatePhysical, await realpath(config.authenticatedReadOnlyCandidateEntry), 'exact authenticated read-only S1 compiled candidate; no live source fallback');
+   if (config.publicProfiles) {
+     const supplement = JSON.parse(await verifiedArtifact(config.publicProfiles, 'pre-execution authoritative profile supplement'));
+     assert.equal(supplement.frozenBeforeCandidateExecution, true);
+@@ -940,7 +955,7 @@
+ }
+ 
+ async function boundedChild(argumentsList, label) {
+-  const child = spawn(process.execPath, argumentsList, { stdio: ['ignore', 'pipe', 'pipe'], detached: process.platform !== 'win32', cwd: directory });
++  const child = spawn(process.execPath, argumentsList, { stdio: ['ignore', 'pipe', 'pipe'], detached: process.platform !== 'win32', cwd: directory, env: { ...process.env, TSX_DISABLE_CACHE: '1', TMPDIR: join(directory, 'tmp'), TMP: join(directory, 'tmp'), TEMP: join(directory, 'tmp'), TSX_CACHE_DIR: join(directory, 'tmp', 'tsx') } });
+   activeChildren.add(child);
+   let stdout = '';
+   let stderr = '';

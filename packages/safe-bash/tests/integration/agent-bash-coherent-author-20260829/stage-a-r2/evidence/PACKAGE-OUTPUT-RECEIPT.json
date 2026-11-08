@@ -1,0 +1,12 @@
+{
+  "role": "NEW_TRUSTED_PRODUCER_OUTPUT_BEFORE_INFLATION",
+  "path": "/private/tmp/safe-bash-coherent-stage-a-20260829-r2/pack/virtual-bash-0.0.0.tgz",
+  "bytes": 930368,
+  "sha256": "2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca",
+  "mode": 420,
+  "sourceTree": "3adc676a0ab638c9788ef007e465931d65d2c6fe",
+  "presealSha256": "8acc5e35686a4fa20bf1f8a871b2c23edff4cb29b09a9b9f1848ffc1332006db",
+  "productionBuilds": 1,
+  "producerClosed": true,
+  "created": "2026-08-29T10:10:44.562Z"
+}

@@ -1,0 +1,341 @@
+import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
+import { test } from "node:test";
+import { Pattern, substitute } from "../../../src/commands/text-programs/regex.js";
+import { Budget, ProgramError } from "../../../src/commands/text-programs/shared.js";
+import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
+import { toByteSource } from "../../../src/contracts/index.js";
+import { runVirtual } from "./helpers.js";
+import { Shell, cloudflareWorkerLimits } from "../../../src/shell/index.js";
+import { textProgramCommands } from "../../../src/commands/text-programs/index.js";
+import { streamFormatCommands } from "../../../src/commands/stream-format/index.js";
+import { createBoundedRegexProvider } from "../../../src/commands/regex-execution/bounded-provider.js";
+
+const snapshotScript = `seq 0 20000 | sed 's/.*/- button "Item&" [ref=e&]/'`;
+
+function snapshotShell() {
+  const shell = new Shell({
+    fs: new MemoryFileSystem(),
+    // Keep finite Worker limits and the consumer's 4 KiB pipeline backpressure.
+    limits: { ...cloudflareWorkerLimits, pipeHighWaterMark: 4096 },
+    capabilities: { regex: {
+      executor: createBoundedRegexProvider({
+        maxWorkers: 2, maxPatterns: 32, maxPatternBytes: 8192, maxRows: 128,
+        maxInputBytes: 65_536, maxResultBytes: 2048, maxWork: 2_000_000,
+        maxAllocationUnits: 1_000_000, maxStates: 65_536,
+        maxMatchesPerLine: 128, maxTotalMatches: 128,
+      }),
+      limits: { maxWorkers: 2, maxQueuedRequests: 8, maxQueuedBytes: 8 * 1024 * 1024,
+        requestTimeoutMs: 1000, startupTimeoutMs: 1000 },
+    } },
+  });
+  shell.use(textProgramCommands({ maxSteps: 5_000_000, maxBufferBytes: 8 * 1024 * 1024 }));
+  shell.use(streamFormatCommands({ limits: { maxRecordBytes: 1024 * 1024, maxNumericDigits: 1024 } }));
+  return shell;
+}
+
+test("finite sed snapshot emits all 20,001 rows within the existing deadline", { timeout: 5000 }, async context => {
+  const shell = snapshotShell();
+  try {
+    const started = performance.now();
+    const result = await shell.exec(snapshotScript);
+    context.diagnostic(`20,001-row pipeline: ${Math.round(performance.now() - started)} ms`);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, Array.from({ length: 20_001 }, (_, i) => `- button "Item${i}" [ref=e${i}]\n`).join(""));
+  } finally { await shell.dispose(); }
+});
+
+for (const stop of ["dispose", "abort"] as const) {
+  test(`finite sed snapshot ${stop} settles execution and cleanup without late rejection`, { timeout: 5000 }, async () => {
+    const shell = snapshotShell();
+    const controller = new AbortController();
+    let started!: () => void;
+    const firstOutput = new Promise<void>(resolve => { started = resolve; });
+    let output = "";
+    const execution = shell.exec(snapshotScript, {
+      signal: controller.signal,
+      stdout: { async write(chunk) { output += new TextDecoder().decode(chunk); started(); } },
+    });
+    const reason = new Error("user stopped");
+    // Observe the caller-owned execution before disposal can reject it.
+    const rejected = assert.rejects(execution, error => stop === "dispose"
+      ? error instanceof Error && error.message === "Shell is disposed" : error === reason);
+    try {
+      await firstOutput;
+      if (stop === "abort") controller.abort(reason);
+      await shell.dispose();
+      await rejected;
+      assert.ok(output.startsWith('- button "Item0" [ref=e0]\n'));
+      assert.ok(!output.includes('[ref=e20000]'));
+      await new Promise<void>(resolve => { setImmediate(resolve); });
+    } finally { await shell.dispose(); }
+  });
+}
+
+function makeBudget(maxSteps = 2048, maxBufferBytes = 8192, signal = new AbortController().signal): Budget {
+  return new Budget({
+    command: "sed", args: [], cwd: "/", env: {}, fs: new MemoryFileSystem(), signal,
+    stdin: toByteSource(""), stdout: { async write() {} }, stderr: { async write() {} },
+  }, { maxSteps, maxBufferBytes });
+}
+
+test("unanchored nonmatching snapshot BRE uses linear work as line length doubles", async context => {
+  const pattern = new Pattern(String.raw`.*\[Snapshot\](\([^)]*\)).*`, false);
+  const counts: number[] = [];
+  for (const length of [16, 32, 64, 128, 256]) {
+    const budget = makeBudget(1000000);
+    const step = budget.step.bind(budget);
+    let steps = 0;
+    context.mock.method(budget, "step", (count = 1) => { steps += count; step(count); });
+    assert.equal(await pattern.find("x".repeat(length), budget), undefined);
+    counts.push(steps);
+  }
+  context.diagnostic(`matcher steps for 16/32/64/128/256 bytes: ${counts.join("/")}`);
+  for (let index = 1; index < counts.length; index++) {
+    assert.ok(counts[index]! <= counts[index - 1]! * 2.2, `superlinear search: ${counts.join("/")}`);
+  }
+  await assert.rejects(pattern.find("x".repeat(256), makeBudget(512)), { message: "execution step limit exceeded" });
+});
+
+for (const [lines, maxSteps] of [[1100, 5000000], [20001, 50000000]] as const) {
+  test(`sed snapshot link scan agrees with native sed across ${lines} short lines`, async () => {
+    const stdin = Array.from({ length: lines }, (_, index) => `- button "Item${index}" [ref=e${index}]\n`).join("");
+    const args = ["-n", String.raw`s/.*\[Snapshot\](\([^)]*\)).*/\1/p`];
+    const native = spawnSync("sed", args, { input: stdin, env: { ...process.env, LC_ALL: "C" } });
+    assert.equal(native.error, undefined);
+    assert.equal(native.signal, null);
+    assert.equal(native.status, 0);
+    assert.equal(native.stdout.length, 0);
+    assert.equal(native.stderr.length, 0);
+    for (const options of [{}, { maxSteps }]) {
+      const actual = await runVirtual("sed", { args, stdin }, options);
+      assert.equal(actual.exitCode, native.status, actual.stderr.toString());
+      assert.deepEqual(actual.stdout, native.stdout);
+      assert.deepEqual(actual.stderr, native.stderr);
+    }
+  });
+}
+
+for (const source of ["(a*)b", String.raw`(a*)\1b`]) {
+  test(`unanchored captured searches retain bounded storage: ${source}`, async () => {
+    for (const length of [16, 64]) {
+      assert.equal(await new Pattern(source).find("a".repeat(length), makeBudget(1000000, 8192)), undefined);
+    }
+  });
+}
+
+test("sed scans large browser snapshots for links without exhausting its default work budget", async () => {
+  const lines = Array.from({ length: 20001 }, (_, index) => `- button "Item${index}" [ref=e${index}]`);
+  lines.push("- [Snapshot](.playwright-cli/page.yml)");
+  const result = await runVirtual("sed", {
+    args: ["-n", String.raw`s/.*\[Snapshot\](\([^)]*\)).*/\1/p`],
+    stdin: lines.join("\n") + "\n",
+  });
+  assert.equal(result.exitCode, 0, result.stderr.toString());
+  assert.equal(result.stderr.length, 0);
+  assert.equal(result.stdout.toString(), ".playwright-cli/page.yml\n");
+});
+
+test("missing mandatory literal scans grow linearly with subject length", async () => {
+  const pattern = new Pattern(String.raw`.*\[Snapshot\]\(([^)]*)\).*`);
+  const counts: number[] = [];
+  for (const length of [64, 128, 256]) {
+    let steps = 0;
+    assert.equal(await pattern.find("x".repeat(length), {
+      maxBufferBytes: 32768,
+      step(count = 1) { steps += count; },
+      async checkpoint() {},
+    }), undefined);
+    counts.push(steps);
+  }
+  assert.ok(counts[1]! <= counts[0]! * 3, `64/128 character work: ${counts}`);
+  assert.ok(counts[2]! <= counts[1]! * 3, `128/256 character work: ${counts}`);
+});
+
+test("literal scan optimization preserves alternatives, optional branches, offsets and case folding", async () => {
+  for (const [source, input, from, ignoreCase, expected] of [
+    [".*foo(bar)", "xxfoobar", 0, false, { start: 0, end: 8, groups: ["xxfoobar", "bar"] }],
+    [".*foo|bar", "bar", 0, false, { start: 0, end: 3, groups: ["bar"] }],
+    ["(foo)?bar", "bar", 0, false, { start: 0, end: 3, groups: ["bar", undefined] }],
+    [".*foo", "foo xx", 3, false, undefined],
+    [".*foo", "xxFOO", 0, true, { start: 0, end: 5, groups: ["xxFOO"] }],
+    [".*foo\\.(bar)", "xxfoo.bar", 0, false, { start: 0, end: 9, groups: ["xxfoo.bar", "bar"] }],
+  ] as const) {
+    assert.deepEqual(await new Pattern(source, true, ignoreCase).find(input, makeBudget(100000), from), expected);
+  }
+});
+
+test("NFA yields inside one find before its small work limit and preserves queued cancellation", async context => {
+  let now = 0;
+  context.mock.method(performance, "now", () => now);
+  const controller = new AbortController();
+  const reason = Object.freeze({ cancelled: "inside find" });
+  const budget = makeBudget(8192, 32768, controller.signal);
+  const step = budget.step.bind(budget);
+  context.mock.method(budget, "step", (count = 1) => { now += count; step(count); });
+  const abort = setImmediate(() => controller.abort(reason));
+  try {
+    // Include the required literal so the search must enter the NFA.
+    await assert.rejects(async () => await new Pattern("(a*)(a*)b").find("a".repeat(32) + "b", budget), error => error === reason);
+  } finally { clearImmediate(abort); }
+});
+
+test("NFA combines visited and queued storage rather than admitting both independently", async () => {
+  await assert.rejects(async () => await new Pattern("(a*)(a*)b").find("aaaab", makeBudget(2048, 1450)),
+    error => error instanceof ProgramError && error.message === "regular expression state buffer limit exceeded");
+});
+
+test("literal synchronous match awaits its started checkpoint before buffer refusal", async context => {
+  const pattern = new Pattern("a".repeat(32));
+  await pattern.prepare({ step() {}, async checkpoint() {} });
+  const budget = makeBudget(2048, 16);
+  let calls = 0;
+  context.mock.method(budget, "checkpointSync", () => {
+    if (++calls !== 2) return undefined;
+    const pending = Promise.reject<void>(false);
+    void pending.catch(() => {});
+    return pending;
+  });
+  await assert.rejects(async () => pattern.tryFindSync("a".repeat(32), budget), error => error === false);
+  assert.equal(calls, 2);
+});
+
+test("mandatory literal scans retain explicit work limits and queued cancellation", async context => {
+  const pattern = new Pattern(".*needle");
+  await assert.rejects(pattern.find("x".repeat(128), makeBudget(64)), { message: "execution step limit exceeded" });
+  let now = 0;
+  context.mock.method(performance, "now", () => now);
+  const controller = new AbortController();
+  const budget = makeBudget(32768, 8192, controller.signal);
+  const step = budget.step.bind(budget);
+  context.mock.method(budget, "step", (count = 1) => { now += count; step(count); });
+  const reason = Object.freeze({ cancelled: "literal scan" });
+  const abort = setImmediate(() => controller.abort(reason));
+  try {
+    await assert.rejects(pattern.find("x".repeat(4096), budget), error => error === reason);
+  } finally { clearImmediate(abort); }
+});
+
+test("NFA refuses a capture state before serializing its key", async () => {
+  const pattern = new Pattern("(a)");
+  const join = Array.prototype.join;
+  let joins = 0;
+  Array.prototype.join = function (this: unknown[], separator?: string) {
+    if (separator === "," && this.every(value => typeof value === "number" || value === undefined)) joins++;
+    return join.call(this, separator);
+  };
+  try {
+    await assert.rejects(async () => await pattern.find("a", makeBudget(2048, 350)),
+      error => error instanceof ProgramError && error.message === "regular expression state buffer limit exceeded");
+  } finally { Array.prototype.join = join; }
+  assert.equal(joins, 0);
+});
+
+test("find observes an existing falsey cancellation even beyond the final offset", async () => {
+  const controller = new AbortController();
+  controller.abort(false);
+  await assert.rejects(async () => await new Pattern("a").find("a", makeBudget(2048, 8192, controller.signal), 2), error => error === false);
+});
+
+test("NFA releases each search's ledger after successful and missing matches", async () => {
+  const pattern = new Pattern("(a)b");
+  const budget = makeBudget(20000, 2048);
+  for (let iteration = 0; iteration < 16; iteration++) {
+    assert.equal(await pattern.find("ac", budget), undefined);
+    assert.deepEqual(await pattern.find("aaaaab", budget), { start: 4, end: 6, groups: ["ab", "a"] });
+  }
+});
+
+test("NFA failed admissions and falsey cancellations do not poison a reusable pattern", async () => {
+  const pattern = new Pattern("(a)");
+  await assert.rejects(pattern.find("a", makeBudget(2048, 350)), { message: "regular expression state buffer limit exceeded" });
+  await assert.rejects(pattern.find("a", makeBudget(4)), { message: "execution step limit exceeded" });
+  for (const reason of [undefined, null, false, 0, "", Object.freeze({ cancelled: true })]) {
+    const controller = new AbortController();
+    const cancelledBudget = makeBudget(2048, 8192, controller.signal);
+    controller.abort(reason);
+    await assert.rejects(pattern.find("a", cancelledBudget), error => error === controller.signal.reason);
+    assert.deepEqual(await pattern.find("a", makeBudget()), { start: 0, end: 1, groups: ["a", "a"] });
+  }
+});
+
+test("interleaved searches on one compiled pattern retain independent ledgers", async context => {
+  const pattern = new Pattern("(a)");
+  const budget = makeBudget();
+  let resume!: () => void;
+  let reached!: () => void;
+  const suspended = new Promise<void>(resolve => { reached = resolve; });
+  const waiting = new Promise<void>(resolve => { resume = resolve; });
+  const checkpoint = budget.checkpointSync.bind(budget);
+  let checkpoints = 0;
+  context.mock.method(budget, "checkpointSync", async () => {
+    if (++checkpoints === 2) { reached(); await waiting; }
+    await checkpoint();
+  });
+  const pending = pattern.find("a", budget);
+  await suspended;
+  try {
+    await assert.rejects(pattern.find("a", makeBudget(2048, 350)), { message: "regular expression state buffer limit exceeded" });
+    assert.deepEqual(await pattern.find("a", makeBudget()), { start: 0, end: 1, groups: ["a", "a"] });
+  } finally { resume(); }
+  assert.deepEqual(await pending, { start: 0, end: 1, groups: ["a", "a"] });
+});
+
+test("resumable matching retains the existing 64-byte replacement capacity", async () => {
+  assert.deepEqual(await substitute("aa", new Pattern("a"), "&".repeat(32), makeBudget(10000, 64), true),
+    { text: "a".repeat(64), count: 2 });
+  await assert.rejects(substitute("aa", new Pattern("a"), "&".repeat(33), makeBudget(10000, 64), true),
+    error => error instanceof ProgramError && error.message === "text buffer limit exceeded");
+});
+
+test("matching retains capture preference, unmatched groups, anchors, offsets, backreferences and bytes", async () => {
+  for (const [source, text, from, extended, ignoreCase, expected] of [
+    ["(a|aa)(a?)", "aa", 0, true, false, { start: 0, end: 2, groups: ["aa", "aa", ""] }],
+    ["(a*)(a*)", "aa", 0, true, false, { start: 0, end: 2, groups: ["aa", "aa", ""] }],
+    ["(a)?b", "b", 0, true, false, { start: 0, end: 1, groups: ["b", undefined] }],
+    ["(a|aa)*", "aa", 0, true, false, { start: 0, end: 2, groups: ["aa", "aa"] }],
+    ["^a", "ba", 1, true, false, undefined],
+    ["a$", "ba", 1, true, false, { start: 1, end: 2, groups: ["a"] }],
+    ["^|$", "a", 1, true, false, { start: 1, end: 1, groups: [""] }],
+    ["\\(a*\\)\\1", "aaaa", 0, false, false, { start: 0, end: 4, groups: ["aaaa", "aa"] }],
+    ["(a)\\1", "aA", 0, true, true, { start: 0, end: 2, groups: ["aA", "a"] }],
+    ["a*", "ba", 0, true, false, { start: 0, end: 0, groups: [""] }],
+    [".", "\x00\xff", 1, true, false, { start: 1, end: 2, groups: ["\xff"] }],
+    ["(a.*c)|(b)", "zabxc", 0, true, false, { start: 1, end: 5, groups: ["abxc", "abxc", undefined] }],
+    ["a.*c|b", "zbabc", 0, true, false, { start: 1, end: 2, groups: ["b"] }],
+    [String.raw`(a*)\1b|a*b`, "zaaaab", 1, true, false, { start: 1, end: 6, groups: ["aaaab", "aa"] }],
+    [String.raw`(ab|a)*\1`, "zababaa", 0, true, false, { start: 1, end: 7, groups: ["ababaa", "a"] }],
+    ["(a|b)*b", "zaabb", 2, true, false, { start: 2, end: 5, groups: ["abb", "b"] }],
+    [String.raw`(a?)(b*)\1`, "zabbab", 1, true, false, { start: 1, end: 5, groups: ["abba", "a", "bb"] }],
+    [String.raw`(a*)\1b`, "aaab", 0, true, false, { start: 1, end: 4, groups: ["aab", "a"] }],
+  ] as const) {
+    assert.deepEqual(await new Pattern(source, extended, ignoreCase).find(text, makeBudget(), from), expected);
+  }
+});
+
+test("global matching keeps captures and empty-match suppression across search offsets", async () => {
+  assert.deepEqual(await substitute("zaabxbab", new Pattern("(a*)b"), String.raw`<\1>`, makeBudget(), true),
+    { text: "z<aa>x<><a>", count: 3 });
+  assert.deepEqual(await substitute("baacaa", new Pattern("a*"), "<&>", makeBudget(), true),
+    { text: "<>b<aa>c<aa>", count: 3 });
+});
+
+for (const [tool, args, stdin, expected] of [
+  ["sed", ["-n", "/z/p"], "a\n", ""],
+  ["sed", ["s/z/X/"], "a\n", "a\n"],
+  ["awk", ['/z/ { print "bad" }'], "a\n", ""],
+  ["awk", ['{ print ($0 ~ /z/), ($0 !~ /z/) }'], "a\n", "0 1\n"],
+  ["awk", ['{ print match($0,/z/), RSTART, RLENGTH }'], "a\n", "0 0 -1\n"],
+  ["awk", ['BEGIN { print split("a b",parts,/ /), parts[1], parts[2] }'], "", "2 a b\n"],
+  ["awk", ['BEGIN { FS="[ ]"; $0="a b"; print NF, $1, $2 }'], "", "2 a b\n"],
+] as const) {
+  test(`${tool} awaits the match result: ${args[0]}`, async context => {
+    context.mock.method(Pattern.prototype, "find", (text: string, _budget: Budget, from = 0) => Promise.resolve(
+      text === "a b" && from === 0 ? { start: 1, end: 2, groups: [" "] } : undefined,
+    ));
+    const result = await runVirtual(tool, { args, stdin }, { maxSteps: 512, maxBufferBytes: 8192 });
+    assert.equal(result.exitCode, 0, result.stderr.toString());
+    assert.equal(result.stdout.toString(), expected);
+  });
+}

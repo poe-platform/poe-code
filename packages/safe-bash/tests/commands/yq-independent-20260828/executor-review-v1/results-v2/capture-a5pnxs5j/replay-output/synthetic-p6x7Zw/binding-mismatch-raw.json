@@ -1,0 +1,10 @@
+{
+  "id": "binding-mismatch",
+  "expected": "BINDING",
+  "value": null,
+  "error": {
+    "code": "BINDING",
+    "message": "BINDING: ",
+    "stack": "Error: BINDING: \n    at requireFact (file:///private/tmp/yq-composition-independent-aoq9aj85/object-reader/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/guards.mjs:20:39)\n    at assertBound (file:///private/tmp/yq-composition-independent-aoq9aj85/object-reader/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/guards.mjs:317:3)\n    at binding-mismatch (file:///private/tmp/yq-composition-independent-aoq9aj85/replay.mjs:96:30)\n    at file:///private/tmp/yq-composition-independent-aoq9aj85/replay.mjs:153:41"
+  }
+}

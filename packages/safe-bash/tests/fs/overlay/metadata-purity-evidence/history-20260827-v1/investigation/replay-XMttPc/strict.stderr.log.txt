@@ -1,0 +1,22 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: strict actual no backend mutations MUST hold; existing red is not acceptance
++ actual - expected
+
++ [
++   '/.virtual-bash-overlay-959537c4-36bd-4ee6-a776-6556c79fd0fd'
++ ]
+- []
+
+    at <anonymous> (/private/tmp/safe-bash-overlay-readpurity-JuB9ca/replay-XMttPc/strict-repro.mjs:59:8) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: [ '/.virtual-bash-overlay-959537c4-36bd-4ee6-a776-6556c79fd0fd' ],
+  expected: [],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.2

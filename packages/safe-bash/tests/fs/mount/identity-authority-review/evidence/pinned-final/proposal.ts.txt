@@ -1,0 +1,124 @@
+import { FsError, isFsError } from "../../../../src/contracts/errors.js";
+import type { CopyFileOptions, FileStat, FileSystem, FsOptions } from "../../../../src/contracts/filesystem.js";
+import { compareIdentity } from "../../../../src/fs/mount/identity.js";
+
+export type EntryComparison = "same" | "distinct" | "unknown";
+
+export interface ComparableFileSystem extends FileSystem {
+  compareEntry?(
+    path: string, peer: FileSystem, peerPath: string, options?: FsOptions,
+  ): Promise<EntryComparison>;
+}
+
+export interface Observation {
+  readonly authority: object | symbol;
+  readonly entry: string | object;
+}
+
+type Resolver = (path: string, options: FsOptions) => Promise<Observation | undefined>;
+
+export function view(filesystem: FileSystem, overrides: Partial<ComparableFileSystem>): ComparableFileSystem {
+  return new Proxy(filesystem, {
+    get(target, property) {
+      if (Object.hasOwn(overrides, property)) return Reflect.get(overrides, property);
+      const value: unknown = Reflect.get(target, property);
+      return typeof value === "function" ? value.bind(target) : value;
+    },
+  });
+}
+
+export class FixtureAuthority {
+  readonly #resolvers = new WeakMap<FileSystem, Resolver>();
+  readonly #disjoint = new Map<object | symbol, Set<object | symbol>>();
+
+  certifyDisjoint(first: object | symbol, second: object | symbol): void {
+    if (first === second) throw new Error("cannot certify an authority disjoint from itself");
+    for (const [left, right] of [[first, second], [second, first]] as const) {
+      const peers = this.#disjoint.get(left) ?? new Set<object | symbol>();
+      peers.add(right);
+      this.#disjoint.set(left, peers);
+    }
+  }
+
+  enroll(filesystem: FileSystem, resolve: Resolver): ComparableFileSystem {
+    const enrolled = view(filesystem, {
+      compareEntry: async (path, peer, peerPath, options = {}) => {
+        options.signal?.throwIfAborted();
+        const peerResolve = this.#resolvers.get(peer);
+        if (!peerResolve) return "unknown";
+        const left = await resolve(path, options);
+        const right = await peerResolve(peerPath, options);
+        options.signal?.throwIfAborted();
+        if (!left || !right) return "unknown";
+        if (left.authority === right.authority) return left.entry === right.entry ? "same" : "distinct";
+        return this.#disjoint.get(left.authority)?.has(right.authority) ? "distinct" : "unknown";
+      },
+    });
+    this.#resolvers.set(enrolled, resolve);
+    return enrolled;
+  }
+}
+
+export async function maybeStat(filesystem: FileSystem, path: string, options: FsOptions): Promise<FileStat | undefined> {
+  try { return await filesystem.stat(path, options); }
+  catch (error) {
+    options.signal?.throwIfAborted();
+    if (isFsError(error, "ENOENT")) return undefined;
+    throw error;
+  }
+}
+
+export async function comparePair(
+  source: ComparableFileSystem, sourcePath: string, target: ComparableFileSystem,
+  targetPath: string, sourceStat: FileStat, targetStat: FileStat, options: FsOptions,
+): Promise<EntryComparison> {
+  const identity = compareIdentity(sourceStat, targetStat);
+  if (identity === "same") return "same";
+  const answers: EntryComparison[] = [identity];
+  if (source.compareEntry) answers.push(await source.compareEntry(sourcePath, target, targetPath, options));
+  if (target.compareEntry && target !== source) answers.push(await target.compareEntry(targetPath, source, sourcePath, options));
+  options.signal?.throwIfAborted();
+  if (answers.some(answer => !["same", "distinct", "unknown"].includes(answer))) throw new FsError("EIO");
+  if (answers.includes("same") && answers.includes("distinct")) throw new FsError("EIO");
+  return answers.includes("same") ? "same" : answers.includes("distinct") ? "distinct" : "unknown";
+}
+
+export interface CopyReceipt {
+  readonly distinct: true;
+  readonly basis: "comparison" | "exclusive-create";
+}
+
+export async function proofCopy(
+  source: ComparableFileSystem, sourcePath: string, target: ComparableFileSystem,
+  targetPath: string, options: CopyFileOptions = {},
+): Promise<CopyReceipt> {
+  options.signal?.throwIfAborted();
+  if (target.capabilities.readOnly) throw new FsError("EROFS");
+  const sourceStat = await source.stat(sourcePath, options);
+  const targetStat = await maybeStat(target, targetPath, options);
+  if (sourceStat.type !== "file" || targetStat?.type === "directory") throw new FsError("EISDIR");
+  if (options.exclusive && targetStat) throw new FsError("EEXIST");
+  if (source === target && sourcePath === targetPath) throw new FsError("EINVAL");
+  if (targetStat) {
+    const comparison = await comparePair(source, sourcePath, target, targetPath, sourceStat, targetStat, options);
+    if (comparison === "same") throw new FsError("EINVAL");
+    if (comparison !== "distinct") throw new FsError("ENOTSUP");
+  }
+  options.signal?.throwIfAborted();
+  const bytes = await source.readFile(sourcePath, { ...options, maxBytes: 1024 * 1024 });
+  if (bytes.byteLength > 1024 * 1024) throw new FsError("EFBIG");
+  options.signal?.throwIfAborted();
+  await target.writeFile(targetPath, bytes, { ...options, flag: targetStat ? "w" : "wx" });
+  options.signal?.throwIfAborted();
+  return { distinct: true, basis: targetStat ? "comparison" : "exclusive-create" };
+}
+
+export async function proofMove(
+  source: ComparableFileSystem, sourcePath: string, target: ComparableFileSystem,
+  targetPath: string, options: FsOptions = {},
+): Promise<void> {
+  const receipt = await proofCopy(source, sourcePath, target, targetPath, options);
+  options.signal?.throwIfAborted();
+  if (!receipt.distinct) throw new FsError("ENOTSUP");
+  await source.rm(sourcePath, options);
+}

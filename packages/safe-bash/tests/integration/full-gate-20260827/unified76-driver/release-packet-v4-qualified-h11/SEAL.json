@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "sealedAt": "2026-08-28T13:33:53.921Z",
+  "source": "f03c260269dfd8ee10666f7fd2560655f8e14a38",
+  "eligibilitySource": "e35d83ca97f6aa4f32b2cb8542f5e711458f6aeb",
+  "acceptedScopedReview": "652b76f4af9a03ba1fe0d8f90ca5128463f9e34b",
+  "packetNormalizedSha256": "d236cc7723dfaf860e3e70cda1d04bff2f46950c54c845d8ac0184e969296b00",
+  "driverSha256": "aca88337d644351888659e4364f0610da0219eb3697de45fa808b509bfbc3424",
+  "profileSha256": "fa6731eec6b41915f3f56affa9cdf29e7352a10e939bb0f1fe1b9d675caa7510",
+  "historicalEligibilitySha256": "519ac40f0239bf363586c5144bbe7f0f3c72c786f42abbc2d1d9ffb004ba2cf6",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "expectedPackageSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+  "metadataReview": "PENDING",
+  "executionAuthorized": false,
+  "fullGateLaunched": false,
+  "files": [
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/release-packet-v4-qualified-h11/prepare.mjs",
+      "bytes": 16845,
+      "mode": "644",
+      "sha256": "0a26a9aaa35932d23178b29333403cdf704e7c132cc245b8360239947bd2fe3f"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/release-packet-v4-qualified-h11/PACKET.json",
+      "bytes": 154870,
+      "mode": "644",
+      "sha256": "ba16955c339d7861ca4656790046773901feb2613d6b4dcd43977dbb72228a60"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/release-packet-v4-qualified-h11/ROOT-RECEIPT.template.json",
+      "bytes": 14833,
+      "mode": "644",
+      "sha256": "badc58b7aa747e33b75c764c58609e14d19c5e29013a17fc73b0266b7ac159f2"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/release-packet-v4-qualified-h11/VALIDATION.json",
+      "bytes": 985,
+      "mode": "644",
+      "sha256": "d8911fa69d1378e0eee059e233888be94c661ca853780143552a37c2ecb450c4"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/release-packet-v4-qualified-h11/LAUNCH.md",
+      "bytes": 12147,
+      "mode": "644",
+      "sha256": "9b8a5d9bdd39406bb16c2ca6cf672bf1f8f41702183ea9a7b45d45c41ee77b7f"
+    }
+  ],
+  "qualification": "Raw file hashes are separate from normalized JSON hashes; no actual authorization, tool probe, archive, private copy, setup, build or gate execution. Both consumed 0/14 attempts remain unchanged."
+}

@@ -1,0 +1,4 @@
+local=1
+initialized=1
+declare -ar a=([2]="outer")
+declare -ar a=([2]="outer")

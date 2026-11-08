@@ -1,0 +1,159 @@
+name: Maestro Turn
+
+on:
+  issues:
+    types: [labeled, unlabeled, opened]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: maestro-turn-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+env:
+  MAESTRO_STATES: '["queued","agent-running","human-review","done","failed","archived"]'
+
+jobs:
+  tick:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Preflight
+        env:
+          MAESTRO_GH_TOKEN: ${{ secrets.MAESTRO_GH_TOKEN }}
+        run: |
+          if [ -z "$MAESTRO_GH_TOKEN" ]; then
+            echo "::error::Missing required secret: MAESTRO_GH_TOKEN"
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.MAESTRO_GH_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install poe-code
+        run: npm install -g poe-code@latest
+
+      - name: Derive Maestro transition
+        id: transition
+        env:
+          GH_TOKEN: ${{ secrets.MAESTRO_GH_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          action="$(jq -r '.action' "$GITHUB_EVENT_PATH")"
+          event_label="$(jq -r '.label.name // ""' "$GITHUB_EVENT_PATH")"
+          mapfile -t known_states < <(jq -r '.[]' <<< "$MAESTRO_STATES")
+
+          is_known_state() {
+            local candidate="$1"
+            local state
+            for state in "${known_states[@]}"; do
+              if [ "$candidate" = "$state" ]; then
+                return 0
+              fi
+            done
+            return 1
+          }
+
+          skip_transition() {
+            local reason="$1"
+            {
+              echo "should_run=false"
+              echo "transition="
+              echo "reason=$reason"
+            } >> "$GITHUB_OUTPUT"
+            echo "Skipping Maestro tick: $reason"
+          }
+
+          load_current_labels() {
+            mapfile -t current_labels < <(
+              gh api "repos/${REPOSITORY}/issues/${ISSUE_NUMBER}/labels" --jq '.[].name'
+            )
+          }
+
+          pick_current_state() {
+            local excluded="$1"
+            local state
+            local label
+            for state in "${known_states[@]}"; do
+              if [ "$state" = "$excluded" ]; then
+                continue
+              fi
+              for label in "${current_labels[@]}"; do
+                if [ "$label" = "$state" ]; then
+                  printf '%s\n' "$state"
+                  return 0
+                fi
+              done
+            done
+            return 1
+          }
+
+          from=""
+          to=""
+
+          case "$action" in
+            opened)
+              from="*"
+              to="queued"
+              ;;
+            labeled)
+              if ! is_known_state "$event_label"; then
+                skip_transition "label '$event_label' is not a Maestro state"
+                exit 0
+              fi
+              load_current_labels
+              to="$event_label"
+              from="$(pick_current_state "$to" || true)"
+              if [ -z "$from" ]; then
+                skip_transition "no previous Maestro state label found"
+                exit 0
+              fi
+              ;;
+            unlabeled)
+              if ! is_known_state "$event_label"; then
+                skip_transition "label '$event_label' is not a Maestro state"
+                exit 0
+              fi
+              load_current_labels
+              from="$event_label"
+              to="$(pick_current_state "" || true)"
+              if [ -z "$to" ]; then
+                skip_transition "no current Maestro state label found"
+                exit 0
+              fi
+              ;;
+            *)
+              skip_transition "unsupported issue action '$action'"
+              exit 0
+              ;;
+          esac
+
+          transition="${from}:${to}"
+          {
+            echo "should_run=true"
+            echo "transition=$transition"
+            echo "reason="
+          } >> "$GITHUB_OUTPUT"
+          echo "Derived Maestro transition: $transition"
+
+      - name: Run Maestro tick
+        if: steps.transition.outputs.should_run == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.MAESTRO_GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.MAESTRO_GH_TOKEN }}
+          MAESTRO_GH_TOKEN: ${{ secrets.MAESTRO_GH_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          TRANSITION: ${{ steps.transition.outputs.transition }}
+        run: |
+          poe-code maestro tick \
+            --task "$ISSUE_NUMBER" \
+            --transition "$TRANSITION"

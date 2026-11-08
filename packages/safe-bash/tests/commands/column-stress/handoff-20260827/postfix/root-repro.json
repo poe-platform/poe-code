@@ -1,0 +1,14 @@
+{
+  "classification": "root-owned-hidden-external-stdin-return-boundary",
+  "candidate": "/tmp/safe-bash-column-verify-yttMz8/moved/node_modules/virtual-bash",
+  "beforeGateRelease": {
+    "returns": 1,
+    "execSettled": true,
+    "disposeSettled": true
+  },
+  "acceptance": "HOLD",
+  "outcome": {
+    "rejection": "Error: Shell is disposed"
+  },
+  "finallyReleasedHarnessGate": true
+}

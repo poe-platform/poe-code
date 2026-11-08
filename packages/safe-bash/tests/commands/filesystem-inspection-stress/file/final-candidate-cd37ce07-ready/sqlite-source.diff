@@ -1,0 +1,13 @@
+diff --git a/src/commands/file/classify.ts b/src/commands/file/classify.ts
+index d7f08ca..0523169 100644
+--- a/src/commands/file/classify.ts
++++ b/src/commands/file/classify.ts
+@@ -60,7 +60,7 @@ function magic(bytes: Uint8Array): Classification | undefined {
+   if (bytes.length >= 8 && matches(bytes, [0, 97, 115, 109, 1, 0, 0, 0])) return result("WebAssembly binary module", "application/wasm");
+   if (bytes.length >= 100 && ascii(bytes, 0, 16) === "SQLite format 3\0") {
+     const size = view.getUint16(16);
+-    if ((size === 1 || (size >= 512 && size <= 32768 && (size & (size - 1)) === 0)) && [1, 2].includes(bytes[18]!) && [1, 2].includes(bytes[19]!) && matches(bytes, [64, 32, 32], 21)) return result("SQLite 3.x database", "application/x-sqlite3");
++    if ((size === 1 || (size >= 512 && size <= 32768 && (size & (size - 1)) === 0)) && [1, 2].includes(bytes[18]!) && [1, 2].includes(bytes[19]!) && matches(bytes, [64, 32, 32], 21)) return result("SQLite 3.x database", "application/vnd.sqlite3");
+   }
+   if (bytes.length >= 512 && matches(bytes, [208, 207, 17, 224, 161, 177, 26, 225]) && matches(bytes, [254, 255], 28)) return result("OLE Compound Document", "application/x-ole-storage");
+   return undefined;

@@ -1,0 +1,1170 @@
+{
+  "version": "ast-grep 0.45.3",
+  "cases": [
+    {
+      "name": "typescript",
+      "lang": "ts",
+      "source": "// 🐈\r\nconst icon = \"😀\"; f(\"é\"); f(other);\n",
+      "pattern": "f($X)",
+      "rewrite": "g($X)",
+      "matches": [
+        {
+          "text": "f(\"é\")",
+          "range": {
+            "byteOffset": {
+              "start": 30,
+              "end": 37
+            },
+            "start": {
+              "line": 1,
+              "column": 18
+            },
+            "end": {
+              "line": 1,
+              "column": 24
+            }
+          },
+          "file": "STDIN",
+          "lines": "const icon = \"😀\"; f(\"é\"); f(other);",
+          "charCount": {
+            "leading": 18,
+            "trailing": 11
+          },
+          "replacement": "g(\"é\")",
+          "replacementOffsets": {
+            "start": 30,
+            "end": 37
+          },
+          "language": "TypeScript",
+          "metaVariables": {
+            "single": {
+              "X": {
+                "text": "\"é\"",
+                "range": {
+                  "byteOffset": {
+                    "start": 32,
+                    "end": 36
+                  },
+                  "start": {
+                    "line": 1,
+                    "column": 20
+                  },
+                  "end": {
+                    "line": 1,
+                    "column": 23
+                  }
+                }
+              }
+            },
+            "multi": {},
+            "transformed": {}
+          }
+        },
+        {
+          "text": "f(other)",
+          "range": {
+            "byteOffset": {
+              "start": 39,
+              "end": 47
+            },
+            "start": {
+              "line": 1,
+              "column": 26
+            },
+            "end": {
+              "line": 1,
+              "column": 34
+            }
+          },
+          "file": "STDIN",
+          "lines": "const icon = \"😀\"; f(\"é\"); f(other);",
+          "charCount": {
+            "leading": 26,
+            "trailing": 1
+          },
+          "replacement": "g(other)",
+          "replacementOffsets": {
+            "start": 39,
+            "end": 47
+          },
+          "language": "TypeScript",
+          "metaVariables": {
+            "single": {
+              "X": {
+                "text": "other",
+                "range": {
+                  "byteOffset": {
+                    "start": 41,
+                    "end": 46
+                  },
+                  "start": {
+                    "line": 1,
+                    "column": 28
+                  },
+                  "end": {
+                    "line": 1,
+                    "column": 33
+                  }
+                }
+              }
+            },
+            "multi": {},
+            "transformed": {}
+          }
+        }
+      ],
+      "updated": "// 🐈\r\nconst icon = \"😀\"; g(\"é\"); g(other);\n"
+    },
+    {
+      "name": "nested",
+      "lang": "ts",
+      "source": "f(f(a)); f(b);\n",
+      "pattern": "f($X)",
+      "rewrite": "g($X)",
+      "matches": [
+        {
+          "text": "f(f(a))",
+          "range": {
+            "byteOffset": {
+              "start": 0,
+              "end": 7
+            },
+            "start": {
+              "line": 0,
+              "column": 0
+            },
+            "end": {
+              "line": 0,
+              "column": 7
+            }
+          },
+          "file": "STDIN",
+          "lines": "f(f(a)); f(b);",
+          "charCount": {
+            "leading": 0,
+            "trailing": 7
+          },
+          "replacement": "g(f(a))",
+          "replacementOffsets": {
+            "start": 0,
+            "end": 7
+          },
+          "language": "TypeScript",
+          "metaVariables": {
+            "single": {
+              "X": {
+                "text": "f(a)",
+                "range": {
+                  "byteOffset": {
+                    "start": 2,
+                    "end": 6
+                  },
+                  "start": {
+                    "line": 0,
+                    "column": 2
+                  },
+                  "end": {
+                    "line": 0,
+                    "column": 6
+                  }
+                }
+              }
+            },
+            "multi": {},
+            "transformed": {}
+          }
+        },
+        {
+          "text": "f(a)",
+          "range": {
+            "byteOffset": {
+              "start": 2,
+              "end": 6
+            },
+            "start": {
+              "line": 0,
+              "column": 2
+            },
+            "end": {
+              "line": 0,
+              "column": 6
+            }
+          },
+          "file": "STDIN",
+          "lines": "f(f(a)); f(b);",
+          "charCount": {
+            "leading": 2,
+            "trailing": 8
+          },
+          "replacement": "g(a)",
+          "replacementOffsets": {
+            "start": 2,
+            "end": 6
+          },
+          "language": "TypeScript",
+          "metaVariables": {
+            "single": {
+              "X": {
+                "text": "a",
+                "range": {
+                  "byteOffset": {
+                    "start": 4,
+                    "end": 5
+                  },
+                  "start": {
+                    "line": 0,
+                    "column": 4
+                  },
+                  "end": {
+                    "line": 0,
+                    "column": 5
+                  }
+                }
+              }
+            },
+            "multi": {},
+            "transformed": {}
+          }
+        },
+        {
+          "text": "f(b)",
+          "range": {
+            "byteOffset": {
+              "start": 9,
+              "end": 13
+            },
+            "start": {
+              "line": 0,
+              "column": 9
+            },
+            "end": {
+              "line": 0,
+              "column": 13
+            }
+          },
+          "file": "STDIN",
+          "lines": "f(f(a)); f(b);",
+          "charCount": {
+            "leading": 9,
+            "trailing": 1
+          },
+          "replacement": "g(b)",
+          "replacementOffsets": {
+            "start": 9,
+            "end": 13
+          },
+          "language": "TypeScript",
+          "metaVariables": {
+            "single": {
+              "X": {
+                "text": "b",
+                "range": {
+                  "byteOffset": {
+                    "start": 11,
+                    "end": 12
+                  },
+                  "start": {
+                    "line": 0,
+                    "column": 11
+                  },
+                  "end": {
+                    "line": 0,
+                    "column": 12
+                  }
+                }
+              }
+            },
+            "multi": {},
+            "transformed": {}
+          }
+        }
+      ],
+      "updated": "g(f(a)); g(b);\n"
+    },
+    {
+      "name": "variadic-empty",
+      "lang": "js",
+      "source": "f();\n",
+      "pattern": "f($$$ARGS)",
+      "rewrite": "g($$$ARGS)",
+      "matches": [
+        {
+          "text": "f()",
+          "range": {
+            "byteOffset": {
+              "start": 0,
+              "end": 3
+            },
+            "start": {
+              "line": 0,
+              "column": 0
+            },
+            "end": {
+              "line": 0,
+              "column": 3
+            }
+          },
+          "file": "STDIN",
+          "lines": "f();",
+          "charCount": {
+            "leading": 0,
+            "trailing": 1
+          },
+          "replacement": "g()",
+          "replacementOffsets": {
+            "start": 0,
+            "end": 3
+          },
+          "language": "JavaScript",
+          "metaVariables": {
+            "single": {},
+            "multi": {
+              "ARGS": []
+            },
+            "transformed": {}
+          }
+        }
+      ],
+      "updated": "g();\n"
+    },
+    {
+      "name": "variadic-single",
+      "lang": "js",
+      "source": "f(a);\n",
+      "pattern": "f($$$ARGS)",
+      "rewrite": "g($$$ARGS)",
+      "matches": [
+        {
+          "text": "f(a)",
+          "range": {
+            "byteOffset": {
+              "start": 0,
+              "end": 4
+            },
+            "start": {
+              "line": 0,
+              "column": 0
+            },
+            "end": {
+              "line": 0,
+              "column": 4
+            }
+          },
+          "file": "STDIN",
+          "lines": "f(a);",
+          "charCount": {
+            "leading": 0,
+            "trailing": 1
+          },
+          "replacement": "g(a)",
+          "replacementOffsets": {
+            "start": 0,
+            "end": 4
+          },
+          "language": "JavaScript",
+          "metaVariables": {
+            "single": {},
+            "multi": {
+              "ARGS": [
+                {
+                  "text": "a",
+                  "range": {
+                    "byteOffset": {
+                      "start": 2,
+                      "end": 3
+                    },
+                    "start": {
+                      "line": 0,
+                      "column": 2
+                    },
+                    "end": {
+                      "line": 0,
+                      "column": 3
+                    }
+                  }
+                }
+              ]
+            },
+            "transformed": {}
+          }
+        }
+      ],
+      "updated": "g(a);\n"
+    },
+    {
+      "name": "variadic-many",
+      "lang": "js",
+      "source": "f(a, /* keep */ nested(b,c), z);\n",
+      "pattern": "f($$$ARGS)",
+      "rewrite": "g($$$ARGS)",
+      "matches": [
+        {
+          "text": "f(a, /* keep */ nested(b,c), z)",
+          "range": {
+            "byteOffset": {
+              "start": 0,
+              "end": 31
+            },
+            "start": {
+              "line": 0,
+              "column": 0
+            },
+            "end": {
+              "line": 0,
+              "column": 31
+            }
+          },
+          "file": "STDIN",
+          "lines": "f(a, /* keep */ nested(b,c), z);",
+          "charCount": {
+            "leading": 0,
+            "trailing": 1
+          },
+          "replacement": "g(a, /* keep */ nested(b,c), z)",
+          "replacementOffsets": {
+            "start": 0,
+            "end": 31
+          },
+          "language": "JavaScript",
+          "metaVariables": {
+            "single": {},
+            "multi": {
+              "ARGS": [
+                {
+                  "text": "a",
+                  "range": {
+                    "byteOffset": {
+                      "start": 2,
+                      "end": 3
+                    },
+                    "start": {
+                      "line": 0,
+                      "column": 2
+                    },
+                    "end": {
+                      "line": 0,
+                      "column": 3
+                    }
+                  }
+                },
+                {
+                  "text": ",",
+                  "range": {
+                    "byteOffset": {
+                      "start": 3,
+                      "end": 4
+                    },
+                    "start": {
+                      "line": 0,
+                      "column": 3
+                    },
+                    "end": {
+                      "line": 0,
+                      "column": 4
+                    }
+                  }
+                },
+                {
+                  "text": "/* keep */",
+                  "range": {
+                    "byteOffset": {
+                      "start": 5,
+                      "end": 15
+                    },
+                    "start": {
+                      "line": 0,
+                      "column": 5
+                    },
+                    "end": {
+                      "line": 0,
+                      "column": 15
+                    }
+                  }
+                },
+                {
+                  "text": "nested(b,c)",
+                  "range": {
+                    "byteOffset": {
+                      "start": 16,
+                      "end": 27
+                    },
+                    "start": {
+                      "line": 0,
+                      "column": 16
+                    },
+                    "end": {
+                      "line": 0,
+                      "column": 27
+                    }
+                  }
+                },
+                {
+                  "text": ",",
+                  "range": {
+                    "byteOffset": {
+                      "start": 27,
+                      "end": 28
+                    },
+                    "start": {
+                      "line": 0,
+                      "column": 27
+                    },
+                    "end": {
+                      "line": 0,
+                      "column": 28
+                    }
+                  }
+                },
+                {
+                  "text": "z",
+                  "range": {
+                    "byteOffset": {
+                      "start": 29,
+                      "end": 30
+                    },
+                    "start": {
+                      "line": 0,
+                      "column": 29
+                    },
+                    "end": {
+                      "line": 0,
+                      "column": 30
+                    }
+                  }
+                }
+              ]
+            },
+            "transformed": {}
+          }
+        }
+      ],
+      "updated": "g(a, /* keep */ nested(b,c), z);\n"
+    },
+    {
+      "name": "middle-empty",
+      "lang": "ts",
+      "source": "fn(a,z);\n",
+      "pattern": "fn($A, $$$MID, $Z)",
+      "rewrite": "pair($A, $Z)",
+      "matches": [
+        {
+          "text": "fn(a,z)",
+          "range": {
+            "byteOffset": {
+              "start": 0,
+              "end": 7
+            },
+            "start": {
+              "line": 0,
+              "column": 0
+            },
+            "end": {
+              "line": 0,
+              "column": 7
+            }
+          },
+          "file": "STDIN",
+          "lines": "fn(a,z);",
+          "charCount": {
+            "leading": 0,
+            "trailing": 1
+          },
+          "replacement": "pair(a, z)",
+          "replacementOffsets": {
+            "start": 0,
+            "end": 7
+          },
+          "language": "TypeScript",
+          "metaVariables": {
+            "single": {
+              "Z": {
+                "text": "z",
+                "range": {
+                  "byteOffset": {
+                    "start": 5,
+                    "end": 6
+                  },
+                  "start": {
+                    "line": 0,
+                    "column": 5
+                  },
+                  "end": {
+                    "line": 0,
+                    "column": 6
+                  }
+                }
+              },
+              "A": {
+                "text": "a",
+                "range": {
+                  "byteOffset": {
+                    "start": 3,
+                    "end": 4
+                  },
+                  "start": {
+                    "line": 0,
+                    "column": 3
+                  },
+                  "end": {
+                    "line": 0,
+                    "column": 4
+                  }
+                }
+              }
+            },
+            "multi": {
+              "MID": []
+            },
+            "transformed": {}
+          }
+        }
+      ],
+      "updated": "pair(a, z);\n"
+    },
+    {
+      "name": "unification",
+      "lang": "js",
+      "source": "a === a; a === b; obj.x === obj.x;\n",
+      "pattern": "$X === $X",
+      "rewrite": "same($X)",
+      "matches": [
+        {
+          "text": "a === a",
+          "range": {
+            "byteOffset": {
+              "start": 0,
+              "end": 7
+            },
+            "start": {
+              "line": 0,
+              "column": 0
+            },
+            "end": {
+              "line": 0,
+              "column": 7
+            }
+          },
+          "file": "STDIN",
+          "lines": "a === a; a === b; obj.x === obj.x;",
+          "charCount": {
+            "leading": 0,
+            "trailing": 27
+          },
+          "replacement": "same(a)",
+          "replacementOffsets": {
+            "start": 0,
+            "end": 7
+          },
+          "language": "JavaScript",
+          "metaVariables": {
+            "single": {
+              "X": {
+                "text": "a",
+                "range": {
+                  "byteOffset": {
+                    "start": 6,
+                    "end": 7
+                  },
+                  "start": {
+                    "line": 0,
+                    "column": 6
+                  },
+                  "end": {
+                    "line": 0,
+                    "column": 7
+                  }
+                }
+              }
+            },
+            "multi": {},
+            "transformed": {}
+          }
+        },
+        {
+          "text": "obj.x === obj.x",
+          "range": {
+            "byteOffset": {
+              "start": 18,
+              "end": 33
+            },
+            "start": {
+              "line": 0,
+              "column": 18
+            },
+            "end": {
+              "line": 0,
+              "column": 33
+            }
+          },
+          "file": "STDIN",
+          "lines": "a === a; a === b; obj.x === obj.x;",
+          "charCount": {
+            "leading": 18,
+            "trailing": 1
+          },
+          "replacement": "same(obj.x)",
+          "replacementOffsets": {
+            "start": 18,
+            "end": 33
+          },
+          "language": "JavaScript",
+          "metaVariables": {
+            "single": {
+              "X": {
+                "text": "obj.x",
+                "range": {
+                  "byteOffset": {
+                    "start": 28,
+                    "end": 33
+                  },
+                  "start": {
+                    "line": 0,
+                    "column": 28
+                  },
+                  "end": {
+                    "line": 0,
+                    "column": 33
+                  }
+                }
+              }
+            },
+            "multi": {},
+            "transformed": {}
+          }
+        }
+      ],
+      "updated": "same(a); a === b; same(obj.x);\n"
+    },
+    {
+      "name": "jsx",
+      "lang": "tsx",
+      "source": "const x = <Box label=\"😀\"><Item value={nested(a)} /></Box>;\n",
+      "pattern": "<Item value={$V} />",
+      "rewrite": "<Other value={$V} />",
+      "matches": [
+        {
+          "text": "<Item value={nested(a)} />",
+          "range": {
+            "byteOffset": {
+              "start": 28,
+              "end": 54
+            },
+            "start": {
+              "line": 0,
+              "column": 25
+            },
+            "end": {
+              "line": 0,
+              "column": 51
+            }
+          },
+          "file": "STDIN",
+          "lines": "const x = <Box label=\"😀\"><Item value={nested(a)} /></Box>;",
+          "charCount": {
+            "leading": 25,
+            "trailing": 7
+          },
+          "replacement": "<Other value={nested(a)} />",
+          "replacementOffsets": {
+            "start": 28,
+            "end": 54
+          },
+          "language": "Tsx",
+          "metaVariables": {
+            "single": {
+              "V": {
+                "text": "nested(a)",
+                "range": {
+                  "byteOffset": {
+                    "start": 41,
+                    "end": 50
+                  },
+                  "start": {
+                    "line": 0,
+                    "column": 38
+                  },
+                  "end": {
+                    "line": 0,
+                    "column": 47
+                  }
+                }
+              }
+            },
+            "multi": {},
+            "transformed": {}
+          }
+        }
+      ],
+      "updated": "const x = <Box label=\"😀\"><Other value={nested(a)} /></Box>;\n"
+    },
+    {
+      "name": "generics",
+      "lang": "ts",
+      "source": "const x = identity<Map<string, number>>(value);\n",
+      "pattern": "identity<$T>($V)",
+      "rewrite": "copy<$T>($V)",
+      "matches": [
+        {
+          "text": "identity<Map<string, number>>(value)",
+          "range": {
+            "byteOffset": {
+              "start": 10,
+              "end": 46
+            },
+            "start": {
+              "line": 0,
+              "column": 10
+            },
+            "end": {
+              "line": 0,
+              "column": 46
+            }
+          },
+          "file": "STDIN",
+          "lines": "const x = identity<Map<string, number>>(value);",
+          "charCount": {
+            "leading": 10,
+            "trailing": 1
+          },
+          "replacement": "copy<Map<string, number>>(value)",
+          "replacementOffsets": {
+            "start": 10,
+            "end": 46
+          },
+          "language": "TypeScript",
+          "metaVariables": {
+            "single": {
+              "T": {
+                "text": "Map<string, number>",
+                "range": {
+                  "byteOffset": {
+                    "start": 19,
+                    "end": 38
+                  },
+                  "start": {
+                    "line": 0,
+                    "column": 19
+                  },
+                  "end": {
+                    "line": 0,
+                    "column": 38
+                  }
+                }
+              },
+              "V": {
+                "text": "value",
+                "range": {
+                  "byteOffset": {
+                    "start": 40,
+                    "end": 45
+                  },
+                  "start": {
+                    "line": 0,
+                    "column": 40
+                  },
+                  "end": {
+                    "line": 0,
+                    "column": 45
+                  }
+                }
+              }
+            },
+            "multi": {},
+            "transformed": {}
+          }
+        }
+      ],
+      "updated": "const x = copy<Map<string, number>>(value);\n"
+    },
+    {
+      "name": "decorators",
+      "lang": "ts",
+      "source": "@sealed\nclass Example { @memo method() { f(value); } }\n",
+      "pattern": "f($V)",
+      "rewrite": "g($V)",
+      "matches": [
+        {
+          "text": "f(value)",
+          "range": {
+            "byteOffset": {
+              "start": 41,
+              "end": 49
+            },
+            "start": {
+              "line": 1,
+              "column": 33
+            },
+            "end": {
+              "line": 1,
+              "column": 41
+            }
+          },
+          "file": "STDIN",
+          "lines": "class Example { @memo method() { f(value); } }",
+          "charCount": {
+            "leading": 33,
+            "trailing": 5
+          },
+          "replacement": "g(value)",
+          "replacementOffsets": {
+            "start": 41,
+            "end": 49
+          },
+          "language": "TypeScript",
+          "metaVariables": {
+            "single": {
+              "V": {
+                "text": "value",
+                "range": {
+                  "byteOffset": {
+                    "start": 43,
+                    "end": 48
+                  },
+                  "start": {
+                    "line": 1,
+                    "column": 35
+                  },
+                  "end": {
+                    "line": 1,
+                    "column": 40
+                  }
+                }
+              }
+            },
+            "multi": {},
+            "transformed": {}
+          }
+        }
+      ],
+      "updated": "@sealed\nclass Example { @memo method() { g(value); } }\n"
+    },
+    {
+      "name": "json",
+      "lang": "json",
+      "source": "{\"first\": {\"x\": 1}, \"second\": {\"x\": 2}}\n",
+      "pattern": "{\"x\": $V}",
+      "rewrite": "{\"value\": $V}",
+      "matches": [
+        {
+          "text": "{\"x\": 1}",
+          "range": {
+            "byteOffset": {
+              "start": 10,
+              "end": 18
+            },
+            "start": {
+              "line": 0,
+              "column": 10
+            },
+            "end": {
+              "line": 0,
+              "column": 18
+            }
+          },
+          "file": "STDIN",
+          "lines": "{\"first\": {\"x\": 1}, \"second\": {\"x\": 2}}",
+          "charCount": {
+            "leading": 10,
+            "trailing": 21
+          },
+          "replacement": "{\"value\": 1}",
+          "replacementOffsets": {
+            "start": 10,
+            "end": 18
+          },
+          "language": "Json",
+          "metaVariables": {
+            "single": {
+              "V": {
+                "text": "1",
+                "range": {
+                  "byteOffset": {
+                    "start": 16,
+                    "end": 17
+                  },
+                  "start": {
+                    "line": 0,
+                    "column": 16
+                  },
+                  "end": {
+                    "line": 0,
+                    "column": 17
+                  }
+                }
+              }
+            },
+            "multi": {},
+            "transformed": {}
+          }
+        },
+        {
+          "text": "{\"x\": 2}",
+          "range": {
+            "byteOffset": {
+              "start": 30,
+              "end": 38
+            },
+            "start": {
+              "line": 0,
+              "column": 30
+            },
+            "end": {
+              "line": 0,
+              "column": 38
+            }
+          },
+          "file": "STDIN",
+          "lines": "{\"first\": {\"x\": 1}, \"second\": {\"x\": 2}}",
+          "charCount": {
+            "leading": 30,
+            "trailing": 1
+          },
+          "replacement": "{\"value\": 2}",
+          "replacementOffsets": {
+            "start": 30,
+            "end": 38
+          },
+          "language": "Json",
+          "metaVariables": {
+            "single": {
+              "V": {
+                "text": "2",
+                "range": {
+                  "byteOffset": {
+                    "start": 36,
+                    "end": 37
+                  },
+                  "start": {
+                    "line": 0,
+                    "column": 36
+                  },
+                  "end": {
+                    "line": 0,
+                    "column": 37
+                  }
+                }
+              }
+            },
+            "multi": {},
+            "transformed": {}
+          }
+        }
+      ],
+      "updated": "{\"first\": {\"value\": 1}, \"second\": {\"value\": 2}}\n"
+    },
+    {
+      "name": "yaml",
+      "lang": "yaml",
+      "source": "first:\n  value: one\nsecond:\n  value: two\n",
+      "pattern": "value: $V",
+      "rewrite": "result: $V",
+      "matches": [
+        {
+          "text": "value: one",
+          "range": {
+            "byteOffset": {
+              "start": 9,
+              "end": 19
+            },
+            "start": {
+              "line": 1,
+              "column": 2
+            },
+            "end": {
+              "line": 1,
+              "column": 12
+            }
+          },
+          "file": "STDIN",
+          "lines": "  value: one",
+          "charCount": {
+            "leading": 2,
+            "trailing": 0
+          },
+          "replacement": "result: one",
+          "replacementOffsets": {
+            "start": 9,
+            "end": 19
+          },
+          "language": "Yaml",
+          "metaVariables": {
+            "single": {
+              "V": {
+                "text": "one",
+                "range": {
+                  "byteOffset": {
+                    "start": 16,
+                    "end": 19
+                  },
+                  "start": {
+                    "line": 1,
+                    "column": 9
+                  },
+                  "end": {
+                    "line": 1,
+                    "column": 12
+                  }
+                }
+              }
+            },
+            "multi": {},
+            "transformed": {}
+          }
+        },
+        {
+          "text": "value: two",
+          "range": {
+            "byteOffset": {
+              "start": 30,
+              "end": 40
+            },
+            "start": {
+              "line": 3,
+              "column": 2
+            },
+            "end": {
+              "line": 3,
+              "column": 12
+            }
+          },
+          "file": "STDIN",
+          "lines": "  value: two",
+          "charCount": {
+            "leading": 2,
+            "trailing": 0
+          },
+          "replacement": "result: two",
+          "replacementOffsets": {
+            "start": 30,
+            "end": 40
+          },
+          "language": "Yaml",
+          "metaVariables": {
+            "single": {
+              "V": {
+                "text": "two",
+                "range": {
+                  "byteOffset": {
+                    "start": 37,
+                    "end": 40
+                  },
+                  "start": {
+                    "line": 3,
+                    "column": 9
+                  },
+                  "end": {
+                    "line": 3,
+                    "column": 12
+                  }
+                }
+              }
+            },
+            "multi": {},
+            "transformed": {}
+          }
+        }
+      ],
+      "updated": "first:\n  result: one\nsecond:\n  result: two\n"
+    }
+  ]
+}

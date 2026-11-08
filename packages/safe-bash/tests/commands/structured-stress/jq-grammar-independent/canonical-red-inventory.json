@@ -1,0 +1,487 @@
+{
+  "recordedAt": "2026-08-27T01:45:50.259Z",
+  "acceptedEvidenceCommit": "bb1ceabef3a3a4c3791af64d9efb7384f6ca773f",
+  "acceptedSourceCommit": "0278a3032d7851de4c2f5141bbc863cdf310c39d",
+  "acceptedStructuredSha256": "30c573976d4dddb5e8e545f8e3914aeb166e0232f92ed0dfe20514205056db8f",
+  "selectorPath": "tests/commands/structured-stress/jq-42-independent-final/r1-selector.json",
+  "selectorSha256": "2ca0eb32b8d15025cea329b8e7bd2648622491fda7f72b25b2d0a1ce08a39478",
+  "tapPath": "tests/commands/structured-stress/jq-42-author-20260827/final-owned.tap",
+  "tapSha256": "927f32925c0f612e5c1f2f64a74addfb9fea900479c84d84e98cb985d5d28658",
+  "selector": "^(?:strict UTF-8 rejection remains chunk invariant \\(not native parity\\): raw-lone-continuation|strict UTF-8 rejection remains chunk invariant \\(not native parity\\): raw-truncated|strict UTF-8 rejection remains chunk invariant \\(not native parity\\): raw-bad-continuation|strict UTF-8 rejection remains chunk invariant \\(not native parity\\): json-bad-string|raw native: record-error-prefix|raw native: file-unicode:-Rc|raw native: file-unicode:-Rsc|raw native: invalid:0:-Rc|raw native: invalid:0:-Rsc|raw native: invalid:1:-Rc|raw native: invalid:1:-Rsc|raw native: invalid:2:-Rc|raw native: invalid:2:-Rsc|raw native: invalid:3:-Rc|raw native: invalid:3:-Rsc|raw native: invalid:4:-Rc|raw native: invalid:4:-Rsc|strict malformed JSON 14 across chunk boundaries|strict malformed JSON 16 across chunk boundaries|invalid UTF-8 never becomes replacement text|malformed UTF-8 preserves completed JSON prefix across every chunk split|valid large decimals survive while malformed JSON and division by zero fail)$",
+  "historicalResultPath": "tests/commands/structured-stress/jq-42-independent-final/r2-legacy-red.json",
+  "historicalResult": {
+    "tests": 22,
+    "pass": 0,
+    "fail": 22
+  },
+  "proposalStatus": "NOT PROVIDED / NOT REVIEWED. No canonical delta is approved. Preserve all historical fixtures and dated results.",
+  "entries": [
+    {
+      "name": "strict UTF-8 rejection remains chunk invariant (not native parity): raw-lone-continuation",
+      "file": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+      "fileSha256": "e46cdc464d16acdc1c6841d86dbb9b02274f7f22b2149751dcf1e8c44a8afcd1",
+      "nativeProbeIds": [
+        "strict-raw-lone-continuation"
+      ],
+      "baselineNativeExact": [
+        "strict-raw-lone-continuation"
+      ],
+      "baselineRealDiagnosticDifferences": [],
+      "baselineRealAcceptanceDifferences": [],
+      "preliminaryClassification": "Canonical red despite all mapped native probes matching: stale expectation candidate under this accepted native profile, not an approved test edit.",
+      "reviewRequirement": "Compare every proposed assertion delta against immutable native status/stdout/stderr and preserve unaffected malformed-input, division-by-zero, prefix, binary and budget assertions."
+    },
+    {
+      "name": "strict UTF-8 rejection remains chunk invariant (not native parity): raw-truncated",
+      "file": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+      "fileSha256": "e46cdc464d16acdc1c6841d86dbb9b02274f7f22b2149751dcf1e8c44a8afcd1",
+      "nativeProbeIds": [
+        "strict-raw-truncated"
+      ],
+      "baselineNativeExact": [
+        "strict-raw-truncated"
+      ],
+      "baselineRealDiagnosticDifferences": [],
+      "baselineRealAcceptanceDifferences": [],
+      "preliminaryClassification": "Canonical red despite all mapped native probes matching: stale expectation candidate under this accepted native profile, not an approved test edit.",
+      "reviewRequirement": "Compare every proposed assertion delta against immutable native status/stdout/stderr and preserve unaffected malformed-input, division-by-zero, prefix, binary and budget assertions."
+    },
+    {
+      "name": "strict UTF-8 rejection remains chunk invariant (not native parity): raw-bad-continuation",
+      "file": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+      "fileSha256": "e46cdc464d16acdc1c6841d86dbb9b02274f7f22b2149751dcf1e8c44a8afcd1",
+      "nativeProbeIds": [
+        "strict-raw-bad-continuation"
+      ],
+      "baselineNativeExact": [
+        "strict-raw-bad-continuation"
+      ],
+      "baselineRealDiagnosticDifferences": [],
+      "baselineRealAcceptanceDifferences": [],
+      "preliminaryClassification": "Canonical red despite all mapped native probes matching: stale expectation candidate under this accepted native profile, not an approved test edit.",
+      "reviewRequirement": "Compare every proposed assertion delta against immutable native status/stdout/stderr and preserve unaffected malformed-input, division-by-zero, prefix, binary and budget assertions."
+    },
+    {
+      "name": "strict UTF-8 rejection remains chunk invariant (not native parity): json-bad-string",
+      "file": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+      "fileSha256": "e46cdc464d16acdc1c6841d86dbb9b02274f7f22b2149751dcf1e8c44a8afcd1",
+      "nativeProbeIds": [
+        "strict-json-bad-string"
+      ],
+      "baselineNativeExact": [
+        "strict-json-bad-string"
+      ],
+      "baselineRealDiagnosticDifferences": [],
+      "baselineRealAcceptanceDifferences": [],
+      "preliminaryClassification": "Canonical red despite all mapped native probes matching: stale expectation candidate under this accepted native profile, not an approved test edit.",
+      "reviewRequirement": "Compare every proposed assertion delta against immutable native status/stdout/stderr and preserve unaffected malformed-input, division-by-zero, prefix, binary and budget assertions."
+    },
+    {
+      "name": "raw native: record-error-prefix",
+      "file": "tests/commands/structured-stress/raw-input.test.ts",
+      "fileSha256": "bdd6aa8c1aa330be5b161c5dc86e2ffa91a5efb1ee0e8748f2ebd131d09544bf",
+      "nativeProbeIds": [
+        "record-error-prefix"
+      ],
+      "baselineNativeExact": [
+        "record-error-prefix"
+      ],
+      "baselineRealDiagnosticDifferences": [],
+      "baselineRealAcceptanceDifferences": [],
+      "preliminaryClassification": "Canonical red despite all mapped native probes matching: stale expectation candidate under this accepted native profile, not an approved test edit.",
+      "reviewRequirement": "Compare every proposed assertion delta against immutable native status/stdout/stderr and preserve unaffected malformed-input, division-by-zero, prefix, binary and budget assertions."
+    },
+    {
+      "name": "raw native: file-unicode:-Rc",
+      "file": "tests/commands/structured-stress/raw-input.test.ts",
+      "fileSha256": "bdd6aa8c1aa330be5b161c5dc86e2ffa91a5efb1ee0e8748f2ebd131d09544bf",
+      "nativeProbeIds": [
+        "file-unicode:-Rc"
+      ],
+      "baselineNativeExact": [
+        "file-unicode:-Rc"
+      ],
+      "baselineRealDiagnosticDifferences": [],
+      "baselineRealAcceptanceDifferences": [],
+      "preliminaryClassification": "Canonical red despite all mapped native probes matching: stale expectation candidate under this accepted native profile, not an approved test edit.",
+      "reviewRequirement": "Compare every proposed assertion delta against immutable native status/stdout/stderr and preserve unaffected malformed-input, division-by-zero, prefix, binary and budget assertions."
+    },
+    {
+      "name": "raw native: file-unicode:-Rsc",
+      "file": "tests/commands/structured-stress/raw-input.test.ts",
+      "fileSha256": "bdd6aa8c1aa330be5b161c5dc86e2ffa91a5efb1ee0e8748f2ebd131d09544bf",
+      "nativeProbeIds": [
+        "file-unicode:-Rsc"
+      ],
+      "baselineNativeExact": [
+        "file-unicode:-Rsc"
+      ],
+      "baselineRealDiagnosticDifferences": [],
+      "baselineRealAcceptanceDifferences": [],
+      "preliminaryClassification": "Canonical red despite all mapped native probes matching: stale expectation candidate under this accepted native profile, not an approved test edit.",
+      "reviewRequirement": "Compare every proposed assertion delta against immutable native status/stdout/stderr and preserve unaffected malformed-input, division-by-zero, prefix, binary and budget assertions."
+    },
+    {
+      "name": "raw native: invalid:0:-Rc",
+      "file": "tests/commands/structured-stress/raw-input.test.ts",
+      "fileSha256": "bdd6aa8c1aa330be5b161c5dc86e2ffa91a5efb1ee0e8748f2ebd131d09544bf",
+      "nativeProbeIds": [
+        "invalid:0:-Rc"
+      ],
+      "baselineNativeExact": [
+        "invalid:0:-Rc"
+      ],
+      "baselineRealDiagnosticDifferences": [],
+      "baselineRealAcceptanceDifferences": [],
+      "preliminaryClassification": "Canonical red despite all mapped native probes matching: stale expectation candidate under this accepted native profile, not an approved test edit.",
+      "reviewRequirement": "Compare every proposed assertion delta against immutable native status/stdout/stderr and preserve unaffected malformed-input, division-by-zero, prefix, binary and budget assertions."
+    },
+    {
+      "name": "raw native: invalid:0:-Rsc",
+      "file": "tests/commands/structured-stress/raw-input.test.ts",
+      "fileSha256": "bdd6aa8c1aa330be5b161c5dc86e2ffa91a5efb1ee0e8748f2ebd131d09544bf",
+      "nativeProbeIds": [
+        "invalid:0:-Rsc"
+      ],
+      "baselineNativeExact": [
+        "invalid:0:-Rsc"
+      ],
+      "baselineRealDiagnosticDifferences": [],
+      "baselineRealAcceptanceDifferences": [],
+      "preliminaryClassification": "Canonical red despite all mapped native probes matching: stale expectation candidate under this accepted native profile, not an approved test edit.",
+      "reviewRequirement": "Compare every proposed assertion delta against immutable native status/stdout/stderr and preserve unaffected malformed-input, division-by-zero, prefix, binary and budget assertions."
+    },
+    {
+      "name": "raw native: invalid:1:-Rc",
+      "file": "tests/commands/structured-stress/raw-input.test.ts",
+      "fileSha256": "bdd6aa8c1aa330be5b161c5dc86e2ffa91a5efb1ee0e8748f2ebd131d09544bf",
+      "nativeProbeIds": [
+        "invalid:1:-Rc"
+      ],
+      "baselineNativeExact": [
+        "invalid:1:-Rc"
+      ],
+      "baselineRealDiagnosticDifferences": [],
+      "baselineRealAcceptanceDifferences": [],
+      "preliminaryClassification": "Canonical red despite all mapped native probes matching: stale expectation candidate under this accepted native profile, not an approved test edit.",
+      "reviewRequirement": "Compare every proposed assertion delta against immutable native status/stdout/stderr and preserve unaffected malformed-input, division-by-zero, prefix, binary and budget assertions."
+    },
+    {
+      "name": "raw native: invalid:1:-Rsc",
+      "file": "tests/commands/structured-stress/raw-input.test.ts",
+      "fileSha256": "bdd6aa8c1aa330be5b161c5dc86e2ffa91a5efb1ee0e8748f2ebd131d09544bf",
+      "nativeProbeIds": [
+        "invalid:1:-Rsc"
+      ],
+      "baselineNativeExact": [
+        "invalid:1:-Rsc"
+      ],
+      "baselineRealDiagnosticDifferences": [],
+      "baselineRealAcceptanceDifferences": [],
+      "preliminaryClassification": "Canonical red despite all mapped native probes matching: stale expectation candidate under this accepted native profile, not an approved test edit.",
+      "reviewRequirement": "Compare every proposed assertion delta against immutable native status/stdout/stderr and preserve unaffected malformed-input, division-by-zero, prefix, binary and budget assertions."
+    },
+    {
+      "name": "raw native: invalid:2:-Rc",
+      "file": "tests/commands/structured-stress/raw-input.test.ts",
+      "fileSha256": "bdd6aa8c1aa330be5b161c5dc86e2ffa91a5efb1ee0e8748f2ebd131d09544bf",
+      "nativeProbeIds": [
+        "invalid:2:-Rc"
+      ],
+      "baselineNativeExact": [
+        "invalid:2:-Rc"
+      ],
+      "baselineRealDiagnosticDifferences": [],
+      "baselineRealAcceptanceDifferences": [],
+      "preliminaryClassification": "Canonical red despite all mapped native probes matching: stale expectation candidate under this accepted native profile, not an approved test edit.",
+      "reviewRequirement": "Compare every proposed assertion delta against immutable native status/stdout/stderr and preserve unaffected malformed-input, division-by-zero, prefix, binary and budget assertions."
+    },
+    {
+      "name": "raw native: invalid:2:-Rsc",
+      "file": "tests/commands/structured-stress/raw-input.test.ts",
+      "fileSha256": "bdd6aa8c1aa330be5b161c5dc86e2ffa91a5efb1ee0e8748f2ebd131d09544bf",
+      "nativeProbeIds": [
+        "invalid:2:-Rsc"
+      ],
+      "baselineNativeExact": [
+        "invalid:2:-Rsc"
+      ],
+      "baselineRealDiagnosticDifferences": [],
+      "baselineRealAcceptanceDifferences": [],
+      "preliminaryClassification": "Canonical red despite all mapped native probes matching: stale expectation candidate under this accepted native profile, not an approved test edit.",
+      "reviewRequirement": "Compare every proposed assertion delta against immutable native status/stdout/stderr and preserve unaffected malformed-input, division-by-zero, prefix, binary and budget assertions."
+    },
+    {
+      "name": "raw native: invalid:3:-Rc",
+      "file": "tests/commands/structured-stress/raw-input.test.ts",
+      "fileSha256": "bdd6aa8c1aa330be5b161c5dc86e2ffa91a5efb1ee0e8748f2ebd131d09544bf",
+      "nativeProbeIds": [
+        "invalid:3:-Rc"
+      ],
+      "baselineNativeExact": [
+        "invalid:3:-Rc"
+      ],
+      "baselineRealDiagnosticDifferences": [],
+      "baselineRealAcceptanceDifferences": [],
+      "preliminaryClassification": "Canonical red despite all mapped native probes matching: stale expectation candidate under this accepted native profile, not an approved test edit.",
+      "reviewRequirement": "Compare every proposed assertion delta against immutable native status/stdout/stderr and preserve unaffected malformed-input, division-by-zero, prefix, binary and budget assertions."
+    },
+    {
+      "name": "raw native: invalid:3:-Rsc",
+      "file": "tests/commands/structured-stress/raw-input.test.ts",
+      "fileSha256": "bdd6aa8c1aa330be5b161c5dc86e2ffa91a5efb1ee0e8748f2ebd131d09544bf",
+      "nativeProbeIds": [
+        "invalid:3:-Rsc"
+      ],
+      "baselineNativeExact": [
+        "invalid:3:-Rsc"
+      ],
+      "baselineRealDiagnosticDifferences": [],
+      "baselineRealAcceptanceDifferences": [],
+      "preliminaryClassification": "Canonical red despite all mapped native probes matching: stale expectation candidate under this accepted native profile, not an approved test edit.",
+      "reviewRequirement": "Compare every proposed assertion delta against immutable native status/stdout/stderr and preserve unaffected malformed-input, division-by-zero, prefix, binary and budget assertions."
+    },
+    {
+      "name": "raw native: invalid:4:-Rc",
+      "file": "tests/commands/structured-stress/raw-input.test.ts",
+      "fileSha256": "bdd6aa8c1aa330be5b161c5dc86e2ffa91a5efb1ee0e8748f2ebd131d09544bf",
+      "nativeProbeIds": [
+        "invalid:4:-Rc"
+      ],
+      "baselineNativeExact": [
+        "invalid:4:-Rc"
+      ],
+      "baselineRealDiagnosticDifferences": [],
+      "baselineRealAcceptanceDifferences": [],
+      "preliminaryClassification": "Canonical red despite all mapped native probes matching: stale expectation candidate under this accepted native profile, not an approved test edit.",
+      "reviewRequirement": "Compare every proposed assertion delta against immutable native status/stdout/stderr and preserve unaffected malformed-input, division-by-zero, prefix, binary and budget assertions."
+    },
+    {
+      "name": "raw native: invalid:4:-Rsc",
+      "file": "tests/commands/structured-stress/raw-input.test.ts",
+      "fileSha256": "bdd6aa8c1aa330be5b161c5dc86e2ffa91a5efb1ee0e8748f2ebd131d09544bf",
+      "nativeProbeIds": [
+        "invalid:4:-Rsc"
+      ],
+      "baselineNativeExact": [
+        "invalid:4:-Rsc"
+      ],
+      "baselineRealDiagnosticDifferences": [],
+      "baselineRealAcceptanceDifferences": [],
+      "preliminaryClassification": "Canonical red despite all mapped native probes matching: stale expectation candidate under this accepted native profile, not an approved test edit.",
+      "reviewRequirement": "Compare every proposed assertion delta against immutable native status/stdout/stderr and preserve unaffected malformed-input, division-by-zero, prefix, binary and budget assertions."
+    },
+    {
+      "name": "strict malformed JSON 14 across chunk boundaries",
+      "file": "tests/commands/structured-stress/safety.test.ts",
+      "fileSha256": "e50489b15c9d3fc232ef20bbd00701d507870ca5e95189caac07f156e9617611",
+      "nativeProbeIds": [
+        "malformed-14"
+      ],
+      "baselineNativeExact": [
+        "malformed-14"
+      ],
+      "baselineRealDiagnosticDifferences": [],
+      "baselineRealAcceptanceDifferences": [],
+      "preliminaryClassification": "Canonical red despite all mapped native probes matching: stale expectation candidate under this accepted native profile, not an approved test edit.",
+      "reviewRequirement": "Compare every proposed assertion delta against immutable native status/stdout/stderr and preserve unaffected malformed-input, division-by-zero, prefix, binary and budget assertions."
+    },
+    {
+      "name": "strict malformed JSON 16 across chunk boundaries",
+      "file": "tests/commands/structured-stress/safety.test.ts",
+      "fileSha256": "e50489b15c9d3fc232ef20bbd00701d507870ca5e95189caac07f156e9617611",
+      "nativeProbeIds": [
+        "malformed-16"
+      ],
+      "baselineNativeExact": [
+        "malformed-16"
+      ],
+      "baselineRealDiagnosticDifferences": [],
+      "baselineRealAcceptanceDifferences": [],
+      "preliminaryClassification": "Canonical red despite all mapped native probes matching: stale expectation candidate under this accepted native profile, not an approved test edit.",
+      "reviewRequirement": "Compare every proposed assertion delta against immutable native status/stdout/stderr and preserve unaffected malformed-input, division-by-zero, prefix, binary and budget assertions."
+    },
+    {
+      "name": "invalid UTF-8 never becomes replacement text",
+      "file": "tests/commands/structured-stress/safety.test.ts",
+      "fileSha256": "e50489b15c9d3fc232ef20bbd00701d507870ca5e95189caac07f156e9617611",
+      "nativeProbeIds": [
+        "outside-string-0",
+        "outside-string-1",
+        "outside-string-2",
+        "outside-string-3",
+        "outside-string-4"
+      ],
+      "baselineNativeExact": [],
+      "baselineRealDiagnosticDifferences": [
+        "outside-string-0",
+        "outside-string-1",
+        "outside-string-2",
+        "outside-string-3",
+        "outside-string-4"
+      ],
+      "baselineRealAcceptanceDifferences": [],
+      "preliminaryClassification": "MIXED: canonical expectation needs assertion-level native review, but real implementation differences also remain; never waive the whole test.",
+      "reviewRequirement": "Compare every proposed assertion delta against immutable native status/stdout/stderr and preserve unaffected malformed-input, division-by-zero, prefix, binary and budget assertions."
+    },
+    {
+      "name": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+      "file": "tests/commands/structured/cli.test.ts",
+      "fileSha256": "61b291a521f4059b52dd7db90fedb82674bbf0046c2fbab4371b7d9478b30e5c",
+      "nativeProbeIds": [
+        "prefix-0-0--c",
+        "prefix-0-0--sc",
+        "prefix-1-0--c",
+        "prefix-1-0--sc",
+        "prefix-2-0--c",
+        "prefix-2-0--sc",
+        "prefix-0-1--c",
+        "prefix-0-1--sc",
+        "prefix-1-1--c",
+        "prefix-1-1--sc",
+        "prefix-2-1--c",
+        "prefix-2-1--sc",
+        "prefix-0-2--c",
+        "prefix-0-2--sc",
+        "prefix-1-2--c",
+        "prefix-1-2--sc",
+        "prefix-2-2--c",
+        "prefix-2-2--sc",
+        "prefix-0-3--c",
+        "prefix-0-3--sc",
+        "prefix-1-3--c",
+        "prefix-1-3--sc",
+        "prefix-2-3--c",
+        "prefix-2-3--sc",
+        "prefix-0-4--c",
+        "prefix-0-4--sc",
+        "prefix-1-4--c",
+        "prefix-1-4--sc",
+        "prefix-2-4--c",
+        "prefix-2-4--sc",
+        "prefix-0-5--c",
+        "prefix-0-5--sc",
+        "prefix-1-5--c",
+        "prefix-1-5--sc",
+        "prefix-2-5--c",
+        "prefix-2-5--sc"
+      ],
+      "baselineNativeExact": [
+        "prefix-2-0--c",
+        "prefix-2-0--sc",
+        "prefix-2-1--c",
+        "prefix-2-1--sc",
+        "prefix-2-2--c",
+        "prefix-2-2--sc",
+        "prefix-2-3--c",
+        "prefix-2-3--sc",
+        "prefix-2-4--c",
+        "prefix-2-4--sc",
+        "prefix-2-5--c",
+        "prefix-2-5--sc"
+      ],
+      "baselineRealDiagnosticDifferences": [
+        "prefix-0-0--c",
+        "prefix-0-0--sc",
+        "prefix-1-0--c",
+        "prefix-1-0--sc",
+        "prefix-0-1--c",
+        "prefix-0-1--sc",
+        "prefix-1-1--c",
+        "prefix-1-1--sc",
+        "prefix-0-2--c",
+        "prefix-0-2--sc",
+        "prefix-1-2--c",
+        "prefix-1-2--sc",
+        "prefix-0-3--c",
+        "prefix-0-3--sc",
+        "prefix-1-3--c",
+        "prefix-1-3--sc",
+        "prefix-0-4--c",
+        "prefix-0-4--sc",
+        "prefix-1-4--c",
+        "prefix-1-4--sc",
+        "prefix-0-5--c",
+        "prefix-0-5--sc",
+        "prefix-1-5--c",
+        "prefix-1-5--sc"
+      ],
+      "baselineRealAcceptanceDifferences": [],
+      "preliminaryClassification": "MIXED: canonical expectation needs assertion-level native review, but real implementation differences also remain; never waive the whole test.",
+      "reviewRequirement": "Compare every proposed assertion delta against immutable native status/stdout/stderr and preserve unaffected malformed-input, division-by-zero, prefix, binary and budget assertions."
+    },
+    {
+      "name": "valid large decimals survive while malformed JSON and division by zero fail",
+      "file": "tests/commands/structured/resources.test.ts",
+      "fileSha256": "18301807f1031dc0fd53bf0785730dbca3aff8608d646176d0f8509506371099",
+      "nativeProbeIds": [
+        "resource-json-0",
+        "resource-json-1",
+        "resource-json-2",
+        "resource-json-3",
+        "resource-json-4",
+        "resource-json-5",
+        "resource-json-6",
+        "resource-json-7",
+        "resource-json-8",
+        "resource-json-9",
+        "resource-json-10",
+        "resource-json-11",
+        "resource-json-12",
+        "resource-json-13",
+        "resource-json-14",
+        "resource-utf8-0",
+        "resource-utf8-1",
+        "resource-utf8-2",
+        "resource-utf8-3",
+        "resource-filter-0",
+        "resource-filter-1",
+        "resource-filter-2",
+        "resource-filter-3",
+        "resource-filter-4",
+        "resource-filter-5",
+        "resource-large-0",
+        "resource-large-1",
+        "resource-large-2",
+        "resource-large-3"
+      ],
+      "baselineNativeExact": [
+        "resource-json-3",
+        "resource-json-4",
+        "resource-json-6",
+        "resource-json-11",
+        "resource-json-12",
+        "resource-json-13",
+        "resource-filter-3",
+        "resource-filter-4",
+        "resource-filter-5",
+        "resource-large-0",
+        "resource-large-1",
+        "resource-large-2",
+        "resource-large-3"
+      ],
+      "baselineRealDiagnosticDifferences": [
+        "resource-json-5",
+        "resource-json-9",
+        "resource-json-10",
+        "resource-utf8-0",
+        "resource-utf8-1",
+        "resource-utf8-2",
+        "resource-utf8-3",
+        "resource-filter-0",
+        "resource-filter-1",
+        "resource-filter-2"
+      ],
+      "baselineRealAcceptanceDifferences": [
+        "resource-json-0",
+        "resource-json-1",
+        "resource-json-2",
+        "resource-json-7",
+        "resource-json-8",
+        "resource-json-14"
+      ],
+      "preliminaryClassification": "MIXED: canonical expectation needs assertion-level native review, but real implementation differences also remain; never waive the whole test.",
+      "reviewRequirement": "Compare every proposed assertion delta against immutable native status/stdout/stderr and preserve unaffected malformed-input, division-by-zero, prefix, binary and budget assertions."
+    }
+  ]
+}

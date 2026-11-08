@@ -1,0 +1,152 @@
+{
+  "kind": "PREEXECUTION_SYNTHETIC_REPORT_REPAIR_V1",
+  "date": "2026-08-28",
+  "files": [
+    {
+      "path": "records.mjs",
+      "bytes": 8513,
+      "mode": 420,
+      "sha256": "3bb80efc9a5d150b0bff6b298f33c6dd11aed24faf7f10e23bb4329a939675dc"
+    },
+    {
+      "path": "publisher.mjs",
+      "bytes": 5349,
+      "mode": 420,
+      "sha256": "84a4c2c18ed566e1bfcc90374561550ea9473e4c873c23326018cef7befb4ab2"
+    },
+    {
+      "path": "driver.mjs",
+      "bytes": 1140,
+      "mode": 420,
+      "sha256": "28d9d90056e1a6fee90cbfc32a8da87e36741a2cfee43f95af2d38677b52875a"
+    },
+    {
+      "path": "stub.mjs",
+      "bytes": 105,
+      "mode": 420,
+      "sha256": "08ff5b459846364a3a92acd01a3cbb97c8c8b1d0e057a3693a752e5c2a1aa9eb"
+    },
+    {
+      "path": "controls.mjs",
+      "bytes": 15328,
+      "mode": 420,
+      "sha256": "70a023572f9eb05df67bd62aa260e5a0c73054bb302a221d9aea46ff4e13e838"
+    },
+    {
+      "path": "launch.mjs",
+      "bytes": 4371,
+      "mode": 420,
+      "sha256": "0bcfad2c47750a4f1f59fa754bc6398f30af35e057bda6325dadd9ddc83ea8e1"
+    },
+    {
+      "path": "make-overlay.mjs",
+      "bytes": 4898,
+      "mode": 420,
+      "sha256": "78dbcb5de5e897332363cb26106ff0279b935f5aabb6120e63c79fe70ffd0bf5"
+    },
+    {
+      "path": "OVERLAY.json",
+      "bytes": 5171,
+      "mode": 420,
+      "sha256": "9851b4be14ed36ecc253714ae08e5e61e44c893cd04bd3e58d71a0416647b26a"
+    },
+    {
+      "path": "CASES.json",
+      "bytes": 1566,
+      "mode": 420,
+      "sha256": "cc6bd4e6e47752dd78e1a2061849e09d2306e4f291e0426516a34f415ddabd33"
+    },
+    {
+      "path": "README.md",
+      "bytes": 5261,
+      "mode": 420,
+      "sha256": "60eb2c851008328d16f8f10ca0504c6d79e458ae0c5c5b0d37ff93d590bf66db"
+    },
+    {
+      "path": "../executor-v4/launch-ledger.mjs",
+      "bytes": 4771,
+      "mode": 420,
+      "sha256": "32d8cc5976165527349498de56d41c2dcec9cbcc1f855954cbf9e083c390ec09"
+    },
+    {
+      "path": "../executor-v4/supervisor.mjs",
+      "bytes": 4012,
+      "mode": 420,
+      "sha256": "42d220fd43f165c0d100a61ef55d29bddd87577f7cafe929c832f33cd80dc069"
+    },
+    {
+      "path": "../executor-v4/safety.mjs",
+      "bytes": 3107,
+      "mode": 420,
+      "sha256": "74849abb4e28b012ec8cddb729d1bae02cbde253291b3e2f2bb070457b7e66a2"
+    },
+    {
+      "path": "../executor-v3/transport.mjs",
+      "bytes": 1334,
+      "mode": 420,
+      "sha256": "70865ca016eff4b83c7d776c0cdeff6372caa9e341b3dfe6164615c1f256c11f"
+    },
+    {
+      "path": "../executor-v3/safety.mjs",
+      "bytes": 3012,
+      "mode": 420,
+      "sha256": "056f5c1c205e2c7273270a44898b05c247628413f4cd0e3182075d405b83b913"
+    },
+    {
+      "path": "../executor-v6/coordinator.mjs",
+      "bytes": 12062,
+      "mode": 420,
+      "sha256": "87a590e7233d742aa992471fe22ea70061640b9dbe05b876d68ad81895fc37a4"
+    },
+    {
+      "path": "../executor-v6/worker.mjs",
+      "bytes": 9011,
+      "mode": 420,
+      "sha256": "aa18dd6294fab08bd1f74132f0ca292f0dc0227138cf5956f25ba8c4084e568f"
+    },
+    {
+      "path": "../executor-v6/synthetic-worker.mjs",
+      "bytes": 5033,
+      "mode": 420,
+      "sha256": "4f2f09d61ff806503b12d2e8345bc60e9901ce637ea937d37d9401cbd70be175"
+    },
+    {
+      "path": "../executor-v6/loader.mjs",
+      "bytes": 5431,
+      "mode": 420,
+      "sha256": "0878dfd6ec02b7c232495e44e4e702216586ce0b5e7eb42aad73abb817683a97"
+    },
+    {
+      "path": "../executor-v3/offline.mjs",
+      "bytes": 8590,
+      "mode": 420,
+      "sha256": "a0cea0eb858b4d545fa124a1bae063e33ca170a87f91fcedbe6d950422584cd3"
+    },
+    {
+      "path": "../executor-v6/runs/admission-v6-01/RESULT.json",
+      "bytes": 531954,
+      "mode": 420,
+      "sha256": "902e4643e0e4865daad215c7a7c0cd1285218a8714904169ccf70e18d3467cb2"
+    },
+    {
+      "path": "../executor-v6/runs/grant-admission-v6-01/LAUNCH-RECEIPT.json",
+      "bytes": 1271,
+      "mode": 420,
+      "sha256": "1d726f323e7aaa7bed3df018ba9920392391f4e378b5aa353731491c30e288e2"
+    }
+  ],
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "mode": 493,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "rootAuthorization": "Source/artifact-only diagnosis plus versioned report repair; synthetic controls only; no engine execution or builtin policy implementation",
+  "controlFamilies": 16,
+  "plannedStubChildren": 4,
+  "controlsDriverChildren": 1,
+  "attempts": 1,
+  "originalFilesChanged": false,
+  "realAdmissionAuthorized": false,
+  "semanticCohortAuthorized": false
+}

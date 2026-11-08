@@ -1,0 +1,6 @@
+{
+  "id": "D16",
+  "name": "PC02 rejects same-shaped handler rejection",
+  "classification": "development-only-synthetic-control",
+  "status": "PASS"
+}

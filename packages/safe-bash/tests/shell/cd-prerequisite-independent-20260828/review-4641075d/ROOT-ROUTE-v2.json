@@ -1,0 +1,17 @@
+{
+  "authorization": "ROOT_EXECUTION_AUTHORIZED",
+  "reference": "ROOT user route of4641075df5355a91c83bf5b2cc3a88dfaf1f5153 evidence8c0c17f; actual review authorized after candidate-binding preseal3d8174864eeed5c5cda4d6f1db22c2b7673b3639",
+  "candidateCommit": "4641075df5355a91c83bf5b2cc3a88dfaf1f5153",
+  "bindingSha256": "7975223d54dd77a7e22ad5aaa4b4730c8453fc70c4e78b20c7a34ded94db8a98",
+  "modes": [
+    "source",
+    "installed",
+    "moved"
+  ],
+  "outputDirectory": "/Users/kjopek/Workspace/safe-bash/tests/shell/cd-prerequisite-independent-20260828/review-4641075d/attempt-02",
+  "authorizedWriteRoot": "/Users/kjopek/Workspace/safe-bash/tests/shell/cd-prerequisite-independent-20260828/review-4641075d/attempt-02",
+  "tools": {
+    "manifestPath": "/Users/kjopek/Workspace/safe-bash/tests/shell/cd-prerequisite-independent-20260828/review-4641075d/TOOLS.json",
+    "manifestSha256": "edf0654923642f065f07dfc43fbbedab28343edf32bbda889969f889b9561d35"
+  }
+}

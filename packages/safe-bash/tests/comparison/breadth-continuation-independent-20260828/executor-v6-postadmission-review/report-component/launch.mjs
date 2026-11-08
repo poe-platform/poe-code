@@ -1,0 +1,24 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+import { own, inherited, url, authenticate, writeJson, absent } from './auth.mjs';
+
+const before = authenticate(true);
+const run = path.join(own, 'runs', 'independent-v1-01');
+fs.mkdirSync(path.join(own, 'runs'), { recursive: true });
+fs.mkdirSync(run);
+writeJson(path.join(run, 'START.json'), { before, date: '2026-08-28', scope: 'BODY_DATA_SYNTHETIC_COMPONENT_ONLY' });
+const { supervise } = await import(url(path.join(inherited, 'supervisor.mjs')));
+let handle;
+const receipt = await supervise(process.execPath, ['--unhandled-rejections=strict', '--max-old-space-size=128', path.join(own, 'verify.mjs'), run], run, { deadline: 10000, onSpawn(child) { handle = child; } });
+const after = authenticate(true);
+assert.ok(receipt.exit && receipt.close && receipt.reaped && absent(handle.pid) && absent(-handle.pid), 'driver exact closure');
+await new Promise(resolve => setImmediate(resolve));
+await new Promise(resolve => setImmediate(resolve));
+const activeResources = process.getActiveResourcesInfo().filter(name => !['PipeWrap', 'TTYWrap'].includes(name));
+assert.ok(!activeResources.some(name => /Timeout|Process|Immediate/.test(name)));
+writeJson(path.join(run, 'DRIVER.json'), { receipt, before, after, exactHandlePid: handle.pid, pidAbsent: absent(handle.pid), groupAbsent: absent(-handle.pid), activeResources });
+const evidencePath = path.join(run, 'EVIDENCE.json');
+const evidence = fs.existsSync(evidencePath) ? JSON.parse(fs.readFileSync(evidencePath)) : null;
+console.log(JSON.stringify({ pass: evidence?.pass ?? 0, fail: evidence?.fail ?? null, unrun: evidence?.unrun ?? 20, driverExit: receipt.exit, childCountIncludingDriver: (evidence?.children?.length ?? 0) + 1, driverReaped: receipt.reaped, authenticated: after.passed }));
+if (!evidence || evidence.fail || evidence.unrun || !receipt.natural) process.exitCode = 1;

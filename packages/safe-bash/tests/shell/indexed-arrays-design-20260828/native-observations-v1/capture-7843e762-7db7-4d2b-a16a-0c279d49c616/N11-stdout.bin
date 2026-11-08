@@ -1,0 +1,3 @@
+assignment=1 fresh=unset
+declare -ar a=([0]="old")
+declare -- side="before"

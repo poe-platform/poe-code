@@ -1,0 +1,16 @@
+{
+  "sourceCommit": "7196bace8ea2c141d5ed1020fef5bf721c321ace",
+  "computedTree": "bf079ada185a79aec864b068f3738ddc5520822e",
+  "sourceSha256": "12a5806df9ea13eb66e99bec1f0c0c3198bfeb76da012559d943a4d874070fc4",
+  "inputs": 293,
+  "focused": 36,
+  "retained": 636,
+  "main": 672,
+  "types": 6,
+  "negativeDiagnostics": 24,
+  "loadedMutants": 7,
+  "restores": 7,
+  "bindingRefusals": 2,
+  "productExecutions": 0,
+  "finished": "2026-08-29T08:07:07.457Z"
+}

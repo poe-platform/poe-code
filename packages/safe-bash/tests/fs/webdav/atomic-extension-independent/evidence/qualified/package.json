@@ -1,0 +1,10 @@
+{
+  "consumerPackage": {
+    "name": "atomic-extension-independent-consumer",
+    "private": true,
+    "type": "module"
+  },
+  "packageSha256": "78461169565ceb3da674d881bf983b7a50832cd57fb7ff1bbaf68db43c46b937",
+  "extractedManifestSha256": "c9b768b3ec77ac19262a36ce46f331618916fd7746492d83f0bf6e1212999360",
+  "selfReferenceDefeated": true
+}

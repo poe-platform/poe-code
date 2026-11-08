@@ -1,0 +1,13 @@
+{
+  "id": "F20",
+  "expected": "Actual auth-reference reader composes in body with synthetic zero-commit references; hash/reference tamper refuses without authority calls.",
+  "pass": true,
+  "started": "2026-08-28T15:01:02.639Z",
+  "finished": "2026-08-28T15:01:02.643Z",
+  "detail": {
+    "authReaderComposedInBody": true,
+    "tamperRefused": true,
+    "authorityNeverCalled": true,
+    "unresolvedZeroCommits": true
+  }
+}

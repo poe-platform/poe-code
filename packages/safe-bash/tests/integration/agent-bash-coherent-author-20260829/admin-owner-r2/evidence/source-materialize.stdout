@@ -1,0 +1,3 @@
+Success. Updated the following files:
+A tests/integration/agent-bash-coherent-author-20260829/admin-owner-r2/publish.mjs
+{"role":"source-edit-apply-patch","pid":22007,"startUTC":"2026-08-29T15:34:44.549Z","startObserved":true,"exitObserved":true,"closeObserved":true,"exitCode":0}

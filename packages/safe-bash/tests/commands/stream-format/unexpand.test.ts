@@ -1,0 +1,85 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { shell, type NativeCase } from "./helpers.js";
+import { createStreamFormatCommands } from "../../../src/commands/stream-format/index.js";
+import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
+import { toByteSource } from "../../../src/contracts/index.js";
+
+test("unexpand preserves retained sink chunks across repeated scratch-buffer flushes", async () => {
+  const lines = Array.from({ length: 5000 }, (_, i) => `record-${i}\n`);
+  const chunks: Uint8Array[] = [];
+  const command = createStreamFormatCommands().find(candidate => candidate.name === "unexpand")!;
+  const result = await command.execute({
+    command: "unexpand", args: [], cwd: "/", env: { LC_ALL: "C" }, fs: new MemoryFileSystem(),
+    signal: new AbortController().signal,
+    stdin: toByteSource(lines.map(line => `        ${line}`).join("")),
+    stdout: { async write(chunk) { chunks.push(chunk); } },
+    stderr: { async write(chunk) { assert.fail(new TextDecoder().decode(chunk)); } },
+  });
+  assert.equal(result.exitCode, 0);
+  assert.ok(chunks.length > 1);
+  assert.ok(Buffer.concat(chunks).equals(Buffer.from(lines.map(line => `\t${line}`).join(""))), "retained unexpand output must match every converted byte");
+});
+
+test("unexpand rejects the undocumented -F option and supports clustered numeric, ordered -t/-N, and +0//0/+/N tab specs", async context => {
+  const instance = shell();
+  context.after(() => instance.dispose());
+  for (const bad of ["unexpand -F", "unexpand -F4", "unexpand -t 8 -4", "unexpand -t /4,8"]) {
+    const result = await instance.exec(bad, { stdin: "    a   b\n" });
+    assert.equal(result.exitCode, 1, bad);
+    assert.equal(result.stdout, "", bad);
+  }
+  for (const [cmd, input, expected] of [
+    ["unexpand -t 4 -8", "    a   b       c\n", "\ta\tb       c\n"],
+    ["unexpand -a4", "    a   b       c\n", "\ta\tb\t\tc\n"],
+    ["unexpand -4a", "    a   b       c\n", "\ta\tb\t\tc\n"],
+    ["unexpand -4,8a", "    a   b       c\n", "\ta\tb       c\n"],
+    ["unexpand -t 4,/0", "    a   b       c\n", "\ta\tb\t\tc\n"],
+    ["unexpand -t 4,+0", "    a   b       c\n", "\ta\tb\t\tc\n"],
+    ["unexpand -t /0", "    a   b       c\n", "    a\tb\tc\n"],
+    ["unexpand -t +0", "    a   b       c\n", "    a\tb\tc\n"],
+    ["unexpand -t +,4", "    a   b       c\n", "\ta\tb\t\tc\n"],
+    ["unexpand -t /,4", "    a   b       c\n", "\ta\tb\t\tc\n"],
+    ["unexpand -t +/4", "    a   b       c\n", "\ta\tb\t\tc\n"],
+  ] as const) {
+    const result = await instance.exec(cmd, { stdin: input });
+    assert.equal(result.exitCode, 0, `${cmd}: ${result.stderr}`);
+    assert.equal(result.stdout, expected, cmd);
+  }
+});
+
+const blanks = "        a        b\n1234567  X\n1234567 X\n1234567 \tX\n\t  \t\n";
+export const unexpandCases: readonly NativeCase[] = [
+  { args: [], input: blanks }, { args: ["-a"], input: blanks },
+  { args: ["-t4"], input: blanks }, { args: ["--first-only", "-a", "-t4"], input: blanks },
+  { args: ["-t", "4,8"], input: "            X\n\t\t\tX\n" },
+  { args: ["-t", "4,8,+3"], input: "                 X\n1234567  X" },
+  { args: ["--tabs=4,8,/3"], input: "                 X\n1234567  X" },
+  { args: ["-a"], input: "ab\b       x\n\b        y\n12345678\b X\n" },
+  { args: [], input: "        " }, { args: [], input: "       " }, { args: [], input: "" },
+  { args: ["-t1"], input: " a b  c\n" }, { args: ["-t2"], input: " a b  c\n" },
+  { args: ["-4"], input: blanks }, { args: ["-4,8"], input: blanks },
+  { args: ["-a"], input: Buffer.from([255, 32, 32, 32, 32, 32, 32, 32, 0, 10]) },
+  { args: ["-a"], input: "é      🙂        x\n", locale: "en_US.UTF-8" },
+  { args: ["-t0"], failure: true }, { args: ["-t4,3"], failure: true },
+  { args: ["-t4,4"], failure: true }, { args: ["-t4,+2,/3"], failure: true },
+  { args: ["-txyz"], failure: true }, { args: ["--bad"], failure: true },
+];
+
+test("unexpand continuous file columns and repeated stdin", async () => {
+  const instance = shell();
+  const result = await instance.exec("printf '1234' > /a; printf '    x' > /b; unexpand -a /a /missing /b - -", { stdin: "        y\n" });
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stdout, "1234\tx\t y\n");
+  assert.match(result.stderr, /missing/);
+  await instance.dispose();
+});
+
+test("unexpand and existing expand compose through actual pipes", async () => {
+  const instance = shell();
+  const input = "    a       b\n        c\n";
+  const result = await instance.exec("unexpand -t4 | expand -t4", { stdin: input });
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stdout, input);
+  await instance.dispose();
+});

@@ -1,0 +1,9 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "../../../src", "outDir": "./.build",
+    "declaration": true, "sourceMap": true
+  },
+  "include": ["../../../src/commands/du/**/*.ts", "../../../src/shell/**/*.ts", "../../../src/fs/memory/**/*.ts"],
+  "exclude": []
+}

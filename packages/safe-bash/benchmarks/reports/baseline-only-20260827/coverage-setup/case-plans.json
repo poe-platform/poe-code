@@ -1,0 +1,4787 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-08-27T03:37:47.994Z",
+  "executionAuthorized": false,
+  "casesExecuted": 0,
+  "scope": "54 optional-inclusive unmeasured names: historical current-default 50 plus js-exec/python/python3/node. node positive plan is blocked by pinned stub. No existing recipe/report modified.",
+  "expectations": "Proposed contracts and static-source-informed expectations, not recorded passes or native captures. Freeze exact input bytes and independently validate oracle/launcher before running. Preserve all failures and unavailable setup without denominator deletion.",
+  "sharedFixtureRules": [
+    "Fresh memory filesystem and single exec for stateful workflows.",
+    "Create /fixture and /fixture/tmp outside asserted setup; fixture files UTF-8 unless explicit encoding; repeat-utf8 descriptors materialize exact repeated bytes.",
+    "Default files 0644, directories 0755, synthetic fixed mtime 2020-01-01T00:00:00Z; no SGID tests/retries.",
+    "Snapshot only asserted /fixture namespace, retain built-in /bin and /proc setup separately.",
+    "Default empty stdin is explicit; no probing or consumption to infer provenance.",
+    "No host native process in product path. All future native files confined to unique executor-owned /tmp scratch.",
+    "Do not collapse dependency failure into target failure; keep blocked targets counted as unmeasured until independently exercised.",
+    "Freeze every raw stdout/stderr byte and full VFS effects before choosing any comparison projection."
+  ],
+  "recommendedBatches": [
+    {
+      "rank": 1,
+      "label": "Stream and record transforms",
+      "names": [
+        "column",
+        "egrep",
+        "expand",
+        "expr",
+        "fgrep",
+        "fold",
+        "nl",
+        "rev",
+        "seq",
+        "strings",
+        "tac",
+        "unexpand",
+        "split"
+      ],
+      "reason": "Small byte fixtures, common dependency-free pipelines; engineering judgment, not usage telemetry."
+    },
+    {
+      "rank": 2,
+      "label": "Filesystem and virtual environment",
+      "names": [
+        "date",
+        "du",
+        "file",
+        "printenv",
+        "tree",
+        "which",
+        "hostname",
+        "whoami",
+        "clear"
+      ],
+      "reason": "Expose namespace/stat/identity profile differences before heavier runtimes; synthetic identity and du profiles separately unscored."
+    },
+    {
+      "rank": 3,
+      "label": "Stateful shell and orchestration",
+      "names": [
+        "alias",
+        "builtin",
+        "compgen",
+        "complete",
+        "compopt",
+        "declare",
+        "dirs",
+        "exec",
+        "getopts",
+        "hash",
+        "history",
+        "let",
+        "mapfile",
+        "popd",
+        "pushd",
+        "readarray",
+        "shopt",
+        "sleep",
+        "timeout",
+        "typeset",
+        "unalias",
+        "wait"
+      ],
+      "reason": "Run prerequisite controls first; aliases, arrays, stack, exec and wait need actual state/dispatch evidence, not classifier labels."
+    },
+    {
+      "rank": 4,
+      "label": "Structured data and optional runtimes",
+      "names": [
+        "html-to-markdown",
+        "sqlite3",
+        "xan",
+        "yq",
+        "js-exec",
+        "python",
+        "python3"
+      ],
+      "reason": "Resolve local worker/assets setup first; independent fresh workers, normal exit and bounded memory, no downloads."
+    },
+    {
+      "rank": 5,
+      "label": "Attribution and informational edge cases",
+      "names": [
+        "help",
+        "time",
+        "node"
+      ],
+      "reason": "time keyword/registry distinction; help has information semantics; node stub cannot earn a positive runtime score."
+    }
+  ],
+  "cases": [
+    {
+      "id": "planned-column",
+      "name": "column",
+      "batch": 1,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "column -t -s ',' -o '|' table.csv",
+      "primaryArgv": [
+        "column",
+        "-t",
+        "-s",
+        ",",
+        "-o",
+        "|",
+        "table.csv"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {
+          "table.csv": "a,b\nx,y\n"
+        },
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "a|b\nx|y\n"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "unchanged": true
+        },
+        "shellState": "No persistent shell-state assertion; fresh single exec for each plan"
+      },
+      "oracle": "Explicit util-linux column profile needed; existing harness has none. Do not substitute BSD flags silently.",
+      "setup": "base-node-memory",
+      "dependencies": [],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Require target dispatch and exact stdout/stderr/status plus VFS/state effects; prerequisite failure is dependency-blocked, not a target pass.",
+      "baselineProvenance": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 4375,
+          "lazyImport": "./chunks/column-LKMDIDCH.js",
+          "export": "column",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/column-LKMDIDCH.js",
+              "bytes": 333,
+              "sha256": "d3a018a4240bebc842f14a51fc692afca490a8b218a0326180a33daab84e0d9d",
+              "exported": "column"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-HW6ZCMM5.js",
+              "bytes": 4211,
+              "sha256": "04a28a5560fb94b4d2794124d0096b20919d5772de33424c47d56e396f87d3e2",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "9a208f4aebbef66ef8333c02eb1688cc41de6547840804a4099b86ee9475e200"
+    },
+    {
+      "id": "planned-egrep",
+      "name": "egrep",
+      "batch": 1,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "egrep '^(red|blue)$' colors.txt",
+      "primaryArgv": [
+        "egrep",
+        "^(red|blue)$",
+        "colors.txt"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {
+          "colors.txt": "red\ngreen\nblue\n"
+        },
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "red\nblue\n"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "unchanged": true
+        },
+        "shellState": "No persistent shell-state assertion; fresh single exec for each plan"
+      },
+      "oracle": "Validate native egrep launcher and deprecation stderr; keep GNU/BSD profiles separate. grep -E may be semantic reference, not product replacement.",
+      "setup": "base-node-memory",
+      "dependencies": [],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Require target dispatch and exact stdout/stderr/status plus VFS/state effects; prerequisite failure is dependency-blocked, not a target pass.",
+      "baselineProvenance": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 2989,
+          "lazyImport": "./chunks/grep-5UPEO42U.js",
+          "export": "egrepCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/grep-5UPEO42U.js",
+              "bytes": 546,
+              "sha256": "934d2c479122e3b45d8a1c760f6403372f404f0df639d0b3e5e208923f091512",
+              "exported": "egrepCommand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-XMMV24SP.js",
+              "bytes": 12433,
+              "sha256": "127d4ee1ff683b8afcbbe8e50c794bd03183dbbce33123e6251922b33af188bc",
+              "exported": "c"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "a7837352257d8e2a52b3f97bef919fd6ed0b1bf31012ff10f6e6da8c77e8891f"
+    },
+    {
+      "id": "planned-expand",
+      "name": "expand",
+      "batch": 1,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "expand -t 4 tab.txt",
+      "primaryArgv": [
+        "expand",
+        "-t",
+        "4",
+        "tab.txt"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {
+          "tab.txt": "a\tb\n"
+        },
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "a   b\n"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "unchanged": true
+        },
+        "shellState": "No persistent shell-state assertion; fresh single exec for each plan"
+      },
+      "oracle": "Capture GNU Bash 5.3 / explicitly validated utility dialect later; these expected bytes are planned, NOT native observations.",
+      "setup": "base-node-memory",
+      "dependencies": [],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Require target dispatch and exact stdout/stderr/status plus VFS/state effects; prerequisite failure is dependency-blocked, not a target pass.",
+      "baselineProvenance": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 4037,
+          "lazyImport": "./chunks/expand-2BPPGGSM.js",
+          "export": "expand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/expand-2BPPGGSM.js",
+              "bytes": 305,
+              "sha256": "f8dd72ea5d3bafe166ab577008f593ed7e60ae41a2df16ac19c4b9d200d40cbd",
+              "exported": "expand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-PPDMRIJ7.js",
+              "bytes": 3508,
+              "sha256": "6d78c8d5c2015351251c5449fe46794540102fa3709fb8fb0a54f7f76dfa6edb",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "44f1d312637eee5f873e86064900084001c3e4557954d1c5e04292405f937fb2"
+    },
+    {
+      "id": "planned-expr",
+      "name": "expr",
+      "batch": 1,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "expr 6 '*' 7",
+      "primaryArgv": [
+        "expr",
+        "6",
+        "*",
+        "7"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {},
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "42\n"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "unchanged": true
+        },
+        "shellState": "No persistent shell-state assertion; fresh single exec for each plan"
+      },
+      "oracle": "Capture GNU Bash 5.3 / explicitly validated utility dialect later; these expected bytes are planned, NOT native observations.",
+      "setup": "base-node-memory",
+      "dependencies": [],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Require target dispatch and exact stdout/stderr/status plus VFS/state effects; prerequisite failure is dependency-blocked, not a target pass.",
+      "baselineProvenance": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 6683,
+          "lazyImport": "./chunks/expr-UMT2OHZ7.js",
+          "export": "exprCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/expr-UMT2OHZ7.js",
+              "bytes": 394,
+              "sha256": "0f985bcf8fd630ad94642a2039f0dd31148fe52920545507e9a1eeba83fe6846",
+              "exported": "exprCommand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-TVJ6JVK4.js",
+              "bytes": 2732,
+              "sha256": "30def56adb6c145c74cfef3b29a7e923b8372585b7c01da7d61f79554269da86",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "6afd475734d329f72d416e29a08bd2e1711b4a01fd0867f57c2d2b907ac12712"
+    },
+    {
+      "id": "planned-fgrep",
+      "name": "fgrep",
+      "batch": 1,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "fgrep 'a.b' data.txt",
+      "primaryArgv": [
+        "fgrep",
+        "a.b",
+        "data.txt"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {
+          "data.txt": "a.b\naxb\n"
+        },
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "a.b\n"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "unchanged": true
+        },
+        "shellState": "No persistent shell-state assertion; fresh single exec for each plan"
+      },
+      "oracle": "Native literal fgrep launcher must be validated independently of grep -F; retain deprecation diagnostics.",
+      "setup": "base-node-memory",
+      "dependencies": [],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Require target dispatch and exact stdout/stderr/status plus VFS/state effects; prerequisite failure is dependency-blocked, not a target pass.",
+      "baselineProvenance": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 2903,
+          "lazyImport": "./chunks/grep-5UPEO42U.js",
+          "export": "fgrepCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/grep-5UPEO42U.js",
+              "bytes": 546,
+              "sha256": "934d2c479122e3b45d8a1c760f6403372f404f0df639d0b3e5e208923f091512",
+              "exported": "fgrepCommand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-XMMV24SP.js",
+              "bytes": 12433,
+              "sha256": "127d4ee1ff683b8afcbbe8e50c794bd03183dbbce33123e6251922b33af188bc",
+              "exported": "b"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "7da252e5d14fd0a5d5b2e6edcc8d7f4a1b34cc00555a13dbb4ffb47a1cac1aae"
+    },
+    {
+      "id": "planned-fold",
+      "name": "fold",
+      "batch": 1,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "fold -w 4 text.txt",
+      "primaryArgv": [
+        "fold",
+        "-w",
+        "4",
+        "text.txt"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {
+          "text.txt": "abcdefgh\n"
+        },
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "abcd\nefgh\n"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "unchanged": true
+        },
+        "shellState": "No persistent shell-state assertion; fresh single exec for each plan"
+      },
+      "oracle": "Capture GNU Bash 5.3 / explicitly validated utility dialect later; these expected bytes are planned, NOT native observations.",
+      "setup": "base-node-memory",
+      "dependencies": [],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Require target dispatch and exact stdout/stderr/status plus VFS/state effects; prerequisite failure is dependency-blocked, not a target pass.",
+      "baselineProvenance": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 3960,
+          "lazyImport": "./chunks/fold-QJBPHRFJ.js",
+          "export": "fold",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/fold-QJBPHRFJ.js",
+              "bytes": 247,
+              "sha256": "7ccdd9e8012939954fe09068c1dbbe12cb89f9e159594d6d7069aff3daabb5e3",
+              "exported": "fold"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-Y62SXZKJ.js",
+              "bytes": 3171,
+              "sha256": "b73528f7915999847b76057de5d86c863c33a27374605380907e7c94da968883",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "4b6aa8aa3dab60dd9402e59a4fd3cabffe9dc6b0728ac56a9f9ed4db93055a6c"
+    },
+    {
+      "id": "planned-nl",
+      "name": "nl",
+      "batch": 1,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "nl -ba -w1 -s ':' lines.txt",
+      "primaryArgv": [
+        "nl",
+        "-ba",
+        "-w1",
+        "-s",
+        ":",
+        "lines.txt"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {
+          "lines.txt": "red\n\nblue\n"
+        },
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "1:red\n2:\n3:blue\n"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "unchanged": true
+        },
+        "shellState": "No persistent shell-state assertion; fresh single exec for each plan"
+      },
+      "oracle": "Capture GNU Bash 5.3 / explicitly validated utility dialect later; these expected bytes are planned, NOT native observations.",
+      "setup": "base-node-memory",
+      "dependencies": [],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Require target dispatch and exact stdout/stderr/status plus VFS/state effects; prerequisite failure is dependency-blocked, not a target pass.",
+      "baselineProvenance": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 3889,
+          "lazyImport": "./chunks/nl-RFXH2GNX.js",
+          "export": "nl",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/nl-RFXH2GNX.js",
+              "bytes": 273,
+              "sha256": "cd6f1f37329d585d7b8934af1a3f95b02f20b3251bd5b2d091c6def32b33165b",
+              "exported": "nl"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-5VCAQBXL.js",
+              "bytes": 5028,
+              "sha256": "5df30c864c46fc2d740ac4351fdc536016576e97a0485fe0b5ed107e6376a910",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "a8bd73f581657636c82c980381a4793a6867dd84695cf9e9d250617d8b4ce6e5"
+    },
+    {
+      "id": "planned-rev",
+      "name": "rev",
+      "batch": 1,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "rev words.txt",
+      "primaryArgv": [
+        "rev",
+        "words.txt"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {
+          "words.txt": "abc\n12\n"
+        },
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "cba\n21\n"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "unchanged": true
+        },
+        "shellState": "No persistent shell-state assertion; fresh single exec for each plan"
+      },
+      "oracle": "Native rev not supplied by existing harness; validate available explicit oracle before native score.",
+      "setup": "base-node-memory",
+      "dependencies": [],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Require target dispatch and exact stdout/stderr/status plus VFS/state effects; prerequisite failure is dependency-blocked, not a target pass.",
+      "baselineProvenance": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 3815,
+          "lazyImport": "./chunks/rev-EPOS3MFH.js",
+          "export": "rev",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/rev-EPOS3MFH.js",
+              "bytes": 246,
+              "sha256": "41542d88626b49e6b3fc3fa2b4d18e2c66902994aa2f50e7f5fee51c33d16eda",
+              "exported": "rev"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-LVDUF74R.js",
+              "bytes": 1285,
+              "sha256": "33da8ba3bce20fb3845de011bd05a1183cd42f7fe74434fd8ff9e21c1fb7333c",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "233fe7de8c6d5d68e253ed11e64f83ddfb84aa64b5df13738ba591ae1de081b2"
+    },
+    {
+      "id": "planned-seq",
+      "name": "seq",
+      "batch": 1,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "seq 2 2 6",
+      "primaryArgv": [
+        "seq",
+        "2",
+        "2",
+        "6"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {},
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "2\n4\n6\n"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "unchanged": true
+        },
+        "shellState": "No persistent shell-state assertion; fresh single exec for each plan"
+      },
+      "oracle": "Capture GNU Bash 5.3 / explicitly validated utility dialect later; these expected bytes are planned, NOT native observations.",
+      "setup": "base-node-memory",
+      "dependencies": [],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Require target dispatch and exact stdout/stderr/status plus VFS/state effects; prerequisite failure is dependency-blocked, not a target pass.",
+      "baselineProvenance": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 6602,
+          "lazyImport": "./chunks/seq-5R2GKXC6.js",
+          "export": "seqCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/seq-5R2GKXC6.js",
+              "bytes": 281,
+              "sha256": "08c21d83e124e9d3c5bf3234bdbd757e278509bfa69c443ced49f3cb34987c5f",
+              "exported": "seqCommand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-N4TGZ6H7.js",
+              "bytes": 2380,
+              "sha256": "6e09160aef3dec6622eb11bb3c9d97596c3c712fcb55e7728ba8e546aaeb4974",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "7bc5e59e1fa65951b8d16ab8aa63f2769d7576d5111880c7581d0bd031120d0f"
+    },
+    {
+      "id": "planned-strings",
+      "name": "strings",
+      "batch": 1,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "strings -n 4 blob.bin",
+      "primaryArgv": [
+        "strings",
+        "-n",
+        "4",
+        "blob.bin"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {
+          "blob.bin": {
+            "encoding": "hex",
+            "text": "00616c7068610001627261766f00"
+          }
+        },
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "alpha\nbravo\n"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "unchanged": true
+        },
+        "shellState": "No persistent shell-state assertion; fresh single exec for each plan"
+      },
+      "oracle": "No strings binary in existing coreutils directory; explicit strings dialect/setup gate first. Bytes include NUL and control separator.",
+      "setup": "base-node-memory",
+      "dependencies": [],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Require target dispatch and exact stdout/stderr/status plus VFS/state effects; prerequisite failure is dependency-blocked, not a target pass.",
+      "baselineProvenance": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 4209,
+          "lazyImport": "./chunks/strings-WTD7Q2EF.js",
+          "export": "strings",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/strings-WTD7Q2EF.js",
+              "bytes": 278,
+              "sha256": "094f0377e56e2f3508a5645a609a4098f7aabaa8647001bd34dcafc855c2a560",
+              "exported": "strings"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-AFFAMSJT.js",
+              "bytes": 4941,
+              "sha256": "9522fc91e7552ed07df6d515ce0e452d6330a7db9e4e7264da4f4fbf3996e0e5",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "2201a3b55b3798fa84d28068f3e794f1abf94884dcd19ff01626fcb772e977f9"
+    },
+    {
+      "id": "planned-tac",
+      "name": "tac",
+      "batch": 1,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "tac lines.txt",
+      "primaryArgv": [
+        "tac",
+        "lines.txt"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {
+          "lines.txt": "first\nsecond\nthird\n"
+        },
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "third\nsecond\nfirst\n"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "unchanged": true
+        },
+        "shellState": "No persistent shell-state assertion; fresh single exec for each plan"
+      },
+      "oracle": "Capture GNU Bash 5.3 / explicitly validated utility dialect later; these expected bytes are planned, NOT native observations.",
+      "setup": "base-node-memory",
+      "dependencies": [],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Require target dispatch and exact stdout/stderr/status plus VFS/state effects; prerequisite failure is dependency-blocked, not a target pass.",
+      "baselineProvenance": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 7422,
+          "lazyImport": "./chunks/tac-YXC4HBTR.js",
+          "export": "tac",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/tac-YXC4HBTR.js",
+              "bytes": 218,
+              "sha256": "db0e560b8c81614acdc720b9c1ac88f66c81ea6a8d47434192d0ff96c64112b0",
+              "exported": "tac"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-LI6PTSPD.js",
+              "bytes": 681,
+              "sha256": "4c895df118afe1c48d3ab85b6d388ecaaaf673a344b7afe39742144cc514e978",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "a33d07bb09ca7baac336502e0ae47e766c4ca670f6dbdabeb402e006bbcbe169"
+    },
+    {
+      "id": "planned-unexpand",
+      "name": "unexpand",
+      "batch": 1,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "unexpand -a -t 4 spaces.txt",
+      "primaryArgv": [
+        "unexpand",
+        "-a",
+        "-t",
+        "4",
+        "spaces.txt"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {
+          "spaces.txt": "a   b\n"
+        },
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "a\tb\n"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "unchanged": true
+        },
+        "shellState": "No persistent shell-state assertion; fresh single exec for each plan"
+      },
+      "oracle": "Capture GNU Bash 5.3 / explicitly validated utility dialect later; these expected bytes are planned, NOT native observations.",
+      "setup": "base-node-memory",
+      "dependencies": [],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Require target dispatch and exact stdout/stderr/status plus VFS/state effects; prerequisite failure is dependency-blocked, not a target pass.",
+      "baselineProvenance": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 4120,
+          "lazyImport": "./chunks/unexpand-YD5BWFH4.js",
+          "export": "unexpand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/unexpand-YD5BWFH4.js",
+              "bytes": 251,
+              "sha256": "026129f24c5b906ca2dd5fdd4ddb16a7772385b8d4f9e1369e155049399c5bfa",
+              "exported": "unexpand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-2VWG4LDT.js",
+              "bytes": 3053,
+              "sha256": "344abd325f48da08d5b01b68333ce2043972a51401da37c319cb0f719ac21098",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "82caf04667b4f084110b13f44e706f988c5f9ebb03dd4931ca2888fd6506f97b"
+    },
+    {
+      "id": "planned-split",
+      "name": "split",
+      "batch": 1,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "split -l 2 lines.txt part-",
+      "primaryArgv": [
+        "split",
+        "-l",
+        "2",
+        "lines.txt",
+        "part-"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {
+          "lines.txt": "a\nb\nc\nd\ne\n"
+        },
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "preserved": [
+            "lines.txt"
+          ],
+          "createdFiles": {
+            "part-aa": "a\nb\n",
+            "part-ab": "c\nd\n",
+            "part-ac": "e\n"
+          },
+          "noOtherChanges": true
+        },
+        "shellState": "No persistent shell-state assertion; fresh single exec for each plan"
+      },
+      "oracle": "Capture GNU Bash 5.3 / explicitly validated utility dialect later; these expected bytes are planned, NOT native observations.",
+      "setup": "base-node-memory",
+      "dependencies": [],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Require target dispatch and exact stdout/stderr/status plus VFS/state effects; prerequisite failure is dependency-blocked, not a target pass.",
+      "baselineProvenance": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 4295,
+          "lazyImport": "./chunks/split-2SD6EP72.js",
+          "export": "split",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/split-2SD6EP72.js",
+              "bytes": 416,
+              "sha256": "a3cf1b8565668b53aafc8697cd64b9ab7f09d83f1667a0c908a825e83832fa0f",
+              "exported": "split"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-XPDOK3XY.js",
+              "bytes": 9314,
+              "sha256": "cd0ed810fed5c69b9e9b2cafa570a135ea0cf2010353f4130b16dd1112e1d814",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "a7c3b001c4cf1a95ec7a3660c1a3817fe88568fa31a3a1fab45169b555cd607b"
+    },
+    {
+      "id": "planned-date",
+      "name": "date",
+      "batch": 2,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "date -u -d '@0' '+%Y-%m-%dT%H:%M:%SZ'",
+      "primaryArgv": [
+        "date",
+        "-u",
+        "-d",
+        "@0",
+        "+%Y-%m-%dT%H:%M:%SZ"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {},
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "1970-01-01T00:00:00Z\n"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "unchanged": true
+        },
+        "shellState": "No persistent shell-state assertion; fresh single exec for each plan"
+      },
+      "oracle": "Capture GNU Bash 5.3 / explicitly validated utility dialect later; these expected bytes are planned, NOT native observations.",
+      "setup": "base-node-memory",
+      "dependencies": [],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Explicit epoch and UTC avoid real-clock readings; GNU date profile, never BSD -d assumptions.",
+      "acceptance": "Require target dispatch and exact stdout/stderr/status plus VFS/state effects; prerequisite failure is dependency-blocked, not a target pass.",
+      "baselineProvenance": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 6254,
+          "lazyImport": "./chunks/date-FN2DXAEE.js",
+          "export": "dateCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/date-FN2DXAEE.js",
+              "bytes": 338,
+              "sha256": "298adab48cbf269688f60aeae3cfcee65e20af760b631e89297ff3c1e13c01c9",
+              "exported": "dateCommand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-5ATEFZLC.js",
+              "bytes": 3232,
+              "sha256": "68427d547cff789b30f867cbfdacadd62d7c1acee38c2e5e506c8adb4d272ef4",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "f1055ed259cc8654cc212928b3c23b1a3f34da7324245bbf4dea3828e4d6f06a"
+    },
+    {
+      "id": "planned-du",
+      "name": "du",
+      "batch": 2,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "du payload",
+      "primaryArgv": [
+        "du",
+        "payload"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {
+          "payload": {
+            "encoding": "repeat-utf8",
+            "text": "x",
+            "count": 2048
+          }
+        },
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "profile": "logical-vfs-size",
+          "encoding": "utf8",
+          "text": "2\tpayload\n",
+          "nativeEquality": "Not predeclared: native du reports allocated blocks, which vary by filesystem. Capture raw native result separately, no normalization or winner."
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "unchanged": true
+        },
+        "shellState": "No persistent shell-state assertion; fresh single exec for each plan"
+      },
+      "oracle": "Pinned implementation sums stat.size and rounds KiB; logical VFS contract is not GNU allocated-block parity.",
+      "setup": "base-node-memory",
+      "dependencies": [],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Verify VFS stat size 2048 and exact pinned-profile output; native allocated-size delta is preserved and not scored as semantic equality.",
+      "baselineProvenance": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 4973,
+          "lazyImport": "./chunks/du-PR3M44X6.js",
+          "export": "duCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/du-PR3M44X6.js",
+              "bytes": 392,
+              "sha256": "b119872235f1069abe77bdf0893307e6adb6267866d64dc770cf24ce2f4e1d3f",
+              "exported": "duCommand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-POIWRLUV.js",
+              "bytes": 2811,
+              "sha256": "dfdd750f2d5fb1fcc2fffa62d7315d53e599be57e869c18e60f233333bf196ff",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "8670f153ff2f3517d894c22cd973dda930059f648e15fc0ee7d7e763dde1835b"
+    },
+    {
+      "id": "planned-file",
+      "name": "file",
+      "batch": 2,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "file -b empty.dat",
+      "primaryArgv": [
+        "file",
+        "-b",
+        "empty.dat"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {
+          "empty.dat": ""
+        },
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "empty\n"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "unchanged": true
+        },
+        "shellState": "No persistent shell-state assertion; fresh single exec for each plan"
+      },
+      "oracle": "Explicit file implementation/dialect needed; no external file content or magic database installation.",
+      "setup": "base-node-memory",
+      "dependencies": [],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Require target dispatch and exact stdout/stderr/status plus VFS/state effects; prerequisite failure is dependency-blocked, not a target pass.",
+      "baselineProvenance": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 7049,
+          "lazyImport": "./chunks/file-VEGKTTSF.js",
+          "export": "fileCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/file-VEGKTTSF.js",
+              "bytes": 366,
+              "sha256": "94aff2a71912ad0d2b9362c65d8aa4408c61d52d31dc67daf27a25e0b45d902f",
+              "exported": "fileCommand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-A3D7NRT6.js",
+              "bytes": 77252,
+              "sha256": "92ad6f70b83ef902267b972b1144d23d7698ce3da80accf5c33b2a1f20e07ac3",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "4c8bbe8ac74d01aed748e255abb14532f0f76b69743869ece73abb2edf469721"
+    },
+    {
+      "id": "planned-printenv",
+      "name": "printenv",
+      "batch": 2,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "printenv PROJECT",
+      "primaryArgv": [
+        "printenv",
+        "PROJECT"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {},
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin",
+          "PROJECT": "sample"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "sample\n"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "unchanged": true
+        },
+        "shellState": "No persistent shell-state assertion; fresh single exec for each plan"
+      },
+      "oracle": "Capture GNU Bash 5.3 / explicitly validated utility dialect later; these expected bytes are planned, NOT native observations.",
+      "setup": "base-node-memory",
+      "dependencies": [],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Require target dispatch and exact stdout/stderr/status plus VFS/state effects; prerequisite failure is dependency-blocked, not a target pass.",
+      "baselineProvenance": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 5132,
+          "lazyImport": "./chunks/env-VUUMB47B.js",
+          "export": "printenvCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/env-VUUMB47B.js",
+              "bytes": 335,
+              "sha256": "5a57e193c05cca34476722a1418a15dcd3fc2b0b696b71aab81c3aa71d731b96",
+              "exported": "printenvCommand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-A4R2GWRF.js",
+              "bytes": 2248,
+              "sha256": "239f2504c26ffe94e73f7c7a13296ec45b3b11ea907bbd1944de45cf1445ca8b",
+              "exported": "b"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "a148af1e934b726fd9e4d733a0e69174215a4b4ff806cb0920f51eb46e422d1d"
+    },
+    {
+      "id": "planned-tree",
+      "name": "tree",
+      "batch": 2,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "tree tree",
+      "primaryArgv": [
+        "tree",
+        "tree"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [
+          "tree",
+          "tree/sub"
+        ],
+        "files": {
+          "tree/a.txt": "a\n",
+          "tree/sub/b.txt": "b\n"
+        },
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "tree\n├── a.txt\n└── sub\n    └── b.txt\n\n1 directory, 2 files\n",
+          "provisionalFormatting": true
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "unchanged": true
+        },
+        "shellState": "No persistent shell-state assertion; fresh single exec for each plan"
+      },
+      "oracle": "Validate explicit tree version, locale and drawing characters; deterministic ASCII names and topology, raw rendering retained.",
+      "setup": "base-node-memory",
+      "dependencies": [],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Require exactly the asserted topology and exact pinned renderer bytes after oracle validation; do not mask tree indentation/count defects.",
+      "baselineProvenance": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 4889,
+          "lazyImport": "./chunks/tree-7OOL2MH6.js",
+          "export": "treeCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/tree-7OOL2MH6.js",
+              "bytes": 282,
+              "sha256": "9218838b33dbd376ab1022c940597954f5d8ed04cd03c2ae3a6f0aa0bd110413",
+              "exported": "treeCommand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-7AISL3XV.js",
+              "bytes": 3839,
+              "sha256": "6a5ff2ce6c57049f54e3b856181c3a3829dc8f04ec3ff2f2c5040167e4c4c48d",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "d7908a64b934f39dcc7cc4ce476d685a72dc3c0638fca733423b5a8c4a144626"
+    },
+    {
+      "id": "planned-which",
+      "name": "which",
+      "batch": 2,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "which emit",
+      "primaryArgv": [
+        "which",
+        "emit"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [
+          "bin"
+        ],
+        "files": {
+          "bin/emit": "#!/bin/sh\nprintf ready\\n\n"
+        },
+        "modes": {
+          "bin/emit": 493
+        },
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/fixture/bin:/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "/fixture/bin/emit\n"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "unchanged": true
+        },
+        "shellState": "No persistent shell-state assertion; fresh single exec for each plan"
+      },
+      "oracle": "Path discovery on synthetic executable fixture; native fixture root projection must be launcher-controlled, not arbitrary replacement.",
+      "setup": "base-node-memory",
+      "dependencies": [],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Require target dispatch and exact stdout/stderr/status plus VFS/state effects; prerequisite failure is dependency-blocked, not a target pass.",
+      "baselineProvenance": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 7335,
+          "lazyImport": "./chunks/which-UWVKETYW.js",
+          "export": "whichCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/which-UWVKETYW.js",
+              "bytes": 255,
+              "sha256": "d247c38b38b61508492192562fe9c9b9ed65ed5bb25d96d7e7e460b06d5af327",
+              "exported": "whichCommand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-2SMD2AUA.js",
+              "bytes": 1090,
+              "sha256": "1a7b533dee0c37ffa11ed82b83cfc77080369e40d33719b4278032bfdea0dc6d",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "d12aafaeb5f11846c2c6262cba2210413c4f1c0afc6f247d20476f1a79aa3d5a"
+    },
+    {
+      "id": "planned-hostname",
+      "name": "hostname",
+      "batch": 2,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "hostname",
+      "primaryArgv": [
+        "hostname"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {},
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "localhost\n"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "unchanged": true
+        },
+        "shellState": "No persistent shell-state assertion; fresh single exec for each plan"
+      },
+      "oracle": "Pinned virtual identity contract only; implementation returns localhost. Never compare or leak real host identity.",
+      "setup": "base-node-memory",
+      "dependencies": [],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Exact stdout and no VFS mutation are meaningful command behavior but not proof of real-host hostname semantics.",
+      "baselineProvenance": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 7496,
+          "lazyImport": "./chunks/hostname-CESD3CQR.js",
+          "export": "hostname",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/hostname-CESD3CQR.js",
+              "bytes": 195,
+              "sha256": "ac7e7cf7c434d8d010246b625ed69a6a2ecc36595d13667808c99f4ea51b9473",
+              "exported": "hostname"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-SBBYKIYU.js",
+              "bytes": 243,
+              "sha256": "16b972897934e6f6c1066ca06e9e7a00732c0e95ab5d018644ea4715182d97cb",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "973d024ddb28ce35966dd1ebf677e667a2529440c5e962efcaa31c929f72eadc"
+    },
+    {
+      "id": "planned-whoami",
+      "name": "whoami",
+      "batch": 2,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "whoami",
+      "primaryArgv": [
+        "whoami"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {},
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin",
+          "USER": "spoof"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "user\n"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "unchanged": true
+        },
+        "shellState": "No persistent shell-state assertion; fresh single exec for each plan"
+      },
+      "oracle": "Pinned virtual identity constant user, independent of supplied USER. Do not execute native whoami or read host user data.",
+      "setup": "base-node-memory",
+      "dependencies": [],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Verify synthetic virtual identity; no native identity parity or security claim.",
+      "baselineProvenance": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 7585,
+          "lazyImport": "./chunks/whoami-KR6E7UIR.js",
+          "export": "whoami",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/whoami-KR6E7UIR.js",
+              "bytes": 193,
+              "sha256": "b7c14275d73c2d8c7581443fdff35b458565a5546663fda8c3ea0fee48b81496",
+              "exported": "whoami"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-4MZPEZTU.js",
+              "bytes": 229,
+              "sha256": "a135a0a8a0bdc8bb6ff22e5726e59b489ad673230a192a0df3fcaa2895803e3c",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "0a624df3cfe7b0aa6a148e74f5b272181ee8ac4e1eabcb9b7bad897734a29fd7"
+    },
+    {
+      "id": "planned-clear",
+      "name": "clear",
+      "batch": 2,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "clear",
+      "primaryArgv": [
+        "clear"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {},
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "hex",
+          "text": "1b5b324a1b5b48"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "unchanged": true
+        },
+        "shellState": "No persistent shell-state assertion; fresh single exec for each plan"
+      },
+      "oracle": "Pinned terminal-byte contract, not host terminfo. Capture bytes without rendering terminal escapes.",
+      "setup": "base-node-memory",
+      "dependencies": [],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Assert exact clear/home escape bytes and no stderr/effects. Never infer broader terminal support.",
+      "baselineProvenance": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 5751,
+          "lazyImport": "./chunks/clear-KPIUNI6K.js",
+          "export": "clearCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/clear-KPIUNI6K.js",
+              "bytes": 227,
+              "sha256": "50b4279f5cfea14a8624f58b77960de85485ef30c6034a6c7762e511c9bb094f",
+              "exported": "clearCommand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-7EUWTCWK.js",
+              "bytes": 413,
+              "sha256": "0fc4b75fe57a67a5f06abec16c114b182d573a18047c45ac86159098fb3de445",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "0821e1cc2d4d2dcf51c92ce72e8bf6185b47bc154ea50d94369039c3258310de"
+    },
+    {
+      "id": "planned-alias",
+      "name": "alias",
+      "batch": 3,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "shopt -s expand_aliases\nalias greet='printf ready'\ngreet",
+      "primaryArgv": [
+        "alias",
+        "greet=printf ready"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {},
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "ready"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "unchanged": true
+        },
+        "shellState": "Alias registered in current exec and expanded on subsequent line; not only listed."
+      },
+      "oracle": "Capture GNU Bash 5.3 / explicitly validated utility dialect later; these expected bytes are planned, NOT native observations.",
+      "setup": "base-node-memory",
+      "dependencies": [
+        "shopt",
+        "printf",
+        "alias expansion"
+      ],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "shopt is a second baseline-only dependency: if setup cannot enable expansion, report dependency-blocked; never score greeting as alias proof without dispatch.",
+      "acceptance": "Require target dispatch and exact stdout/stderr/status plus VFS/state effects; prerequisite failure is dependency-blocked, not a target pass.",
+      "baselineProvenance": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 5223,
+          "lazyImport": "./chunks/alias-T5TO5GWK.js",
+          "export": "aliasCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/alias-T5TO5GWK.js",
+              "bytes": 279,
+              "sha256": "44c4f43551b5996f8c0e15a7211cf74882de31f6df8c366b0273631fd42810d0",
+              "exported": "aliasCommand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-FHC24QSK.js",
+              "bytes": 1641,
+              "sha256": "dcb558f15f21861e78d2d6afef29cafc7efdfa40a0c428a1c2af7d2e6cec680f",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "6639ffa3b06c80f764fe54e207b47734c6aeb091562981ccc197c140540f07db"
+    },
+    {
+      "id": "planned-builtin",
+      "name": "builtin",
+      "batch": 3,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "cd() { printf shadow; }\nbuiltin cd sub && pwd",
+      "primaryArgv": [
+        "builtin",
+        "cd",
+        "sub"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [
+          "sub"
+        ],
+        "files": {},
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "/fixture/sub\n"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "unchanged": true
+        },
+        "shellState": "Bypasses function cd and changes caller cwd to /fixture/sub."
+      },
+      "oracle": "Capture GNU Bash 5.3 / explicitly validated utility dialect later; these expected bytes are planned, NOT native observations.",
+      "setup": "base-node-memory",
+      "dependencies": [
+        "cd",
+        "pwd",
+        "functions"
+      ],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Require target dispatch and exact stdout/stderr/status plus VFS/state effects; prerequisite failure is dependency-blocked, not a target pass.",
+      "baselineProvenance": {
+        "classification": "kernel-handler-present-unexecuted",
+        "registry": null,
+        "kernel": {
+          "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "dispatcher": "df",
+          "byteOffset": 403544,
+          "handler": "bm",
+          "handlerByteOffset": 404393,
+          "evidence": "Concrete branch and handler inspected; not an execution pass"
+        }
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "78dc8485b4da79048d37bc16fabf7ed285d60a2e4321170afcaca09eb85e6467"
+    },
+    {
+      "id": "planned-compgen",
+      "name": "compgen",
+      "batch": 3,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "compgen -W 'alpha beta alpine' al",
+      "primaryArgv": [
+        "compgen",
+        "-W",
+        "alpha beta alpine",
+        "al"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {},
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "alpha\nalpine\n"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "unchanged": true
+        },
+        "shellState": "Generates filtered completion candidates, not builtin-name listing."
+      },
+      "oracle": "Capture GNU Bash 5.3 / explicitly validated utility dialect later; these expected bytes are planned, NOT native observations.",
+      "setup": "base-node-memory",
+      "dependencies": [],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Require target dispatch and exact stdout/stderr/status plus VFS/state effects; prerequisite failure is dependency-blocked, not a target pass.",
+      "baselineProvenance": {
+        "classification": "kernel-handler-present-unexecuted",
+        "registry": null,
+        "kernel": {
+          "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "dispatcher": "df",
+          "byteOffset": 402326,
+          "handler": "So",
+          "handlerByteOffset": 294286,
+          "evidence": "Concrete branch and handler inspected; not an execution pass"
+        }
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "02c1dbf1a6ff4d11409385bd78ef41c7aa9864d962bfb839c3b0ab84fb8d5ebb"
+    },
+    {
+      "id": "planned-complete",
+      "name": "complete",
+      "batch": 3,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "complete -W 'alpha beta' deploy && complete -p deploy",
+      "primaryArgv": [
+        "complete",
+        "-W",
+        "alpha beta",
+        "deploy"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {},
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "complete -W 'alpha beta' deploy\n"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "unchanged": true
+        },
+        "shellState": "Persist completion wordlist within current exec and retrieve exact specification; no interactive completion claim."
+      },
+      "oracle": "Capture GNU Bash 5.3 / explicitly validated utility dialect later; these expected bytes are planned, NOT native observations.",
+      "setup": "base-node-memory",
+      "dependencies": [],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Require target dispatch and exact stdout/stderr/status plus VFS/state effects; prerequisite failure is dependency-blocked, not a target pass.",
+      "baselineProvenance": {
+        "classification": "kernel-handler-present-unexecuted",
+        "registry": null,
+        "kernel": {
+          "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "dispatcher": "df",
+          "byteOffset": 402358,
+          "handler": "ko",
+          "handlerByteOffset": 304501,
+          "evidence": "Concrete branch and handler inspected; not an execution pass"
+        }
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "d02ca906f47b0224f18c48fdd867e7a4b1d40cb27b0ec846e0a310ea16124bc1"
+    },
+    {
+      "id": "planned-compopt",
+      "name": "compopt",
+      "batch": 3,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "complete -W 'alpha beta' deploy && compopt -o nospace deploy && complete -p deploy",
+      "primaryArgv": [
+        "compopt",
+        "-o",
+        "nospace",
+        "deploy"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {},
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "complete -o nospace -W 'alpha beta' deploy\n"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "unchanged": true
+        },
+        "shellState": "Mutates existing completion options and reads them back via complete -p; not interactive completion execution."
+      },
+      "oracle": "Capture GNU Bash 5.3 / explicitly validated utility dialect later; these expected bytes are planned, NOT native observations.",
+      "setup": "base-node-memory",
+      "dependencies": [
+        "complete"
+      ],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Require target dispatch and exact stdout/stderr/status plus VFS/state effects; prerequisite failure is dependency-blocked, not a target pass.",
+      "baselineProvenance": {
+        "classification": "kernel-handler-present-unexecuted",
+        "registry": null,
+        "kernel": {
+          "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "dispatcher": "df",
+          "byteOffset": 402391,
+          "handler": "Po",
+          "handlerByteOffset": 307931,
+          "evidence": "Concrete branch and handler inspected; not an execution pass"
+        }
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "55e2de32d8874f5edcad84a54a701d7d9103dde4ee655e93722fe7092003b56f"
+    },
+    {
+      "id": "planned-declare",
+      "name": "declare",
+      "batch": 3,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "declare -i count=6; count=count+1; printf '%s\\n' \"$count\"",
+      "primaryArgv": [
+        "declare",
+        "-i",
+        "count=6"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {},
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "7\n"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "unchanged": true
+        },
+        "shellState": "Integer declaration changes later assignment evaluation."
+      },
+      "oracle": "Capture GNU Bash 5.3 / explicitly validated utility dialect later; these expected bytes are planned, NOT native observations.",
+      "setup": "base-node-memory",
+      "dependencies": [
+        "printf",
+        "arithmetic assignment"
+      ],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Require target dispatch and exact stdout/stderr/status plus VFS/state effects; prerequisite failure is dependency-blocked, not a target pass.",
+      "baselineProvenance": {
+        "classification": "kernel-handler-present-unexecuted",
+        "registry": null,
+        "kernel": {
+          "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "dispatcher": "df",
+          "byteOffset": 402641,
+          "handler": "Do",
+          "handlerByteOffset": 313679,
+          "evidence": "Concrete branch and handler inspected; not an execution pass"
+        }
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "44f825bb4c7fcd566cd0320c5f6719d5541c19cc7b99c861ca2aa5c32e06af37"
+    },
+    {
+      "id": "planned-dirs",
+      "name": "dirs",
+      "batch": 3,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "pushd sub >/dev/null && dirs -p",
+      "primaryArgv": [
+        "dirs",
+        "-p"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [
+          "sub"
+        ],
+        "files": {},
+        "modes": {},
+        "environment": {
+          "HOME": "/home/synthetic",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "/fixture/sub\n/fixture\n"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "unchanged": true
+        },
+        "shellState": "Reports two-entry directory stack; HOME must differ from /fixture to avoid tilde rendering."
+      },
+      "oracle": "Capture GNU Bash 5.3 / explicitly validated utility dialect later; these expected bytes are planned, NOT native observations.",
+      "setup": "base-node-memory",
+      "dependencies": [
+        "pushd"
+      ],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Require target dispatch and exact stdout/stderr/status plus VFS/state effects; prerequisite failure is dependency-blocked, not a target pass.",
+      "baselineProvenance": {
+        "classification": "kernel-handler-present-unexecuted",
+        "registry": null,
+        "kernel": {
+          "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "dispatcher": "df",
+          "byteOffset": 402488,
+          "handler": "Mo",
+          "handlerByteOffset": 324057,
+          "evidence": "Concrete branch and handler inspected; not an execution pass"
+        }
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "19160eeb15111a54416d3eede200e625d8ad16df318343a8a1a4d8996026c554"
+    },
+    {
+      "id": "planned-exec",
+      "name": "exec",
+      "batch": 3,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "exec printf 'replaced\\n'; printf 'unreachable\\n'",
+      "primaryArgv": [
+        "exec",
+        "printf",
+        "replaced\n"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {},
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "replaced\n"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "unchanged": true
+        },
+        "shellState": "Successful exec must prevent the following command."
+      },
+      "oracle": "Capture GNU Bash 5.3 / explicitly validated utility dialect later; these expected bytes are planned, NOT native observations.",
+      "setup": "base-node-memory",
+      "dependencies": [
+        "printf"
+      ],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Require replacement semantics, not mere child dispatch. Pinned baseline branch invokes child and returns; potential semantic loss must remain visible.",
+      "baselineProvenance": {
+        "classification": "kernel-handler-present-unexecuted",
+        "registry": null,
+        "kernel": {
+          "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "dispatcher": "df",
+          "byteOffset": 403610,
+          "handler": "af",
+          "handlerByteOffset": 394632,
+          "evidence": "Concrete branch and handler inspected; not an execution pass"
+        }
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "f8bd08275ba5cf5a3fe797c82a7395796611ab65c4075c0ba4882ac1ec43e310"
+    },
+    {
+      "id": "planned-getopts",
+      "name": "getopts",
+      "batch": 3,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "set -- -n 3 item; getopts n: opt && printf '%s:%s:%s\\n' \"$opt\" \"$OPTARG\" \"$OPTIND\"",
+      "primaryArgv": [
+        "getopts",
+        "n:",
+        "opt"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {},
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "n:3:3\n"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "unchanged": true
+        },
+        "shellState": "Writes opt=n, OPTARG=3, OPTIND=3 after consuming option and value."
+      },
+      "oracle": "Capture GNU Bash 5.3 / explicitly validated utility dialect later; these expected bytes are planned, NOT native observations.",
+      "setup": "base-node-memory",
+      "dependencies": [
+        "set",
+        "printf"
+      ],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Require target dispatch and exact stdout/stderr/status plus VFS/state effects; prerequisite failure is dependency-blocked, not a target pass.",
+      "baselineProvenance": {
+        "classification": "kernel-handler-present-unexecuted",
+        "registry": null,
+        "kernel": {
+          "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "dispatcher": "df",
+          "byteOffset": 402294,
+          "handler": "_s",
+          "handlerByteOffset": 326548,
+          "evidence": "Concrete branch and handler inspected; not an execution pass"
+        }
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "3ca3bbdc88355dcb85f24ed0e21702ab0604df290d002038d2c9b745b0d56ce5"
+    },
+    {
+      "id": "planned-hash",
+      "name": "hash",
+      "batch": 3,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "hash -p /fixture/bin/emit emit && hash -t emit && emit",
+      "primaryArgv": [
+        "hash",
+        "-p",
+        "/fixture/bin/emit",
+        "emit"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [
+          "bin"
+        ],
+        "files": {
+          "bin/emit": "#!/bin/sh\nprintf \"cached\\n\"\n"
+        },
+        "modes": {
+          "bin/emit": 493
+        },
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "/fixture/bin/emit\ncached\n"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "unchanged": true
+        },
+        "shellState": "Cache maps emit to VFS script; both lookup and execution must use cached path."
+      },
+      "oracle": "Capture GNU Bash 5.3 / explicitly validated utility dialect later; these expected bytes are planned, NOT native observations.",
+      "setup": "base-node-memory",
+      "dependencies": [
+        "sh",
+        "printf",
+        "script-file dispatch"
+      ],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Require target dispatch and exact stdout/stderr/status plus VFS/state effects; prerequisite failure is dependency-blocked, not a target pass.",
+      "baselineProvenance": {
+        "classification": "kernel-handler-present-unexecuted",
+        "registry": null,
+        "kernel": {
+          "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "dispatcher": "df",
+          "byteOffset": 403822,
+          "handler": "Wo",
+          "handlerByteOffset": 328822,
+          "evidence": "Concrete branch and handler inspected; not an execution pass"
+        }
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "3d7d217eaf1a6d85d4d4071d5898bf08d3ffeaf66d969c622db64bbcf9dc01c8"
+    },
+    {
+      "id": "planned-history",
+      "name": "history",
+      "batch": 3,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "history -c\nhistory -s 'printf ready'\nhistory 1",
+      "primaryArgv": [
+        "history",
+        "-s",
+        "printf ready"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {},
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "    1  printf ready\n"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "unchanged": true
+        },
+        "shellState": "Clear, append synthetic entry, retrieve that entry; no host history read."
+      },
+      "oracle": "Capture GNU Bash 5.3 / explicitly validated utility dialect later; these expected bytes are planned, NOT native observations.",
+      "setup": "base-node-memory",
+      "dependencies": [],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Pinned history source handles list/-c but not -s; keep any failure as unsupported positive operation, not setup-unavailable or native history access.",
+      "baselineProvenance": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 5401,
+          "lazyImport": "./chunks/history-3N762S3K.js",
+          "export": "historyCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/history-3N762S3K.js",
+              "bytes": 229,
+              "sha256": "ed7e0c911fefa0e2ced47e4c8793550c51290c6bfcbd6570f9f04c380ca07531",
+              "exported": "historyCommand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-UIJUTQPH.js",
+              "bytes": 806,
+              "sha256": "e90054247b35764f78a22d0f6a2095754fe538ca1cf1398af065e3015caf0ab1",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "4d667821d95280df72166400ed69e96c7c36659c4ff6c5e9a0d78fcfa1f53e96"
+    },
+    {
+      "id": "planned-let",
+      "name": "let",
+      "batch": 3,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "count=6; let 'count+=2' && printf '%s\\n' \"$count\"",
+      "primaryArgv": [
+        "let",
+        "count+=2"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {},
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "8\n"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "unchanged": true
+        },
+        "shellState": "Mutates shell integer variable count."
+      },
+      "oracle": "Capture GNU Bash 5.3 / explicitly validated utility dialect later; these expected bytes are planned, NOT native observations.",
+      "setup": "base-node-memory",
+      "dependencies": [
+        "printf"
+      ],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Require target dispatch and exact stdout/stderr/status plus VFS/state effects; prerequisite failure is dependency-blocked, not a target pass.",
+      "baselineProvenance": {
+        "classification": "kernel-handler-present-unexecuted",
+        "registry": null,
+        "kernel": {
+          "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "dispatcher": "df",
+          "byteOffset": 403480,
+          "handler": "zo",
+          "handlerByteOffset": 353269,
+          "evidence": "Concrete branch and handler inspected; not an execution pass"
+        }
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "62adea29d692c5c75cd02a88ef38cf2a4d29e818855c3418898aef39d8b85788"
+    },
+    {
+      "id": "planned-mapfile",
+      "name": "mapfile",
+      "batch": 3,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "mapfile -t rows < lines.txt && printf '%s:%s\\n' \"${#rows[@]}\" \"${rows[1]}\"",
+      "primaryArgv": [
+        "mapfile",
+        "-t",
+        "rows"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {
+          "lines.txt": "red\nblue\n"
+        },
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "2:blue\n"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "unchanged": true
+        },
+        "shellState": "Reads two records to caller array, strips terminators and preserves index 1."
+      },
+      "oracle": "Capture GNU Bash 5.3 / explicitly validated utility dialect later; these expected bytes are planned, NOT native observations.",
+      "setup": "base-node-memory",
+      "dependencies": [
+        "printf",
+        "indexed arrays"
+      ],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Require target dispatch and exact stdout/stderr/status plus VFS/state effects; prerequisite failure is dependency-blocked, not a target pass.",
+      "baselineProvenance": {
+        "classification": "kernel-handler-present-unexecuted",
+        "registry": null,
+        "kernel": {
+          "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "dispatcher": "df",
+          "byteOffset": 402590,
+          "handler": "jo",
+          "handlerByteOffset": 357052,
+          "evidence": "Concrete branch and handler inspected; not an execution pass"
+        }
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "dbb5f91f7c80f7afb597fed36911873598a69c4868e4ba5ead23e4be736c0e1b"
+    },
+    {
+      "id": "planned-popd",
+      "name": "popd",
+      "batch": 3,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "pushd sub >/dev/null && popd >/dev/null && pwd",
+      "primaryArgv": [
+        "popd"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [
+          "sub"
+        ],
+        "files": {},
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "/fixture\n"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "unchanged": true
+        },
+        "shellState": "Removes top of directory stack and restores cwd."
+      },
+      "oracle": "Capture GNU Bash 5.3 / explicitly validated utility dialect later; these expected bytes are planned, NOT native observations.",
+      "setup": "base-node-memory",
+      "dependencies": [
+        "pushd",
+        "pwd"
+      ],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Require target dispatch and exact stdout/stderr/status plus VFS/state effects; prerequisite failure is dependency-blocked, not a target pass.",
+      "baselineProvenance": {
+        "classification": "kernel-handler-present-unexecuted",
+        "registry": null,
+        "kernel": {
+          "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "dispatcher": "df",
+          "byteOffset": 402459,
+          "handler": "Lo",
+          "handlerByteOffset": 323544,
+          "evidence": "Concrete branch and handler inspected; not an execution pass"
+        }
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "7ffb4d2fc983e3598427137a44d81e8be9f3edd40a8df8a2b490db7f3562109c"
+    },
+    {
+      "id": "planned-pushd",
+      "name": "pushd",
+      "batch": 3,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "pushd sub >/dev/null && pwd",
+      "primaryArgv": [
+        "pushd",
+        "sub"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [
+          "sub"
+        ],
+        "files": {},
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "/fixture/sub\n"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "unchanged": true
+        },
+        "shellState": "Pushes previous cwd and changes caller cwd; stack persistence separately exercised by dirs/popd."
+      },
+      "oracle": "Capture GNU Bash 5.3 / explicitly validated utility dialect later; these expected bytes are planned, NOT native observations.",
+      "setup": "base-node-memory",
+      "dependencies": [
+        "pwd"
+      ],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Require target dispatch and exact stdout/stderr/status plus VFS/state effects; prerequisite failure is dependency-blocked, not a target pass.",
+      "baselineProvenance": {
+        "classification": "kernel-handler-present-unexecuted",
+        "registry": null,
+        "kernel": {
+          "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "dispatcher": "df",
+          "byteOffset": 402423,
+          "handler": "To",
+          "handlerByteOffset": 322481,
+          "evidence": "Concrete branch and handler inspected; not an execution pass"
+        }
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "f484990c80a0ec0d010eba7b2fe262753f6b63f267651a61238c28c4e45e2816"
+    },
+    {
+      "id": "planned-readarray",
+      "name": "readarray",
+      "batch": 3,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "readarray -t rows < lines.txt && printf '%s:%s\\n' \"${#rows[@]}\" \"${rows[0]}\"",
+      "primaryArgv": [
+        "readarray",
+        "-t",
+        "rows"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {
+          "lines.txt": "red\nblue\n"
+        },
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "2:red\n"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "unchanged": true
+        },
+        "shellState": "Literal readarray alias dispatch populates array; do not infer from a mapfile pass."
+      },
+      "oracle": "Capture GNU Bash 5.3 / explicitly validated utility dialect later; these expected bytes are planned, NOT native observations.",
+      "setup": "base-node-memory",
+      "dependencies": [
+        "printf",
+        "indexed arrays"
+      ],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Require target dispatch and exact stdout/stderr/status plus VFS/state effects; prerequisite failure is dependency-blocked, not a target pass.",
+      "baselineProvenance": {
+        "classification": "kernel-handler-present-unexecuted",
+        "registry": null,
+        "kernel": {
+          "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "dispatcher": "df",
+          "byteOffset": 402605,
+          "handler": "jo",
+          "handlerByteOffset": 357052,
+          "evidence": "Concrete branch and handler inspected; not an execution pass"
+        }
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "bdcf3a1f03791591fd3e3f23c0a5c02c29e43bd5c3b66ce25f4173d194230175"
+    },
+    {
+      "id": "planned-shopt",
+      "name": "shopt",
+      "batch": 3,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "shopt -s nullglob && set -- missing-*.txt && printf '%s\\n' \"$#\"",
+      "primaryArgv": [
+        "shopt",
+        "-s",
+        "nullglob"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {},
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "0\n"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "unchanged": true
+        },
+        "shellState": "Toggled nullglob alters actual argument expansion."
+      },
+      "oracle": "Capture GNU Bash 5.3 / explicitly validated utility dialect later; these expected bytes are planned, NOT native observations.",
+      "setup": "base-node-memory",
+      "dependencies": [
+        "set",
+        "printf",
+        "glob expansion"
+      ],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Require target dispatch and exact stdout/stderr/status plus VFS/state effects; prerequisite failure is dependency-blocked, not a target pass.",
+      "baselineProvenance": {
+        "classification": "kernel-handler-present-unexecuted",
+        "registry": null,
+        "kernel": {
+          "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "dispatcher": "df",
+          "byteOffset": 403580,
+          "handler": "Ku",
+          "handlerByteOffset": 377707,
+          "evidence": "Concrete branch and handler inspected; not an execution pass"
+        }
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "c15f8840d9c3e92455afb24747a16a5e58549b906165ec507fbc50ac45cfe50e"
+    },
+    {
+      "id": "planned-sleep",
+      "name": "sleep",
+      "batch": 3,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "sleep 0.001 && printf 'awake\\n'",
+      "primaryArgv": [
+        "sleep",
+        "0.001"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {},
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "awake\n"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "unchanged": true
+        },
+        "shellState": "No persistent shell-state assertion; fresh single exec for each plan"
+      },
+      "oracle": "Capture GNU Bash 5.3 / explicitly validated utility dialect later; these expected bytes are planned, NOT native observations.",
+      "setup": "base-node-memory; optional public Bash.sleep spy for a SEPARATE instrumentation control, not timed comparison",
+      "dependencies": [
+        "printf"
+      ],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Exact stdout/status and target invocation; spy may record 1ms argument without asserting brittle wall-clock lower bound. Native/default real wait profile stays separate.",
+      "baselineProvenance": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 6338,
+          "lazyImport": "./chunks/sleep-PPRBTSVR.js",
+          "export": "sleepCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/sleep-PPRBTSVR.js",
+              "bytes": 311,
+              "sha256": "700062ddd83b6047aedc71d589caf1fc3579100387cd570825a2779b96823800",
+              "exported": "sleepCommand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-DMWNBCXJ.js",
+              "bytes": 1406,
+              "sha256": "7befeeee99089d013e871b352f0135d4cf7865ad68669205c1b82d8015f053a4",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "1a7b4d88c10cca976d5a1b315e64cef3578fd0f7ddb3d39668f3d26bb61f5364"
+    },
+    {
+      "id": "planned-timeout",
+      "name": "timeout",
+      "batch": 3,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "timeout 2 sh -c 'printf done > result.txt'",
+      "primaryArgv": [
+        "timeout",
+        "2",
+        "sh",
+        "-c",
+        "printf done > result.txt"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {},
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "createdFiles": {
+            "result.txt": "done"
+          },
+          "noOtherChanges": true
+        },
+        "shellState": "No persistent shell-state assertion; fresh single exec for each plan"
+      },
+      "oracle": "Capture GNU Bash 5.3 / explicitly validated utility dialect later; these expected bytes are planned, NOT native observations.",
+      "setup": "base-node-memory",
+      "dependencies": [
+        "sh",
+        "printf"
+      ],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Normal-completion positive path only; exact VFS write proves child execution. No cancellation or process-kill guarantee follows.",
+      "baselineProvenance": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 6425,
+          "lazyImport": "./chunks/timeout-C6WDYPLV.js",
+          "export": "timeoutCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/timeout-C6WDYPLV.js",
+              "bytes": 397,
+              "sha256": "dbe5560df622b0807c3ec3ccb4181b6c412c8408e1d6a09d0a79c7a4acfe7dec",
+              "exported": "timeoutCommand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-XV2V56NQ.js",
+              "bytes": 2621,
+              "sha256": "49dcc3aec5015d4d8ebc96696e6889db9b5aee15bce617e5243760800b5b9273",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "1d29d8cb20c1c4a2cf3ba1f17c049fb93b7c0a0166ecd6a0cb847e16304574c6"
+    },
+    {
+      "id": "planned-typeset",
+      "name": "typeset",
+      "batch": 3,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "typeset -i count=4; count=count+3; printf '%s\\n' \"$count\"",
+      "primaryArgv": [
+        "typeset",
+        "-i",
+        "count=4"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {},
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "7\n"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "unchanged": true
+        },
+        "shellState": "Literal typeset route enforces integer assignment; alias name counted separately from declare."
+      },
+      "oracle": "Capture GNU Bash 5.3 / explicitly validated utility dialect later; these expected bytes are planned, NOT native observations.",
+      "setup": "base-node-memory",
+      "dependencies": [
+        "printf",
+        "arithmetic assignment"
+      ],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Require target dispatch and exact stdout/stderr/status plus VFS/state effects; prerequisite failure is dependency-blocked, not a target pass.",
+      "baselineProvenance": {
+        "classification": "kernel-handler-present-unexecuted",
+        "registry": null,
+        "kernel": {
+          "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "dispatcher": "df",
+          "byteOffset": 402656,
+          "handler": "Do",
+          "handlerByteOffset": 313679,
+          "evidence": "Concrete branch and handler inspected; not an execution pass"
+        }
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "b86e2917ee92be28e73b558e5f08c81ca47e2ebdf7f5a8a57d83f870f8e5039f"
+    },
+    {
+      "id": "planned-unalias",
+      "name": "unalias",
+      "batch": 3,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "shopt -s expand_aliases\nalias greet='printf alias'\nunalias greet\ngreet() { printf function; }\ngreet",
+      "primaryArgv": [
+        "unalias",
+        "greet"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {},
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "function"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "unchanged": true
+        },
+        "shellState": "Removes alias so later greet resolves to function rather than alias."
+      },
+      "oracle": "Capture GNU Bash 5.3 / explicitly validated utility dialect later; these expected bytes are planned, NOT native observations.",
+      "setup": "base-node-memory",
+      "dependencies": [
+        "shopt",
+        "alias",
+        "printf",
+        "functions"
+      ],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Require target dispatch and exact stdout/stderr/status plus VFS/state effects; prerequisite failure is dependency-blocked, not a target pass.",
+      "baselineProvenance": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 5310,
+          "lazyImport": "./chunks/alias-T5TO5GWK.js",
+          "export": "unaliasCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/alias-T5TO5GWK.js",
+              "bytes": 279,
+              "sha256": "44c4f43551b5996f8c0e15a7211cf74882de31f6df8c366b0273631fd42810d0",
+              "exported": "unaliasCommand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-FHC24QSK.js",
+              "bytes": 1641,
+              "sha256": "dcb558f15f21861e78d2d6afef29cafc7efdfa40a0c428a1c2af7d2e6cec680f",
+              "exported": "b"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "696eaea5a26b57874b837cbe6e1f7088a4c6920e78f8330718b336348016c1ea"
+    },
+    {
+      "id": "planned-wait",
+      "name": "wait",
+      "batch": 3,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "(printf done > done.txt) &\nwait\ncat done.txt",
+      "primaryArgv": [
+        "wait"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {},
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "done"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "createdFiles": {
+            "done.txt": "done"
+          },
+          "noOtherChanges": true
+        },
+        "shellState": "Observe synthetic child output after wait; do not claim joining from empty no-child wait."
+      },
+      "oracle": "Capture GNU Bash 5.3 / explicitly validated utility dialect later; these expected bytes are planned, NOT native observations.",
+      "setup": "base-node-memory",
+      "dependencies": [
+        "background list",
+        "subshell",
+        "printf",
+        "cat"
+      ],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Pinned wait is inline empty success. Background scheduling must be independently established; this deterministic workflow alone cannot distinguish a genuine join from synchronous background execution. Retain attribution limitation and do not score job-control completeness.",
+      "baselineProvenance": {
+        "classification": "kernel-no-op-not-job-join-proof",
+        "registry": null,
+        "kernel": {
+          "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "dispatcher": "df",
+          "byteOffset": 403741,
+          "handler": "inline-return-empty-success",
+          "handlerByteOffset": null,
+          "evidence": "Concrete branch and handler inspected; not an execution pass"
+        }
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "8f655bf91a3321a6abdfcd20894afbe330953776db0afd8898fbf57adb253914"
+    },
+    {
+      "id": "planned-html-to-markdown",
+      "name": "html-to-markdown",
+      "batch": 4,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "html-to-markdown page.html > page.md",
+      "primaryArgv": [
+        "html-to-markdown",
+        "page.html"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {
+          "page.html": "<h1>Notes</h1><p>Hello <strong>agent</strong>.</p>"
+        },
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "preserved": [
+            "page.html"
+          ],
+          "createdFiles": {
+            "page.md": "# Notes\n\nHello **agent**.\n"
+          },
+          "noOtherChanges": true
+        },
+        "shellState": "No persistent shell-state assertion; fresh single exec for each plan"
+      },
+      "oracle": "Nonstandard command: explicit desired Markdown fixture and pinned Turndown profile, not fabricated native Bash oracle.",
+      "setup": "base-node-memory; installed turndown 7.2.4; NO network required",
+      "dependencies": [],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Require target dispatch and exact stdout/stderr/status plus VFS/state effects; prerequisite failure is dependency-blocked, not a target pass.",
+      "baselineProvenance": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 7133,
+          "lazyImport": "./chunks/html-to-markdown-GGVR4YGL.js",
+          "export": "htmlToMarkdownCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/html-to-markdown-GGVR4YGL.js",
+              "bytes": 348,
+              "sha256": "1af7740573e4f5a868cc8fd6f3bfaea391f208597aeac0094973606c85fbe233",
+              "exported": "htmlToMarkdownCommand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-QE275OWT.js",
+              "bytes": 4464,
+              "sha256": "5c9e868f5c41a92f5fc71655fb1786fb109c388aa200c59d3fb02315d857b3f2",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "5f0ac30783d59e98b5861a0b90de9334acfd3405b5fc43a00301ab15f50ced22"
+    },
+    {
+      "id": "planned-sqlite3",
+      "name": "sqlite3",
+      "batch": 4,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "sqlite3 data.db \"CREATE TABLE items(value INTEGER); INSERT INTO items VALUES(2),(3); SELECT sum(value) FROM items;\" && sqlite3 data.db \"SELECT sum(value) FROM items;\"",
+      "primaryArgv": [
+        "sqlite3",
+        "data.db",
+        "CREATE TABLE items(value INTEGER); INSERT INTO items VALUES(2),(3); SELECT sum(value) FROM items;"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {},
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "5\n5\n"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "createdFiles": {
+            "data.db": {
+              "contentPredicate": "SQLite format 3 header; second invocation reopens persisted database and SELECT sum(value) yields 5; raw bytes retained, not assumed stable across SQLite versions"
+            }
+          },
+          "noOtherChanges": true
+        },
+        "shellState": "No persistent shell-state assertion; fresh single exec for each plan"
+      },
+      "oracle": "SQLite SQL result/state contract; existing harness has no native sqlite3. Do not install or call host sqlite as product implementation.",
+      "setup": "sqlite-node-local",
+      "dependencies": [],
+      "budget": {
+        "wallMs": 15000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100,
+        "databaseBytes": 1048576
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Worker startup setup control must succeed; require SQL output and database persistence. No binary database hash equality across versions or setup-failure winner.",
+      "baselineProvenance": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 8312,
+          "lazyImport": "./chunks/sqlite3-UVVRYDAL.js",
+          "export": "sqlite3Command",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/sqlite3-UVVRYDAL.js",
+              "bytes": 527,
+              "sha256": "617367dcdd7ae8cdcfc6b3343bf25b00d31b1ffeb9e7b8f11032dcddc1354d15",
+              "exported": "sqlite3Command"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-N3FZSEG7.js",
+              "bytes": 16814,
+              "sha256": "f2412dd9521b09d0441a209a2889a22cc359417586ea8870a107f60b1a912764",
+              "exported": "b"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "c6826765f5a1eac40e959e93bb8a58c7aa9bd84ac7cf6b137490e475afc274f9"
+    },
+    {
+      "id": "planned-xan",
+      "name": "xan",
+      "batch": 4,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "xan select name data.csv",
+      "primaryArgv": [
+        "xan",
+        "select",
+        "name",
+        "data.csv"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {
+          "data.csv": "name,score\nAda,3\nLin,5\n"
+        },
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "name\nAda\nLin\n"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "unchanged": true
+        },
+        "shellState": "No persistent shell-state assertion; fresh single exec for each plan"
+      },
+      "oracle": "Pinned xan subcommand dialect with exact CSV output; no native xan in existing harness. Native Bash itself is not a CSV oracle.",
+      "setup": "base-node-memory; installed CSV/parser dependencies",
+      "dependencies": [],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Require target dispatch and exact stdout/stderr/status plus VFS/state effects; prerequisite failure is dependency-blocked, not a target pass.",
+      "baselineProvenance": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 8222,
+          "lazyImport": "./chunks/xan-HUOXKUQA.js",
+          "export": "xanCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/xan-HUOXKUQA.js",
+              "bytes": 645,
+              "sha256": "2a9510fd64c3aa732c94b3965cd776d5af2a765101d9bd799136be5b52f65ed8",
+              "exported": "xanCommand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ALOFNPKY.js",
+              "bytes": 66449,
+              "sha256": "2e301a13c7fdd181e045ccb59244818ac8473a188d41c76793ccec006b133af6",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "6828894451634d51301150604eef8c815b73565f9799c98f0e6c8421f37ffc2d"
+    },
+    {
+      "id": "planned-yq",
+      "name": "yq",
+      "batch": 4,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "yq -o json '.service.port' config.yaml",
+      "primaryArgv": [
+        "yq",
+        "-o",
+        "json",
+        ".service.port",
+        "config.yaml"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {
+          "config.yaml": "service:\n  port: 8080\n"
+        },
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "8080\n"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "unchanged": true
+        },
+        "shellState": "No persistent shell-state assertion; fresh single exec for each plan"
+      },
+      "oracle": "Use pinned just-bash yq dialect; do not assume Mike Farah yq or Python yq option compatibility. Exact scalar and unchanged input are asserted.",
+      "setup": "base-node-memory; installed yaml 2.9.0 and pinned internal jq evaluator",
+      "dependencies": [],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Require target dispatch and exact stdout/stderr/status plus VFS/state effects; prerequisite failure is dependency-blocked, not a target pass.",
+      "baselineProvenance": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 8135,
+          "lazyImport": "./chunks/yq-MI27NZ2U.js",
+          "export": "yqCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/yq-MI27NZ2U.js",
+              "bytes": 560,
+              "sha256": "4bd9afa1c2ee26c03046bbd12d75958a56933ffd2078c584ebbd76b19b4733c7",
+              "exported": "yqCommand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-6DTD75TR.js",
+              "bytes": 221573,
+              "sha256": "50e376e53da1abf5b7c6187d40502fe898136896cfa4325411e974e25e421b16",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "ce3b84d92af6f63372f1058285e0352220e18990be16c65879b9b7ac981bcbf8"
+    },
+    {
+      "id": "planned-js-exec",
+      "name": "js-exec",
+      "batch": 4,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "js-exec -c 'const fs = require(\"fs\"); const data = fs.readFileSync(\"input.txt\", \"utf8\"); fs.writeFileSync(\"output.txt\", data.toUpperCase()); console.log(data.length);'",
+      "primaryArgv": [
+        "js-exec",
+        "-c",
+        "const fs = require(\"fs\"); const data = fs.readFileSync(\"input.txt\", \"utf8\"); fs.writeFileSync(\"output.txt\", data.toUpperCase()); console.log(data.length);"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {
+          "input.txt": "ab\n"
+        },
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "3\n"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "preserved": [
+            "input.txt"
+          ],
+          "createdFiles": {
+            "output.txt": "AB\n"
+          },
+          "noOtherChanges": true
+        },
+        "shellState": "No persistent shell-state assertion; fresh single exec for each plan"
+      },
+      "oracle": "Pinned JS QuickJS VFS API contract; no native Node as product implementation or forced SafeJS adapter. Host Node may be oracle only after explicit release.",
+      "setup": "javascript-node-local",
+      "dependencies": [],
+      "budget": {
+        "wallMs": 15000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Require target dispatch and exact stdout/stderr/status plus VFS/state effects; prerequisite failure is dependency-blocked, not a target pass.",
+      "baselineProvenance": {
+        "classification": "optional-runtime-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 8720,
+          "lazyImport": "./chunks/js-exec-XKF2B7C3.js",
+          "export": "jsExecCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/js-exec-XKF2B7C3.js",
+              "bytes": 9752,
+              "sha256": "3a238ea12066e1d2fce776ba8cc0cc0c14453b10a41cc28b2617e5bd4a1d7ed7",
+              "exported": "jsExecCommand"
+            }
+          ]
+        },
+        "setup": {
+          "javascript": true
+        }
+      },
+      "oursProvenance": "no-public-handler; SafeJS is not a name-compatible replacement",
+      "historicalCoverage": "not-measured-in-frozen-cohort",
+      "inputSha256": "de7d1d9153f081de298b19307cb7b5b2570522633655eab7d6cef7b0007d49c4"
+    },
+    {
+      "id": "planned-python",
+      "name": "python",
+      "batch": 4,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "python -c 'from pathlib import Path; data = Path(\"input.txt\").read_text(); Path(\"output.txt\").write_text(data.upper()); print(len(data))'",
+      "primaryArgv": [
+        "python",
+        "-c",
+        "from pathlib import Path; data = Path(\"input.txt\").read_text(); Path(\"output.txt\").write_text(data.upper()); print(len(data))"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {
+          "input.txt": "ab\n"
+        },
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "3\n"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "preserved": [
+            "input.txt"
+          ],
+          "createdFiles": {
+            "output.txt": "AB\n"
+          },
+          "noOtherChanges": true
+        },
+        "shellState": "No persistent shell-state assertion; fresh single exec for each plan"
+      },
+      "oracle": "Vendored CPython VFS behavior; each literal alias gets its own independent case. Native Python cannot replace product execution.",
+      "setup": "python-node-local",
+      "dependencies": [],
+      "budget": {
+        "wallMs": 15000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Require target dispatch and exact stdout/stderr/status plus VFS/state effects; prerequisite failure is dependency-blocked, not a target pass.",
+      "baselineProvenance": {
+        "classification": "optional-runtime-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 8568,
+          "lazyImport": "./chunks/python3-F5S5TYGS.js",
+          "export": "pythonCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/python3-F5S5TYGS.js",
+              "bytes": 8221,
+              "sha256": "7a4b808a72e6dcb307293be5385052638181deb8b795d122f14ee7e7c7d7f295",
+              "exported": "pythonCommand"
+            }
+          ]
+        },
+        "setup": {
+          "python": true
+        }
+      },
+      "oursProvenance": "no-public-handler; SafeJS is not a name-compatible replacement",
+      "historicalCoverage": "not-measured-in-frozen-cohort",
+      "inputSha256": "ba2de8bd2d26637430fb047ded4f5644a6a128054cec5c166c0d5b6c95e7d8ca"
+    },
+    {
+      "id": "planned-python3",
+      "name": "python3",
+      "batch": 4,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "python3 -c 'from pathlib import Path; data = Path(\"input.txt\").read_text(); Path(\"output.txt\").write_text(data.upper()); print(len(data))'",
+      "primaryArgv": [
+        "python3",
+        "-c",
+        "from pathlib import Path; data = Path(\"input.txt\").read_text(); Path(\"output.txt\").write_text(data.upper()); print(len(data))"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {
+          "input.txt": "ab\n"
+        },
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "3\n"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "preserved": [
+            "input.txt"
+          ],
+          "createdFiles": {
+            "output.txt": "AB\n"
+          },
+          "noOtherChanges": true
+        },
+        "shellState": "No persistent shell-state assertion; fresh single exec for each plan"
+      },
+      "oracle": "Vendored CPython VFS behavior; each literal alias gets its own independent case. Native Python cannot replace product execution.",
+      "setup": "python-node-local",
+      "dependencies": [],
+      "budget": {
+        "wallMs": 15000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Require target dispatch and exact stdout/stderr/status plus VFS/state effects; prerequisite failure is dependency-blocked, not a target pass.",
+      "baselineProvenance": {
+        "classification": "optional-runtime-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 8466,
+          "lazyImport": "./chunks/python3-F5S5TYGS.js",
+          "export": "python3Command",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/python3-F5S5TYGS.js",
+              "bytes": 8221,
+              "sha256": "7a4b808a72e6dcb307293be5385052638181deb8b795d122f14ee7e7c7d7f295",
+              "exported": "python3Command"
+            }
+          ]
+        },
+        "setup": {
+          "python": true
+        }
+      },
+      "oursProvenance": "no-public-handler; SafeJS is not a name-compatible replacement",
+      "historicalCoverage": "not-measured-in-frozen-cohort",
+      "inputSha256": "c4195d0f43fc60d50834a0435143115601db9e250b338e65b7b7c309b768d76a"
+    },
+    {
+      "id": "planned-help",
+      "name": "help",
+      "batch": 5,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "help -s cd > topic.txt && cd sub && pwd",
+      "primaryArgv": [
+        "help",
+        "-s",
+        "cd"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [
+          "sub"
+        ],
+        "files": {},
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "/fixture/sub\n"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "createdFiles": {
+            "topic.txt": {
+              "contentPredicate": "Nonempty cd-specific syntax containing cd and dir; frozen exact dialect bytes must be captured before equality scoring."
+            }
+          },
+          "noOtherChanges": true
+        },
+        "shellState": "Agent retrieves a specific usage topic, then changes directory as documented."
+      },
+      "oracle": "GNU Bash 5.3 and pinned help text differ; retain both verbatim outputs, no normalized native parity.",
+      "setup": "base-node-memory",
+      "dependencies": [
+        "cd",
+        "pwd"
+      ],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "help is intrinsically documentation retrieval. This workflow is not a help-only name check, but cd success cannot prove help correctness. No operational breadth score from help/type alone; content is evaluated separately.",
+      "baselineProvenance": {
+        "classification": "kernel-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 7251,
+          "lazyImport": "./chunks/help-QDDMBDU7.js",
+          "export": "helpCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/help-QDDMBDU7.js",
+              "bytes": 226,
+              "sha256": "96ad493059810decd48e1075288fa4f58d3a83bce98c79b150fe1c094cba6016",
+              "exported": "helpCommand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-MQKGGNPS.js",
+              "bytes": 1601,
+              "sha256": "94fd53d03c8be0536f50b37ebeb9e776ea92d470618e86b2c0be604986162157",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": {
+          "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "dispatcher": "df",
+          "byteOffset": 403851,
+          "handler": "Vo",
+          "handlerByteOffset": 351947,
+          "evidence": "Concrete branch and handler inspected; not an execution pass"
+        }
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "ee36ca40969c374a46ff722c140ba67398966d7eae2a698092cbad0ff89e8d15"
+    },
+    {
+      "id": "planned-time",
+      "name": "time",
+      "batch": 5,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "command time -f 'completed' sh -c 'printf timed > timed.txt'",
+      "primaryArgv": [
+        "time",
+        "-f",
+        "completed",
+        "sh",
+        "-c",
+        "printf timed > timed.txt"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {},
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": "completed\n"
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "createdFiles": {
+            "timed.txt": "timed"
+          },
+          "noOtherChanges": true
+        },
+        "shellState": "No persistent shell-state assertion; fresh single exec for each plan"
+      },
+      "oracle": "Force registry/external time via command; never accidentally benchmark Bash time keyword. GNU time -f oracle is not provided by existing harness.",
+      "setup": "base-node-memory",
+      "dependencies": [
+        "command",
+        "sh",
+        "printf"
+      ],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "Deterministic format removes clock noise without claiming timing accuracy; require actual wrapper dispatch, child write, and exact stderr.",
+      "baselineProvenance": {
+        "classification": "lazy-registry-handler-present-unexecuted",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 6518,
+          "lazyImport": "./chunks/time-NERE2JJ2.js",
+          "export": "timeCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/time-NERE2JJ2.js",
+              "bytes": 338,
+              "sha256": "72dfe24742ea7338169ddebd03337cf355a45e724212ab318d810351c767cfc2",
+              "exported": "timeCommand"
+            },
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-R2FBRMDU.js",
+              "bytes": 2127,
+              "sha256": "6096adde8e9e0a18230b7dfbc29ab3e397792aaf85fa50e3f44d4afca815301f",
+              "exported": "a"
+            }
+          ]
+        },
+        "kernel": null
+      },
+      "oursProvenance": {
+        "classification": "no-public-default-or-optional-handler",
+        "reference": "src/plugins/index.ts:34; src/shell/runtime.ts:802,814,843",
+        "operationalProof": false
+      },
+      "historicalCoverage": "not-measured",
+      "inputSha256": "876ac41c9577efa37a4bb280eec060f1e9b70bbbd3d79363a2f13d1b23aed6cb"
+    },
+    {
+      "id": "planned-node",
+      "name": "node",
+      "batch": 5,
+      "status": "PLAN_NOT_EXECUTED",
+      "script": "node -e 'console.log(2+3)'",
+      "primaryArgv": [
+        "node",
+        "-e",
+        "console.log(2+3)"
+      ],
+      "stdin": {
+        "encoding": "utf8",
+        "text": ""
+      },
+      "fixture": {
+        "cwd": "/fixture",
+        "directories": [],
+        "files": {},
+        "modes": {},
+        "environment": {
+          "HOME": "/fixture",
+          "TMPDIR": "/fixture/tmp",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "PATH": "/usr/bin:/bin"
+        }
+      },
+      "expected": {
+        "stdout": {
+          "encoding": "utf8",
+          "text": "5\n"
+        },
+        "stderr": {
+          "encoding": "utf8",
+          "text": ""
+        },
+        "exitCode": 0,
+        "vfsEffects": {
+          "unchanged": true
+        },
+        "shellState": "No persistent shell-state assertion; fresh single exec for each plan"
+      },
+      "oracle": "Desired positive Node-compatible behavior is not implemented by pinned alias. Do NOT execute host Node, remap node to js-exec, or classify missing optional setup.",
+      "setup": "javascript-node-local; positive case BLOCKED by pinned diagnostic-only nodeStubCommand",
+      "dependencies": [],
+      "budget": {
+        "wallMs": 5000,
+        "outputBytes": 65536,
+        "inputBytes": 65536,
+        "maxCommands": 100,
+        "maxLoopIterations": 100
+      },
+      "risk": "Bounded local synthetic data; no host files, network, subprocess replacement or persistent runtime state",
+      "acceptance": "No positive case is feasible under existing pinned handler. Keep the desired script as an unexecuted blocked plan. Static source returns status 1, empty stdout and js-exec guidance; that is not a passing runtime result.",
+      "baselineProvenance": {
+        "classification": "registered-diagnostic-stub-not-JavaScript-execution",
+        "registry": {
+          "bundlePath": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "byteOffset": 8821,
+          "lazyImport": "./chunks/js-exec-XKF2B7C3.js",
+          "export": "nodeStubCommand",
+          "implementationChain": [
+            {
+              "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/js-exec-XKF2B7C3.js",
+              "bytes": 9752,
+              "sha256": "3a238ea12066e1d2fce776ba8cc0cc0c14453b10a41cc28b2617e5bd4a1d7ed7",
+              "exported": "nodeStubCommand"
+            }
+          ]
+        },
+        "setup": {
+          "javascript": true
+        }
+      },
+      "oursProvenance": "no-public-handler; SafeJS is not a name-compatible replacement",
+      "historicalCoverage": "not-measured-in-frozen-cohort",
+      "inputSha256": "cc5a109e2c385f8306b2416aaf63102548200425cf890c00988a4871578da6fa"
+    }
+  ]
+}

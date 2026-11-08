@@ -1,0 +1,331 @@
+import { expect, it, vi } from "vitest";
+import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";
+import { CommandRegistry } from "@poe-platform/safe-bash/contracts";
+import type { HttpTransportFetch, StoredOAuthSession } from "tiny-mcp-client";
+import { bindRemoteMcpConfiguration, createRemoteMcpCommands, fetchRemoteMcpSchema, initRemoteMcpConfiguration } from "./index.js";
+
+const tool = { name: "find", inputSchema: { type: "object" } };
+const server = { name: "catalog", url: "https://catalog.example/mcp", tools: [tool], protocolVersion: "2025-03-26" as const };
+const oauth = { type: "oauth" as const, clientMode: "static" as const, env: { clientId: "APP_ID", clientSecret: "APP_SECRET" } };
+function configuration(auth: typeof oauth | { type: "bearer"; env?: string } = oauth) {
+  return initRemoteMcpConfiguration([{ ...server, auth }]).configuration;
+}
+function memoryStore() {
+  let session: StoredOAuthSession | null = null;
+  return { load: vi.fn(async () => session), save: vi.fn(async (_resource: string, value: StoredOAuthSession) => { session = value; }), clear: vi.fn(async () => { session = null; }) };
+}
+
+it("lets the native OAuth provider replace stale static Authorization while preserving other headers", async () => {
+  const [bound] = bindRemoteMcpConfiguration(configuration(), { env: { APP_ID: "original-client", MCP_CATALOG_ACCESS_TOKEN: "current-access" }, oauth: { sessionStore: () => memoryStore() } });
+  const fetch = vi.fn<HttpTransportFetch>(async (_url, init) => {
+    const headers = new Headers(init?.headers);
+    expect(headers.get("Authorization")).toBe("Bearer current-access");
+    expect(headers.get("X-Tenant")).toBe("tenant");
+    const request = JSON.parse(String(init?.body));
+    if (request.method === "notifications/initialized") return new Response(null, { status: 202 });
+    return Response.json({ jsonrpc: "2.0", id: request.id, result: request.method === "initialize"
+      ? { protocolVersion: "2025-03-26", capabilities: { tools: {} }, serverInfo: { name: "catalog", version: "1" } }
+      : { tools: [tool] } });
+  });
+  // Direct native SDK callers can combine headers; declarative configuration
+  // rejects this ambiguity before binding.
+  expect((await fetchRemoteMcpSchema({ ...bound, tools: undefined, headers: { authorization: "Bearer retired-access", "X-Tenant": "tenant" } }, { fetch })).tools).toEqual([tool]);
+  expect(fetch).toHaveBeenCalledTimes(3);
+});
+
+it("discovers schemas with a silently refreshed cached grant and reuses its rotation in a new binding", async () => {
+  const issuer = "https://auth.example", store = memoryStore();
+  await store.save(server.url, { resource: server.url, authorizationServer: issuer, client: { clientId: "original-client" },
+    tokens: { accessToken: "expired-access", refreshToken: "original-refresh", tokenType: "Bearer", expiresAt: 0 },
+    discovery: { resourceMetadataUrl: `${server.url}/metadata`, resourceMetadata: { resource: server.url, authorization_servers: [issuer] },
+      authorizationServerMetadata: { issuer, authorization_endpoint: `${issuer}/authorize`, token_endpoint: `${issuer}/token`, response_types_supported: ["code"], code_challenge_methods_supported: ["S256"] } } });
+  const openBrowser = vi.fn(), readLine = vi.fn();
+  const fetch = vi.fn<HttpTransportFetch>(async (url, init) => {
+    if (String(url) === `${issuer}/token`) {
+      const form = new URLSearchParams(String(init?.body));
+      expect(form.get("grant_type")).toBe("refresh_token");
+      expect(form.get("refresh_token")).toBe("original-refresh");
+      expect(form.get("client_id")).toBe("original-client");
+      return Response.json({ access_token: "rotated-access", refresh_token: "rotated-refresh", token_type: "Bearer", expires_in: 3600 });
+    }
+    expect(String(url)).toBe(server.url);
+    expect(new Headers(init?.headers).get("Authorization")).toBe("Bearer rotated-access");
+    const request = JSON.parse(String(init?.body));
+    if (request.method === "notifications/initialized") return new Response(null, { status: 202 });
+    return Response.json({ jsonrpc: "2.0", id: request.id, result: request.method === "initialize"
+      ? { protocolVersion: "2025-03-26", capabilities: { tools: {} }, serverInfo: { name: "catalog", version: "1" } }
+      : { tools: [tool] } });
+  });
+  for (let run = 0; run < 2; run++) {
+    const [bound] = bindRemoteMcpConfiguration(configuration(), { env: { APP_ID: "original-client" }, oauth: { now: () => 1000, sessionStore: () => store, browser: { openBrowser, readLine } } });
+    expect((await fetchRemoteMcpSchema({ ...bound, tools: undefined }, { fetch })).tools).toEqual([tool]);
+  }
+  expect(fetch.mock.calls.filter(([url]) => String(url) === `${issuer}/token`)).toHaveLength(1);
+  expect(openBrowser).not.toHaveBeenCalled();
+  expect(readLine).not.toHaveBeenCalled();
+  expect((await store.load())?.tokens?.refreshToken).toBe("rotated-refresh");
+});
+
+it("binds bearer and header references without changing the declarative configuration", () => {
+  const config = initRemoteMcpConfiguration([{ ...server, auth: { type: "bearer", env: "TOKEN" }, headers: { "X-Key": { env: "KEY" } } }]).configuration;
+  const env = { TOKEN: "actual-token", KEY: "actual-key" };
+  const [bound] = bindRemoteMcpConfiguration(config, { env });
+  expect(new Headers(bound.headers).get("Authorization")).toBe("Bearer actual-token");
+  expect(new Headers(bound.headers).get("X-Key")).toBe("actual-key");
+  expect(JSON.stringify(config)).not.toContain("actual-token");
+  env.TOKEN = "mutated-token";
+  expect(new Headers(bound.headers).get("Authorization")).toBe("Bearer actual-token");
+  expect(bound).not.toHaveProperty("auth");
+});
+
+it("reports missing required environment references without consulting the process environment", () => {
+  expect(() => bindRemoteMcpConfiguration(configuration({ type: "bearer", env: "TOKEN" }), { env: {} })).toThrow("TOKEN");
+  expect(() => bindRemoteMcpConfiguration(configuration(), { env: {} })).toThrow("APP_ID");
+});
+
+it("rejects another cached app through a generated command with an explicit dynamic client and no imported token", async () => {
+  const store = memoryStore(), issuer = "https://auth.example";
+  await store.save(server.url, { resource: server.url, authorizationServer: issuer, client: { clientId: "original-client" },
+    tokens: { accessToken: "private-original-token", tokenType: "Bearer", expiresAt: null },
+    discovery: { resourceMetadataUrl: `${server.url}/metadata`, resourceMetadata: { resource: server.url, authorization_servers: [issuer] },
+      authorizationServerMetadata: { issuer, authorization_endpoint: `${issuer}/authorize`, token_endpoint: `${issuer}/token`, response_types_supported: ["code"], code_challenge_methods_supported: ["S256"] } } });
+  store.save.mockClear();
+  const config = initRemoteMcpConfiguration([{ ...server, auth: { ...oauth, clientMode: "dynamic" } }]).configuration;
+  const bound = bindRemoteMcpConfiguration(config, { env: { APP_ID: "other-client" }, oauth: { sessionStore: () => store } });
+  const fetch = vi.fn<HttpTransportFetch>(async () => { throw new Error("must not send another app's token"); });
+  const commands = await createRemoteMcpCommands(bound, { fetch });
+  const shell = new Shell({ fs: createMemoryFileSystem(), commands: new CommandRegistry(commands) });
+  try {
+    const result = await shell.exec("catalog find");
+    expect(result.exitCode).toBe(1); expect(result.stdout).toBe("");
+    expect(result.stderr).toContain("different OAuth client"); expect(result.stderr).not.toContain("private-original-token");
+    expect(fetch).not.toHaveBeenCalled(); expect(store.save).not.toHaveBeenCalled(); expect(store.clear).not.toHaveBeenCalled();
+  } finally { await shell.dispose(); }
+});
+
+it("requires configured authentication rather than reading unrelated grants after a remote 401", async () => {
+  const readToken = vi.fn(() => "unrelated-token");
+  const env = Object.defineProperty({}, "MCP_CATALOG_ACCESS_TOKEN", { get: readToken });
+  const sessionStore = vi.fn(() => memoryStore());
+  const bound = bindRemoteMcpConfiguration(initRemoteMcpConfiguration([server]).configuration, { env, oauth: { sessionStore } });
+  const fetch = vi.fn<HttpTransportFetch>(async () => new Response(null, { status: 401, headers: {
+    "WWW-Authenticate": 'Bearer resource_metadata="https://catalog.example/.well-known/oauth-protected-resource/mcp"'
+  } }));
+  const commands = await createRemoteMcpCommands(bound, { fetch });
+  const shell = new Shell({ fs: createMemoryFileSystem(), commands: new CommandRegistry(commands) });
+  try {
+    const result = await shell.exec("catalog find");
+    expect(result.exitCode).toBe(1);
+    expect(JSON.parse(result.stderr).error.status).toBe(401);
+    expect(fetch).toHaveBeenCalledOnce();
+    expect(sessionStore).not.toHaveBeenCalled();
+    expect(readToken).not.toHaveBeenCalled();
+  } finally { await shell.dispose(); }
+});
+
+it("never evaluates accessor or inherited environment values", () => {
+  const getter = vi.fn(() => "secret");
+  const env = Object.defineProperty({}, "APP_ID", { get: getter });
+  expect(() => bindRemoteMcpConfiguration(configuration(), { env })).toThrow("environment");
+  expect(getter).not.toHaveBeenCalled();
+  expect(() => bindRemoteMcpConfiguration(configuration(), { env: Object.create({ APP_ID: "inherited" }) })).toThrow("APP_ID");
+});
+
+it("binds an OAuth initial grant through the native provider without reading tokens into artifacts", async () => {
+  const config = configuration();
+  const store = memoryStore();
+  const [bound] = bindRemoteMcpConfiguration(config, { env: { APP_ID: "client", APP_SECRET: "app-secret", MCP_CATALOG_ACCESS_TOKEN: "access-secret", MCP_CATALOG_REFRESH_TOKEN: "refresh-secret", MCP_CATALOG_EXPIRES_AT: "100000" },
+    oauth: { sessionStore: () => store, now: () => 1000 } });
+  const fetch = vi.fn(async () => { throw new Error("unexpected network"); });
+  const headers = new Headers();
+  await bound.oauth!.provider.authorizeRequest!({ requestUrl: new URL(server.url), headers, fetch });
+  expect(headers.get("Authorization")).toBe("Bearer access-secret");
+  expect(fetch).not.toHaveBeenCalled();
+  expect(store.save).not.toHaveBeenCalled();
+  expect(JSON.stringify(config)).not.toContain("access-secret");
+});
+
+it("keeps empty optional OAuth fields absent and defaults runtime interaction to headless", async () => {
+  const [bound] = bindRemoteMcpConfiguration(configuration(), { env: { APP_ID: "client", APP_SECRET: "", MCP_CATALOG_SCOPE: "" }, oauth: { sessionStore: () => memoryStore() } });
+  const result = await bound.oauth!.provider.handleUnauthorized({ requestUrl: new URL(server.url), response: new Response(null, { status: 401 }), challenge: null,
+    discovery: { resource: server.url, resourceMetadataUrl: `${server.url}/metadata`, resourceMetadata: { resource: server.url, authorization_servers: ["https://auth.example"] },
+      authorizationServer: "https://auth.example", authorizationServerMetadataUrl: "https://auth.example/metadata", authorizationServerMetadata: {
+        issuer: "https://auth.example", authorization_endpoint: "https://auth.example/authorize", token_endpoint: "https://auth.example/token", response_types_supported: ["code"], code_challenge_methods_supported: ["S256"]
+      } }, fetch: vi.fn(async () => { throw new Error("unexpected network"); }) });
+  expect(result).toMatchObject({ action: "fail", error: { message: expect.stringContaining("interactive") } });
+});
+
+it.each(["NaN", "Infinity", "100.5", "1000seconds", "1e3", "8640000000000001"])("rejects an invalid or ambiguous epoch-millisecond expiry: %s", expiry => {
+  expect(() => bindRemoteMcpConfiguration(configuration(), { env: { APP_ID: "client", MCP_CATALOG_ACCESS_TOKEN: "secret", MCP_CATALOG_EXPIRES_AT: expiry } })).toThrow("EXPIRES_AT");
+});
+
+it("rejects orphaned token metadata rather than dropping or redeeming it", () => {
+  for (const fields of [{ MCP_CATALOG_REFRESH_TOKEN: "refresh-secret" }, { MCP_CATALOG_EXPIRES_AT: "1000" }])
+    expect(() => bindRemoteMcpConfiguration(configuration(), { env: { APP_ID: "client", ...fields } })).toThrow("access token");
+});
+
+it("redacts invalid header values in binding errors", () => {
+  const secret = "credential-secret\nInjected: yep";
+  let error: unknown;
+  try { bindRemoteMcpConfiguration(configuration({ type: "bearer", env: "TOKEN" }), { env: { TOKEN: secret } }); } catch (caught) { error = caught; }
+  expect(error).toBeInstanceOf(Error);
+  expect(String(error)).not.toContain("credential-secret");
+  expect(String(error)).not.toContain("Injected");
+});
+
+it("completes all credential preflight before requesting a host session store", () => {
+  const config = initRemoteMcpConfiguration([{ ...server, auth: oauth }, { ...server, name: "second", auth: { type: "bearer", env: "MISSING_TOKEN" } }]).configuration;
+  const sessionStore = vi.fn(() => memoryStore());
+  expect(() => bindRemoteMcpConfiguration(config, { env: { APP_ID: "client" }, oauth: { sessionStore } })).toThrow("MISSING_TOKEN");
+  expect(sessionStore).not.toHaveBeenCalled();
+});
+
+it("bounds unique environment values without charging intentionally shared references twice", () => {
+  const config = initRemoteMcpConfiguration([{ ...server, headers: { "X-One": { env: "KEY" }, "X-Two": { env: "KEY" } } }]).configuration;
+  expect(() => bindRemoteMcpConfiguration(config, { env: { KEY: "four" }, maxCredentialBytes: 4 })).not.toThrow();
+  expect(() => bindRemoteMcpConfiguration(config, { env: { KEY: "five!" }, maxCredentialBytes: 4 })).toThrow("byte limit");
+  expect(() => bindRemoteMcpConfiguration(config, { env: {}, maxCredentialBytes: 0 })).toThrow("positive");
+});
+
+it("rejects control characters in configured scopes without including their values", () => {
+  expect(() => bindRemoteMcpConfiguration(configuration(), { env: { APP_ID: "client", MCP_CATALOG_SCOPE: "read\nsecret-scope" } })).toThrow("MCP_CATALOG_SCOPE");
+});
+
+it("uses bound credentials through generated commands and preserves supplied-schema network suppression", async () => {
+  const fetch = vi.fn<HttpTransportFetch>(async (_url, init) => {
+    expect(new Headers(init?.headers).get("Authorization")).toBe("Bearer actual-token");
+    if (init?.method === "DELETE") return new Response(null, { status: 204 });
+    if (init?.method !== "POST") return new Response(null, { status: 405 });
+    const request = JSON.parse(String(init.body));
+    if (request.method === "notifications/initialized") return new Response(null, { status: 202 });
+    return Response.json({ jsonrpc: "2.0", id: request.id, result: request.method === "initialize"
+      ? { protocolVersion: "2025-03-26", serverInfo: { name: "catalog", version: "1" }, capabilities: { tools: {} } }
+      : { content: [{ type: "text", text: "called" }] } });
+  });
+  const commands = await createRemoteMcpCommands(bindRemoteMcpConfiguration(configuration({ type: "bearer", env: "TOKEN" }), { env: { TOKEN: "actual-token" } }), { fetch });
+  expect(fetch).not.toHaveBeenCalled();
+  const shell = new Shell({ fs: createMemoryFileSystem(), commands: new CommandRegistry(commands) });
+  try { const result = await shell.exec("catalog find"); expect(result.exitCode).toBe(0); expect(JSON.parse(result.stdout).content[0].text).toBe("called"); }
+  finally { await shell.dispose(); }
+});
+
+it("refreshes an imported grant through actual discovery and reuses its persisted rotation in a new binding", async () => {
+  const metadataUrl = "https://catalog.example/.well-known/oauth-protected-resource/mcp";
+  const issuer = "https://auth.example";
+  const store = memoryStore();
+  const tokenRequests: URLSearchParams[] = [];
+  const metadataRequests: string[] = [];
+  const fetch = vi.fn<HttpTransportFetch>(async (input, init) => {
+    const url = String(input);
+    if (url === metadataUrl || url === `${issuer}/.well-known/oauth-authorization-server`) {
+      const headers = new Headers(init?.headers);
+      expect(headers.get("Accept")).toBe("application/json");
+      expect(headers.has("Authorization")).toBe(false);
+      metadataRequests.push(url);
+      return Response.json(url === metadataUrl ? { resource: server.url, authorization_servers: [issuer] } : {
+        issuer, authorization_endpoint: `${issuer}/authorize`, token_endpoint: `${issuer}/token`,
+        response_types_supported: ["code"], code_challenge_methods_supported: ["S256"]
+      });
+    }
+    if (url === `${issuer}/token`) {
+      tokenRequests.push(new URLSearchParams(String(init?.body)));
+      return Response.json({ access_token: "rotated-access", refresh_token: "rotated-refresh", token_type: "Bearer", expires_in: 3600 });
+    }
+    expect(url).toBe(server.url);
+    if (new Headers(init?.headers).get("Authorization") !== "Bearer rotated-access")
+      return new Response(null, { status: 401, headers: { "WWW-Authenticate": `Bearer resource_metadata="${metadataUrl}"` } });
+    if (init?.method === "DELETE") return new Response(null, { status: 204 });
+    if (init?.method !== "POST") return new Response(null, { status: 405 });
+    const request = JSON.parse(String(init.body));
+    if (request.method === "notifications/initialized") return new Response(null, { status: 202 });
+    return Response.json({ jsonrpc: "2.0", id: request.id, result: request.method === "initialize"
+      ? { protocolVersion: "2025-03-26", serverInfo: { name: "catalog", version: "1" }, capabilities: { tools: {} } }
+      : { content: [{ type: "text", text: "authenticated" }] } });
+  });
+  for (let run = 0; run < 2; run++) {
+    const bound = bindRemoteMcpConfiguration(configuration(), { env: {
+      APP_ID: "original-client", APP_SECRET: "original-secret", MCP_CATALOG_ACCESS_TOKEN: "expired-access", MCP_CATALOG_REFRESH_TOKEN: "original-refresh", MCP_CATALOG_EXPIRES_AT: "0"
+    }, oauth: { now: () => 1000, sessionStore: () => store } });
+    const commands = await createRemoteMcpCommands(bound, { fetch });
+    if (run === 0) expect(fetch).not.toHaveBeenCalled();
+    const shell = new Shell({ fs: createMemoryFileSystem(), commands: new CommandRegistry(commands) });
+    try { const result = await shell.exec("catalog find"); expect(result.exitCode).toBe(0); expect(result.stderr).toBe(""); }
+    finally { await shell.dispose(); }
+  }
+  expect(tokenRequests).toHaveLength(1);
+  expect(tokenRequests[0].get("client_id")).toBe("original-client");
+  expect(tokenRequests[0].get("refresh_token")).toBe("original-refresh");
+  expect(metadataRequests).toHaveLength(2);
+  expect(store.save.mock.calls.at(-1)?.[1].tokens?.refreshToken).toBe("rotated-refresh");
+});
+
+it.each(["private-token\nInjected: yep", "private-token\u0000", "private-token世界", "   "])("preflights malformed OAuth access tokens before any host store hook: %#", token => {
+  const sessionStore = vi.fn(() => memoryStore());
+  const config = initRemoteMcpConfiguration([{ ...server, auth: oauth }, { ...server, name: "second", auth: oauth }]).configuration;
+  let error: unknown;
+  try { bindRemoteMcpConfiguration(config, { env: { APP_ID: "client", MCP_SECOND_ACCESS_TOKEN: token }, oauth: { sessionStore } }); }
+  catch (caught) { error = caught; }
+  expect(error).toBeInstanceOf(Error);
+  expect(String(error)).not.toContain("private-token");
+  expect(sessionStore).not.toHaveBeenCalled();
+});
+
+it.each(["replace", "remove"])("retains the selected session factory when the first host store callback chooses to %s it", async mutation => {
+  const config = initRemoteMcpConfiguration([{ ...server, auth: oauth }, { ...server, name: "second", url: "https://second.example/mcp", auth: oauth }]).configuration;
+  const originalStores = [memoryStore(), memoryStore()], replacement = vi.fn(() => memoryStore());
+  const policy: { sessionStore?: (server: unknown) => ReturnType<typeof memoryStore> } = {};
+  const selected = vi.fn(() => {
+    if (mutation === "replace") policy.sessionStore = replacement;
+    else delete policy.sessionStore;
+    return originalStores[selected.mock.calls.length - 1];
+  });
+  policy.sessionStore = selected;
+  const bound = bindRemoteMcpConfiguration(config, { env: { APP_ID: "client", MCP_CATALOG_ACCESS_TOKEN: "catalog-grant", MCP_SECOND_ACCESS_TOKEN: "second-grant" }, oauth: policy });
+  expect(selected).toHaveBeenCalledTimes(2);
+  expect(replacement).not.toHaveBeenCalled();
+  for (const [index, current] of bound.entries()) {
+    const headers = new Headers();
+    await current.oauth!.provider.authorizeRequest!({ requestUrl: new URL(current.url), headers, fetch: vi.fn(async () => { throw new Error("unexpected network"); }) });
+    expect(headers.get("Authorization")).toBe(`Bearer ${index === 0 ? "catalog" : "second"}-grant`);
+    expect(originalStores[index].load).toHaveBeenCalled();
+  }
+});
+
+it("retains the host session factory selected before the imported-grant clock callback", async () => {
+  const store = memoryStore(), sessionStore = vi.fn(() => store);
+  const policy: { sessionStore?: () => ReturnType<typeof memoryStore>; now: () => number } = { sessionStore, now: () => { delete policy.sessionStore; return 1000; } };
+  const [bound] = bindRemoteMcpConfiguration(configuration(), {
+    env: { APP_ID: "client", MCP_CATALOG_ACCESS_TOKEN: "clock-grant", MCP_CATALOG_EXPIRES_IN: "60" }, oauth: policy
+  });
+  expect(sessionStore).toHaveBeenCalledOnce();
+  const headers = new Headers();
+  await bound.oauth!.provider.authorizeRequest!({ requestUrl: new URL(bound.url), headers, fetch: vi.fn(async () => { throw new Error("unexpected network"); }) });
+  expect(headers.get("Authorization")).toBe("Bearer clock-grant");
+  expect(store.load).toHaveBeenCalled();
+});
+
+it.each(["bearer", "header"])("captures later %s environment values before the imported-grant host clock runs", mode => {
+  const config = initRemoteMcpConfiguration([{ ...server, auth: oauth }, { ...server, name: "second", url: "https://second.example/mcp",
+    ...(mode === "bearer" ? { auth: { type: "bearer" as const, env: "SECOND_CREDENTIAL" } } : { headers: { "X-Key": { env: "SECOND_CREDENTIAL" } } }) }]).configuration;
+  const env = { APP_ID: "client", MCP_CATALOG_ACCESS_TOKEN: "catalog-grant", MCP_CATALOG_EXPIRES_IN: "60", SECOND_CREDENTIAL: "original-second-credential" };
+  const now = vi.fn(() => { env.SECOND_CREDENTIAL = "replacement-second-credential"; return 1000; });
+  const bound = bindRemoteMcpConfiguration(config, { env, oauth: { now, sessionStore: () => memoryStore() } });
+  expect(now).toHaveBeenCalledOnce();
+  expect(new Headers(bound[1].headers).get(mode === "bearer" ? "Authorization" : "X-Key"))
+    .toBe(`${mode === "bearer" ? "Bearer " : ""}original-second-credential`);
+});
+
+
+it("rejects a relative import's out-of-range clock anchor before invoking host store factories", () => {
+  const sessionStore = vi.fn(() => memoryStore()), now = vi.fn(() => -8_640_000_000_060_000);
+  expect(() => bindRemoteMcpConfiguration(configuration(), { env: { APP_ID: "client", MCP_CATALOG_ACCESS_TOKEN: "private-access",
+    MCP_CATALOG_EXPIRES_IN: "60" }, oauth: { now, sessionStore } })).toThrow("Invalid OAuth relative expiry");
+  expect(now).toHaveBeenCalledOnce(); expect(sessionStore).not.toHaveBeenCalled();
+});
+
+it.each([undefined, null])("rejects a nonnumeric relative-import clock before host stores: %s", timestamp => {
+  const sessionStore = vi.fn(() => memoryStore());
+  expect(() => bindRemoteMcpConfiguration(configuration(), { env: { APP_ID: "client", MCP_CATALOG_ACCESS_TOKEN: "private-access",
+    MCP_CATALOG_EXPIRES_IN: "1" }, oauth: { now: () => timestamp as unknown as number, sessionStore } })).toThrow("Invalid OAuth relative expiry");
+  expect(sessionStore).not.toHaveBeenCalled();
+});

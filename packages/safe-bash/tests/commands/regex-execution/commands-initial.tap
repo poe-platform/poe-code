@@ -1,0 +1,207 @@
+TAP version 13
+# Subtest: grep ordered alternatives
+ok 1 - grep ordered alternatives
+  ---
+  duration_ms: 15.132917
+  type: 'test'
+  ...
+# Subtest: grep numeric backreference capture
+ok 2 - grep numeric backreference capture
+  ---
+  duration_ms: 12.269917
+  type: 'test'
+  ...
+# Subtest: grep pattern ordering longest same-start
+ok 3 - grep pattern ordering longest same-start
+  ---
+  duration_ms: 12.316625
+  type: 'test'
+  ...
+# Subtest: grep byte dot
+ok 4 - grep byte dot
+  ---
+  duration_ms: 12.718708
+  type: 'test'
+  ...
+# Subtest: grep word filter before early return
+ok 5 - grep word filter before early return
+  ---
+  duration_ms: 11.919
+  type: 'test'
+  ...
+# Subtest: grep empty match selection no output
+ok 6 - grep empty match selection no output
+  ---
+  duration_ms: 11.512625
+  type: 'test'
+  ...
+# Subtest: grep NUL byte records
+ok 7 - grep NUL byte records
+  ---
+  duration_ms: 11.733
+  type: 'test'
+  ...
+# Subtest: rg Unicode folding
+ok 8 - rg Unicode folding
+  ---
+  duration_ms: 14.392333
+  type: 'test'
+  ...
+# Subtest: rg Unicode words
+ok 9 - rg Unicode words
+  ---
+  duration_ms: 14.81525
+  type: 'test'
+  ...
+# Subtest: rg Unicode capture
+ok 10 - rg Unicode capture
+  ---
+  duration_ms: 13.36275
+  type: 'test'
+  ...
+# Subtest: rg current named backreference
+ok 11 - rg current named backreference
+  ---
+  duration_ms: 13.095416
+  type: 'test'
+  ...
+# Subtest: rg fragments do not invent starts
+ok 12 - rg fragments do not invent starts
+  ---
+  duration_ms: 12.376709
+  type: 'test'
+  ...
+# Subtest: rg fragments do not invent ends
+ok 13 - rg fragments do not invent ends
+  ---
+  duration_ms: 12.010084
+  type: 'test'
+  ...
+# Subtest: rg fragments preserve byte offsets
+ok 14 - rg fragments preserve byte offsets
+  ---
+  duration_ms: 12.096584
+  type: 'test'
+  ...
+# Subtest: rg JS digit selection
+ok 15 - rg JS digit selection
+  ---
+  duration_ms: 11.687834
+  type: 'test'
+  ...
+# Subtest: rg empty byte count
+ok 16 - rg empty byte count
+  ---
+  duration_ms: 12.151042
+  type: 'test'
+  ...
+# Subtest: rg empty unterminated byte count
+ok 17 - rg empty unterminated byte count
+  ---
+  duration_ms: 11.872583
+  type: 'test'
+  ...
+# Subtest: rg previous-end zero-width suppression
+ok 18 - rg previous-end zero-width suppression
+  ---
+  duration_ms: 12.225458
+  type: 'test'
+  ...
+# Subtest: rg CRLF whole record
+ok 19 - rg CRLF whole record
+  ---
+  duration_ms: 11.800833
+  type: 'test'
+  ...
+# Subtest: grep validation and fragment matching never construct host RegExp
+ok 20 - grep validation and fragment matching never construct host RegExp
+  ---
+  duration_ms: 23.308
+  type: 'test'
+  ...
+# Subtest: grep preabort avoids source and worker dispatch
+ok 21 - grep preabort avoids source and worker dispatch
+  ---
+  duration_ms: 0.251042
+  type: 'test'
+  ...
+# Subtest: grep batches available rows without reading a feedback-dependent chunk
+ok 22 - grep batches available rows without reading a feedback-dependent chunk
+  ---
+  duration_ms: 26.445875
+  type: 'test'
+  ...
+# Subtest: grep releases request capacity before paused sink and VFS reads
+ok 23 - grep releases request capacity before paused sink and VFS reads
+  ---
+  duration_ms: 12.1585
+  type: 'test'
+  ...
+# Subtest: grep quiet closes source without reading another chunk
+ok 24 - grep quiet closes source without reading another chunk
+  ---
+  duration_ms: 11.561541
+  type: 'test'
+  ...
+# Subtest: rg validation and fragment matching never construct host RegExp
+ok 25 - rg validation and fragment matching never construct host RegExp
+  ---
+  duration_ms: 22.989584
+  type: 'test'
+  ...
+# Subtest: rg preabort avoids source and worker dispatch
+ok 26 - rg preabort avoids source and worker dispatch
+  ---
+  duration_ms: 0.076167
+  type: 'test'
+  ...
+# Subtest: rg batches available rows without reading a feedback-dependent chunk
+ok 27 - rg batches available rows without reading a feedback-dependent chunk
+  ---
+  duration_ms: 16.914042
+  type: 'test'
+  ...
+# Subtest: rg releases request capacity before paused sink and VFS reads
+ok 28 - rg releases request capacity before paused sink and VFS reads
+  ---
+  duration_ms: 12.086375
+  type: 'test'
+  ...
+# Subtest: rg quiet closes source without reading another chunk
+ok 29 - rg quiet closes source without reading another chunk
+  ---
+  duration_ms: 11.278584
+  type: 'test'
+  ...
+# Subtest: actual Shell pipeline composes public grep/rg options
+not ok 30 - actual Shell pipeline composes public grep/rg options
+  ---
+  duration_ms: 7.437375
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/regex-execution/commands.test.ts:1:6595'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/regex-execution/commands.test.ts:134:10)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..30
+# tests 30
+# suites 0
+# pass 29
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 601.76025

@@ -1,0 +1,16 @@
+file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/host-doubles.mjs:23
+const result={schema:1,role:'actual compiled private owner/root with synchronous importer-bound fakeWorker; NOT OS Worker proof',groups:rows,passed:rows.filter(r=>r.pass).length,workers:0,matchingCalls:0,loaded:[...new Set(loaded)].sort()};writeFileSync(new URL('./DOUBLE-RESULT.json',import.meta.url),JSON.stringify(result,null,2)+'
+                                                                                                                                                                                                                                                                                                                                            ^
+
+SyntaxError: Invalid or unexpected token
+    at compileSourceTextModule (node:internal/modules/esm/utils:346:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:107:18)
+    at #translate (node:internal/modules/esm/loader:546:20)
+    at afterLoad (node:internal/modules/esm/loader:596:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:601:12)
+    at #createModuleJob (node:internal/modules/esm/loader:624:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:343:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:311:41)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:664:25)
+
+Node.js v22.22.2

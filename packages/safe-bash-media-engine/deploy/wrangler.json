@@ -1,0 +1,48 @@
+{
+ "name": "poe-media-worker",
+ "main": "worker.ts",
+ "compatibility_date": "2026-09-14",
+ "compatibility_flags": [
+  "nodejs_compat"
+ ],
+ "workers_dev": false,
+ "preview_urls": false,
+ "services": [
+  {
+   "binding": "AUTHORIZATION",
+   "service": "poe-media-authorization"
+  }
+ ],
+ "containers": [
+  {
+   "class_name": "Sandbox",
+   "image": "../../remote-execution/cloudflare/Dockerfile",
+   "instance_type": "standard-1",
+   "max_instances": 1
+  }
+ ],
+ "durable_objects": {
+  "bindings": [
+   {
+    "name": "Sandbox",
+    "class_name": "Sandbox"
+   },
+   {
+    "name": "COMMAND_JOURNAL",
+    "class_name": "CommandJournal"
+   }
+  ]
+ },
+ "migrations": [
+  {
+   "tag": "v1",
+   "new_sqlite_classes": [
+    "Sandbox",
+    "CommandJournal"
+   ]
+  }
+ ],
+ "vars": {
+  "SANDBOX_TRANSPORT": "rpc"
+ }
+}

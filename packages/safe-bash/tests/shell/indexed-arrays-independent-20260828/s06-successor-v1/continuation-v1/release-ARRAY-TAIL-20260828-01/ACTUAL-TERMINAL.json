@@ -1,0 +1,18 @@
+{
+  "kind": "actual-coordinator-tool-observation-not-reconstructed-child-output",
+  "sessionId": 30752,
+  "coordinatorExitCode": 0,
+  "terminal": {
+    "receipt": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/continuation-v1/RUN-ARRAY-TAIL-20260828-01/records/FINAL.json",
+      "sha256": "27c8810f06b621fff64664cc3e6ec4abed716f26e396a75f5d689bbe9c9867b9"
+    },
+    "accepted": true,
+    "unsafeStop": false,
+    "elapsedBeforeAnnouncementMs": 71850.226084,
+    "work": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/continuation-v1/RUN-ARRAY-TAIL-20260828-01",
+    "childrenRetired": true,
+    "requiresZeroCoordinatorExit": true
+  },
+  "qualification": "One actual authorized continuation; no retry. Terminal accepted is the sealed affected-tail predicate, not overall array/module acceptance. Evidence packaging is subsequent DATA-only reporting, not another candidate execution."
+}

@@ -1,0 +1,20 @@
+{
+  "name": "shared-executor-sibling-isolation",
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/search-stress/direct-stdin-close-review/.work/baseline-01/moved-consumer/consumer.mjs",
+    "shared-executor-sibling-isolation"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/search-stress/direct-stdin-close-review/.work/baseline-01/moved-consumer",
+  "elapsedMs": 30054,
+  "pid": 75937,
+  "status": null,
+  "signal": "SIGKILL",
+  "error": "spawnSync /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node ETIMEDOUT",
+  "naturalExit": false,
+  "pass": false,
+  "failures": [
+    "no-json-outcome"
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "schema": "cd-ratification-membership/v1",
+  "directoryMode": 493,
+  "files": {
+    "BINDING.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 8297,
+      "sha256": "3217df4e16fcdca554c90fb0572a709cf24904424628c1e973cb6857dac3fc29"
+    },
+    "HANDOFF.md": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 3895,
+      "sha256": "a811026d782f7b117a8fc9716e3e9f76e7b61efd28956f54ca8766afd938b41e"
+    },
+    "verify.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 6973,
+      "sha256": "ebd80dfdbc37bf88499f0aa3f0f8c931541de3eee9cde81811200facb8739c75"
+    }
+  },
+  "selfExclusion": [
+    "MANIFEST.json"
+  ],
+  "selfBinding": "The explicit binding commit authenticates MANIFEST.json; no other append exclusions, including empty directories."
+}

@@ -1,0 +1,14 @@
+{
+  "id": "cleanup-register-before-admit",
+  "families": [
+    "F08"
+  ],
+  "observation": {
+    "thrown": {
+      "code": "ADMISSION_CLOSED",
+      "name": "Error",
+      "message": "ADMISSION_CLOSED"
+    }
+  },
+  "classification": "SYNTHETIC_CONTROL_OBSERVATION_BEFORE_ASSERTION"
+}

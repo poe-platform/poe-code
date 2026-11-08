@@ -1,0 +1,514 @@
+{
+  "source": {
+    "arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+    "display.ts": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+    "index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+    "input.ts": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+    "locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+    "parser.ts": "28492059750ba7f11fad563dfc03dba049f232b3f2212186cf3553e4559ae905",
+    "pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+    "runtime.ts": "c7c9d02ddde5576b7810bfecbbd21b70c6eb2c0ea4fe1ee8bee92c21946d8449",
+    "shell.ts": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+    "types.ts": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d"
+  },
+  "casesHash": "2b01e6cb1fe97f4b105fe3398a3bfb5100550e0e7845e7d5959a1e39d470bc32",
+  "locale": "C",
+  "osArgv0": "bash",
+  "commandName": "shell",
+  "cat": {
+    "executable": "/bin/cat",
+    "sha256": "580599dd318fa34bb0f91c29106894852c49c3a3df724b637113df95c6758fe6"
+  },
+  "profiles": [
+    {
+      "name": "GNU-5.3",
+      "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "version": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software; you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n",
+      "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+      "rows": [
+        {
+          "name": "blank-separator",
+          "expected": {
+            "stdout": "PGFiYz4=",
+            "stderr": "c2hlbGw6IGxpbmUgNzogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "comments",
+          "expected": {
+            "stdout": "PGFiYz4=",
+            "stderr": "c2hlbGw6IGxpbmUgNzogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "leading-blank",
+          "expected": {
+            "stdout": "PGFiYz4=",
+            "stderr": "c2hlbGw6IGxpbmUgNzogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "semicolon-newlines",
+          "expected": {
+            "stdout": "PGFiYz4=",
+            "stderr": "c2hlbGw6IGxpbmUgNTogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "and-continuation",
+          "expected": {
+            "stdout": "PGFiYz4=",
+            "stderr": "c2hlbGw6IGxpbmUgNTogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "or-continuation",
+          "expected": {
+            "stdout": "PGFiYz4=",
+            "stderr": "c2hlbGw6IGxpbmUgNTogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "pipe-continuation",
+          "expected": {
+            "stdout": "PGFiYz4=",
+            "stderr": "c2hlbGw6IGxpbmUgNTogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "quoted-newlines",
+          "expected": {
+            "stdout": "PGFiYz4=",
+            "stderr": "c2hlbGw6IGxpbmUgMTA6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo=",
+            "status": 0,
+            "files": {
+              "scratch": "Zmlyc3QKCmxhc3Q="
+            }
+          }
+        },
+        {
+          "name": "first-word-newline",
+          "expected": {
+            "stdout": "PGFiYz4=",
+            "stderr": "c2hlbGw6IGxpbmUgODogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "escaped-newline",
+          "expected": {
+            "stdout": "PGFiYz4=",
+            "stderr": "c2hlbGw6IGxpbmUgNzogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "three-level",
+          "expected": {
+            "stdout": "PGFiYz4=",
+            "stderr": "c2hlbGw6IGxpbmUgMTE6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo=",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "named-dollar",
+          "expected": {
+            "stdout": "PGFiYz4=",
+            "stderr": "bmFtZWQtc291cmNlOiBsaW5lIDE6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo=",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "named-backtick",
+          "expected": {
+            "stdout": "PGFiYz4=",
+            "stderr": "c291cmNlIHdpdGggc3BhY2VzOiBsaW5lIDE6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo=",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "two-warnings",
+          "expected": {
+            "stdout": "YWJjL2FiYw==",
+            "stderr": "dHdvLXNvdXJjZTogbGluZSAxOiB3YXJuaW5nOiBjb21tYW5kIHN1YnN0aXR1dGlvbjogaWdub3JlZCBudWxsIGJ5dGUgaW4gaW5wdXQKdHdvLXNvdXJjZTogbGluZSAyOiB3YXJuaW5nOiBjb21tYW5kIHN1YnN0aXR1dGlvbjogaWdub3JlZCBudWxsIGJ5dGUgaW4gaW5wdXQK",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "file-context",
+          "expected": {
+            "stdout": "YWJj",
+            "stderr": "Li9wcm9ncmFtOiBsaW5lIDI6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo=",
+            "status": 0,
+            "files": {
+              "program": "Ogp2YWx1ZT0kKHByaW50ZiAnYVwwYlwwYycpOyBwcmludGYgJyVzJyAiJHZhbHVlIg=="
+            }
+          }
+        },
+        {
+          "name": "dot-context",
+          "expected": {
+            "stdout": "YWJj",
+            "stderr": "Li9wcm9ncmFtOiBsaW5lIDI6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo=",
+            "status": 0,
+            "files": {
+              "program": "Ogp2YWx1ZT0kKHByaW50ZiAnYVwwYlwwYycpOyBwcmludGYgJyVzJyAiJHZhbHVlIg=="
+            }
+          }
+        },
+        {
+          "name": "source-context",
+          "expected": {
+            "stdout": "YWJj",
+            "stderr": "Li9wcm9ncmFtOiBsaW5lIDI6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo=",
+            "status": 0,
+            "files": {
+              "program": "Ogp2YWx1ZT0kKHByaW50ZiAnYVwwYlwwYycpOyBwcmludGYgJyVzJyAiJHZhbHVlIg=="
+            }
+          }
+        },
+        {
+          "name": "eval-context",
+          "expected": {
+            "stdout": "YWJj",
+            "stderr": "ZXZhbC1zb3VyY2U6IGxpbmUgMjogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "function-context",
+          "expected": {
+            "stdout": "YWJj",
+            "stderr": "ZnVuY3Rpb24tc291cmNlOiBsaW5lIDE6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo=",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "source-function-context",
+          "expected": {
+            "stdout": "YWJj",
+            "stderr": "Li9wcm9ncmFtOiBsaW5lIDE6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo=",
+            "status": 0,
+            "files": {
+              "program": "ZW1pdCgpIHsgdmFsdWU9JChwcmludGYgJ2FcMGJcMGMnKTsgcHJpbnRmICclcycgIiR2YWx1ZSI7IH0="
+            }
+          }
+        },
+        {
+          "name": "backtick-blank-control",
+          "expected": {
+            "stdout": "YWJj",
+            "stderr": "c2hlbGw6IGxpbmUgNjogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "named-line-context",
+          "expected": {
+            "stdout": "YWJj",
+            "stderr": "bmFtZWQtbGluZXM6IGxpbmUgNjogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "source-line-context",
+          "expected": {
+            "stdout": "YWJj",
+            "stderr": "Li9wcm9ncmFtOiBsaW5lIDY6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo=",
+            "status": 0,
+            "files": {
+              "program": "Ogp2YWx1ZT0kKDoKCnByaW50ZiAnJXMnICIkKHByaW50ZiAnYVwwYlwwYycpIgopOyBwcmludGYgJyVzJyAiJHZhbHVlIg=="
+            }
+          }
+        },
+        {
+          "name": "eval-line-context",
+          "expected": {
+            "stdout": "YWJj",
+            "stderr": "c2hlbGw6IGxpbmUgNjogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "binary-stream-control",
+          "expected": {
+            "stdout": "YQBi",
+            "stderr": "eAB5",
+            "status": 0,
+            "files": {}
+          }
+        }
+      ]
+    },
+    {
+      "name": "historical-3.2",
+      "executable": "/bin/bash",
+      "version": "GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)\nCopyright (C) 2007 Free Software Foundation, Inc.\n",
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "rows": [
+        {
+          "name": "blank-separator",
+          "expected": {
+            "stdout": "PGFiYz4=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "comments",
+          "expected": {
+            "stdout": "PGFiYz4=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "leading-blank",
+          "expected": {
+            "stdout": "PGFiYz4=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "semicolon-newlines",
+          "expected": {
+            "stdout": "PGFiYz4=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "and-continuation",
+          "expected": {
+            "stdout": "PGFiYz4=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "or-continuation",
+          "expected": {
+            "stdout": "PGFiYz4=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "pipe-continuation",
+          "expected": {
+            "stdout": "PGFiYz4=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "quoted-newlines",
+          "expected": {
+            "stdout": "PGFiYz4=",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "scratch": "Zmlyc3QKCmxhc3Q="
+            }
+          }
+        },
+        {
+          "name": "first-word-newline",
+          "expected": {
+            "stdout": "PGFiYz4=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "escaped-newline",
+          "expected": {
+            "stdout": "PGFiYz4=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "three-level",
+          "expected": {
+            "stdout": "PGFiYz4=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "named-dollar",
+          "expected": {
+            "stdout": "PGFiYz4=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "named-backtick",
+          "expected": {
+            "stdout": "PGFiYz4=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "two-warnings",
+          "expected": {
+            "stdout": "YWJjL2FiYw==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "file-context",
+          "expected": {
+            "stdout": "YWJj",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "program": "Ogp2YWx1ZT0kKHByaW50ZiAnYVwwYlwwYycpOyBwcmludGYgJyVzJyAiJHZhbHVlIg=="
+            }
+          }
+        },
+        {
+          "name": "dot-context",
+          "expected": {
+            "stdout": "YWJj",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "program": "Ogp2YWx1ZT0kKHByaW50ZiAnYVwwYlwwYycpOyBwcmludGYgJyVzJyAiJHZhbHVlIg=="
+            }
+          }
+        },
+        {
+          "name": "source-context",
+          "expected": {
+            "stdout": "YWJj",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "program": "Ogp2YWx1ZT0kKHByaW50ZiAnYVwwYlwwYycpOyBwcmludGYgJyVzJyAiJHZhbHVlIg=="
+            }
+          }
+        },
+        {
+          "name": "eval-context",
+          "expected": {
+            "stdout": "YWJj",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "function-context",
+          "expected": {
+            "stdout": "YWJj",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "source-function-context",
+          "expected": {
+            "stdout": "YWJj",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "program": "ZW1pdCgpIHsgdmFsdWU9JChwcmludGYgJ2FcMGJcMGMnKTsgcHJpbnRmICclcycgIiR2YWx1ZSI7IH0="
+            }
+          }
+        },
+        {
+          "name": "backtick-blank-control",
+          "expected": {
+            "stdout": "YWJj",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "named-line-context",
+          "expected": {
+            "stdout": "YWJj",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "source-line-context",
+          "expected": {
+            "stdout": "YWJj",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "program": "Ogp2YWx1ZT0kKDoKCnByaW50ZiAnJXMnICIkKHByaW50ZiAnYVwwYlwwYycpIgopOyBwcmludGYgJyVzJyAiJHZhbHVlIg=="
+            }
+          }
+        },
+        {
+          "name": "eval-line-context",
+          "expected": {
+            "stdout": "YWJj",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "binary-stream-control",
+          "expected": {
+            "stdout": "YQBi",
+            "stderr": "eAB5",
+            "status": 0,
+            "files": {}
+          }
+        }
+      ]
+    }
+  ]
+}

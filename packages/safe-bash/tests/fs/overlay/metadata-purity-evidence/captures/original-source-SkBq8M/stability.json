@@ -1,0 +1,10 @@
+{
+  "finishedAt": "2026-08-27T18:13:28.415Z",
+  "head": "8e950bd846f69b86f851d2a901e62e0b3bb92ded",
+  "changed": [],
+  "addedFiles": [
+    "node-compile-cache/v22.22.2-arm64-2b4477fa-501/42fceb84"
+  ],
+  "liveChanged": [],
+  "scope": "all copied input paths plus new non-node_modules runtime files; empty directories and installed tooling excluded"
+}

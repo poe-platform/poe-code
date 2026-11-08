@@ -1,0 +1,3 @@
+const unavailable = process.getBuiltinModule('worker_threads');
+if (unavailable !== undefined) throw new Error('STUB_NATIVE_WORKERS_AVAILABLE');
+export const workersUnavailable = true;

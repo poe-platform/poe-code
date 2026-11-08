@@ -1,0 +1,17 @@
+{
+  "id": "08-function-spread-profile",
+  "pid": 32808,
+  "started": 1787847593974,
+  "deadline": 1787847603974,
+  "timedOut": false,
+  "outputExceeded": false,
+  "code": 0,
+  "signal": null,
+  "closed": 1787847595165,
+  "parentAfter": {
+    "pid": 32545,
+    "at": "2026-08-27T16:19:55.165Z",
+    "alive": true,
+    "knownLiveChildren": []
+  }
+}

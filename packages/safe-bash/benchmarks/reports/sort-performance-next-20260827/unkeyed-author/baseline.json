@@ -1,0 +1,51 @@
+{
+  "commit": "dce6e3824d6de6d03490a531cf2bc7d2d279bb8c",
+  "tree": "ba4c35fdbd3c6a1c7717249def3f955daace3c8b",
+  "status": " M src/commands/column/column.ts\n M src/commands/column/internal.ts\n M src/commands/grep-aliases/index.ts\n M src/shell/runtime.ts\n?? tests/commands/column-stress/handoff-20260827/\n?? tests/commands/column-stress/owned-regressions.test.ts\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/grep-aliases-stress/verification/ATTEMPTS.md\n?? tests/commands/grep-aliases-stress/verification/ROOT-BLOCKER.md\n?? tests/commands/grep-aliases-stress/verification/attempts/\n?? tests/commands/grep-aliases-stress/verification/execution-plan.md\n?? tests/commands/grep-aliases-stress/verification/freeze-pack.mjs\n?? tests/commands/grep-aliases-stress/verification/holdouts.mts\n?? tests/commands/grep-aliases-stress/verification/public-consumer.mts\n?? tests/commands/grep-aliases-stress/verification/run-standalone.mjs\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/integration/full-gate-20260827/combined-8670ebe8/attempt-v4/\n?? tests/integration/safejs-owned-output-prototype-review/receipt-review/\n?? tests/shell-stress/env-shebang-integration-review/baseline-v2-6fce94f8/\n?? tests/shell/env-shebang.test.ts\n",
+  "index": "",
+  "files": [
+    {
+      "path": "src/commands/text.ts",
+      "sha256": "08a27afc45d2f5a48b082cc2c979e3a13d01fbef42129bc0e72d5477d56a074d",
+      "liveSha256": "08a27afc45d2f5a48b082cc2c979e3a13d01fbef42129bc0e72d5477d56a074d",
+      "acceptedSha256": "08a27afc45d2f5a48b082cc2c979e3a13d01fbef42129bc0e72d5477d56a074d"
+    },
+    {
+      "path": "src/commands/internal.ts",
+      "sha256": "ade20c95a7d3dac5250a214d112ab25d710ce7909a4c6605f18ee21781949654",
+      "liveSha256": "ade20c95a7d3dac5250a214d112ab25d710ce7909a4c6605f18ee21781949654",
+      "acceptedSha256": "ade20c95a7d3dac5250a214d112ab25d710ce7909a4c6605f18ee21781949654"
+    }
+  ],
+  "selectedInputs": [
+    {
+      "path": "benchmarks/reports/sort-performance-next-20260827/README.md",
+      "sha256": "58ae81871df8be7b4273945320c85adc09d6c2e1f537b7d184ca3f6f8ebcddf7"
+    },
+    {
+      "path": "benchmarks/reports/sort-performance-next-20260827/ACCEPTANCE.md",
+      "sha256": "14b5687c812f9aabbb7d6a61b17f570f8dc07222da867f60e1eca4647f376993"
+    },
+    {
+      "path": "benchmarks/reports/sort-performance-next-20260827/workloads.json",
+      "sha256": "3d99fdebe7262d3fcce473e96af7ddbe6bb27b1fe17886657cddc8d32e8c0504"
+    },
+    {
+      "path": "benchmarks/reports/sort-performance-next-20260827/inputs.json",
+      "sha256": "70b84d1cfb77b5e62c65212a4140fc7eb9a5abbcb47940cdf02466d1696aa78c"
+    },
+    {
+      "path": "benchmarks/reports/sort-performance-next-20260827/worker.mjs",
+      "sha256": "d4d8685529676fa207efcb3dd19639687c1580f37e7a4b33c47dc930c0fffbc1"
+    },
+    {
+      "path": "benchmarks/reports/sort-performance-next-20260827/run.mjs",
+      "sha256": "56d172356987f053ba5f5d1ecc6038ec8ad3f36f8846adf0d16591be7cffa132"
+    },
+    {
+      "path": "benchmarks/reports/sort-performance-next-20260827/MANIFEST.json",
+      "sha256": "46793290685dc25d50eac5ab96aaa3b17116853c71f997fcdf25c8afd39710d6"
+    }
+  ],
+  "setupNote": "First marker preparation hit execFileSync default maxBuffer on workloads.json; no files written and no workloads executed. Retried with 32MiB read bound."
+}

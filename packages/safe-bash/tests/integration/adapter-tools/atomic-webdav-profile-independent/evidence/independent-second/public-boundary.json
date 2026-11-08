@@ -1,0 +1,29 @@
+{
+  "boundary": "independent-atomic-dav-consumer",
+  "resolved": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe/consumer/node_modules/virtual-bash/dist/index.js",
+  "aggregate": true,
+  "requiredNames": [
+    "cat",
+    "cp",
+    "find",
+    "mkdir",
+    "mv",
+    "printf",
+    "pwd",
+    "rm",
+    "rmdir",
+    "sort",
+    "tee",
+    "test",
+    "touch",
+    "xargs",
+    "sed",
+    "awk",
+    "jq",
+    "rg",
+    "sha256sum",
+    "gzip",
+    "diff",
+    "patch"
+  ]
+}

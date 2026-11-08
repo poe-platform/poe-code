@@ -1,0 +1,28 @@
+{
+  "revision": "405766cba",
+  "source": "existing original authored qa-typescript fixtures; fresh public SDK PDF conversion with explicit AST resources",
+  "tools": {
+    "chrome": "152.0.7977.84",
+    "pymupdf": "1.26.4",
+    "mupdf": "1.26.7",
+    "docutils": "0.21.2"
+  },
+  "files": {
+    "cli-final.json": "5ce8f9e127a612a79b550d6fb7ff97fc345d1b9fdf6d038df73d43bc7eb34674",
+    "cli-help.png": "f0998f63e8343244db82479c8a5a09ffbbb6833330fff639d2919f3980631711",
+    "cli-workflows.png": "cbc0cf409a82392d42696e9603ca7eb137479d645ce560bfc5be338fff628c84",
+    "cli.json": "7e683de87536303928b638f3c4f97a0cbc8437204032b1b4c3da5ad664c5bf58",
+    "generated.pdf": "276b4e7e92f3a49139588b0f783f80af2bdf4e720d04d5f9ab2e9a84b9069cf5",
+    "html.png": "299e502aab93f6c40c844e3879943f3e6e5cd3a46ec0ffa0d2bd6e5157146d89",
+    "pdf-1.png": "13939100c02069b25b7d4a472472dea26124d5913e05436bb191ef0ee9ccb8b5",
+    "pdf-2.png": "d4aae3049a534a121d0aa7e3bafc15c2b5c3d02fb7fef327600e91256a076629",
+    "pdf-3.png": "9467478f307122bc01331b5fa82b28477b80cf9ac3121ae4b93c462095e3bea1",
+    "pdf-4.png": "00480a38ecae2d1ac3c4c74e7c50b3681d730c0b9cbe546130380e9f4b0d82d5",
+    "pdf-5.png": "dc538f582345d67a28e850b3857f274121d46437fc6ee67451a396750e4a5391",
+    "pdf-conversion.json": "cd9be555cfd2cd38c956367ec1d399a86c555762f9892af58a9dde4c895f3bc9",
+    "pdf.json": "586669e38f986bace210720896809646931814c89c42c97b192b8dd99889abe9",
+    "results.md": "5b9a5e5aff98f35870d3804a43e36d06af2a063375a2a57959900081f2aba2f8",
+    "rst.html": "f145b0f4a93e558b316750d72ada5417f8c6110c0129b351feb8180c04dd643a",
+    "sdk.json": "dc2f744837cff3dc66116ab977e7b3886e4d756516e4f51ce92f9de5497195b7"
+  }
+}

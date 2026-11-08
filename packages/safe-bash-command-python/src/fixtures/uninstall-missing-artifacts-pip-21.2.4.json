@@ -1,0 +1,43 @@
+{
+  "pip": "21.2.4",
+  "llm": "0.27.1",
+  "wheelsRemoved": true,
+  "rows": [
+    {
+      "name": "worker-fixture",
+      "flags": [],
+      "stdin": "n\n",
+      "exitCode": 0,
+      "stdout": "Found existing installation: worker-fixture 1.0\nUninstalling worker-fixture-1.0:\n  Would remove:\n    <site>/worker_fixture-1.0.dist-info/*\n    <site>/worker_fixture/*\nProceed (Y/n)? ",
+      "stderr": ""
+    },
+    {
+      "name": "worker-fixture",
+      "flags": [],
+      "stdin": "y\n",
+      "exitCode": 0,
+      "stdout": "Found existing installation: worker-fixture 1.0\nUninstalling worker-fixture-1.0:\n  Would remove:\n    <site>/worker_fixture-1.0.dist-info/*\n    <site>/worker_fixture/*\nProceed (Y/n)?   Successfully uninstalled worker-fixture-1.0\n",
+      "stderr": ""
+    },
+    {
+      "name": "worker-dependency",
+      "flags": [
+        "-y"
+      ],
+      "stdin": "",
+      "exitCode": 0,
+      "stdout": "Found existing installation: worker-dependency 1.0\nUninstalling worker-dependency-1.0:\n  Successfully uninstalled worker-dependency-1.0\n",
+      "stderr": ""
+    },
+    {
+      "name": "worker-fixture",
+      "flags": [
+        "-y"
+      ],
+      "stdin": "",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "WARNING: Skipping worker-fixture as it is not installed.\n"
+    }
+  ]
+}

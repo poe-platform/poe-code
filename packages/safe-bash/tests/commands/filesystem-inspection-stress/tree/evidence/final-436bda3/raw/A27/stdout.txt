@@ -1,0 +1,1 @@
+{"id":"A27","status":"pass","evidence":{"exitCode":1,"acceptedBytes":71,"diagnostics":"errors  [permission denied, readdir '/errors']\n\n0 directories, 0 files\ntree: errors: permission denied, readdir '/errors'\n"}}

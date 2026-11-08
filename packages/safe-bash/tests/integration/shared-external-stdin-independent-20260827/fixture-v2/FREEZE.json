@@ -1,0 +1,96 @@
+{
+  "schema": 1,
+  "candidate": "f8819e9d6b6d535b0626e0aa004bb10a7bc36785",
+  "priorEvidence": "d9a58cdc1d4fee159e21c76c708267628767bbf4",
+  "provisionalFixture": "92f7626200d1509cf0efe17e4ee6c3d558f3a277",
+  "columnFixture": "79f0f91717a4e3df328981c7d4988b129c417706",
+  "originals": [
+    {
+      "path": "probe.mjs",
+      "size": 17835,
+      "sha256": "1bc6421bf27e5dc6a32a162e7f02ab6d4c324c0a666bd31fca6ace95ef9123a9"
+    },
+    {
+      "path": "cases.mjs",
+      "size": 4898,
+      "sha256": "5bcaeaea781111d067df0041f7948a48d578c955c2c5d32f2859f4ce9ccc2bea"
+    },
+    {
+      "path": "loader.mjs",
+      "size": 1074,
+      "sha256": "8008029a4d0771c217f96c617dd7f781acbbc52e3f0f74bed1e60b8e9873ca9e"
+    },
+    {
+      "path": "column-close.mjs",
+      "size": 2899,
+      "sha256": "d523338fef6ac87219baf6024b6a9dddf3bf86769070b63a1408fc2bcaf55c74"
+    }
+  ],
+  "executionFiles": [
+    "cases.mjs",
+    "probe.mjs",
+    "loader.mjs",
+    "column-close.mjs",
+    "probe-wrong-primary.mjs",
+    "column-wrong-code.mjs"
+  ],
+  "files": [
+    {
+      "path": "DELTA.diff",
+      "size": 1164,
+      "sha256": "e30f05bc98707b8c6ba02cf25d89d5be3e3d5167f248e58690bc24cf9d5e86f2"
+    },
+    {
+      "path": "FREEZE.md",
+      "size": 3283,
+      "sha256": "b01e9f49b425099333f0a01ec12d9bfaa10e64fe4e2cf6541abd575aae991101"
+    },
+    {
+      "path": "NEGATIVE.diff",
+      "size": 562,
+      "sha256": "e70989addaa5d7fc47d52b993436a1ed2427fe9f15b1c6af412f07888f59d154"
+    },
+    {
+      "path": "cases.mjs",
+      "size": 4936,
+      "sha256": "ec666e7d220dac0d306fb01c7dd40efd97f895256bd40211e617101dad8928d1"
+    },
+    {
+      "path": "column-close.mjs",
+      "size": 2913,
+      "sha256": "9a84909549ac7204e5161dd08d842f68916c65925eed2fb11ff33a6bacd45616"
+    },
+    {
+      "path": "column-wrong-code.mjs",
+      "size": 2911,
+      "sha256": "a34f4fc0206f71e205c28766e6159fc48e4cc2f108043afe9be5f0452a158110"
+    },
+    {
+      "path": "loader.mjs",
+      "size": 1074,
+      "sha256": "8008029a4d0771c217f96c617dd7f781acbbc52e3f0f74bed1e60b8e9873ca9e"
+    },
+    {
+      "path": "probe-wrong-primary.mjs",
+      "size": 17973,
+      "sha256": "ee8fcb850ceadb896cbd1eac49fcb56f314aea57796498833b2e2587715c5b7b"
+    },
+    {
+      "path": "probe.mjs",
+      "size": 18004,
+      "sha256": "a338b2a40e8f24e0558f6171208ea062a3c866badd9259c2f5d78c0f791fbfe4"
+    },
+    {
+      "path": "run.mjs",
+      "size": 15710,
+      "sha256": "8d777a6ab25e219213fd268801761a609fe6d681f7e6b64f2f2a6caea24652dd"
+    }
+  ],
+  "negativeAssertions": {
+    "executions": 3,
+    "rows": 8,
+    "sourceMutants": 0
+  },
+  "reviewer": "WAITING",
+  "publicIntegration": "HOLD"
+}

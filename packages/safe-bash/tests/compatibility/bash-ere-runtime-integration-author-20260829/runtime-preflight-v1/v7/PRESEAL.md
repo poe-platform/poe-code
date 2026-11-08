@@ -1,0 +1,11 @@
+# V7 author-only event-writer repair
+
+Role switch is explicit: this is harness AUTHOR work; independent review is required. Preserve v4/v6 and747da3ec. Frozen70 definitions/210 cells,309 Worker proposal and da4e/full1002 package unchanged. No product/Worker/native/compiler/build/install activity.
+
+Three PURE helper roles maximum: source preparation/binding, fixed writer controls, final source/data evidence (no extra runtime). Twelve fixed groups C01–C12: short Unicode writes; typed invalid/zero write counts; partial-write then raw0; cumulative cap boundary; UTF8 admission; serialization false; body/close raw precedence; close-first undefined; all cleanup attempts; audit failure; integrated synthetic terminal/close outcome; NEW source-literal assertion/control version. The old novel8 and its escaped-newline failure are not rescored. All fake writers are in-memory; zero live child fixtures or Workers.
+
+Direct file capture before helpers, own scoped metadata and explicit --only commits. Twenty-minute deadline from bootstrap,48 known OS/peak3,64MiB capture384MiB logical work. Planned <=30 roles including source patch, syntax/prepare, preseal add/commit, controls and final evidence/publication;18 reserve. No automatic actual210 activation. Actual administrative roles/observations reported, not reservations passed off as census.
+
+Writer encodes JSON under the fixed trusted-cell profile, computes exact UTF8 length before file writes and encoded Buffer allocation, reserves the entire record before its first write, and never rolls back admitted bytes after partial failure. No atomic-write assumption. Original object serialization can allocate a temporary string; no constant-memory/RSS claim. Failures remain sticky, raw in-memory primary identity separate from bounded typed JSON representation. Sixteen secondary slots; any omitted count explicit.
+
+Integration changes only acquisition/capture/finalization, not the body between the original try entry and catch. Independent cleanup actions continue after earlier failures. Close outcome is included in a separately bounded final audit on captured stderr; dispatch must reconcile it before credit. Exact new layout identities and final dispatch are NOT yet materialized, and this source packet cannot authorize old wiring.

@@ -1,0 +1,40 @@
+import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { lstatSync, readFileSync, readdirSync } from 'node:fs';
+import { dirname, join, relative, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+const here = dirname(fileURLToPath(import.meta.url)), repository = resolve(here, '../../..');
+const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+const json = path => JSON.parse(readFileSync(join(here, path)));
+const entries = {};
+function visit(directory) { for (const name of readdirSync(directory).sort()) { const path = join(directory, name), key = relative(here, path), stat = lstatSync(path); assert.equal(stat.isSymbolicLink(), false); if (stat.isDirectory()) { entries[key + '/'] = 'directory'; visit(path); } else { assert.ok(stat.isFile()); if (key !== 'MANIFEST.json') entries[key] = hash(readFileSync(path)); } } }
+visit(here); assert.deepEqual(entries, json('MANIFEST.json').entries);
+const report = json('attempt-2/RESULT.json');
+assert.equal(report.candidateRevision, 'f8819e9d6b6d535b0626e0aa004bb10a7bc36785');
+assert.equal(report.runnerSha256, hash(readFileSync(join(here, 'run.mjs'))));
+assert.equal(report.error, undefined); assert.equal(report.cleaned, true); assert.equal(report.authorOnly, true);
+const blob = (revision, path) => execFileSync('git', ['--no-replace-objects', 'show', `${revision}:${path}`], { cwd: repository });
+assert.equal(hash(blob(report.candidateRevision, 'tests/shell/input-return-cleanup.test.ts')), report.regressionSha256);
+assert.equal(hash(blob('8aa4db42', 'tests/integration/shared-external-stdin-review-20260827/probe.mjs')), report.originalProbeSha256);
+assert.deepEqual(blob(report.parent, 'src/shell/input.ts'), blob('eaed12f8', 'src/shell/input.ts'));
+for (const profile of report.profiles) {
+  assert.equal(profile.inventoryUnchangedIncludingNewEntries, true);
+  assert.deepEqual(json(`attempt-2/${profile.label}/AFTER.json`), json(`attempt-2/${profile.label}/BUILT.json`));
+  assert.deepEqual(profile.unchanged, { tests: 63, pass: 63, fail: 0, cancelled: 0, skipped: 0, todo: 0 });
+  assert.equal(profile.focused.tests, 22); assert.equal(profile.focused.pass, profile.label === 'before' ? 7 : 22);
+  assert.equal(profile.focused.fail, profile.label === 'before' ? 15 : 0);
+  const inputs = json(`attempt-2/${profile.label}/SOURCE.json`);
+  assert.equal(inputs['src/shell/input.ts'].sha256, hash(blob(profile.revision, 'src/shell/input.ts')));
+  assert.equal(inputs['tests/shell/input-return-cleanup.test.ts'].sha256, report.regressionSha256);
+  assert.ok(profile.commands.every(command => command.signal === null && command.error === null));
+  assert.equal(json(`attempt-2/${profile.label}/ORIGINAL-COLUMN.json`).acceptance, 'HOLD');
+}
+const before = json('attempt-2/before/ORIGINAL-CASES.json'), after = json('attempt-2/after/ORIGINAL-CASES.json');
+assert.deepEqual(before.unhandled, []); assert.deepEqual(after.unhandled, []);
+assert.deepEqual(after.cases.filter(row => !row.observationVerified).map(row => row.name).sort(), before.cases.filter(row => row.behaviorAccepted === false).map(row => row.name).sort());
+assert.equal(after.counts.unexpected, 9); assert.equal(after.counts.verified, 25);
+const original = json('attempt-1/RESULT.json');
+assert.equal(original.candidateRevision, '3af3f62890c528bd40da56514e4b08f44b2e6cf0');
+assert.ok(original.error); assert.equal(hash(readFileSync(join(here, 'attempt-1/run.mjs.txt'))), original.runnerSha256);
+console.log(JSON.stringify({ sealed: true, authorFocused: '22/22', unchanged: '63/63', originalDefectCharacterizationsChanged: 9, failedIntermediatePreserved: true, independentAcceptance: false }));

@@ -1,0 +1,20 @@
+import { expect, it, vi } from 'vitest';
+import { PagedStorage } from '@poe-code/safe-fs/storage';
+import { createMemoryFileSystem } from '@poe-code/safe-fs';
+import { RetainedValues, literal, equal } from './retained-values.js';
+vi.mock('@noble/hashes/sha2.js', () => ({ sha256: { create: () => ({ update() {}, digest: () => new Uint8Array(32) }) } }));
+it('resolves hash collisions through exact caller-backed keys and preserves namespaces', async () => {
+  const fs = createMemoryFileSystem(), signal = new AbortController().signal;
+  const pages = new PagedStorage({ fs, cwd: '/', env: {}, signal }, 1);
+  const values = new RetainedValues(pages, () => {}, signal);
+  const a = await values.store(literal('a')), b = await values.store(literal('b'));
+  expect(await values.insert('one', a, b)).toBe(true);
+  expect(await values.insert('one', b, a)).toBe(true);
+  expect(await values.insert('one', a, a)).toBe(false);
+  expect(await values.insert('two', a, a)).toBe(true);
+  expect(await equal(values.read((await values.find('one', () => literal('a')))! ), literal('b'))).toBe(true);
+  expect(await equal(values.read((await values.find('one', () => literal('b')))! ), literal('a'))).toBe(true);
+  expect(await equal(values.read((await values.find('two', () => literal('a')))! ), literal('a'))).toBe(true);
+  expect(await values.find('one', () => literal('c'))).toBeUndefined();
+  await pages.close(); expect(await fs.readdir('/')).toEqual([]);
+});

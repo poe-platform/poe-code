@@ -1,0 +1,13 @@
+{
+  "id": "partial-publication-no-rollback",
+  "families": [
+    "F09"
+  ],
+  "observation": {
+    "returned": {
+      "code": "ENOSPC",
+      "prefix": "ab"
+    }
+  },
+  "classification": "SYNTHETIC_CONTROL_OBSERVATION_BEFORE_ASSERTION"
+}

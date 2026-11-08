@@ -1,0 +1,81 @@
+import assert from 'node:assert/strict';
+import { open,lstat,readFile,writeFile,mkdir,copyFile,rename,readdir,chmod } from 'node:fs/promises';
+import { createReadStream } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { spawn } from 'node:child_process';
+import { dirname,join,resolve,relative,basename } from 'node:path';
+import { fileURLToPath } from 'node:url';
+const own=dirname(fileURLToPath(import.meta.url)),author=dirname(own),root=resolve(own,'../../../..');
+const [mode,label]=process.argv.slice(2);
+const outer=await open(join(own,`${mode}-${label}.outer.jsonl`),'wx');
+const started=Date.now(),deadline=started+(mode==='seal'?8:30)*60000,receipts=[];
+let active=0,captureBytes=0;
+const event=value=>outer.write(JSON.stringify({at:new Date().toISOString(),...value})+'\n');
+await event({event:'start',mode,label,pid:process.pid,execPath:process.execPath,version:process.version,started,deadline});
+const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
+function time(){if(Date.now()>deadline)throw new Error('SAFETY deadline');}
+async function hash(path){time();const stat=await lstat(path);assert.ok(stat.isFile()&&!stat.isSymbolicLink()&&stat.size<=128*1024*1024,'SAFETY regular bounded file');const sha=createHash('sha256');let size=0;for await(const chunk of createReadStream(path,{highWaterMark:65536})){size+=chunk.length;assert.ok(size<=stat.size,'SAFETY growing input');sha.update(chunk);}assert.equal(size,stat.size,'SAFETY input size');return{path,size,mode:stat.mode&511,sha256:sha.digest('hex')};}
+async function text(path){const stat=await lstat(path);assert.ok(stat.isFile()&&!stat.isSymbolicLink()&&stat.size<=1024*1024,'SAFETY text input');return readFile(path,'utf8');}
+async function bound(rows){for(const row of rows)assert.deepEqual(await hash(row.path),row,'SAFETY input binding');}
+async function census(directory){const stat=await lstat(directory);assert.ok(stat.isDirectory()&&!stat.isSymbolicLink(),'SAFETY directory');const rows=[];for(const name of(await readdir(directory)).sort()){const path=join(directory,name),entry=await lstat(path);assert.ok(!entry.isSymbolicLink(),'SAFETY no linked artifact');if(entry.isDirectory())rows.push(...await census(path));else rows.push(await hash(path));}return rows;}
+let output;
+async function child(role,args,cwd,timeout=30000){
+ time();assert.ok(receipts.length<40&&active===0,'SAFETY child cap');const stem=`${String(receipts.length+1).padStart(2,'0')}-${role}`;
+ const stdout=await open(join(output,stem+'.stdout'),'wx'),stderr=await open(join(output,stem+'.stderr'),'wx');
+ const row={role,args,cwd,started:Date.now(),pid:null,closed:false,code:null,signal:null},chunks=[];let failure,writing=Promise.resolve();
+ const processChild=spawn(process.execPath,args,{cwd,env:{PATH:'/usr/bin:/bin',LANG:'C',LC_ALL:'C',HOME:output},stdio:['ignore','pipe','pipe']});
+ receipts.push(row);active++;row.pid=processChild.pid??null;
+ const closed=new Promise(resolveClose=>{processChild.once('error',reason=>{failure=reason;});processChild.once('close',(code,signal)=>{row.closed=true;row.code=code;row.signal=signal;active--;resolveClose();});});
+ const accept=(target,bytes,isOut)=>{captureBytes+=bytes.length;if(captureBytes>64*1024*1024){failure=new Error('SAFETY capture cap');processChild.kill('SIGKILL');return;}if(isOut)chunks.push(bytes);writing=writing.then(()=>target.write(bytes)).catch(reason=>{failure=reason;processChild.kill('SIGKILL');});};
+ processChild.stdout.on('data',bytes=>accept(stdout,bytes,true));processChild.stderr.on('data',bytes=>accept(stderr,bytes,false));
+ const timer=setTimeout(()=>{failure=new Error('SAFETY child deadline');processChild.kill('SIGKILL');},Math.min(timeout,deadline-Date.now()));
+ await closed;clearTimeout(timer);await writing;await stdout.close();await stderr.close();row.elapsedMs=Date.now()-row.started;await event({event:'child-retired',...row});if(failure||row.signal)throw failure??new Error('SAFETY signaled child');return{...row,stdout:Buffer.concat(chunks).toString('utf8')};
+}
+try{
+ assert.ok(['seal','run'].includes(mode)&&/^[A-Z0-9-]{1,40}$/.test(label),'explicit interface');
+ output=join(own,label);await mkdir(output);
+ if(mode==='seal'){
+  const previousPath=join(author,'r02-v2/SEAL.json'),previousBytes=await text(previousPath);assert.equal(digest(previousBytes),'4f6d24661fc75ab4f2bc26836a735f998a88591caf377fddff36f45709799b12');const previous=JSON.parse(previousBytes);
+  await bound([previous.node,...previous.tools]);const sources=[];
+  assert.deepEqual(JSON.parse(await text(join(own,'BASELINE-SOURCE.json'))),previous.sources,'accepted b5 baseline source identity');
+  for(const row of previous.sources){const current=await hash(row.path);if(!row.path.endsWith('/matcher.ts'))assert.deepEqual(current,row);sources.push(current);}
+  const originals=JSON.parse(await text(join(author,'r02-v2/ACTUAL-01/RESULT.json'))).emittedBindings;await bound(originals);
+  const baseCases=JSON.parse(await text(join(author,'cases.json'))),old=baseCases.find(row=>row.id==='E12');assert.deepEqual(old.values,['aba','a','b']);assert.deepEqual(old.spans,[[0,3],[2,3],[1,2]]);
+  const versioned=baseCases.map(row=>row.id==='E12'?{...row,values:['aba','a',''],spans:[[0,3],[2,3],null]}:row);await writeFile(join(own,'cases-v2.json'),JSON.stringify(versioned,null,2)+'\n',{flag:'wx'});
+  const nativeDir=join(root,'tests/compatibility/bash-ere-native-reference-20260829'),nativePath=join(nativeDir,'preflight-v2/actual-v1/OBSERVATIONS.json'),nativeBytes=await text(nativePath);assert.equal(digest(nativeBytes),'d77e2767f6b36a9ec710224ef31faa53ec388304b5616a4818e18657bf1cb274');
+  const observations=JSON.parse(nativeBytes).observations,cohort=JSON.parse(await text(join(nativeDir,'COHORT.json'))).cases;
+  const native=observations.map(row=>{const source=cohort.find(item=>item.id===row.id);assert.ok(source&&Array.isArray(row.visibleAsciiValues));const present=row.visibleAsciiValues.filter(slot=>slot.shellSlotPresent);assert.equal(present.length,row.observation.cardinality);assert.deepEqual(present.map(slot=>slot.index),Array.from({length:present.length},(_,index)=>index));assert.equal(row.status,row.observation.regexStatus);return{id:row.id,pattern:source.pattern,subject:source.subject,status:row.status,cardinality:row.observation.cardinality,values:present.map(slot=>slot.value),qualification:'accepted local Bash3.2 visible values only; no offsets/native execution'};});assert.equal(native.length,12);await writeFile(join(own,'native-visible.json'),JSON.stringify(native,null,2)+'\n',{flag:'wx'});
+  const fixturePaths=[...['suite.mjs','cases.json','consumer.mts','negative.mts'].map(name=>join(author,name)),join(author,'r02-v2/checkpoints.mjs'),join(author,'r02-v2/empty.mjs'),join(root,'tests/compatibility/bash-ere-engine-independent-20260829/independent.mjs'),...['runner.mjs','policy.mjs','reporting.mjs','RECIPE.md','cases-v2.json','native-visible.json','BASELINE-SOURCE.json'].map(name=>join(own,name)),nativePath,join(nativeDir,'COHORT.json'),...['R01-PROFILE-DECISION.md','ROOT-OBSERVATION-ACCEPTANCE.md'].map(name=>join(root,'tests/compatibility/bash-ere-native-preflight-review-20260829/actual-audit-v1',name))];
+  const fixtures=[];for(const path of fixturePaths)fixtures.push(await hash(path));
+  const seal={baseline:previous.baseline,engineBaseline:'b5f2464f63172fc7c92bcfd33fbb2a8a6d8c03eb',policyCommit:'ea18868e311e0841724796350b213180721e425c',sources,originals,fixtures,node:previous.node,tools:previous.tools,compiler:previous.compiler,tscFlags:previous.tscFlags,expectedChildren:28,groupsPerLayout:118,layouts:3,compressedInputs:0,workers:0,mutants:['M01-old-reporting','M02-history-link','M03-reset-checkpoint'],guards:2};
+  await writeFile(join(own,'SEAL.json'),JSON.stringify(seal,null,2)+'\n',{flag:'wx'});await event({event:'sealed',seal:await hash(join(own,'SEAL.json'))});console.log(JSON.stringify({sources:5,fixtures:fixtures.length,children:28,groupsPerLayout:118,seal:await hash(join(own,'SEAL.json'))}));
+ }else{
+  const seal=JSON.parse(await text(join(own,'SEAL.json'))),inputs=[seal.node,...seal.sources,...seal.originals,...seal.fixtures,...seal.tools];await bound(inputs);assert.equal(process.execPath,seal.node.path,'SAFETY coordinator binary');
+  const work=join(output,'work');await mkdir(work);const source=join(work,'source');await mkdir(source);
+  for(const row of seal.tools){const target=join(work,relative(root,row.path));await mkdir(dirname(target),{recursive:true});await copyFile(row.path,target);await chmod(target,row.mode);assert.equal((await hash(target)).sha256,row.sha256,'SAFETY tool copy');}
+  for(const row of seal.sources){const target=join(source,basename(row.path));await copyFile(row.path,target);await chmod(target,row.mode);assert.equal((await hash(target)).sha256,row.sha256,'SAFETY source copy');}
+  await writeFile(join(source,'package.json'),'{"type":"module","private":true}\n');const compiler=join(work,relative(root,seal.compiler)),typeRoots=join(work,'node_modules/@types'),emitted=join(work,'emitted');
+  const build=await child('strict-build',[compiler,...seal.tscFlags,'--typeRoots',typeRoots,'--declaration','--outDir',emitted,...seal.sources.map(row=>join(source,basename(row.path)))],work,120000);if(build.code!==0)throw new Error('ORDINARY compiler failure: dependent loads withheld');
+  await writeFile(join(emitted,'package.json'),'{"type":"module","private":true}\n');const emittedBindings=await census(emitted);
+  const declarations=[];for(const row of emittedBindings.filter(row=>row.path.endsWith('.d.ts'))){const old=seal.originals.find(item=>basename(item.path)===basename(row.path));assert.ok(old);assert.equal(row.sha256,old.sha256,'declaration unchanged');declarations.push({path:basename(row.path),sha256:row.sha256});}
+  const rows=[],types=[],mutants=[],guards=[];
+  async function runCases(role,directory,kind,selection='all',mutated=false){
+   let args,expected;if(kind==='author'){args=[join(author,'suite.mjs'),directory,join(own,'cases-v2.json'),selection];expected=selection==='all'?66:1;}else if(kind==='checkpoint'||kind==='empty'){args=[join(author,kind==='checkpoint'?'r02-v2/checkpoints.mjs':'r02-v2/empty.mjs'),directory,selection];expected=kind==='checkpoint'?8:4;}else if(kind==='policy'){args=[join(own,'policy.mjs'),directory,join(root,'tests/compatibility/bash-ere-engine-independent-20260829/independent.mjs')];expected=24;}else{args=[join(own,'reporting.mjs'),directory,join(own,'native-visible.json'),selection];expected=selection==='all'?16:1;}
+   const childResult=await child(role,args,work),records=childResult.stdout.trim().split('\n').filter(Boolean).map(line=>JSON.parse(line)),observed=records.find(row=>row.event==='results'),loaded=records.find(row=>row.event==='loaded');
+   assert.ok(observed&&loaded,'SAFETY missing loaded/result receipt');assert.equal(observed.rows.length,expected,'SAFETY case census');assert.equal(childResult.code,observed.fail?1:0,'SAFETY child exit/result');assert.equal(loaded.execPath,seal.node.path,'SAFETY runtime identity');
+   for(const [name,row]of Object.entries(loaded.files)){const actual=await hash(join(directory,name+'.js')),boundRow=emittedBindings.find(item=>basename(item.path)===name+'.js');assert.equal(row.sha256,actual.sha256,'SAFETY loaded hash');if(mutated&&name==='matcher')assert.notEqual(row.sha256,boundRow.sha256,'SAFETY mutant activation load');else assert.equal(row.sha256,boundRow.sha256,'SAFETY unmodified member');}
+   rows.push({role,kind,directory,selection,mutated,observed,loaded});return observed;
+  }
+  const app=join(work,'installed-app');await mkdir(app);await mkdir(join(app,'artifact'));for(const row of emittedBindings){await copyFile(row.path,join(app,'artifact',basename(row.path)));await chmod(join(app,'artifact',basename(row.path)),row.mode);}for(const name of ['consumer.mts','negative.mts'])await copyFile(join(author,name),join(app,name));
+  for(const layout of ['source','installed','moved']){const location=layout==='moved'?join(work,'physically-moved-app'):app;if(layout==='moved'){await rename(app,location);await assert.rejects(lstat(app),error=>error.code==='ENOENT');}const directory=layout==='source'?emitted:join(location,'artifact');
+   for(const kind of ['author','checkpoint','empty','policy','reporting'])await runCases(layout+'-'+kind,directory,kind);
+   const positive=await child(layout+'-types-positive',[compiler,...seal.tscFlags,'--typeRoots',typeRoots,'--noEmit',join(location,'consumer.mts')],work,120000),negative=await child(layout+'-types-negative',[compiler,...seal.tscFlags,'--typeRoots',typeRoots,'--noEmit',join(location,'negative.mts')],work,120000),diagnostics=[...negative.stdout.matchAll(/error TS(\d+):/g)].map(row=>Number(row[1]));types.push({layout,positive:positive.code,negative:negative.code,diagnostics,pass:positive.code===0&&negative.code===2&&JSON.stringify(diagnostics)==='[2345,2339,2322]'});
+  }
+  const matcher=join(emitted,'matcher.js'),original=await text(matcher),oldMatcher=seal.originals.find(row=>basename(row.path)==='matcher.js');
+  const transforms=[{id:'M01-old-reporting',kind:'reporting',selection:'N01',change:()=>text(oldMatcher.path)},{id:'M02-history-link',kind:'author',selection:'E28',change:async()=>{const needle='const previous = histories[current.group];';assert.equal(original.split(needle).length,2);return original.replace(needle,'const previous = null;');}},{id:'M03-reset-checkpoint',kind:'reporting',selection:'R02-reset-checkpoint',change:async()=>{const start=original.indexOf('async function resetDescendants('),end=original.indexOf('\nexport async function matchEre',start);assert.ok(start>=0&&end>start);const part=original.slice(start,end);assert.equal(part.split('await ledger.checkpoint(signal);').length,3);return original.slice(0,start)+part.replaceAll('await ledger.checkpoint(signal);','')+original.slice(end);}}];
+  for(const spec of transforms){const changed=await spec.change();assert.notEqual(changed,original);await writeFile(matcher,changed);let outcome;try{outcome=await runCases(spec.id,emitted,spec.kind,spec.selection,true);}finally{await writeFile(matcher,original);}await bound(emittedBindings);const restored=await runCases(spec.id+'-restored',emitted,spec.kind,spec.selection);mutants.push({id:spec.id,loaded:true,activated:outcome.fail>0,killed:outcome.fail>0,restored:restored.fail===0,changedSha256:digest(changed)});}
+  const bad=join(work,'changed.js');await writeFile(bad,'changed');const expected=emittedBindings.find(row=>basename(row.path)==='matcher.js');for(const [id,path]of [['B01-content',bad],['B02-missing',join(work,'absent.js')]]){let reason;try{await bound([{...expected,path}]);}catch(error){reason=String(error);}assert.ok(reason);guards.push({id,refused:true,reason,dataOnly:true});}
+  await bound(inputs);await bound(emittedBindings);const finalCensus=await census(work),workBytes=finalCensus.reduce((sum,row)=>sum+row.size,0);assert.ok(workBytes<=512*1024*1024,'SAFETY work cap');assert.equal(receipts.length,28,'SAFETY child census');
+  const result={sourceBindings:seal.sources,emittedBindings,declarations,rows,types,mutants,guards,receipts,children:receipts.length,active,captureBytes,workBytes,finalCensus,elapsedMs:Date.now()-started};await writeFile(join(output,'RESULT.json'),JSON.stringify(result,null,2)+'\n',{flag:'wx'});const failed=rows.some(row=>!row.mutated&&row.observed.fail)||types.some(row=>!row.pass)||mutants.some(row=>!row.killed||!row.restored);await event({event:'complete',failed,children:receipts.length,active,captureBytes,workBytes});console.log(JSON.stringify({failed,children:receipts.length,active,unmutatedGroups:rows.filter(row=>!row.mutated&&!row.role.endsWith('-restored')).reduce((sum,row)=>sum+row.observed.rows.length,0),failures:rows.filter(row=>!row.mutated&&row.observed.fail).map(row=>({role:row.role,rows:row.observed.rows.filter(item=>!item.pass)})),types,mutants,guards,captureBytes,workBytes}));if(failed)process.exitCode=1;
+ }
+}catch(error){await event({event:'failure',error:String(error?.stack??error),receipts,active});console.error(String(error?.stack??error));process.exitCode=1;}finally{await event({event:'settled',active,children:receipts.length,captureBytes});await outer.close();if(active)process.exitCode=78;}

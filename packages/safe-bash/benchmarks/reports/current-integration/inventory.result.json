@@ -1,0 +1,18 @@
+{
+  "name": "inventory",
+  "command": [
+    "node",
+    "--input-type=module",
+    "-e",
+    "import * as api from \"./dist/index.js\"; import { createRequire } from \"node:module\"; const require = createRequire(import.meta.url); const commands=api.createAgentCommands().map(command=>command.name).sort(); console.log(JSON.stringify({exports:Object.keys(api).sort(),defaultCommandCount:commands.length,defaultCommands:commands,optionalCurlExport:typeof api.networkCommands,optionalSafeJsExport:typeof api.safeJsCommands,tsxResolved:require.resolve(\"tsx\"),typescriptResolved:require.resolve(\"typescript\"),comparatorResolved:createRequire(new URL(\"./benchmarks/package.json\",import.meta.url)).resolve(\"just-bash\")},null,2));"
+  ],
+  "cwd": "/tmp/safe-bash-current-integration-69dbdy0m/source",
+  "startedAt": 1787788241.970817,
+  "durationSeconds": 0.3085198402404785,
+  "timeoutSeconds": 30,
+  "timedOut": false,
+  "returnCode": 0,
+  "signal": null,
+  "cleanup": [],
+  "observedChildCount": 1
+}

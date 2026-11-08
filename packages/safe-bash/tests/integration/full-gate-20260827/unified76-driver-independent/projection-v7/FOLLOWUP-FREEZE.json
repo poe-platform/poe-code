@@ -1,0 +1,23 @@
+{
+  "schema": "projection-v7-environment-followup",
+  "createdAt": "2026-08-28T05:23:41.300Z",
+  "initialRecipe": "55ee6fc9",
+  "initialExit": 1,
+  "initialRawSha256": "326a3518a1771eb8199f8ce241e322cf6308b651ebccc47ca06b36fd58608fb6",
+  "actualControls": 0,
+  "actualBuilds": 0,
+  "actualSnapshotCopies": 0,
+  "error": "Independent recipe passed its constructed Git_CONFIG protections to verifyExternal; actual guard correctly refuses all ambient GIT_ values. Not an author/product defect.",
+  "change": "Retain separate pre-Git clean verificationEnvironment for actual external-admission calls; hardened environment still goes to Git/compiler children. No removed guard, different expected verdict, source edit, broader permission or instruction omission. Fresh unique temp/raw-followup only.",
+  "recipeSha256": "9bd6f8118584343af3c47a3b279715e79e6a32b5138ac7339f3eb41f49b23c96",
+  "oldTemporaryRemoved": true,
+  "oldTemporaryTopLevel": [
+    "global-npmrc",
+    "harness",
+    "home",
+    "npmrc",
+    "original",
+    "tmp"
+  ],
+  "expected": "Original P01-P08 unchanged; execute complete original-object/full projection/build/observer once after corrected prerequisite plumbing."
+}

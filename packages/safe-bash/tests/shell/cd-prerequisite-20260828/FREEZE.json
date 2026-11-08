@@ -1,0 +1,60 @@
+{
+  "sealedAt": "2026-08-28T03:02:22.596Z",
+  "base": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+  "fixtures": {
+    "cases.json": "cc1b9d4486eea52c7f92ceff3d5710bc4483b8c329b246eccb5d12af247be634",
+    "README.md": "b282eb524e01b03378f64b434f4597b8a9ad897cfa79a752811a748d1e773641",
+    "run.mjs": "2fd9f8e1b99ed4845614830a456855490a7507a6ec1e25ad98d664bc60b71790"
+  },
+  "source": {
+    "src/shell/runtime.ts": "b44d60ed225c2d2add07499b965043d104491edf837cb5cf7f07096230286169",
+    "src/contracts/filesystem.ts": "e2343faf818a15ad7afc06618b3f8856cf14f36c86574cc49c85d51a13e7e522",
+    "src/contracts/filesystem.md": "fb74e8fc3841c06f89e8fa93fad55cdfac20788de4eee13db6b8a8072b963d2a",
+    "src/fs/memory/index.ts": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+    "src/fs/real/index.ts": "ab139aa429c2705c7d5ec13a20d1583bacb182e3e2347fcdee2f169704c0bc9a",
+    "src/fs/readonly/index.ts": "2d5057de23f90cfef1f98c45f41063545bcd6c5a4439aa57d9aa0a058645b7b2",
+    "src/fs/s3/filesystem.ts": "9ac11951d681db45cee474568ca46d227cfb5bbd9b0d5ce2d6c176d0c4f94833",
+    "src/fs/webdav/webdav.ts": "e66a66e2745852c6bd12be12a18c855df069152cf6b8089d2ecee8880c62de94",
+    "src/fs/webdav/README.md": "9a56aaeabed8f9e0bdc7ef93326f1f25ec0fec23c733150f7b474ed29cb8ae36",
+    "tests/fs/webdav/mock.ts": "177f79ee640460822cfe0486c87f7cc61ac7c8b84389abe32b48ef27f4b4ef36"
+  },
+  "binary": {
+    "path": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+    "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+    "bytes": 1395864,
+    "mode": 493,
+    "mtimeMs": 1787777347320.6458,
+    "ctimeMs": 1787777347321.193
+  },
+  "manual": {
+    "path": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/bash-5.3/doc/bashref.texi",
+    "sha256": "f3d37d57a1061e24d266051de9bd47ffa43dc86584afea11576c535ad2be32d5",
+    "bytes": 415804,
+    "mode": 420,
+    "mtimeMs": 1748361379000,
+    "ctimeMs": 1787777277168.5925
+  },
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "bytes": 112989184,
+    "mode": 493,
+    "mtimeMs": 1774313550000,
+    "ctimeMs": 1776794488519.6758
+  },
+  "typescript": {
+    "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/typescript.js",
+    "sha256": "3ae902c92cc44dace175c0e69e13a4b0899f6983c6121d76b9ab8dd5795e7675",
+    "bytes": 9112572,
+    "mode": 420,
+    "mtimeMs": 1787767704001.6174,
+    "ctimeMs": 1787767704001.6174
+  },
+  "cases": 28,
+  "nativeRunsBeforeSeal": 0,
+  "adapterRunsBeforeSeal": 0,
+  "packageEvidence": "tests/integration/combined77-stage2-independent-20260828/actual-01.json.gz.base64",
+  "packageEvidenceSha256": "88fadf81a9ab984e4c25ff26f9f1d13331967549c0dbe08fbce268ee7ed1da12",
+  "packageSha256": "13fe54de1cf900d587855e276375fdf72ed1ed0d0e0625cf7ef00730f2bb74c9",
+  "policy": "Observe first; no runtime implementation while DAV directory X_OK prerequisite is unresolved"
+}

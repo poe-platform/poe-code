@@ -1,0 +1,114 @@
+{
+  "version": 1,
+  "scope": "Explicit disposable-container execution and inventory; not production media qualification",
+  "media": {
+    "identity": {
+      "digest": "1ee0e31ab907f19863e2b33bd60acbae666c22ab34cf5f85749cc8b468f1f395",
+      "imageDigest": "sha256:88342e0c221547e3d8e963f0d7a0a526c58580b640cc8fe17cdc27b3d7f46064",
+      "os": "linux",
+      "architecture": "x86_64",
+      "grammarRevision": "ffmpeg-9.0+imagemagick-7.1.2-31-unqualified",
+      "sourceRevision": "container-lock-v1",
+      "launcherRevision": "posix-execve-v1:07fedf62d8d75a7984994413e596007626a01919bb5746d91a3cbe1fccb12c64",
+      "bridgeRevision": "unqualified",
+      "runtimeRequirements": [],
+      "runtimeEnvironment": {
+        "PATH": "/usr/local/bin:/usr/bin:/bin",
+        "HOME": "/scratch",
+        "LC_ALL": "C"
+      },
+      "policyDifferences": [
+        "Container networking and devices explicitly denied.",
+        "All filesystem accesses are container-native; canonical live mediation is NOT qualified.",
+        "Configured delegates are inventoried; delegate execution and external dependencies are NOT qualified.",
+        "Fonts/profiles reflect packaged runtime assets; external host assets are absent.",
+        "Raw byte argv uses the pinned POSIX execve helper; canonical byte-path mapping is NOT qualified.",
+        "JS frontend/native contract mismatch; this inventory cannot qualify the shipped frontend."
+      ],
+      "executables": {
+        "ffmpeg": "693997243e25684ab5976522d97111f44dbc14cfb47f968c2e2283b8fe070a17",
+        "ffprobe": "91dae15342bcbd3b8b3935d0fa0299ae47c5b59ef9cbd80f9d34547adb10fc9d",
+        "magick": "ebe8030aa93f0ef778c3d0cb773169b63e0342f31141901492a030968068399c"
+      },
+      "librariesDigest": "493b26a1a9f97aadc28a4f8fc74ffed9e3bfc9f83bd5d17a956cb921c7209b80",
+      "inventoryDigest": "7019533e9eca58a5efb42f4abff55a33c1267ae452cbaa097980d67d52377989",
+      "assetsDigest": "11e37bc5a384f11be56ce191f2b4ea04f523fa323d0b73a285c3be064f834e2a",
+      "policyDigest": "f23ceb845c766a1f5fdf0bf0855d883926b6de067beefb739d6307d35209419f",
+      "configDigest": "b27e91dd85b12d467ac8290e38f78bf97a3625039e6c39363b77be0510371116"
+    },
+    "frontendContract": {
+      "grammarRevision": "ffmpeg-9.0.1-register-v28+imagemagick-7.1.2-31-register-v1",
+      "sourceRevision": "22c4ee96b8b19a680c4867e1c28169d3c25beb3397be597daf3ecfe5328ded4e+22c4ee96b8b19a680c4867e1c28169d3c25beb3397be597daf3ecfe5328ded4e"
+    },
+    "inventoryReference": "native-inventory-20260919-http-range.json",
+    "inventoryReferenceSha256": "4d13cf7dd10ba91594cae739a57d3b5daf450f3a6c2125cf09c9d0bdb2a80537",
+    "inventoryVerification": "All 6081 asset records and all six raw inventory records match the reference exactly. Reconstructing with this image identity, frontend contract and the original five policy differences reproduces the complete fresh receipt.",
+    "inventoryCounts": {
+      "codecs": 551,
+      "coders": 184,
+      "delegates": 58,
+      "fonts": 49,
+      "profiles": 0
+    },
+    "inventoryQueryOutcomes": {
+      "codecs": {
+        "kind": "exited",
+        "exitCode": 0
+      },
+      "coders": {
+        "kind": "exited",
+        "exitCode": 0
+      },
+      "delegates": {
+        "kind": "exited",
+        "exitCode": 0
+      },
+      "fonts": {
+        "kind": "exited",
+        "exitCode": 0
+      },
+      "policy": {
+        "kind": "exited",
+        "exitCode": 0
+      },
+      "configure": {
+        "kind": "exited",
+        "exitCode": 0
+      }
+    },
+    "passed": 3,
+    "failed": 0
+  },
+  "generic": {
+    "imageDigest": "sha256:932b9a4c93512f137f4fd77c5ba0cf90d0776d72af0cf6431c7fd9583f12e8bd",
+    "passed": 15,
+    "failed": 0,
+    "helperDigest": "07fedf62d8d75a7984994413e596007626a01919bb5746d91a3cbe1fccb12c64",
+    "mediaServerSourceSha256": "b9d18d945f6e895800483e93fefbf9ce1f532060da7d528a341b09705489a1cc"
+  },
+  "isolation": {
+    "runtimeContext": "colima-poe-runtime-mediation",
+    "platform": "linux/amd64",
+    "readOnly": true,
+    "network": "none",
+    "pids": 64,
+    "memory": "512m",
+    "cpus": 2,
+    "capabilities": "ALL dropped",
+    "security": "no-new-privileges",
+    "scratch": "64m tmpfs",
+    "disposableImagesRemoved": true
+  },
+  "qualifiedProductionFeatures": [],
+  "blockingRequirements": [
+    "No production image is admitted by container-lock.json.",
+    "Native build differs from the shipped JS frontend; media admission must refuse the mismatch.",
+    "No qualified native driver mediates actual canonical file accesses, including delegates and late opens.",
+    "Configured delegates are inventoried; complete delegate execution, network/device policies, mmap and escaped descendants remain unqualified."
+  ],
+  "delivery": {
+    "localCommit": false,
+    "remoteMain": false,
+    "release": false
+  }
+}

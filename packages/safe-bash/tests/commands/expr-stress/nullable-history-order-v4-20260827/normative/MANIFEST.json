@@ -1,0 +1,95 @@
+{
+  "kind": "delegated-primary-source-design-evidence",
+  "date": "2026-08-27",
+  "scope": "tests/commands/expr-stress/nullable-history-order-v4-20260827/normative",
+  "initialExprIntegration": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+  "candidateFrozen": false,
+  "primarySourceCount": 5,
+  "productExecution": false,
+  "nativeOracleExecution": false,
+  "oldCohortOrQuotaRerun": false,
+  "sourceOrCanonicalTestChanges": false,
+  "dependenciesAdded": false,
+  "universalPosixClaim": false,
+  "upstreamConfirmedGnuBugClaim": false,
+  "acceptedRanking": null,
+  "proposedRankings": [
+    "HNODE",
+    "HTREE"
+  ],
+  "adoptedProfile": "Root TEMP retained descendant until actual reentry; narrow P/aaa completed a preserved",
+  "knownNormativeBoundary": "N8 XBD9.3.6 explicitly rejects D/abab; TEMP retained-descendant witness accepts it. Reported as profile departure, not silently corrected.",
+  "historicalInputs": [
+    {
+      "path": "tests/commands/expr-stress/posix-semantics-independent-20260827/REPORT.md",
+      "commit": "8897ece39c730812b74164377180b90d6cd02444",
+      "gitBlob": "79a4870ec48902c3426e542e38c5f13c5c00788c",
+      "bytes": 12705,
+      "sha256": "307a8a377a28c9c611ff73e8ad4b5d84c6eb253a12782cdf733e39cfc7fe33cf",
+      "workingCopyMatchesArchived": true
+    },
+    {
+      "path": "tests/commands/expr-stress/repeat-policy-handoff-20260827/REPORT.md",
+      "commit": "b6eaa23a8a864c456fecef844de330bb5f10d011",
+      "gitBlob": "35490af745cfd8998fabe63ce714581043b09b4f",
+      "bytes": 11869,
+      "sha256": "836e7ae20d1629911dd9ef57bc2b55d5fd184216d3c48642c65d3139f2fd696e",
+      "workingCopyMatchesArchived": true
+    }
+  ],
+  "checkpoint": {
+    "externalPath": "/tmp/expr-history-normative-v4-20260827-checkpoint.txt",
+    "committedCopy": "CHECKPOINT.txt",
+    "soleUserAuthorizedOutsideRepositoryWrite": true
+  },
+  "ownedEntryInventory": [
+    "CHECKPOINT.txt",
+    "MANIFEST.json",
+    "REFERENCES.md",
+    "REPORT.md",
+    "SOURCES.json"
+  ],
+  "inventoryPolicy": "Exactly five regular files, no nested or empty directories and no symlinks; validates newly introduced entries inside this owned subtree, not the entire concurrent repository.",
+  "artifacts": [
+    {
+      "path": "REPORT.md",
+      "bytes": 24181,
+      "sha256": "d5b7dd2af5d8db025406b65f810c1674ac41ef8958bfe9f70a467348d1ea9f27"
+    },
+    {
+      "path": "REFERENCES.md",
+      "bytes": 5770,
+      "sha256": "6f81a17fec4abe4f9d5eb0ae2ab4d67b8172e29b7e1984bc79faa93cb0f5d04e"
+    },
+    {
+      "path": "SOURCES.json",
+      "bytes": 3286,
+      "sha256": "cd213086dabbf5486926cb67d18b5ae050ab338e019891defdd48dba23f975d8"
+    },
+    {
+      "path": "CHECKPOINT.txt",
+      "bytes": 3319,
+      "sha256": "c22a8ef2eaf8c13f3eb213401b798a4894abe6daf1dcce67e54fd6fc56f09c70"
+    }
+  ],
+  "manifestIntegrity": "MANIFEST.json is the inventory/hash root and is authenticated by the final Git commit, not a circular self-hash.",
+  "validation": {
+    "mode": "Read-only document and manifest checks, no product or native execution",
+    "checks": [
+      "JSON parses",
+      "Owned artifacts SHA256 and byte counts",
+      "Complete owned entry inventory including directories and symlinks",
+      "Historical REPORT bytes match exact Git blobs",
+      "External checkpoint matches committed copy",
+      "Scoped whitespace check"
+    ],
+    "canonicalRuntimeGate": false
+  },
+  "limitations": [
+    "No candidate acceptance or full POSIX implementation proof",
+    "No theorem transfer to backreferences",
+    "No new native results for theoretical witnesses",
+    "Prior controls remain requirements, not rerun passes",
+    "No append-proof whole-repository audit"
+  ]
+}

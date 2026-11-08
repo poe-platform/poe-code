@@ -1,0 +1,9 @@
+{
+  "label": "audit",
+  "code": 0,
+  "stdout": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v2/capture/audit.stdout",
+  "stderr": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v2/capture/audit.stderr",
+  "at": "2026-08-29T11:55:38.091Z",
+  "helperExit": 0,
+  "knownClosed": true
+}

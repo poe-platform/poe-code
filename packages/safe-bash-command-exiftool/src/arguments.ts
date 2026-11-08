@@ -1,0 +1,104 @@
+import { exiftoolRegistry } from "./registry.js";
+import type { TagAssignment } from "./png.js";
+import type { ResourceLimits } from "./resources.js";
+export interface Invocation {
+  readonly files: string[]; readonly tags: string[]; readonly assignments: (TagAssignment & { readonly numeric?: boolean })[];
+  numeric: boolean; readonly valueConvTags: string[];
+  json: boolean; csv: boolean; quoteScalars: boolean; duplicates: boolean; binary: boolean; missing: boolean;
+  style: "short" | "compact" | "values"; overwrite: "backup" | "replace" | "in-place";
+  destination: string | undefined;
+  tagsFromFile: string | undefined;
+  groupFamily: 1 | 4 | undefined;
+  xml: boolean; tabular: boolean; template: string | undefined;
+}
+export function parseArguments(args: readonly string[], limits: ResourceLimits): Invocation {
+  if (args.length > (limits.maxArguments ?? Infinity)) throw new RangeError("ExifTool argument count exceeded");
+  let extent = 0;
+  for (const arg of args) { extent += arg.length * 2; if (extent > limits.maxDecodedBytes) throw new RangeError("ExifTool argument decoded budget exceeded"); }
+  const result: Invocation = { files: [], tags: [], assignments: [], numeric: false, valueConvTags: [], json: false, csv: false, quoteScalars: false, duplicates: false,
+    binary: false, missing: false, style: "short", overwrite: "backup", destination: undefined, tagsFromFile: undefined, groupFamily: undefined, xml: false, tabular: false, template: undefined };
+  let shortLevel = 0;
+  let literal = false;
+  let valueConvSelector = false;
+  for (let index = 0; index < args.length; index++) {
+    const arg = args[index]!;
+    const option = arg.toLowerCase();
+    const value = (): string => { if (++index >= args.length) throw new Error("Missing argument for " + arg); return args[index]!; };
+    if (literal || !arg.startsWith("-") || arg === "-") { result.files.push(arg); continue; }
+    if (arg === "--") { literal = true; continue; }
+    if (option === "-config") { if (value() !== "") throw new Error("User configuration modules are not supported"); continue; }
+    if (option === "-charset") { if (value().toLowerCase() !== "filename=utf8") throw new Error("Only UTF-8 filename charset is currently supported"); continue; }
+    if (option === "-j" || option === "-json") { result.json = true; continue; }
+    if (option === "-csv") { result.csv = true; continue; }
+    if (arg === "-G1") { result.groupFamily = 1; continue; }
+    if (option === "-x") { result.xml = true; continue; }
+    if (arg === "-T") { result.tabular = true; result.missing = true; continue; }
+    if (option === "-p") { result.template = value(); continue; }
+    if (arg === "-G4") { result.groupFamily = 4; continue; }
+    if (option === "-api") { if (value().toLowerCase() !== "structformat=jsonq") throw new Error("API option not yet supported"); result.quoteScalars = true; continue; }
+    if (option === "-a") { result.duplicates = true; continue; }
+    if (option === "-b") { result.binary = true; continue; }
+    if (option === "-f") { result.missing = true; continue; }
+    if (["-s", "-ss", "-sss", "-s1", "-s2", "-s3"].includes(option)) {
+      shortLevel = arg === "-S" || option === "-s2" ? 2 : option === "-s1" ? 1 : option === "-s3" ? 3 : Math.min(3, shortLevel + arg.length - 1);
+      result.style = shortLevel >= 3 ? "values" : shortLevel === 2 ? "compact" : "short";
+      continue;
+    }
+    if (option === "-n") { result.numeric = true; continue; }
+    if (option === "-overwrite_original") { result.overwrite = "replace"; continue; }
+    if (option === "-overwrite_original_in_place") { result.overwrite = "in-place"; continue; }
+    if (option === "-tagsfromfile") {
+      if (result.tagsFromFile !== undefined) throw new Error("Multiple tagsFromFile sources are not yet supported");
+      result.tagsFromFile = value();
+      if (result.tagsFromFile === "-" || result.tagsFromFile.includes("%")) throw new Error("tagsFromFile stdin and path templates are not yet supported");
+      continue;
+    }
+    if (option === "-o") { result.destination = value(); continue; }
+    if (["-if", "-stay_open", "-@", "-common_args"].includes(option) || option.startsWith("-execute")) throw new Error("ExifTool option not yet supported (no code evaluation or ambient polling): " + arg);
+    const equals = arg.indexOf("=");
+    let name = arg.slice(1, equals < 0 ? undefined : equals);
+    const operation = name.endsWith("+") ? "add" : name.endsWith("-") ? "remove" : "set";
+    if (operation !== "set") name = name.slice(0, -1);
+    const numeric = name.endsWith("#");
+    if (numeric) { if (equals < 0) { valueConvSelector = true; result.valueConvTags.push(name.slice(0, -1).toLowerCase()); } name = name.slice(0, -1); }
+    const known = exiftoolRegistry.tags.find(tag => tag.toLowerCase() === name.toLowerCase());
+    if (equals >= 0) result.assignments.push({ name: known ?? name, operation, value: arg.slice(equals + 1), ...(numeric ? { numeric: true } : {}) });
+    else if (known || name === "MissingTag") result.tags.push(known ?? name);
+    else throw new Error("ExifTool option/tag not yet supported: " + arg);
+  }
+  if (result.tagsFromFile !== undefined && result.assignments.length) throw new Error("Combining tagsFromFile with assignments is not yet supported");
+  const writing = result.assignments.length > 0 || result.tagsFromFile !== undefined;
+  if (!result.files.length) throw new Error("No file specified");
+  if (result.files.filter(file => file === "-").length > 1) throw new Error("Repeated stdin operands are not supported");
+  if (result.files.includes("-") && writing) throw new Error("Writing stdin metadata is not yet supported");
+  if (result.files.length > (limits.maxFiles ?? Infinity)) throw new RangeError("ExifTool file count exceeded");
+  if (result.destination !== undefined && (result.files.length !== 1 || !writing)) throw new Error("-o requires a single file with tag assignments in this profile");
+  if (result.json && result.binary) throw new Error("JSON binary policy not yet supported");
+  if (result.csv && (result.json || result.binary || writing)) throw new Error("CSV combined output/import policy not yet supported");
+  if (result.csv && valueConvSelector) throw new Error("CSV ValueConv-qualified headers not yet supported");
+  if (result.groupFamily === 4 && (!result.json || writing)) throw new Error("Group-family qualification outside JSON not yet supported");
+  if (result.groupFamily === 1 && (result.json || result.csv || result.binary || result.xml || result.tabular || result.template !== undefined || writing)) throw new Error("-G1 requires text extraction in this profile");
+  if ([result.json, result.csv, result.binary, result.xml, result.tabular, result.template !== undefined].filter(Boolean).length > 1) throw new Error("Conflicting ExifTool output modes");
+  if ((result.xml || result.tabular || result.template !== undefined) && writing) throw new Error("Presentation modes require extraction");
+  if (result.template !== undefined) {
+    const parts = parseTemplate(result.template);
+    while (!parts.next().done) { /* Validate the entire template before acquiring files. */ }
+  }
+  return result;
+}
+
+/** Only literal text and admitted $Tag substitutions; never template files or expressions. */
+export function* parseTemplate(template: string): Generator<{ literal?: string; tag?: string }> {
+  let start = 0;
+  for (let index = 0; index < template.length; index++) {
+    if (template[index] !== "$") continue;
+    if (index > start) yield { literal: template.slice(start, index) };
+    const begin = ++index;
+    while (index < template.length && ((template[index]! >= "A" && template[index]! <= "Z") || (template[index]! >= "a" && template[index]! <= "z"))) index++;
+    const name = template.slice(begin, index);
+    const tag = exiftoolRegistry.tags.find(tag => tag.toLowerCase() === name.toLowerCase());
+    if (!tag) throw new Error("Only literal $Tag template substitutions are supported");
+    yield { tag }; start = index; index--;
+  }
+  if (start < template.length) yield { literal: template.slice(start) };
+}

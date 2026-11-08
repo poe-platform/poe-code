@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "attempt": "attempt-003",
+  "pass": false,
+  "stage": "launcher",
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "command": "node harness/run.mjs",
+  "exitCode": 1,
+  "reason": "The relative script path resolved outside mutation-controls; no verifier code ran and no candidate input was touched."
+}

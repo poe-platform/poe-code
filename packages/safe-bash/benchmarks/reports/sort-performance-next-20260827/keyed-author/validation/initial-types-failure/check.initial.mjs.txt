@@ -1,0 +1,47 @@
+import assert from 'node:assert/strict';
+import { execFileSync, spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { loadavg } from 'node:os';
+const repo = '/Users/kjopek/Workspace/safe-bash';
+const mode = process.argv[2];
+assert.ok(['baseline', 'precommit'].includes(mode));
+const output = mkdtempSync('/tmp/sort-key-author-check-');
+const root = join(output, 'tree'); mkdirSync(root);
+const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+const git = (...args) => execFileSync('git', args, { cwd: repo, maxBuffer: 64 * 1024 * 1024 });
+const commit = mode === 'baseline' ? '08a26051438f5c6bdde100a4fe724dbb84f6fca4' : git('rev-parse', 'HEAD').toString().trim();
+const archive = git('archive', commit, 'src', 'package.json', 'tsconfig.json', 'tsconfig.build.json', 'tests/commands/core-sort', 'tests/commands/helpers.ts', 'tests/contracts/io.test.ts');
+writeFileSync(join(output, 'archive.tar'), archive);
+const receipts = [];
+const manifest = { mode, commit, archiveSha256: hash(archive), overlays: {}, node: process.version, loadBefore: loadavg(), receipts };
+function command(label, executable, args) {
+  const result = spawnSync(executable, args, { cwd: root, timeout: 90000, killSignal: 'SIGKILL', maxBuffer: 8 * 1024 * 1024, env: { ...process.env, NODE_OPTIONS: '--max-old-space-size=512', LANG: 'C', LC_ALL: 'C', TZ: 'UTC' } });
+  writeFileSync(join(output, label + '.stdout'), result.stdout ?? '');
+  writeFileSync(join(output, label + '.stderr'), result.stderr ?? '');
+  receipts.push({ label, executable, args, status: result.status, signal: result.signal, error: result.error?.message, childClosed: true });
+  assert.equal(result.status, 0, label);
+}
+try {
+  command('extract', '/usr/bin/tar', ['-xf', join(output, 'archive.tar'), '-C', root]);
+  symlinkSync(join(repo, 'node_modules'), join(root, 'node_modules'));
+  for (const path of ['tests/commands/core-sort/single-numeric-key-cache.test.ts', ...(mode === 'precommit' ? ['src/commands/text.ts'] : [])]) {
+    cpSync(join(repo, path), join(root, path));
+    manifest.overlays[path] = hash(readFileSync(join(root, path)));
+    writeFileSync(join(output, path.split('/').at(-1) + '.txt'), readFileSync(join(root, path)));
+  }
+  const tests = ['tests/commands/core-sort/single-numeric-key-cache.test.ts', ...(mode === 'precommit' ? ['tests/commands/core-sort/regressions.test.ts', 'tests/commands/core-sort/borrowed-buffer.test.ts', 'tests/commands/core-sort/unkeyed-numeric-cache.test.ts', 'tests/contracts/io.test.ts'] : [])];
+  command('tests', process.execPath, ['--import', 'tsx', '--test', ...tests]);
+  if (mode === 'precommit') {
+    command('build', process.execPath, [join(repo, 'node_modules/typescript/bin/tsc'), '-p', 'tsconfig.build.json']);
+    command('types', process.execPath, [join(repo, 'node_modules/typescript/bin/tsc'), '--noEmit', '--strict', '--target', 'ES2023', '--module', 'NodeNext', '--moduleResolution', 'NodeNext', '--skipLibCheck', '--noUncheckedIndexedAccess', '--exactOptionalPropertyTypes', ...tests]);
+  }
+  manifest.success = true;
+} catch (error) { manifest.error = String(error); process.exitCode = 1; }
+finally {
+  rmSync(root, { recursive: true });
+  manifest.scratchRemoved = !existsSync(root); manifest.remainingOwnedChildren = 0; manifest.loadAfter = loadavg();
+  writeFileSync(join(output, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
+  console.log(output); console.log(JSON.stringify(manifest));
+}

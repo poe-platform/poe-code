@@ -1,0 +1,13 @@
+{
+  "id": "F17",
+  "expected": "Shared store/external exact128 boundary plusone refuses; actual body512cap refuses without large allocation.",
+  "pass": true,
+  "started": "2026-08-28T15:01:02.632Z",
+  "finished": "2026-08-28T15:01:02.635Z",
+  "detail": {
+    "combinedStoreAndExternalBoundary": 128,
+    "plusOneRefused": true,
+    "actualBodyInjectedLimit": 512,
+    "production248MiBAndCollector8MiB": "STATIC_ONLY"
+  }
+}

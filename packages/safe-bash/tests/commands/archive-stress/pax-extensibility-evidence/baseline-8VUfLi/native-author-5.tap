@@ -1,0 +1,42 @@
+TAP version 13
+# Subtest: pinned GNU cross-readability BOTH directions plain
+ok 1 - pinned GNU cross-readability BOTH directions plain
+  ---
+  duration_ms: 43.179
+  type: 'test'
+  ...
+# Subtest: pinned GNU cross-readability BOTH directions gzip
+ok 2 - pinned GNU cross-readability BOTH directions gzip
+  ---
+  duration_ms: 55.495625
+  type: 'test'
+  ...
+# Subtest: pinned GNU legacy long-name and long-link records are read without data conversion
+ok 3 - pinned GNU legacy long-name and long-link records are read without data conversion
+  ---
+  duration_ms: 10.409625
+  type: 'test'
+  ...
+# Subtest: native -C, files-from, excludes, selected strips agree on safe common fixtures
+ok 4 - native -C, files-from, excludes, selected strips agree on safe common fixtures
+  ---
+  duration_ms: 26.71575
+  type: 'test'
+  ...
+# /private/tmp/safe-bash-pax-focused-VzYdub/snapshot-1/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: hard: Cannot hard link to 'later': No such file or directory
+# /private/tmp/safe-bash-pax-focused-VzYdub/snapshot-1/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Exiting with failure status due to previous errors
+# Subtest: pinned GNU rejects forward hardlinks but continues; virtual rejects fail-fast
+ok 5 - pinned GNU rejects forward hardlinks but continues; virtual rejects fail-fast
+  ---
+  duration_ms: 9.133584
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 336.123833

@@ -1,0 +1,283 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "streaming-profile.schema.json",
+  "title": "Remote execution v1 streaming admission profile (review draft)",
+  "$defs": {
+    "Effect": {
+      "allOf": [
+        {
+          "$ref": "protocol.schema.json#/$defs/Effect"
+        },
+        {
+          "not": {
+            "required": [
+              "bytes"
+            ]
+          }
+        }
+      ]
+    },
+    "GenericJobRequest": {
+      "type": "object",
+      "properties": {
+        "buildDigest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "toolId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "args": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 255
+            }
+          }
+        },
+        "namespaceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "materializationRevision": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]{0,19})$",
+              "description": "Canonical unsigned decimal <= 18446744073709551615, checked semantically."
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "cwd": {
+          "type": "string"
+        },
+        "env": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "stdin": {
+          "$ref": "protocol.schema.json#/$defs/Input"
+        },
+        "descriptors": {
+          "type": "array",
+          "items": {
+            "$ref": "protocol.schema.json#/$defs/Descriptor"
+          }
+        },
+        "grants": {
+          "type": "array",
+          "items": {
+            "$ref": "protocol.schema.json#/$defs/Grant"
+          }
+        },
+        "freshness": {
+          "enum": [
+            "live",
+            "snapshot"
+          ]
+        },
+        "limits": {
+          "$ref": "protocol.schema.json#/$defs/Limits"
+        },
+        "frontendContract": {
+          "$ref": "protocol.schema.json#/$defs/FrontendContract"
+        },
+        "requiredFeatures": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Required negotiated profiles, including canonical-object-v1 for byte namespace callbacks. Refuse before job effects if unsupported."
+        },
+        "materializationBinding": {
+          "$ref": "#/$defs/MaterializationBinding"
+        }
+      },
+      "required": [
+        "buildDigest",
+        "toolId",
+        "args",
+        "namespaceId",
+        "materializationRevision",
+        "cwd",
+        "env",
+        "stdin",
+        "descriptors",
+        "grants",
+        "freshness",
+        "limits"
+      ],
+      "additionalProperties": false,
+      "description": "Generic streaming job admission. Injected media tool definitions additionally require a matching frontendContract. Apply semantic argv, cwd/env, grant, bounds and freshness admission from contracts.md.",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "materializationRevision": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "materializationRevision"
+            ]
+          },
+          "then": {
+            "required": [
+              "materializationBinding"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "materializationBinding"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "EffectManifest": {
+      "allOf": [
+        {
+          "$ref": "protocol.schema.json#/$defs/EffectManifest"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "effects": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/Effect"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "Materialization": {
+      "allOf": [
+        {
+          "$ref": "protocol.schema.json#/$defs/Materialization"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "effects": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/Effect"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "MaterializationBinding": {
+      "type": "object",
+      "properties": {
+        "operationId": {
+          "$ref": "protocol.schema.json#/$defs/Id"
+        },
+        "root": {
+          "type": "string",
+          "description": "Absolute canonical logical materialization root."
+        }
+      },
+      "required": [
+        "operationId",
+        "root"
+      ],
+      "additionalProperties": false,
+      "description": "Identifies the complete materialization operation in the job namespace at materializationRevision. Server atomically reserves that root/revision through namespace installation; this record is not authority or a content snapshot."
+    },
+    "DependencyJobRequest": {
+      "type": "object",
+      "properties": {
+        "buildDigest": {
+          "$ref": "#/$defs/GenericJobRequest/properties/buildDigest"
+        },
+        "toolId": {
+          "$ref": "#/$defs/GenericJobRequest/properties/toolId"
+        },
+        "args": {
+          "$ref": "#/$defs/GenericJobRequest/properties/args"
+        },
+        "namespaceId": {
+          "$ref": "#/$defs/GenericJobRequest/properties/namespaceId"
+        },
+        "materializationRevision": {
+          "$ref": "protocol.schema.json#/$defs/Id"
+        },
+        "cwd": {
+          "$ref": "#/$defs/GenericJobRequest/properties/cwd"
+        },
+        "env": {
+          "$ref": "#/$defs/GenericJobRequest/properties/env"
+        },
+        "stdin": {
+          "$ref": "#/$defs/GenericJobRequest/properties/stdin"
+        },
+        "descriptors": {
+          "$ref": "#/$defs/GenericJobRequest/properties/descriptors"
+        },
+        "grants": {
+          "$ref": "#/$defs/GenericJobRequest/properties/grants"
+        },
+        "freshness": {
+          "$ref": "#/$defs/GenericJobRequest/properties/freshness"
+        },
+        "limits": {
+          "$ref": "#/$defs/GenericJobRequest/properties/limits"
+        },
+        "frontendContract": {
+          "$ref": "#/$defs/GenericJobRequest/properties/frontendContract"
+        },
+        "requiredFeatures": {
+          "$ref": "#/$defs/GenericJobRequest/properties/requiredFeatures"
+        },
+        "materializationBinding": {
+          "$ref": "#/$defs/GenericJobRequest/properties/materializationBinding"
+        },
+        "dependencyBinding": {
+          "$ref": "dependency-manifest.schema.json#/$defs/DependencyBinding"
+        }
+      },
+      "required": [
+        "buildDigest",
+        "toolId",
+        "args",
+        "namespaceId",
+        "materializationRevision",
+        "cwd",
+        "env",
+        "stdin",
+        "descriptors",
+        "grants",
+        "freshness",
+        "limits",
+        "dependencyBinding",
+        "materializationBinding"
+      ],
+      "additionalProperties": false,
+      "description": "Review-only dependency-manifest-v1 admission using generic jobs and binary streams; semantic binding equality, authority and readiness checks remain mandatory.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/GenericJobRequest/allOf/0"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,389 @@
+{
+  "candidate": "fe7083d99b8ccfdfbbb9b7209e0a6abbe7979724",
+  "driverSha256": "1246aa9d53aabb47b825133634b458a9f2ce958f3d32c758c28e7c76668c2e37",
+  "rows": [
+    {
+      "scenario": "startup-timeout",
+      "state": "returned",
+      "value": {
+        "state": "fulfilled",
+        "value": {
+          "scenario": "startup-timeout",
+          "result": {
+            "failureCode": "STARTUP_TIMEOUT",
+            "sibling": {
+              "state": "fulfilled",
+              "value": {
+                "offsetUnit": "byte",
+                "matched": true,
+                "hasCapture": false,
+                "overall": {
+                  "start": 0,
+                  "end": 1
+                },
+                "capture": null,
+                "steps": 10
+              }
+            },
+            "siblingAliveBeforeClose": true,
+            "replacement": {
+              "state": "fulfilled",
+              "value": {
+                "offsetUnit": "byte",
+                "matched": true,
+                "hasCapture": false,
+                "overall": {
+                  "start": 0,
+                  "end": 1
+                },
+                "capture": null,
+                "steps": 10
+              }
+            },
+            "lateReadyDidNotResurrect": true,
+            "workerStarts": 3
+          },
+          "events": [
+            {
+              "type": "workerStart",
+              "worker": 1,
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js"
+            },
+            {
+              "type": "workerStart",
+              "worker": 2,
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js"
+            },
+            {
+              "type": "ready",
+              "worker": 2
+            },
+            {
+              "type": "post",
+              "worker": 2,
+              "id": 1,
+              "pattern": "61",
+              "subject": "61"
+            },
+            {
+              "type": "terminate",
+              "worker": 1
+            },
+            {
+              "type": "terminated",
+              "worker": 1
+            },
+            {
+              "type": "workerStart",
+              "worker": 3,
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js"
+            },
+            {
+              "type": "ready",
+              "worker": 3
+            },
+            {
+              "type": "post",
+              "worker": 3,
+              "id": 2,
+              "pattern": "61",
+              "subject": "61"
+            },
+            {
+              "type": "terminate",
+              "worker": 2
+            },
+            {
+              "type": "terminated",
+              "worker": 2
+            },
+            {
+              "type": "terminate",
+              "worker": 3
+            },
+            {
+              "type": "terminated",
+              "worker": 3
+            }
+          ],
+          "unhandled": [],
+          "liveWorkers": 0,
+          "seam": "Real installed executor/session; deterministic synthetic worker events and retirement latches. No claim fake workers prove regex semantics."
+        }
+      },
+      "terminationAwaited": true,
+      "terminationCode": 0,
+      "output": [],
+      "outputBytes": 0,
+      "heartbeats": 9,
+      "deadlineMs": 2000,
+      "resourceLimits": {
+        "maxOldGenerationSizeMb": 64,
+        "stackSizeMb": 4
+      }
+    },
+    {
+      "scenario": "active-timeout",
+      "state": "returned",
+      "value": {
+        "state": "fulfilled",
+        "value": {
+          "scenario": "active-timeout",
+          "result": {
+            "failureCode": "REQUEST_TIMEOUT",
+            "sibling": {
+              "state": "fulfilled",
+              "value": {
+                "offsetUnit": "byte",
+                "matched": true,
+                "hasCapture": false,
+                "overall": {
+                  "start": 0,
+                  "end": 1
+                },
+                "capture": null,
+                "steps": 10
+              }
+            },
+            "siblingAliveBeforeClose": true,
+            "replacement": {
+              "state": "fulfilled",
+              "value": {
+                "offsetUnit": "byte",
+                "matched": true,
+                "hasCapture": false,
+                "overall": {
+                  "start": 0,
+                  "end": 1
+                },
+                "capture": null,
+                "steps": 10
+              }
+            },
+            "lateReadyDidNotResurrect": true,
+            "workerStarts": 3
+          },
+          "events": [
+            {
+              "type": "workerStart",
+              "worker": 1,
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js"
+            },
+            {
+              "type": "workerStart",
+              "worker": 2,
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js"
+            },
+            {
+              "type": "ready",
+              "worker": 1
+            },
+            {
+              "type": "post",
+              "worker": 1,
+              "id": 1,
+              "pattern": "61",
+              "subject": "61"
+            },
+            {
+              "type": "terminate",
+              "worker": 1
+            },
+            {
+              "type": "terminated",
+              "worker": 1
+            },
+            {
+              "type": "releasedSiblingReady",
+              "worker": 2
+            },
+            {
+              "type": "post",
+              "worker": 2,
+              "id": 2,
+              "pattern": "61",
+              "subject": "61"
+            },
+            {
+              "type": "workerStart",
+              "worker": 3,
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js"
+            },
+            {
+              "type": "ready",
+              "worker": 3
+            },
+            {
+              "type": "post",
+              "worker": 3,
+              "id": 3,
+              "pattern": "61",
+              "subject": "61"
+            },
+            {
+              "type": "terminate",
+              "worker": 2
+            },
+            {
+              "type": "terminated",
+              "worker": 2
+            },
+            {
+              "type": "terminate",
+              "worker": 3
+            },
+            {
+              "type": "terminated",
+              "worker": 3
+            }
+          ],
+          "unhandled": [],
+          "liveWorkers": 0,
+          "seam": "Real installed executor/session; deterministic synthetic worker events and retirement latches. No claim fake workers prove regex semantics."
+        }
+      },
+      "terminationAwaited": true,
+      "terminationCode": 0,
+      "output": [],
+      "outputBytes": 0,
+      "heartbeats": 9,
+      "deadlineMs": 2000,
+      "resourceLimits": {
+        "maxOldGenerationSizeMb": 64,
+        "stackSizeMb": 4
+      }
+    },
+    {
+      "scenario": "malformed",
+      "state": "returned",
+      "value": {
+        "state": "fulfilled",
+        "value": {
+          "scenario": "malformed",
+          "result": {
+            "failureCode": "PROTOCOL",
+            "sibling": {
+              "state": "fulfilled",
+              "value": {
+                "offsetUnit": "byte",
+                "matched": true,
+                "hasCapture": false,
+                "overall": {
+                  "start": 0,
+                  "end": 1
+                },
+                "capture": null,
+                "steps": 10
+              }
+            },
+            "siblingAliveBeforeClose": true,
+            "replacement": {
+              "state": "fulfilled",
+              "value": {
+                "offsetUnit": "byte",
+                "matched": true,
+                "hasCapture": false,
+                "overall": {
+                  "start": 0,
+                  "end": 1
+                },
+                "capture": null,
+                "steps": 10
+              }
+            },
+            "lateReadyDidNotResurrect": true,
+            "workerStarts": 3
+          },
+          "events": [
+            {
+              "type": "workerStart",
+              "worker": 1,
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js"
+            },
+            {
+              "type": "workerStart",
+              "worker": 2,
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js"
+            },
+            {
+              "type": "ready",
+              "worker": 1
+            },
+            {
+              "type": "ready",
+              "worker": 2
+            },
+            {
+              "type": "post",
+              "worker": 1,
+              "id": 1,
+              "pattern": "61",
+              "subject": "61"
+            },
+            {
+              "type": "post",
+              "worker": 2,
+              "id": 2,
+              "pattern": "61",
+              "subject": "61"
+            },
+            {
+              "type": "terminate",
+              "worker": 1
+            },
+            {
+              "type": "terminated",
+              "worker": 1
+            },
+            {
+              "type": "workerStart",
+              "worker": 3,
+              "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js"
+            },
+            {
+              "type": "ready",
+              "worker": 3
+            },
+            {
+              "type": "post",
+              "worker": 3,
+              "id": 3,
+              "pattern": "61",
+              "subject": "61"
+            },
+            {
+              "type": "terminate",
+              "worker": 2
+            },
+            {
+              "type": "terminated",
+              "worker": 2
+            },
+            {
+              "type": "terminate",
+              "worker": 3
+            },
+            {
+              "type": "terminated",
+              "worker": 3
+            }
+          ],
+          "unhandled": [],
+          "liveWorkers": 0,
+          "seam": "Real installed executor/session; deterministic synthetic worker events and retirement latches. No claim fake workers prove regex semantics."
+        }
+      },
+      "terminationAwaited": true,
+      "terminationCode": 0,
+      "output": [],
+      "outputBytes": 0,
+      "heartbeats": 2,
+      "deadlineMs": 2000,
+      "resourceLimits": {
+        "maxOldGenerationSizeMb": 64,
+        "stackSizeMb": 4
+      }
+    }
+  ],
+  "correction": "The initial held-sibling cases accidentally let both requests exhaust equal 80ms deadlines; preserved original outcomes show independent timeouts, not sibling poisoning. Corrected startup case leaves active budget 500ms while startup remains80. Corrected active case holds sibling ready with startup budget500 until the first active80 timeout is observed, then releases it. Deterministic events, not speed assertions; no product mutation, all original request inputs retained."
+}

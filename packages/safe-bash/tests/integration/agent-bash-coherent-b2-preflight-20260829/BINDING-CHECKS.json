@@ -1,0 +1,29 @@
+{
+  "checks": 2,
+  "origin": {
+    "name": "author-executor",
+    "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+    "originalPath": "tests/compatibility/bash-strict-extension-author-20260829/n14-v4/run-v5.mjs",
+    "blob": "0a5ffcc9eab5a26f2c32d009d48ffb2ef8100bfc",
+    "bytes": 30737,
+    "sha256": "238d3bb3b3f3611b259b0804309489cc57f79cdb7ed1561568671195bcfc26b3"
+  },
+  "bindings": [
+    {
+      "role": "binding-missing",
+      "alteration": {
+        "removeInputPath": "index.js"
+      },
+      "expectedDiagnostic": "package binding missing member"
+    },
+    {
+      "role": "binding-changed",
+      "alteration": {
+        "inputPath": "shell/parser.js",
+        "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "expectedDiagnostic": "package hash mismatch"
+    }
+  ],
+  "status": "UNRUN"
+}

@@ -1,0 +1,76 @@
+diff --git a/src/commands/internal.ts b/src/commands/internal.ts
+index 6a72e6dd..b1313402 100644
+--- a/src/commands/internal.ts
++++ b/src/commands/internal.ts
+@@ -155,7 +155,7 @@ export async function collect(source: ByteSource, signal: AbortSignal, limit = b
+     signal.throwIfAborted();
+     size += chunk.length;
+     if (size > limit) throw new FsError("EFBIG", { message: `buffer limit exceeded (${limit} bytes)` });
+-    chunks.push(chunk.slice());
++    chunks.push(new Uint8Array(chunk));
+   }
+   return concatenate(chunks, size);
+ }
+@@ -179,7 +179,7 @@ export async function* lines(source: ByteSource, separator = 10): AsyncGenerator
+       start = offset + 1;
+     }
+     if (start < chunk.length) {
+-      pending.push(chunk.slice(start));
++      pending.push(new Uint8Array(chunk.subarray(start)));
+       size += chunk.length - start;
+       if (size > bufferLimit) throw new FsError("EFBIG", { message: "line buffer limit exceeded" });
+     }
+diff --git a/src/commands/network/body.ts b/src/commands/network/body.ts
+index ce22b250..3ce326f7 100644
+--- a/src/commands/network/body.ts
++++ b/src/commands/network/body.ts
+@@ -139,7 +139,7 @@ export function createBody(context: CommandContext, args: CurlArguments, limits:
+             if (hasStdin && replayable) {
+               cachedBytes += chunk.length;
+               if (cachedBytes > limits.maxBufferBytes) { replayable = false; cache = []; }
+-              else cache.push(chunk.slice());
++              else cache.push(new Uint8Array(chunk));
+             }
+             if (chunk.length) yield chunk;
+           }
+diff --git a/src/commands/streams.ts b/src/commands/streams.ts
+index 51c4d1fd..43ebaabb 100644
+--- a/src/commands/streams.ts
++++ b/src/commands/streams.ts
+@@ -40,7 +40,8 @@ async function suffix(context: CommandContext, source: ByteSource, count: number
+   })();
+   for await (const chunk of records) {
+     context.signal.throwIfAborted();
+-    pending.push(chunk.slice());
++    if (bytes && !chunk.length) continue;
++    pending.push(new Uint8Array(chunk));
+     size += chunk.length;
+     if (bytes) {
+       let excess = Math.max(0, size - count);
+@@ -48,8 +49,11 @@ async function suffix(context: CommandContext, source: ByteSource, count: number
+         const first = pending[start]!;
+         const consume = Math.min(excess, first.length);
+         if (omit) await output(context, first.subarray(0, consume));
+-        if (consume === first.length) start++;
+-        else pending[start] = first.slice(consume);
++        if (consume === first.length) delete pending[start++];
++        else {
++          const remaining = first.subarray(consume);
++          pending[start] = remaining.length * 2 <= first.buffer.byteLength ? new Uint8Array(remaining) : remaining;
++        }
+         size -= consume; excess -= consume;
+       }
+     } else while (pending.length - start > count) {
+diff --git a/src/commands/structured/jq.ts b/src/commands/structured/jq.ts
+index 304251f9..f27c7c79 100644
+--- a/src/commands/structured/jq.ts
++++ b/src/commands/structured/jq.ts
+@@ -78,7 +78,7 @@ async function readProgram(context: CommandContext, path: string, limits: JqLimi
+     for await (const chunk of readBytes(context.fs.readStream(absolute, { signal: context.signal }), context.signal)) {
+       size += chunk.byteLength;
+       if (size > limits.maxSourceBytes) throw new JqLimitError("maxSourceBytes");
+-      if (chunk.byteLength) chunks.push(chunk.slice());
++      if (chunk.byteLength) chunks.push(new Uint8Array(chunk));
+     }
+   } else {
+     const chunk = await interruptible(() => context.fs.readFile(absolute, { signal: context.signal, maxBytes: limits.maxSourceBytes }), context.signal);

@@ -1,0 +1,16 @@
+{
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-reporter=tap",
+    "tests/integration/adapter-tools/matrix.test.ts"
+  ],
+  "cwd": "/private/tmp/safe-bash-rmdir-independent-50f517d-ToVAuL/archive",
+  "start": "2026-08-26T23:21:02.520Z",
+  "end": "2026-08-26T23:21:03.949Z",
+  "status": 1,
+  "signal": null
+}

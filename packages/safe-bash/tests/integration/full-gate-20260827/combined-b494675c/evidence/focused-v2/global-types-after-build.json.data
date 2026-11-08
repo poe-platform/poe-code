@@ -1,0 +1,32 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/private/tmp/full-gate-b494-diagnose-UnMIFK/source/node_modules/typescript/bin/tsc",
+    "--noEmit"
+  ],
+  "cwd": "/private/tmp/full-gate-b494-diagnose-UnMIFK/source",
+  "pid": 48180,
+  "status": 2,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 8398,
+  "timeoutMs": 180000,
+  "outputBytes": 1934,
+  "observed": [
+    {
+      "pid": 48180,
+      "parent": 47839,
+      "group": 48180,
+      "born": "Thu Aug 27 06:29:39 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node /private/tmp/full-gate-b494-diagnose-UnMIFK/source/node_modules/typescript/bin/tsc --noEmit"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "label": "global-types-after-build"
+}

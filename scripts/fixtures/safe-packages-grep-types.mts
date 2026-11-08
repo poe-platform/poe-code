@@ -1,0 +1,12 @@
+import { createGrepCommand, createGrepCommands, grepCommands, type GrepCommandsOptions, type GrepLimits } from "@poe-platform/safe-bash/commands/grep";
+import { createGrepAliasCommands, grepAliasCommands, type GrepAliasOptions } from "@poe-platform/safe-bash/commands/grep-aliases";
+import type { CommandDefinition, VirtualShellPlugin } from "@poe-platform/safe-bash/contracts";
+const limits: GrepLimits = { maxPatterns: 4, maxLineBytes: 4096, maxContextBytes: 8192 };
+const options: GrepCommandsOptions = { ...limits, replace: true };
+const command: CommandDefinition = createGrepCommand(options);
+const commands: readonly CommandDefinition[] = createGrepCommands(options);
+const plugin: VirtualShellPlugin = grepCommands(options);
+const aliases: GrepAliasOptions = { replace: true };
+const aliasCommands: readonly CommandDefinition[] = createGrepAliasCommands(aliases);
+const aliasPlugin: VirtualShellPlugin = grepAliasCommands(aliases);
+void [command, commands, plugin, aliasCommands, aliasPlugin];

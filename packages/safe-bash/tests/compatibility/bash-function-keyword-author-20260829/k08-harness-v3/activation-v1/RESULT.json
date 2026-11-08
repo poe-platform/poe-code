@@ -1,0 +1,40 @@
+{
+  "status": "PASS_BINDING_ONLY",
+  "at": "2026-08-29T16:08:55.355Z",
+  "grant": {
+    "bytes": 976,
+    "sha256": "1de03294f35b1c7f9d3d9aee1281250eec3771cfdc6aa2fbcee28a30f213c641",
+    "mode": 384
+  },
+  "review": {
+    "bytes": 211,
+    "sha256": "80f3ae8ed00a5dcc7ba597497352fcf4e94a21e427e53858b3fe6b8e970653d3",
+    "mode": 384
+  },
+  "command": {
+    "bytes": 346,
+    "sha256": "7984588d150e52732e87063a045cc657d653463bf6eba765bc944f90eec5321d"
+  },
+  "window": {
+    "issuedAt": "2026-08-29T16:08:30.357Z",
+    "latestStart": "2026-08-29T16:28:30.357Z",
+    "expiresAt": "2026-08-29T16:53:30.357Z"
+  },
+  "archive": {
+    "bytes": 981948,
+    "sha256": "0b6ae3340691c1c91b26f40454b8095d2ed346389353aa93e9a43c64d5a1132c",
+    "decodeCalls": 0
+  },
+  "sourceBinding": {
+    "path": "/private/tmp/safe-bash-k08-author-RAvH2m/SOURCE-BINDING.json",
+    "bytes": 47625,
+    "sha256": "23719007f88f5414725cbb3806763c70d210d8a2433ec285c179b41c67e4fa17"
+  },
+  "sourcePins": 18,
+  "helperPins": 9,
+  "unusedPaths": 12,
+  "emptyCapture": true,
+  "fullCensusRepeated": false,
+  "productCalls": 0,
+  "activationLaunched": false
+}

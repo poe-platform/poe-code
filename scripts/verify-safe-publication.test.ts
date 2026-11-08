@@ -1,0 +1,510 @@
+import { createHash } from "node:crypto";
+import { build } from "esbuild";
+import { execFile } from "node:child_process";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { gzipSync } from "node:zlib";
+import { createFsFromVolume, Volume } from "memfs";
+import { describe, expect, it, vi } from "vitest";
+import { readRegistry, runCommand, verifyCloudflareArtifacts, verifyPublication } from "./verify-safe-publication.mjs";
+
+vi.mock("node:child_process", async importOriginal => {
+  const actual = await importOriginal<typeof import("node:child_process")>();
+  return { ...actual, execFile: vi.fn(actual.execFile) };
+});
+
+const version = "0.1.669";
+const source = "e63cc14f91e17ffdfb004edd8e72d504a7e91353";
+const registry = "https://registry.npmjs.org";
+const repository = "https://github.com/poe-platform/poe-code";
+const archive = Buffer.from("the exact published archive");
+const digest = createHash("sha512").update(archive).digest();
+const integrity = `sha512-${digest.toString("base64")}`;
+const names = ["safe-fs", "safe-js", "safe-bash"].map(name => `@poe-platform/${name}`);
+
+  async function artifacts(files = createFsFromVolume(new Volume()).promises, root = "/consumer/node_modules/@poe-platform/safe-bash") {
+    const manifest = {
+      exports: { "./playwright/cloudflare": { import: "./cloudflare/index.js", types: "./cloudflare/index.d.ts" } },
+      peerDependencies: { "@cloudflare/playwright": "1.3.6" },
+      peerDependenciesMeta: { "@cloudflare/playwright": { optional: true } },
+    };
+    const contents = {
+      "package.json": JSON.stringify(manifest),
+      "cloudflare/index.js": "export const createCloudflarePlaywrightAdapter = () => {};",
+      "cloudflare/index.d.ts": "export declare function createCloudflarePlaywrightAdapter(): unknown;",
+      "cloudflare/browser-run-code-guest.generated.js": "cloudflare:workers browser-user-code.js",
+      "cloudflare/browser-codegen.generated.js": "@cloudflare/playwright@1.3.6",
+      "third-party/safe-playwright-cloudflare/third-party/playwright/LICENSE": "Apache License",
+      "third-party/safe-playwright-cloudflare/third-party/playwright/NOTICE": "Microsoft Corporation",
+    };
+    for (const [filename, content] of Object.entries(contents)) {
+      await files.mkdir(join(root, filename, ".."), { recursive: true });
+      await files.writeFile(join(root, filename), content);
+    }
+    return { files: files as unknown as typeof import("node:fs/promises"), root, manifest };
+  }
+
+describe("published Cloudflare artifacts", () => {
+  it("accepts a compressed generated guest without searching its encoded bytes as source", async () => {
+    const { files, root } = await artifacts();
+    const guest = 'import { WorkerEntrypoint } from "cloudflare:workers"; const filename = "browser-user-code.js";';
+    await files.writeFile(join(root, "cloudflare/browser-run-code-guest.generated.js"),
+      `import { createCompressedGuestSource } from "./browser-guest-source.js";\nexport const loadBrowserRunCodeGuestSource = createCompressedGuestSource(${JSON.stringify(gzipSync(guest).toString("base64"))}, ${Buffer.byteLength(guest)});`);
+    await verifyCloudflareArtifacts(files, root);
+  });
+
+  it("verifies the optional adapter, generated assets and provider notices", async () => {
+    const { files, root } = await artifacts();
+    await verifyCloudflareArtifacts(files, root);
+  });
+
+  it.each(["cloudflare/index.js", "cloudflare/index.d.ts", "cloudflare/browser-run-code-guest.generated.js", "cloudflare/browser-codegen.generated.js", "third-party/safe-playwright-cloudflare/third-party/playwright/LICENSE", "third-party/safe-playwright-cloudflare/third-party/playwright/NOTICE"])("rejects a missing published %s", async filename => {
+    const { files, root } = await artifacts();
+    await files.unlink(join(root, filename));
+    await expect(verifyCloudflareArtifacts(files, root)).rejects.toThrow();
+  });
+
+  it("rejects a provider peer that would be installed by the portable core", async () => {
+    const { files, root, manifest } = await artifacts();
+    manifest.peerDependenciesMeta["@cloudflare/playwright"].optional = false;
+    await files.writeFile(join(root, "package.json"), JSON.stringify(manifest));
+    await expect(verifyCloudflareArtifacts(files, root)).rejects.toThrow("optional");
+  });
+});
+
+function fixture(cloudflare = false) {
+  const files = createFsFromVolume(new Volume()).promises;
+  const metadata = names.map(name => ({
+    name, version,
+    repository: { type: "git", url: `git+${repository}.git`, directory: `packages/${name.split("/")[1]}` },
+    dist: {
+      tarball: `${registry}/${name}/-/${name.split("/")[1]}-${version}.tgz`,
+      integrity,
+      attestations: { url: `${registry}/-/npm/v1/attestations/${encodeURIComponent(name)}@${version}` }
+    }
+  }));
+  const statements = names.map(name => ({
+    _type: "https://in-toto.io/Statement/v1",
+    subject: [{ name: `pkg:npm/${name.replace("@", "%40")}@${version}`, digest: { sha512: digest.toString("hex") } }],
+    predicateType: "https://slsa.dev/provenance/v1",
+    predicate: { buildDefinition: {
+      externalParameters: { workflow: { repository, path: ".github/workflows/release-safe.yml", ref: "refs/heads/main" } },
+      resolvedDependencies: [{ uri: `git+${repository}@refs/heads/main`, digest: { gitCommit: source } }]
+    } }
+  }));
+  const fetch = vi.fn(async (url: string, _options?: RequestInit) => {
+    const index = names.findIndex(name => url === `${registry}/${encodeURIComponent(name)}/${version}`);
+    if (index !== -1) return Response.json(metadata[index]);
+    const provenanceIndex = metadata.findIndex(item => url === item.dist.attestations.url);
+    if (provenanceIndex !== -1) return Response.json({ attestations: [{
+      predicateType: "https://slsa.dev/provenance/v1",
+      bundle: { dsseEnvelope: { payloadType: "application/vnd.in-toto+json", payload: Buffer.from(JSON.stringify(statements[provenanceIndex])).toString("base64") } }
+    }] });
+    if (metadata.some(item => url === item.dist.tarball)) return new Response(archive);
+    throw new Error(`Unexpected registry request: ${url}`);
+  });
+  const run = vi.fn(async (command: string, _args: string[], options: { cwd: string; env: Record<string, string>; timeout: number }) => {
+    if (command !== "npm") return;
+    const packages: Record<string, unknown> = { "": { dependencies: Object.fromEntries(names.map(name => [name, version])) } };
+    for (const item of metadata) {
+      const directory = join(options.cwd, "node_modules", item.name);
+      await files.mkdir(directory, { recursive: true });
+      await files.writeFile(join(directory, "package.json"), JSON.stringify({ name: item.name, version: item.version }));
+      if (cloudflare && item.name === "@poe-platform/safe-bash") {
+        const { manifest } = await artifacts(files, directory);
+        await files.writeFile(join(directory, "package.json"), JSON.stringify({ ...manifest, name: item.name, version: item.version }));
+      }
+      packages[`node_modules/${item.name}`] = { version: item.version, resolved: item.dist.tarball, integrity: item.dist.integrity };
+    }
+    await files.writeFile(join(options.cwd, "package-lock.json"), JSON.stringify({ lockfileVersion: 3, packages }));
+  });
+  const sleep = vi.fn(async () => {});
+  const log = vi.fn();
+  return { metadata, statements, files, fetch, run, sleep, log,
+    verify: (overrides = {}) => verifyPublication({ version, source, workDir: "/out", maxAttempts: 2, retryDelayMs: 1, ...overrides }, {
+      files: files as unknown as typeof import("node:fs/promises"), fetch, run,
+      sleep: sleep as unknown as typeof import("node:timers/promises").setTimeout, log
+    }) };
+}
+
+describe("public safe-package verification", () => {
+  it("verifies a frozen branch only when its exact source ref is supplied", async () => {
+    const context = fixture();
+    const sourceRef = "refs/heads/codex/browser-release-5c41dd1aa754";
+    for (const statement of context.statements) {
+      statement.predicate.buildDefinition.externalParameters.workflow.ref = sourceRef;
+      statement.predicate.buildDefinition.resolvedDependencies[0].uri = `git+${repository}@${sourceRef}`;
+    }
+    await expect(context.verify({ maxAttempts: 1 })).rejects.toThrow("provenance");
+    await context.verify({ sourceRef, maxAttempts: 1 });
+    expect(context.run).toHaveBeenCalledTimes(2);
+  });
+
+  it.each(["workflow", "dependency", "commit", "archive"])("rejects a frozen branch with mismatched %s", async field => {
+    const context = fixture();
+    const sourceRef = "refs/heads/codex/browser-release-5c41dd1aa754";
+    for (const statement of context.statements) {
+      statement.predicate.buildDefinition.externalParameters.workflow.ref = sourceRef;
+      statement.predicate.buildDefinition.resolvedDependencies[0].uri = `git+${repository}@${sourceRef}`;
+    }
+    const definition = context.statements[0].predicate.buildDefinition;
+    if (field === "workflow") definition.externalParameters.workflow.ref = "refs/heads/main";
+    if (field === "dependency") definition.resolvedDependencies[0].uri = `git+${repository}@refs/heads/main`;
+    if (field === "commit") definition.resolvedDependencies[0].digest.gitCommit = "a".repeat(40);
+    if (field === "archive") context.statements[0].subject[0].digest.sha512 = "0".repeat(128);
+    await expect(context.verify({ sourceRef, maxAttempts: 1 })).rejects.toThrow("provenance");
+    expect(context.run).not.toHaveBeenCalled();
+  });
+
+  it.each(["main", "refs/heads/", "refs/heads/a..b", "refs/heads/a b", "refs/pull/1/merge"])("rejects invalid source ref %s before network access", async sourceRef => {
+    const context = fixture();
+    await expect(context.verify({ sourceRef, maxAttempts: 1 })).rejects.toThrow("source ref");
+    expect(context.fetch).not.toHaveBeenCalled();
+  });
+
+  it("runs portable profile imports after verifying published adapter assets", async () => {
+    const context = fixture(true);
+    await context.verify({ cloudflare: true });
+    expect(context.run).toHaveBeenCalledTimes(3);
+    expect(context.run.mock.calls[2][1].join(" ")).toContain("parseBrowserProfile(encodeBrowserProfile");
+    expect(await context.files.readdir("/out")).toEqual([]);
+  });
+
+  it("fails publication verification if portable profile imports fail", async () => {
+    const context = fixture(true);
+    const run = context.run.getMockImplementation()!;
+    context.run.mockImplementation(async (command, args, options) => {
+      if (args.join(" ").includes("encodeBrowserProfile")) throw new Error("profile import failed");
+      await run(command, args, options);
+    });
+    await expect(context.verify({ cloudflare: true, maxAttempts: 1 })).rejects.toThrow("profile import failed");
+    expect(context.log.mock.calls.flat().join(" ")).not.toContain("Verified");
+  });
+  it("requires adapter artifacts when verifying a Cloudflare release", async () => {
+    const context = fixture();
+    await expect(context.verify({ cloudflare: true, maxAttempts: 1 })).rejects.toThrow("optional Cloudflare");
+    expect(context.run).toHaveBeenCalledTimes(1);
+  });
+  it("downloads every exact archive, binds provenance, then installs exact registry specs and imports", async () => {
+    const context = fixture();
+    await context.verify();
+    for (const metadata of context.metadata) expect(context.fetch).toHaveBeenCalledWith(metadata.dist.tarball, expect.objectContaining({ redirect: "error" }));
+    const [command, args, options] = context.run.mock.calls[0];
+    expect(command).toBe("npm");
+    expect(args).toEqual(expect.arrayContaining(names.map(name => `${name}@${version}`)));
+    expect(args).toEqual(expect.arrayContaining(["--prefer-online", "--offline=false", "--prefer-offline=false", "--ignore-scripts", "--workspaces=false", "--fetch-retries=0", `--registry=${registry}`]));
+    expect(args.some(arg => arg.endsWith(".tgz"))).toBe(false);
+    expect(options).toMatchObject({ env: { HOME: expect.stringContaining("/out/"), npm_config_userconfig: expect.stringContaining("/out/") }, timeout: 120_000 });
+    expect(Object.keys(options.env).sort()).toEqual(["HOME", "PATH", "npm_config_globalconfig", "npm_config_userconfig"]);
+    expect(context.run.mock.calls[1][0]).toBe(process.execPath);
+    expect(context.run.mock.calls[1][2].env.PATH).toBe("");
+    expect(context.run.mock.calls[1][1].join(" ")).toContain("@poe-platform/safe-bash/commands/");
+    expect(await context.files.readdir("/out")).toEqual([]);
+  });
+
+  it("never succeeds on metadata 200 plus archive 404", async () => {
+    const context = fixture();
+    const request = context.fetch.getMockImplementation()!;
+    context.fetch.mockImplementation(async url => url.endsWith(".tgz") ? new Response("not propagated", { status: 404 }) : request(url));
+    await expect(context.verify()).rejects.toThrow("HTTP 404");
+    expect(context.run).not.toHaveBeenCalled();
+    expect(context.sleep).toHaveBeenCalledTimes(1);
+    expect(context.fetch.mock.calls.filter(([url]) => url.endsWith(".tgz"))).toHaveLength(2);
+  });
+
+  it("retries archive propagation without changing version, source or identity", async () => {
+    const context = fixture();
+    const request = context.fetch.getMockImplementation()!;
+    let missing = true;
+    context.fetch.mockImplementation(async url => {
+      if (missing && url.endsWith(".tgz")) { missing = false; return new Response(null, { status: 404 }); }
+      return request(url);
+    });
+    await context.verify();
+    expect(context.sleep).toHaveBeenCalledTimes(1);
+    expect(context.run).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not let two available packages hide the third archive's 404", async () => {
+    const context = fixture();
+    const request = context.fetch.getMockImplementation()!;
+    context.fetch.mockImplementation(async url => url === context.metadata[2].dist.tarball ? new Response(null, { status: 404 }) : request(url));
+    await expect(context.verify()).rejects.toThrow("HTTP 404");
+    expect(context.run).not.toHaveBeenCalled();
+    expect(context.log.mock.calls.flat().join(" ")).not.toContain("Verified");
+  });
+
+  it.each(["name", "version", "repository"])("rejects wrong metadata %s", async field => {
+    const context = fixture();
+    Object.assign(context.metadata[0], { [field]: "unrelated" });
+    await expect(context.verify({ maxAttempts: 1 })).rejects.toThrow("incorrect metadata identity");
+    expect(context.run).not.toHaveBeenCalled();
+  });
+
+  it.each(["sha1-AAAA", "sha512-AAAA", "sha512-", "", `sha512-${"!".repeat(88)}`])("rejects unsupported or malformed integrity %s", async value => {
+    const context = fixture();
+    context.metadata[0].dist.integrity = value;
+    await expect(context.verify({ maxAttempts: 1 })).rejects.toThrow("integrity");
+    expect(context.run).not.toHaveBeenCalled();
+  });
+
+  it("rejects archive bytes that do not match advertised integrity", async () => {
+    const context = fixture();
+    const request = context.fetch.getMockImplementation()!;
+    context.fetch.mockImplementation(async url => url.endsWith(".tgz") ? new Response("corrupt") : request(url));
+    await expect(context.verify()).rejects.toThrow("integrity");
+    expect(context.run).not.toHaveBeenCalled();
+  });
+
+  it.each(["tarball", "integrity"])("pins advertised %s across retries", async field => {
+    const context = fixture();
+    context.run.mockRejectedValueOnce(new Error("ETARGET"));
+    context.sleep.mockImplementationOnce(async () => {
+      if (field === "tarball") context.metadata[0].dist.tarball += "?different-artifact";
+      else context.metadata[0].dist.integrity = `sha512-${Buffer.alloc(64).toString("base64")}`;
+    });
+    await expect(context.verify()).rejects.toThrow("identity changed");
+    expect(context.run).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(["source", "repository", "workflow", "subject", "digest"])("rejects provenance with a different %s", async field => {
+    const context = fixture();
+    const statement = context.statements[0];
+    if (field === "source") statement.predicate.buildDefinition.resolvedDependencies[0].digest.gitCommit = "a".repeat(40);
+    if (field === "repository") statement.predicate.buildDefinition.externalParameters.workflow.repository = "https://github.com/other/repo";
+    if (field === "workflow") statement.predicate.buildDefinition.externalParameters.workflow.path = ".github/workflows/other.yml";
+    if (field === "subject") statement.subject[0].name = "pkg:npm/unrelated@1.0.0";
+    if (field === "digest") statement.subject[0].digest.sha512 = "0".repeat(128);
+    await expect(context.verify({ maxAttempts: 1 })).rejects.toThrow("provenance");
+    expect(context.run).not.toHaveBeenCalled();
+  });
+
+  it("retries stale npm resolution with a fresh consumer and empty cache", async () => {
+    const context = fixture();
+    context.run.mockRejectedValueOnce(new Error("npm ETARGET"));
+    await context.verify();
+    const calls = context.run.mock.calls.filter(([command]) => command === "npm");
+    expect(calls).toHaveLength(2);
+    expect(calls[0][2].cwd).not.toBe(calls[1][2].cwd);
+    expect(calls[0][1].find(arg => arg.startsWith("--cache="))).not.toBe(calls[1][1].find(arg => arg.startsWith("--cache=")));
+    expect(await context.files.readdir("/out")).toEqual([]);
+  });
+
+  it("fails after bounded package-manager download failures without trying imports", async () => {
+    const context = fixture();
+    context.run.mockRejectedValue(new Error("npm E404: registry archive unavailable"));
+    await expect(context.verify()).rejects.toThrow("npm E404");
+    expect(context.run).toHaveBeenCalledTimes(2);
+    expect(context.run.mock.calls.every(([command]) => command === "npm")).toBe(true);
+    expect(await context.files.readdir("/out")).toEqual([]);
+  });
+
+  it("enforces the whole-run deadline during an in-flight request", async () => {
+    const context = fixture();
+    context.fetch.mockImplementation((_url, options) => new Promise((_resolve, reject) => {
+      options!.signal!.addEventListener("abort", () => reject(options!.signal!.reason), { once: true });
+    }));
+    await expect(context.verify({ timeoutMs: 20 })).rejects.toThrow("Public verification failed");
+    expect(context.fetch).toHaveBeenCalledTimes(1);
+    expect(context.sleep).not.toHaveBeenCalled();
+  });
+
+  it.each(["resolved", "integrity", "version", "link", "manifest", "missing"])("rejects npm substitution via %s", async field => {
+    const context = fixture();
+    const install = context.run.getMockImplementation()!;
+    context.run.mockImplementation(async (command, args, options) => {
+      await install(command, args, options);
+      const lockPath = join(options.cwd, "package-lock.json");
+      const lock = JSON.parse(await context.files.readFile(lockPath, "utf8") as string);
+      const key = `node_modules/${names[0]}`;
+      if (field === "missing") delete lock.packages[key];
+      else if (field === "manifest") await context.files.writeFile(join(options.cwd, key, "package.json"), JSON.stringify({ name: names[0], version: "0.0.1" }));
+      else lock.packages[key][field] = field === "link" ? true : "substituted";
+      await context.files.writeFile(lockPath, JSON.stringify(lock));
+    });
+    await expect(context.verify({ maxAttempts: 1 })).rejects.toThrow("installed identity");
+    expect(context.run).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not report success when import exits unsuccessfully", async () => {
+    const context = fixture();
+    const install = context.run.getMockImplementation()!;
+    context.run.mockImplementation(async (command, args, options) => {
+      if (command !== "npm") throw new Error("import failed");
+      await install(command, args, options);
+    });
+    await expect(context.verify()).rejects.toThrow("import failed");
+    expect(context.log.mock.calls.flat().join(" ")).not.toContain("Verified");
+    expect(await context.files.readdir("/out")).toEqual([]);
+  });
+
+  it.each(["safe-bash-command-example", "safe-bash-engine-pdf", "safe-bash-contracts"])("rejects an installed bare private requirement %s", async name => {
+    const context = fixture();
+    const install = context.run.getMockImplementation()!;
+    context.run.mockImplementation(async (command, args, options) => {
+      await install(command, args, options);
+      const filename = join(options.cwd, "node_modules", names[2], "package.json");
+      await context.files.writeFile(filename, JSON.stringify({ name: names[2], version, dependencies: { [name]: "0.0.1" } }));
+    });
+    await expect(context.verify({ maxAttempts: 1 })).rejects.toThrow("Private safe-bash requirement");
+    expect(context.run).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(["safe-bash-command-example", "@private/safe-bash-engine-pdf", "safe-bash-contracts"])("rejects a transitive private installation %s", async name => {
+    const context = fixture();
+    const install = context.run.getMockImplementation()!;
+    context.run.mockImplementation(async (command, args, options) => {
+      await install(command, args, options);
+      const filename = join(options.cwd, "package-lock.json");
+      const lock = JSON.parse(await context.files.readFile(filename, "utf8") as string);
+      lock.packages[`node_modules/public-helper/node_modules/${name}`] = { version: "0.0.1" };
+      await context.files.writeFile(filename, JSON.stringify(lock));
+    });
+    await expect(context.verify({ maxAttempts: 1 })).rejects.toThrow("Private safe-bash installation");
+    expect(context.run).toHaveBeenCalledTimes(1);
+    expect(await context.files.readdir("/out")).toEqual([]);
+  });
+
+  it("allows public helpers with similar names in the installed closure", async () => {
+    const context = fixture();
+    const install = context.run.getMockImplementation()!;
+    context.run.mockImplementation(async (command, args, options) => {
+      await install(command, args, options);
+      if (command !== "npm") return;
+      const filename = join(options.cwd, "package-lock.json");
+      const lock = JSON.parse(await context.files.readFile(filename, "utf8") as string);
+      lock.packages["node_modules/public-safe-bash-command-helper"] = { version: "1.0.0" };
+      await context.files.writeFile(filename, JSON.stringify(lock));
+    });
+    await context.verify({ maxAttempts: 1 });
+    expect(context.run).toHaveBeenCalledTimes(2);
+  });
+
+  it.each([{ version: "latest" }, { version: "^0.1.669" }, { source: "main" }, { maxAttempts: 0 }, { timeoutMs: Infinity }])("rejects unbounded or non-exact inputs %j", async overrides => {
+    const context = fixture();
+    await expect(context.verify(overrides)).rejects.toThrow();
+    expect(context.fetch).not.toHaveBeenCalled();
+  });
+});
+
+describe("bounded registry reads", () => {
+  it.each(["http://registry.npmjs.org/archive", "https://example.com/archive", "https://user:pass@registry.npmjs.org/archive", "file:///archive"])("rejects non-public-registry URLs %s", async url => {
+    const fetch = vi.fn();
+    await expect(readRegistry(url, { maxBytes: 8 }, fetch)).rejects.toThrow("registry URL");
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it.each([301, 302, 404, 429, 500, 206])("rejects HTTP %s and cancels its body", async status => {
+    const cancel = vi.fn();
+    const fetch = vi.fn(async () => new Response(new ReadableStream({ cancel }), { status }));
+    await expect(readRegistry(`${registry}/archive`, { maxBytes: 8 }, fetch)).rejects.toThrow(`HTTP ${status}`);
+    expect(cancel).toHaveBeenCalled();
+    expect(fetch).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({ redirect: "error", signal: expect.any(AbortSignal) }));
+  });
+
+  it("rejects oversized declared bodies before reading", async () => {
+    const cancel = vi.fn();
+    const fetch = vi.fn(async () => new Response(new ReadableStream({ cancel }), { headers: { "content-length": "100" } }));
+    await expect(readRegistry(`${registry}/archive`, { maxBytes: 8 }, fetch)).rejects.toThrow("exceeds");
+    expect(cancel).toHaveBeenCalled();
+  });
+
+  it("bounds streamed bytes even when content-length lies", async () => {
+    const cancel = vi.fn();
+    const fetch = vi.fn(async () => new Response(new ReadableStream({ start(controller) { controller.enqueue(Buffer.alloc(9)); }, cancel }), { headers: { "content-length": "1" } }));
+    await expect(readRegistry(`${registry}/archive`, { maxBytes: 8 }, fetch)).rejects.toThrow("exceeds");
+    expect(cancel).toHaveBeenCalled();
+  });
+
+  it("passes request and whole-run cancellation to fetch", async () => {
+    const controller = new AbortController();
+    controller.abort(new Error("deadline"));
+    const fetch = vi.fn();
+    await expect(readRegistry(`${registry}/archive`, { maxBytes: 8, signal: controller.signal }, fetch)).rejects.toThrow("deadline");
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("aborts a stalled response body rather than treating headers as completion", async () => {
+    const signal = AbortSignal.timeout(20);
+    const fetch = vi.fn(async (_url: string, options: RequestInit) => new Response(new ReadableStream({
+      start(controller) {
+        controller.enqueue(Buffer.from("partial"));
+        options.signal!.addEventListener("abort", () => controller.error(options.signal!.reason), { once: true });
+      }
+    })));
+    await expect(readRegistry(`${registry}/archive`, { maxBytes: 8, signal }, fetch)).rejects.toThrow();
+    expect(signal.aborted).toBe(true);
+  });
+});
+
+describe("bounded child execution", () => {
+  it("preserves a nonzero child exit at the process boundary", async () => {
+    const error = Object.assign(new Error("Command failed with exit 7"), { code: 7 });
+    vi.mocked(execFile).mockImplementationOnce((...parameters) => {
+      expect(parameters.slice(0, 2)).toEqual(["/bin/sh", ["-c", "exit 7"]]);
+      expect(parameters[2]).toMatchObject({ timeout: 1_000, maxBuffer: 1_048_576, killSignal: "SIGKILL" });
+      const callback = parameters[3] as (error: Error, stdout: string) => void;
+      callback(error, "");
+      return {} as ReturnType<typeof execFile>;
+    });
+    await expect(runCommand("/bin/sh", ["-c", "exit 7"], { timeout: 1_000 })).rejects.toBe(error);
+  });
+
+  it("returns successful child output", async () => {
+    vi.mocked(execFile).mockImplementationOnce((...parameters) => {
+      const callback = parameters[3] as (error: null, stdout: string) => void;
+      callback(null, "owned output");
+      return {} as ReturnType<typeof execFile>;
+    });
+    await expect(runCommand("owned-command", [], { timeout: 50 })).resolves.toBe("owned output");
+  });
+
+  it("kills a stalled package manager or import", async () => {
+    vi.mocked(execFile).mockImplementationOnce((...parameters) => {
+      expect(parameters[2]).toMatchObject({ timeout: 50, maxBuffer: 1_048_576, killSignal: "SIGKILL" });
+      const callback = parameters[3] as (error: Error, stdout: string) => void;
+      callback(Object.assign(new Error("child killed"), { signal: "SIGKILL" }), "");
+      return {} as ReturnType<typeof execFile>;
+    });
+    await expect(runCommand("/bin/sh", ["-c", "while :; do :; done"], { timeout: 50 })).rejects.toMatchObject({ signal: "SIGKILL" });
+  });
+
+  it("bounds child output", async () => {
+    vi.mocked(execFile).mockImplementationOnce((...parameters) => {
+      expect(parameters[2]).toMatchObject({ timeout: 1_000, maxBuffer: 1_048_576, killSignal: "SIGKILL" });
+      const callback = parameters[3] as (error: Error, stdout: string) => void;
+      callback(Object.assign(new Error("stdout maxBuffer length exceeded"), { code: "ERR_CHILD_PROCESS_STDIO_MAXBUFFER" }), "");
+      return {} as ReturnType<typeof execFile>;
+    });
+    await expect(runCommand("/bin/sh", ["-c", "printf '%2000000s' x"], { timeout: 1_000 })).rejects.toMatchObject({ code: "ERR_CHILD_PROCESS_STDIO_MAXBUFFER" });
+  });
+
+  it("the CLI exits nonzero for non-exact versions before touching disk", async () => {
+    const argv = process.argv;
+    const exitCode = process.exitCode;
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    const mkdir = vi.fn().mockRejectedValue(new Error("Unexpected filesystem access"));
+    try {
+      process.argv = [process.execPath, fileURLToPath(new URL("./verify-safe-publication.mjs", import.meta.url)), "--version", "latest", "--source", source];
+      vi.doMock("node:fs/promises", () => ({ mkdir }));
+      vi.resetModules();
+      await import("./verify-safe-publication.mjs");
+      expect(process.exitCode).toBe(1);
+      expect(error).toHaveBeenCalledWith(expect.stringContaining("exact"));
+      expect(mkdir).not.toHaveBeenCalled();
+    } finally {
+      vi.doUnmock("node:fs/promises");
+      process.argv = argv;
+      process.exitCode = exitCode;
+      error.mockRestore();
+    }
+  });
+});
+
+it("bundles the publication-boundary verifier for a CommonJS sandbox", async () => {
+  const result = await build({
+    entryPoints: [fileURLToPath(new URL("./fixtures/safe-packages-publication-boundary.mjs", import.meta.url))],
+    bundle: true, write: false, packages: "external", platform: "browser", format: "cjs", target: "es2022",
+  });
+  expect(result.outputFiles).toHaveLength(1);
+});

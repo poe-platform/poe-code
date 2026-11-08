@@ -1,0 +1,23 @@
+{
+  "temp": "/tmp/safe-bash-owned-output-direction-prototype-a1Rz7L",
+  "candidate": "/tmp/safe-bash-owned-output-direction-prototype-a1Rz7L/candidate",
+  "sourceManifestSha256": "c13d21a4205f75a846363e7e2c13db103ed841ee61397553105745c940f31c44",
+  "testManifestSha256": "bdae375b37ea07dcbbd505a23873d472cfd379eae70f0b037d82b9830046de44",
+  "compiledManifestSha256": "c4df1c6910557948441eb47b3b7a9a9d069267e14e3745541f5d1e8c6d766bb0",
+  "sourceFiles": 213,
+  "testFiles": 14,
+  "compiledFiles": 708,
+  "restoredAt": "2026-08-27T10:09:55.695Z",
+  "noSourceFallback": true,
+  "noGitShowNeeded": true,
+  "toolPolicy": "Authenticated existing development tool symlink only; no new dependencies",
+  "build": {
+    "pid": 18353,
+    "status": 0,
+    "signal": null,
+    "stdout": "",
+    "stderr": "",
+    "compilerStillExists": false
+  },
+  "replay": "node /tmp/safe-bash-owned-output-direction-prototype-a1Rz7L/run-prototype.mjs independent-replay"
+}

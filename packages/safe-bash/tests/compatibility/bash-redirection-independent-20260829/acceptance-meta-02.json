@@ -1,0 +1,15 @@
+{
+  "args": [
+    "diff",
+    "--check",
+    "--",
+    "README.md",
+    "docs/COMMAND_PRIORITIES.md",
+    "docs/PROJECT_LEDGER.md"
+  ],
+  "closed": true,
+  "capture": 0,
+  "pid": 17761,
+  "code": 0,
+  "signal": null
+}

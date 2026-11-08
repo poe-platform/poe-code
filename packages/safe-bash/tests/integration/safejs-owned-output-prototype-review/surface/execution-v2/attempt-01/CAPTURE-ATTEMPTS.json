@@ -1,0 +1,15 @@
+{
+  "firstCapture": {
+    "exitCode": 1,
+    "phase": "Post-run apply_patch text packaging",
+    "message": "Invalid patch hunk on line 5520: '' is not a valid hunk header. Valid hunk headers: '*** Add File: {path}', '*** Delete File: {path}', '*** Update File: {path}'",
+    "cause": "Empty stderr.log emitted an unprefixed blank line after Add File header",
+    "rawFiles": 57,
+    "rawBytes": 3840220,
+    "rawDataChanged": false,
+    "guestReruns": 0,
+    "reportedBeforeCorrection": true
+  },
+  "correction": "Only patch text framing: emit consecutive Add File headers for empty files, no stray blank line. Byte verification remains mandatory.",
+  "actualCohortRuns": 1
+}

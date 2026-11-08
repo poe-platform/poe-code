@@ -1,0 +1,5 @@
+
+> virtual-bash@0.0.0 typecheck
+> tsc --noEmit
+
+tests/full-gate-cold-probe.test.ts(1,7): error TS2322: Type 'string' is not assignable to type 'number'.

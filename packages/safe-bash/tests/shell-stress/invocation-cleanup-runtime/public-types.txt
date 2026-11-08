@@ -1,0 +1,24 @@
+
+> virtual-bash@0.0.0 typecheck
+> tsc --noEmit
+
+src/commands/tree/tree.ts(77,91): error TS2550: Property 'isWellFormed' does not exist on type 'string'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2024' or later.
+tests/commands/regex-execution/continuation/artifacts/native/dialect-bFUsLx/alpha.ts(1,1): error TS2304: Cannot find name 'hit'.
+tests/commands/regex-execution/continuation/artifacts/native/dialect-bFUsLx/beta.ts(1,1): error TS2304: Cannot find name 'hit'.
+tests/commands/regex-execution/continuation/artifacts/native/dialect-uhGVu3/ab.ts(1,1): error TS2304: Cannot find name 'hit'.
+tests/commands/regex-execution/continuation/artifacts/native/dialect-uhGVu3/🙂.ts(1,1): error TS2304: Cannot find name 'hit'.
+tests/commands/regex-execution/continuation/artifacts/native/dialect-xj7h8F/a.ts(1,1): error TS2304: Cannot find name 'hit'.
+tests/commands/regex-execution/continuation/artifacts/native/dialect-xj7h8F/d.ts(1,1): error TS2304: Cannot find name 'hit'.
+tests/fs/webdav/atomic-extension/capability.test.ts(6,15): error TS2305: Module '"../../../../src/fs/webdav/index.js"' has no exported member 'WebDavAtomicEmptyDirectoryBinding'.
+tests/fs/webdav/atomic-extension/capability.test.ts(6,50): error TS2305: Module '"../../../../src/fs/webdav/index.js"' has no exported member 'WebDavAtomicEmptyDirectoryRequest'.
+tests/fs/webdav/atomic-extension/capability.test.ts(6,85): error TS2305: Module '"../../../../src/fs/webdav/index.js"' has no exported member 'WebDavAtomicEmptyDirectoryResult'.
+tests/fs/webdav/atomic-extension/capability.test.ts(19,5): error TS2353: Object literal may only specify known properties, and 'atomicEmptyDirectory' does not exist in type 'WebDavFileSystemOptions'.
+tests/fs/webdav/atomic-extension/capability.test.ts(30,7): error TS2353: Object literal may only specify known properties, and 'atomicEmptyDirectory' does not exist in type 'WebDavFileSystemOptions'.
+tests/fs/webdav/atomic-extension/capability.test.ts(37,39): error TS7006: Parameter 'request' implicitly has an 'any' type.
+tests/fs/webdav/atomic-extension/capability.test.ts(60,79): error TS2353: Object literal may only specify known properties, and 'atomicEmptyDirectory' does not exist in type 'WebDavFileSystemOptions'.
+tests/fs/webdav/atomic-extension/capability.test.ts(70,41): error TS7006: Parameter 'request' implicitly has an 'any' type.
+tests/fs/webdav/atomic-extension/capability.test.ts(80,39): error TS7006: Parameter 'request' implicitly has an 'any' type.
+tests/fs/webdav/atomic-extension/capability.test.ts(93,41): error TS7006: Parameter 'request' implicitly has an 'any' type.
+tests/fs/webdav/atomic-extension/capability.test.ts(134,27): error TS7006: Parameter 'request' implicitly has an 'any' type.
+tests/fs/webdav/atomic-extension/capability.test.ts(149,39): error TS7006: Parameter 'request' implicitly has an 'any' type.
+tests/fs/webdav/atomic-extension/capability.test.ts(162,5): error TS2353: Object literal may only specify known properties, and 'atomicEmptyDirectory' does not exist in type 'WebDavFileSystemOptions'.

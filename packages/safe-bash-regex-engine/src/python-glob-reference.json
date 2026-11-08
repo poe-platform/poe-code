@@ -1,0 +1,267 @@
+{
+  "names": [
+    "",
+    "a",
+    "b",
+    "c",
+    "z",
+    "-",
+    "[",
+    "]",
+    "^",
+    "!",
+    "&",
+    "~",
+    "|",
+    "{a,b}",
+    "a\\b",
+    "\u00e9a",
+    "\ud83d\ude42",
+    "\ud83d\ude43",
+    "file.txt",
+    ".hidden.txt",
+    "a\nb",
+    "abc",
+    "ac",
+    "aZZbYYc"
+  ],
+  "patterns": [
+    {
+      "pattern": "*",
+      "matches": [
+        "",
+        "a",
+        "b",
+        "c",
+        "z",
+        "-",
+        "[",
+        "]",
+        "^",
+        "!",
+        "&",
+        "~",
+        "|",
+        "{a,b}",
+        "a\\b",
+        "\u00e9a",
+        "\ud83d\ude42",
+        "\ud83d\ude43",
+        "file.txt",
+        ".hidden.txt",
+        "a\nb",
+        "abc",
+        "ac",
+        "aZZbYYc"
+      ]
+    },
+    {
+      "pattern": "?",
+      "matches": [
+        "a",
+        "b",
+        "c",
+        "z",
+        "-",
+        "[",
+        "]",
+        "^",
+        "!",
+        "&",
+        "~",
+        "|",
+        "\ud83d\ude42",
+        "\ud83d\ude43"
+      ]
+    },
+    {
+      "pattern": "*.txt",
+      "matches": [
+        "file.txt",
+        ".hidden.txt"
+      ]
+    },
+    {
+      "pattern": "[abc]",
+      "matches": [
+        "a",
+        "b",
+        "c"
+      ]
+    },
+    {
+      "pattern": "[!a]",
+      "matches": [
+        "b",
+        "c",
+        "z",
+        "-",
+        "[",
+        "]",
+        "^",
+        "!",
+        "&",
+        "~",
+        "|",
+        "\ud83d\ude42",
+        "\ud83d\ude43"
+      ]
+    },
+    {
+      "pattern": "[]a]",
+      "matches": [
+        "a",
+        "]"
+      ]
+    },
+    {
+      "pattern": "[^a]",
+      "matches": [
+        "a",
+        "^"
+      ]
+    },
+    {
+      "pattern": "[[]",
+      "matches": [
+        "["
+      ]
+    },
+    {
+      "pattern": "[a-z]",
+      "matches": [
+        "a",
+        "b",
+        "c",
+        "z"
+      ]
+    },
+    {
+      "pattern": "[z-a]",
+      "error": "error",
+      "message": "bad character range z-a at position 5"
+    },
+    {
+      "pattern": "{a,b}",
+      "matches": [
+        "{a,b}"
+      ]
+    },
+    {
+      "pattern": "a\\b",
+      "matches": [
+        "a\\b"
+      ]
+    },
+    {
+      "pattern": "**",
+      "matches": [
+        "",
+        "a",
+        "b",
+        "c",
+        "z",
+        "-",
+        "[",
+        "]",
+        "^",
+        "!",
+        "&",
+        "~",
+        "|",
+        "{a,b}",
+        "a\\b",
+        "\u00e9a",
+        "\ud83d\ude42",
+        "\ud83d\ude43",
+        "file.txt",
+        ".hidden.txt",
+        "a\nb",
+        "abc",
+        "ac",
+        "aZZbYYc"
+      ]
+    },
+    {
+      "pattern": "a**b",
+      "matches": [
+        "a\\b",
+        "a\nb"
+      ]
+    },
+    {
+      "pattern": "[a--c]",
+      "error": "error",
+      "message": "bad character range a-\\- at position 5"
+    },
+    {
+      "pattern": "[a&&b]",
+      "matches": [
+        "a",
+        "b",
+        "&"
+      ]
+    },
+    {
+      "pattern": "[~|]",
+      "matches": [
+        "~",
+        "|"
+      ]
+    },
+    {
+      "pattern": "[",
+      "matches": [
+        "["
+      ]
+    },
+    {
+      "pattern": "[!]",
+      "matches": []
+    },
+    {
+      "pattern": "[!]]",
+      "matches": [
+        "a",
+        "b",
+        "c",
+        "z",
+        "-",
+        "[",
+        "^",
+        "!",
+        "&",
+        "~",
+        "|",
+        "\ud83d\ude42",
+        "\ud83d\ude43"
+      ]
+    },
+    {
+      "pattern": "\u00e9?",
+      "matches": [
+        "\u00e9a"
+      ]
+    },
+    {
+      "pattern": "[\ud83d\ude42-\ud83d\ude43]",
+      "matches": [
+        "\ud83d\ude42",
+        "\ud83d\ude43"
+      ]
+    },
+    {
+      "pattern": "a*b*c",
+      "matches": [
+        "abc",
+        "aZZbYYc"
+      ]
+    },
+    {
+      "pattern": "a?c",
+      "matches": [
+        "abc"
+      ]
+    }
+  ]
+}

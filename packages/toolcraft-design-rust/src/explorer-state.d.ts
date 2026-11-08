@@ -1,0 +1,12 @@
+export * from "./explorer-types.js";
+import type {ExplorerConfig,NormalizedExplorerConfig,ExplorerSize,ExplorerState,ExplorerLayoutMode} from "./explorer-types.js";
+export declare const REGION_HEADER: number;
+export declare const REGION_LIST: number;
+export declare const REGION_DETAIL: number;
+export declare const REGION_FOOTER: number;
+export declare const REGION_MODAL: number;
+export declare const REGION_TOAST: number;
+export declare const REGION_ALL: number;
+export declare function normalizeExplorerConfig<R>(config: ExplorerConfig<R>): NormalizedExplorerConfig<R>;
+export declare function createInitialState<R>(config: ExplorerConfig<R>, size: ExplorerSize): ExplorerState;
+export declare function resolveExplorerLayoutMode(cols: number, rows?: number): ExplorerLayoutMode;

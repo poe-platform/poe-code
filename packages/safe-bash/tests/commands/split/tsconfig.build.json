@@ -1,0 +1,11 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "../../..",
+    "outDir": "./.build",
+    "declaration": true,
+    "noEmit": false
+  },
+  "include": ["../../../src/commands/split/**/*.ts", "./compiled-host.ts"],
+  "exclude": []
+}

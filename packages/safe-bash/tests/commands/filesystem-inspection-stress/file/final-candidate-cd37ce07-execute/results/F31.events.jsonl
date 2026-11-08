@@ -1,0 +1,7 @@
+{"at":"2026-08-27T09:28:23.286Z","kind":"case-start","id":"F31"}
+{"at":"2026-08-27T09:28:23.288Z","kind":"execute-start","invocation":1,"args":["-b","--mime","/input"],"signal":{"present":true,"signalId":1,"aborted":false}}
+{"at":"2026-08-27T09:28:23.288Z","kind":"fs-call","invocation":1,"method":"lstat","path":"/input","options":{"signal":{"present":true,"signalId":2,"aborted":false}}}
+{"at":"2026-08-27T09:28:23.289Z","kind":"sink-write","invocation":1,"stream":"stderr","bytes":63,"base64":"ZmlsZTogL2lucHV0OiBFTk9UU1VQOiBvcGVyYXRpb24gbm90IHN1cHBvcnRlZCwgbHN0YXQgJy9pbnB1dCcK"}
+{"at":"2026-08-27T09:28:23.289Z","kind":"sink-resolved","invocation":1,"stream":"stderr"}
+{"at":"2026-08-27T09:28:23.289Z","kind":"execute-result","invocation":1,"result":{"exitCode":1}}
+{"at":"2026-08-27T09:28:23.289Z","kind":"case-finished","id":"F31","semanticStatus":"backend-limitation","nativeStatus":"not-run"}

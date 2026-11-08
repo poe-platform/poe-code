@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "command": [
+    "node",
+    "tests/integration/du-overlay-independent-20260827/v9-native-predicate-overlay-20260827/focused-predicate-controls.mjs"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "nodeVersion": "v22.22.2",
+  "status": 0,
+  "stdout": {
+    "path": "focused-predicate-controls.stdout.data",
+    "bytes": 569,
+    "sha256": "0d87c09c2598ab52916e5e338531acdf9ef5a2b96012ffa749a0a4ab0e061f6b"
+  },
+  "stderr": {
+    "path": "focused-predicate-controls.stderr.data",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "result": {
+    "passed": 14,
+    "total": 14,
+    "positiveAuthenticatedRows": 3,
+    "negativeControls": 11
+  },
+  "nativeOracleExecuted": false,
+  "nativeRowsExecuted": 0,
+  "fullRecipeExecuted": false
+}

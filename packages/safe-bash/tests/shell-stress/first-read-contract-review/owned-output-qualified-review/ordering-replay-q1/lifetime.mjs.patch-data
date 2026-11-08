@@ -1,0 +1,14 @@
+--- /Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/lifetime.mjs.data	2026-08-27 07:50:41
++++ /Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-review/ordering-replay-q1/lifetime.mjs.data	2026-08-27 08:08:30
+@@ -1,9 +1,10 @@
+ import assert from 'node:assert/strict';
+ import { assertRejectedIdentity, assertReasonPriority, assertNativeDefaultUndefined, Unbound } from './qualified-criteria.mjs';
++import { correctedLifetime } from './ordering-lifetime.mjs';
+ export async function lifetime(api, config, entry, scope, result, harness) {
+   const { gate, tracked, observe, immediate, makeShell, sourceWithOwner, destination, createOperation, bytes, text } = harness;
+   const parameter=entry.parameter;
+-  if(parameter==='normal-close-synthetic-caller-undefined') throw new Unbound('Native AbortSignal.any requires genuine branded signals; Q1 does not authenticate a synthetic literal-undefined signal. Frozen criterion retained BLOCKED, not native default coverage.');
++  if(['error-first-caller-error-cleanup-error','error-first-caller-zero-cleanup-error','normal-close-synthetic-caller-undefined'].includes(parameter)) return correctedLifetime(api,config,entry,scope,result,harness);
+   const started=gate(), delivered=gate(), cleanupEntered=gate(), releaseCleanup=gate(), releaseIo=gate(), normalClosed=gate(), selected=gate();
+   scope.releases.push(()=>releaseCleanup.resolve(),()=>releaseIo.reject(new Error('fixture teardown late error')));
+   const {shell,fs,stages}=makeShell(api,scope);

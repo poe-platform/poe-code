@@ -1,0 +1,19 @@
+{
+  "scope": "isolated package copy with added prepare sentinel; actual release package has no added scripts",
+  "observations": [
+    {
+      "flags": [],
+      "before": "",
+      "after": "prepare\n",
+      "prepareExecuted": true
+    },
+    {
+      "flags": [
+        "--ignore-scripts"
+      ],
+      "before": "prepare\n",
+      "after": "prepare\nprepare\n",
+      "prepareExecuted": true
+    }
+  ]
+}

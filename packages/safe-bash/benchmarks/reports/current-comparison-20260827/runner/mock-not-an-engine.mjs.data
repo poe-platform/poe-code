@@ -1,0 +1,1 @@
+throw new Error("DATA ONLY: importing this fixture is forbidden");

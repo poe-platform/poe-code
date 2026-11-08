@@ -1,0 +1,1544 @@
+{
+  "timestamp": "2026-08-27T00:16:44.101Z",
+  "sourceCommit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+  "cohortCommit": "c440c1aa51ce9f08deb822e30e31d5c171954965",
+  "head": "5ce557d1ce7f8ca00c95a670ce3647409953db05",
+  "status": "FINAL_SOURCE_GUARD_FAILED_NO_CURRENT_ACCEPTANCE",
+  "firstSealFailure": {
+    "path": "src/commands/filesystem.ts",
+    "expected": "a7280538f4168ae40939a56181feac8bac06fdf071fe566293f77425bce678d1",
+    "actual": "da0f1f25acd63906cd42153b0ae8068b05ccc748c598b979ade42ca599e7f731",
+    "message": "Initial final-seal assertion failed before writing evidence. This capture preserves the failed guard without rerunning tests or changing expectations."
+  },
+  "sourceChecks": [
+    {
+      "path": "src/commands/basic.ts",
+      "expected": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+      "current": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+      "runHashes": [
+        {
+          "phase": "post-ready-holdout-evidence.json",
+          "before": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+          "after": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f"
+        },
+        {
+          "phase": "post-ready-regression-evidence.json",
+          "before": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+          "after": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f"
+        },
+        {
+          "phase": "post-ready-supplement-evidence.json",
+          "before": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+          "after": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+          "frozen": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f"
+        }
+      ],
+      "currentMatchesFreeze": true,
+      "runsMatchedFreeze": true
+    },
+    {
+      "path": "src/commands/execution.ts",
+      "expected": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de",
+      "current": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de",
+      "runHashes": [
+        {
+          "phase": "post-ready-holdout-evidence.json",
+          "before": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de",
+          "after": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de"
+        },
+        {
+          "phase": "post-ready-regression-evidence.json",
+          "before": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de",
+          "after": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de"
+        },
+        {
+          "phase": "post-ready-supplement-evidence.json",
+          "before": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de",
+          "after": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de",
+          "frozen": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de"
+        }
+      ],
+      "currentMatchesFreeze": true,
+      "runsMatchedFreeze": true
+    },
+    {
+      "path": "src/commands/filesystem.ts",
+      "expected": "a7280538f4168ae40939a56181feac8bac06fdf071fe566293f77425bce678d1",
+      "current": "da0f1f25acd63906cd42153b0ae8068b05ccc748c598b979ade42ca599e7f731",
+      "runHashes": [
+        {
+          "phase": "post-ready-holdout-evidence.json",
+          "before": "a7280538f4168ae40939a56181feac8bac06fdf071fe566293f77425bce678d1",
+          "after": "a7280538f4168ae40939a56181feac8bac06fdf071fe566293f77425bce678d1"
+        },
+        {
+          "phase": "post-ready-regression-evidence.json",
+          "before": "a7280538f4168ae40939a56181feac8bac06fdf071fe566293f77425bce678d1",
+          "after": "a7280538f4168ae40939a56181feac8bac06fdf071fe566293f77425bce678d1"
+        },
+        {
+          "phase": "post-ready-supplement-evidence.json",
+          "before": "a7280538f4168ae40939a56181feac8bac06fdf071fe566293f77425bce678d1",
+          "after": "a7280538f4168ae40939a56181feac8bac06fdf071fe566293f77425bce678d1",
+          "frozen": "a7280538f4168ae40939a56181feac8bac06fdf071fe566293f77425bce678d1"
+        }
+      ],
+      "currentMatchesFreeze": false,
+      "runsMatchedFreeze": true
+    },
+    {
+      "path": "src/commands/find.ts",
+      "expected": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+      "current": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+      "runHashes": [
+        {
+          "phase": "post-ready-holdout-evidence.json",
+          "before": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+          "after": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2"
+        },
+        {
+          "phase": "post-ready-regression-evidence.json",
+          "before": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+          "after": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2"
+        },
+        {
+          "phase": "post-ready-supplement-evidence.json",
+          "before": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+          "after": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+          "frozen": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2"
+        }
+      ],
+      "currentMatchesFreeze": true,
+      "runsMatchedFreeze": true
+    },
+    {
+      "path": "src/commands/grep.ts",
+      "expected": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+      "current": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+      "runHashes": [
+        {
+          "phase": "post-ready-holdout-evidence.json",
+          "before": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+          "after": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d"
+        },
+        {
+          "phase": "post-ready-regression-evidence.json",
+          "before": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+          "after": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d"
+        },
+        {
+          "phase": "post-ready-supplement-evidence.json",
+          "before": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+          "after": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+          "frozen": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d"
+        }
+      ],
+      "currentMatchesFreeze": true,
+      "runsMatchedFreeze": true
+    },
+    {
+      "path": "src/commands/index.ts",
+      "expected": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2",
+      "current": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2",
+      "runHashes": [
+        {
+          "phase": "post-ready-holdout-evidence.json",
+          "before": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2",
+          "after": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2"
+        },
+        {
+          "phase": "post-ready-regression-evidence.json",
+          "before": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2",
+          "after": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2"
+        },
+        {
+          "phase": "post-ready-supplement-evidence.json",
+          "before": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2",
+          "after": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2",
+          "frozen": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2"
+        }
+      ],
+      "currentMatchesFreeze": true,
+      "runsMatchedFreeze": true
+    },
+    {
+      "path": "src/commands/internal.ts",
+      "expected": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+      "current": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+      "runHashes": [
+        {
+          "phase": "post-ready-holdout-evidence.json",
+          "before": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+          "after": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5"
+        },
+        {
+          "phase": "post-ready-regression-evidence.json",
+          "before": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+          "after": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5"
+        },
+        {
+          "phase": "post-ready-supplement-evidence.json",
+          "before": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+          "after": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+          "frozen": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5"
+        }
+      ],
+      "currentMatchesFreeze": true,
+      "runsMatchedFreeze": true
+    },
+    {
+      "path": "src/commands/predicates.ts",
+      "expected": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+      "current": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+      "runHashes": [
+        {
+          "phase": "post-ready-holdout-evidence.json",
+          "before": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+          "after": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347"
+        },
+        {
+          "phase": "post-ready-regression-evidence.json",
+          "before": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+          "after": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347"
+        },
+        {
+          "phase": "post-ready-supplement-evidence.json",
+          "before": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+          "after": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+          "frozen": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347"
+        }
+      ],
+      "currentMatchesFreeze": true,
+      "runsMatchedFreeze": true
+    },
+    {
+      "path": "src/commands/search/glob.ts",
+      "expected": "d6fc574fbfde82b459426875801a36aaaf5ec9536ce25d1f5876215396094425",
+      "current": "d6fc574fbfde82b459426875801a36aaaf5ec9536ce25d1f5876215396094425",
+      "runHashes": [
+        {
+          "phase": "post-ready-regression-evidence.json",
+          "before": "d6fc574fbfde82b459426875801a36aaaf5ec9536ce25d1f5876215396094425",
+          "after": "d6fc574fbfde82b459426875801a36aaaf5ec9536ce25d1f5876215396094425"
+        }
+      ],
+      "currentMatchesFreeze": true,
+      "runsMatchedFreeze": true
+    },
+    {
+      "path": "src/commands/search/index.ts",
+      "expected": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf",
+      "current": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf",
+      "runHashes": [
+        {
+          "phase": "post-ready-regression-evidence.json",
+          "before": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf",
+          "after": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf"
+        }
+      ],
+      "currentMatchesFreeze": true,
+      "runsMatchedFreeze": true
+    },
+    {
+      "path": "src/commands/search/matcher.ts",
+      "expected": "499848186cde72bd696cba1fc7d53af39354ba74ea63c42acd92d5eb1cda1cfb",
+      "current": "499848186cde72bd696cba1fc7d53af39354ba74ea63c42acd92d5eb1cda1cfb",
+      "runHashes": [
+        {
+          "phase": "post-ready-regression-evidence.json",
+          "before": "499848186cde72bd696cba1fc7d53af39354ba74ea63c42acd92d5eb1cda1cfb",
+          "after": "499848186cde72bd696cba1fc7d53af39354ba74ea63c42acd92d5eb1cda1cfb"
+        }
+      ],
+      "currentMatchesFreeze": true,
+      "runsMatchedFreeze": true
+    },
+    {
+      "path": "src/commands/search/options.ts",
+      "expected": "828d97d930dc615089a29efd3fe463293d4f61bf4dd33c81c2ceb6b910eb6ef8",
+      "current": "828d97d930dc615089a29efd3fe463293d4f61bf4dd33c81c2ceb6b910eb6ef8",
+      "runHashes": [
+        {
+          "phase": "post-ready-regression-evidence.json",
+          "before": "828d97d930dc615089a29efd3fe463293d4f61bf4dd33c81c2ceb6b910eb6ef8",
+          "after": "828d97d930dc615089a29efd3fe463293d4f61bf4dd33c81c2ceb6b910eb6ef8"
+        }
+      ],
+      "currentMatchesFreeze": true,
+      "runsMatchedFreeze": true
+    },
+    {
+      "path": "src/commands/search/output.ts",
+      "expected": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1",
+      "current": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1",
+      "runHashes": [
+        {
+          "phase": "post-ready-regression-evidence.json",
+          "before": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1",
+          "after": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1"
+        }
+      ],
+      "currentMatchesFreeze": true,
+      "runsMatchedFreeze": true
+    },
+    {
+      "path": "src/commands/search/rg.ts",
+      "expected": "c677f831e8e9dcc5051713d894d277ffa9646d2de358c1970b2dd0a9dfb44417",
+      "current": "c677f831e8e9dcc5051713d894d277ffa9646d2de358c1970b2dd0a9dfb44417",
+      "runHashes": [
+        {
+          "phase": "post-ready-regression-evidence.json",
+          "before": "c677f831e8e9dcc5051713d894d277ffa9646d2de358c1970b2dd0a9dfb44417",
+          "after": "c677f831e8e9dcc5051713d894d277ffa9646d2de358c1970b2dd0a9dfb44417"
+        }
+      ],
+      "currentMatchesFreeze": true,
+      "runsMatchedFreeze": true
+    },
+    {
+      "path": "src/commands/search/shared.ts",
+      "expected": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724",
+      "current": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724",
+      "runHashes": [
+        {
+          "phase": "post-ready-regression-evidence.json",
+          "before": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724",
+          "after": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724"
+        }
+      ],
+      "currentMatchesFreeze": true,
+      "runsMatchedFreeze": true
+    },
+    {
+      "path": "src/commands/search/walk.ts",
+      "expected": "474b87aa10e7daf0506edd7408d3a1b48c2bf7e644e8f585f1f5930bb658686a",
+      "current": "474b87aa10e7daf0506edd7408d3a1b48c2bf7e644e8f585f1f5930bb658686a",
+      "runHashes": [
+        {
+          "phase": "post-ready-regression-evidence.json",
+          "before": "474b87aa10e7daf0506edd7408d3a1b48c2bf7e644e8f585f1f5930bb658686a",
+          "after": "474b87aa10e7daf0506edd7408d3a1b48c2bf7e644e8f585f1f5930bb658686a"
+        }
+      ],
+      "currentMatchesFreeze": true,
+      "runsMatchedFreeze": true
+    },
+    {
+      "path": "src/commands/streams.ts",
+      "expected": "0b49e7f14ae8a399fcbea5454c48e930f047472f8631c2d5fe3ca385d14437d5",
+      "current": "0b49e7f14ae8a399fcbea5454c48e930f047472f8631c2d5fe3ca385d14437d5",
+      "runHashes": [
+        {
+          "phase": "post-ready-holdout-evidence.json",
+          "before": "0b49e7f14ae8a399fcbea5454c48e930f047472f8631c2d5fe3ca385d14437d5",
+          "after": "0b49e7f14ae8a399fcbea5454c48e930f047472f8631c2d5fe3ca385d14437d5"
+        },
+        {
+          "phase": "post-ready-regression-evidence.json",
+          "before": "0b49e7f14ae8a399fcbea5454c48e930f047472f8631c2d5fe3ca385d14437d5",
+          "after": "0b49e7f14ae8a399fcbea5454c48e930f047472f8631c2d5fe3ca385d14437d5"
+        },
+        {
+          "phase": "post-ready-supplement-evidence.json",
+          "before": "0b49e7f14ae8a399fcbea5454c48e930f047472f8631c2d5fe3ca385d14437d5",
+          "after": "0b49e7f14ae8a399fcbea5454c48e930f047472f8631c2d5fe3ca385d14437d5",
+          "frozen": "0b49e7f14ae8a399fcbea5454c48e930f047472f8631c2d5fe3ca385d14437d5"
+        }
+      ],
+      "currentMatchesFreeze": true,
+      "runsMatchedFreeze": true
+    },
+    {
+      "path": "src/commands/text.ts",
+      "expected": "d9411fd868ad8ef04749937024c0f0ff77267c5db5a2cece1f0cdf80c9b48490",
+      "current": "d9411fd868ad8ef04749937024c0f0ff77267c5db5a2cece1f0cdf80c9b48490",
+      "runHashes": [
+        {
+          "phase": "post-ready-holdout-evidence.json",
+          "before": "d9411fd868ad8ef04749937024c0f0ff77267c5db5a2cece1f0cdf80c9b48490",
+          "after": "d9411fd868ad8ef04749937024c0f0ff77267c5db5a2cece1f0cdf80c9b48490"
+        },
+        {
+          "phase": "post-ready-regression-evidence.json",
+          "before": "d9411fd868ad8ef04749937024c0f0ff77267c5db5a2cece1f0cdf80c9b48490",
+          "after": "d9411fd868ad8ef04749937024c0f0ff77267c5db5a2cece1f0cdf80c9b48490"
+        },
+        {
+          "phase": "post-ready-supplement-evidence.json",
+          "before": "d9411fd868ad8ef04749937024c0f0ff77267c5db5a2cece1f0cdf80c9b48490",
+          "after": "d9411fd868ad8ef04749937024c0f0ff77267c5db5a2cece1f0cdf80c9b48490",
+          "frozen": "d9411fd868ad8ef04749937024c0f0ff77267c5db5a2cece1f0cdf80c9b48490"
+        }
+      ],
+      "currentMatchesFreeze": true,
+      "runsMatchedFreeze": true
+    },
+    {
+      "path": "src/contracts/command.ts",
+      "expected": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+      "current": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+      "runHashes": [
+        {
+          "phase": "post-ready-holdout-evidence.json",
+          "before": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+          "after": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd"
+        },
+        {
+          "phase": "post-ready-regression-evidence.json",
+          "before": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+          "after": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd"
+        },
+        {
+          "phase": "post-ready-supplement-evidence.json",
+          "before": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+          "after": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+          "frozen": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd"
+        }
+      ],
+      "currentMatchesFreeze": true,
+      "runsMatchedFreeze": true
+    },
+    {
+      "path": "src/contracts/errors.ts",
+      "expected": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "current": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "runHashes": [
+        {
+          "phase": "post-ready-holdout-evidence.json",
+          "before": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+          "after": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840"
+        },
+        {
+          "phase": "post-ready-regression-evidence.json",
+          "before": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+          "after": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840"
+        },
+        {
+          "phase": "post-ready-supplement-evidence.json",
+          "before": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+          "after": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+          "frozen": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840"
+        }
+      ],
+      "currentMatchesFreeze": true,
+      "runsMatchedFreeze": true
+    },
+    {
+      "path": "src/contracts/filesystem.ts",
+      "expected": "fc3c8ee2c6d2d1dade397567779543a38a4fb0092a7225975fecf7cfd553b915",
+      "current": "fc3c8ee2c6d2d1dade397567779543a38a4fb0092a7225975fecf7cfd553b915",
+      "runHashes": [
+        {
+          "phase": "post-ready-holdout-evidence.json",
+          "before": "fc3c8ee2c6d2d1dade397567779543a38a4fb0092a7225975fecf7cfd553b915",
+          "after": "fc3c8ee2c6d2d1dade397567779543a38a4fb0092a7225975fecf7cfd553b915"
+        },
+        {
+          "phase": "post-ready-regression-evidence.json",
+          "before": "fc3c8ee2c6d2d1dade397567779543a38a4fb0092a7225975fecf7cfd553b915",
+          "after": "fc3c8ee2c6d2d1dade397567779543a38a4fb0092a7225975fecf7cfd553b915"
+        },
+        {
+          "phase": "post-ready-supplement-evidence.json",
+          "before": "fc3c8ee2c6d2d1dade397567779543a38a4fb0092a7225975fecf7cfd553b915",
+          "after": "fc3c8ee2c6d2d1dade397567779543a38a4fb0092a7225975fecf7cfd553b915",
+          "frozen": "fc3c8ee2c6d2d1dade397567779543a38a4fb0092a7225975fecf7cfd553b915"
+        }
+      ],
+      "currentMatchesFreeze": true,
+      "runsMatchedFreeze": true
+    },
+    {
+      "path": "src/contracts/index.ts",
+      "expected": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+      "current": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+      "runHashes": [
+        {
+          "phase": "post-ready-holdout-evidence.json",
+          "before": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+          "after": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50"
+        },
+        {
+          "phase": "post-ready-regression-evidence.json",
+          "before": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+          "after": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50"
+        },
+        {
+          "phase": "post-ready-supplement-evidence.json",
+          "before": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+          "after": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+          "frozen": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50"
+        }
+      ],
+      "currentMatchesFreeze": true,
+      "runsMatchedFreeze": true
+    },
+    {
+      "path": "src/contracts/io.ts",
+      "expected": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+      "current": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+      "runHashes": [
+        {
+          "phase": "post-ready-holdout-evidence.json",
+          "before": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+          "after": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb"
+        },
+        {
+          "phase": "post-ready-regression-evidence.json",
+          "before": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+          "after": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb"
+        },
+        {
+          "phase": "post-ready-supplement-evidence.json",
+          "before": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+          "after": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+          "frozen": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb"
+        }
+      ],
+      "currentMatchesFreeze": true,
+      "runsMatchedFreeze": true
+    },
+    {
+      "path": "src/contracts/path.ts",
+      "expected": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "current": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "runHashes": [
+        {
+          "phase": "post-ready-holdout-evidence.json",
+          "before": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+          "after": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34"
+        },
+        {
+          "phase": "post-ready-regression-evidence.json",
+          "before": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+          "after": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34"
+        },
+        {
+          "phase": "post-ready-supplement-evidence.json",
+          "before": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+          "after": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+          "frozen": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34"
+        }
+      ],
+      "currentMatchesFreeze": true,
+      "runsMatchedFreeze": true
+    },
+    {
+      "path": "src/contracts/plugin.ts",
+      "expected": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "current": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "runHashes": [
+        {
+          "phase": "post-ready-holdout-evidence.json",
+          "before": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+          "after": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae"
+        },
+        {
+          "phase": "post-ready-regression-evidence.json",
+          "before": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+          "after": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae"
+        },
+        {
+          "phase": "post-ready-supplement-evidence.json",
+          "before": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+          "after": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+          "frozen": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae"
+        }
+      ],
+      "currentMatchesFreeze": true,
+      "runsMatchedFreeze": true
+    },
+    {
+      "path": "src/fs/memory/index.ts",
+      "expected": "98704037c57bae8bd5c3782c65aceb98e967837df375b33eda52a00ce762b1a0",
+      "current": "98704037c57bae8bd5c3782c65aceb98e967837df375b33eda52a00ce762b1a0",
+      "runHashes": [
+        {
+          "phase": "post-ready-holdout-evidence.json",
+          "before": "98704037c57bae8bd5c3782c65aceb98e967837df375b33eda52a00ce762b1a0",
+          "after": "98704037c57bae8bd5c3782c65aceb98e967837df375b33eda52a00ce762b1a0"
+        },
+        {
+          "phase": "post-ready-regression-evidence.json",
+          "before": "98704037c57bae8bd5c3782c65aceb98e967837df375b33eda52a00ce762b1a0",
+          "after": "98704037c57bae8bd5c3782c65aceb98e967837df375b33eda52a00ce762b1a0"
+        },
+        {
+          "phase": "post-ready-supplement-evidence.json",
+          "before": "98704037c57bae8bd5c3782c65aceb98e967837df375b33eda52a00ce762b1a0",
+          "after": "98704037c57bae8bd5c3782c65aceb98e967837df375b33eda52a00ce762b1a0",
+          "frozen": "98704037c57bae8bd5c3782c65aceb98e967837df375b33eda52a00ce762b1a0"
+        }
+      ],
+      "currentMatchesFreeze": true,
+      "runsMatchedFreeze": true
+    },
+    {
+      "path": "src/shell/arithmetic.ts",
+      "expected": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "current": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "runHashes": [
+        {
+          "phase": "post-ready-holdout-evidence.json",
+          "before": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+          "after": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd"
+        },
+        {
+          "phase": "post-ready-regression-evidence.json",
+          "before": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+          "after": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd"
+        },
+        {
+          "phase": "post-ready-supplement-evidence.json",
+          "before": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+          "after": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+          "frozen": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd"
+        }
+      ],
+      "currentMatchesFreeze": true,
+      "runsMatchedFreeze": true
+    },
+    {
+      "path": "src/shell/index.ts",
+      "expected": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "current": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "runHashes": [
+        {
+          "phase": "post-ready-holdout-evidence.json",
+          "before": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+          "after": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383"
+        },
+        {
+          "phase": "post-ready-regression-evidence.json",
+          "before": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+          "after": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383"
+        },
+        {
+          "phase": "post-ready-supplement-evidence.json",
+          "before": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+          "after": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+          "frozen": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383"
+        }
+      ],
+      "currentMatchesFreeze": true,
+      "runsMatchedFreeze": true
+    },
+    {
+      "path": "src/shell/input.ts",
+      "expected": "03fce524aef5c5fc87b65c72adefc2dd86e92b0c702d675719ebb0770b876314",
+      "current": "03fce524aef5c5fc87b65c72adefc2dd86e92b0c702d675719ebb0770b876314",
+      "runHashes": [
+        {
+          "phase": "post-ready-holdout-evidence.json",
+          "before": "03fce524aef5c5fc87b65c72adefc2dd86e92b0c702d675719ebb0770b876314",
+          "after": "03fce524aef5c5fc87b65c72adefc2dd86e92b0c702d675719ebb0770b876314"
+        },
+        {
+          "phase": "post-ready-regression-evidence.json",
+          "before": "03fce524aef5c5fc87b65c72adefc2dd86e92b0c702d675719ebb0770b876314",
+          "after": "03fce524aef5c5fc87b65c72adefc2dd86e92b0c702d675719ebb0770b876314"
+        },
+        {
+          "phase": "post-ready-supplement-evidence.json",
+          "before": "03fce524aef5c5fc87b65c72adefc2dd86e92b0c702d675719ebb0770b876314",
+          "after": "03fce524aef5c5fc87b65c72adefc2dd86e92b0c702d675719ebb0770b876314",
+          "frozen": "03fce524aef5c5fc87b65c72adefc2dd86e92b0c702d675719ebb0770b876314"
+        }
+      ],
+      "currentMatchesFreeze": true,
+      "runsMatchedFreeze": true
+    },
+    {
+      "path": "src/shell/locale.ts",
+      "expected": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "current": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "runHashes": [
+        {
+          "phase": "post-ready-holdout-evidence.json",
+          "before": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+          "after": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2"
+        },
+        {
+          "phase": "post-ready-regression-evidence.json",
+          "before": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+          "after": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2"
+        },
+        {
+          "phase": "post-ready-supplement-evidence.json",
+          "before": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+          "after": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+          "frozen": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2"
+        }
+      ],
+      "currentMatchesFreeze": true,
+      "runsMatchedFreeze": true
+    },
+    {
+      "path": "src/shell/parser.ts",
+      "expected": "b7f4070c006221c44d822f8a6c45f24f896942ea8e7bef4290a936bb616eb2d6",
+      "current": "b7f4070c006221c44d822f8a6c45f24f896942ea8e7bef4290a936bb616eb2d6",
+      "runHashes": [
+        {
+          "phase": "post-ready-holdout-evidence.json",
+          "before": "b7f4070c006221c44d822f8a6c45f24f896942ea8e7bef4290a936bb616eb2d6",
+          "after": "b7f4070c006221c44d822f8a6c45f24f896942ea8e7bef4290a936bb616eb2d6"
+        },
+        {
+          "phase": "post-ready-regression-evidence.json",
+          "before": "b7f4070c006221c44d822f8a6c45f24f896942ea8e7bef4290a936bb616eb2d6",
+          "after": "b7f4070c006221c44d822f8a6c45f24f896942ea8e7bef4290a936bb616eb2d6"
+        },
+        {
+          "phase": "post-ready-supplement-evidence.json",
+          "before": "b7f4070c006221c44d822f8a6c45f24f896942ea8e7bef4290a936bb616eb2d6",
+          "after": "b7f4070c006221c44d822f8a6c45f24f896942ea8e7bef4290a936bb616eb2d6",
+          "frozen": "b7f4070c006221c44d822f8a6c45f24f896942ea8e7bef4290a936bb616eb2d6"
+        }
+      ],
+      "currentMatchesFreeze": true,
+      "runsMatchedFreeze": true
+    },
+    {
+      "path": "src/shell/pattern.ts",
+      "expected": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "current": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "runHashes": [
+        {
+          "phase": "post-ready-holdout-evidence.json",
+          "before": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+          "after": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a"
+        },
+        {
+          "phase": "post-ready-regression-evidence.json",
+          "before": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+          "after": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a"
+        },
+        {
+          "phase": "post-ready-supplement-evidence.json",
+          "before": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+          "after": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+          "frozen": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a"
+        }
+      ],
+      "currentMatchesFreeze": true,
+      "runsMatchedFreeze": true
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "expected": "6a86339d76e764031a26671586842467a40dc989895589ab416306e655496145",
+      "current": "6a86339d76e764031a26671586842467a40dc989895589ab416306e655496145",
+      "runHashes": [
+        {
+          "phase": "post-ready-holdout-evidence.json",
+          "before": "6a86339d76e764031a26671586842467a40dc989895589ab416306e655496145",
+          "after": "6a86339d76e764031a26671586842467a40dc989895589ab416306e655496145"
+        },
+        {
+          "phase": "post-ready-regression-evidence.json",
+          "before": "6a86339d76e764031a26671586842467a40dc989895589ab416306e655496145",
+          "after": "6a86339d76e764031a26671586842467a40dc989895589ab416306e655496145"
+        },
+        {
+          "phase": "post-ready-supplement-evidence.json",
+          "before": "6a86339d76e764031a26671586842467a40dc989895589ab416306e655496145",
+          "after": "6a86339d76e764031a26671586842467a40dc989895589ab416306e655496145",
+          "frozen": "6a86339d76e764031a26671586842467a40dc989895589ab416306e655496145"
+        }
+      ],
+      "currentMatchesFreeze": true,
+      "runsMatchedFreeze": true
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "expected": "f4b9e55515e00ef456d48f6a3da60cf5b19b5af7fb91c700c151bd92726f6bb7",
+      "current": "f4b9e55515e00ef456d48f6a3da60cf5b19b5af7fb91c700c151bd92726f6bb7",
+      "runHashes": [
+        {
+          "phase": "post-ready-holdout-evidence.json",
+          "before": "f4b9e55515e00ef456d48f6a3da60cf5b19b5af7fb91c700c151bd92726f6bb7",
+          "after": "f4b9e55515e00ef456d48f6a3da60cf5b19b5af7fb91c700c151bd92726f6bb7"
+        },
+        {
+          "phase": "post-ready-regression-evidence.json",
+          "before": "f4b9e55515e00ef456d48f6a3da60cf5b19b5af7fb91c700c151bd92726f6bb7",
+          "after": "f4b9e55515e00ef456d48f6a3da60cf5b19b5af7fb91c700c151bd92726f6bb7"
+        },
+        {
+          "phase": "post-ready-supplement-evidence.json",
+          "before": "f4b9e55515e00ef456d48f6a3da60cf5b19b5af7fb91c700c151bd92726f6bb7",
+          "after": "f4b9e55515e00ef456d48f6a3da60cf5b19b5af7fb91c700c151bd92726f6bb7",
+          "frozen": "f4b9e55515e00ef456d48f6a3da60cf5b19b5af7fb91c700c151bd92726f6bb7"
+        }
+      ],
+      "currentMatchesFreeze": true,
+      "runsMatchedFreeze": true
+    },
+    {
+      "path": "src/shell/types.ts",
+      "expected": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874",
+      "current": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874",
+      "runHashes": [
+        {
+          "phase": "post-ready-holdout-evidence.json",
+          "before": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874",
+          "after": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874"
+        },
+        {
+          "phase": "post-ready-regression-evidence.json",
+          "before": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874",
+          "after": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874"
+        },
+        {
+          "phase": "post-ready-supplement-evidence.json",
+          "before": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874",
+          "after": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874",
+          "frozen": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874"
+        }
+      ],
+      "currentMatchesFreeze": true,
+      "runsMatchedFreeze": true
+    }
+  ],
+  "changedCurrentSource": [
+    {
+      "path": "src/commands/filesystem.ts",
+      "expected": "a7280538f4168ae40939a56181feac8bac06fdf071fe566293f77425bce678d1",
+      "current": "da0f1f25acd63906cd42153b0ae8068b05ccc748c598b979ade42ca599e7f731",
+      "runHashes": [
+        {
+          "phase": "post-ready-holdout-evidence.json",
+          "before": "a7280538f4168ae40939a56181feac8bac06fdf071fe566293f77425bce678d1",
+          "after": "a7280538f4168ae40939a56181feac8bac06fdf071fe566293f77425bce678d1"
+        },
+        {
+          "phase": "post-ready-regression-evidence.json",
+          "before": "a7280538f4168ae40939a56181feac8bac06fdf071fe566293f77425bce678d1",
+          "after": "a7280538f4168ae40939a56181feac8bac06fdf071fe566293f77425bce678d1"
+        },
+        {
+          "phase": "post-ready-supplement-evidence.json",
+          "before": "a7280538f4168ae40939a56181feac8bac06fdf071fe566293f77425bce678d1",
+          "after": "a7280538f4168ae40939a56181feac8bac06fdf071fe566293f77425bce678d1",
+          "frozen": "a7280538f4168ae40939a56181feac8bac06fdf071fe566293f77425bce678d1"
+        }
+      ],
+      "currentMatchesFreeze": false,
+      "runsMatchedFreeze": true
+    }
+  ],
+  "changedDuringRecordedRuns": [],
+  "fixtureChecks": [
+    {
+      "path": "tests/shell-stress/invocation-modes/audit-preparation.ts",
+      "commit": "c440c1aa51ce9f08deb822e30e31d5c171954965",
+      "expected": "fd7906b9668b02e3b076ed294aec9a5ad859a70899195bc8bfd4fdae40d5808b",
+      "current": "fd7906b9668b02e3b076ed294aec9a5ad859a70899195bc8bfd4fdae40d5808b",
+      "matches": true
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/baseline-evidence.json",
+      "commit": "c440c1aa51ce9f08deb822e30e31d5c171954965",
+      "expected": "28cf441d4e5347d23a9e6043362be0c5076b7b9dde7e3f23e36e2995fe4a7965",
+      "current": "28cf441d4e5347d23a9e6043362be0c5076b7b9dde7e3f23e36e2995fe4a7965",
+      "matches": true
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/capture-native.ts",
+      "commit": "c440c1aa51ce9f08deb822e30e31d5c171954965",
+      "expected": "87f6c12062d4e14dd31f164e4b547f39e9a94d2b646e6553299b99587ca446a0",
+      "current": "87f6c12062d4e14dd31f164e4b547f39e9a94d2b646e6553299b99587ca446a0",
+      "matches": true
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/cases.ts",
+      "commit": "c440c1aa51ce9f08deb822e30e31d5c171954965",
+      "expected": "788539627f6f5d8a8b31702ec3b9c7a6477efe8878fa88fa7fd0ae955553ed3b",
+      "current": "788539627f6f5d8a8b31702ec3b9c7a6477efe8878fa88fa7fd0ae955553ed3b",
+      "matches": true
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/cleanup-evidence.json",
+      "commit": "c440c1aa51ce9f08deb822e30e31d5c171954965",
+      "expected": "530c25c5abfcf71e93e9b6f640694b7a85653550f0736dc0999b57c9875f05f8",
+      "current": "530c25c5abfcf71e93e9b6f640694b7a85653550f0736dc0999b57c9875f05f8",
+      "matches": true
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/harness.ts",
+      "commit": "c440c1aa51ce9f08deb822e30e31d5c171954965",
+      "expected": "e8735e961c91e6c0ff170d4105c595f5ac9af548d3572cdd97f45f810f0a0679",
+      "current": "e8735e961c91e6c0ff170d4105c595f5ac9af548d3572cdd97f45f810f0a0679",
+      "matches": true
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/holdout.test.ts",
+      "commit": "c440c1aa51ce9f08deb822e30e31d5c171954965",
+      "expected": "7190d5a6611b7baafe2801505ce0df32b6cb476257b1b533f6032642a5721a12",
+      "current": "7190d5a6611b7baafe2801505ce0df32b6cb476257b1b533f6032642a5721a12",
+      "matches": true
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/native-capture.log",
+      "commit": "c440c1aa51ce9f08deb822e30e31d5c171954965",
+      "expected": "eb9d65a0288790846d5bf18748e622cb525395e4e2e80adc40075cbfc0c432ea",
+      "current": "eb9d65a0288790846d5bf18748e622cb525395e4e2e80adc40075cbfc0c432ea",
+      "matches": true
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/native-corrected-capture.log",
+      "commit": "c440c1aa51ce9f08deb822e30e31d5c171954965",
+      "expected": "f8cda4b57fb974830fa9a4f293871290097956385e3b94d488d279a30e251f60",
+      "current": "f8cda4b57fb974830fa9a4f293871290097956385e3b94d488d279a30e251f60",
+      "matches": true
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/native-corrected-evidence.json",
+      "commit": "c440c1aa51ce9f08deb822e30e31d5c171954965",
+      "expected": "86e6be4ec1ad22f3c5956ed0b37d8091653c4858fbf143f35b2e80eae4b67e45",
+      "current": "86e6be4ec1ad22f3c5956ed0b37d8091653c4858fbf143f35b2e80eae4b67e45",
+      "matches": true
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/native-evidence.json",
+      "commit": "c440c1aa51ce9f08deb822e30e31d5c171954965",
+      "expected": "538587ce1acc44f4a17ce725c7673df9108c535ef829c3bc73e068bf92256c3f",
+      "current": "538587ce1acc44f4a17ce725c7673df9108c535ef829c3bc73e068bf92256c3f",
+      "matches": true
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/preparation-audit.json",
+      "commit": "c440c1aa51ce9f08deb822e30e31d5c171954965",
+      "expected": "2a3c8a7c2d8a72422474a67a3661d5b9bbcb4712360b28a53199d2e7fd987421",
+      "current": "2a3c8a7c2d8a72422474a67a3661d5b9bbcb4712360b28a53199d2e7fd987421",
+      "matches": true
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/ready-wait-evidence.json",
+      "commit": "c440c1aa51ce9f08deb822e30e31d5c171954965",
+      "expected": "247a05df3a30513efa2498d41d7501a1ffe142979c5a7adc1d901b87bef8e183",
+      "current": "247a05df3a30513efa2498d41d7501a1ffe142979c5a7adc1d901b87bef8e183",
+      "matches": true
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/trace.mjs",
+      "commit": "c440c1aa51ce9f08deb822e30e31d5c171954965",
+      "expected": "e433375f13dabbf72b364f14cc780e1d30b8d67c386765e0e713b43d2c7996ed",
+      "current": "e433375f13dabbf72b364f14cc780e1d30b8d67c386765e0e713b43d2c7996ed",
+      "matches": true
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/verify.ts",
+      "commit": "c440c1aa51ce9f08deb822e30e31d5c171954965",
+      "expected": "2b1d34e30ab41e683a5fc25094cb03863ecd0461f3ad7c8b5f65cedf8bcce73b",
+      "current": "2b1d34e30ab41e683a5fc25094cb03863ecd0461f3ad7c8b5f65cedf8bcce73b",
+      "matches": true
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/virtual-child.ts",
+      "commit": "c440c1aa51ce9f08deb822e30e31d5c171954965",
+      "expected": "c5d770ba6ba0522e0387fbcbdd0dd00c9437ae3520ae593aeaf1546be604781d",
+      "current": "c5d770ba6ba0522e0387fbcbdd0dd00c9437ae3520ae593aeaf1546be604781d",
+      "matches": true
+    },
+    {
+      "path": "tests/shell-stress/script-entrypoint/cases.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "992ced088fb4b572a071097bee876ec343506b17ab13ddd1cf862b16bdbcd281",
+      "current": "992ced088fb4b572a071097bee876ec343506b17ab13ddd1cf862b16bdbcd281",
+      "matches": true
+    },
+    {
+      "path": "tests/shell-stress/script-entrypoint/final-holdout-evidence.json",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "a641d3ef0fe25dcb92642e5a1a715442ab8dd26940f05631d510b89cc7f390fe",
+      "current": "a641d3ef0fe25dcb92642e5a1a715442ab8dd26940f05631d510b89cc7f390fe",
+      "matches": true
+    },
+    {
+      "path": "tests/shell-stress/script-entrypoint/holdout-evidence.json",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "6d3ca1aa73b060fab1df34802316fcea76c21df2f526c08bd313424e9fdbbcba",
+      "current": "6d3ca1aa73b060fab1df34802316fcea76c21df2f526c08bd313424e9fdbbcba",
+      "matches": true
+    },
+    {
+      "path": "tests/shell-stress/script-entrypoint/holdout.test.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "c22f2c16e0ca822f4e1cffbfab2b5ae8a0de996ac13df30b1bf1021fd967ad05",
+      "current": "c22f2c16e0ca822f4e1cffbfab2b5ae8a0de996ac13df30b1bf1021fd967ad05",
+      "matches": true
+    },
+    {
+      "path": "tests/shell-stress/script-entrypoint/probe.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "266c42c9b3615f77259ef5470c197afc94c58a7bfe3a79b9828bd946cbe9391d",
+      "current": "266c42c9b3615f77259ef5470c197afc94c58a7bfe3a79b9828bd946cbe9391d",
+      "matches": true
+    },
+    {
+      "path": "tests/shell-stress/script-entrypoint/verification-evidence.json",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "e031e03ab68fbcea086bab4b043b83e9f24257042d4ae9080b2bb1968a8d1944",
+      "current": "e031e03ab68fbcea086bab4b043b83e9f24257042d4ae9080b2bb1968a8d1944",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/ansi-words.test.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "879708ac4acb09bce02382160fa2525a1d81d10de01a96b0fcf4917477da7ab8",
+      "current": "879708ac4acb09bce02382160fa2525a1d81d10de01a96b0fcf4917477da7ab8",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/bash-bugfix-helpers.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "15c7e522377e30e78015d330df30bd25ce44349de20e247f442b4dae0dcecbdd",
+      "current": "15c7e522377e30e78015d330df30bd25ce44349de20e247f442b4dae0dcecbdd",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/capture-deferred-heredoc-reference.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "3e810b16d85a80f8f006fd493a0adf532bed839dfa9416cbde492023e5ccc3f8",
+      "current": "3e810b16d85a80f8f006fd493a0adf532bed839dfa9416cbde492023e5ccc3f8",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/capture-diagnostic-reference.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "821bb733e58cd8b87156bc3c8b2f8c3b5ddf74e5b7ec42f1d57828c4481aee44",
+      "current": "821bb733e58cd8b87156bc3c8b2f8c3b5ddf74e5b7ec42f1d57828c4481aee44",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/capture-fatal-reference.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "de90522354689de70c1c5e7350bce2a935e4d08e463e1a1c7af1cc0b4dc06000",
+      "current": "de90522354689de70c1c5e7350bce2a935e4d08e463e1a1c7af1cc0b4dc06000",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/case.test.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "9672000fe4ea5e9d4d2b969c6c964a5f202d587adc16363515625348b678d470",
+      "current": "9672000fe4ea5e9d4d2b969c6c964a5f202d587adc16363515625348b678d470",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/core.test.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "73f978e9461f0bfe1df6ba74af0fba3d557dea71501683d4e1e242ba6e6685c1",
+      "current": "73f978e9461f0bfe1df6ba74af0fba3d557dea71501683d4e1e242ba6e6685c1",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/deferred-heredoc-reference.json",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "890b1d6472a8d6f9ed26378d35b3327b95d8111f17d97ebae9187e14295879e5",
+      "current": "890b1d6472a8d6f9ed26378d35b3327b95d8111f17d97ebae9187e14295879e5",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/deferred-heredoc.test.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "a89785e0438f0bba2eafc238ad31428fa8e4584bc898f6a010607b9dfa6f2d68",
+      "current": "a89785e0438f0bba2eafc238ad31428fa8e4584bc898f6a010607b9dfa6f2d68",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/descriptor-inheritance.test.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "a6a9452b417044d9466d490b7ee4f6b443571988c0c1c184cff7f58f289bdde0",
+      "current": "a6a9452b417044d9466d490b7ee4f6b443571988c0c1c184cff7f58f289bdde0",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/descriptor-moves.test.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "6d505b35287b68ea3bd2b2d8822846f01599f7991c673e73c34bf1f985e4b6e4",
+      "current": "6d505b35287b68ea3bd2b2d8822846f01599f7991c673e73c34bf1f985e4b6e4",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/diagnostic-cases.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "d4cfe5f7d0a06b2a8eb259a4c3c8d93223555e4a191cea5ed99dccfef1bf7621",
+      "current": "d4cfe5f7d0a06b2a8eb259a4c3c8d93223555e4a191cea5ed99dccfef1bf7621",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/diagnostic-limits.json",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "60533bc1f75ef7723d105fb5cc934eeff6b159c18254f54962acd5c22a31ca3e",
+      "current": "60533bc1f75ef7723d105fb5cc934eeff6b159c18254f54962acd5c22a31ca3e",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/diagnostic-reference.json",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "568d8bb1e653497844ba12a36001ca5c13c2c572ddedc6caf8b59bd043df6fb8",
+      "current": "568d8bb1e653497844ba12a36001ca5c13c2c572ddedc6caf8b59bd043df6fb8",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/diagnostic-regressions.test.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "006380415e5e359b40917ef79535a3ed55641fe641d33a48774335d3646de264",
+      "current": "006380415e5e359b40917ef79535a3ed55641fe641d33a48774335d3646de264",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/fatal-diagnostics.test.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "1ca21d05e9a3caf6d365b7b7b89620b1ca866b86d68f8866516bc378638f13e0",
+      "current": "1ca21d05e9a3caf6d365b7b7b89620b1ca866b86d68f8866516bc378638f13e0",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/fatal-expansion.test.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "1e06b0353dccedbeaedb62a18b5875036ca407fd042db4503c79ce272e3c6e4d",
+      "current": "1e06b0353dccedbeaedb62a18b5875036ca407fd042db4503c79ce272e3c6e4d",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/fatal-reference.json",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "db7caed2e7d0c484a658bec4d3c4ccf4f920a267419d70484a1114b3b13938a6",
+      "current": "db7caed2e7d0c484a658bec4d3c4ccf4f920a267419d70484a1114b3b13938a6",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/file-shortcut.test.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "48c16e8e636d0f6e4003642ff4d4546bda2c9b0b8b96e0fd73dbd4bade705b47",
+      "current": "48c16e8e636d0f6e4003642ff4d4546bda2c9b0b8b96e0fd73dbd4bade705b47",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/first-read-evidence.json",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "2d0faecd40423539c2a74ab132785ab14a8565671d1fbbe4482819c9877da52e",
+      "current": "2d0faecd40423539c2a74ab132785ab14a8565671d1fbbe4482819c9877da52e",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/first-read-guard.snapshot.mjs",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "8a9858bc16824951b9ade3f158cdb161b0a6d3870a72588220341f11e6a19031",
+      "current": "8a9858bc16824951b9ade3f158cdb161b0a6d3870a72588220341f11e6a19031",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/first-read-independent.snapshot.mjs",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "b480b7417f7d669bf413f634a0a30b7ff296667736d52ef0a597ebd72f6ea0fa",
+      "current": "b480b7417f7d669bf413f634a0a30b7ff296667736d52ef0a597ebd72f6ea0fa",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/first-read-probe.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "b138e5572240533efb8cde733e0c5a9bbd1c960e431b9291c0a17a300b1c7ed6",
+      "current": "b138e5572240533efb8cde733e0c5a9bbd1c960e431b9291c0a17a300b1c7ed6",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/fs-error-diagnostics.test.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "5ac1508bc8416b6de0824577dab5ae518fad28bbf05f7c2e9fd5bc01c05befea",
+      "current": "5ac1508bc8416b6de0824577dab5ae518fad28bbf05f7c2e9fd5bc01c05befea",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/generated-artifact-cleanup.json",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "d2a17f3623c955f56ca7bdb4fc6815f51f8543a15a361fc19c6590011e70c7bb",
+      "current": "d2a17f3623c955f56ca7bdb4fc6815f51f8543a15a361fc19c6590011e70c7bb",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/glob-budget.test.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "103188376375d16e335edef7de7ae4fa1c24e51a1c46ee6deedb51d4e98b5b50",
+      "current": "103188376375d16e335edef7de7ae4fa1c24e51a1c46ee6deedb51d4e98b5b50",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/helpers.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "ea3bfd82b48886c5da020ef3983243d5139b9da23821a6a36336cb58eb804cb4",
+      "current": "ea3bfd82b48886c5da020ef3983243d5139b9da23821a6a36336cb58eb804cb4",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/here-string.test.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "083f1185e1f763ef01aca1f12b4922e3a70cc4a638b77733b2d02abac3e7815f",
+      "current": "083f1185e1f763ef01aca1f12b4922e3a70cc4a638b77733b2d02abac3e7815f",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/heredoc.test.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "769b452ba51a3c0a42665751607d9b39c5e8e1becddad061ad6bbb032c2518b6",
+      "current": "769b452ba51a3c0a42665751607d9b39c5e8e1becddad061ad6bbb032c2518b6",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/inline-input-fatal-scope.test.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "75b0f753f73134911e789562942fed56d516b4dd3bcd9f6846c16b9265960d1a",
+      "current": "75b0f753f73134911e789562942fed56d516b4dd3bcd9f6846c16b9265960d1a",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/inline-input-independent.test.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "2c422ca644159eeb34f9df8f5f7aac7440813220d1d8f9901fdb1ab2272ed889",
+      "current": "2c422ca644159eeb34f9df8f5f7aac7440813220d1d8f9901fdb1ab2272ed889",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/inline-input-limits.test.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "5a4b86562564b8b3346dde2cb4b28fad81aa4e5312ae569c58e6fcc8e7b2102f",
+      "current": "5a4b86562564b8b3346dde2cb4b28fad81aa4e5312ae569c58e6fcc8e7b2102f",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/inline-input-scope.test.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "13c131f4f1fcc2843ee779a2a9f5e246cede18aabd21f93adc7fccf777799646",
+      "current": "13c131f4f1fcc2843ee779a2a9f5e246cede18aabd21f93adc7fccf777799646",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/input-units.test.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "f1b6917a96cd9a58e6cc3bc79d8ef539616cfbffa976d7eb7b3a9f5941ea4a8c",
+      "current": "f1b6917a96cd9a58e6cc3bc79d8ef539616cfbffa976d7eb7b3a9f5941ea4a8c",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/invocation-modes-cases.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "eead41974e124f79181f1c1dada9aa18d4a8bd13318005574827b9569b16ee91",
+      "current": "eead41974e124f79181f1c1dada9aa18d4a8bd13318005574827b9569b16ee91",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/invocation-modes-checkpoint.json",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "ea1f54e8effae1a9b6dcbe7344cad272d5190d1510616e6806d92bd4c8049056",
+      "current": "ea1f54e8effae1a9b6dcbe7344cad272d5190d1510616e6806d92bd4c8049056",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/invocation-modes-native.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "c4253c367d43de7f9ce9cde992494df81761828f8a686363c516223c08422bbf",
+      "current": "c4253c367d43de7f9ce9cde992494df81761828f8a686363c516223c08422bbf",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/invocation-modes-probe.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "acb89e509a1ac345a2903c46a3e6d6748f833f326504c4c793d099217c1df2cd",
+      "current": "acb89e509a1ac345a2903c46a3e6d6748f833f326504c4c793d099217c1df2cd",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/invocation-modes-reference.json",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "31bbc09b2348d991cede4bdd5b5878efc3f6795f864522e4ec9ce91c28cd4eeb",
+      "current": "31bbc09b2348d991cede4bdd5b5878efc3f6795f864522e4ec9ce91c28cd4eeb",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/invocation-modes.test.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "1c78a0f3438c5b91e77fd9a26cd8e961ba9c71e0d0b8b7c17b903da9ab867a46",
+      "current": "1c78a0f3438c5b91e77fd9a26cd8e961ba9c71e0d0b8b7c17b903da9ab867a46",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/invoke.test.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "314848095b66f3911a755e00dc3fb0bcb1286d35f285f72d7a29723f3f8ac310",
+      "current": "314848095b66f3911a755e00dc3fb0bcb1286d35f285f72d7a29723f3f8ac310",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/lifecycle-probe.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "0f60fadb357e53aa78acc67672fb3640da68f102d6809a34b980de208d4c95d9",
+      "current": "0f60fadb357e53aa78acc67672fb3640da68f102d6809a34b980de208d4c95d9",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/lifecycle.test.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "f6dcd75da9ed5ffdd74d51c6473541af91c65f47085e27a48a042e6e3dc8002d",
+      "current": "f6dcd75da9ed5ffdd74d51c6473541af91c65f47085e27a48a042e6e3dc8002d",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/newline-patterns.test.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "782a2b8703ab701884849548a4263a699355f6005e970199a89961a09a96d7aa",
+      "current": "782a2b8703ab701884849548a4263a699355f6005e970199a89961a09a96d7aa",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/oracle.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "36368042d732ddfa82645e62843901a118301d1f3eb90adb2152eb65775e7c12",
+      "current": "36368042d732ddfa82645e62843901a118301d1f3eb90adb2152eb65775e7c12",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/parser-regressions.test.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "472aaeb11f94d053a03caf14736033458ba7a0564fe0508c5aefc3f74e601761",
+      "current": "472aaeb11f94d053a03caf14736033458ba7a0564fe0508c5aefc3f74e601761",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/pathname-classes.test.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "aeea80341b801b73994a10a31e263adae79b877138b93a9b1df6b7e05e84aa4b",
+      "current": "aeea80341b801b73994a10a31e263adae79b877138b93a9b1df6b7e05e84aa4b",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/pipeline-effects.test.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "1d822ac591af947cb9a65bc65a8abe0f36f132863c5ae9e7d824d177453468df",
+      "current": "1d822ac591af947cb9a65bc65a8abe0f36f132863c5ae9e7d824d177453468df",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/positional-ifs.test.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "af123530a22b00a2bae42bf77f12e68c7ccc1c0bc6965841d1f9234cfecf2592",
+      "current": "af123530a22b00a2bae42bf77f12e68c7ccc1c0bc6965841d1f9234cfecf2592",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/quoted-patterns.test.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "606c60e3ea77a305d228d8b6490e3fe834225fb1d2d2f60c47383e0188e0a565",
+      "current": "606c60e3ea77a305d228d8b6490e3fe834225fb1d2d2f60c47383e0188e0a565",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/read-fields.test.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "a573d136bd1d50b86d21d5cdf87fe823667d4c27115e2b7b0b6cf4c50d761ab5",
+      "current": "a573d136bd1d50b86d21d5cdf87fe823667d4c27115e2b7b0b6cf4c50d761ab5",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/read-options.test.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "8f3e7dabce479fab831d844a9cf5ac40b7f9753941daa702e610f812ae67644d",
+      "current": "8f3e7dabce479fab831d844a9cf5ac40b7f9753941daa702e610f812ae67644d",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/remote-close-probe.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "67d12606373760adbd71a1c4114de94dc184ecf76c2c5aa5cf3d1c8f9bb4d8da",
+      "current": "67d12606373760adbd71a1c4114de94dc184ecf76c2c5aa5cf3d1c8f9bb4d8da",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/remote-close.test.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "0ca0886333c793dbddb5e14e2fdbb2a3bb457919dbf4e70d419f87fab6505474",
+      "current": "0ca0886333c793dbddb5e14e2fdbb2a3bb457919dbf4e70d419f87fab6505474",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/review-lifecycle.test.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "d8f3ce1d089addee37329076e7ad79eed82ee24e795e09165d1a19417766e7b2",
+      "current": "d8f3ce1d089addee37329076e7ad79eed82ee24e795e09165d1a19417766e7b2",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/runtime-regressions.test.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "6667018d27bc26dcbf0b2dd7dae19e02081ece2689b33683d8c5fb4a8496a5b5",
+      "current": "6667018d27bc26dcbf0b2dd7dae19e02081ece2689b33683d8c5fb4a8496a5b5",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/script-entrypoint-native.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "90f00df50bf51058152520abc6c2cfda359d46cf7eabf08266db84dee081a22a",
+      "current": "90f00df50bf51058152520abc6c2cfda359d46cf7eabf08266db84dee081a22a",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/script-entrypoint-probe.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "ac7de78ea76d1bb9b695c4a20674385c3243f5a1cb83153923e29b650d0b42bd",
+      "current": "ac7de78ea76d1bb9b695c4a20674385c3243f5a1cb83153923e29b650d0b42bd",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/script-entrypoint.test.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "57c4b9b71249b82ca68dce2979be26d13e7be5777d2778bd17e101b7ffe70ec6",
+      "current": "57c4b9b71249b82ca68dce2979be26d13e7be5777d2778bd17e101b7ffe70ec6",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/stdin-origin.test.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "02c14713e81afb384913aeb84703a7551aabab3f941570d5a9ae36cc47b3a585",
+      "current": "02c14713e81afb384913aeb84703a7551aabab3f941570d5a9ae36cc47b3a585",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/streaming.test.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "cfd61d72b7b7a33081e43c5f96dbe7c1161e27e72d6057489394283608ffe585",
+      "current": "cfd61d72b7b7a33081e43c5f96dbe7c1161e27e72d6057489394283608ffe585",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/substitution-nul.test.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "3a9ef28345586bd79d2eb478a29966ab86770623177a9edd4b9bc47eb55ae3d1",
+      "current": "3a9ef28345586bd79d2eb478a29966ab86770623177a9edd4b9bc47eb55ae3d1",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/unit-reference.json",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "116f4ee99a91794b4742055c7053a40b612394fe6aad697b111f4e24b206d5e8",
+      "current": "116f4ee99a91794b4742055c7053a40b612394fe6aad697b111f4e24b206d5e8",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/unsupported-options.test.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "c070aaed32d0474da7e4b739b438f6c2c556a1de9dae6dc5be3194ae921d1a6d",
+      "current": "c070aaed32d0474da7e4b739b438f6c2c556a1de9dae6dc5be3194ae921d1a6d",
+      "matches": true
+    },
+    {
+      "path": "tests/shell/variable-scope.test.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "17b790ccaed68150e51c550c40ac94e337d379b507ff26290998edc87fcb675f",
+      "current": "17b790ccaed68150e51c550c40ac94e337d379b507ff26290998edc87fcb675f",
+      "matches": true
+    }
+  ],
+  "changedFixtures": [],
+  "phaseFiles": [
+    {
+      "name": "post-ready-holdout-evidence.json",
+      "sha256": "51aef960db8966604763120d3473efa6e6ef796c5ea48fe3e0931f2c93ae58ec"
+    },
+    {
+      "name": "post-ready-regression-evidence.json",
+      "sha256": "d8c6d712d3a7fbdfb07baa7dff730462fd7b1c09b7373a77e11762ec40eb86cb"
+    },
+    {
+      "name": "post-ready-supplement-evidence.json",
+      "sha256": "a3ec0a0c1a50dd85ceac2bb2f053227c72166f911718f13dcc997b21fb24e3aa"
+    }
+  ],
+  "recordedProcessGroups": [
+    95800,
+    97538,
+    97625,
+    97748,
+    97833,
+    98465,
+    485,
+    487,
+    1340,
+    95803,
+    95804,
+    95806,
+    95807,
+    95808,
+    95811,
+    95824,
+    95825,
+    95826,
+    95840,
+    95841,
+    95842,
+    95843,
+    95844,
+    95845,
+    95846,
+    95847,
+    95850,
+    95857,
+    95858,
+    95859,
+    95860,
+    95861,
+    95862,
+    95863,
+    95864,
+    95865,
+    95866,
+    95867,
+    95868,
+    95869,
+    95870,
+    95872,
+    95873,
+    95874,
+    95875,
+    95876,
+    95877,
+    95878,
+    95879,
+    95880,
+    95881,
+    95882,
+    95885,
+    95891,
+    95892,
+    95893,
+    95895,
+    95896,
+    95897,
+    95898,
+    95899,
+    95900,
+    95901,
+    95902,
+    95903,
+    95904,
+    95905,
+    95906,
+    95907,
+    95908,
+    95910,
+    95911,
+    95912,
+    95917,
+    95919,
+    95920,
+    95922,
+    95928,
+    95930,
+    95931,
+    95932
+  ],
+  "survivingGroups": [],
+  "temporaryDirectories": [],
+  "watchersStarted": 0,
+  "indexBeforeOwnedStaging": "",
+  "cleanupScope": "81 recorded resumed outer/holdout groups absent; unmodified nested helpers completed their bounded children. No watcher started this resumption."
+}

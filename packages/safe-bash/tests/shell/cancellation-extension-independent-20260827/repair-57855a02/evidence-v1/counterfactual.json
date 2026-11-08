@@ -1,0 +1,10 @@
+{
+  "candidateWitness": "E07",
+  "candidateWitnessPassed": true,
+  "revertedSourceCommit": "2d02ebe87bf7b18548190ba6a607649cef8d04e3",
+  "revertedSourceSha256": "f628801379acd1c86c247a778e973f4cb89f8bbe2c3089f8192c31f3c5b273a5",
+  "exactRevert": true,
+  "compiled": true,
+  "authenticatedLoad": true,
+  "behavioralKill": true
+}

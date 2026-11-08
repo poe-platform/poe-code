@@ -1,0 +1,7 @@
+{
+  "name": "syntax",
+  "before": "if (!entry || entry.ledger !== ledger)",
+  "after": "if (!entry)",
+  "base": "1dd893b7afdcd0afae025cd51562bc3255e3c78030e3876e6e33c5750f818a02",
+  "changed": "d3d5a3011bad3c5e3603cc2dc960914c592b31b5b791296dfd85cd74aac59d0e"
+}

@@ -1,0 +1,318 @@
+import assert from "node:assert/strict";
+import { test } from "vitest";
+import { scopeFileSystem } from "../src/fs/scoped.js";
+import { MemoryFileSystem } from "../src/fs/memory/index.js";
+import { S3FileSystem } from "../src/fs/s3/filesystem.js";
+import { MockS3Client } from "../src/fs/s3/mock.js";
+import { ReadOnlyFileSystem } from "../src/fs/readonly/index.js";
+import type { FileSystem } from "../src/contracts/filesystem.js";
+
+test("scoped creation masks cover write, append, streams and descriptors while retaining authority", async () => {
+  const memory = new MemoryFileSystem();
+  const signal = new AbortController().signal;
+  const scoped = scopeFileSystem(memory, () => {}, signal, undefined, { creationMask: 0o077 });
+  await scoped.writeFile("/write", new Uint8Array());
+  await scoped.appendFile("/append", new Uint8Array());
+  await scoped.writeStream!("/stream", { async *[Symbol.asyncIterator]() { yield new Uint8Array([1]); } });
+  const descriptor = await scoped.open!("/open", { access: "write", creation: "exclusive", mode: 0o666 });
+  await descriptor.close();
+  await scoped.mkdir("/directory");
+  await scoped.mkdir("/explicit", { mode: 0o755 });
+  const nested = scopeFileSystem(scoped, () => {}, signal);
+  await nested.writeFile("/nested", new Uint8Array());
+  for (const path of ["/write", "/append", "/stream", "/open", "/nested"]) {
+    assert.equal((await memory.stat(path)).mode & 0o777, 0o600);
+    assert.equal(await scoped.compareEntry!(path, memory, path), "same");
+  }
+  assert.equal((await memory.stat("/directory")).mode & 0o777, 0o700);
+  assert.equal((await memory.stat("/explicit")).mode & 0o777, 0o755);
+  await memory.chmod("/write", 0o640);
+  await scoped.writeFile("/write", new Uint8Array());
+  assert.equal((await memory.stat("/write")).mode & 0o777, 0o640);
+  await memory.writeFile("/unscoped", new Uint8Array());
+  assert.equal((await memory.stat("/unscoped")).mode & 0o777, 0o666);
+});
+
+test("creation masks remain advisory on S3 and preserve existing metadata modes", async () => {
+  const remote = new S3FileSystem({ transport: new MockS3Client({ buckets: ["bucket"] }), bucket: "bucket" });
+  await remote.writeFile("/existing", new Uint8Array(), { mode: 0o640 });
+  const scoped = scopeFileSystem(remote, () => {}, new AbortController().signal, undefined, { creationMask: 0o077 });
+  assert.equal(scoped.capabilities.permissions, false);
+  await scoped.writeFile("/new", new Uint8Array());
+  assert.equal((await scoped.stat("/new")).mode & 0o777, 0o600);
+  await scoped.writeFile("/existing", new Uint8Array([1]));
+  assert.equal((await scoped.stat("/existing")).mode & 0o777, 0o640);
+  await scoped.writeStream!("/existing", { async *[Symbol.asyncIterator]() { yield new Uint8Array([2]); } });
+  assert.equal((await scoped.stat("/existing")).mode & 0o777, 0o640);
+  await assert.rejects(scoped.chmod!("/existing", 0o600), { code: "ENOTSUP" });
+});
+
+test("scoped view retains S3 and Memory authority in both directions and nested views", async () => {
+  const memory = new MemoryFileSystem();
+  const transport = new MockS3Client({ buckets: ["bucket"] });
+  const remote = new S3FileSystem({ transport, bucket: "bucket" });
+  await memory.writeFile("/one", new Uint8Array([1]));
+  await remote.writeFile("/two", new Uint8Array([2]));
+  let charges = 0;
+  const scoped = scopeFileSystem(memory, () => { charges++; }, new AbortController().signal);
+  assert.equal(await remote.compareEntry("/two", memory, "/one"), "distinct");
+  const before = transport.requests.length;
+  assert.equal(await scoped.compareEntry!("/one", remote, "/two"), "distinct");
+  const scopedRequests = transport.requests.length - before;
+  assert.ok(scopedRequests > 1);
+  assert.equal(charges, scopedRequests);
+  assert.equal(await remote.compareEntry("/two", scoped, "/one"), "distinct");
+  assert.equal(await new ReadOnlyFileSystem(scoped).compareEntry("/one", remote, "/two"), "distinct");
+  assert.equal(charges, scopedRequests);
+});
+
+test("entry-view resolution respects falsey scope cancellation", async () => {
+  const memory = new MemoryFileSystem();
+  const remote = new S3FileSystem({ transport: new MockS3Client({ buckets: ["bucket"] }), bucket: "bucket" });
+  await memory.writeFile("/one", new Uint8Array([1]));
+  await remote.writeFile("/two", new Uint8Array([2]));
+  const controller = new AbortController();
+  const scoped = scopeFileSystem(memory, () => {}, controller.signal);
+  controller.abort(false);
+  await assert.rejects(remote.compareEntry("/two", scoped, "/one"), error => error === false);
+});
+
+for (const reason of [null, false, 0, "", NaN]) {
+  test(`stream advancement respects ${String(reason)} cancellation while return remains available`, async () => {
+    const controller = new AbortController();
+    let charges = 0;
+    let advances = 0;
+    let returned = 0;
+    const original = {
+      capabilities: {},
+      readStream: () => ({ [Symbol.asyncIterator]() {
+        return {
+          async next() { advances++; return { done: false, value: new Uint8Array([7]) }; },
+          async return() { returned++; return { done: true, value: undefined }; },
+        };
+      } }),
+    } as unknown as FileSystem;
+    const scoped = scopeFileSystem(original, () => { charges++; }, controller.signal);
+    const iterator = scoped.readStream!("/")[Symbol.asyncIterator]();
+    assert.deepEqual((await iterator.next()).value, new Uint8Array([7]));
+    controller.abort(reason);
+    await assert.rejects(iterator.next(), error => Object.is(error, reason));
+    await iterator.return!();
+    assert.equal(charges, 1);
+    assert.equal(advances, 1);
+    assert.equal(returned, 1);
+  });
+}
+
+test("pending stream result cannot publish bytes after cancellation and still permits return", async () => {
+  const controller = new AbortController();
+  let complete!: (value: IteratorResult<Uint8Array>) => void;
+  let returned = 0;
+  const original = {
+    capabilities: {},
+    readStream: () => ({ [Symbol.asyncIterator]() {
+      return {
+        next: () => new Promise<IteratorResult<Uint8Array>>(resolve => { complete = resolve; }),
+        async return() { returned++; return { done: true, value: undefined }; },
+      };
+    } }),
+  } as unknown as FileSystem;
+  const scoped = scopeFileSystem(original, () => {}, controller.signal);
+  const iterator = scoped.readStream!("/")[Symbol.asyncIterator]();
+  const pending = iterator.next();
+  controller.abort(0);
+  complete({ done: false, value: new Uint8Array([7]) });
+  await assert.rejects(pending, error => error === 0);
+  await iterator.return!();
+  assert.equal(returned, 1);
+});
+
+for (const position of ["before", "after"] as const) {
+  test(`cancelled ${position}-next iteration releases native Memory storage without explicit return`, async () => {
+    const memory = new MemoryFileSystem({ maxMetadataUnits: 4 });
+    await memory.writeFile("/f", new Uint8Array([1, 2]));
+    const controller = new AbortController();
+    const original = position === "before" ? memory : {
+      capabilities: memory.capabilities,
+      readStream: () => ({ [Symbol.asyncIterator]() {
+        const iterator = memory.readStream("/f", { chunkSize: 1 })[Symbol.asyncIterator]();
+        return {
+          async next() {
+            const result = await iterator.next();
+            controller.abort(false);
+            return result;
+          },
+          return: iterator.return!.bind(iterator),
+        };
+      } }),
+    } as unknown as FileSystem;
+    const scoped = scopeFileSystem(original, () => {}, controller.signal);
+    await assert.rejects(async () => {
+      for await (const chunk of scoped.readStream!("/f", { chunkSize: 1 })) {
+        assert.equal(chunk.byteLength, 1);
+        controller.abort(false);
+      }
+    }, error => error === false);
+    await memory.rm("/f");
+    await memory.mkdir("/reclaimed");
+    assert.deepEqual((await memory.readdir("/")).map(entry => entry.name), ["reclaimed"]);
+  });
+}
+
+test("cancelled stream cleanup preserves its primary falsey reason", async () => {
+  const controller = new AbortController();
+  let returned = 0;
+  const original = {
+    capabilities: {},
+    readStream: () => ({ [Symbol.asyncIterator]() {
+      return {
+        async next() { return { done: false, value: new Uint8Array([1]) }; },
+        async return() { returned++; throw 0; },
+      };
+    } }),
+  } as unknown as FileSystem;
+  const scoped = scopeFileSystem(original, () => {}, controller.signal);
+  await assert.rejects(async () => {
+    for await (const chunk of scoped.readStream!("/")) {
+      assert.equal(chunk.byteLength, 1);
+      controller.abort(false);
+    }
+  }, error => error === false);
+  assert.equal(returned, 1);
+});
+
+test("return starts and drains independently of an opaque pending next", async () => {
+  let completeNext!: (value: IteratorResult<Uint8Array>) => void;
+  let releaseClose!: () => void;
+  let returns = 0;
+  const next = new Promise<IteratorResult<Uint8Array>>(resolve => { completeNext = resolve; });
+  const close = new Promise<void>(resolve => { releaseClose = resolve; });
+  const controller = new AbortController();
+  const original = {
+    capabilities: {},
+    readStream: () => ({ [Symbol.asyncIterator]() { return {
+      next: () => next,
+      async return() { returns++; await close; return { done: true, value: undefined }; },
+    }; } }),
+  } as unknown as FileSystem;
+  let charges = 0;
+  const iterator = scopeFileSystem(original, () => { charges++; }, controller.signal).readStream!("/")[Symbol.asyncIterator]();
+  const pending = iterator.next();
+  const observed = pending.then(value => ({ value }), error => ({ error }));
+  controller.abort(false);
+  const closing = iterator.return!();
+  const secondClose = iterator.return!();
+  let settled = false;
+  void closing.then(() => { settled = true; });
+  try {
+    await new Promise<void>(resolve => setImmediate(resolve));
+    assert.equal(returns, 1);
+    assert.equal(closing, secondClose);
+    assert.equal(settled, false);
+    releaseClose();
+    await closing;
+    assert.equal(settled, true);
+    assert.equal(charges, 1);
+  } finally {
+    releaseClose();
+    completeNext({ done: false, value: new Uint8Array([7]) });
+    await Promise.allSettled([closing, secondClose]);
+    await observed;
+  }
+  assert.deepEqual(await observed, { error: false });
+  assert.equal(returns, 1);
+});
+
+for (const started of [false, true]) for (const reason of [undefined, null]) {
+  test(`return preserves cleanup failure ${String(reason)} with started=${started}`, async () => {
+    let acquired = 0;
+    let returned = 0;
+    const original = {
+      capabilities: {},
+      readStream: () => ({ [Symbol.asyncIterator]() {
+        acquired++;
+        return {
+          async next() { return { done: true, value: undefined }; },
+          async return() { returned++; throw reason; },
+        };
+      } }),
+    } as unknown as FileSystem;
+    const iterator = scopeFileSystem(original, () => {}, new AbortController().signal).readStream!("/")[Symbol.asyncIterator]();
+    if (started) assert.equal((await iterator.next()).done, true);
+    const closing = iterator.return!();
+    await assert.rejects(closing, error => error === reason);
+    assert.equal(iterator.return!(), closing);
+    assert.equal(acquired, 1);
+    assert.equal(returned, 1);
+  });
+}
+
+const closeOutcomes = [
+  { failed: false, reason: undefined },
+  ...[undefined, null, false, 0, "", NaN].map(reason => ({ failed: true, reason })),
+];
+
+for (const branch of ["before", "after"]) for (const outcome of closeOutcomes) {
+  test(`synthetic EOF ${branch} next awaits ${outcome.failed ? `failed close ${String(outcome.reason)}` : "successful close"}`, async () => {
+    let completeNext!: (value: IteratorResult<Uint8Array>) => void;
+    let releaseClose!: () => void;
+    let advances = 0;
+    let returns = 0;
+    let charges = 0;
+    const next = new Promise<IteratorResult<Uint8Array>>(resolve => { completeNext = resolve; });
+    const close = new Promise<void>(resolve => { releaseClose = resolve; });
+    const original = {
+      capabilities: {},
+      readStream: () => ({ [Symbol.asyncIterator]() { return {
+        next() { advances++; return next; },
+        async return() {
+          returns++;
+          await close;
+          if (outcome.failed) throw outcome.reason;
+          return { done: true, value: undefined };
+        },
+      }; } }),
+    } as unknown as FileSystem;
+    const iterator = scopeFileSystem(original, () => { charges++; }, new AbortController().signal).readStream!("/")[Symbol.asyncIterator]();
+    let pending = branch === "after" ? iterator.next() : undefined;
+    const closing = iterator.return!();
+    const closeObserved = closing.then(value => ({ value }), error => ({ error }));
+    pending ??= iterator.next();
+    let settled = false;
+    const observed = pending.then(value => { settled = true; return { value }; }, error => { settled = true; return { error }; });
+    completeNext({ done: false, value: new Uint8Array([7]) });
+    try {
+      await new Promise<void>(resolve => setImmediate(resolve));
+      assert.equal(returns, 1);
+      assert.equal(advances, branch === "after" ? 1 : 0);
+      assert.equal(settled, false);
+      assert.equal(iterator.return!(), closing);
+      assert.equal(charges, 1);
+    } finally {
+      releaseClose();
+      await Promise.all([observed, closeObserved]);
+    }
+    const expected = outcome.failed ? { error: outcome.reason } : { value: { done: true, value: undefined } };
+    assert.deepEqual(await observed, expected);
+    assert.deepEqual(await closeObserved, expected);
+    assert.equal(returns, 1);
+  });
+}
+
+test('alternating caller signals reuse scoped cancellation without cross-cancelling callers',async()=>{
+ const memory=new MemoryFileSystem();await memory.writeFile('/file',new Uint8Array());
+ const observed:AbortSignal[]=[];
+ const backing=new Proxy(memory,{get(target,key){
+  if(key==='open')return async(...args:Parameters<MemoryFileSystem['open']>)=>{const descriptor=await target.open(...args);return new Proxy(descriptor,{get(handle,method){if(method==='stat')return (options?:{signal?:AbortSignal})=>{observed.push(options!.signal!);return handle.stat(options);};const value=Reflect.get(handle,method);return typeof value==='function'?value.bind(handle):value;}});};
+  const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;
+ }});
+ const parent=new AbortController(),first=new AbortController(),second=new AbortController();
+ const scoped=scopeFileSystem(backing,()=>{},parent.signal);
+ const descriptor=await scoped.open!('/file',{access:'read',creation:'never'});
+ for(const signal of [first.signal,second.signal,first.signal,second.signal])await descriptor.stat({signal});
+ assert.equal(observed[0],observed[2]);assert.equal(observed[1],observed[3]);
+ first.abort('first stopped');
+ assert.equal(observed[0]!.reason,'first stopped');assert.equal(observed[1]!.aborted,false);
+ parent.abort('scope stopped');assert.equal(observed[1]!.reason,'scope stopped');
+ await descriptor.close();
+});

@@ -1,0 +1,58 @@
+{
+  "schema": "html-v32-prerequisites-only-recipe/1",
+  "at": "2026-08-28T00:52:39.474Z",
+  "inventory": {
+    "files": {
+      "BINDINGS.json": {
+        "sha256": "323682cdd49f4051b2eccbefd0a7d7920edd379395b6bfbf52bf653702e2ec96",
+        "bytes": 15238
+      },
+      "RECIPE.md": {
+        "sha256": "63bf9cd774256efc10e8beaa8bd08b9dfef1a07600f63799375ad7aab0257d79",
+        "bytes": 3717
+      },
+      "common.mjs": {
+        "sha256": "2e381c611302ecd3cc6a0ded5bb016d2671a3f344aac633c916c76713131bc1f",
+        "bytes": 4765
+      },
+      "launch.mjs": {
+        "sha256": "4e4a88a6f41dd6757950914966d85a674494528a9a97a0044d108f24bc2f9772",
+        "bytes": 6518
+      },
+      "loader.mjs": {
+        "sha256": "617d500fe77028c590075eca4c2c9f071725b35eb80b826979fdd68b1ea07612",
+        "bytes": 856
+      },
+      "preload.mjs": {
+        "sha256": "5da1b5ae1336a28b3c1de15ffef95edc887cef0786f7bcf2004806a9ca240a0a",
+        "bytes": 2923
+      },
+      "run.mjs": {
+        "sha256": "d5813cbd3fc0227c6ebc2a48ed6206fb9464128ad4ec039bf7328da0560396ed",
+        "bytes": 5041
+      }
+    },
+    "directories": []
+  },
+  "declared": {
+    "consumerPredicates": 28,
+    "forwardingCohorts": 6,
+    "orderedPredicates": 8,
+    "originalReadonlyChecks": 33,
+    "total": 75
+  },
+  "actualRunsBeforeFreeze": 0,
+  "maxInvocations": 1,
+  "retries": 0,
+  "realResourceCasesReplayed": 0,
+  "unchangedAuthorSources": 9,
+  "sourceTransformations": 0,
+  "originalFunctionAssertionReplacement": 0,
+  "standaloneReadonlySubject": "exact pinned author saved execution artifacts; actual33 assertion callbacks execute",
+  "allowedAdapters": [
+    "owned output argument",
+    "observational --import preload with unchanged argv tail and environments",
+    "nextLoad pass-through hash observer"
+  ],
+  "compositionOnly": true
+}

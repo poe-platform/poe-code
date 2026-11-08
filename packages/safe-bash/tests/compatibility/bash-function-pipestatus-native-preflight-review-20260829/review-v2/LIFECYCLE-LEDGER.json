@@ -1,0 +1,19 @@
+{
+  "max": 3,
+  "peak": 2,
+  "starts": 3,
+  "active": 1,
+  "peakCharged": 2,
+  "confirmedStarts": 3,
+  "activeConfirmed": 1,
+  "peakConfirmed": 2,
+  "confirmedRoles": {
+    "owner": 1,
+    "control": 2
+  },
+  "roles": {
+    "owner": 1,
+    "control": 2
+  },
+  "sourceForkReservations": 0
+}

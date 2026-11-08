@@ -1,0 +1,11 @@
+{
+  "stage": "ad-hoc historical-file integrity setup, before product import",
+  "command": "git cat-file -e 5cfb70a:tests/shell-stress/expanded-kernel/POSTFIX.md",
+  "exitCode": 128,
+  "stderr": "fatal: path 'tests/shell-stress/expanded-kernel/POSTFIX.md' exists on disk, but not in '5cfb70a'\n",
+  "cause": "Setup incorrectly tried the older commit for a file introduced by b439dd9.",
+  "correction": "Retain each historical file's actual introducing commit when checking its immutable bytes.",
+  "productImported": false,
+  "productCaptureRetried": false,
+  "runnerCorpusOracleOrHistoricalFilesChanged": false
+}

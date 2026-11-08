@@ -1,0 +1,113 @@
+[
+  {
+    "binary": "/usr/bin/clang",
+    "argv": [
+      "-I",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7",
+      "-I",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/lib",
+      "-include",
+      "config.h",
+      "-include",
+      "stdio.h",
+      "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-nullable-design-native-uRTon5/probe.c",
+      "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-nullable-design-native-uRTon5/regex-trace.c",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/lib/libcoreutils.a",
+      "-o",
+      "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-nullable-design-native-uRTon5/trace"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "timedOut": false,
+    "stdout": "",
+    "stderr": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-nullable-design-native-uRTon5/regex-trace.c:20:9: warning: '__STDC_WANT_IEC_60559_BFP_EXT__' macro redefined [-Wmacro-redefined]\n   20 | #define __STDC_WANT_IEC_60559_BFP_EXT__\n      |         ^\n/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/lib/config.h:4031:10: note: previous definition is here\n 4031 | # define __STDC_WANT_IEC_60559_BFP_EXT__ 1\n      |          ^\n1 warning generated.\n"
+  },
+  {
+    "binary": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-nullable-design-native-uRTon5/trace",
+    "argv": [
+      "",
+      "\\(a*\\)*\\1"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "timedOut": false,
+    "stdout": "{\"length\":0,\"registers\":[[0,0],[0,0],[-1,-1]]}\n",
+    "stderr": "before node=4 type=11 offset=0 cap=[-1,-1] prev=[-1,-1] fs=0 cycle=0 last=6 end=0\nafter cap=[-1,-1] prev=[-1,-1]\nproceed node=4 offset=0\nedges node=4: 0/1 5/1 state: 0 2 3 4 5 6\npush node=5 offset=0 cap=[-1,-1] prev=[-1,-1]\nbefore node=0 type=8 offset=0 cap=[-1,-1] prev=[-1,-1] fs=1 cycle=0 last=6 end=0\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=0 offset=0\nedges node=0: 2/1 state: 0 2 3 4 5 6\nbefore node=2 type=11 offset=0 cap=[0,-1] prev=[-1,-1] fs=1 cycle=0 last=6 end=0\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=0\nedges node=2: 1/0 3/1 state: 0 2 3 4 5 6\nbefore node=3 type=9 offset=0 cap=[0,-1] prev=[-1,-1] fs=1 cycle=0 last=6 end=0\nafter cap=[0,0] prev=[-1,-1]\nproceed node=3 offset=0\nedges node=3: 4/1 state: 0 2 3 4 5 6\nbefore node=4 type=11 offset=0 cap=[0,0] prev=[-1,-1] fs=1 cycle=1 last=6 end=0\nafter cap=[0,0] prev=[-1,-1]\n"
+  },
+  {
+    "binary": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-nullable-design-native-uRTon5/trace",
+    "argv": [
+      "a",
+      "\\(a*\\)*\\1"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "timedOut": false,
+    "stdout": "{\"length\":1,\"registers\":[[0,1],[0,0],[-1,-1]]}\n",
+    "stderr": "before node=4 type=11 offset=0 cap=[-1,-1] prev=[-1,-1] fs=0 cycle=0 last=6 end=1\nafter cap=[-1,-1] prev=[-1,-1]\nproceed node=4 offset=0\nedges node=4: 0/1 5/0 state: 0 1 2 3 4\nbefore node=0 type=8 offset=0 cap=[-1,-1] prev=[-1,-1] fs=0 cycle=0 last=6 end=1\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=0 offset=0\nedges node=0: 2/1 state: 0 1 2 3 4\nbefore node=2 type=11 offset=0 cap=[0,-1] prev=[-1,-1] fs=0 cycle=0 last=6 end=1\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=0\nedges node=2: 1/1 3/1 state: 0 1 2 3 4\npush node=3 offset=0 cap=[0,-1] prev=[-1,-1]\nbefore node=1 type=1 offset=0 cap=[0,-1] prev=[-1,-1] fs=1 cycle=0 last=6 end=1\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=1 offset=0\nbefore node=2 type=11 offset=1 cap=[0,-1] prev=[-1,-1] fs=1 cycle=0 last=6 end=1\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=1\nedges node=2: 1/0 3/1 state: 0 2 3 4 5 6\nbefore node=3 type=9 offset=1 cap=[0,-1] prev=[-1,-1] fs=1 cycle=0 last=6 end=1\nafter cap=[0,1] prev=[0,1]\nproceed node=3 offset=1\nedges node=3: 4/1 state: 0 2 3 4 5 6\nbefore node=4 type=11 offset=1 cap=[0,1] prev=[0,1] fs=1 cycle=0 last=6 end=1\nafter cap=[0,1] prev=[0,1]\nproceed node=4 offset=1\nedges node=4: 0/1 5/1 state: 0 2 3 4 5 6\npush node=5 offset=1 cap=[0,1] prev=[0,1]\nbefore node=0 type=8 offset=1 cap=[0,1] prev=[0,1] fs=2 cycle=0 last=6 end=1\nafter cap=[1,-1] prev=[0,1]\nproceed node=0 offset=1\nedges node=0: 2/1 state: 0 2 3 4 5 6\nbefore node=2 type=11 offset=1 cap=[1,-1] prev=[0,1] fs=2 cycle=1 last=6 end=1\nafter cap=[1,-1] prev=[0,1]\npop available=2\nproceed node=5 offset=1\npop available=1\nbefore node=3 type=9 offset=0 cap=[0,-1] prev=[-1,-1] fs=0 cycle=0 last=6 end=1\nafter cap=[0,0] prev=[-1,-1]\nproceed node=3 offset=0\nedges node=3: 4/1 state: 0 1 2 3 4\nbefore node=4 type=11 offset=0 cap=[0,0] prev=[-1,-1] fs=0 cycle=1 last=6 end=1\nafter cap=[0,0] prev=[-1,-1]\n"
+  },
+  {
+    "binary": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-nullable-design-native-uRTon5/trace",
+    "argv": [
+      "aa",
+      "\\(a*\\)*\\1"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "timedOut": false,
+    "stdout": "{\"length\":2,\"registers\":[[0,2],[0,1],[-1,-1]]}\n",
+    "stderr": "before node=4 type=11 offset=0 cap=[-1,-1] prev=[-1,-1] fs=0 cycle=0 last=6 end=2\nafter cap=[-1,-1] prev=[-1,-1]\nproceed node=4 offset=0\nedges node=4: 0/1 5/0 state: 0 1 2 3 4\nbefore node=0 type=8 offset=0 cap=[-1,-1] prev=[-1,-1] fs=0 cycle=0 last=6 end=2\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=0 offset=0\nedges node=0: 2/1 state: 0 1 2 3 4\nbefore node=2 type=11 offset=0 cap=[0,-1] prev=[-1,-1] fs=0 cycle=0 last=6 end=2\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=0\nedges node=2: 1/1 3/1 state: 0 1 2 3 4\npush node=3 offset=0 cap=[0,-1] prev=[-1,-1]\nbefore node=1 type=1 offset=0 cap=[0,-1] prev=[-1,-1] fs=1 cycle=0 last=6 end=2\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=1 offset=0\nbefore node=2 type=11 offset=1 cap=[0,-1] prev=[-1,-1] fs=1 cycle=0 last=6 end=2\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=1\nedges node=2: 1/1 3/1 state: 0 1 2 3 4 5\npush node=3 offset=1 cap=[0,-1] prev=[-1,-1]\nbefore node=1 type=1 offset=1 cap=[0,-1] prev=[-1,-1] fs=2 cycle=0 last=6 end=2\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=1 offset=1\nbefore node=2 type=11 offset=2 cap=[0,-1] prev=[-1,-1] fs=2 cycle=0 last=6 end=2\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=2\nedges node=2: 1/0 3/1 state: 0 2 3 4 5 6\nbefore node=3 type=9 offset=2 cap=[0,-1] prev=[-1,-1] fs=2 cycle=0 last=6 end=2\nafter cap=[0,2] prev=[0,2]\nproceed node=3 offset=2\nedges node=3: 4/1 state: 0 2 3 4 5 6\nbefore node=4 type=11 offset=2 cap=[0,2] prev=[0,2] fs=2 cycle=0 last=6 end=2\nafter cap=[0,2] prev=[0,2]\nproceed node=4 offset=2\nedges node=4: 0/1 5/1 state: 0 2 3 4 5 6\npush node=5 offset=2 cap=[0,2] prev=[0,2]\nbefore node=0 type=8 offset=2 cap=[0,2] prev=[0,2] fs=3 cycle=0 last=6 end=2\nafter cap=[2,-1] prev=[0,2]\nproceed node=0 offset=2\nedges node=0: 2/1 state: 0 2 3 4 5 6\nbefore node=2 type=11 offset=2 cap=[2,-1] prev=[0,2] fs=3 cycle=1 last=6 end=2\nafter cap=[2,-1] prev=[0,2]\npop available=3\nproceed node=5 offset=2\npop available=2\nbefore node=3 type=9 offset=1 cap=[0,-1] prev=[-1,-1] fs=1 cycle=0 last=6 end=2\nafter cap=[0,1] prev=[0,1]\nproceed node=3 offset=1\nedges node=3: 4/1 state: 0 1 2 3 4 5\nbefore node=4 type=11 offset=1 cap=[0,1] prev=[0,1] fs=1 cycle=0 last=6 end=2\nafter cap=[0,1] prev=[0,1]\nproceed node=4 offset=1\nedges node=4: 0/1 5/1 state: 0 1 2 3 4 5\npush node=5 offset=1 cap=[0,1] prev=[0,1]\nbefore node=0 type=8 offset=1 cap=[0,1] prev=[0,1] fs=2 cycle=0 last=6 end=2\nafter cap=[1,-1] prev=[0,1]\nproceed node=0 offset=1\nedges node=0: 2/1 state: 0 1 2 3 4 5\nbefore node=2 type=11 offset=1 cap=[1,-1] prev=[0,1] fs=2 cycle=1 last=6 end=2\nafter cap=[1,-1] prev=[0,1]\npop available=2\nproceed node=5 offset=1\nbefore node=6 type=2 offset=2 cap=[0,1] prev=[0,1] fs=1 cycle=0 last=6 end=2\nafter cap=[0,1] prev=[0,1]\n"
+  },
+  {
+    "binary": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-nullable-design-native-uRTon5/trace",
+    "argv": [
+      "aaa",
+      "\\(a*\\)*\\1"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "timedOut": false,
+    "stdout": "{\"length\":3,\"registers\":[[0,3],[0,-1],[-1,-1]]}\n",
+    "stderr": "before node=4 type=11 offset=0 cap=[-1,-1] prev=[-1,-1] fs=0 cycle=0 last=6 end=3\nafter cap=[-1,-1] prev=[-1,-1]\nproceed node=4 offset=0\nedges node=4: 0/1 5/0 state: 0 1 2 3 4\nbefore node=0 type=8 offset=0 cap=[-1,-1] prev=[-1,-1] fs=0 cycle=0 last=6 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=0 offset=0\nedges node=0: 2/1 state: 0 1 2 3 4\nbefore node=2 type=11 offset=0 cap=[0,-1] prev=[-1,-1] fs=0 cycle=0 last=6 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=0\nedges node=2: 1/1 3/1 state: 0 1 2 3 4\npush node=3 offset=0 cap=[0,-1] prev=[-1,-1]\nbefore node=1 type=1 offset=0 cap=[0,-1] prev=[-1,-1] fs=1 cycle=0 last=6 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=1 offset=0\nbefore node=2 type=11 offset=1 cap=[0,-1] prev=[-1,-1] fs=1 cycle=0 last=6 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=1\nedges node=2: 1/1 3/1 state: 0 1 2 3 4\npush node=3 offset=1 cap=[0,-1] prev=[-1,-1]\nbefore node=1 type=1 offset=1 cap=[0,-1] prev=[-1,-1] fs=2 cycle=0 last=6 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=1 offset=1\nbefore node=2 type=11 offset=2 cap=[0,-1] prev=[-1,-1] fs=2 cycle=0 last=6 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=2\nedges node=2: 1/1 3/1 state: 0 1 2 3 4 5\npush node=3 offset=2 cap=[0,-1] prev=[-1,-1]\nbefore node=1 type=1 offset=2 cap=[0,-1] prev=[-1,-1] fs=3 cycle=0 last=6 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=1 offset=2\nbefore node=2 type=11 offset=3 cap=[0,-1] prev=[-1,-1] fs=3 cycle=0 last=6 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=3\nedges node=2: 1/0 3/1 state: 0 2 3 4 5 6\nbefore node=3 type=9 offset=3 cap=[0,-1] prev=[-1,-1] fs=3 cycle=0 last=6 end=3\nafter cap=[0,3] prev=[0,3]\nproceed node=3 offset=3\nedges node=3: 4/1 state: 0 2 3 4 5 6\nbefore node=4 type=11 offset=3 cap=[0,3] prev=[0,3] fs=3 cycle=0 last=6 end=3\nafter cap=[0,3] prev=[0,3]\nproceed node=4 offset=3\nedges node=4: 0/1 5/1 state: 0 2 3 4 5 6\npush node=5 offset=3 cap=[0,3] prev=[0,3]\nbefore node=0 type=8 offset=3 cap=[0,3] prev=[0,3] fs=4 cycle=0 last=6 end=3\nafter cap=[3,-1] prev=[0,3]\nproceed node=0 offset=3\nedges node=0: 2/1 state: 0 2 3 4 5 6\nbefore node=2 type=11 offset=3 cap=[3,-1] prev=[0,3] fs=4 cycle=1 last=6 end=3\nafter cap=[3,-1] prev=[0,3]\npop available=4\nproceed node=5 offset=3\npop available=3\nbefore node=3 type=9 offset=2 cap=[0,-1] prev=[-1,-1] fs=2 cycle=0 last=6 end=3\nafter cap=[0,2] prev=[0,2]\nproceed node=3 offset=2\nedges node=3: 4/1 state: 0 1 2 3 4 5\nbefore node=4 type=11 offset=2 cap=[0,2] prev=[0,2] fs=2 cycle=0 last=6 end=3\nafter cap=[0,2] prev=[0,2]\nproceed node=4 offset=2\nedges node=4: 0/1 5/1 state: 0 1 2 3 4 5\npush node=5 offset=2 cap=[0,2] prev=[0,2]\nbefore node=0 type=8 offset=2 cap=[0,2] prev=[0,2] fs=3 cycle=0 last=6 end=3\nafter cap=[2,-1] prev=[0,2]\nproceed node=0 offset=2\nedges node=0: 2/1 state: 0 1 2 3 4 5\nbefore node=2 type=11 offset=2 cap=[2,-1] prev=[0,2] fs=3 cycle=1 last=6 end=3\nafter cap=[2,-1] prev=[0,2]\npop available=3\nproceed node=5 offset=2\npop available=2\nbefore node=3 type=9 offset=1 cap=[0,-1] prev=[-1,-1] fs=1 cycle=0 last=6 end=3\nafter cap=[0,1] prev=[0,1]\nproceed node=3 offset=1\nedges node=3: 4/1 state: 0 1 2 3 4\nbefore node=4 type=11 offset=1 cap=[0,1] prev=[0,1] fs=1 cycle=0 last=6 end=3\nafter cap=[0,1] prev=[0,1]\nproceed node=4 offset=1\nedges node=4: 0/1 5/0 state: 0 1 2 3 4\nbefore node=0 type=8 offset=1 cap=[0,1] prev=[0,1] fs=1 cycle=0 last=6 end=3\nafter cap=[1,-1] prev=[0,1]\nproceed node=0 offset=1\nedges node=0: 2/1 state: 0 1 2 3 4\nbefore node=2 type=11 offset=1 cap=[1,-1] prev=[0,1] fs=1 cycle=1 last=6 end=3\nafter cap=[1,-1] prev=[0,1]\npop available=1\nproceed node=3 offset=0\nedges node=3: 4/1 state: 0 1 2 3 4\nbefore node=4 type=11 offset=0 cap=[0,-1] prev=[-1,-1] fs=0 cycle=1 last=6 end=3\nafter cap=[0,-1] prev=[-1,-1]\npop available=0\n"
+  },
+  {
+    "binary": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-nullable-design-native-uRTon5/trace",
+    "argv": [
+      "",
+      "\\(a*\\)\\{2\\}\\1"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "timedOut": false,
+    "stdout": "{\"length\":-1,\"registers\":[]}\n",
+    "stderr": "before node=0 type=8 offset=0 cap=[-1,-1] prev=[-1,-1] fs=0 cycle=0 last=9 end=0\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=0 offset=0\nedges node=0: 2/0 state: 9\npop available=0\n"
+  },
+  {
+    "inputRegexecSha256": "5cf9d377abdcc8be6469690c9f9454f468257bd07200e37c23acaa4ee587944b",
+    "environment": {
+      "PATH": "/usr/bin:/bin",
+      "LC_ALL": "C",
+      "LANG": "C",
+      "LANGUAGE": "C",
+      "TZ": "UTC"
+    },
+    "cohort": [
+      "empty",
+      "a",
+      "aa",
+      "aaa",
+      "mandatory-empty"
+    ],
+    "note": "Focused diagnostic rebuild, not pinned oracle; register outputs equal prior independently linked native probe. Edge destination /1 means retained in sifted state, /0 removed."
+  },
+  {
+    "removed": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-nullable-design-native-uRTon5",
+    "activeChildren": 0
+  }
+]

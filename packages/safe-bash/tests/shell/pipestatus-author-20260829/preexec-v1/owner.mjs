@@ -1,0 +1,91 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {hash,readPinned,pinExecutable,publish,errorRecord} from './reuse/auth.mjs';
+import {runDirect} from './reuse/direct-child.mjs';
+import {caseArguments,PROFILE} from './reuse/profile.mjs';
+import {finalize} from './reuse/finalization.mjs';
+import {admitArchive,materialize,verifyPackage,sample,timeWindow} from './admission.mjs';
+
+export function preEvaluation(seal, root, started, deadline) {
+  const window=timeWindow(started,deadline);pinExecutable(seal.node);
+  for(const row of seal.sources)readPinned(path.join(seal.sourceRoot,row.path),{bytes:row.bytes,sha256:row.sha256});
+  for(const row of seal.files)readPinned(row.path,row);
+  const manifest=JSON.parse(readPinned(seal.packageManifest.path,seal.packageManifest,1048576));
+  if(manifest.sha256!==seal.archive.sha256||manifest.count!==1010)throw Error('PACKAGE_AUTHORITY');
+  const admitted=admitArchive(seal.archive.path,manifest);
+  const sourceRoot=path.join(root,'source-built','product');materialize(admitted.rows,sourceRoot);
+  return {window,manifest,admitted,sourceRoot};
+}
+export function edgesFor(files) {
+  const edges={};const builtins=new Set();
+  for(const row of files.filter(row=>row.path.endsWith('.mjs')||row.path.endsWith('.js'))){const source=readPinned(row.path,row).toString('utf8');const imports=[...source.matchAll(/(?:\bfrom\s*|\bimport\s*\(?\s*|\bexport\s*[^;]*?\bfrom\s*)["']([^"']+)["']/gu)].map(match=>match[1]);edges[row.path]=[...new Set(imports)];for(const name of imports)if(name.startsWith('node:'))builtins.add(name);}
+  return {edges,builtins:[...builtins].sort()};
+}
+export function verifyNpm(seal) {
+  const actual=[];const walk=directory=>{for(const name of fs.readdirSync(directory)){const filename=path.join(directory,name),stat=fs.lstatSync(filename);actual.push(filename);if(stat.isDirectory())walk(filename);}};walk(seal.npmRoot);
+  const expected=[...seal.npmFiles.map(row=>row.path),...seal.npmDirectories.map(row=>row.path)];actual.sort();expected.sort();if(JSON.stringify(actual)!==JSON.stringify(expected))throw Error('NPM_SET');
+  for(const row of seal.npmDirectories){const stat=fs.lstatSync(row.path);if(!stat.isDirectory()||(stat.mode&4095)!==row.mode)throw Error('NPM_DIRECTORY');}
+  for(const pin of seal.npmFiles){if(pin.kind==='link'){const stat=fs.lstatSync(pin.path),target=fs.realpathSync(pin.path);if(!stat.isSymbolicLink()||(stat.mode&4095)!==pin.mode||fs.readlinkSync(pin.path)!==pin.text||target!==pin.target)throw Error('NPM_LINK');readPinned(target,{bytes:pin.targetBytes,sha256:pin.targetSha256});}else{if((fs.lstatSync(pin.path).mode&4095)!==pin.mode)throw Error('NPM_MODE');readPinned(pin.path,pin);}}
+}
+export function makeRole(seal, app, productRoot, row, captureRoot, kind='product-case', entrySource) {
+  fs.mkdirSync(app,{recursive:true});
+  for(const name of ['guard.mjs','auth.mjs','profile.mjs']){const pin=seal.reuse.find(pin=>pin.name===name);fs.writeFileSync(path.join(app,name),readPinned(pin.path,pin));}
+  fs.writeFileSync(path.join(app,'case-driver.mjs'),entrySource??readPinned(seal.driver.path,seal.driver));
+  fs.writeFileSync(path.join(app,'host-protocols.mjs'),readPinned(seal.host.path,seal.host));
+  fs.writeFileSync(path.join(app,'package.json'),'\u007b"type":"module","private":true\u007d\n');
+  const all=[];const walk=directory=>{for(const name of fs.readdirSync(directory)){const filename=path.join(directory,name),stat=fs.lstatSync(filename);if(stat.isSymbolicLink())throw Error('APP_LINK');if(stat.isDirectory())walk(filename);else{if(!stat.isFile()||stat.size>4194304)throw Error('APP_TYPE_SIZE');const content=fs.readFileSync(filename);all.push({path:filename,bytes:content.length,sha256:hash(content)});}}};walk(app);
+  const graph=edgesFor(all);const entry=path.join(app,'case-driver.mjs');
+  if(kind==='product-case')graph.edges[entry].push('virtual-bash',new URL('file://'+productRoot+'/dist/index.js').href);
+  const trace=path.join(captureRoot,row.roleId+'.trace');fs.writeFileSync(trace,'',{flag:'wx'});
+  const rolePath=path.join(captureRoot,row.roleId+'.role.json');
+  const role={profile:PROFILE,id:row.roleId,kind,childProcessPermission:0,workerPermission:0,loaderThreads:0,loaderMode:'synchronous-registerHooks',app,entry,guard:path.join(app,'guard.mjs'),trace,rolePath,nodePath:seal.node.path,readFiles:[rolePath,trace],files:Object.fromEntries(all.map(row=>[row.path,{bytes:row.bytes,sha256:row.sha256}])),edges:graph.edges,builtins:graph.builtins,layout:row.layout,case:row.case,productRoot};
+  const bytes=Buffer.from(JSON.stringify(role));if(bytes.length>2097152)throw Error('ROLE_LIMIT');fs.writeFileSync(rolePath,bytes,{flag:'wx'});
+  return {role,bytes,args:caseArguments(role),env:{PATH:'/usr/bin:/bin',HOME:app,TMPDIR:app,LANG:'C',LC_ALL:'C',SURFACE_ROLE:rolePath,SURFACE_ROLE_BYTES:String(bytes.length),SURFACE_ROLE_SHA256:hash(bytes)}};
+}
+export async function execute(seal, grant) {
+  const window=timeWindow(grant.started,grant.deadline);if(grant.action!=='execute-pipestatus-78-v1'||grant.sealSha256!==process.env.PIPE_SEAL_SHA256||!/^([a-f0-9]{40})$/u.test(grant.rootReceipt))throw Error('GRANT');
+  if(fs.existsSync(seal.actualRoot))throw Error('ATTEMPT_USED');fs.mkdirSync(seal.actualRoot);
+  const capture=path.join(seal.actualRoot,'capture');fs.mkdirSync(capture);
+  const ledger={starts:0,maximum:79,active:0,stopped:false,captureBytes:131072,captureMaximum:100663296,rows:[]};
+  const abort=new AbortController();const timer=setTimeout(()=>abort.abort(Error('OWNER_DEADLINE')),window.bodyDeadline-Date.now());
+  const results=[];let primaryPresent=false,primary;
+  const persist=(name,value)=>{const bytes=Buffer.from(JSON.stringify(value,null,2)+'\n');if(ledger.captureBytes+bytes.length>ledger.captureMaximum)throw Error('AGGREGATE_CAPTURE');ledger.captureBytes+=bytes.length;return publish(path.join(capture,name),bytes,window.deadline);};
+  const check=()=>{abort.signal.throwIfAborted();if(Date.now()>=window.bodyDeadline||ledger.stopped)throw Error('OWNER_ADMISSION');sample(seal.actualRoot,536870912);};
+  try {
+    const prepared=preEvaluation(seal,seal.actualRoot,grant.started,grant.deadline);
+    const installed=path.join(seal.actualRoot,'installed'),moved=path.join(seal.actualRoot,'moved');fs.mkdirSync(installed);
+    const archive=path.join(seal.actualRoot,'input.tgz');fs.writeFileSync(archive,readPinned(seal.archive.path,seal.archive));
+    fs.writeFileSync(path.join(installed,'package.json'),'{"type":"module","private":true}\n');
+    for(const name of ['user.npmrc','global.npmrc'])fs.writeFileSync(path.join(seal.actualRoot,name),'',{flag:'wx'});
+    verifyNpm(seal);
+    const installArgs=['--permission','--allow-fs-read='+seal.npmRoot,'--allow-fs-read='+seal.actualRoot,'--allow-fs-write='+seal.actualRoot,seal.npmRoot+'/bin/npm-cli.js','install','--offline','--ignore-scripts','--no-audit','--no-fund','--package-lock=false','--cache='+seal.actualRoot+'/npm-cache','--userconfig='+seal.actualRoot+'/user.npmrc','--globalconfig='+seal.actualRoot+'/global.npmrc',archive];
+    const installation=await runDirect({id:'offline-install',node:seal.node,args:installArgs,cwd:installed,env:{PATH:'/usr/bin:/bin',HOME:seal.actualRoot,TMPDIR:seal.actualRoot,LANG:'C',LC_ALL:'C'},capture:path.join(capture,'install'),bodyDeadline:window.bodyDeadline,finalDeadline:window.deadline,timeoutMs:120000,signal:abort.signal},ledger);
+    if(!installation.row.qualified||installation.row.status!==0)throw Error('INSTALL_REFUSAL');verifyNpm(seal);verifyPackage(path.join(installed,'node_modules/virtual-bash'),prepared.admitted.rows);
+    for(const layout of ['source-built','installed','physically-moved']){
+      if(layout==='physically-moved'){fs.renameSync(installed,moved);if(fs.existsSync(installed))throw Error('MOVE_ORIGIN');}
+      const app=layout==='source-built'?path.dirname(prepared.sourceRoot):layout==='installed'?installed:moved;
+      const productRoot=layout==='source-built'?prepared.sourceRoot:path.join(app,'node_modules/virtual-bash');
+      for(const item of seal.cases){check();verifyPackage(productRoot,prepared.admitted.rows);const roleId=layout+'-'+item.id;
+        const bound=makeRole(seal,app,productRoot,{roleId,layout,case:item},capture);ledger.captureBytes+=bound.bytes.length;if(ledger.captureBytes>ledger.captureMaximum)throw Error('ROLE_CAPTURE');
+        const child=await runDirect({id:roleId,node:seal.node,args:bound.args,cwd:app,env:bound.env,capture:path.join(capture,roleId),bodyDeadline:window.bodyDeadline,finalDeadline:window.deadline,timeoutMs:30000,signal:abort.signal},ledger);
+        if(!child.row.qualified)throw Error('CASE_RETIREMENT');const trace=fs.readFileSync(bound.role.trace);ledger.captureBytes+=trace.length;if(trace.length>524288||ledger.captureBytes>ledger.captureMaximum)throw Error('TRACE_CAPTURE');
+        const lines=trace.toString('utf8').split('\n').filter(Boolean).map(line=>JSON.parse(line));if(lines.filter(row=>row.event==='permission-admitted').length!==1||lines.filter(row=>row.event==='synchronous-hooks-installed').length!==1)throw Error('HOOK_WITNESS');
+        const stdout=Buffer.from(child.row.captures.find(row=>row.kind==='stdout').base64,'base64');const stderr=child.row.captures.find(row=>row.kind==='stderr');if(stderr.bytes)throw Error('BOOTSTRAP_OR_GUARD_FAILURE');
+        const receipt=JSON.parse(stdout.toString('utf8'));if(stdout.toString('utf8')!==JSON.stringify(receipt)+'\n'||receipt.id!==item.id||receipt.layout!==layout||!receipt.cleanupQualified||child.row.status!==(receipt.pass?0:1))throw Error('CASE_RECEIPT');
+        const loaded=lines.filter(row=>row.event==='module-loaded');if(!loaded.some(row=>row.url===new URL('file://'+productRoot+'/dist/index.js').href))throw Error('PUBLIC_ROOT_NOT_LOADED');
+        verifyPackage(productRoot,prepared.admitted.rows);persist(roleId+'.json',{receipt,lifecycle:child.row,trace:{bytes:trace.length,sha256:hash(trace)},loaded});results.push(receipt);
+      }
+    }
+    if(results.length!==78||ledger.starts!==79)throw Error('FINAL_MEMBERSHIP');
+  }catch(reason){primaryPresent=true;primary=reason;}
+  clearTimeout(timer);
+  const final=finalize({primaryPresent,primary,census(){if(ledger.active||ledger.rows.some(row=>row.knownOutstanding))throw Error('RETIREMENT_UNKNOWN');return sample(seal.actualRoot,536870912);},publish(state){persist('RESULT.json',{...state,primary:state.primaryPresent?errorRecord(state.primary):undefined,results,ledger,finished:Date.now()});}});
+  return {status:final.primaryPresent||!final.publicationSucceeded?'STOP':results.some(row=>!row.pass)?'ASSERTION_FAILURES':'PASS',cases:results.length,managedChildren:ledger.starts,retired:ledger.active===0&&ledger.rows.every(row=>row.knownOutstanding===0),final};
+}
+
+if(process.argv[1]===fileURLToPath(import.meta.url)){
+  const seal=JSON.parse(readPinned(process.env.PIPE_SEAL,{bytes:Number(process.env.PIPE_SEAL_BYTES),sha256:process.env.PIPE_SEAL_SHA256},2097152));
+  const grant=JSON.parse(readPinned(process.env.PIPE_GRANT,{bytes:Number(process.env.PIPE_GRANT_BYTES),sha256:process.env.PIPE_GRANT_SHA256},65536));
+  const result=await execute(seal,grant);process.stdout.write(JSON.stringify(result)+'\n');process.exitCode=result.status==='PASS'?0:result.status==='ASSERTION_FAILURES'?2:1;
+}

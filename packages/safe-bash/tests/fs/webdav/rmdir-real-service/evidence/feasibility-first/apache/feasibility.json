@@ -1,0 +1,2399 @@
+{
+  "provider": "apache",
+  "rows": [
+    {
+      "name": "required public empty rmdir removes only directory",
+      "surface": "public",
+      "kind": "positive",
+      "result": "fail",
+      "error": {
+        "message": "FsError: ENOTSUP: rmdir has no safe portable WebDAV equivalent, rmdir '/rmdir-public-empty/'",
+        "code": "ENOTSUP"
+      },
+      "events": [
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-public-empty/",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 775,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "775",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-public-empty/",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "1"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 775,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "775",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-public-empty/",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "content-length": "75",
+            "content-type": "application/xml",
+            "depth": "0"
+          },
+          "uploadedBytes": 75,
+          "downloadedBytes": 275,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "275",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        }
+      ],
+      "observations": [
+        {
+          "method": "PROPFIND",
+          "path": "/rmdir-public-empty/",
+          "alias": false,
+          "status": 207,
+          "headers": {
+            "connection": "close",
+            "content-length": "275",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          },
+          "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<D:multistatus xmlns:D=\"DAV:\" xmlns:ns0=\"DAV:\">\n<D:response>\n<D:href>/dav/rmdir-public-empty/</D:href>\n<D:propstat>\n<D:prop>\n<D:lockdiscovery/>\n</D:prop>\n<D:status>HTTP/1.1 200 OK</D:status>\n</D:propstat>\n</D:response>\n</D:multistatus>\n"
+        }
+      ],
+      "witnesses": {
+        "/rmdir-public-empty/": {
+          "type": "directory",
+          "dev": 16777232,
+          "ino": 171595141,
+          "children": []
+        }
+      }
+    },
+    {
+      "name": "required public Shell rmdir removes empty directory",
+      "surface": "public",
+      "kind": "positive",
+      "result": "fail",
+      "error": {
+        "message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n1 !== 0\n"
+      },
+      "events": [
+        {
+          "url": "https://127.0.0.1:53261/dav/",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 757,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "757",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 757,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "757",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-shell-empty",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 774,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "774",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-shell-empty",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 774,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "774",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-shell-empty",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 774,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "774",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-shell-empty/",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "1"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 774,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "774",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-shell-empty/",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "content-length": "75",
+            "content-type": "application/xml",
+            "depth": "0"
+          },
+          "uploadedBytes": 75,
+          "downloadedBytes": 274,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "274",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        }
+      ],
+      "observations": [
+        {
+          "shell": {
+            "stdout": "",
+            "stderr": "rmdir: ENOTSUP: operation not supported, rmdir '/dav/rmdir-shell-empty/'\n",
+            "stdoutBytes": {},
+            "stderrBytes": {
+              "0": 114,
+              "1": 109,
+              "2": 100,
+              "3": 105,
+              "4": 114,
+              "5": 58,
+              "6": 32,
+              "7": 69,
+              "8": 78,
+              "9": 79,
+              "10": 84,
+              "11": 83,
+              "12": 85,
+              "13": 80,
+              "14": 58,
+              "15": 32,
+              "16": 111,
+              "17": 112,
+              "18": 101,
+              "19": 114,
+              "20": 97,
+              "21": 116,
+              "22": 105,
+              "23": 111,
+              "24": 110,
+              "25": 32,
+              "26": 110,
+              "27": 111,
+              "28": 116,
+              "29": 32,
+              "30": 115,
+              "31": 117,
+              "32": 112,
+              "33": 112,
+              "34": 111,
+              "35": 114,
+              "36": 116,
+              "37": 101,
+              "38": 100,
+              "39": 44,
+              "40": 32,
+              "41": 114,
+              "42": 109,
+              "43": 100,
+              "44": 105,
+              "45": 114,
+              "46": 32,
+              "47": 39,
+              "48": 47,
+              "49": 100,
+              "50": 97,
+              "51": 118,
+              "52": 47,
+              "53": 114,
+              "54": 109,
+              "55": 100,
+              "56": 105,
+              "57": 114,
+              "58": 45,
+              "59": 115,
+              "60": 104,
+              "61": 101,
+              "62": 108,
+              "63": 108,
+              "64": 45,
+              "65": 101,
+              "66": 109,
+              "67": 112,
+              "68": 116,
+              "69": 121,
+              "70": 47,
+              "71": 39,
+              "72": 10
+            },
+            "exitCode": 1
+          }
+        },
+        {
+          "method": "PROPFIND",
+          "path": "/rmdir-shell-empty/",
+          "alias": false,
+          "status": 207,
+          "headers": {
+            "connection": "close",
+            "content-length": "274",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          },
+          "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<D:multistatus xmlns:D=\"DAV:\" xmlns:ns0=\"DAV:\">\n<D:response>\n<D:href>/dav/rmdir-shell-empty/</D:href>\n<D:propstat>\n<D:prop>\n<D:lockdiscovery/>\n</D:prop>\n<D:status>HTTP/1.1 200 OK</D:status>\n</D:propstat>\n</D:response>\n</D:multistatus>\n"
+        }
+      ],
+      "witnesses": {
+        "/rmdir-shell-empty/": {
+          "type": "directory",
+          "dev": 16777232,
+          "ino": 171595142,
+          "children": []
+        }
+      }
+    },
+    {
+      "name": "preexisting nonempty directory preserves child",
+      "surface": "public",
+      "kind": "guard",
+      "result": "pass",
+      "events": [
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-nonempty/",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 771,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "771",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-nonempty/",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "1"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 1379,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "1379",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-nonempty/",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "content-length": "75",
+            "content-type": "application/xml",
+            "depth": "0"
+          },
+          "uploadedBytes": 75,
+          "downloadedBytes": 271,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "271",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        }
+      ],
+      "observations": [
+        {
+          "method": "PROPFIND",
+          "path": "/rmdir-nonempty/",
+          "alias": false,
+          "status": 207,
+          "headers": {
+            "connection": "close",
+            "content-length": "271",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          },
+          "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<D:multistatus xmlns:D=\"DAV:\" xmlns:ns0=\"DAV:\">\n<D:response>\n<D:href>/dav/rmdir-nonempty/</D:href>\n<D:propstat>\n<D:prop>\n<D:lockdiscovery/>\n</D:prop>\n<D:status>HTTP/1.1 200 OK</D:status>\n</D:propstat>\n</D:response>\n</D:multistatus>\n"
+        }
+      ],
+      "witnesses": {
+        "/rmdir-nonempty/": {
+          "type": "directory",
+          "dev": 16777232,
+          "ino": 171595143,
+          "children": [
+            {
+              "name": "child",
+              "type": "file"
+            }
+          ]
+        },
+        "/rmdir-nonempty/child": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171595144,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        }
+      }
+    },
+    {
+      "name": "root file missing and preabort keep typed errors",
+      "surface": "public",
+      "kind": "guard",
+      "result": "pass",
+      "events": [
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-errors/file",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 747,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "747",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-errors/missing",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 0,
+          "pulls": 0,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": true,
+          "ended": false,
+          "status": 404,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "236",
+            "content-type": "text/html; charset=iso-8859-1",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-errors",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 769,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "769",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-errors/",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "content-length": "75",
+            "content-type": "application/xml",
+            "depth": "0"
+          },
+          "uploadedBytes": 75,
+          "downloadedBytes": 269,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "269",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        }
+      ],
+      "observations": [
+        {
+          "method": "PROPFIND",
+          "path": "/rmdir-errors/",
+          "alias": false,
+          "status": 207,
+          "headers": {
+            "connection": "close",
+            "content-length": "269",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          },
+          "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<D:multistatus xmlns:D=\"DAV:\" xmlns:ns0=\"DAV:\">\n<D:response>\n<D:href>/dav/rmdir-errors/</D:href>\n<D:propstat>\n<D:prop>\n<D:lockdiscovery/>\n</D:prop>\n<D:status>HTTP/1.1 200 OK</D:status>\n</D:propstat>\n</D:response>\n</D:multistatus>\n"
+        }
+      ],
+      "witnesses": {
+        "/rmdir-errors/": {
+          "type": "directory",
+          "dev": 16777232,
+          "ino": 171595145,
+          "children": [
+            {
+              "name": "file",
+              "type": "file"
+            }
+          ]
+        },
+        "/rmdir-errors/file": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171595146,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        }
+      }
+    },
+    {
+      "name": "readonly mounted-root and overlay-upper propagate safe refusal",
+      "surface": "public",
+      "kind": "guard",
+      "result": "pass",
+      "events": [
+        {
+          "url": "https://127.0.0.1:53261/dav/",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 757,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "757",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-wrappers/",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "content-length": "75",
+            "content-type": "application/xml",
+            "depth": "0"
+          },
+          "uploadedBytes": 75,
+          "downloadedBytes": 271,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "271",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        }
+      ],
+      "observations": [
+        {
+          "method": "PROPFIND",
+          "path": "/rmdir-wrappers/",
+          "alias": false,
+          "status": 207,
+          "headers": {
+            "connection": "close",
+            "content-length": "271",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          },
+          "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<D:multistatus xmlns:D=\"DAV:\" xmlns:ns0=\"DAV:\">\n<D:response>\n<D:href>/dav/rmdir-wrappers/</D:href>\n<D:propstat>\n<D:prop>\n<D:lockdiscovery/>\n</D:prop>\n<D:status>HTTP/1.1 200 OK</D:status>\n</D:propstat>\n</D:response>\n</D:multistatus>\n"
+        }
+      ],
+      "witnesses": {
+        "/rmdir-wrappers/": {
+          "type": "directory",
+          "dev": 16777232,
+          "ino": 171595147,
+          "children": []
+        }
+      }
+    },
+    {
+      "name": "locked empty collection DELETE primitive succeeds",
+      "surface": "raw",
+      "kind": "positive",
+      "result": "pass",
+      "events": [
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-empty-delete/",
+          "method": "LOCK",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "content-length": "116",
+            "content-type": "application/xml",
+            "depth": "infinity",
+            "if-match": "*",
+            "timeout": "Second-60"
+          },
+          "uploadedBytes": 116,
+          "downloadedBytes": 379,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 200,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "379",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "lock-token": "<opaquelocktoken:274b06dd-8f64-48f3-b22d-9671bce91fb3>",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-empty-delete/",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "1"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 775,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "775",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-empty-delete/",
+          "method": "DELETE",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "if": "<https://127.0.0.1:53261/dav/rmdir-empty-delete/> (<opaquelocktoken:274b06dd-8f64-48f3-b22d-9671bce91fb3>)"
+          },
+          "uploadedBytes": 0,
+          "downloadedBytes": 0,
+          "pulls": 0,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 204,
+          "responseHeaders": {
+            "connection": "close",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-empty-delete/",
+          "method": "UNLOCK",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "lock-token": "<opaquelocktoken:274b06dd-8f64-48f3-b22d-9671bce91fb3>"
+          },
+          "uploadedBytes": 0,
+          "downloadedBytes": 266,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 400,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "266",
+            "content-type": "text/html; charset=iso-8859-1",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-empty-delete/",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "content-length": "75",
+            "content-type": "application/xml",
+            "depth": "0"
+          },
+          "uploadedBytes": 75,
+          "downloadedBytes": 236,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 404,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "236",
+            "content-type": "text/html; charset=iso-8859-1",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        }
+      ],
+      "observations": [
+        {
+          "method": "LOCK",
+          "path": "/rmdir-empty-delete/",
+          "alias": false,
+          "status": 200,
+          "headers": {
+            "connection": "close",
+            "content-length": "379",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "lock-token": "<opaquelocktoken:274b06dd-8f64-48f3-b22d-9671bce91fb3>",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          },
+          "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<D:prop xmlns:D=\"DAV:\">\n<D:lockdiscovery>\n<D:activelock>\n<D:locktype><D:write/></D:locktype>\n<D:lockscope><D:exclusive/></D:lockscope>\n<D:depth>infinity</D:depth>\n<D:timeout>Second-60</D:timeout>\n<D:locktoken>\n<D:href>opaquelocktoken:274b06dd-8f64-48f3-b22d-9671bce91fb3</D:href>\n</D:locktoken>\n</D:activelock>\n\n</D:lockdiscovery>\n</D:prop>"
+        },
+        {
+          "method": "DELETE",
+          "path": "/rmdir-empty-delete/",
+          "alias": false,
+          "status": 204,
+          "headers": {
+            "connection": "close",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          },
+          "body": ""
+        },
+        {
+          "method": "UNLOCK",
+          "path": "/rmdir-empty-delete/",
+          "alias": false,
+          "status": 400,
+          "headers": {
+            "connection": "close",
+            "content-length": "266",
+            "content-type": "text/html; charset=iso-8859-1",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          },
+          "body": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n<html><head>\n<title>400 Bad Request</title>\n</head><body>\n<h1>Bad Request</h1>\n<p>Your browser sent a request that this server could not understand.<br />\n</p>\n</body></html>\n"
+        },
+        {
+          "method": "PROPFIND",
+          "path": "/rmdir-empty-delete/",
+          "alias": false,
+          "status": 404,
+          "headers": {
+            "connection": "close",
+            "content-length": "236",
+            "content-type": "text/html; charset=iso-8859-1",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          },
+          "body": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n<html><head>\n<title>404 Not Found</title>\n</head><body>\n<h1>Not Found</h1>\n<p>The requested URL was not found on this server.</p>\n</body></html>\n"
+        }
+      ],
+      "witnesses": {
+        "/rmdir-empty-delete/": {
+          "error": "ENOENT"
+        }
+      }
+    },
+    {
+      "name": "late child before lock is visible and no DELETE occurs",
+      "surface": "raw",
+      "kind": "guard",
+      "result": "pass",
+      "events": [
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-before-lock/",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "1"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 774,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "774",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-before-lock/child",
+          "method": "PUT",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "content-length": "6"
+          },
+          "uploadedBytes": 6,
+          "downloadedBytes": 241,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 201,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "241",
+            "content-type": "text/html; charset=ISO-8859-1",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "location": "https://127.0.0.1:53261/dav/rmdir-before-lock/child",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-before-lock/",
+          "method": "LOCK",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "content-length": "116",
+            "content-type": "application/xml",
+            "depth": "infinity",
+            "if-match": "*",
+            "timeout": "Second-60"
+          },
+          "uploadedBytes": 116,
+          "downloadedBytes": 379,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 200,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "379",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "lock-token": "<opaquelocktoken:1ec38a37-3b11-4184-af70-9a5101381f7b>",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-before-lock/",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "1"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 1385,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "1385",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-before-lock/",
+          "method": "UNLOCK",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "lock-token": "<opaquelocktoken:1ec38a37-3b11-4184-af70-9a5101381f7b>"
+          },
+          "uploadedBytes": 0,
+          "downloadedBytes": 0,
+          "pulls": 0,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 204,
+          "responseHeaders": {
+            "connection": "close",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-before-lock/",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "content-length": "75",
+            "content-type": "application/xml",
+            "depth": "0"
+          },
+          "uploadedBytes": 75,
+          "downloadedBytes": 274,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "274",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        }
+      ],
+      "observations": [
+        {
+          "method": "PUT",
+          "path": "/rmdir-before-lock/child",
+          "alias": false,
+          "status": 201,
+          "headers": {
+            "connection": "close",
+            "content-length": "241",
+            "content-type": "text/html; charset=ISO-8859-1",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "location": "https://127.0.0.1:53261/dav/rmdir-before-lock/child",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          },
+          "body": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n<html>\n<head>\n<title>201 Created</title>\n</head><body>\n<h1>Created</h1>\n<p>Resource /dav/rmdir-before-lock/child has been created.</p>\n</body></html>\n"
+        },
+        {
+          "method": "LOCK",
+          "path": "/rmdir-before-lock/",
+          "alias": false,
+          "status": 200,
+          "headers": {
+            "connection": "close",
+            "content-length": "379",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "lock-token": "<opaquelocktoken:1ec38a37-3b11-4184-af70-9a5101381f7b>",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          },
+          "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<D:prop xmlns:D=\"DAV:\">\n<D:lockdiscovery>\n<D:activelock>\n<D:locktype><D:write/></D:locktype>\n<D:lockscope><D:exclusive/></D:lockscope>\n<D:depth>infinity</D:depth>\n<D:timeout>Second-60</D:timeout>\n<D:locktoken>\n<D:href>opaquelocktoken:1ec38a37-3b11-4184-af70-9a5101381f7b</D:href>\n</D:locktoken>\n</D:activelock>\n\n</D:lockdiscovery>\n</D:prop>"
+        },
+        {
+          "method": "UNLOCK",
+          "path": "/rmdir-before-lock/",
+          "alias": false,
+          "status": 204,
+          "headers": {
+            "connection": "close",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          },
+          "body": ""
+        },
+        {
+          "method": "PROPFIND",
+          "path": "/rmdir-before-lock/",
+          "alias": false,
+          "status": 207,
+          "headers": {
+            "connection": "close",
+            "content-length": "274",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          },
+          "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<D:multistatus xmlns:D=\"DAV:\" xmlns:ns0=\"DAV:\">\n<D:response>\n<D:href>/dav/rmdir-before-lock/</D:href>\n<D:propstat>\n<D:prop>\n<D:lockdiscovery/>\n</D:prop>\n<D:status>HTTP/1.1 200 OK</D:status>\n</D:propstat>\n</D:response>\n</D:multistatus>\n"
+        }
+      ],
+      "witnesses": {
+        "/rmdir-before-lock/": {
+          "type": "directory",
+          "dev": 16777232,
+          "ino": 171595151,
+          "children": [
+            {
+              "name": "child",
+              "type": "file"
+            }
+          ]
+        },
+        "/rmdir-before-lock/child": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171595152,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        }
+      }
+    },
+    {
+      "name": "depth-infinity blocks descendant PUT MKCOL and URL aliases",
+      "surface": "raw",
+      "kind": "guard",
+      "result": "fail",
+      "error": {
+        "message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n207 !== 423\n"
+      },
+      "events": [
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-descendants/",
+          "method": "LOCK",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "content-length": "116",
+            "content-type": "application/xml",
+            "depth": "infinity",
+            "if-match": "*",
+            "timeout": "Second-60"
+          },
+          "uploadedBytes": 116,
+          "downloadedBytes": 379,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 200,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "379",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "lock-token": "<opaquelocktoken:bbbd204b-d472-4c9e-a73a-ca800263c500>",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-descendants/nested/PUT-false",
+          "method": "PUT",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "content-length": "6"
+          },
+          "uploadedBytes": 6,
+          "downloadedBytes": 760,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "760",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-descendants/",
+          "method": "UNLOCK",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "lock-token": "<opaquelocktoken:bbbd204b-d472-4c9e-a73a-ca800263c500>"
+          },
+          "uploadedBytes": 0,
+          "downloadedBytes": 0,
+          "pulls": 0,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 204,
+          "responseHeaders": {
+            "connection": "close",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-descendants/",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "content-length": "75",
+            "content-type": "application/xml",
+            "depth": "0"
+          },
+          "uploadedBytes": 75,
+          "downloadedBytes": 274,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "274",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-descendants/nested/",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "content-length": "75",
+            "content-type": "application/xml",
+            "depth": "0"
+          },
+          "uploadedBytes": 75,
+          "downloadedBytes": 281,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "281",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        }
+      ],
+      "observations": [
+        {
+          "method": "LOCK",
+          "path": "/rmdir-descendants/",
+          "alias": false,
+          "status": 200,
+          "headers": {
+            "connection": "close",
+            "content-length": "379",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "lock-token": "<opaquelocktoken:bbbd204b-d472-4c9e-a73a-ca800263c500>",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          },
+          "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<D:prop xmlns:D=\"DAV:\">\n<D:lockdiscovery>\n<D:activelock>\n<D:locktype><D:write/></D:locktype>\n<D:lockscope><D:exclusive/></D:lockscope>\n<D:depth>infinity</D:depth>\n<D:timeout>Second-60</D:timeout>\n<D:locktoken>\n<D:href>opaquelocktoken:bbbd204b-d472-4c9e-a73a-ca800263c500</D:href>\n</D:locktoken>\n</D:activelock>\n\n</D:lockdiscovery>\n</D:prop>"
+        },
+        {
+          "method": "PUT",
+          "path": "/rmdir-descendants/nested/PUT-false",
+          "alias": false,
+          "status": 207,
+          "headers": {
+            "connection": "close",
+            "content-length": "760",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          },
+          "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<D:multistatus xmlns:D=\"DAV:\">\n<D:response>\n<D:href>/dav/rmdir-descendants/nested/PUT-false</D:href>\n<D:status>HTTP/1.1 424 Failed Dependency</D:status>\n<D:responsedescription>An error occurred on another resource, preventing the requested operation on this resource.</D:responsedescription>\n</D:response>\n<D:response>\n<D:href>/dav/rmdir-descendants/nested</D:href>\n<D:status>HTTP/1.1 423 Locked</D:status>\n<D:responsedescription>A validation error has occurred on the parent resource, preventing the operation on the resource specified by the Request-URI. The error was: This resource is locked and an \"If:\" header was not supplied to allow access to the resource.</D:responsedescription>\n</D:response>\n</D:multistatus>\n"
+        },
+        {
+          "method": "UNLOCK",
+          "path": "/rmdir-descendants/",
+          "alias": false,
+          "status": 204,
+          "headers": {
+            "connection": "close",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          },
+          "body": ""
+        },
+        {
+          "method": "PROPFIND",
+          "path": "/rmdir-descendants/",
+          "alias": false,
+          "status": 207,
+          "headers": {
+            "connection": "close",
+            "content-length": "274",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          },
+          "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<D:multistatus xmlns:D=\"DAV:\" xmlns:ns0=\"DAV:\">\n<D:response>\n<D:href>/dav/rmdir-descendants/</D:href>\n<D:propstat>\n<D:prop>\n<D:lockdiscovery/>\n</D:prop>\n<D:status>HTTP/1.1 200 OK</D:status>\n</D:propstat>\n</D:response>\n</D:multistatus>\n"
+        },
+        {
+          "method": "PROPFIND",
+          "path": "/rmdir-descendants/nested/",
+          "alias": false,
+          "status": 207,
+          "headers": {
+            "connection": "close",
+            "content-length": "281",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          },
+          "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<D:multistatus xmlns:D=\"DAV:\" xmlns:ns0=\"DAV:\">\n<D:response>\n<D:href>/dav/rmdir-descendants/nested/</D:href>\n<D:propstat>\n<D:prop>\n<D:lockdiscovery/>\n</D:prop>\n<D:status>HTTP/1.1 200 OK</D:status>\n</D:propstat>\n</D:response>\n</D:multistatus>\n"
+        }
+      ],
+      "witnesses": {
+        "/rmdir-descendants/": {
+          "type": "directory",
+          "dev": 16777232,
+          "ino": 171595153,
+          "children": [
+            {
+              "name": "nested",
+              "type": "directory"
+            }
+          ]
+        },
+        "/rmdir-descendants/nested/": {
+          "type": "directory",
+          "dev": 16777232,
+          "ino": 171595154,
+          "children": []
+        },
+        "/rmdir-descendants/nested/PUT-false": {
+          "error": "ENOENT"
+        }
+      }
+    },
+    {
+      "name": "wrong token cannot recursively delete existing child",
+      "surface": "raw",
+      "kind": "guard",
+      "result": "pass",
+      "events": [
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-wrong-token/",
+          "method": "LOCK",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "content-length": "116",
+            "content-type": "application/xml",
+            "depth": "infinity",
+            "if-match": "*",
+            "timeout": "Second-60"
+          },
+          "uploadedBytes": 116,
+          "downloadedBytes": 379,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 200,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "379",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "lock-token": "<opaquelocktoken:efd3e94c-43b4-4fab-8215-c2e6e28a4d7f>",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-wrong-token/",
+          "method": "DELETE",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "if": "<https://127.0.0.1:53261/dav/rmdir-wrong-token/> (<opaquelocktoken:00000000-0000-4000-8000-000000000000>)"
+          },
+          "uploadedBytes": 0,
+          "downloadedBytes": 273,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 412,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "273",
+            "content-type": "text/html; charset=iso-8859-1",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-wrong-token/",
+          "method": "UNLOCK",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "lock-token": "<opaquelocktoken:efd3e94c-43b4-4fab-8215-c2e6e28a4d7f>"
+          },
+          "uploadedBytes": 0,
+          "downloadedBytes": 0,
+          "pulls": 0,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 204,
+          "responseHeaders": {
+            "connection": "close",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-wrong-token/",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "content-length": "75",
+            "content-type": "application/xml",
+            "depth": "0"
+          },
+          "uploadedBytes": 75,
+          "downloadedBytes": 274,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "274",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        }
+      ],
+      "observations": [
+        {
+          "method": "LOCK",
+          "path": "/rmdir-wrong-token/",
+          "alias": false,
+          "status": 200,
+          "headers": {
+            "connection": "close",
+            "content-length": "379",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "lock-token": "<opaquelocktoken:efd3e94c-43b4-4fab-8215-c2e6e28a4d7f>",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          },
+          "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<D:prop xmlns:D=\"DAV:\">\n<D:lockdiscovery>\n<D:activelock>\n<D:locktype><D:write/></D:locktype>\n<D:lockscope><D:exclusive/></D:lockscope>\n<D:depth>infinity</D:depth>\n<D:timeout>Second-60</D:timeout>\n<D:locktoken>\n<D:href>opaquelocktoken:efd3e94c-43b4-4fab-8215-c2e6e28a4d7f</D:href>\n</D:locktoken>\n</D:activelock>\n\n</D:lockdiscovery>\n</D:prop>"
+        },
+        {
+          "method": "DELETE",
+          "path": "/rmdir-wrong-token/",
+          "alias": false,
+          "status": 412,
+          "headers": {
+            "connection": "close",
+            "content-length": "273",
+            "content-type": "text/html; charset=iso-8859-1",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          },
+          "body": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n<html><head>\n<title>412 Precondition Failed</title>\n</head><body>\n<h1>Precondition Failed</h1>\n<p>The precondition on the request for this URL evaluated to false.</p>\n</body></html>\n"
+        },
+        {
+          "method": "UNLOCK",
+          "path": "/rmdir-wrong-token/",
+          "alias": false,
+          "status": 204,
+          "headers": {
+            "connection": "close",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          },
+          "body": ""
+        },
+        {
+          "method": "PROPFIND",
+          "path": "/rmdir-wrong-token/",
+          "alias": false,
+          "status": 207,
+          "headers": {
+            "connection": "close",
+            "content-length": "274",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          },
+          "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<D:multistatus xmlns:D=\"DAV:\" xmlns:ns0=\"DAV:\">\n<D:response>\n<D:href>/dav/rmdir-wrong-token/</D:href>\n<D:propstat>\n<D:prop>\n<D:lockdiscovery/>\n</D:prop>\n<D:status>HTTP/1.1 200 OK</D:status>\n</D:propstat>\n</D:response>\n</D:multistatus>\n"
+        }
+      ],
+      "witnesses": {
+        "/rmdir-wrong-token/": {
+          "type": "directory",
+          "dev": 16777232,
+          "ino": 171595155,
+          "children": [
+            {
+              "name": "child",
+              "type": "file"
+            }
+          ]
+        },
+        "/rmdir-wrong-token/child": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171595156,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        }
+      }
+    },
+    {
+      "name": "expired token rejects deletion after a new child arrives",
+      "surface": "raw",
+      "kind": "guard",
+      "result": "pass",
+      "events": [
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-expiry/",
+          "method": "LOCK",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "content-length": "116",
+            "content-type": "application/xml",
+            "depth": "infinity",
+            "if-match": "*",
+            "timeout": "Second-1"
+          },
+          "uploadedBytes": 116,
+          "downloadedBytes": 378,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 200,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "378",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "lock-token": "<opaquelocktoken:dd23237a-968e-46bc-8185-4878dff23fb3>",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-expiry/",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "1"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 769,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "769",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-expiry/child",
+          "method": "PUT",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "content-length": "6"
+          },
+          "uploadedBytes": 6,
+          "downloadedBytes": 236,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 201,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "236",
+            "content-type": "text/html; charset=ISO-8859-1",
+            "date": "Thu, 27 Aug 2026 06:52:00 GMT",
+            "location": "https://127.0.0.1:53261/dav/rmdir-expiry/child",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-expiry/",
+          "method": "DELETE",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "if": "<https://127.0.0.1:53261/dav/rmdir-expiry/> (<opaquelocktoken:dd23237a-968e-46bc-8185-4878dff23fb3>)"
+          },
+          "uploadedBytes": 0,
+          "downloadedBytes": 273,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 412,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "273",
+            "content-type": "text/html; charset=iso-8859-1",
+            "date": "Thu, 27 Aug 2026 06:52:00 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-expiry/",
+          "method": "UNLOCK",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "lock-token": "<opaquelocktoken:dd23237a-968e-46bc-8185-4878dff23fb3>"
+          },
+          "uploadedBytes": 0,
+          "downloadedBytes": 266,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 400,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "266",
+            "content-type": "text/html; charset=iso-8859-1",
+            "date": "Thu, 27 Aug 2026 06:52:00 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-expiry/",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "content-length": "75",
+            "content-type": "application/xml",
+            "depth": "0"
+          },
+          "uploadedBytes": 75,
+          "downloadedBytes": 269,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "269",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:52:00 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        }
+      ],
+      "observations": [
+        {
+          "method": "LOCK",
+          "path": "/rmdir-expiry/",
+          "alias": false,
+          "status": 200,
+          "headers": {
+            "connection": "close",
+            "content-length": "378",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:51:57 GMT",
+            "lock-token": "<opaquelocktoken:dd23237a-968e-46bc-8185-4878dff23fb3>",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          },
+          "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<D:prop xmlns:D=\"DAV:\">\n<D:lockdiscovery>\n<D:activelock>\n<D:locktype><D:write/></D:locktype>\n<D:lockscope><D:exclusive/></D:lockscope>\n<D:depth>infinity</D:depth>\n<D:timeout>Second-1</D:timeout>\n<D:locktoken>\n<D:href>opaquelocktoken:dd23237a-968e-46bc-8185-4878dff23fb3</D:href>\n</D:locktoken>\n</D:activelock>\n\n</D:lockdiscovery>\n</D:prop>"
+        },
+        {
+          "method": "PUT",
+          "path": "/rmdir-expiry/child",
+          "alias": false,
+          "status": 201,
+          "headers": {
+            "connection": "close",
+            "content-length": "236",
+            "content-type": "text/html; charset=ISO-8859-1",
+            "date": "Thu, 27 Aug 2026 06:52:00 GMT",
+            "location": "https://127.0.0.1:53261/dav/rmdir-expiry/child",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          },
+          "body": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n<html>\n<head>\n<title>201 Created</title>\n</head><body>\n<h1>Created</h1>\n<p>Resource /dav/rmdir-expiry/child has been created.</p>\n</body></html>\n"
+        },
+        {
+          "method": "DELETE",
+          "path": "/rmdir-expiry/",
+          "alias": false,
+          "status": 412,
+          "headers": {
+            "connection": "close",
+            "content-length": "273",
+            "content-type": "text/html; charset=iso-8859-1",
+            "date": "Thu, 27 Aug 2026 06:52:00 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          },
+          "body": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n<html><head>\n<title>412 Precondition Failed</title>\n</head><body>\n<h1>Precondition Failed</h1>\n<p>The precondition on the request for this URL evaluated to false.</p>\n</body></html>\n"
+        },
+        {
+          "method": "UNLOCK",
+          "path": "/rmdir-expiry/",
+          "alias": false,
+          "status": 400,
+          "headers": {
+            "connection": "close",
+            "content-length": "266",
+            "content-type": "text/html; charset=iso-8859-1",
+            "date": "Thu, 27 Aug 2026 06:52:00 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          },
+          "body": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n<html><head>\n<title>400 Bad Request</title>\n</head><body>\n<h1>Bad Request</h1>\n<p>Your browser sent a request that this server could not understand.<br />\n</p>\n</body></html>\n"
+        },
+        {
+          "method": "PROPFIND",
+          "path": "/rmdir-expiry/",
+          "alias": false,
+          "status": 207,
+          "headers": {
+            "connection": "close",
+            "content-length": "269",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:52:00 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          },
+          "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<D:multistatus xmlns:D=\"DAV:\" xmlns:ns0=\"DAV:\">\n<D:response>\n<D:href>/dav/rmdir-expiry/</D:href>\n<D:propstat>\n<D:prop>\n<D:lockdiscovery/>\n</D:prop>\n<D:status>HTTP/1.1 200 OK</D:status>\n</D:propstat>\n</D:response>\n</D:multistatus>\n"
+        }
+      ],
+      "witnesses": {
+        "/rmdir-expiry/": {
+          "type": "directory",
+          "dev": 16777232,
+          "ino": 171595157,
+          "children": [
+            {
+              "name": "child",
+              "type": "file"
+            }
+          ]
+        },
+        "/rmdir-expiry/child": {
+          "type": "file",
+          "dev": 16777232,
+          "ino": 171595256,
+          "bytes": [
+            0,
+            255,
+            128,
+            65,
+            13,
+            10
+          ]
+        }
+      }
+    },
+    {
+      "name": "native child after locked listing must not be deleted",
+      "surface": "raw",
+      "kind": "guard",
+      "result": "fail",
+      "error": {
+        "message": "FsError: ENOENT: no such file or directory, readFile '/rmdir-native-writer/late-child'",
+        "code": "ENOENT"
+      },
+      "events": [
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-native-writer/",
+          "method": "LOCK",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "content-length": "116",
+            "content-type": "application/xml",
+            "depth": "infinity",
+            "if-match": "*",
+            "timeout": "Second-60"
+          },
+          "uploadedBytes": 116,
+          "downloadedBytes": 379,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 200,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "379",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:52:00 GMT",
+            "lock-token": "<opaquelocktoken:75cfb033-ba87-4b64-8f41-bc38b2e332bd>",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-native-writer/",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "1"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 776,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "776",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:52:00 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-native-writer/",
+          "method": "DELETE",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "if": "<https://127.0.0.1:53261/dav/rmdir-native-writer/> (<opaquelocktoken:75cfb033-ba87-4b64-8f41-bc38b2e332bd>)"
+          },
+          "uploadedBytes": 0,
+          "downloadedBytes": 0,
+          "pulls": 0,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 204,
+          "responseHeaders": {
+            "connection": "close",
+            "date": "Thu, 27 Aug 2026 06:52:00 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-native-writer/",
+          "method": "UNLOCK",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "lock-token": "<opaquelocktoken:75cfb033-ba87-4b64-8f41-bc38b2e332bd>"
+          },
+          "uploadedBytes": 0,
+          "downloadedBytes": 266,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 400,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "266",
+            "content-type": "text/html; charset=iso-8859-1",
+            "date": "Thu, 27 Aug 2026 06:52:00 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-native-writer/",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "content-length": "75",
+            "content-type": "application/xml",
+            "depth": "0"
+          },
+          "uploadedBytes": 75,
+          "downloadedBytes": 236,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 404,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "236",
+            "content-type": "text/html; charset=iso-8859-1",
+            "date": "Thu, 27 Aug 2026 06:52:00 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        }
+      ],
+      "observations": [
+        {
+          "method": "LOCK",
+          "path": "/rmdir-native-writer/",
+          "alias": false,
+          "status": 200,
+          "headers": {
+            "connection": "close",
+            "content-length": "379",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:52:00 GMT",
+            "lock-token": "<opaquelocktoken:75cfb033-ba87-4b64-8f41-bc38b2e332bd>",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          },
+          "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<D:prop xmlns:D=\"DAV:\">\n<D:lockdiscovery>\n<D:activelock>\n<D:locktype><D:write/></D:locktype>\n<D:lockscope><D:exclusive/></D:lockscope>\n<D:depth>infinity</D:depth>\n<D:timeout>Second-60</D:timeout>\n<D:locktoken>\n<D:href>opaquelocktoken:75cfb033-ba87-4b64-8f41-bc38b2e332bd</D:href>\n</D:locktoken>\n</D:activelock>\n\n</D:lockdiscovery>\n</D:prop>"
+        },
+        {
+          "beforeDelete": {
+            "/rmdir-native-writer/": {
+              "type": "directory",
+              "dev": 16777232,
+              "ino": 171595257,
+              "children": [
+                {
+                  "name": "late-child",
+                  "type": "file"
+                }
+              ]
+            },
+            "/rmdir-native-writer/late-child": {
+              "type": "file",
+              "dev": 16777232,
+              "ino": 171595258,
+              "bytes": [
+                0,
+                255,
+                128,
+                65,
+                13,
+                10
+              ]
+            }
+          }
+        },
+        {
+          "method": "DELETE",
+          "path": "/rmdir-native-writer/",
+          "alias": false,
+          "status": 204,
+          "headers": {
+            "connection": "close",
+            "date": "Thu, 27 Aug 2026 06:52:00 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          },
+          "body": ""
+        },
+        {
+          "candidateDeleteStatus": 204
+        },
+        {
+          "method": "UNLOCK",
+          "path": "/rmdir-native-writer/",
+          "alias": false,
+          "status": 400,
+          "headers": {
+            "connection": "close",
+            "content-length": "266",
+            "content-type": "text/html; charset=iso-8859-1",
+            "date": "Thu, 27 Aug 2026 06:52:00 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          },
+          "body": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n<html><head>\n<title>400 Bad Request</title>\n</head><body>\n<h1>Bad Request</h1>\n<p>Your browser sent a request that this server could not understand.<br />\n</p>\n</body></html>\n"
+        },
+        {
+          "method": "PROPFIND",
+          "path": "/rmdir-native-writer/",
+          "alias": false,
+          "status": 404,
+          "headers": {
+            "connection": "close",
+            "content-length": "236",
+            "content-type": "text/html; charset=iso-8859-1",
+            "date": "Thu, 27 Aug 2026 06:52:00 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          },
+          "body": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n<html><head>\n<title>404 Not Found</title>\n</head><body>\n<h1>Not Found</h1>\n<p>The requested URL was not found on this server.</p>\n</body></html>\n"
+        }
+      ],
+      "witnesses": {
+        "/rmdir-native-writer/": {
+          "error": "ENOENT"
+        },
+        "/rmdir-native-writer/late-child": {
+          "error": "ENOENT"
+        }
+      }
+    },
+    {
+      "name": "final host symlink collection mapping is not an empty-directory primitive",
+      "surface": "raw",
+      "kind": "guard",
+      "result": "pass",
+      "events": [
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-symlink/",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 770,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "770",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:52:00 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-symlink/",
+          "method": "LOCK",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "content-length": "116",
+            "content-type": "application/xml",
+            "depth": "infinity",
+            "if-match": "*",
+            "timeout": "Second-60"
+          },
+          "uploadedBytes": 116,
+          "downloadedBytes": 379,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 200,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "379",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:52:00 GMT",
+            "lock-token": "<opaquelocktoken:14f8695d-5d35-4058-811c-6d16908f3b5d>",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-symlink/",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "1"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 770,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "770",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:52:00 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-symlink/",
+          "method": "DELETE",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "if": "<https://127.0.0.1:53261/dav/rmdir-symlink/> (<opaquelocktoken:14f8695d-5d35-4058-811c-6d16908f3b5d>)"
+          },
+          "uploadedBytes": 0,
+          "downloadedBytes": 194,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "194",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:52:00 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-symlink/",
+          "method": "UNLOCK",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "lock-token": "<opaquelocktoken:14f8695d-5d35-4058-811c-6d16908f3b5d>"
+          },
+          "uploadedBytes": 0,
+          "downloadedBytes": 266,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 400,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "266",
+            "content-type": "text/html; charset=iso-8859-1",
+            "date": "Thu, 27 Aug 2026 06:52:00 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-symlink-target/",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "content-length": "75",
+            "content-type": "application/xml",
+            "depth": "0"
+          },
+          "uploadedBytes": 75,
+          "downloadedBytes": 277,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "277",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:52:00 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:53261/dav/rmdir-symlink/",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "content-length": "75",
+            "content-type": "application/xml",
+            "depth": "0"
+          },
+          "uploadedBytes": 75,
+          "downloadedBytes": 270,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "270",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:52:00 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          }
+        }
+      ],
+      "observations": [
+        {
+          "davType": "directory",
+          "nativeType": "symlink"
+        },
+        {
+          "method": "LOCK",
+          "path": "/rmdir-symlink/",
+          "alias": false,
+          "status": 200,
+          "headers": {
+            "connection": "close",
+            "content-length": "379",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:52:00 GMT",
+            "lock-token": "<opaquelocktoken:14f8695d-5d35-4058-811c-6d16908f3b5d>",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          },
+          "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<D:prop xmlns:D=\"DAV:\">\n<D:lockdiscovery>\n<D:activelock>\n<D:locktype><D:write/></D:locktype>\n<D:lockscope><D:exclusive/></D:lockscope>\n<D:depth>infinity</D:depth>\n<D:timeout>Second-60</D:timeout>\n<D:locktoken>\n<D:href>opaquelocktoken:14f8695d-5d35-4058-811c-6d16908f3b5d</D:href>\n</D:locktoken>\n</D:activelock>\n\n</D:lockdiscovery>\n</D:prop>"
+        },
+        {
+          "method": "DELETE",
+          "path": "/rmdir-symlink/",
+          "alias": false,
+          "status": 207,
+          "headers": {
+            "connection": "close",
+            "content-length": "194",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:52:00 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          },
+          "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<D:multistatus xmlns:D=\"DAV:\">\n<D:response>\n<D:href>/dav/rmdir-symlink</D:href>\n<D:status>HTTP/1.1 403 Forbidden</D:status>\n</D:response>\n</D:multistatus>\n"
+        },
+        {
+          "symlinkDeleteStatus": 207
+        },
+        {
+          "method": "UNLOCK",
+          "path": "/rmdir-symlink/",
+          "alias": false,
+          "status": 400,
+          "headers": {
+            "connection": "close",
+            "content-length": "266",
+            "content-type": "text/html; charset=iso-8859-1",
+            "date": "Thu, 27 Aug 2026 06:52:00 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          },
+          "body": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n<html><head>\n<title>400 Bad Request</title>\n</head><body>\n<h1>Bad Request</h1>\n<p>Your browser sent a request that this server could not understand.<br />\n</p>\n</body></html>\n"
+        },
+        {
+          "method": "PROPFIND",
+          "path": "/rmdir-symlink-target/",
+          "alias": false,
+          "status": 207,
+          "headers": {
+            "connection": "close",
+            "content-length": "277",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:52:00 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          },
+          "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<D:multistatus xmlns:D=\"DAV:\" xmlns:ns0=\"DAV:\">\n<D:response>\n<D:href>/dav/rmdir-symlink-target/</D:href>\n<D:propstat>\n<D:prop>\n<D:lockdiscovery/>\n</D:prop>\n<D:status>HTTP/1.1 200 OK</D:status>\n</D:propstat>\n</D:response>\n</D:multistatus>\n"
+        },
+        {
+          "method": "PROPFIND",
+          "path": "/rmdir-symlink/",
+          "alias": false,
+          "status": 207,
+          "headers": {
+            "connection": "close",
+            "content-length": "270",
+            "content-type": "text/xml; charset=\"utf-8\"",
+            "date": "Thu, 27 Aug 2026 06:52:00 GMT",
+            "server": "Apache/2.4.66 (Unix) LibreSSL/3.3.6"
+          },
+          "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<D:multistatus xmlns:D=\"DAV:\" xmlns:ns0=\"DAV:\">\n<D:response>\n<D:href>/dav/rmdir-symlink/</D:href>\n<D:propstat>\n<D:prop>\n<D:lockdiscovery/>\n</D:prop>\n<D:status>HTTP/1.1 200 OK</D:status>\n</D:propstat>\n</D:response>\n</D:multistatus>\n"
+        }
+      ],
+      "witnesses": {
+        "/rmdir-symlink-target/": {
+          "type": "directory",
+          "dev": 16777232,
+          "ino": 171595259,
+          "children": []
+        },
+        "/rmdir-symlink/": {
+          "type": "directory",
+          "dev": 16777232,
+          "ino": 171595259,
+          "children": []
+        }
+      }
+    }
+  ],
+  "imports": {
+    "root": "file:///Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-m5CgNI/fixtures/.work-52GWmh/consumer/node_modules/virtual-bash/dist/index.js",
+    "webdav": "file:///Users/kjopek/Workspace/safe-bash/tests/fs/webdav/rmdir-real-service/.work-m5CgNI/fixtures/.work-52GWmh/consumer/node_modules/virtual-bash/dist/fs/webdav/index.js"
+  }
+}

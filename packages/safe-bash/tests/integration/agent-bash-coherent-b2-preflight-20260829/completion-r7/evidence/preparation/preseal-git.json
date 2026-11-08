@@ -1,0 +1,32 @@
+[
+  {
+    "label": "preseal-status",
+    "pid": 17435,
+    "started": "2026-08-29T15:31:46.578Z",
+    "exitCode": 0,
+    "exitSignal": null,
+    "closeCode": 0,
+    "closeSignal": null,
+    "closed": "2026-08-29T15:31:46.691Z"
+  },
+  {
+    "label": "preseal-add",
+    "pid": 17438,
+    "started": "2026-08-29T15:31:46.701Z",
+    "exitCode": 0,
+    "exitSignal": null,
+    "closeCode": 0,
+    "closeSignal": null,
+    "closed": "2026-08-29T15:31:46.834Z"
+  },
+  {
+    "label": "preseal-commit",
+    "pid": 17439,
+    "started": "2026-08-29T15:31:46.835Z",
+    "exitCode": 0,
+    "exitSignal": null,
+    "closeCode": 0,
+    "closeSignal": null,
+    "closed": "2026-08-29T15:31:47.288Z"
+  }
+]

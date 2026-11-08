@@ -1,0 +1,25 @@
+{
+  "status": "ARCHIVED_VERIFIED_SCOPED_CLEANUP",
+  "files": 861,
+  "rawBytes": 78554341,
+  "archive": {
+    "path": "SYNTHETIC-EVIDENCE.ndjson.gz",
+    "bytes": 31277964,
+    "mode": 384,
+    "sha256": "9aa17d81d7cf9083858062aa9aecfb184bc9d20631cf0b1d90cb537da1a1dfd2"
+  },
+  "combinedRawPlusArchiveBytes": 109832305,
+  "captureCap": 134217728,
+  "reservedOtherCaptureBytes": 8388608,
+  "everyHeaderChunkHashModeVerified": true,
+  "removed": 858,
+  "removedDirectories": 72,
+  "retainedLive": [
+    "RESULT.json",
+    "CONTROL-RESULT.json",
+    "NOVEL-OBSERVATIONS.ndjson"
+  ],
+  "postguards": 124,
+  "children": 0,
+  "noProductPayloadArchive": true
+}

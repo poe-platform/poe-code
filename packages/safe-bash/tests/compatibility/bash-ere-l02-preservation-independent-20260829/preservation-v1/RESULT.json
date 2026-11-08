@@ -1,0 +1,362 @@
+{
+  "verdict": "QUALIFIED_DATA_RETENTION_ACCEPT",
+  "commit": "1dd1dbb55180b909587526b35ab3f6769d8091e1",
+  "manifestHash": "c7960c57323b815af215b0f5a13ceaf242406a1c41a0f0c002e837addb957785",
+  "resultHash": "78b97630d8a4ce9fe2c3f13c892cd8141ad3f0a7875261c54c4f78f38ae22c2f",
+  "runtimeHash": "56f2df9e895c86d289682754dac22e83cc26d0a77d9e96631eb4fa0488f02811",
+  "stopHash": "c104c1eb9bb08f258bb063f8a84c925137081439a7e2a81019f8a6f0c38738d7",
+  "files": 62,
+  "bytes": 60526,
+  "checks": [
+    {
+      "id": "T01-bound-runtime-byte",
+      "pass": true
+    },
+    {
+      "id": "T02-sticky-false",
+      "pass": true
+    },
+    {
+      "id": "T03-final-retirement-fabrication",
+      "pass": true
+    },
+    {
+      "id": "T04-pass-count-contradiction",
+      "pass": true
+    },
+    {
+      "id": "N01-manifest-domain",
+      "pass": true
+    },
+    {
+      "id": "N02-mode-size",
+      "pass": true
+    },
+    {
+      "id": "N03-case-receipt-tamper",
+      "pass": true
+    }
+  ],
+  "caseSummaries": [
+    {
+      "cell": 1,
+      "purpose": "constructor",
+      "disposition": "PASS",
+      "layout": "built",
+      "exits": 0,
+      "retirement": "RETIRED",
+      "rootRetained": true,
+      "handlesRetained": 0,
+      "retainedCharges": false,
+      "primary": {
+        "present": true,
+        "kind": "boolean",
+        "value": false
+      },
+      "cleanup": {
+        "present": false
+      },
+      "termination": {
+        "present": false
+      }
+    },
+    {
+      "cell": 2,
+      "purpose": "constructor",
+      "disposition": "PASS",
+      "layout": "installed",
+      "exits": 0,
+      "retirement": "RETIRED",
+      "rootRetained": true,
+      "handlesRetained": 0,
+      "retainedCharges": false,
+      "primary": {
+        "present": true,
+        "kind": "boolean",
+        "value": false
+      },
+      "cleanup": {
+        "present": false
+      },
+      "termination": {
+        "present": false
+      }
+    },
+    {
+      "cell": 3,
+      "purpose": "constructor",
+      "disposition": "PASS",
+      "layout": "moved",
+      "exits": 0,
+      "retirement": "RETIRED",
+      "rootRetained": true,
+      "handlesRetained": 0,
+      "retainedCharges": false,
+      "primary": {
+        "present": true,
+        "kind": "boolean",
+        "value": false
+      },
+      "cleanup": {
+        "present": false
+      },
+      "termination": {
+        "present": false
+      }
+    },
+    {
+      "cell": 4,
+      "purpose": "normal",
+      "disposition": "PASS",
+      "layout": "built",
+      "exits": 1,
+      "retirement": "RETIRED",
+      "rootRetained": true,
+      "handlesRetained": 1,
+      "retainedCharges": false,
+      "primary": {
+        "present": false
+      },
+      "cleanup": {
+        "present": false
+      },
+      "termination": {
+        "present": false
+      }
+    },
+    {
+      "cell": 5,
+      "purpose": "normal",
+      "disposition": "PASS",
+      "layout": "installed",
+      "exits": 1,
+      "retirement": "RETIRED",
+      "rootRetained": true,
+      "handlesRetained": 1,
+      "retainedCharges": false,
+      "primary": {
+        "present": false
+      },
+      "cleanup": {
+        "present": false
+      },
+      "termination": {
+        "present": false
+      }
+    },
+    {
+      "cell": 6,
+      "purpose": "normal",
+      "disposition": "PASS",
+      "layout": "moved",
+      "exits": 1,
+      "retirement": "RETIRED",
+      "rootRetained": true,
+      "handlesRetained": 1,
+      "retainedCharges": false,
+      "primary": {
+        "present": false
+      },
+      "cleanup": {
+        "present": false
+      },
+      "termination": {
+        "present": false
+      }
+    },
+    {
+      "cell": 7,
+      "purpose": "post",
+      "disposition": "PASS",
+      "layout": "built",
+      "exits": 1,
+      "retirement": "RETIRED",
+      "rootRetained": true,
+      "handlesRetained": 1,
+      "retainedCharges": false,
+      "primary": {
+        "present": true,
+        "kind": "boolean",
+        "value": false
+      },
+      "cleanup": {
+        "present": false
+      },
+      "termination": {
+        "present": false
+      }
+    },
+    {
+      "cell": 8,
+      "purpose": "post",
+      "disposition": "PASS",
+      "layout": "installed",
+      "exits": 1,
+      "retirement": "RETIRED",
+      "rootRetained": true,
+      "handlesRetained": 1,
+      "retainedCharges": false,
+      "primary": {
+        "present": true,
+        "kind": "boolean",
+        "value": false
+      },
+      "cleanup": {
+        "present": false
+      },
+      "termination": {
+        "present": false
+      }
+    },
+    {
+      "cell": 9,
+      "purpose": "post",
+      "disposition": "PASS",
+      "layout": "moved",
+      "exits": 1,
+      "retirement": "RETIRED",
+      "rootRetained": true,
+      "handlesRetained": 1,
+      "retainedCharges": false,
+      "primary": {
+        "present": true,
+        "kind": "boolean",
+        "value": false
+      },
+      "cleanup": {
+        "present": false
+      },
+      "termination": {
+        "present": false
+      }
+    },
+    {
+      "cell": 10,
+      "purpose": "single",
+      "disposition": "PASS",
+      "layout": "built",
+      "exits": 1,
+      "retirement": "RETIRED",
+      "rootRetained": true,
+      "handlesRetained": 1,
+      "retainedCharges": false,
+      "primary": {
+        "present": true,
+        "kind": "boolean",
+        "value": false
+      },
+      "cleanup": {
+        "present": false
+      },
+      "termination": {
+        "present": false
+      }
+    },
+    {
+      "cell": 11,
+      "purpose": "single",
+      "disposition": "PASS",
+      "layout": "installed",
+      "exits": 1,
+      "retirement": "RETIRED",
+      "rootRetained": true,
+      "handlesRetained": 1,
+      "retainedCharges": false,
+      "primary": {
+        "present": true,
+        "kind": "boolean",
+        "value": false
+      },
+      "cleanup": {
+        "present": false
+      },
+      "termination": {
+        "present": false
+      }
+    },
+    {
+      "cell": 12,
+      "purpose": "single",
+      "disposition": "PASS",
+      "layout": "moved",
+      "exits": 1,
+      "retirement": "RETIRED",
+      "rootRetained": true,
+      "handlesRetained": 1,
+      "retainedCharges": false,
+      "primary": {
+        "present": true,
+        "kind": "boolean",
+        "value": false
+      },
+      "cleanup": {
+        "present": false
+      },
+      "termination": {
+        "present": false
+      }
+    },
+    {
+      "cell": 13,
+      "purpose": "persistent",
+      "disposition": "STOP_UNCONFIRMED",
+      "layout": "built",
+      "exits": 0,
+      "retirement": "UNCONFIRMED",
+      "rootRetained": true,
+      "handlesRetained": 1,
+      "retainedCharges": true,
+      "primary": {
+        "present": true,
+        "kind": "boolean",
+        "value": false
+      },
+      "cleanup": {
+        "present": false
+      },
+      "termination": {
+        "present": true,
+        "kind": "boolean",
+        "value": false,
+        "route": "promise-rejection"
+      }
+    }
+  ],
+  "activation": {
+    "schema": 2,
+    "pid": 84282,
+    "startedEpoch": 1788023129232,
+    "deadlineEpoch": 1788023729232,
+    "grantSha256": "b0cf01197a9ab3fdf5439540759541b04c923f10004b16e1620f17f9534ecc78",
+    "profileSha256": "dbb576cdb97945543ef15cb02548f3cbe12875cbeab4bb01af2d60addf5dbffa",
+    "expiresAt": "2026-08-29T17:25:00.000Z"
+  },
+  "matchedAuthority": {
+    "grant": [],
+    "profile": [],
+    "preexecReferences": []
+  },
+  "authorObservedPass": 12,
+  "stopUnconfirmed": 1,
+  "unrun": 0,
+  "recordedWorkerExits": 9,
+  "finalRecordedExits": 0,
+  "retainedUnknown": true,
+  "ownerPID": 84282,
+  "toolSession": 98687,
+  "toolReturnCode": 2,
+  "toolObservation": "ROOT/prior-tool reported, not independently reobserved OS/tool service",
+  "outerBytes": [
+    0,
+    0
+  ],
+  "outerQualification": "reserved/postchecked; no EOF/prewrite/OS census proof",
+  "newPhase": {
+    "helpers": 1,
+    "metadataChildren": 1,
+    "workers": 0,
+    "runtimeCalls": 0,
+    "cleanupOrSignals": 0
+  },
+  "elapsedMs": 109
+}

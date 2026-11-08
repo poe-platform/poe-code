@@ -1,0 +1,38 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import assert from 'node:assert/strict';
+import {pathToFileURL} from 'node:url';
+const own=import.meta.dirname;
+const sha=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
+const sealBytes=fs.readFileSync(own+'/PRESEAL.json');
+assert.equal(sha(sealBytes),process.argv[2]);
+const seal=JSON.parse(sealBytes);
+assert.ok(Date.now()<Date.parse(seal.deadline));
+for(const file of seal.files){const stat=fs.lstatSync(own+'/'+file.path);assert.ok(stat.isFile()&&!stat.isSymbolicLink()&&stat.size===file.bytes);assert.equal(sha(fs.readFileSync(own+'/'+file.path)),file.sha256);}
+const rows=JSON.parse(fs.readFileSync(own+'/INPUTS.json'));
+const get=name=>{const row=rows.find(row=>row.path.endsWith('/'+name));assert.ok(row);const bytes=Buffer.from(row.base64,'base64');assert.equal(bytes.length,row.bytes);assert.equal(sha(bytes),row.sha256);return bytes;};
+assert.equal(sha(get('BINDING-v2.json')),'022ff1fc4ec15f25ef937419062a69ade7a0b3e3df482a0dcea7318e802fce56');
+assert.equal(sha(get('PRESEAL-v2.json')),'eaf5c9d789906e689eb47b7586c1b0ad41226eff4a3ae4957a51013fbded7152');
+const scope='tests/integration/agent-bash-coherent-author-20260829/stage-b1-publication-v2';
+const run=own+'/run';
+fs.mkdirSync(run);
+fs.mkdirSync(run+'/'+scope,{recursive:true});
+for(const name of ['PRESEAL-v2.json','BINDING-v2.json','controls.mjs','policy.mjs','publish.mjs','publication.sh','seal.mjs'])fs.writeFileSync(run+'/'+scope+'/'+name,get(name),{flag:'wx'});
+process.chdir(run);
+process.argv[2]=sha(get('PRESEAL-v2.json'));process.argv[3]=String(get('PRESEAL-v2.json').length);
+await import(pathToFileURL(run+'/'+scope+'/controls.mjs'));
+const original=JSON.parse(fs.readFileSync(run+'/'+scope+'/CONTROLS.json'));
+assert.equal(original.passed,16);
+const {Ledger,limits,resultProfile,failures}=await import(pathToFileURL(run+'/'+scope+'/policy.mjs'));
+const results=[];
+function check(id,body){try{body();results.push({id,status:'PASS'});}catch(error){results.push({id,status:'FAIL',message:error.message});}}
+check('I01-headroom-refusal-atomic',()=>{const ledger=new Ledger({capture:limits.capture-limits.tailCapture,work:0});const before=ledger.snapshot();assert.throws(()=>ledger.charge(1));assert.deepEqual(ledger.snapshot(),before);assert.throws(()=>new Ledger({capture:limits.capture-limits.tailCapture+1,work:0}));});
+check('I02-crossroot-copy-metadata-double-charge',()=>{const ledger=new Ledger({capture:100,work:100});ledger.charge(100);ledger.charge(73);assert.deepEqual(ledger.used,{capture:273,work:273});assert.equal(ledger.reserved.work,limits.tailWork);});
+check('I03-startup-real-descriptor-routing-source',()=>{const script=get('publication.sh').toString();assert.ok(script.includes('exec > /private/tmp/coherent-b1-publication-v2-20260829.startup.stdout 2> /private/tmp/coherent-b1-publication-v2-20260829.startup.stderr'));assert.ok(script.indexOf('exec >')<script.indexOf('exec /Users/'));const source=get('publish.mjs').toString();assert.ok(source.includes('ledger.charge(8192 - startupBytes)'));assert.ok(source.includes("throw Error('Startup reserved tail exceeded')"));});
+check('I04-partial-identities-no-zero-inference',()=>{const row={id:'C10',reason:false};const value=resultProfile(Buffer.from(JSON.stringify({aggregate:[{layout:'installed',report:{rows:[row]}}]})));assert.equal(value.complete,false);assert.deepEqual(value.reportedRows,[{layout:'installed',row}]);assert.ok(value.knownRetirement.startsWith('UNKNOWN'));for(const raw of ['{','null','0','false'])assert.equal(resultProfile(Buffer.from(raw)).reportedRows,null);assert.equal(resultProfile(undefined,false).knownRetirement,'UNKNOWN');});
+check('I05-all-falsy-primary-before-secondary',()=>{for(const value of [undefined,null,false,0,'']){const faults=failures();faults.add(value);faults.add('late');assert.equal(faults.primaryPresent,true);if(value===undefined)assert.equal(faults.primary.type,'undefined');else assert.equal(faults.primary.value,value);assert.equal(faults.secondary[0].value,'late');}});
+check('I06-tail-cannot-overwrite-cap-or-refund',()=>{const ledger=new Ledger({capture:limits.capture-limits.tailCapture,work:0});ledger.beginTail();ledger.charge(limits.tailCapture);assert.equal(ledger.used.capture,limits.capture);const before=ledger.snapshot();assert.throws(()=>ledger.charge(1));assert.deepEqual(ledger.snapshot(),before);const source=get('publish.mjs').toString();assert.ok(source.indexOf('ledger.charge(bytes.length, capture)')<source.indexOf("fs.openSync(file, 'wx')"));});
+assert.ok(Date.now()<Date.parse(seal.deadline));
+fs.writeFileSync(own+'/RESULT.json',JSON.stringify({original,independent:results,actual:0,productImports:0,publisherExecuted:false,startupRouting:'SOURCE-only; publication.sh not executed'},null,2)+'\n',{flag:'wx'});
+console.log(JSON.stringify({author:original.passed,independentPassed:results.filter(row=>row.status==='PASS').length,independentFailed:results.filter(row=>row.status==='FAIL').length,actual:0}));

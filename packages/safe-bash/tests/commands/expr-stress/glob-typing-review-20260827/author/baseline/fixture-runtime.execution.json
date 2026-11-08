@@ -1,0 +1,19 @@
+{
+  "name": "fixture-runtime",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--import",
+    "tsx",
+    "--test",
+    "tests/commands/regex-execution/continuation/glob.test.ts"
+  ],
+  "started": "2026-08-27T20:30:42.756Z",
+  "finished": "2026-08-27T20:30:43.005Z",
+  "pid": 98339,
+  "code": 0,
+  "signal": null,
+  "timedOut": false,
+  "overflow": false,
+  "groupRemaining": false,
+  "expected": 0
+}

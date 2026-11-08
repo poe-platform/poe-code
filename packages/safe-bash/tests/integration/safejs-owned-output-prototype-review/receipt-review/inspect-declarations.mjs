@@ -1,0 +1,42 @@
+import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { join, relative } from "node:path";
+import { pathToFileURL } from "node:url";
+
+const [scratch, candidate] = process.argv.slice(2);
+assert.ok(scratch.startsWith("/private/tmp/safe-bash-owned-output-receipt-review-"));
+assert.equal(candidate, join(scratch, "source-route"));
+const typescript = (await import(pathToFileURL(join(scratch, "node_modules/typescript/lib/typescript.js")).href)).default;
+const roots = ["index", "contracts/index", "contracts/output", "contracts/io"].map(name => join(candidate, "dist", name + ".d.ts"));
+const program = typescript.createProgram(roots, { target: typescript.ScriptTarget.ES2023, module: typescript.ModuleKind.NodeNext, moduleResolution: typescript.ModuleResolutionKind.NodeNext, strict: true, noEmit: true, skipLibCheck: false, typeRoots: [join(scratch, "node_modules/@types")] });
+const diagnostics = typescript.getPreEmitDiagnostics(program);
+assert.equal(diagnostics.length, 0, diagnostics.map(entry => typescript.flattenDiagnosticMessageText(entry.messageText, "\n")).join("\n"));
+const checker = program.getTypeChecker();
+const modules = roots.map(path => {
+  const source = program.getSourceFile(path);
+  const symbols = checker.getExportsOfModule(checker.getSymbolAtLocation(source)).map(symbol => {
+    const target = symbol.flags & typescript.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
+    return { name: symbol.getName(), runtime: Boolean(target.flags & typescript.SymbolFlags.Value), declarations: (target.declarations ?? []).map(declaration => relative(candidate, declaration.getSourceFile().fileName)) };
+  }).sort((left, right) => left.name < right.name ? -1 : 1);
+  return { path: relative(candidate, path), symbols };
+});
+const io = program.getSourceFile(join(candidate, "dist/contracts/io.d.ts"));
+const sink = io.statements.find(statement => typescript.isInterfaceDeclaration(statement) && statement.name.text === "ByteSink");
+const capability = sink.members.find(member => member.name?.getText(io) === "ownedOutput");
+assert.ok(capability.questionToken);
+assert.deepEqual(capability.type.members.map(member => member.name.getText(io)), ["consumerClosed", "write"]);
+assert.ok(capability.type.members.every(member => !member.questionToken));
+const operationSource = program.getSourceFile(join(candidate, "dist/contracts/output.d.ts"));
+const operation = operationSource.statements.find(statement => typescript.isInterfaceDeclaration(statement) && statement.name.text === "OutputOperation");
+assert.deepEqual(operation.members.map(member => member.name.getText(operationSource)).sort(), ["acquire", "child", "close", "output", "registerCleanup", "signal"]);
+const factory = operationSource.statements.find(statement => typescript.isFunctionDeclaration(statement) && statement.name.text === "createOutputOperation");
+assert.equal(factory.parameters[0].type.getText(operationSource), 'Pick<CommandContext, "signal" | "registerCleanup">');
+assert.equal(factory.parameters[1].type.getText(operationSource), "ByteSink");
+for (const name of ["createOutputOperation", "safeJsCommands", "createSafeJsCommands", "makeSafeJsFsModule", "makeSafeJsShellModule", "createBytePipe", "Shell", "MemoryFileSystem"]) assert.ok(modules[0].symbols.some(symbol => symbol.name === name && symbol.runtime));
+for (const name of ["ByteSink", "OutputOperation", "InvocationCleanup"]) assert.ok(modules[0].symbols.some(symbol => symbol.name === name && !symbol.runtime));
+for (const name of ["OwnedOutput", "accountedWrite", "GuestInput", "GuestOutput", "Budget", "Capture", "Runtime"]) assert.equal(modules[0].symbols.some(symbol => symbol.name === name), false);
+const packageJson = JSON.parse(readFileSync(join(candidate, "package.json")));
+for (const name of [".", "./contracts", "./contracts/*"]) assert.ok(packageJson.exports[name]);
+assert.equal(packageJson.exports["./shell/runtime"], undefined);
+console.log(JSON.stringify({ diagnostics: diagnostics.length, ownedOutput: capability.getText(io), operation: operation.getText(operationSource), factory: factory.getText(operationSource), accountedMethodName: "ownedOutput.write", packageExports: packageJson.exports, modules, declarationHashes: roots.map(path => ({ path: relative(candidate, path), sha256: createHash("sha256").update(readFileSync(path)).digest("hex") })), productImports: 0, qualifier: "Static compiled-declaration inspection only; no runtime or guest reachability verdict" }));

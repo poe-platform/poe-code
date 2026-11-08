@@ -1,0 +1,30 @@
+{
+  "files": [
+    {
+      "path": "raw/administration/preserve.stdout",
+      "bytes": 274,
+      "sha256": "64c4d2cb909535d4c26f0e07c1f00b36550b907fde5f66866db5e35f3144f972",
+      "alreadyPreserved": true
+    },
+    {
+      "path": "raw/administration/preserve.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "alreadyPreserved": true
+    },
+    {
+      "path": "raw/administration/preserve-start.json",
+      "bytes": 85,
+      "sha256": "351349166fabf5beaab9dc8d378aec13fd820d28a6feea63a080437c1dd6321a",
+      "alreadyPreserved": true
+    },
+    {
+      "path": "raw/administration/preserve-retirement.json",
+      "bytes": 260,
+      "sha256": "053888e52cc404d0ef627d6e2a50bd3b31dac7a37f23ba6d6fd61b88e882647b",
+      "alreadyPreserved": false
+    }
+  ],
+  "originalManifestUnchanged": true,
+  "duplicateReadbackNotOverwrite": true
+}

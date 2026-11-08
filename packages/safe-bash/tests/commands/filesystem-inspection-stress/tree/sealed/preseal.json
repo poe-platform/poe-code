@@ -1,0 +1,612 @@
+{
+  "sealedAt": "2026-08-27T08:13:47.498Z",
+  "initialObservedClock": "2026-08-27T08:00:47Z",
+  "originalCaptureAt": "2026-08-27T08:05:54.198Z",
+  "headAtSeal": "10273352f8d65d929cbf5a23e69119414dacee60",
+  "statusAtSeal": "M src/commands/time-env/format.ts\n M src/commands/time-env/sleep.ts\n?? src/commands/file/\n?? src/commands/tree/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/file/\n?? tests/commands/filesystem-inspection-stress/tree/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/time-env/format-regressions.test.ts\n?? tests/commands/time-env/sleep-regressions.test.ts\n?? tests/commands/tree/\n?? tests/fs/webdav/atomic-extension/dependencies.json\n?? tests/fs/webdav/atomic-extension/example.mts\n?? tests/fs/webdav/atomic-extension/https.mts\n?? tests/fs/webdav/atomic-extension/openssl.cnf\n?? tests/fs/webdav/atomic-extension/server.py\n?? tests/plugins/qualified-current-release/evidence/current-binding.json\n?? tests/plugins/qualified-current-release/evidence/current-metadata.json\n?? tests/plugins/qualified-current-release/evidence/current-missing-outer.json\n?? tests/plugins/qualified-current-release/evidence/current-outer.json\n?? tests/plugins/qualified-current-release/evidence/current-result.json\n?? tests/plugins/qualified-current-release/evidence/current-setup-positive-outer.json\n?? tests/plugins/qualified-current-release/evidence/current-stream-diagnostics.json\n?? tests/plugins/qualified-current-release/evidence/current-stream-results.json\n?? tests/plugins/qualified-current-release/evidence/current-unset-with-env-outer.json\n?? tests/plugins/qualified-current-release/evidence/current-wrong-outer.json\n?? tests/plugins/qualified-current-release/evidence/webdav-without-permission-control.json\n?? tests/stress/regex-execution/queued-close-adjudication/migration/",
+  "indexAtSeal": "",
+  "authorCandidateReadiness": "No author-finished/candidate handoff received. Author source and author tests not inspected at any time in PREP.",
+  "productCalls": 0,
+  "productImports": 0,
+  "authorImplementationReads": 0,
+  "authorTestReads": 0,
+  "sourceInputsAtSeal": [
+    {
+      "path": "AGENTS.md",
+      "originalSha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678",
+      "sealSha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678",
+      "unchanged": true
+    },
+    {
+      "path": "src/contracts/command.ts",
+      "originalSha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+      "sealSha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+      "unchanged": true
+    },
+    {
+      "path": "src/contracts/command.md",
+      "originalSha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+      "sealSha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+      "unchanged": true
+    },
+    {
+      "path": "src/contracts/filesystem.ts",
+      "originalSha256": "a11b016e6bac06e6e8cd26fabb3b56a30788c8f75091513f6bf01ab7d016909d",
+      "sealSha256": "a11b016e6bac06e6e8cd26fabb3b56a30788c8f75091513f6bf01ab7d016909d",
+      "unchanged": true
+    },
+    {
+      "path": "src/contracts/filesystem.md",
+      "originalSha256": "4c0c83ac7477776455055b32370844453ee7521467f02e5304bff23901df06b2",
+      "sealSha256": "4c0c83ac7477776455055b32370844453ee7521467f02e5304bff23901df06b2",
+      "unchanged": true
+    },
+    {
+      "path": "src/contracts/io.ts",
+      "originalSha256": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+      "sealSha256": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+      "unchanged": true
+    },
+    {
+      "path": "src/contracts/errors.ts",
+      "originalSha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "sealSha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "unchanged": true
+    },
+    {
+      "path": "src/contracts/plugin.ts",
+      "originalSha256": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "sealSha256": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "unchanged": true
+    },
+    {
+      "path": "src/contracts/path.ts",
+      "originalSha256": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "sealSha256": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "unchanged": true
+    }
+  ],
+  "intendedCases": [
+    {
+      "id": "N01",
+      "title": "Unsorted creation, deterministic listing/report, real adapter",
+      "kind": "native",
+      "root": "basic",
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "basic"
+      ],
+      "requires": [
+        "ascii-C-profile"
+      ],
+      "comparison": "bytes"
+    },
+    {
+      "id": "N02",
+      "title": "Hidden children and nested hidden directory",
+      "kind": "native",
+      "root": "basic",
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "-a",
+        "basic"
+      ],
+      "requires": [
+        "ascii-C-profile",
+        "hidden"
+      ],
+      "comparison": "bytes"
+    },
+    {
+      "id": "N03",
+      "title": "Depth one boundary",
+      "kind": "native",
+      "root": "basic",
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "-L",
+        "1",
+        "basic"
+      ],
+      "requires": [
+        "ascii-C-profile",
+        "depth"
+      ],
+      "comparison": "bytes"
+    },
+    {
+      "id": "N04",
+      "title": "Depth two boundary",
+      "kind": "native",
+      "root": "basic",
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "-L",
+        "2",
+        "basic"
+      ],
+      "requires": [
+        "ascii-C-profile",
+        "depth"
+      ],
+      "comparison": "bytes"
+    },
+    {
+      "id": "N05",
+      "title": "Reverse combined with directories first",
+      "kind": "native",
+      "root": "basic",
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "-r",
+        "--dirsfirst",
+        "basic"
+      ],
+      "requires": [
+        "ascii-C-profile",
+        "reverse",
+        "dirsfirst"
+      ],
+      "comparison": "bytes"
+    },
+    {
+      "id": "N06",
+      "title": "Directories-only report",
+      "kind": "native",
+      "root": "basic",
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "-d",
+        "basic"
+      ],
+      "requires": [
+        "ascii-C-profile",
+        "directories-only"
+      ],
+      "comparison": "bytes"
+    },
+    {
+      "id": "N07",
+      "title": "Include glob preserves traversable directories",
+      "kind": "native",
+      "root": "basic",
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "-P",
+        "*.txt",
+        "basic"
+      ],
+      "requires": [
+        "ascii-C-profile",
+        "include-glob"
+      ],
+      "comparison": "bytes"
+    },
+    {
+      "id": "N08",
+      "title": "Excluded directory is not descended",
+      "kind": "native",
+      "root": "basic",
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "-I",
+        "skip*",
+        "basic"
+      ],
+      "requires": [
+        "ascii-C-profile",
+        "exclude-glob"
+      ],
+      "comparison": "bytes"
+    },
+    {
+      "id": "N09",
+      "title": "Prune after include filtering",
+      "kind": "native",
+      "root": "basic",
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "-P",
+        "*.txt",
+        "--prune",
+        "basic"
+      ],
+      "requires": [
+        "ascii-C-profile",
+        "include-glob",
+        "prune"
+      ],
+      "comparison": "bytes"
+    },
+    {
+      "id": "N10",
+      "title": "No indentation, full paths, no report",
+      "kind": "native",
+      "root": "basic",
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "-i",
+        "-f",
+        "--noreport",
+        "basic"
+      ],
+      "requires": [
+        "ascii-C-profile",
+        "flat",
+        "full-path",
+        "no-report"
+      ],
+      "comparison": "bytes"
+    },
+    {
+      "id": "N11",
+      "title": "Unicode and newline/tab/escape/control default escaping",
+      "kind": "native",
+      "root": "controls",
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "controls"
+      ],
+      "requires": [
+        "ascii-C-profile",
+        "native-C-escaping"
+      ],
+      "comparison": "bytes"
+    },
+    {
+      "id": "N12",
+      "title": "Explicit literal filename output",
+      "kind": "native",
+      "root": "controls",
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "-N",
+        "controls"
+      ],
+      "requires": [
+        "ascii-C-profile",
+        "literal-names"
+      ],
+      "comparison": "bytes"
+    },
+    {
+      "id": "N13",
+      "title": "Directory/file/dangling symlinks without follow",
+      "kind": "native",
+      "root": "links",
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "links"
+      ],
+      "requires": [
+        "ascii-C-profile",
+        "symlinks"
+      ],
+      "comparison": "bytes"
+    },
+    {
+      "id": "N14",
+      "title": "Follow sibling aliases independently",
+      "kind": "native",
+      "root": "links",
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "-l",
+        "links"
+      ],
+      "requires": [
+        "ascii-C-profile",
+        "follow-links"
+      ],
+      "comparison": "ancestor-alias-invariant"
+    },
+    {
+      "id": "N15",
+      "title": "Follow ancestor cycle without unbounded recursion",
+      "kind": "native",
+      "root": "cycle",
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "-l",
+        "cycle"
+      ],
+      "requires": [
+        "ascii-C-profile",
+        "follow-links"
+      ],
+      "comparison": "bytes"
+    },
+    {
+      "id": "N16",
+      "title": "Symlink root operand without follow flag",
+      "kind": "native",
+      "root": "rootlink",
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "rootlink"
+      ],
+      "requires": [
+        "ascii-C-profile",
+        "symlinks"
+      ],
+      "comparison": "bytes"
+    },
+    {
+      "id": "N17",
+      "title": "File root and missing root error status",
+      "kind": "native",
+      "root": "basic/Alpha.txt",
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "missing-root",
+        "basic/Alpha.txt"
+      ],
+      "requires": [
+        "ascii-C-profile"
+      ],
+      "comparison": "status-and-diagnostic"
+    },
+    {
+      "id": "N18",
+      "title": "Reject zero display depth",
+      "kind": "native",
+      "root": "basic",
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "-L",
+        "0",
+        "basic"
+      ],
+      "requires": [
+        "ascii-C-profile",
+        "depth"
+      ],
+      "comparison": "status-and-diagnostic"
+    },
+    {
+      "id": "N19",
+      "title": "Native per-directory filelimit (not global budget)",
+      "kind": "native",
+      "root": "basic",
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "--filelimit",
+        "2",
+        "basic"
+      ],
+      "requires": [
+        "ascii-C-profile",
+        "native-filelimit"
+      ],
+      "comparison": "bytes"
+    },
+    {
+      "id": "N20",
+      "title": "JSON filename escaping and names round trip",
+      "kind": "native",
+      "root": "controls",
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "-J",
+        "--noreport",
+        "controls"
+      ],
+      "requires": [
+        "ascii-C-profile",
+        "native-json-schema",
+        "no-report"
+      ],
+      "comparison": "json"
+    },
+    {
+      "id": "A21",
+      "title": "Disjoint providers collide on scoped device/inode",
+      "kind": "adversarial",
+      "scenario": "scoped-collision",
+      "requires": [],
+      "classification": "required-invariant"
+    },
+    {
+      "id": "A22",
+      "title": "Unknown/unscoped identity, realpath ENOTSUP, finite walk",
+      "kind": "adversarial",
+      "scenario": "unknown-finite",
+      "requires": [],
+      "classification": "required-invariant"
+    },
+    {
+      "id": "A23",
+      "title": "Unknown identity and ancestor link: bounded not invented cycle",
+      "kind": "adversarial",
+      "scenario": "unknown-loop",
+      "requires": [
+        "follow-links",
+        "entry-limit"
+      ],
+      "classification": "required-invariant"
+    },
+    {
+      "id": "A24",
+      "title": "Absent mandatory realpath method robustness",
+      "kind": "adversarial",
+      "scenario": "missing-realpath",
+      "requires": [],
+      "classification": "nonconforming-provider-exploration"
+    },
+    {
+      "id": "A25",
+      "title": "Pathlike/dot/empty/NUL readdir entries cannot escape walk",
+      "kind": "adversarial",
+      "scenario": "malicious-names",
+      "requires": [],
+      "classification": "provider-boundary-exploration"
+    },
+    {
+      "id": "A26",
+      "title": "Duplicate readdir entries remain bounded",
+      "kind": "adversarial",
+      "scenario": "duplicate-names",
+      "requires": [
+        "entry-limit"
+      ],
+      "classification": "provider-boundary-exploration"
+    },
+    {
+      "id": "A27",
+      "title": "Root permission failure retains path and failure",
+      "kind": "adversarial",
+      "scenario": "permission",
+      "requires": [],
+      "classification": "required-invariant"
+    },
+    {
+      "id": "A28",
+      "title": "Late subtree EIO, preserve accepted output and failure",
+      "kind": "adversarial",
+      "scenario": "late-error",
+      "requires": [],
+      "classification": "required-invariant"
+    },
+    {
+      "id": "A29",
+      "title": "Errno-shaped pre-abort is not swallowed",
+      "kind": "adversarial",
+      "scenario": "pre-abort",
+      "requires": [],
+      "classification": "required-invariant"
+    },
+    {
+      "id": "A30",
+      "title": "Pending filesystem abort and observed late rejection",
+      "kind": "adversarial",
+      "scenario": "pending-fs",
+      "requires": [],
+      "classification": "required-invariant"
+    },
+    {
+      "id": "A31",
+      "title": "Pending sink abort and observed late rejection",
+      "kind": "adversarial",
+      "scenario": "pending-sink",
+      "requires": [],
+      "classification": "required-invariant"
+    },
+    {
+      "id": "A32",
+      "title": "Await sink backpressure; retain chunk ownership",
+      "kind": "adversarial",
+      "scenario": "backpressure",
+      "requires": [],
+      "classification": "required-invariant"
+    },
+    {
+      "id": "A33",
+      "title": "Multibyte output budget and partial output policy",
+      "kind": "adversarial",
+      "scenario": "output-limit",
+      "requires": [
+        "output-limit"
+      ],
+      "classification": "required-invariant"
+    },
+    {
+      "id": "A34",
+      "title": "Wide listing entry budget",
+      "kind": "adversarial",
+      "scenario": "entry-limit",
+      "requires": [
+        "entry-limit"
+      ],
+      "classification": "required-invariant"
+    },
+    {
+      "id": "A35",
+      "title": "Signal propagation, metadata-only, VFS-only operation",
+      "kind": "adversarial",
+      "scenario": "signals",
+      "requires": [
+        "follow-links"
+      ],
+      "classification": "required-invariant"
+    },
+    {
+      "id": "A36",
+      "title": "Real adapter traversal never consumes command stdin",
+      "kind": "adversarial",
+      "scenario": "stdin-unread",
+      "requires": [],
+      "classification": "required-invariant"
+    },
+    {
+      "id": "A37",
+      "title": "Actual Shell JSON or text pipeline, redirect and stdin consumer",
+      "kind": "adversarial",
+      "scenario": "shell-pipeline",
+      "requires": [],
+      "classification": "required-invariant"
+    },
+    {
+      "id": "A38",
+      "title": "Sink EPIPE after accepted prefix remains failure",
+      "kind": "adversarial",
+      "scenario": "sink-failure",
+      "requires": [],
+      "classification": "required-invariant"
+    }
+  ],
+  "rules": {
+    "freeze": "No product execution/imports before explicit root resume and author candidate. Never change expectations to match candidate.",
+    "features": "Root supplies a documented supported profile before execution. Missing optional features are unsupported, not pass. Required invariants are never feature-skipped.",
+    "providerBoundary": "DirectoryEntry is only name:string/type in current contracts; absent realpath violates the required method shape. These probes characterize defensive handling, not universal native-parity failures. No deduplication or exact rejection diagnostic is mandated.",
+    "errors": "Typed FsError factory injected only after resume. Human-readable diagnostics preserve meaning/path; stderr need not serialize errno. Accepted bytes cannot be undone. Partial output may be empty; success is forbidden after a genuine failure.",
+    "identity": "Complete scope/dev/ino use reference identity. Different truthful backing universes may have equal numeric IDs. Unknown metadata is not cycle evidence; it may stop at an explicit bound rather than claim a detected cycle.",
+    "limits": "Adapter maps existing documented limits only; no invented API names. Global entry limit is distinct from native --filelimit. Explicit positive budgets use broad ceilings without prescribing whether root counts.",
+    "cancellation": "Prompt local settlement with exact reason, propagated signal, no new effects after abort, late rejection observed. Host work is deliberately uncooperative; cancellation is not host preemption.",
+    "native": "Pinned 2.2.1 on Darwin arm64, LC_ALL=C LANG=C TERM=dumb TZ=UTC, -n --charset=ASCII, bounded temp fixtures. This is not latest-version or Linux behavior evidence.",
+    "nativeAliasDivergence": "Original N14 bytes suppress alias-b as recursive although it is a sibling alias. Preserve those bytes as an oracle limitation. User ancestor-cycle requirement instead expects alias-a, alias-b, and target to each expose leaf.txt; N14 is not a native-byte-parity pass.",
+    "validation": "Preparation checks only native fixtures and verifier harness. Product cases remain NOT RUN. No claimed parity, provider deployment, performance, subprocess audit, or full gate."
+  },
+  "preparationChecks": {
+    "verifierSelftests": 7,
+    "passed": 7,
+    "failed": 0,
+    "runnerSyntax": "pass",
+    "embargoDenialBeforeImport": "pass",
+    "nativeCaptures": 20,
+    "productCasesExecuted": 0
+  },
+  "presealClarifications": [
+    "N14 raw oracle output revealed global sibling-alias suppression before any author inspection. Kept original native bytes; final acceptance is the user ancestor-only invariant, not native-byte parity.",
+    "N20 requires explicit native JSON schema rather than interpreting arbitrary JSON support as native compatibility.",
+    "A36 always exercises real adapter plus poison stdin, independent of optional native exact flags.",
+    "A37 always runs actual Shell with a JSON consumer if supported, otherwise its already sealed text-consumer branch; unsupported JSON is not a JSON pass.",
+    "Original provenance capture remains unchanged, including its initial intended-case declarations; this preseal snapshot is the final pre-candidate corpus."
+  ],
+  "evidenceLimits": [
+    "No deployed remote providers",
+    "No performance or memory comparison",
+    "No full native parity",
+    "No product subprocess/dependency audit yet",
+    "Same-user files are hidden by coordination, not an OS security boundary"
+  ]
+}

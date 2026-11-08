@@ -1,0 +1,80 @@
+{
+  "authority": "BENIGN_BENCHMARK_ONLY_NOT_DEFAULT_ACCEPTANCE",
+  "time": "2026-08-27T08:56:27.190Z",
+  "pass": true,
+  "benchmarkRerun": false,
+  "setupOnlyFailuresPreserved": 1,
+  "commands": 6,
+  "alternatingPairs": 3,
+  "filesPerCommand": 32,
+  "outputLinesPerCommand": 13,
+  "outputBytesPerCommand": 260,
+  "stdoutSha256": "508c70ef89ed85ee8704733da421f3af14f1ac7f0b376fe27ab0f6a3403c3086",
+  "exitCode": 0,
+  "stderrBytes": 0,
+  "candidatePublicSettlement": "3/3 native workers exited, terminated exactly once and awaited; zero observed worker listeners at the actual public promise settlement",
+  "baselinePublicSettlement": "Observed clean in this fixture; not retroactively required by the benchmark gate",
+  "postDispose": "6/6 native workers exited, terminated exactly once and awaited; zero observed worker listeners",
+  "listenerScope": "Native Worker message/messageerror/error/exit listeners only; no claim of independent caller/context abort-listener instrumentation in this cohort",
+  "exactChildren": {
+    "pids": [
+      42853,
+      44220
+    ],
+    "status": 1,
+    "stdout": "",
+    "stderr": "",
+    "closeAwaited": true,
+    "active": 0
+  },
+  "originalPrepared": "7/8 unrebaselined; original ordinary-Error oracle failure remains preserved",
+  "riskyJobs": "four LOCKED; six additional UNUSED",
+  "riskConsumed": 0,
+  "defaultAcceptance": false,
+  "files": [
+    {
+      "path": "claim.json",
+      "sha256": "5148aa0d52b3bb119e850db66986da82329b3d93625388c618cf2fc88afce264"
+    },
+    {
+      "path": "identities.json",
+      "sha256": "692cfce6092fb8ad27301c19406b3f7f7a7053f763c039dcf22e46715121f175"
+    },
+    {
+      "path": "result.json",
+      "sha256": "db3a8c49ea2c44460638a9e45453b0b62de44c9fb6a87046dd70258d8599eded"
+    },
+    {
+      "path": "setup-failure-run.mjs.txt",
+      "sha256": "1bc61f3853f8f93e0429fa7266808dfde58b6f5762b29e48c6658202afb8fedf"
+    },
+    {
+      "path": "setup-recovery-claim.json",
+      "sha256": "7f3233c09dcfc9d9b81bd05264426674bdbaa6d728d706aea22a257ad05780a7"
+    },
+    {
+      "path": "setup-recovery-identities.json",
+      "sha256": "dc169a58c0c7c40fe5913cb05cef4333a917570f45660f120d6f80ba4537db2b"
+    },
+    {
+      "path": "setup-recovery-result.json",
+      "sha256": "56120e9359a390545432175fdb911cf08a6d1f1a3aa8767275c1ba6e3e1776e5"
+    },
+    {
+      "path": "run.mjs",
+      "sha256": "40d008dc7c91936176ea92f111ea690e7dc24a7c883d4a0f53b4a5c2d48dc15c"
+    },
+    {
+      "path": "intervals.mjs",
+      "sha256": "ea701c6ed976223d81576b29d2441d939f1966222cc0adcd178c5cd35e3c56d5"
+    },
+    {
+      "path": "package.json",
+      "sha256": "5f29a2ad1d53067ba79cd3fec79b2bd40543e406f24019c7a93406cbcb7280d4"
+    },
+    {
+      "path": "audit.mjs",
+      "sha256": "768548e288e76cd6992e18709cb90c0448da581abe47efef1857e0ad7426caba"
+    }
+  ]
+}

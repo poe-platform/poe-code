@@ -1,0 +1,18 @@
+{
+  "tests/fs/webdav/atomic-extension/server.py": {
+    "sha256": "8076df1208ae8e8c442e8d1af3bb227c582b56dc17c7943a61bf2962e563e472",
+    "status": "read-only dirty observation; not frozen author service evidence"
+  },
+  "tests/fs/webdav/atomic-extension/example.mts": {
+    "sha256": "6c299e206c0f3942ca11de35e8f75b79dfebbcc5bf82e3a10958d6e138f6fbc7",
+    "status": "read-only dirty observation; not frozen author service evidence"
+  },
+  "tests/fs/webdav/atomic-extension/https.mts": {
+    "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+    "status": "read-only dirty observation; not frozen author service evidence"
+  },
+  "tests/fs/webdav/atomic-extension/dependencies.json": {
+    "sha256": "e80ca4a6c021a346ee88dfe6098f7b87d1fddae72fe470292e24931fd24752a9",
+    "status": "read-only dirty observation; not frozen author service evidence"
+  }
+}

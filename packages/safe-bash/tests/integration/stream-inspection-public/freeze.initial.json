@@ -1,0 +1,34 @@
+{
+  "frozenAt": "2026-08-27T05:23:36.886Z",
+  "dataFreezeSha256": "d15b0852401a4c09da680a5ef05247b02c33db3e1b0223e97ac3d03db77745c7",
+  "categories": 10,
+  "syntheticCases": 9,
+  "runtimeChecks": 27,
+  "strictNegativeControls": 4,
+  "files": [
+    {
+      "path": "cases.json",
+      "sha256": "d15b0852401a4c09da680a5ef05247b02c33db3e1b0223e97ac3d03db77745c7"
+    },
+    {
+      "path": "consumer.ts.fixture",
+      "sha256": "46555585121403bfe9e29e27922e1d305643ed35f1cd8c7d89dbe54af5f987e0"
+    },
+    {
+      "path": "invalid.ts.fixture",
+      "sha256": "bfe2ee4adb19634b44bc43ad7205912a627691e84dc9f26a42a0c1716619ddfe"
+    },
+    {
+      "path": "boundary.mjs",
+      "sha256": "be0b6cb28e3b03eae42f01d226db1c266e59cc565e465b43a5614c8f1ad782cc"
+    },
+    {
+      "path": "runtime.mjs",
+      "sha256": "2d65ba9360b94940d6efaee34f33534039fa5ec99b156832f0181dfe6990df73"
+    },
+    {
+      "path": "verify.mjs",
+      "sha256": "8e20b5a205639f71741301ed9d17085a4e21a30dd5420ea0b875896360b9e156"
+    }
+  ]
+}

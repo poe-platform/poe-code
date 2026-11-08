@@ -1,0 +1,46 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+const root=process.cwd(),scope=import.meta.dirname,base=path.dirname(scope);
+const sha=body=>crypto.createHash('sha256').update(body).digest('hex');
+const node='/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node';
+const read=(file,expected,maximum=4194304)=>{const stat=fs.lstatSync(file);assert.ok(stat.isFile()&&!stat.isSymbolicLink());assert.equal(stat.size,expected.bytes);assert.ok(stat.size<=maximum);const body=fs.readFileSync(file);assert.equal(body.length,expected.bytes);assert.equal(sha(body),expected.sha256);return body;};
+const stream=async(file,expected)=>{const stat=fs.lstatSync(file);assert.ok(stat.isFile()&&!stat.isSymbolicLink());assert.equal(stat.size,expected.bytes);const hash=crypto.createHash('sha256');for await(const chunk of fs.createReadStream(file))hash.update(chunk);assert.equal(hash.digest('hex'),expected.sha256);};
+try{
+  fs.mkdirSync(path.join(scope,'capture'));
+  const issued=new Date(),latestStart=new Date(issued.getTime()+1200000),expires=new Date(issued.getTime()+3000000);
+  const git=(label,args,input)=>{const child=spawnSync('/usr/bin/git',args,{cwd:root,input,maxBuffer:2097152,timeout:30000,env:{PATH:'/usr/bin:/bin',GIT_OPTIONAL_LOCKS:'0',LC_ALL:'C'}});fs.writeFileSync(path.join(scope,'capture',label+'.stdout'),child.stdout??Buffer.alloc(0),{flag:'wx'});fs.writeFileSync(path.join(scope,'capture',label+'.stderr'),child.stderr??Buffer.alloc(0),{flag:'wx'});assert.equal(child.status,0);assert.equal(child.signal,null);assert.equal(child.error,undefined);return child.stdout;};
+  git('status',['status','--porcelain=v1','-z','--',path.relative(root,scope)]);
+  git('index',['diff','--cached','--name-only','-z']);
+  const review='ebf511e84bdb7d6fb0b11bca05310710c56967b9';
+  const names=git('review-paths',['diff-tree','--no-commit-id','--name-only','-r','-z',review]).toString().split('\0').filter(Boolean);
+  const candidates=names.filter(name=>name.endsWith('/RECEIPT.json')&&name.startsWith('tests/integration/agent-bash-coherent-independent-20260829/'));
+  assert.equal(candidates.length,1,'unique reviewed receipt locator');
+  const query=review+':'+candidates[0]+'\n';
+  const meta=git('review-type',['cat-file','--batch-check=%(objectname) %(objecttype) %(objectsize)'],query).toString().trim().split(' ');
+  assert.equal(meta[1],'blob');assert.ok(Number(meta[2])<1048576);
+  const packet=git('review-body',['cat-file','--batch'],query),end=packet.indexOf(10);assert.equal(packet.subarray(0,end).toString(),meta.join(' '));
+  const body=packet.subarray(end+1,end+1+Number(meta[2]));assert.equal(body.length,Number(meta[2]));assert.equal(sha(body),'12c8f7e03af23977ccf5015a902fe04956681a26c89f59165409d606fc0578c2');
+  const reviewReceipt={commit:review,path:candidates[0],blob:meta[0],bytes:body.length,sha256:sha(body)};
+  const preseal={path:path.relative(root,path.join(base,'stage-b1-r2/PRESEAL.json')),bytes:17692,sha256:'007887fff41f65481ecf7a4fe4ab68db2aa1a5c67d4782a30c5bf764d84f0fbc'};
+  const seal=JSON.parse(read(path.join(root,preseal.path),preseal));
+  for(const entry of seal.files)read(path.join(root,entry.path),entry);
+  const b0=JSON.parse(read(path.join(root,seal.b0.path),seal.b0));await stream(node,b0.node);
+  const stage=JSON.parse(read(path.join(base,'stage-b0-r2/stageAProducerPreseal.json'),b0.stageAProducerPreseal,65536));
+  const get=name=>{const entry=b0.producerRecords.find(row=>row.path===name);assert.ok(entry);return JSON.parse(read(path.join(base,'stage-a-r2/evidence',name),entry,2097152));};
+  const sources=JSON.parse(read(stage.source.path,stage.source,262144)).inputs,emits=get('EMITTED.json'),tools=get('TOOLS-BEFORE.json');
+  assert.equal(sources.length,309);assert.equal(emits.length,1012);
+  const producer='/private/tmp/safe-bash-coherent-stage-a-20260829-r2';
+  for(const entry of sources)read(path.join(producer,'source',entry.path),entry,33554432);
+  for(const entry of emits)read(path.join(producer,'source/dist',entry.path),entry,33554432);
+  const expectedTools=new Set();
+  for(const entry of tools){const file=path.join(producer,'tools',entry.path);expectedTools.add(entry.path);if(entry.type==='symlink'||Object.hasOwn(entry,'target')){const stat=fs.lstatSync(file);assert.ok(stat.isSymbolicLink());assert.equal(fs.readlinkSync(file),entry.target);}else await stream(file,entry);}
+  const observed=[];const walk=(directory,prefix='')=>{for(const name of fs.readdirSync(directory).sort()){const file=path.join(directory,name),relative=prefix?prefix+'/'+name:name,stat=fs.lstatSync(file);if(stat.isDirectory())walk(file,relative);else observed.push(relative);}};walk(path.join(producer,'tools'));assert.deepEqual(observed.sort(),[...expectedTools].sort());
+  const packagePath=path.join(base,'stage-a-r2/evidence/package/virtual-bash-0.0.0.tgz');await stream(packagePath,seal.package);
+  const captures=['/private/tmp/coherent-b1-public15-20260829-r2.launch.stdout','/private/tmp/coherent-b1-public15-20260829-r2.launch.stderr','/private/tmp/coherent-b1-public15-20260829-r2.publication.stdout','/private/tmp/coherent-b1-public15-20260829-r2.publication.stderr'];
+  assert.equal(fs.existsSync(seal.workRoot),false);for(const file of captures)assert.equal(fs.existsSync(file),false);
+  const result={issuedUTC:issued.toISOString(),latestStartUTC:latestStart.toISOString(),expiresUTC:expires.toISOString(),preflightFinishedUTC:new Date().toISOString(),reviewReceipt,sourceCandidate:'bd0f227d081829512bafc2936f0b33632e02890b',preseal,productSourceTree:seal.sourceTree,sourceInputs:309,actualStageAEmissions:1012,tools:tools.length,package:seal.package,workRoot:seal.workRoot,captures,guards:'fresh source/tools/links/PUBLIC/preseal/package hashes; no decoding or execution',actualCalls:0,actualAuthorization:false};
+  fs.writeFileSync(path.join(scope,'PREPARATION.json'),JSON.stringify(result,null,2)+'\n',{flag:'wx'});console.log(JSON.stringify(result));
+}catch(error){console.error(error);process.exitCode=78;}

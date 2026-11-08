@@ -1,0 +1,1143 @@
+TAP version 13
+# Subtest: independent literal required-command contract is exactly 22 names
+ok 1 - independent literal required-command contract is exactly 22 names
+  ---
+  duration_ms: 1.029041
+  type: 'test'
+  ...
+# Subtest: memory: cardinality52 missing standard command cat rejects before callback
+ok 2 - memory: cardinality52 missing standard command cat rejects before callback
+  ---
+  duration_ms: 5.320709
+  type: 'test'
+  ...
+# {"backend":"memory","family":"standard","missing":"cat","substitute":"registry_unblock_substitute_cat","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: cat","callbackEntered":false}
+# Subtest: memory: cardinality52 missing standard command cp rejects before callback
+ok 3 - memory: cardinality52 missing standard command cp rejects before callback
+  ---
+  duration_ms: 0.832625
+  type: 'test'
+  ...
+# {"backend":"memory","family":"standard","missing":"cp","substitute":"registry_unblock_substitute_cp","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: cp","callbackEntered":false}
+# Subtest: memory: cardinality52 missing standard command find rejects before callback
+ok 4 - memory: cardinality52 missing standard command find rejects before callback
+  ---
+  duration_ms: 0.75
+  type: 'test'
+  ...
+# {"backend":"memory","family":"standard","missing":"find","substitute":"registry_unblock_substitute_find","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: find","callbackEntered":false}
+# Subtest: memory: cardinality52 missing standard command mkdir rejects before callback
+ok 5 - memory: cardinality52 missing standard command mkdir rejects before callback
+  ---
+  duration_ms: 0.607333
+  type: 'test'
+  ...
+# {"backend":"memory","family":"standard","missing":"mkdir","substitute":"registry_unblock_substitute_mkdir","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: mkdir","callbackEntered":false}
+# Subtest: memory: cardinality52 missing standard command mv rejects before callback
+ok 6 - memory: cardinality52 missing standard command mv rejects before callback
+  ---
+  duration_ms: 0.643583
+  type: 'test'
+  ...
+# {"backend":"memory","family":"standard","missing":"mv","substitute":"registry_unblock_substitute_mv","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: mv","callbackEntered":false}
+# Subtest: memory: cardinality52 missing standard command printf rejects before callback
+ok 7 - memory: cardinality52 missing standard command printf rejects before callback
+  ---
+  duration_ms: 0.448208
+  type: 'test'
+  ...
+# {"backend":"memory","family":"standard","missing":"printf","substitute":"registry_unblock_substitute_printf","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: printf","callbackEntered":false}
+# Subtest: memory: cardinality52 missing standard command pwd rejects before callback
+ok 8 - memory: cardinality52 missing standard command pwd rejects before callback
+  ---
+  duration_ms: 0.400958
+  type: 'test'
+  ...
+# {"backend":"memory","family":"standard","missing":"pwd","substitute":"registry_unblock_substitute_pwd","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: pwd","callbackEntered":false}
+# Subtest: memory: cardinality52 missing standard command rm rejects before callback
+ok 9 - memory: cardinality52 missing standard command rm rejects before callback
+  ---
+  duration_ms: 0.810833
+  type: 'test'
+  ...
+# {"backend":"memory","family":"standard","missing":"rm","substitute":"registry_unblock_substitute_rm","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: rm","callbackEntered":false}
+# Subtest: memory: cardinality52 missing standard command rmdir rejects before callback
+ok 10 - memory: cardinality52 missing standard command rmdir rejects before callback
+  ---
+  duration_ms: 1.486041
+  type: 'test'
+  ...
+# {"backend":"memory","family":"standard","missing":"rmdir","substitute":"registry_unblock_substitute_rmdir","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: rmdir","callbackEntered":false}
+# Subtest: memory: cardinality52 missing standard command sort rejects before callback
+ok 11 - memory: cardinality52 missing standard command sort rejects before callback
+  ---
+  duration_ms: 0.47625
+  type: 'test'
+  ...
+# {"backend":"memory","family":"standard","missing":"sort","substitute":"registry_unblock_substitute_sort","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: sort","callbackEntered":false}
+# Subtest: memory: cardinality52 missing standard command tee rejects before callback
+ok 12 - memory: cardinality52 missing standard command tee rejects before callback
+  ---
+  duration_ms: 0.37675
+  type: 'test'
+  ...
+# {"backend":"memory","family":"standard","missing":"tee","substitute":"registry_unblock_substitute_tee","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: tee","callbackEntered":false}
+# Subtest: memory: cardinality52 missing standard command test rejects before callback
+ok 13 - memory: cardinality52 missing standard command test rejects before callback
+  ---
+  duration_ms: 0.317292
+  type: 'test'
+  ...
+# {"backend":"memory","family":"standard","missing":"test","substitute":"registry_unblock_substitute_test","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: test","callbackEntered":false}
+# Subtest: memory: cardinality52 missing standard command touch rejects before callback
+ok 14 - memory: cardinality52 missing standard command touch rejects before callback
+  ---
+  duration_ms: 0.323792
+  type: 'test'
+  ...
+# {"backend":"memory","family":"standard","missing":"touch","substitute":"registry_unblock_substitute_touch","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: touch","callbackEntered":false}
+# Subtest: memory: cardinality52 missing standard command xargs rejects before callback
+ok 15 - memory: cardinality52 missing standard command xargs rejects before callback
+  ---
+  duration_ms: 0.283917
+  type: 'test'
+  ...
+# {"backend":"memory","family":"standard","missing":"xargs","substitute":"registry_unblock_substitute_xargs","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: xargs","callbackEntered":false}
+# Subtest: memory: cardinality52 missing text command sed rejects before callback
+ok 16 - memory: cardinality52 missing text command sed rejects before callback
+  ---
+  duration_ms: 0.356375
+  type: 'test'
+  ...
+# {"backend":"memory","family":"text","missing":"sed","substitute":"registry_unblock_substitute_sed","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required text command: sed","callbackEntered":false}
+# Subtest: memory: cardinality52 missing text command awk rejects before callback
+ok 17 - memory: cardinality52 missing text command awk rejects before callback
+  ---
+  duration_ms: 0.362667
+  type: 'test'
+  ...
+# {"backend":"memory","family":"text","missing":"awk","substitute":"registry_unblock_substitute_awk","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required text command: awk","callbackEntered":false}
+# Subtest: memory: cardinality52 missing structured command jq rejects before callback
+ok 18 - memory: cardinality52 missing structured command jq rejects before callback
+  ---
+  duration_ms: 0.300375
+  type: 'test'
+  ...
+# {"backend":"memory","family":"structured","missing":"jq","substitute":"registry_unblock_substitute_jq","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required structured command: jq","callbackEntered":false}
+# Subtest: memory: cardinality52 missing search command rg rejects before callback
+ok 19 - memory: cardinality52 missing search command rg rejects before callback
+  ---
+  duration_ms: 0.365
+  type: 'test'
+  ...
+# {"backend":"memory","family":"search","missing":"rg","substitute":"registry_unblock_substitute_rg","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required search command: rg","callbackEntered":false}
+# Subtest: memory: cardinality52 missing bytes command sha256sum rejects before callback
+ok 20 - memory: cardinality52 missing bytes command sha256sum rejects before callback
+  ---
+  duration_ms: 0.298416
+  type: 'test'
+  ...
+# {"backend":"memory","family":"bytes","missing":"sha256sum","substitute":"registry_unblock_substitute_sha256sum","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required bytes command: sha256sum","callbackEntered":false}
+# Subtest: memory: cardinality52 missing bytes command gzip rejects before callback
+ok 21 - memory: cardinality52 missing bytes command gzip rejects before callback
+  ---
+  duration_ms: 0.293208
+  type: 'test'
+  ...
+# {"backend":"memory","family":"bytes","missing":"gzip","substitute":"registry_unblock_substitute_gzip","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required bytes command: gzip","callbackEntered":false}
+# Subtest: memory: cardinality52 missing diffPatch command diff rejects before callback
+ok 22 - memory: cardinality52 missing diffPatch command diff rejects before callback
+  ---
+  duration_ms: 0.291542
+  type: 'test'
+  ...
+# {"backend":"memory","family":"diffPatch","missing":"diff","substitute":"registry_unblock_substitute_diff","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required diffPatch command: diff","callbackEntered":false}
+# Subtest: memory: cardinality52 missing diffPatch command patch rejects before callback
+ok 23 - memory: cardinality52 missing diffPatch command patch rejects before callback
+  ---
+  duration_ms: 0.306583
+  type: 'test'
+  ...
+# {"backend":"memory","family":"diffPatch","missing":"patch","substitute":"registry_unblock_substitute_patch","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required diffPatch command: patch","callbackEntered":false}
+# Subtest: memory: optional command addition cardinality53 executes real workflows
+ok 24 - memory: optional command addition cardinality53 executes real workflows
+  ---
+  duration_ms: 25.021958
+  type: 'test'
+  ...
+# {"backend":"memory","beforeCount":52,"afterCount":53,"callbackEntered":true,"optionalExecuted":true,"dispatched":["registry_unblock_optional","cat","sed","awk","jq","jq","xargs","find","rg","cat","gzip","gzip","diff"]}
+# Subtest: real: cardinality52 missing standard command cat rejects before callback
+ok 25 - real: cardinality52 missing standard command cat rejects before callback
+  ---
+  duration_ms: 5.941917
+  type: 'test'
+  ...
+# {"backend":"real","family":"standard","missing":"cat","substitute":"registry_unblock_substitute_cat","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: cat","callbackEntered":false}
+# Subtest: real: cardinality52 missing standard command cp rejects before callback
+ok 26 - real: cardinality52 missing standard command cp rejects before callback
+  ---
+  duration_ms: 4.514167
+  type: 'test'
+  ...
+# {"backend":"real","family":"standard","missing":"cp","substitute":"registry_unblock_substitute_cp","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: cp","callbackEntered":false}
+# Subtest: real: cardinality52 missing standard command find rejects before callback
+ok 27 - real: cardinality52 missing standard command find rejects before callback
+  ---
+  duration_ms: 4.207292
+  type: 'test'
+  ...
+# {"backend":"real","family":"standard","missing":"find","substitute":"registry_unblock_substitute_find","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: find","callbackEntered":false}
+# Subtest: real: cardinality52 missing standard command mkdir rejects before callback
+ok 28 - real: cardinality52 missing standard command mkdir rejects before callback
+  ---
+  duration_ms: 4.575
+  type: 'test'
+  ...
+# {"backend":"real","family":"standard","missing":"mkdir","substitute":"registry_unblock_substitute_mkdir","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: mkdir","callbackEntered":false}
+# Subtest: real: cardinality52 missing standard command mv rejects before callback
+ok 29 - real: cardinality52 missing standard command mv rejects before callback
+  ---
+  duration_ms: 4.216125
+  type: 'test'
+  ...
+# {"backend":"real","family":"standard","missing":"mv","substitute":"registry_unblock_substitute_mv","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: mv","callbackEntered":false}
+# Subtest: real: cardinality52 missing standard command printf rejects before callback
+ok 30 - real: cardinality52 missing standard command printf rejects before callback
+  ---
+  duration_ms: 4.279083
+  type: 'test'
+  ...
+# {"backend":"real","family":"standard","missing":"printf","substitute":"registry_unblock_substitute_printf","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: printf","callbackEntered":false}
+# Subtest: real: cardinality52 missing standard command pwd rejects before callback
+ok 31 - real: cardinality52 missing standard command pwd rejects before callback
+  ---
+  duration_ms: 3.80675
+  type: 'test'
+  ...
+# {"backend":"real","family":"standard","missing":"pwd","substitute":"registry_unblock_substitute_pwd","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: pwd","callbackEntered":false}
+# Subtest: real: cardinality52 missing standard command rm rejects before callback
+ok 32 - real: cardinality52 missing standard command rm rejects before callback
+  ---
+  duration_ms: 4.016208
+  type: 'test'
+  ...
+# {"backend":"real","family":"standard","missing":"rm","substitute":"registry_unblock_substitute_rm","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: rm","callbackEntered":false}
+# Subtest: real: cardinality52 missing standard command rmdir rejects before callback
+ok 33 - real: cardinality52 missing standard command rmdir rejects before callback
+  ---
+  duration_ms: 3.766834
+  type: 'test'
+  ...
+# {"backend":"real","family":"standard","missing":"rmdir","substitute":"registry_unblock_substitute_rmdir","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: rmdir","callbackEntered":false}
+# Subtest: real: cardinality52 missing standard command sort rejects before callback
+ok 34 - real: cardinality52 missing standard command sort rejects before callback
+  ---
+  duration_ms: 3.782041
+  type: 'test'
+  ...
+# {"backend":"real","family":"standard","missing":"sort","substitute":"registry_unblock_substitute_sort","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: sort","callbackEntered":false}
+# Subtest: real: cardinality52 missing standard command tee rejects before callback
+ok 35 - real: cardinality52 missing standard command tee rejects before callback
+  ---
+  duration_ms: 7.1215
+  type: 'test'
+  ...
+# {"backend":"real","family":"standard","missing":"tee","substitute":"registry_unblock_substitute_tee","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: tee","callbackEntered":false}
+# Subtest: real: cardinality52 missing standard command test rejects before callback
+ok 36 - real: cardinality52 missing standard command test rejects before callback
+  ---
+  duration_ms: 4.415625
+  type: 'test'
+  ...
+# {"backend":"real","family":"standard","missing":"test","substitute":"registry_unblock_substitute_test","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: test","callbackEntered":false}
+# Subtest: real: cardinality52 missing standard command touch rejects before callback
+ok 37 - real: cardinality52 missing standard command touch rejects before callback
+  ---
+  duration_ms: 3.907083
+  type: 'test'
+  ...
+# {"backend":"real","family":"standard","missing":"touch","substitute":"registry_unblock_substitute_touch","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: touch","callbackEntered":false}
+# Subtest: real: cardinality52 missing standard command xargs rejects before callback
+ok 38 - real: cardinality52 missing standard command xargs rejects before callback
+  ---
+  duration_ms: 3.92925
+  type: 'test'
+  ...
+# {"backend":"real","family":"standard","missing":"xargs","substitute":"registry_unblock_substitute_xargs","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: xargs","callbackEntered":false}
+# Subtest: real: cardinality52 missing text command sed rejects before callback
+ok 39 - real: cardinality52 missing text command sed rejects before callback
+  ---
+  duration_ms: 4.143666
+  type: 'test'
+  ...
+# {"backend":"real","family":"text","missing":"sed","substitute":"registry_unblock_substitute_sed","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required text command: sed","callbackEntered":false}
+# Subtest: real: cardinality52 missing text command awk rejects before callback
+ok 40 - real: cardinality52 missing text command awk rejects before callback
+  ---
+  duration_ms: 3.921416
+  type: 'test'
+  ...
+# {"backend":"real","family":"text","missing":"awk","substitute":"registry_unblock_substitute_awk","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required text command: awk","callbackEntered":false}
+# Subtest: real: cardinality52 missing structured command jq rejects before callback
+ok 41 - real: cardinality52 missing structured command jq rejects before callback
+  ---
+  duration_ms: 4.135458
+  type: 'test'
+  ...
+# {"backend":"real","family":"structured","missing":"jq","substitute":"registry_unblock_substitute_jq","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required structured command: jq","callbackEntered":false}
+# Subtest: real: cardinality52 missing search command rg rejects before callback
+ok 42 - real: cardinality52 missing search command rg rejects before callback
+  ---
+  duration_ms: 3.906958
+  type: 'test'
+  ...
+# {"backend":"real","family":"search","missing":"rg","substitute":"registry_unblock_substitute_rg","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required search command: rg","callbackEntered":false}
+# Subtest: real: cardinality52 missing bytes command sha256sum rejects before callback
+ok 43 - real: cardinality52 missing bytes command sha256sum rejects before callback
+  ---
+  duration_ms: 3.735709
+  type: 'test'
+  ...
+# {"backend":"real","family":"bytes","missing":"sha256sum","substitute":"registry_unblock_substitute_sha256sum","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required bytes command: sha256sum","callbackEntered":false}
+# Subtest: real: cardinality52 missing bytes command gzip rejects before callback
+ok 44 - real: cardinality52 missing bytes command gzip rejects before callback
+  ---
+  duration_ms: 3.467792
+  type: 'test'
+  ...
+# {"backend":"real","family":"bytes","missing":"gzip","substitute":"registry_unblock_substitute_gzip","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required bytes command: gzip","callbackEntered":false}
+# Subtest: real: cardinality52 missing diffPatch command diff rejects before callback
+ok 45 - real: cardinality52 missing diffPatch command diff rejects before callback
+  ---
+  duration_ms: 5.88075
+  type: 'test'
+  ...
+# {"backend":"real","family":"diffPatch","missing":"diff","substitute":"registry_unblock_substitute_diff","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required diffPatch command: diff","callbackEntered":false}
+# Subtest: real: cardinality52 missing diffPatch command patch rejects before callback
+ok 46 - real: cardinality52 missing diffPatch command patch rejects before callback
+  ---
+  duration_ms: 4.594625
+  type: 'test'
+  ...
+# {"backend":"real","family":"diffPatch","missing":"patch","substitute":"registry_unblock_substitute_patch","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required diffPatch command: patch","callbackEntered":false}
+# Subtest: real: optional command addition cardinality53 executes real workflows
+ok 47 - real: optional command addition cardinality53 executes real workflows
+  ---
+  duration_ms: 10.239709
+  type: 'test'
+  ...
+# {"backend":"real","beforeCount":52,"afterCount":53,"callbackEntered":true,"optionalExecuted":true,"dispatched":["registry_unblock_optional","cat","sed","awk","jq","jq","xargs","find","rg","cat","gzip","gzip","diff"]}
+# Subtest: s3: cardinality52 missing standard command cat rejects before callback
+ok 48 - s3: cardinality52 missing standard command cat rejects before callback
+  ---
+  duration_ms: 2.722583
+  type: 'test'
+  ...
+# {"backend":"s3","family":"standard","missing":"cat","substitute":"registry_unblock_substitute_cat","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: cat","callbackEntered":false}
+# Subtest: s3: cardinality52 missing standard command cp rejects before callback
+ok 49 - s3: cardinality52 missing standard command cp rejects before callback
+  ---
+  duration_ms: 1.1135
+  type: 'test'
+  ...
+# {"backend":"s3","family":"standard","missing":"cp","substitute":"registry_unblock_substitute_cp","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: cp","callbackEntered":false}
+# Subtest: s3: cardinality52 missing standard command find rejects before callback
+ok 50 - s3: cardinality52 missing standard command find rejects before callback
+  ---
+  duration_ms: 0.876792
+  type: 'test'
+  ...
+# {"backend":"s3","family":"standard","missing":"find","substitute":"registry_unblock_substitute_find","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: find","callbackEntered":false}
+# Subtest: s3: cardinality52 missing standard command mkdir rejects before callback
+ok 51 - s3: cardinality52 missing standard command mkdir rejects before callback
+  ---
+  duration_ms: 0.863708
+  type: 'test'
+  ...
+# {"backend":"s3","family":"standard","missing":"mkdir","substitute":"registry_unblock_substitute_mkdir","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: mkdir","callbackEntered":false}
+# Subtest: s3: cardinality52 missing standard command mv rejects before callback
+ok 52 - s3: cardinality52 missing standard command mv rejects before callback
+  ---
+  duration_ms: 1.067
+  type: 'test'
+  ...
+# {"backend":"s3","family":"standard","missing":"mv","substitute":"registry_unblock_substitute_mv","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: mv","callbackEntered":false}
+# Subtest: s3: cardinality52 missing standard command printf rejects before callback
+ok 53 - s3: cardinality52 missing standard command printf rejects before callback
+  ---
+  duration_ms: 0.930542
+  type: 'test'
+  ...
+# {"backend":"s3","family":"standard","missing":"printf","substitute":"registry_unblock_substitute_printf","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: printf","callbackEntered":false}
+# Subtest: s3: cardinality52 missing standard command pwd rejects before callback
+ok 54 - s3: cardinality52 missing standard command pwd rejects before callback
+  ---
+  duration_ms: 0.969791
+  type: 'test'
+  ...
+# {"backend":"s3","family":"standard","missing":"pwd","substitute":"registry_unblock_substitute_pwd","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: pwd","callbackEntered":false}
+# Subtest: s3: cardinality52 missing standard command rm rejects before callback
+ok 55 - s3: cardinality52 missing standard command rm rejects before callback
+  ---
+  duration_ms: 1.015292
+  type: 'test'
+  ...
+# {"backend":"s3","family":"standard","missing":"rm","substitute":"registry_unblock_substitute_rm","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: rm","callbackEntered":false}
+# Subtest: s3: cardinality52 missing standard command rmdir rejects before callback
+ok 56 - s3: cardinality52 missing standard command rmdir rejects before callback
+  ---
+  duration_ms: 1.261125
+  type: 'test'
+  ...
+# {"backend":"s3","family":"standard","missing":"rmdir","substitute":"registry_unblock_substitute_rmdir","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: rmdir","callbackEntered":false}
+# Subtest: s3: cardinality52 missing standard command sort rejects before callback
+ok 57 - s3: cardinality52 missing standard command sort rejects before callback
+  ---
+  duration_ms: 1.051625
+  type: 'test'
+  ...
+# {"backend":"s3","family":"standard","missing":"sort","substitute":"registry_unblock_substitute_sort","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: sort","callbackEntered":false}
+# Subtest: s3: cardinality52 missing standard command tee rejects before callback
+ok 58 - s3: cardinality52 missing standard command tee rejects before callback
+  ---
+  duration_ms: 1.2685
+  type: 'test'
+  ...
+# {"backend":"s3","family":"standard","missing":"tee","substitute":"registry_unblock_substitute_tee","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: tee","callbackEntered":false}
+# Subtest: s3: cardinality52 missing standard command test rejects before callback
+ok 59 - s3: cardinality52 missing standard command test rejects before callback
+  ---
+  duration_ms: 1.144667
+  type: 'test'
+  ...
+# {"backend":"s3","family":"standard","missing":"test","substitute":"registry_unblock_substitute_test","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: test","callbackEntered":false}
+# Subtest: s3: cardinality52 missing standard command touch rejects before callback
+ok 60 - s3: cardinality52 missing standard command touch rejects before callback
+  ---
+  duration_ms: 5.153667
+  type: 'test'
+  ...
+# {"backend":"s3","family":"standard","missing":"touch","substitute":"registry_unblock_substitute_touch","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: touch","callbackEntered":false}
+# Subtest: s3: cardinality52 missing standard command xargs rejects before callback
+ok 61 - s3: cardinality52 missing standard command xargs rejects before callback
+  ---
+  duration_ms: 0.793042
+  type: 'test'
+  ...
+# {"backend":"s3","family":"standard","missing":"xargs","substitute":"registry_unblock_substitute_xargs","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: xargs","callbackEntered":false}
+# Subtest: s3: cardinality52 missing text command sed rejects before callback
+ok 62 - s3: cardinality52 missing text command sed rejects before callback
+  ---
+  duration_ms: 0.866416
+  type: 'test'
+  ...
+# {"backend":"s3","family":"text","missing":"sed","substitute":"registry_unblock_substitute_sed","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required text command: sed","callbackEntered":false}
+# Subtest: s3: cardinality52 missing text command awk rejects before callback
+ok 63 - s3: cardinality52 missing text command awk rejects before callback
+  ---
+  duration_ms: 0.852083
+  type: 'test'
+  ...
+# {"backend":"s3","family":"text","missing":"awk","substitute":"registry_unblock_substitute_awk","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required text command: awk","callbackEntered":false}
+# Subtest: s3: cardinality52 missing structured command jq rejects before callback
+ok 64 - s3: cardinality52 missing structured command jq rejects before callback
+  ---
+  duration_ms: 0.879
+  type: 'test'
+  ...
+# {"backend":"s3","family":"structured","missing":"jq","substitute":"registry_unblock_substitute_jq","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required structured command: jq","callbackEntered":false}
+# Subtest: s3: cardinality52 missing search command rg rejects before callback
+ok 65 - s3: cardinality52 missing search command rg rejects before callback
+  ---
+  duration_ms: 0.926125
+  type: 'test'
+  ...
+# {"backend":"s3","family":"search","missing":"rg","substitute":"registry_unblock_substitute_rg","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required search command: rg","callbackEntered":false}
+# Subtest: s3: cardinality52 missing bytes command sha256sum rejects before callback
+ok 66 - s3: cardinality52 missing bytes command sha256sum rejects before callback
+  ---
+  duration_ms: 0.856542
+  type: 'test'
+  ...
+# {"backend":"s3","family":"bytes","missing":"sha256sum","substitute":"registry_unblock_substitute_sha256sum","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required bytes command: sha256sum","callbackEntered":false}
+# Subtest: s3: cardinality52 missing bytes command gzip rejects before callback
+ok 67 - s3: cardinality52 missing bytes command gzip rejects before callback
+  ---
+  duration_ms: 0.851708
+  type: 'test'
+  ...
+# {"backend":"s3","family":"bytes","missing":"gzip","substitute":"registry_unblock_substitute_gzip","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required bytes command: gzip","callbackEntered":false}
+# Subtest: s3: cardinality52 missing diffPatch command diff rejects before callback
+ok 68 - s3: cardinality52 missing diffPatch command diff rejects before callback
+  ---
+  duration_ms: 1.124
+  type: 'test'
+  ...
+# {"backend":"s3","family":"diffPatch","missing":"diff","substitute":"registry_unblock_substitute_diff","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required diffPatch command: diff","callbackEntered":false}
+# Subtest: s3: cardinality52 missing diffPatch command patch rejects before callback
+ok 69 - s3: cardinality52 missing diffPatch command patch rejects before callback
+  ---
+  duration_ms: 0.977875
+  type: 'test'
+  ...
+# {"backend":"s3","family":"diffPatch","missing":"patch","substitute":"registry_unblock_substitute_patch","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required diffPatch command: patch","callbackEntered":false}
+# Subtest: s3: optional command addition cardinality53 executes real workflows
+ok 70 - s3: optional command addition cardinality53 executes real workflows
+  ---
+  duration_ms: 10.7925
+  type: 'test'
+  ...
+# {"backend":"s3","beforeCount":52,"afterCount":53,"callbackEntered":true,"optionalExecuted":true,"dispatched":["registry_unblock_optional","cat","sed","awk","jq","jq","xargs","find","rg","cat","gzip","gzip","diff"]}
+# Subtest: webdav: cardinality52 missing standard command cat rejects before callback
+ok 71 - webdav: cardinality52 missing standard command cat rejects before callback
+  ---
+  duration_ms: 36.693
+  type: 'test'
+  ...
+# {"backend":"webdav","family":"standard","missing":"cat","substitute":"registry_unblock_substitute_cat","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: cat","callbackEntered":false}
+# Subtest: webdav: cardinality52 missing standard command cp rejects before callback
+ok 72 - webdav: cardinality52 missing standard command cp rejects before callback
+  ---
+  duration_ms: 17.998792
+  type: 'test'
+  ...
+# {"backend":"webdav","family":"standard","missing":"cp","substitute":"registry_unblock_substitute_cp","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: cp","callbackEntered":false}
+# Subtest: webdav: cardinality52 missing standard command find rejects before callback
+ok 73 - webdav: cardinality52 missing standard command find rejects before callback
+  ---
+  duration_ms: 13.886958
+  type: 'test'
+  ...
+# {"backend":"webdav","family":"standard","missing":"find","substitute":"registry_unblock_substitute_find","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: find","callbackEntered":false}
+# Subtest: webdav: cardinality52 missing standard command mkdir rejects before callback
+ok 74 - webdav: cardinality52 missing standard command mkdir rejects before callback
+  ---
+  duration_ms: 15.779625
+  type: 'test'
+  ...
+# {"backend":"webdav","family":"standard","missing":"mkdir","substitute":"registry_unblock_substitute_mkdir","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: mkdir","callbackEntered":false}
+# Subtest: webdav: cardinality52 missing standard command mv rejects before callback
+ok 75 - webdav: cardinality52 missing standard command mv rejects before callback
+  ---
+  duration_ms: 12.794375
+  type: 'test'
+  ...
+# {"backend":"webdav","family":"standard","missing":"mv","substitute":"registry_unblock_substitute_mv","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: mv","callbackEntered":false}
+# Subtest: webdav: cardinality52 missing standard command printf rejects before callback
+ok 76 - webdav: cardinality52 missing standard command printf rejects before callback
+  ---
+  duration_ms: 15.504375
+  type: 'test'
+  ...
+# {"backend":"webdav","family":"standard","missing":"printf","substitute":"registry_unblock_substitute_printf","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: printf","callbackEntered":false}
+# Subtest: webdav: cardinality52 missing standard command pwd rejects before callback
+ok 77 - webdav: cardinality52 missing standard command pwd rejects before callback
+  ---
+  duration_ms: 14.42475
+  type: 'test'
+  ...
+# {"backend":"webdav","family":"standard","missing":"pwd","substitute":"registry_unblock_substitute_pwd","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: pwd","callbackEntered":false}
+# Subtest: webdav: cardinality52 missing standard command rm rejects before callback
+ok 78 - webdav: cardinality52 missing standard command rm rejects before callback
+  ---
+  duration_ms: 11.260333
+  type: 'test'
+  ...
+# {"backend":"webdav","family":"standard","missing":"rm","substitute":"registry_unblock_substitute_rm","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: rm","callbackEntered":false}
+# Subtest: webdav: cardinality52 missing standard command rmdir rejects before callback
+ok 79 - webdav: cardinality52 missing standard command rmdir rejects before callback
+  ---
+  duration_ms: 14.412667
+  type: 'test'
+  ...
+# {"backend":"webdav","family":"standard","missing":"rmdir","substitute":"registry_unblock_substitute_rmdir","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: rmdir","callbackEntered":false}
+# Subtest: webdav: cardinality52 missing standard command sort rejects before callback
+ok 80 - webdav: cardinality52 missing standard command sort rejects before callback
+  ---
+  duration_ms: 10.675458
+  type: 'test'
+  ...
+# {"backend":"webdav","family":"standard","missing":"sort","substitute":"registry_unblock_substitute_sort","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: sort","callbackEntered":false}
+# Subtest: webdav: cardinality52 missing standard command tee rejects before callback
+ok 81 - webdav: cardinality52 missing standard command tee rejects before callback
+  ---
+  duration_ms: 12.506417
+  type: 'test'
+  ...
+# {"backend":"webdav","family":"standard","missing":"tee","substitute":"registry_unblock_substitute_tee","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: tee","callbackEntered":false}
+# Subtest: webdav: cardinality52 missing standard command test rejects before callback
+ok 82 - webdav: cardinality52 missing standard command test rejects before callback
+  ---
+  duration_ms: 10.666125
+  type: 'test'
+  ...
+# {"backend":"webdav","family":"standard","missing":"test","substitute":"registry_unblock_substitute_test","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: test","callbackEntered":false}
+# Subtest: webdav: cardinality52 missing standard command touch rejects before callback
+ok 83 - webdav: cardinality52 missing standard command touch rejects before callback
+  ---
+  duration_ms: 12.477792
+  type: 'test'
+  ...
+# {"backend":"webdav","family":"standard","missing":"touch","substitute":"registry_unblock_substitute_touch","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: touch","callbackEntered":false}
+# Subtest: webdav: cardinality52 missing standard command xargs rejects before callback
+ok 84 - webdav: cardinality52 missing standard command xargs rejects before callback
+  ---
+  duration_ms: 11.337166
+  type: 'test'
+  ...
+# {"backend":"webdav","family":"standard","missing":"xargs","substitute":"registry_unblock_substitute_xargs","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: xargs","callbackEntered":false}
+# Subtest: webdav: cardinality52 missing text command sed rejects before callback
+ok 85 - webdav: cardinality52 missing text command sed rejects before callback
+  ---
+  duration_ms: 13.307666
+  type: 'test'
+  ...
+# {"backend":"webdav","family":"text","missing":"sed","substitute":"registry_unblock_substitute_sed","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required text command: sed","callbackEntered":false}
+# Subtest: webdav: cardinality52 missing text command awk rejects before callback
+ok 86 - webdav: cardinality52 missing text command awk rejects before callback
+  ---
+  duration_ms: 11.449833
+  type: 'test'
+  ...
+# {"backend":"webdav","family":"text","missing":"awk","substitute":"registry_unblock_substitute_awk","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required text command: awk","callbackEntered":false}
+# Subtest: webdav: cardinality52 missing structured command jq rejects before callback
+ok 87 - webdav: cardinality52 missing structured command jq rejects before callback
+  ---
+  duration_ms: 12.180541
+  type: 'test'
+  ...
+# {"backend":"webdav","family":"structured","missing":"jq","substitute":"registry_unblock_substitute_jq","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required structured command: jq","callbackEntered":false}
+# Subtest: webdav: cardinality52 missing search command rg rejects before callback
+ok 88 - webdav: cardinality52 missing search command rg rejects before callback
+  ---
+  duration_ms: 9.501917
+  type: 'test'
+  ...
+# {"backend":"webdav","family":"search","missing":"rg","substitute":"registry_unblock_substitute_rg","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required search command: rg","callbackEntered":false}
+# Subtest: webdav: cardinality52 missing bytes command sha256sum rejects before callback
+ok 89 - webdav: cardinality52 missing bytes command sha256sum rejects before callback
+  ---
+  duration_ms: 12.01475
+  type: 'test'
+  ...
+# {"backend":"webdav","family":"bytes","missing":"sha256sum","substitute":"registry_unblock_substitute_sha256sum","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required bytes command: sha256sum","callbackEntered":false}
+# Subtest: webdav: cardinality52 missing bytes command gzip rejects before callback
+ok 90 - webdav: cardinality52 missing bytes command gzip rejects before callback
+  ---
+  duration_ms: 9.87275
+  type: 'test'
+  ...
+# {"backend":"webdav","family":"bytes","missing":"gzip","substitute":"registry_unblock_substitute_gzip","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required bytes command: gzip","callbackEntered":false}
+# Subtest: webdav: cardinality52 missing diffPatch command diff rejects before callback
+ok 91 - webdav: cardinality52 missing diffPatch command diff rejects before callback
+  ---
+  duration_ms: 12.752417
+  type: 'test'
+  ...
+# {"backend":"webdav","family":"diffPatch","missing":"diff","substitute":"registry_unblock_substitute_diff","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required diffPatch command: diff","callbackEntered":false}
+# Subtest: webdav: cardinality52 missing diffPatch command patch rejects before callback
+ok 92 - webdav: cardinality52 missing diffPatch command patch rejects before callback
+  ---
+  duration_ms: 11.547042
+  type: 'test'
+  ...
+# {"backend":"webdav","family":"diffPatch","missing":"patch","substitute":"registry_unblock_substitute_patch","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required diffPatch command: patch","callbackEntered":false}
+# Subtest: webdav: optional command addition cardinality53 executes real workflows
+ok 93 - webdav: optional command addition cardinality53 executes real workflows
+  ---
+  duration_ms: 24.743875
+  type: 'test'
+  ...
+# {"backend":"webdav","beforeCount":52,"afterCount":53,"callbackEntered":true,"optionalExecuted":true,"dispatched":["registry_unblock_optional","cat","sed","awk","jq","jq","xargs","find","rg","cat","gzip","gzip","diff"]}
+# Subtest: mount: cardinality52 missing standard command cat rejects before callback
+ok 94 - mount: cardinality52 missing standard command cat rejects before callback
+  ---
+  duration_ms: 7.072208
+  type: 'test'
+  ...
+# {"backend":"mount","family":"standard","missing":"cat","substitute":"registry_unblock_substitute_cat","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: cat","callbackEntered":false}
+# Subtest: mount: cardinality52 missing standard command cp rejects before callback
+ok 95 - mount: cardinality52 missing standard command cp rejects before callback
+  ---
+  duration_ms: 8.8735
+  type: 'test'
+  ...
+# {"backend":"mount","family":"standard","missing":"cp","substitute":"registry_unblock_substitute_cp","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: cp","callbackEntered":false}
+# Subtest: mount: cardinality52 missing standard command find rejects before callback
+ok 96 - mount: cardinality52 missing standard command find rejects before callback
+  ---
+  duration_ms: 6.179542
+  type: 'test'
+  ...
+# {"backend":"mount","family":"standard","missing":"find","substitute":"registry_unblock_substitute_find","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: find","callbackEntered":false}
+# Subtest: mount: cardinality52 missing standard command mkdir rejects before callback
+ok 97 - mount: cardinality52 missing standard command mkdir rejects before callback
+  ---
+  duration_ms: 5.526334
+  type: 'test'
+  ...
+# {"backend":"mount","family":"standard","missing":"mkdir","substitute":"registry_unblock_substitute_mkdir","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: mkdir","callbackEntered":false}
+# Subtest: mount: cardinality52 missing standard command mv rejects before callback
+ok 98 - mount: cardinality52 missing standard command mv rejects before callback
+  ---
+  duration_ms: 5.842667
+  type: 'test'
+  ...
+# {"backend":"mount","family":"standard","missing":"mv","substitute":"registry_unblock_substitute_mv","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: mv","callbackEntered":false}
+# Subtest: mount: cardinality52 missing standard command printf rejects before callback
+ok 99 - mount: cardinality52 missing standard command printf rejects before callback
+  ---
+  duration_ms: 5.631541
+  type: 'test'
+  ...
+# {"backend":"mount","family":"standard","missing":"printf","substitute":"registry_unblock_substitute_printf","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: printf","callbackEntered":false}
+# Subtest: mount: cardinality52 missing standard command pwd rejects before callback
+ok 100 - mount: cardinality52 missing standard command pwd rejects before callback
+  ---
+  duration_ms: 5.630541
+  type: 'test'
+  ...
+# {"backend":"mount","family":"standard","missing":"pwd","substitute":"registry_unblock_substitute_pwd","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: pwd","callbackEntered":false}
+# Subtest: mount: cardinality52 missing standard command rm rejects before callback
+ok 101 - mount: cardinality52 missing standard command rm rejects before callback
+  ---
+  duration_ms: 5.856333
+  type: 'test'
+  ...
+# {"backend":"mount","family":"standard","missing":"rm","substitute":"registry_unblock_substitute_rm","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: rm","callbackEntered":false}
+# Subtest: mount: cardinality52 missing standard command rmdir rejects before callback
+ok 102 - mount: cardinality52 missing standard command rmdir rejects before callback
+  ---
+  duration_ms: 5.6045
+  type: 'test'
+  ...
+# {"backend":"mount","family":"standard","missing":"rmdir","substitute":"registry_unblock_substitute_rmdir","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: rmdir","callbackEntered":false}
+# Subtest: mount: cardinality52 missing standard command sort rejects before callback
+ok 103 - mount: cardinality52 missing standard command sort rejects before callback
+  ---
+  duration_ms: 6.429041
+  type: 'test'
+  ...
+# {"backend":"mount","family":"standard","missing":"sort","substitute":"registry_unblock_substitute_sort","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: sort","callbackEntered":false}
+# Subtest: mount: cardinality52 missing standard command tee rejects before callback
+ok 104 - mount: cardinality52 missing standard command tee rejects before callback
+  ---
+  duration_ms: 5.935833
+  type: 'test'
+  ...
+# {"backend":"mount","family":"standard","missing":"tee","substitute":"registry_unblock_substitute_tee","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: tee","callbackEntered":false}
+# Subtest: mount: cardinality52 missing standard command test rejects before callback
+ok 105 - mount: cardinality52 missing standard command test rejects before callback
+  ---
+  duration_ms: 6.145083
+  type: 'test'
+  ...
+# {"backend":"mount","family":"standard","missing":"test","substitute":"registry_unblock_substitute_test","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: test","callbackEntered":false}
+# Subtest: mount: cardinality52 missing standard command touch rejects before callback
+ok 106 - mount: cardinality52 missing standard command touch rejects before callback
+  ---
+  duration_ms: 11.012666
+  type: 'test'
+  ...
+# {"backend":"mount","family":"standard","missing":"touch","substitute":"registry_unblock_substitute_touch","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: touch","callbackEntered":false}
+# Subtest: mount: cardinality52 missing standard command xargs rejects before callback
+ok 107 - mount: cardinality52 missing standard command xargs rejects before callback
+  ---
+  duration_ms: 7.443791
+  type: 'test'
+  ...
+# {"backend":"mount","family":"standard","missing":"xargs","substitute":"registry_unblock_substitute_xargs","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: xargs","callbackEntered":false}
+# Subtest: mount: cardinality52 missing text command sed rejects before callback
+ok 108 - mount: cardinality52 missing text command sed rejects before callback
+  ---
+  duration_ms: 5.80025
+  type: 'test'
+  ...
+# {"backend":"mount","family":"text","missing":"sed","substitute":"registry_unblock_substitute_sed","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required text command: sed","callbackEntered":false}
+# Subtest: mount: cardinality52 missing text command awk rejects before callback
+ok 109 - mount: cardinality52 missing text command awk rejects before callback
+  ---
+  duration_ms: 5.467542
+  type: 'test'
+  ...
+# {"backend":"mount","family":"text","missing":"awk","substitute":"registry_unblock_substitute_awk","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required text command: awk","callbackEntered":false}
+# Subtest: mount: cardinality52 missing structured command jq rejects before callback
+ok 110 - mount: cardinality52 missing structured command jq rejects before callback
+  ---
+  duration_ms: 5.662959
+  type: 'test'
+  ...
+# {"backend":"mount","family":"structured","missing":"jq","substitute":"registry_unblock_substitute_jq","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required structured command: jq","callbackEntered":false}
+# Subtest: mount: cardinality52 missing search command rg rejects before callback
+ok 111 - mount: cardinality52 missing search command rg rejects before callback
+  ---
+  duration_ms: 5.633875
+  type: 'test'
+  ...
+# {"backend":"mount","family":"search","missing":"rg","substitute":"registry_unblock_substitute_rg","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required search command: rg","callbackEntered":false}
+# Subtest: mount: cardinality52 missing bytes command sha256sum rejects before callback
+ok 112 - mount: cardinality52 missing bytes command sha256sum rejects before callback
+  ---
+  duration_ms: 5.205292
+  type: 'test'
+  ...
+# {"backend":"mount","family":"bytes","missing":"sha256sum","substitute":"registry_unblock_substitute_sha256sum","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required bytes command: sha256sum","callbackEntered":false}
+# Subtest: mount: cardinality52 missing bytes command gzip rejects before callback
+ok 113 - mount: cardinality52 missing bytes command gzip rejects before callback
+  ---
+  duration_ms: 5.212084
+  type: 'test'
+  ...
+# {"backend":"mount","family":"bytes","missing":"gzip","substitute":"registry_unblock_substitute_gzip","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required bytes command: gzip","callbackEntered":false}
+# Subtest: mount: cardinality52 missing diffPatch command diff rejects before callback
+ok 114 - mount: cardinality52 missing diffPatch command diff rejects before callback
+  ---
+  duration_ms: 5.45525
+  type: 'test'
+  ...
+# {"backend":"mount","family":"diffPatch","missing":"diff","substitute":"registry_unblock_substitute_diff","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required diffPatch command: diff","callbackEntered":false}
+# Subtest: mount: cardinality52 missing diffPatch command patch rejects before callback
+ok 115 - mount: cardinality52 missing diffPatch command patch rejects before callback
+  ---
+  duration_ms: 12.815167
+  type: 'test'
+  ...
+# {"backend":"mount","family":"diffPatch","missing":"patch","substitute":"registry_unblock_substitute_patch","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required diffPatch command: patch","callbackEntered":false}
+# Subtest: mount: optional command addition cardinality53 executes real workflows
+ok 116 - mount: optional command addition cardinality53 executes real workflows
+  ---
+  duration_ms: 12.919
+  type: 'test'
+  ...
+# {"backend":"mount","beforeCount":52,"afterCount":53,"callbackEntered":true,"optionalExecuted":true,"dispatched":["registry_unblock_optional","cat","sed","awk","jq","jq","xargs","find","rg","cat","gzip","gzip","diff"]}
+# Subtest: overlay: cardinality52 missing standard command cat rejects before callback
+ok 117 - overlay: cardinality52 missing standard command cat rejects before callback
+  ---
+  duration_ms: 1.43725
+  type: 'test'
+  ...
+# {"backend":"overlay","family":"standard","missing":"cat","substitute":"registry_unblock_substitute_cat","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: cat","callbackEntered":false}
+# Subtest: overlay: cardinality52 missing standard command cp rejects before callback
+ok 118 - overlay: cardinality52 missing standard command cp rejects before callback
+  ---
+  duration_ms: 1.069667
+  type: 'test'
+  ...
+# {"backend":"overlay","family":"standard","missing":"cp","substitute":"registry_unblock_substitute_cp","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: cp","callbackEntered":false}
+# Subtest: overlay: cardinality52 missing standard command find rejects before callback
+ok 119 - overlay: cardinality52 missing standard command find rejects before callback
+  ---
+  duration_ms: 0.961458
+  type: 'test'
+  ...
+# {"backend":"overlay","family":"standard","missing":"find","substitute":"registry_unblock_substitute_find","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: find","callbackEntered":false}
+# Subtest: overlay: cardinality52 missing standard command mkdir rejects before callback
+ok 120 - overlay: cardinality52 missing standard command mkdir rejects before callback
+  ---
+  duration_ms: 0.889583
+  type: 'test'
+  ...
+# {"backend":"overlay","family":"standard","missing":"mkdir","substitute":"registry_unblock_substitute_mkdir","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: mkdir","callbackEntered":false}
+# Subtest: overlay: cardinality52 missing standard command mv rejects before callback
+ok 121 - overlay: cardinality52 missing standard command mv rejects before callback
+  ---
+  duration_ms: 0.849625
+  type: 'test'
+  ...
+# {"backend":"overlay","family":"standard","missing":"mv","substitute":"registry_unblock_substitute_mv","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: mv","callbackEntered":false}
+# Subtest: overlay: cardinality52 missing standard command printf rejects before callback
+ok 122 - overlay: cardinality52 missing standard command printf rejects before callback
+  ---
+  duration_ms: 0.868083
+  type: 'test'
+  ...
+# {"backend":"overlay","family":"standard","missing":"printf","substitute":"registry_unblock_substitute_printf","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: printf","callbackEntered":false}
+# Subtest: overlay: cardinality52 missing standard command pwd rejects before callback
+ok 123 - overlay: cardinality52 missing standard command pwd rejects before callback
+  ---
+  duration_ms: 0.858125
+  type: 'test'
+  ...
+# {"backend":"overlay","family":"standard","missing":"pwd","substitute":"registry_unblock_substitute_pwd","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: pwd","callbackEntered":false}
+# Subtest: overlay: cardinality52 missing standard command rm rejects before callback
+ok 124 - overlay: cardinality52 missing standard command rm rejects before callback
+  ---
+  duration_ms: 1.180166
+  type: 'test'
+  ...
+# {"backend":"overlay","family":"standard","missing":"rm","substitute":"registry_unblock_substitute_rm","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: rm","callbackEntered":false}
+# Subtest: overlay: cardinality52 missing standard command rmdir rejects before callback
+ok 125 - overlay: cardinality52 missing standard command rmdir rejects before callback
+  ---
+  duration_ms: 0.985542
+  type: 'test'
+  ...
+# {"backend":"overlay","family":"standard","missing":"rmdir","substitute":"registry_unblock_substitute_rmdir","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: rmdir","callbackEntered":false}
+# Subtest: overlay: cardinality52 missing standard command sort rejects before callback
+ok 126 - overlay: cardinality52 missing standard command sort rejects before callback
+  ---
+  duration_ms: 0.945875
+  type: 'test'
+  ...
+# {"backend":"overlay","family":"standard","missing":"sort","substitute":"registry_unblock_substitute_sort","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: sort","callbackEntered":false}
+# Subtest: overlay: cardinality52 missing standard command tee rejects before callback
+ok 127 - overlay: cardinality52 missing standard command tee rejects before callback
+  ---
+  duration_ms: 1.098708
+  type: 'test'
+  ...
+# {"backend":"overlay","family":"standard","missing":"tee","substitute":"registry_unblock_substitute_tee","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: tee","callbackEntered":false}
+# Subtest: overlay: cardinality52 missing standard command test rejects before callback
+ok 128 - overlay: cardinality52 missing standard command test rejects before callback
+  ---
+  duration_ms: 1.069458
+  type: 'test'
+  ...
+# {"backend":"overlay","family":"standard","missing":"test","substitute":"registry_unblock_substitute_test","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: test","callbackEntered":false}
+# Subtest: overlay: cardinality52 missing standard command touch rejects before callback
+ok 129 - overlay: cardinality52 missing standard command touch rejects before callback
+  ---
+  duration_ms: 0.966208
+  type: 'test'
+  ...
+# {"backend":"overlay","family":"standard","missing":"touch","substitute":"registry_unblock_substitute_touch","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: touch","callbackEntered":false}
+# Subtest: overlay: cardinality52 missing standard command xargs rejects before callback
+ok 130 - overlay: cardinality52 missing standard command xargs rejects before callback
+  ---
+  duration_ms: 4.561125
+  type: 'test'
+  ...
+# {"backend":"overlay","family":"standard","missing":"xargs","substitute":"registry_unblock_substitute_xargs","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: xargs","callbackEntered":false}
+# Subtest: overlay: cardinality52 missing text command sed rejects before callback
+ok 131 - overlay: cardinality52 missing text command sed rejects before callback
+  ---
+  duration_ms: 0.85475
+  type: 'test'
+  ...
+# {"backend":"overlay","family":"text","missing":"sed","substitute":"registry_unblock_substitute_sed","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required text command: sed","callbackEntered":false}
+# Subtest: overlay: cardinality52 missing text command awk rejects before callback
+ok 132 - overlay: cardinality52 missing text command awk rejects before callback
+  ---
+  duration_ms: 0.903
+  type: 'test'
+  ...
+# {"backend":"overlay","family":"text","missing":"awk","substitute":"registry_unblock_substitute_awk","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required text command: awk","callbackEntered":false}
+# Subtest: overlay: cardinality52 missing structured command jq rejects before callback
+ok 133 - overlay: cardinality52 missing structured command jq rejects before callback
+  ---
+  duration_ms: 0.820583
+  type: 'test'
+  ...
+# {"backend":"overlay","family":"structured","missing":"jq","substitute":"registry_unblock_substitute_jq","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required structured command: jq","callbackEntered":false}
+# Subtest: overlay: cardinality52 missing search command rg rejects before callback
+ok 134 - overlay: cardinality52 missing search command rg rejects before callback
+  ---
+  duration_ms: 0.841666
+  type: 'test'
+  ...
+# {"backend":"overlay","family":"search","missing":"rg","substitute":"registry_unblock_substitute_rg","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required search command: rg","callbackEntered":false}
+# Subtest: overlay: cardinality52 missing bytes command sha256sum rejects before callback
+ok 135 - overlay: cardinality52 missing bytes command sha256sum rejects before callback
+  ---
+  duration_ms: 0.786917
+  type: 'test'
+  ...
+# {"backend":"overlay","family":"bytes","missing":"sha256sum","substitute":"registry_unblock_substitute_sha256sum","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required bytes command: sha256sum","callbackEntered":false}
+# Subtest: overlay: cardinality52 missing bytes command gzip rejects before callback
+ok 136 - overlay: cardinality52 missing bytes command gzip rejects before callback
+  ---
+  duration_ms: 0.829791
+  type: 'test'
+  ...
+# {"backend":"overlay","family":"bytes","missing":"gzip","substitute":"registry_unblock_substitute_gzip","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required bytes command: gzip","callbackEntered":false}
+# Subtest: overlay: cardinality52 missing diffPatch command diff rejects before callback
+ok 137 - overlay: cardinality52 missing diffPatch command diff rejects before callback
+  ---
+  duration_ms: 0.761833
+  type: 'test'
+  ...
+# {"backend":"overlay","family":"diffPatch","missing":"diff","substitute":"registry_unblock_substitute_diff","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required diffPatch command: diff","callbackEntered":false}
+# Subtest: overlay: cardinality52 missing diffPatch command patch rejects before callback
+ok 138 - overlay: cardinality52 missing diffPatch command patch rejects before callback
+  ---
+  duration_ms: 1.364458
+  type: 'test'
+  ...
+# {"backend":"overlay","family":"diffPatch","missing":"patch","substitute":"registry_unblock_substitute_patch","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required diffPatch command: patch","callbackEntered":false}
+# Subtest: overlay: optional command addition cardinality53 executes real workflows
+ok 139 - overlay: optional command addition cardinality53 executes real workflows
+  ---
+  duration_ms: 13.706209
+  type: 'test'
+  ...
+# {"backend":"overlay","beforeCount":52,"afterCount":53,"callbackEntered":true,"optionalExecuted":true,"dispatched":["registry_unblock_optional","cat","sed","awk","jq","jq","xargs","find","rg","cat","gzip","gzip","diff"]}
+# Subtest: readonly: cardinality52 missing standard command cat rejects before callback
+ok 140 - readonly: cardinality52 missing standard command cat rejects before callback
+  ---
+  duration_ms: 0.328375
+  type: 'test'
+  ...
+# {"backend":"readonly","family":"standard","missing":"cat","substitute":"registry_unblock_substitute_cat","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: cat","callbackEntered":false}
+# Subtest: readonly: cardinality52 missing standard command cp rejects before callback
+ok 141 - readonly: cardinality52 missing standard command cp rejects before callback
+  ---
+  duration_ms: 0.159083
+  type: 'test'
+  ...
+# {"backend":"readonly","family":"standard","missing":"cp","substitute":"registry_unblock_substitute_cp","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: cp","callbackEntered":false}
+# Subtest: readonly: cardinality52 missing standard command find rejects before callback
+ok 142 - readonly: cardinality52 missing standard command find rejects before callback
+  ---
+  duration_ms: 0.14175
+  type: 'test'
+  ...
+# {"backend":"readonly","family":"standard","missing":"find","substitute":"registry_unblock_substitute_find","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: find","callbackEntered":false}
+# Subtest: readonly: cardinality52 missing standard command mkdir rejects before callback
+ok 143 - readonly: cardinality52 missing standard command mkdir rejects before callback
+  ---
+  duration_ms: 0.144666
+  type: 'test'
+  ...
+# {"backend":"readonly","family":"standard","missing":"mkdir","substitute":"registry_unblock_substitute_mkdir","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: mkdir","callbackEntered":false}
+# Subtest: readonly: cardinality52 missing standard command mv rejects before callback
+ok 144 - readonly: cardinality52 missing standard command mv rejects before callback
+  ---
+  duration_ms: 0.129708
+  type: 'test'
+  ...
+# {"backend":"readonly","family":"standard","missing":"mv","substitute":"registry_unblock_substitute_mv","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: mv","callbackEntered":false}
+# Subtest: readonly: cardinality52 missing standard command printf rejects before callback
+ok 145 - readonly: cardinality52 missing standard command printf rejects before callback
+  ---
+  duration_ms: 0.126208
+  type: 'test'
+  ...
+# {"backend":"readonly","family":"standard","missing":"printf","substitute":"registry_unblock_substitute_printf","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: printf","callbackEntered":false}
+# Subtest: readonly: cardinality52 missing standard command pwd rejects before callback
+ok 146 - readonly: cardinality52 missing standard command pwd rejects before callback
+  ---
+  duration_ms: 0.129333
+  type: 'test'
+  ...
+# {"backend":"readonly","family":"standard","missing":"pwd","substitute":"registry_unblock_substitute_pwd","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: pwd","callbackEntered":false}
+# Subtest: readonly: cardinality52 missing standard command rm rejects before callback
+ok 147 - readonly: cardinality52 missing standard command rm rejects before callback
+  ---
+  duration_ms: 0.124584
+  type: 'test'
+  ...
+# {"backend":"readonly","family":"standard","missing":"rm","substitute":"registry_unblock_substitute_rm","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: rm","callbackEntered":false}
+# Subtest: readonly: cardinality52 missing standard command rmdir rejects before callback
+ok 148 - readonly: cardinality52 missing standard command rmdir rejects before callback
+  ---
+  duration_ms: 0.123167
+  type: 'test'
+  ...
+# {"backend":"readonly","family":"standard","missing":"rmdir","substitute":"registry_unblock_substitute_rmdir","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: rmdir","callbackEntered":false}
+# Subtest: readonly: cardinality52 missing standard command sort rejects before callback
+ok 149 - readonly: cardinality52 missing standard command sort rejects before callback
+  ---
+  duration_ms: 0.132459
+  type: 'test'
+  ...
+# {"backend":"readonly","family":"standard","missing":"sort","substitute":"registry_unblock_substitute_sort","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: sort","callbackEntered":false}
+# Subtest: readonly: cardinality52 missing standard command tee rejects before callback
+ok 150 - readonly: cardinality52 missing standard command tee rejects before callback
+  ---
+  duration_ms: 0.122625
+  type: 'test'
+  ...
+# {"backend":"readonly","family":"standard","missing":"tee","substitute":"registry_unblock_substitute_tee","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: tee","callbackEntered":false}
+# Subtest: readonly: cardinality52 missing standard command test rejects before callback
+ok 151 - readonly: cardinality52 missing standard command test rejects before callback
+  ---
+  duration_ms: 0.122917
+  type: 'test'
+  ...
+# {"backend":"readonly","family":"standard","missing":"test","substitute":"registry_unblock_substitute_test","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: test","callbackEntered":false}
+# Subtest: readonly: cardinality52 missing standard command touch rejects before callback
+ok 152 - readonly: cardinality52 missing standard command touch rejects before callback
+  ---
+  duration_ms: 0.122459
+  type: 'test'
+  ...
+# {"backend":"readonly","family":"standard","missing":"touch","substitute":"registry_unblock_substitute_touch","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: touch","callbackEntered":false}
+# Subtest: readonly: cardinality52 missing standard command xargs rejects before callback
+ok 153 - readonly: cardinality52 missing standard command xargs rejects before callback
+  ---
+  duration_ms: 0.119875
+  type: 'test'
+  ...
+# {"backend":"readonly","family":"standard","missing":"xargs","substitute":"registry_unblock_substitute_xargs","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required standard command: xargs","callbackEntered":false}
+# Subtest: readonly: cardinality52 missing text command sed rejects before callback
+ok 154 - readonly: cardinality52 missing text command sed rejects before callback
+  ---
+  duration_ms: 0.119458
+  type: 'test'
+  ...
+# {"backend":"readonly","family":"text","missing":"sed","substitute":"registry_unblock_substitute_sed","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required text command: sed","callbackEntered":false}
+# Subtest: readonly: cardinality52 missing text command awk rejects before callback
+ok 155 - readonly: cardinality52 missing text command awk rejects before callback
+  ---
+  duration_ms: 0.119917
+  type: 'test'
+  ...
+# {"backend":"readonly","family":"text","missing":"awk","substitute":"registry_unblock_substitute_awk","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required text command: awk","callbackEntered":false}
+# Subtest: readonly: cardinality52 missing structured command jq rejects before callback
+ok 156 - readonly: cardinality52 missing structured command jq rejects before callback
+  ---
+  duration_ms: 0.120666
+  type: 'test'
+  ...
+# {"backend":"readonly","family":"structured","missing":"jq","substitute":"registry_unblock_substitute_jq","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required structured command: jq","callbackEntered":false}
+# Subtest: readonly: cardinality52 missing search command rg rejects before callback
+ok 157 - readonly: cardinality52 missing search command rg rejects before callback
+  ---
+  duration_ms: 0.121875
+  type: 'test'
+  ...
+# {"backend":"readonly","family":"search","missing":"rg","substitute":"registry_unblock_substitute_rg","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required search command: rg","callbackEntered":false}
+# Subtest: readonly: cardinality52 missing bytes command sha256sum rejects before callback
+ok 158 - readonly: cardinality52 missing bytes command sha256sum rejects before callback
+  ---
+  duration_ms: 0.119042
+  type: 'test'
+  ...
+# {"backend":"readonly","family":"bytes","missing":"sha256sum","substitute":"registry_unblock_substitute_sha256sum","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required bytes command: sha256sum","callbackEntered":false}
+# Subtest: readonly: cardinality52 missing bytes command gzip rejects before callback
+ok 159 - readonly: cardinality52 missing bytes command gzip rejects before callback
+  ---
+  duration_ms: 0.118333
+  type: 'test'
+  ...
+# {"backend":"readonly","family":"bytes","missing":"gzip","substitute":"registry_unblock_substitute_gzip","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required bytes command: gzip","callbackEntered":false}
+# Subtest: readonly: cardinality52 missing diffPatch command diff rejects before callback
+ok 160 - readonly: cardinality52 missing diffPatch command diff rejects before callback
+  ---
+  duration_ms: 0.131917
+  type: 'test'
+  ...
+# {"backend":"readonly","family":"diffPatch","missing":"diff","substitute":"registry_unblock_substitute_diff","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required diffPatch command: diff","callbackEntered":false}
+# Subtest: readonly: cardinality52 missing diffPatch command patch rejects before callback
+ok 161 - readonly: cardinality52 missing diffPatch command patch rejects before callback
+  ---
+  duration_ms: 0.118875
+  type: 'test'
+  ...
+# {"backend":"readonly","family":"diffPatch","missing":"patch","substitute":"registry_unblock_substitute_patch","beforeCount":52,"afterCount":52,"observed":"adapter-tools preflight: missing required diffPatch command: patch","callbackEntered":false}
+# Subtest: readonly: optional command addition cardinality53 executes real workflows
+ok 162 - readonly: optional command addition cardinality53 executes real workflows
+  ---
+  duration_ms: 3.67425
+  type: 'test'
+  ...
+# {"backend":"readonly","beforeCount":52,"afterCount":53,"callbackEntered":true,"optionalExecuted":true,"dispatched":["registry_unblock_optional","cat","sed","awk","jq","jq","xargs","find","rg","cat","gzip","gzip","diff"]}
+1..162
+# tests 162
+# suites 0
+# pass 162
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1163.990292

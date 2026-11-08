@@ -1,0 +1,12 @@
+{
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--test",
+    "consumer-out/consumer.test.mjs"
+  ],
+  "start": "2026-08-27T03:07:02.002Z",
+  "end": "2026-08-27T03:07:02.253Z",
+  "status": 0,
+  "signal": null
+}

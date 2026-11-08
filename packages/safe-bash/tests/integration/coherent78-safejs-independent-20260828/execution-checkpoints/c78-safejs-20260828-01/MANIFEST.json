@@ -1,0 +1,62 @@
+{
+  "schema": "coherent78-safejs-one-shot-checkpoint-manifest-v1",
+  "date": "2026-08-28",
+  "root": "tests/integration/coherent78-safejs-independent-20260828",
+  "grantCommit": "5b4649ddd643a631b7c92b1520a415baa35200be",
+  "executionRevision": "6d7159e35a1cd92b0ede967d3fe428d54a74d4bd",
+  "executionManifestSha256": "0ffa1480e60780534394fab152a870873b37e46dab687013362f79ee5249c44e",
+  "runId": "c78-safejs-20260828-01",
+  "files": [
+    {
+      "path": "authorizations/c78-safejs-20260828-01/ROOT-GO.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 4443,
+      "sha256": "ab9420d9082947f7ff598bae58119cc2abe194ce2a707d56fd998b53c5d4c099",
+      "classification": "immutable prior-commit root authorization data"
+    },
+    {
+      "path": "execution-checkpoints/c78-safejs-20260828-01/LAUNCH.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 2967,
+      "sha256": "fef7cbc767724fee038ea9549aa5adf10828667846813811b0271e2f7f745cc9",
+      "classification": "authored tool launch receipt and time qualifications; data only"
+    },
+    {
+      "path": "execution-checkpoints/c78-safejs-20260828-01/AUTHENTICATION.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 11984,
+      "sha256": "721ea004d64de5331f844b694c7006dc09cc1775257d89429c72d628d0f8f6f4",
+      "classification": "post-run data authentication and bounded scoped conclusions"
+    },
+    {
+      "path": "execution-checkpoints/c78-safejs-20260828-01/REPORT.md",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 4040,
+      "sha256": "6e222230b41cfc7d571c2bef381f182c45253660de796efc28ce1f41774ee113",
+      "classification": "bounded execution checkpoint report"
+    },
+    {
+      "path": "executor-preparation-v1/runs/c78-safejs-20260828-01/RESULT.json.gz.base64",
+      "mode": 384,
+      "gitMode": "100644",
+      "bytes": 605437,
+      "sha256": "37d7c5437ffcbbad2af95074a755de071851a2384afbf0cf5134381e6f0c3336",
+      "classification": "unaltered supervisor-generated gzip/base64 JSON evidence; embedded captures/load traces/receipts are data, not discovery inputs"
+    },
+    {
+      "path": "executor-preparation-v1/runs/c78-safejs-20260828-01/CLOSURE.json",
+      "mode": 384,
+      "gitMode": "100644",
+      "bytes": 1008,
+      "sha256": "7b2aa3192f64cccc96d435e7c9d5ae51caf639e8c89395756787ca9f4793e0c7",
+      "classification": "unaltered supervisor-generated archive/cleanup/final-guard receipt"
+    }
+  ],
+  "classification": "All new checkpoint paths are explicitly classified evidence/report data; no auto-discovery executable files. This manifest excludes itself to avoid circular hashing; its containing commit and externally reported SHA seal it.",
+  "continuationAuthorized": false,
+  "originalArtifactsChanged": false
+}

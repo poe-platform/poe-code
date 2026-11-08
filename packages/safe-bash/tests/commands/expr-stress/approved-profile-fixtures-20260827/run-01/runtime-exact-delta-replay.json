@@ -1,0 +1,20 @@
+{
+  "identicalResultTuplesAll12": true,
+  "omittedFromEquality": [
+    "imports: cached imports differ on sequential replay"
+  ],
+  "acceptanceDeltaOnly": "syntax-output-one",
+  "original": {
+    "passed": 11,
+    "total": 12,
+    "red": [
+      "syntax-output-one"
+    ]
+  },
+  "version2": {
+    "passed": 12,
+    "total": 12,
+    "red": []
+  },
+  "limitation": "Sequential in-process replay of the unchanged driver, bounded by the outer command watchdog. Not new per-case isolation or universal lifecycle proof."
+}

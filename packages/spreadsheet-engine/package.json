@@ -1,0 +1,131 @@
+{
+  "name": "@poe-code/spreadsheet-engine",
+  "version": "0.0.1",
+  "private": true,
+  "license": "GPL-2.0-or-later",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "import": "./dist/*.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md",
+    "src/encoding/tables.ts",
+    "src/encoding/transliteration-tables.ts",
+    "src/encoding/target-transliteration-tables.ts",
+    "src/encoding/ucs2-transliteration-tables.ts",
+    "src/formulas/functions/byte-case.ts",
+    "src/formulas/functions/byte-trim.ts",
+    "src/formulas/functions/byte-case-properties.ts",
+    "src/formulas/functions/captured-acos.ts",
+    "src/formulas/functions/captured-acos-profile.ts",
+    "src/formulas/functions/captured-pow.ts",
+    "src/formulas/functions/captured-pow-profile.ts",
+    "src/encoding/NOTICE.md",
+    "src/encoding/LGPL-2.1.txt",
+    "src/formulas/functions/byte-case-NOTICE.md",
+    "src/formulas/functions/captured-acos-NOTICE.md",
+    "src/formulas/functions/captured-pow-NOTICE.md",
+    "src/formulas/functions/captured-log.ts",
+    "src/formulas/functions/captured-log-profile.ts",
+    "src/formulas/functions/captured-log-NOTICE.md",
+    "src/formulas/functions/captured-bessel-transition.ts",
+    "src/formulas/functions/captured-bessel-transition-NOTICE.md",
+    "src/formulas/functions/captured-cbrt.ts",
+    "src/formulas/functions/captured-bessel-series.ts",
+    "src/formulas/functions/captured-quad.ts",
+    "src/rendering/print/NOTICE.md",
+    "src/rendering/print/font-normalization-NOTICE.md",
+    "src/rendering/print/font-normalization.ts",
+    "src/rendering/print/font-normalization-data.ts",
+    "src/rendering/print/harfbuzz",
+    "scripts/harfbuzz",
+    "src/rendering/images/NOTICE.md"
+  ],
+  "scripts": {
+    "build": "node scripts/harfbuzz/verify.mjs && node ../../scripts/guard-package-dist.mjs && tsc",
+    "test": "node --test scripts/harfbuzz/verify.test.mjs && cd ../.. && vitest run packages/spreadsheet-engine",
+    "test:unit": "cd ../.. && vitest run packages/spreadsheet-engine",
+    "lint": "node scripts/harfbuzz/verify.mjs && eslint src && tsc --noEmit && tsc -p tsconfig.test.json"
+  },
+  "dependencies": {
+    "@poe-code/spreadsheet-ast": "*",
+    "@poe-code/safe-fs": "*",
+    "@poe-code/image-ast": "*",
+    "linebreak": "^1.1.0",
+    "bidi-js": "1.1.0"
+  },
+  "poeCode": {
+    "safeLibraryExports": {
+      "safe-bash": {
+        "./ssconvert/core": "."
+      }
+    },
+    "safeLibraryNotices": {
+      "safe-bash": [
+        "./LICENSE",
+        "./src/encoding/tables.ts",
+        "./src/encoding/transliteration-tables.ts",
+        "./src/encoding/target-transliteration-tables.ts",
+        "./src/encoding/ucs2-transliteration-tables.ts",
+        "./src/formulas/functions/byte-case.ts",
+        "./src/formulas/functions/byte-trim.ts",
+        "./src/formulas/functions/byte-case-properties.ts",
+        "./src/formulas/functions/captured-acos.ts",
+        "./src/formulas/functions/captured-acos-profile.ts",
+        "./src/formulas/functions/captured-pow.ts",
+        "./src/formulas/functions/captured-pow-profile.ts",
+        "./src/encoding/NOTICE.md",
+        "./src/encoding/LGPL-2.1.txt",
+        "./src/formulas/functions/byte-case-NOTICE.md",
+        "./src/formulas/functions/timezones-NOTICE.md",
+        "./src/formulas/functions/captured-acos-NOTICE.md",
+        "./src/formulas/functions/captured-pow-NOTICE.md",
+        "./src/formulas/functions/captured-log.ts",
+        "./src/formulas/functions/captured-log-profile.ts",
+        "./src/formulas/functions/captured-log-NOTICE.md",
+        "./src/formulas/functions/captured-bessel-transition.ts",
+        "./src/formulas/functions/captured-bessel-transition-NOTICE.md",
+        "./src/formulas/functions/captured-cbrt.ts",
+        "./src/formulas/functions/captured-bessel-series.ts",
+        "./src/formulas/functions/captured-quad.ts",
+        "./src/rendering/print/NOTICE.md",
+        "./src/rendering/print/font-normalization-NOTICE.md",
+        "./src/rendering/print/font-normalization.ts",
+        "./src/rendering/print/font-normalization-data.ts",
+        "./src/rendering/print/harfbuzz/HARFBUZZ-LICENSE.txt",
+        "./src/rendering/print/harfbuzz/data.ts",
+        "./src/rendering/print/harfbuzz/LIBCXX-LICENSE.txt",
+        "./src/rendering/print/harfbuzz/EMSCRIPTEN-LICENSE.txt",
+        "./src/rendering/print/harfbuzz/LIBCXXABI-LICENSE.txt",
+        "./src/rendering/print/harfbuzz/NOTICE.md",
+        "./src/rendering/print/harfbuzz/MUSL-LICENSE.txt",
+        "./scripts/harfbuzz/sources.json",
+        "./scripts/harfbuzz/allocator.cc",
+        "./scripts/harfbuzz/config-override.h",
+        "./scripts/harfbuzz/verify.test.mjs",
+        "./scripts/harfbuzz/verify.d.mts",
+        "./scripts/harfbuzz/exports.json",
+        "./scripts/harfbuzz/verify.mjs",
+        "./scripts/harfbuzz/README.md",
+        "./scripts/harfbuzz/build.mjs",
+        "./scripts/harfbuzz/completion.patch",
+        "./src/rendering/images/NOTICE.md"
+      ]
+    }
+  },
+  "devDependencies": {
+    "@pdf-lib/fontkit": "1.1.1",
+    "jpeg-js": "0.4.4"
+  }
+}

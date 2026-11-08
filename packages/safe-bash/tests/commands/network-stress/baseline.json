@@ -1,0 +1,3068 @@
+{
+  "schema": 1,
+  "mode": "baseline",
+  "revision": "deab14d9f4b3b6f0d73f96587c74a9de23091300",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "tests/commands/network-stress/watchdog.mjs",
+    "product"
+  ],
+  "environment": {
+    "CURL_VERIFY_AFTER_HANDOFF": "deab14d9f4b3b6f0d73f96587c74a9de23091300",
+    "strictUnhandledRejections": true
+  },
+  "before": {
+    "at": "2026-08-26T22:42:34.720Z",
+    "head": "b98e239374ccdb53860c88f41b06a4bc977ecc1d",
+    "status": "M src/fs/real/index.ts\n M tests/commands/safejs-stress/README.md\n M tests/commands/safejs-stress/UPSTREAM_PATCH_PROPOSAL.md\n?? docs/upstream-patches/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/diff-patch-stress/gnu-followup-checkpoint/\n?? tests/commands/network-stress/capture.mjs\n?? tests/commands/network-stress/handoff.json\n?? tests/commands/safejs-stress/action-abort.child.mjs\n?? tests/commands/safejs-stress/action-abort.probe.ts\n?? tests/commands/safejs-stress/artifact-guards.probe.mjs\n?? tests/commands/safejs-stress/import-proof.mjs\n?? tests/commands/safejs-stress/promise-observation.child.mjs\n?? tests/commands/safejs-stress/reason-contract.probe.mjs\n?? tests/commands/safejs-stress/wrapper-invariants.probe.mjs\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/fs/mount-identity-review/\n?? tests/fs/mount/evidence/\n?? tests/fs/real/copy-identity.test.ts\n?? tests/stress/remote-cancellation/handoff-loader.mjs\n?? tests/stress/remote-cancellation/handoff-register.mjs\n?? tests/stress/remote-cancellation/handoff-supplement.test.ts\n?? tests/stress/remote-cancellation/handoff-tsconfig.json",
+    "hashes": {
+      "package.json": "4ea795b3bcd32078f38f67f73f8c2b66ae2c3b4d4a6eb6cf1c312ddd6f039864",
+      "src/commands/network/README.md": "4870f246647cbfd3f99c3131d4f0772124ed7b4dee9ba72ad83203143174bfd7",
+      "src/commands/network/args.ts": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c",
+      "src/commands/network/body.ts": "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf",
+      "src/commands/network/curl.ts": "eb3683ae45b3f236e1929ddd67398baa8df5a901d4a0275df793b4dbb3e8236d",
+      "src/commands/network/index.ts": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329",
+      "src/commands/network/output.ts": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab",
+      "src/commands/network/shared.ts": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f",
+      "src/commands/network/transport.ts": "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844",
+      "src/commands/network/types.ts": "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9",
+      "src/contracts/command.ts": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+      "src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "src/contracts/filesystem.ts": "7c63db5052a28014ac185f86e6b97d2c3ef00ce61b80638baa850a6933f57457",
+      "src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+      "src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+      "src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "src/fs/memory/index.ts": "21d4a366e3840d0d3c9e67b8a433cc0be341f7350b075fd6668aa4ad9a32d3fd",
+      "src/fs/mount/README.md": "daa3c8f88bb48fed07353e024baedfef27ea9756185fca8f519565b2bea63164",
+      "src/fs/mount/index.ts": "539f22e42f7505aaa20fa643ebeecf1a5b7a1e21f1fb2596fbd7e8fa2d7ae5e0",
+      "src/fs/overlay/README.md": "94fd398658d58d1ce203a8e69d84581967a091125a23f433f177cc6190472610",
+      "src/fs/overlay/index.ts": "2b91569d7f35380722cc3b9c8c15ba36e8e036ed9534632e7715d945288135f4",
+      "src/fs/readonly/README.md": "27f1f095cdd39665d87bd0d6302c467710c5334c36489894f85d581a758a06b7",
+      "src/fs/readonly/index.ts": "5caf8deac8569444eb6e3e922f063b2ca4577d472329eacb3ec58ee501393dbc",
+      "src/fs/real/index.ts": "e66269d176522093f110a4bb90592dec38b9b80c277d2475fa20075f779d24cf",
+      "src/fs/s3/README.md": "e1ce290a69282e12a1ab293d18e190e405dcc98229dda7f5291d564b01646cb4",
+      "src/fs/s3/filesystem.ts": "4fa05c3868c16ac9c2c309f760b46aa0fc9f211674a5dc3b179992f3e9eaf34f",
+      "src/fs/s3/index.ts": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+      "src/fs/s3/mock.ts": "d2356f3917fed36524bf1d944b67af70e3f19b0956064b306e8680b974bf8b6d",
+      "src/fs/s3/transport.ts": "df60945a4cd9e9416fe0fdd054460c16bab058d81831ce6526b9a88a0e150d8e",
+      "src/fs/webdav/PRODUCTION_CHECKPOINT.md": "ee00578d845be249d82cef70c999df1c92e30d1c5498d2da3a8e3191d5e1f6f2",
+      "src/fs/webdav/README.md": "7c957ec51b452f6725089cfcf2d3dcab4525a3caffa396a3a9d4ff5658f1786d",
+      "src/fs/webdav/index.ts": "9a19fb0e61bf9ef07d97881bb93e30ba21491e580ef5e58ab0e80bb5f398d5e4",
+      "src/fs/webdav/webdav.ts": "e63f010b99184df94c44f49fcbd52e84cc0d3137821637d030dee9651f60dd16",
+      "src/fs/webdav/xml.ts": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+      "src/index.ts": "d33bf4a8e89cf225ed47ba6d028a5aa7a879ec6c1399762534b05c7b40dc2f16",
+      "src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "src/shell/input.ts": "c7492bb41555d865a0dcda9e3c7e8b2b3f5c5a1e73dc6e1bdb9b3fe6e7ed9a6d",
+      "src/shell/locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "src/shell/parser.ts": "73749cb5af6b6affe91014153aa4a6358bc8441807e8ad47fe09f74927c8c7b0",
+      "src/shell/pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "src/shell/runtime.ts": "0d4f6fd7c56702dd585d6838278d5b0184288446f95ee9cf5392acf8ee22e60d",
+      "src/shell/shell.ts": "ea1ae9136b6b5d2062a69c4307d6e31b6d4aada3947418c0e3dad66b13fcd127",
+      "src/shell/types.ts": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874",
+      "tests/commands/network-stress/capture.mjs": "8a8d5c318a73cef92d6157ed724a604fcdff74f8e8c8a60ab00802c505b8764b",
+      "tests/commands/network-stress/evidence.ts": "b8503c2457a2903320e415d90677e3480fe3632538ae87f6fd91fba2e2bd9b61",
+      "tests/commands/network-stress/freeze.ts": "1fc80c4cacd51b2d67d951e122dd2406fe44eb5a3bb515ab342985344e2a2ae3",
+      "tests/commands/network-stress/handoff.json": "b0e3c57ed75bfb86b3097670292486b39cfd5220ab09f999efce12669ef90e68",
+      "tests/commands/network-stress/lab.ts": "74b2220af6ff9e49c88bce83f8f6b56569b83f72f790ee9cf492c16995a8399d",
+      "tests/commands/network-stress/native.ts": "01d5293ba56dab50d55983c9dac5b90e0f83cf128922a4ddded17674d6e78129",
+      "tests/commands/network-stress/oracle.json": "b1b51398c3fb51a275ffb8f5d344c2c105fb077719674e44f297e7d66cdc21d7",
+      "tests/commands/network-stress/oracle.test.ts": "590100c6b0e53ad1e8cffd1c931f62b2811a615cd893f56dd15f5e5b1b283e82",
+      "tests/commands/network-stress/product.ts": "02edbaa26c2a110af1195c3354d2d4112ccbcc0ac3d6f3d3182c76f3ca068d42",
+      "tests/commands/network-stress/rows.ts": "cae8a192fcfdf83d8f0b75ae7da516358eb6383c22aeabf1be90d70f617066e0",
+      "tests/commands/network-stress/transport.ts": "4384942fa9259718176ce981d83b7e6087cdade502de2dba120005da1cc17a69",
+      "tests/commands/network-stress/watchdog.mjs": "6a1643ba79904041e638a958536cc5fc9ad8096c8c02dab00594adec9c70bda1"
+    },
+    "networkDigest": "46a75e15c8e63054dac33d79be354eaf9a12bb3be96390c5f610519a065cfdc3",
+    "networkMatchesHandoff": true
+  },
+  "after": {
+    "at": "2026-08-26T22:42:39.137Z",
+    "head": "b98e239374ccdb53860c88f41b06a4bc977ecc1d",
+    "status": "M src/fs/real/index.ts\n M tests/commands/safejs-stress/README.md\n M tests/commands/safejs-stress/UPSTREAM_PATCH_PROPOSAL.md\n?? docs/upstream-patches/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/diff-patch-stress/gnu-followup-checkpoint/\n?? tests/commands/network-stress/capture.mjs\n?? tests/commands/network-stress/handoff.json\n?? tests/commands/safejs-stress/action-abort.child.mjs\n?? tests/commands/safejs-stress/action-abort.probe.ts\n?? tests/commands/safejs-stress/artifact-guards.probe.mjs\n?? tests/commands/safejs-stress/import-proof.mjs\n?? tests/commands/safejs-stress/promise-observation.child.mjs\n?? tests/commands/safejs-stress/reason-contract.probe.mjs\n?? tests/commands/safejs-stress/wrapper-invariants.probe.mjs\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/fs/mount-identity-review/\n?? tests/fs/mount/copy-identity-guards.test.ts\n?? tests/fs/mount/evidence/\n?? tests/fs/real/copy-identity.test.ts\n?? tests/stress/remote-cancellation/handoff-loader.mjs\n?? tests/stress/remote-cancellation/handoff-register.mjs\n?? tests/stress/remote-cancellation/handoff-supplement.test.ts\n?? tests/stress/remote-cancellation/handoff-tsconfig.json",
+    "hashes": {
+      "package.json": "4ea795b3bcd32078f38f67f73f8c2b66ae2c3b4d4a6eb6cf1c312ddd6f039864",
+      "src/commands/network/README.md": "4870f246647cbfd3f99c3131d4f0772124ed7b4dee9ba72ad83203143174bfd7",
+      "src/commands/network/args.ts": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c",
+      "src/commands/network/body.ts": "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf",
+      "src/commands/network/curl.ts": "eb3683ae45b3f236e1929ddd67398baa8df5a901d4a0275df793b4dbb3e8236d",
+      "src/commands/network/index.ts": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329",
+      "src/commands/network/output.ts": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab",
+      "src/commands/network/shared.ts": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f",
+      "src/commands/network/transport.ts": "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844",
+      "src/commands/network/types.ts": "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9",
+      "src/contracts/command.ts": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+      "src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "src/contracts/filesystem.ts": "7c63db5052a28014ac185f86e6b97d2c3ef00ce61b80638baa850a6933f57457",
+      "src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+      "src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+      "src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "src/fs/memory/index.ts": "21d4a366e3840d0d3c9e67b8a433cc0be341f7350b075fd6668aa4ad9a32d3fd",
+      "src/fs/mount/README.md": "daa3c8f88bb48fed07353e024baedfef27ea9756185fca8f519565b2bea63164",
+      "src/fs/mount/index.ts": "539f22e42f7505aaa20fa643ebeecf1a5b7a1e21f1fb2596fbd7e8fa2d7ae5e0",
+      "src/fs/overlay/README.md": "94fd398658d58d1ce203a8e69d84581967a091125a23f433f177cc6190472610",
+      "src/fs/overlay/index.ts": "2b91569d7f35380722cc3b9c8c15ba36e8e036ed9534632e7715d945288135f4",
+      "src/fs/readonly/README.md": "27f1f095cdd39665d87bd0d6302c467710c5334c36489894f85d581a758a06b7",
+      "src/fs/readonly/index.ts": "5caf8deac8569444eb6e3e922f063b2ca4577d472329eacb3ec58ee501393dbc",
+      "src/fs/real/index.ts": "e66269d176522093f110a4bb90592dec38b9b80c277d2475fa20075f779d24cf",
+      "src/fs/s3/README.md": "e1ce290a69282e12a1ab293d18e190e405dcc98229dda7f5291d564b01646cb4",
+      "src/fs/s3/filesystem.ts": "4fa05c3868c16ac9c2c309f760b46aa0fc9f211674a5dc3b179992f3e9eaf34f",
+      "src/fs/s3/index.ts": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+      "src/fs/s3/mock.ts": "d2356f3917fed36524bf1d944b67af70e3f19b0956064b306e8680b974bf8b6d",
+      "src/fs/s3/transport.ts": "df60945a4cd9e9416fe0fdd054460c16bab058d81831ce6526b9a88a0e150d8e",
+      "src/fs/webdav/PRODUCTION_CHECKPOINT.md": "ee00578d845be249d82cef70c999df1c92e30d1c5498d2da3a8e3191d5e1f6f2",
+      "src/fs/webdav/README.md": "7c957ec51b452f6725089cfcf2d3dcab4525a3caffa396a3a9d4ff5658f1786d",
+      "src/fs/webdav/index.ts": "9a19fb0e61bf9ef07d97881bb93e30ba21491e580ef5e58ab0e80bb5f398d5e4",
+      "src/fs/webdav/webdav.ts": "e63f010b99184df94c44f49fcbd52e84cc0d3137821637d030dee9651f60dd16",
+      "src/fs/webdav/xml.ts": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+      "src/index.ts": "d33bf4a8e89cf225ed47ba6d028a5aa7a879ec6c1399762534b05c7b40dc2f16",
+      "src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "src/shell/input.ts": "c7492bb41555d865a0dcda9e3c7e8b2b3f5c5a1e73dc6e1bdb9b3fe6e7ed9a6d",
+      "src/shell/locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "src/shell/parser.ts": "73749cb5af6b6affe91014153aa4a6358bc8441807e8ad47fe09f74927c8c7b0",
+      "src/shell/pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "src/shell/runtime.ts": "0d4f6fd7c56702dd585d6838278d5b0184288446f95ee9cf5392acf8ee22e60d",
+      "src/shell/shell.ts": "ea1ae9136b6b5d2062a69c4307d6e31b6d4aada3947418c0e3dad66b13fcd127",
+      "src/shell/types.ts": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874",
+      "tests/commands/network-stress/capture.mjs": "8a8d5c318a73cef92d6157ed724a604fcdff74f8e8c8a60ab00802c505b8764b",
+      "tests/commands/network-stress/evidence.ts": "b8503c2457a2903320e415d90677e3480fe3632538ae87f6fd91fba2e2bd9b61",
+      "tests/commands/network-stress/freeze.ts": "1fc80c4cacd51b2d67d951e122dd2406fe44eb5a3bb515ab342985344e2a2ae3",
+      "tests/commands/network-stress/handoff.json": "b0e3c57ed75bfb86b3097670292486b39cfd5220ab09f999efce12669ef90e68",
+      "tests/commands/network-stress/lab.ts": "74b2220af6ff9e49c88bce83f8f6b56569b83f72f790ee9cf492c16995a8399d",
+      "tests/commands/network-stress/native.ts": "01d5293ba56dab50d55983c9dac5b90e0f83cf128922a4ddded17674d6e78129",
+      "tests/commands/network-stress/oracle.json": "b1b51398c3fb51a275ffb8f5d344c2c105fb077719674e44f297e7d66cdc21d7",
+      "tests/commands/network-stress/oracle.test.ts": "590100c6b0e53ad1e8cffd1c931f62b2811a615cd893f56dd15f5e5b1b283e82",
+      "tests/commands/network-stress/product.ts": "02edbaa26c2a110af1195c3354d2d4112ccbcc0ac3d6f3d3182c76f3ca068d42",
+      "tests/commands/network-stress/rows.ts": "cae8a192fcfdf83d8f0b75ae7da516358eb6383c22aeabf1be90d70f617066e0",
+      "tests/commands/network-stress/transport.ts": "4384942fa9259718176ce981d83b7e6087cdade502de2dba120005da1cc17a69",
+      "tests/commands/network-stress/watchdog.mjs": "6a1643ba79904041e638a958536cc5fc9ad8096c8c02dab00594adec9c70bda1"
+    },
+    "networkDigest": "46a75e15c8e63054dac33d79be354eaf9a12bb3be96390c5f610519a065cfdc3",
+    "networkMatchesHandoff": true
+  },
+  "changes": [],
+  "networkStable": true,
+  "exit": {
+    "code": 1,
+    "signal": null
+  },
+  "stdout": "{\"id\":\"get\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '{A}/echo' | cat\",\"code\":0,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"}],\"authorized\":[{\"url\":\"{A}/echo\",\"method\":\"GET\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/echo\",\"method\":\"GET\",\"aborted\":true}],\"elapsedMs\":16,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"head-method\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '-I' '{A}/bytes' | cat\",\"code\":0,\"stdout\":\"SFRUUC8xLjEgMjAwIE9LDQpDb250ZW50LUxlbmd0aDogOQ0KQ29udGVudC1UeXBlOiBhcHBsaWNhdGlvbi9vY3RldC1zdHJlYW0NClgtRml4dHVyZTogaW5kZXBlbmRlbnQtY3VybC12MQ0KQ29ubmVjdGlvbjogY2xvc2UNCg0K\",\"stderr\":\"\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"HEAD\",\"path\":\"/bytes\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"}],\"authorized\":[{\"url\":\"{A}/bytes\",\"method\":\"HEAD\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/bytes\",\"method\":\"HEAD\",\"aborted\":true}],\"elapsedMs\":3,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"include-headers\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '-i' '{A}/bytes' | cat\",\"code\":0,\"stdout\":\"SFRUUC8xLjEgMjAwIE9LDQpDb250ZW50LUxlbmd0aDogOQ0KQ29udGVudC1UeXBlOiBhcHBsaWNhdGlvbi9vY3RldC1zdHJlYW0NClgtRml4dHVyZTogaW5kZXBlbmRlbnQtY3VybC12MQ0KQ29ubmVjdGlvbjogY2xvc2UNCg0KAP/+QQ0KgABC\",\"stderr\":\"\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/bytes\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"}],\"authorized\":[{\"url\":\"{A}/bytes\",\"method\":\"GET\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/bytes\",\"method\":\"GET\",\"aborted\":true}],\"elapsedMs\":2,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"dump-headers\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '-D' 'headers.out' '{A}/bytes' | cat\",\"code\":0,\"stdout\":\"AP/+QQ0KgABC\",\"stderr\":\"\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"headers.out\":\"SFRUUC8xLjEgMjAwIE9LDQpDb250ZW50LUxlbmd0aDogOQ0KQ29udGVudC1UeXBlOiBhcHBsaWNhdGlvbi9vY3RldC1zdHJlYW0NClgtRml4dHVyZTogaW5kZXBlbmRlbnQtY3VybC12MQ0KQ29ubmVjdGlvbjogY2xvc2UNCg0K\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/bytes\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"}],\"authorized\":[{\"url\":\"{A}/bytes\",\"method\":\"GET\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/bytes\",\"method\":\"GET\",\"aborted\":true}],\"elapsedMs\":2,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"method-before-body\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '-X' 'PATCH' '-d' 'a=1' '{A}/echo' | cat\",\"code\":0,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"PATCH\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"],[\"content-type\",\"application/x-www-form-urlencoded\"]],\"body\":\"YT0x\"}],\"authorized\":[{\"url\":\"{A}/echo\",\"method\":\"PATCH\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/echo\",\"method\":\"PATCH\",\"aborted\":true}],\"elapsedMs\":7,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"body-before-method\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '-d' 'a=1' '-X' 'PUT' '{A}/echo' | cat\",\"code\":0,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"PUT\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"],[\"content-type\",\"application/x-www-form-urlencoded\"]],\"body\":\"YT0x\"}],\"authorized\":[{\"url\":\"{A}/echo\",\"method\":\"PUT\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/echo\",\"method\":\"PUT\",\"aborted\":true}],\"elapsedMs\":1,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"repeated-body\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '-d' 'a=1' '-d' 'b=2' '{A}/echo' | cat\",\"code\":0,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"POST\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"],[\"content-type\",\"application/x-www-form-urlencoded\"]],\"body\":\"YT0xJmI9Mg==\"}],\"authorized\":[{\"url\":\"{A}/echo\",\"method\":\"POST\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/echo\",\"method\":\"POST\",\"aborted\":true}],\"elapsedMs\":2,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"raw-at-literal\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '--data-raw' '@missing' '{A}/echo' | cat\",\"code\":0,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"POST\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"],[\"content-type\",\"application/x-www-form-urlencoded\"]],\"body\":\"QG1pc3Npbmc=\"}],\"authorized\":[{\"url\":\"{A}/echo\",\"method\":\"POST\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/echo\",\"method\":\"POST\",\"aborted\":true}],\"elapsedMs\":2,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"data-file-strips\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '-d' '@text.in' '{A}/echo' | cat\",\"code\":0,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"POST\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"],[\"content-type\",\"application/x-www-form-urlencoded\"]],\"body\":\"Zmlyc3RzZWNvbmR0YWls\"}],\"authorized\":[{\"url\":\"{A}/echo\",\"method\":\"POST\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/echo\",\"method\":\"POST\",\"aborted\":true}],\"elapsedMs\":3,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"binary-file\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '--data-binary' '@binary.in' '{A}/echo' | cat\",\"code\":0,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"POST\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"],[\"content-type\",\"application/x-www-form-urlencoded\"]],\"body\":\"AP/+QQ0KgABC\"}],\"authorized\":[{\"url\":\"{A}/echo\",\"method\":\"POST\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/echo\",\"method\":\"POST\",\"aborted\":true}],\"elapsedMs\":1,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"binary-stdin\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; cat stdin.bin | curl --silent --show-error '--data-binary' '@-' '{A}/echo' | cat\",\"code\":0,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"POST\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"],[\"content-type\",\"application/x-www-form-urlencoded\"]],\"body\":\"AP/+QQ0KgABC\"}],\"authorized\":[{\"url\":\"{A}/echo\",\"method\":\"POST\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/echo\",\"method\":\"POST\",\"aborted\":true}],\"elapsedMs\":2,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"data-stdin\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; cat stdin.bin | curl --silent --show-error '-d' '@-' '{A}/echo' | cat\",\"code\":0,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"POST\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"],[\"content-type\",\"application/x-www-form-urlencoded\"]],\"body\":\"Zmlyc3RzZWNvbmR0YWls\"}],\"authorized\":[{\"url\":\"{A}/echo\",\"method\":\"POST\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/echo\",\"method\":\"POST\",\"aborted\":true}],\"elapsedMs\":1,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"upload-file-put\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '-T' 'binary.in' '{A}/echo' | cat\",\"code\":0,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"PUT\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"AP/+QQ0KgABC\"}],\"authorized\":[{\"url\":\"{A}/echo\",\"method\":\"PUT\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/echo\",\"method\":\"PUT\",\"aborted\":true}],\"elapsedMs\":1,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"upload-stdin-put\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; cat stdin.bin | curl --silent --show-error '-T' '-' '{A}/echo' | cat\",\"code\":0,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"PUT\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"AP/+QQ0KgABC\"}],\"authorized\":[{\"url\":\"{A}/echo\",\"method\":\"PUT\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/echo\",\"method\":\"PUT\",\"aborted\":true}],\"elapsedMs\":1,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"repeated-header-case\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '-H' 'X-Probe: first' '-H' 'x-probe: second' '{A}/echo' | cat\",\"code\":0,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"],[\"x-probe\",\"first\"],[\"x-probe\",\"second\"]],\"body\":\"\"}],\"authorized\":[{\"url\":\"{A}/echo\",\"method\":\"GET\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/echo\",\"method\":\"GET\",\"aborted\":true}],\"elapsedMs\":1,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"suppress-default-header\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '-H' 'Accept:' '{A}/echo' | cat\",\"code\":0,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/echo\",\"headers\":[],\"body\":\"\"}],\"authorized\":[{\"url\":\"{A}/echo\",\"method\":\"GET\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/echo\",\"method\":\"GET\",\"aborted\":true}],\"elapsedMs\":1,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"empty-header\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '-H' 'X-Empty;' '{A}/echo' | cat\",\"code\":0,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"],[\"x-empty\",\"\"]],\"body\":\"\"}],\"authorized\":[{\"url\":\"{A}/echo\",\"method\":\"GET\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/echo\",\"method\":\"GET\",\"aborted\":true}],\"elapsedMs\":1,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"basic-auth\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '-u' 'alice:secret' '{A}/echo' | cat\",\"code\":0,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"],[\"authorization\",\"Basic YWxpY2U6c2VjcmV0\"]],\"body\":\"\"}],\"authorized\":[{\"url\":\"{A}/echo\",\"method\":\"GET\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/echo\",\"method\":\"GET\",\"aborted\":true}],\"elapsedMs\":1,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"empty-credentials\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '-u' ':' '{A}/echo' | cat\",\"code\":0,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"],[\"authorization\",\"Basic Og==\"]],\"body\":\"\"}],\"authorized\":[{\"url\":\"{A}/echo\",\"method\":\"GET\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/echo\",\"method\":\"GET\",\"aborted\":true}],\"elapsedMs\":1,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"bearer-auth\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '--oauth2-bearer' 'fixture-token' '{A}/echo' | cat\",\"code\":0,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"],[\"authorization\",\"Bearer fixture-token\"]],\"body\":\"\"}],\"authorized\":[{\"url\":\"{A}/echo\",\"method\":\"GET\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/echo\",\"method\":\"GET\",\"aborted\":true}],\"elapsedMs\":1,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"binary-download\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '{A}/bytes' | cat\",\"code\":0,\"stdout\":\"AP/+QQ0KgABC\",\"stderr\":\"\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/bytes\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"}],\"authorized\":[{\"url\":\"{A}/bytes\",\"method\":\"GET\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/bytes\",\"method\":\"GET\",\"aborted\":true}],\"elapsedMs\":1,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"binary-output-overwrite\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '-o' 'result.bin' '{A}/bytes' | cat\",\"code\":0,\"stdout\":\"\",\"stderr\":\"\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"AP/+QQ0KgABC\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/bytes\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"}],\"authorized\":[{\"url\":\"{A}/bytes\",\"method\":\"GET\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/bytes\",\"method\":\"GET\",\"aborted\":true}],\"elapsedMs\":1,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"http404-default\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '{A}/status/404' | cat\",\"code\":0,\"stdout\":\"ZXJyb3ItYm9keQo=\",\"stderr\":\"\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/status/404\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"}],\"authorized\":[{\"url\":\"{A}/status/404\",\"method\":\"GET\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/status/404\",\"method\":\"GET\",\"aborted\":true}],\"elapsedMs\":1,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"http404-fail\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '--fail' '{A}/status/404' | cat\",\"code\":22,\"stdout\":\"\",\"stderr\":\"curl: (22) HTTP response status 404\\n\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/status/404\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"}],\"authorized\":[{\"url\":\"{A}/status/404\",\"method\":\"GET\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/status/404\",\"method\":\"GET\",\"aborted\":true}],\"elapsedMs\":0,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"http404-fail-body\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '--fail-with-body' '{A}/status/404' | cat\",\"code\":22,\"stdout\":\"ZXJyb3ItYm9keQo=\",\"stderr\":\"curl: (22) HTTP response status 404\\n\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/status/404\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"}],\"authorized\":[{\"url\":\"{A}/status/404\",\"method\":\"GET\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/status/404\",\"method\":\"GET\",\"aborted\":true}],\"elapsedMs\":0,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"post-redirect-301\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '-L' '-d' 'payload' '{A}/redirect/301' | cat\",\"code\":0,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"POST\",\"path\":\"/redirect/301\",\"headers\":[[\"accept\",\"*/*\"],[\"content-type\",\"application/x-www-form-urlencoded\"]],\"body\":\"cGF5bG9hZA==\"},{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"}],\"authorized\":[{\"url\":\"{A}/redirect/301\",\"method\":\"POST\",\"attempt\":0},{\"url\":\"{A}/echo\",\"method\":\"GET\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/redirect/301\",\"method\":\"POST\",\"aborted\":true},{\"url\":\"{A}/echo\",\"method\":\"GET\",\"aborted\":true}],\"elapsedMs\":2,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"post-redirect-302\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '-L' '-d' 'payload' '{A}/redirect/302' | cat\",\"code\":0,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"POST\",\"path\":\"/redirect/302\",\"headers\":[[\"accept\",\"*/*\"],[\"content-type\",\"application/x-www-form-urlencoded\"]],\"body\":\"cGF5bG9hZA==\"},{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"}],\"authorized\":[{\"url\":\"{A}/redirect/302\",\"method\":\"POST\",\"attempt\":0},{\"url\":\"{A}/echo\",\"method\":\"GET\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/redirect/302\",\"method\":\"POST\",\"aborted\":true},{\"url\":\"{A}/echo\",\"method\":\"GET\",\"aborted\":true}],\"elapsedMs\":1,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"post-redirect-303\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '-L' '-d' 'payload' '{A}/redirect/303' | cat\",\"code\":0,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"POST\",\"path\":\"/redirect/303\",\"headers\":[[\"accept\",\"*/*\"],[\"content-type\",\"application/x-www-form-urlencoded\"]],\"body\":\"cGF5bG9hZA==\"},{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"}],\"authorized\":[{\"url\":\"{A}/redirect/303\",\"method\":\"POST\",\"attempt\":0},{\"url\":\"{A}/echo\",\"method\":\"GET\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/redirect/303\",\"method\":\"POST\",\"aborted\":true},{\"url\":\"{A}/echo\",\"method\":\"GET\",\"aborted\":true}],\"elapsedMs\":1,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"post-redirect-307\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '-L' '-d' 'payload' '{A}/redirect/307' | cat\",\"code\":0,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"POST\",\"path\":\"/redirect/307\",\"headers\":[[\"accept\",\"*/*\"],[\"content-type\",\"application/x-www-form-urlencoded\"]],\"body\":\"cGF5bG9hZA==\"},{\"origin\":\"A\",\"method\":\"POST\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"],[\"content-type\",\"application/x-www-form-urlencoded\"]],\"body\":\"cGF5bG9hZA==\"}],\"authorized\":[{\"url\":\"{A}/redirect/307\",\"method\":\"POST\",\"attempt\":0},{\"url\":\"{A}/echo\",\"method\":\"POST\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/redirect/307\",\"method\":\"POST\",\"aborted\":true},{\"url\":\"{A}/echo\",\"method\":\"POST\",\"aborted\":true}],\"elapsedMs\":1,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"post-redirect-308\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '-L' '-d' 'payload' '{A}/redirect/308' | cat\",\"code\":0,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"POST\",\"path\":\"/redirect/308\",\"headers\":[[\"accept\",\"*/*\"],[\"content-type\",\"application/x-www-form-urlencoded\"]],\"body\":\"cGF5bG9hZA==\"},{\"origin\":\"A\",\"method\":\"POST\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"],[\"content-type\",\"application/x-www-form-urlencoded\"]],\"body\":\"cGF5bG9hZA==\"}],\"authorized\":[{\"url\":\"{A}/redirect/308\",\"method\":\"POST\",\"attempt\":0},{\"url\":\"{A}/echo\",\"method\":\"POST\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/redirect/308\",\"method\":\"POST\",\"aborted\":true},{\"url\":\"{A}/echo\",\"method\":\"POST\",\"aborted\":true}],\"elapsedMs\":1,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"relative-location\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '-L' '{A}/relative/start' | cat\",\"code\":0,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/relative/start\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"},{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"}],\"authorized\":[{\"url\":\"{A}/relative/start\",\"method\":\"GET\",\"attempt\":0},{\"url\":\"{A}/echo\",\"method\":\"GET\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/relative/start\",\"method\":\"GET\",\"aborted\":true},{\"url\":\"{A}/echo\",\"method\":\"GET\",\"aborted\":true}],\"elapsedMs\":1,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"redirect-cycle\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '-L' '--max-redirs' '2' '{A}/cycle' | cat\",\"code\":47,\"stdout\":\"\",\"stderr\":\"curl: (47) Maximum redirects exceeded\\n\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/cycle\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"},{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/cycle\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"},{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/cycle\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"}],\"authorized\":[{\"url\":\"{A}/cycle\",\"method\":\"GET\",\"attempt\":0},{\"url\":\"{A}/cycle\",\"method\":\"GET\",\"attempt\":0},{\"url\":\"{A}/cycle\",\"method\":\"GET\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/cycle\",\"method\":\"GET\",\"aborted\":true},{\"url\":\"{A}/cycle\",\"method\":\"GET\",\"aborted\":true},{\"url\":\"{A}/cycle\",\"method\":\"GET\",\"aborted\":true}],\"elapsedMs\":2,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"cross-port-basic\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '-L' '-u' 'alice:secret' '{A}/cross-port' | cat\",\"code\":0,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/cross-port\",\"headers\":[[\"accept\",\"*/*\"],[\"authorization\",\"Basic YWxpY2U6c2VjcmV0\"]],\"body\":\"\"},{\"origin\":\"B\",\"method\":\"GET\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"}],\"authorized\":[{\"url\":\"{A}/cross-port\",\"method\":\"GET\",\"attempt\":0},{\"url\":\"{B}/echo\",\"method\":\"GET\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/cross-port\",\"method\":\"GET\",\"aborted\":true},{\"url\":\"{B}/echo\",\"method\":\"GET\",\"aborted\":true}],\"elapsedMs\":1,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"cross-host-basic\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '-L' '-u' 'alice:secret' '{A}/cross-host' | cat\",\"code\":0,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/cross-host\",\"headers\":[[\"accept\",\"*/*\"],[\"authorization\",\"Basic YWxpY2U6c2VjcmV0\"]],\"body\":\"\"},{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"}],\"authorized\":[{\"url\":\"{A}/cross-host\",\"method\":\"GET\",\"attempt\":0},{\"url\":\"{H}/echo\",\"method\":\"GET\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/cross-host\",\"method\":\"GET\",\"aborted\":true},{\"url\":\"{H}/echo\",\"method\":\"GET\",\"aborted\":true}],\"elapsedMs\":1,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"cross-port-bearer\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '-L' '--oauth2-bearer' 'fixture-token' '{A}/cross-port' | cat\",\"code\":0,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/cross-port\",\"headers\":[[\"accept\",\"*/*\"],[\"authorization\",\"Bearer fixture-token\"]],\"body\":\"\"},{\"origin\":\"B\",\"method\":\"GET\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"}],\"authorized\":[{\"url\":\"{A}/cross-port\",\"method\":\"GET\",\"attempt\":0},{\"url\":\"{B}/echo\",\"method\":\"GET\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/cross-port\",\"method\":\"GET\",\"aborted\":true},{\"url\":\"{B}/echo\",\"method\":\"GET\",\"aborted\":true}],\"elapsedMs\":1,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"cross-port-custom-auth\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '-L' '-H' 'Authorization: Bearer custom' '{A}/cross-port' | cat\",\"code\":0,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/cross-port\",\"headers\":[[\"accept\",\"*/*\"],[\"authorization\",\"Bearer custom\"]],\"body\":\"\"},{\"origin\":\"B\",\"method\":\"GET\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"}],\"authorized\":[{\"url\":\"{A}/cross-port\",\"method\":\"GET\",\"attempt\":0},{\"url\":\"{B}/echo\",\"method\":\"GET\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/cross-port\",\"method\":\"GET\",\"aborted\":true},{\"url\":\"{B}/echo\",\"method\":\"GET\",\"aborted\":true}],\"elapsedMs\":1,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"same-origin-auth\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '-L' '-u' 'alice:secret' '{A}/redirect/302' | cat\",\"code\":0,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/redirect/302\",\"headers\":[[\"accept\",\"*/*\"],[\"authorization\",\"Basic YWxpY2U6c2VjcmV0\"]],\"body\":\"\"},{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"],[\"authorization\",\"Basic YWxpY2U6c2VjcmV0\"]],\"body\":\"\"}],\"authorized\":[{\"url\":\"{A}/redirect/302\",\"method\":\"GET\",\"attempt\":0},{\"url\":\"{A}/echo\",\"method\":\"GET\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/redirect/302\",\"method\":\"GET\",\"aborted\":true},{\"url\":\"{A}/echo\",\"method\":\"GET\",\"aborted\":true}],\"elapsedMs\":1,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"explicit-post-redirect\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '-L' '-X' 'POST' '-d' 'payload' '{A}/redirect/302' | cat\",\"code\":0,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"POST\",\"path\":\"/redirect/302\",\"headers\":[[\"accept\",\"*/*\"],[\"content-type\",\"application/x-www-form-urlencoded\"]],\"body\":\"cGF5bG9hZA==\"},{\"origin\":\"A\",\"method\":\"POST\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"}],\"authorized\":[{\"url\":\"{A}/redirect/302\",\"method\":\"POST\",\"attempt\":0},{\"url\":\"{A}/echo\",\"method\":\"POST\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/redirect/302\",\"method\":\"POST\",\"aborted\":true},{\"url\":\"{A}/echo\",\"method\":\"POST\",\"aborted\":true}],\"elapsedMs\":1,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"timeout-no-headers\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '--max-time' '0.35' '{A}/hang' | cat\",\"code\":28,\"stdout\":\"\",\"stderr\":\"curl: (28) Operation timed out\\n\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/hang\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"}],\"authorized\":[{\"url\":\"{A}/hang\",\"method\":\"GET\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/hang\",\"method\":\"GET\",\"aborted\":true}],\"elapsedMs\":364,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"timeout-partial\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '-N' '--max-time' '0.35' '{A}/stall' | cat\",\"code\":28,\"stdout\":\"cHJlZml4Cg==\",\"stderr\":\"curl: (28) Operation timed out\\n\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/stall\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"}],\"authorized\":[{\"url\":\"{A}/stall\",\"method\":\"GET\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/stall\",\"method\":\"GET\",\"aborted\":true}],\"elapsedMs\":365,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"disconnect-stdout\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '{A}/partial' | cat\",\"code\":18,\"stdout\":\"cHJlZml4Cg==\",\"stderr\":\"curl: (18) Partial HTTP response body\\n\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/partial\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"}],\"authorized\":[{\"url\":\"{A}/partial\",\"method\":\"GET\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/partial\",\"method\":\"GET\",\"aborted\":true}],\"elapsedMs\":68,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"disconnect-output\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '-o' 'result.bin' '{A}/partial' | cat\",\"code\":18,\"stdout\":\"\",\"stderr\":\"curl: (18) Partial HTTP response body\\n\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"cHJlZml4Cg==\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/partial\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"}],\"authorized\":[{\"url\":\"{A}/partial\",\"method\":\"GET\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/partial\",\"method\":\"GET\",\"aborted\":true}],\"elapsedMs\":70,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"retry-get\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '--retry' '1' '{A}/retry' | cat\",\"code\":0,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/retry\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"},{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/retry\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"}],\"authorized\":[{\"url\":\"{A}/retry\",\"method\":\"GET\",\"attempt\":0},{\"url\":\"{A}/retry\",\"method\":\"GET\",\"attempt\":1}],\"transportCalls\":[{\"url\":\"{A}/retry\",\"method\":\"GET\",\"aborted\":true},{\"url\":\"{A}/retry\",\"method\":\"GET\",\"aborted\":true}],\"elapsedMs\":1009,\"status\":\"failed\",\"errors\":[\"AssertionError [ERR_ASSERTION]: Stdout byte vector differs\\n+ actual - expected\\n\\n+ 'b2sK'\\n- 'cmV0cnktYm9keQpvawo='\\n\\n    at verify (/Users/kjopek/Workspace/safe-bash/tests/commands/network-stress/product.ts:163:16)\\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/network-stress/product.ts:203:20)\"]}\n{\"id\":\"retry-post-effect\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '--retry' '1' '-d' 'effect' '{A}/retry' | cat\",\"code\":0,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"POST\",\"path\":\"/retry\",\"headers\":[[\"accept\",\"*/*\"],[\"content-type\",\"application/x-www-form-urlencoded\"]],\"body\":\"ZWZmZWN0\"},{\"origin\":\"A\",\"method\":\"POST\",\"path\":\"/retry\",\"headers\":[[\"accept\",\"*/*\"],[\"content-type\",\"application/x-www-form-urlencoded\"]],\"body\":\"ZWZmZWN0\"}],\"authorized\":[{\"url\":\"{A}/retry\",\"method\":\"POST\",\"attempt\":0},{\"url\":\"{A}/retry\",\"method\":\"POST\",\"attempt\":1}],\"transportCalls\":[{\"url\":\"{A}/retry\",\"method\":\"POST\",\"aborted\":true},{\"url\":\"{A}/retry\",\"method\":\"POST\",\"aborted\":true}],\"elapsedMs\":1008,\"status\":\"failed\",\"errors\":[\"AssertionError [ERR_ASSERTION]: Stdout byte vector differs\\n+ actual - expected\\n\\n+ 'b2sK'\\n- 'cmV0cnktYm9keQpvawo='\\n\\n    at verify (/Users/kjopek/Workspace/safe-bash/tests/commands/network-stress/product.ts:163:16)\\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/network-stress/product.ts:203:20)\"]}\n{\"id\":\"retry-output-reset\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '--retry' '1' '-o' 'result.bin' '{A}/retry' | cat\",\"code\":0,\"stdout\":\"\",\"stderr\":\"\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2sK\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/retry\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"},{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/retry\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"}],\"authorized\":[{\"url\":\"{A}/retry\",\"method\":\"GET\",\"attempt\":0},{\"url\":\"{A}/retry\",\"method\":\"GET\",\"attempt\":1}],\"transportCalls\":[{\"url\":\"{A}/retry\",\"method\":\"GET\",\"aborted\":true},{\"url\":\"{A}/retry\",\"method\":\"GET\",\"aborted\":true}],\"elapsedMs\":1003,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"retry-does-not-retry404\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '--retry' '1' '{A}/status/404' | cat\",\"code\":0,\"stdout\":\"ZXJyb3ItYm9keQo=\",\"stderr\":\"\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/status/404\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"}],\"authorized\":[{\"url\":\"{A}/status/404\",\"method\":\"GET\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/status/404\",\"method\":\"GET\",\"aborted\":true}],\"elapsedMs\":3,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"unknown-option\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '--not-a-real-curl-option' | cat\",\"code\":2,\"stdout\":\"\",\"stderr\":\"curl: (2) Unsupported curl option\\n\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[],\"authorized\":[],\"transportCalls\":[],\"elapsedMs\":0,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"missing-option-value\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '--header' | cat\",\"code\":2,\"stdout\":\"\",\"stderr\":\"curl: (2) Option requires an argument\\n\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[],\"authorized\":[],\"transportCalls\":[],\"elapsedMs\":1,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"missing-url\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error  | cat\",\"code\":2,\"stdout\":\"\",\"stderr\":\"curl: (2) No URL specified\\n\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[],\"authorized\":[],\"transportCalls\":[],\"elapsedMs\":1,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"malformed-port\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error 'http://127.0.0.1:bad/' | cat\",\"code\":3,\"stdout\":\"\",\"stderr\":\"curl: (3) Malformed URL; explicit HTTP(S) scheme required\\n\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[],\"authorized\":[],\"transportCalls\":[],\"elapsedMs\":1,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"forbidden-file-protocol\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error 'file:///work/binary.in' | cat\",\"code\":1,\"stdout\":\"\",\"stderr\":\"curl: (1) Only HTTP and HTTPS are supported\\n\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[],\"authorized\":[],\"transportCalls\":[],\"elapsedMs\":0,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"malformed-url-space\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '{A}/bad path' | cat\",\"code\":3,\"stdout\":\"\",\"stderr\":\"curl: (3) Malformed URL\\n\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[],\"authorized\":[],\"transportCalls\":[],\"elapsedMs\":1,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"header-crlf-injection\",\"class\":\"security\",\"source\":\"set -o pipefail; curl --silent --show-error '-H' 'X-Probe: good\\r\\nX-Injected: yes' '{A}/echo' | cat\",\"code\":2,\"stdout\":\"\",\"stderr\":\"curl: (2) Invalid HTTP header\\n\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[],\"authorized\":[],\"transportCalls\":[],\"elapsedMs\":0,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"missing-input-file\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '--data-binary' '@missing.in' '{A}/echo' | cat\",\"code\":26,\"stdout\":\"\",\"stderr\":\"curl: (26) Failed to read virtual upload file\\n\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[],\"authorized\":[{\"url\":\"{A}/echo\",\"method\":\"POST\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/echo\",\"method\":\"POST\",\"aborted\":true}],\"elapsedMs\":2,\"status\":\"failed\",\"errors\":[\"cleanup: AssertionError [ERR_ASSERTION]: Fixture socket cleanup incomplete\\n\\n1 !== 0\\n\"]}\n{\"id\":\"missing-output-parent\",\"class\":\"native-parity\",\"source\":\"set -o pipefail; curl --silent --show-error '-o' 'absent/result.bin' '{A}/bytes' | cat\",\"code\":23,\"stdout\":\"\",\"stderr\":\"curl: (23) Failed writing virtual output file\\n\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/bytes\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"}],\"authorized\":[{\"url\":\"{A}/bytes\",\"method\":\"GET\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/bytes\",\"method\":\"GET\",\"aborted\":true}],\"elapsedMs\":1,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"active-sigint\",\"class\":\"sigint\",\"source\":\"set -o pipefail; curl --silent --show-error '{A}/hang' | cat\",\"callerAbort\":\"rejected with supplied reason\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/hang\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"}],\"authorized\":[{\"url\":\"{A}/hang\",\"method\":\"GET\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/hang\",\"method\":\"GET\",\"aborted\":true}],\"elapsedMs\":13,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"early-head-stream\",\"class\":\"head\",\"source\":\"curl --silent --show-error '-N' '{A}/stream' | head -c 1\",\"code\":0,\"stdout\":\"cA==\",\"stderr\":\"\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/stream\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"}],\"authorized\":[{\"url\":\"{A}/stream\",\"method\":\"GET\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/stream\",\"method\":\"GET\",\"aborted\":true}],\"elapsedMs\":13,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"early-head-stalled\",\"class\":\"head\",\"source\":\"curl --silent --show-error '-N' '--max-time' '3' '{A}/stall' | head -c 1\",\"code\":0,\"stdout\":\"cA==\",\"stderr\":\"\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/stall\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"}],\"authorized\":[{\"url\":\"{A}/stall\",\"method\":\"GET\",\"attempt\":0}],\"transportCalls\":[{\"url\":\"{A}/stall\",\"method\":\"GET\",\"aborted\":true}],\"elapsedMs\":12,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"network-not-ambient\",\"class\":\"virtual-contract\",\"source\":\"set -o pipefail; curl --silent --show-error '{A}/echo' | cat\",\"code\":127,\"stdout\":\"\",\"stderr\":\"curl: command not found\\n\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[],\"authorized\":[],\"transportCalls\":[],\"elapsedMs\":1,\"status\":\"passed\",\"errors\":[]}\n{\"id\":\"authorization-denied\",\"class\":\"virtual-contract\",\"source\":\"set -o pipefail; curl --silent --show-error '{A}/echo' | cat\",\"code\":7,\"stdout\":\"\",\"stderr\":\"curl: (7) Network access denied by host policy\\n\",\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"traces\":[],\"authorized\":[],\"transportCalls\":[],\"elapsedMs\":1,\"status\":\"passed\",\"errors\":[]}\n{\"handoff\":{\"author\":\"Curie\",\"revision\":\"deab14d9f4b3b6f0d73f96587c74a9de23091300\",\"messageReference\":\"User delegation in this session, 2026-08-26: Handoff has now explicitly arrived: use this user message as messageReference, actual full source revision deab14d and documented networkCommands export. Curie author handoff 6854a6b + deab14d ready, author 81/81, Curie stops source edits. Independent blackbox BASELINE/EVIDENCE only, no product fixes.\",\"receivedAt\":\"2026-08-26T22:41:52Z\",\"pluginExport\":\"networkCommands\"},\"oracleSha256\":\"b1b51398c3fb51a275ffb8f5d344c2c105fb077719674e44f297e7d66cdc21d7\",\"total\":60,\"passed\":57,\"failed\":3,\"pending\":0,\"nativeParityRows\":54,\"independentContractRows\":6}\n",
+  "stderr": "",
+  "records": [
+    {
+      "id": "get",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '{A}/echo' | cat",
+      "code": 0,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/echo",
+          "method": "GET",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/echo",
+          "method": "GET",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 16,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "head-method",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '-I' '{A}/bytes' | cat",
+      "code": 0,
+      "stdout": "SFRUUC8xLjEgMjAwIE9LDQpDb250ZW50LUxlbmd0aDogOQ0KQ29udGVudC1UeXBlOiBhcHBsaWNhdGlvbi9vY3RldC1zdHJlYW0NClgtRml4dHVyZTogaW5kZXBlbmRlbnQtY3VybC12MQ0KQ29ubmVjdGlvbjogY2xvc2UNCg0K",
+      "stderr": "",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "HEAD",
+          "path": "/bytes",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/bytes",
+          "method": "HEAD",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/bytes",
+          "method": "HEAD",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 3,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "include-headers",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '-i' '{A}/bytes' | cat",
+      "code": 0,
+      "stdout": "SFRUUC8xLjEgMjAwIE9LDQpDb250ZW50LUxlbmd0aDogOQ0KQ29udGVudC1UeXBlOiBhcHBsaWNhdGlvbi9vY3RldC1zdHJlYW0NClgtRml4dHVyZTogaW5kZXBlbmRlbnQtY3VybC12MQ0KQ29ubmVjdGlvbjogY2xvc2UNCg0KAP/+QQ0KgABC",
+      "stderr": "",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/bytes",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/bytes",
+          "method": "GET",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/bytes",
+          "method": "GET",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 2,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "dump-headers",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '-D' 'headers.out' '{A}/bytes' | cat",
+      "code": 0,
+      "stdout": "AP/+QQ0KgABC",
+      "stderr": "",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "headers.out": "SFRUUC8xLjEgMjAwIE9LDQpDb250ZW50LUxlbmd0aDogOQ0KQ29udGVudC1UeXBlOiBhcHBsaWNhdGlvbi9vY3RldC1zdHJlYW0NClgtRml4dHVyZTogaW5kZXBlbmRlbnQtY3VybC12MQ0KQ29ubmVjdGlvbjogY2xvc2UNCg0K",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/bytes",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/bytes",
+          "method": "GET",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/bytes",
+          "method": "GET",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 2,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "method-before-body",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '-X' 'PATCH' '-d' 'a=1' '{A}/echo' | cat",
+      "code": 0,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "PATCH",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "YT0x"
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/echo",
+          "method": "PATCH",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/echo",
+          "method": "PATCH",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 7,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "body-before-method",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '-d' 'a=1' '-X' 'PUT' '{A}/echo' | cat",
+      "code": 0,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "PUT",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "YT0x"
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/echo",
+          "method": "PUT",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/echo",
+          "method": "PUT",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 1,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "repeated-body",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '-d' 'a=1' '-d' 'b=2' '{A}/echo' | cat",
+      "code": 0,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "YT0xJmI9Mg=="
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/echo",
+          "method": "POST",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/echo",
+          "method": "POST",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 2,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "raw-at-literal",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '--data-raw' '@missing' '{A}/echo' | cat",
+      "code": 0,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "QG1pc3Npbmc="
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/echo",
+          "method": "POST",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/echo",
+          "method": "POST",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 2,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "data-file-strips",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '-d' '@text.in' '{A}/echo' | cat",
+      "code": 0,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "Zmlyc3RzZWNvbmR0YWls"
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/echo",
+          "method": "POST",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/echo",
+          "method": "POST",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 3,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "binary-file",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '--data-binary' '@binary.in' '{A}/echo' | cat",
+      "code": 0,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "AP/+QQ0KgABC"
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/echo",
+          "method": "POST",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/echo",
+          "method": "POST",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 1,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "binary-stdin",
+      "class": "native-parity",
+      "source": "set -o pipefail; cat stdin.bin | curl --silent --show-error '--data-binary' '@-' '{A}/echo' | cat",
+      "code": 0,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "AP/+QQ0KgABC"
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/echo",
+          "method": "POST",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/echo",
+          "method": "POST",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 2,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "data-stdin",
+      "class": "native-parity",
+      "source": "set -o pipefail; cat stdin.bin | curl --silent --show-error '-d' '@-' '{A}/echo' | cat",
+      "code": 0,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "Zmlyc3RzZWNvbmR0YWls"
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/echo",
+          "method": "POST",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/echo",
+          "method": "POST",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 1,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "upload-file-put",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '-T' 'binary.in' '{A}/echo' | cat",
+      "code": 0,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "PUT",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": "AP/+QQ0KgABC"
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/echo",
+          "method": "PUT",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/echo",
+          "method": "PUT",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 1,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "upload-stdin-put",
+      "class": "native-parity",
+      "source": "set -o pipefail; cat stdin.bin | curl --silent --show-error '-T' '-' '{A}/echo' | cat",
+      "code": 0,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "PUT",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": "AP/+QQ0KgABC"
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/echo",
+          "method": "PUT",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/echo",
+          "method": "PUT",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 1,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "repeated-header-case",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '-H' 'X-Probe: first' '-H' 'x-probe: second' '{A}/echo' | cat",
+      "code": 0,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "x-probe",
+              "first"
+            ],
+            [
+              "x-probe",
+              "second"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/echo",
+          "method": "GET",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/echo",
+          "method": "GET",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 1,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "suppress-default-header",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '-H' 'Accept:' '{A}/echo' | cat",
+      "code": 0,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [],
+          "body": ""
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/echo",
+          "method": "GET",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/echo",
+          "method": "GET",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 1,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "empty-header",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '-H' 'X-Empty;' '{A}/echo' | cat",
+      "code": 0,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "x-empty",
+              ""
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/echo",
+          "method": "GET",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/echo",
+          "method": "GET",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 1,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "basic-auth",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '-u' 'alice:secret' '{A}/echo' | cat",
+      "code": 0,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "authorization",
+              "Basic YWxpY2U6c2VjcmV0"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/echo",
+          "method": "GET",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/echo",
+          "method": "GET",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 1,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "empty-credentials",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '-u' ':' '{A}/echo' | cat",
+      "code": 0,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "authorization",
+              "Basic Og=="
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/echo",
+          "method": "GET",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/echo",
+          "method": "GET",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 1,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "bearer-auth",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '--oauth2-bearer' 'fixture-token' '{A}/echo' | cat",
+      "code": 0,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "authorization",
+              "Bearer fixture-token"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/echo",
+          "method": "GET",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/echo",
+          "method": "GET",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 1,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "binary-download",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '{A}/bytes' | cat",
+      "code": 0,
+      "stdout": "AP/+QQ0KgABC",
+      "stderr": "",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/bytes",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/bytes",
+          "method": "GET",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/bytes",
+          "method": "GET",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 1,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "binary-output-overwrite",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '-o' 'result.bin' '{A}/bytes' | cat",
+      "code": 0,
+      "stdout": "",
+      "stderr": "",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "AP/+QQ0KgABC",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/bytes",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/bytes",
+          "method": "GET",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/bytes",
+          "method": "GET",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 1,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "http404-default",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '{A}/status/404' | cat",
+      "code": 0,
+      "stdout": "ZXJyb3ItYm9keQo=",
+      "stderr": "",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/status/404",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/status/404",
+          "method": "GET",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/status/404",
+          "method": "GET",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 1,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "http404-fail",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '--fail' '{A}/status/404' | cat",
+      "code": 22,
+      "stdout": "",
+      "stderr": "curl: (22) HTTP response status 404\n",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/status/404",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/status/404",
+          "method": "GET",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/status/404",
+          "method": "GET",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 0,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "http404-fail-body",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '--fail-with-body' '{A}/status/404' | cat",
+      "code": 22,
+      "stdout": "ZXJyb3ItYm9keQo=",
+      "stderr": "curl: (22) HTTP response status 404\n",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/status/404",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/status/404",
+          "method": "GET",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/status/404",
+          "method": "GET",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 0,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "post-redirect-301",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '-L' '-d' 'payload' '{A}/redirect/301' | cat",
+      "code": 0,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/redirect/301",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "cGF5bG9hZA=="
+        },
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/redirect/301",
+          "method": "POST",
+          "attempt": 0
+        },
+        {
+          "url": "{A}/echo",
+          "method": "GET",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/redirect/301",
+          "method": "POST",
+          "aborted": true
+        },
+        {
+          "url": "{A}/echo",
+          "method": "GET",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 2,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "post-redirect-302",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '-L' '-d' 'payload' '{A}/redirect/302' | cat",
+      "code": 0,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/redirect/302",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "cGF5bG9hZA=="
+        },
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/redirect/302",
+          "method": "POST",
+          "attempt": 0
+        },
+        {
+          "url": "{A}/echo",
+          "method": "GET",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/redirect/302",
+          "method": "POST",
+          "aborted": true
+        },
+        {
+          "url": "{A}/echo",
+          "method": "GET",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 1,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "post-redirect-303",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '-L' '-d' 'payload' '{A}/redirect/303' | cat",
+      "code": 0,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/redirect/303",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "cGF5bG9hZA=="
+        },
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/redirect/303",
+          "method": "POST",
+          "attempt": 0
+        },
+        {
+          "url": "{A}/echo",
+          "method": "GET",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/redirect/303",
+          "method": "POST",
+          "aborted": true
+        },
+        {
+          "url": "{A}/echo",
+          "method": "GET",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 1,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "post-redirect-307",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '-L' '-d' 'payload' '{A}/redirect/307' | cat",
+      "code": 0,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/redirect/307",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "cGF5bG9hZA=="
+        },
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "cGF5bG9hZA=="
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/redirect/307",
+          "method": "POST",
+          "attempt": 0
+        },
+        {
+          "url": "{A}/echo",
+          "method": "POST",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/redirect/307",
+          "method": "POST",
+          "aborted": true
+        },
+        {
+          "url": "{A}/echo",
+          "method": "POST",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 1,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "post-redirect-308",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '-L' '-d' 'payload' '{A}/redirect/308' | cat",
+      "code": 0,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/redirect/308",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "cGF5bG9hZA=="
+        },
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "cGF5bG9hZA=="
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/redirect/308",
+          "method": "POST",
+          "attempt": 0
+        },
+        {
+          "url": "{A}/echo",
+          "method": "POST",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/redirect/308",
+          "method": "POST",
+          "aborted": true
+        },
+        {
+          "url": "{A}/echo",
+          "method": "POST",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 1,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "relative-location",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '-L' '{A}/relative/start' | cat",
+      "code": 0,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/relative/start",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/relative/start",
+          "method": "GET",
+          "attempt": 0
+        },
+        {
+          "url": "{A}/echo",
+          "method": "GET",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/relative/start",
+          "method": "GET",
+          "aborted": true
+        },
+        {
+          "url": "{A}/echo",
+          "method": "GET",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 1,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "redirect-cycle",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '-L' '--max-redirs' '2' '{A}/cycle' | cat",
+      "code": 47,
+      "stdout": "",
+      "stderr": "curl: (47) Maximum redirects exceeded\n",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/cycle",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/cycle",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/cycle",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/cycle",
+          "method": "GET",
+          "attempt": 0
+        },
+        {
+          "url": "{A}/cycle",
+          "method": "GET",
+          "attempt": 0
+        },
+        {
+          "url": "{A}/cycle",
+          "method": "GET",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/cycle",
+          "method": "GET",
+          "aborted": true
+        },
+        {
+          "url": "{A}/cycle",
+          "method": "GET",
+          "aborted": true
+        },
+        {
+          "url": "{A}/cycle",
+          "method": "GET",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 2,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "cross-port-basic",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '-L' '-u' 'alice:secret' '{A}/cross-port' | cat",
+      "code": 0,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/cross-port",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "authorization",
+              "Basic YWxpY2U6c2VjcmV0"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "B",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/cross-port",
+          "method": "GET",
+          "attempt": 0
+        },
+        {
+          "url": "{B}/echo",
+          "method": "GET",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/cross-port",
+          "method": "GET",
+          "aborted": true
+        },
+        {
+          "url": "{B}/echo",
+          "method": "GET",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 1,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "cross-host-basic",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '-L' '-u' 'alice:secret' '{A}/cross-host' | cat",
+      "code": 0,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/cross-host",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "authorization",
+              "Basic YWxpY2U6c2VjcmV0"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/cross-host",
+          "method": "GET",
+          "attempt": 0
+        },
+        {
+          "url": "{H}/echo",
+          "method": "GET",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/cross-host",
+          "method": "GET",
+          "aborted": true
+        },
+        {
+          "url": "{H}/echo",
+          "method": "GET",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 1,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "cross-port-bearer",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '-L' '--oauth2-bearer' 'fixture-token' '{A}/cross-port' | cat",
+      "code": 0,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/cross-port",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "authorization",
+              "Bearer fixture-token"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "B",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/cross-port",
+          "method": "GET",
+          "attempt": 0
+        },
+        {
+          "url": "{B}/echo",
+          "method": "GET",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/cross-port",
+          "method": "GET",
+          "aborted": true
+        },
+        {
+          "url": "{B}/echo",
+          "method": "GET",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 1,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "cross-port-custom-auth",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '-L' '-H' 'Authorization: Bearer custom' '{A}/cross-port' | cat",
+      "code": 0,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/cross-port",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "authorization",
+              "Bearer custom"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "B",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/cross-port",
+          "method": "GET",
+          "attempt": 0
+        },
+        {
+          "url": "{B}/echo",
+          "method": "GET",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/cross-port",
+          "method": "GET",
+          "aborted": true
+        },
+        {
+          "url": "{B}/echo",
+          "method": "GET",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 1,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "same-origin-auth",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '-L' '-u' 'alice:secret' '{A}/redirect/302' | cat",
+      "code": 0,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/redirect/302",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "authorization",
+              "Basic YWxpY2U6c2VjcmV0"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "authorization",
+              "Basic YWxpY2U6c2VjcmV0"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/redirect/302",
+          "method": "GET",
+          "attempt": 0
+        },
+        {
+          "url": "{A}/echo",
+          "method": "GET",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/redirect/302",
+          "method": "GET",
+          "aborted": true
+        },
+        {
+          "url": "{A}/echo",
+          "method": "GET",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 1,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "explicit-post-redirect",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '-L' '-X' 'POST' '-d' 'payload' '{A}/redirect/302' | cat",
+      "code": 0,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/redirect/302",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "cGF5bG9hZA=="
+        },
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/redirect/302",
+          "method": "POST",
+          "attempt": 0
+        },
+        {
+          "url": "{A}/echo",
+          "method": "POST",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/redirect/302",
+          "method": "POST",
+          "aborted": true
+        },
+        {
+          "url": "{A}/echo",
+          "method": "POST",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 1,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "timeout-no-headers",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '--max-time' '0.35' '{A}/hang' | cat",
+      "code": 28,
+      "stdout": "",
+      "stderr": "curl: (28) Operation timed out\n",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/hang",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/hang",
+          "method": "GET",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/hang",
+          "method": "GET",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 364,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "timeout-partial",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '-N' '--max-time' '0.35' '{A}/stall' | cat",
+      "code": 28,
+      "stdout": "cHJlZml4Cg==",
+      "stderr": "curl: (28) Operation timed out\n",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/stall",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/stall",
+          "method": "GET",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/stall",
+          "method": "GET",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 365,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "disconnect-stdout",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '{A}/partial' | cat",
+      "code": 18,
+      "stdout": "cHJlZml4Cg==",
+      "stderr": "curl: (18) Partial HTTP response body\n",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/partial",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/partial",
+          "method": "GET",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/partial",
+          "method": "GET",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 68,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "disconnect-output",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '-o' 'result.bin' '{A}/partial' | cat",
+      "code": 18,
+      "stdout": "",
+      "stderr": "curl: (18) Partial HTTP response body\n",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "cHJlZml4Cg==",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/partial",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/partial",
+          "method": "GET",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/partial",
+          "method": "GET",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 70,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "retry-get",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '--retry' '1' '{A}/retry' | cat",
+      "code": 0,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/retry",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/retry",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/retry",
+          "method": "GET",
+          "attempt": 0
+        },
+        {
+          "url": "{A}/retry",
+          "method": "GET",
+          "attempt": 1
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/retry",
+          "method": "GET",
+          "aborted": true
+        },
+        {
+          "url": "{A}/retry",
+          "method": "GET",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 1009,
+      "status": "failed",
+      "errors": [
+        "AssertionError [ERR_ASSERTION]: Stdout byte vector differs\n+ actual - expected\n\n+ 'b2sK'\n- 'cmV0cnktYm9keQpvawo='\n\n    at verify (/Users/kjopek/Workspace/safe-bash/tests/commands/network-stress/product.ts:163:16)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/network-stress/product.ts:203:20)"
+      ]
+    },
+    {
+      "id": "retry-post-effect",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '--retry' '1' '-d' 'effect' '{A}/retry' | cat",
+      "code": 0,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/retry",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "ZWZmZWN0"
+        },
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/retry",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "body": "ZWZmZWN0"
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/retry",
+          "method": "POST",
+          "attempt": 0
+        },
+        {
+          "url": "{A}/retry",
+          "method": "POST",
+          "attempt": 1
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/retry",
+          "method": "POST",
+          "aborted": true
+        },
+        {
+          "url": "{A}/retry",
+          "method": "POST",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 1008,
+      "status": "failed",
+      "errors": [
+        "AssertionError [ERR_ASSERTION]: Stdout byte vector differs\n+ actual - expected\n\n+ 'b2sK'\n- 'cmV0cnktYm9keQpvawo='\n\n    at verify (/Users/kjopek/Workspace/safe-bash/tests/commands/network-stress/product.ts:163:16)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/network-stress/product.ts:203:20)"
+      ]
+    },
+    {
+      "id": "retry-output-reset",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '--retry' '1' '-o' 'result.bin' '{A}/retry' | cat",
+      "code": 0,
+      "stdout": "",
+      "stderr": "",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2sK",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/retry",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/retry",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/retry",
+          "method": "GET",
+          "attempt": 0
+        },
+        {
+          "url": "{A}/retry",
+          "method": "GET",
+          "attempt": 1
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/retry",
+          "method": "GET",
+          "aborted": true
+        },
+        {
+          "url": "{A}/retry",
+          "method": "GET",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 1003,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "retry-does-not-retry404",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '--retry' '1' '{A}/status/404' | cat",
+      "code": 0,
+      "stdout": "ZXJyb3ItYm9keQo=",
+      "stderr": "",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/status/404",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/status/404",
+          "method": "GET",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/status/404",
+          "method": "GET",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 3,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "unknown-option",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '--not-a-real-curl-option' | cat",
+      "code": 2,
+      "stdout": "",
+      "stderr": "curl: (2) Unsupported curl option\n",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [],
+      "authorized": [],
+      "transportCalls": [],
+      "elapsedMs": 0,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "missing-option-value",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '--header' | cat",
+      "code": 2,
+      "stdout": "",
+      "stderr": "curl: (2) Option requires an argument\n",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [],
+      "authorized": [],
+      "transportCalls": [],
+      "elapsedMs": 1,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "missing-url",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error  | cat",
+      "code": 2,
+      "stdout": "",
+      "stderr": "curl: (2) No URL specified\n",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [],
+      "authorized": [],
+      "transportCalls": [],
+      "elapsedMs": 1,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "malformed-port",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error 'http://127.0.0.1:bad/' | cat",
+      "code": 3,
+      "stdout": "",
+      "stderr": "curl: (3) Malformed URL; explicit HTTP(S) scheme required\n",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [],
+      "authorized": [],
+      "transportCalls": [],
+      "elapsedMs": 1,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "forbidden-file-protocol",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error 'file:///work/binary.in' | cat",
+      "code": 1,
+      "stdout": "",
+      "stderr": "curl: (1) Only HTTP and HTTPS are supported\n",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [],
+      "authorized": [],
+      "transportCalls": [],
+      "elapsedMs": 0,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "malformed-url-space",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '{A}/bad path' | cat",
+      "code": 3,
+      "stdout": "",
+      "stderr": "curl: (3) Malformed URL\n",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [],
+      "authorized": [],
+      "transportCalls": [],
+      "elapsedMs": 1,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "header-crlf-injection",
+      "class": "security",
+      "source": "set -o pipefail; curl --silent --show-error '-H' 'X-Probe: good\r\nX-Injected: yes' '{A}/echo' | cat",
+      "code": 2,
+      "stdout": "",
+      "stderr": "curl: (2) Invalid HTTP header\n",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [],
+      "authorized": [],
+      "transportCalls": [],
+      "elapsedMs": 0,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "missing-input-file",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '--data-binary' '@missing.in' '{A}/echo' | cat",
+      "code": 26,
+      "stdout": "",
+      "stderr": "curl: (26) Failed to read virtual upload file\n",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [],
+      "authorized": [
+        {
+          "url": "{A}/echo",
+          "method": "POST",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/echo",
+          "method": "POST",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 2,
+      "status": "failed",
+      "errors": [
+        "cleanup: AssertionError [ERR_ASSERTION]: Fixture socket cleanup incomplete\n\n1 !== 0\n"
+      ]
+    },
+    {
+      "id": "missing-output-parent",
+      "class": "native-parity",
+      "source": "set -o pipefail; curl --silent --show-error '-o' 'absent/result.bin' '{A}/bytes' | cat",
+      "code": 23,
+      "stdout": "",
+      "stderr": "curl: (23) Failed writing virtual output file\n",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/bytes",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/bytes",
+          "method": "GET",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/bytes",
+          "method": "GET",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 1,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "active-sigint",
+      "class": "sigint",
+      "source": "set -o pipefail; curl --silent --show-error '{A}/hang' | cat",
+      "callerAbort": "rejected with supplied reason",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/hang",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/hang",
+          "method": "GET",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/hang",
+          "method": "GET",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 13,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "early-head-stream",
+      "class": "head",
+      "source": "curl --silent --show-error '-N' '{A}/stream' | head -c 1",
+      "code": 0,
+      "stdout": "cA==",
+      "stderr": "",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/stream",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/stream",
+          "method": "GET",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/stream",
+          "method": "GET",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 13,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "early-head-stalled",
+      "class": "head",
+      "source": "curl --silent --show-error '-N' '--max-time' '3' '{A}/stall' | head -c 1",
+      "code": 0,
+      "stdout": "cA==",
+      "stderr": "",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/stall",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/stall",
+          "method": "GET",
+          "attempt": 0
+        }
+      ],
+      "transportCalls": [
+        {
+          "url": "{A}/stall",
+          "method": "GET",
+          "aborted": true
+        }
+      ],
+      "elapsedMs": 12,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "network-not-ambient",
+      "class": "virtual-contract",
+      "source": "set -o pipefail; curl --silent --show-error '{A}/echo' | cat",
+      "code": 127,
+      "stdout": "",
+      "stderr": "curl: command not found\n",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [],
+      "authorized": [],
+      "transportCalls": [],
+      "elapsedMs": 1,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "id": "authorization-denied",
+      "class": "virtual-contract",
+      "source": "set -o pipefail; curl --silent --show-error '{A}/echo' | cat",
+      "code": 7,
+      "stdout": "",
+      "stderr": "curl: (7) Network access denied by host policy\n",
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "traces": [],
+      "authorized": [],
+      "transportCalls": [],
+      "elapsedMs": 1,
+      "status": "passed",
+      "errors": []
+    },
+    {
+      "handoff": {
+        "author": "Curie",
+        "revision": "deab14d9f4b3b6f0d73f96587c74a9de23091300",
+        "messageReference": "User delegation in this session, 2026-08-26: Handoff has now explicitly arrived: use this user message as messageReference, actual full source revision deab14d and documented networkCommands export. Curie author handoff 6854a6b + deab14d ready, author 81/81, Curie stops source edits. Independent blackbox BASELINE/EVIDENCE only, no product fixes.",
+        "receivedAt": "2026-08-26T22:41:52Z",
+        "pluginExport": "networkCommands"
+      },
+      "oracleSha256": "b1b51398c3fb51a275ffb8f5d344c2c105fb077719674e44f297e7d66cdc21d7",
+      "total": 60,
+      "passed": 57,
+      "failed": 3,
+      "pending": 0,
+      "nativeParityRows": 54,
+      "independentContractRows": 6
+    }
+  ]
+}

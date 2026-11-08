@@ -1,0 +1,93 @@
+{
+  "schema": "independent-node-bridge-repair-preseal-v1",
+  "authority": "current ROOT SOURCE/DATA/SYNTHETIC/harmless-stub GO; no engine GO",
+  "codeCommit": "7b350bf7472cabfc2e5ed699f19c2a1c8bde2f98",
+  "evidenceCommit": "7b269a291d9fdc76e0760d36446d937e54060757",
+  "manifestSha256": "3b4169c6dcb15f5f9d43e08fd417c93a38004604404cebab724cb44dbeae5f8c",
+  "files": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/RECIPE.md",
+      "bytes": 5250,
+      "mode": 420,
+      "sha256": "c4e45bda445aafc4edb09b5f01a915242474f2a5dba7aca66eff4b69fc8c6a3d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/INPUTS.json",
+      "bytes": 12962,
+      "mode": 420,
+      "sha256": "a2c351242d9e227c50dd6bcfda019ad4f480919efff57a45ade8b7c564370f9e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/CONTROL.json",
+      "bytes": 2353,
+      "mode": 420,
+      "sha256": "3ec52fb9c6fd658c7a10c478a647dcd357d8e906c5427c3b697144f747e8d366"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/F01-INERT-FIXTURE.json",
+      "bytes": 4171,
+      "mode": 420,
+      "sha256": "78954f48666460b4ca6c3c0a92ad52a0e38b82ee1750aeead44e7190474c9a76"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/F05-INERT-FIXTURE.json",
+      "bytes": 5692,
+      "mode": 420,
+      "sha256": "47ce2d3069ea9224c91874a5622cc5570115b2cd43adf8a0352276da78686b83"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/subject.mjs",
+      "bytes": 24264,
+      "mode": 420,
+      "sha256": "9c12199286c437e714700340abe17ae7ab4637073a9d6f2b1065bc5602c47640"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/stub.mjs",
+      "bytes": 1249,
+      "mode": 420,
+      "sha256": "640a7ae60a1e5c2f9be1e38ad38cf7b3011396e402583779efd9939729b0dc77"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/overflow.mjs",
+      "bytes": 162,
+      "mode": 420,
+      "sha256": "ba76a20adf6550f774453e076f4a5013926a428910586e9013837251a62b329b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/run.mjs",
+      "bytes": 20016,
+      "mode": 420,
+      "sha256": "40e6102a409df9cd0b2e10d095df47ea20d19b32b1aa7ff21081a5ea4a2882ef"
+    }
+  ],
+  "runId": "inert-01",
+  "attempts": 1,
+  "qualificationChecks": 21,
+  "unscoredDiagnostics": [
+    "N01",
+    "N02",
+    "N03"
+  ],
+  "plannedChildren": 11,
+  "maximumAuthorizedChildren": 12,
+  "peakOwnedProcesses": 2,
+  "maximumMilliseconds": 600000,
+  "captureBytes": 33554432,
+  "workBytes": 134217728,
+  "recordBytes": 262144,
+  "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "nodeArgs": [
+    "--unhandled-rejections=strict",
+    "--max-old-space-size=128"
+  ],
+  "entry": "tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/run.mjs",
+  "argument": "EXACT_PRESEAL_RAW_SHA256",
+  "environment": {
+    "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/usr/bin:/bin",
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "NODE_DISABLE_COMPILE_CACHE": "1"
+  },
+  "actualEngineEvaluations": 0,
+  "workerProposal": "NOT_REVIEWED_SEPARATE"
+}

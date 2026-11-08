@@ -1,0 +1,214 @@
+import type { ShellExtension, ShellExtensionContext, ShellExtensionInstance, ShellExtensionOption, ShellExtensionScope } from "./extensions.js";
+import { shellValueByteLength, shellValueBytes, shellValueText, type ShellValue } from "../contracts/value.js";
+import { commandRuntimeIdentity } from "../contracts/command.js";
+
+export interface TrapSignalHost {
+  subscribe(deliver: (signal: string | number) => boolean, scope: object): () => void | Promise<void>;
+  /** Publish current dispositions before the process continues executing. */
+  dispositions?(scope: object, actions: ReadonlyMap<number, "ignore" | "trap">): void | Promise<void>;
+}
+
+export interface TrapExtensionOptions {
+  readonly signalNames?: Readonly<Record<string, number>>;
+  readonly signalHost?: TrapSignalHost;
+  /** Ignored dispositions inherited when a host starts a distinct process. */
+  readonly inheritedIgnoredSignals?: readonly number[];
+}
+
+interface Action { readonly source: ShellValue; readonly active: boolean }
+
+const idlePortableTrapInstances = new WeakMap<ShellExtensionInstance, () => boolean>();
+const ignoredPortableTrapSignals = new WeakMap<ShellExtensionInstance, () => readonly number[]>();
+
+export function captureIgnoredTrapSignals(state: import("./extensions.js").ShellExtensionState | undefined): readonly number[] {
+  const ignored = new Set<number>();
+  for (const entry of state?.entries ?? []) for (const number of ignoredPortableTrapSignals.get(entry.instance)?.() ?? []) ignored.add(number);
+  return Object.freeze([...ignored]);
+}
+
+export function isIdlePortableTrapInstance(instance: ShellExtensionInstance): boolean {
+  return idlePortableTrapInstances.get(instance)?.() ?? false;
+}
+
+function quote(source: ShellValue): Uint8Array {
+  const bytes = shellValueBytes(source);
+  const parts: Uint8Array[] = [new TextEncoder().encode("'")];
+  let start = 0;
+  for (let index = 0; index < bytes.length; index++) if (bytes[index] === 39) {
+    parts.push(bytes.subarray(start, index), new TextEncoder().encode("'\\''"));
+    start = index + 1;
+  }
+  parts.push(bytes.subarray(start), new TextEncoder().encode("'"));
+  const result = new Uint8Array(parts.reduce((length, part) => length + part.byteLength, 0));
+  let offset = 0;
+  for (const part of parts) { result.set(part, offset); offset += part.byteLength; }
+  return result;
+}
+
+export function portableTrapExtension(configuration: TrapExtensionOptions = {}): ShellExtension {
+  const catalog = { ...(configuration.signalNames ?? Object.fromEntries(["HUP", "INT", "QUIT", "ILL", "TRAP", "ABRT", "BUS", "FPE", "KILL", "USR1", "SEGV", "USR2", "PIPE", "ALRM", "TERM", "STKFLT", "CHLD", "CONT", "STOP", "TSTP", "TTIN", "TTOU", "URG", "XCPU", "XFSZ", "VTALRM", "PROF", "WINCH", "IO", "PWR", "SYS"].map((name, index) => [`SIG${name}`, index + 1]))) };
+  const names = new Map<number, string>([[0, "EXIT"]]);
+  const aliases = new Map<string, number>([["EXIT", 0], ["SIGEXIT", 0]]);
+  for (const [name, number] of Object.entries(catalog)) {
+    if (!name.startsWith("SIG") || !Number.isSafeInteger(number) || number <= 0 || number > 1024) throw new TypeError("Invalid trap signal catalog");
+    if (!names.has(number)) names.set(number, name);
+    aliases.set(name, number);
+    aliases.set(name.slice(3), number);
+  }
+  const pseudoBase = Math.max(...names.keys()) + 1;
+  for (const [index, name] of ["DEBUG", "ERR", "RETURN"].entries()) { names.set(pseudoBase + index, name); aliases.set(name, pseudoBase + index); aliases.set("SIG" + name, pseudoBase + index); }
+  const resolve = (value: string | number): number | undefined => {
+    const text = String(value).toUpperCase();
+    const named = aliases.get(text);
+    if (named !== undefined) return named;
+    const digits = text[0] === "+" ? text.slice(1) : text;
+    if (!digits || [...digits].some(character => character < "0" || character > "9")) return undefined;
+    const number = Number(digits);
+    return names.has(number) ? number : undefined;
+  };
+
+  const emptyIgnored: ReadonlySet<number> = Object.freeze(new Set<number>());
+  const initialIgnored = new Set(configuration.inheritedIgnoredSignals ?? []);
+  for (const number of initialIgnored) if (!names.has(number) || number === 0 || number === 9 || number === 19) throw new TypeError("Invalid inherited ignored signal");
+  function instance(actions?: Map<number, Action>, errorTrace = false, functionTrace = false, inheritedIgnored: ReadonlySet<number> = emptyIgnored, extendedDebug = false): ShellExtensionInstance {
+    const options: ShellExtensionOption[] = [{ name: "errtrace", flag: "E", enabled: errorTrace }, { name: "functrace", flag: "T", enabled: functionTrace }];
+    let running: Set<number> | undefined;
+    let signalScope: object | undefined;
+    let pending: Set<number> | undefined;
+    let functions: Map<number, Action>[] | undefined;
+    let sources: (Action | undefined)[] | undefined;
+    const run = async (number: number, context: ShellExtensionContext): Promise<number | undefined> => {
+      context.signal.throwIfAborted();
+      const action = actions?.get(number);
+      if (!action?.active || !shellValueByteLength(action.source) || running?.has(number)) return;
+      running ??= new Set<number>();
+      running.add(number);
+      try { return await context.evaluate(action.source, { name: number === 0 ? "exit trap" : "trap" }); }
+      finally { running.delete(number); }
+    };
+    const created: ShellExtensionInstance = {
+      options,
+      shoptOptions: [{ name: "extdebug", get enabled() { return extendedDebug; }, set enabled(value) { extendedDebug = value; for (const option of options) option.enabled = value; } }],
+      ...(configuration.signalHost ? { async start(context: ShellExtensionContext) {
+        signalScope = context.scope;
+        let open = true;
+        const subscription: { close?: () => void | Promise<void> } = {};
+        context.registerCleanup(async () => { open = false; pending?.clear(); await subscription.close?.(); });
+        subscription.close = configuration.signalHost!.subscribe(signal => {
+          if (!open || context.signal.aborted) return false;
+          const number = resolve(signal);
+          if (number === undefined || number === 0 || number >= pseudoBase || names.get(number) === "SIGKILL" || names.get(number) === "SIGSTOP") return false;
+          const action = actions?.get(number);
+          if (!action?.active) return false;
+          if (shellValueByteLength(action.source)) {
+            pending ??= new Set<number>();
+            pending.add(number);
+            context.interruptWait?.((128 + number) % 256);
+          }
+          return true;
+        }, context.scope);
+        await configuration.signalHost!.dispositions?.(context.scope, new Map([...actions ?? []]
+          .filter(([number, action]) => number > 0 && number < pseudoBase && action.active)
+          .map(([number, action]) => [number, shellValueByteLength(action.source) ? "trap" : "ignore"] as const)));
+      } } : {}),
+      builtins: [{
+        name: "trap", special: true,
+        async execute(context) {
+          context.signal.throwIfAborted();
+          const args = [...context.args];
+          let print = false, list = false;
+          while (args[0]?.startsWith("-") && args[0] !== "-") {
+            const option = args.shift()!;
+            if (option === "--") break;
+            for (const flag of option.slice(1)) {
+              if (flag === "p") print = true;
+              else if (flag === "l") list = true;
+              else { await context.stderr.write(new TextEncoder().encode(`trap: -${flag}: invalid option\ntrap: usage: trap [-lp] [arg signal_spec ...]\n`)); return 2; }
+            }
+          }
+          if (list) {
+            const signals = [...names].filter(([number]) => number > 0 && number < pseudoBase).sort(([left], [right]) => left - right);
+            let output = "";
+            for (const [index, [number, name]] of signals.entries()) output += `${String(number).padStart(2, " ")}) ${name}${index % 4 === 3 ? "\n" : "\t"}`;
+            if (!output.endsWith("\n")) output += "\n";
+            await context.stdout.write(new TextEncoder().encode(output));
+            return 0;
+          }
+          if (!args.length) print = true;
+          let action: ShellValue | undefined;
+          const first = args[0];
+          const numericReset = !!first && [...first].every(character => character >= "0" && character <= "9");
+          if (!print && args.length > 1 && !numericReset) { action = context.argumentValues[context.args.length - args.length]; args.shift(); }
+          if (!print && args.length === 1 && args[0] === "-") { await context.stderr.write(new TextEncoder().encode("trap: usage: trap [-lp] [arg signal_spec ...]\n")); return 2; }
+          if (action !== undefined && shellValueText(action) !== "-") context.accountSource(action);
+          const targets = args.length ? args : actions ? [...actions.keys()].sort((left, right) => left - right).map(String) : [];
+          let status = 0;
+          for (const target of targets) {
+            const number = resolve(target);
+            if (number === undefined) { await context.diagnostic(`trap: ${target}: invalid signal specification`); status = 1; continue; }
+            if (print) {
+              const current = actions?.get(number);
+              if (current) {
+                await context.stdout.write(new TextEncoder().encode("trap -- "));
+                await context.stdout.write(quote(current.source));
+                await context.stdout.write(new TextEncoder().encode(` ${names.get(number)}\n`));
+              }
+            } else if (inheritedIgnored.has(number)) continue;
+            else if (action === undefined || shellValueText(action) === "-") actions?.delete(number);
+            else { actions ??= new Map<number, Action>(); actions.set(number, { source: action, active: true }); }
+          }
+          if (!print) await configuration.signalHost?.dispositions?.(signalScope ?? context.scope, new Map([...actions ?? []]
+            .filter(([number, action]) => number > 0 && number < pseudoBase && action.active)
+            .map(([number, action]) => [number, shellValueByteLength(action.source) ? "trap" : "ignore"] as const)));
+          return status;
+        },
+      }],
+      fork(scope: ShellExtensionScope) {
+        if (!actions?.size && !options[0]!.enabled && !options[1]!.enabled && inheritedIgnored.size === 0 && !extendedDebug) {
+          return instance(undefined, false, false, emptyIgnored, false);
+        }
+        const inherited = new Map<number, Action>();
+        for (const [number, action] of actions ?? []) {
+          if (scope === "process") { if (number > 0 && number < pseudoBase && !shellValueByteLength(action.source)) inherited.set(number, action); }
+          else inherited.set(number, { source: action.source, active: !shellValueByteLength(action.source) || names.get(number) === "ERR" && options[0]!.enabled || ["DEBUG", "RETURN"].includes(names.get(number)!) && options[1]!.enabled });
+        }
+        return instance(inherited, scope !== "process" && options[0]!.enabled, scope !== "process" && options[1]!.enabled, scope === "process" ? new Set(inherited.keys()) : inheritedIgnored, scope !== "process" && extendedDebug);
+      },
+      async event(event, context) {
+        if (event === "function-enter") { functions ??= []; functions.push(new Map(actions)); return; }
+        if (event === "function-leave") { functions?.pop(); return; }
+        if (event === "source-enter") { sources ??= []; sources.push(actions?.get(aliases.get("DEBUG")!)); return; }
+        if (event === "source-leave") {
+          const previous = sources?.pop();
+          if (previous && !actions?.has(aliases.get("DEBUG")!)) { actions ??= new Map<number, Action>(); actions.set(aliases.get("DEBUG")!, previous); }
+          return;
+        }
+        if (pending) for (const number of pending) {
+          if (running?.has(number)) continue;
+          pending.delete(number);
+          await run(number, context);
+        }
+        const name = event === "exit" ? "EXIT" : event === "error" ? "ERR" : event === "command" ? "DEBUG" : "RETURN";
+        if (name === "DEBUG" && context.sourceDepth > 0 && sources?.at(-1) === actions?.get(aliases.get(name)!) && !options[1]!.enabled) return;
+        const inherited = functions?.at(-1)?.get(aliases.get(name)!) === actions?.get(aliases.get(name)!);
+        if (context.functionDepth > 0 && inherited && (name === "ERR" && !options[0]!.enabled || (name === "DEBUG" || name === "RETURN") && !options[1]!.enabled)) return;
+        const status = await run(aliases.get(name)!, context);
+        if (name === "DEBUG" && extendedDebug && status) return status === 2 && (context.functionDepth > 0 || context.sourceDepth > 0) ? { action: "return", status } : { action: "skip" };
+      },
+    };
+    ignoredPortableTrapSignals.set(created, () => [...actions ?? []]
+      .filter(([number, action]) => number > 0 && number < pseudoBase && action.active && !shellValueByteLength(action.source))
+      .map(([number]) => number));
+    if (!configuration.signalHost) {
+      idlePortableTrapInstances.set(created, () => (actions?.size ?? 0) === 0 && (pending?.size ?? 0) === 0 && (functions?.length ?? 0) === 0 && (sources?.length ?? 0) === 0);
+    }
+    return created;
+  }
+
+  return { name: "trap", runtimeIdentity: commandRuntimeIdentity, create: () => instance(
+    initialIgnored.size ? new Map([...initialIgnored].map(number => [number, { source: "", active: true }])) : undefined,
+    false, false, initialIgnored,
+  ) };
+}
+
+export const defaultPortableTrapExtension = portableTrapExtension();

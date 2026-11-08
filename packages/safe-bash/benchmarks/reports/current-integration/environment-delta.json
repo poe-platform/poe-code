@@ -1,0 +1,9 @@
+{
+  "sameOrderedUniqueTestTitles": true,
+  "uniqueTests": 9920,
+  "changes": {
+    "fail->pass": 510,
+    "skipped->pass": 87
+  },
+  "note": "Two executions of the same 9,920 cases, NOT 19,840 unique cases. Contracts are another overlapping rerun, not additional coverage."
+}

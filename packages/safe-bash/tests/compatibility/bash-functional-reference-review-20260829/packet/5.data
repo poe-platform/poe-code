@@ -1,0 +1,32 @@
+[
+  {
+    "path": "PRESEAL.json",
+    "bytes": 3024,
+    "sha256": "657d5ef886db90c625d40ba4f461ccea64c1ff9e2d48f3b1c72190bc0d52dea6"
+  },
+  {
+    "path": "GO.template.json",
+    "bytes": 1207,
+    "sha256": "d60db21a594290dd4b546a32bda6b4cbbff031b58caa92a9bb573896ca1d5452"
+  },
+  {
+    "path": "APPROVAL-REQUEST.json",
+    "bytes": 1465,
+    "sha256": "3275cbb00a768c8b8ef6166c8e172df23bb4c9e18b26821eea089c2fa20f8b9a"
+  },
+  {
+    "path": "launch.mjs",
+    "bytes": 12619,
+    "sha256": "c93248b64eb33cd2c363351ba393a42f7858210b95537fdd6bbef257d1664147"
+  },
+  {
+    "path": "AUDIT.json",
+    "bytes": 40103,
+    "sha256": "2547adf1c6a71bc6868263ee5de469248ae98402fc076e865f202dcfbd0e59c6"
+  },
+  {
+    "path": "REQUESTS.json",
+    "bytes": 29287,
+    "sha256": "86d26ebc5f92857d5917f7c28f4d8648490b98cf5c37177dc13af4b74e1f93fd"
+  }
+]

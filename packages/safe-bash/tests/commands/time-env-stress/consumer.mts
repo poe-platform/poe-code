@@ -1,0 +1,261 @@
+import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
+import { getEventListeners } from "node:events";
+import { readFile, writeFile } from "node:fs/promises";
+import { Shell, CommandRegistry, MemoryFileSystem, agentCommands, FsError, type CommandContext } from "./dist/index.js";
+import { createTimeEnvCommands, timeEnvCommands, type TimeEnvCommandsOptions, type SleepScheduler } from "./dist/commands/time-env/index.js";
+
+const rows: Record<string, unknown>[] = [];
+const output = process.env.REVIEW_OUTPUT!;
+const gnu = process.env.GNU_DIR!;
+const clock = 1704164645123;
+const environmentBefore = { ...process.env };
+type Captured = { status: number; stdoutHex: string; stderrHex: string };
+function native(tool: string, args: string[], env: Record<string, string> = {}, apple = false): Captured {
+  const binary = apple ? tool === "printenv" ? "/usr/bin/printenv" : `/bin/${tool}` : `${gnu}/${tool}`;
+  const result = spawnSync(binary, args, { cwd: process.env.TMPDIR, env: { LC_ALL: "C", TZ: "UTC", ...env }, timeout: 3000, maxBuffer: 1024 * 1024 });
+  assert.ifError(result.error); assert.equal(result.signal, null); assert.notEqual(result.status, null);
+  return { status: result.status!, stdoutHex: result.stdout.toString("hex"), stderrHex: result.stderr.toString("hex") };
+}
+async function direct(name: string, args: readonly string[], options: TimeEnvCommandsOptions = {}, overrides: Partial<CommandContext> = {}): Promise<Captured> {
+  const stdout: Uint8Array[] = [], stderr: Uint8Array[] = [];
+  const context: CommandContext = { command: name, args, cwd: "/", env: Object.create(null) as Record<string, string>, fs: new MemoryFileSystem(),
+    signal: new AbortController().signal, stdin: (async function* () {})(), stdout: { async write(bytes) { stdout.push(bytes.slice()); } },
+    stderr: { async write(bytes) { stderr.push(bytes.slice()); } }, ...overrides };
+  const command = createTimeEnvCommands(options).find(command => command.name === name)!;
+  const result = await command.execute(context);
+  return { status: result.exitCode, stdoutHex: Buffer.concat(stdout).toString("hex"), stderrHex: Buffer.concat(stderr).toString("hex") };
+}
+const success = (value: string): Captured => ({ status: 0, stdoutHex: Buffer.from(value).toString("hex"), stderrHex: "" });
+async function row(name: string, category: string, run: (record: Record<string, unknown>) => Promise<void>) {
+  const record: Record<string, unknown> = { name, category };
+  try { await run(record); record.result = "pass"; }
+  catch (error) { record.result = "fail"; record.error = error instanceof Error ? { name: error.name, message: error.message, stack: error.stack } : error; }
+  rows.push(record);
+  if (record.result === "fail") console.log(JSON.stringify(record));
+}
+async function differential(name: string, args: string[], env: Record<string, string> = {}) {
+  await row(name, "GNU9.7-Darwin-required-date", async record => {
+    record.args = args; record.env = env;
+    const expected = native("date", args, env); const actual = await direct("date", args, {}, { env });
+    record.expected = expected; record.actual = actual;
+    assert.equal(expected.status, 0, "independent native input must be valid");
+    assert.deepEqual(actual, expected);
+  });
+}
+
+const registry = new CommandRegistry();
+const baseline = new Shell({ fs: new MemoryFileSystem(), commands: registry }).use(agentCommands());
+await baseline.exec(":");
+const names = registry.list().map(command => command.name).sort();
+const expectedNames = "[ awk base32 base64 basename cat chmod cksum comm cp cut diff dirname echo env expand false find fold grep gunzip gzip head join jq ln ls md5sum mkdir mktemp mv nl od paste patch printf pwd readlink realpath rev rg rm rmdir sed seq sha1sum sha256sum sort split stat strings tac tail tar tee test touch tr true unexpand uniq wc xargs xxd zcat".split(" ");
+await row("frozen actual registry, explicit optional family and default clock", "public-api", async record => {
+  record.names = names; assert.deepEqual(names, expectedNames);
+  for (const name of ["date", "sleep", "printenv"]) assert.equal(registry.has(name), false);
+  assert.deepEqual(createTimeEnvCommands().map(command => command.name), ["date", "sleep", "printenv"]);
+  const before = Date.now(); const actual = await direct("date", ["+%s"]); const after = Date.now();
+  const epoch = Number(Buffer.from(actual.stdoutHex, "hex").toString());
+  assert.equal(actual.status, 0); assert.ok(epoch >= Math.floor(before / 1000) && epoch <= Math.floor(after / 1000));
+});
+await baseline.dispose();
+
+const directives = ["a", "A", "b", "B", "c", "C", "d", "D", "e", "F", "g", "G", "H", "I", "j", "k", "l", "m", "M", "p", "P", "q", "r", "R", "s", "S", "T", "u", "U", "V", "w", "W", "x", "X", "y", "Y", "z", "Z", "n", "t"];
+for (const directive of directives) await differential(`plain %${directive}`, ["-d@1704164645.123456789", `+%${directive}`]);
+for (const directive of ["F", "D", "c", "r", "R", "T", "x", "X", "Y", "y", "m", "d", "e", "s", "z", "Z", "a", "b", "p", "P"]) {
+  for (const flag of ["-", "_", "0", "^", "#", "12", "_12", "012"]) await differential(`flag %${flag}${directive}`, ["-d@1704164645.123456789", `+%${flag}${directive}`]);
+}
+for (const input of ["@-0.000000001", "@-1.999999999", "@+0,000000001", "0000-02-29T00:00:00Z", "0001-01-01T00:00:00Z", "0099-12-31T23:59:59Z", "1900-03-01", "2000-02-29", "2400-02-29", "2021-01-01", "2020-12-31", "9999-12-31T23:59:59Z"]) {
+  await differential(`calendar ${input}`, ["-u", `-d${input}`, "+%F %T %s %N %j %G-%V-%u"]);
+}
+for (const precision of [1, 2, 4, 5, 7, 8, 9]) await differential(`negative nanosecond width ${precision}`, ["-d@-1.123456789", `+%s.%${precision}N`]);
+for (const option of ["-I", "-Ihours", "-Iminutes", "-Iseconds", "-Ins", "-R", "--rfc-3339=date", "--rfc-3339=seconds", "--rfc-3339=ns", "--iso-8601=seconds"]) {
+  await differential(`output option ${option}`, ["-u", "-d@-1.123456789", option]);
+}
+for (const [input, timezone] of [
+  ["2024-03-10T01:59:59", "America/New_York"], ["2024-03-10T03:00:00", "America/New_York"],
+  ["2024-11-03T01:30:00-04:00", "America/New_York"], ["2024-11-03T01:30:00-05:00", "America/New_York"],
+  ["2024-10-06T01:59:59", "Australia/Lord_Howe"], ["2024-10-06T02:30:00", "Australia/Lord_Howe"],
+  ["@0", "UTC-05:45:30"], ["@0", "UTC+09:30"], ["1900-01-01", "Europe/Paris"], ["0099-01-01", "America/New_York"],
+] as const) await differential(`${timezone} ${input}`, [`-d${input}`, "+%F %T %s %z %:z %::z %:::z"], { TZ: timezone });
+
+for (const input of ["1900-02-29", "2100-02-29", "2024-00-01", "2024-02-30", "2024-01-01T24:00:00", "2024-01-01T23:59:60", "2024-01-01T00:00:00+24:00", "Mon, 29 Feb 2024 00:00:00 GMT"]) {
+  await row(`invalid calendar ${input}`, "required-date-errors", async record => {
+    record.actual = await direct("date", [`-d${input}`, "+prefix%F"]);
+    const actual = record.actual as Captured; assert.equal(actual.status, 1); assert.equal(actual.stdoutHex, ""); assert.notEqual(actual.stderrHex, "");
+  });
+}
+for (const [input, timezone] of [["2024-03-10T02:30:00", "America/New_York"], ["2024-11-03T01:30:00", "America/New_York"], ["2024-10-06T02:15:00", "Australia/Lord_Howe"], ["2024-04-07T01:45:00", "Australia/Lord_Howe"], ["2011-12-30T12:00:00", "Pacific/Apia"]] as const) {
+  await row(`gap/fold declared rejection ${timezone} ${input}`, "required-declared-rejection", async record => {
+    record.native = native("date", [`-d${input}`, "+%s"], { TZ: timezone });
+    const actual = await direct("date", [`-d${input}`, "+%s"], {}, { env: { TZ: timezone } }); record.actual = actual;
+    assert.equal(actual.status, 1); assert.equal(actual.stdoutHex, ""); assert.notEqual(actual.stderrHex, "");
+  });
+}
+for (const argument of ["now", "today", "now +7 seconds", "-2 hours ago", "tomorrow"]) await row(`clock exactly once ${argument}`, "clock", async record => {
+  let calls = 0; record.actual = await direct("date", [`-d${argument}`, "+%s %N %s"], { clock: () => { calls++; return clock; } });
+  assert.equal((record.actual as Captured).status, 0); assert.equal(calls, 1);
+});
+for (const value of [NaN, Infinity, -Infinity, 8640000000000001]) await row(`invalid clock ${String(value)}`, "clock", async record => {
+  const actual = await direct("date", ["+%s"], { clock: () => value }); record.actual = actual;
+  assert.equal(actual.status, 1); assert.equal(actual.stdoutHex, "");
+});
+for (const [value, expected] of [[-0.0000001, "-1 999999999\n"], [0.000001, "0 000000001\n"], [-1250.125, "-2 749875000\n"]] as const) await row(`clock fractional milliseconds ${value}`, "clock", async record => {
+  record.actual = await direct("date", ["+%s %N"], { clock: () => value }); assert.deepEqual(record.actual, success(expected));
+});
+await row("absolute date and VFS reference never sample clock", "clock-vfs", async () => {
+  const forbidden = () => { throw new Error("clock must not be sampled"); };
+  assert.deepEqual(await direct("date", ["-d@0", "+%s"], { clock: forbidden }), success("0\n"));
+  const fs = new MemoryFileSystem(); await fs.mkdir("/work"); await fs.writeFile("/work/file", new Uint8Array([0, 255])); await fs.utimes!("/work/file", -1250, -1250); await fs.symlink!("file", "/work/link");
+  assert.deepEqual(await direct("date", ["-r", "link", "+%s %N"], { clock: forbidden }, { fs, cwd: "/work" }), success("-2 750000000\n"));
+  assert.deepEqual([...await fs.readFile("/work/file")], [0, 255]);
+});
+
+const ownEnv = Object.assign(Object.create(null) as Record<string, string>, { "__proto__": "proto", constructor: "ctor", toString: "string", EMPTY: "", UNICODE: "雪\n𝄞" });
+Object.defineProperty(ownEnv, "__proto__", { value: "proto", enumerable: true, configurable: true });
+Object.defineProperty(ownEnv, "HIDDEN", { value: "hidden", enumerable: false });
+for (const args of [["__proto__", "constructor", "toString"], ["EMPTY", "MISSING", "UNICODE", "EMPTY"], ["-0", "UNICODE", "EMPTY"], ["--", "constructor"], ["constructor", "-0"]]) {
+  await row(`printenv GNU names ${JSON.stringify(args)}`, "GNU9.7-Darwin-printenv", async record => {
+    const env = Object.fromEntries(Object.getOwnPropertyNames(ownEnv).map(name => [name, ownEnv[name]!]));
+    record.expected = native("printenv", args, env); record.actual = await direct("printenv", args, {}, { env: ownEnv }); assert.deepEqual(record.actual, record.expected);
+  });
+}
+await row("printenv enumeration owns keys without portable-order assumption", "printenv-own-keys", async () => {
+  const env = Object.create({ LEAK: "inherited" }) as Record<string, string>;
+  for (const name of Object.getOwnPropertyNames(ownEnv)) Object.defineProperty(env, name, { value: ownEnv[name], enumerable: name !== "HIDDEN" });
+  const actual = await direct("printenv", ["-0"], {}, { env });
+  assert.equal(actual.status, 0);
+  const records = Buffer.from(actual.stdoutHex, "hex").toString().split("\0"); records.pop();
+  assert.deepEqual(records.sort(), Object.getOwnPropertyNames(ownEnv).map(name => `${name}=${ownEnv[name]}`).sort());
+  assert.deepEqual(await direct("printenv", ["LEAK"], {}, { env }), { status: 1, stdoutHex: "", stderrHex: "" });
+});
+
+class Timers implements SleepScheduler {
+  nowMs = 100; sequence = 0; pending = new Map<number, () => void>(); delays: number[] = []; cleared: unknown[] = [];
+  now() { return this.nowMs; }
+  setTimeout(callback: () => void, milliseconds: number) { this.delays.push(milliseconds); this.pending.set(++this.sequence, callback); return this.sequence; }
+  clearTimeout(handle: unknown) { this.cleared.push(handle); this.pending.delete(handle as number); }
+  tick(milliseconds: number) { this.nowMs += milliseconds; const callbacks = [...this.pending.values()]; this.pending.clear(); for (const callback of callbacks) callback(); }
+}
+for (const [args, duration] of [
+  [["0.0009999999", "0.0000000001"], 1], [["0.0004999999", "0.0005000001"], 1],
+  [["0.000001m", "0.000001h"], 4], [["1e-4000"], 1], [["+1E-3", "0.000001d"], 88], [["0e9999"], 0],
+] as const) await row(`sleep exact total ${args.join(" ")}`, "sleep-arithmetic", async record => {
+  const scheduler = new Timers(); const pending = direct("sleep", args, { scheduler });
+  record.delays = scheduler.delays; record.expectedMilliseconds = duration;
+  const observed = scheduler.delays[0] ?? 0;
+  scheduler.tick(Math.max(duration, observed)); await pending;
+  assert.equal(observed, duration); assert.equal(scheduler.pending.size, 0);
+});
+await row("sleep huge duration chunks, early wakes and exact abort release", "sleep-lifecycle", async record => {
+  const scheduler = new Timers(), controller = new AbortController(), reason = Object.freeze({ reason: "stop huge interval" });
+  const pending = direct("sleep", ["9007199254740.991"], { scheduler }, { signal: controller.signal });
+  const rejection = assert.rejects(pending, error => error === reason);
+  assert.equal(scheduler.delays[0], 2147483647); scheduler.tick(2147483646); assert.equal(scheduler.delays[1], 2147483647);
+  controller.abort(reason); assert.equal(scheduler.pending.size, 0); assert.equal(getEventListeners(controller.signal, "abort").length, 0);
+  await rejection; record.delays = scheduler.delays; record.cleared = scheduler.cleared;
+});
+for (const reason of [false, 0, "", new FsError("ENOENT")]) await row(`sleep abort reason ${String(reason)}`, "sleep-lifecycle", async () => {
+  for (const before of [true, false]) {
+    const scheduler = new Timers(), controller = new AbortController(); if (before) controller.abort(reason);
+    const pending = direct("sleep", ["600"], { scheduler }, { signal: controller.signal });
+    const rejected = assert.rejects(pending, error => error === reason); if (!before) controller.abort(reason);
+    await rejected; assert.equal(scheduler.pending.size, 0); assert.equal(getEventListeners(controller.signal, "abort").length, 0);
+  }
+});
+for (const args of [[".001"], ["0", "0"], ["1e-5m"], ["--", "0"], ["0x0"], ["-0"]]) await row(`sleep bounded native ${JSON.stringify(args)}`, "GNU9.7-Darwin-sleep", async record => {
+  record.expected = native("sleep", args); record.actual = await direct("sleep", args);
+  if (args[0] === "0x0") { record.category = "declared-unsupported-profile"; assert.equal((record.actual as Captured).status, 1); }
+  else { assert.equal((record.actual as Captured).status, (record.expected as Captured).status); assert.equal((record.actual as Captured).stdoutHex, ""); }
+});
+for (const epoch of ["-1", "0", "1704164645"]) await row(`Apple BSD epoch conversion ${epoch}`, "Apple-BSD-qualified-date", async record => {
+  record.nativeArgs = ["-u", "-r", epoch, "+%F %T %s %z"];
+  record.expected = native("date", record.nativeArgs as string[], {}, true);
+  record.actual = await direct("date", ["-u", `-d@${epoch}`, "+%F %T %s %z"]);
+  assert.deepEqual(record.actual, record.expected);
+});
+for (const tool of ["printenv", "sleep"]) await row(`Apple BSD ${tool} separate profile`, "Apple-BSD-qualified", async record => {
+  const args = tool === "printenv" ? ["EMPTY", "UNICODE"] : [".001"];
+  record.expected = native(tool, args, { EMPTY: "", UNICODE: "雪" }, true);
+  record.actual = await direct(tool, args, {}, { env: { EMPTY: "", UNICODE: "雪" } });
+  if (tool === "printenv") record.category = "Apple-BSD-observed-not-target";
+  assert.deepEqual(record.actual, record.expected);
+});
+
+await row("actual shell pipelines VFS binary output and parent environment", "public-shell", async record => {
+  const fs = new MemoryFileSystem(); const shell = new Shell({ fs, env: { SECRET: "parent" } }).use(agentCommands()).use(timeEnvCommands({ clock: () => clock }));
+  try {
+    const result = await shell.exec("env -i A=雪 EMPTY= printenv -0 A EMPTY > bytes; date -d@-1.5 +%s.%N > stamp; cat bytes; cat stamp; env -i printenv SECRET; printenv SECRET");
+    record.actual = { status: result.exitCode, stdoutHex: Buffer.from(result.stdoutBytes).toString("hex"), stderr: result.stderr };
+    assert.equal(result.exitCode, 0); assert.equal(result.stderr, "");
+    assert.deepEqual(Buffer.from(result.stdoutBytes), Buffer.from("雪\0\0-2.500000000\nparent\n"));
+    assert.deepEqual(Buffer.from(await fs.readFile("/bytes")), Buffer.from("雪\0\0"));
+    assert.equal(Buffer.from(await fs.readFile("/stamp")).toString(), "-2.500000000\n");
+  } finally { await shell.dispose(); }
+});
+for (let repeat = 0; repeat < 6; repeat++) await row(`compiled public sleep cancellation repeat${repeat}`, "public-sleep-lifecycle", async record => {
+  const pendingTimers = new Set<ReturnType<typeof setTimeout>>(); const signals: AbortSignal[] = [];
+  let admitted!: () => void; const admission = new Promise<void>(resolve => { admitted = resolve; });
+  const scheduler: SleepScheduler = {
+    now: () => performance.now(),
+    setTimeout(callback, milliseconds) { const timer = setTimeout(() => { pendingTimers.delete(timer); callback(); }, milliseconds); pendingTimers.add(timer); admitted(); return timer; },
+    clearTimeout(handle) { clearTimeout(handle as ReturnType<typeof setTimeout>); pendingTimers.delete(handle as ReturnType<typeof setTimeout>); },
+  };
+  const controller = new AbortController(), reason = Object.freeze({ publicAbort: true });
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(timeEnvCommands({ scheduler })).use({ name: "capture-sleep-signal", setup(host) { host.use((context, next) => { signals.push(context.signal); return next(); }); } });
+  try {
+    const execution = shell.exec("sleep 600", { signal: controller.signal });
+    const rejected = assert.rejects(execution, error => error === reason);
+    await admission; controller.abort(reason); assert.equal(pendingTimers.size, 0);
+    await rejected; record.atExec = { timers: pendingTimers.size, listeners: signals.map(signal => getEventListeners(signal, "abort").length) };
+    assert.equal(pendingTimers.size, 0); await shell.dispose();
+    record.atDispose = { timers: pendingTimers.size, listeners: signals.map(signal => getEventListeners(signal, "abort").length) };
+    assert.equal(pendingTimers.size, 0); for (const signal of signals) assert.equal(getEventListeners(signal, "abort").length, 0);
+  } finally { controller.abort(reason); await shell.dispose(); for (const timer of pendingTimers) clearTimeout(timer); }
+});
+await row("public preabort creates no timer and preserves caller identity", "public-sleep-lifecycle", async () => {
+  const scheduler = new Timers(), controller = new AbortController(), reason = new FsError("EIO"); controller.abort(reason);
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(timeEnvCommands({ scheduler }));
+  try { await assert.rejects(shell.exec("sleep 1", { signal: controller.signal }), error => error === reason); assert.deepEqual(scheduler.delays, []); }
+  finally { await shell.dispose(); }
+});
+await row("cancelling one Shell does not clear a sibling timer", "public-sleep-isolation", async record => {
+  const timers = new Set<ReturnType<typeof setTimeout>>(); let ready!: () => void;
+  const both = new Promise<void>(resolve => { ready = resolve; });
+  const scheduler: SleepScheduler = { now: () => performance.now(),
+    setTimeout(callback, milliseconds) { const handle = setTimeout(() => { timers.delete(handle); callback(); }, milliseconds); timers.add(handle); if (timers.size === 2) ready(); return handle; },
+    clearTimeout(handle) { clearTimeout(handle as ReturnType<typeof setTimeout>); timers.delete(handle as ReturnType<typeof setTimeout>); } };
+  const first = new Shell({ fs: new MemoryFileSystem() }).use(timeEnvCommands({ scheduler }));
+  const second = new Shell({ fs: new MemoryFileSystem() }).use(timeEnvCommands({ scheduler }));
+  const controller = new AbortController(), reason = new Error("only first");
+  try {
+    const stopped = assert.rejects(first.exec("sleep 600", { signal: controller.signal }), error => error === reason);
+    const surviving = second.exec("sleep .030"); await both; controller.abort(reason); await stopped; await first.dispose();
+    record.siblingTimers = timers.size; assert.equal(timers.size, 1);
+    assert.equal((await surviving).exitCode, 0); await second.dispose(); assert.equal(timers.size, 0);
+  } finally { controller.abort(reason); await first.dispose(); await second.dispose(); for (const timer of timers) clearTimeout(timer); }
+});
+await row("byte quotas, backpressure and output chunk ownership", "limits-output", async () => {
+  for (const [name, args, env] of [["printenv", ["A"], { A: "雪" }], ["date", ["-d@0", "+雪"], {}]] as const) {
+    await assert.rejects(direct(name, args, { limits: { maxOutputBytes: 3 } }, { env }), { code: "EFBIG" });
+  }
+  const value = "雪".repeat(16000); const chunks: Uint8Array[] = []; let release!: () => void;
+  const blocked = new Promise<void>(resolve => { release = resolve; });
+  const execution = direct("printenv", ["A"], {}, { env: { A: value }, stdout: { async write(bytes) { chunks.push(bytes); if (chunks.length === 1) await blocked; } } });
+  await Promise.resolve(); assert.equal(chunks.length, 1); release(); await execution;
+  assert.equal(Buffer.concat(chunks).toString(), `${value}\n`); assert.ok(chunks.every(chunk => chunk.length <= 16384));
+  assert.equal(new Set(chunks.map(chunk => chunk.buffer)).size, chunks.length);
+  const shell = new Shell({ fs: new MemoryFileSystem(), limits: { maxOutputBytes: 2 } }).use(timeEnvCommands());
+  try { await assert.rejects(shell.exec("date -d@0 +abc")); assert.equal((await shell.exec("sleep 0")).stdoutBytes.length, 0); }
+  finally { await shell.dispose(); }
+});
+await row("ambient environment unchanged and virtual UTC ignores host TZ", "host-isolation", async () => {
+  assert.deepEqual(await direct("date", ["-d@0", "+%T %z"]), success("00:00:00 +0000\n"));
+  assert.deepEqual({ ...process.env }, environmentBefore);
+});
+const summary = Object.fromEntries([...new Set(rows.map(row => String(row.category)))].map(category => {
+  const selected = rows.filter(row => row.category === category);
+  return [category, { total: selected.length, pass: selected.filter(row => row.result === "pass").length, fail: selected.filter(row => row.result === "fail").length }];
+}));
+await writeFile(`${output}/holdouts.json`, JSON.stringify({ capturedAt: new Date().toISOString(), versions: process.versions, compiledRoot: import.meta.resolve("./dist/index.js"), compiledLeaf: import.meta.resolve("./dist/commands/time-env/index.js"), summary, rows }, null, 2));
+console.log(JSON.stringify(summary, null, 2));
+if (rows.some(row => row.result === "fail")) process.exitCode = 1;

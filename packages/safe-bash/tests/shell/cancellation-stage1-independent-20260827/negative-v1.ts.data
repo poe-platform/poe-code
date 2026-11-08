@@ -1,0 +1,8 @@
+import type { CancellationInvokeOptions } from './cancellation.js';
+const nullSignal: CancellationInvokeOptions = { signal: null };
+const controllerSignal: CancellationInvokeOptions = { signal: new AbortController() };
+const promisedSignal: CancellationInvokeOptions = { signal: Promise.resolve(new AbortController().signal) };
+const textSignal: CancellationInvokeOptions = { signal: 'abort' };
+const structuralSignal: CancellationInvokeOptions = { signal: { aborted: false, reason: undefined } };
+const numericSignal: CancellationInvokeOptions = { signal: 0 };
+void nullSignal; void controllerSignal; void promisedSignal; void textSignal; void structuralSignal; void numericSignal;

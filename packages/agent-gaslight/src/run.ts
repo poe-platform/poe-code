@@ -1,0 +1,324 @@
+import { hostCwd, hostEnvironment, defaultSpawn } from "#gaslight-platform";
+import { gaslightFileSystem } from "./filesystem.js";
+import { posixPath as path } from "@poe-code/safe-fs/runtime-core";
+import type { SpawnUsage } from "@poe-code/agent-spawn";
+import { archivePlan as archivePlanShared, createRunQueue, mapSourcePathIntoWorktree } from "@poe-code/agent-harness-tools";
+import { UserError } from "@poe-code/user-error";
+import { loadGaslightConfig } from "./config.js";
+import type {
+  GaslightFileSystem,
+  GaslightOptions,
+  GaslightPlanResult,
+  GaslightResult,
+  GaslightRound
+} from "./types.js";
+import { interpolateGaslightVars, resolveGaslightVars } from "./vars.js";
+
+type ArchivePlanFs = NonNullable<Parameters<typeof archivePlanShared>[0]["fs"]>;
+
+function summarize(stdout: string, stderr: string): string {
+  return stdout.trim() || stderr.trim();
+}
+
+function addUsage(
+  total: SpawnUsage | undefined,
+  usage: SpawnUsage | undefined
+): SpawnUsage | undefined {
+  if (!usage) {
+    return total;
+  }
+  return {
+    inputTokens: (total?.inputTokens ?? 0) + usage.inputTokens,
+    outputTokens: (total?.outputTokens ?? 0) + usage.outputTokens,
+    ...((total?.cachedTokens !== undefined || usage.cachedTokens !== undefined) && {
+      cachedTokens: (total?.cachedTokens ?? 0) + (usage.cachedTokens ?? 0)
+    }),
+    ...((total?.costUsd !== undefined || usage.costUsd !== undefined) && {
+      costUsd: (total?.costUsd ?? 0) + (usage.costUsd ?? 0)
+    })
+  };
+}
+
+async function requirePlan(
+  fs: GaslightFileSystem,
+  absolutePath: string,
+  planPath: string
+): Promise<void> {
+  try {
+    const stats = await fs.stat(absolutePath);
+    if (!stats.isFile()) {
+      throw new Error("not a file");
+    }
+  } catch (error) {
+    throw new UserError(`Plan file not found: ${planPath}`, { cause: error });
+  }
+}
+
+function resolvePlanPath(cwd: string, homeDir: string, planPath: string): string {
+  if (planPath.startsWith("~/")) {
+    return path.join(homeDir, planPath.slice(2));
+  }
+  return path.resolve(cwd, planPath);
+}
+
+function planIdFromPath(planPath: string): string {
+  const stem = path.basename(planPath, ".md");
+  let index = 0;
+  while (index < stem.length && stem.charCodeAt(index) >= 48 && stem.charCodeAt(index) <= 57) {
+    index += 1;
+  }
+
+  if (index > 0 && stem[index] === "-" && index < stem.length - 1) {
+    return stem.slice(index + 1);
+  }
+
+  return stem;
+}
+
+function archivedPlanPath(planPath: string): string {
+  if (path.basename(path.dirname(planPath)) === "archive") {
+    return planPath;
+  }
+
+  return path.join(path.dirname(planPath), "archive", `${planIdFromPath(planPath)}.md`);
+}
+
+function validateInlineConfig(prompt: string | undefined, followups: string[] | undefined): void {
+  if ((prompt === undefined) !== (followups === undefined)) {
+    throw new Error("prompt and followups must be provided together.");
+  }
+  if (prompt !== undefined && prompt.trim().length === 0) {
+    throw new Error("prompt must be a non-empty string.");
+  }
+  if (
+    followups !== undefined &&
+    (followups.length === 0 || followups.some((followup) => followup.trim().length === 0))
+  ) {
+    throw new Error("followups must be a non-empty array of non-empty strings.");
+  }
+}
+
+function requireNonEmptyString(value: string, label: string): string {
+  const trimmed = value.trim();
+  if (trimmed.length === 0) {
+    throw new Error(`${label} must be a non-empty string.`);
+  }
+  return trimmed;
+}
+
+function resolveModel(value: string | undefined): string | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  const trimmed = value.trim();
+  if (trimmed.length === 0) {
+    throw new Error("model must be a non-empty string when provided.");
+  }
+  return trimmed;
+}
+
+function resolveOptionalPrompt(value: string | undefined, label: string): string | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  return requireNonEmptyString(value, label);
+}
+
+function resolvePlanPaths(options: GaslightOptions, cwd: string, homeDir: string): string[] {
+  const inputs = options.planPaths ?? [];
+  if (inputs.length === 0) {
+    throw new Error("Provide at least one plan path.");
+  }
+  for (const planPath of inputs) {
+    if (planPath.trim().length === 0) {
+      throw new Error("plan paths must be non-empty strings.");
+    }
+  }
+  const planPaths = inputs.map((planPath) => mapSourcePathIntoWorktree(options.sourceCwd ?? cwd, planPath.trim(), cwd));
+  const seen = new Map<string, string>();
+  for (const planPath of planPaths) {
+    const resolvedPath = resolvePlanPath(cwd, homeDir, planPath);
+    const duplicate = seen.get(resolvedPath);
+    if (duplicate !== undefined) {
+      throw new Error(`Duplicate plan path: ${duplicate}`);
+    }
+    seen.set(resolvedPath, planPath);
+  }
+  return planPaths;
+}
+
+export async function runGaslight(options: GaslightOptions): Promise<GaslightResult> {
+  const startedAt = Date.now();
+  const cwd = options.cwd ?? hostCwd();
+  const homeDir = options.homeDir ?? hostEnvironment.homedir();
+  const fs = gaslightFileSystem(options.fs);
+  const spawn = options.spawn ?? defaultSpawn;
+  const model = resolveModel(options.model);
+  const mode = options.mode ?? "auto";
+  const inlineSetup = resolveOptionalPrompt(options.setup, "setup");
+  const inlineTeardown = resolveOptionalPrompt(options.teardown, "teardown");
+  validateInlineConfig(options.prompt, options.followups);
+  if (options.queue && (options.planPaths || options.afterEachPlan)) {
+    throw new Error("Supply a queue or planPaths and afterEachPlan, not both.");
+  }
+  const planPaths = resolvePlanPaths({ ...options, planPaths: options.queue
+    ? options.queue.getSnapshot().items.flatMap((item) => item.kind === "plan" ? [item.path] : [])
+    : options.planPaths }, cwd, homeDir);
+  for (const planPath of planPaths) {
+    await requirePlan(fs, resolvePlanPath(cwd, homeDir, planPath), planPath);
+  }
+
+  const config: {
+    setup?: string;
+    agent?: string;
+    prompt: string;
+    followups: string[];
+    teardown?: string;
+    vars?: Record<string, string>;
+    archive?: boolean;
+  } =
+    options.prompt !== undefined && options.followups !== undefined
+      ? {
+          ...(inlineSetup ? { setup: inlineSetup } : {}),
+          prompt: options.prompt.trim(),
+          followups: options.followups.map((value) => value.trim()),
+          ...(inlineTeardown ? { teardown: inlineTeardown } : {}),
+          ...(options.vars ? { vars: options.vars } : {})
+        }
+      : await loadGaslightConfig(cwd, homeDir, fs, options.configPath);
+  const agent = requireNonEmptyString(options.agent ?? config.agent ?? "", "agent");
+  const vars = await resolveGaslightVars(config.vars ?? {}, cwd, fs);
+  const shouldArchive = options.archive ?? config.archive ?? false;
+  const rounds: GaslightRound[] = [];
+  const plans: GaslightPlanResult[] = [];
+  const messages: NonNullable<GaslightResult["messages"]> = [];
+  let usage: SpawnUsage | undefined;
+  let followupThreadId: string | undefined;
+  const queue = options.queue ?? createRunQueue({ plans: planPaths, afterEachPlan: options.afterEachPlan, cwd });
+
+  const snapshot = await queue.run({ signal: options.signal, async execute(item) {
+    if (item.kind === "message") {
+      const target = queue.getSnapshot().items.find((entry) => entry.id === item.afterPlanId);
+      if (!target || target.kind !== "plan") throw new Error("Queued follow-up has no target plan.");
+      const result = await spawn(agent, {
+        prompt: item.text, cwd, mode,
+        ...(model ? { model } : {}),
+        ...(followupThreadId ? { resumeThreadId: followupThreadId } : {}),
+        ...(options.signal ? { signal: options.signal } : {})
+      });
+      usage = addUsage(usage, result.usage);
+      if (options.signal?.aborted) return "cancelled";
+      if (result.exitCode !== 0) throw new Error(`Gaslight follow-up failed: ${summarize(result.stderr, result.stdout) || `exit code ${result.exitCode}`}`);
+      followupThreadId = result.threadId;
+      messages.push({ planPath: target.path, prompt: item.text, summary: summarize(result.stdout, result.stderr), ...(result.threadId ? { threadId: result.threadId } : {}) });
+      return "completed";
+    }
+    const planPath = mapSourcePathIntoWorktree(options.sourceCwd ?? cwd, item.path, cwd);
+    const queuedPlans = queue.getSnapshot().items.filter((entry) => entry.kind === "plan");
+    const planIndex = queuedPlans.findIndex((entry) => entry.id === item.id);
+    await requirePlan(fs, resolvePlanPath(cwd, homeDir, planPath), planPath);
+    const planStartedAt = Date.now();
+    const prompts = [
+      ...(config.setup ? [config.setup] : []),
+      `${config.prompt} ${planPath}`,
+      ...config.followups,
+      ...(config.teardown ? [config.teardown] : [])
+    ].map((prompt, index) => interpolateGaslightVars(prompt, vars, `round ${index + 1}`));
+    const planRounds: GaslightRound[] = [];
+    let planUsage: SpawnUsage | undefined;
+    let resumeThreadId: string | undefined;
+
+    for (const [index, prompt] of prompts.entries()) {
+      if (options.signal?.aborted) return "cancelled";
+      const round = index + 1;
+      options.onEvent?.({
+        type: "round.started",
+        round,
+        total: prompts.length,
+        prompt,
+        planPath,
+        planIndex: planIndex + 1,
+        totalPlans: queue.getSnapshot().items.filter((entry) => entry.kind === "plan").length
+      });
+      const result = await spawn(agent, {
+        prompt,
+        cwd,
+        mode,
+        ...(model ? { model } : {}),
+        ...(resumeThreadId ? { resumeThreadId } : {}),
+        ...(options.signal ? { signal: options.signal } : {})
+      });
+
+      if (options.signal?.aborted) {
+        usage = addUsage(usage, result.usage);
+        return "cancelled";
+      }
+
+      if (result.exitCode !== 0) {
+        const completed = planRounds.length;
+        const noun = completed === 1 ? "round" : "rounds";
+        const prefix =
+          queuedPlans.length === 1
+            ? `Gaslight round ${round}`
+            : `Gaslight plan ${planIndex + 1}/${queuedPlans.length} (${planPath}) round ${round}`;
+        throw new Error(
+          `${prefix} failed after ${completed} completed ${noun}: ${summarize(result.stderr, result.stdout) || `exit code ${result.exitCode}`}`
+        );
+      }
+
+      const summary = summarize(result.stdout, result.stderr);
+      const gaslightRound = {
+        prompt,
+        summary,
+        ...(result.threadId ? { threadId: result.threadId } : {})
+      };
+      planRounds.push(gaslightRound);
+      rounds.push(gaslightRound);
+      planUsage = addUsage(planUsage, result.usage);
+      usage = addUsage(usage, result.usage);
+      options.onEvent?.({
+        type: "round.finished",
+        round,
+        total: prompts.length,
+        summary,
+        planPath,
+        planIndex: planIndex + 1,
+        totalPlans: queue.getSnapshot().items.filter((entry) => entry.kind === "plan").length
+      });
+      followupThreadId = result.threadId;
+
+      if (round < prompts.length) {
+        if (!result.threadId) {
+          throw new Error("agent returned no threadId; cannot resume the conversation");
+        }
+        resumeThreadId = result.threadId;
+      }
+    }
+
+    let archivedPath: string | undefined;
+    if (shouldArchive) {
+      archivedPath = archivedPlanPath(planPath);
+      if (archivedPath !== planPath) {
+        await archivePlanShared({
+          cwd,
+          homeDir,
+          planDirectory: path.dirname(planPath),
+          id: planIdFromPath(planPath),
+          fs: fs as unknown as ArchivePlanFs
+        });
+      }
+    }
+
+    plans.push({
+      planPath,
+      ...(archivedPath ? { archivedPath } : {}),
+      rounds: planRounds,
+      durationMs: Date.now() - planStartedAt,
+      ...(planUsage ? { usage: planUsage } : {})
+    });
+    return "completed";
+  } });
+
+  return { rounds, plans, durationMs: Date.now() - startedAt, ...(usage ? { usage } : {}),
+    ...(options.queue || options.afterEachPlan ? { messages, queue: snapshot } : {}) };
+}

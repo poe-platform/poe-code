@@ -1,0 +1,191 @@
+{
+  "candidate": "8784a8fc0484313b914fe1ae6db33a8cfd0e0be4",
+  "started": "2026-08-27T15:53:35.228Z",
+  "temporary": "/tmp/strings-binding-independent-OjIjtP",
+  "output": "/Users/kjopek/Workspace/safe-bash/tests/commands/stream-inspection-stress/argv0-binding-review/run-2026-08-27T15-53-35-228Z",
+  "selectedPaths": [
+    "src",
+    "tests/commands/stream-inspection",
+    "package.json"
+  ],
+  "passed": true,
+  "liveBefore": {
+    "head": "0ec75ef320ecaea9fc66e1ba952f3961c917685c",
+    "status": "A  tests/commands/split-stress/remaining-writers-author/REPORT.md\nA  tests/commands/split-stress/remaining-writers-author/canonical-capture.tap\nA  tests/commands/split-stress/remaining-writers-author/canonical-default.tap\nA  tests/commands/split-stress/remaining-writers-author/freeze.json\nA  tests/commands/split-stress/remaining-writers-author/helper-guards.tap\nA  tests/commands/split-stress/remaining-writers-author/helper-regression.tap\nA  tests/commands/split-stress/remaining-writers-author/negative-capture.tap\nA  tests/commands/split-stress/remaining-writers-author/negative-default.tap\nA  tests/commands/split-stress/remaining-writers-author/observer-control.tap\nA  tests/commands/split-stress/remaining-writers-author/results.json\nA  tests/commands/split-stress/remaining-writers-author/typecheck.log\nA  tests/commands/split-stress/remaining-writers-author/verify.mjs\nA  tests/commands/split-stress/remaining-writers-author/write-guard.mjs\n?? tests/commands/column-stress/padding-evolution/execution-20260827/audit.mjs\n?? tests/commands/column-stress/padding-evolution/execution-20260827/runner.mjs\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/next\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/old\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/target\n?? tests/commands/search-stress/.native-1m4O1e/input\n?? tests/commands/split-stress/remaining-writers-review/audit.mjs\n?? tests/commands/split-stress/remaining-writers-review/barrier.mjs\n?? tests/commands/split-stress/remaining-writers-review/guards.mjs\n?? tests/commands/split-stress/remaining-writers-review/review.mjs\n?? tests/commands/stream-inspection-stress/argv0-binding-review/verify.mjs\n?? tests/integration/safejs-owned-output-prototype-review/surface/validity-proposal/CHECKS.json\n?? tests/integration/safejs-owned-output-prototype-review/surface/validity-proposal/PROOF.json\n?? tests/integration/safejs-owned-output-prototype-review/surface/validity-proposal/README.md\n?? tests/integration/safejs-owned-output-prototype-review/surface/validity-proposal/SEAL.json\n?? tests/integration/safejs-owned-output-prototype-review/surface/validity-proposal/authenticate.mjs\n?? tests/integration/safejs-owned-output-prototype-review/surface/validity-proposal/observer-only.patch-data\n?? tests/integration/safejs-owned-output-prototype-review/surface/validity-proposal/proposed-record.data.json\n?? tests/integration/safejs-owned-output-prototype-review/surface/validity-proposal/verify-proposal.mjs\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/HISTORICAL-TO-PARENT.diff.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/RESULT.json\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/SOURCE-DELTA.diff.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/after/BUILT.json\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/after/ORIGINAL-CASES.json\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/after/SOURCE.json\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/after/build.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/after/build.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/after/focused.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/after/focused.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/after/original-diagnosis.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/after/original-diagnosis.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/after/scoped-types.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/after/scoped-types.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/after/unchanged.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/after/unchanged.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/before/AFTER.json\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/before/BUILT.json\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/before/ORIGINAL-CASES.json\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/before/ORIGINAL-COLUMN.json\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/before/SOURCE.json\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/before/build.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/before/build.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/before/focused.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/before/focused.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/before/original-column-hold.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/before/original-column-hold.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/before/original-diagnosis.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/before/original-diagnosis.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/before/scoped-types.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/before/scoped-types.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/before/unchanged.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/before/unchanged.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/run.mjs.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/HISTORICAL-TO-PARENT.diff.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/RESULT.json\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/SOURCE-DELTA.diff.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/after/AFTER.json\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/after/BUILT.json\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/after/ORIGINAL-CASES.json\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/after/ORIGINAL-COLUMN.json\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/after/SOURCE.json\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/after/build.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/after/build.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/after/focused.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/after/focused.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/after/original-column-hold.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/after/original-column-hold.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/after/original-diagnosis.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/after/original-diagnosis.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/after/scoped-types.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/after/scoped-types.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/after/unchanged.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/after/unchanged.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/before/AFTER.json\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/before/BUILT.json\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/before/ORIGINAL-CASES.json\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/before/ORIGINAL-COLUMN.json\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/before/SOURCE.json\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/before/build.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/before/build.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/before/focused.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/before/focused.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/before/original-column-hold.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/before/original-column-hold.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/before/original-diagnosis.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/before/original-diagnosis.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/before/scoped-types.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/before/scoped-types.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/before/unchanged.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/before/unchanged.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/run.mjs\n",
+    "index": "A\ttests/commands/split-stress/remaining-writers-author/REPORT.md\nA\ttests/commands/split-stress/remaining-writers-author/canonical-capture.tap\nA\ttests/commands/split-stress/remaining-writers-author/canonical-default.tap\nA\ttests/commands/split-stress/remaining-writers-author/freeze.json\nA\ttests/commands/split-stress/remaining-writers-author/helper-guards.tap\nA\ttests/commands/split-stress/remaining-writers-author/helper-regression.tap\nA\ttests/commands/split-stress/remaining-writers-author/negative-capture.tap\nA\ttests/commands/split-stress/remaining-writers-author/negative-default.tap\nA\ttests/commands/split-stress/remaining-writers-author/observer-control.tap\nA\ttests/commands/split-stress/remaining-writers-author/results.json\nA\ttests/commands/split-stress/remaining-writers-author/typecheck.log\nA\ttests/commands/split-stress/remaining-writers-author/verify.mjs\nA\ttests/commands/split-stress/remaining-writers-author/write-guard.mjs\n"
+  },
+  "candidateTree": "766b13034e199cc8c7f084e09d559b3355cb552c",
+  "candidateCommitSha256": "2fceab6fde47a7ebfb0a01fb0bea4e1bc9791eea9536bcd464ef4fe158e43f8c",
+  "authorNote": {
+    "path": "/tmp/strings-binding-author-candidate.txt",
+    "sha256": "b974b62f266e76f63f61e195909ce5dc426f0a47c621bfb35334bae21f8a539a"
+  },
+  "originalNativeBefore": {
+    "executable": "/tmp/safe-bash-gnu-strings-20260827-YJqPHf/build-system-zlib/binutils/strings",
+    "resolved": "/private/tmp/safe-bash-gnu-strings-20260827-YJqPHf/build-system-zlib/binutils/strings",
+    "sha256": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f",
+    "mode": 365
+  },
+  "versions": {
+    "node": "v22.22.2",
+    "nodeExecutable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "nodeSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "platform": "darwin",
+    "arch": "arm64",
+    "tsx": "4.23.12",
+    "git": "git version 2.50.1 (Apple Git-155)",
+    "tar": "bsdtar 3.5.3 - libarchive 3.7.4 zlib/1.2.12 liblzma/5.4.3 bz2lib/1.0.8",
+    "os": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253"
+  },
+  "toolNamespaceBefore": "cb9f687fd71d625c6dfb5b2ab5424a8d8326b532ce0daec5aaf79c2813ba67a2",
+  "archiveBefore": "6350569613954bafabef4bb57afe3d7c87d406c20288536649ff0d4ed4b29df1",
+  "committedFileCount": 252,
+  "movement": {
+    "initial": "/tmp/strings-binding-independent-OjIjtP/initial-location",
+    "moved": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace",
+    "originalLocationAbsent": true,
+    "namespaceUnchangedByMove": true
+  },
+  "stagedNativeBefore": {
+    "executable": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+    "resolved": "/private/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+    "sha256": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f",
+    "mode": 448
+  },
+  "goldenBefore": {
+    "sha256": "e00ba3920f79dcb4ef58d0a19242e07d1de6bd1698c66c56c0a27bb5eabb1d72",
+    "observations": 13,
+    "stderrBytes": 1564,
+    "stderrSha256": "408835816cfd774536a0bffae5ade7814e96e2e8e4091618b47bb5edfd796705",
+    "equalsCandidateParent": true,
+    "equalsOriginalGoldenCommit": "4af1b107d4b9449a2c4e7fed467d187448392fd5"
+  },
+  "appendDetectionControl": {
+    "pass": true,
+    "before": {
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "entries": []
+    },
+    "after": {
+      "sha256": "2a3909d37599b6ad632efb4447a60deebe3a04194f17e85b2a60e02bbdd99dc6",
+      "entries": [
+        {
+          "path": "appended.data",
+          "mode": 420,
+          "type": "file",
+          "size": 23,
+          "sha256": "0263e9525f1588f965e78f3e523f50c4fd603f146006ec613bbb593fcb17fc8f"
+        }
+      ]
+    },
+    "removed": true
+  },
+  "originalCohort": {
+    "tests": 14,
+    "pass": 14,
+    "fail": 0,
+    "skip": 0,
+    "nativeObservations": 13,
+    "originalTestUnmodified": true,
+    "authorTestsNotRun": true
+  },
+  "controls": {
+    "pass": 10,
+    "fail": 0,
+    "skip": 0,
+    "appendDetectionAdditional": 1
+  },
+  "childCleanup": {
+    "nativeInvocations": 38,
+    "auditedPids": [
+      70444,
+      70446,
+      70449,
+      70450,
+      70451,
+      70452,
+      70453,
+      70454,
+      70455,
+      70456,
+      70457,
+      70458,
+      70459,
+      70460,
+      70461,
+      70462,
+      70464,
+      70465,
+      70466,
+      70467,
+      70468,
+      70469,
+      70470,
+      70471,
+      70472,
+      70473,
+      70474,
+      70475,
+      70476,
+      70477,
+      70478,
+      70479,
+      70480,
+      70481,
+      70482,
+      70483,
+      70484,
+      70485,
+      70486,
+      70487
+    ],
+    "remainingPids": [],
+    "remainingGroups": []
+  },
+  "stagedNativeAfter": {
+    "executable": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+    "resolved": "/private/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+    "sha256": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f",
+    "mode": 448
+  },
+  "goldenAfter": {
+    "sha256": "e00ba3920f79dcb4ef58d0a19242e07d1de6bd1698c66c56c0a27bb5eabb1d72",
+    "stderrSha256": "408835816cfd774536a0bffae5ade7814e96e2e8e4091618b47bb5edfd796705"
+  },
+  "namespace": {
+    "before": "6a8aa50cb101b8070c47ede3d893a02eaef1bac4be1fa1556dc25fb7c76c1c22",
+    "after": "6a8aa50cb101b8070c47ede3d893a02eaef1bac4be1fa1556dc25fb7c76c1c22",
+    "equal": true,
+    "includesNewEntries": true
+  },
+  "archiveAfter": "6350569613954bafabef4bb57afe3d7c87d406c20288536649ff0d4ed4b29df1",
+  "originalNativeAfter": {
+    "executable": "/tmp/safe-bash-gnu-strings-20260827-YJqPHf/build-system-zlib/binutils/strings",
+    "resolved": "/private/tmp/safe-bash-gnu-strings-20260827-YJqPHf/build-system-zlib/binutils/strings",
+    "sha256": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f",
+    "mode": 365
+  },
+  "toolNamespaceAfter": "cb9f687fd71d625c6dfb5b2ab5424a8d8326b532ce0daec5aaf79c2813ba67a2",
+  "liveAfter": {
+    "head": "0ec75ef320ecaea9fc66e1ba952f3961c917685c",
+    "status": "A  tests/commands/split-stress/remaining-writers-author/REPORT.md\nA  tests/commands/split-stress/remaining-writers-author/canonical-capture.tap\nA  tests/commands/split-stress/remaining-writers-author/canonical-default.tap\nA  tests/commands/split-stress/remaining-writers-author/freeze.json\nA  tests/commands/split-stress/remaining-writers-author/helper-guards.tap\nA  tests/commands/split-stress/remaining-writers-author/helper-regression.tap\nA  tests/commands/split-stress/remaining-writers-author/negative-capture.tap\nA  tests/commands/split-stress/remaining-writers-author/negative-default.tap\nA  tests/commands/split-stress/remaining-writers-author/observer-control.tap\nA  tests/commands/split-stress/remaining-writers-author/results.json\nA  tests/commands/split-stress/remaining-writers-author/typecheck.log\nA  tests/commands/split-stress/remaining-writers-author/verify.mjs\nA  tests/commands/split-stress/remaining-writers-author/write-guard.mjs\n?? tests/commands/column-stress/padding-evolution/execution-20260827/audit.mjs\n?? tests/commands/column-stress/padding-evolution/execution-20260827/runner.mjs\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/next\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/old\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/target\n?? tests/commands/search-stress/.native-1m4O1e/input\n?? tests/commands/split-stress/remaining-writers-review/audit.mjs\n?? tests/commands/split-stress/remaining-writers-review/barrier.mjs\n?? tests/commands/split-stress/remaining-writers-review/guards.mjs\n?? tests/commands/split-stress/remaining-writers-review/review.mjs\n?? tests/commands/stream-inspection-stress/argv0-binding-review/verify.mjs\n?? tests/integration/safejs-owned-output-prototype-review/surface/validity-proposal/CHECKS.json\n?? tests/integration/safejs-owned-output-prototype-review/surface/validity-proposal/PROOF.json\n?? tests/integration/safejs-owned-output-prototype-review/surface/validity-proposal/README.md\n?? tests/integration/safejs-owned-output-prototype-review/surface/validity-proposal/SEAL.json\n?? tests/integration/safejs-owned-output-prototype-review/surface/validity-proposal/authenticate.mjs\n?? tests/integration/safejs-owned-output-prototype-review/surface/validity-proposal/observer-only.patch-data\n?? tests/integration/safejs-owned-output-prototype-review/surface/validity-proposal/proposed-record.data.json\n?? tests/integration/safejs-owned-output-prototype-review/surface/validity-proposal/verify-proposal.mjs\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/HISTORICAL-TO-PARENT.diff.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/RESULT.json\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/SOURCE-DELTA.diff.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/after/BUILT.json\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/after/ORIGINAL-CASES.json\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/after/SOURCE.json\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/after/build.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/after/build.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/after/focused.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/after/focused.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/after/original-diagnosis.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/after/original-diagnosis.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/after/scoped-types.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/after/scoped-types.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/after/unchanged.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/after/unchanged.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/before/AFTER.json\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/before/BUILT.json\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/before/ORIGINAL-CASES.json\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/before/ORIGINAL-COLUMN.json\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/before/SOURCE.json\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/before/build.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/before/build.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/before/focused.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/before/focused.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/before/original-column-hold.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/before/original-column-hold.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/before/original-diagnosis.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/before/original-diagnosis.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/before/scoped-types.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/before/scoped-types.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/before/unchanged.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/before/unchanged.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-1/run.mjs.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/HISTORICAL-TO-PARENT.diff.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/RESULT.json\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/SOURCE-DELTA.diff.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/after/AFTER.json\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/after/BUILT.json\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/after/ORIGINAL-CASES.json\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/after/ORIGINAL-COLUMN.json\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/after/SOURCE.json\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/after/build.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/after/build.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/after/focused.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/after/focused.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/after/original-column-hold.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/after/original-column-hold.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/after/original-diagnosis.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/after/original-diagnosis.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/after/scoped-types.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/after/scoped-types.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/after/unchanged.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/after/unchanged.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/before/AFTER.json\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/before/BUILT.json\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/before/ORIGINAL-CASES.json\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/before/ORIGINAL-COLUMN.json\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/before/SOURCE.json\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/before/build.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/before/build.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/before/focused.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/before/focused.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/before/original-column-hold.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/before/original-column-hold.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/before/original-diagnosis.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/before/original-diagnosis.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/before/scoped-types.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/before/scoped-types.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/before/unchanged.stderr.txt\n?? tests/integration/shared-external-stdin-fix-20260827/attempt-2/before/unchanged.stdout.txt\n?? tests/integration/shared-external-stdin-fix-20260827/run.mjs\n",
+    "index": "A\ttests/commands/split-stress/remaining-writers-author/REPORT.md\nA\ttests/commands/split-stress/remaining-writers-author/canonical-capture.tap\nA\ttests/commands/split-stress/remaining-writers-author/canonical-default.tap\nA\ttests/commands/split-stress/remaining-writers-author/freeze.json\nA\ttests/commands/split-stress/remaining-writers-author/helper-guards.tap\nA\ttests/commands/split-stress/remaining-writers-author/helper-regression.tap\nA\ttests/commands/split-stress/remaining-writers-author/negative-capture.tap\nA\ttests/commands/split-stress/remaining-writers-author/negative-default.tap\nA\ttests/commands/split-stress/remaining-writers-author/observer-control.tap\nA\ttests/commands/split-stress/remaining-writers-author/results.json\nA\ttests/commands/split-stress/remaining-writers-author/typecheck.log\nA\ttests/commands/split-stress/remaining-writers-author/verify.mjs\nA\ttests/commands/split-stress/remaining-writers-author/write-guard.mjs\n"
+  },
+  "candidateCommitSha256After": "2fceab6fde47a7ebfb0a01fb0bea4e1bc9791eea9536bcd464ef4fe158e43f8c",
+  "temporaryRemoved": true,
+  "finished": "2026-08-27T15:53:37.752Z",
+  "elapsedSeconds": 2.524,
+  "driverSha256": "894f4dcb2a047b310ca03bca7be2d9ff195b2fda0049161f275b280ff26e6575",
+  "limitations": [
+    "Bounded candidate-specific GNU strings verification only; Frozen8670 remains unqualified.",
+    "No fullgate, superiority, broad shell parity, service acceptance, or 72-hour-work claim.",
+    "Darwin arm64 GNU Binutils 2.44 with the already provisioned system-zlib build; not GNU/Linux.",
+    "Original configured path is read and hashed, never executed by this verifier; staged copy is the only audited native executable.",
+    "Native-call audit forwards the original Node spawnSync without mocking results; it is not a kernel-level execution trace.",
+    "Source authentication covers the selected committed archive, not every repository file or TypeScript consumer.",
+    "Namespace scans include all current entries, modes, symlink targets and regular-file hashes without following node_modules symlinks; shared node_modules is separately hashed.",
+    "Before/after equality and PID liveness are point-in-time checks, not proof against transient mutation/restoration or PID reuse.",
+    "Candidate source/helpers/goldens remain unchanged. Controls supplement and do not replace the original 13-observation corpus and live native test.",
+    "No oracle publisher entrypoint, golden recapture, normalization, dependency installation, staging, or commit is performed."
+  ]
+}

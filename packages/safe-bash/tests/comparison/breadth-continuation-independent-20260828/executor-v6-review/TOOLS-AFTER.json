@@ -1,0 +1,25 @@
+{
+  "kind": "STATIC_EXECUTABLE_BYTES_ONLY",
+  "tools": [
+    {
+      "role": "node",
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "actualSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "checked": "post-controls; runner also authenticated Node before each invocation"
+    },
+    {
+      "role": "git",
+      "path": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "bytes": 3704880,
+      "mode": 493,
+      "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9",
+      "actualSha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9",
+      "checked": "post-controls; runner also authenticated Node before each invocation"
+    }
+  ],
+  "independentGitCommand": "/usr/bin/git",
+  "futureAuthorityGit": "/Applications/Xcode.app/Contents/Developer/usr/bin/git"
+}

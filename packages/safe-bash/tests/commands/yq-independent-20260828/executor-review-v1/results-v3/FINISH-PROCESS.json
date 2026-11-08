@@ -1,0 +1,10 @@
+{
+  "classification": "TOOL_CAPTURE_COMPLETION_AND_INTEGRATION",
+  "command": "python3 tests/commands/yq-independent-20260828/executor-review-v1/results-v3/finish.py d3cf71539c9bade4faaedc92954843240b6c45e4",
+  "toolSession": 38835,
+  "exitStatus": 0,
+  "stdout": "{\"runtimeControls\": 20, \"runtimeMatched\": 20, \"runtimeOriginalOuterStatus\": 1, \"integrationOutput\": \"/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/integration-mdpuhh8i\", \"integrationPassed\": true}\n",
+  "stderr": "",
+  "runtimeControlReruns": 0,
+  "originalFailedAggregatesRescored": false
+}

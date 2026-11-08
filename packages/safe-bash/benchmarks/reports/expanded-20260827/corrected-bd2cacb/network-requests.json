@@ -1,0 +1,110 @@
+[
+  {
+    "method": "GET",
+    "path": "/bytes",
+    "bytes": "",
+    "authorization": null
+  },
+  {
+    "method": "GET",
+    "path": "/bytes",
+    "bytes": "",
+    "authorization": null
+  },
+  {
+    "method": "POST",
+    "path": "/echo",
+    "bytes": "AAEJCkF/gP8=",
+    "authorization": null
+  },
+  {
+    "method": "POST",
+    "path": "/echo",
+    "bytes": "AAEJCkF/gP8=",
+    "authorization": null
+  },
+  {
+    "method": "POST",
+    "path": "/echo",
+    "bytes": "AAEJCkF/77+977+9",
+    "authorization": null
+  },
+  {
+    "method": "POST",
+    "path": "/echo",
+    "bytes": "eyJhbnN3ZXIiOjQyfQ==",
+    "authorization": null
+  },
+  {
+    "method": "GET",
+    "path": "/redirect",
+    "bytes": "",
+    "authorization": null
+  },
+  {
+    "method": "GET",
+    "path": "/bytes",
+    "bytes": "",
+    "authorization": null
+  },
+  {
+    "method": "GET",
+    "path": "/redirect",
+    "bytes": "",
+    "authorization": null
+  },
+  {
+    "method": "GET",
+    "path": "/bytes",
+    "bytes": "",
+    "authorization": null
+  },
+  {
+    "method": "GET",
+    "path": "/bytes",
+    "bytes": "",
+    "authorization": null
+  },
+  {
+    "method": "GET",
+    "path": "/bytes",
+    "bytes": "",
+    "authorization": null
+  },
+  {
+    "method": "GET",
+    "path": "/missing",
+    "bytes": "",
+    "authorization": null
+  },
+  {
+    "method": "GET",
+    "path": "/auth",
+    "bytes": "",
+    "authorization": "[redacted]"
+  },
+  {
+    "method": "GET",
+    "path": "/auth",
+    "bytes": "",
+    "authorization": "[redacted]"
+  },
+  {
+    "method": "GET",
+    "path": "/bytes",
+    "bytes": "",
+    "authorization": null
+  },
+  {
+    "method": "GET",
+    "path": "/bytes",
+    "bytes": "",
+    "authorization": null
+  },
+  {
+    "method": "POST",
+    "path": "/echo",
+    "bytes": "AAEJCkF/gP8=",
+    "authorization": null
+  }
+]

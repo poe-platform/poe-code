@@ -1,0 +1,20 @@
+{
+  "id": "ordinary-failure-aggregation",
+  "families": [
+    "F01"
+  ],
+  "observation": {
+    "returned": {
+      "exitCode": 1,
+      "count": 2,
+      "checked": 2,
+      "receipts": [
+        "RECEIPT",
+        "ASSERTION_FAILED",
+        "RECEIPT",
+        "ASSERTED"
+      ]
+    }
+  },
+  "classification": "SYNTHETIC_CONTROL_OBSERVATION_BEFORE_ASSERTION"
+}

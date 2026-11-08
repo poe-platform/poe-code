@@ -1,0 +1,30 @@
+import fs from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+
+const owned = '/tmp/safe-bash-darwin-classification-b04J1M';
+const previous = JSON.parse(await fs.readFile('/Users/kjopek/Workspace/safe-bash/tests/commands/core-regression-stress/evidence/normative-profile-sources.json', 'utf8'));
+const selected = ['posix-chmod-function', 'posix-chmod-utility', 'apple-unix03-chmod', 'libuv-fs', 'node-fs', 'gnu-chmod'];
+const records = [];
+for (const original of previous.sources.filter(source => selected.includes(source.id))) {
+  try {
+    const response = await fetch(original.url, { signal: AbortSignal.timeout(15000) });
+    const bytes = Buffer.from(await response.arrayBuffer());
+    const digest = createHash('sha256').update(bytes).digest('hex');
+    const text = bytes.toString();
+    const lines = text.split('\n');
+    const patterns = original.id === 'posix-chmod-function' ? [/S_ISGID/, /implementation-defined restrictions/, /identical/, /status change/]
+      : original.id === 'posix-chmod-utility' ? [/set-user-ID/, /set-group-ID/, /ignore/]
+      : original.id === 'apple-unix03-chmod' ? [/res = __chmod/, /conformance/]
+      : original.id === 'libuv-fs' ? [/X\(CHMOD/]
+      : original.id === 'node-fs' ? [/uv_fs_chmod/]
+      : [/ch.new_mode = mode_adjust/, /if \(fchmodat/];
+    records.push({ id: original.id, url: original.url, status: response.status, bytes: bytes.length,
+      sha256: digest, matchesHistoricalPrimaryHash: digest === original.sha256,
+      excerpts: lines.flatMap((line, index) => patterns.some(pattern => pattern.test(line))
+        ? [{ line: index + 1, text: lines.slice(Math.max(0, index - 1), index + 3).join('\n') }] : []) });
+  } catch (error) {
+    records.push({ id: original.id, url: original.url, error: String(error), historicalSha256: original.sha256 });
+  }
+}
+await fs.writeFile(`${owned}/primary-sources.json`, JSON.stringify({ fetchedAt: new Date().toISOString(), records }, null, 2) + '\n');
+console.log(JSON.stringify(records.map(({ excerpts, ...record }) => record), null, 2));

@@ -1,0 +1,18 @@
+{
+  "role": "PURE-B1-review-v1",
+  "start": "2026-08-29T12:46:56.094Z",
+  "entry": "review.mjs",
+  "seal": "ed4f961ace9833576d6fe0ea86685549b7a6f6fc079707cc0aa90a3400b2b3e8",
+  "pid": 41965,
+  "exit": {
+    "code": 1,
+    "signal": null
+  },
+  "close": {
+    "code": 1,
+    "signal": null
+  },
+  "end": "2026-08-29T12:46:56.206Z",
+  "stdoutBytes": 81,
+  "stderrBytes": 882
+}

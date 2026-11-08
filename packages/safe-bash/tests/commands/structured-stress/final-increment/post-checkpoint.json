@@ -1,0 +1,98 @@
+{
+  "capturedAt": "2026-08-26T21:35:36.548Z",
+  "verificationCommit": "224fc654e7f00ded052cc4f3b609784b0ce2bdaf",
+  "head": "224fc654e7f00ded052cc4f3b609784b0ce2bdaf",
+  "originalRuntimeHash": "add339346cb78f4c484f2659c7df5319d9c68b94ced9435906474e76d9ac3f8a",
+  "runtimeHashBefore": "f11fc7362fa6bbb974fd5e8d0581f440bf3e7217594025568dd89f3df2a6cae6",
+  "runtimeHashAfter": "f11fc7362fa6bbb974fd5e8d0581f440bf3e7217594025568dd89f3df2a6cae6",
+  "runtimeStableDuringRerun": true,
+  "structuredSourceUnchanged": true,
+  "foreignFilesModifiedAfterOriginalCheckpoint": [
+    {
+      "path": "src/commands/diff-patch/patch-gnu-paths.ts",
+      "sha256": "3c090ca0598514976b621cfa5b0819a0ba2f873548cfe7d117bd731316fc5ad2"
+    },
+    {
+      "path": "src/commands/diff-patch/patch-gnu-reject.ts",
+      "sha256": "08fd03ec81b5e4d9eea20a89b6f7d01014f4f7a2f7c87db30e85cbc93f4d0bad"
+    },
+    {
+      "path": "src/commands/diff-patch/patch.ts",
+      "sha256": "d09ac1e3edee78dc79fa2e446bf101de90706be3a58977b10a24a93f8fabb9f4"
+    }
+  ],
+  "live": {
+    "argv": [
+      "--unhandled-rejections=strict",
+      "--import",
+      "tsx",
+      "--test",
+      "--test-reporter=tap",
+      "tests/integration/adapter-tools/matrix.test.ts"
+    ],
+    "status": 0,
+    "counts": {
+      "tests": 79,
+      "pass": 79,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "failures": [],
+    "stderr": ""
+  },
+  "pinned": {
+    "argv": [
+      "--unhandled-rejections=strict",
+      "--import",
+      "tsx",
+      "--test",
+      "--test-reporter=tap",
+      "tests/integration/adapter-tools/matrix.test.ts"
+    ],
+    "status": 1,
+    "counts": {
+      "tests": 79,
+      "pass": 71,
+      "fail": 8,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "failures": [
+      "not ok 9 - memory: missing paths, stderr redirection and command errors",
+      "not ok 20 - real: missing paths, stderr redirection and command errors",
+      "not ok 31 - s3: missing paths, stderr redirection and command errors",
+      "not ok 42 - webdav: missing paths, stderr redirection and command errors",
+      "not ok 53 - mount: missing paths, stderr redirection and command errors",
+      "not ok 64 - overlay: missing paths, stderr redirection and command errors",
+      "not ok 71 - readonly: rejects mutation: printf 'changed' > target.txt",
+      "not ok 72 - readonly: rejects mutation: printf 'changed' >> target.txt"
+    ],
+    "stderr": ""
+  },
+  "fresh": {
+    "argv": [
+      "--unhandled-rejections=strict",
+      "--import",
+      "tsx",
+      "--test",
+      "--test-reporter=tap",
+      "tests/commands/structured-stress/final-increment/fresh.test.ts",
+      "tests/commands/structured-stress/final-increment/fresh-interop.test.ts"
+    ],
+    "status": 0,
+    "counts": {
+      "tests": 65,
+      "pass": 65,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "failures": [],
+    "stderr": ""
+  },
+  "note": "Original verification artifact is preserved. Foreign diff/patch edits landed after its stable run. These affected matrix and fresh checks were repeated; not a fresh whole-repository or full numeric-suite claim."
+}

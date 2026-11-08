@@ -1,0 +1,251 @@
+{
+  "preparedAt": "2026-08-27T07:53:38.287Z",
+  "namedCaseCount": 22,
+  "shellCompoundCases": 21,
+  "directOptionalHostCases": 1,
+  "executedProductCases": 0,
+  "caseFunctionHashesAreAssertionsNotPassingResults": true,
+  "cases": [
+    {
+      "id": "H01",
+      "title": "Middleware and command acquire after registration; normal delayed barrier",
+      "obligations": [
+        "pre-acquisition middleware ownership",
+        "all hooks start",
+        "normal exact bytes/sinks",
+        "no early settlement"
+      ],
+      "assertionFunctionSha256": "2f709319793c3b6798a587362e57546dd207e782e705275d609a3d9e5d445f6f",
+      "status": "FROZEN_UNEXECUTED"
+    },
+    {
+      "id": "H02",
+      "title": "Duplicate registrations, invalid callback and shared idempotent owner",
+      "obligations": [
+        "sync TypeError",
+        "each registration once",
+        "finally/drain sharing",
+        "repeated dispose"
+      ],
+      "assertionFunctionSha256": "3e00dbec68857e23976859674f132c2aa941da28782f12d653fbd34eb7bf9e41",
+      "status": "FROZEN_UNEXECUTED"
+    },
+    {
+      "id": "H03",
+      "title": "Undefined sole cleanup rejection supersedes nonzero command result",
+      "obligations": [
+        "undefined failure presence",
+        "nonzero result does not hide cleanup failure"
+      ],
+      "assertionFunctionSha256": "9a3923cd55c89a2e8853121f9ad819f3368ab0317d2aa1351416ff34346ccb42",
+      "status": "FROZEN_UNEXECUTED"
+    },
+    {
+      "id": "H04",
+      "title": "All hooks start and finish despite synchronous/async multiple failures",
+      "obligations": [
+        "drain-all",
+        "no sequential deadlock",
+        "AggregateError exact members without order"
+      ],
+      "assertionFunctionSha256": "ad0eb53141d28d8a906cbd500e5eb38ad82a7897753bbc590ded0df70df174f5",
+      "status": "FROZEN_UNEXECUTED"
+    },
+    {
+      "id": "H05",
+      "title": "Existing ordinary command error-to-status diagnostic remains exact",
+      "obligations": [
+        "existing execution semantics",
+        "normal cleanup after command error"
+      ],
+      "assertionFunctionSha256": "0977106ffae23d9fc3bc4cf87b6b26d79dd4db422cf76dc1f4032b533d168326",
+      "status": "FROZEN_UNEXECUTED"
+    },
+    {
+      "id": "H06",
+      "title": "Existing public execution rejection wins over cleanup failure",
+      "obligations": [
+        "selected execution rejection identity",
+        "no primary mutation",
+        "secondary cleanup observed"
+      ],
+      "assertionFunctionSha256": "66e750186fa3fafee5892a060df3313af0df98dd897f686f01f2e17ba88c0c3e",
+      "status": "FROZEN_UNEXECUTED"
+    },
+    {
+      "id": "H07",
+      "title": "Caller primitive abort arriving during drain wins after delayed failure",
+      "obligations": [
+        "caller identity over execution and cleanup",
+        "abort must not race drain",
+        "falsy reason"
+      ],
+      "assertionFunctionSha256": "6e7c9b55f148c6355b2048f8f20d9b52644c62f9d05a9319ee32f62798f152e0",
+      "status": "FROZEN_UNEXECUTED"
+    },
+    {
+      "id": "H08",
+      "title": "Abort drains hooks without joining never-resolving handler or stdin",
+      "obligations": [
+        "opaque handler/input not awaited",
+        "caller errno-shaped object identity",
+        "exec/dispose barrier"
+      ],
+      "assertionFunctionSha256": "bb2a0d5dfb019ecbb7b2dbc051b780a1b92114c693d8bbe01017ca6590145351",
+      "status": "FROZEN_UNEXECUTED"
+    },
+    {
+      "id": "H09",
+      "title": "Dispose seals admissions and shares drain across concurrent calls",
+      "obligations": [
+        "dispose-before-opaque-handler completion",
+        "repeated dispose cannot return early",
+        "new exec closed"
+      ],
+      "assertionFunctionSha256": "e7292f7b83a7242049d35d4d67ad60950337c5267cf5aecc757750c1d10d74e6",
+      "status": "FROZEN_UNEXECUTED"
+    },
+    {
+      "id": "H10",
+      "title": "Internal early pipe close with pipefail=false",
+      "obligations": [
+        "internal abort not caller abort",
+        "opaque producer not joined",
+        "exact selected pipeline status/bytes"
+      ],
+      "assertionFunctionSha256": "0e00d2ded5ade6d2c1e1f1defb0da843512b13b6ac9c071b534f3251b3e02bc7",
+      "status": "FROZEN_UNEXECUTED"
+    },
+    {
+      "id": "H11",
+      "title": "Internal early pipe close with pipefail=true",
+      "obligations": [
+        "internal abort not caller abort",
+        "opaque producer not joined",
+        "exact selected pipeline status/bytes"
+      ],
+      "assertionFunctionSha256": "0e00d2ded5ade6d2c1e1f1defb0da843512b13b6ac9c071b534f3251b3e02bc7",
+      "status": "FROZEN_UNEXECUTED"
+    },
+    {
+      "id": "H12",
+      "title": "Parent return closes transitive admitted child scopes and late child work",
+      "obligations": [
+        "parent-child linkage before call",
+        "all descendants drained",
+        "late invoke before iterator/acquisition"
+      ],
+      "assertionFunctionSha256": "c8163deac8cf3e3cbcc851cd6f93aa7eb7c82ba9cb2bf3cbfb6775f8c0844bb3",
+      "status": "FROZEN_UNEXECUTED"
+    },
+    {
+      "id": "H13",
+      "title": "Closed saved context rejects all admission, caller-cancelled=false",
+      "obligations": [
+        "late registration sync",
+        "late invoke before iterator/middleware/FS",
+        "closed-scope exact caller reason"
+      ],
+      "assertionFunctionSha256": "1baede736381669d80c8677bfae1986498ac2f04728f84162ffde0a04f241103",
+      "status": "FROZEN_UNEXECUTED"
+    },
+    {
+      "id": "H14",
+      "title": "Closed saved context rejects all admission, caller-cancelled=true",
+      "obligations": [
+        "late registration sync",
+        "late invoke before iterator/middleware/FS",
+        "closed-scope exact caller reason"
+      ],
+      "assertionFunctionSha256": "1baede736381669d80c8677bfae1986498ac2f04728f84162ffde0a04f241103",
+      "status": "FROZEN_UNEXECUTED"
+    },
+    {
+      "id": "H15",
+      "title": "Late losing handler rejection is observed without delaying caller abort",
+      "obligations": [
+        "opaque handler not joined",
+        "late rejection handled",
+        "primary outcome immutable"
+      ],
+      "assertionFunctionSha256": "05883302729765353853e8b1552ff624999e9d868fc2f675e78964137b8afce3",
+      "status": "FROZEN_UNEXECUTED"
+    },
+    {
+      "id": "H16",
+      "title": "Shared resource leases isolated across concurrent exec abort",
+      "obligations": [
+        "local ownership only",
+        "no sibling cancel",
+        "do not await global resource zero"
+      ],
+      "assertionFunctionSha256": "bd5fd047db6d4a0ce27f4590478f4ff0d06e591484681a12ad429e014c3a9279",
+      "status": "FROZEN_UNEXECUTED"
+    },
+    {
+      "id": "H17",
+      "title": "Shared resource leases isolated across Shell disposal",
+      "obligations": [
+        "local ownership only",
+        "no sibling cancel",
+        "do not await global resource zero"
+      ],
+      "assertionFunctionSha256": "bd5fd047db6d4a0ce27f4590478f4ff0d06e591484681a12ad429e014c3a9279",
+      "status": "FROZEN_UNEXECUTED"
+    },
+    {
+      "id": "H18",
+      "title": "Nested output and command budgets remain shared with cleanup",
+      "obligations": [
+        "shared byte cap",
+        "shared command/source accounting",
+        "exact external byte effects"
+      ],
+      "assertionFunctionSha256": "a5bb53410471a5a63c211fe3136713db2b824ade292e98fa174c36dc303ec5c6",
+      "status": "FROZEN_UNEXECUTED"
+    },
+    {
+      "id": "H19",
+      "title": "Nested replacement environment, stdin provenance and parent context survive",
+      "obligations": [
+        "stdinIsDefault true/false",
+        "replaceEnv exact map",
+        "parent environment unchanged"
+      ],
+      "assertionFunctionSha256": "b83c503749dca0c28b4bd4128abd98652b3aa792f3b349a815c57b5c233b9e59",
+      "status": "FROZEN_UNEXECUTED"
+    },
+    {
+      "id": "H20",
+      "title": "Existing errexit and tested-list behavior survive scoped cleanup",
+      "obligations": [
+        "errexit status",
+        "tested failure continues",
+        "cleanup before selected shell outcome"
+      ],
+      "assertionFunctionSha256": "c2defcb40e01bafdd57412400bfd22db8122ba5eea4f6bee1977dcfce686ad72",
+      "status": "FROZEN_UNEXECUTED"
+    },
+    {
+      "id": "H21",
+      "title": "A direct custom host can omit the optional capability and retain finally",
+      "obligations": [
+        "optional host structural compatibility",
+        "no fake Shell barrier claim"
+      ],
+      "assertionFunctionSha256": "746e045db46951915f33554dae69743d84a1b86cf4c0158dc0b3122f3e7b5101",
+      "status": "FROZEN_UNEXECUTED"
+    },
+    {
+      "id": "H22",
+      "title": "Acquisition owner closes before queued continuation resumes",
+      "obligations": [
+        "registered owner blocks admitted-late resource creation",
+        "closed late admission",
+        "no arbitrary handler join"
+      ],
+      "assertionFunctionSha256": "66594ea6a281efae87d1fb612e455b526735fd773577bff2b794ae81341034b0",
+      "status": "FROZEN_UNEXECUTED"
+    }
+  ]
+}

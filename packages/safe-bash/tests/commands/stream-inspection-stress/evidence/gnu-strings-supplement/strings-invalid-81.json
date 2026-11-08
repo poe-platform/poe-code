@@ -1,0 +1,23 @@
+{
+  "id": "strings-invalid-81",
+  "args": [
+    "-n",
+    "2x"
+  ],
+  "locale": "C",
+  "inputSha256": "e12e115acf4552b2568b55e93cbd39394c4ef81c82447fafc997882a02d23677",
+  "fileHashes": {},
+  "originalExpected": {
+    "stdoutHex": "",
+    "stderrHex": null,
+    "exitCode": 1
+  },
+  "expected": {
+    "stdoutHex": "",
+    "stderrHex": "2f746d702f736166652d626173682d676e752d737472696e67732d32303236303832372d594a715048662f6275696c642d73797374656d2d7a6c69622f62696e7574696c732f737472696e67733a20696e76616c696420696e746567657220617267756d656e742032780a",
+    "exitCode": 1
+  },
+  "differences": [],
+  "signal": null,
+  "error": null
+}

@@ -1,0 +1,39 @@
+{
+  "issuedUTC": "2026-08-29T13:20:59.290Z",
+  "role": "publication-only PURE controls; no actual authority",
+  "files": [
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-publication-v2/policy.mjs",
+      "bytes": 4556,
+      "sha256": "0d9599223d606cdf69bce37c0b373d515fbffbd09d82889ddd16b355ff5a33ed"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-publication-v2/publish.mjs",
+      "bytes": 12593,
+      "sha256": "509c871ea3ace8b29a6fa41389928a1a263cc0b68ee7286328877b95a3f14a9c"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-publication-v2/publication.sh",
+      "bytes": 309,
+      "sha256": "ba4c8d84dc02ee156741e32a7a82ac26d3668778efe3246a3dfe01f538a660f5"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-publication-v2/controls.mjs",
+      "bytes": 4617,
+      "sha256": "edb49701b9ba1ab3c20e28f7119ae3f1d90f1ba1aee0c7aa86106c422427cfad"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-publication-v2/seal.mjs",
+      "bytes": 2419,
+      "sha256": "deee09d102516da671deef1d85fc71e0b612a32f145028a166bf723f0c04087a"
+    }
+  ],
+  "binding": {
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-publication-v2/BINDING.json",
+    "bytes": 3923,
+    "sha256": "f4a2dc54af22d88e804d77ad0225485692d710909be74b53ab6671b82d9c0a04"
+  },
+  "groups": 16,
+  "helpers": 1,
+  "productImports": 0
+}

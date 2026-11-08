@@ -1,0 +1,712 @@
+import { runtimeFunctionScope, type RuntimeFunctionContext } from "../runtime-functions.js";
+import { SsconvertError } from "../../contracts.js";
+import type { CellValue } from "@poe-code/spreadsheet-ast";
+import { asBoolean, boundedText, byteTextArg, numberArg, scalarArg, textArg } from "./common.js";
+import { byteStringValue } from "@poe-code/spreadsheet-ast/byte-value";
+import type { FunctionHost, Value } from "./types.js";
+
+type Flags = { insensitive: boolean; multiline: boolean; dotall: boolean; extended: 0 | 1 | 2 };
+type Node = { kind: "keep" }
+  | { kind: "char"; byte?: number; test: (byte: number) => boolean }
+  | { kind: "anchor"; test: (source: string, position: number) => boolean }
+  | { kind: "sequence"; nodes: Node[] }
+  | { kind: "alternative"; nodes: Node[] }
+  | { kind: "repeat"; node: Node; min: number; max: number; lazy: boolean; retainReset: boolean }
+  | { kind: "capture"; node: Node; index: number }
+  | { kind: "atomic"; node: Node }
+  | { kind: "reference"; indices: number[]; insensitive: boolean }
+  | { kind: "conditional"; condition: { kind: "participation"; indices: number[] } | { kind: "assertion"; node: Node }; yes: Node; no: Node }
+  | { kind: "behind"; node: Node; negative: boolean; min: number; max: number }
+  | { kind: "assert"; node: Node; negative: boolean };
+const unsupported = (feature = "pattern syntax or diagnostic"): never => { throw new SsconvertError("unsupported-feature", `Unsupported ssconvert feature: PERL_SED ${feature}`); };
+const word = (byte: number) => byte >= 48 && byte <= 57 || byte >= 65 && byte <= 90 || byte >= 97 && byte <= 122 || byte === 95;
+const fold = (byte: number) => byte >= 65 && byte <= 90 ? byte + 32 : byte;
+
+/** A byte grammar and step-accounted ordered matcher. No guest pattern is
+ * compiled by JavaScript or passed to a native runtime. */
+function compile(pattern: string, host: FunctionHost, version: PerlSampleVersion): { node: Node; warning?: string } {
+  let at = 0, depth = 0, nodes = 0, captures = 0, lookaroundDepth = 0;
+  let hasReset = false, closedCaptures = 0;
+  let warning: string | undefined;
+  const references: number[] = [];
+  const names = new Map<string, number[]>(), namedReferences: { name: string; indices: number[] }[] = [];
+  const flags: Flags = { insensitive: false, multiline: false, dotall: false, extended: 0 };
+  const node = <T extends Node>(value: T): T => {
+    host.tick();
+    if (++nodes > (host.context.limits.workbookNodes ?? host.context.limits.inputBytes))
+      throw new SsconvertError("resource-limit", "ssconvert PERL_SED pattern node limit exceeded");
+    return value;
+  };
+  const literal = (byte: number, mode: Flags) => node({ kind: "char", byte, test: (input: number) => mode.insensitive ? fold(input) === fold(byte) : input === byte } as const);
+  const blanks = () => {
+    while (pattern[at] === " " || pattern[at] === "\t") { host.tick(); at++; }
+  };
+  const identifier = (closing: string) => {
+    if (closing === "}") blanks();
+    let name = "";
+    while (at < pattern.length && pattern[at] !== closing) {
+      if (closing === "}" && (pattern[at] === " " || pattern[at] === "\t")) break;
+      host.tick(); const byte = pattern.charCodeAt(at++);
+      if (!word(byte) || !name && byte >= 48 && byte <= 57) return unsupported();
+      name += String.fromCharCode(byte);
+    }
+    if (closing === "}") blanks();
+    if (!name || pattern[at++] !== closing) return unsupported();
+    return name;
+  };
+  const namedReference = (name: string, mode: Flags) => {
+    const indices: number[] = []; namedReferences.push({ name, indices });
+    return node({ kind: "reference", indices, insensitive: mode.insensitive } as const);
+  };
+  const ignore = (mode: Flags) => {
+    if (!mode.extended) return;
+    while (at < pattern.length) {
+      host.tick();
+      const byte = pattern.charCodeAt(at);
+      if (" \t\r\n\f\v".includes(pattern[at]!) || byte === 133) at++;
+      else if (byte === 35) { while (at < pattern.length && pattern[at] !== "\n") { host.tick(); at++; } }
+      else break;
+    }
+  };
+  function escaped(mode: Flags, inClass = false): Node {
+    host.tick();
+    const char = pattern[at++]; if (char === undefined) return unsupported();
+    if (!inClass && char === "K") {
+      if (lookaroundDepth) return unsupported("match reset in lookaround");
+      hasReset = true;
+      return node({ kind: "keep" });
+    }
+    if (!inClass && char === "k") {
+      const opening = pattern[at++], closing = opening === "<" ? ">" : opening === "{" ? "}" : opening === "'" ? "'" : undefined;
+      if (closing === undefined) return unsupported();
+      return namedReference(identifier(closing), mode);
+    }
+    if (!inClass && (char >= "1" && char <= "9" || char === "g")) {
+      let index: number;
+      if (char === "g") {
+        let end: number | undefined;
+        if (pattern[at] === "{") {
+          end = ++at;
+          while (end < pattern.length && pattern[end] !== "}") { host.tick(); end++; }
+          if (end === pattern.length) return unsupported();
+          blanks();
+          if (pattern[at] !== "-" && !(pattern[at]! >= "0" && pattern[at]! <= "9")) return namedReference(identifier("}"), mode);
+        }
+        const relative = pattern[at] === "-"; if (relative) at++;
+        if (!(pattern[at]! >= "1" && pattern[at]! <= "9")) return unsupported();
+        const number = integer();
+        if (number >= 0x7fffffff) return unsupported();
+        // Perl consumes the complete braced argument after reading its numeric prefix.
+        if (end !== undefined) at = end + 1;
+        index = relative ? captures - number + 1 : number;
+      } else {
+        index = Number(char);
+        if (pattern[at] !== undefined && pattern[at]! >= "0" && pattern[at]! <= "9") return unsupported();
+      }
+      if (index < 1) return unsupported();
+      references.push(index);
+      return node({ kind: "reference", indices: [index], insensitive: mode.insensitive });
+    }
+    const common = "nrtfae", values = [10, 13, 9, 12, 7, 27];
+    const index = common.indexOf(char); if (index >= 0) return literal(values[index]!, mode);
+    if (char === "b" && inClass) return literal(8, mode);
+    if ("hHvV".includes(char) || char === "N" && !inClass) {
+      if (char === "N" && pattern[at] === "{") return unsupported();
+      const kind = char.toLowerCase(), inverse = char !== kind;
+      return node({ kind: "char", test: (byte: number) => {
+        const matched = kind === "h" ? byte === 9 || byte === 32 || byte === 160
+          : kind === "v" ? byte >= 10 && byte <= 13 || byte === 133 : byte === 10;
+        return inverse ? !matched : matched;
+      } });
+    }
+    if (char === "R" && !inClass) {
+      const crlf = node({ kind: "sequence", nodes: [literal(13, mode), literal(10, mode)] });
+      const vertical = node({ kind: "char", test: (byte: number) => byte >= 10 && byte <= 13 || byte === 133 });
+      return node({ kind: "atomic", node: node({ kind: "alternative", nodes: [crlf, vertical] }) });
+    }
+    if (char === "0" || char === "o") {
+      let byte = 0, count = 0;
+      const braced = char === "o";
+      if (braced && pattern[at++] !== "{") return unsupported();
+      while (at < pattern.length && (braced || count < 2) && pattern[at]! >= "0" && pattern[at]! <= "7") {
+        host.tick(); count++; byte = byte * 8 + pattern.charCodeAt(at++) - 48;
+        if (byte > 255) return unsupported();
+      }
+      if (braced && (!count || pattern[at++] !== "}")) return unsupported();
+      return literal(byte, mode);
+    }
+    if ("dDsSwW".includes(char)) {
+      const kind = char.toLowerCase(), inverse = char !== kind;
+      return node({ kind: "char", test: (byte: number) => {
+        const matched = kind === "d" ? byte >= 48 && byte <= 57 : kind === "w" ? word(byte) : byte === 32 || byte >= 9 && byte <= 13;
+        return inverse ? !matched : matched;
+      } });
+    }
+    if (!inClass && "bBAzZ".includes(char)) return node({ kind: "anchor", test: (source: string, position: number) => {
+      if (char === "A") return position === 0;
+      if (char === "z") return position === source.length;
+      if (char === "Z") return position === source.length || position === source.length - 1 && source[position] === "\n";
+      const boundary = word(source.charCodeAt(position - 1)) !== word(source.charCodeAt(position));
+      return char === "b" ? boundary : !boundary;
+    } });
+    if (char === "x") {
+      let digits = "";
+      if (pattern[at] === "{") {
+        at++;
+        while (at < pattern.length && pattern[at] !== "}") { host.tick(); digits += pattern[at++]; }
+        if (pattern[at++] !== "}") return unsupported();
+      } else { digits = pattern.slice(at, at + 2); at += 2; }
+      if (!digits || [...digits].some(value => !"0123456789abcdefABCDEF".includes(value))) return unsupported();
+      const byte = Number.parseInt(digits, 16); if (byte > 255) return unsupported(); return literal(byte, mode);
+    }
+    if (char === "c") {
+      const next = pattern[at++]; if (next === undefined || next.charCodeAt(0) > 127) return unsupported();
+      return literal(next.toUpperCase().charCodeAt(0) ^ 64, mode);
+    }
+    if (char >= "0" && char <= "9" || char >= "a" && char <= "z" || char >= "A" && char <= "Z") return unsupported();
+    return literal(char.charCodeAt(0), mode);
+  }
+  function characterClass(mode: Flags): Node {
+    const ignoreClassSpace = () => {
+      if (mode.extended !== 2) return;
+      while (pattern[at] === " " || pattern[at] === "\t") { host.tick(); at++; }
+    };
+    ignoreClassSpace();
+    const inverse = pattern[at] === "^"; if (inverse) at++;
+    const tests: Node[] = []; let first = true;
+    const take = (): Node => {
+      if (pattern[at] === "[" && pattern[at + 1] === ":") {
+        at += 2; const negated = pattern[at] === "^"; if (negated) at++;
+        let name = "";
+        while (at < pattern.length && pattern[at] !== ":") { host.tick(); name += pattern[at++]; }
+        if (pattern[at++] !== ":" || pattern[at++] !== "]") return unsupported();
+        if (!["alnum", "alpha", "ascii", "blank", "cntrl", "digit", "graph", "lower", "print", "punct", "space", "upper", "word", "xdigit"].includes(name)) return unsupported();
+        return node({ kind: "char", test: (byte: number) => {
+          const digit = byte >= 48 && byte <= 57, lower = byte >= 97 && byte <= 122, upper = byte >= 65 && byte <= 90;
+          const letter = lower || upper;
+          const predicates: Record<string, boolean> = {
+            alnum: letter || digit, alpha: letter, ascii: byte <= 127,
+            blank: byte === 9 || byte === 32, cntrl: byte < 32 || byte === 127,
+            digit, graph: byte >= 33 && byte <= 126,
+            lower: lower || mode.insensitive && upper, print: byte >= 32 && byte <= 126,
+            punct: byte >= 33 && byte <= 126 && !letter && !digit,
+            space: byte === 32 || byte >= 9 && byte <= 13,
+            upper: upper || mode.insensitive && lower, word: word(byte),
+            xdigit: digit || byte >= 65 && byte <= 70 || byte >= 97 && byte <= 102
+          };
+          return negated ? !predicates[name] : predicates[name]!;
+        } });
+      }
+      if (pattern[at] === "[" && (pattern[at + 1] === "." || pattern[at + 1] === "=")) return unsupported();
+      return pattern[at] === "\\" ? (at++, escaped(mode, true)) : literal(pattern.charCodeAt(at++), mode);
+    };
+    ignoreClassSpace();
+    while (at < pattern.length && (first || pattern[at] !== "]")) {
+      host.tick(); first = false;
+      const left = take();
+      ignoreClassSpace();
+      if (pattern[at] === "-") {
+        at++;
+        ignoreClassSpace();
+        if (pattern[at] === "]") { tests.push(left, literal(45, mode)); break; }
+        if (at === pattern.length) return unsupported();
+        const right = take();
+        if (left.kind !== "char" || right.kind !== "char" || left.byte === undefined || right.byte === undefined) return unsupported();
+        const low = left.byte, high = right.byte; if (low > high) return unsupported();
+        tests.push(node({ kind: "char", test: (byte: number) => {
+          if (byte >= low && byte <= high) return true;
+          if (!mode.insensitive) return false;
+          const alternate = byte >= 65 && byte <= 90 ? byte + 32 : byte >= 97 && byte <= 122 ? byte - 32 : byte;
+          return alternate >= low && alternate <= high;
+        } }));
+      } else tests.push(left);
+      ignoreClassSpace();
+    }
+    if (!tests.length || pattern[at++] !== "]") return unsupported();
+    return node({ kind: "char", test: (byte: number) => {
+      const matched = tests.some(test => { host.tick(); return test.kind === "char" && test.test(byte); }); return inverse ? !matched : matched;
+    } });
+  }
+  function group(mode: Flags): Node {
+    if (++depth > (host.context.limits.patternDepth ?? Infinity)) throw new SsconvertError("resource-limit", "ssconvert PERL_SED pattern depth limit exceeded");
+    let assertion: boolean | undefined;
+    let behind = false;
+    let atomic = false;
+    let resetCaptures = false;
+    let capture = pattern[at] === "?" || pattern[at] === "*" ? undefined : ++captures;
+    if (pattern[at] === "*") {
+      at++;
+      const name = identifier(":");
+      if (name === "atomic") atomic = true;
+      else if (name === "pla" || name === "positive_lookahead") assertion = false;
+      else if (name === "nla" || name === "negative_lookahead") assertion = true;
+      else if (name === "plb" || name === "positive_lookbehind") { assertion = false; behind = true; }
+      else if (name === "nlb" || name === "negative_lookbehind") { assertion = true; behind = true; }
+      else return unsupported();
+    } else if (pattern[at] === "?") {
+      at++;
+      if (pattern[at] === ":") at++;
+      else if (pattern[at] === ">") { at++; atomic = true; }
+      else if (pattern[at] === "|") { at++; resetCaptures = true; }
+      else if (pattern[at] === "(") {
+        at++;
+        let condition: Extract<Node, { kind: "conditional" }>["condition"];
+        if (pattern[at] === "*" || pattern[at] === "?" && (pattern[at + 1] === "=" || pattern[at + 1] === "!" ||
+          pattern[at + 1] === "<" && (pattern[at + 2] === "=" || pattern[at + 2] === "!"))) {
+          const assertionNode = group({ ...mode });
+          if (assertionNode.kind !== "assert" && assertionNode.kind !== "behind") return unsupported();
+          condition = { kind: "assertion", node: assertionNode };
+        } else {
+          const indices: number[] = [];
+          if (pattern[at] === "<" || pattern[at] === "'") {
+            const closing = pattern[at++] === "<" ? ">" : "'";
+            namedReferences.push({ name: identifier(closing), indices });
+          } else {
+            if (!(pattern[at]! >= "1" && pattern[at]! <= "9")) return unsupported();
+            const index = integer(); if (index > 0x7fffffff) return unsupported();
+            indices.push(index);
+          }
+          if (pattern[at++] !== ")") return unsupported();
+          condition = { kind: "participation", indices };
+        }
+        const yes = sequence(mode);
+        const no = pattern[at] === "|" ? (at++, sequence(mode)) : node({ kind: "sequence", nodes: [] });
+        if (pattern[at++] !== ")") return unsupported();
+        depth--;
+        return node({ kind: "conditional", condition, yes, no });
+      }
+      else if (pattern[at] === "=" || pattern[at] === "!") assertion = pattern[at++] === "!";
+      else if (pattern[at] === "<" && (pattern[at + 1] === "=" || pattern[at + 1] === "!")) {
+        at++; assertion = pattern[at++] === "!"; behind = true;
+      }
+      else if (pattern[at] === "<" || pattern[at] === "'" || pattern[at] === "P" && pattern[at + 1] === "<") {
+        if (pattern[at] === "P") at++;
+        const closing = pattern[at++] === "<" ? ">" : "'", name = identifier(closing);
+        capture = ++captures;
+        const indices = names.get(name) ?? []; indices.push(capture); names.set(name, indices);
+      }
+      else if (pattern[at] === "P" && pattern[at + 1] === "=") {
+        at += 2; const name = identifier(")"); depth--;
+        return namedReference(name, mode);
+      }
+      else {
+        const reset = pattern[at] === "^";
+        if (reset) {
+          at++;
+          Object.assign(mode, { insensitive: false, multiline: false, dotall: false, extended: 0 });
+        }
+        let disabled = false, found = reset, xCount = 0, aCount = 0, dCount = 0;
+        while (at < pattern.length && "imsxad-".includes(pattern[at]!)) {
+          host.tick(); const flag = pattern[at++];
+          if (flag === "-") {
+            if (disabled || reset) return unsupported("embedded modifier grammar");
+            disabled = true; found = true; continue;
+          }
+          found = true;
+          if (flag === "a" || flag === "d") {
+            if (disabled || reset && flag === "d") return unsupported("embedded modifier grammar");
+            if (flag === "a") aCount++; else dCount++;
+            if (aCount > 2 || dCount > 1 || aCount && dCount) return unsupported("embedded modifier grammar");
+          }
+          if (flag === "i") mode.insensitive = !disabled;
+          if (flag === "m") mode.multiline = !disabled;
+          if (flag === "s") mode.dotall = !disabled;
+          if (flag === "x") mode.extended = disabled ? 0 : ++xCount > 1 ? 2 : 1;
+        }
+        if (!found) return unsupported();
+        if (pattern[at] === ")") { at++; depth--; return node({ kind: "sequence", nodes: [] }); }
+        if (pattern[at++] !== ":") return unsupported("embedded modifier grammar");
+      }
+    }
+    const previousClosedCaptures = closedCaptures;
+    if (assertion !== undefined) lookaroundDepth++;
+    const inner = alternative(mode, resetCaptures); if (pattern[at++] !== ")") return unsupported(); depth--;
+    if (assertion !== undefined) lookaroundDepth--;
+    if (atomic) return node({ kind: "atomic", node: inner });
+    if (assertion !== undefined) {
+      if (!behind) return node({ kind: "assert", node: inner, negative: assertion });
+      const width = widthRange(inner);
+      if (width.min !== width.max && (version === "5.34.1" || closedCaptures !== previousClosedCaptures))
+        warning ??= version === "5.34.1" ? "Variable length lookbehind is experimental"
+          : `Variable length ${assertion ? "negative" : "positive"} lookbehind with capturing is experimental`;
+      return node({ kind: "behind", node: inner, negative: assertion, ...width });
+    }
+    if (capture === undefined) return inner;
+    closedCaptures++;
+    return node({ kind: "capture", node: inner, index: capture });
+  }
+  function widthRange(value: Node): { min: number; max: number } {
+    host.tick(); let min: number, max: number;
+    if (value.kind === "char") min = max = 1;
+    else if (value.kind === "keep" || value.kind === "anchor" || value.kind === "assert" || value.kind === "behind") min = max = 0;
+    else if (value.kind === "reference") return unsupported();
+    else if (value.kind === "capture" || value.kind === "atomic") return widthRange(value.node);
+    else if (value.kind === "repeat") {
+      const width = widthRange(value.node);
+      min = width.min * value.min; max = width.max * value.max;
+    } else if (value.kind === "sequence") {
+      min = max = 0;
+      for (const child of value.nodes) { const width = widthRange(child); min += width.min; max += width.max; }
+    } else {
+      min = Infinity; max = 0;
+      for (const child of value.kind === "conditional" ? [value.yes, value.no] : value.nodes) {
+        const width = widthRange(child); min = Math.min(min, width.min); max = Math.max(max, width.max);
+      }
+    }
+    if (!Number.isFinite(max) || max > 255) return unsupported();
+    return { min, max };
+  }
+  function repeatRetainsReset(value: Node): boolean {
+    // Perl regcomp_study CURLYX_TO_CURLYM requires a nonzero fixed-width
+    // body without internal captures (one encompassing capture is allowed).
+    function shape(current: Node): { width: number | undefined; captures: number } {
+      host.tick();
+      if (current.kind === "char") return { width: 1, captures: 0 };
+      if (current.kind === "keep" || current.kind === "anchor") return { width: 0, captures: 0 };
+      if (current.kind === "reference") return { width: undefined, captures: 0 };
+      if (current.kind === "capture" || current.kind === "atomic" || current.kind === "repeat"
+        || current.kind === "assert" || current.kind === "behind") {
+        const child = shape(current.node);
+        if (current.kind === "capture") return { ...child, captures: child.captures + 1 };
+        if (current.kind === "assert" || current.kind === "behind") return { ...child, width: 0 };
+        if (current.kind === "repeat") return { ...child,
+          width: child.width === 0 ? 0 : current.min === current.max && child.width !== undefined ? child.width * current.min : undefined };
+        return child;
+      }
+      const children = current.kind === "conditional" ? [current.yes, current.no] : current.nodes;
+      let width: number | undefined = current.kind === "sequence" ? 0 : undefined, captures = 0, first = true;
+      for (const child of children) {
+        const next = shape(child); captures += next.captures;
+        width = current.kind === "sequence"
+          ? width === undefined || next.width === undefined ? undefined : width + next.width
+          : first || width === next.width ? next.width : undefined;
+        first = false;
+      }
+      if (current.kind === "conditional" && current.condition.kind === "assertion")
+        captures += shape(current.condition.node).captures;
+      return { width, captures };
+    }
+    while (value.kind === "sequence" && value.nodes.length === 1) { host.tick(); value = value.nodes[0]!; }
+    const result = shape(value.kind === "capture" ? value.node : value);
+    return result.captures === 0 && result.width !== undefined && result.width > 0;
+  }
+  function integer(): number {
+    let value = 0, count = 0;
+    while (at < pattern.length && pattern[at]! >= "0" && pattern[at]! <= "9") {
+      host.tick(); count++; value = value * 10 + pattern.charCodeAt(at++) - 48;
+      if (!Number.isSafeInteger(value)) throw new SsconvertError("resource-limit", "ssconvert PERL_SED repetition limit exceeded");
+    }
+    if (!count) return unsupported(); return value;
+  }
+  function sequence(mode: Flags): Node {
+    const result: Node[] = [];
+    while (at < pattern.length) {
+      ignore(mode); if (at === pattern.length || pattern[at] === "|" || pattern[at] === ")") break;
+      host.tick(); const char = pattern[at++]; let value: Node;
+      if (char === "\\") value = escaped({ ...mode });
+      else if (char === "[") value = characterClass({ ...mode });
+      else if (char === "(") {
+        // Bare flag groups change the enclosing scope; scoped groups inherit a copy.
+        let end = at + 1;
+        if (pattern[at] === "?") while (end < pattern.length && "imsxad-^".includes(pattern[end]!)) { host.tick(); end++; }
+        const bare = pattern[at] === "?" && end > at + 1 && pattern[end] === ")";
+        value = group(bare ? mode : { ...mode });
+        // A bare modifier changes parsing state but is not a quantifiable atom.
+        if (bare) {
+          ignore(mode);
+          // Perl treats braces after a bare modifier as literal text.
+          if (pattern[at] !== "{") continue;
+          at++; value = literal(123, { ...mode });
+        }
+      } else if (char === ".") { const dotall = mode.dotall; value = node({ kind: "char", test: (byte: number) => dotall || byte !== 10 }); }
+      else if (char === "^" || char === "$") {
+        const multiline = mode.multiline;
+        value = node({ kind: "anchor", test: (source: string, position: number) => char === "^"
+          ? position === 0 || multiline && source[position - 1] === "\n"
+          : position === source.length || source[position] === "\n" && (multiline || position === source.length - 1) });
+      } else if (char === "*" || char === "+" || char === "?" || char === "{") return unsupported();
+      else value = literal(char!.charCodeAt(0), { ...mode });
+      ignore(mode);
+      let min: number | undefined, max = Infinity;
+      if (pattern[at] === "*") { at++; min = 0; }
+      else if (pattern[at] === "+") { at++; min = 1; }
+      else if (pattern[at] === "?") { at++; min = 0; max = 1; }
+      else if (pattern[at] === "{") {
+        at++; min = integer(); max = min;
+        if (pattern[at] === ",") { at++; max = pattern[at] === "}" ? Infinity : integer(); }
+        if (pattern[at++] !== "}" || max < min) return unsupported();
+      }
+      if (min !== undefined) {
+        const lazy = pattern[at] === "?"; if (lazy) at++;
+        const possessive = !lazy && pattern[at] === "+"; if (possessive) at++;
+        value = node({ kind: "repeat", node: value, min, max, lazy, retainReset: hasReset && repeatRetainsReset(value) });
+        if (possessive) value = node({ kind: "atomic", node: value });
+      }
+      result.push(value);
+    }
+    return node({ kind: "sequence", nodes: result });
+  }
+  function alternative(mode: Flags, resetCaptures = false): Node {
+    const firstCapture = captures;
+    const result = [sequence(mode)];
+    let lastCapture = captures;
+    while (pattern[at] === "|") {
+      at++;
+      if (resetCaptures) captures = firstCapture;
+      result.push(sequence(mode));
+      lastCapture = Math.max(lastCapture, captures);
+    }
+    captures = lastCapture;
+    return result.length === 1 ? result[0]! : node({ kind: "alternative", nodes: result });
+  }
+  const result = alternative(flags); if (at !== pattern.length) return unsupported();
+  for (const index of references) { host.tick(); if (index > captures) return unsupported(); }
+  for (const reference of namedReferences) {
+    host.tick(); const indices = names.get(reference.name); if (indices === undefined) return unsupported();
+    for (const index of indices) { host.tick(); reference.indices.push(index); }
+  }
+  return warning === undefined ? { node: result } : { node: result, warning };
+}
+
+type MatchReset = { position: number; order: number };
+type MatchProgress = { order: number; repeatedReset?: MatchReset };
+type MatchState = { position: number; reset?: MatchReset; captures: readonly (readonly [number, number] | undefined)[] };
+
+function clearCaptures(node: Node, state: MatchState, host: FunctionHost): MatchState {
+  const nested: Node[] = [node], cleared = new Set<number>();
+  while (nested.length) {
+    host.tick(); const child = nested.pop()!;
+    if (child.kind === "capture") cleared.add(child.index);
+    if (child.kind === "capture" || child.kind === "atomic" || child.kind === "repeat" || child.kind === "assert" || child.kind === "behind") nested.push(child.node);
+    else if (child.kind === "sequence" || child.kind === "alternative") for (const descendant of child.nodes) { host.tick(); nested.push(descendant); }
+    else if (child.kind === "conditional") {
+      nested.push(child.yes, child.no);
+      if (child.condition.kind === "assertion") nested.push(child.condition.node);
+    }
+  }
+  if (cleared.size) {
+    const captures: (readonly [number, number] | undefined)[] = [];
+    for (let index = 0; index < state.captures.length; index++) { host.tick(); captures.push(cleared.has(index) ? undefined : state.captures[index]); }
+    state = { ...state, captures };
+  }
+  return state;
+}
+
+function* match(node: Node, source: string, state: MatchState, host: FunctionHost, modern: boolean, progress: MatchProgress): Generator<MatchState> {
+  host.tick(); const position = state.position;
+  if (node.kind === "char") { if (position < source.length && node.test(source.charCodeAt(position))) yield { ...state, position: position + 1 }; }
+  else if (node.kind === "keep") yield { ...state, reset: { position, order: ++progress.order } };
+  else if (node.kind === "anchor") { if (node.test(source, position)) yield state; }
+  else if (node.kind === "reference") {
+    let captured: readonly [number, number] | undefined;
+    for (const index of node.indices) { host.tick(); captured = state.captures[index]; if (captured !== undefined) break; }
+    if (captured === undefined) return;
+    const length = captured[1] - captured[0]; if (length > source.length - position) return;
+    for (let offset = 0; offset < length; offset++) {
+      host.tick(); const left = source.charCodeAt(captured[0] + offset), right = source.charCodeAt(position + offset);
+      if (node.insensitive ? fold(left) !== fold(right) : left !== right) return;
+    }
+    yield { ...state, position: position + length };
+  } else if (node.kind === "conditional") {
+    let branch: MatchState | undefined;
+    if (node.condition.kind === "participation") {
+      for (const index of node.condition.indices) {
+        host.tick();
+        if (state.captures[index] !== undefined) { branch = state; break; }
+      }
+    } else {
+      const inner = match(node.condition.node, source, state, host, modern, progress), result = inner.next(); inner.return(undefined);
+      if (!result.done) branch = result.value;
+    }
+    yield* match(branch === undefined ? node.no : node.yes, source, branch ?? state, host, modern, progress);
+  } else if (node.kind === "capture") {
+    for (const result of match(node.node, source, state, host, modern, progress)) {
+      const captures: (readonly [number, number] | undefined)[] = [];
+      for (const capture of result.captures) { host.tick(); captures.push(capture); }
+      captures[node.index] = [position, result.position];
+      yield { ...result, captures };
+    }
+  } else if (node.kind === "atomic") {
+    const inner = match(node.node, source, state, host, modern, progress), result = inner.next(); inner.return(undefined);
+    if (!result.done) yield result.value;
+  } else if (node.kind === "assert") {
+    const inner = match(node.node, source, state, host, modern, progress), result = inner.next(); inner.return(undefined);
+    if (result.done) { if (node.negative) yield state; }
+    else if (!node.negative) yield { ...result.value, position };
+  } else if (node.kind === "behind") {
+    let result: MatchState | undefined;
+    for (let width = Math.min(position, node.max); width >= node.min; width--) {
+      host.tick();
+      // Perl 5.40 LOOKBEHIND_END backtracks until the assertion boundary.
+      // The 5.34 experimental profile accepts the first result at each start.
+      for (const candidate of match(node.node, source, { ...state, position: position - width }, host, modern, progress)) {
+        if (!modern || candidate.position === position) { result = candidate; break; }
+      }
+      if (result !== undefined) break;
+    }
+    if (result === undefined) { if (node.negative) yield state; }
+    else if (!node.negative) yield { ...result, position };
+  } else if (node.kind === "alternative") {
+    for (const child of node.nodes) {
+      yield* match(child, source, state, host, modern, progress);
+      // Perl 5.40 BRANCH_next_fail clears the failed branch's captures.
+      if (modern) state = clearCaptures(child, state, host);
+    }
+  }
+  else if (node.kind === "sequence") {
+    const stack: { index: number; iterator: Generator<MatchState> }[] = [];
+    if (!node.nodes.length) { yield state; return; }
+    stack.push({ index: 0, iterator: match(node.nodes[0]!, source, state, host, modern, progress) });
+    while (stack.length) {
+      host.tick(); const top = stack[stack.length - 1]!, step = top.iterator.next();
+      if (step.done) stack.pop();
+      else if (top.index === node.nodes.length - 1) yield step.value;
+      else stack.push({ index: top.index + 1, iterator: match(node.nodes[top.index + 1]!, source, step.value, host, modern, progress) });
+    }
+  } else {
+    if (node.min === 0) state = clearCaptures(node.node, state, host);
+    type Frame = { state: MatchState; count: number; iterator?: Generator<MatchState>; emitted: boolean; stopped: boolean };
+    const stack: Frame[] = [{ state, count: 0, emitted: false, stopped: false }];
+    while (stack.length) {
+      host.tick(); const top = stack[stack.length - 1]!;
+      if (node.lazy && !top.emitted) { top.emitted = true; if (top.count >= node.min) yield top.state; }
+      if (!top.stopped && top.count < node.max) {
+        top.iterator ??= match(node.node, source, top.state, host, modern, progress);
+        const step = top.iterator.next();
+        if (!step.done) {
+          // Perl's repetition checkpoints retain a reset from a completed
+          // iteration when the quantifier subsequently backtracks.
+          if (node.retainReset && step.value.reset && step.value.reset.order > (top.state.reset?.order ?? -1))
+            progress.repeatedReset = step.value.reset;
+          if (stack.length >= host.context.limits.inputBytes) throw new SsconvertError("resource-limit", "ssconvert PERL_SED match state limit exceeded");
+          stack.push({ state: step.value, count: top.count + 1, emitted: false,
+            stopped: step.value.position === top.state.position && top.count + 1 >= node.min });
+          continue;
+        }
+      }
+      stack.pop(); if (!node.lazy && top.count >= node.min) yield top.state;
+    }
+  }
+}
+
+export type PerlSampleVersion = "5.34.1" | "5.40.1";
+
+// Native dynamic patterns reuse compilation across one operation's calculation
+// stages. Standalone calculations own fresh workbook snapshots instead.
+const previousPatterns = new WeakMap<object, { pattern: string; version: PerlSampleVersion }>();
+
+export function perlSed(args: readonly (Value | undefined)[], host: FunctionHost, version: PerlSampleVersion = "5.34.1"): CellValue {
+  const inputs = args.map((_value, index) => byteTextArg(args, index, host));
+  let inputSize = 0;
+  for (const bytes of inputs) for (const byte of bytes) {
+    host.tick(); void byte;
+    inputSize++;
+    if (inputSize > host.context.limits.inputBytes) throw new SsconvertError("resource-limit", "ssconvert PERL_SED input byte limit exceeded");
+  }
+  const raw = inputs.map(bytes => {
+    const output: string[] = [];
+    for (const byte of bytes) { host.tick(); output.push(String.fromCharCode(byte)); }
+    return output.join("");
+  });
+  const source = raw[0]!, compiled = compile(raw[1]!, host, version), replacement = raw[2]!, output: string[] = [];
+  const scope = (host.context as RuntimeFunctionContext)[runtimeFunctionScope] ?? host.book;
+  const previous = previousPatterns.get(scope);
+  if (compiled.warning && (previous?.pattern !== raw[1]! || previous.version !== version))
+    host.diagnostic?.({ code: "perl-regex", severity: "warning", message: compiled.warning });
+  previousPatterns.set(scope, { pattern: raw[1]!, version });
+  const pattern = compiled.node;
+  let position = 0, published = 0, emptyAt = -1, outputSize = 0;
+  const emit = (text: string) => {
+    if (text.length > host.context.limits.outputBytes - outputSize) throw new SsconvertError("resource-limit", "ssconvert calculation text limit exceeded");
+    outputSize += text.length; output.push(text);
+  };
+  while (position <= source.length) {
+    host.tick(); const progress: MatchProgress = { order: 0 };
+    const iterator = match(pattern, source, { position, captures: [] }, host, version === "5.40.1", progress); let end: number | undefined, start = position;
+    for (const candidate of iterator) {
+      if (candidate.position === position && position === emptyAt) continue;
+      end = candidate.position;
+      const reset = (progress.repeatedReset?.order ?? -1) > (candidate.reset?.order ?? -1)
+        ? progress.repeatedReset : candidate.reset;
+      start = reset?.position ?? position; break;
+    }
+    if (end === undefined) { position++; continue; }
+    emit(source.slice(published, start)); emit(replacement); published = end;
+    emptyAt = end === start ? end : -1; position = end;
+  }
+  emit(source.slice(published));
+  const bytes = Uint8Array.from(output.join(""), char => char.charCodeAt(0));
+  return byteStringValue(bytes, host.tick, host.context.limits.outputBytes);
+}
+
+/** Gnumeric's UTF-8 regex replacement currently admits the ASCII matcher profile.
+ * Reject other text explicitly rather than applying Perl byte semantics to it. */
+export function regexReplace(args: readonly (Value | undefined)[], host: FunctionHost): CellValue {
+  const source = textArg(args, 0, host), rawPattern = textArg(args, 1, host), replacement = textArg(args, 2, host);
+  for (const text of [source, rawPattern]) for (const character of text) {
+    host.tick();
+    if (character.charCodeAt(0) > 127) throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: REGEXREPLACE Unicode matching");
+  }
+  const occurrence = Math.trunc(numberArg(args, 3, host, 0));
+  const insensitive = args[4] !== undefined && asBoolean(scalarArg(args, 4, host));
+  const pattern = compile(insensitive ? "(?i)" + rawPattern : rawPattern, host, "5.34.1").node;
+  function* matches(): Generator<{ start: number; state: MatchState }> {
+    let position = 0, emptyAt = -1;
+    while (position <= source.length) {
+      host.tick();
+      let found = false;
+      for (const state of match(pattern, source, { position, captures: [] }, host, false, { order: 0 })) {
+        if (state.position === position && position === emptyAt) continue;
+        if (state.reset) throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: REGEXREPLACE match reset");
+        yield { start: position, state };
+        emptyAt = state.position === position ? position : -1;
+        position = state.position; found = true; break;
+      }
+      if (!found) position++;
+    }
+  }
+  let target = occurrence;
+  if (occurrence < 0) {
+    let count = 0;
+    for (const entry of matches()) { host.tick(); void entry; count++; }
+    target = count + occurrence + 1;
+    if (target <= 0) return boundedText(source, host);
+  }
+  const output: string[] = [];
+  let size = 0, published = 0, index = 0;
+  const emit = (text: string) => {
+    for (const character of text) {
+      host.tick();
+      const point = character.codePointAt(0)!;
+      size += point < 128 ? 1 : point < 2048 ? 2 : point < 65536 ? 3 : 4;
+      if (size > host.context.limits.outputBytes) throw new SsconvertError("resource-limit", "ssconvert calculation text limit exceeded");
+    }
+    output.push(text);
+  };
+  for (const { start, state } of matches()) {
+    if (++index !== target && occurrence !== 0) continue;
+    emit(source.slice(published, start));
+    for (let at = 0; at < replacement.length; at++) {
+      host.tick();
+      const character = replacement[at]!, next = replacement[at + 1];
+      if ((character === "$" || character === "\\") && next !== undefined && next >= "0" && next <= "9") {
+        let group = 0;
+        while (replacement[at + 1] !== undefined && replacement[at + 1]! >= "0" && replacement[at + 1]! <= "9") {
+          host.tick(); group = group * 10 + Number(replacement[++at]);
+        }
+        const span = group === 0 ? [start, state.position] : state.captures[group];
+        if (span) emit(source.slice(span[0], span[1]));
+      } else if (character === "\\") {
+        throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: REGEXREPLACE replacement escape");
+      } else {
+        const point = replacement.codePointAt(at)!;
+        emit(String.fromCodePoint(point));
+        if (point > 65535) at++;
+      }
+    }
+    published = state.position;
+    if (occurrence !== 0) break;
+  }
+  emit(source.slice(published));
+  return boundedText(output.join(""), host);
+}

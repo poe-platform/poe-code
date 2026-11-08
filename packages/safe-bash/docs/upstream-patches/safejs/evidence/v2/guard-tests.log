@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: artifact accepts only exact hash and approved seven update paths
+ok 1 - artifact accepts only exact hash and approved seven update paths
+  ---
+  duration_ms: 4.182541
+  type: 'test'
+  ...
+# Subtest: baseline mismatch and symlink patch ancestor fail closed
+ok 2 - baseline mismatch and symlink patch ancestor fail closed
+  ---
+  duration_ms: 3.943208
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 59.989459

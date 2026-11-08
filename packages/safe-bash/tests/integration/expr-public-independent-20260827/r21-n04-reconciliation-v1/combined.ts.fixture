@@ -1,0 +1,16 @@
+import { agentCommands, createAgentCommands, createExprCommand, type ExprCommandsOptions } from "virtual-bash";
+import { createExprCommands, exprCommands } from "virtual-bash/commands/expr";
+
+
+agentCommands({ expr: { regex: { maxWorkers: 1 } } });
+
+createAgentCommands({ expr: { replace: true } });
+
+createExprCommand({ limits: { maxNumericDigits: "64" } });
+
+createExprCommands({ limits: { maxRegexSteps: 64 } });
+
+exprCommands({ regex: { startupTimeoutMs: "50" } });
+
+const invalid: ExprCommandsOptions = { replace: "yes" };
+void invalid;

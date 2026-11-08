@@ -1,0 +1,67 @@
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
+import { readFileSync, writeFileSync, readdirSync, mkdirSync, cpSync } from 'node:fs';
+import { resolve, relative } from 'node:path';
+
+const root = process.cwd();
+const owned = resolve(root, 'tests/shell-stress/first-read-contract-review/owned-output-prototype');
+const restoration = JSON.parse(readFileSync(resolve(owned, 'reconstruction.json')));
+const { temp, candidate } = restoration;
+const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+const write = (path, value) => writeFileSync(resolve(owned, path), JSON.stringify(value, null, 2) + '\n');
+const walk = base => readdirSync(base, { withFileTypes: true }).flatMap(entry => entry.isDirectory() ? walk(resolve(base, entry.name)) : entry.isFile() ? [resolve(base, entry.name)] : []).sort();
+const manifest = (base, paths) => paths.map(path => { const bytes = readFileSync(path); return { path: relative(base, path), bytes: bytes.length, sha256: hash(bytes) }; });
+const git = args => execFileSync('git', args, { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 });
+function patch(before, after, beforeName, afterName) {
+  let output;
+  try { output = git(['diff', '--no-index', '--binary', before, after]); }
+  catch (error) { if (error.status !== 1) throw error; output = error.stdout; }
+  for (const prefix of ['a', 'b']) {
+    output = output.replaceAll(`${prefix}/${before.replace(/^\//, '')}`, `${prefix}/${beforeName}`);
+    output = output.replaceAll(`${prefix}/${after.replace(/^\//, '')}`, `${prefix}/${afterName}`);
+  }
+  return output;
+}
+mkdirSync(resolve(owned, 'evidence'), { recursive: true });
+cpSync(resolve(temp, 'evidence'), resolve(owned, 'evidence'), { recursive: true });
+writeFileSync(resolve(owned, 'source-r0.patch-data'), patch(resolve(temp, 'baseline-src'), resolve(temp, 'r0-src'), 'src', 'src'));
+writeFileSync(resolve(owned, 'source-r1.patch-data'), patch(resolve(temp, 'baseline-src'), resolve(candidate, 'src'), 'src', 'src'));
+writeFileSync(resolve(owned, 'source-r0-to-r1.patch-data'), patch(resolve(temp, 'r0-src'), resolve(candidate, 'src'), 'src', 'src'));
+writeFileSync(resolve(owned, 'adapted-fixture.patch-data'),
+  patch(resolve(candidate, 'tests/shell/first-read-probe.ts'), resolve(candidate, 'tests/shell/adapted-first-read-probe.ts'), 'tests/shell/first-read-probe.ts', 'tests/shell/adapted-first-read-probe.ts') +
+  patch(resolve(candidate, 'tests/shell/remote-close.test.ts'), resolve(candidate, 'tests/shell/adapted-remote-close.test.ts'), 'tests/shell/remote-close.test.ts', 'tests/shell/adapted-remote-close.test.ts'));
+writeFileSync(resolve(owned, 'author-r0-to-r1.patch-data'), patch(resolve(temp, 'author-r0.test.ts.data'), resolve(candidate, 'tests/shell/owned-output-author.test.ts'), 'tests/shell/owned-output-author.test.ts', 'tests/shell/owned-output-author.test.ts'));
+for (const name of ['supervisor.mjs', 'run-existing.mjs', 'run-controls.mjs', 'controls.mjs', 'native.mjs', 'run-prototype.mjs', 'author-freeze.json', 'author-r0.test.ts.data']) {
+  cpSync(resolve(temp, name), resolve(owned, `${name}.data`));
+}
+for (const name of ['owned-output-author.test.ts', 'adapted-first-read-probe.ts', 'adapted-remote-close.test.ts']) cpSync(resolve(candidate, 'tests/shell', name), resolve(owned, `${name}.data`));
+cpSync('/tmp/safe-bash-owned-output-prototype-api.txt', resolve(owned, 'API.txt.data'));
+cpSync('/tmp/safe-bash-owned-output-prototype-needs-root.txt', resolve(owned, 'NEEDS-ROOT.txt.data'));
+
+const source = manifest(candidate, walk(resolve(candidate, 'src')));
+const tests = manifest(candidate, walk(resolve(candidate, 'tests')));
+const compiled = manifest(candidate, walk(resolve(candidate, 'dist')));
+const accepted = resolve(root, 'tests/shell-stress/first-read-contract-review');
+const pin = JSON.parse(readFileSync(resolve(accepted, 'evidence/freeze.json')));
+assert.equal(hash(JSON.stringify(pin.manifest.filter(entry => entry.path.startsWith('src/')))), restoration.acceptedSourceManifest);
+for (const entry of restoration.files.filter(entry => entry.path.startsWith('tests/'))) assert.equal(hash(readFileSync(resolve(candidate, entry.path))), entry.sha256, `Original changed ${entry.path}`);
+const driftPaths = ['src/contracts/command.ts', 'src/contracts/io.ts', 'src/shell/cleanup.ts', 'src/shell/runtime.ts', 'src/shell/shell.ts', 'src/commands/streams.ts', 'src/commands/network/curl.ts', 'src/commands/network/transport.ts', 'src/commands/network/types.ts'];
+const drift = driftPaths.map(path => ({ path, baseline: restoration.files.find(entry => entry.path === path).sha256, live: hash(readFileSync(resolve(root, path))) }));
+const protectedPaths = restoration.protectedPaths.map(entry => ({ ...entry, finalSha256: hash(readFileSync(resolve(root, entry.path))) }));
+const runs = walk(resolve(owned, 'evidence/runs')).filter(path => path.endsWith('.json')).map(path => JSON.parse(readFileSync(path)));
+const counts = run => Object.fromEntries([...run.stdout.matchAll(/^# (tests|pass|fail|cancelled|skipped) (\d+)$/gm)].map(match => [match[1], Number(match[2])]));
+const compiledInventory = readFileSync(resolve(temp, 'evidence/runs/r1-scoped-typecheck.stdout'), 'utf8').split('\n').filter(line => line.startsWith('/'));
+const summary = {
+  frozenAt: new Date().toISOString(), revision: 'r1', temp, candidate, acceptedCommit: '3eba797a2f286c80149dff22afbcd177e3ffea08', baselineHead: restoration.baselineHead,
+  acceptedSourceManifest: restoration.acceptedSourceManifest, source, sourceManifestSha256: hash(JSON.stringify(source)), tests, testManifestSha256: hash(JSON.stringify(tests)), compiled, compiledManifestSha256: hash(JSON.stringify(compiled)),
+  sourcePatchSha256: hash(readFileSync(resolve(owned, 'source-r1.patch-data'))), baselineArchiveSha256: hash(readFileSync(resolve(owned, 'baseline.tar.gz.data'))),
+  originalInputsVerified: restoration.files.filter(entry => entry.path.startsWith('tests/')),
+  scopedCompilerInventory: compiledInventory, compilerInventoryCount: compiledInventory.length,
+  tools: { node: { path: process.execPath, version: process.version, sha256: hash(readFileSync(process.execPath)) }, development: restoration.tools },
+  drift, protectedPaths, runs: runs.map(run => ({ label: run.label, status: run.status, counts: counts(run), pid: run.pid, timedOut: run.timedOut, oversized: run.oversized, closeEventObserved: run.closeEventObserved, groupExistsAfterClose: run.groupExistsAfterClose })),
+  authorLogicalCases: 12, adaptedCases: 5, controls: { existing: 57, review: 9, native: 5 },
+  limits: ['Active borrowed curl upload/format not proven safe; requires root ownership decision', 'OutputOperation.output does not forward capability to a separately constructed nested operation', 'C9 synthetic non-product', 'No deployed-provider/Express/production/fullgate qualification'],
+};
+write('handoff.json', summary);
+console.log(JSON.stringify({ sourceFiles: source.length, sourceManifestSha256: summary.sourceManifestSha256, testFiles: tests.length, testManifestSha256: summary.testManifestSha256, compiledFiles: compiled.length, compiledManifestSha256: summary.compiledManifestSha256, compilerInventoryCount: compiledInventory.length, drift, protectedPaths }, null, 2));

@@ -1,0 +1,21 @@
+{
+  "schema": "B2_R6_ONE_TIMER_DATA_ADMISSION",
+  "scheduler": {
+    "bytes": 4781,
+    "sha256": "f8efcd619a1d5c72cbd05ff228c2d7dafcc2e3ed66633ec7d54785494bfad12f"
+  },
+  "binding": {
+    "bytes": 15087,
+    "sha256": "93e0c490859f6b9957f36bda7bbcb2a7a59387cebdd9bdf68506fdf755a7c06e"
+  },
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "notBefore": "2026-08-29T15:15:12.109Z",
+  "externalLatest": "2026-08-29T15:20:12.109Z",
+  "runtimeLaunchedByHelper": false,
+  "children": 0,
+  "admittedTimerProcesses": 1
+}

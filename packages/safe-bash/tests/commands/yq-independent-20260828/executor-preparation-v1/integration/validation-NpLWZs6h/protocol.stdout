@@ -1,0 +1,5 @@
+ERROR: missing required section: Problem Statement
+ERROR: missing required section: Goals and Non-Goals
+ERROR: missing required section: Test and Validation Matrix
+ERROR: missing required section: Conformance Criteria
+FAILED: 4 error(s), 0 warning(s)

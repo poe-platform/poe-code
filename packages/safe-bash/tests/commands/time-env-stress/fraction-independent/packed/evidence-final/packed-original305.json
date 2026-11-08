@@ -1,0 +1,140 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "./guard.mjs",
+    "original305.mjs"
+  ],
+  "cwd": "/tmp/safe-bash-fraction-independent-packed-3n2Cyg/consumer",
+  "pid": 79884,
+  "status": 1,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 1783,
+  "timeoutMs": 120000,
+  "outputBytes": 2509,
+  "observed": [
+    {
+      "pid": 79884,
+      "parent": 78599,
+      "group": 79884,
+      "born": "Thu Aug 27 04:05:24 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import ./guard.mjs original305.mjs"
+    },
+    {
+      "pid": 79887,
+      "parent": 79884,
+      "group": 79884,
+      "born": "Thu Aug 27 04:05:24 2026",
+      "command": "(date)"
+    },
+    {
+      "pid": 79905,
+      "parent": 79884,
+      "group": 79884,
+      "born": "Thu Aug 27 04:05:24 2026",
+      "command": "(date)"
+    },
+    {
+      "pid": 79925,
+      "parent": 79884,
+      "group": 79884,
+      "born": "Thu Aug 27 04:05:24 2026",
+      "command": "(date)"
+    },
+    {
+      "pid": 79945,
+      "parent": 79884,
+      "group": 79884,
+      "born": "Thu Aug 27 04:05:24 2026",
+      "command": "(date)"
+    },
+    {
+      "pid": 79965,
+      "parent": 79884,
+      "group": 79884,
+      "born": "Thu Aug 27 04:05:24 2026",
+      "command": "(date)"
+    },
+    {
+      "pid": 79982,
+      "parent": 79884,
+      "group": 79884,
+      "born": "Thu Aug 27 04:05:25 2026",
+      "command": "(date)"
+    },
+    {
+      "pid": 80002,
+      "parent": 79884,
+      "group": 79884,
+      "born": "Thu Aug 27 04:05:25 2026",
+      "command": "(date)"
+    },
+    {
+      "pid": 80022,
+      "parent": 79884,
+      "group": 79884,
+      "born": "Thu Aug 27 04:05:25 2026",
+      "command": "(date)"
+    },
+    {
+      "pid": 80041,
+      "parent": 79884,
+      "group": 79884,
+      "born": "Thu Aug 27 04:05:25 2026",
+      "command": "(date)"
+    },
+    {
+      "pid": 80060,
+      "parent": 79884,
+      "group": 79884,
+      "born": "Thu Aug 27 04:05:25 2026",
+      "command": "(date)"
+    },
+    {
+      "pid": 80079,
+      "parent": 79884,
+      "group": 79884,
+      "born": "Thu Aug 27 04:05:25 2026",
+      "command": "(date)"
+    },
+    {
+      "pid": 80098,
+      "parent": 79884,
+      "group": 79884,
+      "born": "Thu Aug 27 04:05:25 2026",
+      "command": "(date)"
+    },
+    {
+      "pid": 80117,
+      "parent": 79884,
+      "group": 79884,
+      "born": "Thu Aug 27 04:05:25 2026",
+      "command": "(date)"
+    },
+    {
+      "pid": 80135,
+      "parent": 79884,
+      "group": 79884,
+      "born": "Thu Aug 27 04:05:25 2026",
+      "command": "(date)"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "stdout": {
+    "bytes": 2509,
+    "sha256": "be63ab8cf4798a43171efad9c8baa174adf2b0ea961f9920d32b57af7c4bc28d"
+  },
+  "stderr": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "counts": {}
+}

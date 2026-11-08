@@ -1,0 +1,26 @@
+{
+  "at": "2026-08-29T11:55:29.904Z",
+  "files": {
+    "supervise.mjs": {
+      "bytes": 9205,
+      "sha256": "96e72e8949291e27c499809b0b6cfcf38621ff8ca18279969d385ff372927a50"
+    },
+    "audit.mjs": {
+      "bytes": 8933,
+      "sha256": "a0fe35c6df8e72d36988a0d01dd819ce23cf838f921d630efb9cc9a6726c322f"
+    },
+    "INPUTS.json": {
+      "bytes": 702,
+      "sha256": "cd78b2e1d4e6b50af8fb189564abbd39f259eedeb917ea36201e130c7e80a72e"
+    },
+    "PRESEAL.md": {
+      "bytes": 2254,
+      "sha256": "d587600d6c36d98e89790ade4ffa9dcfbb1b15ccdf3ddde1639219cca13152dd"
+    }
+  },
+  "knownRolePlan": 26,
+  "knownRoleCeiling": 32,
+  "peak": 3,
+  "pureAuditProcesses": 1,
+  "maximumPureAuditProcesses": 2
+}

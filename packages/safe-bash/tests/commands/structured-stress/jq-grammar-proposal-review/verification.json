@@ -1,0 +1,66 @@
+{
+  "recordedAt": "2026-08-27T02:08:38.021Z",
+  "scope": "Review tools only; no product imports or source acceptance",
+  "results": [
+    {
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "tests/commands/structured-stress/jq-grammar-proposal-review/audit.mjs"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "tests/commands/structured-stress/jq-grammar-proposal-review/native.mjs"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "tests/commands/structured-stress/jq-grammar-proposal-review/review.mjs"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "tests/commands/structured-stress/jq-grammar-proposal-review/validation.test.mjs"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--test",
+        "tests/commands/structured-stress/jq-grammar-proposal-review/validation.test.mjs"
+      ],
+      "status": 0,
+      "stdout": "TAP version 13\n# Subtest: all pinned proposal, canonical and historical inputs remain unchanged\nok 1 - all pinned proposal, canonical and historical inputs remain unchanged\n  ---\n  duration_ms: 242.587208\n  type: 'test'\n  ...\n# Subtest: all 26 rows retain independently checked constituents and schedules\nok 2 - all 26 rows retain independently checked constituents and schedules\n  ---\n  duration_ms: 0.328959\n  type: 'test'\n  ...\n# Subtest: native evidence distinguishes exact argv, fd controls, neighbors and default stdin\nok 3 - native evidence distinguishes exact argv, fd controls, neighbors and default stdin\n  ---\n  duration_ms: 0.102625\n  type: 'test'\n  ...\n# Subtest: all byte mutants pass lossy comparison but fail raw equality\nok 4 - all byte mutants pass lossy comparison but fail raw equality\n  ---\n  duration_ms: 0.195709\n  type: 'test'\n  ...\n# Subtest: six implicit-null lookup mismatches have exact independent native controls\nok 5 - six implicit-null lookup mismatches have exact independent native controls\n  ---\n  duration_ms: 0.070625\n  type: 'test'\n  ...\n1..5\n# tests 5\n# suites 0\n# pass 5\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 286.20525\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "tests/commands/structured-stress/jq-grammar-proposal-review/review.mjs",
+        "check"
+      ],
+      "status": 0,
+      "stdout": "Verified 140 stable inputs, 235 historical manifest entries, five exact snapshots, all 26 original blocks and native proof hashes.\n",
+      "stderr": ""
+    }
+  ]
+}

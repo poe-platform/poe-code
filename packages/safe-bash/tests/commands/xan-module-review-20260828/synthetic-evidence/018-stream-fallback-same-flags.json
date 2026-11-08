@@ -1,0 +1,22 @@
+{
+  "id": "stream-fallback-same-flags",
+  "families": [
+    "F09",
+    "F10"
+  ],
+  "observation": {
+    "returned": {
+      "streamed": "abcd",
+      "fallback": "abcd",
+      "flags": [
+        "wx",
+        "wx"
+      ],
+      "writes": [
+        1,
+        1
+      ]
+    }
+  },
+  "classification": "SYNTHETIC_CONTROL_OBSERVATION_BEFORE_ASSERTION"
+}

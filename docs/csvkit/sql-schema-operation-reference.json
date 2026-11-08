@@ -1,0 +1,209 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "sourceSha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+  "cases": [
+    {
+      "command": "csvsql",
+      "argv": [
+        "-I",
+        "-y0"
+      ],
+      "stdin": "a,b\nx,y\nz,\n",
+      "status": 0,
+      "stdout": "CREATE TABLE stdin (\n\ta VARCHAR NOT NULL, \n\tb VARCHAR\n);\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "-I",
+        "-y0",
+        "--no-constraints"
+      ],
+      "stdin": "a,b\nx,y\n",
+      "status": 0,
+      "stdout": "CREATE TABLE stdin (\n\ta VARCHAR, \n\tb VARCHAR\n);\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "-I",
+        "-y0",
+        "--unique-constraint",
+        "a,b"
+      ],
+      "stdin": "a,b\nx,y\n",
+      "status": 0,
+      "stdout": "CREATE TABLE stdin (\n\ta VARCHAR NOT NULL, \n\tb VARCHAR NOT NULL, \n\tUNIQUE (a, b)\n);\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "-I",
+        "-y0",
+        "--db-schema",
+        "some schema"
+      ],
+      "stdin": "a,b\nx,y\n",
+      "status": 0,
+      "stdout": "CREATE TABLE \"some schema\".stdin (\n\ta VARCHAR NOT NULL, \n\tb VARCHAR NOT NULL\n);\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "-I",
+        "-y0",
+        "--tables",
+        "a\"b"
+      ],
+      "stdin": "one\nx\n",
+      "status": 0,
+      "stdout": "CREATE TABLE \"a\"\"b\" (\n\tone VARCHAR NOT NULL\n);\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "-I",
+        "-y0"
+      ],
+      "stdin": "a,b\n",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "-I",
+        "-y0"
+      ],
+      "stdin": "",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "-I",
+        "-y0",
+        "-i",
+        "mssql"
+      ],
+      "stdin": "a,b\nx,y\nz,\n",
+      "status": 0,
+      "stdout": "CREATE TABLE stdin (\n\ta VARCHAR(max) NOT NULL, \n\tb VARCHAR(max) NULL\n);\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "-I",
+        "-y0",
+        "-i",
+        "mysql"
+      ],
+      "stdin": "a,b\nx,y\nz,\n",
+      "status": 0,
+      "stdout": "CREATE TABLE stdin (\n\ta VARCHAR(1) NOT NULL, \n\tb VARCHAR(1)\n);\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "-I",
+        "-y0",
+        "-i",
+        "oracle"
+      ],
+      "stdin": "a,b\nx,y\nz,\n",
+      "status": 0,
+      "stdout": "CREATE TABLE stdin (\n\ta VARCHAR NOT NULL, \n\tb VARCHAR\n);\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "-I",
+        "-y0",
+        "-i",
+        "postgresql"
+      ],
+      "stdin": "a,b\nx,y\nz,\n",
+      "status": 0,
+      "stdout": "CREATE TABLE stdin (\n\ta VARCHAR NOT NULL, \n\tb VARCHAR\n);\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "-I",
+        "-y0",
+        "-i",
+        "sqlite"
+      ],
+      "stdin": "a,b\nx,y\nz,\n",
+      "status": 0,
+      "stdout": "CREATE TABLE stdin (\n\ta VARCHAR NOT NULL, \n\tb VARCHAR\n);\n",
+      "stderr": ""
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "--insert"
+      ],
+      "stdin": "",
+      "status": 2,
+      "stdout": "",
+      "stderr": "usage: csvsql [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n              [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n              [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n              [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n              [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l] [--add-bom]\n              [--zero] [-V] [-i {mssql,mysql,oracle,postgresql,sqlite}]\n              [--db CONNECTION_STRING]\n              [--engine-option ENGINE_OPTION ENGINE_OPTION] [--query QUERIES]\n              [--insert] [--prefix PREFIX] [--before-insert BEFORE_INSERT]\n              [--after-insert AFTER_INSERT] [--sql-delimiter SQL_DELIMITER]\n              [--tables TABLE_NAMES] [--no-constraints]\n              [--unique-constraint UNIQUE_CONSTRAINT] [--no-create]\n              [--create-if-not-exists] [--overwrite] [--db-schema DB_SCHEMA]\n              [-y SNIFF_LIMIT] [-I] [--chunk-size CHUNK_SIZE]\n              [--min-col-len MIN_COL_LEN]\n              [--col-len-multiplier COL_LEN_MULTIPLIER]\n              [FILE ...]\ncsvsql: error: The --insert option is only valid when either --db or --query is specified.\n"
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "--no-create"
+      ],
+      "stdin": "",
+      "status": 2,
+      "stdout": "",
+      "stderr": "usage: csvsql [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n              [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n              [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n              [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n              [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l] [--add-bom]\n              [--zero] [-V] [-i {mssql,mysql,oracle,postgresql,sqlite}]\n              [--db CONNECTION_STRING]\n              [--engine-option ENGINE_OPTION ENGINE_OPTION] [--query QUERIES]\n              [--insert] [--prefix PREFIX] [--before-insert BEFORE_INSERT]\n              [--after-insert AFTER_INSERT] [--sql-delimiter SQL_DELIMITER]\n              [--tables TABLE_NAMES] [--no-constraints]\n              [--unique-constraint UNIQUE_CONSTRAINT] [--no-create]\n              [--create-if-not-exists] [--overwrite] [--db-schema DB_SCHEMA]\n              [-y SNIFF_LIMIT] [-I] [--chunk-size CHUNK_SIZE]\n              [--min-col-len MIN_COL_LEN]\n              [--col-len-multiplier COL_LEN_MULTIPLIER]\n              [FILE ...]\ncsvsql: error: The --no-create option is only valid if --insert is also specified.\n"
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "--overwrite"
+      ],
+      "stdin": "",
+      "status": 2,
+      "stdout": "",
+      "stderr": "usage: csvsql [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n              [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n              [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n              [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n              [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l] [--add-bom]\n              [--zero] [-V] [-i {mssql,mysql,oracle,postgresql,sqlite}]\n              [--db CONNECTION_STRING]\n              [--engine-option ENGINE_OPTION ENGINE_OPTION] [--query QUERIES]\n              [--insert] [--prefix PREFIX] [--before-insert BEFORE_INSERT]\n              [--after-insert AFTER_INSERT] [--sql-delimiter SQL_DELIMITER]\n              [--tables TABLE_NAMES] [--no-constraints]\n              [--unique-constraint UNIQUE_CONSTRAINT] [--no-create]\n              [--create-if-not-exists] [--overwrite] [--db-schema DB_SCHEMA]\n              [-y SNIFF_LIMIT] [-I] [--chunk-size CHUNK_SIZE]\n              [--min-col-len MIN_COL_LEN]\n              [--col-len-multiplier COL_LEN_MULTIPLIER]\n              [FILE ...]\ncsvsql: error: The --overwrite option is only valid if --insert is also specified.\n"
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "--chunk-size",
+        "10"
+      ],
+      "stdin": "",
+      "status": 2,
+      "stdout": "",
+      "stderr": "usage: csvsql [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n              [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n              [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n              [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n              [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l] [--add-bom]\n              [--zero] [-V] [-i {mssql,mysql,oracle,postgresql,sqlite}]\n              [--db CONNECTION_STRING]\n              [--engine-option ENGINE_OPTION ENGINE_OPTION] [--query QUERIES]\n              [--insert] [--prefix PREFIX] [--before-insert BEFORE_INSERT]\n              [--after-insert AFTER_INSERT] [--sql-delimiter SQL_DELIMITER]\n              [--tables TABLE_NAMES] [--no-constraints]\n              [--unique-constraint UNIQUE_CONSTRAINT] [--no-create]\n              [--create-if-not-exists] [--overwrite] [--db-schema DB_SCHEMA]\n              [-y SNIFF_LIMIT] [-I] [--chunk-size CHUNK_SIZE]\n              [--min-col-len MIN_COL_LEN]\n              [--col-len-multiplier COL_LEN_MULTIPLIER]\n              [FILE ...]\ncsvsql: error: The --chunk-size option is only valid if --insert is also specified.\n"
+    },
+    {
+      "command": "csvsql",
+      "argv": [
+        "-i",
+        "sqlite",
+        "--query",
+        "select 1"
+      ],
+      "stdin": "",
+      "status": 2,
+      "stdout": "",
+      "stderr": "usage: csvsql [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n              [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n              [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n              [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n              [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l] [--add-bom]\n              [--zero] [-V] [-i {mssql,mysql,oracle,postgresql,sqlite}]\n              [--db CONNECTION_STRING]\n              [--engine-option ENGINE_OPTION ENGINE_OPTION] [--query QUERIES]\n              [--insert] [--prefix PREFIX] [--before-insert BEFORE_INSERT]\n              [--after-insert AFTER_INSERT] [--sql-delimiter SQL_DELIMITER]\n              [--tables TABLE_NAMES] [--no-constraints]\n              [--unique-constraint UNIQUE_CONSTRAINT] [--no-create]\n              [--create-if-not-exists] [--overwrite] [--db-schema DB_SCHEMA]\n              [-y SNIFF_LIMIT] [-I] [--chunk-size CHUNK_SIZE]\n              [--min-col-len MIN_COL_LEN]\n              [--col-len-multiplier COL_LEN_MULTIPLIER]\n              [FILE ...]\ncsvsql: error: The --dialect option is only valid when neither --db nor --query are specified.\n"
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "pip": "21.2.4",
+  "llm": "0.27.1",
+  "rows": [
+    {
+      "args": [
+        "worker-fixture"
+      ],
+      "stdin": "n\n",
+      "exitCode": 0,
+      "stdout": "Found existing installation: worker-fixture 1.0\nUninstalling worker-fixture-1.0:\n  Would remove:\n    <site>/worker_fixture-1.0.dist-info/*\n    <site>/worker_fixture/*\nProceed (Y/n)? ",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "worker-fixture"
+      ],
+      "stdin": "invalid\ny\n",
+      "exitCode": 0,
+      "stdout": "Found existing installation: worker-fixture 1.0\nUninstalling worker-fixture-1.0:\n  Would remove:\n    <site>/worker_fixture-1.0.dist-info/*\n    <site>/worker_fixture/*\nProceed (Y/n)? Your response ('invalid') was not one of the expected responses: y, n, \nProceed (Y/n)?   Successfully uninstalled worker-fixture-1.0\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "worker-fixture",
+        "-y"
+      ],
+      "stdin": "",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "WARNING: Skipping worker-fixture as it is not installed.\n"
+    },
+    {
+      "args": [
+        "worker-fixture",
+        "-y"
+      ],
+      "stdin": "",
+      "exitCode": 0,
+      "stdout": "Found existing installation: worker-fixture 1.0\nUninstalling worker-fixture-1.0:\n  Successfully uninstalled worker-fixture-1.0\n",
+      "stderr": ""
+    }
+  ]
+}

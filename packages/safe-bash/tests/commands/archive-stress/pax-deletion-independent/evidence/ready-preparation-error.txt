@@ -1,0 +1,6 @@
+READY02 preparation attempt, before any product execution; no READY02 file written.
+Node v22.22.2 stdin script failed to parse because protect() was missing its closing brace.
+[stdin]:9
+Expected '}', got '<eof>'
+SyntaxError: Unexpected end of input
+This is a preparation-script defect, not a product or cohort failure. Corrected script follows separately.

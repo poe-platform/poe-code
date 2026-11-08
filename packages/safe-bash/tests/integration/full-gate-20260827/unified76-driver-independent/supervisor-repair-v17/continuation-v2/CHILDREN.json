@@ -1,0 +1,29 @@
+{
+  "A01": {
+    "code": "process.stdout.write(\"owned-out\\n\");process.stderr.write(\"owned-err\\n\");setTimeout(()=>process.exit(0),500);",
+    "sha256": "7a354e66206060a2308c27c83d291d531fa14227dd750a9665cad341f1def1e1",
+    "lifetimeMs": 500,
+    "argvPrefix": [
+      "--permission",
+      "--eval"
+    ]
+  },
+  "A02": {
+    "code": "process.stdout.write(\"owned-out\\n\");process.stderr.write(\"owned-err\\n\");setTimeout(()=>process.exit(0),2000);",
+    "sha256": "9d66f00e230a9813fbfcbb3bca5d5a5e67eea03017dc4c3fd4c1ef3699224657",
+    "lifetimeMs": 2000,
+    "argvPrefix": [
+      "--permission",
+      "--eval"
+    ]
+  },
+  "A03": {
+    "code": "process.stdout.write(\"owned-out\\n\");process.stderr.write(\"owned-err\\n\");setTimeout(()=>process.exit(0),500);",
+    "sha256": "7a354e66206060a2308c27c83d291d531fa14227dd750a9665cad341f1def1e1",
+    "lifetimeMs": 500,
+    "argvPrefix": [
+      "--permission",
+      "--eval"
+    ]
+  }
+}

@@ -1,0 +1,3 @@
+{"pid":58366,"names":["outer.mjs","direct-child.mjs"]}
+{"mode":"100644","oid":"ab73637c55efb4770f985903914d7bd047a9878c","bytes":3005,"name":"outer.mjs","sha256":"132597383fc3df48d804de6151933796a75598e6fd45193727fa5ad983985a14"}
+{"mode":"100644","oid":"29fe2fb57ee2ad54cdb7de782d9ffb7a946eb617","bytes":4583,"name":"direct-child.mjs","sha256":"7542288b4cae1649d80851785aa6369f36f8d57f4ca497cab6829443f70974ec"}

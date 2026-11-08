@@ -1,0 +1,301 @@
+{
+  "cases": 16,
+  "passed": 14,
+  "failed": 2,
+  "results": [
+    {
+      "args": [
+        "-e",
+        "only",
+        "-n",
+        "a'b"
+      ],
+      "actual": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "c2h1ZjogaW52YWxpZCBsaW5lIGNvdW50OiAnYVwnYicK"
+      },
+      "expected": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "c2h1ZjogaW52YWxpZCBsaW5lIGNvdW50OiAnYVwnYicK"
+      },
+      "pass": true
+    },
+    {
+      "args": [
+        "-e",
+        "only",
+        "-n",
+        "a\\b"
+      ],
+      "actual": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "c2h1ZjogaW52YWxpZCBsaW5lIGNvdW50OiAnYVxcYicK"
+      },
+      "expected": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "c2h1ZjogaW52YWxpZCBsaW5lIGNvdW50OiAnYVxcYicK"
+      },
+      "pass": true
+    },
+    {
+      "args": [
+        "-e",
+        "only",
+        "-n",
+        "18446744073709551616x"
+      ],
+      "actual": {
+        "status": 0,
+        "stdout": "b25seQo=",
+        "stderr": ""
+      },
+      "expected": {
+        "status": 0,
+        "stdout": "b25seQo=",
+        "stderr": ""
+      },
+      "pass": true
+    },
+    {
+      "args": [
+        "-e",
+        "only",
+        "-n",
+        "0x1"
+      ],
+      "actual": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "expected": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "pass": true
+    },
+    {
+      "args": [
+        "-e",
+        "only",
+        "-n",
+        "1x"
+      ],
+      "actual": {
+        "status": 0,
+        "stdout": "b25seQo=",
+        "stderr": ""
+      },
+      "expected": {
+        "status": 0,
+        "stdout": "b25seQo=",
+        "stderr": ""
+      },
+      "pass": true
+    },
+    {
+      "args": [
+        "-e",
+        "only",
+        "-n",
+        "1\nx"
+      ],
+      "actual": {
+        "status": 0,
+        "stdout": "b25seQo=",
+        "stderr": ""
+      },
+      "expected": {
+        "status": 0,
+        "stdout": "b25seQo=",
+        "stderr": ""
+      },
+      "pass": true
+    },
+    {
+      "args": [
+        "-i",
+        "1'x-3",
+        "-n0"
+      ],
+      "actual": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "c2h1ZjogaW52YWxpZCBpbnB1dCByYW5nZTogJzFcJ3gnCg=="
+      },
+      "expected": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "c2h1ZjogaW52YWxpZCBpbnB1dCByYW5nZTogJzFcJ3gnCg=="
+      },
+      "pass": true
+    },
+    {
+      "args": [
+        "-i",
+        "1\\x-3",
+        "-n0"
+      ],
+      "actual": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "c2h1ZjogaW52YWxpZCBpbnB1dCByYW5nZTogJzFcXHgnCg=="
+      },
+      "expected": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "c2h1ZjogaW52YWxpZCBpbnB1dCByYW5nZTogJzFcXHgnCg=="
+      },
+      "pass": true
+    },
+    {
+      "args": [
+        "-i",
+        "1\nx-3",
+        "-n0"
+      ],
+      "actual": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "c2h1ZjogaW52YWxpZCBpbnB1dCByYW5nZTogJzFcbngnCg=="
+      },
+      "expected": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "c2h1ZjogaW52YWxpZCBpbnB1dCByYW5nZTogJzFcbngnCg=="
+      },
+      "pass": true
+    },
+    {
+      "args": [
+        "-i",
+        "a'b-3",
+        "-n0"
+      ],
+      "actual": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "c2h1ZjogaW52YWxpZCBpbnB1dCByYW5nZTogJ2FcJ2InCg=="
+      },
+      "expected": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "c2h1ZjogaW52YWxpZCBpbnB1dCByYW5nZTogJ2FcJ2InCg=="
+      },
+      "pass": true
+    },
+    {
+      "args": [
+        "-i",
+        "a\\b-3",
+        "-n0"
+      ],
+      "actual": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "c2h1ZjogaW52YWxpZCBpbnB1dCByYW5nZTogJ2FcXGInCg=="
+      },
+      "expected": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "c2h1ZjogaW52YWxpZCBpbnB1dCByYW5nZTogJ2FcXGInCg=="
+      },
+      "pass": true
+    },
+    {
+      "args": [
+        "-i",
+        "18446744073709551616x-3",
+        "-n0"
+      ],
+      "actual": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "c2h1ZjogaW52YWxpZCBpbnB1dCByYW5nZTogJzE4NDQ2NzQ0MDczNzA5NTUxNjE2eCc6IFZhbHVlIHRvbyBsYXJnZSBmb3IgZGVmaW5lZCBkYXRhIHR5cGUK"
+      },
+      "expected": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "c2h1ZjogaW52YWxpZCBpbnB1dCByYW5nZTogJzE4NDQ2NzQ0MDczNzA5NTUxNjE2eCcK"
+      },
+      "pass": false
+    },
+    {
+      "args": [
+        "-i",
+        "18446744073709551616-3",
+        "-n0"
+      ],
+      "actual": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "c2h1ZjogaW52YWxpZCBpbnB1dCByYW5nZTogJzE4NDQ2NzQ0MDczNzA5NTUxNjE2JzogVmFsdWUgdG9vIGxhcmdlIGZvciBkZWZpbmVkIGRhdGEgdHlwZQo="
+      },
+      "expected": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "c2h1ZjogaW52YWxpZCBpbnB1dCByYW5nZTogJzE4NDQ2NzQ0MDczNzA5NTUxNjE2JzogVmFsdWUgdG9vIGxhcmdlIGZvciBkZWZpbmVkIGRhdGEgdHlwZQo="
+      },
+      "pass": true
+    },
+    {
+      "args": [
+        "-i",
+        "1-18446744073709551616x",
+        "-n0"
+      ],
+      "actual": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "c2h1ZjogaW52YWxpZCBpbnB1dCByYW5nZTogJzE4NDQ2NzQ0MDczNzA5NTUxNjE2eCc6IFZhbHVlIHRvbyBsYXJnZSBmb3IgZGVmaW5lZCBkYXRhIHR5cGUK"
+      },
+      "expected": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "c2h1ZjogaW52YWxpZCBpbnB1dCByYW5nZTogJzE4NDQ2NzQ0MDczNzA5NTUxNjE2eCcK"
+      },
+      "pass": false
+    },
+    {
+      "args": [
+        "-i",
+        "1-2-3",
+        "-n0"
+      ],
+      "actual": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "c2h1ZjogaW52YWxpZCBpbnB1dCByYW5nZTogJzItMycK"
+      },
+      "expected": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "c2h1ZjogaW52YWxpZCBpbnB1dCByYW5nZTogJzItMycK"
+      },
+      "pass": true
+    },
+    {
+      "args": [
+        "-i",
+        "",
+        "-n0"
+      ],
+      "actual": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "c2h1ZjogaW52YWxpZCBpbnB1dCByYW5nZTogJycK"
+      },
+      "expected": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "c2h1ZjogaW52YWxpZCBpbnB1dCByYW5nZTogJycK"
+      },
+      "pass": true
+    }
+  ]
+}

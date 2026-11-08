@@ -1,0 +1,9 @@
+PIPE_BOOTSTRAP_SHA='c16da3ceff48df98fca0ae09acb84048c4b1e5bc17da05ab29759139398b4037'
+PIPE_SEAL='/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/SEAL-v2.json'
+PIPE_SEAL_BYTES='795793'
+PIPE_SEAL_SHA256='f61b8fb41db61be3ed89fba296f5cbb9a6e8b4c80dd019202b065fe4f5a093d5'
+PIPE_GRANT='/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/actual-v2/grant.json'
+PIPE_GRANT_BYTES='224'
+PIPE_GRANT_SHA256='b1b9e0fdf72930a0a11d97cb033032e6fa8579f165bf31d44ccc5ba443bbc7f5'
+export PIPE_BOOTSTRAP_SHA PIPE_SEAL PIPE_SEAL_BYTES PIPE_SEAL_SHA256 PIPE_GRANT PIPE_GRANT_BYTES PIPE_GRANT_SHA256
+exec /bin/zsh /Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/launch-v2.sh

@@ -1,0 +1,182 @@
+{
+  "schema": "CORE_ROOT_AUTHOR_BUILD_V2",
+  "at": "2026-08-29T15:53:02.782Z",
+  "priorPresealSha256": "02c98960983bfeffabf43ba11d5a594c498623c2befe3a06136c12d99d2dfd17",
+  "rootDecisionSha256": "172d789916e62cac03caaf18610615148e95f59cdf0ac0c8e97a7465baeaa5ea",
+  "composition": "ff0c86a560da56b58437928c499ca7f5b9d25d70",
+  "sourceCommit": "4abbdeec8e34de88ed2cf7bd32be9c06b413c631",
+  "sourcePureReview": "f17d8dec11190ef40ecac6c175b208a2e29c7fbf",
+  "producerIndependentReview": null,
+  "actualIndependentAuditRequiredAfterward": true,
+  "files": [
+    {
+      "path": "ROOT-DECISION.txt",
+      "size": 1326,
+      "mode": 420,
+      "sha256": "172d789916e62cac03caaf18610615148e95f59cdf0ac0c8e97a7465baeaa5ea"
+    },
+    {
+      "path": "contract.mjs",
+      "size": 2431,
+      "mode": 420,
+      "sha256": "0c76c54ced4715d97859fb1598dd4c5ad769f967ac50167fb48fdfa8a90af2e9"
+    },
+    {
+      "path": "contract-controls.mjs",
+      "size": 3296,
+      "mode": 420,
+      "sha256": "05fe714e89ff474c55e46ce873b1d004b7c870dc463b9616c440acdbdfeb47f8"
+    },
+    {
+      "path": "CONTRACT-RESULT.json",
+      "size": 697,
+      "mode": 420,
+      "sha256": "ca99db2f1f0d844724b16a964c46df27d058a178401fd6e6703d66105d900043"
+    },
+    {
+      "path": "io.mjs",
+      "size": 7084,
+      "mode": 420,
+      "sha256": "28257d3e8a1c9483f5a352748a6122c8279c73b917aee45797239b83a02e984f"
+    },
+    {
+      "path": "producer.mjs",
+      "size": 15452,
+      "mode": 420,
+      "sha256": "fd3f45222007f867122249ca95e79b7b9327b0ae8471c904ed970b4811d60b0c"
+    },
+    {
+      "path": "bindings.mjs",
+      "size": 14183,
+      "mode": 420,
+      "sha256": "6820b062ad9cb9bd8df631d407214b532b20eeda7f08e5eeba0fe45a615d9cdc"
+    }
+  ],
+  "inputs": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json",
+      "size": 678053,
+      "mode": 420,
+      "sha256": "f8004c83c2316ce33e5e93719961b56847c87b6c47b79566b2810c92e8ef72f9"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/BASELINE-DATA.json",
+      "size": 521625,
+      "mode": 420,
+      "sha256": "0de74e74a7ffa198e331b9ee816b23308dec4263f450b5488ed953672340138b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/recipe.mjs",
+      "size": 2957,
+      "mode": 420,
+      "sha256": "82c2453b227073470fbaaff9b328c060744563c183e9b24ac40e0d324ed163a3"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/core-guard-v8.mjs",
+      "size": 2897,
+      "mode": 420,
+      "sha256": "189e080d6566cf9884e9d72c13f173e8d48373d1353495c3c9ecb49e1e041957"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/user.npmrc",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/global.npmrc",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "tools": {
+    "node": {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "size": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    "git": {
+      "path": "/usr/bin/git",
+      "size": 118928,
+      "mode": 493,
+      "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba"
+    },
+    "typescriptFiles": 241,
+    "npmRoot": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm",
+    "canonicalNpmRowsSha256": "63310df0713c0a6d54e153f43f881ca6bd6c4d710f9fc06c756064029c9f9241",
+    "regularFiles": 2027,
+    "links": 12,
+    "directories": 517,
+    "configs": [
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/user.npmrc",
+        "size": 0,
+        "mode": 420,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/global.npmrc",
+        "size": 0,
+        "mode": 420,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ]
+  },
+  "commands": {
+    "compiler": {
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/tsc.js",
+        "-p",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v2/output/source/tsconfig.build.json",
+        "--typeRoots",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v2/output/empty-types"
+      ]
+    },
+    "pack": {
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js",
+        "pack",
+        "--offline",
+        "--ignore-scripts",
+        "--json",
+        "--userconfig=/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/user.npmrc",
+        "--globalconfig=/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/global.npmrc",
+        "--pack-destination=/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v2/output/package"
+      ]
+    }
+  },
+  "env": {
+    "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+    "HOME": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v2/output/home",
+    "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v2/output/tmp",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "GIT_CONFIG_NOSYSTEM": "1",
+    "GIT_CONFIG_GLOBAL": "/dev/null",
+    "GIT_OPTIONAL_LOCKS": "0",
+    "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/user.npmrc",
+    "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/global.npmrc",
+    "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v2/output/cache",
+    "npm_config_offline": "true",
+    "npm_config_ignore_scripts": "true",
+    "npm_config_audit": "false",
+    "npm_config_fund": "false"
+  },
+  "output": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v2/output",
+  "caps": {
+    "globalDeadline": "2026-08-29T16:08:17.000Z",
+    "knownOsMaximum": 56,
+    "peak": 3,
+    "captureBytes": 100663296,
+    "logicalWorkBytes": 536870912,
+    "perDataFileBytes": 16777216,
+    "builds": 1,
+    "packs": 1
+  },
+  "actualCoreAuthority": false
+}

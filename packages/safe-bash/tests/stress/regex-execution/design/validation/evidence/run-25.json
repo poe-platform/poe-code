@@ -1,0 +1,84 @@
+{
+  "args": [
+    "raw",
+    "named-benign-capture"
+  ],
+  "pid": 69631,
+  "readyAt": 42.28866700000026,
+  "killed": false,
+  "events": [
+    {
+      "event": "disconnect",
+      "values": [],
+      "at": 66.78379200000018
+    },
+    {
+      "event": "stdout-close"
+    },
+    {
+      "event": "stderr-close"
+    },
+    {
+      "event": "exit",
+      "values": [
+        0,
+        null
+      ],
+      "at": 68.64291700000012
+    },
+    {
+      "event": "close",
+      "code": 0,
+      "signal": null,
+      "at": 68.64787500000011
+    }
+  ],
+  "messages": [
+    {
+      "type": "ready"
+    },
+    {
+      "type": "done",
+      "result": {
+        "id": "named-benign-capture",
+        "pass": true,
+        "direct": {
+          "hits": [
+            [
+              {
+                "pattern": 0,
+                "start": 0,
+                "end": 1,
+                "captures": [
+                  "a",
+                  "a"
+                ]
+              }
+            ]
+          ],
+          "bytes": 56,
+          "execCalls": 2
+        },
+        "metrics": {
+          "created": 1,
+          "terminated": 1,
+          "requests": 2,
+          "execCalls": 2,
+          "inputBytes": 2,
+          "responseBytes": 56,
+          "startupMs": 21.274458000000003,
+          "workMs": 0.34349900000000133,
+          "terminationMs": 0.9868340000000018,
+          "peakInflight": 1,
+          "listenersAfter": 0,
+          "exitCode": 1
+        }
+      }
+    }
+  ],
+  "stderr": "",
+  "ipcBytes": 426,
+  "streamBytes": 0,
+  "code": 0,
+  "signal": null
+}

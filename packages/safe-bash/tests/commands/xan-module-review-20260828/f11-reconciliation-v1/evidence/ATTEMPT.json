@@ -1,0 +1,10 @@
+{
+  "presealCommit": "f86529bc8b0a31dfc49c74b9a777f39883481861",
+  "presealSha256": "be29dce60f7d3f40ad4db46758333dde738d5d4d390d7340a1d5fa44e7833db5",
+  "started": "2026-08-28T07:25:33.389Z",
+  "classification": "SINGLE_SYNTHETIC_QUALIFICATION_NO_PRODUCT",
+  "productImports": 0,
+  "productInvocations": 0,
+  "native": 0,
+  "retry": false
+}

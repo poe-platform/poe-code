@@ -1,0 +1,21 @@
+{
+  "candidate": "07047e8f7bd577f60350246b1380732712305f58",
+  "reachableBase": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+  "reachableFixtures": "925bbd9c172866e580c7d4ff6ac2891664deef98",
+  "packBytes": 1098133,
+  "qualification": "fresh minimal tree skeleton and four blobs reconstruct exact tree/commit; other product/evidence blobs remain supplied by the separately reachable full base, not by this skeleton",
+  "results": [
+    {
+      "directory": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-reconstruct-WWPync/first",
+      "absentBefore": true,
+      "tree": "f2b9afdbaafee930e188fa4d216e6779a2fbed75",
+      "commit": "07047e8f7bd577f60350246b1380732712305f58"
+    },
+    {
+      "directory": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-reconstruct-ff1FwH/with spaces",
+      "absentBefore": true,
+      "tree": "f2b9afdbaafee930e188fa4d216e6779a2fbed75",
+      "commit": "07047e8f7bd577f60350246b1380732712305f58"
+    }
+  ]
+}

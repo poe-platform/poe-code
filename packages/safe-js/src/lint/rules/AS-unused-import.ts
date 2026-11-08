@@ -1,0 +1,865 @@
+import { visitClassElements } from "../class-elements.js";
+import {
+  type ClassNode,
+  parseModule,
+  type ArrayExpression,
+  type ArrayPattern,
+  type FunctionNode,
+  type AssignmentExpression,
+  type AssignmentPattern,
+  type AssignmentProperty,
+  type BlockStatement,
+  type CallExpression,
+  type CatchClause,
+  type DoWhileStatement,
+  type Expression,
+  type ForInStatement,
+  type ForOfStatement,
+  type ForStatement,
+  type Identifier,
+  type IfStatement,
+  type ImportDeclaration,
+  type ImportDefaultSpecifier,
+  type ImportNamespaceSpecifier,
+  type ImportSpecifier,
+  type MemberExpression,
+  type Module,
+  type ObjectExpression,
+  type ObjectPattern,
+  type Property,
+  type RestElement,
+  type SourceSpan,
+  type SpreadElement,
+  type Statement,
+  type TemplateLiteral,
+  type TryStatement,
+  type VariableDeclaration,
+  type VariableDeclarator,
+  type WhileStatement
+} from "../../parse/parser.js";
+
+export type Diagnostic = {
+  code: "AS-UNUSED-IMPORT";
+  severity: "warning";
+  message: string;
+  filename: string;
+  line: number;
+  column: number;
+  span: SourceSpan;
+  fix: {
+    range: readonly [number, number];
+    replacement: string;
+  };
+};
+
+type BindingKind = "const" | "import" | "let" | "param" | "var";
+type ImportSpecifierNode = ImportDefaultSpecifier | ImportNamespaceSpecifier | ImportSpecifier;
+
+type ImportBinding = {
+  declaration: ImportDeclaration;
+  kind: "import";
+  name: string;
+  reads: number;
+  specifier: ImportSpecifierNode;
+  span: SourceSpan;
+};
+
+type LocalBinding = {
+  kind: Exclude<BindingKind, "import">;
+  name: string;
+};
+
+type Binding = ImportBinding | LocalBinding;
+
+type Scope = Map<string, Binding>;
+
+type UnusedImport = {
+  declaration: ImportDeclaration;
+  specifier: ImportSpecifierNode;
+};
+
+type Replacement = {
+  end: number;
+  start: number;
+  text: string;
+};
+
+export function AS_UNUSED_IMPORT(
+  source: string,
+  options: { filename?: string } = {}
+): Diagnostic[] {
+  const filename = options.filename ?? "<input>";
+  const unusedImports = collectUnusedImports(source, filename);
+  const unusedByDeclaration = groupUnusedSpecifiers(unusedImports);
+
+  return unusedImports.map((unusedImport) =>
+    createDiagnostic(
+      filename,
+      source,
+      unusedImport,
+      unusedByDeclaration.get(unusedImport.declaration) ?? new Set([unusedImport.specifier])
+    )
+  );
+}
+
+export function fixASUnusedImports(source: string, options: { filename?: string } = {}): string {
+  const unusedImports = collectUnusedImports(source, options.filename ?? "<input>");
+  if (unusedImports.length === 0) {
+    return source;
+  }
+
+  const unusedByDeclaration = groupUnusedSpecifiers(unusedImports);
+
+  const replacements: Replacement[] = [];
+  for (const [declaration, unusedSpecifiers] of unusedByDeclaration.entries()) {
+    replacements.push(createUnusedImportReplacement(source, declaration, unusedSpecifiers));
+  }
+
+  return applyReplacements(source, replacements);
+}
+
+function groupUnusedSpecifiers(
+  unusedImports: readonly UnusedImport[]
+): Map<ImportDeclaration, Set<ImportSpecifierNode>> {
+  const unusedByDeclaration = new Map<ImportDeclaration, Set<ImportSpecifierNode>>();
+  for (const unusedImport of unusedImports) {
+    const specifiers = unusedByDeclaration.get(unusedImport.declaration) ?? new Set();
+    specifiers.add(unusedImport.specifier);
+    unusedByDeclaration.set(unusedImport.declaration, specifiers);
+  }
+  return unusedByDeclaration;
+}
+
+function collectUnusedImports(source: string, filename: string): UnusedImport[] {
+  return new ASUnusedImportScanner(filename).scan(source);
+}
+
+class ASUnusedImportScanner {
+  private readonly imports: ImportBinding[] = [];
+  private readonly scopes: Scope[] = [];
+
+  constructor(private readonly filename: string) {}
+
+  scan(source: string): UnusedImport[] {
+    const module = parseModule(source, this.filename);
+    this.visitModule(module);
+    return this.imports
+      .filter((binding) => binding.reads === 0)
+      .map((binding) => ({
+        declaration: binding.declaration,
+        specifier: binding.specifier
+      }));
+  }
+
+  private visitModule(node: Module): void {
+    this.withScope(this.collectModuleBindings(node.body), () => {
+      for (const statement of node.body) {
+        this.visitStatement(statement);
+      }
+    });
+  }
+
+  private visitStatement(node: Statement): void {
+    if (node.type === "ClassDeclaration") {
+      this.visitClass(node);
+      return;
+    }
+    switch (node.type) {
+      case "FunctionDeclaration":
+        this.visitArrowFunction(node);
+        return;
+      case "ExportNamedDeclaration":
+        this.visitVariableDeclaration(node.declaration);
+        return;
+      case "ExportDefaultDeclaration":
+        if (node.declaration.type === "ClassDeclaration" || node.declaration.type === "FunctionDeclaration") this.visitStatement(node.declaration);
+        else this.visitExpression(node.declaration);
+        return;
+      case "BlockStatement":
+        this.visitBlock(node);
+        return;
+      case "ExpressionStatement":
+        this.visitExpression(node.expression);
+        return;
+      case "IfStatement":
+        this.visitIfStatement(node);
+        return;
+      case "ForStatement":
+        this.visitForStatement(node);
+        return;
+      case "ForInStatement":
+      case "ForOfStatement":
+        this.visitForOfStatement(node);
+        return;
+      case "WhileStatement":
+      case "DoWhileStatement":
+        this.visitWhileStatement(node);
+        return;
+      case "TryStatement":
+        this.visitTryStatement(node);
+        return;
+      case "VariableDeclaration":
+        this.visitVariableDeclaration(node);
+        return;
+      case "ReturnStatement":
+        if (node.argument !== undefined) {
+          this.visitExpression(node.argument);
+        }
+        return;
+      case "ThrowStatement":
+        this.visitExpression(node.argument);
+        return;
+      case "ImportDeclaration":
+      case "BreakStatement":
+      case "ContinueStatement":
+        return;
+    }
+  }
+
+  private visitBlock(node: BlockStatement): void {
+    this.withScope(this.collectBlockBindings(node.body), () => {
+      for (const statement of node.body) {
+        this.visitStatement(statement);
+      }
+    });
+  }
+
+  private visitIfStatement(node: IfStatement): void {
+    this.visitExpression(node.test);
+    this.visitStatement(node.consequent);
+    if (node.alternate !== undefined) {
+      this.visitStatement(node.alternate);
+    }
+  }
+
+  private visitForStatement(node: ForStatement): void {
+    const bindings =
+      node.init?.type === "VariableDeclaration" ? this.collectDeclarationBindings(node.init) : [];
+
+    this.withScope(bindings, () => {
+      if (node.init !== undefined) {
+        if (node.init.type === "VariableDeclaration") {
+          this.visitVariableDeclaration(node.init);
+        } else {
+          this.visitExpression(node.init);
+        }
+      }
+      if (node.test !== undefined) {
+        this.visitExpression(node.test);
+      }
+      if (node.update !== undefined) {
+        this.visitExpression(node.update);
+      }
+      this.visitStatement(node.body);
+    });
+  }
+
+  private visitForOfStatement(node: ForInStatement | ForOfStatement): void {
+    const bindings =
+      node.left.type === "VariableDeclaration" ? this.collectDeclarationBindings(node.left) : [];
+
+    this.withScope(bindings, () => {
+      if (node.left.type === "VariableDeclaration") {
+        this.visitVariableDeclaration(node.left);
+      } else {
+        this.visitAssignmentTarget(node.left);
+      }
+      this.visitExpression(node.right);
+      this.visitStatement(node.body);
+    });
+  }
+
+  private visitWhileStatement(node: WhileStatement | DoWhileStatement): void {
+    this.visitExpression(node.test);
+    this.visitStatement(node.body);
+  }
+
+  private visitTryStatement(node: TryStatement): void {
+    this.visitBlock(node.block);
+    if (node.handler !== undefined) {
+      this.visitCatchClause(node.handler);
+    }
+    if (node.finalizer !== undefined) {
+      this.visitBlock(node.finalizer);
+    }
+  }
+
+  private visitCatchClause(node: CatchClause): void {
+    this.withScope(this.collectCatchBindings(node), () => {
+      if (node.param !== undefined) {
+        this.visitBindingPattern(node.param);
+      }
+      this.visitBlock(node.body);
+    });
+  }
+
+  private visitVariableDeclaration(node: VariableDeclaration): void {
+    for (const declarator of node.declarations) {
+      this.visitVariableDeclarator(declarator);
+    }
+  }
+
+  private visitVariableDeclarator(node: VariableDeclarator): void {
+    this.visitBindingPattern(node.id);
+    if (node.init !== undefined) {
+      this.visitExpression(node.init);
+    }
+  }
+
+  private visitClass(node: ClassNode): void {
+    this.withScope(node.id === undefined ? [] : [{ kind: "const", name: node.id.name }], () => {
+      visitClassElements(node, expression => this.visitExpression(expression), statement => this.visitStatement(statement));
+    });
+  }
+
+  private visitExpression(node: Expression): void {
+    if (node.type === "ClassExpression") {
+      this.visitClass(node);
+      return;
+    }
+    switch (node.type) {
+      case "YieldExpression":
+        if (node.argument !== undefined) {
+          this.visitExpression(node.argument);
+        }
+        return;
+      case "Identifier":
+        this.markRead(node);
+        return;
+      case "FunctionExpression":
+      case "ArrowFunctionExpression":
+        this.visitArrowFunction(node);
+        return;
+      case "ImportExpression":
+        this.visitExpression(node.source);
+        if (node.options !== undefined) this.visitExpression(node.options);
+        return;
+      case "AwaitExpression":
+        this.visitExpression(node.argument);
+        return;
+      case "ArrayExpression":
+        this.visitArrayExpression(node);
+        return;
+      case "ObjectExpression":
+        this.visitObjectExpression(node);
+        return;
+      case "UnaryExpression":
+        this.visitExpression(node.argument);
+        return;
+      case "BinaryExpression":
+      case "LogicalExpression":
+        this.visitExpression(node.left);
+        this.visitExpression(node.right);
+        return;
+      case "ConditionalExpression":
+        this.visitExpression(node.test);
+        this.visitExpression(node.consequent);
+        this.visitExpression(node.alternate);
+        return;
+      case "MemberExpression":
+        this.visitMemberExpression(node);
+        return;
+      case "AssignmentExpression":
+        this.visitAssignmentExpression(node);
+        return;
+      case "CallExpression":
+        this.visitCallExpression(node);
+        return;
+      case "TemplateLiteral":
+        this.visitTemplateLiteral(node);
+        return;
+      case "TaggedTemplateExpression":
+        this.visitExpression(node.tag);
+        this.visitTemplateLiteral(node.quasi);
+        return;
+      case "MetaProperty":
+        return;
+      case "BooleanLiteral":
+      case "NullLiteral":
+      case "NumericLiteral":
+      case "RegexLiteral":
+      case "StringLiteral":
+      case "UndefinedLiteral":
+        return;
+    }
+  }
+
+  private visitArrowFunction(node: FunctionNode): void {
+    this.withScope(this.collectParameterBindings(node), () => {
+      for (const parameter of node.params) {
+        this.visitBindingElement(parameter);
+      }
+
+      if (node.body.type === "BlockStatement") {
+        this.visitBlock(node.body);
+        return;
+      }
+
+      this.visitExpression(node.body);
+    });
+  }
+
+  private visitArrayExpression(node: ArrayExpression): void {
+    for (const element of node.elements) {
+      if (element?.type === "SpreadElement") {
+        this.visitSpreadElement(element);
+        continue;
+      }
+      if (element !== undefined) {
+        this.visitExpression(element);
+      }
+    }
+  }
+
+  private visitObjectExpression(node: ObjectExpression): void {
+    for (const property of node.properties) {
+      if (property.type === "SpreadElement") {
+        this.visitSpreadElement(property);
+        continue;
+      }
+      this.visitProperty(property);
+    }
+  }
+
+  private visitMemberExpression(node: MemberExpression): void {
+    this.visitExpression(node.object);
+    if (node.computed) {
+      this.visitExpression(node.property);
+    }
+  }
+
+  private visitAssignmentExpression(node: AssignmentExpression): void {
+    this.visitAssignmentTarget(node.left);
+    this.visitExpression(node.right);
+  }
+
+  private visitCallExpression(node: CallExpression): void {
+    if (!node.optional && node.arguments.length > 0 &&
+        node.callee.type === "Identifier" && node.callee.name === "eval") {
+      // Dynamic source may reference any import that is visible at this call.
+      for (const binding of this.imports) {
+        if (this.resolveBinding(binding.name) === binding) binding.reads += 1;
+      }
+    }
+    this.visitExpression(node.callee);
+    for (const argument of node.arguments) {
+      if (argument.type === "SpreadElement") {
+        this.visitSpreadElement(argument);
+        continue;
+      }
+      this.visitExpression(argument);
+    }
+  }
+
+  private visitTemplateLiteral(node: TemplateLiteral): void {
+    for (const expression of node.expressions) {
+      this.visitExpression(expression);
+    }
+  }
+
+  private visitProperty(node: Property): void {
+    if (node.computed) {
+      this.visitExpression(node.key);
+    }
+    this.visitExpression(node.value);
+  }
+
+  private visitSpreadElement(node: SpreadElement): void {
+    this.visitExpression(node.argument);
+  }
+
+  private visitBindingElement(
+    node:
+      | AssignmentPattern
+      | ArrayPattern
+      | Identifier
+      | MemberExpression
+      | ObjectPattern
+      | RestElement
+  ): void {
+    switch (node.type) {
+      case "AssignmentPattern":
+        this.visitBindingPattern(node.left);
+        this.visitExpression(node.right);
+        return;
+      case "RestElement":
+        this.visitBindingPattern(node.argument);
+        return;
+      default:
+        this.visitBindingPattern(node);
+        return;
+    }
+  }
+
+  private visitBindingPattern(
+    node: ArrayPattern | Identifier | MemberExpression | ObjectPattern
+  ): void {
+    switch (node.type) {
+      case "Identifier":
+        return;
+      case "MemberExpression":
+        this.visitMemberExpression(node);
+        return;
+      case "ArrayPattern":
+        for (const element of node.elements) {
+          if (element !== null) {
+            this.visitBindingElement(element);
+          }
+        }
+        return;
+      case "ObjectPattern":
+        for (const property of node.properties) {
+          if (property.type === "RestElement") {
+            this.visitBindingPattern(property.argument);
+            continue;
+          }
+          this.visitAssignmentProperty(property);
+        }
+        return;
+    }
+  }
+
+  private visitAssignmentProperty(node: AssignmentProperty): void {
+    if (node.computed) {
+      this.visitExpression(node.key);
+    }
+    this.visitBindingElement(node.value);
+  }
+
+  private visitAssignmentTarget(
+    node: AssignmentExpression["left"] | AssignmentPattern | RestElement
+  ): void {
+    switch (node.type) {
+      case "AssignmentPattern":
+        this.visitAssignmentTarget(node.left);
+        this.visitExpression(node.right);
+        return;
+      case "RestElement":
+        this.visitAssignmentTarget(node.argument);
+        return;
+      case "Identifier":
+        this.markRead(node);
+        return;
+      case "MemberExpression":
+        this.visitMemberExpression(node);
+        return;
+      case "ArrayPattern":
+        for (const element of node.elements) {
+          if (element !== null) {
+            this.visitAssignmentTarget(element);
+          }
+        }
+        return;
+      case "ObjectPattern":
+        for (const property of node.properties) {
+          if (property.type === "RestElement") {
+            this.visitAssignmentTarget(property);
+            continue;
+          }
+          if (property.computed) {
+            this.visitExpression(property.key);
+          }
+          this.visitAssignmentTarget(property.value);
+        }
+        return;
+      case "MetaProperty":
+        return;
+    }
+  }
+
+  private withScope(bindings: Binding[], visit: () => void): void {
+    const scope: Scope = new Map();
+    for (const binding of bindings) {
+      scope.set(binding.name, binding);
+    }
+
+    this.scopes.push(scope);
+    visit();
+    this.scopes.pop();
+  }
+
+  private markRead(node: Identifier): void {
+    const binding = this.resolveBinding(node.name);
+    if (binding?.kind === "import") {
+      binding.reads += 1;
+    }
+  }
+
+  private resolveBinding(name: string): Binding | undefined {
+    for (let index = this.scopes.length - 1; index >= 0; index -= 1) {
+      const binding = this.scopes[index]?.get(name);
+      if (binding !== undefined) {
+        return binding;
+      }
+    }
+    return undefined;
+  }
+
+  private collectModuleBindings(body: Statement[]): Binding[] {
+    const bindings: Binding[] = [];
+
+    for (const statement of body) {
+      if (statement.type === "ExportDefaultDeclaration" && (statement.declaration.type === "FunctionDeclaration" || statement.declaration.type === "ClassDeclaration") && statement.declaration.id !== undefined) {
+        bindings.push({ kind: "let", name: statement.declaration.id.name });
+        continue;
+      }
+      if (statement.type === "ImportDeclaration") {
+        bindings.push(...this.collectImportBindings(statement));
+        continue;
+      }
+      if ((statement.type === "FunctionDeclaration" || statement.type === "ClassDeclaration") && statement.id !== undefined) {
+        bindings.push({ kind: "let", name: statement.id.name });
+        continue;
+      }
+      if (statement.type === "VariableDeclaration") {
+        bindings.push(...this.collectDeclarationBindings(statement));
+        continue;
+      }
+      if (statement.type === "ExportNamedDeclaration") {
+        bindings.push(...this.collectDeclarationBindings(statement.declaration));
+      }
+    }
+
+    return bindings;
+  }
+
+  private collectBlockBindings(body: Statement[]): Binding[] {
+    const bindings: Binding[] = [];
+
+    for (const statement of body) {
+      if ((statement.type === "FunctionDeclaration" || statement.type === "ClassDeclaration") && statement.id !== undefined) {
+        bindings.push({ kind: "let", name: statement.id.name });
+      }
+      if (statement.type === "VariableDeclaration") {
+        bindings.push(...this.collectDeclarationBindings(statement));
+      }
+    }
+
+    return bindings;
+  }
+
+  private collectParameterBindings(node: FunctionNode): Binding[] {
+    const bindings: Binding[] = [];
+
+    if (node.type !== "ArrowFunctionExpression") {
+      bindings.push({ kind: "param", name: "arguments" });
+      if (node.type === "FunctionExpression" && node.id !== undefined) {
+        bindings.push({ kind: "param", name: node.id.name });
+      }
+    }
+
+    for (const parameter of node.params) {
+      this.collectBindingNamesFromElement(parameter, "param", bindings);
+    }
+
+    return bindings;
+  }
+
+  private collectDeclarationBindings(node: VariableDeclaration): Binding[] {
+    const bindings: Binding[] = [];
+
+    for (const declarator of node.declarations) {
+      this.collectBindingNamesFromPattern(declarator.id, node.kind, bindings);
+    }
+
+    return bindings;
+  }
+
+  private collectCatchBindings(node: CatchClause): Binding[] {
+    const bindings: Binding[] = [];
+
+    if (node.param !== undefined) {
+      this.collectBindingNamesFromPattern(node.param, "param", bindings);
+    }
+
+    return bindings;
+  }
+
+  private collectImportBindings(node: ImportDeclaration): ImportBinding[] {
+    return node.specifiers.map((specifier) => {
+      const binding: ImportBinding = {
+        declaration: node,
+        kind: "import",
+        name: specifier.local.name,
+        reads: 0,
+        specifier,
+        span: specifier.span
+      };
+      this.imports.push(binding);
+      return binding;
+    });
+  }
+
+  private collectBindingNamesFromElement(
+    node:
+      | AssignmentPattern
+      | ArrayPattern
+      | Identifier
+      | MemberExpression
+      | ObjectPattern
+      | RestElement,
+    kind: Exclude<BindingKind, "import">,
+    bindings: Binding[]
+  ): void {
+    switch (node.type) {
+      case "AssignmentPattern":
+        this.collectBindingNamesFromPattern(node.left, kind, bindings);
+        return;
+      case "RestElement":
+        this.collectBindingNamesFromPattern(node.argument, kind, bindings);
+        return;
+      default:
+        this.collectBindingNamesFromPattern(node, kind, bindings);
+        return;
+    }
+  }
+
+  private collectBindingNamesFromPattern(
+    node: ArrayPattern | Identifier | MemberExpression | ObjectPattern,
+    kind: Exclude<BindingKind, "import">,
+    bindings: Binding[]
+  ): void {
+    switch (node.type) {
+      case "Identifier":
+        bindings.push({
+          kind,
+          name: node.name
+        });
+        return;
+      case "MemberExpression":
+        return;
+      case "ArrayPattern":
+        for (const element of node.elements) {
+          if (element !== null) {
+            this.collectBindingNamesFromElement(element, kind, bindings);
+          }
+        }
+        return;
+      case "ObjectPattern":
+        for (const property of node.properties) {
+          if (property.type === "RestElement") {
+            this.collectBindingNamesFromPattern(property.argument, kind, bindings);
+            continue;
+          }
+          this.collectBindingNamesFromElement(property.value, kind, bindings);
+        }
+        return;
+    }
+  }
+}
+
+function createDiagnostic(
+  filename: string,
+  source: string,
+  unusedImport: UnusedImport,
+  unusedSpecifiers: ReadonlySet<ImportSpecifierNode>
+): Diagnostic {
+  const { declaration, specifier } = unusedImport;
+  const replacement = createUnusedImportReplacement(source, declaration, unusedSpecifiers);
+  return {
+    code: "AS-UNUSED-IMPORT",
+    severity: "warning",
+    message: `Import '${specifier.local.name}' is never referenced.`,
+    filename,
+    line: specifier.span.start.line,
+    column: specifier.span.start.column,
+    span: specifier.span,
+    fix: {
+      range: [replacement.start, replacement.end],
+      replacement: replacement.text
+    }
+  };
+}
+
+function createUnusedImportReplacement(
+  source: string,
+  declaration: ImportDeclaration,
+  unusedSpecifiers: ReadonlySet<ImportSpecifierNode>
+): Replacement {
+  const keptSpecifiers = declaration.specifiers.filter(
+    (specifier) => !unusedSpecifiers.has(specifier)
+  );
+  if (keptSpecifiers.length === 0) {
+    return createImportLineDeletion(source, declaration);
+  }
+
+  return {
+    start: declaration.specifiers[0]?.span.start.offset ?? declaration.span.start.offset,
+    end: createSpecifierListReplacementEnd(source, declaration),
+    text: keptSpecifiers
+      .map((specifier) => source.slice(specifier.span.start.offset, specifier.span.end.offset))
+      .join(", ")
+  };
+}
+
+function createImportLineDeletion(source: string, declaration: ImportDeclaration): Replacement {
+  const lineStart = source.lastIndexOf("\n", declaration.span.start.offset - 1) + 1;
+  let end = declaration.span.end.offset;
+
+  while (source[end] === " " || source[end] === "\t") {
+    end += 1;
+  }
+  if (source[end] === ";") {
+    end += 1;
+  }
+  while (source[end] === " " || source[end] === "\t") {
+    end += 1;
+  }
+  if (source.slice(end, end + 2) === "\r\n") {
+    end += 2;
+  } else if (source[end] === "\n") {
+    end += 1;
+  }
+
+  return {
+    start: lineStart,
+    end,
+    text:
+      lineStart === 0 && end >= source.length && hasTrailingLineBreak(source)
+        ? readTrailingLineBreak(source)
+        : ""
+  };
+}
+
+function hasTrailingLineBreak(source: string): boolean {
+  return source.endsWith("\n") || source.endsWith("\r");
+}
+
+function readTrailingLineBreak(source: string): string {
+  return source.endsWith("\r\n") ? "\r\n" : "\n";
+}
+
+function createSpecifierListReplacementEnd(source: string, declaration: ImportDeclaration): number {
+  const lastSpecifier = declaration.specifiers[declaration.specifiers.length - 1];
+  if (lastSpecifier === undefined) {
+    return declaration.span.end.offset;
+  }
+
+  const end = skipInlineWhitespace(source, lastSpecifier.span.end.offset);
+  if (source[end] !== ",") {
+    return lastSpecifier.span.end.offset;
+  }
+
+  return end + 1;
+}
+
+function skipInlineWhitespace(source: string, offset: number): number {
+  let index = offset;
+  while (
+    source[index] === " " ||
+    source[index] === "\t" ||
+    source[index] === "\r" ||
+    source[index] === "\n"
+  ) {
+    index += 1;
+  }
+  return index;
+}
+
+function applyReplacements(source: string, replacements: readonly Replacement[]): string {
+  return [...replacements]
+    .sort((left, right) => right.start - left.start)
+    .reduce((result, replacement) => {
+      return `${result.slice(0, replacement.start)}${replacement.text}${result.slice(replacement.end)}`;
+    }, source);
+}

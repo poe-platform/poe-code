@@ -1,0 +1,991 @@
+TAP version 13
+# Subtest: direct same-path, reverse=false: rejects before I/O or publication
+not ok 1 - direct same-path, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 7.365375
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:1:3447'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'ENOSPC' !== 'EINVAL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'EINVAL'
+  actual: 'ENOSPC'
+  operator: 'strictEqual'
+  stack: |-
+    Object.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:63:12)
+    expectedException (node:assert:576:17)
+    expectsError (node:assert:701:21)
+    Function.rejects (node:assert:767:3)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:107:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: direct same-path, reverse=true: rejects before I/O or publication
+not ok 2 - direct same-path, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 3.064709
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:1:3447'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'ENOSPC' !== 'EINVAL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'EINVAL'
+  actual: 'ENOSPC'
+  operator: 'strictEqual'
+  stack: |-
+    Object.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:63:12)
+    expectedException (node:assert:576:17)
+    expectsError (node:assert:701:21)
+    Function.rejects (node:assert:767:3)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:107:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: direct hardlink, reverse=false: rejects before I/O or publication
+not ok 3 - direct hardlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 2.81675
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:1:3447'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'ENOSPC' !== 'EINVAL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'EINVAL'
+  actual: 'ENOSPC'
+  operator: 'strictEqual'
+  stack: |-
+    Object.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:63:12)
+    expectedException (node:assert:576:17)
+    expectsError (node:assert:701:21)
+    Function.rejects (node:assert:767:3)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:107:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: direct hardlink, reverse=true: rejects before I/O or publication
+not ok 4 - direct hardlink, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 2.754125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:1:3447'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'ENOSPC' !== 'EINVAL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'EINVAL'
+  actual: 'ENOSPC'
+  operator: 'strictEqual'
+  stack: |-
+    Object.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:63:12)
+    expectedException (node:assert:576:17)
+    expectsError (node:assert:701:21)
+    Function.rejects (node:assert:767:3)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:107:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: direct symlink, reverse=false: rejects before I/O or publication
+not ok 5 - direct symlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 4.746416
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:1:3447'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'ENOSPC' !== 'EINVAL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'EINVAL'
+  actual: 'ENOSPC'
+  operator: 'strictEqual'
+  stack: |-
+    Object.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:63:12)
+    expectedException (node:assert:576:17)
+    expectsError (node:assert:701:21)
+    Function.rejects (node:assert:767:3)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:107:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: direct symlink, reverse=true: rejects before I/O or publication
+not ok 6 - direct symlink, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 3.411125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:1:3447'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'ENOSPC' !== 'EINVAL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'EINVAL'
+  actual: 'ENOSPC'
+  operator: 'strictEqual'
+  stack: |-
+    Object.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:63:12)
+    expectedException (node:assert:576:17)
+    expectsError (node:assert:701:21)
+    Function.rejects (node:assert:767:3)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:107:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: readonly same-path, reverse=false: rejects before I/O or publication
+not ok 7 - readonly same-path, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 2.832291
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:1:3447'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'ENOSPC' !== 'EINVAL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'EINVAL'
+  actual: 'ENOSPC'
+  operator: 'strictEqual'
+  stack: |-
+    Object.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:63:12)
+    expectedException (node:assert:576:17)
+    expectsError (node:assert:701:21)
+    Function.rejects (node:assert:767:3)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:107:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: readonly hardlink, reverse=false: rejects before I/O or publication
+not ok 8 - readonly hardlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 2.210791
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:1:3447'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'ENOSPC' !== 'EINVAL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'EINVAL'
+  actual: 'ENOSPC'
+  operator: 'strictEqual'
+  stack: |-
+    Object.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:63:12)
+    expectedException (node:assert:576:17)
+    expectsError (node:assert:701:21)
+    Function.rejects (node:assert:767:3)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:107:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: readonly symlink, reverse=false: rejects before I/O or publication
+not ok 9 - readonly symlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 2.721541
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:1:3447'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'ENOSPC' !== 'EINVAL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'EINVAL'
+  actual: 'ENOSPC'
+  operator: 'strictEqual'
+  stack: |-
+    Object.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:63:12)
+    expectedException (node:assert:576:17)
+    expectsError (node:assert:701:21)
+    Function.rejects (node:assert:767:3)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:107:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: nested same-path, reverse=false: rejects before I/O or publication
+not ok 10 - nested same-path, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 1.997625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:1:3447'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'ENOSPC' !== 'EINVAL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'EINVAL'
+  actual: 'ENOSPC'
+  operator: 'strictEqual'
+  stack: |-
+    Object.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:63:12)
+    expectedException (node:assert:576:17)
+    expectsError (node:assert:701:21)
+    Function.rejects (node:assert:767:3)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:107:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: nested same-path, reverse=true: rejects before I/O or publication
+not ok 11 - nested same-path, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 1.704416
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:1:3447'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'ENOSPC' !== 'EINVAL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'EINVAL'
+  actual: 'ENOSPC'
+  operator: 'strictEqual'
+  stack: |-
+    Object.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:63:12)
+    expectedException (node:assert:576:17)
+    expectsError (node:assert:701:21)
+    Function.rejects (node:assert:767:3)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:107:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: nested hardlink, reverse=false: rejects before I/O or publication
+not ok 12 - nested hardlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 2.236125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:1:3447'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'ENOSPC' !== 'EINVAL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'EINVAL'
+  actual: 'ENOSPC'
+  operator: 'strictEqual'
+  stack: |-
+    Object.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:63:12)
+    expectedException (node:assert:576:17)
+    expectsError (node:assert:701:21)
+    Function.rejects (node:assert:767:3)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:107:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: nested hardlink, reverse=true: rejects before I/O or publication
+not ok 13 - nested hardlink, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 2.789291
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:1:3447'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'ENOSPC' !== 'EINVAL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'EINVAL'
+  actual: 'ENOSPC'
+  operator: 'strictEqual'
+  stack: |-
+    Object.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:63:12)
+    expectedException (node:assert:576:17)
+    expectsError (node:assert:701:21)
+    Function.rejects (node:assert:767:3)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:107:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: nested symlink, reverse=false: rejects before I/O or publication
+not ok 14 - nested symlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 2.968292
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:1:3447'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'ENOSPC' !== 'EINVAL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'EINVAL'
+  actual: 'ENOSPC'
+  operator: 'strictEqual'
+  stack: |-
+    Object.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:63:12)
+    expectedException (node:assert:576:17)
+    expectsError (node:assert:701:21)
+    Function.rejects (node:assert:767:3)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:107:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: nested symlink, reverse=true: rejects before I/O or publication
+not ok 15 - nested symlink, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 2.440833
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:1:3447'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'ENOSPC' !== 'EINVAL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'EINVAL'
+  actual: 'ENOSPC'
+  operator: 'strictEqual'
+  stack: |-
+    Object.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:63:12)
+    expectedException (node:assert:576:17)
+    expectsError (node:assert:701:21)
+    Function.rejects (node:assert:767:3)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:107:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: overlay-lower same-path, reverse=false: rejects before I/O or publication
+not ok 16 - overlay-lower same-path, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 2.262834
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:1:3447'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'ENOSPC' !== 'EINVAL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'EINVAL'
+  actual: 'ENOSPC'
+  operator: 'strictEqual'
+  stack: |-
+    Object.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:63:12)
+    expectedException (node:assert:576:17)
+    expectsError (node:assert:701:21)
+    Function.rejects (node:assert:767:3)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:107:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: overlay-lower same-path, reverse=true: rejects before I/O or publication
+not ok 17 - overlay-lower same-path, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 1.787875
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:1:3447'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'ENOSPC' !== 'EINVAL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'EINVAL'
+  actual: 'ENOSPC'
+  operator: 'strictEqual'
+  stack: |-
+    Object.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:63:12)
+    expectedException (node:assert:576:17)
+    expectsError (node:assert:701:21)
+    Function.rejects (node:assert:767:3)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:107:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: overlay-lower hardlink, reverse=false: rejects before I/O or publication
+not ok 18 - overlay-lower hardlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 2.237291
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:1:3447'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'ENOSPC' !== 'EINVAL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'EINVAL'
+  actual: 'ENOSPC'
+  operator: 'strictEqual'
+  stack: |-
+    Object.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:63:12)
+    expectedException (node:assert:576:17)
+    expectsError (node:assert:701:21)
+    Function.rejects (node:assert:767:3)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:107:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: overlay-lower hardlink, reverse=true: rejects before I/O or publication
+not ok 19 - overlay-lower hardlink, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 2.396833
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:1:3447'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'ENOSPC' !== 'EINVAL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'EINVAL'
+  actual: 'ENOSPC'
+  operator: 'strictEqual'
+  stack: |-
+    Object.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:63:12)
+    expectedException (node:assert:576:17)
+    expectsError (node:assert:701:21)
+    Function.rejects (node:assert:767:3)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:107:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: overlay-lower symlink, reverse=false: rejects before I/O or publication
+not ok 20 - overlay-lower symlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 3.069417
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:1:3447'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'ENOSPC' !== 'EINVAL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'EINVAL'
+  actual: 'ENOSPC'
+  operator: 'strictEqual'
+  stack: |-
+    Object.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:63:12)
+    expectedException (node:assert:576:17)
+    expectsError (node:assert:701:21)
+    Function.rejects (node:assert:767:3)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:107:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: overlay-lower symlink, reverse=true: rejects before I/O or publication
+not ok 21 - overlay-lower symlink, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 2.520833
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:1:3447'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'ENOSPC' !== 'EINVAL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'EINVAL'
+  actual: 'ENOSPC'
+  operator: 'strictEqual'
+  stack: |-
+    Object.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:63:12)
+    expectedException (node:assert:576:17)
+    expectsError (node:assert:701:21)
+    Function.rejects (node:assert:767:3)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:107:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: overlay-upper same-path, reverse=false: rejects before I/O or publication
+not ok 22 - overlay-upper same-path, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 2.562166
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:1:3447'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'ENOSPC' !== 'EINVAL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'EINVAL'
+  actual: 'ENOSPC'
+  operator: 'strictEqual'
+  stack: |-
+    Object.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:63:12)
+    expectedException (node:assert:576:17)
+    expectsError (node:assert:701:21)
+    Function.rejects (node:assert:767:3)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:107:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: overlay-upper same-path, reverse=true: rejects before I/O or publication
+not ok 23 - overlay-upper same-path, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 1.995375
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:1:3447'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'ENOSPC' !== 'EINVAL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'EINVAL'
+  actual: 'ENOSPC'
+  operator: 'strictEqual'
+  stack: |-
+    Object.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:63:12)
+    expectedException (node:assert:576:17)
+    expectsError (node:assert:701:21)
+    Function.rejects (node:assert:767:3)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:107:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: overlay-upper hardlink, reverse=false: rejects before I/O or publication
+not ok 24 - overlay-upper hardlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 2.254
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:1:3447'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'ENOSPC' !== 'EINVAL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'EINVAL'
+  actual: 'ENOSPC'
+  operator: 'strictEqual'
+  stack: |-
+    Object.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:63:12)
+    expectedException (node:assert:576:17)
+    expectsError (node:assert:701:21)
+    Function.rejects (node:assert:767:3)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:107:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: overlay-upper hardlink, reverse=true: rejects before I/O or publication
+not ok 25 - overlay-upper hardlink, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 2.525667
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:1:3447'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'ENOSPC' !== 'EINVAL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'EINVAL'
+  actual: 'ENOSPC'
+  operator: 'strictEqual'
+  stack: |-
+    Object.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:63:12)
+    expectedException (node:assert:576:17)
+    expectsError (node:assert:701:21)
+    Function.rejects (node:assert:767:3)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:107:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: overlay-upper symlink, reverse=false: rejects before I/O or publication
+not ok 26 - overlay-upper symlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 5.013292
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:1:3447'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'ENOSPC' !== 'EINVAL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'EINVAL'
+  actual: 'ENOSPC'
+  operator: 'strictEqual'
+  stack: |-
+    Object.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:63:12)
+    expectedException (node:assert:576:17)
+    expectsError (node:assert:701:21)
+    Function.rejects (node:assert:767:3)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:107:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: overlay-upper symlink, reverse=true: rejects before I/O or publication
+not ok 27 - overlay-upper symlink, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 2.84525
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:1:3447'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'ENOSPC' !== 'EINVAL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'EINVAL'
+  actual: 'ENOSPC'
+  operator: 'strictEqual'
+  stack: |-
+    Object.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:63:12)
+    expectedException (node:assert:576:17)
+    expectsError (node:assert:701:21)
+    Function.rejects (node:assert:767:3)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:107:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: readonly-overlay same-path, reverse=false: rejects before I/O or publication
+not ok 28 - readonly-overlay same-path, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 1.618666
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:1:3447'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'ENOSPC' !== 'EINVAL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'EINVAL'
+  actual: 'ENOSPC'
+  operator: 'strictEqual'
+  stack: |-
+    Object.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:63:12)
+    expectedException (node:assert:576:17)
+    expectsError (node:assert:701:21)
+    Function.rejects (node:assert:767:3)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:107:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: readonly-overlay hardlink, reverse=false: rejects before I/O or publication
+not ok 29 - readonly-overlay hardlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 2.092375
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:1:3447'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'ENOSPC' !== 'EINVAL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'EINVAL'
+  actual: 'ENOSPC'
+  operator: 'strictEqual'
+  stack: |-
+    Object.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:63:12)
+    expectedException (node:assert:576:17)
+    expectsError (node:assert:701:21)
+    Function.rejects (node:assert:767:3)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:107:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: readonly-overlay symlink, reverse=false: rejects before I/O or publication
+not ok 30 - readonly-overlay symlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 2.239417
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:1:3447'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'ENOSPC' !== 'EINVAL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'EINVAL'
+  actual: 'ENOSPC'
+  operator: 'strictEqual'
+  stack: |-
+    Object.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:63:12)
+    expectedException (node:assert:576:17)
+    expectsError (node:assert:701:21)
+    Function.rejects (node:assert:767:3)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:107:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: same memory backend, multipleMounts=false: mount rejects before delegation
+not ok 31 - same memory backend, multipleMounts=false: mount rejects before delegation
+  ---
+  duration_ms: 0.272958
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:1:4781'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'ENOSPC' !== 'EINVAL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'EINVAL'
+  actual: 'ENOSPC'
+  operator: 'strictEqual'
+  stack: |-
+    Object.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:63:12)
+    expectedException (node:assert:576:17)
+    expectsError (node:assert:701:21)
+    Function.rejects (node:assert:767:3)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:129:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: same memory backend, multipleMounts=true: mount rejects before delegation
+not ok 32 - same memory backend, multipleMounts=true: mount rejects before delegation
+  ---
+  duration_ms: 0.041125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:1:4781'
+  failureType: 'testCodeFailure'
+  error: "EINVAL: invalid argument, mount '/other'"
+  code: 'EINVAL'
+  name: 'FsError'
+  stack: |-
+    add (/Users/kjopek/Workspace/safe-bash/src/fs/mount/index.ts:89:15)
+    new MountFileSystem (/Users/kjopek/Workspace/safe-bash/src/fs/mount/index.ts:104:7)
+    createMountFileSystem (/Users/kjopek/Workspace/safe-bash/src/fs/mount/index.ts:531:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:127:19)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unknown source identity rejects existing cross-mount target before effects
+not ok 33 - unknown source identity rejects existing cross-mount target before effects
+  ---
+  duration_ms: 0.16575
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:1:5826'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'ENOSPC'
+    - 'ENOTSUP'
+          ^
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ENOTSUP'
+  actual: 'ENOSPC'
+  operator: 'strictEqual'
+  stack: |-
+    Object.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:63:12)
+    expectedException (node:assert:576:17)
+    expectsError (node:assert:701:21)
+    Function.rejects (node:assert:767:3)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:155:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unknown target identity rejects existing cross-mount target before effects
+not ok 34 - unknown target identity rejects existing cross-mount target before effects
+  ---
+  duration_ms: 0.07975
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:1:5826'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'ENOSPC'
+    - 'ENOTSUP'
+          ^
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ENOTSUP'
+  actual: 'ENOSPC'
+  operator: 'strictEqual'
+  stack: |-
+    Object.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:63:12)
+    expectedException (node:assert:576:17)
+    expectsError (node:assert:701:21)
+    Function.rejects (node:assert:767:3)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:155:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unknown both identity rejects existing cross-mount target before effects
+not ok 35 - unknown both identity rejects existing cross-mount target before effects
+  ---
+  duration_ms: 0.075917
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:1:5826'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'ENOSPC'
+    - 'ENOTSUP'
+          ^
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ENOTSUP'
+  actual: 'ENOSPC'
+  operator: 'strictEqual'
+  stack: |-
+    Object.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:63:12)
+    expectedException (node:assert:576:17)
+    expectsError (node:assert:701:21)
+    Function.rejects (node:assert:767:3)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:155:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unknown providers can copy to missing targets using exclusive creation
+not ok 36 - unknown providers can copy to missing targets using exclusive creation
+  ---
+  duration_ms: 0.553292
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:1:6592'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      [
+    +   'w'
+    -   'wx'
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'wx'
+  actual:
+    0: 'w'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:176:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: destination races from missing to source alias, streaming=false: exclusive write preserves source
+not ok 37 - destination races from missing to source alias, streaming=false: exclusive write preserves source
+  ---
+  duration_ms: 0.128541
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:1:7279'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:200:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: destination races from missing to source alias, streaming=true: exclusive write preserves source
+not ok 38 - destination races from missing to source alias, streaming=true: exclusive write preserves source
+  ---
+  duration_ms: 0.076209
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:1:7279'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/copy-identity-guards.test.ts:200:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: disjoint failed writer, streaming=false: source survives genuine target failure
+ok 39 - disjoint failed writer, streaming=false: source survives genuine target failure
+  ---
+  duration_ms: 0.099666
+  type: 'test'
+  ...
+# Subtest: disjoint failed writer, streaming=true: source survives genuine target failure
+ok 40 - disjoint failed writer, streaming=true: source survives genuine target failure
+  ---
+  duration_ms: 0.092291
+  type: 'test'
+  ...
+1..40
+# tests 40
+# suites 0
+# pass 2
+# fail 38
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 248.448667

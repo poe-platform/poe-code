@@ -1,0 +1,21 @@
+{
+  "url": "https://ftp.gnu.org/gnu/gnu-keyring.gpg",
+  "name": "gnu-keyring.gpg",
+  "maxBytes": 4194304,
+  "role": "OFFICIAL_GLOBAL_KEYRING_NOT_YET_VERIFIED",
+  "startedAt": "2026-08-29T04:42:42.241Z",
+  "bytes": 3687794,
+  "status": 200,
+  "headers": {
+    "date": "Sat, 29 Aug 2026 04:42:41 GMT",
+    "last-modified": "Sat, 29 Aug 2026 04:22:35 GMT",
+    "etag": "\"384572-65a27eb215ac0\"",
+    "content-length": "3687794",
+    "content-type": null,
+    "location": null
+  },
+  "sha256": "b136fbe57ade4ee5270ca66c402cae7b50349fd07646b5b3de7962d58d4df608",
+  "path": "downloads/gnu-keyring.gpg.data",
+  "disposition": "OPAQUE_ACQUIRED_NOT_SIGNATURE_VERIFIED",
+  "endedAt": "2026-08-29T04:42:42.447Z"
+}

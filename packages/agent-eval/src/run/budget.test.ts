@@ -1,0 +1,193 @@
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+import { BudgetEnforcer } from "./budget.js";
+import type { Budget, SpawnEvent } from "../types.js";
+import { normalizeTrace } from "./trace/normalize.js";
+import type { TraceToolEvent, TraceUsageEvent } from "./trace/types.js";
+
+const relaxedBudget: Budget = {
+  maxIterations: 10,
+  maxTokens: 100,
+  wallClockMs: 60_000
+};
+
+function toolCall(id = "tool-1"): TraceToolEvent {
+  return {
+    type: "tool",
+    sequence: 0,
+    phase: "start",
+    id,
+    name: "Read",
+    operation: "read",
+    paths: []
+  };
+}
+
+function completedToolCall(): TraceToolEvent {
+  return {
+    type: "tool",
+    sequence: 0,
+    phase: "complete",
+    id: "tool-1",
+    name: "Read",
+    operation: "read",
+    paths: [],
+    outcome: "completed"
+  };
+}
+
+function usage(inputTokens: number, outputTokens: number, cachedTokens?: number): TraceUsageEvent {
+  return {
+    type: "usage",
+    sequence: 0,
+    usage: { inputTokens, outputTokens, ...(cachedTokens === undefined ? {} : { cachedTokens }) }
+  };
+}
+
+describe("BudgetEnforcer", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("aborts exactly once when the iteration cap is hit", () => {
+    const controller = new AbortController();
+    const abort = vi.spyOn(controller, "abort");
+    const enforcer = new BudgetEnforcer({ ...relaxedBudget, maxIterations: 2 }, controller);
+
+    enforcer.onEvent(toolCall("tool-1"));
+    enforcer.onEvent(toolCall("tool-2"));
+    enforcer.onEvent(toolCall("tool-3"));
+
+    expect(abort).toHaveBeenCalledTimes(1);
+    expect(controller.signal.aborted).toBe(true);
+    expect(enforcer.snapshot().tripped).toBe("maxIterations");
+  });
+
+  it("counts terminal-only tool records as iterations", () => {
+    const controller = new AbortController();
+    const enforcer = new BudgetEnforcer({ ...relaxedBudget, maxIterations: 1 }, controller);
+
+    enforcer.onEvent(completedToolCall());
+
+    expect(controller.signal.aborted).toBe(true);
+    expect(enforcer.snapshot()).toMatchObject({
+      iterations: 1,
+      tripped: "maxIterations"
+    });
+  });
+
+  it("counts one started and completed lifecycle once", () => {
+    const controller = new AbortController();
+    const enforcer = new BudgetEnforcer({ ...relaxedBudget, maxIterations: 2 }, controller);
+
+    enforcer.onEvent(toolCall());
+    enforcer.onEvent(completedToolCall());
+
+    expect(controller.signal.aborted).toBe(false);
+    expect(enforcer.snapshot().iterations).toBe(1);
+  });
+
+  it("counts one idless legacy lifecycle once", () => {
+    const controller = new AbortController();
+    const enforcer = new BudgetEnforcer({ ...relaxedBudget, maxIterations: 2 }, controller);
+    const trace = normalizeTrace([
+      { event: "tool_start", kind: "read", title: "Read" } as SpawnEvent,
+      { event: "tool_complete", kind: "read", title: "Read" } as SpawnEvent
+    ]);
+
+    for (const event of trace.events) {
+      enforcer.onEvent(event);
+    }
+
+    expect(controller.signal.aborted).toBe(false);
+    expect(enforcer.snapshot().iterations).toBe(1);
+  });
+
+  it("aborts exactly once when the token cap is hit", () => {
+    const controller = new AbortController();
+    const abort = vi.spyOn(controller, "abort");
+    const enforcer = new BudgetEnforcer({ ...relaxedBudget, maxTokens: 5 }, controller);
+
+    enforcer.onEvent(usage(2, 2));
+    enforcer.onEvent(usage(1, 1));
+    enforcer.onEvent(usage(10, 10));
+
+    expect(abort).toHaveBeenCalledTimes(1);
+    expect(controller.signal.aborted).toBe(true);
+    expect(enforcer.snapshot().tripped).toBe("maxTokens");
+  });
+
+  it("aborts exactly once when the wall-clock cap is hit", () => {
+    vi.useFakeTimers();
+    const controller = new AbortController();
+    const abort = vi.spyOn(controller, "abort");
+    const enforcer = new BudgetEnforcer({ ...relaxedBudget, wallClockMs: 50 }, controller);
+
+    vi.advanceTimersByTime(49);
+    expect(enforcer.snapshot().tripped).toBeUndefined();
+
+    vi.advanceTimersByTime(1);
+    vi.advanceTimersByTime(50);
+
+    expect(abort).toHaveBeenCalledTimes(1);
+    expect(controller.signal.aborted).toBe(true);
+    expect(enforcer.snapshot().tripped).toBe("wallClockMs");
+  });
+
+  it("snapshots partial metrics after abort", () => {
+    vi.useFakeTimers();
+    const controller = new AbortController();
+    const enforcer = new BudgetEnforcer({ ...relaxedBudget, maxTokens: 5 }, controller);
+
+    vi.advanceTimersByTime(25);
+    enforcer.onEvent(toolCall());
+    enforcer.onEvent(usage(4, 2, 1));
+
+    expect(enforcer.snapshot()).toEqual({
+      iterations: 1,
+      usage: {
+        inputTokens: 4,
+        outputTokens: 2,
+        cachedTokens: 1
+      },
+      elapsedMs: 25,
+      tripped: "maxTokens"
+    });
+  });
+
+  it("never aborts when caps are not hit", () => {
+    vi.useFakeTimers();
+    const controller = new AbortController();
+    const abort = vi.spyOn(controller, "abort");
+    const enforcer = new BudgetEnforcer(relaxedBudget, controller);
+
+    vi.advanceTimersByTime(500);
+    enforcer.onEvent(toolCall());
+    enforcer.onEvent(usage(10, 20, 3));
+
+    expect(abort).not.toHaveBeenCalled();
+    expect(enforcer.snapshot()).toEqual({
+      iterations: 1,
+      usage: {
+        inputTokens: 10,
+        outputTokens: 20,
+        cachedTokens: 3
+      },
+      elapsedMs: 500
+    });
+  });
+
+  it("finalizes execution metrics and clears the wall timer", () => {
+    vi.useFakeTimers();
+    const controller = new AbortController();
+    const enforcer = new BudgetEnforcer({ ...relaxedBudget, wallClockMs: 50 }, controller);
+
+    vi.advanceTimersByTime(25);
+    const completed = enforcer.finalize();
+    vi.advanceTimersByTime(100);
+
+    expect(controller.signal.aborted).toBe(false);
+    expect(enforcer.snapshot()).toEqual(completed);
+    expect(completed.elapsedMs).toBe(25);
+  });
+});

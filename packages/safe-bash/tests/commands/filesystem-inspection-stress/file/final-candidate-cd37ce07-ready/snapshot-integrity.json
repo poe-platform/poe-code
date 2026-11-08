@@ -1,0 +1,18 @@
+{
+  "checkedAt": "2026-08-27T09:17:16.289Z",
+  "commit": "cd37ce07c1f41f3797e19e0f701b662823338843",
+  "sourceSha256": "f9276a3524347ec20030d41c25d2d5bc033471437b7a9749094585b17693ce0c",
+  "dependencySha256": "cda0820b8443488b19d0747cb97de37f8aec7492747bff286705a33f6026402e",
+  "sourceFiles": 216,
+  "dependencyFiles": 318,
+  "compiledFiles": 63,
+  "totalRegularFiles": 597,
+  "symlinks": 0,
+  "hardLinkedFiles": 0,
+  "writableFiles": 0,
+  "allManifestHashesVerified": true,
+  "lockedPackages": 7,
+  "lockQualification": "Installed metadata integrity/version matches candidate lock; individual copied file hashes frozen. No registry tarball download or independent tarball-integrity verification.",
+  "productCalls": 0,
+  "nativeCalls": 0
+}

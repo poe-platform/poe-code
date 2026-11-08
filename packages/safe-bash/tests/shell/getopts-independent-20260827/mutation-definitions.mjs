@@ -1,0 +1,22 @@
+export const mutations = [
+  { id: 'M01', controls: ['S01'], from: 'kind, status: kind === "end" ? 1 : 0, option, optind: index', to: 'kind: "end", status: 1, option: "?", optind: index' },
+  { id: 'M02', controls: ['S01', 'S12'], from: 'let active = original.index === 0 ? undefined : original.active;', to: 'let active = original.index <= 1 ? undefined : original.active;' },
+  { id: 'M03', controls: ['S12', 'P03'], from: 'return index <= 1 ? createGetoptsState() : { ...copy, index };', to: 'return index <= 1 ? { ...copy, index: 1 } : { ...copy, index };' },
+  { id: 'M04', controls: ['S13'], from: 'return index <= 1 ? createGetoptsState() : { ...copy, index };', to: 'return index <= 1 ? createGetoptsState() : { index };' },
+  { id: 'M05', controls: ['P02'], from: 'return { index: state.index, active: { argument: state.active.argument, offset: state.active.offset } };', to: 'return { index: state.index, active: state.active };' },
+  { id: 'M06', controls: ['S05'], replacements: [
+    ['export interface GetoptsState {', 'const terminalStates = new WeakSet<object>();\n\nexport interface GetoptsState {'],
+    ['  const work = new ScanWork(options.work);', '  if (terminalStates.has(state)) return { state: cloneGetoptsState(state), kind: "end", status: 1, option: "?", optind: state.index, argument: { kind: "unset" }, diagnostic: null };\n  const work = new ScanWork(options.work);'],
+    ['  const end = (): Promise<GetoptsScanResult> => {\n    active = undefined;\n    return finish("end", "?", { kind: "unset" }, null);\n  };', '  const end = async (): Promise<GetoptsScanResult> => {\n    active = undefined;\n    const result = await finish("end", "?", { kind: "unset" }, null);\n    terminalStates.add(result.state);\n    return result;\n  };'],
+  ] },
+  { id: 'M07', controls: ['S04-000', 'S04-001', 'S04-100', 'S04-101'], from: 'const silent = optstring.startsWith(":");', to: 'const silent = optstring.startsWith(":") || !options.reportErrors;' },
+  { id: 'M08', controls: ['P13', 'P14'], from: 'if (args.length > work.maxArguments)', to: 'if (false)' },
+  { id: 'M09', controls: ['P15', 'P16', 'P17'], from: 'if (count > this.maxBytes - this.bytes)', to: 'if (false)' },
+  { id: 'M10', controls: ['P18', 'P19', 'P20'], from: 'if (this.steps === this.maxSteps)', to: 'if (false)' },
+  { id: 'M11', controls: ['P22'], from: 'const pending = Promise.resolve(this.checkpoint(steps));', to: 'void this.checkpoint(steps);\n      const pending = Promise.resolve();' },
+  { id: 'M12', controls: ['P25'], from: 'reject(signal.reason);', to: 'reject(signal.reason || new Error("substituted falsy abort"));' },
+  { id: 'M13', controls: ['P25'], from: 'reject(signal.reason);', to: 'void signal.reason;' },
+  { id: 'M14', controls: ['P29'], from: 'signal.removeEventListener("abort", abort);', to: 'void signal;', all: true },
+  { id: 'M15', controls: ['P10'], from: 'if (code > 127) throw new GetoptsError("NON_ASCII_OPTION", "Non-ASCII getopts option characters are unsupported");', to: 'if (false) throw new GetoptsError("NON_ASCII_OPTION", "Non-ASCII getopts option characters are unsupported");' },
+  { id: 'M16', controls: ['P27'], from: '    this.check();\n  }\n}\n\nasync function validateString', to: '  }\n}\n\nasync function validateString' },
+];

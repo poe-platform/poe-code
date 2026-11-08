@@ -1,0 +1,47 @@
+# pptx
+
+Private ESM workspace for PowerPoint package inspection, editing and
+publication. It is not included in the published `poe-code` package. It has no
+standalone binary and does not render presentations.
+
+[Usage](../../docs/pptx/usage.md) covers creation, inspection, text, images,
+tables, SDK examples and explicit safe-bash registration. Generated `help`,
+`schema`, and `capabilities` describe operation arguments and supported behavior.
+Schema declarations alone do not establish complete PowerPoint compatibility.
+
+## Configuration and environment
+
+No environment variables or configuration files are exposed. Filesystem,
+publication, time, author and font metrics are explicit caller capabilities.
+Length helpers (`Length`, `Inches`, `Pt`, `Cm`, `Mm`, `Emu`, `Centipoints`) and `RGBColor`
+accept both factory calls and `new`. Inputs accept bytes, shared async byte streams,
+or `{ path, fs }` with an explicit `@poe-code/safe-fs` filesystem.
+`Presentation.save()` accepts byte sinks with
+`write(bytes)`; `close()` is optional.
+Run fonts support `strike` (`"none"`, `"single"`, `"double"`, or `null`) and
+`baseline` (a percentage from −100 to 100, or `null` to inherit), alongside
+bold, italic, size, and underline.
+Table-cell runs expose live hyperlinks with the same relationship handling as
+text-box runs, including save/reopen and stale-handle checks.
+`PresentationContext` accepts `timestamp`, `author`, `fontMetrics`, `signal`,
+and four optional limit groups. Resources are unlimited by default; setting one
+limit leaves the others unlimited. Chunk sizes control output I/O and default to 65536:
+
+- `limits`: `maxBytes`, `maxReads`, `chunkBytes`. Omitted resource limits are disabled. `createShapeXml` and `createConnectorXml` accept optional XML limits (`maxBytes`, `maxNodes`, `maxDepth`) after the namespace argument.
+- `archiveLimits`: `maxArchiveBytes`, `maxEntryBytes`, `maxTotalBytes`,
+  `maxMembers`, `maxPathBytes`, `maxDepth`, `maxPaxBytes`, `maxTextBytes`, `chunkSize`.
+- `xmlLimits`: `maxBytes`, `maxNodes`, `maxDepth`.
+- `relationshipLimits`: `maxBytes`, `maxParts`, `maxRelationships`.
+
+`createPptxCommandEngine` accepts optional `context`, `maxArgumentBytes`, and
+`maxOutputBytes`. Context optionally supplies individual `validationLimits`: `maxBytes`,
+`maxNodes`, `maxDepth`, `maxEntries`, `maxParts`, `maxRelationships`.
+Execution supplies encoded `args`, `signal`, `readInput` and optional
+`preflightOutput`, `publishOutput`, `publishOutputs` callbacks. Multi-output
+publication requires a real atomic host transaction.
+
+CLI `--limit NAME=VALUE` sets or overrides limits: `maxBytes`, `maxNodes`,
+`maxDepth`, `maxOutputBytes`, and `maxOutputs` for applicable extraction commands.
+[Configuration defaults](../../docs/pptx/usage.md#configuration-and-limits) and
+[byte transport options](../../docs/pptx/package-usage.md) document the complete
+host and per-operation configuration. External links are never fetched implicitly.

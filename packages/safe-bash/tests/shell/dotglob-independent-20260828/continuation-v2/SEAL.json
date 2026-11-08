@@ -1,0 +1,232 @@
+{
+  "role": "pre-execution continuation seal, no candidate execution",
+  "date": "2026-08-28",
+  "candidate": "d2502aae3c8458e0ac92662f2af07e7f9fc3923a",
+  "selectedTree": "37ad3f94f9fa07037e61d2bd27a4a4b7cddb4d5e",
+  "packageSha256": "b0544dcb3d0d9b22420932fc86e4d4693377fcc813fde6bde95c8625edc951aa",
+  "history": {
+    "revision": "2e2bfa68",
+    "historySha256": "c0197514d7d10bb30a354065767f0383659f49bfaa3f0f6a71473ef128309fb9",
+    "historyEncodedSha256": "c9c2b9545926fd3fd526e135c540eba91c325c4768939bcd66dfc4f362b2cf20"
+  },
+  "original": [
+    {
+      "revision": "429766aaa9fee0be469ed79b186bc8e3b3ed43c2",
+      "path": "BINDINGS.json",
+      "sha256": "c51fb00674ed5ce3bcdbc764553d466d96df2fb6afeb4deaf4919dbb4690387d"
+    },
+    {
+      "revision": "429766aaa9fee0be469ed79b186bc8e3b3ed43c2",
+      "path": "PROTOCOL.md",
+      "sha256": "0d50aa2efb4d8391eea8fa8dcb5eb698fce29570b6807346890f47b1095554c7"
+    },
+    {
+      "revision": "429766aaa9fee0be469ed79b186bc8e3b3ed43c2",
+      "path": "README.md",
+      "sha256": "8bdacecb52dbd247af6dd7366755c1b68d31e86342f63b3ad26a19e957ea16b4"
+    },
+    {
+      "revision": "429766aaa9fee0be469ed79b186bc8e3b3ed43c2",
+      "path": "command-cases.json",
+      "sha256": "4b6983d2b01d6954c1b08fd4fa72d2550ff6041136a225e87fb28bc0e93eb875"
+    },
+    {
+      "revision": "429766aaa9fee0be469ed79b186bc8e3b3ed43c2",
+      "path": "consumer.mts.fixture",
+      "sha256": "ad55526f5633074f474b1916a42c2654a826bc188487a58dd50b4be70ae0d6d9"
+    },
+    {
+      "revision": "429766aaa9fee0be469ed79b186bc8e3b3ed43c2",
+      "path": "glob-cases.json",
+      "sha256": "19ee987b233f3e2311f6cdfd5f94b76150439f489d7b2fb07024e46c8cd1a74f"
+    },
+    {
+      "revision": "429766aaa9fee0be469ed79b186bc8e3b3ed43c2",
+      "path": "glob-fixtures.json",
+      "sha256": "b3a6de71a083b1df4f9f4deaab54fd88ecc8590864015ca5cd07ae5a6f96d90a"
+    },
+    {
+      "revision": "429766aaa9fee0be469ed79b186bc8e3b3ed43c2",
+      "path": "negative-api.mts.fixture",
+      "sha256": "80b282bba69755d525b9063b3995fc73cc755c868d7af16a31635e5d098d478b"
+    },
+    {
+      "revision": "429766aaa9fee0be469ed79b186bc8e3b3ed43c2",
+      "path": "negative-option.mts.fixture",
+      "sha256": "3e456d64e5106e1bfd33d2f64be2561722ae7c18d288a9661315a796b0b7c82b"
+    },
+    {
+      "revision": "429766aaa9fee0be469ed79b186bc8e3b3ed43c2",
+      "path": "procedures.json",
+      "sha256": "78888381a41994031dde725ed8f08e6abb9068b29a700f0120e301639c8a045a"
+    },
+    {
+      "revision": "429766aaa9fee0be469ed79b186bc8e3b3ed43c2",
+      "path": "state-cases.json",
+      "sha256": "7c2f3c74ec0aa959608f7de272296a38dfd2d39efe78930c6c8b34521276c422"
+    },
+    {
+      "revision": "429766aaa9fee0be469ed79b186bc8e3b3ed43c2",
+      "path": "unsupported-names.json",
+      "sha256": "d1b895861c0bdba9827031e6bedeafea0880cb530969da5d731c0d0bddc4cd23"
+    },
+    {
+      "revision": "429766aaa9fee0be469ed79b186bc8e3b3ed43c2",
+      "path": "verify-freeze.mjs",
+      "sha256": "588f88c1c6843f4ca87c4f5f06b47f28061f3027844f0e6089784ff8cf7b0130"
+    },
+    {
+      "revision": "deced72dde70151b1b090fbba7d739323491cd89",
+      "path": "byte-overlay-v1/README.md",
+      "sha256": "6509115a79a519402c645ef63355cc1551e8b2b7de5a4ec6517b767fb619ea9e"
+    },
+    {
+      "revision": "deced72dde70151b1b090fbba7d739323491cd89",
+      "path": "byte-overlay-v1/expectations.json",
+      "sha256": "43e1872c9edd44e3dffa5558993496c6788ea66116062a58c48aa8124cf9ca2d"
+    }
+  ],
+  "correction": {
+    "id": "G039-v2",
+    "fixture": "basic",
+    "word": "??",
+    "state": "on",
+    "expectedArgs": [
+      ".x",
+      ".雪"
+    ]
+  },
+  "matrix": [
+    [
+      "absent-builtin",
+      "R01"
+    ],
+    [
+      "accepted-stack-reversion",
+      "R01"
+    ],
+    [
+      "M0",
+      "R08"
+    ],
+    [
+      "M1",
+      "R01"
+    ],
+    [
+      "M2",
+      "R26"
+    ],
+    [
+      "M3",
+      "R26"
+    ],
+    [
+      "M4",
+      "R04"
+    ],
+    [
+      "M5",
+      "R11"
+    ],
+    [
+      "M6",
+      "R10"
+    ],
+    [
+      "M7",
+      "N-off-3-0"
+    ],
+    [
+      "M8",
+      "R16"
+    ]
+  ],
+  "guards": [
+    "missing-boundary",
+    "changed-boundary",
+    "module-tamper",
+    "module-symlink",
+    "package-overlay",
+    "wrong-node-hash",
+    "wrong-resolved-root",
+    "source-denial",
+    "late-exit-7"
+  ],
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "version": "v22.22.2"
+  },
+  "npmVersion": "10.9.7",
+  "files": {
+    "BINDINGS.json": "c51fb00674ed5ce3bcdbc764553d466d96df2fb6afeb4deaf4919dbb4690387d",
+    "PROTOCOL.md": "0d50aa2efb4d8391eea8fa8dcb5eb698fce29570b6807346890f47b1095554c7",
+    "README.md": "8bdacecb52dbd247af6dd7366755c1b68d31e86342f63b3ad26a19e957ea16b4",
+    "SEAL.json": "7d6ef3821fa99d61dc4d6086b2b2d551f9a1907b10cfb27f8a5593886b2193a3",
+    "byte-overlay-v1/README.md": "6509115a79a519402c645ef63355cc1551e8b2b7de5a4ec6517b767fb619ea9e",
+    "byte-overlay-v1/SEAL.json": "2945b6390e43b56567595c8e2517a7a966ddfa5c1acc75f885f651f63a50a11d",
+    "byte-overlay-v1/expectations.json": "43e1872c9edd44e3dffa5558993496c6788ea66116062a58c48aa8124cf9ca2d",
+    "command-cases.json": "4b6983d2b01d6954c1b08fd4fa72d2550ff6041136a225e87fb28bc0e93eb875",
+    "consumer.mts.fixture": "ad55526f5633074f474b1916a42c2654a826bc188487a58dd50b4be70ae0d6d9",
+    "continuation-v2/G039-v2.json": "1fd44b25cd14964723d3911e45f2fd9b48db15b44736e63aefa563cf81be6028",
+    "continuation-v2/PROTOCOL.md": "26429944173099e041a80a37c85ec0b02127fe13efe226341b928503d4b5a6f3",
+    "continuation-v2/guards.mjs": "0005fb5cc502502903fa35ac0432bd473153146bbb327b23a82bb27f1ff321c9",
+    "continuation-v2/proof.mjs": "17554c2cd8eb9fb375d48d73c3cbe6ea32d0b79bc7392a496f9c30623e557f37",
+    "continuation-v2/run.mjs": "9c0b68ca705a399287b93d9d1ff00ab3f2112c033d461335369a736a04aa63e4",
+    "continuation-v2/seal.mjs": "605ceacb5b6478b8169e35bc5aae97758eda00812f6e27ccbb6eb984b1b5c349",
+    "continuation-v2/stage.mjs": "be7effd22e1dec6e2e339a1045c2e7ba97f5993fd943876917cae1d8463cbd64",
+    "continuation-v2/worker.mjs": "dc66d090372bb52ca881785a63fef34a9a066deeff9fa191e852303ec60ede27",
+    "execution-prep-v1/HELD.json": "effc9a2fe3df1401abe045223bcf4d721d1ab944a414aebf6946a57f6355018c",
+    "execution-prep-v1/README.md": "6f4ced0d6d0070a47fa137bc4641adfcc1a5924d9aa4eb176a73978714d6ec0b",
+    "execution-prep-v1/SEAL.json": "3f9ea4959f54684dd61b3c6ee11e86e50a2f436dba712c557b82367dbef78fa7",
+    "execution-prep-v1/admission.mjs": "bb21a2802c9e0dae1865c45940e1af4798e3befd8b6217fbf3325dff94140577",
+    "execution-prep-v1/artifacts.mjs": "622cff096b5a551c9eb5f1ace6ae478a0284d2b69b49442dc1843d574a025d6f",
+    "execution-prep-v1/cohorts.mjs": "03679b7e2cc4b49a2e9820f2d5f4aced1d55eb0104b889f6111affed33109088",
+    "execution-prep-v1/fixture-mutant.mjs": "8d30e6fc194ee51e220b867ce25e47e15f0ee6f8d438ee34969bd63bddc1d828",
+    "execution-prep-v1/fixture-value.mjs": "39ee7cbe06c03713a98a12e14058806a27295cb36eb3ab13dd18bac2d88fc51b",
+    "execution-prep-v1/guard.mjs": "37dd4f79a6424018e9d50cfdd649ba90be0293369902ad3da83a0730edc7cd68",
+    "execution-prep-v1/plan.mjs": "5a1479e98e8e23449d78684d8f06c132692cc38f4c1f274a7aa64dbe3f998f05",
+    "execution-prep-v1/procedures.mjs": "731d3422836b7c50d08b5c756467a108b49952dafcb5a44b4cca88ebb14c67a2",
+    "execution-prep-v1/protocol.mjs": "20356451ed758b1186c4401e1b34dc848bb119eefba4f5d2ea66134938889587",
+    "execution-prep-v1/run.mjs": "ebd0b761e3b34de51e2d8335e927b2e364166cb2d711124faf64d6f39295d52d",
+    "execution-prep-v1/selftest.mjs": "457e281624dde1a0c010173a52f9cb2ef9e9caa7e5f74b12ccd8aa974523d817",
+    "execution-prep-v1/settlement.mjs": "e1b7fb5d31507b5e5115d26158576cd3def2a40e5f7daf08915c700933a00a08",
+    "execution-prep-v1/synthetic-worker.mjs": "3f9edf481ce9b5ad347e8ca89a7f98504997f36daac08fa9d6c41de62b9cc6ae",
+    "execution-prep-v1/types.mjs": "a6aa20099bc693367b368e58e57ce652ea273a3fc104bf47acd0e56c3b7f6211",
+    "execution-prep-v1/verify-inputs.mjs": "c4639808113c54e2603f3459f3baab5af13cbd8a155e47f460dee4839bacf072",
+    "execution-prep-v1/worker.mjs": "62b28a6eb7b89a3d6bcf0afb7efe5c551516f8ac165a6c14f9e1000a1e8efe90",
+    "execution-v2/CALIBRATION-DELTA.md": "54aca59d65923ed1e648567813501c24e8975d62f145bd19c1ad2982ed807a0a",
+    "execution-v2/FUTURE-EXECUTION.md": "eca03f59a2ea2fdef7534607033f4a3bc3c16c929c69b745742e2acbaef4bf32",
+    "execution-v2/NPM-TOOLS.json": "70669b53df465691d5759141a5d3c1d4599c82068e965e97419517c3327c073b",
+    "execution-v2/REVIEW-BOUNDS.md": "fe0c78d7be9b2a3485aab857c3f38b3a0f341abb8152accf1d33eefbb940cf0d",
+    "execution-v2/adapters.mjs": "7bf7f10f9dae5b573fceffc8a28069bbe8a2e038165e0fc73f442c3463a2cd6c",
+    "execution-v2/baseline-guards.mjs": "34da8d7a28fefefbe764f055e9280ac258248bc1841d44ae38df02e3a297dec4",
+    "execution-v2/calibration.mjs": "c1e08ab7c964951017cdd60ae2934582ee89f780f47bf4e4c8784ce8e6614a2f",
+    "execution-v2/candidate-guards.mjs": "b8e27976575412f524d7739f13d2f90f17fbb4aed4e6d6c84248aeaa5ddd516a",
+    "execution-v2/candidate-stage.mjs": "a6219c802c59636924901b9a900bd028e92cadc7e5fad32b8f01f993fa43bd60",
+    "execution-v2/consumer-v2.mts.fixture": "28fefdc30a538026b7c4abc477af7cd8566982a2b4c0a02cc7a2480c993ec547",
+    "execution-v2/guards.mjs": "eded0a3921d9a0cd15687fb0154b1e3ec6c6161c10bad87207217520a1899d22",
+    "execution-v2/mutants.mjs": "a1a46b42b1404867bbbba2a4059901314f45970daaaec59b412bc0c81d0ff976",
+    "execution-v2/product-worker.mjs": "2f18d51be3c4df6031c333811baeb21fb752cbc0f47e698b379510ca728e3b39",
+    "execution-v2/run-calibration.mjs": "20fdac4a28a1f3055e4c7e640f31935a56b218c39a203a881c2263c4d4364fb1",
+    "execution-v2/run-candidate.mjs": "39a74906e98668a21eead7397b28974693dc5f4778ed1614643e5ade66c24672",
+    "execution-v2/seal-tools.mjs": "e1ee4e8e35d5fe7a777ef69355c30810148897bb705623c3daf9c4fa111f71da",
+    "execution-v2/source-mutants.mjs": "6b92af5ad0b4610d89c79af457e45b9bff2de2b848e7897429fa75508d58da1d",
+    "execution-v2/stage-baseline.mjs": "aeb51d0979ca67678fa9e30f0fce1560816d431a1ed83323697bd4bc364b7e3d",
+    "execution-v2/support.mjs": "28193f84d3a913bd6062993c3fda709dafed92471af242729e866fdd683d9984",
+    "execution-v2/type-runner.mjs": "60f6ee657366eb3c77a90f760eef1c02c43268073dbbe539bdb273a978bdb6c6",
+    "execution-v2/worker.mjs": "8e227bd26327d211f91c1bef8329cf673ba0d6afc53f88751074b75329972719",
+    "glob-cases.json": "19ee987b233f3e2311f6cdfd5f94b76150439f489d7b2fb07024e46c8cd1a74f",
+    "glob-fixtures.json": "b3a6de71a083b1df4f9f4deaab54fd88ecc8590864015ca5cd07ae5a6f96d90a",
+    "negative-api.mts.fixture": "80b282bba69755d525b9063b3995fc73cc755c868d7af16a31635e5d098d478b",
+    "negative-option.mts.fixture": "3e456d64e5106e1bfd33d2f64be2561722ae7c18d288a9661315a796b0b7c82b",
+    "procedures.json": "78888381a41994031dde725ed8f08e6abb9068b29a700f0120e301639c8a045a",
+    "stack-binding-v1/BINDING.json": "6cbb60b0c55a5ebb81e3a2ffcd539e6b3593d0c51fcbe60f81cd853bb4bbfc39",
+    "stack-binding-v1/CALIBRATION-PROTOCOL.md": "82f775c9025f5c6a6192c86f4e400bc6e0f3d5a961efd4a7e21f3a3968d642e1",
+    "stack-binding-v1/bind.mjs": "6fd04a12d8b1984bb10702387b020efac85982c5010a23aa3c1584f09eb6e3da",
+    "state-cases.json": "7c2f3c74ec0aa959608f7de272296a38dfd2d39efe78930c6c8b34521276c422",
+    "unsupported-names.json": "d1b895861c0bdba9827031e6bedeafea0880cb530969da5d731c0d0bddc4cd23",
+    "verify-freeze.mjs": "588f88c1c6843f4ca87c4f5f06b47f28061f3027844f0e6089784ff8cf7b0130"
+  }
+}

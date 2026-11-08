@@ -1,0 +1,70 @@
+import { expect, it } from "vitest";
+import { FsError, isErrnoCode, isFsError, toFsError } from "../src/contracts/errors.js";
+
+it("preserves a genuine nonseekable-descriptor error", () => {
+  const original = { code: "ESPIPE", syscall: "lseek", path: "/pipe" };
+  const error = toFsError(original);
+  expect(isErrnoCode("ESPIPE")).toBe(true);
+  expect(error).toMatchObject({ code: "ESPIPE", syscall: "lseek", path: "/pipe", cause: original });
+});
+
+it("constructs illegal-seek errors without changing their canonical identity", () => {
+  const error = new FsError("ESPIPE", { syscall: "lseek", path: "/pipe" });
+  expect(error.message).toBe("ESPIPE: illegal seek, lseek '/pipe'");
+  expect(toFsError(error)).toBe(error);
+});
+
+it("supports >85 character legal paths and enforces 255-byte limits without global Buffer", async () => {
+  const { MemoryFileSystem } = await import("../src/fs/memory/index.js");
+  const { createDeviceFileSystem } = await import("../src/fs/devices/index.js");
+  const savedBuffer = globalThis.Buffer;
+  // @ts-expect-error simulate browser runtime without global Buffer
+  delete globalThis.Buffer;
+  try {
+    const mem = new MemoryFileSystem();
+    const devFs = createDeviceFileSystem(mem);
+    const legal86 = "/" + "a".repeat(86);
+    await devFs.writeFile(legal86, Uint8Array.of(1));
+    expect(await devFs.readFile(legal86)).toEqual(Uint8Array.of(1));
+    const symlink86 = "/" + "b".repeat(86);
+    await devFs.symlink(legal86, symlink86);
+    expect(await devFs.readFile(symlink86)).toEqual(Uint8Array.of(1));
+    const tooLongAscii = "/" + "a".repeat(256);
+    await expect(devFs.writeFile(tooLongAscii, Uint8Array.of(1))).rejects.toMatchObject({ code: "ENAMETOOLONG" });
+    const tooLongMultibyte = "/" + "€".repeat(86); // 86 * 3 = 258 bytes
+    await expect(devFs.writeFile(tooLongMultibyte, Uint8Array.of(1))).rejects.toMatchObject({ code: "ENAMETOOLONG" });
+    expect(mem.canonicalizeMissingTarget("/" + "m".repeat(86))).toBe("/" + "m".repeat(86));
+    expect(() => mem.canonicalizeMissingTarget(tooLongMultibyte)).toThrow(/ENAMETOOLONG/);
+  } finally {
+    globalThis.Buffer = savedBuffer;
+  }
+});
+
+it("recognizes FsError instances across separate module realms via symbol brand", () => {
+  const foreign = Object.assign(new Error("ENOENT: no such file or directory"), {
+    name: "FsError",
+    code: "ENOENT",
+    errno: -2,
+    [Symbol.for("@poe-code/safe-fs.FsError")]: true,
+  });
+  expect(foreign instanceof FsError).toBe(true);
+  expect(isFsError(foreign, "ENOENT")).toBe(true);
+  expect(isFsError(foreign, "EACCES")).toBe(false);
+});
+
+it("keeps subclass checks specific while recognizing the base error across bundles", () => {
+  class QuotaError extends FsError {}
+  class OtherError extends FsError {}
+  class ChildQuotaError extends QuotaError {}
+  const ordinary = new FsError("ENOENT");
+  const quota = new QuotaError("EFBIG");
+  const child = new ChildQuotaError("EFBIG");
+  const foreign = Object.assign(new Error("foreign"), { code: "ENOENT", [Symbol.for("@poe-code/safe-fs.FsError")]: true });
+  expect(ordinary instanceof QuotaError).toBe(false);
+  expect(quota instanceof OtherError).toBe(false);
+  expect(foreign instanceof QuotaError).toBe(false);
+  expect(quota instanceof QuotaError).toBe(true);
+  expect(child instanceof QuotaError).toBe(true);
+  expect(quota instanceof FsError).toBe(true);
+  expect(foreign instanceof FsError).toBe(true);
+});

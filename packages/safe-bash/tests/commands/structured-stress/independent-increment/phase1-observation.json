@@ -1,0 +1,2601 @@
+{
+  "capturedAt": "2026-08-26T20:40:23.489Z",
+  "vectorHash": "924634ea7933a6b14be1295f65cd0f68485133975961572acab41fc307595a66",
+  "sourceHashes": {
+    "input.ts": "c68b78e64b99690614314e33b9fcdf458ec3589de01192da9655104101d1e829",
+    "jq.ts": "b30ccbdf9ae59b41cb8deec1e5245e5c3ddcc6688e1624e2526f742fb00063b4",
+    "interpreter.ts": "18a6ec16d29f434244c78c2f842ed1c1e716e5c03d9b65c605a38a2ea02b2b93",
+    "parser.ts": "e5778a10fc6fefb211c3c4aa39edd937fb372803a0c92e4f0c3557fc184adbfd",
+    "limits.ts": "f55d8f084b980633247a193802226e54c92164434cabfd7e7ae8b460999d4bb0",
+    "values.ts": "d4816d016c7e889b4944703410bdbdbb3a05445d9f6bdba14b9bde2c1651830d"
+  },
+  "counts": {
+    "cases": 140,
+    "exact": 47,
+    "semantic": 85,
+    "diagnostic-only": 8
+  },
+  "categories": {
+    "object-iteration": {
+      "cases": 21,
+      "exact": 1,
+      "semantic": 20,
+      "diagnostic-only": 0
+    },
+    "numeric-identity": {
+      "cases": 12,
+      "exact": 1,
+      "semantic": 11,
+      "diagnostic-only": 0
+    },
+    "numeric-conversion": {
+      "cases": 12,
+      "exact": 1,
+      "semantic": 11,
+      "diagnostic-only": 0
+    },
+    "numeric-length": {
+      "cases": 12,
+      "exact": 9,
+      "semantic": 3,
+      "diagnostic-only": 0
+    },
+    "numeric-transform": {
+      "cases": 13,
+      "exact": 1,
+      "semantic": 11,
+      "diagnostic-only": 1
+    },
+    "raw-join": {
+      "cases": 28,
+      "exact": 26,
+      "semantic": 2,
+      "diagnostic-only": 0
+    },
+    "error-ordering": {
+      "cases": 18,
+      "exact": 5,
+      "semantic": 8,
+      "diagnostic-only": 5
+    },
+    "utf8": {
+      "cases": 18,
+      "exact": 0,
+      "semantic": 16,
+      "diagnostic-only": 2
+    },
+    "file-boundary": {
+      "cases": 3,
+      "exact": 2,
+      "semantic": 1,
+      "diagnostic-only": 0
+    },
+    "pipeline": {
+      "cases": 3,
+      "exact": 1,
+      "semantic": 2,
+      "diagnostic-only": 0
+    }
+  },
+  "results": [
+    {
+      "id": "object-vacant-any(empty)",
+      "category": "object-iteration",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "66616c73650a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20616e7920726571756972657320616e2061727261790a"
+      }
+    },
+    {
+      "id": "object-vacant-all(empty)",
+      "category": "object-iteration",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "747275650a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20616c6c20726571756972657320616e2061727261790a"
+      }
+    },
+    {
+      "id": "object-vacant-any",
+      "category": "object-iteration",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "66616c73650a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20616e7920726571756972657320616e2061727261790a"
+      }
+    },
+    {
+      "id": "object-vacant-all",
+      "category": "object-iteration",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "747275650a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20616c6c20726571756972657320616e2061727261790a"
+      }
+    },
+    {
+      "id": "object-vacant-any(. == 7)",
+      "category": "object-iteration",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "66616c73650a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20616e7920726571756972657320616e2061727261790a"
+      }
+    },
+    {
+      "id": "object-vacant-all(. != null)",
+      "category": "object-iteration",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "747275650a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20616c6c20726571756972657320616e2061727261790a"
+      }
+    },
+    {
+      "id": "object-vacant-any(.[]; . == 7)",
+      "category": "object-iteration",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "66616c73650a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 3,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20756e737570706f727465642066756e6374696f6e20616e792f32206174206f66667365742031360a"
+      }
+    },
+    {
+      "id": "object-vacant-all(.[]; . != null)",
+      "category": "object-iteration",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "747275650a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 3,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20756e737570706f727465642066756e6374696f6e20616c6c2f32206174206f66667365742031390a"
+      }
+    },
+    {
+      "id": "object-vacant-optional-empty",
+      "category": "object-iteration",
+      "classification": "semantic",
+      "differingFields": [
+        "stdoutHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "5b66616c73652c747275655d0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "5b5d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "object-ordered-any(empty)",
+      "category": "object-iteration",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "66616c73650a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20616e7920726571756972657320616e2061727261790a"
+      }
+    },
+    {
+      "id": "object-ordered-all(empty)",
+      "category": "object-iteration",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "747275650a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20616c6c20726571756972657320616e2061727261790a"
+      }
+    },
+    {
+      "id": "object-ordered-any",
+      "category": "object-iteration",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "747275650a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20616e7920726571756972657320616e2061727261790a"
+      }
+    },
+    {
+      "id": "object-ordered-all",
+      "category": "object-iteration",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "66616c73650a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20616c6c20726571756972657320616e2061727261790a"
+      }
+    },
+    {
+      "id": "object-ordered-any(. == 7)",
+      "category": "object-iteration",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "747275650a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20616e7920726571756972657320616e2061727261790a"
+      }
+    },
+    {
+      "id": "object-ordered-all(. != null)",
+      "category": "object-iteration",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "66616c73650a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20616c6c20726571756972657320616e2061727261790a"
+      }
+    },
+    {
+      "id": "object-ordered-any(.[]; . == 7)",
+      "category": "object-iteration",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "747275650a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 3,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20756e737570706f727465642066756e6374696f6e20616e792f32206174206f66667365742031360a"
+      }
+    },
+    {
+      "id": "object-ordered-all(.[]; . != null)",
+      "category": "object-iteration",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "66616c73650a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 3,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20756e737570706f727465642066756e6374696f6e20616c6c2f32206174206f66667365742031390a"
+      }
+    },
+    {
+      "id": "object-ordered-optional-empty",
+      "category": "object-iteration",
+      "classification": "semantic",
+      "differingFields": [
+        "stdoutHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "5b66616c73652c747275655d0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "5b5d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "short-any",
+      "category": "object-iteration",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "747275650a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20616e7920726571756972657320616e2061727261790a"
+      }
+    },
+    {
+      "id": "short-all",
+      "category": "object-iteration",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "66616c73650a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20616c6c20726571756972657320616e2061727261790a"
+      }
+    },
+    {
+      "id": "empty-condition-array",
+      "category": "object-iteration",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "5b66616c73652c747275655d0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "5b66616c73652c747275655d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "number-scale-identity",
+      "category": "numeric-identity",
+      "classification": "semantic",
+      "differingFields": [
+        "stdoutHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "31322e333430300a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "31322e33340a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "number-scale-conversion",
+      "category": "numeric-conversion",
+      "classification": "semantic",
+      "differingFields": [
+        "stdoutHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "5b2231322e33343030222c2231322e33343030222c2231322e33343030225d0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "5b2231322e3334222c2231322e3334222c2231322e3334225d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "number-scale-length",
+      "category": "numeric-length",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "31322e33340a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "31322e33340a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "number-positive-exponent-identity",
+      "category": "numeric-identity",
+      "classification": "semantic",
+      "differingFields": [
+        "stdoutHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "342e32452b330a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "343230300a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "number-positive-exponent-conversion",
+      "category": "numeric-conversion",
+      "classification": "semantic",
+      "differingFields": [
+        "stdoutHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "5b22342e32452b33222c22342e32452b33222c22342e32452b33225d0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "5b2234323030222c2234323030222c2234323030225d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "number-positive-exponent-length",
+      "category": "numeric-length",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "343230300a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "343230300a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "number-negative-exponent-identity",
+      "category": "numeric-identity",
+      "classification": "semantic",
+      "differingFields": [
+        "stdoutHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "342e32452d380a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "342e32652d380a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "number-negative-exponent-conversion",
+      "category": "numeric-conversion",
+      "classification": "semantic",
+      "differingFields": [
+        "stdoutHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "5b22342e32452d38222c22342e32452d38222c22342e32452d38225d0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "5b22342e32652d38222c22342e32652d38222c22342e32652d38225d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "number-negative-exponent-length",
+      "category": "numeric-length",
+      "classification": "semantic",
+      "differingFields": [
+        "stdoutHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "342e32652d30380a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "342e32652d380a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "number-negative-zero-identity",
+      "category": "numeric-identity",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "2d300a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "2d300a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "number-negative-zero-conversion",
+      "category": "numeric-conversion",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "5b222d30222c222d30222c222d30225d0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "5b222d30222c222d30222c222d30225d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "number-negative-zero-length",
+      "category": "numeric-length",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "300a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "300a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "number-negative-zero-scale-identity",
+      "category": "numeric-identity",
+      "classification": "semantic",
+      "differingFields": [
+        "stdoutHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "2d302e3030300a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "2d300a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "number-negative-zero-scale-conversion",
+      "category": "numeric-conversion",
+      "classification": "semantic",
+      "differingFields": [
+        "stdoutHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "5b222d302e303030222c222d302e303030222c222d302e303030225d0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "5b222d30222c222d30222c222d30225d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "number-negative-zero-scale-length",
+      "category": "numeric-length",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "300a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "300a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "number-exponent-zero-identity",
+      "category": "numeric-identity",
+      "classification": "semantic",
+      "differingFields": [
+        "stdoutHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "30452d31300a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "300a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "number-exponent-zero-conversion",
+      "category": "numeric-conversion",
+      "classification": "semantic",
+      "differingFields": [
+        "stdoutHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "5b2230452d3130222c2230452d3130222c2230452d3130225d0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "5b2230222c2230222c2230225d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "number-exponent-zero-length",
+      "category": "numeric-length",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "300a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "300a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "number-large-integer-identity",
+      "category": "numeric-identity",
+      "classification": "semantic",
+      "differingFields": [
+        "stdoutHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "393030373139393235343734303939330a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "393030373139393235343734303939320a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "number-large-integer-conversion",
+      "category": "numeric-conversion",
+      "classification": "semantic",
+      "differingFields": [
+        "stdoutHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "5b2239303037313939323534373430393933222c2239303037313939323534373430393933222c2239303037313939323534373430393933225d0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "5b2239303037313939323534373430393932222c2239303037313939323534373430393932222c2239303037313939323534373430393932225d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "number-large-integer-length",
+      "category": "numeric-length",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "393030373139393235343734303939320a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "393030373139393235343734303939320a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "number-long-fraction-identity",
+      "category": "numeric-identity",
+      "classification": "semantic",
+      "differingFields": [
+        "stdoutHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "302e3132333435363738393031323334353637383930310a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "302e31323334353637383930313233343536380a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "number-long-fraction-conversion",
+      "category": "numeric-conversion",
+      "classification": "semantic",
+      "differingFields": [
+        "stdoutHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "5b22302e313233343536373839303132333435363738393031222c22302e313233343536373839303132333435363738393031222c22302e313233343536373839303132333435363738393031225d0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "5b22302e3132333435363738393031323334353638222c22302e3132333435363738393031323334353638222c22302e3132333435363738393031323334353638225d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "number-long-fraction-length",
+      "category": "numeric-length",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "302e31323334353637383930313233343536380a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "302e31323334353637383930313233343536380a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "number-large-magnitude-identity",
+      "category": "numeric-identity",
+      "classification": "semantic",
+      "differingFields": [
+        "stdoutHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "3132333435363738393031323334353637383930313233343536373839300a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "312e32333435363738393031323334353638652b32390a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "number-large-magnitude-conversion",
+      "category": "numeric-conversion",
+      "classification": "semantic",
+      "differingFields": [
+        "stdoutHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "5b22313233343536373839303132333435363738393031323334353637383930222c22313233343536373839303132333435363738393031323334353637383930222c22313233343536373839303132333435363738393031323334353637383930225d0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "5b22312e32333435363738393031323334353638652b3239222c22312e32333435363738393031323334353638652b3239222c22312e32333435363738393031323334353638652b3239225d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "number-large-magnitude-length",
+      "category": "numeric-length",
+      "classification": "semantic",
+      "differingFields": [
+        "stdoutHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "3132333435363738393031323334353638303030303030303030303030300a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "312e32333435363738393031323334353638652b32390a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "number-overflow-identity",
+      "category": "numeric-identity",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "31452b3430300a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206e6f6e66696e697465206e756d6265727320617265206e6f7420737570706f727465640a"
+      }
+    },
+    {
+      "id": "number-overflow-conversion",
+      "category": "numeric-conversion",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "5b2231452b343030222c2231452b343030222c2231452b343030225d0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206e6f6e66696e697465206e756d6265727320617265206e6f7420737570706f727465640a"
+      }
+    },
+    {
+      "id": "number-overflow-length",
+      "category": "numeric-length",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "312e37393736393331333438363233313537652b3330380a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206e6f6e66696e697465206e756d6265727320617265206e6f7420737570706f727465640a"
+      }
+    },
+    {
+      "id": "number-underflow-identity",
+      "category": "numeric-identity",
+      "classification": "semantic",
+      "differingFields": [
+        "stdoutHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "31452d3430300a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "300a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "number-underflow-conversion",
+      "category": "numeric-conversion",
+      "classification": "semantic",
+      "differingFields": [
+        "stdoutHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "5b2231452d343030222c2231452d343030222c2231452d343030225d0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "5b2230222c2230222c2230225d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "number-underflow-length",
+      "category": "numeric-length",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "300a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "300a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "number-binary-rounding-identity",
+      "category": "numeric-identity",
+      "classification": "semantic",
+      "differingFields": [
+        "stdoutHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "312e303030303030303030303030303030310a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "310a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "number-binary-rounding-conversion",
+      "category": "numeric-conversion",
+      "classification": "semantic",
+      "differingFields": [
+        "stdoutHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "5b22312e30303030303030303030303030303031222c22312e30303030303030303030303030303031222c22312e30303030303030303030303030303031225d0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "5b2231222c2231222c2231225d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "number-binary-rounding-length",
+      "category": "numeric-length",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "310a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "310a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "literal-scale",
+      "category": "numeric-transform",
+      "classification": "semantic",
+      "differingFields": [
+        "stdoutHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "5b31322e333430302c342e32452b332c2d302c393030373139393235343734303939335d0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "5b31322e33342c343230302c2d302c393030373139393235343734303939325d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "arithmetic-rounding",
+      "category": "numeric-transform",
+      "classification": "semantic",
+      "differingFields": [
+        "stdoutHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "5b393030373139393235343734303939332c393030373139393235343734303939322c393030373139393235343734303939322c393030373139393235343734303939322c393030373139393235343734303939325d0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "5b393030373139393235343734303939322c393030373139393235343734303939322c393030373139393235343734303939322c393030373139393235343734303939322c393030373139393235343734303939325d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "signed-arithmetic-zero",
+      "category": "numeric-transform",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "5b2d302c302c2d302c305d0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "5b2d302c302c2d302c305d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "small-double",
+      "category": "numeric-transform",
+      "classification": "semantic",
+      "differingFields": [
+        "stdoutHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "5b332e33333333333333333333333333333334652d30382c31652d30362c31652d30375d0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "5b332e33333333333333333333333333333334652d382c302e3030303030312c31652d375d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "large-double",
+      "category": "numeric-transform",
+      "classification": "semantic",
+      "differingFields": [
+        "stdoutHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "5b31652b32302c31652b32315d0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "5b3130303030303030303030303030303030303030302c31652b32315d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "copy-nested",
+      "category": "numeric-transform",
+      "classification": "semantic",
+      "differingFields": [
+        "stdoutHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7b22636f7079223a7b226e223a31322e333430302c2261223a5b342e32452b332c393030373139393235343734303939335d7d2c226669656c64223a31322e333430302c226172726179223a5b342e32452b332c393030373139393235343734303939335d7d0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "7b22636f7079223a7b226e223a31322e33342c2261223a5b343230302c393030373139393235343734303939325d7d2c226669656c64223a31322e33342c226172726179223a5b343230302c393030373139393235343734303939325d7d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "update-unrelated",
+      "category": "numeric-transform",
+      "classification": "semantic",
+      "differingFields": [
+        "stdoutHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7b226b656570223a393030373139393235343734303939332c226368616e6765223a31332e33347d0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "7b226b656570223a393030373139393235343734303939322c226368616e6765223a31332e33347d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "decimal-equality",
+      "category": "numeric-transform",
+      "classification": "semantic",
+      "differingFields": [
+        "stdoutHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "66616c73650a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "747275650a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "decimal-order",
+      "category": "numeric-transform",
+      "classification": "semantic",
+      "differingFields": [
+        "stdoutHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "747275650a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "66616c73650a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "decimal-unique",
+      "category": "numeric-transform",
+      "classification": "semantic",
+      "differingFields": [
+        "stdoutHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "5b393030373139393235343734303939322c393030373139393235343734303939335d0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "5b393030373139393235343734303939325d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "tonumber",
+      "category": "numeric-transform",
+      "classification": "semantic",
+      "differingFields": [
+        "stdoutHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "31322e333430300a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "31322e33340a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "fromjson",
+      "category": "numeric-transform",
+      "classification": "diagnostic-only",
+      "differingFields": [
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a30293a20556e66696e6973686564204a534f4e207465726d20617420454f46206174206c696e6520312c20636f6c756d6e203120287768696c652070617273696e6720277b27290a6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c206174206c696e6520312c20636f6c756d6e20350a"
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20696e76616c6964204a534f4e20696e707574206174206f666673657420310a"
+      }
+    },
+    {
+      "id": "argjson-precision",
+      "category": "numeric-transform",
+      "classification": "semantic",
+      "differingFields": [
+        "stdoutHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "393030373139393235343734303939330a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "393030373139393235343734303939320a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "unicode-records",
+      "category": "raw-join",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "5b2241f09f98805c72222c335d0a5b22e99baa222c315d0a5b22222c305d0a5b226c617374222c345d0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "5b2241f09f98805c72222c335d0a5b22e99baa222c315d0a5b22222c305d0a5b226c617374222c345d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "unicode-records:bytewise",
+      "category": "raw-join",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "5b2241f09f98805c72222c335d0a5b22e99baa222c315d0a5b22222c305d0a5b226c617374222c345d0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "5b2241f09f98805c72222c335d0a5b22e99baa222c315d0a5b22222c305d0a5b226c617374222c345d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "unicode-join",
+      "category": "raw-join",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "41f09f98800de99baa6c617374",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "41f09f98800de99baa6c617374",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "unicode-join:bytewise",
+      "category": "raw-join",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "41f09f98800de99baa6c617374",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "41f09f98800de99baa6c617374",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "unicode-slurp",
+      "category": "raw-join",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "41f09f98800d0ae99baa0a0a6c617374",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "41f09f98800d0ae99baa0a0a6c617374",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "unicode-slurp:bytewise",
+      "category": "raw-join",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "41f09f98800d0ae99baa0a0a6c617374",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "41f09f98800d0ae99baa0a0a6c617374",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "raw-empty-record",
+      "category": "raw-join",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "22220a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "22220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "raw-empty-record:bytewise",
+      "category": "raw-join",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "22220a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "22220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "raw-empty-slurp",
+      "category": "raw-join",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "22220a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "22220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "raw-empty-slurp:bytewise",
+      "category": "raw-join",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "22220a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "22220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "raw-empty-stream",
+      "category": "raw-join",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 4,
+        "stdoutHex": "",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 4,
+        "stdoutHex": "",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "raw-empty-stream:bytewise",
+      "category": "raw-join",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 4,
+        "stdoutHex": "",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 4,
+        "stdoutHex": "",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "raw-nul",
+      "category": "raw-join",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "6100620d00",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "6100620d00",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "raw-nul:bytewise",
+      "category": "raw-join",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "6100620d00",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "6100620d00",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "raw-bom",
+      "category": "raw-join",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "22efbbbf6f6e65220a22efbbbf74776f220a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "22efbbbf6f6e65220a22efbbbf74776f220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "raw-bom:bytewise",
+      "category": "raw-join",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "22efbbbf6f6e65220a22efbbbf74776f220a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "22efbbbf6f6e65220a22efbbbf74776f220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "join-mixed",
+      "category": "raw-join",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520312c20636f6c756d6e2032340a"
+      },
+      "actual": {
+        "status": 3,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20696e76616c696420737472696e67206174206f666673657420360a"
+      }
+    },
+    {
+      "id": "join-mixed:bytewise",
+      "category": "raw-join",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520312c20636f6c756d6e2032340a"
+      },
+      "actual": {
+        "status": 3,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20696e76616c696420737472696e67206174206f666673657420360a"
+      }
+    },
+    {
+      "id": "join-object-order",
+      "category": "raw-join",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7a2f612f702f",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "7a2f612f702f",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "join-object-order:bytewise",
+      "category": "raw-join",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7a2f612f702f",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "7a2f612f702f",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "join-json-output",
+      "category": "raw-join",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "617c62612f627b226f6b223a747275657d",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "617c62612f627b226f6b223a747275657d",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "join-json-output:bytewise",
+      "category": "raw-join",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "617c62612f627b226f6b223a747275657d",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "617c62612f627b226f6b223a747275657d",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "join-exit-last-false",
+      "category": "raw-join",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 1,
+        "stdoutHex": "70726566697866616c7365",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 1,
+        "stdoutHex": "70726566697866616c7365",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "join-exit-last-false:bytewise",
+      "category": "raw-join",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 1,
+        "stdoutHex": "70726566697866616c7365",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 1,
+        "stdoutHex": "70726566697866616c7365",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "join-exit-empty",
+      "category": "raw-join",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 4,
+        "stdoutHex": "",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 4,
+        "stdoutHex": "",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "join-exit-empty:bytewise",
+      "category": "raw-join",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 4,
+        "stdoutHex": "",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 4,
+        "stdoutHex": "",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "json-multibyte",
+      "category": "raw-join",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "2241f09f9880e99baa220a7b22c3a9223a22f09d849e227d0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "2241f09f9880e99baa220a7b22c3a9223a22f09d849e227d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "json-multibyte:bytewise",
+      "category": "raw-join",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "2241f09f9880e99baa220a7b22c3a9223a22f09d849e227d0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "2241f09f9880e99baa220a7b22c3a9223a22f09d849e227d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "separator-empty-prunes-error",
+      "category": "error-ordering",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "5b5d0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "5b5d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "separator-error-after-prefix",
+      "category": "error-ordering",
+      "classification": "diagnostic-only",
+      "differingFields": [
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 5,
+        "stdoutHex": "702f71",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a30293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "702f71",
+        "stderrHex": "6a713a206469766973696f6e206279207a65726f0a"
+      }
+    },
+    {
+      "id": "separator-error-caught",
+      "category": "error-ordering",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "5b22702f71225d0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "5b22702f71225d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "separator-limit-lazy",
+      "category": "error-ordering",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "702f71",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "702f71",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "separator-first-empty",
+      "category": "error-ordering",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "cartesian-generators",
+      "category": "error-ordering",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "5b5b22612f62222c335d2c5b22612162222c335d2c5b22632f64222c335d2c5b22632164222c335d5d0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "5b5b22612f62222c335d2c5b22612162222c335d2c5b22632f64222c335d2c5b22632164222c335d5d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "recover-following-json",
+      "category": "error-ordering",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "6f6b6166746572",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a32293a20737472696e67202822222920616e64206f626a65637420287b7d292063616e6e6f742062652061646465640a"
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "6f6b",
+        "stderrHex": "6a713a206a6f696e20656c656d656e7473206d75737420626520737472696e67732c206e756d626572732c20626f6f6c65616e73206f72206e756c6c0a"
+      }
+    },
+    {
+      "id": "recover-following-json:bytewise",
+      "category": "error-ordering",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "6f6b6166746572",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a32293a20737472696e67202822222920616e64206f626a65637420287b7d292063616e6e6f742062652061646465640a"
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "6f6b",
+        "stderrHex": "6a713a206a6f696e20656c656d656e7473206d75737420626520737472696e67732c206e756d626572732c20626f6f6c65616e73206f72206e756c6c0a"
+      }
+    },
+    {
+      "id": "recover-following-json-exit",
+      "category": "error-ordering",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "6f6b6166746572",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a32293a20737472696e67202822222920616e64206f626a65637420287b7d292063616e6e6f742062652061646465640a"
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "6f6b",
+        "stderrHex": "6a713a206a6f696e20656c656d656e7473206d75737420626520737472696e67732c206e756d626572732c20626f6f6c65616e73206f72206e756c6c0a"
+      }
+    },
+    {
+      "id": "recover-following-json-exit:bytewise",
+      "category": "error-ordering",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "6f6b6166746572",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a32293a20737472696e67202822222920616e64206f626a65637420287b7d292063616e6e6f742062652061646465640a"
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "6f6b",
+        "stderrHex": "6a713a206a6f696e20656c656d656e7473206d75737420626520737472696e67732c206e756d626572732c20626f6f6c65616e73206f72206e756c6c0a"
+      }
+    },
+    {
+      "id": "recover-following-raw",
+      "category": "error-ordering",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "6f6b6166746572",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a32293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "6f6b",
+        "stderrHex": "6a713a206469766973696f6e206279207a65726f0a"
+      }
+    },
+    {
+      "id": "recover-following-raw:bytewise",
+      "category": "error-ordering",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "6f6b6166746572",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a32293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "6f6b",
+        "stderrHex": "6a713a206469766973696f6e206279207a65726f0a"
+      }
+    },
+    {
+      "id": "recover-final-error",
+      "category": "error-ordering",
+      "classification": "diagnostic-only",
+      "differingFields": [
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 5,
+        "stdoutHex": "6f6b",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a32293a20737472696e67202822222920616e64206f626a65637420287b7d292063616e6e6f742062652061646465640a"
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "6f6b",
+        "stderrHex": "6a713a206a6f696e20656c656d656e7473206d75737420626520737472696e67732c206e756d626572732c20626f6f6c65616e73206f72206e756c6c0a"
+      }
+    },
+    {
+      "id": "recover-final-error:bytewise",
+      "category": "error-ordering",
+      "classification": "diagnostic-only",
+      "differingFields": [
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 5,
+        "stdoutHex": "6f6b",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a32293a20737472696e67202822222920616e64206f626a65637420287b7d292063616e6e6f742062652061646465640a"
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "6f6b",
+        "stderrHex": "6a713a206a6f696e20656c656d656e7473206d75737420626520737472696e67732c206e756d626572732c20626f6f6c65616e73206f72206e756c6c0a"
+      }
+    },
+    {
+      "id": "recover-internal-generator",
+      "category": "error-ordering",
+      "classification": "semantic",
+      "differingFields": [
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 5,
+        "stdoutHex": "702f71722f73",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a31293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a6a713a206572726f7220286174203c737464696e3e3a32293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "702f71",
+        "stderrHex": "6a713a206469766973696f6e206279207a65726f0a"
+      }
+    },
+    {
+      "id": "recover-internal-generator:bytewise",
+      "category": "error-ordering",
+      "classification": "semantic",
+      "differingFields": [
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 5,
+        "stdoutHex": "702f71722f73",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a31293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a6a713a206572726f7220286174203c737464696e3e3a32293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "702f71",
+        "stderrHex": "6a713a206469766973696f6e206279207a65726f0a"
+      }
+    },
+    {
+      "id": "parse-error-after-prefix",
+      "category": "error-ordering",
+      "classification": "diagnostic-only",
+      "differingFields": [
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 5,
+        "stdoutHex": "702f71",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e6973686564204a534f4e207465726d20617420454f46206174206c696e6520332c20636f6c756d6e20300a"
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "702f71",
+        "stderrHex": "6a713a20696e76616c6964204a534f4e20696e707574206174206f66667365742031310a"
+      }
+    },
+    {
+      "id": "parse-error-after-prefix:bytewise",
+      "category": "error-ordering",
+      "classification": "diagnostic-only",
+      "differingFields": [
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 5,
+        "stdoutHex": "702f71",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e6973686564204a534f4e207465726d20617420454f46206174206c696e6520332c20636f6c756d6e20300a"
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "702f71",
+        "stderrHex": "6a713a20696e76616c6964204a534f4e20696e707574206174206f66667365742031310a"
+      }
+    },
+    {
+      "id": "raw-lone-continuation",
+      "category": "utf8",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd6166746572220a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "226f6b220a",
+        "stderrHex": "6a713a20696e76616c6964205554462d3820696e7075740a"
+      }
+    },
+    {
+      "id": "raw-lone-continuation:bytewise",
+      "category": "utf8",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd6166746572220a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "226f6b220a",
+        "stderrHex": "6a713a20696e76616c6964205554462d3820696e7075740a"
+      }
+    },
+    {
+      "id": "raw-truncated",
+      "category": "utf8",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "6f6befbfbd",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "6f6b",
+        "stderrHex": "6a713a20696e76616c6964205554462d3820696e7075740a"
+      }
+    },
+    {
+      "id": "raw-truncated:bytewise",
+      "category": "utf8",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "6f6befbfbd",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "6f6b",
+        "stderrHex": "6a713a20696e76616c6964205554462d3820696e7075740a"
+      }
+    },
+    {
+      "id": "raw-surrogate",
+      "category": "utf8",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd220a226166746572220a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "226f6b220a",
+        "stderrHex": "6a713a20696e76616c6964205554462d3820696e7075740a"
+      }
+    },
+    {
+      "id": "raw-surrogate:bytewise",
+      "category": "utf8",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd220a226166746572220a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "226f6b220a",
+        "stderrHex": "6a713a20696e76616c6964205554462d3820696e7075740a"
+      }
+    },
+    {
+      "id": "raw-overlong-slurp",
+      "category": "utf8",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "2261efbfbdefbfbd625c6e220a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20696e76616c6964205554462d3820696e7075740a"
+      }
+    },
+    {
+      "id": "raw-overlong-slurp:bytewise",
+      "category": "utf8",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "2261efbfbdefbfbd625c6e220a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20696e76616c6964205554462d3820696e7075740a"
+      }
+    },
+    {
+      "id": "raw-bad-continuation",
+      "category": "utf8",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "22efbfbd41220a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20696e76616c6964205554462d3820696e7075740a"
+      }
+    },
+    {
+      "id": "raw-bad-continuation:bytewise",
+      "category": "utf8",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "22efbfbd41220a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20696e76616c6964205554462d3820696e7075740a"
+      }
+    },
+    {
+      "id": "json-bad-string",
+      "category": "utf8",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd220a226166746572220a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "226f6b220a",
+        "stderrHex": "6a713a20696e76616c6964205554462d3820696e7075740a"
+      }
+    },
+    {
+      "id": "json-bad-string:bytewise",
+      "category": "utf8",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd220a226166746572220a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "226f6b220a",
+        "stderrHex": "6a713a20696e76616c6964205554462d3820696e7075740a"
+      }
+    },
+    {
+      "id": "json-truncated-string",
+      "category": "utf8",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "2261efbfbd220a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20696e76616c6964205554462d3820696e7075740a"
+      }
+    },
+    {
+      "id": "json-truncated-string:bytewise",
+      "category": "utf8",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "2261efbfbd220a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20696e76616c6964205554462d3820696e7075740a"
+      }
+    },
+    {
+      "id": "json-low-surrogate-escape",
+      "category": "utf8",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "22efbfbd220a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20696e76616c6964204a534f4e20696e707574206174206f666673657420380a"
+      }
+    },
+    {
+      "id": "json-low-surrogate-escape:bytewise",
+      "category": "utf8",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "22efbfbd220a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20696e76616c6964204a534f4e20696e707574206174206f666673657420380a"
+      }
+    },
+    {
+      "id": "json-high-surrogate-escape",
+      "category": "utf8",
+      "classification": "diagnostic-only",
+      "differingFields": [
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964205c75585858585c755858585820737572726f67617465207061697220657363617065206174206c696e6520312c20636f6c756d6e20380a"
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20696e76616c6964204a534f4e20696e707574206174206f666673657420380a"
+      }
+    },
+    {
+      "id": "json-high-surrogate-escape:bytewise",
+      "category": "utf8",
+      "classification": "diagnostic-only",
+      "differingFields": [
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964205c75585858585c755858585820737572726f67617465207061697220657363617065206174206c696e6520312c20636f6c756d6e20380a"
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20696e76616c6964204a534f4e20696e707574206174206f666673657420380a"
+      }
+    },
+    {
+      "id": "raw-file-record-boundary",
+      "category": "file-boundary",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "226c656674f09f98807269676874220a226c617374220a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "226c656674f09f98807269676874220a226c617374220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "raw-file-utf8-boundary",
+      "category": "file-boundary",
+      "classification": "semantic",
+      "differingFields": [
+        "status",
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "2241efbfbdefbfbdefbfbd220a2242220a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a20696e76616c6964205554462d3820696e7075740a"
+      }
+    },
+    {
+      "id": "raw-repeated-stdin",
+      "category": "file-boundary",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "2278220a2279220a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "2278220a2279220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "pipe-raw-select-join",
+      "category": "pipeline",
+      "classification": "exact",
+      "differingFields": [],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "616c7068617cceb26574617c6f6d656761616c7068612fceb26574612f6f6d656761",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "616c7068617cceb26574617c6f6d656761616c7068612fceb26574612f6f6d656761",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "pipe-numeric-roundtrip",
+      "category": "pipeline",
+      "classification": "semantic",
+      "differingFields": [
+        "stdoutHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "393030373139393235343734303939333b342e32452b333b31322e33343030",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "393030373139393235343734303939323b343230303b31322e3334",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "pipe-error-recovery",
+      "category": "pipeline",
+      "classification": "semantic",
+      "differingFields": [
+        "stdoutHex",
+        "stderrHex"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "6265666f72657c6166746572",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a32293a20737472696e67202822222920616e64206f626a65637420287b7d292063616e6e6f742062652061646465640a"
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "6265666f7265",
+        "stderrHex": "6a713a206a6f696e20656c656d656e7473206d75737420626520737472696e67732c206e756d626572732c20626f6f6c65616e73206f72206e756c6c0a"
+      }
+    }
+  ]
+}

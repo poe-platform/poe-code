@@ -1,0 +1,579 @@
+{
+  "schema": 1,
+  "startedAt": "2026-08-27T18:47:42.640Z",
+  "finishedAt": "2026-08-27T18:47:55.298Z",
+  "exactCandidate": "9a5a6f922beb1bc6ba84a0cd32ea7a12f8ce985d",
+  "freezeCommits": {
+    "initial": "510c621e1dfa8f7ffba1d796f5f7e55d967368e2",
+    "refinedV2": "8c28d7c848311372cbef5ec3e4facff546baf0a8",
+    "baselineEvidence": "82e97559330cff52f63f22c7d5fd80185fe65f44",
+    "handoff": "87833f33cb7fa6d2a6c098201dd53fe5404a7fcb",
+    "combinedCandidateEvidence": "c5fe1a68"
+  },
+  "archive": {
+    "selectedInputs": [
+      "package.json",
+      "package-lock.json",
+      "tsconfig.json",
+      "tsconfig.build.json",
+      "src",
+      "tests/commands/du/backends.test.ts",
+      "tests/commands/du/behavior.test.ts",
+      "tests/commands/du/helpers.ts",
+      "tests/fs/overlay/allocation.test.ts",
+      "tests/fs/overlay/allocation-evidence/README.md",
+      "tests/fs/overlay/adversarial.test.ts",
+      "tests/fs/overlay/helpers.ts",
+      "tests/fs/webdav/mock.ts"
+    ],
+    "inputCount": 249,
+    "sha256": "b6c8055a335f5a3e316501267d5ed4590a765cf380cc44eec9d0e84774321381",
+    "postRunDetectsNewEntries": true,
+    "immutableAfterRun": true
+  },
+  "relevantSourceHashes": {
+    "src/fs/overlay/index.ts": "829352e34a662868ddac3385317bf2f7eea8f605ea55e995865a6dd95ddc0d17",
+    "src/commands/du/arguments.ts": "1c25d25f2c1464b2b47e9a574d8c786c032d2c5f80b231d15e444a7020a3c409",
+    "src/commands/du/du.ts": "89a7e96bd08f72fd91a140841cf4dd362ba7e741374ec31e476b2db480cbaf03",
+    "src/commands/du/index.ts": "73a4ea414b6a6325fb8c4c507fc8f86e7b6b743cb2b94f13437ef42f4d545cd7"
+  },
+  "outputHashes": {
+    "builtDuSha256": "b8257103248aa0f4a21cb6dab6d916661a5fb04423e414475e68370807cdc5c4",
+    "builtOverlaySha256": "17244dcf61fe1c33ceb07e9af5d8f87689a76d1895de2594cc0a0be068ea5737",
+    "tarballSha256": "17ea61cadba802e971cdefd545a56c889d28540b378142870cabacab12b67159"
+  },
+  "originalReplay": {
+    "source": {
+      "total": 24,
+      "passed": 24,
+      "failed": 0,
+      "holdouts": {
+        "passed": 17,
+        "failed": 0
+      },
+      "controls": {
+        "passed": 7,
+        "failed": 0
+      }
+    },
+    "movedPackage": {
+      "total": 24,
+      "passed": 24,
+      "failed": 0,
+      "holdouts": {
+        "passed": 17,
+        "failed": 0
+      },
+      "controls": {
+        "passed": 7,
+        "failed": 0
+      }
+    },
+    "parity": true
+  },
+  "refinedReplay": {
+    "source": {
+      "total": 33,
+      "passed": 33,
+      "failed": 0,
+      "byCategory": {
+        "holdout": {
+          "total": 26,
+          "passed": 26,
+          "failed": 0
+        },
+        "positive-control": {
+          "total": 4,
+          "passed": 4,
+          "failed": 0
+        },
+        "negative-control": {
+          "total": 3,
+          "passed": 3,
+          "failed": 0
+        }
+      }
+    },
+    "movedPackage": {
+      "total": 33,
+      "passed": 33,
+      "failed": 0,
+      "byCategory": {
+        "holdout": {
+          "total": 26,
+          "passed": 26,
+          "failed": 0
+        },
+        "positive-control": {
+          "total": 4,
+          "passed": 4,
+          "failed": 0
+        },
+        "negative-control": {
+          "total": 3,
+          "passed": 3,
+          "failed": 0
+        }
+      }
+    },
+    "parity": true
+  },
+  "scopedRegressionsStatus": 0,
+  "package": {
+    "installedThenMoved": true,
+    "movedConsumer": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer",
+    "installedPackage": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/node_modules/virtual-bash",
+    "completeFileCount": 789,
+    "completeHashesMatchTarball": true,
+    "loadProof": {
+      "expectedPackageRoot": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/node_modules/virtual-bash",
+      "records": 56,
+      "uniquePaths": [
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/node_modules/virtual-bash/dist/commands/du/arguments.js",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/node_modules/virtual-bash/dist/commands/du/budget.js",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/node_modules/virtual-bash/dist/commands/du/du.js",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/node_modules/virtual-bash/dist/commands/du/format.js",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/node_modules/virtual-bash/dist/commands/du/index.js",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/node_modules/virtual-bash/dist/commands/du/options.js",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/node_modules/virtual-bash/dist/commands/env-split.js",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/node_modules/virtual-bash/dist/commands/execution.js",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/node_modules/virtual-bash/dist/commands/internal.js",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/node_modules/virtual-bash/dist/contracts/command.js",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/node_modules/virtual-bash/dist/contracts/errors.js",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/node_modules/virtual-bash/dist/contracts/filesystem.js",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/node_modules/virtual-bash/dist/contracts/index.js",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/node_modules/virtual-bash/dist/contracts/io.js",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/node_modules/virtual-bash/dist/contracts/path.js",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/node_modules/virtual-bash/dist/contracts/plugin.js",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/node_modules/virtual-bash/dist/fs/memory/index.js",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/node_modules/virtual-bash/dist/fs/mount/comparison.js",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/node_modules/virtual-bash/dist/fs/mount/identity.js",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/node_modules/virtual-bash/dist/fs/mount/index.js",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/node_modules/virtual-bash/dist/fs/overlay/index.js",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/node_modules/virtual-bash/dist/fs/readonly/index.js",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/node_modules/virtual-bash/dist/fs/s3/authority.js",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/node_modules/virtual-bash/dist/fs/webdav/resource-id.js",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/node_modules/virtual-bash/dist/shell/arithmetic.js",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/node_modules/virtual-bash/dist/shell/cleanup.js",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/node_modules/virtual-bash/dist/shell/display.js",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/node_modules/virtual-bash/dist/shell/index.js",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/node_modules/virtual-bash/dist/shell/input.js",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/node_modules/virtual-bash/dist/shell/locale.js",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/node_modules/virtual-bash/dist/shell/parser.js",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/node_modules/virtual-bash/dist/shell/pattern.js",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/node_modules/virtual-bash/dist/shell/runtime.js",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/node_modules/virtual-bash/dist/shell/shell.js",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/node_modules/virtual-bash/dist/shell/types.js"
+      ],
+      "everyPathInsideMovedPackage": true,
+      "everyNextLoadSourceHashMatchesDisk": true
+    },
+    "runtimeProof": {
+      "consumerRoot": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer",
+      "packageRoot": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/node_modules/virtual-bash",
+      "rootPath": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/node_modules/virtual-bash/dist/index.js",
+      "duPath": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/node_modules/virtual-bash/dist/commands/du/index.js",
+      "rootSha256": "fca3b3db1ff1cfbc8ed59d1eefce52d088839288109990d9fa05bd9200a5aa54",
+      "duSha256": "b8257103248aa0f4a21cb6dab6d916661a5fb04423e414475e68370807cdc5c4",
+      "publicRootDuExportAbsent": true,
+      "publicDuSubpathAbsent": true,
+      "defaultAgentCommandsDuAbsent": true
+    }
+  },
+  "strictTypes": {
+    "status": 0,
+    "skipLibCheck": false,
+    "invalidDeclarationControlStatus": 2
+  },
+  "executableNegativeControls": {
+    "wrongRootStatus": 1,
+    "missingInstalledDuStatus": 1,
+    "behaviorMutantOriginalStatus": 1,
+    "behaviorMutantRefinedStatus": 1,
+    "invalidDeclarationStatus": 2
+  },
+  "harness": {
+    "immutableDuringCapture": true,
+    "inputs": [
+      {
+        "path": "capture-candidate.mjs",
+        "bytes": 24087,
+        "sha256": "e6e435f88e421b9099bf3f23acc053214ec2845b81ac9ee5e86c06e799fbe028"
+      },
+      {
+        "path": "capture-original.mjs",
+        "bytes": 14828,
+        "sha256": "a032d580a77d62287bee82a420b841c759e92d62b92d4890e36cd5e15ae54066"
+      },
+      {
+        "path": "FIXTURE_CORRECTION_V3.md",
+        "bytes": 2264,
+        "sha256": "f7cf6abc9eb5256921136059b95d7d0faa3cb39a3b2f3bc4291e828aea475d43"
+      },
+      {
+        "path": "harness/HOLDOUT_CONTRACT.md",
+        "bytes": 6925,
+        "sha256": "7e2f2381807d685d07ee1af1a28ad98eb406daf32449d14687fe37edf20fd526"
+      },
+      {
+        "path": "harness/HOLDOUT_REFINEMENT_V2.md",
+        "bytes": 9764,
+        "sha256": "5a2cb009eef0a1998db9e7625a7ace9f885e230aa151bc6982bbbca08f064fc2"
+      },
+      {
+        "path": "harness/verify-original.mjs",
+        "bytes": 26190,
+        "sha256": "c08b96e73891995f329583b7d04d7837e1cd66953e13790b906d833f5fcc1c5a"
+      },
+      {
+        "path": "harness/verify-refined-v2.mjs",
+        "bytes": 39711,
+        "sha256": "67f9854e10246f99cc9d2060e05ff51c1ce4be1a965a9e94f627c6ecaa487138"
+      },
+      {
+        "path": "harness/capture-command.mjs",
+        "bytes": 1366,
+        "sha256": "a886384929794c62c682021a4ee28cbad1cd8fbf33fb8e3a76749fc0e4581f35"
+      },
+      {
+        "path": "harness/attest-loader.mjs",
+        "bytes": 1358,
+        "sha256": "856d860f818db6848388be87da7cd59ee4def1bf133abe582206bbd69b083d1d"
+      },
+      {
+        "path": "harness/consumer-v2/package.json",
+        "bytes": 93,
+        "sha256": "52fe278e686f24c3992cd55042b2a5029bc3de967ab198821020c423fe85344f"
+      },
+      {
+        "path": "harness/consumer-v2/tsconfig.json",
+        "bytes": 236,
+        "sha256": "1ece8865863403be31eb2601b88f1739c5412dfe495e7dba65b66e43a2fc607b"
+      },
+      {
+        "path": "harness/consumer-v2/consumer.ts",
+        "bytes": 603,
+        "sha256": "14e55e16f60f8262c2b299fcf48911d2789e3ec1c7b44674dd622f5dab4552b7"
+      },
+      {
+        "path": "harness/consumer-v2/runtime.mjs",
+        "bytes": 1420,
+        "sha256": "61e13d86b50487bb6a768859e75d111d896c3502b9ce1b286637b43da2ad87b5"
+      }
+    ]
+  },
+  "foreignIndexFingerprintAtStart": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+  "foreignIndexFingerprintAtFinish": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+  "childrenAtFinish": [],
+  "workersOrSubagentsCreated": 0,
+  "versions": {
+    "node": "v22.22.2",
+    "npm": "10.9.7",
+    "typescript": "Version 5.9.3"
+  },
+  "steps": [
+    {
+      "name": "git-archive",
+      "command": "git",
+      "args": [
+        "archive",
+        "--format=tar",
+        "--output=/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/candidate-selected.tar",
+        "9a5a6f922beb1bc6ba84a0cd32ea7a12f8ce985d",
+        "--",
+        "package.json",
+        "package-lock.json",
+        "tsconfig.json",
+        "tsconfig.build.json",
+        "src",
+        "tests/commands/du/backends.test.ts",
+        "tests/commands/du/behavior.test.ts",
+        "tests/commands/du/helpers.ts",
+        "tests/fs/overlay/allocation.test.ts",
+        "tests/fs/overlay/allocation-evidence/README.md",
+        "tests/fs/overlay/adversarial.test.ts",
+        "tests/fs/overlay/helpers.ts",
+        "tests/fs/webdav/mock.ts"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "extract",
+      "command": "tar",
+      "args": [
+        "-xf",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/candidate-selected.tar",
+        "-C",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/committed"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "build",
+      "command": "/Users/kjopek/Workspace/safe-bash/node_modules/.bin/tsc",
+      "args": [
+        "-p",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/committed/tsconfig.build.json"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "source-original",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/verify-original.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/committed"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 272684,
+      "stderrBytes": 1232,
+      "stdoutSha256": "37222de6627f171f8e3d4649c14cfc0ff46994ea4787eec04e65ce8072c97a03",
+      "stderrSha256": "dda3727c055596ac8610c62da04757a77499b63c8b47deed2e9bcf82296f45b5"
+    },
+    {
+      "name": "source-refined-v3",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/verify-refined-v2.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/committed"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 846307,
+      "stderrBytes": 1865,
+      "stdoutSha256": "4fc82f04242c3a9b36a4441c65ab15aaf651f9fa64d6fcaa5913d76ef07e73f9",
+      "stderrSha256": "ad6c707a3711cbe4edcd81c659e7adaf3eb10e4d07c02fb7ba680125130370b6"
+    },
+    {
+      "name": "scoped-regressions",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--import",
+        "tsx",
+        "--test",
+        "tests/commands/du/behavior.test.ts",
+        "tests/commands/du/backends.test.ts",
+        "tests/fs/overlay/allocation.test.ts",
+        "tests/fs/overlay/adversarial.test.ts"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 26013,
+      "stderrBytes": 0,
+      "stdoutSha256": "6e8a4746814c7817ed8daf04ccb7e97f6a9815476764cb7eb41a194208b76473",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "npm-pack",
+      "command": "npm",
+      "args": [
+        "pack",
+        "--json",
+        "--pack-destination",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 88698,
+      "stderrBytes": 0,
+      "stdoutSha256": "9fe3f0be21f89cc2d6677bca89a9e8cfb57326e0a4839417f0a544a2aeabe7bc",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "npm-tar-list",
+      "command": "tar",
+      "args": [
+        "-tvf",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/virtual-bash-0.0.0.tgz"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 71141,
+      "stderrBytes": 0,
+      "stdoutSha256": "da6a0fdfb1c8e4328da56b464dc1913689fd2c08d85ebb2c95a9b213ec231dc4",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "npm-tar-extract",
+      "command": "tar",
+      "args": [
+        "-xzf",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/virtual-bash-0.0.0.tgz",
+        "-C",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/unpacked"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "consumer-install-before-move",
+      "command": "npm",
+      "args": [
+        "install",
+        "--ignore-scripts",
+        "--no-audit",
+        "--no-fund",
+        "--no-save",
+        "--package-lock=false",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/virtual-bash-0.0.0.tgz"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 23,
+      "stderrBytes": 0,
+      "stdoutSha256": "a941066d38162d18c88ea4b096d8cf11d19b0d46b973f6d916e2f9b8794e1f36",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "consumer-strict-types",
+      "command": "/Users/kjopek/Workspace/safe-bash/node_modules/.bin/tsc",
+      "args": [
+        "-p",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/tsconfig.json"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "consumer-runtime",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/runtime.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 1173,
+      "stderrBytes": 0,
+      "stdoutSha256": "31d48a40f0a2fe7c8015f0745fed4d67ed0ce5da49a8af345180c8a433502720",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "package-original",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--experimental-loader",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/attest-loader.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/verify-original.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/node_modules/virtual-bash"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 272739,
+      "stderrBytes": 1695,
+      "stdoutSha256": "39b64981034b4371ba6c0be056bd6dc4e2e5f9195d01176b9917e587dd0b3975",
+      "stderrSha256": "5aa14f29887050c96c7f5e9b2699f363a4539927c43a7be922ef0049b54ba5a5"
+    },
+    {
+      "name": "package-refined-v3",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--experimental-loader",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/attest-loader.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/verify-refined-v2.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/relocated-after-install/moved-consumer/node_modules/virtual-bash"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 846747,
+      "stderrBytes": 2328,
+      "stdoutSha256": "0c52e608872da791b407d5ee002b8359a81ecd1c7e77c753dab9d223a3f926a4",
+      "stderrSha256": "cca52c8d29d3ec27a06bad8738e9fa51e8ffd1f6bc656109ad8f9042d7f788cb"
+    },
+    {
+      "name": "negative-wrong-root",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--experimental-loader",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/attest-loader.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/verify-refined-v2.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/committed"
+      ],
+      "status": 1,
+      "signal": null,
+      "stdoutBytes": 0,
+      "stderrBytes": 1137,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "f240db657c2dab3e59e0206e1b15db409a182a77c53892112f04dcf0f7a71435"
+    },
+    {
+      "name": "negative-missing-installed-du",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/verify-refined-v2.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/negative-missing-du/consumer/node_modules/virtual-bash"
+      ],
+      "status": 1,
+      "signal": null,
+      "stdoutBytes": 0,
+      "stderrBytes": 1521,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "5ecb2c504a477f0bbbd9155e15b6fe6657269bddeba8442a955608446309be16"
+    },
+    {
+      "name": "negative-behavior-original",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/verify-original.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/negative-overlay-behavior/consumer/node_modules/virtual-bash"
+      ],
+      "status": 1,
+      "signal": null,
+      "stdoutBytes": 269618,
+      "stderrBytes": 2058,
+      "stdoutSha256": "d304eb2702c1cd30d49c7c9851cbc13153de7d5612b86259a8a5631737ddac2f",
+      "stderrSha256": "a0d850ae411a49a781037451a98b9bbab4772abaeb555da1659916e3ae693525"
+    },
+    {
+      "name": "negative-behavior-refined",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/verify-refined-v2.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/negative-overlay-behavior/consumer/node_modules/virtual-bash"
+      ],
+      "status": 1,
+      "signal": null,
+      "stdoutBytes": 830730,
+      "stderrBytes": 3631,
+      "stdoutSha256": "7261d478cfa7874404680c2f1b51f0032dcf0d48afea6f3cfca4f66f6890759a",
+      "stderrSha256": "f0edd4667b4feb8181efd1542cae76d82b472c68775165736013105d4a1d8b33"
+    },
+    {
+      "name": "negative-invalid-declaration",
+      "command": "/Users/kjopek/Workspace/safe-bash/node_modules/.bin/tsc",
+      "args": [
+        "-p",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/negative-invalid-declaration/consumer/tsconfig.json"
+      ],
+      "status": 2,
+      "signal": null,
+      "stdoutBytes": 90,
+      "stderrBytes": 0,
+      "stdoutSha256": "7ca32cb5b564942769e6e34ef46fc64a82a10432eb8ff2d57c28703c2ac7212d",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

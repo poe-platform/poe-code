@@ -1,0 +1,34 @@
+{
+  "started": "2026-08-27T20:19:51.159Z",
+  "finished": "2026-08-27T20:20:19.965Z",
+  "baseline": "6f2f0abb0fb337715849adf8978d5429d086fb6d",
+  "candidate": "592c864ef62f5a29b1f126c83b6ac532357fb599",
+  "summaries": {
+    "original": {
+      "tests": 241,
+      "pass": 240,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "revised": {
+      "tests": 241,
+      "pass": 241,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    }
+  },
+  "negativeControls": "10/10 rejected",
+  "independentControls": "11/11",
+  "runtimeOriginal": "11/12",
+  "runtimeRevised": "12/12",
+  "historicalOriginal": "240/241 preserved verbatim; new original replay independently 240/241",
+  "fullOutputPolicyAccepted": false,
+  "outputBlocker": "Separate output-emergency-review-20260827 owns proof; ordinary division writes 23 normal stderr bytes at cap1. Normal quota + at-most-once awaited fixed emergency is not established.",
+  "nativeCaptureCreated": false,
+  "fullGate": false,
+  "finalAuthorReceiptBindingPending": true
+}

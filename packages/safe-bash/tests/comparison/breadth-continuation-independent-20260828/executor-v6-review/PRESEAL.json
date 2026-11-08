@@ -1,0 +1,82 @@
+{
+  "kind": "INDEPENDENT_V6_PRESEAL_NOT_AUTHORIZATION",
+  "date": "2026-08-28",
+  "recipeCommit": "931b8e07114b8f69fa50f35e798a7a619f578cdb",
+  "evidenceCommit": "5420fa35ffd4a7085f0df0a60b3bfc4608a7acd1",
+  "recipeSha256": "937f5551b242c5388febd085aa18905095150f846c9e3005e766db7b39c979a0",
+  "sources": [
+    {
+      "path": "BEFORE.json",
+      "bytes": 392214,
+      "sha256": "d8bd04946aa041f77306ea62248af2f57ce6f007afc4cad0cce2a62704329cbe"
+    },
+    {
+      "path": "BODY-AUDIT.json",
+      "bytes": 7206,
+      "sha256": "634b0ba1c63206a98d7b931a7aa34300b62016eea4a233464b98bb2db34f640b"
+    },
+    {
+      "path": "BODY-DELTA.txt",
+      "bytes": 17428,
+      "sha256": "6b2b106e339ff345736876cc340f9b51e7a5ab95051ead505b150a09ef054538"
+    },
+    {
+      "path": "EXPECTATIONS.json",
+      "bytes": 4468,
+      "sha256": "7a46c252f91f5b2c1e6f0af4b23638e6f22ce79bfa57e48ebfada3eb9b72db9b"
+    },
+    {
+      "path": "PRESEAL.md",
+      "bytes": 3896,
+      "sha256": "a2cc709cba684795bc71f6f133ada5a3e860db2933092501020f2484c1e919ef"
+    },
+    {
+      "path": "SYNTAX-FINAL.json",
+      "bytes": 353,
+      "sha256": "136bee0980d471b3948415254a7f3d98bf2a002f52ac2ae6ab926dc3353e4c64"
+    },
+    {
+      "path": "SYNTAX.json",
+      "bytes": 3626,
+      "sha256": "2f9440a2028f7cd2e588afb54e8f3348555f129e14e3ebefeaa4677f1399dcbf"
+    },
+    {
+      "path": "audit.mjs",
+      "bytes": 5081,
+      "sha256": "2cee3c2792bda9365f0e7aae76d529d4ac86545955c2a15dd73045d1b1c52c04"
+    },
+    {
+      "path": "body-audit.mjs",
+      "bytes": 7017,
+      "sha256": "d7e0a06b8a30fc0b3fd1485821db561a423b7977e21febe9ec554ab76c032fa3"
+    },
+    {
+      "path": "data.mjs",
+      "bytes": 8132,
+      "sha256": "8e2302cfd483ce031fcbb75daba064e261dc0719df1099958d68963148dae21e"
+    },
+    {
+      "path": "run.mjs",
+      "bytes": 4572,
+      "sha256": "09104f13f5fdd45cff8d5ff343f029dc1da3a61afcd1b6131ef36eee67ad2e49"
+    },
+    {
+      "path": "worker.mjs",
+      "bytes": 11766,
+      "sha256": "752a93380e2ac87344c5cc2b2b583674d6ce72e0e188ecf45b4121699142a838"
+    }
+  ],
+  "plannedFixtureCases": 25,
+  "plannedOriginalCases": 15,
+  "plannedSupplementalCases": 10,
+  "plannedHelperControls": 14,
+  "helperClassification": {
+    "DATA": 3,
+    "SYNTHETIC": 11
+  },
+  "plannedChildren": 26,
+  "expectedFixtureEvaluations": 4,
+  "expectedFixtureRefusals": 21,
+  "authorityExecuted": false,
+  "grantsMinted": 0
+}

@@ -1,0 +1,54 @@
+{
+  "name": "tiny-oauth-test-server-rust",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Portable Rust OAuth test fixture with builtin Node HTTP and crypto transport",
+  "type": "module",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./cli": {
+      "types": "./dist/cli.d.ts",
+      "import": "./dist/cli.js"
+    }
+  },
+  "scripts": {
+    "build": "node scripts/prepare-host.mjs && node ../mcp-protocol-rust/scripts/cargo.mjs build",
+    "test:unit": "node scripts/prepare-host.mjs && node ../mcp-protocol-rust/scripts/cargo.mjs test && tsc --project tsconfig.types.json && cd ../.. && vitest run --config packages/tiny-oauth-test-server-rust/vitest.sdk.config.mjs",
+    "lint": "node ../mcp-protocol-rust/scripts/cargo.mjs lint",
+    "prepack": "node ../../scripts/set-bin-executable.mjs"
+  },
+  "devDependencies": {
+    "@napi-rs/cli": "3.10.4",
+    "mcp-protocol-rust": "*",
+    "mcp-oauth-rust": "*",
+    "tiny-oauth-test-server": "*",
+    "tiny-http-mcp-server": "*",
+    "jose": "6.2.3",
+    "typescript": "5.9.3",
+    "vitest": "4.1.11"
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18.18"
+  },
+  "napi": {
+    "binaryName": "tiny-oauth-test-server-rust"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poe-platform/poe-code.git",
+    "directory": "packages/tiny-oauth-test-server-rust"
+  },
+  "bin": {
+    "tiny-oauth-test-server-rust": "dist/cli.js"
+  }
+}

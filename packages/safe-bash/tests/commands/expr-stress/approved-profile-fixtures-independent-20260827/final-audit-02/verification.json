@@ -1,0 +1,15 @@
+{
+  "authenticatedFinalAuthorReceipt": true,
+  "actualAuthorCommit": "9fb0e32c015e3597565e60b89b6f02e32188cd45",
+  "authorTreeUnchangedIncludingAddedEntries": true,
+  "sourceQualificationRecorded": true,
+  "outputPolicyAccepted": false,
+  "policyFailurePreserved": true,
+  "mainThreadDynamicRegexCalls": 0,
+  "mainThreadMatchCompilerNotImportedByIndependentProbe": true,
+  "legacyWorkerOnlyGuardPassed": true,
+  "childrenNormallyExited": true,
+  "forcedWorkerCleanup": 0,
+  "ownedScratchAbsent": true,
+  "finished": "2026-08-27T20:23:37.501Z"
+}

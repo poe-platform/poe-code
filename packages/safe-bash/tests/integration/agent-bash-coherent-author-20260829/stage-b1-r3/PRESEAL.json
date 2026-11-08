@@ -1,0 +1,458 @@
+{
+  "schema": "coherent-b1-public15-preseal-v1",
+  "revision": "r2-new-admission-explicit-origins",
+  "created": "2026-08-29T12:35:28.984Z",
+  "sourceTree": "3adc676a0ab638c9788ef007e465931d65d2c6fe",
+  "sourceInputs": 309,
+  "package": {
+    "bytes": 930368,
+    "sha256": "2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca"
+  },
+  "members": 1014,
+  "actualStageAEmissions": 1012,
+  "b0": {
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/PRESEAL.json",
+    "bytes": 11952,
+    "sha256": "78e6c945ceadfb54d51d806fbe57399ab5a552ad4571791cb916c085736e27a7"
+  },
+  "authenticatedInputs": {
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/AUTHENTICATED-INPUTS.json",
+    "bytes": 46356,
+    "sha256": "a0b42a698ff33a77ea1f6ce7ae58d23dc3ee28e04f000d6cbc922201d0ccc60f"
+  },
+  "ids": [
+    "C10",
+    "C11",
+    "C15",
+    "C16",
+    "C18"
+  ],
+  "layouts": [
+    "source-built",
+    "installed",
+    "physically-moved"
+  ],
+  "knownRoles": [
+    "offline-install",
+    "workflow-source-built",
+    "workflow-installed",
+    "workflow-physically-moved"
+  ],
+  "workRoot": "/private/tmp/safe-bash-coherent-b1-public15-20260829-r3",
+  "stageFiles": [
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/consumer.mjs",
+      "bytes": 3920,
+      "sha256": "81ded635c046b78d0d3a91bc99f4445c4139864152fcb2e907eabc1f9c406bf7",
+      "source": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/consumer.mjs",
+      "target": "consumer.mjs",
+      "origin": {
+        "kind": "NEW_B1_R2_SOURCE",
+        "repositoryPath": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/consumer.mjs",
+        "computedBlob": "a77b2a79b97b0fe732958dc693347ad6d7936f4b",
+        "bytes": 3920,
+        "sha256": "81ded635c046b78d0d3a91bc99f4445c4139864152fcb2e907eabc1f9c406bf7",
+        "authority": "This source preseal commit; computed blob is not claimed stored before commit"
+      }
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/admission.mjs",
+      "bytes": 1244,
+      "sha256": "cebccec076b1aeca7c7d45a91c0210e901317a1130b0a408d99a2e18aee2a2a2",
+      "source": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/admission.mjs",
+      "target": "admission.mjs",
+      "origin": {
+        "kind": "NEW_B1_R2_SOURCE",
+        "repositoryPath": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/admission.mjs",
+        "computedBlob": "8658bdce9854599e8a23fe56daff05270f25f474",
+        "bytes": 1244,
+        "sha256": "cebccec076b1aeca7c7d45a91c0210e901317a1130b0a408d99a2e18aee2a2a2",
+        "authority": "This source preseal commit; computed blob is not claimed stored before commit"
+      }
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v4/workflows.mjs",
+      "bytes": 15763,
+      "sha256": "6d8a19854a6e96986013ed3d94ee15dd774e225259dea922bf4749799c60d89b",
+      "source": "tests/integration/agent-bash-coherent-author-20260829/v4/workflows.mjs",
+      "target": "workflows.mjs",
+      "origin": {
+        "kind": "AUTHENTICATED_INHERITED_SOURCE",
+        "repositoryPath": "tests/integration/agent-bash-coherent-author-20260829/v4/workflows.mjs",
+        "blob": "05eee3df033e442f7549bc632342d0be5d7badae",
+        "bytes": 15763,
+        "sha256": "6d8a19854a6e96986013ed3d94ee15dd774e225259dea922bf4749799c60d89b",
+        "authority": "B0 8ab0b287 stageFiles, v4 immutable fixture"
+      }
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/NEUTRAL-FIXTURE.json",
+      "bytes": 4160,
+      "sha256": "fcb7bae1505a86b2b676396742d7bf362ad779c77192770ed94085646f8d0074",
+      "source": "tests/integration/agent-bash-coherent-author-20260829/v2/NEUTRAL-FIXTURE.json",
+      "target": "neutral.json",
+      "origin": {
+        "kind": "AUTHENTICATED_INHERITED_SOURCE",
+        "repositoryPath": "tests/integration/agent-bash-coherent-author-20260829/v2/NEUTRAL-FIXTURE.json",
+        "blob": "2c38c00a61576f6abd00dbd23ade7885267f94d5",
+        "bytes": 4160,
+        "sha256": "fcb7bae1505a86b2b676396742d7bf362ad779c77192770ed94085646f8d0074",
+        "authority": "B0 8ab0b287 stageFiles"
+      }
+    },
+    {
+      "path": "tests/commands/node-author-20260829/validation-v2/author-v5/engine-adapter-v1.mjs",
+      "bytes": 1484,
+      "sha256": "2108bf2e7eee28ecd16c7e644c0684518cbfd68219c2971d2df67b155bf4e80d",
+      "source": "tests/commands/node-author-20260829/validation-v2/author-v5/engine-adapter-v1.mjs",
+      "target": "engine-adapter-v1.mjs",
+      "origin": {
+        "kind": "AUTHENTICATED_INHERITED_SOURCE",
+        "repositoryPath": "tests/commands/node-author-20260829/validation-v2/author-v5/engine-adapter-v1.mjs",
+        "blob": "18cf64b44ccdcc9ccfcfc015293d6feb13146181",
+        "bytes": 1484,
+        "sha256": "2108bf2e7eee28ecd16c7e644c0684518cbfd68219c2971d2df67b155bf4e80d",
+        "authority": {
+          "commit": "30ac56acbf12a69b90e1923810958bcbcf367fe0",
+          "blob": "18cf64b44ccdcc9ccfcfc015293d6feb13146181"
+        }
+      }
+    },
+    {
+      "path": "tests/integration/node-public-author-20260829/node-policy.mjs",
+      "bytes": 3534,
+      "sha256": "c617030cd82a379e0285eb4e4ab53beac7fe0caea34ae0d68995a6d64abee123",
+      "source": "tests/integration/node-public-author-20260829/node-policy.mjs",
+      "target": "node-policy.mjs",
+      "origin": {
+        "kind": "AUTHENTICATED_INHERITED_SOURCE",
+        "repositoryPath": "tests/integration/node-public-author-20260829/node-policy.mjs",
+        "blob": "c5521498401f809bb2ba90ec51fd691ac25b00e6",
+        "bytes": 3534,
+        "sha256": "c617030cd82a379e0285eb4e4ab53beac7fe0caea34ae0d68995a6d64abee123",
+        "authority": {
+          "commit": "30ac56acbf12a69b90e1923810958bcbcf367fe0",
+          "blob": "c5521498401f809bb2ba90ec51fd691ac25b00e6"
+        }
+      }
+    },
+    {
+      "path": "tests/integration/node-public-author-20260829/node-load-guard.mjs",
+      "bytes": 2613,
+      "sha256": "7d525601f62fccdd61e5393fb1a770c8c9b0ffffc86777e568a2c72b0b277ed1",
+      "source": "tests/integration/node-public-author-20260829/node-load-guard.mjs",
+      "target": "node-load-guard.mjs",
+      "origin": {
+        "kind": "AUTHENTICATED_INHERITED_SOURCE",
+        "repositoryPath": "tests/integration/node-public-author-20260829/node-load-guard.mjs",
+        "blob": "e51cdc7002b40411cce299098a28e35047c1d2d2",
+        "bytes": 2613,
+        "sha256": "7d525601f62fccdd61e5393fb1a770c8c9b0ffffc86777e568a2c72b0b277ed1",
+        "authority": {
+          "commit": "30ac56acbf12a69b90e1923810958bcbcf367fe0",
+          "blob": "e51cdc7002b40411cce299098a28e35047c1d2d2"
+        }
+      }
+    }
+  ],
+  "stageOriginsComplete": true,
+  "stageOriginEntries": 1117,
+  "staticImportEdges": 975,
+  "remaining": {
+    "B0AuthorObserved": 39,
+    "B1Planned": 15,
+    "B2Planned": 672,
+    "totalPlanned": 726,
+    "unit2PerLayout": 50,
+    "B2RuntimeStatus": "UNRUN"
+  },
+  "bounds": {
+    "wallSeconds": 1800,
+    "activeSeconds": 1620,
+    "publicationReserveSeconds": 180,
+    "knownOSStarts": 32,
+    "knownOSPeak": 3,
+    "supervisedChildren": 4,
+    "installSeconds": 120,
+    "layoutSeconds": 300,
+    "caseSeconds": 30,
+    "cleanupSeconds": 5,
+    "captureBytes": 67108864,
+    "workingBytes": 805306368,
+    "guestWorkersPerLayout": 5,
+    "guestWorkersTotal": 15,
+    "guestWorkerMaximumActive": 5,
+    "guestWorkerExpectedSequentialPeak": 1,
+    "regexWorkers": 0,
+    "internalLoaderThreads": 0,
+    "synchronousHookMainEntries": 3,
+    "synchronousHookGuestEntriesMaximum": 15,
+    "loadRecordsPerIsolate": 2048,
+    "observerRecordsPerLayout": 512
+  },
+  "controls": {
+    "entry": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/controls.mjs",
+    "groups": 12,
+    "harmlessNodeControllerStarts": 1,
+    "productImports": 0,
+    "workers": 0
+  },
+  "files": [
+    {
+      "path": "tests/commands/node-author-20260829/validation-v2/author-v5/INPUTS-v1.json.gz.base64",
+      "bytes": 1939657,
+      "sha256": "18a3bf6ebf467f3c76a7c0b04c9c72a57f22d21e00ef4d58267c90d0403871c4"
+    },
+    {
+      "path": "tests/commands/node-author-20260829/validation-v2/author-v5/engine-adapter-v1.mjs",
+      "bytes": 1484,
+      "sha256": "2108bf2e7eee28ecd16c7e644c0684518cbfd68219c2971d2df67b155bf4e80d"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v3/PUBLIC98.json.gz.base64",
+      "bytes": 461669,
+      "sha256": "8a65517b0105b3fbfb9337eda671442fa6c44d6b00185b98199ca05f17c2e637"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/PRESEAL.json",
+      "bytes": 47291,
+      "sha256": "8acc5e35686a4fa20bf1f8a871b2c23edff4cb29b09a9b9f1848ffc1332006db"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/common.mjs",
+      "bytes": 7095,
+      "sha256": "e56e611e245a3582a4b562e646b5f1186c455b31360766c4bea0b92b7b8d2bac"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/evidence/EMITTED.json",
+      "bytes": 172028,
+      "sha256": "806c315fffff9c892514cf55013f91a64130257795f4846eaaa16f28f368a4e2"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/evidence/PACKAGE-MEMBERS.json",
+      "bytes": 177394,
+      "sha256": "8d50d58c52875c6ba12c02c21bc0181565e2430d5dad1886ed6c859a7da70a57"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/evidence/TOOLS-BEFORE.json",
+      "bytes": 424701,
+      "sha256": "4f0e9511dc5a22438b2ca98bb29c2ea96273e81a69127dc3aff8a3234c82b153"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b/PUBLIC-ENGINE-RECEIPT.json",
+      "bytes": 76582,
+      "sha256": "a4d3614d6d944660aaddc1fd95c8fe6ebef1d92fc0dd8607400578d9a82254de"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b/RETAINED-SOURCES.json",
+      "bytes": 102475,
+      "sha256": "806c9ee4706132fd169925aaa84b569764029f5c3af303c338f773e224bd03a4"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/PROFILE.md",
+      "bytes": 4641,
+      "sha256": "863bb866d9ce95aaa72bdc6b49a12be9cd43cf686ba2e808b60059ed15c304c1"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/controls.mjs",
+      "bytes": 1509,
+      "sha256": "795f8f376a83452f1c6301e776706e43f71a850f2c3432a950368e58f665a8d6"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/denials.mjs",
+      "bytes": 627,
+      "sha256": "b2bfd8baaed8db8e7868510554d98d889ffe1d700d3395045fb601e23d75e52e"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/loader.mjs",
+      "bytes": 1180,
+      "sha256": "a16e8d37942478cf9dc876e360cf7e7085c590515bdca82bf90be421df7cf6b3"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/outer.sh",
+      "bytes": 466,
+      "sha256": "c107d6e6fde336542f595ff84381ef1d7330c72b325a42181f6f569782a8a1f0"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/resources.mjs",
+      "bytes": 1978,
+      "sha256": "ee5d6c8ec02a2784232a04a9ca01e07a232bb8bc36a1d39b8e9f463c0ad49e92"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/runner.mjs",
+      "bytes": 1507,
+      "sha256": "91364ceea4c6b7534c77eae922a8d1632883c6a995b8f2dd77233fd37826503a"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/stageAProducerPreseal.json",
+      "bytes": 47291,
+      "sha256": "8acc5e35686a4fa20bf1f8a871b2c23edff4cb29b09a9b9f1848ffc1332006db"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/PRESEAL.json",
+      "bytes": 11952,
+      "sha256": "78e6c945ceadfb54d51d806fbe57399ab5a552ad4571791cb916c085736e27a7"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/PROFILE.md",
+      "bytes": 3364,
+      "sha256": "07607e2231b1f5d58bcf327a53a34780513fe8133b467fff0d3a593ac1661c03"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/bootstrap.mjs",
+      "bytes": 1094,
+      "sha256": "10d7d7356f54c449b76584c62781d24584031eaf42cc56fefbb4f42bb519995c"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/controls.mjs",
+      "bytes": 8279,
+      "sha256": "e314b766848641f23a4250b0cb65377ff22e661e5ea81f1ca947483688100cc9"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/launch.sh",
+      "bytes": 383,
+      "sha256": "79517b807510970efe95e35a140ed4ff700ba41e4f2ffca7f4c8c614caf87c34"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/owner.mjs",
+      "bytes": 8991,
+      "sha256": "9172cab72f0a7833401e0900fb01ef1821fc59cde1718e3abf3cbfd1d6c970dd"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/run.mjs",
+      "bytes": 11225,
+      "sha256": "318ea0b32769928a79608966ae33e9769a43c46156b7420ce964e0da5d2d352f"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/AUTHENTICATED-INPUTS.json",
+      "bytes": 46356,
+      "sha256": "a0b42a698ff33a77ea1f6ce7ae58d23dc3ee28e04f000d6cbc922201d0ccc60f"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/ORIGINALS.json",
+      "bytes": 50159,
+      "sha256": "6dcadb4d77e3b5a3980535adc24787d8486e2cafcfb0ca9570f9a8eacc541b78"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/PROFILE.md",
+      "bytes": 5634,
+      "sha256": "f9726f1287af27a49de0091b65341fbc3013dffbff8b92ede70c27dc539faaf0"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/STAGED-IMPORT-ORIGINS.json",
+      "bytes": 1345134,
+      "sha256": "08eb0cebbf0c5e23a4b3e14b29a69b517917cc8dad4d0bb715947c38d6dac37c"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/admission.mjs",
+      "bytes": 1244,
+      "sha256": "cebccec076b1aeca7c7d45a91c0210e901317a1130b0a408d99a2e18aee2a2a2"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/bootstrap.mjs",
+      "bytes": 1369,
+      "sha256": "426f51f98bb8e94dd3bec16b0855f77b8a3e53f9118aa39fae374cc90aeb0fe7"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/consumer.mjs",
+      "bytes": 3920,
+      "sha256": "81ded635c046b78d0d3a91bc99f4445c4139864152fcb2e907eabc1f9c406bf7"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/controls.mjs",
+      "bytes": 7493,
+      "sha256": "6a8999567b3c4c1a1ef87ea20764e987cdf75f971a59412b06172ff8a5159f6d"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/launch.sh",
+      "bytes": 395,
+      "sha256": "1536452f59950c0686c21582cb3c26440e990ac12346d990fa41452e0f6b3dcd"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/origins.mjs",
+      "bytes": 5931,
+      "sha256": "7f9438019a614b79fae8e14001cdecaeef28a2bc6e02d89f97e54417e2f21dcb"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/prepare.mjs",
+      "bytes": 6657,
+      "sha256": "56a1b01f792e57b1f75e534a1b38c3b392b18a79ba9734d4dfa801c19870dc28"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/run.mjs",
+      "bytes": 12887,
+      "sha256": "5f94ab64d58ebfa4c3ea7ff7dbdb16a8bafd8e8e37425c74615bc64583f2765a"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/seal.mjs",
+      "bytes": 9876,
+      "sha256": "c39a996c798c1b052f06414e1d7bdb13002d01f256106ef7e934750a110f087b"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/NEUTRAL-FIXTURE.json",
+      "bytes": 4160,
+      "sha256": "fcb7bae1505a86b2b676396742d7bf362ad779c77192770ed94085646f8d0074"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/SOURCE.json",
+      "bytes": 137864,
+      "sha256": "ef0b79dbd30cebec3f8b939a98928b9441947ff4be724e5031b2ee03925f26ae"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/TOOLS.json",
+      "bytes": 558790,
+      "sha256": "ba8c249f94d3ce894754ceff84aaba11d2fcb0f517624f5c2427c8b21da825b2"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v4/PRESEAL.json",
+      "bytes": 8922,
+      "sha256": "4911f32f621e33adf8cacd0eabbc13b0644586fc3efd36ca42abf3c85765734c"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v4/workflows.mjs",
+      "bytes": 15763,
+      "sha256": "6d8a19854a6e96986013ed3d94ee15dd774e225259dea922bf4749799c60d89b"
+    },
+    {
+      "path": "tests/integration/node-public-author-20260829/node-load-guard.mjs",
+      "bytes": 2613,
+      "sha256": "7d525601f62fccdd61e5393fb1a770c8c9b0ffffc86777e568a2c72b0b277ed1"
+    },
+    {
+      "path": "tests/integration/node-public-author-20260829/node-policy.mjs",
+      "bytes": 3534,
+      "sha256": "c617030cd82a379e0285eb4e4ab53beac7fe0caea34ae0d68995a6d64abee123"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-r3/run.mjs",
+      "bytes": 12877,
+      "sha256": "3307f2ad0e1aac46fb75489da3c831084e04f1a5e42f17d7251e2f3c0bd2f586"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-r3/bootstrap.mjs",
+      "bytes": 1369,
+      "sha256": "426f51f98bb8e94dd3bec16b0855f77b8a3e53f9118aa39fae374cc90aeb0fe7"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-r3/launch.sh",
+      "bytes": 395,
+      "sha256": "b5eab5c69b4691f1243a92750aa859160dd823ece7f6f7216d27060ff7345f07"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-r3/layout.mjs",
+      "bytes": 721,
+      "sha256": "a9ba5c360eff82d7052fbbada2f42945b9aec949612ca9c06a48ad4d6322dddd"
+    }
+  ],
+  "actualAuthorization": "PENDING_DIFFERENT_REVIEW_AND_FRESH_ROOT_GO",
+  "successor": {
+    "kind": "layout-only",
+    "previous": {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/PRESEAL.json",
+      "bytes": 17692,
+      "sha256": "007887fff41f65481ecf7a4fe4ab68db2aa1a5c67d4782a30c5bf764d84f0fbc"
+    },
+    "C18": "UNCHANGED_PENDING_ROOT_FIXTURE_DECISION",
+    "publication": "Old final-slot binding/UTC/authority NOT TRANSFERRED; fresh review required"
+  }
+}

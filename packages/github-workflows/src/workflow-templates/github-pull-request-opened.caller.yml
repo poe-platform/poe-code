@@ -1,0 +1,23 @@
+name: 'GitHub: Pull Request Opened'
+on:
+  pull_request:
+    types: [opened, ready_for_review]
+
+# Keep these permissions in sync with the reusable workflow referenced below.
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  run:
+    uses: __UPSTREAM_REPO__/.github/workflows/gh-github-pull-request-opened.yml@main
+    secrets:
+      POE_CODE_AGENT_APP_ID: ${{ secrets.POE_CODE_AGENT_APP_ID }}
+      POE_CODE_AGENT_PRIVATE_KEY: ${{ secrets.POE_CODE_AGENT_PRIVATE_KEY }}
+      POE_API_KEY: ${{ secrets.POE_API_KEY }}
+    with:
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      PR_TITLE: ${{ github.event.pull_request.title }}
+      PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+      COMMENT_AUTHOR_ASSOCIATION: ${{ github.event.pull_request.author_association }}
+      GITHUB_REPOSITORY: ${{ github.repository }}

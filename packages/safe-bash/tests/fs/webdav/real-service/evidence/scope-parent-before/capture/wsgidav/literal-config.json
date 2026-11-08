@@ -1,0 +1,7 @@
+{
+  "baseUrl": "https://127.0.0.1:50858/dav/",
+  "aliasUrl": "https://127.0.0.1:50858/alias/",
+  "serverRoot": "/private/tmp/safe-bash-webdav-review-9z2en0/fixtures/.work-mKhkuL/root",
+  "caFile": "/private/tmp/safe-bash-webdav-review-9z2en0/fixtures/.work-mKhkuL/cert.pem",
+  "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ="
+}

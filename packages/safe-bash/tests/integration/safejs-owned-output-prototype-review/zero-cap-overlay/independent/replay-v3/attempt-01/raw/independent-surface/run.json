@@ -1,0 +1,24 @@
+{
+  "cohort": "surface",
+  "started": "2026-08-27T18:57:51.852413+00:00",
+  "status": "PASS",
+  "childrenLaunched": 8,
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/runtime/surface/run.mjs"
+  ],
+  "parentStarted": "2026-08-27T18:57:59.665378+00:00",
+  "parentClosed": "2026-08-27T18:58:25.280458+00:00",
+  "parentExitCode": 0,
+  "counts": {
+    "scheduled": 8,
+    "childrenLaunched": 8,
+    "engineRuns": 8,
+    "pass": 8,
+    "fail": 0,
+    "blocked": 0
+  },
+  "privateUnchanged": true,
+  "inputsUnchanged": true,
+  "finished": "2026-08-27T18:58:34.596875+00:00"
+}

@@ -1,0 +1,27 @@
+*   Trying 127.0.0.1:49180...
+* Connected to 127.0.0.1 (127.0.0.1) port 49180
+> DELETE /safe-bash-interop/snapshot/guard HTTP/1.1
+> Host: 127.0.0.1:49180
+> User-Agent: curl/8.7.1
+> Accept: */*
+> if-match: "stale"
+> x-amz-date: 20260827T072309Z
+> x-amz-content-sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+> authorization: AWS4-HMAC-SHA256 Credential=safe-bash-synthetic/20260827/us-east-1/s3/aws4_request, SignedHeaders=host;if-match;x-amz-content-sha256;x-amz-date, Signature=c898b2bac2d97e91f43aaf920a7345d69ec1cc4e003750d4821b7e6968c94cec
+> 
+* Request completely sent off
+< HTTP/1.1 204 No Content
+< Accept-Ranges: bytes
+< Server: MinIO
+< Strict-Transport-Security: max-age=31536000; includeSubDomains
+< Vary: Origin
+< Vary: Accept-Encoding
+< X-Amz-Id-2: 1ebc4b3f08743f5ca14137ca559c8660a1de1bb26adcfc2d0ad8f62d9c5968e2
+< X-Amz-Request-Id: 18CF989FE5471840
+< X-Content-Type-Options: nosniff
+< X-Ratelimit-Limit: 1564
+< X-Ratelimit-Remaining: 1564
+< X-Xss-Protection: 1; mode=block
+< Date: Thu, 27 Aug 2026 07:23:09 GMT
+< 
+* Connection #0 to host 127.0.0.1 left intact

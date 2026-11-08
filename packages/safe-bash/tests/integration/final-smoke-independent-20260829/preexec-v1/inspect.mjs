@@ -1,0 +1,30 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import { spawnSync } from 'node:child_process';
+import assert from 'node:assert/strict';
+import { fileURLToPath } from 'node:url';
+const root = '/Users/kjopek/Workspace/safe-bash';
+const own = path.dirname(fileURLToPath(import.meta.url));
+const selected = 'tests/integration/final-smoke-preparation-20260829';
+const commit = 'b2f84cc190318bc136731a05d1bc2d4fe681162e';
+const hash = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
+const metadata = spawnSync('/usr/bin/git', ['-c','gc.auto=0','-c','maintenance.auto=false','ls-tree','-rz',commit,'--',selected], { cwd: root, maxBuffer: 1048576, timeout: 10000 });
+fs.writeFileSync(path.join(own,'inventory.stdout'),metadata.stdout,{flag:'wx'});
+fs.writeFileSync(path.join(own,'inventory.stderr'),metadata.stderr,{flag:'wx'});
+assert.equal(metadata.status,0); assert.equal(metadata.signal,null); assert(!metadata.error);
+const files = [];
+const source = [];
+for (const entry of metadata.stdout.toString().split('\0').filter(Boolean)) {
+  const match = /^(\d+) blob ([0-9a-f]{40})\t(.+)$/.exec(entry); assert(match);
+  assert(!match[3].endsWith('/AGENTS.md'));
+  const filename = path.join(root,match[3]);
+  const stat = fs.lstatSync(filename); assert(stat.isFile() && !stat.isSymbolicLink() && stat.size <= 4194304);
+  const bytes = fs.readFileSync(filename); assert.equal(bytes.length,stat.size);
+  assert.equal(crypto.createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex'),match[2]);
+  files.push({path:filename,bytes:bytes.length,sha256:hash(bytes),blob:match[2]});
+  if (/\.(mjs|md)$/.test(filename) && bytes.length <= 60000) source.push(`\nFILE ${filename}\n${bytes.toString()}`);
+}
+fs.writeFileSync(path.join(own,'INSPECTION.json'),JSON.stringify({commit,files},null,2)+'\n',{flag:'wx'});
+fs.writeFileSync(path.join(own,'SOURCE.txt'),source.join('\n'),{flag:'wx'});
+console.log(JSON.stringify({files,sourceBytes:Buffer.byteLength(source.join('\n'))},null,2));

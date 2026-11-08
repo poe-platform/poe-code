@@ -1,0 +1,12 @@
+{
+  "frozenBeforeSourceEdits": true,
+  "networkDigest": "46a75e15c8e63054dac33d79be354eaf9a12bb3be96390c5f610519a065cfdc3",
+  "hashes": {
+    "retry-freeze.json": "7a84039e93c52bbc63d0f776963dbee518082a0d6a7c39541530e5930bc1660c",
+    "retry-rows.ts": "527dc72f0eede1a2725288231d5ec2600b5de94a0933c26675070b7ccfb3916d",
+    "retry-native.ts": "7dd09258045b364e003060a3e7ce7d389618661081873ca764111108743687c7",
+    "retry-native-driver.ts": "8dc729782534044c3a4f915b19b00fce61c72f0238a8f5a2c4f23f2469ea0707",
+    "lab-v2.ts": "dc0797d8134c69b4a167875ccaad41a559c316de1c596be0639e6023bfe4a9ce",
+    "close-resources.ts": "0924008f0bf372ef4f84448cdb4b2f223302797491717ed76f55aebeafad2ac3"
+  }
+}

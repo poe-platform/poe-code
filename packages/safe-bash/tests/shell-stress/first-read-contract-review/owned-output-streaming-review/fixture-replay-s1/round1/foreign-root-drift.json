@@ -1,0 +1,20 @@
+{
+  "at": "2026-08-27T12:05:45.536Z",
+  "files": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/package.json",
+      "before": "8e2f368f83680bf443335e7347328abe7d74d6b23768f283b3a8b0970aca5427",
+      "current": "b4ae6338424b9bab15c8c914dc626cda692b70860d76d9f86e06f25130fdb80d",
+      "classification": "concurrent foreign live root-config change; not candidate config, not changed by this leaf; preserved without reverting"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tsconfig.json",
+      "before": "f473dbe2230f833bbd374f6d211e843da377973fa96ad0eb38b6b5740dd18027",
+      "current": "86adf86ecb49df322e08438453c00ef14d922c0785f7d879498b1fc8cb48e5d4",
+      "classification": "concurrent foreign live root-config change; not candidate config, not changed by this leaf; preserved without reverting"
+    }
+  ],
+  "noProductReplayAfterDrift": true,
+  "candidateAndCandidateConfigsUnchanged": true,
+  "liveSourceFilesUnchanged": true
+}

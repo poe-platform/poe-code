@@ -1,0 +1,289 @@
+import { createOutputOperation, type ByteSource, type CommandContext, type InvocationCleanup } from "safe-bash-contracts";
+import { openFileOutput } from "safe-bash-contracts/filesystem-output";
+import { filesystemOutputBudgets } from "safe-bash-contracts/filesystem-output-budget";
+import { inheritYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
+
+export const mikeLimits = Object.freeze({
+  maxInputBytes: Infinity, maxDocumentBytes: Infinity,
+  maxScalarBytes: Infinity, maxNodes: Infinity, maxParserNodes: Infinity,
+  maxDepth: Infinity, maxExpressionDepth: Infinity, maxExpressionBytes: Infinity, maxAliases: Infinity, maxDocuments: Infinity,
+  maxOutputBytes: Infinity, maxSteps: Infinity,
+});
+export type MikeLimits = { readonly [Key in keyof typeof mikeLimits]: number };
+
+export class MikeError extends Error {
+  constructor(message: string, readonly usage = false) { super(message); }
+}
+
+export function limitsFor(options: Partial<MikeLimits> = {}): MikeLimits {
+  if (!options || typeof options !== "object" || Array.isArray(options)) throw new TypeError("invalid yq limits");
+  const limits: { -readonly [Key in keyof MikeLimits]: number } = { ...mikeLimits };
+  for (const [name, value] of Object.entries(options)) {
+    if (Object.hasOwn(limits, name) && value === undefined) continue;
+    if (!Object.hasOwn(limits, name) || value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) {
+      throw new TypeError(`invalid yq limit: ${name}`);
+    }
+    limits[name as keyof MikeLimits] = value;
+  }
+  return Object.freeze(limits);
+}
+
+export class NativeWork {
+  capturePositions = false;
+  readonly positions = new WeakMap<object, { line: number; column: number }>();
+  readonly implicitTags = new WeakSet<object>();
+  readonly headComments = new WeakMap<object, string>();
+  readonly controller = new AbortController();
+  readonly signal: AbortSignal = this.controller.signal;
+  readonly #cleanup = new Set<InvocationCleanup>();
+  readonly #pending = new Set<Promise<unknown>>();
+  #closing: Promise<void> | undefined;
+  #open = true;
+  #aborted = false;
+  #steps = 0;
+  #yieldAt = 1024;
+  #input = 0;
+  #nodes = 0;
+  #aliases = 0;
+  #output = 0;
+  #documents = 0;
+  readonly #outputs = new Map<boolean, ReturnType<typeof createOutputOperation>>();
+
+  constructor(readonly context: CommandContext, readonly limits: MikeLimits) {
+    inheritYieldCheckpoint(context.signal, this.signal);
+    context.registerCleanup?.(() => this.close());
+    const abort = () => { this.#aborted = true; this.controller.abort(context.signal.reason); };
+    this.signal.addEventListener("abort", () => { this.#aborted = true; }, { once: true });
+    if (context.signal.aborted) abort();
+    else context.signal.addEventListener("abort", abort, { once: true });
+    this.#cleanup.add(() => { context.signal.removeEventListener("abort", abort); });
+  }
+
+  assertOpen(): void {
+    if (this.#aborted) {
+      this.context.signal.throwIfAborted();
+      this.signal.throwIfAborted();
+    }
+    if (!this.#open) throw new MikeError("yq invocation is closed");
+  }
+
+  tick(units = 1): void | Promise<void> {
+    this.assertOpen();
+    this.#steps += units;
+    if (!Number.isSafeInteger(this.#steps) || this.#steps > this.limits.maxSteps) throw new MikeError("yq limit exceeded: maxSteps");
+    if (this.#steps >= this.#yieldAt) {
+      this.#yieldAt = this.#steps + 1024;
+      return yieldTurn(this.signal).then(() => {
+        this.assertOpen();
+      });
+    }
+  }
+
+  input(bytes: number): void {
+    this.assertOpen();
+    if (bytes > this.limits.maxInputBytes - this.#input) throw new MikeError("yq limit exceeded: maxInputBytes");
+    this.#input += bytes;
+    this.context.inputBudget?.check(this.#input);
+  }
+
+  node(count = 1): void {
+    this.assertOpen();
+    this.#nodes += count;
+    if (this.#nodes > this.limits.maxNodes) throw new MikeError("yq limit exceeded: maxNodes");
+  }
+
+  alias(): void {
+    if (++this.#aliases > this.limits.maxAliases) throw new MikeError("yq limit exceeded: maxAliases");
+  }
+
+  document(): void {
+    this.assertOpen();
+    if (++this.#documents > this.limits.maxDocuments) throw new MikeError("yq limit exceeded: maxDocuments");
+  }
+
+  depth(depth: number): void {
+    if (depth > this.limits.maxDepth) throw new MikeError("yq limit exceeded: maxDepth");
+  }
+
+  output(bytes: number): void {
+    this.assertOpen();
+    if (bytes > this.limits.maxOutputBytes - this.#output) throw new MikeError("yq limit exceeded: maxOutputBytes");
+    this.#output += bytes;
+  }
+
+  register(cleanup: InvocationCleanup): () => void {
+    this.assertOpen();
+    this.#cleanup.add(cleanup);
+    return () => { this.#cleanup.delete(cleanup); };
+  }
+
+  track<Value>(promise: Promise<Value>): Promise<Value> {
+    this.#pending.add(promise);
+    void promise.then(() => this.#pending.delete(promise), () => this.#pending.delete(promise));
+    return promise;
+  }
+
+  async acquire<Value>(start: () => Value | Promise<Value>, release: (value: Value) => void | Promise<void>): Promise<Value> {
+    this.assertOpen();
+    let resource: { value: Value } | undefined;
+    let settled!: () => void;
+    const ready = new Promise<void>(resolve => { settled = resolve; });
+    let released: Promise<void> | undefined;
+    const dispose = () => released ??= ready.then(async () => { if (resource) await release(resource.value); });
+    this.register(dispose);
+    try {
+      const value = await this.track(Promise.resolve().then(() => { this.assertOpen(); return start(); }));
+      resource = { value };
+      settled();
+      this.assertOpen();
+      return value;
+    } catch (error) { settled(); await dispose(); throw error; }
+  }
+
+  async readFile(path: string): Promise<Uint8Array> {
+    this.assertOpen();
+    const fs = this.context.fs;
+    const capabilities = fs.capabilitiesFor
+      ? await this.track(fs.capabilitiesFor(path, { signal: this.signal }))
+      : fs.capabilities;
+    this.assertOpen();
+    if (fs.readStream && capabilities.streamingRead !== false) {
+      return this.collect(() => fs.readStream!(path, { signal: this.signal }));
+    }
+    const bytes = await this.track(fs.readFile(path, {
+      signal: this.signal,
+      ...(Number.isFinite(this.limits.maxInputBytes) ? { maxBytes: this.limits.maxInputBytes } : {}),
+    }));
+    this.input(bytes.length);
+    return bytes;
+  }
+
+  async *chunks(start: () => ByteSource): AsyncGenerator<Uint8Array> {
+    const iterator = await this.acquire(() => start()[Symbol.asyncIterator](), async value => { await value.return?.(); });
+    let chunksSinceYield = 0;
+    while (true) {
+      this.assertOpen();
+      const next = await this.track(Promise.resolve(iterator.next()));
+      this.assertOpen();
+      if (next.done) break;
+      if (!(next.value instanceof Uint8Array)) throw new TypeError("Byte sources must yield Uint8Array chunks");
+      this.input(next.value.byteLength);
+      yield next.value;
+      const checkpoint = this.tick();
+      chunksSinceYield++;
+      if (checkpoint) {
+        await checkpoint;
+        chunksSinceYield = 0;
+      } else if (chunksSinceYield >= 1024) {
+        await yieldTurn(this.signal);
+        chunksSinceYield = 0;
+        this.assertOpen();
+      }
+    }
+  }
+
+  async collect(start: () => ByteSource): Promise<Uint8Array> {
+    const chunks: Uint8Array[] = [];
+    let size = 0;
+    for await (const chunk of this.chunks(start)) {
+      if (chunk.length) { chunks.push(new Uint8Array(chunk)); size += chunk.length; }
+    }
+    const result = new Uint8Array(size);
+    let offset = 0;
+    for (const chunk of chunks) { result.set(chunk, offset); offset += chunk.length; { const t = this.tick(); if (t) await t; } }
+    return result;
+  }
+
+  async *decode(start: () => ByteSource, filename: string): AsyncGenerator<string> {
+    const decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
+    const decode = (bytes?: Uint8Array) => {
+      try { return bytes ? decoder.decode(bytes, { stream: true }) : decoder.decode(); }
+      catch { throw new MikeError(`bad file '${filename}': invalid UTF-8`); }
+    };
+    for await (const bytes of this.chunks(start)) {
+      for (let offset = 0; offset < bytes.length; offset += 4096) {
+        this.assertOpen();
+        yield decode(bytes.subarray(offset, offset + 4096));
+      }
+    }
+    yield decode();
+  }
+
+  async writeFile(path: string, text: string): Promise<void> {
+    this.assertOpen();
+    const cleanups: InvocationCleanup[] = [];
+    const registerCleanup = (cleanup: InvocationCleanup): void => { cleanups.push(cleanup); };
+    // Local cleanup ownership must still debit the shell's invocation budget.
+    const budget = this.context.registerCleanup && filesystemOutputBudgets.get(this.context.registerCleanup);
+    if (budget) filesystemOutputBudgets.set(registerCleanup, budget);
+    const acquisition = this.track(Promise.resolve().then(() => {
+      this.assertOpen();
+      return openFileOutput({
+        ...this.context, signal: this.signal, cleanupFailurePrioritySignal: this.context.signal, registerCleanup,
+      }, path, { flag: "w", descriptor: true });
+    }));
+    let closing: Promise<void> | undefined;
+    const close = () => closing ??= (async () => {
+      await acquisition.catch(() => {});
+      const results = await Promise.allSettled(cleanups.map(cleanup => cleanup()));
+      cleanups.length = 0;
+      const failures = results.filter(result => result.status === "rejected").map(result => result.reason);
+      if (failures.length === 1) throw failures[0];
+      if (failures.length) throw new AggregateError(failures, "yq file output cleanup failed");
+    })();
+    const unregister = this.register(close);
+    let failure: { reason: unknown } | undefined;
+    try {
+      const destination = await acquisition;
+      for await (const bytes of this.encode(text)) await this.track(destination.sink.write(bytes));
+      await this.track(destination.finish());
+      this.assertOpen();
+    } catch (reason) { failure = { reason }; }
+    try { await close(); } catch (reason) { failure ??= { reason }; }
+    finally { unregister(); }
+    if (failure) throw failure.reason;
+  }
+
+  async *encode(text: string, diagnostic = false): AsyncGenerator<Uint8Array> {
+    const encoder = new TextEncoder();
+    for (let offset = 0; offset < text.length;) {
+      this.assertOpen();
+      let end = Math.min(text.length, offset + 4096);
+      const last = text.charCodeAt(end - 1);
+      if (end < text.length && last >= 0xd800 && last <= 0xdbff) end--;
+      yield encoder.encode(text.slice(offset, end));
+      offset = end;
+      // Reporting an exhausted work budget must not debit that budget again.
+      const checkpoint = diagnostic ? yieldTurn(this.signal) : this.tick();
+      if (checkpoint) await checkpoint;
+    }
+  }
+
+  async write(bytes: Uint8Array | string, stderr = false): Promise<void> {
+    this.assertOpen();
+    let operation = this.#outputs.get(stderr);
+    if (!operation) {
+      operation = createOutputOperation({ signal: this.signal, registerCleanup: cleanup => this.register(cleanup) }, stderr ? this.context.stderr : this.context.stdout);
+      this.#outputs.set(stderr, operation);
+    }
+    const source = typeof bytes === "string" ? this.encode(bytes, stderr) : [bytes];
+    for await (const chunk of source) {
+      await this.track(operation.output.write(chunk));
+      this.assertOpen();
+    }
+  }
+
+  close(): Promise<void> {
+    if (this.#closing) return this.#closing;
+    this.#open = false;
+    this.controller.abort(new MikeError("yq invocation is closed"));
+    this.#closing = (async () => {
+      const closed = Promise.allSettled(Array.from(this.#cleanup, async cleanup => cleanup()));
+      while (this.#pending.size) await Promise.allSettled([...this.#pending]);
+      const failures = (await closed).filter(result => result.status === "rejected").map(result => result.reason);
+      if (failures.length) throw new AggregateError(failures, "yq cleanup failed");
+    })();
+    void this.#closing.catch(() => {});
+    return this.#closing;
+  }
+}

@@ -1,0 +1,272 @@
+{
+  "recordedAt": "2026-08-26T20:53:24.539Z",
+  "startedAt": "2026-08-26T20:52:37.344Z",
+  "sourceRevision": "9d6d292febce66d2e7ffa564a059e8f44e4ebff9",
+  "authorizationRevision": "e685231032b34f06c34038ce4c443376af7e066d",
+  "historicalTestRevisions": {
+    "pathRegressions": "e432c52147a4f355fbae9083cfe1d94a3f78f86d",
+    "editflows": "0ed2e0d23e0b54cb8d3ad7327ffe87c2e945dc7d"
+  },
+  "historicalResults": {
+    "pathRegressions": {
+      "tests": 619,
+      "pass": 603,
+      "fail": 16,
+      "repetitions": 3,
+      "evidence": "validation.json",
+      "sha256": "43a76906c6cf610f458f98149b735d8f40584a4032a053a200e480fa434f9b33"
+    },
+    "editflows": {
+      "tests": 31,
+      "pass": 20,
+      "fail": 11,
+      "evidence": "../editflows/README.md at 0ed2e0d23e0b54cb8d3ad7327ffe87c2e945dc7d"
+    }
+  },
+  "method": {
+    "isolation": "git archive of the exact source revision into an owned temporary subtree; only the three updated test files were overlaid with apply_patch; node_modules symlinked read-only for existing tooling. No source overlaid or edited. Temporary snapshot removed after validation.",
+    "archivePaths": [
+      "src",
+      "package.json",
+      "tsconfig.json",
+      "tests/commands/diff-patch-stress/path-regressions",
+      "tests/commands/diff-patch-stress/editflows",
+      "tests/commands/diff-patch-stress/safety/helpers.ts"
+    ],
+    "overlaidPaths": [
+      "tests/commands/diff-patch-stress/path-regressions/helpers.ts",
+      "tests/commands/diff-patch-stress/path-regressions/malformed.test.ts",
+      "tests/commands/diff-patch-stress/editflows/quoted-safety.test.ts"
+    ],
+    "node": "v22.22.2",
+    "commands": {
+      "path": [
+        "node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "tests/commands/diff-patch-stress/path-regressions/bounds-shell.test.ts",
+        "tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts",
+        "tests/commands/diff-patch-stress/path-regressions/malformed.test.ts",
+        "tests/commands/diff-patch-stress/path-regressions/names.test.ts",
+        "tests/commands/diff-patch-stress/path-regressions/sequences.test.ts"
+      ],
+      "editflows": [
+        "node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "tests/commands/diff-patch-stress/editflows/oracles.test.ts",
+        "tests/commands/diff-patch-stress/editflows/parity.test.ts",
+        "tests/commands/diff-patch-stress/editflows/quoted-safety.test.ts"
+      ]
+    },
+    "hashAlgorithm": "SHA-256 of UTF-8 JSON.stringify(Object.fromEntries(git ls-tree -r --name-only REV src paths mapped to [path, SHA-256(file bytes)])), retaining git path order",
+    "sourceFileCount": 102
+  },
+  "beforeTestContractUpdate": {
+    "path": {
+      "status": 1,
+      "signal": null,
+      "stderr": "",
+      "counters": {
+        "tests": 619,
+        "suites": 0,
+        "pass": 615,
+        "fail": 4,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 1084.511625
+      },
+      "failures": [
+        "unsafe/malformed explicit-old \"\\\\\"\\\\\\\\057sandbox/work/target\\\\\"\"",
+        "unsafe/malformed explicit-new \"\\\\\"\\\\\\\\057sandbox/work/target\\\\\"\"",
+        "unsafe/malformed explicit-old \"\\\\\"\\\\\\\\057\\\\\\\\057target\\\\\"\"",
+        "unsafe/malformed explicit-new \"\\\\\"\\\\\\\\057\\\\\\\\057target\\\\\"\""
+      ]
+    },
+    "editflows": {
+      "status": 1,
+      "signal": null,
+      "stderr": "",
+      "counters": {
+        "tests": 31,
+        "suites": 0,
+        "pass": 30,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 1100.207125
+      },
+      "failures": [
+        "quoted-path security: explicit target cannot override unsafe decoded header"
+      ]
+    }
+  },
+  "afterTestContractUpdate": {
+    "path": {
+      "status": 0,
+      "signal": null,
+      "stderr": "",
+      "counters": {
+        "tests": 619,
+        "suites": 0,
+        "pass": 619,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 1008.928917
+      },
+      "failures": []
+    },
+    "editflows": {
+      "status": 0,
+      "signal": null,
+      "stderr": "",
+      "counters": {
+        "tests": 31,
+        "suites": 0,
+        "pass": 31,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 1268.197292
+      },
+      "failures": []
+    }
+  },
+  "typechecks": {
+    "path-regressions": {
+      "command": [
+        "node_modules/.bin/tsc",
+        "--noEmit",
+        "-p",
+        "tests/commands/diff-patch-stress/path-regressions/tsconfig.json"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    "editflows": {
+      "command": [
+        "node_modules/.bin/tsc",
+        "--noEmit",
+        "-p",
+        "tests/commands/diff-patch-stress/editflows/tsconfig.json"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    }
+  },
+  "source": {
+    "beforeSha256": "124729cb5e09af060de9d6a1d3b8fcd24e7eab1f62a96b39c14cbed647b1e682",
+    "afterSha256": "124729cb5e09af060de9d6a1d3b8fcd24e7eab1f62a96b39c14cbed647b1e682",
+    "stable": true,
+    "before": {
+      "src/commands/diff-patch/README.md": "fb8fae7bf7d4a3fd6bee81a277ac6e3aa42482f8bac29d0aa226d7c81356356d",
+      "src/commands/diff-patch/diff-format.ts": "3d6e0dd8e3b588963b3487f5e42ab8d7ea673fe2404df1ff26cce47912352912",
+      "src/commands/diff-patch/diff.ts": "769af5df58d829ed3733ad1a24d1fbcbb02af6397cd7f4ffbce5c0f08c517599",
+      "src/commands/diff-patch/index.ts": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17",
+      "src/commands/diff-patch/patch-envelope.ts": "64e853a01bacdf15c8fb32cee7073bff5d3ee6015d98a09bb7268cc12657250c",
+      "src/commands/diff-patch/patch-formats.ts": "ef67097df66662e6b0ed74d707e2c75332b434464e7aafb9bd0164be40c37c6c",
+      "src/commands/diff-patch/patch-path.ts": "8d3027e4cb83cde93a3a4761d5e1e3ad3ddd2b6e7f7004b9777df60d80dcdfd6",
+      "src/commands/diff-patch/patch.ts": "a4149cf2c27c4edaab9e79a8a703353a15853a0615983296a1ca26c260e1b7ee",
+      "src/commands/diff-patch/shared.ts": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+      "src/commands/diff-patch/unified.ts": "d2d9db844bebb1a2f142854b050978b488d36552b2c496e52fbdf84cf6c0e9e8"
+    },
+    "after": {
+      "src/commands/diff-patch/README.md": "fb8fae7bf7d4a3fd6bee81a277ac6e3aa42482f8bac29d0aa226d7c81356356d",
+      "src/commands/diff-patch/diff-format.ts": "3d6e0dd8e3b588963b3487f5e42ab8d7ea673fe2404df1ff26cce47912352912",
+      "src/commands/diff-patch/diff.ts": "769af5df58d829ed3733ad1a24d1fbcbb02af6397cd7f4ffbce5c0f08c517599",
+      "src/commands/diff-patch/index.ts": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17",
+      "src/commands/diff-patch/patch-envelope.ts": "64e853a01bacdf15c8fb32cee7073bff5d3ee6015d98a09bb7268cc12657250c",
+      "src/commands/diff-patch/patch-formats.ts": "ef67097df66662e6b0ed74d707e2c75332b434464e7aafb9bd0164be40c37c6c",
+      "src/commands/diff-patch/patch-path.ts": "8d3027e4cb83cde93a3a4761d5e1e3ad3ddd2b6e7f7004b9777df60d80dcdfd6",
+      "src/commands/diff-patch/patch.ts": "a4149cf2c27c4edaab9e79a8a703353a15853a0615983296a1ca26c260e1b7ee",
+      "src/commands/diff-patch/shared.ts": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+      "src/commands/diff-patch/unified.ts": "d2d9db844bebb1a2f142854b050978b488d36552b2c496e52fbdf84cf6c0e9e8"
+    }
+  },
+  "testedFiles": {
+    "tests/commands/diff-patch-stress/path-regressions/bounds-shell.test.ts": "2d97121698b288f628515f0cffd5b1dc9a536c67d037984130746696c1d6943e",
+    "tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts": "e23eb8696ce414adf8c07100c48ae3c7547b448b864e3a5ff5402658363f4acb",
+    "tests/commands/diff-patch-stress/path-regressions/malformed.test.ts": "00f8fff2436d5788120c7de10087985c25a76b264e80b8b0d77b00b7dab566f8",
+    "tests/commands/diff-patch-stress/path-regressions/names.test.ts": "5287684c65b56ce39db3a247ccb7686e0a335629f4464f1892ab2bf5a1b36fc6",
+    "tests/commands/diff-patch-stress/path-regressions/sequences.test.ts": "8a2e142ece3d160922e353da76cee4d2727df1f55430c46ea7e8581892fb0c3f",
+    "tests/commands/diff-patch-stress/editflows/oracles.test.ts": "c32be8917d29821f26ae3eabacb48d440977a420b0bdcad70a853874a45e8e9d",
+    "tests/commands/diff-patch-stress/editflows/parity.test.ts": "af6ba327028d081e5b77eca23b9647f3ee3bc976a432701c11d125c359faaadd",
+    "tests/commands/diff-patch-stress/editflows/quoted-safety.test.ts": "274082f8745233f86e6d7d947cd72867e4e236a3b54b1dd4622d17a7a3d180a4",
+    "tests/commands/diff-patch-stress/path-regressions/helpers.ts": "369e8e3def3aee6c84ecbb1474a76dc00f996478ce46c71fa5e6d46cd52bc382",
+    "tests/commands/diff-patch-stress/path-regressions/tsconfig.json": "9f603a6399351b4416e13f03b8a0401be61e99df4aba0a569f60a14faf2e6b88",
+    "tests/commands/diff-patch-stress/editflows/helpers.ts": "d461ee031c57844fe5c8ca2abc5d5d5bfcc0df5da444954b10da39776c3b8895",
+    "tests/commands/diff-patch-stress/editflows/fixtures.ts": "55c5357835760b779b40b1be4b8888ba76eda677b0a1b4daa7004536ac40569e",
+    "tests/commands/diff-patch-stress/editflows/tsconfig.json": "9f603a6399351b4416e13f03b8a0401be61e99df4aba0a569f60a14faf2e6b88",
+    "tests/commands/diff-patch-stress/safety/helpers.ts": "b995fa07df8355fa593da3b38cde5453ac47b170e2dda6ba610c14993b1b7d53"
+  },
+  "native": {
+    "newAbsoluteHeaderProbes": false,
+    "description": "Only the ten existing safe edit-flow native oracle tests rerun. No new GNU semantic claim or GNU probe. Unsafe headers execute only in MemoryFS.",
+    "executables": {
+      "git": {
+        "executable": "/usr/bin/git",
+        "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba",
+        "args": [
+          "--version"
+        ],
+        "status": 0,
+        "stdout": "git version 2.50.1 (Apple Git-155)\n",
+        "stderr": ""
+      },
+      "diff": {
+        "executable": "/usr/bin/diff",
+        "sha256": "214a0d91e39424b15e1e3540edf6b33ee3dd2bbccb0c6dd3a9571dae754edede",
+        "args": [
+          "--version"
+        ],
+        "status": 0,
+        "stdout": "Apple diff (based on FreeBSD diff)\n",
+        "stderr": ""
+      },
+      "patch": {
+        "executable": "/usr/bin/patch",
+        "sha256": "ca8aaa5fa4bd9dfaf4b3be251b18372f25f07483946e7d06b505e5a5fb0a6a84",
+        "args": [
+          "--version"
+        ],
+        "status": 0,
+        "stdout": "patch 2.0-12u11-Apple\n",
+        "stderr": ""
+      }
+    },
+    "unchangedPathEvidenceSha256": "72d7ff6ca007fc72b29c2c9d3fad23dace3ab7f48907e8ff7458ce6b8024160e"
+  },
+  "independentAbsoluteTargetReview": {
+    "revision": "22fd7e5d46fb00409761196cbaf1ddc27f16f9bf",
+    "readOnly": true,
+    "rerun": false,
+    "sha256": "8129396bcfb339a6cc332caf4c21977afc2ccbf956900185e88db9c9fa37f29e"
+  },
+  "contractChanges": [
+    "Exactly four path cases and one edit-flow case now require explicit-target-only success for valid absolute headers. Header decoys and the authorized file have different names.",
+    "Full VFS snapshots preserve bytes, type, mode, inode/device/link identity for all entries except target bytes. Mutation instrumentation requires exactly one writeFile to the authorized target.",
+    "All original no-explicit-target absolute-header rejection and pre-strip traversal/control/drive/backslash checks remain, as do symlink/hardlink and directory-label rejection tests."
+  ],
+  "remainingDefectsInTheseSuites": [],
+  "limits": [
+    "This is a committed-source checkpoint, not whole-repository validation, universal shell compatibility, or superiority evidence.",
+    "Initial live runs reproduced 4+1 obsolete failures but source changed concurrently between boundaries; the archived baseline and final results supersede those live runs."
+  ]
+}

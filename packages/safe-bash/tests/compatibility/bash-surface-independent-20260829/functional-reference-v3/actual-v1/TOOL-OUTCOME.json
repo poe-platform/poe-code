@@ -1,0 +1,34 @@
+{
+  "event": "EXACT_TOOL_REQUEST_RETURNED",
+  "at": 1787992111493,
+  "invocationSha256": "b514681b0c165c2b029992c08b89dcf3ac793dc062f5ad4d6e7b5eb24c0bd1f6",
+  "sandboxPermissions": "require_escalated",
+  "login": false,
+  "prefixRule": null,
+  "observedToolResponses": [
+    {
+      "chunk": "e26e79",
+      "wallSeconds": 1.0007,
+      "session": 53726,
+      "disposition": "running",
+      "output": ""
+    },
+    {
+      "chunk": "6bdfb0",
+      "wallSeconds": 5.0017,
+      "session": 53726,
+      "disposition": "running",
+      "output": ""
+    },
+    {
+      "chunk": "56f645",
+      "wallSeconds": 0,
+      "disposition": "exited",
+      "exitCode": 0,
+      "output": ""
+    }
+  ],
+  "approvalOutcome": "Exact require_escalated request proceeded to tool-managed execution; no separate human approval text exposed by tool",
+  "reroute": false,
+  "retry": false
+}

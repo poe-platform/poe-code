@@ -1,0 +1,13 @@
+{
+  "at": "2026-08-27T20:23:39.342Z",
+  "retired": [
+    "run01",
+    "run02",
+    "run03",
+    "run04",
+    "run05"
+  ],
+  "archivesReverifiedBeforeRemovingOwnMaterialization": true,
+  "allGroupsGoneAtReceipt": true,
+  "scope": "Only newly created review capture/materialization directories retired. Raw evidence remains losslessly archived; development-tool copies removed. Existing files, other owners, staging and native artifacts untouched."
+}

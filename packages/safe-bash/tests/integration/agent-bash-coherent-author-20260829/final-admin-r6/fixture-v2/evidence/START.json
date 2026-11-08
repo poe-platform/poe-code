@@ -1,0 +1,21 @@
+{
+  "schema": "administrative-owner-r1",
+  "self": {
+    "id": "owner-52020",
+    "role": "administrative-owner",
+    "pid": 52020,
+    "startUTC": "2026-08-29T16:02:01.556Z",
+    "startObserved": true,
+    "exitObserved": false,
+    "closeObserved": false,
+    "state": "LIVE_COORDINATOR"
+  },
+  "starts": [],
+  "attempts": [],
+  "knownStarts": 1,
+  "activeKnownPIDs": [],
+  "captureBytes": 0,
+  "metadataBytes": 0,
+  "elapsedMs": 1.9272910000000003,
+  "poisoned": false
+}

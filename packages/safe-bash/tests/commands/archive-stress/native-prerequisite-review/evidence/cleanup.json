@@ -1,0 +1,15 @@
+{
+  "ownedRoot": "/private/tmp/safe-bash-archive-prerequisites-e36dab2-20260827",
+  "retained": [
+    "regular frozen tree",
+    "raw evidence",
+    "recorded native fixture archives"
+  ],
+  "nativeFixtureRemainders": [],
+  "tmpRemainders": [],
+  "processGroupsAbsent": [
+    true,
+    true
+  ],
+  "primaryToolsRehashedUnchanged": true
+}

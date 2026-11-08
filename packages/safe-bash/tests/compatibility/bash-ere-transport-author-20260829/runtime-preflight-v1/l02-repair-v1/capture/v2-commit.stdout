@@ -1,0 +1,5 @@
+[main 40948d132] seal L02 pure fixture syntax correction after preserved parse failure
+ 3 files changed, 229 insertions(+)
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/DOUBLE-PRESEAL-v2.json
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/double-owner-v2.mjs
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/host-doubles-v2.mjs

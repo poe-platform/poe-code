@@ -1,0 +1,267 @@
+{
+  "captured_utc": "2026-09-19T17:48:48.361388+00:00",
+  "executable": "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/bin/ffprobe",
+  "executable_sha256": "860eadc7b01d86126a208601c83602feb8eab952da232ce603066fb2f65471d8",
+  "registered_executable_match": true,
+  "source_url": "https://raw.githubusercontent.com/FFmpeg/FFmpeg/n9.0.1/libavformat/concatdec.c",
+  "source_sha256": "7d3c2d0964787e63a90157976bf0c6e81d57e80c3ccae8b5ed962dee94a11ac8",
+  "cwd": "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-policy-yeaxxnt8",
+  "tracer_source": "#include <fcntl.h>\n#include <stdarg.h>\n#include <stdio.h>\n#include <unistd.h>\nstatic void record(const char *operation,const char *path,int flags) {\n char line[16384]; int n=snprintf(line,sizeof(line),\"ACCESS %s %d \",operation,flags);\n for(const unsigned char *p=(const unsigned char *)path;*p && n+3<sizeof(line);p++) n+=snprintf(line+n,sizeof(line)-n,\"%02x\",*p);\n line[n++]='\\n'; write(2,line,n);\n}\nstatic int observed_open(const char *path,int flags,...) {\n mode_t mode=0; if(flags&O_CREAT){va_list ap;va_start(ap,flags);mode=va_arg(ap,int);va_end(ap);}\n record(\"open\",path,flags);return open(path,flags,mode);\n}\nstatic FILE *observed_fopen(const char *path,const char *mode) {\n record(\"fopen\",path,mode[0]=='r'?O_RDONLY:O_WRONLY);return fopen(path,mode);\n}\n__attribute__((used)) static struct {const void *replacement;const void *original;} hooks[]\n__attribute__((section(\"__DATA,__interpose\"))) = {{(const void *)observed_open,(const void *)open},{(const void *)observed_fopen,(const void *)fopen}};\n",
+  "tracer_build_argv": [
+    "clang",
+    "-dynamiclib",
+    "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-policy-yeaxxnt8/observer.c",
+    "-o",
+    "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-policy-yeaxxnt8/observer.dylib"
+  ],
+  "fixtures": {
+    "frames/Case雪.ppm": "UDYKMSAxCjI1NQoQIDA=",
+    "frames/case.ppm": "UDYKMSAxCjI1NQowIBA="
+  },
+  "results": [
+    {
+      "id": "last-whitelist",
+      "manifest": "file '../frames/Case雪.ppm'\noption protocol_whitelist pipe\noption protocol_whitelist file\nfile '../frames/case.ppm'\n",
+      "argv": [
+        "-v",
+        "error",
+        "-protocol_whitelist",
+        "file,concat",
+        "-protocol_blacklist",
+        "pipe",
+        "-safe",
+        "0",
+        "-f",
+        "concat",
+        "-show_packets",
+        "lists/root"
+      ],
+      "runs": [
+        {
+          "instrumented": false,
+          "status": 0,
+          "stdout_base64": "W1BBQ0tFVF0KY29kZWNfdHlwZT12aWRlbwpzdHJlYW1faW5kZXg9MApwdHM9MApwdHNfdGltZT0wLjAwMDAwMApkdHM9MApkdHNfdGltZT0wLjAwMDAwMApkdXJhdGlvbj0xCmR1cmF0aW9uX3RpbWU9MC4wNDAwMDAKc2l6ZT0xNApwb3M9MApmbGFncz1LX18KWy9QQUNLRVRdCltQQUNLRVRdCmNvZGVjX3R5cGU9dmlkZW8Kc3RyZWFtX2luZGV4PTAKcHRzPS0yMzA1ODQzMDA5MjEzNjkKcHRzX3RpbWU9LTkyMjMzNzIwMzY4NTQuNzU5NzY2CmR0cz0tMjMwNTg0MzAwOTIxMzY5CmR0c190aW1lPS05MjIzMzcyMDM2ODU0Ljc1OTc2NgpkdXJhdGlvbj0xCmR1cmF0aW9uX3RpbWU9MC4wNDAwMDAKc2l6ZT0xNApwb3M9MApmbGFncz1LX18KWy9QQUNLRVRdCg==",
+          "stderr_base64": "",
+          "stderr_without_trace_base64": "",
+          "named_accesses": []
+        },
+        {
+          "instrumented": true,
+          "status": 0,
+          "stdout_base64": "W1BBQ0tFVF0KY29kZWNfdHlwZT12aWRlbwpzdHJlYW1faW5kZXg9MApwdHM9MApwdHNfdGltZT0wLjAwMDAwMApkdHM9MApkdHNfdGltZT0wLjAwMDAwMApkdXJhdGlvbj0xCmR1cmF0aW9uX3RpbWU9MC4wNDAwMDAKc2l6ZT0xNApwb3M9MApmbGFncz1LX18KWy9QQUNLRVRdCltQQUNLRVRdCmNvZGVjX3R5cGU9dmlkZW8Kc3RyZWFtX2luZGV4PTAKcHRzPS0yMzA1ODQzMDA5MjEzNjkKcHRzX3RpbWU9LTkyMjMzNzIwMzY4NTQuNzU5NzY2CmR0cz0tMjMwNTg0MzAwOTIxMzY5CmR0c190aW1lPS05MjIzMzcyMDM2ODU0Ljc1OTc2NgpkdXJhdGlvbj0xCmR1cmF0aW9uX3RpbWU9MC4wNDAwMDAKc2l6ZT0xNApwb3M9MApmbGFncz1LX18KWy9QQUNLRVRdCg==",
+          "stderr_base64": "QUNDRVNTIG9wZW4gMCAyZjZmNzA3NDJmNjg2ZjZkNjU2MjcyNjU3NzJmNDM2NTZjNmM2MTcyMmY2NjY2NmQ3MDY1NjcyZjM5MmUzMDJlMzE1ZjMxMmY2MjY5NmUKQUNDRVNTIG9wZW4gMCAyZjZmNzA3NDJmNjg2ZjZkNjU2MjcyNjU3NzJmNDM2NTZjNmM2MTcyMmY2NjY2NmQ3MDY1NjcyZjM5MmUzMDJlMzE1ZjMxMmY2MjY5NmUyZjQ5NmU2NjZmMmU3MDZjNjk3Mzc0CkFDQ0VTUyBvcGVuIDE2Nzc3MjE2IDZjNjk3Mzc0NzMyZjcyNmY2Zjc0CkFDQ0VTUyBvcGVuIDE2Nzc3MjE2IDZjNjk3Mzc0NzMyZjJlMmUyZjY2NzI2MTZkNjU3MzJmNDM2MTczNjVlOTliYWEyZTcwNzA2ZApBQ0NFU1Mgb3BlbiAxNjc3NzIxNiA2YzY5NzM3NDczMmYyZTJlMmY2NjcyNjE2ZDY1NzMyZjYzNjE3MzY1MmU3MDcwNmQK",
+          "stderr_without_trace_base64": "",
+          "named_accesses": [
+            {
+              "operation": "open",
+              "flags": 16777216,
+              "path_hex": "6c697374732f726f6f74"
+            },
+            {
+              "operation": "open",
+              "flags": 16777216,
+              "path_hex": "6c697374732f2e2e2f6672616d65732f43617365e99baa2e70706d"
+            },
+            {
+              "operation": "open",
+              "flags": 16777216,
+              "path_hex": "6c697374732f2e2e2f6672616d65732f636173652e70706d"
+            }
+          ]
+        }
+      ],
+      "fixtures_unchanged": true
+    },
+    {
+      "id": "deny-file",
+      "manifest": "file '../frames/Case雪.ppm'\noption protocol_blacklist file\n",
+      "argv": [
+        "-v",
+        "error",
+        "-protocol_whitelist",
+        "file,concat",
+        "-protocol_blacklist",
+        "pipe",
+        "-safe",
+        "0",
+        "-f",
+        "concat",
+        "-show_packets",
+        "lists/root"
+      ],
+      "runs": [
+        {
+          "instrumented": false,
+          "status": 1,
+          "stdout_base64": "",
+          "stderr_base64": "W2ZpbGUgQCAweDYwMDAwMWU1NDAwMF0gUHJvdG9jb2wgJ2ZpbGUnIG9uIGJsYWNrbGlzdCAnZmlsZSchCltjb25jYXQgQCAweDE1N2EwNTdhMF0gSW1wb3NzaWJsZSB0byBvcGVuICdsaXN0cy8uLi9mcmFtZXMvQ2FzZembqi5wcG0nCmxpc3RzL3Jvb3Q6IEludmFsaWQgYXJndW1lbnQK",
+          "stderr_without_trace_base64": "W2ZpbGUgQCAweDYwMDAwMWU1NDAwMF0gUHJvdG9jb2wgJ2ZpbGUnIG9uIGJsYWNrbGlzdCAnZmlsZSchCltjb25jYXQgQCAweDE1N2EwNTdhMF0gSW1wb3NzaWJsZSB0byBvcGVuICdsaXN0cy8uLi9mcmFtZXMvQ2FzZembqi5wcG0nCmxpc3RzL3Jvb3Q6IEludmFsaWQgYXJndW1lbnQK",
+          "named_accesses": []
+        },
+        {
+          "instrumented": true,
+          "status": 1,
+          "stdout_base64": "",
+          "stderr_base64": "QUNDRVNTIG9wZW4gMCAyZjZmNzA3NDJmNjg2ZjZkNjU2MjcyNjU3NzJmNDM2NTZjNmM2MTcyMmY2NjY2NmQ3MDY1NjcyZjM5MmUzMDJlMzE1ZjMxMmY2MjY5NmUKQUNDRVNTIG9wZW4gMCAyZjZmNzA3NDJmNjg2ZjZkNjU2MjcyNjU3NzJmNDM2NTZjNmM2MTcyMmY2NjY2NmQ3MDY1NjcyZjM5MmUzMDJlMzE1ZjMxMmY2MjY5NmUyZjQ5NmU2NjZmMmU3MDZjNjk3Mzc0CkFDQ0VTUyBvcGVuIDE2Nzc3MjE2IDZjNjk3Mzc0NzMyZjcyNmY2Zjc0CltmaWxlIEAgMHg2MDAwMDMzZjQwMDBdIFByb3RvY29sICdmaWxlJyBvbiBibGFja2xpc3QgJ2ZpbGUnIQpbY29uY2F0IEAgMHgxMjQ2MDYyMzBdIEltcG9zc2libGUgdG8gb3BlbiAnbGlzdHMvLi4vZnJhbWVzL0Nhc2Xpm6oucHBtJwpsaXN0cy9yb290OiBJbnZhbGlkIGFyZ3VtZW50Cg==",
+          "stderr_without_trace_base64": "W2ZpbGUgQCAweDYwMDAwMzNmNDAwMF0gUHJvdG9jb2wgJ2ZpbGUnIG9uIGJsYWNrbGlzdCAnZmlsZSchCltjb25jYXQgQCAweDEyNDYwNjIzMF0gSW1wb3NzaWJsZSB0byBvcGVuICdsaXN0cy8uLi9mcmFtZXMvQ2FzZembqi5wcG0nCmxpc3RzL3Jvb3Q6IEludmFsaWQgYXJndW1lbnQK",
+          "named_accesses": [
+            {
+              "operation": "open",
+              "flags": 16777216,
+              "path_hex": "6c697374732f726f6f74"
+            }
+          ]
+        }
+      ],
+      "fixtures_unchanged": true
+    },
+    {
+      "id": "replace-blacklist",
+      "manifest": "file '../frames/Case雪.ppm'\noption protocol_blacklist file\noption protocol_blacklist pipe\n",
+      "argv": [
+        "-v",
+        "error",
+        "-protocol_whitelist",
+        "file,concat",
+        "-protocol_blacklist",
+        "pipe",
+        "-safe",
+        "0",
+        "-f",
+        "concat",
+        "-show_packets",
+        "lists/root"
+      ],
+      "runs": [
+        {
+          "instrumented": false,
+          "status": 0,
+          "stdout_base64": "W1BBQ0tFVF0KY29kZWNfdHlwZT12aWRlbwpzdHJlYW1faW5kZXg9MApwdHM9MApwdHNfdGltZT0wLjAwMDAwMApkdHM9MApkdHNfdGltZT0wLjAwMDAwMApkdXJhdGlvbj0xCmR1cmF0aW9uX3RpbWU9MC4wNDAwMDAKc2l6ZT0xNApwb3M9MApmbGFncz1LX18KWy9QQUNLRVRdCg==",
+          "stderr_base64": "",
+          "stderr_without_trace_base64": "",
+          "named_accesses": []
+        },
+        {
+          "instrumented": true,
+          "status": 0,
+          "stdout_base64": "W1BBQ0tFVF0KY29kZWNfdHlwZT12aWRlbwpzdHJlYW1faW5kZXg9MApwdHM9MApwdHNfdGltZT0wLjAwMDAwMApkdHM9MApkdHNfdGltZT0wLjAwMDAwMApkdXJhdGlvbj0xCmR1cmF0aW9uX3RpbWU9MC4wNDAwMDAKc2l6ZT0xNApwb3M9MApmbGFncz1LX18KWy9QQUNLRVRdCg==",
+          "stderr_base64": "QUNDRVNTIG9wZW4gMCAyZjZmNzA3NDJmNjg2ZjZkNjU2MjcyNjU3NzJmNDM2NTZjNmM2MTcyMmY2NjY2NmQ3MDY1NjcyZjM5MmUzMDJlMzE1ZjMxMmY2MjY5NmUKQUNDRVNTIG9wZW4gMCAyZjZmNzA3NDJmNjg2ZjZkNjU2MjcyNjU3NzJmNDM2NTZjNmM2MTcyMmY2NjY2NmQ3MDY1NjcyZjM5MmUzMDJlMzE1ZjMxMmY2MjY5NmUyZjQ5NmU2NjZmMmU3MDZjNjk3Mzc0CkFDQ0VTUyBvcGVuIDE2Nzc3MjE2IDZjNjk3Mzc0NzMyZjcyNmY2Zjc0CkFDQ0VTUyBvcGVuIDE2Nzc3MjE2IDZjNjk3Mzc0NzMyZjJlMmUyZjY2NzI2MTZkNjU3MzJmNDM2MTczNjVlOTliYWEyZTcwNzA2ZAo=",
+          "stderr_without_trace_base64": "",
+          "named_accesses": [
+            {
+              "operation": "open",
+              "flags": 16777216,
+              "path_hex": "6c697374732f726f6f74"
+            },
+            {
+              "operation": "open",
+              "flags": 16777216,
+              "path_hex": "6c697374732f2e2e2f6672616d65732f43617365e99baa2e70706d"
+            }
+          ]
+        }
+      ],
+      "fixtures_unchanged": true
+    },
+    {
+      "id": "wrapper-denial",
+      "manifest": "file 'concat:frames/Case雪.ppm|frames/case.ppm'\noption protocol_whitelist 'concat,file'\noption protocol_blacklist file\n",
+      "argv": [
+        "-v",
+        "error",
+        "-protocol_whitelist",
+        "file,concat",
+        "-protocol_blacklist",
+        "pipe",
+        "-safe",
+        "0",
+        "-f",
+        "concat",
+        "-show_packets",
+        "lists/root"
+      ],
+      "runs": [
+        {
+          "instrumented": false,
+          "status": 1,
+          "stdout_base64": "",
+          "stderr_base64": "W2ZpbGUgQCAweDYwMDAwM2Y3YzA4MF0gUHJvdG9jb2wgJ2ZpbGUnIG9uIGJsYWNrbGlzdCAnZmlsZSchCltjb25jYXQgQCAweDEyM2UwNWY1MF0gSW1wb3NzaWJsZSB0byBvcGVuICdjb25jYXQ6ZnJhbWVzL0Nhc2Xpm6oucHBtfGZyYW1lcy9jYXNlLnBwbScKbGlzdHMvcm9vdDogSW52YWxpZCBhcmd1bWVudAo=",
+          "stderr_without_trace_base64": "W2ZpbGUgQCAweDYwMDAwM2Y3YzA4MF0gUHJvdG9jb2wgJ2ZpbGUnIG9uIGJsYWNrbGlzdCAnZmlsZSchCltjb25jYXQgQCAweDEyM2UwNWY1MF0gSW1wb3NzaWJsZSB0byBvcGVuICdjb25jYXQ6ZnJhbWVzL0Nhc2Xpm6oucHBtfGZyYW1lcy9jYXNlLnBwbScKbGlzdHMvcm9vdDogSW52YWxpZCBhcmd1bWVudAo=",
+          "named_accesses": []
+        },
+        {
+          "instrumented": true,
+          "status": 1,
+          "stdout_base64": "",
+          "stderr_base64": "QUNDRVNTIG9wZW4gMCAyZjZmNzA3NDJmNjg2ZjZkNjU2MjcyNjU3NzJmNDM2NTZjNmM2MTcyMmY2NjY2NmQ3MDY1NjcyZjM5MmUzMDJlMzE1ZjMxMmY2MjY5NmUKQUNDRVNTIG9wZW4gMCAyZjZmNzA3NDJmNjg2ZjZkNjU2MjcyNjU3NzJmNDM2NTZjNmM2MTcyMmY2NjY2NmQ3MDY1NjcyZjM5MmUzMDJlMzE1ZjMxMmY2MjY5NmUyZjQ5NmU2NjZmMmU3MDZjNjk3Mzc0CkFDQ0VTUyBvcGVuIDE2Nzc3MjE2IDZjNjk3Mzc0NzMyZjcyNmY2Zjc0CltmaWxlIEAgMHg2MDAwMDI0YjgxODBdIFByb3RvY29sICdmaWxlJyBvbiBibGFja2xpc3QgJ2ZpbGUnIQpbY29uY2F0IEAgMHgxNTUyMDQwODBdIEltcG9zc2libGUgdG8gb3BlbiAnY29uY2F0OmZyYW1lcy9DYXNl6ZuqLnBwbXxmcmFtZXMvY2FzZS5wcG0nCmxpc3RzL3Jvb3Q6IEludmFsaWQgYXJndW1lbnQK",
+          "stderr_without_trace_base64": "W2ZpbGUgQCAweDYwMDAwMjRiODE4MF0gUHJvdG9jb2wgJ2ZpbGUnIG9uIGJsYWNrbGlzdCAnZmlsZSchCltjb25jYXQgQCAweDE1NTIwNDA4MF0gSW1wb3NzaWJsZSB0byBvcGVuICdjb25jYXQ6ZnJhbWVzL0Nhc2Xpm6oucHBtfGZyYW1lcy9jYXNlLnBwbScKbGlzdHMvcm9vdDogSW52YWxpZCBhcmd1bWVudAo=",
+          "named_accesses": [
+            {
+              "operation": "open",
+              "flags": 16777216,
+              "path_hex": "6c697374732f726f6f74"
+            }
+          ]
+        }
+      ],
+      "fixtures_unchanged": true
+    },
+    {
+      "id": "late-missing",
+      "manifest": "file '../frames/Case雪.ppm'\noption protocol_whitelist file\nfile '../frames/absent雪.ppm'\n",
+      "argv": [
+        "-v",
+        "error",
+        "-protocol_whitelist",
+        "file,concat",
+        "-protocol_blacklist",
+        "pipe",
+        "-safe",
+        "0",
+        "-f",
+        "concat",
+        "-show_packets",
+        "lists/root"
+      ],
+      "runs": [
+        {
+          "instrumented": false,
+          "status": 0,
+          "stdout_base64": "W1BBQ0tFVF0KY29kZWNfdHlwZT12aWRlbwpzdHJlYW1faW5kZXg9MApwdHM9MApwdHNfdGltZT0wLjAwMDAwMApkdHM9MApkdHNfdGltZT0wLjAwMDAwMApkdXJhdGlvbj0xCmR1cmF0aW9uX3RpbWU9MC4wNDAwMDAKc2l6ZT0xNApwb3M9MApmbGFncz1LX18KWy9QQUNLRVRdCg==",
+          "stderr_base64": "W2NvbmNhdCBAIDB4MTUyYTA1YjYwXSBJbXBvc3NpYmxlIHRvIG9wZW4gJ2xpc3RzLy4uL2ZyYW1lcy9hYnNlbnTpm6oucHBtJwo=",
+          "stderr_without_trace_base64": "W2NvbmNhdCBAIDB4MTUyYTA1YjYwXSBJbXBvc3NpYmxlIHRvIG9wZW4gJ2xpc3RzLy4uL2ZyYW1lcy9hYnNlbnTpm6oucHBtJwo=",
+          "named_accesses": []
+        },
+        {
+          "instrumented": true,
+          "status": 0,
+          "stdout_base64": "W1BBQ0tFVF0KY29kZWNfdHlwZT12aWRlbwpzdHJlYW1faW5kZXg9MApwdHM9MApwdHNfdGltZT0wLjAwMDAwMApkdHM9MApkdHNfdGltZT0wLjAwMDAwMApkdXJhdGlvbj0xCmR1cmF0aW9uX3RpbWU9MC4wNDAwMDAKc2l6ZT0xNApwb3M9MApmbGFncz1LX18KWy9QQUNLRVRdCg==",
+          "stderr_base64": "QUNDRVNTIG9wZW4gMCAyZjZmNzA3NDJmNjg2ZjZkNjU2MjcyNjU3NzJmNDM2NTZjNmM2MTcyMmY2NjY2NmQ3MDY1NjcyZjM5MmUzMDJlMzE1ZjMxMmY2MjY5NmUKQUNDRVNTIG9wZW4gMCAyZjZmNzA3NDJmNjg2ZjZkNjU2MjcyNjU3NzJmNDM2NTZjNmM2MTcyMmY2NjY2NmQ3MDY1NjcyZjM5MmUzMDJlMzE1ZjMxMmY2MjY5NmUyZjQ5NmU2NjZmMmU3MDZjNjk3Mzc0CkFDQ0VTUyBvcGVuIDE2Nzc3MjE2IDZjNjk3Mzc0NzMyZjcyNmY2Zjc0CkFDQ0VTUyBvcGVuIDE2Nzc3MjE2IDZjNjk3Mzc0NzMyZjJlMmUyZjY2NzI2MTZkNjU3MzJmNDM2MTczNjVlOTliYWEyZTcwNzA2ZApBQ0NFU1Mgb3BlbiAxNjc3NzIxNiA2YzY5NzM3NDczMmYyZTJlMmY2NjcyNjE2ZDY1NzMyZjYxNjI3MzY1NmU3NGU5OWJhYTJlNzA3MDZkCltjb25jYXQgQCAweDExZDAwNTVmMF0gSW1wb3NzaWJsZSB0byBvcGVuICdsaXN0cy8uLi9mcmFtZXMvYWJzZW506ZuqLnBwbScK",
+          "stderr_without_trace_base64": "W2NvbmNhdCBAIDB4MTFkMDA1NWYwXSBJbXBvc3NpYmxlIHRvIG9wZW4gJ2xpc3RzLy4uL2ZyYW1lcy9hYnNlbnTpm6oucHBtJwo=",
+          "named_accesses": [
+            {
+              "operation": "open",
+              "flags": 16777216,
+              "path_hex": "6c697374732f726f6f74"
+            },
+            {
+              "operation": "open",
+              "flags": 16777216,
+              "path_hex": "6c697374732f2e2e2f6672616d65732f43617365e99baa2e70706d"
+            },
+            {
+              "operation": "open",
+              "flags": 16777216,
+              "path_hex": "6c697374732f2e2e2f6672616d65732f616273656e74e99baa2e70706d"
+            }
+          ]
+        }
+      ],
+      "fixtures_unchanged": true
+    }
+  ],
+  "limitations": [
+    "Attempted libc opens only; not exhaustive syscall, mmap, delegate, descriptor or network coverage.",
+    "No remote runtime qualification; trace tooling is absent from the product."
+  ]
+}

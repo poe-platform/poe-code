@@ -1,0 +1,17 @@
+diff --git a/src/commands/text.ts b/src/commands/text.ts
+index 70bb169..b5541e1 100644
+--- a/src/commands/text.ts
++++ b/src/commands/text.ts
+@@ -125,7 +125,11 @@ export function textCommands(): CommandDefinition[] {
+         } catch (error) { await diagnostic(context, error); return { exitCode: 2 }; }
+       }
+       if (parsed.flags.has("c")) return { exitCode };
+-      records.sort(compare);
++      if (simple && records.length <= 32768) {
++        const keyed = records.map(bytes => ({ bytes, key: Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString("latin1") }));
++        keyed.sort((left, right) => left.key < right.key ? -direction : left.key > right.key ? direction : 0);
++        for (let index = 0; index < records.length; index++) records[index] = keyed[index]!.bytes;
++      } else records.sort(compare);
+       const sorted = (async function* (): ByteSource {
+         let previous: Uint8Array | undefined;
+         let buffer = new Uint8Array(64 * 1024);

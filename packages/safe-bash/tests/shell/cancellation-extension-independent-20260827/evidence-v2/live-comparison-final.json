@@ -1,0 +1,9 @@
+{
+  "historicalIndependentEqual": true,
+  "authorHistoryEqual": true,
+  "foreignStagedEditsEqual": true,
+  "sourceEqual": true,
+  "rootFilesEqual": true,
+  "fullRawIndexUnchangedClaimed": false,
+  "candidateInputsNeverOverlaid": true
+}

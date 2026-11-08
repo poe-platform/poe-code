@@ -1,0 +1,20 @@
+{
+  "extends": "../../../../tsconfig.json",
+  "compilerOptions": { "noEmit": true },
+  "include": [
+    "../jq-grammar-native-v3.ts",
+    "../jq-grammar-byte-assertions-v3.test.ts",
+    "../harness.ts",
+    "../../structured/helpers.ts",
+    "../independent-increment/safety.test.ts",
+    "../raw-input.test.ts",
+    "../safety.test.ts",
+    "../../structured/cli.test.ts",
+    "../../structured/resources.test.ts",
+    "../join.test.ts",
+    "../split-increment/command.test.ts",
+    "../jq-42-author-20260827/safety.test.ts",
+    "../jq-grammar-review-fixes/limits.test.ts"
+  ],
+  "exclude": []
+}

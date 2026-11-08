@@ -1,0 +1,19 @@
+{
+  "name": "safe-bash-playground",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit && npm run build:site",
+    "build:site": "node --max-old-space-size=8192 scripts/build.mjs",
+    "dev": "vite --host 127.0.0.1 --port 5173",
+    "test:unit": "cd ../.. && vitest run packages/safe-bash-playground",
+    "test:integration": "cd ../.. && vitest run --config packages/safe-bash-playground/vitest.integration.config.ts"
+  },
+  "devDependencies": {
+    "@jspm/core": "2.1.0",
+    "@noble/hashes": "2.4.0",
+    "@poe-code/safe-fs": "*",
+    "@poe-platform/safe-bash": "*"
+  }
+}

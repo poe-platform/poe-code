@@ -1,0 +1,17 @@
+[
+  {
+    "path": "consumer.mts",
+    "bytes": 1430,
+    "sha256": "80126372a63c0d4b2e712c5e096558d238097f7647b04813ec00cb89061139a5"
+  },
+  {
+    "path": "consumer.mjs",
+    "bytes": 1366,
+    "sha256": "9f62b0b35e93f87bff39ef96a07f768cb4110e627c111bc3eaa2889ac2d34360"
+  },
+  {
+    "path": "run-consumer.mjs",
+    "bytes": 3897,
+    "sha256": "c823e91e2d4f7e89843f74940c0b8335f152b63d419be4bf5d6a43bfd72b5632"
+  }
+]

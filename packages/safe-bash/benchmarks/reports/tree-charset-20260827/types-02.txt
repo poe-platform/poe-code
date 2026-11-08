@@ -1,0 +1,1 @@
+Exit 0; stdout/stderr empty. node node_modules/typescript/bin/tsc --noEmit -p tests/commands/tree/tsconfig.json

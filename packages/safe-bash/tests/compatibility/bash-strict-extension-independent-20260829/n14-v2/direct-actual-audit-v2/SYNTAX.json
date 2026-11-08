@@ -1,0 +1,7 @@
+{
+  "success": true,
+  "files": [
+    "supervise.mjs",
+    "audit.mjs"
+  ]
+}

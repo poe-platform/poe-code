@@ -1,0 +1,25 @@
+import assert from 'node:assert/strict';
+import { treeCommands, createTreeCommands, createTreeCommand } from './build/commands/tree/index.js';
+import { Shell } from './build/shell/index.js';
+import { MemoryFileSystem } from './build/fs/memory/index.js';
+const limits = { maxEntries: 8, maxOutputBytes: 256 };
+const options = { limits };
+assert.equal(createTreeCommand(options).name, 'tree');
+assert.equal(createTreeCommands(options).length, 1);
+const filesystem = new MemoryFileSystem();
+await filesystem.writeFile('/leaf.txt', new Uint8Array([65]));
+const shell = new Shell({ fs: filesystem, cwd: '/' });
+shell.use(treeCommands(options));
+try {
+    const result = await shell.exec('tree -i --noreport /');
+    assert.equal(result.exitCode, 0);
+    assert.deepEqual(result.stdoutBytes, new TextEncoder().encode('/\nleaf.txt\n'));
+    assert.equal(result.stderrBytes.length, 0);
+    console.log(JSON.stringify({ id: 'BUILT-STANDALONE-SMOKE-1', status: 'pass', productInvocations: 1,
+        exitCode: result.exitCode, stdoutBase64: Buffer.from(result.stdoutBytes).toString('base64'), stderrBytes: result.stderrBytes.length,
+        api: 'Built standalone module; all three factories typed; treeCommands plugin installed on actual Shell; no package-root/default claim' }));
+}
+finally {
+    await shell.dispose();
+    console.log(JSON.stringify({ disposed: true }));
+}

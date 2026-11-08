@@ -1,0 +1,25 @@
+{
+  "kind": "static-data-validation-only",
+  "initialValidatorOutcome": "PREPARATION_DATA_VALID",
+  "authenticatedInputs": 23,
+  "eligibilityRows": 54,
+  "unchangedSelectedRecipes": 23,
+  "proposedWorkflows": 10,
+  "proposedControls": 12,
+  "futureReadinessGates": 3,
+  "semanticExecutions": 0,
+  "productImports": 0,
+  "baselineInstalls": 0,
+  "networkCalls": 0,
+  "nativeOracleCalls": 0,
+  "privateRepoWrites": 0,
+  "historicalArchivesReopened": 0,
+  "method": "verify.mjs validates packet bytes, selected immutable Git objects, unchanged historical recipes, numeric bounds and literal encodings; it does not import products or run proposed controls.",
+  "notEvidenceOf": [
+    "current command or workflow success",
+    "baseline archive availability or installation",
+    "new package reproduction or actual module loads",
+    "new runtime cleanup or lifecycle success",
+    "performance measurements or superiority"
+  ]
+}

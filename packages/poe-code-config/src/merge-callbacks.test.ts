@@ -1,0 +1,165 @@
+import { describe, expect, it, vi } from "vitest";
+import type { PipelineCallbackFields } from "./merge-callbacks.js";
+import {
+  mergeExperimentCallbacks,
+  mergeLoopCallbacks,
+  mergePipelineCallbacks
+} from "./merge-callbacks.js";
+
+describe("mergePipelineCallbacks", () => {
+  it("runs user callbacks before added callbacks", () => {
+    const calls: string[] = [];
+    const merged = mergePipelineCallbacks(
+      { onTaskStart: () => calls.push("user") },
+      { onTaskStart: () => calls.push("added") }
+    );
+
+    merged?.onTaskStart?.({
+      taskId: "task-1",
+      taskTitle: "Task 1",
+      stepName: "Build",
+      taskIndex: 0,
+      totalTasks: 1
+    });
+
+    expect(calls).toEqual(["user", "added"]);
+  });
+
+  it("propagates user callback errors without running the added callback", () => {
+    const error = new Error("user failed");
+    const added = vi.fn();
+    const merged = mergePipelineCallbacks(
+      {
+        onTaskComplete: () => {
+          throw error;
+        }
+      },
+      { onTaskComplete: added }
+    );
+
+    expect(() =>
+      merged?.onTaskComplete?.({
+        taskId: "task-1",
+        taskTitle: "Task 1",
+        stepName: "Build",
+        taskIndex: 0,
+        totalTasks: 1,
+        durationMs: 1,
+        success: true
+      })
+    ).toThrow(error);
+    expect(added).not.toHaveBeenCalled();
+  });
+
+  it("swallows added callback errors and warns once with the callback name", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const merged = mergePipelineCallbacks(
+      { onPlanResolved: vi.fn() },
+      {
+        onPlanResolved: () => {
+          throw new Error("added failed");
+        }
+      }
+    );
+
+    expect(() =>
+      merged?.onPlanResolved?.({
+        planPath: "/tmp/plan.md",
+        done: 0,
+        failed: 0,
+        open: 1,
+        total: 1
+      })
+    ).not.toThrow();
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn.mock.calls[0]?.[0]).toContain("onPlanResolved");
+
+    warn.mockRestore();
+  });
+
+  it("observes rejected added callback promises without rejecting the user path", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    let rejectAdded: ((error: Error) => void) | undefined;
+    const merged = mergePipelineCallbacks(
+      { onPlanResolved: vi.fn() },
+      { onPlanResolved: () => new Promise((_resolve, reject) => { rejectAdded = reject; }) }
+    );
+
+    expect(() => merged?.onPlanResolved?.({ planPath: "/tmp/plan.md", done: 0, failed: 0, open: 1, total: 1 })).not.toThrow();
+    rejectAdded?.(new Error("added async failed"));
+    await Promise.resolve();
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn.mock.calls[0]?.[0]).toContain("onPlanResolved");
+
+    warn.mockRestore();
+  });
+
+  it("uses only-user and only-added callbacks directly", () => {
+    const onlyUser: PipelineCallbackFields["onTaskStart"] = vi.fn();
+    const onlyAdded: PipelineCallbackFields["onTaskComplete"] = vi.fn();
+
+    const merged = mergePipelineCallbacks(
+      { onTaskStart: onlyUser },
+      { onTaskComplete: onlyAdded }
+    );
+
+    expect(merged?.onTaskStart).toBe(onlyUser);
+    expect(merged?.onTaskComplete).toBe(onlyAdded);
+  });
+});
+
+describe("mergeExperimentCallbacks", () => {
+  it("runs user callbacks before added callbacks", () => {
+    const calls: string[] = [];
+    const merged = mergeExperimentCallbacks(
+      { onExperimentStart: () => calls.push("user") },
+      { onExperimentStart: () => calls.push("added") }
+    );
+
+    merged?.onExperimentStart?.(1, "codex");
+
+    expect(calls).toEqual(["user", "added"]);
+  });
+});
+
+describe("mergeLoopCallbacks", () => {
+  it("preserves user return values while still running added callbacks", () => {
+    const added = vi.fn();
+    const merged = mergeLoopCallbacks(
+      { shouldPause: () => true },
+      { shouldPause: added }
+    );
+
+    expect(merged?.shouldPause?.()).toBe(true);
+    expect(added).toHaveBeenCalledTimes(1);
+  });
+
+  it("nests added role wrappers around user role wrappers", async () => {
+    const order: string[] = [];
+    const merged = mergeLoopCallbacks(
+      {
+        runRole: async (_role, _name, run) => {
+          order.push("user:start");
+          const result = await run();
+          order.push("user:end");
+          return result;
+        }
+      },
+      {
+        runRole: async (_role, _name, run) => {
+          order.push("added:start");
+          const result = await run();
+          order.push("added:end");
+          return result;
+        }
+      }
+    );
+
+    await merged?.runRole?.("builder", undefined, async () => {
+      order.push("run");
+      return "result";
+    });
+
+    expect(order).toEqual(["added:start", "user:start", "run", "user:end", "added:end"]);
+  });
+});

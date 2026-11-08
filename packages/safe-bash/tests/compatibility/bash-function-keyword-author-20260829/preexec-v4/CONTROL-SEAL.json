@@ -1,0 +1,44 @@
+{
+  "schema": "b35-s01-eight-pure-groups-v4",
+  "files": {
+    "controls.mjs": {
+      "bytes": 3665,
+      "sha256": "8f284e2e7e4896b9477a9b78872141fabb8cc54b1494dd0f19634b1026817ed9"
+    },
+    "auth.mjs": {
+      "bytes": 3951,
+      "sha256": "da5f0fa015cf56acfe86a1be24a50ea1a767320fc5bb2e3c814ef0b327f6f5d9"
+    },
+    "direct-child.mjs": {
+      "bytes": 5589,
+      "sha256": "9ef04780212a6b528b13968da456a2d0893de1f2f7c017d9dc4f202337d6235e"
+    }
+  },
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "mode": 493,
+    "version": "v22.22.2",
+    "qualification": "Version inherited; executable freshly hash-authenticated without running"
+  },
+  "deadline": 1788011097408,
+  "result": "/private/tmp/safe-bash-b35-v4-PLN3cC/CONTROL-RESULT.json",
+  "groups": [
+    "S01-undefined-false",
+    "S02-null-zero",
+    "S03-false-undefined",
+    "S04-zero-null",
+    "S05-object-pair",
+    "S06-close-success",
+    "S07-first-open",
+    "S08-success"
+  ],
+  "qualification": "Injected openSync/closeSync only. No actual FD fault, child dispatch, old readiness or product execution.",
+  "phase": {
+    "knownOS": 20,
+    "peak": 2,
+    "captureBytes": 33554432,
+    "workingBytes": 134217728
+  }
+}

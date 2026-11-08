@@ -1,0 +1,20 @@
+{
+  "candidate": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+  "selected": [
+    "src",
+    "package.json",
+    "package-lock.json",
+    "tsconfig.json",
+    "tsconfig.build.json"
+  ],
+  "archiveSha256": "66d53b29c609957e3f5b7ee27c7734c72a959771b68e3b9b6417df0dd379b97f",
+  "passed": 145,
+  "total": 146,
+  "failed": [
+    "sink-rejection"
+  ],
+  "frozenTuplesUnchanged": true,
+  "bindingDeltas": "../core-binding-deltas.json",
+  "noPublicExprClaim": true,
+  "noNativeRecapture": true
+}

@@ -1,0 +1,38 @@
+{
+  "results": [
+    {
+      "id": "D01-selector-order",
+      "status": "PASS",
+      "role": "PURE_DATA_NO_PRODUCT"
+    },
+    {
+      "id": "D02-missing-producer",
+      "status": "PASS",
+      "role": "PURE_DATA_NO_PRODUCT"
+    },
+    {
+      "id": "D03-cardinality",
+      "status": "PASS",
+      "role": "PURE_DATA_NO_PRODUCT"
+    },
+    {
+      "id": "D04-own-data-rejection",
+      "status": "PASS",
+      "role": "PURE_DATA_NO_PRODUCT"
+    },
+    {
+      "id": "D05-Worker-denial",
+      "status": "PASS",
+      "role": "PURE_DATA_NO_PRODUCT"
+    },
+    {
+      "id": "D06-beforecase-fit",
+      "status": "PASS",
+      "role": "PURE_DATA_NO_PRODUCT"
+    }
+  ],
+  "startedUTC": "2026-08-29T17:06:48.408Z",
+  "endedUTC": "2026-08-29T17:14:01.120Z",
+  "childSpawns": 0,
+  "productCalls": 0
+}

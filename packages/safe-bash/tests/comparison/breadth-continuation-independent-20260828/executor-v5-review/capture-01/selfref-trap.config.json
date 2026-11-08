@@ -1,0 +1,16 @@
+{
+  "scenario": {
+    "id": "selfref-trap",
+    "action": "selfref",
+    "library": "virtual-bash",
+    "cwd": "own",
+    "diagnosticBoundaryBypass": true,
+    "expectedCode": "UNBOUND_MODULE",
+    "expectedIdentity": null,
+    "expectedEvaluations": [],
+    "expectedLoads": 1,
+    "expectedBarePath": "consumer/trap.mjs"
+  },
+  "caseRoot": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v5-review/capture-01/selfref-trap",
+  "fixturesSha256": "284c08b24ebca74fa2dbced570dfa46c3b1e5a5ed09409337b5f271821ebeb7b"
+}

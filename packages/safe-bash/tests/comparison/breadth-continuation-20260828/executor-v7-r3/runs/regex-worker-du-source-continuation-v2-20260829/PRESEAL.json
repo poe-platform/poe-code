@@ -1,0 +1,34 @@
+{
+  "tools": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "path": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "bytes": 3704880,
+      "mode": 493,
+      "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+    }
+  ],
+  "files": [
+    {
+      "path": "PLAN.json",
+      "bytes": 970,
+      "sha256": "2d222fba76f536071e074a934e84943cfb4b62f0eb0f309e55b60e233b9877e7"
+    },
+    {
+      "path": "read.mjs",
+      "bytes": 6446,
+      "sha256": "1ba45d8f66b9f095c19328e0fe1c195171ea7471d62418246abd3847f286db0c"
+    },
+    {
+      "path": "batch-01.json",
+      "bytes": 1454,
+      "sha256": "d9bbb8a7ac4981a4537bfd37cffce15be0c2e7a81cd0960128d85395391d7173"
+    }
+  ],
+  "sourceOnly": true
+}

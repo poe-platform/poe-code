@@ -1,0 +1,10 @@
+import { createDdCommand, createDdCommands, ddCommands, openDdFile, type DdLimits, type DdCommandsOptions, type DdFileOpener } from "@poe-platform/safe-bash/dd";
+import { createDdCommand as subpathCommand, type DdLimits as SubpathLimits } from "@poe-platform/safe-bash/commands/dd";
+import { Shell, type CommandDefinition } from "@poe-platform/safe-bash";
+const limits: Partial<DdLimits & SubpathLimits> = { maxBlockBytes: 512, maxBufferBytes: 1024, maxTransferBytes: 4096, maxReadOperations: 100, maxArgumentBytes: 1024 };
+const openFile: DdFileOpener = openDdFile;
+const options: DdCommandsOptions = { limits, openFile, now: () => 0, replace: true };
+const commands: readonly CommandDefinition[] = [createDdCommand(options), subpathCommand(options), ...createDdCommands(options)];
+const shell = new Shell().use(ddCommands(options));
+void commands;
+await shell.dispose();

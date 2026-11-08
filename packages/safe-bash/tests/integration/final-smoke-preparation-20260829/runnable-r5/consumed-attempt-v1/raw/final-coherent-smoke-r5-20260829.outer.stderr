@@ -1,0 +1,1 @@
+{"phase":"captured-activation","primaryPresent":true,"primary":{"type":"object","message":"Expected values to be strictly equal:\n\n'link' !== 'symlink'\n"},"ownerExit":"PENDING_EXTERNAL_OBSERVATION"}

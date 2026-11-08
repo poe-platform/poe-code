@@ -1,0 +1,637 @@
+{
+  "image": "sha256:fe654d7ffb7b67652370fba5bb4ddf746a1eda8584d3725312ae0be3ee0ff46b",
+  "provenance": "New independently specified delegate success and later-error argv. No JS parser/planner or unit expectation used. Original corpus fixture bytes independently restored.",
+  "results": [
+    {
+      "id": "im-delegate-success",
+      "runs": [
+        {
+          "argv": [
+            "/opt/imagemagick/AppRun",
+            "source.ppm",
+            "-write",
+            "early.ppm",
+            "page.ps",
+            "-write",
+            "delegate.ppm",
+            "final.ppm"
+          ],
+          "cwd": "/scratch/fixture",
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC",
+            "MAGICK_THREAD_LIMIT": "1",
+            "HOME": "/scratch/fixture/home",
+            "TMPDIR": "/scratch/fixture/tmp",
+            "MAGICK_TEMPORARY_PATH": "/scratch/fixture/tmp"
+          },
+          "stdin_base64": "",
+          "native_process_started": true,
+          "spawn_error": null,
+          "status": {
+            "exit_code": 0,
+            "signal": null,
+            "timed_out": false
+          },
+          "stdout_base64": "",
+          "stderr_base64": "",
+          "executable_sha256": "ebe8030aa93f0ef778c3d0cb773169b63e0342f31141901492a030968068399c",
+          "files_before": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "files_after": {
+            "delegate.ppm": {
+              "size": 57,
+              "sha256": "66faaf33f27d25b679a6a2e303a7d4a2f2a07ac5db5f80517a99162021a163c1",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP9QNgoyIDIKNjU1MzUK//8AAAAA//8AAAAA//8AAAAA//8AAAAA"
+            },
+            "early.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            },
+            "final.ppm": {
+              "size": 57,
+              "sha256": "66faaf33f27d25b679a6a2e303a7d4a2f2a07ac5db5f80517a99162021a163c1",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP9QNgoyIDIKNjU1MzUK//8AAAAA//8AAAAA//8AAAAA//8AAAAA"
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "effects": {
+            "early.ppm": "modified",
+            "final.ppm": "modified",
+            "first.mkv": "preserved",
+            "page.ps": "preserved",
+            "source.ppm": "preserved",
+            "delegate.ppm": "created"
+          }
+        },
+        {
+          "argv": [
+            "/opt/imagemagick/AppRun",
+            "source.ppm",
+            "-write",
+            "early.ppm",
+            "page.ps",
+            "-write",
+            "delegate.ppm",
+            "final.ppm"
+          ],
+          "cwd": "/scratch/fixture",
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC",
+            "MAGICK_THREAD_LIMIT": "1",
+            "HOME": "/scratch/fixture/home",
+            "TMPDIR": "/scratch/fixture/tmp",
+            "MAGICK_TEMPORARY_PATH": "/scratch/fixture/tmp"
+          },
+          "stdin_base64": "",
+          "native_process_started": true,
+          "spawn_error": null,
+          "status": {
+            "exit_code": 0,
+            "signal": null,
+            "timed_out": false
+          },
+          "stdout_base64": "",
+          "stderr_base64": "",
+          "executable_sha256": "ebe8030aa93f0ef778c3d0cb773169b63e0342f31141901492a030968068399c",
+          "files_before": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "files_after": {
+            "delegate.ppm": {
+              "size": 57,
+              "sha256": "66faaf33f27d25b679a6a2e303a7d4a2f2a07ac5db5f80517a99162021a163c1",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP9QNgoyIDIKNjU1MzUK//8AAAAA//8AAAAA//8AAAAA//8AAAAA"
+            },
+            "early.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            },
+            "final.ppm": {
+              "size": 57,
+              "sha256": "66faaf33f27d25b679a6a2e303a7d4a2f2a07ac5db5f80517a99162021a163c1",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP9QNgoyIDIKNjU1MzUK//8AAAAA//8AAAAA//8AAAAA//8AAAAA"
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "effects": {
+            "early.ppm": "modified",
+            "final.ppm": "modified",
+            "first.mkv": "preserved",
+            "page.ps": "preserved",
+            "source.ppm": "preserved",
+            "delegate.ppm": "created"
+          }
+        }
+      ]
+    },
+    {
+      "id": "im-delegate-late-syntax",
+      "runs": [
+        {
+          "argv": [
+            "/opt/imagemagick/AppRun",
+            "source.ppm",
+            "-write",
+            "early.ppm",
+            "page.ps",
+            "-write",
+            "delegate.ppm",
+            "-ordering_unknown",
+            "final.ppm"
+          ],
+          "cwd": "/scratch/fixture",
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC",
+            "MAGICK_THREAD_LIMIT": "1",
+            "HOME": "/scratch/fixture/home",
+            "TMPDIR": "/scratch/fixture/tmp",
+            "MAGICK_TEMPORARY_PATH": "/scratch/fixture/tmp"
+          },
+          "stdin_base64": "",
+          "native_process_started": true,
+          "spawn_error": null,
+          "status": {
+            "exit_code": 11,
+            "signal": null,
+            "timed_out": false
+          },
+          "stdout_base64": "",
+          "stderr_base64": "bWFnaWNrOiB1bnJlY29nbml6ZWQgb3B0aW9uIGAtb3JkZXJpbmdfdW5rbm93bicgYXQgQ0xJIGFyZyA3IEAgZmF0YWwvbWFnaWNrLWNsaS5jL1Byb2Nlc3NDb21tYW5kT3B0aW9ucy82NTguCg==",
+          "executable_sha256": "ebe8030aa93f0ef778c3d0cb773169b63e0342f31141901492a030968068399c",
+          "files_before": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "files_after": {
+            "delegate.ppm": {
+              "size": 57,
+              "sha256": "66faaf33f27d25b679a6a2e303a7d4a2f2a07ac5db5f80517a99162021a163c1",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP9QNgoyIDIKNjU1MzUK//8AAAAA//8AAAAA//8AAAAA//8AAAAA"
+            },
+            "early.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "effects": {
+            "early.ppm": "modified",
+            "final.ppm": "preserved",
+            "first.mkv": "preserved",
+            "page.ps": "preserved",
+            "source.ppm": "preserved",
+            "delegate.ppm": "created"
+          }
+        },
+        {
+          "argv": [
+            "/opt/imagemagick/AppRun",
+            "source.ppm",
+            "-write",
+            "early.ppm",
+            "page.ps",
+            "-write",
+            "delegate.ppm",
+            "-ordering_unknown",
+            "final.ppm"
+          ],
+          "cwd": "/scratch/fixture",
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC",
+            "MAGICK_THREAD_LIMIT": "1",
+            "HOME": "/scratch/fixture/home",
+            "TMPDIR": "/scratch/fixture/tmp",
+            "MAGICK_TEMPORARY_PATH": "/scratch/fixture/tmp"
+          },
+          "stdin_base64": "",
+          "native_process_started": true,
+          "spawn_error": null,
+          "status": {
+            "exit_code": 11,
+            "signal": null,
+            "timed_out": false
+          },
+          "stdout_base64": "",
+          "stderr_base64": "bWFnaWNrOiB1bnJlY29nbml6ZWQgb3B0aW9uIGAtb3JkZXJpbmdfdW5rbm93bicgYXQgQ0xJIGFyZyA3IEAgZmF0YWwvbWFnaWNrLWNsaS5jL1Byb2Nlc3NDb21tYW5kT3B0aW9ucy82NTguCg==",
+          "executable_sha256": "ebe8030aa93f0ef778c3d0cb773169b63e0342f31141901492a030968068399c",
+          "files_before": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "files_after": {
+            "delegate.ppm": {
+              "size": 57,
+              "sha256": "66faaf33f27d25b679a6a2e303a7d4a2f2a07ac5db5f80517a99162021a163c1",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP9QNgoyIDIKNjU1MzUK//8AAAAA//8AAAAA//8AAAAA//8AAAAA"
+            },
+            "early.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "effects": {
+            "early.ppm": "modified",
+            "final.ppm": "preserved",
+            "first.mkv": "preserved",
+            "page.ps": "preserved",
+            "source.ppm": "preserved",
+            "delegate.ppm": "created"
+          }
+        }
+      ]
+    },
+    {
+      "id": "im-delegate-late-limit",
+      "runs": [
+        {
+          "argv": [
+            "/opt/imagemagick/AppRun",
+            "source.ppm",
+            "-write",
+            "early.ppm",
+            "page.ps",
+            "-write",
+            "delegate.ppm",
+            "-limit",
+            "width",
+            "1",
+            "source.ppm",
+            "final.ppm"
+          ],
+          "cwd": "/scratch/fixture",
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC",
+            "MAGICK_THREAD_LIMIT": "1",
+            "HOME": "/scratch/fixture/home",
+            "TMPDIR": "/scratch/fixture/tmp",
+            "MAGICK_TEMPORARY_PATH": "/scratch/fixture/tmp"
+          },
+          "stdin_base64": "",
+          "native_process_started": true,
+          "spawn_error": null,
+          "status": {
+            "exit_code": 1,
+            "signal": null,
+            "timed_out": false
+          },
+          "stdout_base64": "",
+          "stderr_base64": "bWFnaWNrOiB3aWR0aCBvciBoZWlnaHQgZXhjZWVkcyBsaW1pdCBgc291cmNlLnBwbScgKDN4MSkgPiAoMXgzNjAyODc5NzAxODk2Mzk2OCkgQCBlcnJvci9jYWNoZS5jL09wZW5QaXhlbENhY2hlLzM4MDUuCg==",
+          "executable_sha256": "ebe8030aa93f0ef778c3d0cb773169b63e0342f31141901492a030968068399c",
+          "files_before": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "files_after": {
+            "delegate.ppm": {
+              "size": 57,
+              "sha256": "66faaf33f27d25b679a6a2e303a7d4a2f2a07ac5db5f80517a99162021a163c1",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP9QNgoyIDIKNjU1MzUK//8AAAAA//8AAAAA//8AAAAA//8AAAAA"
+            },
+            "early.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "effects": {
+            "early.ppm": "modified",
+            "final.ppm": "preserved",
+            "first.mkv": "preserved",
+            "page.ps": "preserved",
+            "source.ppm": "preserved",
+            "delegate.ppm": "created"
+          }
+        },
+        {
+          "argv": [
+            "/opt/imagemagick/AppRun",
+            "source.ppm",
+            "-write",
+            "early.ppm",
+            "page.ps",
+            "-write",
+            "delegate.ppm",
+            "-limit",
+            "width",
+            "1",
+            "source.ppm",
+            "final.ppm"
+          ],
+          "cwd": "/scratch/fixture",
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC",
+            "MAGICK_THREAD_LIMIT": "1",
+            "HOME": "/scratch/fixture/home",
+            "TMPDIR": "/scratch/fixture/tmp",
+            "MAGICK_TEMPORARY_PATH": "/scratch/fixture/tmp"
+          },
+          "stdin_base64": "",
+          "native_process_started": true,
+          "spawn_error": null,
+          "status": {
+            "exit_code": 1,
+            "signal": null,
+            "timed_out": false
+          },
+          "stdout_base64": "",
+          "stderr_base64": "bWFnaWNrOiB3aWR0aCBvciBoZWlnaHQgZXhjZWVkcyBsaW1pdCBgc291cmNlLnBwbScgKDN4MSkgPiAoMXgzNjAyODc5NzAxODk2Mzk2OCkgQCBlcnJvci9jYWNoZS5jL09wZW5QaXhlbENhY2hlLzM4MDUuCg==",
+          "executable_sha256": "ebe8030aa93f0ef778c3d0cb773169b63e0342f31141901492a030968068399c",
+          "files_before": {
+            "early.ppm": {
+              "size": 22,
+              "sha256": "be14a4342c83eb6a17948127de226bbe4aaba9aeea370e193fdcaa2e84a6ef78",
+              "bytes_base64": "ZWFybHkgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "files_after": {
+            "delegate.ppm": {
+              "size": 57,
+              "sha256": "66faaf33f27d25b679a6a2e303a7d4a2f2a07ac5db5f80517a99162021a163c1",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP9QNgoyIDIKNjU1MzUK//8AAAAA//8AAAAA//8AAAAA//8AAAAA"
+            },
+            "early.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            },
+            "final.ppm": {
+              "size": 22,
+              "sha256": "f5de8f9b61ebbd33fc940ffc0f46ae086dd4b93f87dcc094884522b5d813309c",
+              "bytes_base64": "ZmluYWwgb3V0cHV0IHNlbnRpbmVsCg=="
+            },
+            "first.mkv": {
+              "size": 30,
+              "sha256": "07cb191e9a889553028f009f931fdfe065bd9c5486679e067354de7c467fee90",
+              "bytes_base64": "aW5kZXBlbmRlbnQgb3JkZXJpbmcgc2VudGluZWwK"
+            },
+            "page.ps": {
+              "size": 82,
+              "sha256": "37291d5f9d23d4ed5a380c49ca98a35135e18e29417a8f388edebd8ed4c17fa3",
+              "bytes_base64": "JSFQUy1BZG9iZS0zLjAKJSVCb3VuZGluZ0JveDogMCAwIDMgMwoxIDAgMCBzZXRyZ2Jjb2xvciAwIDAgMyAzIHJlY3RmaWxsIHNob3dwYWdlCg=="
+            },
+            "source.ppm": {
+              "size": 20,
+              "sha256": "f4ac4c6da9ba911d04bb9f21e19e0177974810e59fdf02f8f1848af22b7a92ab",
+              "bytes_base64": "UDYKMyAxCjI1NQr/AAAA/wAAAP8="
+            }
+          },
+          "effects": {
+            "early.ppm": "modified",
+            "final.ppm": "preserved",
+            "first.mkv": "preserved",
+            "page.ps": "preserved",
+            "source.ppm": "preserved",
+            "delegate.ppm": "created"
+          }
+        }
+      ]
+    }
+  ]
+}

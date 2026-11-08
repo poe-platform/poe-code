@@ -1,0 +1,707 @@
+{
+  "version": "F11-ROOT-ALL-OWN-CAPS-v1-20260828",
+  "candidate": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+  "base": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+  "inventory": "4ec398bc4ae2bbbc15eb0a63b796192619087e9d0e25b8c87524ac7dff9f7df0",
+  "package": "324268096450f0133265b7003140139fc5118e9e4a39d43ca856ce214918bac7",
+  "sourceBinding": "4afc02fce0e69c6168f14b6ee7b56f218fb642ea1b72b85bfef7be8b63960329",
+  "candidateBinding": {
+    "candidate": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+    "base": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+    "inventory": "4ec398bc4ae2bbbc15eb0a63b796192619087e9d0e25b8c87524ac7dff9f7df0",
+    "package": "324268096450f0133265b7003140139fc5118e9e4a39d43ca856ce214918bac7",
+    "sourceBinding": "4afc02fce0e69c6168f14b6ee7b56f218fb642ea1b72b85bfef7be8b63960329"
+  },
+  "defaults": {
+    "maxArgs": 128,
+    "maxArgumentBytes": 65536,
+    "maxInputFiles": 16,
+    "maxInputBytes": 268435456,
+    "maxChunks": 262144,
+    "maxChunkBytes": 8388608,
+    "maxRecordBytes": 8388608,
+    "maxCellBytes": 4194304,
+    "maxColumns": 16384,
+    "maxRecords": 1000000,
+    "maxSelectorBytes": 16384,
+    "maxSelectorNodes": 4096,
+    "maxSelectorDepth": 2,
+    "maxSelectedColumns": 16384,
+    "maxLastRows": 4096,
+    "maxWork": 1000000000,
+    "maxOutputBytes": 268435456,
+    "maxRetainedBytes": 33554432
+  },
+  "oldFreeze": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+  "policy": "NO emergencyquotaexemption/minimumraise. Terminaldiagnostic isbest-effortWITHINremainingALLownXANcaps; insufficientownwork/retained/outputmayyieldstatus1+empty/partialboundedstderr. Mustretainprimaryinternal-limitstatus/cleanup and accountallchargedreservations; cannotmaskcallerabort,parentBudget/control, actualsinkfailureorcleanupfailures. When adequatecapsremain, identifyingdiagnosticstillrequired. maxWork14/maxRetained63cases qualifyasinsufficient-own-resource ONLYafterexactbindings; presealconditionalboundaryexpectedvalues+ample-budget/omission/parent-sink-reasoncountercontrols beforetargetedexecution, no blanketworkaround. Mechanical45+5+2+10causes maybefixedversionwise asverified, preserveactualPromiseidentity/publicreadiness/results. Parentnonzero/allPASS aggregateacceptancehole mustbeclosedviaowncontrol(nonzeroexitcannotgreen)beforepositivequalification. No productpatch/full88replay/independentpackclaim.",
+  "partialPolicy": "The policy permits bounded partial diagnostics, but this exact unchanged candidate/path is presealed empty for W14/R63. Unexpected partial output is a contradiction, not an automatic pass.",
+  "diagnosticWhenFit": {
+    "maxWork": "xan count: maxWork limit exceeded\n",
+    "maxRetainedBytes": "xan count: maxRetainedBytes limit exceeded\n"
+  },
+  "future": {
+    "status": "HELD_PENDING_ROOT_EXACT_DENIAL_REVIEW",
+    "cases": 11,
+    "layouts": [
+      "SOURCE",
+      "INSTALLED_MOVED"
+    ],
+    "maximumInvocations": 22,
+    "attemptsPerCasePerLayout": 1,
+    "childDeadlineMs": 60000,
+    "childOutputBytes": 65536,
+    "stderrSpoolBytes": 16384,
+    "caseDeadlineMs": 5000,
+    "caseOutputBytes": 65536,
+    "noNative": true,
+    "noNetwork": true,
+    "noNewDependencies": true,
+    "noFull88": true,
+    "parentBudgetScope": "DIRECT stderr sink throws public ShellLimitError instance; no actual shared Shell Budget or Shell.exec control mapping claim",
+    "parentControlScope": "DIRECT trusted host control reason thrown by actual stderr sink; not a fabricated Shell internal control class",
+    "cleanupScope": "owned fs.readStream iterator return rejection; cleanup settled is distinct from cleanup successful",
+    "oldHistory": {
+      "source": "569/79/19",
+      "moved": "570/79/18",
+      "references": 88,
+      "compilerAttempts": 2,
+      "initialTS5033": 880,
+      "matchingEmission": 442,
+      "tools": 313,
+      "independentPack": false
+    }
+  },
+  "cases": [
+    {
+      "id": "F11-W14",
+      "host": "normal",
+      "argv": [
+        "count"
+      ],
+      "inputHex": "610a",
+      "overrides": {
+        "maxWork": 14
+      },
+      "staticPath": {
+        "classification": "STATIC_INFERENCE_FROM_PINNED_SOURCE_AND_EXACT_HOST_PATH_NOT_RUNTIME_ERROR_CAPTURE",
+        "primary": "maxWork",
+        "diagnosticPath": "index.ts:48 textSize admits x then rejects a; no stderr reservation/write",
+        "ledger": {
+          "atPrimary": {
+            "work": 13,
+            "retained": 34,
+            "reservedOutput": 2
+          },
+          "firstRejected": {
+            "resource": "maxWork",
+            "requested": 2,
+            "remaining": 1
+          },
+          "finalWork": 14,
+          "peakRetained": 64,
+          "finalRetained": 0,
+          "reservedOutput": 2,
+          "outputReservationsRefunded": false,
+          "diagnosticAdditionalWorkIfFit": 136,
+          "diagnosticPeakRetainedIfFit": 90,
+          "totalOutputIfFit": 36
+        }
+      },
+      "expected": {
+        "settlement": "fulfilled",
+        "result": {
+          "exitCode": 1
+        },
+        "reason": null,
+        "stdoutHex": "",
+        "stderrHex": "",
+        "counts": {
+          "acquisitions": 1,
+          "next": 2,
+          "returns": 0,
+          "stdoutWrites": 0,
+          "stderrWrites": 0,
+          "fsReadStream": 0
+        },
+        "cleanupRegistered": 3,
+        "cleanupPromiseIdentity": true,
+        "cleanupFailures": [],
+        "callerAborted": false
+      },
+      "boundary": "DIRECT_createXanCommand.execute_NOT_Shell.exec",
+      "deadlineMs": 5000,
+      "maxDeliveredBytes": 2,
+      "maxDeliveries": 1,
+      "remainingStaticBounds": {
+        "work": 0,
+        "retainedAfterCleanup": 33554432,
+        "output": 268435454,
+        "nonWorkRetainedOutput": "all other caps are bound here; only argv/input/scanner counters touched; no selector/tail traversal"
+      }
+    },
+    {
+      "id": "F11-R63",
+      "host": "normal",
+      "argv": [
+        "count"
+      ],
+      "inputHex": "610a",
+      "overrides": {
+        "maxRetainedBytes": 63
+      },
+      "staticPath": {
+        "classification": "STATIC_INFERENCE_FROM_PINNED_SOURCE_AND_EXACT_HOST_PATH_NOT_RUNTIME_ERROR_CAPTURE",
+        "primary": "maxRetainedBytes",
+        "diagnosticPath": "index.ts:50 reserves 43 output then rejects hold43 at proposed75",
+        "ledger": {
+          "atPrimary": {
+            "work": 6,
+            "retained": 32,
+            "reservedOutput": 0
+          },
+          "firstRejected": {
+            "resource": "maxRetainedBytes",
+            "requested": 32,
+            "remaining": 31
+          },
+          "finalWork": 49,
+          "peakRetained": 32,
+          "finalRetained": 0,
+          "reservedOutput": 43,
+          "outputReservationsRefunded": false,
+          "diagnosticAdditionalWorkIfFit": 172,
+          "diagnosticPeakRetainedIfFit": 106,
+          "diagnosticPeakEvenScannerReleased": 74,
+          "totalOutputIfFit": 43
+        }
+      },
+      "expected": {
+        "settlement": "fulfilled",
+        "result": {
+          "exitCode": 1
+        },
+        "reason": null,
+        "stdoutHex": "",
+        "stderrHex": "",
+        "counts": {
+          "acquisitions": 1,
+          "next": 1,
+          "returns": 0,
+          "stdoutWrites": 0,
+          "stderrWrites": 0,
+          "fsReadStream": 0
+        },
+        "cleanupRegistered": 3,
+        "cleanupPromiseIdentity": true,
+        "cleanupFailures": [],
+        "callerAborted": false
+      },
+      "boundary": "DIRECT_createXanCommand.execute_NOT_Shell.exec",
+      "deadlineMs": 5000,
+      "maxDeliveredBytes": 2,
+      "maxDeliveries": 1,
+      "remainingStaticBounds": {
+        "work": 999999951,
+        "retainedAfterCleanup": 63,
+        "output": 268435413,
+        "nonWorkRetainedOutput": "all other caps are bound here; only argv/input/scanner counters touched; no selector/tail traversal"
+      }
+    },
+    {
+      "id": "F11-AMPLE-RECORDS",
+      "host": "normal",
+      "argv": [
+        "count"
+      ],
+      "inputHex": "610a620a",
+      "overrides": {
+        "maxRecords": 1
+      },
+      "staticPath": {
+        "classification": "STATIC_INFERENCE_FROM_PINNED_SOURCE_AND_EXACT_HOST_PATH_NOT_RUNTIME_ERROR_CAPTURE",
+        "primary": "maxRecords",
+        "diagnosticPath": "full identifying diagnostic required",
+        "ledger": {
+          "finalWork": 156,
+          "peakRetained": 94,
+          "finalRetained": 0,
+          "reservedOutput": 37,
+          "outputReservationsRefunded": false
+        }
+      },
+      "expected": {
+        "settlement": "fulfilled",
+        "result": {
+          "exitCode": 1
+        },
+        "reason": null,
+        "stdoutHex": "",
+        "stderrHex": "78616e20636f756e743a206d61785265636f726473206c696d69742065786365656465640a",
+        "counts": {
+          "acquisitions": 1,
+          "next": 1,
+          "returns": 0,
+          "stdoutWrites": 0,
+          "stderrWrites": 1,
+          "fsReadStream": 0
+        },
+        "cleanupRegistered": 3,
+        "cleanupPromiseIdentity": true,
+        "cleanupFailures": [],
+        "callerAborted": false
+      },
+      "boundary": "DIRECT_createXanCommand.execute_NOT_Shell.exec",
+      "deadlineMs": 5000,
+      "maxDeliveredBytes": 4,
+      "maxDeliveries": 1,
+      "remainingStaticBounds": {
+        "work": 999999844,
+        "retainedAfterCleanup": 33554432,
+        "output": 268435419,
+        "nonWorkRetainedOutput": "all other caps are bound here; only argv/input/scanner counters touched; no selector/tail traversal"
+      }
+    },
+    {
+      "id": "F11-AMPLE-INPUT",
+      "host": "normal",
+      "argv": [
+        "count"
+      ],
+      "inputHex": "610a",
+      "overrides": {
+        "maxInputBytes": 1
+      },
+      "staticPath": {
+        "classification": "STATIC_INFERENCE_FROM_PINNED_SOURCE_AND_EXACT_HOST_PATH_NOT_RUNTIME_ERROR_CAPTURE",
+        "primary": "maxInputBytes",
+        "diagnosticPath": "full identifying diagnostic required",
+        "ledger": {
+          "finalWork": 165,
+          "peakRetained": 100,
+          "finalRetained": 0,
+          "reservedOutput": 40,
+          "outputReservationsRefunded": false
+        }
+      },
+      "expected": {
+        "settlement": "fulfilled",
+        "result": {
+          "exitCode": 1
+        },
+        "reason": null,
+        "stdoutHex": "",
+        "stderrHex": "78616e20636f756e743a206d6178496e7075744279746573206c696d69742065786365656465640a",
+        "counts": {
+          "acquisitions": 1,
+          "next": 1,
+          "returns": 0,
+          "stdoutWrites": 0,
+          "stderrWrites": 1,
+          "fsReadStream": 0
+        },
+        "cleanupRegistered": 3,
+        "cleanupPromiseIdentity": true,
+        "cleanupFailures": [],
+        "callerAborted": false
+      },
+      "boundary": "DIRECT_createXanCommand.execute_NOT_Shell.exec",
+      "deadlineMs": 5000,
+      "maxDeliveredBytes": 2,
+      "maxDeliveries": 1,
+      "remainingStaticBounds": {
+        "work": 999999835,
+        "retainedAfterCleanup": 33554432,
+        "output": 268435416,
+        "nonWorkRetainedOutput": "all other caps are bound here; only argv/input/scanner counters touched; no selector/tail traversal"
+      }
+    },
+    {
+      "id": "F11-LOW-OUTPUT",
+      "host": "normal",
+      "argv": [
+        "count"
+      ],
+      "inputHex": "610a620a",
+      "overrides": {
+        "maxRecords": 1,
+        "maxOutputBytes": 1
+      },
+      "staticPath": {
+        "classification": "STATIC_INFERENCE_FROM_PINNED_SOURCE_AND_EXACT_HOST_PATH_NOT_RUNTIME_ERROR_CAPTURE",
+        "primary": "maxRecords",
+        "diagnosticPath": "diagnostic sizing completes; output admission skipped; no emergency quota",
+        "ledger": {
+          "finalWork": 45,
+          "peakRetained": 64,
+          "finalRetained": 0,
+          "reservedOutput": 0,
+          "outputReservationsRefunded": false
+        }
+      },
+      "expected": {
+        "settlement": "fulfilled",
+        "result": {
+          "exitCode": 1
+        },
+        "reason": null,
+        "stdoutHex": "",
+        "stderrHex": "",
+        "counts": {
+          "acquisitions": 1,
+          "next": 1,
+          "returns": 0,
+          "stdoutWrites": 0,
+          "stderrWrites": 0,
+          "fsReadStream": 0
+        },
+        "cleanupRegistered": 3,
+        "cleanupPromiseIdentity": true,
+        "cleanupFailures": [],
+        "callerAborted": false
+      },
+      "boundary": "DIRECT_createXanCommand.execute_NOT_Shell.exec",
+      "deadlineMs": 5000,
+      "maxDeliveredBytes": 4,
+      "maxDeliveries": 1,
+      "remainingStaticBounds": {
+        "work": 999999955,
+        "retainedAfterCleanup": 33554432,
+        "output": 1,
+        "nonWorkRetainedOutput": "all other caps are bound here; only argv/input/scanner counters touched; no selector/tail traversal"
+      }
+    },
+    {
+      "id": "F11-CALLER",
+      "host": "caller",
+      "argv": [
+        "count"
+      ],
+      "inputHex": "610a",
+      "overrides": {
+        "maxWork": 14
+      },
+      "staticPath": {
+        "classification": "STATIC_INFERENCE_FROM_PINNED_SOURCE_AND_EXACT_HOST_PATH_NOT_RUNTIME_ERROR_CAPTURE",
+        "primary": "caller",
+        "diagnosticPath": "preaborted parse budget.bound; rejects exact caller reason, not an own-limit result",
+        "ledger": {
+          "finalWork": 0,
+          "peakRetained": 0,
+          "finalRetained": 0,
+          "reservedOutput": 0,
+          "outputReservationsRefunded": false
+        }
+      },
+      "expected": {
+        "settlement": "rejected",
+        "result": null,
+        "reason": {
+          "token": "caller",
+          "exactIdentity": true
+        },
+        "stdoutHex": "",
+        "stderrHex": "",
+        "counts": {
+          "acquisitions": 0,
+          "next": 0,
+          "returns": 0,
+          "stdoutWrites": 0,
+          "stderrWrites": 0,
+          "fsReadStream": 0
+        },
+        "cleanupRegistered": 0,
+        "cleanupPromiseIdentity": true,
+        "cleanupFailures": [],
+        "callerAborted": true
+      },
+      "boundary": "DIRECT_createXanCommand.execute_NOT_Shell.exec",
+      "deadlineMs": 5000,
+      "maxDeliveredBytes": 2,
+      "maxDeliveries": 1,
+      "remainingStaticBounds": {
+        "work": 14,
+        "retainedAfterCleanup": 33554432,
+        "output": 268435456,
+        "nonWorkRetainedOutput": "all other caps are bound here; only argv/input/scanner counters touched; no selector/tail traversal"
+      }
+    },
+    {
+      "id": "F11-parentBudget",
+      "host": "parentBudget",
+      "argv": [
+        "count"
+      ],
+      "inputHex": "610a620a",
+      "overrides": {
+        "maxRecords": 1
+      },
+      "staticPath": {
+        "classification": "STATIC_INFERENCE_FROM_PINNED_SOURCE_AND_EXACT_HOST_PATH_NOT_RUNTIME_ERROR_CAPTURE",
+        "primary": "maxRecords",
+        "diagnosticPath": "full stderr write rejects parentBudget; EscapingFailure forwarding, not own-limit suppression",
+        "ledger": {
+          "finalWork": 156,
+          "peakRetained": 94,
+          "finalRetained": 0,
+          "reservedOutput": 37,
+          "outputReservationsRefunded": false
+        }
+      },
+      "expected": {
+        "settlement": "rejected",
+        "result": null,
+        "reason": {
+          "token": "parentBudget",
+          "exactIdentity": true
+        },
+        "stdoutHex": "",
+        "stderrHex": "",
+        "counts": {
+          "acquisitions": 1,
+          "next": 1,
+          "returns": 0,
+          "stdoutWrites": 0,
+          "stderrWrites": 1,
+          "fsReadStream": 0
+        },
+        "cleanupRegistered": 3,
+        "cleanupPromiseIdentity": true,
+        "cleanupFailures": [],
+        "callerAborted": false
+      },
+      "boundary": "DIRECT_createXanCommand.execute_NOT_Shell.exec",
+      "deadlineMs": 5000,
+      "maxDeliveredBytes": 4,
+      "maxDeliveries": 1,
+      "remainingStaticBounds": {
+        "work": 999999844,
+        "retainedAfterCleanup": 33554432,
+        "output": 268435419,
+        "nonWorkRetainedOutput": "all other caps are bound here; only argv/input/scanner counters touched; no selector/tail traversal"
+      }
+    },
+    {
+      "id": "F11-parentControl",
+      "host": "parentControl",
+      "argv": [
+        "count"
+      ],
+      "inputHex": "610a620a",
+      "overrides": {
+        "maxRecords": 1
+      },
+      "staticPath": {
+        "classification": "STATIC_INFERENCE_FROM_PINNED_SOURCE_AND_EXACT_HOST_PATH_NOT_RUNTIME_ERROR_CAPTURE",
+        "primary": "maxRecords",
+        "diagnosticPath": "full stderr write rejects parentControl; EscapingFailure forwarding, not own-limit suppression",
+        "ledger": {
+          "finalWork": 156,
+          "peakRetained": 94,
+          "finalRetained": 0,
+          "reservedOutput": 37,
+          "outputReservationsRefunded": false
+        }
+      },
+      "expected": {
+        "settlement": "rejected",
+        "result": null,
+        "reason": {
+          "token": "parentControl",
+          "exactIdentity": true
+        },
+        "stdoutHex": "",
+        "stderrHex": "",
+        "counts": {
+          "acquisitions": 1,
+          "next": 1,
+          "returns": 0,
+          "stdoutWrites": 0,
+          "stderrWrites": 1,
+          "fsReadStream": 0
+        },
+        "cleanupRegistered": 3,
+        "cleanupPromiseIdentity": true,
+        "cleanupFailures": [],
+        "callerAborted": false
+      },
+      "boundary": "DIRECT_createXanCommand.execute_NOT_Shell.exec",
+      "deadlineMs": 5000,
+      "maxDeliveredBytes": 4,
+      "maxDeliveries": 1,
+      "remainingStaticBounds": {
+        "work": 999999844,
+        "retainedAfterCleanup": 33554432,
+        "output": 268435419,
+        "nonWorkRetainedOutput": "all other caps are bound here; only argv/input/scanner counters touched; no selector/tail traversal"
+      }
+    },
+    {
+      "id": "F11-sink",
+      "host": "sink",
+      "argv": [
+        "count"
+      ],
+      "inputHex": "610a620a",
+      "overrides": {
+        "maxRecords": 1
+      },
+      "staticPath": {
+        "classification": "STATIC_INFERENCE_FROM_PINNED_SOURCE_AND_EXACT_HOST_PATH_NOT_RUNTIME_ERROR_CAPTURE",
+        "primary": "maxRecords",
+        "diagnosticPath": "full stderr write rejects sink; EscapingFailure forwarding, not own-limit suppression",
+        "ledger": {
+          "finalWork": 156,
+          "peakRetained": 94,
+          "finalRetained": 0,
+          "reservedOutput": 37,
+          "outputReservationsRefunded": false
+        }
+      },
+      "expected": {
+        "settlement": "rejected",
+        "result": null,
+        "reason": {
+          "token": "sink",
+          "exactIdentity": true
+        },
+        "stdoutHex": "",
+        "stderrHex": "",
+        "counts": {
+          "acquisitions": 1,
+          "next": 1,
+          "returns": 0,
+          "stdoutWrites": 0,
+          "stderrWrites": 1,
+          "fsReadStream": 0
+        },
+        "cleanupRegistered": 3,
+        "cleanupPromiseIdentity": true,
+        "cleanupFailures": [],
+        "callerAborted": false
+      },
+      "boundary": "DIRECT_createXanCommand.execute_NOT_Shell.exec",
+      "deadlineMs": 5000,
+      "maxDeliveredBytes": 4,
+      "maxDeliveries": 1,
+      "remainingStaticBounds": {
+        "work": 999999844,
+        "retainedAfterCleanup": 33554432,
+        "output": 268435419,
+        "nonWorkRetainedOutput": "all other caps are bound here; only argv/input/scanner counters touched; no selector/tail traversal"
+      }
+    },
+    {
+      "id": "F11-cleanup",
+      "host": "cleanup",
+      "argv": [
+        "count",
+        "input.csv"
+      ],
+      "inputHex": "610a620a",
+      "overrides": {
+        "maxRecords": 1
+      },
+      "staticPath": {
+        "classification": "STATIC_INFERENCE_FROM_PINNED_SOURCE_AND_EXACT_HOST_PATH_NOT_RUNTIME_ERROR_CAPTURE",
+        "primary": "maxRecords",
+        "diagnosticPath": "full diagnostic, owned FS iterator return rejects; exact cleanup reason wins over own-limit result",
+        "ledger": {
+          "finalWork": 165,
+          "peakRetained": 94,
+          "finalRetained": 0,
+          "reservedOutput": 37,
+          "outputReservationsRefunded": false
+        }
+      },
+      "expected": {
+        "settlement": "rejected",
+        "result": null,
+        "reason": {
+          "token": "cleanup",
+          "exactIdentity": true
+        },
+        "stdoutHex": "",
+        "stderrHex": "78616e20636f756e743a206d61785265636f726473206c696d69742065786365656465640a",
+        "counts": {
+          "acquisitions": 1,
+          "next": 1,
+          "returns": 1,
+          "stdoutWrites": 0,
+          "stderrWrites": 1,
+          "fsReadStream": 1
+        },
+        "cleanupRegistered": 3,
+        "cleanupPromiseIdentity": true,
+        "cleanupFailures": [
+          {
+            "token": "cleanup",
+            "exactIdentity": true
+          }
+        ],
+        "callerAborted": false
+      },
+      "boundary": "DIRECT_createXanCommand.execute_NOT_Shell.exec",
+      "deadlineMs": 5000,
+      "maxDeliveredBytes": 4,
+      "maxDeliveries": 1,
+      "remainingStaticBounds": {
+        "work": 999999835,
+        "retainedAfterCleanup": 33554432,
+        "output": 268435419,
+        "nonWorkRetainedOutput": "all other caps are bound here; only argv/input/scanner counters touched; no selector/tail traversal"
+      }
+    },
+    {
+      "id": "F11-DEFAULT-SUCCESS",
+      "host": "normal",
+      "argv": [
+        "count"
+      ],
+      "inputHex": "610a",
+      "overrides": {},
+      "staticPath": {
+        "classification": "STATIC_INFERENCE_FROM_PINNED_SOURCE_AND_EXACT_HOST_PATH_NOT_RUNTIME_ERROR_CAPTURE",
+        "primary": null,
+        "diagnosticPath": "no failure; zero diagnostic required",
+        "ledger": {
+          "finalWork": 15,
+          "peakRetained": 64,
+          "finalRetained": 0,
+          "reservedOutput": 2,
+          "outputReservationsRefunded": false
+        }
+      },
+      "expected": {
+        "settlement": "fulfilled",
+        "result": {
+          "exitCode": 0
+        },
+        "reason": null,
+        "stdoutHex": "300a",
+        "stderrHex": "",
+        "counts": {
+          "acquisitions": 1,
+          "next": 2,
+          "returns": 0,
+          "stdoutWrites": 1,
+          "stderrWrites": 0,
+          "fsReadStream": 0
+        },
+        "cleanupRegistered": 2,
+        "cleanupPromiseIdentity": true,
+        "cleanupFailures": [],
+        "callerAborted": false
+      },
+      "boundary": "DIRECT_createXanCommand.execute_NOT_Shell.exec",
+      "deadlineMs": 5000,
+      "maxDeliveredBytes": 2,
+      "maxDeliveries": 1,
+      "remainingStaticBounds": {
+        "work": 999999985,
+        "retainedAfterCleanup": 33554432,
+        "output": 268435454,
+        "nonWorkRetainedOutput": "all other caps are bound here; only argv/input/scanner counters touched; no selector/tail traversal"
+      }
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "schema": "administrative-owner-r1",
+  "self": {
+    "id": "owner-45346",
+    "role": "administrative-owner",
+    "pid": 45346,
+    "startUTC": "2026-08-29T15:57:10.285Z",
+    "startObserved": true,
+    "exitObserved": false,
+    "closeObserved": false,
+    "state": "LIVE_COORDINATOR"
+  },
+  "starts": [],
+  "attempts": [],
+  "knownStarts": 1,
+  "activeKnownPIDs": [],
+  "captureBytes": 0,
+  "metadataBytes": 0,
+  "elapsedMs": 1.4705000000000013,
+  "poisoned": false
+}

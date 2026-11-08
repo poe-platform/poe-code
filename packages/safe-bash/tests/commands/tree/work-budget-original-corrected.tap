@@ -1,0 +1,57 @@
+TAP version 13
+# Subtest: TREE-WORK-001: empty alternatives charge cumulatively without per-name DP rows
+not ok 1 - TREE-WORK-001: empty alternatives charge cumulatively without per-name DP rows
+  ---
+  duration_ms: 2.308958
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/tree/work-budget.test.ts:1:1482'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    0 !== 512
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 512
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/tree/work-budget.test.ts:48:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# {"entries":32,"alternatives":16,"nameBytes":32,"compilationSteps":0,"matchingSteps":0,"measuredRowAllocations":512,"measuredRowBytes":16896,"originalInitializationFormulaBytes":16896}
+# Subtest: TREE-WORK-001: actual Shell many-entry matching exhausts one invocation budget
+not ok 2 - TREE-WORK-001: actual Shell many-entry matching exhausts one invocation budget
+  ---
+  duration_ms: 8.336416
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/tree/work-budget.test.ts:1:2255'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    0 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/tree/work-budget.test.ts:56:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 0
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 226.500166

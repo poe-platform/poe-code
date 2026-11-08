@@ -1,0 +1,751 @@
+{
+  "status": "SOURCE_PREPARATION_COMPLETE",
+  "work": "/tmp/safe-bash-reference-source-20260829-fn91Rw",
+  "elapsedMs": 21668.0415,
+  "starts": 23,
+  "closedChildren": 23,
+  "ownedClosed": true,
+  "capturedBytes": 4811,
+  "patchesApplied": 15,
+  "sourceOnly": true,
+  "buildExecuted": false,
+  "runtimeQualified": false,
+  "children": [
+    {
+      "id": "META-01",
+      "disposition": {
+        "code": 0,
+        "signal": null
+      },
+      "events": [
+        {
+          "event": "spawn-request",
+          "pid": 76584
+        },
+        {
+          "event": "exit",
+          "code": 0,
+          "signal": null,
+          "ms": 32.09370800000033
+        },
+        {
+          "event": "close",
+          "code": 0,
+          "signal": null,
+          "ms": 32.1934999999994
+        }
+      ],
+      "lengths": [
+        100,
+        0
+      ],
+      "elapsedMs": 32.20283299999937,
+      "closed": true,
+      "failure": null
+    },
+    {
+      "id": "META-02",
+      "disposition": {
+        "code": 0,
+        "signal": null
+      },
+      "events": [
+        {
+          "event": "spawn-request",
+          "pid": 76586
+        },
+        {
+          "event": "exit",
+          "code": 0,
+          "signal": null,
+          "ms": 18.70708300000115
+        },
+        {
+          "event": "close",
+          "code": 0,
+          "signal": null,
+          "ms": 18.709625000001324
+        }
+      ],
+      "lengths": [
+        93,
+        0
+      ],
+      "elapsedMs": 18.71600000000035,
+      "closed": true,
+      "failure": null
+    },
+    {
+      "id": "META-03",
+      "disposition": {
+        "code": 0,
+        "signal": null
+      },
+      "events": [
+        {
+          "event": "spawn-request",
+          "pid": 76600
+        },
+        {
+          "event": "exit",
+          "code": 0,
+          "signal": null,
+          "ms": 16.1025410000002
+        },
+        {
+          "event": "close",
+          "code": 0,
+          "signal": null,
+          "ms": 16.105916000000434
+        }
+      ],
+      "lengths": [
+        793,
+        0
+      ],
+      "elapsedMs": 16.21283300000141,
+      "closed": true,
+      "failure": null
+    },
+    {
+      "id": "META-04",
+      "disposition": {
+        "code": 0,
+        "signal": null
+      },
+      "events": [
+        {
+          "event": "spawn-request",
+          "pid": 76606
+        },
+        {
+          "event": "exit",
+          "code": 0,
+          "signal": null,
+          "ms": 17.042709000001196
+        },
+        {
+          "event": "close",
+          "code": 0,
+          "signal": null,
+          "ms": 17.0559170000015
+        }
+      ],
+      "lengths": [
+        311,
+        0
+      ],
+      "elapsedMs": 17.074875000000247,
+      "closed": true,
+      "failure": null
+    },
+    {
+      "id": "META-05",
+      "disposition": {
+        "code": 0,
+        "signal": null
+      },
+      "events": [
+        {
+          "event": "spawn-request",
+          "pid": 76611
+        },
+        {
+          "event": "exit",
+          "code": 0,
+          "signal": null,
+          "ms": 14.199500000000626
+        },
+        {
+          "event": "close",
+          "code": 0,
+          "signal": null,
+          "ms": 14.21295900000041
+        }
+      ],
+      "lengths": [
+        2085,
+        0
+      ],
+      "elapsedMs": 14.219584000000395,
+      "closed": true,
+      "failure": null
+    },
+    {
+      "id": "META-06",
+      "disposition": {
+        "code": 0,
+        "signal": null
+      },
+      "events": [
+        {
+          "event": "spawn-request",
+          "pid": 76613
+        },
+        {
+          "event": "exit",
+          "code": 0,
+          "signal": null,
+          "ms": 13.137457999999242
+        },
+        {
+          "event": "close",
+          "code": 0,
+          "signal": null,
+          "ms": 13.176625000000058
+        }
+      ],
+      "lengths": [
+        307,
+        0
+      ],
+      "elapsedMs": 13.189542000000074,
+      "closed": true,
+      "failure": null
+    },
+    {
+      "id": "META-07",
+      "disposition": {
+        "code": 0,
+        "signal": null
+      },
+      "events": [
+        {
+          "event": "spawn-request",
+          "pid": 76615
+        },
+        {
+          "event": "exit",
+          "code": 0,
+          "signal": null,
+          "ms": 15.813333999998576
+        },
+        {
+          "event": "close",
+          "code": 0,
+          "signal": null,
+          "ms": 15.83941699999923
+        }
+      ],
+      "lengths": [
+        635,
+        0
+      ],
+      "elapsedMs": 15.850666999998793,
+      "closed": true,
+      "failure": null
+    },
+    {
+      "id": "META-08",
+      "disposition": {
+        "code": 0,
+        "signal": null
+      },
+      "events": [
+        {
+          "event": "spawn-request",
+          "pid": 76617
+        },
+        {
+          "event": "exit",
+          "code": 0,
+          "signal": null,
+          "ms": 15.198625000000902
+        },
+        {
+          "event": "close",
+          "code": 0,
+          "signal": null,
+          "ms": 15.245333000000755
+        }
+      ],
+      "lengths": [
+        487,
+        0
+      ],
+      "elapsedMs": 15.252291999999215,
+      "closed": true,
+      "failure": null
+    },
+    {
+      "id": "bash53-001",
+      "disposition": {
+        "code": 0,
+        "signal": null
+      },
+      "events": [
+        {
+          "event": "spawn-request",
+          "pid": 76653
+        },
+        {
+          "event": "exit",
+          "code": 0,
+          "signal": null,
+          "ms": 109.57858300000044
+        },
+        {
+          "event": "close",
+          "code": 0,
+          "signal": null,
+          "ms": 109.58858300000065
+        }
+      ],
+      "lengths": [
+        0,
+        0
+      ],
+      "elapsedMs": 109.59545799999978,
+      "closed": true,
+      "failure": null
+    },
+    {
+      "id": "bash53-002",
+      "disposition": {
+        "code": 0,
+        "signal": null
+      },
+      "events": [
+        {
+          "event": "spawn-request",
+          "pid": 76654
+        },
+        {
+          "event": "exit",
+          "code": 0,
+          "signal": null,
+          "ms": 10.153833000000304
+        },
+        {
+          "event": "close",
+          "code": 0,
+          "signal": null,
+          "ms": 10.16479199999958
+        }
+      ],
+      "lengths": [
+        0,
+        0
+      ],
+      "elapsedMs": 10.17095800000061,
+      "closed": true,
+      "failure": null
+    },
+    {
+      "id": "bash53-003",
+      "disposition": {
+        "code": 0,
+        "signal": null
+      },
+      "events": [
+        {
+          "event": "spawn-request",
+          "pid": 76655
+        },
+        {
+          "event": "exit",
+          "code": 0,
+          "signal": null,
+          "ms": 17.29491699999926
+        },
+        {
+          "event": "close",
+          "code": 0,
+          "signal": null,
+          "ms": 17.29808299999968
+        }
+      ],
+      "lengths": [
+        0,
+        0
+      ],
+      "elapsedMs": 17.304000000000087,
+      "closed": true,
+      "failure": null
+    },
+    {
+      "id": "bash53-004",
+      "disposition": {
+        "code": 0,
+        "signal": null
+      },
+      "events": [
+        {
+          "event": "spawn-request",
+          "pid": 76656
+        },
+        {
+          "event": "exit",
+          "code": 0,
+          "signal": null,
+          "ms": 9.996416999998473
+        },
+        {
+          "event": "close",
+          "code": 0,
+          "signal": null,
+          "ms": 10.053416999999172
+        }
+      ],
+      "lengths": [
+        0,
+        0
+      ],
+      "elapsedMs": 10.05908399999862,
+      "closed": true,
+      "failure": null
+    },
+    {
+      "id": "bash53-005",
+      "disposition": {
+        "code": 0,
+        "signal": null
+      },
+      "events": [
+        {
+          "event": "spawn-request",
+          "pid": 76657
+        },
+        {
+          "event": "exit",
+          "code": 0,
+          "signal": null,
+          "ms": 9.83008400000108
+        },
+        {
+          "event": "close",
+          "code": 0,
+          "signal": null,
+          "ms": 9.840374999999767
+        }
+      ],
+      "lengths": [
+        0,
+        0
+      ],
+      "elapsedMs": 9.842834000000948,
+      "closed": true,
+      "failure": null
+    },
+    {
+      "id": "bash53-006",
+      "disposition": {
+        "code": 0,
+        "signal": null
+      },
+      "events": [
+        {
+          "event": "spawn-request",
+          "pid": 76658
+        },
+        {
+          "event": "exit",
+          "code": 0,
+          "signal": null,
+          "ms": 9.346000000001368
+        },
+        {
+          "event": "close",
+          "code": 0,
+          "signal": null,
+          "ms": 9.348458000000392
+        }
+      ],
+      "lengths": [
+        0,
+        0
+      ],
+      "elapsedMs": 9.351208000000042,
+      "closed": true,
+      "failure": null
+    },
+    {
+      "id": "bash53-007",
+      "disposition": {
+        "code": 0,
+        "signal": null
+      },
+      "events": [
+        {
+          "event": "spawn-request",
+          "pid": 76659
+        },
+        {
+          "event": "exit",
+          "code": 0,
+          "signal": null,
+          "ms": 18.482292000000598
+        },
+        {
+          "event": "close",
+          "code": 0,
+          "signal": null,
+          "ms": 18.496000000001004
+        }
+      ],
+      "lengths": [
+        0,
+        0
+      ],
+      "elapsedMs": 18.499417000000903,
+      "closed": true,
+      "failure": null
+    },
+    {
+      "id": "bash53-008",
+      "disposition": {
+        "code": 0,
+        "signal": null
+      },
+      "events": [
+        {
+          "event": "spawn-request",
+          "pid": 76660
+        },
+        {
+          "event": "exit",
+          "code": 0,
+          "signal": null,
+          "ms": 7.524916000000303
+        },
+        {
+          "event": "close",
+          "code": 0,
+          "signal": null,
+          "ms": 7.529040999999779
+        }
+      ],
+      "lengths": [
+        0,
+        0
+      ],
+      "elapsedMs": 7.556082999999489,
+      "closed": true,
+      "failure": null
+    },
+    {
+      "id": "bash53-009",
+      "disposition": {
+        "code": 0,
+        "signal": null
+      },
+      "events": [
+        {
+          "event": "spawn-request",
+          "pid": 76662
+        },
+        {
+          "event": "exit",
+          "code": 0,
+          "signal": null,
+          "ms": 11.379958999999872
+        },
+        {
+          "event": "close",
+          "code": 0,
+          "signal": null,
+          "ms": 11.39679199999955
+        }
+      ],
+      "lengths": [
+        0,
+        0
+      ],
+      "elapsedMs": 11.39929199999824,
+      "closed": true,
+      "failure": null
+    },
+    {
+      "id": "bash53-010",
+      "disposition": {
+        "code": 0,
+        "signal": null
+      },
+      "events": [
+        {
+          "event": "spawn-request",
+          "pid": 76663
+        },
+        {
+          "event": "exit",
+          "code": 0,
+          "signal": null,
+          "ms": 13.592291000000841
+        },
+        {
+          "event": "close",
+          "code": 0,
+          "signal": null,
+          "ms": 13.63366600000154
+        }
+      ],
+      "lengths": [
+        0,
+        0
+      ],
+      "elapsedMs": 13.635874999999942,
+      "closed": true,
+      "failure": null
+    },
+    {
+      "id": "bash53-011",
+      "disposition": {
+        "code": 0,
+        "signal": null
+      },
+      "events": [
+        {
+          "event": "spawn-request",
+          "pid": 76664
+        },
+        {
+          "event": "exit",
+          "code": 0,
+          "signal": null,
+          "ms": 10.160625000000437
+        },
+        {
+          "event": "close",
+          "code": 0,
+          "signal": null,
+          "ms": 10.169750000000931
+        }
+      ],
+      "lengths": [
+        0,
+        0
+      ],
+      "elapsedMs": 10.172082999999475,
+      "closed": true,
+      "failure": null
+    },
+    {
+      "id": "bash53-012",
+      "disposition": {
+        "code": 0,
+        "signal": null
+      },
+      "events": [
+        {
+          "event": "spawn-request",
+          "pid": 76665
+        },
+        {
+          "event": "exit",
+          "code": 0,
+          "signal": null,
+          "ms": 14.550750000000335
+        },
+        {
+          "event": "close",
+          "code": 0,
+          "signal": null,
+          "ms": 14.553584000001138
+        }
+      ],
+      "lengths": [
+        0,
+        0
+      ],
+      "elapsedMs": 14.556625000001077,
+      "closed": true,
+      "failure": null
+    },
+    {
+      "id": "bash53-013",
+      "disposition": {
+        "code": 0,
+        "signal": null
+      },
+      "events": [
+        {
+          "event": "spawn-request",
+          "pid": 76666
+        },
+        {
+          "event": "exit",
+          "code": 0,
+          "signal": null,
+          "ms": 10.822000000000116
+        },
+        {
+          "event": "close",
+          "code": 0,
+          "signal": null,
+          "ms": 10.829332999999679
+        }
+      ],
+      "lengths": [
+        0,
+        0
+      ],
+      "elapsedMs": 10.832000000000335,
+      "closed": true,
+      "failure": null
+    },
+    {
+      "id": "bash53-014",
+      "disposition": {
+        "code": 0,
+        "signal": null
+      },
+      "events": [
+        {
+          "event": "spawn-request",
+          "pid": 76667
+        },
+        {
+          "event": "exit",
+          "code": 0,
+          "signal": null,
+          "ms": 9.589916000000812
+        },
+        {
+          "event": "close",
+          "code": 0,
+          "signal": null,
+          "ms": 9.592458000000988
+        }
+      ],
+      "lengths": [
+        0,
+        0
+      ],
+      "elapsedMs": 9.595083000000159,
+      "closed": true,
+      "failure": null
+    },
+    {
+      "id": "bash53-015",
+      "disposition": {
+        "code": 0,
+        "signal": null
+      },
+      "events": [
+        {
+          "event": "spawn-request",
+          "pid": 76668
+        },
+        {
+          "event": "exit",
+          "code": 0,
+          "signal": null,
+          "ms": 11.226833999999144
+        },
+        {
+          "event": "close",
+          "code": 0,
+          "signal": null,
+          "ms": 11.235874999998487
+        }
+      ],
+      "lengths": [
+        0,
+        0
+      ],
+      "elapsedMs": 11.238208999999188,
+      "closed": true,
+      "failure": null
+    }
+  ]
+}

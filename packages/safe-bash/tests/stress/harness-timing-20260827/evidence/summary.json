@@ -1,0 +1,602 @@
+{
+  "frozenRecordsVerified": 20,
+  "originalFailuresRetained": 14,
+  "fullgateRouting": "51282a903f50d615a9e8f0f0e12edc7985601e0a",
+  "fullgateSource": "e36dab2b6abc216ddc89e5786a0eba76f08a1722",
+  "beforeHead": "6e0ff0b52ffcbefcc7b0788c84ab1735b35fe4c9",
+  "afterHead": "e7c84ce397caa3527cec00dab5db45ede8269d10",
+  "startedAt": "2026-08-27T06:31:51.925Z",
+  "checkedAt": "2026-08-27T06:40:48.807Z",
+  "sourceChanges": [
+    {
+      "path": "src/commands/diff-patch/unified.ts",
+      "before": "a8659f40aeb9d1cac3548ffd24950e652eeace92cef1339de9e3a5e5ed7e10fb",
+      "after": "9c115580c2c896e0cc517d6adcd6329c7466f34264c736892ff90918b2ee3c38"
+    },
+    {
+      "path": "src/fs/webdav/webdav.ts",
+      "before": "8c280010a9de5f915ebb72be504d79f2a149e95064752c3a4b4a07cd425efd54",
+      "after": "d61d6d36eeea65f0c7e6eb5ecbe118e353ffe5a87131e4e26c1a3d772ee71acf"
+    }
+  ],
+  "jq": [
+    {
+      "name": "baseline-jq-events",
+      "exactTriples": 330,
+      "enteredRead": 330,
+      "firstData": 330,
+      "moduleReadyAtMs": 167.286583,
+      "executionMs": {
+        "minimum": 0.26929199999995035,
+        "median": 0.43420800000001236,
+        "maximum": 66.213333
+      },
+      "processMs": 1702.813875,
+      "exitMs": 1702.5668329999999,
+      "closeMs": 1702.697042
+    },
+    {
+      "name": "serial-jq",
+      "exactTriples": 330,
+      "enteredRead": 330,
+      "firstData": 330,
+      "moduleReadyAtMs": 157.763625,
+      "executionMs": {
+        "minimum": 0.29712500000005093,
+        "median": 0.44154200000002675,
+        "maximum": 395.36020800000006
+      },
+      "processMs": 8624.579458,
+      "exitMs": 8624.406791,
+      "closeMs": 8624.458166
+    },
+    {
+      "name": "round-1-jq",
+      "exactTriples": 330,
+      "enteredRead": 330,
+      "firstData": 330,
+      "moduleReadyAtMs": 168.868792,
+      "executionMs": {
+        "minimum": 0.29575000000022555,
+        "median": 0.44904200000019046,
+        "maximum": 442.1677920000002
+      },
+      "processMs": 8926.230708000001,
+      "exitMs": 8926.202416000002,
+      "closeMs": 8926.216125
+    },
+    {
+      "name": "round-2-jq",
+      "exactTriples": 330,
+      "enteredRead": 330,
+      "firstData": 330,
+      "moduleReadyAtMs": 192.616625,
+      "executionMs": {
+        "minimum": 0.28383300000132294,
+        "median": 0.41766699999971024,
+        "maximum": 916.3595419999999
+      },
+      "processMs": 9139.48275,
+      "exitMs": 9139.454833,
+      "closeMs": 9139.467541000002
+    },
+    {
+      "name": "round-3-jq",
+      "exactTriples": 330,
+      "enteredRead": 330,
+      "firstData": 330,
+      "moduleReadyAtMs": 144.992083,
+      "executionMs": {
+        "minimum": 0.2859170000001541,
+        "median": 0.401042000000416,
+        "maximum": 310.84725000000003
+      },
+      "processMs": 7390.697790999999,
+      "exitMs": 7390.674707999999,
+      "closeMs": 7390.684957999998
+    }
+  ],
+  "native": [
+    {
+      "name": "serial-streaming",
+      "repetition": 1,
+      "spawnMs": 3.1246249999999947,
+      "firstDataMs": 15.306292,
+      "suffixMs": 15.354541999999995,
+      "exitMs": 16.158457999999996,
+      "closeMs": 16.213291999999996
+    },
+    {
+      "name": "serial-streaming",
+      "repetition": 2,
+      "spawnMs": 2.042833999999999,
+      "firstDataMs": 7.260000000000019,
+      "suffixMs": 7.321958999999993,
+      "exitMs": 7.789166999999992,
+      "closeMs": 7.841584000000012
+    },
+    {
+      "name": "serial-streaming",
+      "repetition": 3,
+      "spawnMs": 2.212999999999994,
+      "firstDataMs": 7.589708000000002,
+      "suffixMs": 7.6172909999999945,
+      "exitMs": 8.41270799999998,
+      "closeMs": 8.428665999999993
+    },
+    {
+      "name": "round-1-streaming",
+      "repetition": 1,
+      "spawnMs": 3.1345000000000027,
+      "firstDataMs": 7.759,
+      "suffixMs": 7.815166000000005,
+      "exitMs": 8.561333000000005,
+      "closeMs": 8.62875000000001
+    },
+    {
+      "name": "round-1-streaming",
+      "repetition": 2,
+      "spawnMs": 2.202416999999997,
+      "firstDataMs": 8.042292000000003,
+      "suffixMs": 8.077249999999992,
+      "exitMs": 8.645749999999992,
+      "closeMs": 8.655625000000015
+    },
+    {
+      "name": "round-1-streaming",
+      "repetition": 3,
+      "spawnMs": 2.8047909999999945,
+      "firstDataMs": 10.532207999999997,
+      "suffixMs": 10.577875000000006,
+      "exitMs": 11.356124999999992,
+      "closeMs": 11.36420799999999
+    },
+    {
+      "name": "round-2-streaming",
+      "repetition": 1,
+      "spawnMs": 5.151041000000021,
+      "firstDataMs": 9.307416000000018,
+      "suffixMs": 9.377208000000024,
+      "exitMs": 10.369625000000013,
+      "closeMs": 10.404333000000008
+    },
+    {
+      "name": "round-2-streaming",
+      "repetition": 2,
+      "spawnMs": 2.9151669999999967,
+      "firstDataMs": 8.16024999999999,
+      "suffixMs": 8.210499999999996,
+      "exitMs": 9.291541999999993,
+      "closeMs": 9.305041999999986
+    },
+    {
+      "name": "round-2-streaming",
+      "repetition": 3,
+      "spawnMs": 3.473000000000013,
+      "firstDataMs": 8.47229200000001,
+      "suffixMs": 8.507333000000017,
+      "exitMs": 9.572791999999993,
+      "closeMs": 9.701792000000012
+    },
+    {
+      "name": "round-3-streaming",
+      "repetition": 1,
+      "spawnMs": 3.10608400000001,
+      "firstDataMs": 8.87037500000001,
+      "suffixMs": 8.928584,
+      "exitMs": 9.622250000000008,
+      "closeMs": 9.654291999999998
+    },
+    {
+      "name": "round-3-streaming",
+      "repetition": 2,
+      "spawnMs": 1.934083000000001,
+      "firstDataMs": 7.069833000000003,
+      "suffixMs": 7.097458000000003,
+      "exitMs": 7.572749999999999,
+      "closeMs": 7.581875000000011
+    },
+    {
+      "name": "round-3-streaming",
+      "repetition": 3,
+      "spawnMs": 2.0705839999999966,
+      "firstDataMs": 7.978959000000003,
+      "suffixMs": 8.009500000000003,
+      "exitMs": 8.585166999999984,
+      "closeMs": 8.592917
+    },
+    {
+      "name": "final-streaming",
+      "repetition": 1,
+      "spawnMs": 2.815041999999991,
+      "firstDataMs": 10.408916999999988,
+      "suffixMs": 10.464917,
+      "exitMs": 11.379082999999994,
+      "closeMs": 11.504957999999988
+    },
+    {
+      "name": "final-streaming",
+      "repetition": 2,
+      "spawnMs": 2.0588750000000147,
+      "firstDataMs": 7.447458999999995,
+      "suffixMs": 7.482167000000018,
+      "exitMs": 7.900874999999999,
+      "closeMs": 7.915292000000008
+    },
+    {
+      "name": "final-streaming",
+      "repetition": 3,
+      "spawnMs": 1.6374590000000069,
+      "firstDataMs": 8.532083999999998,
+      "suffixMs": 8.568000000000012,
+      "exitMs": 9.067791999999997,
+      "closeMs": 9.07650000000001
+    }
+  ],
+  "phaseFailures": [
+    {
+      "mutation": "suppress-readiness",
+      "failure": "native readiness deadline",
+      "actualClose": true,
+      "closeObserved": true,
+      "timers": [
+        {
+          "event": "timer-fired",
+          "ms": 253.12595800000003,
+          "detail": {
+            "timerId": 1,
+            "label": "readiness",
+            "armedMs": 1.8755000000000166,
+            "dueMs": 251.87550000000002,
+            "firedMs": 253.073667,
+            "latenessMs": 1.1981669999999838
+          }
+        }
+      ]
+    },
+    {
+      "mutation": "withhold-delivery",
+      "failure": "native readiness deadline",
+      "actualClose": true,
+      "closeObserved": true,
+      "timers": [
+        {
+          "event": "timer-fired",
+          "ms": 255.09933400000006,
+          "detail": {
+            "timerId": 1,
+            "label": "readiness",
+            "armedMs": 3.654125000000022,
+            "dueMs": 253.65412500000002,
+            "firedMs": 255.06824999999998,
+            "latenessMs": 1.414124999999956
+          }
+        }
+      ]
+    },
+    {
+      "mutation": "stall-completion",
+      "failure": "native completion deadline",
+      "actualClose": true,
+      "closeObserved": true,
+      "timers": [
+        {
+          "event": "timer-fired",
+          "ms": 269.926209,
+          "detail": {
+            "timerId": 2,
+            "label": "completion",
+            "armedMs": 17.585624999999936,
+            "dueMs": 267.58562499999994,
+            "firedMs": 269.90225,
+            "latenessMs": 2.3166250000000446
+          }
+        }
+      ]
+    },
+    {
+      "mutation": "suppress-cleanup",
+      "failure": "native cleanup deadline",
+      "actualClose": true,
+      "closeObserved": true,
+      "timers": [
+        {
+          "event": "timer-fired",
+          "ms": 276.8682909999999,
+          "detail": {
+            "timerId": 3,
+            "label": "cleanup",
+            "armedMs": 24.084957999999915,
+            "dueMs": 274.0849579999999,
+            "firedMs": 276.84191599999997,
+            "latenessMs": 2.756958000000054
+          }
+        }
+      ]
+    },
+    {
+      "mutation": "suppress-close-observation",
+      "failure": "native cleanup deadline",
+      "actualClose": true,
+      "closeObserved": false,
+      "timers": [
+        {
+          "event": "timer-fired",
+          "ms": 271.3734589999999,
+          "detail": {
+            "timerId": 3,
+            "label": "cleanup",
+            "armedMs": 21.36654199999998,
+            "dueMs": 271.366542,
+            "firedMs": 271.3432499999999,
+            "latenessMs": -0.023292000000083135
+          }
+        }
+      ]
+    }
+  ],
+  "scheduledCohorts": [
+    {
+      "name": "serial-jq",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "tests/commands/structured-stress/jq-grammar-author-20260827/scan-boundaries.test.ts"
+      ],
+      "code": 0,
+      "signal": null,
+      "failure": null,
+      "durationMs": 8624.579458,
+      "ownedListenersRemaining": 0,
+      "streamsDestroyed": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "name": "serial-streaming",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "tests/commands/search-stress/streaming.test.ts"
+      ],
+      "code": 0,
+      "signal": null,
+      "failure": null,
+      "durationMs": 366.03716600000007,
+      "ownedListenersRemaining": 0,
+      "streamsDestroyed": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "name": "round-1-jq",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "tests/commands/structured-stress/jq-grammar-author-20260827/scan-boundaries.test.ts"
+      ],
+      "code": 0,
+      "signal": null,
+      "failure": null,
+      "durationMs": 8926.230708000001,
+      "ownedListenersRemaining": 0,
+      "streamsDestroyed": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "name": "round-1-streaming",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "tests/commands/search-stress/streaming.test.ts"
+      ],
+      "code": 0,
+      "signal": null,
+      "failure": null,
+      "durationMs": 393.58024999999907,
+      "ownedListenersRemaining": 0,
+      "streamsDestroyed": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "name": "round-2-jq",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "tests/commands/structured-stress/jq-grammar-author-20260827/scan-boundaries.test.ts"
+      ],
+      "code": 0,
+      "signal": null,
+      "failure": null,
+      "durationMs": 9139.48275,
+      "ownedListenersRemaining": 0,
+      "streamsDestroyed": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "name": "round-2-streaming",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "tests/commands/search-stress/streaming.test.ts"
+      ],
+      "code": 0,
+      "signal": null,
+      "failure": null,
+      "durationMs": 446.50095800000054,
+      "ownedListenersRemaining": 0,
+      "streamsDestroyed": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "name": "round-3-jq",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "tests/commands/structured-stress/jq-grammar-author-20260827/scan-boundaries.test.ts"
+      ],
+      "code": 0,
+      "signal": null,
+      "failure": null,
+      "durationMs": 7390.697790999999,
+      "ownedListenersRemaining": 0,
+      "streamsDestroyed": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "name": "round-3-streaming",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "tests/commands/search-stress/streaming.test.ts"
+      ],
+      "code": 0,
+      "signal": null,
+      "failure": null,
+      "durationMs": 366.7373750000006,
+      "ownedListenersRemaining": 0,
+      "streamsDestroyed": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "name": "negative-controls",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "tests/stress/harness-timing-20260827/negative-controls.ts"
+      ],
+      "code": 0,
+      "signal": null,
+      "failure": null,
+      "durationMs": 1358.3724999999977,
+      "ownedListenersRemaining": 0,
+      "streamsDestroyed": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "name": "scoped-types",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "tests/stress/harness-timing-20260827/tsconfig.scope.json"
+      ],
+      "code": 0,
+      "signal": null,
+      "failure": null,
+      "durationMs": 1183.2146250000005,
+      "ownedListenersRemaining": 0,
+      "streamsDestroyed": [
+        true,
+        true,
+        true
+      ]
+    }
+  ],
+  "finalCorrectionCohorts": [
+    {
+      "name": "final-streaming",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "tests/commands/search-stress/streaming.test.ts"
+      ],
+      "code": 0,
+      "signal": null,
+      "failure": null,
+      "durationMs": 341.472542,
+      "ownedListenersRemaining": 0,
+      "streamsDestroyed": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "name": "final-negative-controls",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "tests/stress/harness-timing-20260827/negative-controls.ts"
+      ],
+      "code": 0,
+      "signal": null,
+      "failure": null,
+      "durationMs": 1637.2226660000001,
+      "ownedListenersRemaining": 0,
+      "streamsDestroyed": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "name": "final-scoped-types",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "tests/stress/harness-timing-20260827/tsconfig.scope.json"
+      ],
+      "code": 0,
+      "signal": null,
+      "failure": null,
+      "durationMs": 1174.15675,
+      "ownedListenersRemaining": 0,
+      "streamsDestroyed": [
+        true,
+        true,
+        true
+      ]
+    }
+  ]
+}

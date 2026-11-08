@@ -1,0 +1,16 @@
+{
+  "revision": "b494675c34dc289f4ad4b10a9201e1211eb0a7d8",
+  "label": "b494",
+  "observedHead": "0c5e2dff39e834fb50048386507a49116b2306fd",
+  "startedAt": "2026-08-27T11:43:31.258Z",
+  "node": "v22.22.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "processExecutable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "processExecutableSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "scratch": "/Users/kjopek/Workspace/safe-bash/tests/integration/current-type-diagnostics-20260827/.runs/b494-5dr09v",
+  "snapshot": "/Users/kjopek/Workspace/safe-bash/tests/integration/current-type-diagnostics-20260827/.runs/b494-5dr09v/snapshot",
+  "runnerSha256": "458b305bc867a14e09ed0397dc4f0550d2d816f0cc2ac62256d1fae9ed82a20c",
+  "trackedFiles": 20264,
+  "policy": "Entire git archive; no mutable source fallback, no tests, network, installation or private engine access. Existing development tools copied as regular files; literal tracked symlinks never followed by the census."
+}

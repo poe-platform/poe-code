@@ -1,0 +1,5 @@
+[main ebde485bdf3ccbb5d6494965365b8e47b02c8371] test(shell): authorize PIPESTATUS v2 with file-based timestamp preparation
+ 3 files changed, 43 insertions(+)
+ create mode 100644 tests/shell/pipestatus-author-20260829/preexec-v1/actual-v2/RESULT.json
+ create mode 100644 tests/shell/pipestatus-author-20260829/preexec-v1/actual-v2/ROOT-AUTHORIZATION.md
+ create mode 100644 tests/shell/pipestatus-author-20260829/preexec-v1/actual-v2/prepare-grant.mjs

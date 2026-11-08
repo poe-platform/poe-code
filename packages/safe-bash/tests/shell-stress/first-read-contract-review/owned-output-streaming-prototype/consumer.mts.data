@@ -1,0 +1,9 @@
+import { createOutputOperation, MemoryFileSystem, Shell, type ByteSink, type OutputOperation } from "./candidate/dist/index.js";
+const sink: ByteSink = { async write() {} };
+const cleanups: Array<() => void | Promise<void>> = [];
+const operation: OutputOperation = createOutputOperation({ signal: new AbortController().signal, registerCleanup: cleanup => { cleanups.push(cleanup); } }, sink);
+const child: OutputOperation = operation.child(sink);
+await child.acquire(() => new Uint8Array([0, 255]), async bytes => { await sink.write(bytes); });
+await operation.close();
+await Promise.all(cleanups.map(cleanup => cleanup()));
+await new Shell({ fs: new MemoryFileSystem() }).dispose();

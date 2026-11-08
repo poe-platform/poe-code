@@ -1,0 +1,12 @@
+{
+  "wall": "2026-08-28T19:31:55.306Z",
+  "monotonicOriginMs": 310296.812542,
+  "caps": {
+    "wallMs": 600000,
+    "sourceMs": 480000,
+    "childMs": 60000,
+    "children": 12,
+    "captureBytes": 33554432,
+    "workBytes": 134217728
+  }
+}

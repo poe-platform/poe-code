@@ -1,0 +1,196 @@
+import assert from "node:assert/strict";
+import { getEventListeners } from "node:events";
+import test from "node:test";
+import { run, Timers } from "./helpers.js";
+
+// GNU sleep accepts exact negative zero when it is parsed as an operand.
+for (const zero of ["-0", "-00", "-0.0", "-0.", "-.0", "-0e5", "-0E-5", "-0x0p0", "-0X0.P-2", "-0x0.0p100"]) {
+  for (const suffix of ["", "s", "m", "h", "d"]) {
+    test(`sleep exact negative zero ${zero}${suffix} never schedules a timer`, async () => {
+      const scheduler = new Timers();
+      const result = await run("sleep", ["--", zero + suffix], { scheduler });
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stdout, "");
+      assert.equal(result.stderr, "");
+      assert.deepEqual(scheduler.scheduled, []);
+      assert.equal(scheduler.pending.size, 0);
+    });
+  }
+}
+
+for (const whitespace of [" ", "\t", "\r", "\n", "\v", "\f"]) {
+  for (const zero of ["-0.0", "-0x0p0"]) {
+    test(`sleep accepts leading ASCII whitespace before ${JSON.stringify(whitespace + zero)}`, async () => {
+      const scheduler = new Timers();
+      const result = await run("sleep", [whitespace + zero], { scheduler });
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stdout, "");
+      assert.equal(result.stderr, "");
+      assert.deepEqual(scheduler.scheduled, []);
+    });
+  }
+}
+
+for (const zero of ["-0x0", "-0x.0", "-0e999999999999999999999", "-0x0p-999999999999999999999"]) {
+  test(`sleep exact zero keeps hexadecimal and exponent grammar ${zero}`, async () => {
+    const scheduler = new Timers();
+    const result = await run("sleep", ["--", zero], { scheduler });
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr, "");
+    assert.deepEqual(scheduler.scheduled, []);
+  });
+}
+
+for (const value of ["-0.001", "-0x1p-10", "-0junk", "-0e", "-0x0p", "-0 ", "-0x0d", "-1e-999999", "-0x1p-999999"]) {
+  test(`sleep rejects malformed or nonzero negative operand ${JSON.stringify(value)}`, async () => {
+    const scheduler = new Timers();
+    const result = await run("sleep", ["--", value], { scheduler });
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr, `sleep: invalid time interval: ${value}\n`);
+    assert.deepEqual(scheduler.scheduled, []);
+  });
+}
+
+for (const [args, duration] of [
+  [["0.125"], 125], [[".001s", "0.002"], 3], [["1e-3m"], 60], [["+0.0001h"], 360],
+  [["0.00001d"], 864], [["0.02"], 20], [["1.", "0.5s"], 1500],
+  [["0x1p-10s"], 1], [["0X1P-4m"], 3750], [["0x.8p-8h"], 7032],
+  [["0x1"], 1000], [["0x1.8p-2", ".125"], 500],
+  [["0x1p-4", "0x1p-4"], 125], [[" \t\n\r\v\f+1e-3m"], 60],
+  [["0X0P+4m", "0x0.00p-3h", " 0E-3m", "\t0.00h", " +0E0d"], 0],
+  [["0x0p999999999999999999999", "0x1p-999999999999999999999"], 0],
+  [["--", "0"], 0], [["--", "0.00s"], 0], [["--", "0E-3m", ".00h"], 0],
+  [["--", ".001s", ".002"], 3], [[".001s", "--", ".002"], 3],
+  [["--", ".001s", ".002s"], 3], [[".001s", "--", ".002s"], 3],
+] as const) {
+  test(`sleep summed fractional intervals ${args.join(" ")}`, async () => {
+    const scheduler = new Timers();
+    const result = run("sleep", args, { scheduler });
+    assert.deepEqual(scheduler.scheduled, duration ? [duration] : []);
+    scheduler.tick(duration);
+    assert.equal((await result).exitCode, 0); assert.equal(scheduler.pending.size, 0);
+  });
+}
+
+test("sleep never finishes early and chunks intervals above timer range", async () => {
+  const scheduler = new Timers();
+  const result = run("sleep", ["2147483.65"], { scheduler });
+  assert.deepEqual(scheduler.scheduled, [2147483647]);
+  scheduler.tick(2147483647);
+  assert.deepEqual(scheduler.scheduled, [2147483647, 3]);
+  scheduler.tick(3);
+  assert.equal((await result).exitCode, 0);
+  assert.equal(scheduler.pending.size, 0);
+});
+
+test("sleep configurable timer quantum and submillisecond durations do not spin", async () => {
+  const scheduler = new Timers();
+  const result = run("sleep", [".0105"], { scheduler, maxTimerMilliseconds: 4 });
+  scheduler.tick(4); scheduler.tick(4); scheduler.tick(3);
+  assert.deepEqual(scheduler.scheduled, [4, 4, 3]);
+  assert.equal((await result).exitCode, 0);
+});
+
+test("sleep abort before/during clears listeners and pending timers", async () => {
+  for (const before of [true, false]) {
+    const scheduler = new Timers(), controller = new AbortController(), reason = new Error("cancel exact");
+    if (before) controller.abort(reason);
+    const result = run("sleep", ["9000000d"], { scheduler }, { signal: controller.signal });
+    if (!before) { assert.equal(scheduler.pending.size, 1); controller.abort(reason); }
+    await assert.rejects(result, error => error === reason);
+    assert.equal(scheduler.pending.size, 0);
+    assert.equal(getEventListeners(controller.signal, "abort").length, 0);
+    assert.equal(scheduler.cleared.length, before ? 0 : 1);
+  }
+});
+
+test("sleep handles abort synchronously triggered by a trusted scheduler setup without leaking its handle", async () => {
+  const controller = new AbortController(), scheduler = new Timers();
+  const original = scheduler.setTimeout.bind(scheduler);
+  scheduler.setTimeout = (callback, delay) => { const handle = original(callback, delay); controller.abort("setup abort"); return handle; };
+  await assert.rejects(run("sleep", ["1"], { scheduler }, { signal: controller.signal }), error => error === "setup abort");
+  assert.equal(scheduler.pending.size, 0);
+});
+
+test("sleep rejects nonmonotonic scheduler time and cleans the subscription", async () => {
+  const controller = new AbortController(), scheduler = new Timers();
+  const result = run("sleep", ["1"], { scheduler }, { signal: controller.signal });
+  scheduler.tick(-1);
+  await assert.rejects(result, /monotonic/);
+  assert.equal(scheduler.pending.size, 0);
+  assert.equal(getEventListeners(controller.signal, "abort").length, 0);
+});
+
+for (const args of [[], ["-1"], ["1ms"], ["NaN"], ["Infinity"], ["1e999"], ["1", "bad"], ["1,2"], ["1D"], ["--invalid"], ["--", "0", "--"], ["-0.00"],
+  ["0x"], ["0x.p0"], ["0x1p"], ["0x1p+"], ["0x1p-1 "], ["0x1ps"], ["0x1g"], ["0x1P2S"], ["0 "], ["0\n"], ["0x0p0\n"], [""], [" "], ["\u00a00"], ["0x1p999999999999999999999"], ["0", "0x1p"]]) {
+  test(`sleep validates all operands before waiting: ${JSON.stringify(args)}`, async () => {
+    const scheduler = new Timers();
+    const result = await run("sleep", args, { scheduler });
+    assert.equal(result.exitCode, 1); assert.equal(result.stdout, ""); assert.notEqual(result.stderr, "");
+    assert.deepEqual(scheduler.scheduled, []);
+  });
+}
+
+test("sleep zero does not consume stdin or write either channel", async () => {
+  const scheduler = new Timers();
+  const fail = async () => { throw new Error("unexpected IO"); };
+  const result = await run("sleep", ["0", "0d"], { scheduler }, {
+    stdin: (async function* () { throw new Error("unexpected input"); })(), stdout: { write: fail }, stderr: { write: fail },
+  });
+  assert.equal(result.exitCode, 0); assert.deepEqual(scheduler.scheduled, []);
+});
+
+for (const [args, message] of [
+  [["--"], "missing operand"],
+  [["--", "0", "--"], "invalid time interval: --"],
+  [["--", "--help"], "invalid time interval: --help"],
+  [["--", "--version"], "invalid time interval: --version"],
+  [["--", "-2"], "invalid time interval: -2"],
+] as const) {
+  test(`sleep preserves operands after the terminator: ${JSON.stringify(args)}`, async () => {
+    const scheduler = new Timers();
+    const result = await run("sleep", args, { scheduler });
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr, `sleep: ${message}\n`);
+    assert.deepEqual(scheduler.scheduled, []);
+  });
+}
+
+test("sleep default scheduler waits against monotonic elapsed time", async () => {
+  const started = performance.now();
+  const result = await run("sleep", [".015"]);
+  assert.ok(performance.now() - started >= 15);
+  assert.equal(result.exitCode, 0); assert.equal(result.stdout, ""); assert.equal(result.stderr, "");
+});
+
+for (const cancel of [false, true]) test(`sleep default scheduler rechecks early timer wakeups, cancel=${cancel}`, async context => {
+  let now = 0;
+  context.mock.method(performance, "now", () => now);
+  context.mock.timers.enable({ apis: ["setTimeout"] });
+  const controller = new AbortController(), reason = new Error("cancel rearmed sleep");
+  context.after(() => controller.abort(reason));
+  let settled = false;
+  const execution = run("sleep", [".015"], {}, { signal: controller.signal });
+  void execution.then(() => { settled = true; }, () => { settled = true; });
+
+  now = 14;
+  context.mock.timers.tick(15);
+  await new Promise<void>(resolve => setImmediate(resolve));
+  assert.equal(settled, false, "15 ms sleep finished after only 14 monotonic milliseconds");
+
+  if (cancel) {
+    controller.abort(reason);
+    await assert.rejects(execution, error => error === reason);
+  } else {
+    now = 15;
+    context.mock.timers.tick(1);
+    const result = await execution;
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr, "");
+  }
+  assert.equal(getEventListeners(controller.signal, "abort").length, 0);
+});

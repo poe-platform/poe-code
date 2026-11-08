@@ -1,0 +1,16 @@
+{
+  "source": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/PUBLISHER-KEY-01/maintainer-public-key.data",
+    "bytes": 2200,
+    "mode": "600",
+    "sha256": "db4041b4d3896b9f21250e6c29861958bd5d4781f521f06beda849a9ed79fae8"
+  },
+  "generated": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+    "bytes": 1507,
+    "mode": "600",
+    "sha256": "4adabad0482fb4634c0a13c3f3bff27308567a898b29e59c432327e3efddbe94"
+  },
+  "conversion": "PINNED_GPG_DEARMOR_NO_IMPORT",
+  "attributedPrimary": "7C0135FB088AAF6C66C650B9BB5869F064EA74AB"
+}

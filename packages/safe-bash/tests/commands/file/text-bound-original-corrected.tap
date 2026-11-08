@@ -1,0 +1,230 @@
+TAP version 13
+# Subtest: TEXT-BOUND-001: direct readlink metadata is admitted before escaping
+not ok 1 - TEXT-BOUND-001: direct readlink metadata is admitted before escaping
+  ---
+  duration_ms: 2.644208
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/file/text-bound.test.ts:1:1300'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    0 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/file/text-bound.test.ts:29:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: TEXT-BOUND-001: actual Shell rejects oversized link text without changing stored target
+not ok 2 - TEXT-BOUND-001: actual Shell rejects oversized link text without changing stored target
+  ---
+  duration_ms: 2.801459
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/file/text-bound.test.ts:1:1625'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    0 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/file/text-bound.test.ts:40:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: TEXT-BOUND-001: backend error messages consume bounded input before expansion
+not ok 3 - TEXT-BOUND-001: backend error messages consume bounded input before expansion
+  ---
+  duration_ms: 0.288541
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/file/text-bound.test.ts:1:2178'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /input limit exceeded/. Input:
+    
+    'file: /denied: EACCES: \\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\\u{a}\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    file: /denied: EACCES: \u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}\u{a}
+    
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/file/text-bound.test.ts:49:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: TEXT-BOUND-001: MIME-only links do not escape an unused target description
+not ok 4 - TEXT-BOUND-001: MIME-only links do not escape an unused target description
+  ---
+  duration_ms: 0.391875
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/file/text-bound.test.ts:1:2633'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/file/text-bound.test.ts:61:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: TEXT-BOUND-001: output length is admitted before encoding
+not ok 5 - TEXT-BOUND-001: output length is admitted before encoding
+  ---
+  duration_ms: 0.289417
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/file/text-bound.test.ts:1:3217'
+  failureType: 'testCodeFailure'
+  error: 'encoded lengths: 128'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/file/text-bound.test.ts:72:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: TEXT-BOUND-001: failure prefix is bounded before encoding and preserves codepoints
+not ok 6 - TEXT-BOUND-001: failure prefix is bounded before encoding and preserves codepoints
+  ---
+  duration_ms: 0.159125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/file/text-bound.test.ts:1:3763'
+  failureType: 'testCodeFailure'
+  error: 'encoded lengths: 256'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/file/text-bound.test.ts:84:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: TEXT-BOUND-001: metadata input is cumulative across multiple operands
+not ok 7 - TEXT-BOUND-001: metadata input is cumulative across multiple operands
+  ---
+  duration_ms: 0.569416
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/file/text-bound.test.ts:1:4429'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    0 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/file/text-bound.test.ts:93:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: TEXT-BOUND-001: metadata and output work are cumulative across entries
+not ok 8 - TEXT-BOUND-001: metadata and output work are cumulative across entries
+  ---
+  duration_ms: 0.494083
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/file/text-bound.test.ts:1:4789'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    0 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/file/text-bound.test.ts:100:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: TEXT-BOUND-001: backend diagnostic input is cumulative, not reset for each error
+not ok 9 - TEXT-BOUND-001: backend diagnostic input is cumulative, not reset for each error
+  ---
+  duration_ms: 2.745625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/file/text-bound.test.ts:1:5145'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert.ok(calls < 10)
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/file/text-bound.test.ts:108:44)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: TEXT-BOUND-001: argument string length is checked before UTF-8 scanning
+not ok 10 - TEXT-BOUND-001: argument string length is checked before UTF-8 scanning
+  ---
+  duration_ms: 0.37025
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/file/text-bound.test.ts:1:5581'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/file/text-bound.test.ts:118:100)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: TEXT-BOUND-001: small Unicode links and permission diagnostics retain their profile
+ok 11 - TEXT-BOUND-001: small Unicode links and permission diagnostics retain their profile
+  ---
+  duration_ms: 0.209083
+  type: 'test'
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 1
+# fail 10
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 145.599917

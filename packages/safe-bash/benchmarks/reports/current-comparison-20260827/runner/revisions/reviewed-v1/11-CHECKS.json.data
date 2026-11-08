@@ -1,0 +1,47 @@
+{
+  "scope": "Independent bounded preparation review; no candidate qualification",
+  "date": "2026-08-27",
+  "observedLiveHeadNotCandidate": "e9a165fe462e38ac9924f3982c1343661d21ab01",
+  "rawDirectory": "/tmp/safe-bash-preparation-verification.BzpzNY",
+  "syntaxChecksPassed": 9,
+  "staticAudit": {
+    "status": "PASS_BOUNDED_STATIC_AUDIT",
+    "gitBlobReads": 7,
+    "inputBytes": 21381954,
+    "inputReceipts": 29,
+    "scriptSha256": "3ebec725a5343f3da29061ec813d89b4de61e3dec5c92022e5b73e763c2570a8",
+    "rawFile": "static-attempt-001.json",
+    "rawSha256": "73c3197e4a6363ef42db06327b9454fb5c0068d18a3595f0047c36ffe8322a04",
+    "underlyingPackageDependencyNativeRehash": false
+  },
+  "selfcheck": {
+    "checks": 62,
+    "passed": 62,
+    "failed": 0,
+    "rawFile": "runner-selfcheck.json",
+    "rawSha256": "03f33ac17f006ac1c36a9cad2ca893d10f53f6c7ce35e750a221281a64614d71",
+    "realLifecycleProof": false
+  },
+  "cliReceipts": [
+    { "file": "prepare.json", "exit": 2, "status": "WAITING_ROOT", "sha256": "b07b445e6de8e787175c432a30b51573d474d666c544ed9049a91f9656ddcf58" },
+    { "file": "preflight-missing.json", "exit": 2, "status": "WAITING_ROOT", "sha256": "410a67acaaf7852c0f19d70d2cb2e0542bd327cec14b79e9c1293b456b944c37" },
+    { "file": "execute-rejected.json", "exit": 1, "status": "FAIL_PREFLIGHT", "sha256": "ab302f11aca507979a335dcfedf11a74c5ff704cf1bc4f9cd7bb6a58a2a2a6b1" }
+  ],
+  "reviewedRunnerSha256": {
+    "gate.mjs": "d631e6c66f0d3711c45d4f921b7bc8f667179c2578187702067716741cd2d129",
+    "reader.mjs": "4ecdc85d9d0d0d44e655fc67a2aecccfb07bc20da8007e700a17c4f73f5ceffc",
+    "prepare.mjs": "2722fb536e1dae749ad5d7e2a60e69d56000815680f836267692cc20940cdf31",
+    "lifecycle-model.mjs": "ac1bb054e3c0a04679371ed44f010105379ed856ce08c306fc60ea4911af15bb",
+    "selfcheck.mjs": "a4706f48e3ac792ac906a32e6b7e9ce34c5b6fcf9fd5a4b57ec1dc8aab9aa91b"
+  },
+  "additionalReadonlyAssertions": {
+    "replayObservationsEqualAcrossProfiles": 448,
+    "literalBuiltinPluginClassificationPreserved": true
+  },
+  "engineCalls": 0,
+  "nativeWorkloads": 0,
+  "timingTrials": 0,
+  "reviewerOwnedBackgroundJobsRemaining": 0,
+  "stagingOrCommits": false,
+  "authority": "Evidence hashes only; no signature requirement or ROOT execution approval"
+}

@@ -1,0 +1,7 @@
+REFINED authorized53 input from frozen DIRTY 2cacd04614baaa6e95f8663b73ded023eafd2c19
+selected SHA256 6f48f07309b050af2b7581f2c035973a3a4375f62a01fde508acae8868ccdccc
+src SHA256 06069adee39d4b3b9c837a80e9f74e35d75ca1ba7f42d0f238f257e628596e78 (unchanged)
+1318 regular files; four generated nonexecuted JSON reports excluded; no product/test/expectation edits
+Original live freeze /tmp/safe-bash-registry-post-tar-nuzewj1c/source-attempt-1; refined source /tmp/safe-bash-registry-post-tar-refined-ujuf3ja1/source
+Later current56 capture rejected; not represented as tested53. Same original900-second deadline.
+Exact commands: /Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-integration/registry-unblock/post-tar-default/execution/sealed-input.json

@@ -1,0 +1,9 @@
+[package]
+name = "terminal-png-rust"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.88"
+license = "MIT"
+description = "Portable terminal ANSI, SVG, TrueType and PNG rendering"
+[dependencies]
+mcp-protocol-rust = { path = "../mcp-protocol-rust" }

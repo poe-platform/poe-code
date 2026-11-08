@@ -1,0 +1,12 @@
+[
+  { name: 'DATA-SYNTHESIS.json.data', bytes: 51201 },
+  { name: 'SEAL-v2.json.data', bytes: 59739 },
+  { name: 'SEAL-v3.json.data', bytes: 59739 },
+  { name: 'SEAL.json.data', bytes: 59739 },
+  { name: 'cases.json.data', bytes: 4114 },
+  { name: 'consumer.mts.data', bytes: 887 },
+  { name: 'driver.mjs.data', bytes: 14427 },
+  { name: 'negative.mts.data', bytes: 387 },
+  { name: 'suite.mjs.data', bytes: 10900 },
+  { name: 'synthesize.mjs.data', bytes: 4830 }
+]

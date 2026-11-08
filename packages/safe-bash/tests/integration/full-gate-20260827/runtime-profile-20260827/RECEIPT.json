@@ -1,0 +1,17 @@
+{
+  "date": "2026-08-27",
+  "kind": "author-runtime-preflight-only",
+  "sourceCommit": "6dc79cd58ba57dbbac9aff390af73d05368ccb56",
+  "frozenProductCandidate": "8670ebe8f0d39966c2de2638780437398e5f8490",
+  "source": {
+    "tests/integration/full-gate-20260827/runtime-profile-20260827/profile.mjs": "900cc0f387ff1c0845b6dd6c87402e535224234ecc2511920883f93c7b2a7266",
+    "tests/integration/full-gate-20260827/runtime-profile-20260827/controls.mjs": "fa3f9b8a82fa02eb5930a03f581f5cd48445b69f05074581d9aa99e23f2fe284",
+    "tests/integration/full-gate-20260827/combined-8670ebe8/run.mjs": "babff7f11e9634842973eb7adb6000734b9d2ff9c679f1f4de14655a755a5c2f"
+  },
+  "evidenceSha256": "30b2ad3d36bf5fe0dff397faa797ba841f6298878770f468d44ebeb7bd28c767",
+  "authorControls": 11,
+  "productSuiteExecuted": false,
+  "packageCohortExecuted": false,
+  "independentPreflightReview": "pending",
+  "separateIndependentBodyEvidence": "0579a239"
+}

@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 3,
+  "role": "minimal exact overlay; commit required before one semantic attempt",
+  "files": [
+    {
+      "path": "apply.mjs",
+      "mode": 420,
+      "type": "file",
+      "bytes": 11150,
+      "sha256": "852f9dfbb219cf3d2cd5f43bd6f563ff192826b0841b8ce508b52026ad35cc46"
+    },
+    {
+      "path": "bindings.json",
+      "mode": 420,
+      "type": "file",
+      "bytes": 14517,
+      "sha256": "6e799aca3c10ad08f2bdbca99ca81d444fb15ba030c026b7e6a2e235f1b6a718"
+    },
+    {
+      "path": "launch.mjs",
+      "mode": 420,
+      "type": "file",
+      "bytes": 7194,
+      "sha256": "d6ff23057875ba3fe55a5ef9f0cc26c830d18d1454a4db4ffdcc58ec93d98b4f"
+    },
+    {
+      "path": "README.md",
+      "mode": 420,
+      "type": "file",
+      "bytes": 7135,
+      "sha256": "1d9dd1adb0eee1dd0778d68da54abad215874441e33570da0991ecf395704a31"
+    },
+    {
+      "path": "support.mjs",
+      "mode": 420,
+      "type": "file",
+      "bytes": 4193,
+      "sha256": "aecaccd6da7988b3d7d3c9e896dd8a3c4a631a40259e12e29570d7afe6cbec21"
+    }
+  ],
+  "effectiveModules": [
+    {
+      "path": "common.mjs",
+      "mode": 420,
+      "type": "file",
+      "bytes": 7993,
+      "sha256": "b62189ca5885d2e60ab8371227a590b6354fcee0b064d1f0247ec652dd46e78e"
+    },
+    {
+      "path": "executor.mjs",
+      "mode": 420,
+      "type": "file",
+      "bytes": 37519,
+      "sha256": "9e12d11647a34613588ddc00804efb04ff58e159bdcccd173bb495ff4d2e5e99"
+    }
+  ],
+  "originalApplicableControls": 9,
+  "originalHeldControls": [
+    "A06",
+    "P03"
+  ],
+  "focusedNegativeControls": [
+    "N01",
+    "N02",
+    "N03",
+    "N04",
+    "N05",
+    "N06"
+  ],
+  "frozenFiles": 37,
+  "baseManifestSha256": "420da89268b544b466dda8aa3cc214dab668338233e557b3efe45dee84b6ccd7",
+  "syntaxOnlyChecked": true,
+  "semanticPrefreezeExecutions": 0
+}

@@ -1,0 +1,1 @@
+{"schemaVersion":2,"status":"INCOMPLETE","unfulfilled":[{"path":"expected.assertions[0]","value":"Input file bytes and namespace remain unchanged; assignment is in-memory query behavior.","reason":"Natural-language obligation has no executable proof binding"}],"semanticFullRecordPass":false}

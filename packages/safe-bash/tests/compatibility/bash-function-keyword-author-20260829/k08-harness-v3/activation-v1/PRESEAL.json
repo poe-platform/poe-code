@@ -1,0 +1,132 @@
+{
+  "schema": "k08-v3-activation-binding-preseal",
+  "scope": "One PURE binding helper; no product/owner/collector invocation or archive decoding",
+  "started": "2026-08-29T16:06:47.139Z",
+  "deadline": "2026-08-29T16:13:47.139Z",
+  "seal": {
+    "bytes": 200923,
+    "sha256": "db262c234c02526f2864ef66d8e137e9cd9817645431d944ff3459ad3c89d9d9"
+  },
+  "independentReview": {
+    "commit": "5aa383ae63e20ef8df3fa0bd2c2e06871976fe76",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v3-review/RECEIPT.json",
+    "bytes": 4132,
+    "sha256": "31c83a1d7ecb972c217a6f65b91976dc694bc0662e0dca1fb261a8a327cd05fa"
+  },
+  "files": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/activation-v1/binding-check.mjs",
+      "bytes": 3648,
+      "sha256": "47e64b892a9ca42852dc240560bbc642d2d63d33bdb39f34252f672982dd6ff5",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/GO.json",
+      "bytes": 976,
+      "sha256": "1de03294f35b1c7f9d3d9aee1281250eec3771cfdc6aa2fbcee28a30f213c641",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/REVIEW.json",
+      "bytes": 211,
+      "sha256": "80f3ae8ed00a5dcc7ba597497352fcf4e94a21e427e53858b3fe6b8e970653d3",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/activation-v1/COMMAND.resolved.txt",
+      "bytes": 346,
+      "sha256": "7984588d150e52732e87063a045cc657d653463bf6eba765bc944f90eec5321d",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v3-review/RECEIPT.json",
+      "bytes": 4132,
+      "sha256": "31c83a1d7ecb972c217a6f65b91976dc694bc0662e0dca1fb261a8a327cd05fa",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/auth.mjs",
+      "bytes": 3951,
+      "sha256": "da5f0fa015cf56acfe86a1be24a50ea1a767320fc5bb2e3c814ef0b327f6f5d9",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/activation.mjs",
+      "bytes": 2129,
+      "sha256": "97fb6eb669446148738eea3f35d15a51f548b55b9ba4dc23f4a3cbb15876e58e",
+      "mode": 420
+    }
+  ],
+  "launchTools": [
+    {
+      "path": "/bin/zsh",
+      "bytes": 1361216,
+      "mode": 493,
+      "sha256": "450b2d89ac587adea6397bb67c8e909f692af9b8bf63a0fca8064347e8a0aa57",
+      "qualification": "fresh observed launch-tool metadata; trusted-host initial tool startup remains outside child qualification"
+    },
+    {
+      "path": "/usr/bin/env",
+      "bytes": 102368,
+      "mode": 493,
+      "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776",
+      "qualification": "fresh observed launch-tool metadata; trusted-host initial tool startup remains outside child qualification"
+    }
+  ],
+  "unusedPaths": [
+    "/private/tmp/safe-bash-k08-author-RAvH2m/target-v3-installed",
+    "/private/tmp/safe-bash-k08-author-RAvH2m/target-v3-moved",
+    "/private/tmp/safe-bash-k08-author-RAvH2m/target-v3-mutant-M01",
+    "/private/tmp/safe-bash-k08-author-RAvH2m/target-v3-mutant-M02",
+    "/private/tmp/safe-bash-k08-author-RAvH2m/target-v3-mutant-M03",
+    "/private/tmp/safe-bash-k08-author-RAvH2m/source-app/auth.mjs",
+    "/private/tmp/safe-bash-k08-author-RAvH2m/source-app/profile.mjs",
+    "/private/tmp/safe-bash-k08-author-RAvH2m/source-app/guard.mjs",
+    "/private/tmp/safe-bash-k08-author-RAvH2m/source-app/case-driver.mjs",
+    "/private/tmp/safe-bash-k08-author-RAvH2m/source-app/helper-driver.mjs",
+    "/private/tmp/safe-bash-k08-author-RAvH2m/source-app/case-adapter.mjs",
+    "/private/tmp/safe-bash-k08-author-RAvH2m/source-app/CASES.json"
+  ],
+  "capture": {
+    "path": "/private/tmp/safe-bash-k08-author-RAvH2m/future-v3-capture",
+    "mode": 448
+  },
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "mode": 493,
+    "version": "v22.22.2",
+    "qualification": "Version inherited; executable freshly hash-authenticated without running"
+  },
+  "limits": {
+    "knownOS": 20,
+    "peak": 3,
+    "captureBytes": 25165824,
+    "logicalWorkBytes": 100663296,
+    "pureHelpers": 1
+  },
+  "execution": {
+    "cmd": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--permission",
+      "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3",
+      "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4",
+      "--allow-fs-read=/private/tmp/safe-bash-k08-author-RAvH2m",
+      "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "--allow-fs-read=/bin/zsh",
+      "--allow-fs-read=/usr/bin/env",
+      "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v3-review/RECEIPT.json",
+      "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/activation-v1/binding-check.mjs",
+      "PRESEAL_SHA256"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3",
+    "env": {
+      "HOME": "/private/tmp/safe-bash-k08-v3-binding-TM7tml",
+      "PATH": "",
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC"
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "phase": "registry-author2",
+  "capturedEpoch": 1787792020.518778,
+  "provenance": "CONTEMPORANEOUS immediately before spawn",
+  "env": {
+    "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/opt/homebrew/bin:/usr/bin:/bin",
+    "LANG": "C.UTF-8",
+    "LC_ALL": "C.UTF-8",
+    "TZ": "UTC",
+    "CI": "1",
+    "HOME": "/tmp/safe-bash-registry-post-tar-refined-ujuf3ja1/environment/registry-author2/HOME",
+    "TMPDIR": "/tmp/safe-bash-registry-post-tar-refined-ujuf3ja1/environment/registry-author2/TMPDIR",
+    "XDG_CACHE_HOME": "/tmp/safe-bash-registry-post-tar-refined-ujuf3ja1/environment/registry-author2/XDG_CACHE_HOME",
+    "XDG_CONFIG_HOME": "/tmp/safe-bash-registry-post-tar-refined-ujuf3ja1/environment/registry-author2/XDG_CONFIG_HOME",
+    "XDG_DATA_HOME": "/tmp/safe-bash-registry-post-tar-refined-ujuf3ja1/environment/registry-author2/XDG_DATA_HOME",
+    "XDG_STATE_HOME": "/tmp/safe-bash-registry-post-tar-refined-ujuf3ja1/environment/registry-author2/XDG_STATE_HOME",
+    "npm_config_cache": "/tmp/safe-bash-registry-post-tar-refined-ujuf3ja1/environment/registry-author2/npm_config_cache",
+    "XDG_RUNTIME_DIR": "/tmp/safe-bash-registry-post-tar-refined-ujuf3ja1/environment/registry-author2/runtime"
+  },
+  "cwd": "/tmp/safe-bash-registry-post-tar-refined-ujuf3ja1/source",
+  "argv": [
+    "node",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-concurrency=1",
+    "--test-reporter=tap",
+    "--test-name-pattern=^(?:aggregate definitions are exactly the eight delivered families, each registered once|metadata root API preflights collisions and excludes optional network/runtime plugins)$",
+    "tests/plugins/agent-commands.test.ts",
+    "tests/commands/metadata/integration.test.ts"
+  ]
+}

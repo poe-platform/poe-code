@@ -1,0 +1,17 @@
+{
+  "name": "head",
+  "command": "git",
+  "args": [
+    "rev-parse",
+    "HEAD"
+  ],
+  "started": "2026-08-27T20:30:41.781Z",
+  "finished": "2026-08-27T20:30:41.813Z",
+  "pid": 98324,
+  "code": 0,
+  "signal": null,
+  "timedOut": false,
+  "overflow": false,
+  "groupRemaining": false,
+  "expected": 0
+}

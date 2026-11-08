@@ -1,0 +1,6 @@
+{
+  "status": "JS_REPL_PARSE_FAILURE_BEFORE_EXECUTION",
+  "diagnostic": "[21:18-21:19]: Unterminated string literal",
+  "queryLaunches": 0,
+  "at": 1787982876437
+}

@@ -1,0 +1,247 @@
+import path from "node:path";
+import { readFile, readdir, writeFile } from "node:fs/promises";
+import { rewriteModuleSpecifiers } from "./module-specifiers.mjs";
+import { selectConditionalTarget } from "./package-export-target.mjs";
+
+export function resolveSharedRuntimeBuilds(workspaceGraph, canonical, sharedWorkspaces) {
+  const graph = resolveConsumerGraph(workspaceGraph, canonical);
+  return sharedWorkspaces.map(({ directory, pkg, outdir = path.join(directory, "dist") }) => ({
+    ...graph,
+    entryPoints: Object.fromEntries(Object.values(pkg.exports).map(target => {
+      const entry = target.import.slice("./dist/".length, -3);
+      return [entry, path.join(directory, "src", entry + ".ts")];
+    })),
+    outdir, bundle: true, splitting: true,
+    platform: "neutral", format: "esm", target: "es2022", sourcemap: true, metafile: true,
+  }));
+}
+
+export function resolveConsumerGraph(graph, canonical, sharedWorkspaces = []) {
+  const targets = new Map();
+  for (const { directory, pkg, outdir = path.join(directory, "dist") } of sharedWorkspaces) {
+    for (const [route, target] of Object.entries(pkg.exports)) {
+      const specifier = pkg.name + (route === "." ? "" : route.slice(1));
+      const entry = path.relative(path.join(directory, "dist"), path.resolve(directory, target.import));
+      const runtime = path.resolve(outdir, entry);
+      targets.set(specifier, runtime);
+      if (graph.alias[specifier]) targets.set(graph.alias[specifier], runtime);
+    }
+  }
+  return {
+    ...(targets.size ? { plugins: [{ name: "shared-workspace-runtime", setup(builder) {
+      builder.initialOptions.metafile = true;
+      builder.onResolve({ filter: /.*/ }, args => {
+        const target = targets.get(args.path) ?? targets.get(path.join(args.path, "index.ts"));
+        return target ? { path: args.path, external: true } : undefined;
+      });
+      builder.onEnd(async result => {
+        if (result.errors.length) return;
+        const workingDirectory = builder.initialOptions.absWorkingDir ?? process.cwd();
+        const outputFiles = new Map((result.outputFiles ?? []).map(output => [output.path, output]));
+        for (const [filename, output] of Object.entries(result.metafile.outputs)) {
+          if (!filename.endsWith(".js")) continue;
+          const absolute = path.resolve(workingDirectory, filename);
+          const routes = new Map();
+          for (const edge of output.imports) {
+            const target = edge.external ? targets.get(edge.path) : undefined;
+            if (!target) continue;
+            const relative = path.relative(path.dirname(absolute), target).split(path.sep).join("/");
+            routes.set(edge.path, relative.startsWith(".") ? relative : "./" + relative);
+            edge.path = routes.get(edge.path);
+          }
+          if (!routes.size) continue;
+          const file = outputFiles.get(absolute);
+          const source = file ? file.text : await readFile(absolute, "utf8");
+          const rewritten = rewriteModuleSpecifiers(absolute, source, specifier => routes.get(specifier) ?? specifier);
+          const bytes = new TextEncoder().encode(rewritten);
+          output.bytes = bytes.byteLength;
+          if (file) file.contents = bytes;
+          else await writeFile(absolute, bytes);
+        }
+      });
+    } }] } : {}),
+    alias: Object.fromEntries(
+      Object.entries(graph.alias).map(([specifier, source]) => [
+        specifier,
+        canonical.routes?.find((route) => route.workspace === specifier)?.specifier ??
+          (specifier === canonical.workspace || specifier.startsWith(`${canonical.workspace}/`)
+            ? canonical.specifier
+            : source)
+      ])
+    ),
+    external: [
+      ...new Set([
+        ...graph.external,
+        ...(canonical.routes?.map((route) => route.specifier) ?? [canonical.specifier])
+      ])
+    ]
+  };
+}
+
+export function findUnreachableBundleOutputs(metafile, entryPoints, workingDirectory) {
+  const unmatchedEntries = new Set(
+    entryPoints.map((entry) => path.resolve(workingDirectory, entry))
+  );
+  if (unmatchedEntries.size === 0) {
+    throw new Error("At least one declared entry point is required for bundle cleanup.");
+  }
+
+  const outputs = new Map();
+  for (const [filename, output] of Object.entries(metafile.outputs)) {
+    const resolvedFilename = path.resolve(workingDirectory, filename);
+    if (outputs.has(resolvedFilename)) {
+      throw new Error(`Duplicate bundle output: ${resolvedFilename}`);
+    }
+    outputs.set(resolvedFilename, output);
+  }
+  const declaredEntries = new Set(unmatchedEntries);
+  const pending = [];
+  for (const [filename, output] of outputs) {
+    if (output.entryPoint === undefined) continue;
+    const entry = path.resolve(workingDirectory, output.entryPoint);
+    if (declaredEntries.has(entry)) {
+      unmatchedEntries.delete(entry);
+      pending.push(filename);
+    }
+  }
+  if (unmatchedEntries.size > 0) {
+    throw new Error(`Missing bundle entry point: ${[...unmatchedEntries].join(", ")}`);
+  }
+
+  const reachable = new Set();
+  while (pending.length > 0) {
+    const filename = pending.pop();
+    if (reachable.has(filename)) continue;
+    const output = outputs.get(filename);
+    if (output === undefined) {
+      throw new Error(`Missing bundle output: ${filename}`);
+    }
+    reachable.add(filename);
+    for (const dependency of output.imports) {
+      if (!dependency.external) pending.push(path.resolve(workingDirectory, dependency.path));
+    }
+    if (output.cssBundle !== undefined) {
+      pending.push(path.resolve(workingDirectory, output.cssBundle));
+    }
+    if (outputs.has(`${filename}.map`)) pending.push(`${filename}.map`);
+  }
+
+  return Object.keys(metafile.outputs).filter(
+    (filename) => !reachable.has(path.resolve(workingDirectory, filename))
+  );
+}
+
+/**
+ * Compute the esbuild graph shared by every bundle in scripts/bundle.mjs:
+ *
+ * - `alias`: maps each workspace package (and its sub-path exports) to its
+ *   TypeScript source, or prepared runtime exports for workspaces that declare
+ *   poeCode.bundle.prebuilt (or prebuiltConditions for selected runtimes)
+ *   because their build transforms runtime code.
+ * - `external`: the packages left for npm to install — root runtime deps,
+ *   root optional runtime deps, plus the third-party deps of workspace packages,
+ *   workspace packages are inlined unless explicitly listed in poeCode.bundle.external.
+ *
+ * Aliases follow the consumer's runtime conditions, including import/default.
+ *
+ * @param {string} rootDir Absolute path to the workspace root.
+ * @param {{ dir: string, pkg: any }[]} packageJsons Parsed `packages/*` manifests.
+ */
+export async function resolveBundleGraph(rootDir, packageJsons, fileSystem = { readFile, readdir }, conditions = ["node"]) {
+  const runtimeConditions = new Set([...conditions, "import", "default"]);
+  const packagesDir = path.join(rootDir, "packages");
+  const alias = {};
+  const workspacePackageNames = new Set();
+  const workspaceDeps = new Set();
+
+  for (const { dir, pkg } of packageJsons) {
+    workspacePackageNames.add(pkg.name);
+    const prebuilt = pkg.poeCode?.bundle?.prebuilt === true ||
+      (pkg.poeCode?.bundle?.prebuiltConditions ?? []).some(condition => runtimeConditions.has(condition));
+    if (prebuilt && !pkg.exports?.["."]) throw new Error(`Prebuilt workspace ${pkg.name} requires a root runtime export`);
+    // Resolve workspace packages to source (just-in-time compilation).
+    alias[pkg.name] = path.join(packagesDir, dir, "src/index.ts");
+    // Resolve sub-path exports to the source behind their built import target
+    // (e.g. "./configs" → "./dist/configs/index.js" → src/configs/index.ts).
+    if (pkg.exports && typeof pkg.exports === "object") {
+      for (const [subpath, target] of Object.entries(pkg.exports)) {
+        if (subpath === "." && !prebuilt && conditions.length === 1 && conditions[0] === "node") continue;
+        const clean = subpath.startsWith("./") ? subpath.slice(2) : subpath;
+        const specifier = subpath === "." ? pkg.name : `${pkg.name}/${clean}`;
+        const built = selectConditionalTarget(target, runtimeConditions);
+        if (built === null) {
+          delete alias[specifier];
+          continue;
+        }
+        if (subpath === "./*" && built === "./dist/*.js") {
+          const directory = path.join(packagesDir, dir, prebuilt ? "dist" : "src");
+          const extension = prebuilt ? ".js" : ".ts";
+          const walk = async current => {
+            for (const entry of await fileSystem.readdir(current, { withFileTypes: true })) {
+              const filename = path.join(current, entry.name);
+              if (entry.isDirectory()) await walk(filename);
+              else if (entry.name.endsWith(extension) && !entry.name.endsWith(".test" + extension) && !entry.name.endsWith(".d.ts")) {
+                const route = path.relative(directory, filename).slice(0, -extension.length).split(path.sep).join("/");
+                if (!Object.hasOwn(pkg.exports, "./" + route)) alias[pkg.name + "/" + route] = filename;
+              }
+            }
+          };
+          await walk(directory);
+          continue;
+        }
+        // Asset patterns retain package resolution; they have no source module.
+        if (typeof built === "string" && subpath.endsWith("*") && built.endsWith("*") && !built.startsWith("./dist/")) continue;
+        if (typeof built !== "string" || !built.startsWith("./dist/") || !built.endsWith(".js")) {
+          throw new Error(
+            `${pkg.name} export "${subpath}" must target ./dist/*.js to be bundled from source, got ${JSON.stringify(target)}`
+          );
+        }
+        const source = `${built.slice("./dist/".length, -".js".length)}.ts`;
+        let resolvedSource = path.join(packagesDir, dir, "src", source);
+        if (!prebuilt) {
+          const fallbackBuilt = selectConditionalTarget(target, new Set(["node", "import", "default"]));
+          if (typeof fallbackBuilt === "string" && fallbackBuilt !== built && fallbackBuilt.startsWith("./dist/") && fallbackBuilt.endsWith(".js")) {
+            try {
+              await fileSystem.readFile(resolvedSource);
+            } catch {
+              const fallbackCandidate = path.join(packagesDir, dir, "src", `${fallbackBuilt.slice("./dist/".length, -".js".length)}.ts`);
+              try {
+                await fileSystem.readFile(fallbackCandidate);
+                resolvedSource = fallbackCandidate;
+              } catch { /* Keep the original resolution when no source fallback exists. */ }
+            }
+          }
+        }
+        alias[specifier] = prebuilt ? path.join(packagesDir, dir, built) : resolvedSource;
+      }
+    }
+    for (const dep of Object.keys(pkg.dependencies || {})) workspaceDeps.add(dep);
+  }
+
+  const rootPackageJson = JSON.parse(
+    await fileSystem.readFile(path.join(rootDir, "package.json"), "utf8")
+  );
+  const runtimeDeps = [
+    ...Object.keys(rootPackageJson.dependencies || {}),
+    ...Object.keys(rootPackageJson.optionalDependencies || {})
+  ].filter((dep) => !workspacePackageNames.has(dep));
+  const externalSet = new Set([...runtimeDeps, ...workspaceDeps]);
+  for (const name of workspacePackageNames) externalSet.delete(name);
+  for (const name of rootPackageJson.poeCode?.bundle?.external ?? []) {
+    if (!Object.hasOwn(rootPackageJson.dependencies ?? {}, name) &&
+        !Object.hasOwn(rootPackageJson.optionalDependencies ?? {}, name)) {
+      throw new Error(`External package ${name} must be declared as a runtime dependency`);
+    }
+    for (const specifier of Object.keys(alias)) {
+      if (specifier === name || specifier.startsWith(`${name}/`)) delete alias[specifier];
+    }
+    externalSet.add(name);
+  }
+
+  return {
+    entryPoints: [path.join(rootDir, "src/index.ts")],
+    alias,
+    external: [...externalSet, "node:*"],
+    workspacePackageNames
+  };
+}

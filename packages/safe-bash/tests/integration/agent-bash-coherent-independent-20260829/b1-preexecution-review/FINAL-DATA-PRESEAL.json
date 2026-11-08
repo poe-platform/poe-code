@@ -1,0 +1,30 @@
+{
+  "created": "2026-08-29T12:51:31.633Z",
+  "deadline": "2026-08-29T13:02:14.226Z",
+  "files": [
+    {
+      "path": "final-data.mjs",
+      "bytes": 4932,
+      "sha256": "d83842f74abe35faaca13c50c8ece1283f0161a164033a4cfdea0ff6c142be06"
+    },
+    {
+      "path": "INPUTS.json",
+      "bytes": 2127211,
+      "sha256": "14299d0468effaee61b8fe8ee7bc7164f334a088b85d822a441e4d253cdfef60"
+    },
+    {
+      "path": "DEPENDENCIES.json",
+      "bytes": 5670835,
+      "sha256": "3a7dbb3df9d7792038e9c112bbba138c1cb49c610d4077051d34d94b00ccfcbc"
+    }
+  ],
+  "role": "third-and-final-PURE-helper-provenance-and-file-census",
+  "seconds": 60,
+  "productImports": 0,
+  "WorkerConstruction": 0,
+  "newControls": 0,
+  "explicitRoots": [
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-independent-20260829/b1-preexecution-review",
+    "/private/tmp/safe-bash-b1-review-20260829T1242"
+  ]
+}

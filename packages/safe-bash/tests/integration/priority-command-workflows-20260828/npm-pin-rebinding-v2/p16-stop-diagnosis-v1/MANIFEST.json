@@ -1,0 +1,43 @@
+{
+  "schema": "p16-stop-diagnosis-manifest-v1",
+  "role": "NEW SOURCE/DATA ONLY; originals unchanged",
+  "createdAt": "2026-08-28T21:02:01.851Z",
+  "files": [
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-stop-diagnosis-v1/RESULT.md",
+      "bytes": 16243,
+      "sha256": "d8eecbeb143e6a9c6724f451908b2af4bd2a98c3f00568ecc08e71902bd49281"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-stop-diagnosis-v1/AUTHENTICATION.json",
+      "bytes": 179110,
+      "sha256": "197bd481858c13adc9f307bb94c9e0728aed3337b32f90ad946fbc7a651f6cbe"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-stop-diagnosis-v1/TRACE-DATA.json",
+      "bytes": 212292,
+      "sha256": "00cf5f3d2e5a66619046da22af24e45cd290256ec7e1d12ee57aa1e5bac4a624"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-stop-diagnosis-v1/SOURCE-EXCERPTS.json",
+      "bytes": 59926,
+      "sha256": "324d1179d90269188644d54101f81ded9d03eaa6f59e9dffd164f905b03c76f1"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-stop-diagnosis-v1/CAPTURE-ACCOUNTING.json",
+      "bytes": 25134,
+      "sha256": "ee73b5c0fbac7ce1c9e8e0b0a61c925ee41d9dc9430abc113b6f45fa6b739289"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-stop-diagnosis-v1/NEXT-EXECUTION.json",
+      "bytes": 3015,
+      "sha256": "5057db3b2cc4fc952e7ee450bec5bae2e4c62e98148b3dc06b9514d415e5c611"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-stop-diagnosis-v1/INVESTIGATION.json",
+      "bytes": 1232,
+      "sha256": "aa77bcba57d58355f3cf0a6bd4888a404606484b2fd571380e6bdbb7a46c6947"
+    }
+  ],
+  "selfExclusion": "MANIFEST.json excludes itself; exact manifest SHA256 reported in final handoff"
+}

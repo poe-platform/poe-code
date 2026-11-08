@@ -1,0 +1,1328 @@
+{
+  "normalization": "None; owned inputs and independently checked native JSON. Original code terminal LF difference retained.",
+  "native": [
+    {
+      "id": "commonmark-links",
+      "from": "commonmark",
+      "input": "before [label](https://example.test/?q=1&x=2 \"owned\") after",
+      "expectedNative": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "before"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "https://example.test/?q=1&x=2",
+                    "owned"
+                  ]
+                ]
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "after"
+              }
+            ]
+          }
+        ]
+      },
+      "argv": [
+        "--sandbox",
+        "-f",
+        "commonmark",
+        "-t",
+        "json",
+        "--wrap=none"
+      ],
+      "status": 0,
+      "stderr": "",
+      "native": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "before"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "https://example.test/?q=1&x=2",
+                    "owned"
+                  ]
+                ]
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "after"
+              }
+            ]
+          }
+        ]
+      },
+      "actual": {
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "before"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "https://example.test/?q=1&x=2",
+                    "owned"
+                  ]
+                ]
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "after"
+              }
+            ]
+          }
+        ],
+        "metadata": {},
+        "resources": []
+      },
+      "oracleValidated": true,
+      "outcome": "pass"
+    },
+    {
+      "id": "gfm-links",
+      "from": "gfm",
+      "input": "before [label](https://example.test/?q=1&x=2 \"owned\") after",
+      "expectedNative": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "before"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "https://example.test/?q=1&x=2",
+                    "owned"
+                  ]
+                ]
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "after"
+              }
+            ]
+          }
+        ]
+      },
+      "argv": [
+        "--sandbox",
+        "-f",
+        "gfm",
+        "-t",
+        "json",
+        "--wrap=none"
+      ],
+      "status": 0,
+      "stderr": "",
+      "native": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "before"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "https://example.test/?q=1&x=2",
+                    "owned"
+                  ]
+                ]
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "after"
+              }
+            ]
+          }
+        ]
+      },
+      "actual": {
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "before"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "https://example.test/?q=1&x=2",
+                    "owned"
+                  ]
+                ]
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "after"
+              }
+            ]
+          }
+        ],
+        "metadata": {},
+        "resources": []
+      },
+      "oracleValidated": true,
+      "outcome": "pass"
+    },
+    {
+      "id": "html-links",
+      "from": "html",
+      "input": "<p>before <a href=\"https://example.test/?q=1&amp;x=2\" title=\"owned\">label</a> after</p>",
+      "expectedNative": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "before"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "https://example.test/?q=1&x=2",
+                    "owned"
+                  ]
+                ]
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "after"
+              }
+            ]
+          }
+        ]
+      },
+      "argv": [
+        "--sandbox",
+        "-f",
+        "html",
+        "-t",
+        "json",
+        "--wrap=none"
+      ],
+      "status": 0,
+      "stderr": "",
+      "native": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "before"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "https://example.test/?q=1&x=2",
+                    "owned"
+                  ]
+                ]
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "after"
+              }
+            ]
+          }
+        ]
+      },
+      "actual": {
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "before"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "https://example.test/?q=1&x=2",
+                    "owned"
+                  ]
+                ]
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "after"
+              }
+            ]
+          }
+        ],
+        "metadata": {},
+        "resources": []
+      },
+      "oracleValidated": true,
+      "outcome": "pass"
+    },
+    {
+      "id": "commonmark-unicode",
+      "from": "commonmark",
+      "input": "Café 東京",
+      "expectedNative": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Café"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "東京"
+              }
+            ]
+          }
+        ]
+      },
+      "argv": [
+        "--sandbox",
+        "-f",
+        "commonmark",
+        "-t",
+        "json",
+        "--wrap=none"
+      ],
+      "status": 0,
+      "stderr": "",
+      "native": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Café"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "東京"
+              }
+            ]
+          }
+        ]
+      },
+      "actual": {
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Café"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "東京"
+              }
+            ]
+          }
+        ],
+        "metadata": {},
+        "resources": []
+      },
+      "oracleValidated": true,
+      "outcome": "pass"
+    },
+    {
+      "id": "commonmark-list-order",
+      "from": "commonmark",
+      "input": "- first\n- second\n",
+      "expectedNative": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "BulletList",
+            "c": [
+              [
+                {
+                  "t": "Plain",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "first"
+                    }
+                  ]
+                }
+              ],
+              [
+                {
+                  "t": "Plain",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "second"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      },
+      "argv": [
+        "--sandbox",
+        "-f",
+        "commonmark",
+        "-t",
+        "json",
+        "--wrap=none"
+      ],
+      "status": 0,
+      "stderr": "",
+      "native": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "BulletList",
+            "c": [
+              [
+                {
+                  "t": "Plain",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "first"
+                    }
+                  ]
+                }
+              ],
+              [
+                {
+                  "t": "Plain",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "second"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      },
+      "actual": {
+        "blocks": [
+          {
+            "t": "BulletList",
+            "c": [
+              [
+                {
+                  "t": "Plain",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "first"
+                    }
+                  ]
+                }
+              ],
+              [
+                {
+                  "t": "Plain",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "second"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ],
+        "metadata": {},
+        "resources": []
+      },
+      "oracleValidated": true,
+      "outcome": "pass"
+    },
+    {
+      "id": "html-identifiers-spans",
+      "from": "html",
+      "input": "<p><span id=\"owned\" class=\"mark\" title=\"kept\">span</span></p>",
+      "expectedNative": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Span",
+                "c": [
+                  [
+                    "owned",
+                    [
+                      "mark"
+                    ],
+                    [
+                      [
+                        "title",
+                        "kept"
+                      ]
+                    ]
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "span"
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "argv": [
+        "--sandbox",
+        "-f",
+        "html",
+        "-t",
+        "json",
+        "--wrap=none"
+      ],
+      "status": 0,
+      "stderr": "",
+      "native": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Span",
+                "c": [
+                  [
+                    "owned",
+                    [
+                      "mark"
+                    ],
+                    [
+                      [
+                        "title",
+                        "kept"
+                      ]
+                    ]
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "span"
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "actual": {
+        "blocks": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Span",
+                "c": [
+                  [
+                    "owned",
+                    [
+                      "mark"
+                    ],
+                    [
+                      [
+                        "title",
+                        "kept"
+                      ]
+                    ]
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "span"
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        ],
+        "metadata": {},
+        "resources": []
+      },
+      "oracleValidated": true,
+      "outcome": "pass"
+    },
+    {
+      "id": "commonmark-code-bytes",
+      "from": "commonmark",
+      "input": "```\na\tb  \n```\n",
+      "expectedNative": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "CodeBlock",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "a\tb  "
+            ]
+          }
+        ]
+      },
+      "argv": [
+        "--sandbox",
+        "-f",
+        "commonmark",
+        "-t",
+        "json",
+        "--wrap=none",
+        "--preserve-tabs"
+      ],
+      "status": 0,
+      "stderr": "",
+      "native": {
+        "pandoc-api-version": [
+          1,
+          23,
+          1,
+          2
+        ],
+        "meta": {},
+        "blocks": [
+          {
+            "t": "CodeBlock",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "a\tb  "
+            ]
+          }
+        ]
+      },
+      "actual": {
+        "blocks": [
+          {
+            "t": "CodeBlock",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "a\tb  \n"
+            ]
+          }
+        ],
+        "metadata": {},
+        "resources": []
+      },
+      "oracleValidated": true,
+      "outcome": "fail",
+      "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  [\n    {\n      c: [\n        [\n          '',\n...\n        ],\n+       'a\\tb  \\n'\n-       'a\\tb  '\n      ],\n      t: 'CodeBlock'\n    }\n  ]\n"
+    }
+  ],
+  "representable": [
+    {
+      "id": "csv->commonmark:lossy",
+      "options": {
+        "from": "csv",
+        "to": "commonmark",
+        "yes": true,
+        "lossy": true
+      },
+      "code": "E_UNSUPPORTED_FEATURE",
+      "message": "Pipe tables are unavailable",
+      "outcome": "unsupported"
+    },
+    {
+      "id": "tsv->commonmark:lossy",
+      "options": {
+        "from": "tsv",
+        "to": "commonmark",
+        "yes": true,
+        "lossy": true
+      },
+      "code": "E_UNSUPPORTED_FEATURE",
+      "message": "Pipe tables are unavailable",
+      "outcome": "unsupported"
+    },
+    {
+      "id": "epub2->commonmark:lossy",
+      "options": {
+        "from": "epub",
+        "to": "commonmark",
+        "yes": true,
+        "lossy": true
+      },
+      "text": "Matrix\n",
+      "diagnostics": [
+        {
+          "code": "W_RAW_CONTENT",
+          "operation": "convert",
+          "format": "commonmark",
+          "location": "$.blocks[0]",
+          "message": "Projected attributes"
+        }
+      ],
+      "outcome": "pass"
+    },
+    {
+      "id": "epub2->gfm:lossy",
+      "options": {
+        "from": "epub",
+        "to": "gfm",
+        "yes": true,
+        "lossy": true
+      },
+      "text": "Matrix\n",
+      "diagnostics": [
+        {
+          "code": "W_RAW_CONTENT",
+          "operation": "convert",
+          "format": "gfm",
+          "location": "$.blocks[0]",
+          "message": "Projected attributes"
+        }
+      ],
+      "outcome": "pass"
+    },
+    {
+      "id": "epub2->json:lossy",
+      "options": {
+        "from": "epub",
+        "to": "json",
+        "yes": true,
+        "lossy": true
+      },
+      "code": "E_UNSUPPORTED_FEATURE",
+      "message": "Pandoc JSON cannot represent resources, language or direction document fields",
+      "outcome": "unsupported"
+    },
+    {
+      "id": "epub2->latex:lossy",
+      "options": {
+        "from": "epub",
+        "to": "latex",
+        "yes": true,
+        "lossy": true
+      },
+      "text": "\\begin{otherlanguage}{english}\n\\phantomsection\\label{pc-42-6f-6f-6b-2f-63-68-61-70-74-65-72-2e-78-68-74-6d-6c}{\nMatrix\n\n}\n\\end{otherlanguage}\n",
+      "diagnostics": [
+        {
+          "code": "W_TABLE_LOSS",
+          "operation": "convert",
+          "format": "latex",
+          "location": "$.blocks[0].c[0]",
+          "message": "Unsupported LaTeX attributes"
+        }
+      ],
+      "outcome": "pass"
+    },
+    {
+      "id": "epub2->pptx:lossy",
+      "options": {
+        "from": "epub",
+        "to": "pptx",
+        "yes": true,
+        "lossy": true
+      },
+      "code": "E_UNSUPPORTED_FEATURE",
+      "message": "Unsupported PPTX block: Div",
+      "outcome": "unsupported"
+    },
+    {
+      "id": "epub2->rst:lossy",
+      "options": {
+        "from": "epub",
+        "to": "rst",
+        "yes": true,
+        "lossy": true
+      },
+      "text": ".. _pc-id-42-6f-6f-6b-2f-63-68-61-70-74-65-72-2e-78-68-74-6d-6c:\n\nMatrix\n",
+      "diagnostics": [
+        {
+          "code": "W_TABLE_LOSS",
+          "operation": "convert",
+          "format": "rst",
+          "location": "$.blocks[0]",
+          "message": "Div projected to contained blocks"
+        },
+        {
+          "code": "W_TABLE_LOSS",
+          "operation": "convert",
+          "format": "rst",
+          "location": "$.blocks[0]",
+          "message": "Dropped unsupported RST attributes"
+        }
+      ],
+      "outcome": "pass"
+    },
+    {
+      "id": "epub2->rtf:lossy",
+      "options": {
+        "from": "epub",
+        "to": "rtf",
+        "yes": true,
+        "lossy": true
+      },
+      "code": "E_UNSUPPORTED_FEATURE",
+      "message": "Attributed RTF Div unsupported; use paragraph/run attributes",
+      "outcome": "unsupported"
+    },
+    {
+      "id": "epub3->commonmark:lossy",
+      "options": {
+        "from": "epub",
+        "to": "commonmark",
+        "yes": true,
+        "lossy": true
+      },
+      "text": "Matrix\n",
+      "diagnostics": [
+        {
+          "code": "W_RAW_CONTENT",
+          "operation": "convert",
+          "format": "commonmark",
+          "location": "$.blocks[0]",
+          "message": "Projected attributes"
+        }
+      ],
+      "outcome": "pass"
+    },
+    {
+      "id": "epub3->gfm:lossy",
+      "options": {
+        "from": "epub",
+        "to": "gfm",
+        "yes": true,
+        "lossy": true
+      },
+      "text": "Matrix\n",
+      "diagnostics": [
+        {
+          "code": "W_RAW_CONTENT",
+          "operation": "convert",
+          "format": "gfm",
+          "location": "$.blocks[0]",
+          "message": "Projected attributes"
+        }
+      ],
+      "outcome": "pass"
+    },
+    {
+      "id": "epub3->json:lossy",
+      "options": {
+        "from": "epub",
+        "to": "json",
+        "yes": true,
+        "lossy": true
+      },
+      "code": "E_UNSUPPORTED_FEATURE",
+      "message": "Pandoc JSON cannot represent resources, language or direction document fields",
+      "outcome": "unsupported"
+    },
+    {
+      "id": "epub3->latex:lossy",
+      "options": {
+        "from": "epub",
+        "to": "latex",
+        "yes": true,
+        "lossy": true
+      },
+      "text": "\\begin{otherlanguage}{english}\n\\phantomsection\\label{pc-42-6f-6f-6b-2f-63-68-61-70-74-65-72-2e-78-68-74-6d-6c}{\nMatrix\n\n}\n\\end{otherlanguage}\n",
+      "diagnostics": [
+        {
+          "code": "W_TABLE_LOSS",
+          "operation": "convert",
+          "format": "latex",
+          "location": "$.blocks[0].c[0]",
+          "message": "Unsupported LaTeX attributes"
+        }
+      ],
+      "outcome": "pass"
+    },
+    {
+      "id": "epub3->pptx:lossy",
+      "options": {
+        "from": "epub",
+        "to": "pptx",
+        "yes": true,
+        "lossy": true
+      },
+      "code": "E_UNSUPPORTED_FEATURE",
+      "message": "Unsupported PPTX block: Div",
+      "outcome": "unsupported"
+    },
+    {
+      "id": "epub3->rst:lossy",
+      "options": {
+        "from": "epub",
+        "to": "rst",
+        "yes": true,
+        "lossy": true
+      },
+      "text": ".. _pc-id-42-6f-6f-6b-2f-63-68-61-70-74-65-72-2e-78-68-74-6d-6c:\n\nMatrix\n",
+      "diagnostics": [
+        {
+          "code": "W_TABLE_LOSS",
+          "operation": "convert",
+          "format": "rst",
+          "location": "$.blocks[0]",
+          "message": "Div projected to contained blocks"
+        },
+        {
+          "code": "W_TABLE_LOSS",
+          "operation": "convert",
+          "format": "rst",
+          "location": "$.blocks[0]",
+          "message": "Dropped unsupported RST attributes"
+        }
+      ],
+      "outcome": "pass"
+    },
+    {
+      "id": "epub3->rtf:lossy",
+      "options": {
+        "from": "epub",
+        "to": "rtf",
+        "yes": true,
+        "lossy": true
+      },
+      "code": "E_UNSUPPORTED_FEATURE",
+      "message": "Attributed RTF Div unsupported; use paragraph/run attributes",
+      "outcome": "unsupported"
+    },
+    {
+      "id": "pptx->commonmark:lossy",
+      "options": {
+        "from": "pptx",
+        "to": "commonmark",
+        "yes": true,
+        "lossy": true
+      },
+      "text": "Matrix\n",
+      "diagnostics": [
+        {
+          "code": "W_RAW_CONTENT",
+          "operation": "convert",
+          "format": "commonmark",
+          "location": "$.blocks[0]",
+          "message": "Projected attributes"
+        }
+      ],
+      "outcome": "pass"
+    },
+    {
+      "id": "pptx->gfm:lossy",
+      "options": {
+        "from": "pptx",
+        "to": "gfm",
+        "yes": true,
+        "lossy": true
+      },
+      "text": "Matrix\n",
+      "diagnostics": [
+        {
+          "code": "W_RAW_CONTENT",
+          "operation": "convert",
+          "format": "gfm",
+          "location": "$.blocks[0]",
+          "message": "Projected attributes"
+        }
+      ],
+      "outcome": "pass"
+    },
+    {
+      "id": "pptx->latex:lossy",
+      "options": {
+        "from": "pptx",
+        "to": "latex",
+        "yes": true,
+        "lossy": true
+      },
+      "text": "\\phantomsection\\label{pc-73-6c-69-64-65-2d-31}{\nMatrix\n\n}\n",
+      "diagnostics": [
+        {
+          "code": "W_TABLE_LOSS",
+          "operation": "convert",
+          "format": "latex",
+          "location": "$.blocks[0].c[0]",
+          "message": "Unsupported LaTeX attributes"
+        }
+      ],
+      "outcome": "pass"
+    },
+    {
+      "id": "pptx->rst:lossy",
+      "options": {
+        "from": "pptx",
+        "to": "rst",
+        "yes": true,
+        "lossy": true
+      },
+      "text": ".. _pc-id-73-6c-69-64-65-2d-31:\n\nMatrix\n",
+      "diagnostics": [
+        {
+          "code": "W_TABLE_LOSS",
+          "operation": "convert",
+          "format": "rst",
+          "location": "$.blocks[0]",
+          "message": "Div projected to contained blocks"
+        },
+        {
+          "code": "W_TABLE_LOSS",
+          "operation": "convert",
+          "format": "rst",
+          "location": "$.blocks[0]",
+          "message": "Dropped unsupported RST attributes"
+        }
+      ],
+      "outcome": "pass"
+    },
+    {
+      "id": "pptx->rtf:lossy",
+      "options": {
+        "from": "pptx",
+        "to": "rtf",
+        "yes": true,
+        "lossy": true
+      },
+      "code": "E_UNSUPPORTED_FEATURE",
+      "message": "Attributed RTF Div unsupported; use paragraph/run attributes",
+      "outcome": "unsupported"
+    },
+    {
+      "id": "csv->commonmark:empty-representable",
+      "options": {
+        "from": "csv",
+        "to": "commonmark",
+        "yes": true
+      },
+      "text": "",
+      "diagnostics": [],
+      "outcome": "pass"
+    },
+    {
+      "id": "tsv->commonmark:empty-representable",
+      "options": {
+        "from": "tsv",
+        "to": "commonmark",
+        "yes": true
+      },
+      "text": "",
+      "diagnostics": [],
+      "outcome": "pass"
+    }
+  ],
+  "counts": {
+    "native": {
+      "total": 7,
+      "pass": 6,
+      "fail": 1,
+      "unsupported": 0,
+      "not-run": 0
+    },
+    "representable": {
+      "total": 23,
+      "pass": 14,
+      "fail": 0,
+      "unsupported": 9,
+      "not-run": 0
+    }
+  }
+}

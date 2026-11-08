@@ -1,0 +1,3 @@
+import {mkdtempSync,rmSync,writeFileSync}from'node:fs';import {tmpdir}from'node:os';import path from'node:path';import {native}from'./native.js';
+export function serializeDockerEnvFile(entries){return native.dockerSerializeEnv(entries.map(([key,value])=>({key,value})));}
+export function createDockerEnvFile(env){const entries=Object.entries(env??{});if(entries.length===0)return null;const directory=mkdtempSync(path.join(tmpdir(),'poe-docker-env-')),file=path.join(directory,'env');let active=true;try{writeFileSync(file,serializeDockerEnvFile(entries),{encoding:'utf8',flag:'wx',mode:0o600});}catch(error){rmSync(directory,{recursive:true,force:true});throw error;}return{path:file,cleanup(){if(!active)return;active=false;rmSync(directory,{recursive:true,force:true});}};}

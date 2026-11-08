@@ -1,0 +1,103 @@
+[
+  {
+    "args": [
+      "-nmfixture",
+      "-sSYSTEM",
+      "question"
+    ],
+    "code": 0,
+    "out": "```text\nanswer\n```\n",
+    "err": "",
+    "calls": [
+      {
+        "prompt": "question",
+        "system": "SYSTEM",
+        "options": {},
+        "stream": true
+      }
+    ]
+  },
+  {
+    "args": [
+      "-nxo",
+      "label",
+      "value",
+      "-mfixture",
+      "question"
+    ],
+    "code": 0,
+    "out": "answer\n\n",
+    "err": "",
+    "calls": [
+      {
+        "prompt": "question",
+        "system": null,
+        "options": {
+          "label": "value"
+        },
+        "stream": false
+      }
+    ]
+  },
+  {
+    "args": [
+      "prompt",
+      "-nmfixture",
+      "--",
+      "-x"
+    ],
+    "code": 0,
+    "out": "```text\nanswer\n```\n",
+    "err": "",
+    "calls": [
+      {
+        "prompt": "-x",
+        "system": null,
+        "options": {},
+        "stream": true
+      }
+    ]
+  },
+  {
+    "args": [
+      "-nmfixture",
+      "question",
+      "-olabel",
+      "value"
+    ],
+    "code": 0,
+    "out": "```text\nanswer\n```\n",
+    "err": "",
+    "calls": [
+      {
+        "prompt": "question",
+        "system": null,
+        "options": {
+          "label": "value"
+        },
+        "stream": true
+      }
+    ]
+  },
+  {
+    "args": [
+      "-nmfixture",
+      "--option=label",
+      "value",
+      "question"
+    ],
+    "code": 0,
+    "out": "```text\nanswer\n```\n",
+    "err": "",
+    "calls": [
+      {
+        "prompt": "question",
+        "system": null,
+        "options": {
+          "label": "value"
+        },
+        "stream": true
+      }
+    ]
+  }
+]

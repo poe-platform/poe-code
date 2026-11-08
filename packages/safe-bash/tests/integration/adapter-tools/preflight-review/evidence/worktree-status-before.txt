@@ -1,0 +1,18 @@
+ M benchmarks/shell-stress/diagnostic-profiles/run.ts
+ M src/commands/filesystem.ts
+ M tests/fs/mount/identity-compatibility-review/run.mjs
+ M tests/integration/adapter-tools/fixtures.ts
+ M tests/shell-stress/invocation-modes/compare-frozen.ts
+?? src/commands/archive/
+?? src/commands/move.ts
+?? tests/commands/archive/
+?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/
+?? tests/commands/metadata-stress/
+?? tests/commands/move-cross-device.test.ts
+?? tests/commands/search-stress/.native-1m4O1e/
+?? tests/fs/mount/identity-authority-review/
+?? tests/fs/mount/identity-compatibility-review/evidence/frozen-59b1269-compatibility/
+?? tests/integration/adapter-tools/preflight-review/
+?? tests/shell-stress/invocation-modes/.refresh-KGBnyQ/
+?? tests/shell-stress/invocation-modes/refresh.ts
+?? tests/shell-stress/invocation-modes/refreshed-start.json

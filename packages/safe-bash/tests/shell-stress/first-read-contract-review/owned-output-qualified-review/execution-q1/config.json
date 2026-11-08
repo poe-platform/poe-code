@@ -1,0 +1,967 @@
+{
+  "bindingVersion": "Q1-independent-pre-run",
+  "sourceIdentity": "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea",
+  "writeoutTripletBound": true,
+  "ready": {
+    "path": "/tmp/safe-bash-owned-output-qualified-prototype.ready",
+    "sha256": "1c01dceeb7604340865b140bf411c51fac08926b2c0955f3bf8143368b2ac8c8"
+  },
+  "authentication": {
+    "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/authentication-before.json",
+    "sha256": "edfe800b2f320b5c97618b261b9c4604ad22ac64f7f808805cb3a0f5284a837e"
+  },
+  "executionFiles": [
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/index.js",
+      "sha256": "80c27f63a1ddc9ad66b875b6b307ea51aae3e54844207b25d2e58bbeafed5db0"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/contracts/index.js",
+      "sha256": "f63fcc728dd4e62d6d60408f114c901ad52a9499e46a6f89b2ce97fff3fc680c"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/contracts/command.js",
+      "sha256": "18d0fe35b82ea6085d39492e61b9c0d1c9d5a2a2e7e13a7e580e94dc551e2a0f"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/contracts/errors.js",
+      "sha256": "18a4a05815e6673dff47a7ffe8caa43b9a8d3c97f67571bebb9d562b1703aa6f"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/contracts/filesystem.js",
+      "sha256": "54708794453284916269d96574ac9bf42c9a652f011d7a779efecfa326cace25"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/contracts/io.js",
+      "sha256": "d09037f7726d63bbe883ca5bd8f75b40e407b2973a4d7628c501087137cd2464"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/contracts/output.js",
+      "sha256": "26375ebce4468be610b4e49292a484615f77032d12a2957444604e905450787a"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/contracts/path.js",
+      "sha256": "31d592f8412ea87ee9afbfbaf092c7fd9c7fa3981a74b3b971dad01d5966ffe7"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/contracts/plugin.js",
+      "sha256": "8226301a46b88d6e655b8201c57c60b1af835df6b2b2193f6fb386b5a6888937"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/plugins/index.js",
+      "sha256": "a3244f34aa252f9079660ef7471d04088650f06298a9130ac96c5d952a65a7b9"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/index.js",
+      "sha256": "12b665aea74b7ed847e47a1debe10e02ddf43462f9eeeac48af97e6dcc03210f"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/basic.js",
+      "sha256": "00fa8d5370d4173cb235b22b99f49997f047b76aa3d4ae08e958da161345ecd3"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/internal.js",
+      "sha256": "ab74b7049d5ef6af541e012b295ea758471a7fbfd3864fa9ade62535121d0c2a"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/filesystem.js",
+      "sha256": "4a98f1264b572478ff786a67f7a028d200e3418562f6f78f2b040edbbf3e11b1"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/copy-identity.js",
+      "sha256": "c0ec43f7af13501e5bd83895b0f09799c0eaebb2d757e99aaae2593b1c1f2baa"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/move.js",
+      "sha256": "d5429dfc39e646315798ddf2473bda8e760c03c61e509b47718d9e9e9ebf52e3"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/streams.js",
+      "sha256": "4ca398af02a1ec68c7e147b2f5377539c7089dd96301f54c0d8573f54a6bf43e"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/text.js",
+      "sha256": "c15545c5f22e29c1e7eaac5d574c2fdedb833002df803861137ec0133b5eaf6f"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/grep.js",
+      "sha256": "66b0887afb752a686484da1c7d6d20e80894fe15e9a515dcbd36c8d6640ffafd"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/regex-execution/client.js",
+      "sha256": "92416db354410d84172a13d53a2fd757d61d9979745a38bd0c297a06309e17f5"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/regex-execution/protocol.js",
+      "sha256": "05ead3047ea08e9ef673d0ab008e23cdb81af34e33cdd33f41a47fe6d9fbbc65"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/predicates.js",
+      "sha256": "a9de9f16f6cb9fd2efbaf5e3b7cd1e58d071bcd636e7a39b2434b5beb6a64ee7"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/execution.js",
+      "sha256": "bef62a84b26789b61c063147e3b08844495f6dce2b728979ff1e561fbc81e83c"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/find.js",
+      "sha256": "f7d2f5833e7b1c42a2a892ca3853da62b42b7ce3aa5c5b4fb513d647f991f06e"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/text-programs/index.js",
+      "sha256": "75573f07a76470cca425afcb38d60c717b8554ea6ac6373f2d46c8a7cc97ac70"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/text-programs/sed.js",
+      "sha256": "c5e4edf5c8169bb90d7ee0b1c0928f319a12a6ecdf73fe45a2b54132cdcaea3f"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/text-programs/regex.js",
+      "sha256": "c1782156060406841051f6ba1d364860f613097fda3db27f263bb922dd96e46e"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/text-programs/shared.js",
+      "sha256": "e17e1a73c999fbf1f0ab928748b907eca6b28374f0b440029d88ef9fc06ec3c0"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/text-programs/awk.js",
+      "sha256": "99d834d1dd887392b0260e8f39214332151be6d4f7ca2f9fbdb0724b3a7e957b"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/text-programs/awk-syntax.js",
+      "sha256": "b9364215705ae85ef450fa6c4c529d2c748c97662ce1d53229134d555dfdd0a2"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/text-programs/awk-values.js",
+      "sha256": "5febba1b8a087ab941dbdcb1c85ecae029eeeaf5175332de8a44fdce13a9505d"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/text-programs/awk-runtime.js",
+      "sha256": "09a28458621149c139cbeae57e0c9ba3f6a6b5150e6c173dfcee2eeae6cb4137"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/structured/index.js",
+      "sha256": "4a3f5a5c820638f8d14dcc136ffcb09447dc647688775aaacaf62263a3a099cd"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/structured/jq.js",
+      "sha256": "03b86e0d6c1b520dc7c6707c8774f5da27ee8c92acf5183c62443ea71662bace"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/structured/limits.js",
+      "sha256": "f6005af75948816c4d323d4610b112bf87cb3fb7b69d0fbd18538ad3df47b149"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/structured/numbers.js",
+      "sha256": "e54edb0ffa9fa261f18e6474b9bd2c90672d46e50adea28790d6dc048cc5200c"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/structured/input.js",
+      "sha256": "7a647193dae661d0110fac1b108e578ca7c3618cc9908bbc55cf3728acd5432f"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/structured/interpreter.js",
+      "sha256": "42366cfd87db215b3ededa70c255fd8395d72706591360d503bd863f1ecb9d4c"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/structured/split.js",
+      "sha256": "a98dc67ab2afa865051767fd07411569aa574f3f55490bf4f3cd0cbc2b112a68"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/structured/values.js",
+      "sha256": "8cd6dd8bc7373b3b1d21dc96ae5fe483c0f016326c35fd72a253292ae713119c"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/structured/parser.js",
+      "sha256": "a6aee4409ab85ec5f1ae28a2f3d8ed464874afadf6e227e4bb5e48e7c9431489"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/search/index.js",
+      "sha256": "7ba9f2ac6b36d13971ce498c8450c5eb6daae11f2503ac886dfd3ce8fb768f77"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/search/rg.js",
+      "sha256": "c6251d62272eef979766dfad2d9e94bc1096fd504704082c0cd841c997490d40"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/search/matcher.js",
+      "sha256": "6705cb9ee19facc23544b0aafa8a23b25a85756cd20f3e4240cefeaaf5a5c720"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/search/options.js",
+      "sha256": "2f027ceb2f407a8b07db774f67038885f0b79a96aa2a2c59ffaa57f32e6a55b3"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/search/output.js",
+      "sha256": "72855de33bc15f551cba7dea2ee035dfc03f8dd7645b1b49002906eff7627c2b"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/search/shared.js",
+      "sha256": "15a42f696fb8d2747b5f1458a53f2032f62a1b03c9082537e37255149d394283"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/search/walk.js",
+      "sha256": "0e8a94b713e101a037458931aa874d8758d9c20ff8847a6d0166be8678aa3486"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/search/glob.js",
+      "sha256": "9680d693cddf011ed06623582954b640d18ce26deebcd9b7d3c53a5564eb46f9"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/bytes/index.js",
+      "sha256": "37a6150fa98c14e1c7d63b67765971e234dc72c3b88e9318db218fba36f1a87a"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/bytes/encoding/index.js",
+      "sha256": "46ee85946ca5cd5cfe59ba4e5f39fca4b8cd71020e903cc0354c2855057da8e5"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/bytes/encoding/base.js",
+      "sha256": "ac71945c17307983bcecd48224c213db5f82f04d09c0d8c1c57086af700a4043"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/bytes/encoding/shared.js",
+      "sha256": "13a0d8756aab590eb5a09bd324446d21f94500fc12a6192ebc9b5b39b1b1062e"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/bytes/encoding/od.js",
+      "sha256": "b381913b231e691d3402a7823205f56417c55c2869cd4f1fdd8a658ebb75b3b0"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/bytes/encoding/xxd.js",
+      "sha256": "aedf0adbbae0dd6b2178e69bdb925a114d5a6bdcef21d78d36803c31756d8654"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/bytes/checksums/index.js",
+      "sha256": "e9592d606ea099f2105ace37a4f832ea9045dc4a48bfee720732ce691b8b6963"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/bytes/compression/index.js",
+      "sha256": "b9d8de948bd0fa3fe9d4c6cc34373063bd0278abd8291329022a2cb7521f816a"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/bytes/compression/files.js",
+      "sha256": "25a5a1b02c990517a8b515a55c741d74117c057733908539c47969056101237b"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/bytes/compression/stream.js",
+      "sha256": "d1e00786af278be2af71009f13ed5a9f243022d36e0d9bd9f0ebba1e4c4a79b1"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/bytes/compression/gunzip.js",
+      "sha256": "26fa0982d758cd7a97ff70c4b119c63c8ab996150cfdb19eae48895dd5edcfe2"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/bytes/compression/options.js",
+      "sha256": "adbcdc0d6a1383de8ffa4faca546468d15430edcd938af632aa74fc6657bdcbb"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/diff-patch/index.js",
+      "sha256": "55131ef605a786cbb188dfec4e3c30cf967a66285e6f7ba870ad9dba43cf4157"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/diff-patch/diff.js",
+      "sha256": "35351c3711344ffa3dcd7c22899af9e39a823a8df0e9ee3330480d74573746df"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/diff-patch/shared.js",
+      "sha256": "150687d3ce292ddd838819919ef0f46f7da224369c4af2862b9387ddb50b2296"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/diff-patch/diff-format.js",
+      "sha256": "500fc07ab484a54db0b8192ce867d3bd215ed60703b148807ec3f031d72021c3"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/diff-patch/patch.js",
+      "sha256": "b457e49f6cdd43bcc3d5006a2eff7919f52bd504fd0c8bda4781b36c3f26ca54"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/diff-patch/unified.js",
+      "sha256": "a78c4239ad87ceab062e8482d3e762d508edea43e8144015f1017d6234017a46"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/diff-patch/patch-path.js",
+      "sha256": "fb4a52eeb5a8640dd9f69b1c2b1cbb2abe806a7fb7b1659e6796974d580edcfc"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/diff-patch/patch-envelope.js",
+      "sha256": "432ce9ac2793932a05faffcaa56cb2a8b8cc81f5d2e5b789e32bc80c2fead344"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/diff-patch/patch-formats.js",
+      "sha256": "a2832ba8e180150b093af16c60529d4afd7658c4669ce57ef2d8757ee4f24e50"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/diff-patch/patch-gnu-paths.js",
+      "sha256": "76bfe60125a81ee45fcf357a386699997aa666717491c4efe1f9da9fb46185ee"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/diff-patch/patch-gnu-reject.js",
+      "sha256": "a30a117968d9c8e85835e4f17a30b20cf7945ece3e56f2c78a9339f830cfa8f7"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/metadata/index.js",
+      "sha256": "d4a85ffa7aecb41030f006e0339739663946bf453cbe2a38aca4a126398f35e7"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/metadata/chmod.js",
+      "sha256": "b86b19cda05825fd1279225eaca730139024b7d589a1381c87acbf8ac7746910"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/metadata/internal.js",
+      "sha256": "b25f5e56cc417d71464aa5807b9ae4702a3ed1e9c9c300d184047c1e692c25c8"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/metadata/stat.js",
+      "sha256": "586070f9a8c527858b699e815004ba382919f1bba117a9f881ddaacc910487ab"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/metadata/mktemp.js",
+      "sha256": "00d91c40267c93a3b25b6d4a1ceaaac46b0b06c4d9c90a15a74e732a44915303"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/archive/index.js",
+      "sha256": "e747fff64a5566c31a5ab6d7fed7fe252fbb02dcf61990c981e55c53b5487418"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/archive/create.js",
+      "sha256": "311e1c75def85249edb21746c82ef5df32afd91b260ca5152bfb129a83bc9dc9"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/archive/format.js",
+      "sha256": "74510cfa8c86f4614d559cd75dba2253d161bd39b69d9f12ba1d17bd5145294f"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/archive/internal.js",
+      "sha256": "1d01d6356dc8276739d708ccf6f9ea14cc8a6ec464718255e4de882693f3744f"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/archive/options.js",
+      "sha256": "d89a7b8ebedd8c7752e068fc7d7421296665032faac7f5a8f41b8a962656c5df"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/archive/extract.js",
+      "sha256": "408d67f1c8fba01fc876d6e8a2f075ecf66eb249d64d25ee9f5782be28aa2b2c"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/archive/stream.js",
+      "sha256": "edb4bf2bfe386c17066e3bae70f8f61396e9f536c447b3a0dbf91a4108195d7c"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/table-text/index.js",
+      "sha256": "b5b81dfabe0b7930c4aebe27bcb8ab8d18dcf9781726fc9f20ec3748f9f31c78"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/table-text/paste.js",
+      "sha256": "98938cff0b8ef2bee08cb5c81d14ad7fa2c64a1e76fcfc29282c2d52abdb6e94"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/table-text/internal.js",
+      "sha256": "8b0b64e9ac005418c3b7f5fb4d24eb11a8da361b4491b7287bd071c92c99bbf5"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/table-text/comm.js",
+      "sha256": "e7842eaf25f827153467907b96566c052b48fadff3d98fc7b4d919e4eeea15c0"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/table-text/join.js",
+      "sha256": "9f21f3877e18927e2791dbb5100e3253c397f1ed97249c77fb77e2cbe12a0f6b"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/stream-inspection/index.js",
+      "sha256": "010d948d623ba2dc9409552164355c2367311b61868d3acf32587eae868a3c1e"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/stream-inspection/tac.js",
+      "sha256": "513d85579e50dc85ffbaf53b1c27f6f215742c6236b799d72f3bd120396d0bcd"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/stream-inspection/shared.js",
+      "sha256": "d16ea65c9a0fd20c5ae0bc32244903c4ff6e339305b81b2adb0f3a52413a8ea4"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/stream-inspection/expand.js",
+      "sha256": "3858d4b379fa946f3f05e3b5cbc94077408c9af7c0636f3097cd39b3884fe91e"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/stream-inspection/numeric-options.js",
+      "sha256": "7d4a206831fdffc459ed11b9c73f7432faa98d96bd5281c57235578c7b445a19"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/stream-inspection/fold.js",
+      "sha256": "9225cde1ed4eafa58a4a7b98280aaf965d9db667d8d96e0b553ea352dc6775dd"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/stream-inspection/strings.js",
+      "sha256": "e12bbd9e39ff38689e542503639e66443a8b66a3b8c7ba1369aaa5d3f80ab07c"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/stream-format/index.js",
+      "sha256": "ed1be97898690749a041a1cf01140e9ea57ab342b95577b65aca29ce4ede1704"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/stream-format/seq.js",
+      "sha256": "d206c8cb0ef7fcee03651f93bdc7f710426db959f3008ec283a2f44a94309e20"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/stream-format/shared.js",
+      "sha256": "a3ea46071f016850423cd0919ccaac3e2b34e61c5ef08d43a2a29b6f9eabe076"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/stream-format/nl.js",
+      "sha256": "d281c3646d00698d74a4097ef0c251fb73798599f5ae41ac77845e4968ca8831"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/stream-format/rev.js",
+      "sha256": "c62152f41f0e9331b4000009e79443c1e13ebb08dbd161893218623bc3c0c39f"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/stream-format/unexpand.js",
+      "sha256": "47781aac03b78fc6b0a206fbc8952e9eb4ef5e718285b17b5a12185ae9e3dd55"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/split/index.js",
+      "sha256": "86e20c72761aa573c06df04f1789ba5184f8ce8bf4cbe525cd678ab26e5249ac"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/split/options.js",
+      "sha256": "5778c1f336bdbbc5269af8976d410c4bc70e2efa720e1fd3a6e45c2bf8202a6e"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/split/split.js",
+      "sha256": "f3325af3ada3111e274545b6bbdf93eed4bfb309237202671fb57fa9fef0110d"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/split/io.js",
+      "sha256": "3af6c96458ba8f172af2fd81c9fac1dbc5a93ae785d07a618d99b0bf31f44204"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/split/names.js",
+      "sha256": "c22af9ea589ac0ac78a0ec4e4dca371eb0c1a5d407fcff2c971411553a1d2373"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/split/outputs.js",
+      "sha256": "0985c5d7b9ac8396bf3d38e92ae0d36682b34b2f8dc375114a380c3b8771638d"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/shell/index.js",
+      "sha256": "e4727274e08ff8199102d4826579aaf410b3a72b3a4e0c4dc8864a57bc714afb"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/shell/shell.js",
+      "sha256": "589f00aad0429a928ff1f2642af32e4c3852b1839f15aaf47b134eafddec17ec"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/shell/parser.js",
+      "sha256": "5e7529b673dbc53503195c551e5a772632467de5e92e06682208b0e54eea90fd"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/shell/types.js",
+      "sha256": "8c79d4e7ff6e11e4adc173b19017e2f7c046cdeb6d7d24fb4f5057fd8d67b27c"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/shell/arithmetic.js",
+      "sha256": "6e68b9a19d7fe703c1a4b2840deda5c960f1ec72aa678a38ecff296a79744138"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/shell/input.js",
+      "sha256": "dfae555acaa51838dba66b81da380c0cd235bc3e0b3c784ea63b888404feb331"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/shell/runtime.js",
+      "sha256": "dd5847a047829d2f5593ffb095c32316cc4102bb74d32950a68d772b23efd118"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/shell/pattern.js",
+      "sha256": "a4a3a5744281205d6f7f0b9fcf6aea2d6386669d9176bc2d3ca08c130087cc19"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/shell/locale.js",
+      "sha256": "9f6e1cdac781cd758231bfb7af854dbc87dd6544c0e3a1309dac9362f88f36dc"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/shell/display.js",
+      "sha256": "c1e7ade4879fc6f85d39dd718259eaf2bb9371fac463a3e574ec9f8a0490e368"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/shell/cleanup.js",
+      "sha256": "f29a3f3e220019dd5dba62bbcdd0fddc336c4924d30f7066f0839556fb65db29"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/safejs/index.js",
+      "sha256": "060d905b7b28b62a608d7ca523a89251e8e9c0aefef3e2160537187bd1b2b409"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/integrations/safejs/index.js",
+      "sha256": "909b94a9b5e087f3ea16375f3fd3960b2eebd6cf0ca2d6427c170b2efed47b19"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/integrations/safejs/filesystem.js",
+      "sha256": "761c7d1f865fb72813304ee7b93f48b089042fc74ca5120c76e101e4316f4423"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/integrations/safejs/stats.js",
+      "sha256": "90e1e8e05dbd3c2cb8b086a292932935f24a59923e257dd0fca71f82bfdc362c"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/integrations/safejs/values.js",
+      "sha256": "438c92ecec0494ed5b588da12e121c93c90f6522d8d6b89d4b5e01e019e6846d"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/integrations/safejs/shell.js",
+      "sha256": "94319d15f2571967bd1962d64c0be89936f07b9a5bdbffb56353434799230c88"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/safejs/io.js",
+      "sha256": "a59ab2fa7f3d336b3e45a4a74347b08c415069c70375b4d6f5aaedb27d8c70e6"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/safejs/types.js",
+      "sha256": "0c5c7a6d40d3e5aa15db22d372cfc7cb0dfd9859aedc4cdc6b022456df2b07c6"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/safejs/render.js",
+      "sha256": "b02cd1377c592e07207388e8c7ffb46eb344fac05ed61d7c02c804e5400eae3c"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/safejs/options.js",
+      "sha256": "bab9763803074ea8f4e7c4901e4d809abbb8858f807ebba7115ceee8352da1d5"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/network/index.js",
+      "sha256": "44658fec914d7568f14db5c14037dac6ef02d7ea48c1c261d9fcdb6044d6fa2b"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/network/curl.js",
+      "sha256": "8ee855c65b2e5c18a36930458404a40edc9b37178fd6de192b33da7fc30623c9"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/network/args.js",
+      "sha256": "3762aff1363b06dab26b3b1430a20542dbec9538ace6cafc13e894652133bbce"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/network/types.js",
+      "sha256": "4b2b1ec8b84f9b7a2655b5044f308781daae329bb00a229a26b17d9b1551065f"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/network/body.js",
+      "sha256": "89d214dc1e0302afb8832cb38f8fcd52eeb207951659709c148060e787e40db1"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/network/shared.js",
+      "sha256": "636549c0e9b1175658f9d58f9cb02b39e7e68ce86f42e62767eae15034be041e"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/network/output.js",
+      "sha256": "320aa8dd216a927d91c452e8b9029bfe8655dc97325480fd6106d307319ae9f6"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/commands/network/transport.js",
+      "sha256": "a8d39215f79470e2bf520150c1d829ccd8c571f6f78cd76153fe72f7db28d687"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/fs/memory/index.js",
+      "sha256": "d5aa69848d5c4c0e5da767aec4b785d422561248e750add180fb5e4949fcae6c"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/fs/mount/comparison.js",
+      "sha256": "6bb00dc2d383e8f0b07b29e935a1f891c3811bf41dacd248fbf6119172f3e331"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/fs/mount/identity.js",
+      "sha256": "7803a8b62373af24b18a0a3404c51f8b5c39bf2f9e4d6800e2ffa8a02bb80c9d"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/fs/s3/authority.js",
+      "sha256": "288ae377e216a68e0272044312eed9afc7bfe29c8d6cb680010cbe7bb60b4a83"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/fs/webdav/resource-id.js",
+      "sha256": "3dd1e43036eefe79622618599d5dbc6ad9bbffc1b6a19f251e960fb3f4d28624"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/fs/real/index.js",
+      "sha256": "d8505d3512010372ab9148ae4da9bdc1e75ecb37f5143da8626d5fc63d49cb29"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/fs/s3/index.js",
+      "sha256": "1c174c48e88516790e1776bf32b87597a29a79b029dd06aa972acf061c3d647f"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/fs/s3/filesystem.js",
+      "sha256": "8a29148a5e41ed27087cd9784c564623b73d9c6c79f52ec2710db0cd29fba680"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/fs/s3/transport.js",
+      "sha256": "692c8996973539886b85b208c96329daea13f8e00cafcd3f0fef1bbf8e13f5c9"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/fs/s3/mock.js",
+      "sha256": "9b8331abce0b73ceb5f41a8ac8b0109d8d4000e55c6675922b10d62643f73911"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/fs/s3/http/index.js",
+      "sha256": "7e356b1ee365ce29d6c66d4f08f1447e7d79f551fd9fb79c0076e3924f679479"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/fs/s3/http/transport.js",
+      "sha256": "6d37cb5788b7e8fceca9fabf0c08268c2dee684e195a9ecc1fa4f0c4c92694c1"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/fs/s3/http/request.js",
+      "sha256": "544e77f8e174be78a68621ea7feb1df9c5ced4d040ae1dc12fde81999d4f92bf"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/fs/s3/http/signature.js",
+      "sha256": "38eb67df33dff7b99b35133fc436a41530c9e7b92c5dafc7ce14f235cd0f58cb"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/fs/s3/http/xml.js",
+      "sha256": "217973ac5a083444fd458eff884812016b4ab3ea9510ec1ddfa64385bbaf9418"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/fs/webdav/index.js",
+      "sha256": "f66f1fe8cfe2378a7bce4fd0cf42361909b6442694a9f7b6ac9012e0b6131cc1"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/fs/webdav/webdav.js",
+      "sha256": "1c061844c03c22d8c39d649677cfbe46773f7bf97d54a46e8b1576476ebf280d"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/fs/webdav/xml.js",
+      "sha256": "c6331ca324c6c33f4bb2c83e18acf80c5284c57c2ba534c9dc1c9e4c82f6ee04"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/fs/readonly/index.js",
+      "sha256": "e9a155116c7ba93605ab1be43fb1c5c4618e164398f5bfb25d6659f41eb28289"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/fs/mount/index.js",
+      "sha256": "251a379e39df16d0573b4f8f6ce2282e533545c9f8a0198bd703178c44208211"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/fs/overlay/index.js",
+      "sha256": "6bf995bbf66ac2cd6ad068db9fa8cdd4df8e1c1d70734a20b196ce6bba5e07ad"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/historical/package.json",
+      "sha256": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/historical/src/fs/webdav/resource-id.ts",
+      "sha256": "3ccf5cae86bdc40c55f3f80968a22ee03568292d52abee6b271531ac7f3e18f1"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/historical/src/index.ts",
+      "sha256": "d912a531d47e7a0197114657ddc035315ff62a752bb99785d27c7d277edd6a74"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/historical/tests/fs/webdav/mock.ts",
+      "sha256": "177f79ee640460822cfe0486c87f7cc61ac7c8b84389abe32b48ef27f4b4ef36"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/historical/tests/shell/first-read-probe.ts",
+      "sha256": "b138e5572240533efb8cde733e0c5a9bbd1c960e431b9291c0a17a300b1c7ed6"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/historical/tests/stress/remote-cancellation/helpers.ts",
+      "sha256": "9e76ecf9ba6604fc2c4b94a96cf5b46ffed97de5e7d0c2524e138b4410e17678"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/driver.mjs",
+      "sha256": "897c93c94689179a6ab9598d077a96e9feaeea4957d323df8f340b654ab2d916"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/qualified-criteria.mjs",
+      "sha256": "145df20c7f725eefc64475ac0920da866d46d3d81b4e29a97e9905be8fe3ab50"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/lifetime.mjs",
+      "sha256": "d1822bafa54adc46d8e063dd1fd27990ca7f8c891b8190b2feef08fca22f91f4"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/controls.mjs",
+      "sha256": "ec9a4e6f17b3cc5e9a74e3478f42c01ddd251ff10cf0fe90487433a6c009b085"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/native-helper.mjs",
+      "sha256": "d3344fbc17021294f76766fd074a4a48f12dd449137e7b0a51bc78389da81468"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/binding-map.json",
+      "sha256": "f1cdac57e9665f4bb91a483b1d984e40691c45274583fb4b3402ba6afae79233"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/expected-profiles.json",
+      "sha256": "4696cccf1b8de0ff156b2868e9215f072e5cad21c6aab0fae48d5848fa31b884"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/tsconfig.json",
+      "sha256": "d98a1371102d7b16df8cd2f5a42d1c7e0986876a1089211d3ce0a8da74108645"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/LICENSE",
+      "sha256": "8dded67841a9261a622c739fb61c81785e93765de852828ceeb9403d20a74581"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/README.md",
+      "sha256": "44e63909767a6f7b21d4103df9417e3ab88bae17a3bc77b93fdcfb94176e3211"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/cjs/api/index.cjs",
+      "sha256": "561189d8e9e9c81c0f83a96f6f7c6e4d06e5b3a5731c8dab5a94f57e90dde230"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/cjs/api/index.d.cts",
+      "sha256": "8c2b1a98cc24f9efb1d8705b3c3c1929d3a4f42273466da97df62c7b253eaeee"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/cjs/api/index.d.mts",
+      "sha256": "8c2b1a98cc24f9efb1d8705b3c3c1929d3a4f42273466da97df62c7b253eaeee"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/cjs/api/index.mjs",
+      "sha256": "b0aa7155d9838d7c4a7e40660363cc62448d48e233442ecc16b9f7c659a45ad0"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/cjs/index.cjs",
+      "sha256": "0acd070cf4f89dfba2a0a74ebe050b0ac16c5a0753a96183de2dae4747b7e429"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/cjs/index.mjs",
+      "sha256": "0ef4db54afe79cabbcfb3f595ecfbaa9a570f98eafaea31006c4ff8ea525845c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/cli.cjs",
+      "sha256": "a3328ca7859b00db2da8fc3af6d5ad315444a2b498844ea3f06b116913c08728"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/cli.mjs",
+      "sha256": "fd00586b96028510c228365a4eeb1f163dac5245f1d0e40649969cf9560d376b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/client-D3mGB526.cjs",
+      "sha256": "f39baa1746411223094df90350710061f9986e07396dd311e3a74ed3df1b63e7"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/client-D_mPDF5S.mjs",
+      "sha256": "3a59578e44917527095c006ecd29b6e61fe5bbf05d5bc809cc7cc6112beedbbd"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/esm/api/index.cjs",
+      "sha256": "fd2bd818ab5c57b7d1ac0bbbe49e8dd6b4d2c685c96adcbdbc8bea273d8dd3ec"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/esm/api/index.d.cts",
+      "sha256": "eb9096c517da313cbedce8818d9cadb82bbf02cd6f4a65db4cee42ac01f4272c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/esm/api/index.d.mts",
+      "sha256": "eb9096c517da313cbedce8818d9cadb82bbf02cd6f4a65db4cee42ac01f4272c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/esm/api/index.mjs",
+      "sha256": "0b8fb89e100bd6df4782c236a834c5bd6e695703a1c20c2383543946b1edd09c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/esm/index.cjs",
+      "sha256": "4ef9cd42ab3c9cb9f291e9db379e2f889bb82189d9846b04f76f14d6e321aaa2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/esm/index.mjs",
+      "sha256": "b429a785c5ba2b3158e876b530addc4bc761b45f79a7e477bdcda3c759171022"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/get-pipe-path-D4YM6rQt.cjs",
+      "sha256": "4676e923789ccd968968161547bcac8fb8337b76c0d033f6049332d0ac4025ec"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/get-pipe-path-_tAJyU_v.mjs",
+      "sha256": "559be651995cc7188166ca09af99ea08b9b1453767e42fff203b53fa1a403217"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/index-6kqi0x0U.cjs",
+      "sha256": "1f880dc43383dd245b8a2813bfb857e12bb0bc7b28ead89b4cf106daedf5266f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/index-BWFBUo6r.cjs",
+      "sha256": "fe29b97b254312970fceb8995a519abc8751f26972c221281959a7d77858a464"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/index-DQtFPMc2.mjs",
+      "sha256": "58dbdda360329e6077831c323fe99e84bbf4f25ef13e4e41641078759b0f6c49"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/index-gbaejti9.mjs",
+      "sha256": "76febbe946957c96066d1d59293c4a26fc874c05876394cf4c178e4f4d0b6ba8"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/lexer-DQCqS3nf.mjs",
+      "sha256": "6b77bebaee2dd7741177e287a78ef4329d9ef91f6939d09cfcf0029b3859f883"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/lexer-DgIbo0BU.cjs",
+      "sha256": "9b92935847bf0f6daade96b21c8271139ed8b48ef3fa59647af0ef1d36770db0"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/loader.cjs",
+      "sha256": "dddf0cb204de608349dee8d5d550f3b2291ad18aedc81cf0c2ce39547eda6cf6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/loader.mjs",
+      "sha256": "49fb46730ddeb226ac4fa9fb990d3573ac8f18fa4de02f1bf723c61d715710c2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/node-features-CEjg7cMX.cjs",
+      "sha256": "e1b31184448de5619a364fe82f3b4074e86339f17284d3a30d15604778a4f964"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/node-features-JeyyvQz6.mjs",
+      "sha256": "0e5095ca40c5bbd90e6afb67f4d6a8db19a7040cd95af52134f1cd2750f0ff53"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/package-B13bX4zz.mjs",
+      "sha256": "ef252745c95cf4f372925c878a38f68d87bdae54afe340c9d4fa4db7db259562"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/package-sd2gMcZx.cjs",
+      "sha256": "84b78bbda1ff569bbf373612f9dce2ba71a3be2877d5f5672bc5ea5c271109b6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/patch-repl.cjs",
+      "sha256": "33f5f6755270054783f4c568d0d48d4a79fecde965ec6f91ca27f0f949ba6da6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/patch-repl.mjs",
+      "sha256": "3850acac507aa554620693d272bed6b7ac1e1b8ab5af406581c632522ad8c872"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/preflight.cjs",
+      "sha256": "20adebaefdd1f81383dabfc73db95630dbc11cb80144c092b1f2be4f64e99e81"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/preflight.mjs",
+      "sha256": "49938bb067c3cfd68b84f88c3c02058047ddd16a67451fb608ca59a44a07a8ff"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs",
+      "sha256": "9aacf5e4df4690327745ddf6472a6715189be15045683745314c333ea68e7018"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/register-C557imBs.cjs",
+      "sha256": "c6f02e8000ffcf43c3f7677d63dded8d800c88d6a81ec8033f665bcde6d0ebf5"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/register-C9AniqUt.mjs",
+      "sha256": "02ffecc724954e6911dd7e1064725fd7ee13ee93c4cd9182060001ea9c93e3d2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/register-Ciecs-Zx.cjs",
+      "sha256": "2fd60406dd88a0422ef47600cb6c470e0ef5460b3a5812292a5fd38669e130e7"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/repl.cjs",
+      "sha256": "96fc409a6d2e80d895a0456faf0764f834b80eea4f8bc1c256d27e815b0940d0"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/repl.mjs",
+      "sha256": "834bf724387d8652ee17b69217327d2cd55f38d11ef8c9e29e10b28f5d0502c1"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/require-CywAB2e6.mjs",
+      "sha256": "632c2bfd94df71f3918e1ce12980d58f536b3b62603a67e1e192c0faf300adb1"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/require-DDxgG93A.cjs",
+      "sha256": "a3d493146eceee26e94fc6658091b8d67c5e4436fa6e134589f94f9d02b54bcd"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/suppress-warnings.cjs",
+      "sha256": "028063d20bd49083f03a0b1ed4f7a3d55fac1f64f5aca0e58e1ec61601f20ee7"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/suppress-warnings.mjs",
+      "sha256": "4c7d8eb24f7c16282453bc18d649c310028a63d3850e6590338932cdd896017f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/temporary-directory-B83uKxJF.cjs",
+      "sha256": "da189099aba4a7aff1e0ca337cd71410a0f96abc66298403db041cb812cbd24c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/temporary-directory-BDDVQOvU.mjs",
+      "sha256": "918e7718e0579ae7d800c3dc9fc6c27626102198463bbb4051e40b2dbcf932b5"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/types-Cxp8y2TL.d.ts",
+      "sha256": "f462b6fc33bc3f82d1551ac0678834dfff89192ce1e848eb0bb8ca5bfe8bc76f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/package.json",
+      "sha256": "96aee9fd252d0cc31f3c01468250961f5b338c797bc208700d7db926450c7659"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/esbuild/LICENSE.md",
+      "sha256": "b40ec5baec7bb34fa5b1c09521fa3cd52d5fad7adafed74932a2010d3612a681"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/esbuild/README.md",
+      "sha256": "6d481cd60ec3c679e5e395f547ab4221147f35642894f6b95a8df38fd25c87bd"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/esbuild/bin/esbuild",
+      "sha256": "10b6243df618d374bb2d5c9cfbe7052e1405f6aa4e53a6164f11a91b9f2e1384"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/esbuild/install.js",
+      "sha256": "612294e278914443bdcf81cb17f54afec34dbdd2ebd999a6ee187912320cc315"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/esbuild/lib/main.d.ts",
+      "sha256": "e078310f23f0ccfa28a6ac81b5fad81f27150e921f92ab6e648caab42e2d9a14"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/esbuild/lib/main.js",
+      "sha256": "61ec0ba144ff93f4bf0e96ad6fab6f430ede0aa13e27ace8063ed63ba416b3cd"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/esbuild/package.json",
+      "sha256": "9d0bc453f4e791553c4cc2298ba023b409241fd9801e494741666eb0f6051490"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@esbuild/darwin-arm64/README.md",
+      "sha256": "ee16cb15a2211accccb38f378786bfe48bc5dcfae5db554352424cd710470efa"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@esbuild/darwin-arm64/bin/esbuild",
+      "sha256": "10b6243df618d374bb2d5c9cfbe7052e1405f6aa4e53a6164f11a91b9f2e1384"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@esbuild/darwin-arm64/package.json",
+      "sha256": "4e652c9e4410daf03da852a664940153601fac397233cdcf276b4b1a312454b9"
+    }
+  ],
+  "candidateEntry": {
+    "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/candidate/dist/index.js",
+    "sha256": "80c27f63a1ddc9ad66b875b6b307ea51aae3e54844207b25d2e58bbeafed5db0"
+  },
+  "historicalHelper": {
+    "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/historical/tests/stress/remote-cancellation/helpers.ts",
+    "sha256": "9e76ecf9ba6604fc2c4b94a96cf5b46ffed97de5e7d0c2524e138b4410e17678"
+  },
+  "historicalProbe": {
+    "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/historical/tests/shell/first-read-probe.ts",
+    "sha256": "b138e5572240533efb8cde733e0c5a9bbd1c960e431b9291c0a17a300b1c7ed6"
+  },
+  "historicalFacade": {
+    "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/historical/src/index.ts",
+    "sha256": "d912a531d47e7a0197114657ddc035315ff62a752bb99785d27c7d277edd6a74"
+  },
+  "tsxImport": {
+    "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/loader.mjs",
+    "sha256": "49fb46730ddeb226ac4fa9fb990d3573ac8f18fa4de02f1bf723c61d715710c2"
+  },
+  "publicProfiles": {
+    "path": "/tmp/safe-bash-owned-output-qualified-execution-zgVdib/expected-profiles.json",
+    "sha256": "4696cccf1b8de0ff156b2868e9215f072e5cad21c6aab0fae48d5848fa31b884"
+  }
+}

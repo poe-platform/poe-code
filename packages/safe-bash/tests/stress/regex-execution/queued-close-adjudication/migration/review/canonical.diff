@@ -1,0 +1,79 @@
+diff --git a/tests/commands/regex-execution/followup/messageerror.test.ts b/tests/commands/regex-execution/followup/messageerror.test.ts
+index e39cbb4..d98cc4b 100644
+--- a/tests/commands/regex-execution/followup/messageerror.test.ts
++++ b/tests/commands/regex-execution/followup/messageerror.test.ts
+@@ -114,20 +114,71 @@ test("idle messageerror retires promptly, holds capacity and close awaits cleanu
+     queued = settle(second.run(descriptor, rows));
+     await first.close();
+     let closed = false;
+-    const closing = second.close().then(() => { closed = true; });
++    const closePromise = second.close();
++    const closing = closePromise.then(() => { closed = true; });
++    assert.equal(second.close(), closePromise);
++    assert.throws(() => second.run(descriptor, rows), {
++      code: "CLOSED", message: "regex CLOSED: invocation is closed",
++    });
+     await tick();
+     assert.equal(workers.length, 1);
+     assert.equal(closed, false);
++    assert.equal(workers[0]!.terminated, false);
++    const result = await queued;
++    assert.equal(errorCode(result.error), "CLOSED");
++    assert.ok(result.error instanceof Error);
++    assert.equal(result.error.name, "RegexExecutionError");
++    assert.equal(result.error.message, "regex CLOSED: invocation is closed");
++    releaseTermination();
++    await closing;
++    assert.equal(closed, true);
++    assert.equal(workers.length, 1);
++    assert.equal(workers[0]!.posts.length, 1);
++    assert.throws(() => second.run(descriptor, rows), {
++      code: "CLOSED", message: "regex CLOSED: invocation is closed",
++    });
++    clean(controller.signal);
++  } finally {
++    releaseTermination();
++    controller.abort();
++    await queued;
++    await first.close();
++    await second.close();
++    await executor.dispose();
++  }
++});
++
++test("idle messageerror holds capacity until retirement for an open queued session", { timeout: 2000 }, async () => {
++  const controller = new AbortController();
++  const executor = new RegexExecutor({ maxWorkers: 1, idleTimeoutMs: 1000 });
++  const first = executor.open(controller.signal);
++  const second = executor.open(controller.signal);
++  const initial = settle(first.run(descriptor, rows));
++  let queued: ReturnType<typeof settle> | undefined;
++  try {
++    await tick();
++    workers[0]!.reply();
++    assert.equal((await initial).error, undefined);
++    workers[0]!.emit("messageerror", new Error("idle deserialization failure"));
++    workers[0]!.emit("messageerror", new Error("duplicate idle failure"));
++    queued = settle(second.run(descriptor, rows));
++    await first.close();
++    await tick();
++    assert.equal(workers.length, 1);
++    assert.equal(workers[0]!.terminationCalls, 1);
++    assert.equal(workers[0]!.terminated, false);
+     releaseTermination();
+     await tick();
++    assert.equal(workers[0]!.terminated, true);
+     assert.equal(workers.length, 2);
+     workers[1]!.reply();
+-    assert.equal((await queued).error, undefined);
+-    await closing;
++    assert.deepEqual(await queued, { value: [[{ start: 0, end: 1 }]], error: undefined });
++    await second.close();
+     clean(controller.signal);
+   } finally {
+     releaseTermination();
+     controller.abort();
++    await initial;
+     await queued;
+     await first.close();
+     await second.close();

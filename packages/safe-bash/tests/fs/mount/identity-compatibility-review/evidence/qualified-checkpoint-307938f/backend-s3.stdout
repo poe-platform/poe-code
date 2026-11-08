@@ -1,0 +1,1344 @@
+TAP version 13
+# S3_ADAPTER_OVERRIDE {"timing":"subclass-before","streaming":false,"result":"unknown","code":"ENOTSUP","effects":[],"source":[0,255,17,128,10],"requests":["listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2"]}
+# S3_ADAPTER_OVERRIDE {"timing":"prototype-before","streaming":false,"result":"unknown","code":"ENOTSUP","effects":[],"source":[0,255,17,128,10],"requests":["listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2"]}
+# S3_ADAPTER_OVERRIDE {"timing":"instance-after","streaming":false,"result":"unknown","code":"ENOTSUP","effects":[],"source":[0,255,17,128,10],"requests":["listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2"]}
+# S3_ADAPTER_OVERRIDE {"timing":"prototype-after","streaming":false,"result":"unknown","code":"ENOTSUP","effects":[],"source":[0,255,17,128,10],"requests":["listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2"]}
+# S3_ADAPTER_OVERRIDE {"timing":"subclass-before","streaming":true,"result":"unknown","code":"ENOTSUP","effects":[],"source":[0,255,17,128,10],"requests":["listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2"]}
+# S3_ADAPTER_OVERRIDE {"timing":"prototype-before","streaming":true,"result":"unknown","code":"ENOTSUP","effects":[],"source":[0,255,17,128,10],"requests":["listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2"]}
+# S3_ADAPTER_OVERRIDE {"timing":"instance-after","streaming":true,"result":"unknown","code":"ENOTSUP","effects":[],"source":[0,255,17,128,10],"requests":["listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2"]}
+# S3_ADAPTER_OVERRIDE {"timing":"prototype-after","streaming":true,"result":"unknown","code":"ENOTSUP","effects":[],"source":[0,255,17,128,10],"requests":["listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2"]}
+# Subtest: S3 adapter subclass-before buffered overrides cannot authorize source damage
+ok 1 - S3 adapter subclass-before buffered overrides cannot authorize source damage
+  ---
+  duration_ms: 8.634917
+  type: 'test'
+  ...
+# Subtest: S3 adapter prototype-before buffered overrides cannot authorize source damage
+ok 2 - S3 adapter prototype-before buffered overrides cannot authorize source damage
+  ---
+  duration_ms: 2.198959
+  type: 'test'
+  ...
+# Subtest: S3 adapter instance-after buffered overrides cannot authorize source damage
+ok 3 - S3 adapter instance-after buffered overrides cannot authorize source damage
+  ---
+  duration_ms: 3.252083
+  type: 'test'
+  ...
+# Subtest: S3 adapter prototype-after buffered overrides cannot authorize source damage
+ok 4 - S3 adapter prototype-after buffered overrides cannot authorize source damage
+  ---
+  duration_ms: 3.414709
+  type: 'test'
+  ...
+# Subtest: S3 adapter subclass-before streamed overrides cannot authorize source damage
+ok 5 - S3 adapter subclass-before streamed overrides cannot authorize source damage
+  ---
+  duration_ms: 2.343958
+  type: 'test'
+  ...
+# Subtest: S3 adapter prototype-before streamed overrides cannot authorize source damage
+ok 6 - S3 adapter prototype-before streamed overrides cannot authorize source damage
+  ---
+  duration_ms: 1.50625
+  type: 'test'
+  ...
+# Subtest: S3 adapter instance-after streamed overrides cannot authorize source damage
+ok 7 - S3 adapter instance-after streamed overrides cannot authorize source damage
+  ---
+  duration_ms: 3.436833
+  type: 'test'
+  ...
+# Subtest: S3 adapter prototype-after streamed overrides cannot authorize source damage
+ok 8 - S3 adapter prototype-after streamed overrides cannot authorize source damage
+  ---
+  duration_ms: 1.378042
+  type: 'test'
+  ...
+# Subtest: original-operation subclass preserves qualified distinct-copy behavior without a class whitelist
+ok 9 - original-operation subclass preserves qualified distinct-copy behavior without a class whitelist
+  ---
+  duration_ms: 3.3395
+  type: 'test'
+  ...
+# Subtest: explicit subclass comparison same is not silently shadowed by the base authority
+ok 10 - explicit subclass comparison same is not silently shadowed by the base authority
+  ---
+  duration_ms: 1.808375
+  type: 'test'
+  ...
+# Subtest: explicit subclass comparison invalid is not silently shadowed by the base authority
+ok 11 - explicit subclass comparison invalid is not silently shadowed by the base authority
+  ---
+  duration_ms: 1.006042
+  type: 'test'
+  ...
+# Subtest: private Memory descriptor consumer rejects a pre-overridden buffered S3 destination
+ok 12 - private Memory descriptor consumer rejects a pre-overridden buffered S3 destination
+  ---
+  duration_ms: 6.695625
+  type: 'test'
+  ...
+# Subtest: private Memory descriptor consumer rejects a pre-overridden streamed S3 destination
+ok 13 - private Memory descriptor consumer rejects a pre-overridden streamed S3 destination
+  ---
+  duration_ms: 0.657584
+  type: 'test'
+  ...
+# Subtest: full mapping authority survives direct clients and overlapping prefixes
+ok 14 - full mapping authority survives direct clients and overlapping prefixes
+  ---
+  duration_ms: 5.456959
+  type: 'test'
+  ...
+# Subtest: full mapping authority survives transport clients and overlapping prefixes
+ok 15 - full mapping authority survives transport clients and overlapping prefixes
+  ---
+  duration_ms: 3.640583
+  type: 'test'
+  ...
+# Subtest: full mapping authority survives transport-chain clients and overlapping prefixes
+ok 16 - full mapping authority survives transport-chain clients and overlapping prefixes
+  ---
+  duration_ms: 4.271375
+  type: 'test'
+  ...
+# Subtest: distinct actual private stores and buckets are disjoint even with equal labels/content
+ok 17 - distinct actual private stores and buckets are disjoint even with equal labels/content
+  ---
+  duration_ms: 2.946584
+  type: 'test'
+  ...
+# Subtest: unqualified clone metadata stays unknown without mutation
+ok 18 - unqualified clone metadata stays unknown without mutation
+  ---
+  duration_ms: 7.114916
+  type: 'test'
+  ...
+# Subtest: unqualified manufacture metadata stays unknown without mutation
+ok 19 - unqualified manufacture metadata stays unknown without mutation
+  ---
+  duration_ms: 2.312875
+  type: 'test'
+  ...
+# Subtest: unqualified replay metadata stays unknown without mutation
+ok 20 - unqualified replay metadata stays unknown without mutation
+  ---
+  duration_ms: 1.561542
+  type: 'test'
+  ...
+# Subtest: unqualified wrong-key metadata stays unknown without mutation
+ok 21 - unqualified wrong-key metadata stays unknown without mutation
+  ---
+  duration_ms: 1.430417
+  type: 'test'
+  ...
+# Subtest: cached stat, copied stat and path poisoning cannot manufacture provider proof
+ok 22 - cached stat, copied stat and path poisoning cannot manufacture provider proof
+  ---
+  duration_ms: 0.631625
+  type: 'test'
+  ...
+# Subtest: provider AccessDenied propagates before querying peer
+ok 23 - provider AccessDenied propagates before querying peer
+  ---
+  duration_ms: 0.678084
+  type: 'test'
+  ...
+# Subtest: provider InternalError propagates before querying peer
+ok 24 - provider InternalError propagates before querying peer
+  ---
+  duration_ms: 1.441375
+  type: 'test'
+  ...
+# Subtest: provider NoSuchKey propagates before querying peer
+ok 25 - provider NoSuchKey propagates before querying peer
+  ---
+  duration_ms: 0.411542
+  type: 'test'
+  ...
+# Subtest: comparison forwards signal, propagates abort reasons and never starts peer after abort
+ok 26 - comparison forwards signal, propagates abort reasons and never starts peer after abort
+  ---
+  duration_ms: 1.055084
+  type: 'test'
+  ...
+# Subtest: qualified shared-service existing-target copy preserves source semantics and sentinel
+ok 27 - qualified shared-service existing-target copy preserves source semantics and sentinel
+  ---
+  duration_ms: 2.381584
+  type: 'test'
+  ...
+# Subtest: qualified shared-service existing-target mv preserves source semantics and sentinel
+ok 28 - qualified shared-service existing-target mv preserves source semantics and sentinel
+  ---
+  duration_ms: 12.386791
+  type: 'test'
+  ...
+# Subtest: recognized aliases reject before GET/mutation; readonly destination remains readonly
+ok 29 - recognized aliases reject before GET/mutation; readonly destination remains readonly
+  ---
+  duration_ms: 2.546917
+  type: 'test'
+  ...
+# Subtest: manual opaque forwarding clients are unqualified even when genuine HEAD objects survive
+ok 30 - manual opaque forwarding clients are unqualified even when genuine HEAD objects survive
+  ---
+  duration_ms: 1.134666
+  type: 'test'
+  ...
+# Subtest: changing headObject invalidates the complete forwarding mapping
+ok 31 - changing headObject invalidates the complete forwarding mapping
+  ---
+  duration_ms: 1.176167
+  type: 'test'
+  ...
+# Subtest: changing getObject invalidates the complete forwarding mapping
+ok 32 - changing getObject invalidates the complete forwarding mapping
+  ---
+  duration_ms: 0.886083
+  type: 'test'
+  ...
+# Subtest: changing putObject invalidates the complete forwarding mapping
+ok 33 - changing putObject invalidates the complete forwarding mapping
+  ---
+  duration_ms: 4.413875
+  type: 'test'
+  ...
+# Subtest: changing deleteObject invalidates the complete forwarding mapping
+ok 34 - changing deleteObject invalidates the complete forwarding mapping
+  ---
+  duration_ms: 0.613542
+  type: 'test'
+  ...
+# Subtest: changing copyObject invalidates the complete forwarding mapping
+ok 35 - changing copyObject invalidates the complete forwarding mapping
+  ---
+  duration_ms: 0.431209
+  type: 'test'
+  ...
+# Subtest: changing listObjectsV2 invalidates the complete forwarding mapping
+ok 36 - changing listObjectsV2 invalidates the complete forwarding mapping
+  ---
+  duration_ms: 0.411958
+  type: 'test'
+  ...
+# Subtest: changing getObjectStream invalidates the complete forwarding mapping
+ok 37 - changing getObjectStream invalidates the complete forwarding mapping
+  ---
+  duration_ms: 0.37925
+  type: 'test'
+  ...
+# Subtest: changing putObjectStream invalidates the complete forwarding mapping
+ok 38 - changing putObjectStream invalidates the complete forwarding mapping
+  ---
+  duration_ms: 0.68375
+  type: 'test'
+  ...
+# Subtest: genuine Mock HEAD with local Memory GET/PUT never proves a disjoint closed store
+ok 39 - genuine Mock HEAD with local Memory GET/PUT never proves a disjoint closed store
+  ---
+  duration_ms: 1.438625
+  type: 'test'
+  ...
+# Subtest: provider method substitution before construction is not registered as trusted implementation
+ok 40 - provider method substitution before construction is not registered as trusted implementation
+  ---
+  duration_ms: 1.506875
+  type: 'test'
+  ...
+# Subtest: operation binding is checked again after peer metadata work
+ok 41 - operation binding is checked again after peer metadata work
+  ---
+  duration_ms: 0.638166
+  type: 'test'
+  ...
+# Subtest: unqualified alias copy remains ENOTSUP and exact-byte preserving before body work
+ok 42 - unqualified alias copy remains ENOTSUP and exact-byte preserving before body work
+  ---
+  duration_ms: 0.892875
+  type: 'test'
+  ...
+# Subtest: exclusive copy reports EEXIST when authorization concurrently creates the destination
+ok 43 - exclusive copy reports EEXIST when authorization concurrently creates the destination
+  ---
+  duration_ms: 4.664917
+  type: 'test'
+  ...
+# Subtest: exclusive copy retains EAGAIN for changed source ETag; concurrent destination: false
+ok 44 - exclusive copy retains EAGAIN for changed source ETag; concurrent destination: false
+  ---
+  duration_ms: 1.229834
+  type: 'test'
+  ...
+# Subtest: exclusive copy retains EAGAIN for changed source ETag; concurrent destination: true
+ok 45 - exclusive copy retains EAGAIN for changed source ETag; concurrent destination: true
+  ---
+  duration_ms: 0.887333
+  type: 'test'
+  ...
+# Subtest: exclusive copy recognizes HTTP-only 412 failures without an AWS error name
+ok 46 - exclusive copy recognizes HTTP-only 412 failures without an AWS error name
+  ---
+  duration_ms: 2.14475
+  type: 'test'
+  ...
+# Subtest: exclusive copy retains original failure when diagnosis is inconclusive: source-missing
+ok 47 - exclusive copy retains original failure when diagnosis is inconclusive: source-missing
+  ---
+  duration_ms: 1.003417
+  type: 'test'
+  ...
+# Subtest: exclusive copy retains original failure when diagnosis is inconclusive: source-denied
+ok 48 - exclusive copy retains original failure when diagnosis is inconclusive: source-denied
+  ---
+  duration_ms: 0.515208
+  type: 'test'
+  ...
+# Subtest: exclusive copy retains original failure when diagnosis is inconclusive: target-denied
+ok 49 - exclusive copy retains original failure when diagnosis is inconclusive: target-denied
+  ---
+  duration_ms: 0.564291
+  type: 'test'
+  ...
+# Subtest: exclusive copy retains original failure when diagnosis is inconclusive: target-missing
+ok 50 - exclusive copy retains original failure when diagnosis is inconclusive: target-missing
+  ---
+  duration_ms: 0.460459
+  type: 'test'
+  ...
+# Subtest: exclusive copy diagnostic requests propagate cancellation
+ok 51 - exclusive copy diagnostic requests propagate cancellation
+  ---
+  duration_ms: 1.05125
+  type: 'test'
+  ...
+# Subtest: exclusive copy does not reclassify or diagnose a 409 as destination existence
+ok 52 - exclusive copy does not reclassify or diagnose a 409 as destination existence
+  ---
+  duration_ms: 0.761875
+  type: 'test'
+  ...
+# Subtest: nonexclusive copy leaves source-precondition errors unchanged even with an existing destination
+ok 53 - nonexclusive copy leaves source-precondition errors unchanged even with an existing destination
+  ---
+  duration_ms: 3.596791
+  type: 'test'
+  ...
+# Subtest: exclusive copy guards only the target key, not concurrent target/child creation
+ok 54 - exclusive copy guards only the target key, not concurrent target/child creation
+  ---
+  duration_ms: 0.796625
+  type: 'test'
+  ...
+# Subtest: exclusive creation also has no namespace-wide isolation
+ok 55 - exclusive creation also has no namespace-wide isolation
+  ---
+  duration_ms: 0.430333
+  type: 'test'
+  ...
+# Subtest: S3 adapter conforms to FileSystem and construction is offline with explicit transport
+ok 56 - S3 adapter conforms to FileSystem and construction is offline with explicit transport
+  ---
+  duration_ms: 1.984458
+  type: 'test'
+  ...
+# Subtest: file operations preserve empty bytes, invalid UTF-8, NULs, and caller buffer ownership
+ok 57 - file operations preserve empty bytes, invalid UTF-8, NULs, and caller buffer ownership
+  ---
+  duration_ms: 2.714417
+  type: 'test'
+  ...
+# Subtest: explicit and implicit directories project object prefixes without leaking neighboring prefixes
+ok 58 - explicit and implicit directories project object prefixes without leaking neighboring prefixes
+  ---
+  duration_ms: 2.951958
+  type: 'test'
+  ...
+# Subtest: mkdir, file parents, missing paths, suffixes, and nonempty removal report contract errors
+ok 59 - mkdir, file parents, missing paths, suffixes, and nonempty removal report contract errors
+  ---
+  duration_ms: 3.068458
+  type: 'test'
+  ...
+# Subtest: all mutating and reading paths reject escape attempts before transport access
+ok 60 - all mutating and reading paths reject escape attempts before transport access
+  ---
+  duration_ms: 1.211917
+  type: 'test'
+  ...
+# Subtest: literal percent escapes, backslashes, Unicode, and spaces do not become path traversal
+ok 61 - literal percent escapes, backslashes, Unicode, and spaces do not become path traversal
+  ---
+  duration_ms: 1.848667
+  type: 'test'
+  ...
+# Subtest: prefixes and limits validate before any requests and object key byte limits include prefix
+ok 62 - prefixes and limits validate before any requests and object key byte limits include prefix
+  ---
+  duration_ms: 0.859333
+  type: 'test'
+  ...
+# Subtest: readdir traverses more than 1000 objects and recursive rm snapshots every page before deleting
+ok 63 - readdir traverses more than 1000 objects and recursive rm snapshots every page before deleting
+  ---
+  duration_ms: 60.087125
+  type: 'test'
+  ...
+# Subtest: listing resource limits fail before recursive deletion modifies any objects
+ok 64 - listing resource limits fail before recursive deletion modifies any objects
+  ---
+  duration_ms: 0.690041
+  type: 'test'
+  ...
+# Subtest: malformed list response fails closed: missing-token
+ok 65 - malformed list response fails closed: missing-token
+  ---
+  duration_ms: 0.550084
+  type: 'test'
+  ...
+# Subtest: malformed list response fails closed: repeated-token
+ok 66 - malformed list response fails closed: repeated-token
+  ---
+  duration_ms: 0.116875
+  type: 'test'
+  ...
+# Subtest: malformed list response fails closed: escaped-key
+ok 67 - malformed list response fails closed: escaped-key
+  ---
+  duration_ms: 0.063167
+  type: 'test'
+  ...
+# Subtest: malformed list response fails closed: bad-size
+ok 68 - malformed list response fails closed: bad-size
+  ---
+  duration_ms: 0.059625
+  type: 'test'
+  ...
+# Subtest: malformed list response fails closed: escaped-prefix
+ok 69 - malformed list response fails closed: escaped-prefix
+  ---
+  duration_ms: 0.051208
+  type: 'test'
+  ...
+# Subtest: malformed list response fails closed: invalid-truncated
+ok 70 - malformed list response fails closed: invalid-truncated
+  ---
+  duration_ms: 0.044625
+  type: 'test'
+  ...
+# Subtest: zero-item truncated pages are followed rather than treated as end-of-list
+ok 71 - zero-item truncated pages are followed rather than treated as end-of-list
+  ---
+  duration_ms: 0.111
+  type: 'test'
+  ...
+# Subtest: implicit directory existence follows empty truncated pages
+ok 72 - implicit directory existence follows empty truncated pages
+  ---
+  duration_ms: 0.335916
+  type: 'test'
+  ...
+# Subtest: ambiguous file/prefix collisions are not silently hidden or deleted
+ok 73 - ambiguous file/prefix collisions are not silently hidden or deleted
+  ---
+  duration_ms: 0.382041
+  type: 'test'
+  ...
+# Subtest: unrepresentable remote key is rejected without data loss: "mount/tree/../escape"
+ok 74 - unrepresentable remote key is rejected without data loss: "mount/tree/../escape"
+  ---
+  duration_ms: 0.142834
+  type: 'test'
+  ...
+# Subtest: unrepresentable remote key is rejected without data loss: "mount/tree//double"
+ok 75 - unrepresentable remote key is rejected without data loss: "mount/tree//double"
+  ---
+  duration_ms: 0.10875
+  type: 'test'
+  ...
+# Subtest: unrepresentable remote key is rejected without data loss: "mount/tree/./dot"
+ok 76 - unrepresentable remote key is rejected without data loss: "mount/tree/./dot"
+  ---
+  duration_ms: 0.105833
+  type: 'test'
+  ...
+# Subtest: unrepresentable remote key is rejected without data loss: "mount/tree/nonempty/"
+ok 77 - unrepresentable remote key is rejected without data loss: "mount/tree/nonempty/"
+  ---
+  duration_ms: 0.100792
+  type: 'test'
+  ...
+# Subtest: nested file/prefix collisions are discovered during destructive preflight
+ok 78 - nested file/prefix collisions are discovered during destructive preflight
+  ---
+  duration_ms: 0.14525
+  type: 'test'
+  ...
+# Subtest: exclusive writes and appends use service preconditions and preserve bytes and user metadata
+ok 79 - exclusive writes and appends use service preconditions and preserve bytes and user metadata
+  ---
+  duration_ms: 0.78025
+  type: 'test'
+  ...
+# Subtest: concurrent append rejects a stale ETag instead of losing a competing write
+ok 80 - concurrent append rejects a stale ETag instead of losing a competing write
+  ---
+  duration_ms: 0.436292
+  type: 'test'
+  ...
+# Subtest: concurrent exclusive create reports EEXIST without overwriting the winner
+ok 81 - concurrent exclusive create reports EEXIST without overwriting the winner
+  ---
+  duration_ms: 0.245459
+  type: 'test'
+  ...
+# Subtest: unsupported conditional operations fail rather than emulating unsafe check-then-write
+ok 82 - unsupported conditional operations fail rather than emulating unsafe check-then-write
+  ---
+  duration_ms: 0.251542
+  type: 'test'
+  ...
+# Subtest: copy uses server-side CopyObject with source ETag and encoded keys, including binary data
+ok 83 - copy uses server-side CopyObject with source ETag and encoded keys, including binary data
+  ---
+  duration_ms: 1.034833
+  type: 'test'
+  ...
+# Subtest: explicitly disabling non-atomic rename rejects before accessing the transport
+ok 84 - explicitly disabling non-atomic rename rejects before accessing the transport
+  ---
+  duration_ms: 0.103334
+  type: 'test'
+  ...
+# Subtest: non-atomic rename copies all paginated objects before deleting any source
+ok 85 - non-atomic rename copies all paginated objects before deleting any source
+  ---
+  duration_ms: 2.244875
+  type: 'test'
+  ...
+# Subtest: rename rejects invalid directory moves and incompatible destinations without modifying source
+ok 86 - rename rejects invalid directory moves and incompatible destinations without modifying source
+  ---
+  duration_ms: 1.5135
+  type: 'test'
+  ...
+# Subtest: rename may replace a file or empty directory and does not delete unrelated prefixes
+ok 87 - rename may replace a file or empty directory and does not delete unrelated prefixes
+  ---
+  duration_ms: 2.534792
+  type: 'test'
+  ...
+# Subtest: copy failure during rename retains every source and reports completed destination copies
+ok 88 - copy failure during rename retains every source and reports completed destination copies
+  ---
+  duration_ms: 1.154792
+  type: 'test'
+  ...
+# Subtest: delete failure during rename reports partial source deletion without rolling back destination copies
+ok 89 - delete failure during rename reports partial source deletion without rolling back destination copies
+  ---
+  duration_ms: 0.849542
+  type: 'test'
+  ...
+# Subtest: conditional rename deletion preserves a source concurrently changed after copy
+ok 90 - conditional rename deletion preserves a source concurrently changed after copy
+  ---
+  duration_ms: 1.191208
+  type: 'test'
+  ...
+# Subtest: unconfirmed CopyObject success never permits source deletion
+ok 91 - unconfirmed CopyObject success never permits source deletion
+  ---
+  duration_ms: 0.862042
+  type: 'test'
+  ...
+# Subtest: service error AccessDenied becomes EACCES without exposing it as a missing file
+ok 92 - service error AccessDenied becomes EACCES without exposing it as a missing file
+  ---
+  duration_ms: 0.402875
+  type: 'test'
+  ...
+# Subtest: service error InvalidAccessKeyId becomes EACCES without exposing it as a missing file
+ok 93 - service error InvalidAccessKeyId becomes EACCES without exposing it as a missing file
+  ---
+  duration_ms: 0.284833
+  type: 'test'
+  ...
+# Subtest: service error SignatureDoesNotMatch becomes EACCES without exposing it as a missing file
+ok 94 - service error SignatureDoesNotMatch becomes EACCES without exposing it as a missing file
+  ---
+  duration_ms: 0.1185
+  type: 'test'
+  ...
+# Subtest: service error ExpiredToken becomes EACCES without exposing it as a missing file
+ok 95 - service error ExpiredToken becomes EACCES without exposing it as a missing file
+  ---
+  duration_ms: 0.183792
+  type: 'test'
+  ...
+# Subtest: service error SlowDown becomes EAGAIN without exposing it as a missing file
+ok 96 - service error SlowDown becomes EAGAIN without exposing it as a missing file
+  ---
+  duration_ms: 0.239041
+  type: 'test'
+  ...
+# Subtest: service error RequestTimeout becomes ETIMEDOUT without exposing it as a missing file
+ok 97 - service error RequestTimeout becomes ETIMEDOUT without exposing it as a missing file
+  ---
+  duration_ms: 0.153083
+  type: 'test'
+  ...
+# Subtest: service error NotImplemented becomes ENOTSUP without exposing it as a missing file
+ok 98 - service error NotImplemented becomes ENOTSUP without exposing it as a missing file
+  ---
+  duration_ms: 0.41175
+  type: 'test'
+  ...
+# Subtest: service error InternalError becomes EIO without exposing it as a missing file
+ok 99 - service error InternalError becomes EIO without exposing it as a missing file
+  ---
+  duration_ms: 0.24125
+  type: 'test'
+  ...
+# Subtest: service error InvalidArgument becomes EINVAL without exposing it as a missing file
+ok 100 - service error InvalidArgument becomes EINVAL without exposing it as a missing file
+  ---
+  duration_ms: 0.314667
+  type: 'test'
+  ...
+# Subtest: missing bucket is not treated as a missing object or lazily provisioned
+ok 101 - missing bucket is not treated as a missing object or lazily provisioned
+  ---
+  duration_ms: 0.196458
+  type: 'test'
+  ...
+# Subtest: readOnly policy blocks every mutation before transport calls
+ok 102 - readOnly policy blocks every mutation before transport calls
+  ---
+  duration_ms: 0.217375
+  type: 'test'
+  ...
+# Subtest: abort signals are checked before IO and passed through the transport
+ok 103 - abort signals are checked before IO and passed through the transport
+  ---
+  duration_ms: 0.255459
+  type: 'test'
+  ...
+# Subtest: read limits and invalid flags fail; valid creation modes persist as metadata
+ok 104 - read limits and invalid flags fail; valid creation modes persist as metadata
+  ---
+  duration_ms: 0.904083
+  type: 'test'
+  ...
+# Subtest: read accepts SDK-style binary streams and byte-array transforms but rejects corrupt bodies
+ok 105 - read accepts SDK-style binary streams and byte-array transforms but rejects corrupt bodies
+  ---
+  duration_ms: 0.646542
+  type: 'test'
+  ...
+# Subtest: stream limits stop consumption and close the iterator
+ok 106 - stream limits stop consumption and close the iterator
+  ---
+  duration_ms: 0.152042
+  type: 'test'
+  ...
+# Subtest: oversized GET response closes the SDK-style body when HEAD became stale
+ok 107 - oversized GET response closes the SDK-style body when HEAD became stale
+  ---
+  duration_ms: 0.191584
+  type: 'test'
+  ...
+# Subtest: unsupported POSIX capabilities never report successful emulation
+ok 108 - unsupported POSIX capabilities never report successful emulation
+  ---
+  duration_ms: 0.849125
+  type: 'test'
+  ...
+# Subtest: source changes before server-side copy are not copied or deleted
+ok 109 - source changes before server-side copy are not copied or deleted
+  ---
+  duration_ms: 0.532083
+  type: 'test'
+  ...
+# Subtest: missing source ETags and multipart sizes fail copy/rename before mutation
+ok 110 - missing source ETags and multipart sizes fail copy/rename before mutation
+  ---
+  duration_ms: 1.07025
+  type: 'test'
+  ...
+# Subtest: mounted-prefix policy covers every operation including copy source and root probes
+ok 111 - mounted-prefix policy covers every operation including copy source and root probes
+  ---
+  duration_ms: 1.928792
+  type: 'test'
+  ...
+# Subtest: mock objects are flat keys and binary bodies are copied at storage and retrieval boundaries
+ok 112 - mock objects are flat keys and binary bodies are copied at storage and retrieval boundaries
+  ---
+  duration_ms: 1.379625
+  type: 'test'
+  ...
+# Subtest: mock empty objects and mutable metadata have independent snapshots
+ok 113 - mock empty objects and mutable metadata have independent snapshots
+  ---
+  duration_ms: 0.267125
+  type: 'test'
+  ...
+# Subtest: mock pagination counts common prefixes as single entries and uses scoped opaque tokens
+ok 114 - mock pagination counts common prefixes as single entries and uses scoped opaque tokens
+  ---
+  duration_ms: 1.006084
+  type: 'test'
+  ...
+# Subtest: mock continuation does not skip keys when an earlier page is deleted
+ok 115 - mock continuation does not skip keys when an earlier page is deleted
+  ---
+  duration_ms: 0.414708
+  type: 'test'
+  ...
+# Subtest: mock list ordering follows UTF-8 bytes, not UTF-16 code units
+ok 116 - mock list ordering follows UTF-8 bytes, not UTF-16 code units
+  ---
+  duration_ms: 0.246584
+  type: 'test'
+  ...
+# Subtest: mock enforces conditional put, source copy, destination copy, and delete
+ok 117 - mock enforces conditional put, source copy, destination copy, and delete
+  ---
+  duration_ms: 0.601
+  type: 'test'
+  ...
+# Subtest: mock server-side copy decodes CopySource exactly once and preserves bytes and user metadata
+ok 118 - mock server-side copy decodes CopySource exactly once and preserves bytes and user metadata
+  ---
+  duration_ms: 0.357208
+  type: 'test'
+  ...
+# Subtest: mock authorization is explicit and failures cannot mutate stored data
+ok 119 - mock authorization is explicit and failures cannot mutate stored data
+  ---
+  duration_ms: 0.164875
+  type: 'test'
+  ...
+# Subtest: mock pre-aborted requests do not call authorization or mutate data
+ok 120 - mock pre-aborted requests do not call authorization or mutate data
+  ---
+  duration_ms: 0.302708
+  type: 'test'
+  ...
+# Subtest: mock does not create buckets implicitly, rejects malformed requests, and supports MaxKeys zero
+ok 121 - mock does not create buckets implicitly, rejects malformed requests, and supports MaxKeys zero
+  ---
+  duration_ms: 0.385708
+  type: 'test'
+  ...
+# Subtest: transport wrapper preserves client method binding and performs no requests at construction
+ok 122 - transport wrapper preserves client method binding and performs no requests at construction
+  ---
+  duration_ms: 0.154334
+  type: 'test'
+  ...
+# Subtest: rename guards a destination creation after preflight
+ok 123 - rename guards a destination creation after preflight
+  ---
+  duration_ms: 6.779167
+  type: 'test'
+  ...
+# Subtest: rename guards a destination replacement after preflight
+ok 124 - rename guards a destination replacement after preflight
+  ---
+  duration_ms: 1.371791
+  type: 'test'
+  ...
+# Subtest: metadata replacement rejects a concurrent content update and never rewrites new bytes
+ok 125 - metadata replacement rejects a concurrent content update and never rewrites new bytes
+  ---
+  duration_ms: 0.850792
+  type: 'test'
+  ...
+# Subtest: truncate guards the exact bytes read against a concurrent replacement
+ok 126 - truncate guards the exact bytes read against a concurrent replacement
+  ---
+  duration_ms: 1.799542
+  type: 'test'
+  ...
+# Subtest: truncate shrinks a large object using only a bounded range and truncates to zero without GET
+ok 127 - truncate shrinks a large object using only a bounded range and truncates to zero without GET
+  ---
+  duration_ms: 1.200333
+  type: 'test'
+  ...
+# Subtest: file, directory, implicit directory and prefixed-root timestamps survive adapter reconstruction
+ok 128 - file, directory, implicit directory and prefixed-root timestamps survive adapter reconstruction
+  ---
+  duration_ms: 1.44625
+  type: 'test'
+  ...
+# Subtest: conditional-PUT-only transports provide bounded timestamp updates without pretending server-side copy
+ok 129 - conditional-PUT-only transports provide bounded timestamp updates without pretending server-side copy
+  ---
+  duration_ms: 4.953042
+  type: 'test'
+  ...
+# Subtest: append, truncate and stream replacement preserve mode and custom metadata, not stale mtime
+ok 130 - append, truncate and stream replacement preserve mode and custom metadata, not stale mtime
+  ---
+  duration_ms: 1.344166
+  type: 'test'
+  ...
+# Subtest: access distinguishes missing paths, virtual traversal, readonly policy and actual service denial
+ok 131 - access distinguishes missing paths, virtual traversal, readonly policy and actual service denial
+  ---
+  duration_ms: 0.967709
+  type: 'test'
+  ...
+# Subtest: metadata and truncate failures preserve filesystem error fidelity
+ok 132 - metadata and truncate failures preserve filesystem error fidelity
+  ---
+  duration_ms: 1.156166
+  type: 'test'
+  ...
+# Subtest: readonly and pre-aborted timestamp/truncate mutations dispatch no requests
+ok 133 - readonly and pre-aborted timestamp/truncate mutations dispatch no requests
+  ---
+  duration_ms: 0.197916
+  type: 'test'
+  ...
+# Subtest: buffered mock snapshots input bytes and metadata before asynchronous authorization
+ok 134 - buffered mock snapshots input bytes and metadata before asynchronous authorization
+  ---
+  duration_ms: 0.104125
+  type: 'test'
+  ...
+# Subtest: mock enforces the provider metadata budget without altering the object
+ok 135 - mock enforces the provider metadata budget without altering the object
+  ---
+  duration_ms: 0.312167
+  type: 'test'
+  ...
+# Subtest: metadata-only changes can share an ETag: copy conditions do not claim a distributed metadata lock
+ok 136 - metadata-only changes can share an ETag: copy conditions do not claim a distributed metadata lock
+  ---
+  duration_ms: 0.135583
+  type: 'test'
+  ...
+# Subtest: root agentCommands dispatches named reads, gzip, move, and existing-file touch on S3
+ok 137 - root agentCommands dispatches named reads, gzip, move, and existing-file touch on S3
+  ---
+  duration_ms: 16.564708
+  type: 'test'
+  ...
+# Subtest: stream transport reads ranges beyond the buffered budget without eager body materialization
+ok 138 - stream transport reads ranges beyond the buffered budget without eager body materialization
+  ---
+  duration_ms: 2.4365
+  type: 'test'
+  ...
+# Subtest: legacy buffered transports expose no misleading stream methods
+ok 139 - legacy buffered transports expose no misleading stream methods
+  ---
+  duration_ms: 0.580875
+  type: 'test'
+  ...
+# Subtest: timestamps persist in object metadata and truncate preserves bytes and padding
+ok 140 - timestamps persist in object metadata and truncate preserves bytes and padding
+  ---
+  duration_ms: 1.683833
+  type: 'test'
+  ...
+# Subtest: root named-file gzip stages, publishes, preserves input with -k and removes input without -k
+ok 141 - root named-file gzip stages, publishes, preserves input with -k and removes input without -k
+  ---
+  duration_ms: 13.3965
+  type: 'test'
+  ...
+# Subtest: minimum mutation capabilities preflight {"conditionalDelete":true}
+ok 142 - minimum mutation capabilities preflight {"conditionalDelete":true}
+  ---
+  duration_ms: 2.61425
+  type: 'test'
+  ...
+# Subtest: minimum mutation capabilities preflight {"conditionalCopy":false,"conditionalDelete":true}
+ok 143 - minimum mutation capabilities preflight {"conditionalCopy":false,"conditionalDelete":true}
+  ---
+  duration_ms: 0.356167
+  type: 'test'
+  ...
+# Subtest: no destination guard capability must not clobber concurrent create
+ok 144 - no destination guard capability must not clobber concurrent create
+  ---
+  duration_ms: 0.267208
+  type: 'test'
+  ...
+# Subtest: conditional PUT without conditional current-object deletion rejects before host calls
+ok 145 - conditional PUT without conditional current-object deletion rejects before host calls
+  ---
+  duration_ms: 0.194625
+  type: 'test'
+  ...
+# Subtest: buffered PUT rename creates destination without CopyObject capability
+ok 146 - buffered PUT rename creates destination without CopyObject capability
+  ---
+  duration_ms: 2.5825
+  type: 'test'
+  ...
+# Subtest: buffered PUT destination creation race retains both writers
+ok 147 - buffered PUT destination creation race retains both writers
+  ---
+  duration_ms: 1.039667
+  type: 'test'
+  ...
+# Subtest: buffered PUT rename replaces stable destination without CopyObject capability
+ok 148 - buffered PUT rename replaces stable destination without CopyObject capability
+  ---
+  duration_ms: 1.072125
+  type: 'test'
+  ...
+# Subtest: buffered PUT destination replacement race retains both writers
+ok 149 - buffered PUT destination replacement race retains both writers
+  ---
+  duration_ms: 3.400792
+  type: 'test'
+  ...
+# Subtest: buffered PUT source replacement before GET produces no destination
+ok 150 - buffered PUT source replacement before GET produces no destination
+  ---
+  duration_ms: 1.00925
+  type: 'test'
+  ...
+# Subtest: buffered PUT changed source after publication survives conditional deletion
+ok 151 - buffered PUT changed source after publication survives conditional deletion
+  ---
+  duration_ms: 0.968833
+  type: 'test'
+  ...
+# Subtest: buffered PUT deletion failure reports acknowledged publication without rollback
+ok 152 - buffered PUT deletion failure reports acknowledged publication without rollback
+  ---
+  duration_ms: 0.591042
+  type: 'test'
+  ...
+# Subtest: buffered PUT lost publication acknowledgement never authorizes source deletion
+ok 153 - buffered PUT lost publication acknowledgement never authorizes source deletion
+  ---
+  duration_ms: 0.570542
+  type: 'test'
+  ...
+# Subtest: buffered PUT directory size preflight rejects before publishing any earlier child
+ok 154 - buffered PUT directory size preflight rejects before publishing any earlier child
+  ---
+  duration_ms: 0.604458
+  type: 'test'
+  ...
+# Subtest: buffered PUT supports absent conditionalCopy advertisement without upgrading it
+ok 155 - buffered PUT supports absent conditionalCopy advertisement without upgrading it
+  ---
+  duration_ms: 0.528916
+  type: 'test'
+  ...
+# Subtest: streaming PUT rename creates destination without CopyObject capability
+ok 156 - streaming PUT rename creates destination without CopyObject capability
+  ---
+  duration_ms: 0.935459
+  type: 'test'
+  ...
+# Subtest: streaming PUT destination creation race retains both writers
+ok 157 - streaming PUT destination creation race retains both writers
+  ---
+  duration_ms: 0.543958
+  type: 'test'
+  ...
+# Subtest: streaming PUT rename replaces stable destination without CopyObject capability
+ok 158 - streaming PUT rename replaces stable destination without CopyObject capability
+  ---
+  duration_ms: 0.691542
+  type: 'test'
+  ...
+# Subtest: streaming PUT destination replacement race retains both writers
+ok 159 - streaming PUT destination replacement race retains both writers
+  ---
+  duration_ms: 0.545416
+  type: 'test'
+  ...
+# Subtest: streaming PUT source replacement before GET produces no destination
+ok 160 - streaming PUT source replacement before GET produces no destination
+  ---
+  duration_ms: 0.478375
+  type: 'test'
+  ...
+# Subtest: streaming PUT changed source after publication survives conditional deletion
+ok 161 - streaming PUT changed source after publication survives conditional deletion
+  ---
+  duration_ms: 0.546917
+  type: 'test'
+  ...
+# Subtest: streaming PUT deletion failure reports acknowledged publication without rollback
+ok 162 - streaming PUT deletion failure reports acknowledged publication without rollback
+  ---
+  duration_ms: 0.792916
+  type: 'test'
+  ...
+# Subtest: streaming PUT lost publication acknowledgement never authorizes source deletion
+ok 163 - streaming PUT lost publication acknowledgement never authorizes source deletion
+  ---
+  duration_ms: 3.489208
+  type: 'test'
+  ...
+# Subtest: streaming PUT directory size preflight rejects before publishing any earlier child
+ok 164 - streaming PUT directory size preflight rejects before publishing any earlier child
+  ---
+  duration_ms: 1.119708
+  type: 'test'
+  ...
+# Subtest: streaming PUT supports absent conditionalCopy advertisement without upgrading it
+ok 165 - streaming PUT supports absent conditionalCopy advertisement without upgrading it
+  ---
+  duration_ms: 0.627833
+  type: 'test'
+  ...
+# Subtest: LIMIT copy: same-content ABA can delete a new source incarnation with matching ETag
+ok 166 - LIMIT copy: same-content ABA can delete a new source incarnation with matching ETag
+  ---
+  duration_ms: 0.644166
+  type: 'test'
+  ...
+# Subtest: LIMIT copy: a new source child survives successful enumerated-key rename
+ok 167 - LIMIT copy: a new source child survives successful enumerated-key rename
+  ---
+  duration_ms: 3.681167
+  type: 'test'
+  ...
+# Subtest: LIMIT buffered PUT: same-content ABA can delete a new source incarnation with matching ETag
+ok 168 - LIMIT buffered PUT: same-content ABA can delete a new source incarnation with matching ETag
+  ---
+  duration_ms: 0.64125
+  type: 'test'
+  ...
+# Subtest: LIMIT buffered PUT: a new source child survives successful enumerated-key rename
+ok 169 - LIMIT buffered PUT: a new source child survives successful enumerated-key rename
+  ---
+  duration_ms: 0.77475
+  type: 'test'
+  ...
+# Subtest: LIMIT streaming PUT: same-content ABA can delete a new source incarnation with matching ETag
+ok 170 - LIMIT streaming PUT: same-content ABA can delete a new source incarnation with matching ETag
+  ---
+  duration_ms: 0.503583
+  type: 'test'
+  ...
+# Subtest: LIMIT streaming PUT: a new source child survives successful enumerated-key rename
+ok 171 - LIMIT streaming PUT: a new source child survives successful enumerated-key rename
+  ---
+  duration_ms: 0.745958
+  type: 'test'
+  ...
+# Subtest: streaming PUT fallback abort closes a stalled source and never deletes or publishes
+ok 172 - streaming PUT fallback abort closes a stalled source and never deletes or publishes
+  ---
+  duration_ms: 7.024167
+  type: 'test'
+  ...
+# Subtest: streaming PUT fallback rejects success without full body consumption and closes source
+ok 173 - streaming PUT fallback rejects success without full body consumption and closes source
+  ---
+  duration_ms: 1.867541
+  type: 'test'
+  ...
+# Subtest: buffered fallback rejects missing source ETag before destination PUT
+ok 174 - buffered fallback rejects missing source ETag before destination PUT
+  ---
+  duration_ms: 0.51525
+  type: 'test'
+  ...
+# Subtest: streaming fallback rejects missing source ETag before destination PUT
+ok 175 - streaming fallback rejects missing source ETag before destination PUT
+  ---
+  duration_ms: 0.311458
+  type: 'test'
+  ...
+# Subtest: rmdir rejects file path /file without effects
+ok 176 - rmdir rejects file path /file without effects
+  ---
+  duration_ms: 3.408041
+  type: 'test'
+  ...
+# Subtest: rmdir rejects file path /file/ without effects
+ok 177 - rmdir rejects file path /file/ without effects
+  ---
+  duration_ms: 0.720667
+  type: 'test'
+  ...
+# Subtest: rmdir rejects file path /file/child without effects
+ok 178 - rmdir rejects file path /file/child without effects
+  ---
+  duration_ms: 0.596167
+  type: 'test'
+  ...
+# Subtest: rmdir preserves requested missing path /missing
+ok 179 - rmdir preserves requested missing path /missing
+  ---
+  duration_ms: 0.299584
+  type: 'test'
+  ...
+# Subtest: rmdir preserves requested missing path /missing/child
+ok 180 - rmdir preserves requested missing path /missing/child
+  ---
+  duration_ms: 0.231417
+  type: 'test'
+  ...
+# Subtest: rmdir rejects implicit directory containing file
+ok 181 - rmdir rejects implicit directory containing file
+  ---
+  duration_ms: 0.35375
+  type: 'test'
+  ...
+# Subtest: rmdir rejects explicit directory containing file
+ok 182 - rmdir rejects explicit directory containing file
+  ---
+  duration_ms: 0.515916
+  type: 'test'
+  ...
+# Subtest: rmdir rejects implicit directory containing nested/file
+ok 183 - rmdir rejects implicit directory containing nested/file
+  ---
+  duration_ms: 0.336959
+  type: 'test'
+  ...
+# Subtest: rmdir rejects explicit directory containing nested/file
+ok 184 - rmdir rejects explicit directory containing nested/file
+  ---
+  duration_ms: 0.747459
+  type: 'test'
+  ...
+# Subtest: rmdir rejects implicit directory containing child/
+ok 185 - rmdir rejects implicit directory containing child/
+  ---
+  duration_ms: 1.843792
+  type: 'test'
+  ...
+# Subtest: rmdir rejects explicit directory containing child/
+ok 186 - rmdir rejects explicit directory containing child/
+  ---
+  duration_ms: 0.361042
+  type: 'test'
+  ...
+# Subtest: empty rmdir is unsupported even with conditionalDelete=false
+ok 187 - empty rmdir is unsupported even with conditionalDelete=false
+  ---
+  duration_ms: 0.443333
+  type: 'test'
+  ...
+# Subtest: empty rmdir is unsupported even with conditionalDelete=true
+ok 188 - empty rmdir is unsupported even with conditionalDelete=true
+  ---
+  duration_ms: 0.262833
+  type: 'test'
+  ...
+# Subtest: a child created after the empty listing survives, and the marker is not deleted
+ok 189 - a child created after the empty listing survives, and the marker is not deleted
+  ---
+  duration_ms: 0.558083
+  type: 'test'
+  ...
+# Subtest: pre-abort, read-only mode, and root protection make no requests
+ok 190 - pre-abort, read-only mode, and root protection make no requests
+  ---
+  duration_ms: 0.218084
+  type: 'test'
+  ...
+# Subtest: rmdir cancels an uncooperative head and observes late rejection
+ok 191 - rmdir cancels an uncooperative head and observes late rejection
+  ---
+  duration_ms: 4.463708
+  type: 'test'
+  ...
+# Subtest: rmdir cancels an uncooperative list and observes late rejection
+ok 192 - rmdir cancels an uncooperative list and observes late rejection
+  ---
+  duration_ms: 2.056375
+  type: 'test'
+  ...
+# Subtest: rmdir propagates listing authorization errors with the requested path and cause
+ok 193 - rmdir propagates listing authorization errors with the requested path and cause
+  ---
+  duration_ms: 0.329416
+  type: 'test'
+  ...
+# Subtest: legacy nonrecursive rm still removes a file and an empty marker
+ok 194 - legacy nonrecursive rm still removes a file and an empty marker
+  ---
+  duration_ms: 0.656292
+  type: 'test'
+  ...
+# Subtest: stream discovery requires both negotiated capability and a streaming method
+ok 195 - stream discovery requires both negotiated capability and a streaming method
+  ---
+  duration_ms: 2.823416
+  type: 'test'
+  ...
+# Subtest: stream reads pull only on demand, split chunks and release on early return
+ok 196 - stream reads pull only on demand, split chunks and release on early return
+  ---
+  duration_ms: 3.040209
+  type: 'test'
+  ...
+# Subtest: early consumer return does not hang on an uncooperative response return hook
+ok 197 - early consumer return does not hang on an uncooperative response return hook
+  ---
+  duration_ms: 0.78225
+  type: 'test'
+  ...
+# Subtest: abort interrupts stalled response next and observes its late rejection
+ok 198 - abort interrupts stalled response next and observes its late rejection
+  ---
+  duration_ms: 2.030166
+  type: 'test'
+  ...
+# Subtest: abort stops awaiting transport and releases an eventual response body
+ok 199 - abort stops awaiting transport and releases an eventual response body
+  ---
+  duration_ms: 1.350541
+  type: 'test'
+  ...
+# Subtest: corrupt streaming response short rejects and cleans up
+ok 200 - corrupt streaming response short rejects and cleans up
+  ---
+  duration_ms: 0.583875
+  type: 'test'
+  ...
+# Subtest: corrupt streaming response long rejects and cleans up
+ok 201 - corrupt streaming response long rejects and cleans up
+  ---
+  duration_ms: 0.463667
+  type: 'test'
+  ...
+# Subtest: corrupt streaming response header rejects and cleans up
+ok 202 - corrupt streaming response header rejects and cleans up
+  ---
+  duration_ms: 0.377625
+  type: 'test'
+  ...
+# Subtest: corrupt streaming response etag rejects and cleans up
+ok 203 - corrupt streaming response etag rejects and cleans up
+  ---
+  duration_ms: 0.539
+  type: 'test'
+  ...
+# Subtest: corrupt streaming response text rejects and cleans up
+ok 204 - corrupt streaming response text rejects and cleans up
+  ---
+  duration_ms: 0.523
+  type: 'test'
+  ...
+# Subtest: empty reads still enforce GET authorization; exact empty ranges and EOF do not issue invalid Range
+ok 205 - empty reads still enforce GET authorization; exact empty ranges and EOF do not issue invalid Range
+  ---
+  duration_ms: 1.278041
+  type: 'test'
+  ...
+# Subtest: read argument and transfer budgets fail before requesting a body
+ok 206 - read argument and transfer budgets fail before requesting a body
+  ---
+  duration_ms: 0.81725
+  type: 'test'
+  ...
+# Subtest: stream source snapshots reject a concurrent object replacement before GET
+ok 207 - stream source snapshots reject a concurrent object replacement before GET
+  ---
+  duration_ms: 3.811916
+  type: 'test'
+  ...
+# Subtest: stream writes follow transport demand and do not mutate producer chunks
+ok 208 - stream writes follow transport demand and do not mutate producer chunks
+  ---
+  duration_ms: 3.555042
+  type: 'test'
+  ...
+# Subtest: stream upload limit closes input and preserves an existing object
+ok 209 - stream upload limit closes input and preserves an existing object
+  ---
+  duration_ms: 0.491084
+  type: 'test'
+  ...
+# Subtest: stream source failure preserves prior bytes and maps to EIO
+ok 210 - stream source failure preserves prior bytes and maps to EIO
+  ---
+  duration_ms: 0.273292
+  type: 'test'
+  ...
+# Subtest: abort interrupts a stalled upload source without publishing partial data
+ok 211 - abort interrupts a stalled upload source without publishing partial data
+  ---
+  duration_ms: 1.604459
+  type: 'test'
+  ...
+# Subtest: early transport success without consuming the stream is not reported as a completed write
+ok 212 - early transport success without consuming the stream is not reported as a completed write
+  ---
+  duration_ms: 0.262583
+  type: 'test'
+  ...
+# Subtest: a transport failure cancels a pending producer pull and observes its late failure
+ok 213 - a transport failure cancels a pending producer pull and observes its late failure
+  ---
+  duration_ms: 2.450292
+  type: 'test'
+  ...
+# Subtest: exclusive stream conditions are evaluated after upload and preserve a concurrent winner
+ok 214 - exclusive stream conditions are evaluated after upload and preserve a concurrent winner
+  ---
+  duration_ms: 0.873125
+  type: 'test'
+  ...
+# Subtest: pre-aborted stream operations and readonly mutations consume no input
+ok 215 - pre-aborted stream operations and readonly mutations consume no input
+  ---
+  duration_ms: 0.314709
+  type: 'test'
+  ...
+# Subtest: stream append is explicitly bounded and preserves metadata with a conditional write
+ok 216 - stream append is explicitly bounded and preserves metadata with a conditional write
+  ---
+  duration_ms: 0.769333
+  type: 'test'
+  ...
+# Subtest: stream flags cover empty replacement, new append, exclusive append and concurrent append conflicts
+ok 217 - stream flags cover empty replacement, new append, exclusive append and concurrent append conflicts
+  ---
+  duration_ms: 5.091667
+  type: 'test'
+  ...
+# Subtest: deterministic range boundaries preserve the exclusive endpoint and chunk budget
+ok 218 - deterministic range boundaries preserve the exclusive endpoint and chunk budget
+  ---
+  duration_ms: 7.5805
+  type: 'test'
+  ...
+# Subtest: seeded mixed-operation conformance against independent byte model: 305441741
+ok 219 - seeded mixed-operation conformance against independent byte model: 305441741
+  ---
+  duration_ms: 93.441
+  type: 'test'
+  ...
+# Subtest: seeded mixed-operation conformance against independent byte model: 2147483647
+ok 220 - seeded mixed-operation conformance against independent byte model: 2147483647
+  ---
+  duration_ms: 66.337333
+  type: 'test'
+  ...
+# Subtest: seeded mixed-operation conformance against independent byte model: 12648430
+ok 221 - seeded mixed-operation conformance against independent byte model: 12648430
+  ---
+  duration_ms: 48.254375
+  type: 'test'
+  ...
+1..221
+# tests 221
+# suites 0
+# pass 221
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 431.436125

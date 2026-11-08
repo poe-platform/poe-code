@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "role": "H6 final DATA only; no execution authority",
+  "syntaxFiles": 17,
+  "syntaxDiagnostics": 0,
+  "newControls": 3,
+  "sourceModules": 12,
+  "gitBlobChecks": 12,
+  "emissions": 24,
+  "archiveMembers": 25,
+  "cells": 135,
+  "WorkersProposed": 111,
+  "WorkersActual": 0,
+  "productImports": 0,
+  "matching": 0,
+  "caseInventorySha256": "88d2cd3b6b6e75e7290c43c2b0e2b8ab39f1d8a8a951ec51044471e66ac3d815",
+  "caseArchive": {
+    "textBytes": 7327713,
+    "textSha256": "c35bdd8bef49de6442be9bc9ebd075df9fec3c2f2f67498228febf9f3238e5da",
+    "compressedBytes": 5495782,
+    "compressedSha256": "662a2257a710c8dc522e655fa6bbe91d33df492948ed42d3ef84020d2fdd3e2a",
+    "decodedBytes": 20791118,
+    "decodedSha256": "20eaddbd5ac4193550ae32e18a53f5919a095a880328a3657484ee699214da88",
+    "files": 4191
+  },
+  "freshSnapshot": {
+    "bytes": 15033091,
+    "entries": 4956,
+    "files": 4191
+  },
+  "all60": "UNRUN"
+}

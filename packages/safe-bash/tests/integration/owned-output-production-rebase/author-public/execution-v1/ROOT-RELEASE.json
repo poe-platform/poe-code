@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "phase": "ROOT_RELEASED_AUTHOR_EXECUTION",
+  "authorCommit": "e748f20fe9d0ea1d29aefe70939d3ee76951ef68",
+  "candidateCommit": "eba049535d154f4e028f57ffd8efd7622b2239ca",
+  "candidateTree": "62d75ef09e89d4d3b6afc032c518d2846dcd03b7",
+  "rootAuthorization": "ROOT user message August 27, 2026 explicitly authorizes exact eba049535d154f4e028f57ffd8efd7622b2239ca immutable public archive/build/offline pack/physical move/runtime/strict consumer/feasible unchanged maintained typecheck, followed by fresh-guarded actual current SafeJS same approved 25 profiles. Author verification only, not Curie acceptance, promotion or fullgate.",
+  "allowPublicBuildAndConsumer": true,
+  "allowPrivateCohorts": true,
+  "maintainedTypecheck": true,
+  "qualification": "AUTHOR_ONLY_NOT_INDEPENDENT_ACCEPTANCE"
+}

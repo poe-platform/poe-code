@@ -1,0 +1,21 @@
+{
+  "schema": "CONTROL_TOOL_EXECUTION_RECEIPT_V2",
+  "source": "functions.exec_command then write_stdin tool receipts, exact terminal text retained; not reconstructed historical raw",
+  "sessionId": 78884,
+  "entryPid": 21621,
+  "exitCode": 1,
+  "signal": null,
+  "closed": true,
+  "stdout": "{\"status\":\"HOLD\",\"qualified\":5,\"failed\":3,\"unrun\":0,\"processes\":20,\"unsafe\":false}\n",
+  "stderr": "",
+  "ordinaryAssertionFailures": 3,
+  "unsafe": false,
+  "controls": 8,
+  "qualified": 5,
+  "unrun": 0,
+  "retryCount": 0,
+  "children": 19,
+  "runnerIncludedProcesses": 20,
+  "peak": 3,
+  "controlElapsedMilliseconds": 1864
+}

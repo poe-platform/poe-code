@@ -1,0 +1,165 @@
+{
+  "kind": "Manual native primitive boundary proof, not unit fixtures or product fallback. Tiny C program built independently, not a rebuild of GNU. Probe makes each inode afresh (file0600/directory0700), invokes the named libc primitive once and records status/errno/stat. errno on success is retained raw but must not be treated as failure.",
+  "platform": "darwin",
+  "arch": "arm64",
+  "node": "v22.23.2",
+  "uid": 501,
+  "gid": 20,
+  "groups": [
+    20,
+    12,
+    61,
+    79,
+    80,
+    81,
+    701,
+    33,
+    98,
+    100,
+    204,
+    250,
+    395,
+    398,
+    400
+  ],
+  "probe": "/tmp/safe-bash-scripting-oracles-20260904/install-chmod-probe-1MVgcM/probe",
+  "probeSha256": "753036d0cb125ec0ea6604dc3dab6f5ad49ef32c7a675c5fdc777d2ae8bb584a",
+  "cRows": [
+    {
+      "method": "chmod",
+      "kind": "file",
+      "requested": 1472,
+      "status": 0,
+      "errno": 1,
+      "error": "Operation not permitted",
+      "mode": 448,
+      "uid": 501,
+      "gid": 0
+    },
+    {
+      "method": "fchmod",
+      "kind": "file",
+      "requested": 1472,
+      "status": 0,
+      "errno": 1,
+      "error": "Operation not permitted",
+      "mode": 448,
+      "uid": 501,
+      "gid": 0
+    },
+    {
+      "method": "fchmodat",
+      "kind": "file",
+      "requested": 1472,
+      "status": -1,
+      "errno": 1,
+      "error": "Operation not permitted",
+      "mode": 384,
+      "uid": 501,
+      "gid": 0
+    },
+    {
+      "method": "lchmod",
+      "kind": "file",
+      "requested": 1472,
+      "status": -1,
+      "errno": 1,
+      "error": "Operation not permitted",
+      "mode": 384,
+      "uid": 501,
+      "gid": 0
+    },
+    {
+      "method": "fchmodat-nofollow",
+      "kind": "file",
+      "requested": 1472,
+      "status": -1,
+      "errno": 1,
+      "error": "Operation not permitted",
+      "mode": 384,
+      "uid": 501,
+      "gid": 0
+    },
+    {
+      "method": "chmod",
+      "kind": "directory",
+      "requested": 1472,
+      "status": 0,
+      "errno": 1,
+      "error": "Operation not permitted",
+      "mode": 448,
+      "uid": 501,
+      "gid": 0
+    },
+    {
+      "method": "fchmod",
+      "kind": "directory",
+      "requested": 1472,
+      "status": 0,
+      "errno": 1,
+      "error": "Operation not permitted",
+      "mode": 448,
+      "uid": 501,
+      "gid": 0
+    },
+    {
+      "method": "fchmodat",
+      "kind": "directory",
+      "requested": 1472,
+      "status": -1,
+      "errno": 1,
+      "error": "Operation not permitted",
+      "mode": 448,
+      "uid": 501,
+      "gid": 0
+    },
+    {
+      "method": "lchmod",
+      "kind": "directory",
+      "requested": 1472,
+      "status": -1,
+      "errno": 1,
+      "error": "Operation not permitted",
+      "mode": 448,
+      "uid": 501,
+      "gid": 0
+    },
+    {
+      "method": "fchmodat-nofollow",
+      "kind": "directory",
+      "requested": 1472,
+      "status": -1,
+      "errno": 1,
+      "error": "Operation not permitted",
+      "mode": 448,
+      "uid": 501,
+      "gid": 0
+    }
+  ],
+  "nodeRows": [
+    {
+      "method": "chmod",
+      "status": 0,
+      "error": null,
+      "mode": 448,
+      "uid": 501,
+      "gid": 0
+    },
+    {
+      "method": "lchmod",
+      "status": 0,
+      "error": null,
+      "mode": 448,
+      "uid": 501,
+      "gid": 0
+    },
+    {
+      "method": "handle.chmod",
+      "status": 0,
+      "error": null,
+      "mode": 448,
+      "uid": 501,
+      "gid": 0
+    }
+  ]
+}

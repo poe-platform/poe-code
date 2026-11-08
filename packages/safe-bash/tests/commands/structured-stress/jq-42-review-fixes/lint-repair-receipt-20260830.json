@@ -1,0 +1,846 @@
+{
+  "qualification": "Bounded maintained-test repair; moving-tree scoped checks, not a frozen full-tree gate. Fifteen fixed, ten unresolved. No native-oracle or historical-driver execution.",
+  "packageRoot": "/Users/kjopek/Workspace/.worktrees/poe-code-safe-bash-20260829T153926/packages/safe-bash",
+  "audit": "/Users/kjopek/Workspace/.worktrees/safe-bash-migration-audit-8zqj_jh5/test-lint-repair-bKsued",
+  "completedAt": "2026-08-30T02:30:17.503Z",
+  "rules": [
+    {
+      "path": "/Users/kjopek/Workspace/AGENTS.md",
+      "scope": "workspace",
+      "bytes": 424,
+      "sha256": "a57c7dc70a12ec6f8d26a2c3ac908d81a66b3a268c782f42926c2b7e840b23b7"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/.worktrees/poe-code-safe-bash-20260829T153926/AGENTS.md",
+      "scope": "repository",
+      "bytes": 5737,
+      "sha256": "a68ac67735ca1eccdb4cfad1f706a47384a01a446f2555e6d01b4726e2830fd7"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/.worktrees/poe-code-safe-bash-20260829T153926/packages/safe-bash/AGENTS.md",
+      "scope": "package",
+      "bytes": 18417,
+      "sha256": "ba3bfbe41eacf63a95075513cef4af2b8807f6160363d595eecff393f7951122"
+    }
+  ],
+  "nestedAgents": [],
+  "rulesCounts": {
+    "no-regex-spaces": {
+      "original": 8,
+      "repaired": 6,
+      "unresolved": 2
+    },
+    "no-useless-escape": {
+      "original": 12,
+      "repaired": 8,
+      "unresolved": 4
+    },
+    "prefer-const": {
+      "original": 4,
+      "repaired": 1,
+      "unresolved": 3
+    },
+    "@typescript-eslint/no-empty-object-type": {
+      "original": 1,
+      "repaired": 0,
+      "unresolved": 1
+    }
+  },
+  "changed": [
+    {
+      "path": "tests/commands/bytes-stress/pipelines.test.ts",
+      "before": {
+        "bytes": 4827,
+        "sha256": "2091db41cc82156112ea43c42cb32f0e9e0fb661a9f38ac21e3502922239d364"
+      },
+      "after": {
+        "bytes": 4829,
+        "sha256": "844379805ea8fde5d21d8aad215f8a6595d7e7b4ce5320a2e496789a8c3b9141"
+      }
+    },
+    {
+      "path": "tests/commands/diff-patch/patch-quiet.test.ts",
+      "before": {
+        "bytes": 12649,
+        "sha256": "c42ae03030a5672b6e07435d7a142612bdfcd431f68bcadcecc9826f4ba95aa0"
+      },
+      "after": {
+        "bytes": 12651,
+        "sha256": "939eccfaecaf6b95389251325ffdf935101198ebd081dcd8d3101e602cffe919"
+      }
+    },
+    {
+      "path": "tests/commands/safejs-stress/actual-engine.test.ts",
+      "before": {
+        "bytes": 11834,
+        "sha256": "4c857bad6d2c9b32f48109887390c2ed8f32a4c3890d4c09edfcdd1cd7a5a8c1"
+      },
+      "after": {
+        "bytes": 11833,
+        "sha256": "1a7c4c30a7c643f2a15cbe8bbfb60cb2de873493af7401b6a2dd94f1198b70c6"
+      }
+    },
+    {
+      "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+      "before": {
+        "bytes": 5460,
+        "sha256": "5c4d39cfff9622dd5712da540a278343f1262090753ea623ba336a21bb19c8f5"
+      },
+      "after": {
+        "bytes": 5456,
+        "sha256": "5e2a483d525454288b5737f8e70377b143de5a47c185423ff3982ad0383e2e9d"
+      }
+    },
+    {
+      "path": "tests/commands/structured/cli.test.ts",
+      "before": {
+        "bytes": 8583,
+        "sha256": "b755f4d240d7c95f001e3a4aac6aeb8270242d694fb5db96ddbc4f7568e4afe2"
+      },
+      "after": {
+        "bytes": 8581,
+        "sha256": "e347ee94fb27a848d1a3a6b2b4ef495a52d6cd345d7ff1590c31f998b4d5bcb5"
+      }
+    },
+    {
+      "path": "tests/commands/tree/backends.test.ts",
+      "before": {
+        "bytes": 3297,
+        "sha256": "bbab1a41cd6accf67f0dfc0cd63c3bbb63634b94ead62b025a2b9342be805d6b"
+      },
+      "after": {
+        "bytes": 3299,
+        "sha256": "446a564df93f3a7476d31da2c3fe3750d0489b4ec011dc80f697b9db8fd7c481"
+      }
+    },
+    {
+      "path": "tests/commands/tree/behavior.test.ts",
+      "before": {
+        "bytes": 6848,
+        "sha256": "07953af35a492d22959273e2123277ab3c4e774331c1bc06126c7e1a43cbc812"
+      },
+      "after": {
+        "bytes": 6850,
+        "sha256": "6db5b2c894a9857572c6c70f0aed578da2161dc7fb26b42e4eda4ff6c812d026"
+      }
+    },
+    {
+      "path": "tests/commands/tree/oracle.test.ts",
+      "before": {
+        "bytes": 2371,
+        "sha256": "04e70eb25c4f07e17998bb2ef0b31b9f33c4f9a56e13bf675062415d37a95351"
+      },
+      "after": {
+        "bytes": 2373,
+        "sha256": "f1b804d0ed91f368231b429df5b1999751fcb453d7f0e8c48021a590f09d5450"
+      }
+    },
+    {
+      "path": "tests/commands/tree/safety.test.ts",
+      "before": {
+        "bytes": 10754,
+        "sha256": "15cc5d6ac49fca8d33e814e06af63b6fad8f677888a0439a1d5696704abcee59"
+      },
+      "after": {
+        "bytes": 10756,
+        "sha256": "ceabd401d93bde268a97f75cca2f745dd78c66d5482df3d0267b0209ef59d28b"
+      }
+    },
+    {
+      "path": "tests/stress/remote-cancellation/remote-cancellation.test.ts",
+      "before": {
+        "bytes": 23022,
+        "sha256": "fc260b459fd75dae542f896396b75ec115d88e753c34cb618a7fab3b963dcbe8"
+      },
+      "after": {
+        "bytes": 23013,
+        "sha256": "d9ba990828fbf2a08f0b2e39fc2589a3ca93bd350cb83a618b985071f3845256"
+      }
+    },
+    {
+      "path": "tests/commands/structured-stress/cases.ts",
+      "before": {
+        "bytes": 4466,
+        "sha256": "dc95e73afd589904690dbc7c1b77d3aa996ca44c262899ba3c3e9bac5ad06beb"
+      },
+      "after": {
+        "bytes": 4465,
+        "sha256": "091a716b2380dd99f1b8e516cef6a39bedd13c24ccceace30816658e70a0a359"
+      }
+    }
+  ],
+  "unresolved": [
+    {
+      "path": "tests/commands/diff-patch-stress/gnu-revised-acceptance/fixtures.ts",
+      "role": "historical revised-acceptance input-extraction helper; current maintenance authority unresolved, not claimed sealed",
+      "reason": "REPORT distinguishes retained original3758/original30 gates and a separate revised acceptance driver. Helper parses original malformed-cohort source with an exact indentation regex. No canonical caller established; not executed or changed.",
+      "proposal": "Root may explicitly approve a maintained helper/successor using the same two-space regex language and proving all 17 original extracted values unchanged; do not recapture originals or classify the helper as generated data merely because lint fails.",
+      "sha256": "e9a64ce0403c85867b26b224ef608e4d85ec537ff92b92f85f73086f9042c19a",
+      "errors": [
+        {
+          "ruleId": "no-regex-spaces",
+          "line": 39,
+          "column": 13
+        }
+      ]
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-independent-review/legacy-proof.ts",
+      "role": "version-specific historical replay/capture driver",
+      "reason": "sourceSnapshot structuredSha256 is asserted against a literal historical product hash at startup; driver captures native/product legacy proof artifacts.",
+      "proposal": "Preserve driver; ask Goodall for an exact-path no-useless-escape rule exception with authenticated historical ownership, not a whole-file lint exclusion or permission to execute.",
+      "sha256": "4d86c72a728fdd609fd83a0e4e885d3313f6eb69e2b3da8096d14eaaf54fa08a",
+      "errors": [
+        {
+          "ruleId": "no-useless-escape",
+          "line": 58,
+          "column": 90
+        },
+        {
+          "ruleId": "no-useless-escape",
+          "line": 58,
+          "column": 100
+        }
+      ]
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts",
+      "role": "maintained current test; necessary cleanup sentinel before fallible acquisition",
+      "reason": "context.after closes over directory before awaited mkdtemp. Implicit undefined permits cleanup after acquisition rejects. Naive const relocation leaves a TDZ; synthetic controls reproduce the difference.",
+      "proposal": "Goodall can evaluate exact-file prefer-const ignoreReadBeforeAssign:true with a retained negative acquisition control; no config change made and proposed option not yet measured. Do not move cleanup registration after mkdtemp.",
+      "sha256": "1f81d9226a09c22221a7faacb5f794e81726626b4ac438ee526a2877aec7b342",
+      "errors": [
+        {
+          "ruleId": "prefer-const",
+          "line": 38,
+          "column": 7
+        }
+      ]
+    },
+    {
+      "path": "tests/fs/webdav/directory-access-independent-20260828/typed-inputs.ts",
+      "role": "sealed intentional positive/negative type-control input",
+      "reason": "MANIFEST.json binds current ed756184... bytes. Fits<{}, FsOptions> intentionally asserts the empty-object type relation alongside ten negative controls; Record<string,never>, object or unknown would change the tested type.",
+      "proposal": "Retain exact input; Goodall may use a literal-path no-empty-object-type allowObjectTypes:always override tied to the existing sealed occurrence/owner, keeping all other rules and strict type controls active.",
+      "sha256": "ed7561849eb048fafabba46fb80201fd006be5fb62a442f307e69c1812700614",
+      "errors": [
+        {
+          "ruleId": "@typescript-eslint/no-empty-object-type",
+          "line": 17,
+          "column": 15
+        }
+      ]
+    },
+    {
+      "path": "tests/shell-stress/invocation-closure/precedence-native.ts",
+      "role": "fixed-commit historical native evidence producer",
+      "reason": "Uses git show 480be8c for source extraction, exact originalDefinition, two recorded native profiles and writes precedence-native.json. No execution or rewrite performed.",
+      "proposal": "Preserve historical driver; require historical-owner review for exact-path no-regex-spaces policy or separately authorized maintained successor, never change recorded source/definition expectations.",
+      "sha256": "b6689ef888610d75980a637b8930e5121e8510da4de2412a17004c725340524c",
+      "errors": [
+        {
+          "ruleId": "no-regex-spaces",
+          "line": 9,
+          "column": 28
+        }
+      ]
+    },
+    {
+      "path": "tests/shell-stress/targeted-holdout/cases.ts",
+      "role": "source-byte-pinned frozen oracle input",
+      "reason": "frozen.ts validates caseSourceSha256 over cases.ts bytes before comparing every fixture; a cooked-string-equivalent edit would invalidate the source seal.",
+      "proposal": "Preserve source and oracle pins. Goodall may apply only exact-path no-useless-escape policy while existing source-hash and fixture-value checks remain active.",
+      "sha256": "7829b1528b38d8951692ea8fdbc9ad7bd9119284f5a772528f86d08c5c935714",
+      "errors": [
+        {
+          "ruleId": "no-useless-escape",
+          "line": 45,
+          "column": 104
+        }
+      ]
+    },
+    {
+      "path": "tests/shell/cancellation-stage1-20260827/extension-v1/cancellation-extension.test.ts",
+      "role": "active canonical driver explicitly frozen before implementation",
+      "reason": "POLICY.md says extension frozen before cancellation source changes; freeze-manifest.json binds current db49520... bytes. Both prefer-const findings are within the cleanup-before-acquisition case.",
+      "proposal": "Keep this actual test active, not fixture-excluded. Coordinate exact-path prefer-const policy with existing freeze hash, or an explicitly approved maintained successor retaining the frozen original; do not silently move pre-acquisition bindings.",
+      "sha256": "db49520d9baf10d159572a6edf2d06d8e3988b9d72a0c6b7b7589b1ca311965f",
+      "errors": [
+        {
+          "ruleId": "prefer-const",
+          "line": 379,
+          "column": 7
+        },
+        {
+          "ruleId": "prefer-const",
+          "line": 381,
+          "column": 3
+        }
+      ]
+    },
+    {
+      "path": "tests/stress/adapters/pagination-mutation-probe.ts",
+      "role": "version-sensitive standalone historical mutation proof; current maintenance authority unresolved",
+      "reason": "Reads actual source, asserts/removes old tokens.has(token) text, transpiles and dynamically imports mutation; REPORT records a prior proof. Not a canonical .test file, and not executed or newly claimed dead.",
+      "proposal": "Root must classify retained proof versus maintained validator before editing; if maintained, approve same-language regex normalization with mutation-strength controls. Do not exclude a live validator as generated-negative input.",
+      "sha256": "dec6e85742d188b5599e8fe7e55b0ed7055cee4ef6fc07f094c1f45325693ee3",
+      "errors": [
+        {
+          "ruleId": "no-useless-escape",
+          "line": 14,
+          "column": 50
+        }
+      ]
+    }
+  ],
+  "warnings": {
+    "before": 3,
+    "after": 3,
+    "exactMessagesUnchanged": true
+  },
+  "validation": {
+    "runtime": {
+      "focusedNine": {
+        "before": 9,
+        "after": 9,
+        "failures": 0,
+        "cancelled": 0,
+        "skips": 0
+      },
+      "corpusMembership": {
+        "before": 1,
+        "after": 1,
+        "fixtureRows": 203,
+        "assertions": "exact IDs/input/argv against unchanged frozen corpus; not 203 new executed test bodies"
+      },
+      "omittedRuntime": "SafeJS actual engine and native patch comparisons not run; literals and regex checked statically instead.",
+      "noRuntimeRedInvented": true
+    },
+    "static": {
+      "tokenLiteralFiles": 11,
+      "regexPositive": 6,
+      "regexNegative": 24,
+      "cleanupSentinelOriginal": 1,
+      "naiveConstRejected": 1
+    },
+    "types": {
+      "strict": true,
+      "noEmit": true,
+      "initialRoots": 10,
+      "initialReads": 454,
+      "finalRoots": 11,
+      "finalReads": 455,
+      "diagnostics": 0,
+      "heldReadAdmission": "shared admission before every package compiler read; exact regular-file ancestors and bounds for all compiler text reads",
+      "writes": 0
+    },
+    "lint": {
+      "initial": {
+        "files": 19,
+        "errors": 25,
+        "warnings": 3,
+        "exit": 1
+      },
+      "final": {
+        "files": 19,
+        "errors": 10,
+        "warnings": 3,
+        "exit": 1
+      },
+      "changedSubset": {
+        "files": 11,
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    "noSourceDiscoveryChange": true,
+    "fullSuite": false,
+    "build": false,
+    "git": false
+  },
+  "preservation": {
+    "unresolvedFiles": 8,
+    "metadataBindings": [
+      {
+        "path": "integration-lint-inventory.json",
+        "bytes": 310627,
+        "sha256": "146b6871ce8e25cde7085b7680173bbc941a24f27c3ea7a968c6669d7b1bfb8b",
+        "matches": []
+      },
+      {
+        "path": "integration-type-inputs.json",
+        "bytes": 14030,
+        "sha256": "acebbb112be5a9e1e40f61107c8b154ba3a675f333a826b0a4bf1a58a6fca4cb",
+        "matches": []
+      },
+      {
+        "path": "tests/commands/diff-patch-stress/gnu-revised-acceptance/original-manifest.json",
+        "bytes": 40357,
+        "sha256": "9f33adce0d68795bc0620938e438e2c376cfbed6f2addfa58b4fc599b6034ec1",
+        "matches": []
+      },
+      {
+        "path": "tests/commands/structured-stress/jq-42-independent-review/manifest.json",
+        "bytes": 68939,
+        "sha256": "f4636b95d52c78b118c5eebc4a802ccf13d63a8a43c460f55da91e9f4e6ceacb",
+        "matches": []
+      },
+      {
+        "path": "tests/commands/structured-stress/split-increment/original-matrix.json",
+        "bytes": 40877,
+        "sha256": "682aa25d20006a597c8e70a6c75b12409fd3ca89bb82e362bd8802fbb1d64be0",
+        "matches": []
+      },
+      {
+        "path": "tests/commands/tree/sort-text-source-manifest.json",
+        "bytes": 17578,
+        "sha256": "3b5aa67eed07a8f6bfd53007070d6cc2de304598db24fff6caf80c3d864822c4",
+        "matches": [
+          {
+            "path": "tests/commands/tree/backends.test.ts",
+            "hash": true
+          },
+          {
+            "path": "tests/commands/tree/behavior.test.ts",
+            "hash": true
+          },
+          {
+            "path": "tests/commands/tree/oracle.test.ts",
+            "hash": true
+          },
+          {
+            "path": "tests/commands/tree/safety.test.ts",
+            "hash": true
+          }
+        ]
+      },
+      {
+        "path": "tests/commands/tree/source-manifest.json",
+        "bytes": 14332,
+        "sha256": "3fc91aae0d1928325693937f615e55b44f8136d1adaf4930a376ca1533f66277",
+        "matches": [
+          {
+            "path": "tests/commands/tree/backends.test.ts",
+            "hash": true
+          },
+          {
+            "path": "tests/commands/tree/behavior.test.ts",
+            "hash": true
+          },
+          {
+            "path": "tests/commands/tree/oracle.test.ts",
+            "hash": true
+          },
+          {
+            "path": "tests/commands/tree/safety.test.ts",
+            "hash": true
+          }
+        ]
+      },
+      {
+        "path": "tests/commands/tree/work-budget-source-manifest.json",
+        "bytes": 14590,
+        "sha256": "425c995dc74cf4e92a58df5cde9b92a97791541933187ea420b82399ac975c3a",
+        "matches": [
+          {
+            "path": "tests/commands/tree/backends.test.ts",
+            "hash": true
+          },
+          {
+            "path": "tests/commands/tree/behavior.test.ts",
+            "hash": true
+          },
+          {
+            "path": "tests/commands/tree/oracle.test.ts",
+            "hash": true
+          },
+          {
+            "path": "tests/commands/tree/safety.test.ts",
+            "hash": true
+          }
+        ]
+      },
+      {
+        "path": "tests/fs/webdav/directory-access-independent-20260828/MANIFEST.json",
+        "bytes": 13954,
+        "sha256": "13aef9a1d4e5222015562108b14b4cad9bb26b04841468d6091408598e4db904",
+        "matches": [
+          {
+            "path": "tests/fs/webdav/directory-access-independent-20260828/typed-inputs.ts",
+            "hash": true
+          }
+        ]
+      },
+      {
+        "path": "tests/shell/cancellation-stage1-20260827/extension-v1/freeze-manifest.json",
+        "bytes": 1236,
+        "sha256": "4de91596d9f4234a169f8df074f8b0d2d0f01d1c78c427222718fc28145543ef",
+        "matches": [
+          {
+            "path": "tests/shell/cancellation-stage1-20260827/extension-v1/cancellation-extension.test.ts",
+            "hash": true
+          }
+        ]
+      }
+    ],
+    "groupBFrozen": [
+      {
+        "path": "packages/safe-bash/src/commands/git/io.ts",
+        "bytes": 16111,
+        "sha256": "5f4be7f96205c590cf91e60092d75cd706d2cbf31c373df7e5c57232d25ccc3c",
+        "mode": "644",
+        "matched": true
+      },
+      {
+        "path": "packages/safe-bash/tests/commands/git/io-cleanup.test.ts",
+        "bytes": 15944,
+        "sha256": "145bf64e4168b0fb59f6a18b645af06777421b14f0b14612e750019199d8731a",
+        "mode": "644",
+        "matched": true
+      },
+      {
+        "path": "packages/safe-bash/scripts/integration-inputs.test.mjs",
+        "bytes": 40272,
+        "sha256": "faa08889a83b8347d28f60e47f837ede7234058f3ac98550650ae0302b66dad3",
+        "mode": "644",
+        "matched": true
+      }
+    ],
+    "compilerReadDrift": [
+      {
+        "path": "packages/safe-bash/tests/commands/bytes-stress/pipelines.test.ts",
+        "owned": true,
+        "before": "2091db41cc82156112ea43c42cb32f0e9e0fb661a9f38ac21e3502922239d364",
+        "after": "844379805ea8fde5d21d8aad215f8a6595d7e7b4ce5320a2e496789a8c3b9141"
+      },
+      {
+        "path": "packages/safe-bash/tests/commands/diff-patch/patch-quiet.test.ts",
+        "owned": true,
+        "before": "c42ae03030a5672b6e07435d7a142612bdfcd431f68bcadcecc9826f4ba95aa0",
+        "after": "939eccfaecaf6b95389251325ffdf935101198ebd081dcd8d3101e602cffe919"
+      },
+      {
+        "path": "packages/safe-bash/tests/commands/safejs-stress/actual-engine.test.ts",
+        "owned": true,
+        "before": "4c857bad6d2c9b32f48109887390c2ed8f32a4c3890d4c09edfcdd1cd7a5a8c1",
+        "after": "1a7c4c30a7c643f2a15cbe8bbfb60cb2de873493af7401b6a2dd94f1198b70c6"
+      },
+      {
+        "path": "packages/safe-bash/tests/commands/structured-stress/split-increment/command.test.ts",
+        "owned": true,
+        "before": "5c4d39cfff9622dd5712da540a278343f1262090753ea623ba336a21bb19c8f5",
+        "after": "5e2a483d525454288b5737f8e70377b143de5a47c185423ff3982ad0383e2e9d"
+      },
+      {
+        "path": "packages/safe-bash/tests/commands/structured/cli.test.ts",
+        "owned": true,
+        "before": "b755f4d240d7c95f001e3a4aac6aeb8270242d694fb5db96ddbc4f7568e4afe2",
+        "after": "e347ee94fb27a848d1a3a6b2b4ef495a52d6cd345d7ff1590c31f998b4d5bcb5"
+      },
+      {
+        "path": "packages/safe-bash/tests/commands/tree/backends.test.ts",
+        "owned": true,
+        "before": "bbab1a41cd6accf67f0dfc0cd63c3bbb63634b94ead62b025a2b9342be805d6b",
+        "after": "446a564df93f3a7476d31da2c3fe3750d0489b4ec011dc80f697b9db8fd7c481"
+      },
+      {
+        "path": "packages/safe-bash/tests/commands/tree/behavior.test.ts",
+        "owned": true,
+        "before": "07953af35a492d22959273e2123277ab3c4e774331c1bc06126c7e1a43cbc812",
+        "after": "6db5b2c894a9857572c6c70f0aed578da2161dc7fb26b42e4eda4ff6c812d026"
+      },
+      {
+        "path": "packages/safe-bash/tests/commands/tree/oracle.test.ts",
+        "owned": true,
+        "before": "04e70eb25c4f07e17998bb2ef0b31b9f33c4f9a56e13bf675062415d37a95351",
+        "after": "f1b804d0ed91f368231b429df5b1999751fcb453d7f0e8c48021a590f09d5450"
+      },
+      {
+        "path": "packages/safe-bash/tests/commands/tree/safety.test.ts",
+        "owned": true,
+        "before": "15cc5d6ac49fca8d33e814e06af63b6fad8f677888a0439a1d5696704abcee59",
+        "after": "ceabd401d93bde268a97f75cca2f745dd78c66d5482df3d0267b0209ef59d28b"
+      },
+      {
+        "path": "packages/safe-bash/tests/stress/remote-cancellation/remote-cancellation.test.ts",
+        "owned": true,
+        "before": "fc260b459fd75dae542f896396b75ec115d88e753c34cb618a7fab3b963dcbe8",
+        "after": "d9ba990828fbf2a08f0b2e39fc2589a3ca93bd350cb83a618b985071f3845256"
+      }
+    ],
+    "corpusFinalObservationOnly": {
+      "path": "tests/commands/structured-stress/native-corpus.json",
+      "bytes": 75600,
+      "sha256": "6987c4241870b5449489f943c02498daa1a10c26c6de90845cb3d4b95099827c",
+      "fixtures": 203,
+      "workerWrites": 0,
+      "qualification": "Final binding, not an independently captured pre-edit hash proof."
+    }
+  },
+  "commands": [
+    {
+      "label": "lint-before",
+      "args": [
+        "--max-old-space-size=960",
+        "/Users/kjopek/Workspace/.worktrees/safe-bash-migration-audit-8zqj_jh5/test-lint-repair-bKsued/check.mjs",
+        "lint"
+      ],
+      "cwd": "/Users/kjopek/Workspace/.worktrees/poe-code-safe-bash-20260829T153926/packages/safe-bash",
+      "start": "2026-08-30T02:23:19.350Z",
+      "end": "2026-08-30T02:23:22.480Z",
+      "status": 1,
+      "signal": null,
+      "stdout": "lint-before.stdout",
+      "stderr": "lint-before.stderr"
+    },
+    {
+      "label": "types-before",
+      "args": [
+        "--max-old-space-size=960",
+        "/Users/kjopek/Workspace/.worktrees/safe-bash-migration-audit-8zqj_jh5/test-lint-repair-bKsued/check.mjs",
+        "types"
+      ],
+      "cwd": "/Users/kjopek/Workspace/.worktrees/poe-code-safe-bash-20260829T153926/packages/safe-bash",
+      "start": "2026-08-30T02:23:22.480Z",
+      "end": "2026-08-30T02:23:24.587Z",
+      "status": 0,
+      "signal": null,
+      "stdout": "types-before.stdout",
+      "stderr": "types-before.stderr"
+    },
+    {
+      "label": "focused-before",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "--test-name-pattern=^(?:corrupt second gzip member propagates pipefail through byte encoders|split optional cannot suppress collection budgets|split separator generators share the command result budget|whole stream, every byte, and every two-way UTF-8 split agree|real VFS and mount aliases preserve followed ancestor identity without global deduplication|default nofollow includes operands; -l skips ancestors but traverses sibling aliases|original native divergence rows remain explicit, not parity passes|known ancestor identity prevents recursion; bare inode and lexical realpath do not|S11 S3 rename abort after accepted copy retains documented partial effect)$",
+        "tests/commands/bytes-stress/pipelines.test.ts",
+        "tests/commands/structured-stress/split-increment/command.test.ts",
+        "tests/commands/structured/cli.test.ts",
+        "tests/commands/tree/backends.test.ts",
+        "tests/commands/tree/behavior.test.ts",
+        "tests/commands/tree/oracle.test.ts",
+        "tests/commands/tree/safety.test.ts",
+        "tests/stress/remote-cancellation/remote-cancellation.test.ts"
+      ],
+      "cwd": "/Users/kjopek/Workspace/.worktrees/poe-code-safe-bash-20260829T153926/packages/safe-bash",
+      "start": "2026-08-30T02:23:44.706Z",
+      "end": "2026-08-30T02:23:46.267Z",
+      "status": 0,
+      "signal": null,
+      "stdout": "focused-before.stdout",
+      "stderr": "focused-before.stderr"
+    },
+    {
+      "label": "equivalence-after",
+      "args": [
+        "/Users/kjopek/Workspace/.worktrees/safe-bash-migration-audit-8zqj_jh5/test-lint-repair-bKsued/check.mjs",
+        "equivalence"
+      ],
+      "cwd": "/Users/kjopek/Workspace/.worktrees/poe-code-safe-bash-20260829T153926/packages/safe-bash",
+      "start": "2026-08-30T02:24:17.278Z",
+      "end": "2026-08-30T02:24:17.485Z",
+      "status": 0,
+      "signal": null,
+      "stdout": "equivalence-after.stdout",
+      "stderr": "equivalence-after.stderr"
+    },
+    {
+      "label": "focused-after",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "--test-name-pattern=^(?:corrupt second gzip member propagates pipefail through byte encoders|split optional cannot suppress collection budgets|split separator generators share the command result budget|whole stream, every byte, and every two-way UTF-8 split agree|real VFS and mount aliases preserve followed ancestor identity without global deduplication|default nofollow includes operands; -l skips ancestors but traverses sibling aliases|original native divergence rows remain explicit, not parity passes|known ancestor identity prevents recursion; bare inode and lexical realpath do not|S11 S3 rename abort after accepted copy retains documented partial effect)$",
+        "tests/commands/bytes-stress/pipelines.test.ts",
+        "tests/commands/structured-stress/split-increment/command.test.ts",
+        "tests/commands/structured/cli.test.ts",
+        "tests/commands/tree/backends.test.ts",
+        "tests/commands/tree/behavior.test.ts",
+        "tests/commands/tree/oracle.test.ts",
+        "tests/commands/tree/safety.test.ts",
+        "tests/stress/remote-cancellation/remote-cancellation.test.ts"
+      ],
+      "cwd": "/Users/kjopek/Workspace/.worktrees/poe-code-safe-bash-20260829T153926/packages/safe-bash",
+      "start": "2026-08-30T02:24:17.485Z",
+      "end": "2026-08-30T02:24:19.064Z",
+      "status": 0,
+      "signal": null,
+      "stdout": "focused-after.stdout",
+      "stderr": "focused-after.stderr"
+    },
+    {
+      "label": "types-after",
+      "args": [
+        "--max-old-space-size=960",
+        "/Users/kjopek/Workspace/.worktrees/safe-bash-migration-audit-8zqj_jh5/test-lint-repair-bKsued/check.mjs",
+        "types"
+      ],
+      "cwd": "/Users/kjopek/Workspace/.worktrees/poe-code-safe-bash-20260829T153926/packages/safe-bash",
+      "start": "2026-08-30T02:24:19.064Z",
+      "end": "2026-08-30T02:24:21.132Z",
+      "status": 0,
+      "signal": null,
+      "stdout": "types-after.stdout",
+      "stderr": "types-after.stderr"
+    },
+    {
+      "label": "lint-after",
+      "args": [
+        "--max-old-space-size=960",
+        "/Users/kjopek/Workspace/.worktrees/safe-bash-migration-audit-8zqj_jh5/test-lint-repair-bKsued/check.mjs",
+        "lint"
+      ],
+      "cwd": "/Users/kjopek/Workspace/.worktrees/poe-code-safe-bash-20260829T153926/packages/safe-bash",
+      "start": "2026-08-30T02:24:21.132Z",
+      "end": "2026-08-30T02:24:24.185Z",
+      "status": 1,
+      "signal": null,
+      "stdout": "lint-after.stdout",
+      "stderr": "lint-after.stderr"
+    },
+    {
+      "label": "equivalence-final",
+      "args": [
+        "/Users/kjopek/Workspace/.worktrees/safe-bash-migration-audit-8zqj_jh5/test-lint-repair-bKsued/check.mjs",
+        "equivalence"
+      ],
+      "cwd": "/Users/kjopek/Workspace/.worktrees/poe-code-safe-bash-20260829T153926/packages/safe-bash",
+      "start": "2026-08-30T02:25:58.404Z",
+      "end": "2026-08-30T02:25:58.624Z",
+      "status": 0,
+      "signal": null,
+      "stdout": "equivalence-final.stdout",
+      "stderr": "equivalence-final.stderr"
+    },
+    {
+      "label": "corpus-before",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "--test-name-pattern=^frozen native corpus retains every independently generated case$",
+        "tests/commands/structured-stress/corpus.test.ts"
+      ],
+      "cwd": "/Users/kjopek/Workspace/.worktrees/poe-code-safe-bash-20260829T153926/packages/safe-bash",
+      "start": "2026-08-30T02:26:57.518Z",
+      "end": "2026-08-30T02:26:57.765Z",
+      "status": 0,
+      "signal": null,
+      "stdout": "corpus-before.stdout",
+      "stderr": "corpus-before.stderr"
+    },
+    {
+      "label": "types-added-root-before",
+      "args": [
+        "--max-old-space-size=960",
+        "/Users/kjopek/Workspace/.worktrees/safe-bash-migration-audit-8zqj_jh5/test-lint-repair-bKsued/check.mjs",
+        "types"
+      ],
+      "cwd": "/Users/kjopek/Workspace/.worktrees/poe-code-safe-bash-20260829T153926/packages/safe-bash",
+      "start": "2026-08-30T02:26:57.765Z",
+      "end": "2026-08-30T02:27:00.041Z",
+      "status": 0,
+      "signal": null,
+      "stdout": "types-added-root-before.stdout",
+      "stderr": "types-added-root-before.stderr"
+    },
+    {
+      "label": "corpus-after",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "--test-name-pattern=^frozen native corpus retains every independently generated case$",
+        "tests/commands/structured-stress/corpus.test.ts"
+      ],
+      "cwd": "/Users/kjopek/Workspace/.worktrees/poe-code-safe-bash-20260829T153926/packages/safe-bash",
+      "start": "2026-08-30T02:27:05.877Z",
+      "end": "2026-08-30T02:27:06.081Z",
+      "status": 0,
+      "signal": null,
+      "stdout": "corpus-after.stdout",
+      "stderr": "corpus-after.stderr"
+    },
+    {
+      "label": "equivalence-complete",
+      "args": [
+        "/Users/kjopek/Workspace/.worktrees/safe-bash-migration-audit-8zqj_jh5/test-lint-repair-bKsued/check.mjs",
+        "equivalence"
+      ],
+      "cwd": "/Users/kjopek/Workspace/.worktrees/poe-code-safe-bash-20260829T153926/packages/safe-bash",
+      "start": "2026-08-30T02:27:06.081Z",
+      "end": "2026-08-30T02:27:06.271Z",
+      "status": 0,
+      "signal": null,
+      "stdout": "equivalence-complete.stdout",
+      "stderr": "equivalence-complete.stderr"
+    },
+    {
+      "label": "types-complete",
+      "args": [
+        "--max-old-space-size=960",
+        "/Users/kjopek/Workspace/.worktrees/safe-bash-migration-audit-8zqj_jh5/test-lint-repair-bKsued/check.mjs",
+        "types"
+      ],
+      "cwd": "/Users/kjopek/Workspace/.worktrees/poe-code-safe-bash-20260829T153926/packages/safe-bash",
+      "start": "2026-08-30T02:27:06.271Z",
+      "end": "2026-08-30T02:27:08.312Z",
+      "status": 0,
+      "signal": null,
+      "stdout": "types-complete.stdout",
+      "stderr": "types-complete.stderr"
+    },
+    {
+      "label": "lint-complete",
+      "args": [
+        "--max-old-space-size=960",
+        "/Users/kjopek/Workspace/.worktrees/safe-bash-migration-audit-8zqj_jh5/test-lint-repair-bKsued/check.mjs",
+        "lint"
+      ],
+      "cwd": "/Users/kjopek/Workspace/.worktrees/poe-code-safe-bash-20260829T153926/packages/safe-bash",
+      "start": "2026-08-30T02:27:08.312Z",
+      "end": "2026-08-30T02:27:11.401Z",
+      "status": 1,
+      "signal": null,
+      "stdout": "lint-complete.stdout",
+      "stderr": "lint-complete.stderr"
+    }
+  ],
+  "environment": {
+    "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path:/usr/bin:/bin:/usr/sbin:/sbin",
+    "HOME": "/Users/kjopek/Workspace/.worktrees/safe-bash-migration-audit-8zqj_jh5/test-lint-repair-bKsued/home",
+    "TMPDIR": "/Users/kjopek/Workspace/.worktrees/safe-bash-migration-audit-8zqj_jh5/test-lint-repair-bKsued/tmp",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "TERM": "xterm-256color",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "limits": {
+    "perCommandMs": 120000,
+    "maxOutputBytesPerStream": 16777216,
+    "typeAndLintV8OldSpaceMiB": 960
+  },
+  "runningOwnedProcesses": [],
+  "coordination": {
+    "AquinasCleanupPathsUntouched": true,
+    "GoodallConfigUntouched": true,
+    "discoveryUpdate": "No changes to scripts/integration-inputs.test.mjs; await Chandrasekhar final native-tool.test.ts handoff before 653→654 update.",
+    "nativeQualification": "No Linux qualification claimed; no oracle provisioning or PATH change."
+  }
+}
+

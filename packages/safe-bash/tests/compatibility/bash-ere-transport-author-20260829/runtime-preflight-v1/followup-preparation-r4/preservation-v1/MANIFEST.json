@@ -1,0 +1,443 @@
+{
+  "schema": 1,
+  "files": [
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/01-constructor-built.stderr",
+      "path": "FUTURE-ACTUAL-01/01-constructor-built.stderr",
+      "size": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/01-constructor-built.stdout",
+      "path": "FUTURE-ACTUAL-01/01-constructor-built.stdout",
+      "size": 108,
+      "mode": 384,
+      "sha256": "d4c66eed6ef86a7db458fdf8843f3569cf66cc000ab335193800ef67dc5e3684"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/02-constructor-installed.stderr",
+      "path": "FUTURE-ACTUAL-01/02-constructor-installed.stderr",
+      "size": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/02-constructor-installed.stdout",
+      "path": "FUTURE-ACTUAL-01/02-constructor-installed.stdout",
+      "size": 108,
+      "mode": 384,
+      "sha256": "d4c66eed6ef86a7db458fdf8843f3569cf66cc000ab335193800ef67dc5e3684"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/03-constructor-moved.stderr",
+      "path": "FUTURE-ACTUAL-01/03-constructor-moved.stderr",
+      "size": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/03-constructor-moved.stdout",
+      "path": "FUTURE-ACTUAL-01/03-constructor-moved.stdout",
+      "size": 108,
+      "mode": 384,
+      "sha256": "d4c66eed6ef86a7db458fdf8843f3569cf66cc000ab335193800ef67dc5e3684"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/04-normal-built.stderr",
+      "path": "FUTURE-ACTUAL-01/04-normal-built.stderr",
+      "size": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/04-normal-built.stdout",
+      "path": "FUTURE-ACTUAL-01/04-normal-built.stdout",
+      "size": 103,
+      "mode": 384,
+      "sha256": "4023d56a7d35bacc38283496894b2355166466ab6f4bea8a419b9b7c1302eeb7"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/05-normal-installed.stderr",
+      "path": "FUTURE-ACTUAL-01/05-normal-installed.stderr",
+      "size": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/05-normal-installed.stdout",
+      "path": "FUTURE-ACTUAL-01/05-normal-installed.stdout",
+      "size": 103,
+      "mode": 384,
+      "sha256": "4023d56a7d35bacc38283496894b2355166466ab6f4bea8a419b9b7c1302eeb7"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/06-normal-moved.stderr",
+      "path": "FUTURE-ACTUAL-01/06-normal-moved.stderr",
+      "size": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/06-normal-moved.stdout",
+      "path": "FUTURE-ACTUAL-01/06-normal-moved.stdout",
+      "size": 103,
+      "mode": 384,
+      "sha256": "4023d56a7d35bacc38283496894b2355166466ab6f4bea8a419b9b7c1302eeb7"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/07-post-built.stderr",
+      "path": "FUTURE-ACTUAL-01/07-post-built.stderr",
+      "size": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/07-post-built.stdout",
+      "path": "FUTURE-ACTUAL-01/07-post-built.stdout",
+      "size": 101,
+      "mode": 384,
+      "sha256": "913d8c8d2d680f670dfd0bc958bdcc0d467c17c6de30009203b0792875bf5307"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/08-post-installed.stderr",
+      "path": "FUTURE-ACTUAL-01/08-post-installed.stderr",
+      "size": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/08-post-installed.stdout",
+      "path": "FUTURE-ACTUAL-01/08-post-installed.stdout",
+      "size": 101,
+      "mode": 384,
+      "sha256": "913d8c8d2d680f670dfd0bc958bdcc0d467c17c6de30009203b0792875bf5307"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/09-post-moved.stderr",
+      "path": "FUTURE-ACTUAL-01/09-post-moved.stderr",
+      "size": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/09-post-moved.stdout",
+      "path": "FUTURE-ACTUAL-01/09-post-moved.stdout",
+      "size": 101,
+      "mode": 384,
+      "sha256": "913d8c8d2d680f670dfd0bc958bdcc0d467c17c6de30009203b0792875bf5307"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/10-single-built.stderr",
+      "path": "FUTURE-ACTUAL-01/10-single-built.stderr",
+      "size": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/10-single-built.stdout",
+      "path": "FUTURE-ACTUAL-01/10-single-built.stdout",
+      "size": 103,
+      "mode": 384,
+      "sha256": "84edd29c49f41217c294ed28b444029eb92b81abe2f591b0db972032900c8126"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/11-single-installed.stderr",
+      "path": "FUTURE-ACTUAL-01/11-single-installed.stderr",
+      "size": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/11-single-installed.stdout",
+      "path": "FUTURE-ACTUAL-01/11-single-installed.stdout",
+      "size": 103,
+      "mode": 384,
+      "sha256": "84edd29c49f41217c294ed28b444029eb92b81abe2f591b0db972032900c8126"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/12-single-moved.stderr",
+      "path": "FUTURE-ACTUAL-01/12-single-moved.stderr",
+      "size": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/12-single-moved.stdout",
+      "path": "FUTURE-ACTUAL-01/12-single-moved.stdout",
+      "size": 103,
+      "mode": 384,
+      "sha256": "84edd29c49f41217c294ed28b444029eb92b81abe2f591b0db972032900c8126"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/13-persistent-built.stderr",
+      "path": "FUTURE-ACTUAL-01/13-persistent-built.stderr",
+      "size": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/13-persistent-built.stdout",
+      "path": "FUTURE-ACTUAL-01/13-persistent-built.stdout",
+      "size": 111,
+      "mode": 384,
+      "sha256": "db4936ebb8dab2be4a96e477071d36d3461f304b5157f73cb0e18a68534ab0db"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/ACTIVATION.json",
+      "path": "FUTURE-ACTUAL-01/ACTIVATION.json",
+      "size": 287,
+      "mode": 420,
+      "sha256": "c69f61ffb6c553d4adc395ef40aec044412939ab945e5c4068cefdb4153c8417"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/RUNTIME-RESULT.json",
+      "path": "FUTURE-ACTUAL-01/RUNTIME-RESULT.json",
+      "size": 3061,
+      "mode": 420,
+      "sha256": "56f2df9e895c86d289682754dac22e83cc26d0a77d9e96631eb4fa0488f02811"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/STOP.json",
+      "path": "FUTURE-ACTUAL-01/STOP.json",
+      "size": 3088,
+      "mode": 420,
+      "sha256": "c104c1eb9bb08f258bb063f8a84c925137081439a7e2a81019f8a6f0c38738d7"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/bootstrap.stderr",
+      "path": "FUTURE-ACTUAL-01/bootstrap.stderr",
+      "size": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/bootstrap.stdout",
+      "path": "FUTURE-ACTUAL-01/bootstrap.stdout",
+      "size": 133,
+      "mode": 384,
+      "sha256": "4f429aadc7501475e689e6e6ffc16992752140a920addc49ee32bb72d8189202"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/outer.stderr",
+      "path": "FUTURE-ACTUAL-01/outer.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/outer.stdout",
+      "path": "FUTURE-ACTUAL-01/outer.stdout",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/owner.stderr",
+      "path": "FUTURE-ACTUAL-01/owner.stderr",
+      "size": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/owner.stdout",
+      "path": "FUTURE-ACTUAL-01/owner.stdout",
+      "size": 1248,
+      "mode": 384,
+      "sha256": "759a3e23e4b43c99f842b3148304579a34ffa03198967df3d5b8f1e5735d9ccc"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/01-constructor-built/RESULT.json",
+      "path": "CASES/01-constructor-built/RESULT.json",
+      "size": 2149,
+      "mode": 420,
+      "sha256": "2e4e339959a994ed283298c455cb7413135a744c7cabe3d5c7f0253a13c731c5"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/01-constructor-built/JOURNAL.jsonl",
+      "path": "CASES/01-constructor-built/JOURNAL.jsonl",
+      "size": 526,
+      "mode": 384,
+      "sha256": "3dd21dcd176024871326e88e851e62d656ef029d02f48e3eeb01e27af02dab57"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/02-constructor-installed/RESULT.json",
+      "path": "CASES/02-constructor-installed/RESULT.json",
+      "size": 2475,
+      "mode": 420,
+      "sha256": "4035d517ec0aca6bbbc54fc64748a6c382d5dbb05945efb799ea2360694820e9"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/02-constructor-installed/JOURNAL.jsonl",
+      "path": "CASES/02-constructor-installed/JOURNAL.jsonl",
+      "size": 526,
+      "mode": 384,
+      "sha256": "1a73a4614f9793746603fca213c7898ac6dfdd3892ce7972d90c02016d75cee0"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/03-constructor-moved/RESULT.json",
+      "path": "CASES/03-constructor-moved/RESULT.json",
+      "size": 2541,
+      "mode": 420,
+      "sha256": "9455d59a4964f47a5f8cb8da73bd833ebe4acf40ab386b3151d4bd8b36558bfb"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/03-constructor-moved/JOURNAL.jsonl",
+      "path": "CASES/03-constructor-moved/JOURNAL.jsonl",
+      "size": 526,
+      "mode": 384,
+      "sha256": "eaa377fde87d1f31158f40b1948b866faa068d3f2a3cc7905656383d0ba68854"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/04-normal-built/RESULT.json",
+      "path": "CASES/04-normal-built/RESULT.json",
+      "size": 2875,
+      "mode": 420,
+      "sha256": "32620130a82a5a0d9ca1d24dd7b27d2cf534722fe0276c0db9a876faf2f473e0"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/04-normal-built/JOURNAL.jsonl",
+      "path": "CASES/04-normal-built/JOURNAL.jsonl",
+      "size": 1292,
+      "mode": 384,
+      "sha256": "8a0d8bf47a0312c132f38c929bd931f12607b62cb5863ae786c1990c24ac182b"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/05-normal-installed/RESULT.json",
+      "path": "CASES/05-normal-installed/RESULT.json",
+      "size": 3201,
+      "mode": 420,
+      "sha256": "6a17df59500b2041403c408e5d6bc75f6da8a798237808b6cc70d5e74ecabf22"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/05-normal-installed/JOURNAL.jsonl",
+      "path": "CASES/05-normal-installed/JOURNAL.jsonl",
+      "size": 1292,
+      "mode": 384,
+      "sha256": "6afc375b6d353d7ab0683c5c32b4e1e6317befd04df42c37ea94eb1a1c5931d3"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/06-normal-moved/RESULT.json",
+      "path": "CASES/06-normal-moved/RESULT.json",
+      "size": 3267,
+      "mode": 420,
+      "sha256": "9b3eae3439b4b348dec5e4b891f8c12afb450eea7cb48478065a930fc116a368"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/06-normal-moved/JOURNAL.jsonl",
+      "path": "CASES/06-normal-moved/JOURNAL.jsonl",
+      "size": 1292,
+      "mode": 384,
+      "sha256": "c911f4707f1cd6ee7f5b7d3ee81b0cf2108fab0afef9d5450d2c3db54c40bf93"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/07-post-built/RESULT.json",
+      "path": "CASES/07-post-built/RESULT.json",
+      "size": 2833,
+      "mode": 420,
+      "sha256": "639ffa1719db04964865751eb4134a5370e734c4cadaec19922a08911026b261"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/07-post-built/JOURNAL.jsonl",
+      "path": "CASES/07-post-built/JOURNAL.jsonl",
+      "size": 1224,
+      "mode": 384,
+      "sha256": "9ad2b0383248038bd2cd2361bfef31fcc756efcc64baf62be36a8ab43a7d9a54"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/08-post-installed/RESULT.json",
+      "path": "CASES/08-post-installed/RESULT.json",
+      "size": 3159,
+      "mode": 420,
+      "sha256": "6bf81a31290d58a0bc40d965de1f0dce87173375ce21731849320264f9b14386"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/08-post-installed/JOURNAL.jsonl",
+      "path": "CASES/08-post-installed/JOURNAL.jsonl",
+      "size": 1224,
+      "mode": 384,
+      "sha256": "c7e4eab8d1aadbffbbde9559635826fc64f5dd67f415ccabfab9fc5254ac287f"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/09-post-moved/RESULT.json",
+      "path": "CASES/09-post-moved/RESULT.json",
+      "size": 3225,
+      "mode": 420,
+      "sha256": "04792a2471c475ec43415576b91f1d09f29726cf63fd9f07fa90ecc71a5e51e6"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/09-post-moved/JOURNAL.jsonl",
+      "path": "CASES/09-post-moved/JOURNAL.jsonl",
+      "size": 1224,
+      "mode": 384,
+      "sha256": "2df4874baf6ff70fa0888708736015c1d1907fc94eab249796cf3170f2a895bc"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/10-single-built/RESULT.json",
+      "path": "CASES/10-single-built/RESULT.json",
+      "size": 2784,
+      "mode": 420,
+      "sha256": "b19bc39a14f1a93e1d7ddc57dea198238513ded2e15c2295f8797868b6e7359f"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/10-single-built/JOURNAL.jsonl",
+      "path": "CASES/10-single-built/JOURNAL.jsonl",
+      "size": 1171,
+      "mode": 384,
+      "sha256": "9fbe8cd91b71e3b3c11ae4abb6d69074ba750db369fc75899a4510e47539354b"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/11-single-installed/RESULT.json",
+      "path": "CASES/11-single-installed/RESULT.json",
+      "size": 3110,
+      "mode": 420,
+      "sha256": "48e2af275c776592a9d2935f2ab790c751f7f52819575db3acb0f2a683ddf937"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/11-single-installed/JOURNAL.jsonl",
+      "path": "CASES/11-single-installed/JOURNAL.jsonl",
+      "size": 1171,
+      "mode": 384,
+      "sha256": "186a3e3b2044df2f55012dab842df97b7d35f7c4c82a3953cb9ff8b126c41342"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/12-single-moved/RESULT.json",
+      "path": "CASES/12-single-moved/RESULT.json",
+      "size": 3176,
+      "mode": 420,
+      "sha256": "30d69dcecf95c29cc637934ecc47c3c8c0ad999aa014f30a3bcd952aa87a7929"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/12-single-moved/JOURNAL.jsonl",
+      "path": "CASES/12-single-moved/JOURNAL.jsonl",
+      "size": 1171,
+      "mode": 384,
+      "sha256": "e1fda185fa750f9fad73592d23c3e1d93ef641366e3aa063d79344db8fa155db"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/13-persistent-built/RESULT.json",
+      "path": "CASES/13-persistent-built/RESULT.json",
+      "size": 2669,
+      "mode": 420,
+      "sha256": "f84400d8f1ad884b97084d4f739a31d4d35477d8af5d1383370dd742f85a7d4f"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/13-persistent-built/JOURNAL.jsonl",
+      "path": "CASES/13-persistent-built/JOURNAL.jsonl",
+      "size": 986,
+      "mode": 384,
+      "sha256": "74242f90917ac505a292f4dcf0f2ffeb27d6c28bac34ea649268b665f0e5133b"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/13-persistent-built/EMERGENCY.json",
+      "path": "CASES/13-persistent-built/EMERGENCY.json",
+      "size": 264,
+      "mode": 420,
+      "sha256": "ec5f29127aec62d7c30711f1113835b6e072e877753220d51d10850b84f58b11"
+    }
+  ],
+  "totalFiles": 62,
+  "totalBytes": 60526,
+  "byteAndModeExact": true,
+  "sourceUnmodified": true
+}

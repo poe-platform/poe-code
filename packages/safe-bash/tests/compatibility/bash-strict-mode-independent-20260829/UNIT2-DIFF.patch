@@ -1,0 +1,223 @@
+diff --git a/src/shell/parser.ts b/src/shell/parser.ts
+index 05837b9d..40857123 100644
+--- a/src/shell/parser.ts
++++ b/src/shell/parser.ts
+@@ -498,7 +498,7 @@ class Lexer {
+       const name = /^(?:[a-zA-Z_][a-zA-Z_0-9]*|[?@*#0-9-])/u.exec(this.source.slice(this.position))?.[0];
+       if (name) {
+         this.position += name.length;
+-        parts.push({ kind: "variable", name, quoted });
++        parts.push({ kind: "variable", name, quoted, line });
+       } else parts.push({ kind: "text", value: "$", quoted });
+     }
+   }
+diff --git a/src/shell/runtime.ts b/src/shell/runtime.ts
+index f24bfb74..6c4ec49f 100644
+--- a/src/shell/runtime.ts
++++ b/src/shell/runtime.ts
+@@ -209,6 +209,7 @@ export interface State {
+   dotglob?: boolean;
+   pipefail: boolean;
+   errexit?: boolean;
++  nounset?: boolean;
+   isolated?: boolean;
+   redirectAssignments?: ReadonlyMap<string, string>;
+ }
+@@ -279,6 +280,12 @@ class FatalCommandFailure extends CommandFailure {}
+ 
+ class ParameterExpansionFailure extends ExpansionFailure {}
+ 
++class NounsetFailure extends ExpansionFailure {}
++
++class NounsetDiagnosticFailure extends Flow {
++  constructor(readonly reason: unknown) { super("exit", 1); }
++}
++
+ class PipelineClosed extends Error {
+   readonly code = "EPIPE";
+   constructor() { super("Pipeline consumer exited"); }
+@@ -963,9 +970,16 @@ export class Runtime {
+         frame,
+       );
+       let captured: CapturedCancellationOutcome<CommandResult>;
+-      if (owner) captured = await owner.capture(() => execute(runtime, scope), frame);
++      const executeChild = async (): Promise<CommandResult> => {
++        try { return await execute(runtime, scope); }
++        catch (error) {
++          if (error instanceof NounsetDiagnosticFailure) throw error.reason;
++          throw error;
++        }
++      };
++      if (owner) captured = await owner.capture(executeChild, frame);
+       else {
+-        try { captured = { kind: "return", value: await execute(runtime, scope) }; }
++        try { captured = { kind: "return", value: await executeChild() }; }
+         catch (reason) {
+           captured = frame.report && Object.is(frame.report.origin.signal.reason, reason)
+             ? { kind: "throw", reason, report: frame.report }
+@@ -1041,6 +1055,10 @@ export class Runtime {
+     return binding ? binding.get(0) : state.variables[name];
+   }
+ 
++  private requireParameter(value: string | undefined, name: string, state: State, io: IO, line?: number): void {
++    if (state.nounset && value === undefined) throw new NounsetFailure(`${name}: unbound variable`, io.diagnosticLine ?? line);
++  }
++
+   async assignVariable(state: State, name: string, value: string, origin: "assignment" | "getopts" = "assignment"): Promise<void> {
+     if (!arrayStore(state)?.get(name)) { this.writeVariable(state, name, value, origin); return; }
+     await this.arrayZero(state, name, async () => value);
+@@ -1311,6 +1329,10 @@ export class Runtime {
+     state = trackState(state, this.budget, io[invocationScope]);
+     try { return { exitCode: await this.script(script, state, io), terminated: false }; }
+     catch (error) {
++      if (error instanceof NounsetDiagnosticFailure) {
++        if (state.isolated) throw error;
++        throw error.reason;
++      }
+       if (error instanceof Flow && error.kind === "exit") return { exitCode: error.status, terminated: true };
+       throw error;
+     }
+@@ -1445,6 +1467,7 @@ export class Runtime {
+   async runCommandIsolated(command: Command, state: State, io: IO, fileShortcut = false): Promise<number> {
+     try { return await this.command(command, state, io, fileShortcut); }
+     catch (error) {
++      if (error instanceof NounsetDiagnosticFailure) throw error;
+       if (error instanceof Flow && (error.kind === "exit" || error.kind === "return")) return error.status;
+       throw error;
+     }
+@@ -1478,6 +1501,7 @@ export class Runtime {
+     const inputs = new Set<ShellInput>();
+     const outputs = new Set<() => void>();
+     let io = originalIO;
++    let diagnosticFailure: NounsetDiagnosticFailure | undefined;
+     try {
+       if (command.kind === "function") {
+         if (state.profile === "sh" && specialBuiltinNames.has(command.name)) {
+@@ -1557,6 +1581,7 @@ export class Runtime {
+     } catch (error) {
+       const diagnostic = error instanceof ExecutionFailure ? error.diagnostic : undefined;
+       if (error instanceof ExecutionFailure) { io = error.io; error = error.original; }
++      if (error instanceof NounsetDiagnosticFailure) diagnosticFailure = error;
+       this.signal.throwIfAborted();
+       if (error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError) throw error;
+       this.clearOutcomeReport();
+@@ -1567,6 +1592,16 @@ export class Runtime {
+       }
+       if (errorCode(error) === "EPIPE") { this.errexit(141, state, io); return 141; }
+       const line = error instanceof ExpansionFailure ? error.line ?? io.diagnosticLine ?? 1 : io.diagnosticLine ?? 1;
++      if (error instanceof NounsetFailure) {
++        try { await writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${line}: ${message(error)}\n`); }
++        catch (reason) {
++          this.signal.throwIfAborted();
++          if (reason instanceof ShellLimitError) throw reason;
++          diagnosticFailure = new NounsetDiagnosticFailure(reason);
++          throw diagnosticFailure;
++        }
++        throw new Flow("exit", 1);
++      }
+       if (error instanceof ArrayFailure) await writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${line}: ${diagnostic ?? message(error)}\n`);
+       else {
+         try { await writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${line}: ${diagnostic ?? message(error)}\n`); }
+@@ -1578,8 +1613,13 @@ export class Runtime {
+       this.errexit(status, state, io);
+       return status;
+     } finally {
+-      for (const close of outputs) close();
+-      await Promise.all([...inputs].map((input) => input.close()));
++      try {
++        for (const close of outputs) close();
++        await Promise.all([...inputs].map((input) => input.close()));
++      } catch (error) {
++        if (diagnosticFailure) io[invocationScope].failures.push(error);
++        else throw error;
++      }
+     }
+   }
+ 
+@@ -1658,6 +1698,7 @@ export class Runtime {
+         let value: string;
+         try { value = redirect.document ? await this.document(redirect.document, state, currentIO(), line) : (await this.word(redirect.target, state, currentIO(), false, false, hereString)).join(""); }
+         catch (error) {
++          if (error instanceof NounsetFailure) throw error;
+           if (error instanceof ParameterExpansionFailure && !isolatedInlineInput) throw error;
+           if (error instanceof ParameterExpansionFailure) throw new CommandFailure(error.message, state.isolated ? 1 : 127);
+           if (error instanceof ExpansionFailure) throw new Error(error.message);
+@@ -3178,15 +3219,21 @@ export class Runtime {
+         const option = args[index]!;
+         if (option === "--") { index++; positionals = true; break; }
+         if (option === "-") { index++; positionals = index < args.length; break; }
+-        if (/^[-+]e+$/u.test(option)) { state.errexit = option.startsWith("-"); index++; continue; }
+-        if ((option === "-o" || option === "+o") && (args[index + 1] === "pipefail" || args[index + 1] === "errexit")) {
+-          if (args[index + 1] === "pipefail") state.pipefail = option === "-o";
+-          else state.errexit = option === "-o";
+-          index += 2;
++        const flags = /^[-+]([eu]*o|[eu]+)$/u.exec(option)?.[1];
++        const named = flags?.endsWith("o");
++        const name = named ? args[index + 1] : undefined;
++        if (flags && (!named || name === "pipefail" || name === "errexit" || name === "nounset")) {
++          const enabled = option.startsWith("-");
++          for (const flag of flags) {
++            if (flag === "e" || flag === "o" && name === "errexit") state.errexit = enabled;
++            else if (flag === "u" || flag === "o" && name === "nounset") state.nounset = enabled;
++            else if (flag === "o" && name === "pipefail") state.pipefail = enabled;
++          }
++          index += named ? 2 : 1;
+           continue;
+         }
+         if (/^[+-]/u.test(option)) {
+-          await writeText(stderr, "set: unsupported shell option; supported forms are -e, +e, -- arguments and -o/+o pipefail or errexit\n");
++          await writeText(stderr, "set: unsupported shell option; supported forms are +/- e/u clusters, -- arguments and terminal o with pipefail, errexit or nounset\n");
+           if (state.profile === "sh" && suppressSpecial) return 2;
+           throw new Flow("exit", 2);
+         }
+@@ -3195,7 +3242,7 @@ export class Runtime {
+       }
+       if (positionals) { state.positional = args.slice(index); state.positionalSetVersion = (state.positionalSetVersion ?? 0) + 1; }
+       if (args.length) return 0;
+-      await writeText(stderr, "set: supported forms are -e, +e, -- arguments and -o/+o pipefail or errexit\n");
++      await writeText(stderr, "set: supported forms are +/- e/u clusters, -- arguments and terminal o with pipefail, errexit or nounset\n");
+       return 2;
+     }
+     if (command === "shift") {
+@@ -3474,6 +3521,7 @@ export class Runtime {
+         const index = numericIndex(selector.index);
+         if (index === undefined) throw new ArrayFailure("index outside 0..2147483647");
+         const value = binding ? binding.get(index) : index === 0 ? state.variables[part.name] : undefined;
++        this.requireParameter(value, `${part.name}[${selector.index}]`, state, io, part.line);
+         return part.length ? String(Array.from(value ?? "").length) : value ?? "";
+       }
+       if (part.length) return String(binding?.values.size ?? (state.variables[part.name] === undefined ? 0 : 1));
+@@ -3481,15 +3529,21 @@ export class Runtime {
+       return this.arrayJoin(store.owner, values, Array.from(state.variables.IFS ?? " ")[0] ?? "");
+     }
+     let value = part.name === "?" ? String(state.status)
+-      : part.name === "-" ? state.errexit ? "e" : ""
++      : part.name === "-" ? `${state.errexit ? "e" : ""}${state.nounset ? "u" : ""}`
+       : part.name === "#" ? String(state.positional.length)
+       : part.name === "@" || part.name === "*" ? state.positional.join(hereString && (part.name === "@" || !part.quoted) ? " " : Array.from(state.variables.IFS ?? " ")[0] ?? "")
+       : /^0+$/u.test(part.name) ? state.arg0 ?? "virtual-bash"
+       : /^\d+$/u.test(part.name) ? state.positional[Number(part.name) - 1]
+       : this.variable(state, part.name);
+-    if (part.substring) return this.substring(part, value, state, io);
++    if (part.substring) {
++      this.requireParameter(value, part.name, state, io, part.line);
++      return this.substring(part, value, state, io);
++    }
+     if (part.operator) {
+-      if (["#", "##", "%", "%%"].includes(part.operator) || part.operator.startsWith("/")) return this.parameterPattern(part, value ?? "", state, io, hereString);
++      if (["#", "##", "%", "%%"].includes(part.operator) || part.operator.startsWith("/")) {
++        this.requireParameter(value, part.name, state, io, part.line);
++        return this.parameterPattern(part, value ?? "", state, io, hereString);
++      }
+       const missing = value === undefined || (part.operator.startsWith(":") && value === "");
+       const operator = part.operator.at(-1)!;
+       if ((operator === "+" && !missing) || (operator !== "+" && missing)) {
+@@ -3511,7 +3565,7 @@ export class Runtime {
+         }
+         value = alternate;
+       } else if (operator === "+") value = "";
+-    }
++    } else this.requireParameter(value, part.name, state, io, part.line);
+     return part.length ? String(Array.from(value ?? "").length) : value ?? "";
+   }
+ 

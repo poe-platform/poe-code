@@ -1,0 +1,85 @@
+{
+  "schema": 1,
+  "classification": "SOURCE_RECIPE_SYNTHETIC_DATA_ONLY",
+  "aggregate": "PASS",
+  "records": [
+    {
+      "id": "missing-root-binding-refuses",
+      "outcome": "PASS"
+    },
+    {
+      "id": "same-selected-origin-no-fake-commit",
+      "outcome": "PASS"
+    },
+    {
+      "id": "packet-reference-and-hash-required",
+      "outcome": "PASS"
+    },
+    {
+      "id": "independent-build-not-inherited",
+      "outcome": "PASS"
+    },
+    {
+      "id": "exact-ten-field-consumer-schema",
+      "outcome": "PASS"
+    },
+    {
+      "id": "source-273-versus-271-and-map",
+      "outcome": "PASS"
+    },
+    {
+      "id": "full-870-baseline-readme",
+      "outcome": "PASS"
+    },
+    {
+      "id": "readonly-fixture-translation-preserved",
+      "outcome": "PASS"
+    },
+    {
+      "id": "negative-type-declared-diagnostic-only",
+      "outcome": "PASS"
+    },
+    {
+      "id": "nonzero-worker-never-waived",
+      "outcome": "PASS"
+    },
+    {
+      "id": "timeout-fail-clean-continuation-only",
+      "outcome": "PASS"
+    },
+    {
+      "id": "integrity-or-reap-uncertainty-stops",
+      "outcome": "PASS"
+    },
+    {
+      "id": "all-194-routes-and-eight-overlays-unchanged",
+      "outcome": "PASS"
+    },
+    {
+      "id": "132-projection-149-jobs-not-recounted",
+      "outcome": "PASS"
+    },
+    {
+      "id": "all-80-gaps-retained",
+      "outcome": "PASS"
+    },
+    {
+      "id": "public-export-gap-retained",
+      "outcome": "PASS"
+    }
+  ],
+  "runtimeBindingStatus": "SEALED",
+  "deferred": [
+    "Product executions, imports, builds and compiler runs remain root-routed; runtime composition is checked separately by core/check.mjs"
+  ],
+  "runtimeHelperImports": 0,
+  "ownedChildExecutions": 0,
+  "activeChildren": [],
+  "productImports": 0,
+  "productExecutions": 0,
+  "builds": 0,
+  "typeCompiles": 0,
+  "independentAcceptance": false,
+  "fixtureBeforeAfterSha256": "041bf338bdcc797dc183c8f4ef45ba0c624d042e912030bc1c39054f0cf94547",
+  "sealHash": "47c3874f520efee18062d4b2e687159a52039a86d35945a7f5371e85eb00fdff"
+}

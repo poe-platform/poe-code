@@ -1,0 +1,181 @@
+# @poe-code/ralph
+
+Simple iterative markdown loop. Give it a markdown doc, it runs an agent on it repeatedly for N iterations.
+
+Pass a SafeFS `FileSystem` as `fs` to `runRalph` or `discoverDocs` to use memory or remote storage in Workers. Supply `runAgent` to execute each turn. Node applications use the host filesystem by default. The simulation helpers also run without Node dependencies.
+
+## Quickstart
+
+```bash
+# 1. Write a markdown doc with your task description
+
+# 2. Initialize Ralph config in the doc's frontmatter
+poe-code ralph init
+
+# 3. Run the loop
+poe-code ralph run
+```
+
+## Example Doc
+
+A plain markdown file. Ralph adds YAML frontmatter to track agent, iterations, and status.
+
+```markdown
+---
+agent: claude-code
+iterations: 3
+status:
+  state: open
+  iteration: 0
+---
+
+# Refactor the auth module
+
+Split the monolithic auth.ts into separate files for session management,
+token validation, and middleware. Keep all existing tests passing.
+```
+
+### Multiple agents
+
+Agents cycle round-robin across iterations:
+
+```yaml
+agent:
+  - claude-code
+  - codex
+```
+
+### Specifying a model
+
+Use `agent:provider/model` notation:
+
+```yaml
+agent: "claude-code:<provider>/<model>"
+```
+
+## Template Variables
+
+Ralph supports `{{ variable }}` syntax in doc bodies. Variables are interpolated before the prompt is sent to the agent but preserved as-is in the file.
+
+## Configuration Options
+
+Ralph configuration lives in the markdown document frontmatter:
+
+- `agent`: one agent, or a list for round-robin execution.
+- `iterations`: maximum iteration count.
+- `status.state`: run state.
+- `status.iteration`: current iteration.
+
+## Environment Variables
+
+This package does not read public environment variables directly.
+
+| Variable                  | Resolves to                              |
+| ------------------------- | ---------------------------------------- |
+| `{{ current_file }}`      | Absolute path of the Ralph doc being run |
+| `{{ current_iteration }}` | Current one-based Ralph iteration number |
+| `{{ max_iterations }}`    | Configured maximum Ralph iterations      |
+
+```markdown
+---
+agent: claude-code
+iterations: 3
+---
+
+# Improve {{ current_file }}
+
+Review and improve the plan in this file.
+```
+
+## Doc Discovery
+
+Docs are auto-discovered from the shared plan directory, `docs/plans` by default. You usually do not need to pass a path manually.
+
+1. Scan the configured plan directory for `.md` files
+2. One doc found — use it
+3. Multiple — prompt for selection
+4. None — fail
+
+Ralph frontmatter validates plan status, iteration counters, configured agents,
+and maximum iterations before a run starts. Invalid plan metadata is reported as
+a document error instead of being coerced.
+
+## Custom Plan Directory
+
+By default docs are discovered from `docs/plans`. To use a different directory:
+
+```bash
+# Set plan directory in project config (.poe-code/config.json)
+# { "plan": { "plan_directory": "docs/ralph-plans" } }
+
+# Or via env
+POE_PLAN_DIRECTORY=docs/ralph-plans poe-code ralph run
+
+# Or point to a specific doc directly
+poe-code ralph run docs/plans/refactor-auth.md
+```
+
+## Dashboard Configuration
+
+Ralph's live dashboard shows iterations and queued plans. Type a message and press Enter to run it after the selected plan finishes; multiple submissions run in order through that plan's last agent and settings. Alt+Up/Down chooses the target plan. Ctrl+P switches to appending a plan, and Esc then `v` shows all queued work.
+
+```bash
+# One-off flags
+poe-code ralph run --tui
+poe-code ralph run docs/plans/first.md docs/plans/second.md --tui --after-plan "Review the API"
+poe-code ralph run --no-tui
+
+# Config default (.poe-code/config.json)
+# { "ralph": { "tui": true } }
+
+# Env override
+POE_RALPH_TUI=true poe-code ralph run
+```
+
+## Archive Configuration
+
+Ralph archives completed docs by default. Disable this with `poe-code ralph run --no-archive`, `{ "ralph": { "archive": false } }`, or `POE_RALPH_ARCHIVE=false`.
+
+## CLI
+
+```bash
+poe-code ralph init [doc]  [--agent <name>] [--iterations <n>]
+poe-code ralph run [docs...] [--agent <name>] [--iterations <n>] [--cwd <path>] [--archive|--no-archive] [--tui|--no-tui] [--after-plan <message>] [--runtime host|docker] [--worktree]
+```
+
+Pass `--worktree` to the `poe-code ralph run` CLI to run the whole Ralph loop in one managed git worktree and reconcile successful output afterward. Worktree mode requires a clean source checkout before the run starts. The root `poe-code` SDK wrapper also supports worktrees; the package-level runner below does not accept a `worktree` option.
+
+## Package API
+
+```ts
+import { runRalph } from "@poe-code/ralph";
+
+const result = await runRalph({
+  agent: "claude-code",
+  cwd: process.cwd(),
+  homeDir: "/home/test",
+  docPath: "docs/plans/refactor-auth.md",
+  maxIterations: 3,
+  runAgent: async ({ agent, prompt, cwd, model, signal }) => {
+    return { stdout: "", stderr: "", exitCode: 0 };
+  }
+});
+```
+
+`runRalphSequence({ docs, afterEachPlan, ...options })` runs ordered plans and follow-ups using the same runner. `afterEachPlan` mirrors repeatable `--after-plan` flags, including plans added later. Supply a `queue` from `createRunQueue` in `poe-code` instead of `docs` and `afterEachPlan` to add work during execution. `onQueueChange` observes the sequence; the result contains `plans`, `messages`, and the final `queue`. Archived plans include `archivedPath` in their result, and follow-up prompts reference that file. Failed or cancelled work leaves later items pending.
+
+Exports: `runRalph`, `runRalphSequence`, `discoverDocs`, `parseFrontmatter`, `writeFrontmatter`.
+
+## Testing Helper
+
+```ts
+import { createRalphSimulation, successTurn, failTurn } from "@poe-code/ralph/testing";
+
+const sim = createRalphSimulation({
+  docContent: "# Do the thing\nMake it better.",
+  maxIterations: 2,
+  turns: [successTurn(), successTurn()]
+});
+
+const result = await sim.run();
+```

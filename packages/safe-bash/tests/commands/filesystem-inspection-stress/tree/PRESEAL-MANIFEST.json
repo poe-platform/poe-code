@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "phase": "PREP_SEALED_AUTHOR_EMBARGO",
+  "sealedAt": "2026-08-27T08:13:47.498Z",
+  "privateDirectory": "/private/tmp/safe-bash-tree-hidden-prep-vyzfHc",
+  "intendedCases": 38,
+  "nativeCaptures": 20,
+  "verifierSelftestsPassed": 7,
+  "productExecutions": 0,
+  "payloadSha256": "b9863722f41cbdd56119ab95c3446ca3b65a5b752ccafc28dc6f9044854d2937",
+  "privateInventorySha256": "7080fc3c3dd527e2b49183b365253ae9ddd38f78672de5f97623ace661a976fa",
+  "artifactCount": 97,
+  "corpusSha256": "1dc3e241eaf3708facb9062abf219c7a7e6c01d348ebd7cb1516aaff3d0ae8a4",
+  "runnerSha256": "3068e51fece206bdcab38a53f5fb47b61cdfc5a71f35900f7241bf9f291fc03d",
+  "nativeCaptureSha256": "5b89a6577600326878987f4d985270087d26fa7d3abd00f5c98fab973619c897",
+  "prepDetailSha256": "40387a3bde24c27b0fbffa3b827b84df4f733b5e5d41f5e8ca9cafdd18851329",
+  "embargo": "Author must not inspect private artifacts before root failure handoff. Public manifest intentionally omits fixture/case names.",
+  "validation": "Verifier/native preparation checks only; unsupported is not pass; no product execution, parity or completion claim."
+}

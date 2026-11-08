@@ -1,0 +1,2 @@
+getopts abcdef opt -abcdef
+emit source "$?"

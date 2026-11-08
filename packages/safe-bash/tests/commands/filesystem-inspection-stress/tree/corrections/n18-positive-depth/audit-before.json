@@ -1,0 +1,15 @@
+{
+  "stage": "before",
+  "checkedAt": "2026-08-27T08:43:06.285Z",
+  "originalPreseal": "b9863722f41cbdd56119ab95c3446ca3b65a5b752ccafc28dc6f9044854d2937",
+  "originalPrivateArtifacts": 97,
+  "originalDurableArtifacts": 316,
+  "originalRawFiles": 186,
+  "originalCoverageFiles": 76,
+  "frozenInputFiles": 14205,
+  "frozenSourceManifest": "81eddab7060fcc67dfcf5adc325218b886a4fb50d7e40a1056ad9fe379e83a9a",
+  "frozenFullInputManifest": "ef040b94780aa38b5483d5d1c2f9d263e4396cc8a0d881255665080992cce1e8",
+  "allUnchanged": true,
+  "productCalls": 0,
+  "nativeCalls": 0
+}

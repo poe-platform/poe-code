@@ -1,0 +1,196 @@
+{
+  "none-none": {
+    "version": 2,
+    "parameters": {
+      "decodelevel": "none"
+    },
+    "qpdf": [
+      {
+        "jsonversion": 2,
+        "pdfversion": "1.7",
+        "pushedinheritedpageresources": false,
+        "calledgetallpages": false,
+        "maxobjectid": 8
+      },
+      {
+        "obj:7 0 R": {
+          "stream": {
+            "dict": {
+              "/Filter": "/FlateDecode",
+              "/First": 32,
+              "/Length": 290,
+              "/N": 6,
+              "/Type": "/ObjStm"
+            }
+          }
+        },
+        "obj:8 0 R": {
+          "stream": {
+            "dict": {
+              "/Filter": "/FlateDecode",
+              "/Index": [
+                0,
+                9
+              ],
+              "/Info": "3 0 R",
+              "/Length": 38,
+              "/Root": "2 0 R",
+              "/Size": 9,
+              "/Type": "/XRef",
+              "/W": [
+                1,
+                2,
+                2
+              ]
+            }
+          }
+        }
+      }
+    ]
+  },
+  "none-inline": {
+    "version": 2,
+    "parameters": {
+      "decodelevel": "none"
+    },
+    "qpdf": [
+      {
+        "jsonversion": 2,
+        "pdfversion": "1.7",
+        "pushedinheritedpageresources": false,
+        "calledgetallpages": false,
+        "maxobjectid": 8
+      },
+      {
+        "obj:7 0 R": {
+          "stream": {
+            "data": "eJzVUk1LxDAQvedXzFFPmaRpupVS0H5cRFiKJ2UPYRuWgmykH6D/3pmmKh7Ey148vHzNm5dJ3ihA0JBaSCBHMJAaAliVg4UMUygKIR/fXz3IvTv5Scj7oZ/gmZgIHTF5tOt4ELIKy3mGRJSl+M6r3OxewklEAVBM/mTsx9AvRz9C0TZti5ghojUEi6hrmitCTtC0p5je0ZqQmQ10liWIyS3F2gibxRyOr9x0y29oJq5lTh25Zhf3X/fyXU3U0H/Vk5dCPoS+drOHq/pGo7ZKYcoRzJ+u6TtG7+bwfx+31j+E868v/OEz28smj556ILosOz+FZTyS7cQr+b98P7i78EYdhNx5iKAIhwtIaZJSLCW7MHPFOV5A1ZCq3gr8AAROvMM=",
+            "dict": {
+              "/Filter": "/FlateDecode",
+              "/First": 32,
+              "/N": 6,
+              "/Type": "/ObjStm"
+            }
+          }
+        },
+        "obj:8 0 R": {
+          "stream": {
+            "data": "eJwVxDEOACAMxLBcAbH2+fy2KB4MzBQXLFa2bNsJDcmDD1u3Au8=",
+            "dict": {
+              "/Filter": "/FlateDecode",
+              "/Index": [
+                0,
+                9
+              ],
+              "/Info": "3 0 R",
+              "/Root": "2 0 R",
+              "/Size": 9,
+              "/Type": "/XRef",
+              "/W": [
+                1,
+                2,
+                2
+              ]
+            }
+          }
+        }
+      }
+    ]
+  },
+  "generalized-none": {
+    "version": 2,
+    "parameters": {
+      "decodelevel": "generalized"
+    },
+    "qpdf": [
+      {
+        "jsonversion": 2,
+        "pdfversion": "1.7",
+        "pushedinheritedpageresources": false,
+        "calledgetallpages": false,
+        "maxobjectid": 8
+      },
+      {
+        "obj:7 0 R": {
+          "stream": {
+            "dict": {
+              "/Filter": "/FlateDecode",
+              "/First": 32,
+              "/Length": 290,
+              "/N": 6,
+              "/Type": "/ObjStm"
+            }
+          }
+        },
+        "obj:8 0 R": {
+          "stream": {
+            "dict": {
+              "/Filter": "/FlateDecode",
+              "/Index": [
+                0,
+                9
+              ],
+              "/Info": "3 0 R",
+              "/Length": 38,
+              "/Root": "2 0 R",
+              "/Size": 9,
+              "/Type": "/XRef",
+              "/W": [
+                1,
+                2,
+                2
+              ]
+            }
+          }
+        }
+      }
+    ]
+  },
+  "generalized-inline": {
+    "version": 2,
+    "parameters": {
+      "decodelevel": "generalized"
+    },
+    "qpdf": [
+      {
+        "jsonversion": 2,
+        "pdfversion": "1.7",
+        "pushedinheritedpageresources": false,
+        "calledgetallpages": false,
+        "maxobjectid": 8
+      },
+      {
+        "obj:7 0 R": {
+          "stream": {
+            "data": "MSAwIDIgNTYgMyA5MCA0IDU0NCA1IDYxOSA2IDcwNSA8PAovVHlwZSAvUGFnZXMKL0tpZHMgWyA0IDAgUiA1IDAgUiA2IDAgUiBdCi9Db3VudCAzCj4+Cjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAxIDAgUgo+Pgo8PAovUHJvZHVjZXIgPEZFRkYwMDcwMDA2NDAwNjYwMDJEMDA2QzAwNjkwMDYyMDAyMDAwMjgwMDY4MDA3NDAwNzQwMDcwMDA3MzAwM0EwMDJGMDAyRjAwNjcwMDY5MDA3NDAwNjgwMDc1MDA2MjAwMkUwMDYzMDA2RjAwNkQwMDJGMDA0ODAwNkYwMDcwMDA2NDAwNjkwMDZFMDA2NzAwMkYwMDcwMDA2NDAwNjYwMDJEMDA2QzAwNjkwMDYyMDAyOT4KL01vZERhdGUgKEQ6MjAyNjExMDUwMDI5MDlaKQovQ3JlYXRvciA8RkVGRjAwNzAwMDY0MDA2NjAwMkQwMDZDMDA2OTAwNjIwMDIwMDAyODAwNjgwMDc0MDA3NDAwNzAwMDczMDAzQTAwMkYwMDJGMDA2NzAwNjkwMDc0MDA2ODAwNzUwMDYyMDAyRTAwNjMwMDZGMDA2RDAwMkYwMDQ4MDA2RjAwNzAwMDY0MDA2OTAwNkUwMDY3MDAyRjAwNzAwMDY0MDA2NjAwMkQwMDZDMDA2OTAwNjIwMDI5PgovQ3JlYXRpb25EYXRlIChEOjIwMjYxMTA1MDAyOTA5WikKPj4KPDwKL1R5cGUgL1BhZ2UKL1BhcmVudCAxIDAgUgovUmVzb3VyY2VzIDw8Cj4+Ci9NZWRpYUJveCBbIDAgMCAyMDAgMTAwIF0KPj4KPDwKL1R5cGUgL1BhZ2UKL1BhcmVudCAxIDAgUgovUmVzb3VyY2VzIDw8Cj4+Ci9NZWRpYUJveCBbIDAgMCAyMjAgMTEwIF0KL1JvdGF0ZSA5MAo+Pgo8PAovVHlwZSAvUGFnZQovUGFyZW50IDEgMCBSCi9SZXNvdXJjZXMgPDwKPj4KL01lZGlhQm94IFsgMCAwIDI0MCAxMjAgXQo+Pgo=",
+            "dict": {
+              "/First": 32,
+              "/N": 6,
+              "/Type": "/ObjStm"
+            }
+          }
+        },
+        "obj:8 0 R": {
+          "stream": {
+            "data": "AAAA//8CAAcAAAIABwABAgAHAAICAAcAAwIABwAEAgAHAAUBABAAAAEBmAAA",
+            "dict": {
+              "/Index": [
+                0,
+                9
+              ],
+              "/Info": "3 0 R",
+              "/Root": "2 0 R",
+              "/Size": 9,
+              "/Type": "/XRef",
+              "/W": [
+                1,
+                2,
+                2
+              ]
+            }
+          }
+        }
+      }
+    ]
+  }
+}

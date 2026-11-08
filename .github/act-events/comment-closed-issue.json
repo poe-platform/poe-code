@@ -1,0 +1,30 @@
+{
+  "action": "created",
+  "comment": {
+    "id": 1003,
+    "body": "Please still try to fix this",
+    "user": {
+      "login": "eligible-org-member",
+      "type": "User"
+    }
+  },
+  "issue": {
+    "number": 42,
+    "title": "Auth test is flaky",
+    "body": "The auth test fails intermittently.",
+    "state": "closed",
+    "user": {
+      "login": "external-contributor",
+      "type": "User"
+    },
+    "labels": [],
+    "assignees": []
+  },
+  "repository": {
+    "full_name": "poe-platform/poe-code",
+    "name": "poe-code",
+    "owner": {
+      "login": "poe-platform"
+    }
+  }
+}

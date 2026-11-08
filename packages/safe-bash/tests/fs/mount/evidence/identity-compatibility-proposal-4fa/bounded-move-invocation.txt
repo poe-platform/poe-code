@@ -1,0 +1,27 @@
+node --unhandled-rejections=strict --import tsx --input-type=module <<'NODE'
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import { createMemoryFileSystem } from './src/fs/memory/index.ts';
+import { createMountFileSystem } from './src/fs/mount/index.ts';
+import { createOverlayFileSystem } from './src/fs/overlay/index.ts';
+const paths = ['memory','real','readonly','mount','overlay'].map(name=>`src/fs/${name}/index.ts`).concat('src/fs/mount/identity.ts');
+const hashes = () => Object.fromEntries(paths.map(path=>[path,createHash('sha256').update(readFileSync(path)).digest('hex')]));
+const before = hashes();
+const bytes = new TextEncoder().encode('move alias sentinel');
+const outcomes = [];
+for (const view of ['same-mount','repeated-mount','overlay-upper','overlay-lower']) {
+  const backing = createMemoryFileSystem();
+  await backing.writeFile('/file',bytes); await backing.link('/file','/alias');
+  const events = [];
+  const tracked = new Proxy(backing,{get(target,key){const value=Reflect.get(target,key); if(typeof value !== 'function')return value; return (...args)=>{if(['rename','rm','writeFile','readFile'].includes(String(key)))events.push(String(key));return value.apply(target,args);};}});
+  const fs = view === 'same-mount' ? createMountFileSystem({root:tracked}) : view === 'repeated-mount' ? createMountFileSystem({root:tracked,mounts:{'/other':tracked}}) : createOverlayFileSystem({upper:view==='overlay-upper'?tracked:createMemoryFileSystem(),lower:view==='overlay-lower'?tracked:createMemoryFileSystem()});
+  const destination = view === 'repeated-mount' ? '/other/alias' : '/alias';
+  let code = 'success'; try {await fs.rename('/file',destination);} catch(error) {code=error.code ?? error.name;}
+  assert.deepEqual(await backing.readFile('/file'),bytes); assert.deepEqual(await backing.readFile('/alias'),bytes);
+  assert.deepEqual((await backing.readdir('/')).map(entry=>entry.name),['alias','file']);
+  outcomes.push({view,code,events,physicalSourceBytes:[...bytes],physicalNames:['alias','file']});
+}
+assert.deepEqual(hashes(),before);
+console.log(JSON.stringify({outcomes,sourceSha256:before},null,2));
+NODE

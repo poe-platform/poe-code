@@ -1,0 +1,383 @@
+import * as fsPromises from "node:fs/promises";
+import { parse as parseYaml } from "yaml";
+import {
+  resolveAbsolutePlanPath,
+  createPipelineFileSystem,
+  includePipelineInitialization,
+  cancelPipelineInitialization,
+  runPipeline as runWorkspacePipeline,
+  runPipelineSequence as runWorkspaceSequence,
+  type AgentRunUsage,
+  type PipelineFileSystem,
+  type PipelineRunOptions as WorkspacePipelineRunOptions,
+  type PipelineRunResult,
+  type PipelineSequenceOptions as WorkspaceSequenceOptions,
+  type PipelineSequenceResult
+} from "@poe-code/pipeline";
+import { buildPipelineInitPrompt } from "../cli/commands/pipeline-init.js";
+import pipelineSkillPlan from "../templates/pipeline/SKILL_plan.md";
+import { spawn as sdkSpawn } from "./spawn.js";
+import { runWithOptionalWorktree } from "./worktree.js";
+import { mapSourcePathIntoWorktree } from "@poe-code/agent-harness-tools";
+import type { WorktreeExecutionOptions } from "./types.js";
+
+export type {
+  AgentRunUsage,
+  AgentRunInput,
+  AgentRunResult,
+  PipelineConfig,
+  PipelineFinalizationStatus,
+  PipelineMetrics,
+  PipelinePlan,
+  PipelineStatus,
+  PipelineTask,
+  ResolvedStepDefinitions,
+  ResolvedStepsConfig,
+  StepDefinition,
+  StepHooks,
+  StepMode,
+  TaskProgress,
+  TaskCompletion,
+  PlanProgress,
+  PlanSummary
+} from "@poe-code/pipeline";
+export { resolvePlanDirectory } from "@poe-code/pipeline";
+export type PipelineRunOptions = WorkspacePipelineRunOptions & {
+  worktree?: WorktreeExecutionOptions;
+};
+export type PipelineSequenceOptions = WorkspaceSequenceOptions & {
+  worktree?: WorktreeExecutionOptions;
+};
+export type { PipelineRunResult, PipelineSequenceResult };
+export { createRunQueue, type RunQueue, type RunQueueSnapshot, type RunQueueItem } from "@poe-code/agent-harness-tools";
+
+export interface PipelineInitSource {
+  absolutePath: string;
+  relativePath: string;
+  title: string;
+}
+
+type PipelineAgentRunner = NonNullable<WorkspacePipelineRunOptions["runAgent"]>;
+type PipelineAgentRunnerInput = Parameters<PipelineAgentRunner>[0];
+type PipelineAgentRunnerResult = Awaited<ReturnType<PipelineAgentRunner>>;
+
+const PIPELINE_ACTIVITY_TIMEOUT_RETRY_COUNT = 3;
+
+export interface PipelineInitRunOptions {
+  agent: string;
+  model?: string;
+  cwd: string;
+  homeDir: string;
+  sources: PipelineInitSource[];
+  question?: string;
+  assumeYes: boolean;
+  runAgent?: PipelineRunOptions["runAgent"];
+  signal?: AbortSignal;
+  onSourceStart?(source: PipelineInitSource, index: number, total: number): void;
+  onSourceComplete?(
+    source: PipelineInitSource,
+    index: number,
+    total: number,
+    result: PipelineAgentRunnerResult
+  ): void;
+}
+
+export interface PipelineInitRunResult {
+  stopReason: "done" | "failed" | "cancelled";
+  sourcesProcessed: number;
+  failedSource?: string;
+}
+
+function isActivityTimeoutError(error: unknown): boolean {
+  return error instanceof Error && error.name === "ActivityTimeoutError";
+}
+
+function isAbortError(error: unknown): boolean {
+  return error instanceof Error && error.name === "AbortError";
+}
+
+function createAbortError(): Error {
+  const error = new Error("Pipeline run cancelled");
+  error.name = "AbortError";
+  return error;
+}
+
+function assertNotAborted(signal: AbortSignal | undefined): void {
+  if (signal?.aborted) {
+    throw createAbortError();
+  }
+}
+
+async function planNeedsInit(
+  absolutePath: string,
+  fs: Pick<PipelineFileSystem, "readFile">
+): Promise<boolean> {
+  const content = await fs.readFile(absolutePath, "utf8");
+  if (!content.startsWith("---\n") && !content.startsWith("---\r\n")) {
+    return true;
+  }
+  const end = content.indexOf("\n---", 4);
+  if (end === -1) return true;
+  const frontmatter = content.slice(4, end);
+  const parsed = parseYaml(frontmatter) as Record<string, unknown> | null;
+  if (!parsed || typeof parsed !== "object") return true;
+  const tasks = parsed.tasks;
+  return !Array.isArray(tasks) || tasks.length === 0;
+}
+
+async function runWithRetry<T>(
+  fn: () => Promise<T>,
+  maxAttempts: number,
+  signal?: AbortSignal
+): Promise<T> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    assertNotAborted(signal);
+    try {
+      return await fn();
+    } catch (error) {
+      if (!isActivityTimeoutError(error)) throw error;
+      assertNotAborted(signal);
+      lastError = error;
+    }
+  }
+  throw lastError;
+}
+
+export async function runPipeline(options: PipelineRunOptions): Promise<PipelineRunResult> {
+  if (isWorktreeEnabled(options.worktree)) {
+    const wrapped = await runWithOptionalWorktree<PipelineRunResult>({
+      cwd: options.cwd,
+      selectedAgent: options.agent,
+      ...(options.model ? { selectedModel: options.model } : {}),
+      worktree: options.worktree,
+      signal: options.signal,
+      isSuccessful: ({ stopReason }) =>
+        stopReason === "completed" || stopReason === "max_runs" || stopReason === "nothing_to_run",
+      run: async ({ worktreeCwd }) =>
+        await runPipelineDirect({
+          ...options,
+          cwd: worktreeCwd,
+          worktree: false
+        })
+    });
+    return wrapped.value;
+  }
+
+  return await runPipelineDirect(options);
+}
+
+const runDefaultPipelineAgent: PipelineAgentRunner = async (input) => {
+  return await sdkSpawn.autonomous(input.agent, {
+        captureSession: false,
+        prompt: input.prompt,
+        cwd: input.cwd,
+        logDir: input.logDir,
+        ...(input.logFileName ? { logFileName: input.logFileName } : {}),
+        model: input.model,
+        ...(input.mode ? { mode: input.mode } : {}),
+        ...(input.skills ? { skills: input.skills } : {}),
+        ...(input.hooks ? { hooks: input.hooks } : {}),
+        ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
+        ...(input.signal ? { signal: input.signal } : {})
+  });
+};
+
+export async function runPipelineSequence(options: PipelineSequenceOptions): Promise<PipelineSequenceResult> {
+  const { worktree, ...sequenceOptions } = options;
+  const execute = async (cwd: string): Promise<PipelineSequenceResult> => {
+    const runAgent = options.runAgent ?? runDefaultPipelineAgent;
+    const runPlan = options.runPlan ?? runPipelineDirect;
+    return runWorkspaceSequence({
+      ...sequenceOptions,
+      cwd,
+      runAgent,
+      ...(options.planDirectory ? { planDirectory: mapSourcePathIntoWorktree(options.cwd, options.planDirectory, cwd) } : {}),
+      runPlan: (planOptions) => runPlan({
+        ...planOptions,
+        ...(planOptions.plan ? { plan: mapSourcePathIntoWorktree(options.cwd, planOptions.plan, cwd) } : {})
+      })
+    });
+  };
+  if (!isWorktreeEnabled(options.worktree)) return execute(options.cwd);
+  const wrapped = await runWithOptionalWorktree({
+    cwd: options.cwd,
+    selectedAgent: options.agent,
+    ...(options.model ? { selectedModel: options.model } : {}),
+    worktree,
+    signal: options.signal,
+    isSuccessful: (result: PipelineSequenceResult) => result.status === "completed",
+    run: ({ worktreeCwd }) => execute(worktreeCwd)
+  });
+  return wrapped.value;
+}
+
+async function runPipelineDirect(options: PipelineRunOptions): Promise<PipelineRunResult> {
+  assertNotAborted(options.signal);
+  let initialization: { durationMs: number; usage?: AgentRunUsage } | undefined;
+  const userRunAgent = options.runAgent ?? runDefaultPipelineAgent;
+
+  if (options.plan) {
+    const planFs = options.fs && "capabilities" in options.fs
+      ? createPipelineFileSystem(options.fs)
+      : options.fs ?? fsPromises;
+    const planAbsolutePath = resolveAbsolutePlanPath(options.plan, options.cwd, options.homeDir);
+    if (await planNeedsInit(planAbsolutePath, planFs)) {
+      const initializationStartedAt = Date.now();
+      const sourceDocContent = await planFs.readFile(planAbsolutePath, "utf8");
+      const prompt = buildPipelineInitPrompt({
+        sourceDocPath: options.plan,
+        sourceDocContent,
+        skillContent: pipelineSkillPlan
+      });
+      let initResult;
+      try {
+        initResult = await runWithRetry(
+          () =>
+            userRunAgent({
+              agent: options.agent,
+              prompt,
+              cwd: options.cwd,
+              ...(options.model ? { model: options.model } : {}),
+              ...(options.signal ? { signal: options.signal } : {})
+            }),
+          PIPELINE_ACTIVITY_TIMEOUT_RETRY_COUNT,
+          options.signal
+        );
+      } catch (error) {
+        if (!(error instanceof Error) || error.name !== "AbortError") throw error;
+        return cancelPipelineInitialization({ planPath: planAbsolutePath, durationMs: Date.now() - initializationStartedAt, result: error });
+      }
+      if (options.signal?.aborted) {
+        return cancelPipelineInitialization({ planPath: planAbsolutePath, durationMs: Date.now() - initializationStartedAt, result: initResult });
+      }
+      if (initResult.exitCode !== 0) {
+        throw new Error(`Pipeline initialization failed with exit code ${initResult.exitCode}.`);
+      }
+      initialization = {
+        durationMs: Math.max(0, Date.now() - initializationStartedAt),
+        ...(initResult.usage ? { usage: initResult.usage } : {})
+      };
+    }
+  }
+
+  const retryRunAgent: PipelineAgentRunner = (input) =>
+    runWithRetry(() => userRunAgent(input), PIPELINE_ACTIVITY_TIMEOUT_RETRY_COUNT, input.signal);
+
+  const initializationUsage = initialization?.usage;
+  const result = await runWorkspacePipeline({
+    ...options,
+    ...(initializationUsage && options.onPlanResolved
+      ? {
+          onPlanResolved: (summary) =>
+            options.onPlanResolved?.({ ...summary, initializationUsage })
+        }
+      : {}),
+    runAgent: retryRunAgent
+  });
+  return initialization ? includePipelineInitialization(result, initialization) : result;
+}
+
+function isWorktreeEnabled(worktree: WorktreeExecutionOptions | undefined): boolean {
+  return worktree === true;
+}
+
+export async function runPipelineInit(
+  options: PipelineInitRunOptions
+): Promise<PipelineInitRunResult> {
+  const runAgent =
+    options.runAgent ??
+    (async (input: PipelineAgentRunnerInput) => {
+      return await sdkSpawn.autonomous(input.agent, {
+        prompt: input.prompt,
+        cwd: input.cwd,
+        model: input.model,
+        ...(input.mode ? { mode: input.mode } : {}),
+        ...(input.signal ? { signal: input.signal } : {})
+      });
+    });
+
+  if (options.signal?.aborted) {
+    return {
+      stopReason: "cancelled",
+      sourcesProcessed: 0
+    };
+  }
+
+  let sourcesProcessed = 0;
+  const totalSources = options.sources.length;
+
+  for (const [sourceIndex, source] of options.sources.entries()) {
+    if (options.signal?.aborted) {
+      return {
+        stopReason: "cancelled",
+        sourcesProcessed
+      };
+    }
+
+    const displayIndex = sourceIndex + 1;
+
+    try {
+      options.onSourceStart?.(source, displayIndex, totalSources);
+
+      const sourceDocContent = await fsPromises.readFile(source.absolutePath, "utf8");
+      if (options.signal?.aborted) {
+        return {
+          stopReason: "cancelled",
+          sourcesProcessed
+        };
+      }
+
+      const prompt = buildPipelineInitPrompt({
+        question: options.question,
+        sourceDocPath: source.relativePath,
+        sourceDocContent,
+        skillContent: pipelineSkillPlan
+      });
+      const result = await runAgent({
+        agent: options.agent,
+        prompt,
+        cwd: options.cwd,
+        ...(options.model ? { model: options.model } : {}),
+        ...(options.signal ? { signal: options.signal } : {})
+      });
+
+      if (options.signal?.aborted) {
+        return {
+          stopReason: "cancelled",
+          sourcesProcessed
+        };
+      }
+
+      options.onSourceComplete?.(source, displayIndex, totalSources, result);
+
+      if (result.exitCode !== 0) {
+        return {
+          stopReason: "failed",
+          sourcesProcessed,
+          failedSource: source.relativePath
+        };
+      }
+
+      sourcesProcessed += 1;
+    } catch (error) {
+      if (options.signal?.aborted || isAbortError(error)) {
+        return {
+          stopReason: "cancelled",
+          sourcesProcessed
+        };
+      }
+
+      return {
+        stopReason: "failed",
+        sourcesProcessed,
+        failedSource: source.relativePath
+      };
+    }
+  }
+
+  return {
+    stopReason: "done",
+    sourcesProcessed
+  };
+}

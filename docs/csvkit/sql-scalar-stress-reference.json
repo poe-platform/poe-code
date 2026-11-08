@@ -1,0 +1,223 @@
+{
+  "profile": "darwin-cpython-3.14.2-csvkit-2.2.0",
+  "sourceSha256": "147318a8dbaec07c0bbb9291c14b78de5fa32ed3d4a5c2396e52a83c0a30df6b",
+  "source": "def parse_list(pairs):\n    options = {}\n    for key, value in pairs:\n        try:\n            value = ast.literal_eval(value)\n        except ValueError:\n            pass\n        options[key] = value\n    return options\n",
+  "cases": [
+    {
+      "raw": "\"\"\"a\rb\"\"\"",
+      "kind": "str",
+      "value": "a\nb",
+      "negativeZero": false
+    },
+    {
+      "raw": "\"\"\"a\r\nb\"\"\"",
+      "kind": "str",
+      "value": "a\nb",
+      "negativeZero": false
+    },
+    {
+      "raw": "\"\"\"a\nb\"\"\"",
+      "kind": "str",
+      "value": "a\nb",
+      "negativeZero": false
+    },
+    {
+      "raw": "'''a\rb'''",
+      "kind": "str",
+      "value": "a\nb",
+      "negativeZero": false
+    },
+    {
+      "raw": "r\"\"\"a\rb\"\"\"",
+      "kind": "str",
+      "value": "a\nb",
+      "negativeZero": false
+    },
+    {
+      "raw": "u\"\"\"a\r\nb\"\"\"",
+      "kind": "str",
+      "value": "a\nb",
+      "negativeZero": false
+    },
+    {
+      "raw": "\"a\\\nb\"",
+      "kind": "str",
+      "value": "ab",
+      "negativeZero": false
+    },
+    {
+      "raw": "\"a\\\r\nb\"",
+      "kind": "str",
+      "value": "ab",
+      "negativeZero": false
+    },
+    {
+      "raw": "r\"a\\\nb\"",
+      "kind": "str",
+      "value": "a\\\nb",
+      "negativeZero": false
+    },
+    {
+      "raw": "r\"a\\\r\nb\"",
+      "kind": "str",
+      "value": "a\\\nb",
+      "negativeZero": false
+    },
+    {
+      "raw": "\"\"\"a\\\rb\"\"\"",
+      "kind": "str",
+      "value": "ab",
+      "negativeZero": false
+    },
+    {
+      "raw": "\"\"\"a\\\r\nb\"\"\"",
+      "kind": "str",
+      "value": "ab",
+      "negativeZero": false
+    },
+    {
+      "raw": "0x_Ff",
+      "kind": "int",
+      "value": "255",
+      "negativeZero": false
+    },
+    {
+      "raw": "+0X_fF",
+      "kind": "int",
+      "value": "255",
+      "negativeZero": false
+    },
+    {
+      "raw": "-0b_1_0",
+      "kind": "int",
+      "value": "-2",
+      "negativeZero": false
+    },
+    {
+      "raw": "0o_7_7",
+      "kind": "int",
+      "value": "63",
+      "negativeZero": false
+    },
+    {
+      "raw": "0_0_0",
+      "kind": "int",
+      "value": "0",
+      "negativeZero": false
+    },
+    {
+      "raw": "000.25",
+      "kind": "float",
+      "value": 0.25,
+      "negativeZero": false
+    },
+    {
+      "raw": "1_0.e+0_2",
+      "kind": "float",
+      "value": 1000.0,
+      "negativeZero": false
+    },
+    {
+      "raw": "1.0e-9999",
+      "kind": "float",
+      "value": 0.0,
+      "negativeZero": false
+    },
+    {
+      "raw": "-1.0e-9999",
+      "kind": "float",
+      "value": -0.0,
+      "negativeZero": true
+    },
+    {
+      "raw": "match",
+      "kind": "str",
+      "value": "match",
+      "negativeZero": false
+    },
+    {
+      "raw": "case",
+      "kind": "str",
+      "value": "case",
+      "negativeZero": false
+    },
+    {
+      "raw": "type",
+      "kind": "str",
+      "value": "type",
+      "negativeZero": false
+    },
+    {
+      "raw": "False_",
+      "kind": "str",
+      "value": "False_",
+      "negativeZero": false
+    },
+    {
+      "raw": "false",
+      "kind": "str",
+      "value": "false",
+      "negativeZero": false
+    },
+    {
+      "raw": "None_",
+      "kind": "str",
+      "value": "None_",
+      "negativeZero": false
+    },
+    {
+      "raw": "True_",
+      "kind": "str",
+      "value": "True_",
+      "negativeZero": false
+    },
+    {
+      "raw": "NotImplemented",
+      "kind": "str",
+      "value": "NotImplemented",
+      "negativeZero": false
+    },
+    {
+      "raw": "Ellipsis",
+      "kind": "str",
+      "value": "Ellipsis",
+      "negativeZero": false
+    },
+    {
+      "raw": "print",
+      "kind": "str",
+      "value": "print",
+      "negativeZero": false
+    },
+    {
+      "raw": "if",
+      "kind": "SyntaxError",
+      "diagnostic": "invalid syntax (<unknown>, line 1)"
+    },
+    {
+      "raw": "async",
+      "kind": "SyntaxError",
+      "diagnostic": "invalid syntax (<unknown>, line 1)"
+    },
+    {
+      "raw": "await",
+      "kind": "SyntaxError",
+      "diagnostic": "invalid syntax (<unknown>, line 1)"
+    },
+    {
+      "raw": "0x__1",
+      "kind": "SyntaxError",
+      "diagnostic": "invalid hexadecimal literal (<unknown>, line 1)"
+    },
+    {
+      "raw": "01",
+      "kind": "SyntaxError",
+      "diagnostic": "leading zeros in decimal integer literals are not permitted; use an 0o prefix for octal integers (<unknown>, line 1)"
+    },
+    {
+      "raw": "\"a\rb\"",
+      "kind": "SyntaxError",
+      "diagnostic": "unterminated string literal (detected at line 1) (<unknown>, line 1)"
+    }
+  ]
+}

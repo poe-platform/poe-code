@@ -1,0 +1,228 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { execFileSync } from "node:child_process";
+import { existsSync } from "node:fs";
+import { Shell, createMemoryFileSystem, agentCommands } from "../../src/index.js";
+
+test("differential oracle parity: safe-bash bc vs /usr/bin/bc", async (t) => {
+  if (!existsSync("/usr/bin/bc")) {
+    t.skip("/usr/bin/bc not available on host");
+    return;
+  }
+  const fs = createMemoryFileSystem();
+  const shell = new Shell({ fs, cwd: "/" }).use(agentCommands({ muscleMemory: true }));
+
+  const programs = [
+    "scale=6; 355/113",
+    "scale=4; (12.345 + 67.8901) * 2.5 / 3.1",
+    "ibase=16; FF + A0",
+    "obase=16; 255; 4095",
+    "obase=2; 42",
+    "define fact(n) { if (n <= 1) return (1); return (n * fact(n-1)); }\nfact(10)",
+    "s=0; for (i=1; i<=20; i++) { if (i%2==0) continue; s += i*i; }; s",
+    "a[0]=10; a[5]=25; a[0]+a[5]",
+    "length(123456); scale(12.3450)",
+    "sqrt(2025)",
+    "scale=10; 0; 0.0000; 1.25 - 1.25; 0 / 7; 0 * 3.1415",
+    "length(0); length(0.000); scale(0); scale(0.000)",
+  ];
+
+  for (const prog of programs) {
+    const hostOut = execFileSync("/usr/bin/bc", ["-q"], { input: prog + "\n", encoding: "utf8" });
+    const sbRes = await shell.exec(`bc -q <<'EOF'\n${prog}\nEOF`);
+    assert.equal(sbRes.exitCode, 0, `bc failed on ${prog}: ${sbRes.stderr}`);
+    assert.equal(sbRes.stdout, hostOut, `bc mismatch on ${prog}`);
+  }
+  const mathlibProg = "scale=10; s(0); c(0); e(0); l(1); a(0); j(0,0); j(1,0); j(0,1); j(1,1); j(2,2.5); j(-1,1)";
+  const hostMathOut = execFileSync("/usr/bin/bc", ["-l"], { input: mathlibProg + "\n", encoding: "utf8" });
+  const sbMathRes = await shell.exec(`bc -l <<'EOF'\n${mathlibProg}\nEOF`);
+  assert.equal(sbMathRes.exitCode, 0, sbMathRes.stderr);
+  assert.equal(sbMathRes.stdout, hostMathOut);
+});
+
+test("differential oracle parity: safe-bash xxd & od vs host /usr/bin/xxd & /bin/bash", async (t) => {
+  if (!existsSync("/usr/bin/xxd") || !existsSync("/bin/bash")) {
+    t.skip("/usr/bin/xxd or /bin/bash not available on host");
+    return;
+  }
+  const fs = createMemoryFileSystem();
+  const shell = new Shell({ fs, cwd: "/" }).use(agentCommands({ muscleMemory: true }));
+
+  const scripts = [
+    "printf 'Hello, safe-bash!\\x00\\xff\\x7f\\n' | xxd",
+    "printf 'Hello, safe-bash!\\x00\\xff\\x7f\\n' | xxd -p",
+    "printf 'Hello, safe-bash!\\x00\\xff\\x7f\\n' | xxd -p | xxd -r -p",
+    "printf '0123456789abcdef0123456789abcdef' | xxd -c 8 -g 2",
+  ];
+
+  for (const script of scripts) {
+    const hostOut = execFileSync("/bin/bash", ["-c", script], { encoding: "utf8" });
+    const sbRes = await shell.exec(script);
+    assert.equal(sbRes.exitCode, 0);
+    assert.equal(sbRes.stdout, hostOut, `xxd mismatch on: ${script}`);
+  }
+});
+
+test("differential oracle parity: bash extglob, case fallthrough, heredoc, here-string, and process substitution", async (t) => {
+  if (!existsSync("/bin/bash")) {
+    t.skip("/bin/bash not available on host");
+    return;
+  }
+  const fs = createMemoryFileSystem();
+  const shell = new Shell({ fs, cwd: "/" }).use(agentCommands({ muscleMemory: true }));
+
+  const scripts = [
+    `shopt -s extglob
+for w in foo.ts bar.js baz.py qux.tsx; do
+  case "$w" in
+    *.@(ts|tsx)) printf "TS:%s\n" "\${w%.@(ts|tsx)}" ;;
+    !(*.py)) printf "OTHER:%s\n" "$w" ;;
+    *) printf "PY:%s\n" "$w" ;;
+  esac
+done`,
+    `shopt -s extglob
+v="___hello___world___"
+printf "1:%s\n" "\${v#+(_)}"
+printf "2:%s\n" "\${v%+(_)}"
+printf "3:%s\n" "\${v//+(_)/-}"`,
+    `cat <<-'EOF' | tr "a-z" "A-Z"
+	alpha_line
+	beta_line
+EOF`,
+    `read -r a b c <<< "100 200 300"
+printf "%s-%s-%s\n" "$c" "$b" "$a"`,
+    `comm -12 <(printf "a\nb\nc\nd\n") <(printf "b\nd\ne\n")`,
+  ];
+
+  for (const script of scripts) {
+    const hostOut = execFileSync("/bin/bash", ["-c", script], { encoding: "utf8" });
+    const sbRes = await shell.exec(script);
+    assert.equal(sbRes.exitCode, 0, `safe-bash failed on script: ${sbRes.stderr}`);
+    assert.equal(sbRes.stdout, hostOut, `bash oracle mismatch on script:\n${script}`);
+  }
+});
+
+test("stress & parity: sed/awk ergonomic regexes, uniq chunked buffering, base64/xxd/od pipelines, and fd modifiers", async () => {
+  const fs = createMemoryFileSystem();
+  const shell = new Shell({ fs, cwd: "/" }).use(agentCommands({ muscleMemory: true }));
+  await fs.mkdir("/repo/src/utils", { recursive: true });
+  const enc = new TextEncoder();
+  await fs.writeFile("/repo/src/utils/Readme.MD", enc.encode("header\n"));
+  await fs.writeFile("/repo/src/utils/helper.ts", enc.encode("export const x = 1;\n"));
+
+  const fdRes = await shell.exec("fd -C /repo --path-separator :: '(?i)^readme\\.md$'");
+  assert.equal(fdRes.exitCode, 0, fdRes.stderr);
+  assert.equal(fdRes.stdout, "src::utils::Readme.MD\n");
+
+  const sedAwkRes = await shell.exec(
+    "printf 'id_10:  500\nid_20: 1500\nignore_me\n' | sed -E 's/\\b(?:id)_(\\d+):\\s+(\\d+)\\b/KEY=\\1 VAL=\\2/g' | awk '/\\yKEY=\\d+\\s+VAL=\\d+\\y/ { print $1, $2 }'"
+  );
+  assert.equal(sedAwkRes.exitCode, 0, sedAwkRes.stderr);
+  assert.equal(sedAwkRes.stdout, "KEY=10 VAL=500\nKEY=20 VAL=1500\n");
+
+  // 2,000-line uniq -c + base64 + xxd round-trip
+  const lines: string[] = [];
+  for (let i = 0; i < 2000; i++) {
+    lines.push(`group_${Math.floor(i / 4)}`);
+  }
+  await fs.writeFile("/repo/groups.txt", enc.encode(lines.join("\n") + "\n"));
+  const pipeRes = await shell.exec(
+    "cat -n /repo/groups.txt | cut -f2 | uniq -c | base64 -w 76 | base64 -d | xxd -p | xxd -r -p | wc -l"
+  );
+  assert.equal(pipeRes.exitCode, 0, pipeRes.stderr);
+  assert.equal(pipeRes.stdout.trim(), "500");
+
+  // 2,000-row join + comm + paste + expand/unexpand pipeline
+  const leftRows: string[] = [];
+  const rightRows: string[] = [];
+  for (let i = 0; i < 2000; i++) {
+    const k = `k${String(i).padStart(4, "0")}`;
+    leftRows.push(`${k} left_${i}`);
+    if (i % 2 === 0) rightRows.push(`${k} right_${i}`);
+  }
+  await fs.writeFile("/repo/left.txt", enc.encode(leftRows.join("\n") + "\n"));
+  await fs.writeFile("/repo/right.txt", enc.encode(rightRows.join("\n") + "\n"));
+  const tableRes = await shell.exec(
+    "join /repo/left.txt /repo/right.txt | paste - - | expand -t 4 | unexpand -a | wc -l"
+  );
+  assert.equal(tableRes.exitCode, 0, tableRes.stderr);
+  assert.equal(tableRes.stdout.trim(), "500");
+
+  // seq + shuf + nl + rev + diff/patch + tsort + factor stress pipeline
+  const rngBytes = new Uint8Array(8192);
+  for (let i = 0; i < rngBytes.length; i++) rngBytes[i] = (i * 73 + 19) & 0xff;
+  await fs.writeFile("/repo/rng.bin", rngBytes);
+  const seqShufRes = await shell.exec(
+    "seq -w 1 1500 | shuf --random-source=/repo/rng.bin | nl -n rz -w 4 -s : | rev | rev | wc -l"
+  );
+  assert.equal(seqShufRes.exitCode, 0, seqShufRes.stderr);
+  assert.equal(seqShufRes.stdout.trim(), "1500");
+
+  const diffPatchRes = await shell.exec(
+    "diff -u /repo/left.txt /repo/right.txt > /repo/changes.patch; cp /repo/left.txt /repo/patched.txt && patch -s /repo/patched.txt /repo/changes.patch && cmp /repo/patched.txt /repo/right.txt"
+  );
+  assert.equal(diffPatchRes.exitCode, 0, diffPatchRes.stderr);
+
+  const dagEdges: string[] = [];
+  for (let i = 0; i < 300; i++) dagEdges.push(`node_${i} node_${i + 1}`);
+  await fs.writeFile("/repo/dag.txt", enc.encode(dagEdges.join("\n") + "\n"));
+  const tsortFactorRes = await shell.exec(
+    "tsort /repo/dag.txt | head -n 1 && seq 1000 1199 | factor | wc -l"
+  );
+  assert.equal(tsortFactorRes.exitCode, 0, tsortFactorRes.stderr);
+  assert.deepEqual(tsortFactorRes.stdout.trim().split(/\s+/), ["node_0", "200"]);
+});
+
+test("differential oracle parity: safe-bash fold and diff3 vs host /usr/bin/fold and /usr/bin/diff3, plus 60KB fmt throughput", async (t) => {
+  const fs = createMemoryFileSystem();
+  const shell = new Shell({ fs, cwd: "/" }).use(agentCommands({ muscleMemory: true }));
+
+  if (existsSync("/usr/bin/fold") && existsSync("/usr/bin/diff3")) {
+    const scripts = [
+      `printf "hello world foo bar baz\\n1234567890\\n" | fold -w 10`,
+      `printf "hello world foo bar baz\\n1234567890\\n" | fold -s -w 10`,
+      `printf "a\\tb\\tc\\td\\n" | fold -w 10`,
+      `printf "a\\tb\\tc\\td\\n" | fold -b -w 5`,
+      `printf "hello   world\\n" | fold -s -w 7`,
+      `mkdir -p /tmp/d3 && printf "a\\nb\\nc\\n" > /tmp/d3/mine && printf "a\\nb\\nc\\n" > /tmp/d3/old && printf "a\\nb\\nd\\n" > /tmp/d3/yours && diff3 -m /tmp/d3/mine /tmp/d3/old /tmp/d3/yours`,
+      `mkdir -p /tmp/d3b && printf "x\\nb\\nc\\n" > /tmp/d3b/mine && printf "a\\nb\\nc\\n" > /tmp/d3b/old && printf "a\\nb\\nd\\n" > /tmp/d3b/yours && diff3 -m /tmp/d3b/mine /tmp/d3b/old /tmp/d3b/yours`,
+      `mkdir -p /tmp/d3c && printf "a\\n1\\nc\\n" > /tmp/d3c/mine && printf "a\\nb\\nc\\n" > /tmp/d3c/old && printf "a\\n2\\nc\\n" > /tmp/d3c/yours && diff3 -m -L MINE -L OLD -L YOURS /tmp/d3c/mine /tmp/d3c/old /tmp/d3c/yours`,
+      `mkdir -p /tmp/d3d && printf "a\\n1\\nc\\n" > /tmp/d3d/mine && printf "a\\nb\\nc\\n" > /tmp/d3d/old && printf "a\\nb\\nd\\n" > /tmp/d3d/yours && diff3 /tmp/d3d/mine /tmp/d3d/old /tmp/d3d/yours`
+    ];
+
+    for (const script of scripts) {
+      const sbRes = await shell.exec(script);
+      let hostOut = "";
+      let hostCode = 0;
+      try {
+        hostOut = execFileSync("/bin/bash", ["-c", script], { encoding: "utf8" });
+      } catch (err: any) {
+        hostOut = err.stdout ?? "";
+        hostCode = err.status ?? 1;
+      }
+      assert.equal(sbRes.exitCode, hostCode, `exitCode mismatch for: ${script}`);
+      assert.equal(sbRes.stdout, hostOut, `stdout mismatch for: ${script}`);
+    }
+  }
+
+  // High-throughput 60KB fmt stress test
+  const enc = new TextEncoder();
+  const text60k = ("hello world this is a test of paragraph formatting in fmt command with seventy five columns. ".repeat(40) + "\n\n").repeat(16);
+  await fs.writeFile("/fmt-input.txt", enc.encode(text60k));
+  const fmtRes = await shell.exec("fmt -w 60 /fmt-input.txt | wc -l");
+  assert.equal(fmtRes.exitCode, 0, fmtRes.stderr);
+  assert.ok(Number(fmtRes.stdout.trim()) > 900);
+
+  // High-throughput 5,000-row csvcut + csvgrep pipeline stress test
+  const csvRows = ["id,name,department,salary,notes"];
+  for (let i = 1; i <= 5000; i++) {
+    csvRows.push(`${i},"User, #${i}",dept_${i % 10},${50000 + i},"Note ${i}"`);
+  }
+  await fs.writeFile("/employees.csv", enc.encode(csvRows.join("\n") + "\n"));
+  const csvRes = await shell.exec(
+    "set -o pipefail; csvgrep -c department -r \"^dept_[246]$\" /employees.csv | csvcut -c name,salary,1 | wc -l"
+  );
+  assert.equal(csvRes.exitCode, 0, csvRes.stderr);
+  assert.equal(csvRes.stderr, "");
+  assert.equal(csvRes.stdout.trim(), "1501");
+});

@@ -1,0 +1,2139 @@
+{
+  "date": "2026-08-27",
+  "baseline": "3243c5a86a23408b3b844a017db6a5a94f064d1b",
+  "source": {
+    "src/shell/parser.ts": "feb6cbb2f03ec0c409adeb816bec506788fb3014a23c8dd02f4002362dc4b9f2",
+    "src/shell/runtime.ts": "e8f1edb842d04498050d314091269974df157b11ab13cabba41d9c84a0191538",
+    "src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+    "src/shell/shell.ts": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+    "src/shell/types.ts": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+    "src/contracts/command.ts": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+    "src/contracts/filesystem.ts": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009"
+  },
+  "caseHash": "31eccd1f7e2f4955e9bdab291b03c8ace027ff99a87e274294c2e9e036164767",
+  "nativeHash": "9dad083ab256451d35dbb65f1f964929d86dd7de7c3d433d8fbbf85e559ee94e",
+  "redHash": "45dd4c78f2160d7977fcdb6deb5f6a849a8542e077bcf48da6a1e58ce5693a28",
+  "supplementalHash": "dccf332ef2d6a3007aa631a491c31efbcfa5b71097565bdb5dcd153def128f83",
+  "fixed": {
+    "source": {
+      "arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "display.ts": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+      "index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "input.ts": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+      "locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "parser.ts": "feb6cbb2f03ec0c409adeb816bec506788fb3014a23c8dd02f4002362dc4b9f2",
+      "pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "runtime.ts": "e8f1edb842d04498050d314091269974df157b11ab13cabba41d9c84a0191538",
+      "shell.ts": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+      "types.ts": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d"
+    },
+    "actual": [
+      {
+        "locale": "C",
+        "name": "handoff-scalar",
+        "observation": {
+          "stdout": "NjpiY2E6ZGVmYXVsdDpzZXQ=",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "C",
+        "name": "offset-length",
+        "observation": {
+          "stdout": "PGJjZD4=",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "C",
+        "name": "tail",
+        "observation": {
+          "stdout": "PGNkZWY+",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "C",
+        "name": "empty-offset",
+        "observation": {
+          "stdout": "PGFiPg==",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "C",
+        "name": "empty-length",
+        "observation": {
+          "stdout": "PD4=",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "C",
+        "name": "both-empty",
+        "observation": {
+          "stdout": "PD4=",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "C",
+        "name": "offset-empty-tail",
+        "observation": {
+          "stdout": "",
+          "stderr": "c2hlbGw6IGxpbmUgMTogJHtWQUxVRTp9OiBiYWQgc3Vic3RpdHV0aW9uCg==",
+          "status": 1,
+          "files": {}
+        }
+      },
+      {
+        "locale": "C",
+        "name": "negative-offset",
+        "observation": {
+          "stdout": "PGVmPg==",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "C",
+        "name": "negative-length",
+        "observation": {
+          "stdout": "PGJjZGU+",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "C",
+        "name": "both-negative",
+        "observation": {
+          "stdout": "PGNkZT4=",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "C",
+        "name": "past-end",
+        "observation": {
+          "stdout": "PD4=",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "C",
+        "name": "before-start",
+        "observation": {
+          "stdout": "PD4=",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "C",
+        "name": "at-end",
+        "observation": {
+          "stdout": "PD4=",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "C",
+        "name": "zero-length",
+        "observation": {
+          "stdout": "PD4=",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "C",
+        "name": "large-offset",
+        "observation": {
+          "stdout": "PD4=",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "C",
+        "name": "large-length",
+        "observation": {
+          "stdout": "PGJjZGVmPg==",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "C",
+        "name": "overflow-arithmetic",
+        "observation": {
+          "stdout": "PGJjPg==",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "C",
+        "name": "default-not-negative-offset",
+        "observation": {
+          "stdout": "PGFiY2RlZj4=",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "C",
+        "name": "ternary-offset",
+        "observation": {
+          "stdout": "PGNkPg==",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "C",
+        "name": "ternary-parentheses",
+        "observation": {
+          "stdout": "PGNkPg==",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "C",
+        "name": "nested-ternary",
+        "observation": {
+          "stdout": "PGNkPg==",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "C",
+        "name": "arithmetic-expansion",
+        "observation": {
+          "stdout": "PGNkPg==",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "C",
+        "name": "arithmetic-variables",
+        "observation": {
+          "stdout": "Y2RlZg==",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "C",
+        "name": "arithmetic-side-effects",
+        "observation": {
+          "stdout": "YmNkOjM=",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "C",
+        "name": "value-snapshot",
+        "observation": {
+          "stdout": "YmM6MTIz",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "C",
+        "name": "nested-parameter",
+        "observation": {
+          "stdout": "YmM=",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "C",
+        "name": "nested-default",
+        "observation": {
+          "stdout": "YmNk",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "C",
+        "name": "command-expansion-order",
+        "observation": {
+          "stdout": "YmM=",
+          "stderr": "",
+          "status": 0,
+          "files": {
+            "marker": "b2Zmc2V0bGVuZ3Ro"
+          }
+        }
+      },
+      {
+        "locale": "C",
+        "name": "out-of-range-skips-length",
+        "observation": {
+          "stdout": "PD46MA==",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "C",
+        "name": "negative-range-skips-length",
+        "observation": {
+          "stdout": "PD46MA==",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "C",
+        "name": "end-evaluates-length",
+        "observation": {
+          "stdout": "PD46MQ==",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "C",
+        "name": "unset-skips-arithmetic",
+        "observation": {
+          "stdout": "PD46MA==",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "C",
+        "name": "empty-evaluates-arithmetic",
+        "observation": {
+          "stdout": "PD46Mg==",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "C",
+        "name": "quoted-fields",
+        "observation": {
+          "stdout": "PCBiID48Yj4=",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "C",
+        "name": "unquoted-glob",
+        "observation": {
+          "stdout": "PGZpcnN0PjxzZWNvbmQ+PCo+",
+          "stderr": "",
+          "status": 0,
+          "files": {
+            "first": "a2VlcA==",
+            "second": "a2VlcA=="
+          }
+        }
+      },
+      {
+        "locale": "C",
+        "name": "positional-one",
+        "observation": {
+          "stdout": "YmNk",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "C",
+        "name": "positional-ten",
+        "observation": {
+          "stdout": "YmNk",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "C",
+        "name": "positional-zero",
+        "observation": {
+          "stdout": "aGU=",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "C",
+        "name": "function-state",
+        "observation": {
+          "stdout": "YmM6Mjo5",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "C",
+        "name": "substitution-state",
+        "observation": {
+          "stdout": "YmM6MQ==",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "C",
+        "name": "offset-division-fatal",
+        "observation": {
+          "stdout": "",
+          "stderr": "c2hlbGw6IGxpbmUgMTogVkFMVUU6IDEvMDogZGl2aXNpb24gYnkgMCAoZXJyb3IgdG9rZW4gaXMgIjAiKQo=",
+          "status": 1,
+          "files": {
+            "before": "YmVmb3Jl"
+          }
+        }
+      },
+      {
+        "locale": "C",
+        "name": "length-division-fatal",
+        "observation": {
+          "stdout": "",
+          "stderr": "c2hlbGw6IGxpbmUgMTogVkFMVUU6IDEvMDogZGl2aXNpb24gYnkgMCAoZXJyb3IgdG9rZW4gaXMgIjAiKQo=",
+          "status": 1,
+          "files": {
+            "before": "YmVmb3Jl"
+          }
+        }
+      },
+      {
+        "locale": "C",
+        "name": "negative-end-fatal",
+        "observation": {
+          "stdout": "",
+          "stderr": "c2hlbGw6IGxpbmUgMTogLTEwOiBzdWJzdHJpbmcgZXhwcmVzc2lvbiA8IDAK",
+          "status": 1,
+          "files": {
+            "before": "YmVmb3Jl"
+          }
+        }
+      },
+      {
+        "locale": "C",
+        "name": "arithmetic-syntax-fatal",
+        "observation": {
+          "stdout": "",
+          "stderr": "c2hlbGw6IGxpbmUgMTogVkFMVUU6IDErOiBhcml0aG1ldGljIHN5bnRheCBlcnJvcjogb3BlcmFuZCBleHBlY3RlZCAoZXJyb3IgdG9rZW4gaXMgIisiKQo=",
+          "status": 1,
+          "files": {
+            "before": "YmVmb3Jl"
+          }
+        }
+      },
+      {
+        "locale": "C",
+        "name": "substitution-fatal-scope",
+        "observation": {
+          "stdout": "PD46MQ==",
+          "stderr": "c2hlbGw6IGxpbmUgMTogVkFMVUU6IDEvMDogZGl2aXNpb24gYnkgMCAoZXJyb3IgdG9rZW4gaXMgIjAiKQo=",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "C",
+        "name": "utf8-full-first",
+        "observation": {
+          "stdout": "w6k=",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "C",
+        "name": "utf8-full-middle",
+        "observation": {
+          "stdout": "8J+Zgg==",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "C",
+        "name": "utf8-last",
+        "observation": {
+          "stdout": "Wg==",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "C",
+        "name": "utf8-fragment",
+        "observation": {
+          "stdout": "",
+          "stderr": "c2hlbGw6IGxpbmUgMTogc3Vic3RyaW5nIGV4cGFuc2lvbiBzcGxpdHMgYSBVVEYtOCBjaGFyYWN0ZXIgaW4gYSBieXRlIGxvY2FsZQo=",
+          "status": 1,
+          "files": {}
+        }
+      },
+      {
+        "locale": "C",
+        "name": "utf8-negative-fragment",
+        "observation": {
+          "stdout": "",
+          "stderr": "c2hlbGw6IGxpbmUgMTogc3Vic3RyaW5nIGV4cGFuc2lvbiBzcGxpdHMgYSBVVEYtOCBjaGFyYWN0ZXIgaW4gYSBieXRlIGxvY2FsZQo=",
+          "status": 1,
+          "files": {}
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "handoff-scalar",
+        "observation": {
+          "stdout": "NjpiY2E6ZGVmYXVsdDpzZXQ=",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "offset-length",
+        "observation": {
+          "stdout": "PGJjZD4=",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "tail",
+        "observation": {
+          "stdout": "PGNkZWY+",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "empty-offset",
+        "observation": {
+          "stdout": "PGFiPg==",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "empty-length",
+        "observation": {
+          "stdout": "PD4=",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "both-empty",
+        "observation": {
+          "stdout": "PD4=",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "offset-empty-tail",
+        "observation": {
+          "stdout": "",
+          "stderr": "c2hlbGw6IGxpbmUgMTogJHtWQUxVRTp9OiBiYWQgc3Vic3RpdHV0aW9uCg==",
+          "status": 1,
+          "files": {}
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "negative-offset",
+        "observation": {
+          "stdout": "PGVmPg==",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "negative-length",
+        "observation": {
+          "stdout": "PGJjZGU+",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "both-negative",
+        "observation": {
+          "stdout": "PGNkZT4=",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "past-end",
+        "observation": {
+          "stdout": "PD4=",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "before-start",
+        "observation": {
+          "stdout": "PD4=",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "at-end",
+        "observation": {
+          "stdout": "PD4=",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "zero-length",
+        "observation": {
+          "stdout": "PD4=",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "large-offset",
+        "observation": {
+          "stdout": "PD4=",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "large-length",
+        "observation": {
+          "stdout": "PGJjZGVmPg==",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "overflow-arithmetic",
+        "observation": {
+          "stdout": "PGJjPg==",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "default-not-negative-offset",
+        "observation": {
+          "stdout": "PGFiY2RlZj4=",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "ternary-offset",
+        "observation": {
+          "stdout": "PGNkPg==",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "ternary-parentheses",
+        "observation": {
+          "stdout": "PGNkPg==",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "nested-ternary",
+        "observation": {
+          "stdout": "PGNkPg==",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "arithmetic-expansion",
+        "observation": {
+          "stdout": "PGNkPg==",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "arithmetic-variables",
+        "observation": {
+          "stdout": "Y2RlZg==",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "arithmetic-side-effects",
+        "observation": {
+          "stdout": "YmNkOjM=",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "value-snapshot",
+        "observation": {
+          "stdout": "YmM6MTIz",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "nested-parameter",
+        "observation": {
+          "stdout": "YmM=",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "nested-default",
+        "observation": {
+          "stdout": "YmNk",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "command-expansion-order",
+        "observation": {
+          "stdout": "YmM=",
+          "stderr": "",
+          "status": 0,
+          "files": {
+            "marker": "b2Zmc2V0bGVuZ3Ro"
+          }
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "out-of-range-skips-length",
+        "observation": {
+          "stdout": "PD46MA==",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "negative-range-skips-length",
+        "observation": {
+          "stdout": "PD46MA==",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "end-evaluates-length",
+        "observation": {
+          "stdout": "PD46MQ==",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "unset-skips-arithmetic",
+        "observation": {
+          "stdout": "PD46MA==",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "empty-evaluates-arithmetic",
+        "observation": {
+          "stdout": "PD46Mg==",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "quoted-fields",
+        "observation": {
+          "stdout": "PCBiID48Yj4=",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "unquoted-glob",
+        "observation": {
+          "stdout": "PGZpcnN0PjxzZWNvbmQ+PCo+",
+          "stderr": "",
+          "status": 0,
+          "files": {
+            "first": "a2VlcA==",
+            "second": "a2VlcA=="
+          }
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "positional-one",
+        "observation": {
+          "stdout": "YmNk",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "positional-ten",
+        "observation": {
+          "stdout": "YmNk",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "positional-zero",
+        "observation": {
+          "stdout": "aGU=",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "function-state",
+        "observation": {
+          "stdout": "YmM6Mjo5",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "substitution-state",
+        "observation": {
+          "stdout": "YmM6MQ==",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "offset-division-fatal",
+        "observation": {
+          "stdout": "",
+          "stderr": "c2hlbGw6IGxpbmUgMTogVkFMVUU6IDEvMDogZGl2aXNpb24gYnkgMCAoZXJyb3IgdG9rZW4gaXMgIjAiKQo=",
+          "status": 1,
+          "files": {
+            "before": "YmVmb3Jl"
+          }
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "length-division-fatal",
+        "observation": {
+          "stdout": "",
+          "stderr": "c2hlbGw6IGxpbmUgMTogVkFMVUU6IDEvMDogZGl2aXNpb24gYnkgMCAoZXJyb3IgdG9rZW4gaXMgIjAiKQo=",
+          "status": 1,
+          "files": {
+            "before": "YmVmb3Jl"
+          }
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "negative-end-fatal",
+        "observation": {
+          "stdout": "",
+          "stderr": "c2hlbGw6IGxpbmUgMTogLTEwOiBzdWJzdHJpbmcgZXhwcmVzc2lvbiA8IDAK",
+          "status": 1,
+          "files": {
+            "before": "YmVmb3Jl"
+          }
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "arithmetic-syntax-fatal",
+        "observation": {
+          "stdout": "",
+          "stderr": "c2hlbGw6IGxpbmUgMTogVkFMVUU6IDErOiBhcml0aG1ldGljIHN5bnRheCBlcnJvcjogb3BlcmFuZCBleHBlY3RlZCAoZXJyb3IgdG9rZW4gaXMgIisiKQo=",
+          "status": 1,
+          "files": {
+            "before": "YmVmb3Jl"
+          }
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "substitution-fatal-scope",
+        "observation": {
+          "stdout": "PD46MQ==",
+          "stderr": "c2hlbGw6IGxpbmUgMTogVkFMVUU6IDEvMDogZGl2aXNpb24gYnkgMCAoZXJyb3IgdG9rZW4gaXMgIjAiKQo=",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "utf8-full-first",
+        "observation": {
+          "stdout": "w6nwn5mC",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "utf8-full-middle",
+        "observation": {
+          "stdout": "Wg==",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "utf8-last",
+        "observation": {
+          "stdout": "Wg==",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "utf8-fragment",
+        "observation": {
+          "stdout": "8J+Zgg==",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      },
+      {
+        "locale": "en_US.UTF-8",
+        "name": "utf8-negative-fragment",
+        "observation": {
+          "stdout": "8J+Zgg==",
+          "stderr": "",
+          "status": 0,
+          "files": {}
+        }
+      }
+    ],
+    "comparisons": [
+      {
+        "profile": "GNU-5.3",
+        "locale": "C",
+        "total": 50,
+        "mismatches": [
+          "utf8-fragment",
+          "utf8-negative-fragment"
+        ]
+      },
+      {
+        "profile": "GNU-5.3",
+        "locale": "en_US.UTF-8",
+        "total": 50,
+        "mismatches": []
+      },
+      {
+        "profile": "historical-3.2",
+        "locale": "C",
+        "total": 50,
+        "mismatches": [
+          "offset-empty-tail",
+          "negative-length",
+          "both-negative",
+          "nested-parameter",
+          "offset-division-fatal",
+          "length-division-fatal",
+          "negative-end-fatal",
+          "arithmetic-syntax-fatal",
+          "substitution-fatal-scope",
+          "utf8-fragment",
+          "utf8-negative-fragment"
+        ]
+      },
+      {
+        "profile": "historical-3.2",
+        "locale": "en_US.UTF-8",
+        "total": 50,
+        "mismatches": [
+          "offset-empty-tail",
+          "negative-length",
+          "both-negative",
+          "nested-parameter",
+          "offset-division-fatal",
+          "length-division-fatal",
+          "negative-end-fatal",
+          "arithmetic-syntax-fatal",
+          "substitution-fatal-scope"
+        ]
+      }
+    ]
+  },
+  "initial": {
+    "head": "8877cc944cfd176bc10c7cba884ae4e554d18a5b",
+    "node": "v22.22.2",
+    "runs": [
+      {
+        "name": "substring-author",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--import",
+          "tsx",
+          "--import",
+          "./tests/shell/invocation-discovery-fixes-imports.mjs",
+          "--test",
+          "--test-concurrency=1",
+          "tests/shell/substring.test.ts",
+          "tests/shell/substring-bounds.test.ts"
+        ],
+        "pid": 62597,
+        "status": 0,
+        "counts": {
+          "tests": 101,
+          "pass": 101,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "rawHash": "a7ed6063c4f13fc3324a7cbc04100e67391c310164e79dd6de7e86553642699c",
+        "diagnostics": [
+          "# tests 101",
+          "# pass 101",
+          "# fail 0"
+        ],
+        "stderr": "",
+        "before": "8a877a8ea12f7866a3686ca01b826d9a971cf4b113b3c918149388f5ce56c571",
+        "after": "8a877a8ea12f7866a3686ca01b826d9a971cf4b113b3c918149388f5ce56c571",
+        "changed": [],
+        "importedMismatch": [],
+        "actualImports": {
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/substring-bounds.test.ts": "db4eb6693e4208e92b00016ec3b330da59f50efb475be5ce823f764839e01a61",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/substring.test.ts": "93a862c9a96ec229720c828bf2147c521beab85c833b74b15acd5491b9b0a8af",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/substring-cases.ts": "31eccd1f7e2f4955e9bdab291b03c8ace027ff99a87e274294c2e9e036164767",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/substring-native.ts": "39aee35ae99fec6f2174354af422b9005b8a561e4b04547db4497a70dd6560d6",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/index.ts": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/memory/index.ts": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-closure-native.ts": "65c4e0dcc50a0b060ea1cb1dd735f6cde7cabdb51012ad3716c57d26eeea1aa2",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/command.ts": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/filesystem.ts": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/mount/comparison.ts": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/s3/authority.ts": "1a95f7a28904b8607948673db3e99d3d4a49b2a3839d980143fe13c25e1af344",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/basic.ts": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/filesystem.ts": "74fb5fdd66c2eaf7a8f31d2be8c6be0e94c09ff65892c561bbc0c6bc6f875a8f",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/streams.ts": "8966dd770c11731e5256a1e42aaec4b07ae7f0508a3e89a3efc956d27109098d",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/text.ts": "17a4c60061bdeeca1000499ae9b433f7e3e58c768e1c855e81e7c5338f8998d2",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/grep.ts": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/predicates.ts": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/execution.ts": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/find.ts": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/internal.ts": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/webdav/resource-id.ts": "ee5720f77a352503368d672caaf5237e45863bde88cf69b947d14178fcda49f2",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/shell.ts": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/parser.ts": "feb6cbb2f03ec0c409adeb816bec506788fb3014a23c8dd02f4002362dc4b9f2",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/types.ts": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-closure-cases.ts": "4fbb8af13f7b5de7456f3d3af300a30877030abe0ad27a51d3ed9ad5f39c1c1e",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-closure-read-cases.ts": "8544bb892abc50cd30815bbaea8d3e50738e850e08279068ecc9a3d3edca8e2a",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-closure-sh-cases.ts": "e33bfc1908a7c8bdab2b162a81a73feac3041319a7606acea4703062dfcd1481",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/copy-identity.ts": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/mount/identity.ts": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/move.ts": "31e1fe6a2c0fc9efb9efa44b636d9478d4cab273de4c4e809d4f572b28084042",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/input.ts": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts": "aabc27a9bff85a809b3d866d9dc162a29a321f9abe15e7a5226080aabded6c40",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/display.ts": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069"
+        },
+        "compilerInputs": {
+          "digest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "count": 0
+        },
+        "compilerInputCount": 0,
+        "unguardedCompilerPaths": []
+      },
+      {
+        "name": "parser-expansion",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--import",
+          "tsx",
+          "--import",
+          "./tests/shell/invocation-discovery-fixes-imports.mjs",
+          "--test",
+          "--test-concurrency=1",
+          "tests/shell/parser-regressions.test.ts",
+          "tests/shell/ansi-words.test.ts",
+          "tests/shell/fatal-expansion.test.ts",
+          "tests/shell/positional-ifs.test.ts",
+          "tests/shell/variable-scope.test.ts",
+          "tests/shell/quoted-patterns.test.ts",
+          "tests/shell/newline-patterns.test.ts",
+          "tests/shell/expanded-gaps-parameter.test.ts",
+          "tests/shell/input-units.test.ts",
+          "tests/shell/file-shortcut.test.ts"
+        ],
+        "pid": 62604,
+        "status": 0,
+        "counts": {
+          "tests": 132,
+          "pass": 132,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "rawHash": "81b033e9165499b1f62893ef17989ba97012b89e6e1fe7b3f60ca795baeaa5c3",
+        "diagnostics": [
+          "# tests 132",
+          "# pass 132",
+          "# fail 0"
+        ],
+        "stderr": "",
+        "before": "8a877a8ea12f7866a3686ca01b826d9a971cf4b113b3c918149388f5ce56c571",
+        "after": "8a877a8ea12f7866a3686ca01b826d9a971cf4b113b3c918149388f5ce56c571",
+        "changed": [],
+        "importedMismatch": [],
+        "actualImports": {
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/ansi-words.test.ts": "879708ac4acb09bce02382160fa2525a1d81d10de01a96b0fcf4917477da7ab8",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/bash-bugfix-helpers.ts": "15c7e522377e30e78015d330df30bd25ce44349de20e247f442b4dae0dcecbdd",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/helpers.ts": "ea3bfd82b48886c5da020ef3983243d5139b9da23821a6a36336cb58eb804cb4",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/memory/index.ts": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/command.ts": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/filesystem.ts": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/mount/comparison.ts": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/s3/authority.ts": "1a95f7a28904b8607948673db3e99d3d4a49b2a3839d980143fe13c25e1af344",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/webdav/resource-id.ts": "ee5720f77a352503368d672caaf5237e45863bde88cf69b947d14178fcda49f2",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/shell.ts": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/parser.ts": "feb6cbb2f03ec0c409adeb816bec506788fb3014a23c8dd02f4002362dc4b9f2",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/types.ts": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/input.ts": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts": "aabc27a9bff85a809b3d866d9dc162a29a321f9abe15e7a5226080aabded6c40",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/mount/identity.ts": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/display.ts": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-parameter.test.ts": "ac71efa4eb937c54eb3d4bd9605ce837e6e5a2c5e0030fe8cf1c0fa95ca1a0fc",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-harness.ts": "ccdd579cb7b67d8a10e3ab1a889da582f394bdf3a0fb4358f32f06e94d45ab2f",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-cases.ts": "b6cc09a2a9ab098d72cb2d54ef92f65b26edac6544ec3de64a3041167bd5344d",
+          "/Users/kjopek/Workspace/safe-bash/src/index.ts": "93db829fa8897c5978d6a7e19e6fc974f980cd659f79be6fcfd2f868bad76613",
+          "/Users/kjopek/Workspace/safe-bash/src/plugins/index.ts": "b42974c3208fda3c9e4378b235d6d5d955f1c753c8bfb5e5dd31e22355323f0d",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/index.ts": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/text-programs/index.ts": "6df5a7c5c242e71e18d8a15ea87d1c6c5bcd90aa57edb529af64e147135ea9e2",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/structured/index.ts": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/search/index.ts": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/bytes/index.ts": "70643f22b1b47c1d6422b97d76cacf95e4e6337521f6f42e0f5f559bacbed84f",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/diff-patch/index.ts": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/safejs/index.ts": "479c111291e2e181b3ab1a8a41905592ff71b968a691e25f21970eee089d8f29",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/network/index.ts": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/metadata/index.ts": "bc4ad8e3fb5474796ff326b1f53b8c1b84cf45647640f8246d4ccfb3b61d467e",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/archive/index.ts": "6f23a98dbe89bb37f44799f47c365fb430e910f87363c50291f7b44293e416d0",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/table-text/index.ts": "9003d5c6d85d283eca5a5e1e50750eae10639ce1830bf68427536c50d40848a9",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/real/index.ts": "d3e79b80a5a48984e1f7f7dd9a79254c2db1faf8142e287a43792180874f77da",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/webdav/index.ts": "9a19fb0e61bf9ef07d97881bb93e30ba21491e580ef5e58ab0e80bb5f398d5e4",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/readonly/index.ts": "384f940196dc572f677541daa9c420da2e013324d66576004c1a2730e7899067",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/mount/index.ts": "290e22e36016bf206badff86e55047e8311c3c4feb1c525b9ae0807c568333ee",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/overlay/index.ts": "6442f61ab61aee52a321ef91892ec4c0dc73674bb40ca9a732ffa69f7e73495e",
+          "/Users/kjopek/Workspace/safe-bash/src/integrations/safejs/index.ts": "b0866c13456991f05f30dd23cabcf895d92b8af89985eb88172ac3d76b3b8384",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/s3/index.ts": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/s3/http/index.ts": "bd414ce2de1aeb4becff1375ba994ee5bea6ca46600234807515c28385130dd4",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/internal.ts": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+          "/Users/kjopek/Workspace/safe-bash/src/integrations/safejs/values.ts": "91ac3025b6420a7a908736f1d746077f27c9f045f6be22d82a37f4a07ff9111a",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/safejs/io.ts": "ef366f40b1d1d161ec0f2c18f1138daf75693ab416274bb92763ebf73899f2f1",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/safejs/options.ts": "4009050c3a75daececeb2e75af46be8872d21a83c7a8132b6221b0b4d87c7a43",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/safejs/types.ts": "edd5f7cf2ed473ca33105cfe1039c3fb36ae913112d0564ea3d9b163b3c08bf4",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/text-programs/sed.ts": "38fceb4869a0db8197a050de3430d5b9c5017e1606a4348d17d8004745c645a9",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/text-programs/awk.ts": "af422696809543efb470ae219774e32819124035d51a756d5761f41fa4607dc3",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/structured/jq.ts": "feca27d38a096931faabe5a5449ecc65c39c8b0abbcf69d3ea73a31f729fdbac",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/structured/limits.ts": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/search/rg.ts": "c677f831e8e9dcc5051713d894d277ffa9646d2de358c1970b2dd0a9dfb44417",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/basic.ts": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/filesystem.ts": "74fb5fdd66c2eaf7a8f31d2be8c6be0e94c09ff65892c561bbc0c6bc6f875a8f",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/streams.ts": "8966dd770c11731e5256a1e42aaec4b07ae7f0508a3e89a3efc956d27109098d",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/text.ts": "17a4c60061bdeeca1000499ae9b433f7e3e58c768e1c855e81e7c5338f8998d2",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/grep.ts": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/predicates.ts": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/execution.ts": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/find.ts": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/diff-patch/diff.ts": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/diff-patch/patch.ts": "72bfb60c502ac5bcaf2efa3e0f044b0ab1d89a54293f829d62f011e7c10e82d7",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/bytes/encoding/index.ts": "6df6b0d7393fd2abb82b476915fc48ae333730c1e9b323a11776a3b9c2607d5f",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/bytes/checksums/index.ts": "042bb34a0b81a03d70bc148eae753e2f562817dda5a5023bddda67a567088bab",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/bytes/compression/index.ts": "cb0de2e91261eaf255491fe5dc2e62683ef002e07cddef5827b57527eaaf88f9",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/table-text/paste.ts": "39b236794d5254d3e40471d9cb867d488ab4c57c236c2730bd2640ded84d1ba5",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/table-text/comm.ts": "34df22e9b6e1ca23ec14e83003aa9758c7d9fc1b1473828429e2ae713e4219cd",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/table-text/join.ts": "83704c0da1bcd137fedf1e90e1d922af482bcfac290bc90f6b7ef3e36b6429b0",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/table-text/internal.ts": "544935927754e228711318a299c20d95b3954bc756e14785722d0eac67a436d9",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/metadata/chmod.ts": "9286ebc9bea074bf9dad58cb6197aa5e10d325c549187eefbc9203ac76b09cfd",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/metadata/stat.ts": "fab291cc4e5668526fc1247e155f5878e1235d9d95a5096d34bcfa9f022d7f3b",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/metadata/mktemp.ts": "1165d822477e68f6b4dfac3db6a7fa43247226137122c0d980e1490b80bc34d4",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/metadata/internal.ts": "bd26d6f4a098c565ce38da6bc269503469638837d3dce47e21ac9c1604a45cd7",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/archive/create.ts": "cdddce8ccd1d53987fa1a314cdc6e04d48246fa59fd0880fb444c66bdca7199c",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/archive/extract.ts": "fc2f8a4151ca7c5398cd64fe4a55156f2a1ac6feb75404cfb96c8f5b6d4a1536",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/archive/internal.ts": "6e9a204384490607973f7e1109c51a082319b6eed2fecb8f410d9d51711367d9",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/archive/options.ts": "1c2dc4e57c80901b402f8f08b1a5638b7acad9f882aca67ae4f9be73295bf956",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/archive/stream.ts": "31a3b70bf7ce89f81e287cac09c6816637bd06dc398010dd82386ce5d93ceba4",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/network/curl.ts": "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/network/types.ts": "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/network/transport.ts": "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/webdav/webdav.ts": "36e9b5eb6f012df25bd5bb529d29716400f53a6ffa593d75b78f19f77c791b22",
+          "/Users/kjopek/Workspace/safe-bash/src/integrations/safejs/filesystem.ts": "c9ab864768e430bbfbea7590071646985c6374634124f62516ec09c13d9af578",
+          "/Users/kjopek/Workspace/safe-bash/src/integrations/safejs/shell.ts": "5cb3e55c5e62adb540b41ac7ce39e8458a3a25ffb8422e6164419c1d22ef15da",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/s3/filesystem.ts": "af2ee439cbabdc3babe008da2601ccc1a031555edc5e082f8711f4512db01411",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/s3/mock.ts": "99655664c7a52c595dc1ec4e5d461e4c002a0c9ba60d222ded078e5b9780841e",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/s3/transport.ts": "185895f1b939370903c9a896df47a1066647a50eb3022e1d0387918996ccd51c",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/s3/http/transport.ts": "73611a0d279cec24d85d14031a02d92607979977ef926245fe0a6f9e7eb6161d",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/copy-identity.ts": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/move.ts": "31e1fe6a2c0fc9efb9efa44b636d9478d4cab273de4c4e809d4f572b28084042",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/structured/input.ts": "fa83e47ea3f0dfbb388f509cd748b733886171c16b10c536a5efa05fa7a9e5ca",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/structured/interpreter.ts": "bac1cf5325eff5bfa69f1c8bec5d3d8a80bb452fd61cdc802d55a26788acaffc",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/structured/parser.ts": "a7bcafcd6a3676ed8e344dcaa1293d4593652c9c343172c5184c8c826d042b51",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/structured/numbers.ts": "1ef4803e8311e554c8b11a590e75f4c9a96fb81614872587f534514fadfc7ae2",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/search/matcher.ts": "499848186cde72bd696cba1fc7d53af39354ba74ea63c42acd92d5eb1cda1cfb",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/search/options.ts": "828d97d930dc615089a29efd3fe463293d4f61bf4dd33c81c2ceb6b910eb6ef8",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/search/output.ts": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/search/shared.ts": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/search/walk.ts": "474b87aa10e7daf0506edd7408d3a1b48c2bf7e644e8f585f1f5930bb658686a",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/text-programs/regex.ts": "23df19386627659c3a5175562a2f8eeda873b81e3dc3e78d3cf51aafa7b3b06f",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/text-programs/shared.ts": "fec28a956be858e725811f9e83a7f325d99d3152da0231af0d619847e8e6206e",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/text-programs/awk-syntax.ts": "179754bbb74643f57f8e19b0a87c43a8793130aa4b4f8d07a4cc14cae871d4d7",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/text-programs/awk-runtime.ts": "30821e08780042b3382ceedb4b133a89475938a1212ed607782e2d0e592bd35e",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/safejs/render.ts": "10eabbdc8d3c1f2e7c40aeafd51b15484ece05de844fcb73f2ef1aed01fe5d6e",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/bytes/compression/files.ts": "1f8d8b243f10d63ae5cccea40d1d9cfc6cb841a46bea15cc61f4a5caa70572df",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/bytes/compression/options.ts": "3218bbcba8d3c5c113eb7f4761f81e0919e380c6f3de76b26b6a52c44ba7cd95",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/bytes/compression/stream.ts": "573157fda5382df052ea30011ff3094ac6c838618e1272689766819777a8c9e4",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/diff-patch/shared.ts": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/diff-patch/unified.ts": "a8659f40aeb9d1cac3548ffd24950e652eeace92cef1339de9e3a5e5ed7e10fb",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/diff-patch/patch-path.ts": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/diff-patch/patch-envelope.ts": "f6a15e78d7cea41d503f5352206efeb9fa950871c820af730cf27ea06ade99e8",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/diff-patch/patch-formats.ts": "a78045ac43900582bdb19f0476414e8566c4e1e2edc86b654bc760cf86de3aa4",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/diff-patch/patch-gnu-paths.ts": "3a06d5b33d3c0df12ff83b0bbf4396d90906d6fd61e3ca1bd5537f508c4282af",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/diff-patch/patch-gnu-reject.ts": "5df12efd994c0187998f0112a5fac595f376142f2cd187a5e0b40738f7b6cf02",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/bytes/encoding/base.ts": "91e4309ca4947fbf3ac0dd9d0dc9431d3d22d29fb66e46706290922c9feb134d",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/bytes/encoding/od.ts": "dbe5312675e4ecf74d852e28ac8134be5586d8aa53d5b21a3cccc5d986213a03",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/bytes/encoding/xxd.ts": "1b78b95a9b0175e5297b988a1794310c03786df5a7aa90a4dd261e91ec765a78",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/diff-patch/diff-format.ts": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/network/args.ts": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/network/body.ts": "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/network/output.ts": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/network/shared.ts": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/archive/format.ts": "05445d1d80023bbd5a59ff3a47b14bcea038f1f8476835fd973a01ee89fd19ac",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/webdav/xml.ts": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+          "/Users/kjopek/Workspace/safe-bash/src/integrations/safejs/stats.ts": "94bb724a7281296e08ac4465979e0f9cac585e28f91fc79382650a3c60ea4824",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/s3/http/request.ts": "33e2232404d05c08db2ccce200b6ca1d10af36f6a72f197e196fe1fa3f5ba618",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/s3/http/signature.ts": "094b2e6fce2657757bf168ae694213f874e644d81cc9ead75faa1120f0910b3b",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/s3/http/xml.ts": "73598f1a2aedbf22a5d455849dae4f7e80f022d5ad847f136b2d1d6ecc99301e",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/bytes/encoding/shared.ts": "8a0eb870513630296a7f28d7d6867d25aba9b785365b812d740c6d7b4da3d396",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/bytes/compression/gunzip.ts": "6bf534778fa82558ae36bd96412662a8e4c4e864c0a93f15b40d1148a64f835f",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/text-programs/awk-values.ts": "6824c5348221d98f9d94c058bbe119eaa6aa1e7ca7775af8d460f358436c2d7c",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/search/glob.ts": "d6fc574fbfde82b459426875801a36aaaf5ec9536ce25d1f5876215396094425",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/structured/split.ts": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/structured/values.ts": "8d4e7cf5e9182f2c0487be2fba1dd3585c406cc0cfd73c1a38dcb2c95198e46a",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/fatal-expansion.test.ts": "1e06b0353dccedbeaedb62a18b5875036ca407fd042db4503c79ce272e3c6e4d",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/file-shortcut.test.ts": "48c16e8e636d0f6e4003642ff4d4546bda2c9b0b8b96e0fd73dbd4bade705b47",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/input-units.test.ts": "f1b6917a96cd9a58e6cc3bc79d8ef539616cfbffa976d7eb7b3a9f5941ea4a8c",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/newline-patterns.test.ts": "782a2b8703ab701884849548a4263a699355f6005e970199a89961a09a96d7aa",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/parser-regressions.test.ts": "472aaeb11f94d053a03caf14736033458ba7a0564fe0508c5aefc3f74e601761",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/positional-ifs.test.ts": "af123530a22b00a2bae42bf77f12e68c7ccc1c0bc6965841d1f9234cfecf2592",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/quoted-patterns.test.ts": "606c60e3ea77a305d228d8b6490e3fe834225fb1d2d2f60c47383e0188e0a565",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/variable-scope.test.ts": "17b790ccaed68150e51c550c40ac94e337d379b507ff26290998edc87fcb675f"
+        },
+        "compilerInputs": {
+          "digest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "count": 0
+        },
+        "compilerInputCount": 0,
+        "unguardedCompilerPaths": []
+      },
+      {
+        "name": "source-eval86",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--import",
+          "tsx",
+          "--import",
+          "./tests/shell/invocation-discovery-fixes-imports.mjs",
+          "--test",
+          "--test-concurrency=1",
+          "tests/shell/source-dot-eval-source.test.ts",
+          "tests/shell/source-dot-eval-source-host.test.ts",
+          "tests/shell/source-dot-eval-eval.test.ts",
+          "tests/shell/source-dot-eval-eval-host.test.ts"
+        ],
+        "pid": 62778,
+        "status": 0,
+        "counts": {
+          "tests": 86,
+          "pass": 86,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "rawHash": "7d2c6635e57ce715b2008ad1a3cd0bba2b03413c149c148bb630ba4f9b769cd5",
+        "diagnostics": [
+          "# tests 86",
+          "# pass 86",
+          "# fail 0"
+        ],
+        "stderr": "",
+        "before": "8a877a8ea12f7866a3686ca01b826d9a971cf4b113b3c918149388f5ce56c571",
+        "after": "8a877a8ea12f7866a3686ca01b826d9a971cf4b113b3c918149388f5ce56c571",
+        "changed": [],
+        "importedMismatch": [],
+        "actualImports": {
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/source-dot-eval-eval-host.test.ts": "cc055f2d81d289175ad9bcd87f2fab7c75ad5088d65484fd4b1cce25619be9bc",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/source-dot-eval-eval.test.ts": "6ded6b6c37d5f495f8b0a0c28a0c7924cb3ffba2adc87116966f318da07233c3",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/source-dot-eval-cases.ts": "258daac6f521fd00c31a9dbf630c98cc47199cc8ebaed5e1468e25a835db3c64",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-closure-native.ts": "65c4e0dcc50a0b060ea1cb1dd735f6cde7cabdb51012ad3716c57d26eeea1aa2",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/source-dot-eval-native.ts": "1c67728961742bf9c7c64729a3391add87642d5e99d9ba0cde51249982c3acc4",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/index.ts": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/memory/index.ts": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-closure-read-cases.ts": "8544bb892abc50cd30815bbaea8d3e50738e850e08279068ecc9a3d3edca8e2a",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-closure-cases.ts": "4fbb8af13f7b5de7456f3d3af300a30877030abe0ad27a51d3ed9ad5f39c1c1e",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-closure-sh-cases.ts": "e33bfc1908a7c8bdab2b162a81a73feac3041319a7606acea4703062dfcd1481",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/command.ts": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/filesystem.ts": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/basic.ts": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/filesystem.ts": "74fb5fdd66c2eaf7a8f31d2be8c6be0e94c09ff65892c561bbc0c6bc6f875a8f",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/streams.ts": "8966dd770c11731e5256a1e42aaec4b07ae7f0508a3e89a3efc956d27109098d",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/text.ts": "17a4c60061bdeeca1000499ae9b433f7e3e58c768e1c855e81e7c5338f8998d2",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/mount/comparison.ts": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/s3/authority.ts": "1a95f7a28904b8607948673db3e99d3d4a49b2a3839d980143fe13c25e1af344",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/grep.ts": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/predicates.ts": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/execution.ts": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/find.ts": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/internal.ts": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/shell.ts": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/parser.ts": "feb6cbb2f03ec0c409adeb816bec506788fb3014a23c8dd02f4002362dc4b9f2",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/types.ts": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/webdav/resource-id.ts": "ee5720f77a352503368d672caaf5237e45863bde88cf69b947d14178fcda49f2",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/input.ts": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts": "aabc27a9bff85a809b3d866d9dc162a29a321f9abe15e7a5226080aabded6c40",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/mount/identity.ts": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/copy-identity.ts": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/move.ts": "31e1fe6a2c0fc9efb9efa44b636d9478d4cab273de4c4e809d4f572b28084042",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/display.ts": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/source-dot-eval-source-host.test.ts": "00a146e9a164d0ea6427e2bb7cc91c7e38ccb2ef8ea1717f913101cf2abddd17",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/source-dot-eval-source.test.ts": "9b90d7b30120e76481c3bcab4bd639117fc951fb7610eca6908277fb1456a969"
+        },
+        "compilerInputs": {
+          "digest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "count": 0
+        },
+        "compilerInputCount": 0,
+        "unguardedCompilerPaths": []
+      },
+      {
+        "name": "current-shell43",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--import",
+          "tsx",
+          "--import",
+          "./tests/shell/invocation-discovery-fixes-imports.mjs",
+          "--test",
+          "--test-concurrency=1",
+          "tests/shell-stress/current-shell/current-shell.test.ts"
+        ],
+        "pid": 62823,
+        "status": 0,
+        "counts": {
+          "tests": 44,
+          "pass": 44,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "rawHash": "2534ef6f3bd133e0d5499aff827dd5cdfd010478bcd6ada433f8f60a952bd7bf",
+        "diagnostics": [
+          "# tests 44",
+          "# pass 44",
+          "# fail 0"
+        ],
+        "stderr": "",
+        "before": "8a877a8ea12f7866a3686ca01b826d9a971cf4b113b3c918149388f5ce56c571",
+        "after": "8a877a8ea12f7866a3686ca01b826d9a971cf4b113b3c918149388f5ce56c571",
+        "changed": [],
+        "importedMismatch": [],
+        "actualImports": {
+          "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/current-shell/current-shell.test.ts": "fa803152d6d4f179345e476202c7dafc5dc3f5af1006b49404dcec0a23770253"
+        },
+        "compilerInputs": {
+          "digest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "count": 0
+        },
+        "compilerInputCount": 0,
+        "unguardedCompilerPaths": []
+      },
+      {
+        "name": "global",
+        "executable": "./node_modules/.bin/tsc",
+        "args": [
+          "--noEmit",
+          "--listFiles"
+        ],
+        "pid": 62917,
+        "status": 2,
+        "counts": {},
+        "rawHash": "74295ca9a87b1a0a8e896821d19ea5da45435e423edf3c09f9266c3c33cf957c",
+        "diagnostics": [
+          "tests/shell/substring-native.ts(55,11): error TS7034: Variable 'actual' implicitly has type 'any[]' in some locations where its type cannot be determined.",
+          "tests/shell/substring-native.ts(57,255): error TS7005: Variable 'actual' implicitly has an 'any[]' type."
+        ],
+        "stderr": "",
+        "before": "d9ea0da26d690a493ae52c32aa01c54bbafe14c79747fb01f8fa140328597010",
+        "after": "d9ea0da26d690a493ae52c32aa01c54bbafe14c79747fb01f8fa140328597010",
+        "changed": [],
+        "importedMismatch": [],
+        "actualImports": {},
+        "compilerInputs": {
+          "digest": "2a61368aa35ea2be88c35600d896d975f193fd3f72b0646a2ea7e974b0d209ae",
+          "count": 1106
+        },
+        "compilerInputCount": 1106,
+        "unguardedCompilerPaths": []
+      },
+      {
+        "name": "build",
+        "executable": "./node_modules/.bin/tsc",
+        "args": [
+          "-p",
+          "tsconfig.build.json",
+          "--noEmit",
+          "--listFiles"
+        ],
+        "pid": 62975,
+        "status": 0,
+        "counts": {},
+        "rawHash": "8c03865cc8fe9b52da7dc33955ed0179390c21784cb9921e774a8bb08168a74c",
+        "diagnostics": [],
+        "stderr": "",
+        "before": "f44eb57e5f496f1c0714c6f0e01e4ecea047cc61ab35adf2bbe1f82e32be217a",
+        "after": "f44eb57e5f496f1c0714c6f0e01e4ecea047cc61ab35adf2bbe1f82e32be217a",
+        "changed": [],
+        "importedMismatch": [],
+        "actualImports": {},
+        "compilerInputs": {
+          "digest": "c52ddcbf31e14df30042aca0e825ded52d8b0903d9378cbe024db35f49ab4d51",
+          "count": 308
+        },
+        "compilerInputCount": 308,
+        "unguardedCompilerPaths": []
+      },
+      {
+        "name": "benchmark",
+        "executable": "./node_modules/.bin/tsc",
+        "args": [
+          "-p",
+          "benchmarks/tsconfig.json",
+          "--noEmit",
+          "--listFiles"
+        ],
+        "pid": 62995,
+        "status": 0,
+        "counts": {},
+        "rawHash": "a0a142f98e7c48cd887632ffaf082b67c28dfe113fa169870f4610f1a2f058ed",
+        "diagnostics": [],
+        "stderr": "",
+        "before": "9c438f6f0fb6e9529b5a2ccf0f7750da6029066dd1704d77f513b8f0f1feffd5",
+        "after": "9c438f6f0fb6e9529b5a2ccf0f7750da6029066dd1704d77f513b8f0f1feffd5",
+        "changed": [],
+        "importedMismatch": [],
+        "actualImports": {},
+        "compilerInputs": {
+          "digest": "56401f21c7d1d7451bcfb9aa6d073f93429b5d76727e2d4d4f711280d62b19ad",
+          "count": 417
+        },
+        "compilerInputCount": 417,
+        "unguardedCompilerPaths": []
+      }
+    ]
+  },
+  "final": {
+    "head": "c2902a6016dd4a42818e27d055895c0dc29f73f2",
+    "node": "v22.22.2",
+    "runs": [
+      {
+        "name": "substring-author",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--import",
+          "tsx",
+          "--import",
+          "./tests/shell/invocation-discovery-fixes-imports.mjs",
+          "--test",
+          "--test-concurrency=1",
+          "tests/shell/substring.test.ts",
+          "tests/shell/substring-bounds.test.ts",
+          "tests/shell/substring-positional.test.ts"
+        ],
+        "pid": 64263,
+        "status": 0,
+        "counts": {
+          "tests": 105,
+          "pass": 105,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "rawHash": "93c4c527b21075c5b82c7157576f2337f40307e07b3a252755cb3c00a7756606",
+        "diagnostics": [
+          "# tests 105",
+          "# pass 105",
+          "# fail 0"
+        ],
+        "stderr": "",
+        "before": "923b9613d88b735db4600533d5295745c786f65321cc2796da502388c04e04ff",
+        "after": "923b9613d88b735db4600533d5295745c786f65321cc2796da502388c04e04ff",
+        "changed": [],
+        "importedMismatch": [],
+        "actualImports": {
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/substring-bounds.test.ts": "db4eb6693e4208e92b00016ec3b330da59f50efb475be5ce823f764839e01a61",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/substring-positional.test.ts": "53a049eac0848a10121f34f1a83c4e939269c6243560b9d34c7ef8868f286717",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/substring-positional.ts": "58b2df0b29fd97560afbf74678035f295da7eb4fabbba345830b8b4ebc9bc118",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/substring-native.ts": "99bd454add1070230158c5b0aec0410139aeefb6a24703fda25a2bf2bfddf1f0",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-closure-native.ts": "65c4e0dcc50a0b060ea1cb1dd735f6cde7cabdb51012ad3716c57d26eeea1aa2",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/index.ts": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/memory/index.ts": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/substring-cases.ts": "31eccd1f7e2f4955e9bdab291b03c8ace027ff99a87e274294c2e9e036164767",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/command.ts": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-closure-cases.ts": "4fbb8af13f7b5de7456f3d3af300a30877030abe0ad27a51d3ed9ad5f39c1c1e",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-closure-read-cases.ts": "8544bb892abc50cd30815bbaea8d3e50738e850e08279068ecc9a3d3edca8e2a",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-closure-sh-cases.ts": "e33bfc1908a7c8bdab2b162a81a73feac3041319a7606acea4703062dfcd1481",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/basic.ts": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/filesystem.ts": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/shell.ts": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/parser.ts": "feb6cbb2f03ec0c409adeb816bec506788fb3014a23c8dd02f4002362dc4b9f2",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/types.ts": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/filesystem.ts": "74fb5fdd66c2eaf7a8f31d2be8c6be0e94c09ff65892c561bbc0c6bc6f875a8f",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/streams.ts": "8966dd770c11731e5256a1e42aaec4b07ae7f0508a3e89a3efc956d27109098d",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/text.ts": "17a4c60061bdeeca1000499ae9b433f7e3e58c768e1c855e81e7c5338f8998d2",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/grep.ts": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/predicates.ts": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/execution.ts": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/find.ts": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/internal.ts": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/mount/comparison.ts": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/s3/authority.ts": "1a95f7a28904b8607948673db3e99d3d4a49b2a3839d980143fe13c25e1af344",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/webdav/resource-id.ts": "ee5720f77a352503368d672caaf5237e45863bde88cf69b947d14178fcda49f2",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/copy-identity.ts": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/move.ts": "31e1fe6a2c0fc9efb9efa44b636d9478d4cab273de4c4e809d4f572b28084042",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/input.ts": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts": "e8f1edb842d04498050d314091269974df157b11ab13cabba41d9c84a0191538",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/mount/identity.ts": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/display.ts": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/substring.test.ts": "93a862c9a96ec229720c828bf2147c521beab85c833b74b15acd5491b9b0a8af"
+        },
+        "compilerInputs": {
+          "digest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "count": 0
+        },
+        "compilerInputCount": 0,
+        "unguardedCompilerPaths": []
+      },
+      {
+        "name": "parser-expansion",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--import",
+          "tsx",
+          "--import",
+          "./tests/shell/invocation-discovery-fixes-imports.mjs",
+          "--test",
+          "--test-concurrency=1",
+          "tests/shell/parser-regressions.test.ts",
+          "tests/shell/ansi-words.test.ts",
+          "tests/shell/fatal-expansion.test.ts",
+          "tests/shell/positional-ifs.test.ts",
+          "tests/shell/variable-scope.test.ts",
+          "tests/shell/quoted-patterns.test.ts",
+          "tests/shell/newline-patterns.test.ts",
+          "tests/shell/expanded-gaps-parameter.test.ts",
+          "tests/shell/input-units.test.ts",
+          "tests/shell/file-shortcut.test.ts"
+        ],
+        "pid": 64286,
+        "status": 0,
+        "counts": {
+          "tests": 132,
+          "pass": 132,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "rawHash": "1904bff31af0823420c772367acf3b1b2ab9e45b0b408079e3faca968c62f2f2",
+        "diagnostics": [
+          "# tests 132",
+          "# pass 132",
+          "# fail 0"
+        ],
+        "stderr": "",
+        "before": "923b9613d88b735db4600533d5295745c786f65321cc2796da502388c04e04ff",
+        "after": "923b9613d88b735db4600533d5295745c786f65321cc2796da502388c04e04ff",
+        "changed": [],
+        "importedMismatch": [],
+        "actualImports": {
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/ansi-words.test.ts": "879708ac4acb09bce02382160fa2525a1d81d10de01a96b0fcf4917477da7ab8",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/bash-bugfix-helpers.ts": "15c7e522377e30e78015d330df30bd25ce44349de20e247f442b4dae0dcecbdd",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/helpers.ts": "ea3bfd82b48886c5da020ef3983243d5139b9da23821a6a36336cb58eb804cb4",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/memory/index.ts": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/command.ts": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/filesystem.ts": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/mount/comparison.ts": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/s3/authority.ts": "1a95f7a28904b8607948673db3e99d3d4a49b2a3839d980143fe13c25e1af344",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/webdav/resource-id.ts": "ee5720f77a352503368d672caaf5237e45863bde88cf69b947d14178fcda49f2",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/shell.ts": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/parser.ts": "feb6cbb2f03ec0c409adeb816bec506788fb3014a23c8dd02f4002362dc4b9f2",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/types.ts": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/mount/identity.ts": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/input.ts": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts": "e8f1edb842d04498050d314091269974df157b11ab13cabba41d9c84a0191538",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/display.ts": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-parameter.test.ts": "ac71efa4eb937c54eb3d4bd9605ce837e6e5a2c5e0030fe8cf1c0fa95ca1a0fc",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-cases.ts": "b6cc09a2a9ab098d72cb2d54ef92f65b26edac6544ec3de64a3041167bd5344d",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-harness.ts": "ccdd579cb7b67d8a10e3ab1a889da582f394bdf3a0fb4358f32f06e94d45ab2f",
+          "/Users/kjopek/Workspace/safe-bash/src/index.ts": "93db829fa8897c5978d6a7e19e6fc974f980cd659f79be6fcfd2f868bad76613",
+          "/Users/kjopek/Workspace/safe-bash/src/plugins/index.ts": "b42974c3208fda3c9e4378b235d6d5d955f1c753c8bfb5e5dd31e22355323f0d",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/index.ts": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/text-programs/index.ts": "6df5a7c5c242e71e18d8a15ea87d1c6c5bcd90aa57edb529af64e147135ea9e2",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/structured/index.ts": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/search/index.ts": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/bytes/index.ts": "70643f22b1b47c1d6422b97d76cacf95e4e6337521f6f42e0f5f559bacbed84f",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/diff-patch/index.ts": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/safejs/index.ts": "3978b1f876a3651034a56e793313d54bc5031c650f82d23bc59f40a73545fceb",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/network/index.ts": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/metadata/index.ts": "bc4ad8e3fb5474796ff326b1f53b8c1b84cf45647640f8246d4ccfb3b61d467e",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/archive/index.ts": "6f23a98dbe89bb37f44799f47c365fb430e910f87363c50291f7b44293e416d0",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/webdav/index.ts": "9a19fb0e61bf9ef07d97881bb93e30ba21491e580ef5e58ab0e80bb5f398d5e4",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/table-text/index.ts": "9003d5c6d85d283eca5a5e1e50750eae10639ce1830bf68427536c50d40848a9",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/real/index.ts": "d3e79b80a5a48984e1f7f7dd9a79254c2db1faf8142e287a43792180874f77da",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/s3/index.ts": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/s3/http/index.ts": "bd414ce2de1aeb4becff1375ba994ee5bea6ca46600234807515c28385130dd4",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/readonly/index.ts": "384f940196dc572f677541daa9c420da2e013324d66576004c1a2730e7899067",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/mount/index.ts": "290e22e36016bf206badff86e55047e8311c3c4feb1c525b9ae0807c568333ee",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/overlay/index.ts": "6442f61ab61aee52a321ef91892ec4c0dc73674bb40ca9a732ffa69f7e73495e",
+          "/Users/kjopek/Workspace/safe-bash/src/integrations/safejs/index.ts": "b0866c13456991f05f30dd23cabcf895d92b8af89985eb88172ac3d76b3b8384",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/internal.ts": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/predicates.ts": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/execution.ts": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/find.ts": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/diff-patch/diff.ts": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/search/rg.ts": "c677f831e8e9dcc5051713d894d277ffa9646d2de358c1970b2dd0a9dfb44417",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/bytes/encoding/index.ts": "6df6b0d7393fd2abb82b476915fc48ae333730c1e9b323a11776a3b9c2607d5f",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/bytes/checksums/index.ts": "042bb34a0b81a03d70bc148eae753e2f562817dda5a5023bddda67a567088bab",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/bytes/compression/index.ts": "cb0de2e91261eaf255491fe5dc2e62683ef002e07cddef5827b57527eaaf88f9",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/text-programs/sed.ts": "38fceb4869a0db8197a050de3430d5b9c5017e1606a4348d17d8004745c645a9",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/text-programs/awk.ts": "af422696809543efb470ae219774e32819124035d51a756d5761f41fa4607dc3",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/structured/jq.ts": "feca27d38a096931faabe5a5449ecc65c39c8b0abbcf69d3ea73a31f729fdbac",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/structured/limits.ts": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/basic.ts": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/filesystem.ts": "74fb5fdd66c2eaf7a8f31d2be8c6be0e94c09ff65892c561bbc0c6bc6f875a8f",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/streams.ts": "8966dd770c11731e5256a1e42aaec4b07ae7f0508a3e89a3efc956d27109098d",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/text.ts": "17a4c60061bdeeca1000499ae9b433f7e3e58c768e1c855e81e7c5338f8998d2",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/grep.ts": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/table-text/comm.ts": "34df22e9b6e1ca23ec14e83003aa9758c7d9fc1b1473828429e2ae713e4219cd",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/table-text/join.ts": "83704c0da1bcd137fedf1e90e1d922af482bcfac290bc90f6b7ef3e36b6429b0",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/network/curl.ts": "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/network/types.ts": "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/network/transport.ts": "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/metadata/chmod.ts": "9286ebc9bea074bf9dad58cb6197aa5e10d325c549187eefbc9203ac76b09cfd",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/metadata/stat.ts": "fab291cc4e5668526fc1247e155f5878e1235d9d95a5096d34bcfa9f022d7f3b",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/metadata/mktemp.ts": "1165d822477e68f6b4dfac3db6a7fa43247226137122c0d980e1490b80bc34d4",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/metadata/internal.ts": "bd26d6f4a098c565ce38da6bc269503469638837d3dce47e21ac9c1604a45cd7",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/diff-patch/patch.ts": "72bfb60c502ac5bcaf2efa3e0f044b0ab1d89a54293f829d62f011e7c10e82d7",
+          "/Users/kjopek/Workspace/safe-bash/src/integrations/safejs/values.ts": "91ac3025b6420a7a908736f1d746077f27c9f045f6be22d82a37f4a07ff9111a",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/safejs/io.ts": "ef366f40b1d1d161ec0f2c18f1138daf75693ab416274bb92763ebf73899f2f1",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/safejs/options.ts": "4009050c3a75daececeb2e75af46be8872d21a83c7a8132b6221b0b4d87c7a43",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/safejs/types.ts": "edd5f7cf2ed473ca33105cfe1039c3fb36ae913112d0564ea3d9b163b3c08bf4",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/archive/create.ts": "cdddce8ccd1d53987fa1a314cdc6e04d48246fa59fd0880fb444c66bdca7199c",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/archive/extract.ts": "fc2f8a4151ca7c5398cd64fe4a55156f2a1ac6feb75404cfb96c8f5b6d4a1536",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/archive/internal.ts": "6e9a204384490607973f7e1109c51a082319b6eed2fecb8f410d9d51711367d9",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/archive/options.ts": "1c2dc4e57c80901b402f8f08b1a5638b7acad9f882aca67ae4f9be73295bf956",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/archive/stream.ts": "31a3b70bf7ce89f81e287cac09c6816637bd06dc398010dd82386ce5d93ceba4",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/webdav/webdav.ts": "36e9b5eb6f012df25bd5bb529d29716400f53a6ffa593d75b78f19f77c791b22",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/table-text/paste.ts": "39b236794d5254d3e40471d9cb867d488ab4c57c236c2730bd2640ded84d1ba5",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/table-text/internal.ts": "544935927754e228711318a299c20d95b3954bc756e14785722d0eac67a436d9",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/s3/filesystem.ts": "af2ee439cbabdc3babe008da2601ccc1a031555edc5e082f8711f4512db01411",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/s3/mock.ts": "99655664c7a52c595dc1ec4e5d461e4c002a0c9ba60d222ded078e5b9780841e",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/s3/transport.ts": "185895f1b939370903c9a896df47a1066647a50eb3022e1d0387918996ccd51c",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/s3/http/transport.ts": "73611a0d279cec24d85d14031a02d92607979977ef926245fe0a6f9e7eb6161d",
+          "/Users/kjopek/Workspace/safe-bash/src/integrations/safejs/filesystem.ts": "c9ab864768e430bbfbea7590071646985c6374634124f62516ec09c13d9af578",
+          "/Users/kjopek/Workspace/safe-bash/src/integrations/safejs/shell.ts": "5cb3e55c5e62adb540b41ac7ce39e8458a3a25ffb8422e6164419c1d22ef15da",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/structured/input.ts": "fa83e47ea3f0dfbb388f509cd748b733886171c16b10c536a5efa05fa7a9e5ca",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/structured/interpreter.ts": "bac1cf5325eff5bfa69f1c8bec5d3d8a80bb452fd61cdc802d55a26788acaffc",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/structured/parser.ts": "a7bcafcd6a3676ed8e344dcaa1293d4593652c9c343172c5184c8c826d042b51",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/structured/numbers.ts": "1ef4803e8311e554c8b11a590e75f4c9a96fb81614872587f534514fadfc7ae2",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/bytes/compression/files.ts": "1f8d8b243f10d63ae5cccea40d1d9cfc6cb841a46bea15cc61f4a5caa70572df",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/bytes/compression/options.ts": "3218bbcba8d3c5c113eb7f4761f81e0919e380c6f3de76b26b6a52c44ba7cd95",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/bytes/compression/stream.ts": "573157fda5382df052ea30011ff3094ac6c838618e1272689766819777a8c9e4",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/text-programs/regex.ts": "23df19386627659c3a5175562a2f8eeda873b81e3dc3e78d3cf51aafa7b3b06f",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/text-programs/shared.ts": "fec28a956be858e725811f9e83a7f325d99d3152da0231af0d619847e8e6206e",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/text-programs/awk-syntax.ts": "179754bbb74643f57f8e19b0a87c43a8793130aa4b4f8d07a4cc14cae871d4d7",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/text-programs/awk-runtime.ts": "30821e08780042b3382ceedb4b133a89475938a1212ed607782e2d0e592bd35e",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/diff-patch/shared.ts": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/diff-patch/diff-format.ts": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/search/matcher.ts": "499848186cde72bd696cba1fc7d53af39354ba74ea63c42acd92d5eb1cda1cfb",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/search/options.ts": "828d97d930dc615089a29efd3fe463293d4f61bf4dd33c81c2ceb6b910eb6ef8",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/search/output.ts": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/search/shared.ts": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/search/walk.ts": "474b87aa10e7daf0506edd7408d3a1b48c2bf7e644e8f585f1f5930bb658686a",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/bytes/encoding/base.ts": "91e4309ca4947fbf3ac0dd9d0dc9431d3d22d29fb66e46706290922c9feb134d",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/bytes/encoding/od.ts": "dbe5312675e4ecf74d852e28ac8134be5586d8aa53d5b21a3cccc5d986213a03",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/bytes/encoding/xxd.ts": "1b78b95a9b0175e5297b988a1794310c03786df5a7aa90a4dd261e91ec765a78",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/safejs/render.ts": "10eabbdc8d3c1f2e7c40aeafd51b15484ece05de844fcb73f2ef1aed01fe5d6e",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/archive/format.ts": "05445d1d80023bbd5a59ff3a47b14bcea038f1f8476835fd973a01ee89fd19ac",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/diff-patch/unified.ts": "a8659f40aeb9d1cac3548ffd24950e652eeace92cef1339de9e3a5e5ed7e10fb",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/diff-patch/patch-path.ts": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/diff-patch/patch-envelope.ts": "f6a15e78d7cea41d503f5352206efeb9fa950871c820af730cf27ea06ade99e8",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/diff-patch/patch-formats.ts": "a78045ac43900582bdb19f0476414e8566c4e1e2edc86b654bc760cf86de3aa4",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/diff-patch/patch-gnu-paths.ts": "3a06d5b33d3c0df12ff83b0bbf4396d90906d6fd61e3ca1bd5537f508c4282af",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/diff-patch/patch-gnu-reject.ts": "5df12efd994c0187998f0112a5fac595f376142f2cd187a5e0b40738f7b6cf02",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/network/args.ts": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/network/body.ts": "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/network/output.ts": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/network/shared.ts": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/copy-identity.ts": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/move.ts": "31e1fe6a2c0fc9efb9efa44b636d9478d4cab273de4c4e809d4f572b28084042",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/webdav/xml.ts": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/s3/http/request.ts": "33e2232404d05c08db2ccce200b6ca1d10af36f6a72f197e196fe1fa3f5ba618",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/s3/http/signature.ts": "094b2e6fce2657757bf168ae694213f874e644d81cc9ead75faa1120f0910b3b",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/s3/http/xml.ts": "73598f1a2aedbf22a5d455849dae4f7e80f022d5ad847f136b2d1d6ecc99301e",
+          "/Users/kjopek/Workspace/safe-bash/src/integrations/safejs/stats.ts": "94bb724a7281296e08ac4465979e0f9cac585e28f91fc79382650a3c60ea4824",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/bytes/encoding/shared.ts": "8a0eb870513630296a7f28d7d6867d25aba9b785365b812d740c6d7b4da3d396",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/search/glob.ts": "d6fc574fbfde82b459426875801a36aaaf5ec9536ce25d1f5876215396094425",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/text-programs/awk-values.ts": "6824c5348221d98f9d94c058bbe119eaa6aa1e7ca7775af8d460f358436c2d7c",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/bytes/compression/gunzip.ts": "6bf534778fa82558ae36bd96412662a8e4c4e864c0a93f15b40d1148a64f835f",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/structured/split.ts": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/structured/values.ts": "8d4e7cf5e9182f2c0487be2fba1dd3585c406cc0cfd73c1a38dcb2c95198e46a",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/fatal-expansion.test.ts": "1e06b0353dccedbeaedb62a18b5875036ca407fd042db4503c79ce272e3c6e4d",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/file-shortcut.test.ts": "48c16e8e636d0f6e4003642ff4d4546bda2c9b0b8b96e0fd73dbd4bade705b47",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/input-units.test.ts": "f1b6917a96cd9a58e6cc3bc79d8ef539616cfbffa976d7eb7b3a9f5941ea4a8c",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/newline-patterns.test.ts": "782a2b8703ab701884849548a4263a699355f6005e970199a89961a09a96d7aa",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/parser-regressions.test.ts": "472aaeb11f94d053a03caf14736033458ba7a0564fe0508c5aefc3f74e601761",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/positional-ifs.test.ts": "af123530a22b00a2bae42bf77f12e68c7ccc1c0bc6965841d1f9234cfecf2592",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/quoted-patterns.test.ts": "606c60e3ea77a305d228d8b6490e3fe834225fb1d2d2f60c47383e0188e0a565",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/variable-scope.test.ts": "17b790ccaed68150e51c550c40ac94e337d379b507ff26290998edc87fcb675f"
+        },
+        "compilerInputs": {
+          "digest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "count": 0
+        },
+        "compilerInputCount": 0,
+        "unguardedCompilerPaths": []
+      },
+      {
+        "name": "source-eval86",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--import",
+          "tsx",
+          "--import",
+          "./tests/shell/invocation-discovery-fixes-imports.mjs",
+          "--test",
+          "--test-concurrency=1",
+          "tests/shell/source-dot-eval-source.test.ts",
+          "tests/shell/source-dot-eval-source-host.test.ts",
+          "tests/shell/source-dot-eval-eval.test.ts",
+          "tests/shell/source-dot-eval-eval-host.test.ts"
+        ],
+        "pid": 64415,
+        "status": 0,
+        "counts": {
+          "tests": 86,
+          "pass": 86,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "rawHash": "3975566588c4ad6a34838af20d389e3e0dcf1b9bc19a5c3b1d43c4a9c7e587e6",
+        "diagnostics": [
+          "# tests 86",
+          "# pass 86",
+          "# fail 0"
+        ],
+        "stderr": "",
+        "before": "923b9613d88b735db4600533d5295745c786f65321cc2796da502388c04e04ff",
+        "after": "923b9613d88b735db4600533d5295745c786f65321cc2796da502388c04e04ff",
+        "changed": [],
+        "importedMismatch": [],
+        "actualImports": {
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/source-dot-eval-eval-host.test.ts": "cc055f2d81d289175ad9bcd87f2fab7c75ad5088d65484fd4b1cce25619be9bc",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/source-dot-eval-eval.test.ts": "6ded6b6c37d5f495f8b0a0c28a0c7924cb3ffba2adc87116966f318da07233c3",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/source-dot-eval-cases.ts": "258daac6f521fd00c31a9dbf630c98cc47199cc8ebaed5e1468e25a835db3c64",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-closure-native.ts": "65c4e0dcc50a0b060ea1cb1dd735f6cde7cabdb51012ad3716c57d26eeea1aa2",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/source-dot-eval-native.ts": "1c67728961742bf9c7c64729a3391add87642d5e99d9ba0cde51249982c3acc4",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/index.ts": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/memory/index.ts": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-closure-cases.ts": "4fbb8af13f7b5de7456f3d3af300a30877030abe0ad27a51d3ed9ad5f39c1c1e",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-closure-read-cases.ts": "8544bb892abc50cd30815bbaea8d3e50738e850e08279068ecc9a3d3edca8e2a",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-closure-sh-cases.ts": "e33bfc1908a7c8bdab2b162a81a73feac3041319a7606acea4703062dfcd1481",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/command.ts": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/filesystem.ts": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+          "/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/basic.ts": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/filesystem.ts": "74fb5fdd66c2eaf7a8f31d2be8c6be0e94c09ff65892c561bbc0c6bc6f875a8f",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/streams.ts": "8966dd770c11731e5256a1e42aaec4b07ae7f0508a3e89a3efc956d27109098d",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/text.ts": "17a4c60061bdeeca1000499ae9b433f7e3e58c768e1c855e81e7c5338f8998d2",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/shell.ts": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/parser.ts": "feb6cbb2f03ec0c409adeb816bec506788fb3014a23c8dd02f4002362dc4b9f2",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/types.ts": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/mount/comparison.ts": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/s3/authority.ts": "1a95f7a28904b8607948673db3e99d3d4a49b2a3839d980143fe13c25e1af344",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/webdav/resource-id.ts": "ee5720f77a352503368d672caaf5237e45863bde88cf69b947d14178fcda49f2",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/grep.ts": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/predicates.ts": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/execution.ts": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/find.ts": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/internal.ts": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/copy-identity.ts": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe",
+          "/Users/kjopek/Workspace/safe-bash/src/commands/move.ts": "31e1fe6a2c0fc9efb9efa44b636d9478d4cab273de4c4e809d4f572b28084042",
+          "/Users/kjopek/Workspace/safe-bash/src/fs/mount/identity.ts": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/input.ts": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts": "e8f1edb842d04498050d314091269974df157b11ab13cabba41d9c84a0191538",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+          "/Users/kjopek/Workspace/safe-bash/src/shell/display.ts": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/source-dot-eval-source-host.test.ts": "00a146e9a164d0ea6427e2bb7cc91c7e38ccb2ef8ea1717f913101cf2abddd17",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/source-dot-eval-source.test.ts": "9b90d7b30120e76481c3bcab4bd639117fc951fb7610eca6908277fb1456a969"
+        },
+        "compilerInputs": {
+          "digest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "count": 0
+        },
+        "compilerInputCount": 0,
+        "unguardedCompilerPaths": []
+      },
+      {
+        "name": "current-shell43",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--import",
+          "tsx",
+          "--import",
+          "./tests/shell/invocation-discovery-fixes-imports.mjs",
+          "--test",
+          "--test-concurrency=1",
+          "tests/shell-stress/current-shell/current-shell.test.ts"
+        ],
+        "pid": 64429,
+        "status": 0,
+        "counts": {
+          "tests": 44,
+          "pass": 44,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "rawHash": "fcd1f89451e309a646a9c08fac7f28beb353c2401dd4b246d6440be63439037c",
+        "diagnostics": [
+          "# tests 44",
+          "# pass 44",
+          "# fail 0"
+        ],
+        "stderr": "",
+        "before": "923b9613d88b735db4600533d5295745c786f65321cc2796da502388c04e04ff",
+        "after": "923b9613d88b735db4600533d5295745c786f65321cc2796da502388c04e04ff",
+        "changed": [],
+        "importedMismatch": [],
+        "actualImports": {
+          "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/current-shell/current-shell.test.ts": "fa803152d6d4f179345e476202c7dafc5dc3f5af1006b49404dcec0a23770253"
+        },
+        "compilerInputs": {
+          "digest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "count": 0
+        },
+        "compilerInputCount": 0,
+        "unguardedCompilerPaths": []
+      },
+      {
+        "name": "global",
+        "executable": "./node_modules/.bin/tsc",
+        "args": [
+          "--noEmit",
+          "--listFiles"
+        ],
+        "pid": 64517,
+        "status": 0,
+        "counts": {},
+        "rawHash": "3915b34a1b24d2445689adf81313b34914bbc61a0a631f03e65f008a8de13a8b",
+        "diagnostics": [],
+        "stderr": "",
+        "before": "4b9cacdefa254c16a01afeb4fd7622eb8231399b7492f86752322330295166ae",
+        "after": "4b9cacdefa254c16a01afeb4fd7622eb8231399b7492f86752322330295166ae",
+        "changed": [],
+        "importedMismatch": [],
+        "actualImports": {},
+        "compilerInputs": {
+          "digest": "3f4eab4c05ed3948b30f5ad8636740289c62114e61d7dad667a61da5b732ddc0",
+          "count": 1108
+        },
+        "compilerInputCount": 1108,
+        "unguardedCompilerPaths": []
+      },
+      {
+        "name": "build",
+        "executable": "./node_modules/.bin/tsc",
+        "args": [
+          "-p",
+          "tsconfig.build.json",
+          "--noEmit",
+          "--listFiles"
+        ],
+        "pid": 64575,
+        "status": 0,
+        "counts": {},
+        "rawHash": "8c03865cc8fe9b52da7dc33955ed0179390c21784cb9921e774a8bb08168a74c",
+        "diagnostics": [],
+        "stderr": "",
+        "before": "1f569b5e8a6ae301fe6fdc33e41cecca09a14098871cd7cb2f0bb9d945cc76ba",
+        "after": "1f569b5e8a6ae301fe6fdc33e41cecca09a14098871cd7cb2f0bb9d945cc76ba",
+        "changed": [],
+        "importedMismatch": [],
+        "actualImports": {},
+        "compilerInputs": {
+          "digest": "84e9453a3fe9f7cec7f7eb0d563c6364f4fe5c2bebb40632e88f3a2916b10604",
+          "count": 308
+        },
+        "compilerInputCount": 308,
+        "unguardedCompilerPaths": []
+      },
+      {
+        "name": "benchmark",
+        "executable": "./node_modules/.bin/tsc",
+        "args": [
+          "-p",
+          "benchmarks/tsconfig.json",
+          "--noEmit",
+          "--listFiles"
+        ],
+        "pid": 64585,
+        "status": 0,
+        "counts": {},
+        "rawHash": "a0a142f98e7c48cd887632ffaf082b67c28dfe113fa169870f4610f1a2f058ed",
+        "diagnostics": [],
+        "stderr": "",
+        "before": "6a555e0ce9a77c979a5ffde321134fcf600db12805ba7a1032d0da7bd34c325e",
+        "after": "6a555e0ce9a77c979a5ffde321134fcf600db12805ba7a1032d0da7bd34c325e",
+        "changed": [],
+        "importedMismatch": [],
+        "actualImports": {},
+        "compilerInputs": {
+          "digest": "4677a91a1a10ee7dd08260cbc0ae6f6d5c783963a95a18100c4ac8cf4b6aeccc",
+          "count": 417
+        },
+        "compilerInputCount": 417,
+        "unguardedCompilerPaths": []
+      }
+    ]
+  },
+  "detailedGuards": [
+    {
+      "path": "/tmp/safe-bash-substring-validation.json",
+      "sha256": "ccece003b8ab83132fca744d339fefd5bd645acc43b7feee339979ecc39b4cce"
+    },
+    {
+      "path": "/tmp/safe-bash-substring-validation-final.json",
+      "sha256": "905927a4f2baaf276bd93266abeab8ee19aeff8c7503cf6eabb68748cef3f5a1"
+    }
+  ],
+  "qualification": "Exact TS import maps retained. Full unique prelisted input maps/raw logs are in scratch files; durable verify script recreates guards. Current-shell nested children enforce independent per-row source guards. File effects in substring native tuples are flat regular-file names/content bytes, not permission modes. No aggregate clean-tree or full native parity claim."
+}

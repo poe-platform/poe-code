@@ -1,0 +1,1873 @@
+[
+  {
+    "id": "empty",
+    "argv": [
+      "+",
+      "",
+      ":",
+      "\\(a*\\)*\\1"
+    ],
+    "original": true,
+    "native": {
+      "status": 1,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "\n",
+      "stderr": "",
+      "stdoutBase64": "Cg==",
+      "stderrBase64": ""
+    },
+    "registers": {
+      "length": 0,
+      "registers": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          -1,
+          -1
+        ]
+      ]
+    },
+    "variants": {
+      "candidate": {
+        "error": {
+          "category": "unsupported",
+          "message": "unsupported BRE: backreference to a capture in nullable repetition"
+        }
+      },
+      "unguarded": {
+        "overall": null,
+        "capture": null,
+        "matched": false,
+        "hasCapture": true,
+        "steps": 244,
+        "nodes": 16,
+        "states": 3,
+        "allocated": 204,
+        "elapsedMs": 0.5897499999998672
+      },
+      "exactMandatoryOnly": {
+        "error": {
+          "category": "unsupported",
+          "message": "unsupported BRE: backreference to a capture in nullable repetition"
+        }
+      },
+      "repeatFrames": {
+        "overall": {
+          "start": 0,
+          "end": 0
+        },
+        "capture": {
+          "start": 0,
+          "end": 0
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 240,
+        "nodes": 16,
+        "states": 3,
+        "allocated": 218,
+        "elapsedMs": 0.42545799999993505
+      }
+    }
+  },
+  {
+    "id": "a",
+    "argv": [
+      "+",
+      "a",
+      ":",
+      "\\(a*\\)*\\1"
+    ],
+    "original": true,
+    "native": {
+      "status": 1,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "\n",
+      "stderr": "",
+      "stdoutBase64": "Cg==",
+      "stderrBase64": ""
+    },
+    "registers": {
+      "length": 1,
+      "registers": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          -1,
+          -1
+        ]
+      ]
+    },
+    "variants": {
+      "candidate": {
+        "error": {
+          "category": "unsupported",
+          "message": "unsupported BRE: backreference to a capture in nullable repetition"
+        }
+      },
+      "unguarded": {
+        "overall": null,
+        "capture": null,
+        "matched": false,
+        "hasCapture": true,
+        "steps": 314,
+        "nodes": 16,
+        "states": 5,
+        "allocated": 235,
+        "elapsedMs": 0.26012500000001637
+      },
+      "exactMandatoryOnly": {
+        "error": {
+          "category": "unsupported",
+          "message": "unsupported BRE: backreference to a capture in nullable repetition"
+        }
+      },
+      "repeatFrames": {
+        "overall": {
+          "start": 0,
+          "end": 0
+        },
+        "capture": {
+          "start": 0,
+          "end": 0
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 308,
+        "nodes": 16,
+        "states": 6,
+        "allocated": 271,
+        "elapsedMs": 0.25650000000018736
+      }
+    }
+  },
+  {
+    "id": "aa",
+    "argv": [
+      "+",
+      "aa",
+      ":",
+      "\\(a*\\)*\\1"
+    ],
+    "original": true,
+    "native": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "a\n",
+      "stderr": "",
+      "stdoutBase64": "YQo=",
+      "stderrBase64": ""
+    },
+    "registers": {
+      "length": 2,
+      "registers": [
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          -1,
+          -1
+        ]
+      ]
+    },
+    "variants": {
+      "candidate": {
+        "error": {
+          "category": "unsupported",
+          "message": "unsupported BRE: backreference to a capture in nullable repetition"
+        }
+      },
+      "unguarded": {
+        "overall": {
+          "start": 0,
+          "end": 2
+        },
+        "capture": {
+          "start": 0,
+          "end": 1
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 388,
+        "nodes": 16,
+        "states": 7,
+        "allocated": 268,
+        "elapsedMs": 0.12908400000014808
+      },
+      "exactMandatoryOnly": {
+        "error": {
+          "category": "unsupported",
+          "message": "unsupported BRE: backreference to a capture in nullable repetition"
+        }
+      },
+      "repeatFrames": {
+        "overall": {
+          "start": 0,
+          "end": 2
+        },
+        "capture": {
+          "start": 0,
+          "end": 1
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 444,
+        "nodes": 16,
+        "states": 12,
+        "allocated": 375,
+        "elapsedMs": 0.14045800000008057
+      }
+    }
+  },
+  {
+    "id": "aaa",
+    "argv": [
+      "+",
+      "aaa",
+      ":",
+      "\\(a*\\)*\\1"
+    ],
+    "original": true,
+    "native": {
+      "status": 1,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "\n",
+      "stderr": "",
+      "stdoutBase64": "Cg==",
+      "stderrBase64": ""
+    },
+    "registers": {
+      "length": 3,
+      "registers": [
+        [
+          0,
+          3
+        ],
+        [
+          0,
+          -1
+        ],
+        [
+          -1,
+          -1
+        ]
+      ]
+    },
+    "variants": {
+      "candidate": {
+        "error": {
+          "category": "unsupported",
+          "message": "unsupported BRE: backreference to a capture in nullable repetition"
+        }
+      },
+      "unguarded": {
+        "overall": {
+          "start": 0,
+          "end": 2
+        },
+        "capture": {
+          "start": 0,
+          "end": 1
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 458,
+        "nodes": 16,
+        "states": 9,
+        "allocated": 299,
+        "elapsedMs": 0.061707999999953245
+      },
+      "exactMandatoryOnly": {
+        "error": {
+          "category": "unsupported",
+          "message": "unsupported BRE: backreference to a capture in nullable repetition"
+        }
+      },
+      "repeatFrames": {
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 710,
+        "nodes": 16,
+        "states": 24,
+        "allocated": 579,
+        "elapsedMs": 0.04837500000007822
+      }
+    }
+  },
+  {
+    "id": "no-reference",
+    "argv": [
+      "+",
+      "aaa",
+      ":",
+      "\\(a*\\)*"
+    ],
+    "original": true,
+    "native": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "aaa\n",
+      "stderr": "",
+      "stdoutBase64": "YWFhCg==",
+      "stderrBase64": ""
+    },
+    "registers": {
+      "length": 3,
+      "registers": [
+        [
+          0,
+          3
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          -1,
+          -1
+        ]
+      ]
+    },
+    "variants": {
+      "candidate": {
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 0,
+          "end": 3
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 442,
+        "nodes": 14,
+        "states": 9,
+        "allocated": 278,
+        "elapsedMs": 0.2544580000001133
+      },
+      "unguarded": {
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 0,
+          "end": 3
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 426,
+        "nodes": 14,
+        "states": 9,
+        "allocated": 271,
+        "elapsedMs": 0.1633750000000873
+      },
+      "exactMandatoryOnly": {
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 0,
+          "end": 3
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 442,
+        "nodes": 14,
+        "states": 9,
+        "allocated": 278,
+        "elapsedMs": 0.387000000000171
+      },
+      "repeatFrames": {
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 0,
+          "end": 3
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 681,
+        "nodes": 14,
+        "states": 24,
+        "allocated": 551,
+        "elapsedMs": 0.10687499999994543
+      }
+    }
+  },
+  {
+    "id": "not-repeated",
+    "argv": [
+      "+",
+      "aaa",
+      ":",
+      "\\(a*\\)\\1"
+    ],
+    "original": true,
+    "native": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "a\n",
+      "stderr": "",
+      "stdoutBase64": "YQo=",
+      "stderrBase64": ""
+    },
+    "registers": {
+      "length": 2,
+      "registers": [
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          -1,
+          -1
+        ]
+      ]
+    },
+    "variants": {
+      "candidate": {
+        "overall": {
+          "start": 0,
+          "end": 2
+        },
+        "capture": {
+          "start": 0,
+          "end": 1
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 302,
+        "nodes": 13,
+        "states": 5,
+        "allocated": 222,
+        "elapsedMs": 0.07991700000002311
+      },
+      "unguarded": {
+        "overall": {
+          "start": 0,
+          "end": 2
+        },
+        "capture": {
+          "start": 0,
+          "end": 1
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 292,
+        "nodes": 13,
+        "states": 5,
+        "allocated": 219,
+        "elapsedMs": 0.023166999999830296
+      },
+      "exactMandatoryOnly": {
+        "overall": {
+          "start": 0,
+          "end": 2
+        },
+        "capture": {
+          "start": 0,
+          "end": 1
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 302,
+        "nodes": 13,
+        "states": 5,
+        "allocated": 222,
+        "elapsedMs": 0.11733300000014424
+      },
+      "repeatFrames": {
+        "overall": {
+          "start": 0,
+          "end": 2
+        },
+        "capture": {
+          "start": 0,
+          "end": 1
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 258,
+        "nodes": 13,
+        "states": 5,
+        "allocated": 221,
+        "elapsedMs": 0.019125000000030923
+      }
+    }
+  },
+  {
+    "id": "nonnullable",
+    "argv": [
+      "+",
+      "aaa",
+      ":",
+      "\\(a\\)*\\1"
+    ],
+    "original": true,
+    "native": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "a\n",
+      "stderr": "",
+      "stdoutBase64": "YQo=",
+      "stderrBase64": ""
+    },
+    "registers": {
+      "length": 3,
+      "registers": [
+        [
+          0,
+          3
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          -1,
+          -1
+        ]
+      ]
+    },
+    "variants": {
+      "candidate": {
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 323,
+        "nodes": 13,
+        "states": 5,
+        "allocated": 231,
+        "elapsedMs": 0.023624999999810825
+      },
+      "unguarded": {
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 307,
+        "nodes": 13,
+        "states": 5,
+        "allocated": 224,
+        "elapsedMs": 0.016457999999829553
+      },
+      "exactMandatoryOnly": {
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 323,
+        "nodes": 13,
+        "states": 5,
+        "allocated": 231,
+        "elapsedMs": 0.03254200000014862
+      },
+      "repeatFrames": {
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 262,
+        "nodes": 13,
+        "states": 5,
+        "allocated": 222,
+        "elapsedMs": 0.01520899999991343
+      }
+    }
+  },
+  {
+    "id": "mandatory-empty",
+    "argv": [
+      "+",
+      "",
+      ":",
+      "\\(a*\\)\\{2\\}\\1"
+    ],
+    "original": true,
+    "native": {
+      "status": 1,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "\n",
+      "stderr": "",
+      "stdoutBase64": "Cg==",
+      "stderrBase64": ""
+    },
+    "registers": {
+      "length": -1,
+      "registers": []
+    },
+    "variants": {
+      "candidate": {
+        "error": {
+          "category": "unsupported",
+          "message": "unsupported BRE: backreference to a capture in nullable repetition"
+        }
+      },
+      "unguarded": {
+        "overall": {
+          "start": 0,
+          "end": 0
+        },
+        "capture": {
+          "start": 0,
+          "end": 0
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 317,
+        "nodes": 19,
+        "states": 3,
+        "allocated": 254,
+        "elapsedMs": 0.03691600000001927
+      },
+      "exactMandatoryOnly": {
+        "overall": {
+          "start": 0,
+          "end": 0
+        },
+        "capture": {
+          "start": 0,
+          "end": 0
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 328,
+        "nodes": 19,
+        "states": 3,
+        "allocated": 257,
+        "elapsedMs": 0.04987499999992906
+      },
+      "repeatFrames": {
+        "overall": {
+          "start": 0,
+          "end": 0
+        },
+        "capture": {
+          "start": 0,
+          "end": 0
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 274,
+        "nodes": 16,
+        "states": 3,
+        "allocated": 245,
+        "elapsedMs": 0.03745800000001509
+      }
+    }
+  },
+  {
+    "id": "end-anchor",
+    "argv": [
+      "+",
+      "aaa",
+      ":",
+      "\\(a*\\)*\\1$"
+    ],
+    "original": false,
+    "native": {
+      "status": 1,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "\n",
+      "stderr": "",
+      "stdoutBase64": "Cg==",
+      "stderrBase64": ""
+    },
+    "registers": {
+      "length": 3,
+      "registers": [
+        [
+          0,
+          3
+        ],
+        [
+          0,
+          -1
+        ],
+        [
+          -1,
+          -1
+        ]
+      ]
+    },
+    "variants": {
+      "candidate": {
+        "error": {
+          "category": "unsupported",
+          "message": "unsupported BRE: backreference to a capture in nullable repetition"
+        }
+      },
+      "unguarded": {
+        "overall": null,
+        "capture": null,
+        "matched": false,
+        "hasCapture": true,
+        "steps": 481,
+        "nodes": 18,
+        "states": 9,
+        "allocated": 320,
+        "elapsedMs": 0.019708000000036918
+      },
+      "exactMandatoryOnly": {
+        "error": {
+          "category": "unsupported",
+          "message": "unsupported BRE: backreference to a capture in nullable repetition"
+        }
+      },
+      "repeatFrames": {
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 734,
+        "nodes": 18,
+        "states": 24,
+        "allocated": 600,
+        "elapsedMs": 0.03241699999989578
+      }
+    }
+  },
+  {
+    "id": "literal-suffix",
+    "argv": [
+      "+",
+      "aaab",
+      ":",
+      "\\(a*\\)*\\1b"
+    ],
+    "original": false,
+    "native": {
+      "status": 1,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "\n",
+      "stderr": "",
+      "stdoutBase64": "Cg==",
+      "stderrBase64": ""
+    },
+    "registers": {
+      "length": 4,
+      "registers": [
+        [
+          0,
+          4
+        ],
+        [
+          0,
+          -1
+        ],
+        [
+          -1,
+          -1
+        ]
+      ]
+    },
+    "variants": {
+      "candidate": {
+        "error": {
+          "category": "unsupported",
+          "message": "unsupported BRE: backreference to a capture in nullable repetition"
+        }
+      },
+      "unguarded": {
+        "overall": null,
+        "capture": null,
+        "matched": false,
+        "hasCapture": true,
+        "steps": 486,
+        "nodes": 18,
+        "states": 9,
+        "allocated": 323,
+        "elapsedMs": 0.0206670000000031
+      },
+      "exactMandatoryOnly": {
+        "error": {
+          "category": "unsupported",
+          "message": "unsupported BRE: backreference to a capture in nullable repetition"
+        }
+      },
+      "repeatFrames": {
+        "overall": {
+          "start": 0,
+          "end": 4
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 742,
+        "nodes": 18,
+        "states": 24,
+        "allocated": 604,
+        "elapsedMs": 0.03375000000005457
+      }
+    }
+  },
+  {
+    "id": "mandatory-a",
+    "argv": [
+      "+",
+      "a",
+      ":",
+      "\\(a*\\)\\{2\\}\\1"
+    ],
+    "original": false,
+    "native": {
+      "status": 1,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "\n",
+      "stderr": "",
+      "stdoutBase64": "Cg==",
+      "stderrBase64": ""
+    },
+    "registers": {
+      "length": -1,
+      "registers": []
+    },
+    "variants": {
+      "candidate": {
+        "error": {
+          "category": "unsupported",
+          "message": "unsupported BRE: backreference to a capture in nullable repetition"
+        }
+      },
+      "unguarded": {
+        "overall": {
+          "start": 0,
+          "end": 1
+        },
+        "capture": {
+          "start": 1,
+          "end": 1
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 425,
+        "nodes": 19,
+        "states": 6,
+        "allocated": 301,
+        "elapsedMs": 0.01670800000010786
+      },
+      "exactMandatoryOnly": {
+        "overall": {
+          "start": 0,
+          "end": 1
+        },
+        "capture": {
+          "start": 1,
+          "end": 1
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 436,
+        "nodes": 19,
+        "states": 6,
+        "allocated": 304,
+        "elapsedMs": 0.03429200000005039
+      },
+      "repeatFrames": {
+        "overall": {
+          "start": 0,
+          "end": 1
+        },
+        "capture": {
+          "start": 1,
+          "end": 1
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 355,
+        "nodes": 16,
+        "states": 6,
+        "allocated": 302,
+        "elapsedMs": 0.04229199999986122
+      }
+    }
+  },
+  {
+    "id": "mandatory-aa",
+    "argv": [
+      "+",
+      "aa",
+      ":",
+      "\\(a*\\)\\{2\\}\\1"
+    ],
+    "original": false,
+    "native": {
+      "status": 1,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "\n",
+      "stderr": "",
+      "stdoutBase64": "Cg==",
+      "stderrBase64": ""
+    },
+    "registers": {
+      "length": -1,
+      "registers": []
+    },
+    "variants": {
+      "candidate": {
+        "error": {
+          "category": "unsupported",
+          "message": "unsupported BRE: backreference to a capture in nullable repetition"
+        }
+      },
+      "unguarded": {
+        "overall": {
+          "start": 0,
+          "end": 2
+        },
+        "capture": {
+          "start": 2,
+          "end": 2
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 565,
+        "nodes": 19,
+        "states": 10,
+        "allocated": 364,
+        "elapsedMs": 0.021749999999883585
+      },
+      "exactMandatoryOnly": {
+        "overall": {
+          "start": 0,
+          "end": 2
+        },
+        "capture": {
+          "start": 2,
+          "end": 2
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 576,
+        "nodes": 19,
+        "states": 10,
+        "allocated": 367,
+        "elapsedMs": 0.18466600000010658
+      },
+      "repeatFrames": {
+        "overall": {
+          "start": 0,
+          "end": 2
+        },
+        "capture": {
+          "start": 0,
+          "end": 1
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 466,
+        "nodes": 16,
+        "states": 10,
+        "allocated": 377,
+        "elapsedMs": 0.04187499999989086
+      }
+    }
+  },
+  {
+    "id": "mandatory-aaa",
+    "argv": [
+      "+",
+      "aaa",
+      ":",
+      "\\(a*\\)\\{2\\}\\1"
+    ],
+    "original": false,
+    "native": {
+      "status": 1,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "\n",
+      "stderr": "",
+      "stdoutBase64": "Cg==",
+      "stderrBase64": ""
+    },
+    "registers": {
+      "length": -1,
+      "registers": []
+    },
+    "variants": {
+      "candidate": {
+        "error": {
+          "category": "unsupported",
+          "message": "unsupported BRE: backreference to a capture in nullable repetition"
+        }
+      },
+      "unguarded": {
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 3,
+          "end": 3
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 733,
+        "nodes": 19,
+        "states": 15,
+        "allocated": 441,
+        "elapsedMs": 0.05766700000003766
+      },
+      "exactMandatoryOnly": {
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 3,
+          "end": 3
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 744,
+        "nodes": 19,
+        "states": 15,
+        "allocated": 444,
+        "elapsedMs": 0.10100000000011278
+      },
+      "repeatFrames": {
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 600,
+        "nodes": 16,
+        "states": 15,
+        "allocated": 469,
+        "elapsedMs": 0.04816700000014862
+      }
+    }
+  },
+  {
+    "id": "bounded-aa",
+    "argv": [
+      "+",
+      "aa",
+      ":",
+      "\\(a*\\)\\{1,3\\}\\1"
+    ],
+    "original": false,
+    "native": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "a\n",
+      "stderr": "",
+      "stdoutBase64": "YQo=",
+      "stderrBase64": ""
+    },
+    "registers": {
+      "length": 2,
+      "registers": [
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          -1,
+          -1
+        ]
+      ]
+    },
+    "variants": {
+      "candidate": {
+        "error": {
+          "category": "unsupported",
+          "message": "unsupported BRE: backreference to a capture in nullable repetition"
+        }
+      },
+      "unguarded": {
+        "overall": {
+          "start": 0,
+          "end": 2
+        },
+        "capture": {
+          "start": 2,
+          "end": 2
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 1779,
+        "nodes": 26,
+        "states": 38,
+        "allocated": 865,
+        "elapsedMs": 0.07074999999986176
+      },
+      "exactMandatoryOnly": {
+        "error": {
+          "category": "unsupported",
+          "message": "unsupported BRE: backreference to a capture in nullable repetition"
+        }
+      },
+      "repeatFrames": {
+        "overall": {
+          "start": 0,
+          "end": 2
+        },
+        "capture": {
+          "start": 0,
+          "end": 1
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 662,
+        "nodes": 16,
+        "states": 20,
+        "allocated": 543,
+        "elapsedMs": 0.03175000000010186
+      }
+    }
+  },
+  {
+    "id": "bounded-aaa",
+    "argv": [
+      "+",
+      "aaa",
+      ":",
+      "\\(a*\\)\\{1,3\\}\\1"
+    ],
+    "original": false,
+    "native": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "a\n",
+      "stderr": "",
+      "stdoutBase64": "YQo=",
+      "stderrBase64": ""
+    },
+    "registers": {
+      "length": 2,
+      "registers": [
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          -1,
+          -1
+        ]
+      ]
+    },
+    "variants": {
+      "candidate": {
+        "error": {
+          "category": "unsupported",
+          "message": "unsupported BRE: backreference to a capture in nullable repetition"
+        }
+      },
+      "unguarded": {
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 3,
+          "end": 3
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 2676,
+        "nodes": 26,
+        "states": 63,
+        "allocated": 1242,
+        "elapsedMs": 0.10587499999996908
+      },
+      "exactMandatoryOnly": {
+        "error": {
+          "category": "unsupported",
+          "message": "unsupported BRE: backreference to a capture in nullable repetition"
+        }
+      },
+      "repeatFrames": {
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 1006,
+        "nodes": 16,
+        "states": 35,
+        "allocated": 799,
+        "elapsedMs": 0.05087499999990541
+      }
+    }
+  },
+  {
+    "id": "unmatched-closed",
+    "argv": [
+      "+",
+      "",
+      ":",
+      "\\(a\\)*\\1"
+    ],
+    "original": false,
+    "native": {
+      "status": 1,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "\n",
+      "stderr": "",
+      "stdoutBase64": "Cg==",
+      "stderrBase64": ""
+    },
+    "registers": {
+      "length": -1,
+      "registers": []
+    },
+    "variants": {
+      "candidate": {
+        "overall": null,
+        "capture": null,
+        "matched": false,
+        "hasCapture": true,
+        "steps": 198,
+        "nodes": 13,
+        "states": 2,
+        "allocated": 170,
+        "elapsedMs": 0.011958000000049651
+      },
+      "unguarded": {
+        "overall": null,
+        "capture": null,
+        "matched": false,
+        "hasCapture": true,
+        "steps": 182,
+        "nodes": 13,
+        "states": 2,
+        "allocated": 163,
+        "elapsedMs": 0.03674999999998363
+      },
+      "exactMandatoryOnly": {
+        "overall": null,
+        "capture": null,
+        "matched": false,
+        "hasCapture": true,
+        "steps": 198,
+        "nodes": 13,
+        "states": 2,
+        "allocated": 170,
+        "elapsedMs": 0.017541000000164786
+      },
+      "repeatFrames": {
+        "overall": null,
+        "capture": null,
+        "matched": false,
+        "hasCapture": true,
+        "steps": 184,
+        "nodes": 13,
+        "states": 2,
+        "allocated": 169,
+        "elapsedMs": 0.006458000000066022
+      }
+    }
+  },
+  {
+    "id": "required-empty",
+    "argv": [
+      "+",
+      "",
+      ":",
+      "\\(a*\\)\\1"
+    ],
+    "original": false,
+    "native": {
+      "status": 1,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "\n",
+      "stderr": "",
+      "stdoutBase64": "Cg==",
+      "stderrBase64": ""
+    },
+    "registers": {
+      "length": 0,
+      "registers": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          -1,
+          -1
+        ]
+      ]
+    },
+    "variants": {
+      "candidate": {
+        "overall": {
+          "start": 0,
+          "end": 0
+        },
+        "capture": {
+          "start": 0,
+          "end": 0
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 205,
+        "nodes": 13,
+        "states": 2,
+        "allocated": 169,
+        "elapsedMs": 0.008374999999887223
+      },
+      "unguarded": {
+        "overall": {
+          "start": 0,
+          "end": 0
+        },
+        "capture": {
+          "start": 0,
+          "end": 0
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 195,
+        "nodes": 13,
+        "states": 2,
+        "allocated": 166,
+        "elapsedMs": 0.013416000000006534
+      },
+      "exactMandatoryOnly": {
+        "overall": {
+          "start": 0,
+          "end": 0
+        },
+        "capture": {
+          "start": 0,
+          "end": 0
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 205,
+        "nodes": 13,
+        "states": 2,
+        "allocated": 169,
+        "elapsedMs": 0.011791000000130225
+      },
+      "repeatFrames": {
+        "overall": {
+          "start": 0,
+          "end": 0
+        },
+        "capture": {
+          "start": 0,
+          "end": 0
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 186,
+        "nodes": 13,
+        "states": 2,
+        "allocated": 169,
+        "elapsedMs": 0.00691699999993034
+      }
+    }
+  },
+  {
+    "id": "open-backref",
+    "argv": [
+      "+",
+      "a",
+      ":",
+      "\\(a\\1\\)"
+    ],
+    "original": false,
+    "native": {
+      "status": 2,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "",
+      "stderr": "expr: Invalid back reference\n",
+      "stdoutBase64": "",
+      "stderrBase64": "ZXhwcjogSW52YWxpZCBiYWNrIHJlZmVyZW5jZQo="
+    },
+    "registers": null,
+    "variants": {
+      "candidate": {
+        "error": {
+          "category": "syntax",
+          "message": "Invalid back reference"
+        }
+      },
+      "unguarded": {
+        "error": {
+          "category": "syntax",
+          "message": "Invalid back reference"
+        }
+      },
+      "exactMandatoryOnly": {
+        "error": {
+          "category": "syntax",
+          "message": "Invalid back reference"
+        }
+      },
+      "repeatFrames": {
+        "error": {
+          "category": "syntax",
+          "message": "Invalid back reference"
+        }
+      }
+    }
+  },
+  {
+    "id": "newline-anchor",
+    "argv": [
+      "+",
+      "a\n",
+      ":",
+      "\\(a\\)$"
+    ],
+    "original": false,
+    "native": {
+      "status": 1,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "\n",
+      "stderr": "",
+      "stdoutBase64": "Cg==",
+      "stderrBase64": ""
+    },
+    "registers": {
+      "length": -1,
+      "registers": []
+    },
+    "variants": {
+      "candidate": {
+        "overall": null,
+        "capture": null,
+        "matched": false,
+        "hasCapture": true,
+        "steps": 149,
+        "nodes": 10,
+        "states": 1,
+        "allocated": 129,
+        "elapsedMs": 0.0071250000000873115
+      },
+      "unguarded": {
+        "overall": null,
+        "capture": null,
+        "matched": false,
+        "hasCapture": true,
+        "steps": 144,
+        "nodes": 10,
+        "states": 1,
+        "allocated": 129,
+        "elapsedMs": 0.007875000000012733
+      },
+      "exactMandatoryOnly": {
+        "overall": null,
+        "capture": null,
+        "matched": false,
+        "hasCapture": true,
+        "steps": 149,
+        "nodes": 10,
+        "states": 1,
+        "allocated": 129,
+        "elapsedMs": 0.015291000000161148
+      },
+      "repeatFrames": {
+        "overall": null,
+        "capture": null,
+        "matched": false,
+        "hasCapture": true,
+        "steps": 138,
+        "nodes": 10,
+        "states": 1,
+        "allocated": 125,
+        "elapsedMs": 0.02299999999991087
+      }
+    }
+  },
+  {
+    "id": "nested-history",
+    "argv": [
+      "+",
+      "aaa",
+      ":",
+      "\\(\\(a*\\)*\\)\\2"
+    ],
+    "original": false,
+    "native": {
+      "status": 1,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "\n",
+      "stderr": "",
+      "stdoutBase64": "Cg==",
+      "stderrBase64": ""
+    },
+    "registers": {
+      "length": 3,
+      "registers": [
+        [
+          0,
+          3
+        ],
+        [
+          0,
+          -1
+        ],
+        [
+          0,
+          -1
+        ],
+        [
+          -1,
+          -1
+        ]
+      ]
+    },
+    "variants": {
+      "candidate": {
+        "error": {
+          "category": "unsupported",
+          "message": "unsupported BRE: backreference to a capture in nullable repetition"
+        }
+      },
+      "unguarded": {
+        "overall": {
+          "start": 0,
+          "end": 2
+        },
+        "capture": {
+          "start": 0,
+          "end": 1
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 572,
+        "nodes": 20,
+        "states": 9,
+        "allocated": 376,
+        "elapsedMs": 0.022334000000000742
+      },
+      "exactMandatoryOnly": {
+        "error": {
+          "category": "unsupported",
+          "message": "unsupported BRE: backreference to a capture in nullable repetition"
+        }
+      },
+      "repeatFrames": {
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 0,
+          "end": 2
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 823,
+        "nodes": 20,
+        "states": 24,
+        "allocated": 679,
+        "elapsedMs": 0.04208299999982046
+      }
+    }
+  },
+  {
+    "id": "alternation-longest",
+    "argv": [
+      "+",
+      "aaa",
+      ":",
+      "\\(a\\|aa\\)a*"
+    ],
+    "original": false,
+    "native": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "a\n",
+      "stderr": "",
+      "stdoutBase64": "YQo=",
+      "stderrBase64": ""
+    },
+    "registers": {
+      "length": 3,
+      "registers": [
+        [
+          0,
+          3
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          -1,
+          -1
+        ]
+      ]
+    },
+    "variants": {
+      "candidate": {
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 0,
+          "end": 1
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 416,
+        "nodes": 21,
+        "states": 7,
+        "allocated": 323,
+        "elapsedMs": 0.05149999999980537
+      },
+      "unguarded": {
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 0,
+          "end": 1
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 403,
+        "nodes": 21,
+        "states": 7,
+        "allocated": 321,
+        "elapsedMs": 0.06741600000009385
+      },
+      "exactMandatoryOnly": {
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 0,
+          "end": 1
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 416,
+        "nodes": 21,
+        "states": 7,
+        "allocated": 323,
+        "elapsedMs": 0.02624999999989086
+      },
+      "repeatFrames": {
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 0,
+          "end": 2
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 379,
+        "nodes": 21,
+        "states": 7,
+        "allocated": 329,
+        "elapsedMs": 0.02329199999985576
+      }
+    }
+  },
+  {
+    "id": "finite-optional",
+    "argv": [
+      "+",
+      "aa",
+      ":",
+      "\\(a*\\)\\{0,2\\}\\1"
+    ],
+    "original": false,
+    "native": {
+      "status": 1,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "\n",
+      "stderr": "",
+      "stdoutBase64": "Cg==",
+      "stderrBase64": ""
+    },
+    "registers": {
+      "length": -1,
+      "registers": []
+    },
+    "variants": {
+      "candidate": {
+        "error": {
+          "category": "unsupported",
+          "message": "unsupported BRE: backreference to a capture in nullable repetition"
+        }
+      },
+      "unguarded": {
+        "overall": {
+          "start": 0,
+          "end": 2
+        },
+        "capture": {
+          "start": 2,
+          "end": 2
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 839,
+        "nodes": 21,
+        "states": 18,
+        "allocated": 499,
+        "elapsedMs": 0.03170799999998053
+      },
+      "exactMandatoryOnly": {
+        "error": {
+          "category": "unsupported",
+          "message": "unsupported BRE: backreference to a capture in nullable repetition"
+        }
+      },
+      "repeatFrames": {
+        "overall": {
+          "start": 0,
+          "end": 2
+        },
+        "capture": {
+          "start": 0,
+          "end": 1
+        },
+        "matched": true,
+        "hasCapture": true,
+        "steps": 436,
+        "nodes": 16,
+        "states": 10,
+        "allocated": 372,
+        "elapsedMs": 0.022584000000051674
+      }
+    }
+  }
+]

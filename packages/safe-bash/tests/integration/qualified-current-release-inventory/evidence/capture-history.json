@@ -1,0 +1,12 @@
+{
+  "scope": "reproduction of evidence-copy revision error only; not product/test failure",
+  "command": [
+    "git",
+    "show",
+    "6ffe4f4:tests/plugins/time-env-public/evidence/release-inventory.json"
+  ],
+  "status": 128,
+  "stdout": "",
+  "stderr": "fatal: path 'tests/plugins/time-env-public/evidence/release-inventory.json' exists on disk, but not in '6ffe4f4'\n",
+  "correctEvidenceCommit": "aae2babf0a03e9b81914a804aee25600eed90fef"
+}

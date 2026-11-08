@@ -1,0 +1,35 @@
+{
+  "time": "2026-08-27T01:12:19.152Z",
+  "oracle": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle",
+  "identities": {
+    "paste": {
+      "version": "paste (GNU coreutils) 9.7",
+      "sha256": "2386f4764d553fcd831e5bbe7a3a6b43110dd2d2cabd610115a3cc427acf323c"
+    },
+    "comm": {
+      "version": "comm (GNU coreutils) 9.7",
+      "sha256": "86a541de8aa5d90c3404d5b88bc3646be9b2481736be5bafe5ee234522416fd3"
+    },
+    "join": {
+      "version": "join (GNU coreutils) 9.7",
+      "sha256": "70364217db6a709fb414718e3941f4dd40b4810f51f5b58047e58e1cb4f6e123"
+    }
+  },
+  "archiveSha256": "e8bb26ad0293f9b5a1fc43fb42ba970e312c66ce92c1b0b16713d7500db251bf",
+  "manualSha256": "39b126752866fff675e462bd44d76f3e034abafe462a069cebd53ef39fc53eca",
+  "authorIdentities": {
+    "paste": {
+      "version": "paste (GNU coreutils) 9.7",
+      "sha256": "1916958b8ae7c602acf473b4d3c7928945394ec0598a7dc4c04ed015733c0cbc"
+    },
+    "comm": {
+      "version": "comm (GNU coreutils) 9.7",
+      "sha256": "de6214ad2723e5c660d4fe2d7bcc01b1abb7604403c2ecc06ba5218544215718"
+    },
+    "join": {
+      "version": "join (GNU coreutils) 9.7",
+      "sha256": "dc44314f9b47e818b2c0467c38813684e1a18f9a35229fd9ad55012684bd4c3e"
+    }
+  },
+  "profile": "GNU coreutils 9.7 LC_ALL=C; Apple separate and not executed for acceptance"
+}

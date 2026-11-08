@@ -1,0 +1,1 @@
+Exact N05 source and review receipt admitted; minimal patch generated, no runtime module evaluated.

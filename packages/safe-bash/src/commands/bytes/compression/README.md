@@ -1,0 +1,360 @@
+# Streaming compression commands
+
+`createCompressionCommands()` composes the existing gzip, bzip2, XZ and Zstandard
+families and their decompression/cat aliases in the established order. Shared
+codecs and virtual-file operations live in the private compression engine; the
+private XZ command workspace owns `xz`, `unxz`, `xzcat`, and index listings.
+Existing source-module imports remain available through compatibility exports.
+
+Select XZ separately with `createXzCommands` from the public
+`@poe-platform/safe-bash/commands/xz` export. All file access uses the injected
+`CommandContext.fs`. The bundled codecs use no host filesystem, native process,
+or runtime network access. Native-reference tests use installed codec executables.
+
+## Invocation and exact options
+
+`gzip [OPTION]... [FILE]...` compresses; `gunzip` decompresses; `zcat` means
+`gunzip -c`. With no operands, or for an operand exactly `-`, the command uses
+stdin and stdout, never a file named `-`. Operands run in order. Each compressed
+operand produces a separate gzip member; decompression concatenates decoded
+members. Repeated `-` operands reuse the supplied stdin source without rewinding
+it. Named files resolve relative to the injected virtual cwd. Named inputs require
+VFS retained-read handles and stable scoped file identities. Compression checks
+the opened object's identity before reading and uses that handle throughout the
+transform, so ancestor path swaps cannot redirect the input stream. Backends
+without this guarantee are rejected; pathname checks are not a read lease.
+
+| Short | Long | Behavior |
+| --- | --- | --- |
+| `-c` | `--stdout`, `--to-stdout` | Send bytes to stdout; retain named inputs. |
+| `-d` | `--decompress`, `--uncompress` | Select gzip decompression. |
+| `-k` | `--keep` | Retain input after successful file publication. |
+| `-f` | `--force` | Permit eligible replacement and multiply linked input; see restrictions below. |
+| `-t` | `--test` | Decompress and validate, discarding output; never modify inputs. |
+| `-q` | `--quiet` | Suppress warnings; errors remain visible even when repeated. |
+| `-r` | `--recursive` | Traverse virtual directories, processing regular files without following symlinks. |
+| `-n` | `--no-name` | Accepted; the no-name/no-timestamp header policy is always enabled. |
+| `-S SUFFIX` | `--suffix=SUFFIX`, `--suffix SUFFIX` | Use a custom compressed-file suffix. |
+| `-1` through `-9` | `--fast` (`-1`), `--best` (`-9`) | Compression level; default `6`, last level wins. |
+| `-h` | `--help` | Print usage to stdout without reading operands. |
+
+Short options combine, including `-9ck`. Options can follow operands until `--`;
+after `--`, dash-leading names are operands. Long options must match exactly and
+take no values except `--suffix`. Unsupported flags, abbreviated long options, unsupported `--flag=value`,
+and `-0` fail rather than silently doing something else. Levels are accepted but
+have no effect during decompression. `-t` selects decompression regardless of
+argument order and suppresses stdout even with `-c`; help takes precedence over
+execution after all options have been parsed successfully.
+
+The zstd-family definitions (`zstd`, `unzstd`, `zstdcat`) also accept `-q` and
+`--quiet`, including combined short options. One quiet option suppresses warnings;
+two or more suppress processing and filesystem error messages as well. Quiet
+does not change output bytes, validation, file handling or failure exit codes.
+Option-usage diagnostics remain visible.
+
+The bzip2, XZ and zstd families copy unrecognized input unchanged with `-dcf`
+(`--decompress --stdout --force`), including through their decompression and cat
+aliases. Named inputs are retained. `zstdcat` also copies unrecognized nonempty
+input without `-f`. Recognized compressed headers still go through decoding and
+validation; damaged or unsupported streams fail. XZ accepts empty input in
+forced stdout mode; bzip2 and zstd reject it. Force alone does not enable
+file-output passthrough or test-mode copying. Zstandard's explicit
+`--no-pass-through` disables copying even with force.
+
+Zstandard decompression also detects gzip, XZ and legacy LZMA members, including
+mixed-format concatenations and standard skippable Zstandard frames. Detection
+runs at each member boundary using the bundled codecs; format representability limits still apply. Recognized corrupt streams fail rather than pass
+through as plaintext.
+
+The Zstandard family supports `--[no-]check` for checksum generation and
+validation, `--stream-size=BYTES` for a pledged input size (written in the frame
+and enforced), `--size-hint=BYTES`, `--[no-]compress-literals`, and
+`--[no-]row-match-finder`. These settings reach the Zstandard codec;
+checksum validation applies to every concatenated frame. `--long=LOG` enables
+long-distance matching for window logs 10–30, including the native
+default 27 requested by bare `--long`.
+
+`--single-thread`, `-T1`, `-T 1`, `--threads=1` and `--threads 1` select the
+single-thread codec. `--auto-threads=physical` or `logical` is accepted but does
+not enable automatic thread counts: `-T0` and counts above one fail.
+`--asyncio` enables input read-ahead (the default); `--no-asyncio` disables it.
+`--no-progress`, `--no-sparse`, `--no-dictID` and `--format=zstd` select the
+existing silent, dense-output, dictionary-free Zstandard profile. `--ultra`
+is admitted at supported presets; it does not lift the level 1–9 range.
+Fast presets, adaptive compression, rsyncable compression, forced progress,
+other output formats and unsupported thread/window values fail explicitly.
+
+`--pass-through` enables copying unrecognized input during decompression,
+including stdin and VFS file output; `--no-pass-through` disables it, including
+the `zstdcat` default. Last selection wins, and recognized frames still validate.
+`--exclude-compressed` skips named compression operands ending in `.zst`,
+`.tzst`, `.gz`, `.tgz`, `.xz`, `.txz`, `.lzma`, `.tlz`, `.bz2`, `.tbz2`, `.lz4`,
+`.zip`, `.7z`, `.rar`, `.lz`, `.br` or `.cab` (case-sensitive),
+including stdout/force mode; stdin and decompression are unaffected.
+
+The XZ family (`xz`, `unxz`, `xzcat`) automatically decodes XZ containers and
+legacy LZMA-alone streams.
+Compression produces XZ containers. It accepts `--compress` to select
+compression, including when invoked through a decompression alias. `-e` and
+`--extreme` enable liblzma's extreme preset with the selected level. `-T1`,
+`-T 1`, `--threads=1` and `--threads 1` select the codec's single-threaded
+execution; other counts, including automatic selection (`0`), fail explicitly.
+
+`-q` and `--quiet` suppress warnings; repeating them also suppresses processing
+and filesystem error diagnostics, preserving failure status. `--single-stream`
+decodes and validates only the first stream, ignoring subsequent streams,
+padding and trailing bytes; it also applies to file output and test mode.
+Compression still consumes all input. `--format=auto`, `--format auto`,
+`-Fauto` and `-F auto` explicitly select the existing XZ/LZMA-alone decoder
+and XZ encoder. `--format=xz` / `-Fxz` select XZ encoding and restrict
+decoding to XZ streams, rejecting LZMA-alone input. `--format=lzma` / `-Flzma`
+select legacy LZMA-alone encoding and decoding, with `.lzma` file output.
+Legacy encoding has no integrity check; explicitly selecting a check other
+than `none` fails. Trailing data fails unless `--single-stream` is selected.
+`--no-sparse` selects the existing dense-output behavior;
+`--no-warn` selects the existing frontend profile without XZ warnings.
+`--memlimit-decompress=BYTES` (or a separate argument) limits allocations and
+XZ/LZMA decoder memory admission for every member, including test mode. Binary
+KiB/MiB/GiB suffixes and their XZ shorthand aliases are accepted. Zero disables
+the caller limit. Omitted limits impose no application allocation quota; explicit
+limits above 64 MiB are honored and must fit the SDK's exact integer range.
+The allocator's accounting includes allocation headers, so a tight limit may
+fail earlier than native XZ. This caller option does not affect compression.
+Bzip2, XZ, Zstandard and ZIP LZMA have no implicit allocation quota. Native
+format and address-space bounds still apply, and runtime allocation may fail.
+Output-byte limits remain independent. Explicit allocation budgets apply per
+codec instance; generated heap capacity, buffers and concurrent commands need
+additional host headroom.
+`--memlimit-mt-decompress` validates the same absolute values but has no effect
+on the single-threaded decoder, matching native XZ's soft MT limit behavior.
+Host-RAM percentages remain unsupported.
+`--memlimit-compress=BYTES` limits encoder admission and allocations;
+`--memlimit=BYTES` sets both compression and decompression limits. Later options
+override only their selected direction. Compression reduces only the preset's
+dictionary in whole MiB steps when needed, retaining its match finder and other
+settings; adjustments are reported unless quiet is selected. `--no-adjust`
+rejects a preset that cannot fit unchanged. Limits below the minimum encoder
+memory fail without publishing output or removing input files. These controls
+also apply to legacy LZMA encoding and the decompression aliases in compress mode.
+Admission uses liblzma's memory estimate for the generated 32-bit codec; exact
+byte thresholds can differ from a native 64-bit build's structure sizes.
+Errors still fail and are reported unless quiet is repeated.
+`--check=none|crc32|crc64|sha256` (also `-C` or a separate argument) selects
+the encoded integrity check; CRC64 remains the default. `--ignore-check` skips
+data checksum verification during decompression and test mode while still
+validating stream headers and structure. Both controls apply to all XZ aliases.
+`--format=raw` selects unframed encoding/decoding; the same filter chain must be
+provided for both directions. Named raw output requires `-S SUFFIX`; `-c` needs
+no suffix. `--lzma1[=OPTIONS]`, `--lzma2[=OPTIONS]`, `--delta[=OPTIONS]`,
+`--x86[=OPTIONS]` and `--arm64[=OPTIONS]` build a chain of up to four filters
+using liblzma's native option syntax, for example `--delta=dist=2 --lzma2=dict=1MiB`.
+An encoding chain must end in a compatible LZMA filter. Selecting a preset or
+extreme mode resets the custom chain. Raw encoding never adjusts its dictionary.
+`--block-size=BYTES` splits XZ blocks; `--block-list=BYTES,...` specifies groups,
+repeating the final size (zero means unlimited). Block-size can split each group.
+`--flush-timeout=MILLISECONDS` flushes pending XZ output when input is idle.
+`--list` / `-l` inspect named XZ files without decompressing or changing them;
+`--robot --list` emits tab-separated metadata and totals. Listing validates stream
+headers, footers and indices, not payload checksums. These options retain codec limits.
+
+The bzip2-family definitions (`bzip2`, `bunzip2`, `bzcat`) accept `-z` and
+`--compress` to select compression, including on decompression aliases. The last
+`-z`/`-d` selector wins. `-s` and `--small` cap compression block size at level
+`2` (retaining level `1` when selected), regardless of option order. During
+decompression they select bzip2's reduced-memory decoder, including for every
+concatenated member, while retaining checksum validation.
+Decoded output is published in bounded 5,000-byte buffers; an incomplete final
+buffer is discarded on a data error, while already published buffers remain.
+Truncated or invalid compressed data exits with status `2`; file errors use `1`.
+
+Force does not bypass integrity checks on input starting with gzip magic
+`1f 8b`. Only decompression to stdout (including stdin's implicit stdout and
+`zcat`) with `-f` passes non-gzip input and suffixes through unchanged.
+As in pinned GNU gzip 1.14, `-ft` accepts that data but discards all output.
+File-output decompression never uses this passthrough. No option switches
+`gunzip` or `zcat` back to compression.
+
+## Names, metadata, and format
+
+Named compression appends `.gz`, or the suffix supplied with `-S`/`--suffix`.
+Decompression recognizes the custom suffix before the standard suffixes.
+Without `-f`, file-output compression rejects the custom suffix and
+names already ending in `.gz`, `.z`, `-gz`, `-z`, `_z`, `.tgz`, or `.taz`.
+File-output decompression removes `.gz`, `.z`, `-gz`, `-z`, or `_z`; `.tgz` and
+`.taz` become `.tar`. These suffix checks are case-insensitive. Unknown suffixes
+and empty resulting basenames fail. Stdout and test modes require no suffix,
+and there is no implicit search for a missing operand with `.gz` appended.
+
+Compression emits real gzip/DEFLATE, with zero MTIME, no original-name or comment
+fields, and OS byte `255`. The implementation normalizes the OS byte on the
+stream, so this policy is independent of the host OS. Given identical input and
+level, this removes name, time, and OS-header variation; identical compressed
+bytes across different Node/zlib versions are not promised. Decompression parses
+gzip framing around Node raw-DEFLATE streams, validating optional-header CRC,
+reserved flags, per-member CRC32, ISIZE and truncation. Concatenated members
+decode in order. Trailing zero padding succeeds; other trailing garbage reports
+warning status 2 while retaining validated output. A truncated next header
+fails with status 1. Forced stdout mode preserves non-gzip suffix bytes instead.
+These semantics have pinned GNU 1.14 evidence across input chunk boundaries.
+
+Embedded gzip filenames are never used as paths. File modes, ownership,
+timestamps, and other source metadata are not restored or copied by the
+command. Private staging requests directory mode `0700` and file mode `0600`;
+actual permission enforcement and published-file metadata depend on the VFS.
+The `.tar` suffix transformation is only naming: there is no tar creation,
+extraction, or archive traversal.
+
+Input spelling is preserved until the virtual filesystem resolves it. In
+particular, a parent symlink followed by `..` must be resolved by the filesystem,
+not lexically normalized by the command. File destinations are derived from
+the resolved regular source path, so output publication and overlap checks
+refer to the actual source directory. Source identity checks still revalidate
+the original input path before publication/removal.
+
+## Streaming, cancellation, and limits
+
+Input/output are `Uint8Array` streams. Named inputs require `openReadFile`,
+`retainedRead === true`, and stable scoped identities; there is deliberately no
+pathname-stream or `readFile` fallback.
+File output additionally requires `writeStream` and `streamingWrite !== false`.
+An explicit `readOnly: true` capability rejects named-file output with `EROFS`
+before the streaming-write capability check or staging. Missing streaming writes
+on a writable/unspecified backend still report `ENOTSUP`. Readonly policy does
+not prohibit stdout compression, stdout decompression, or validation-only mode.
+The streaming-write flag may be absent if the method is present. Inputs must
+be regular, non-symlink entries, including for stdout/test modes.
+
+The codec uses 64 KiB chunks/high-water marks and awaited sinks for backpressure.
+An empty-only producer yields to the event loop after every 64 chunks, including
+during forced-decompression prefix probing, so scheduled cancellation can run.
+This bounds command-managed read-ahead, not the size of a chunk already supplied
+by a producer, nor buffering inside an adapter. Named input gets the combined
+parent/internal abort signal, as does the staging writer. Source, codec, and
+consumer failures abort their peer operations. Byte helpers stop waiting on
+blocked stdin/stdout operations and observe late promise rejections; the command
+does not close the caller's stdout/stderr sinks.
+
+**A staging writer must settle before cleanup.** The transform explicitly awaits
+its consumer even after pipeline failure, preventing a still-running VFS writer
+from recreating or modifying the stage after cleanup. An adapter that ignores
+abort and never settles can therefore block the command indefinitely. The
+command cannot forcibly stop adapter work or undo late host side effects.
+Tests cover delayed writers on parent cancellation and producer failure, as
+well as blocked byte sources/sinks and late rejections. This is cooperative
+cancellation, not a hard deadline or termination guarantee.
+
+File staging and decoded bytes have no application quota by default.
+Configure an explicit decoded-byte budget across all operands and members with
+`byteCommands({ compression: { maxDecodedBytes: 1024 * 1024 } })` or
+`createCompressionCommands({ maxDecodedBytes: 1024 * 1024 })`. The value must be
+a nonnegative safe integer; zero admits only empty decoded output. Chunks that
+would exceed the budget are rejected before forwarding or discarding them, and
+later operands are not processed. Every decompression mode (including stdout,
+`-t`, forced passthrough, and file output) shares this budget. It is separate from file staging
+and applies even when shell output limits cannot see discarded data. Shell-level
+output, execution, or cancellation limits are separate and still apply when
+these definitions run through the shell. A provider may internally buffer the
+staged bytes despite its streaming interface.
+
+## Publication and cleanup boundaries
+
+All operands are preflighted before any transformation. Invalid paths,
+capabilities, suffixes, existing targets without force, duplicate outputs, or
+detected input/output aliases fail the invocation before command file mutation.
+Symlink inputs and destinations are rejected; hardlinked destinations aliasing
+an input are rejected when their identity is available. Multiply linked inputs
+require `-k` or `-f` only when file output would otherwise remove the input.
+
+Each file output is first written to `data` in a randomly named, exclusively
+created sibling `.virtual-bash-gzip-*` directory. Source snapshots/realpaths and
+destination snapshots are checked again before publication; stage identity is
+also checked. A previously absent destination uses atomic `rename` with
+`noReplace: true` and requires `capabilities.atomicRenameNoReplace === true`. Replacing an existing regular destination requires `-f` and
+`capabilities.atomicRename === true`, and uses `rename` from the stage. Without
+that capability, forced replacement is refused, not implemented as unlink/copy.
+Only successful publication and cleanup permit source removal (unless `-k`).
+Removal uses the VFS atomic conditional-delete operation, bound to the checked
+parent identity and source identity/revision. An ancestor symlink swap, source
+replacement, or content revision change causes cleanup to fail while retaining
+the changed source and unrelated files. Backends without this capability, parent
+identity, or source revision are refused before output publication; use `-k` or
+`-c` to retain the input instead.
+
+Output publication and staging cleanup remain defensive pathname checks rather
+than a filesystem transaction. Hostile mutations can still race with target
+replacement and staging cleanup; conditional source deletion does not strengthen
+those separate operations.
+
+Atomic rename is trusted only as advertised; publication may already have
+occurred when cancellation or a later error is observed. Existing targets are
+preserved on validation/codec failure before publication, not unconditionally
+under arbitrary backend failures. Successful earlier operands are not rolled
+back when later operands fail.
+
+Cleanup uses a fresh five-second abort signal, which is only effective if the
+backend honors it. It checks the directory/stage identity, removes only the
+recognized stage, checks that the directory is empty, then removes the directory.
+Foreign entries or replaced identities cause refusal and leave artifacts for
+inspection. The final empty-directory check/removal still has a race; it is not
+safe against hostile concurrent insertion. Cleanup failure retains the source,
+even if the destination was already published. On both processing and cleanup
+failure, an aggregate diagnostic reports the failure without deleting foreign
+entries known to the checks.
+
+## Diagnostics and compatibility boundaries
+
+Success (including `-t` and help) returns exit code `0`; processing or filesystem
+failure returns `1`; trailing-garbage warnings and option-usage errors return `2`.
+An error takes precedence over warnings across operands. GNU warning semantics
+are covered, but usage status and diagnostic wording are not universal GNU parity.
+Diagnostics use stderr with the invoked command name.
+Preflight failure stops the invocation; after preflight, per-operand processing
+errors are reported and later operands are attempted. Parent cancellation
+rejects with the parent abort reason instead of returning a normal exit code.
+If stderr itself fails, reporting can reject rather than produce a result.
+
+Stdout is genuinely streaming: errors or cancellation can leave partial output,
+including bytes decoded before a later corrupt member/trailer. Consumers must
+check completion/exit status rather than treating received bytes as validated.
+`-t` emits no data, and file output stages validation before publication.
+
+This is a specified subset, not GNU/POSIX gzip compatibility certification.
+Unlike GNU gzip's default named compression, no original name/time is stored;
+metadata preservation, prompting, terminal detection, name restoration (`-N`),
+custom suffixes (`-S`), listing, verbosity, rsyncable mode,
+environment-driven `GZIP` options, and other undocumented flags are unsupported.
+Only gzip is decoded: not ZIP, zlib wrappers, raw DEFLATE, pack, or compress `.Z`.
+In particular, `zcat` here means gzip decompression, **not POSIX compress-format
+`.Z` decompression**. A `.Z` filename can pass the case-insensitive suffix rule
+but its contents must still be gzip (or pass through unchanged under `zcat -f`).
+
+Primary references used to check these boundaries: GNU Gzip manual, “Invoking
+gzip” and “Overview”; Node.js v22.18.0 API documentation, “Zlib”, especially
+`zlib.Gunzip`. These establish external behavior, not evidence that this command
+matches every GNU case. Native author tests report the actual executable/version;
+Apple gzip interoperability is not a GNU oracle or a superiority benchmark.
+
+## Author validation
+
+Run from `/Users/kjopek/Workspace/safe-bash`:
+
+```sh
+node --unhandled-rejections=strict --import tsx --test tests/commands/bytes/compression/*.test.ts
+node node_modules/typescript/bin/tsc --noEmit --target ES2023 --lib ES2023 --module NodeNext --moduleResolution NodeNext --strict --noUncheckedIndexedAccess --exactOptionalPropertyTypes --verbatimModuleSyntax --forceConsistentCasingInFileNames --skipLibCheck --types node src/commands/bytes/compression/*.ts tests/commands/bytes/compression/*.ts
+```
+
+The type command matches the repository's strict settings and follows imports;
+it is not a whole-repository typecheck. The limit regression exercises the same
+output counter with an explicit injected limit and verifies omitted quotas;
+it does not allocate a 256 MiB archive. Independent verification and
+package/root registration remain separate handoff tasks.
+
+Author checkpoint, August 26, 2026: Node v22.22.2 on Darwin 25.4.0 arm64;
+84/84 owned tests passed with strict unhandled-rejection handling, zero skips,
+and strict scoped TypeScript passed. Native interoperability used Apple gzip
+479 for both `gzip` and `gunzip`, not GNU gzip. Twenty additional repetitions
+of the following ten-test selection passed (200/200 executions):
+
+```sh
+node --unhandled-rejections=strict --import tsx --test --test-name-pattern='backpressure|cancell|blocked|tears down|consumer returning early' tests/commands/bytes/compression/streaming.test.ts
+```

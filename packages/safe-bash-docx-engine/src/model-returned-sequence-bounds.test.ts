@@ -1,0 +1,47 @@
+import { expect, it } from "vitest";
+import { Volume } from "memfs";
+import * as api from "./index.js";
+import { textContext, textFixture } from "../tests/fixtures/text.js";
+import { replacementPng } from "../tests/fixtures/image-replacement.js";
+import { readPackage, assertPackageLinks } from "../tests/assertions.js";
+const owners = ["paragraph-breaks", "story-image-pair", "header-pair", "footer-pair", "relationship-popitem", "scaled-dimensions", "enum-members"] as const;
+const boundaries = ["valid", "index-end", "at-end", "at-before-start", "fraction", "nan", "slice-end", "slice-fraction"] as const;
+for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const) for (const owner of owners) for (const boundary of boundaries)
+it(`returned ${owner} checks ${boundary} sequence bounds; ${kind}; strict=${strict}`, async () => {
+  const parts = readPackage(await textFixture('<w:p><w:r><w:t>Keep é 日本 עברית 🌊</w:t><w:lastRenderedPageBreak/><w:lastRenderedPageBreak/></w:r></w:p>', {}, strict));
+  if (kind === "dotx") parts.set("[Content_Types].xml", new TextEncoder().encode(new TextDecoder().decode(parts.get("[Content_Types].xml")).replace("wordprocessingml.document.main+xml", "wordprocessingml.template.main+xml")));
+  const rel = strict ? "http://purl.oclc.org/ooxml/officeDocument/relationships" : "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
+  parts.set("word/_rels/document.xml.rels", new TextEncoder().encode(new TextDecoder().decode(parts.get("word/_rels/document.xml.rels")).replace("</Relationships>", `<Relationship Id="outside" Type="${rel}/hyperlink" Target="https://links.example.invalid/keep" TargetMode="External"/></Relationships>`)));
+  const volume = Volume.fromJSON({ "/input": "", "/out": "" });
+  await api.writeArchive({ comment: new Uint8Array(), members: [...parts].map(([name, bytes]) => ({ name, bytes, directory: false, modified: new Date("2026-01-02T03:04:06Z") })) }, { async write(bytes) { volume.appendFileSync("/input", bytes); } }, { order: "input", compression: "store" }, textContext);
+  const input = new Uint8Array(volume.readFileSync("/input") as Buffer), doc = await api.Document(input, textContext);
+  let items: readonly unknown[];
+  if (owner === "paragraph-breaks") items = doc.paragraphs[0]!.rendered_page_breaks;
+  else if (owner === "story-image-pair") items = await doc.part.get_or_add_image(replacementPng());
+  else if (owner === "header-pair") items = doc.part.add_header_part();
+  else if (owner === "footer-pair") items = doc.part.add_footer_part();
+  else if (owner === "relationship-popitem") items = doc.part.rels.popitem();
+  else if (owner === "scaled-dimensions") items = (await api.Image.from_blob(replacementPng(), textContext)).scaled_dimensions(100, 200);
+  else items = api.enumMembers("WD_UNDERLINE");
+  expect(items).toHaveLength(owner === "enum-members" ? 19 : 2);
+  if (boundary === "valid") {
+    expect(Array.isArray(items)).toBe(true); expect(Object.isFrozen(items)).toBe(true);
+    expect(items[0]).toBe(items.at(0)); expect(items.at(-1)).toBe(items[items.length - 1]);
+    expect([...items]).toEqual(items); expect(items.slice(0, 1)[0]).toBe(items[0]);
+    if (owner === "scaled-dimensions") expect(items.map(item => (item as api.Length).emu)).toEqual([100, 200]);
+    if (owner === "relationship-popitem") expect(items[0]).toBe("outside");
+    if (owner === "paragraph-breaks") for (const item of items) expect((item as api.RenderedPageBreak).part).toBe(doc.part);
+  } else if (boundary === "index-end") expect(() => items[items.length]).toThrow(api.BoundsError);
+  else if (boundary === "at-end") expect(() => items.at(items.length)).toThrow(api.BoundsError);
+  else if (boundary === "at-before-start") expect(() => items.at(-items.length - 1)).toThrow(api.BoundsError);
+  else if (boundary === "fraction") expect(() => items.at(.5)).toThrow(api.InputTypeError);
+  else if (boundary === "nan") expect(() => items.at(NaN)).toThrow(api.InputTypeError);
+  else if (boundary === "slice-fraction") expect(() => items.slice(.5, 1)).toThrow(api.InputTypeError);
+  else expect(() => items.slice(0, 1)[1]).toThrow(api.BoundsError);
+  await doc.save({ async write(bytes) { volume.appendFileSync("/out", bytes); } });
+  const after = readPackage(new Uint8Array(volume.readFileSync("/out") as Buffer)); assertPackageLinks(after);
+  const mutation = ["story-image-pair", "header-pair", "footer-pair", "relationship-popitem"].includes(owner);
+  for (const [name, bytes] of parts) if (!mutation || !["[Content_Types].xml", "word/_rels/document.xml.rels"].includes(name)) expect(after.get(name), name).toEqual(bytes);
+  expect((await api.Document(new Uint8Array(volume.readFileSync("/out") as Buffer), textContext)).paragraphs[0]!.text).toBe("Keep é 日本 עברית 🌊");
+  expect(volume.readFileSync("/input")).toEqual(Buffer.from(input));
+});

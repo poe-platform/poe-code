@@ -1,0 +1,140 @@
+{
+  "matrixSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+  "matrixUnchangedSince": "33ddb70",
+  "testedFixtureAndControlsStillMatch": true,
+  "oldPreflightFailuresAtFactoryEquality": 79,
+  "groups": {
+    "memory": {
+      "tests": 11,
+      "pass": 11,
+      "fail": 0
+    },
+    "real": {
+      "tests": 11,
+      "pass": 11,
+      "fail": 0
+    },
+    "s3": {
+      "tests": 11,
+      "pass": 10,
+      "fail": 1
+    },
+    "webdav": {
+      "tests": 11,
+      "pass": 10,
+      "fail": 1
+    },
+    "mount": {
+      "tests": 12,
+      "pass": 12,
+      "fail": 0
+    },
+    "overlay": {
+      "tests": 12,
+      "pass": 12,
+      "fail": 0
+    },
+    "readonly": {
+      "tests": 10,
+      "pass": 10,
+      "fail": 0
+    },
+    "structured capability gap": {
+      "tests": 1,
+      "pass": 1,
+      "fail": 0
+    }
+  },
+  "controlCounts": {
+    "individualOmissions": 22,
+    "familyOmissions": 6,
+    "aggregateOmission": 1,
+    "extraCommand": 1
+  },
+  "artifactHashes": [
+    {
+      "name": "after.json",
+      "sha256": "9ba858779974efdda7de83bbd29d73b86a91c1f7983b4c873f4c4ae15f6594fc"
+    },
+    {
+      "name": "fixture-after.txt",
+      "sha256": "127a6910a2733d6b6df01285d37d5c90ccbeeeefda40e0869dc633ef8f6d14e5"
+    },
+    {
+      "name": "fixture-before.txt",
+      "sha256": "59ac2d1835ff329d0bbd08e3ae28bc8c656145e5bb568e6dbca0e851367cb3ab"
+    },
+    {
+      "name": "fixture.diff",
+      "sha256": "f8286ed340f4ee2968684d8cbf82f1edceb380d1d084b1802a3f6a262deaac30"
+    },
+    {
+      "name": "inputs.json",
+      "sha256": "850a9b55375811ae9d52451b57bd52fe068a23580a3c5830faf2fc4f71865f52"
+    },
+    {
+      "name": "old-preflight-matrix.result.json",
+      "sha256": "0614f9a60fb110dd90f314623bd6f3f0f12d539d0c0c195d6a497db3eb1960c3"
+    },
+    {
+      "name": "old-preflight-matrix.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "old-preflight-matrix.stdout.log",
+      "sha256": "56c0c06561eb1ac3723ac5eb41ff9a3bfae4309105df0b0e30194455bf306876"
+    },
+    {
+      "name": "preflight-controls.result.json",
+      "sha256": "4137947568d891381a7bf2b4e2da049c4b88c2dfe383770ff227a2f70d0c8f58"
+    },
+    {
+      "name": "preflight-controls.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "preflight-controls.stdout.log",
+      "sha256": "526388a55b674a8a810331406e172cd583ca14177369850e4c37f1946f0e71d5"
+    },
+    {
+      "name": "required-preflight-matrix.result.json",
+      "sha256": "984bc2e6ee6f61d5a3c3322834100d18238902624ad93f53605ab8152c75f641"
+    },
+    {
+      "name": "required-preflight-matrix.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "required-preflight-matrix.stdout.log",
+      "sha256": "d75965d18912c99befcd5390c39dd4a74835ea07ec7d63d0fc59a47504afe030"
+    },
+    {
+      "name": "scoped-typecheck.result.json",
+      "sha256": "62ecc51f3a58b7eb392e4f80905426654b1b00a8e909ff1478d1cbb36d4d7358"
+    },
+    {
+      "name": "scoped-typecheck.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "scoped-typecheck.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "source-dirty.diff",
+      "sha256": "f5a4938ef201f96356c1ff0ed2fa69fe30455a6eb096ebb31e8f639cc61346c5"
+    },
+    {
+      "name": "summary.json",
+      "sha256": "fe4e542424450196c6275f8ed760c07cfb9818610764714638fa5a3bad003fc4"
+    },
+    {
+      "name": "untracked-source.json",
+      "sha256": "9c7b38a4eaeb595e72d2a41b8ec42e255aee8b70ad3a298882f44ed845574a86"
+    },
+    {
+      "name": "worktree-status-before.txt",
+      "sha256": "9e0072413392de2f4cbc37d800b210fec1fb1ee524b0b669d1ef4fb261441223"
+    }
+  ]
+}

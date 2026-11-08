@@ -1,0 +1,90 @@
+{
+  "schema": "functional-reference-v3-activation-manifest-v1",
+  "originalReview": {
+    "commit": "9b3d1c1d408a62c612132f335f6b6a6c8a239b2f",
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/SCOPED-RECEIPT.json",
+    "bytes": 1314,
+    "sha256": "8c122fab60856a744c97b299f327313dd08460e28a33388040baf822705008c3"
+  },
+  "sourceSeal": {
+    "path": "PRESEAL.json",
+    "bytes": 5602,
+    "sha256": "ffee6eafb226ead4f9a15351c2964693971dfff7004b0d96cd6f9d0ca6098533"
+  },
+  "approvalTemplate": {
+    "path": "APPROVAL-REQUEST.template.json",
+    "bytes": 3252,
+    "sha256": "9243e5eb6c3db5fce5bee733740a2f59c0d8d447f1e3e38fe46fd476db00f6b7"
+  },
+  "artifacts": [
+    {
+      "path": "REVIEW-ACCEPTANCE.json",
+      "bytes": 493,
+      "mode": 384,
+      "sha256": "0071e1161c134dff21e90e8dbd21abca418558d65561d6988f458dddd46ed99b"
+    },
+    {
+      "path": "GO.json",
+      "bytes": 1290,
+      "mode": 384,
+      "sha256": "2ee3666ae6ad5e1507b65ccbb46e690401b95da569e47bd9ef6cbf5a69783fe6"
+    },
+    {
+      "path": "activation-v1/ROOT-AUTHORIZATION.md",
+      "bytes": 4496,
+      "mode": 420,
+      "sha256": "5145e708a8df0a7175281326e1dd2e6465611738c84b1f5a7fd4fbf7210f7ca5"
+    },
+    {
+      "path": "activation-v1/APPROVAL-REQUEST.resolved.json",
+      "bytes": 3290,
+      "mode": 420,
+      "sha256": "0cb976c7c314b3405f957f5feac0214fbe9e63086b5e0f89505e15f4f8e9bb14"
+    },
+    {
+      "path": "activation-v1/COMMAND.txt",
+      "bytes": 810,
+      "mode": 420,
+      "sha256": "da8e58441eb3bc844d27bd06165294acbae68048dda14d82cd92b54c1fda9cbd"
+    },
+    {
+      "path": "activation-v1/PREFLIGHT.json",
+      "bytes": 4816,
+      "mode": 420,
+      "sha256": "b8337ebb6577c33fe9905aaecb77ccf2fedf69a9aeba4ae3e5eb73e6fcc2669f"
+    },
+    {
+      "path": "activation-v1/BINDING-CHECKS.jsonl",
+      "bytes": 10078,
+      "mode": 420,
+      "sha256": "a23cac65ff851d4eff8c2113d8b5604ffa4eda0debcbc8f47d047074b37b80c6"
+    }
+  ],
+  "dependencyOrder": [
+    "original independent receipt at immutable commit",
+    "ROOT-authored runtime review receipt referencing original commit/digest",
+    "ROOT grant pinning runtime receipt and unchanged source seal",
+    "resolved command pinning raw ROOT grant digest"
+  ],
+  "runtimeReceiptIsNotSlotAcceptance": true,
+  "preflight": "DATA_ONLY_PASS; repeat fresh checks before actual",
+  "slotAcceptance": "PENDING_SAGAN",
+  "toolApproval": "NOT_REQUESTED",
+  "entryExecuted": false,
+  "deadlineEpochMs": 1787994219808,
+  "deadlineUTC": "2026-08-29T09:03:39.808Z",
+  "fixedDeadlineNoAutomaticRenewal": true,
+  "actualEffectiveMs": "min(grant deadline, entry start+600000)",
+  "oldContainment9and40": "HOLD_UNCHANGED",
+  "futureFunctional37": "UNRUN",
+  "withheld": [
+    "B26",
+    "B27",
+    "B28"
+  ],
+  "priorHelperAssertion": {
+    "message": "SLOT_COUNT",
+    "retained": "activation-v1/BINDING-CHECKS.jsonl",
+    "classification": "incorrect preparatory count of documentation occurrence; no template drift/entry execution; corrected designated-property check separate"
+  }
+}

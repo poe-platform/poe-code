@@ -1,0 +1,119 @@
+WebDAV authority leaf → wrapper lead / root / Curie, August 27, 2026.
+
+URGENT SUPERSEDING SAFETY FINDING: prior constructor-time method snapshots were
+UNSAFE for pre-construction subclass overrides. No production commit occurred.
+Independent unchanged repro reproduced distinct/EIO/writeStream/source damage.
+Do not consume the previous bb1ad5de resource descriptor as safe. Correction now
+checks every method against original base prototype references captured at module
+initialization (including private metadata/request paths), before and after
+queries, not this.method captured after subclass overrides. Current-core0bee8e7
+isolated validation is COMPLETE at /tmp/safe-bash-webdav-override-1lISLE/final.
+Prior raw evidence/reports remain immutable, explicitly superseded as unsafe.
+
+VALIDATED CORRECTION for qualified-Memory worker (commit follows shortly):
+resource-id.ts SHA256a85c9f8dc58496a0cfa4d65d60e3998a61a79f1f2a889e710bb0bf0d1d5b440f
+webdav.ts SHA256b207b9949d0f824632362dd4bdab5718c182c021e7bcf4e143dc5c7c18e6c23c
+Internal OwnedWebDavEntry/getOwnedWebDavEntry API unchanged. Original whole
+transport and ALL40 original data/metadata/private-operation base methods must
+still match. Unmodified subclasses remain capable; pre/post subclass/instance/
+prototype replacements lose inherited authority. Checks repeat after queries
+and after the peer query. No public registration or class-name test added.
+Pinned319299e7d24be17bed990242d605a4fc37d0d305 includes current core0bee8e7;
+ONLY owned WebDAV overlay applied. Independent destructive unchanged repro1/1
+now unknown+ENOTSUP+zero effects+exact source sentinel (baseline0/1 caused damage).
+Independent WebDAV selection16/16; owned521/521 (324 existing+33 protocol+164
+operation-binding); conformance52/52; strict scoped TypeScript exit0. Original
+WebDAV15 remains13/15 (12/14 positives+1 alias guard); the same two manual-fetch
+mixed positives remain red. No full38/43/53 closure or current-Memory integration
+claim. Descriptor is ready for your separate qualified Memory validation, not
+permission to qualify arbitrary manual fetch inputs. Durable superseding report:
+tests/fs/webdav/evidence/operation-override-fix/REPORT.md.
+
+Read approved5076b32 filesystem.md comparison96 and the private helper handoff.
+Implementing WebDavFileSystem.compareEntry by compareEntries(this,...), with
+registerEntryAuthority(this, sharedWebDavCallback) in construction. The shared
+terminal callback never calls compareEntry/compareEntries. A module-private
+provider metadata map identifies each WebDAV instance's own rooted resource-id
+query; it is NOT a second wrapper resolver/public authority registry.
+
+Each query is metadata-only Depth:0 PROPFIND explicitly requesting DAV:resource-id,
+using the existing bounded XML/request/href implementation. Require exactly the
+requested response, correctly namespaced property, successful propstat, one URI
+href, no duplicate/conflicting response/property. Missing property means unknown;
+real resource404/auth/IO/cancel propagates. No GET or mutation/lock-null operation.
+Qualified WebDAV views compare full RFC5842 resource IDs, not URLs, ETags or clients.
+Endpoints can differ and aliases can share the same returned ID. User explicitly
+authorized enhancing the OWNED original MockDav provider, while preserving its
+historical source/raw hashes and independent compatibility assertions unchanged.
+
+Generic native/memory/S3 peers remain unknown to the WebDAV protocol authority.
+RFC5842 resource IDs cannot prove that a native inode or other service is disjoint.
+Mixed-positive fixtures will use an actual provider-owned peer authority through
+the approved compareEntry seam, recognizing only the exact resources/views it
+owns. No global native-vs-remote rule or arbitrary client enrollment.
+
+If hosts need WebDAV-side generic mixed-peer resolution, proposed hook for root
+review (NOT currently implemented/approved): provider-owned callback receiving
+validated own resource-id and the resolved peer filesystem/path plus FsOptions;
+it must recognize the actual peer backing authority, metadata-only, return only
+same/distinct/unknown, propagate real errors, and never recurse into negotiation.
+Without that proof the current result stays unknown. No extra public registry.
+
+Implementation will import only the agreed ../mount/comparison.js functions;
+wrapper source remains entirely yours. Independent original43/53 integration is
+deferred until wrapper/S3 commits. I will publish exact own commit and results.
+
+CONCRETE ORIGINAL-PROVIDER INTEGRATION (updated after user clarification):
+src/fs/webdav/resource-id.ts (internal only, no index/root exports) will expose:
+  interface OwnedWebDavEntry { readonly storage: object; readonly resource: object; }
+  getOwnedWebDavEntry(view: EntryView): OwnedWebDavEntry | undefined;
+
+SAFETY REVISION: Response provenance ALONE IS NOT full-operation authority. A
+custom fetch can forward a real mock PROPFIND Response then route GET/PUT to a
+local memory alias. That transport MUST remain unknown for mixed-store proof.
+Descriptor now additionally requires the exact registered MockDav.fetch or its
+provider-owned MockDav.createFetch() forwarding factory. Factory captures the
+qualified whole fetch function; registration binds the ACTUAL files Map and
+unchanged map-operation references. Adapter data-method overrides also invalidate
+proof. Arbitrary manual wrappers are unregistered even when forwarding a genuine
+Response; no reflection/bound-function guessing is used. HTTP/clones likewise
+have no private closed-store proof. Qualified real RFC5842 WebDAV-to-WebDAV
+protocol comparison remains separate from mixed-memory disjointness.
+
+Wrapper lead: like getOwnedS3Entry, import getOwnedWebDavEntry in your Memory-owned
+terminal callback. Return distinct only for YOUR recognized closed Memory store
+and a recognized closed MockDav Map/resource descriptor. Do not classify arbitrary
+WebDAV/RFC IDs/native inodes as disjoint. Unknown external Memory/Real-delegating
+fetch transports have no descriptor and remain unknown. This is the actual
+provider-private storage-recognition seam needed for original mixed positives;
+no additional shared-helper registry or public transport hook is requested.
+
+ROOT DECISION REQUIRED FOR ORIGINAL MIXED INPUTS: original frozen compatibility
+test SHA2569d11741fd9b37757046c1278fdaa00c734633bfd9a1fc58ae479415c2f5a6734
+constructs manual `{fetch:(url,init)=>service.fetch(url,init)}` wrappers. Those
+cannot be automatically qualified safely. To prove its mixed positives requires
+explicitly approved input capability delta using service.createFetch(), while
+preserving all success/byte/namespace expectations and historical fixture/raw
+evidence. I DO NOT edit that independent fixture. Without approval the two mixed
+existing-target WebDAV copies remain required reds, not waived. WebDAV-to-WebDAV
+original flows can still improve through the provider's real resource-id property.
+
+MockDav explicitly advertises resource-id properties and maintains resource
+records across PUT/MOVE, allocates a new record on creation/new-target COPY,
+preserves an existing COPY target's record, and retires records on deletion.
+Old mock bytes/hash and old/new focused outputs are preserved as an intentional
+provider capability delta. No independent43/original38 oracle edits.
+
+FINAL OWNED CHECKPOINT VALIDATION (August 27, 2026):
+Pinned committed source3cf57d3c0f9642475c811249f34f6968f9dd5f4a plus ONLY owned
+WebDAV source/backend-test overlay: resource authority33/33, all WebDAV357/357
+(includes33; preexisting324/324), WebDAV conformance52/52 (50backend+2provenance),
+strict scoped TypeScript exit0. Original unchanged WebDAV selection improves
+10/15 to13/15: positive subset9/14 to12/14 plus alias-rejection1/1. Remaining
+two required reds are memory to/from WebDAV existing-target copy, not waived.
+Both mixed-routing genuine-metadata adversarial directions reject ENOTSUP with
+zero GET/PUT and original source bytes/namespace intact. No full43/53 rerun or
+whole38 closure claim. Full-map provider helper/factory implemented; Memory-owned
+recognition and ROOT approval for original manual input qualification remain.
+Evidence: tests/fs/webdav/evidence/resource-authority-5076b32/REPORT.md.
+Live outputs: /tmp/safe-bash-webdav-authority-HIHV1J (all original phases retained).

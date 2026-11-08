@@ -1,0 +1,1756 @@
+{
+  "source": "f97fd06024cb63edfd01873d81d84576a22189db",
+  "seal": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-independent-20260829/SEAL.json",
+    "size": 62193,
+    "mode": 384,
+    "sha256": "b5f681614a4f52373210202c0a573e9009d8e80920d1e3880315b0ab84c3f70b"
+  },
+  "disposition": "REJECT pending capture-reset correction/profile decision",
+  "layouts": [
+    {
+      "layout": "source",
+      "author": {
+        "pass": 66,
+        "fail": 0
+      },
+      "independent": {
+        "pass": 17,
+        "fail": 7
+      },
+      "failures": [
+        "I01-parent-optional-reset",
+        "I02-parent-alternative-reset",
+        "I03-nested-parent-reset",
+        "I04-manual-example",
+        "I05-finite-parent-reset",
+        "I06-parent-zero-iteration",
+        "I23-finite-reset-property"
+      ],
+      "property": {
+        "checks": 62,
+        "contradictions": 52
+      },
+      "observations": [
+        {
+          "event": "observation",
+          "pattern": "(a(b)?)+",
+          "subject": "aba",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 3
+              },
+              {
+                "start": 2,
+                "end": 3
+              },
+              {
+                "start": 1,
+                "end": 2
+              }
+            ],
+            "values": [
+              "aba",
+              "a",
+              "b"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              3
+            ],
+            [
+              2,
+              3
+            ],
+            null
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "((a)|(b))+",
+          "subject": "ab",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 2
+              },
+              {
+                "start": 1,
+                "end": 2
+              },
+              {
+                "start": 0,
+                "end": 1
+              },
+              {
+                "start": 1,
+                "end": 2
+              }
+            ],
+            "values": [
+              "ab",
+              "b",
+              "a",
+              "b"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              2
+            ],
+            [
+              1,
+              2
+            ],
+            null,
+            [
+              1,
+              2
+            ]
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "((a(b)?)c)+",
+          "subject": "abcac",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 5
+              },
+              {
+                "start": 3,
+                "end": 5
+              },
+              {
+                "start": 3,
+                "end": 4
+              },
+              {
+                "start": 1,
+                "end": 2
+              }
+            ],
+            "values": [
+              "abcac",
+              "ac",
+              "a",
+              "b"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              5
+            ],
+            [
+              3,
+              5
+            ],
+            [
+              3,
+              4
+            ],
+            null
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "(ba(na)*s )*",
+          "subject": "bananas bas ",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 12
+              },
+              {
+                "start": 8,
+                "end": 12
+              },
+              {
+                "start": 4,
+                "end": 6
+              }
+            ],
+            "values": [
+              "bananas bas ",
+              "bas ",
+              "na"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              12
+            ],
+            [
+              8,
+              12
+            ],
+            null
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "(a(b)?){2}",
+          "subject": "aba",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 3
+              },
+              {
+                "start": 2,
+                "end": 3
+              },
+              {
+                "start": 1,
+                "end": 2
+              }
+            ],
+            "values": [
+              "aba",
+              "a",
+              "b"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              3
+            ],
+            [
+              2,
+              3
+            ],
+            null
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "((a)?b){2}",
+          "subject": "abb",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 3
+              },
+              {
+                "start": 2,
+                "end": 3
+              },
+              {
+                "start": 0,
+                "end": 1
+              }
+            ],
+            "values": [
+              "abb",
+              "b",
+              "a"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              3
+            ],
+            [
+              2,
+              3
+            ],
+            null
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "((a*)b){2}",
+          "subject": "abb",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 3
+              },
+              {
+                "start": 2,
+                "end": 3
+              },
+              {
+                "start": 2,
+                "end": 2
+              }
+            ],
+            "values": [
+              "abb",
+              "b",
+              ""
+            ]
+          },
+          "expected": [
+            [
+              0,
+              3
+            ],
+            [
+              2,
+              3
+            ],
+            [
+              2,
+              2
+            ]
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "(a|aa)(a?)",
+          "subject": "aa",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 2
+              },
+              {
+                "start": 0,
+                "end": 2
+              },
+              {
+                "start": 2,
+                "end": 2
+              }
+            ],
+            "values": [
+              "aa",
+              "aa",
+              ""
+            ]
+          },
+          "expected": [
+            [
+              0,
+              2
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              2,
+              2
+            ]
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "(a*)(a*)",
+          "subject": "aaa",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 3
+              },
+              {
+                "start": 0,
+                "end": 3
+              },
+              {
+                "start": 3,
+                "end": 3
+              }
+            ],
+            "values": [
+              "aaa",
+              "aaa",
+              ""
+            ]
+          },
+          "expected": [
+            [
+              0,
+              3
+            ],
+            [
+              0,
+              3
+            ],
+            [
+              3,
+              3
+            ]
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "^b|a$",
+          "subject": "aba",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 2,
+                "end": 3
+              }
+            ],
+            "values": [
+              "a"
+            ]
+          },
+          "expected": [
+            [
+              2,
+              3
+            ]
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "(a+X)+",
+          "subject": "aaXaX",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 5
+              },
+              {
+                "start": 3,
+                "end": 5
+              }
+            ],
+            "values": [
+              "aaXaX",
+              "aX"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              5
+            ],
+            [
+              3,
+              5
+            ]
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "(a(b|bb))+",
+          "subject": "abbab",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 5
+              },
+              {
+                "start": 3,
+                "end": 5
+              },
+              {
+                "start": 4,
+                "end": 5
+              }
+            ],
+            "values": [
+              "abbab",
+              "ab",
+              "b"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              5
+            ],
+            [
+              3,
+              5
+            ],
+            [
+              4,
+              5
+            ]
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "(a?)(a?)",
+          "subject": "a",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 1
+              },
+              {
+                "start": 0,
+                "end": 1
+              },
+              {
+                "start": 1,
+                "end": 1
+              }
+            ],
+            "values": [
+              "a",
+              "a",
+              ""
+            ]
+          },
+          "expected": [
+            [
+              0,
+              1
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "layout": "installed",
+      "author": {
+        "pass": 66,
+        "fail": 0
+      },
+      "independent": {
+        "pass": 17,
+        "fail": 7
+      },
+      "failures": [
+        "I01-parent-optional-reset",
+        "I02-parent-alternative-reset",
+        "I03-nested-parent-reset",
+        "I04-manual-example",
+        "I05-finite-parent-reset",
+        "I06-parent-zero-iteration",
+        "I23-finite-reset-property"
+      ],
+      "property": {
+        "checks": 62,
+        "contradictions": 52
+      },
+      "observations": [
+        {
+          "event": "observation",
+          "pattern": "(a(b)?)+",
+          "subject": "aba",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 3
+              },
+              {
+                "start": 2,
+                "end": 3
+              },
+              {
+                "start": 1,
+                "end": 2
+              }
+            ],
+            "values": [
+              "aba",
+              "a",
+              "b"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              3
+            ],
+            [
+              2,
+              3
+            ],
+            null
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "((a)|(b))+",
+          "subject": "ab",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 2
+              },
+              {
+                "start": 1,
+                "end": 2
+              },
+              {
+                "start": 0,
+                "end": 1
+              },
+              {
+                "start": 1,
+                "end": 2
+              }
+            ],
+            "values": [
+              "ab",
+              "b",
+              "a",
+              "b"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              2
+            ],
+            [
+              1,
+              2
+            ],
+            null,
+            [
+              1,
+              2
+            ]
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "((a(b)?)c)+",
+          "subject": "abcac",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 5
+              },
+              {
+                "start": 3,
+                "end": 5
+              },
+              {
+                "start": 3,
+                "end": 4
+              },
+              {
+                "start": 1,
+                "end": 2
+              }
+            ],
+            "values": [
+              "abcac",
+              "ac",
+              "a",
+              "b"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              5
+            ],
+            [
+              3,
+              5
+            ],
+            [
+              3,
+              4
+            ],
+            null
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "(ba(na)*s )*",
+          "subject": "bananas bas ",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 12
+              },
+              {
+                "start": 8,
+                "end": 12
+              },
+              {
+                "start": 4,
+                "end": 6
+              }
+            ],
+            "values": [
+              "bananas bas ",
+              "bas ",
+              "na"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              12
+            ],
+            [
+              8,
+              12
+            ],
+            null
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "(a(b)?){2}",
+          "subject": "aba",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 3
+              },
+              {
+                "start": 2,
+                "end": 3
+              },
+              {
+                "start": 1,
+                "end": 2
+              }
+            ],
+            "values": [
+              "aba",
+              "a",
+              "b"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              3
+            ],
+            [
+              2,
+              3
+            ],
+            null
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "((a)?b){2}",
+          "subject": "abb",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 3
+              },
+              {
+                "start": 2,
+                "end": 3
+              },
+              {
+                "start": 0,
+                "end": 1
+              }
+            ],
+            "values": [
+              "abb",
+              "b",
+              "a"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              3
+            ],
+            [
+              2,
+              3
+            ],
+            null
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "((a*)b){2}",
+          "subject": "abb",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 3
+              },
+              {
+                "start": 2,
+                "end": 3
+              },
+              {
+                "start": 2,
+                "end": 2
+              }
+            ],
+            "values": [
+              "abb",
+              "b",
+              ""
+            ]
+          },
+          "expected": [
+            [
+              0,
+              3
+            ],
+            [
+              2,
+              3
+            ],
+            [
+              2,
+              2
+            ]
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "(a|aa)(a?)",
+          "subject": "aa",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 2
+              },
+              {
+                "start": 0,
+                "end": 2
+              },
+              {
+                "start": 2,
+                "end": 2
+              }
+            ],
+            "values": [
+              "aa",
+              "aa",
+              ""
+            ]
+          },
+          "expected": [
+            [
+              0,
+              2
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              2,
+              2
+            ]
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "(a*)(a*)",
+          "subject": "aaa",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 3
+              },
+              {
+                "start": 0,
+                "end": 3
+              },
+              {
+                "start": 3,
+                "end": 3
+              }
+            ],
+            "values": [
+              "aaa",
+              "aaa",
+              ""
+            ]
+          },
+          "expected": [
+            [
+              0,
+              3
+            ],
+            [
+              0,
+              3
+            ],
+            [
+              3,
+              3
+            ]
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "^b|a$",
+          "subject": "aba",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 2,
+                "end": 3
+              }
+            ],
+            "values": [
+              "a"
+            ]
+          },
+          "expected": [
+            [
+              2,
+              3
+            ]
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "(a+X)+",
+          "subject": "aaXaX",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 5
+              },
+              {
+                "start": 3,
+                "end": 5
+              }
+            ],
+            "values": [
+              "aaXaX",
+              "aX"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              5
+            ],
+            [
+              3,
+              5
+            ]
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "(a(b|bb))+",
+          "subject": "abbab",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 5
+              },
+              {
+                "start": 3,
+                "end": 5
+              },
+              {
+                "start": 4,
+                "end": 5
+              }
+            ],
+            "values": [
+              "abbab",
+              "ab",
+              "b"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              5
+            ],
+            [
+              3,
+              5
+            ],
+            [
+              4,
+              5
+            ]
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "(a?)(a?)",
+          "subject": "a",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 1
+              },
+              {
+                "start": 0,
+                "end": 1
+              },
+              {
+                "start": 1,
+                "end": 1
+              }
+            ],
+            "values": [
+              "a",
+              "a",
+              ""
+            ]
+          },
+          "expected": [
+            [
+              0,
+              1
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "layout": "moved",
+      "author": {
+        "pass": 66,
+        "fail": 0
+      },
+      "independent": {
+        "pass": 17,
+        "fail": 7
+      },
+      "failures": [
+        "I01-parent-optional-reset",
+        "I02-parent-alternative-reset",
+        "I03-nested-parent-reset",
+        "I04-manual-example",
+        "I05-finite-parent-reset",
+        "I06-parent-zero-iteration",
+        "I23-finite-reset-property"
+      ],
+      "property": {
+        "checks": 62,
+        "contradictions": 52
+      },
+      "observations": [
+        {
+          "event": "observation",
+          "pattern": "(a(b)?)+",
+          "subject": "aba",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 3
+              },
+              {
+                "start": 2,
+                "end": 3
+              },
+              {
+                "start": 1,
+                "end": 2
+              }
+            ],
+            "values": [
+              "aba",
+              "a",
+              "b"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              3
+            ],
+            [
+              2,
+              3
+            ],
+            null
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "((a)|(b))+",
+          "subject": "ab",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 2
+              },
+              {
+                "start": 1,
+                "end": 2
+              },
+              {
+                "start": 0,
+                "end": 1
+              },
+              {
+                "start": 1,
+                "end": 2
+              }
+            ],
+            "values": [
+              "ab",
+              "b",
+              "a",
+              "b"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              2
+            ],
+            [
+              1,
+              2
+            ],
+            null,
+            [
+              1,
+              2
+            ]
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "((a(b)?)c)+",
+          "subject": "abcac",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 5
+              },
+              {
+                "start": 3,
+                "end": 5
+              },
+              {
+                "start": 3,
+                "end": 4
+              },
+              {
+                "start": 1,
+                "end": 2
+              }
+            ],
+            "values": [
+              "abcac",
+              "ac",
+              "a",
+              "b"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              5
+            ],
+            [
+              3,
+              5
+            ],
+            [
+              3,
+              4
+            ],
+            null
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "(ba(na)*s )*",
+          "subject": "bananas bas ",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 12
+              },
+              {
+                "start": 8,
+                "end": 12
+              },
+              {
+                "start": 4,
+                "end": 6
+              }
+            ],
+            "values": [
+              "bananas bas ",
+              "bas ",
+              "na"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              12
+            ],
+            [
+              8,
+              12
+            ],
+            null
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "(a(b)?){2}",
+          "subject": "aba",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 3
+              },
+              {
+                "start": 2,
+                "end": 3
+              },
+              {
+                "start": 1,
+                "end": 2
+              }
+            ],
+            "values": [
+              "aba",
+              "a",
+              "b"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              3
+            ],
+            [
+              2,
+              3
+            ],
+            null
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "((a)?b){2}",
+          "subject": "abb",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 3
+              },
+              {
+                "start": 2,
+                "end": 3
+              },
+              {
+                "start": 0,
+                "end": 1
+              }
+            ],
+            "values": [
+              "abb",
+              "b",
+              "a"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              3
+            ],
+            [
+              2,
+              3
+            ],
+            null
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "((a*)b){2}",
+          "subject": "abb",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 3
+              },
+              {
+                "start": 2,
+                "end": 3
+              },
+              {
+                "start": 2,
+                "end": 2
+              }
+            ],
+            "values": [
+              "abb",
+              "b",
+              ""
+            ]
+          },
+          "expected": [
+            [
+              0,
+              3
+            ],
+            [
+              2,
+              3
+            ],
+            [
+              2,
+              2
+            ]
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "(a|aa)(a?)",
+          "subject": "aa",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 2
+              },
+              {
+                "start": 0,
+                "end": 2
+              },
+              {
+                "start": 2,
+                "end": 2
+              }
+            ],
+            "values": [
+              "aa",
+              "aa",
+              ""
+            ]
+          },
+          "expected": [
+            [
+              0,
+              2
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              2,
+              2
+            ]
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "(a*)(a*)",
+          "subject": "aaa",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 3
+              },
+              {
+                "start": 0,
+                "end": 3
+              },
+              {
+                "start": 3,
+                "end": 3
+              }
+            ],
+            "values": [
+              "aaa",
+              "aaa",
+              ""
+            ]
+          },
+          "expected": [
+            [
+              0,
+              3
+            ],
+            [
+              0,
+              3
+            ],
+            [
+              3,
+              3
+            ]
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "^b|a$",
+          "subject": "aba",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 2,
+                "end": 3
+              }
+            ],
+            "values": [
+              "a"
+            ]
+          },
+          "expected": [
+            [
+              2,
+              3
+            ]
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "(a+X)+",
+          "subject": "aaXaX",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 5
+              },
+              {
+                "start": 3,
+                "end": 5
+              }
+            ],
+            "values": [
+              "aaXaX",
+              "aX"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              5
+            ],
+            [
+              3,
+              5
+            ]
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "(a(b|bb))+",
+          "subject": "abbab",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 5
+              },
+              {
+                "start": 3,
+                "end": 5
+              },
+              {
+                "start": 4,
+                "end": 5
+              }
+            ],
+            "values": [
+              "abbab",
+              "ab",
+              "b"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              5
+            ],
+            [
+              3,
+              5
+            ],
+            [
+              4,
+              5
+            ]
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "(a?)(a?)",
+          "subject": "a",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 1
+              },
+              {
+                "start": 0,
+                "end": 1
+              },
+              {
+                "start": 1,
+                "end": 1
+              }
+            ],
+            "values": [
+              "a",
+              "a",
+              ""
+            ]
+          },
+          "expected": [
+            [
+              0,
+              1
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  "types": [
+    {
+      "id": "source-types-positive",
+      "pass": true,
+      "code": 0,
+      "diagnostics": [],
+      "expected": []
+    },
+    {
+      "id": "source-types-negative",
+      "pass": true,
+      "code": 2,
+      "diagnostics": [
+        2345,
+        2339,
+        2322
+      ],
+      "expected": [
+        2345,
+        2339,
+        2322
+      ]
+    },
+    {
+      "id": "installed-types-positive",
+      "pass": true,
+      "code": 0,
+      "diagnostics": [],
+      "expected": []
+    },
+    {
+      "id": "installed-types-negative",
+      "pass": true,
+      "code": 2,
+      "diagnostics": [
+        2345,
+        2339,
+        2322
+      ],
+      "expected": [
+        2345,
+        2339,
+        2322
+      ]
+    },
+    {
+      "id": "moved-types-positive",
+      "pass": true,
+      "code": 0,
+      "diagnostics": [],
+      "expected": []
+    },
+    {
+      "id": "moved-types-negative",
+      "pass": true,
+      "code": 2,
+      "diagnostics": [
+        2345,
+        2339,
+        2322
+      ],
+      "expected": [
+        2345,
+        2339,
+        2322
+      ]
+    }
+  ],
+  "mutations": [
+    {
+      "id": "M01-whole-control",
+      "pass": true,
+      "killed": 1,
+      "restored": true
+    },
+    {
+      "id": "M02-ascii-control",
+      "pass": true,
+      "killed": 1,
+      "restored": true
+    },
+    {
+      "id": "M03-nullable-control",
+      "pass": true,
+      "killed": 1,
+      "restored": true
+    },
+    {
+      "id": "M04-truncate-control",
+      "pass": true,
+      "killed": 1,
+      "restored": true
+    },
+    {
+      "id": "M05-slot-control",
+      "pass": true,
+      "killed": 3,
+      "restored": true
+    },
+    {
+      "id": "M06-binding-control",
+      "pass": true,
+      "killed": 1,
+      "restored": true
+    }
+  ],
+  "denials": [
+    {
+      "id": "wrong-hash",
+      "pass": true,
+      "code": 2
+    },
+    {
+      "id": "wrong-path",
+      "pass": true,
+      "code": 2
+    }
+  ],
+  "stockGroupOutcomes": {
+    "pass": 249,
+    "fail": 21,
+    "total": 270,
+    "uniqueGroupIds": 90,
+    "inputOverlap": true
+  },
+  "runtime": {
+    "children": 27,
+    "retired": 27,
+    "elapsedMs": 8491,
+    "captureBytes": 239356,
+    "work": {
+      "files": 275,
+      "bytes": 27517553
+    },
+    "peakOwnerAndChild": 2
+  },
+  "sourceOnlyChargeTrace": {
+    "historyEntries": 255,
+    "outerCharges": 255,
+    "leftLinkCharges": 32385,
+    "rightLinkCharges": 32385,
+    "total": 65025,
+    "checkpointPredicatesTrue": 0,
+    "classification": "SOURCE arithmetic only, not executed cancellation/timing proof"
+  },
+  "publicationElapsedMs": 198648,
+  "native": "UNRUN",
+  "shellIntegration": "UNRUN"
+}

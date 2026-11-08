@@ -1,0 +1,56 @@
+name: Release tiny-http-mcp-server
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'packages/tiny-http-mcp-server/**'
+      - 'packages/auth-store/**'
+      - 'packages/mcp-oauth/**'
+      - 'packages/tiny-mcp-client/**'
+      - '.github/workflows/release-tiny-http-mcp.yml'
+concurrency:
+  # Finish the active release; accumulate newer changes in one pending run.
+  queue: single
+  group: release-tiny-http-mcp
+  cancel-in-progress: false
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.sha }}
+      - name: Check release tree admission
+        id: release-admission
+        uses: ./.github/actions/release-tree-admission
+        with:
+          paths: |
+            packages/tiny-http-mcp-server
+            packages/auth-store
+            packages/mcp-oauth
+            packages/tiny-mcp-client
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.14.0
+      - name: Upgrade npm for trusted publishing
+        run: npm install --global npm@^11.5.1
+      - name: Install dependencies
+        run: npm clean-install
+      - name: Build package and workspace dependencies
+        run: npx turbo build --filter=tiny-http-mcp-server
+      - name: Auto-bump patch version from npm
+        working-directory: packages/tiny-http-mcp-server
+        run: |
+          REMOTE=$(npm view tiny-http-mcp-server version 2>/dev/null || echo "0.0.0")
+          npm version --no-git-tag-version "$REMOTE" --allow-same-version
+          npm version --no-git-tag-version patch
+      - name: Publish
+        working-directory: packages/tiny-http-mcp-server
+        run: npm publish --provenance --access public
+        if: steps.release-admission.outputs.publish == 'true'

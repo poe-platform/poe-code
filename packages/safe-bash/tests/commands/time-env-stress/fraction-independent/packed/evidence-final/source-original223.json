@@ -1,0 +1,183 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-concurrency=1",
+    "--test-timeout=30000",
+    "tests/commands/time-env/date.test.ts",
+    "tests/commands/time-env/integration.test.ts",
+    "tests/commands/time-env/native.test.ts",
+    "tests/commands/time-env/printenv.test.ts",
+    "tests/commands/time-env/sleep.test.ts",
+    "tests/commands/time-env/stress.test.ts"
+  ],
+  "cwd": "/tmp/safe-bash-fraction-independent-packed-3n2Cyg/archive",
+  "pid": 79608,
+  "status": 1,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 1980,
+  "timeoutMs": 120000,
+  "outputBytes": 39204,
+  "observed": [
+    {
+      "pid": 79608,
+      "parent": 78599,
+      "group": 79608,
+      "born": "Thu Aug 27 04:05:19 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test --test-concurrency=1 --test-timeout=30000 tests/commands/time-env/date.test.ts tests/commands/time-env/integration.test.ts tests/commands/time-env/native.test.ts tests/commands/time-env/printenv.test.ts tests/commands/time-env/sleep.test.ts tests/commands/time-env/stress.test.ts"
+    },
+    {
+      "pid": 79610,
+      "parent": 79608,
+      "group": 79608,
+      "born": "Thu Aug 27 04:05:19 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 --test-timeout=30000 tests/commands/time-env/date.test.ts"
+    },
+    {
+      "pid": 79612,
+      "parent": 79610,
+      "group": 79608,
+      "born": "Thu Aug 27 04:05:19 2026",
+      "command": "/private/tmp/safe-bash-fraction-independent-packed-3n2Cyg/archive/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    },
+    {
+      "pid": 79616,
+      "parent": 79608,
+      "group": 79608,
+      "born": "Thu Aug 27 04:05:19 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 --test-timeout=30000 tests/commands/time-env/integration.test.ts"
+    },
+    {
+      "pid": 79618,
+      "parent": 79616,
+      "group": 79608,
+      "born": "Thu Aug 27 04:05:20 2026",
+      "command": "/private/tmp/safe-bash-fraction-independent-packed-3n2Cyg/archive/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    },
+    {
+      "pid": 79619,
+      "parent": 79616,
+      "group": 79608,
+      "born": "Thu Aug 27 04:05:20 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --input-type=module -e import { createTimeEnvCommands } from './src/commands/time-env/index.ts';\\012import { createMemoryFileSystem } from './src/fs/memory/index.ts';\\012const controller = new AbortController();\\012const reason = new Error('owned abort');\\012const command = createTimeEnvCommands().find(entry => entry.name === 'sleep');\\012const result = command.execute({ command:'sleep', args:['3600'], cwd:'/', env:{}, fs:createMemoryFileSystem(), signal:controller.signal,\\012stdin:(async function*(){})(), stdout:{async write(){throw new Error('unexpected output')}}, stderr:{async write(){throw new Error('unexpected output')}} });\\012setTimeout(() => controller.abort(reason), 10);\\012try { await result; throw new Error('missing abort'); } catch(error) { if(error !== reason) throw error; }\\012"
+    },
+    {
+      "pid": 79621,
+      "parent": 79619,
+      "group": 79608,
+      "born": "Thu Aug 27 04:05:20 2026",
+      "command": "(esbuild)"
+    },
+    {
+      "pid": 79623,
+      "parent": 79608,
+      "group": 79608,
+      "born": "Thu Aug 27 04:05:20 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 --test-timeout=30000 tests/commands/time-env/native.test.ts"
+    },
+    {
+      "pid": 79625,
+      "parent": 79623,
+      "group": 79608,
+      "born": "Thu Aug 27 04:05:20 2026",
+      "command": "/private/tmp/safe-bash-fraction-independent-packed-3n2Cyg/archive/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    },
+    {
+      "pid": 79629,
+      "parent": 79623,
+      "group": 79608,
+      "born": "Thu Aug 27 04:05:20 2026",
+      "command": "(printenv)"
+    },
+    {
+      "pid": 79644,
+      "parent": 79623,
+      "group": 79608,
+      "born": "Thu Aug 27 04:05:20 2026",
+      "command": "(date)"
+    },
+    {
+      "pid": 79662,
+      "parent": 79623,
+      "group": 79608,
+      "born": "Thu Aug 27 04:05:20 2026",
+      "command": "(date)"
+    },
+    {
+      "pid": 79678,
+      "parent": 79623,
+      "group": 79608,
+      "born": "Thu Aug 27 04:05:20 2026",
+      "command": "(date)"
+    },
+    {
+      "pid": 79709,
+      "parent": 79608,
+      "group": 79608,
+      "born": "Thu Aug 27 04:05:20 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 --test-timeout=30000 tests/commands/time-env/printenv.test.ts"
+    },
+    {
+      "pid": 79711,
+      "parent": 79709,
+      "group": 79608,
+      "born": "Thu Aug 27 04:05:21 2026",
+      "command": "(esbuild)"
+    },
+    {
+      "pid": 79713,
+      "parent": 79608,
+      "group": 79608,
+      "born": "Thu Aug 27 04:05:21 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 --test-timeout=30000 tests/commands/time-env/sleep.test.ts"
+    },
+    {
+      "pid": 79714,
+      "parent": 79713,
+      "group": 79608,
+      "born": "Thu Aug 27 04:05:21 2026",
+      "command": "(esbuild)"
+    },
+    {
+      "pid": 79716,
+      "parent": 79608,
+      "group": 79608,
+      "born": "Thu Aug 27 04:05:21 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 --test-timeout=30000 tests/commands/time-env/stress.test.ts"
+    },
+    {
+      "pid": 79728,
+      "parent": 79716,
+      "group": 79608,
+      "born": "Thu Aug 27 04:05:21 2026",
+      "command": "(esbuild)"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "stdout": {
+    "bytes": 39204,
+    "sha256": "3bbc41f8b6a97fbf8b7d46029ecd6537f2f56d549d4555126e909b6dc4ebd508"
+  },
+  "stderr": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "counts": {
+    "tests": 223,
+    "pass": 221,
+    "fail": 2,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  }
+}

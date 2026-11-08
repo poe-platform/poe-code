@@ -1,0 +1,1314 @@
+{
+  "schemaVersion": 1,
+  "originalRevision": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+  "focusedRevision": "9d6d292febce66d2e7ffa564a059e8f44e4ebff9",
+  "latestFocusedRevision": "07da9990c67d6578662b9911b9bd88964a58a96c",
+  "fullRevision": "22fd7e5d46fb00409761196cbaf1ddc27f16f9bf",
+  "fullSummary": {
+    "tests": 6797,
+    "suites": 0,
+    "pass": 6729,
+    "fail": 59,
+    "cancelled": 0,
+    "skipped": 9,
+    "todo": 0,
+    "duration_ms": 51564.215417
+  },
+  "counts": {
+    "apple-oracle-limitation": 11,
+    "source-fixed-later": 23,
+    "native-dialect-difference": 6,
+    "open-boundary-semantics": 1,
+    "fixture-corrected-later": 1,
+    "obsolete-status-expectation": 4,
+    "open-functional-gap": 1,
+    "open-policy-conflict": 1,
+    "open-versioned-exit-status": 1,
+    "open-exact-diagnostic-difference": 2
+  },
+  "rows": [
+    {
+      "id": 1,
+      "file": "tests/commands/diff-patch-stress/compatibility/diff.test.ts",
+      "test": "native cross-application: unequal multi-hunk deltas, U0",
+      "category": "apple-oracle-limitation",
+      "owner": "Faraday",
+      "detail": "Fails with Apple patch but passes the unchanged test on the same 9d6d292 source using pinned GNU diff 3.12 / patch 2.8. Native self-controls expose reverse/empty/context limitations. This is oracle-limited evidence, not proof that every Apple interoperability case works.",
+      "commits": [],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "fail",
+      "focusedGNU": "pass",
+      "latestOriginalLabel": "fail",
+      "replacement": null,
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/commands/diff-patch-stress/compatibility/diff.test.ts"
+    },
+    {
+      "id": 2,
+      "file": "tests/commands/diff-patch-stress/compatibility/diff.test.ts",
+      "test": "native cross-application: all lines deleted retaining empty target, U0",
+      "category": "apple-oracle-limitation",
+      "owner": "Faraday",
+      "detail": "Fails with Apple patch but passes the unchanged test on the same 9d6d292 source using pinned GNU diff 3.12 / patch 2.8. Native self-controls expose reverse/empty/context limitations. This is oracle-limited evidence, not proof that every Apple interoperability case works.",
+      "commits": [],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "fail",
+      "focusedGNU": "pass",
+      "latestOriginalLabel": "fail",
+      "replacement": null,
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/commands/diff-patch-stress/compatibility/diff.test.ts"
+    },
+    {
+      "id": 3,
+      "file": "tests/commands/diff-patch-stress/compatibility/diff.test.ts",
+      "test": "native cross-application: all lines deleted retaining empty target, U1",
+      "category": "apple-oracle-limitation",
+      "owner": "Faraday",
+      "detail": "Fails with Apple patch but passes the unchanged test on the same 9d6d292 source using pinned GNU diff 3.12 / patch 2.8. Native self-controls expose reverse/empty/context limitations. This is oracle-limited evidence, not proof that every Apple interoperability case works.",
+      "commits": [],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "fail",
+      "focusedGNU": "pass",
+      "latestOriginalLabel": "fail",
+      "replacement": null,
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/commands/diff-patch-stress/compatibility/diff.test.ts"
+    },
+    {
+      "id": 4,
+      "file": "tests/commands/diff-patch-stress/compatibility/diff.test.ts",
+      "test": "native cross-application: all lines deleted retaining empty target, U2",
+      "category": "apple-oracle-limitation",
+      "owner": "Faraday",
+      "detail": "Fails with Apple patch but passes the unchanged test on the same 9d6d292 source using pinned GNU diff 3.12 / patch 2.8. Native self-controls expose reverse/empty/context limitations. This is oracle-limited evidence, not proof that every Apple interoperability case works.",
+      "commits": [],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "fail",
+      "focusedGNU": "pass",
+      "latestOriginalLabel": "fail",
+      "replacement": null,
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/commands/diff-patch-stress/compatibility/diff.test.ts"
+    },
+    {
+      "id": 5,
+      "file": "tests/commands/diff-patch-stress/compatibility/diff.test.ts",
+      "test": "native cross-application: all lines deleted retaining empty target, U5",
+      "category": "apple-oracle-limitation",
+      "owner": "Faraday",
+      "detail": "Fails with Apple patch but passes the unchanged test on the same 9d6d292 source using pinned GNU diff 3.12 / patch 2.8. Native self-controls expose reverse/empty/context limitations. This is oracle-limited evidence, not proof that every Apple interoperability case works.",
+      "commits": [],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "fail",
+      "focusedGNU": "pass",
+      "latestOriginalLabel": "fail",
+      "replacement": null,
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/commands/diff-patch-stress/compatibility/diff.test.ts"
+    },
+    {
+      "id": 6,
+      "file": "tests/commands/diff-patch-stress/compatibility/diff.test.ts",
+      "test": "native cross-application: repeated source lines alignment not prescribed, U0",
+      "category": "apple-oracle-limitation",
+      "owner": "Faraday",
+      "detail": "Fails with Apple patch but passes the unchanged test on the same 9d6d292 source using pinned GNU diff 3.12 / patch 2.8. Native self-controls expose reverse/empty/context limitations. This is oracle-limited evidence, not proof that every Apple interoperability case works.",
+      "commits": [],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "fail",
+      "focusedGNU": "pass",
+      "latestOriginalLabel": "fail",
+      "replacement": null,
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/commands/diff-patch-stress/compatibility/diff.test.ts"
+    },
+    {
+      "id": 7,
+      "file": "tests/commands/diff-patch-stress/compatibility/gaps.test.ts",
+      "test": "golden GAP context-format patch autodetection",
+      "category": "source-fixed-later",
+      "owner": "Faraday",
+      "detail": "Context and normal patch parsing were genuinely missing. Original exact test names now pass with source support, not relaxed expectations.",
+      "commits": [
+        "b7f2bff"
+      ],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "pass",
+      "focusedGNU": "pass",
+      "latestOriginalLabel": "pass",
+      "replacement": null,
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/commands/diff-patch-stress/compatibility/gaps.test.ts"
+    },
+    {
+      "id": 8,
+      "file": "tests/commands/diff-patch-stress/compatibility/gaps.test.ts",
+      "test": "native GAP context-format patch autodetection",
+      "category": "source-fixed-later",
+      "owner": "Faraday",
+      "detail": "Context and normal patch parsing were genuinely missing. Original exact test names now pass with source support, not relaxed expectations.",
+      "commits": [
+        "b7f2bff"
+      ],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "pass",
+      "focusedGNU": "pass",
+      "latestOriginalLabel": "pass",
+      "replacement": null,
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/commands/diff-patch-stress/compatibility/gaps.test.ts"
+    },
+    {
+      "id": 9,
+      "file": "tests/commands/diff-patch-stress/compatibility/gaps.test.ts",
+      "test": "golden GAP explicit context-format patch",
+      "category": "source-fixed-later",
+      "owner": "Faraday",
+      "detail": "Context and normal patch parsing were genuinely missing. Original exact test names now pass with source support, not relaxed expectations.",
+      "commits": [
+        "b7f2bff"
+      ],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "pass",
+      "focusedGNU": "pass",
+      "latestOriginalLabel": "pass",
+      "replacement": null,
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/commands/diff-patch-stress/compatibility/gaps.test.ts"
+    },
+    {
+      "id": 10,
+      "file": "tests/commands/diff-patch-stress/compatibility/gaps.test.ts",
+      "test": "native GAP explicit context-format patch",
+      "category": "source-fixed-later",
+      "owner": "Faraday",
+      "detail": "Context and normal patch parsing were genuinely missing. Original exact test names now pass with source support, not relaxed expectations.",
+      "commits": [
+        "b7f2bff"
+      ],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "pass",
+      "focusedGNU": "pass",
+      "latestOriginalLabel": "pass",
+      "replacement": null,
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/commands/diff-patch-stress/compatibility/gaps.test.ts"
+    },
+    {
+      "id": 11,
+      "file": "tests/commands/diff-patch-stress/compatibility/gaps.test.ts",
+      "test": "golden GAP epoch-header creation without dev-null",
+      "category": "source-fixed-later",
+      "owner": "Faraday",
+      "detail": "Epoch-header creation was a genuine absent-target gap. Original golden/native expectations pass on 07da999 after source implementation.",
+      "commits": [
+        "90b4765"
+      ],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "fail",
+      "focusedGNU": "fail",
+      "latestOriginalLabel": "pass",
+      "replacement": null,
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/commands/diff-patch-stress/compatibility/gaps.test.ts"
+    },
+    {
+      "id": 12,
+      "file": "tests/commands/diff-patch-stress/compatibility/gaps.test.ts",
+      "test": "native GAP epoch-header creation without dev-null",
+      "category": "source-fixed-later",
+      "owner": "Faraday",
+      "detail": "Epoch-header creation was a genuine absent-target gap. Original golden/native expectations pass on 07da999 after source implementation.",
+      "commits": [
+        "90b4765"
+      ],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "fail",
+      "focusedGNU": "fail",
+      "latestOriginalLabel": "pass",
+      "replacement": null,
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/commands/diff-patch-stress/compatibility/gaps.test.ts"
+    },
+    {
+      "id": 13,
+      "file": "tests/commands/diff-patch-stress/compatibility/patch.test.ts",
+      "test": "native patch: reverse full deletion into existing empty file",
+      "category": "apple-oracle-limitation",
+      "owner": "Faraday",
+      "detail": "Fails with Apple patch but passes the unchanged test on the same 9d6d292 source using pinned GNU diff 3.12 / patch 2.8. Native self-controls expose reverse/empty/context limitations. This is oracle-limited evidence, not proof that every Apple interoperability case works.",
+      "commits": [],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "fail",
+      "focusedGNU": "pass",
+      "latestOriginalLabel": "fail",
+      "replacement": null,
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/commands/diff-patch-stress/compatibility/patch.test.ts"
+    },
+    {
+      "id": 14,
+      "file": "tests/commands/diff-patch-stress/compatibility/patch.test.ts",
+      "test": "native patch: ORACLE LIMITATION reverse zero-context interior deletion",
+      "category": "apple-oracle-limitation",
+      "owner": "Faraday",
+      "detail": "Fails with Apple patch but passes the unchanged test on the same 9d6d292 source using pinned GNU diff 3.12 / patch 2.8. Native self-controls expose reverse/empty/context limitations. This is oracle-limited evidence, not proof that every Apple interoperability case works.",
+      "commits": [],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "fail",
+      "focusedGNU": "pass",
+      "latestOriginalLabel": "fail",
+      "replacement": null,
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/commands/diff-patch-stress/compatibility/patch.test.ts"
+    },
+    {
+      "id": 15,
+      "file": "tests/commands/diff-patch-stress/compatibility/patch.test.ts",
+      "test": "golden patch: BSD POLICY: asymmetric fuzz with no leading context",
+      "category": "native-dialect-difference",
+      "owner": "Faraday",
+      "detail": "Apple rejects asymmetric -F1 fuzz, while GNU 2.8 and virtual both apply it with status 0 and identical target bytes. f82f1f2 renamed the GNU-profile cases; original Apple observations remain retained. Not a source bug fixed by changing an expectation.",
+      "commits": [
+        "f82f1f2"
+      ],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "fail",
+      "focusedGNU": "fail",
+      "latestOriginalLabel": "not-found",
+      "replacement": "golden patch: GNU asymmetric fuzz with no leading context",
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/commands/diff-patch-stress/compatibility/patch.test.ts"
+    },
+    {
+      "id": 16,
+      "file": "tests/commands/diff-patch-stress/compatibility/patch.test.ts",
+      "test": "native patch: BSD POLICY: asymmetric fuzz with no leading context",
+      "category": "native-dialect-difference",
+      "owner": "Faraday",
+      "detail": "Apple rejects asymmetric -F1 fuzz, while GNU 2.8 and virtual both apply it with status 0 and identical target bytes. f82f1f2 renamed the GNU-profile cases; original Apple observations remain retained. Not a source bug fixed by changing an expectation.",
+      "commits": [
+        "f82f1f2"
+      ],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "fail",
+      "focusedGNU": "fail",
+      "latestOriginalLabel": "not-found",
+      "replacement": "native patch: GNU asymmetric fuzz with no leading context",
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/commands/diff-patch-stress/compatibility/patch.test.ts"
+    },
+    {
+      "id": 17,
+      "file": "tests/commands/diff-patch-stress/editflows/parity.test.ts",
+      "test": "edit-flow parity: normal patch append change delete",
+      "category": "source-fixed-later",
+      "owner": "Faraday",
+      "detail": "Context and normal patch parsing were genuinely missing. Original exact test names now pass with source support, not relaxed expectations.",
+      "commits": [
+        "b7f2bff"
+      ],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "pass",
+      "focusedGNU": "pass",
+      "latestOriginalLabel": "pass",
+      "replacement": null,
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/commands/diff-patch-stress/editflows/parity.test.ts"
+    },
+    {
+      "id": 18,
+      "file": "tests/commands/diff-patch-stress/fuzz/edits.test.ts",
+      "test": "all six file-section orderings apply coding-agent create/edit/delete flows and reverse",
+      "category": "apple-oracle-limitation",
+      "owner": "Faraday",
+      "detail": "Fails with Apple patch but passes the unchanged test on the same 9d6d292 source using pinned GNU diff 3.12 / patch 2.8. Native self-controls expose reverse/empty/context limitations. This is oracle-limited evidence, not proof that every Apple interoperability case works.",
+      "commits": [],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "fail",
+      "focusedGNU": "pass",
+      "latestOriginalLabel": "fail",
+      "replacement": null,
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/commands/diff-patch-stress/fuzz/edits.test.ts"
+    },
+    {
+      "id": 19,
+      "file": "tests/commands/diff-patch-stress/fuzz/properties.test.ts",
+      "test": "512 independent seeded diff/patch, reverse, native, golden, and minimality properties",
+      "category": "apple-oracle-limitation",
+      "owner": "Faraday",
+      "detail": "Fails with Apple patch but passes the unchanged test on the same 9d6d292 source using pinned GNU diff 3.12 / patch 2.8. Native self-controls expose reverse/empty/context limitations. This is oracle-limited evidence, not proof that every Apple interoperability case works.",
+      "commits": [],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "fail",
+      "focusedGNU": "pass",
+      "latestOriginalLabel": "fail",
+      "replacement": null,
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/commands/diff-patch-stress/fuzz/properties.test.ts"
+    },
+    {
+      "id": 20,
+      "file": "tests/commands/diff-patch-stress/fuzz/regressions.test.ts",
+      "test": "oracle calibration: asymmetric zero-fuzz context with a displaced exact anchor",
+      "category": "open-boundary-semantics",
+      "owner": "Faraday",
+      "detail": "The old oracle calibration wrongly expected both native tools to accept a displaced asymmetric non-EOF hunk. Both reject with status 1 and unchanged target; virtual accepts with status 0 and edits it. Replacement GNU boundary anchoring: asymmetric non-EOF rejection is a still-failing semantic gate, with EOF and symmetric controls passing.",
+      "commits": [
+        "f82f1f2"
+      ],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "fail",
+      "focusedGNU": "fail",
+      "latestOriginalLabel": "not-found",
+      "replacement": "GNU boundary anchoring: asymmetric non-EOF rejection",
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/commands/diff-patch-stress/fuzz/regressions.test.ts"
+    },
+    {
+      "id": 21,
+      "file": "tests/commands/diff-patch-stress/fuzz/regressions.test.ts",
+      "test": "oracle calibration: native-generated unterminated context survives native reverse",
+      "category": "apple-oracle-limitation",
+      "owner": "Faraday",
+      "detail": "Fails with Apple patch but passes the unchanged test on the same 9d6d292 source using pinned GNU diff 3.12 / patch 2.8. Native self-controls expose reverse/empty/context limitations. This is oracle-limited evidence, not proof that every Apple interoperability case works.",
+      "commits": [],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "fail",
+      "focusedGNU": "pass",
+      "latestOriginalLabel": "fail",
+      "replacement": null,
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/commands/diff-patch-stress/fuzz/regressions.test.ts"
+    },
+    {
+      "id": 22,
+      "file": "tests/commands/diff-patch-stress/safety/integration.test.ts",
+      "test": "Shell diff-to-patch pipeline treats Unicode/metacharacter labels literally",
+      "category": "fixture-corrected-later",
+      "owner": "Faraday",
+      "detail": "The old pipeline omitted -u after diff changed to native normal output. Normal output carries no target headers and patch requires an explicit operand. Independent -u control edits only the literal Unicode/metacharacter target. f82f1f2 adds the missing format flag, keeping expected bytes and safety assertions.",
+      "commits": [
+        "378f8dc",
+        "f82f1f2"
+      ],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "fail",
+      "focusedGNU": "fail",
+      "latestOriginalLabel": "pass",
+      "replacement": null,
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/commands/diff-patch-stress/safety/integration.test.ts"
+    },
+    {
+      "id": 23,
+      "file": "tests/commands/diff-patch-stress/safety/paths.test.ts",
+      "test": "normalized duplicate prevalidation: target + ./target",
+      "category": "obsolete-status-expectation",
+      "owner": "Faraday",
+      "detail": "Old tests rejected every duplicate normalized target with status 2. f77055c allows coherent sequential sections; these contradictory sections now fail matching with status 1. Independent probes prove zero mutation calls and byte/identity preservation. Replacement contradictory-normalized tests pass; no safety failure is waived.",
+      "commits": [
+        "f77055c",
+        "f82f1f2"
+      ],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "fail",
+      "focusedGNU": "fail",
+      "latestOriginalLabel": "not-found",
+      "replacement": "contradictory normalized sequence prevalidation: target + ./target",
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/commands/diff-patch-stress/safety/paths.test.ts"
+    },
+    {
+      "id": 24,
+      "file": "tests/commands/diff-patch-stress/safety/paths.test.ts",
+      "test": "normalized duplicate prevalidation: dir/target + dir/./target",
+      "category": "obsolete-status-expectation",
+      "owner": "Faraday",
+      "detail": "Old tests rejected every duplicate normalized target with status 2. f77055c allows coherent sequential sections; these contradictory sections now fail matching with status 1. Independent probes prove zero mutation calls and byte/identity preservation. Replacement contradictory-normalized tests pass; no safety failure is waived.",
+      "commits": [
+        "f77055c",
+        "f82f1f2"
+      ],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "fail",
+      "focusedGNU": "fail",
+      "latestOriginalLabel": "not-found",
+      "replacement": "contradictory normalized sequence prevalidation: dir/target + dir/./target",
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/commands/diff-patch-stress/safety/paths.test.ts"
+    },
+    {
+      "id": 25,
+      "file": "tests/commands/diff-patch-stress/safety/paths.test.ts",
+      "test": "normalized duplicate prevalidation: a/target + b/target",
+      "category": "obsolete-status-expectation",
+      "owner": "Faraday",
+      "detail": "Old tests rejected every duplicate normalized target with status 2. f77055c allows coherent sequential sections; these contradictory sections now fail matching with status 1. Independent probes prove zero mutation calls and byte/identity preservation. Replacement contradictory-normalized tests pass; no safety failure is waived.",
+      "commits": [
+        "f77055c",
+        "f82f1f2"
+      ],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "fail",
+      "focusedGNU": "fail",
+      "latestOriginalLabel": "not-found",
+      "replacement": "contradictory normalized sequence prevalidation: a/target + b/target",
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/commands/diff-patch-stress/safety/paths.test.ts"
+    },
+    {
+      "id": 26,
+      "file": "tests/commands/diff-patch-stress/safety/paths.test.ts",
+      "test": "normalized duplicate prevalidation: a/./target + b/target",
+      "category": "obsolete-status-expectation",
+      "owner": "Faraday",
+      "detail": "Old tests rejected every duplicate normalized target with status 2. f77055c allows coherent sequential sections; these contradictory sections now fail matching with status 1. Independent probes prove zero mutation calls and byte/identity preservation. Replacement contradictory-normalized tests pass; no safety failure is waived.",
+      "commits": [
+        "f77055c",
+        "f82f1f2"
+      ],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "fail",
+      "focusedGNU": "fail",
+      "latestOriginalLabel": "not-found",
+      "replacement": "contradictory normalized sequence prevalidation: a/./target + b/target",
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/commands/diff-patch-stress/safety/paths.test.ts"
+    },
+    {
+      "id": 27,
+      "file": "tests/commands/diff-patch/diff-formats.test.ts",
+      "test": "whitespace native exact bytes: all C-locale whitespace, all, --normal",
+      "category": "native-dialect-difference",
+      "owner": "Faraday",
+      "detail": "Exact whitespace output/handling differs between Apple diff and pinned GNU 3.12. All four unchanged tests pass when only DIFF_WHITESPACE_ORACLE selects GNU; product bytes are unchanged. Preserve both native matrices rather than claim universal utility parity.",
+      "commits": [],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "fail",
+      "focusedGNU": "pass",
+      "latestOriginalLabel": "fail",
+      "replacement": null,
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/commands/diff-patch/diff-formats.test.ts"
+    },
+    {
+      "id": 28,
+      "file": "tests/commands/diff-patch/diff-formats.test.ts",
+      "test": "whitespace native exact bytes: all C-locale whitespace, all, -u",
+      "category": "native-dialect-difference",
+      "owner": "Faraday",
+      "detail": "Exact whitespace output/handling differs between Apple diff and pinned GNU 3.12. All four unchanged tests pass when only DIFF_WHITESPACE_ORACLE selects GNU; product bytes are unchanged. Preserve both native matrices rather than claim universal utility parity.",
+      "commits": [],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "fail",
+      "focusedGNU": "pass",
+      "latestOriginalLabel": "fail",
+      "replacement": null,
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/commands/diff-patch/diff-formats.test.ts"
+    },
+    {
+      "id": 29,
+      "file": "tests/commands/diff-patch/diff-formats.test.ts",
+      "test": "whitespace preserves original bodies and both context sides: -b, unified",
+      "category": "native-dialect-difference",
+      "owner": "Faraday",
+      "detail": "Exact whitespace output/handling differs between Apple diff and pinned GNU 3.12. All four unchanged tests pass when only DIFF_WHITESPACE_ORACLE selects GNU; product bytes are unchanged. Preserve both native matrices rather than claim universal utility parity.",
+      "commits": [],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "fail",
+      "focusedGNU": "pass",
+      "latestOriginalLabel": "fail",
+      "replacement": null,
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/commands/diff-patch/diff-formats.test.ts"
+    },
+    {
+      "id": 30,
+      "file": "tests/commands/diff-patch/diff-formats.test.ts",
+      "test": "whitespace context preserves per-side incomplete-line markers and native parity",
+      "category": "native-dialect-difference",
+      "owner": "Faraday",
+      "detail": "Exact whitespace output/handling differs between Apple diff and pinned GNU 3.12. All four unchanged tests pass when only DIFF_WHITESPACE_ORACLE selects GNU; product bytes are unchanged. Preserve both native matrices rather than claim universal utility parity.",
+      "commits": [],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "fail",
+      "focusedGNU": "pass",
+      "latestOriginalLabel": "fail",
+      "replacement": null,
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/commands/diff-patch/diff-formats.test.ts"
+    },
+    {
+      "id": 31,
+      "file": "tests/shell-stress/differential.test.ts",
+      "test": "Bash differential: descriptor-move-closes-original-after-copy",
+      "category": "source-fixed-later",
+      "owner": "Sagan",
+      "detail": "Descriptor move now copies the stream then closes the original descriptor. The original Bash differential test passes.",
+      "commits": [
+        "7ecd677"
+      ],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "pass",
+      "focusedGNU": "pass",
+      "latestOriginalLabel": "pass",
+      "replacement": null,
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/shell-stress/differential.test.ts"
+    },
+    {
+      "id": 32,
+      "file": "tests/shell-stress/differential.test.ts",
+      "test": "Bash differential: read-n-consumes-exactly-two-characters",
+      "category": "source-fixed-later",
+      "owner": "Sagan",
+      "detail": "Bounded read -n and -d consume only the requested input and leave the tail available. Both original Bash differential tests pass.",
+      "commits": [
+        "e8abc84"
+      ],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "pass",
+      "focusedGNU": "pass",
+      "latestOriginalLabel": "pass",
+      "replacement": null,
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/shell-stress/differential.test.ts"
+    },
+    {
+      "id": 33,
+      "file": "tests/shell-stress/differential.test.ts",
+      "test": "Bash differential: read-d-consumes-through-delimiter-only",
+      "category": "source-fixed-later",
+      "owner": "Sagan",
+      "detail": "Bounded read -n and -d consume only the requested input and leave the tail available. Both original Bash differential tests pass.",
+      "commits": [
+        "e8abc84"
+      ],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "pass",
+      "focusedGNU": "pass",
+      "latestOriginalLabel": "pass",
+      "replacement": null,
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/shell-stress/differential.test.ts"
+    },
+    {
+      "id": 34,
+      "file": "tests/shell-stress/differential.test.ts",
+      "test": "Bash differential: command-substitution-file-shortcut-reads-and-trims",
+      "category": "source-fixed-later",
+      "owner": "Sagan",
+      "detail": "Input-only command substitution now streams file contents and trims trailing newlines. The original differential test passes.",
+      "commits": [
+        "7a869af"
+      ],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "fail",
+      "focusedGNU": "fail",
+      "latestOriginalLabel": "pass",
+      "replacement": null,
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/shell-stress/differential.test.ts"
+    },
+    {
+      "id": 35,
+      "file": "tests/shell-stress/differential.test.ts",
+      "test": "Bash differential: ansi-c-quoted-word-decodes-escape-before-argument-passing",
+      "category": "open-functional-gap",
+      "owner": "Sagan",
+      "detail": "ANSI-C $'...' quoting is rejected with status 2 instead of producing the native decoded bytes and status 0. Genuine missing syntax/semantics, not an oracle race.",
+      "commits": [],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "fail",
+      "focusedGNU": "fail",
+      "latestOriginalLabel": "fail",
+      "replacement": null,
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/shell-stress/differential.test.ts"
+    },
+    {
+      "id": 36,
+      "file": "tests/shell-stress/differential.test.ts",
+      "test": "Bash differential: nested-substitution-syntax-error-does-not-prevent-earlier-effects",
+      "category": "open-policy-conflict",
+      "owner": "Root decision; Sagan implementation",
+      "detail": "Bash executes an earlier marker write despite a syntax error inside a later substitution. Whole-source prevalidation intentionally prevents that write and returns 2. Existing author safety tests and Bash compatibility expectation conflict; no policy waiver or expectation change is authorized by this triage.",
+      "commits": [],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "fail",
+      "focusedGNU": "fail",
+      "latestOriginalLabel": "fail",
+      "replacement": null,
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/shell-stress/differential.test.ts"
+    },
+    {
+      "id": 37,
+      "file": "tests/shell-stress/differential.test.ts",
+      "test": "Bash differential: fatal-parameter-expansion-prevents-following-file-effect",
+      "category": "open-versioned-exit-status",
+      "owner": "Sagan",
+      "detail": "Pinned /bin/bash 3.2 returns 127 for the top-level fatal parameter expansion; virtual returns 1. Both prevent the later file effect. Version-specific exit-status parity remains open; diagnostic prefixes also differ.",
+      "commits": [],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "fail",
+      "focusedGNU": "fail",
+      "latestOriginalLabel": "fail",
+      "replacement": null,
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/shell-stress/differential.test.ts"
+    },
+    {
+      "id": 38,
+      "file": "tests/shell-stress/differential.test.ts",
+      "test": "Bash differential: fatal-arithmetic-expansion-prevents-following-file-effect",
+      "category": "open-exact-diagnostic-difference",
+      "owner": "Sagan",
+      "detail": "stdout bytes, exit status and filesystem effects match in the captured observations. Exact stderr text/prefix and its base64 differ. Keep the byte-level failures visible, but do not describe them as failed effect suppression.",
+      "commits": [],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "fail",
+      "focusedGNU": "fail",
+      "latestOriginalLabel": "fail",
+      "replacement": null,
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/shell-stress/differential.test.ts"
+    },
+    {
+      "id": 39,
+      "file": "tests/shell-stress/differential.test.ts",
+      "test": "Bash differential: fatal-expansion-in-substitution-stops-substitution-only",
+      "category": "open-exact-diagnostic-difference",
+      "owner": "Sagan",
+      "detail": "stdout bytes, exit status and filesystem effects match in the captured observations. Exact stderr text/prefix and its base64 differ. Keep the byte-level failures visible, but do not describe them as failed effect suppression.",
+      "commits": [],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "fail",
+      "focusedGNU": "fail",
+      "latestOriginalLabel": "fail",
+      "replacement": null,
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/shell-stress/differential.test.ts"
+    },
+    {
+      "id": 40,
+      "file": "tests/shell-stress/differential.test.ts",
+      "test": "Bash differential: glob-posix-bracket-digit-class",
+      "category": "source-fixed-later",
+      "owner": "Sagan",
+      "detail": "POSIX pathname character classes now match correctly; original digit-class test passes. Separate unmatched-bracket matcher/shell deadline controls also pass after bounded compilation.",
+      "commits": [
+        "50cefdd"
+      ],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "fail",
+      "focusedGNU": "fail",
+      "latestOriginalLabel": "pass",
+      "replacement": null,
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/shell-stress/differential.test.ts"
+    },
+    {
+      "id": 41,
+      "file": "tests/shell/stdin-origin.test.ts",
+      "test": "stdin origin: rg integration rg match supplied=true",
+      "category": "source-fixed-later",
+      "owner": "Poincare (rg), Sagan (shell), Curie (contract)",
+      "detail": "All eleven original empty supplied/piped/redirected/descriptor/env cases pass after the rg consumer uses explicit provenance metadata. No EOF/content-origin inference remains in the tested selection path.",
+      "commits": [
+        "1c0d9ae",
+        "27e5c58",
+        "55263f6"
+      ],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "pass",
+      "focusedGNU": "pass",
+      "latestOriginalLabel": "pass",
+      "replacement": null,
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/shell/stdin-origin.test.ts"
+    },
+    {
+      "id": 42,
+      "file": "tests/shell/stdin-origin.test.ts",
+      "test": "stdin origin: rg integration rg match supplied=true",
+      "category": "source-fixed-later",
+      "owner": "Poincare (rg), Sagan (shell), Curie (contract)",
+      "detail": "All eleven original empty supplied/piped/redirected/descriptor/env cases pass after the rg consumer uses explicit provenance metadata. No EOF/content-origin inference remains in the tested selection path.",
+      "commits": [
+        "1c0d9ae",
+        "27e5c58",
+        "55263f6"
+      ],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "pass",
+      "focusedGNU": "pass",
+      "latestOriginalLabel": "pass",
+      "replacement": null,
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/shell/stdin-origin.test.ts"
+    },
+    {
+      "id": 43,
+      "file": "tests/shell/stdin-origin.test.ts",
+      "test": "stdin origin: rg integration rg match supplied=true",
+      "category": "source-fixed-later",
+      "owner": "Poincare (rg), Sagan (shell), Curie (contract)",
+      "detail": "All eleven original empty supplied/piped/redirected/descriptor/env cases pass after the rg consumer uses explicit provenance metadata. No EOF/content-origin inference remains in the tested selection path.",
+      "commits": [
+        "1c0d9ae",
+        "27e5c58",
+        "55263f6"
+      ],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "pass",
+      "focusedGNU": "pass",
+      "latestOriginalLabel": "pass",
+      "replacement": null,
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/shell/stdin-origin.test.ts"
+    },
+    {
+      "id": 44,
+      "file": "tests/shell/stdin-origin.test.ts",
+      "test": "stdin origin: rg integration printf '' | rg match supplied=false",
+      "category": "source-fixed-later",
+      "owner": "Poincare (rg), Sagan (shell), Curie (contract)",
+      "detail": "All eleven original empty supplied/piped/redirected/descriptor/env cases pass after the rg consumer uses explicit provenance metadata. No EOF/content-origin inference remains in the tested selection path.",
+      "commits": [
+        "1c0d9ae",
+        "27e5c58",
+        "55263f6"
+      ],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "pass",
+      "focusedGNU": "pass",
+      "latestOriginalLabel": "pass",
+      "replacement": null,
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/shell/stdin-origin.test.ts"
+    },
+    {
+      "id": 45,
+      "file": "tests/shell/stdin-origin.test.ts",
+      "test": "stdin origin: rg integration printf '' | rg -e match supplied=false",
+      "category": "source-fixed-later",
+      "owner": "Poincare (rg), Sagan (shell), Curie (contract)",
+      "detail": "All eleven original empty supplied/piped/redirected/descriptor/env cases pass after the rg consumer uses explicit provenance metadata. No EOF/content-origin inference remains in the tested selection path.",
+      "commits": [
+        "1c0d9ae",
+        "27e5c58",
+        "55263f6"
+      ],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "pass",
+      "focusedGNU": "pass",
+      "latestOriginalLabel": "pass",
+      "replacement": null,
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/shell/stdin-origin.test.ts"
+    },
+    {
+      "id": 46,
+      "file": "tests/shell/stdin-origin.test.ts",
+      "test": "stdin origin: rg integration printf '' | rg -f .patterns/patterns supplied=false",
+      "category": "source-fixed-later",
+      "owner": "Poincare (rg), Sagan (shell), Curie (contract)",
+      "detail": "All eleven original empty supplied/piped/redirected/descriptor/env cases pass after the rg consumer uses explicit provenance metadata. No EOF/content-origin inference remains in the tested selection path.",
+      "commits": [
+        "1c0d9ae",
+        "27e5c58",
+        "55263f6"
+      ],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "pass",
+      "focusedGNU": "pass",
+      "latestOriginalLabel": "pass",
+      "replacement": null,
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/shell/stdin-origin.test.ts"
+    },
+    {
+      "id": 47,
+      "file": "tests/shell/stdin-origin.test.ts",
+      "test": "stdin origin: rg integration rg match <empty supplied=false",
+      "category": "source-fixed-later",
+      "owner": "Poincare (rg), Sagan (shell), Curie (contract)",
+      "detail": "All eleven original empty supplied/piped/redirected/descriptor/env cases pass after the rg consumer uses explicit provenance metadata. No EOF/content-origin inference remains in the tested selection path.",
+      "commits": [
+        "1c0d9ae",
+        "27e5c58",
+        "55263f6"
+      ],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "pass",
+      "focusedGNU": "pass",
+      "latestOriginalLabel": "pass",
+      "replacement": null,
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/shell/stdin-origin.test.ts"
+    },
+    {
+      "id": 48,
+      "file": "tests/shell/stdin-origin.test.ts",
+      "test": "stdin origin: rg integration rg match <<END\\\\nEND supplied=false",
+      "category": "source-fixed-later",
+      "owner": "Poincare (rg), Sagan (shell), Curie (contract)",
+      "detail": "All eleven original empty supplied/piped/redirected/descriptor/env cases pass after the rg consumer uses explicit provenance metadata. No EOF/content-origin inference remains in the tested selection path.",
+      "commits": [
+        "1c0d9ae",
+        "27e5c58",
+        "55263f6"
+      ],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "pass",
+      "focusedGNU": "pass",
+      "latestOriginalLabel": "pass",
+      "replacement": null,
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/shell/stdin-origin.test.ts"
+    },
+    {
+      "id": 49,
+      "file": "tests/shell/stdin-origin.test.ts",
+      "test": "stdin origin: rg integration rg match 3<empty 0<&3 supplied=false",
+      "category": "source-fixed-later",
+      "owner": "Poincare (rg), Sagan (shell), Curie (contract)",
+      "detail": "All eleven original empty supplied/piped/redirected/descriptor/env cases pass after the rg consumer uses explicit provenance metadata. No EOF/content-origin inference remains in the tested selection path.",
+      "commits": [
+        "1c0d9ae",
+        "27e5c58",
+        "55263f6"
+      ],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "pass",
+      "focusedGNU": "pass",
+      "latestOriginalLabel": "pass",
+      "replacement": null,
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/shell/stdin-origin.test.ts"
+    },
+    {
+      "id": 50,
+      "file": "tests/shell/stdin-origin.test.ts",
+      "test": "stdin origin: rg integration rg match <empty 3<&0 0<&3 supplied=false",
+      "category": "source-fixed-later",
+      "owner": "Poincare (rg), Sagan (shell), Curie (contract)",
+      "detail": "All eleven original empty supplied/piped/redirected/descriptor/env cases pass after the rg consumer uses explicit provenance metadata. No EOF/content-origin inference remains in the tested selection path.",
+      "commits": [
+        "1c0d9ae",
+        "27e5c58",
+        "55263f6"
+      ],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "pass",
+      "focusedGNU": "pass",
+      "latestOriginalLabel": "pass",
+      "replacement": null,
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/shell/stdin-origin.test.ts"
+    },
+    {
+      "id": 51,
+      "file": "tests/shell/stdin-origin.test.ts",
+      "test": "stdin origin: rg integration printf '' | env rg match supplied=false",
+      "category": "source-fixed-later",
+      "owner": "Poincare (rg), Sagan (shell), Curie (contract)",
+      "detail": "All eleven original empty supplied/piped/redirected/descriptor/env cases pass after the rg consumer uses explicit provenance metadata. No EOF/content-origin inference remains in the tested selection path.",
+      "commits": [
+        "1c0d9ae",
+        "27e5c58",
+        "55263f6"
+      ],
+      "originalSnapshot": "f4eb0b327fd5a14f49dc6007f14f613b43cdaeea",
+      "focusedApple": "pass",
+      "focusedGNU": "pass",
+      "latestOriginalLabel": "pass",
+      "replacement": null,
+      "reproduce": "node --unhandled-rejections=strict --import tsx --test tests/shell/stdin-origin.test.ts"
+    }
+  ],
+  "currentFailures": [
+    {
+      "file": "tests/commands/diff-patch-stress/compatibility/diff.test.ts",
+      "test": "native cross-application: unequal multi-hunk deltas, U0",
+      "owner": "Faraday",
+      "originalId": 1,
+      "diagnostic": "# Subtest: native cross-application: unequal multi-hunk deltas, U0\nnot ok 426 - native cross-application: unequal multi-hunk deltas, U0\n  ---\n  duration_ms: 113.318709\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/compatibility/diff.test.ts:4:347'\n  failureType: 'testCodeFailure'\n  error: |-\n    Native reverse cross-application; native self-reverse status=0. If both fail, this is an oracle limitation, not evidence of a product bug.\n    patching file target\n    \n    \n    + actual - expected\n    ... Skipped lines\n    \n      {\n        files: {\n          target: Buffer(22) [Uint8Array] [\n            97,\n            10,\n    ...\n            10,\n    +       105,\n    +       10,\n            104,\n            10,\n    -       105,\n    -       10,\n            106,\n            10,\n            107,\n            10\n          ]\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    status: 0\n    files:\n      target:\n        0: 97\n        1: 10\n        2: 98\n        3: 10\n        4: 99\n        5: 10\n        6: 100\n        7: 10\n        8: 101\n        9: 10\n        10: 102\n        11: 10\n        12: 103\n        13: 10\n        14: 104\n        15: 10\n        16: 105\n        17: 10\n        18: 106\n        19: 10\n        20: 107\n        21: 10\n  actual:\n    status: 0\n    files:\n      target:\n        0: 97\n        1: 10\n        2: 98\n        3: 10\n        4: 99\n        5: 10\n        6: 100\n        7: 10\n        8: 101\n        9: 10\n        10: 102\n        11: 10\n        12: 103\n        13: 10\n        14: 105\n        15: 10\n        16: 104\n        17: 10\n        18: 106\n        19: 10\n        20: 107\n        21: 10\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/compatibility/diff.test.ts:61:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# {\"path\":\"/usr/bin/diff\",\"realpath\":\"/usr/bin/diff\",\"version\":\"Apple diff (based on FreeBSD diff)\",\"dialect\":\"bsd\",\"sha256\":\"214a0d91e39424b15e1e3540edf6b33ee3dd2bbccb0c6dd3a9571dae754edede\"}\\\\n{\"path\":\"/usr/bin/patch\",\"realpath\":\"/usr/bin/patch\",\"version\":\"patch 2.0-12u11-Apple\",\"dialect\":\"apple-patch-2.0-12u11\",\"sha256\":\"ca8aaa5fa4bd9dfaf4b3be251b18372f25f07483946e7d06b505e5a5fb0a6a84\"}\n"
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/compatibility/diff.test.ts",
+      "test": "native cross-application: all lines deleted retaining empty target, U0",
+      "owner": "Faraday",
+      "originalId": 2,
+      "diagnostic": "# Subtest: native cross-application: all lines deleted retaining empty target, U0\nnot ok 438 - native cross-application: all lines deleted retaining empty target, U0\n  ---\n  duration_ms: 132.011375\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/compatibility/diff.test.ts:4:347'\n  failureType: 'testCodeFailure'\n  error: |-\n    Native reverse cross-application; native self-reverse status=1. If both fail, this is an oracle limitation, not evidence of a product bug.\n    patching file target\n    1 out of 1 hunks failed--saving rejects to target.rej\n    \n    \n    + actual - expected\n    \n      {\n        files: {\n    +     target: Buffer(0) [Uint8Array] []\n    -     target: Buffer(10) [Uint8Array] [\n    -       111,\n    -       110,\n    -       101,\n    -       13,\n    -       10,\n    -       116,\n    -       119,\n    -       111,\n    -       13,\n    -       10\n    -     ]\n        },\n    +   status: 1\n    -   status: 0\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    status: 0\n    files:\n      target:\n        0: 111\n        1: 110\n        2: 101\n        3: 13\n        4: 10\n        5: 116\n        6: 119\n        7: 111\n        8: 13\n        9: 10\n  actual:\n    status: 1\n    files:\n      target:\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/compatibility/diff.test.ts:61:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# {\"path\":\"/usr/bin/diff\",\"realpath\":\"/usr/bin/diff\",\"version\":\"Apple diff (based on FreeBSD diff)\",\"dialect\":\"bsd\",\"sha256\":\"214a0d91e39424b15e1e3540edf6b33ee3dd2bbccb0c6dd3a9571dae754edede\"}\\\\n{\"path\":\"/usr/bin/patch\",\"realpath\":\"/usr/bin/patch\",\"version\":\"patch 2.0-12u11-Apple\",\"dialect\":\"apple-patch-2.0-12u11\",\"sha256\":\"ca8aaa5fa4bd9dfaf4b3be251b18372f25f07483946e7d06b505e5a5fb0a6a84\"}\n"
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/compatibility/diff.test.ts",
+      "test": "native cross-application: all lines deleted retaining empty target, U1",
+      "owner": "Faraday",
+      "originalId": 3,
+      "diagnostic": "# Subtest: native cross-application: all lines deleted retaining empty target, U1\nnot ok 439 - native cross-application: all lines deleted retaining empty target, U1\n  ---\n  duration_ms: 107.864166\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/compatibility/diff.test.ts:4:347'\n  failureType: 'testCodeFailure'\n  error: |-\n    Native reverse cross-application; native self-reverse status=1. If both fail, this is an oracle limitation, not evidence of a product bug.\n    patching file target\n    1 out of 1 hunks failed--saving rejects to target.rej\n    \n    \n    + actual - expected\n    \n      {\n        files: {\n    +     target: Buffer(0) [Uint8Array] []\n    -     target: Buffer(10) [Uint8Array] [\n    -       111,\n    -       110,\n    -       101,\n    -       13,\n    -       10,\n    -       116,\n    -       119,\n    -       111,\n    -       13,\n    -       10\n    -     ]\n        },\n    +   status: 1\n    -   status: 0\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    status: 0\n    files:\n      target:\n        0: 111\n        1: 110\n        2: 101\n        3: 13\n        4: 10\n        5: 116\n        6: 119\n        7: 111\n        8: 13\n        9: 10\n  actual:\n    status: 1\n    files:\n      target:\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/compatibility/diff.test.ts:61:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# {\"path\":\"/usr/bin/diff\",\"realpath\":\"/usr/bin/diff\",\"version\":\"Apple diff (based on FreeBSD diff)\",\"dialect\":\"bsd\",\"sha256\":\"214a0d91e39424b15e1e3540edf6b33ee3dd2bbccb0c6dd3a9571dae754edede\"}\\\\n{\"path\":\"/usr/bin/patch\",\"realpath\":\"/usr/bin/patch\",\"version\":\"patch 2.0-12u11-Apple\",\"dialect\":\"apple-patch-2.0-12u11\",\"sha256\":\"ca8aaa5fa4bd9dfaf4b3be251b18372f25f07483946e7d06b505e5a5fb0a6a84\"}\n"
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/compatibility/diff.test.ts",
+      "test": "native cross-application: all lines deleted retaining empty target, U2",
+      "owner": "Faraday",
+      "originalId": 4,
+      "diagnostic": "# Subtest: native cross-application: all lines deleted retaining empty target, U2\nnot ok 440 - native cross-application: all lines deleted retaining empty target, U2\n  ---\n  duration_ms: 191.79175\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/compatibility/diff.test.ts:4:347'\n  failureType: 'testCodeFailure'\n  error: |-\n    Native reverse cross-application; native self-reverse status=1. If both fail, this is an oracle limitation, not evidence of a product bug.\n    patching file target\n    1 out of 1 hunks failed--saving rejects to target.rej\n    \n    \n    + actual - expected\n    \n      {\n        files: {\n    +     target: Buffer(0) [Uint8Array] []\n    -     target: Buffer(10) [Uint8Array] [\n    -       111,\n    -       110,\n    -       101,\n    -       13,\n    -       10,\n    -       116,\n    -       119,\n    -       111,\n    -       13,\n    -       10\n    -     ]\n        },\n    +   status: 1\n    -   status: 0\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    status: 0\n    files:\n      target:\n        0: 111\n        1: 110\n        2: 101\n        3: 13\n        4: 10\n        5: 116\n        6: 119\n        7: 111\n        8: 13\n        9: 10\n  actual:\n    status: 1\n    files:\n      target:\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/compatibility/diff.test.ts:61:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# {\"path\":\"/usr/bin/diff\",\"realpath\":\"/usr/bin/diff\",\"version\":\"Apple diff (based on FreeBSD diff)\",\"dialect\":\"bsd\",\"sha256\":\"214a0d91e39424b15e1e3540edf6b33ee3dd2bbccb0c6dd3a9571dae754edede\"}\\\\n{\"path\":\"/usr/bin/patch\",\"realpath\":\"/usr/bin/patch\",\"version\":\"patch 2.0-12u11-Apple\",\"dialect\":\"apple-patch-2.0-12u11\",\"sha256\":\"ca8aaa5fa4bd9dfaf4b3be251b18372f25f07483946e7d06b505e5a5fb0a6a84\"}\n"
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/compatibility/diff.test.ts",
+      "test": "native cross-application: all lines deleted retaining empty target, U5",
+      "owner": "Faraday",
+      "originalId": 5,
+      "diagnostic": "# Subtest: native cross-application: all lines deleted retaining empty target, U5\nnot ok 441 - native cross-application: all lines deleted retaining empty target, U5\n  ---\n  duration_ms: 212.162708\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/compatibility/diff.test.ts:4:347'\n  failureType: 'testCodeFailure'\n  error: |-\n    Native reverse cross-application; native self-reverse status=1. If both fail, this is an oracle limitation, not evidence of a product bug.\n    patching file target\n    1 out of 1 hunks failed--saving rejects to target.rej\n    \n    \n    + actual - expected\n    \n      {\n        files: {\n    +     target: Buffer(0) [Uint8Array] []\n    -     target: Buffer(10) [Uint8Array] [\n    -       111,\n    -       110,\n    -       101,\n    -       13,\n    -       10,\n    -       116,\n    -       119,\n    -       111,\n    -       13,\n    -       10\n    -     ]\n        },\n    +   status: 1\n    -   status: 0\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    status: 0\n    files:\n      target:\n        0: 111\n        1: 110\n        2: 101\n        3: 13\n        4: 10\n        5: 116\n        6: 119\n        7: 111\n        8: 13\n        9: 10\n  actual:\n    status: 1\n    files:\n      target:\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/compatibility/diff.test.ts:61:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# {\"path\":\"/usr/bin/diff\",\"realpath\":\"/usr/bin/diff\",\"version\":\"Apple diff (based on FreeBSD diff)\",\"dialect\":\"bsd\",\"sha256\":\"214a0d91e39424b15e1e3540edf6b33ee3dd2bbccb0c6dd3a9571dae754edede\"}\\\\n{\"path\":\"/usr/bin/patch\",\"realpath\":\"/usr/bin/patch\",\"version\":\"patch 2.0-12u11-Apple\",\"dialect\":\"apple-patch-2.0-12u11\",\"sha256\":\"ca8aaa5fa4bd9dfaf4b3be251b18372f25f07483946e7d06b505e5a5fb0a6a84\"}\n"
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/compatibility/diff.test.ts",
+      "test": "native cross-application: repeated source lines alignment not prescribed, U0",
+      "owner": "Faraday",
+      "originalId": 6,
+      "diagnostic": "# Subtest: native cross-application: repeated source lines alignment not prescribed, U0\nnot ok 446 - native cross-application: repeated source lines alignment not prescribed, U0\n  ---\n  duration_ms: 148.148791\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/compatibility/diff.test.ts:4:347'\n  failureType: 'testCodeFailure'\n  error: |-\n    Native reverse cross-application; native self-reverse status=0. If both fail, this is an oracle limitation, not evidence of a product bug.\n    patching file target\n    1 out of 3 hunks failed--saving rejects to target.rej\n    \n    \n    + actual - expected\n    ... Skipped lines\n    \n      {\n        files: {\n    +     target: Buffer(12) [Uint8Array] [\n    -     target: Buffer(14) [Uint8Array] [\n    -       97,\n    -       10,\n            98,\n            10,\n            97,\n            10,\n            98,\n    ...\n        },\n    +   status: 1\n    -   status: 0\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    status: 0\n    files:\n      target:\n        0: 97\n        1: 10\n        2: 98\n        3: 10\n        4: 97\n        5: 10\n        6: 98\n        7: 10\n        8: 97\n        9: 10\n        10: 98\n        11: 10\n        12: 97\n        13: 10\n  actual:\n    status: 1\n    files:\n      target:\n        0: 98\n        1: 10\n        2: 97\n        3: 10\n        4: 98\n        5: 10\n        6: 97\n        7: 10\n        8: 98\n        9: 10\n        10: 97\n        11: 10\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/compatibility/diff.test.ts:61:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# {\"path\":\"/usr/bin/diff\",\"realpath\":\"/usr/bin/diff\",\"version\":\"Apple diff (based on FreeBSD diff)\",\"dialect\":\"bsd\",\"sha256\":\"214a0d91e39424b15e1e3540edf6b33ee3dd2bbccb0c6dd3a9571dae754edede\"}\\\\n{\"path\":\"/usr/bin/patch\",\"realpath\":\"/usr/bin/patch\",\"version\":\"patch 2.0-12u11-Apple\",\"dialect\":\"apple-patch-2.0-12u11\",\"sha256\":\"ca8aaa5fa4bd9dfaf4b3be251b18372f25f07483946e7d06b505e5a5fb0a6a84\"}\n"
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/compatibility/gaps.test.ts",
+      "test": "golden GAP epoch-header creation without dev-null",
+      "owner": "Faraday",
+      "originalId": 11,
+      "diagnostic": "# Subtest: golden GAP epoch-header creation without dev-null\nnot ok 456 - golden GAP epoch-header creation without dev-null\n  ---\n  duration_ms: 3.426625\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/compatibility/gaps.test.ts:1:1566'\n  failureType: 'testCodeFailure'\n  error: |-\n    patch: patch target does not exist: /work/target\n    \n    + actual - expected\n    \n      {\n        files: {\n    +     target: null\n    -     target: Buffer(8) [Uint8Array] [\n    -       99,\n    -       114,\n    -       101,\n    -       97,\n    -       116,\n    -       101,\n    -       100,\n    -       10\n    -     ]\n        },\n        output: undefined,\n    +   status: 1\n    -   status: 0\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    status: 0\n    files:\n      target:\n        0: 99\n        1: 114\n        2: 101\n        3: 97\n        4: 116\n        5: 101\n        6: 100\n        7: 10\n  actual:\n    status: 1\n    files:\n      target: ~\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/compatibility/gaps.test.ts:24:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/compatibility/gaps.test.ts",
+      "test": "native GAP epoch-header creation without dev-null",
+      "owner": "Faraday",
+      "originalId": 12,
+      "diagnostic": "# Subtest: native GAP epoch-header creation without dev-null\nnot ok 457 - native GAP epoch-header creation without dev-null\n  ---\n  duration_ms: 34.150625\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/compatibility/gaps.test.ts:1:1967'\n  failureType: 'testCodeFailure'\n  error: |-\n    patch: patch target does not exist: /work/target\n    \n    + actual - expected\n    \n      {\n        files: {\n    +     target: null\n    -     target: Buffer(8) [Uint8Array] [\n    -       99,\n    -       114,\n    -       101,\n    -       97,\n    -       116,\n    -       101,\n    -       100,\n    -       10\n    -     ]\n        },\n        output: undefined,\n    +   status: 1\n    -   status: 0\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    status: 0\n    files:\n      target:\n        0: 99\n        1: 114\n        2: 101\n        3: 97\n        4: 116\n        5: 101\n        6: 100\n        7: 10\n  actual:\n    status: 1\n    files:\n      target: ~\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/compatibility/gaps.test.ts:34:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/compatibility/patch.test.ts",
+      "test": "native patch: reverse full deletion into existing empty file",
+      "owner": "Faraday",
+      "originalId": 13,
+      "diagnostic": "# Subtest: native patch: reverse full deletion into existing empty file\nnot ok 489 - native patch: reverse full deletion into existing empty file\n  ---\n  duration_ms: 52.95\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/compatibility/patch.test.ts:1:531'\n  failureType: 'testCodeFailure'\n  error: |-\n    {\"path\":\"/usr/bin/patch\",\"realpath\":\"/usr/bin/patch\",\"version\":\"patch 2.0-12u11-Apple\",\"dialect\":\"apple-patch-2.0-12u11\",\"sha256\":\"ca8aaa5fa4bd9dfaf4b3be251b18372f25f07483946e7d06b505e5a5fb0a6a84\"}\n    patching file target\n    1 out of 1 hunks failed--saving rejects to target.rej\n    \n    \n    + actual - expected\n    \n      {\n        files: {\n    +     target: Buffer(0) [Uint8Array] []\n    -     target: Buffer(8) [Uint8Array] [\n    -       111,\n    -       110,\n    -       101,\n    -       10,\n    -       116,\n    -       119,\n    -       111,\n    -       10\n    -     ]\n        },\n    +   status: 1\n    -   status: 0\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    status: 0\n    files:\n      target:\n        0: 111\n        1: 110\n        2: 101\n        3: 10\n        4: 116\n        5: 119\n        6: 111\n        7: 10\n  actual:\n    status: 1\n    files:\n      target:\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/compatibility/patch.test.ts:15:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/compatibility/patch.test.ts",
+      "test": "native patch: ORACLE LIMITATION reverse zero-context interior deletion",
+      "owner": "Faraday",
+      "originalId": 14,
+      "diagnostic": "# Subtest: native patch: ORACLE LIMITATION reverse zero-context interior deletion\nnot ok 491 - native patch: ORACLE LIMITATION reverse zero-context interior deletion\n  ---\n  duration_ms: 23.470167\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/compatibility/patch.test.ts:1:531'\n  failureType: 'testCodeFailure'\n  error: |-\n    {\"path\":\"/usr/bin/patch\",\"realpath\":\"/usr/bin/patch\",\"version\":\"patch 2.0-12u11-Apple\",\"dialect\":\"apple-patch-2.0-12u11\",\"sha256\":\"ca8aaa5fa4bd9dfaf4b3be251b18372f25f07483946e7d06b505e5a5fb0a6a84\"}\n    patching file target\n    \n    \n    + actual - expected\n    \n      {\n        files: {\n          target: Buffer(6) [Uint8Array] [\n    +       98,\n    +       10,\n            97,\n            10,\n    -       98,\n    -       10,\n            99,\n            10\n          ]\n        },\n        status: 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    status: 0\n    files:\n      target:\n        0: 97\n        1: 10\n        2: 98\n        3: 10\n        4: 99\n        5: 10\n  actual:\n    status: 0\n    files:\n      target:\n        0: 98\n        1: 10\n        2: 97\n        3: 10\n        4: 99\n        5: 10\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/compatibility/patch.test.ts:15:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/compatibility/patch.test.ts",
+      "test": "golden patch: BSD POLICY: asymmetric fuzz with no leading context",
+      "owner": "Faraday",
+      "originalId": 15,
+      "diagnostic": "# Subtest: golden patch: BSD POLICY: asymmetric fuzz with no leading context\nnot ok 500 - golden patch: BSD POLICY: asymmetric fuzz with no leading context\n  ---\n  duration_ms: 0.81925\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/compatibility/patch.test.ts:1:206'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    ... Skipped lines\n    \n      {\n        files: {\n          target: Buffer(11) [Uint8Array] [\n    +       110,\n    +       101,\n    +       119,\n    -       111,\n    -       108,\n    -       100,\n            10,\n            97,\n            99,\n            116,\n            117,\n    ...\n        },\n    +   status: 0\n    -   status: 1\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    status: 1\n    files:\n      target:\n        0: 111\n        1: 108\n        2: 100\n        3: 10\n        4: 97\n        5: 99\n        6: 116\n        7: 117\n        8: 97\n        9: 108\n        10: 10\n  actual:\n    status: 0\n    files:\n      target:\n        0: 110\n        1: 101\n        2: 119\n        3: 10\n        4: 97\n        5: 99\n        6: 116\n        7: 117\n        8: 97\n        9: 108\n        10: 10\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/compatibility/patch.test.ts:9:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/compatibility/patch.test.ts",
+      "test": "native patch: BSD POLICY: asymmetric fuzz with no leading context",
+      "owner": "Faraday",
+      "originalId": 16,
+      "diagnostic": "# Subtest: native patch: BSD POLICY: asymmetric fuzz with no leading context\nnot ok 501 - native patch: BSD POLICY: asymmetric fuzz with no leading context\n  ---\n  duration_ms: 33.702\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/compatibility/patch.test.ts:1:531'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    ... Skipped lines\n    \n      {\n        files: {\n          target: Buffer(11) [Uint8Array] [\n    +       110,\n    +       101,\n    +       119,\n    -       111,\n    -       108,\n    -       100,\n            10,\n            97,\n            99,\n            116,\n            117,\n    ...\n        },\n    +   status: 0\n    -   status: 1\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    status: 1\n    files:\n      target:\n        0: 111\n        1: 108\n        2: 100\n        3: 10\n        4: 97\n        5: 99\n        6: 116\n        7: 117\n        8: 97\n        9: 108\n        10: 10\n  actual:\n    status: 0\n    files:\n      target:\n        0: 110\n        1: 101\n        2: 119\n        3: 10\n        4: 97\n        5: 99\n        6: 116\n        7: 117\n        8: 97\n        9: 108\n        10: 10\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/compatibility/patch.test.ts:17:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/editflows/quoted-safety.test.ts",
+      "test": "quoted-path security: explicit target cannot override unsafe decoded header",
+      "owner": "Faraday",
+      "originalId": null,
+      "diagnostic": "# Subtest: quoted-path security: explicit target cannot override unsafe decoded header\nnot ok 547 - quoted-path security: explicit target cannot override unsafe decoded header\n  ---\n  duration_ms: 2.453875\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/editflows/quoted-safety.test.ts:1:606'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly equal:\n    \n    0 !== 2\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 2\n  actual: 0\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/editflows/quoted-safety.test.ts:23:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/formats/boundaries.test.ts",
+      "test": "option interactions -C0 -c/labels=false",
+      "owner": "Faraday",
+      "originalId": null,
+      "diagnostic": "# Subtest: option interactions -C0 -c/labels=false\nnot ok 594 - option interactions -C0 -c/labels=false\n  ---\n  duration_ms: 22.910709\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/formats/boundaries.test.ts:10:708'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly equal:\n    + actual - expected\n    \n    + '*** target\\n--- target\\n***************\\n*** 2 ****\\n! old\\n--- 2 ----\\n! new\\n'\n    - '*** target\\n' +\n    -   '--- target\\n' +\n    -   '***************\\n' +\n    -   '*** 1,3 ****\\n' +\n    -   '  first\\n' +\n    -   '! old\\n' +\n    -   '  last\\n' +\n    -   '--- 1,3 ----\\n' +\n    -   '  first\\n' +\n    -   '! new\\n' +\n    -   '  last\\n'\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: |-\n    *** target\n    --- target\n    ***************\n    *** 1,3 ****\n      first\n    ! old\n      last\n    --- 1,3 ----\n      first\n    ! new\n      last\n    \n  actual: |-\n    *** target\n    --- target\n    ***************\n    *** 2 ****\n    ! old\n    --- 2 ----\n    ! new\n    \n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/formats/boundaries.test.ts:38:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/formats/boundaries.test.ts",
+      "test": "option interactions -C0 -c/labels=true",
+      "owner": "Faraday",
+      "originalId": null,
+      "diagnostic": "# Subtest: option interactions -C0 -c/labels=true\nnot ok 595 - option interactions -C0 -c/labels=true\n  ---\n  duration_ms: 19.121833\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/formats/boundaries.test.ts:10:708'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly equal:\n    + actual - expected\n    \n      '*** before name\\n' +\n        '--- after name\\n' +\n        '***************\\n' +\n    +   '*** 2 ****\\n' +\n    -   '*** 1,3 ****\\n' +\n    -   '  first\\n' +\n        '! old\\n' +\n    +   '--- 2 ----\\n' +\n    +   '! new\\n'\n    -   '  last\\n' +\n    -   '--- 1,3 ----\\n' +\n    -   '  first\\n' +\n    -   '! new\\n' +\n    -   '  last\\n'\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: |-\n    *** before name\n    --- after name\n    ***************\n    *** 1,3 ****\n      first\n    ! old\n      last\n    --- 1,3 ----\n      first\n    ! new\n      last\n    \n  actual: |-\n    *** before name\n    --- after name\n    ***************\n    *** 2 ****\n    ! old\n    --- 2 ----\n    ! new\n    \n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/formats/boundaries.test.ts:38:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/formats/editflows.test.ts",
+      "test": "native-native control context/delete-3/C0",
+      "owner": "Faraday",
+      "originalId": null,
+      "diagnostic": "# Subtest: native-native control context/delete-3/C0\nnot ok 792 - native-native control context/delete-3/C0\n  ---\n  duration_ms: 51.237\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/formats/editflows.test.ts:1:898'\n  failureType: 'testCodeFailure'\n  error: |-\n    ORACLE FAILURE reverse=false: /tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** replacement text or line numbers mangled in hunk at line 4\n    \n    \n    2 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 2\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/formats/editflows.test.ts:27:16)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# DIALECT_CONTROL {\"name\":\"context/delete-3/C0\",\"gnuForward\":2,\"gnuReverse\":2,\"fallback\":\"Apple forward/reverse only after both native-native controls pass\"}\n"
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/formats/editflows.test.ts",
+      "test": "independent formatter context/delete-3/C0",
+      "owner": "Faraday",
+      "originalId": null,
+      "diagnostic": "# Subtest: independent formatter context/delete-3/C0\nnot ok 793 - independent formatter context/delete-3/C0\n  ---\n  duration_ms: 249.900083\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/formats/editflows.test.ts:1:1425'\n  failureType: 'testCodeFailure'\n  error: |-\n    ORACLE BLOCKED: Apple reverse bytes\n    + actual - expected\n    \n      'v3-original-0\\n' +\n        'v3-original-1\\n' +\n        'v3-original-2\\n' +\n    -   'v3-original-3\\n' +\n        'v3-original-4\\n' +\n        'v3-original-5\\n' +\n    +   'v3-original-3\\n' +\n        'v3-original-6\\n' +\n        'v3-original-7\\n' +\n        'v3-original-8\\n' +\n        'v3-original-9\\n'\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: |-\n    v3-original-0\n    v3-original-1\n    v3-original-2\n    v3-original-3\n    v3-original-4\n    v3-original-5\n    v3-original-6\n    v3-original-7\n    v3-original-8\n    v3-original-9\n    \n  actual: |-\n    v3-original-0\n    v3-original-1\n    v3-original-2\n    v3-original-4\n    v3-original-5\n    v3-original-3\n    v3-original-6\n    v3-original-7\n    v3-original-8\n    v3-original-9\n    \n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/formats/editflows.test.ts:54:18)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/formats/editflows.test.ts",
+      "test": "native-native control context/delete-7/C0",
+      "owner": "Faraday",
+      "originalId": null,
+      "diagnostic": "# Subtest: native-native control context/delete-7/C0\nnot ok 984 - native-native control context/delete-7/C0\n  ---\n  duration_ms: 29.561542\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/formats/editflows.test.ts:1:898'\n  failureType: 'testCodeFailure'\n  error: |-\n    ORACLE FAILURE reverse=false: /tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** replacement text or line numbers mangled in hunk at line 4\n    \n    \n    2 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 2\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/formats/editflows.test.ts:27:16)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# DIALECT_CONTROL {\"name\":\"context/delete-7/C0\",\"gnuForward\":2,\"gnuReverse\":2,\"fallback\":\"Apple forward/reverse only after both native-native controls pass\"}\n"
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/formats/editflows.test.ts",
+      "test": "independent formatter context/delete-7/C0",
+      "owner": "Faraday",
+      "originalId": null,
+      "diagnostic": "# Subtest: independent formatter context/delete-7/C0\nnot ok 985 - independent formatter context/delete-7/C0\n  ---\n  duration_ms: 243.212875\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/formats/editflows.test.ts:1:1425'\n  failureType: 'testCodeFailure'\n  error: |-\n    ORACLE BLOCKED: Apple reverse bytes\n    + actual - expected\n    \n      'v7-original-0\\n' +\n        'v7-original-1\\n' +\n        'v7-original-2\\n' +\n        'v7-original-3\\n' +\n        'v7-original-4\\n' +\n        'v7-original-5\\n' +\n        'v7-original-6\\n' +\n    -   'v7-original-7\\n' +\n        'v7-original-8\\n' +\n        'v7-original-9\\n' +\n    +   'v7-original-7\\n' +\n        'v7-original-10\\n' +\n        'v7-original-11\\n' +\n        'v7-original-12\\n' +\n        'v7-original-13\\n'\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: |-\n    v7-original-0\n    v7-original-1\n    v7-original-2\n    v7-original-3\n    v7-original-4\n    v7-original-5\n    v7-original-6\n    v7-original-7\n    v7-original-8\n    v7-original-9\n    v7-original-10\n    v7-original-11\n    v7-original-12\n    v7-original-13\n    \n  actual: |-\n    v7-original-0\n    v7-original-1\n    v7-original-2\n    v7-original-3\n    v7-original-4\n    v7-original-5\n    v7-original-6\n    v7-original-8\n    v7-original-9\n    v7-original-7\n    v7-original-10\n    v7-original-11\n    v7-original-12\n    v7-original-13\n    \n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/formats/editflows.test.ts:54:18)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/formats/editflows.test.ts",
+      "test": "native-native control context/delete-11/C0",
+      "owner": "Faraday",
+      "originalId": null,
+      "diagnostic": "# Subtest: native-native control context/delete-11/C0\nnot ok 1176 - native-native control context/delete-11/C0\n  ---\n  duration_ms: 28.4485\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/formats/editflows.test.ts:1:898'\n  failureType: 'testCodeFailure'\n  error: |-\n    ORACLE FAILURE reverse=false: /tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** replacement text or line numbers mangled in hunk at line 4\n    \n    \n    2 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 2\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/formats/editflows.test.ts:27:16)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# DIALECT_CONTROL {\"name\":\"context/delete-11/C0\",\"gnuForward\":2,\"gnuReverse\":2,\"fallback\":\"Apple forward/reverse only after both native-native controls pass\"}\n"
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/formats/editflows.test.ts",
+      "test": "independent formatter context/delete-11/C0",
+      "owner": "Faraday",
+      "originalId": null,
+      "diagnostic": "# Subtest: independent formatter context/delete-11/C0\nnot ok 1177 - independent formatter context/delete-11/C0\n  ---\n  duration_ms: 479.877625\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/formats/editflows.test.ts:1:1425'\n  failureType: 'testCodeFailure'\n  error: |-\n    ORACLE BLOCKED: Apple reverse bytes\n    + actual - expected\n    ... Skipped lines\n    \n      'v11-original-0\\n' +\n        'v11-original-1\\n' +\n        'v11-original-2\\n' +\n        'v11-original-3\\n' +\n        'v11-original-4\\n' +\n    ...\n        'v11-original-10\\n' +\n    -   'v11-original-11\\n' +\n        'v11-original-12\\n' +\n        'v11-original-13\\n' +\n    +   'v11-original-11\\n' +\n        'v11-original-14\\n' +\n        'v11-original-15\\n' +\n        'v11-original-16\\n' +\n        'v11-original-17\\n'\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: |-\n    v11-original-0\n    v11-original-1\n    v11-original-2\n    v11-original-3\n    v11-original-4\n    v11-original-5\n    v11-original-6\n    v11-original-7\n    v11-original-8\n    v11-original-9\n    v11-original-10\n    v11-original-11\n    v11-original-12\n    v11-original-13\n    v11-original-14\n    v11-original-15\n    v11-original-16\n    v11-original-17\n    \n  actual: |-\n    v11-original-0\n    v11-original-1\n    v11-original-2\n    v11-original-3\n    v11-original-4\n    v11-original-5\n    v11-original-6\n    v11-original-7\n    v11-original-8\n    v11-original-9\n    v11-original-10\n    v11-original-12\n    v11-original-13\n    v11-original-11\n    v11-original-14\n    v11-original-15\n    v11-original-16\n    v11-original-17\n    \n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/formats/editflows.test.ts:54:18)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/formats/editflows.test.ts",
+      "test": "native-native control context/repeated-alignment-0/C0",
+      "owner": "Faraday",
+      "originalId": null,
+      "diagnostic": "# Subtest: native-native control context/repeated-alignment-0/C0\nnot ok 1326 - native-native control context/repeated-alignment-0/C0\n  ---\n  duration_ms: 41.364667\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/formats/editflows.test.ts:1:898'\n  failureType: 'testCodeFailure'\n  error: |-\n    ORACLE FAILURE reverse=false: /tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** replacement text or line numbers mangled in hunk at line 4\n    \n    \n    2 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 2\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/formats/editflows.test.ts:27:16)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# DIALECT_CONTROL {\"name\":\"context/repeated-alignment-0/C0\",\"gnuForward\":2,\"gnuReverse\":2,\"fallback\":\"Apple forward/reverse only after both native-native controls pass\"}\n"
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/formats/editflows.test.ts",
+      "test": "native-native control context/repeated-alignment-7/C0",
+      "owner": "Faraday",
+      "originalId": null,
+      "diagnostic": "# Subtest: native-native control context/repeated-alignment-7/C0\nnot ok 1368 - native-native control context/repeated-alignment-7/C0\n  ---\n  duration_ms: 32.067208\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/formats/editflows.test.ts:1:898'\n  failureType: 'testCodeFailure'\n  error: |-\n    ORACLE FAILURE reverse=false: /tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** replacement text or line numbers mangled in hunk at line 9\n    patching file target\n    \n    \n    2 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 2\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/formats/editflows.test.ts:27:16)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# DIALECT_CONTROL {\"name\":\"context/repeated-alignment-7/C0\",\"gnuForward\":2,\"gnuReverse\":2,\"fallback\":\"Apple forward/reverse only after both native-native controls pass\"}\n"
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/formats/editflows.test.ts",
+      "test": "independent formatter context/repeated-alignment-7/C0",
+      "owner": "Faraday",
+      "originalId": null,
+      "diagnostic": "# Subtest: independent formatter context/repeated-alignment-7/C0\nnot ok 1369 - independent formatter context/repeated-alignment-7/C0\n  ---\n  duration_ms: 84.247375\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/formats/editflows.test.ts:1:1425'\n  failureType: 'testCodeFailure'\n  error: |-\n    ORACLE BLOCKED: Apple reverse bytes\n    + actual - expected\n    \n    + 'head-7\\nsame\\nsame\\nsame\\nsame\\npivot\\nsame\\nsame\\nsame\\ntail-7\\n'\n    - 'head-7\\nsame\\nsame\\nsame\\nsame\\nsame\\npivot\\nsame\\nsame\\ntail-7\\n'\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: |-\n    head-7\n    same\n    same\n    same\n    same\n    same\n    pivot\n    same\n    same\n    tail-7\n    \n  actual: |-\n    head-7\n    same\n    same\n    same\n    same\n    pivot\n    same\n    same\n    same\n    tail-7\n    \n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/formats/editflows.test.ts:54:18)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/formats/editflows.test.ts",
+      "test": "native-native control context/repeated-alignment-11/C0",
+      "owner": "Faraday",
+      "originalId": null,
+      "diagnostic": "# Subtest: native-native control context/repeated-alignment-11/C0\nnot ok 1392 - native-native control context/repeated-alignment-11/C0\n  ---\n  duration_ms: 41.275375\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/formats/editflows.test.ts:1:898'\n  failureType: 'testCodeFailure'\n  error: |-\n    ORACLE FAILURE reverse=false: /tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** replacement text or line numbers mangled in hunk at line 9\n    patching file target\n    \n    \n    2 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 2\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/formats/editflows.test.ts:27:16)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# DIALECT_CONTROL {\"name\":\"context/repeated-alignment-11/C0\",\"gnuForward\":2,\"gnuReverse\":2,\"fallback\":\"Apple forward/reverse only after both native-native controls pass\"}\n"
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/formats/editflows.test.ts",
+      "test": "independent formatter context/repeated-alignment-11/C0",
+      "owner": "Faraday",
+      "originalId": null,
+      "diagnostic": "# Subtest: independent formatter context/repeated-alignment-11/C0\nnot ok 1393 - independent formatter context/repeated-alignment-11/C0\n  ---\n  duration_ms: 109.158875\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/formats/editflows.test.ts:1:1425'\n  failureType: 'testCodeFailure'\n  error: |-\n    ORACLE BLOCKED: Apple reverse bytes\n    + actual - expected\n    \n    + 'head-11\\nsame\\nsame\\nsame\\nsame\\npivot\\nsame\\nsame\\nsame\\nsame\\ntail-11\\n'\n    - 'head-11\\nsame\\nsame\\nsame\\nsame\\nsame\\npivot\\nsame\\nsame\\nsame\\ntail-11\\n'\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: |-\n    head-11\n    same\n    same\n    same\n    same\n    same\n    pivot\n    same\n    same\n    same\n    tail-11\n    \n  actual: |-\n    head-11\n    same\n    same\n    same\n    same\n    pivot\n    same\n    same\n    same\n    same\n    tail-11\n    \n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/formats/editflows.test.ts:54:18)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/formats/regressions.test.ts",
+      "test": "GNU selector regression: -C0 followed by -c resets to three lines",
+      "owner": "Faraday",
+      "originalId": null,
+      "diagnostic": "# Subtest: GNU selector regression: -C0 followed by -c resets to three lines\nnot ok 1407 - GNU selector regression: -C0 followed by -c resets to three lines\n  ---\n  duration_ms: 126.50975\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/formats/regressions.test.ts:1:240'\n  failureType: 'testCodeFailure'\n  error: |-\n    GNU profile gate; Apple-compatible current behavior is a dialect divergence, not universal invalidity\n    + actual - expected\n    \n    + '*** target\\n--- target\\n***************\\n*** 2 ****\\n! b\\n--- 2 ----\\n! B\\n'\n    - '*** target\\n' +\n    -   '--- target\\n' +\n    -   '***************\\n' +\n    -   '*** 1,3 ****\\n' +\n    -   '  a\\n' +\n    -   '! b\\n' +\n    -   '  c\\n' +\n    -   '--- 1,3 ----\\n' +\n    -   '  a\\n' +\n    -   '! B\\n' +\n    -   '  c\\n'\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: |-\n    *** target\n    --- target\n    ***************\n    *** 1,3 ****\n      a\n    ! b\n      c\n    --- 1,3 ----\n      a\n    ! B\n      c\n    \n  actual: |-\n    *** target\n    --- target\n    ***************\n    *** 2 ****\n    ! b\n    --- 2 ----\n    ! B\n    \n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/formats/regressions.test.ts:18:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)\n  ...\n"
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/fuzz/edits.test.ts",
+      "test": "all six file-section orderings apply coding-agent create/edit/delete flows and reverse",
+      "owner": "Faraday",
+      "originalId": 18,
+      "diagnostic": "# Subtest: all six file-section orderings apply coding-agent create/edit/delete flows and reverse\nnot ok 1624 - all six file-section orderings apply coding-agent create/edit/delete flows and reverse\n  ---\n  duration_ms: 366.773084\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/fuzz/edits.test.ts:24:704'\n  failureType: 'testCodeFailure'\n  error: |-\n    order=0,1,2: {\"exitCode\":1,\"stdout\":\"patching file config.ts\\npatching file added.ts\\nNo file to patch.  Skipping...\\n1 out of 1 hunks ignored--saving rejects to stale.ts.rej\\n\",\"stderr\":\"\"}\n    order=0,2,1: {\"exitCode\":1,\"stdout\":\"patching file config.ts\\nNo file to patch.  Skipping...\\n1 out of 1 hunks ignored--saving rejects to stale.ts.rej\\npatching file added.ts\\n\",\"stderr\":\"\"}\n    order=1,0,2: {\"exitCode\":1,\"stdout\":\"patching file added.ts\\npatching file config.ts\\nNo file to patch.  Skipping...\\n1 out of 1 hunks ignored--saving rejects to stale.ts.rej\\n\",\"stderr\":\"\"}\n    order=1,2,0: {\"exitCode\":1,\"stdout\":\"patching file added.ts\\nNo file to patch.  Skipping...\\n1 out of 1 hunks ignored--saving rejects to stale.ts.rej\\npatching file config.ts\\n\",\"stderr\":\"\"}\n    order=2,0,1: {\"exitCode\":1,\"stdout\":\"No file to patch.  Skipping...\\n1 out of 1 hunks ignored--saving rejects to stale.ts.rej\\npatching file config.ts\\npatching file added.ts\\n\",\"stderr\":\"\"}\n    order=2,1,0: {\"exitCode\":1,\"stdout\":\"No file to patch.  Skipping...\\n1 out of 1 hunks ignored--saving rejects to stale.ts.rej\\npatching file added.ts\\npatching file config.ts\\n\",\"stderr\":\"\"}\n    \n    6 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 6\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/fuzz/edits.test.ts:70:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# ORDER_REPORT {\"denominator\":6,\"virtualPass\":6,\"nativePass\":0,\"nativeFail\":6,\"skips\":0}\n"
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/fuzz/properties.test.ts",
+      "test": "512 independent seeded diff/patch, reverse, native, golden, and minimality properties",
+      "owner": "Faraday",
+      "originalId": 19,
+      "diagnostic": "# Subtest: 512 independent seeded diff/patch, reverse, native, golden, and minimality properties\nnot ok 1645 - 512 independent seeded diff/patch, reverse, native, golden, and minimality properties\n  ---\n  duration_ms: 49136.753667\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/fuzz/properties.test.ts:1:413'\n  failureType: 'testCodeFailure'\n  error: |-\n    [\n      {\n        \"index\": 1,\n        \"seed\": 191034286,\n        \"family\": \"empty-delete\",\n        \"phase\": \"virtual-diff-native-patch-reverse\",\n        \"message\": \"{\\\"exitCode\\\":1,\\\"stdout\\\":\\\"patching file target\\\\n1 out of 1 hunks failed--saving rejects to target.rej\\\\n\\\",\\\"stderr\\\":\\\"\\\"}\\n\\n1 !== 0\\n\"\n      },\n      {\n        \"index\": 1,\n        \"seed\": 191034286,\n        \"family\": \"empty-delete\",\n        \"phase\": \"native-control-reverse\",\n        \"message\": \"{\\\"exitCode\\\":1,\\\"stdout\\\":\\\"patching file target\\\\n1 out of 1 hunks failed--saving rejects to target.rej\\\\n\\\",\\\"stderr\\\":\\\"\\\"}\\n\\n1 !== 0\\n\"\n      },\n      {\n        \"index\": 9,\n        \"seed\": 4246651254,\n        \"family\": \"terminal-newline\",\n        \"phase\": \"virtual-diff-native-patch-reverse\",\n        \"message\": \"Expected values to be strictly equal:\\n+ actual - expected\\n... Skipped lines\\n\\n  'alpha\\\\n' +\\n    '++ literal\\\\n' +\\n    ' \\\\n' +\\n    'same\\\\n' +\\n    'beta\\\\n' +\\n...\\n    'beta\\\\n' +\\n+   '\\\\n' +\\n+   '🧪\\\\n'\\n-   '🧪\\\\n' +\\n-   '\\\\n'\\n\"\n      },\n      {\n        \"index\": 9,\n        \"seed\": 4246651254,\n        \"family\": \"terminal-newline\",\n        \"phase\": \"native-control-reverse\",\n        \"message\": \"Expected values to be strictly equal:\\n+ actual - expected\\n... Skipped lines\\n\\n  'alpha\\\\n' +\\n    '++ literal\\\\n' +\\n    ' \\\\n' +\\n    'same\\\\n' +\\n    'beta\\\\n' +\\n...\\n    'beta\\\\n' +\\n+   '\\\\n' +\\n+   '🧪\\\\n'\\n-   '🧪\\\\n' +\\n-   '\\\\n'\\n\"\n      },\n      {\n        \"index\": 15,\n        \"seed\": 2993396684,\n        \"family\": \"coding-edit\",\n        \"phase\": \"virtual-diff-native-patch-reverse\",\n        \"message\": \"{\\\"exitCode\\\":1,\\\"stdout\\\":\\\"patching file target\\\\n1 out of 1 hunks failed--saving rejects to target.rej\\\\n\\\",\\\"stderr\\\":\\\"\\\"}\\n\\n1 !== 0\\n\"\n      },\n      {\n        \"index\": 15,\n        \"seed\": 2993396684,\n        \"family\": \"coding-edit\",\n        \"phase\": \"native-control-reverse\",\n        \"message\": \"{\\\"exitCode\\\":1,\\\"stdout\\\":\\\"patching file target\\\\n1 out of 1 hunks failed--saving rejects to target.rej\\\\n\\\",\\\"stderr\\\":\\\"\\\"}\\n\\n1 !== 0\\n\"\n      },\n      {\n        \"index\": 17,\n        \"seed\": 4007300926,\n        \"family\": \"empty-delete\",\n        \"phase\": \"virtual-diff-native-patch-reverse\",\n        \"message\": \"{\\\"exitCode\\\":1,\\\"stdout\\\":\\\"patching file target\\\\n1 out of 1 hunks failed--saving rejects to target.rej\\\\n\\\",\\\"stderr\\\":\\\"\\\"}\\n\\n1 !== 0\\n\"\n      },\n      {\n        \"index\": 17,\n        \"seed\": 4007300926,\n        \"family\": \"empty-delete\",\n        \"phase\": \"native-control-reverse\",\n        \"message\": \"{\\\"exitCode\\\":1,\\\"stdout\\\":\\\"patching file target\\\\n1 out of 1 hunks failed--saving rejects to target.rej\\\\n\\\",\\\"stderr\\\":\\\"\\\"}\\n\\n1 !== 0\\n\"\n      },\n      {\n        \"index\": 19,\n        \"seed\": 726237872,\n        \"family\": \"delete\",\n        \"phase\": \"virtual-diff-native-patch-reverse\",\n        \"message\": \"Expected values to be strictly equal:\\n+ actual - expected\\n\\n+ 'alpha\\\\n漢字\\\\n-- literal\\\\n \\\\nalpha\\\\né\\\\n漢字\\\\n'\\n- 'alpha\\\\n漢字\\\\n \\\\n-- literal\\\\nalpha\\\\né\\\\n漢字\\\\n'\\n\"\n      },\n      {\n        \"index\": 19,\n        \"seed\": 726237872,\n        \"family\": \"delete\",\n        \"phase\": \"native-control-reverse\",\n        \"message\": \"Expected values to be strictly equal:\\n+ actual - expected\\n\\n+ 'alpha\\\\n漢字\\\\n-- literal\\\\n \\\\nalpha\\\\né\\\\n漢字\\\\n'\\n- 'alpha\\\\n漢字\\\\n \\\\n-- literal\\\\nalpha\\\\né\\\\n漢字\\\\n'\\n\"\n      },\n      {\n        \"index\": 33,\n        \"seed\": 3528600270,\n        \"family\": \"empty-delete\",\n        \"phase\": \"virtual-diff-native-patch-reverse\",\n        \"message\": \"{\\\"exitCode\\\":1,\\\"stdout\\\":\\\"patching file target\\\\n1 out of 1 hunks failed--saving rejects to target.rej\\\\n\\\",\\\"stderr\\\":\\\"\\\"}\\n\\n1 !== 0\\n\"\n      },\n      {\n        \"index\": 33,\n        \"seed\": 3528600270,\n        \"family\": \"empty-delete\",\n        \"phase\": \"native-control-reverse\",\n        \"message\": \"{\\\"exitCode\\\":1,\\\"stdout\\\":\\\"patching file target\\\\n1 out of 1 hunks failed--saving rejects to target.rej\\\\n\\\",\\\"stderr\\\":\\\"\\\"}\\n\\n1 !== 0\\n\"\n      }\n    ]\n    \n    148 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 148\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/fuzz/properties.test.ts:74:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)\n  ...\n# native identities {\"diff\":{\"path\":\"/usr/bin/diff\",\"realpath\":\"/usr/bin/diff\",\"version\":\"Apple diff (based on FreeBSD diff)\",\"dialect\":\"bsd\",\"sha256\":\"214a0d91e39424b15e1e3540edf6b33ee3dd2bbccb0c6dd3a9571dae754edede\"},\"patch\":{\"path\":\"/usr/bin/patch\",\"realpath\":\"/usr/bin/patch\",\"version\":\"patch 2.0-12u11-Apple\",\"dialect\":\"apple-patch-2.0-12u11\",\"sha256\":\"ca8aaa5fa4bd9dfaf4b3be251b18372f25f07483946e7d06b505e5a5fb0a6a84\"}}; locale=C; skips=0\n# FUZZ_REPORT {\"baseSeed\":1831565813,\"denominator\":512,\"families\":{\"empty-create\":32,\"empty-delete\":32,\"insert\":32,\"delete\":32,\"replace\":32,\"repetition\":32,\"whitespace\":32,\"unicode\":32,\"crlf\":32,\"terminal-newline\":32,\"long-lines\":32,\"separated-anchors\":32,\"adjacent-hunks\":32,\"move\":32,\"equal\":32,\"coding-edit\":32},\"counts\":{\"diff-status\":{\"pass\":512,\"fail\":0},\"minimal-edit-count\":{\"pass\":512,\"fail\":0},\"virtual-forward\":{\"pass\":512,\"fail\":0},\"virtual-reverse\":{\"pass\":512,\"fail\":0},\"golden-forward\":{\"pass\":512,\"fail\":0},\"golden-reverse\":{\"pass\":512,\"fail\":0},\"native-diff-status\":{\"pass\":512,\"fail\":0},\"native-diff-virtual-patch-forward\":{\"pass\":512,\"fail\":0},\"native-diff-virtual-patch-reverse\":{\"pass\":512,\"fail\":0},\"virtual-diff-native-patch-forward\":{\"pass\":512,\"fail\":0},\"virtual-diff-native-patch-reverse\":{\"pass\":436,\"fail\":76},\"golden-native-patch\":{\"pass\":512,\"fail\":0},\"native-control-forward\":{\"pass\":510,\"fail\":2},\"native-control-reverse\":{\"pass\":442,\"fail\":70}},\"skips\":0}\n# FAILURE_INDEX [{\"index\":1,\"seed\":191034286,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":1,\"seed\":191034286,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":9,\"seed\":4246651254,\"family\":\"terminal-newline\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":9,\"seed\":4246651254,\"family\":\"terminal-newline\",\"phase\":\"native-control-reverse\"},{\"index\":15,\"seed\":2993396684,\"family\":\"coding-edit\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":15,\"seed\":2993396684,\"family\":\"coding-edit\",\"phase\":\"native-control-reverse\"},{\"index\":17,\"seed\":4007300926,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":17,\"seed\":4007300926,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":19,\"seed\":726237872,\"family\":\"delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":19,\"seed\":726237872,\"family\":\"delete\",\"phase\":\"native-control-reverse\"},{\"index\":33,\"seed\":3528600270,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":33,\"seed\":3528600270,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":45,\"seed\":1022091130,\"family\":\"move\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":47,\"seed\":2035995372,\"family\":\"coding-edit\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":47,\"seed\":2035995372,\"family\":\"coding-edit\",\"phase\":\"native-control-reverse\"},{\"index\":49,\"seed\":3049899614,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":49,\"seed\":3049899614,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":63,\"seed\":1557294716,\"family\":\"coding-edit\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":63,\"seed\":1557294716,\"family\":\"coding-edit\",\"phase\":\"native-control-reverse\"},{\"index\":65,\"seed\":2571198958,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":65,\"seed\":2571198958,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":66,\"seed\":930667431,\"family\":\"insert\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":66,\"seed\":930667431,\"family\":\"insert\",\"phase\":\"native-control-reverse\"},{\"index\":72,\"seed\":3972380157,\"family\":\"crlf\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":72,\"seed\":3972380157,\"family\":\"crlf\",\"phase\":\"native-control-reverse\"},{\"index\":81,\"seed\":2092498302,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":81,\"seed\":2092498302,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":95,\"seed\":599893404,\"family\":\"coding-edit\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":95,\"seed\":599893404,\"family\":\"coding-edit\",\"phase\":\"native-control-reverse\"},{\"index\":97,\"seed\":1613797646,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":97,\"seed\":1613797646,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":100,\"seed\":987170361,\"family\":\"replace\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":100,\"seed\":987170361,\"family\":\"replace\",\"phase\":\"native-control-reverse\"},{\"index\":109,\"seed\":3402255802,\"family\":\"move\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":111,\"seed\":121192748,\"family\":\"coding-edit\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":111,\"seed\":121192748,\"family\":\"coding-edit\",\"phase\":\"native-control-reverse\"},{\"index\":113,\"seed\":1135096990,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":113,\"seed\":1135096990,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":115,\"seed\":2149001232,\"family\":\"delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":115,\"seed\":2149001232,\"family\":\"delete\",\"phase\":\"native-control-reverse\"},{\"index\":125,\"seed\":2923555146,\"family\":\"move\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":129,\"seed\":656396334,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":129,\"seed\":656396334,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":130,\"seed\":3310832103,\"family\":\"insert\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":130,\"seed\":3310832103,\"family\":\"insert\",\"phase\":\"native-control-reverse\"},{\"index\":145,\"seed\":177695678,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":145,\"seed\":177695678,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":147,\"seed\":1191599920,\"family\":\"delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":147,\"seed\":1191599920,\"family\":\"delete\",\"phase\":\"native-control-reverse\"},{\"index\":161,\"seed\":3993962318,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":161,\"seed\":3993962318,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":163,\"seed\":712899264,\"family\":\"delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":163,\"seed\":712899264,\"family\":\"delete\",\"phase\":\"native-control-reverse\"},{\"index\":164,\"seed\":3367335033,\"family\":\"replace\",\"phase\":\"native-control-reverse\"},{\"index\":170,\"seed\":2114080463,\"family\":\"long-lines\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":170,\"seed\":2114080463,\"family\":\"long-lines\",\"phase\":\"native-control-reverse\"},{\"index\":177,\"seed\":3515261662,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":177,\"seed\":3515261662,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":188,\"seed\":2649284049,\"family\":\"adjacent-hunks\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":188,\"seed\":2649284049,\"family\":\"adjacent-hunks\",\"phase\":\"native-control-reverse\"},{\"index\":193,\"seed\":3036561006,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":193,\"seed\":3036561006,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":197,\"seed\":769402194,\"family\":\"repetition\",\"phase\":\"native-control-reverse\"},{\"index\":209,\"seed\":2557860350,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":209,\"seed\":2557860350,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":211,\"seed\":3571764592,\"family\":\"delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":211,\"seed\":3571764592,\"family\":\"delete\",\"phase\":\"native-control-reverse\"},{\"index\":225,\"seed\":2079159694,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":225,\"seed\":2079159694,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":226,\"seed\":438628167,\"family\":\"insert\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":226,\"seed\":438628167,\"family\":\"insert\",\"phase\":\"native-control-reverse\"},{\"index\":241,\"seed\":1600459038,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":241,\"seed\":1600459038,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":257,\"seed\":1121758382,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":257,\"seed\":1121758382,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":266,\"seed\":3536843823,\"family\":\"long-lines\",\"phase\":\"native-control-forward\"},{\"index\":269,\"seed\":2910216538,\"family\":\"move\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":273,\"seed\":643057726,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":273,\"seed\":643057726,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":274,\"seed\":3297493495,\"family\":\"insert\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":274,\"seed\":3297493495,\"family\":\"insert\",\"phase\":\"native-control-reverse\"},{\"index\":284,\"seed\":4072047409,\"family\":\"adjacent-hunks\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":284,\"seed\":4072047409,\"family\":\"adjacent-hunks\",\"phase\":\"native-control-reverse\"},{\"index\":289,\"seed\":164357070,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":289,\"seed\":164357070,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":290,\"seed\":2818792839,\"family\":\"insert\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":290,\"seed\":2818792839,\"family\":\"insert\",\"phase\":\"native-control-reverse\"},{\"index\":297,\"seed\":4219974038,\"family\":\"terminal-newline\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":297,\"seed\":4219974038,\"family\":\"terminal-newline\",\"phase\":\"native-control-reverse\"},{\"index\":301,\"seed\":1952815226,\"family\":\"move\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":305,\"seed\":3980623710,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":305,\"seed\":3980623710,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":310,\"seed\":72933371,\"family\":\"whitespace\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":310,\"seed\":72933371,\"family\":\"whitespace\",\"phase\":\"native-control-reverse\"},{\"index\":321,\"seed\":3501923054,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":321,\"seed\":3501923054,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":332,\"seed\":2635945441,\"family\":\"adjacent-hunks\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":332,\"seed\":2635945441,\"family\":\"adjacent-hunks\",\"phase\":\"native-control-reverse\"},{\"index\":337,\"seed\":3023222398,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":337,\"seed\":3023222398,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":351,\"seed\":1530617500,\"family\":\"coding-edit\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":351,\"seed\":1530617500,\"family\":\"coding-edit\",\"phase\":\"native-control-reverse\"},{\"index\":353,\"seed\":2544521742,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":353,\"seed\":2544521742,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":356,\"seed\":1917894457,\"family\":\"replace\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":356,\"seed\":1917894457,\"family\":\"replace\",\"phase\":\"native-control-reverse\"},{\"index\":365,\"seed\":38012602,\"family\":\"move\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":369,\"seed\":2065821086,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":369,\"seed\":2065821086,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":370,\"seed\":425289559,\"family\":\"insert\",\"phase\":\"native-control-forward\"},{\"index\":371,\"seed\":3079725328,\"family\":\"delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":371,\"seed\":3079725328,\"family\":\"delete\",\"phase\":\"native-control-reverse\"},{\"index\":385,\"seed\":1587120430,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":385,\"seed\":1587120430,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":387,\"seed\":2601024672,\"family\":\"delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":387,\"seed\":2601024672,\"family\":\"delete\",\"phase\":\"native-control-reverse\"},{\"index\":394,\"seed\":4002205871,\"family\":\"long-lines\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":394,\"seed\":4002205871,\"family\":\"long-lines\",\"phase\":\"native-control-reverse\"},{\"index\":397,\"seed\":3375578586,\"family\":\"move\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":401,\"seed\":1108419774,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":401,\"seed\":1108419774,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":413,\"seed\":2896877930,\"family\":\"move\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":417,\"seed\":629719118,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":417,\"seed\":629719118,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":422,\"seed\":1016996075,\"family\":\"whitespace\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":422,\"seed\":1016996075,\"family\":\"whitespace\",\"phase\":\"native-control-reverse\"},{\"index\":424,\"seed\":2030900317,\"family\":\"crlf\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":424,\"seed\":2030900317,\"family\":\"crlf\",\"phase\":\"native-control-reverse\"},{\"index\":431,\"seed\":3432081516,\"family\":\"coding-edit\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":431,\"seed\":3432081516,\"family\":\"coding-edit\",\"phase\":\"native-control-reverse\"},{\"index\":433,\"seed\":151018462,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":433,\"seed\":151018462,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":449,\"seed\":3967285102,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":449,\"seed\":3967285102,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":465,\"seed\":3488584446,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":465,\"seed\":3488584446,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":470,\"seed\":3875861403,\"family\":\"whitespace\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":470,\"seed\":3875861403,\"family\":\"whitespace\",\"phase\":\"native-control-reverse\"},{\"index\":472,\"seed\":594798349,\"family\":\"crlf\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":472,\"seed\":594798349,\"family\":\"crlf\",\"phase\":\"native-control-reverse\"},{\"index\":477,\"seed\":982075306,\"family\":\"move\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":477,\"seed\":982075306,\"family\":\"move\",\"phase\":\"native-control-reverse\"},{\"index\":481,\"seed\":3009883790,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":481,\"seed\":3009883790,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":497,\"seed\":2531183134,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":497,\"seed\":2531183134,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":509,\"seed\":24673994,\"family\":\"move\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":509,\"seed\":24673994,\"family\":\"move\",\"phase\":\"native-control-reverse\"}]\n"
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/fuzz/regressions.test.ts",
+      "test": "oracle calibration: asymmetric zero-fuzz context with a displaced exact anchor",
+      "owner": "Faraday",
+      "originalId": 20,
+      "diagnostic": "# Subtest: oracle calibration: asymmetric zero-fuzz context with a displaced exact anchor\nnot ok 1648 - oracle calibration: asymmetric zero-fuzz context with a displaced exact anchor\n  ---\n  duration_ms: 38.960292\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/fuzz/regressions.test.ts:1:1192'\n  failureType: 'testCodeFailure'\n  error: |-\n    {\"exitCode\":1,\"stdout\":\"patching file target\\n1 out of 1 hunks failed--saving rejects to target.rej\\n\",\"stderr\":\"\"}\n    \n    1 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 1\n  operator: 'strictEqual'\n  stack: |-\n    nativePatch (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/fuzz/helpers.ts:177:10)\n    async <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/fuzz/regressions.test.ts:33:52)\n    async nativeDirectory (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/fuzz/helpers.ts:155:16)\n    async TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/fuzz/regressions.test.ts:33:3)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/fuzz/regressions.test.ts",
+      "test": "oracle calibration: native-generated unterminated context survives native reverse",
+      "owner": "Faraday",
+      "originalId": 21,
+      "diagnostic": "# Subtest: oracle calibration: native-generated unterminated context survives native reverse\nnot ok 1649 - oracle calibration: native-generated unterminated context survives native reverse\n  ---\n  duration_ms: 157.983042\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/fuzz/regressions.test.ts:1:1749'\n  failureType: 'testCodeFailure'\n  error: |-\n    {\"exitCode\":1,\"stdout\":\"patching file target\\n1 out of 1 hunks failed--saving rejects to target.rej\\n\",\"stderr\":\"\"}\n    \n    1 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 1\n  operator: 'strictEqual'\n  stack: |-\n    nativePatch (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/fuzz/helpers.ts:177:10)\n    async <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/fuzz/regressions.test.ts:43:18)\n    async nativeDirectory (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/fuzz/helpers.ts:155:16)\n    async TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/fuzz/regressions.test.ts:37:3)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/path-regressions/malformed.test.ts",
+      "test": "unsafe/malformed explicit-old \"\\\\\"\\\\\\\\057sandbox/work/target\\\\\"\"",
+      "owner": "Faraday",
+      "originalId": null,
+      "diagnostic": "# Subtest: unsafe/malformed explicit-old \"\\\\\"\\\\\\\\057sandbox/work/target\\\\\"\"\nnot ok 1799 - unsafe/malformed explicit-old \"\\\\\"\\\\\\\\057sandbox/work/target\\\\\"\"\n  ---\n  duration_ms: 2.372292\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/path-regressions/malformed.test.ts:1:1147'\n  failureType: 'testCodeFailure'\n  error: |-\n    No early mutation: \n    + actual - expected\n    \n    + [\n    +   {\n    +     destination: undefined,\n    +     flag: 'w',\n    +     method: 'writeFile',\n    +     path: '/sandbox/work/target',\n    +     signal: AbortSignal {\n    +       [Symbol(events.maxEventTargetListeners)]: 0,\n    +       [Symbol(events.maxEventTargetListenersWarned)]: false,\n    +       [Symbol(kAborted)]: false,\n    +       [Symbol(kComposite)]: false,\n    +       [Symbol(kEvents)]: SafeMap(0) {},\n    +       [Symbol(kHandlers)]: SafeMap(0) {},\n    +       [Symbol(kReason)]: undefined\n    +     }\n    +   }\n    + ]\n    - []\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n  actual:\n    0:\n      method: 'writeFile'\n      path: '/sandbox/work/target'\n      signal:\n      flag: 'w'\n  operator: 'deepStrictEqual'\n  stack: |-\n    rejectsWithoutMutation (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/path-regressions/helpers.ts:30:10)\n    async TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/path-regressions/malformed.test.ts:28:7)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/path-regressions/malformed.test.ts",
+      "test": "unsafe/malformed explicit-new \"\\\\\"\\\\\\\\057sandbox/work/target\\\\\"\"",
+      "owner": "Faraday",
+      "originalId": null,
+      "diagnostic": "# Subtest: unsafe/malformed explicit-new \"\\\\\"\\\\\\\\057sandbox/work/target\\\\\"\"\nnot ok 1800 - unsafe/malformed explicit-new \"\\\\\"\\\\\\\\057sandbox/work/target\\\\\"\"\n  ---\n  duration_ms: 1.310292\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/path-regressions/malformed.test.ts:1:1147'\n  failureType: 'testCodeFailure'\n  error: |-\n    No early mutation: \n    + actual - expected\n    \n    + [\n    +   {\n    +     destination: undefined,\n    +     flag: 'w',\n    +     method: 'writeFile',\n    +     path: '/sandbox/work/target',\n    +     signal: AbortSignal {\n    +       [Symbol(events.maxEventTargetListeners)]: 0,\n    +       [Symbol(events.maxEventTargetListenersWarned)]: false,\n    +       [Symbol(kAborted)]: false,\n    +       [Symbol(kComposite)]: false,\n    +       [Symbol(kEvents)]: SafeMap(0) {},\n    +       [Symbol(kHandlers)]: SafeMap(0) {},\n    +       [Symbol(kReason)]: undefined\n    +     }\n    +   }\n    + ]\n    - []\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n  actual:\n    0:\n      method: 'writeFile'\n      path: '/sandbox/work/target'\n      signal:\n      flag: 'w'\n  operator: 'deepStrictEqual'\n  stack: |-\n    rejectsWithoutMutation (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/path-regressions/helpers.ts:30:10)\n    async TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/path-regressions/malformed.test.ts:28:7)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/path-regressions/malformed.test.ts",
+      "test": "unsafe/malformed explicit-old \"\\\\\"\\\\\\\\057\\\\\\\\057target\\\\\"\"",
+      "owner": "Faraday",
+      "originalId": null,
+      "diagnostic": "# Subtest: unsafe/malformed explicit-old \"\\\\\"\\\\\\\\057\\\\\\\\057target\\\\\"\"\nnot ok 1803 - unsafe/malformed explicit-old \"\\\\\"\\\\\\\\057\\\\\\\\057target\\\\\"\"\n  ---\n  duration_ms: 1.268541\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/path-regressions/malformed.test.ts:1:1147'\n  failureType: 'testCodeFailure'\n  error: |-\n    No early mutation: \n    + actual - expected\n    \n    + [\n    +   {\n    +     destination: undefined,\n    +     flag: 'w',\n    +     method: 'writeFile',\n    +     path: '/sandbox/work/target',\n    +     signal: AbortSignal {\n    +       [Symbol(events.maxEventTargetListeners)]: 0,\n    +       [Symbol(events.maxEventTargetListenersWarned)]: false,\n    +       [Symbol(kAborted)]: false,\n    +       [Symbol(kComposite)]: false,\n    +       [Symbol(kEvents)]: SafeMap(0) {},\n    +       [Symbol(kHandlers)]: SafeMap(0) {},\n    +       [Symbol(kReason)]: undefined\n    +     }\n    +   }\n    + ]\n    - []\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n  actual:\n    0:\n      method: 'writeFile'\n      path: '/sandbox/work/target'\n      signal:\n      flag: 'w'\n  operator: 'deepStrictEqual'\n  stack: |-\n    rejectsWithoutMutation (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/path-regressions/helpers.ts:30:10)\n    async TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/path-regressions/malformed.test.ts:28:7)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/path-regressions/malformed.test.ts",
+      "test": "unsafe/malformed explicit-new \"\\\\\"\\\\\\\\057\\\\\\\\057target\\\\\"\"",
+      "owner": "Faraday",
+      "originalId": null,
+      "diagnostic": "# Subtest: unsafe/malformed explicit-new \"\\\\\"\\\\\\\\057\\\\\\\\057target\\\\\"\"\nnot ok 1804 - unsafe/malformed explicit-new \"\\\\\"\\\\\\\\057\\\\\\\\057target\\\\\"\"\n  ---\n  duration_ms: 1.823417\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/path-regressions/malformed.test.ts:1:1147'\n  failureType: 'testCodeFailure'\n  error: |-\n    No early mutation: \n    + actual - expected\n    \n    + [\n    +   {\n    +     destination: undefined,\n    +     flag: 'w',\n    +     method: 'writeFile',\n    +     path: '/sandbox/work/target',\n    +     signal: AbortSignal {\n    +       [Symbol(events.maxEventTargetListeners)]: 0,\n    +       [Symbol(events.maxEventTargetListenersWarned)]: false,\n    +       [Symbol(kAborted)]: false,\n    +       [Symbol(kComposite)]: false,\n    +       [Symbol(kEvents)]: SafeMap(0) {},\n    +       [Symbol(kHandlers)]: SafeMap(0) {},\n    +       [Symbol(kReason)]: undefined\n    +     }\n    +   }\n    + ]\n    - []\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n  actual:\n    0:\n      method: 'writeFile'\n      path: '/sandbox/work/target'\n      signal:\n      flag: 'w'\n  operator: 'deepStrictEqual'\n  stack: |-\n    rejectsWithoutMutation (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/path-regressions/helpers.ts:30:10)\n    async TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/path-regressions/malformed.test.ts:28:7)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/safety/integration.test.ts",
+      "test": "Shell diff-to-patch pipeline treats Unicode/metacharacter labels literally",
+      "owner": "Faraday",
+      "originalId": 22,
+      "diagnostic": "# Subtest: Shell diff-to-patch pipeline treats Unicode/metacharacter labels literally\nnot ok 2360 - Shell diff-to-patch pipeline treats Unicode/metacharacter labels literally\n  ---\n  duration_ms: 14.43575\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/safety/integration.test.ts:1:346'\n  failureType: 'testCodeFailure'\n  error: |-\n    patch: normal patches require an explicit safe target\n    \n    \n    2 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 2\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/safety/integration.test.ts:14:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)\n  ...\n"
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/safety/paths.test.ts",
+      "test": "unsafe second header leaves all identities and bytes intact: absolute",
+      "owner": "Faraday",
+      "originalId": null,
+      "diagnostic": "# Subtest: unsafe second header leaves all identities and bytes intact: absolute\nnot ok 2366 - unsafe second header leaves all identities and bytes intact: absolute\n  ---\n  duration_ms: 15.22475\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/safety/paths.test.ts:1:473'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly equal:\n    \n    0 !== 2\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 2\n  actual: 0\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/safety/paths.test.ts:20:14)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)\n  ...\n"
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/safety/paths.test.ts",
+      "test": "normalized duplicate prevalidation: target + ./target",
+      "owner": "Faraday",
+      "originalId": 23,
+      "diagnostic": "# Subtest: normalized duplicate prevalidation: target + ./target\nnot ok 2385 - normalized duplicate prevalidation: target + ./target\n  ---\n  duration_ms: 0.932125\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/safety/paths.test.ts:1:2205'\n  failureType: 'testCodeFailure'\n  error: |-\n    patch: hunk 1 does not match ./target\n    \n    \n    1 !== 2\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 2\n  actual: 1\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/safety/paths.test.ts:51:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/safety/paths.test.ts",
+      "test": "normalized duplicate prevalidation: dir/target + dir/./target",
+      "owner": "Faraday",
+      "originalId": 24,
+      "diagnostic": "# Subtest: normalized duplicate prevalidation: dir/target + dir/./target\nnot ok 2386 - normalized duplicate prevalidation: dir/target + dir/./target\n  ---\n  duration_ms: 0.801458\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/safety/paths.test.ts:1:2205'\n  failureType: 'testCodeFailure'\n  error: |-\n    patch: hunk 1 does not match dir/./target\n    \n    \n    1 !== 2\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 2\n  actual: 1\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/safety/paths.test.ts:51:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/safety/paths.test.ts",
+      "test": "normalized duplicate prevalidation: a/target + b/target",
+      "owner": "Faraday",
+      "originalId": 25,
+      "diagnostic": "# Subtest: normalized duplicate prevalidation: a/target + b/target\nnot ok 2387 - normalized duplicate prevalidation: a/target + b/target\n  ---\n  duration_ms: 0.959459\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/safety/paths.test.ts:1:2205'\n  failureType: 'testCodeFailure'\n  error: |-\n    patch: hunk 1 does not match b/target\n    \n    \n    1 !== 2\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 2\n  actual: 1\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/safety/paths.test.ts:51:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "file": "tests/commands/diff-patch-stress/safety/paths.test.ts",
+      "test": "normalized duplicate prevalidation: a/./target + b/target",
+      "owner": "Faraday",
+      "originalId": 26,
+      "diagnostic": "# Subtest: normalized duplicate prevalidation: a/./target + b/target\nnot ok 2388 - normalized duplicate prevalidation: a/./target + b/target\n  ---\n  duration_ms: 1.053667\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/safety/paths.test.ts:1:2205'\n  failureType: 'testCodeFailure'\n  error: |-\n    patch: hunk 1 does not match b/target\n    \n    \n    1 !== 2\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 2\n  actual: 1\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch-stress/safety/paths.test.ts:51:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "file": "tests/commands/diff-patch/diff-formats.test.ts",
+      "test": "whitespace native exact bytes: all C-locale whitespace, all, --normal",
+      "owner": "Faraday",
+      "originalId": 27,
+      "diagnostic": "# Subtest: whitespace native exact bytes: all C-locale whitespace, all, --normal\nnot ok 2644 - whitespace native exact bytes: all C-locale whitespace, all, --normal\n  ---\n  duration_ms: 21.786\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch/diff-formats.test.ts:31:5822'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly equal:\n    \n    1 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 1\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch/diff-formats.test.ts:266:14)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "file": "tests/commands/diff-patch/diff-formats.test.ts",
+      "test": "whitespace native exact bytes: all C-locale whitespace, all, -u",
+      "owner": "Faraday",
+      "originalId": 28,
+      "diagnostic": "# Subtest: whitespace native exact bytes: all C-locale whitespace, all, -u\nnot ok 2645 - whitespace native exact bytes: all C-locale whitespace, all, -u\n  ---\n  duration_ms: 25.165\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch/diff-formats.test.ts:31:5822'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly equal:\n    \n    1 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 1\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch/diff-formats.test.ts:266:14)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "file": "tests/commands/diff-patch/diff-formats.test.ts",
+      "test": "whitespace preserves original bodies and both context sides: -b, unified",
+      "owner": "Faraday",
+      "originalId": 29,
+      "diagnostic": "# Subtest: whitespace preserves original bodies and both context sides: -b, unified\nnot ok 2747 - whitespace preserves original bodies and both context sides: -b, unified\n  ---\n  duration_ms: 41.494875\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch/diff-formats.test.ts:31:7189'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        exitCode: 1,\n        stderr: '',\n    +   stdout: '--- OLD\\n+++ NEW\\n@@ -1,3 +1,3 @@\\n  a  b \\n- old text\\t\\n+ new text  \\n \\tx\\ty\\n'\n    -   stdout: '--- OLD\\n+++ NEW\\n@@ -1,3 +1,3 @@\\n  a  b \\n- old text\\t\\n+ new text  \\n  x  y \\n'\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    exitCode: 1\n    stdout: |-\n      --- OLD\n      +++ NEW\n      @@ -1,3 +1,3 @@\n        a  b \n      - old text\t\n      + new text  \n        x  y \n      \n    stderr: ''\n  actual:\n    exitCode: 1\n    stdout: |-\n      --- OLD\n      +++ NEW\n      @@ -1,3 +1,3 @@\n        a  b \n      - old text\t\n      + new text  \n       \tx\ty\n      \n    stderr: ''\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch/diff-formats.test.ts:291:14)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "file": "tests/commands/diff-patch/diff-formats.test.ts",
+      "test": "whitespace context preserves per-side incomplete-line markers and native parity",
+      "owner": "Faraday",
+      "originalId": 30,
+      "diagnostic": "# Subtest: whitespace context preserves per-side incomplete-line markers and native parity\nnot ok 2787 - whitespace context preserves per-side incomplete-line markers and native parity\n  ---\n  duration_ms: 39.366792\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch/diff-formats.test.ts:32:659'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly equal:\n    + actual - expected\n    \n      '*** OLD\\n' +\n        '--- NEW\\n' +\n        '***************\\n' +\n        '*** 1,2 ****\\n' +\n        '! old\\n' +\n    +   '  x y--- 1,2 ----\\n' +\n    -   '  x y\\n' +\n    -   '\\\\ No newline at end of file\\n' +\n    -   '--- 1,2 ----\\n' +\n        '! new\\n' +\n        '  xy\\n'\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: |-\n    *** OLD\n    --- NEW\n    ***************\n    *** 1,2 ****\n    ! old\n      x y\n    \\ No newline at end of file\n    --- 1,2 ----\n    ! new\n      xy\n    \n  actual: |-\n    *** OLD\n    --- NEW\n    ***************\n    *** 1,2 ****\n    ! old\n      x y--- 1,2 ----\n    ! new\n      xy\n    \n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/commands/diff-patch/diff-formats.test.ts:382:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# {\"parity\":false,\"nativeExitCode\":1,\"nativeStdout\":\"*** OLD\\\\n--- NEW\\\\n***************\\\\n*** 1,2 ****\\\\n! old\\\\n  x y--- 1,2 ----\\\\n! new\\\\n  xy\\\\n\",\"expected\":\"*** OLD\\\\n--- NEW\\\\n***************\\\\n*** 1,2 ****\\\\n! old\\\\n  x y\\\\n\\\\\\\\ No newline at end of file\\\\n--- 1,2 ----\\\\n! new\\\\n  xy\\\\n\"}\n"
+    },
+    {
+      "file": "tests/shell-stress/current-gaps/compatibility.test.ts",
+      "test": "remaining-gap independent Bash: move-output-really-closes-source",
+      "owner": "Sagan",
+      "originalId": null,
+      "diagnostic": "# Subtest: remaining-gap independent Bash: move-output-really-closes-source\nnot ok 6071 - remaining-gap independent Bash: move-output-really-closes-source\n  ---\n  duration_ms: 592.918709\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/shell-stress/current-gaps/compatibility.test.ts:1:234'\n  failureType: 'testCodeFailure'\n  error: |-\n    move-output-really-closes-source\n    script: { printf moved >&4; printf lost >&3; printf 'status=%s' \"$?\"; } 3>saved 4>&3-\n    Bash: {\"stdout\":\"status=1\",\"stderr\":\"shell-stress: 3: Bad file descriptor\\n\",\"stdoutBase64\":\"c3RhdHVzPTE=\",\"stderrBase64\":\"c2hlbGwtc3RyZXNzOiAzOiBCYWQgZmlsZSBkZXNjcmlwdG9yCg==\",\"exitCode\":0,\"files\":{\"saved\":{\"type\":\"file\",\"base64\":\"bW92ZWQ=\"}}}\n    virtual: {\"stdout\":\"status=1\",\"stderr\":\"shell: 3: Bad file descriptor\\n\",\"exitCode\":0,\"files\":{\"saved\":{\"type\":\"file\",\"base64\":\"bW92ZWQ=\"}},\"stdoutBase64\":\"c3RhdHVzPTE=\",\"stderrBase64\":\"c2hlbGw6IDM6IEJhZCBmaWxlIGRlc2NyaXB0b3IK\"}\n    + actual - expected\n    ... Skipped lines\n    \n      {\n        exitCode: 0,\n        files: {\n          saved: {\n            base64: 'bW92ZWQ=',\n    ...\n        },\n    +   stderr: 'shell: 3: Bad file descriptor\\n',\n    +   stderrBase64: 'c2hlbGw6IDM6IEJhZCBmaWxlIGRlc2NyaXB0b3IK',\n    -   stderr: 'shell-stress: 3: Bad file descriptor\\n',\n    -   stderrBase64: 'c2hlbGwtc3RyZXNzOiAzOiBCYWQgZmlsZSBkZXNjcmlwdG9yCg==',\n        stdout: 'status=1',\n        stdoutBase64: 'c3RhdHVzPTE='\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'status=1'\n    stderr: |-\n      shell-stress: 3: Bad file descriptor\n      \n    stdoutBase64: 'c3RhdHVzPTE='\n    stderrBase64: 'c2hlbGwtc3RyZXNzOiAzOiBCYWQgZmlsZSBkZXNjcmlwdG9yCg=='\n    exitCode: 0\n    files:\n      saved:\n        type: 'file'\n        base64: 'bW92ZWQ='\n  actual:\n    stdout: 'status=1'\n    stderr: |-\n      shell: 3: Bad file descriptor\n      \n    exitCode: 0\n    files:\n      saved:\n        type: 'file'\n        base64: 'bW92ZWQ='\n    stdoutBase64: 'c3RhdHVzPTE='\n    stderrBase64: 'c2hlbGw6IDM6IEJhZCBmaWxlIGRlc2NyaXB0b3IK'\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/shell-stress/current-gaps/compatibility.test.ts:11:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)\n  ...\n"
+    },
+    {
+      "file": "tests/shell-stress/current-gaps/compatibility.test.ts",
+      "test": "remaining-gap independent Bash: move-input-really-closes-source",
+      "owner": "Sagan",
+      "originalId": null,
+      "diagnostic": "# Subtest: remaining-gap independent Bash: move-input-really-closes-source\nnot ok 6072 - remaining-gap independent Bash: move-input-really-closes-source\n  ---\n  duration_ms: 562.506375\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/shell-stress/current-gaps/compatibility.test.ts:1:234'\n  failureType: 'testCodeFailure'\n  error: |-\n    move-input-really-closes-source\n    script: { IFS= read -r value <&4; printf '<%s>' \"$value\"; IFS= read -r missing <&3; printf 'status=%s' \"$?\"; } 3<input 4<&3-\n    Bash: {\"stdout\":\"<first>status=1\",\"stderr\":\"shell-stress: 3: Bad file descriptor\\n\",\"stdoutBase64\":\"PGZpcnN0PnN0YXR1cz0x\",\"stderrBase64\":\"c2hlbGwtc3RyZXNzOiAzOiBCYWQgZmlsZSBkZXNjcmlwdG9yCg==\",\"exitCode\":0,\"files\":{\"input\":{\"type\":\"file\",\"base64\":\"Zmlyc3QKc2Vjb25kCg==\"}}}\n    virtual: {\"stdout\":\"<first>status=1\",\"stderr\":\"shell: 3: Bad file descriptor\\n\",\"exitCode\":0,\"files\":{\"input\":{\"type\":\"file\",\"base64\":\"Zmlyc3QKc2Vjb25kCg==\"}},\"stdoutBase64\":\"PGZpcnN0PnN0YXR1cz0x\",\"stderrBase64\":\"c2hlbGw6IDM6IEJhZCBmaWxlIGRlc2NyaXB0b3IK\"}\n    + actual - expected\n    ... Skipped lines\n    \n      {\n        exitCode: 0,\n        files: {\n          input: {\n            base64: 'Zmlyc3QKc2Vjb25kCg==',\n    ...\n        },\n    +   stderr: 'shell: 3: Bad file descriptor\\n',\n    +   stderrBase64: 'c2hlbGw6IDM6IEJhZCBmaWxlIGRlc2NyaXB0b3IK',\n    -   stderr: 'shell-stress: 3: Bad file descriptor\\n',\n    -   stderrBase64: 'c2hlbGwtc3RyZXNzOiAzOiBCYWQgZmlsZSBkZXNjcmlwdG9yCg==',\n        stdout: '<first>status=1',\n        stdoutBase64: 'PGZpcnN0PnN0YXR1cz0x'\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: '<first>status=1'\n    stderr: |-\n      shell-stress: 3: Bad file descriptor\n      \n    stdoutBase64: 'PGZpcnN0PnN0YXR1cz0x'\n    stderrBase64: 'c2hlbGwtc3RyZXNzOiAzOiBCYWQgZmlsZSBkZXNjcmlwdG9yCg=='\n    exitCode: 0\n    files:\n      input:\n        type: 'file'\n        base64: 'Zmlyc3QKc2Vjb25kCg=='\n  actual:\n    stdout: '<first>status=1'\n    stderr: |-\n      shell: 3: Bad file descriptor\n      \n    exitCode: 0\n    files:\n      input:\n        type: 'file'\n        base64: 'Zmlyc3QKc2Vjb25kCg=='\n    stdoutBase64: 'PGZpcnN0PnN0YXR1cz0x'\n    stderrBase64: 'c2hlbGw6IDM6IEJhZCBmaWxlIGRlc2NyaXB0b3IK'\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/shell-stress/current-gaps/compatibility.test.ts:11:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "file": "tests/shell-stress/current-gaps/compatibility.test.ts",
+      "test": "remaining-gap independent Bash: ansi-c-word-is-quoted-not-split-or-globbed",
+      "owner": "Sagan",
+      "originalId": null,
+      "diagnostic": "# Subtest: remaining-gap independent Bash: ansi-c-word-is-quoted-not-split-or-globbed\nnot ok 6077 - remaining-gap independent Bash: ansi-c-word-is-quoted-not-split-or-globbed\n  ---\n  duration_ms: 604.447167\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/shell-stress/current-gaps/compatibility.test.ts:1:234'\n  failureType: 'testCodeFailure'\n  error: |-\n    ansi-c-word-is-quoted-not-split-or-globbed\n    script: printf '<%s>' prefix$'a b\\t*'suffix\n    Bash: {\"stdout\":\"<prefixa b\\t*suffix>\",\"stderr\":\"\",\"stdoutBase64\":\"PHByZWZpeGEgYgkqc3VmZml4Pg==\",\"stderrBase64\":\"\",\"exitCode\":0,\"files\":{\"match\":{\"type\":\"file\",\"base64\":\"\"}}}\n    virtual: {\"stdout\":\"\",\"stderr\":\"shell: Unsupported shell quoting or special parameter at offset 21\\n\",\"exitCode\":2,\"files\":{\"match\":{\"type\":\"file\",\"base64\":\"\"}},\"stdoutBase64\":\"\",\"stderrBase64\":\"c2hlbGw6IFVuc3VwcG9ydGVkIHNoZWxsIHF1b3Rpbmcgb3Igc3BlY2lhbCBwYXJhbWV0ZXIgYXQgb2Zmc2V0IDIxCg==\"}\n    + actual - expected\n    \n      {\n    +   exitCode: 2,\n    -   exitCode: 0,\n        files: {\n          match: {\n            base64: '',\n            type: 'file'\n          }\n        },\n    +   stderr: 'shell: Unsupported shell quoting or special parameter at offset 21\\n',\n    +   stderrBase64: 'c2hlbGw6IFVuc3VwcG9ydGVkIHNoZWxsIHF1b3Rpbmcgb3Igc3BlY2lhbCBwYXJhbWV0ZXIgYXQgb2Zmc2V0IDIxCg==',\n    +   stdout: '',\n    +   stdoutBase64: ''\n    -   stderr: '',\n    -   stderrBase64: '',\n    -   stdout: '<prefixa b\\t*suffix>',\n    -   stdoutBase64: 'PHByZWZpeGEgYgkqc3VmZml4Pg=='\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: '<prefixa b\\t*suffix>'\n    stderr: ''\n    stdoutBase64: 'PHByZWZpeGEgYgkqc3VmZml4Pg=='\n    stderrBase64: ''\n    exitCode: 0\n    files:\n      match:\n        type: 'file'\n        base64: ''\n  actual:\n    stdout: ''\n    stderr: |-\n      shell: Unsupported shell quoting or special parameter at offset 21\n      \n    exitCode: 2\n    files:\n      match:\n        type: 'file'\n        base64: ''\n    stdoutBase64: ''\n    stderrBase64: 'c2hlbGw6IFVuc3VwcG9ydGVkIHNoZWxsIHF1b3Rpbmcgb3Igc3BlY2lhbCBwYXJhbWV0ZXIgYXQgb2Zmc2V0IDIxCg=='\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/shell-stress/current-gaps/compatibility.test.ts:11:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "file": "tests/shell-stress/current-gaps/compatibility.test.ts",
+      "test": "remaining-gap independent Bash: pathname-classes-c-locale-alpha-negation",
+      "owner": "Sagan",
+      "originalId": null,
+      "diagnostic": "# Subtest: remaining-gap independent Bash: pathname-classes-c-locale-alpha-negation\nnot ok 6078 - remaining-gap independent Bash: pathname-classes-c-locale-alpha-negation\n  ---\n  duration_ms: 709.076208\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/shell-stress/current-gaps/compatibility.test.ts:1:234'\n  failureType: 'testCodeFailure'\n  error: |-\n    pathname-classes-c-locale-alpha-negation\n    script: printf '<%s>' [[:alpha:]].txt [![:digit:]].txt\n    Bash: {\"stdout\":\"<A.txt><b.txt><A.txt><b.txt>\",\"stderr\":\"\",\"stdoutBase64\":\"PEEudHh0PjxiLnR4dD48QS50eHQ+PGIudHh0Pg==\",\"stderrBase64\":\"\",\"exitCode\":0,\"files\":{\"7.txt\":{\"type\":\"file\",\"base64\":\"\"},\"A.txt\":{\"type\":\"file\",\"base64\":\"\"},\"b.txt\":{\"type\":\"file\",\"base64\":\"\"}}}\n    virtual: {\"stdout\":\"<[[:alpha:]].txt><[![:digit:]].txt>\",\"stderr\":\"\",\"exitCode\":0,\"files\":{\"7.txt\":{\"type\":\"file\",\"base64\":\"\"},\"A.txt\":{\"type\":\"file\",\"base64\":\"\"},\"b.txt\":{\"type\":\"file\",\"base64\":\"\"}},\"stdoutBase64\":\"PFtbOmFscGhhOl1dLnR4dD48WyFbOmRpZ2l0Ol1dLnR4dD4=\",\"stderrBase64\":\"\"}\n    + actual - expected\n    ... Skipped lines\n    \n      {\n        exitCode: 0,\n        files: {\n          '7.txt': {\n            base64: '',\n    ...\n        stderrBase64: '',\n    +   stdout: '<[[:alpha:]].txt><[![:digit:]].txt>',\n    +   stdoutBase64: 'PFtbOmFscGhhOl1dLnR4dD48WyFbOmRpZ2l0Ol1dLnR4dD4='\n    -   stdout: '<A.txt><b.txt><A.txt><b.txt>',\n    -   stdoutBase64: 'PEEudHh0PjxiLnR4dD48QS50eHQ+PGIudHh0Pg=='\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: '<A.txt><b.txt><A.txt><b.txt>'\n    stderr: ''\n    stdoutBase64: 'PEEudHh0PjxiLnR4dD48QS50eHQ+PGIudHh0Pg=='\n    stderrBase64: ''\n    exitCode: 0\n    files:\n      7.txt:\n        type: 'file'\n        base64: ''\n      A.txt:\n        type: 'file'\n        base64: ''\n      b.txt:\n        type: 'file'\n        base64: ''\n  actual:\n    stdout: '<[[:alpha:]].txt><[![:digit:]].txt>'\n    stderr: ''\n    exitCode: 0\n    files:\n      7.txt:\n        type: 'file'\n        base64: ''\n      A.txt:\n        type: 'file'\n        base64: ''\n      b.txt:\n        type: 'file'\n        base64: ''\n    stdoutBase64: 'PFtbOmFscGhhOl1dLnR4dD48WyFbOmRpZ2l0Ol1dLnR4dD4='\n    stderrBase64: ''\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/shell-stress/current-gaps/compatibility.test.ts:11:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "file": "tests/shell-stress/current-gaps/compatibility.test.ts",
+      "test": "remaining-gap independent Bash: prevalidation-prior-output-and-file",
+      "owner": "Sagan",
+      "originalId": null,
+      "diagnostic": "# Subtest: remaining-gap independent Bash: prevalidation-prior-output-and-file\nnot ok 6079 - remaining-gap independent Bash: prevalidation-prior-output-and-file\n  ---\n  duration_ms: 1063.873417\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/shell-stress/current-gaps/compatibility.test.ts:1:234'\n  failureType: 'testCodeFailure'\n  error: |-\n    prevalidation-prior-output-and-file\n    script: printf before; printf marker >marker; printf \"%s\" \"$(true |)\"; printf after\n    Bash: {\"stdout\":\"beforeafter\",\"stderr\":\"shell-stress: command substitution: line 1: syntax error: unexpected end of file\\n\",\"stdoutBase64\":\"YmVmb3JlYWZ0ZXI=\",\"stderrBase64\":\"c2hlbGwtc3RyZXNzOiBjb21tYW5kIHN1YnN0aXR1dGlvbjogbGluZSAxOiBzeW50YXggZXJyb3I6IHVuZXhwZWN0ZWQgZW5kIG9mIGZpbGUK\",\"exitCode\":0,\"files\":{\"marker\":{\"type\":\"file\",\"base64\":\"bWFya2Vy\"}}}\n    virtual: {\"stdout\":\"\",\"stderr\":\"shell: Expected command at offset 6\\n\",\"exitCode\":2,\"files\":{},\"stdoutBase64\":\"\",\"stderrBase64\":\"c2hlbGw6IEV4cGVjdGVkIGNvbW1hbmQgYXQgb2Zmc2V0IDYK\"}\n    + actual - expected\n    \n      {\n    +   exitCode: 2,\n    +   files: {},\n    +   stderr: 'shell: Expected command at offset 6\\n',\n    +   stderrBase64: 'c2hlbGw6IEV4cGVjdGVkIGNvbW1hbmQgYXQgb2Zmc2V0IDYK',\n    +   stdout: '',\n    +   stdoutBase64: ''\n    -   exitCode: 0,\n    -   files: {\n    -     marker: {\n    -       base64: 'bWFya2Vy',\n    -       type: 'file'\n    -     }\n    -   },\n    -   stderr: 'shell-stress: command substitution: line 1: syntax error: unexpected end of file\\n',\n    -   stderrBase64: 'c2hlbGwtc3RyZXNzOiBjb21tYW5kIHN1YnN0aXR1dGlvbjogbGluZSAxOiBzeW50YXggZXJyb3I6IHVuZXhwZWN0ZWQgZW5kIG9mIGZpbGUK',\n    -   stdout: 'beforeafter',\n    -   stdoutBase64: 'YmVmb3JlYWZ0ZXI='\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'beforeafter'\n    stderr: |-\n      shell-stress: command substitution: line 1: syntax error: unexpected end of file\n      \n    stdoutBase64: 'YmVmb3JlYWZ0ZXI='\n    stderrBase64: 'c2hlbGwtc3RyZXNzOiBjb21tYW5kIHN1YnN0aXR1dGlvbjogbGluZSAxOiBzeW50YXggZXJyb3I6IHVuZXhwZWN0ZWQgZW5kIG9mIGZpbGUK'\n    exitCode: 0\n    files:\n      marker:\n        type: 'file'\n        base64: 'bWFya2Vy'\n  actual:\n    stdout: ''\n    stderr: |-\n      shell: Expected command at offset 6\n      \n    exitCode: 2\n    files:\n    stdoutBase64: ''\n    stderrBase64: 'c2hlbGw6IEV4cGVjdGVkIGNvbW1hbmQgYXQgb2Zmc2V0IDYK'\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/shell-stress/current-gaps/compatibility.test.ts:11:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "file": "tests/shell-stress/current-gaps/compatibility.test.ts",
+      "test": "remaining-gap independent Bash: fatal-parameter-preserves-only-earlier-effects",
+      "owner": "Sagan",
+      "originalId": null,
+      "diagnostic": "# Subtest: remaining-gap independent Bash: fatal-parameter-preserves-only-earlier-effects\nnot ok 6080 - remaining-gap independent Bash: fatal-parameter-preserves-only-earlier-effects\n  ---\n  duration_ms: 706.916875\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/shell-stress/current-gaps/compatibility.test.ts:1:234'\n  failureType: 'testCodeFailure'\n  error: |-\n    fatal-parameter-preserves-only-earlier-effects\n    script: printf before >before; : \"${missing:?stop}\"; printf after >after\n    Bash: {\"stdout\":\"\",\"stderr\":\"shell-stress: missing: stop\\n\",\"stdoutBase64\":\"\",\"stderrBase64\":\"c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg==\",\"exitCode\":127,\"files\":{\"before\":{\"type\":\"file\",\"base64\":\"YmVmb3Jl\"}}}\n    virtual: {\"stdout\":\"\",\"stderr\":\"shell: missing: stop\\n\",\"exitCode\":1,\"files\":{\"before\":{\"type\":\"file\",\"base64\":\"YmVmb3Jl\"}},\"stdoutBase64\":\"\",\"stderrBase64\":\"c2hlbGw6IG1pc3Npbmc6IHN0b3AK\"}\n    + actual - expected\n    \n      {\n    +   exitCode: 1,\n    -   exitCode: 127,\n        files: {\n          before: {\n            base64: 'YmVmb3Jl',\n            type: 'file'\n          }\n        },\n    +   stderr: 'shell: missing: stop\\n',\n    +   stderrBase64: 'c2hlbGw6IG1pc3Npbmc6IHN0b3AK',\n    -   stderr: 'shell-stress: missing: stop\\n',\n    -   stderrBase64: 'c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg==',\n        stdout: '',\n        stdoutBase64: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: ''\n    stderr: |-\n      shell-stress: missing: stop\n      \n    stdoutBase64: ''\n    stderrBase64: 'c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg=='\n    exitCode: 127\n    files:\n      before:\n        type: 'file'\n        base64: 'YmVmb3Jl'\n  actual:\n    stdout: ''\n    stderr: |-\n      shell: missing: stop\n      \n    exitCode: 1\n    files:\n      before:\n        type: 'file'\n        base64: 'YmVmb3Jl'\n    stdoutBase64: ''\n    stderrBase64: 'c2hlbGw6IG1pc3Npbmc6IHN0b3AK'\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/shell-stress/current-gaps/compatibility.test.ts:11:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "file": "tests/shell-stress/current-gaps/pattern.test.ts",
+      "test": "unmatched bracket matcher completes or cancels within external deadline",
+      "owner": "Sagan",
+      "originalId": null,
+      "diagnostic": "# Subtest: unmatched bracket matcher completes or cancels within external deadline\nnot ok 6082 - unmatched bracket matcher completes or cancels within external deadline\n  ---\n  duration_ms: 1754.021958\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/shell-stress/current-gaps/pattern.test.ts:1:230'\n  failureType: 'testCodeFailure'\n  error: |-\n    unmatched-bracket tokenization must not defeat the external cancellation deadline\n    + actual - expected\n    \n    + Error: Child exceeded 1500 ms hard deadline\n    +     at Timeout.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/shell-stress/process.ts:47:55)\n    +     at listOnTimeout (node:internal/timers:585:17)\n    +     at process.processTimers (node:internal/timers:521:7) {\n    +   code: 'ETIMEDOUT'\n    + }\n    - undefined\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  actual:\n  error: 'Child exceeded 1500 ms hard deadline'\n  stack: |-\n    Timeout.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/shell-stress/process.ts:47:55)\n    listOnTimeout (node:internal/timers:585:17)\n    process.processTimers (node:internal/timers:521:7)\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/shell-stress/current-gaps/pattern.test.ts:17:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)\n  ...\n# {\"before\":\"9b248ded63c0a4304338da828b6dc44009aaf60f2cbe7b8afcafeabb198a6155\",\"after\":\"9b248ded63c0a4304338da828b6dc44009aaf60f2cbe7b8afcafeabb198a6155\",\"status\":null,\"signal\":\"SIGKILL\",\"error\":\"Child exceeded 1500 ms hard deadline\",\"stdout\":\"\",\"stderr\":\"\"}\n"
+    },
+    {
+      "file": "tests/shell-stress/current-gaps/pattern.test.ts",
+      "test": "unmatched bracket shell completes or cancels within external deadline",
+      "owner": "Sagan",
+      "originalId": null,
+      "diagnostic": "# Subtest: unmatched bracket shell completes or cancels within external deadline\nnot ok 6083 - unmatched bracket shell completes or cancels within external deadline\n  ---\n  duration_ms: 1743.9505\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/shell-stress/current-gaps/pattern.test.ts:1:230'\n  failureType: 'testCodeFailure'\n  error: |-\n    unmatched-bracket tokenization must not defeat the external cancellation deadline\n    + actual - expected\n    \n    + Error: Child exceeded 1500 ms hard deadline\n    +     at Timeout.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/shell-stress/process.ts:47:55)\n    +     at listOnTimeout (node:internal/timers:585:17)\n    +     at process.processTimers (node:internal/timers:521:7) {\n    +   code: 'ETIMEDOUT'\n    + }\n    - undefined\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  actual:\n  error: 'Child exceeded 1500 ms hard deadline'\n  stack: |-\n    Timeout.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/shell-stress/process.ts:47:55)\n    listOnTimeout (node:internal/timers:585:17)\n    process.processTimers (node:internal/timers:521:7)\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/shell-stress/current-gaps/pattern.test.ts:17:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# {\"before\":\"9b248ded63c0a4304338da828b6dc44009aaf60f2cbe7b8afcafeabb198a6155\",\"after\":\"9b248ded63c0a4304338da828b6dc44009aaf60f2cbe7b8afcafeabb198a6155\",\"status\":null,\"signal\":\"SIGKILL\",\"error\":\"Child exceeded 1500 ms hard deadline\",\"stdout\":\"\",\"stderr\":\"\"}\n"
+    },
+    {
+      "file": "tests/shell-stress/differential.test.ts",
+      "test": "Bash differential: ansi-c-quoted-word-decodes-escape-before-argument-passing",
+      "owner": "Sagan",
+      "originalId": 35,
+      "diagnostic": "# Subtest: Bash differential: ansi-c-quoted-word-decodes-escape-before-argument-passing\nnot ok 6119 - Bash differential: ansi-c-quoted-word-decodes-escape-before-argument-passing\n  ---\n  duration_ms: 531.709042\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/shell-stress/differential.test.ts:1:485'\n  failureType: 'testCodeFailure'\n  error: |-\n    ansi-c-quoted-word-decodes-escape-before-argument-passing\n    script: printf '<%s>' $'one\\ntwo\\tthree'\n    Bash: {\"stdout\":\"<one\\ntwo\\tthree>\",\"stderr\":\"\",\"stdoutBase64\":\"PG9uZQp0d28JdGhyZWU+\",\"stderrBase64\":\"\",\"exitCode\":0,\"files\":{}}\n    virtual: {\"stdout\":\"\",\"stderr\":\"shell: Unsupported shell quoting or special parameter at offset 15\\n\",\"exitCode\":2,\"files\":{},\"stdoutBase64\":\"\",\"stderrBase64\":\"c2hlbGw6IFVuc3VwcG9ydGVkIHNoZWxsIHF1b3Rpbmcgb3Igc3BlY2lhbCBwYXJhbWV0ZXIgYXQgb2Zmc2V0IDE1Cg==\"}\n    + actual - expected\n    \n      {\n    +   exitCode: 2,\n    -   exitCode: 0,\n        files: {},\n    +   stderr: 'shell: Unsupported shell quoting or special parameter at offset 15\\n',\n    +   stderrBase64: 'c2hlbGw6IFVuc3VwcG9ydGVkIHNoZWxsIHF1b3Rpbmcgb3Igc3BlY2lhbCBwYXJhbWV0ZXIgYXQgb2Zmc2V0IDE1Cg==',\n    +   stdout: '',\n    +   stdoutBase64: ''\n    -   stderr: '',\n    -   stderrBase64: '',\n    -   stdout: '<one\\ntwo\\tthree>',\n    -   stdoutBase64: 'PG9uZQp0d28JdGhyZWU+'\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: |-\n      <one\n      two\tthree>\n    stderr: ''\n    stdoutBase64: 'PG9uZQp0d28JdGhyZWU+'\n    stderrBase64: ''\n    exitCode: 0\n    files:\n  actual:\n    stdout: ''\n    stderr: |-\n      shell: Unsupported shell quoting or special parameter at offset 15\n      \n    exitCode: 2\n    files:\n    stdoutBase64: ''\n    stderrBase64: 'c2hlbGw6IFVuc3VwcG9ydGVkIHNoZWxsIHF1b3Rpbmcgb3Igc3BlY2lhbCBwYXJhbWV0ZXIgYXQgb2Zmc2V0IDE1Cg=='\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/shell-stress/differential.test.ts:16:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "file": "tests/shell-stress/differential.test.ts",
+      "test": "Bash differential: nested-substitution-syntax-error-does-not-prevent-earlier-effects",
+      "owner": "Sagan",
+      "originalId": 36,
+      "diagnostic": "# Subtest: Bash differential: nested-substitution-syntax-error-does-not-prevent-earlier-effects\nnot ok 6131 - Bash differential: nested-substitution-syntax-error-does-not-prevent-earlier-effects\n  ---\n  duration_ms: 452.107708\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/shell-stress/differential.test.ts:1:485'\n  failureType: 'testCodeFailure'\n  error: |-\n    nested-substitution-syntax-error-does-not-prevent-earlier-effects\n    script: printf touched >marker; printf '%s' \"$(true |)\"\n    Bash: {\"stdout\":\"\",\"stderr\":\"shell-stress: command substitution: line 1: syntax error: unexpected end of file\\n\",\"stdoutBase64\":\"\",\"stderrBase64\":\"c2hlbGwtc3RyZXNzOiBjb21tYW5kIHN1YnN0aXR1dGlvbjogbGluZSAxOiBzeW50YXggZXJyb3I6IHVuZXhwZWN0ZWQgZW5kIG9mIGZpbGUK\",\"exitCode\":0,\"files\":{\"marker\":{\"type\":\"file\",\"base64\":\"dG91Y2hlZA==\"}}}\n    virtual: {\"stdout\":\"\",\"stderr\":\"shell: Expected command at offset 6\\n\",\"exitCode\":2,\"files\":{},\"stdoutBase64\":\"\",\"stderrBase64\":\"c2hlbGw6IEV4cGVjdGVkIGNvbW1hbmQgYXQgb2Zmc2V0IDYK\"}\n    + actual - expected\n    \n      {\n    +   exitCode: 2,\n    +   files: {},\n    +   stderr: 'shell: Expected command at offset 6\\n',\n    +   stderrBase64: 'c2hlbGw6IEV4cGVjdGVkIGNvbW1hbmQgYXQgb2Zmc2V0IDYK',\n    -   exitCode: 0,\n    -   files: {\n    -     marker: {\n    -       base64: 'dG91Y2hlZA==',\n    -       type: 'file'\n    -     }\n    -   },\n    -   stderr: 'shell-stress: command substitution: line 1: syntax error: unexpected end of file\\n',\n    -   stderrBase64: 'c2hlbGwtc3RyZXNzOiBjb21tYW5kIHN1YnN0aXR1dGlvbjogbGluZSAxOiBzeW50YXggZXJyb3I6IHVuZXhwZWN0ZWQgZW5kIG9mIGZpbGUK',\n        stdout: '',\n        stdoutBase64: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: ''\n    stderr: |-\n      shell-stress: command substitution: line 1: syntax error: unexpected end of file\n      \n    stdoutBase64: ''\n    stderrBase64: 'c2hlbGwtc3RyZXNzOiBjb21tYW5kIHN1YnN0aXR1dGlvbjogbGluZSAxOiBzeW50YXggZXJyb3I6IHVuZXhwZWN0ZWQgZW5kIG9mIGZpbGUK'\n    exitCode: 0\n    files:\n      marker:\n        type: 'file'\n        base64: 'dG91Y2hlZA=='\n  actual:\n    stdout: ''\n    stderr: |-\n      shell: Expected command at offset 6\n      \n    exitCode: 2\n    files:\n    stdoutBase64: ''\n    stderrBase64: 'c2hlbGw6IEV4cGVjdGVkIGNvbW1hbmQgYXQgb2Zmc2V0IDYK'\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/shell-stress/differential.test.ts:16:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "file": "tests/shell-stress/differential.test.ts",
+      "test": "Bash differential: fatal-parameter-expansion-prevents-following-file-effect",
+      "owner": "Sagan",
+      "originalId": 37,
+      "diagnostic": "# Subtest: Bash differential: fatal-parameter-expansion-prevents-following-file-effect\nnot ok 6135 - Bash differential: fatal-parameter-expansion-prevents-following-file-effect\n  ---\n  duration_ms: 353.808875\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/shell-stress/differential.test.ts:1:485'\n  failureType: 'testCodeFailure'\n  error: |-\n    fatal-parameter-expansion-prevents-following-file-effect\n    script: : \"${missing:?stop}\"; : >after\n    Bash: {\"stdout\":\"\",\"stderr\":\"shell-stress: missing: stop\\n\",\"stdoutBase64\":\"\",\"stderrBase64\":\"c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg==\",\"exitCode\":127,\"files\":{}}\n    virtual: {\"stdout\":\"\",\"stderr\":\"shell: missing: stop\\n\",\"exitCode\":1,\"files\":{},\"stdoutBase64\":\"\",\"stderrBase64\":\"c2hlbGw6IG1pc3Npbmc6IHN0b3AK\"}\n    + actual - expected\n    \n      {\n    +   exitCode: 1,\n    -   exitCode: 127,\n        files: {},\n    +   stderr: 'shell: missing: stop\\n',\n    +   stderrBase64: 'c2hlbGw6IG1pc3Npbmc6IHN0b3AK',\n    -   stderr: 'shell-stress: missing: stop\\n',\n    -   stderrBase64: 'c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg==',\n        stdout: '',\n        stdoutBase64: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: ''\n    stderr: |-\n      shell-stress: missing: stop\n      \n    stdoutBase64: ''\n    stderrBase64: 'c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg=='\n    exitCode: 127\n    files:\n  actual:\n    stdout: ''\n    stderr: |-\n      shell: missing: stop\n      \n    exitCode: 1\n    files:\n    stdoutBase64: ''\n    stderrBase64: 'c2hlbGw6IG1pc3Npbmc6IHN0b3AK'\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/shell-stress/differential.test.ts:16:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "file": "tests/shell-stress/differential.test.ts",
+      "test": "Bash differential: fatal-arithmetic-expansion-prevents-following-file-effect",
+      "owner": "Sagan",
+      "originalId": 38,
+      "diagnostic": "# Subtest: Bash differential: fatal-arithmetic-expansion-prevents-following-file-effect\nnot ok 6136 - Bash differential: fatal-arithmetic-expansion-prevents-following-file-effect\n  ---\n  duration_ms: 487.24425\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/shell-stress/differential.test.ts:1:485'\n  failureType: 'testCodeFailure'\n  error: |-\n    fatal-arithmetic-expansion-prevents-following-file-effect\n    script: : \"$((1/0))\"; : >after\n    Bash: {\"stdout\":\"\",\"stderr\":\"shell-stress: 1/0: division by 0 (error token is \\\"0\\\")\\n\",\"stdoutBase64\":\"\",\"stderrBase64\":\"c2hlbGwtc3RyZXNzOiAxLzA6IGRpdmlzaW9uIGJ5IDAgKGVycm9yIHRva2VuIGlzICIwIikK\",\"exitCode\":1,\"files\":{}}\n    virtual: {\"stdout\":\"\",\"stderr\":\"shell: Arithmetic division by zero\\n\",\"exitCode\":1,\"files\":{},\"stdoutBase64\":\"\",\"stderrBase64\":\"c2hlbGw6IEFyaXRobWV0aWMgZGl2aXNpb24gYnkgemVybwo=\"}\n    + actual - expected\n    \n      {\n        exitCode: 1,\n        files: {},\n    +   stderr: 'shell: Arithmetic division by zero\\n',\n    +   stderrBase64: 'c2hlbGw6IEFyaXRobWV0aWMgZGl2aXNpb24gYnkgemVybwo=',\n    -   stderr: 'shell-stress: 1/0: division by 0 (error token is \"0\")\\n',\n    -   stderrBase64: 'c2hlbGwtc3RyZXNzOiAxLzA6IGRpdmlzaW9uIGJ5IDAgKGVycm9yIHRva2VuIGlzICIwIikK',\n        stdout: '',\n        stdoutBase64: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: ''\n    stderr: |-\n      shell-stress: 1/0: division by 0 (error token is \"0\")\n      \n    stdoutBase64: ''\n    stderrBase64: 'c2hlbGwtc3RyZXNzOiAxLzA6IGRpdmlzaW9uIGJ5IDAgKGVycm9yIHRva2VuIGlzICIwIikK'\n    exitCode: 1\n    files:\n  actual:\n    stdout: ''\n    stderr: |-\n      shell: Arithmetic division by zero\n      \n    exitCode: 1\n    files:\n    stdoutBase64: ''\n    stderrBase64: 'c2hlbGw6IEFyaXRobWV0aWMgZGl2aXNpb24gYnkgemVybwo='\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/shell-stress/differential.test.ts:16:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "file": "tests/shell-stress/differential.test.ts",
+      "test": "Bash differential: fatal-expansion-in-substitution-stops-substitution-only",
+      "owner": "Sagan",
+      "originalId": 39,
+      "diagnostic": "# Subtest: Bash differential: fatal-expansion-in-substitution-stops-substitution-only\nnot ok 6137 - Bash differential: fatal-expansion-in-substitution-stops-substitution-only\n  ---\n  duration_ms: 346.506583\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/shell-stress/differential.test.ts:1:485'\n  failureType: 'testCodeFailure'\n  error: |-\n    fatal-expansion-in-substitution-stops-substitution-only\n    script: value=$(printf \"%s\" \"${missing:?stop}\"; printf wrong); printf \"<%s>:%s\\n\" \"$value\" \"$?\"\n    Bash: {\"stdout\":\"<>:1\\n\",\"stderr\":\"shell-stress: missing: stop\\n\",\"stdoutBase64\":\"PD46MQo=\",\"stderrBase64\":\"c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg==\",\"exitCode\":0,\"files\":{}}\n    virtual: {\"stdout\":\"<>:1\\n\",\"stderr\":\"shell: missing: stop\\n\",\"exitCode\":0,\"files\":{},\"stdoutBase64\":\"PD46MQo=\",\"stderrBase64\":\"c2hlbGw6IG1pc3Npbmc6IHN0b3AK\"}\n    + actual - expected\n    \n      {\n        exitCode: 0,\n        files: {},\n    +   stderr: 'shell: missing: stop\\n',\n    +   stderrBase64: 'c2hlbGw6IG1pc3Npbmc6IHN0b3AK',\n    -   stderr: 'shell-stress: missing: stop\\n',\n    -   stderrBase64: 'c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg==',\n        stdout: '<>:1\\n',\n        stdoutBase64: 'PD46MQo='\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: |-\n      <>:1\n      \n    stderr: |-\n      shell-stress: missing: stop\n      \n    stdoutBase64: 'PD46MQo='\n    stderrBase64: 'c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg=='\n    exitCode: 0\n    files:\n  actual:\n    stdout: |-\n      <>:1\n      \n    stderr: |-\n      shell: missing: stop\n      \n    exitCode: 0\n    files:\n    stdoutBase64: 'PD46MQo='\n    stderrBase64: 'c2hlbGw6IG1pc3Npbmc6IHN0b3AK'\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/shell-stress/differential.test.ts:16:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "file": "tests/shell-stress/differential.test.ts",
+      "test": "Bash differential: glob-posix-bracket-digit-class",
+      "owner": "Sagan",
+      "originalId": 40,
+      "diagnostic": "# Subtest: Bash differential: glob-posix-bracket-digit-class\nnot ok 6145 - Bash differential: glob-posix-bracket-digit-class\n  ---\n  duration_ms: 248.763583\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/shell-stress/differential.test.ts:1:485'\n  failureType: 'testCodeFailure'\n  error: |-\n    glob-posix-bracket-digit-class\n    script: printf '<%s>\\n' [[:digit:]].txt\n    Bash: {\"stdout\":\"<1.txt>\\n\",\"stderr\":\"\",\"stdoutBase64\":\"PDEudHh0Pgo=\",\"stderrBase64\":\"\",\"exitCode\":0,\"files\":{\"1.txt\":{\"type\":\"file\",\"base64\":\"\"},\"a.txt\":{\"type\":\"file\",\"base64\":\"\"}}}\n    virtual: {\"stdout\":\"<[[:digit:]].txt>\\n\",\"stderr\":\"\",\"exitCode\":0,\"files\":{\"1.txt\":{\"type\":\"file\",\"base64\":\"\"},\"a.txt\":{\"type\":\"file\",\"base64\":\"\"}},\"stdoutBase64\":\"PFtbOmRpZ2l0Ol1dLnR4dD4K\",\"stderrBase64\":\"\"}\n    + actual - expected\n    ... Skipped lines\n    \n      {\n        exitCode: 0,\n        files: {\n          '1.txt': {\n            base64: '',\n    ...\n        stderrBase64: '',\n    +   stdout: '<[[:digit:]].txt>\\n',\n    +   stdoutBase64: 'PFtbOmRpZ2l0Ol1dLnR4dD4K'\n    -   stdout: '<1.txt>\\n',\n    -   stdoutBase64: 'PDEudHh0Pgo='\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: |-\n      <1.txt>\n      \n    stderr: ''\n    stdoutBase64: 'PDEudHh0Pgo='\n    stderrBase64: ''\n    exitCode: 0\n    files:\n      1.txt:\n        type: 'file'\n        base64: ''\n      a.txt:\n        type: 'file'\n        base64: ''\n  actual:\n    stdout: |-\n      <[[:digit:]].txt>\n      \n    stderr: ''\n    exitCode: 0\n    files:\n      1.txt:\n        type: 'file'\n        base64: ''\n      a.txt:\n        type: 'file'\n        base64: ''\n    stdoutBase64: 'PFtbOmRpZ2l0Ol1dLnR4dD4K'\n    stderrBase64: ''\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-head-2ZJEaY/tests/shell-stress/differential.test.ts:16:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    }
+  ],
+  "remainingPriorities": [
+    "Faraday: GNU -F0 asymmetric non-EOF anchoring acceptance; do not dismiss as an oracle-only calibration failure",
+    "Faraday/root: mixed diff context/format flag ordering differs from GNU profile; keep Apple profile recorded",
+    "Sagan: ANSI-C quoting and versioned fatal-parameter status; exact stderr mismatches are separate",
+    "Root/Sagan: decide prevalidation-versus-Bash side-effect policy without silently waiving either invariant"
+  ],
+  "claims": {
+    "racesDemonstrated": false,
+    "expectedValuesChangedByThisWorker": false,
+    "unrelatedSourceEdited": false,
+    "ownedProductBugsFound": false,
+    "missingLabelsArePasses": false,
+    "superiorityDemonstrated": false
+  }
+}

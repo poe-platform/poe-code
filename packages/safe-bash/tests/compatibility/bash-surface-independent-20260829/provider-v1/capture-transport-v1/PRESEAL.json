@@ -1,0 +1,177 @@
+{
+  "schema": "capture-transport-preexecution-seal-v1",
+  "created": 1787979938890,
+  "authority": "ROOT sole D03 with ONLY exact two-file metadata/write exceptions; no retry after target failure",
+  "files": [
+    {
+      "path": "admin.mjs",
+      "bytes": 4280,
+      "sha256": "e82cb9b1f4994ba20cceb333a1127998a0cc1c5ed64ab85f91223d7493fea12a"
+    },
+    {
+      "path": "PLAN.json",
+      "bytes": 4695,
+      "sha256": "e8e2253c0bbacbd9de3591b84b81f3916ee06ad8262086391b37a298793efb2f"
+    },
+    {
+      "path": "PROFILE.sb.data",
+      "bytes": 6128,
+      "sha256": "cd24747ce2db626904e4c6c3986e6a303a85dada923a9dc1e6e8496dee9a93a5"
+    },
+    {
+      "path": "PROTOCOL.md",
+      "bytes": 2966,
+      "sha256": "39202dfb73b3973155b18c2b4989a0ce7355b00ce258715a5772e014bc1fbdc3"
+    },
+    {
+      "path": "capture-diagnostic.mjs",
+      "bytes": 11854,
+      "sha256": "a823bc2860c4b1cb9da48451fc6fe6c7a001c4776318c3ae53666a9fd0948b7e"
+    }
+  ],
+  "originalRoot": "/private/tmp/safe-bash-surface-provider-author-v1",
+  "originalSnapshot": [
+    {
+      "path": "F01.json",
+      "type": "file",
+      "mode": 420,
+      "bytes": 1087,
+      "sha256": "62c763795c70e58df68add209139d3ffdb96da7dd2ebb76739d3c0ad2398c34b"
+    },
+    {
+      "path": "OWNER.jsonl",
+      "type": "file",
+      "mode": 384,
+      "bytes": 899,
+      "sha256": "dc1281f95c4a318db7ff46d929f64b371877a2308325d28f347d24ee6ad3a1ca"
+    },
+    {
+      "path": "RESULTS.json",
+      "type": "file",
+      "mode": 420,
+      "bytes": 3671,
+      "sha256": "185fed171e3443da2b6256bd7b1f0ffdf14fe770fa67c2549854eb4aaff75a70"
+    },
+    {
+      "path": "canary",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "canary/read",
+      "type": "file",
+      "mode": 384,
+      "bytes": 18,
+      "sha256": "328801ba806d6c4e8752223776aa7152d2960a35ffd3d2660b7db13ae80da8db"
+    },
+    {
+      "path": "canary/write",
+      "type": "file",
+      "mode": 384,
+      "bytes": 19,
+      "sha256": "5981ee2bceb7a00eb2817274c683c39194dc29c0b9818e782a9975996194559b"
+    },
+    {
+      "path": "capture",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "capture/F01.events",
+      "type": "file",
+      "mode": 384,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/F01.lifecycle",
+      "type": "file",
+      "mode": 384,
+      "bytes": 2027,
+      "sha256": "9c71bd80149b7f2da40599bbe4bb0d88c2822e7f85d05ef280a2ce68ca6b9b96"
+    },
+    {
+      "path": "capture/F01.stderr",
+      "type": "file",
+      "mode": 384,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/F01.stdout",
+      "type": "file",
+      "mode": 384,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "cases",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "cases/F01",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "cases/F01/empty-path",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "cases/F01/home",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "cases/F01/tmp",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "cases/F01/work",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "cases/F01/work/escape",
+      "type": "symlink",
+      "target": "/private/tmp/safe-bash-surface-provider-author-v1/canary/read"
+    },
+    {
+      "path": "cases/F01/work/input",
+      "type": "file",
+      "mode": 384,
+      "bytes": 12,
+      "sha256": "068c67cd6fd75747892fbe11530adde4587a79c18a1c05b9e75784a5e09cd950"
+    },
+    {
+      "path": "profiles",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "profiles/F01.sb",
+      "type": "file",
+      "mode": 256,
+      "bytes": 5745,
+      "sha256": "f0c96a5833d751c7b1ca194094390d75f91fe7c2286920c8eb3c4163afd2c58d"
+    },
+    {
+      "path": "stage",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "stage/fixture.mjs",
+      "type": "file",
+      "mode": 256,
+      "bytes": 4118,
+      "sha256": "0c7c680d63eb1dbe5a12c59bf4169814bdaac22bec29919541fe37c5b8b26865"
+    }
+  ],
+  "targets": 1,
+  "phaseStarted": 1787979580078,
+  "phaseDeadline": 1787980480078
+}

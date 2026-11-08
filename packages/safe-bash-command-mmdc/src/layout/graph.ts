@@ -1,0 +1,1420 @@
+import { drainWork } from "../work.js";
+import { routeGraphEdgesSteps } from "./routing.js";
+import {
+  admitMermaidLimits,
+  MermaidBudget,
+  type DocumentGroup,
+  type DocumentNode,
+  type MermaidDocument,
+  type MermaidLayoutOptions,
+  type MermaidScene,
+  type MermaidThemeTokens,
+  type PathSegment,
+  type Point,
+  type SceneBadge,
+  type SceneDivider,
+  type SceneEdge,
+  type SceneGroup,
+  type SceneLabelPill,
+  type SceneNote,
+  type SceneNode,
+  type SceneTextLine
+} from "../contracts.js";
+import { rectsIntersect, snapTo8 } from "../geometry.js";
+import { measureLineWidth, measureTextBlock } from "../text.js";
+import { resolveMermaidTheme } from "../theme.js";
+
+
+interface SizedNode {
+  readonly doc: DocumentNode;
+  readonly width: number;
+  readonly height: number;
+  readonly rx: number;
+  readonly headerHeight?: number | undefined;
+}
+
+function measureNodeBox(node: DocumentNode, theme: MermaidThemeTokens): SizedNode {
+  if (node.shape === "stateStart" || node.shape === "stateEnd") {
+    return { doc: node, width: 28, height: 28, rx: 14 };
+  }
+
+  if (node.shape === "classCard" || node.shape === "erEntity") {
+    const titleMeasure = measureTextBlock(node.label, {
+      maxWidth: theme.wrappingWidth,
+      fontSize: theme.fontSize,
+      lineHeight: theme.lineHeight,
+      fontFamily: "ui",
+      fontWeight: 600
+    });
+    const stereoWidth = node.stereotype
+      ? measureLineWidth(`«${node.stereotype}»`, theme.secondaryFontSize, "ui", 500)
+      : 0;
+    const headerHeight = node.stereotype
+      ? Math.max(46, titleMeasure.height + 30)
+      : Math.max(36, titleMeasure.height + 16);
+
+    let maxRowWidth = Math.max(titleMeasure.width, stereoWidth) + 36;
+    const attrs = node.attributes ?? [];
+    const methods = node.methods ?? [];
+
+    for (const member of [...attrs, ...methods]) {
+      const leftText = `${member.visibility ?? ""}${member.name}${member.isMethod ? "()" : ""}`;
+      const leftW = measureLineWidth(leftText, theme.secondaryFontSize, "ui", 500);
+      const rightW = member.typeOrReturn
+        ? measureLineWidth(member.typeOrReturn, theme.secondaryFontSize, "mono", 400) + 16
+        : 0;
+      const badgeW = member.badge ? 34 : 0;
+      const rowW = leftW + rightW + badgeW + 40;
+      if (rowW > maxRowWidth) maxRowWidth = rowW;
+    }
+
+    const attrHeight = attrs.length > 0 ? attrs.length * 22 + 12 : 0;
+    const methodHeight =
+      node.shape === "classCard" && methods.length > 0 ? methods.length * 22 + 12 : 0;
+    const totalHeight = Math.max(
+      48,
+      snapTo8(headerHeight + (attrHeight || (node.shape === "erEntity" ? 12 : 0)) + methodHeight)
+    );
+    const totalWidth = Math.max(128, snapTo8(maxRowWidth));
+
+    return {
+      doc: node,
+      width: totalWidth,
+      height: totalHeight,
+      rx: 8,
+      headerHeight
+    };
+  }
+
+  const measured = measureTextBlock(node.label, {
+    maxWidth: theme.wrappingWidth,
+    fontSize: theme.fontSize,
+    lineHeight: theme.lineHeight,
+    fontFamily: "ui",
+    fontWeight: 500
+  });
+
+  if (node.shape === "diamond") {
+    const width = Math.max(120, snapTo8((measured.width + 36) * 1.68));
+    const height = Math.max(72, snapTo8((measured.height + 22) * 1.68));
+    return { doc: node, width, height, rx: 4 };
+  }
+
+  if (node.shape === "circle") {
+    const diameter = Math.max(64, snapTo8(Math.hypot(measured.width + 28, measured.height + 24)));
+    return { doc: node, width: diameter, height: diameter, rx: Math.round(diameter / 2) };
+  }
+
+  const extraW =
+    node.shape === "subroutine" || node.shape === "hexagon"
+      ? 48
+      : node.shape === "cylinder"
+        ? 30
+        : 36;
+  const extraH = node.shape === "cylinder" ? 38 : 22;
+  const width = Math.max(node.shape === "cylinder" ? 104 : 88, snapTo8(measured.width + extraW));
+  const height = Math.max(node.shape === "cylinder" ? 60 : 40, snapTo8(measured.height + extraH));
+  const rx =
+    node.shape === "stadium"
+      ? Math.round(height / 2)
+      : node.shape === "rounded"
+        ? 12
+        : theme.cornerRadius;
+
+  return { doc: node, width, height, rx };
+}
+
+function buildSceneNode(
+  sized: SizedNode,
+  x: number,
+  y: number,
+  theme: MermaidThemeTokens
+): SceneNode {
+  const { doc, width, height, rx, headerHeight } = sized;
+  const isAccent =
+    doc.accent === true ||
+    doc.shape === "diamond" ||
+    doc.shape === "stadium" ||
+    doc.shape === "circle" ||
+    doc.shape === "cylinder" ||
+    doc.shape === "hexagon";
+
+  const fill =
+    doc.shape === "stateStart"
+      ? theme.accent
+      : doc.shape === "stateEnd"
+        ? theme.surface
+        : isAccent
+          ? theme.surfaceAccent
+          : theme.surface;
+  const stroke =
+    doc.shape === "stateStart" || doc.shape === "stateEnd" || isAccent
+      ? theme.accentBorder
+      : theme.border;
+
+  if (doc.shape === "stateStart" || doc.shape === "stateEnd") {
+    return {
+      id: doc.id,
+      shape: doc.shape,
+      x,
+      y,
+      width,
+      height,
+      rx,
+      fill,
+      stroke,
+      strokeWidth: 1.5,
+      shadow: false,
+      groupId: doc.groupId,
+      lines: [],
+      dividers: [],
+      badges: []
+    };
+  }
+
+  if (doc.shape === "classCard" || doc.shape === "erEntity") {
+    const hHeight = headerHeight ?? 36;
+    const lines: SceneTextLine[] = [];
+    const dividers: SceneDivider[] = [];
+    const badges: SceneBadge[] = [];
+
+    if (doc.stereotype) {
+      const stText = `«${doc.stereotype}»`;
+      lines.push({
+        text: stText,
+        width: measureLineWidth(stText, theme.secondaryFontSize, "ui", 500),
+        x: Math.round(x + width / 2),
+        y: Math.round(y + 15),
+        fontSize: theme.secondaryFontSize,
+        fontWeight: 500,
+        fontFamily: "ui",
+        color: theme.mutedText,
+        align: "center"
+      });
+    }
+
+    const title = measureTextBlock(doc.label, {
+      maxWidth: theme.wrappingWidth, fontSize: theme.fontSize, lineHeight: theme.lineHeight,
+      fontFamily: "ui", fontWeight: 600
+    });
+    const stereoHeight = doc.stereotype ? 22 : 0;
+    const titleTop = y + stereoHeight + (hHeight - stereoHeight - title.height) / 2;
+    for (const [index, line] of title.lines.entries()) {
+      lines.push({
+        text: line.text, width: line.width, x: Math.round(x + width / 2),
+        y: Math.round(titleTop + theme.fontSize + 1 + index * theme.lineHeight),
+        fontSize: theme.fontSize, fontWeight: 600, fontFamily: "ui", color: theme.text, align: "center"
+      });
+    }
+
+    let cursorY = y + hHeight;
+    const attrs = doc.attributes ?? [];
+    const methods = doc.methods ?? [];
+
+    if (attrs.length > 0 || methods.length > 0) {
+      dividers.push({
+        x1: x,
+        y1: cursorY,
+        x2: x + width,
+        y2: cursorY,
+        stroke: theme.border
+      });
+    }
+
+    if (attrs.length > 0) {
+      cursorY += 6;
+      for (const attr of attrs) {
+        const rowY = cursorY + 15;
+        const leftLabel = `${attr.visibility ?? ""}${attr.name}`;
+        lines.push({
+          text: leftLabel,
+          width: measureLineWidth(leftLabel, theme.secondaryFontSize, "ui", 500),
+          x: x + 14,
+          y: rowY,
+          fontSize: theme.secondaryFontSize,
+          fontWeight: 500,
+          fontFamily: "ui",
+          color: theme.text,
+          align: "left"
+        });
+
+        let rightEdge = x + width - 14;
+        if (attr.badge) {
+          const bw = 26;
+          const bh = 15;
+          const bx = rightEdge - bw;
+          const by = cursorY + 3;
+          badges.push({
+            x: bx,
+            y: by,
+            width: bw,
+            height: bh,
+            rx: 4,
+            fill: theme.accentSurface,
+            stroke: theme.accentBorder,
+            text: {
+              text: attr.badge,
+              width: measureLineWidth(attr.badge, 9.5, "mono", 600),
+              x: Math.round(bx + bw / 2),
+              y: Math.round(by + 11),
+              fontSize: 9.5,
+              fontWeight: 600,
+              fontFamily: "mono",
+              color: theme.accent,
+              align: "center"
+            }
+          });
+          rightEdge = bx - 8;
+        }
+
+        if (attr.typeOrReturn) {
+          lines.push({
+            text: attr.typeOrReturn,
+            width: measureLineWidth(attr.typeOrReturn, theme.secondaryFontSize, "mono", 400),
+            x: rightEdge,
+            y: rowY,
+            fontSize: theme.secondaryFontSize,
+            fontWeight: 400,
+            fontFamily: "mono",
+            color: theme.mutedText,
+            align: "right"
+          });
+        }
+        cursorY += 22;
+      }
+      cursorY += 6;
+    }
+
+    if (doc.shape === "classCard" && methods.length > 0) {
+      dividers.push({
+        x1: x,
+        y1: cursorY,
+        x2: x + width,
+        y2: cursorY,
+        stroke: theme.border
+      });
+      cursorY += 6;
+      for (const method of methods) {
+        const rowY = cursorY + 15;
+        const leftLabel = `${method.visibility ?? ""}${method.name}${method.name.includes("(") ? "" : "()"}`;
+        lines.push({
+          text: leftLabel,
+          width: measureLineWidth(leftLabel, theme.secondaryFontSize, "ui", 500),
+          x: x + 14,
+          y: rowY,
+          fontSize: theme.secondaryFontSize,
+          fontWeight: 500,
+          fontFamily: "ui",
+          color: theme.text,
+          align: "left"
+        });
+        if (method.typeOrReturn) {
+          lines.push({
+            text: method.typeOrReturn,
+            width: measureLineWidth(method.typeOrReturn, theme.secondaryFontSize, "mono", 400),
+            x: x + width - 14,
+            y: rowY,
+            fontSize: theme.secondaryFontSize,
+            fontWeight: 400,
+            fontFamily: "mono",
+            color: theme.mutedText,
+            align: "right"
+          });
+        }
+        cursorY += 22;
+      }
+    }
+
+    return {
+      id: doc.id,
+      shape: doc.shape,
+      x,
+      y,
+      width,
+      height,
+      rx,
+      fill: theme.surface,
+      headerFill: theme.groupHeaderSurface,
+      headerHeight: hHeight,
+      stroke: theme.border,
+      strokeWidth: theme.strokeWidth,
+      shadow: true,
+      groupId: doc.groupId,
+      lines,
+      dividers,
+      badges
+    };
+  }
+
+  const measured = measureTextBlock(doc.label, {
+    maxWidth: theme.wrappingWidth,
+    fontSize: theme.fontSize,
+    lineHeight: theme.lineHeight,
+    fontFamily: "ui",
+    fontWeight: 500
+  });
+  const totalTextHeight = measured.lines.length * theme.lineHeight;
+  const cylinderOffset = doc.shape === "cylinder" ? 8 : 0;
+  const startY = y + (height - totalTextHeight) / 2 + theme.fontSize + 1 + cylinderOffset;
+
+  const lines: SceneTextLine[] = measured.lines.map((line, idx) => ({
+    text: line.text,
+    width: line.width,
+    x: Math.round(x + width / 2),
+    y: Math.round(startY + idx * theme.lineHeight),
+    fontSize: theme.fontSize,
+    fontWeight: 500,
+    fontFamily: "ui",
+    color: isAccent ? theme.accentText : theme.text,
+    align: "center"
+  }));
+
+  return {
+    id: doc.id,
+    shape: doc.shape,
+    x,
+    y,
+    width,
+    height,
+    rx,
+    fill,
+    stroke,
+    strokeWidth: theme.strokeWidth,
+    shadow: true,
+    groupId: doc.groupId,
+    lines,
+    dividers:
+      doc.shape === "subroutine"
+        ? [
+            { x1: x + 11, y1: y, x2: x + 11, y2: y + height, stroke: theme.accentBorder },
+            { x1: x + width - 11, y1: y, x2: x + width - 11, y2: y + height, stroke: theme.accentBorder }
+          ]
+        : [],
+    badges: []
+  };
+}
+
+function getGroupAncestors(
+  groupId: string | undefined,
+  groupById: ReadonlyMap<string, DocumentGroup>
+): readonly string[] {
+  const chain: string[] = [];
+  let current = groupId;
+  while (current) {
+    chain.push(current);
+    current = groupById.get(current)?.parentId;
+  }
+  return chain;
+}
+
+function shiftEdge(edge: SceneEdge, dx: number, dy: number): SceneEdge {
+  const shiftPt = (p: Point): Point => ({
+    x: Math.round((p.x + dx) * 100) / 100,
+    y: Math.round((p.y + dy) * 100) / 100
+  });
+  const shiftPill = (pill: SceneLabelPill | undefined): SceneLabelPill | undefined =>
+    pill
+      ? {
+          ...pill,
+          x: pill.x + dx,
+          y: pill.y + dy,
+          lines: pill.lines.map((l) => ({ ...l, x: l.x + dx, y: l.y + dy }))
+        }
+      : undefined;
+
+  const segments: PathSegment[] = edge.segments.map((seg) =>
+    seg.kind === "Q"
+      ? {
+          kind: "Q",
+          cx: Math.round((seg.cx + dx) * 100) / 100,
+          cy: Math.round((seg.cy + dy) * 100) / 100,
+          x: Math.round((seg.x + dx) * 100) / 100,
+          y: Math.round((seg.y + dy) * 100) / 100
+        }
+      : {
+          kind: seg.kind,
+          x: Math.round((seg.x + dx) * 100) / 100,
+          y: Math.round((seg.y + dy) * 100) / 100
+        }
+  );
+  const d = segments
+    .map((s) => (s.kind === "Q" ? `Q ${s.cx} ${s.cy} ${s.x} ${s.y}` : `${s.kind} ${s.x} ${s.y}`))
+    .join(" ");
+
+  return {
+    ...edge,
+    points: edge.points.map(shiftPt),
+    segments,
+    d,
+    startMarker: edge.startMarker
+      ? { ...edge.startMarker, tip: shiftPt(edge.startMarker.tip) }
+      : undefined,
+    endMarker: edge.endMarker
+      ? { ...edge.endMarker, tip: shiftPt(edge.endMarker.tip) }
+      : undefined,
+    labelPill: shiftPill(edge.labelPill),
+    sourceLabelPill: shiftPill(edge.sourceLabelPill),
+    targetLabelPill: shiftPill(edge.targetLabelPill),
+    sourcePort: shiftPt(edge.sourcePort),
+    targetPort: shiftPt(edge.targetPort)
+  };
+}
+
+export function* layoutGraphDocumentSteps(
+  document: MermaidDocument,
+  options?: MermaidLayoutOptions
+): Generator<void, MermaidScene, void> {
+  yield;
+
+  let work = 0;
+
+  const limits = admitMermaidLimits(options?.limits, options?.settings?.limits
+    ? admitMermaidLimits(options.settings.limits)
+    : undefined);
+  const budget = options?.budget ?? new MermaidBudget(limits, options?.signal);
+  const { tokens: theme, backgroundColor } = resolveMermaidTheme(options);
+
+  const parallelDegree = new Map<string, number>();
+  const incomingDegree = new Map<string, number>();
+  const outgoingDegree = new Map<string, number>();
+  const pairSeen = new Map<string, number>();
+  for (const e of document.edges) {
+    if (++work % 256 === 0) yield;
+
+    if (e.from === e.to) continue;
+    incomingDegree.set(e.to, (incomingDegree.get(e.to) ?? 0) + 1);
+    outgoingDegree.set(e.from, (outgoingDegree.get(e.from) ?? 0) + 1);
+    const pk = e.from < e.to ? e.from + "::" + e.to : e.to + "::" + e.from;
+    const c = (pairSeen.get(pk) ?? 0) + 1;
+    pairSeen.set(pk, c);
+    if (c > 1) {
+      parallelDegree.set(e.from, Math.max(parallelDegree.get(e.from) ?? 1, c));
+      parallelDegree.set(e.to, Math.max(parallelDegree.get(e.to) ?? 1, c));
+    }
+  }
+  const sizedNodes = document.nodes.map((n) => {
+    let base = measureNodeBox(n, theme);
+    const degree = Math.max(incomingDegree.get(n.id) ?? 0, outgoingDegree.get(n.id) ?? 0);
+    if (degree > 4 && n.shape !== "stateStart" && n.shape !== "stateEnd") {
+      const portBreadth = snapTo8((degree - 1) * 12 + 36);
+      base = document.direction === "LR" || document.direction === "RL"
+        ? { ...base, height: Math.max(base.height, portBreadth) }
+        : { ...base, width: Math.max(base.width, portBreadth) };
+    }
+    const pDeg = parallelDegree.get(n.id) ?? 1;
+    if (pDeg > 1) {
+      return { ...base, height: Math.max(base.height, 64), width: Math.max(base.width, 128) };
+    }
+    return base;
+  });
+  const groupById = new Map(document.groups.map((g) => [g.id, g]));
+  const groupOrder = new Map(document.groups.map((g, i) => [g.id, i]));
+
+  // DFS cycle detection + longest-path ranking
+  const adj = new Map<string, string[]>();
+  for (const n of document.nodes) adj.set(n.id, []);
+  const forwardEdges: { from: string; to: string; label?: string | undefined }[] = [];
+
+  const visited = new Set<string>();
+  const inStack = new Set<string>();
+  const backEdgeSet = new Set<string>();
+
+  for (const edge of document.edges) {
+    if (++work % 256 === 0) yield;
+
+    if (edge.from === edge.to) continue;
+    adj.get(edge.from)?.push(edge.to);
+  }
+
+  const dfs = (u: string): void => {
+    budget.chargeWork(1);
+    visited.add(u);
+    inStack.add(u);
+    for (const v of adj.get(u) ?? []) {
+      if (inStack.has(v)) {
+        backEdgeSet.add(`${u}->${v}`);
+      } else if (!visited.has(v)) {
+        dfs(v);
+      }
+    }
+    inStack.delete(u);
+  };
+
+  for (const n of document.nodes) {
+    if (++work % 256 === 0) yield;
+
+    if (!visited.has(n.id)) dfs(n.id);
+  }
+
+  for (const edge of document.edges) {
+    if (++work % 256 === 0) yield;
+
+    if (edge.from === edge.to) continue;
+    if (backEdgeSet.has(`${edge.from}->${edge.to}`)) continue;
+    forwardEdges.push({ from: edge.from, to: edge.to, label: edge.label });
+  }
+
+  const rawRank = new Map<string, number>();
+  for (const n of document.nodes) rawRank.set(n.id, 0);
+
+  const maxIterations = Math.max(1, document.nodes.length + 2);
+  for (let iter = 0; iter < maxIterations; iter++) {
+    if (++work % 256 === 0) yield;
+
+    let changed = false;
+    for (const fe of forwardEdges) {
+      if (++work % 256 === 0) yield;
+
+      budget.chargeWork(1);
+      const rU = rawRank.get(fe.from) ?? 0;
+      const rV = rawRank.get(fe.to) ?? 0;
+      if (rV < rU + 1) {
+        rawRank.set(fe.to, rU + 1);
+        changed = true;
+      }
+    }
+    if (!changed) break;
+  }
+
+  // Ensure that if an external node u (outside group G) has a forward edge into any node inside group G,
+  // all nodes inside group G have rank >= rank(u) + 1 so G never visually swallows its predecessor u.
+  for (let pass = 0; pass < 3; pass++) {
+    if (++work % 256 === 0) yield;
+
+    let adjusted = false;
+    for (const gid of groupById.keys()) {
+      if (++work % 256 === 0) yield;
+
+      let maxPredRank = -1;
+      for (const fe of forwardEdges) {
+        if (++work % 256 === 0) yield;
+
+        const srcNode = document.nodes.find((n) => n.id === fe.from);
+        const dstNode = document.nodes.find((n) => n.id === fe.to);
+        if (!srcNode || !dstNode) continue;
+        const srcInG = getGroupAncestors(srcNode.groupId, groupById).includes(gid);
+        const dstInG = getGroupAncestors(dstNode.groupId, groupById).includes(gid);
+        if (!srcInG && dstInG) {
+          const rU = rawRank.get(fe.from) ?? 0;
+          if (rU > maxPredRank) maxPredRank = rU;
+        }
+      }
+      if (maxPredRank >= 0) {
+        let minInternalRank = Infinity;
+        for (const n of document.nodes) {
+          if (++work % 256 === 0) yield;
+
+          if (getGroupAncestors(n.groupId, groupById).includes(gid)) {
+            const rN = rawRank.get(n.id) ?? 0;
+            if (rN < minInternalRank) minInternalRank = rN;
+          }
+        }
+        if (minInternalRank <= maxPredRank) {
+          const delta = maxPredRank + 1 - minInternalRank;
+          for (const n of document.nodes) {
+            if (++work % 256 === 0) yield;
+
+            if (getGroupAncestors(n.groupId, groupById).includes(gid)) {
+              rawRank.set(n.id, (rawRank.get(n.id) ?? 0) + delta);
+            }
+          }
+          adjusted = true;
+        }
+      }
+    }
+    if (adjusted) {
+      for (let iter = 0; iter < maxIterations; iter++) {
+        if (++work % 256 === 0) yield;
+
+        let changed = false;
+        for (const fe of forwardEdges) {
+          if (++work % 256 === 0) yield;
+
+          const rU = rawRank.get(fe.from) ?? 0;
+          const rV = rawRank.get(fe.to) ?? 0;
+          if (rV < rU + 1) {
+            rawRank.set(fe.to, rU + 1);
+            changed = true;
+          }
+        }
+        if (!changed) break;
+      }
+    }
+  }
+
+  let maxRank = 0;
+  for (const r of rawRank.values()) {
+    if (++work % 256 === 0) yield;
+
+    if (r > maxRank) maxRank = r;
+  }
+
+  const isReverse = document.direction === "BT" || document.direction === "RL";
+  const isHorizontal = document.direction === "LR" || document.direction === "RL";
+  const nodeRanks = new Map<string, number>();
+  for (const [id, r] of rawRank) {
+    if (++work % 256 === 0) yield;
+
+    nodeRanks.set(id, isReverse ? maxRank - r : r);
+  }
+
+  // Group nodes by rank
+  const rankLayers: SizedNode[][] = Array.from({ length: maxRank + 1 }, () => []);
+  for (const sNode of sizedNodes) {
+    if (++work % 256 === 0) yield;
+
+    const r = nodeRanks.get(sNode.doc.id) ?? 0;
+    rankLayers[r]!.push(sNode);
+  }
+
+  // Order nodes within each rank so subgraphs stay contiguous
+  const sourceIndex = new Map(document.nodes.map((n, i) => [n.id, i]));
+  for (const layer of rankLayers) {
+    if (++work % 256 === 0) yield;
+
+    layer.sort((a, b) => {
+      const ancA = getGroupAncestors(a.doc.groupId, groupById);
+      const ancB = getGroupAncestors(b.doc.groupId, groupById);
+      const topA = ancA.length > 0 ? (groupOrder.get(ancA[ancA.length - 1]!) ?? 999) : 999;
+      const topB = ancB.length > 0 ? (groupOrder.get(ancB[ancB.length - 1]!) ?? 999) : 999;
+      if (topA !== topB) return topA - topB;
+      const innerA = a.doc.groupId ? (groupOrder.get(a.doc.groupId) ?? 999) : 999;
+      const innerB = b.doc.groupId ? (groupOrder.get(b.doc.groupId) ?? 999) : 999;
+      if (innerA !== innerB) return innerA - innerB;
+      return (sourceIndex.get(a.doc.id) ?? 0) - (sourceIndex.get(b.doc.id) ?? 0);
+    });
+  }
+
+  // Compute group rank intervals so we know where group headers/footers open and close
+  const groupMinRank = new Map<string, number>();
+  const groupMaxRank = new Map<string, number>();
+  for (const sNode of sizedNodes) {
+    if (++work % 256 === 0) yield;
+
+    const r = nodeRanks.get(sNode.doc.id) ?? 0;
+    for (const gid of getGroupAncestors(sNode.doc.groupId, groupById)) {
+      if (++work % 256 === 0) yield;
+
+      groupMinRank.set(gid, Math.min(groupMinRank.get(gid) ?? Infinity, r));
+      groupMaxRank.set(gid, Math.max(groupMaxRank.get(gid) ?? -Infinity, r));
+    }
+  }
+
+  // Coordinate assignment
+  const baseRankGap = isHorizontal ? Math.max(64, theme.rankGap) : theme.rankGap;
+  const baseNodeGap = Math.max(36, theme.nodeGap);
+
+  const placedCoords = new Map<string, { x: number; y: number }>();
+  let primaryCursor = 80;
+
+  // Find maximum transverse breadth across all layers so ranks can be optically centered
+  const layerSpans: {
+    readonly items: { readonly node: SizedNode; readonly offset: number }[];
+    readonly totalBreadth: number;
+    readonly maxPrimarySize: number;
+  }[] = [];
+
+  for (let r = 0; r <= maxRank; r++) {
+    if (++work % 256 === 0) yield;
+
+    const layer = rankLayers[r]!;
+    let offset = 0;
+    let maxPrimarySize = 0;
+    const items: { readonly node: SizedNode; readonly offset: number }[] = [];
+
+    for (let i = 0; i < layer.length; i++) {
+      if (++work % 256 === 0) yield;
+
+      const curr = layer[i]!;
+      if (i > 0) {
+        const prev = layer[i - 1]!;
+        const ancPrev = new Set(getGroupAncestors(prev.doc.groupId, groupById));
+        const ancCurr = new Set(getGroupAncestors(curr.doc.groupId, groupById));
+        let groupBoundaryCrossings = 0;
+        for (const g of ancPrev) if (!ancCurr.has(g)) groupBoundaryCrossings++;
+        for (const g of ancCurr) if (!ancPrev.has(g)) groupBoundaryCrossings++;
+        // If previous layer has a diamond branching to this layer, spread siblings so centers clear the diamond tips by >= 28px
+        let diamondSpreadBonus = 0;
+        if (r > 0 && layer.length >= 2) {
+          for (const prevNode of rankLayers[r - 1] ?? []) {
+            if (++work % 256 === 0) yield;
+
+            if (prevNode.doc.shape === "diamond") {
+              const diaSpan = isHorizontal ? prevNode.height : prevNode.width;
+              const prevChildBreadth = isHorizontal ? prev.height : prev.width;
+              const currChildBreadth = isHorizontal ? curr.height : curr.width;
+              const neededGap = Math.max(0, diaSpan + 64 - (prevChildBreadth + currChildBreadth) / 2);
+              if (neededGap > baseNodeGap) {
+                diamondSpreadBonus = Math.max(diamondSpreadBonus, neededGap - baseNodeGap);
+              }
+            }
+          }
+        }
+        offset += baseNodeGap + groupBoundaryCrossings * 32 + diamondSpreadBonus;
+      }
+      items.push({ node: curr, offset });
+      const breadth = isHorizontal ? curr.height : curr.width;
+      const primary = isHorizontal ? curr.width : curr.height;
+      offset += breadth;
+      if (primary > maxPrimarySize) maxPrimarySize = primary;
+    }
+    layerSpans.push({ items, totalBreadth: offset, maxPrimarySize });
+  }
+
+  const maxTransverseBreadth = Math.max(200, ...layerSpans.map((l) => l.totalBreadth));
+
+  for (let r = 0; r <= maxRank; r++) {
+    if (++work % 256 === 0) yield;
+
+    // Add top header margin if any groups open at rank r
+    let openingGroups = 0;
+    for (const [, minR] of groupMinRank) {
+      if (++work % 256 === 0) yield;
+
+      if (minR === r) openingGroups++;
+    }
+    if (r === 0 && openingGroups > 0) {
+      primaryCursor += openingGroups * 56;
+    }
+
+    const span = layerSpans[r]!;
+    const transverseStart = Math.round((maxTransverseBreadth - span.totalBreadth) / 2) + 80;
+
+    for (const item of span.items) {
+      if (++work % 256 === 0) yield;
+
+      const primaryPos = Math.round(
+        primaryCursor + (span.maxPrimarySize - (isHorizontal ? item.node.width : item.node.height)) / 2
+      );
+      const transversePos = Math.round(transverseStart + item.offset);
+      if (isHorizontal) {
+        placedCoords.set(item.node.doc.id, { x: primaryPos, y: transversePos });
+      } else {
+        placedCoords.set(item.node.doc.id, { x: transversePos, y: primaryPos });
+      }
+    }
+
+    if (r < maxRank) {
+      let closingNext = 0;
+      let openingNext = 0;
+      for (const [, maxR] of groupMaxRank) {
+        if (++work % 256 === 0) yield;
+
+        if (maxR === r) closingNext++;
+      }
+      for (const [, minR] of groupMinRank) {
+        if (++work % 256 === 0) yield;
+
+        if (minR === r + 1) openingNext++;
+      }
+
+      // Check if any edge crossing between r and r+1 carries a label
+      let maxLabelAllowance = 0;
+      for (const edge of document.edges) {
+        if (++work % 256 === 0) yield;
+
+        const rA = nodeRanks.get(edge.from) ?? 0;
+        const rB = nodeRanks.get(edge.to) ?? 0;
+        if (Math.min(rA, rB) <= r && Math.max(rA, rB) >= r + 1) {
+          if (edge.label || edge.sourceLabel || edge.targetLabel) {
+            const text = edge.label ?? edge.sourceLabel ?? edge.targetLabel ?? "";
+            const m = measureTextBlock(text, {
+              maxWidth: theme.wrappingWidth,
+              fontSize: theme.secondaryFontSize,
+              lineHeight: 16,
+              fontFamily: "ui",
+              fontWeight: 500
+            });
+            const needed = (isHorizontal ? m.width + 36 : m.height + 28);
+            if (needed > maxLabelAllowance) maxLabelAllowance = needed;
+          }
+        }
+      }
+
+      const groupExtra = closingNext * 28 + openingNext * 58;
+      const branchingDegree = Math.max(1, ...span.items.map(({ node }) => Math.max(
+        incomingDegree.get(node.doc.id) ?? 0, outgoingDegree.get(node.doc.id) ?? 0
+      )), ...layerSpans[r + 1]!.items.map(({ node }) => Math.max(
+        incomingDegree.get(node.doc.id) ?? 0, outgoingDegree.get(node.doc.id) ?? 0
+      )));
+      primaryCursor += span.maxPrimarySize + Math.max(baseRankGap, branchingDegree > 4 ? (branchingDegree + 1) * 16 + 32 : baseRankGap) + groupExtra + maxLabelAllowance;
+    } else {
+      primaryCursor += span.maxPrimarySize;
+    }
+  }
+
+  // Barycenter transverse alignment pass: align single-chain and connected nodes across adjacent ranks
+  const getTransverseCenter = (id: string, size: SizedNode): number => {
+    const c = placedCoords.get(id) ?? { x: 80, y: 80 };
+    return isHorizontal ? c.y + size.height / 2 : c.x + size.width / 2;
+  };
+  const setTransverseCenter = (id: string, size: SizedNode, center: number): void => {
+    const c = placedCoords.get(id) ?? { x: 80, y: 80 };
+    if (isHorizontal) {
+      placedCoords.set(id, { x: c.x, y: Math.round(center - size.height / 2) });
+    } else {
+      placedCoords.set(id, { x: Math.round(center - size.width / 2), y: c.y });
+    }
+  };
+  const sizedById = new Map(sizedNodes.map((s) => [s.doc.id, s]));
+
+  for (let sweep = 0; sweep < 6; sweep++) {
+    if (++work % 256 === 0) yield;
+
+    const rankOrder =
+      sweep % 2 === 0
+        ? Array.from({ length: maxRank + 1 }, (_, i) => i)
+        : Array.from({ length: maxRank + 1 }, (_, i) => maxRank - i);
+
+    for (const r of rankOrder) {
+      if (++work % 256 === 0) yield;
+
+      const layer = rankLayers[r]!;
+      if (layer.length === 0) continue;
+
+      const desiredCenters: number[] = layer.map((sNode) => {
+        const u = sNode.doc.id;
+        const neighborCenters: number[] = [];
+        for (const e of document.edges) {
+          if (e.from === e.to) continue;
+          const otherId = e.from === u ? e.to : e.to === u ? e.from : undefined;
+          if (!otherId) continue;
+          const rOther = nodeRanks.get(otherId) ?? 0;
+          if (Math.abs(rOther - r) === 1) {
+            const otherSized = sizedById.get(otherId);
+            if (otherSized) {
+              const weight = otherSized.doc.groupId === sNode.doc.groupId && sNode.doc.groupId !== undefined ? 4 : 1;
+              for (let w = 0; w < weight; w++) {
+                neighborCenters.push(getTransverseCenter(otherId, otherSized));
+              }
+            }
+          }
+        }
+        if (neighborCenters.length === 0) {
+          return getTransverseCenter(u, sNode);
+        }
+        const sum = neighborCenters.reduce((acc, v) => acc + v, 0);
+        return Math.round(sum / neighborCenters.length);
+      });
+
+      // Enforce non-overlapping transverse order and minimum gaps within rank r
+      const minGaps: number[] = [];
+      for (let i = 1; i < layer.length; i++) {
+        if (++work % 256 === 0) yield;
+
+        const prev = layer[i - 1]!;
+        const curr = layer[i]!;
+        const ancPrev = new Set(getGroupAncestors(prev.doc.groupId, groupById));
+        const ancCurr = new Set(getGroupAncestors(curr.doc.groupId, groupById));
+        let crossings = 0;
+        for (const g of ancPrev) if (!ancCurr.has(g)) crossings++;
+        for (const g of ancCurr) if (!ancPrev.has(g)) crossings++;
+        const prevHalf = (isHorizontal ? prev.height : prev.width) / 2;
+        const currHalf = (isHorizontal ? curr.height : curr.width) / 2;
+        minGaps.push(prevHalf + currHalf + baseNodeGap + crossings * 32);
+      }
+
+      const meanBefore =
+        desiredCenters.reduce((acc, v) => acc + v, 0) / desiredCenters.length;
+
+      // Forward constraint pass
+      for (let i = 1; i < layer.length; i++) {
+        if (++work % 256 === 0) yield;
+
+        const minAllowed = desiredCenters[i - 1]! + minGaps[i - 1]!;
+        if (desiredCenters[i]! < minAllowed) {
+          desiredCenters[i] = minAllowed;
+        }
+      }
+      // Re-center layer around meanBefore so sibling expansion is symmetric (zero rightward drift)
+      const meanAfter =
+        desiredCenters.reduce((acc, v) => acc + v, 0) / desiredCenters.length;
+      const centerShift = Math.round(meanBefore - meanAfter);
+      for (let i = 0; i < desiredCenters.length; i++) {
+        if (++work % 256 === 0) yield;
+
+        desiredCenters[i] = desiredCenters[i]! + centerShift;
+      }
+
+      for (let i = 0; i < layer.length; i++) {
+        if (++work % 256 === 0) yield;
+
+        setTransverseCenter(layer[i]!.doc.id, layer[i]!, desiredCenters[i]!);
+      }
+    }
+  }
+
+  // Spine alignment pass: keep consecutive single-node ranks on a shared spine axis, while letting single-node ranks connected to a specific branch node align directly under/over that branch node
+  const spineAxis = Math.round(maxTransverseBreadth / 2) + 80;
+  for (let r = 0; r <= maxRank; r++) {
+    if (++work % 256 === 0) yield;
+
+    const layer = rankLayers[r]!;
+    if (layer.length > 1) {
+      // Check if one node in this layer connects both to a single-node previous rank and a single-node next rank (spine continuation)
+      const prevSingleId = r > 0 && rankLayers[r - 1]!.length === 1 ? rankLayers[r - 1]![0]!.doc.id : undefined;
+      const nextSingleId = r < maxRank && rankLayers[r + 1]!.length === 1 ? rankLayers[r + 1]![0]!.doc.id : undefined;
+      let anchorIdx = -1;
+      if (prevSingleId && nextSingleId) {
+        const anchors = layer.filter((s) =>
+          document.edges.some((e) => (e.from === prevSingleId && e.to === s.doc.id) || (e.to === prevSingleId && e.from === s.doc.id)) &&
+          document.edges.some((e) => (e.from === s.doc.id && e.to === nextSingleId) || (e.to === s.doc.id && e.from === nextSingleId))
+        );
+        if (anchors.length === 1) anchorIdx = layer.indexOf(anchors[0]!);
+      }
+      if (anchorIdx >= 0) {
+        const currentAnchorCenter = getTransverseCenter(layer[anchorIdx]!.doc.id, layer[anchorIdx]!);
+        const delta = spineAxis - currentAnchorCenter;
+        for (const item of layer) {
+          if (++work % 256 === 0) yield;
+
+          setTransverseCenter(item.doc.id, item, getTransverseCenter(item.doc.id, item) + delta);
+        }
+      }
+    }
+  }
+  for (let r = 0; r <= maxRank; r++) {
+    if (++work % 256 === 0) yield;
+
+    const layer = rankLayers[r]!;
+    if (layer.length === 1) {
+      const onlyNode = layer[0]!;
+      const adjNeighbors: SizedNode[] = [];
+      for (const e of document.edges) {
+        if (++work % 256 === 0) yield;
+
+        if (e.from === e.to) continue;
+        const otherId = e.from === onlyNode.doc.id ? e.to : e.to === onlyNode.doc.id ? e.from : undefined;
+        if (!otherId) continue;
+        const rOther = nodeRanks.get(otherId) ?? 0;
+        if (Math.abs(rOther - r) === 1) {
+          const otherSized = sizedById.get(otherId);
+          if (otherSized && !adjNeighbors.some((n) => n.doc.id === otherId)) {
+            adjNeighbors.push(otherSized);
+          }
+        }
+      }
+      const prevIsSingle = r > 0 && rankLayers[r - 1]!.length === 1;
+      const nextIsSingle = r < maxRank && rankLayers[r + 1]!.length === 1;
+      if (adjNeighbors.length === 1) {
+        setTransverseCenter(onlyNode.doc.id, onlyNode, getTransverseCenter(adjNeighbors[0]!.doc.id, adjNeighbors[0]!));
+      } else if (prevIsSingle || nextIsSingle || Math.abs(getTransverseCenter(onlyNode.doc.id, onlyNode) - spineAxis) <= 48) {
+        setTransverseCenter(onlyNode.doc.id, onlyNode, spineAxis);
+      }
+    }
+  }
+
+  const rawSceneNodes: SceneNode[] = sizedNodes.map((s) => {
+    const pos = placedCoords.get(s.doc.id) ?? { x: 80, y: 80 };
+    return buildSceneNode(s, pos.x, pos.y, theme);
+  });
+
+  // Build SceneGroups bottom-up (deepest nesting first)
+  const groupsWithDepth = document.groups.map((g) => ({
+    doc: g,
+    depth: getGroupAncestors(g.id, groupById).length
+  }));
+  groupsWithDepth.sort((a, b) => b.depth - a.depth);
+
+  const builtGroupById = new Map<string, SceneGroup>();
+  for (const { doc: g } of groupsWithDepth) {
+    if (++work % 256 === 0) yield;
+
+    const directNodes = rawSceneNodes.filter((n) => n.groupId === g.id);
+    const directSubgroups = document.groups
+      .filter((child) => child.parentId === g.id)
+      .map((child) => builtGroupById.get(child.id))
+      .filter((child): child is SceneGroup => child !== undefined);
+
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+
+    for (const n of directNodes) {
+      if (++work % 256 === 0) yield;
+
+      if (n.x < minX) minX = n.x;
+      if (n.y < minY) minY = n.y;
+      if (n.x + n.width > maxX) maxX = n.x + n.width;
+      if (n.y + n.height > maxY) maxY = n.y + n.height;
+    }
+    for (const sg of directSubgroups) {
+      if (++work % 256 === 0) yield;
+
+      if (sg.x < minX) minX = sg.x;
+      if (sg.y < minY) minY = sg.y;
+      if (sg.x + sg.width > maxX) maxX = sg.x + sg.width;
+      if (sg.y + sg.height > maxY) maxY = sg.y + sg.height;
+    }
+
+    if (!Number.isFinite(minX)) {
+      minX = 80;
+      minY = 80;
+      maxX = 200;
+      maxY = 140;
+    }
+
+    const headerHeight = 32;
+    const marginSide = 22;
+    const marginTopInner = 22;
+    const marginBottom = 22;
+    const labelWidth = measureLineWidth(g.label, 12, "ui", 600);
+
+    const naturalSpanW = Math.round(maxX - minX + marginSide * 2);
+    const minHeaderClearanceW = snapTo8(labelWidth * 2.3 + 56);
+    const gWidth = Math.max(minHeaderClearanceW, naturalSpanW);
+    const centerX = (minX + maxX) / 2;
+    const gx = Math.round(centerX - gWidth / 2);
+    const gy = Math.round(minY - headerHeight - marginTopInner);
+    const gHeight = Math.round(maxY - minY + headerHeight + marginTopInner + marginBottom);
+
+    builtGroupById.set(g.id, {
+      id: g.id,
+      parentId: g.parentId,
+      kind: g.kind,
+      x: gx,
+      y: gy,
+      width: gWidth,
+      height: gHeight,
+      rx: 12,
+      fill: theme.groupSurface,
+      headerFill: theme.groupHeaderSurface,
+      headerHeight,
+      stroke: theme.groupBorder,
+      strokeWidth: 1.25,
+      label: {
+        text: g.label,
+        width: labelWidth,
+        x: gx + 16,
+        y: gy + 21,
+        fontSize: 12,
+        fontWeight: 600,
+        fontFamily: "ui",
+        color: theme.text,
+        align: "left"
+      }
+    });
+  }
+
+  // Order groups outer-to-inner so parent backgrounds paint before child subgraphs
+  const orderedGroups = groupsWithDepth
+    .slice()
+    .sort((a, b) => a.depth - b.depth)
+    .map((item) => builtGroupById.get(item.doc.id)!)
+    .filter(Boolean);
+
+
+  // Ensure disjoint groups (and their member nodes) have >= 24px separation
+  const isAncestorGroup = (ancId: string, descId: string): boolean => {
+    let curr = groupById.get(descId)?.parentId;
+    while (curr) {
+      if (curr === ancId) return true;
+      curr = groupById.get(curr)?.parentId;
+    }
+    return false;
+  };
+  const isNodeInGroupSubtree = (nodeGroupId: string | undefined, rootGroupId: string): boolean => {
+    if (!nodeGroupId) return false;
+    if (nodeGroupId === rootGroupId) return true;
+    return isAncestorGroup(rootGroupId, nodeGroupId);
+  };
+  for (let pass = 0; pass < 4; pass++) {
+    if (++work % 256 === 0) yield;
+
+    let shifted = false;
+    for (let i = 0; i < orderedGroups.length; i++) {
+      if (++work % 256 === 0) yield;
+
+      const g1 = orderedGroups[i]!;
+      for (let j = i + 1; j < orderedGroups.length; j++) {
+        if (++work % 256 === 0) yield;
+
+        const g2 = orderedGroups[j]!;
+        if (isAncestorGroup(g1.id, g2.id) || isAncestorGroup(g2.id, g1.id)) continue;
+        if (rectsIntersect(g1, g2, 24)) {
+          const shiftRight = g1.x <= g2.x ? g2 : g1;
+          const stayLeft = shiftRight === g2 ? g1 : g2;
+          const dx = stayLeft.x + stayLeft.width + 24 - shiftRight.x;
+          if (dx > 0) {
+            shifted = true;
+            for (let k = 0; k < rawSceneNodes.length; k++) {
+              if (++work % 256 === 0) yield;
+
+              const n = rawSceneNodes[k]!;
+              if (isNodeInGroupSubtree(n.groupId, shiftRight.id)) {
+                rawSceneNodes[k] = {
+                  ...n,
+                  x: n.x + dx,
+                  lines: n.lines.map((l) => ({ ...l, x: l.x + dx })),
+                  dividers: n.dividers.map((d) => ({ ...d, x1: d.x1 + dx, x2: d.x2 + dx })),
+                  badges: n.badges.map((b) => ({
+                    ...b,
+                    x: b.x + dx,
+                    text: { ...b.text, x: b.text.x + dx }
+                  }))
+                };
+              }
+            }
+            for (let k = 0; k < orderedGroups.length; k++) {
+              if (++work % 256 === 0) yield;
+
+              const gk = orderedGroups[k]!;
+              if (gk.id === shiftRight.id || isAncestorGroup(shiftRight.id, gk.id)) {
+                orderedGroups[k] = {
+                  ...gk,
+                  x: gk.x + dx,
+                  label: { ...gk.label, x: gk.label.x + dx }
+                };
+              }
+            }
+          }
+        }
+      }
+    }
+    if (!shifted) break;
+  }
+
+  // Route edges
+  const rawEdges = (yield* routeGraphEdgesSteps(
+    document.edges,
+    rawSceneNodes,
+    orderedGroups,
+    document.direction,
+    theme,
+    nodeRanks
+  ));
+
+  // Ensure no vertical edge segment crosses a group's header title text
+  for (let gi = 0; gi < orderedGroups.length; gi++) {
+    if (++work % 256 === 0) yield;
+
+    const g = orderedGroups[gi]!;
+    let lx = g.label.x;
+    const lw = g.label.width;
+    for (const edge of rawEdges) {
+      if (++work % 256 === 0) yield;
+
+      for (let k = 0; k + 1 < edge.points.length; k++) {
+        if (++work % 256 === 0) yield;
+
+        const p1 = edge.points[k]!;
+        const p2 = edge.points[k + 1]!;
+        if (Math.abs(p1.x - p2.x) < 1.5) {
+          const sx = p1.x;
+          const minY = Math.min(p1.y, p2.y);
+          const maxY = Math.max(p1.y, p2.y);
+          if (minY <= g.y + g.headerHeight && maxY >= g.y && sx >= lx - 8 && sx <= lx + lw + 8) {
+            lx = Math.round(sx + 14);
+          }
+        }
+      }
+    }
+    if (lx !== g.label.x) {
+      orderedGroups[gi] = { ...g, label: { ...g.label, x: lx } };
+    }
+  }
+
+  // Place notes next to target nodes without overlapping any node or group header
+  const rawNotes: SceneNote[] = [];
+  for (const note of document.notes) {
+    if (++work % 256 === 0) yield;
+
+    const measured = measureTextBlock(note.text, {
+      maxWidth: theme.wrappingWidth,
+      fontSize: theme.secondaryFontSize,
+      lineHeight: 16,
+      fontFamily: "ui",
+      fontWeight: 500
+    });
+    const nw = Math.max(96, snapTo8(measured.width + 28));
+    const nh = Math.max(36, snapTo8(measured.height + 16));
+    const targetNode = rawSceneNodes.find((n) => n.id === note.targetIds[0]);
+    let nx = targetNode ? targetNode.x + targetNode.width + 32 : 80;
+    const ny = targetNode ? targetNode.y : 80;
+    if (note.position === "left" && targetNode) {
+      nx = targetNode.x - nw - 32;
+    }
+    const stepDir = note.position === "left" ? -36 : 36;
+    const noteCollides = (cx: number, cy: number): boolean => {
+      const box = { x: cx, y: cy, width: nw, height: nh };
+      if (rawSceneNodes.some((n) => rectsIntersect(box, n, 24))) return true;
+      if (rawNotes.some((other) => rectsIntersect(box, other, 16))) return true;
+      if (
+        orderedGroups.some((g) =>
+          rectsIntersect(box, { x: g.x, y: g.y, width: g.width, height: g.headerHeight }, 10)
+        )
+      ) {
+        return true;
+      }
+      for (const e of rawEdges) {
+        if (e.labelPill && rectsIntersect(box, e.labelPill, 12)) return true;
+        for (let k = 0; k + 1 < e.points.length; k++) {
+          const p1 = e.points[k]!;
+          const p2 = e.points[k + 1]!;
+          const segBox = {
+            x: Math.min(p1.x, p2.x),
+            y: Math.min(p1.y, p2.y),
+            width: Math.max(1, Math.abs(p2.x - p1.x)),
+            height: Math.max(1, Math.abs(p2.y - p1.y))
+          };
+          if (rectsIntersect(box, segBox, 12)) return true;
+        }
+      }
+      return false;
+    };
+    while (noteCollides(nx, ny)) {
+      if (++work % 256 === 0) yield;
+
+      nx += stepDir;
+    }
+    rawNotes.push({
+      id: note.id,
+      x: nx,
+      y: ny,
+      width: nw,
+      height: nh,
+      rx: 6,
+      fill: theme.noteSurface,
+      stroke: theme.noteBorder,
+      shadow: true,
+      lines: measured.lines.map((l, idx) => ({
+        text: l.text,
+        width: l.width,
+        x: nx + 14,
+        y: ny + 19 + idx * 16,
+        fontSize: theme.secondaryFontSize,
+        fontWeight: 500,
+        fontFamily: "ui",
+        color: theme.noteText,
+        align: "left"
+      }))
+    });
+  }
+
+  // Compute global bounding box across all elements and normalize to [padding, ...]
+  let minSceneX = Infinity;
+  let minSceneY = Infinity;
+  let maxSceneX = -Infinity;
+  let maxSceneY = -Infinity;
+
+  const includeRect = (x: number, y: number, w: number, h: number): void => {
+    if (x < minSceneX) minSceneX = x;
+    if (y < minSceneY) minSceneY = y;
+    if (x + w > maxSceneX) maxSceneX = x + w;
+    if (y + h > maxSceneY) maxSceneY = y + h;
+  };
+
+  for (const n of rawSceneNodes) includeRect(n.x, n.y, n.width, n.height);
+  for (const g of orderedGroups) includeRect(g.x, g.y, g.width, g.height);
+  for (const note of rawNotes) includeRect(note.x, note.y, note.width, note.height);
+  for (const e of rawEdges) {
+    if (++work % 256 === 0) yield;
+
+    for (const pt of e.points) includeRect(pt.x - 4, pt.y - 4, 8, 8);
+    if (e.labelPill) includeRect(e.labelPill.x, e.labelPill.y, e.labelPill.width, e.labelPill.height);
+    if (e.sourceLabelPill)
+      includeRect(
+        e.sourceLabelPill.x,
+        e.sourceLabelPill.y,
+        e.sourceLabelPill.width,
+        e.sourceLabelPill.height
+      );
+    if (e.targetLabelPill)
+      includeRect(
+        e.targetLabelPill.x,
+        e.targetLabelPill.y,
+        e.targetLabelPill.width,
+        e.targetLabelPill.height
+      );
+  }
+
+  if (!Number.isFinite(minSceneX)) {
+    minSceneX = 0;
+    minSceneY = 0;
+    maxSceneX = 120;
+    maxSceneY = 80;
+  }
+
+  const pad = theme.padding;
+  const shiftX = Math.round(pad - minSceneX);
+  const shiftY = Math.round(pad - minSceneY);
+
+  const hrefsById = new Map(document.nodes.map(node => [node.id, node.href]));
+  const stylesById = new Map(document.nodes.map(node => [node.id, node.style]));
+  const finalNodes: SceneNode[] = rawSceneNodes.map((n) => ({
+    ...n,
+    href: hrefsById.get(n.id),
+    fill: stylesById.get(n.id)?.fill ?? n.fill,
+    stroke: stylesById.get(n.id)?.stroke ?? n.stroke,
+    strokeWidth: stylesById.get(n.id)?.strokeWidth ?? n.strokeWidth,
+    x: n.x + shiftX,
+    y: n.y + shiftY,
+    lines: n.lines.map((l) => ({ ...l, color: stylesById.get(n.id)?.color ?? l.color, x: l.x + shiftX, y: l.y + shiftY })),
+    dividers: n.dividers.map((d) => ({
+      ...d,
+      x1: d.x1 + shiftX,
+      y1: d.y1 + shiftY,
+      x2: d.x2 + shiftX,
+      y2: d.y2 + shiftY
+    })),
+    badges: n.badges.map((b) => ({
+      ...b,
+      x: b.x + shiftX,
+      y: b.y + shiftY,
+      text: { ...b.text, x: b.text.x + shiftX, y: b.text.y + shiftY }
+    }))
+  }));
+
+  const finalGroups: SceneGroup[] = orderedGroups.map((g) => ({
+    ...g,
+    x: g.x + shiftX,
+    y: g.y + shiftY,
+    label: { ...g.label, x: g.label.x + shiftX, y: g.label.y + shiftY }
+  }));
+
+  const edgeStylesById = new Map(document.edges.map(edge => [edge.id, edge.style]));
+  const finalEdges: SceneEdge[] = rawEdges.map((e) => {
+    const style = edgeStylesById.get(e.id);
+    const shifted = shiftEdge(e, shiftX, shiftY);
+    return { ...shifted, stroke: style?.stroke ?? shifted.stroke, strokeWidth: style?.strokeWidth ?? shifted.strokeWidth,
+      labelPill: shifted.labelPill && style?.color ? { ...shifted.labelPill, lines: shifted.labelPill.lines.map(line => ({ ...line, color: style.color ?? line.color })) } : shifted.labelPill,
+      startMarker: shifted.startMarker && style?.stroke ? { ...shifted.startMarker, stroke: style.stroke, fill: shifted.startMarker.fill === shifted.stroke ? style.stroke : shifted.startMarker.fill } : shifted.startMarker,
+      endMarker: shifted.endMarker && style?.stroke ? { ...shifted.endMarker, stroke: style.stroke, fill: shifted.endMarker.fill === shifted.stroke ? style.stroke : shifted.endMarker.fill } : shifted.endMarker
+    };
+  });
+  const finalNotes: SceneNote[] = rawNotes.map((note) => ({
+    ...note,
+    x: note.x + shiftX,
+    y: note.y + shiftY,
+    lines: note.lines.map((l) => ({ ...l, x: l.x + shiftX, y: l.y + shiftY }))
+  }));
+
+  const naturalWidth = Math.ceil(maxSceneX - minSceneX + pad * 2);
+  const naturalHeight = Math.ceil(maxSceneY - minSceneY + pad * 2);
+
+
+  return {
+    family: document.family,
+    direction: document.direction,
+    width: naturalWidth,
+    height: naturalHeight,
+    viewBox: { x: 0, y: 0, width: naturalWidth, height: naturalHeight },
+    naturalBounds: { width: naturalWidth, height: naturalHeight },
+    padding: pad,
+    theme,
+    backgroundColor,
+    title: document.title,
+    description: document.description,
+    groups: finalGroups,
+    lifelines: [],
+    activations: [],
+    edges: finalEdges,
+    nodes: finalNodes,
+    notes: finalNotes
+  };
+}
+
+export function layoutGraphDocument(document: MermaidDocument, options?: MermaidLayoutOptions): MermaidScene {
+  return drainWork(layoutGraphDocumentSteps(document, options));
+}

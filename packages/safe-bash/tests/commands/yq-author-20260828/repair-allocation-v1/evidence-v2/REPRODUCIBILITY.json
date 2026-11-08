@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "driverCommit": "03dd10ec4901a4356df5bfcf5b24bd9ae125d371",
+  "comparisonCapture": "tests/commands/yq-author-20260828/repair-allocation-v1/evidence-v1",
+  "byteIdentical": {
+    "SOURCE.tar": true,
+    "package/virtual-bash-0.0.0.tgz": true
+  },
+  "artifacts": {
+    "SOURCE.tar": {
+      "sha256": "fe76de08017859b066ecb8830846e109cdab6fa3953b0317e5fc6f27777fd878"
+    },
+    "package/virtual-bash-0.0.0.tgz": {
+      "sha256": "1d06350cdef1a5f6c7d70c7d55a19b63537037bd97b2de5a5d8b8b8f722229ca"
+    }
+  },
+  "qualification": "The immutable v1 capture used the earlier eight-control test revision. The selected source and complete package inputs are unchanged; v2 adds the ninth actual-parser member-order control. Both source archives and both complete packages are byte-identical."
+}

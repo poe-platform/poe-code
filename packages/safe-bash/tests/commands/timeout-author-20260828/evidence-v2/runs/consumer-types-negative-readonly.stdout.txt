@@ -1,0 +1,1 @@
+negative-readonly.mts(1,153): error TS2540: Cannot assign to 'invoke' because it is a read-only property.

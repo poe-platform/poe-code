@@ -1,0 +1,11 @@
+{
+  "status": "pass",
+  "rawEntries": 255,
+  "rawBytes": 24911320,
+  "channelHashes": 96,
+  "actualMainLoadHashes": 6564,
+  "observedWorkers": 0,
+  "checks": 98,
+  "allChildrenClosed": true,
+  "newEntryChecks": "consumer/tools per child; raw archive before/after; declared predecessor and recipe scopes PRE/POST; not a lease against arbitrary later append"
+}

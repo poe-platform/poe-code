@@ -1,0 +1,79 @@
+{
+  "schema": "b35-v4-final-slot-review-v1",
+  "decision": "ACCEPT",
+  "scope": "FINAL_SLOT_BINDING_ONLY_ROOT_ACTUAL_GO_REQUIRED",
+  "utc": "2026-08-29T14:05:42.597Z",
+  "bindingSource": "5ea187ecceeacf25ee793d4b8fa80b96086ea0fc",
+  "evidence": "bfa687c244561785944a98e91d775ba1b10c29d7",
+  "candidate": "18e4c9a717809edd10230e3e5187111d9ed304b1",
+  "presealSha256": "b4b562d5ce6673aea3f9d91c50b6697ebaf01f9b92ca8107265a84ff652edfa3",
+  "goSha256": "d483bbd28c5686e844b25bf56689538ad0a2720220d1cf1e18a8f065be9fef55",
+  "activationReviewSha256": "34f4d2f65854f26968e3fe6a204432f060fef2c6628db51c2cce90a88b617d32",
+  "commandSha256": "477f1c1f142a40c906a4a7c666502e3fa07a23f9c2fd8910d12262c1f1900f8f",
+  "window": {
+    "issued": "2026-08-29T14:00:06.737Z",
+    "latestStart": "2026-08-29T14:20:06.737Z",
+    "expires": "2026-08-29T14:45:06.737Z"
+  },
+  "remainingStartMs": 864140,
+  "sourcePins": 29,
+  "toolRows": 247,
+  "activationInventory": 24,
+  "pureHelpers": 1,
+  "helperStatus": 0,
+  "actualCalls": 0,
+  "workers": 0,
+  "knownReviewRolesConservative": 14,
+  "reviewRoleCap": 18,
+  "reviewPeakCap": 3,
+  "futureMeasuredRoles": "UNKNOWN_PENDING",
+  "prospective": {
+    "knownStarts": 72,
+    "peak": 3,
+    "durationMs": 1500000,
+    "captureBytes": 100663296,
+    "logicalWorkBytes": 536870912
+  },
+  "artifacts": [
+    {
+      "path": "tests/compatibility/bash-function-keyword-independent-20260829/preexec-v4/activation-v1-review/REPORT.md",
+      "bytes": 3714,
+      "sha256": "6b294a7c1b06ba077467c46cb46bbc5bc183cfc3997b048d0a15dd86e69633e2"
+    },
+    {
+      "path": "tests/compatibility/bash-function-keyword-independent-20260829/preexec-v4/activation-v1-review/HELPER-PRESEAL.json",
+      "bytes": 288,
+      "sha256": "b77345246172726d3428fd35b8f7a5cae3c72e0dca6828c23a155d48d2623e09"
+    },
+    {
+      "path": "tests/compatibility/bash-function-keyword-independent-20260829/preexec-v4/activation-v1-review/check.mjs",
+      "bytes": 6288,
+      "sha256": "8499c475a00b61e83a3b3cd10a11ebf412fdb4ff45ad53f6a189c04f3d72aefd"
+    },
+    {
+      "path": "tests/compatibility/bash-function-keyword-independent-20260829/preexec-v4/activation-v1-review/RESULT.json",
+      "bytes": 1734,
+      "sha256": "343c7de3c232e8a085fffaa2ed8c77a79a829c12635ebd5449bb5bc9b4aaff5d"
+    },
+    {
+      "path": "tests/compatibility/bash-function-keyword-independent-20260829/preexec-v4/activation-v1-review/check.stdout",
+      "bytes": 187,
+      "sha256": "5afb533e245b1cb1c75340bbcb4d3cf9252eb97f2edbfe15cc0252f4a60955a8"
+    },
+    {
+      "path": "tests/compatibility/bash-function-keyword-independent-20260829/preexec-v4/activation-v1-review/check.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/compatibility/bash-function-keyword-independent-20260829/preexec-v4/activation-v1-review/inventory.stdout",
+      "bytes": 3700,
+      "sha256": "b9ee249e597007574f0b75df2269c9a8be634f34c8286c58ea76ca1ea42bf237"
+    },
+    {
+      "path": "tests/compatibility/bash-function-keyword-independent-20260829/preexec-v4/activation-v1-review/inventory.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

@@ -1,0 +1,1231 @@
+TAP version 13
+# Subtest: independent conformance source provenance
+ok 1 - independent conformance source provenance
+  ---
+  duration_ms: 7.70525
+  type: 'test'
+  ...
+# {"sourceSha256":{"src/contracts/filesystem.ts":"7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009","src/contracts/errors.ts":"66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840","src/contracts/io.ts":"e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb","src/contracts/path.ts":"948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34","src/fs/memory/index.ts":"d1b0a082ece95555f740419b276d5565757fe3c3c3ba1555b927e9640dbcc62d","src/fs/real/index.ts":"d3e79b80a5a48984e1f7f7dd9a79254c2db1faf8142e287a43792180874f77da","src/fs/s3/filesystem.ts":"8c98a7738aed477a238084624b4e374d4cdf1575708684d0991869427288a120","src/fs/s3/mock.ts":"f80eb6ac65477d7cbfd1083a00cb8c5043ba594b0fd07cf167d698b7c6905821","src/fs/s3/transport.ts":"df111b273073bcbebc8be0648027211e545af7fcd00561057f4da0665683b9fe","src/fs/webdav/webdav.ts":"3c4c14ecf9f789794d44ea50ca3a1880a859745f7ccf69ee9caeefd96d310f6a","src/fs/webdav/xml.ts":"c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1","tests/fs/webdav/mock.ts":"e4f8a6806c1dd6f0622cce9f3b487f530011c39b7ca95cc2543002ce4da95266"}}
+# Subtest: memory: shared binary round trip preserves NUL, high bytes, and detached read copies
+ok 2 - memory: shared binary round trip preserves NUL, high bytes, and detached read copies
+  ---
+  duration_ms: 0.459333
+  type: 'test'
+  ...
+# Subtest: memory: shared write handles sliced typed arrays without leaking backing bytes
+ok 3 - memory: shared write handles sliced typed arrays without leaking backing bytes
+  ---
+  duration_ms: 0.132542
+  type: 'test'
+  ...
+# Subtest: memory: shared overwrite truncates and zero-byte reads honor maxBytes zero
+ok 4 - memory: shared overwrite truncates and zero-byte reads honor maxBytes zero
+  ---
+  duration_ms: 0.093125
+  type: 'test'
+  ...
+# Subtest: memory: shared read maxBytes rejects overflow and accepts exact size
+ok 5 - memory: shared read maxBytes rejects overflow and accepts exact size
+  ---
+  duration_ms: 0.297042
+  type: 'test'
+  ...
+# Subtest: memory: shared mandatory appendFile creates and appends exact bytes
+ok 6 - memory: shared mandatory appendFile creates and appends exact bytes
+  ---
+  duration_ms: 0.097
+  type: 'test'
+  ...
+# Subtest: memory: shared write flag a appends existing bytes
+ok 7 - memory: shared write flag a appends existing bytes
+  ---
+  duration_ms: 0.1015
+  type: 'test'
+  ...
+# Subtest: memory: shared exclusive wx rejects existing files without modifying content
+ok 8 - memory: shared exclusive wx rejects existing files without modifying content
+  ---
+  duration_ms: 0.187584
+  type: 'test'
+  ...
+# Subtest: memory: shared exclusive ax creates once without modifying existing content
+ok 9 - memory: shared exclusive ax creates once without modifying existing content
+  ---
+  duration_ms: 0.2255
+  type: 'test'
+  ...
+# Subtest: memory: shared missing read/stat/lstat/access/realpath preserve ENOENT
+ok 10 - memory: shared missing read/stat/lstat/access/realpath preserve ENOENT
+  ---
+  duration_ms: 0.357167
+  type: 'test'
+  ...
+# Subtest: memory: shared missing parents do not get created by writeFile
+ok 11 - memory: shared missing parents do not get created by writeFile
+  ---
+  duration_ms: 0.157708
+  type: 'test'
+  ...
+# Subtest: memory: shared write through non-directory parent produces ENOTDIR and preserves bytes
+ok 12 - memory: shared write through non-directory parent produces ENOTDIR and preserves bytes
+  ---
+  duration_ms: 0.098917
+  type: 'test'
+  ...
+# Subtest: memory: shared read through non-directory parent produces ENOTDIR and preserves bytes
+ok 13 - memory: shared read through non-directory parent produces ENOTDIR and preserves bytes
+  ---
+  duration_ms: 0.046917
+  type: 'test'
+  ...
+# Subtest: memory: shared readdir on a file produces ENOTDIR and preserves bytes
+ok 14 - memory: shared readdir on a file produces ENOTDIR and preserves bytes
+  ---
+  duration_ms: 0.036916
+  type: 'test'
+  ...
+# Subtest: memory: shared reading and overwriting directories produce EISDIR
+ok 15 - memory: shared reading and overwriting directories produce EISDIR
+  ---
+  duration_ms: 0.107542
+  type: 'test'
+  ...
+# Subtest: memory: shared trailing slash requires a directory, not lexical stripping
+ok 16 - memory: shared trailing slash requires a directory, not lexical stripping
+  ---
+  duration_ms: 0.042542
+  type: 'test'
+  ...
+# Subtest: memory: shared recursive mkdir creates exactly one tree and is idempotent
+ok 17 - memory: shared recursive mkdir creates exactly one tree and is idempotent
+  ---
+  duration_ms: 0.111958
+  type: 'test'
+  ...
+# Subtest: memory: shared nonrecursive directory removal fails closed on nonempty directories
+ok 18 - memory: shared nonrecursive directory removal fails closed on nonempty directories
+  ---
+  duration_ms: 0.130875
+  type: 'test'
+  ...
+# DIRECTORY POLICY: FsError: EISDIR: illegal operation on a directory, rm '/dir'
+# Subtest: memory: shared recursive directory removal removes an empty directory
+ok 19 - memory: shared recursive directory removal removes an empty directory
+  ---
+  duration_ms: 0.0575
+  type: 'test'
+  ...
+# Subtest: memory: shared recursive rm preserves sibling-prefix names
+ok 20 - memory: shared recursive rm preserves sibling-prefix names
+  ---
+  duration_ms: 0.075167
+  type: 'test'
+  ...
+# Subtest: memory: shared force only suppresses absent paths
+ok 21 - memory: shared force only suppresses absent paths
+  ---
+  duration_ms: 0.115333
+  type: 'test'
+  ...
+# Subtest: memory: shared file rename replaces destination and removes source
+ok 22 - memory: shared file rename replaces destination and removes source
+  ---
+  duration_ms: 0.1615
+  type: 'test'
+  ...
+# Subtest: memory: shared directory rename moves all descendants and preserves siblings
+ok 23 - memory: shared directory rename moves all descendants and preserves siblings
+  ---
+  duration_ms: 0.147208
+  type: 'test'
+  ...
+# Subtest: memory: shared rename onto self is a no-op; missing source still fails
+ok 24 - memory: shared rename onto self is a no-op; missing source still fails
+  ---
+  duration_ms: 0.063875
+  type: 'test'
+  ...
+# Subtest: memory: shared rename cannot move a directory beneath itself
+ok 25 - memory: shared rename cannot move a directory beneath itself
+  ---
+  duration_ms: 0.057583
+  type: 'test'
+  ...
+# Subtest: memory: shared rename file onto directory has EISDIR and preserves both
+ok 26 - memory: shared rename file onto directory has EISDIR and preserves both
+  ---
+  duration_ms: 0.083625
+  type: 'test'
+  ...
+# Subtest: memory: shared rename onto empty directory replaces it
+ok 27 - memory: shared rename onto empty directory replaces it
+  ---
+  duration_ms: 0.082709
+  type: 'test'
+  ...
+# Subtest: memory: shared copyFile duplicates bytes, exclusive copy preserves destination
+ok 28 - memory: shared copyFile duplicates bytes, exclusive copy preserves destination
+  ---
+  duration_ms: 0.076875
+  type: 'test'
+  ...
+# Subtest: memory: shared copyFile replaces an existing destination by default
+ok 29 - memory: shared copyFile replaces an existing destination by default
+  ---
+  duration_ms: 0.03475
+  type: 'test'
+  ...
+# Subtest: memory: shared copyFile refuses a directory source
+ok 30 - memory: shared copyFile refuses a directory source
+  ---
+  duration_ms: 0.045458
+  type: 'test'
+  ...
+# Subtest: memory: shared Unicode and literal URL metacharacters round-trip
+ok 31 - memory: shared Unicode and literal URL metacharacters round-trip
+  ---
+  duration_ms: 0.078083
+  type: 'test'
+  ...
+# Subtest: memory: shared NUL and non-string paths reject EINVAL without mutation
+ok 32 - memory: shared NUL and non-string paths reject EINVAL without mutation
+  ---
+  duration_ms: 0.061084
+  type: 'test'
+  ...
+# Subtest: memory: shared malformed read limits reject EINVAL
+ok 33 - memory: shared malformed read limits reject EINVAL
+  ---
+  duration_ms: 0.065458
+  type: 'test'
+  ...
+# Subtest: memory: shared malformed payload and flag reject EINVAL without data loss
+ok 34 - memory: shared malformed payload and flag reject EINVAL without data loss
+  ---
+  duration_ms: 0.046833
+  type: 'test'
+  ...
+# Subtest: memory: shared stat metadata is finite and type-consistent
+ok 35 - memory: shared stat metadata is finite and type-consistent
+  ---
+  duration_ms: 0.049833
+  type: 'test'
+  ...
+# Subtest: memory: shared large directory lists every child exactly once
+ok 36 - memory: shared large directory lists every child exactly once
+  ---
+  duration_ms: 0.391541
+  type: 'test'
+  ...
+# Subtest: memory: pre-aborted readFile rejects cancellation without mutation
+ok 37 - memory: pre-aborted readFile rejects cancellation without mutation
+  ---
+  duration_ms: 0.105167
+  type: 'test'
+  ...
+# Subtest: memory: pre-aborted stat rejects cancellation without mutation
+ok 38 - memory: pre-aborted stat rejects cancellation without mutation
+  ---
+  duration_ms: 0.036375
+  type: 'test'
+  ...
+# Subtest: memory: pre-aborted lstat rejects cancellation without mutation
+ok 39 - memory: pre-aborted lstat rejects cancellation without mutation
+  ---
+  duration_ms: 0.034083
+  type: 'test'
+  ...
+# Subtest: memory: pre-aborted readdir rejects cancellation without mutation
+ok 40 - memory: pre-aborted readdir rejects cancellation without mutation
+  ---
+  duration_ms: 0.032958
+  type: 'test'
+  ...
+# Subtest: memory: pre-aborted realpath rejects cancellation without mutation
+ok 41 - memory: pre-aborted realpath rejects cancellation without mutation
+  ---
+  duration_ms: 0.031334
+  type: 'test'
+  ...
+# Subtest: memory: pre-aborted access rejects cancellation without mutation
+ok 42 - memory: pre-aborted access rejects cancellation without mutation
+  ---
+  duration_ms: 0.028333
+  type: 'test'
+  ...
+# Subtest: memory: pre-aborted writeFile rejects cancellation without mutation
+ok 43 - memory: pre-aborted writeFile rejects cancellation without mutation
+  ---
+  duration_ms: 0.03425
+  type: 'test'
+  ...
+# Subtest: memory: pre-aborted mkdir rejects cancellation without mutation
+ok 44 - memory: pre-aborted mkdir rejects cancellation without mutation
+  ---
+  duration_ms: 0.034959
+  type: 'test'
+  ...
+# Subtest: memory: pre-aborted rm rejects cancellation without mutation
+ok 45 - memory: pre-aborted rm rejects cancellation without mutation
+  ---
+  duration_ms: 0.095291
+  type: 'test'
+  ...
+# Subtest: memory: pre-aborted rename rejects cancellation without mutation
+ok 46 - memory: pre-aborted rename rejects cancellation without mutation
+  ---
+  duration_ms: 0.038
+  type: 'test'
+  ...
+# Subtest: memory: pre-aborted copyFile rejects cancellation without mutation
+ok 47 - memory: pre-aborted copyFile rejects cancellation without mutation
+  ---
+  duration_ms: 0.030208
+  type: 'test'
+  ...
+# Subtest: memory: symlinks follow capabilities, dangling links and cycles stay explicit
+ok 48 - memory: symlinks follow capabilities, dangling links and cycles stay explicit
+  ---
+  duration_ms: 0.211958
+  type: 'test'
+  ...
+# Subtest: memory: hardlink capabilities match inode-sharing or fail-closed behavior
+ok 49 - memory: hardlink capabilities match inode-sharing or fail-closed behavior
+  ---
+  duration_ms: 0.079958
+  type: 'test'
+  ...
+# Subtest: memory: streaming capabilities match bounded reads or absent methods
+ok 50 - memory: streaming capabilities match bounded reads or absent methods
+  ---
+  duration_ms: 0.373625
+  type: 'test'
+  ...
+# Subtest: memory: streaming write capability independently matches exact bytes or absent method
+ok 51 - memory: streaming write capability independently matches exact bytes or absent method
+  ---
+  duration_ms: 0.079625
+  type: 'test'
+  ...
+# Subtest: real: shared binary round trip preserves NUL, high bytes, and detached read copies
+ok 52 - real: shared binary round trip preserves NUL, high bytes, and detached read copies
+  ---
+  duration_ms: 7.731708
+  type: 'test'
+  ...
+# Subtest: real: shared write handles sliced typed arrays without leaking backing bytes
+ok 53 - real: shared write handles sliced typed arrays without leaking backing bytes
+  ---
+  duration_ms: 1.488708
+  type: 'test'
+  ...
+# Subtest: real: shared overwrite truncates and zero-byte reads honor maxBytes zero
+ok 54 - real: shared overwrite truncates and zero-byte reads honor maxBytes zero
+  ---
+  duration_ms: 1.547459
+  type: 'test'
+  ...
+# Subtest: real: shared read maxBytes rejects overflow and accepts exact size
+ok 55 - real: shared read maxBytes rejects overflow and accepts exact size
+  ---
+  duration_ms: 1.448541
+  type: 'test'
+  ...
+# Subtest: real: shared mandatory appendFile creates and appends exact bytes
+ok 56 - real: shared mandatory appendFile creates and appends exact bytes
+  ---
+  duration_ms: 1.89325
+  type: 'test'
+  ...
+# Subtest: real: shared write flag a appends existing bytes
+ok 57 - real: shared write flag a appends existing bytes
+  ---
+  duration_ms: 1.378917
+  type: 'test'
+  ...
+# Subtest: real: shared exclusive wx rejects existing files without modifying content
+ok 58 - real: shared exclusive wx rejects existing files without modifying content
+  ---
+  duration_ms: 1.258709
+  type: 'test'
+  ...
+# Subtest: real: shared exclusive ax creates once without modifying existing content
+ok 59 - real: shared exclusive ax creates once without modifying existing content
+  ---
+  duration_ms: 1.588958
+  type: 'test'
+  ...
+# Subtest: real: shared missing read/stat/lstat/access/realpath preserve ENOENT
+ok 60 - real: shared missing read/stat/lstat/access/realpath preserve ENOENT
+  ---
+  duration_ms: 1.097542
+  type: 'test'
+  ...
+# Subtest: real: shared missing parents do not get created by writeFile
+ok 61 - real: shared missing parents do not get created by writeFile
+  ---
+  duration_ms: 0.768958
+  type: 'test'
+  ...
+# Subtest: real: shared write through non-directory parent produces ENOTDIR and preserves bytes
+ok 62 - real: shared write through non-directory parent produces ENOTDIR and preserves bytes
+  ---
+  duration_ms: 1.214166
+  type: 'test'
+  ...
+# Subtest: real: shared read through non-directory parent produces ENOTDIR and preserves bytes
+ok 63 - real: shared read through non-directory parent produces ENOTDIR and preserves bytes
+  ---
+  duration_ms: 1.56575
+  type: 'test'
+  ...
+# Subtest: real: shared readdir on a file produces ENOTDIR and preserves bytes
+ok 64 - real: shared readdir on a file produces ENOTDIR and preserves bytes
+  ---
+  duration_ms: 1.396875
+  type: 'test'
+  ...
+# Subtest: real: shared reading and overwriting directories produce EISDIR
+ok 65 - real: shared reading and overwriting directories produce EISDIR
+  ---
+  duration_ms: 1.531333
+  type: 'test'
+  ...
+# Subtest: real: shared trailing slash requires a directory, not lexical stripping
+ok 66 - real: shared trailing slash requires a directory, not lexical stripping
+  ---
+  duration_ms: 1.244208
+  type: 'test'
+  ...
+# Subtest: real: shared recursive mkdir creates exactly one tree and is idempotent
+ok 67 - real: shared recursive mkdir creates exactly one tree and is idempotent
+  ---
+  duration_ms: 2.424916
+  type: 'test'
+  ...
+# Subtest: real: shared nonrecursive directory removal fails closed on nonempty directories
+ok 68 - real: shared nonrecursive directory removal fails closed on nonempty directories
+  ---
+  duration_ms: 1.994166
+  type: 'test'
+  ...
+# DIRECTORY POLICY: FsError: EISDIR: illegal operation on a directory, rm '/dir'
+# Subtest: real: shared recursive directory removal removes an empty directory
+ok 69 - real: shared recursive directory removal removes an empty directory
+  ---
+  duration_ms: 0.81525
+  type: 'test'
+  ...
+# Subtest: real: shared recursive rm preserves sibling-prefix names
+ok 70 - real: shared recursive rm preserves sibling-prefix names
+  ---
+  duration_ms: 2.285
+  type: 'test'
+  ...
+# Subtest: real: shared force only suppresses absent paths
+ok 71 - real: shared force only suppresses absent paths
+  ---
+  duration_ms: 0.562917
+  type: 'test'
+  ...
+# Subtest: real: shared file rename replaces destination and removes source
+ok 72 - real: shared file rename replaces destination and removes source
+  ---
+  duration_ms: 1.685292
+  type: 'test'
+  ...
+# Subtest: real: shared directory rename moves all descendants and preserves siblings
+ok 73 - real: shared directory rename moves all descendants and preserves siblings
+  ---
+  duration_ms: 2.943625
+  type: 'test'
+  ...
+# Subtest: real: shared rename onto self is a no-op; missing source still fails
+ok 74 - real: shared rename onto self is a no-op; missing source still fails
+  ---
+  duration_ms: 1.351125
+  type: 'test'
+  ...
+# Subtest: real: shared rename cannot move a directory beneath itself
+ok 75 - real: shared rename cannot move a directory beneath itself
+  ---
+  duration_ms: 1.658958
+  type: 'test'
+  ...
+# Subtest: real: shared rename file onto directory has EISDIR and preserves both
+ok 76 - real: shared rename file onto directory has EISDIR and preserves both
+  ---
+  duration_ms: 1.544083
+  type: 'test'
+  ...
+# Subtest: real: shared rename onto empty directory replaces it
+ok 77 - real: shared rename onto empty directory replaces it
+  ---
+  duration_ms: 1.927
+  type: 'test'
+  ...
+# Subtest: real: shared copyFile duplicates bytes, exclusive copy preserves destination
+ok 78 - real: shared copyFile duplicates bytes, exclusive copy preserves destination
+  ---
+  duration_ms: 2.096583
+  type: 'test'
+  ...
+# Subtest: real: shared copyFile replaces an existing destination by default
+ok 79 - real: shared copyFile replaces an existing destination by default
+  ---
+  duration_ms: 1.911541
+  type: 'test'
+  ...
+# Subtest: real: shared copyFile refuses a directory source
+ok 80 - real: shared copyFile refuses a directory source
+  ---
+  duration_ms: 1.297333
+  type: 'test'
+  ...
+# Subtest: real: shared Unicode and literal URL metacharacters round-trip
+ok 81 - real: shared Unicode and literal URL metacharacters round-trip
+  ---
+  duration_ms: 2.913292
+  type: 'test'
+  ...
+# Subtest: real: shared NUL and non-string paths reject EINVAL without mutation
+ok 82 - real: shared NUL and non-string paths reject EINVAL without mutation
+  ---
+  duration_ms: 0.630042
+  type: 'test'
+  ...
+# Subtest: real: shared malformed read limits reject EINVAL
+ok 83 - real: shared malformed read limits reject EINVAL
+  ---
+  duration_ms: 1.07875
+  type: 'test'
+  ...
+# Subtest: real: shared malformed payload and flag reject EINVAL without data loss
+ok 84 - real: shared malformed payload and flag reject EINVAL without data loss
+  ---
+  duration_ms: 3.46025
+  type: 'test'
+  ...
+# Subtest: real: shared stat metadata is finite and type-consistent
+ok 85 - real: shared stat metadata is finite and type-consistent
+  ---
+  duration_ms: 1.212292
+  type: 'test'
+  ...
+# Subtest: real: shared large directory lists every child exactly once
+ok 86 - real: shared large directory lists every child exactly once
+  ---
+  duration_ms: 37.965084
+  type: 'test'
+  ...
+# Subtest: real: pre-aborted readFile rejects cancellation without mutation
+ok 87 - real: pre-aborted readFile rejects cancellation without mutation
+  ---
+  duration_ms: 1.634958
+  type: 'test'
+  ...
+# Subtest: real: pre-aborted stat rejects cancellation without mutation
+ok 88 - real: pre-aborted stat rejects cancellation without mutation
+  ---
+  duration_ms: 1.425417
+  type: 'test'
+  ...
+# Subtest: real: pre-aborted lstat rejects cancellation without mutation
+ok 89 - real: pre-aborted lstat rejects cancellation without mutation
+  ---
+  duration_ms: 3.09125
+  type: 'test'
+  ...
+# Subtest: real: pre-aborted readdir rejects cancellation without mutation
+ok 90 - real: pre-aborted readdir rejects cancellation without mutation
+  ---
+  duration_ms: 1.52875
+  type: 'test'
+  ...
+# Subtest: real: pre-aborted realpath rejects cancellation without mutation
+ok 91 - real: pre-aborted realpath rejects cancellation without mutation
+  ---
+  duration_ms: 1.271875
+  type: 'test'
+  ...
+# Subtest: real: pre-aborted access rejects cancellation without mutation
+ok 92 - real: pre-aborted access rejects cancellation without mutation
+  ---
+  duration_ms: 1.425042
+  type: 'test'
+  ...
+# Subtest: real: pre-aborted writeFile rejects cancellation without mutation
+ok 93 - real: pre-aborted writeFile rejects cancellation without mutation
+  ---
+  duration_ms: 1.295875
+  type: 'test'
+  ...
+# Subtest: real: pre-aborted mkdir rejects cancellation without mutation
+ok 94 - real: pre-aborted mkdir rejects cancellation without mutation
+  ---
+  duration_ms: 1.178584
+  type: 'test'
+  ...
+# Subtest: real: pre-aborted rm rejects cancellation without mutation
+ok 95 - real: pre-aborted rm rejects cancellation without mutation
+  ---
+  duration_ms: 1.511208
+  type: 'test'
+  ...
+# Subtest: real: pre-aborted rename rejects cancellation without mutation
+ok 96 - real: pre-aborted rename rejects cancellation without mutation
+  ---
+  duration_ms: 1.459292
+  type: 'test'
+  ...
+# Subtest: real: pre-aborted copyFile rejects cancellation without mutation
+ok 97 - real: pre-aborted copyFile rejects cancellation without mutation
+  ---
+  duration_ms: 1.637583
+  type: 'test'
+  ...
+# Subtest: real: symlinks follow capabilities, dangling links and cycles stay explicit
+ok 98 - real: symlinks follow capabilities, dangling links and cycles stay explicit
+  ---
+  duration_ms: 21.656625
+  type: 'test'
+  ...
+# Subtest: real: hardlink capabilities match inode-sharing or fail-closed behavior
+ok 99 - real: hardlink capabilities match inode-sharing or fail-closed behavior
+  ---
+  duration_ms: 2.12725
+  type: 'test'
+  ...
+# Subtest: real: streaming capabilities match bounded reads or absent methods
+ok 100 - real: streaming capabilities match bounded reads or absent methods
+  ---
+  duration_ms: 1.510667
+  type: 'test'
+  ...
+# Subtest: real: streaming write capability independently matches exact bytes or absent method
+ok 101 - real: streaming write capability independently matches exact bytes or absent method
+  ---
+  duration_ms: 1.807291
+  type: 'test'
+  ...
+# Subtest: s3: shared binary round trip preserves NUL, high bytes, and detached read copies
+ok 102 - s3: shared binary round trip preserves NUL, high bytes, and detached read copies
+  ---
+  duration_ms: 1.750792
+  type: 'test'
+  ...
+# Subtest: s3: shared write handles sliced typed arrays without leaking backing bytes
+ok 103 - s3: shared write handles sliced typed arrays without leaking backing bytes
+  ---
+  duration_ms: 0.340417
+  type: 'test'
+  ...
+# Subtest: s3: shared overwrite truncates and zero-byte reads honor maxBytes zero
+ok 104 - s3: shared overwrite truncates and zero-byte reads honor maxBytes zero
+  ---
+  duration_ms: 0.44725
+  type: 'test'
+  ...
+# Subtest: s3: shared read maxBytes rejects overflow and accepts exact size
+ok 105 - s3: shared read maxBytes rejects overflow and accepts exact size
+  ---
+  duration_ms: 0.26325
+  type: 'test'
+  ...
+# Subtest: s3: shared mandatory appendFile creates and appends exact bytes
+ok 106 - s3: shared mandatory appendFile creates and appends exact bytes
+  ---
+  duration_ms: 0.337375
+  type: 'test'
+  ...
+# Subtest: s3: shared write flag a appends existing bytes
+ok 107 - s3: shared write flag a appends existing bytes
+  ---
+  duration_ms: 0.477167
+  type: 'test'
+  ...
+# Subtest: s3: shared exclusive wx rejects existing files without modifying content
+ok 108 - s3: shared exclusive wx rejects existing files without modifying content
+  ---
+  duration_ms: 0.317666
+  type: 'test'
+  ...
+# Subtest: s3: shared exclusive ax creates once without modifying existing content
+ok 109 - s3: shared exclusive ax creates once without modifying existing content
+  ---
+  duration_ms: 0.254625
+  type: 'test'
+  ...
+# Subtest: s3: shared missing read/stat/lstat/access/realpath preserve ENOENT
+ok 110 - s3: shared missing read/stat/lstat/access/realpath preserve ENOENT
+  ---
+  duration_ms: 0.4675
+  type: 'test'
+  ...
+# Subtest: s3: shared missing parents do not get created by writeFile
+ok 111 - s3: shared missing parents do not get created by writeFile
+  ---
+  duration_ms: 0.177291
+  type: 'test'
+  ...
+# Subtest: s3: shared write through non-directory parent produces ENOTDIR and preserves bytes
+ok 112 - s3: shared write through non-directory parent produces ENOTDIR and preserves bytes
+  ---
+  duration_ms: 0.219875
+  type: 'test'
+  ...
+# Subtest: s3: shared read through non-directory parent produces ENOTDIR and preserves bytes
+ok 113 - s3: shared read through non-directory parent produces ENOTDIR and preserves bytes
+  ---
+  duration_ms: 0.386833
+  type: 'test'
+  ...
+# Subtest: s3: shared readdir on a file produces ENOTDIR and preserves bytes
+ok 114 - s3: shared readdir on a file produces ENOTDIR and preserves bytes
+  ---
+  duration_ms: 0.373125
+  type: 'test'
+  ...
+# Subtest: s3: shared reading and overwriting directories produce EISDIR
+ok 115 - s3: shared reading and overwriting directories produce EISDIR
+  ---
+  duration_ms: 0.3065
+  type: 'test'
+  ...
+# Subtest: s3: shared trailing slash requires a directory, not lexical stripping
+ok 116 - s3: shared trailing slash requires a directory, not lexical stripping
+  ---
+  duration_ms: 0.331542
+  type: 'test'
+  ...
+# Subtest: s3: shared recursive mkdir creates exactly one tree and is idempotent
+ok 117 - s3: shared recursive mkdir creates exactly one tree and is idempotent
+  ---
+  duration_ms: 0.837583
+  type: 'test'
+  ...
+# Subtest: s3: shared nonrecursive directory removal fails closed on nonempty directories
+ok 118 - s3: shared nonrecursive directory removal fails closed on nonempty directories
+  ---
+  duration_ms: 0.430333
+  type: 'test'
+  ...
+# DIRECTORY POLICY: FsError: ENOTEMPTY: directory not empty, rm '/dir'
+# Subtest: s3: shared recursive directory removal removes an empty directory
+ok 119 - s3: shared recursive directory removal removes an empty directory
+  ---
+  duration_ms: 0.203917
+  type: 'test'
+  ...
+# Subtest: s3: shared recursive rm preserves sibling-prefix names
+ok 120 - s3: shared recursive rm preserves sibling-prefix names
+  ---
+  duration_ms: 0.49
+  type: 'test'
+  ...
+# Subtest: s3: shared force only suppresses absent paths
+ok 121 - s3: shared force only suppresses absent paths
+  ---
+  duration_ms: 0.127875
+  type: 'test'
+  ...
+# Subtest: s3: shared file rename replaces destination and removes source
+ok 122 - s3: shared file rename replaces destination and removes source
+  ---
+  duration_ms: 1.80075
+  type: 'test'
+  ...
+# Subtest: s3: shared directory rename moves all descendants and preserves siblings
+ok 123 - s3: shared directory rename moves all descendants and preserves siblings
+  ---
+  duration_ms: 0.728584
+  type: 'test'
+  ...
+# Subtest: s3: shared rename onto self is a no-op; missing source still fails
+ok 124 - s3: shared rename onto self is a no-op; missing source still fails
+  ---
+  duration_ms: 0.183583
+  type: 'test'
+  ...
+# Subtest: s3: shared rename cannot move a directory beneath itself
+ok 125 - s3: shared rename cannot move a directory beneath itself
+  ---
+  duration_ms: 0.214459
+  type: 'test'
+  ...
+# Subtest: s3: shared rename file onto directory has EISDIR and preserves both
+ok 126 - s3: shared rename file onto directory has EISDIR and preserves both
+  ---
+  duration_ms: 0.362042
+  type: 'test'
+  ...
+# Subtest: s3: shared rename onto empty directory replaces it
+ok 127 - s3: shared rename onto empty directory replaces it
+  ---
+  duration_ms: 0.681917
+  type: 'test'
+  ...
+# Subtest: s3: shared copyFile duplicates bytes, exclusive copy preserves destination
+ok 128 - s3: shared copyFile duplicates bytes, exclusive copy preserves destination
+  ---
+  duration_ms: 0.416583
+  type: 'test'
+  ...
+# Subtest: s3: shared copyFile replaces an existing destination by default
+ok 129 - s3: shared copyFile replaces an existing destination by default
+  ---
+  duration_ms: 0.309333
+  type: 'test'
+  ...
+# Subtest: s3: shared copyFile refuses a directory source
+ok 130 - s3: shared copyFile refuses a directory source
+  ---
+  duration_ms: 0.154875
+  type: 'test'
+  ...
+# Subtest: s3: shared Unicode and literal URL metacharacters round-trip
+ok 131 - s3: shared Unicode and literal URL metacharacters round-trip
+  ---
+  duration_ms: 0.869208
+  type: 'test'
+  ...
+# Subtest: s3: shared NUL and non-string paths reject EINVAL without mutation
+ok 132 - s3: shared NUL and non-string paths reject EINVAL without mutation
+  ---
+  duration_ms: 0.083458
+  type: 'test'
+  ...
+# Subtest: s3: shared malformed read limits reject EINVAL
+ok 133 - s3: shared malformed read limits reject EINVAL
+  ---
+  duration_ms: 0.115792
+  type: 'test'
+  ...
+# Subtest: s3: shared malformed payload and flag reject EINVAL without data loss
+ok 134 - s3: shared malformed payload and flag reject EINVAL without data loss
+  ---
+  duration_ms: 0.141459
+  type: 'test'
+  ...
+# Subtest: s3: shared stat metadata is finite and type-consistent
+ok 135 - s3: shared stat metadata is finite and type-consistent
+  ---
+  duration_ms: 0.178208
+  type: 'test'
+  ...
+# Subtest: s3: shared large directory lists every child exactly once
+ok 136 - s3: shared large directory lists every child exactly once
+  ---
+  duration_ms: 17.940625
+  type: 'test'
+  ...
+# Subtest: s3: pre-aborted readFile rejects cancellation without mutation
+ok 137 - s3: pre-aborted readFile rejects cancellation without mutation
+  ---
+  duration_ms: 0.287584
+  type: 'test'
+  ...
+# Subtest: s3: pre-aborted stat rejects cancellation without mutation
+ok 138 - s3: pre-aborted stat rejects cancellation without mutation
+  ---
+  duration_ms: 0.200125
+  type: 'test'
+  ...
+# Subtest: s3: pre-aborted lstat rejects cancellation without mutation
+ok 139 - s3: pre-aborted lstat rejects cancellation without mutation
+  ---
+  duration_ms: 0.175417
+  type: 'test'
+  ...
+# Subtest: s3: pre-aborted readdir rejects cancellation without mutation
+ok 140 - s3: pre-aborted readdir rejects cancellation without mutation
+  ---
+  duration_ms: 0.164917
+  type: 'test'
+  ...
+# Subtest: s3: pre-aborted realpath rejects cancellation without mutation
+ok 141 - s3: pre-aborted realpath rejects cancellation without mutation
+  ---
+  duration_ms: 0.162667
+  type: 'test'
+  ...
+# Subtest: s3: pre-aborted access rejects cancellation without mutation
+ok 142 - s3: pre-aborted access rejects cancellation without mutation
+  ---
+  duration_ms: 0.171959
+  type: 'test'
+  ...
+# Subtest: s3: pre-aborted writeFile rejects cancellation without mutation
+ok 143 - s3: pre-aborted writeFile rejects cancellation without mutation
+  ---
+  duration_ms: 0.158375
+  type: 'test'
+  ...
+# Subtest: s3: pre-aborted mkdir rejects cancellation without mutation
+ok 144 - s3: pre-aborted mkdir rejects cancellation without mutation
+  ---
+  duration_ms: 0.160792
+  type: 'test'
+  ...
+# Subtest: s3: pre-aborted rm rejects cancellation without mutation
+ok 145 - s3: pre-aborted rm rejects cancellation without mutation
+  ---
+  duration_ms: 0.163708
+  type: 'test'
+  ...
+# Subtest: s3: pre-aborted rename rejects cancellation without mutation
+ok 146 - s3: pre-aborted rename rejects cancellation without mutation
+  ---
+  duration_ms: 0.177375
+  type: 'test'
+  ...
+# Subtest: s3: pre-aborted copyFile rejects cancellation without mutation
+ok 147 - s3: pre-aborted copyFile rejects cancellation without mutation
+  ---
+  duration_ms: 0.165083
+  type: 'test'
+  ...
+# Subtest: s3: symlinks follow capabilities, dangling links and cycles stay explicit
+ok 148 - s3: symlinks follow capabilities, dangling links and cycles stay explicit
+  ---
+  duration_ms: 0.086125
+  type: 'test'
+  ...
+# CAPABILITY GAP: symlinks=false; methods absent or reject ENOTSUP
+# Subtest: s3: hardlink capabilities match inode-sharing or fail-closed behavior
+ok 149 - s3: hardlink capabilities match inode-sharing or fail-closed behavior
+  ---
+  duration_ms: 0.146083
+  type: 'test'
+  ...
+# CAPABILITY GAP: hardlinks=false; link absent or rejects ENOTSUP
+# Subtest: s3: streaming capabilities match bounded reads or absent methods
+ok 150 - s3: streaming capabilities match bounded reads or absent methods
+  ---
+  duration_ms: 0.42175
+  type: 'test'
+  ...
+# Subtest: s3: streaming write capability independently matches exact bytes or absent method
+ok 151 - s3: streaming write capability independently matches exact bytes or absent method
+  ---
+  duration_ms: 0.462916
+  type: 'test'
+  ...
+# Subtest: webdav: shared binary round trip preserves NUL, high bytes, and detached read copies
+ok 152 - webdav: shared binary round trip preserves NUL, high bytes, and detached read copies
+  ---
+  duration_ms: 25.459292
+  type: 'test'
+  ...
+# Subtest: webdav: shared write handles sliced typed arrays without leaking backing bytes
+ok 153 - webdav: shared write handles sliced typed arrays without leaking backing bytes
+  ---
+  duration_ms: 6.513958
+  type: 'test'
+  ...
+# Subtest: webdav: shared overwrite truncates and zero-byte reads honor maxBytes zero
+ok 154 - webdav: shared overwrite truncates and zero-byte reads honor maxBytes zero
+  ---
+  duration_ms: 4.646542
+  type: 'test'
+  ...
+# Subtest: webdav: shared read maxBytes rejects overflow and accepts exact size
+ok 155 - webdav: shared read maxBytes rejects overflow and accepts exact size
+  ---
+  duration_ms: 3.490042
+  type: 'test'
+  ...
+# Subtest: webdav: shared mandatory appendFile creates and appends exact bytes
+ok 156 - webdav: shared mandatory appendFile creates and appends exact bytes
+  ---
+  duration_ms: 4.718917
+  type: 'test'
+  ...
+# Subtest: webdav: shared write flag a appends existing bytes
+ok 157 - webdav: shared write flag a appends existing bytes
+  ---
+  duration_ms: 3.094708
+  type: 'test'
+  ...
+# Subtest: webdav: shared exclusive wx rejects existing files without modifying content
+ok 158 - webdav: shared exclusive wx rejects existing files without modifying content
+  ---
+  duration_ms: 1.970708
+  type: 'test'
+  ...
+# Subtest: webdav: shared exclusive ax creates once without modifying existing content
+ok 159 - webdav: shared exclusive ax creates once without modifying existing content
+  ---
+  duration_ms: 1.791291
+  type: 'test'
+  ...
+# Subtest: webdav: shared missing read/stat/lstat/access/realpath preserve ENOENT
+ok 160 - webdav: shared missing read/stat/lstat/access/realpath preserve ENOENT
+  ---
+  duration_ms: 2.220792
+  type: 'test'
+  ...
+# Subtest: webdav: shared missing parents do not get created by writeFile
+ok 161 - webdav: shared missing parents do not get created by writeFile
+  ---
+  duration_ms: 1.479
+  type: 'test'
+  ...
+# Subtest: webdav: shared write through non-directory parent produces ENOTDIR and preserves bytes
+ok 162 - webdav: shared write through non-directory parent produces ENOTDIR and preserves bytes
+  ---
+  duration_ms: 2.185625
+  type: 'test'
+  ...
+# Subtest: webdav: shared read through non-directory parent produces ENOTDIR and preserves bytes
+ok 163 - webdav: shared read through non-directory parent produces ENOTDIR and preserves bytes
+  ---
+  duration_ms: 3.800541
+  type: 'test'
+  ...
+# Subtest: webdav: shared readdir on a file produces ENOTDIR and preserves bytes
+ok 164 - webdav: shared readdir on a file produces ENOTDIR and preserves bytes
+  ---
+  duration_ms: 2.25575
+  type: 'test'
+  ...
+# Subtest: webdav: shared reading and overwriting directories produce EISDIR
+ok 165 - webdav: shared reading and overwriting directories produce EISDIR
+  ---
+  duration_ms: 2.3815
+  type: 'test'
+  ...
+# Subtest: webdav: shared trailing slash requires a directory, not lexical stripping
+ok 166 - webdav: shared trailing slash requires a directory, not lexical stripping
+  ---
+  duration_ms: 2.038167
+  type: 'test'
+  ...
+# Subtest: webdav: shared recursive mkdir creates exactly one tree and is idempotent
+ok 167 - webdav: shared recursive mkdir creates exactly one tree and is idempotent
+  ---
+  duration_ms: 6.126375
+  type: 'test'
+  ...
+# Subtest: webdav: shared nonrecursive directory removal fails closed on nonempty directories
+ok 168 - webdav: shared nonrecursive directory removal fails closed on nonempty directories
+  ---
+  duration_ms: 3.497625
+  type: 'test'
+  ...
+# DIRECTORY POLICY: FsError: ENOTSUP: nonrecursive directory removal has no safe portable WebDAV equivalent, nonrecursive directory removal '/dir'
+# Subtest: webdav: shared recursive directory removal removes an empty directory
+ok 169 - webdav: shared recursive directory removal removes an empty directory
+  ---
+  duration_ms: 1.888541
+  type: 'test'
+  ...
+# Subtest: webdav: shared recursive rm preserves sibling-prefix names
+ok 170 - webdav: shared recursive rm preserves sibling-prefix names
+  ---
+  duration_ms: 7.76925
+  type: 'test'
+  ...
+# Subtest: webdav: shared force only suppresses absent paths
+ok 171 - webdav: shared force only suppresses absent paths
+  ---
+  duration_ms: 1.18575
+  type: 'test'
+  ...
+# Subtest: webdav: shared file rename replaces destination and removes source
+ok 172 - webdav: shared file rename replaces destination and removes source
+  ---
+  duration_ms: 5.385875
+  type: 'test'
+  ...
+# Subtest: webdav: shared directory rename moves all descendants and preserves siblings
+ok 173 - webdav: shared directory rename moves all descendants and preserves siblings
+  ---
+  duration_ms: 6.462083
+  type: 'test'
+  ...
+# Subtest: webdav: shared rename onto self is a no-op; missing source still fails
+ok 174 - webdav: shared rename onto self is a no-op; missing source still fails
+  ---
+  duration_ms: 2.3105
+  type: 'test'
+  ...
+# Subtest: webdav: shared rename cannot move a directory beneath itself
+ok 175 - webdav: shared rename cannot move a directory beneath itself
+  ---
+  duration_ms: 2.828167
+  type: 'test'
+  ...
+# Subtest: webdav: shared rename file onto directory has EISDIR and preserves both
+ok 176 - webdav: shared rename file onto directory has EISDIR and preserves both
+  ---
+  duration_ms: 3.268041
+  type: 'test'
+  ...
+# Subtest: webdav: shared rename onto empty directory replaces it
+ok 177 - webdav: shared rename onto empty directory replaces it
+  ---
+  duration_ms: 7.505792
+  type: 'test'
+  ...
+# Subtest: webdav: shared copyFile duplicates bytes, exclusive copy preserves destination
+ok 178 - webdav: shared copyFile duplicates bytes, exclusive copy preserves destination
+  ---
+  duration_ms: 3.9105
+  type: 'test'
+  ...
+# Subtest: webdav: shared copyFile replaces an existing destination by default
+ok 179 - webdav: shared copyFile replaces an existing destination by default
+  ---
+  duration_ms: 5.327333
+  type: 'test'
+  ...
+# Subtest: webdav: shared copyFile refuses a directory source
+ok 180 - webdav: shared copyFile refuses a directory source
+  ---
+  duration_ms: 1.393875
+  type: 'test'
+  ...
+# Subtest: webdav: shared Unicode and literal URL metacharacters round-trip
+ok 181 - webdav: shared Unicode and literal URL metacharacters round-trip
+  ---
+  duration_ms: 7.334958
+  type: 'test'
+  ...
+# Subtest: webdav: shared NUL and non-string paths reject EINVAL without mutation
+ok 182 - webdav: shared NUL and non-string paths reject EINVAL without mutation
+  ---
+  duration_ms: 0.885334
+  type: 'test'
+  ...
+# Subtest: webdav: shared malformed read limits reject EINVAL
+ok 183 - webdav: shared malformed read limits reject EINVAL
+  ---
+  duration_ms: 1.321334
+  type: 'test'
+  ...
+# Subtest: webdav: shared malformed payload and flag reject EINVAL without data loss
+ok 184 - webdav: shared malformed payload and flag reject EINVAL without data loss
+  ---
+  duration_ms: 1.749708
+  type: 'test'
+  ...
+# Subtest: webdav: shared stat metadata is finite and type-consistent
+ok 185 - webdav: shared stat metadata is finite and type-consistent
+  ---
+  duration_ms: 4.19625
+  type: 'test'
+  ...
+# Subtest: webdav: shared large directory lists every child exactly once
+ok 186 - webdav: shared large directory lists every child exactly once
+  ---
+  duration_ms: 172.152166
+  type: 'test'
+  ...
+# Subtest: webdav: pre-aborted readFile rejects cancellation without mutation
+ok 187 - webdav: pre-aborted readFile rejects cancellation without mutation
+  ---
+  duration_ms: 2.486084
+  type: 'test'
+  ...
+# Subtest: webdav: pre-aborted stat rejects cancellation without mutation
+ok 188 - webdav: pre-aborted stat rejects cancellation without mutation
+  ---
+  duration_ms: 1.814166
+  type: 'test'
+  ...
+# Subtest: webdav: pre-aborted lstat rejects cancellation without mutation
+ok 189 - webdav: pre-aborted lstat rejects cancellation without mutation
+  ---
+  duration_ms: 1.702917
+  type: 'test'
+  ...
+# Subtest: webdav: pre-aborted readdir rejects cancellation without mutation
+ok 190 - webdav: pre-aborted readdir rejects cancellation without mutation
+  ---
+  duration_ms: 2.862792
+  type: 'test'
+  ...
+# Subtest: webdav: pre-aborted realpath rejects cancellation without mutation
+ok 191 - webdav: pre-aborted realpath rejects cancellation without mutation
+  ---
+  duration_ms: 1.948583
+  type: 'test'
+  ...
+# Subtest: webdav: pre-aborted access rejects cancellation without mutation
+ok 192 - webdav: pre-aborted access rejects cancellation without mutation
+  ---
+  duration_ms: 2.115875
+  type: 'test'
+  ...
+# Subtest: webdav: pre-aborted writeFile rejects cancellation without mutation
+ok 193 - webdav: pre-aborted writeFile rejects cancellation without mutation
+  ---
+  duration_ms: 1.977458
+  type: 'test'
+  ...
+# Subtest: webdav: pre-aborted mkdir rejects cancellation without mutation
+ok 194 - webdav: pre-aborted mkdir rejects cancellation without mutation
+  ---
+  duration_ms: 1.948
+  type: 'test'
+  ...
+# Subtest: webdav: pre-aborted rm rejects cancellation without mutation
+ok 195 - webdav: pre-aborted rm rejects cancellation without mutation
+  ---
+  duration_ms: 1.678458
+  type: 'test'
+  ...
+# Subtest: webdav: pre-aborted rename rejects cancellation without mutation
+ok 196 - webdav: pre-aborted rename rejects cancellation without mutation
+  ---
+  duration_ms: 1.6485
+  type: 'test'
+  ...
+# Subtest: webdav: pre-aborted copyFile rejects cancellation without mutation
+ok 197 - webdav: pre-aborted copyFile rejects cancellation without mutation
+  ---
+  duration_ms: 1.765042
+  type: 'test'
+  ...
+# Subtest: webdav: symlinks follow capabilities, dangling links and cycles stay explicit
+ok 198 - webdav: symlinks follow capabilities, dangling links and cycles stay explicit
+  ---
+  duration_ms: 0.603791
+  type: 'test'
+  ...
+# CAPABILITY GAP: symlinks=false; methods absent or reject ENOTSUP
+# Subtest: webdav: hardlink capabilities match inode-sharing or fail-closed behavior
+ok 199 - webdav: hardlink capabilities match inode-sharing or fail-closed behavior
+  ---
+  duration_ms: 1.521584
+  type: 'test'
+  ...
+# CAPABILITY GAP: hardlinks=false; link absent or rejects ENOTSUP
+# Subtest: webdav: streaming capabilities match bounded reads or absent methods
+ok 200 - webdav: streaming capabilities match bounded reads or absent methods
+  ---
+  duration_ms: 1.585709
+  type: 'test'
+  ...
+# Subtest: webdav: streaming write capability independently matches exact bytes or absent method
+ok 201 - webdav: streaming write capability independently matches exact bytes or absent method
+  ---
+  duration_ms: 3.36275
+  type: 'test'
+  ...
+# Subtest: conformance source state remained stable during suite
+ok 202 - conformance source state remained stable during suite
+  ---
+  duration_ms: 0.696625
+  type: 'test'
+  ...
+1..202
+# tests 202
+# suites 0
+# pass 202
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 668.386667

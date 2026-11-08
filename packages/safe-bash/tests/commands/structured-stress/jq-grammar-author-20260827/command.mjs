@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import { sourceSnapshot } from '../jq-42-independent-review/common.mjs';
+import { artifact } from './artifacts.mjs';
+const [name,command,...args] = process.argv.slice(2);
+const before = sourceSnapshot();
+const start = Date.now();
+const result = spawnSync(command,args,{shell:false,encoding:'utf8',timeout:180000,maxBuffer:64*1024*1024});
+const after = sourceSnapshot();
+artifact(`${name}.json`,{recordedAt:new Date().toISOString(),command,args,before,after,structuredStable:before.structuredSha256===after.structuredSha256,productStable:before.productSha256===after.productSha256,elapsedMs:Date.now()-start,status:result.status,signal:result.signal,error:result.error?.message,stdout:result.stdout,stderr:result.stderr});
+console.log(JSON.stringify({name,status:result.status,structuredStable:before.structuredSha256===after.structuredSha256,productStable:before.productSha256===after.productSha256}));
+assert.ifError(result.error);
+process.exitCode=result.status;

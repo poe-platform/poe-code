@@ -1,0 +1,9 @@
+{
+  "expectedBytes": 15763,
+  "expectedSha256": "6d8a19854a6e96986013ed3d94ee15dd774e225259dea922bf4749799c60d89b",
+  "expectedDerivedBlob": "05eee3df033e442f7549bc632342d0be5d7badae",
+  "patchSha256": "0c7f3e0e0b843052af327dd6d6713480be55aa3a841b3e997a2d8b08c1d88a50",
+  "change": "Remove only the artificial split sentinel from patch line serialization; preserve every intended byte and intended terminal LF.",
+  "priorUnrun": "aed62f65:v3/workflows.mjs; STOP unchanged",
+  "productChanges": 0
+}

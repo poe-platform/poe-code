@@ -1,0 +1,425 @@
+{
+  "expectationVersion": "independent-encounter-v2-prefreeze",
+  "controls": [
+    {
+      "native": false,
+      "env": {
+        "LC_ALL": "independent-unsupported"
+      },
+      "id": "nested-inactive-prefix-no-locale",
+      "args": [
+        "1",
+        "|",
+        "(",
+        "0",
+        "|",
+        "length",
+        "index",
+        "HIDDEN",
+        "H",
+        ")"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "subjects": [],
+      "noEncode": [
+        "HIDDEN",
+        "H"
+      ]
+    },
+    {
+      "native": false,
+      "env": {
+        "LC_ALL": "C"
+      },
+      "id": "inactive-substr-no-allocation-or-number",
+      "args": [
+        "0",
+        "&",
+        "substr",
+        "HIDDEN",
+        "999",
+        "999"
+      ],
+      "limits": {
+        "maxStringBytes": 1,
+        "maxNumericDigits": 1
+      },
+      "expected": {
+        "exitCode": 1,
+        "stdout": "0\n",
+        "stderr": ""
+      },
+      "subjects": [],
+      "noEncode": [
+        "HIDDEN",
+        "999"
+      ]
+    },
+    {
+      "native": false,
+      "env": {
+        "LC_ALL": "C"
+      },
+      "id": "nested-inactive-arity-still-errors",
+      "args": [
+        "1",
+        "|",
+        "(",
+        "0",
+        "&",
+        "index",
+        "HIDDEN",
+        ")"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: unexpected ')'\n"
+      },
+      "subjects": [],
+      "noEncode": [
+        "HIDDEN"
+      ]
+    },
+    {
+      "native": false,
+      "env": {
+        "LC_ALL": "C"
+      },
+      "id": "inactive-regex-plus-late-close",
+      "args": [
+        "0",
+        "&",
+        "(",
+        "match",
+        "HIDDEN",
+        "["
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: expecting ')' after '['\n"
+      },
+      "subjects": [],
+      "noEncode": [
+        "HIDDEN"
+      ]
+    },
+    {
+      "native": false,
+      "env": {
+        "LC_ALL": "C"
+      },
+      "id": "nested-runtime-before-late-token",
+      "args": [
+        "(",
+        "(",
+        "9",
+        "/",
+        "0",
+        ")",
+        ")",
+        "junk"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "subjects": []
+    },
+    {
+      "native": false,
+      "env": {
+        "LC_ALL": "C"
+      },
+      "id": "prefix-regex-before-late-token",
+      "args": [
+        "length",
+        "match",
+        "a",
+        "a",
+        "junk"
+      ],
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: unexpected argument 'junk'\n"
+      },
+      "subjects": [
+        "a"
+      ]
+    },
+    {
+      "native": false,
+      "env": {
+        "LC_ALL": "C"
+      },
+      "id": "three-workers-once-encounter-order",
+      "args": [
+        "(",
+        "a",
+        ":",
+        "a",
+        ")",
+        "+",
+        "(",
+        "b",
+        ":",
+        "b",
+        ")",
+        "+",
+        "(",
+        "c",
+        ":",
+        "c",
+        ")"
+      ],
+      "limits": {
+        "maxSteps": 20000
+      },
+      "expected": {
+        "exitCode": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "subjects": [
+        "a",
+        "b",
+        "c"
+      ],
+      "sharedBudget": true
+    },
+    {
+      "native": false,
+      "env": {
+        "LC_ALL": "C"
+      },
+      "id": "active-then-inactive-then-active",
+      "args": [
+        "(",
+        "a",
+        ":",
+        "a",
+        "|",
+        "match",
+        "HIDDEN",
+        "[",
+        ")",
+        "+",
+        "(",
+        "b",
+        ":",
+        "b",
+        ")"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdout": "2\n",
+        "stderr": ""
+      },
+      "subjects": [
+        "a",
+        "b"
+      ],
+      "noEncode": [
+        "HIDDEN",
+        "["
+      ]
+    },
+    {
+      "native": false,
+      "env": {
+        "LC_ALL": "C"
+      },
+      "id": "abort-result-before-late-close",
+      "args": [
+        "(",
+        "a",
+        ":",
+        "a"
+      ],
+      "abort": "after-result",
+      "expected": {
+        "rejected": "caller"
+      },
+      "subjects": [
+        "a"
+      ]
+    },
+    {
+      "native": false,
+      "env": {
+        "LC_ALL": "C"
+      },
+      "id": "abort-in-stdout-after-worker",
+      "args": [
+        "a",
+        ":",
+        "a"
+      ],
+      "sink": "abort-stdout",
+      "expected": {
+        "rejected": "caller"
+      },
+      "subjects": [
+        "a"
+      ]
+    },
+    {
+      "native": false,
+      "env": {
+        "LC_ALL": "C"
+      },
+      "id": "await-stdout-after-worker",
+      "args": [
+        "a",
+        ":",
+        "a"
+      ],
+      "sink": "delayed-stdout",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "subjects": [
+        "a"
+      ]
+    },
+    {
+      "native": false,
+      "env": {
+        "LC_ALL": "C"
+      },
+      "id": "stdout-failure-no-regex-replay",
+      "args": [
+        "a",
+        ":",
+        "a"
+      ],
+      "sink": "fail-stdout",
+      "expected": {
+        "rejected": "sink"
+      },
+      "subjects": [
+        "a"
+      ]
+    },
+    {
+      "native": false,
+      "env": {
+        "LC_ALL": "C"
+      },
+      "id": "stderr-failure-after-regex",
+      "args": [
+        "a",
+        ":",
+        "a",
+        "junk"
+      ],
+      "sink": "fail-stderr",
+      "expected": {
+        "rejected": "sink"
+      },
+      "subjects": [
+        "a"
+      ]
+    },
+    {
+      "native": false,
+      "env": {
+        "LC_ALL": "C"
+      },
+      "id": "inactive-prefix-node-limit",
+      "args": [
+        "0",
+        "&",
+        "(",
+        "length",
+        "HIDDEN",
+        ")"
+      ],
+      "limits": {
+        "maxNodes": 2
+      },
+      "expected": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: AST node limit exceeded\n"
+      },
+      "subjects": [],
+      "noEncode": [
+        "HIDDEN"
+      ]
+    },
+    {
+      "native": false,
+      "env": {
+        "LC_ALL": "C"
+      },
+      "id": "inactive-nested-parser-limit",
+      "args": [
+        "0",
+        "&",
+        "(",
+        "(",
+        "length",
+        "HIDDEN",
+        ")",
+        ")"
+      ],
+      "limits": {
+        "maxDepth": 2
+      },
+      "expected": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: parser depth limit exceeded\n"
+      },
+      "subjects": [],
+      "noEncode": [
+        "HIDDEN"
+      ]
+    },
+    {
+      "native": false,
+      "env": {
+        "LC_ALL": "C"
+      },
+      "id": "inactive-chain-structural-depth",
+      "args": [
+        "1",
+        "|",
+        "(",
+        "2",
+        "+",
+        "3",
+        "+",
+        "4",
+        "+",
+        "5",
+        ")"
+      ],
+      "limits": {
+        "maxDepth": 3
+      },
+      "expected": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: parser depth limit exceeded\n"
+      },
+      "subjects": [],
+      "noEncode": [
+        "2",
+        "3",
+        "4",
+        "5"
+      ]
+    }
+  ]
+}

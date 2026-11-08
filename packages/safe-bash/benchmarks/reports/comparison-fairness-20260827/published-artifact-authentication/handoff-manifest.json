@@ -1,0 +1,179 @@
+{
+  "createdAt": "2026-08-27T06:04:48.962Z",
+  "phase": "offline proof complete; product execution NOT APPROVED/NOT RUN; independent verification pending",
+  "files": [
+    {
+      "path": "REPORT.md",
+      "bytes": 12030,
+      "sha256": "cfe2a7dc2d7b378012a9591195b1afa56c4acb3a701291a6ee07017c884c5adb"
+    },
+    {
+      "path": "compare.mjs",
+      "bytes": 14020,
+      "sha256": "c7a06ab0e3fc411b080cd230727237b50b2bcf48fcd62035650b3440ee39dbda"
+    },
+    {
+      "path": "dependency-tree-comparison.json",
+      "bytes": 1564264,
+      "sha256": "82a6e2146ca62f1d3538c054981046fe3fea1b9d1e80804132ee386248b55f57"
+    },
+    {
+      "path": "download.json",
+      "bytes": 9220,
+      "sha256": "9d01415e5daec76721543de5a41597f42e158eea2dff6229bcd2d9be3ef937e0"
+    },
+    {
+      "path": "download.mjs",
+      "bytes": 6380,
+      "sha256": "9d51078a6fdee8182dc832b41b971dfd77b23229d572447647866d1600c15b0f"
+    },
+    {
+      "path": "execution-closure.json",
+      "bytes": 1083717,
+      "sha256": "8770fa09f562363a43f4d538965b4afc0663e09807466509ba4464b6e8568821"
+    },
+    {
+      "path": "extract.py",
+      "bytes": 6465,
+      "sha256": "08d8b148a845459ff59391ec5d0a24399d32e47ef37d9fc3f6ed26a712e804f4"
+    },
+    {
+      "path": "extraction-guards.json",
+      "bytes": 2441,
+      "sha256": "acc8286ac614e5ae3df908af0bc9cd68ea418fb904240f2dc3da0754b13e286a"
+    },
+    {
+      "path": "extraction-guards.py",
+      "bytes": 2848,
+      "sha256": "c2595c9378b1401f6056131b43e60cac8c8ad91a9af324fd4d0ac351d22aeb10"
+    },
+    {
+      "path": "final-offline-check.json",
+      "bytes": 1041,
+      "sha256": "1769ade8c49ec902a86222724f02fe44c84d522894e6b110039f33080e5aa6b4"
+    },
+    {
+      "path": "final-offline-check.mjs",
+      "bytes": 3158,
+      "sha256": "a6f525102a8f9dcd68c72b83551439ecb20d3c2c27aefc572f572e3a68fdac12"
+    },
+    {
+      "path": "guarded-reextraction.json",
+      "bytes": 356,
+      "sha256": "2ec049d91143515feddb62df6e9c6901cea9e670b06bdedbd321a171f4514ce5"
+    },
+    {
+      "path": "historical-import-authentication.json",
+      "bytes": 43032,
+      "sha256": "e0389ee7fb9d8579f9d9f46af361a7051075c166ee01c374ae5deafa3e8062b9"
+    },
+    {
+      "path": "lock-graph-check.json",
+      "bytes": 40512,
+      "sha256": "4f08c966b7ec57dff1b9412045eefff1ef59e34e020ff7301608d021ef18c602"
+    },
+    {
+      "path": "manifest-lock-entry.json",
+      "bytes": 80332,
+      "sha256": "c5c972804d9e0a2f44de85fe95e74c2403b899f9f515a73a66ddebf0a8d8e5a4"
+    },
+    {
+      "path": "observe-load.mjs",
+      "bytes": 1523,
+      "sha256": "bb1d9e856b1a056f19deaad325568a3092354221ccc8731a25cea42eb94b9b9d"
+    },
+    {
+      "path": "observe-process.mjs",
+      "bytes": 1017,
+      "sha256": "7986a7e8730b7c022e97f42d6d5bb497cc46455304af617541e5fe0d41c5b10c"
+    },
+    {
+      "path": "offline-attempt-001.json",
+      "bytes": 375,
+      "sha256": "3e709a4859dc4b718a31803197676278bbf6722e6e8e97bd7d0c08ec3cbfdb14"
+    },
+    {
+      "path": "offline-attempt-002.json",
+      "bytes": 847,
+      "sha256": "258f155a665de98f92f1bff190fac904d78baaeccb794e3244f0c658d3fc14bb"
+    },
+    {
+      "path": "offline-attempt-003.json",
+      "bytes": 928,
+      "sha256": "4cbeba3c360117fffce431ce04d01ef47739a1bfe8016c7f3610a4b1c08a33b6"
+    },
+    {
+      "path": "package-comparison.json",
+      "bytes": 562114,
+      "sha256": "393d8d78a26e521594f1ac33953b9f6dd76a5dd936f82f4fe66de4af3829aa9e"
+    },
+    {
+      "path": "preflight-attempt-001.json",
+      "bytes": 551,
+      "sha256": "9cb4268f3ac3fc9cef4050f54d93c6aa15c494eee5cd3da0319de7032833a1c3"
+    },
+    {
+      "path": "published-files.json",
+      "bytes": 234053,
+      "sha256": "75347f6df092ddf527dff58da2c1d3d58071764b20b3f1e5f55048101c4a4c9d"
+    },
+    {
+      "path": "registry-metadata.raw.json",
+      "bytes": 8127,
+      "sha256": "ef19c2318535bde2774c58b2ab7501178b6227e8cba98071bcb0ebdcc69d84b1"
+    },
+    {
+      "path": "representative-plan-v2.json",
+      "bytes": 13889,
+      "sha256": "f13ec98a0187d9cb286385fbc32ef488b987071ca19f567e70b4ce0aff8aac99"
+    },
+    {
+      "path": "representative-plan.json",
+      "bytes": 13347,
+      "sha256": "2df47077dd42adae50821cf94c839abfde0b63ce3e1b90a198234556d8f1471e"
+    },
+    {
+      "path": "representative.mjs",
+      "bytes": 9907,
+      "sha256": "f7d3ed67e685a2e89e6daf5d5920cf36b5f3dd030b8998489264109983ab75ce"
+    },
+    {
+      "path": "setup-review.json",
+      "bytes": 6324,
+      "sha256": "b8201f1a9ac43b18e9b6108f8c60ab6c8592919aefbf63eb9d661f8b7a341da7"
+    },
+    {
+      "path": "setup-review.mjs",
+      "bytes": 6628,
+      "sha256": "56076c26bc5ad8d1879ed3a0960375fc95ac4ccc060535967e6f80089512dae8"
+    }
+  ],
+  "reviewerDirectoryExcluded": "verification/**",
+  "temporaryArchive": "/private/tmp/safe-bash-published-auth-JydnQ4/just-bash-3.4.2.tgz",
+  "temporaryExtracted": "/private/tmp/safe-bash-published-auth-JydnQ4/authenticated-package",
+  "temporaryClosure": "/private/tmp/safe-bash-published-auth-JydnQ4/execution-closure",
+  "approvalTemplateNotAuthorization": {
+    "approved": false,
+    "authority": "root",
+    "resultBearingCalls": 8,
+    "engineChildren": 8,
+    "textPlanSha256": "527ac740058732c25d70ccadfae006a66b3ee9d5a7622af51e8e6429d4a64225",
+    "files": {
+      "representative.mjs": "f7d3ed67e685a2e89e6daf5d5920cf36b5f3dd030b8998489264109983ab75ce",
+      "observe-process.mjs": "7986a7e8730b7c022e97f42d6d5bb497cc46455304af617541e5fe0d41c5b10c",
+      "observe-load.mjs": "bb1d9e856b1a056f19deaad325568a3092354221ccc8731a25cea42eb94b9b9d",
+      "representative-plan-v2.json": "f13ec98a0187d9cb286385fbc32ef488b987071ca19f567e70b4ce0aff8aac99",
+      "execution-closure.json": "8770fa09f562363a43f4d538965b4afc0663e09807466509ba4464b6e8568821"
+    }
+  },
+  "checks": {
+    "ownedJsonParse": true,
+    "authoredScriptSyntaxChecks": 7,
+    "extractorGuardCases": 15,
+    "guardedReextractionFileMapEqual": true,
+    "packageFilesEqual": 955,
+    "dependencyFilesByteEqual": 3828,
+    "closureFilesRehashed": 3842,
+    "productCalls": 0
+  }
+}

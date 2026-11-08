@@ -1,0 +1,116 @@
+{
+  "schema": 1,
+  "review": "independent tree charset review",
+  "candidate": "f1a90436c45208ca248e058a039893233c608daa",
+  "authorEvidence": "0d8623634995549d8e717d310c28db83a02a9532",
+  "priorInvestigation": "45baf7647124282bf52cd843656b6e190746580a",
+  "chronology": {
+    "independentPreSourceCommitFreezeExists": false,
+    "predecessorPostSourceFreeze": "a0445f4d5cff1c8451957ce684273e1225279588",
+    "unauthorizedScopedAgentsCleanup": "d12de6eca8fff2a7389746ee67e1f99185b968f7",
+    "replacementPostSourceSupplementalFreeze": "633fc0c7d582b9f997ca42be75461b78e03dccb9",
+    "fixtureCorrectionV2": "814dfebf7ab43f4b4fe4954e10df185ed2ff087c",
+    "harnessAndFixtureCorrectionV3": "c355751f36ca3fdbab8f888eaab30203c1bcd343"
+  },
+  "native": {
+    "identity": "unix-tree 2.2.1 Darwin arm64",
+    "binarySha256": "34a794e5737d4b09a20a58dc0b7231e6300a3d229be5065c3a549969d205f10a",
+    "archiveSha256": "e911c4a2bea53586cc7be6f3d7d7f4d9c2f2bcbbad77d30700b31046e38f4bc5",
+    "binaryFormat": "Mach-O 64-bit executable arm64",
+    "independentV2Probes": 15,
+    "independentV2CaptureStatus": 0,
+    "independentV2ManifestStatus": 0,
+    "profileLimits": [
+      "lowercase .utf8 locale suffixes remain virtual extensions, not native Darwin parity",
+      "native empty explicit charset is status 1 while virtual is status 2",
+      "native unknown explicit charset is accepted as ASCII/status 0 while virtual is status 2"
+    ]
+  },
+  "authentication": {
+    "node": {
+      "version": "v22.22.2",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    "fullCandidateArchiveSha256": "fe133818ee69dcbdac7e2330e97fefa1dd07037ba73c6135ccf106b770e7f325",
+    "sourceArchiveSha256": "95d59abc444430837003c54894ceda7f14a976139cef8df69c320a7fccead2de",
+    "authorEvidenceArchiveSha256": "1227370f73da60a53ee7bc0198d2b6ceb98a47f942ef75f12ec163553ab14d64",
+    "toolFilesCopiedAndHashChecked": 314,
+    "builtDistFiles": 760,
+    "packedTarballSha256": "2713175a12912952999c6e0e8d81cef2638692b573081bc281ba0e785d099bab",
+    "packedAndInstalledFiles": 762,
+    "packInstallInventoryMatch": true,
+    "builtDistAndMovedInstalledDistMatch": true,
+    "movedPackageManifestSha256": "2127bbfed020aeb7873462ae65224e6ee73069425c878aa2ceee9816b2191245",
+    "loadedRootEntrySha256": "77b771a6066aa32f82b903f7a80c578132388d6d9cec9fbde15485915859df5d",
+    "loadedTreeSubpathEntrySha256": "702a5d511ede375a30473275f8428b84f7b4c44b7caa706ba3796d5e9b94140a",
+    "sourcePostflightUnchanged": true
+  },
+  "results": {
+    "authorScopedRegression": {
+      "baseline": { "tests": 77, "pass": 77, "fail": 0, "skipped": 0, "cancelled": 0 },
+      "candidate": { "tests": 139, "pass": 139, "fail": 0, "skipped": 0, "cancelled": 0 },
+      "candidateBreakdown": { "unchanged": 77, "new": 62 },
+      "scopedStrictTypes": "pass",
+      "isolatedSourceBuild": "pass"
+    },
+    "differential": {
+      "before": { "matches": 26, "cases": 34 },
+      "candidate": { "matches": 31, "cases": 34 },
+      "exactlyFiveClosed": [
+        "charset-utf8-all",
+        "charset-utf8-lang",
+        "charset-ctype-precedence",
+        "charset-empty-all",
+        "charset-tree-utf8"
+      ],
+      "newRegressions": [],
+      "countProbesWithMatchingTotals": { "matches": 15, "cases": 15 }
+    },
+    "movedPackage": {
+      "strictConsumerTypes": "pass",
+      "defaultRegistryCommandCount": 70,
+      "treeRegistrations": 1,
+      "recordedHoldoutGroups": { "pass": 21, "fail": 0 },
+      "selectionCases": { "pass": 10, "fail": 0 },
+      "explicitAliasValues": { "pass": 8, "fail": 0 },
+      "localeValues": { "pass": 7, "fail": 0 },
+      "invalidExplicitValues": { "pass": 3, "fail": 0 },
+      "semanticNegativeControlsCaught": { "pass": 5, "fail": 0 },
+      "packageAndFallbackExpectedFailureControls": { "pass": 3, "fail": 0 },
+      "unhandledRejections": 0
+    },
+    "oldStrictRecipe": {
+      "casesFileSha256": "45cfbf02a4e68483e2b4f0fe85dc2c72d40a2a6c16ede16420480c80eb160b72",
+      "expectedFailureObserved": true,
+      "expectedProfile": "UTF-8 branches, 1 directory, 2 files",
+      "candidateProfile": "ASCII branches, 2 directories, 2 files"
+    }
+  },
+  "retainedDifferences": [
+    "count-mixed-roots: native file-operand annotation differs, totals match",
+    "names-utf8: Darwin collation and filename escaping differ",
+    "names-utf8-ascii-branches: Darwin collation and filename escaping differ"
+  ],
+  "genuineCandidateBugs": [],
+  "fixtureAndProcedureErrors": [
+    "predecessor created an unauthorized scoped AGENTS.md; replacement deleted only that file without rewriting history",
+    "predecessor and supplemental freezes guessed selected empty/unknown environment values were errors; versioned v2/v3 corrections preserve the originals",
+    "supplemental P05 incorrectly treated en_US.UTF8 as a supported locale; v3 corrects it to ASCII",
+    "supplemental native v1 manifest self-hashed and therefore has one expected checksum failure; v2 excludes the manifest and verifies",
+    "holdouts attempt 001 used a function-valued environment entry and correctly hit Shell's string-only validation; attempt 002 uses the documented fixture correction"
+  ],
+  "closure": {
+    "baselineAndNegativeControlChildrenExited": 4,
+    "workerExitCode": 0,
+    "workerThreadIdAfterExit": -1,
+    "reportedInterruptedPidsAbsent": [56656, 56667],
+    "temporaryBuildInstallRootRemoved": true
+  },
+  "claimsExcluded": [
+    "no whole-gate rescore",
+    "no traversal or count expansion",
+    "no full native parity",
+    "no mutable HEAD candidate use",
+    "no pre-source-commit independent freeze"
+  ]
+}

@@ -1,0 +1,165 @@
+import { ShellSyntaxError } from "../types.js";
+import { ParseBudget } from "../parse-budget.js";
+import type { Word, WordPart } from "../parser.js";
+
+export interface LiteralIndex {
+  readonly decimal: string;
+  readonly source?: string;
+  readonly word?: Word;
+}
+
+export type ArraySelector =
+  | { readonly kind: "element"; readonly index: LiteralIndex }
+  | { readonly kind: "keys"; readonly separator: "@" | "*" }
+  | { readonly kind: "members"; readonly separator: "@" | "*" };
+
+export interface ArrayEntry {
+  readonly index?: LiteralIndex;
+  readonly value: Word;
+  readonly append?: boolean;
+}
+
+export type ArrayAssignment =
+  | { readonly kind: "element"; readonly name: string; readonly index: LiteralIndex; readonly append: boolean; readonly value: Word }
+  | { readonly kind: "compound"; readonly name: string; readonly append: boolean; readonly entries: readonly ArrayEntry[] };
+
+export const prefixNameQuoteGroups = new WeakMap<WordPart, object>();
+const quoteMarkers = new WeakSet<WordPart>();
+
+export function setQuoteMarker(part: WordPart, synthetic: boolean): void {
+  if (synthetic) quoteMarkers.add(part);
+  else quoteMarkers.delete(part);
+}
+
+export function isQuoteMarker(part: WordPart): boolean {
+  return quoteMarkers.has(part);
+}
+
+export function literalIndex(source: string, offset: number, budget = new ParseBudget()): LiteralIndex {
+  let decimal = source;
+  if (source[0] === "'" || source[0] === '"') {
+    if (source.length < 2 || source.at(-1) !== source[0]) throw new ShellSyntaxError("Unsupported indexed-array subscript", offset);
+    decimal = source.slice(1, -1);
+  }
+  if (!/^(?:0|[1-9][0-9]*)$/u.test(decimal)) throw new ShellSyntaxError("Unsupported indexed-array subscript", offset);
+  budget.admit();
+  return { decimal };
+}
+
+export function numericIndex(index: LiteralIndex, maximum: 2147483647 | 4294967295 = 2147483647): number | undefined {
+  if (index.source !== undefined) {
+    try { return numericIndex(literalIndex(index.source, 0), maximum); } catch { return undefined; }
+  }
+  if (index.decimal.length > 10 || index.decimal.length === 10 && index.decimal > String(maximum)) return undefined;
+  return Number(index.decimal);
+}
+
+export function stringIndex(source: string, budget: ParseBudget, word?: Word): LiteralIndex {
+  budget.admit(2);
+  return { decimal: source, source, ...(word ? { word } : {}) };
+}
+
+export function arraySelector(source: string, offset: number, budget = new ParseBudget(), word?: Word): ArraySelector {
+  budget.admit();
+  const cleanSource = source.includes("\\\n") ? source.replace(/\\\n/gu, "") : source;
+  return cleanSource === "@" || cleanSource === "*"
+    ? { kind: "members", separator: cleanSource }
+    : { kind: "element", index: word ? stringIndex(cleanSource, budget, word) : literalIndex(cleanSource, offset, budget) };
+}
+
+export function setArraySelector(part: WordPart, selector: ArraySelector): void {
+  Object.defineProperty(part, "_selector", { value: selector, writable: true, configurable: true });
+}
+
+export function getArraySelector(part: WordPart): ArraySelector | undefined {
+  return (part as { _selector?: ArraySelector })._selector;
+}
+
+export function copyArraySelector(original: WordPart, copy: WordPart): WordPart {
+  const selector = getArraySelector(original);
+  if (selector) setArraySelector(copy, selector);
+  setQuoteMarker(copy, isQuoteMarker(original));
+  const group = prefixNameQuoteGroups.get(original);
+  if (group) prefixNameQuoteGroups.set(copy, group);
+  return copy;
+}
+
+export function setArrayAssignment(word: Word, assignment: ArrayAssignment): void {
+  Object.defineProperty(word, "_arrayAssign", { value: assignment, writable: true, configurable: true });
+}
+
+export function getArrayAssignment(word: Word): ArrayAssignment | undefined {
+  return (word as { _arrayAssign?: ArrayAssignment })._arrayAssign;
+}
+
+function removePrefix(word: Word, length: number, budget: ParseBudget): Word {
+  budget.admit();
+  const parts: WordPart[] = [];
+  for (const part of word.parts) {
+    if (length === 0) parts.push(part);
+    else {
+      if (part.kind !== "text") throw new ShellSyntaxError("Unsupported indexed-array subscript", word.offset);
+      if (part.value.length <= length) length -= part.value.length;
+      else {
+        budget.admit();
+        parts.push({ ...part, value: part.value.slice(length) });
+        length = 0;
+      }
+    }
+  }
+  if (length !== 0) throw new ShellSyntaxError("Invalid indexed-array assignment", word.offset);
+  return { offset: word.offset, parts };
+}
+
+export function elementAssignment(word: Word, budget = new ParseBudget(), parseWord?: (source: string) => Word, subscriptEnd?: (source: string, start: number) => number): Extract<ArrayAssignment, { kind: "element" }> | undefined {
+  const source = word.spelling;
+  const first = word.parts[0];
+  if (source === undefined || first?.kind !== "text" || first.quoted) return undefined;
+  const name = /^([a-zA-Z_][a-zA-Z_0-9]*)\[/u.exec(source)?.[1];
+  if (!name) return undefined;
+  const end = subscriptEnd ? subscriptEnd(source, name.length + 1) : source.indexOf("]", name.length + 1);
+  if (end < 0 || !/^(?:\+?=)/u.test(source.slice(end + 1))) {
+    if (source.includes("=")) throw new ShellSyntaxError("Invalid indexed-array assignment", word.offset);
+    return undefined;
+  }
+  budget.admit();
+  const keySource = source.slice(name.length + 1, end);
+  const index = parseWord ? stringIndex(keySource, budget, parseWord(keySource)) : literalIndex(keySource, word.offset + name.length + 1, budget);
+  const append = source[end + 1] === "+";
+  const value = parseWord ? parseWord(source.slice(end + (append ? 3 : 2))) : removePrefix(word, name.length + index.decimal.length + (append ? 4 : 3), budget);
+  return { kind: "element", name, index, append, value };
+}
+
+export function compoundHead(word: Word, budget = new ParseBudget()): { readonly name: string; readonly append: boolean } | undefined {
+  if (word.parts.length !== 1) return undefined;
+  const first = word.parts[0];
+  if (first?.kind !== "text" || first.quoted) return undefined;
+  const match = /^([a-zA-Z_][a-zA-Z_0-9]*)(\+?)=$/u.exec(first.value);
+  if (!match) return undefined;
+  budget.admit();
+  return { name: match[1]!, append: match[2] === "+" };
+}
+
+export function compoundEntry(word: Word, budget = new ParseBudget(), parseWord?: (source: string) => Word, subscriptEnd?: (source: string, start: number) => number): ArrayEntry {
+  budget.admit();
+  const source = word.spelling;
+  const first = word.parts[0];
+  if (source === undefined || source[0] !== "[" || first?.kind !== "text" || first.quoted) return { value: word };
+  const end = subscriptEnd ? subscriptEnd(source, 1) : source.indexOf("]", 1);
+  const append = source[end + 1] === "+";
+  if (end < 0 || source[end + (append ? 2 : 1)] !== "=") {
+    if (source.includes("=")) throw new ShellSyntaxError("Invalid indexed-array entry", word.offset);
+    return { value: word };
+  }
+  const keySource = source.slice(1, end);
+  const index = parseWord ? stringIndex(keySource, budget, parseWord(keySource)) : literalIndex(keySource, word.offset + 1, budget);
+  const value = parseWord ? parseWord(source.slice(end + (append ? 3 : 2))) : removePrefix(word, index.decimal.length + (append ? 4 : 3), budget);
+  return { index, value, ...(append ? { append: true } : {}) };
+}
+
+export function scalarAssignmentName(word: Word): string | undefined {
+  const first = word.parts[0];
+  return first?.kind === "text" && !first.quoted
+    ? /^([a-zA-Z_][a-zA-Z_0-9]*)\+?=/u.exec(first.value)?.[1]
+    : undefined;
+}

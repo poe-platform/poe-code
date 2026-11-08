@@ -1,0 +1,1714 @@
+[
+  {
+    "path": "final/apache/apache-error.log",
+    "capturedSha256": "7108128c66d916f552d452cfc1d5253925f43773ecc636ebb0162bb36151c127",
+    "archivedSha256": "7108128c66d916f552d452cfc1d5253925f43773ecc636ebb0162bb36151c127",
+    "capturedBytes": 10487,
+    "archivedBytes": 10487,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "final/apache/apache-profile.json",
+    "capturedSha256": "59328cfa2ab27aeb214a040d673ca63b7a6dff1f8035f282262734837bd6ca1b",
+    "archivedSha256": "be964491d7e556d8fa3f0457c28441394fa2acadb04c446386c9a49a2c7bb4ed",
+    "capturedBytes": 4093,
+    "archivedBytes": 3996,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "final/apache/baseline.json",
+    "capturedSha256": "40c684d018cca3bfa33d7592d974db7e7542b959ebe8f3442e42716c157e40a4",
+    "archivedSha256": "f0a9109dc8375dd5d774e027ca29e99d7e00c1659a47290c7901230ff5814674",
+    "capturedBytes": 24967,
+    "archivedBytes": 23085,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "final/apache/cert.pem",
+    "capturedSha256": "1cf01a3fd25ee52d07a238f29aa9d6ed1d09ddde2042ad35654e0b1ac76e0c4b",
+    "archivedSha256": "1cf01a3fd25ee52d07a238f29aa9d6ed1d09ddde2042ad35654e0b1ac76e0c4b",
+    "capturedBytes": 1196,
+    "archivedBytes": 1196,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "final/apache/cleanup.json",
+    "capturedSha256": "20618759a3bda75d484b0e7dabba8192e8aa9de49400d410dad34ea5a2b44064",
+    "archivedSha256": "16e9984f48494b14ec90e46da862d50e206d8d58f450bd714431544bc27b6a61",
+    "capturedBytes": 292,
+    "archivedBytes": 260,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "final/apache/commands.json",
+    "capturedSha256": "54cb0184a9094c133586bac05c58e6ee68fd21e032f667750db7c9fc96aa7873",
+    "archivedSha256": "ccbcf4715a64e7548121cb231c77a8a36abd974a86225fb7e36107a7a279bb8a",
+    "capturedBytes": 113401,
+    "archivedBytes": 111955,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "final/apache/consumer.json",
+    "capturedSha256": "f24b5b3d025ba23a2a1b00852eb6bcb1b0d3a0e3592ab33c2533b84450ec88f6",
+    "archivedSha256": "5f80a6af4726cd6ee2fdd752634ced140409c7f2d3e43adc77e91af1f479143b",
+    "capturedBytes": 746782,
+    "archivedBytes": 568998,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "final/apache/consumer.jsonl",
+    "capturedSha256": "a6a5e7ec7fd86c09bc925cee15551999e11cc1fa761a3b51a849274fec6a1485",
+    "archivedSha256": "a6a5e7ec7fd86c09bc925cee15551999e11cc1fa761a3b51a849274fec6a1485",
+    "capturedBytes": 320583,
+    "archivedBytes": 320583,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "final/apache/fixture-hashes.json",
+    "capturedSha256": "06d496c812352cc24676840857dab704888b3b052b8c2c7de83f81bec1c02f7d",
+    "archivedSha256": "d28b2d06255aecba118c70c2be0f5ca8457a2899862bec882f64776c6512ec5a",
+    "capturedBytes": 1219,
+    "archivedBytes": 1163,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "final/apache/independent-imports.jsonl",
+    "capturedSha256": "283db24cb4ab1feb3e764cd445126114cbee842282e34b914ef0f7ce1377057b",
+    "archivedSha256": "283db24cb4ab1feb3e764cd445126114cbee842282e34b914ef0f7ce1377057b",
+    "capturedBytes": 1904,
+    "archivedBytes": 1904,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "final/apache/independent.json",
+    "capturedSha256": "3aa2c17788dd286709af2b60128182375de0749ca0a8a141b638049571c3dcd3",
+    "archivedSha256": "cd4784c7be553e4f93b5f64883a11fdfcdf19b2428515aebc4d7767ec4ef2085",
+    "capturedBytes": 197995,
+    "archivedBytes": 130018,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "final/apache/inputs/apache.mjs",
+    "capturedSha256": "468a759ade23b7d609426a138b84dc927cc262e8ac421524b00c093563ce710c",
+    "archivedSha256": "468a759ade23b7d609426a138b84dc927cc262e8ac421524b00c093563ce710c",
+    "capturedBytes": 2135,
+    "archivedBytes": 2135,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "final/apache/inputs/consumer.mts",
+    "capturedSha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+    "archivedSha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+    "capturedBytes": 22820,
+    "archivedBytes": 22820,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "final/apache/inputs/dependencies.json",
+    "capturedSha256": "e80ca4a6c021a346ee88dfe6098f7b87d1fddae72fe470292e24931fd24752a9",
+    "archivedSha256": "4b2f35e0b3ee8502dd7d307390bac45a1600bdf93810f50b0613095efec0adbd",
+    "capturedBytes": 6499,
+    "archivedBytes": 5667,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "final/apache/inputs/example.mts",
+    "capturedSha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+    "archivedSha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+    "capturedBytes": 3772,
+    "archivedBytes": 3772,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "final/apache/inputs/https.mts",
+    "capturedSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+    "archivedSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+    "capturedBytes": 6105,
+    "archivedBytes": 6105,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "final/apache/inputs/independent.mts",
+    "capturedSha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+    "archivedSha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+    "capturedBytes": 16943,
+    "archivedBytes": 16943,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "final/apache/inputs/openssl.cnf",
+    "capturedSha256": "bd247b3ed249845809fb064056893f9212a19a3910ba6f517bfa714a328c642f",
+    "archivedSha256": "bd247b3ed249845809fb064056893f9212a19a3910ba6f517bfa714a328c642f",
+    "capturedBytes": 295,
+    "archivedBytes": 295,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "final/apache/inputs/phase2-consumer.mts",
+    "capturedSha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+    "archivedSha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+    "capturedBytes": 10900,
+    "archivedBytes": 10900,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "final/apache/inputs/phase2-validate.mjs",
+    "capturedSha256": "d3fb94836629b7e0836b6b8e63c2c40bd09b199dead3e9ccc2dafc2357223484",
+    "archivedSha256": "d3fb94836629b7e0836b6b8e63c2c40bd09b199dead3e9ccc2dafc2357223484",
+    "capturedBytes": 5606,
+    "archivedBytes": 5606,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "final/apache/inputs/public-guard.mjs",
+    "capturedSha256": "1ea17afd3264589c748ceba5293b559c395c1fc452180cf3ea9d612d210aa6c4",
+    "archivedSha256": "1ea17afd3264589c748ceba5293b559c395c1fc452180cf3ea9d612d210aa6c4",
+    "capturedBytes": 701,
+    "archivedBytes": 701,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "final/apache/inputs/raw.mjs",
+    "capturedSha256": "10e6fc0735c74292f2d22bb07fe5c6290bbed2a7bdf12d6a8e0d843417f3bb45",
+    "archivedSha256": "10e6fc0735c74292f2d22bb07fe5c6290bbed2a7bdf12d6a8e0d843417f3bb45",
+    "capturedBytes": 10330,
+    "archivedBytes": 10330,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "final/apache/inputs/run.mjs",
+    "capturedSha256": "6a9d72d4b075e7910bbae2c415d2fe9578ed0923e27047d77c2e43f956255f19",
+    "archivedSha256": "6a9d72d4b075e7910bbae2c415d2fe9578ed0923e27047d77c2e43f956255f19",
+    "capturedBytes": 13762,
+    "archivedBytes": 13762,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "final/apache/inputs/scope-neighbors.mts",
+    "capturedSha256": "8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2",
+    "archivedSha256": "8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2",
+    "capturedBytes": 6517,
+    "archivedBytes": 6517,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "final/apache/inputs/server.py",
+    "capturedSha256": "16188c6e6c8c24ae8c9dda1ee51a27003b116fd126d85e653bad09171bab1e35",
+    "archivedSha256": "16188c6e6c8c24ae8c9dda1ee51a27003b116fd126d85e653bad09171bab1e35",
+    "capturedBytes": 1279,
+    "archivedBytes": 1279,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "final/apache/literal-config.json",
+    "capturedSha256": "7670ca3525b7af705f3c493720f7772a64bfb42f80c16313f79336512b030c72",
+    "archivedSha256": "ce3773856fd682e1e215454aec4ad1556a7a908a1db5950edbafc93f64a3b30f",
+    "capturedBytes": 344,
+    "archivedBytes": 324,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "final/apache/package.json",
+    "capturedSha256": "288354e746263da5d33ce5e1fef8573c59041983f52955250921a61589361b1d",
+    "archivedSha256": "7c0279a1f050bd82a40895d357fb94e73ee42d1bc1568afe009e6ac4884a154e",
+    "capturedBytes": 65580,
+    "archivedBytes": 43871,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "final/apache/phase2-consumer.json",
+    "capturedSha256": "0d794e88beeee4c1905896078a8adafcef95e80efa654d8f66d3a94d659dbda4",
+    "archivedSha256": "702022b94be1ce1c8f88631c556e7b3bc2869b4455d200633e303ed2f860349c",
+    "capturedBytes": 256492,
+    "archivedBytes": 167466,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "final/apache/phase2-consumer.jsonl",
+    "capturedSha256": "9322208988accb1c598eb24872fc7e00f562dfbd63b3bb8b31840da7dba2fcef",
+    "archivedSha256": "9322208988accb1c598eb24872fc7e00f562dfbd63b3bb8b31840da7dba2fcef",
+    "capturedBytes": 51905,
+    "archivedBytes": 51905,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "final/apache/raw.json",
+    "capturedSha256": "3d02ba48f7b5a8f53f0b718c72e5ebbabbc4c45c6158193e84d8026e965c7f8b",
+    "archivedSha256": "493dd503671d1890019c1fafb9369534d42a802de715d7c780f6431ffd52c0a8",
+    "capturedBytes": 114464,
+    "archivedBytes": 89176,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "final/apache/scope-neighbors.json",
+    "capturedSha256": "bf558b3d72e7f36b4e938d747f83db2c2e9e7bcafc5dccc25d9a7be9edb5ee54",
+    "archivedSha256": "b61d5eb241dc45abfca2c0ea0c8cdbfc798f35676d87ccae0b6c0c7cdd1e9570",
+    "capturedBytes": 96528,
+    "archivedBytes": 67236,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "final/apache/server.log",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "capturedBytes": 0,
+    "archivedBytes": 1,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "final/apache/summary.json",
+    "capturedSha256": "38d5bd2039daa01fd42e567edba3df8c65aa685c89d0996bb9769ce29fc78d42",
+    "archivedSha256": "5f8ea47a626c9bbba6538d6d37ce99d30d5d5ca0d395d80b2a2ad6d4c1bbdf65",
+    "capturedBytes": 592,
+    "archivedBytes": 324,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "final/apache.stderr.log",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "capturedBytes": 0,
+    "archivedBytes": 1,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "final/apache.stdout.log",
+    "capturedSha256": "26161bae04182f4c526e2da961a6e25eb3c62dc6f9d1841c124d6cc8d8f53b7f",
+    "archivedSha256": "26161bae04182f4c526e2da961a6e25eb3c62dc6f9d1841c124d6cc8d8f53b7f",
+    "capturedBytes": 593,
+    "archivedBytes": 593,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "final/run.json",
+    "capturedSha256": "0a3f637a5908d9338ebbfbe1d82fa728e51fa64499251ffacf8ed35b7d86c360",
+    "archivedSha256": "f59e180ac1e97acbe080223ca74a32501fe1d5ee1fcc36f4cb03a7f0beee5bf5",
+    "capturedBytes": 6335,
+    "archivedBytes": 5493,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "final/unchanged-validation/cleanup.json",
+    "capturedSha256": "77f3b861c43f503c481e3cefc72758684100b3e036a1efe3193d7ec40ea94f99",
+    "archivedSha256": "386c115ecc15a50bdfb07be33cb16d546f9faea0cedab83eae9ab6e9e83cbda1",
+    "capturedBytes": 159,
+    "archivedBytes": 147,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "final/unchanged-validation/commands.json",
+    "capturedSha256": "0fe47bd5746be1bbb2d9b91ed0e329431596b9d8fff73215322e69cbf9c60974",
+    "archivedSha256": "97bfc02479283d70462074ec5242b7069b0de331c5b1a81b96dc49dcdf7432f4",
+    "capturedBytes": 233380,
+    "archivedBytes": 232006,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "final/unchanged-validation/inputs.json",
+    "capturedSha256": "abe10664eba7f96fae661aa531eb7048f8e1bca373dcbe4e76a8ab5ee7500a5b",
+    "archivedSha256": "29b01d57c02b2ead2b8cc9ddd10f3e3c715a005a0937f5e7f0ab401285b38a9b",
+    "capturedBytes": 24649,
+    "archivedBytes": 23249,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "final/unchanged-validation.stderr.log",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "capturedBytes": 0,
+    "archivedBytes": 1,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "final/unchanged-validation.stdout.log",
+    "capturedSha256": "a2ea70d9431559d65774986edf76a0bb9175614c75d57576bf347f88a9fd7360",
+    "archivedSha256": "a2ea70d9431559d65774986edf76a0bb9175614c75d57576bf347f88a9fd7360",
+    "capturedBytes": 287,
+    "archivedBytes": 287,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "final/wsgidav/baseline.json",
+    "capturedSha256": "67a57acdeba7b3972812a5c2296dabed761924366db7b7338a22fa9a84b49708",
+    "archivedSha256": "6d783ddbafd6ab85e4c57722f95ed2ea2c86f530c54fed2bfdf62a79af3ea789",
+    "capturedBytes": 24890,
+    "archivedBytes": 23008,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "final/wsgidav/cert.pem",
+    "capturedSha256": "56daf304e3e577da055a04caa48e98938e937d5d84c0b09856997aa20c122163",
+    "archivedSha256": "56daf304e3e577da055a04caa48e98938e937d5d84c0b09856997aa20c122163",
+    "capturedBytes": 1196,
+    "archivedBytes": 1196,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "final/wsgidav/cleanup.json",
+    "capturedSha256": "46a4a4ad21a1a30c95798f3c1f30304c3a72985c047dcacae8462693e9fb0b14",
+    "archivedSha256": "927406f0fbf450fe8810d2914568bd9da62abbd8376b3e4bb95a8ae70f1623a8",
+    "capturedBytes": 299,
+    "archivedBytes": 267,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "final/wsgidav/commands.json",
+    "capturedSha256": "af80ac7c6b12242a7e72222663e4f12ef50b16ee9ade766ec08f0ffaca2501de",
+    "archivedSha256": "6d425f91bc8e46f6604f93c8641ecc1d2438c0d8dc804039143784def64e2f94",
+    "capturedBytes": 123826,
+    "archivedBytes": 121920,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "final/wsgidav/consumer.json",
+    "capturedSha256": "28d9af06e812240affc67a30c8628e30a9fb08f582a4abf8bb789880266cea40",
+    "archivedSha256": "fa05c919ec6575b8097ce8a14eb8b2ed5d29362255cd3dfd854c899b391cb9a0",
+    "capturedBytes": 674761,
+    "archivedBytes": 508410,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "final/wsgidav/consumer.jsonl",
+    "capturedSha256": "e48395943b4603bea32dcdd8e144013700031576255c6039b7cc903e8e3e6d92",
+    "archivedSha256": "e48395943b4603bea32dcdd8e144013700031576255c6039b7cc903e8e3e6d92",
+    "capturedBytes": 296131,
+    "archivedBytes": 296131,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "final/wsgidav/dependencies.json",
+    "capturedSha256": "e80ca4a6c021a346ee88dfe6098f7b87d1fddae72fe470292e24931fd24752a9",
+    "archivedSha256": "4b2f35e0b3ee8502dd7d307390bac45a1600bdf93810f50b0613095efec0adbd",
+    "capturedBytes": 6499,
+    "archivedBytes": 5667,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "final/wsgidav/fixture-hashes.json",
+    "capturedSha256": "06d496c812352cc24676840857dab704888b3b052b8c2c7de83f81bec1c02f7d",
+    "archivedSha256": "d28b2d06255aecba118c70c2be0f5ca8457a2899862bec882f64776c6512ec5a",
+    "capturedBytes": 1219,
+    "archivedBytes": 1163,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "final/wsgidav/independent-imports.jsonl",
+    "capturedSha256": "8e8b96b78ab0f824c0a542b591db01a0a0b58254ea08b2e8f08ed7df31a54dd4",
+    "archivedSha256": "8e8b96b78ab0f824c0a542b591db01a0a0b58254ea08b2e8f08ed7df31a54dd4",
+    "capturedBytes": 1904,
+    "archivedBytes": 1904,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "final/wsgidav/independent.json",
+    "capturedSha256": "7bda8fde1f6af12e2c5aaf6f71c372aa89de765d650e217761ec0ad68a0c7da1",
+    "archivedSha256": "d997822a71c0c5ba20512b6bc652b2aa8b6acf7f9d057a14c78cb05a981b9918",
+    "capturedBytes": 168676,
+    "archivedBytes": 111295,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "final/wsgidav/inputs/apache.mjs",
+    "capturedSha256": "468a759ade23b7d609426a138b84dc927cc262e8ac421524b00c093563ce710c",
+    "archivedSha256": "468a759ade23b7d609426a138b84dc927cc262e8ac421524b00c093563ce710c",
+    "capturedBytes": 2135,
+    "archivedBytes": 2135,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "final/wsgidav/inputs/consumer.mts",
+    "capturedSha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+    "archivedSha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+    "capturedBytes": 22820,
+    "archivedBytes": 22820,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "final/wsgidav/inputs/dependencies.json",
+    "capturedSha256": "e80ca4a6c021a346ee88dfe6098f7b87d1fddae72fe470292e24931fd24752a9",
+    "archivedSha256": "4b2f35e0b3ee8502dd7d307390bac45a1600bdf93810f50b0613095efec0adbd",
+    "capturedBytes": 6499,
+    "archivedBytes": 5667,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "final/wsgidav/inputs/example.mts",
+    "capturedSha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+    "archivedSha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+    "capturedBytes": 3772,
+    "archivedBytes": 3772,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "final/wsgidav/inputs/https.mts",
+    "capturedSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+    "archivedSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+    "capturedBytes": 6105,
+    "archivedBytes": 6105,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "final/wsgidav/inputs/independent.mts",
+    "capturedSha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+    "archivedSha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+    "capturedBytes": 16943,
+    "archivedBytes": 16943,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "final/wsgidav/inputs/openssl.cnf",
+    "capturedSha256": "bd247b3ed249845809fb064056893f9212a19a3910ba6f517bfa714a328c642f",
+    "archivedSha256": "bd247b3ed249845809fb064056893f9212a19a3910ba6f517bfa714a328c642f",
+    "capturedBytes": 295,
+    "archivedBytes": 295,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "final/wsgidav/inputs/phase2-consumer.mts",
+    "capturedSha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+    "archivedSha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+    "capturedBytes": 10900,
+    "archivedBytes": 10900,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "final/wsgidav/inputs/phase2-validate.mjs",
+    "capturedSha256": "d3fb94836629b7e0836b6b8e63c2c40bd09b199dead3e9ccc2dafc2357223484",
+    "archivedSha256": "d3fb94836629b7e0836b6b8e63c2c40bd09b199dead3e9ccc2dafc2357223484",
+    "capturedBytes": 5606,
+    "archivedBytes": 5606,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "final/wsgidav/inputs/public-guard.mjs",
+    "capturedSha256": "1ea17afd3264589c748ceba5293b559c395c1fc452180cf3ea9d612d210aa6c4",
+    "archivedSha256": "1ea17afd3264589c748ceba5293b559c395c1fc452180cf3ea9d612d210aa6c4",
+    "capturedBytes": 701,
+    "archivedBytes": 701,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "final/wsgidav/inputs/raw.mjs",
+    "capturedSha256": "10e6fc0735c74292f2d22bb07fe5c6290bbed2a7bdf12d6a8e0d843417f3bb45",
+    "archivedSha256": "10e6fc0735c74292f2d22bb07fe5c6290bbed2a7bdf12d6a8e0d843417f3bb45",
+    "capturedBytes": 10330,
+    "archivedBytes": 10330,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "final/wsgidav/inputs/run.mjs",
+    "capturedSha256": "6a9d72d4b075e7910bbae2c415d2fe9578ed0923e27047d77c2e43f956255f19",
+    "archivedSha256": "6a9d72d4b075e7910bbae2c415d2fe9578ed0923e27047d77c2e43f956255f19",
+    "capturedBytes": 13762,
+    "archivedBytes": 13762,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "final/wsgidav/inputs/scope-neighbors.mts",
+    "capturedSha256": "8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2",
+    "archivedSha256": "8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2",
+    "capturedBytes": 6517,
+    "archivedBytes": 6517,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "final/wsgidav/inputs/server.py",
+    "capturedSha256": "16188c6e6c8c24ae8c9dda1ee51a27003b116fd126d85e653bad09171bab1e35",
+    "archivedSha256": "16188c6e6c8c24ae8c9dda1ee51a27003b116fd126d85e653bad09171bab1e35",
+    "capturedBytes": 1279,
+    "archivedBytes": 1279,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "final/wsgidav/literal-config.json",
+    "capturedSha256": "ed2b4120c8c632d9ba857a599c50f88f3f6b195b10837e95abac0129956e5d9e",
+    "archivedSha256": "3e03769326758b0e3e3c97cb1ab26a151b2737f45015c0c7da826a7a1e442e65",
+    "capturedBytes": 344,
+    "archivedBytes": 324,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "final/wsgidav/package.json",
+    "capturedSha256": "288354e746263da5d33ce5e1fef8573c59041983f52955250921a61589361b1d",
+    "archivedSha256": "7c0279a1f050bd82a40895d357fb94e73ee42d1bc1568afe009e6ac4884a154e",
+    "capturedBytes": 65580,
+    "archivedBytes": 43871,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "final/wsgidav/phase2-consumer.json",
+    "capturedSha256": "814c83e76fed50438397a04476f88133ff24e866ea4887bf407ab1550e959a6f",
+    "archivedSha256": "4a1e96a419a06ec099d512491bd1b12addcd625e8c2148a6456465a1ed48e877",
+    "capturedBytes": 250829,
+    "archivedBytes": 163096,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "final/wsgidav/phase2-consumer.jsonl",
+    "capturedSha256": "1f4111219f413667d6866db916dba71ba2c690507d5617323fea355c7d5598a4",
+    "archivedSha256": "1f4111219f413667d6866db916dba71ba2c690507d5617323fea355c7d5598a4",
+    "capturedBytes": 54589,
+    "archivedBytes": 54589,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "final/wsgidav/raw.json",
+    "capturedSha256": "a160cab8adba06b4b97c74102b0e42d4f6f919144d50dfb72938dbcadd9a8f81",
+    "archivedSha256": "ccf0942656d56df3fdda378ee01afe7c9983ad67079fd0a9192a2fb347557b6e",
+    "capturedBytes": 113812,
+    "archivedBytes": 89587,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "final/wsgidav/scope-neighbors.json",
+    "capturedSha256": "51214e827e819cb3967b29981724d50162f808617d3f6832986a30be3fd51fdf",
+    "archivedSha256": "e740d9c8826aa797310db14eb4a24096622d701dca80bb8e0ba9b899de681caf",
+    "capturedBytes": 105173,
+    "archivedBytes": 83640,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "final/wsgidav/server.log",
+    "capturedSha256": "be6f0b8a2a84b91d66d7b5812334008e8560a9abc7eae9adb1fb97a2601654b9",
+    "archivedSha256": "be6f0b8a2a84b91d66d7b5812334008e8560a9abc7eae9adb1fb97a2601654b9",
+    "capturedBytes": 15603,
+    "archivedBytes": 15603,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "final/wsgidav/summary.json",
+    "capturedSha256": "71b1587201ae586c5d085fa467e021ee0515650d57b9dc0c6754be6950dfb574",
+    "archivedSha256": "37307a7ef2222c77ec9c36d88a5ed42aae53d0e5f141d57e5e23773b42a0e4a6",
+    "capturedBytes": 593,
+    "archivedBytes": 325,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "final/wsgidav.stderr.log",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "capturedBytes": 0,
+    "archivedBytes": 1,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "final/wsgidav.stdout.log",
+    "capturedSha256": "b511d2ffb652b8eb102b0348bc2223824d99ed9efa2c7638cb7969c984fa73df",
+    "archivedSha256": "b511d2ffb652b8eb102b0348bc2223824d99ed9efa2c7638cb7969c984fa73df",
+    "capturedBytes": 594,
+    "archivedBytes": 594,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "parent/apache/apache-error.log",
+    "capturedSha256": "444e9b95958c261dcfdf79a5831917d8a598ad6a70c674ff1b46d87369146ade",
+    "archivedSha256": "444e9b95958c261dcfdf79a5831917d8a598ad6a70c674ff1b46d87369146ade",
+    "capturedBytes": 10487,
+    "archivedBytes": 10487,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "parent/apache/apache-profile.json",
+    "capturedSha256": "f149d52aabdbf35d25dd8f1c36eef0ade02bcb34af49b34ca57a016a3f6f3326",
+    "archivedSha256": "d0484652cf6a2e1f06d91b617e3dda8b6f4351e2b0adbaefbdee92b11829128e",
+    "capturedBytes": 4093,
+    "archivedBytes": 3996,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "parent/apache/baseline.json",
+    "capturedSha256": "efb1fd9b034a38734e379228cecdea53f5dc15b4c5fe9d492f743915d8a15aad",
+    "archivedSha256": "67a20f6a60434ba03988f50aff5c3a559886bccebd4fdf4a84d6bb2dc5d1e1cf",
+    "capturedBytes": 24890,
+    "archivedBytes": 23008,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "parent/apache/cert.pem",
+    "capturedSha256": "32a10c7f76b603b0d2a759fd86c4d46a4e59d4503161d5f48cf4840a59c73c9d",
+    "archivedSha256": "32a10c7f76b603b0d2a759fd86c4d46a4e59d4503161d5f48cf4840a59c73c9d",
+    "capturedBytes": 1196,
+    "archivedBytes": 1196,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "parent/apache/cleanup.json",
+    "capturedSha256": "d5e1027b942187f6822263505f45ab65a8a2f313e378c45709353feb4a20e9bb",
+    "archivedSha256": "07c7b3b06f54d18ea325637b8a775b0964be38f585a1aa51ae7560267168f8e8",
+    "capturedBytes": 292,
+    "archivedBytes": 260,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "parent/apache/commands.json",
+    "capturedSha256": "7b8bd0846f286c78fdb5c8da68f7afb5699cd83651383a0b69d6b51184c51e4c",
+    "archivedSha256": "d7a94c9077a666ef7f2c05d51c72c7159fadca73f8612a4e80d647094d271322",
+    "capturedBytes": 116863,
+    "archivedBytes": 115417,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "parent/apache/consumer.json",
+    "capturedSha256": "830c75b92bb2ba1dc1f4a03bbf60dc5ec8a021912a8014fa0d26dc83eb07da0f",
+    "archivedSha256": "d4e7c3ae4a3154932f7f388a1bbc4aeb51363f2e2d77a841d120f15a0a1cd98d",
+    "capturedBytes": 746775,
+    "archivedBytes": 568991,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "parent/apache/consumer.jsonl",
+    "capturedSha256": "68582f55f2115728eebbe2e5dc1691a5a17dea3d59bc6bde315574caab4067c1",
+    "archivedSha256": "68582f55f2115728eebbe2e5dc1691a5a17dea3d59bc6bde315574caab4067c1",
+    "capturedBytes": 320583,
+    "archivedBytes": 320583,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "parent/apache/fixture-hashes.json",
+    "capturedSha256": "06d496c812352cc24676840857dab704888b3b052b8c2c7de83f81bec1c02f7d",
+    "archivedSha256": "d28b2d06255aecba118c70c2be0f5ca8457a2899862bec882f64776c6512ec5a",
+    "capturedBytes": 1219,
+    "archivedBytes": 1163,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "parent/apache/independent-imports.jsonl",
+    "capturedSha256": "114700746e7c9262afe2313d86935d0273c6aaac5dbbc15f4976139deacc3a11",
+    "archivedSha256": "114700746e7c9262afe2313d86935d0273c6aaac5dbbc15f4976139deacc3a11",
+    "capturedBytes": 1904,
+    "archivedBytes": 1904,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "parent/apache/independent.json",
+    "capturedSha256": "3788f3245420833d177a44f1afccaf451690ad01e6087bcd74e43ba328d6cf99",
+    "archivedSha256": "2a472d572e8ea5342967efd374e9d0f4c4b91f20dfc76f4855566aeaf86431cb",
+    "capturedBytes": 201377,
+    "archivedBytes": 132466,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "parent/apache/inputs/apache.mjs",
+    "capturedSha256": "468a759ade23b7d609426a138b84dc927cc262e8ac421524b00c093563ce710c",
+    "archivedSha256": "468a759ade23b7d609426a138b84dc927cc262e8ac421524b00c093563ce710c",
+    "capturedBytes": 2135,
+    "archivedBytes": 2135,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "parent/apache/inputs/consumer.mts",
+    "capturedSha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+    "archivedSha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+    "capturedBytes": 22820,
+    "archivedBytes": 22820,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "parent/apache/inputs/dependencies.json",
+    "capturedSha256": "e80ca4a6c021a346ee88dfe6098f7b87d1fddae72fe470292e24931fd24752a9",
+    "archivedSha256": "4b2f35e0b3ee8502dd7d307390bac45a1600bdf93810f50b0613095efec0adbd",
+    "capturedBytes": 6499,
+    "archivedBytes": 5667,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "parent/apache/inputs/example.mts",
+    "capturedSha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+    "archivedSha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+    "capturedBytes": 3772,
+    "archivedBytes": 3772,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "parent/apache/inputs/https.mts",
+    "capturedSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+    "archivedSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+    "capturedBytes": 6105,
+    "archivedBytes": 6105,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "parent/apache/inputs/independent.mts",
+    "capturedSha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+    "archivedSha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+    "capturedBytes": 16943,
+    "archivedBytes": 16943,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "parent/apache/inputs/openssl.cnf",
+    "capturedSha256": "bd247b3ed249845809fb064056893f9212a19a3910ba6f517bfa714a328c642f",
+    "archivedSha256": "bd247b3ed249845809fb064056893f9212a19a3910ba6f517bfa714a328c642f",
+    "capturedBytes": 295,
+    "archivedBytes": 295,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "parent/apache/inputs/phase2-consumer.mts",
+    "capturedSha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+    "archivedSha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+    "capturedBytes": 10900,
+    "archivedBytes": 10900,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "parent/apache/inputs/phase2-validate.mjs",
+    "capturedSha256": "d3fb94836629b7e0836b6b8e63c2c40bd09b199dead3e9ccc2dafc2357223484",
+    "archivedSha256": "d3fb94836629b7e0836b6b8e63c2c40bd09b199dead3e9ccc2dafc2357223484",
+    "capturedBytes": 5606,
+    "archivedBytes": 5606,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "parent/apache/inputs/public-guard.mjs",
+    "capturedSha256": "1ea17afd3264589c748ceba5293b559c395c1fc452180cf3ea9d612d210aa6c4",
+    "archivedSha256": "1ea17afd3264589c748ceba5293b559c395c1fc452180cf3ea9d612d210aa6c4",
+    "capturedBytes": 701,
+    "archivedBytes": 701,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "parent/apache/inputs/raw.mjs",
+    "capturedSha256": "10e6fc0735c74292f2d22bb07fe5c6290bbed2a7bdf12d6a8e0d843417f3bb45",
+    "archivedSha256": "10e6fc0735c74292f2d22bb07fe5c6290bbed2a7bdf12d6a8e0d843417f3bb45",
+    "capturedBytes": 10330,
+    "archivedBytes": 10330,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "parent/apache/inputs/run.mjs",
+    "capturedSha256": "6a9d72d4b075e7910bbae2c415d2fe9578ed0923e27047d77c2e43f956255f19",
+    "archivedSha256": "6a9d72d4b075e7910bbae2c415d2fe9578ed0923e27047d77c2e43f956255f19",
+    "capturedBytes": 13762,
+    "archivedBytes": 13762,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "parent/apache/inputs/scope-neighbors.mts",
+    "capturedSha256": "8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2",
+    "archivedSha256": "8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2",
+    "capturedBytes": 6517,
+    "archivedBytes": 6517,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "parent/apache/inputs/server.py",
+    "capturedSha256": "16188c6e6c8c24ae8c9dda1ee51a27003b116fd126d85e653bad09171bab1e35",
+    "archivedSha256": "16188c6e6c8c24ae8c9dda1ee51a27003b116fd126d85e653bad09171bab1e35",
+    "capturedBytes": 1279,
+    "archivedBytes": 1279,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "parent/apache/literal-config.json",
+    "capturedSha256": "a77c0b9a49eae40ba248e26634ff6b8d2a2983ff6450f15b3aba86cd37551d6d",
+    "archivedSha256": "19e37cd94a0f553f4bbfd3275fad82b7a283a42c8c0d28323e21f86bed7619e5",
+    "capturedBytes": 344,
+    "archivedBytes": 324,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "parent/apache/package.json",
+    "capturedSha256": "1ad8d0b646a9b4041f8a0c11a12ef9fe89d75f36841ba4f7c65853c763c17873",
+    "archivedSha256": "62f78cb5de9bdd2824e5976ccbd292dd597dca75bb007795245b33a5d6d04be7",
+    "capturedBytes": 65580,
+    "archivedBytes": 43871,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "parent/apache/phase2-consumer.json",
+    "capturedSha256": "15834e17205f2ca1fd863269890c510ff3e5077c5647be480dde6aa1a89cf3ae",
+    "archivedSha256": "bd99141bd304e0351a640e35dd7cbc4f378972a94413b4fd89ed643c85796990",
+    "capturedBytes": 256492,
+    "archivedBytes": 167466,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "parent/apache/phase2-consumer.jsonl",
+    "capturedSha256": "119282af3355cd7574355eda77413f1a1f07a18f09be52c1f85385ec037c4b76",
+    "archivedSha256": "119282af3355cd7574355eda77413f1a1f07a18f09be52c1f85385ec037c4b76",
+    "capturedBytes": 51905,
+    "archivedBytes": 51905,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "parent/apache/raw.json",
+    "capturedSha256": "71b7004773806c69d5616a9f5556bc7799b60758546734c625e579e8224cbfc3",
+    "archivedSha256": "6a8e4694f76b2589e2ff6a6dfa2352a3e0ad9e88004da9b807aa3e3317ec974f",
+    "capturedBytes": 114464,
+    "archivedBytes": 89176,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "parent/apache/scope-neighbors.json",
+    "capturedSha256": "fc48cc02f351afdf42eb5f7b0171b36e0be539da9c8b0cfe3da38b53f3b2bc78",
+    "archivedSha256": "f2f8b96c1481f01da18dee6f2655c44b044bfc2f6501d98f059f10af64f3edcc",
+    "capturedBytes": 109944,
+    "archivedBytes": 76761,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "parent/apache/server.log",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "capturedBytes": 0,
+    "archivedBytes": 1,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "parent/apache/summary.json",
+    "capturedSha256": "38d5bd2039daa01fd42e567edba3df8c65aa685c89d0996bb9769ce29fc78d42",
+    "archivedSha256": "5f8ea47a626c9bbba6538d6d37ce99d30d5d5ca0d395d80b2a2ad6d4c1bbdf65",
+    "capturedBytes": 592,
+    "archivedBytes": 324,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "parent/apache.stderr.log",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "capturedBytes": 0,
+    "archivedBytes": 1,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "parent/apache.stdout.log",
+    "capturedSha256": "26161bae04182f4c526e2da961a6e25eb3c62dc6f9d1841c124d6cc8d8f53b7f",
+    "archivedSha256": "26161bae04182f4c526e2da961a6e25eb3c62dc6f9d1841c124d6cc8d8f53b7f",
+    "capturedBytes": 593,
+    "archivedBytes": 593,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "parent/run.json",
+    "capturedSha256": "9c3d0340d65d463f8a90e74b39e3d41f5034468fb280610c66d24c86e5b77516",
+    "archivedSha256": "1dd0f6999713aea9114c9b500355909d13807f66135727a396475a033eac47e6",
+    "capturedBytes": 6304,
+    "archivedBytes": 5547,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "parent/wsgidav/baseline.json",
+    "capturedSha256": "efb1fd9b034a38734e379228cecdea53f5dc15b4c5fe9d492f743915d8a15aad",
+    "archivedSha256": "67a20f6a60434ba03988f50aff5c3a559886bccebd4fdf4a84d6bb2dc5d1e1cf",
+    "capturedBytes": 24890,
+    "archivedBytes": 23008,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "parent/wsgidav/cert.pem",
+    "capturedSha256": "82869c822e2383b38945c7989f2c03529083ad86fc244bd53eae54f92302ec7b",
+    "archivedSha256": "82869c822e2383b38945c7989f2c03529083ad86fc244bd53eae54f92302ec7b",
+    "capturedBytes": 1196,
+    "archivedBytes": 1196,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "parent/wsgidav/cleanup.json",
+    "capturedSha256": "52d0bb89c06ab2419ff3cf4ee32651e71479214987741c9bd7db738a81a27564",
+    "archivedSha256": "b2a711c546e45a2a1a1234bbb05b592844732ce3227a3f366090b6a5115767e8",
+    "capturedBytes": 299,
+    "archivedBytes": 267,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "parent/wsgidav/commands.json",
+    "capturedSha256": "3a2e3b9335d2fc697b4ea8f1b3650f19e2453900bd5e6a6f03f40bacef89c385",
+    "archivedSha256": "50fb877ff7d03a2399e310bc4a2ca2ecbeb2050951d2d27324c37c22992a10f1",
+    "capturedBytes": 123788,
+    "archivedBytes": 121882,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "parent/wsgidav/consumer.json",
+    "capturedSha256": "2055132a48cee98e5232618d9083677c084ebb3893ebc2260237bd1a6ffb254f",
+    "archivedSha256": "e72b5a0239e2a10cf49958ebd94fae3cf5f50fad15c1685d496cf7a23ffa24cf",
+    "capturedBytes": 674763,
+    "archivedBytes": 508412,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "parent/wsgidav/consumer.jsonl",
+    "capturedSha256": "555262f39ddd8fee0f164c746961cd18e6515361e4b5d50cbbc064c4251d046c",
+    "archivedSha256": "555262f39ddd8fee0f164c746961cd18e6515361e4b5d50cbbc064c4251d046c",
+    "capturedBytes": 296132,
+    "archivedBytes": 296132,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "parent/wsgidav/dependencies.json",
+    "capturedSha256": "e80ca4a6c021a346ee88dfe6098f7b87d1fddae72fe470292e24931fd24752a9",
+    "archivedSha256": "4b2f35e0b3ee8502dd7d307390bac45a1600bdf93810f50b0613095efec0adbd",
+    "capturedBytes": 6499,
+    "archivedBytes": 5667,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "parent/wsgidav/fixture-hashes.json",
+    "capturedSha256": "06d496c812352cc24676840857dab704888b3b052b8c2c7de83f81bec1c02f7d",
+    "archivedSha256": "d28b2d06255aecba118c70c2be0f5ca8457a2899862bec882f64776c6512ec5a",
+    "capturedBytes": 1219,
+    "archivedBytes": 1163,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "parent/wsgidav/independent-imports.jsonl",
+    "capturedSha256": "eec1bd731a6e577aeea99793818b7fd6ecdb9ea655ef5334031263de6b66f6ae",
+    "archivedSha256": "eec1bd731a6e577aeea99793818b7fd6ecdb9ea655ef5334031263de6b66f6ae",
+    "capturedBytes": 1904,
+    "archivedBytes": 1904,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "parent/wsgidav/independent.json",
+    "capturedSha256": "c7450ce555488701230fc6e159830730c58e363423aa5669dd7976f70563f5fe",
+    "archivedSha256": "1c17500254effe697ac85c4f46d046321f0eb8b59d0f1126e7ba3164f92efb00",
+    "capturedBytes": 168671,
+    "archivedBytes": 111290,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "parent/wsgidav/inputs/apache.mjs",
+    "capturedSha256": "468a759ade23b7d609426a138b84dc927cc262e8ac421524b00c093563ce710c",
+    "archivedSha256": "468a759ade23b7d609426a138b84dc927cc262e8ac421524b00c093563ce710c",
+    "capturedBytes": 2135,
+    "archivedBytes": 2135,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "parent/wsgidav/inputs/consumer.mts",
+    "capturedSha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+    "archivedSha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+    "capturedBytes": 22820,
+    "archivedBytes": 22820,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "parent/wsgidav/inputs/dependencies.json",
+    "capturedSha256": "e80ca4a6c021a346ee88dfe6098f7b87d1fddae72fe470292e24931fd24752a9",
+    "archivedSha256": "4b2f35e0b3ee8502dd7d307390bac45a1600bdf93810f50b0613095efec0adbd",
+    "capturedBytes": 6499,
+    "archivedBytes": 5667,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "parent/wsgidav/inputs/example.mts",
+    "capturedSha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+    "archivedSha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+    "capturedBytes": 3772,
+    "archivedBytes": 3772,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "parent/wsgidav/inputs/https.mts",
+    "capturedSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+    "archivedSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+    "capturedBytes": 6105,
+    "archivedBytes": 6105,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "parent/wsgidav/inputs/independent.mts",
+    "capturedSha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+    "archivedSha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+    "capturedBytes": 16943,
+    "archivedBytes": 16943,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "parent/wsgidav/inputs/openssl.cnf",
+    "capturedSha256": "bd247b3ed249845809fb064056893f9212a19a3910ba6f517bfa714a328c642f",
+    "archivedSha256": "bd247b3ed249845809fb064056893f9212a19a3910ba6f517bfa714a328c642f",
+    "capturedBytes": 295,
+    "archivedBytes": 295,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "parent/wsgidav/inputs/phase2-consumer.mts",
+    "capturedSha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+    "archivedSha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+    "capturedBytes": 10900,
+    "archivedBytes": 10900,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "parent/wsgidav/inputs/phase2-validate.mjs",
+    "capturedSha256": "d3fb94836629b7e0836b6b8e63c2c40bd09b199dead3e9ccc2dafc2357223484",
+    "archivedSha256": "d3fb94836629b7e0836b6b8e63c2c40bd09b199dead3e9ccc2dafc2357223484",
+    "capturedBytes": 5606,
+    "archivedBytes": 5606,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "parent/wsgidav/inputs/public-guard.mjs",
+    "capturedSha256": "1ea17afd3264589c748ceba5293b559c395c1fc452180cf3ea9d612d210aa6c4",
+    "archivedSha256": "1ea17afd3264589c748ceba5293b559c395c1fc452180cf3ea9d612d210aa6c4",
+    "capturedBytes": 701,
+    "archivedBytes": 701,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "parent/wsgidav/inputs/raw.mjs",
+    "capturedSha256": "10e6fc0735c74292f2d22bb07fe5c6290bbed2a7bdf12d6a8e0d843417f3bb45",
+    "archivedSha256": "10e6fc0735c74292f2d22bb07fe5c6290bbed2a7bdf12d6a8e0d843417f3bb45",
+    "capturedBytes": 10330,
+    "archivedBytes": 10330,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "parent/wsgidav/inputs/run.mjs",
+    "capturedSha256": "6a9d72d4b075e7910bbae2c415d2fe9578ed0923e27047d77c2e43f956255f19",
+    "archivedSha256": "6a9d72d4b075e7910bbae2c415d2fe9578ed0923e27047d77c2e43f956255f19",
+    "capturedBytes": 13762,
+    "archivedBytes": 13762,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "parent/wsgidav/inputs/scope-neighbors.mts",
+    "capturedSha256": "8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2",
+    "archivedSha256": "8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2",
+    "capturedBytes": 6517,
+    "archivedBytes": 6517,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "parent/wsgidav/inputs/server.py",
+    "capturedSha256": "16188c6e6c8c24ae8c9dda1ee51a27003b116fd126d85e653bad09171bab1e35",
+    "archivedSha256": "16188c6e6c8c24ae8c9dda1ee51a27003b116fd126d85e653bad09171bab1e35",
+    "capturedBytes": 1279,
+    "archivedBytes": 1279,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "parent/wsgidav/literal-config.json",
+    "capturedSha256": "585a6254b97f61d6fa68cb97fb84de23ba887d3936766b5bb91496e980aa34e2",
+    "archivedSha256": "20c926cfbd5c72b8900f18aebf39a3fc4197dc430fd54b2b91bb3769c199fc8f",
+    "capturedBytes": 344,
+    "archivedBytes": 324,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "parent/wsgidav/package.json",
+    "capturedSha256": "1ad8d0b646a9b4041f8a0c11a12ef9fe89d75f36841ba4f7c65853c763c17873",
+    "archivedSha256": "62f78cb5de9bdd2824e5976ccbd292dd597dca75bb007795245b33a5d6d04be7",
+    "capturedBytes": 65580,
+    "archivedBytes": 43871,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "parent/wsgidav/phase2-consumer.json",
+    "capturedSha256": "d43602ef5340b203f8f805466700893cfaf02329242152cc99f7f5a58474b5ce",
+    "archivedSha256": "4a5447c275a0703b864125c752278cb9d8432e6acb3537ac8ba91d8af68206af",
+    "capturedBytes": 250829,
+    "archivedBytes": 163096,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "parent/wsgidav/phase2-consumer.jsonl",
+    "capturedSha256": "e3c1fd4ec57acf48ef27283425773194998ba74a7d2aafc3996e869222db9c07",
+    "archivedSha256": "e3c1fd4ec57acf48ef27283425773194998ba74a7d2aafc3996e869222db9c07",
+    "capturedBytes": 54589,
+    "archivedBytes": 54589,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "parent/wsgidav/raw.json",
+    "capturedSha256": "26a4dc3e3b471bf858d1f70e91d6d2e77e42a380bb78aa64d66309066d8ec196",
+    "archivedSha256": "5e0088506aaedf488d3456370556274818b3f8a0ed5ba5ebbcafa46438c39581",
+    "capturedBytes": 113808,
+    "archivedBytes": 89583,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "parent/wsgidav/scope-neighbors.json",
+    "capturedSha256": "d7fb1b722cd1cd655387c3690d1f57d04f498c8d7e188e319b1fc3e0657488aa",
+    "archivedSha256": "7ab2efc4c70710ff067077ac7ff5941f9d3ece68c1d1c1a2e20ca164ffe2e61d",
+    "capturedBytes": 105177,
+    "archivedBytes": 83644,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "parent/wsgidav/server.log",
+    "capturedSha256": "b75ab3329f2006b7ab2d6e80e363ab315d5d5673331d524b1a76b7c32f8eec19",
+    "archivedSha256": "b75ab3329f2006b7ab2d6e80e363ab315d5d5673331d524b1a76b7c32f8eec19",
+    "capturedBytes": 15603,
+    "archivedBytes": 15603,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "parent/wsgidav/summary.json",
+    "capturedSha256": "71b1587201ae586c5d085fa467e021ee0515650d57b9dc0c6754be6950dfb574",
+    "archivedSha256": "37307a7ef2222c77ec9c36d88a5ed42aae53d0e5f141d57e5e23773b42a0e4a6",
+    "capturedBytes": 593,
+    "archivedBytes": 325,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "parent/wsgidav.stderr.log",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "capturedBytes": 0,
+    "archivedBytes": 1,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "parent/wsgidav.stdout.log",
+    "capturedSha256": "b511d2ffb652b8eb102b0348bc2223824d99ed9efa2c7638cb7969c984fa73df",
+    "archivedSha256": "b511d2ffb652b8eb102b0348bc2223824d99ed9efa2c7638cb7969c984fa73df",
+    "capturedBytes": 594,
+    "archivedBytes": 594,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "attempt1/apache/apache-error.log",
+    "capturedSha256": "52097ae19bc3f06b7190a20f3392d975d4ee0b5063c02d76c28e5a96b8e7c3b9",
+    "archivedSha256": "52097ae19bc3f06b7190a20f3392d975d4ee0b5063c02d76c28e5a96b8e7c3b9",
+    "capturedBytes": 6662,
+    "archivedBytes": 6662,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "attempt1/apache/apache-profile.json",
+    "capturedSha256": "3d9946709cadeb1c26b8a51d6806a701c70e78c728a9d00c8b1ae3ffd8044455",
+    "archivedSha256": "6a6d152a6a903fce12ff559d3312ef5cfba19c4c98fe009e06320cde0a458aa5",
+    "capturedBytes": 4093,
+    "archivedBytes": 3996,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "attempt1/apache/baseline.json",
+    "capturedSha256": "8f7c95a6280c577c187a5e8f7690383a5210f17cd5ee87a8614224ed1249d607",
+    "archivedSha256": "bb313f013b336daa57c50b297c329783552e86c3d7a0329e7280ba41b201442f",
+    "capturedBytes": 24586,
+    "archivedBytes": 22704,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "attempt1/apache/cert.pem",
+    "capturedSha256": "9420ab4946c59fda67187fe6c8f2234357a42992c732250aa91f1bf9e51edcfd",
+    "archivedSha256": "9420ab4946c59fda67187fe6c8f2234357a42992c732250aa91f1bf9e51edcfd",
+    "capturedBytes": 1196,
+    "archivedBytes": 1196,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "attempt1/apache/cleanup.json",
+    "capturedSha256": "38f8fbcca9064d3039dc9206846b5403254534352daa88c0cb844f3c1423b564",
+    "archivedSha256": "8c7f3c322278286198562abcb3e5babe5e7b6a54e62c8f06af849bb118691b82",
+    "capturedBytes": 292,
+    "archivedBytes": 260,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "attempt1/apache/commands.json",
+    "capturedSha256": "27118c86662662e6702f1e2c4da219b473bbf684c1a04a819d6c0e63eabb7a9c",
+    "archivedSha256": "7d5d06b9a4c63f6f119357c2e23a15003e7e436837840baa14abd68f647f80c8",
+    "capturedBytes": 110087,
+    "archivedBytes": 108729,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "attempt1/apache/consumer.json",
+    "capturedSha256": "ff60c2788bb2e86226226f6cf0781a570217a8c0c7f49a2718b30767941e7eed",
+    "archivedSha256": "125d757e21949d3dc6109d8faddd14020d5be08c6dc143f1c1e1ef8044daf403",
+    "capturedBytes": 746779,
+    "archivedBytes": 568995,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "attempt1/apache/consumer.jsonl",
+    "capturedSha256": "625a722bcee35cbe82a58452e3ad63bf9daf357799395ae918cc492882cb0629",
+    "archivedSha256": "625a722bcee35cbe82a58452e3ad63bf9daf357799395ae918cc492882cb0629",
+    "capturedBytes": 320583,
+    "archivedBytes": 320583,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "attempt1/apache/fixture-hashes.json",
+    "capturedSha256": "036ac79b59438c4e0416e3bb7c22d299445f6fa5556f8963a5e1363d96204a1b",
+    "archivedSha256": "af3ca9ddb9ac4eba40839475dba4071e1f0168be38d25716d20e0a9626c3880b",
+    "capturedBytes": 1219,
+    "archivedBytes": 1163,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "attempt1/apache/independent-imports.jsonl",
+    "capturedSha256": "417462e53697e887bffcb7710231bdf01b3b43a105efa350ccea533cd0c96735",
+    "archivedSha256": "417462e53697e887bffcb7710231bdf01b3b43a105efa350ccea533cd0c96735",
+    "capturedBytes": 1904,
+    "archivedBytes": 1904,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "attempt1/apache/independent.json",
+    "capturedSha256": "807680eaa24c5f531af10f8e6f7b2120121a91a3b67a016207c6d59c723a170e",
+    "archivedSha256": "0cf8712e3d8e28fb9b0c0f1ba408f21a3d0397d0d4f27caecd0fc16315ff3e35",
+    "capturedBytes": 197995,
+    "archivedBytes": 130018,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "attempt1/apache/inputs/apache.mjs",
+    "capturedSha256": "468a759ade23b7d609426a138b84dc927cc262e8ac421524b00c093563ce710c",
+    "archivedSha256": "468a759ade23b7d609426a138b84dc927cc262e8ac421524b00c093563ce710c",
+    "capturedBytes": 2135,
+    "archivedBytes": 2135,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "attempt1/apache/inputs/consumer.mts",
+    "capturedSha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+    "archivedSha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+    "capturedBytes": 22820,
+    "archivedBytes": 22820,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "attempt1/apache/inputs/dependencies.json",
+    "capturedSha256": "e80ca4a6c021a346ee88dfe6098f7b87d1fddae72fe470292e24931fd24752a9",
+    "archivedSha256": "4b2f35e0b3ee8502dd7d307390bac45a1600bdf93810f50b0613095efec0adbd",
+    "capturedBytes": 6499,
+    "archivedBytes": 5667,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "attempt1/apache/inputs/example.mts",
+    "capturedSha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+    "archivedSha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+    "capturedBytes": 3772,
+    "archivedBytes": 3772,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "attempt1/apache/inputs/https.mts",
+    "capturedSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+    "archivedSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+    "capturedBytes": 6105,
+    "archivedBytes": 6105,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "attempt1/apache/inputs/independent.mts",
+    "capturedSha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+    "archivedSha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+    "capturedBytes": 16943,
+    "archivedBytes": 16943,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "attempt1/apache/inputs/openssl.cnf",
+    "capturedSha256": "bd247b3ed249845809fb064056893f9212a19a3910ba6f517bfa714a328c642f",
+    "archivedSha256": "bd247b3ed249845809fb064056893f9212a19a3910ba6f517bfa714a328c642f",
+    "capturedBytes": 295,
+    "archivedBytes": 295,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "attempt1/apache/inputs/phase2-consumer.mts",
+    "capturedSha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+    "archivedSha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+    "capturedBytes": 10900,
+    "archivedBytes": 10900,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "attempt1/apache/inputs/phase2-validate.mjs",
+    "capturedSha256": "d3fb94836629b7e0836b6b8e63c2c40bd09b199dead3e9ccc2dafc2357223484",
+    "archivedSha256": "d3fb94836629b7e0836b6b8e63c2c40bd09b199dead3e9ccc2dafc2357223484",
+    "capturedBytes": 5606,
+    "archivedBytes": 5606,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "attempt1/apache/inputs/public-guard.mjs",
+    "capturedSha256": "1ea17afd3264589c748ceba5293b559c395c1fc452180cf3ea9d612d210aa6c4",
+    "archivedSha256": "1ea17afd3264589c748ceba5293b559c395c1fc452180cf3ea9d612d210aa6c4",
+    "capturedBytes": 701,
+    "archivedBytes": 701,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "attempt1/apache/inputs/raw.mjs",
+    "capturedSha256": "10e6fc0735c74292f2d22bb07fe5c6290bbed2a7bdf12d6a8e0d843417f3bb45",
+    "archivedSha256": "10e6fc0735c74292f2d22bb07fe5c6290bbed2a7bdf12d6a8e0d843417f3bb45",
+    "capturedBytes": 10330,
+    "archivedBytes": 10330,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "attempt1/apache/inputs/run.mjs",
+    "capturedSha256": "6a9d72d4b075e7910bbae2c415d2fe9578ed0923e27047d77c2e43f956255f19",
+    "archivedSha256": "6a9d72d4b075e7910bbae2c415d2fe9578ed0923e27047d77c2e43f956255f19",
+    "capturedBytes": 13762,
+    "archivedBytes": 13762,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "attempt1/apache/inputs/scope-neighbors.mts",
+    "capturedSha256": "a62d82374edc28dd641425690bc308b067def6c9c4fc2d79847573cbff0f7c66",
+    "archivedSha256": "a62d82374edc28dd641425690bc308b067def6c9c4fc2d79847573cbff0f7c66",
+    "capturedBytes": 6496,
+    "archivedBytes": 6496,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "attempt1/apache/inputs/server.py",
+    "capturedSha256": "16188c6e6c8c24ae8c9dda1ee51a27003b116fd126d85e653bad09171bab1e35",
+    "archivedSha256": "16188c6e6c8c24ae8c9dda1ee51a27003b116fd126d85e653bad09171bab1e35",
+    "capturedBytes": 1279,
+    "archivedBytes": 1279,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "attempt1/apache/literal-config.json",
+    "capturedSha256": "45704461894007f7294915efa30fc8bf3b96126cdf4f4137e2e4f02967e4cd8e",
+    "archivedSha256": "9bdccff3b02826ef6e8f7745fd0cf18e0f928ecc1ce8311d910e0a3c41d166a2",
+    "capturedBytes": 344,
+    "archivedBytes": 324,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "attempt1/apache/package.json",
+    "capturedSha256": "288354e746263da5d33ce5e1fef8573c59041983f52955250921a61589361b1d",
+    "archivedSha256": "7c0279a1f050bd82a40895d357fb94e73ee42d1bc1568afe009e6ac4884a154e",
+    "capturedBytes": 65580,
+    "archivedBytes": 43871,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "attempt1/apache/raw.json",
+    "capturedSha256": "4f31262cf266e90737bb31a76403b79c18b22a2c6cf303248c67b35b0d1c00b4",
+    "archivedSha256": "2d9c9113fc9ef19e4ce5adc98101fb7a2ba2989c2f3c690bf98c37869871a6ca",
+    "capturedBytes": 114464,
+    "archivedBytes": 89176,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "attempt1/apache/server.log",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "capturedBytes": 0,
+    "archivedBytes": 1,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "attempt1/apache.stderr.log",
+    "capturedSha256": "1763f162e95ce09dbcab56eac23012e508881cb22a747d7693f4fe803019c9ef",
+    "archivedSha256": "1763f162e95ce09dbcab56eac23012e508881cb22a747d7693f4fe803019c9ef",
+    "capturedBytes": 971,
+    "archivedBytes": 971,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "attempt1/apache.stdout.log",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "capturedBytes": 0,
+    "archivedBytes": 1,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "attempt1/run.json",
+    "capturedSha256": "ad329b9d7b1427ff91c3ab089ed703ca6584ac0b11880faae5d948802a659ed6",
+    "archivedSha256": "43e9b3f3b1edd04a23466b14606eec2d55e0c0844ef16053d51096770e111f07",
+    "capturedBytes": 6063,
+    "archivedBytes": 5221,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "attempt1/unchanged-validation/cleanup.json",
+    "capturedSha256": "aea4c1f296ed7588c1e4a4ea020c27d8a375451ea9e9f338e7fc4fcf3fdcc60a",
+    "archivedSha256": "48fddb35c48b1d8400611f642ce3628119d1a947bac94938694d69471f64753f",
+    "capturedBytes": 159,
+    "archivedBytes": 147,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "attempt1/unchanged-validation/commands.json",
+    "capturedSha256": "c538015cbf83a4b9db7b97dcc576ac99de982f8ce2f73655dfa9c1359d340789",
+    "archivedSha256": "79b2685a365f177c62ad9cf56db4752be02ba43741dcaa2a83a438ba81485c84",
+    "capturedBytes": 233405,
+    "archivedBytes": 232031,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "attempt1/unchanged-validation/inputs.json",
+    "capturedSha256": "abe10664eba7f96fae661aa531eb7048f8e1bca373dcbe4e76a8ab5ee7500a5b",
+    "archivedSha256": "29b01d57c02b2ead2b8cc9ddd10f3e3c715a005a0937f5e7f0ab401285b38a9b",
+    "capturedBytes": 24649,
+    "archivedBytes": 23249,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "attempt1/unchanged-validation.stderr.log",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "capturedBytes": 0,
+    "archivedBytes": 1,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "attempt1/unchanged-validation.stdout.log",
+    "capturedSha256": "a2ea70d9431559d65774986edf76a0bb9175614c75d57576bf347f88a9fd7360",
+    "archivedSha256": "a2ea70d9431559d65774986edf76a0bb9175614c75d57576bf347f88a9fd7360",
+    "capturedBytes": 287,
+    "archivedBytes": 287,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "attempt1/wsgidav/baseline.json",
+    "capturedSha256": "14d2dea94800c4409855c22857ad81d55aaad0806d4010dc10f057b1a545598b",
+    "archivedSha256": "20daf1b3cd996056cff4d43c60480443319d70fc20b843026b295eeebf16acb0",
+    "capturedBytes": 24654,
+    "archivedBytes": 22772,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "attempt1/wsgidav/cert.pem",
+    "capturedSha256": "101e7e93a9d92514241f4441a31de3dfb02c474ab1d5eb6a91d51567126be4fb",
+    "archivedSha256": "101e7e93a9d92514241f4441a31de3dfb02c474ab1d5eb6a91d51567126be4fb",
+    "capturedBytes": 1196,
+    "archivedBytes": 1196,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "attempt1/wsgidav/cleanup.json",
+    "capturedSha256": "044b2a0f8f4c75c18ee7338abc3cddf3fbdcc3a8d9b9bd718433c36ee899af06",
+    "archivedSha256": "3c5b857b51db5c2b037878e43efd9e450f2a21221d3712c082e84209473aaf0c",
+    "capturedBytes": 299,
+    "archivedBytes": 267,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "attempt1/wsgidav/commands.json",
+    "capturedSha256": "19b0ce34131e26ec513a3191d30e29bd8508439b46fd1db39815d3202ebd2d72",
+    "archivedSha256": "6f35dff65d6628c77bcbd4b216185c9fb9c4b16d5485a5c3ad1383b061a2e334",
+    "capturedBytes": 120120,
+    "archivedBytes": 118302,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "attempt1/wsgidav/consumer.json",
+    "capturedSha256": "523c7e12c2244bef34c2137740e0afcc558dc6381ad662a1be343ea822d4dbb0",
+    "archivedSha256": "ecd3328c479fdb8dd3f89a46ca1e7dd10e3f95ded975dd61f42d07f07ae1ac00",
+    "capturedBytes": 674763,
+    "archivedBytes": 508412,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "attempt1/wsgidav/consumer.jsonl",
+    "capturedSha256": "e078ae92ba236c8adfe36b39b0ea50660839da9e78cb00012a0243c31b101a03",
+    "archivedSha256": "e078ae92ba236c8adfe36b39b0ea50660839da9e78cb00012a0243c31b101a03",
+    "capturedBytes": 296132,
+    "archivedBytes": 296132,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "attempt1/wsgidav/dependencies.json",
+    "capturedSha256": "e80ca4a6c021a346ee88dfe6098f7b87d1fddae72fe470292e24931fd24752a9",
+    "archivedSha256": "4b2f35e0b3ee8502dd7d307390bac45a1600bdf93810f50b0613095efec0adbd",
+    "capturedBytes": 6499,
+    "archivedBytes": 5667,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "attempt1/wsgidav/fixture-hashes.json",
+    "capturedSha256": "036ac79b59438c4e0416e3bb7c22d299445f6fa5556f8963a5e1363d96204a1b",
+    "archivedSha256": "af3ca9ddb9ac4eba40839475dba4071e1f0168be38d25716d20e0a9626c3880b",
+    "capturedBytes": 1219,
+    "archivedBytes": 1163,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "attempt1/wsgidav/independent-imports.jsonl",
+    "capturedSha256": "1e35c271e310515c384af850834adae250f56420e4789daed705bfe97010bb1d",
+    "archivedSha256": "1e35c271e310515c384af850834adae250f56420e4789daed705bfe97010bb1d",
+    "capturedBytes": 1904,
+    "archivedBytes": 1904,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "attempt1/wsgidav/independent.json",
+    "capturedSha256": "b7b0eb57de5cddf12f81ee8504eaf9e8c4e2734f75166696aa1fc5829d5fdbac",
+    "archivedSha256": "5d4be691e55304d3b74d6b500f9a250cbd4196cc3654bfb248e1338b127b423a",
+    "capturedBytes": 168675,
+    "archivedBytes": 111294,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "attempt1/wsgidav/inputs/apache.mjs",
+    "capturedSha256": "468a759ade23b7d609426a138b84dc927cc262e8ac421524b00c093563ce710c",
+    "archivedSha256": "468a759ade23b7d609426a138b84dc927cc262e8ac421524b00c093563ce710c",
+    "capturedBytes": 2135,
+    "archivedBytes": 2135,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "attempt1/wsgidav/inputs/consumer.mts",
+    "capturedSha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+    "archivedSha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+    "capturedBytes": 22820,
+    "archivedBytes": 22820,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "attempt1/wsgidav/inputs/dependencies.json",
+    "capturedSha256": "e80ca4a6c021a346ee88dfe6098f7b87d1fddae72fe470292e24931fd24752a9",
+    "archivedSha256": "4b2f35e0b3ee8502dd7d307390bac45a1600bdf93810f50b0613095efec0adbd",
+    "capturedBytes": 6499,
+    "archivedBytes": 5667,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "attempt1/wsgidav/inputs/example.mts",
+    "capturedSha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+    "archivedSha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+    "capturedBytes": 3772,
+    "archivedBytes": 3772,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "attempt1/wsgidav/inputs/https.mts",
+    "capturedSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+    "archivedSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+    "capturedBytes": 6105,
+    "archivedBytes": 6105,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "attempt1/wsgidav/inputs/independent.mts",
+    "capturedSha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+    "archivedSha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+    "capturedBytes": 16943,
+    "archivedBytes": 16943,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "attempt1/wsgidav/inputs/openssl.cnf",
+    "capturedSha256": "bd247b3ed249845809fb064056893f9212a19a3910ba6f517bfa714a328c642f",
+    "archivedSha256": "bd247b3ed249845809fb064056893f9212a19a3910ba6f517bfa714a328c642f",
+    "capturedBytes": 295,
+    "archivedBytes": 295,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "attempt1/wsgidav/inputs/phase2-consumer.mts",
+    "capturedSha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+    "archivedSha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+    "capturedBytes": 10900,
+    "archivedBytes": 10900,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "attempt1/wsgidav/inputs/phase2-validate.mjs",
+    "capturedSha256": "d3fb94836629b7e0836b6b8e63c2c40bd09b199dead3e9ccc2dafc2357223484",
+    "archivedSha256": "d3fb94836629b7e0836b6b8e63c2c40bd09b199dead3e9ccc2dafc2357223484",
+    "capturedBytes": 5606,
+    "archivedBytes": 5606,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "attempt1/wsgidav/inputs/public-guard.mjs",
+    "capturedSha256": "1ea17afd3264589c748ceba5293b559c395c1fc452180cf3ea9d612d210aa6c4",
+    "archivedSha256": "1ea17afd3264589c748ceba5293b559c395c1fc452180cf3ea9d612d210aa6c4",
+    "capturedBytes": 701,
+    "archivedBytes": 701,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "attempt1/wsgidav/inputs/raw.mjs",
+    "capturedSha256": "10e6fc0735c74292f2d22bb07fe5c6290bbed2a7bdf12d6a8e0d843417f3bb45",
+    "archivedSha256": "10e6fc0735c74292f2d22bb07fe5c6290bbed2a7bdf12d6a8e0d843417f3bb45",
+    "capturedBytes": 10330,
+    "archivedBytes": 10330,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "attempt1/wsgidav/inputs/run.mjs",
+    "capturedSha256": "6a9d72d4b075e7910bbae2c415d2fe9578ed0923e27047d77c2e43f956255f19",
+    "archivedSha256": "6a9d72d4b075e7910bbae2c415d2fe9578ed0923e27047d77c2e43f956255f19",
+    "capturedBytes": 13762,
+    "archivedBytes": 13762,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "attempt1/wsgidav/inputs/scope-neighbors.mts",
+    "capturedSha256": "a62d82374edc28dd641425690bc308b067def6c9c4fc2d79847573cbff0f7c66",
+    "archivedSha256": "a62d82374edc28dd641425690bc308b067def6c9c4fc2d79847573cbff0f7c66",
+    "capturedBytes": 6496,
+    "archivedBytes": 6496,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "attempt1/wsgidav/inputs/server.py",
+    "capturedSha256": "16188c6e6c8c24ae8c9dda1ee51a27003b116fd126d85e653bad09171bab1e35",
+    "archivedSha256": "16188c6e6c8c24ae8c9dda1ee51a27003b116fd126d85e653bad09171bab1e35",
+    "capturedBytes": 1279,
+    "archivedBytes": 1279,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "attempt1/wsgidav/literal-config.json",
+    "capturedSha256": "4327a5df69e820ba38aeb7e5d4b84c53bf2e4b416dd0480bacd75252af978211",
+    "archivedSha256": "1b84775e4eefd0cace210b4b9b6ac2bff53000ad910cb030d13073e13737a3e5",
+    "capturedBytes": 344,
+    "archivedBytes": 324,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "attempt1/wsgidav/package.json",
+    "capturedSha256": "288354e746263da5d33ce5e1fef8573c59041983f52955250921a61589361b1d",
+    "archivedSha256": "7c0279a1f050bd82a40895d357fb94e73ee42d1bc1568afe009e6ac4884a154e",
+    "capturedBytes": 65580,
+    "archivedBytes": 43871,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "attempt1/wsgidav/raw.json",
+    "capturedSha256": "4585a56e06e3a6f219a710e35df4856553e03b1280160edef718cb61c87dded8",
+    "archivedSha256": "8b2b1fd3fb87b0a0227176d4f483382e3b6d7ae4e3e97cf7c728a1251579ea85",
+    "capturedBytes": 113808,
+    "archivedBytes": 89583,
+    "transformation": "lossless JSON compaction"
+  },
+  {
+    "path": "attempt1/wsgidav/server.log",
+    "capturedSha256": "d30d3166e8faad598b89aca7e88ec498a2feacf943684582113ee36e7af4b51d",
+    "archivedSha256": "d30d3166e8faad598b89aca7e88ec498a2feacf943684582113ee36e7af4b51d",
+    "capturedBytes": 10919,
+    "archivedBytes": 10919,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "attempt1/wsgidav.stderr.log",
+    "capturedSha256": "893915bb5a228923145bde56ef7a26016550cca26710c7fe95dbf8c44a6a7260",
+    "archivedSha256": "893915bb5a228923145bde56ef7a26016550cca26710c7fe95dbf8c44a6a7260",
+    "capturedBytes": 971,
+    "archivedBytes": 971,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "attempt1/wsgidav.stdout.log",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "capturedBytes": 0,
+    "archivedBytes": 1,
+    "transformation": "text; terminal newline normalized"
+  },
+  {
+    "path": "attempt1/scope-neighbors.mts.txt",
+    "archivedSha256": "a62d82374edc28dd641425690bc308b067def6c9c4fc2d79847573cbff0f7c66"
+  },
+  {
+    "path": "primary.json",
+    "archivedSha256": "d92787aab13c78cce0853da2506bab9d15563593a817f2b48cf49556263c15aa"
+  },
+  {
+    "path": "SOURCE_DELTA.diff",
+    "archivedSha256": "f36d25738027335336dbc27073904b2722bc6f66d26d8eca192a645051371a45"
+  },
+  {
+    "path": "CHECKPOINT.json",
+    "archivedSha256": "73595738fbaf5192fc2b3f9f8e878d2ddd87930e1929602c43137a57ada44070"
+  }
+]

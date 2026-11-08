@@ -1,0 +1,15 @@
+{
+  "type": "module",
+  "imports": {
+    "#image-ast-streams": {
+      "types": {
+        "workerd": "./streams/web.ts",
+        "browser": "./streams/web.ts",
+        "default": "./streams/node.ts"
+      },
+      "workerd": "./streams/web.ts",
+      "browser": "./streams/web.ts",
+      "default": "./streams/node.ts"
+    }
+  }
+}

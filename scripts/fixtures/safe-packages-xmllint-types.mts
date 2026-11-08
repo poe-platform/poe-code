@@ -1,0 +1,10 @@
+import { xmlCommands, createXmlCommands, defaultXmlQueryLimits, type XmlCommandsOptions, type XmlQueryLimits } from '@poe-platform/safe-bash/commands/xml';
+import { Shell, createMemoryFileSystem } from '@poe-platform/safe-bash';
+import type { CommandDefinition } from '@poe-platform/safe-bash/contracts';
+const limits: Partial<XmlQueryLimits> = { maxNodes: defaultXmlQueryLimits.maxNodes };
+const options: XmlCommandsOptions = { limits, replace: true };
+const definitions: readonly CommandDefinition[] = createXmlCommands(options);
+const shell = new Shell({ fs: createMemoryFileSystem() }).use(xmlCommands(options));
+await shell.exec('xmllint --noout', { stdin: new TextEncoder().encode('<root/>') });
+await shell.dispose();
+void definitions;

@@ -1,0 +1,19 @@
+{
+  "name": "scoped-regressions",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--import",
+    "tsx",
+    "--test",
+    "tests/commands/du/behavior.test.ts",
+    "tests/commands/du/backends.test.ts",
+    "tests/fs/overlay/allocation.test.ts",
+    "tests/fs/overlay/adversarial.test.ts"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdoutBytes": 26008,
+  "stderrBytes": 0,
+  "stdoutSha256": "bca5fb5b6424bf2c3be6ed5ad5296b4a759f1566a701eee6b6477b13ada0a3ad",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

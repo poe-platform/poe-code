@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: direct-registered-curl-buffer-307-replay
+ok 1 - direct-registered-curl-buffer-307-replay
+  ---
+  duration_ms: 3.3295
+  type: 'test'
+  ...
+# Subtest: direct-registered-curl-native-uint8array-307-replay
+ok 2 - direct-registered-curl-native-uint8array-307-replay
+  ---
+  duration_ms: 1.367542
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 241.464916

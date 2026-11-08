@@ -1,0 +1,957 @@
+{
+  "root": "/tmp/safe-bash-gnu-grep-3.12.MJXqupXn",
+  "started_utc": "2026-08-27T14:26:29Z",
+  "wall_budget_seconds": 600,
+  "capture_limit_bytes_per_stream": 1048576,
+  "environment": {
+    "PATH": "/usr/bin:/bin:/usr/sbin:/sbin",
+    "HOME": "/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/home",
+    "TMPDIR": "/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/tmp",
+    "XDG_CACHE_HOME": "/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/cache",
+    "XDG_CONFIG_HOME": "/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/home",
+    "XDG_DATA_HOME": "/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/home",
+    "GNUPGHOME": "/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/gnupg",
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "CC": "/usr/bin/clang",
+    "MAKE": "/usr/bin/make"
+  },
+  "commands": [
+    {
+      "name": "download-grep-3.12.tar.xz",
+      "argv": [
+        "/usr/bin/curl",
+        "--disable",
+        "--fail",
+        "--silent",
+        "--show-error",
+        "--proto",
+        "=https",
+        "--connect-timeout",
+        "10",
+        "--max-time",
+        "25",
+        "--max-filesize",
+        "16777216",
+        "--output",
+        "/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/download/grep-3.12.tar.xz",
+        "--dump-header",
+        "/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/grep-3.12.tar.xz.headers",
+        "--write-out",
+        "%{http_code} %{url_effective}\n",
+        "https://ftp.gnu.org/gnu/grep/grep-3.12.tar.xz"
+      ],
+      "cwd": "/tmp/safe-bash-gnu-grep-3.12.MJXqupXn",
+      "budget_seconds": 30,
+      "pid_process_group": 40050,
+      "returncode": 0,
+      "stop_reason": null,
+      "duration_seconds": 0.645,
+      "captured_bytes": {
+        "stdout": 50,
+        "stderr": 0
+      },
+      "process_group_absent_after_cleanup": true
+    },
+    {
+      "name": "download-grep-3.12.tar.xz.sig",
+      "argv": [
+        "/usr/bin/curl",
+        "--disable",
+        "--fail",
+        "--silent",
+        "--show-error",
+        "--proto",
+        "=https",
+        "--connect-timeout",
+        "10",
+        "--max-time",
+        "25",
+        "--max-filesize",
+        "16777216",
+        "--output",
+        "/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/download/grep-3.12.tar.xz.sig",
+        "--dump-header",
+        "/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/grep-3.12.tar.xz.sig.headers",
+        "--write-out",
+        "%{http_code} %{url_effective}\n",
+        "https://ftp.gnu.org/gnu/grep/grep-3.12.tar.xz.sig"
+      ],
+      "cwd": "/tmp/safe-bash-gnu-grep-3.12.MJXqupXn",
+      "budget_seconds": 30,
+      "pid_process_group": 40058,
+      "returncode": 0,
+      "stop_reason": null,
+      "duration_seconds": 0.201,
+      "captured_bytes": {
+        "stdout": 54,
+        "stderr": 0
+      },
+      "process_group_absent_after_cleanup": true
+    },
+    {
+      "name": "download-index.html",
+      "argv": [
+        "/usr/bin/curl",
+        "--disable",
+        "--fail",
+        "--silent",
+        "--show-error",
+        "--proto",
+        "=https",
+        "--connect-timeout",
+        "10",
+        "--max-time",
+        "25",
+        "--max-filesize",
+        "16777216",
+        "--output",
+        "/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/download/index.html",
+        "--dump-header",
+        "/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/index.html.headers",
+        "--write-out",
+        "%{http_code} %{url_effective}\n",
+        "https://ftp.gnu.org/gnu/grep/"
+      ],
+      "cwd": "/tmp/safe-bash-gnu-grep-3.12.MJXqupXn",
+      "budget_seconds": 30,
+      "pid_process_group": 40059,
+      "returncode": 0,
+      "stop_reason": null,
+      "duration_seconds": 0.251,
+      "captured_bytes": {
+        "stdout": 34,
+        "stderr": 0
+      },
+      "process_group_absent_after_cleanup": true
+    },
+    {
+      "name": "download-gnu-keyring.gpg",
+      "argv": [
+        "/usr/bin/curl",
+        "--disable",
+        "--fail",
+        "--silent",
+        "--show-error",
+        "--proto",
+        "=https",
+        "--connect-timeout",
+        "10",
+        "--max-time",
+        "25",
+        "--max-filesize",
+        "16777216",
+        "--output",
+        "/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/download/gnu-keyring.gpg",
+        "--dump-header",
+        "/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/gnu-keyring.gpg.headers",
+        "--write-out",
+        "%{http_code} %{url_effective}\n",
+        "https://ftp.gnu.org/gnu/gnu-keyring.gpg"
+      ],
+      "cwd": "/tmp/safe-bash-gnu-grep-3.12.MJXqupXn",
+      "budget_seconds": 30,
+      "pid_process_group": 40060,
+      "returncode": 0,
+      "stop_reason": null,
+      "duration_seconds": 0.544,
+      "captured_bytes": {
+        "stdout": 44,
+        "stderr": 0
+      },
+      "process_group_absent_after_cleanup": true
+    },
+    {
+      "name": "extract",
+      "argv": [
+        "/usr/bin/tar",
+        "-xf",
+        "/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/download/grep-3.12.tar.xz",
+        "-C",
+        "/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/source"
+      ],
+      "cwd": "/tmp/safe-bash-gnu-grep-3.12.MJXqupXn",
+      "budget_seconds": 20,
+      "pid_process_group": 40062,
+      "returncode": 0,
+      "stop_reason": null,
+      "duration_seconds": 0.398,
+      "captured_bytes": {
+        "stdout": 0,
+        "stderr": 0
+      },
+      "process_group_absent_after_cleanup": true
+    },
+    {
+      "name": "verify-signature",
+      "argv": [
+        "/opt/homebrew/bin/gpg",
+        "--batch",
+        "--no-options",
+        "--no-auto-key-retrieve",
+        "--no-auto-check-trustdb",
+        "--homedir",
+        "/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/gnupg",
+        "--no-default-keyring",
+        "--keyring",
+        "/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/download/gnu-keyring.gpg",
+        "--status-fd",
+        "1",
+        "--verify",
+        "/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/download/grep-3.12.tar.xz.sig",
+        "/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/download/grep-3.12.tar.xz"
+      ],
+      "cwd": "/tmp/safe-bash-gnu-grep-3.12.MJXqupXn",
+      "budget_seconds": 20,
+      "pid_process_group": 40063,
+      "returncode": 0,
+      "stop_reason": null,
+      "duration_seconds": 0.155,
+      "captured_bytes": {
+        "stdout": 382,
+        "stderr": 603
+      },
+      "process_group_absent_after_cleanup": true
+    },
+    {
+      "name": "compiler-version",
+      "argv": [
+        "/usr/bin/clang",
+        "--version"
+      ],
+      "cwd": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn",
+      "budget_seconds": 10,
+      "pid_process_group": 40474,
+      "returncode": 0,
+      "stop_reason": null,
+      "duration_seconds": 0.168,
+      "captured_bytes": {
+        "stdout": 202,
+        "stderr": 0
+      },
+      "process_group_absent_after_cleanup": true
+    },
+    {
+      "name": "make-version",
+      "argv": [
+        "/usr/bin/make",
+        "--version"
+      ],
+      "cwd": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn",
+      "budget_seconds": 10,
+      "pid_process_group": 40482,
+      "returncode": 0,
+      "stop_reason": null,
+      "duration_seconds": 0.012,
+      "captured_bytes": {
+        "stdout": 263,
+        "stderr": 0
+      },
+      "process_group_absent_after_cleanup": true
+    },
+    {
+      "name": "configure",
+      "argv": [
+        "/bin/sh",
+        "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/source/grep-3.12/configure",
+        "--disable-nls",
+        "--disable-perl-regexp",
+        "--prefix=/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/unused-prefix"
+      ],
+      "cwd": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build",
+      "budget_seconds": 180,
+      "pid_process_group": 40483,
+      "returncode": 0,
+      "stop_reason": null,
+      "duration_seconds": 83.156,
+      "captured_bytes": {
+        "stdout": 24229,
+        "stderr": 0
+      },
+      "process_group_absent_after_cleanup": true
+    },
+    {
+      "name": "make",
+      "argv": [
+        "/usr/bin/make",
+        "-j2"
+      ],
+      "cwd": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build",
+      "budget_seconds": 300,
+      "pid_process_group": 49241,
+      "returncode": 0,
+      "stop_reason": null,
+      "duration_seconds": 9.091,
+      "captured_bytes": {
+        "stdout": 8364,
+        "stderr": 1369
+      },
+      "process_group_absent_after_cleanup": true
+    },
+    {
+      "name": "binding",
+      "argv": [
+        "/bin/sh",
+        "-c",
+        "command -v grep; command -v egrep; command -v fgrep"
+      ],
+      "cwd": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn",
+      "budget_seconds": 5,
+      "pid_process_group": 52189,
+      "returncode": 0,
+      "stop_reason": null,
+      "duration_seconds": 0.01,
+      "captured_bytes": {
+        "stdout": 185,
+        "stderr": 0
+      },
+      "process_group_absent_after_cleanup": true
+    },
+    {
+      "name": "grep-version",
+      "argv": [
+        "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/grep",
+        "--version"
+      ],
+      "cwd": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn",
+      "budget_seconds": 5,
+      "pid_process_group": 52190,
+      "returncode": 0,
+      "stop_reason": null,
+      "duration_seconds": 0.159,
+      "captured_bytes": {
+        "stdout": 372,
+        "stderr": 0
+      },
+      "process_group_absent_after_cleanup": true
+    },
+    {
+      "name": "egrep-version",
+      "argv": [
+        "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/egrep",
+        "--version"
+      ],
+      "cwd": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn",
+      "budget_seconds": 5,
+      "pid_process_group": 52191,
+      "returncode": 0,
+      "stop_reason": null,
+      "duration_seconds": 0.148,
+      "captured_bytes": {
+        "stdout": 372,
+        "stderr": 52
+      },
+      "process_group_absent_after_cleanup": true
+    },
+    {
+      "name": "fgrep-version",
+      "argv": [
+        "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/fgrep",
+        "--version"
+      ],
+      "cwd": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn",
+      "budget_seconds": 5,
+      "pid_process_group": 52192,
+      "returncode": 0,
+      "stop_reason": null,
+      "duration_seconds": 0.15,
+      "captured_bytes": {
+        "stdout": 372,
+        "stderr": 52
+      },
+      "process_group_absent_after_cleanup": true
+    },
+    {
+      "name": "egrep-sanity",
+      "argv": [
+        "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/egrep",
+        "a|b"
+      ],
+      "cwd": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn",
+      "budget_seconds": 5,
+      "pid_process_group": 52193,
+      "returncode": 0,
+      "stop_reason": null,
+      "duration_seconds": 0.014,
+      "captured_bytes": {
+        "stdout": 4,
+        "stderr": 52
+      },
+      "process_group_absent_after_cleanup": true
+    },
+    {
+      "name": "egrep-direct",
+      "argv": [
+        "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/grep",
+        "-E",
+        "a|b"
+      ],
+      "cwd": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn",
+      "budget_seconds": 5,
+      "pid_process_group": 52194,
+      "returncode": 0,
+      "stop_reason": null,
+      "duration_seconds": 0.007,
+      "captured_bytes": {
+        "stdout": 4,
+        "stderr": 0
+      },
+      "process_group_absent_after_cleanup": true
+    },
+    {
+      "name": "fgrep-sanity",
+      "argv": [
+        "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/fgrep",
+        "a.b"
+      ],
+      "cwd": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn",
+      "budget_seconds": 5,
+      "pid_process_group": 52195,
+      "returncode": 0,
+      "stop_reason": null,
+      "duration_seconds": 0.015,
+      "captured_bytes": {
+        "stdout": 4,
+        "stderr": 52
+      },
+      "process_group_absent_after_cleanup": true
+    },
+    {
+      "name": "fgrep-direct",
+      "argv": [
+        "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/grep",
+        "-F",
+        "a.b"
+      ],
+      "cwd": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn",
+      "budget_seconds": 5,
+      "pid_process_group": 52196,
+      "returncode": 0,
+      "stop_reason": null,
+      "duration_seconds": 0.009,
+      "captured_bytes": {
+        "stdout": 4,
+        "stderr": 0
+      },
+      "process_group_absent_after_cleanup": true
+    },
+    {
+      "name": "runtime-libraries",
+      "argv": [
+        "/usr/bin/otool",
+        "-L",
+        "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/grep"
+      ],
+      "cwd": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn",
+      "budget_seconds": 5,
+      "pid_process_group": 52197,
+      "returncode": 0,
+      "stop_reason": null,
+      "duration_seconds": 0.031,
+      "captured_bytes": {
+        "stdout": 146,
+        "stderr": 0
+      },
+      "process_group_absent_after_cleanup": true
+    }
+  ],
+  "downloads": [
+    {
+      "url": "https://ftp.gnu.org/gnu/grep/grep-3.12.tar.xz",
+      "path": "/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/download/grep-3.12.tar.xz",
+      "success": true,
+      "sha256": "2649b27c0e90e632eadcd757be06c6e9a4f48d941de51e7c0f83ff76408a07b9",
+      "size_bytes": 1918448
+    },
+    {
+      "url": "https://ftp.gnu.org/gnu/grep/grep-3.12.tar.xz.sig",
+      "path": "/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/download/grep-3.12.tar.xz.sig",
+      "success": true,
+      "sha256": "62d4867d7cfff57a364b745866d798958a90286551fdf45d08df515fa8c79c25",
+      "size_bytes": 833
+    },
+    {
+      "url": "https://ftp.gnu.org/gnu/grep/",
+      "path": "/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/download/index.html",
+      "success": true,
+      "sha256": "3630cf4abfb347649b8c9960ef3fcbab1b89fa518d9755872b2f4669f29ec12d",
+      "size_bytes": 29650
+    },
+    {
+      "url": "https://ftp.gnu.org/gnu/gnu-keyring.gpg",
+      "path": "/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/download/gnu-keyring.gpg",
+      "success": true,
+      "sha256": "b136fbe57ade4ee5270ca66c402cae7b50349fd07646b5b3de7962d58d4df608",
+      "size_bytes": 3687794
+    }
+  ],
+  "tools": [
+    {
+      "path": "/usr/bin/clang",
+      "resolved_path": "/usr/bin/clang",
+      "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba"
+    },
+    {
+      "path": "/usr/bin/make",
+      "resolved_path": "/usr/bin/make",
+      "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba"
+    },
+    {
+      "path": "/usr/bin/curl",
+      "resolved_path": "/usr/bin/curl",
+      "sha256": "5ef748580e05e8208c8faacc9be88d1aa48d9970101c0a29ba26896e017e6226"
+    },
+    {
+      "path": "/usr/bin/tar",
+      "resolved_path": "/usr/bin/bsdtar",
+      "sha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9"
+    },
+    {
+      "path": "/usr/bin/otool",
+      "resolved_path": "/usr/bin/otool",
+      "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba"
+    },
+    {
+      "path": "/usr/bin/xcrun",
+      "resolved_path": "/usr/bin/xcrun",
+      "sha256": "234a81668b43d610a78d9293a5ccef397f561a88af84757194aedaa1ec728ad3"
+    },
+    {
+      "path": "/bin/sh",
+      "resolved_path": "/bin/sh",
+      "sha256": "094fc5e188feb7cc18906900b1b5c417e03aaed03a9fc132e925f38640d9bd59"
+    },
+    {
+      "path": "/usr/bin/grep",
+      "resolved_path": "/usr/bin/grep",
+      "sha256": "468ff46a0b9f0e88de268ce12640bfa37610d585f968127cf32cf4e86d5c70ab"
+    },
+    {
+      "path": "/opt/homebrew/bin/python3",
+      "resolved_path": "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+      "sha256": "87d4df53fd91304be5bac391fb204643c36b7df2023c04a0953bcbc7d4fdf634"
+    },
+    {
+      "path": "/opt/homebrew/bin/gpg",
+      "resolved_path": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpg",
+      "sha256": "9d8501878158144e8db80be1454f6c69d62b8a97c21441da3b720081f917f8ac"
+    },
+    {
+      "path": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+      "resolved_path": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+      "sha256": "7def90dd8829726686213a747fc5bff1583df933dae5edc55d755479e0bfe00a"
+    },
+    {
+      "path": "/Applications/Xcode.app/Contents/Developer/usr/bin/make",
+      "resolved_path": "/Applications/Xcode.app/Contents/Developer/usr/bin/make",
+      "sha256": "83284837495b77df7cb0febf564717918abe79f5dc5da1df9a603b2ac55998bb"
+    }
+  ],
+  "archive": {
+    "members": 1539,
+    "uncompressed_bytes": 15713099,
+    "regular_files_and_directories_only": true
+  },
+  "signature_verification_success": true,
+  "status": "SUCCESS: DEV prerequisite only; retained for independent verifier",
+  "build_attempted": true,
+  "inspected_before_execution": {
+    "configure.ac": "d4ec26dae2de7328843d954d23795aa6c038b4448466a65d3e9f202aa5157b69",
+    "configure": "fb60c1a8a32b033b7c1806841bd854bb315c9241319ee8f79cb294a38f94e777",
+    "INSTALL": "0405230f3eebc02905d3f20464243bc2edb3371701104071212f2efe9469d1f5",
+    "src/Makefile.am": "e51d74307cc8cef5c3ca28ce9a8d33d10284dc0eb235bcb32330430ed7b971b6",
+    "src/egrep.sh": "0b63f097337f7725e4b3937af54e8b82ca0f9ee7f5c8643a8fad43c32b02ea9d"
+  },
+  "configure_flags": [
+    "--disable-nls",
+    "--disable-perl-regexp",
+    "--prefix=/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/unused-prefix"
+  ],
+  "build_command": [
+    "/usr/bin/make",
+    "-j2"
+  ],
+  "source_integrity": {
+    "file_count_before": 1521,
+    "file_count_after": 1521,
+    "all_source_bytes_unchanged": true,
+    "before_manifest_sha256": "347133b04deef7221428328dda48a902cb8820dc93e88cf375b45e18820db90d",
+    "after_manifest_sha256": "347133b04deef7221428328dda48a902cb8820dc93e88cf375b45e18820db90d"
+  },
+  "artifacts": {
+    "grep": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/grep",
+      "sha256": "e6f4094b2abbe43e2740d6bc32481a1e6bc3de86a754db23c920ddec56a48743",
+      "size_bytes": 315880,
+      "is_symlink": false
+    },
+    "egrep": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/egrep",
+      "sha256": "6848c4b9df827591f8af3d846c98b4766d262f06c440efb8b6535eb6accac084",
+      "size_bytes": 102,
+      "is_symlink": false
+    },
+    "fgrep": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/fgrep",
+      "sha256": "e512071d46a7816b96564588c5ebbd1b9189212aa4130e453eb7cdcaabd30f9a",
+      "size_bytes": 102,
+      "is_symlink": false
+    }
+  },
+  "native_sanity_environment": {
+    "PATH": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src",
+    "HOME": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/home",
+    "TMPDIR": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/tmp",
+    "XDG_CACHE_HOME": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/cache",
+    "XDG_CONFIG_HOME": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/home",
+    "XDG_DATA_HOME": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/home",
+    "GNUPGHOME": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/gnupg",
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "CC": "/usr/bin/clang",
+    "MAKE": "/usr/bin/make"
+  },
+  "sanity": [
+    {
+      "alias": "egrep",
+      "pattern": "a|b",
+      "stdin": "a\nb\nc\n",
+      "stdout": "a\nb\n",
+      "stderr": "egrep: warning: egrep is obsolescent; using grep -E\n",
+      "direct_stdout_identical": true,
+      "exit_status": 0
+    },
+    {
+      "alias": "fgrep",
+      "pattern": "a.b",
+      "stdin": "a.b\naxb\n",
+      "stdout": "a.b\n",
+      "stderr": "fgrep: warning: fgrep is obsolescent; using grep -F\n",
+      "direct_stdout_identical": true,
+      "exit_status": 0
+    }
+  ],
+  "all_process_groups_absent": true,
+  "finished_utc": "2026-08-27T14:29:28Z",
+  "wall_elapsed_seconds": 178.727,
+  "final_inspection": {
+    "host": {
+      "system": "Darwin",
+      "node": "m5mb-kjopek",
+      "release": "25.4.0",
+      "version": "Darwin Kernel Version 25.4.0: Thu Mar 19 19:33:50 PDT 2026; root:xnu-12377.101.15~1/RELEASE_ARM64_T6050",
+      "machine": "arm64",
+      "processor": "arm"
+    },
+    "symlinks": [
+      {
+        "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/GNUmakefile",
+        "target": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/source/grep-3.12/GNUmakefile"
+      }
+    ],
+    "artifact_processes_remaining": [],
+    "macos_tmp_alias": "/tmp resolves to /private/tmp; no project/private-checkout symlinks created"
+  },
+  "classification": "native-dev-oracle-prerequisite-evidence; not canonical TypeScript input or product acceptance",
+  "closed_author_inputs": {
+    "source_commit": "c9bd0dbb05553dc1f1cf9136a4e11ed6a3767bc8",
+    "evidence_commit": "d248861c2ed0ac4148df899cb402918ad5d82355",
+    "modified_or_requalified": false
+  },
+  "provenance_limit": "Detached signature verified against the primary GNU HTTPS-downloaded keyring; VALIDSIG fingerprint 155D3FC500C834486D1EEA677FD9FCCB000BEEEE. GPG trust is undefined; signer identity was not independently authenticated. SHA-256 values were locally computed, not matched to a separately authenticated published checksum. The fetched grep directory index advertises detached signatures and no checksum manifest.",
+  "captures": {
+    "binding.stderr": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/binding.stderr",
+      "size_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    "binding.stdout": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/binding.stdout",
+      "size_bytes": 185,
+      "sha256": "7d813d4016d8588cf9f4b1fd122e63bba0cd57f4582551d4e693ce1c3cfd3243",
+      "text": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/grep\n/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/egrep\n/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/fgrep\n"
+    },
+    "compiler-version.stderr": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/compiler-version.stderr",
+      "size_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    "compiler-version.stdout": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/compiler-version.stdout",
+      "size_bytes": 202,
+      "sha256": "2b188bca1426b3565f2be4f2f50d8dd8badc022b100945e2fed04e54a7426c38",
+      "text": "Apple clang version 21.0.0 (clang-2100.1.1.101)\nTarget: arm64-apple-darwin25.4.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin\n"
+    },
+    "configure.stderr": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/configure.stderr",
+      "size_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    "configure.stdout": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/configure.stdout",
+      "size_bytes": 24229,
+      "sha256": "8c144f0f8985706533c81d9fed06cb97219db82982db485c92c3bee99750615e"
+    },
+    "download-gnu-keyring.gpg.stderr": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/download-gnu-keyring.gpg.stderr",
+      "size_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    "download-gnu-keyring.gpg.stdout": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/download-gnu-keyring.gpg.stdout",
+      "size_bytes": 44,
+      "sha256": "55b66e56c0d18cdd67500c9a9178df3ac7bb8c6d255b59ff09328d9ef75ee637",
+      "text": "200 https://ftp.gnu.org/gnu/gnu-keyring.gpg\n"
+    },
+    "download-grep-3.12.tar.xz.sig.stderr": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/download-grep-3.12.tar.xz.sig.stderr",
+      "size_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    "download-grep-3.12.tar.xz.sig.stdout": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/download-grep-3.12.tar.xz.sig.stdout",
+      "size_bytes": 54,
+      "sha256": "5711e811c1e77b11057cf80b0c6849164972cedbb8e12fa98f8d44ef0f12d151",
+      "text": "200 https://ftp.gnu.org/gnu/grep/grep-3.12.tar.xz.sig\n"
+    },
+    "download-grep-3.12.tar.xz.stderr": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/download-grep-3.12.tar.xz.stderr",
+      "size_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    "download-grep-3.12.tar.xz.stdout": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/download-grep-3.12.tar.xz.stdout",
+      "size_bytes": 50,
+      "sha256": "b207242997e78b39386c4f29a1887548512ab09811b206fb349355e835b21bf4",
+      "text": "200 https://ftp.gnu.org/gnu/grep/grep-3.12.tar.xz\n"
+    },
+    "download-index.html.stderr": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/download-index.html.stderr",
+      "size_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    "download-index.html.stdout": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/download-index.html.stdout",
+      "size_bytes": 34,
+      "sha256": "b4cabf5ef277c7daea906882c1ac0070fa64a2e691b3208f07b601b641fdf4b3",
+      "text": "200 https://ftp.gnu.org/gnu/grep/\n"
+    },
+    "egrep-direct.stderr": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/egrep-direct.stderr",
+      "size_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    "egrep-direct.stdout": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/egrep-direct.stdout",
+      "size_bytes": 4,
+      "sha256": "911169ddaaf146aff539f58c26c489af3b892dff0fe283c1c264c65ae5aa59a2",
+      "text": "a\nb\n"
+    },
+    "egrep-sanity.stderr": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/egrep-sanity.stderr",
+      "size_bytes": 52,
+      "sha256": "7c3261d0a74b3f436668f8e634b4b718a16ecac110f5feb3b68829ff36218201",
+      "text": "egrep: warning: egrep is obsolescent; using grep -E\n"
+    },
+    "egrep-sanity.stdout": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/egrep-sanity.stdout",
+      "size_bytes": 4,
+      "sha256": "911169ddaaf146aff539f58c26c489af3b892dff0fe283c1c264c65ae5aa59a2",
+      "text": "a\nb\n"
+    },
+    "egrep-version.stderr": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/egrep-version.stderr",
+      "size_bytes": 52,
+      "sha256": "7c3261d0a74b3f436668f8e634b4b718a16ecac110f5feb3b68829ff36218201",
+      "text": "egrep: warning: egrep is obsolescent; using grep -E\n"
+    },
+    "egrep-version.stdout": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/egrep-version.stdout",
+      "size_bytes": 372,
+      "sha256": "6c0c82b9264be41f726120a798ee7b73c2e71d023bc54929f134d38da9908a27",
+      "text": "grep (GNU grep) 3.12\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Mike Haertel and others; see\n<https://git.savannah.gnu.org/cgit/grep.git/tree/AUTHORS>.\n"
+    },
+    "extract.stderr": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/extract.stderr",
+      "size_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    "extract.stdout": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/extract.stdout",
+      "size_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    "fgrep-direct.stderr": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/fgrep-direct.stderr",
+      "size_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    "fgrep-direct.stdout": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/fgrep-direct.stdout",
+      "size_bytes": 4,
+      "sha256": "3028acf5e4c1117ab3d2bfbf5ecffb4d3147c9acb452fb375f27a57acd0bc9b7",
+      "text": "a.b\n"
+    },
+    "fgrep-sanity.stderr": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/fgrep-sanity.stderr",
+      "size_bytes": 52,
+      "sha256": "15f5fc8369f2a52eceb8d9a524d25b5bf2a5244634fd800ed969829d2cb0f629",
+      "text": "fgrep: warning: fgrep is obsolescent; using grep -F\n"
+    },
+    "fgrep-sanity.stdout": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/fgrep-sanity.stdout",
+      "size_bytes": 4,
+      "sha256": "3028acf5e4c1117ab3d2bfbf5ecffb4d3147c9acb452fb375f27a57acd0bc9b7",
+      "text": "a.b\n"
+    },
+    "fgrep-version.stderr": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/fgrep-version.stderr",
+      "size_bytes": 52,
+      "sha256": "15f5fc8369f2a52eceb8d9a524d25b5bf2a5244634fd800ed969829d2cb0f629",
+      "text": "fgrep: warning: fgrep is obsolescent; using grep -F\n"
+    },
+    "fgrep-version.stdout": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/fgrep-version.stdout",
+      "size_bytes": 372,
+      "sha256": "6c0c82b9264be41f726120a798ee7b73c2e71d023bc54929f134d38da9908a27",
+      "text": "grep (GNU grep) 3.12\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Mike Haertel and others; see\n<https://git.savannah.gnu.org/cgit/grep.git/tree/AUTHORS>.\n"
+    },
+    "gnu-keyring.gpg.headers": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/gnu-keyring.gpg.headers",
+      "size_bytes": 665,
+      "sha256": "2b39b29fca3525d40dd64c82c6dd3331b4c40707f6b4eb0ea26d4bb230847949",
+      "text": "HTTP/1.1 200 OK\nDate: Thu, 27 Aug 2026 14:26:30 GMT\nServer: Apache/2.4.52 (Trisquel_GNU/Linux)\nStrict-Transport-Security: max-age=63072000\nLast-Modified: Thu, 27 Aug 2026 02:22:39 GMT\nETag: \"384572-659fe02926de0\"\nAccept-Ranges: bytes\nContent-Length: 3687794\nContent-Security-Policy: default-src 'self'; img-src 'self' https://static.fsf.org https://static.gnu.org https://gnu.org http://static.fsf.org http://static.gnu.org http://gnu.org http://gnu.org; object-src 'none'; frame-ancestors 'none'; child-src 'self' https://static.gnu.org http://static.fsf.org http://static.gnu.org http://gnu.org;\nX-Frame-Options: DENY\nX-Content-Type-Options: nosniff\n\n"
+    },
+    "grep-3.12.tar.xz.headers": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/grep-3.12.tar.xz.headers",
+      "size_bytes": 697,
+      "sha256": "2d46dfd4be5e12db2601020d3f5a1a6da4dfe19a588bf949ce6e6fcfa36ac391",
+      "text": "HTTP/1.1 200 OK\nDate: Thu, 27 Aug 2026 14:26:29 GMT\nServer: Apache/2.4.52 (Trisquel_GNU/Linux)\nStrict-Transport-Security: max-age=63072000\nLast-Modified: Thu, 10 Apr 2025 16:06:07 GMT\nETag: \"1d45f0-6326ec3730b80\"\nAccept-Ranges: bytes\nContent-Length: 1918448\nContent-Security-Policy: default-src 'self'; img-src 'self' https://static.fsf.org https://static.gnu.org https://gnu.org http://static.fsf.org http://static.gnu.org http://gnu.org http://gnu.org; object-src 'none'; frame-ancestors 'none'; child-src 'self' https://static.gnu.org http://static.fsf.org http://static.gnu.org http://gnu.org;\nX-Frame-Options: DENY\nX-Content-Type-Options: nosniff\nContent-Type: application/x-xz\n\n"
+    },
+    "grep-3.12.tar.xz.sig.headers": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/grep-3.12.tar.xz.sig.headers",
+      "size_bytes": 699,
+      "sha256": "43b69a0beadeb0ec7c8aae64e5268d0496d6c637d573e13d408118760c4b685c",
+      "text": "HTTP/1.1 200 OK\nDate: Thu, 27 Aug 2026 14:26:30 GMT\nServer: Apache/2.4.52 (Trisquel_GNU/Linux)\nStrict-Transport-Security: max-age=63072000\nLast-Modified: Thu, 10 Apr 2025 16:06:07 GMT\nETag: \"341-6326ec37c23a0\"\nAccept-Ranges: bytes\nContent-Length: 833\nContent-Security-Policy: default-src 'self'; img-src 'self' https://static.fsf.org https://static.gnu.org https://gnu.org http://static.fsf.org http://static.gnu.org http://gnu.org http://gnu.org; object-src 'none'; frame-ancestors 'none'; child-src 'self' https://static.gnu.org http://static.fsf.org http://static.gnu.org http://gnu.org;\nX-Frame-Options: DENY\nX-Content-Type-Options: nosniff\nContent-Type: application/pgp-signature\n\n"
+    },
+    "grep-version.stderr": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/grep-version.stderr",
+      "size_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    "grep-version.stdout": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/grep-version.stdout",
+      "size_bytes": 372,
+      "sha256": "6c0c82b9264be41f726120a798ee7b73c2e71d023bc54929f134d38da9908a27",
+      "text": "grep (GNU grep) 3.12\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Mike Haertel and others; see\n<https://git.savannah.gnu.org/cgit/grep.git/tree/AUTHORS>.\n"
+    },
+    "index.html.headers": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/index.html.headers",
+      "size_bytes": 632,
+      "sha256": "58097fc82fc0b7ae5fbf1b41c53c4e6c11a18f4774fe3dd31dcfc530ded9df6e",
+      "text": "HTTP/1.1 200 OK\nDate: Thu, 27 Aug 2026 14:26:30 GMT\nServer: Apache/2.4.52 (Trisquel_GNU/Linux)\nStrict-Transport-Security: max-age=63072000\nVary: Accept-Encoding\nContent-Security-Policy: default-src 'self'; img-src 'self' https://static.fsf.org https://static.gnu.org https://gnu.org http://static.fsf.org http://static.gnu.org http://gnu.org http://gnu.org; object-src 'none'; frame-ancestors 'none'; child-src 'self' https://static.gnu.org http://static.fsf.org http://static.gnu.org http://gnu.org;\nX-Frame-Options: DENY\nX-Content-Type-Options: nosniff\nTransfer-Encoding: chunked\nContent-Type: text/html;charset=UTF-8\n\n"
+    },
+    "make-version.stderr": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/make-version.stderr",
+      "size_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    "make-version.stdout": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/make-version.stdout",
+      "size_bytes": 263,
+      "sha256": "a016391a1d6319276db894666203e6f0a008e257a0c58616d779951ed943054d",
+      "text": "GNU Make 3.81\nCopyright (C) 2006  Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.\nThere is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A\nPARTICULAR PURPOSE.\n\nThis program built for i386-apple-darwin11.3.0\n"
+    },
+    "make.stderr": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/make.stderr",
+      "size_bytes": 1369,
+      "sha256": "6e7833f40407a4eb5792ae02815ec3b55f9ee1d34fa0c0e7965c22c0b3773ee7",
+      "text": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/source/grep-3.12/src/dfasearch.c:152:43: warning: operator '?:' has lower precedence than '|'; '|' will be evaluated first [-Wbitwise-conditional-parentheses]\n  152 |   pat.fastmap = syntax_only | match_icase ? nullptr : ximalloc (uchar_max + 1);\n      |                 ~~~~~~~~~~~~~~~~~~~~~~~~~ ^\n/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/source/grep-3.12/src/dfasearch.c:152:43: note: place parentheses around the '|' expression to silence this warning\n  152 |   pat.fastmap = syntax_only | match_icase ? nullptr : ximalloc (uchar_max + 1);\n      |                                           ^\n      |                 (                        )\n/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/source/grep-3.12/src/dfasearch.c:152:43: note: place parentheses around the '?:' expression to evaluate it first\n  152 |   pat.fastmap = syntax_only | match_icase ? nullptr : ximalloc (uchar_max + 1);\n      |                                           ^                                   \n      |                               (                                               )\n1 warning generated.\nld: warning: ignoring duplicate libraries: '../lib/libgreputils.a'\nld: warning: ignoring duplicate libraries: '../lib/libgreputils.a', 'libtests.a'\nld: warning: ignoring duplicate libraries: '../lib/libgreputils.a', 'libtests.a'\n"
+    },
+    "make.stdout": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/make.stdout",
+      "size_bytes": 8364,
+      "sha256": "e925708f0c426508d9a70e25d386b60006f433a9f361190806813502368ff914"
+    },
+    "runtime-libraries.stderr": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/runtime-libraries.stderr",
+      "size_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    "runtime-libraries.stdout": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/runtime-libraries.stdout",
+      "size_bytes": 146,
+      "sha256": "c77eb2ce013e68c4c214f4e97f9d5db40235029e9f54049d3fe2c53958a3cab8",
+      "text": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/src/grep:\n\t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1356.0.0)\n"
+    },
+    "source-manifest-after.json": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/source-manifest-after.json",
+      "size_bytes": 140622,
+      "sha256": "347133b04deef7221428328dda48a902cb8820dc93e88cf375b45e18820db90d"
+    },
+    "source-manifest-before.json": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/source-manifest-before.json",
+      "size_bytes": 140622,
+      "sha256": "347133b04deef7221428328dda48a902cb8820dc93e88cf375b45e18820db90d"
+    },
+    "verify-signature.stderr": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/verify-signature.stderr",
+      "size_bytes": 603,
+      "sha256": "3523622a3f405e40421fdb57375ea06c62a07b447ff92d4d2300d978930ae441",
+      "text": "gpg: Signature made Thu Apr 10 16:05:57 2025 UTC\ngpg:                using RSA key 155D3FC500C834486D1EEA677FD9FCCB000BEEEE\ngpg: /tmp/safe-bash-gnu-grep-3.12.MJXqupXn/gnupg/trustdb.gpg: trustdb created\ngpg: Good signature from \"Jim Meyering <jim@meyering.net>\" [unknown]\ngpg:                 aka \"Jim Meyering <meyering@redhat.com>\" [unknown]\ngpg:                 aka \"Jim Meyering <meyering@gnu.org>\" [unknown]\ngpg: WARNING: This key is not certified with a trusted signature!\ngpg:          There is no indication that the signature belongs to the owner.\n      155D3FC500C834486D1EEA677FD9FCCB000BEEEE\n"
+    },
+    "verify-signature.stdout": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/output/verify-signature.stdout",
+      "size_bytes": 382,
+      "sha256": "7b72aa9825a68c16dc4b500fab045aa4ba83178a4067e541f0a37c8230572146",
+      "text": "[GNUPG:] NEWSIG\n[GNUPG:] KEY_CONSIDERED 155D3FC500C834486D1EEA677FD9FCCB000BEEEE 0\n[GNUPG:] SIG_ID XP3uHGnSeAsGnoLVMlzcioo/D/k 2025-04-10 1744301157\n[GNUPG:] GOODSIG 7FD9FCCB000BEEEE Jim Meyering <jim@meyering.net>\n[GNUPG:] VALIDSIG 155D3FC500C834486D1EEA677FD9FCCB000BEEEE 2025-04-10 1744301157 0 4 0 1 10 00 155D3FC500C834486D1EEA677FD9FCCB000BEEEE\n[GNUPG:] TRUST_UNDEFINED 0 pgp\n"
+    }
+  },
+  "retained_control_files": {
+    "control.py": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/control.py",
+      "size_bytes": 8618,
+      "sha256": "615f8feaa7b7ec721349bcc4319188068bd8177699f08c660ebd66bb0b062171"
+    },
+    "build-once.py": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build-once.py",
+      "size_bytes": 5536,
+      "sha256": "bd508cabeb1795091ccbdf4f827b387aa1d7a32faf813aa117b0ff3f4c3a3c18"
+    },
+    "record-evidence.py": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/record-evidence.py",
+      "size_bytes": 10225,
+      "sha256": "59bed6ea9f965a476de69936d6b950f40849a369f4a69ea73c3714224d01b5b7"
+    },
+    "build/config.log": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/config.log",
+      "size_bytes": 988719,
+      "sha256": "47a2d8ef536d022bfab66b7bbc66513e066dd87bc834b752685428e237255e9b"
+    },
+    "build/config.status": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/config.status",
+      "size_bytes": 135126,
+      "sha256": "eadb0ef9c22ed1b4a331cf5a034aa8f7a1e9cf5d92b0ccd36873c0fe4ee1cee3"
+    },
+    "build/config.h": {
+      "path": "/private/tmp/safe-bash-gnu-grep-3.12.MJXqupXn/build/config.h",
+      "size_bytes": 124718,
+      "sha256": "5785ade20dc412d86001ce6ed0d4a6fe72bde0d0c3600a8646b8df08d9ad2112"
+    }
+  },
+  "artifact_bytes_before_documentation": 36072281
+}

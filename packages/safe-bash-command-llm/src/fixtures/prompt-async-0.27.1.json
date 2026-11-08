@@ -1,0 +1,354 @@
+[
+  {
+    "canStream": true,
+    "argv": [
+      "hello",
+      "--async",
+      "-m",
+      "fixture"
+    ],
+    "stdout": "plain:1\n",
+    "stderr": "",
+    "exitCode": 0,
+    "exception": null
+  },
+  {
+    "canStream": true,
+    "argv": [
+      "hello",
+      "--async",
+      "-m",
+      "fixture",
+      "-o",
+      "count",
+      "2"
+    ],
+    "stdout": "plain:2\n",
+    "stderr": "",
+    "exitCode": 0,
+    "exception": null
+  },
+  {
+    "canStream": true,
+    "argv": [
+      "hello",
+      "--async",
+      "-m",
+      "fixture",
+      "--no-stream"
+    ],
+    "stdout": "plain:1\n",
+    "stderr": "",
+    "exitCode": 0,
+    "exception": null
+  },
+  {
+    "canStream": true,
+    "argv": [
+      "hello",
+      "--async",
+      "-m",
+      "fixture",
+      "-T",
+      "lookup"
+    ],
+    "stdout": "thinkingdone0,done1\n",
+    "stderr": "",
+    "exitCode": 0,
+    "exception": null
+  },
+  {
+    "canStream": true,
+    "argv": [
+      "hello",
+      "--async",
+      "-m",
+      "fixture",
+      "-T",
+      "lookup",
+      "--no-stream"
+    ],
+    "stdout": "thinkingdone0,done1\n",
+    "stderr": "",
+    "exitCode": 0,
+    "exception": null
+  },
+  {
+    "canStream": true,
+    "argv": [
+      "hello",
+      "--async",
+      "-m",
+      "fixture",
+      "-T",
+      "lookup",
+      "--td"
+    ],
+    "stdout": "thinkingdone0,done1\n",
+    "stderr": "\nTool call: lookup({'n': 0})\n  done0\n\n\nTool call: lookup({'n': 1})\n  done1\n\n",
+    "exitCode": 0,
+    "exception": null
+  },
+  {
+    "canStream": true,
+    "argv": [
+      "hello",
+      "--async",
+      "-m",
+      "fixture",
+      "-T",
+      "lookup",
+      "--cl",
+      "1"
+    ],
+    "stdout": "thinking",
+    "stderr": "Error: Chain limit of 1 exceeded.\n",
+    "exitCode": 1,
+    "exception": "1"
+  },
+  {
+    "canStream": true,
+    "argv": [
+      "hello",
+      "--async",
+      "-m",
+      "fixture",
+      "-T",
+      "lookup",
+      "--ta"
+    ],
+    "stdout": "thinkingApprove tool call? [y/N]: Approve tool call? [y/N]: done0,Cancelled: User cancelled tool call\n",
+    "stderr": "Tool call: lookup({'n': 0})\nTool call: lookup({'n': 1})\n",
+    "exitCode": 0,
+    "exception": null
+  },
+  {
+    "canStream": true,
+    "argv": [
+      "hello",
+      "--async=x",
+      "-m",
+      "fixture"
+    ],
+    "stdout": "",
+    "stderr": "Error: Option '--async' does not take a value.\n",
+    "exitCode": 2,
+    "exception": "2"
+  },
+  {
+    "canStream": true,
+    "argv": [
+      "hello",
+      "--async",
+      "-m",
+      "sync"
+    ],
+    "stdout": "",
+    "stderr": "Error: 'Unknown async model (sync model exists): sync'\n",
+    "exitCode": 1,
+    "exception": "1"
+  },
+  {
+    "canStream": true,
+    "argv": [
+      "hello",
+      "--async",
+      "-m",
+      "missing"
+    ],
+    "stdout": "",
+    "stderr": "Error: 'Unknown model: missing'\n",
+    "exitCode": 1,
+    "exception": "1"
+  },
+  {
+    "canStream": true,
+    "argv": [
+      "hello",
+      "--async",
+      "-m",
+      "fixture",
+      "-u"
+    ],
+    "stdout": "plain:1\n",
+    "stderr": "Token usage: \n",
+    "exitCode": 0,
+    "exception": null
+  },
+  {
+    "canStream": false,
+    "argv": [
+      "hello",
+      "--async",
+      "-m",
+      "fixture"
+    ],
+    "stdout": "plain:1\n",
+    "stderr": "",
+    "exitCode": 0,
+    "exception": null
+  },
+  {
+    "canStream": false,
+    "argv": [
+      "hello",
+      "--async",
+      "-m",
+      "fixture",
+      "-o",
+      "count",
+      "2"
+    ],
+    "stdout": "plain:2\n",
+    "stderr": "",
+    "exitCode": 0,
+    "exception": null
+  },
+  {
+    "canStream": false,
+    "argv": [
+      "hello",
+      "--async",
+      "-m",
+      "fixture",
+      "--no-stream"
+    ],
+    "stdout": "plain:1\n",
+    "stderr": "",
+    "exitCode": 0,
+    "exception": null
+  },
+  {
+    "canStream": false,
+    "argv": [
+      "hello",
+      "--async",
+      "-m",
+      "fixture",
+      "-T",
+      "lookup"
+    ],
+    "stdout": "thinkingdone0,done1\n",
+    "stderr": "",
+    "exitCode": 0,
+    "exception": null
+  },
+  {
+    "canStream": false,
+    "argv": [
+      "hello",
+      "--async",
+      "-m",
+      "fixture",
+      "-T",
+      "lookup",
+      "--no-stream"
+    ],
+    "stdout": "thinkingdone0,done1\n",
+    "stderr": "",
+    "exitCode": 0,
+    "exception": null
+  },
+  {
+    "canStream": false,
+    "argv": [
+      "hello",
+      "--async",
+      "-m",
+      "fixture",
+      "-T",
+      "lookup",
+      "--td"
+    ],
+    "stdout": "thinkingdone0,done1\n",
+    "stderr": "\nTool call: lookup({'n': 0})\n  done0\n\n\nTool call: lookup({'n': 1})\n  done1\n\n",
+    "exitCode": 0,
+    "exception": null
+  },
+  {
+    "canStream": false,
+    "argv": [
+      "hello",
+      "--async",
+      "-m",
+      "fixture",
+      "-T",
+      "lookup",
+      "--cl",
+      "1"
+    ],
+    "stdout": "",
+    "stderr": "Error: Chain limit of 1 exceeded.\n",
+    "exitCode": 1,
+    "exception": "1"
+  },
+  {
+    "canStream": false,
+    "argv": [
+      "hello",
+      "--async",
+      "-m",
+      "fixture",
+      "-T",
+      "lookup",
+      "--ta"
+    ],
+    "stdout": "Approve tool call? [y/N]: Approve tool call? [y/N]: thinkingdone0,Cancelled: User cancelled tool call\n",
+    "stderr": "Tool call: lookup({'n': 0})\nTool call: lookup({'n': 1})\n",
+    "exitCode": 0,
+    "exception": null
+  },
+  {
+    "canStream": false,
+    "argv": [
+      "hello",
+      "--async=x",
+      "-m",
+      "fixture"
+    ],
+    "stdout": "",
+    "stderr": "Error: Option '--async' does not take a value.\n",
+    "exitCode": 2,
+    "exception": "2"
+  },
+  {
+    "canStream": false,
+    "argv": [
+      "hello",
+      "--async",
+      "-m",
+      "sync"
+    ],
+    "stdout": "",
+    "stderr": "Error: 'Unknown async model (sync model exists): sync'\n",
+    "exitCode": 1,
+    "exception": "1"
+  },
+  {
+    "canStream": false,
+    "argv": [
+      "hello",
+      "--async",
+      "-m",
+      "missing"
+    ],
+    "stdout": "",
+    "stderr": "Error: 'Unknown model: missing'\n",
+    "exitCode": 1,
+    "exception": "1"
+  },
+  {
+    "canStream": false,
+    "argv": [
+      "hello",
+      "--async",
+      "-m",
+      "fixture",
+      "-u"
+    ],
+    "stdout": "plain:1\n",
+    "stderr": "Token usage: \n",
+    "exitCode": 0,
+    "exception": null
+  }
+]

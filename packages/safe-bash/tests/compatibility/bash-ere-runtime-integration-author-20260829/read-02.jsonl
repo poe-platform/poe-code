@@ -1,0 +1,5 @@
+{"pid":14301,"at":"2026-08-29T11:26:00.685Z","role":"SOURCE-DATA-only"}
+{"path":"tests/compatibility/bash-ere-runtime-integration-design-20260829/HANDOFF.md","size":16777,"mode":420,"sha256":"c7e89743c83d4f69bcbf7acf6ec27a0b9929d4a094918dac37a1b83e9a44958a"}
+{"path":"tests/compatibility/bash-ere-runtime-integration-design-20260829/CORE-SOURCE.json.data","size":230044,"mode":384,"sha256":"12a5806df9ea13eb66e99bec1f0c0c3198bfeb76da012559d943a4d874070fc4"}
+{"path":"tests/compatibility/bash-ere-transport-corrections-20260829/REVIEW-PACKET-v2.md","size":5556,"mode":420,"sha256":"2fbabd8fa01459a2813afbd829f91415ed9d6f245a876d7a5dec4e20530a17fb"}
+{"path":"tests/compatibility/bash-ere-transport-corrections-20260829/ROOT-POLICY-DECISION.md","size":5278,"mode":420,"sha256":"e21f3c309f7c4590a71768e3933af2d40f02c9abeae8a1fc17319b36cb9622b1"}

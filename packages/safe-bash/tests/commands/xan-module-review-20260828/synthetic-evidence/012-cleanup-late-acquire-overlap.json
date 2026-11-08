@@ -1,0 +1,14 @@
+{
+  "id": "cleanup-late-acquire-overlap",
+  "families": [
+    "F08"
+  ],
+  "observation": {
+    "returned": {
+      "shared": true,
+      "released": 1,
+      "denial": "ADMISSION_CLOSED"
+    }
+  },
+  "classification": "SYNTHETIC_CONTROL_OBSERVATION_BEFORE_ASSERTION"
+}

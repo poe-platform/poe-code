@@ -1,0 +1,95 @@
+{
+  "checkpointUtc": "2026-08-27T00:38:58Z",
+  "initialHead": "7d0fe7b45578cfc3836e9a8d6a5fd4a4d5e9edd3",
+  "metadataSourceCommit": "f06f2886300885c51a90cac0794a6a6d53be53fd",
+  "metadataTreeGitOid": "9550c98fe336a0e2c731588abe479d4db9068780",
+  "productionSha256": {
+    "chmod.ts": "9286ebc9bea074bf9dad58cb6197aa5e10d325c549187eefbc9203ac76b09cfd",
+    "index.ts": "bc4ad8e3fb5474796ff326b1f53b8c1b84cf45647640f8246d4ccfb3b61d467e",
+    "internal.ts": "bd26d6f4a098c565ce38da6bc269503469638837d3dce47e21ac9c1604a45cd7",
+    "mktemp.ts": "1165d822477e68f6b4dfac3db6a7fa43247226137122c0d980e1490b80bc34d4",
+    "stat.ts": "78dacbdade95a5bb5c9cb4bb96d77a23e3aa44423c9fe6f85dffc969a0fed611"
+  },
+  "initialStatSha256": "40a8439bc973eb0984871e43284f150ef6237b3893e0a6fabfa95c2c21be23b7",
+  "sourceFixes": [
+    { "commit": "680079a", "cause": "GNU unsigned stat fields must ignore plus/space sign flags; epoch fields remain signed", "regression": "stat-flags.test.ts", "nativeCases": 13 },
+    { "commit": "9982b9c", "cause": "Implement bounded string/integer precision, UTF-8 byte widths and per-component symlink formatting; reject invalid modified-percent directives", "regression": "stat-precision.test.ts", "nativeValidCases": 45, "nativeInvalidControls": 2 },
+    { "commit": "f06f288", "cause": "Divide by exact millisecond scale to prevent floating roundoff losing an exact millisecond", "regression": "epoch-regression.test.ts", "nativeCases": 11, "preFixMismatches": 10 }
+  ],
+  "oracleAndCalibrationCommits": ["f251a97", "d5807b7"],
+  "additionalStressCommit": "3246f82",
+  "cohorts": {
+    "authorPlusPlugins": { "pass": 71, "fail": 0, "skip": 0, "todo": 0, "cancel": 0, "sha256": "88e55785c751d89588a4953a18303e2d0bc9c49a91f74d0cf1789708f0aaa1b9" },
+    "independent": { "pass": 48, "fail": 0, "skip": 0, "todo": 0, "cancel": 0, "sha256": "9eca3d05c0dc0a619cb8ba5f35142d43d231d92a922a1691179cd441a06e2f6b" },
+    "strictRepeats": { "runs": 3, "passPerRun": 48, "fail": 0, "skip": 0, "sha256": ["d7091da0b3974d74eeb2154806969a8b5db7ad5d803d864d4cfa80511db13a5d", "e4d0ac8c666188a2391e63e020b5c3d2fe908970f01f551e72be6eac828c18d5", "67e81478d04a50b1bf710be4d3aaa34fc6c887b25691fe7982b9c7f3ad6675b5"] },
+    "builtPackage": { "pass": 5, "fail": 0, "skip": 0, "sha256": "6743a265586ccb1d35658c3970601b86b47af53b91807fa7931ba09301b32401" }
+  },
+  "gnuRowsNotAdditionalNodeTests": {
+    "chmodSeeded": 384,
+    "chmodRecursive": 3,
+    "chmodDirectorySpecialBits": 48,
+    "chmodVerboseReferenceErrors": 5,
+    "statOriginalFormats": 10,
+    "statSignFlags": 13,
+    "statPrecision": 45,
+    "statInvalidPercent": 2,
+    "statEpoch": 11,
+    "statTypesAndFollow": 10,
+    "statOperandErrors": 2,
+    "mktempOptions": 10,
+    "mktempTemplates": 24,
+    "total": 567
+  },
+  "typechecks": {
+    "scoped": { "exit": 0, "command": "node_modules/.bin/tsc --noEmit -p tests/commands/metadata-stress/tsconfig.json" },
+    "currentBuildSource": { "exit": 0, "command": "node_modules/.bin/tsc --noEmit -p tsconfig.build.json" },
+    "global": {
+      "exit": 2,
+      "command": "node_modules/.bin/tsc --noEmit",
+      "sha256": "64fe1c082181c287a1a175628cc9bb72f24e3ca3f4f297772af87954b250a684",
+      "unownedDiagnostics": [
+        "tests/commands/structured-stress/jq-42-author-20260827/report.ts(18,7) TS7034 implicit any results",
+        "tests/commands/structured-stress/jq-42-author-20260827/report.ts(24,35) TS7005 implicit any results",
+        "tests/shell/bom-capture.test.ts(129,17) TS2322 void write instead of Promise<void>",
+        "tests/shell/bom-capture.test.ts(129,51) TS2322 void write instead of Promise<void>"
+      ]
+    }
+  },
+  "build": {
+    "snapshotHead": "3246f82f5d73e0d90041045e4d90e59d465a26b3",
+    "snapshotSrcGitOid": "5af52429013bfb2f593546de40b103bc4f475986",
+    "path": "tests/commands/metadata-stress/.oracle/build-snapshot",
+    "inputs": "git archive 3246f82 src package.json package-lock.json tsconfig.json tsconfig.build.json; existing node_modules symlink; no dirty/untracked source overlay",
+    "command": "npm run build",
+    "exit": 0,
+    "logSha256": "192358b3fd3475b4bb505c07ba0b5608c6e4aa06624198bba950fe56e278e6f0"
+  },
+  "dependencies": {
+    "node": "v22.22.2",
+    "typescript": "5.9.3",
+    "packageSha256": "cd70038d1cb78ff164aa1c6819371d22afbc0c72c5d36c30345d2254602db2c3",
+    "lockSha256": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b",
+    "runtimeDependenciesAdded": 0
+  },
+  "authorUnchanged": "Seven metadata artifacts verified by pinned SHA256; git diff initialHead -- tests/commands/metadata tests/plugins is empty",
+  "pluginTestSha256": {
+    "agent-commands.test.ts": "8fbca04565c22d93d021d8815966c906795cfe2f0cb9d03b1876e88a81888c6d",
+    "safejs-exports.test.ts": "b34e05a57727fde0db30103e9c0e9605717dc313ca2337f4cddf074576b4c8f6"
+  },
+  "laterCalibrationOnly": [
+    "AST security scan initially misclassified regex.exec as native exec; restricted forbidden callable names, no product change.",
+    "Built export smoke initially opened wildcard contracts/*.js literally (4/5); expanding declared wildcard entries gives 5/5, no manifest or product change.",
+    "Stat invalid %5%/%.0% is not a successful format row: native emits prior prefix before error; virtual deliberately buffers current operand and emits no bytes. Both error effects retained explicitly."
+  ],
+  "limitations": [
+    "S3 advisory creation mode versus permissions:false remains an unresolved FS/contracts disagreement; these metadata checks do not waive legacy expectations or claim IAM/ACL enforcement.",
+    "Mock S3 and injected MockDav are not live provider certification.",
+    "MemoryFS uses owner-bit enforcement, not host user/group authorization; RealFS retains host races.",
+    "Mount alias identity/data-loss work remains FS/Curie-owned; no source or legacy tests touched.",
+    "Overlay checks use immutable readonly lower and exclusive upper; shared/concurrently mutated lower or upper is not certified.",
+    "Chmod leading-minus modes still require --; H/L/P and root-protection overrides remain rejected. Seeded mode/operand-kind correlation is not exhaustive cross-product coverage.",
+    "Stat full GNU default report, nanoseconds, unsupported metadata/quoting styles and streaming partial-format-error bytes remain outside the delivered profile.",
+    "Output or cancellation after mktemp creation can leave an entry; no rollback/lease/race-free naming or cryptographic certification claimed.",
+    "No whole-product tests, just-bash superiority claim or 72-hour completion claim."
+  ]
+}

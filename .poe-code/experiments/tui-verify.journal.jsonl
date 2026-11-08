@@ -1,0 +1,1 @@
+{"commit":"4aef2da","status":"keep","output":"echo experiment-dashboard-ok returned expected output; echo_check=42 matches baseline","agentOutput":"","durationMs":1200,"timestamp":"2026-04-16T09:07:40.300Z"}

@@ -1,0 +1,11 @@
+{
+  "name": "exact-literal-link-target",
+  "expectedBoundary": "positive",
+  "started": "2026-08-27T22:49:13.679Z",
+  "status": "pass",
+  "result": {
+    "mode": "120000",
+    "path": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/cycle/inner/back"
+  },
+  "finished": "2026-08-27T22:49:13.679Z"
+}

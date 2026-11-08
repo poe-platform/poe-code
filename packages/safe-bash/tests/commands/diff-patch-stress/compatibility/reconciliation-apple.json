@@ -1,0 +1,115 @@
+{
+  "startedAt": "2026-08-26T20:49:15.208Z",
+  "head": "7a869aff7bd63f93ba1e68be307702fc951518d3",
+  "selected": {
+    "diff": "/usr/bin/diff",
+    "patch": "/usr/bin/patch"
+  },
+  "sourceBefore": {
+    "diff-format.ts": "3d6e0dd8e3b588963b3487f5e42ab8d7ea673fe2404df1ff26cce47912352912",
+    "diff.ts": "769af5df58d829ed3733ad1a24d1fbcbb02af6397cd7f4ffbce5c0f08c517599",
+    "index.ts": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17",
+    "patch-envelope.ts": "64e853a01bacdf15c8fb32cee7073bff5d3ee6015d98a09bb7268cc12657250c",
+    "patch-formats.ts": "ef67097df66662e6b0ed74d707e2c75332b434464e7aafb9bd0164be40c37c6c",
+    "patch-path.ts": "8d3027e4cb83cde93a3a4761d5e1e3ad3ddd2b6e7f7004b9777df60d80dcdfd6",
+    "patch.ts": "a4149cf2c27c4edaab9e79a8a703353a15853a0615983296a1ca26c260e1b7ee",
+    "shared.ts": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+    "unified.ts": "d2d9db844bebb1a2f142854b050978b488d36552b2c496e52fbdf84cf6c0e9e8"
+  },
+  "suites": {
+    "compatibility": {
+      "status": 1,
+      "signal": null,
+      "summary": [
+        "# tests 110",
+        "# pass 90",
+        "# fail 20",
+        "# cancelled 0",
+        "# skipped 0",
+        "# todo 0",
+        "# duration_ms 1508.77525"
+      ],
+      "failures": [
+        "not ok 1 - golden diff flags: short explicit context then short format",
+        "not ok 2 - native diff flags: short explicit context then short format",
+        "not ok 3 - golden diff flags: short explicit context then long format",
+        "not ok 4 - native diff flags: short explicit context then long format",
+        "not ok 5 - golden diff flags: long explicit context then grouped format",
+        "not ok 6 - native diff flags: long explicit context then grouped format",
+        "not ok 7 - golden diff flags: format then explicit context control",
+        "not ok 8 - native diff flags: format then explicit context control",
+        "not ok 15 - native cross-application: unequal multi-hunk deltas, U0",
+        "not ok 27 - native cross-application: all lines deleted retaining empty target, U0",
+        "not ok 28 - native cross-application: all lines deleted retaining empty target, U1",
+        "not ok 29 - native cross-application: all lines deleted retaining empty target, U2",
+        "not ok 30 - native cross-application: all lines deleted retaining empty target, U5",
+        "not ok 35 - native cross-application: repeated source lines alignment not prescribed, U0",
+        "not ok 45 - golden GAP epoch-header creation without dev-null",
+        "not ok 46 - native GAP epoch-header creation without dev-null",
+        "not ok 81 - native patch: reverse full deletion into existing empty file",
+        "not ok 83 - native patch: ORACLE LIMITATION reverse zero-context interior deletion",
+        "not ok 93 - native patch: GNU asymmetric fuzz with no leading context",
+        "not ok 110 - Shell+Memory repeated format options retain GNU maximum context"
+      ],
+      "stdoutSha256": "fdb30b1969a0bded813701485abc59a23815caf4ac2f84affaaf93e0298cb817"
+    },
+    "fuzz": {
+      "status": 1,
+      "signal": null,
+      "summary": [
+        "# FUZZ_REPORT {\"baseSeed\":1831565813,\"denominator\":512,\"families\":{\"empty-create\":32,\"empty-delete\":32,\"insert\":32,\"delete\":32,\"replace\":32,\"repetition\":32,\"whitespace\":32,\"unicode\":32,\"crlf\":32,\"terminal-newline\":32,\"long-lines\":32,\"separated-anchors\":32,\"adjacent-hunks\":32,\"move\":32,\"equal\":32,\"coding-edit\":32},\"counts\":{\"diff-status\":{\"pass\":512,\"fail\":0},\"minimal-edit-count\":{\"pass\":512,\"fail\":0},\"virtual-forward\":{\"pass\":512,\"fail\":0},\"virtual-reverse\":{\"pass\":512,\"fail\":0},\"golden-forward\":{\"pass\":512,\"fail\":0},\"golden-reverse\":{\"pass\":512,\"fail\":0},\"native-diff-status\":{\"pass\":512,\"fail\":0},\"native-diff-virtual-patch-forward\":{\"pass\":512,\"fail\":0},\"native-diff-virtual-patch-reverse\":{\"pass\":512,\"fail\":0},\"virtual-diff-native-patch-forward\":{\"pass\":512,\"fail\":0},\"virtual-diff-native-patch-reverse\":{\"pass\":436,\"fail\":76},\"golden-native-patch\":{\"pass\":512,\"fail\":0},\"native-control-forward\":{\"pass\":510,\"fail\":2},\"native-control-reverse\":{\"pass\":442,\"fail\":70}},\"skips\":0}",
+        "# FAILURE_INDEX [{\"index\":1,\"seed\":191034286,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":1,\"seed\":191034286,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":9,\"seed\":4246651254,\"family\":\"terminal-newline\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":9,\"seed\":4246651254,\"family\":\"terminal-newline\",\"phase\":\"native-control-reverse\"},{\"index\":15,\"seed\":2993396684,\"family\":\"coding-edit\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":15,\"seed\":2993396684,\"family\":\"coding-edit\",\"phase\":\"native-control-reverse\"},{\"index\":17,\"seed\":4007300926,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":17,\"seed\":4007300926,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":19,\"seed\":726237872,\"family\":\"delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":19,\"seed\":726237872,\"family\":\"delete\",\"phase\":\"native-control-reverse\"},{\"index\":33,\"seed\":3528600270,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":33,\"seed\":3528600270,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":45,\"seed\":1022091130,\"family\":\"move\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":47,\"seed\":2035995372,\"family\":\"coding-edit\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":47,\"seed\":2035995372,\"family\":\"coding-edit\",\"phase\":\"native-control-reverse\"},{\"index\":49,\"seed\":3049899614,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":49,\"seed\":3049899614,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":63,\"seed\":1557294716,\"family\":\"coding-edit\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":63,\"seed\":1557294716,\"family\":\"coding-edit\",\"phase\":\"native-control-reverse\"},{\"index\":65,\"seed\":2571198958,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":65,\"seed\":2571198958,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":66,\"seed\":930667431,\"family\":\"insert\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":66,\"seed\":930667431,\"family\":\"insert\",\"phase\":\"native-control-reverse\"},{\"index\":72,\"seed\":3972380157,\"family\":\"crlf\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":72,\"seed\":3972380157,\"family\":\"crlf\",\"phase\":\"native-control-reverse\"},{\"index\":81,\"seed\":2092498302,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":81,\"seed\":2092498302,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":95,\"seed\":599893404,\"family\":\"coding-edit\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":95,\"seed\":599893404,\"family\":\"coding-edit\",\"phase\":\"native-control-reverse\"},{\"index\":97,\"seed\":1613797646,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":97,\"seed\":1613797646,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":100,\"seed\":987170361,\"family\":\"replace\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":100,\"seed\":987170361,\"family\":\"replace\",\"phase\":\"native-control-reverse\"},{\"index\":109,\"seed\":3402255802,\"family\":\"move\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":111,\"seed\":121192748,\"family\":\"coding-edit\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":111,\"seed\":121192748,\"family\":\"coding-edit\",\"phase\":\"native-control-reverse\"},{\"index\":113,\"seed\":1135096990,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":113,\"seed\":1135096990,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":115,\"seed\":2149001232,\"family\":\"delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":115,\"seed\":2149001232,\"family\":\"delete\",\"phase\":\"native-control-reverse\"},{\"index\":125,\"seed\":2923555146,\"family\":\"move\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":129,\"seed\":656396334,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":129,\"seed\":656396334,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":130,\"seed\":3310832103,\"family\":\"insert\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":130,\"seed\":3310832103,\"family\":\"insert\",\"phase\":\"native-control-reverse\"},{\"index\":145,\"seed\":177695678,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":145,\"seed\":177695678,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":147,\"seed\":1191599920,\"family\":\"delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":147,\"seed\":1191599920,\"family\":\"delete\",\"phase\":\"native-control-reverse\"},{\"index\":161,\"seed\":3993962318,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":161,\"seed\":3993962318,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":163,\"seed\":712899264,\"family\":\"delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":163,\"seed\":712899264,\"family\":\"delete\",\"phase\":\"native-control-reverse\"},{\"index\":164,\"seed\":3367335033,\"family\":\"replace\",\"phase\":\"native-control-reverse\"},{\"index\":170,\"seed\":2114080463,\"family\":\"long-lines\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":170,\"seed\":2114080463,\"family\":\"long-lines\",\"phase\":\"native-control-reverse\"},{\"index\":177,\"seed\":3515261662,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":177,\"seed\":3515261662,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":188,\"seed\":2649284049,\"family\":\"adjacent-hunks\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":188,\"seed\":2649284049,\"family\":\"adjacent-hunks\",\"phase\":\"native-control-reverse\"},{\"index\":193,\"seed\":3036561006,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":193,\"seed\":3036561006,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":197,\"seed\":769402194,\"family\":\"repetition\",\"phase\":\"native-control-reverse\"},{\"index\":209,\"seed\":2557860350,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":209,\"seed\":2557860350,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":211,\"seed\":3571764592,\"family\":\"delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":211,\"seed\":3571764592,\"family\":\"delete\",\"phase\":\"native-control-reverse\"},{\"index\":225,\"seed\":2079159694,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":225,\"seed\":2079159694,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":226,\"seed\":438628167,\"family\":\"insert\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":226,\"seed\":438628167,\"family\":\"insert\",\"phase\":\"native-control-reverse\"},{\"index\":241,\"seed\":1600459038,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":241,\"seed\":1600459038,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":257,\"seed\":1121758382,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":257,\"seed\":1121758382,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":266,\"seed\":3536843823,\"family\":\"long-lines\",\"phase\":\"native-control-forward\"},{\"index\":269,\"seed\":2910216538,\"family\":\"move\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":273,\"seed\":643057726,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":273,\"seed\":643057726,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":274,\"seed\":3297493495,\"family\":\"insert\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":274,\"seed\":3297493495,\"family\":\"insert\",\"phase\":\"native-control-reverse\"},{\"index\":284,\"seed\":4072047409,\"family\":\"adjacent-hunks\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":284,\"seed\":4072047409,\"family\":\"adjacent-hunks\",\"phase\":\"native-control-reverse\"},{\"index\":289,\"seed\":164357070,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":289,\"seed\":164357070,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":290,\"seed\":2818792839,\"family\":\"insert\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":290,\"seed\":2818792839,\"family\":\"insert\",\"phase\":\"native-control-reverse\"},{\"index\":297,\"seed\":4219974038,\"family\":\"terminal-newline\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":297,\"seed\":4219974038,\"family\":\"terminal-newline\",\"phase\":\"native-control-reverse\"},{\"index\":301,\"seed\":1952815226,\"family\":\"move\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":305,\"seed\":3980623710,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":305,\"seed\":3980623710,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":310,\"seed\":72933371,\"family\":\"whitespace\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":310,\"seed\":72933371,\"family\":\"whitespace\",\"phase\":\"native-control-reverse\"},{\"index\":321,\"seed\":3501923054,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":321,\"seed\":3501923054,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":332,\"seed\":2635945441,\"family\":\"adjacent-hunks\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":332,\"seed\":2635945441,\"family\":\"adjacent-hunks\",\"phase\":\"native-control-reverse\"},{\"index\":337,\"seed\":3023222398,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":337,\"seed\":3023222398,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":351,\"seed\":1530617500,\"family\":\"coding-edit\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":351,\"seed\":1530617500,\"family\":\"coding-edit\",\"phase\":\"native-control-reverse\"},{\"index\":353,\"seed\":2544521742,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":353,\"seed\":2544521742,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":356,\"seed\":1917894457,\"family\":\"replace\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":356,\"seed\":1917894457,\"family\":\"replace\",\"phase\":\"native-control-reverse\"},{\"index\":365,\"seed\":38012602,\"family\":\"move\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":369,\"seed\":2065821086,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":369,\"seed\":2065821086,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":370,\"seed\":425289559,\"family\":\"insert\",\"phase\":\"native-control-forward\"},{\"index\":371,\"seed\":3079725328,\"family\":\"delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":371,\"seed\":3079725328,\"family\":\"delete\",\"phase\":\"native-control-reverse\"},{\"index\":385,\"seed\":1587120430,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":385,\"seed\":1587120430,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":387,\"seed\":2601024672,\"family\":\"delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":387,\"seed\":2601024672,\"family\":\"delete\",\"phase\":\"native-control-reverse\"},{\"index\":394,\"seed\":4002205871,\"family\":\"long-lines\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":394,\"seed\":4002205871,\"family\":\"long-lines\",\"phase\":\"native-control-reverse\"},{\"index\":397,\"seed\":3375578586,\"family\":\"move\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":401,\"seed\":1108419774,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":401,\"seed\":1108419774,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":413,\"seed\":2896877930,\"family\":\"move\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":417,\"seed\":629719118,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":417,\"seed\":629719118,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":422,\"seed\":1016996075,\"family\":\"whitespace\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":422,\"seed\":1016996075,\"family\":\"whitespace\",\"phase\":\"native-control-reverse\"},{\"index\":424,\"seed\":2030900317,\"family\":\"crlf\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":424,\"seed\":2030900317,\"family\":\"crlf\",\"phase\":\"native-control-reverse\"},{\"index\":431,\"seed\":3432081516,\"family\":\"coding-edit\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":431,\"seed\":3432081516,\"family\":\"coding-edit\",\"phase\":\"native-control-reverse\"},{\"index\":433,\"seed\":151018462,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":433,\"seed\":151018462,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":449,\"seed\":3967285102,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":449,\"seed\":3967285102,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":465,\"seed\":3488584446,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":465,\"seed\":3488584446,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":470,\"seed\":3875861403,\"family\":\"whitespace\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":470,\"seed\":3875861403,\"family\":\"whitespace\",\"phase\":\"native-control-reverse\"},{\"index\":472,\"seed\":594798349,\"family\":\"crlf\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":472,\"seed\":594798349,\"family\":\"crlf\",\"phase\":\"native-control-reverse\"},{\"index\":477,\"seed\":982075306,\"family\":\"move\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":477,\"seed\":982075306,\"family\":\"move\",\"phase\":\"native-control-reverse\"},{\"index\":481,\"seed\":3009883790,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":481,\"seed\":3009883790,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":497,\"seed\":2531183134,\"family\":\"empty-delete\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":497,\"seed\":2531183134,\"family\":\"empty-delete\",\"phase\":\"native-control-reverse\"},{\"index\":509,\"seed\":24673994,\"family\":\"move\",\"phase\":\"virtual-diff-native-patch-reverse\"},{\"index\":509,\"seed\":24673994,\"family\":\"move\",\"phase\":\"native-control-reverse\"}]",
+        "# tests 36",
+        "# pass 31",
+        "# fail 5",
+        "# cancelled 0",
+        "# skipped 0",
+        "# todo 0",
+        "# duration_ms 22349.186125"
+      ],
+      "failures": [
+        "not ok 6 - all six file-section orderings apply coding-agent create/edit/delete flows and reverse",
+        "not ok 27 - 512 independent seeded diff/patch, reverse, native, golden, and minimality properties",
+        "not ok 32 - GAP-01 canonical GNU zero-context deletion applies and reverses",
+        "not ok 33 - GNU boundary anchoring: asymmetric non-EOF rejection",
+        "not ok 36 - oracle calibration: native-generated unterminated context survives native reverse"
+      ],
+      "stdoutSha256": "9457752745f2bdbab57a47761a3b78c99344430015c19dbfae94c3cfc9f7ee13"
+    },
+    "safety": {
+      "status": 1,
+      "signal": null,
+      "summary": [
+        "# tests 151",
+        "# pass 150",
+        "# fail 1",
+        "# cancelled 0",
+        "# skipped 0",
+        "# todo 0",
+        "# duration_ms 262.393625"
+      ],
+      "failures": [
+        "not ok 98 - unsafe second header leaves all identities and bytes intact: absolute"
+      ],
+      "stdoutSha256": "f14460f8f9d31b467109c347e61ce034d0d2be2c0ae712c43142623ccb49541a"
+    }
+  },
+  "typescript": {
+    "status": 0,
+    "signal": null,
+    "stdout": "",
+    "stderr": ""
+  },
+  "sourceAfter": {
+    "diff-format.ts": "3d6e0dd8e3b588963b3487f5e42ab8d7ea673fe2404df1ff26cce47912352912",
+    "diff.ts": "769af5df58d829ed3733ad1a24d1fbcbb02af6397cd7f4ffbce5c0f08c517599",
+    "index.ts": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17",
+    "patch-envelope.ts": "64e853a01bacdf15c8fb32cee7073bff5d3ee6015d98a09bb7268cc12657250c",
+    "patch-formats.ts": "ef67097df66662e6b0ed74d707e2c75332b434464e7aafb9bd0164be40c37c6c",
+    "patch-path.ts": "8d3027e4cb83cde93a3a4761d5e1e3ad3ddd2b6e7f7004b9777df60d80dcdfd6",
+    "patch.ts": "a4149cf2c27c4edaab9e79a8a703353a15853a0615983296a1ca26c260e1b7ee",
+    "shared.ts": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+    "unified.ts": "d2d9db844bebb1a2f142854b050978b488d36552b2c496e52fbdf84cf6c0e9e8"
+  },
+  "sourceChanged": false
+}

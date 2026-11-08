@@ -1,0 +1,88 @@
+{
+  "schema": "b1-r6-classifier-correction-reporting-hold",
+  "at": "2026-08-29T16:12:31.025Z",
+  "verdict": "HOLD",
+  "replayExit": 1,
+  "fullySealedPasses": 0,
+  "sourceBoundReachedControlBodies": 11,
+  "individualPassReceipts": false,
+  "terminalFailure": "ENOENT historical publisher sibling path, after PURE and postguards",
+  "previousRefusalPreserved": true,
+  "actualPublisher": 0,
+  "product": 0,
+  "Workers": 0,
+  "knownStartChargeCeiling": 18,
+  "windowRenewed": false,
+  "bindings": [
+    {
+      "path": "PRESEAL.md",
+      "bytes": 1667,
+      "sha256": "3f93e91b5836aaf03f62bfafc26e3533ea6f2f8b59ecb7f657846f4a4b65032f"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 3513,
+      "sha256": "7cc9b23bd44a8d3a96aac8496dc2bb5c4eed21c534421ed3c68c813216e4f777"
+    },
+    {
+      "path": "classifier.mjs",
+      "bytes": 3465,
+      "sha256": "e251c2dd0e463d9a5a3f4068e672771e25bc1c691e473bcb4dcc2820d247bc03"
+    },
+    {
+      "path": "run.mjs",
+      "bytes": 2318,
+      "sha256": "a46d36bbba26547a72759978a286a6e2d7d97b02e4a1f1da630af93f69ad494a"
+    },
+    {
+      "path": "publish.mjs",
+      "bytes": 1703,
+      "sha256": "c56e1e768dd8e0ba136b1ceff043b2a6876ed1b889310ee8f0a64a79bc82b0cf"
+    },
+    {
+      "path": "DERIVED.mjs.data",
+      "bytes": 5545,
+      "sha256": "ee1b115208ab1b39f0d946eb7c9ea09119b8d38943f746a68398f63ccc94e883"
+    },
+    {
+      "path": "EXECUTABLE-SEAL.json",
+      "bytes": 564,
+      "sha256": "df8a301814836a299cd7c4d597c02b0914e896476abfc87f81c2c687be3022c0"
+    },
+    {
+      "path": "startup.stdout",
+      "bytes": 19718,
+      "sha256": "7f676fa42bb21ca2e87f63a097ab2c9ad5eff1054ad94409b106af16df1b09b1"
+    },
+    {
+      "path": "startup.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "syntax.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "syntax.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "review.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "review.stderr",
+      "bytes": 7945,
+      "sha256": "1a5a5e4bad20e5af5ba3080fa679e2bdc661f48e15fe1305b8649feb0eda1aff"
+    },
+    {
+      "path": "COMMAND.json",
+      "bytes": 747,
+      "sha256": "9ecf5ccae3492024fd67f35f64ee925b4062a590d5f5d6fb943c8542539b02b0"
+    }
+  ]
+}

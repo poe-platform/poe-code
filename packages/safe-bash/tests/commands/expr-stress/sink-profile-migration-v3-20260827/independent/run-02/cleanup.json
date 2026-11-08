@@ -1,0 +1,32 @@
+{
+  "finishedAt": "2026-08-27T21:40:58.370Z",
+  "taskRoot": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5",
+  "absent": true,
+  "originalAliasAbsent": true,
+  "removalsRestrictedToTaskRoot": true,
+  "noSIGSTOP": true,
+  "coreRealVfsScratchRemoved": true,
+  "canonicalImports": {
+    "original": {
+      "records": 649,
+      "workerStarts": 174,
+      "workerExits": 174,
+      "workersSettled": true
+    },
+    "revised": {
+      "records": 649,
+      "workerStarts": 174,
+      "workerExits": 174,
+      "workersSettled": true
+    }
+  },
+  "quotaSafetyTerminations": [
+    0,
+    0
+  ],
+  "nearbyActiveWorkers": [
+    0,
+    0
+  ],
+  "historicalAttempt": "../replay-attempt-01.json"
+}

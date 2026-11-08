@@ -1,0 +1,1353 @@
+{
+  "at": "2026-08-27T04:36:06.107Z",
+  "source": {
+    "timestamp": "2026-08-27T04:36:05.974Z",
+    "head": "fc37ada119ed8e29f4b16b21e7783df5f2c6352a",
+    "runtimeCommit": "c116d637aa82e4b075460fc07088a5703a10e7b4",
+    "shell": {
+      "src/shell/arithmetic.ts": {
+        "actual": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+        "committed": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+        "matches": true
+      },
+      "src/shell/display.ts": {
+        "actual": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+        "committed": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+        "matches": true
+      },
+      "src/shell/index.ts": {
+        "actual": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+        "committed": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+        "matches": true
+      },
+      "src/shell/input.ts": {
+        "actual": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+        "committed": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+        "matches": true
+      },
+      "src/shell/locale.ts": {
+        "actual": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+        "committed": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+        "matches": true
+      },
+      "src/shell/parser.ts": {
+        "actual": "f8a76103ccc3e0f981bdb8cf391f48a8864dbf895c39e459d5f5da7b6ec77b0c",
+        "committed": "f8a76103ccc3e0f981bdb8cf391f48a8864dbf895c39e459d5f5da7b6ec77b0c",
+        "matches": true
+      },
+      "src/shell/pattern.ts": {
+        "actual": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+        "committed": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+        "matches": true
+      },
+      "src/shell/runtime.ts": {
+        "actual": "f307642e52c3bfeb5df64057fb26af6645135bb5bdc307f399de6ce1541c0ddb",
+        "committed": "f307642e52c3bfeb5df64057fb26af6645135bb5bdc307f399de6ce1541c0ddb",
+        "matches": true
+      },
+      "src/shell/shell.ts": {
+        "actual": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+        "committed": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+        "matches": true
+      },
+      "src/shell/types.ts": {
+        "actual": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+        "committed": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+        "matches": true
+      }
+    },
+    "status": "?? docs/integration/2026-08-27-SAFEJS_CURRENT_REVIEW.md\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/fs/s3/http-independent/download-service.mjs\n?? tests/fs/s3/http-independent/lifecycle.test.ts\n?? tests/fs/s3/http-independent/prepare.mjs\n?? tests/fs/s3/http-independent/replay-author-service.mjs\n?? tests/integration/safejs-current-20260827/evidence/\n?? tests/shell-stress/kernel-reconciliation/",
+    "staged": "",
+    "valid": true
+  },
+  "files": {
+    "tests/shell-stress/kernel-reconciliation/BASELINE.md": "54cae5200304d4d6ef6fed01993c841c0c58d75f82abc7bc2210e8d854a71483",
+    "tests/shell-stress/kernel-reconciliation/RAW_ROWS.md": "d9187fff4b62810d1446c63810608d0b0a7eaed82223335c464178a01ecb307a",
+    "tests/shell-stress/kernel-reconciliation/audit.json": "cfb8cd0e7dc087398e9bfc50a26ad9978801c5c62725332e1d776a7e1a795787",
+    "tests/shell-stress/kernel-reconciliation/baseline-current.json": "ab79f0254cbc20a9923a78802ce2dab86b383dadfb04c8dbf7ff2528cb3ab1d8",
+    "tests/shell-stress/kernel-reconciliation/baseline-recovered.json": "5feb7451dcef401d7b33dc27adb6fd6d408fe66fa80816664538b91ac67051bc",
+    "tests/shell-stress/kernel-reconciliation/capture.mjs": "5a01e3542c63aad20f93d6c53b92850318eaadfd7bcfc01267b0a62c2bd1810b",
+    "tests/shell-stress/kernel-reconciliation/corrected72.tap": "7a4323acefcd385bd02dc2d3979757757b26e1b5d0c43323d13029e68ad9f3fe",
+    "tests/shell-stress/kernel-reconciliation/functional-handoff.json": "57dc77bc833ff3c6778d68b00a41171a18fa258735d12b75a69a1e5c967c6f4d",
+    "tests/shell-stress/kernel-reconciliation/native36-current.json": "7ef74516df90327cbe8ec5821cd4dfcc928a053eb3410335c711e253ad89e02f",
+    "tests/shell-stress/kernel-reconciliation/native36.mjs": "a3ff27fd16b9d9872dfbe2b3bd7a566b8f640fb62d8a4fcc5dbb2bd94d9c6e89",
+    "tests/shell-stress/kernel-reconciliation/native57-current.json": "85995da790b5f62051c0743d6c92361ec57ffd277c46a7eafabde3987728f799",
+    "tests/shell-stress/kernel-reconciliation/native57.ts": "3d3673f2e28c1d834b4eb6d66952b56b9b0e441b3979ee3e97377ae498a80725",
+    "tests/shell-stress/kernel-reconciliation/report.mjs": "45b6f3f48a9e22f51df4ff966e618ab1c15c699ae6deff9bd8eeb8dd327a4ce9",
+    "tests/shell-stress/kernel-reconciliation/scoped-typecheck.json": "e108d52e755f0050f8aa677b7ef94c03c7e18640f847e99a20a988841b50a9f3",
+    "tests/shell-stress/kernel-reconciliation/support.d.mts": "79b24079ff93f916aa5f35db06f98b1352df5703d0c3305dc12012da7587d869",
+    "tests/shell-stress/kernel-reconciliation/support.mjs": "7cbe2c4a7271d81a6abd98fc2d91852d193d9d1c2e6efa99b796b8f0dcef86d4",
+    "tests/shell-stress/kernel-reconciliation/unresolved-rows.json": "8333bb783775b8a18d84bf909f0aacffedbb6742ca48f4f42889a1f6afbae906"
+  },
+  "children": [
+    {
+      "pid": 139,
+      "groupAlive": false
+    },
+    {
+      "pid": 564,
+      "groupAlive": false
+    },
+    {
+      "pid": 1026,
+      "groupAlive": false
+    },
+    {
+      "pid": 1396,
+      "groupAlive": false
+    },
+    {
+      "pid": 1743,
+      "groupAlive": false
+    },
+    {
+      "pid": 2095,
+      "groupAlive": false
+    },
+    {
+      "pid": 2448,
+      "groupAlive": false
+    },
+    {
+      "pid": 2792,
+      "groupAlive": false
+    },
+    {
+      "pid": 3133,
+      "groupAlive": false
+    },
+    {
+      "pid": 3489,
+      "groupAlive": false
+    },
+    {
+      "pid": 3853,
+      "groupAlive": false
+    },
+    {
+      "pid": 4246,
+      "groupAlive": false
+    },
+    {
+      "pid": 4595,
+      "groupAlive": false
+    },
+    {
+      "pid": 4944,
+      "groupAlive": false
+    },
+    {
+      "pid": 5308,
+      "groupAlive": false
+    },
+    {
+      "pid": 5664,
+      "groupAlive": false
+    },
+    {
+      "pid": 6001,
+      "groupAlive": false
+    },
+    {
+      "pid": 6339,
+      "groupAlive": false
+    },
+    {
+      "pid": 6688,
+      "groupAlive": false
+    },
+    {
+      "pid": 7027,
+      "groupAlive": false
+    },
+    {
+      "pid": 7384,
+      "groupAlive": false
+    },
+    {
+      "pid": 7729,
+      "groupAlive": false
+    },
+    {
+      "pid": 8075,
+      "groupAlive": false
+    },
+    {
+      "pid": 8414,
+      "groupAlive": false
+    },
+    {
+      "pid": 8419,
+      "groupAlive": false
+    },
+    {
+      "pid": 8421,
+      "groupAlive": false
+    },
+    {
+      "pid": 8423,
+      "groupAlive": false
+    },
+    {
+      "pid": 8424,
+      "groupAlive": false
+    },
+    {
+      "pid": 8425,
+      "groupAlive": false
+    },
+    {
+      "pid": 8426,
+      "groupAlive": false
+    },
+    {
+      "pid": 8427,
+      "groupAlive": false
+    },
+    {
+      "pid": 8428,
+      "groupAlive": false
+    },
+    {
+      "pid": 8429,
+      "groupAlive": false
+    },
+    {
+      "pid": 8430,
+      "groupAlive": false
+    },
+    {
+      "pid": 8431,
+      "groupAlive": false
+    },
+    {
+      "pid": 8432,
+      "groupAlive": false
+    },
+    {
+      "pid": 8433,
+      "groupAlive": false
+    },
+    {
+      "pid": 8434,
+      "groupAlive": false
+    },
+    {
+      "pid": 8435,
+      "groupAlive": false
+    },
+    {
+      "pid": 8436,
+      "groupAlive": false
+    },
+    {
+      "pid": 8438,
+      "groupAlive": false
+    },
+    {
+      "pid": 8439,
+      "groupAlive": false
+    },
+    {
+      "pid": 8440,
+      "groupAlive": false
+    },
+    {
+      "pid": 8441,
+      "groupAlive": false
+    },
+    {
+      "pid": 8442,
+      "groupAlive": false
+    },
+    {
+      "pid": 8451,
+      "groupAlive": false
+    },
+    {
+      "pid": 8454,
+      "groupAlive": false
+    },
+    {
+      "pid": 8455,
+      "groupAlive": false
+    },
+    {
+      "pid": 8456,
+      "groupAlive": false
+    },
+    {
+      "pid": 8460,
+      "groupAlive": false
+    },
+    {
+      "pid": 8465,
+      "groupAlive": false
+    },
+    {
+      "pid": 8466,
+      "groupAlive": false
+    },
+    {
+      "pid": 8467,
+      "groupAlive": false
+    },
+    {
+      "pid": 8468,
+      "groupAlive": false
+    },
+    {
+      "pid": 8469,
+      "groupAlive": false
+    },
+    {
+      "pid": 8471,
+      "groupAlive": false
+    },
+    {
+      "pid": 8472,
+      "groupAlive": false
+    },
+    {
+      "pid": 8473,
+      "groupAlive": false
+    },
+    {
+      "pid": 8474,
+      "groupAlive": false
+    },
+    {
+      "pid": 8475,
+      "groupAlive": false
+    },
+    {
+      "pid": 8476,
+      "groupAlive": false
+    },
+    {
+      "pid": 8477,
+      "groupAlive": false
+    },
+    {
+      "pid": 8478,
+      "groupAlive": false
+    },
+    {
+      "pid": 8479,
+      "groupAlive": false
+    },
+    {
+      "pid": 8480,
+      "groupAlive": false
+    },
+    {
+      "pid": 8481,
+      "groupAlive": false
+    },
+    {
+      "pid": 8482,
+      "groupAlive": false
+    },
+    {
+      "pid": 8483,
+      "groupAlive": false
+    },
+    {
+      "pid": 8484,
+      "groupAlive": false
+    },
+    {
+      "pid": 8486,
+      "groupAlive": false
+    },
+    {
+      "pid": 8487,
+      "groupAlive": false
+    },
+    {
+      "pid": 8488,
+      "groupAlive": false
+    },
+    {
+      "pid": 8489,
+      "groupAlive": false
+    },
+    {
+      "pid": 8491,
+      "groupAlive": false
+    },
+    {
+      "pid": 8498,
+      "groupAlive": false
+    },
+    {
+      "pid": 8499,
+      "groupAlive": false
+    },
+    {
+      "pid": 8500,
+      "groupAlive": false
+    },
+    {
+      "pid": 8501,
+      "groupAlive": false
+    },
+    {
+      "pid": 8502,
+      "groupAlive": false
+    },
+    {
+      "pid": 8503,
+      "groupAlive": false
+    },
+    {
+      "pid": 8504,
+      "groupAlive": false
+    },
+    {
+      "pid": 8510,
+      "groupAlive": false
+    },
+    {
+      "pid": 8516,
+      "groupAlive": false
+    },
+    {
+      "pid": 8518,
+      "groupAlive": false
+    },
+    {
+      "pid": 8519,
+      "groupAlive": false
+    },
+    {
+      "pid": 8521,
+      "groupAlive": false
+    },
+    {
+      "pid": 8522,
+      "groupAlive": false
+    },
+    {
+      "pid": 8523,
+      "groupAlive": false
+    },
+    {
+      "pid": 8524,
+      "groupAlive": false
+    },
+    {
+      "pid": 8525,
+      "groupAlive": false
+    },
+    {
+      "pid": 8526,
+      "groupAlive": false
+    },
+    {
+      "pid": 8527,
+      "groupAlive": false
+    },
+    {
+      "pid": 8529,
+      "groupAlive": false
+    },
+    {
+      "pid": 8541,
+      "groupAlive": false
+    },
+    {
+      "pid": 8562,
+      "groupAlive": false
+    },
+    {
+      "pid": 8605,
+      "groupAlive": false
+    },
+    {
+      "pid": 8613,
+      "groupAlive": false
+    },
+    {
+      "pid": 90008,
+      "groupAlive": false
+    },
+    {
+      "pid": 90009,
+      "groupAlive": false
+    },
+    {
+      "pid": 90010,
+      "groupAlive": false
+    },
+    {
+      "pid": 90011,
+      "groupAlive": false
+    },
+    {
+      "pid": 90013,
+      "groupAlive": false
+    },
+    {
+      "pid": 90015,
+      "groupAlive": false
+    },
+    {
+      "pid": 90018,
+      "groupAlive": false
+    },
+    {
+      "pid": 90020,
+      "groupAlive": false
+    },
+    {
+      "pid": 90022,
+      "groupAlive": false
+    },
+    {
+      "pid": 90024,
+      "groupAlive": false
+    },
+    {
+      "pid": 90025,
+      "groupAlive": false
+    },
+    {
+      "pid": 90026,
+      "groupAlive": false
+    },
+    {
+      "pid": 90027,
+      "groupAlive": false
+    },
+    {
+      "pid": 90028,
+      "groupAlive": false
+    },
+    {
+      "pid": 90029,
+      "groupAlive": false
+    },
+    {
+      "pid": 90031,
+      "groupAlive": false
+    },
+    {
+      "pid": 90037,
+      "groupAlive": false
+    },
+    {
+      "pid": 90046,
+      "groupAlive": false
+    },
+    {
+      "pid": 90047,
+      "groupAlive": false
+    },
+    {
+      "pid": 90049,
+      "groupAlive": false
+    },
+    {
+      "pid": 90050,
+      "groupAlive": false
+    },
+    {
+      "pid": 90052,
+      "groupAlive": false
+    },
+    {
+      "pid": 90053,
+      "groupAlive": false
+    },
+    {
+      "pid": 90054,
+      "groupAlive": false
+    },
+    {
+      "pid": 90055,
+      "groupAlive": false
+    },
+    {
+      "pid": 90056,
+      "groupAlive": false
+    },
+    {
+      "pid": 90057,
+      "groupAlive": false
+    },
+    {
+      "pid": 90058,
+      "groupAlive": false
+    },
+    {
+      "pid": 90059,
+      "groupAlive": false
+    },
+    {
+      "pid": 90060,
+      "groupAlive": false
+    },
+    {
+      "pid": 90061,
+      "groupAlive": false
+    },
+    {
+      "pid": 90062,
+      "groupAlive": false
+    },
+    {
+      "pid": 90063,
+      "groupAlive": false
+    },
+    {
+      "pid": 90064,
+      "groupAlive": false
+    },
+    {
+      "pid": 90065,
+      "groupAlive": false
+    },
+    {
+      "pid": 90068,
+      "groupAlive": false
+    },
+    {
+      "pid": 90069,
+      "groupAlive": false
+    },
+    {
+      "pid": 90070,
+      "groupAlive": false
+    },
+    {
+      "pid": 90073,
+      "groupAlive": false
+    },
+    {
+      "pid": 90074,
+      "groupAlive": false
+    },
+    {
+      "pid": 90075,
+      "groupAlive": false
+    },
+    {
+      "pid": 90077,
+      "groupAlive": false
+    },
+    {
+      "pid": 90079,
+      "groupAlive": false
+    },
+    {
+      "pid": 90082,
+      "groupAlive": false
+    },
+    {
+      "pid": 90084,
+      "groupAlive": false
+    },
+    {
+      "pid": 90086,
+      "groupAlive": false
+    },
+    {
+      "pid": 90088,
+      "groupAlive": false
+    },
+    {
+      "pid": 90089,
+      "groupAlive": false
+    },
+    {
+      "pid": 90090,
+      "groupAlive": false
+    },
+    {
+      "pid": 90091,
+      "groupAlive": false
+    },
+    {
+      "pid": 90092,
+      "groupAlive": false
+    },
+    {
+      "pid": 90094,
+      "groupAlive": false
+    },
+    {
+      "pid": 90095,
+      "groupAlive": false
+    },
+    {
+      "pid": 90098,
+      "groupAlive": false
+    },
+    {
+      "pid": 90122,
+      "groupAlive": false
+    },
+    {
+      "pid": 90124,
+      "groupAlive": false
+    },
+    {
+      "pid": 90131,
+      "groupAlive": false
+    },
+    {
+      "pid": 90134,
+      "groupAlive": false
+    },
+    {
+      "pid": 90147,
+      "groupAlive": false
+    },
+    {
+      "pid": 90148,
+      "groupAlive": false
+    },
+    {
+      "pid": 90149,
+      "groupAlive": false
+    },
+    {
+      "pid": 90150,
+      "groupAlive": false
+    },
+    {
+      "pid": 90151,
+      "groupAlive": false
+    },
+    {
+      "pid": 90152,
+      "groupAlive": false
+    },
+    {
+      "pid": 90154,
+      "groupAlive": false
+    },
+    {
+      "pid": 90155,
+      "groupAlive": false
+    },
+    {
+      "pid": 90157,
+      "groupAlive": false
+    },
+    {
+      "pid": 90161,
+      "groupAlive": false
+    },
+    {
+      "pid": 90162,
+      "groupAlive": false
+    },
+    {
+      "pid": 90166,
+      "groupAlive": false
+    },
+    {
+      "pid": 90168,
+      "groupAlive": false
+    },
+    {
+      "pid": 90170,
+      "groupAlive": false
+    },
+    {
+      "pid": 90174,
+      "groupAlive": false
+    },
+    {
+      "pid": 90175,
+      "groupAlive": false
+    },
+    {
+      "pid": 90176,
+      "groupAlive": false
+    },
+    {
+      "pid": 90540,
+      "groupAlive": false
+    },
+    {
+      "pid": 90541,
+      "groupAlive": false
+    },
+    {
+      "pid": 90542,
+      "groupAlive": false
+    },
+    {
+      "pid": 90544,
+      "groupAlive": false
+    },
+    {
+      "pid": 90547,
+      "groupAlive": false
+    },
+    {
+      "pid": 90549,
+      "groupAlive": false
+    },
+    {
+      "pid": 90551,
+      "groupAlive": false
+    },
+    {
+      "pid": 90553,
+      "groupAlive": false
+    },
+    {
+      "pid": 90555,
+      "groupAlive": false
+    },
+    {
+      "pid": 90557,
+      "groupAlive": false
+    },
+    {
+      "pid": 90559,
+      "groupAlive": false
+    },
+    {
+      "pid": 90561,
+      "groupAlive": false
+    },
+    {
+      "pid": 90563,
+      "groupAlive": false
+    },
+    {
+      "pid": 90565,
+      "groupAlive": false
+    },
+    {
+      "pid": 90567,
+      "groupAlive": false
+    },
+    {
+      "pid": 90569,
+      "groupAlive": false
+    },
+    {
+      "pid": 90571,
+      "groupAlive": false
+    },
+    {
+      "pid": 90573,
+      "groupAlive": false
+    },
+    {
+      "pid": 90575,
+      "groupAlive": false
+    },
+    {
+      "pid": 90577,
+      "groupAlive": false
+    },
+    {
+      "pid": 90579,
+      "groupAlive": false
+    },
+    {
+      "pid": 90581,
+      "groupAlive": false
+    },
+    {
+      "pid": 90583,
+      "groupAlive": false
+    },
+    {
+      "pid": 90585,
+      "groupAlive": false
+    },
+    {
+      "pid": 90587,
+      "groupAlive": false
+    },
+    {
+      "pid": 90589,
+      "groupAlive": false
+    },
+    {
+      "pid": 90591,
+      "groupAlive": false
+    },
+    {
+      "pid": 90593,
+      "groupAlive": false
+    },
+    {
+      "pid": 90596,
+      "groupAlive": false
+    },
+    {
+      "pid": 90598,
+      "groupAlive": false
+    },
+    {
+      "pid": 90601,
+      "groupAlive": false
+    },
+    {
+      "pid": 90603,
+      "groupAlive": false
+    },
+    {
+      "pid": 90605,
+      "groupAlive": false
+    },
+    {
+      "pid": 90607,
+      "groupAlive": false
+    },
+    {
+      "pid": 90610,
+      "groupAlive": false
+    },
+    {
+      "pid": 90612,
+      "groupAlive": false
+    },
+    {
+      "pid": 90614,
+      "groupAlive": false
+    },
+    {
+      "pid": 90621,
+      "groupAlive": false
+    },
+    {
+      "pid": 90623,
+      "groupAlive": false
+    },
+    {
+      "pid": 90625,
+      "groupAlive": false
+    },
+    {
+      "pid": 90627,
+      "groupAlive": false
+    },
+    {
+      "pid": 90628,
+      "groupAlive": false
+    },
+    {
+      "pid": 90629,
+      "groupAlive": false
+    },
+    {
+      "pid": 90631,
+      "groupAlive": false
+    },
+    {
+      "pid": 90639,
+      "groupAlive": false
+    },
+    {
+      "pid": 90640,
+      "groupAlive": false
+    },
+    {
+      "pid": 90642,
+      "groupAlive": false
+    },
+    {
+      "pid": 90643,
+      "groupAlive": false
+    },
+    {
+      "pid": 90644,
+      "groupAlive": false
+    },
+    {
+      "pid": 90645,
+      "groupAlive": false
+    },
+    {
+      "pid": 90646,
+      "groupAlive": false
+    },
+    {
+      "pid": 90647,
+      "groupAlive": false
+    },
+    {
+      "pid": 90648,
+      "groupAlive": false
+    },
+    {
+      "pid": 90649,
+      "groupAlive": false
+    },
+    {
+      "pid": 90650,
+      "groupAlive": false
+    },
+    {
+      "pid": 90651,
+      "groupAlive": false
+    },
+    {
+      "pid": 90652,
+      "groupAlive": false
+    },
+    {
+      "pid": 90653,
+      "groupAlive": false
+    },
+    {
+      "pid": 90654,
+      "groupAlive": false
+    },
+    {
+      "pid": 90656,
+      "groupAlive": false
+    },
+    {
+      "pid": 90657,
+      "groupAlive": false
+    },
+    {
+      "pid": 90659,
+      "groupAlive": false
+    },
+    {
+      "pid": 90661,
+      "groupAlive": false
+    },
+    {
+      "pid": 90663,
+      "groupAlive": false
+    },
+    {
+      "pid": 90665,
+      "groupAlive": false
+    },
+    {
+      "pid": 90667,
+      "groupAlive": false
+    },
+    {
+      "pid": 90669,
+      "groupAlive": false
+    },
+    {
+      "pid": 90671,
+      "groupAlive": false
+    },
+    {
+      "pid": 90673,
+      "groupAlive": false
+    },
+    {
+      "pid": 90675,
+      "groupAlive": false
+    },
+    {
+      "pid": 90677,
+      "groupAlive": false
+    },
+    {
+      "pid": 90679,
+      "groupAlive": false
+    },
+    {
+      "pid": 90681,
+      "groupAlive": false
+    },
+    {
+      "pid": 90683,
+      "groupAlive": false
+    },
+    {
+      "pid": 90685,
+      "groupAlive": false
+    },
+    {
+      "pid": 90687,
+      "groupAlive": false
+    },
+    {
+      "pid": 90689,
+      "groupAlive": false
+    },
+    {
+      "pid": 90691,
+      "groupAlive": false
+    },
+    {
+      "pid": 90694,
+      "groupAlive": false
+    },
+    {
+      "pid": 90696,
+      "groupAlive": false
+    },
+    {
+      "pid": 90698,
+      "groupAlive": false
+    },
+    {
+      "pid": 90700,
+      "groupAlive": false
+    },
+    {
+      "pid": 90702,
+      "groupAlive": false
+    },
+    {
+      "pid": 90704,
+      "groupAlive": false
+    },
+    {
+      "pid": 90706,
+      "groupAlive": false
+    },
+    {
+      "pid": 90708,
+      "groupAlive": false
+    },
+    {
+      "pid": 90711,
+      "groupAlive": false
+    },
+    {
+      "pid": 90713,
+      "groupAlive": false
+    },
+    {
+      "pid": 90716,
+      "groupAlive": false
+    },
+    {
+      "pid": 90718,
+      "groupAlive": false
+    },
+    {
+      "pid": 90720,
+      "groupAlive": false
+    },
+    {
+      "pid": 90722,
+      "groupAlive": false
+    },
+    {
+      "pid": 90725,
+      "groupAlive": false
+    },
+    {
+      "pid": 90727,
+      "groupAlive": false
+    },
+    {
+      "pid": 90730,
+      "groupAlive": false
+    },
+    {
+      "pid": 90737,
+      "groupAlive": false
+    },
+    {
+      "pid": 90740,
+      "groupAlive": false
+    },
+    {
+      "pid": 90742,
+      "groupAlive": false
+    },
+    {
+      "pid": 90744,
+      "groupAlive": false
+    },
+    {
+      "pid": 90752,
+      "groupAlive": false
+    },
+    {
+      "pid": 90756,
+      "groupAlive": false
+    },
+    {
+      "pid": 90763,
+      "groupAlive": false
+    },
+    {
+      "pid": 90766,
+      "groupAlive": false
+    },
+    {
+      "pid": 90768,
+      "groupAlive": false
+    },
+    {
+      "pid": 90770,
+      "groupAlive": false
+    },
+    {
+      "pid": 90772,
+      "groupAlive": false
+    },
+    {
+      "pid": 90786,
+      "groupAlive": false
+    },
+    {
+      "pid": 90788,
+      "groupAlive": false
+    },
+    {
+      "pid": 90791,
+      "groupAlive": false
+    },
+    {
+      "pid": 90793,
+      "groupAlive": false
+    },
+    {
+      "pid": 90795,
+      "groupAlive": false
+    },
+    {
+      "pid": 90796,
+      "groupAlive": false
+    },
+    {
+      "pid": 90797,
+      "groupAlive": false
+    },
+    {
+      "pid": 90798,
+      "groupAlive": false
+    },
+    {
+      "pid": 90800,
+      "groupAlive": false
+    },
+    {
+      "pid": 90802,
+      "groupAlive": false
+    },
+    {
+      "pid": 90804,
+      "groupAlive": false
+    },
+    {
+      "pid": 91188,
+      "groupAlive": false
+    },
+    {
+      "pid": 91658,
+      "groupAlive": false
+    },
+    {
+      "pid": 92388,
+      "groupAlive": false
+    },
+    {
+      "pid": 93040,
+      "groupAlive": false
+    },
+    {
+      "pid": 93393,
+      "groupAlive": false
+    },
+    {
+      "pid": 93744,
+      "groupAlive": false
+    },
+    {
+      "pid": 94098,
+      "groupAlive": false
+    },
+    {
+      "pid": 94454,
+      "groupAlive": false
+    },
+    {
+      "pid": 94864,
+      "groupAlive": false
+    },
+    {
+      "pid": 95211,
+      "groupAlive": false
+    },
+    {
+      "pid": 95562,
+      "groupAlive": false
+    },
+    {
+      "pid": 95901,
+      "groupAlive": false
+    },
+    {
+      "pid": 96247,
+      "groupAlive": false
+    },
+    {
+      "pid": 96586,
+      "groupAlive": false
+    },
+    {
+      "pid": 96935,
+      "groupAlive": false
+    },
+    {
+      "pid": 97280,
+      "groupAlive": false
+    },
+    {
+      "pid": 97618,
+      "groupAlive": false
+    },
+    {
+      "pid": 97961,
+      "groupAlive": false
+    },
+    {
+      "pid": 98306,
+      "groupAlive": false
+    },
+    {
+      "pid": 98643,
+      "groupAlive": false
+    },
+    {
+      "pid": 99002,
+      "groupAlive": false
+    },
+    {
+      "pid": 99340,
+      "groupAlive": false
+    },
+    {
+      "pid": 99677,
+      "groupAlive": false
+    },
+    {
+      "pid": 88222,
+      "groupAlive": false
+    },
+    {
+      "pid": 88683,
+      "groupAlive": false
+    },
+    {
+      "pid": 90072,
+      "groupAlive": false
+    },
+    {
+      "pid": 90180,
+      "groupAlive": false
+    }
+  ],
+  "foreignIndex": {
+    "count": 6896,
+    "sha256": "0ff9a1e059ca688aaeea16b747ea1988b0800e822e637855875dc1b45db2cd9d"
+  },
+  "note": "Index covers all foreign tracked entries, not only staged differences. Final external READY records commit and index equality. Product cohorts not rerun."
+}

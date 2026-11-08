@@ -1,0 +1,22 @@
+{
+  "original": {
+    "path": "review.mjs",
+    "bytes": 5643,
+    "sha256": "871d625a76dc4754be957a9f7f4448f15a6fd1d8ee8cc29100be65105106c0b3"
+  },
+  "classifier": {
+    "bytes": 3465,
+    "sha256": "e251c2dd0e463d9a5a3f4068e672771e25bc1c691e473bcb4dcc2820d247bc03"
+  },
+  "derived": {
+    "bytes": 5545,
+    "sha256": "ee1b115208ab1b39f0d946eb7c9ea09119b8d38943f746a68398f63ccc94e883"
+  },
+  "changes": [
+    "typed origin classifier",
+    "fresh owned output root",
+    "fresh 300s deadline"
+  ],
+  "groupsUnchanged": true,
+  "at": "2026-08-29T16:11:11.237Z"
+}

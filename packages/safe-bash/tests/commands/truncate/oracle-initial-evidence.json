@@ -1,0 +1,61 @@
+{
+  "date": "2026-09-04",
+  "qualification": "provisional: root reported potential stale objects from initial partial coreutils build",
+  "binary": "/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7/src/truncate",
+  "sha256": "8a4d0aba94e1826cfafd7c9fe007cf8758286714319d421edc9e8dadf8774f4d",
+  "versionFirstLine": "truncate (GNU coreutils) 9.7",
+  "platform": "darwin",
+  "architecture": "arm64",
+  "locale": "C",
+  "argv0": "truncate",
+  "artifactKind": "preserved summary of executed console captures, not a full per-case transcript",
+  "runs": [
+    {
+      "temporaryRoot": "/tmp/truncate-manual-oracle-rOM6iD",
+      "cases": 63,
+      "exactMatches": 63,
+      "compared": ["exit status", "stdout", "stderr", "binary target contents"]
+    },
+    {
+      "temporaryRoot": "/tmp/truncate-manual-oracle-7xfKuR",
+      "cases": 474,
+      "exactMatches": 441,
+      "overflowWordingDifferences": 32,
+      "otherDifferences": [
+        { "args": ["-rdir", "file"], "nativeSize": 64, "virtualSize": 0, "nativeExitCode": 0, "virtualExitCode": 0 }
+      ]
+    },
+    {
+      "temporaryRoot": "/tmp/truncate-final-oracle-eGRMaH",
+      "cases": 474,
+      "exactMatches": 442,
+      "overflowWordingDifferences": 32,
+      "otherDifferences": [],
+      "directoryReference": { "nativeSize": 64, "virtualSize": 64, "qualification": "explicit truthful os.lseek(SEEK_END) callback" },
+      "ioBlocks": { "blockSize": 4096, "qualification": "canonical ioBlockSize metadata supplied from actual native stat.blksize" }
+    }
+  ],
+  "selectedRawDiagnostics": [
+    {
+      "args": ["-s", "1Q", "file"],
+      "nativeExitCode": 1,
+      "nativeStdout": "",
+      "nativeStderr": "truncate: Invalid number: '1Q': Value too large to be stored in data type\n",
+      "virtualStderr": "truncate: Invalid number: '1Q': Value too large for defined data type\n"
+    },
+    {
+      "args": ["-s2", "dir", "link", "dangling", "absent/child", "other"],
+      "nativeExitCode": 1,
+      "nativeStdout": "",
+      "nativeStderr": "truncate: cannot open 'dir' for writing: Is a directory\ntruncate: cannot open 'absent/child' for writing: No such file or directory\n"
+    },
+    {
+      "args": ["-cs2", "dangling", "loop", "missing/child", "file"],
+      "nativeExitCode": 1,
+      "nativeStdout": "",
+      "nativeStderr": "truncate: cannot open 'loop' for writing: Too many levels of symbolic links\n"
+    }
+  ],
+  "initialFixtureCleanup": "all unique native temporary roots removed after each manual run",
+  "unitFixtures": "memory VFS only; no native subprocesses or disk fixtures"
+}

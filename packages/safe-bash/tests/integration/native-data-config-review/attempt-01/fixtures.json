@@ -1,0 +1,26 @@
+{
+  "compilerOutside": [
+    "src/review-control.ts",
+    "tests/review/canonical.test.ts",
+    "tests/review/helpers/helper.ts",
+    "tests/commands/regex-execution/continuation/artifacts/neighbor.ts",
+    "tests/commands/regex-execution/continuation/artifacts/native-sibling/control.ts",
+    "tests/commands/regex-execution/continuation/artifacts/native space 🙂/control.ts"
+  ],
+  "compilerSymbol": "REVIEW_OUTSIDE_UNDEFINED_20260827",
+  "explicitImport": "tests/review/import-native.ts",
+  "runnerPositive": [
+    "tests/review/canonical.test.ts",
+    "tests/commands/regex-execution/continuation/artifacts/neighbor.test.ts",
+    "tests/commands/regex-execution/continuation/artifacts/native-sibling/control.test.ts",
+    "tests/commands/regex-execution/continuation/artifacts/native space 🙂/control.test.ts",
+    "tests/commands/regex-execution/continuation/artifacts/native.test.ts",
+    "tests/space 🙂/canonical.test.ts"
+  ],
+  "runnerExcluded": [
+    "tests/commands/regex-execution/continuation/artifacts/native/arbitrary.test.ts",
+    "tests/commands/regex-execution/continuation/artifacts/native/space 🙂/nested arbitrary.test.ts"
+  ],
+  "runnerHelper": "tests/review/helper.ts",
+  "canaryMessage": "INDEPENDENT_NATIVE_DATA_EXECUTED"
+}

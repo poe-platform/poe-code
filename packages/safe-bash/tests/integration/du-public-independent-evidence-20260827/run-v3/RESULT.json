@@ -1,0 +1,200 @@
+{
+  "schemaVersion": 2,
+  "seal": {
+    "commit": "436173fcec6787f17f167e03a3b789bf6485e9e5",
+    "manifestSha256": "1ca6554a66e0c4160dca6da399229208719f8721ad19331b3daa30fd8c5afa79",
+    "launcher": {
+      "started": 1787875445283,
+      "childrenStarted": 81,
+      "childrenClosed": 81
+    }
+  },
+  "mode": "scoped-committed-archive",
+  "startedAt": "2026-08-28T00:04:05.283Z",
+  "specifiedControls": 11,
+  "applicableControls": 9,
+  "heldControls": [
+    "A06",
+    "P03"
+  ],
+  "controls": [
+    {
+      "id": "S01",
+      "status": "PASS-admission-guard-not-semantic",
+      "inputs": 771,
+      "admitted": false,
+      "heldDuCases": 29,
+      "originalWrapperExecuted": false
+    },
+    {
+      "id": "A01",
+      "status": "PASS-admission-guard-not-semantic",
+      "mutations": 2
+    },
+    {
+      "id": "A02",
+      "status": "PASS-admission-guard-not-semantic",
+      "mutations": 3,
+      "oldValidatorDispatched": false
+    },
+    {
+      "id": "A03",
+      "status": "PASS-admission-guard-not-semantic",
+      "mutations": 12,
+      "beforeMaterialization": true
+    },
+    {
+      "id": "A04",
+      "status": "PASS-admission-guard-not-semantic",
+      "mutations": 5,
+      "positiveReproductionNotInferred": true,
+      "authorMembers": 834
+    },
+    {
+      "id": "A05",
+      "status": "PASS-admission-guard-not-semantic",
+      "mutations": 21,
+      "requiredKeys": 14,
+      "positiveAuthenticityNotClaimed": true
+    },
+    {
+      "id": "A07",
+      "status": "PASS-admission-guard-not-semantic",
+      "observedUnrelatedLiveWork": true,
+      "foreignIndexRequired": false,
+      "noGlobalIndexEqualityRequired": true
+    },
+    {
+      "id": "P01",
+      "status": "PASS-admission-guard-not-semantic",
+      "mutations": 9,
+      "actualPublicLoadExecuted": false,
+      "originalGuards": "P03-P06/R03 remain future obligations"
+    },
+    {
+      "id": "P02",
+      "status": "PASS-admission-guard-not-semantic",
+      "mutations": 4,
+      "comparatorRole": "author-name negative guard fixture, not authenticated root-approved inventory"
+    }
+  ],
+  "authenticatedInputs": 771,
+  "materializedInputs": 771,
+  "emittedFiles": 832,
+  "packageMembers": 834,
+  "packReproduced": true,
+  "publicAdmitted": false,
+  "duCasesExecuted": 0,
+  "heldDuCases": 29,
+  "childrenStarted": 2966,
+  "childrenClosed": 2966,
+  "childProcessesActive": 0,
+  "peakChildOutputBytes": 93950,
+  "peakObservedDiskBytes": 58843478,
+  "phase": "settled",
+  "failure": null,
+  "scratchRemoved": true,
+  "focusedControls": [
+    {
+      "id": "N01",
+      "mapping": "A03/unlisted-input",
+      "rejected": true,
+      "message": "complete input count\n\n772 !== 771\n",
+      "status": "PASS-negative-only"
+    },
+    {
+      "id": "N02",
+      "mapping": "A05/new-entry; actual fresh directory",
+      "rejected": true,
+      "message": "complete fresh tree: names, modes, hashes, types, sizes\n+ actual - expected\n... Skipped lines\n\n  [\n    {\n      bytes: 4,\n      mode: 420,\n      path: 'input.bin',\n...\n    },\n+   {\n+     mode: 493,\n+     path: 'unexpected-directory',\n+     type: 'directory'\n+   }\n  ]\n",
+      "status": "PASS-negative-only"
+    },
+    {
+      "id": "N03",
+      "mapping": "A03/mode; actual fresh file",
+      "rejected": true,
+      "message": "complete fresh tree: names, modes, hashes, types, sizes\n+ actual - expected\n\n  [\n    {\n      bytes: 4,\n+     mode: 493,\n-     mode: 420,\n      path: 'input.bin',\n      sha256: 'cae662172fd450bb0cd710a769079c05bfc5d8e35efa6576edc7d0377afdd4a2',\n      type: 'file'\n    }\n  ]\n",
+      "status": "PASS-negative-only"
+    },
+    {
+      "id": "N04",
+      "mapping": "A03/hash; actual fresh file",
+      "rejected": true,
+      "message": "complete fresh tree: names, modes, hashes, types, sizes\n+ actual - expected\n\n  [\n    {\n      bytes: 4,\n      mode: 420,\n      path: 'input.bin',\n+     sha256: '262121c5372be8af3ae6ff0d3d138d9e6e1249335222c7f0e02535e35073bb0b',\n-     sha256: 'cae662172fd450bb0cd710a769079c05bfc5d8e35efa6576edc7d0377afdd4a2',\n      type: 'file'\n    }\n  ]\n",
+      "status": "PASS-negative-only"
+    },
+    {
+      "id": "N05",
+      "mapping": "overlay/AGENTS metadata before read or write",
+      "rejected": true,
+      "message": "AGENTS.md",
+      "status": "PASS-negative-only"
+    },
+    {
+      "id": "N06",
+      "mapping": "A03/symlink; actual fresh fixture, never followed",
+      "rejected": true,
+      "message": "symlink rejected: /Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/run-v3/node_modules/work/focused-fixture/alias",
+      "status": "PASS-negative-only"
+    }
+  ],
+  "buildLoadProof": {
+    "moduleCompiles": 3,
+    "actualFileReads": 383,
+    "productModuleCompiles": 0,
+    "entryObserved": true,
+    "exitObserved": true
+  },
+  "packLoadProof": {
+    "moduleCompiles": 541,
+    "actualFileReads": 561,
+    "productModuleCompiles": 0,
+    "entryObserved": true,
+    "exitObserved": true
+  },
+  "reproducedPackBytes": 726693,
+  "reproducedPackSha256": "4d4d071a0142ac950240f7c3aaacd5283777143d70cc2e3c245ba199fdd01c7d",
+  "directWholePackByteEqual": true,
+  "postAudits": [
+    {
+      "name": "protected37-and-recipes",
+      "status": "PASS"
+    },
+    {
+      "name": "full-tool-closure",
+      "status": "PASS"
+    },
+    {
+      "name": "complete-pinned-Git-selection",
+      "status": "PASS"
+    },
+    {
+      "name": "author-pack",
+      "status": "PASS"
+    },
+    {
+      "name": "fresh-staged-tools",
+      "status": "PASS"
+    },
+    {
+      "name": "complete-fresh-candidate",
+      "status": "PASS"
+    }
+  ],
+  "postAuditScope": "normal gate",
+  "postUnchanged": true,
+  "inputArchive": {
+    "path": "committed-inputs.jsonl.gz",
+    "files": 771,
+    "sha256": "95012769c9047e5a72c0086a7984e58b2f0a295add437ec5665c412bcb39b316"
+  },
+  "childrenSettled": true,
+  "finishedAt": "2026-08-28T00:04:35.444Z",
+  "elapsedMs": 30161,
+  "focusedNegativePasses": 6,
+  "focusedNegativeUnexecuted": 0,
+  "actualApplicablePasses": 9,
+  "applicableFailed": 0,
+  "applicableUnexecuted": 0,
+  "outcome": "ADMISSION-BUILD-PROOF-ONLY-public29-HELD"
+}

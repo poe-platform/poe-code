@@ -1,0 +1,2735 @@
+{
+  "schema": "priority-workflows-v1",
+  "date": "2026-08-28",
+  "phase": "PREPARATION_ONLY_STATIC_UNEXECUTED",
+  "counts": {
+    "workflows": 24,
+    "controls": 7,
+    "productExecutions": 0
+  },
+  "defaults": {
+    "cwd": "/work",
+    "env": {
+      "LANG": "C",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    },
+    "registration": "new Shell({fs,cwd,env,limits}).use(agentCommands())",
+    "curlRegistration": "only network rows additionally .use(networkCommands({authorize,transport,limits}))",
+    "resultBytes": "ShellResult.stdoutBytes/stderrBytes; never UTF8 round-trip for comparison",
+    "namespace": "exact whole-root before and after; retain initial paths/type/permission bits; replace only explicit changed files; no timestamps/inode/allocation oracle",
+    "stdin": "omitted unless fixture explicitly supplies chunks; omitted is default provenance, explicit empty is nondefault",
+    "shellLimits": {
+      "maxOutputBytes": 65536,
+      "maxCommands": 64,
+      "maxLoopIterations": 64,
+      "maxSubstitutionDepth": 4,
+      "maxSourceBytes": 16384,
+      "maxExpansionFields": 256,
+      "maxExpansionBytes": 16384,
+      "pipeHighWaterMark": 1024
+    },
+    "familyLimits": "unchanged selected defaults, not a new shared shell budget; network rows use FIXTURES networkLimits",
+    "trace": "instrumented infrastructure only; command handlers never replaced; all unexpected VFS mutations/network requests are errors; no order imposed between independent pipeline stages"
+  },
+  "workflows": [
+    {
+      "id": "P01",
+      "title": "Number actionable rows within a release-note slice",
+      "classification": "STATIC_UNEXECUTED",
+      "script": "sed -n '2,4p' notes | rg -n -F TODO | nl -ba -w 1 -s ':'",
+      "argv": [
+        [
+          "sed",
+          "-n",
+          "2,4p",
+          "notes"
+        ],
+        [
+          "rg",
+          "-n",
+          "-F",
+          "TODO"
+        ],
+        [
+          "nl",
+          "-ba",
+          "-w",
+          "1",
+          "-s",
+          ":"
+        ]
+      ],
+      "expected": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutBase64": "MToxOlRPRE8gYWxwaGEKMjozOlRPRE8gYmV0YQo=",
+        "stderrBase64": "",
+        "stageExitCodes": [
+          0,
+          0,
+          0
+        ],
+        "changedFiles": {},
+        "absent": [
+          "unexpected"
+        ]
+      },
+      "reason": "sed emits source rows2-4; rg numbers that three-row stream1,3; nl numbers the two matches independently.",
+      "anchors": [
+        "src/commands/text-programs/sed.ts:224,249-270,313-317,347-413",
+        "src/commands/search/options.ts:92-159; src/commands/search/rg.ts:145-163; src/commands/search/output.ts:43-52",
+        "src/commands/stream-format/nl.ts:31-79"
+      ],
+      "traceContract": {
+        "schema": "exact-stage-tuples-v1",
+        "stages": [
+          {
+            "argv": [
+              "sed",
+              "-n",
+              "2,4p",
+              "notes"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "rg",
+              "-n",
+              "-F",
+              "TODO"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "nl",
+              "-ba",
+              "-w",
+              "1",
+              "-s",
+              ":"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          }
+        ],
+        "before": []
+      }
+    },
+    {
+      "id": "P02",
+      "title": "Isolate one deployment block before error search",
+      "classification": "STATIC_UNEXECUTED",
+      "script": "sed -n '/^BEGIN$/,/^END$/p' log | rg -n -F ERROR",
+      "argv": [
+        [
+          "sed",
+          "-n",
+          "/^BEGIN$/,/^END$/p",
+          "log"
+        ],
+        [
+          "rg",
+          "-n",
+          "-F",
+          "ERROR"
+        ]
+      ],
+      "expected": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutBase64": "MjpFUlJPUiBtaXNzaW5nCg==",
+        "stderrBase64": "",
+        "stageExitCodes": [
+          0,
+          0
+        ],
+        "changedFiles": {},
+        "absent": [
+          "unexpected"
+        ]
+      },
+      "reason": "Inclusive regex address range emits BEGIN through END only; the inner error is row2 of this stream.",
+      "anchors": [
+        "src/commands/text-programs/sed.ts:224,249-270,313-317,347-413",
+        "src/commands/search/options.ts:92-159; src/commands/search/rg.ts:145-163; src/commands/search/output.ts:43-52"
+      ],
+      "traceContract": {
+        "schema": "exact-stage-tuples-v1",
+        "stages": [
+          {
+            "argv": [
+              "sed",
+              "-n",
+              "/^BEGIN$/,/^END$/p",
+              "log"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "rg",
+              "-n",
+              "-F",
+              "ERROR"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          }
+        ],
+        "before": []
+      }
+    },
+    {
+      "id": "P03",
+      "title": "Reformat key/value captures before fixed-string review",
+      "classification": "STATIC_UNEXECUTED",
+      "script": "sed -E 's/^([a-z]+)=(.*)$/\\2 [\\1]/' config | rg -F '[owner]'",
+      "argv": [
+        [
+          "sed",
+          "-E",
+          "s/^([a-z]+)=(.*)$/\\2 [\\1]/",
+          "config"
+        ],
+        [
+          "rg",
+          "-F",
+          "[owner]"
+        ]
+      ],
+      "expected": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutBase64": "YWxwaGEgW293bmVyXQo=",
+        "stderrBase64": "",
+        "stageExitCodes": [
+          0,
+          0
+        ],
+        "changedFiles": {},
+        "absent": [
+          "unexpected"
+        ]
+      },
+      "reason": "Two ERE captures reorder value/key; -F treats brackets literally rather than a regex class.",
+      "anchors": [
+        "src/commands/text-programs/sed.ts:224,249-270,313-317,347-413",
+        "src/commands/text-programs/sed.ts:121-143",
+        "src/commands/search/options.ts:92-159; src/commands/search/rg.ts:145-163; src/commands/search/output.ts:43-52"
+      ],
+      "traceContract": {
+        "schema": "exact-stage-tuples-v1",
+        "stages": [
+          {
+            "argv": [
+              "sed",
+              "-E",
+              "s/^([a-z]+)=(.*)$/\\2 [\\1]/",
+              "config"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "rg",
+              "-F",
+              "[owner]"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          }
+        ],
+        "before": []
+      }
+    },
+    {
+      "id": "P04",
+      "title": "Replace repeated placeholders after the first occurrence",
+      "classification": "STATIC_UNEXECUTED",
+      "script": "sed 's/x/Y/2g' tokens | rg -x -F 'x Y Y'",
+      "argv": [
+        [
+          "sed",
+          "s/x/Y/2g",
+          "tokens"
+        ],
+        [
+          "rg",
+          "-x",
+          "-F",
+          "x Y Y"
+        ]
+      ],
+      "expected": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutBase64": "eCBZIFkK",
+        "stderrBase64": "",
+        "stageExitCodes": [
+          0,
+          0
+        ],
+        "changedFiles": {},
+        "absent": [
+          "unexpected"
+        ]
+      },
+      "reason": "Occurrence2 plus g changes the second and subsequent x only; whole fixed-line search rejects the one-token row.",
+      "anchors": [
+        "src/commands/text-programs/sed.ts:224,249-270,313-317,347-413",
+        "src/commands/search/options.ts:92-159; src/commands/search/rg.ts:145-163; src/commands/search/output.ts:43-52"
+      ],
+      "traceContract": {
+        "schema": "exact-stage-tuples-v1",
+        "stages": [
+          {
+            "argv": [
+              "sed",
+              "s/x/Y/2g",
+              "tokens"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "rg",
+              "-x",
+              "-F",
+              "x Y Y"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          }
+        ],
+        "before": []
+      }
+    },
+    {
+      "id": "P05",
+      "title": "Extract case-insensitive substitutions without duplicate auto-print",
+      "classification": "STATIC_UNEXECUTED",
+      "script": "sed -n 's/^todo/TASK/Ip' items | rg -n -F TASK",
+      "argv": [
+        [
+          "sed",
+          "-n",
+          "s/^todo/TASK/Ip",
+          "items"
+        ],
+        [
+          "rg",
+          "-n",
+          "-F",
+          "TASK"
+        ]
+      ],
+      "expected": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutBase64": "MTpUQVNLIGFscGhhCjI6VEFTSyBiZXRhCg==",
+        "stderrBase64": "",
+        "stageExitCodes": [
+          0,
+          0
+        ],
+        "changedFiles": {},
+        "absent": [
+          "unexpected"
+        ]
+      },
+      "reason": "I allows ASCII case variants; quiet plus p emits only changed rows, once each.",
+      "anchors": [
+        "src/commands/text-programs/sed.ts:224,249-270,313-317,347-413",
+        "src/commands/text-programs/sed.ts:127-143",
+        "src/commands/search/options.ts:92-159; src/commands/search/rg.ts:145-163; src/commands/search/output.ts:43-52"
+      ],
+      "traceContract": {
+        "schema": "exact-stage-tuples-v1",
+        "stages": [
+          {
+            "argv": [
+              "sed",
+              "-n",
+              "s/^todo/TASK/Ip",
+              "items"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "rg",
+              "-n",
+              "-F",
+              "TASK"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          }
+        ],
+        "before": []
+      }
+    },
+    {
+      "id": "P06",
+      "title": "Apply ordered inline and VFS programs to a config report",
+      "classification": "STATIC_UNEXECUTED",
+      "script": "sed -e 's/dev/prod/' -f rules -e '2d' config | rg -F 'prod listen='",
+      "argv": [
+        [
+          "sed",
+          "-e",
+          "s/dev/prod/",
+          "-f",
+          "rules",
+          "-e",
+          "2d",
+          "config"
+        ],
+        [
+          "rg",
+          "-F",
+          "prod listen="
+        ]
+      ],
+      "expected": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutBase64": "cHJvZCBsaXN0ZW49ODAK",
+        "stderrBase64": "",
+        "stageExitCodes": [
+          0,
+          0
+        ],
+        "changedFiles": {},
+        "absent": [
+          "unexpected"
+        ]
+      },
+      "reason": "-e/-f ordering renames environment, then key, then deletes second row. Program file remains byte-identical.",
+      "anchors": [
+        "src/commands/text-programs/sed.ts:224,249-270,313-317,347-413",
+        "src/commands/search/options.ts:92-159; src/commands/search/rg.ts:145-163; src/commands/search/output.ts:43-52",
+        "src/commands/text-programs/shared.ts:62-65"
+      ],
+      "traceContract": {
+        "schema": "exact-stage-tuples-v1",
+        "stages": [
+          {
+            "argv": [
+              "sed",
+              "-e",
+              "s/dev/prod/",
+              "-f",
+              "rules",
+              "-e",
+              "2d",
+              "config"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "rg",
+              "-F",
+              "prod listen="
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          }
+        ],
+        "before": []
+      }
+    },
+    {
+      "id": "P07",
+      "title": "Edit a spaced filename with a byte-exact backup",
+      "classification": "STATIC_UNEXECUTED",
+      "script": "sed -i.bak 's/dev/prod/g' 'config file' && rg -n -F prod 'config file' && cat 'config file.bak'",
+      "argv": [
+        [
+          "sed",
+          "-i.bak",
+          "s/dev/prod/g",
+          "config file"
+        ],
+        [
+          "rg",
+          "-n",
+          "-F",
+          "prod",
+          "config file"
+        ],
+        [
+          "cat",
+          "config file.bak"
+        ]
+      ],
+      "expected": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutBase64": "MTpob3N0PXByb2QKMjptb2RlPXByb2QKaG9zdD1kZXYKbW9kZT1kZXYK",
+        "stderrBase64": "",
+        "stageExitCodes": [
+          0,
+          0,
+          0
+        ],
+        "changedFiles": {
+          "config file": {
+            "base64": "aG9zdD1wcm9kCm1vZGU9cHJvZAo="
+          },
+          "config file.bak": {
+            "base64": "aG9zdD1kZXYKbW9kZT1kZXYK"
+          }
+        },
+        "absent": [
+          "config file.bak.bak",
+          "unexpected"
+        ]
+      },
+      "reason": "Selected sed buffers one file, copies original to suffix, writes replacement; backup bytes are not regenerated from output.",
+      "anchors": [
+        "src/commands/text-programs/sed.ts:224,249-270,313-317,347-413",
+        "src/commands/search/options.ts:92-159; src/commands/search/rg.ts:145-163; src/commands/search/output.ts:43-52",
+        "src/commands/streams.ts:191-221"
+      ],
+      "mutationGuard": {
+        "exactCalls": [
+          [
+            "copyFile",
+            "/work/config file",
+            "/work/config file.bak"
+          ],
+          [
+            "writeFile",
+            "/work/config file"
+          ]
+        ],
+        "otherMutators": 0
+      },
+      "traceContract": {
+        "schema": "exact-stage-tuples-v1",
+        "stages": [
+          {
+            "argv": [
+              "sed",
+              "-i.bak",
+              "s/dev/prod/g",
+              "config file"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "rg",
+              "-n",
+              "-F",
+              "prod",
+              "config file"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "cat",
+              "config file.bak"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          }
+        ],
+        "before": []
+      }
+    },
+    {
+      "id": "P08",
+      "title": "Compare first records across separate input files",
+      "classification": "STATIC_UNEXECUTED",
+      "script": "sed -s -n '1p' a b | rg -n -F TODO",
+      "argv": [
+        [
+          "sed",
+          "-s",
+          "-n",
+          "1p",
+          "a",
+          "b"
+        ],
+        [
+          "rg",
+          "-n",
+          "-F",
+          "TODO"
+        ]
+      ],
+      "expected": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutBase64": "MTpUT0RPIGFscGhhCjI6VE9ETyBiZXRhCg==",
+        "stderrBase64": "",
+        "stageExitCodes": [
+          0,
+          0
+        ],
+        "changedFiles": {},
+        "absent": [
+          "unexpected"
+        ]
+      },
+      "reason": "-s resets sed line addressing for each file; rg numbers their combined output continuously.",
+      "anchors": [
+        "src/commands/text-programs/sed.ts:224,249-270,313-317,347-413",
+        "src/commands/search/options.ts:92-159; src/commands/search/rg.ts:145-163; src/commands/search/output.ts:43-52"
+      ],
+      "traceContract": {
+        "schema": "exact-stage-tuples-v1",
+        "stages": [
+          {
+            "argv": [
+              "sed",
+              "-s",
+              "-n",
+              "1p",
+              "a",
+              "b"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "rg",
+              "-n",
+              "-F",
+              "TODO"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          }
+        ],
+        "before": []
+      }
+    },
+    {
+      "id": "P09",
+      "title": "Join paired records before identifying an actionable pair",
+      "classification": "STATIC_UNEXECUTED",
+      "script": "sed -n 'N;s/\\n/:/p' pairs | rg -n -F ':TODO'",
+      "argv": [
+        [
+          "sed",
+          "-n",
+          "N;s/\\n/:/p",
+          "pairs"
+        ],
+        [
+          "rg",
+          "-n",
+          "-F",
+          ":TODO"
+        ]
+      ],
+      "expected": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutBase64": "MTphbHBoYTpUT0RPCg==",
+        "stderrBase64": "",
+        "stageExitCodes": [
+          0,
+          0
+        ],
+        "changedFiles": {},
+        "absent": [
+          "unexpected"
+        ]
+      },
+      "reason": "N joins each pair; the embedded newline becomes a colon; only the first pair carries TODO.",
+      "anchors": [
+        "src/commands/text-programs/sed.ts:224,249-270,313-317,347-413",
+        "src/commands/search/options.ts:92-159; src/commands/search/rg.ts:145-163; src/commands/search/output.ts:43-52"
+      ],
+      "traceContract": {
+        "schema": "exact-stage-tuples-v1",
+        "stages": [
+          {
+            "argv": [
+              "sed",
+              "-n",
+              "N;s/\\n/:/p",
+              "pairs"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "rg",
+              "-n",
+              "-F",
+              ":TODO"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          }
+        ],
+        "before": []
+      }
+    },
+    {
+      "id": "P10",
+      "title": "Remove debug noise while preserving search context",
+      "classification": "STATIC_UNEXECUTED",
+      "script": "sed '/^DEBUG/d' log | rg -n -C 1 -F WARN",
+      "argv": [
+        [
+          "sed",
+          "/^DEBUG/d",
+          "log"
+        ],
+        [
+          "rg",
+          "-n",
+          "-C",
+          "1",
+          "-F",
+          "WARN"
+        ]
+      ],
+      "expected": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutBase64": "MS1iZWZvcmUKMjpXQVJOIHJldHJ5CjMtYWZ0ZXIK",
+        "stderrBase64": "",
+        "stageExitCodes": [
+          0,
+          0
+        ],
+        "changedFiles": {},
+        "absent": [
+          "unexpected"
+        ]
+      },
+      "reason": "The selected match separator is colon; adjacent nonmatches use hyphens. No invented native context separator policy.",
+      "anchors": [
+        "src/commands/text-programs/sed.ts:224,249-270,313-317,347-413",
+        "src/commands/search/options.ts:92-159; src/commands/search/rg.ts:145-163; src/commands/search/output.ts:43-52"
+      ],
+      "traceContract": {
+        "schema": "exact-stage-tuples-v1",
+        "stages": [
+          {
+            "argv": [
+              "sed",
+              "/^DEBUG/d",
+              "log"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "rg",
+              "-n",
+              "-C",
+              "1",
+              "-F",
+              "WARN"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          }
+        ],
+        "before": []
+      }
+    },
+    {
+      "id": "P11",
+      "title": "Retain UTF-8 while changing an ASCII prefix",
+      "classification": "STATIC_UNEXECUTED",
+      "script": "sed 's/TODO/ok/' unicode | rg -n --column -F café",
+      "argv": [
+        [
+          "sed",
+          "s/TODO/ok/",
+          "unicode"
+        ],
+        [
+          "rg",
+          "-n",
+          "--column",
+          "-F",
+          "café"
+        ]
+      ],
+      "expected": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutBase64": "MTo0Om9rIGNhZsOpCg==",
+        "stderrBase64": "",
+        "stageExitCodes": [
+          0,
+          0
+        ],
+        "changedFiles": {},
+        "absent": [
+          "unexpected"
+        ]
+      },
+      "reason": "sed byte profile changes ASCII without decoding Unicode characters; café starts at byte-column4 of the resulting line.",
+      "anchors": [
+        "src/commands/text-programs/sed.ts:224,249-270,313-317,347-413",
+        "src/commands/search/options.ts:92-159; src/commands/search/rg.ts:145-163; src/commands/search/output.ts:43-52"
+      ],
+      "traceContract": {
+        "schema": "exact-stage-tuples-v1",
+        "stages": [
+          {
+            "argv": [
+              "sed",
+              "s/TODO/ok/",
+              "unicode"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "rg",
+              "-n",
+              "--column",
+              "-F",
+              "café"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          }
+        ],
+        "before": []
+      }
+    },
+    {
+      "id": "P12",
+      "title": "Inspect the final unterminated record",
+      "classification": "STATIC_UNEXECUTED",
+      "script": "sed -n '$p' note | rg -n -F TODO",
+      "argv": [
+        [
+          "sed",
+          "-n",
+          "$p",
+          "note"
+        ],
+        [
+          "rg",
+          "-n",
+          "-F",
+          "TODO"
+        ]
+      ],
+      "expected": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutBase64": "MTpUT0RPIGVuZAo=",
+        "stderrBase64": "",
+        "stageExitCodes": [
+          0,
+          0
+        ],
+        "changedFiles": {},
+        "absent": [
+          "unexpected"
+        ]
+      },
+      "reason": "sed preserves missing LF on final print; rg record output deliberately adds LF. Original file remains unterminated.",
+      "anchors": [
+        "src/commands/text-programs/sed.ts:224,249-270,313-317,347-413",
+        "src/commands/search/options.ts:92-159; src/commands/search/rg.ts:145-163; src/commands/search/output.ts:43-52"
+      ],
+      "traceContract": {
+        "schema": "exact-stage-tuples-v1",
+        "stages": [
+          {
+            "argv": [
+              "sed",
+              "-n",
+              "$p",
+              "note"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "rg",
+              "-n",
+              "-F",
+              "TODO"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          }
+        ],
+        "before": []
+      }
+    },
+    {
+      "id": "P13",
+      "title": "Format argument pairs into searchable fixed-width rows",
+      "classification": "STATIC_UNEXECUTED",
+      "script": "echo 'name:count' > report && printf '%s\\t%03d\\n' alpha 7 beta 12 | sed 's/\\t/:/' | rg -n -F ':0' >> report; cat report",
+      "argv": [
+        [
+          "echo",
+          "name:count"
+        ],
+        [
+          "printf",
+          "%s\\t%03d\\n",
+          "alpha",
+          "7",
+          "beta",
+          "12"
+        ],
+        [
+          "sed",
+          "s/\\t/:/"
+        ],
+        [
+          "rg",
+          "-n",
+          "-F",
+          ":0"
+        ],
+        [
+          "cat",
+          "report"
+        ]
+      ],
+      "expected": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutBase64": "bmFtZTpjb3VudAoxOmFscGhhOjAwNwoyOmJldGE6MDEyCg==",
+        "stderrBase64": "",
+        "stageExitCodes": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "changedFiles": {
+          "report": {
+            "base64": "bmFtZTpjb3VudAoxOmFscGhhOjAwNwoyOmJldGE6MDEyCg=="
+          }
+        },
+        "absent": [
+          "unexpected"
+        ]
+      },
+      "reason": "printf reuses the format for the second argument pair; sed changes the literal tab; both zero-padded fields match. echo creates the header, append redirection preserves it, and cat returns the complete report.",
+      "anchors": [
+        "src/commands/text-programs/sed.ts:224,249-270,313-317,347-413",
+        "src/commands/search/options.ts:92-159; src/commands/search/rg.ts:145-163; src/commands/search/output.ts:43-52",
+        "src/commands/basic.ts:52-133"
+      ],
+      "traceContract": {
+        "schema": "exact-stage-tuples-v1",
+        "stages": [
+          {
+            "argv": [
+              "echo",
+              "name:count"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "printf",
+              "%s\\t%03d\\n",
+              "alpha",
+              "7",
+              "beta",
+              "12"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "sed",
+              "s/\\t/:/"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "rg",
+              "-n",
+              "-F",
+              ":0"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "cat",
+              "report"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          }
+        ],
+        "before": []
+      }
+    },
+    {
+      "id": "P14",
+      "title": "Audit hidden TypeScript files while excluding generated matches",
+      "classification": "STATIC_UNEXECUTED",
+      "script": "rg --hidden -g '*.ts' -g '!skip.ts' -n -F TODO . | sed 's#^\\./##'",
+      "argv": [
+        [
+          "rg",
+          "--hidden",
+          "-g",
+          "*.ts",
+          "-g",
+          "!skip.ts",
+          "-n",
+          "-F",
+          "TODO",
+          "."
+        ],
+        [
+          "sed",
+          "s#^\\./##"
+        ]
+      ],
+      "expected": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutBase64": "LmhpZGRlbi50czoxOlRPRE8gaGlkZGVuCm1haW4udHM6MTpUT0RPIHZpc2libGUK",
+        "stderrBase64": "",
+        "stageExitCodes": [
+          0,
+          0
+        ],
+        "changedFiles": {},
+        "absent": [
+          "unexpected"
+        ]
+      },
+      "reason": "Explicit root labels begin ./; sorted walk sees hidden then main, later negative glob excludes skip. Glob filtering is not a type database.",
+      "anchors": [
+        "src/commands/search/options.ts:92-159; src/commands/search/rg.ts:145-163; src/commands/search/output.ts:43-52",
+        "src/commands/search/walk.ts:53-112",
+        "src/commands/text-programs/sed.ts:224,249-270,313-317,347-413"
+      ],
+      "traceContract": {
+        "schema": "exact-stage-tuples-v1",
+        "stages": [
+          {
+            "argv": [
+              "rg",
+              "--hidden",
+              "-g",
+              "*.ts",
+              "-g",
+              "!skip.ts",
+              "-n",
+              "-F",
+              "TODO",
+              "."
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "sed",
+              "s#^\\./##"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          }
+        ],
+        "before": []
+      }
+    },
+    {
+      "id": "P15",
+      "title": "Persist a full listing and number filtered discovery paths",
+      "classification": "STATIC_UNEXECUTED",
+      "script": "ls -A1 docs > listing && rg --files --hidden -g '*.txt' docs | sed 's#^docs/##' | nl -ba -w 1 -s ':'",
+      "argv": [
+        [
+          "ls",
+          "-A1",
+          "docs"
+        ],
+        [
+          "rg",
+          "--files",
+          "--hidden",
+          "-g",
+          "*.txt",
+          "docs"
+        ],
+        [
+          "sed",
+          "s#^docs/##"
+        ],
+        [
+          "nl",
+          "-ba",
+          "-w",
+          "1",
+          "-s",
+          ":"
+        ]
+      ],
+      "expected": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutBase64": "MTouYS50eHQKMjphLnR4dAozOnoudHh0Cg==",
+        "stderrBase64": "",
+        "stageExitCodes": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "changedFiles": {
+          "listing": {
+            "base64": "LmEudHh0CmEudHh0CmIubWQKei50eHQK"
+          }
+        },
+        "absent": [
+          "unexpected"
+        ]
+      },
+      "reason": "ls includes all four entries; rg discovery returns only three text paths including hidden; numbering follows byte-sorted paths.",
+      "anchors": [
+        "src/commands/text-programs/sed.ts:224,249-270,313-317,347-413",
+        "src/commands/search/options.ts:92-159; src/commands/search/rg.ts:145-163; src/commands/search/output.ts:43-52",
+        "src/commands/filesystem.ts:309-346",
+        "src/commands/search/walk.ts:82-130"
+      ],
+      "traceContract": {
+        "schema": "exact-stage-tuples-v1",
+        "stages": [
+          {
+            "argv": [
+              "ls",
+              "-A1",
+              "docs"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "rg",
+              "--files",
+              "--hidden",
+              "-g",
+              "*.txt",
+              "docs"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "sed",
+              "s#^docs/##"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "nl",
+              "-ba",
+              "-w",
+              "1",
+              "-s",
+              ":"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          }
+        ],
+        "before": []
+      }
+    },
+    {
+      "id": "P16",
+      "title": "Discover spaced paths and dispatch a literal search per file",
+      "classification": "STATIC_UNEXECUTED",
+      "script": "find notes -type f -name '*.txt' -exec rg -H -n -F TODO '{}' ';' | sed 's/TODO/TASK/'",
+      "argv": [
+        [
+          "find",
+          "notes",
+          "-type",
+          "f",
+          "-name",
+          "*.txt",
+          "-exec",
+          "rg",
+          "-H",
+          "-n",
+          "-F",
+          "TODO",
+          "{}",
+          ";"
+        ],
+        [
+          "sed",
+          "s/TODO/TASK/"
+        ]
+      ],
+      "expected": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutBase64": "bm90ZXMvYSBiLnR4dDoxOlRBU0sgYWxwaGEKbm90ZXMvei50eHQ6MjpUQVNLIGJldGEK",
+        "stderrBase64": "",
+        "stageExitCodes": [
+          0,
+          0
+        ],
+        "changedFiles": {},
+        "absent": [
+          "unexpected"
+        ]
+      },
+      "reason": "find sorts directory entries and dispatches a literal argv per matching file; spaces are not split; only content tokens are replaced.",
+      "anchors": [
+        "src/commands/text-programs/sed.ts:224,249-270,313-317,347-413",
+        "src/commands/search/options.ts:92-159; src/commands/search/rg.ts:145-163; src/commands/search/output.ts:43-52",
+        "src/commands/find.ts:86-109,136-160"
+      ],
+      "literalChildArgv": [
+        [
+          "rg",
+          "-H",
+          "-n",
+          "-F",
+          "TODO",
+          "notes/a b.txt"
+        ],
+        [
+          "rg",
+          "-H",
+          "-n",
+          "-F",
+          "TODO",
+          "notes/z.txt"
+        ]
+      ],
+      "childObservation": "Selected source find -> directExecutor -> context.invoke -> middleware observes exactly two declared literal rg children. Tuple origin is not authenticated; identical-tuple substitution is unobservable without existing IDs.",
+      "traceContract": {
+        "schema": "exact-stage-tuples-v1",
+        "stages": [
+          {
+            "argv": [
+              "find",
+              "notes",
+              "-type",
+              "f",
+              "-name",
+              "*.txt",
+              "-exec",
+              "rg",
+              "-H",
+              "-n",
+              "-F",
+              "TODO",
+              "{}",
+              ";"
+            ],
+            "kind": "result",
+            "exitCode": 0,
+            "stdinIsDefault": true
+          },
+          {
+            "argv": [
+              "sed",
+              "s/TODO/TASK/"
+            ],
+            "kind": "result",
+            "exitCode": 0,
+            "stdinIsDefault": false
+          },
+          {
+            "argv": [
+              "rg",
+              "-H",
+              "-n",
+              "-F",
+              "TODO",
+              "notes/a b.txt"
+            ],
+            "kind": "result",
+            "exitCode": 0,
+            "stdinIsDefault": true
+          },
+          {
+            "argv": [
+              "rg",
+              "-H",
+              "-n",
+              "-F",
+              "TODO",
+              "notes/z.txt"
+            ],
+            "kind": "result",
+            "exitCode": 0,
+            "stdinIsDefault": true
+          }
+        ],
+        "before": [
+          [
+            0,
+            2
+          ],
+          [
+            2,
+            3
+          ]
+        ]
+      }
+    },
+    {
+      "id": "P17",
+      "title": "Return NUL-delimited matches for option-looking and unusual paths",
+      "classification": "STATIC_UNEXECUTED",
+      "script": "rg -l -0 -F -e '-TODO' -- -lead 'a b.txt' 'quo\"te.txt' \"it's.txt\" 'line\nbreak.txt' empty",
+      "argv": [
+        [
+          "rg",
+          "-l",
+          "-0",
+          "-F",
+          "-e",
+          "-TODO",
+          "--",
+          "-lead",
+          "a b.txt",
+          "quo\"te.txt",
+          "it's.txt",
+          "line\nbreak.txt",
+          "empty"
+        ]
+      ],
+      "expected": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutBase64": "LWxlYWQAYSBiLnR4dABxdW8idGUudHh0AGl0J3MudHh0AGxpbmUKYnJlYWsudHh0AA==",
+        "stderrBase64": "",
+        "stageExitCodes": [
+          0
+        ],
+        "changedFiles": {},
+        "absent": [
+          "unexpected"
+        ]
+      },
+      "reason": "-e admits an option-looking pattern; -- admits leading-dash filenames. Operand order is retained. NUL, not newline, separates paths; empty file is not a match.",
+      "anchors": [
+        "src/commands/search/options.ts:92-159; src/commands/search/rg.ts:145-163; src/commands/search/output.ts:43-52",
+        "src/commands/search/output.ts:21",
+        "src/commands/search/walk.ts:106-112"
+      ],
+      "qualification": "Never feed this NUL inventory through LF sed/nl or split it on whitespace; the newline filename is a single literal shell word.",
+      "traceContract": {
+        "schema": "exact-stage-tuples-v1",
+        "stages": [
+          {
+            "argv": [
+              "rg",
+              "-l",
+              "-0",
+              "-F",
+              "-e",
+              "-TODO",
+              "--",
+              "-lead",
+              "a b.txt",
+              "quo\"te.txt",
+              "it's.txt",
+              "line\nbreak.txt",
+              "empty"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          }
+        ],
+        "before": []
+      }
+    },
+    {
+      "id": "P18",
+      "title": "Read search patterns from stdin while searching a named file",
+      "classification": "STATIC_UNEXECUTED",
+      "script": "rg -n -F -f - hay | sed 's/TODO/TASK/;s/FIXME/FIX/'",
+      "argv": [
+        [
+          "rg",
+          "-n",
+          "-F",
+          "-f",
+          "-",
+          "hay"
+        ],
+        [
+          "sed",
+          "s/TODO/TASK/;s/FIXME/FIX/"
+        ]
+      ],
+      "expected": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutBase64": "MTpUQVNLIG9uZQoyOkZJWCB0d28K",
+        "stderrBase64": "",
+        "stageExitCodes": [
+          0,
+          0
+        ],
+        "changedFiles": {},
+        "absent": [
+          "unexpected"
+        ]
+      },
+      "reason": "Pattern stdin is consumed once; explicit file is the data input. Trailing pattern LF does not add an empty match-everything pattern.",
+      "anchors": [
+        "src/commands/search/options.ts:92-159; src/commands/search/rg.ts:145-163; src/commands/search/output.ts:43-52",
+        "src/commands/search/rg.ts:18-29,132-145",
+        "src/commands/text-programs/sed.ts:224,249-270,313-317,347-413"
+      ],
+      "stdinGuard": {
+        "iterators": 1,
+        "next": 2,
+        "return": 0
+      },
+      "traceContract": {
+        "schema": "exact-stage-tuples-v1",
+        "stages": [
+          {
+            "argv": [
+              "rg",
+              "-n",
+              "-F",
+              "-f",
+              "-",
+              "hay"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "sed",
+              "s/TODO/TASK/;s/FIXME/FIX/"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          }
+        ],
+        "before": []
+      }
+    },
+    {
+      "id": "P19",
+      "title": "Keep an empty search stream empty despite a matching cwd file",
+      "classification": "STATIC_UNEXECUTED",
+      "script": "rg -n -F TODO | sed 's/TODO/TASK/'",
+      "argv": [
+        [
+          "rg",
+          "-n",
+          "-F",
+          "TODO"
+        ],
+        [
+          "sed",
+          "s/TODO/TASK/"
+        ]
+      ],
+      "expected": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "stageExitCodes": [
+          1,
+          0
+        ],
+        "changedFiles": {},
+        "absent": [
+          "unexpected"
+        ]
+      },
+      "reason": "Explicit empty stdin has nondefault provenance. rg exits1 without searching cwd; the successful final sed makes the script pipeline status0.",
+      "anchors": [
+        "src/commands/search/options.ts:92-159; src/commands/search/rg.ts:145-163; src/commands/search/output.ts:43-52",
+        "src/commands/search/rg.ts:11-15",
+        "src/shell/shell.ts:222-235",
+        "src/commands/text-programs/sed.ts:224,249-270,313-317,347-413"
+      ],
+      "stdinGuard": {
+        "iterators": 1,
+        "next": 1,
+        "return": 0
+      },
+      "readGuard": {
+        "forbiddenContentPaths": [
+          "/work/decoy"
+        ],
+        "allVfsContentReads": 0
+      },
+      "traceContract": {
+        "schema": "exact-stage-tuples-v1",
+        "stages": [
+          {
+            "argv": [
+              "rg",
+              "-n",
+              "-F",
+              "TODO"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 1
+          },
+          {
+            "argv": [
+              "sed",
+              "s/TODO/TASK/"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          }
+        ],
+        "before": []
+      }
+    },
+    {
+      "id": "P20",
+      "title": "Prefer explicit file argv over unrelated incoming stdin",
+      "classification": "STATIC_UNEXECUTED",
+      "script": "rg -n -F TODO data | sed 's/chosen/file/'",
+      "argv": [
+        [
+          "rg",
+          "-n",
+          "-F",
+          "TODO",
+          "data"
+        ],
+        [
+          "sed",
+          "s/chosen/file/"
+        ]
+      ],
+      "expected": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutBase64": "MTpUT0RPIGZpbGUK",
+        "stderrBase64": "",
+        "stageExitCodes": [
+          0,
+          0
+        ],
+        "changedFiles": {},
+        "absent": [
+          "unexpected"
+        ]
+      },
+      "reason": "Explicit file paths override stdin selection. Shell owns the unused input cursor and closes it once without pulling bytes.",
+      "anchors": [
+        "src/commands/search/options.ts:92-159; src/commands/search/rg.ts:145-163; src/commands/search/output.ts:43-52",
+        "src/commands/search/rg.ts:11-15",
+        "src/shell/input.ts:61-71",
+        "src/commands/text-programs/sed.ts:224,249-270,313-317,347-413"
+      ],
+      "stdinGuard": {
+        "iterators": 1,
+        "next": 0,
+        "return": 1
+      },
+      "traceContract": {
+        "schema": "exact-stage-tuples-v1",
+        "stages": [
+          {
+            "argv": [
+              "rg",
+              "-n",
+              "-F",
+              "TODO",
+              "data"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "sed",
+              "s/chosen/file/"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          }
+        ],
+        "before": []
+      }
+    },
+    {
+      "id": "P21",
+      "title": "Assemble file/stdin/file then review a bounded line window",
+      "classification": "STATIC_UNEXECUTED",
+      "script": "cat header - footer > merged && head -n 4 merged | tail -n +2 | sed 's/TODO/TASK/' | rg -n -F TASK",
+      "argv": [
+        [
+          "cat",
+          "header",
+          "-",
+          "footer"
+        ],
+        [
+          "head",
+          "-n",
+          "4",
+          "merged"
+        ],
+        [
+          "tail",
+          "-n",
+          "+2"
+        ],
+        [
+          "sed",
+          "s/TODO/TASK/"
+        ],
+        [
+          "rg",
+          "-n",
+          "-F",
+          "TASK"
+        ]
+      ],
+      "expected": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutBase64": "MTpUQVNLIG9uZQozOlRBU0sgdHdvCg==",
+        "stderrBase64": "",
+        "stageExitCodes": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "changedFiles": {
+          "merged": {
+            "base64": "aGVhZGVyClRPRE8gb25lCnNraXAKVE9ETyB0d28KZXh0cmEK"
+          }
+        },
+        "absent": [
+          "unexpected"
+        ]
+      },
+      "reason": "cat consumes stdin at its literal - position. Persist first to remove upstream early-close scheduling ambiguity; head/tail select rows2-4 before matching.",
+      "anchors": [
+        "src/commands/text-programs/sed.ts:224,249-270,313-317,347-413",
+        "src/commands/search/options.ts:92-159; src/commands/search/rg.ts:145-163; src/commands/search/output.ts:43-52",
+        "src/commands/streams.ts:110-139,191-221"
+      ],
+      "stdinGuard": {
+        "iterators": 1,
+        "next": 3,
+        "return": 0
+      },
+      "traceContract": {
+        "schema": "exact-stage-tuples-v1",
+        "stages": [
+          {
+            "argv": [
+              "cat",
+              "header",
+              "-",
+              "footer"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "head",
+              "-n",
+              "4",
+              "merged"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "tail",
+              "-n",
+              "+2"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "sed",
+              "s/TODO/TASK/"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "rg",
+              "-n",
+              "-F",
+              "TASK"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          }
+        ],
+        "before": []
+      }
+    },
+    {
+      "id": "P22",
+      "title": "Preserve NUL through byte windows and explicit text search",
+      "classification": "STATIC_UNEXECUTED",
+      "script": "printf '%b' 'A\\0B\\nC' > blob && head -c 4 blob | tail -c 3 > slice; rg -a -F B slice | sed 's/B/X/'",
+      "argv": [
+        [
+          "printf",
+          "%b",
+          "A\\0B\\nC"
+        ],
+        [
+          "head",
+          "-c",
+          "4",
+          "blob"
+        ],
+        [
+          "tail",
+          "-c",
+          "3"
+        ],
+        [
+          "rg",
+          "-a",
+          "-F",
+          "B",
+          "slice"
+        ],
+        [
+          "sed",
+          "s/B/X/"
+        ]
+      ],
+      "expected": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutBase64": "AFgK",
+        "stderrBase64": "",
+        "stageExitCodes": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "changedFiles": {
+          "blob": {
+            "base64": "QQBCCkM="
+          },
+          "slice": {
+            "base64": "AEIK"
+          }
+        },
+        "absent": [
+          "unexpected"
+        ]
+      },
+      "reason": "printf emits A,NUL,B,LF,C. Byte windows retain NUL,B,LF. Explicit rg -a prevents binary suppression; sed substitutes B only. Assert raw bytes, not terminal rendering.",
+      "anchors": [
+        "src/commands/text-programs/sed.ts:224,249-270,313-317,347-413",
+        "src/commands/search/options.ts:92-159; src/commands/search/rg.ts:145-163; src/commands/search/output.ts:43-52",
+        "src/commands/basic.ts:52-133",
+        "src/commands/streams.ts:110-139"
+      ],
+      "traceContract": {
+        "schema": "exact-stage-tuples-v1",
+        "stages": [
+          {
+            "argv": [
+              "printf",
+              "%b",
+              "A\\0B\\nC"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "head",
+              "-c",
+              "4",
+              "blob"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "tail",
+              "-c",
+              "3"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "rg",
+              "-a",
+              "-F",
+              "B",
+              "slice"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "sed",
+              "s/B/X/"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          }
+        ],
+        "before": []
+      }
+    },
+    {
+      "id": "P23",
+      "title": "Download a mocked report into VFS and number action items",
+      "classification": "STATIC_UNEXECUTED",
+      "script": "curl -sS -D headers -o downloaded https://mock.example/report && sed 's/TODO/TASK/' downloaded | rg -n -F TASK | nl -ba -w 1 -s ':'",
+      "argv": [
+        [
+          "curl",
+          "-sS",
+          "-D",
+          "headers",
+          "-o",
+          "downloaded",
+          "https://mock.example/report"
+        ],
+        [
+          "sed",
+          "s/TODO/TASK/",
+          "downloaded"
+        ],
+        [
+          "rg",
+          "-n",
+          "-F",
+          "TASK"
+        ],
+        [
+          "nl",
+          "-ba",
+          "-w",
+          "1",
+          "-s",
+          ":"
+        ]
+      ],
+      "expected": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutBase64": "MToxOlRBU0sgYXBpCjI6MzpUQVNLIGRvY3MK",
+        "stderrBase64": "",
+        "stageExitCodes": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "changedFiles": {
+          "headers": {
+            "base64": "SFRUUC8xLjEgMjAwIE9LDQpDb250ZW50LVR5cGU6IHRleHQvcGxhaW4NCg0K"
+          },
+          "downloaded": {
+            "base64": "VE9ETyBhcGkKc2tpcApUT0RPIGRvY3MK"
+          }
+        },
+        "absent": [
+          "unexpected"
+        ]
+      },
+      "reason": "Actual optional curl dispatch authorizes one in-process request, streams two body chunks to VFS, and saves exact CRLF headers; sed/rg/nl consume the downloaded file.",
+      "anchors": [
+        "src/commands/text-programs/sed.ts:224,249-270,313-317,347-413",
+        "src/commands/search/options.ts:92-159; src/commands/search/rg.ts:145-163; src/commands/search/output.ts:43-52",
+        "src/commands/network/curl.ts:182-211,245-272,293-308",
+        "src/commands/network/output.ts:6-48"
+      ],
+      "networkGuard": {
+        "authorizations": 1,
+        "requests": 1,
+        "responseIterators": [
+          1
+        ],
+        "responseNext": [
+          3
+        ],
+        "responseReturn": [
+          0
+        ],
+        "responseDispose": [
+          1
+        ],
+        "requestAfterClose": 0,
+        "extraRequests": 0
+      },
+      "mutationGuard": {
+        "exactCalls": [
+          [
+            "writeFile",
+            "/work/headers"
+          ],
+          [
+            "writeStream",
+            "/work/downloaded"
+          ]
+        ],
+        "otherMutators": 0
+      },
+      "traceContract": {
+        "schema": "exact-stage-tuples-v1",
+        "stages": [
+          {
+            "argv": [
+              "curl",
+              "-sS",
+              "-D",
+              "headers",
+              "-o",
+              "downloaded",
+              "https://mock.example/report"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "sed",
+              "s/TODO/TASK/",
+              "downloaded"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "rg",
+              "-n",
+              "-F",
+              "TASK"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "nl",
+              "-ba",
+              "-w",
+              "1",
+              "-s",
+              ":"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          }
+        ],
+        "before": []
+      }
+    },
+    {
+      "id": "P24",
+      "title": "Upload VFS bytes, follow authorized redirect, then search response",
+      "classification": "STATIC_UNEXECUTED",
+      "script": "curl -sS -L --data-binary @upload -H 'Authorization: Bearer scoped' -H 'X-Trace: private' -D headers -o reply https://mock.example/start && sed 's/item=TODO /item=TASK /' reply | rg -F 'TASK café'",
+      "argv": [
+        [
+          "curl",
+          "-sS",
+          "-L",
+          "--data-binary",
+          "@upload",
+          "-H",
+          "Authorization: Bearer scoped",
+          "-H",
+          "X-Trace: private",
+          "-D",
+          "headers",
+          "-o",
+          "reply",
+          "https://mock.example/start"
+        ],
+        [
+          "sed",
+          "s/item=TODO /item=TASK /",
+          "reply"
+        ],
+        [
+          "rg",
+          "-F",
+          "TASK café"
+        ]
+      ],
+      "expected": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutBase64": "aXRlbT1UQVNLIGNhZsOpCg==",
+        "stderrBase64": "",
+        "stageExitCodes": [
+          0,
+          0,
+          0
+        ],
+        "changedFiles": {
+          "headers": {
+            "base64": "SFRUUC8xLjEgMzAzIFNlZSBPdGhlcg0KTG9jYXRpb246IGh0dHBzOi8vb3RoZXIuZXhhbXBsZS9maW5hbA0KDQpIVFRQLzEuMSAyMDAgT0sNCkNvbnRlbnQtVHlwZTogdGV4dC9wbGFpbg0KDQo="
+          },
+          "reply": {
+            "base64": "c3RhdHVzPW9rCml0ZW09VE9ETyBjYWbDqQo="
+          }
+        },
+        "absent": [
+          "unexpected"
+        ]
+      },
+      "reason": "Binary upload retains NUL/LF. A 303 cross-origin redirect switches POST to GET and permanently strips all custom headers, including credentials. Each hop is separately authorized; first response body is never pulled.",
+      "anchors": [
+        "src/commands/text-programs/sed.ts:224,249-270,313-317,347-413",
+        "src/commands/search/options.ts:92-159; src/commands/search/rg.ts:145-163; src/commands/search/output.ts:43-52",
+        "src/commands/network/body.ts:30-40,76-145",
+        "src/commands/network/curl.ts:182-232,245-272"
+      ],
+      "networkGuard": {
+        "authorizations": 2,
+        "requests": 2,
+        "responseIterators": [
+          0,
+          1
+        ],
+        "responseNext": [
+          0,
+          3
+        ],
+        "responseReturn": [
+          0,
+          0
+        ],
+        "responseDispose": [
+          1,
+          1
+        ],
+        "requestAfterClose": 0,
+        "extraRequests": 0,
+        "partialOrder": [
+          [
+            "authorize:0",
+            "request:0",
+            "dispose:0",
+            "authorize:1",
+            "request:1",
+            "dispose:1",
+            "exec:settle"
+          ]
+        ]
+      },
+      "mutationGuard": {
+        "exactCalls": [
+          [
+            "writeFile",
+            "/work/headers"
+          ],
+          [
+            "appendFile",
+            "/work/headers"
+          ],
+          [
+            "writeStream",
+            "/work/reply"
+          ]
+        ],
+        "otherMutators": 0
+      },
+      "traceContract": {
+        "schema": "exact-stage-tuples-v1",
+        "stages": [
+          {
+            "argv": [
+              "curl",
+              "-sS",
+              "-L",
+              "--data-binary",
+              "@upload",
+              "-H",
+              "Authorization: Bearer scoped",
+              "-H",
+              "X-Trace: private",
+              "-D",
+              "headers",
+              "-o",
+              "reply",
+              "https://mock.example/start"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "sed",
+              "s/item=TODO /item=TASK /",
+              "reply"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "rg",
+              "-F",
+              "TASK café"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          }
+        ],
+        "before": []
+      }
+    }
+  ],
+  "controls": [
+    {
+      "id": "C01",
+      "title": "Declared sed NUL-record gap is not a supported workflow",
+      "classification": "STATIC_UNEXECUTED_CONTROL",
+      "script": "sed -z 's/TODO/DONE/g' names.bin",
+      "argv": [
+        [
+          "sed",
+          "-z",
+          "s/TODO/DONE/g",
+          "names.bin"
+        ]
+      ],
+      "expected": {
+        "kind": "result",
+        "exitCode": 2,
+        "stdoutBase64": "",
+        "stderrBase64": "c2VkOiB1bnN1cHBvcnRlZCBvcHRpb24gJy16Jwo=",
+        "stageExitCodes": [
+          2
+        ],
+        "changedFiles": {},
+        "absent": [
+          "unexpected"
+        ]
+      },
+      "reason": "Parser rejects -z before reading or mutating the file. This is an expected refusal, not success at the requested NUL-record transform. G01 remains open.",
+      "anchors": [
+        "src/commands/text-programs/sed.ts:357-376",
+        "src/commands/text-programs/shared.ts:89-99"
+      ],
+      "readGuard": {
+        "allVfsContentReads": 0
+      },
+      "mutationGuard": {
+        "exactCalls": [],
+        "otherMutators": 0
+      },
+      "traceContract": {
+        "schema": "exact-stage-tuples-v1",
+        "stages": [
+          {
+            "argv": [
+              "sed",
+              "-z",
+              "s/TODO/DONE/g",
+              "names.bin"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 2
+          }
+        ],
+        "before": []
+      }
+    },
+    {
+      "id": "C02",
+      "title": "Reject stdin used simultaneously as patterns and searched data",
+      "classification": "STATIC_UNEXECUTED_CONTROL",
+      "script": "rg -F -f - -",
+      "argv": [
+        [
+          "rg",
+          "-F",
+          "-f",
+          "-",
+          "-"
+        ]
+      ],
+      "expected": {
+        "kind": "result",
+        "exitCode": 2,
+        "stdoutBase64": "",
+        "stderrBase64": "cmc6IGNhbm5vdCBzZWFyY2ggc3RkaW4gd2hpbGUgYWxzbyByZWFkaW5nIHBhdHRlcm5zIGZyb20gc3RkaW4K",
+        "stageExitCodes": [
+          2
+        ],
+        "changedFiles": {},
+        "absent": [
+          "unexpected"
+        ]
+      },
+      "reason": "Conflict is rejected before consuming pattern or data bytes. Shell still closes its unused input cursor.",
+      "anchors": [
+        "src/commands/search/rg.ts:132-135,159-163",
+        "src/shell/input.ts:61-71"
+      ],
+      "stdinGuard": {
+        "iterators": 1,
+        "next": 0,
+        "return": 1
+      },
+      "readGuard": {
+        "allVfsContentReads": 0
+      },
+      "traceContract": {
+        "schema": "exact-stage-tuples-v1",
+        "stages": [
+          {
+            "argv": [
+              "rg",
+              "-F",
+              "-f",
+              "-",
+              "-"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 2
+          }
+        ],
+        "before": []
+      }
+    },
+    {
+      "id": "C03",
+      "title": "Read-only in-place edit fails without publication",
+      "classification": "STATIC_UNEXECUTED_CONTROL",
+      "script": "sed -i 's/TODO/DONE/' data",
+      "argv": [
+        [
+          "sed",
+          "-i",
+          "s/TODO/DONE/",
+          "data"
+        ]
+      ],
+      "expected": {
+        "kind": "result",
+        "exitCode": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "c2VkOiBFUk9GUzogcmVhZC1vbmx5IGZpbGUgc3lzdGVtLCB3cml0ZUZpbGUgJy93b3JrL2RhdGEnCg==",
+        "stageExitCodes": [
+          1
+        ],
+        "changedFiles": {},
+        "absent": [
+          "data.bak",
+          "unexpected"
+        ]
+      },
+      "reason": "ReadOnlyFileSystem wraps initialized MemoryFileSystem. Sed reads regular input then writeFile fails; there is no backup suffix and no persistent modification.",
+      "anchors": [
+        "src/fs/readonly/index.ts:9-10,100-109",
+        "src/contracts/errors.ts:52-59",
+        "src/commands/text-programs/sed.ts:389-404",
+        "src/commands/text-programs/shared.ts:95-98"
+      ],
+      "mutationGuard": {
+        "exactCalls": [
+          [
+            "writeFile",
+            "/work/data"
+          ]
+        ],
+        "successfulCalls": 0,
+        "backingMutations": 0,
+        "otherMutators": 0
+      },
+      "traceContract": {
+        "schema": "exact-stage-tuples-v1",
+        "stages": [
+          {
+            "argv": [
+              "sed",
+              "-i",
+              "s/TODO/DONE/",
+              "data"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 1
+          }
+        ],
+        "before": []
+      }
+    },
+    {
+      "id": "C04",
+      "title": "Provider read fault is visible even when final pipe succeeds",
+      "classification": "STATIC_UNEXECUTED_CONTROL",
+      "script": "rg -n -F TODO broken | cat",
+      "argv": [
+        [
+          "rg",
+          "-n",
+          "-F",
+          "TODO",
+          "broken"
+        ],
+        [
+          "cat"
+        ]
+      ],
+      "expected": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutBase64": "",
+        "stderrBase64": "cmc6IEVJTzogZml4dHVyZSBmYXVsdCwgcmVhZFN0cmVhbSAnL3dvcmsvYnJva2VuJwo=",
+        "stageExitCodes": [
+          2,
+          0
+        ],
+        "changedFiles": {},
+        "absent": [
+          "unexpected"
+        ]
+      },
+      "reason": "Transparent VFS fault fixture throws a typed EIO on first readStream next. rg emits its diagnostic and exits2; final cat makes script exit0. No errno serialization replacement and no hidden successful workflow credit.",
+      "anchors": [
+        "src/commands/search/rg.ts:136-155,158",
+        "src/commands/search/shared.ts:59-61",
+        "src/contracts/errors.ts:52-59",
+        "src/contracts/io.ts:208-235"
+      ],
+      "readGuard": {
+        "streamCalls": [
+          [
+            "/work/broken",
+            1
+          ]
+        ],
+        "next": 1,
+        "return": 1,
+        "forbiddenFallbackReadFile": [
+          "/work/broken"
+        ]
+      },
+      "traceContract": {
+        "schema": "exact-stage-tuples-v1",
+        "stages": [
+          {
+            "argv": [
+              "rg",
+              "-n",
+              "-F",
+              "TODO",
+              "broken"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 2
+          },
+          {
+            "argv": [
+              "cat"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          }
+        ],
+        "before": []
+      }
+    },
+    {
+      "id": "C05",
+      "title": "Caller cancellation drains admitted cooperative transport work",
+      "classification": "STATIC_UNEXECUTED_CONTROL",
+      "script": "curl -sS -o output https://mock.example/pending",
+      "argv": [
+        [
+          "curl",
+          "-sS",
+          "-o",
+          "output",
+          "https://mock.example/pending"
+        ]
+      ],
+      "expected": {
+        "kind": "throw",
+        "exitCode": null,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "stageExitCodes": [
+          null
+        ],
+        "changedFiles": {},
+        "absent": [
+          "output",
+          "unexpected"
+        ],
+        "reasonIdentity": "callerReason"
+      },
+      "reason": "Register one idempotent host cleanup synchronously before admitting acquisition. Root abort rejects acquisition with the identical caller object, cleanup releases its finite gate, and exec rejection awaits registered cleanup. Call Shell.dispose twice, require shared completion and one disposal. Not arbitrary promise preemption.",
+      "anchors": [
+        "src/commands/network/curl.ts:195-200,289-297",
+        "src/contracts/output.ts:27-68,90-110",
+        "src/shell/shell.ts:163-191,307-335"
+      ],
+      "networkGuard": {
+        "authorizations": 1,
+        "requests": 1,
+        "responseIterators": [],
+        "responseNext": [],
+        "responseReturn": [],
+        "responseDispose": [],
+        "requestAfterClose": 0,
+        "extraRequests": 0
+      },
+      "lifecycleGuard": {
+        "events": {
+          "host.cleanup.register": 1,
+          "host.acquire.admit": 1,
+          "host.cleanup.start": 1,
+          "host.acquire.reject": 1,
+          "host.cleanup.finish": 1,
+          "exec.reject": 1,
+          "shell.dispose.complete": 1
+        },
+        "partialOrder": [
+          [
+            "host.cleanup.register",
+            "host.acquire.admit",
+            "host.cleanup.start",
+            "host.cleanup.finish",
+            "exec.reject",
+            "shell.dispose.complete"
+          ]
+        ],
+        "callerReasonSameObject": true,
+        "postCloseAdmission": 0,
+        "pendingOwnedAtEnd": 0
+      },
+      "mutationGuard": {
+        "exactCalls": [],
+        "otherMutators": 0
+      },
+      "traceContract": {
+        "schema": "exact-stage-tuples-v1",
+        "stages": [
+          {
+            "argv": [
+              "curl",
+              "-sS",
+              "-o",
+              "output",
+              "https://mock.example/pending"
+            ],
+            "stdinIsDefault": true,
+            "kind": "throw",
+            "callerReasonSameObject": true
+          }
+        ],
+        "before": []
+      }
+    },
+    {
+      "id": "C06",
+      "title": "Closed stdout does not cancel curl body/header destinations",
+      "classification": "STATIC_UNEXECUTED_CONTROL",
+      "script": "curl -sS -D headers -o downloaded -w 'finished\\n' https://mock.example/report",
+      "argv": [
+        [
+          "curl",
+          "-sS",
+          "-D",
+          "headers",
+          "-o",
+          "downloaded",
+          "-w",
+          "finished\\n",
+          "https://mock.example/report"
+        ]
+      ],
+      "expected": {
+        "kind": "result",
+        "exitCode": 141,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "stageExitCodes": [
+          141
+        ],
+        "changedFiles": {
+          "headers": {
+            "base64": "SFRUUC8xLjEgMjAwIE9LDQpDb250ZW50LVR5cGU6IHRleHQvcGxhaW4NCg0K"
+          },
+          "downloaded": {
+            "base64": "VE9ETyBhcGkKc2tpcApUT0RPIGRvY3MK"
+          }
+        },
+        "absent": [
+          "unexpected"
+        ]
+      },
+      "reason": "The file transfer scope is not enrolled in stdout ownership. Response disposal closes only the supplied stdout consumer with EPIPE after file/header writes. Final writeout observes closed sink, maps curl to141, leaves caller un-aborted and file bytes complete. Shell does not throw the sink reason or substitute caller identity.",
+      "anchors": [
+        "src/commands/network/curl.ts:114-139,293-308",
+        "src/contracts/output.ts:13-80",
+        "src/shell/shell.ts:209-221"
+      ],
+      "networkGuard": {
+        "authorizations": 1,
+        "requests": 1,
+        "responseIterators": [
+          1
+        ],
+        "responseNext": [
+          3
+        ],
+        "responseReturn": [
+          0
+        ],
+        "responseDispose": [
+          1
+        ],
+        "requestAfterClose": 0,
+        "extraRequests": 0
+      },
+      "lifecycleGuard": {
+        "callerAborted": false,
+        "settlement": "result141-not-reason-throw",
+        "pendingOwnedAtEnd": 0
+      },
+      "mutationGuard": {
+        "exactCalls": [
+          [
+            "writeFile",
+            "/work/headers"
+          ],
+          [
+            "writeStream",
+            "/work/downloaded"
+          ]
+        ],
+        "otherMutators": 0
+      },
+      "traceContract": {
+        "schema": "exact-stage-tuples-v1",
+        "stages": [
+          {
+            "argv": [
+              "curl",
+              "-sS",
+              "-D",
+              "headers",
+              "-o",
+              "downloaded",
+              "-w",
+              "finished\\n",
+              "https://mock.example/report"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 141
+          }
+        ],
+        "before": []
+      }
+    },
+    {
+      "id": "C07",
+      "title": "Opaque authorizer is not falsely counted as preempted work",
+      "classification": "STATIC_UNEXECUTED_CONTROL",
+      "script": "curl -sS -o output https://mock.example/opaque",
+      "argv": [
+        [
+          "curl",
+          "-sS",
+          "-o",
+          "output",
+          "https://mock.example/opaque"
+        ]
+      ],
+      "expected": {
+        "kind": "throw",
+        "exitCode": null,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "stageExitCodes": [
+          null
+        ],
+        "changedFiles": {},
+        "absent": [
+          "output",
+          "unexpected"
+        ],
+        "reasonIdentity": "callerReason"
+      },
+      "reason": "An unenrolled host authorization promise is intentionally opaque. After entry, caller cancellation rejects exec with the same object while host promise remains pending. The fixture then rejects the finite gate with lateReason and observes no unhandled rejection before cleanup ends. No claim that exec awaited or terminated opaque work.",
+      "anchors": [
+        "src/commands/network/shared.ts:18-25",
+        "src/commands/network/curl.ts:187-189,289-297",
+        "src/shell/shell.ts:163-191"
+      ],
+      "networkGuard": {
+        "authorizations": 1,
+        "requests": 0,
+        "responseIterators": [],
+        "responseNext": [],
+        "responseReturn": [],
+        "responseDispose": [],
+        "requestAfterClose": 0,
+        "extraRequests": 0
+      },
+      "lifecycleGuard": {
+        "opaquePendingAtExecSettlement": true,
+        "opaqueLateRejects": 1,
+        "unhandledRejections": 0,
+        "callerReasonSameObject": true,
+        "pendingFixtureAtEnd": 0
+      },
+      "mutationGuard": {
+        "exactCalls": [],
+        "otherMutators": 0
+      },
+      "traceContract": {
+        "schema": "exact-stage-tuples-v1",
+        "stages": [
+          {
+            "argv": [
+              "curl",
+              "-sS",
+              "-o",
+              "output",
+              "https://mock.example/opaque"
+            ],
+            "stdinIsDefault": true,
+            "kind": "throw",
+            "callerReasonSameObject": true
+          }
+        ],
+        "before": []
+      }
+    }
+  ]
+}

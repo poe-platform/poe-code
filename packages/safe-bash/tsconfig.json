@@ -1,0 +1,1452 @@
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": [
+      "ES2023"
+    ],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "verbatimModuleSyntax": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "types": [
+      "node"
+    ],
+    "paths": {
+      "safe-bash-xml-engine": [
+        "../safe-bash-xml-engine/src/index.ts"
+      ],
+      "safe-bash-xml-engine/*": [
+        "../safe-bash-xml-engine/src/*.ts",
+        "../safe-bash-xml-engine/src/*"
+      ],
+      "safe-bash-text-stream-engine": [
+        "../safe-bash-text-stream-engine/src/index.ts"
+      ],
+      "safe-bash-text-stream-engine/*": [
+        "../safe-bash-text-stream-engine/src/*.ts",
+        "../safe-bash-text-stream-engine/src/*"
+      ],
+      "safe-bash-table-text-engine": [
+        "../safe-bash-table-text-engine/src/index.ts"
+      ],
+      "safe-bash-table-text-engine/*": [
+        "../safe-bash-table-text-engine/src/*.ts",
+        "../safe-bash-table-text-engine/src/*"
+      ],
+      "safe-bash-search-engine": [
+        "../safe-bash-search-engine/src/index.ts"
+      ],
+      "safe-bash-search-engine/*": [
+        "../safe-bash-search-engine/src/*.ts",
+        "../safe-bash-search-engine/src/*"
+      ],
+      "safe-bash-regex-engine": [
+        "../safe-bash-regex-engine/src/index.ts"
+      ],
+      "safe-bash-regex-engine/*": [
+        "../safe-bash-regex-engine/src/*.ts",
+        "../safe-bash-regex-engine/src/*"
+      ],
+      "safe-bash-query-engine": [
+        "../safe-bash-query-engine/src/index.ts"
+      ],
+      "safe-bash-query-engine/*": [
+        "../safe-bash-query-engine/src/*.ts",
+        "../safe-bash-query-engine/src/*"
+      ],
+      "safe-bash-playground": [
+        "../safe-bash-playground/src/index.ts"
+      ],
+      "safe-bash-playground/*": [
+        "../safe-bash-playground/src/*.ts",
+        "../safe-bash-playground/src/*"
+      ],
+      "safe-bash-command-mcp": [
+        "../safe-bash-command-mcp/src/index.ts"
+      ],
+      "safe-bash-command-mcp/*": [
+        "../safe-bash-command-mcp/src/*.ts",
+        "../safe-bash-command-mcp/src/*"
+      ],
+      "safe-bash-markdown-engine": [
+        "../safe-bash-markdown-engine/src/index.ts"
+      ],
+      "safe-bash-markdown-engine/*": [
+        "../safe-bash-markdown-engine/src/*.ts",
+        "../safe-bash-markdown-engine/src/*"
+      ],
+      "safe-bash-line-ending-engine": [
+        "../safe-bash-line-ending-engine/src/index.ts"
+      ],
+      "safe-bash-line-ending-engine/*": [
+        "../safe-bash-line-ending-engine/src/*.ts",
+        "../safe-bash-line-ending-engine/src/*"
+      ],
+      "safe-bash-io-engine": [
+        "../safe-bash-io-engine/src/index.ts"
+      ],
+      "safe-bash-io-engine/*": [
+        "../safe-bash-io-engine/src/*.ts",
+        "../safe-bash-io-engine/src/*"
+      ],
+      "safe-bash-csv-engine": [
+        "../safe-bash-csv-engine/src/index.ts"
+      ],
+      "safe-bash-csv-engine/*": [
+        "../safe-bash-csv-engine/src/*.ts",
+        "../safe-bash-csv-engine/src/*"
+      ],
+      "safe-bash-contracts": [
+        "../safe-bash-contracts/src/index.ts"
+      ],
+      "safe-bash-contracts/*": [
+        "../safe-bash-contracts/src/*.ts",
+        "../safe-bash-contracts/src/*"
+      ],
+      "safe-bash-compression-engine": [
+        "../safe-bash-compression-engine/src/index.ts"
+      ],
+      "safe-bash-compression-engine/*": [
+        "../safe-bash-compression-engine/src/*.ts",
+        "../safe-bash-compression-engine/src/*"
+      ],
+      "safe-bash-command-yq": [
+        "../safe-bash-command-yq/src/index.ts"
+      ],
+      "safe-bash-command-yq/*": [
+        "../safe-bash-command-yq/src/*.ts",
+        "../safe-bash-command-yq/src/*"
+      ],
+      "safe-bash-command-yes": [
+        "../safe-bash-command-yes/src/index.ts"
+      ],
+      "safe-bash-command-yes/*": [
+        "../safe-bash-command-yes/src/*.ts",
+        "../safe-bash-command-yes/src/*"
+      ],
+      "safe-bash-command-xz": [
+        "../safe-bash-command-xz/src/index.ts"
+      ],
+      "safe-bash-command-xz/*": [
+        "../safe-bash-command-xz/src/*.ts",
+        "../safe-bash-command-xz/src/*"
+      ],
+      "safe-bash-command-xxd": [
+        "../safe-bash-command-xxd/src/index.ts"
+      ],
+      "safe-bash-command-xxd/*": [
+        "../safe-bash-command-xxd/src/*.ts",
+        "../safe-bash-command-xxd/src/*"
+      ],
+      "safe-bash-command-xq": [
+        "../safe-bash-command-xq/src/index.ts"
+      ],
+      "safe-bash-command-xq/*": [
+        "../safe-bash-command-xq/src/*.ts",
+        "../safe-bash-command-xq/src/*"
+      ],
+      "safe-bash-command-xmllint": [
+        "../safe-bash-command-xmllint/src/index.ts"
+      ],
+      "safe-bash-command-xmllint/*": [
+        "../safe-bash-command-xmllint/src/*.ts",
+        "../safe-bash-command-xmllint/src/*"
+      ],
+      "safe-bash-command-xan": [
+        "../safe-bash-command-xan/src/index.ts"
+      ],
+      "safe-bash-command-xan/*": [
+        "../safe-bash-command-xan/src/*.ts",
+        "../safe-bash-command-xan/src/*"
+      ],
+      "safe-bash-command-wkhtmltopdf": [
+        "../safe-bash-command-wkhtmltopdf/src/index.ts"
+      ],
+      "safe-bash-command-wkhtmltopdf/*": [
+        "../safe-bash-command-wkhtmltopdf/src/*.ts",
+        "../safe-bash-command-wkhtmltopdf/src/*"
+      ],
+      "safe-bash-command-whoami": [
+        "../safe-bash-command-whoami/src/index.ts"
+      ],
+      "safe-bash-command-whoami/*": [
+        "../safe-bash-command-whoami/src/*.ts",
+        "../safe-bash-command-whoami/src/*"
+      ],
+      "safe-bash-command-which": [
+        "../safe-bash-command-which/src/index.ts"
+      ],
+      "safe-bash-command-which/*": [
+        "../safe-bash-command-which/src/*.ts",
+        "../safe-bash-command-which/src/*"
+      ],
+      "safe-bash-command-unrtf": [
+        "../safe-bash-command-unrtf/src/index.ts"
+      ],
+      "safe-bash-command-unrtf/*": [
+        "../safe-bash-command-unrtf/src/*.ts",
+        "../safe-bash-command-unrtf/src/*"
+      ],
+      "safe-bash-command-unexpand": [
+        "../safe-bash-command-unexpand/src/index.ts"
+      ],
+      "safe-bash-command-unexpand/*": [
+        "../safe-bash-command-unexpand/src/*.ts",
+        "../safe-bash-command-unexpand/src/*"
+      ],
+      "safe-bash-command-uname": [
+        "../safe-bash-command-uname/src/index.ts"
+      ],
+      "safe-bash-command-uname/*": [
+        "../safe-bash-command-uname/src/*.ts",
+        "../safe-bash-command-uname/src/*"
+      ],
+      "safe-bash-command-tsort": [
+        "../safe-bash-command-tsort/src/index.ts"
+      ],
+      "safe-bash-command-tsort/*": [
+        "../safe-bash-command-tsort/src/*.ts",
+        "../safe-bash-command-tsort/src/*"
+      ],
+      "safe-bash-command-truncate": [
+        "../safe-bash-command-truncate/src/index.ts"
+      ],
+      "safe-bash-command-truncate/*": [
+        "../safe-bash-command-truncate/src/*.ts",
+        "../safe-bash-command-truncate/src/*"
+      ],
+      "safe-bash-command-tree": [
+        "../safe-bash-command-tree/src/index.ts"
+      ],
+      "safe-bash-command-tree/*": [
+        "../safe-bash-command-tree/src/*.ts",
+        "../safe-bash-command-tree/src/*"
+      ],
+      "safe-bash-command-touch": [
+        "../safe-bash-command-touch/src/index.ts"
+      ],
+      "safe-bash-command-touch/*": [
+        "../safe-bash-command-touch/src/*.ts",
+        "../safe-bash-command-touch/src/*"
+      ],
+      "safe-bash-command-timeout": [
+        "../safe-bash-command-timeout/src/index.ts"
+      ],
+      "safe-bash-command-timeout/*": [
+        "../safe-bash-command-timeout/src/*.ts",
+        "../safe-bash-command-timeout/src/*"
+      ],
+      "safe-bash-command-tac": [
+        "../safe-bash-command-tac/src/index.ts"
+      ],
+      "safe-bash-command-tac/*": [
+        "../safe-bash-command-tac/src/*.ts",
+        "../safe-bash-command-tac/src/*"
+      ],
+      "safe-bash-command-strings": [
+        "../safe-bash-command-strings/src/index.ts"
+      ],
+      "safe-bash-command-strings/*": [
+        "../safe-bash-command-strings/src/*.ts",
+        "../safe-bash-command-strings/src/*"
+      ],
+      "safe-bash-command-ssh": [
+        "../safe-bash-command-ssh/src/index.ts"
+      ],
+      "safe-bash-command-ssh/*": [
+        "../safe-bash-command-ssh/src/*.ts",
+        "../safe-bash-command-ssh/src/*"
+      ],
+      "safe-bash-command-ssconvert": [
+        "../safe-bash-command-ssconvert/src/index.ts"
+      ],
+      "safe-bash-command-ssconvert/*": [
+        "../safe-bash-command-ssconvert/src/*.ts",
+        "../safe-bash-command-ssconvert/src/*"
+      ],
+      "safe-bash-command-sqlite3": [
+        "../safe-bash-command-sqlite3/src/index.ts"
+      ],
+      "safe-bash-command-sqlite3/*": [
+        "../safe-bash-command-sqlite3/src/*.ts",
+        "../safe-bash-command-sqlite3/src/*"
+      ],
+      "safe-bash-command-sponge": [
+        "../safe-bash-command-sponge/src/index.ts"
+      ],
+      "safe-bash-command-sponge/*": [
+        "../safe-bash-command-sponge/src/*.ts",
+        "../safe-bash-command-sponge/src/*"
+      ],
+      "safe-bash-command-split": [
+        "../safe-bash-command-split/src/index.ts"
+      ],
+      "safe-bash-command-split/*": [
+        "../safe-bash-command-split/src/*.ts",
+        "../safe-bash-command-split/src/*"
+      ],
+      "safe-bash-command-soffice": [
+        "../safe-bash-command-soffice/src/index.ts"
+      ],
+      "safe-bash-command-soffice/*": [
+        "../safe-bash-command-soffice/src/*.ts",
+        "../safe-bash-command-soffice/src/*"
+      ],
+      "safe-bash-command-sleep": [
+        "../safe-bash-command-sleep/src/index.ts"
+      ],
+      "safe-bash-command-sleep/*": [
+        "../safe-bash-command-sleep/src/*.ts",
+        "../safe-bash-command-sleep/src/*"
+      ],
+      "safe-bash-command-sips": [
+        "../safe-bash-command-sips/src/index.ts"
+      ],
+      "safe-bash-command-sips/*": [
+        "../safe-bash-command-sips/src/*.ts",
+        "../safe-bash-command-sips/src/*"
+      ],
+      "safe-bash-command-shuf": [
+        "../safe-bash-command-shuf/src/index.ts"
+      ],
+      "safe-bash-command-shuf/*": [
+        "../safe-bash-command-shuf/src/*.ts",
+        "../safe-bash-command-shuf/src/*"
+      ],
+      "safe-bash-command-sha512sum": [
+        "../safe-bash-command-sha512sum/src/index.ts"
+      ],
+      "safe-bash-command-sha512sum/*": [
+        "../safe-bash-command-sha512sum/src/*.ts",
+        "../safe-bash-command-sha512sum/src/*"
+      ],
+      "safe-bash-command-sha256sum": [
+        "../safe-bash-command-sha256sum/src/index.ts"
+      ],
+      "safe-bash-command-sha256sum/*": [
+        "../safe-bash-command-sha256sum/src/*.ts",
+        "../safe-bash-command-sha256sum/src/*"
+      ],
+      "safe-bash-command-sha1sum": [
+        "../safe-bash-command-sha1sum/src/index.ts"
+      ],
+      "safe-bash-command-sha1sum/*": [
+        "../safe-bash-command-sha1sum/src/*.ts",
+        "../safe-bash-command-sha1sum/src/*"
+      ],
+      "safe-bash-command-seq": [
+        "../safe-bash-command-seq/src/index.ts"
+      ],
+      "safe-bash-command-seq/*": [
+        "../safe-bash-command-seq/src/*.ts",
+        "../safe-bash-command-seq/src/*"
+      ],
+      "safe-bash-command-rg": [
+        "../safe-bash-command-rg/src/index.ts"
+      ],
+      "safe-bash-command-rg/*": [
+        "../safe-bash-command-rg/src/*.ts",
+        "../safe-bash-command-rg/src/*"
+      ],
+      "safe-bash-command-rev": [
+        "../safe-bash-command-rev/src/index.ts"
+      ],
+      "safe-bash-command-rev/*": [
+        "../safe-bash-command-rev/src/*.ts",
+        "../safe-bash-command-rev/src/*"
+      ],
+      "safe-bash-command-realpath": [
+        "../safe-bash-command-realpath/src/index.ts"
+      ],
+      "safe-bash-command-realpath/*": [
+        "../safe-bash-command-realpath/src/*.ts",
+        "../safe-bash-command-realpath/src/*"
+      ],
+      "safe-bash-command-readlink": [
+        "../safe-bash-command-readlink/src/index.ts"
+      ],
+      "safe-bash-command-readlink/*": [
+        "../safe-bash-command-readlink/src/*.ts",
+        "../safe-bash-command-readlink/src/*"
+      ],
+      "safe-bash-command-qpdf": [
+        "../safe-bash-command-qpdf/src/index.ts"
+      ],
+      "safe-bash-command-qpdf/*": [
+        "../safe-bash-command-qpdf/src/*.ts",
+        "../safe-bash-command-qpdf/src/*"
+      ],
+      "safe-bash-command-printenv": [
+        "../safe-bash-command-printenv/src/index.ts"
+      ],
+      "safe-bash-command-printenv/*": [
+        "../safe-bash-command-printenv/src/*.ts",
+        "../safe-bash-command-printenv/src/*"
+      ],
+      "safe-bash-command-pr": [
+        "../safe-bash-command-pr/src/index.ts"
+      ],
+      "safe-bash-command-pr/*": [
+        "../safe-bash-command-pr/src/*.ts",
+        "../safe-bash-command-pr/src/*"
+      ],
+      "safe-bash-command-pdftotext": [
+        "../safe-bash-command-pdftotext/src/index.ts"
+      ],
+      "safe-bash-command-pdftotext/*": [
+        "../safe-bash-command-pdftotext/src/*.ts",
+        "../safe-bash-command-pdftotext/src/*"
+      ],
+      "safe-bash-command-pdftoppm": [
+        "../safe-bash-command-pdftoppm/src/index.ts"
+      ],
+      "safe-bash-command-pdftoppm/*": [
+        "../safe-bash-command-pdftoppm/src/*.ts",
+        "../safe-bash-command-pdftoppm/src/*"
+      ],
+      "safe-bash-command-pdftk": [
+        "../safe-bash-command-pdftk/src/index.ts"
+      ],
+      "safe-bash-command-pdftk/*": [
+        "../safe-bash-command-pdftk/src/*.ts",
+        "../safe-bash-command-pdftk/src/*"
+      ],
+      "safe-bash-command-pdfinfo": [
+        "../safe-bash-command-pdfinfo/src/index.ts"
+      ],
+      "safe-bash-command-pdfinfo/*": [
+        "../safe-bash-command-pdfinfo/src/*.ts",
+        "../safe-bash-command-pdfinfo/src/*"
+      ],
+      "safe-bash-command-pdfimages": [
+        "../safe-bash-command-pdfimages/src/index.ts"
+      ],
+      "safe-bash-command-pdfimages/*": [
+        "../safe-bash-command-pdfimages/src/*.ts",
+        "../safe-bash-command-pdfimages/src/*"
+      ],
+      "safe-bash-command-pathchk": [
+        "../safe-bash-command-pathchk/src/index.ts"
+      ],
+      "safe-bash-command-pathchk/*": [
+        "../safe-bash-command-pathchk/src/*.ts",
+        "../safe-bash-command-pathchk/src/*"
+      ],
+      "safe-bash-command-paste": [
+        "../safe-bash-command-paste/src/index.ts"
+      ],
+      "safe-bash-command-paste/*": [
+        "../safe-bash-command-paste/src/*.ts",
+        "../safe-bash-command-paste/src/*"
+      ],
+      "safe-bash-command-pandoc": [
+        "../safe-bash-command-pandoc/src/index.ts"
+      ],
+      "safe-bash-command-pandoc/*": [
+        "../safe-bash-command-pandoc/src/*.ts",
+        "../safe-bash-command-pandoc/src/*"
+      ],
+      "safe-bash-command-openssl": [
+        "../safe-bash-command-openssl/src/index.ts"
+      ],
+      "safe-bash-command-openssl/*": [
+        "../safe-bash-command-openssl/src/*.ts",
+        "../safe-bash-command-openssl/src/*"
+      ],
+      "safe-bash-command-op": [
+        "../safe-bash-command-op/src/index.ts"
+      ],
+      "safe-bash-command-op/*": [
+        "../safe-bash-command-op/src/*.ts",
+        "../safe-bash-command-op/src/*"
+      ],
+      "safe-bash-command-od": [
+        "../safe-bash-command-od/src/index.ts"
+      ],
+      "safe-bash-command-od/*": [
+        "../safe-bash-command-od/src/*.ts",
+        "../safe-bash-command-od/src/*"
+      ],
+      "safe-bash-command-numfmt": [
+        "../safe-bash-command-numfmt/src/index.ts"
+      ],
+      "safe-bash-command-numfmt/*": [
+        "../safe-bash-command-numfmt/src/*.ts",
+        "../safe-bash-command-numfmt/src/*"
+      ],
+      "safe-bash-command-nproc": [
+        "../safe-bash-command-nproc/src/index.ts"
+      ],
+      "safe-bash-command-nproc/*": [
+        "../safe-bash-command-nproc/src/*.ts",
+        "../safe-bash-command-nproc/src/*"
+      ],
+      "safe-bash-command-nl": [
+        "../safe-bash-command-nl/src/index.ts"
+      ],
+      "safe-bash-command-nl/*": [
+        "../safe-bash-command-nl/src/*.ts",
+        "../safe-bash-command-nl/src/*"
+      ],
+      "safe-bash-command-mmdc": [
+        "../safe-bash-command-mmdc/src/index.ts"
+      ],
+      "safe-bash-command-mmdc/*": [
+        "../safe-bash-command-mmdc/src/*.ts",
+        "../safe-bash-command-mmdc/src/*"
+      ],
+      "safe-bash-command-mdq": [
+        "../safe-bash-command-mdq/src/index.ts"
+      ],
+      "safe-bash-command-mdq/*": [
+        "../safe-bash-command-mdq/src/*.ts",
+        "../safe-bash-command-mdq/src/*"
+      ],
+      "safe-bash-command-md5sum": [
+        "../safe-bash-command-md5sum/src/index.ts"
+      ],
+      "safe-bash-command-md5sum/*": [
+        "../safe-bash-command-md5sum/src/*.ts",
+        "../safe-bash-command-md5sum/src/*"
+      ],
+      "safe-bash-command-locale": [
+        "../safe-bash-command-locale/src/index.ts"
+      ],
+      "safe-bash-command-locale/*": [
+        "../safe-bash-command-locale/src/*.ts",
+        "../safe-bash-command-locale/src/*"
+      ],
+      "safe-bash-command-less": [
+        "../safe-bash-command-less/src/index.ts"
+      ],
+      "safe-bash-command-less/*": [
+        "../safe-bash-command-less/src/*.ts",
+        "../safe-bash-command-less/src/*"
+      ],
+      "safe-bash-command-jq": [
+        "../safe-bash-command-jq/src/index.ts"
+      ],
+      "safe-bash-command-jq/*": [
+        "../safe-bash-command-jq/src/*.ts",
+        "../safe-bash-command-jq/src/*"
+      ],
+      "safe-bash-command-join": [
+        "../safe-bash-command-join/src/index.ts"
+      ],
+      "safe-bash-command-join/*": [
+        "../safe-bash-command-join/src/*.ts",
+        "../safe-bash-command-join/src/*"
+      ],
+      "safe-bash-command-install": [
+        "../safe-bash-command-install/src/index.ts"
+      ],
+      "safe-bash-command-install/*": [
+        "../safe-bash-command-install/src/*.ts",
+        "../safe-bash-command-install/src/*"
+      ],
+      "safe-bash-command-imagemagick": [
+        "../safe-bash-command-imagemagick/src/index.ts"
+      ],
+      "safe-bash-command-imagemagick/*": [
+        "../safe-bash-command-imagemagick/src/*.ts",
+        "../safe-bash-command-imagemagick/src/*"
+      ],
+      "safe-bash-command-id": [
+        "../safe-bash-command-id/src/index.ts"
+      ],
+      "safe-bash-command-id/*": [
+        "../safe-bash-command-id/src/*.ts",
+        "../safe-bash-command-id/src/*"
+      ],
+      "safe-bash-command-iconv": [
+        "../safe-bash-command-iconv/src/index.ts"
+      ],
+      "safe-bash-command-iconv/*": [
+        "../safe-bash-command-iconv/src/*.ts",
+        "../safe-bash-command-iconv/src/*"
+      ],
+      "safe-bash-command-htmlq": [
+        "../safe-bash-command-htmlq/src/index.ts"
+      ],
+      "safe-bash-command-htmlq/*": [
+        "../safe-bash-command-htmlq/src/*.ts",
+        "../safe-bash-command-htmlq/src/*"
+      ],
+      "safe-bash-command-html-to-markdown": [
+        "../safe-bash-command-html-to-markdown/src/index.ts"
+      ],
+      "safe-bash-command-html-to-markdown/*": [
+        "../safe-bash-command-html-to-markdown/src/*.ts",
+        "../safe-bash-command-html-to-markdown/src/*"
+      ],
+      "safe-bash-command-hostname": [
+        "../safe-bash-command-hostname/src/index.ts"
+      ],
+      "safe-bash-command-hostname/*": [
+        "../safe-bash-command-hostname/src/*.ts",
+        "../safe-bash-command-hostname/src/*"
+      ],
+      "safe-bash-command-hexdump": [
+        "../safe-bash-command-hexdump/src/index.ts"
+      ],
+      "safe-bash-command-hexdump/*": [
+        "../safe-bash-command-hexdump/src/*.ts",
+        "../safe-bash-command-hexdump/src/*"
+      ],
+      "safe-bash-command-grep": [
+        "../safe-bash-command-grep/src/index.ts"
+      ],
+      "safe-bash-command-grep/*": [
+        "../safe-bash-command-grep/src/*.ts",
+        "../safe-bash-command-grep/src/*"
+      ],
+      "safe-bash-command-gpg": [
+        "../safe-bash-command-gpg/src/index.ts"
+      ],
+      "safe-bash-command-gpg/*": [
+        "../safe-bash-command-gpg/src/*.ts",
+        "../safe-bash-command-gpg/src/*"
+      ],
+      "safe-bash-command-git": [
+        "../safe-bash-command-git/src/index.ts"
+      ],
+      "safe-bash-command-git/*": [
+        "../safe-bash-command-git/src/*.ts",
+        "../safe-bash-command-git/src/*"
+      ],
+      "safe-bash-command-gh": [
+        "../safe-bash-command-gh/src/index.ts"
+      ],
+      "safe-bash-command-gh/*": [
+        "../safe-bash-command-gh/src/*.ts",
+        "../safe-bash-command-gh/src/*"
+      ],
+      "safe-bash-command-getopt": [
+        "../safe-bash-command-getopt/src/index.ts"
+      ],
+      "safe-bash-command-getopt/*": [
+        "../safe-bash-command-getopt/src/*.ts",
+        "../safe-bash-command-getopt/src/*"
+      ],
+      "safe-bash-command-getconf": [
+        "../safe-bash-command-getconf/src/index.ts"
+      ],
+      "safe-bash-command-getconf/*": [
+        "../safe-bash-command-getconf/src/*.ts",
+        "../safe-bash-command-getconf/src/*"
+      ],
+      "safe-bash-command-fold": [
+        "../safe-bash-command-fold/src/index.ts"
+      ],
+      "safe-bash-command-fold/*": [
+        "../safe-bash-command-fold/src/*.ts",
+        "../safe-bash-command-fold/src/*"
+      ],
+      "safe-bash-command-fmt": [
+        "../safe-bash-command-fmt/src/index.ts"
+      ],
+      "safe-bash-command-fmt/*": [
+        "../safe-bash-command-fmt/src/*.ts",
+        "../safe-bash-command-fmt/src/*"
+      ],
+      "safe-bash-command-file": [
+        "../safe-bash-command-file/src/index.ts"
+      ],
+      "safe-bash-command-file/*": [
+        "../safe-bash-command-file/src/*.ts",
+        "../safe-bash-command-file/src/*"
+      ],
+      "safe-bash-command-fgrep": [
+        "../safe-bash-command-fgrep/src/index.ts"
+      ],
+      "safe-bash-command-fgrep/*": [
+        "../safe-bash-command-fgrep/src/*.ts",
+        "../safe-bash-command-fgrep/src/*"
+      ],
+      "safe-bash-command-rgrep": [
+        "../safe-bash-command-rgrep/src/index.ts"
+      ],
+      "safe-bash-command-rgrep/*": [
+        "../safe-bash-command-rgrep/src/*.ts",
+        "../safe-bash-command-rgrep/src/*"
+      ],
+      "safe-bash-command-ffmpeg": [
+        "../safe-bash-command-ffmpeg/src/index.ts"
+      ],
+      "safe-bash-command-ffmpeg/*": [
+        "../safe-bash-command-ffmpeg/src/*.ts",
+        "../safe-bash-command-ffmpeg/src/*"
+      ],
+      "safe-bash-command-fd": [
+        "../safe-bash-command-fd/src/index.ts"
+      ],
+      "safe-bash-command-fd/*": [
+        "../safe-bash-command-fd/src/*.ts",
+        "../safe-bash-command-fd/src/*"
+      ],
+      "safe-bash-command-factor": [
+        "../safe-bash-command-factor/src/index.ts"
+      ],
+      "safe-bash-command-factor/*": [
+        "../safe-bash-command-factor/src/*.ts",
+        "../safe-bash-command-factor/src/*"
+      ],
+      "safe-bash-command-expr": [
+        "../safe-bash-command-expr/src/index.ts"
+      ],
+      "safe-bash-command-expr/*": [
+        "../safe-bash-command-expr/src/*.ts",
+        "../safe-bash-command-expr/src/*"
+      ],
+      "safe-bash-command-expand": [
+        "../safe-bash-command-expand/src/index.ts"
+      ],
+      "safe-bash-command-expand/*": [
+        "../safe-bash-command-expand/src/*.ts",
+        "../safe-bash-command-expand/src/*"
+      ],
+      "safe-bash-command-exiftool": [
+        "../safe-bash-command-exiftool/src/index.ts"
+      ],
+      "safe-bash-command-exiftool/*": [
+        "../safe-bash-command-exiftool/src/*.ts",
+        "../safe-bash-command-exiftool/src/*"
+      ],
+      "safe-bash-command-envsubst": [
+        "../safe-bash-command-envsubst/src/index.ts"
+      ],
+      "safe-bash-command-envsubst/*": [
+        "../safe-bash-command-envsubst/src/*.ts",
+        "../safe-bash-command-envsubst/src/*"
+      ],
+      "safe-bash-command-env": [
+        "../safe-bash-command-env/src/index.ts"
+      ],
+      "safe-bash-command-env/*": [
+        "../safe-bash-command-env/src/*.ts",
+        "../safe-bash-command-env/src/*"
+      ],
+      "safe-bash-command-egrep": [
+        "../safe-bash-command-egrep/src/index.ts"
+      ],
+      "safe-bash-command-egrep/*": [
+        "../safe-bash-command-egrep/src/*.ts",
+        "../safe-bash-command-egrep/src/*"
+      ],
+      "safe-bash-command-du": [
+        "../safe-bash-command-du/src/index.ts"
+      ],
+      "safe-bash-command-du/*": [
+        "../safe-bash-command-du/src/*.ts",
+        "../safe-bash-command-du/src/*"
+      ],
+      "safe-bash-command-dos2unix": [
+        "../safe-bash-command-dos2unix/src/index.ts"
+      ],
+      "safe-bash-command-dos2unix/*": [
+        "../safe-bash-command-dos2unix/src/*.ts",
+        "../safe-bash-command-dos2unix/src/*"
+      ],
+      "safe-bash-command-diff3": [
+        "../safe-bash-command-diff3/src/index.ts"
+      ],
+      "safe-bash-command-diff3/*": [
+        "../safe-bash-command-diff3/src/*.ts",
+        "../safe-bash-command-diff3/src/*"
+      ],
+      "safe-bash-command-df": [
+        "../safe-bash-command-df/src/index.ts"
+      ],
+      "safe-bash-command-df/*": [
+        "../safe-bash-command-df/src/*.ts",
+        "../safe-bash-command-df/src/*"
+      ],
+      "safe-bash-command-dd": [
+        "../safe-bash-command-dd/src/index.ts"
+      ],
+      "safe-bash-command-dd/*": [
+        "../safe-bash-command-dd/src/*.ts",
+        "../safe-bash-command-dd/src/*"
+      ],
+      "safe-bash-command-date": [
+        "../safe-bash-command-date/src/index.ts"
+      ],
+      "safe-bash-command-date/*": [
+        "../safe-bash-command-date/src/*.ts",
+        "../safe-bash-command-date/src/*"
+      ],
+      "safe-bash-command-csvkit": [
+        "../safe-bash-command-csvkit/src/index.ts"
+      ],
+      "safe-bash-command-csvkit/*": [
+        "../safe-bash-command-csvkit/src/*.ts",
+        "../safe-bash-command-csvkit/src/*"
+      ],
+      "safe-bash-command-csvgrep": [
+        "../safe-bash-command-csvgrep/src/index.ts"
+      ],
+      "safe-bash-command-csvgrep/*": [
+        "../safe-bash-command-csvgrep/src/*.ts",
+        "../safe-bash-command-csvgrep/src/*"
+      ],
+      "safe-bash-command-csvcut": [
+        "../safe-bash-command-csvcut/src/index.ts"
+      ],
+      "safe-bash-command-csvcut/*": [
+        "../safe-bash-command-csvcut/src/*.ts",
+        "../safe-bash-command-csvcut/src/*"
+      ],
+      "safe-bash-command-csplit": [
+        "../safe-bash-command-csplit/src/index.ts"
+      ],
+      "safe-bash-command-csplit/*": [
+        "../safe-bash-command-csplit/src/*.ts",
+        "../safe-bash-command-csplit/src/*"
+      ],
+      "safe-bash-command-comm": [
+        "../safe-bash-command-comm/src/index.ts"
+      ],
+      "safe-bash-command-comm/*": [
+        "../safe-bash-command-comm/src/*.ts",
+        "../safe-bash-command-comm/src/*"
+      ],
+      "safe-bash-command-column": [
+        "../safe-bash-command-column/src/index.ts"
+      ],
+      "safe-bash-command-column/*": [
+        "../safe-bash-command-column/src/*.ts",
+        "../safe-bash-command-column/src/*"
+      ],
+      "safe-bash-command-cmp": [
+        "../safe-bash-command-cmp/src/index.ts"
+      ],
+      "safe-bash-command-cmp/*": [
+        "../safe-bash-command-cmp/src/*.ts",
+        "../safe-bash-command-cmp/src/*"
+      ],
+      "safe-bash-command-cal": [
+        "../safe-bash-command-cal/src/index.ts"
+      ],
+      "safe-bash-command-cal/*": [
+        "../safe-bash-command-cal/src/*.ts",
+        "../safe-bash-command-cal/src/*"
+      ],
+      "safe-bash-command-bzip2": [
+        "../safe-bash-command-bzip2/src/index.ts"
+      ],
+      "safe-bash-command-bzip2/*": [
+        "../safe-bash-command-bzip2/src/*.ts",
+        "../safe-bash-command-bzip2/src/*"
+      ],
+      "safe-bash-command-bc": [
+        "../safe-bash-command-bc/src/index.ts"
+      ],
+      "safe-bash-command-bc/*": [
+        "../safe-bash-command-bc/src/*.ts",
+        "../safe-bash-command-bc/src/*"
+      ],
+      "safe-bash-command-base64": [
+        "../safe-bash-command-base64/src/index.ts"
+      ],
+      "safe-bash-command-base64/*": [
+        "../safe-bash-command-base64/src/*.ts",
+        "../safe-bash-command-base64/src/*"
+      ],
+      "safe-bash-command-base32": [
+        "../safe-bash-command-base32/src/index.ts"
+      ],
+      "safe-bash-command-base32/*": [
+        "../safe-bash-command-base32/src/*.ts",
+        "../safe-bash-command-base32/src/*"
+      ],
+      "safe-bash-command-apply-patch": [
+        "../safe-bash-command-apply-patch/src/index.ts"
+      ],
+      "safe-bash-command-apply-patch/*": [
+        "../safe-bash-command-apply-patch/src/*.ts",
+        "../safe-bash-command-apply-patch/src/*"
+      ],
+      "safe-bash-checksum-engine": [
+        "../safe-bash-checksum-engine/src/index.ts"
+      ],
+      "safe-bash-checksum-engine/*": [
+        "../safe-bash-checksum-engine/src/*.ts",
+        "../safe-bash-checksum-engine/src/*"
+      ],
+      "safe-bash-calendar-engine": [
+        "../safe-bash-calendar-engine/src/index.ts"
+      ],
+      "safe-bash-calendar-engine/*": [
+        "../safe-bash-calendar-engine/src/*.ts",
+        "../safe-bash-calendar-engine/src/*"
+      ],
+      "safe-bash-byte-input-engine": [
+        "../safe-bash-byte-input-engine/src/index.ts"
+      ],
+      "safe-bash-byte-input-engine/*": [
+        "../safe-bash-byte-input-engine/src/*.ts",
+        "../safe-bash-byte-input-engine/src/*"
+      ],
+      "safe-bash-byte-engine": [
+        "../safe-bash-byte-engine/src/index.ts"
+      ],
+      "safe-bash-byte-engine/*": [
+        "../safe-bash-byte-engine/src/*.ts",
+        "../safe-bash-byte-engine/src/*"
+      ],
+      "safe-bash-base-encoding-engine": [
+        "../safe-bash-base-encoding-engine/src/index.ts"
+      ],
+      "safe-bash-base-encoding-engine/*": [
+        "../safe-bash-base-encoding-engine/src/*.ts",
+        "../safe-bash-base-encoding-engine/src/*"
+      ],
+      "poe-code/safe-bash": [
+        "./dist/index.d.ts"
+      ],
+      "virtual-bash": [
+        "./dist/index.d.ts"
+      ],
+      "virtual-bash/*": [
+        "./dist/*"
+      ],
+      "virtual-bash/commands/table-text": [
+        "./dist/commands/table-text/index.d.ts"
+      ],
+      "poe-code/safe-fs": [
+        "../safe-fs/src/index.ts"
+      ],
+      "poe-code/safe-fs/core": [
+        "../safe-fs/src/core.ts"
+      ],
+      "poe-code/safe-fs/node": [
+        "../safe-fs/src/node-host.ts"
+      ],
+      "poe-code/safe-fs/node/filesystem": [
+        "../safe-fs/src/node/filesystem.ts"
+      ],
+      "poe-code/safe-playwright": [
+        "../safe-playwright/src/index.ts"
+      ],
+      "poe-code/safe-playwright/adapter": [
+        "../safe-playwright/src/adapter.ts"
+      ],
+      "poe-code/safe-js": [
+        "../safe-js/src/index.ts"
+      ],
+      "poe-code/safejs": [
+        "../safe-js/src/index.ts"
+      ],
+      "poe-code/safe-js/core": [
+        "../safe-js/src/core.ts"
+      ],
+      "@poe-code/safe-fs": [
+        "../safe-fs/src/index.ts"
+      ],
+      "@poe-code/safe-fs/core": [
+        "../safe-fs/src/core.ts"
+      ],
+      "@poe-code/safe-fs/node": [
+        "../safe-fs/src/node-host.ts"
+      ],
+      "poe-code/safejs/core": [
+        "../safe-js/src/core.ts"
+      ],
+      "@poe-code/safe-js": [
+        "../safe-js/src/index.ts"
+      ],
+      "@poe-code/safe-fs/node/filesystem": [
+        "../safe-fs/src/node/filesystem.ts"
+      ],
+      "safe-bash-compression-engine/native/generated/bz2": [
+        "../safe-bash-compression-engine/src/native/bz2.ts"
+      ],
+      "safe-bash-compression-engine/native/generated/xz": [
+        "../safe-bash-compression-engine/src/native/xz.ts"
+      ],
+      "safe-bash-compression-engine/native/generated/zstd": [
+        "../safe-bash-compression-engine/src/native/zstd.ts"
+      ],
+      "poe-code/safe-bash/contracts": [
+        "../safe-bash-contracts/src/index.ts"
+      ],
+      "poe-code/safe-bash/contracts/*": [
+        "../safe-bash-contracts/src/*.ts"
+      ],
+      "safe-bash-command-docx": [
+        "../safe-bash-command-docx/src/index.ts"
+      ],
+      "safe-bash-command-docx/*": [
+        "../safe-bash-command-docx/src/*.ts",
+        "../safe-bash-command-docx/src/*"
+      ],
+      "safe-bash-command-pptx": [
+        "../safe-bash-command-pptx/src/index.ts"
+      ],
+      "safe-bash-command-pptx/*": [
+        "../safe-bash-command-pptx/src/*.ts",
+        "../safe-bash-command-pptx/src/*"
+      ],
+      "safe-bash-command-llm": [
+        "../safe-bash-command-llm/src/index.ts"
+      ],
+      "safe-bash-command-llm/*": [
+        "../safe-bash-command-llm/src/*.ts",
+        "../safe-bash-command-llm/src/*"
+      ],
+      "safe-bash-zip-engine": [
+        "../safe-bash-zip-engine/src/index.ts"
+      ],
+      "safe-bash-zip-engine/*": [
+        "../safe-bash-zip-engine/src/*.ts",
+        "../safe-bash-zip-engine/src/*"
+      ],
+      "safe-bash-network-engine": [
+        "../safe-bash-network-engine/src/index.ts"
+      ],
+      "safe-bash-network-engine/*": [
+        "../safe-bash-network-engine/src/*.ts",
+        "../safe-bash-network-engine/src/*"
+      ],
+      "safe-bash-diff-engine": [
+        "../safe-bash-diff-engine/src/index.ts"
+      ],
+      "safe-bash-diff-engine/*": [
+        "../safe-bash-diff-engine/src/*.ts",
+        "../safe-bash-diff-engine/src/*"
+      ],
+      "safe-bash-command-zip": [
+        "../safe-bash-command-zip/src/index.ts"
+      ],
+      "safe-bash-command-zip/*": [
+        "../safe-bash-command-zip/src/*.ts",
+        "../safe-bash-command-zip/src/*"
+      ],
+      "safe-bash-command-wget": [
+        "../safe-bash-command-wget/src/index.ts"
+      ],
+      "safe-bash-command-wget/*": [
+        "../safe-bash-command-wget/src/*.ts",
+        "../safe-bash-command-wget/src/*"
+      ],
+      "safe-bash-command-unzip": [
+        "../safe-bash-command-unzip/src/index.ts"
+      ],
+      "safe-bash-command-unzip/*": [
+        "../safe-bash-command-unzip/src/*.ts",
+        "../safe-bash-command-unzip/src/*"
+      ],
+      "safe-bash-command-tar": [
+        "../safe-bash-command-tar/src/index.ts"
+      ],
+      "safe-bash-command-tar/*": [
+        "../safe-bash-command-tar/src/*.ts",
+        "../safe-bash-command-tar/src/*"
+      ],
+      "safe-bash-command-sed": [
+        "../safe-bash-command-sed/src/index.ts"
+      ],
+      "safe-bash-command-sed/*": [
+        "../safe-bash-command-sed/src/*.ts",
+        "../safe-bash-command-sed/src/*"
+      ],
+      "safe-bash-command-patch": [
+        "../safe-bash-command-patch/src/index.ts"
+      ],
+      "safe-bash-command-patch/*": [
+        "../safe-bash-command-patch/src/*.ts",
+        "../safe-bash-command-patch/src/*"
+      ],
+      "safe-bash-command-gzip": [
+        "../safe-bash-command-gzip/src/index.ts"
+      ],
+      "safe-bash-command-gzip/*": [
+        "../safe-bash-command-gzip/src/*.ts",
+        "../safe-bash-command-gzip/src/*"
+      ],
+      "safe-bash-command-find": [
+        "../safe-bash-command-find/src/index.ts"
+      ],
+      "safe-bash-command-find/*": [
+        "../safe-bash-command-find/src/*.ts",
+        "../safe-bash-command-find/src/*"
+      ],
+      "safe-bash-command-diff": [
+        "../safe-bash-command-diff/src/index.ts"
+      ],
+      "safe-bash-command-diff/*": [
+        "../safe-bash-command-diff/src/*.ts",
+        "../safe-bash-command-diff/src/*"
+      ],
+      "safe-bash-command-curl": [
+        "../safe-bash-command-curl/src/index.ts"
+      ],
+      "safe-bash-command-curl/*": [
+        "../safe-bash-command-curl/src/*.ts",
+        "../safe-bash-command-curl/src/*"
+      ],
+      "safe-bash-command-awk": [
+        "../safe-bash-command-awk/src/index.ts"
+      ],
+      "safe-bash-command-awk/*": [
+        "../safe-bash-command-awk/src/*.ts",
+        "../safe-bash-command-awk/src/*"
+      ],
+      "safe-bash-metadata-engine": [
+        "../safe-bash-metadata-engine/src/index.ts"
+      ],
+      "safe-bash-metadata-engine/*": [
+        "../safe-bash-metadata-engine/src/*.ts",
+        "../safe-bash-metadata-engine/src/*"
+      ],
+      "safe-bash-command-chmod": [
+        "../safe-bash-command-chmod/src/index.ts"
+      ],
+      "safe-bash-command-chmod/*": [
+        "../safe-bash-command-chmod/src/*.ts",
+        "../safe-bash-command-chmod/src/*"
+      ],
+      "safe-bash-command-stat": [
+        "../safe-bash-command-stat/src/index.ts"
+      ],
+      "safe-bash-command-stat/*": [
+        "../safe-bash-command-stat/src/*.ts",
+        "../safe-bash-command-stat/src/*"
+      ],
+      "safe-bash-command-mktemp": [
+        "../safe-bash-command-mktemp/src/index.ts"
+      ],
+      "safe-bash-command-mktemp/*": [
+        "../safe-bash-command-mktemp/src/*.ts",
+        "../safe-bash-command-mktemp/src/*"
+      ],
+      "safe-bash-command-alias": [
+        "../safe-bash-command-alias/src/index.ts"
+      ],
+      "safe-bash-command-alias/*": [
+        "../safe-bash-command-alias/src/*.ts",
+        "../safe-bash-command-alias/src/*"
+      ],
+      "safe-bash-command-unalias": [
+        "../safe-bash-command-unalias/src/index.ts"
+      ],
+      "safe-bash-command-unalias/*": [
+        "../safe-bash-command-unalias/src/*.ts",
+        "../safe-bash-command-unalias/src/*"
+      ],
+      "safe-bash-command-media": [
+        "../safe-bash-command-media/src/index.ts"
+      ],
+      "safe-bash-command-media/*": [
+        "../safe-bash-command-media/src/*.ts",
+        "../safe-bash-command-media/src/*"
+      ],
+      "safe-bash-command-mcp/remote": [
+        "../safe-bash-command-mcp/src/index.ts"
+      ],
+      "@poe-code/safe-fs/runtime-core": [
+        "../safe-fs/src/runtime-core.ts"
+      ],
+      "@poe-code/safe-fs/fs/memory": [
+        "../safe-fs/src/fs/memory/index.ts"
+      ],
+      "safe-bash-pager-engine": [
+        "../safe-bash-pager-engine/src/index.ts"
+      ],
+      "safe-bash-pager-engine/*": [
+        "../safe-bash-pager-engine/src/*.ts",
+        "../safe-bash-pager-engine/src/*"
+      ],
+      "safe-bash-command-more": [
+        "../safe-bash-command-more/src/index.ts"
+      ],
+      "safe-bash-command-more/*": [
+        "../safe-bash-command-more/src/*.ts",
+        "../safe-bash-command-more/src/*"
+      ],
+      "safe-bash-svg-engine": [
+        "../safe-bash-svg-engine/src/index.ts"
+      ],
+      "safe-bash-svg-engine/*": [
+        "../safe-bash-svg-engine/src/*.ts",
+        "../safe-bash-svg-engine/src/*"
+      ],
+      "safe-bash-sqlite-engine": [
+        "../safe-bash-sqlite-engine/src/index.ts"
+      ],
+      "safe-bash-sqlite-engine/*": [
+        "../safe-bash-sqlite-engine/src/*.ts",
+        "../safe-bash-sqlite-engine/src/*"
+      ],
+      "safe-bash-presentation-engine": [
+        "../safe-bash-presentation-engine/src/index.ts"
+      ],
+      "safe-bash-presentation-engine/*": [
+        "../safe-bash-presentation-engine/src/*.ts",
+        "../safe-bash-presentation-engine/src/*"
+      ],
+      "safe-bash-pptx-engine": [
+        "../safe-bash-pptx-engine/src/index.ts"
+      ],
+      "safe-bash-pptx-engine/*": [
+        "../safe-bash-pptx-engine/src/*.ts",
+        "../safe-bash-pptx-engine/src/*"
+      ],
+      "safe-bash-pdf-engine": [
+        "../safe-bash-pdf-engine/src/index.ts"
+      ],
+      "safe-bash-pdf-engine/*": [
+        "../safe-bash-pdf-engine/src/*.ts",
+        "../safe-bash-pdf-engine/src/*"
+      ],
+      "safe-bash-mime-engine": [
+        "../safe-bash-mime-engine/src/index.ts"
+      ],
+      "safe-bash-mime-engine/*": [
+        "../safe-bash-mime-engine/src/*.ts",
+        "../safe-bash-mime-engine/src/*"
+      ],
+      "safe-bash-media-engine": [
+        "../safe-bash-media-engine/src/index.ts"
+      ],
+      "safe-bash-media-engine/*": [
+        "../safe-bash-media-engine/src/*.ts",
+        "../safe-bash-media-engine/src/*"
+      ],
+      "safe-bash-media-engine/server": [
+        "../safe-bash-media-engine/src/node-unavailable.ts"
+      ],
+      "safe-bash-graphviz-engine": [
+        "../safe-bash-graphviz-engine/src/index.ts"
+      ],
+      "safe-bash-graphviz-engine/*": [
+        "../safe-bash-graphviz-engine/src/*.ts",
+        "../safe-bash-graphviz-engine/src/*"
+      ],
+      "safe-bash-e2e": [
+        "../safe-bash-e2e/src/index.ts"
+      ],
+      "safe-bash-e2e/*": [
+        "../safe-bash-e2e/src/*.ts",
+        "../safe-bash-e2e/src/*"
+      ],
+      "safe-bash-docx-engine": [
+        "../safe-bash-docx-engine/src/index.ts"
+      ],
+      "safe-bash-docx-engine/*": [
+        "../safe-bash-docx-engine/src/*.ts",
+        "../safe-bash-docx-engine/src/*"
+      ],
+      "safe-bash-command-zstd": [
+        "../safe-bash-command-zstd/src/index.ts"
+      ],
+      "safe-bash-command-zstd/*": [
+        "../safe-bash-command-zstd/src/*.ts",
+        "../safe-bash-command-zstd/src/*"
+      ],
+      "safe-bash-command-wdiff": [
+        "../safe-bash-command-wdiff/src/index.ts"
+      ],
+      "safe-bash-command-wdiff/*": [
+        "../safe-bash-command-wdiff/src/*.ts",
+        "../safe-bash-command-wdiff/src/*"
+      ],
+      "safe-bash-command-unix2dos": [
+        "../safe-bash-command-unix2dos/src/index.ts"
+      ],
+      "safe-bash-command-unix2dos/*": [
+        "../safe-bash-command-unix2dos/src/*.ts",
+        "../safe-bash-command-unix2dos/src/*"
+      ],
+      "safe-bash-command-svgo": [
+        "../safe-bash-command-svgo/src/index.ts"
+      ],
+      "safe-bash-command-svgo/*": [
+        "../safe-bash-command-svgo/src/*.ts",
+        "../safe-bash-command-svgo/src/*"
+      ],
+      "safe-bash-command-soxi": [
+        "../safe-bash-command-soxi/src/index.ts"
+      ],
+      "safe-bash-command-soxi/*": [
+        "../safe-bash-command-soxi/src/*.ts",
+        "../safe-bash-command-soxi/src/*"
+      ],
+      "safe-bash-command-sox": [
+        "../safe-bash-command-sox/src/index.ts"
+      ],
+      "safe-bash-command-sox/*": [
+        "../safe-bash-command-sox/src/*.ts",
+        "../safe-bash-command-sox/src/*"
+      ],
+      "safe-bash-command-sort": [
+        "../safe-bash-command-sort/src/index.ts"
+      ],
+      "safe-bash-command-sort/*": [
+        "../safe-bash-command-sort/src/*.ts",
+        "../safe-bash-command-sort/src/*"
+      ],
+      "safe-bash-command-safejs": [
+        "../safe-bash-command-safejs/src/index.ts"
+      ],
+      "safe-bash-command-safejs/*": [
+        "../safe-bash-command-safejs/src/*.ts",
+        "../safe-bash-command-safejs/src/*"
+      ],
+      "safe-bash-command-rsvg-convert": [
+        "../safe-bash-command-rsvg-convert/src/index.ts"
+      ],
+      "safe-bash-command-rsvg-convert/*": [
+        "../safe-bash-command-rsvg-convert/src/*.ts",
+        "../safe-bash-command-rsvg-convert/src/*"
+      ],
+      "safe-bash-command-qrencode": [
+        "../safe-bash-command-qrencode/src/index.ts"
+      ],
+      "safe-bash-command-qrencode/*": [
+        "../safe-bash-command-qrencode/src/*.ts",
+        "../safe-bash-command-qrencode/src/*"
+      ],
+      "safe-bash-command-python": [
+        "../safe-bash-command-python/src/index.ts"
+      ],
+      "safe-bash-command-python/*": [
+        "../safe-bash-command-python/src/*.ts",
+        "../safe-bash-command-python/src/*"
+      ],
+      "safe-bash-command-playwright-cli": [
+        "../safe-bash-command-playwright-cli/src/index.ts"
+      ],
+      "safe-bash-command-playwright-cli/*": [
+        "../safe-bash-command-playwright-cli/src/*.ts",
+        "../safe-bash-command-playwright-cli/src/*"
+      ],
+      "safe-bash-command-pdfunite": [
+        "../safe-bash-command-pdfunite/src/index.ts"
+      ],
+      "safe-bash-command-pdfunite/*": [
+        "../safe-bash-command-pdfunite/src/*.ts",
+        "../safe-bash-command-pdfunite/src/*"
+      ],
+      "safe-bash-command-pdfseparate": [
+        "../safe-bash-command-pdfseparate/src/index.ts"
+      ],
+      "safe-bash-command-pdfseparate/*": [
+        "../safe-bash-command-pdfseparate/src/*.ts",
+        "../safe-bash-command-pdfseparate/src/*"
+      ],
+      "safe-bash-command-node": [
+        "../safe-bash-command-node/src/index.ts"
+      ],
+      "safe-bash-command-node/*": [
+        "../safe-bash-command-node/src/*.ts",
+        "../safe-bash-command-node/src/*"
+      ],
+      "safe-bash-command-neato": [
+        "../safe-bash-command-neato/src/index.ts"
+      ],
+      "safe-bash-command-neato/*": [
+        "../safe-bash-command-neato/src/*.ts",
+        "../safe-bash-command-neato/src/*"
+      ],
+      "safe-bash-command-ffprobe": [
+        "../safe-bash-command-ffprobe/src/index.ts"
+      ],
+      "safe-bash-command-ffprobe/*": [
+        "../safe-bash-command-ffprobe/src/*.ts",
+        "../safe-bash-command-ffprobe/src/*"
+      ],
+      "safe-bash-command-dot": [
+        "../safe-bash-command-dot/src/index.ts"
+      ],
+      "safe-bash-command-dot/*": [
+        "../safe-bash-command-dot/src/*.ts",
+        "../safe-bash-command-dot/src/*"
+      ],
+      "safe-bash-command-diffpdf": [
+        "../safe-bash-command-diffpdf/src/index.ts"
+      ],
+      "safe-bash-command-diffpdf/*": [
+        "../safe-bash-command-diffpdf/src/*.ts",
+        "../safe-bash-command-diffpdf/src/*"
+      ],
+      "safe-bash-command-cp": [
+        "../safe-bash-command-cp/src/index.ts"
+      ],
+      "safe-bash-command-cp/*": [
+        "../safe-bash-command-cp/src/*.ts",
+        "../safe-bash-command-cp/src/*"
+      ],
+      "safe-bash-command-caller": [
+        "../safe-bash-command-caller/src/index.ts"
+      ],
+      "safe-bash-command-caller/*": [
+        "../safe-bash-command-caller/src/*.ts",
+        "../safe-bash-command-caller/src/*"
+      ],
+      "safe-bash-command-audio": [
+        "../safe-bash-command-audio/src/index.ts"
+      ],
+      "safe-bash-command-audio/*": [
+        "../safe-bash-command-audio/src/*.ts",
+        "../safe-bash-command-audio/src/*"
+      ],
+      "safe-bash-command-ast-grep": [
+        "../safe-bash-command-ast-grep/src/index.ts"
+      ],
+      "safe-bash-command-ast-grep/*": [
+        "../safe-bash-command-ast-grep/src/*.ts",
+        "../safe-bash-command-ast-grep/src/*"
+      ]
+    },
+    "baseUrl": "."
+  },
+  "include": [
+    "src/**/*.ts",
+    "tests/**/*.ts"
+  ],
+  "exclude": [
+    "dist",
+    "node_modules",
+    "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts",
+    "tests/commands/regex-execution/continuation/artifacts/native",
+    "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__command.ts",
+    "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__filesystem.ts",
+    "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__io.ts",
+    "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__path.ts",
+    "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__plugin.ts",
+    "tests/integration/du-overlay-independent-20260827/approved-v5-9a5a6f92/consumer/consumer.ts",
+    "tests/integration/du-overlay-independent-20260827/approved-v6-9a5a6f92/consumer/consumer.ts",
+    "tests/integration/du-overlay-independent-20260827/approved-v7-9a5a6f92/consumer/consumer.ts",
+    "tests/integration/du-overlay-independent-20260827/approved-v8-9a5a6f92/consumer/consumer.ts",
+    "tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/consumer/consumer.ts",
+    "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/candidate-9a5a6f92-2026-08-27T184628110Z-fdd7-TvfiaD/harness/harness/consumer-v2/consumer.ts",
+    "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/candidate-9a5a6f92-2026-08-27T184718966Z-42b7-ik3KTO/harness/harness/consumer-v2/consumer.ts",
+    "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/candidate-9a5a6f92-2026-08-27T184742640Z-4378-47r2eR/harness/harness/consumer-v2/consumer.ts",
+    "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/supplied-revision-9a5a6f92-2026-08-27T183910720Z-c216-VLoupP/harness/harness/consumer/consumer.ts",
+    "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/consumer-v2/consumer.ts",
+    "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/consumer/consumer.ts",
+    "tests/integration/du-overlay-independent-20260827/consumer/consumer.ts",
+    "tests/integration/du-overlay-independent-20260827/evidence/baseline-877144ea-2026-08-27T182017267Z-cbc5-YXsTka/harness/consumer/consumer.ts",
+    "tests/integration/du-overlay-independent-20260827/evidence/baseline-877144ea-2026-08-27T182141438Z-2e8b-bTCRpv/harness/consumer/consumer.ts",
+    "src/commands/xan/design-evidence/migrated-source-docs/DESIGN.md",
+    "src/commands/xan/design-evidence/migrated-source-docs/README.md",
+    "src/commands/xan/design-evidence",
+    "tests/commands/xan-author-20260828",
+    "tests/commands/xan-independent-20260828",
+    "tests/commands/xan-module-review-20260828",
+    "tests/commands/xan-oracle-prep-20260828",
+    "tests/commands/regex-execution/cleanup-registration/artifacts/phase-a",
+    "tests/compatibility/bash-redirection-independent-20260829/continuation-v2/ACTUAL-01/scratch/source/__canonical",
+    "tests/integration/apply-patch-public-independent-20260829/PREPARED/fixtures",
+    "tests/integration/apply-patch-public-independent-20260829/RUN-APPLY-PUBLIC-INDEPENDENT-01/apps/physically moved/canonical",
+    "tests/integration/expr-public-independent-20260827/component-execution-v3/work/run-001/build",
+    "tests/integration/expr-public-independent-20260827/component-execution-v4/work/run-001/build",
+    "tests/shell/pipestatus-author-20260829/types.ts",
+    "tests/shell/pipestatus-author-20260829/corrected-v2/host-protocols.ts"
+  ]
+}

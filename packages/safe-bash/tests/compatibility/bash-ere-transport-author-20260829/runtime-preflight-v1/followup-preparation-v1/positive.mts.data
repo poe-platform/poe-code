@@ -1,0 +1,8 @@
+import {EreTransportRoot} from './package/ere/transport/root.js';
+const cleanup: Array<() => Promise<void>> = [];
+const root = new EreTransportRoot({maxExpansionBytes:4096,maxExpansionFields:64}, close => { cleanup.push(close); });
+const session = root.openSession(close => { cleanup.push(close); });
+const result: Promise<{readonly matched:boolean;readonly groupCount:number}> = session.execute({pattern:[{text:'a',literal:false}],subject:'a'});
+const closed: Promise<void> = session.close();
+const rootClosed: Promise<void> = root.close();
+void result; void closed; void rootClosed;

@@ -1,0 +1,15 @@
+{
+  "children": 1,
+  "events": [
+    {
+      "args": [
+        "status",
+        "--porcelain=v1",
+        "--untracked-files=all"
+      ],
+      "status": null,
+      "signal": "SIGTERM",
+      "error": "Error: spawnSync /usr/bin/git ENOBUFS"
+    }
+  ]
+}

@@ -1,0 +1,163 @@
+{
+  "sourceCommit": "0f8684d8eea2042cef6ab194ad2f9be165b31698",
+  "expectedProfile": "bacc21fb126bb6e0b5441bee560cb0bad1f7ffda01d129b996c1cdd3e6312e05",
+  "helperSha256": "0c6b2bec1ff5fedad72f365b73b29b9dec2857f8e4bbe038f1dfb55ae8f0d8c5",
+  "admitted": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/GRANT-TEMPLATE.json",
+      "bytes": 559,
+      "sha256": "63cb8ae4eebf6b91dcb3eb764e414d921ae82ce385913532494a1a135e44b63c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/HANDOFF.md",
+      "bytes": 6478,
+      "sha256": "2f9db505ed873e9ebdf115fab5d206c6a9165a2c00511a0401051baf2fb7a50c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/INERT-COMMAND.txt",
+      "bytes": 754,
+      "sha256": "a9ec04ccc47447fcba23d335929fedf3d3f47c3487ddb7c0a551765bfc047ee1"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/PROFILE.json",
+      "bytes": 1286043,
+      "sha256": "bacc21fb126bb6e0b5441bee560cb0bad1f7ffda01d129b996c1cdd3e6312e05"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/PURE-RECEIPT.json",
+      "bytes": 2788,
+      "sha256": "4083696b9d02d90341151b02521363c80067050301c29b4f993ac38a5cb01720"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/SOURCE-ADMISSION.json",
+      "bytes": 845,
+      "sha256": "1aa4442c2de56ee179865840f5423b3192f11ad333b1a4f88285fd3a921c25ce"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/controls-seal.mjs",
+      "bytes": 7710,
+      "sha256": "7449d848314055a8cecc8fe524b6a29072767d5cc4d5a49245dbee20d38aa1aa"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/controls.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/controls.stdout.txt",
+      "bytes": 2788,
+      "sha256": "4083696b9d02d90341151b02521363c80067050301c29b4f993ac38a5cb01720"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/coordinator.mjs",
+      "bytes": 10759,
+      "sha256": "f3ec799428c5ee525fd782ff7883221d29b9cbb0b933a695444d2765271629d3"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/core.mjs",
+      "bytes": 8366,
+      "sha256": "51fc9f6f617f0220a6a02eef1d773346d5761435c61f3880aec9e6637fb154b2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/delta.patch",
+      "bytes": 19651,
+      "sha256": "0073d423305dbc863960737da3c55b0a6512eb64933b2cbb7a4a4d7eb0459980"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/finalization.mjs",
+      "bytes": 1139,
+      "sha256": "84a241c0349361d1015a26c4aaff0869c59c353745843b0fd2002277f6c5c102"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/generate.mjs",
+      "bytes": 4681,
+      "sha256": "5961269af2ad78aea7e5a0baa6ce2cf337d39999a73a295b6a072dc44a1ececc"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/generate.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/generate.stdout.txt",
+      "bytes": 100,
+      "sha256": "76fdcf6fc7e989f8691c2ba137d4415b8895bff5700d78370be18f71d18d8fb2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/PROFILE.json",
+      "bytes": 1285464,
+      "sha256": "446f44cea9091ce59a12c5591bc1d6e91049003848bef33bd75f520c98728aa6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/core.mjs",
+      "bytes": 8220,
+      "sha256": "c3db649d63db084de500809ed10e0094b2df3a1ce9b3ed7369eda0a09f248bbf"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/observer.mjs",
+      "bytes": 2280,
+      "sha256": "1985b97e75701f3ed2fd1229f895e7f994a9057b2e9bad2b1690ef2f2efb8c74"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/process-owner.mjs",
+      "bytes": 3407,
+      "sha256": "08bc29937289b98918dfdc2203e2d5a919833382c414a824f89388e550deb8b2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/data.mjs",
+      "bytes": 2694,
+      "sha256": "a3c5fdb910cc153106acbb164dfde05b67f1498d706f442c170dbb7ad5443cd0"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/cell.mjs",
+      "bytes": 2411,
+      "sha256": "df23733cd243bd54eaaedfec9eb4fe0a86306f2832d4c293b6edde3404854196"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/core.mjs",
+      "bytes": 8366,
+      "sha256": "51fc9f6f617f0220a6a02eef1d773346d5761435c61f3880aec9e6637fb154b2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/coordinator.mjs",
+      "bytes": 10759,
+      "sha256": "f3ec799428c5ee525fd782ff7883221d29b9cbb0b933a695444d2765271629d3"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/finalization.mjs",
+      "bytes": 1139,
+      "sha256": "84a241c0349361d1015a26c4aaff0869c59c353745843b0fd2002277f6c5c102"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-independent-20260829/runtime-review-r2/review.mjs",
+      "bytes": 11314,
+      "sha256": "0c6b2bec1ff5fedad72f365b73b29b9dec2857f8e4bbe038f1dfb55ae8f0d8c5"
+    }
+  ],
+  "authorBodySha256": "d5163e5945d45c09392330f46db5221a0db2ca5610769355790513950b3937eb",
+  "finalizerFunctionSha256": "25eec0986a32ebdaea42863bf879189c310b63665ffb8cadb73bd7435b647e12",
+  "membership": [
+    "R01",
+    "R02",
+    "R03",
+    "R04",
+    "R05",
+    "R06",
+    "R07",
+    "R08",
+    "N05-r2",
+    "N06-unknown",
+    "N07-secondary"
+  ],
+  "roles": {
+    "pureHelper": 1,
+    "metadataGit": 1,
+    "expectedWorkers": 0,
+    "expectedProductCalls": 0
+  },
+  "extraction": "Exact author control bodies; stop before author sealing/publication. Exact finalizer function, remove import/export only; core import only node:assert/strict.",
+  "historical": [
+    "026d2e9fbd9bca460bb6267d7fc3e131540d754b HOLD14/15",
+    "ab57fa894 startup capture STOP"
+  ]
+}

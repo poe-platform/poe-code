@@ -1,0 +1,15 @@
+{
+  "name": "extract",
+  "binary": "/usr/bin/tar",
+  "args": [
+    "-xf",
+    "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-independent-25t99S/source.tar",
+    "-C",
+    "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-independent-25t99S/source"
+  ],
+  "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-independent-25t99S",
+  "status": 0,
+  "signal": null,
+  "stdout": "",
+  "stderr": ""
+}

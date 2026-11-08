@@ -1,0 +1,8 @@
+{
+  "reason": "Documentation count typo: the listed and tested limit keys number ten, not eleven. No production/test/oracle change.",
+  "previousEvidenceCommit": "ae1d44d",
+  "previousReadmeSha256": "6df48d0e15604890574a3d3072c53ded2da9660ee7238de1b7f07ec2bdc42585",
+  "correctedReadmeSha256": "b2c01c849dea20e21dd23c663f305d54af12750844902aa5ab24c0a91aee3110",
+  "handoffSha256": "28a1452cdfad6d4e316675b0501e84e2ed9729ea1a4d9045f9d4da2b7a1b7ef3",
+  "frozenEvidenceUnchanged": true
+}

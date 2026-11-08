@@ -1,0 +1,377 @@
+{
+  "at": "2026-08-27T00:18:37.717Z",
+  "verifiedBase": "37e19b773327a9e8b08d500a1280f3c4f4687adc",
+  "currentHead": "5604e8bf98cbf1ed1f929d98348d8c83c2400655",
+  "counts": {
+    "baseline/webdav-required11.stdout": {
+      "tests": 11,
+      "pass": 0,
+      "fail": 11,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "candidate/new-traversal-regressions.stdout": {
+      "tests": 17,
+      "pass": 16,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "candidate/original4.stdout": {
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "candidate/required49.stdout": {
+      "tests": 49,
+      "pass": 49,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "candidate/webdav-required11.stdout": {
+      "tests": 11,
+      "pass": 5,
+      "fail": 6,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "final/mount-webdav-owned.stdout": {
+      "tests": 515,
+      "pass": 514,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "final/new-traversal-regressions.stdout": {
+      "tests": 18,
+      "pass": 17,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "final/original4.stdout": {
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "final/required49.stdout": {
+      "tests": 49,
+      "pass": 49,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "final/webdav-conformance.stdout": {
+      "tests": 52,
+      "pass": 52,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "final/webdav-required11.stdout": {
+      "tests": 11,
+      "pass": 5,
+      "fail": 6,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "verified/mount-webdav-owned.stdout": {
+      "tests": 515,
+      "pass": 515,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "verified/new-traversal-regressions.stdout": {
+      "tests": 18,
+      "pass": 18,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "verified/original4.stdout": {
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "verified/required49.stdout": {
+      "tests": 49,
+      "pass": 49,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "verified/webdav-conformance.stdout": {
+      "tests": 52,
+      "pass": 52,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "verified/webdav-required11.stdout": {
+      "tests": 11,
+      "pass": 5,
+      "fail": 6,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    }
+  },
+  "cases": [
+    {
+      "name": "REQUIRED webdav one-mount copy, target missing",
+      "original": {
+        "status": "filesystem-error",
+        "code": "ENOTSUP",
+        "syscall": "copyFile",
+        "path": "/source",
+        "dest": "/target",
+        "cause": "ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'"
+      },
+      "candidate": {
+        "status": "success"
+      },
+      "effectsPreserved": "independent exact-success assertions passed",
+      "remaining": null
+    },
+    {
+      "name": "REQUIRED webdav one-mount copy, target existing",
+      "original": {
+        "status": "filesystem-error",
+        "code": "ENOTSUP",
+        "syscall": "copyFile",
+        "path": "/source",
+        "dest": "/target",
+        "cause": "ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'"
+      },
+      "candidate": {
+        "status": "filesystem-error",
+        "code": "ENOTSUP",
+        "syscall": "copyFile",
+        "path": "/source",
+        "dest": "/target",
+        "cause": "ENOTSUP: operation not supported"
+      },
+      "effectsPreserved": "exact before/after and no data operations verified",
+      "remaining": "existing target with unknown identity (ENOTSUP)"
+    },
+    {
+      "name": "REQUIRED webdav separate-clients copy, target missing",
+      "original": {
+        "status": "filesystem-error",
+        "code": "ENOTSUP",
+        "syscall": "copyFile",
+        "path": "/left/source",
+        "dest": "/right/target",
+        "cause": "ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'"
+      },
+      "candidate": {
+        "status": "success"
+      },
+      "effectsPreserved": "independent exact-success assertions passed",
+      "remaining": null
+    },
+    {
+      "name": "REQUIRED webdav separate-clients copy, target existing",
+      "original": {
+        "status": "filesystem-error",
+        "code": "ENOTSUP",
+        "syscall": "copyFile",
+        "path": "/left/source",
+        "dest": "/right/target",
+        "cause": "ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'"
+      },
+      "candidate": {
+        "status": "filesystem-error",
+        "code": "ENOTSUP",
+        "syscall": "copyFile",
+        "path": "/left/source",
+        "dest": "/right/target",
+        "cause": "ENOTSUP: operation not supported"
+      },
+      "effectsPreserved": "exact before/after and no data operations verified",
+      "remaining": "existing target with unknown identity (ENOTSUP)"
+    },
+    {
+      "name": "positive webdav one-mount existing-target rename (default lock policy)",
+      "original": {
+        "status": "filesystem-error",
+        "code": "ENOTSUP",
+        "syscall": "rename",
+        "path": "/source",
+        "dest": "/target",
+        "cause": "ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'"
+      },
+      "candidate": {
+        "status": "success"
+      },
+      "effectsPreserved": "independent exact-success assertions passed",
+      "remaining": null
+    },
+    {
+      "name": "REQUIRED webdav separate-clients cross-mount mv, target missing",
+      "original": {
+        "status": "command-error",
+        "exitCode": 1,
+        "stderr": "mv: ENOTSUP: operation not supported, stat '/right/target'\\n"
+      },
+      "candidate": {
+        "status": "command-error",
+        "exitCode": 1,
+        "stderr": "mv: EXDEV: cross-device link not permitted, rename '/left/source' -> '/right/target'\\n"
+      },
+      "effectsPreserved": "exact before/after and no data operations verified",
+      "remaining": "core command cross-mount move (EXDEV)"
+    },
+    {
+      "name": "REQUIRED webdav separate-clients cross-mount mv, target existing",
+      "original": {
+        "status": "command-error",
+        "exitCode": 1,
+        "stderr": "mv: ENOTSUP: operation not supported, stat '/right/target'\\n"
+      },
+      "candidate": {
+        "status": "command-error",
+        "exitCode": 1,
+        "stderr": "mv: EXDEV: cross-device link not permitted, rename '/left/source' -> '/right/target'\\n"
+      },
+      "effectsPreserved": "exact before/after and no data operations verified",
+      "remaining": "core command cross-mount move (EXDEV)"
+    },
+    {
+      "name": "REQUIRED memory to-remote webdav copy, target missing",
+      "original": {
+        "status": "filesystem-error",
+        "code": "ENOTSUP",
+        "syscall": "copyFile",
+        "path": "/left/source",
+        "dest": "/right/target",
+        "cause": "ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'"
+      },
+      "candidate": {
+        "status": "success"
+      },
+      "effectsPreserved": "independent exact-success assertions passed",
+      "remaining": null
+    },
+    {
+      "name": "REQUIRED memory to-remote webdav copy, target existing",
+      "original": {
+        "status": "filesystem-error",
+        "code": "ENOTSUP",
+        "syscall": "copyFile",
+        "path": "/left/source",
+        "dest": "/right/target",
+        "cause": "ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'"
+      },
+      "candidate": {
+        "status": "filesystem-error",
+        "code": "ENOTSUP",
+        "syscall": "copyFile",
+        "path": "/left/source",
+        "dest": "/right/target",
+        "cause": "ENOTSUP: operation not supported"
+      },
+      "effectsPreserved": "exact before/after and no data operations verified",
+      "remaining": "existing target with unknown identity (ENOTSUP)"
+    },
+    {
+      "name": "REQUIRED memory from-remote webdav copy, target missing",
+      "original": {
+        "status": "filesystem-error",
+        "code": "ENOTSUP",
+        "syscall": "copyFile",
+        "path": "/left/source",
+        "dest": "/right/target",
+        "cause": "ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'"
+      },
+      "candidate": {
+        "status": "success"
+      },
+      "effectsPreserved": "independent exact-success assertions passed",
+      "remaining": null
+    },
+    {
+      "name": "REQUIRED memory from-remote webdav copy, target existing",
+      "original": {
+        "status": "filesystem-error",
+        "code": "ENOTSUP",
+        "syscall": "copyFile",
+        "path": "/left/source",
+        "dest": "/right/target",
+        "cause": "ENOTSUP: access write/execute permission checks has no safe portable WebDAV equivalent, access write/execute permission checks '/'"
+      },
+      "candidate": {
+        "status": "filesystem-error",
+        "code": "ENOTSUP",
+        "syscall": "copyFile",
+        "path": "/left/source",
+        "dest": "/right/target",
+        "cause": "ENOTSUP: operation not supported"
+      },
+      "effectsPreserved": "exact before/after and no data operations verified",
+      "remaining": "existing target with unknown identity (ENOTSUP)"
+    }
+  ],
+  "immutablePaths": [
+    "tests/fs/mount/identity-compatibility-review/compatibility.test.ts",
+    "tests/fs/mount/copy-identity.test.ts",
+    "tests/fs/mount/copy-identity-guards.test.ts",
+    "tests/fs/overlay/copy-identity.test.ts"
+  ],
+  "immutableCompatibilityReviewTree": "79059b2c4268211af1b711f8a992c43b4b75eb30",
+  "liveMatchesVerifiedOwnedInputs": [
+    {
+      "path": "src/fs/mount/index.ts",
+      "sha256": "6d260317b76b60f05596c00c8f80ff5da82cdca511a2e8bab38489d6befa64a4"
+    },
+    {
+      "path": "src/fs/mount/identity.ts",
+      "sha256": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2"
+    },
+    {
+      "path": "src/fs/mount/README.md",
+      "sha256": "68ce4e2ebe92fdf8115ee56c2ba59f6ac2eec2a6c384c7d4d1ac419b11369fca"
+    },
+    {
+      "path": "src/fs/webdav/webdav.ts",
+      "sha256": "b86c33a4b9f09bd3cf8120fbf12a462a38a106fe7682d5647f3ccf8942e4dbe6"
+    },
+    {
+      "path": "src/fs/webdav/index.ts",
+      "sha256": "9a19fb0e61bf9ef07d97881bb93e30ba21491e580ef5e58ab0e80bb5f398d5e4"
+    },
+    {
+      "path": "src/fs/webdav/xml.ts",
+      "sha256": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1"
+    },
+    {
+      "path": "tests/fs/mount/webdav-traversal.test.ts",
+      "sha256": "ab8b086dc9da06619234942f7707315eb33822a44802dba4dd72597dfd44ad41"
+    }
+  ],
+  "globalStatusReadOnly": " M src/commands/filesystem.ts\n M src/fs/mount/README.md\n M src/fs/mount/index.ts\n?? src/commands/archive/\n?? src/commands/move.ts\n?? tests/commands/archive/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/fs/mount/identity-authority-review/\n?? tests/fs/mount/webdav-traversal.test.ts\n"
+}

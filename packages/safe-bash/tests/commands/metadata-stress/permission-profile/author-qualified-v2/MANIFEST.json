@@ -1,0 +1,71 @@
+{
+  "recordedAt": "2026-08-27T13:00:41.144Z",
+  "classification": "author execution captures; data, not canonical source/tests",
+  "records": [
+    {
+      "path": "before.json.data",
+      "bytes": 107651,
+      "sha256": "1ec3d993c7b1e7739767206384b0f3784295fb2d19fe385002c44241b47cbf6d"
+    },
+    {
+      "path": "after.json.data",
+      "bytes": 107651,
+      "sha256": "d190af12df0204cea7a83f5eac4aa74594a62a9538b771e65a877dd23229429a"
+    },
+    {
+      "path": "vectors.json.data",
+      "bytes": 76407,
+      "sha256": "5d636767b0059332d8ec507baeee3012bc940cc18251a90a599827617c5bbab5"
+    },
+    {
+      "path": "identity.json.data",
+      "bytes": 1256,
+      "sha256": "1c32b701464eb79e40923d851752721abec2b1b7098c3cafdc1950ad18b1d2c9"
+    },
+    {
+      "path": "cleanup.json.data",
+      "bytes": 366,
+      "sha256": "330aac744a29c351895dedffcbf98347f37ce0f858843dc78be21a9f79e03fe8"
+    },
+    {
+      "path": "execution.json.data",
+      "bytes": 2273,
+      "sha256": "a9e4587f835ff67874a706beda07f7d0b46f421014762204e8e82d97b62c129e"
+    },
+    {
+      "path": "integrity.json.data",
+      "bytes": 207,
+      "sha256": "17c2281f5150f2c3d4d75753fec8679fd99ae181b0b353dcc209fe68629c9497"
+    },
+    {
+      "path": "qualified-384.stdout.log.data",
+      "bytes": 330,
+      "sha256": "d632605faf22c33915723db5915f614ee869f4318816a8c9da2de41afd35f4dd"
+    },
+    {
+      "path": "qualified-384.stderr.log.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "chmod-controls-and-profile-regressions.stdout.log.data",
+      "bytes": 3568,
+      "sha256": "aad331698727e5a04f4bc3609ebd7815b1becf10ba11af1d6d63c11b3bea8cb0"
+    },
+    {
+      "path": "chmod-controls-and-profile-regressions.stderr.log.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "scoped-noemit-types.stdout.log.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "scoped-noemit-types.stderr.log.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

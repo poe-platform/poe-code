@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "candidate": "f1a90436c45208ca248e058a039893233c608daa",
+  "chronology": "post-source-commit, pre-independent-inspection-and-execution",
+  "registry": { "defaultCommandCount": 70, "requiredCommand": "tree" },
+  "connectors": {
+    "ascii": { "tee": "|-- ", "elbow": "`-- ", "vertical": "|   ", "blank": "    " },
+    "utf8": { "tee": "├── ", "elbow": "└── ", "vertical": "│   ", "blank": "    " }
+  },
+  "precedence": ["--charset", "TREE_CHARSET", "LC_ALL", "LC_CTYPE", "LANG", "ASCII_FALLBACK"],
+  "holdouts": [
+    { "id": "flag-over-tree", "argvCharset": "ascii", "env": { "TREE_CHARSET": "UTF-8", "LC_ALL": "en_US.UTF-8" }, "expect": "ascii" },
+    { "id": "tree-over-lc-all", "env": { "TREE_CHARSET": "UTF-8", "LC_ALL": "C" }, "expect": "utf8" },
+    { "id": "lc-all-over-lc-ctype", "env": { "LC_ALL": "C", "LC_CTYPE": "en_US.UTF-8", "LANG": "en_US.UTF-8" }, "expect": "ascii" },
+    { "id": "lc-ctype-over-lang", "env": { "LC_CTYPE": "en_US.UTF-8", "LANG": "C" }, "expect": "utf8" },
+    { "id": "lang-selects", "env": { "LANG": "en_US.UTF-8" }, "expect": "utf8" },
+    { "id": "empty-tree-is-present-value", "env": { "TREE_CHARSET": "", "LC_ALL": "en_US.UTF-8" }, "expectError": true },
+    { "id": "unknown-tree-does-not-fall-through", "env": { "TREE_CHARSET": "bogus", "LC_ALL": "en_US.UTF-8" }, "expectError": true },
+    { "id": "no-keys-ascii-fallback", "env": {}, "expect": "ascii" },
+    { "id": "ambient-process-env-ignored", "env": {}, "ambient": { "TREE_CHARSET": "UTF-8", "LC_ALL": "en_US.UTF-8" }, "expect": "ascii" },
+    { "id": "utf8-alias", "argvCharset": "utf8", "env": {}, "expect": "utf8" },
+    { "id": "utf-8-alias", "argvCharset": "UTF-8", "env": {}, "expect": "utf8" },
+    { "id": "ascii-alias", "argvCharset": "ASCII", "env": {}, "expect": "ascii" },
+    { "id": "lowercase-locale-suffix-extension", "env": { "LANG": "en_US.utf8" }, "expect": "utf8", "nativeParity": false },
+    { "id": "unknown-flag-errors", "argvCharset": "definitely-unknown", "env": {}, "expectError": true }
+  ],
+  "invariants": [
+    "charset variants have identical visited paths, ordering, directory count, and file count",
+    "terminal-control bytes in names are escaped and cannot inject lines or connectors",
+    "output-byte limit is charged in UTF-8 bytes and cannot be exceeded",
+    "work cap terminates traversal with bounded output",
+    "pre-aborted and mid-flight aborted invocations reject without unbounded work",
+    "each sink write is awaited before the next write and invocation settlement",
+    "mutating any expected connector, precedence result, cap, or package path makes the harness fail"
+  ]
+}

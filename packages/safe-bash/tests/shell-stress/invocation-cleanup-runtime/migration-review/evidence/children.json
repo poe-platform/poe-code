@@ -1,0 +1,26 @@
+[
+  {
+    "name": "canonical-current",
+    "started": "2026-08-27T12:57:38.587Z",
+    "ended": "2026-08-27T12:57:39.288Z",
+    "args": [
+      "--import",
+      "tsx",
+      "--test",
+      "tests/shell/invocation-cleanup-public.test.ts"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate",
+    "pid": 92484,
+    "status": 1,
+    "signal": null,
+    "error": null,
+    "counts": {
+      "tests": 10,
+      "pass": 0,
+      "fail": 10,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    }
+  }
+]

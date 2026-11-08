@@ -1,0 +1,104 @@
+{
+  "finalCommit": "937f1d9317256c18066d9f74c0ae0bb21842bfaa",
+  "freezeCommit": "ab46a006a0f324a42c563542e4545ce80de49731",
+  "archive": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-coherent-producer-20260829/virtual-bash-0.0.0.tgz",
+    "bytes": 974493,
+    "sha256": "de8741c1be9c870650e92944020fa2785114b7046ef1774af2c27ea79238e17a"
+  },
+  "helperSha256": "c76ba855a1296fee0cea94e69f926d68ea337db4a6ea49f4b3b7aa1415cf0762",
+  "bound": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-coherent-producer-20260829/DATA-RECEIPT.json",
+      "bytes": 3072,
+      "sha256": "d8451028627a01651e4fadf648147c15a39ef04e643dfa2e48a0259be385a50e",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-coherent-producer-20260829/PRODUCER-RECEIPT.json",
+      "bytes": 146948,
+      "sha256": "c5e2b614f775688d72e793fd88fad3044e8217c32a4aac8495d13d00d02f22ce",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-coherent-producer-20260829/PRESEAL.json",
+      "bytes": 10123,
+      "sha256": "ad9025605d6becf70267505e99a80e09e9df9cb166b6233ed9b42ac12d6e50f8",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-coherent-producer-20260829/SOURCE-INPUTS.json",
+      "bytes": 217999,
+      "sha256": "f7e7507a60cb96de29553d2f8a3036f0c4a339fc4a9fcdfa9e2bececfe9a1356",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-coherent-producer-20260829/EMITS.json",
+      "bytes": 194410,
+      "sha256": "46384bb94fd0c941fa301a86feac4b6b6bec66154cba8a1fca85f85613d7fb80",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-coherent-producer-20260829/SHIPPING.json",
+      "bytes": 200220,
+      "sha256": "7a0ff180f4cc397014b62c6478c5076f5dbfd0c2ade3dfcd5248f6b420aa8738",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-coherent-producer-20260829/CLOSURE.json",
+      "bytes": 341959,
+      "sha256": "db24aef688d4230ae8e044466793453cbfaab3791d9e0101d1ebfd94d0885ee1",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-coherent-producer-20260829/TOOLS.json",
+      "bytes": 581381,
+      "sha256": "2a9918a2f87773e7ab281866e6d0e0bab7f8cd263a8a656b9c4de94ef020f508",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-coherent-producer-20260829/USABILITY.json",
+      "bytes": 22272,
+      "sha256": "1058ff9a622947e367bd9d49efb47baee551d0a212cc048a44f2227d7e9fe34a",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-coherent-producer-20260829/SOURCE-REVIEW.json",
+      "bytes": 2553,
+      "sha256": "aaee5bc24adb0460e0858eae44e10804ea6168a4470f13bfb84139b00d871a52",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-coherent-producer-20260829/virtual-bash-0.0.0.tgz",
+      "bytes": 974493,
+      "sha256": "de8741c1be9c870650e92944020fa2785114b7046ef1774af2c27ea79238e17a",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-coherent-producer-independent-20260829/data-completion-v4/review.mjs",
+      "bytes": 7954,
+      "sha256": "c76ba855a1296fee0cea94e69f926d68ea337db4a6ea49f4b3b7aa1415cf0762",
+      "mode": 420
+    }
+  ],
+  "controls": [
+    "B01-exact-declaration-builtins",
+    "B02-map-origin-escape-unknown",
+    "B03-map-duplicates-types"
+  ],
+  "scope": "Narrow pattern-aware exports plus remaining private/edge/map/postguards. Original six tamper controls retained without rerun. No product imports/evaluation/extraction.",
+  "limits": {
+    "compressedBytes": 974493,
+    "decodedBytes": 33554432,
+    "concurrentBufferCeiling": 100663296,
+    "knownOS": 20,
+    "peak": 3
+  },
+  "roles": {
+    "dataHelper": 1,
+    "metadataGit": 2,
+    "syntaxOnly": 1,
+    "workers": 0,
+    "loaders": 0
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "canonical": {
+    "status": 1,
+    "tests": 223,
+    "pass": 130,
+    "fail": 91,
+    "cancelled": 2,
+    "skipped": 0,
+    "todo": 0
+  },
+  "quota": {
+    "passed": 40,
+    "total": 47,
+    "failed": [
+      "regex-output-cap-one",
+      "regex-exact-two",
+      "regex-invalid-cap-one",
+      "stdout-rejection-normal-quota",
+      "overlapping-cleanup-worker-emergency",
+      "worker-emergency-rejection",
+      "worker-post-abort"
+    ],
+    "safetyTerminations": 0
+  },
+  "nearby": {
+    "passed": 10,
+    "total": 16,
+    "failed": [
+      "prefix-regex-before-late-token",
+      "three-workers-once-encounter-order",
+      "active-then-inactive-then-active",
+      "abort-result-before-late-close",
+      "abort-in-stdout-after-worker",
+      "await-stdout-after-worker"
+    ],
+    "activeWorkers": 0
+  },
+  "core": {
+    "passed": 145,
+    "total": 146,
+    "failed": [
+      "sink-rejection"
+    ],
+    "realVfsScratchRemoved": true
+  }
+}

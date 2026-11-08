@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "capturedAt": "2026-08-28T00:57:07.980Z",
+  "preWiringHead": "01468fe22b29808bff0cb233910ea4cd1ec5a825",
+  "base76": "2ffcb23d6029250c48950030120ed0adad2e5769",
+  "independentFreeze": "02ccea66d1e7983056c0ed114f8842fbd7ec3255",
+  "whichModule": "0902f3c541c8e9a79771f55cb5c9b78c6b6eb09b",
+  "moduleTree": "850da5274f3fc2486fc6f270009a36a5245cec76",
+  "rootPaths": {
+    "src/index.ts": "3b1f71706c8d43507d83c2fa069dd6e60c9fef565d277f8f680474d33ca357ca",
+    "src/plugins/index.ts": "6a7eed948ef4ad66d4292060119e216a08c2e09d79f75170e79202fd5bd2821b",
+    "package.json": "513f26e135e7f499b8fb92b7981b2e82a2e91d512db88518f48daf81c1bbf74a",
+    "README.md": "7343e58f8266484f16307d88d1dfb67aa0dfbb98302529e28c477f7f8dd82e17"
+  },
+  "modulePaths": {
+    "src/commands/which/ACCESS-POLICY-v2.md": "a70422274aca08f251fa6154b90dcff93405a220189b6ba9cbaa35e09da9f8a1",
+    "src/commands/which/DESIGN.md": "fc8984c7a6858709ee9341c5e2b17f3f01c4a4b2306571229229d54584ada15c",
+    "src/commands/which/README.md": "68efa7634eb72ad75cfbec3b58b25661f75fe1baba9ec50fd517da9fc603afc7",
+    "src/commands/which/design-evidence/access-provenance-v2.json": "7f8f1758964a9c6eb942f0c9677df105c5e436beae96dfc8d1ee3877064e4c71",
+    "src/commands/which/design-evidence/getopt-source.data": "a911e3dcd3cdfed04cc1192e7668feabe5452435c58304c53870a3d7a26f0fce",
+    "src/commands/which/design-evidence/provenance.json": "4e7641429f299054e45c54cd82421757c475145547d849e5c782db1183178a90",
+    "src/commands/which/design-evidence/which-manual.data": "904c4c1e74bbbbb1b6c0114cdea88b0609282cb6f7ed39513cfb4a912f151cdb",
+    "src/commands/which/design-evidence/which-source.data": "dce7ea97b948b1ba0248a1a699248b8ab63c36f4887d8b95a8ae2b8cbe6bae25",
+    "src/commands/which/index.ts": "30286503e52a17e8d2f3e7e6bb590dc8d0307c3fb6e696ace00fc9a996ec7d9a",
+    "src/commands/which/options.ts": "c27af0cdf354a5eb39dc7f21eace39e96f9949ee3aed5f1b9c7cf67e4ddbef15",
+    "src/commands/which/which.ts": "98ace870f4721aa3061893ce5a26b47641e672ce1f5f544cb0d4416f48498a40"
+  },
+  "publicExportsAbsent": true,
+  "aggregatePolicy": "which?: Omit<WhichCommandsOptions, \"replace\">; forward only limits; top-level replace authoritative, unknown nested runtime replace ignored",
+  "moduleSourceChanges": false,
+  "fullGateLaunched": false
+}

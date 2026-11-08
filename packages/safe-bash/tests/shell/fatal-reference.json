@@ -1,0 +1,189 @@
+{
+  "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+  "version": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)",
+  "executableSha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+  "argv0": "shell",
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC"
+  },
+  "records": [
+    {
+      "source": ": \"${missing:?stop}\"; : >after",
+      "stdout": "",
+      "stderr": "shell: line 1: missing: stop\n",
+      "exitCode": 127,
+      "files": {}
+    },
+    {
+      "source": ": >before; call() { : \"${missing:?stop}\"; : >wrong; }; call || : >recovered; : >after",
+      "stdout": "",
+      "stderr": "shell: line 1: missing: stop\n",
+      "exitCode": 127,
+      "files": {
+        "before": ""
+      }
+    },
+    {
+      "source": ": >before; ( : \"${missing:?stop}\"; : >wrong ); printf \"%s\" \"$?\"; : >after",
+      "stdout": "1",
+      "stderr": "shell: line 1: missing: stop\n",
+      "exitCode": 0,
+      "files": {
+        "after": "",
+        "before": ""
+      }
+    },
+    {
+      "source": "value=$(printf inner; : \"${missing:?stop}\"; : >wrong); printf \"<%s>:%s\" \"$value\" \"$?\"; : >after",
+      "stdout": "<inner>:1",
+      "stderr": "shell: line 1: missing: stop\n",
+      "exitCode": 0,
+      "files": {
+        "after": ""
+      }
+    },
+    {
+      "source": ": >before;\n: \"${missing:?stop}\"; : >after",
+      "stdout": "",
+      "stderr": "shell: line 2: missing: stop\n",
+      "exitCode": 127,
+      "files": {
+        "before": ""
+      }
+    },
+    {
+      "source": ": <<<\"${missing:?stop}\"; : >after",
+      "stdout": "",
+      "stderr": "shell: line 1: missing: stop\n",
+      "exitCode": 127,
+      "files": {}
+    },
+    {
+      "source": "cat <<<\"${missing:?stop}\"; printf \"%s\" \"$?\"; : >after",
+      "stdout": "127",
+      "stderr": "shell: line 1: missing: stop\n",
+      "exitCode": 0,
+      "files": {
+        "after": ""
+      }
+    },
+    {
+      "source": ": \"$((1/0))\"; : >after",
+      "stdout": "",
+      "stderr": "shell: line 1: 1/0: division by 0 (error token is \"0\")\n",
+      "exitCode": 1,
+      "files": {}
+    },
+    {
+      "source": ": >before; { : \"$((7/0))\"; : >wrong; } || : >recovered; : >after",
+      "stdout": "",
+      "stderr": "shell: line 1: 7/0: division by 0 (error token is \"0\")\n",
+      "exitCode": 1,
+      "files": {
+        "before": ""
+      }
+    },
+    {
+      "source": "((7/0)) || printf \"recovered:%s\" \"$?\"; : >after",
+      "stdout": "recovered:1",
+      "stderr": "shell: line 1: ((: 7/0: division by 0 (error token is \"0\")\n",
+      "exitCode": 0,
+      "files": {
+        "after": ""
+      }
+    },
+    {
+      "source": "value=$(printf inner; : \"$((7/0))\"; : >wrong); printf \"<%s>:%s\" \"$value\" \"$?\"; : >after",
+      "stdout": "<inner>:1",
+      "stderr": "shell: line 1: 7/0: division by 0 (error token is \"0\")\n",
+      "exitCode": 0,
+      "files": {
+        "after": ""
+      }
+    },
+    {
+      "source": ": >before; : \"$((1+))\" || : >recovered; : >after",
+      "stdout": "",
+      "stderr": "shell: line 1: 1+: arithmetic syntax error: operand expected (error token is \"+\")\n",
+      "exitCode": 1,
+      "files": {
+        "before": ""
+      }
+    },
+    {
+      "source": "value=$(: \"$((1+))\"); printf \"%s\" \"$?\"; : >after",
+      "stdout": "1",
+      "stderr": "shell: line 1: 1+: arithmetic syntax error: operand expected (error token is \"+\")\n",
+      "exitCode": 0,
+      "files": {
+        "after": ""
+      }
+    },
+    {
+      "source": ": >before;\n: \"$((10 / (2-2)))\"; : >after",
+      "stdout": "",
+      "stderr": "shell: line 2: 10 / (2-2): division by 0 (error token is \"(2-2)\")\n",
+      "exitCode": 1,
+      "files": {
+        "before": ""
+      }
+    },
+    {
+      "source": "printf touched >marker; printf \"%s\" \"$(true |)\"",
+      "stdout": "",
+      "stderr": "shell: -c: line 1: syntax error near unexpected token `)'\nshell: -c: line 1: `printf touched >marker; printf \"%s\" \"$(true |)\"'\n",
+      "exitCode": 127,
+      "files": {}
+    },
+    {
+      "source": ": >before; never() { value=$(true |); }; : >after",
+      "stdout": "",
+      "stderr": "shell: -c: line 1: syntax error near unexpected token `)'\nshell: -c: line 1: `: >before; never() { value=$(true |); }; : >after'\n",
+      "exitCode": 127,
+      "files": {}
+    },
+    {
+      "source": ": >before; if false; then value=$(true |); fi; : >after",
+      "stdout": "",
+      "stderr": "shell: -c: line 1: syntax error near unexpected token `)'\nshell: -c: line 1: `: >before; if false; then value=$(true |); fi; : >after'\n",
+      "exitCode": 127,
+      "files": {}
+    },
+    {
+      "source": ": >before; true &&",
+      "stdout": "",
+      "stderr": "shell: -c: line 2: syntax error: unexpected end of file\n",
+      "exitCode": 2,
+      "files": {}
+    },
+    {
+      "source": ": >before; if true; then :",
+      "stdout": "",
+      "stderr": "shell: -c: line 2: syntax error: unexpected end of file from `if' command on line 1\n",
+      "exitCode": 2,
+      "files": {}
+    },
+    {
+      "source": ": >before;\n: 4>&9; printf \"%s\" \"$?\"; : >after",
+      "stdout": "1",
+      "stderr": "shell: line 2: 9: Bad file descriptor\n",
+      "exitCode": 0,
+      "files": {
+        "after": "",
+        "before": ""
+      }
+    },
+    {
+      "source": "value=$(<missing); printf \"<%s>:%s\" \"$value\" \"$?\"; : >after",
+      "stdout": "<>:1",
+      "stderr": "shell: line 1: missing: No such file or directory\n",
+      "exitCode": 0,
+      "files": {
+        "after": ""
+      }
+    }
+  ]
+}

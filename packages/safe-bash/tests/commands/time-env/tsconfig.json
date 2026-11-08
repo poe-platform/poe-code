@@ -1,0 +1,6 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": { "noEmit": true },
+  "include": ["../../../src/commands/time-env/**/*.ts", "./*.ts"],
+  "exclude": []
+}

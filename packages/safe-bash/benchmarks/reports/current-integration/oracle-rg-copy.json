@@ -1,0 +1,9 @@
+{
+  "reason": "Initial sanitized PATH omitted preinstalled Codex-provided rg, causing native oracle ENOENT. Bounded full-script rerun uses a private regular binary copy; no installation or source/test edits. Initial full run remains separately reported.",
+  "source": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path/rg",
+  "copy": "/tmp/safe-bash-current-integration-69dbdy0m/oracle-bin/rg",
+  "sha256": "4298efd414836892c913b2e87401d62fdd7c6ec4026d9bad8e3fab10557e411f",
+  "version": "ripgrep 15.2.0 (rev e89fff89ac)",
+  "sourceInventoryMember": false,
+  "newTimeoutSeconds": 900
+}

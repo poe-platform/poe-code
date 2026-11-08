@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "frozenBeforeIndependentExecution": true,
+  "scope": "Native semantics only; no virtual expr implementation or candidate execution",
+  "locale": "C",
+  "cases": [
+    {"id":"P-empty","subject":"","pattern":"\\(a*\\)*\\1","judgment":"Empty participating capture is required for a successful empty match."},
+    {"id":"P-a","subject":"a","pattern":"\\(a*\\)*\\1","judgment":"Coherent no-gratuitous-empty interpretation: whole empty, capture empty; expr bytes alone do not distinguish match from failure."},
+    {"id":"P-aa","subject":"aa","pattern":"\\(a*\\)*\\1","judgment":"Whole aa, completed last capture a; no history tie at longest length."},
+    {"id":"P-aaa","subject":"aaa","pattern":"\\(a*\\)*\\1","judgment":"Whole aaa via [a][a] then backreference a; last capture a under no-gratuitous-empty rule. Test GNU mismatch without declaring a general conformance verdict."},
+    {"id":"P-aaaa-history-neighbor","subject":"aaaa","pattern":"\\(a*\\)*\\1","judgment":"Whole aaaa has productive histories ending in a or aa; do not infer a universal final-register tie-break from the small unique cases."},
+    {"id":"Q-empty","subject":"","pattern":"\\(a*\\)\\{2\\}\\1","judgment":"Exactly two mandatory empty occurrences; capture empty and whole empty."},
+    {"id":"Q-a-history-neighbor","subject":"a","pattern":"\\(a*\\)\\{2\\}\\1","judgment":"Mandatory final empty may complete whole a; distinguish mandatory from gratuitous optional empties."},
+    {"id":"Q-aa-history-neighbor","subject":"aa","pattern":"\\(a*\\)\\{2\\}\\1","judgment":"Competing mandatory histories; observe profile, no universal submatch tie-break asserted."},
+    {"id":"Q-aaa-history-neighbor","subject":"aaa","pattern":"\\(a*\\)\\{2\\}\\1","judgment":"[aaa][] plus empty reference and [a][a] plus a reference both span the whole input; historical ambiguity matters here."},
+    {"id":"no-reference","subject":"aaa","pattern":"\\(a*\\)*","judgment":"No gratuitous trailing empty iteration; compare repeated-capture profile."},
+    {"id":"single-capture","subject":"aaa","pattern":"\\(a*\\)\\1","judgment":"Whole aa and capture a; no repeated group."},
+    {"id":"nonnullable-repeat","subject":"aaa","pattern":"\\(a\\)*\\1","judgment":"Whole aaa and capture a."},
+    {"id":"nonnullable-absent","subject":"a","pattern":"\\(a\\)*\\1","judgment":"No match: an absent capture is not an empty participating capture."},
+    {"id":"zero-count-absent","subject":"","pattern":"\\(a\\)\\{0\\}\\1","judgment":"No match: zero mandated occurrences do not create a capture."},
+    {"id":"single-empty-present","subject":"","pattern":"\\(a*\\)\\1","judgment":"Successful empty match, with equal capture endpoints."},
+    {"id":"standard-last-capture-positive","subject":"ababbabb","pattern":"\\(ab*\\)*\\1$","judgment":"Issue 8 example with expr implicit start anchor; match, last capture abb."},
+    {"id":"standard-last-capture-negative","subject":"ababbab","pattern":"\\(ab*\\)*\\1$","judgment":"Issue 8 example; no whole anchored match."},
+    {"id":"whole-before-submatch","subject":"acdacaaa","pattern":"\\(ac*\\)c*d[ac]*\\1","judgment":"Issue 8 informative rationale example: whole input, capture a, not ac."}
+  ]
+}

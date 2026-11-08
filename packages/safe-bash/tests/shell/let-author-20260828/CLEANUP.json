@@ -1,0 +1,16 @@
+{
+  "schema": "let-author-generated-work-cleanup-v1",
+  "finished": "2026-08-28T07:44:33.566Z",
+  "removedOnly": "/Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/work",
+  "workAbsent": true,
+  "reason": "Remove generated source/mutant/consumer TS trees from canonical discovery after preserving selected source and full package archives, exact raw receipts and test/tool Git/hash bindings",
+  "supervisedExecutionGroupsClosed": 32,
+  "diagnosticGroupsClosed": 2,
+  "sourceArchiveSHA256": "0ba67572a10e707f7e7210577f9497fe78a8d4d30053dcaa9078876e67f99c1d",
+  "packageSHA256": "21c4858e6e4b857cd5e0d526159667621bcd206b4f1fd1ce1f84b54ad7abbace",
+  "liveRuntimeSHA256": "eb4588578001136b8ac011c1c458079b0c8a9f07e653938836d342dff052e193",
+  "runtimeOwnership": "FROZEN_PENDING_PLATO_REVIEW_NOT_RELEASED",
+  "originalEvidenceDeleted": false,
+  "productReruns": 0,
+  "nativeExecutions": 0
+}

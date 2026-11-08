@@ -1,0 +1,49 @@
+{
+  "schema": "d03-record-v2-preseal",
+  "at": 1787981784452,
+  "sourceBase": "33860b2b88f6e1b5492bfe3fb60d9ea41b70fa69",
+  "oldStop": "e8f4c1784bc1a7f95b1a065c0971fda935499d71",
+  "files": [
+    {
+      "path": "admin.mjs",
+      "bytes": 4104,
+      "sha256": "7a9d76fb562a5d1e63d82ab71955e1e1ad81f6a973283dbe3747101f49654f23"
+    },
+    {
+      "path": "reader.mjs",
+      "bytes": 10069,
+      "sha256": "5c3b6484a2bdd1d99184b58d95d26b608e7657b59247e2fa2c9491739b25fa63"
+    },
+    {
+      "path": "matcher.mjs",
+      "bytes": 2356,
+      "sha256": "b252ba6e3dcd97790b184ec02bcd420342108ed8bf9aed60f6c584a525070818"
+    },
+    {
+      "path": "PLAN.json",
+      "bytes": 2697,
+      "sha256": "9924976b9f26a7e75dd07666c36bfced78232141c8f63746d7e598a76d739406"
+    },
+    {
+      "path": "CONTROLS.json",
+      "bytes": 5323,
+      "sha256": "feb98525cda68219b6dc6195adaaf2b912b878b3a693bd78a7c9b3ec741823ee"
+    },
+    {
+      "path": "PROTOCOL.md",
+      "bytes": 2426,
+      "sha256": "0acd617e350666ab5d545c438105ff8b8fabe955f3c9197e3fa3a1bde21ccd3c"
+    },
+    {
+      "path": "OLD-SOURCE-AUTH.json",
+      "bytes": 214,
+      "sha256": "df7f0c743b0418bb73a50817551a6703adc6e8811df33351d5d8e15efb3aeb23"
+    }
+  ],
+  "reader": "reader.mjs",
+  "controls": 16,
+  "actualAcquisitionsPermitted": 1,
+  "privateReadsBeforeSeal": 0,
+  "targetLaunchesPermitted": 0,
+  "deadline": 1787982526329
+}

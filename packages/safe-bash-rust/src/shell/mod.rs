@@ -1,0 +1,271 @@
+pub mod builtins;
+pub mod eval;
+pub mod expand;
+pub mod lexer;
+pub mod parser;
+
+use crate::backend::{BackendMode, HybridBackend, RustCommand};
+use crate::budget::ShellLimits;
+use crate::fs::{MemoryVfs, SafeBashFs, normalize_posix_path};
+use std::collections::BTreeMap;
+use std::sync::Arc;
+
+#[derive(Clone, Default)]
+pub struct ShellOptions {
+    pub cwd: Option<String>,
+    pub env: BTreeMap<String, String>,
+    pub mode: BackendMode,
+}
+
+#[derive(Clone, Default)]
+pub struct ExecOptions {
+    pub cwd: Option<String>,
+    pub stdin: Option<String>,
+    pub timeout_ms: Option<u64>,
+    pub env: BTreeMap<String, String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ExecOutput {
+    pub stdout: String,
+    pub stderr: String,
+    pub exit_code: i32,
+    pub cwd: String,
+    pub used_typescript_bridge: bool,
+}
+
+pub struct Shell {
+    fs: Arc<dyn SafeBashFs>,
+    cwd: String,
+    env: BTreeMap<String, String>,
+    backend: HybridBackend,
+    limits: ShellLimits,
+}
+
+impl Shell {
+    pub fn new(fs: Arc<dyn SafeBashFs>, options: ShellOptions) -> Self {
+        let cwd = options
+            .cwd
+            .as_deref()
+            .map(normalize_posix_path)
+            .unwrap_or_else(|| "/".to_string());
+        let _ = fs.mkdir_all(&cwd);
+        Self {
+            fs,
+            cwd,
+            env: options.env,
+            backend: HybridBackend::new(options.mode),
+            limits: ShellLimits::default(),
+        }
+    }
+
+    pub fn with_memory_fs() -> (Self, MemoryVfs) {
+        let vfs = MemoryVfs::new();
+        let shell = Self::new(Arc::new(vfs.clone()), ShellOptions::default());
+        (shell, vfs)
+    }
+
+    pub fn set_limits(&mut self, limits: ShellLimits) {
+        self.limits = limits;
+    }
+
+    pub fn limits(&self) -> &ShellLimits {
+        &self.limits
+    }
+
+    pub fn register_command(&mut self, name: impl Into<String>, cmd: RustCommand) {
+        self.backend.register_command(name, cmd);
+    }
+
+    pub fn cwd(&self) -> &str {
+        &self.cwd
+    }
+
+    pub fn set_cwd(&mut self, cwd: &str) {
+        let norm = normalize_posix_path(cwd);
+        self.cwd = norm.clone();
+        self.env.insert("PWD".to_string(), norm);
+    }
+
+    pub fn set_env(&mut self, key: &str, val: &str) {
+        self.env.insert(key.to_string(), val.to_string());
+    }
+
+    pub fn env(&self) -> &BTreeMap<String, String> {
+        &self.env
+    }
+
+    pub fn fs(&self) -> &Arc<dyn SafeBashFs> {
+        &self.fs
+    }
+
+    pub fn exec(&mut self, script: &str) -> Result<ExecOutput, String> {
+        self.exec_with_options(script, ExecOptions::default())
+    }
+
+    pub fn exec_with_options(
+        &mut self,
+        script: &str,
+        options: ExecOptions,
+    ) -> Result<ExecOutput, String> {
+        if let Some(override_cwd) = options.cwd.as_deref() {
+            self.cwd = normalize_posix_path(override_cwd);
+        }
+        for (k, v) in options.env {
+            self.env.insert(k, v);
+        }
+        let stdin = options.stdin.as_deref().unwrap_or("");
+
+        if self.backend.mode != BackendMode::TypeScriptOnly
+            && let Some(native_res) = self.backend.try_execute_native_with_limits(
+                script,
+                &mut self.cwd,
+                &mut self.env,
+                stdin,
+                options.timeout_ms,
+                &self.limits,
+                self.fs.as_ref(),
+            )
+        {
+            let res = native_res?;
+            return Ok(ExecOutput {
+                stdout: res.stdout,
+                stderr: res.stderr,
+                exit_code: res.exit_code,
+                cwd: self.cwd.clone(),
+                used_typescript_bridge: self.backend.used_typescript_bridge.load(std::sync::atomic::Ordering::Relaxed),
+            });
+        }
+
+        if self.backend.mode == BackendMode::NativeOnly {
+            return Err("Command requires TypeScript safe-bash bridge, but BackendMode::NativeOnly is set".into());
+        }
+
+        let res = self.backend.execute_typescript_bridge(
+            script,
+            &mut self.cwd,
+            &mut self.env,
+            stdin,
+            options.timeout_ms,
+            self.fs.as_ref(),
+        )?;
+        Ok(ExecOutput {
+            stdout: res.stdout,
+            stderr: res.stderr,
+            exit_code: res.exit_code,
+            cwd: self.cwd.clone(),
+            used_typescript_bridge: true,
+        })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn unit_shell_with_memory_fs_exec_options_and_limits() {
+        let (mut shell, vfs) = Shell::with_memory_fs();
+        vfs.mkdir_all("/app").unwrap();
+        let mut custom_limits = ShellLimits::default();
+        custom_limits.max_loop_iterations = 250;
+        shell.set_limits(custom_limits);
+        assert_eq!(shell.limits().max_loop_iterations, 250);
+
+        let mut env = BTreeMap::new();
+        env.insert("GREETING".into(), "hello".into());
+        let res = shell
+            .exec_with_options(
+                "read line; echo \"$GREETING:$line:$(pwd)\"",
+                ExecOptions {
+                    cwd: Some("/app".into()),
+                    stdin: Some("world\n".into()),
+                    timeout_ms: Some(1000),
+                    env,
+                },
+            )
+            .unwrap();
+        assert_eq!(res.exit_code, 0);
+        assert_eq!(res.stdout, "hello:world:/app\n");
+        assert_eq!(shell.cwd(), "/app");
+        assert_eq!(shell.env().get("GREETING").map(|s| s.as_str()), Some("hello"));
+    }
+
+    #[test]
+    fn unit_shell_traps_namerefs_arrays_and_subshell_isolation() {
+        let (mut shell, _vfs) = Shell::with_memory_fs();
+        let res = shell
+            .exec(
+                r#"
+                declare -A map=([k1]="v1" [k2]="v2")
+                declare -n ref=map
+                (ref[k1]="subshell_only")
+                echo "${ref[k1]}:${ref[k2]}:${#map[@]}"
+                "#,
+            )
+            .unwrap();
+        assert_eq!(res.exit_code, 0);
+        assert_eq!(res.stdout, "v1:v2:2\n");
+    }
+
+    #[test]
+    fn unit_shell_pipefail_pipestatus_and_getopts() {
+        let (mut shell, _vfs) = Shell::with_memory_fs();
+        let res = shell
+            .exec(
+                r#"
+                set -o pipefail
+                sh -c 'exit 2' | sh -c 'exit 0' | sh -c 'exit 5'
+                echo "rc=$? pipe=${PIPESTATUS[*]}"
+                "#,
+            )
+            .unwrap();
+        assert_eq!(res.exit_code, 0);
+        assert_eq!(res.stdout, "rc=5 pipe=2 0 5\n");
+    }
+
+    #[test]
+    fn unit_shell_persists_cwd_and_env_across_exec_calls() {
+        let (mut shell, vfs) = Shell::with_memory_fs();
+        vfs.mkdir_all("/workspace/proj").unwrap();
+        shell.exec("cd /workspace/proj && export BUILD_ID=42").unwrap();
+        let res = shell.exec("printf '%s:%s' \"$(pwd)\" \"$BUILD_ID\"").unwrap();
+        assert_eq!(res.exit_code, 0);
+        assert_eq!(res.stdout, "/workspace/proj:42");
+    }
+
+    #[test]
+    fn unit_native_ls_rejects_unimplemented_long_listings() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work").unwrap();
+        vfs.write_file("/work/file.txt", b"twelve bytes").unwrap();
+        let mut shell = Shell::new(Arc::new(vfs), ShellOptions {
+            cwd: Some("/work".into()), mode: BackendMode::NativeOnly,
+            ..Default::default()
+        });
+        for flags in ["-l", "-la", "-ld", "-lh", "-g", "-o", "-n"] {
+            let result = shell.exec(&format!("ls {flags} file.txt")).unwrap();
+            assert_ne!(result.exit_code, 0, "{flags} silently discarded metadata");
+            assert!(result.stdout.is_empty());
+            assert!(result.stderr.contains("requires the TypeScript safe-bash bridge"));
+        }
+    }
+
+    #[test]
+    fn unit_native_ls_keeps_plain_listings_and_option_terminators() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work").unwrap();
+        vfs.write_file("/work/-l", b"literal filename").unwrap();
+        let mut shell = Shell::new(Arc::new(vfs), ShellOptions {
+            cwd: Some("/work".into()), mode: BackendMode::NativeOnly,
+            ..Default::default()
+        });
+        let result = shell.exec("ls -- -l").unwrap();
+        assert_eq!(result.exit_code, 0, "{}", result.stderr);
+        assert_eq!(result.stdout, "-l\n");
+        let result = shell.exec("ls -a").unwrap();
+        assert_eq!(result.exit_code, 0, "{}", result.stderr);
+        assert_eq!(result.stdout, "-l\n.\n..\n");
+    }
+
+}

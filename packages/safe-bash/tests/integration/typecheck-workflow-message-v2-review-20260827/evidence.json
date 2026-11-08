@@ -1,0 +1,176 @@
+{
+  "date": "2026-08-27T13:23:33.910Z",
+  "fixtureCommit": "c7f2abab5e11539c69f890e617a461cbd5ec4a08",
+  "evidenceCommit": "0cb0c43861b6e3c937b98bdc0a31b636e3d7a568",
+  "originalCommit": "39116ae1da80261d1a55df363f615430eab6609a",
+  "candidate": "a01310c5571dfda2aae4c6c8cc185e2530a01e89",
+  "changedLines": [
+    248
+  ],
+  "oldFixtureSha256": "05ce4842f7881260792cb072b73765c7b97db7fd1a1881cf2a3ab926324ad488",
+  "newFixtureSha256": "850579bc359b4fd2f8fa7f1decdffe7e021b52cd7f8dc787cd347a3be5df767d",
+  "unchangedOtherCases": 20,
+  "originalCounts": {
+    "pass": 20,
+    "fail": 1,
+    "skip": 0
+  },
+  "authenticatedAuthorCounts": {
+    "pass": 21,
+    "fail": 0,
+    "skip": 0
+  },
+  "authenticatedCaptures": 74,
+  "authenticatedFiles": 82,
+  "freshIndependentNeighbors": [
+    {
+      "name": "actual diagnostic",
+      "accepted": true,
+      "status": "pass"
+    },
+    {
+      "name": "unrelated TS error",
+      "accepted": false,
+      "status": "pass"
+    },
+    {
+      "name": "wrong root with same tail",
+      "accepted": false,
+      "status": "pass"
+    },
+    {
+      "name": "wrong public subpath",
+      "accepted": false,
+      "status": "pass"
+    },
+    {
+      "name": "terminal newline",
+      "accepted": false,
+      "status": "pass"
+    },
+    {
+      "name": "NUL suffix",
+      "accepted": false,
+      "status": "pass"
+    },
+    {
+      "name": "coercible object",
+      "accepted": false,
+      "status": "pass"
+    },
+    {
+      "name": "boxed string",
+      "accepted": false,
+      "status": "pass"
+    },
+    {
+      "name": "missing",
+      "accepted": false,
+      "status": "pass"
+    }
+  ],
+  "freshAuthorDiagnosticControls": {
+    "fixtureSha256": "850579bc359b4fd2f8fa7f1decdffe7e021b52cd7f8dc787cd347a3be5df767d",
+    "previousFixtureSha256": "05ce4842f7881260792cb072b73765c7b97db7fd1a1881cf2a3ab926324ad488",
+    "priorCommit": "39116ae1da80261d1a55df363f615430eab6609a",
+    "priorPath": "tests/integration/typecheck-workflow-independent-20260827-closure/unchanged-cohort.mjs",
+    "onlyApprovedStatementChanged": true,
+    "candidate": "a01310c5571dfda2aae4c6c8cc185e2530a01e89",
+    "actualCompilerStatus": 0,
+    "actualHelperStatus": 2,
+    "actualDiagnostic": "foreign candidate declaration/source fallback: virtual-bash -> /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-KTz7zo/candidate/src/index.ts",
+    "sourceCaptureSha256": "660de53f9cd7de19873ae93c92d30bb0a9174c5a31da9ec97de1b3a7eb41d04c",
+    "cases": [
+      {
+        "name": "actual-candidate-binding-rejection",
+        "error": "foreign candidate declaration/source fallback: virtual-bash -> /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-KTz7zo/candidate/src/index.ts",
+        "accept": true
+      },
+      {
+        "name": "unrelated-compiler-diagnostic",
+        "error": "TS2305: unrelated public export is missing",
+        "accept": false
+      },
+      {
+        "name": "unrelated-error-mentions-candidate-build",
+        "error": "candidate build failed: ENOENT",
+        "accept": false
+      },
+      {
+        "name": "wrong-package-binding",
+        "error": "foreign candidate declaration/source fallback: unrelated-package -> /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-KTz7zo/candidate/src/index.ts",
+        "accept": false
+      },
+      {
+        "name": "wrong-candidate-path",
+        "error": "foreign candidate declaration/source fallback: virtual-bash -> /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-KTz7zo/candidate/src/unrelated.ts",
+        "accept": false
+      },
+      {
+        "name": "expected-message-is-only-substring",
+        "error": "unrelated error: foreign candidate declaration/source fallback: virtual-bash -> /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-KTz7zo/candidate/src/index.ts",
+        "accept": false
+      },
+      {
+        "name": "trailing-unrelated-failure",
+        "error": "foreign candidate declaration/source fallback: virtual-bash -> /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-type-workflow-independent-KTz7zo/candidate/src/index.ts\nunrelated failure",
+        "accept": false
+      },
+      {
+        "name": "missing-error",
+        "accept": false
+      },
+      {
+        "name": "null-error",
+        "error": null,
+        "accept": false
+      }
+    ],
+    "children": [
+      {
+        "name": "strict-fixture-line",
+        "sourceSha256": "abb9ccb4c83b31732e407c59f7db47332556a955b00d51b276cb03cbd04ef7b6",
+        "status": 0,
+        "signal": null,
+        "stdout": "{\"name\":\"actual-candidate-binding-rejection\",\"status\":\"pass\"}\n{\"name\":\"unrelated-compiler-diagnostic\",\"status\":\"pass\"}\n{\"name\":\"unrelated-error-mentions-candidate-build\",\"status\":\"pass\"}\n{\"name\":\"wrong-package-binding\",\"status\":\"pass\"}\n{\"name\":\"wrong-candidate-path\",\"status\":\"pass\"}\n{\"name\":\"expected-message-is-only-substring\",\"status\":\"pass\"}\n{\"name\":\"trailing-unrelated-failure\",\"status\":\"pass\"}\n{\"name\":\"missing-error\",\"status\":\"pass\"}\n{\"name\":\"null-error\",\"status\":\"pass\"}\n",
+        "stderr": ""
+      },
+      {
+        "name": "unrelated-nonempty-error-mutant",
+        "sourceSha256": "feaf0d0fb7e832b8d0f90894c343d4adbf477cdd071d927bbb0f366c04ba707a",
+        "status": 1,
+        "signal": null,
+        "stdout": "{\"name\":\"actual-candidate-binding-rejection\",\"status\":\"pass\"}\n",
+        "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Missing expected exception: unrelated-compiler-diagnostic\n    at file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-v2-dZdrA3/unrelated-nonempty-error-mutant.mjs:11:15\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: undefined,\n  expected: { code: 'ERR_ASSERTION' },\n  operator: 'throws',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n"
+      }
+    ],
+    "status": "pass",
+    "cleaned": true
+  },
+  "children": [
+    {
+      "args": [
+        "tests/integration/typecheck-workflow-message-v2-20260827/verify.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "{\n  \"fixtureCommit\": \"c7f2abab5e11539c69f890e617a461cbd5ec4a08\",\n  \"candidate\": \"a01310c5571dfda2aae4c6c8cc185e2530a01e89\",\n  \"exactChangedLines\": [\n    248\n  ],\n  \"cohort\": {\n    \"pass\": 21,\n    \"fail\": 0,\n    \"skip\": 0\n  },\n  \"diagnosticControls\": 9,\n  \"rejectedWeakMutants\": 1,\n  \"authenticatedCaptures\": 74,\n  \"original20of21Preserved\": true,\n  \"productConfigurationChanged\": false,\n  \"independentFixtureAcceptance\": \"pending root/Curie review\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "tests/integration/typecheck-workflow-message-v2-20260827/diagnostic-controls.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/typecheck-workflow-message-v2-20260827/evidence/cohort",
+        "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-message-review-byNz8W/diagnostics.json"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "{\"status\":\"pass\",\"diagnosticControls\":9,\"rejectedWeakMutant\":true,\"cleaned\":true,\"output\":\"/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-message-review-byNz8W/diagnostics.json\"}\n",
+      "stderr": ""
+    }
+  ],
+  "fullTypeCohortRerun": false,
+  "compilerRuns": 0,
+  "productExecutions": 0,
+  "verdict": "accept assertion-only fixture migration; no new product repair or whole-gate acceptance"
+}

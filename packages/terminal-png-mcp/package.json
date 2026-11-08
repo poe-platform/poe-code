@@ -1,0 +1,47 @@
+{
+  "name": "terminal-png-mcp",
+  "version": "0.1.0",
+  "description": "MCP server that exposes terminal PNG rendering as a tool.",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "terminal-png-mcp": "dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "prepack": "node ../../scripts/set-bin-executable.mjs",
+    "prepublishOnly": "tsc",
+    "test:unit": "cd ../.. && vitest run packages/terminal-png-mcp/src"
+  },
+  "files": [
+    "LICENSE",
+    "dist"
+  ],
+  "engines": {
+    "node": ">=18.18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/poe-platform/poe-code.git",
+    "directory": "packages/terminal-png-mcp"
+  },
+  "license": "MIT",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "terminal",
+    "png",
+    "ansi"
+  ],
+  "dependencies": {
+    "terminal-png": "*",
+    "tiny-stdio-mcp-server": "^0.1.0"
+  }
+}

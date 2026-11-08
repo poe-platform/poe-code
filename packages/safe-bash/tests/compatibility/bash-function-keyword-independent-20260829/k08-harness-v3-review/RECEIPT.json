@@ -1,0 +1,125 @@
+{
+  "decision": "ACCEPT_PREEXEC_ARCHIVE_DELTA_ONLY",
+  "utc": "2026-08-29T16:05:16.181Z",
+  "source": "6dfff45db6b24d0118721a905ca7f7a058a7c3ec",
+  "evidence": "674cdd70f0a3aa5577e0fafa6ad9cd3d05ee1eb2",
+  "seal": {
+    "bytes": 200923,
+    "sha256": "db262c234c02526f2864ef66d8e137e9cd9817645431d944ff3459ad3c89d9d9"
+  },
+  "productSource": "ffac894aa98b8cd98476b8ea109ef2e2425c2a07",
+  "archive": {
+    "bytes": 981948,
+    "sha256": "0b6ae3340691c1c91b26f40454b8095d2ed346389353aa93e9a43c64d5a1132c"
+  },
+  "presealSha256": "a6575abc2639555a01ffff9d1f6242f330f73b218193f087f090a11f2c2055ea",
+  "reportSha256": "949f9312f772fa6a1957c5aef528873e78cbde7cb47e23fd49ea9cb2cd2896fe",
+  "resultSha256": "92d7635397f499060a5716502a9f80a4f3e0c4e23e291ba234bcf598a07d80d3",
+  "authorGroups": {
+    "pass": 8,
+    "total": 8
+  },
+  "independentGroups": {
+    "pass": 3,
+    "total": 3
+  },
+  "helperStarts": 1,
+  "helperExit": 0,
+  "archiveAttempts": 5,
+  "successfulDecodes": 2,
+  "scope": "Same-byte future admission helper and real authenticated package; no owner/product evaluation",
+  "admission": {
+    "result": {
+      "members": 1006,
+      "expectedMembers": 1006,
+      "payloadBytes": 5037566,
+      "decodedBytes": 5803008,
+      "alignmentRemainder": 0,
+      "format": "ustar-regular-v1",
+      "terminatorBytes": 1024,
+      "paddingBytes": 249346,
+      "paddingZero": true,
+      "fullSetVerified": true,
+      "extractionCalls": 0
+    },
+    "compressedBytes": 981948,
+    "decodedBytes": 5803008,
+    "sha256": "0b6ae3340691c1c91b26f40454b8095d2ed346389353aa93e9a43c64d5a1132c"
+  },
+  "postguards": 28,
+  "preserved": [
+    "auth.mjs",
+    "direct-child.mjs",
+    "collector-core.mjs",
+    "preauth.mjs",
+    "helper-driver.mjs",
+    "case-adapter.mjs",
+    "case-driver.mjs",
+    "qualification.mjs",
+    "CASES.json",
+    "M01-DISCRIMINATOR.json",
+    "PRODUCT-EDGES.json"
+  ],
+  "unusedPaths": [
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/GO.json",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/REVIEW.json",
+    "/private/tmp/safe-bash-k08-author-RAvH2m/target-v3-installed",
+    "/private/tmp/safe-bash-k08-author-RAvH2m/target-v3-moved",
+    "/private/tmp/safe-bash-k08-author-RAvH2m/target-v3-mutant-M01",
+    "/private/tmp/safe-bash-k08-author-RAvH2m/target-v3-mutant-M02",
+    "/private/tmp/safe-bash-k08-author-RAvH2m/target-v3-mutant-M03"
+  ],
+  "emptyCapture": true,
+  "raw": [
+    {
+      "path": "prepare.stdout",
+      "bytes": 60,
+      "sha256": "f34e5495436016d14ebcccbadab8d004a14648b029cf74adda4588871d8504e0"
+    },
+    {
+      "path": "prepare.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "check.stdout",
+      "bytes": 9402,
+      "sha256": "38dfbfc37dddb915c469e0328e3556c525b95919491c9fbe94d70e5f947d3539"
+    },
+    {
+      "path": "check.stderr",
+      "bytes": 173,
+      "sha256": "af145d9a6d0be20b3f9628ae87c932ed431f2186cad04a125c85d7c6556cdbd5"
+    },
+    {
+      "path": "locator.stdout",
+      "bytes": 5637,
+      "sha256": "4690cbbe10dbdf27996252e7140f690e784f59e591ce2a4e784ad2350d807ce6"
+    },
+    {
+      "path": "locator.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "knownReviewRoles": {
+    "throughFinalPublication": 17,
+    "authorized": 20,
+    "peakConservative": 2,
+    "authorizedPeak": 3,
+    "publicationReserved": 5,
+    "globalCensus": false
+  },
+  "future": {
+    "knownOs": 86,
+    "peak": 3,
+    "seconds": 1500,
+    "capture": 100663296,
+    "work": 536870912,
+    "productCalls": 71,
+    "actualGo": false
+  },
+  "command": "exec /bin/zsh -f '/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/launch.sh' '200923' 'db262c234c02526f2864ef66d8e137e9cd9817645431d944ff3459ad3c89d9d9' 'ROOT_APPROVED_GRANT_SHA256' 'INDEPENDENT_REVIEW_SHA256'\n",
+  "activationWindow": null,
+  "historicalUnchanged": true
+}

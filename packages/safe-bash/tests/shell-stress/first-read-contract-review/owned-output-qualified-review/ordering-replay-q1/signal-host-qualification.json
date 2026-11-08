@@ -1,0 +1,26 @@
+{
+  "at": "2026-08-27T13:09:44.276Z",
+  "events": [
+    {
+      "targetSame": true,
+      "currentTargetSame": false,
+      "aborted": true,
+      "reasonUndefined": true
+    }
+  ],
+  "onabort": 1,
+  "nativeEvents": 1,
+  "nativeCurrentTargetSame": false,
+  "throwRejected": true,
+  "throwReason": {
+    "serializationTag": "undefined"
+  },
+  "combinedAborted": true,
+  "combinedReasonUndefined": false,
+  "combinedReasonName": "AbortError",
+  "nativeDefaultReasonName": "AbortError",
+  "nativeDefaultIsNotUndefined": true,
+  "syntheticBinding": "Owned native-branded signal with per-instance public reason getter and throwIfAborted override; native events, not native literal-undefined abort support; no product/prototype/global mutation",
+  "productImports": 0,
+  "productExecutions": 0
+}

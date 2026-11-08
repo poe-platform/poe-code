@@ -1,0 +1,33 @@
+{
+  "pid": 96717,
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  },
+  "reaped": true,
+  "failures": [],
+  "signals": [],
+  "records": [
+    {
+      "sequence": 0,
+      "kind": "final",
+      "report": {
+        "literalMetadataOnly": true,
+        "realAuthority": false
+      }
+    }
+  ],
+  "captureBytes": {
+    "stdout": 39,
+    "stderr": 0,
+    "records": 90
+  },
+  "stdout": "eyJmaXh0dXJlIjoiaW5kZXBlbmRlbnQtaW5lcnQtcmV2aWV3In0K",
+  "stderr": "",
+  "rawRecords": "eyJzZXF1ZW5jZSI6MCwia2luZCI6ImZpbmFsIiwicmVwb3J0Ijp7ImxpdGVyYWxNZXRhZGF0YU9ubHkiOnRydWUsInJlYWxBdXRob3JpdHkiOmZhbHNlfX0K",
+  "natural": true
+}

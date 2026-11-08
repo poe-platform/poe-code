@@ -1,0 +1,27 @@
+import assert from 'node:assert/strict';
+import { registerHooks, syncBuiltinESMExports } from 'node:module';
+import { appendFileSync, realpathSync } from 'node:fs';
+import { pathToFileURL } from 'node:url';
+import threads from 'node:worker_threads';
+
+const base = pathToFileURL(realpathSync(process.env.REVIEW_INSTALLED) + '/').href;
+const emit = record => appendFileSync(process.env.REVIEW_IMPORT_LOG, JSON.stringify({ pid: process.pid, ...record }) + '\n');
+registerHooks({ resolve(specifier, context, next) {
+  const result = next(specifier, context);
+  if (context.parentURL?.startsWith(base)) {
+    assert(result.url.startsWith(base + 'dist/') || result.url.startsWith('node:'), `external product import ${result.url}`);
+    emit({ kind: 'product-import', parent: context.parentURL, resolved: result.url });
+  }
+  if (result.url.startsWith('file:')) assert(!result.url.includes('/src/'), `source import forbidden ${result.url}`);
+  return result;
+} });
+const NativeWorker = threads.Worker;
+threads.Worker = class extends NativeWorker {
+  constructor(url, options) {
+    assert.equal(url.href, base + 'dist/commands/regex-execution/worker.js');
+    super(url, options);
+    emit({ kind: 'worker-start', url: url.href, execArgv: options?.execArgv });
+    this.on('exit', code => emit({ kind: 'worker-exit', code }));
+  }
+};
+syncBuiltinESMExports();

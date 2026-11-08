@@ -1,0 +1,13 @@
+{
+  "start": "2026-08-29T14:21:53.144Z",
+  "deadline": "2026-08-29T14:46:53.144Z",
+  "limits": {
+    "knownOS": 64,
+    "peak": 3,
+    "capture": 100663296,
+    "work": 536870912,
+    "pureHelpers": 4,
+    "harmlessFixtures": 4
+  },
+  "runtime": false
+}

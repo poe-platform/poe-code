@@ -1,0 +1,25 @@
+--- approved-v2/controls/guard.mjs
++++ zero-overlay/controls/guard.mjs
+@@ -20,6 +20,7 @@
+ const log = resolve(root, "logs", `${process.env.LIFECYCLE_ROW}.guard.ndjson`);
+ const failures = [];
+ const activeTimers = new Set();
++const timerRequests = [];
+ const fail = (operation, target) => {
+   const entry = { operation, target: String(target ?? ""), pid: process.pid };
+   failures.push(entry);
+@@ -73,6 +74,8 @@
+   const originalSet = timers[setName];
+   const originalClear = timers[clearName];
+   const wrappedSet = (callback, ...args) => {
++    assert.ok(timerRequests.length < 512);
++    timerRequests.push({ operation: setName, delay: args[0] });
+     let handle;
+     handle = originalSet((...values) => { if (setName !== "setInterval") activeTimers.delete(handle); callback(...values); }, ...args);
+     activeTimers.add(handle);
+@@ -83,4 +86,4 @@
+   timers[clearName] = globalThis[clearName] = wrappedClear;
+ }
+ syncBuiltinESMExports();
+-export const guardState = () => ({ failures: [...failures], activeTimers: activeTimers.size, workersCreated: 0, subprocessesCreated: 0, socketsCreated: 0 });
++export const guardState = () => ({ failures: [...failures], activeTimers: activeTimers.size, timerRequests: [...timerRequests], workersCreated: 0, subprocessesCreated: 0, socketsCreated: 0 });

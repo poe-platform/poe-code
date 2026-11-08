@@ -1,0 +1,18 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+    "-p",
+    "tsconfig.build.json",
+    "--skipLibCheck",
+    "false"
+  ],
+  "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/source",
+  "started": "2026-08-27T21:17:00.353Z",
+  "finished": "2026-08-27T21:17:05.182Z",
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "stdout": "",
+  "stderr": ""
+}

@@ -1,0 +1,10 @@
+import fs from 'node:fs';
+import crypto from 'node:crypto';
+const own='tests/integration/agent-bash-coherent-independent-20260829/b1-r6-final-review';
+const sha=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
+const start=fs.statSync(`${own}/raw/startup.stdout`).birthtimeMs;
+if(Date.now()>=start+420000)throw Error('PUBLICATION_DEADLINE');
+const paths=['REPORT.md','PRESEAL.md','inspect.mjs','INSPECTED.json','review.mjs','publish.mjs','raw/startup.stdout','raw/startup.stderr','raw/inspection.stdout','raw/inspection.stderr','raw/syntax.stdout','raw/syntax.stderr','raw/review.stdout','raw/review.stderr'];
+const bindings=paths.map(path=>{const file=`${own}/${path}`;const stat=fs.lstatSync(file);if(!stat.isFile()||stat.size>2097152)throw Error('CAPTURE_TYPE_CAP');const bytes=fs.readFileSync(file);return{path,bytes:bytes.length,sha256:sha(bytes)};});
+const receipt={schema:'B1-r6-independent-hold-v1',at:new Date().toISOString(),verdict:'HOLD',reason:'Reviewer recursively confused package-member paths with live repository-file authority; SIZE refusal before PURE import; no candidate finding',final:{bytes:24620,sha256:'8bd385557c356994062d62fb10d9aef485e3c440dd509e68220425ae770e03a9'},pure:{authorGroupsUnrun:8,novelGroupsUnrun:3},actualPublisher:0,product:0,Workers:0,window:{latest:'2026-08-29T16:17:10.730Z',expiry:'2026-08-29T16:47:10.730Z',renewed:false},knownProcessChargeCeilingThroughPublication:22,bindings};
+const bytes=Buffer.from(JSON.stringify(receipt,null,2)+'\n');fs.writeFileSync(`${own}/RECEIPT.json`,bytes,{flag:'wx',mode:0o600});console.log(JSON.stringify({at:receipt.at,bytes:bytes.length,receiptSha256:sha(bytes),verdict:receipt.verdict}));

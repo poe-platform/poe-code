@@ -1,0 +1,37 @@
+{
+  "schema": "html74-rss-diagnostic-recipe/1",
+  "at": "2026-08-27T23:06:54.866Z",
+  "scope": "Telemetry-only; not acceptance or rescore; one authorized execution",
+  "coveredFiles": 7,
+  "fileCountIncludingManifest": 8,
+  "files": {
+    "authenticate.mjs": {
+      "sha256": "858ebe102e0db4520fadfd285428f42c0a75989641568075e3dad5f18df4eaf3",
+      "bytes": 5580
+    },
+    "diagnose.mjs": {
+      "sha256": "37772cd56b1490dac72effb5efad69a7c0fb4ad3a407802889edfcf1a2523168",
+      "bytes": 5914
+    },
+    "memory.mjs": {
+      "sha256": "88ccefe3253b57126e6566bf1512e579efcf8b42f7e84fef607a294d12f0cb45",
+      "bytes": 707
+    },
+    "PREFLIGHT.json": {
+      "sha256": "d15a1a7eee870632e986226b090e7a8c476cb8679d7c5210611cadc3fd991877",
+      "bytes": 3212
+    },
+    "producer-observer.mjs": {
+      "sha256": "706c533532f6ea791342d762104fb87989a4ec234e466b253b8a1828aed317b6",
+      "bytes": 2353
+    },
+    "RECIPE.data": {
+      "sha256": "733c0b465a4a3394b3d6223445fc4293186518da4fda534ecefa881712843e4c",
+      "bytes": 5186
+    },
+    "supervise.mjs": {
+      "sha256": "b600f480c50428d8b9f19e620e5502ff10297825b767b4e0e204c0f7815d14bd",
+      "bytes": 5060
+    }
+  }
+}

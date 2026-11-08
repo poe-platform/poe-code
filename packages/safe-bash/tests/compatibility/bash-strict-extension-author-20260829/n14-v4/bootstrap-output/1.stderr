@@ -1,0 +1,12 @@
+node:internal/modules/cjs/loader:1386
+  throw err;
+  ^
+
+Error: Cannot find module '/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-author-20260829/n14-v4/bootstrap-output/missing/entry.mjs'
+    at node:internal/modules/cjs/loader:1383:15
+    at node:internal/main/check_syntax:33:20 {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: []
+}
+
+Node.js v22.22.2

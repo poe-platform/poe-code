@@ -1,0 +1,1 @@
+exec /bin/zsh -f '/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v3/launch.sh' '9140' '60f526f043e7e94b1526f8146d792b342a148efb261ffb3435dfb8b5ea2cc1ff' 'ROOT_APPROVED_GRANT_SHA256' 'INDEPENDENT_REVIEW_SHA256'

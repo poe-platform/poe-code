@@ -1,0 +1,315 @@
+import type { GhCommandOptions } from "../lazy-gh.js";
+import { CommandRegistry, type CommandDefinition, type CommandHandler } from "../contracts/index.js";
+import { PublicDiagnostic } from "../diagnostics.js";
+import { createStandardCommandsWithGrep, type ExecutionCommandsOptions, type StandardCommandsOptions } from "../commands/standard.js";
+import { diagnostic } from "../commands/internal.js";
+import { createTextProgramCommands, type TextProgramOptions } from "../commands/text-programs/index.js";
+import { createStructuredCommands, type StructuredCommandsOptions } from "../commands/structured/index.js";
+import { createRgCommand } from "../commands/search/rg-command.js";
+import type { SearchOptions } from "../commands/search/options.js";
+import { createGrepCommands } from "../commands/search/grep.js";
+import type { RegexExecutor } from "../commands/regex-execution/portable.js";
+import { createByteCommands, type ByteCommandsOptions } from "../commands/bytes/index.js";
+import { createDiffPatchCommands, type DiffPatchOptions } from "../commands/diff-patch/index.js";
+import { createMetadataCommands, type MetadataCommandsOptions } from "../commands/metadata/index.js";
+import { createArchiveCommands, type ArchiveCommandsOptions } from "../commands/archive/index.js";
+import { createTableTextCommands, type TableTextCommandsOptions } from "../commands/table-text/index.js";
+import { createStreamInspectionCommands, type StreamInspectionCommandsOptions } from "../commands/stream-inspection/index.js";
+import { createStreamFormatCommands, type StreamFormatCommandsOptions } from "../commands/stream-format/index.js";
+import { createSplitCommands, type SplitCommandsOptions } from "../commands/split/index.js";
+import { createTimeEnvCommands, type TimeEnvCommandsOptions } from "../commands/time-env/index.js";
+import { createTreeCommands, type TreeCommandsOptions } from "../commands/tree/index.js";
+import { createFileCommands, type FileCommandsOptions } from "../commands/file/index.js";
+import { createGrepAliases } from "../commands/grep-aliases/aliases.js";
+import { createColumnCommands, type ColumnCommandsOptions } from "../commands/column/index.js";
+import { createHtmlToMarkdownCommands, type HtmlToMarkdownCommandsOptions } from "../commands/html-to-markdown/index.js";
+import { createDuCommands, type DuCommandsOptions } from "../commands/du/index.js";
+import { createExprCommandWithExecutor } from "safe-bash-command-expr/command";
+import type { ExprCommandsOptions } from "safe-bash-command-expr/internal";
+import { createWhichCommands, type WhichCommandsOptions } from "../commands/which/index.js";
+import { createTimeoutCommands, type TimeoutCommandsOptions } from "../commands/timeout/index.js";
+import { createApplyPatchCommands, type ApplyPatchCommandsOptions } from "../commands/apply-patch/index.js";
+import { createXmlCommands, type XmlCommandsOptions } from "../commands/xml/index.js";
+import { createCsplitCommandWithExecutor } from "safe-bash-command-csplit/command";
+import type { CsplitCommandsOptions } from "safe-bash-command-csplit/internal";
+import { createPrCommands, type PrCommandsOptions } from "../commands/pr/index.js";
+import { createTsortCommands, type TsortCommandsOptions } from "../commands/tsort/index.js";
+import { createFactorCommands, type FactorCommandsOptions } from "../commands/factor/index.js";
+import { createGetoptCommands, type GetoptCommandsOptions } from "../commands/getopt/index.js";
+import { createHexdumpCommands, type HexdumpCommandsOptions } from "../commands/hexdump/index.js";
+import { createIconvCommands, type IconvCommandsOptions } from "../commands/iconv/index.js";
+import { createLineEndingCommands, type LineEndingCommandsOptions } from "../commands/line-endings/index.js";
+import { createBcCommands, type BcCommandsOptions } from "../commands/bc/index.js";
+import { createSpongeCommands, type SpongeCommandsOptions } from "../commands/sponge/index.js";
+import { createOpensslCommands } from "../commands/openssl/index.js";
+import { createSshCommands } from "../commands/ssh/index.js";
+import { createGpgCommands } from "../commands/gpg/index.js";
+import { createFdCommands, type FdCommandsOptions } from "../commands/fd/index.js";
+import { createLessCommands, type LessCommandsOptions } from "../commands/less/index.js";
+import { createIdCommands } from "../commands/id/index.js";
+import { createWhoamiCommands } from "../commands/whoami/index.js";
+import { createUnameCommands } from "../commands/uname/index.js";
+import { createHostnameCommands } from "../commands/hostname/index.js";
+import { createNprocCommands } from "../commands/nproc/index.js";
+import { createShufCommands } from "../shuf.js";
+import { createYesCommands } from "../yes.js";
+import { createNumfmtCommands } from "../commands/numfmt/index.js";
+import { createEnvsubstCommands } from "../commands/envsubst/index.js";
+import { createCalCommands } from "../commands/cal/index.js";
+import { createPathchkCommands } from "../commands/pathchk/index.js";
+import { createGetconfCommands } from "../commands/getconf/index.js";
+import { createLocaleCommands } from "../commands/locale/index.js";
+import { createDfCommands } from "../commands/df/index.js";
+import { createSqlite3Commands, type Sqlite3CommandsOptions } from "../commands/sqlite3/index.js";
+import { createMdqCommand, type MdqCommandOptions } from "../commands/mdq/index.js";
+import { createXanCommands, type XanCommandsOptions } from "../commands/xan/index.js";
+import type { RegexExecutionOptions } from "../commands/regex-execution/protocol.js";
+import type { BoundedRegexProvider } from "../commands/regex-execution/provider.js";
+
+function createExtraAgentCommands(options?: { bc?: Omit<BcCommandsOptions, "replace">; sponge?: Omit<SpongeCommandsOptions, "replace">; fd?: Omit<FdCommandsOptions, "replace">; less?: Omit<LessCommandsOptions, "replace">; sqlite3?: Omit<Sqlite3CommandsOptions, "replace"> }): readonly CommandDefinition[] {
+  return [...createBcCommands(options?.bc), ...createSpongeCommands(options?.sponge), ...createOpensslCommands(), ...createSshCommands(), ...createGpgCommands(), ...createFdCommands(options?.fd), ...createLessCommands(options?.less), ...createIdCommands(), ...createWhoamiCommands(), ...createUnameCommands(), ...createHostnameCommands(), ...createNprocCommands(), ...createShufCommands(), ...createYesCommands(), ...createNumfmtCommands(), ...createEnvsubstCommands(), ...createCalCommands(), ...createPathchkCommands(), ...createGetconfCommands(), ...createLocaleCommands(), ...createDfCommands(), ...createSqlite3Commands(options?.sqlite3)];
+}
+
+export interface AgentCommandsOptions {
+  readonly gh?: GhCommandOptions;
+  readonly predicateIdentity?: StandardCommandsOptions["predicateIdentity"];
+  readonly execution?: ExecutionCommandsOptions;
+  readonly bytes?: Omit<ByteCommandsOptions, "replace">;
+  readonly applyPatch?: Omit<ApplyPatchCommandsOptions, "replace">;
+  readonly xml?: Omit<XmlCommandsOptions, "replace">;
+  readonly timeout?: Omit<TimeoutCommandsOptions, "replace">;
+  readonly which?: Omit<WhichCommandsOptions, "replace">;
+  readonly expr?: Omit<ExprCommandsOptions, "replace" | "regex" | "regexExecutor">;
+  readonly csplit?: Omit<CsplitCommandsOptions, "replace" | "regex" | "regexExecutor">;
+  readonly pr?: Omit<PrCommandsOptions, "replace">;
+  readonly tsort?: Omit<TsortCommandsOptions, "replace">;
+  readonly factor?: Omit<FactorCommandsOptions, "replace">;
+  readonly getopt?: Omit<GetoptCommandsOptions, "replace">;
+  readonly hexdump?: Omit<HexdumpCommandsOptions, "replace">;
+  readonly iconv?: Omit<IconvCommandsOptions, "replace">;
+  readonly lineEndings?: Omit<LineEndingCommandsOptions, "replace">;
+  readonly bc?: Omit<BcCommandsOptions, "replace">;
+  readonly sponge?: Omit<SpongeCommandsOptions, "replace">;
+  readonly fd?: Omit<FdCommandsOptions, "replace">;
+  readonly less?: Omit<LessCommandsOptions, "replace">;
+  readonly sqlite3?: Omit<Sqlite3CommandsOptions, "replace">;
+  /** Include convenience commands by default; false disables this family. */
+  readonly muscleMemory?: boolean;
+  readonly mdq?: Omit<MdqCommandOptions, "replace">;
+  readonly xan?: Omit<XanCommandsOptions, "replace">;
+  readonly du?: Omit<DuCommandsOptions, "replace">;
+  readonly htmlToMarkdown?: Omit<HtmlToMarkdownCommandsOptions, "replace">;
+  readonly replace?: boolean;
+  readonly execute?: CommandHandler;
+  readonly regex?: RegexExecutionOptions;
+  readonly regexExecutor?: BoundedRegexProvider;
+  readonly maxDirectoryEntries?: number;
+  readonly maxRecursiveDirectoryDepth?: number;
+  readonly maxTeeTargets?: number;
+  readonly maxTailFollowHandles?: number;
+  readonly text?: Omit<TextProgramOptions, "replace">;
+  readonly structured?: Omit<StructuredCommandsOptions, "replace">;
+  readonly search?: Omit<SearchOptions, "replace" | "regexExecutor">;
+  readonly diffPatch?: Omit<DiffPatchOptions, "replace">;
+  readonly metadata?: Omit<MetadataCommandsOptions, "replace">;
+  readonly archive?: Omit<ArchiveCommandsOptions, "replace">;
+  readonly tableText?: Omit<TableTextCommandsOptions, "replace">;
+  readonly streamInspection?: Omit<StreamInspectionCommandsOptions, "replace">;
+  readonly streamFormat?: Omit<StreamFormatCommandsOptions, "replace">;
+  readonly split?: Omit<SplitCommandsOptions, "replace">;
+  readonly timeEnv?: Omit<TimeEnvCommandsOptions, "replace">;
+  readonly tree?: Omit<TreeCommandsOptions, "replace">;
+  readonly file?: Omit<FileCommandsOptions, "replace">;
+  readonly column?: Omit<ColumnCommandsOptions, "replace">;
+}
+
+export function commandExecutor(lookup: (name: string) => CommandDefinition | undefined): CommandHandler {
+  return async context => {
+    const command = lookup(context.command);
+    if (command) return command.execute(context);
+    await diagnostic(context, new PublicDiagnostic("command not found"));
+    return { exitCode: 127 };
+  };
+}
+
+export interface AgentRegexExecutors {
+  readonly grep: RegexExecutor;
+  readonly aliases: RegexExecutor;
+  readonly expr: RegexExecutor;
+  readonly csplit: RegexExecutor;
+  readonly search: RegexExecutor;
+}
+
+let cachedDefaultStatelessFamilies: {
+  readonly beforeAliases: readonly CommandDefinition[];
+  readonly beforeExpr: readonly CommandDefinition[];
+  readonly beforeCsplit: readonly CommandDefinition[];
+  readonly afterCsplit: readonly CommandDefinition[];
+} | undefined;
+
+function getDefaultStatelessFamilies() {
+  return cachedDefaultStatelessFamilies ??= {
+    beforeAliases: Object.freeze([
+      ...createTextProgramCommands({}),
+      ...createStructuredCommands({}),
+      ...createByteCommands(undefined),
+      ...createDiffPatchCommands({}),
+      ...createMetadataCommands({}),
+      ...createArchiveCommands({}),
+      ...createTableTextCommands({}),
+      ...createStreamInspectionCommands({}),
+      ...createStreamFormatCommands({}),
+      ...createSplitCommands({}),
+      ...createTimeEnvCommands({}),
+      ...createTreeCommands({}),
+      ...createFileCommands({}),
+    ]),
+    beforeExpr: Object.freeze([
+      ...createColumnCommands({}),
+      ...createHtmlToMarkdownCommands({}),
+      ...createDuCommands({}),
+    ]),
+    beforeCsplit: Object.freeze([
+      ...createWhichCommands({}),
+      ...createTimeoutCommands(undefined),
+      ...createApplyPatchCommands({}),
+      ...createXmlCommands({}),
+    ]),
+    afterCsplit: Object.freeze([
+      ...createPrCommands({}),
+      ...createTsortCommands({}),
+      ...createFactorCommands({}),
+      ...createGetoptCommands({}),
+      ...createHexdumpCommands({}),
+      ...createIconvCommands({}),
+      ...createLineEndingCommands({}),
+      createMdqCommand(),
+      ...createXanCommands(),
+    ]),
+  };
+}
+
+function hasCustomFamilyOptions(options: AgentCommandsOptions): boolean {
+  return (
+    options.text !== undefined ||
+    options.structured !== undefined ||
+    options.bytes !== undefined ||
+    options.diffPatch !== undefined ||
+    options.metadata !== undefined ||
+    options.archive !== undefined ||
+    options.tableText !== undefined ||
+    options.streamInspection !== undefined ||
+    options.streamFormat !== undefined ||
+    options.split !== undefined ||
+    options.timeEnv !== undefined ||
+    options.tree !== undefined ||
+    options.file !== undefined ||
+    options.column !== undefined ||
+    options.htmlToMarkdown !== undefined ||
+    options.du !== undefined ||
+    options.which !== undefined ||
+    options.timeout !== undefined ||
+    options.applyPatch !== undefined ||
+    options.xml !== undefined ||
+    options.pr !== undefined ||
+    options.tsort !== undefined ||
+    options.factor !== undefined ||
+    options.getopt !== undefined ||
+    options.hexdump !== undefined ||
+    options.iconv !== undefined ||
+    options.lineEndings !== undefined ||
+    options.bc !== undefined ||
+    options.sponge !== undefined ||
+    options.fd !== undefined ||
+    options.less !== undefined ||
+    options.sqlite3 !== undefined ||
+    options.muscleMemory !== undefined ||
+    options.mdq !== undefined ||
+    options.xan !== undefined
+  );
+}
+
+export function composeRawAgentCommands(options: AgentCommandsOptions, executors: AgentRegexExecutors, additionalCommands: readonly CommandDefinition[] = [], trailingCommands: readonly CommandDefinition[] = []): readonly CommandDefinition[] {
+  const commands: CommandDefinition[] = [...additionalCommands];
+  const useErgonomicGrep = options.regexExecutor === undefined;
+  const grep = createGrepCommands(executors.grep, { ergonomicRegex: useErgonomicGrep });
+  const exprLimits = options.expr?.limits;
+  const csplitLimits = options.csplit?.limits;
+  if (!hasCustomFamilyOptions(options)) {
+    const defaults = getDefaultStatelessFamilies();
+    const aliasesGrep = executors.aliases === executors.grep ? grep[0]! : createGrepCommands(executors.aliases, { ergonomicRegex: useErgonomicGrep })[0]!;
+    commands.push(
+      ...createStandardCommandsWithGrep({ execute: options.execute ?? commandExecutor(name => commands.find(command => command.name === name)), ...(options.execution === undefined ? {} : { execution: options.execution }), ...(options.regex === undefined ? {} : { regex: options.regex }), ...(options.maxDirectoryEntries === undefined ? {} : { maxDirectoryEntries: options.maxDirectoryEntries }), ...(options.maxRecursiveDirectoryDepth === undefined ? {} : { maxRecursiveDirectoryDepth: options.maxRecursiveDirectoryDepth }), ...(options.maxTeeTargets === undefined ? {} : { maxTeeTargets: options.maxTeeTargets }), ...(options.maxTailFollowHandles === undefined ? {} : { maxTailFollowHandles: options.maxTailFollowHandles }) }, grep),
+      ...defaults.beforeAliases,
+      createRgCommand(executors.search, options.search),
+      ...createGrepAliases(aliasesGrep),
+      ...defaults.beforeExpr,
+      createExprCommandWithExecutor(executors.expr, exprLimits === undefined ? {} : { limits: exprLimits }),
+      ...defaults.beforeCsplit,
+      createCsplitCommandWithExecutor(executors.csplit, csplitLimits === undefined ? {} : { limits: csplitLimits }),
+      ...defaults.afterCsplit,
+    );
+    commands.push(...createExtraAgentCommands(options).filter(command => command.name !== "shuf" && command.name !== "numfmt"), ...trailingCommands);
+    return commands;
+  }
+  const prOptions = options.pr;
+  const prLimits = prOptions?.limits;
+  const prClock = prOptions?.clock;
+  const tsortLimits = options.tsort?.limits;
+  const factorLimits = options.factor?.limits;
+  const getoptLimits = options.getopt?.limits;
+  const hexdumpLimits = options.hexdump?.limits;
+  const hexdumpDialect = options.hexdump?.dialect;
+  const iconvLimits = options.iconv?.limits;
+  const lineEndingLimits = options.lineEndings?.limits;
+  const whichLimits = options.which?.limits;
+  const timeoutOptions = options.timeout;
+  const applyPatchLimits = options.applyPatch?.limits;
+  const xmlLimits = options.xml?.limits;
+  commands.push(
+    // Explicit muscle-memory registration selects its shuf and numfmt definitions.
+    ...createStandardCommandsWithGrep({ execute: options.execute ?? commandExecutor(name => commands.find(command => command.name === name)), ...(options.execution === undefined ? {} : { execution: options.execution }), ...(options.regex === undefined ? {} : { regex: options.regex }), ...(options.maxDirectoryEntries === undefined ? {} : { maxDirectoryEntries: options.maxDirectoryEntries }), ...(options.maxRecursiveDirectoryDepth === undefined ? {} : { maxRecursiveDirectoryDepth: options.maxRecursiveDirectoryDepth }), ...(options.maxTeeTargets === undefined ? {} : { maxTeeTargets: options.maxTeeTargets }), ...(options.maxTailFollowHandles === undefined ? {} : { maxTailFollowHandles: options.maxTailFollowHandles }) }, grep).filter(command => !options.muscleMemory || (command.name !== "shuf" && command.name !== "numfmt")),
+    ...createTextProgramCommands({ ...options.text }),
+    ...createStructuredCommands({ ...options.structured }),
+    createRgCommand(executors.search, options.search),
+    ...createByteCommands(options.bytes),
+    ...createDiffPatchCommands({ ...options.diffPatch }),
+    ...createMetadataCommands({ ...options.metadata }),
+    ...createArchiveCommands({ ...options.archive }),
+    ...createTableTextCommands({ ...options.tableText }),
+    ...createStreamInspectionCommands({ ...options.streamInspection }),
+    ...createStreamFormatCommands({ ...options.streamFormat }),
+    ...createSplitCommands({ ...options.split }),
+    ...createTimeEnvCommands({ ...options.timeEnv }),
+    ...createTreeCommands({ ...options.tree }),
+    ...createFileCommands({ ...options.file }),
+    ...createGrepAliases(createGrepCommands(executors.aliases, { ergonomicRegex: useErgonomicGrep })[0]!),
+    ...createColumnCommands({ ...options.column }),
+    ...createHtmlToMarkdownCommands({ ...options.htmlToMarkdown }),
+    ...createDuCommands({ ...options.du }),
+    createExprCommandWithExecutor(executors.expr, exprLimits === undefined ? {} : { limits: exprLimits }),
+    ...createWhichCommands(whichLimits === undefined ? {} : { limits: whichLimits }),
+    ...createTimeoutCommands(timeoutOptions === undefined ? undefined : {
+      ...timeoutOptions,
+    }),
+    ...createApplyPatchCommands(applyPatchLimits === undefined ? {} : { limits: applyPatchLimits }),
+    ...createXmlCommands(xmlLimits === undefined ? {} : { limits: xmlLimits }),
+    createCsplitCommandWithExecutor(executors.csplit, csplitLimits === undefined ? {} : { limits: csplitLimits }),
+    ...createPrCommands({ ...(prLimits === undefined ? {} : { limits: prLimits }), ...(prClock === undefined ? {} : { clock: prClock }) }),
+    ...createTsortCommands(tsortLimits === undefined ? {} : { limits: tsortLimits }),
+    ...createFactorCommands(factorLimits === undefined ? {} : { limits: factorLimits }),
+    ...createGetoptCommands(getoptLimits === undefined ? {} : { limits: getoptLimits }),
+    ...createHexdumpCommands({ ...(hexdumpLimits === undefined ? {} : { limits: hexdumpLimits }), ...(hexdumpDialect === undefined ? {} : { dialect: hexdumpDialect }) }),
+    ...createIconvCommands(iconvLimits === undefined ? {} : { limits: iconvLimits }),
+    ...createLineEndingCommands(lineEndingLimits === undefined ? {} : { limits: lineEndingLimits }),
+    createMdqCommand(options.mdq),
+    ...createXanCommands(options.xan),
+    ...(options.muscleMemory !== false ? createExtraAgentCommands(options).filter(command => options.muscleMemory === true || (command.name !== "shuf" && command.name !== "numfmt")) : options.sqlite3 ? createSqlite3Commands(options.sqlite3) : []),
+    ...trailingCommands,
+  );
+  return commands;
+}
+
+export function composeAgentCommands(options: AgentCommandsOptions, executors: AgentRegexExecutors, additionalCommands: readonly CommandDefinition[] = [], trailingCommands: readonly CommandDefinition[] = []): readonly CommandDefinition[] {
+  return new CommandRegistry(composeRawAgentCommands(options, executors, additionalCommands, trailingCommands)).list();
+}

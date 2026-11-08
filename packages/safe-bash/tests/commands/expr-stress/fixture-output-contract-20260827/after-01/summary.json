@@ -1,0 +1,87 @@
+{
+  "start": "2026-08-27T19:13:01.335Z",
+  "end": "2026-08-27T19:13:18.744Z",
+  "phase": "after",
+  "base": "21220b465537bf45ffcfb36740956a69f43bf75e",
+  "fixtureCommit": "be72c9c86c1a6cb00a0b14d86a7f3f8eb7b6c5e7",
+  "headAtStart": "be72c9c86c1a6cb00a0b14d86a7f3f8eb7b6c5e7",
+  "sourceComposition": "Accepted-base selected archive plus ONLY grammar fixture from committed fixture delta; not a whole-commit archive gate.",
+  "selectedArchivePaths": [
+    "src",
+    "tests/commands/expr",
+    "tests/commands/expr-author/regex-audit-cases.ts",
+    "package.json",
+    "package-lock.json",
+    "tsconfig.json",
+    "tsconfig.build.json"
+  ],
+  "archiveTarSha256": "d3c6a6ccb197aa99d79fba89136afc1484f41738de570ee2f0c8e833fc44a9b5",
+  "scratch": "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/fixture-output-contract-20260827/.archive-tWUMMs",
+  "nodeIdentity": {
+    "version": "v22.22.2",
+    "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "realpath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "host": {
+    "platform": "darwin",
+    "release": "25.4.0",
+    "arch": "arm64"
+  },
+  "nativeIdentity": {
+    "configuredPath": "tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+    "actualPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+    "sha256": "e8a4e2b58a33d2ad6bfa9eb8a4ed5f62775ab9ceac4b9421680c98973fd9109c",
+    "argv0": "expr",
+    "versionProbe": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "stdoutBase64": "ZXhwciAoR05VIGNvcmV1dGlscykgOS43CkNvcHlyaWdodCAoQykgMjAyNSBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb24sIEluYy4KTGljZW5zZSBHUEx2Mys6IEdOVSBHUEwgdmVyc2lvbiAzIG9yIGxhdGVyIDxodHRwczovL2dudS5vcmcvbGljZW5zZXMvZ3BsLmh0bWw+LgpUaGlzIGlzIGZyZWUgc29mdHdhcmU6IHlvdSBhcmUgZnJlZSB0byBjaGFuZ2UgYW5kIHJlZGlzdHJpYnV0ZSBpdC4KVGhlcmUgaXMgTk8gV0FSUkFOVFksIHRvIHRoZSBleHRlbnQgcGVybWl0dGVkIGJ5IGxhdy4KCldyaXR0ZW4gYnkgTWlrZSBQYXJrZXIsIEphbWVzIFlvdW5nbWFuLCBhbmQgUGF1bCBFZ2dlcnQuCg==",
+      "stderrBase64": ""
+    },
+    "versionSupported": true,
+    "linkedLibraries": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr:\n\t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1356.0.0)\n"
+  },
+  "nativeSha256Before": "e8a4e2b58a33d2ad6bfa9eb8a4ed5f62775ab9ceac4b9421680c98973fd9109c",
+  "initialStatus": "?? src/shell/getopts.ts\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/expr-stress/fixture-output-contract-20260827/\n?? tests/commands/expr-stress/named-profile-design-20260827/\n?? tests/commands/expr-stress/posix-semantics-independent-20260827/SOURCES.json\n?? tests/commands/expr-stress/posix-semantics-independent-20260827/capture.json\n?? tests/commands/expr-stress/posix-semantics-independent-20260827/verify.mjs\n?? tests/commands/expr-stress/repeat-history-author/candidate-bre-worker.ts.data\n?? tests/commands/expr-stress/sequencing-design-20260827/\n?? tests/commands/html-to-markdown-independent-20260827/audit-loader.mjs\n?? tests/commands/html-to-markdown-independent-20260827/capture-01/\n?? tests/commands/html-to-markdown-independent-20260827/consumer.mjs\n?? tests/commands/html-to-markdown-independent-20260827/execute.mjs\n?? tests/commands/html-to-markdown-independent-20260827/setup.mjs\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/shell/getopts/helpers.ts\n?? tests/shell/getopts/native.test.ts\n?? tests/shell/getopts/scanner.test.ts\n?? tests/shell/getopts/work.test.ts\n",
+  "initialIndex": "",
+  "summaries": {
+    "grammar": {
+      "status": 0,
+      "lines": [
+        "ℹ tests 73",
+        "ℹ suites 0",
+        "ℹ pass 73",
+        "ℹ fail 0",
+        "ℹ cancelled 0",
+        "ℹ skipped 0",
+        "ℹ todo 0"
+      ]
+    },
+    "legacy": {
+      "status": 0,
+      "lines": [
+        "ℹ tests 241",
+        "ℹ suites 0",
+        "ℹ pass 241",
+        "ℹ fail 0",
+        "ℹ cancelled 0",
+        "ℹ skipped 0",
+        "ℹ todo 0"
+      ]
+    },
+    "diagnostics": {
+      "status": 0,
+      "lines": [
+        "ℹ tests 71",
+        "ℹ suites 0",
+        "ℹ pass 71",
+        "ℹ fail 0",
+        "ℹ cancelled 0",
+        "ℹ skipped 0",
+        "ℹ todo 0"
+      ]
+    }
+  }
+}

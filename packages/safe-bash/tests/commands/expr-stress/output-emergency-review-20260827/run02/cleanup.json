@@ -1,0 +1,5 @@
+{
+  "scratch": "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/output-emergency-review-20260827/.owned-8o16p1",
+  "absent": true,
+  "childProtocol": "One bounded synchronous child, normally exited; worker termination awaited in probe; timeout uses SIGTERM, never SIGSTOP."
+}

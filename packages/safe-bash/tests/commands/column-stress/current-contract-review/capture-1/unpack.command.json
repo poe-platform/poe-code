@@ -1,0 +1,31 @@
+{
+  "command": [
+    "tar",
+    "-xzf",
+    "/private/tmp/safe-bash-column-current-l7jXfm/pack/virtual-bash-0.0.0.tgz",
+    "--strip-components=1",
+    "-C",
+    "/private/tmp/safe-bash-column-current-l7jXfm/staging/node_modules/virtual-bash"
+  ],
+  "cwd": "/private/tmp/safe-bash-column-current-l7jXfm",
+  "startedAt": "2026-08-27T15:57:02.058Z",
+  "finishedAt": "2026-08-27T15:57:02.230Z",
+  "deadlineMs": 90000,
+  "status": 0,
+  "signal": null,
+  "termination": null,
+  "spawnError": null,
+  "observedBytes": {
+    "stdout": 0,
+    "stderr": 0
+  },
+  "stdoutHex": "",
+  "stderrHex": "",
+  "cleanup": "child-close-observed-owned-process-group-retired",
+  "isolationEnvironment": {
+    "NODE_OPTIONS": "",
+    "NODE_PATH": "",
+    "npm_config_offline": "true",
+    "npm_config_ignore_scripts": "true"
+  }
+}

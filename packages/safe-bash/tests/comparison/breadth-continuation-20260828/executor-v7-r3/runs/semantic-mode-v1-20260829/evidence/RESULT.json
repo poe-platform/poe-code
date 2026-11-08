@@ -1,0 +1,77 @@
+{
+  "schema": "SEMANTIC_MODE_PREEXECUTION_RESULT_V1",
+  "status": "READY_FOR_DIFFERENT_REVIEW_ACTUAL_GO_WITHHELD",
+  "presealCommit": "428cb8c0ec1c3aa1737c4138198bedce300ebea5",
+  "sealSha256": "357baeaa36eafdbd3e26c84b6483ec25a50061e22d179efec95ae362cafd065d",
+  "newControls": 18,
+  "retainedAdmissionDataControls": 3,
+  "passed": 21,
+  "failed": 0,
+  "unrun": 0,
+  "controlProcess": {
+    "pid": 44594,
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "close": {
+      "code": 0,
+      "signal": null
+    },
+    "reaped": true,
+    "stdoutBytes": 147,
+    "stderrBytes": 0,
+    "observedEqualsRetained": true
+  },
+  "actualEngineImports": 0,
+  "actualWorkers": 0,
+  "actualC11": 0,
+  "actualSemanticPrograms": 0,
+  "modelReceiptRows": 198,
+  "modelAuthorityAndLoadWitnessesNotActual": true,
+  "modelEnvelopeQualification": "Coordinator envelopes are constructed in-process test values, not independent OS raw captures; archived817 files cover all materialized synthetic fixture bytes. No absent historical raw bytes reconstructed.",
+  "archive": {
+    "schema": "SYNTHETIC_DATA_ARCHIVE_RECONCILIATION_V1",
+    "archive": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/evidence/SYNTHETIC-RECEIPTS.ndjson.gz",
+      "bytes": 27345541,
+      "mode": 384,
+      "sha256": "cac2e2e5b2aad8bac330903cc221b1586c6ed798867f5853067bc633c70772a3"
+    },
+    "plan": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/evidence/ARCHIVE-PLAN.json",
+      "bytes": 191868,
+      "mode": 384,
+      "sha256": "4d8feadcc277e9a0bc9056b2fd21cd968147544e419461bc25cd1c1834e909ca"
+    },
+    "verifiedFiles": 817,
+    "verifiedBytes": 72540826,
+    "completeByteRestorationVerified": true,
+    "allHeadersHashesModesAndChunkOrderMatched": true,
+    "rawOwnedFilesRemovedAfterVerification": 817,
+    "ownedDirectoriesRemoved": 31,
+    "cleanupMethod": "Exact authenticated owned regular file unlink followed by empty rmdir; no symlinks/chmod/foreign paths",
+    "historicalRawLossReconstruction": false,
+    "cumulativePrecleanupEvidencePlusArchiveBytes": 100098125,
+    "capBytes": 134217728
+  },
+  "sourcePostguards": {
+    "successor": 23,
+    "inherited": 38,
+    "unchanged": true
+  },
+  "processesThroughCheckpoint": 18,
+  "existingOwnerPid": 52192,
+  "allKnownChildrenClosed": true,
+  "expectedDiffStatus1Separate": 8,
+  "prepLimits": {
+    "milliseconds": 2100000,
+    "ownedOSProcesses": 72,
+    "peak": 3,
+    "captureBytes": 134217728,
+    "workingBytes": 805306368
+  },
+  "elapsedMilliseconds": 1741247,
+  "rootNext": "Independent Archimedes mode/source/control review, exact receipt, fresh actual grant and real payload preflight; no current activation",
+  "historicalFailuresScoresAndLossesPreserved": true
+}

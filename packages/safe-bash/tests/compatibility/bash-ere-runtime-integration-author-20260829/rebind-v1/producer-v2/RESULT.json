@@ -1,0 +1,107 @@
+{
+  "pass": true,
+  "archive": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/package/virtual-bash-0.0.0.tgz",
+    "size": 908381,
+    "mode": 420,
+    "sha256": "4f90df04dba998f184473254bb450f9e085b9fc9d5994dc91a21a7ccf1d1d66e",
+    "sha1": "ecebdb80aa7b03e442f444aa156ab87f99d3ef70",
+    "integrity": "sha512-KzzqUOrAYgMJiCTY0WssQ+gsD2RnEqqQUWHUkNB3eM534WmoU6cGo7bPtHflQbnDgioe5kDiH7KsYTZrM1AV7Q=="
+  },
+  "memberCount": 1002,
+  "privateAssets": 48,
+  "sourceInputs": 305,
+  "compiledPostguard": 1305,
+  "toolPostguard": {
+    "typescript": 241,
+    "npmRegular": 2027,
+    "npmLinks": 12
+  },
+  "receipts": [
+    {
+      "role": "A10",
+      "pid": 92613,
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js",
+        "pack",
+        "--offline",
+        "--ignore-scripts",
+        "--json",
+        "--pack-destination",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/package"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/candidate",
+      "retired": true,
+      "code": 0,
+      "signal": null
+    },
+    {
+      "role": "A11",
+      "pid": 92630,
+      "executable": "/usr/bin/git",
+      "args": [
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "-c",
+        "core.hooksPath=/dev/null",
+        "-c",
+        "commit.gpgsign=false",
+        "-c",
+        "core.abbrev=40",
+        "add",
+        "-N",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/package/virtual-bash-0.0.0.tgz",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/PRE-INFLATE-RECEIPT.json",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/A10.stdout",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/A10.stderr"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "retired": true,
+      "code": 0,
+      "signal": null
+    },
+    {
+      "role": "A12",
+      "pid": 92632,
+      "executable": "/usr/bin/git",
+      "args": [
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "-c",
+        "core.hooksPath=/dev/null",
+        "-c",
+        "commit.gpgsign=false",
+        "-c",
+        "core.abbrev=40",
+        "commit",
+        "--only",
+        "-m",
+        "test: freeze actual ERE package receipt before bounded inflation",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/package/virtual-bash-0.0.0.tgz",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/PRE-INFLATE-RECEIPT.json",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/A10.stdout",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/A10.stderr"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "retired": true,
+      "code": 0,
+      "signal": null
+    }
+  ],
+  "capture": 114732,
+  "storageBytesBeforeFinalManifests": 3332398,
+  "elapsedMs": 214842,
+  "producerStarts": 1,
+  "compilers": 0,
+  "runtimeImports": 0,
+  "Workers": 0,
+  "oldFailure": "22260dd7 unrescored",
+  "obligations": "70 UNRUN"
+}

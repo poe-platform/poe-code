@@ -1,0 +1,38 @@
+{
+  "candidate": "157d78c957b56f83f6e705fc35da60b1f2ea3a9b",
+  "freeze": "7a47dcdba6175a4eccc9dad16c3ac9733cf0e0bf",
+  "runs": [
+    {
+      "mode": "source",
+      "counts": {
+        "total": 3,
+        "pass": 3,
+        "fail": 0
+      }
+    },
+    {
+      "mode": "moved",
+      "counts": {
+        "total": 3,
+        "pass": 3,
+        "fail": 0
+      }
+    }
+  ],
+  "nativeComparisons": {
+    "totalScenarioComparisons": 12,
+    "pass": 12,
+    "distinctNativeScriptsPreviouslyRun": 3,
+    "distinctRecordsPerNativeProfile": 6,
+    "newNativeRuns": 0
+  },
+  "frozenP03StillFailed": true,
+  "candidateBugConfirmed": false,
+  "preservation": {
+    "sourceUnchanged": true,
+    "movedPackageUnchanged": true,
+    "allEntryMembershipChecked": true,
+    "previousCapturesUnchanged": true,
+    "freezeUnchanged": true
+  }
+}

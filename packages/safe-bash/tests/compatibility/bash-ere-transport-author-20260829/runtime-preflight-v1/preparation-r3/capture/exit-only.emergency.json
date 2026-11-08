@@ -1,0 +1,1 @@
+{"state":"STOP_UNKNOWN","ownerPid":33980,"pid":76543,"knownExit":true,"knownClose":false,"captureComplete":false,"captureTruncated":true,"primary":{"present":true,"kind":"undefined","value":null,"objectDetail":"NOT_INSPECTED","identity":"RAW_REFERENCE_RETAINED_NOT_SERIALIZED"},"secondaryCount":0,"ownedHandleRetained":true}

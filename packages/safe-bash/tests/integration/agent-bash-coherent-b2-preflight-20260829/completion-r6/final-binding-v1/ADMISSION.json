@@ -1,0 +1,10 @@
+{
+  "schema": "B2_R6_FINAL_BINDING_ONLY",
+  "started": "2026-08-29T14:51:41.462Z",
+  "deadline": "2026-08-29T15:01:41.462Z",
+  "knownOS": 28,
+  "peak": 3,
+  "captureBytes": 41943040,
+  "workBytes": 167772160,
+  "productExecution": 0
+}

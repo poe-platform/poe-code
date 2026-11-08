@@ -1,0 +1,42 @@
+{
+  "name": "mcp-oauth",
+  "version": "0.0.1",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": {
+        "workerd": "./dist/index.browser.d.ts",
+        "browser": "./dist/index.browser.d.ts",
+        "default": "./dist/index.d.ts"
+      },
+      "workerd": "./dist/index.browser.js",
+      "browser": "./dist/index.browser.js",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "test:unit": "cd ../.. && vitest run packages/mcp-oauth/src"
+  },
+  "dependencies": {
+    "auth-store": "^0.0.1",
+    "jose": "^6.1.2",
+    "@noble/hashes": "2.4.0"
+  },
+  "devDependencies": {
+    "tiny-oauth-test-server": "*"
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poe-platform/poe-code.git",
+    "directory": "packages/mcp-oauth"
+  }
+}

@@ -1,0 +1,1382 @@
+[
+  {
+    "id": "render-0-markdown",
+    "argv": [
+      "--output",
+      "markdown"
+    ],
+    "stdin": "[a][7] and [b](/b) and [c][1]\n\n[7]: /a\n[1]: /c\n",
+    "files": {},
+    "stdout": "[a][1] and [b][2] and [c][3]\n\n[1]: /a\n[2]: /b\n[3]: /c\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-0-json",
+    "argv": [
+      "--output",
+      "json"
+    ],
+    "stdin": "[a][7] and [b](/b) and [c][1]\n\n[7]: /a\n[1]: /c\n",
+    "files": {},
+    "stdout": "{\"items\":[{\"document\":[{\"paragraph\":\"[a][1] and [b][2] and [c][3]\"}]}],\"links\":{\"3\":{\"url\":\"/c\"},\"1\":{\"url\":\"/a\"},\"2\":{\"url\":\"/b\"}}}",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-0-plain",
+    "argv": [
+      "--output",
+      "plain"
+    ],
+    "stdin": "[a][7] and [b](/b) and [c][1]\n\n[7]: /a\n[1]: /c\n",
+    "files": {},
+    "stdout": "a and b and c\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-1-markdown",
+    "argv": [
+      "--output",
+      "markdown"
+    ],
+    "stdin": "[a][1] and [b](/b)\n\n[1]: /a\n",
+    "files": {},
+    "stdout": "[a][1] and [b][2]\n\n[1]: /a\n[2]: /b\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-1-json",
+    "argv": [
+      "--output",
+      "json"
+    ],
+    "stdin": "[a][1] and [b](/b)\n\n[1]: /a\n",
+    "files": {},
+    "stdout": "{\"items\":[{\"document\":[{\"paragraph\":\"[a][1] and [b][2]\"}]}],\"links\":{\"1\":{\"url\":\"/a\"},\"2\":{\"url\":\"/b\"}}}",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-1-plain",
+    "argv": [
+      "--output",
+      "plain"
+    ],
+    "stdin": "[a][1] and [b](/b)\n\n[1]: /a\n",
+    "files": {},
+    "stdout": "a and b\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-2-markdown",
+    "argv": [
+      "--output",
+      "markdown"
+    ],
+    "stdin": "[a][A] and [b][a]\n\n[A]: /first\n[a]: /second\n",
+    "files": {},
+    "stdout": "[a][A] and [b][a]\n\n[A]: /first\n[a]: /first\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-2-json",
+    "argv": [
+      "--output",
+      "json"
+    ],
+    "stdin": "[a][A] and [b][a]\n\n[A]: /first\n[a]: /second\n",
+    "files": {},
+    "stdout": "{\"items\":[{\"document\":[{\"paragraph\":\"[a][A] and [b][a]\"}]}],\"links\":{\"a\":{\"url\":\"/first\"},\"A\":{\"url\":\"/first\"}}}",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-2-plain",
+    "argv": [
+      "--output",
+      "plain"
+    ],
+    "stdin": "[a][A] and [b][a]\n\n[A]: /first\n[a]: /second\n",
+    "files": {},
+    "stdout": "a and b\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-3-markdown",
+    "argv": [
+      "--output",
+      "markdown"
+    ],
+    "stdin": "[x][__proto__]\n\n[__proto__]: /x\n",
+    "files": {},
+    "stdout": "[x][__proto__]\n\n[__proto__]: /x\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-3-json",
+    "argv": [
+      "--output",
+      "json"
+    ],
+    "stdin": "[x][__proto__]\n\n[__proto__]: /x\n",
+    "files": {},
+    "stdout": "{\"items\":[{\"document\":[{\"paragraph\":\"[x][__proto__]\"}]}],\"links\":{\"__proto__\":{\"url\":\"/x\"}}}",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-3-plain",
+    "argv": [
+      "--output",
+      "plain"
+    ],
+    "stdin": "[x][__proto__]\n\n[__proto__]: /x\n",
+    "files": {},
+    "stdout": "x\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-4-markdown",
+    "argv": [
+      "--output",
+      "markdown"
+    ],
+    "stdin": "A[^UP] b[^up].\n\n[^up]: Note.\n",
+    "files": {},
+    "stdout": "A[^1] b[^2].\n\n[^1]: \n[^2]: Note.\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-4-json",
+    "argv": [
+      "--output",
+      "json"
+    ],
+    "stdin": "A[^UP] b[^up].\n\n[^up]: Note.\n",
+    "files": {},
+    "stdout": "{\"items\":[{\"document\":[{\"paragraph\":\"A[^1] b[^2].\"}]}],\"footnotes\":{\"2\":[{\"paragraph\":\"Note.\"}],\"1\":[]}}",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-4-plain",
+    "argv": [
+      "--output",
+      "plain"
+    ],
+    "stdin": "A[^UP] b[^up].\n\n[^up]: Note.\n",
+    "files": {},
+    "stdout": "A b.\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-5-markdown",
+    "argv": [
+      "--output",
+      "markdown"
+    ],
+    "stdin": "A[^x y].\n\n[^x y]: note\n",
+    "files": {},
+    "stdout": "A[^x y].\n\n[^x y]: note\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-5-json",
+    "argv": [
+      "--output",
+      "json"
+    ],
+    "stdin": "A[^x y].\n\n[^x y]: note\n",
+    "files": {},
+    "stdout": "{\"items\":[{\"document\":[{\"paragraph\":\"A[^x y].\"}]}],\"links\":{\"^x y\":{\"url\":\"note\"}}}",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-5-plain",
+    "argv": [
+      "--output",
+      "plain"
+    ],
+    "stdin": "A[^x y].\n\n[^x y]: note\n",
+    "files": {},
+    "stdout": "A^x y.\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-6-markdown",
+    "argv": [
+      "--output",
+      "markdown"
+    ],
+    "stdin": "A[^a].\n\n[^a]: note[^b]\n\n[^b]: other\n",
+    "files": {},
+    "stdout": "A[^1].\n\n[^1]: note[^2]\n[^2]: other\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-6-json",
+    "argv": [
+      "--output",
+      "json"
+    ],
+    "stdin": "A[^a].\n\n[^a]: note[^b]\n\n[^b]: other\n",
+    "files": {},
+    "stdout": "{\"items\":[{\"document\":[{\"paragraph\":\"A[^1].\"}]}],\"footnotes\":{\"1\":[{\"paragraph\":\"note[^2]\"}],\"2\":[{\"paragraph\":\"other\"}]}}",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-6-plain",
+    "argv": [
+      "--output",
+      "plain"
+    ],
+    "stdin": "A[^a].\n\n[^a]: note[^b]\n\n[^b]: other\n",
+    "files": {},
+    "stdout": "A.\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-7-markdown",
+    "argv": [
+      "--output",
+      "markdown"
+    ],
+    "stdin": "A[^a].\n\n[^a]: note[^a]\n",
+    "files": {},
+    "stdout": "A[^1].\n\n[^1]: note[^1]\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-7-json",
+    "argv": [
+      "--output",
+      "json"
+    ],
+    "stdin": "A[^a].\n\n[^a]: note[^a]\n",
+    "files": {},
+    "stdout": "{\"items\":[{\"document\":[{\"paragraph\":\"A[^1].\"}]}],\"footnotes\":{\"1\":[{\"paragraph\":\"note[^1]\"}]}}",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-7-plain",
+    "argv": [
+      "--output",
+      "plain"
+    ],
+    "stdin": "A[^a].\n\n[^a]: note[^a]\n",
+    "files": {},
+    "stdout": "A.\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-8-markdown",
+    "argv": [
+      "--output",
+      "markdown"
+    ],
+    "stdin": "A[^a].\n\n[^a]: one\n\n    second paragraph\n",
+    "files": {},
+    "stdout": "A[^1].\n\n[^1]: one\n\n  second paragraph\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-8-json",
+    "argv": [
+      "--output",
+      "json"
+    ],
+    "stdin": "A[^a].\n\n[^a]: one\n\n    second paragraph\n",
+    "files": {},
+    "stdout": "{\"items\":[{\"document\":[{\"paragraph\":\"A[^1].\"}]}],\"footnotes\":{\"1\":[{\"paragraph\":\"one\"},{\"paragraph\":\"second paragraph\"}]}}",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-8-plain",
+    "argv": [
+      "--output",
+      "plain"
+    ],
+    "stdin": "A[^a].\n\n[^a]: one\n\n    second paragraph\n",
+    "files": {},
+    "stdout": "A.\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-9-markdown",
+    "argv": [
+      "--output",
+      "markdown"
+    ],
+    "stdin": "A[^a].\n\n[^a]: > quote\n",
+    "files": {},
+    "stdout": "A[^1].\n\n[^1]: > quote\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-9-json",
+    "argv": [
+      "--output",
+      "json"
+    ],
+    "stdin": "A[^a].\n\n[^a]: > quote\n",
+    "files": {},
+    "stdout": "{\"items\":[{\"document\":[{\"paragraph\":\"A[^1].\"}]}],\"footnotes\":{\"1\":[{\"block_quote\":[{\"paragraph\":\"quote\"}]}]}}",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-9-plain",
+    "argv": [
+      "--output",
+      "plain"
+    ],
+    "stdin": "A[^a].\n\n[^a]: > quote\n",
+    "files": {},
+    "stdout": "A.\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-10-markdown",
+    "argv": [
+      "--output",
+      "markdown"
+    ],
+    "stdin": "![*alt* `code` <b>html</b>](image.png)\n",
+    "files": {},
+    "stdout": "![alt code <b>html</b>][1]\n\n[1]: image.png\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-10-json",
+    "argv": [
+      "--output",
+      "json"
+    ],
+    "stdin": "![*alt* `code` <b>html</b>](image.png)\n",
+    "files": {},
+    "stdout": "{\"items\":[{\"document\":[{\"paragraph\":\"![alt code <b>html</b>][1]\"}]}],\"links\":{\"1\":{\"url\":\"image.png\"}}}",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-10-plain",
+    "argv": [
+      "--output",
+      "plain"
+    ],
+    "stdin": "![*alt* `code` <b>html</b>](image.png)\n",
+    "files": {},
+    "stdout": "alt code <b>html</b>\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-11-markdown",
+    "argv": [
+      "--output",
+      "markdown"
+    ],
+    "stdin": "# A [x](url)\n\nBody[^n]\n\n## B\n\n[y](other)\n\n[^n]: note [z](third)\n",
+    "files": {},
+    "stdout": "# A [x][1]\n\nBody[^1]\n\n## B\n\n[y][2]\n\n[1]: url\n[2]: other\n[^1]: note [z][3]\n\n[3]: third\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-11-json",
+    "argv": [
+      "--output",
+      "json"
+    ],
+    "stdin": "# A [x](url)\n\nBody[^n]\n\n## B\n\n[y](other)\n\n[^n]: note [z](third)\n",
+    "files": {},
+    "stdout": "{\"items\":[{\"document\":[{\"section\":{\"depth\":1,\"title\":\"A [x][1]\",\"body\":[{\"paragraph\":\"Body[^1]\"},{\"section\":{\"depth\":2,\"title\":\"B\",\"body\":[{\"paragraph\":\"[y][2]\"}]}}]}}]}],\"links\":{\"2\":{\"url\":\"other\"},\"1\":{\"url\":\"url\"}},\"footnotes\":{\"1\":[{\"paragraph\":\"note [z][3]\"}]}}",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-11-plain",
+    "argv": [
+      "--output",
+      "plain"
+    ],
+    "stdin": "# A [x](url)\n\nBody[^n]\n\n## B\n\n[y](other)\n\n[^n]: note [z](third)\n",
+    "files": {},
+    "stdout": "A x\nBody\nB\ny\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-12-markdown",
+    "argv": [
+      "--output",
+      "markdown"
+    ],
+    "stdin": "# one\n## two\n### three\n## four\n# five\n",
+    "files": {},
+    "stdout": "# one\n\n## two\n\n### three\n\n## four\n\n# five\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-12-json",
+    "argv": [
+      "--output",
+      "json"
+    ],
+    "stdin": "# one\n## two\n### three\n## four\n# five\n",
+    "files": {},
+    "stdout": "{\"items\":[{\"document\":[{\"section\":{\"depth\":1,\"title\":\"one\",\"body\":[{\"section\":{\"depth\":2,\"title\":\"two\",\"body\":[{\"section\":{\"depth\":3,\"title\":\"three\",\"body\":[]}}]}},{\"section\":{\"depth\":2,\"title\":\"four\",\"body\":[]}}]}},{\"section\":{\"depth\":1,\"title\":\"five\",\"body\":[]}}]}]}",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-12-plain",
+    "argv": [
+      "--output",
+      "plain"
+    ],
+    "stdin": "# one\n## two\n### three\n## four\n# five\n",
+    "files": {},
+    "stdout": "one\ntwo\nthree\nfour\nfive\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-13-markdown",
+    "argv": [
+      "--output",
+      "markdown"
+    ],
+    "stdin": "<https://example.com> <me@example.com> www.example.com\n",
+    "files": {},
+    "stdout": "<https://example.com> <me@example.com> [www.example.com][1]\n\n[1]: http://www.example.com\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-13-json",
+    "argv": [
+      "--output",
+      "json"
+    ],
+    "stdin": "<https://example.com> <me@example.com> www.example.com\n",
+    "files": {},
+    "stdout": "{\"items\":[{\"document\":[{\"paragraph\":\"<https://example.com> <me@example.com> [www.example.com][1]\"}]}],\"links\":{\"1\":{\"url\":\"http://www.example.com\"}}}",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-13-plain",
+    "argv": [
+      "--output",
+      "plain"
+    ],
+    "stdin": "<https://example.com> <me@example.com> www.example.com\n",
+    "files": {},
+    "stdout": "https://example.com me@example.com www.example.com\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-14-markdown",
+    "argv": [
+      "--output",
+      "markdown"
+    ],
+    "stdin": "line 1  \nline 2\nline 3\n",
+    "files": {},
+    "stdout": "line 1\nline 2\nline 3\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-14-json",
+    "argv": [
+      "--output",
+      "json"
+    ],
+    "stdin": "line 1  \nline 2\nline 3\n",
+    "files": {},
+    "stdout": "{\"items\":[{\"document\":[{\"paragraph\":\"line 1\\nline 2\\nline 3\"}]}]}",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-14-plain",
+    "argv": [
+      "--output",
+      "plain"
+    ],
+    "stdin": "line 1  \nline 2\nline 3\n",
+    "files": {},
+    "stdout": "line 1\nline 2\nline 3\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-15-markdown",
+    "argv": [
+      "--output",
+      "markdown"
+    ],
+    "stdin": "---\nx: y\n\n---\n",
+    "files": {},
+    "stdout": "---\nx: y\n\n---\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-15-json",
+    "argv": [
+      "--output",
+      "json"
+    ],
+    "stdin": "---\nx: y\n\n---\n",
+    "files": {},
+    "stdout": "{\"items\":[{\"document\":[{\"front_matter\":{\"body\":\"x: y\\n\",\"variant\":\"yaml\"}}]}]}",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-15-plain",
+    "argv": [
+      "--output",
+      "plain"
+    ],
+    "stdin": "---\nx: y\n\n---\n",
+    "files": {},
+    "stdout": "x: y\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-16-markdown",
+    "argv": [
+      "--output",
+      "markdown"
+    ],
+    "stdin": "---\nx: y\n...\n",
+    "files": {},
+    "stdout": "   -----\n\nx: y\n...\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-16-json",
+    "argv": [
+      "--output",
+      "json"
+    ],
+    "stdin": "---\nx: y\n...\n",
+    "files": {},
+    "stdout": "{\"items\":[{\"document\":[{\"thematic_break\":null},{\"paragraph\":\"x: y\\n...\"}]}]}",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-16-plain",
+    "argv": [
+      "--output",
+      "plain"
+    ],
+    "stdin": "---\nx: y\n...\n",
+    "files": {},
+    "stdout": "x: y\n...\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-17-markdown",
+    "argv": [
+      "--output",
+      "markdown"
+    ],
+    "stdin": "word *two words* [a b](url) `c d` end\n",
+    "files": {},
+    "stdout": "word _two words_ [a b][1] `c d` end\n\n[1]: url\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-17-json",
+    "argv": [
+      "--output",
+      "json"
+    ],
+    "stdin": "word *two words* [a b](url) `c d` end\n",
+    "files": {},
+    "stdout": "{\"items\":[{\"document\":[{\"paragraph\":\"word _two words_ [a b][1] `c d` end\"}]}],\"links\":{\"1\":{\"url\":\"url\"}}}",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-17-plain",
+    "argv": [
+      "--output",
+      "plain"
+    ],
+    "stdin": "word *two words* [a b](url) `c d` end\n",
+    "files": {},
+    "stdout": "word two words a b c d end\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-18-markdown",
+    "argv": [
+      "--output",
+      "markdown"
+    ],
+    "stdin": "> word word word word word\n",
+    "files": {},
+    "stdout": "> word word word word word\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-18-json",
+    "argv": [
+      "--output",
+      "json"
+    ],
+    "stdin": "> word word word word word\n",
+    "files": {},
+    "stdout": "{\"items\":[{\"document\":[{\"block_quote\":[{\"paragraph\":\"word word word word word\"}]}]}]}",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-18-plain",
+    "argv": [
+      "--output",
+      "plain"
+    ],
+    "stdin": "> word word word word word\n",
+    "files": {},
+    "stdout": "word word word word word\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-19-markdown",
+    "argv": [
+      "--output",
+      "markdown"
+    ],
+    "stdin": "- [ ] word word word word word\n",
+    "files": {},
+    "stdout": "- [ ] word word word word word\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-19-json",
+    "argv": [
+      "--output",
+      "json"
+    ],
+    "stdin": "- [ ] word word word word word\n",
+    "files": {},
+    "stdout": "{\"items\":[{\"document\":[{\"list\":[{\"item\":[{\"paragraph\":\"word word word word word\"}],\"checked\":false}]}]}]}",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-19-plain",
+    "argv": [
+      "--output",
+      "plain"
+    ],
+    "stdin": "- [ ] word word word word word\n",
+    "files": {},
+    "stdout": "word word word word word\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-20-markdown",
+    "argv": [
+      "--output",
+      "markdown"
+    ],
+    "stdin": "| A | B |\n| - | - |\n| 1 | 2 |\n",
+    "files": {},
+    "stdout": "| A | B |\n|---|---|\n| 1 | 2 |",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-20-json",
+    "argv": [
+      "--output",
+      "json"
+    ],
+    "stdin": "| A | B |\n| - | - |\n| 1 | 2 |\n",
+    "files": {},
+    "stdout": "{\"items\":[{\"document\":[{\"table\":{\"alignments\":[\"none\",\"none\"],\"rows\":[[\"A\",\"B\"],[\"1\",\"2\"]]}}]}]}",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-20-plain",
+    "argv": [
+      "--output",
+      "plain"
+    ],
+    "stdin": "| A | B |\n| - | - |\n| 1 | 2 |\n",
+    "files": {},
+    "stdout": "A B\n1 2\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-21-markdown",
+    "argv": [
+      "--output",
+      "markdown"
+    ],
+    "stdin": "\n---\nx: y\n---\n",
+    "files": {},
+    "stdout": "---\nx: y\n---\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-21-json",
+    "argv": [
+      "--output",
+      "json"
+    ],
+    "stdin": "\n---\nx: y\n---\n",
+    "files": {},
+    "stdout": "{\"items\":[{\"document\":[{\"front_matter\":{\"body\":\"x: y\",\"variant\":\"yaml\"}}]}]}",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-21-plain",
+    "argv": [
+      "--output",
+      "plain"
+    ],
+    "stdin": "\n---\nx: y\n---\n",
+    "files": {},
+    "stdout": "x: y\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-22-markdown",
+    "argv": [
+      "--output",
+      "markdown"
+    ],
+    "stdin": "~~~\na ``` b\n~~~\n",
+    "files": {},
+    "stdout": "```\na ``` b\n```\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-22-json",
+    "argv": [
+      "--output",
+      "json"
+    ],
+    "stdin": "~~~\na ``` b\n~~~\n",
+    "files": {},
+    "stdout": "{\"items\":[{\"document\":[{\"code_block\":{\"code\":\"a ``` b\",\"type\":\"code\"}}]}]}",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-22-plain",
+    "argv": [
+      "--output",
+      "plain"
+    ],
+    "stdin": "~~~\na ``` b\n~~~\n",
+    "files": {},
+    "stdout": "a ``` b\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-23-markdown",
+    "argv": [
+      "--output",
+      "markdown"
+    ],
+    "stdin": "﻿# Title\n",
+    "files": {},
+    "stdout": "# Title\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-23-json",
+    "argv": [
+      "--output",
+      "json"
+    ],
+    "stdin": "﻿# Title\n",
+    "files": {},
+    "stdout": "{\"items\":[{\"document\":[{\"section\":{\"depth\":1,\"title\":\"Title\",\"body\":[]}}]}]}",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-23-plain",
+    "argv": [
+      "--output",
+      "plain"
+    ],
+    "stdin": "﻿# Title\n",
+    "files": {},
+    "stdout": "Title\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-24-markdown",
+    "argv": [
+      "--output",
+      "markdown"
+    ],
+    "stdin": "## heading\r\n\r\nbody\r\n",
+    "files": {},
+    "stdout": "## heading\n\nbody\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-24-json",
+    "argv": [
+      "--output",
+      "json"
+    ],
+    "stdin": "## heading\r\n\r\nbody\r\n",
+    "files": {},
+    "stdout": "{\"items\":[{\"document\":[{\"section\":{\"depth\":2,\"title\":\"heading\",\"body\":[{\"paragraph\":\"body\"}]}}]}]}",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "render-24-plain",
+    "argv": [
+      "--output",
+      "plain"
+    ],
+    "stdin": "## heading\r\n\r\nbody\r\n",
+    "files": {},
+    "stdout": "heading\nbody\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "wrap-11-0",
+    "argv": [
+      "--wrap-width",
+      "0"
+    ],
+    "stdin": "# A [x](url)\n\nBody[^n]\n\n## B\n\n[y](other)\n\n[^n]: note [z](third)\n",
+    "files": {},
+    "stdout": "# A [x][1]\n\nBody[^1]\n\n## B\n\n[y][2]\n\n[1]: url\n[2]: other\n[^1]:\n  note\n  [z][3]\n\n[3]: third\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "wrap-11-1",
+    "argv": [
+      "--wrap-width",
+      "1"
+    ],
+    "stdin": "# A [x](url)\n\nBody[^n]\n\n## B\n\n[y](other)\n\n[^n]: note [z](third)\n",
+    "files": {},
+    "stdout": "# A [x][1]\n\nBody[^1]\n\n## B\n\n[y][2]\n\n[1]: url\n[2]: other\n[^1]:\n  note\n  [z][3]\n\n[3]: third\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "wrap-11-10",
+    "argv": [
+      "--wrap-width",
+      "10"
+    ],
+    "stdin": "# A [x](url)\n\nBody[^n]\n\n## B\n\n[y](other)\n\n[^n]: note [z](third)\n",
+    "files": {},
+    "stdout": "# A [x][1]\n\nBody[^1]\n\n## B\n\n[y][2]\n\n[1]: url\n[2]: other\n[^1]:\n  note\n  [z][3]\n\n[3]: third\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "wrap-11-20",
+    "argv": [
+      "--wrap-width",
+      "20"
+    ],
+    "stdin": "# A [x](url)\n\nBody[^n]\n\n## B\n\n[y](other)\n\n[^n]: note [z](third)\n",
+    "files": {},
+    "stdout": "# A [x][1]\n\nBody[^1]\n\n## B\n\n[y][2]\n\n[1]: url\n[2]: other\n[^1]:\n  note [z][3]\n\n[3]: third\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "wrap-17-0",
+    "argv": [
+      "--wrap-width",
+      "0"
+    ],
+    "stdin": "word *two words* [a b](url) `c d` end\n",
+    "files": {},
+    "stdout": "word\n_two\nwords_\n[a b][1]\n`c\nd`\nend\n\n[1]: url\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "wrap-17-1",
+    "argv": [
+      "--wrap-width",
+      "1"
+    ],
+    "stdin": "word *two words* [a b](url) `c d` end\n",
+    "files": {},
+    "stdout": "word\n_two\nwords_\n[a b][1]\n`c\nd`\nend\n\n[1]: url\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "wrap-17-10",
+    "argv": [
+      "--wrap-width",
+      "10"
+    ],
+    "stdin": "word *two words* [a b](url) `c d` end\n",
+    "files": {},
+    "stdout": "word _two\nwords_\n[a b][1]\n`c d` end\n\n[1]: url\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "wrap-17-20",
+    "argv": [
+      "--wrap-width",
+      "20"
+    ],
+    "stdin": "word *two words* [a b](url) `c d` end\n",
+    "files": {},
+    "stdout": "word _two words_\n[a b][1] `c d` end\n\n[1]: url\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "wrap-18-0",
+    "argv": [
+      "--wrap-width",
+      "0"
+    ],
+    "stdin": "> word word word word word\n",
+    "files": {},
+    "stdout": "> word\n> word\n> word\n> word\n> word\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "wrap-18-1",
+    "argv": [
+      "--wrap-width",
+      "1"
+    ],
+    "stdin": "> word word word word word\n",
+    "files": {},
+    "stdout": "> word\n> word\n> word\n> word\n> word\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "wrap-18-10",
+    "argv": [
+      "--wrap-width",
+      "10"
+    ],
+    "stdin": "> word word word word word\n",
+    "files": {},
+    "stdout": "> word\n> word\n> word\n> word\n> word\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "wrap-18-20",
+    "argv": [
+      "--wrap-width",
+      "20"
+    ],
+    "stdin": "> word word word word word\n",
+    "files": {},
+    "stdout": "> word word word\n> word word\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "wrap-19-0",
+    "argv": [
+      "--wrap-width",
+      "0"
+    ],
+    "stdin": "- [ ] word word word word word\n",
+    "files": {},
+    "stdout": "-\n[\n]\n      word\n      word\n      word\n      word\n      word\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "wrap-19-1",
+    "argv": [
+      "--wrap-width",
+      "1"
+    ],
+    "stdin": "- [ ] word word word word word\n",
+    "files": {},
+    "stdout": "-\n[\n]\n      word\n      word\n      word\n      word\n      word\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "wrap-19-10",
+    "argv": [
+      "--wrap-width",
+      "10"
+    ],
+    "stdin": "- [ ] word word word word word\n",
+    "files": {},
+    "stdout": "- [ ] word\n      word\n      word\n      word\n      word\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "wrap-19-20",
+    "argv": [
+      "--wrap-width",
+      "20"
+    ],
+    "stdin": "- [ ] word word word word word\n",
+    "files": {},
+    "stdout": "- [ ] word word word\n      word word\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "layout-0-markdown",
+    "argv": [
+      "--output",
+      "markdown"
+    ],
+    "stdin": "| é | X |\n| :- | -: |\n| αβ | 猫 |\n",
+    "files": {},
+    "stdout": "| é   |   X |\n|:-----|----:|\n| αβ | 猫 |",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "layout-0-json",
+    "argv": [
+      "--output",
+      "json"
+    ],
+    "stdin": "| é | X |\n| :- | -: |\n| αβ | 猫 |\n",
+    "files": {},
+    "stdout": "{\"items\":[{\"document\":[{\"table\":{\"alignments\":[\"left\",\"right\"],\"rows\":[[\"é\",\"X\"],[\"αβ\",\"猫\"]]}}]}]}",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "layout-0-plain",
+    "argv": [
+      "--output",
+      "plain"
+    ],
+    "stdin": "| é | X |\n| :- | -: |\n| αβ | 猫 |\n",
+    "files": {},
+    "stdout": "é X\nαβ 猫\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "layout-1-markdown",
+    "argv": [
+      "--output",
+      "markdown"
+    ],
+    "stdin": "| | | |\n| - | :-: | -: |\n| | | |\n",
+    "files": {},
+    "stdout": "| |   |  |\n|-|:-:|-:|\n| |   |  |",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "layout-1-json",
+    "argv": [
+      "--output",
+      "json"
+    ],
+    "stdin": "| | | |\n| - | :-: | -: |\n| | | |\n",
+    "files": {},
+    "stdout": "{\"items\":[{\"document\":[{\"table\":{\"alignments\":[\"none\",\"center\",\"right\"],\"rows\":[[\"\",\"\",\"\"],[\"\",\"\",\"\"]]}}]}]}",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "layout-1-plain",
+    "argv": [
+      "--output",
+      "plain"
+    ],
+    "stdin": "| | | |\n| - | :-: | -: |\n| | | |\n",
+    "files": {},
+    "stdout": "\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "layout-2-markdown",
+    "argv": [
+      "--output",
+      "markdown"
+    ],
+    "stdin": "| |\n| - |\n",
+    "files": {},
+    "stdout": "| |\n|-|\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "layout-2-json",
+    "argv": [
+      "--output",
+      "json"
+    ],
+    "stdin": "| |\n| - |\n",
+    "files": {},
+    "stdout": "{\"items\":[{\"document\":[{\"table\":{\"alignments\":[\"none\"],\"rows\":[[\"\"]]}}]}]}",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "layout-2-plain",
+    "argv": [
+      "--output",
+      "plain"
+    ],
+    "stdin": "| |\n| - |\n",
+    "files": {},
+    "stdout": "\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "layout-3-markdown",
+    "argv": [
+      "--output",
+      "markdown"
+    ],
+    "stdin": "~~~\n```\n~~~\n",
+    "files": {},
+    "stdout": "````\n```\n````\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "layout-3-json",
+    "argv": [
+      "--output",
+      "json"
+    ],
+    "stdin": "~~~\n```\n~~~\n",
+    "files": {},
+    "stdout": "{\"items\":[{\"document\":[{\"code_block\":{\"code\":\"```\",\"type\":\"code\"}}]}]}",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "layout-3-plain",
+    "argv": [
+      "--output",
+      "plain"
+    ],
+    "stdin": "~~~\n```\n~~~\n",
+    "files": {},
+    "stdout": "```\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "layout-4-markdown",
+    "argv": [
+      "--output",
+      "markdown"
+    ],
+    "stdin": "\n﻿# Title\n",
+    "files": {},
+    "stdout": "# Title\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "layout-4-json",
+    "argv": [
+      "--output",
+      "json"
+    ],
+    "stdin": "\n﻿# Title\n",
+    "files": {},
+    "stdout": "{\"items\":[{\"document\":[{\"section\":{\"depth\":1,\"title\":\"Title\",\"body\":[]}}]}]}",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "layout-4-plain",
+    "argv": [
+      "--output",
+      "plain"
+    ],
+    "stdin": "\n﻿# Title\n",
+    "files": {},
+    "stdout": "Title\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "layout-5-markdown",
+    "argv": [
+      "--output",
+      "markdown"
+    ],
+    "stdin": " \t\n---\nx: y\n---\n",
+    "files": {},
+    "stdout": "---\nx: y\n---\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "layout-5-json",
+    "argv": [
+      "--output",
+      "json"
+    ],
+    "stdin": " \t\n---\nx: y\n---\n",
+    "files": {},
+    "stdout": "{\"items\":[{\"document\":[{\"front_matter\":{\"body\":\"x: y\",\"variant\":\"yaml\"}}]}]}",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "layout-5-plain",
+    "argv": [
+      "--output",
+      "plain"
+    ],
+    "stdin": " \t\n---\nx: y\n---\n",
+    "files": {},
+    "stdout": "x: y\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "layout-6-markdown",
+    "argv": [
+      "--output",
+      "markdown"
+    ],
+    "stdin": "a\n\n\n\n b\n",
+    "files": {},
+    "stdout": "a\n\nb\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "layout-6-json",
+    "argv": [
+      "--output",
+      "json"
+    ],
+    "stdin": "a\n\n\n\n b\n",
+    "files": {},
+    "stdout": "{\"items\":[{\"document\":[{\"paragraph\":\"a\"},{\"paragraph\":\"b\"}]}]}",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "layout-6-plain",
+    "argv": [
+      "--output",
+      "plain"
+    ],
+    "stdin": "a\n\n\n\n b\n",
+    "files": {},
+    "stdout": "a\nb\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "layout-7-markdown",
+    "argv": [
+      "--output",
+      "markdown"
+    ],
+    "stdin": "```\na  \n\n\n b  \n```\n",
+    "files": {},
+    "stdout": "```\na  \n\n\n b  \n```\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "layout-7-json",
+    "argv": [
+      "--output",
+      "json"
+    ],
+    "stdin": "```\na  \n\n\n b  \n```\n",
+    "files": {},
+    "stdout": "{\"items\":[{\"document\":[{\"code_block\":{\"code\":\"a  \\n\\n\\n b  \",\"type\":\"code\"}}]}]}",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "layout-7-plain",
+    "argv": [
+      "--output",
+      "plain"
+    ],
+    "stdin": "```\na  \n\n\n b  \n```\n",
+    "files": {},
+    "stdout": "a  \n b  \n",
+    "stderr": "",
+    "exitCode": 0
+  }
+]

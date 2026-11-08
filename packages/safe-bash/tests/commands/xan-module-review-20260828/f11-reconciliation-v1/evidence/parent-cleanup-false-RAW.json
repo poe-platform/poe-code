@@ -1,0 +1,15 @@
+{
+  "id": "parent-cleanup-false",
+  "state": "HOLD",
+  "exitCode": 1,
+  "phases": [
+    {
+      "id": "build",
+      "status": "PASS"
+    }
+  ],
+  "error": {
+    "name": "Error",
+    "message": "A01_HOLD_DEPENDENTS: Expected values to be strictly equal:\n\nfalse !== true\n"
+  }
+}

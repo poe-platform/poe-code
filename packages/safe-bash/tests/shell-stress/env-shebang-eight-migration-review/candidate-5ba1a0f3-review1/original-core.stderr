@@ -1,0 +1,18 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+127 !== 126
+
+    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/env-shebang-eight-migration-review/.scratch/candidate-5ba1a0f3-review1/source/tests/shell-stress/env-split-author/resume-host.ts:94:12) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 127,
+  expected: 126,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.2

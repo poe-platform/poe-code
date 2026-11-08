@@ -1,0 +1,958 @@
+{
+  "schema": 1,
+  "generatedAt": "2026-08-27T05:29:18.213Z",
+  "liveHeadAtSeal": "aef76d0cede4804513200ec71d572ca99240ca0f",
+  "roots": [
+    "benchmarks/reports/current-integration/comparison-replay-20260827",
+    "benchmarks/reports/comparison-fairness-20260827/audit",
+    "benchmarks/reports/comparison-fairness-20260827/verification"
+  ],
+  "purpose": "Explicit candidate files only; NOT staging or commit authorization",
+  "selfScheme": "Every nonself sha256 hashes raw bytes. Self sha256 hashes compact JSON.stringify(manifest) with only the self row sha256 and bytes set null. Self bytes is final pretty JSON UTF-8 size with one newline. Exact raw manifest SHA256 is reported externally in /tmp final handoff; no recursive raw-byte hash claim.",
+  "files": [
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/audit/REPORT.md",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 18743,
+      "sha256": "0ef41ef805a79ce83c9e9e82c3eb8bb144c8284c82c66fbbe4c3740d754f73e3",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/audit/findings.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 5061,
+      "sha256": "84e88b3bf1bbfb1c7373adb7eb45345f6d4a974e2d9a41483caf2893ea80a153",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/audit/overlap.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 53673,
+      "sha256": "18c932822c66f774df24c2ebbcff53af5859d0158c2804fd5cbd156caa1e5271",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/audit/provenance.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 6366,
+      "sha256": "df2e0f2e5fe4d56618cf9d2bce4057b6d45baf093df7b573dd355c033c9276c9",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/audit/release-claim-review.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 4703,
+      "sha256": "75872a6ea2bda9e1b1e759800c35aff6b3d7d966c44ef40714f575d759c02bcc",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/audit/release-claim-review.md",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 2869,
+      "sha256": "64a7c5f9551efb9d45861a2d318c45abf2b8d1179e9697cb2c1fd352cc240071",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/audit/replay-review.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 31135,
+      "sha256": "9b0a16a2bffae4b7898cea8c220822be2b5e20fdc3d011ba816f4f8700b96adb",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/audit/verification.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 22018,
+      "sha256": "0eeb30fcadbc472a369873a8e0534da8355116ca11315190fdb790c88a4e799e",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/audit/verify.mjs",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 13606,
+      "sha256": "1ecb2bc125630ba35295767144b4d1b3201793b1b3dad592340bb4e4436657c9",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/verification/COMMIT-MANIFEST.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 36631,
+      "sha256": "5637312adc9f26d3a2be35e5959df22968ca8e37d0a5dfc60134ad2754c4ef9c",
+      "hashKind": "canonical-self-excluding-digest-and-size"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/verification/FINAL-REVIEW.md",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 9969,
+      "sha256": "ab74d237b29a129afd408ee197ac10262523daaabf5ad2837ce2ac53a48b4283",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/verification/README.md",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 6179,
+      "sha256": "3346eb7bb3ffd3e740f55ca80c0758deeb25356cbb191f8e02b55c137ec9df10",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/verification/READY.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 16729,
+      "sha256": "2fc4b1143c0f6129c94598c3de289f3ada8bf690f6c63f7df070247f2b46f65a",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/verification/REPORT.md",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 2419,
+      "sha256": "1f0ba54c843900c65e5bf30d88d206f4f845eabda92265ffd940b96aeaf59176",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/verification/audit-managed.mjs",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 7229,
+      "sha256": "f953230ac6b0537663969f319553d24422305dd0019777f02c2dcaaaeb31d4b4",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/verification/audit-profiles.mjs",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 7296,
+      "sha256": "f2f0eb693eca4f7ab06483ba897b6dc64360ca3d8998501ab814bfd0e8c533aa",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/verification/commands-final.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 3358,
+      "sha256": "e862bd8ba1b747dc0376129199a6d5b7fc6acf604aa81abb950e39417a384e93",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/verification/complement-attempt-1.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 14330,
+      "sha256": "885642de607160d4e3f0a84d632c1f85a52526d0b4409b1e4334608d2c9b779b",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/verification/complement-attempt-2.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 14589,
+      "sha256": "d080a3b102c626a020c86bc4c672cf4b8ddf4ef87cfc2f028c6e3ca5e85cc74b",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/verification/complement-attempt-3.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 15087,
+      "sha256": "99e83e19d7648e2dfc59fcb5539624d1f65841eed11890cad0d32c024408ef48",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/verification/complement-attempt-4.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 66254,
+      "sha256": "50f7be71610edca61e9ca6d952016df3b882b6e4c8cc1f6d3c96d8e26927d913",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/verification/complement-attempt-5.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 115023,
+      "sha256": "d479605022259298ac74a242fce57e0312379670713577703faa1656c0aa586d",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/verification/complement-final.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 115023,
+      "sha256": "d479605022259298ac74a242fce57e0312379670713577703faa1656c0aa586d",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/verification/offline.mjs",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 3444,
+      "sha256": "d2f168943bc95cfdec3b7afc5665fbcfcea5933ed5135a44ccaf865c0cfebee0",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/verification/preparation.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 3803,
+      "sha256": "bb0de80e255d2e08eb4b91488d8d45c3294b060c3af56f77698f04c3c2c762ff",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/verification/profile-delta-accepted.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 11486,
+      "sha256": "216f1a58a29211a9db3379331c3cb23621f3a1eb8d72bac156993048d7dc29dc",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/verification/profile-delta-final.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 11486,
+      "sha256": "7a2f6e6475fa30f2203f008dc84494f301d8bf09ae899662ecc537494658676f",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/verification/profile-delta.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 11486,
+      "sha256": "c27868922376ebed615c61686bb411a11eec6d23692b37095d88ba5c61a53ba7",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/verification/readiness.final.schema.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 1966,
+      "sha256": "19263e92e3fc5ffcca7b0393a6f8b38c022f4a127f95b401eeb246831d9905cd",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/verification/readiness.schema.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 2754,
+      "sha256": "d71c0ecb77823a6762e04c1818d59ad2af3ec90d6413aec420a7a23718b0137c",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/verification/replay-review-attempt-1.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 3440,
+      "sha256": "1a57c8ac257b7b470a99ee15e22b67d0a0f2e6a6d34806312b7d1c13e920a839",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/verification/replay-review-attempt-2.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 87753,
+      "sha256": "d7df008f7d0838e54bcda51b18ac459e5783b9da3324b9cb43c058896eb41be6",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/verification/replay-review-final.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 87861,
+      "sha256": "2fce3b4f12277e746fc8d09dba702ec3aa805b650f4177cbedaa03e812732e2a",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/verification/review-state.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 4440,
+      "sha256": "c5375407c7350f0ed8885343842359fefb8743fe907cc073da660d2deb4c5803",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/verification/seal-candidates.mjs",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 4427,
+      "sha256": "bd79cf90c98c56875e25a45d031bf38cc60929e07be375ca6ee214ccf0d20c2a",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/verification/verify-complement.mjs",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 18894,
+      "sha256": "8ffad8ae7687af4c3e0239c985fdc4480978c64f929d544c848abed3db9935ea",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/verification/verify-replay.mjs",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 23342,
+      "sha256": "4ab8c6386e9bc07c0d70e0f804021d64655fa0c8a053356882c3b2e9cae00ad5",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/verification/verify-replay.prepared.mjs.txt",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 22624,
+      "sha256": "7e6412a196ec24fcdc69b92ebb40ef34fb23905a797f49fedac69271770cf531",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/CAPTURE-LIMITS.md",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 10155,
+      "sha256": "a07a9d879e835e1c240f5fdbe3ef5b4018234a18b2473103e44f9f157d848b3d",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/EARLY_PLAN.txt",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 6116,
+      "sha256": "9f1ee6f0efcd0653c2a65c15e29095f216eb7434b0c3ad00cecd41a66cce171a",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/FAILURE_ROUTES.md",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 19600,
+      "sha256": "42fe4b556aee198d3f1c2938c6e76856a2662273bae61bb911a1206ab276b353",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/README.md",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 12584,
+      "sha256": "b2c210ca75f9d9957726429ee08dd8f3f341f1ffc9e3abb48a3d4c1592806ed4",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/README.pre-qualification.md",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 11674,
+      "sha256": "47908a764ffdcd5ab5c3f1ca10cd03ed31f91c2388df424c47f811dbe8010640",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/artifact-manifest.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 11325,
+      "sha256": "cea4feba2ff788a3cc600443c30cd38af0d986bbf92ee8f2c2d2eb3d6eb0f0ba",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/audit.mjs",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 18265,
+      "sha256": "2b1ceb62413d520897617039f8fc5fff9f0129e93719422ae84cf4b623cf6830",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/capture-qualification.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 23050,
+      "sha256": "e99ae63051c1c7b383b96451b54c2d7e86d0bf63f2cfc5e456994e0b2421aaa0",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/controls/imports.jsonl",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 215684,
+      "sha256": "f53eddf2b390e29d71e3290af0372c9f0d08860dc3829349faf58e305f683812",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/controls/integrity-after.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 168,
+      "sha256": "ba643d872b022937712313e1dc7b298ab666c77ef3df826651fa3c60ccd5e7f1",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/controls/integrity-before.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 168,
+      "sha256": "72bcc9b620720becf2b6002f36877c6053752417b64c10b348af43d3c65cd073",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/controls/lifecycle.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 45380,
+      "sha256": "12ac51b7f880f0b536135b70bfc0e23e115f03d61375be31a73aee9080ca46d8",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/controls/original-inventory.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 9561,
+      "sha256": "d4ec0a5b8c30cb4f1e34b4fa285c1eaafdc4e2154343c81e73dcae4cf31b1fe5",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/controls/process-samples.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 12001,
+      "sha256": "5971987c710b10718b2c89d2027ea690fc1c009fbfadc9a98b8738b2a53eb7a7",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/controls/scratch-aligned-inventory.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 9561,
+      "sha256": "d4ec0a5b8c30cb4f1e34b4fa285c1eaafdc4e2154343c81e73dcae4cf31b1fe5",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/controls/stderr.log",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/controls/stdout.log",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 3151,
+      "sha256": "d282d72f6efffa41d56e9eeb8b3e4bac9127c7157601435ad1fcaca7668023f2",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/dependency-manifest.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 798727,
+      "sha256": "865495795e9a4b4bf9f28cb83786181184ee5c224c3e92d2ca77a713b6f64510",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/dirty-product.patch",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 12442,
+      "sha256": "98105c65dea978a2a42c2b500ee1a1ac25c9bac9d63211b82d692e8a963eb9a2",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/failure-routes.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 445656,
+      "sha256": "37f7581a4631c5471dd2aba593667ad410fedf8230e61c21b2dbe28f8dd23043",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/final-integrity.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 250,
+      "sha256": "e8e004db9f4ca5f09fc494e5415d31989b9ac971a9728f09cc9bbcdd7d5b58fd",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/finalize.mjs",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 2632,
+      "sha256": "ae34ffc421a46c5e940a562fed2443dfef617c8c58972636120448bcf90baa03",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/frozen-files.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 827247,
+      "sha256": "819b9bc2141962f6cf8246b6e7893d318632916fe3b7743ea8b0f6c6c2dc8300",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/historical-delta.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 4641,
+      "sha256": "4516e998e7380769e279cb6b6bb8d16f37b48f35fc13e3487ff783acd0b9728f",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/live-after.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 1111,
+      "sha256": "c25975d76042373f638ea7efde207f1f3c7c61644af705dc7ee0329553eeafd8",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/loader.mjs",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 766,
+      "sha256": "0475eb04d5ad2ee9a8b73441244b22a17ca0f2b5bb00eca1b59e64f28d630703",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/location.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 280,
+      "sha256": "eb86cdd4fc673fc1c83f4b59d5bb9b2bc3c2039358b23e7f68d2ae49fe8909a9",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 43690,
+      "sha256": "29977972194cd34650a1c953151ee4ad217b3c736da4a8c85f4ced98e86ae421",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/original/case-inputs.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 93116,
+      "sha256": "4520818b0c6256f4d6effb4a690c10fe09bac6c8ef9de46963142920a3b9850a",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/original/dispatch.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 4330,
+      "sha256": "29033a48f7a082bfb955d31a972d07ba136860f855d9386cb89152af99e58081",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/original/functional.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 946526,
+      "sha256": "402f741f9a46c031a6f716d1640894dd2acb7d0f353e724cb7a3a37ccf6748d7",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/original/functional.jsonl",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 492957,
+      "sha256": "45ca00c7c2ebdd28dbbb3f8a316d519d0fca22f07aef7fc73f08ed4ae6d0ef47",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/original/imports.jsonl",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 1110658,
+      "sha256": "dd4b345289cfa468c3801c1658911af3db41b3198aa7423b5c60da17acc3658f",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/original/instrumentation-controls.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 38056,
+      "sha256": "e2053fdc26c7adb63e1138ab244eda24ee03cef97f9c7bb6474473ed65c60edc",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/original/integrity-after.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 168,
+      "sha256": "3743ddcb107d96ef4e5cf494e1afdbacaa99eb1c7f74a46369e1776592bb1744",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/original/integrity-before.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 168,
+      "sha256": "cfc147b3549102776e03c6a52d3da2016e48b83bc0c9e3910d4831c364b267f2",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/original/inventory.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 9561,
+      "sha256": "d4ec0a5b8c30cb4f1e34b4fa285c1eaafdc4e2154343c81e73dcae4cf31b1fe5",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/original/lifecycle.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 312502,
+      "sha256": "07cb8617661264b8f4c5437aac33c217154503276f35cb46ff44e732f704fca4",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/original/network-binding.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 123,
+      "sha256": "52d756322a98e8dcfb5847555d345edd5f7a12f9796e4c07e392c88d77fc9765",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/original/network-requests.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 1807,
+      "sha256": "b74b2fc1b3b1dca72f12007059ac507cda27a3ac834e1be6949cb63fff7b54e6",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/original/phase-cleanup.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 130,
+      "sha256": "4b56b60f7dab60bf453e7182bbae1c75bdb1da9f3c71190b40bf999943482ac5",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/original/process-samples.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 145519,
+      "sha256": "530b19dd349e7815e5bd39082a091dc8a2af6d21e6dfbb989a6d922caa2cfba5",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/original/report.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 5658,
+      "sha256": "378fe72fd275c10a9cf1697ec6b8ae26e75ec6ca60c56edc6af88ff7ebeeaee6",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/original/setup.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 41917,
+      "sha256": "46831388e5d97ba22b2b58909501280c13df3da84adfde954b7eff55d372f31e",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/original/stderr.log",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/original/stdout.log",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 7610,
+      "sha256": "67f9b9e2dbe451d96b1295637f8f185d46b41bae8c3f661edb429932d73322dc",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/original/transport-controls.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 3673,
+      "sha256": "57d3adb8b1cc647b89b50e223f9a2e9b9d1b820e6f10a445e6198e0c1610c578",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/phase.mjs",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 9161,
+      "sha256": "6808bc4a9ee158bce7b325512d33c69521d6078de7591ba56b82788e80918e50",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/preload.mjs",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 1041,
+      "sha256": "e1a4fd60ee681b0ee6919dfbdebf8b0d56e65947e3b8aebeb88fdbc61eecd90b",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/prepare-attempt-1.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 1050,
+      "sha256": "31d225bb17d78ad6384b52f92d545fb35f1007b33ce0c5cfe73d770448a47cff",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/prepare.mjs",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 9103,
+      "sha256": "20fbc21140098699253466ef44e1a1b5bbbdb29597f00a4fcf4163934ea52d9c",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/profile-delta.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 5798,
+      "sha256": "395ecc2e52f1abc4851248ff4a3ccb124b33211bda1d8746c1c39b8028eece10",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/profiles.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 80203,
+      "sha256": "19657d39799785dc446219bd8cc2ad4e80c882fc33b60805306ccf23d59e7526",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/qualification-files.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 4597,
+      "sha256": "1505740c3f9a5648cb9ff6d9bb94b0ec36b408d4a39792ac9c4d63ecde80ccc7",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/scratch-aligned/case-inputs.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 93116,
+      "sha256": "4520818b0c6256f4d6effb4a690c10fe09bac6c8ef9de46963142920a3b9850a",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/scratch-aligned/dispatch.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 4330,
+      "sha256": "7dd3472c283ebfba6ac4107412bd5b082d314e3d08218a554956d0fe49925d07",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/scratch-aligned/functional.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 946458,
+      "sha256": "e0ad5aa0b4692ae921750d5632ab9dda0a8aa29ce2cbde7a965d2fb2865d9dc9",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/scratch-aligned/functional.jsonl",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 492920,
+      "sha256": "58db99c9c9be92bad5f66f383a244f3502fb774f5cf8ac15092356309545334d",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/scratch-aligned/imports.jsonl",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 1111841,
+      "sha256": "ef34aa3ef3ea6d3886ac278fcabcf819404e38a5712eda6ecc3ee16ce3f0da7e",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/scratch-aligned/instrumentation-controls.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 38055,
+      "sha256": "614cec0e2f367ca7def2086c0f8c4cdff5813efc4e0f84122d41d88f24b6fc50",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/scratch-aligned/integrity-after.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 168,
+      "sha256": "55759c93c12ec71e04970799b6b95d56b6ed243bc076a9107c421c6d67e9d756",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/scratch-aligned/integrity-before.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 168,
+      "sha256": "625e944e66ebd1ee506f669c28369e48785c71a996dd59db30567f12cdf367c5",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/scratch-aligned/inventory.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 9561,
+      "sha256": "d4ec0a5b8c30cb4f1e34b4fa285c1eaafdc4e2154343c81e73dcae4cf31b1fe5",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/scratch-aligned/lifecycle.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 313069,
+      "sha256": "0f173daed5cf043d4a33b77a6f4aebd004aaa609a6059286327564ac7b137fd9",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/scratch-aligned/network-binding.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 123,
+      "sha256": "623e53ab3abef876bf2b1a0acc376d958104329171b5fbc52666e0ed92bab8fb",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/scratch-aligned/network-requests.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 1807,
+      "sha256": "b74b2fc1b3b1dca72f12007059ac507cda27a3ac834e1be6949cb63fff7b54e6",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/scratch-aligned/phase-cleanup.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 130,
+      "sha256": "d2bcc80b6a08247db250a755b0f470bdd6d590bde6574861f13e4eb1dc6ff687",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/scratch-aligned/process-samples.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 149842,
+      "sha256": "e416bf02d973f82e5fa34a7dea22694ad76ce6b4b4311d6ef1519dec94425586",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/scratch-aligned/report.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 5634,
+      "sha256": "38df987b8ca458971ef3584232fcadd8bc0bef343121b33575b75b92951ffc35",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/scratch-aligned/setup.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 42576,
+      "sha256": "743013a82d3fd936579e73c32ad49c39cb88e554d41a6cd8283100e13409822f",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/scratch-aligned/stderr.log",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/scratch-aligned/stdout.log",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 7586,
+      "sha256": "7f69e9c8cffcfe3454c4e8c311d1cc20339e102af66e8fc048c51a29a373657e",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/scratch-aligned/transport-controls.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 3673,
+      "sha256": "57d3adb8b1cc647b89b50e223f9a2e9b9d1b820e6f10a445e6198e0c1610c578",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/scratch-profile-commit.patch",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 14333,
+      "sha256": "b062554f4874b44587d92b118fe234bc5fe1e1184511c6310cb0d9ec454f771b",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/seal.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 603,
+      "sha256": "3e5cd1fd9132374739a74340b795032a26a7edd2d39dd371ab47a13d7f76f451",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/seal.mjs",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 5246,
+      "sha256": "f4ab43ac0909d54663e24054041d4a8deebda716e7ad5191f7c3c1811d9e62a0",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/source-harness-goldens.tar.gz",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 881417,
+      "sha256": "47b9a6d61ac3b26cf93c5e59c805406cc07395c5b08d8ded8945e820954d0f73",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/source-manifest.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 35846,
+      "sha256": "9ae15b38d567d8e45fee927c275600783e35c1181c890f5e06dbfe7f6fbbc2f2",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/summary.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 10698,
+      "sha256": "ac1cda9ca5ebc39ca8e4212c931f7bf9aee295de797a19d38d497f963af28fc3",
+      "hashKind": "raw-file-bytes"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/supervise.mjs",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 7158,
+      "sha256": "1c9c14c50c19e4afde33c8ed33962ad7dad2f7ab913c8bd0fbfd8a93caeeeb13",
+      "hashKind": "raw-file-bytes"
+    }
+  ]
+}

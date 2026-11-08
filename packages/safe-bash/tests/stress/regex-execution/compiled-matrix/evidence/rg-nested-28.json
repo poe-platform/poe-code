@@ -1,0 +1,10 @@
+{
+  "id": "rg-nested-28",
+  "tool": "rg",
+  "kind": "nested",
+  "outcome": "skipped",
+  "reason": "family-execution-watchdog",
+  "pid": null,
+  "activechildren": 0,
+  "executionStable": true
+}

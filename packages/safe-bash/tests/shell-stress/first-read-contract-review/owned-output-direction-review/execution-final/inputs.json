@@ -1,0 +1,82 @@
+{
+  "schema": 1,
+  "classification": "inert-frozen-inputs-not-root-test-discovery",
+  "encoding": "UTF-8; exact strings include explicit LF; no interpolation except loopback origin",
+  "bounds": {
+    "cooperativePhaseMs": 1200,
+    "processMs": 5000,
+    "maxCombinedOutputBytes": 262144,
+    "maxEvents": 64,
+    "maxEventBytes": 512
+  },
+  "borrowedCurl": {
+    "argv": ["curl", "--data-binary", "@-", "${LOOPBACK_ORIGIN}/borrowed"],
+    "pipelineSuffix": " | head -n 0; true",
+    "chunks": ["curl-prefix\n", "curl-late\n", "sibling-after\n", "owner-after\n"],
+    "initialCommittedChunkCount": 1,
+    "pendingChunkIndex": 1,
+    "siblingChunkIndex": 2,
+    "ownerChunkIndex": 3,
+    "serverBody": "response-unused\n",
+    "opaqueLateChunkAllowedDestinations": ["committed curl upload bytes", "restored owner handback before sibling chunk"],
+    "leaseLateChunkDestination": "owner handback before sibling chunk"
+  },
+  "opaqueRead": {
+    "pipeline": "direction-opaque | head -n 0; true",
+    "chunks": ["late-owned-read\n", "sibling-tail\n", "owner-tail\n"],
+    "recordPath": "/direction/opaque-record",
+    "pendingChunkIndex": 0,
+    "siblingChunkIndex": 1,
+    "ownerChunkIndex": 2,
+    "lateChunkAllowedDestinations": ["real VFS record at recordPath", "restored owner handback before sibling chunk"]
+  },
+  "transferredRead": {
+    "pipeline": "direction-transferred | head -n 0; true",
+    "ownedPendingBytes": "exclusive-pending\n",
+    "unrelatedBorrowedBytes": "still-borrowed\n",
+    "ownershipEvent": "owner-explicitly-transfers-exclusive-source",
+    "postCloseFile": "/direction/transfer-survivor",
+    "postCloseBytes": "transfer-survived\n"
+  },
+  "parentTree": {
+    "pipeline": "direction-parent | head -n 0; true",
+    "edges": [["parent", "child"], ["child", "grandchild"]],
+    "lateAcquisitionLevels": ["parent", "child", "grandchild"],
+    "registeredGates": ["child-cleanup", "grandchild-acquisition-and-cleanup"],
+    "postCloseFile": "/direction/parent-survivor",
+    "postCloseBytes": "outside-parent-tree\n",
+    "postCloseStderr": "parent-tree-drained\n"
+  },
+  "childIsolation": {
+    "pipeline": "direction-child | head -n 0; true",
+    "edges": [["parent", "stdout-child"], ["parent", "file-sibling"]],
+    "parentFile": "/direction/parent-complete",
+    "parentBytes": "parent-still-live\n",
+    "siblingFile": "/direction/sibling-complete",
+    "siblingBytes": "sibling-still-live\n",
+    "stderr": "stderr-still-live\n"
+  },
+  "mixedCurl": {
+    "argv": ["curl", "--data-binary", "@-", "-o", "/direction/body", "-D", "/direction/headers", "--write-out", "%{http_code}\\n", "${LOOPBACK_ORIGIN}/mixed"],
+    "pipelineSuffix": " | head -n 0; true",
+    "borrowedChunks": ["mixed-prefix\n", "mixed-late\n"],
+    "pendingChunkIndex": 1,
+    "uploadBytes": "mixed-prefix\nmixed-late\n",
+    "responseBody": "mixed-body-kept\n",
+    "responseWireHeaders": "HTTP/1.1 200 OK\r\nContent-Length: 16\r\nX-Direction: mixed\r\nConnection: close\r\n\r\n",
+    "serverAutomaticDate": false,
+    "independentFile": "/direction/independent",
+    "independentBytes": "file-still-completes\n",
+    "independentStderr": "mixed-stderr-completes\n"
+  },
+  "failureReasons": {
+    "pipeline": "direction-failure | head -n 0; true",
+    "callerObject": {"code": "EPIPE", "marker": "caller-not-output-close"},
+    "callerPrimitive": 0,
+    "executionErrorMessage": "direction-execution-error",
+    "cleanupErrorMessages": ["direction-cleanup-a", "direction-cleanup-b"],
+    "lateReadErrorMessage": "direction-late-opaque-read",
+    "survivorBytes": "reason-owner-survived\n",
+    "subruns": ["caller-object-with-child-cleanup-failure", "caller-zero-with-child-cleanup-failure", "execution-rejection-with-late-opaque-rejection", "two-child-cleanup-errors-with-late-opaque-rejection"]
+  }
+}

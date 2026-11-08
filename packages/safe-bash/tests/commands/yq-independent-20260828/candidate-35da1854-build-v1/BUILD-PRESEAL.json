@@ -1,0 +1,66 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "purpose": "PART_A_ONE_AUTHORIZED_INDEPENDENT_SCOPED_BUILD",
+  "authorization": "Current explicit user/root handoff activates build only after accepted composition 7ed356ade4509e492e15615587408eb4b41f92e0 and runtime/integration 6af0eb2d627f3ed80255c295b79299708436d372",
+  "files": {
+    "RECIPE.md": {
+      "sha256": "c0f5b4c60a94502031cea536a13ce231c1b7468cebeb4ea4c44e44da8ad8f6b1",
+      "bytes": 7880,
+      "mode": 420
+    },
+    "build-once.mjs": {
+      "sha256": "07c20e18ab1f34299a2d00ca3c65588ce0f4964334ea2eb9b3b8a7d14cf134d2",
+      "bytes": 32955,
+      "mode": 420
+    },
+    "INPUTS.json": {
+      "sha256": "63eaea01df7f206f0c0d10f9f7b39f4a3c83e1d6d63172582953cc261ba3c83c",
+      "bytes": 116989,
+      "mode": 420
+    }
+  },
+  "command": {
+    "executable": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/tools/node",
+    "args": [
+      "/private/tmp/yq-independent-build-35da1854-PJ4uYL/tools/typescript/lib/tsc.js",
+      "--project",
+      "/private/tmp/yq-independent-build-35da1854-PJ4uYL/source/tsconfig.build.json",
+      "--outDir",
+      "/private/tmp/yq-independent-build-35da1854-PJ4uYL/raw-output/dist",
+      "--typeRoots",
+      "/private/tmp/yq-independent-build-35da1854-PJ4uYL/tools/types"
+    ],
+    "cwd": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/source",
+    "umask": 18,
+    "env": {
+      "LANG": "C",
+      "LC_ALL": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/home",
+      "TMPDIR": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/scratch"
+    }
+  },
+  "resourceBounds": {
+    "deadlineMs": 120000,
+    "termGraceMs": 2000,
+    "reapMs": 5000,
+    "captureBytesPerStream": 4194304,
+    "treeBytes": 67108864,
+    "treeEntries": 4096
+  },
+  "toolIdentitySource": "INPUTS.json complete original/copied trees and accepted Node/TypeScript/Node-types/undici-types pins",
+  "sourceMapSha256": "e01d63d8e782cba59597da7c970cbd364a35582e4956ab04759064c756df1284",
+  "packageMapSha256": "4ce4908953986584ae50f61976796d9ee7c1259e7c0d009afa4b675225496088",
+  "expectedPackageSha256": "2942ba1f6982a2e217350bbbad420e93d43e9336324b6db8a3d1d88b5a7aee4d",
+  "compilerAttemptsAuthorized": 1,
+  "compilerAttemptsBeforeSeal": 0,
+  "productExecutionAuthorized": false,
+  "semanticOrConsumerTypeExecutionAuthorized": false,
+  "sourceFileCount": 271,
+  "sourceArchiveFileCount": 273,
+  "typescriptSourceCount": 217,
+  "expectedCompilerOutputs": 868,
+  "sourceMapRelocation": "Only declared sources[0] rebasing after validating raw map source resolves to exact selected source; retain raw bytes and compare all other bytes exactly",
+  "historicalFailures": "Original 409 refusal and every failed aggregate/postprocessor remain unchanged; no source bug inferred"
+}

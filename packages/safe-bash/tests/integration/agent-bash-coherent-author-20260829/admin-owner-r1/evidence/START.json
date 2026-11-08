@@ -1,0 +1,21 @@
+{
+  "schema": "administrative-owner-r1",
+  "self": {
+    "id": "owner-97134",
+    "role": "administrative-owner",
+    "pid": 97134,
+    "startUTC": "2026-08-29T15:25:20.796Z",
+    "startObserved": true,
+    "exitObserved": false,
+    "closeObserved": false,
+    "state": "LIVE_COORDINATOR"
+  },
+  "starts": [],
+  "attempts": [],
+  "knownStarts": 1,
+  "activeKnownPIDs": [],
+  "captureBytes": 0,
+  "metadataBytes": 0,
+  "elapsedMs": 1.6873339999999928,
+  "poisoned": false
+}

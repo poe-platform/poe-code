@@ -1,0 +1,205 @@
+{
+  "pin": "f44958bf48778737a58535e2bc9b37c292ac28c4",
+  "privateHead": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+  "harness": {
+    "cases.mjs": "86e16c5d28eaebe00759708c01f4b7464f94563e2c4b41677aaa35104d80ec1b",
+    "child.mjs": "483bf2f7b6edf55c10433a9b07965d750e83ff8598511c15318ce80ff2edd922",
+    "guard.mjs": "f0d1ea265fa1b37f887f1a296f3678475df5075141fd2af21dfab85129aa8898",
+    "run.mjs": "845791dfa3785b6e3daee8f1f88c25efe9f87f8f116b9bc92712aa887cc3fc64"
+  },
+  "cases": [
+    {
+      "id": "literal-grep-success",
+      "guest": "import { search } from \"companion\"; import { setExitCode } from \"command\"; setExitCode(await search(\"grep\", [\"-E\",\"^alpha\",\"/work/input\"]));",
+      "output": "alpha 1\nalpha 2\n",
+      "exitCode": 0
+    },
+    {
+      "id": "literal-rg-success",
+      "guest": "import { search } from \"companion\"; import { setExitCode } from \"command\"; setExitCode(await search(\"rg\", [\"--no-heading\",\"^alpha\",\"/work/input\"]));",
+      "output": "alpha 1\nalpha 2\n",
+      "exitCode": 0
+    },
+    {
+      "id": "literal-grep-early-close",
+      "guest": "import { search } from \"companion\"; import { setExitCode } from \"command\"; setExitCode(await search(\"grep\", [\"-E\",\"^alpha\",\"/work/many\"]));",
+      "pipeline": true,
+      "output": "alpha 0\n",
+      "exitCode": 0
+    },
+    {
+      "id": "literal-rg-early-close",
+      "guest": "import { search } from \"companion\"; import { setExitCode } from \"command\"; setExitCode(await search(\"rg\", [\"--no-heading\",\"^alpha\",\"/work/many\"]));",
+      "pipeline": true,
+      "output": "alpha 0\n",
+      "exitCode": 0
+    },
+    {
+      "id": "literal-grep-caller-abort",
+      "guest": "import { search } from \"companion\"; import { setExitCode } from \"command\"; setExitCode(await search(\"grep\", [\"-E\",\"^alpha\",\"/work/input\"]));",
+      "action": "abort",
+      "reason": "error"
+    },
+    {
+      "id": "literal-rg-caller-abort-record",
+      "guest": "import { search } from \"companion\"; import { setExitCode } from \"command\"; setExitCode(await search(\"rg\", [\"^alpha\",\"/work/input\"]));",
+      "action": "abort",
+      "reason": "record"
+    },
+    {
+      "id": "literal-grep-dispose",
+      "guest": "import { search } from \"companion\"; import { setExitCode } from \"command\"; setExitCode(await search(\"grep\", [\"-E\",\"^alpha\",\"/work/input\"]));",
+      "action": "dispose"
+    },
+    {
+      "id": "literal-rg-overlap-abort-dispose",
+      "guest": "import { search } from \"companion\"; import { setExitCode } from \"command\"; setExitCode(await search(\"rg\", [\"^alpha\",\"/work/input\"]));",
+      "action": "overlap",
+      "reason": "error"
+    },
+    {
+      "id": "literal-grep-guest-budget",
+      "guest": "import { search } from \"companion\"; import { setExitCode } from \"command\"; setExitCode(await search(\"grep\", [\"-E\",\"^alpha\",\"/work/input\"])); let total = 0; for (let counter = 0; counter < 10000; counter++) { total += counter; } await search(\"grep\", [\"^NEVER\", \"/work/input\"]);",
+      "maxSteps": 1000,
+      "output": "alpha 1\nalpha 2\n",
+      "exitCode": 124,
+      "budget": true
+    },
+    {
+      "id": "literal-grep-guest-error",
+      "guest": "import { search } from \"companion\"; import { setExitCode } from \"command\"; setExitCode(await search(\"grep\", [\"-E\",\"^alpha\",\"/work/input\"])); throw new Error(\"bounded guest failure\");",
+      "output": "alpha 1\nalpha 2\n",
+      "exitCode": 1,
+      "guestError": true
+    },
+    {
+      "id": "literal-grep-retained-lifetime",
+      "guest": "import { search } from \"companion\"; import { setExitCode } from \"command\"; setExitCode(await search(\"grep\", [\"-E\",\"^alpha\",\"/work/input\"]));",
+      "output": "alpha 1\nalpha 2\n",
+      "exitCode": 0,
+      "retained": true
+    },
+    {
+      "id": "literal-grep-caller-sink-error",
+      "guest": "import { search } from \"companion\"; import { setExitCode } from \"command\"; setExitCode(await search(\"grep\", [\"-E\",\"^alpha\",\"/work/input\"]));",
+      "sinkError": true
+    },
+    {
+      "id": "literal-preabort-no-admission",
+      "guest": "import { search } from \"companion\"; import { setExitCode } from \"command\"; setExitCode(await search(\"grep\", [\"-E\",\"^alpha\",\"/work/input\"]));",
+      "preabort": true,
+      "reason": "error"
+    },
+    {
+      "id": "bridge-grep-success",
+      "route": "bridge",
+      "guest": "import { exec } from \"shell\"; import { write } from \"stdio\"; import { setExitCode } from \"command\"; const result = await exec(\"grep -E '^alpha' /work/input\"); await write(result.stdout); setExitCode(result.exitCode);",
+      "output": "alpha 1\nalpha 2\n",
+      "exitCode": 0
+    },
+    {
+      "id": "bridge-rg-early-close",
+      "route": "bridge",
+      "guest": "import { exec } from \"shell\"; import { write } from \"stdio\"; import { setExitCode } from \"command\"; const result = await exec(\"rg '^alpha' /work/many | head -n 1\"); await write(result.stdout); setExitCode(result.exitCode);",
+      "output": "alpha 0\n",
+      "exitCode": 0
+    },
+    {
+      "id": "bridge-grep-caller-abort",
+      "route": "bridge",
+      "guest": "import { exec } from \"shell\"; import { write } from \"stdio\"; import { setExitCode } from \"command\"; const result = await exec(\"grep -E '^alpha' /work/input\"); await write(result.stdout); setExitCode(result.exitCode);",
+      "action": "abort",
+      "reason": "error"
+    },
+    {
+      "id": "bridge-rg-dispose",
+      "route": "bridge",
+      "guest": "import { exec } from \"shell\"; import { write } from \"stdio\"; import { setExitCode } from \"command\"; const result = await exec(\"rg '^alpha' /work/input\"); await write(result.stdout); setExitCode(result.exitCode);",
+      "action": "dispose"
+    }
+  ],
+  "archive": {
+    "sha256": "d942398b277a621b82b98dbaab267291ac4dc7b613f884b617650357964989bd",
+    "bytes": 998727680,
+    "fullCommit": true,
+    "entries": 15798,
+    "allBlobIdsVerified": true,
+    "inventorySha256": "f70d81a861fd9d54c9a1d8e263dc3dadb4cbac98baec3dfe16173c6c95fcf83a"
+  },
+  "package": {
+    "name": "virtual-bash",
+    "version": "0.0.0",
+    "sha256": "1a757856aff57daa1fd3e5c40f4e011b1bb1ec43877f2fd5c8b6fae7f8e3ff5e",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js"
+      },
+      "./contracts": {
+        "types": "./dist/contracts/index.d.ts",
+        "import": "./dist/contracts/index.js"
+      },
+      "./contracts/*": {
+        "types": "./dist/contracts/*.d.ts",
+        "import": "./dist/contracts/*.js"
+      },
+      "./commands/network": {
+        "types": "./dist/commands/network/index.d.ts",
+        "import": "./dist/commands/network/index.js"
+      },
+      "./commands/metadata": {
+        "types": "./dist/commands/metadata/index.d.ts",
+        "import": "./dist/commands/metadata/index.js"
+      },
+      "./commands/archive": {
+        "types": "./dist/commands/archive/index.d.ts",
+        "import": "./dist/commands/archive/index.js"
+      },
+      "./commands/table-text": {
+        "types": "./dist/commands/table-text/index.d.ts",
+        "import": "./dist/commands/table-text/index.js"
+      },
+      "./commands/stream-inspection": {
+        "types": "./dist/commands/stream-inspection/index.d.ts",
+        "import": "./dist/commands/stream-inspection/index.js"
+      },
+      "./commands/stream-format": {
+        "types": "./dist/commands/stream-format/index.d.ts",
+        "import": "./dist/commands/stream-format/index.js"
+      },
+      "./commands/split": {
+        "types": "./dist/commands/split/index.d.ts",
+        "import": "./dist/commands/split/index.js"
+      },
+      "./commands/time-env": {
+        "types": "./dist/commands/time-env/index.d.ts",
+        "import": "./dist/commands/time-env/index.js"
+      },
+      "./fs/s3": {
+        "types": "./dist/fs/s3/index.d.ts",
+        "import": "./dist/fs/s3/index.js"
+      },
+      "./fs/s3/http": {
+        "types": "./dist/fs/s3/http/index.d.ts",
+        "import": "./dist/fs/s3/http/index.js"
+      },
+      "./fs/webdav": {
+        "types": "./dist/fs/webdav/index.d.ts",
+        "import": "./dist/fs/webdav/index.js"
+      },
+      "./fs/readonly": {
+        "types": "./dist/fs/readonly/index.d.ts",
+        "import": "./dist/fs/readonly/index.js"
+      },
+      "./fs/mount": {
+        "types": "./dist/fs/mount/index.d.ts",
+        "import": "./dist/fs/mount/index.js"
+      },
+      "./fs/overlay": {
+        "types": "./dist/fs/overlay/index.d.ts",
+        "import": "./dist/fs/overlay/index.js"
+      }
+    },
+    "zeroRuntimeDependencies": true
+  }
+}

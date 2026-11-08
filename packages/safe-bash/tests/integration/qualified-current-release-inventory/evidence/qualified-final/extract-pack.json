@@ -1,0 +1,14 @@
+{
+  "command": [
+    "/usr/bin/tar",
+    "-xzf",
+    "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-35fajW/pack-first/virtual-bash-0.0.0.tgz",
+    "-C",
+    "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-35fajW/consumer-original/node_modules"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-35fajW/snapshot",
+  "status": 0,
+  "signal": null,
+  "stdout": "",
+  "stderr": ""
+}

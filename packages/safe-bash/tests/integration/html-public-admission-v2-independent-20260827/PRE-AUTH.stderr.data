@@ -1,0 +1,19 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: /usr/bin/tar
+    at identity (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-v2-independent-20260827/authenticate.mjs:27:10)
+    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-v2-independent-20260827/authenticate.mjs:74:174
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v22.22.2

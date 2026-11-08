@@ -1,0 +1,32 @@
+{
+  "id": "A38",
+  "status": "pass",
+  "rawPredicate": {
+    "id": "A38",
+    "status": "pass",
+    "evidence": {
+      "partialEffectBytes": 6
+    }
+  },
+  "completion": {
+    "exitCode": 0,
+    "signal": null
+  },
+  "elapsedMs": 191,
+  "pid": 446,
+  "productInvocations": 1,
+  "command": {
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "argv": [
+      "--import",
+      "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/node_modules/tsx/dist/loader.mjs",
+      "/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs",
+      "--execute",
+      "/private/tmp/safe-bash-tree-initial-run-NN3E3X/bridge.mjs",
+      "/private/tmp/safe-bash-tree-initial-run-NN3E3X/profile.json",
+      "A38"
+    ],
+    "cwd": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate"
+  },
+  "observationAvailable": true
+}

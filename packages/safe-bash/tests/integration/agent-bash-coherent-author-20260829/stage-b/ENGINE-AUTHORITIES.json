@@ -1,0 +1,9 @@
+[
+  {
+    "commit": "3681c910f485673051f59a35c68fcde32c01dbe7",
+    "path": "tests/integration/agent-bash-coherent-independent-20260829/public-engine-preflight/PUBLIC95-BINDINGS.json",
+    "blob": "43b683f25a13aa0d12a6442fd517dd29fa3cfb77",
+    "bytes": 58897,
+    "sha256": "7657270d69ad6e9256b72533a2fd2a23be47e4ec36a48e89d052dc887c3c7f29"
+  }
+]

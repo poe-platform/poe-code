@@ -1,0 +1,5 @@
+--- model.mjs (9e411191722e796460f347b0848c32da60abaea108bdd78bdf8886ab8c1a8e86)
++++ model.mjs (970665a87d658a8c8ac386be67a2fd219c716ecdf5e8934d84c4fb82af3b515e)
+@@ exact unique replacement @@
+-    const order = policy === 'HNODE-AGG-v5' ? this.nodeOrder(first, second) : this.treeOrder(first.tree, second.tree);
++    const order = this.treeOrder(first.tree, second.tree);

@@ -1,0 +1,335 @@
+{
+  "schema": "virtual-bash-timeout-command-freeze-profile-v1",
+  "status": "proposed-precode-freeze",
+  "date": "2026-08-28",
+  "identity": {
+    "product": "virtual-bash",
+    "profile": "cooperative timeout",
+    "gnuOrNativeIdentityClaim": false,
+    "packageVersionClaim": false
+  },
+  "synopsis": "timeout [OPTION] DURATION COMMAND [ARG]...",
+  "optionParsing": {
+    "leadingOnly": true,
+    "endMarker": "--",
+    "firstNonOptionIsDurationAndEndsOptions": true,
+    "afterDurationAllTokensAreLiteral": true,
+    "supported": {
+      "--help": {
+        "fixture": "help",
+        "exitCode": 0,
+        "stdout": "Usage: timeout [OPTION] DURATION COMMAND [ARG]...\nRun a virtual-bash command with a cooperative time limit.\n",
+        "stdoutUtf8Bytes": 108,
+        "stderr": "",
+        "noInvoke": true,
+        "noClockOrTimerOperation": true,
+        "noStdinRead": true
+      },
+      "--version": {
+        "fixture": "version",
+        "exitCode": 0,
+        "stdout": "timeout (virtual-bash cooperative profile)\n",
+        "stdoutUtf8Bytes": 43,
+        "stderr": "",
+        "noInvoke": true,
+        "noClockOrTimerOperation": true,
+        "noStdinRead": true
+      }
+    },
+    "invalid": {
+      "spellings": ["--help=...", "--version=...", "-h", "any other unrecognized leading option"],
+      "fixture": "invalid-option",
+      "exitCode": 125
+    },
+    "unsupported": [
+      {
+        "canonical": "--preserve-status",
+        "longExact": true,
+        "longWithEquals": true,
+        "firstShortFlag": "p",
+        "fixture": "unsupported-preserve-status",
+        "exitCode": 125
+      },
+      {
+        "canonical": "--signal",
+        "longExact": true,
+        "longWithEquals": true,
+        "firstShortFlag": "s",
+        "fixture": "unsupported-signal",
+        "exitCode": 125
+      },
+      {
+        "canonical": "--kill-after",
+        "longExact": true,
+        "longWithEquals": true,
+        "firstShortFlag": "k",
+        "fixture": "unsupported-kill-after",
+        "exitCode": 125
+      },
+      {
+        "canonical": "--foreground",
+        "longExact": true,
+        "longWithEquals": true,
+        "firstShortFlag": "f",
+        "fixture": "unsupported-foreground",
+        "exitCode": 125
+      },
+      {
+        "canonical": "--verbose",
+        "longExact": true,
+        "longWithEquals": true,
+        "firstShortFlag": "v",
+        "fixture": "unsupported-verbose",
+        "exitCode": 125
+      }
+    ],
+    "shortPolicy": {
+      "examples": {
+        "-s": "unsupported-signal",
+        "-sTERM": "unsupported-signal",
+        "-pv": "unsupported-preserve-status",
+        "-k1s": "unsupported-kill-after"
+      },
+      "generalClusteringClaim": false
+    }
+  },
+  "duration": {
+    "asciiGrammar": "(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)[smhd]?",
+    "unitSeconds": {
+      "": 1,
+      "s": 1,
+      "m": 60,
+      "h": 3600,
+      "d": 86400
+    },
+    "targetUnit": "milliseconds",
+    "arithmetic": "exact decimal integer/rational",
+    "rounding": "ceil exactly once after scaling",
+    "zero": "mathematical zero disables deadline and omits all deadline resources",
+    "minimumPositiveMilliseconds": 1,
+    "maximumMilliseconds": 9007199254740991,
+    "overflowFixture": "duration-overflow",
+    "overflowExitCode": 125,
+    "semanticDurationCap": null,
+    "rejectedForms": [
+      "signed",
+      "whitespace",
+      "exponent",
+      "hexadecimal",
+      "locale decimal",
+      "NaN",
+      "Infinity"
+    ],
+    "work": {
+      "validationAndScanPasses": 1,
+      "proportionalToAdmittedInputBytes": true,
+      "proportionalToNumericMagnitude": false,
+      "newArbitraryInputCap": null,
+      "trimLeadingZeroesBeforeIntegerMaterialization": true
+    }
+  },
+  "timer": {
+    "defaultScheduler": {
+      "clockBinding": "node:perf_hooks performance.now",
+      "timerBindings": ["node:timers setTimeout", "node:timers clearTimeout"],
+      "globalOrAmbientHookDiscovery": false
+    },
+    "clockUnit": "monotonic milliseconds",
+    "clockSample": {
+      "type": "number",
+      "finite": true,
+      "minimum": -9007199254740991,
+      "maximum": 9007199254740991,
+      "nondecreasing": true,
+      "integerRequired": false
+    },
+    "defaultMaximumChunkMilliseconds": 2147483647,
+    "configuredMaximumChunkProperty": "maxTimerMilliseconds",
+    "allowedScheduledChunkMilliseconds": {
+      "minimum": 1,
+      "maximum": 2147483647,
+      "integer": true
+    },
+    "maximumLiveHandles": 1,
+    "allReturnedHandlesAreOpaqueAndLiveIncludingFalsy": true,
+    "callbackContract": "asynchronous and at most once per handle",
+    "remainingDurationNotAbsoluteDeadline": true,
+    "freshDeadlineSentinelPerInvocation": true,
+    "freshDistinctTimerFailureSentinelPerInvocation": true,
+    "cleanupRegisteredSynchronouslyBeforeClockTimerOrChild": true,
+    "activeThroughNestedInvokeCleanup": true,
+    "retiredBeforeHandlerSettlement": true,
+    "outerRootOnlyCleanupInsideDeadline": false,
+    "outerRootOnlyCleanupStillAwaited": true,
+    "clearOrRetirementFailure": "cleanup failure; never wrapper 124 or 125",
+    "hardPreemption": false,
+    "boundedSettlementForOpaqueOrNonconformingWork": false
+  },
+  "sharedState": {
+    "budgetCountersReused": ["commands", "iterations", "bytes", "sourceBytes"],
+    "depthReused": true,
+    "newBudget": false,
+    "newCounter": false,
+    "counterReset": false,
+    "familyLimitsCombinedWithShellBudget": false
+  },
+  "invoke": {
+    "selection": [
+      "present callable context.invoke",
+      "factory fallback only if context.invoke property is absent",
+      "invoke-unavailable status 125"
+    ],
+    "presentNonFunctionIncludingUndefined": "invoke-unavailable status 125 without fallback",
+    "contextReceiver": "current CommandContext",
+    "fallbackReceiver": "undefined",
+    "capabilityField": null,
+    "capabilityProbe": false,
+    "fallbackShell": false,
+    "ambientHookDiscovery": false,
+    "singleDispatch": true,
+    "trustedContract": [
+      "signal",
+      "registered cleanup",
+      "shared budget and depth",
+      "literal argv",
+      "transparent streams",
+      "settlement after cooperative child cleanup"
+    ],
+    "passes": [
+      "signal only for positive duration",
+      "stdin",
+      "stdinIsDefault only when defined",
+      "stdout",
+      "stderr"
+    ],
+    "omits": ["cwd", "env", "replaceEnv"],
+    "streamPrebuffer": false,
+    "borrowedStreamClose": false
+  },
+  "outcomesAfterChildClosureAndTimerRetirement": [
+    {
+      "condition": "Object.is(error, ownDeadlineSentinel) and retirement has no failure",
+      "exitCode": 124,
+      "diagnostic": null
+    },
+    {
+      "condition": "Object.is(error, ownTimerFailureSentinel) and retirement has no failure",
+      "exitCode": 125,
+      "fixture": "timer-setup-failed"
+    },
+    {
+      "condition": "clearTimeout or retirement failure",
+      "action": "cleanup failure under existing root precedence; never wrapper 124 or 125"
+    },
+    {
+      "condition": "other rejection",
+      "action": "rethrow exact"
+    },
+    {
+      "condition": "validated CommandResult",
+      "action": "preserve exitCode including 124, 126, and 127"
+    }
+  ],
+  "records": {
+    "missing-duration": {
+      "exitCode": 125,
+      "stream": "stderr",
+      "text": "timeout: missing duration\n",
+      "utf8Bytes": 26
+    },
+    "invalid-duration": {
+      "exitCode": 125,
+      "stream": "stderr",
+      "text": "timeout: invalid duration\n",
+      "utf8Bytes": 26
+    },
+    "duration-overflow": {
+      "exitCode": 125,
+      "stream": "stderr",
+      "text": "timeout: duration exceeds supported range\n",
+      "utf8Bytes": 42
+    },
+    "missing-command": {
+      "exitCode": 125,
+      "stream": "stderr",
+      "text": "timeout: missing command\n",
+      "utf8Bytes": 25
+    },
+    "invalid-option": {
+      "exitCode": 125,
+      "stream": "stderr",
+      "text": "timeout: invalid option\n",
+      "utf8Bytes": 24
+    },
+    "unsupported-preserve-status": {
+      "exitCode": 125,
+      "stream": "stderr",
+      "text": "timeout: option --preserve-status is unsupported\n",
+      "utf8Bytes": 49
+    },
+    "unsupported-signal": {
+      "exitCode": 125,
+      "stream": "stderr",
+      "text": "timeout: option --signal is unsupported\n",
+      "utf8Bytes": 40
+    },
+    "unsupported-kill-after": {
+      "exitCode": 125,
+      "stream": "stderr",
+      "text": "timeout: option --kill-after is unsupported\n",
+      "utf8Bytes": 44
+    },
+    "unsupported-foreground": {
+      "exitCode": 125,
+      "stream": "stderr",
+      "text": "timeout: option --foreground is unsupported\n",
+      "utf8Bytes": 44
+    },
+    "unsupported-verbose": {
+      "exitCode": 125,
+      "stream": "stderr",
+      "text": "timeout: option --verbose is unsupported\n",
+      "utf8Bytes": 41
+    },
+    "invoke-unavailable": {
+      "exitCode": 125,
+      "stream": "stderr",
+      "text": "timeout: command invocation is unavailable\n",
+      "utf8Bytes": 43
+    },
+    "timer-setup-failed": {
+      "exitCode": 125,
+      "stream": "stderr",
+      "text": "timeout: timer setup failed\n",
+      "utf8Bytes": 28
+    },
+    "help": {
+      "exitCode": 0,
+      "stream": "stdout",
+      "text": "Usage: timeout [OPTION] DURATION COMMAND [ARG]...\nRun a virtual-bash command with a cooperative time limit.\n",
+      "utf8Bytes": 108
+    },
+    "version": {
+      "exitCode": 0,
+      "stream": "stdout",
+      "text": "timeout (virtual-bash cooperative profile)\n",
+      "utf8Bytes": 43
+    }
+  },
+  "fixedRecordCount": 14,
+  "diagnosticWriteFailure": "exact host or stream contract failure; no status normalization",
+  "durationExamples": [
+    { "input": "0", "milliseconds": 0 },
+    { "input": "0.", "milliseconds": 0 },
+    { "input": ".0000000000000000001s", "milliseconds": 1 },
+    { "input": ".001s", "milliseconds": 1 },
+    { "input": ".0011s", "milliseconds": 2 },
+    { "input": "1", "milliseconds": 1000 },
+    { "input": "1.0001", "milliseconds": 1001 },
+    { "input": ".5m", "milliseconds": 30000 },
+    { "input": ".5h", "milliseconds": 1800000 },
+    { "input": ".5d", "milliseconds": 43200000 },
+    { "input": "9007199254740.991s", "milliseconds": 9007199254740991 },
+    { "input": "9007199254740.9911s", "error": "duration-overflow" }
+  ]
+}

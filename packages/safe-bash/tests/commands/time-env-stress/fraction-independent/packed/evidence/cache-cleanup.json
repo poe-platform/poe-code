@@ -1,0 +1,9 @@
+{
+  "reason": "Unchanged original223 isolated-child fixture supplies its own minimal env, omitting inherited TSX_DISABLE_CACHE/TMPDIR. Only cache entries whose source maps name this exact owned frozen scratch are removed.",
+  "cacheRoot": "/tmp/tsx-501",
+  "canonicalSourceRoot": "/private/tmp/safe-bash-fraction-independent-packed-I9CT4m/archive/src/",
+  "removed": [],
+  "foreignEntriesUntouched": true,
+  "cacheDirectoryPreserved": true,
+  "capturedAt": "2026-08-27T09:08:28.381Z"
+}

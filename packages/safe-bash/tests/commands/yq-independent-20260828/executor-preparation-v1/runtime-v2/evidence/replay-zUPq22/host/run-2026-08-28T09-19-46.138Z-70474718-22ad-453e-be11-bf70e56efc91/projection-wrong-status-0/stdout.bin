@@ -1,0 +1,1 @@
+{"schemaVersion":1,"outcome":"CAPTURED","capture":{"stdoutHex":"2261223a20310a","stderrHex":"","status":0,"rejected":false,"rejection":null,"cleanupErrors":[],"effects":{"before":[],"after":[]},"events":[]},"jobId":"projection-wrong-status-0"}

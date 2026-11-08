@@ -1,0 +1,17 @@
+node:fs:2815
+        binding.stat(base, false, undefined, true);
+                ^
+
+Error: Access to this API has been restricted. Use --allow-fs-read to manage permissions.
+    at Object.realpathSync (node:fs:2815:17)
+    at toRealPath (node:internal/modules/helpers:61:13)
+    at Function._findPath (node:internal/modules/cjs/loader:746:22)
+    at resolveMainPath (node:internal/modules/run_main:39:23)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:163:20)
+    at node:internal/main/run_main_module:36:49 {
+  code: 'ERR_ACCESS_DENIED',
+  permission: 'FileSystemRead',
+  resource: '/tmp'
+}
+
+Node.js v22.22.2

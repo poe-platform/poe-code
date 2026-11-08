@@ -1,0 +1,10 @@
+Role: short error excerpt transcribed from the tool response; NOT a full raw capture.
+Tool response: fa56c9, process exit1. Helper body did not execute.
+
+file:///Users/kjopek/Workspace/safe-bash/[eval1]:19
+ const pending=capture(shell.exec('f(){ printf "%s" "${absent:?required}"; }; guard',{signal:controller.signal,stderr:{async write(){writes++;event('diagnostic');throw reason;}}})).then(outcome=>{settled=true;event('settled');return outcome;});
+                                                       ^^^^^^
+
+SyntaxError: Missing } in template expression
+
+Node.js v22.22.2

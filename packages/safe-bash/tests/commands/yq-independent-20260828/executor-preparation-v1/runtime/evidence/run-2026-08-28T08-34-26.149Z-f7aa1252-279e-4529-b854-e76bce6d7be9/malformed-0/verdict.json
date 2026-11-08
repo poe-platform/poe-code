@@ -1,0 +1,23 @@
+{
+  "jobId": "malformed-0",
+  "admitted": true,
+  "outcome": "FAIL",
+  "failures": [
+    "assertion: SyntaxError: Expected property name or '}' in JSON at position 1 (line 1 column 2)"
+  ],
+  "integrity": true,
+  "reapProof": true,
+  "metadata": {
+    "pid": 99208,
+    "group": 99208,
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "overflow": false,
+    "spawnError": null,
+    "closed": true,
+    "reaped": true,
+    "kills": [],
+    "elapsedMs": 43
+  }
+}

@@ -1,0 +1,2 @@
+{"pid":59791,"parentPid":79787,"started":"2026-08-29T08:14:56.677Z","role":"READONLY_DATA_PUBLICATION"}
+{"finished":"2026-08-29T08:14:57.553Z","mainCount":672,"source":293,"packageMembers":954,"archive":{"bytes":4816235,"sha256":"0538f9ebacae7b102279fc0c8c387506a8db232221cbb07073fc9859e8530234","decodedJsonBytes":17824436,"originalCapturedBytes":13362435,"entries":217}}

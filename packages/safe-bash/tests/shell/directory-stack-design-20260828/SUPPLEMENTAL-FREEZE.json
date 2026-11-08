@@ -1,0 +1,10 @@
+{
+  "sealedAt": "2026-08-28T02:19:54.044Z",
+  "files": {
+    "supplemental-cases.json": "5495431b3b668fcba980c51d7b1d49d2a91eae7efdf569e37cad6ada1a42169d",
+    "supplemental.mjs": "45fba3c77e8207377a0460528d556541cfba188731ec84e135958e1351753634"
+  },
+  "originalCompressedSha256": "fe150ca75f031031acc8e3591ed6add03ea24d669e7bcc63d97d2990d7452211",
+  "cases": 4,
+  "timing": "After original34 native+virtual observations; before these four new topology questions; not a corrected original34 score"
+}

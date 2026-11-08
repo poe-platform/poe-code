@@ -1,0 +1,23 @@
+{
+  "jobId": "host-signal-0",
+  "admitted": true,
+  "outcome": "FAIL",
+  "failures": [
+    "child-process"
+  ],
+  "integrity": true,
+  "reapProof": true,
+  "metadata": {
+    "pid": 14174,
+    "group": 14174,
+    "exitCode": null,
+    "signal": "SIGTERM",
+    "timedOut": false,
+    "overflow": false,
+    "spawnError": null,
+    "closed": true,
+    "reaped": true,
+    "kills": [],
+    "elapsedMs": 45
+  }
+}

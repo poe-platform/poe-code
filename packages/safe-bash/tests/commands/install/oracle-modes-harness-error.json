@@ -1,0 +1,3314 @@
+{
+  "kind": "INVALID real-adapter harness capture: createRealFileSystem was not awaited, so real is a Promise and every real row is rejected evidence, not an implementation failure or parity pass. Preserved for audit. Native and memory rows were exercised. Corrected fresh capture follows separately.",
+  "binary": "/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src/ginstall",
+  "uid": 501,
+  "gid": 20,
+  "rows": [
+    {
+      "args": [
+        "-m",
+        "0",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: context.fs[(intermediate value)(intermediate value)(intermediate value)] is not a function\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "realMode": null,
+      "memoryMode": 0,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "0",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "realMode": null,
+      "memoryMode": 0,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "0",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "realMode": 493,
+      "memoryMode": 0,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-m",
+        "1",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: context.fs[(intermediate value)(intermediate value)(intermediate value)] is not a function\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 1,
+      "realMode": null,
+      "memoryMode": 1,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "1",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 1,
+      "realMode": null,
+      "memoryMode": 1,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "1",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 1,
+      "realMode": 493,
+      "memoryMode": 1,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-m",
+        "400",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: context.fs[(intermediate value)(intermediate value)(intermediate value)] is not a function\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 256,
+      "realMode": null,
+      "memoryMode": 256,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "400",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 256,
+      "realMode": null,
+      "memoryMode": 256,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "400",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 256,
+      "realMode": 493,
+      "memoryMode": 256,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-m",
+        "644",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: context.fs[(intermediate value)(intermediate value)(intermediate value)] is not a function\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 420,
+      "realMode": null,
+      "memoryMode": 420,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "644",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 420,
+      "realMode": null,
+      "memoryMode": 420,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "644",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 420,
+      "realMode": 493,
+      "memoryMode": 420,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-m",
+        "755",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: context.fs[(intermediate value)(intermediate value)(intermediate value)] is not a function\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "realMode": null,
+      "memoryMode": 493,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "755",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "realMode": null,
+      "memoryMode": 493,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "755",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "realMode": 493,
+      "memoryMode": 493,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-m",
+        "1000",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: context.fs[(intermediate value)(intermediate value)(intermediate value)] is not a function\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 512,
+      "realMode": null,
+      "memoryMode": 512,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "1000",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 512,
+      "realMode": null,
+      "memoryMode": 512,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "1000",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 512,
+      "realMode": 493,
+      "memoryMode": 512,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-m",
+        "1700",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: context.fs[(intermediate value)(intermediate value)(intermediate value)] is not a function\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 960,
+      "realMode": null,
+      "memoryMode": 960,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "1700",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 960,
+      "realMode": null,
+      "memoryMode": 960,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "1700",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 960,
+      "realMode": 493,
+      "memoryMode": 960,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-m",
+        "2700",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot change permissions of 'target': Operation not permitted\n"
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: context.fs[(intermediate value)(intermediate value)(intermediate value)] is not a function\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 384,
+      "realMode": null,
+      "memoryMode": 1472,
+      "realExact": false,
+      "memoryExact": false
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "2700",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 448,
+      "realMode": null,
+      "memoryMode": 1472,
+      "realExact": false,
+      "memoryExact": false
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "2700",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 448,
+      "realMode": 493,
+      "memoryMode": 1472,
+      "realExact": false,
+      "memoryExact": false
+    },
+    {
+      "args": [
+        "-m",
+        "4700",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: context.fs[(intermediate value)(intermediate value)(intermediate value)] is not a function\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 2496,
+      "realMode": null,
+      "memoryMode": 2496,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "4700",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 2496,
+      "realMode": null,
+      "memoryMode": 2496,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "4700",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 2496,
+      "realMode": 493,
+      "memoryMode": 2496,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-m",
+        "7777",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot change permissions of 'target': Operation not permitted\n"
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: context.fs[(intermediate value)(intermediate value)(intermediate value)] is not a function\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 384,
+      "realMode": null,
+      "memoryMode": 4095,
+      "realExact": false,
+      "memoryExact": false
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "7777",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 3071,
+      "realMode": null,
+      "memoryMode": 4095,
+      "realExact": false,
+      "memoryExact": false
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "7777",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 3071,
+      "realMode": 493,
+      "memoryMode": 4095,
+      "realExact": false,
+      "memoryExact": false
+    },
+    {
+      "args": [
+        "-m",
+        "0755",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: context.fs[(intermediate value)(intermediate value)(intermediate value)] is not a function\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "realMode": null,
+      "memoryMode": 493,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "0755",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "realMode": null,
+      "memoryMode": 493,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "0755",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "realMode": 493,
+      "memoryMode": 493,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-m",
+        "00755",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: context.fs[(intermediate value)(intermediate value)(intermediate value)] is not a function\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "realMode": null,
+      "memoryMode": 493,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "00755",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "realMode": null,
+      "memoryMode": 493,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "00755",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "realMode": 493,
+      "memoryMode": 493,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-m",
+        "+755",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: context.fs[(intermediate value)(intermediate value)(intermediate value)] is not a function\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "realMode": null,
+      "memoryMode": 493,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "+755",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "realMode": null,
+      "memoryMode": 493,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "+755",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "realMode": 493,
+      "memoryMode": 493,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-m",
+        "-755",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: context.fs[(intermediate value)(intermediate value)(intermediate value)] is not a function\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "realMode": null,
+      "memoryMode": 0,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "-755",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "realMode": null,
+      "memoryMode": 0,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "-755",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "realMode": 493,
+      "memoryMode": 0,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-m",
+        "=755",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: context.fs[(intermediate value)(intermediate value)(intermediate value)] is not a function\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "realMode": null,
+      "memoryMode": 493,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "=755",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "realMode": null,
+      "memoryMode": 493,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "=755",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "realMode": 493,
+      "memoryMode": 493,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-m",
+        "u=rwx,g=rx,o=rx",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: context.fs[(intermediate value)(intermediate value)(intermediate value)] is not a function\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "realMode": null,
+      "memoryMode": 493,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "u=rwx,g=rx,o=rx",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "realMode": null,
+      "memoryMode": 493,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "u=rwx,g=rx,o=rx",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "realMode": 493,
+      "memoryMode": 493,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-m",
+        "a+X",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: context.fs[(intermediate value)(intermediate value)(intermediate value)] is not a function\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "realMode": null,
+      "memoryMode": 0,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "a+X",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 73,
+      "realMode": null,
+      "memoryMode": 73,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "a+X",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "realMode": 493,
+      "memoryMode": 493,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-m",
+        "u+x,g+X",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: context.fs[(intermediate value)(intermediate value)(intermediate value)] is not a function\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 72,
+      "realMode": null,
+      "memoryMode": 72,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "u+x,g+X",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 72,
+      "realMode": null,
+      "memoryMode": 72,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "u+x,g+X",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "realMode": 493,
+      "memoryMode": 493,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-m",
+        "u+rw,g=u,o=g",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: context.fs[(intermediate value)(intermediate value)(intermediate value)] is not a function\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 438,
+      "realMode": null,
+      "memoryMode": 438,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "u+rw,g=u,o=g",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 438,
+      "realMode": null,
+      "memoryMode": 438,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "u+rw,g=u,o=g",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 502,
+      "realMode": 493,
+      "memoryMode": 502,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-m",
+        "a=rw,u-x",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: context.fs[(intermediate value)(intermediate value)(intermediate value)] is not a function\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 438,
+      "realMode": null,
+      "memoryMode": 438,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "a=rw,u-x",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 438,
+      "realMode": null,
+      "memoryMode": 438,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "a=rw,u-x",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 438,
+      "realMode": 493,
+      "memoryMode": 438,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-m",
+        "g=u",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: context.fs[(intermediate value)(intermediate value)(intermediate value)] is not a function\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "realMode": null,
+      "memoryMode": 0,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "g=u",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "realMode": null,
+      "memoryMode": 0,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "g=u",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 453,
+      "realMode": 493,
+      "memoryMode": 453,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-m",
+        "u=",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: context.fs[(intermediate value)(intermediate value)(intermediate value)] is not a function\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "realMode": null,
+      "memoryMode": 0,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "u=",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "realMode": null,
+      "memoryMode": 0,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "u=",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 45,
+      "realMode": 493,
+      "memoryMode": 45,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-m",
+        "u+",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: context.fs[(intermediate value)(intermediate value)(intermediate value)] is not a function\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "realMode": null,
+      "memoryMode": 0,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "u+",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "realMode": null,
+      "memoryMode": 0,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "u+",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "realMode": 493,
+      "memoryMode": 493,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-m",
+        "u++x",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: context.fs[(intermediate value)(intermediate value)(intermediate value)] is not a function\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 64,
+      "realMode": null,
+      "memoryMode": 64,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "u++x",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 64,
+      "realMode": null,
+      "memoryMode": 64,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "u++x",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "realMode": 493,
+      "memoryMode": 493,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-m",
+        "a+s",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot change permissions of 'target': Operation not permitted\n"
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: context.fs[(intermediate value)(intermediate value)(intermediate value)] is not a function\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 384,
+      "realMode": null,
+      "memoryMode": 3072,
+      "realExact": false,
+      "memoryExact": false
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "a+s",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot change permissions of 'target': Operation not permitted\n"
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "realMode": null,
+      "memoryMode": 3072,
+      "realExact": false,
+      "memoryExact": false
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "a+s",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 2541,
+      "realMode": 493,
+      "memoryMode": 3565,
+      "realExact": false,
+      "memoryExact": false
+    },
+    {
+      "args": [
+        "-m",
+        "u+s",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: context.fs[(intermediate value)(intermediate value)(intermediate value)] is not a function\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 2048,
+      "realMode": null,
+      "memoryMode": 2048,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "u+s",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 2048,
+      "realMode": null,
+      "memoryMode": 2048,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "u+s",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 2541,
+      "realMode": 493,
+      "memoryMode": 2541,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-m",
+        "g+s",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot change permissions of 'target': Operation not permitted\n"
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: context.fs[(intermediate value)(intermediate value)(intermediate value)] is not a function\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 384,
+      "realMode": null,
+      "memoryMode": 1024,
+      "realExact": false,
+      "memoryExact": false
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "g+s",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot change permissions of 'target': Operation not permitted\n"
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "realMode": null,
+      "memoryMode": 1024,
+      "realExact": false,
+      "memoryExact": false
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "g+s",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "realMode": 493,
+      "memoryMode": 1517,
+      "realExact": false,
+      "memoryExact": false
+    },
+    {
+      "args": [
+        "-m",
+        "o+t",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: context.fs[(intermediate value)(intermediate value)(intermediate value)] is not a function\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 512,
+      "realMode": null,
+      "memoryMode": 512,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "o+t",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 512,
+      "realMode": null,
+      "memoryMode": 512,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "o+t",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 1005,
+      "realMode": 493,
+      "memoryMode": 1005,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-m",
+        "u+t",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: context.fs[(intermediate value)(intermediate value)(intermediate value)] is not a function\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "realMode": null,
+      "memoryMode": 0,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "u+t",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "realMode": null,
+      "memoryMode": 0,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "u+t",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "realMode": 493,
+      "memoryMode": 493,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-m",
+        "o+s",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: context.fs[(intermediate value)(intermediate value)(intermediate value)] is not a function\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "realMode": null,
+      "memoryMode": 0,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "o+s",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "realMode": null,
+      "memoryMode": 0,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "o+s",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "realMode": 493,
+      "memoryMode": 493,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-m",
+        "a+r-w+x",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: context.fs[(intermediate value)(intermediate value)(intermediate value)] is not a function\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 365,
+      "realMode": null,
+      "memoryMode": 365,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "a+r-w+x",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 365,
+      "realMode": null,
+      "memoryMode": 365,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "a+r-w+x",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 365,
+      "realMode": 493,
+      "memoryMode": 365,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-m",
+        "a=,u+X",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: context.fs[(intermediate value)(intermediate value)(intermediate value)] is not a function\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "realMode": null,
+      "memoryMode": 0,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "a=,u+X",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 64,
+      "realMode": null,
+      "memoryMode": 64,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "a=,u+X",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 64,
+      "realMode": 493,
+      "memoryMode": 64,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-m",
+        "u+r,g+u",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: context.fs[(intermediate value)(intermediate value)(intermediate value)] is not a function\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 288,
+      "realMode": null,
+      "memoryMode": 288,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "u+r,g+u",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 288,
+      "realMode": null,
+      "memoryMode": 288,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "u+r,g+u",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "realMode": 493,
+      "memoryMode": 493,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-m",
+        "u=r,g=u,o=g,u+w",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: context.fs[(intermediate value)(intermediate value)(intermediate value)] is not a function\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 420,
+      "realMode": null,
+      "memoryMode": 420,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "u=r,g=u,o=g,u+w",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 420,
+      "realMode": null,
+      "memoryMode": 420,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "u=r,g=u,o=g,u+w",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 420,
+      "realMode": 493,
+      "memoryMode": 420,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-m",
+        "ug=rw,o-rwx",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: context.fs[(intermediate value)(intermediate value)(intermediate value)] is not a function\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 432,
+      "realMode": null,
+      "memoryMode": 432,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "ug=rw,o-rwx",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 432,
+      "realMode": null,
+      "memoryMode": 432,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "ug=rw,o-rwx",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 432,
+      "realMode": 493,
+      "memoryMode": 432,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-m",
+        "+",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: context.fs[(intermediate value)(intermediate value)(intermediate value)] is not a function\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "realMode": null,
+      "memoryMode": 0,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "+",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "realMode": null,
+      "memoryMode": 0,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "+",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "realMode": 493,
+      "memoryMode": 493,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-m",
+        "-",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: context.fs[(intermediate value)(intermediate value)(intermediate value)] is not a function\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "realMode": null,
+      "memoryMode": 0,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "-",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "realMode": null,
+      "memoryMode": 0,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "-",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 493,
+      "realMode": 493,
+      "memoryMode": 493,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-m",
+        "=",
+        "source",
+        "target"
+      ],
+      "kind": "file",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: context.fs[(intermediate value)(intermediate value)(intermediate value)] is not a function\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "realMode": null,
+      "memoryMode": 0,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "=",
+        "target"
+      ],
+      "kind": "directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "realMode": null,
+      "memoryMode": 0,
+      "realExact": false,
+      "memoryExact": true
+    },
+    {
+      "args": [
+        "-d",
+        "-m",
+        "=",
+        "target"
+      ],
+      "kind": "existing-directory",
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "real": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot set installation modes: Operation not supported\n"
+      },
+      "memory": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "nativeMode": 0,
+      "realMode": 493,
+      "memoryMode": 0,
+      "realExact": false,
+      "memoryExact": true
+    }
+  ]
+}

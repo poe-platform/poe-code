@@ -1,0 +1,37 @@
+{
+  "name": "@poe-code/github-workflows",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "node --import tsx scripts/generate-gh-workflows.ts && tsc && node --import tsx scripts/build-assets.ts",
+    "generate:gh-workflows": "tsx scripts/generate-gh-workflows.ts",
+    "lint:mcp-sdk-deps": "cd ../.. && tsx packages/github-workflows/scripts/assert-mcp-sdk-dev-deps.ts",
+    "test": "cd ../.. && vitest run packages/github-workflows/src",
+    "test:unit": "cd ../.. && vitest run packages/github-workflows/src",
+    "lint": "cd ../.. && eslint packages/github-workflows/src --ext ts && tsc -p packages/github-workflows/tsconfig.json --noEmit"
+  },
+  "files": [
+    "dist",
+    "src/variables.yaml",
+    "src/prompts",
+    "src/workflow-templates"
+  ],
+  "dependencies": {
+    "@poe-code/agent-spawn": "*",
+    "@poe-code/frontmatter": "*",
+    "@poe-code/config-extends": "*",
+    "toolcraft-design": "*",
+    "toolcraft": "*",
+    "toolcraft-schema": "*",
+    "yaml": "^2.8.2"
+  }
+}

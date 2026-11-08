@@ -1,0 +1,764 @@
+[
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/ASSERTION_AUDIT.json",
+    "capturedSha256": "9aec0147122ddb623e3b9e9899c5f676a76fce9dca4ab665a974f3ac05187b56",
+    "archivedSha256": "9aec0147122ddb623e3b9e9899c5f676a76fce9dca4ab665a974f3ac05187b56",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author-baseline.stderr",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author-baseline.stdout",
+    "capturedSha256": "e9afecc2da66476572996abd30093eaa5290584de5fbe73c4c7939b6a3cad1ca",
+    "archivedSha256": "e9afecc2da66476572996abd30093eaa5290584de5fbe73c4c7939b6a3cad1ca",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author-candidate.stderr",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author-candidate.stdout",
+    "capturedSha256": "af70e347949387a54a882df46ffe2c34b241a4e8b4c089918f7590b8d4f5c7db",
+    "archivedSha256": "af70e347949387a54a882df46ffe2c34b241a4e8b4c089918f7590b8d4f5c7db",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author-cleanup.stderr",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author-cleanup.stdout",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author-mutants.stderr",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author-mutants.stdout",
+    "capturedSha256": "798057df210e39ea6bb54ba49b4fb2b2b793caf143a1940d892e0838af27cc38",
+    "archivedSha256": "798057df210e39ea6bb54ba49b4fb2b2b793caf143a1940d892e0838af27cc38",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/controls.test.ts.txt",
+    "capturedSha256": "33b9d608e1ce67ec97c0fa4cda5e79ea0cdac0900f0fa4a183624e84980d4317",
+    "archivedSha256": "33b9d608e1ce67ec97c0fa4cda5e79ea0cdac0900f0fa4a183624e84980d4317",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/current-helper-compatibility.json",
+    "capturedSha256": "e155924d97379a50f40318a79b77b7e80101c226d3cbdccc6a28da011fe74a19",
+    "archivedSha256": "66a8454768fed722e0b731da7888e17ec20d0598a8e84c2ea2578519d90e3cdd",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/current-helper-compatibility.stderr",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/current-helper-compatibility.stdout",
+    "capturedSha256": "3ab0ab0dabdfb71b685e672b4f7fa63b4ace2f489361725af2e7f6c501dbbb40",
+    "archivedSha256": "3ab0ab0dabdfb71b685e672b4f7fa63b4ace2f489361725af2e7f6c501dbbb40",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/independent-controls.json",
+    "capturedSha256": "ebaa5ebe75da15cb0c7c64d935359bdc54c01ee2935429cf079cc1a219b68184",
+    "archivedSha256": "137cf155319321bbeff232086909dcb1e08ef24b9a6c3784c35147cb50cc6fcf",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/independent-controls.stderr",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/independent-controls.stdout",
+    "capturedSha256": "ff66f3f958b472a39cae78e7b84ed24d335d5c4736593dd3d271fe99c5004598",
+    "archivedSha256": "ff66f3f958b472a39cae78e7b84ed24d335d5c4736593dd3d271fe99c5004598",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/independent-mutant-fabricated-unknown-native-identity.json",
+    "capturedSha256": "90368ac42c059d6a78606fb29f666e377537e2dccd0e42c6c85ed80e362407cd",
+    "archivedSha256": "aee54c27ac991d18d6e3739d6db8dfb6e70ae041d7f505bae0dcab6a55d7bccf",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/independent-mutant-fabricated-unknown-native-identity.stderr",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/independent-mutant-fabricated-unknown-native-identity.stdout",
+    "capturedSha256": "cd431b5089b56dd1c445085970c4bc27897900fd786d5fbc50fb3fb9c4075915",
+    "archivedSha256": "cd431b5089b56dd1c445085970c4bc27897900fd786d5fbc50fb3fb9c4075915",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/independent-mutant-shaped-away-explicit-error.json",
+    "capturedSha256": "fe3973b602e373c7ee36387a1bcaf72012a94ead4d8b1995541eb0951fa31b18",
+    "archivedSha256": "76bc421e835b943d196129b17e387c3b380ac18f808533825af69a8090ec38c2",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/independent-mutant-shaped-away-explicit-error.stderr",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/independent-mutant-shaped-away-explicit-error.stdout",
+    "capturedSha256": "7eb9ffb8b80e77087121391d499c298b68a36ed4ddaddfee917e239cb09c61fe",
+    "archivedSha256": "7eb9ffb8b80e77087121391d499c298b68a36ed4ddaddfee917e239cb09c61fe",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/independent-mutant-stale-s3-proof.json",
+    "capturedSha256": "7ba440b26e243a27915ba16c0d85e6fecd82dd1524e2521c38abd30f37a968bf",
+    "archivedSha256": "f2f225b404685558250343b0a8c61f181925793d9042c4c4612702a75b05b487",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/independent-mutant-stale-s3-proof.stderr",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/independent-mutant-stale-s3-proof.stdout",
+    "capturedSha256": "c0e384dba03dd2016d9b0ea089018b551b445ec5af5e7d1388d9ae21c312ec4d",
+    "archivedSha256": "c0e384dba03dd2016d9b0ea089018b551b445ec5af5e7d1388d9ae21c312ec4d",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/independent-mutant-wrong-path-s3-proof.json",
+    "capturedSha256": "0f29c4852fa2f019a6cd19ec5f7bc1500e001f519b24cabacd70947f605db940",
+    "archivedSha256": "99ded177fe3e21e5863009558444c8d22930304d1f0620b28a5ee8e2199ba21f",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/independent-mutant-wrong-path-s3-proof.stderr",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/independent-mutant-wrong-path-s3-proof.stdout",
+    "capturedSha256": "8fed20ede000a4a01ea35c1360c882b5852f3bc69918aa51c52a449e54a6a5dd",
+    "archivedSha256": "8fed20ede000a4a01ea35c1360c882b5852f3bc69918aa51c52a449e54a6a5dd",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/independent-restored.json",
+    "capturedSha256": "03495b400e46ec158fc2b7bf6d35fd39ab9a89f7901593b9c3feb3eb2a96757e",
+    "archivedSha256": "782245fb407f1be7665bfe37c1a538f743e4338cef4ddbf10d254fa4c6f39dd0",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/independent-restored.stderr",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/independent-restored.stdout",
+    "capturedSha256": "6a4573c35c1c4a0e7415015ad4c426b1a5cb85c4b1d96d3fa8c8ee11a547c23e",
+    "archivedSha256": "6a4573c35c1c4a0e7415015ad4c426b1a5cb85c4b1d96d3fa8c8ee11a547c23e",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/independent-run.json",
+    "capturedSha256": "28010a52f8c2c789b32ed70313a2d6cd72aee365bb3da2a336768a95ffb8064d",
+    "archivedSha256": "d257a8ab8354aea5e5caac6d877dd2e4c2b7e0af6b0cb504f7ee653050da103f",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/independent-types.json",
+    "capturedSha256": "70f95fb739929cb736bf412a1ac40d1c3db150911d1d5d8e63257f383ff4cefd",
+    "archivedSha256": "55613e88ce9e7c26fe3ceb5783296ce0a9e55ee3fa9e8ce38efe86e768e7867b",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/independent-types.stderr",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/independent-types.stdout",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/isolated-build-for-matrix.json",
+    "capturedSha256": "926016d848c0bfc84bb96b8d9b8cf25cad8a36c3abcb58e28e615cf492e7eaee",
+    "archivedSha256": "76c2ee7db7a6a51d4e7ab27e0082c553454e7b485eaf92944863b85997d613ec",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/isolated-build-for-matrix.stderr",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/isolated-build-for-matrix.stdout",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/old-helper-compatibility.json",
+    "capturedSha256": "ad831a7238ac116bcadd46de64051b05e7e51c959dea6855aa7aa9c4ba07d90d",
+    "archivedSha256": "bf4f76e06672774d525bcb819e071f508a8a2f7baedca1d67633a1f7decfe95b",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/old-helper-compatibility.stderr",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/old-helper-compatibility.stdout",
+    "capturedSha256": "9065710afe8e57b4c9be385c3dcbaaaa1b49a09ba1352e274af1b7f16422e823",
+    "archivedSha256": "9065710afe8e57b4c9be385c3dcbaaaa1b49a09ba1352e274af1b7f16422e823",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/unchanged-adapter-matrix.json",
+    "capturedSha256": "c0dde81eda23e4e2875bde626f51aa19e9b83aff3191596815267c12b81197a6",
+    "archivedSha256": "773457cd995c3aa1357c2e82716397970ec50d54925281894d7da60962f27f3a",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/unchanged-adapter-matrix.stderr",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/unchanged-adapter-matrix.stdout",
+    "capturedSha256": "ce4de6eb973eb22d83d5c9a21ba68491894092efe56d315334a1f1cf4f67b5ef",
+    "archivedSha256": "ce4de6eb973eb22d83d5c9a21ba68491894092efe56d315334a1f1cf4f67b5ef",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/baseline-original.json",
+    "capturedSha256": "4894c2bd3d859bb14af3813483e30d8aa856384062aa2d892b64c460ae8d3380",
+    "archivedSha256": "09165489955649ed0dfcc85f920bde41c23007588169156d79e68c8fbb38b38f",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/baseline-original.stderr",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/baseline-original.stdout",
+    "capturedSha256": "ecf90c9ebfd1b5bca474752598d800255d2d971e8c4133c4b92f672bf645e109",
+    "archivedSha256": "ecf90c9ebfd1b5bca474752598d800255d2d971e8c4133c4b92f672bf645e109",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/cleanup.json",
+    "capturedSha256": "c6350109ad8831348b3bcf2e60bacf3aba28a9831fddbb4809c1dc0c99707612",
+    "archivedSha256": "0f468dca27753c8987cc04017c7436f1880f7e9997616c191defa85476fa28e7",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/final-adjacent.json",
+    "capturedSha256": "3921859195cff7b29a8056d348923e70fe5bcca9b52b75fce6b6fb6b0bbe675e",
+    "archivedSha256": "b18bc7a27a4c692568b2a9466e935e389315baf107054119d14b801f2fbb6803",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/final-adjacent.stderr",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/final-adjacent.stdout",
+    "capturedSha256": "e26cff1cb89fb2cf9aa2a69fb342120e4dbbae8597ac36fc74df055d6170a53a",
+    "archivedSha256": "e26cff1cb89fb2cf9aa2a69fb342120e4dbbae8597ac36fc74df055d6170a53a",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/final-guards53.json",
+    "capturedSha256": "5f374a31192f99cd74f4666288486be15201044919ab79626992ce9b95c4b97b",
+    "archivedSha256": "3b0431ae2bfb49bb9ac1fb78c27892da28db29fb9749601fe6d23c7a8b185baf",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/final-guards53.stderr",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/final-guards53.stdout",
+    "capturedSha256": "4938246c9b82858ed6c629722fddd5c570da5b34c22b166f5c8e4e2da89558c7",
+    "archivedSha256": "4938246c9b82858ed6c629722fddd5c570da5b34c22b166f5c8e4e2da89558c7",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/final-inputs.json",
+    "capturedSha256": "906d479bc501269cf3714b9138493e14d8504780ed5780e9557462f6eec8e740",
+    "archivedSha256": "13fdc38212af5ba980d27d0b86fd66ac33e1c7e2d18a87f325bd7e736563b905",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/final-scoped-types.json",
+    "capturedSha256": "8ede105f10cc01bb5936c646302636d9f02cce54cdf942a08d43bd62b9cbc4cc",
+    "archivedSha256": "3311b69c8f3d7b054c4b25a5a0ca8277544e5cc6e74a8fde12bbdf58c8062a75",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/final-scoped-types.stderr",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/final-scoped-types.stdout",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/final.json",
+    "capturedSha256": "13d5e22846b2ccdd96f4b7f1dfea8c24113ceb1bc7284b8aee3727bb6f41257c",
+    "archivedSha256": "9c844dad1367458fefc7e17830facc72abc33765cb68717dca8bed8d8c43744c",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/final.stderr",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/final.stdout",
+    "capturedSha256": "177476291db50617f3fdd986bb391b163233a6860046eafff733efa958119205",
+    "archivedSha256": "177476291db50617f3fdd986bb391b163233a6860046eafff733efa958119205",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/mutant-accept-duplicate-protocol-property-input.json",
+    "capturedSha256": "23aa97fb648ac7226d6e9f1cfbd4c0e22cfa59188f66a0f4d843534eafa2ff75",
+    "archivedSha256": "5c8d34f716a189e11be30cceacf5cc85e00734dc44753661396c8d52bde9fd4e",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/mutant-accept-duplicate-protocol-property.json",
+    "capturedSha256": "51c961fc0a5d0758d904afcaec30ca0a8b5a71e29d7f9bb6e7fe0b35bea9427d",
+    "archivedSha256": "8a1a1ddb7237cd87519f480f5f87ddb636f5f372ceb2071d3eadd44d75771954",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/mutant-accept-duplicate-protocol-property.stderr",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/mutant-accept-duplicate-protocol-property.stdout",
+    "capturedSha256": "6e4791f1d0f5648847ba6740dd458c7456408a96c1908e3f51374ed9e632a6b5",
+    "archivedSha256": "6e4791f1d0f5648847ba6740dd458c7456408a96c1908e3f51374ed9e632a6b5",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/mutant-alias-overwrite-input.json",
+    "capturedSha256": "8a1c679de92a52612095f0338b3a20cc79b5c76fd23a9608f47994ea8b0515db",
+    "archivedSha256": "17df1ce3bdfa9fa7f5f2ebf84061172815614b68bcf4eeb68458e5d5b1c5fe44",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/mutant-alias-overwrite.json",
+    "capturedSha256": "b6d49c972e857ab2bd73ace676c91208f95ed34a01d2b86874d7fe1c60ec4898",
+    "archivedSha256": "ac83d09b713e139f681455608f40406144dc24c7f363e688379e8ac2fa078504",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/mutant-alias-overwrite.stderr",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/mutant-alias-overwrite.stdout",
+    "capturedSha256": "b07d056187f2094a453e1aaf352e081264e8651b0285c88cd3215fd0b288ae7a",
+    "archivedSha256": "b07d056187f2094a453e1aaf352e081264e8651b0285c88cd3215fd0b288ae7a",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/mutant-authority-error-swallowed-input.json",
+    "capturedSha256": "3055a2419df4a325593d1ad9c58e298c4b845da5c293dab1e1d187cad802ca64",
+    "archivedSha256": "a1f9de8fe7491618c328da8ebed4815e61eef76bad9c92f8a0e8ebe4c50e7006",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/mutant-authority-error-swallowed.json",
+    "capturedSha256": "32bb4eed44e8d776955a1ca460a3acfe96f87f334c172c7f2fe1796b802a0dea",
+    "archivedSha256": "62132115fa5da0f9322342c76606f061c54c3230af8be22eba2ddaa0df1fdd39",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/mutant-authority-error-swallowed.stderr",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/mutant-authority-error-swallowed.stdout",
+    "capturedSha256": "db6badedbd4c8556eda775ce917402a80ad8e4cbb7d830e72ca72a0af1ff9fc9",
+    "archivedSha256": "db6badedbd4c8556eda775ce917402a80ad8e4cbb7d830e72ca72a0af1ff9fc9",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/mutant-duplicate-helper-property-input.json",
+    "capturedSha256": "3185b76a3f55d10a832702b04d785f9e76873804f0f0cb2b3c018a0e7248e96d",
+    "archivedSha256": "ad30b0b2c7256594333a7365afb05618882f76ff204dc20db1ac4e35e16e5b52",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/mutant-duplicate-helper-property.json",
+    "capturedSha256": "9e2efda182f85f4d6af393319e6c5e5ea876066ae3edf24aa55ef975c1a4b3b8",
+    "archivedSha256": "50ad3c07233fac7e4d68b904314230d8c0519333d39fcd514182c335f9d27cb3",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/mutant-duplicate-helper-property.stderr",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/mutant-duplicate-helper-property.stdout",
+    "capturedSha256": "29bb1851cfac70604d976a36a26e8942dde2f9ed75e41b42a20982d3efb81810",
+    "archivedSha256": "29bb1851cfac70604d976a36a26e8942dde2f9ed75e41b42a20982d3efb81810",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/mutant-fabricated-sdk-authority-input.json",
+    "capturedSha256": "297a6c7e42d233d7fa52e5a262cd01c462e92ee086854c23f30cd20bdaba76be",
+    "archivedSha256": "551c2914898b73867c8a93f366fd78f584f3be06b5908d442e0ba5ac2424aa07",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/mutant-fabricated-sdk-authority.json",
+    "capturedSha256": "5ab6f6f0b30d185088f0d0ff5863f480cfe917d9730acb515eb7701ac62ff9b1",
+    "archivedSha256": "56583f1a743fc896011cad811f7e844482d7ed15ca15a99fb7780fbde1cc0b62",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/mutant-fabricated-sdk-authority.stderr",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/mutant-fabricated-sdk-authority.stdout",
+    "capturedSha256": "eccadc85fcb5ebd5bd9b7025ca685fcbf5808f5e9c4d3114ff700043fad151a5",
+    "archivedSha256": "eccadc85fcb5ebd5bd9b7025ca685fcbf5808f5e9c4d3114ff700043fad151a5",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/mutant-memory-method-identity-input.json",
+    "capturedSha256": "80b4606004c4d3f50df6cc10856e922cb71220901a29e1e2e4b48facb6081efd",
+    "archivedSha256": "ea01def37d159cf90277d1e44cb45a804bd02608813f1cb429dcb915647302f4",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/mutant-memory-method-identity.json",
+    "capturedSha256": "c3e15bed953b49c47f40846f30ab11e50ef9e3b6e04237f7c1cfd5bc0def49e4",
+    "archivedSha256": "039fc96b16344a427b8b063165c52c2d2adc86e2578c687ce163aef12b726893",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/mutant-memory-method-identity.stderr",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/mutant-memory-method-identity.stdout",
+    "capturedSha256": "fc37461f5bab582f6d4f8f0041ca4335973669b0df21726f5cc87a60f8e08357",
+    "archivedSha256": "fc37461f5bab582f6d4f8f0041ca4335973669b0df21726f5cc87a60f8e08357",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/mutant-retain-unrelated-dav-response-input.json",
+    "capturedSha256": "eee2580776f1cdffcb3a088cb41fef2cba8b6c55291c99aaae1e719c8b1b0709",
+    "archivedSha256": "62c19b0be1ace5f63cc3708bd9c499b3d6e162a77a59c208ddc2464a93e0a702",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/mutant-retain-unrelated-dav-response.json",
+    "capturedSha256": "4d65f37a2ef89f091a18da52444432495e3d5fd84652303124ec83124a0bffa5",
+    "archivedSha256": "4d0c53e6cd3da85aaf5714d01c51b661e30af113e4c757eeb2d6e7377384f378",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/mutant-retain-unrelated-dav-response.stderr",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/mutant-retain-unrelated-dav-response.stdout",
+    "capturedSha256": "a47ae0917dbc61723132b2160c337319901f743068689aef00779b217a3de7ef",
+    "archivedSha256": "a47ae0917dbc61723132b2160c337319901f743068689aef00779b217a3de7ef",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/mutant-retain-unrelated-s3-head-input.json",
+    "capturedSha256": "f91d1e590feb45bd82a071a9f0fb65cf4808315a2f8522cee2d52fd78b7b563c",
+    "archivedSha256": "4861e3da94b46ef3b0643d6f8ce15e17e01f3cc83f07bf72f80d3a8952bcff72",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/mutant-retain-unrelated-s3-head.json",
+    "capturedSha256": "5d4c0a204d7d89d1875484b41f695772b9dcbbc7ed68c62396890daee73c9268",
+    "archivedSha256": "33fffb8cc5714c9bb08f1295013c014c72565b75a3b47ae7fa18624a3ab18582",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/mutant-retain-unrelated-s3-head.stderr",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/mutant-retain-unrelated-s3-head.stdout",
+    "capturedSha256": "f51efc92cf1516faf97cba17c88384b36c9c1c994ebfc039af8acfa3f86140ec",
+    "archivedSha256": "f51efc92cf1516faf97cba17c88384b36c9c1c994ebfc039af8acfa3f86140ec",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/mutant-s3-method-identity-input.json",
+    "capturedSha256": "cbfa7c00a3d3406892748fdd07269a1d112488f5c2ee988140c542d0c722f242",
+    "archivedSha256": "c8144cea6f2f96f850a8686c4a4995567ef608527f94bb2ac79a8a01ced36ebc",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/mutant-s3-method-identity.json",
+    "capturedSha256": "05a291add63bf093377be18cdc4f834105179fd109eddf549beb0221097dad4d",
+    "archivedSha256": "a467d8f4a795d5c2a862a7aa3b48648f4882945349c65384e8e5da1e51c02733",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/mutant-s3-method-identity.stderr",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/mutant-s3-method-identity.stdout",
+    "capturedSha256": "ca373fc52af23c23ab4d08e94ada4423ce735baade05049ccf9b5a14b12af1ac",
+    "archivedSha256": "ca373fc52af23c23ab4d08e94ada4423ce735baade05049ccf9b5a14b12af1ac",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/mutant-unknown-overwrite-input.json",
+    "capturedSha256": "460b7ae65674c15d26126e1d8e0b17d0bf64a7293d73f10077700e463043ea02",
+    "archivedSha256": "b2e42bd4dfdbecb2ce24856497493775da53fef4552adfbe67e2a8e3d6b46e68",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/mutant-unknown-overwrite.json",
+    "capturedSha256": "965b9f4928c0a0f91c03a267097522b172635c43bfbb4bfd7f1568b24d566fcf",
+    "archivedSha256": "c436b1022760d7eb6a684b5bcaf8761d937976ea0a0538e02935e1b513ccaa67",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/mutant-unknown-overwrite.stderr",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/mutant-unknown-overwrite.stdout",
+    "capturedSha256": "8b1ce242a6cfa0a6658aa5326a99245933f3cc918be8a7c0a503504536ff69fe",
+    "archivedSha256": "8b1ce242a6cfa0a6658aa5326a99245933f3cc918be8a7c0a503504536ff69fe",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/post-mutants.json",
+    "capturedSha256": "3d1faf684b6e85799129917f4251fa8d0e0abb3e30823bdd96a9d81d350a0af0",
+    "archivedSha256": "b4ab452bc3a905da6e2d122833593bf13abab6c21d718a9b31a60b3a91657253",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/post-mutants.stderr",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/post-mutants.stdout",
+    "capturedSha256": "46f2fdab77de37278488b908ddd0693f30dcc660bacdd9e6d596c654da391e0b",
+    "archivedSha256": "46f2fdab77de37278488b908ddd0693f30dcc660bacdd9e6d596c654da391e0b",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/final/author/session.json",
+    "capturedSha256": "fbc165910d0d6713f9c6e52f9853a6ba60580d58c87f8e735f5cb89db4defcc1",
+    "archivedSha256": "8e526c5afecf9cdaee5504ed2ec6e17b5ab555a41c003918f7152ac4bdce6893",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/original/adapter-binding.test.ts.txt",
+    "capturedSha256": "f90f1da067ec03ed467aeaa39d50114d9e03a4e13da8fb5548a2f49e1fdac712",
+    "archivedSha256": "f90f1da067ec03ed467aeaa39d50114d9e03a4e13da8fb5548a2f49e1fdac712",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/original/authority.test.ts.txt",
+    "capturedSha256": "057d277547da6733b49ee82148fadf39c5b3c986256c6c54bec04c326bec8882",
+    "archivedSha256": "057d277547da6733b49ee82148fadf39c5b3c986256c6c54bec04c326bec8882",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/original/full-gate-25.json",
+    "capturedSha256": "57369e763774121786e9526b5ef8d7e1c3b3a4de54ef1db828a5e7b7f8beeebd",
+    "archivedSha256": "17279d9fb621f920d8af988dd76f105630c77d952d3674058e19ba1b95f3ce6b",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/original/remote-comparison.test.ts.txt",
+    "capturedSha256": "039cce5f0fc93b4e2e96a61448ac104e20aa5aaf767db4c33c53263598cb7660",
+    "archivedSha256": "039cce5f0fc93b4e2e96a61448ac104e20aa5aaf767db4c33c53263598cb7660",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/attempt1/independent-run.json",
+    "capturedSha256": "eb8140921b0392ac25532413a9623f4d00a74cf73657933ba2fa9d73eb21d6fc",
+    "archivedSha256": "570c71eb9f5ac4f4eaaafc4613658783ab48e32838821b013c0e18ca8ba1b89d",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/attempt1/independent-controls.json",
+    "capturedSha256": "04007f27e600aa7bcde1b96b27be9387bdbab8a3f4964aa78c26a74e1e977248",
+    "archivedSha256": "f479d9bd26d1f9fc78d3783fa2e9db82ee4f1e0352fd1e09596da9d16c5cd268",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/attempt1/independent-controls.stdout",
+    "capturedSha256": "9341b43ce7df2510346deb49468fd8d971b8fe606a3ee15b42e95e9cd531641f",
+    "archivedSha256": "9341b43ce7df2510346deb49468fd8d971b8fe606a3ee15b42e95e9cd531641f",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/attempt2/independent-run.json",
+    "capturedSha256": "ec3597c0e03feadc9ca59576f8334e37161f26fb83b4e0f8090b228db55c030f",
+    "archivedSha256": "603011442bd2ac59df14f9fd421b34795d5ef4cece464f816a02a1880e914cb0",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/attempt2/independent-controls.json",
+    "capturedSha256": "01a854522b87b43944b9c75e01689ef6eb2609dcb01c86ea7e24b9abe77cb917",
+    "archivedSha256": "9f1616845e889cefffd5f2b4c36596632f574232bd2f5509a34b2d41cdde777a",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/attempt2/independent-controls.stdout",
+    "capturedSha256": "0a4219e79f31ece8e65933cce740582067e6f8f8e11b2847d44d161f97bacc1a",
+    "archivedSha256": "0a4219e79f31ece8e65933cce740582067e6f8f8e11b2847d44d161f97bacc1a",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/attempt2/independent-types.json",
+    "capturedSha256": "7c2a1dd6de7ae5b0acb79a47266ec121ee8dedd66ec01df5543d8d306b9aec4a",
+    "archivedSha256": "8acd68b610d2fef021996e0d342b2d373d73d05688f075adc8e557469f02e78c",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/attempt2/independent-types.stdout",
+    "capturedSha256": "ec2b353d1a9328634b1ee9efa2f3a5c26a0c0abad920952ef1befe14011bf33c",
+    "archivedSha256": "ec2b353d1a9328634b1ee9efa2f3a5c26a0c0abad920952ef1befe14011bf33c",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/attempt2/controls.test.ts.txt",
+    "capturedSha256": "04fbf24ed2ffe9242dfa143e306b462b098f572f6845a7faab7f4551d8e9a12e",
+    "archivedSha256": "04fbf24ed2ffe9242dfa143e306b462b098f572f6845a7faab7f4551d8e9a12e",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/unbuilt-matrix/independent-run.json",
+    "capturedSha256": "9c43d2c676613a5abfb861f19c0f98f6908f4077815b4bcb13160a926bb42cc0",
+    "archivedSha256": "4c498776a54078ea63cf87ca48a20b5394d880caf41c5d908c56727371db04ca",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/unbuilt-matrix/independent-controls.json",
+    "capturedSha256": "029b5b3c8c1445dde1725bb830f96f3bc07137972b9065a4582987acbc4f5504",
+    "archivedSha256": "b39b0bf0cb5f16dc7c7ce553d407088c2ddb4ce249147f2f7811849b2ec3477d",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/unbuilt-matrix/independent-controls.stdout",
+    "capturedSha256": "e291080fc0e81e3844a8eee3d69b49bf596fc84570bbeefc220843c6a86a4bea",
+    "archivedSha256": "e291080fc0e81e3844a8eee3d69b49bf596fc84570bbeefc220843c6a86a4bea",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/unbuilt-matrix/independent-types.json",
+    "capturedSha256": "7312f19f5a3caa1fdc7a6d55d4ea9ecbfbf12d3d2506a71ae92e34b428995eed",
+    "archivedSha256": "ae601d22e9b04cc0049c2bf2e3d2579203c292be371d829713e97d495a1206a8",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/unbuilt-matrix/independent-types.stdout",
+    "capturedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/unbuilt-matrix/unchanged-adapter-matrix.json",
+    "capturedSha256": "e3865583900d402e56dbf2cd82046a541470ba0c3e94c1a0d5e6179268f33a04",
+    "archivedSha256": "9e24744aa4efcf5846de6cca6658f679623e11c715bfd8cbb309dc4c33a1c690",
+    "format": "lossless compact JSON"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/unbuilt-matrix/unchanged-adapter-matrix.stdout",
+    "capturedSha256": "93b85325b520413aa8b0eb04e99a97b3a71daedaceb090138b515cbbfca3c23e",
+    "archivedSha256": "93b85325b520413aa8b0eb04e99a97b3a71daedaceb090138b515cbbfca3c23e",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/unbuilt-matrix/controls.test.ts.txt",
+    "capturedSha256": "33b9d608e1ce67ec97c0fa4cda5e79ea0cdac0900f0fa4a183624e84980d4317",
+    "archivedSha256": "33b9d608e1ce67ec97c0fa4cda5e79ea0cdac0900f0fa4a183624e84980d4317",
+    "format": "text with final newline"
+  },
+  {
+    "path": "tests/integration/full-gate-20260827/authority-reconciliation-independent/evidence/CHECKPOINT.json",
+    "capturedSha256": "e0fa568d8f4223c9e263f80bfcbed4f61d2ae4edb7d9152bcb72df451602508e",
+    "archivedSha256": "e0fa568d8f4223c9e263f80bfcbed4f61d2ae4edb7d9152bcb72df451602508e",
+    "format": "text with final newline"
+  }
+]

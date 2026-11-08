@@ -1,0 +1,13 @@
+{
+  "startedAt": "2026-08-28T06:24:37.359Z",
+  "finishedAt": "2026-08-28T06:25:31.909Z",
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"actualLoadControls\":12,\"pass\":12,\"originalInstalledAbsent\":true}\n",
+  "stderr": "",
+  "bytes": 67,
+  "survivingGroup": false,
+  "groupStillPresent": false,
+  "naturalSettlement": true,
+  "cleanupClean": true
+}

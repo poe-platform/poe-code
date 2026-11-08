@@ -1,0 +1,14 @@
+unset d3n d3a
+declare -x d3n
+declare +x -a d3n
+printf 'entry:%s\n' "$?"
+declare -p d3n
+declare +x d3n
+printf 'clear:%s\n' "$?"
+declare -a d3n
+printf 'convert:%s\n' "$?"
+declare -p d3n
+declare -a -x +x d3a
+printf 'cancelled:%s\n' "$?"
+declare -p d3a
+printf 'END V302\n'

@@ -1,0 +1,30 @@
+{
+  "sequence": 40,
+  "command": "git",
+  "args": [
+    "rev-parse",
+    "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29:tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/harness/process-timeout-control.mjs"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "status": 0,
+  "signal": null,
+  "pid": 6853,
+  "pgid": 6853,
+  "timedOut": false,
+  "termination": {
+    "termSent": false,
+    "killSent": false,
+    "groupGone": true
+  },
+  "closure": {
+    "descendantGroupDetected": false,
+    "rootPidGone": true,
+    "groupGone": true
+  },
+  "timeoutMs": 120000,
+  "startedAt": "2026-08-27T21:22:43.386Z",
+  "finishedAt": "2026-08-27T21:22:43.414Z",
+  "durationMs": 27.568209,
+  "stdoutSha256": "2698352b0e809c3217ff55459d1e8ff19764cd048f6f8a1e945aaf1d144bc156",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

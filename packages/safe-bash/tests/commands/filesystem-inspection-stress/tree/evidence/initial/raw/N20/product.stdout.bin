@@ -1,0 +1,15 @@
+[
+  {"type":"directory","name":"controls","contents":[
+    {"type":"file","name":"-leading"},
+    {"type":"file","name":"back\\slash"},
+    {"type":"file","name":"carriage\rreturn"},
+    {"type":"file","name":"escape\u001b[31m"},
+    {"type":"file","name":"line\nbreak.txt"},
+    {"type":"file","name":"quote\"name"},
+    {"type":"file","name":"tab\tname"},
+    {"type":"file","name":"z-last"},
+    {"type":"file","name":"éclair.txt"},
+    {"type":"file","name":"雪.txt"},
+    {"type":"file","name":"😀.txt"}
+  ]}
+]

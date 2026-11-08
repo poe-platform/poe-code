@@ -1,0 +1,23 @@
+export const documentPartSourceCases=[
+ {row:527,member:"add_footer_part",id:"rId12"},
+ {row:528,member:"add_header_part",id:"rId7"},
+ {row:529,member:"drop_header_part",id:"rId42"},
+ {row:530,member:"footer_part",id:"rId9"},
+ {row:531,member:"header_part",id:"rId11"},
+ {row:532,member:"save"},
+ {row:533,member:"comments"},
+ {row:534,member:"settings"},
+ {row:535,member:"styles"},
+ {row:536,member:"core_properties"},
+ {row:537,member:"inline_shapes"},
+ {row:538,member:"numbering_part"},
+ {row:539,member:"numbering_part",missing:true},
+ {row:540,member:"get_style"},
+ {row:541,member:"get_style_id"},
+ {row:542,member:"comments",part:"comments"},
+ {row:543,member:"comments",part:"comments",missing:true},
+ {row:544,member:"settings",part:"settings"},
+ {row:545,member:"settings",part:"settings",missing:true},
+ {row:546,member:"styles",part:"styles"},
+ {row:547,member:"styles",part:"styles",missing:true}
+] as const;

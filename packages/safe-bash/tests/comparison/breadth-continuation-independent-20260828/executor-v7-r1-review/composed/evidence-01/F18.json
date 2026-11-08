@@ -1,0 +1,12 @@
+{
+  "id": "F18",
+  "expected": "Append-only unknown directory and record mode tamper are detected, not silently restored.",
+  "pass": true,
+  "started": "2026-08-28T15:01:02.636Z",
+  "finished": "2026-08-28T15:01:02.637Z",
+  "detail": {
+    "appendedDirectoryDetected": true,
+    "changedModeDetected": true,
+    "tamperedFixturesRetained": true
+  }
+}

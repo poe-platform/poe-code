@@ -1,0 +1,12 @@
+{
+  "at": "2026-08-27T09:26:19.820Z",
+  "originalArtifacts": 316,
+  "v1Artifacts": 35,
+  "v2Artifacts": 37,
+  "privateArtifacts": 97,
+  "originalPreseal": "b9863722f41cbdd56119ab95c3446ca3b65a5b752ccafc28dc6f9044854d2937",
+  "originalManifestSha256": "66ecd953ee0959f249387b3eab9f7d9f20afa32eca36bb123a82810187997b01",
+  "v1ManifestSha256": "18cb04609766ba7ee13a8f2d6a5d41094ebe58e63cdffb298f61f12c81c9d5d6",
+  "v2ManifestSha256": "211a071d5e78a66791b37790804bbe6fa5cb737fafc052c00529a8d4d282602d",
+  "drift": []
+}

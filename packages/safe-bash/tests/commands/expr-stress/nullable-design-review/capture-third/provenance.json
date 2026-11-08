@@ -1,0 +1,75 @@
+{
+  "started": "2026-08-27T18:33:41.985Z",
+  "ended": "2026-08-27T18:33:43.592Z",
+  "candidate": "27a7793526830768484885afba5832bf8bb248b5",
+  "host": {
+    "type": "Darwin",
+    "release": "25.4.0",
+    "arch": "arm64",
+    "node": "v22.22.2"
+  },
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "LANGUAGE": "C",
+    "TZ": "UTC"
+  },
+  "limits": {
+    "maxPatternBytes": 8192,
+    "maxSubjectBytes": 65536,
+    "maxNodes": 4096,
+    "maxDepth": 64,
+    "maxSteps": 8000000,
+    "maxStates": 16384,
+    "maxAllocatedUnits": 1000000
+  },
+  "typescript": "5.9.3",
+  "typescriptHash": "3ae902c92cc44dace175c0e69e13a4b0899f6983c6121d76b9ab8dd5795e7675",
+  "gitInputs": {
+    "source": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0",
+    "protocol": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1"
+  },
+  "before": {
+    "src/commands/expr/bre-worker.ts": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0",
+    "src/commands/regex-execution/protocol.ts": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1",
+    "tests/commands/expr-stress/extension-review/after-abort-fix/replay/supplement-27a77935/nullable-separate-cohort.json": "bde325d00025d2df3a31b5fcb43f049359c5779def8d3a3a5226d68a3fa77477",
+    "tests/commands/expr-stress/nullable-capture-review/manifest.json": "adb8a9dfc589846c194eae73f0c6580f76d5944ff7237b1b75125b54e3e48423",
+    "tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr": "e8a4e2b58a33d2ad6bfa9eb8a4ed5f62775ab9ceac4b9421680c98973fd9109c",
+    "tests/commands/metadata-stress/.oracle/coreutils-9.7/lib/libcoreutils.a": "285645d4438ee034d06a8322954adc1ee48f3abc62e539cf7102a1107b42b977",
+    "tests/commands/metadata-stress/.oracle/coreutils-9.7/lib/regexec.c": "5cf9d377abdcc8be6469690c9f9454f468257bd07200e37c23acaa4ee587944b",
+    "tests/commands/metadata-stress/.oracle/coreutils-9.7/lib/regex.c": "b4e1effef054272c5ea90e6713647a4bbd398b91ccae201c52430b86cd4e8c9d",
+    "tests/commands/metadata-stress/.oracle/coreutils-9.7/lib/regex_internal.c": "f65534e49a774afb624a5e9d3a8fece4b8d2f6e185a45243160a2dab4de216f9",
+    "tests/commands/metadata-stress/.oracle/coreutils-9.7/lib/regex_internal.h": "5be023e89f546bfdf3074f1049bc471b33bd5e7779ed5ec24c108d6394bda802",
+    "tests/commands/metadata-stress/.oracle/coreutils-9.7/lib/regcomp.c": "9e897576ec5421fbd8b476fb287f323eb61612c85d2ec78b88b4bc508371380e",
+    "tests/commands/metadata-stress/.oracle/coreutils-9.7/lib/config.h": "cb3b7a64faca1cd9b6d1683aa636e98da83a0546b2b663c7c5c9b7d3dfeedc4a",
+    "tests/commands/metadata-stress/.oracle/coreutils-9.7/lib/regex.h": "fa71b3d169b5952602d73c9954b53d7bb2761bd42805a3298b63f5966c0a2c64"
+  },
+  "after": {
+    "src/commands/expr/bre-worker.ts": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0",
+    "src/commands/regex-execution/protocol.ts": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1",
+    "tests/commands/expr-stress/extension-review/after-abort-fix/replay/supplement-27a77935/nullable-separate-cohort.json": "bde325d00025d2df3a31b5fcb43f049359c5779def8d3a3a5226d68a3fa77477",
+    "tests/commands/expr-stress/nullable-capture-review/manifest.json": "adb8a9dfc589846c194eae73f0c6580f76d5944ff7237b1b75125b54e3e48423",
+    "tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr": "e8a4e2b58a33d2ad6bfa9eb8a4ed5f62775ab9ceac4b9421680c98973fd9109c",
+    "tests/commands/metadata-stress/.oracle/coreutils-9.7/lib/libcoreutils.a": "285645d4438ee034d06a8322954adc1ee48f3abc62e539cf7102a1107b42b977",
+    "tests/commands/metadata-stress/.oracle/coreutils-9.7/lib/regexec.c": "5cf9d377abdcc8be6469690c9f9454f468257bd07200e37c23acaa4ee587944b",
+    "tests/commands/metadata-stress/.oracle/coreutils-9.7/lib/regex.c": "b4e1effef054272c5ea90e6713647a4bbd398b91ccae201c52430b86cd4e8c9d",
+    "tests/commands/metadata-stress/.oracle/coreutils-9.7/lib/regex_internal.c": "f65534e49a774afb624a5e9d3a8fece4b8d2f6e185a45243160a2dab4de216f9",
+    "tests/commands/metadata-stress/.oracle/coreutils-9.7/lib/regex_internal.h": "5be023e89f546bfdf3074f1049bc471b33bd5e7779ed5ec24c108d6394bda802",
+    "tests/commands/metadata-stress/.oracle/coreutils-9.7/lib/regcomp.c": "9e897576ec5421fbd8b476fb287f323eb61612c85d2ec78b88b4bc508371380e",
+    "tests/commands/metadata-stress/.oracle/coreutils-9.7/lib/config.h": "cb3b7a64faca1cd9b6d1683aa636e98da83a0546b2b663c7c5c9b7d3dfeedc4a",
+    "tests/commands/metadata-stress/.oracle/coreutils-9.7/lib/regex.h": "fa71b3d169b5952602d73c9954b53d7bb2761bd42805a3298b63f5966c0a2c64"
+  },
+  "temporary": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-nullable-design-itKs4o",
+  "version": {
+    "status": 0,
+    "signal": null,
+    "failure": null,
+    "timedOut": false,
+    "stdout": "expr (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Mike Parker, James Youngman, and Paul Eggert.\n",
+    "stderr": "",
+    "stdoutBase64": "ZXhwciAoR05VIGNvcmV1dGlscykgOS43CkNvcHlyaWdodCAoQykgMjAyNSBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb24sIEluYy4KTGljZW5zZSBHUEx2Mys6IEdOVSBHUEwgdmVyc2lvbiAzIG9yIGxhdGVyIDxodHRwczovL2dudS5vcmcvbGljZW5zZXMvZ3BsLmh0bWw+LgpUaGlzIGlzIGZyZWUgc29mdHdhcmU6IHlvdSBhcmUgZnJlZSB0byBjaGFuZ2UgYW5kIHJlZGlzdHJpYnV0ZSBpdC4KVGhlcmUgaXMgTk8gV0FSUkFOVFksIHRvIHRoZSBleHRlbnQgcGVybWl0dGVkIGJ5IGxhdy4KCldyaXR0ZW4gYnkgTWlrZSBQYXJrZXIsIEphbWVzIFlvdW5nbWFuLCBhbmQgUGF1bCBFZ2dlcnQuCg==",
+    "stderrBase64": ""
+  },
+  "note": "Exact selected-path before/after integrity only, not append-proof repository validation. Native trace is a locally rebuilt diagnostic, NOT the pinned oracle. All native expected tuples remain pinned GNU9.7/Darwin. Candidate instrumented engine is not a public Shell replay. Repeat-frame prototype and finite relaxation are noncandidate."
+}

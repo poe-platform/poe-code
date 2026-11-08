@@ -1,0 +1,3334 @@
+{
+  "date": "2026-08-27T07:36:43.815Z",
+  "platform": "darwin",
+  "release": "25.4.0",
+  "arch": "arm64",
+  "fixtureHash": "ca5e3ab2a3ed67e95b4f2ce0e5bae4159445f015b92a3a32d29f631eb23cc68d",
+  "recorderSource": "#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n\nstatic void print_bytes(const char *value) {\n  for (const unsigned char *cursor = (const unsigned char *)value; *cursor; cursor++) printf(\"%02x\", *cursor);\n}\n\nint main(int count, char **arguments) {\n  printf(\"argc=%d\\n\", count);\n  for (int index = 0; index < count; index++) {\n    printf(\"arg%d=\", index);\n    print_bytes(arguments[index]);\n    putchar('\\n');\n  }\n  const char *names[] = {\"V\", \"EMPTY\", \"KEEP\", \"A\", \"B\", \"FLAG\", NULL};\n  for (int index = 0; names[index]; index++) {\n    const char *value = getenv(names[index]);\n    printf(\"env:%s=\", names[index]);\n    if (value) print_bytes(value); else printf(\"<unset>\");\n    putchar('\\n');\n  }\n  return 0;\n}\n",
+  "environment": {
+    "V": "inherited space",
+    "EMPTY": "",
+    "KEEP": "keep",
+    "FLAG": "old",
+    "INSERT": "a \" b \\ c ${V}; `literal`"
+  },
+  "envProfiles": [
+    {
+      "name": "GNU9.7-Darwin",
+      "binary": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+      "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+      "sha256": "1026eb36ffd2fdca6d064c0ffd6dd99ceb7bb3f49ec5e804df2c53bef372dbf0",
+      "versionProbe": {
+        "status": 0,
+        "stdoutHex": "656e762028474e5520636f72657574696c732920392e370a436f70797269676874202843292032303235204672656520536f66747761726520466f756e646174696f6e2c20496e632e0a4c6963656e73652047504c76332b3a20474e552047504c2076657273696f6e2033206f72206c61746572203c68747470733a2f2f676e752e6f72672f6c6963656e7365732f67706c2e68746d6c3e2e0a54686973206973206672656520736f6674776172653a20796f7520617265206672656520746f206368616e676520616e64207265646973747269627574652069742e0a5468657265206973204e4f2057415252414e54592c20746f2074686520657874656e74207065726d6974746564206279206c61772e0a0a5772697474656e2062792052696368617264204d6c796e6172696b2c204461766964204d61634b656e7a69652c20616e6420417373616620476f72646f6e2e0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "name": "Apple-env-Darwin",
+      "binary": "/usr/bin/env",
+      "realpath": "/usr/bin/env",
+      "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776",
+      "versionProbe": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696c6c6567616c206f7074696f6e202d2d20650a75736167653a20656e76205b2d3069765d205b2d4320776f726b6469725d205b2d50207574696c706174685d205b2d5320737472696e675d0a20202020202020202020205b2d75206e616d655d205b6e616d653d76616c7565202e2e2e5d205b7574696c697479205b617267756d656e74202e2e2e5d5d0a"
+      }
+    }
+  ],
+  "bashProfiles": [
+    {
+      "name": "GNU5.3",
+      "binary": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+      "versionProbe": {
+        "status": 0,
+        "stdoutHex": "474e5520626173682c2076657273696f6e20352e332e302831292d72656c656173652028616172636836342d6170706c652d64617277696e32352e342e30290a436f70797269676874202843292032303235204672656520536f66747761726520466f756e646174696f6e2c20496e632e0a4c6963656e73652047504c76332b3a20474e552047504c2076657273696f6e2033206f72206c61746572203c687474703a2f2f676e752e6f72672f6c6963656e7365732f67706c2e68746d6c3e0a0a54686973206973206672656520736f6674776172653b20796f7520617265206672656520746f206368616e676520616e64207265646973747269627574652069742e0a5468657265206973204e4f2057415252414e54592c20746f2074686520657874656e74207065726d6974746564206279206c61772e0a",
+        "stderrHex": ""
+      },
+      "emptyEnvironmentRoleControl": {
+        "status": 0,
+        "stdoutHex": "352e332e302831292d72656c65617365",
+        "stderrHex": ""
+      }
+    },
+    {
+      "name": "Apple3.2",
+      "binary": "/bin/bash",
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "versionProbe": {
+        "status": 0,
+        "stdoutHex": "474e5520626173682c2076657273696f6e20332e322e35372831292d72656c65617365202861726d36342d6170706c652d64617277696e3235290a436f70797269676874202843292032303037204672656520536f66747761726520466f756e646174696f6e2c20496e632e0a",
+        "stderrHex": ""
+      },
+      "emptyEnvironmentRoleControl": {
+        "status": 0,
+        "stdoutHex": "332e322e35372831292d72656c65617365",
+        "stderrHex": ""
+      }
+    }
+  ],
+  "core": [
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "plain",
+      "args": [
+        "-S",
+        "rec alpha beta"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-HsGthk",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-HsGthk",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d330a617267303d3732363536330a617267313d363136633730363836310a617267323d36323635373436310a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "whitespace",
+      "args": [
+        "-S",
+        "rec\talpha\nbeta\rgamma\u000bdelta\fform"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-9y4ITA",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-9y4ITA",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d360a617267303d3732363536330a617267313d363136633730363836310a617267323d36323635373436310a617267333d363736313664366436310a617267343d363436353663373436310a617267353d36363666373236640a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "quotes-empty",
+      "args": [
+        "-S",
+        "rec '' \"\" a' b'\" c\""
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-izzUOJ",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-izzUOJ",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d340a617267303d3732363536330a617267313d0a617267323d0a617267333d363132303632323036330a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "quote-literals",
+      "args": [
+        "-S",
+        "rec \"'one'\" '\"two\"'"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-OazBAr",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-OazBAr",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d330a617267303d3732363536330a617267313d323736663665363532370a617267323d323237343737366632320a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "escape-controls",
+      "args": [
+        "-S",
+        "rec a\\nb a\\tb a\\rb a\\vb a\\fb"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-LFKdbS",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-LFKdbS",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d360a617267303d3732363536330a617267313d3631306136320a617267323d3631303936320a617267333d3631306436320a617267343d3631306236320a617267353d3631306336320a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "escape-punctuation",
+      "args": [
+        "-S",
+        "rec \\# \\$ \\' \\\" \\\\"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-NyajeG",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-NyajeG",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d360a617267303d3732363536330a617267313d32330a617267323d32340a617267333d32370a617267343d32320a617267353d35630a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "single-quote-escapes",
+      "args": [
+        "-S",
+        "rec '\\n\\_\\c\\$' '\\'\\\\'"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-luLF9m",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-luLF9m",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d330a617267303d3732363536330a617267313d356336653563356635633633356332340a617267323d323735630a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "underscore",
+      "args": [
+        "-S",
+        "rec a\\_b \"a\\_b\" \\_c"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-O9Xo6S",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-O9Xo6S",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d350a617267303d3732363536330a617267313d36310a617267323d36320a617267333d3631323036320a617267343d36330a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "comment",
+      "args": [
+        "-S",
+        "rec alpha # ignored",
+        "tail"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-COqexc",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-COqexc",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d330a617267303d3732363536330a617267313d363136633730363836310a617267323d37343631363936630a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "comment-active",
+      "args": [
+        "-S",
+        "rec ''#keep a#keep \"#keep\""
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-86YBkD",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-86YBkD",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d340a617267303d3732363536330a617267313d323336623635363537300a617267323d3631323336623635363537300a617267333d323336623635363537300a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "cancel-string",
+      "args": [
+        "-S",
+        "rec alpha\\c ignored",
+        "tail"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-aEkkl4",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-aEkkl4",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d330a617267303d3732363536330a617267313d363136633730363836310a617267323d37343631363936630a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "cancel-double-error",
+      "args": [
+        "-S",
+        "rec \"a\\cb\""
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-y16BGo",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-y16BGo",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 125,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20275c6327206d757374206e6f742061707065617220696e20646f75626c652d71756f746564202d5320737472696e670a"
+      },
+      "marker": null
+    },
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "escape-space-error",
+      "args": [
+        "-S",
+        "rec a\\ b"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-9ZQ1lC",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-9ZQ1lC",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 125,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c69642073657175656e636520275c202720696e202d530a"
+      },
+      "marker": null
+    },
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "escape-unknown-error",
+      "args": [
+        "-S",
+        "rec \\q"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-wOl529",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-wOl529",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 125,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c69642073657175656e636520275c712720696e202d530a"
+      },
+      "marker": null
+    },
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "escape-final-error",
+      "args": [
+        "-S",
+        "rec trailing\\"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-kyXlOD",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-kyXlOD",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 125,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696e76616c6964206261636b736c61736820617420656e64206f6620737472696e6720696e202d530a"
+      },
+      "marker": null
+    },
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "quote-final-error",
+      "args": [
+        "-S",
+        "rec \"unterminated"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-EZd9mv",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-EZd9mv",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 125,
+        "stdoutHex": "",
+        "stderrHex": "656e763a206e6f207465726d696e6174696e672071756f746520696e202d5320737472696e670a"
+      },
+      "marker": null
+    },
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "expand-boundary",
+      "args": [
+        "-S",
+        "rec pre${V}post ${INSERT}"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-VAgSIX",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-VAgSIX",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d330a617267303d3732363536330a617267313d37303732363536393665363836353732363937343635363432303733373036313633363537303666373337340a617267323d36313230323232303632323035633230363332303234376235363764336232303630366336393734363537323631366336300a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "expand-empty-unset",
+      "args": [
+        "-S",
+        "rec ${EMPTY} ${ABSENT} \"${ABSENT}\""
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-NVgudN",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-NVgudN",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d330a617267303d3732363536330a617267313d0a617267323d0a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "expand-single-literal",
+      "args": [
+        "-S",
+        "rec '${V}' '\\${V}'"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-WszwyC",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-WszwyC",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d330a617267303d3732363536330a617267313d32343762353637640a617267323d356332343762353637640a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "expand-before-i",
+      "args": [
+        "-i",
+        "-S",
+        "PATH=${PATH} KEEP=${V} rec ${V}"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-b2Yye4",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-b2Yye4",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d320a617267303d3732363536330a617267313d3639366536383635373236393734363536343230373337303631363336350a656e763a563d3c756e7365743e0a656e763a454d5054593d3c756e7365743e0a656e763a4b4545503d3639366536383635373236393734363536343230373337303631363336350a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3c756e7365743e0a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "expand-before-u",
+      "args": [
+        "-u",
+        "V",
+        "-S",
+        "rec ${V}"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-ay6eL1",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-ay6eL1",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d320a617267303d3732363536330a617267313d3639366536383635373236393734363536343230373337303631363336350a656e763a563d3c756e7365743e0a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "expand-assignment-timing",
+      "args": [
+        "-S",
+        "V=new rec ${V}"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-1xLqOh",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-1xLqOh",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d320a617267303d3732363536330a617267313d3639366536383635373236393734363536343230373337303631363336350a656e763a563d3665363537370a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "dollar-bare-error",
+      "args": [
+        "-S",
+        "rec $V tail"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-3Adnis",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-3Adnis",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 125,
+        "stdoutHex": "",
+        "stderrHex": "656e763a206f6e6c7920247b5641524e414d457d20657870616e73696f6e20697320737570706f727465642c206572726f722061743a202456207461696c0a"
+      },
+      "marker": null
+    },
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "dollar-name-error",
+      "args": [
+        "-S",
+        "rec ${9BAD}"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-L8fgz1",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-L8fgz1",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 125,
+        "stdoutHex": "",
+        "stderrHex": "656e763a206f6e6c7920247b5641524e414d457d20657870616e73696f6e20697320737570706f727465642c206572726f722061743a20247b394241447d0a"
+      },
+      "marker": null
+    },
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "dollar-default-error",
+      "args": [
+        "-S",
+        "rec ${V:-fallback}"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-LR1yrO",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-LR1yrO",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 125,
+        "stdoutHex": "",
+        "stderrHex": "656e763a206f6e6c7920247b5641524e414d457d20657870616e73696f6e20697320737570706f727465642c206572726f722061743a20247b563a2d66616c6c6261636b7d0a"
+      },
+      "marker": null
+    },
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "dollar-substitution-error",
+      "args": [
+        "-S",
+        "rec $(touch marker)"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-GEPZPo",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-GEPZPo",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 125,
+        "stdoutHex": "",
+        "stderrHex": "656e763a206f6e6c7920247b5641524e414d457d20657870616e73696f6e20697320737570706f727465642c206572726f722061743a202428746f756368206d61726b6572290a"
+      },
+      "marker": null
+    },
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "literal-injection",
+      "args": [
+        "-S",
+        "rec ';touch marker' '$(touch marker)' `touch marker` > marker"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-DqhucL",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-DqhucL",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d370a617267303d3732363536330a617267313d33623734366637353633363832303664363137323662363537320a617267323d3234323837343666373536333638323036643631373236623635373232390a617267333d3630373436663735363336380a617267343d36643631373236623635373236300a617267353d33650a617267363d3664363137323662363537320a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "attached-S",
+      "args": [
+        "-Srec one",
+        "two"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-4LQcJ1",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-4LQcJ1",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d330a617267303d3732363536330a617267313d3666366536350a617267323d3734373736660a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "combined-iS",
+      "args": [
+        "-iSPATH=${PATH} KEEP=new rec one"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-jjyrPH",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-jjyrPH",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d320a617267303d3732363536330a617267313d3666366536350a656e763a563d3c756e7365743e0a656e763a454d5054593d3c756e7365743e0a656e763a4b4545503d3665363537370a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3c756e7365743e0a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "long-equals",
+      "args": [
+        "--split-string=rec one",
+        "two"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-dGF2Os",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-dGF2Os",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d330a617267303d3732363536330a617267313d3666366536350a617267323d3734373736660a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "long-separate",
+      "args": [
+        "--split-string",
+        "rec one"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-HlKLVP",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-HlKLVP",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d320a617267303d3732363536330a617267313d3666366536350a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "nested-S",
+      "args": [
+        "-S",
+        "-S \"rec nested\"",
+        "tail"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-vpNHhc",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-vpNHhc",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d330a617267303d3732363536330a617267313d3665363537333734363536340a617267323d37343631363936630a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "repeated-S-before-command",
+      "args": [
+        "-S",
+        "-u V",
+        "-S",
+        "rec ${V}"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-xO2c22",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-xO2c22",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d320a617267303d3732363536330a617267313d3639366536383635373236393734363536343230373337303631363336350a656e763a563d3c756e7365743e0a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "S-after-command-is-literal",
+      "args": [
+        "-S",
+        "rec one",
+        "-S",
+        "two three"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-Ch3AiN",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-Ch3AiN",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d340a617267303d3732363536330a617267313d3666366536350a617267323d326435330a617267333d3734373736663230373436383732363536350a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "after-assignment-is-literal-command",
+      "args": [
+        "A=new",
+        "-S",
+        "rec one"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-R09RDa",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-R09RDa",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20272d53273a204e6f20737563682066696c65206f72206469726563746f72790a"
+      },
+      "marker": null
+    },
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "empty-S",
+      "args": [
+        "-S",
+        "",
+        "rec",
+        "tail"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-bNPKw0",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-bNPKw0",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d320a617267303d3732363536330a617267313d37343631363936630a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "empty-quoted-command",
+      "args": [
+        "-S",
+        "''"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-h4m0Q2",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-h4m0Q2",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "656e763a2027273a204e6f20737563682066696c65206f72206469726563746f72790a"
+      },
+      "marker": null
+    },
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "empty-print-environment",
+      "args": [
+        "-i",
+        "-S",
+        ""
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-MvKPea",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-MvKPea",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "null-print",
+      "args": [
+        "-i",
+        "-S",
+        "-0 A=1 B=2"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-wbEGor",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-wbEGor",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "423d3200413d3100",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "double-dash",
+      "args": [
+        "-S",
+        "-- rec -S literal"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-zjeHmO",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-zjeHmO",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d330a617267303d3732363536330a617267313d326435330a617267323d36633639373436353732363136630a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "bare-dash",
+      "args": [
+        "-S",
+        "- PATH=${PATH} rec"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-Sz09Kl",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-Sz09Kl",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d310a617267303d3732363536330a656e763a563d3c756e7365743e0a656e763a454d5054593d3c756e7365743e0a656e763a4b4545503d3c756e7365743e0a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3c756e7365743e0a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "bare-dash-stops-options",
+      "args": [
+        "-S",
+        "- -u V rec"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-Hys00X",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-Hys00X",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20272d75273a204e6f20737563682066696c65206f72206469726563746f72790a"
+      },
+      "marker": null
+    },
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "unset-long",
+      "args": [
+        "-S",
+        "--unset=V rec ${V}"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-AtQTzy",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-AtQTzy",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d320a617267303d3732363536330a617267313d3639366536383635373236393734363536343230373337303631363336350a656e763a563d3c756e7365743e0a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "unicode",
+      "args": [
+        "-S",
+        "rec é🙂 \"λ x\""
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-2U6vy4",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-2U6vy4",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d330a617267303d3732363536330a617267313d6333613966303966393938320a617267323d63656262323037380a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "GNU9.7-Darwin",
+      "name": "no-S-single-target",
+      "args": [
+        "rec alpha"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-kkdd92",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-kkdd92",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "656e763a202772656320616c706861273a204e6f20737563682066696c65206f72206469726563746f72790a656e763a20757365202d5b765d5320746f2070617373206f7074696f6e7320696e2073686562616e67206c696e65730a"
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "plain",
+      "args": [
+        "-S",
+        "rec alpha beta"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-9IF7JW",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-9IF7JW",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d330a617267303d3732363536330a617267313d363136633730363836310a617267323d36323635373436310a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "whitespace",
+      "args": [
+        "-S",
+        "rec\talpha\nbeta\rgamma\u000bdelta\fform"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-ACO4Jv",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-ACO4Jv",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d360a617267303d3732363536330a617267313d363136633730363836310a617267323d36323635373436310a617267333d363736313664366436310a617267343d363436353663373436310a617267353d36363666373236640a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "quotes-empty",
+      "args": [
+        "-S",
+        "rec '' \"\" a' b'\" c\""
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-50bYwL",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-50bYwL",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d340a617267303d3732363536330a617267313d0a617267323d0a617267333d363132303632323036330a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "quote-literals",
+      "args": [
+        "-S",
+        "rec \"'one'\" '\"two\"'"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-5AZ0EJ",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-5AZ0EJ",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d330a617267303d3732363536330a617267313d323736663665363532370a617267323d323237343737366632320a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "escape-controls",
+      "args": [
+        "-S",
+        "rec a\\nb a\\tb a\\rb a\\vb a\\fb"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-2k3yV3",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-2k3yV3",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d360a617267303d3732363536330a617267313d3631306136320a617267323d3631303936320a617267333d3631306436320a617267343d3631306236320a617267353d3631306336320a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "escape-punctuation",
+      "args": [
+        "-S",
+        "rec \\# \\$ \\' \\\" \\\\"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-PiTRyI",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-PiTRyI",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d360a617267303d3732363536330a617267313d32330a617267323d32340a617267333d32370a617267343d32320a617267353d35630a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "single-quote-escapes",
+      "args": [
+        "-S",
+        "rec '\\n\\_\\c\\$' '\\'\\\\'"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-upiYbd",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-upiYbd",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d330a617267303d3732363536330a617267313d356336653563356635633633356332340a617267323d323735630a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "underscore",
+      "args": [
+        "-S",
+        "rec a\\_b \"a\\_b\" \\_c"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-sXDlnW",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-sXDlnW",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d350a617267303d3732363536330a617267313d36310a617267323d36320a617267333d3631323036320a617267343d36330a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "comment",
+      "args": [
+        "-S",
+        "rec alpha # ignored",
+        "tail"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-VXXoGX",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-VXXoGX",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d330a617267303d3732363536330a617267313d363136633730363836310a617267323d37343631363936630a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "comment-active",
+      "args": [
+        "-S",
+        "rec ''#keep a#keep \"#keep\""
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-4RsAIy",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-4RsAIy",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d340a617267303d3732363536330a617267313d323336623635363537300a617267323d3631323336623635363537300a617267333d323336623635363537300a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "cancel-string",
+      "args": [
+        "-S",
+        "rec alpha\\c ignored",
+        "tail"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-8ugy6S",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-8ugy6S",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d330a617267303d3732363536330a617267313d363136633730363836310a617267323d37343631363936630a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "cancel-double-error",
+      "args": [
+        "-S",
+        "rec \"a\\cb\""
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-NLOqye",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-NLOqye",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "656e763a2053657175656e636520275c6327206973206e6f7420616c6c6f77656420696e2071756f74656420737472696e67730a"
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "escape-space-error",
+      "args": [
+        "-S",
+        "rec a\\ b"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-5hLyGd",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-5hLyGd",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d320a617267303d3732363536330a617267313d3631323036320a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "escape-unknown-error",
+      "args": [
+        "-S",
+        "rec \\q"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-v5FyIw",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-v5FyIw",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20496e76616c69642073657175656e636520275c712720696e202d530a"
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "escape-final-error",
+      "args": [
+        "-S",
+        "rec trailing\\"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-E9kucn",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-E9kucn",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20496e76616c69642073657175656e636520275c0a"
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "quote-final-error",
+      "args": [
+        "-S",
+        "rec \"unterminated"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-WhHxLu",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-WhHxLu",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "656e763a204e6f207465726d696e6174696e672071756f746520666f7220737472696e673a20756e746522756e7465726d696e617465640a"
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "expand-boundary",
+      "args": [
+        "-S",
+        "rec pre${V}post ${INSERT}"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-jm5prB",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-jm5prB",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d330a617267303d3732363536330a617267313d37303732363536393665363836353732363937343635363432303733373036313633363537303666373337340a617267323d36313230323232303632323035633230363332303234376235363764336232303630366336393734363537323631366336300a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "expand-empty-unset",
+      "args": [
+        "-S",
+        "rec ${EMPTY} ${ABSENT} \"${ABSENT}\""
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-XLZnyB",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-XLZnyB",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d320a617267303d3732363536330a617267313d0a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "expand-single-literal",
+      "args": [
+        "-S",
+        "rec '${V}' '\\${V}'"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-VmNFpu",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-VmNFpu",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d330a617267303d3732363536330a617267313d32343762353637640a617267323d356332343762353637640a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "expand-before-i",
+      "args": [
+        "-i",
+        "-S",
+        "PATH=${PATH} KEEP=${V} rec ${V}"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-0DtGEK",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-0DtGEK",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d320a617267303d3732363536330a617267313d3639366536383635373236393734363536343230373337303631363336350a656e763a563d3c756e7365743e0a656e763a454d5054593d3c756e7365743e0a656e763a4b4545503d3639366536383635373236393734363536343230373337303631363336350a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3c756e7365743e0a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "expand-before-u",
+      "args": [
+        "-u",
+        "V",
+        "-S",
+        "rec ${V}"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-W9BOID",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-W9BOID",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d310a617267303d3732363536330a656e763a563d3c756e7365743e0a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "expand-assignment-timing",
+      "args": [
+        "-S",
+        "V=new rec ${V}"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-KSfFpj",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-KSfFpj",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d320a617267303d3732363536330a617267313d3639366536383635373236393734363536343230373337303631363336350a656e763a563d3665363537370a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "dollar-bare-error",
+      "args": [
+        "-S",
+        "rec $V tail"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-6rB6zK",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-6rB6zK",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "656e763a204f6e6c7920247b5641524e414d457d20657870616e73696f6e20697320737570706f727465642c206572726f722061743a202456207461696c0a"
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "dollar-name-error",
+      "args": [
+        "-S",
+        "rec ${9BAD}"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-V2zniH",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-V2zniH",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "656e763a204f6e6c7920247b5641524e414d457d20657870616e73696f6e20697320737570706f727465642c206572726f722061743a20247b394241447d0a"
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "dollar-default-error",
+      "args": [
+        "-S",
+        "rec ${V:-fallback}"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-zJaWZM",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-zJaWZM",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "656e763a204f6e6c7920247b5641524e414d457d20657870616e73696f6e20697320737570706f727465642c206572726f722061743a20247b563a2d66616c6c6261636b7d0a"
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "dollar-substitution-error",
+      "args": [
+        "-S",
+        "rec $(touch marker)"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-UeC9DH",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-UeC9DH",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "656e763a204f6e6c7920247b5641524e414d457d20657870616e73696f6e20697320737570706f727465642c206572726f722061743a202428746f756368206d61726b6572290a"
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "literal-injection",
+      "args": [
+        "-S",
+        "rec ';touch marker' '$(touch marker)' `touch marker` > marker"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-MpdERP",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-MpdERP",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d370a617267303d3732363536330a617267313d33623734366637353633363832303664363137323662363537320a617267323d3234323837343666373536333638323036643631373236623635373232390a617267333d3630373436663735363336380a617267343d36643631373236623635373236300a617267353d33650a617267363d3664363137323662363537320a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "attached-S",
+      "args": [
+        "-Srec one",
+        "two"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-2qdHkX",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-2qdHkX",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d330a617267303d3732363536330a617267313d3666366536350a617267323d3734373736660a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "combined-iS",
+      "args": [
+        "-iSPATH=${PATH} KEEP=new rec one"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-yE8l2O",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-yE8l2O",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d320a617267303d3732363536330a617267313d3666366536350a656e763a563d3c756e7365743e0a656e763a454d5054593d3c756e7365743e0a656e763a4b4545503d3665363537370a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3c756e7365743e0a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "long-equals",
+      "args": [
+        "--split-string=rec one",
+        "two"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-rfSYqJ",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-rfSYqJ",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696c6c6567616c206f7074696f6e202d2d20730a75736167653a20656e76205b2d3069765d205b2d4320776f726b6469725d205b2d50207574696c706174685d205b2d5320737472696e675d0a20202020202020202020205b2d75206e616d655d205b6e616d653d76616c7565202e2e2e5d205b7574696c697479205b617267756d656e74202e2e2e5d5d0a"
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "long-separate",
+      "args": [
+        "--split-string",
+        "rec one"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-xeYyo5",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-xeYyo5",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20696c6c6567616c206f7074696f6e202d2d20730a75736167653a20656e76205b2d3069765d205b2d4320776f726b6469725d205b2d50207574696c706174685d205b2d5320737472696e675d0a20202020202020202020205b2d75206e616d655d205b6e616d653d76616c7565202e2e2e5d205b7574696c697479205b617267756d656e74202e2e2e5d5d0a"
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "nested-S",
+      "args": [
+        "-S",
+        "-S \"rec nested\"",
+        "tail"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-PnIC0M",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-PnIC0M",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d330a617267303d3732363536330a617267313d3665363537333734363536340a617267323d37343631363936630a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "repeated-S-before-command",
+      "args": [
+        "-S",
+        "-u V",
+        "-S",
+        "rec ${V}"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-dkNZt6",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-dkNZt6",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d310a617267303d3732363536330a656e763a563d3c756e7365743e0a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "S-after-command-is-literal",
+      "args": [
+        "-S",
+        "rec one",
+        "-S",
+        "two three"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-t2JT0Q",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-t2JT0Q",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d340a617267303d3732363536330a617267313d3666366536350a617267323d326435330a617267333d3734373736663230373436383732363536350a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "after-assignment-is-literal-command",
+      "args": [
+        "A=new",
+        "-S",
+        "rec one"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-vjuUoV",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-vjuUoV",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "656e763a202d533a204e6f20737563682066696c65206f72206469726563746f72790a"
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "empty-S",
+      "args": [
+        "-S",
+        "",
+        "rec",
+        "tail"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-fUGOX0",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-fUGOX0",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d320a617267303d3732363536330a617267313d37343631363936630a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "empty-quoted-command",
+      "args": [
+        "-S",
+        "''"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-Cb0L7v",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-Cb0L7v",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "656e763a203a204e6f20737563682066696c65206f72206469726563746f72790a"
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "empty-print-environment",
+      "args": [
+        "-i",
+        "-S",
+        ""
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-c0TVn7",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-c0TVn7",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "null-print",
+      "args": [
+        "-i",
+        "-S",
+        "-0 A=1 B=2"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-5Lijbj",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-5Lijbj",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "413d3100423d3200",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "double-dash",
+      "args": [
+        "-S",
+        "-- rec -S literal"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-q8YNdc",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-q8YNdc",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d330a617267303d3732363536330a617267313d326435330a617267323d36633639373436353732363136630a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "bare-dash",
+      "args": [
+        "-S",
+        "- PATH=${PATH} rec"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-yS3DAn",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-yS3DAn",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d310a617267303d3732363536330a656e763a563d3c756e7365743e0a656e763a454d5054593d3c756e7365743e0a656e763a4b4545503d3c756e7365743e0a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3c756e7365743e0a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "bare-dash-stops-options",
+      "args": [
+        "-S",
+        "- -u V rec"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-4dZaH4",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-4dZaH4",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "656e763a207265633a204e6f20737563682066696c65206f72206469726563746f72790a"
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "unset-long",
+      "args": [
+        "-S",
+        "--unset=V rec ${V}"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-NJziON",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-NJziON",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20756e736574656e76206e7365743d563a20496e76616c696420617267756d656e740a"
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "unicode",
+      "args": [
+        "-S",
+        "rec é🙂 \"λ x\""
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-zYDmC9",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-zYDmC9",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "617267633d330a617267303d3732363536330a617267313d6333613966303966393938320a617267323d63656262323037380a656e763a563d3639366536383635373236393734363536343230373337303631363336350a656e763a454d5054593d0a656e763a4b4545503d36623635363537300a656e763a413d3c756e7365743e0a656e763a423d3c756e7365743e0a656e763a464c41473d3666366336340a",
+        "stderrHex": ""
+      },
+      "marker": null
+    },
+    {
+      "profile": "Apple-env-Darwin",
+      "name": "no-S-single-target",
+      "args": [
+        "rec alpha"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/core-5K6eAf",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/core-5K6eAf",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "656e763a2072656320616c7068613a204e6f20737563682066696c65206f72206469726563746f72790a"
+      },
+      "marker": null
+    }
+  ],
+  "protocol": [
+    {
+      "profile": "GNU5.3",
+      "envBinary": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+      "name": "plain-e",
+      "protocol": "explicit ONE kernel optional argv, not Darwin kernel execution",
+      "optional": "-S bash -e",
+      "source": "#!/usr/bin/env -S bash -e\nprintf '[%s][%s]:%s' \"$1\" \"$2\" \"$KEEP\"; false; printf BAD\n",
+      "relocated": "printf relocated; false; printf BAD\n",
+      "args": [
+        "-S bash -e",
+        "./script",
+        "",
+        "a b"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-3SXK2f",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-3SXK2f",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 1,
+        "stdoutHex": "5b5d5b6120625d3a6b656570",
+        "stderrHex": ""
+      }
+    },
+    {
+      "profile": "GNU5.3",
+      "envBinary": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+      "name": "long-e",
+      "protocol": "explicit ONE kernel optional argv, not Darwin kernel execution",
+      "optional": "--split-string=bash -e",
+      "source": "#!/usr/bin/env --split-string=bash -e\nprintf '[%s][%s]:%s' \"$1\" \"$2\" \"$KEEP\"; false; printf BAD\n",
+      "relocated": "printf relocated; false; printf BAD\n",
+      "args": [
+        "--split-string=bash -e",
+        "./script",
+        "",
+        "a b"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-LRDEgf",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-LRDEgf",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 1,
+        "stdoutHex": "5b5d5b6120625d3a6b656570",
+        "stderrHex": ""
+      }
+    },
+    {
+      "profile": "GNU5.3",
+      "envBinary": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+      "name": "quote-argument",
+      "protocol": "explicit ONE kernel optional argv, not Darwin kernel execution",
+      "optional": "-S bash -e \"literal name\"",
+      "source": "#!/usr/bin/env -S bash -e \"literal name\"\nprintf '[%s][%s]:%s' \"$1\" \"$2\" \"$KEEP\"; false; printf BAD\n",
+      "relocated": "printf relocated; false; printf BAD\n",
+      "args": [
+        "-S bash -e \"literal name\"",
+        "./script",
+        "",
+        "a b"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-K1Sps9",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-K1Sps9",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "626173683a206c69746572616c206e616d653a204e6f20737563682066696c65206f72206469726563746f72790a"
+      }
+    },
+    {
+      "profile": "GNU5.3",
+      "envBinary": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+      "name": "environment",
+      "protocol": "explicit ONE kernel optional argv, not Darwin kernel execution",
+      "optional": "-S -i PATH=${PATH} KEEP=${V} bash -e",
+      "source": "#!/usr/bin/env -S -i PATH=${PATH} KEEP=${V} bash -e\nprintf '[%s][%s]:%s' \"$1\" \"$2\" \"$KEEP\"; false; printf BAD\n",
+      "relocated": "printf relocated; false; printf BAD\n",
+      "args": [
+        "-S -i PATH=${PATH} KEEP=${V} bash -e",
+        "./script",
+        "",
+        "a b"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-5aLKPE",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-5aLKPE",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 1,
+        "stdoutHex": "5b5d5b6120625d3a696e68657269746564207370616365",
+        "stderrHex": ""
+      }
+    },
+    {
+      "profile": "GNU5.3",
+      "envBinary": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+      "name": "relocated-file",
+      "protocol": "explicit ONE kernel optional argv, not Darwin kernel execution",
+      "optional": "-S -C sub bash -e",
+      "source": "#!/usr/bin/env -S -C sub bash -e\nprintf '[%s][%s]:%s' \"$1\" \"$2\" \"$KEEP\"; false; printf BAD\n",
+      "relocated": "printf relocated; false; printf BAD\n",
+      "args": [
+        "-S -C sub bash -e",
+        "./script",
+        "",
+        "a b"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-lIiFQS",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-lIiFQS",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 1,
+        "stdoutHex": "72656c6f6361746564",
+        "stderrHex": ""
+      }
+    },
+    {
+      "profile": "GNU5.3",
+      "envBinary": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+      "name": "literal-no-S",
+      "protocol": "explicit ONE kernel optional argv, not Darwin kernel execution",
+      "optional": "bash -e",
+      "source": "#!/usr/bin/env bash -e\nprintf '[%s][%s]:%s' \"$1\" \"$2\" \"$KEEP\"; false; printf BAD\n",
+      "relocated": "printf relocated; false; printf BAD\n",
+      "args": [
+        "bash -e",
+        "./script",
+        "",
+        "a b"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-aFGWxK",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-aFGWxK",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "656e763a202762617368202d65273a204e6f20737563682066696c65206f72206469726563746f72790a656e763a20757365202d5b765d5320746f2070617373206f7074696f6e7320696e2073686562616e67206c696e65730a"
+      }
+    },
+    {
+      "profile": "GNU5.3",
+      "envBinary": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+      "name": "long-space-not-equals",
+      "protocol": "explicit ONE kernel optional argv, not Darwin kernel execution",
+      "optional": "--split-string bash -e",
+      "source": "#!/usr/bin/env --split-string bash -e\nprintf '[%s][%s]:%s' \"$1\" \"$2\" \"$KEEP\"; false; printf BAD\n",
+      "relocated": "printf relocated; false; printf BAD\n",
+      "args": [
+        "--split-string bash -e",
+        "./script",
+        "",
+        "a b"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-XHdhbI",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-XHdhbI",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 125,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20756e7265636f676e697a6564206f7074696f6e20272d2d73706c69742d737472696e672062617368202d65270a5472792027656e76202d2d68656c702720666f72206d6f726520696e666f726d6174696f6e2e0a"
+      }
+    },
+    {
+      "profile": "GNU5.3",
+      "envBinary": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+      "name": "explicit-c-capability-boundary",
+      "protocol": "explicit ONE kernel optional argv, not Darwin kernel execution",
+      "optional": "-S bash -c \"printf explicit\"",
+      "source": "#!/usr/bin/env -S bash -c \"printf explicit\"\nprintf '[%s][%s]:%s' \"$1\" \"$2\" \"$KEEP\"; false; printf BAD\n",
+      "relocated": "printf relocated; false; printf BAD\n",
+      "args": [
+        "-S bash -c \"printf explicit\"",
+        "./script",
+        "",
+        "a b"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-e9hDfz",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-e9hDfz",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "6578706c69636974",
+        "stderrHex": ""
+      }
+    },
+    {
+      "profile": "Apple3.2",
+      "envBinary": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+      "name": "plain-e",
+      "protocol": "explicit ONE kernel optional argv, not Darwin kernel execution",
+      "optional": "-S bash -e",
+      "source": "#!/usr/bin/env -S bash -e\nprintf '[%s][%s]:%s' \"$1\" \"$2\" \"$KEEP\"; false; printf BAD\n",
+      "relocated": "printf relocated; false; printf BAD\n",
+      "args": [
+        "-S bash -e",
+        "./script",
+        "",
+        "a b"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-u5tNwL",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-u5tNwL",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 1,
+        "stdoutHex": "5b5d5b6120625d3a6b656570",
+        "stderrHex": ""
+      }
+    },
+    {
+      "profile": "Apple3.2",
+      "envBinary": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+      "name": "long-e",
+      "protocol": "explicit ONE kernel optional argv, not Darwin kernel execution",
+      "optional": "--split-string=bash -e",
+      "source": "#!/usr/bin/env --split-string=bash -e\nprintf '[%s][%s]:%s' \"$1\" \"$2\" \"$KEEP\"; false; printf BAD\n",
+      "relocated": "printf relocated; false; printf BAD\n",
+      "args": [
+        "--split-string=bash -e",
+        "./script",
+        "",
+        "a b"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-L7jLsv",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-L7jLsv",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 1,
+        "stdoutHex": "5b5d5b6120625d3a6b656570",
+        "stderrHex": ""
+      }
+    },
+    {
+      "profile": "Apple3.2",
+      "envBinary": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+      "name": "quote-argument",
+      "protocol": "explicit ONE kernel optional argv, not Darwin kernel execution",
+      "optional": "-S bash -e \"literal name\"",
+      "source": "#!/usr/bin/env -S bash -e \"literal name\"\nprintf '[%s][%s]:%s' \"$1\" \"$2\" \"$KEEP\"; false; printf BAD\n",
+      "relocated": "printf relocated; false; printf BAD\n",
+      "args": [
+        "-S bash -e \"literal name\"",
+        "./script",
+        "",
+        "a b"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-PpkMZT",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-PpkMZT",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "626173683a206c69746572616c206e616d653a204e6f20737563682066696c65206f72206469726563746f72790a"
+      }
+    },
+    {
+      "profile": "Apple3.2",
+      "envBinary": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+      "name": "environment",
+      "protocol": "explicit ONE kernel optional argv, not Darwin kernel execution",
+      "optional": "-S -i PATH=${PATH} KEEP=${V} bash -e",
+      "source": "#!/usr/bin/env -S -i PATH=${PATH} KEEP=${V} bash -e\nprintf '[%s][%s]:%s' \"$1\" \"$2\" \"$KEEP\"; false; printf BAD\n",
+      "relocated": "printf relocated; false; printf BAD\n",
+      "args": [
+        "-S -i PATH=${PATH} KEEP=${V} bash -e",
+        "./script",
+        "",
+        "a b"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-W2tEbZ",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-W2tEbZ",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 1,
+        "stdoutHex": "5b5d5b6120625d3a696e68657269746564207370616365",
+        "stderrHex": ""
+      }
+    },
+    {
+      "profile": "Apple3.2",
+      "envBinary": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+      "name": "relocated-file",
+      "protocol": "explicit ONE kernel optional argv, not Darwin kernel execution",
+      "optional": "-S -C sub bash -e",
+      "source": "#!/usr/bin/env -S -C sub bash -e\nprintf '[%s][%s]:%s' \"$1\" \"$2\" \"$KEEP\"; false; printf BAD\n",
+      "relocated": "printf relocated; false; printf BAD\n",
+      "args": [
+        "-S -C sub bash -e",
+        "./script",
+        "",
+        "a b"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-atf8ru",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-atf8ru",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 1,
+        "stdoutHex": "72656c6f6361746564",
+        "stderrHex": ""
+      }
+    },
+    {
+      "profile": "Apple3.2",
+      "envBinary": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+      "name": "literal-no-S",
+      "protocol": "explicit ONE kernel optional argv, not Darwin kernel execution",
+      "optional": "bash -e",
+      "source": "#!/usr/bin/env bash -e\nprintf '[%s][%s]:%s' \"$1\" \"$2\" \"$KEEP\"; false; printf BAD\n",
+      "relocated": "printf relocated; false; printf BAD\n",
+      "args": [
+        "bash -e",
+        "./script",
+        "",
+        "a b"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-y8u0f7",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-y8u0f7",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "656e763a202762617368202d65273a204e6f20737563682066696c65206f72206469726563746f72790a656e763a20757365202d5b765d5320746f2070617373206f7074696f6e7320696e2073686562616e67206c696e65730a"
+      }
+    },
+    {
+      "profile": "Apple3.2",
+      "envBinary": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+      "name": "long-space-not-equals",
+      "protocol": "explicit ONE kernel optional argv, not Darwin kernel execution",
+      "optional": "--split-string bash -e",
+      "source": "#!/usr/bin/env --split-string bash -e\nprintf '[%s][%s]:%s' \"$1\" \"$2\" \"$KEEP\"; false; printf BAD\n",
+      "relocated": "printf relocated; false; printf BAD\n",
+      "args": [
+        "--split-string bash -e",
+        "./script",
+        "",
+        "a b"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-b43lcD",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-b43lcD",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 125,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20756e7265636f676e697a6564206f7074696f6e20272d2d73706c69742d737472696e672062617368202d65270a5472792027656e76202d2d68656c702720666f72206d6f726520696e666f726d6174696f6e2e0a"
+      }
+    },
+    {
+      "profile": "Apple3.2",
+      "envBinary": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+      "name": "explicit-c-capability-boundary",
+      "protocol": "explicit ONE kernel optional argv, not Darwin kernel execution",
+      "optional": "-S bash -c \"printf explicit\"",
+      "source": "#!/usr/bin/env -S bash -c \"printf explicit\"\nprintf '[%s][%s]:%s' \"$1\" \"$2\" \"$KEEP\"; false; printf BAD\n",
+      "relocated": "printf relocated; false; printf BAD\n",
+      "args": [
+        "-S bash -c \"printf explicit\"",
+        "./script",
+        "",
+        "a b"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-ZL0nTR",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-ZL0nTR",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 0,
+        "stdoutHex": "6578706c69636974",
+        "stderrHex": ""
+      }
+    }
+  ],
+  "darwinKernel": [
+    {
+      "profile": "GNU5.3",
+      "envBinary": "/usr/bin/env",
+      "name": "plain-e",
+      "protocol": "actual Darwin kernel through fixed Bash parent",
+      "source": "#!/usr/bin/env -S bash -e\nprintf '[%s][%s]:%s' \"$1\" \"$2\" \"$KEEP\"; false; printf BAD\n",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "./script \"\" \"a b\"",
+        "shell"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-3SXK2f",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-3SXK2f",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 1,
+        "stdoutHex": "5b5d5b6120625d3a6b656570",
+        "stderrHex": ""
+      }
+    },
+    {
+      "profile": "GNU5.3",
+      "envBinary": "/usr/bin/env",
+      "name": "quote-argument",
+      "protocol": "actual Darwin kernel through fixed Bash parent",
+      "source": "#!/usr/bin/env -S bash -e \"literal name\"\nprintf '[%s][%s]:%s' \"$1\" \"$2\" \"$KEEP\"; false; printf BAD\n",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "./script \"\" \"a b\"",
+        "shell"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-K1Sps9",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-K1Sps9",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "626173683a20226c69746572616c3a204e6f20737563682066696c65206f72206469726563746f72790a"
+      }
+    },
+    {
+      "profile": "GNU5.3",
+      "envBinary": "/usr/bin/env",
+      "name": "environment",
+      "protocol": "actual Darwin kernel through fixed Bash parent",
+      "source": "#!/usr/bin/env -S -i PATH=${PATH} KEEP=${V} bash -e\nprintf '[%s][%s]:%s' \"$1\" \"$2\" \"$KEEP\"; false; printf BAD\n",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "./script \"\" \"a b\"",
+        "shell"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-5aLKPE",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-5aLKPE",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20626173683a204e6f20737563682066696c65206f72206469726563746f72790a"
+      }
+    },
+    {
+      "profile": "GNU5.3",
+      "envBinary": "/usr/bin/env",
+      "name": "literal-no-S",
+      "protocol": "actual Darwin kernel through fixed Bash parent",
+      "source": "#!/usr/bin/env bash -e\nprintf '[%s][%s]:%s' \"$1\" \"$2\" \"$KEEP\"; false; printf BAD\n",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "./script \"\" \"a b\"",
+        "shell"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-aFGWxK",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-aFGWxK",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 1,
+        "stdoutHex": "5b5d5b6120625d3a6b656570",
+        "stderrHex": ""
+      }
+    },
+    {
+      "profile": "Apple3.2",
+      "envBinary": "/usr/bin/env",
+      "name": "plain-e",
+      "protocol": "actual Darwin kernel through fixed Bash parent",
+      "source": "#!/usr/bin/env -S bash -e\nprintf '[%s][%s]:%s' \"$1\" \"$2\" \"$KEEP\"; false; printf BAD\n",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "./script \"\" \"a b\"",
+        "shell"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-u5tNwL",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-u5tNwL",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 1,
+        "stdoutHex": "5b5d5b6120625d3a6b656570",
+        "stderrHex": ""
+      }
+    },
+    {
+      "profile": "Apple3.2",
+      "envBinary": "/usr/bin/env",
+      "name": "quote-argument",
+      "protocol": "actual Darwin kernel through fixed Bash parent",
+      "source": "#!/usr/bin/env -S bash -e \"literal name\"\nprintf '[%s][%s]:%s' \"$1\" \"$2\" \"$KEEP\"; false; printf BAD\n",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "./script \"\" \"a b\"",
+        "shell"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-PpkMZT",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-PpkMZT",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "626173683a20226c69746572616c3a204e6f20737563682066696c65206f72206469726563746f72790a"
+      }
+    },
+    {
+      "profile": "Apple3.2",
+      "envBinary": "/usr/bin/env",
+      "name": "environment",
+      "protocol": "actual Darwin kernel through fixed Bash parent",
+      "source": "#!/usr/bin/env -S -i PATH=${PATH} KEEP=${V} bash -e\nprintf '[%s][%s]:%s' \"$1\" \"$2\" \"$KEEP\"; false; printf BAD\n",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "./script \"\" \"a b\"",
+        "shell"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-W2tEbZ",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-W2tEbZ",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "656e763a20626173683a204e6f20737563682066696c65206f72206469726563746f72790a"
+      }
+    },
+    {
+      "profile": "Apple3.2",
+      "envBinary": "/usr/bin/env",
+      "name": "literal-no-S",
+      "protocol": "actual Darwin kernel through fixed Bash parent",
+      "source": "#!/usr/bin/env bash -e\nprintf '[%s][%s]:%s' \"$1\" \"$2\" \"$KEEP\"; false; printf BAD\n",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "./script \"\" \"a b\"",
+        "shell"
+      ],
+      "cwd": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-y8u0f7",
+      "env": {
+        "PATH": "/tmp/safe-bash-env-split-author-UlkpnF/protocol-y8u0f7",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "observed": {
+        "status": 1,
+        "stdoutHex": "5b5d5b6120625d3a6b656570",
+        "stderrHex": ""
+      }
+    }
+  ],
+  "groups": [
+    80615,
+    80678,
+    80684,
+    80685,
+    80686,
+    80692,
+    80693,
+    80780,
+    80781,
+    80787,
+    80793,
+    80794,
+    80805,
+    80806,
+    80812,
+    80818,
+    80819,
+    80830,
+    80831,
+    80832,
+    80838,
+    80844,
+    80845,
+    80846,
+    80857,
+    80858,
+    80864,
+    80870,
+    80871,
+    80877,
+    80883,
+    80884,
+    80885,
+    80891,
+    80897,
+    80898,
+    80909,
+    80910,
+    80916,
+    80922,
+    80923,
+    80929,
+    80935,
+    80936,
+    80937,
+    80943,
+    80949,
+    80950,
+    80956,
+    80962,
+    80963,
+    80969,
+    80975,
+    80976,
+    80987,
+    80988,
+    80994,
+    81000,
+    81001,
+    81012,
+    81013,
+    81019,
+    81025,
+    81026,
+    81032,
+    81038,
+    81039,
+    81040,
+    81041,
+    81052,
+    81053,
+    81059,
+    81065,
+    81066,
+    81067,
+    81078,
+    81079,
+    81080,
+    81081,
+    81092,
+    81093,
+    81094,
+    81100,
+    81106,
+    81107,
+    81118,
+    81119,
+    81120,
+    81121,
+    81132,
+    81133,
+    81134,
+    81145,
+    81146,
+    81147,
+    81148,
+    81154,
+    81160,
+    81240,
+    81246,
+    81252,
+    81319,
+    81325,
+    81331,
+    81413,
+    81419,
+    81420,
+    81491,
+    81497,
+    81503,
+    81509,
+    81575,
+    81586,
+    81587,
+    81658,
+    81659,
+    81660,
+    81725,
+    81728,
+    81735,
+    81802,
+    81808
+  ],
+  "scratchRemoved": true,
+  "recorderHash": "46b9b8059b827e539ac704e8bcee8b2b469f99843dbf86ce88a81a29f7ec419b",
+  "compiler": {
+    "status": 0,
+    "stdoutHex": "4170706c6520636c616e672076657273696f6e2032312e302e302028636c616e672d323130302e312e312e313031290a5461726765743a2061726d36342d6170706c652d64617277696e32352e342e300a546872656164206d6f64656c3a20706f7369780a496e7374616c6c65644469723a202f4170706c69636174696f6e732f58636f64652e6170702f436f6e74656e74732f446576656c6f7065722f546f6f6c636861696e732f58636f646544656661756c742e7863746f6f6c636861696e2f7573722f62696e0a",
+    "stderrHex": ""
+  }
+}

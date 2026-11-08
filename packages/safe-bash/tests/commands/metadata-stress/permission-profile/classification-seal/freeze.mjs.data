@@ -1,0 +1,97 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
+import { gunzipSync } from 'node:zlib';
+
+const repo = '/Users/kjopek/Workspace/safe-bash';
+const owned = '/tmp/safe-bash-darwin-classification-b04J1M';
+const revision = 'b494675c34dc289f4ad4b10a9201e1211eb0a7d8';
+const sha = bytes => createHash('sha256').update(bytes).digest('hex');
+const git = args => execFileSync('/usr/bin/git', args, { cwd: repo, maxBuffer: 64 * 1024 * 1024 });
+const save = (name, value) => fs.writeFileSync(path.join(owned, name), JSON.stringify(value, null, 2) + '\n');
+const evidenceRoot = 'tests/integration/full-gate-20260827/combined-b494675c';
+const targets = ['src', 'dist', 'package.json', 'package-lock.json', 'AGENTS.md', 'tsconfig.json',
+  'tests/commands/metadata-stress/helpers.ts', 'tests/commands/metadata-stress/chmod-controls.test.ts',
+  'tests/commands/metadata-stress/native-differential.test.ts', 'tests/commands/metadata-stress/runtime-review',
+  'tests/commands/metadata-stress/sgid-feasibility', 'tests/commands/core-regression-stress/NORMATIVE_PROFILES.md',
+  'tests/commands/core-regression-stress/evidence/normative-profile-sources.json', evidenceRoot,
+  'tests/integration/full-gate-20260827/preflight-repair/HANDOFF.md',
+  'tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod',
+  'tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod.c',
+  'tests/commands/metadata-stress/.oracle/coreutils-9.7/lib/modechange.c'];
+function inventory() {
+  const files = {};
+  function visit(relative) {
+    const absolute = path.join(repo, relative);
+    if (!fs.existsSync(absolute)) return;
+    const stat = fs.lstatSync(absolute);
+    if (stat.isDirectory()) for (const name of fs.readdirSync(absolute).sort()) visit(`${relative}/${name}`);
+    else files[relative] = stat.isSymbolicLink() ? `link:${fs.readlinkSync(absolute)}` : sha(fs.readFileSync(absolute));
+  }
+  for (const target of targets) visit(target);
+  const sorted = Object.fromEntries(Object.entries(files).sort(([left], [right]) => left.localeCompare(right)));
+  return { capturedAt: new Date().toISOString(), head: git(['rev-parse', 'HEAD']).toString().trim(),
+    status: git(['status', '--porcelain=v1', '--untracked-files=all']).toString(),
+    index: git(['ls-files', '--stage', '-z']).toString(), files: sorted, digest: sha(JSON.stringify(sorted)) };
+}
+if (process.argv[2] === 'after') {
+  const before = JSON.parse(fs.readFileSync(path.join(owned, 'before.json')));
+  const after = inventory();
+  save('after.json', after);
+  const changed = [...new Set([...Object.keys(before.files), ...Object.keys(after.files)])]
+    .filter(name => before.files[name] !== after.files[name]);
+  const result = { beforeHead: before.head, afterHead: after.head, beforeDigest: before.digest,
+    afterDigest: after.digest, changed, indexUnchanged: before.index === after.index,
+    statusUnchanged: before.status === after.status, files: Object.keys(after.files).length };
+  save('integrity.json', result);
+  console.log(JSON.stringify(result, null, 2));
+} else {
+  const before = inventory();
+  save('before.json', before);
+  const sourcePaths = git(['ls-tree', '-r', '--name-only', revision, '--', 'src', 'package.json',
+    'tests/commands/metadata-stress/helpers.ts', 'tests/commands/metadata-stress/chmod-controls.test.ts',
+    'tests/commands/metadata-stress/native-differential.test.ts']).toString().trim().split('\n');
+  const snapshots = {};
+  for (const candidate of ['frozen', 'current']) {
+    snapshots[candidate] = {};
+    for (const relative of sourcePaths) {
+      const bytes = candidate === 'frozen' ? git(['show', `${revision}:${relative}`]) : fs.readFileSync(path.join(repo, relative));
+      snapshots[candidate][relative] = sha(bytes);
+      const destination = path.join(owned, candidate, relative);
+      fs.mkdirSync(path.dirname(destination), { recursive: true });
+      fs.writeFileSync(destination, bytes);
+    }
+  }
+  save('source-freeze.json', { revision, currentHead: before.head, snapshots,
+    digests: Object.fromEntries(Object.entries(snapshots).map(([name, files]) => [name, sha(JSON.stringify(files))])),
+    changedPaths: sourcePaths.filter(name => snapshots.frozen[name] !== snapshots.current[name]) });
+  const manifest = JSON.parse(fs.readFileSync(path.join(repo, evidenceRoot, 'EVIDENCE_MANIFEST.json')));
+  const authentication = [];
+  for (const key of ['canonical/test.stdout.log', 'canonical/prerequisites.json']) {
+    const record = manifest.captures.find(entry => entry.key === key);
+    const stored = fs.readFileSync(path.join(repo, evidenceRoot, record.path));
+    const decoded = record.encoding === 'gzip-base64' ? gunzipSync(Buffer.from(stored.toString(), 'base64')) : stored;
+    if (sha(stored) !== record.storedSha256 || sha(decoded) !== record.originalSha256) throw new Error(`Invalid evidence ${key}`);
+    authentication.push({ key, storedSha256: sha(stored), originalSha256: sha(decoded), originalBytes: decoded.length });
+    if (key.endsWith('stdout.log')) {
+      const lines = decoded.toString().split('\n');
+      const excerpts = [];
+      for (const start of [30300, 30420]) {
+        let end = start;
+        while (end < lines.length && !/^  \.\.\.$/.test(lines[end])) end++;
+        excerpts.push({ start, text: lines.slice(start - 1, end + 1).join('\n') });
+      }
+      save('raw-failure-excerpts.json', excerpts);
+    } else {
+      const preflight = JSON.parse(decoded);
+      save('frozen-oracle-fields.json', { capturedAt: preflight.capturedAt, metadata: preflight.native.metadata,
+        chmodAsset: preflight.assets.filter(entry => entry.source?.endsWith('/src/chmod')) });
+    }
+  }
+  save('raw-authentication.json', authentication);
+  console.log(JSON.stringify({ owned, head: before.head, files: Object.keys(before.files).length,
+    beforeDigest: before.digest, sourceFilesPerSnapshot: sourcePaths.length,
+    sourceDigests: Object.fromEntries(Object.entries(snapshots).map(([name, files]) => [name, sha(JSON.stringify(files))])),
+    changedPaths: sourcePaths.filter(name => snapshots.frozen[name] !== snapshots.current[name]), authentication }, null, 2));
+}

@@ -1,0 +1,21 @@
+{
+  "jobId": "UTF-09--whole",
+  "admitted": true,
+  "outcome": "PASS",
+  "failures": [],
+  "integrity": true,
+  "reapProof": true,
+  "metadata": {
+    "pid": 89788,
+    "group": 89788,
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "overflow": false,
+    "spawnError": null,
+    "closed": true,
+    "reaped": true,
+    "kills": [],
+    "elapsedMs": 315
+  }
+}

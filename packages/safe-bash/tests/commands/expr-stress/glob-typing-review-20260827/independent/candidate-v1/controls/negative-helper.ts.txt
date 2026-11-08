@@ -1,0 +1,11 @@
+import { RegexExecutor } from "./src/commands/regex-execution/client.js";
+import { inputBytes, type Descriptor, type Match, type Row, type ExprMatchDescriptor, type ExprMatchResult } from "./src/commands/regex-execution/protocol.js";
+declare const regex: Descriptor;
+declare const expr: ExprMatchDescriptor;
+declare const rows: readonly Row[];
+declare const signal: AbortSignal;
+const actual = new RegexExecutor();
+const helper: Omit<RegexExecutor, "request"> & {
+    request(descriptor: Descriptor, rows: readonly Row[], signal: AbortSignal): Promise<Match[][]>;
+  } = actual;
+helper.request(expr, rows, signal);

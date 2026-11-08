@@ -1,0 +1,48 @@
+{
+  "schema": "timeout-author-f22-fresh-prepatch-capture/1",
+  "classification": "fresh post-candidate diagnosis and baseline; not recovered independent-run data",
+  "node": "v22.22.2",
+  "candidate": "9ed9a0f14d12758713a8dc42be1ff75f0c87a36f",
+  "directProduct": {
+    "result": {
+      "exitCode": 125
+    },
+    "childCalls": 0,
+    "cleanupRegistrations": 1,
+    "cleanupSettlement": [
+      {
+        "status": "fulfilled"
+      }
+    ],
+    "stdoutUtf8": "",
+    "stdoutBase64": "",
+    "stderrUtf8": "timeout: timer setup failed\n",
+    "stderrBase64": "dGltZW91dDogdGltZXIgc2V0dXAgZmFpbGVkCg==",
+    "underlyingCaughtExceptionRetained": false
+  },
+  "actualShellProduct": {
+    "result": {
+      "exitCode": 125
+    },
+    "childCalls": 0,
+    "stdoutUtf8": "",
+    "stdoutBase64": "",
+    "stderrUtf8": "timeout: timer setup failed\n",
+    "stderrBase64": "dGltZW91dDogdGltZXIgc2V0dXAgZmFpbGVkCg==",
+    "disposed": true,
+    "underlyingCaughtExceptionRetained": false
+  },
+  "directReceiverDiagnostic": {
+    "classification": "separate minimal direct Node receiver diagnostic; not original or product stderr",
+    "error": {
+      "name": "TypeError",
+      "message": "Value of \"this\" must be of type Performance",
+      "code": "ERR_INVALID_THIS",
+      "stack": "TypeError [ERR_INVALID_THIS]: Value of \"this\" must be of type Performance\n    at now (node:internal/perf/performance:138:5)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-author-20260828/repair-f22-v1/capture-prepatch.mts:51:11)"
+    }
+  },
+  "resources": {
+    "timeoutBefore": 0,
+    "timeoutAfter": 0
+  }
+}

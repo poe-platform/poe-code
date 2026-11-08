@@ -1,0 +1,25 @@
+TAP version 13
+# Subtest: s3: named-file cleanup leaves parents and unsupported empty rmdir has no effects
+not ok 1 - s3: named-file cleanup leaves parents and unsupported empty rmdir has no effects
+  ---
+  duration_ms: 5.301334
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/s3-snapshot-author-bNn5R0/tests/stress/adapters/remote-safe-workflows.test.ts:1:1470'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/s3-snapshot-author-bNn5R0/tests/stress/adapters/remote-safe-workflows.test.ts:58:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 138.78175

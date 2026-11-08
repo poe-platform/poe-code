@@ -1,0 +1,94 @@
+{
+  "at": "2026-08-27T11:04:52.542Z",
+  "candidate": "84ab66ca717e0dff21abf57051b41cb553f3c7f3",
+  "evidenceHash": "a711fb8baca7aab8eefa669afebb5294b83b3e81ca4421eb7e34343f183010ab",
+  "scratch": "/private/tmp/safe-bash-env-packed-core-FqVrWA",
+  "absent": true,
+  "children": [
+    {
+      "phase": "build",
+      "pid": 75426,
+      "alive": false
+    },
+    {
+      "phase": "pack",
+      "pid": 75437,
+      "alive": false
+    },
+    {
+      "phase": "install",
+      "pid": 75466,
+      "alive": false
+    },
+    {
+      "phase": "public-types",
+      "pid": 75479,
+      "alive": false
+    },
+    {
+      "phase": "consumer:quotes-empty-concatenated",
+      "pid": 75480,
+      "alive": false
+    },
+    {
+      "phase": "consumer:long-option-preserves-tail",
+      "pid": 75481,
+      "alive": false
+    },
+    {
+      "phase": "consumer:escapes-and-comments",
+      "pid": 75482,
+      "alive": false
+    },
+    {
+      "phase": "consumer:variables-are-not-shell-code",
+      "pid": 75484,
+      "alive": false
+    },
+    {
+      "phase": "consumer:split-before-ignore-environment",
+      "pid": 75491,
+      "alive": false
+    },
+    {
+      "phase": "consumer:unset-and-repeated-assignment",
+      "pid": 75492,
+      "alive": false
+    },
+    {
+      "phase": "consumer:unsupported-dollar-stops-before-dispatch",
+      "pid": 75496,
+      "alive": false
+    },
+    {
+      "phase": "consumer:shebang-split-bash-errexit",
+      "pid": 75502,
+      "alive": false
+    },
+    {
+      "phase": "consumer:shebang-long-split-sh-argv",
+      "pid": 75506,
+      "alive": false
+    },
+    {
+      "phase": "consumer:non-split-header-one-argument",
+      "pid": 75508,
+      "alive": false
+    },
+    {
+      "phase": "consumer:transparent-input-presence",
+      "pid": 75509,
+      "alive": false
+    },
+    {
+      "phase": "consumer:shared-command-budget",
+      "pid": 75510,
+      "alive": false
+    },
+    {
+      "phase": "consumer:typed-cancellation",
+      "pid": 75522,
+      "alive": false
+    }
+  ]
+}

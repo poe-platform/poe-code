@@ -1,0 +1,1900 @@
+{
+  "bindingVersion": "Q1-independent-pre-run",
+  "sourceIdentity": "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea",
+  "writeoutTripletBound": true,
+  "ready": {
+    "path": "/tmp/safe-bash-owned-output-qualified-prototype.ready",
+    "sha256": "1c01dceeb7604340865b140bf411c51fac08926b2c0955f3bf8143368b2ac8c8"
+  },
+  "authentication": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-review/ordering-replay-q1/authentication-before.json",
+    "sha256": "d383714b58d56e0cc1b13f73e9d65586cbd892f2962e301d591e0afbe25edb93"
+  },
+  "executionFiles": [
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/index.js",
+      "sha256": "80c27f63a1ddc9ad66b875b6b307ea51aae3e54844207b25d2e58bbeafed5db0"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/contracts/index.js",
+      "sha256": "f63fcc728dd4e62d6d60408f114c901ad52a9499e46a6f89b2ce97fff3fc680c"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/contracts/command.js",
+      "sha256": "18d0fe35b82ea6085d39492e61b9c0d1c9d5a2a2e7e13a7e580e94dc551e2a0f"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/contracts/errors.js",
+      "sha256": "18a4a05815e6673dff47a7ffe8caa43b9a8d3c97f67571bebb9d562b1703aa6f"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/contracts/filesystem.js",
+      "sha256": "54708794453284916269d96574ac9bf42c9a652f011d7a779efecfa326cace25"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/contracts/io.js",
+      "sha256": "d09037f7726d63bbe883ca5bd8f75b40e407b2973a4d7628c501087137cd2464"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/contracts/output.js",
+      "sha256": "26375ebce4468be610b4e49292a484615f77032d12a2957444604e905450787a"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/contracts/path.js",
+      "sha256": "31d592f8412ea87ee9afbfbaf092c7fd9c7fa3981a74b3b971dad01d5966ffe7"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/contracts/plugin.js",
+      "sha256": "8226301a46b88d6e655b8201c57c60b1af835df6b2b2193f6fb386b5a6888937"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/plugins/index.js",
+      "sha256": "a3244f34aa252f9079660ef7471d04088650f06298a9130ac96c5d952a65a7b9"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/index.js",
+      "sha256": "12b665aea74b7ed847e47a1debe10e02ddf43462f9eeeac48af97e6dcc03210f"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/basic.js",
+      "sha256": "00fa8d5370d4173cb235b22b99f49997f047b76aa3d4ae08e958da161345ecd3"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/internal.js",
+      "sha256": "ab74b7049d5ef6af541e012b295ea758471a7fbfd3864fa9ade62535121d0c2a"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/filesystem.js",
+      "sha256": "4a98f1264b572478ff786a67f7a028d200e3418562f6f78f2b040edbbf3e11b1"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/copy-identity.js",
+      "sha256": "c0ec43f7af13501e5bd83895b0f09799c0eaebb2d757e99aaae2593b1c1f2baa"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/move.js",
+      "sha256": "d5429dfc39e646315798ddf2473bda8e760c03c61e509b47718d9e9e9ebf52e3"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/streams.js",
+      "sha256": "4ca398af02a1ec68c7e147b2f5377539c7089dd96301f54c0d8573f54a6bf43e"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/text.js",
+      "sha256": "c15545c5f22e29c1e7eaac5d574c2fdedb833002df803861137ec0133b5eaf6f"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/grep.js",
+      "sha256": "66b0887afb752a686484da1c7d6d20e80894fe15e9a515dcbd36c8d6640ffafd"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/regex-execution/client.js",
+      "sha256": "92416db354410d84172a13d53a2fd757d61d9979745a38bd0c297a06309e17f5"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/regex-execution/protocol.js",
+      "sha256": "05ead3047ea08e9ef673d0ab008e23cdb81af34e33cdd33f41a47fe6d9fbbc65"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/predicates.js",
+      "sha256": "a9de9f16f6cb9fd2efbaf5e3b7cd1e58d071bcd636e7a39b2434b5beb6a64ee7"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/execution.js",
+      "sha256": "bef62a84b26789b61c063147e3b08844495f6dce2b728979ff1e561fbc81e83c"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/find.js",
+      "sha256": "f7d2f5833e7b1c42a2a892ca3853da62b42b7ce3aa5c5b4fb513d647f991f06e"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/text-programs/index.js",
+      "sha256": "75573f07a76470cca425afcb38d60c717b8554ea6ac6373f2d46c8a7cc97ac70"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/text-programs/sed.js",
+      "sha256": "c5e4edf5c8169bb90d7ee0b1c0928f319a12a6ecdf73fe45a2b54132cdcaea3f"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/text-programs/regex.js",
+      "sha256": "c1782156060406841051f6ba1d364860f613097fda3db27f263bb922dd96e46e"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/text-programs/shared.js",
+      "sha256": "e17e1a73c999fbf1f0ab928748b907eca6b28374f0b440029d88ef9fc06ec3c0"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/text-programs/awk.js",
+      "sha256": "99d834d1dd887392b0260e8f39214332151be6d4f7ca2f9fbdb0724b3a7e957b"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/text-programs/awk-syntax.js",
+      "sha256": "b9364215705ae85ef450fa6c4c529d2c748c97662ce1d53229134d555dfdd0a2"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/text-programs/awk-values.js",
+      "sha256": "5febba1b8a087ab941dbdcb1c85ecae029eeeaf5175332de8a44fdce13a9505d"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/text-programs/awk-runtime.js",
+      "sha256": "09a28458621149c139cbeae57e0c9ba3f6a6b5150e6c173dfcee2eeae6cb4137"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/structured/index.js",
+      "sha256": "4a3f5a5c820638f8d14dcc136ffcb09447dc647688775aaacaf62263a3a099cd"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/structured/jq.js",
+      "sha256": "03b86e0d6c1b520dc7c6707c8774f5da27ee8c92acf5183c62443ea71662bace"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/structured/limits.js",
+      "sha256": "f6005af75948816c4d323d4610b112bf87cb3fb7b69d0fbd18538ad3df47b149"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/structured/numbers.js",
+      "sha256": "e54edb0ffa9fa261f18e6474b9bd2c90672d46e50adea28790d6dc048cc5200c"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/structured/input.js",
+      "sha256": "7a647193dae661d0110fac1b108e578ca7c3618cc9908bbc55cf3728acd5432f"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/structured/interpreter.js",
+      "sha256": "42366cfd87db215b3ededa70c255fd8395d72706591360d503bd863f1ecb9d4c"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/structured/split.js",
+      "sha256": "a98dc67ab2afa865051767fd07411569aa574f3f55490bf4f3cd0cbc2b112a68"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/structured/values.js",
+      "sha256": "8cd6dd8bc7373b3b1d21dc96ae5fe483c0f016326c35fd72a253292ae713119c"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/structured/parser.js",
+      "sha256": "a6aee4409ab85ec5f1ae28a2f3d8ed464874afadf6e227e4bb5e48e7c9431489"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/search/index.js",
+      "sha256": "7ba9f2ac6b36d13971ce498c8450c5eb6daae11f2503ac886dfd3ce8fb768f77"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/search/rg.js",
+      "sha256": "c6251d62272eef979766dfad2d9e94bc1096fd504704082c0cd841c997490d40"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/search/matcher.js",
+      "sha256": "6705cb9ee19facc23544b0aafa8a23b25a85756cd20f3e4240cefeaaf5a5c720"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/search/options.js",
+      "sha256": "2f027ceb2f407a8b07db774f67038885f0b79a96aa2a2c59ffaa57f32e6a55b3"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/search/output.js",
+      "sha256": "72855de33bc15f551cba7dea2ee035dfc03f8dd7645b1b49002906eff7627c2b"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/search/shared.js",
+      "sha256": "15a42f696fb8d2747b5f1458a53f2032f62a1b03c9082537e37255149d394283"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/search/walk.js",
+      "sha256": "0e8a94b713e101a037458931aa874d8758d9c20ff8847a6d0166be8678aa3486"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/search/glob.js",
+      "sha256": "9680d693cddf011ed06623582954b640d18ce26deebcd9b7d3c53a5564eb46f9"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/bytes/index.js",
+      "sha256": "37a6150fa98c14e1c7d63b67765971e234dc72c3b88e9318db218fba36f1a87a"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/bytes/encoding/index.js",
+      "sha256": "46ee85946ca5cd5cfe59ba4e5f39fca4b8cd71020e903cc0354c2855057da8e5"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/bytes/encoding/base.js",
+      "sha256": "ac71945c17307983bcecd48224c213db5f82f04d09c0d8c1c57086af700a4043"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/bytes/encoding/shared.js",
+      "sha256": "13a0d8756aab590eb5a09bd324446d21f94500fc12a6192ebc9b5b39b1b1062e"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/bytes/encoding/od.js",
+      "sha256": "b381913b231e691d3402a7823205f56417c55c2869cd4f1fdd8a658ebb75b3b0"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/bytes/encoding/xxd.js",
+      "sha256": "aedf0adbbae0dd6b2178e69bdb925a114d5a6bdcef21d78d36803c31756d8654"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/bytes/checksums/index.js",
+      "sha256": "e9592d606ea099f2105ace37a4f832ea9045dc4a48bfee720732ce691b8b6963"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/bytes/compression/index.js",
+      "sha256": "b9d8de948bd0fa3fe9d4c6cc34373063bd0278abd8291329022a2cb7521f816a"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/bytes/compression/files.js",
+      "sha256": "25a5a1b02c990517a8b515a55c741d74117c057733908539c47969056101237b"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/bytes/compression/stream.js",
+      "sha256": "d1e00786af278be2af71009f13ed5a9f243022d36e0d9bd9f0ebba1e4c4a79b1"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/bytes/compression/gunzip.js",
+      "sha256": "26fa0982d758cd7a97ff70c4b119c63c8ab996150cfdb19eae48895dd5edcfe2"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/bytes/compression/options.js",
+      "sha256": "adbcdc0d6a1383de8ffa4faca546468d15430edcd938af632aa74fc6657bdcbb"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/diff-patch/index.js",
+      "sha256": "55131ef605a786cbb188dfec4e3c30cf967a66285e6f7ba870ad9dba43cf4157"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/diff-patch/diff.js",
+      "sha256": "35351c3711344ffa3dcd7c22899af9e39a823a8df0e9ee3330480d74573746df"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/diff-patch/shared.js",
+      "sha256": "150687d3ce292ddd838819919ef0f46f7da224369c4af2862b9387ddb50b2296"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/diff-patch/diff-format.js",
+      "sha256": "500fc07ab484a54db0b8192ce867d3bd215ed60703b148807ec3f031d72021c3"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/diff-patch/patch.js",
+      "sha256": "b457e49f6cdd43bcc3d5006a2eff7919f52bd504fd0c8bda4781b36c3f26ca54"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/diff-patch/unified.js",
+      "sha256": "a78c4239ad87ceab062e8482d3e762d508edea43e8144015f1017d6234017a46"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/diff-patch/patch-path.js",
+      "sha256": "fb4a52eeb5a8640dd9f69b1c2b1cbb2abe806a7fb7b1659e6796974d580edcfc"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/diff-patch/patch-envelope.js",
+      "sha256": "432ce9ac2793932a05faffcaa56cb2a8b8cc81f5d2e5b789e32bc80c2fead344"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/diff-patch/patch-formats.js",
+      "sha256": "a2832ba8e180150b093af16c60529d4afd7658c4669ce57ef2d8757ee4f24e50"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/diff-patch/patch-gnu-paths.js",
+      "sha256": "76bfe60125a81ee45fcf357a386699997aa666717491c4efe1f9da9fb46185ee"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/diff-patch/patch-gnu-reject.js",
+      "sha256": "a30a117968d9c8e85835e4f17a30b20cf7945ece3e56f2c78a9339f830cfa8f7"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/metadata/index.js",
+      "sha256": "d4a85ffa7aecb41030f006e0339739663946bf453cbe2a38aca4a126398f35e7"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/metadata/chmod.js",
+      "sha256": "b86b19cda05825fd1279225eaca730139024b7d589a1381c87acbf8ac7746910"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/metadata/internal.js",
+      "sha256": "b25f5e56cc417d71464aa5807b9ae4702a3ed1e9c9c300d184047c1e692c25c8"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/metadata/stat.js",
+      "sha256": "586070f9a8c527858b699e815004ba382919f1bba117a9f881ddaacc910487ab"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/metadata/mktemp.js",
+      "sha256": "00d91c40267c93a3b25b6d4a1ceaaac46b0b06c4d9c90a15a74e732a44915303"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/archive/index.js",
+      "sha256": "e747fff64a5566c31a5ab6d7fed7fe252fbb02dcf61990c981e55c53b5487418"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/archive/create.js",
+      "sha256": "311e1c75def85249edb21746c82ef5df32afd91b260ca5152bfb129a83bc9dc9"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/archive/format.js",
+      "sha256": "74510cfa8c86f4614d559cd75dba2253d161bd39b69d9f12ba1d17bd5145294f"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/archive/internal.js",
+      "sha256": "1d01d6356dc8276739d708ccf6f9ea14cc8a6ec464718255e4de882693f3744f"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/archive/options.js",
+      "sha256": "d89a7b8ebedd8c7752e068fc7d7421296665032faac7f5a8f41b8a962656c5df"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/archive/extract.js",
+      "sha256": "408d67f1c8fba01fc876d6e8a2f075ecf66eb249d64d25ee9f5782be28aa2b2c"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/archive/stream.js",
+      "sha256": "edb4bf2bfe386c17066e3bae70f8f61396e9f536c447b3a0dbf91a4108195d7c"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/table-text/index.js",
+      "sha256": "b5b81dfabe0b7930c4aebe27bcb8ab8d18dcf9781726fc9f20ec3748f9f31c78"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/table-text/paste.js",
+      "sha256": "98938cff0b8ef2bee08cb5c81d14ad7fa2c64a1e76fcfc29282c2d52abdb6e94"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/table-text/internal.js",
+      "sha256": "8b0b64e9ac005418c3b7f5fb4d24eb11a8da361b4491b7287bd071c92c99bbf5"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/table-text/comm.js",
+      "sha256": "e7842eaf25f827153467907b96566c052b48fadff3d98fc7b4d919e4eeea15c0"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/table-text/join.js",
+      "sha256": "9f21f3877e18927e2791dbb5100e3253c397f1ed97249c77fb77e2cbe12a0f6b"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/stream-inspection/index.js",
+      "sha256": "010d948d623ba2dc9409552164355c2367311b61868d3acf32587eae868a3c1e"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/stream-inspection/tac.js",
+      "sha256": "513d85579e50dc85ffbaf53b1c27f6f215742c6236b799d72f3bd120396d0bcd"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/stream-inspection/shared.js",
+      "sha256": "d16ea65c9a0fd20c5ae0bc32244903c4ff6e339305b81b2adb0f3a52413a8ea4"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/stream-inspection/expand.js",
+      "sha256": "3858d4b379fa946f3f05e3b5cbc94077408c9af7c0636f3097cd39b3884fe91e"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/stream-inspection/numeric-options.js",
+      "sha256": "7d4a206831fdffc459ed11b9c73f7432faa98d96bd5281c57235578c7b445a19"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/stream-inspection/fold.js",
+      "sha256": "9225cde1ed4eafa58a4a7b98280aaf965d9db667d8d96e0b553ea352dc6775dd"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/stream-inspection/strings.js",
+      "sha256": "e12bbd9e39ff38689e542503639e66443a8b66a3b8c7ba1369aaa5d3f80ab07c"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/stream-format/index.js",
+      "sha256": "ed1be97898690749a041a1cf01140e9ea57ab342b95577b65aca29ce4ede1704"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/stream-format/seq.js",
+      "sha256": "d206c8cb0ef7fcee03651f93bdc7f710426db959f3008ec283a2f44a94309e20"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/stream-format/shared.js",
+      "sha256": "a3ea46071f016850423cd0919ccaac3e2b34e61c5ef08d43a2a29b6f9eabe076"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/stream-format/nl.js",
+      "sha256": "d281c3646d00698d74a4097ef0c251fb73798599f5ae41ac77845e4968ca8831"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/stream-format/rev.js",
+      "sha256": "c62152f41f0e9331b4000009e79443c1e13ebb08dbd161893218623bc3c0c39f"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/stream-format/unexpand.js",
+      "sha256": "47781aac03b78fc6b0a206fbc8952e9eb4ef5e718285b17b5a12185ae9e3dd55"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/split/index.js",
+      "sha256": "86e20c72761aa573c06df04f1789ba5184f8ce8bf4cbe525cd678ab26e5249ac"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/split/options.js",
+      "sha256": "5778c1f336bdbbc5269af8976d410c4bc70e2efa720e1fd3a6e45c2bf8202a6e"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/split/split.js",
+      "sha256": "f3325af3ada3111e274545b6bbdf93eed4bfb309237202671fb57fa9fef0110d"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/split/io.js",
+      "sha256": "3af6c96458ba8f172af2fd81c9fac1dbc5a93ae785d07a618d99b0bf31f44204"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/split/names.js",
+      "sha256": "c22af9ea589ac0ac78a0ec4e4dca371eb0c1a5d407fcff2c971411553a1d2373"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/split/outputs.js",
+      "sha256": "0985c5d7b9ac8396bf3d38e92ae0d36682b34b2f8dc375114a380c3b8771638d"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/shell/index.js",
+      "sha256": "e4727274e08ff8199102d4826579aaf410b3a72b3a4e0c4dc8864a57bc714afb"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/shell/shell.js",
+      "sha256": "589f00aad0429a928ff1f2642af32e4c3852b1839f15aaf47b134eafddec17ec"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/shell/parser.js",
+      "sha256": "5e7529b673dbc53503195c551e5a772632467de5e92e06682208b0e54eea90fd"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/shell/types.js",
+      "sha256": "8c79d4e7ff6e11e4adc173b19017e2f7c046cdeb6d7d24fb4f5057fd8d67b27c"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/shell/arithmetic.js",
+      "sha256": "6e68b9a19d7fe703c1a4b2840deda5c960f1ec72aa678a38ecff296a79744138"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/shell/input.js",
+      "sha256": "dfae555acaa51838dba66b81da380c0cd235bc3e0b3c784ea63b888404feb331"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/shell/runtime.js",
+      "sha256": "dd5847a047829d2f5593ffb095c32316cc4102bb74d32950a68d772b23efd118"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/shell/pattern.js",
+      "sha256": "a4a3a5744281205d6f7f0b9fcf6aea2d6386669d9176bc2d3ca08c130087cc19"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/shell/locale.js",
+      "sha256": "9f6e1cdac781cd758231bfb7af854dbc87dd6544c0e3a1309dac9362f88f36dc"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/shell/display.js",
+      "sha256": "c1e7ade4879fc6f85d39dd718259eaf2bb9371fac463a3e574ec9f8a0490e368"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/shell/cleanup.js",
+      "sha256": "f29a3f3e220019dd5dba62bbcdd0fddc336c4924d30f7066f0839556fb65db29"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/safejs/index.js",
+      "sha256": "060d905b7b28b62a608d7ca523a89251e8e9c0aefef3e2160537187bd1b2b409"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/integrations/safejs/index.js",
+      "sha256": "909b94a9b5e087f3ea16375f3fd3960b2eebd6cf0ca2d6427c170b2efed47b19"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/integrations/safejs/filesystem.js",
+      "sha256": "761c7d1f865fb72813304ee7b93f48b089042fc74ca5120c76e101e4316f4423"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/integrations/safejs/stats.js",
+      "sha256": "90e1e8e05dbd3c2cb8b086a292932935f24a59923e257dd0fca71f82bfdc362c"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/integrations/safejs/values.js",
+      "sha256": "438c92ecec0494ed5b588da12e121c93c90f6522d8d6b89d4b5e01e019e6846d"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/integrations/safejs/shell.js",
+      "sha256": "94319d15f2571967bd1962d64c0be89936f07b9a5bdbffb56353434799230c88"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/safejs/io.js",
+      "sha256": "a59ab2fa7f3d336b3e45a4a74347b08c415069c70375b4d6f5aaedb27d8c70e6"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/safejs/types.js",
+      "sha256": "0c5c7a6d40d3e5aa15db22d372cfc7cb0dfd9859aedc4cdc6b022456df2b07c6"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/safejs/render.js",
+      "sha256": "b02cd1377c592e07207388e8c7ffb46eb344fac05ed61d7c02c804e5400eae3c"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/safejs/options.js",
+      "sha256": "bab9763803074ea8f4e7c4901e4d809abbb8858f807ebba7115ceee8352da1d5"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/network/index.js",
+      "sha256": "44658fec914d7568f14db5c14037dac6ef02d7ea48c1c261d9fcdb6044d6fa2b"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/network/curl.js",
+      "sha256": "8ee855c65b2e5c18a36930458404a40edc9b37178fd6de192b33da7fc30623c9"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/network/args.js",
+      "sha256": "3762aff1363b06dab26b3b1430a20542dbec9538ace6cafc13e894652133bbce"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/network/types.js",
+      "sha256": "4b2b1ec8b84f9b7a2655b5044f308781daae329bb00a229a26b17d9b1551065f"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/network/body.js",
+      "sha256": "89d214dc1e0302afb8832cb38f8fcd52eeb207951659709c148060e787e40db1"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/network/shared.js",
+      "sha256": "636549c0e9b1175658f9d58f9cb02b39e7e68ce86f42e62767eae15034be041e"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/network/output.js",
+      "sha256": "320aa8dd216a927d91c452e8b9029bfe8655dc97325480fd6106d307319ae9f6"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/network/transport.js",
+      "sha256": "a8d39215f79470e2bf520150c1d829ccd8c571f6f78cd76153fe72f7db28d687"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/fs/memory/index.js",
+      "sha256": "d5aa69848d5c4c0e5da767aec4b785d422561248e750add180fb5e4949fcae6c"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/fs/mount/comparison.js",
+      "sha256": "6bb00dc2d383e8f0b07b29e935a1f891c3811bf41dacd248fbf6119172f3e331"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/fs/mount/identity.js",
+      "sha256": "7803a8b62373af24b18a0a3404c51f8b5c39bf2f9e4d6800e2ffa8a02bb80c9d"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/fs/s3/authority.js",
+      "sha256": "288ae377e216a68e0272044312eed9afc7bfe29c8d6cb680010cbe7bb60b4a83"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/fs/webdav/resource-id.js",
+      "sha256": "3dd1e43036eefe79622618599d5dbc6ad9bbffc1b6a19f251e960fb3f4d28624"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/fs/real/index.js",
+      "sha256": "d8505d3512010372ab9148ae4da9bdc1e75ecb37f5143da8626d5fc63d49cb29"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/fs/s3/index.js",
+      "sha256": "1c174c48e88516790e1776bf32b87597a29a79b029dd06aa972acf061c3d647f"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/fs/s3/filesystem.js",
+      "sha256": "8a29148a5e41ed27087cd9784c564623b73d9c6c79f52ec2710db0cd29fba680"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/fs/s3/transport.js",
+      "sha256": "692c8996973539886b85b208c96329daea13f8e00cafcd3f0fef1bbf8e13f5c9"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/fs/s3/mock.js",
+      "sha256": "9b8331abce0b73ceb5f41a8ac8b0109d8d4000e55c6675922b10d62643f73911"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/fs/s3/http/index.js",
+      "sha256": "7e356b1ee365ce29d6c66d4f08f1447e7d79f551fd9fb79c0076e3924f679479"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/fs/s3/http/transport.js",
+      "sha256": "6d37cb5788b7e8fceca9fabf0c08268c2dee684e195a9ecc1fa4f0c4c92694c1"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/fs/s3/http/request.js",
+      "sha256": "544e77f8e174be78a68621ea7feb1df9c5ced4d040ae1dc12fde81999d4f92bf"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/fs/s3/http/signature.js",
+      "sha256": "38eb67df33dff7b99b35133fc436a41530c9e7b92c5dafc7ce14f235cd0f58cb"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/fs/s3/http/xml.js",
+      "sha256": "217973ac5a083444fd458eff884812016b4ab3ea9510ec1ddfa64385bbaf9418"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/fs/webdav/index.js",
+      "sha256": "f66f1fe8cfe2378a7bce4fd0cf42361909b6442694a9f7b6ac9012e0b6131cc1"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/fs/webdav/webdav.js",
+      "sha256": "1c061844c03c22d8c39d649677cfbe46773f7bf97d54a46e8b1576476ebf280d"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/fs/webdav/xml.js",
+      "sha256": "c6331ca324c6c33f4bb2c83e18acf80c5284c57c2ba534c9dc1c9e4c82f6ee04"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/fs/readonly/index.js",
+      "sha256": "e9a155116c7ba93605ab1be43fb1c5c4618e164398f5bfb25d6659f41eb28289"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/fs/mount/index.js",
+      "sha256": "251a379e39df16d0573b4f8f6ce2282e533545c9f8a0198bd703178c44208211"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/fs/overlay/index.js",
+      "sha256": "6bf995bbf66ac2cd6ad068db9fa8cdd4df8e1c1d70734a20b196ce6bba5e07ad"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/historical/package.json",
+      "sha256": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/historical/src/fs/webdav/resource-id.ts",
+      "sha256": "46a12f0ae8650839ece695436226cca8d081d39cf7d2dc1be57bd73f98290a4f"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/historical/src/index.ts",
+      "sha256": "d1d3a2f82e9f9d858dde1b974a2bc638f17d821b167b9e8695affb709ee17216"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/historical/tests/fs/webdav/mock.ts",
+      "sha256": "177f79ee640460822cfe0486c87f7cc61ac7c8b84389abe32b48ef27f4b4ef36"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/historical/tests/shell/first-read-probe.ts",
+      "sha256": "b138e5572240533efb8cde733e0c5a9bbd1c960e431b9291c0a17a300b1c7ed6"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/historical/tests/stress/remote-cancellation/helpers.ts",
+      "sha256": "9e76ecf9ba6604fc2c4b94a96cf5b46ffed97de5e7d0c2524e138b4410e17678"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/driver.mjs",
+      "sha256": "1a1762100d768377294e9fc3acaed3456558460298456ca2c6389dca07a3df85"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/qualified-criteria.mjs",
+      "sha256": "145df20c7f725eefc64475ac0920da866d46d3d81b4e29a97e9905be8fe3ab50"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/lifetime.mjs",
+      "sha256": "875f0e214b0cdb5e17b080a6ecc1c73870a62af4888756f0ec2e3203a3a9e437"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/binding-map.json",
+      "sha256": "f1cdac57e9665f4bb91a483b1d984e40691c45274583fb4b3402ba6afae79233"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/expected-profiles.json",
+      "sha256": "4696cccf1b8de0ff156b2868e9215f072e5cad21c6aab0fae48d5848fa31b884"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/tsconfig.json",
+      "sha256": "d98a1371102d7b16df8cd2f5a42d1c7e0986876a1089211d3ce0a8da74108645"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/LICENSE",
+      "sha256": "8dded67841a9261a622c739fb61c81785e93765de852828ceeb9403d20a74581"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/README.md",
+      "sha256": "44e63909767a6f7b21d4103df9417e3ab88bae17a3bc77b93fdcfb94176e3211"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/cjs/api/index.cjs",
+      "sha256": "561189d8e9e9c81c0f83a96f6f7c6e4d06e5b3a5731c8dab5a94f57e90dde230"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/cjs/api/index.d.cts",
+      "sha256": "8c2b1a98cc24f9efb1d8705b3c3c1929d3a4f42273466da97df62c7b253eaeee"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/cjs/api/index.d.mts",
+      "sha256": "8c2b1a98cc24f9efb1d8705b3c3c1929d3a4f42273466da97df62c7b253eaeee"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/cjs/api/index.mjs",
+      "sha256": "b0aa7155d9838d7c4a7e40660363cc62448d48e233442ecc16b9f7c659a45ad0"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/cjs/index.cjs",
+      "sha256": "0acd070cf4f89dfba2a0a74ebe050b0ac16c5a0753a96183de2dae4747b7e429"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/cjs/index.mjs",
+      "sha256": "0ef4db54afe79cabbcfb3f595ecfbaa9a570f98eafaea31006c4ff8ea525845c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/cli.cjs",
+      "sha256": "a3328ca7859b00db2da8fc3af6d5ad315444a2b498844ea3f06b116913c08728"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/cli.mjs",
+      "sha256": "fd00586b96028510c228365a4eeb1f163dac5245f1d0e40649969cf9560d376b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/client-D3mGB526.cjs",
+      "sha256": "f39baa1746411223094df90350710061f9986e07396dd311e3a74ed3df1b63e7"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/client-D_mPDF5S.mjs",
+      "sha256": "3a59578e44917527095c006ecd29b6e61fe5bbf05d5bc809cc7cc6112beedbbd"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/esm/api/index.cjs",
+      "sha256": "fd2bd818ab5c57b7d1ac0bbbe49e8dd6b4d2c685c96adcbdbc8bea273d8dd3ec"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/esm/api/index.d.cts",
+      "sha256": "eb9096c517da313cbedce8818d9cadb82bbf02cd6f4a65db4cee42ac01f4272c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/esm/api/index.d.mts",
+      "sha256": "eb9096c517da313cbedce8818d9cadb82bbf02cd6f4a65db4cee42ac01f4272c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/esm/api/index.mjs",
+      "sha256": "0b8fb89e100bd6df4782c236a834c5bd6e695703a1c20c2383543946b1edd09c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/esm/index.cjs",
+      "sha256": "4ef9cd42ab3c9cb9f291e9db379e2f889bb82189d9846b04f76f14d6e321aaa2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/esm/index.mjs",
+      "sha256": "b429a785c5ba2b3158e876b530addc4bc761b45f79a7e477bdcda3c759171022"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/get-pipe-path-D4YM6rQt.cjs",
+      "sha256": "4676e923789ccd968968161547bcac8fb8337b76c0d033f6049332d0ac4025ec"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/get-pipe-path-_tAJyU_v.mjs",
+      "sha256": "559be651995cc7188166ca09af99ea08b9b1453767e42fff203b53fa1a403217"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/index-6kqi0x0U.cjs",
+      "sha256": "1f880dc43383dd245b8a2813bfb857e12bb0bc7b28ead89b4cf106daedf5266f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/index-BWFBUo6r.cjs",
+      "sha256": "fe29b97b254312970fceb8995a519abc8751f26972c221281959a7d77858a464"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/index-DQtFPMc2.mjs",
+      "sha256": "58dbdda360329e6077831c323fe99e84bbf4f25ef13e4e41641078759b0f6c49"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/index-gbaejti9.mjs",
+      "sha256": "76febbe946957c96066d1d59293c4a26fc874c05876394cf4c178e4f4d0b6ba8"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/lexer-DQCqS3nf.mjs",
+      "sha256": "6b77bebaee2dd7741177e287a78ef4329d9ef91f6939d09cfcf0029b3859f883"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/lexer-DgIbo0BU.cjs",
+      "sha256": "9b92935847bf0f6daade96b21c8271139ed8b48ef3fa59647af0ef1d36770db0"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/loader.cjs",
+      "sha256": "dddf0cb204de608349dee8d5d550f3b2291ad18aedc81cf0c2ce39547eda6cf6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/loader.mjs",
+      "sha256": "49fb46730ddeb226ac4fa9fb990d3573ac8f18fa4de02f1bf723c61d715710c2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/node-features-CEjg7cMX.cjs",
+      "sha256": "e1b31184448de5619a364fe82f3b4074e86339f17284d3a30d15604778a4f964"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/node-features-JeyyvQz6.mjs",
+      "sha256": "0e5095ca40c5bbd90e6afb67f4d6a8db19a7040cd95af52134f1cd2750f0ff53"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/package-B13bX4zz.mjs",
+      "sha256": "ef252745c95cf4f372925c878a38f68d87bdae54afe340c9d4fa4db7db259562"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/package-sd2gMcZx.cjs",
+      "sha256": "84b78bbda1ff569bbf373612f9dce2ba71a3be2877d5f5672bc5ea5c271109b6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/patch-repl.cjs",
+      "sha256": "33f5f6755270054783f4c568d0d48d4a79fecde965ec6f91ca27f0f949ba6da6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/patch-repl.mjs",
+      "sha256": "3850acac507aa554620693d272bed6b7ac1e1b8ab5af406581c632522ad8c872"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/preflight.cjs",
+      "sha256": "20adebaefdd1f81383dabfc73db95630dbc11cb80144c092b1f2be4f64e99e81"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/preflight.mjs",
+      "sha256": "49938bb067c3cfd68b84f88c3c02058047ddd16a67451fb608ca59a44a07a8ff"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs",
+      "sha256": "9aacf5e4df4690327745ddf6472a6715189be15045683745314c333ea68e7018"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/register-C557imBs.cjs",
+      "sha256": "c6f02e8000ffcf43c3f7677d63dded8d800c88d6a81ec8033f665bcde6d0ebf5"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/register-C9AniqUt.mjs",
+      "sha256": "02ffecc724954e6911dd7e1064725fd7ee13ee93c4cd9182060001ea9c93e3d2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/register-Ciecs-Zx.cjs",
+      "sha256": "2fd60406dd88a0422ef47600cb6c470e0ef5460b3a5812292a5fd38669e130e7"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/repl.cjs",
+      "sha256": "96fc409a6d2e80d895a0456faf0764f834b80eea4f8bc1c256d27e815b0940d0"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/repl.mjs",
+      "sha256": "834bf724387d8652ee17b69217327d2cd55f38d11ef8c9e29e10b28f5d0502c1"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/require-CywAB2e6.mjs",
+      "sha256": "632c2bfd94df71f3918e1ce12980d58f536b3b62603a67e1e192c0faf300adb1"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/require-DDxgG93A.cjs",
+      "sha256": "a3d493146eceee26e94fc6658091b8d67c5e4436fa6e134589f94f9d02b54bcd"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/suppress-warnings.cjs",
+      "sha256": "028063d20bd49083f03a0b1ed4f7a3d55fac1f64f5aca0e58e1ec61601f20ee7"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/suppress-warnings.mjs",
+      "sha256": "4c7d8eb24f7c16282453bc18d649c310028a63d3850e6590338932cdd896017f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/temporary-directory-B83uKxJF.cjs",
+      "sha256": "da189099aba4a7aff1e0ca337cd71410a0f96abc66298403db041cb812cbd24c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/temporary-directory-BDDVQOvU.mjs",
+      "sha256": "918e7718e0579ae7d800c3dc9fc6c27626102198463bbb4051e40b2dbcf932b5"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/types-Cxp8y2TL.d.ts",
+      "sha256": "f462b6fc33bc3f82d1551ac0678834dfff89192ce1e848eb0bb8ca5bfe8bc76f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/package.json",
+      "sha256": "96aee9fd252d0cc31f3c01468250961f5b338c797bc208700d7db926450c7659"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/esbuild/LICENSE.md",
+      "sha256": "b40ec5baec7bb34fa5b1c09521fa3cd52d5fad7adafed74932a2010d3612a681"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/esbuild/README.md",
+      "sha256": "6d481cd60ec3c679e5e395f547ab4221147f35642894f6b95a8df38fd25c87bd"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/esbuild/bin/esbuild",
+      "sha256": "10b6243df618d374bb2d5c9cfbe7052e1405f6aa4e53a6164f11a91b9f2e1384"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/esbuild/install.js",
+      "sha256": "612294e278914443bdcf81cb17f54afec34dbdd2ebd999a6ee187912320cc315"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/esbuild/lib/main.d.ts",
+      "sha256": "e078310f23f0ccfa28a6ac81b5fad81f27150e921f92ab6e648caab42e2d9a14"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/esbuild/lib/main.js",
+      "sha256": "61ec0ba144ff93f4bf0e96ad6fab6f430ede0aa13e27ace8063ed63ba416b3cd"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/esbuild/package.json",
+      "sha256": "9d0bc453f4e791553c4cc2298ba023b409241fd9801e494741666eb0f6051490"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@esbuild/darwin-arm64/README.md",
+      "sha256": "ee16cb15a2211accccb38f378786bfe48bc5dcfae5db554352424cd710470efa"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@esbuild/darwin-arm64/bin/esbuild",
+      "sha256": "10b6243df618d374bb2d5c9cfbe7052e1405f6aa4e53a6164f11a91b9f2e1384"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@esbuild/darwin-arm64/package.json",
+      "sha256": "4e652c9e4410daf03da852a664940153601fac397233cdcf276b4b1a312454b9"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/ordering-lifetime.mjs",
+      "sha256": "0caef1518debc99401b4117aef035fbf8e91bbf7214f52bed3586dd9a2ebbf14"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/typed-dist/typed-signal.js",
+      "sha256": "f394e2ae618912fe9c1209384882dab7353643672ec603a73122fa9d1403567b"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/typed-signal.ts",
+      "sha256": "c7964a288a2ecda59ca4b0575739320581da8d5ab9fb2f2e7c3b785f6f582d47"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/typed-tsconfig.json",
+      "sha256": "aa860b3dc946ea8d6db9e8d10e12ed185109a52256e0fd8f756f90cecb995f10"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/package.json",
+      "sha256": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/prepare.mjs",
+      "sha256": "59cba152544582a36f810d4a022a5b9f74fb25aae68bbc480c49bab2d995dad4"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/freeze.mjs",
+      "sha256": "c0c95935ee38e57ea34245a2ed2d2a3eb8c9f13d90e3a675d16597c44d5d7848"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/qualify.mjs",
+      "sha256": "0b1b11bfd1da8aa2864d398ed4762edcd534016711209ddc7e85555657c892a3"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es5.d.ts",
+      "sha256": "c430d44666289dae81f30fa7b2edebf186ecc91a2d4c71266ea6ae76388792e1"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.d.ts",
+      "sha256": "45b7ab580deca34ae9729e97c13cfd999df04416a79116c3bfb483804f85ded4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2016.d.ts",
+      "sha256": "3facaf05f0c5fc569c5649dd359892c98a85557e3e0c847964caeb67076f4d75"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2017.d.ts",
+      "sha256": "e44bb8bbac7f10ecc786703fe0a6a4b952189f908707980ba8f3c8975a760962"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2018.d.ts",
+      "sha256": "5e1c4c362065a6b95ff952c0eab010f04dcd2c3494e813b493ecfd4fcb9fc0d8"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2019.d.ts",
+      "sha256": "68d73b4a11549f9c0b7d352d10e91e5dca8faa3322bfb77b661839c42b1ddec7"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.d.ts",
+      "sha256": "5efce4fc3c29ea84e8928f97adec086e3dc876365e0982cc8479a07954a3efd4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2021.d.ts",
+      "sha256": "feecb1be483ed332fad555aff858affd90a48ab19ba7272ee084704eb7167569"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2022.d.ts",
+      "sha256": "ee7bad0c15b58988daa84371e0b89d313b762ab83cb5b31b8a2d1162e8eb41c2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.dom.d.ts",
+      "sha256": "080941d9f9ff9307f7e27a83bcd888b7c8270716c39af943532438932ec1d0b9"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.core.d.ts",
+      "sha256": "c57796738e7f83dbc4b8e65132f11a377649c00dd3eee333f672b8f0a6bea671"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.collection.d.ts",
+      "sha256": "dc2df20b1bcdc8c2d34af4926e2c3ab15ffe1160a63e58b7e09833f616efff44"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.generator.d.ts",
+      "sha256": "515d0b7b9bea2e31ea4ec968e9edd2c39d3eebf4a2d5cbd04e88639819ae3b71"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.iterable.d.ts",
+      "sha256": "0559b1f683ac7505ae451f9a96ce4c3c92bdc71411651ca6ddb0e88baaaad6a3"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.promise.d.ts",
+      "sha256": "0dc1e7ceda9b8b9b455c3a2d67b0412feab00bd2f66656cd8850e8831b08b537"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.proxy.d.ts",
+      "sha256": "ce691fb9e5c64efb9547083e4a34091bcbe5bdb41027e310ebba8f7d96a98671"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.reflect.d.ts",
+      "sha256": "8d697a2a929a5fcb38b7a65594020fcef05ec1630804a33748829c5ff53640d0"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.symbol.d.ts",
+      "sha256": "4ff2a353abf8a80ee399af572debb8faab2d33ad38c4b4474cff7f26e7653b8d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.symbol.wellknown.d.ts",
+      "sha256": "fb0f136d372979348d59b3f5020b4cdb81b5504192b1cacff5d1fbba29378aa1"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2016.array.include.d.ts",
+      "sha256": "d15bea3d62cbbdb9797079416b8ac375ae99162a7fba5de2c6c505446486ac0a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2016.intl.d.ts",
+      "sha256": "68d18b664c9d32a7336a70235958b8997ebc1c3b8505f4f1ae2b7e7753b87618"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2017.arraybuffer.d.ts",
+      "sha256": "eb3d66c8327153d8fa7dd03f9c58d351107fe824c79e9b56b462935176cdf12a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2017.date.d.ts",
+      "sha256": "38f0219c9e23c915ef9790ab1d680440d95419ad264816fa15009a8851e79119"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2017.object.d.ts",
+      "sha256": "69ab18c3b76cd9b1be3d188eaf8bba06112ebbe2f47f6c322b5105a6fbc45a2e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2017.sharedmemory.d.ts",
+      "sha256": "a680117f487a4d2f30ea46f1b4b7f58bef1480456e18ba53ee85c2746eeca012"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2017.string.d.ts",
+      "sha256": "2f11ff796926e0832f9ae148008138ad583bd181899ab7dd768a2666700b1893"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2017.intl.d.ts",
+      "sha256": "4de680d5bb41c17f7f68e0419412ca23c98d5749dcaaea1896172f06435891fc"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2017.typedarrays.d.ts",
+      "sha256": "954296b30da6d508a104a3a0b5d96b76495c709785c1d11610908e63481ee667"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2018.asyncgenerator.d.ts",
+      "sha256": "ac9538681b19688c8eae65811b329d3744af679e0bdfa5d842d0e32524c73e1c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2018.asynciterable.d.ts",
+      "sha256": "0a969edff4bd52585473d24995c5ef223f6652d6ef46193309b3921d65dd4376"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2018.intl.d.ts",
+      "sha256": "9e9fbd7030c440b33d021da145d3232984c8bb7916f277e8ffd3dc2e3eae2bdb"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2018.promise.d.ts",
+      "sha256": "811ec78f7fefcabbda4bfa93b3eb67d9ae166ef95f9bff989d964061cbf81a0c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2018.regexp.d.ts",
+      "sha256": "717937616a17072082152a2ef351cb51f98802fb4b2fdabd32399843875974ca"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2019.array.d.ts",
+      "sha256": "d7e7d9b7b50e5f22c915b525acc5a49a7a6584cf8f62d0569e557c5cfc4b2ac2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2019.object.d.ts",
+      "sha256": "71c37f4c9543f31dfced6c7840e068c5a5aacb7b89111a4364b1d5276b852557"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2019.string.d.ts",
+      "sha256": "576711e016cf4f1804676043e6a0a5414252560eb57de9faceee34d79798c850"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2019.symbol.d.ts",
+      "sha256": "89c1b1281ba7b8a96efc676b11b264de7a8374c5ea1e6617f11880a13fc56dc6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2019.intl.d.ts",
+      "sha256": "74f7fa2d027d5b33eb0471c8e82a6c87216223181ec31247c357a3e8e2fddc5b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.bigint.d.ts",
+      "sha256": "d6d7ae4d1f1f3772e2a3cde568ed08991a8ae34a080ff1151af28b7f798e22ca"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.date.d.ts",
+      "sha256": "063600664504610fe3e99b717a1223f8b1900087fab0b4cad1496a114744f8df"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.promise.d.ts",
+      "sha256": "934019d7e3c81950f9a8426d093458b65d5aff2c7c1511233c0fd5b941e608ab"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.sharedmemory.d.ts",
+      "sha256": "52ada8e0b6e0482b728070b7639ee42e83a9b1c22d205992756fe020fd9f4a47"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.string.d.ts",
+      "sha256": "3bdefe1bfd4d6dee0e26f928f93ccc128f1b64d5d501ff4a8cf3c6371200e5e6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.symbol.wellknown.d.ts",
+      "sha256": "59fb2c069260b4ba00b5643b907ef5d5341b167e7d1dbf58dfd895658bda2867"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.intl.d.ts",
+      "sha256": "639e512c0dfc3fad96a84caad71b8834d66329a1f28dc95e3946c9b58176c73a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.number.d.ts",
+      "sha256": "368af93f74c9c932edd84c58883e736c9e3d53cec1fe24c0b0ff451f529ceab1"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2021.promise.d.ts",
+      "sha256": "af3dd424cf267428f30ccfc376f47a2c0114546b55c44d8c0f1d57d841e28d74"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2021.string.d.ts",
+      "sha256": "995c005ab91a498455ea8dfb63aa9f83fa2ea793c3d8aa344be4a1678d06d399"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2021.weakref.d.ts",
+      "sha256": "959d36cddf5e7d572a65045b876f2956c973a586da58e5d26cde519184fd9b8a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2021.intl.d.ts",
+      "sha256": "965f36eae237dd74e6cca203a43e9ca801ce38824ead814728a2807b1910117d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2022.array.d.ts",
+      "sha256": "3925a6c820dcb1a06506c90b1577db1fdbf7705d65b62b99dce4be75c637e26b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2022.error.d.ts",
+      "sha256": "0a3d63ef2b853447ec4f749d3f368ce642264246e02911fcb1590d8c161b8005"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2022.intl.d.ts",
+      "sha256": "8cdf8847677ac7d20486e54dd3fcf09eda95812ac8ace44b4418da1bbbab6eb8"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2022.object.d.ts",
+      "sha256": "8444af78980e3b20b49324f4a16ba35024fef3ee069a0eb67616ea6ca821c47a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2022.string.d.ts",
+      "sha256": "3287d9d085fbd618c3971944b65b4be57859f5415f495b33a6adc994edd2f004"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2022.regexp.d.ts",
+      "sha256": "b4b67b1a91182421f5df999988c690f14d813b9850b40acd06ed44691f6727ad"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.decorators.d.ts",
+      "sha256": "8e7f8264d0fb4c5339605a15daadb037bf238c10b654bb3eee14208f860a32ea"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.decorators.legacy.d.ts",
+      "sha256": "782dec38049b92d4e85c1585fbea5474a219c6984a35b004963b00beb1aab538"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/contracts/io.d.ts",
+      "sha256": "9e8c6720bf4beb2206bbe0bfd2ab34a6337907c78d48b41d42de43cda1d78548"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/contracts/filesystem.d.ts",
+      "sha256": "d021ebe6f7f5bb11801ee255c80a822b6b1c80065e13489b7383fedc6450867d"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/contracts/command.d.ts",
+      "sha256": "c3e34fdeb0cb84c61efe2d294af94a8082484decba6466d4e73848be8b31526f"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/contracts/errors.d.ts",
+      "sha256": "b0771794e6ff1d92c0b259fdf68015474f4b8009e6102995846f56e17839c1b9"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/contracts/output.d.ts",
+      "sha256": "501a15692aa88f6299cb8eef285c9ddb723c2baaf9f07dcaf644075943d97ce1"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/contracts/path.d.ts",
+      "sha256": "1a1f13de7c072f5323be1f1d1e7a602b377c2a887730e6af2e92ad1d5bdbdc5f"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/contracts/plugin.d.ts",
+      "sha256": "23c31a917e681f99d0ff846c8e03e591cb0e19a5359ec79ffa570ca3a83680a0"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/contracts/index.d.ts",
+      "sha256": "a65d1e367ad65158b11e440e1f4d113659da4afc060a8e9355d0bb7859acbc0c"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/text-programs/shared.d.ts",
+      "sha256": "a6cc39cc468b97c24fce90f3467455c24ddc68cfaf072d67b3130653564ba243"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/text-programs/index.d.ts",
+      "sha256": "41c59a4cdf0d39754a94725e47694048ebbd472c935dfd1d053100c418dd59ef"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/structured/numbers.d.ts",
+      "sha256": "aeed890779f8364639111c755c952159db4a4437f818a8f73b114726daa6b41f"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/structured/limits.d.ts",
+      "sha256": "4ad314de749a20880754430b148ff3c9fc0ee10908a47dba7afa110b1a83e352"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/structured/index.d.ts",
+      "sha256": "0d58f75fdabe696aea62c9b88a7f5edc086e26d084027fdef44a19864811da87"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/regex-execution/protocol.d.ts",
+      "sha256": "1eb58cf955971f55704c45bf96b0cd194f79fb6e111165affcd8f13d572409e6"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/search/options.d.ts",
+      "sha256": "6f2a6683f1044ee62f71775e63d4c59b2e6216a270f934842c4e141aab41ae20"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/search/index.d.ts",
+      "sha256": "280c17bfe0589b0a038cbec3eba1e8d68be345f665bfa3344542df3d3323f7c1"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/diff-patch/shared.d.ts",
+      "sha256": "8da59d0ddf0c34ac03f0377c36921f49f4a035ca9240acc48b6359b65807a66e"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/diff-patch/index.d.ts",
+      "sha256": "c53f04e49bcb83f71719987ca6af81aa9806375703cd6f2f7e98e2fd4e40bf00"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/metadata/internal.d.ts",
+      "sha256": "7c5d9c7bc23eaa1073779c457ca1ba461d5c61dc20574cd7e0eb19b690c05e38"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/metadata/index.d.ts",
+      "sha256": "18403dc5805350396912f6e5e2c097ffb4bc1c3a1a134ff0f9674413b8d92ef8"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/archive/internal.d.ts",
+      "sha256": "53180a2ea873fbd5d8a44002cc432252c008eec5663a65b4f84e68f24adbcca3"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/archive/index.d.ts",
+      "sha256": "5915c7ed406a26ae776af185693b79fd3a6e2904fc09204ffa88046965fcebcd"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/table-text/internal.d.ts",
+      "sha256": "3b0e5eb7846be58ab8998f5742d56d86b053698e3a8b839ae02ec9977a164ad6"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/table-text/index.d.ts",
+      "sha256": "1915d898ee80fe130464e20c842e689ec555dca22db3e29b0c5e778678c75985"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/stream-inspection/shared.d.ts",
+      "sha256": "aabeb716aa228a809acd59a7d9c8e1a5d7e04d16408517af5b59b2275e0def6d"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/stream-inspection/index.d.ts",
+      "sha256": "9507449bb1b4636d631cb9d65470618a3405e2cf0082e34bbf1c35af03fa3234"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/stream-format/shared.d.ts",
+      "sha256": "7da5113105d4e41b36f6eda256aae9497f9729928f3f548885b0664e0e3b3e8c"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/stream-format/index.d.ts",
+      "sha256": "68405695710d84cb7a9cd0b4f61a88d646e784c6fdf369960165e34c07f677cc"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/split/options.d.ts",
+      "sha256": "579b02a0737e5b2a33110d7d45de32aa0ecdcc423a58823dea9f8c966f364782"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/split/index.d.ts",
+      "sha256": "ccf030388097964f6cd8c9a65105cff756fbdc165888c4a81c8682fdaaadef31"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/plugins/index.d.ts",
+      "sha256": "24326f0fce6fb7433f9175acb26d07df5e870d6321aefc88bcb08c9a42904726"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/shell/types.d.ts",
+      "sha256": "983ec4067a45d672ed4db6c6a42ad9225d5dc1b242e6f983cb6358c574fe56b8"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/shell/shell.d.ts",
+      "sha256": "a5000b8a9d94806a5ae826a393fab48d561c506c9d78943c6b0468aae243b72a"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/shell/arithmetic.d.ts",
+      "sha256": "4649302322cb7d65e5562bc825ab841aab4205fa43b03dba5f12cdebdb34eaf1"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/shell/parser.d.ts",
+      "sha256": "350a5753d55bdeddc29e50630e317c9440a8f44996794635e9c51c86a14a75f7"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/shell/index.d.ts",
+      "sha256": "c7d3b2a67d63d73bbe2c8bea0d549828c30476e6f0ba093a736423972dad5772"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/index.d.ts",
+      "sha256": "93573ae92635854b4f60de0cab4543879473a82b3e288ed9cea433352ee65959"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/bytes/index.d.ts",
+      "sha256": "b7dc95a863dfd9222d03ff2a84ae9499722849a754eec591b5ef891b8aecd78e"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/integrations/safejs/filesystem.d.ts",
+      "sha256": "72f3404c94040d1d96b3d7157cc5dca6ecfc97d9d359eb289ace969de7d7d54c"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/integrations/safejs/shell.d.ts",
+      "sha256": "a9eca7e38be42cc6f8d4705921800465caaf265c6dc311f18203008422d7c220"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/integrations/safejs/index.d.ts",
+      "sha256": "6956833539abb195454e4471036a995e85b21fef721e6cb4853da31f3aafe541"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/safejs/types.d.ts",
+      "sha256": "109f0995a241787f66e563c213f03e176f0509c8fff9c1b2586ff144fd554800"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/safejs/options.d.ts",
+      "sha256": "4b9bf9bf19a9b2f11f0ce9a6476076be98676f3d25f59c7d075c397f008e5dc3"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/safejs/index.d.ts",
+      "sha256": "83938a9d51a41a96a1e9532e1650312eec655d79ddcb2a8562dfe28f5b7ed2da"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/network/types.d.ts",
+      "sha256": "0efb19fc14905bd67828c3315329c5366818acab3db5d379640e5dcb38069f57"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/network/transport.d.ts",
+      "sha256": "b5492b1a8475e56fe15ab7c5fcec0357bcd50411df2e029eebeacd8828299ecb"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/network/curl.d.ts",
+      "sha256": "08a25441a54f8e94938682e78e5041cdcf2c02f234461a929fca145bc2f6c586"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/commands/network/index.d.ts",
+      "sha256": "08f1489b65845afccbfff8a509b6c1223c4b232f8d568421454e2ddd3dc771fa"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/fs/memory/index.d.ts",
+      "sha256": "b0a3f7beb8ec86e489b05331bb481d543d38b6a127c6d68b2c0aec8f89c0581b"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/fs/real/index.d.ts",
+      "sha256": "10a3bbcb42aa82e74e26cf3ebf3bd60414122d39988c3b5620677f32365b48d8"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/fs/s3/transport.d.ts",
+      "sha256": "ec154e2eb64d8768e8a1115ea15d4f5b971d0fcdfef7e11e579a870ee156ca1d"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/fs/s3/filesystem.d.ts",
+      "sha256": "f8956e33ff69d7d5401ad62ec385890ab511902e7ae5658a75a7f6156b37bb8d"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/fs/s3/mock.d.ts",
+      "sha256": "fd983ea8d33133cea05f15328973c7b9c6f9efa41b07e12fdc3d543f23911354"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/fs/s3/index.d.ts",
+      "sha256": "b6e4c85cafae50b5fdfd09566aa843fc7809ce3a500559a6bf294d2b32612918"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/fs/s3/http/types.d.ts",
+      "sha256": "de39302003cfd9c28ebb27e3cf5f15ccd1b5704c47f84282fccf8ff37a8c5330"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/fs/s3/http/transport.d.ts",
+      "sha256": "28686407eb1bb3fc7dbf1254fc98bd9d8c272e3aeaf8a231de6a9861917f8ac9"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/fs/s3/http/index.d.ts",
+      "sha256": "a5f7f9275fcfad498a946b7f2bb34996f4fa1e32db010d22bb101f6a3ea096fb"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/fs/webdav/webdav.d.ts",
+      "sha256": "a681c5caafe50994dc4016f492f742fa910e3f2108f995896b7855df18364116"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/fs/webdav/index.d.ts",
+      "sha256": "69a206d350b76c726ec132910aa2d19111b07eb69b997f7c60309667d3ba1263"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/fs/readonly/index.d.ts",
+      "sha256": "71d3a85b7450a04f684f65ed382c71451591f90f20c3360520e9f60ffc642550"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/fs/mount/index.d.ts",
+      "sha256": "f7c75fa6cb814e4dcc04657ab693fe69d736e27a0d1a0f96f3ca950caa90e6b7"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/fs/overlay/index.d.ts",
+      "sha256": "ae279f6375346f8c2b2f7322869e8684387332ce87594b0f8d97266ddef32fe7"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/index.d.ts",
+      "sha256": "97198dd4b1b4872a14134fdd02f49c9518b96e7db8a919a945c60dafd325c5d2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/compatibility/disposable.d.ts",
+      "sha256": "6c7176368037af28cb72f2392010fa1cef295d6d6744bca8cfb54985f3a18c3e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/compatibility/indexable.d.ts",
+      "sha256": "ab41ef1f2cdafb8df48be20cd969d875602483859dc194e9c97c8a576892c052"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/compatibility/iterators.d.ts",
+      "sha256": "437e20f2ba32abaeb7985e0afe0002de1917bc74e949ba585e49feba65da6ca1"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/compatibility/index.d.ts",
+      "sha256": "21d819c173c0cf7cc3ce57c3276e77fd9a8a01d35a06ad87158781515c9a438a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/globals.typedarray.d.ts",
+      "sha256": "98cffbf06d6bab333473c70a893770dbe990783904002c4f1a960447b4b53dca"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/buffer.buffer.d.ts",
+      "sha256": "3af97acf03cc97de58a3a4bc91f8f616408099bc4233f6d0852e72a8ffb91ac9"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/globals.d.ts",
+      "sha256": "808069bba06b6768b62fd22429b53362e7af342da4a236ed2d2e1c89fcca3b4a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/web-globals/abortcontroller.d.ts",
+      "sha256": "1db0b7dca579049ca4193d034d835f6bfe73096c73663e5ef9a0b5779939f3d0"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/web-globals/domexception.d.ts",
+      "sha256": "9798340ffb0d067d69b1ae5b32faa17ab31b82466a3fc00d8f2f2df0c8554aaa"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/web-globals/events.d.ts",
+      "sha256": "f26b11d8d8e4b8028f1c7d618b22274c892e4b0ef5b3678a8ccbad85419aef43"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/header.d.ts",
+      "sha256": "5929864ce17fba74232584d90cb721a89b7ad277220627cc97054ba15a98ea8f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/readable.d.ts",
+      "sha256": "763fe0f42b3d79b440a9b6e51e9ba3f3f91352469c1e4b3b67bfa4ff6352f3f4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/file.d.ts",
+      "sha256": "25c8056edf4314820382a5fdb4bb7816999acdcb929c8f75e3f39473b87e85bc"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/fetch.d.ts",
+      "sha256": "c464d66b20788266e5353b48dc4aa6bc0dc4a707276df1e7152ab0c9ae21fad8"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/formdata.d.ts",
+      "sha256": "78d0d27c130d35c60b5e5566c9f1e5be77caf39804636bc1a40133919a949f21"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/connector.d.ts",
+      "sha256": "c6fd2c5a395f2432786c9cb8deb870b9b0e8ff7e22c029954fabdd692bff6195"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/client.d.ts",
+      "sha256": "1d6e127068ea8e104a912e42fc0a110e2aa5a66a356a917a163e8cf9a65e4a75"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/errors.d.ts",
+      "sha256": "5ded6427296cdf3b9542de4471d2aa8d3983671d4cac0f4bf9c637208d1ced43"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/dispatcher.d.ts",
+      "sha256": "7f182617db458e98fc18dfb272d40aa2fff3a353c44a89b2c0ccb3937709bfb5"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/global-dispatcher.d.ts",
+      "sha256": "cadc8aced301244057c4e7e73fbcae534b0f5b12a37b150d80e5a45aa4bebcbd"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/global-origin.d.ts",
+      "sha256": "385aab901643aa54e1c36f5ef3107913b10d1b5bb8cbcd933d4263b80a0d7f20"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/pool-stats.d.ts",
+      "sha256": "9670d44354bab9d9982eca21945686b5c24a3f893db73c0dae0fd74217a4c219"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/pool.d.ts",
+      "sha256": "0b8a9268adaf4da35e7fa830c8981cfa22adbbe5b3f6f5ab91f6658899e657a7"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/handlers.d.ts",
+      "sha256": "11396ed8a44c02ab9798b7dca436009f866e8dae3c9c25e8c1fbc396880bf1bb"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/balanced-pool.d.ts",
+      "sha256": "ba7bc87d01492633cb5a0e5da8a4a42a1c86270e7b3d2dea5d156828a84e4882"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/agent.d.ts",
+      "sha256": "4893a895ea92c85345017a04ed427cbd6a1710453338df26881a6019432febdd"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/mock-interceptor.d.ts",
+      "sha256": "c21dc52e277bcfc75fac0436ccb75c204f9e1b3fa5e12729670910639f27343e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/mock-agent.d.ts",
+      "sha256": "13f6f39e12b1518c6650bbb220c8985999020fe0f21d818e28f512b7771d00f9"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/mock-client.d.ts",
+      "sha256": "9b5369969f6e7175740bf51223112ff209f94ba43ecd3bb09eefff9fd675624a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/mock-pool.d.ts",
+      "sha256": "4fe9e626e7164748e8769bbf74b538e09607f07ed17c2f20af8d680ee49fc1da"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/mock-errors.d.ts",
+      "sha256": "24515859bc0b836719105bb6cc3d68255042a9f02a6022b3187948b204946bd2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/proxy-agent.d.ts",
+      "sha256": "ea0148f897b45a76544ae179784c95af1bd6721b8610af9ffa467a518a086a43"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/env-http-proxy-agent.d.ts",
+      "sha256": "24c6a117721e606c9984335f71711877293a9651e44f59f3d21c1ea0856f9cc9"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/retry-handler.d.ts",
+      "sha256": "dd3273ead9fbde62a72949c97dbec2247ea08e0c6952e701a483d74ef92d6a17"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/retry-agent.d.ts",
+      "sha256": "405822be75ad3e4d162e07439bac80c6bcc6dbae1929e179cf467ec0b9ee4e2e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/api.d.ts",
+      "sha256": "0db18c6e78ea846316c012478888f33c11ffadab9efd1cc8bcc12daded7a60b6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/interceptors.d.ts",
+      "sha256": "e61be3f894b41b7baa1fbd6a66893f2579bfad01d208b4ff61daef21493ef0a8"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/util.d.ts",
+      "sha256": "bd0532fd6556073727d28da0edfd1736417a3f9f394877b6d5ef6ad88fba1d1a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/cookies.d.ts",
+      "sha256": "89167d696a849fce5ca508032aabfe901c0868f833a8625d5a9c6e861ef935d2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/patch.d.ts",
+      "sha256": "615ba88d0128ed16bf83ef8ccbb6aff05c3ee2db1cc0f89ab50a4939bfc1943f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/websocket.d.ts",
+      "sha256": "a4d551dbf8746780194d550c88f26cf937caf8d56f102969a110cfaed4b06656"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/eventsource.d.ts",
+      "sha256": "8bd86b8e8f6a6aa6c49b71e14c4ffe1211a0e97c80f08d2c8cc98838006e4b88"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/filereader.d.ts",
+      "sha256": "317e63deeb21ac07f3992f5b50cdca8338f10acd4fbb7257ebf56735bf52ab00"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/diagnostics-channel.d.ts",
+      "sha256": "4732aec92b20fb28c5fe9ad99521fb59974289ed1e45aecb282616202184064f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/content-type.d.ts",
+      "sha256": "2e85db9e6fd73cfa3d7f28e0ab6b55417ea18931423bd47b409a96e4a169e8e6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/cache.d.ts",
+      "sha256": "c46e079fe54c76f95c67fb89081b3e399da2c7d109e7dca8e4b58d83e332e605"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/index.d.ts",
+      "sha256": "bf67d53d168abc1298888693338cb82854bdb2e69ef83f8a0092093c2d562107"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/web-globals/fetch.d.ts",
+      "sha256": "b52476feb4a0cbcb25e5931b930fc73cb6643fb1a5060bf8a3dda0eeae5b4b68"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/web-globals/navigator.d.ts",
+      "sha256": "f9501cc13ce624c72b61f12b3963e84fad210fbdf0ffbc4590e08460a3f04eba"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/web-globals/storage.d.ts",
+      "sha256": "e7721c4f69f93c91360c26a0a84ee885997d748237ef78ef665b153e622b36c1"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/web-globals/streams.d.ts",
+      "sha256": "d97fb21da858fb18b8ae72c314e9743fd52f73ebe2764e12af1db32fc03f853f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/assert.d.ts",
+      "sha256": "0fa06ada475b910e2106c98c68b10483dc8811d0c14a8a8dd36efb2672485b29"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/assert/strict.d.ts",
+      "sha256": "33e5e9aba62c3193d10d1d33ae1fa75c46a1171cf76fef750777377d53b0303f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/async_hooks.d.ts",
+      "sha256": "2b06b93fd01bcd49d1a6bd1f9b65ddcae6480b9a86e9061634d6f8e354c1468f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/buffer.d.ts",
+      "sha256": "6a0cd27e5dc2cfbe039e731cf879d12b0e2dded06d1b1dedad07f7712de0d7f4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/child_process.d.ts",
+      "sha256": "13f5c844119c43e51ce777c509267f14d6aaf31eafb2c2b002ca35584cd13b29"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/cluster.d.ts",
+      "sha256": "e60477649d6ad21542bd2dc7e3d9ff6853d0797ba9f689ba2f6653818999c264"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/console.d.ts",
+      "sha256": "c2510f124c0293ab80b1777c44d80f812b75612f297b9857406468c0f4dafe29"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/constants.d.ts",
+      "sha256": "5524481e56c48ff486f42926778c0a3cce1cc85dc46683b92b1271865bcf015a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/crypto.d.ts",
+      "sha256": "4c829ab315f57c5442c6667b53769975acbf92003a66aef19bce151987675bd1"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/dgram.d.ts",
+      "sha256": "b2ade7657e2db96d18315694789eff2ddd3d8aea7215b181f8a0b303277cc579"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/diagnostics_channel.d.ts",
+      "sha256": "78dbea00e90d2df8ea3dbef0cc379d95b8be9b71cd6bde4c28728f306811803b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/dns.d.ts",
+      "sha256": "4d631b81fa2f07a0e63a9a143d6a82c25c5f051298651a9b69176ba28930756d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/dns/promises.d.ts",
+      "sha256": "836a356aae992ff3c28a0212e3eabcb76dd4b0cc06bcb9607aeef560661b860d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/domain.d.ts",
+      "sha256": "1e0d1f8b0adfa0b0330e028c7941b5a98c08b600efe7f14d2d2a00854fb2f393"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/events.d.ts",
+      "sha256": "41670ee38943d9cbb4924e436f56fc19ee94232bc96108562de1a734af20dc2c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/fs.d.ts",
+      "sha256": "8e1e46d0a9837ee058c100501080c920fa98081ea3956af0374308ba6f22a33e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/fs/promises.d.ts",
+      "sha256": "272ca407e0c9068bdc5152552d876e68037ceae3de62e529306403e973dec8e1"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/http.d.ts",
+      "sha256": "fa7834c715d5357e4540cee40ce96c3250ddb67a7b879a6b7fa0e86d6696f121"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/http2.d.ts",
+      "sha256": "22dfb07a7ab15b66ac043829056fe70124844636ae719551812ac631ba04985b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/https.d.ts",
+      "sha256": "a10f0e1854f3316d7ee437b79649e5a6ae3ae14ffe6322b02d4987071a95362e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/inspector.d.ts",
+      "sha256": "e208f73ef6a980104304b0d2ca5f6bf1b85de6009d2c7e404028b875020fa8f2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/inspector.generated.d.ts",
+      "sha256": "d163b6bc2372b4f07260747cbc6c0a6405ab3fbcea3852305e98ac43ca59f5bc"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/module.d.ts",
+      "sha256": "e6fa9ad47c5f71ff733744a029d1dc472c618de53804eae08ffc243b936f87ff"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/net.d.ts",
+      "sha256": "a6f137d651076822d4fe884287e68fd61785a0d3d1fdb250a5059b691fa897db"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/os.d.ts",
+      "sha256": "24826ed94a78d5c64bd857570fdbd96229ad41b5cb654c08d75a9845e3ab7dde"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/path.d.ts",
+      "sha256": "8b479a130ccb62e98f11f136d3ac80f2984fdc07616516d29881f3061f2dd472"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/perf_hooks.d.ts",
+      "sha256": "928af3d90454bf656a52a48679f199f64c1435247d6189d1caf4c68f2eaf921f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/process.d.ts",
+      "sha256": "bceb58df66ab8fb00170df20cd813978c5ab84be1d285710c4eb005d8e9d8efb"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/punycode.d.ts",
+      "sha256": "3f16a7e4deafa527ed9995a772bb380eb7d3c2c0fd4ae178c5263ed18394db2c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/querystring.d.ts",
+      "sha256": "933921f0bb0ec12ef45d1062a1fc0f27635318f4d294e4d99de9a5493e618ca2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/readline.d.ts",
+      "sha256": "71a0f3ad612c123b57239a7749770017ecfe6b66411488000aba83e4546fde25"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/readline/promises.d.ts",
+      "sha256": "77fbe5eecb6fac4b6242bbf6eebfc43e98ce5ccba8fa44e0ef6a95c945ff4d98"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/repl.d.ts",
+      "sha256": "4f9d8ca0c417b67b69eeb54c7ca1bedd7b56034bb9bfd27c5d4f3bc4692daca7"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/sea.d.ts",
+      "sha256": "0cb167c371eaa8c869f8a7656a7296f2e4fae43b4d8b803a680236b24794e5f9"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/sqlite.d.ts",
+      "sha256": "0a839dba0287cc0481ad4beedd48a1c64acf1e212ae865d1315f7007ca215161"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/stream.d.ts",
+      "sha256": "38dc4655376cd1a4bd6bb3763d92949233e33d38d3dd3cbea7bbf218175a38ef"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/stream/promises.d.ts",
+      "sha256": "37ba7b45141a45ce6e80e66f2a96c8a5ab1bcef0fc2d0f56bb58df96ec67e972"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/stream/consumers.d.ts",
+      "sha256": "45650f47bfb376c8a8ed39d4bcda5902ab899a3150029684ee4c10676d9fbaee"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/stream/web.d.ts",
+      "sha256": "d61e0a64cd175208ac0b83670151a9a6b5916f0d1ffcdc5c29c90b1cebfc5045"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/string_decoder.d.ts",
+      "sha256": "18fd40412d102c5564136f29735e5d1c3b455b8a37f920da79561f1fde068208"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/test.d.ts",
+      "sha256": "48a679952eefe4cb776d5a0e1ccba2d3eb53b57448bbb7abc1fcebcbd5440188"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/timers.d.ts",
+      "sha256": "f0be1b8078cd549d91f37c30c222c2a187ac1cf981d994fb476a1adc61387b14"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/timers/promises.d.ts",
+      "sha256": "0aaed1d72199b01234152f7a60046bc947f1f37d78d182e9ae09c4289e06a592"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/tls.d.ts",
+      "sha256": "2d14da6ecb49bf828d83948765ec2d3a579d476bbb9645e749610baa6ec880ca"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/trace_events.d.ts",
+      "sha256": "66ba1b2c3e3a3644a1011cd530fb444a96b1b2dfe2f5e837a002d41a1a799e60"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/tty.d.ts",
+      "sha256": "7e514f5b852fdbc166b539fdd1f4e9114f29911592a5eb10a94bb3a13ccac3c4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/url.d.ts",
+      "sha256": "5b7aa3c4c1a5d81b411e8cb302b45507fea9358d3569196b27eb1a27ae3a90ef"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/util.d.ts",
+      "sha256": "5987a903da92c7462e0b35704ce7da94d7fdc4b89a984871c0e2b87a8aae9e69"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/v8.d.ts",
+      "sha256": "ea08a0345023ade2b47fbff5a76d0d0ed8bff10bc9d22b83f40858a8e941501c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/vm.d.ts",
+      "sha256": "0aef708fb4c7a6b915e8305cbfac40cd207b032dbaabe9a01889a5fff3254681"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/wasi.d.ts",
+      "sha256": "ae062ce7d9510060c5d7e7952ae379224fb3f8f2dd74e88959878af2057c143b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/worker_threads.d.ts",
+      "sha256": "ad9bdafb4e7abf14cc53ce7970486a84c87831e62891e5dfe798ddcd55e84701"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/zlib.d.ts",
+      "sha256": "358765d5ea8afd285d4fd1532e78b88273f18cb3f87403a9b16fef61ac9fdcfe"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/index.d.ts",
+      "sha256": "71d3ae6a5e73ca4130762560425e00984ebaff64d5353a3333d1bb7eb86ef336"
+    }
+  ],
+  "candidateEntry": {
+    "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/dist/index.js",
+    "sha256": "80c27f63a1ddc9ad66b875b6b307ea51aae3e54844207b25d2e58bbeafed5db0"
+  },
+  "historicalHelper": {
+    "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/historical/tests/stress/remote-cancellation/helpers.ts",
+    "sha256": "9e76ecf9ba6604fc2c4b94a96cf5b46ffed97de5e7d0c2524e138b4410e17678"
+  },
+  "historicalProbe": {
+    "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/historical/tests/shell/first-read-probe.ts",
+    "sha256": "b138e5572240533efb8cde733e0c5a9bbd1c960e431b9291c0a17a300b1c7ed6"
+  },
+  "historicalFacade": {
+    "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/historical/src/index.ts",
+    "sha256": "d1d3a2f82e9f9d858dde1b974a2bc638f17d821b167b9e8695affb709ee17216"
+  },
+  "tsxImport": {
+    "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/loader.mjs",
+    "sha256": "49fb46730ddeb226ac4fa9fb990d3573ac8f18fa4de02f1bf723c61d715710c2"
+  },
+  "publicProfiles": {
+    "path": "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/expected-profiles.json",
+    "sha256": "4696cccf1b8de0ff156b2868e9215f072e5cad21c6aab0fae48d5848fa31b884"
+  },
+  "syntheticSignalPublicCompatibilityAuthenticated": true,
+  "syntheticQualification": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-review/ordering-replay-q1/signal-host-qualification.json",
+    "sha256": "0fef60ed27cd0111c19de7af7fa03d31550d6974ddbbe7b981b96641d673b5e0"
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "started": "2026-08-29T09:39:12.286Z",
+  "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n'symlink' !== 'file'\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-a/seal.mjs:19:181\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)",
+  "productExecutions": 0
+}

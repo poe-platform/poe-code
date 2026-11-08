@@ -1,0 +1,25 @@
+{
+  "role": "I04_ONLY_DATA_CORRECTION",
+  "createdAt": "2026-08-29T09:49:44.623Z",
+  "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "files": [
+    {
+      "path": "I04-v2.mjs",
+      "bytes": 1607,
+      "sha256": "c8dbca1fe38bbcb4b5bab250fe50212d150fe64a384562d178b6d90b6eba3f0f"
+    },
+    {
+      "path": "run-I04-v2.mjs",
+      "bytes": 1735,
+      "sha256": "79c72e68b42f55c8a49e22e75f762100185cfd6c0f282272aebbe2083b6948df"
+    },
+    {
+      "path": "capsule/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/admission.mjs",
+      "bytes": 9447,
+      "sha256": "5bb503cabae66da96f847697e34a9e8a19d954bc2137a2ce409fcba1aee265aa"
+    }
+  ],
+  "children": 1,
+  "assertions": 8,
+  "native": 0
+}

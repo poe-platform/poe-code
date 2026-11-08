@@ -1,0 +1,6 @@
+{
+  "extends": "../../../../tsconfig.json",
+  "compilerOptions": { "noEmit": true },
+  "include": ["../../archive/*.test.ts", "../../archive/helpers.ts", "../*.ts", "../pax-independent/*.ts"],
+  "exclude": []
+}

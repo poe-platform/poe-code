@@ -1,0 +1,61 @@
+//! Admission rules for persisted OAuth sessions and registrations.
+use mcp_protocol_rust::{json::Value, strings::trim_ecmascript};
+fn object(value: Option<&Value>) -> bool {
+    matches!(value, Some(Value::Object(_)))
+}
+fn nonblank(value: Option<&Value>) -> bool {
+    matches!(value,Some(Value::String(text)) if !trim_ecmascript(text).is_empty())
+}
+pub fn validate_session(value: &Value) -> bool {
+    if !nonblank(value.get("resource")) || !nonblank(value.get("authorizationServer")) {
+        return false;
+    }
+    let Some(client) = value.get("client") else {
+        return false;
+    };
+    if !crate::registration::normalize_stored(client).is_ok_and(|value| value.is_some())
+        || value.get("requestedScope").is_some_and(|value| !nonblank(Some(value)))
+        || value.get("refreshState").is_some_and(|state| {
+            !matches!(state,Value::String(text) if text.iter().copied().eq("pending".encode_utf16())) || value.get("tokens").is_some()
+        })
+    {
+        return false;
+    }
+    let Some(discovery) = value.get("discovery") else {
+        return false;
+    };
+    if !nonblank(discovery.get("resourceMetadataUrl"))
+        || !object(discovery.get("resourceMetadata"))
+        || !object(discovery.get("authorizationServerMetadata"))
+    {
+        return false;
+    }
+    let Some(tokens) = value.get("tokens") else {
+        return true;
+    };
+    if !nonblank(tokens.get("accessToken"))
+        || !matches!(tokens.get("tokenType"),Some(Value::String(text)) if text.iter().copied().eq("Bearer".encode_utf16()))
+    {
+        return false;
+    }
+    let valid_date = match tokens.get("expiresAt") {
+        Some(Value::Null) => true,
+        Some(Value::Number(number)) => {
+            number.is_finite() && number.fract() == 0.0 && number.abs() <= 8_640_000_000_000_000.0
+        }
+        _ => false,
+    };
+    valid_date
+        && tokens
+            .get("refreshToken")
+            .is_none_or(|value| nonblank(Some(value)))
+        && tokens.get("scope").is_none_or(|value| {
+            matches!(value, Value::String(scope) if scope.is_empty()) || nonblank(Some(value))
+        })
+}
+pub fn read_stored_client(value: &Value) -> Result<Value, &'static str> {
+    if !matches!(value.get("clientId"), Some(Value::String(_))) {
+        return Err("Stored OAuth client must be a JSON object with clientId");
+    }
+    Ok(value.clone())
+}

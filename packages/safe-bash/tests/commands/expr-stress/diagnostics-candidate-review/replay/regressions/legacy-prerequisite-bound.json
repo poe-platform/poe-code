@@ -1,0 +1,14 @@
+{
+  "candidate": "21220b465537bf45ffcfb36740956a69f43bf75e",
+  "canonicalSourceTestsCount": 28167,
+  "addedNativeFixtureEntries": [
+    {
+      "path": "tests/commands/metadata-stress/.oracle",
+      "kind": "symlink",
+      "sha256": "a9e9a41b3773ab6304b35081f9f85605ee61bcac9a14708760f9aeb5eb16fbac",
+      "gitBlob": "5f088e233e0c3a1b02290bfdb2e79c23f243a189"
+    }
+  ],
+  "inventoryDigest": "66987cb3d5084ae1010dc93eb9d1d23c67148cdc09763dde8b5a6976949b574b",
+  "canonicalEntriesIncludingAddedChecked": true
+}

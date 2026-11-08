@@ -1,0 +1,5 @@
+{
+  "extends": "../tsconfig.json",
+  "include": ["../../../../src/commands/html-to-markdown/**/*.ts", "../*.ts", "./*.ts"],
+  "exclude": []
+}

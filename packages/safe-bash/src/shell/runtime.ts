@@ -1,0 +1,10773 @@
+import { defaultPredicateExecutors } from "../commands/predicates.js";
+import { syncCommandEvaluators } from "../commands/internal.js";
+const executionCommands = (...args: any[]) => syncCommandEvaluators.executionCommands!(...args);
+import { bytesToHex, latin1Text, byteLength as utf8ByteLength } from "../byte-encoding.js";
+
+import type { InternalErrorHandler } from "../contracts/command.js";
+import { PublicDiagnostic, publicDiagnosticMessage } from "../diagnostics.js";
+import { workerRuntimeContexts, shellDescriptorAdmissions } from "../worker/runtime-context.js";
+import { captureIgnoredTrapSignals } from "./trap.js";
+import { writeDiagnostic } from "../escaping.js";
+import { cancelTurn, hasYieldCheckpoint, inheritYieldCheckpoint, monotonicNow, registerInternalYieldCheckpoint, runYieldCheckpoint, scheduleTurn, yieldTurn, type TurnHandle } from "../contracts/yield.js";
+import {
+  ACCESS_MODES, FsError, basename, composeMiddleware, createBytePipe, dirname, normalizePath, pipeBytes, resolvePath, validateExitCode, writeBytes, writeText, } from "../contracts/index.js";
+import type {
+  ByteSink, ByteSource, CommandContext, CommandDefinition, CommandInvoker, CommandRegistry, CommandResult, FileSystem, FileType, Middleware, } from "../contracts/index.js";
+import { concatShellValues, shellValueByteLength, shellValueBytes, shellValueFromBytes, shellValueText } from "../contracts/value.js";
+import type { ShellValue, ValueReservation } from "../contracts/value.js";
+import { createCommandArguments, getCommandArguments } from "../contracts/command.js";
+import type { CommandArguments } from "../contracts/command.js";
+import { ValueArena, ValueScope } from "./value-state.js";
+import type { HeldValue, ValueStore } from "./value-state.js";
+import type { AndOr, Command, HereDocument, Pipeline, Redirect, Script, Word, WordPart } from "./parser.js";
+import { parseArithmeticExpansion, parseArraySubscript, compoundEntryWords, HereDocumentSyntaxError, functionReprintedLines, hereDocumentWords, parseCompoundArrayValue, parseShellInputUnit, parseShellUnit } from "./parser.js";
+import { ShellLimitError, ShellSyntaxError } from "./types.js";
+import type { ShellCommandContext, ShellInvokeOptions, ShellLimits } from "./types.js";
+import { resolveCommandLimits } from "../commands/limits.js";
+import { forkExtensions } from "./extensions.js";
+import type { PreparedShellChild, ShellBindingReference, ShellBindingResult, ShellChildPreparation, ShellExecutionCheckpoint, ShellExtensionBindings, ShellExtensionContext, ShellExtensionEvent, ShellExtensionInput, ShellExtensionSession, ShellExtensionState, ShellIndexedWriter } from "./extensions.js";
+import { prepareBytesInput, prepareFileInput, ShellInput } from "./input.js";
+import { observeDescriptor, PipeDescriptorFrame, pipeObservation, type PipeDescriptorReference } from "./descriptors.js";
+import { SourceLineIndex } from "./source-line-index.js";
+import { isCleanAbsolutePath, isUnmodifiedMemoryFileSystem, retargetScopedFileSystem, scopeFileSystem, type MemoryRedirectHandle } from "@poe-code/safe-fs/runtime-core";
+import { evaluateArithmetic, evaluateArithmeticReferences, prepareArithmetic, type Arithmetic, type ArithmeticProgram, type ArithmeticReferences } from "./arithmetic.js";
+import { ParseBudget } from "./parse-budget.js";
+import { BraceExpansionFailure, expandBraces, tryFastExpandBraceRange } from "./brace-expansion.js";
+import { createAliasCommand } from "safe-bash-command-alias";
+import { createCallerCommand, type CallerFrame } from "safe-bash-command-caller";
+import { createUnaliasCommand } from "safe-bash-command-unalias";
+import { expandTildes } from "./tilde-expansion.js";
+import { evaluatePositionalArithmetic } from "./arithmetic-parameters.js";
+import { compilePattern, compilePatternBoundaries, matchesPattern } from "./pattern.js";
+import { nextCodePointOffset, scanString, stringCheckpoint } from "./string-operations.js";
+import { selectMenu } from "./select-menu.js";
+import type { StringWork } from "./string-operations.js";
+import { byteLocale, cCollation, utf8Locale } from "./locale.js";
+import { diagnosticCommandName } from "./diagnostic-name.js";
+import { trimParameter } from "./parameter-trim.js";
+import { ownedShellSource, type OwnedShellSource } from "./source-value.js";
+import { functionDisplay, scriptText } from "./display.js";
+import { ConditionalUnsupported, evaluateConditional, type ConditionalExpression } from "./conditional.js";
+import { invocationScope, throwCleanupFailures, InvocationScope } from "./cleanup.js";
+import { bindFileOutputBudget, openFileOutput } from "../contracts/filesystem-output.js";
+import type { CommandFileDescriptor } from "../contracts/filesystem-descriptor.js";
+import { outputFailure } from "../contracts/io.js";
+import { defaultEchoExecutors, formatPrintf, printfCommand } from "../commands/basic.js";
+export const customRegisteredCommands = new WeakSet<object>();
+export const customRegisteredRegistries = new WeakSet<CommandRegistry>();
+export const replacedBuiltinCommands = new WeakSet<object>();
+import { builtInDirectContextExecutors, pathOf, RESOLVED_EXIT_ONE, RESOLVED_EXIT_ZERO, UsageError } from "../commands/internal.js";
+import { cloneGetoptsState, createGetoptsInput, createGetoptsState, GetoptsError, getoptsInputAllocationSize, scanGetopts, scanGetoptsSync, withGetoptsIndex } from "./getopts.js";
+import type { GetoptsState } from "./getopts.js";
+import {
+  activateChildCancellation, admitCancellationSubscriptionCapacity, prepareChildCancellation, selectRuntimeCancellationOutcome, subscribeCancellationOwner, unsubscribeCancellationOwner, } from "./cancellation.js";
+import type {
+  CancellationAdmissionSnapshot, CancellationBoundary, CancellationControlOriginInput, CancellationOrigin, CancellationOwnerSubscriber, CancellationReport, CancellationSelection, CapturedCancellationOutcome, PreparedChildCancellation, } from "./cancellation.js";
+import { variablePresence } from "../commands/variable-presence.js";
+import { getArrayAssignment, getArraySelector, copyArraySelector, numericIndex, literalIndex, stringIndex, isQuoteMarker, prefixNameQuoteGroups, setArraySelector } from "./arrays/syntax.js";
+import type { ArrayAssignment } from "./arrays/syntax.js";
+import { ArrayFailure, ArrayOwner, exactSum } from "./arrays/ledger.js";
+import { controlNames, IndexedBinding, textToken, valueToken } from "./arrays/bindings.js";
+import { readDynamicVariable, writeDynamicVariable, type DynamicVariableState } from "./dynamic-variables.js";
+import { collectMapfile, mapfileOptions, MapfileUsageError } from "./mapfile.js";
+import { arrayStore, ensureStateMonitor, guestArrays, monitorSymbol, requireArrays, snapshotState, stateMonitor, trackState, trySnapshotStateSync } from "./arrays/state.js";
+import { publishPipelineStatus } from "./pipestatus.js";
+import type { Restoration } from "./arrays/state.js";
+import type { Admission } from "./arrays/ledger.js";
+import { OwnedText, tryTextTokenSync, type BindingWatch, type PreparedBinding } from "./arrays/bindings.js";
+import { EreProfileLimitError, EreSyntaxError, EreUnsupportedError } from "../commands/regex-execution/ere/errors.js";
+import { EreLedger } from "../commands/regex-execution/ere/limits.js";
+import { compileEre, tryCompileEreSync } from "../commands/regex-execution/ere/syntax.js";
+import { matchEre } from "../commands/regex-execution/ere/matcher.js";
+import type { EreFragment } from "../commands/regex-execution/ere/types.js";
+import { PathLookup, pathTargets } from "./path-lookup.js";
+import { transformParameter } from "./parameter-transforms.js";
+import { creationFileSystem, umaskBuiltin } from "./umask.js";
+export function hasActiveExtensions(state: State): state is State & { extensions: ShellExtensionState } {
+  const ext = state.extensions;
+  if (!ext) return false;
+  return !ext.isIdleTrapState;
+}
+const memberPatternOperators = ["#", "##", "%", "%%", "/", "//", "/#", "/%", "^", "^^", ",", ",,"];
+export const defaultParameterOperators = ["-", "+", "=", "?", ":-", ":+", ":=", ":?"];
+async function signedLong(argument: string, budget: Budget, signal: AbortSignal): Promise<bigint | "overflow" | undefined> {
+  const checkpoint = async (): Promise<void> => {
+    budget.cpuCheckpoint();
+    signal.throwIfAborted();
+    await yieldTurn(signal);};
+  let start = 0, end = argument.length;
+  while (start < end && " \t\n\r\v\f".includes(argument[start]!)) {
+    if (start % 1024 === 0) await checkpoint();
+    start++;
+  }
+  while (end > start && " \t\n\r\v\f".includes(argument[end - 1]!)) {
+    if (end % 1024 === 0) await checkpoint();
+    end--;
+  }
+  const negative = argument[start] === "-";
+  if (negative || argument[start] === "+") start++;
+  if (start === end) return undefined;
+  let value = 0n;
+  let overflow = false;
+  for (let index = start; index < end; index++) {
+    if (index % 1024 === 0) await checkpoint();
+    const digit = argument.charCodeAt(index) - 48;
+    if (digit < 0 || digit > 9) return undefined;
+    if (overflow) continue;
+    value = value * 10n + BigInt(digit);
+    overflow = value > (negative ? 9223372036854775808n : 9223372036854775807n);
+  }
+  if (overflow) return "overflow";
+  return negative ? -value : value;
+}
+type ResolvedShellLimits = Required<Omit<ShellLimits, "commandLimits">> & Pick<ShellLimits, "commandLimits">;
+export const defaultLimits: ResolvedShellLimits = {
+  maxParseUnits: Infinity, maxSyntaxDepth: Infinity, maxAdmittedHandles: Infinity, maxDescriptorOperations: Infinity, maxDescriptorReadBytes: Infinity,
+  maxInputBytes: Infinity,
+  maxOutputBytes: Infinity,
+  maxCommands: Infinity,
+  maxFileSystemOperations: Infinity,
+  maxPathComponents: Infinity,
+  maxPathnameComponents: Infinity,
+  maxRedirects: Infinity,
+  maxPipelineStages: Infinity,
+  maxPipelineBytes: Infinity,
+  maxLoopIterations: Infinity,
+  maxSubstitutionDepth: Infinity,
+  maxFunctionDepth: Infinity,
+  maxSourceBytes: Infinity,
+  maxExpansionFields: Infinity,
+  maxExpansionBytes: Infinity,
+  maxWallClockMs: Infinity,
+  maxCpuMs: Infinity,
+  maxEnvSplitBytes: Infinity, maxEnvSplitArguments: Infinity, maxEnvSplitExpansions: Infinity, maxEnvSplitWork: Infinity,
+  maxCdWork: Infinity, maxCdPathBytes: Infinity, maxCdProbes: Infinity, maxGlobstarStates: Infinity, maxGlobstarDepth: Infinity,
+  maxGlobstarEntries: Infinity, maxCdPathComponents: Infinity, maxDirectoryStackBytes: Infinity, maxDirectoryDiagnosticBytes: Infinity, maxDirectoryStackEntries: Infinity, maxDirectoryStackOutputBytes: Infinity,
+  pipeHighWaterMark: 64 * 1024,
+};
+
+export const shellBuiltinNames = new Set([
+  ":", "true", "false", "pwd", "cd", "set", "shift", "export", "local", "unset", "read", "declare", "typeset", "mapfile", "readarray", "umask", "exit", "return", "break", "continue", "command", "builtin", "type", "readonly", "echo", "printf", "test", "[", ".", "source", "eval", "exec", "getopts", "let", "pushd", "dirs", "popd", "shopt", "hash", "alias", "unalias", "caller", "print", "functions", "setopt", "unsetopt", ]);
+export const implementedBuiltins = new Set([...shellBuiltinNames].filter(name => !["echo", "printf", "test", "["].includes(name)));
+const extensionExitFailures = new WeakMap<ShellExtensionState, { reason: unknown }>();
+export const specialBuiltinNames = new Set([":", ".", "break", "continue", "eval", "exit", "export", "readonly", "return", "set", "shift", "unset"]);
+export const defaultCommandPath = "/bin:/usr/bin";
+const zeroPositionKey = "-1";
+const unsupportedSetOptionNames = new Set([
+  "emacs", "errtrace", "functrace", "hashall", "histexpand", "history", "ignoreeof", "interactive-comments", "keyword", "monitor", "nolog", "notify", "onecmd", "physical", "posix", "privileged", "verbose", "vi", "xtrace", ]);
+export const shellKeywords = new Set(["if", "then", "else", "elif", "fi", "for", "while", "until", "do", "done", "case", "esac", "in", "function", "{", "}", "!", "[[", "]]", "time", "select", "coproc"]);
+type Discovery = { kind: "keyword" | "function" | "builtin" | "command" | "interpreter" | "file"; name: string };
+const commandSpellingSymbol = Symbol("safe-bash.commandSpelling");
+export function commandSpelling(command: Extract<Command, { kind: "simple" | "arithmetic" | "conditional" }>): string {
+  const cached = (command as unknown as Record<symbol, string | undefined>)[commandSpellingSymbol];
+  if (cached !== undefined) return cached;
+  let computed: string;
+  if (command.kind === "arithmetic") computed = `((${command.source}))`;
+  else if (command.kind === "conditional") computed = `[[${command.source}]]`;
+  else if (command.redirects.length === 0) {
+    if (command.words.length === 1) {
+      const w0 = command.words[0]!;
+      computed = w0.spelling ?? w0.plain ?? "";
+    } else {
+      computed = command.words.map(word => word.spelling ?? word.plain ?? "").join(" ");
+    }
+  } else {
+    const redirects = command.redirects.map(redirect => {
+      const target = redirect.target.spelling ?? redirect.target.plain ?? "";
+      if (redirect.operator === ">&" || redirect.operator === "<&") return `${redirect.descriptor}${redirect.operator}${target}`;
+      const implicit = redirect.operator.startsWith("<") ? 0 : 1;
+      return `${redirect.descriptor === implicit ? "" : redirect.descriptor}${redirect.operator} ${target}`;});
+    computed = [...command.words.map(word => word.spelling ?? word.plain ?? ""), ...redirects].join(" ");
+  }
+  if (Object.isExtensible(command)) {
+    (command as unknown as Record<symbol, string>)[commandSpellingSymbol] = computed;
+  }
+  return computed;
+}
+export function publishCommandSpelling(state: State, description: string): void {
+  const monitor = stateMonitor(state);
+  monitor?.values.invalidate("BASH_COMMAND");
+  (monitor?.raw ?? state).variables.BASH_COMMAND = description;
+}
+export function resolveLimits(...limits: (ShellLimits | undefined)[]): ResolvedShellLimits {
+  const definedLimits = limits.map(layer => Object.fromEntries(Object.entries(layer ?? {}).filter(([, value]) => value !== undefined)));
+  const result = Object.assign({}, defaultLimits, ...definedLimits) as ResolvedShellLimits;
+  const commandLimits = resolveCommandLimits(...limits.map(value => value?.commandLimits));
+  for (const [key, value] of Object.entries(Object.assign({}, ...definedLimits) as ShellLimits)) {
+    if (key === "commandLimits") continue;
+    if ((value !== Infinity || key === "pipeHighWaterMark") && (!Number.isSafeInteger(value) || value < (key === "pipeHighWaterMark" ? 1 : 0))) {
+      throw new RangeError(`${key} must be a ${key === "pipeHighWaterMark" ? "positive" : "nonnegative"} safe integer`);
+    }
+  }
+  return { ...result, ...(commandLimits === undefined ? {} : { commandLimits }) };
+}
+const budgetedSinkSymbol = Symbol("safe-bash.budgetedSink");
+const syncSinkSymbol = Symbol("safe-bash.syncSink");
+type BudgetedSinkEntry = { self: ByteSink; budget: Budget; write: ByteSink["write"]; file?: NonNullable<CommandContext["stdoutFile"]> };
+type SyncSinkEntry = { self: ByteSink; fn: (chunk: Uint8Array) => void };
+const fallbackBudgetedSinks = new WeakMap<ByteSink, { budget: Budget; write: ByteSink["write"]; file?: NonNullable<CommandContext["stdoutFile"]> }>();
+const fallbackSyncSinks = new WeakMap<ByteSink, (chunk: Uint8Array) => void>();
+export const budgetedSinks = {
+  get(sink: ByteSink) {
+    if ( (sink instanceof BudgetedSyncSink && sink.write === BudgetedSyncSink.prototype.write) || (sink instanceof Capture && sink.budget !== undefined && sink.write === Capture.prototype.write) || (sink instanceof MemoryRedirectSink && sink.write === MemoryRedirectSink.prototype.write) || (sink instanceof BudgetedPipeStageSink && sink.write === BudgetedPipeStageSink.prototype.write)) {
+      return sink as { budget: Budget; write: ByteSink["write"]; file?: NonNullable<CommandContext["stdoutFile"]> };
+    }
+    const entry = (sink as unknown as Record<symbol, BudgetedSinkEntry | undefined>)[budgetedSinkSymbol];
+    return entry?.self === sink ? entry : fallbackBudgetedSinks.get(sink);
+  }, set(sink: ByteSink, value: { budget: Budget; write: ByteSink["write"]; file?: NonNullable<CommandContext["stdoutFile"]> }) {
+    if (Object.isExtensible(sink)) (sink as unknown as Record<symbol, BudgetedSinkEntry>)[budgetedSinkSymbol] = { ...value, self: sink };
+    else fallbackBudgetedSinks.set(sink, value);
+  }, };
+export const syncSinks = {
+  get(sink: ByteSink) {
+    if (sink instanceof BudgetedSyncSink && sink.write === BudgetedSyncSink.prototype.write) return (chunk: Uint8Array) => sink.writeSync(chunk);
+    if (sink instanceof MemoryRedirectSink && sink.write === MemoryRedirectSink.prototype.write) return (chunk: Uint8Array) => sink.writeSync(chunk);
+    if (sink instanceof Capture && sink.write === Capture.prototype.write) return (chunk: Uint8Array) => sink.writeSync(chunk);
+    const entry = (sink as unknown as Record<symbol, SyncSinkEntry | undefined>)[syncSinkSymbol];
+    return entry?.self === sink ? entry.fn : fallbackSyncSinks.get(sink);
+  }, set(sink: ByteSink, fn: (chunk: Uint8Array) => void) {
+    if (Object.isExtensible(sink)) (sink as unknown as Record<symbol, SyncSinkEntry>)[syncSinkSymbol] = { self: sink, fn };
+    else fallbackSyncSinks.set(sink, fn);
+  }, };
+const syncResolved = Symbol.for("safe-bash.syncResolved");
+const resolvedVoid: Promise<void> = Object.defineProperty(Promise.resolve(), syncResolved, { value: true });
+export const devNullSyncSink: ByteSink = { write: () => resolvedVoid };
+syncSinks.set(devNullSyncSink, () => {});
+async function sortExpansionStrings(values: string[], work: StringWork, utf8 = false): Promise<void> {
+  if (values.length <= 1) return;
+  const compareSyncOrAsync = (left: string, right: string): number | Promise<number> => {
+    let first = 0, second = 0;
+    while (first < left.length && second < right.length) {
+      const pending = stringCheckpoint(work);
+      if (pending) {
+        return (async () => {
+          await pending;
+          while (first < left.length && second < right.length) {
+            const a = utf8 ? left.codePointAt(first)! : left.charCodeAt(first);
+            const b = utf8 ? right.codePointAt(second)! : right.charCodeAt(second);
+            const difference = (utf8 && a >= 0xd800 && a <= 0xdfff ? 0xfffd : a)
+              - (utf8 && b >= 0xd800 && b <= 0xdfff ? 0xfffd : b);
+            if (difference) return difference;
+            first += utf8 && a > 0xffff ? 2 : 1;
+            second += utf8 && b > 0xffff ? 2 : 1;
+            const p = stringCheckpoint(work);
+            if (p) await p;
+          }
+          return (left.length - first) - (right.length - second);
+        })();
+      }
+      const a = utf8 ? left.codePointAt(first)! : left.charCodeAt(first);
+      const b = utf8 ? right.codePointAt(second)! : right.charCodeAt(second);
+      const difference = (utf8 && a >= 0xd800 && a <= 0xdfff ? 0xfffd : a)
+        - (utf8 && b >= 0xd800 && b <= 0xdfff ? 0xfffd : b);
+      if (difference) return difference;
+      first += utf8 && a > 0xffff ? 2 : 1;
+      second += utf8 && b > 0xffff ? 2 : 1;
+    }
+    return (left.length - first) - (right.length - second);};
+  const sift = async (root: number, end: number): Promise<void> => {
+    while (root * 2 + 1 < end) {
+      let child = root * 2 + 1;
+      if (child + 1 < end) {
+        const c = compareSyncOrAsync(values[child]!, values[child + 1]!);
+        if ((typeof c === "number" ? c : await c) < 0) child++;
+      }
+      const r = compareSyncOrAsync(values[root]!, values[child]!);
+      if ((typeof r === "number" ? r : await r) >= 0) return;
+      const saved = values[root]!;
+      values[root] = values[child]!;
+      values[child] = saved;
+      root = child;
+    }};
+  for (let index = Math.floor(values.length / 2) - 1; index >= 0; index--) await sift(index, values.length);
+  for (let end = values.length - 1; end > 0; end--) {
+    const saved = values[0]!;
+    values[0] = values[end]!;
+    values[end] = saved;
+    await sift(0, end);
+  }
+}
+class ExecutionCleanup {
+  private _controller: AbortController | undefined;
+  readonly failures: unknown[] = [];
+  private readonly _pending: { readonly cleanup: () => void | Promise<void>; readonly allocation: ValueScope }[] = [];
+  private _closed = false;
+  private _drain: Promise<void> | undefined;
+  private _failure: { reason: unknown } | undefined;
+  constructor(private readonly budget: Budget) {}
+  get controller(): AbortController {
+    return (this._controller ??= new AbortController());
+  }
+  register(cleanup: () => void | Promise<void>): void {
+    this.budget.signal.throwIfAborted();
+    if (this._failure) throw this._failure.reason;
+    if (this._closed) throw new TypeError("Execution cleanup enrollment is closed");
+    if (typeof cleanup !== "function") throw new TypeError("Execution cleanup must be callable");
+    this.budget.cpuCheckpoint();
+    const allocation = this.budget.values.scope();
+    try {
+      allocation.reserve(96, 1);
+      this._pending.push({ cleanup, allocation });
+    } catch (reason) { allocation.close(); throw reason; }
+  }
+  abort(reason: unknown): void {
+    this._failure ??= { reason };
+    if (this._pending.length || this._drain) this.controller.abort(reason);
+  }
+  drain(): Promise<void> {
+    if (!this._drain && this._pending.length === 0) {
+      this._closed = true;
+      this._drain = resolvedVoid;
+      return resolvedVoid;
+    }
+    return this._drain ??= Promise.resolve().then(async () => {
+      const retained: ValueScope[] = [];
+      try {
+        while (this._pending.length) {
+          const pending = this._pending.splice(0);
+          const results = await Promise.allSettled(pending.map(async entry => {
+            let failed = false;
+            try { await entry.cleanup(); }
+            catch (reason) { failed = true; retained.push(entry.allocation); throw reason; }
+            finally { if (!failed) entry.allocation.close(); }
+          }));
+          for (const result of results) if (result.status === "rejected") this.failures.push(result.reason);
+        }
+      } finally {
+        this._closed = true;
+        for (const allocation of retained) allocation.close();
+      }});
+  }
+}
+const defaultSetTimeout = setTimeout;
+const defaultDateNow = Date.now;
+const sharedWallClockBudgets: { primary: Budget | undefined; extra: Budget[] } = { primary: undefined, extra: [] };
+let sharedWallClockTimer: ReturnType<typeof setTimeout> | undefined;
+let sharedWallClockTimerDeadline = 0;
+function tickSharedWallClockBudgets(): void {
+  sharedWallClockTimer = undefined;
+  sharedWallClockTimerDeadline = 0;
+  const now = defaultDateNow();
+  let minDeadline = Infinity;
+  while (sharedWallClockBudgets.primary !== undefined) {
+    const d = sharedWallClockBudgets.primary._checkSharedWallClock(now);
+    if (d <= 0) sharedWallClockBudgets.primary = sharedWallClockBudgets.extra.pop(); else {
+      minDeadline = d;
+      break;
+    }
+  }
+  for (let i = sharedWallClockBudgets.extra.length - 1; i >= 0; i--) {
+    const b = sharedWallClockBudgets.extra[i]!;
+    const d = b._checkSharedWallClock(now);
+    if (d <= 0) sharedWallClockBudgets.extra.splice(i, 1); else if (d < minDeadline) minDeadline = d;
+  }
+  if (sharedWallClockBudgets.primary === undefined && sharedWallClockBudgets.extra.length > 0) sharedWallClockBudgets.primary = sharedWallClockBudgets.extra.pop();
+  if (minDeadline !== Infinity) {
+    const delay = Math.min(Math.max(1, minDeadline - now), 2_147_483_647);
+    sharedWallClockTimerDeadline = now + delay;
+    sharedWallClockTimer = defaultSetTimeout(tickSharedWallClockBudgets, delay);
+    (sharedWallClockTimer as ReturnType<typeof setTimeout> & { unref?: () => void }).unref?.();
+  }
+}
+export class Budget {
+  declare session: ShellExtensionSession | undefined;
+  declare readonly limits: ResolvedShellLimits;
+  declare readonly onInternalError: InternalErrorHandler | undefined;
+  declare _arraySession: unknown;
+  declare private _executionScope: object | undefined;
+  declare private _pathLookup: PathLookup | undefined;
+  declare private _pathLookupSuspensions: number;
+  declare readonly parsing: ParseBudget;
+  declare private _values: ValueArena | undefined;
+  declare private _executionCleanup: ExecutionCleanup | undefined;
+  declare commands: number;
+  declare iterations: number;
+  declare bytes: number;
+  declare sourceBytes: number;
+  declare globstarEntries: number;
+  declare globstarStates: number;
+  declare readonly controller: ManagedControlController;
+  declare readonly signal: AbortSignal;
+  declare private _yieldCheckpoint: (() => void) | undefined;
+  declare private _chargeFs: (() => void) | undefined;
+  declare private _cleanupChargeFs: (() => void) | undefined;
+  declare private _wallClockTimer: ReturnType<typeof setTimeout> | true | undefined;
+  declare private _wallClockDeadline: number;
+  declare private _pipelineStages: number;
+  private pipelineBytes = 0;
+  declare _fileSystemOperations: number;
+  get fileSystemOperations(): number {
+    return this._fileSystemOperations;
+  }
+  declare resetCountersForWarmReuse: () => void;
+  declare canFileSystemOperation: () => boolean;
+  declare enterPipelineStages: (count: number) => void;
+  declare leavePipelineStages: (count: number) => void;
+  declare private readonly _cpuStarted: number;
+  declare _aborted: boolean;
+  declare readonly _hasExternalSignal: boolean;
+  declare readonly hasCpuLimit: boolean;
+  declare readonly maxCommandsSmi: number;
+  declare readonly maxPipelineStagesSmi: number;
+  declare readonly canSyncPurePipe: boolean;
+  declare readonly maxLoopIterationsSmi: number;
+  declare readonly maxFileSystemOperationsSmi: number;
+  declare readonly maxSubstitutionDepthSmi: number;
+  declare readonly maxExpansionFieldsSmi: number;
+  declare readonly maxExpansionBytesSmi: number;
+  declare readonly maxOutputBytesSmi: number;
+  declare readonly hasInfiniteFsOps: boolean;
+  declare readonly canRedirect1: boolean;
+  declare readonly maxSourceBytesSmi: number;
+  constructor(limits: ResolvedShellLimits, signal?: AbortSignal, onInternalError?: InternalErrorHandler) {
+    this.limits = limits;
+    this._arraySession = undefined;
+    this._values = undefined;
+    this._wallClockTimer = undefined;
+    this._pathLookup = undefined;
+    this._pathLookupSuspensions = 0;
+    this.commands = 0;
+    this.iterations = 0;
+    this.bytes = 0;
+    this.sourceBytes = 0;
+    this.controller = createManagedControlController();
+    this._chargeFs = undefined;
+    this._wallClockDeadline = Date.now() + limits.maxWallClockMs;
+    this._pipelineStages = 0;
+    this._fileSystemOperations = 0;
+    this.hasCpuLimit = limits.maxCpuMs !== Infinity;
+    if (onInternalError !== undefined) this.onInternalError = onInternalError;
+    if (this.hasCpuLimit) this._cpuStarted = monotonicNow();
+    if (signal !== undefined) this._hasExternalSignal = true;
+    this.maxCommandsSmi = limits.maxCommands <= 0x3fffffff ? (limits.maxCommands | 0) : 0x3fffffff;
+    this.maxLoopIterationsSmi = limits.maxLoopIterations <= 0x3fffffff ? (limits.maxLoopIterations | 0) : 0x3fffffff;
+    this.maxFileSystemOperationsSmi = limits.maxFileSystemOperations <= 0x3fffffff ? (limits.maxFileSystemOperations | 0) : 0x3fffffff;
+    this.maxSubstitutionDepthSmi = limits.maxSubstitutionDepth <= 0x3fffffff ? (limits.maxSubstitutionDepth | 0) : 0x3fffffff;
+    this.maxExpansionFieldsSmi = limits.maxExpansionFields <= 0x3fffffff ? (limits.maxExpansionFields | 0) : 0x3fffffff;
+    this.maxExpansionBytesSmi = limits.maxExpansionBytes <= 0x3fffffff ? (limits.maxExpansionBytes | 0) : 0x3fffffff;
+    this.maxOutputBytesSmi = limits.maxOutputBytes <= 0x3fffffff ? (limits.maxOutputBytes | 0) : 0x3fffffff;
+    if (limits.maxFileSystemOperations !== Infinity) (this as { hasInfiniteFsOps: boolean }).hasInfiniteFsOps = false;
+    if (limits.maxRedirects < 1) (this as { canRedirect1: boolean }).canRedirect1 = false;
+    if (limits.maxSourceBytes < 0x3fffffff) (this as { maxSourceBytesSmi: number }).maxSourceBytesSmi = limits.maxSourceBytes | 0;
+    if (limits.maxPipelineStages < 0x3fffffff) (this as { maxPipelineStagesSmi: number }).maxPipelineStagesSmi = limits.maxPipelineStages | 0;
+    if (limits.pipeHighWaterMark < 65536 || limits.maxPipelineBytes !== Infinity) (this as { canSyncPurePipe: boolean }).canSyncPurePipe = false;
+    this.signal = signal ? combineManagedSignals(signal, this.controller.signal) : this.controller.signal;
+    if (signal) inheritYieldCheckpoint(signal, this.signal);
+    this.parsing = new ParseBudget(limits.maxParseUnits === Infinity ? undefined : limits.maxParseUnits, this.signal, this, limits.maxSyntaxDepth);
+    if (limits.maxWallClockMs !== Infinity) this._armWallClock();
+  }
+  get yieldCheckpoint(): () => void {
+    return this._yieldCheckpoint ??= () => { this.cpuCheckpoint(); };
+  }
+  get values(): ValueArena {
+    return this._values ??= new ValueArena(this.limits.maxExpansionBytes, this.limits.maxExpansionFields, this);
+  }
+  get hasValues(): boolean {
+    return this._values !== undefined;
+  }
+  get chargeFs(): () => void {
+    return this._chargeFs ??= () => { this.fileSystemOperation(); };
+  }
+  get cleanupChargeFs(): () => void {
+    return this._cleanupChargeFs ??= () => { this.fileSystemCleanupOperation(); };
+  }
+  get executionScope(): object {
+    return this._executionScope ??= Object.freeze({});
+  }
+  get hasExecutionCleanup(): boolean {
+    return this._executionCleanup !== undefined;
+  }
+  get executionCleanup(): ExecutionCleanup {
+    return this._executionCleanup ??= new ExecutionCleanup(this);
+  }
+  get pathLookup(): PathLookup {
+    if (!this._pathLookup) {
+      this._pathLookup = new PathLookup();
+      for (let i = 0; i < this._pathLookupSuspensions; i++) this._pathLookup.beginSuspension();
+    }
+    return this._pathLookup;
+  }
+  beginPathLookupSuspension(): void {
+    this._pathLookupSuspensions++;
+    this._pathLookup?.beginSuspension();
+  }
+  endPathLookupSuspension(): void {
+    this._pathLookupSuspensions--;
+    this._pathLookup?.endSuspension();
+  }
+  abort(reason: unknown): void {
+    this._aborted = true;
+    abortManagedController(this.controller, reason);
+  }
+  private _armWallClock(): void {
+    if ( this._wallClockTimer === undefined && setTimeout === defaultSetTimeout && Date.now === defaultDateNow && this.limits.maxWallClockMs >= 100) {
+      const deadline = this._wallClockDeadline;
+      const now = defaultDateNow();
+      if (deadline <= now) {
+        this.abort(new ShellLimitError("maxWallClockMs"));
+        return;
+      }
+      this._wallClockTimer = true;
+      if (sharedWallClockBudgets.primary === undefined) sharedWallClockBudgets.primary = this;
+      else sharedWallClockBudgets.extra.push(this);
+      if (sharedWallClockTimer === undefined || deadline < sharedWallClockTimerDeadline) {
+        if (sharedWallClockTimer !== undefined) clearTimeout(sharedWallClockTimer);
+        const delay = Math.min(deadline - now, 2_147_483_647);
+        sharedWallClockTimerDeadline = now + delay;
+        sharedWallClockTimer = defaultSetTimeout(tickSharedWallClockBudgets, delay);
+        (sharedWallClockTimer as ReturnType<typeof setTimeout> & { unref?: () => void }).unref?.();
+      }
+      return;
+    }
+    const remaining = this._wallClockDeadline - Date.now();
+    if (remaining <= 0) {
+      this.abort(new ShellLimitError("maxWallClockMs"));
+      return;
+    }
+    this._wallClockTimer = setTimeout(() => this._armWallClock(), Math.min(remaining, 2_147_483_647));
+    const timer = this._wallClockTimer as ReturnType<typeof setTimeout> & { unref?: () => void };
+    timer.unref?.();
+  }
+  _checkSharedWallClock(now: number): number {
+    if (this._wallClockDeadline <= now) {
+      this._wallClockTimer = undefined;
+      this.abort(new ShellLimitError("maxWallClockMs"));
+      return 0;
+    }
+    return this._wallClockDeadline;
+  }
+  close(): void {
+    if (this._hasExternalSignal) releaseCombinedSignal(this.signal);
+    const timer = this._wallClockTimer;
+    if (timer === undefined) return;
+    if (timer === true) {
+      if (sharedWallClockBudgets.primary === this) sharedWallClockBudgets.primary = sharedWallClockBudgets.extra.pop(); else {
+        const idx = sharedWallClockBudgets.extra.indexOf(this);
+        if (idx >= 0) {
+          const last = sharedWallClockBudgets.extra.pop()!;
+          if (idx < sharedWallClockBudgets.extra.length) sharedWallClockBudgets.extra[idx] = last;
+        }
+      }
+    } else clearTimeout(timer);
+    this._wallClockTimer = undefined;
+  }
+  fail(limit: keyof ShellLimits): never {
+    const error = new ShellLimitError(limit);
+    this.abort(error);
+    throw error;
+  }
+  cpuCheckpoint(): void {
+    if (this._aborted || (this._hasExternalSignal && this.signal.aborted)) this.signal.throwIfAborted();
+    if (this.hasCpuLimit && monotonicNow() - this._cpuStarted > this.limits.maxCpuMs) this.fail("maxCpuMs");
+  }
+  tick(): void {
+    this.cpuCheckpoint();
+    const next = (this.commands + 1) | 0;
+    this.commands = next;
+    if (next > this.maxCommandsSmi && next > this.limits.maxCommands) this.fail("maxCommands");
+  }
+  fileSystemOperation(): void {
+    this.cpuCheckpoint();
+    this.fileSystemCleanupOperation();
+  }
+  fileSystemMutation(): void {
+    // Synchronous memory writes have no output scope to invalidate PATH metadata.
+    this._pathLookup?.invalidateSync();
+    this.fileSystemOperation();
+  }
+  fileSystemCleanupOperation(): void {
+    if (this._fileSystemOperations >= this.maxFileSystemOperationsSmi && this._fileSystemOperations >= this.limits.maxFileSystemOperations) this.fail("maxFileSystemOperations");
+    this._fileSystemOperations++;
+  }
+  get fsOperations(): number {
+    return this._fileSystemOperations;
+  }
+  set fsOperations(value: number) {
+    this._fileSystemOperations = value;
+  }
+  readonly pipelineInput = (bytes: number): void => {
+    if (this.limits.maxPipelineBytes === Infinity) return;
+    this.assertPipelineInput(bytes);
+    this.pipelineBytes += bytes;
+  };
+  assertPipelineInput(bytes: number): void {
+    if (bytes > this.limits.maxPipelineBytes - this.pipelineBytes) this.fail("maxPipelineBytes");
+  }
+  reservePipelineStages(count: number): () => void {
+    this.signal.throwIfAborted();
+    if (count > this.limits.maxPipelineStages - this._pipelineStages) this.fail("maxPipelineStages");
+    this._pipelineStages += count;
+    let released = false;
+    return () => {
+      if (released) return;
+      released = true;
+      this._pipelineStages -= count;};
+  }
+  loop(): void {
+    if (this._aborted || (this._hasExternalSignal && this.signal.aborted)) this.signal.throwIfAborted();
+    const next = (this.iterations + 1) | 0;
+    this.iterations = next;
+    if (next > this.maxLoopIterationsSmi && next > this.limits.maxLoopIterations) this.fail("maxLoopIterations");
+  }
+  source(bytes: number): void {
+    this.signal.throwIfAborted();
+    const next = (this.sourceBytes + (bytes | 0)) | 0;
+    if ((bytes | 0) === bytes && bytes >= 0 && next >= this.sourceBytes && next <= this.maxSourceBytesSmi) {
+      this.sourceBytes = next;
+      return;
+    }
+    if (bytes > this.limits.maxSourceBytes - this.sourceBytes) this.fail("maxSourceBytes");
+    this.sourceBytes += bytes;
+  }
+  async writeCounted(chunk: Uint8Array, write: () => Promise<number>, signal = this.signal, preserveReceipt = false): Promise<number> {
+    signal.throwIfAborted();
+    if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
+    const reserved = chunk.byteLength;
+    if (reserved > this.limits.maxOutputBytes - this.bytes) this.fail("maxOutputBytes");
+    this.bytes += reserved;
+    try {
+      const count = await write();
+      if (!Number.isSafeInteger(count) || count < 0 || count > reserved) throw new FsError("EIO", { syscall: "write", message: "invalid byte count" });
+      this.bytes -= reserved - count;
+      if (!preserveReceipt) signal.throwIfAborted();
+      return count;
+    } catch (error) {
+      signal.throwIfAborted();
+      throw error;
+    }
+  }
+  sink(sink: ByteSink, signal = this.signal): ByteSink {
+    if (sink instanceof Capture && sink.write === Capture.prototype.write) {
+      if (sink.budget === undefined) {
+        sink.budget = this;
+        sink.signal = signal;
+        return sink;
+      }
+      if (sink.budget === this && sink.signal === signal) return sink;
+      return new BudgetedSyncSink(this, sink, signal);
+    }
+    if (sink instanceof BudgetedSyncSink && sink.budget === this && sink.write === BudgetedSyncSink.prototype.write) return sink.signal === signal ? sink : new BudgetedSyncSink(this, sink.target, signal, sink.file);
+    const ownership = budgetedSinks.get(sink);
+    if (ownership?.budget === this && ownership.write === sink.write) return signalSink(sink, signal);
+    return this.createBudgetedSink(sink, signal, ownership);
+  }
+  private createBudgetedSink( sink: ByteSink, signal: AbortSignal, ownership: ReturnType<typeof budgetedSinks.get>, ): ByteSink {
+    const syncWrite = syncSinks.get(sink);
+    const countedSyncWrite = syncWrite
+      ? (chunk: Uint8Array): void => {
+          signal.throwIfAborted();
+          if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
+          if (chunk.byteLength > this.limits.maxOutputBytes - this.bytes) this.fail("maxOutputBytes");
+          this.bytes += chunk.byteLength;
+          syncWrite(chunk);
+        }
+      : undefined;
+    const output: ByteSink = {
+      ...(sink[outputFailure] ? { [outputFailure]: sink[outputFailure] } : {}), ...(sink.ownedOutput ? { ownedOutput: {
+        get consumerClosed() { return sink.ownedOutput!.consumerClosed; }, write: (chunk: Uint8Array): Promise<void> => {
+          try {
+            signal.throwIfAborted();
+            if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
+            if (chunk.byteLength > this.limits.maxOutputBytes - this.bytes) this.fail("maxOutputBytes");
+            const capability = sink.ownedOutput!;
+            const write = capability.write;
+            signal.throwIfAborted();
+            if (chunk.byteLength > this.limits.maxOutputBytes - this.bytes) this.fail("maxOutputBytes");
+            this.bytes += chunk.byteLength;
+            const res = Reflect.apply(write, capability, [chunk]);
+            if (isSyncResolved(res)) return resolvedVoid;
+            return Promise.resolve(res).then( () => undefined, (error: unknown) => { signal.throwIfAborted(); throw error; }, );
+          } catch (error) {
+            return Promise.reject(signal.aborted ? signal.reason : error);
+          }
+        }, } } : {}), write: countedSyncWrite
+        ? (chunk) => {
+            try {
+              countedSyncWrite(chunk);
+              return resolvedVoid;
+            } catch (error) {
+              return Promise.reject(error);
+            }
+          }
+        : (chunk) => {
+            try {
+              signal.throwIfAborted();
+              if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
+              if (chunk.byteLength > this.limits.maxOutputBytes - this.bytes) this.fail("maxOutputBytes");
+              this.bytes += chunk.byteLength;
+              const pending = sink.write(chunk);
+              if (isSyncResolved(pending)) {
+                signal.throwIfAborted();
+                return resolvedVoid;
+              }
+              return interruptible(pending, signal);
+            } catch (error) {
+              return Promise.reject(error);
+            }
+          }, };
+    budgetedSinks.set(output, { budget: this, write: output.write, ...(ownership?.write === sink.write && ownership.file ? { file: ownership.file } : {}) });
+    if (countedSyncWrite) syncSinks.set(output, countedSyncWrite);
+    return output;
+  }
+}
+Object.assign(Budget.prototype, {
+  onInternalError: undefined, _yieldCheckpoint: undefined, _values: undefined, _executionScope: undefined, _pathLookup: undefined, _pathLookupSuspensions: 0, _executionCleanup: undefined, globstarEntries: 0, globstarStates: 0, _cleanupChargeFs: undefined, _wallClockTimer: undefined, _aborted: false, _cpuStarted: 0, _hasExternalSignal: false, });
+export const EMPTY_CAPTURE_BYTES = new Uint8Array(0);
+export class Capture implements ByteSink {
+  declare takeUtf8Output: () => string | Uint8Array;
+  declare private _chunks: Uint8Array[] | undefined;
+  declare private _first: Uint8Array | undefined;
+  declare private _scratch4k: Uint8Array | undefined;
+  declare private _scratchLen: number;
+  declare length: number;
+  declare private _tail: Uint8Array | undefined;
+  declare private _tailLength: number;
+  declare budget: Budget | undefined;
+  declare signal: AbortSignal | undefined;
+  declare file?: NonNullable<CommandContext["stdoutFile"]> | undefined;
+  constructor(budget?: Budget, signal?: AbortSignal) {
+    this._chunks = undefined;
+    this._first = undefined;
+    this._scratch4k = undefined;
+    this._scratchLen = 0;
+    this.length = 0;
+    this._tail = undefined;
+    this._tailLength = 0;
+    this.budget = budget;
+    this.signal = signal;
+    this.file = undefined;
+  }
+  declare private _scratchEnabled?: boolean;
+  enableScratchBuffer(): void {
+    this._scratchEnabled = true;
+  }
+  get self(): ByteSink {
+    return this;
+  }
+  get chunks(): Uint8Array[] {
+    if (this._scratchLen > 0 && this._scratch4k) {
+      this._first = this._scratch4k.slice(0, this._scratchLen);
+      this._scratchLen = 0;
+    }
+    if (!this._chunks) {
+      this._chunks = this._first ? [this._first] : [];
+      this._first = undefined;
+    }
+    return this._chunks;
+  }
+  writeSync(chunk: Uint8Array): boolean {
+    if (this.budget !== undefined) {
+      this.signal!.throwIfAborted();
+      if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
+      const budget = this.budget;
+      if (budget.bytes + chunk.byteLength > budget.maxOutputBytesSmi && chunk.byteLength > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
+      budget.bytes += chunk.byteLength;
+    }
+    return this.writeRawSync(chunk);
+  }
+  writeRangeSync(src: Uint8Array, len: number): boolean {
+    if (this.budget !== undefined) {
+      this.signal!.throwIfAborted();
+      const budget = this.budget;
+      if (budget.bytes + len > budget.maxOutputBytesSmi && len > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
+      budget.bytes += len;
+    }
+    if (len === 0) return true;
+    if ((this._scratch4k || (this._scratchEnabled && !this._chunks && !this._first && len <= 4096 && (this._scratch4k = new Uint8Array(4096)))) && !this._chunks && !this._first && this._scratchLen + len <= this._scratch4k.byteLength) {
+      const dst = this._scratch4k;
+      const base = this._scratchLen;
+      for (let i = 0; i < len; i++) dst[base + i] = src[i]!;
+      this._scratchLen = base + len;
+      this.length = base + len;
+      return true;
+    }
+    return this.writeRawSync(src.subarray(0, len));
+  }
+  writeRawSync(chunk: Uint8Array): boolean {
+    if (!chunk.byteLength) return true;
+    if ((this._scratch4k || (this._scratchEnabled && !this._chunks && !this._first && chunk.byteLength <= 4096 && (this._scratch4k = new Uint8Array(4096)))) && !this._chunks && !this._first) {
+      if (this._scratchLen + chunk.byteLength <= this._scratch4k.byteLength) {
+        this._scratch4k.set(chunk, this._scratchLen);
+        this._scratchLen += chunk.byteLength;
+        this.length = this._scratchLen;
+        return true;
+      }
+      if (this._scratchLen > 0) {
+        this._first = this._scratch4k.slice(0, this._scratchLen);
+        this._scratchLen = 0;
+      }
+    }
+    if (!this._chunks && !this._first && chunk.byteLength <= 4096) {
+      this._first = new Uint8Array(chunk);
+      this.length = chunk.byteLength;
+      return true;
+    }
+    const chunks = this.chunks;
+    if (!this._tail && chunks.length === 1 && chunks[0]!.byteLength < 4096) {
+      const first = chunks[0]!;
+      this._tail = new Uint8Array(4096);
+      this._tail.set(first);
+      this._tailLength = first.byteLength;
+      chunks[0] = this._tail.subarray(0, this._tailLength);
+    }
+    let offset = 0;
+    while (offset < chunk.byteLength) {
+      if (!this._tail || this._tailLength === this._tail.byteLength) {
+        const remaining = chunk.byteLength - offset;
+        const nextCap = remaining >= 16384 ? Math.max(128 * 1024, Math.min(256 * 1024, remaining * 4)) : Math.max(4096, Math.min(64 * 1024, remaining));
+        this._tail = new Uint8Array(nextCap);
+        this._tailLength = 0;
+        chunks.push(this._tail.subarray(0, 0));
+      }
+      const size = Math.min(chunk.byteLength - offset, this._tail.byteLength - this._tailLength);
+      this._tail.set(chunk.subarray(offset, offset + size), this._tailLength);
+      this._tailLength += size;
+      offset += size;
+      chunks[chunks.length - 1] = this._tail.subarray(0, this._tailLength);
+    }
+    this.length += chunk.byteLength;
+    return true;
+  }
+  write(chunk: Uint8Array): Promise<void> {
+    try {
+      this.writeSync(chunk);
+      return resolvedVoid;
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
+  bytes(): Uint8Array {
+    if (this.length === 0) return EMPTY_CAPTURE_BYTES;
+    if (this._scratchLen > 0 && this._scratch4k && !this._chunks && !this._first) return this._scratch4k.slice(0, this._scratchLen);
+    if (this._first && !this._chunks) return new Uint8Array(this._first);
+    const bytes = new Uint8Array(this.length);
+    let offset = 0;
+    if (this._chunks) {
+      for (const chunk of this._chunks) {
+        bytes.set(chunk, offset);
+        offset += chunk.byteLength;
+      }
+    }
+    return bytes;
+  }
+  takeBytes(): Uint8Array {
+    if (this.length === 0) return EMPTY_CAPTURE_BYTES;
+    if (this._scratchLen > 0 && this._scratch4k && !this._chunks && !this._first) {
+      const bytes = this._scratch4k.slice(0, this._scratchLen);
+      this._scratchLen = 0;
+      this.length = 0;
+      return bytes;
+    }
+    if (this._first && !this._chunks) {
+      const first = this._first;
+      this._first = undefined;
+      this.length = 0;
+      return first;
+    }
+    const chunk = this.chunks.length === 1 ? this.chunks[0] : undefined;
+    const bytes = chunk && (chunk.byteLength === chunk.buffer.byteLength || chunk.buffer.byteLength - chunk.byteLength <= 65536)
+      ? chunk
+      : this.bytes();
+    this.chunks.length = 0;
+    this.length = 0;
+    this._tail = undefined;
+    this._tailLength = 0;
+    return bytes;
+  }
+}
+Object.assign(Capture.prototype, {
+  _chunks: undefined, _first: undefined, _scratch4k: undefined, _scratchLen: 0, length: 0, _tail: undefined, _tailLength: 0, budget: undefined, signal: undefined, file: undefined, });
+interface GetoptsBinding {
+  cursor: GetoptsState;
+  integer: boolean;
+}
+export interface SavedVariable {
+  attributes?: string | undefined;
+  value: string | undefined;
+  heldValue?: HeldValue;
+  exported: boolean;
+  readOnly?: boolean;
+  getopts?: GetoptsBinding;
+  superseded?: boolean;
+}
+interface TypedSavedVariable {
+  readonly owner: ArrayOwner;
+  readonly binding: IndexedBinding | undefined;
+  readonly tickets: Admission;
+  readonly prepared: { readonly name: OwnedText; readonly admission: Admission; readonly identity?: number | undefined };
+  readonly watch: BindingWatch;
+  overlayVersion?: number;
+  readonly scalarLegacy: boolean;
+}
+export const typedSavedVariables = new WeakMap<SavedVariable, TypedSavedVariable>();
+export const syncLocalArrayVariables = new WeakSet<SavedVariable>();
+export const valueScope = Symbol("shell value allocation scope");
+export const invokedValues = new WeakMap<WordPart, ShellValue>();
+export const functionDiagnostics = new WeakMap<Command, Readonly<{ offset: number; lines?: ReadonlyMap<Command, number> }>>();
+const childIdentities = new WeakMap<object, number>();
+export interface State extends DynamicVariableState {
+  variableAttributes?: Map<string, string>;
+  namerefVariables?: Set<string> | undefined;
+  umask?: number;
+  extensions?: ShellExtensionState | undefined;
+  cwd: string;
+  variables: Record<string, string>;
+  exported: Set<string>;
+  functions: Map<string, Command>;
+  exportedFunctions?: Set<string>;
+  positional: string[];
+  positionalSetVersion?: number;
+  sourceDepth?: number;
+  arg0?: string;
+  profile?: "bash" | "sh";
+  externalInvocation?: boolean;
+  readonlyVariables?: Set<string>;
+  readonlyFunctions?: Set<string>;
+  pathUnset?: boolean;
+  status: number;
+  substitutionStatus: number;
+  depth: number;
+  loopDepth: number;
+  functionDepth: number;
+  locals: Map<string, SavedVariable>[];
+  getopts?: GetoptsBinding | undefined;
+  directoryStack?: { readonly entries: readonly string[]; readonly bytes: number } | undefined;
+  directoryStackCwdPublication?: symbol;
+  dotglob?: boolean;
+  extglob?: boolean;
+  globstar?: boolean;
+  nullglob?: boolean;
+  failglob?: boolean;
+  lastpipe?: boolean;
+  inherit_errexit?: boolean;
+  expand_aliases?: boolean;
+  aliases?: Map<string, string>;
+  processSubstitutionIds?: { next: number };
+  nocaseglob?: boolean;
+  nocasematch?: boolean;
+  xpg_echo?: boolean;
+  braceexpand?: boolean;
+  noglob?: boolean;
+  noclobber?: boolean;
+  allexport?: boolean;
+  noexec?: boolean;
+  pipefail: boolean;
+  errexit?: boolean;
+  nounset?: boolean;
+  isolated?: boolean;
+  _readOnlyStage?: boolean | undefined;
+  redirectAssignments?: ReadonlyMap<string, ShellValue>;
+  lastArgument?: string;
+  functionNames?: string[];
+  callerFrames?: (CallerFrame & { readonly routine: string })[];
+  callerTopLevel?: boolean;
+  shellStartedAt?: number;
+  hashedCommands?: Map<string, string>;
+}
+export const declarationArrays = Symbol("declarationArrays");
+export function captureCallerFrame(state: State, io: IO, routine: string, line = io.diagnosticLine ?? 1): CallerFrame & { readonly routine: string } {
+  const name = state.callerFrames?.[0]?.routine ?? (state.callerTopLevel ? "main" : undefined);
+  return { line, name, file: name === undefined ? "NULL" : io.scriptName ?? "shell", routine };
+}
+interface ExecDescriptorFrame {
+  version: number;
+  descriptors: Map<number, Descriptor>;
+  revisions: Map<number, number>;
+  releases: Map<number, () => Promise<void>>;
+}
+const execDescriptorFrames = new WeakMap<State, ExecDescriptorFrame>();
+async function closeExecDescriptors(state: State): Promise<void> {
+  const raw = stateMonitor(state)?.raw ?? state;
+  const frame = execDescriptorFrames.get(raw);
+  if (!frame) return;
+  execDescriptorFrames.delete(raw);
+  const results = await Promise.allSettled([...frame.releases.values()].map(release => release()));
+  frame.releases.clear();
+  throwCleanupFailures(results.filter(result => result.status === "rejected").map(result => result.reason));
+}
+export interface IO {
+  readonly execVersion?: number;
+  readonly execFrame?: ExecDescriptorFrame;
+  /** Zeroth argument identity; command remains the name used for lookup. */
+  readonly argv0?: string | undefined;
+  readonly [declarationArrays]?: ReadonlyMap<number, ArrayAssignment> | undefined;
+  readonly capabilities?: import("./types.js").ShellCapabilities | undefined;
+  readonly admittedHandles?: CommandContext["admittedHandles"];
+  readonly processSignals?: CommandContext["processSignals"];
+  readonly nameExpansionContext?: "document" | "conditional" | undefined;
+  readonly [invocationScope]: InvocationScope;
+  readonly [valueScope]?: ValueScope;
+  readonly parameterDepth?: number;
+  readonly execution?: { readonly ignoreErrexit: boolean; arithmeticDiagnostic?: boolean };
+  readonly stdin: ByteSource;
+  readonly stdinIsDefault?: boolean;
+  readonly asyncDefaultInput?: ByteSource | undefined;
+  readonly stdout: ByteSink;
+  readonly stderr: ByteSink;
+  readonly diagnosticLine?: number;
+  readonly diagnosticOffset?: number;
+  assignmentDiagnosticContext?: { name: string | undefined } | undefined;
+  readonly functionCommandLines?: ReadonlyMap<Command, number> | undefined;
+  readonly diagnosticCommandLines?: ReadonlyMap<Command, number> | undefined;
+  readonly substitutionDiagnosticLine?: number;
+  readonly processSubstitutions?: (() => Promise<void>)[] | undefined;
+  readonly substitutionDiagnosticLines?: ReadonlyMap<Command, number> | undefined;
+  readonly scriptName?: string;
+  readonly terminal?: {
+    readonly target: Command | Pipeline;
+    readonly frame: PreparedDescriptorFrame;
+    io?: IO;
+    publicationNegate?: boolean | undefined;
+    published?: number;
+    completed?: boolean;
+  } | undefined;
+  descriptors?: ReadonlyMap<number, Descriptor> | undefined;
+}
+export interface Descriptor {
+  closed?: boolean;
+  readonly input?: ByteSource;
+  readonly stdinIsDefault?: boolean;
+  readonly output?: ByteSink;
+  readonly file?: CommandFileDescriptor;
+  readonly pipe?: PipeDescriptorReference;
+  readonly lifetime?: DescriptorLifetime;
+}
+class DescriptorLifetime {
+  private _references = 1;
+  private _ownerReleased = false;
+  private _closing: Promise<void> | undefined;
+  private _settled: Promise<void> | undefined;
+  private _resolveSettled: (() => void) | undefined;
+  constructor(private readonly finalize?: () => void | Promise<void>) {}
+  releaseSyncIfIdle(): boolean {
+    if (this._references === 1 && !this._ownerReleased && !this.finalize) {
+      this._ownerReleased = true;
+      this._references = 0;
+      return true;
+    }
+    return false;
+  }
+  settled(): Promise<void> | undefined {
+    if (this._references === 0) return this._closing;
+    return this._settled ??= new Promise<void>(resolve => {
+      this._resolveSettled = resolve;});
+  }
+  acquire(): () => Promise<void> {
+    if (!this._references) throw new FsError("EBADF");
+    this._references++;
+    let released = false;
+    return () => {
+      if (released) return this._closing ?? resolvedVoid;
+      released = true;
+      return this._release();};
+  }
+  release(): Promise<void> {
+    if (this._ownerReleased) return this._closing ?? resolvedVoid;
+    this._ownerReleased = true;
+    return this._release();
+  }
+  private _release(): Promise<void> {
+    if (--this._references) return resolvedVoid;
+    if (!this.finalize) {
+      this._resolveSettled?.();
+      return resolvedVoid;
+    }
+    return this._closing ??= resolvedVoid.then(this.finalize).finally(() => {
+      this._resolveSettled?.();});
+  }
+}
+class PreparedDescriptorFrame {
+  private _bindings: Map<number, { lifetime: DescriptorLifetime; release(): Promise<void> }> | undefined;
+  private _work: Promise<void> = resolvedVoid;
+  private _closing: Promise<void> | undefined;
+  private readonly _retireCleanup: () => void;
+  constructor(private readonly references: PipeDescriptorFrame, private readonly budget: Budget) {
+    this._retireCleanup = references.scope.register(() => this.close());
+  }
+  closeSyncIfIdle(): boolean {
+    if (this._closing) return false;
+    if ((!this._bindings || this._bindings.size === 0) && this._work === resolvedVoid) {
+      this._closing = resolvedVoid;
+      this._retireCleanup();
+      return true;
+    }
+    return false;
+  }
+  acquire(descriptors: ReadonlyMap<number, Descriptor>): void {
+    if (this._closing) throw new FsError("EBADF");
+    for (const [number, descriptor] of descriptors) {
+      if (descriptor.closed || !descriptor.lifetime) continue;
+      const allocation = this.budget.values.scope();
+      try {
+        allocation.reserve(64, 1);
+        const release = descriptor.lifetime.acquire();
+        (this._bindings ??= new Map()).set(number, { lifetime: descriptor.lifetime, async release() {
+          try { await release(); } finally { allocation.close(); }
+        } });
+      } catch (reason) { allocation.close(); throw reason; }
+    }
+  }
+  reconcile(descriptors: ReadonlyMap<number, Descriptor>): Promise<void> {
+    if (this._closing) return Promise.reject(new FsError("EBADF"));
+    if ((!this._bindings || this._bindings.size === 0) && this._work === resolvedVoid) {
+      let allActive = true;
+      for (const reference of this.references.references) {
+        let found = false;
+        for (const descriptor of descriptors.values()) {
+          if (!descriptor.closed && descriptor.pipe === reference) {
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
+          allActive = false;
+          break;
+        }
+      }
+      if (allActive) return resolvedVoid;
+    }
+    const previous = this._bindings;
+    this._bindings = undefined;
+    const failures: unknown[] = [];
+    const inherited = new Set(previous ? [...previous.values()].map(binding => binding.lifetime) : []);
+    const surviving = new Map([...descriptors].filter(([, descriptor]) => descriptor.lifetime && inherited.has(descriptor.lifetime)));
+    try { this.acquire(surviving); } catch (reason) { failures.push(reason); }
+    const activePipes = new Set([...descriptors.values()].filter(descriptor => !descriptor.closed).map(descriptor => descriptor.pipe));
+    this._work = this._work.then(async () => {
+      const retired = await Promise.allSettled([
+        ...(previous ? [...previous.values()].map(binding => binding.release()) : []), ...[...this.references.references].filter(reference => !activePipes.has(reference)).map(reference => reference.close()), ]);
+      failures.push(...retired.filter(result => result.status === "rejected").map(result => result.reason));
+      throwCleanupFailures(failures);});
+    return this._work;
+  }
+  close(): Promise<void> {
+    if (this.closeSyncIfIdle()) return resolvedVoid;
+    return this._closing ??= Promise.resolve().then(async () => {
+      const failures: unknown[] = [];
+      try { await this._work; } catch (reason) { failures.push(reason); }
+      const retired = this._bindings ? await Promise.allSettled([...this._bindings.values()].map(binding => binding.release())) : [];
+      this._bindings?.clear();
+      failures.push(...retired.filter(result => result.status === "rejected").map(result => result.reason));
+      throwCleanupFailures(failures);
+      this._retireCleanup();});
+  }
+}
+function isolateIO(io: IO, references: PipeDescriptorFrame): IO {
+  const descriptors = new Map<number, Descriptor>();
+  for (const [number, descriptor] of io.descriptors ?? []) {
+    if (number === 0 && descriptor.input !== io.stdin || number === 1 && descriptor.output !== io.stdout || number === 2 && descriptor.output !== io.stderr) continue;
+    if (descriptor.closed || !descriptor.pipe) descriptors.set(number, { ...descriptor });
+    else {
+      const pipe = references.acquire(descriptor.pipe);
+      descriptors.set(number, { ...descriptor, pipe });
+    }
+  }
+  if (!descriptors.has(0)) descriptors.set(0, { input: io.stdin, ...(io.stdinIsDefault === undefined ? {} : { stdinIsDefault: io.stdinIsDefault }) });
+  if (!descriptors.has(1)) descriptors.set(1, { output: io.stdout });
+  if (!descriptors.has(2)) descriptors.set(2, { output: io.stderr });
+  return { ...io, nameExpansionContext: undefined, descriptors, ...(io.assignmentDiagnosticContext === undefined ? {} : { assignmentDiagnosticContext: { ...io.assignmentDiagnosticContext } }) };
+}
+function activeIO(io: IO): IO {
+  const input = io.descriptors?.get(0);
+  const output = io.descriptors?.get(1);
+  const error = io.descriptors?.get(2);
+  if (!(input?.closed && input.input === io.stdin) && !(output?.closed && output.output === io.stdout) && !(error?.closed && error.output === io.stderr)) return io;
+  return {
+    ...io, ...(input?.closed && input.input === io.stdin ? { stdin: closedSource, stdinIsDefault: false } : {}), ...(output?.closed && output.output === io.stdout ? { stdout: closedSink } : {}), ...(error?.closed && error.output === io.stderr ? { stderr: closedSink } : {}), };
+}
+interface OutputFile {
+  data: Uint8Array | undefined;
+  references: number;
+}
+function appendOutputBytes(current: Uint8Array, chunk: Uint8Array): Uint8Array {
+  const length = current.length + chunk.length;
+  const bytes = current.buffer.byteLength - current.byteOffset >= length
+    ? new Uint8Array(current.buffer, current.byteOffset, length)
+    : new Uint8Array(Math.max(length, current.length * 2, 64));
+  if (bytes.buffer !== current.buffer) bytes.set(current);
+  bytes.set(chunk, current.length);
+  return bytes.subarray(0, length);
+}
+type OutputCompletion = { reason: unknown } | { status: number };
+interface OutputFinalizer {
+  (completion: OutputCompletion): void | Promise<void>;
+  readonly descriptor?: CommandFileDescriptor;
+}
+interface OutputFailureTracker {
+  list?: { descriptor: CommandFileDescriptor; reason: unknown }[];
+  outputStatus?: number;
+}
+export class Flow {
+  readonly name = "Flow";
+  readonly message: string;
+  constructor(readonly kind: "exit" | "return" | "break" | "continue" | "discard", readonly status: number, public levels = 1, readonly previousStatus?: number, readonly expansionFailure = false) {
+    this.message = kind;
+  }
+}
+const completedFlows = new WeakSet<Flow>();
+export function completedExit(status: number, kind: Flow["kind"] = "exit", levels = 1, previousStatus?: number, expansionFailure = false): Flow {
+  const flow = new Flow(kind, status, levels, previousStatus, expansionFailure);
+  completedFlows.add(flow);
+  return flow;
+}
+class ExecutionFailure extends Error {
+  constructor(readonly original: unknown, readonly io: IO, readonly diagnostic?: string) { super(message(original)); }
+}
+export class ExpansionFailure extends Error {
+  constructor(message: string, readonly line?: number) { super(message); }
+}
+class FailglobFailure extends ExpansionFailure {}
+export class CommandFailure extends Error {
+  constructor(message: string, readonly status: number) { super(message); }
+}
+class FatalCommandFailure extends CommandFailure {}
+class DiscardCommandFailure extends CommandFailure {
+  constructor(readonly variableName: string, status: number, readonly origin: "assignment" | "declaration") { super(`${variableName}: readonly variable`, status); }
+}
+class ParameterExpansionFailure extends ExpansionFailure {}
+export class NounsetFailure extends ExpansionFailure {
+  constructor(message: string, line?: number, readonly status = 1) { super(message, line); }
+}
+export class NounsetDiagnosticFailure extends Flow {
+  constructor(readonly reason: unknown) { super("exit", 1); }
+}
+export class ExtensionCheckpointFailure extends NounsetDiagnosticFailure {}
+class PipelineClosed extends Error {
+  readonly code = "EPIPE";
+  constructor() { super("Pipeline consumer exited"); }
+}
+const SHARED_PIPELINE_CLOSED = new PipelineClosed();
+export class BudgetedSyncSink implements ByteSink {
+  declare readonly self: ByteSink;
+  declare readonly budget: Budget;
+  declare readonly target: Capture;
+  declare readonly signal: AbortSignal;
+  declare file?: NonNullable<CommandContext["stdoutFile"]>;
+  constructor(budget: Budget, target: Capture, signal: AbortSignal, file?: NonNullable<CommandContext["stdoutFile"]>) {
+    this.self = this;
+    this.budget = budget;
+    this.target = target;
+    this.signal = signal;
+    if (file !== undefined) this.file = file;
+  }
+  writeSync(chunk: Uint8Array): boolean {
+    this.signal.throwIfAborted();
+    if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
+    if (this.target.budget === this.budget) return this.target.writeSync(chunk);
+    const budget = this.budget;
+    if (budget.bytes + chunk.byteLength > budget.maxOutputBytesSmi && chunk.byteLength > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
+    budget.bytes += chunk.byteLength;
+    this.target.writeRawSync(chunk);
+    return true;
+  }
+  writeRangeSync(src: Uint8Array, len: number): boolean {
+    this.signal.throwIfAborted();
+    if (this.target.budget === this.budget) return this.target.writeRangeSync(src, len);
+    const budget = this.budget;
+    if (budget.bytes + len > budget.maxOutputBytesSmi && len > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
+    budget.bytes += len;
+    return this.target.writeRangeSync(src, len);
+  }
+  write(chunk: Uint8Array): Promise<void> {
+    try {
+      this.writeSync(chunk);
+      return resolvedVoid;
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
+}
+export class MemoryRedirectSink implements ByteSink {
+  declare readonly self: ByteSink;
+  declare budget: Budget;
+  declare handle: MemoryRedirectHandle;
+  declare path: string;
+  declare signal: AbortSignal;
+  declare file: NonNullable<CommandContext["stdoutFile"]>;
+  declare failedError: unknown;
+  constructor( budget: Budget, handle: MemoryRedirectHandle, path: string, signal: AbortSignal, file?: NonNullable<CommandContext["stdoutFile"]>, ) {
+    this.self = this;
+    this.budget = budget;
+    this.handle = handle;
+    this.path = path;
+    this.signal = signal;
+    this.file = file ?? Object.freeze({ path });
+  }
+  reset( budget: Budget, handle: MemoryRedirectHandle, path: string, signal: AbortSignal, file: NonNullable<CommandContext["stdoutFile"]>, ): void {
+    this.budget = budget;
+    this.handle = handle;
+    this.path = path;
+    this.signal = signal;
+    this.file = file;
+    this.failedError = undefined;
+  }
+  writeSync(chunk: Uint8Array): boolean {
+    this.signal.throwIfAborted();
+    if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
+    const budget = this.budget;
+    if (budget.bytes + chunk.byteLength > budget.maxOutputBytesSmi && chunk.byteLength > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
+    if (chunk.byteLength > 0) {
+      try {
+        this.handle.writeSync(chunk, this.signal);
+      } catch (error) {
+        this.failedError ??= error;
+        throw error;
+      }
+      budget.bytes += chunk.byteLength;
+    }
+    return true;
+  }
+  writeImmutableSync(immutableData: Uint8Array): boolean {
+    this.signal.throwIfAborted();
+    const len = immutableData.byteLength;
+    const budget = this.budget;
+    if (budget.bytes + len > budget.maxOutputBytesSmi && len > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
+    if (len > 0) {
+      try {
+        this.handle.writeImmutableSync(immutableData, this.signal);
+      } catch (error) {
+        this.failedError ??= error;
+        throw error;
+      }
+      budget.bytes += len;
+    }
+    return true;
+  }
+  writeRangeSync(src: Uint8Array, len: number): boolean {
+    this.signal.throwIfAborted();
+    const budget = this.budget;
+    if (budget.bytes + len > budget.maxOutputBytesSmi && len > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
+    if (len > 0) {
+      try {
+        this.handle.writeRangeSync(src, len, this.signal);
+      } catch (error) {
+        this.failedError ??= error;
+        throw error;
+      }
+      budget.bytes += len;
+    }
+    return true;
+  }
+  write(chunk: Uint8Array): Promise<void> {
+    try {
+      this.writeSync(chunk);
+      return resolvedVoid;
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
+}
+Object.assign(MemoryRedirectSink.prototype, {
+  failedError: undefined, });
+class BudgetedPipeStageOwnedSink {
+  declare readonly parent: BudgetedPipeStageSink;
+  constructor(parent: BudgetedPipeStageSink) {
+    this.parent = parent;
+  }
+  get consumerClosed(): AbortSignal {
+    return this.parent.writable.ownedOutput!.consumerClosed;
+  }
+  write(chunk: Uint8Array): Promise<void> {
+    return this.parent.writeOwned(chunk);
+  }
+}
+export class BudgetedPipeStageSink implements ByteSink {
+  declare canWriteSync: (byteLength?: number) => boolean;
+  readonly isPipeStage = true;
+  declare readonly self: ByteSink;
+  declare readonly budget: Budget;
+  declare readonly writable: ByteSink;
+  declare readonly signal: AbortSignal;
+  declare readonly written: Set<number> | undefined;
+  declare readonly index: number;
+  declare readonly controller: { readonly signal: AbortSignal; abort(reason?: unknown): void };
+  declare private _ownedOutput: NonNullable<ByteSink["ownedOutput"]> | undefined;
+  declare file?: NonNullable<CommandContext["stdoutFile"]>;
+  constructor( budget: Budget, writable: ByteSink, signal: AbortSignal, written: Set<number> | undefined, index: number, controller: { readonly signal: AbortSignal; abort(reason?: unknown): void }, ) {
+    this.self = this;
+    this.budget = budget;
+    this.writable = writable;
+    this.signal = signal;
+    this.written = written;
+    this.index = index;
+    this.controller = controller;
+    this._ownedOutput = undefined;
+  }
+  get ownedOutput(): NonNullable<ByteSink["ownedOutput"]> {
+    return (this.writable.ownedOutput ? (this._ownedOutput ??= new BudgetedPipeStageOwnedSink(this)) : undefined) as NonNullable<ByteSink["ownedOutput"]>;
+  }
+  [outputFailure](reason: unknown): Promise<void> {
+    const fn = this.writable[outputFailure];
+    return fn ? fn.call(this.writable, reason) : resolvedVoid;
+  }
+  writeOwned(chunk: Uint8Array): Promise<void> {
+    try {
+      const signal = this.signal;
+      signal.throwIfAborted();
+      if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
+      const budget = this.budget;
+      if (chunk.byteLength > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
+      const capability = this.writable.ownedOutput!;
+      const write = capability.write;
+      signal.throwIfAborted();
+      if (chunk.byteLength > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
+      budget.bytes += chunk.byteLength;
+      const res = Reflect.apply(write, capability, [chunk]);
+      if (isSyncResolved(res)) return resolvedVoid;
+      return Promise.resolve(res).then( () => undefined, (error: unknown) => { signal.throwIfAborted(); throw error; }, );
+    } catch (error) {
+      return Promise.reject(this.signal.aborted ? this.signal.reason : error);
+    }
+  }
+  writeSync(chunk: Uint8Array): boolean {
+    if (!this.canWriteSync(chunk.byteLength)) return false;
+    this.signal.throwIfAborted();
+    if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
+    const budget = this.budget;
+    if (chunk.byteLength > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
+    budget.assertPipelineInput(chunk.byteLength);
+    budget.bytes += chunk.byteLength;
+    this.writable.write(chunk);
+    if (chunk.byteLength && this.written) this.written.add(this.index);
+    return true;
+  }
+  write(chunk: Uint8Array): Promise<void> {
+    try {
+      const signal = this.signal;
+      signal.throwIfAborted();
+      if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
+      const budget = this.budget;
+      if (chunk.byteLength > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
+      budget.bytes += chunk.byteLength;
+      let res: Promise<void>;
+      try {
+        res = this.writable.write(chunk);
+      } catch (error) {
+        if (errorCode(error) === "EPIPE") {
+          const closed = SHARED_PIPELINE_CLOSED;
+          abortManagedController(this.controller, closed);
+          return Promise.reject(closed);
+        }
+        return Promise.reject(error);
+      }
+      if (isSyncResolved(res)) {
+        if (chunk.byteLength && this.written) this.written.add(this.index);
+        signal.throwIfAborted();
+        return resolvedVoid;
+      }
+      const handled = res.then( () => { if (chunk.byteLength && this.written) this.written.add(this.index); }, (error) => {
+          if (errorCode(error) === "EPIPE") {
+            const closed = SHARED_PIPELINE_CLOSED;
+            abortManagedController(this.controller, closed);
+            throw closed;
+          }
+          throw error;
+        }, );
+      return interruptible(handled, signal);
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
+}
+function pollIncomingPipe(this: { incoming: { _readiness?: () => "ready" | "eof" | "blocked" | "unknown"; readiness(): "ready" | "eof" | "blocked" | "unknown" } }): "ready" | "eof" | "blocked" | "unknown" {
+  return this.incoming._readiness ? this.incoming._readiness() : this.incoming.readiness();
+}
+export function signalSink(sink: ByteSink, signal: AbortSignal): ByteSink {
+  if (sink instanceof BudgetedSyncSink && sink.write === BudgetedSyncSink.prototype.write) return sink.signal === signal ? sink : new BudgetedSyncSink(sink.budget, sink.target, signal, sink.file);
+  if (sink instanceof Capture && sink.budget !== undefined && sink.write === Capture.prototype.write) return sink.signal === signal ? sink : new BudgetedSyncSink(sink.budget, sink, signal);
+  if (sink instanceof MemoryRedirectSink && sink.write === MemoryRedirectSink.prototype.write) return sink.signal === signal ? sink : new MemoryRedirectSink(sink.budget, sink.handle, sink.path, signal, sink.file);
+  const ownership = budgetedSinks.get(sink);
+  const owned = ownership?.write === sink.write ? ownership : undefined;
+  const write = owned ? owned.write.bind(sink) : (chunk: Uint8Array) => sink.write(chunk);
+  const syncWrite = syncSinks.get(sink);
+  const signaledSyncWrite = syncWrite
+    ? (chunk: Uint8Array): void => {
+        signal.throwIfAborted();
+        syncWrite(chunk);
+      }
+    : undefined;
+  const output: ByteSink = {
+    ...((sink as ByteSink & { isPipeStage?: boolean }).isPipeStage === true ? { isPipeStage: true } : {}),
+    ...(sink[outputFailure] ? { [outputFailure]: sink[outputFailure] } : {}), ...(sink.ownedOutput ? { ownedOutput: {
+      get consumerClosed() { return sink.ownedOutput!.consumerClosed; }, write(chunk: Uint8Array): Promise<void> {
+        try {
+          signal.throwIfAborted();
+          const capability = sink.ownedOutput!;
+          const write = capability.write;
+          signal.throwIfAborted();
+          const res = Reflect.apply(write, capability, [chunk]);
+          if (isSyncResolved(res)) return resolvedVoid;
+          return Promise.resolve(res).then( () => undefined, (error: unknown) => { signal.throwIfAborted(); throw error; }, );
+        } catch (error) {
+          return Promise.reject(signal.aborted ? signal.reason : error);
+        }
+      }, } } : {}), write: signaledSyncWrite
+      ? (chunk) => {
+          try {
+            signaledSyncWrite(chunk);
+            return resolvedVoid;
+          } catch (error) {
+            return Promise.reject(error);
+          }
+        }
+      : (chunk) => {
+          try {
+            signal.throwIfAborted();
+            const pending = write(chunk);
+            if (isSyncResolved(pending)) {
+              signal.throwIfAborted();
+              return resolvedVoid;
+            }
+            return interruptible(pending, signal);
+          } catch (error) {
+            return Promise.reject(error);
+          }
+        }, };
+  if (owned) budgetedSinks.set(output, { ...owned, write: output.write });
+  if (signaledSyncWrite) syncSinks.set(output, signaledSyncWrite);
+  return output;
+}
+const admissionGetterSymbol = Symbol("safe-bash.descriptorAdmissionGetter");
+const descriptorByteLength = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(Uint8Array.prototype), "byteLength")!.get!;
+export function bindCommandIO(context: CommandContext, io?: IO, limits: ShellLimits = {}): void {
+  const existingHandlesDesc = Object.getOwnPropertyDescriptor(context, "admittedHandles");
+  if (io?.descriptors && (!existingHandlesDesc || (existingHandlesDesc.get ? Boolean((existingHandlesDesc.get as unknown as Record<symbol, unknown>)[admissionGetterSymbol]) : (!existingHandlesDesc.value || shellDescriptorAdmissions.has(existingHandlesDesc.value))))) {
+    let handleManager: CommandContext["admittedHandles"];
+    let closed = false;
+    let finalizerRegistered = false;
+    const getAdmittedHandles = (): CommandContext["admittedHandles"] => {
+      if (!finalizerRegistered) {
+        finalizerRegistered = true;
+        io[invocationScope].registerFinalizer(() => {
+          closed = true;});
+      }
+      if (!handleManager) {
+        let leases: Set<() => Promise<void>> | undefined;
+        let closing: Promise<void> | undefined;
+        let cleanupRegistered = false;
+        handleManager = {
+          async acquire(fd: number, requestedRights: readonly import("../contracts/command.js").DescriptorRight[], signal: AbortSignal) {
+            signal.throwIfAborted(); context.signal.throwIfAborted();
+            if (closed || !Number.isSafeInteger(fd) || fd < 0) throw new FsError("EBADF");
+            io[invocationScope].assertOpen();
+            if ((leases?.size ?? 0) >= (limits.maxAdmittedHandles ?? Infinity)) throw new FsError("EMFILE");
+            if (!Array.isArray(requestedRights) || !requestedRights.length || requestedRights.length > 4) throw new FsError("EINVAL");
+            const rights = Array.from({ length: requestedRights.length }, (_, index) => requestedRights[index]!);
+            if (new Set(rights).size !== rights.length || rights.some(right => !["read", "write", "seek", "stat"].includes(right))) throw new FsError("EINVAL");
+            signal.throwIfAborted(); context.signal.throwIfAborted();
+            if (closed) throw new FsError("EBADF");
+            io[invocationScope].assertOpen();
+            if ((leases?.size ?? 0) >= (limits.maxAdmittedHandles ?? Infinity)) throw new FsError("EMFILE");
+            const descriptor = io.descriptors!.get(fd);
+            if (!descriptor || descriptor.closed) throw new FsError("EBADF");
+            const input = descriptor.input instanceof ShellInput ? descriptor.input : undefined;
+            const file = descriptor.file ?? input?.descriptor;
+            if (rights.includes("read") && !input || rights.includes("write") && !descriptor.output) throw new FsError("EBADF");
+            if (rights.includes("seek") && !input?.seek) throw new FsError(input && input.stat?.type !== "file" ? "ESPIPE" : "ENOTSUP");
+            if (rights.includes("stat") && !file) throw new FsError("ENOTSUP");
+            const lifetime = new AbortController();
+            let ended = false;
+            let completion: Promise<void> | undefined;
+            const pending = new Set<Promise<unknown>>();
+            leases ??= new Set();
+            if (!cleanupRegistered) {
+              cleanupRegistered = true;
+              context.registerCleanup?.(() => {
+                closed = true;
+                closing ??= Promise.allSettled([...leases!].map(close => close())).then(results => {
+                  const failures = results.filter(result => result.status === "rejected");
+                  if (failures.length) throw new AggregateError(failures.map(result => result.reason), "Descriptor lease cleanup failed");});
+                return closing;});
+            }
+            const close = () => {
+              ended = true;
+              lifetime.abort(new FsError("EBADF"));
+              completion ??= Promise.allSettled([...pending]).then(() => { leases!.delete(close); });
+              return completion;};
+            leases.add(close);
+            async function work<T>(callerSignal: AbortSignal, operation: (signal: AbortSignal) => Promise<T>): Promise<T> {
+              callerSignal.throwIfAborted(); context.signal.throwIfAborted();
+              if (closed || ended) throw new FsError("EBADF");
+              if (pending.size >= (limits.maxDescriptorOperations ?? Infinity)) throw new FsError("EAGAIN");
+              const combined = combineManagedSignals(callerSignal, context.signal, lifetime.signal);
+              const task = Promise.resolve().then(() => operation(combined));
+              pending.add(task);
+              void task.finally(() => pending.delete(task)).catch(() => {});
+              return task;
+            }
+            const lease = {
+              identity: input?.identity ?? file ?? descriptor.output!, ...(rights.includes("write") && descriptor.output?.ownedOutput ? { consumerClosed: descriptor.output.ownedOutput.consumerClosed } : {}), ...(rights.includes("read") ? { read: (count: number, caller: AbortSignal) => work(caller, async combined => {
+                if (!Number.isSafeInteger(count) || count < 0 || count > (limits.maxDescriptorReadBytes ?? Infinity)) throw new FsError("EINVAL");
+                return input!.readAvailable(count, combined);
+              }) } : {}), ...(rights.includes("write") ? { write: async (bytes: Uint8Array, caller: AbortSignal) => {
+                if (!(bytes instanceof Uint8Array) || descriptorByteLength.call(bytes) > 65536) throw new FsError("EINVAL");
+                const owned = new Uint8Array(bytes);
+                return work(caller, async combined => {
+                  const output = descriptor.output!;
+                  if (output.ownedOutput) {
+                    combined.throwIfAborted();
+                    output.ownedOutput.consumerClosed.throwIfAborted();
+                    await output.ownedOutput.write(owned);
+                  } else await writeBytes(output, owned, combined);
+                  return owned.byteLength;});
+              } } : {}), ...(rights.includes("seek") ? { seek: (position: number, caller: AbortSignal) => work(caller, combined => input!.seek!(position, combined)) } : {}), ...(rights.includes("stat") ? { stat: (caller: AbortSignal) => work(caller, combined => file!.stat({ signal: combined })) } : {}), close, };
+            if (input) Object.defineProperty(lease, "position", { enumerable: true, get: () => input.position });
+            return lease;
+          }, };
+      }
+      shellDescriptorAdmissions.set(handleManager, [...io.descriptors!.entries()].every(([fd, descriptor]) => (fd >= 0 && fd <= 2) || descriptor.closed === true));
+      return handleManager;};
+    (getAdmittedHandles as unknown as Record<symbol, boolean>)[admissionGetterSymbol] = true;
+    Object.defineProperty(context, "admittedHandles", {
+      configurable: true, enumerable: true, get: getAdmittedHandles, set(v: CommandContext["admittedHandles"]) { handleManager = v; }, });
+  }
+  Object.defineProperties(context, {
+    stdinInput: { enumerable: true, get: () => context.stdin instanceof ShellInput ? context.stdin : undefined }, stdoutFile: { enumerable: true, get: () => {
+      const ownership = budgetedSinks.get(context.stdout);
+      return ownership?.write === context.stdout.write ? ownership.file : undefined;
+    } }, });
+}
+function cloneRawState(raw: State, hasLocals: boolean): State {
+  const variables = Object.assign(Object.create(null) as Record<string, string>, raw.variables);
+  const exported = raw.exported.size ? new Set(raw.exported) : new Set<string>();
+  const hasFunctions = raw instanceof RootShellState ? Boolean(raw._functions?.size) : raw.functions.size > 0;
+  const cloned: State = Object.assign( new RootShellState(raw.cwd, variables, exported, raw.extensions), raw, );
+  (cloned as unknown as Record<symbol, unknown>)[monitorSymbol] = undefined;
+  Object.assign( cloned, {
+      variables, exported, _functions: hasFunctions ? new Map(raw.functions) : undefined, positional: [...raw.positional], directoryStack: raw.directoryStack
+        ? {
+            entries: raw.directoryStack.entries.length ? [...raw.directoryStack.entries] : [], bytes: raw.directoryStack.bytes, }
+        : undefined, locals: hasLocals
+        ? raw.locals.map((scope) => new Map([...scope].map(([name, saved]) => [name, { ...saved, ...(saved.getopts ? { getopts: { integer: saved.getopts.integer, cursor: cloneGetoptsState(saved.getopts.cursor) } } : {}) }])))
+        : [], }, );
+  if (raw.exportedFunctions) cloned.exportedFunctions = new Set(raw.exportedFunctions);
+  if (raw.readonlyVariables) cloned.readonlyVariables = new Set(raw.readonlyVariables);
+  if (raw.readonlyFunctions) cloned.readonlyFunctions = new Set(raw.readonlyFunctions);
+  if (raw.variableAttributes) cloned.variableAttributes = new Map(raw.variableAttributes);
+  if (raw.getopts) cloned.getopts = cloneGetoptsBinding(raw);
+  if (raw.functionNames) cloned.functionNames = [...raw.functionNames];
+  if (raw.callerFrames) cloned.callerFrames = [...raw.callerFrames];
+  if (raw.aliases) cloned.aliases = new Map(raw.aliases);
+  if (raw.loopDepth > 0 || (raw as { _subshellInLoop?: boolean })._subshellInLoop) {
+    (cloned as { _subshellInLoop?: boolean })._subshellInLoop = true;
+  }
+  cloned.loopDepth = 0;
+  return cloned;
+}
+function tryCloneStateSync(state: State, scope?: InvocationScope, inheritLocals = true): State | undefined {
+  const raw = stateMonitor(state)?.raw ?? state;
+  if (scope || inheritLocals && raw.locals.length > 0) return undefined;
+  return trySnapshotStateSync(state, () => cloneRawState(raw, false));
+}
+async function cloneState(state: State, signal: AbortSignal, scope?: InvocationScope, inheritLocals = true): Promise<State> {
+  const syncClone = tryCloneStateSync(state, scope, inheritLocals);
+  if (syncClone) return syncClone;
+  const raw = stateMonitor(state)?.raw ?? state;
+  const hasLocals = inheritLocals && raw.locals.length > 0;
+  const destination = await snapshotState(state, () => cloneRawState(raw, hasLocals), signal, hasLocals ? async (destination, owner) => {
+    const store = arrayStore(destination) ?? requireArrays(destination);
+    for (let index = 0; index < destination.locals.length; index++) {
+      const sourceFrame = state.locals[index]!;
+      const copiedFrame = destination.locals[index]!;
+      for (const [name, saved] of sourceFrame) {
+        const typed = typedSavedVariables.get(saved);
+        if (typed) {
+          const copied = copiedFrame.get(name);
+          if (!copied) throw new ArrayFailure("stale state snapshot");
+          const savedOwner = ArrayOwner.create(owner.ledger, owner);
+          let binding: IndexedBinding | undefined;
+          let releaseBinding: Promise<void> | undefined;
+          try {
+            scope?.register(async () => { await savedOwner.completion; await releaseBinding; });
+            const watch = await store.watch(name, savedOwner, signal);
+            const tickets = savedOwner.reserve({ generation: true, version: true, epoch: true, slots: 1, metadata: 64, work: 14 });
+            const token = await textToken(savedOwner, name, signal);
+            const admission = savedOwner.reserve({ slots: 1, metadata: 32, work: 5 });
+            binding = typed.binding?.retain();
+            typedSavedVariables.set(copied, { owner: savedOwner, binding, tickets, prepared: { ...typed.prepared, name: token, admission }, watch, scalarLegacy: typed.scalarLegacy });
+            tickets.cleanup = () => {
+              if (typedSavedVariables.delete(copied) && scope) releaseBinding = scope.cleanup(async () => { await binding?.release(); });};
+          } catch (error) { await binding?.release(); await savedOwner.close(); throw error; }
+        }
+        await owner.ledger.checkpoint(signal);
+      }
+    }
+  } : undefined, scope);
+  try {
+    for (const frame of destination.locals) for (const saved of frame.values()) {
+      if (saved.heldValue) saved.heldValue = stateMonitor(destination)!.values.scope.hold(saved.heldValue.value);
+    }
+    return destination;
+  } catch (error) { stateMonitor(destination)?.closeValues(); throw error; }
+}
+export function cloneGetoptsBinding(state: State): GetoptsBinding {
+  return { cursor: state.getopts ? cloneGetoptsState(state.getopts.cursor) : createGetoptsState(), integer: state.getopts?.integer ?? true };
+}
+function shellCharacterWidth(bytes: Uint8Array, offset: number, byteCount: boolean): number {
+  if (byteCount) return 1;
+  const first = bytes[offset]!;
+  const length = first >= 0xc2 && first <= 0xdf ? 2 : first >= 0xe0 && first <= 0xef ? 3 : first >= 0xf0 && first <= 0xf4 ? 4 : 1;
+  if (offset + length > bytes.length) return 1;
+  for (let index = 1; index < length; index++) {
+    const byte = bytes[offset + index]!;
+    if (byte < 0x80 || byte > 0xbf || index === 1 && (first === 0xe0 && byte < 0xa0 || first === 0xed && byte > 0x9f || first === 0xf0 && byte < 0x90 || first === 0xf4 && byte > 0x8f)) return 1;
+  }
+  return length;
+}
+export function saveVariable(state: State, name: string): SavedVariable {
+  const monitor = stateMonitor(state);
+  const value = monitor?.values.get(name, state.variables[name] ?? "");
+  const heldValue = state.variables[name] !== undefined && value !== undefined ? monitor!.values.scope.hold(value) : undefined;
+  return { attributes: state.variableAttributes?.get(name), value: state.variables[name], ...(heldValue ? { heldValue } : {}), exported: state.exported.has(name), readOnly: state.readonlyVariables?.has(name) ?? false, ...(name === "OPTIND" ? { getopts: cloneGetoptsBinding(state) } : {}) };
+}
+
+export function hasActiveVariableAttributes(state: State): boolean {
+  const attrs = state.variableAttributes;
+  if (!attrs || attrs.size === 0) return false;
+  for (const val of attrs.values()) {
+    if (val.length > 0) return true;
+  }
+  return false;
+}
+export function publishVariable(state: State, name: string, value: ShellValue): void {
+  const monitor = stateMonitor(state);
+  if (monitor) {
+    if (typeof value === "string") {
+      monitor.publishStringVariable(name, value);
+      return;
+    }
+    const text = shellValueText(value);
+    monitor.values.publish(name, value, () => { state.variables[name] = text; return true; });
+    return;
+  }
+  state.variables[name] = shellValueText(value);
+  writeDynamicVariable(state, name, shellValueText(value));
+}
+export function tryRestoreVariableSync(state: State, name: string, saved: SavedVariable): boolean {
+  if (typedSavedVariables.has(saved)) return false;
+  try {
+    const monitor = stateMonitor(state);
+    if (syncLocalArrayVariables.delete(saved) || monitor?.store?.get(name)) {
+      const arrStore = monitor?.store;
+      if (arrStore?.get(name)) {
+        const rmTickets = arrStore.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
+        arrStore.stashRecycled(name, rmTickets);
+        monitor!.epoch = rmTickets.epoch;
+      }
+    }
+    if (saved.attributes !== undefined) {
+      state.variableAttributes ??= new Map();
+      state.variableAttributes.set(name, saved.attributes);
+    } else state.variableAttributes?.delete(name);
+    const store = monitor?.values;
+    if (saved.value === undefined) {
+      if (monitor) delete monitor.proxy.variables[name];
+      else delete state.variables[name];
+    } else if (saved.heldValue && store) {
+      store.restoreHeld(name, saved.heldValue, () => { state.variables[name] = saved.value!; });
+      delete saved.heldValue;
+    } else publishVariable(state, name, saved.value);
+    if (saved.exported) state.exported.add(name);
+    else state.exported.delete(name);
+    if (name === "OPTIND" && saved.getopts) {
+      state.getopts = { integer: saved.getopts.integer, cursor: cloneGetoptsState(saved.getopts.cursor) };
+      if (!saved.readOnly) state.readonlyVariables?.delete(name);
+      else { state.readonlyVariables ??= new Set(); state.readonlyVariables.add(name); }
+    }
+    if (!saved.readOnly) state.readonlyVariables?.delete(name);
+  } finally {
+    saved.heldValue?.release();
+    delete saved.heldValue;
+  }
+  return true;
+}
+export async function restoreVariable(state: State, name: string, saved: SavedVariable): Promise<void> {
+  if (tryRestoreVariableSync(state, name, saved)) return;
+  try {
+  if (saved.attributes !== undefined) { state.variableAttributes ??= new Map(); state.variableAttributes.set(name, saved.attributes); } else state.variableAttributes?.delete(name);
+  const restoreScalar = (): void => {
+    const store = stateMonitor(state)?.values;
+    if (saved.value === undefined) delete state.variables[name];
+    else if (saved.heldValue && store) {
+      store.restoreHeld(name, saved.heldValue, () => { state.variables[name] = saved.value!; });
+      delete saved.heldValue;
+    } else publishVariable(state, name, saved.value);};
+  const typed = typedSavedVariables.get(saved)!;
+  typedSavedVariables.delete(saved);
+  const store = requireArrays(state);
+  let released: Promise<void> | undefined;
+  stateMonitor(state)!.publish(typed.tickets, name, () => {
+    if (typed.binding) {
+      delete state.variables[name];
+      released = store.publish(name, typed.binding, typed.tickets, typed.prepared, true);
+    } else {
+      released = store.remove(name, typed.tickets);
+      restoreScalar();
+    }
+    if (saved.exported) state.exported.add(name);
+    else state.exported.delete(name);
+    if (!typed.scalarLegacy || name === "OPTIND") {
+      if (saved.readOnly) { state.readonlyVariables ??= new Set(); state.readonlyVariables.add(name); } else state.readonlyVariables?.delete(name);
+    }
+    if (name === "OPTIND" && saved.getopts) state.getopts = saved.getopts;});
+  typed.watch.close();
+  await released;
+  await typed.owner.close();
+
+  } finally { saved.heldValue?.release(); delete saved.heldValue; }
+}
+export function isShellIdentifier(name: string): boolean {
+  if (!name) return false;
+  for (let index = 0; index < name.length; index++) {
+    const code = name.charCodeAt(index);
+    if (code === 95 || code >= 65 && code <= 90 || code >= 97 && code <= 122 || index > 0 && code >= 48 && code <= 57) continue;
+    return false;
+  }
+  return true;
+}
+function decimalIndex(value: string): number {
+  let position = 0;
+  while (position < value.length && /[\t\n\v\f\r ]/u.test(value[position]!)) position++;
+  const negative = value[position] === "-";
+  if (negative || value[position] === "+") position++;
+  let index = 0;
+  for (; position < value.length; position++) {
+    const digit = value.charCodeAt(position) - 48;
+    if (digit < 0 || digit > 9) break;
+    index = (Math.imul(index, 10) + digit) | 0;
+  }
+  return negative ? -index | 0 : index;
+}
+function saturatedProduct(left: number, right: number): number {
+  return right !== 0 && left > Math.floor(Number.MAX_SAFE_INTEGER / right) ? Number.MAX_SAFE_INTEGER : left * right;
+}
+function saturatedSum(left: number, right: number): number {
+  return left > Number.MAX_SAFE_INTEGER - right ? Number.MAX_SAFE_INTEGER : left + right;
+}
+export function errorCode(error: unknown): string | undefined {
+  return typeof error === "object" && error !== null && "code" in error ? String(error.code) : undefined;
+}
+export function message(error: unknown, onInternalError?: InternalErrorHandler): string {
+  if (error instanceof ExpansionFailure || error instanceof CommandFailure || error instanceof ArrayFailure || error instanceof BraceExpansionFailure) return error.message;
+  return publicDiagnosticMessage(error, onInternalError);
+}
+function filesystemDiagnostic(error: unknown, target: string, onInternalError?: InternalErrorHandler): string | undefined {
+  const descriptions: Readonly<Record<string, string>> = { ENOENT: "No such file or directory", EACCES: "Permission denied", EPERM: "Operation not permitted", ENOTDIR: "Not a directory", EISDIR: "Is a directory", ELOOP: "Too many levels of symbolic links", ENOSPC: "No space left on device", EROFS: "Read-only file system" };
+  const description = descriptions[errorCode(error) ?? ""];
+  if (!description) return undefined;
+  publicDiagnosticMessage(error, onInternalError);
+  return `${target}: ${description}`;
+}
+function cdUtf8Width(codePoint: number): number {
+  return codePoint <= 0x7f ? 1 : codePoint <= 0x7ff ? 2 : codePoint <= 0xffff ? 3 : 4;
+}
+function cdDiagnostic(fragments: readonly string[], maxBytes: number): string {
+  if (maxBytes === Infinity) return fragments.join("");
+  const suffix = " [truncated]".slice(0, maxBytes);
+  const chunks: string[] = [];
+  let bytes = 0;
+  let suffixBoundary = 0;
+  let units = 0;
+  for (const fragment of fragments) {
+    let index = 0;
+    while (index < fragment.length) {
+      const codePoint = fragment.codePointAt(index)!;
+      const width = cdUtf8Width(codePoint);
+      if (bytes + width > maxBytes) {
+        chunks.push(fragment.slice(0, index));
+        return `${chunks.join("").slice(0, suffixBoundary)}${suffix}`;
+      }
+      bytes += width;
+      const length = codePoint > 0xffff ? 2 : 1;
+      index += length;
+      units += length;
+      if (bytes <= maxBytes - suffix.length) suffixBoundary = units;
+    }
+    chunks.push(fragment);
+  }
+  return chunks.join("");
+}
+class CdLookup {
+  private spent = 0;
+  private probes = 0;
+
+  constructor(private readonly signal: AbortSignal, private readonly limits: ResolvedShellLimits) {}
+
+  async charge(amount: number): Promise<void> {
+    this.signal.throwIfAborted();
+    if (amount > this.limits.maxCdWork - this.spent) throw new PublicDiagnostic("cd: helper work limit exceeded");
+    while (amount > 0) {
+      const step = Math.min(amount, 128 - this.spent % 128);
+      this.spent += step;
+      amount -= step;
+      if (this.spent % 128 === 0) {
+        this.signal.throwIfAborted();
+        await yieldTurn(this.signal);
+        this.signal.throwIfAborted();
+      }
+    }
+  }
+  private async scan(value: string, search = false): Promise<{
+    bytes: number; components: { start: number; end: number; bytes: number }[];
+  }> {
+    let bytes = 0;
+    let start = 0;
+    let startBytes = 0;
+    let slots = 1;
+    const components: { start: number; end: number; bytes: number }[] = [];
+    for (let index = 0; index < value.length;) {
+      const codePoint = value.codePointAt(index)!;
+      const width = cdUtf8Width(codePoint);
+      if (bytes + width > this.limits.maxCdPathBytes) throw new PublicDiagnostic(search ? "cd: CDPATH byte limit exceeded" : "cd: path byte limit exceeded");
+      if (search && codePoint === 58 && ++slots > this.limits.maxCdPathComponents) throw new PublicDiagnostic("cd: CDPATH component limit exceeded");
+      await this.charge(width);
+      if (search && codePoint === 58) {
+        components.push({ start, end: index, bytes: bytes - startBytes });
+        start = index + 1;
+        startBytes = bytes + width;
+      }
+      bytes += width;
+      index += codePoint > 0xffff ? 2 : 1;
+    }
+    if (search) components.push({ start, end: value.length, bytes: bytes - startBytes });
+    return { bytes, components };
+  }
+  async find(fs: FileSystem, cwd: string, target: string, cdpath: string | undefined, physical: boolean): Promise<{ path: string; print?: string }> {
+    const targetBytes = (await this.scan(target)).bytes;
+    const absolute = target.startsWith("/");
+    const cwdBytes = absolute ? 0 : (await this.scan(cwd)).bytes;
+    const eligible = !absolute && target !== "." && target !== ".." && !target.startsWith("./") && !target.startsWith("../");
+    const search = eligible && cdpath ? await this.scan(cdpath, true) : undefined;
+    const probe = async (component: string, componentBytes: number): Promise<{ path: string; print?: string }> => {
+      const rawBytes = absolute ? targetBytes : component.startsWith("/") ? componentBytes + 1 + targetBytes
+        : cwdBytes + 1 + (component ? componentBytes + 1 : 0) + targetBytes;
+      if (rawBytes > this.limits.maxCdPathBytes) throw new PublicDiagnostic("cd: path byte limit exceeded");
+      await this.charge(2 * rawBytes);
+      const raw = absolute ? target : pathOf({ cwd }, component ? `${component}/${target}` : target);
+      let path = normalizePath(raw, cwd);
+      const operand = physical ? raw : path;
+      if (!physical) {
+        const components: string[] = [];
+        for (const component of raw.split("/")) {
+          await this.charge(1);
+          if (component === "..") {
+            await this.charge(rawBytes);
+            const parent = `/${components.join("/")}`;
+            const stat = await fs.stat(parent, { signal: this.signal });
+            this.signal.throwIfAborted();
+            if (stat.type !== "directory") throw new FsError("ENOTDIR", { path: parent });
+            components.pop();
+          } else if (component && component !== ".") components.push(component);
+        }
+      }
+      await this.scan(path);
+      this.signal.throwIfAborted();
+      if (++this.probes > this.limits.maxCdProbes) throw new PublicDiagnostic("cd: probe limit exceeded");
+      await this.charge(1);
+      this.signal.throwIfAborted();
+      const stat = await fs.stat(operand, { signal: this.signal });
+      this.signal.throwIfAborted();
+      if (stat.type !== "directory") throw new FsError("ENOTDIR", { path });
+      await this.charge(1);
+      this.signal.throwIfAborted();
+      await fs.access(operand, ACCESS_MODES.X_OK, { signal: this.signal });
+      this.signal.throwIfAborted();
+      if (physical) {
+        await this.charge(1);
+        path = await fs.realpath(operand, { signal: this.signal });
+        this.signal.throwIfAborted();
+        await this.scan(path);
+      }
+      return {
+        path, ...(component ? { print: physical ? `${component}${component.endsWith("/") ? "" : "/"}${target}` : path } : {}), };};
+    for (const component of search?.components ?? []) {
+      try {
+        return await probe(cdpath!.slice(component.start, component.end), component.bytes);
+      } catch (error) {
+        this.signal.throwIfAborted();
+        if (!(error instanceof FsError) || !["ENOENT", "ENOTDIR", "EACCES"].includes(error.code)) throw error;
+      }
+    }
+    return probe("", 0);
+  }
+}
+class DirectoryStackWork {
+  private spent = 0;
+  private flushed = 0;
+  private outputBytes = 0;
+  private chunk = "";
+  private chunkBytes = 0;
+
+  constructor(private readonly name: string, private readonly signal: AbortSignal, private readonly stdout: ByteSink, private readonly limits: ResolvedShellLimits) {}
+
+  fail(text: string, status = 1): never {
+    throw new CommandFailure(cdDiagnostic([this.name, ": ", text], this.limits.maxDirectoryDiagnosticBytes), status);
+  }
+  async charge(amount: number): Promise<void> {
+    this.signal.throwIfAborted();
+    if (!Number.isSafeInteger(amount) || amount < 0 || amount > this.limits.maxCdWork - this.spent) this.fail("helper work limit exceeded");
+    while (amount > 0) {
+      const step = Math.min(amount, 128 - this.spent % 128);
+      this.spent += step;
+      amount -= step;
+      if (this.spent % 128 === 0) await this.flushWork();
+    }
+  }
+  async flushWork(): Promise<void> {
+    this.signal.throwIfAborted();
+    if (this.flushed === this.spent) return;
+    await yieldTurn(this.signal);
+    this.signal.throwIfAborted();
+    this.flushed = this.spent;
+  }
+  async scan(value: string, kind: "argument" | "path" | "HOME"): Promise<number> {
+    let bytes = 0;
+    for (let offset = 0; offset < value.length;) {
+      const point = value.codePointAt(offset)!;
+      const width = cdUtf8Width(point);
+      if (width > this.limits.maxCdPathBytes - bytes) this.fail(`${kind} byte limit exceeded`);
+      await this.charge(width);
+      bytes += width;
+      offset += point > 0xffff ? 2 : 1;
+    }
+    return bytes;
+  }
+  async number(token: string): Promise<bigint> {
+    let phase: "leading" | "sign" | "digits" | "trailing" = "leading";
+    let negative = false;
+    let digits = false;
+    let value = 0n;
+    await this.charge(1);
+    for (let offset = 1; offset < token.length; offset++) {
+      await this.charge(1);
+      const code = token.charCodeAt(offset);
+      const whitespace = code === 32 || code >= 9 && code <= 13;
+      if (phase === "leading" && whitespace) continue;
+      if (phase === "leading" && (code === 43 || code === 45)) {
+        negative = code === 45;
+        phase = "sign";
+        continue;
+      }
+      if (code >= 48 && code <= 57 && phase !== "trailing") {
+        phase = "digits";
+        digits = true;
+        value = value * 10n + BigInt(code - 48);
+        if (value > (negative ? 9_223_372_036_854_775_808n : 9_223_372_036_854_775_807n)) this.fail("invalid directory stack index", 2);
+      } else if (phase === "digits" && whitespace || phase === "trailing" && whitespace) phase = "trailing";
+      else this.fail("invalid directory stack index", 2);
+    }
+    if (!digits) this.fail("invalid directory stack index", 2);
+    return negative ? -value : value;
+  }
+  async emit(text: string): Promise<void> {
+    for (let offset = 0; offset < text.length;) {
+      const point = text.codePointAt(offset)!;
+      const width = cdUtf8Width(point);
+      if (width > this.limits.maxDirectoryStackOutputBytes - this.outputBytes) this.fail("display byte limit exceeded");
+      await this.charge(width);
+      if (width > 16_384 - this.chunkBytes) await this.flushOutput();
+      const units = point > 0xffff ? 2 : 1;
+      this.chunk += text.slice(offset, offset + units);
+      this.chunkBytes += width;
+      this.outputBytes += width;
+      offset += units;
+    }
+  }
+  async flushOutput(): Promise<void> {
+    this.signal.throwIfAborted();
+    if (!this.chunkBytes) return;
+    const text = this.chunk;
+    this.chunk = "";
+    this.chunkBytes = 0;
+    await writeText(this.stdout, text);
+    this.signal.throwIfAborted();
+  }
+  async display(cwd: string, entries: readonly string[], options: { long: boolean; lines: boolean; verbose: boolean; index?: number }, home: string | undefined): Promise<void> {
+    await this.scan(cwd, "path");
+    const homeBytes = !options.long && home !== undefined ? await this.scan(home, "HOME") : 0;
+    const start = options.index ?? 0;
+    const end = options.index ?? entries.length;
+    for (let index = start; index <= end; index++) {
+      await this.charge(1);
+      let entry = index === 0 ? cwd : entries[index - 1]!;
+      if (homeBytes > 1 && home !== undefined && entry.length >= home.length) {
+        let matches = true;
+        for (let offset = 0; offset < home.length; offset++) {
+          await this.charge(1);
+          if (entry.charCodeAt(offset) !== home.charCodeAt(offset)) { matches = false; break; }
+        }
+        if (matches) {
+          if (entry.length > home.length) await this.charge(1);
+          if (entry.length === home.length || entry[home.length] === "/") entry = `~${entry.slice(home.length)}`;
+        }
+      }
+      if (index !== start && !options.lines && !options.verbose) await this.emit(" ");
+      if (options.verbose) await this.emit(`${String(index).padStart(2, " ")}  `);
+      await this.emit(entry);
+      if (options.lines || options.verbose) await this.emit("\n");
+    }
+    if (!options.lines && !options.verbose) await this.emit("\n");
+    await this.flushOutput();
+  }
+}
+const closedSink: ByteSink = { async write() { throw Object.assign(new PublicDiagnostic("Bad file descriptor"), { code: "EBADF" }); } };
+const closedSource: ByteSource = { [Symbol.asyncIterator]() {
+  let closed = false;
+  let completion = Promise.resolve();
+  const enqueue = <Value>(operation: () => Value | PromiseLike<Value>): Promise<Value> => {
+    const pending = completion.then(operation);
+    completion = pending.then(() => {}, () => {});
+    return pending;};
+  const iterator: AsyncIterableIterator<Uint8Array> = {
+    next() {
+      return enqueue<IteratorResult<Uint8Array>>(() => {
+        if (closed) return { done: true, value: undefined };
+        closed = true;
+        throw Object.assign(new PublicDiagnostic("Bad file descriptor"), { code: "EBADF" });});
+    }, return(value?: unknown) { return enqueue(async () => { closed = true; return { done: true, value: await value }; }); }, throw(error?: unknown) { return enqueue(() => { closed = true; throw error; }); }, [Symbol.asyncIterator]() { return this; }, };
+  return iterator;
+} };
+export interface RuntimeOutcomeFrame {
+  report?: CancellationReport | undefined;
+}
+interface InvokeOutcomeRecord {
+  readonly promise: Promise<CommandResult>;
+  readonly boundary: CancellationBoundary;
+  finalized: boolean;
+  consumed: boolean;
+  selection?: CancellationSelection<CommandResult> | undefined;
+}
+/** Internal to the shell/runtime pair; it is not exported by the package root. */
+
+export class RuntimeCancellationState {
+  private _records: Set<InvokeOutcomeRecord> | undefined;
+  private _diagnostics: WeakMap<object, NounsetDiagnosticFailure> | undefined;
+  private _closed = false;
+  recordDiagnostic(promise: Promise<CommandResult>, failure: NounsetDiagnosticFailure): void {
+    if (!this._closed) (this._diagnostics ??= new WeakMap()).set(promise, failure);
+  }
+  consumeDiagnostic(rawReturn: unknown): NounsetDiagnosticFailure | undefined {
+    if (!this._diagnostics) return undefined;
+    if (rawReturn === null || typeof rawReturn !== "object" && typeof rawReturn !== "function") return undefined;
+    const failure = this._diagnostics.get(rawReturn);
+    this._diagnostics.delete(rawReturn);
+    return failure;
+  }
+  bind(promise: Promise<CommandResult>, boundary: CancellationBoundary): InvokeOutcomeRecord {
+    if (this._closed) throw new Error("Cancellation outcome admission is closed");
+    const record: InvokeOutcomeRecord = { promise, boundary, finalized: false, consumed: false };
+    (this._records ??= new Set()).add(record);
+    return record;
+  }
+  finalize(record: InvokeOutcomeRecord, selection: CancellationSelection<CommandResult>): void {
+    if (record.consumed || !this._records?.has(record)) return;
+    record.selection = selection;
+    record.finalized = true;
+  }
+  consume(rawReturn: unknown, capturedReason: unknown): CancellationReport | undefined {
+    if (!this._records) return undefined;
+    for (const record of this._records) {
+      if (record.promise !== rawReturn) continue;
+      record.consumed = true;
+      this._records.delete(record);
+      const selection = record.selection;
+      if (!record.finalized || selection?.outcome.kind !== "throw"
+        || !Object.is(selection.outcome.reason, capturedReason)) return undefined;
+      return selection.report;
+    }
+    return undefined;
+  }
+  discard(record: InvokeOutcomeRecord | undefined): void {
+    if (!record) return;
+    record.consumed = true;
+    this._records?.delete(record);
+  }
+  close(): void {
+    this._closed = true;
+    if (this._records) {
+      for (const record of this._records) record.consumed = true;
+      this._records.clear();
+    }
+    this._diagnostics = undefined;
+  }
+}
+interface CancellationAdmissionOwner {
+  assertAdmissionOpen(): void;
+}
+class InvocationCancellationOwner implements CancellationAdmissionOwner, CancellationOwnerSubscriber {
+  declare readonly kind: "callback";
+  declare active: boolean;
+  declare private readonly _parent: InvocationScope;
+  declare readonly prepared: PreparedChildCancellation;
+  declare private readonly _outcomes: RuntimeCancellationState;
+  declare private readonly _publicPromise: Promise<CommandResult> | undefined;
+  declare private _finalizedPromise: Promise<void> | undefined;
+  declare private _resolveFinalized: (() => void) | undefined;
+  declare private _completed: boolean;
+  declare private _admissionOpen: boolean;
+  declare private _boundary: CancellationBoundary | undefined;
+  declare private _boundaryClosed: boolean;
+  declare private _record: InvokeOutcomeRecord | undefined;
+  declare private _observedOrigin: CancellationOrigin | undefined;
+  declare private _resolveCapture: ((captured: CapturedCancellationOutcome<CommandResult>) => void) | undefined;
+  declare private _rawPromise: Promise<CommandResult> | undefined;
+  declare private _outcomeFrame: RuntimeOutcomeFrame | undefined;
+  declare private _settled: boolean;
+  declare private _queuedOrigin: boolean;
+  declare private _finish: Promise<CancellationSelection<CommandResult>> | undefined;
+  constructor( parent: InvocationScope, prepared: PreparedChildCancellation, outcomes: RuntimeCancellationState, publicPromise?: Promise<CommandResult>, ) {
+    this._parent = parent;
+    this.prepared = prepared;
+    this._outcomes = outcomes;
+    this._publicPromise = publicPromise;
+    parent.addChildOwner(this);
+  }
+  _onScopeClose(): Promise<void> | undefined {
+    this.requestClose();
+    if (!this._completed) {
+      return (this._finalizedPromise ??= new Promise<void>(resolve => { this._resolveFinalized = resolve; }));
+    }
+    return undefined;
+  }
+  assertAdmissionOpen(): void {
+    if (!this._admissionOpen) throw new Error("Cancellation invocation admission is closed");
+  }
+  requestClose(): void { this._admissionOpen = false; }
+  activate(subscribe = true): CancellationBoundary {
+    this.assertAdmissionOpen();
+    const boundary = activateChildCancellation(this.prepared);
+    this._boundary = boundary;
+    try {
+      if (subscribe) subscribeCancellationOwner(boundary, this); else admitCancellationSubscriptionCapacity(boundary);
+      if (this._publicPromise) this._record = this._outcomes.bind(this._publicPromise, boundary);
+      return boundary;
+    } catch (error) {
+      this._closeBoundary();
+      throw error;
+    }
+  }
+  callback(origin: CancellationOrigin): void {
+    if (!this._resolveCapture || this._settled || this._queuedOrigin) return;
+    this._queuedOrigin = true;
+    queueMicrotask(() => {
+      if (this._settled) return;
+      this._settled = true;
+      this._observedOrigin = origin;
+      const resolve = this._resolveCapture;
+      this._resolveCapture = undefined;
+      this._outcomeFrame = undefined;
+      resolve?.({ kind: "throw", reason: origin.signal.reason });
+      void this._rawPromise?.catch(() => undefined);});
+  }
+  private _settleReturn(value: CommandResult): void {
+    if (this._settled) return;
+    this._settled = true;
+    const resolve = this._resolveCapture;
+    this._resolveCapture = undefined;
+    this._outcomeFrame = undefined;
+    resolve?.({ kind: "return", value });
+  }
+  private _settleThrow(reason: unknown): void {
+    if (this._settled) return;
+    this._settled = true;
+    const resolve = this._resolveCapture;
+    const frame = this._outcomeFrame;
+    this._resolveCapture = undefined;
+    this._outcomeFrame = undefined;
+    resolve?.(frame?.report && Object.is(frame.report.origin.signal.reason, reason)
+      ? { kind: "throw", reason, report: frame.report }
+      : { kind: "throw", reason });
+  }
+  capture( execute: () => Promise<CommandResult>, frame: RuntimeOutcomeFrame, ): Promise<CapturedCancellationOutcome<CommandResult>> {
+    this._outcomeFrame = frame;
+    let raw: Promise<CommandResult>;
+    try { raw = Promise.resolve(execute()); }
+    catch (reason) {
+      this._settled = true;
+      this._outcomeFrame = undefined;
+      return Promise.resolve({ kind: "throw", reason });
+    }
+    this._rawPromise = raw;
+    return new Promise(resolve => {
+      this._resolveCapture = resolve;
+      void raw.then( value => { this._settleReturn(value); }, reason => { this._settleThrow(reason); }, );
+      if (this._settled) void raw.catch(() => undefined);});
+  }
+  finish(barrier: Promise<void>, captured: CapturedCancellationOutcome<CommandResult>): Promise<CancellationSelection<CommandResult>> {
+    this._finish ??= this._finishOnce(barrier, captured);
+    return this._finish;
+  }
+  finishSync(captured: CapturedCancellationOutcome<CommandResult>): CancellationSelection<CommandResult> {
+    this.requestClose();
+    try {
+      this._closeBoundary();
+      const selection = selectRuntimeCancellationOutcome(this._boundary!, captured, this._observedOrigin);
+      if (this._record) this._outcomes.finalize(this._record, selection);
+      return selection;
+    } finally {
+      this._completed = true;
+      this._resolveFinalized?.();
+      this._parent.removeChildOwner(this);
+    }
+  }
+  async abandon(barrier: Promise<void>): Promise<void> {
+    this.requestClose();
+    try { await barrier; }
+    finally {
+      this._outcomes.discard(this._record);
+      this._closeBoundary();
+      this._completed = true;
+      this._resolveFinalized?.();
+      this._parent.removeChildOwner(this);
+    }
+  }
+  private async _finishOnce(barrier: Promise<void>, captured: CapturedCancellationOutcome<CommandResult>): Promise<CancellationSelection<CommandResult>> {
+    this.requestClose();
+    try {
+      await barrier;
+      this._closeBoundary();
+      const selection = selectRuntimeCancellationOutcome(this._boundary!, captured, this._observedOrigin);
+      if (this._record) this._outcomes.finalize(this._record, selection);
+      return selection;
+    } finally {
+      this._completed = true;
+      this._resolveFinalized?.();
+      this._parent.removeChildOwner(this);
+    }
+  }
+  private _closeBoundary(): void {
+    if (!this._boundary || this._boundaryClosed) return;
+    this._boundaryClosed = true;
+    if (this.active) {
+      try { unsubscribeCancellationOwner(this._boundary, this); } catch (error) { this._parent.failures.push(error); }
+    }
+    const result = this._boundary.close();
+    if (result.failures.length > 0) this._parent.failures.push(...result.failures);
+  }
+}
+Object.assign(InvocationCancellationOwner.prototype, {
+  kind: "callback", active: false, _finalizedPromise: undefined, _resolveFinalized: undefined, _completed: false, _admissionOpen: true, _boundary: undefined, _boundaryClosed: false, _record: undefined, _observedOrigin: undefined, _resolveCapture: undefined, _rawPromise: undefined, _outcomeFrame: undefined, _settled: false, _queuedOrigin: false, _finish: undefined, });
+export const mapfileCallbackStates = new WeakSet<State>();
+const runtimeFileSystems = new WeakMap<FileSystem, FileSystem>();
+const reusableDefaultContextFsBySourceFs = new WeakMap<FileSystem, { scoped: FileSystem; inUseBy: Runtime | undefined }>();
+const noopFsCharge = (): void => {};
+export const NEVER_ABORTED_SIGNAL = Object.freeze({
+  aborted: false, reason: undefined, onabort: null, throwIfAborted(): void {}, addEventListener(): void {}, removeEventListener(): void {}, dispatchEvent(): boolean { return true; }, }) as unknown as AbortSignal;
+export function warmDefaultRuntimeContextFs(sourceFs: FileSystem, backingFs: FileSystem): void {
+  if (reusableDefaultContextFsBySourceFs.has(sourceFs)) return;
+  const created = scopeFileSystem( creationFileSystem(sourceFs, 0o022), noopFsCharge, NEVER_ABORTED_SIGNAL, noopFsCharge, { maxPathComponents: 256 }, );
+  runtimeFileSystems.set(created, sourceFs);
+  registerRuntimeBackingFileSystem(created, backingFs);
+  void created.capabilities;
+  void created.readFile;
+  void created.stat;
+  void created.lstat;
+  void created.readdir;
+  void created.realpath;
+  void created.readStream;
+  void created.openReadFile;
+  void created.writeFile;
+  void created.appendFile;
+  void created.mkdir;
+  void created.rm;
+  reusableDefaultContextFsBySourceFs.set(sourceFs, { scoped: created, inUseBy: undefined });
+}
+import { abortManagedController, combineManagedSignals, releaseCombinedSignal, createManagedControlController, getRuntimeBackingFileSystem, interruptible, isSyncResolved, registerRuntimeBackingFileSystem, toNativeAbortSignal, type ManagedControlController } from "safe-bash-contracts/runtime-control";
+export { getRuntimeBackingFileSystem, interruptible, registerRuntimeBackingFileSystem };
+const emptyWords: readonly Word[] = [];
+const emptyShellValues: readonly ShellValue[] = [];
+export const emptyStrings: readonly string[] = [];
+const emptySavedVariables = new Map<string, SavedVariable>();
+const emptyInputs = new Set<{ close(): void | Promise<void> }>();
+const emptyOutputs = new Set<OutputFinalizer>();
+export const singleStatusZero: readonly number[] = [0];
+export const singleStatusOne: readonly number[] = [1];
+const fastSharedTextEncoder = new TextEncoder();
+let _sharedEmptyMemoryFs: FileSystem | undefined;
+const fatalUtf8Decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
+let fallbackAssignmentCache: WeakMap<Word, { name: string; value: Word; append: boolean } | null> | undefined;
+const assignmentCache = {
+  get(word: Word): { name: string; value: Word; append: boolean } | null | undefined {
+    const val = (word as { _cachedAssign?: { name: string; value: Word; append: boolean } | null })._cachedAssign;
+    return val !== undefined ? val : fallbackAssignmentCache?.get(word);
+  }, set(word: Word, value: { name: string; value: Word; append: boolean } | null): void {
+    if (Object.isExtensible(word)) {
+      (word as { _cachedAssign?: { name: string; value: Word; append: boolean } | null })._cachedAssign = value;
+    } else (fallbackAssignmentCache ??= new WeakMap()).set(word, value);
+  }, };
+export const SYNC_UNIT_ZERO: { readonly exitCode: number; readonly terminated: boolean } = Object.freeze({ exitCode: 0, terminated: false });
+export const SYNC_UNIT_ONE: { readonly exitCode: number; readonly terminated: boolean } = Object.freeze({ exitCode: 1, terminated: false });
+export const syncPipePools = { clear: undefined as (() => void) | undefined };
+export function clearRuntimePools(): void {
+  syncPipePools.clear?.();
+}
+export function arithTreeTouchesArray(tree: ArithmeticProgram["tree"], store: ReturnType<typeof arrayStore>, depth = 0): boolean {
+  if (!tree || !store || store.bindings.size === 0) return false;
+  if (depth > 128) return true;
+  switch (tree.kind) {
+    case "literal": return false;
+    case "name": return tree.subscript === undefined && store.bindings.has(tree.name);
+    case "unary":
+      if ((tree.operator === "++" || tree.operator === "--") && tree.operand.kind === "name" && tree.operand.subscript !== undefined) return true;
+      return arithTreeTouchesArray(tree.operand, store, depth + 1);
+    case "binary":
+      if ((tree.operator === "=" || tree.operator === "+=" || tree.operator === "-=" || tree.operator === "*=" || tree.operator === "/=" || tree.operator === "%=" || tree.operator === "<<=" || tree.operator === ">>=" || tree.operator === "&=" || tree.operator === "^=" || tree.operator === "|=") && tree.left.kind === "name" && tree.left.subscript !== undefined) return true;
+      return arithTreeTouchesArray(tree.left, store, depth + 1) || arithTreeTouchesArray(tree.right, store, depth + 1);
+    case "conditional":
+      return arithTreeTouchesArray(tree.condition, store, depth + 1) || arithTreeTouchesArray(tree.yes, store, depth + 1) || arithTreeTouchesArray(tree.no, store, depth + 1);
+    default:
+      return false;
+  }
+}
+export interface CachedSingleEvalUnit {
+  readonly script: Script;
+  readonly unitsCharged: number;
+}
+const evalSingleUnitCache = new Map<string, CachedSingleEvalUnit>();
+export function isDefaultShellSyntax(syntax: NonNullable<State["extensions"]>["syntax"] | undefined): boolean {
+  if (!syntax) return true;
+  return ( !syntax.listTerminators?.length && !syntax.specialParameters?.length && !syntax.arrayKeys && !syntax.indexedDeclarations?.length && !syntax.indexedElementOperators);
+}
+export function getOrParseSingleEvalUnit(source: string, unitLocale: boolean, parseBudget: ParseBudget, extglob = false): CachedSingleEvalUnit | undefined {
+  const key = (extglob ? "1:" : "0:") + (unitLocale ? "1:" : "0:") + source;
+  const existing = evalSingleUnitCache.get(key);
+  if (existing !== undefined) {
+    parseBudget.admit(existing.unitsCharged);
+    return existing;
+  }
+  const beforeUnits = parseBudget.admittedUnits;
+  const snap = parseBudget.snapshot();
+  const lineIndex = new SourceLineIndex(source, parseBudget);
+  const unit = parseShellUnit(source, 0, unitLocale, parseBudget, lineIndex, undefined, false, undefined, undefined, extglob);
+  if (unit.next < source.length || (unit.script.warnings && unit.script.warnings.length > 0)) {
+    parseBudget.restore(snap);
+    return undefined;
+  }
+  const unitsCharged = parseBudget.admittedUnits - beforeUnits;
+  const entry: CachedSingleEvalUnit = {
+    script: unit.script, unitsCharged, };
+  if (evalSingleUnitCache.size >= 512) {
+    const oldest = evalSingleUnitCache.keys().next().value;
+    if (oldest !== undefined) evalSingleUnitCache.delete(oldest);
+  }
+  evalSingleUnitCache.set(key, entry);
+  return entry;
+}
+export class Runtime {
+  [key: string]: any;
+  persistentIO(state: State, io: IO): IO {
+    const frame = execDescriptorFrames.get(stateMonitor(state)?.raw ?? state);
+    if (!frame || io.execFrame === frame && io.execVersion === frame.version) return io;
+    const changed = new Map([...frame.descriptors].filter(([number]) => io.execFrame !== frame || (frame.revisions.get(number) ?? 0) > (io.execVersion ?? 0)));
+    const descriptors = new Map(io.descriptors ?? [[0, { input: io.stdin }], [1, { output: io.stdout }], [2, { output: io.stderr }]]);
+    for (const [number, descriptor] of changed) descriptors.set(number, descriptor);
+    return { ...io, descriptors, execFrame: frame, execVersion: frame.version,
+      ...(changed.has(0) ? { stdin: descriptors.get(0)?.closed ? closedSource : descriptors.get(0)?.input ?? closedSource, stdinIsDefault: false } : {}),
+      ...(changed.has(1) ? { stdout: descriptors.get(1)?.closed ? closedSink : descriptors.get(1)?.output ?? closedSink } : {}),
+      ...(changed.has(2) ? { stderr: descriptors.get(2)?.closed ? closedSink : descriptors.get(2)?.output ?? closedSink } : {}) };
+  }
+  static clearStaticPools(): void { clearRuntimePools(); }
+  declare readonly commands: CommandRegistry;
+  declare readonly middleware: readonly Middleware[];
+  declare readonly budget: Budget;
+  declare readonly signal: AbortSignal;
+  declare readonly commandSignal: AbortSignal;
+  declare readonly cancellation: CancellationBoundary;
+  declare readonly cancellationState: RuntimeCancellationState;
+  declare readonly cancellationOwner: CancellationAdmissionOwner | undefined;
+  declare readonly cancellationDepth: number;
+  declare readonly cancellationMaxDepth: number;
+  declare readonly outcomeFrame: RuntimeOutcomeFrame | undefined;
+  declare readonly inputProfile: Pick<FileSystem, "readStream" | "capabilities">;
+  declare readonly sourceFs: FileSystem;
+  declare readonly backingFs: FileSystem;
+  declare private readonly _rawFs: FileSystem;
+  declare private _fs: FileSystem | undefined;
+  declare private _contextFsMask: number;
+  declare private _contextFsSignal: AbortSignal | undefined;
+  declare private _contextFs: FileSystem | undefined;
+  declare private _redirectFsMask: number;
+  declare private _redirectFs: FileSystem | undefined;
+  declare readonly _isMemoryBackingFs: boolean;
+  declare _fileWrites: Map<string, Promise<void>> | undefined;
+  declare _outputFiles: Map<string, OutputFile> | undefined;
+  declare private _syncArithState: State | undefined;
+  declare private _canFastMemoryRedirect: boolean | undefined;
+  declare private _syncArithRawVars: Record<string, string | undefined> | undefined;
+  declare private _syncArithLine: number | undefined;
+  declare _syncArithRawWriteOnly: boolean;
+  declare _syncArithTouched: Set<string> | undefined;
+  declare _fastSubPositional: readonly string[] | undefined;
+  declare _syncReturnDepth: number;
+  declare _syncPendingReturnStatus: number | undefined;
+  declare private _syncArithRefs: ArithmeticReferences | undefined;
+  declare private _syncReadOnlyArithRefs: ArithmeticReferences | undefined;
+  declare _activeSyncLoopAssignedVars: Set<string> | undefined;
+  declare _activeSyncArrayLoopWords: WeakSet<Word> | undefined;
+  declare _activeSyncLoopHasFileMutations: boolean;
+  declare _inSyncLoopPreflight: boolean;
+  declare _activeSyncLoopIO: IO | undefined;
+  declare _syncLoopInvariantSubMap: WeakMap<Extract<WordPart, { kind: "substitution" }>, { text: string; outBytes: number; exitStatus: number; dynamic?: boolean }> | undefined;
+  declare _syncLoopHasStaticInvSub: boolean;
+  constructor( fs: FileSystem, commands: CommandRegistry, middleware: readonly Middleware[], budget: Budget, signal: AbortSignal = budget.signal, fileWrites: Map<string, Promise<void>> | undefined = undefined, outputFiles: Map<string, OutputFile> | undefined = undefined, commandSignal: AbortSignal = signal, cancellation: CancellationBoundary, cancellationState: RuntimeCancellationState, cancellationOwner: CancellationAdmissionOwner | undefined, cancellationDepth: number, cancellationMaxDepth: number, outcomeFrame: RuntimeOutcomeFrame | undefined = undefined, inputProfile: Pick<FileSystem, "readStream" | "capabilities"> = fs, private readonly reuseDefaultContextFs = false, ) {
+    this.commands = commands;
+    this.middleware = middleware;
+    this.budget = budget;
+    this.signal = signal;
+    this.commandSignal = commandSignal;
+    this.cancellation = cancellation;
+    this.cancellationState = cancellationState;
+    this.cancellationOwner = cancellationOwner;
+    this.cancellationDepth = cancellationDepth;
+    this.cancellationMaxDepth = cancellationMaxDepth;
+    if (outcomeFrame !== undefined) this.outcomeFrame = outcomeFrame;
+    this.inputProfile = inputProfile;
+    this._rawFs = fs;
+    if (fileWrites !== undefined) this._fileWrites = fileWrites;
+    if (outputFiles !== undefined) this._outputFiles = outputFiles;
+    this._fs = undefined;
+    this._contextFs = undefined;
+    this._redirectFs = undefined;
+    this._canFastMemoryRedirect = undefined;
+    this.sourceFs = runtimeFileSystems.get(fs) ?? fs;
+    this.backingFs = getRuntimeBackingFileSystem(this.sourceFs) ?? this.sourceFs;
+    // Raw-memory shortcuts bypass scoped pathname admission, so only enable
+    // them when the execution has no pathname-component limit.
+    this._isMemoryBackingFs = budget.limits.maxPathnameComponents === Infinity && isUnmodifiedMemoryFileSystem(this.backingFs);
+    registerInternalYieldCheckpoint(signal, budget.yieldCheckpoint);
+    if (commandSignal !== signal) {
+      inheritYieldCheckpoint(signal, commandSignal);
+      registerInternalYieldCheckpoint(commandSignal, budget.yieldCheckpoint);
+    }
+    if (!this._isMemoryBackingFs) {
+      this.signal = toNativeAbortSignal(signal);
+      this.commandSignal = toNativeAbortSignal(commandSignal);
+    }
+  }
+  get fileWrites(): Map<string, Promise<void>> {
+    return this._fileWrites ??= new Map();
+  }
+  get outputFiles(): Map<string, OutputFile> {
+    return this._outputFiles ??= new Map();
+  }
+  releaseAnchorResources(): void {
+    if (this._contextFs !== undefined) {
+      const reusableEntry = reusableDefaultContextFsBySourceFs.get(this.sourceFs);
+      if (reusableEntry && reusableEntry.inUseBy === this) {
+        retargetScopedFileSystem(reusableEntry.scoped, noopFsCharge, NEVER_ABORTED_SIGNAL, noopFsCharge, 256);
+        registerRuntimeBackingFileSystem(reusableEntry.scoped, this.backingFs);
+        reusableEntry.inUseBy = undefined;
+      }
+    }
+    if (this.backingFs) {
+      const emptyFs = (_sharedEmptyMemoryFs ??= Object.freeze({}) as unknown as FileSystem);
+      (this as unknown as { backingFs: FileSystem }).backingFs = emptyFs;
+      (this as unknown as { sourceFs: FileSystem }).sourceFs = emptyFs;
+      (this as unknown as { _rawFs: FileSystem })._rawFs = emptyFs;
+      (this as unknown as { inputProfile: FileSystem }).inputProfile = emptyFs;
+      this._fs = undefined;
+      this._contextFs = undefined;
+      this._redirectFs = undefined;
+    }
+  }
+  get fs(): FileSystem {
+    if (!this._fs) {
+      this._fs = scopeFileSystem(this._rawFs, this.budget.chargeFs, this.signal, this.budget.cleanupChargeFs, { maxPathComponents: this.budget.limits.maxPathnameComponents });
+      runtimeFileSystems.set(this._fs, this.sourceFs);
+      if (this.budget.limits.maxPathnameComponents === Infinity) registerRuntimeBackingFileSystem(this._fs, this.backingFs, this.budget.chargeFs);
+    }
+    return this._fs;
+  }
+  getContextFsFor(umask: number, sig: AbortSignal): FileSystem {
+    if (this._contextFs && this._contextFsMask === umask && this._contextFsSignal === sig) {
+      return this._contextFs;
+    }
+    // Retarget only root invocation views; command and child scopes must stay closed.
+    if (this.reuseDefaultContextFs && sig === this.signal && umask === 0o022 && !this._contextFs && this._isMemoryBackingFs) {
+      let entry = reusableDefaultContextFsBySourceFs.get(this.sourceFs);
+      if (!entry) {
+        warmDefaultRuntimeContextFs(this.sourceFs, this.backingFs);
+        entry = reusableDefaultContextFsBySourceFs.get(this.sourceFs);
+      }
+      if (entry && (entry.inUseBy === undefined || entry.inUseBy === this)) {
+        if (retargetScopedFileSystem(entry.scoped, this.budget.chargeFs, toNativeAbortSignal(sig), this.budget.cleanupChargeFs, this.budget.limits.maxPathnameComponents)) {
+          registerRuntimeBackingFileSystem(entry.scoped, this.backingFs, this.budget.chargeFs);
+          entry.inUseBy = this;
+          this._contextFsMask = umask;
+          this._contextFsSignal = sig;
+          this._contextFs = entry.scoped;
+          return entry.scoped;
+        }
+      }
+    }
+    const created = scopeFileSystem( creationFileSystem(this.sourceFs, umask), this.budget.chargeFs, toNativeAbortSignal(sig), this.budget.cleanupChargeFs, { maxPathComponents: this.budget.limits.maxPathnameComponents }, );
+    runtimeFileSystems.set(created, this.sourceFs);
+    if (this.budget.limits.maxPathnameComponents === Infinity) registerRuntimeBackingFileSystem(created, this.backingFs, this.budget.chargeFs);
+    this._contextFsMask = umask;
+    this._contextFsSignal = sig;
+    this._contextFs = created;
+    return created;
+  }
+  private getRedirectFs(umask: number): FileSystem {
+    if (this._redirectFs && this._redirectFsMask === umask) return this._redirectFs;
+    this._redirectFsMask = umask;
+    return (this._redirectFs = scopeFileSystem( creationFileSystem(this.sourceFs, umask), this.budget.chargeFs, this.commandSignal, this.budget.cleanupChargeFs, { preserveDescriptorWriteReceipt: true, maxPathComponents: this.budget.limits.maxPathnameComponents }, ));
+  }
+  private async ereDiagnostic(io: IO, detail: string): Promise<void> {
+    try { await this.diagnostic(io, detail); }
+    catch (reason) {
+      this.signal.throwIfAborted();
+      if (reason instanceof ShellLimitError) throw reason;
+      throw new NounsetDiagnosticFailure(reason);
+    }
+  }
+  extractSimpleErePattern(_pattern: Word, _state?: State): { text: string; literal: boolean; isVar?: string } | undefined { return undefined; }
+  trySyncEre(_subject: string, _pattern: Word, _state: State, _ignoreYield = false): number | undefined { return undefined; }
+  private tryFastExecuteCommandSync(_command: Command, _state: State, _originalIO: IO, _fileShortcut: boolean, _terminal: any, _diagnosticLine: number): number | Promise<number> | undefined { return undefined; }
+  private async ere(subject: string, pattern: Word, state: State, io: IO): Promise<number> {
+    const scope = io[invocationScope];
+    scope.assertOpen();
+    const syncRes = this.trySyncEre(subject, pattern, state, true);
+    if (syncRes !== undefined) return syncRes;
+    const monitor = stateMonitor(state);
+    const existingStore = monitor?.store;
+    const existingRematch = existingStore?.get("BASH_REMATCH");
+    const simplePat = this.extractSimpleErePattern(pattern);
+    if ( monitor && existingStore && existingRematch && !existingRematch.associative && existingRematch.references === 1 && !existingStore.watches.has("BASH_REMATCH") && !monitor.hasOverlay("BASH_REMATCH") && !state.readonlyVariables?.has("BASH_REMATCH") && !state.exported.has("BASH_REMATCH") && simplePat) {
+      const collation = state.variables.LC_ALL || state.variables.LC_COLLATE || state.variables.LANG || "C";
+      const characters = state.variables.LC_ALL || state.variables.LC_CTYPE || state.variables.LANG || "C";
+      if ([collation, characters].every(locale => cCollation(locale) || utf8Locale(locale))) {
+        const p0 = { value: simplePat.text, quoted: simplePat.literal };
+        const ledger = new EreLedger({
+          maxExpansionBytes: this.budget.limits.maxExpansionBytes, maxExpansionFields: this.budget.limits.maxExpansionFields, });
+        let result: Awaited<ReturnType<typeof matchEre>> | undefined;
+        let syntaxErr = false;
+        try {
+          const program = await compileEre([{ text: p0.value, literal: !!p0.quoted }], ledger, this.signal, !!state.nocasematch, {
+            ranges: cCollation(collation), classes: !utf8Locale(characters), });
+          result = await matchEre(program, subject, ledger, this.signal);
+        } catch (error) {
+          this.signal.throwIfAborted();
+          if (error instanceof EreSyntaxError || error instanceof EreUnsupportedError) syntaxErr = true; else throw error;
+        }
+        if (!syntaxErr && result !== undefined && !existingStore.watches.has("BASH_REMATCH") && !monitor.hasOverlay("BASH_REMATCH") && existingRematch.references === 1) {
+          const status = result.matched ? 0 : 1;
+          const capLen = result.matched ? result.captures.length : 0;
+          for (const key of existingRematch.values.keys()) {
+            if (key >= capLen) existingRematch.remove(key);
+          }
+          existingRematch.maximum = capLen - 1;
+          for (let index = 0; index < capLen; index++) {
+            const span = result.captures[index]!;
+            const value = span === null ? "" : subject.slice(span.start, span.end);
+            const byteLen = shellValueByteLength(value);
+            const elem = existingRematch.values.get(index);
+            if (elem && elem.text.references === 1 && elem.text.bytes === byteLen) elem.text.shellValue = value; else {
+              existingRematch.owner.chargeWork(byteLen);
+              const token = new OwnedText(value, byteLen, existingRematch.owner.reserve({ payload: byteLen, metadata: 32, work: 4 }));
+              try { existingRematch.insert(index, token); }
+              catch (error) { token.release(); throw error; }
+            }
+          }
+          delete state.variables.BASH_REMATCH;
+          const tickets = existingStore.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
+          monitor.epoch = tickets.epoch;
+          existingStore.changed(tickets, "BASH_REMATCH");
+          return status;
+        }
+      }
+    }
+    const store = requireArrays(state);
+    let operation: ArrayOwner | undefined;
+    let holding: ReturnType<ArrayOwner["hold"]> | undefined;
+    let staged: IndexedBinding | undefined;
+    let closing: Promise<void> | undefined;
+    const close = (): Promise<void> => closing ??= Promise.resolve().then(async () => {
+      try { await staged?.release(); } finally { try { await operation?.close(); } finally { holding?.release(); } }});
+    let primary = false;
+    try {
+      operation = ArrayOwner.create(store.owner.ledger, store.owner);
+      holding = store.owner.hold();
+      await this.prepareArrayObservers(state, operation);
+      operation.reserve({ metadata: 64, allocatedSlots: 1, work: 2 });
+      const fragments: EreFragment[] = [];
+      if ( pattern.parts.length === 1 && pattern.parts[0]!.kind === "text" && !pattern.parts[0]!.value.includes("\\") && !pattern.parts[0]!.value.includes("~")) {
+        const p0 = pattern.parts[0]!;
+        operation.reserve({ metadata: 64, allocatedSlots: 1, payload: shellValueByteLength(p0.value), work: p0.value.length + 2 });
+        fragments.push({ text: p0.value, literal: !!p0.quoted });
+      } else {
+        await this.word(pattern, state, io, false, false, false, false, (text, literal) => {
+          operation!.reserve({ metadata: 64, allocatedSlots: 1, payload: shellValueByteLength(text), work: text.length + 2 });
+          fragments.push({ text, literal });});
+      }
+      const collation = state.variables.LC_ALL || state.variables.LC_COLLATE || state.variables.LANG || "C";
+      const characters = state.variables.LC_ALL || state.variables.LC_CTYPE || state.variables.LANG || "C";
+      if (![collation, characters].every(locale => cCollation(locale) || utf8Locale(locale))) {
+        await this.ereDiagnostic(io, "[[ unsupported ERE profile: locale must be C, POSIX or UTF-8");
+        return 2;
+      }
+      await textToken(operation, subject, this.signal);
+      const name = "BASH_REMATCH";
+      const watch = await store.watch(name, operation, this.signal);
+      const ledger = new EreLedger({
+        maxExpansionBytes: this.budget.limits.maxExpansionBytes, maxExpansionFields: this.budget.limits.maxExpansionFields, });
+      let result: Awaited<ReturnType<typeof matchEre>>;
+      try {
+        const program = await compileEre(fragments, ledger, this.signal, !!state.nocasematch, {
+          ranges: cCollation(collation), classes: !utf8Locale(characters), });
+        result = await matchEre(program, subject, ledger, this.signal);
+      }
+      catch (error) {
+        this.signal.throwIfAborted();
+        if (error instanceof EreSyntaxError || error instanceof EreUnsupportedError) {
+          await this.ereDiagnostic(io, `[[ ${error.message}`);
+          return 2;
+        }
+        throw error;
+      }
+      const status = result.matched ? 0 : 1;
+      this.signal.throwIfAborted();
+      scope.assertOpen();
+      if (state.readonlyVariables?.has(name)) { await this.ereDiagnostic(io, `${name}: readonly variable`); return status; }
+      if (state.exported.has(name)) throw new ArrayFailure("exported binding cannot be indexed");
+      if (!watch.valid()) throw new ArrayFailure("stale binding");
+      const supersede = await stateMonitor(state)!.prepareTypedPublication(name, operation, this.signal);
+      const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });
+      const prepared = await store.prepareName(name, operation, this.signal);
+      staged = IndexedBinding.create(store.owner);
+      if (result.matched) for (let index = 0; index < result.captures.length; index++) {
+        const span = result.captures[index]!;
+        const size = span === null ? 0 : span.end - span.start;
+        operation.reserve({ payload: size, metadata: 32, work: size + 2 });
+        const value = span === null ? "" : subject.slice(span.start, span.end);
+        const token = await textToken(staged.owner, value, this.signal);
+        try { staged.insert(index, token); } catch (error) { token.release(); throw error; }
+      }
+      this.signal.throwIfAborted();
+      scope.assertOpen();
+      if (state.readonlyVariables?.has(name)) { await this.ereDiagnostic(io, `${name}: readonly variable`); return status; }
+      if (state.exported.has(name)) throw new ArrayFailure("exported binding cannot be indexed");
+      if (!watch.valid()) throw new ArrayFailure("stale binding");
+      let released: Promise<void> | undefined;
+      stateMonitor(state)!.publish(tickets, name, () => {
+        supersede();
+        delete state.variables[name];
+        released = store.publish(name, staged!, tickets, prepared);});
+      staged = undefined;
+      watch.close();
+      await released;
+      return status;
+    } catch (error) { primary = true; throw error; }
+    finally {
+      await close().catch(error => {
+        if (primary) scope.failures.push(error);
+        else throw new NounsetDiagnosticFailure(error);});
+    }
+  }
+  static rootCancellationAdmission(budget: Budget): CancellationAdmissionSnapshot {
+    const maxDepth = saturatedSum(budget.limits.maxCommands, saturatedSum(budget.limits.maxSubstitutionDepth, 1));
+    return {
+      depth: 0, maxDepth, resourceLimit: Runtime.cancellationResourceLimit(budget, 0, maxDepth, 2), };
+  }
+  private static cancellationResourceLimit(budget: Budget, depth: number, maxDepth: number, controls: number): number {
+    const remainingCommands = Math.max(0, budget.limits.maxCommands - budget.commands);
+    const remainingDepth = Math.max(0, maxDepth - depth);
+    return saturatedSum(saturatedSum(4, controls), saturatedSum(remainingCommands, remainingDepth));
+  }
+  private cancellationAdmission(depth: number, controls = 0): CancellationAdmissionSnapshot {
+    return {
+      depth, maxDepth: this.cancellationMaxDepth, resourceLimit: Runtime.cancellationResourceLimit(this.budget, depth, this.cancellationMaxDepth, controls), };
+  }
+  observeRuntimeReturn<Value>( rawReturn: Value | PromiseLike<Value>, frame: RuntimeOutcomeFrame, downstream: () => Promise<CommandResult> | undefined = () => undefined, ): Promise<Value> {
+    const raw = rawReturn as unknown;
+    return Promise.resolve(rawReturn).then( value => {
+        if (raw !== downstream()) frame.report = undefined;
+        return value;
+      }, reason => {
+        const report = this.cancellationState.consume(raw, reason);
+        if (report) frame.report = report;
+        else if (raw !== downstream()) frame.report = undefined;
+        const diagnostic = this.cancellationState.consumeDiagnostic(raw);
+        if (diagnostic) throw diagnostic;
+        throw reason;
+      }, );
+  }
+  private invokeChild( options: ShellInvokeOptions, state: State, parent: InvocationScope, validate: () => void, execute: (runtime: Runtime, scope: InvocationScope) => Promise<CommandResult>, ): Promise<CommandResult> {
+    const publicPromise: Promise<CommandResult> = Promise.resolve().then(async () => {
+      if (!this.cancellation.deliverySignal.aborted) parent.assertOpen();
+      const childDepth = this.cancellationDepth + 1;
+      const prepared = prepareChildCancellation( this.cancellation, options, this.cancellationAdmission(childDepth), );
+      this.cancellationOwner?.assertAdmissionOpen();
+      validate();
+      let scope: InvocationScope | undefined;
+      let boundary: CancellationBoundary;
+      let owner: InvocationCancellationOwner | undefined;
+      try {
+        if (prepared.owned) {
+          owner = new InvocationCancellationOwner(parent, prepared, this.cancellationState, publicPromise);
+          scope = parent.child();
+          boundary = owner.activate();
+        } else {
+          scope = parent.child();
+          boundary = activateChildCancellation(prepared);
+        }
+      } catch (error) {
+        if (owner) await owner.abandon(scope?.close() ?? Promise.resolve());
+        else await scope?.close();
+        throw error;
+      }
+      const frame: RuntimeOutcomeFrame = {};
+      const runtime = new Runtime( this.fs, this.commands, this.middleware, this.budget, combineManagedSignals(boundary.deliverySignal, scope.signal), this.fileWrites, this.outputFiles, boundary.deliverySignal, boundary, this.cancellationState, owner ?? this.cancellationOwner, prepared.owned ? childDepth : this.cancellationDepth, this.cancellationMaxDepth, frame, this.inputProfile, );
+      let captured: CapturedCancellationOutcome<CommandResult>;
+      const executeChild = (): Promise<CommandResult> => execute(runtime, scope);
+      if (owner) captured = await owner.capture(executeChild, frame);
+      else {
+        try { captured = { kind: "return", value: await executeChild() }; }
+        catch (reason) {
+          captured = frame.report && Object.is(frame.report.origin.signal.reason, reason)
+            ? { kind: "throw", reason, report: frame.report }
+            : { kind: "throw", reason };
+        }
+      }
+      let selection: CancellationSelection<CommandResult>;
+      if (owner) selection = await owner.finish(scope.close(), captured);
+      else {
+        await scope.close();
+        const close = boundary.close();
+        scope.failures.push(...close.failures);
+        selection = selectRuntimeCancellationOutcome(boundary, captured);
+      }
+      if (selection.outcome.kind === "throw") {
+        const reason = selection.outcome.reason;
+        if (reason instanceof NounsetDiagnosticFailure) {
+          this.cancellationState.recordDiagnostic(publicPromise, reason);
+          throw reason.reason;
+        }
+        throw reason;
+      }
+      return selection.outcome.value;});
+    return publicPromise;
+  }
+  clearOutcomeReport(): void {
+    if (this.outcomeFrame) this.outcomeFrame.report = undefined;
+  }
+  async diagnostic(io: IO, text: ShellValue): Promise<void> {
+    const prefix = `${io.scriptName ?? "shell"}: line ${io.diagnosticLine ?? 1}: `;
+    if (typeof text === "string") return writeDiagnostic(io.stderr, `${prefix}${text}\n`, this.signal);
+    const allocation = this.budget.values.scope();
+    try {
+      const value = concatShellValues([prefix, text, "\n"], allocation);
+      await io.stderr.write(shellValueBytes(value, allocation));
+    } finally { allocation.close(); }
+  }
+  async writeVariable(state: State, name: string, value: ShellValue, io: IO, origin: "assignment" | "arithmetic" | "getopts" = "assignment", dereference = true): Promise<void> {
+    if (dereference) name = this.referenceName(state, name);
+    const target = name.includes("[") ? this.variableTarget(name) : undefined;
+    if (target?.subscript !== undefined) {
+      await this.arrayAssignment({ kind: "element", name: target.name, append: false, index: stringIndex(target.subscript, this.budget.parsing, parseArraySubscript(target.subscript, this.budget.parsing, byteLocale(state.variables), state.depth, false, state.extensions?.syntax, !!state.extglob)), value: { offset: 0, parts: [{ kind: "text", value: shellValueText(value), quoted: true, ...(typeof value === "string" ? {} : { byteValue: value }) }] } }, state, io);
+      return;
+    }
+    if (arrayStore(state)?.get(name)) throw new ArrayFailure(origin === "arithmetic" ? "indexed arithmetic is unsupported" : "indexed write requires prepared publication");
+    if (state.readonlyVariables?.has(name)) throw new PublicDiagnostic(`${name}: readonly variable`);
+    const maxBytes = this.budget.limits.maxExpansionBytes;
+    if ((typeof value !== "string" || value.length * 3 > maxBytes) && shellValueByteLength(value) > maxBytes) this.budget.fail("maxExpansionBytes");
+    if (state.variableAttributes?.get(name)) value = await this.attributeValue(state, name, value, io, origin);
+    if (name === "OPTIND" && (state.getopts === undefined || state.getopts.integer) && origin !== "arithmetic") {
+      try { value = String(evaluateArithmetic(prepareArithmetic(shellValueText(value) || "0", this.budget.parsing), this.arithmeticVariables(state), this.budget.parsing)); }
+      catch (error) { this.rethrowArithmeticControl(error); throw new ExpansionFailure(message(error, this.budget.onInternalError)); }
+    }
+    publishVariable(state, name, value);
+    if (state.allexport) state.exported.add(name);
+    if (name === "OPTIND" && origin !== "getopts") this.syncGetopts(state);
+  }
+  private declareAttributes(state: State, name: string, enabled: Set<string>, disabled: Set<string>): void {
+    let attributes = state.variableAttributes?.get(name) ?? "";
+    for (const flag of disabled) attributes = attributes.split(flag).join("");
+    for (const flag of enabled) if ("ilun".includes(flag) && !attributes.includes(flag)) attributes += flag;
+    if (enabled.has("l")) attributes = attributes.split("u").join("");
+    if (enabled.has("u")) attributes = attributes.split("l").join("");
+    state.variableAttributes ??= new Map();
+    state.variableAttributes.set(name, attributes);
+  }
+  private async attributeValue(state: State, name: string, value: ShellValue, io: IO, origin = "assignment", previous?: ShellValue): Promise<ShellValue> {
+    const attributes = state.variableAttributes?.get(name) ?? "";
+    if (attributes.includes("i") && origin !== "arithmetic") {
+      const evaluate = (input: ShellValue): Promise<bigint> => this.shellArithmetic(prepareArithmetic(shellValueText(input) || "0", this.budget.parsing), state, io);
+      try { value = String(await evaluate(value) + (previous === undefined ? 0n : await evaluate(previous))); }
+      catch (error) {
+        // Bash reports fatal integer assignment nounset as 127 in the parent shell,
+        // while child execution environments retain status 1.
+        if (error instanceof NounsetFailure) throw new NounsetFailure(error.message, error.line, state.isolated ? 1 : 127);
+        if (error instanceof PublicDiagnostic) throw new ExpansionFailure(error.message);
+        throw error;
+      }
+    }
+    return this.caseAttributeValue(state, name, value);
+  }
+  private caseAttributeValue(state: State, name: string, value: ShellValue): ShellValue {
+    const attributes = state.variableAttributes?.get(name) ?? "";
+    if (attributes.includes("l") || attributes.includes("u")) {
+      const bytes = Uint8Array.from(shellValueBytes(value));
+      for (let index = 0; index < bytes.length; index++) {
+        const byte = bytes[index]!;
+        if (attributes.includes("l") && byte >= 65 && byte <= 90) bytes[index] = byte + 32;
+        if (attributes.includes("u") && byte >= 97 && byte <= 122) bytes[index] = byte - 32;
+      }
+      value = shellValueFromBytes(bytes);
+    }
+    if (shellValueByteLength(value) > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
+    return value;
+  }
+  syncGetopts(state: State): void {
+    state.getopts ??= cloneGetoptsBinding(state);
+    const value = state.variables.OPTIND;
+    if (value === undefined) {
+      state.getopts.integer = false;
+      state.getopts.cursor = createGetoptsState();
+    } else state.getopts.cursor = withGetoptsIndex(state.getopts.cursor, decimalIndex(value));
+  }
+  private reconcileGetopts(state: State, previous: string | undefined): void {
+    if (state.variables.OPTIND !== previous) this.syncGetopts(state);
+  }
+  private unsetVariable(state: State, name: string, internal = false, dereference = true): void {
+    if (dereference) name = this.referenceName(state, name);
+    if (state.readonlyVariables?.has(name)) throw new PublicDiagnostic(`${name}: readonly variable`);
+    delete state.variables[name];
+    if (name === "RANDOM") state.randomDisabled = true;
+    if (name === "SECONDS") state.secondsDisabled = true;
+    state.exported.delete(name);
+    state.variableAttributes?.delete(name);
+    if (name === "OPTIND" && !internal) this.syncGetopts(state);
+  }
+  private rethrowArithmeticControl(error: unknown): void {
+    this.signal.throwIfAborted();
+    if (error instanceof NounsetFailure || error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError) throw error;
+  }
+  private arithmeticValue(program: ArithmeticProgram, state: State, io: IO): Promise<bigint> {
+    if (!program.source.includes("$")) return this.shellArithmetic(program, state, io);
+    return evaluatePositionalArithmetic(program, {
+      parseBudget: this.budget.parsing, positional: state.positional, arg0: state.arg0 ?? "virtual-bash", owner: arrayStore(state)?.owner, maximumBytes: this.budget.limits.maxExpansionBytes, checkpoint: () => this.signal.throwIfAborted(), requireParameter: (name, value) => this.requireParameter(value, name, state, io), limit: () => this.budget.fail("maxExpansionBytes"), }, prepared => this.shellArithmetic(prepared, state, io));
+  }
+  get canFastMemoryRedirect(): boolean {
+    return this._canFastMemoryRedirect ??= ( this.budget.limits.maxPathnameComponents === Infinity && !this.backingFs.capabilitiesFor && this.sourceFs.capabilities.open === true && this.sourceFs.capabilities.preferStreamingRedirection !== true && this.sourceFs.capabilities.readOnly !== true && this.sourceFs.capabilities.write !== false && this.sourceFs.capabilities.append !== false);
+  }
+  private get syncArithRefs(): ArithmeticReferences {
+    return this._syncArithRefs ??= this.createSyncArithRefs();
+  }
+  private createSyncArithRefs(_readOnly = false): ArithmeticReferences { throw new Error("unavailable"); }
+  private syncShellArithmetic(_program: ArithmeticProgram, _state: State, _line: number | undefined): bigint { return 0n; }
+  syncShellArithmeticNonZero(_program: ArithmeticProgram, _state: State, _line: number | undefined): boolean | undefined { return undefined; }
+  private canSyncArithmeticOperands(_tree: ArithmeticProgram["tree"], _state: State, _line?: number, _depth = 0): boolean { return false; }
+  canSyncArithmeticWithoutFault(_tree: ArithmeticProgram["tree"], _state: State, _line?: number, _depth = 0): boolean { return false; }
+  canSyncPatternWordParts(_word: Word, _rawState: State): boolean { return false; }
+  tryBuildSyncPatternWord(_word: Word, _rawState: State, _io: IO, _diagnosticLine?: number): string | undefined { return undefined; }
+  private async shellArithmetic(program: ArithmeticProgram, state: State, io: IO, variables?: Record<string, string>): Promise<bigint> {
+    // Array resolution may decline after earlier mutations; evaluate those programs only once.
+    if (variables === undefined && !(program.hasMutation && program.hasSubscript) && this.canSyncArithmeticOperands(program.tree, state, io.diagnosticLine)) {
+      const snap = this.budget.parsing.snapshot();
+      try {
+        return this.syncShellArithmetic(program, state, io.diagnosticLine);
+      } catch (error) {
+        if (!(error instanceof ArrayFailure)) throw error;
+        this.budget.parsing.restore(snap);
+      }
+    }
+    const resolvedVariables = variables ?? this.arithmeticVariables(state, io.diagnosticLine);
+    let depth = 0;
+    const resolving = new Set<string>();
+    const references: ArithmeticReferences = {
+      isSync: false, resolve: (variable, subscript) => {
+        this.signal.throwIfAborted();
+        const target = this.variableTarget(this.referenceName(state, variable))!;
+        const name = target.name;
+        subscript ??= target.subscript;
+        const binding = arrayStore(state)?.get(name);
+        if (subscript === undefined && !binding) return name;
+        return (async () => {
+          let index: number | undefined;
+          let key: string | undefined;
+          if (binding?.associative) {
+            const word = parseArraySubscript(subscript ?? "0", this.budget.parsing, byteLocale(state.variables), state.depth, false, state.extensions?.syntax, !!state.extglob);
+            const fields = await this.valueWord(word, state, io, false);
+            const value = concatShellValues(fields, io[valueScope]);
+            key = shellValueText(value);
+            const identity = await binding.keyIdentity(value, binding.owner, this.signal);
+            index = binding.keys.get(identity)?.index;
+          } else {
+            const identity = JSON.stringify([name, subscript]);
+            if (resolving.has(identity)) throw new PublicDiagnostic("Arithmetic subscript recursion nesting");
+            resolving.add(identity);
+            if (++depth > this.budget.limits.maxSyntaxDepth) throw new PublicDiagnostic(`Arithmetic subscript nesting exceeds ${this.budget.limits.maxSyntaxDepth}`);
+            let number: bigint;
+            try {
+              let operand = prepareArithmetic(subscript ?? "0", this.budget.parsing);
+              if (operand.error) {
+                const word = parseArraySubscript(subscript ?? "0", this.budget.parsing, byteLocale(state.variables), state.depth, false, state.extensions?.syntax, !!state.extglob);
+                const fields = await this.valueWord(word, state, io, false);
+                operand = prepareArithmetic(shellValueText(concatShellValues(fields, io[valueScope])), this.budget.parsing);
+              }
+              number = await evaluateArithmeticReferences(operand, references, this.budget.parsing);
+            } finally { depth--; resolving.delete(identity); }
+            if (number < 0n) number += BigInt((binding?.maximum ?? (state.variables[name] === undefined ? -1 : 0)) + 1);
+            if (number < 0n || number > 2147483647n) throw new ArrayFailure("index outside 0..2147483647");
+            index = Number(number);
+          }
+          return JSON.stringify([name, index ?? null, key, subscript === undefined]);
+        })();
+      }, read: reference => {
+        this.signal.throwIfAborted();
+        if (!reference.startsWith("[")) return resolvedVariables[reference];
+        const [name, index, key] = JSON.parse(reference) as [string, number | null, string?];
+        const binding = arrayStore(state)?.get(name);
+        const value = binding ? binding.get(index ?? -1) : index === 0 ? state.variables[name] : undefined;
+        if (state.nounset && value === undefined) throw new NounsetFailure(`${name}[${key ?? index}]: unbound variable`, io.diagnosticLine);
+        if (value !== undefined && shellValueByteLength(value) > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
+        return value;
+      }, write: async (reference, value) => {
+        if (!reference.startsWith("[")) { resolvedVariables[reference] = value; return; }
+        const [name, index, key, scalar] = JSON.parse(reference) as [string, number | null, string | null, boolean];
+        await this.arrayAssignment({
+          kind: "element", name, append: false, index: { decimal: String(index ?? 0), ...(key == null ? {} : { word: { offset: 0, parts: [{ kind: "text", value: key, quoted: true }] } }) }, value: { offset: 0, parts: [{ kind: "text", value, quoted: true }] }, }, state, io);
+        if (scalar && state.allexport) state.exported.add(name);
+      }, };
+    return evaluateArithmeticReferences(program, references, this.budget.parsing);
+  }
+  private async expandedArithmeticValue(program: ArithmeticProgram, state: State, io: IO): Promise<bigint> {
+    if (!(program.hasMutation && program.hasSubscript) && this.canSyncArithmeticOperands(program.tree, state, io.diagnosticLine)) {
+      const snap = this.budget.parsing.snapshot();
+      try {
+        return this.syncShellArithmetic(program, state, io.diagnosticLine);
+      } catch (error) {
+        if (!(error instanceof ArrayFailure)) throw error;
+        this.budget.parsing.restore(snap);
+      }
+    }
+    const allocation = this.budget.values.scope();
+    try {
+      if (program.error) {
+        const canCacheWord = !byteLocale(state.variables) && (state.depth + (io.parameterDepth ?? 0)) === 0;
+        const cachedProg = program as { _cachedArithWord?: Word; _cachedArithSyntax?: unknown };
+        let word = canCacheWord && cachedProg._cachedArithSyntax === state.extensions?.syntax ? cachedProg._cachedArithWord : undefined;
+        if (!word) {
+          word = parseArithmeticExpansion(program.source, this.budget.parsing, byteLocale(state.variables), state.depth + (io.parameterDepth ?? 0), io.diagnosticLine ?? 1, state.extensions?.syntax, !!state.extglob);
+          if (canCacheWord) { cachedProg._cachedArithWord = word; cachedProg._cachedArithSyntax = state.extensions?.syntax; }
+        }
+        const fastSource = this.fastValueWord(word, state, io, false, false, true, false, undefined, io.diagnosticLine);
+        if (typeof fastSource === "string") {
+          program = prepareArithmetic(fastSource, this.budget.parsing);
+          if (!(program.hasMutation && program.hasSubscript) && this.canSyncArithmeticOperands(program.tree, state, io.diagnosticLine)) {
+            const snap = this.budget.parsing.snapshot();
+            try {
+              return this.syncShellArithmetic(program, state, io.diagnosticLine);
+            } catch (error) {
+              if (!(error instanceof ArrayFailure)) throw error;
+              this.budget.parsing.restore(snap);
+            }
+          }
+        } else {
+          const operandIO = this.parameterOperandIO(word, state, { ...io, [valueScope]: allocation });
+          const fields = await this.valueWord(word, state, operandIO, false, false, true);
+          const source = shellValueText(concatShellValues(fields, allocation));
+          this.signal.throwIfAborted();
+          program = prepareArithmetic(source, this.budget.parsing);
+        }
+      }
+      return await this.shellArithmetic(program, state, { ...io, [valueScope]: allocation });
+    } finally { allocation.close(); }
+  }
+  arithmeticVariables(state: State, line?: number): Record<string, string> {
+    return new Proxy(state.variables, {
+      get: (target, key) => {
+        this.signal.throwIfAborted();
+        const name = typeof key === "string" ? this.referenceName(state, key) : key;
+        if (arrayStore(state)?.get(String(name))) throw new ArrayFailure("indexed arithmetic is unsupported");
+        const value = (typeof name === "string" && (name === "RANDOM" || name === "SECONDS") ? this.variable(state, name) : Reflect.get(target, name))
+          ?? (name === "LINENO" ? String(line ?? 1)
+            : name === "_" ? state.lastArgument ?? ""
+            : name === "FUNCNAME" ? state.functionNames?.[0]
+            : undefined);
+        if (state.nounset && typeof key === "string" && value === undefined) throw new NounsetFailure(`${key}: unbound variable`, line);
+        return value;
+      }, set: (_target, key, value: string) => {
+        const name = this.referenceName(state, String(key));
+        if (arrayStore(state)?.get(name)) throw new ArrayFailure("indexed arithmetic is unsupported");
+        if (state.readonlyVariables?.has(name)) throw new PublicDiagnostic(`${name}: readonly variable`);
+        publishVariable(state, name, this.caseAttributeValue(state, name, value));
+        if (state.allexport) state.exported.add(name);
+        if (name === "OPTIND") this.syncGetopts(state);
+        return true;
+      }, });
+  }
+  private referenceName(state: State, name: string): string {
+    if (!hasActiveVariableAttributes(state)) return name;
+    const seen = new Set<string>();
+    let target = this.variableTarget(name);
+    while (target && state.variableAttributes?.get(target.name)?.includes("n") && state.variables[target.name]) {
+      this.signal.throwIfAborted();
+      if (seen.has(target.name)) throw new ExpansionFailure(`${target.name}: circular name reference`);
+      seen.add(target.name);
+      name = state.variables[target.name]! + (target.subscript === undefined ? "" : `[${target.subscript}]`);
+      target = this.variableTarget(name);
+      if (!target) throw new ExpansionFailure(`${name}: invalid name reference`);
+    }
+    return name;
+  }
+  private variableTarget(name: string): { name: string; subscript?: string } | undefined {
+    const bracket = name.indexOf("[");
+    const base = bracket < 0 ? name : name.slice(0, bracket);
+    if (!isShellIdentifier(base) || bracket >= 0 && (!name.endsWith("]") || bracket === name.length - 2)) return undefined;
+    return bracket < 0 ? { name: base } : { name: base, subscript: name.slice(bracket + 1, -1) };
+  }
+  variable(state: State, name: string): string | undefined {
+    name = this.referenceName(state, name);
+    if (name === "$" || name === "BASHPID") return "1";
+    if (name === "!") return "";
+    if (name === "RANDOM" || name === "SECONDS") return readDynamicVariable(stateMonitor(state)?.raw ?? state, name) ?? state.variables[name];
+    const binding = arrayStore(state)?.get(name);
+    if (binding) return binding.get(binding.associative ? binding.keys.get("30")?.index ?? -1 : 0);
+    if (name === "DIRSTACK") return state.cwd;
+    if (name === "BASH_SUBSHELL") return state.variables.BASH_SUBSHELL ?? "0";
+    if (name === "FUNCNAME" && state.variables.FUNCNAME === undefined) return state.functionNames?.[0];
+    if (name === "_" && state.variables._ === undefined) return state.lastArgument ?? "";
+    return state.variables[name];
+  }
+  async variablePresent(state: State, name: string, io: IO): Promise<boolean> {
+    const simple = this.tryVariablePresentSync(state, name);
+    if (simple !== undefined) return simple;
+    const suppliedSubscript = name.includes("[");
+    name = this.referenceName(state, name);
+    const bracket = name.indexOf("[");
+    const base = bracket < 0 ? name : name.slice(0, bracket);
+    const resolved = this.referenceName(state, base);
+    const binding = arrayStore(state)?.get(resolved);
+    const selector = name.slice(bracket + 1, -1);
+    const entries = this.presenceArrayEntries(state, resolved);
+    if (!binding?.associative && (selector === "@" || selector === "*")) return entries ? entries.length > 0 : binding ? binding.values.size > 0 : this.variable(state, base) !== undefined;
+    const store = requireArrays(state);
+    try {
+      // Supplied associative selectors have already undergone word expansion.
+      // Only a subscript introduced by a nameref still needs expansion.
+      const index = binding?.associative && suppliedSubscript
+        ? await binding.keyIndex(selector, store.owner, this.signal)
+        : await this.arrayIndex(binding, { decimal: selector, source: selector }, state, io, store.owner, false, entries ? entries.length - 1 : binding?.maximum ?? (this.variable(state, base) === undefined ? -1 : 0));
+      if (entries) return index !== undefined && entries[index] !== undefined;
+      return index !== undefined && (binding ? binding.getValue(index) !== undefined
+        : index === 0 && this.variable(state, base) !== undefined);
+    } catch (error) {
+      if (error instanceof ArrayFailure) throw new PublicDiagnostic(error.message);
+      throw error;
+    }
+  }
+  presenceArrayEntries(state: State, name: string): readonly string[] | undefined {
+    if (name === "DIRSTACK") return [state.cwd, ...state.directoryStack?.entries ?? []];
+    if (name === "FUNCNAME" && state.variables.FUNCNAME === undefined && !arrayStore(state)?.get(name)) return state.functionNames ?? [];
+    return undefined;
+  }
+  tryVariablePresentSync(_state: State, _name: string): boolean | undefined { return undefined; }
+  private requireParameter(value: string | undefined, name: string, state: State, io: IO, line?: number): void {
+    if (value === undefined && state.nounset) throw new NounsetFailure(`${name}: unbound variable`, io.diagnosticLine ?? line);
+  }
+  async assignVariable(state: State, name: string, value: ShellValue, io: IO, origin: "assignment" | "getopts" = "assignment"): Promise<void> {
+    name = this.referenceName(state, name);
+    if (!arrayStore(state)?.get(name)) { await this.writeVariable(state, name, value, io, origin); return; }
+    await this.arrayZero(state, name, io, async () => value);
+    if (state.allexport) state.exported.add(name);
+  }
+  async prepareVariable(state: State, name: string, saved: SavedVariable, scalarLegacy = false): Promise<void> {
+    const store = requireArrays(state);
+    const failures = stateMonitor(state)!.session.scope.failures;
+    const owner = ArrayOwner.create(store.owner.ledger, store.owner);
+    let holding: ReturnType<ArrayOwner["hold"]> | undefined;
+    let binding: IndexedBinding | undefined;
+    let primaryPresent = false;
+    let primary: unknown;
+    const cleanup = async (action: () => void | Promise<void>): Promise<void> => {
+      try { await action(); }
+      catch (error) {
+        if (primaryPresent) failures.push(error);
+        else { primaryPresent = true; primary = error; }
+      }};
+    try {
+      holding = store.owner.hold();
+      const watch = await store.watch(name, owner, this.signal);
+      const tickets = owner.reserve({ generation: true, version: true, epoch: true, slots: 1, metadata: 64, work: 14 });
+      const token = await textToken(owner, name, this.signal);
+      const admission = owner.reserve({ slots: 1, metadata: 32, work: 5 });
+      if (saved.value !== undefined) await textToken(owner, saved.value, this.signal);
+      if (!watch.valid()) throw new ArrayFailure("stale binding");
+      binding = scalarLegacy ? undefined : store.get(name)?.retain();
+      typedSavedVariables.set(saved, { owner, binding, tickets, prepared: { name: token, admission, identity: store.bindings.get(name)?.identity }, watch, scalarLegacy });
+      tickets.cleanup = () => { typedSavedVariables.delete(saved); };
+    } catch (error) {
+      primaryPresent = true;
+      primary = error;
+      await cleanup(() => binding?.release());
+      await cleanup(() => owner.close());
+    } finally { await cleanup(() => holding?.release()); }
+    if (primaryPresent) throw primary;
+  }
+  async prepareArrayObservers(state: State, owner: ArrayOwner): Promise<void> {
+    owner.reserve({ metadata: 128, work: 6 });
+    for (const frame of state.locals) for (const [name, saved] of frame) {
+      if (!typedSavedVariables.has(saved)) await this.prepareVariable(state, name, saved, syncLocalArrayVariables.has(saved));
+      await owner.ledger.checkpoint(this.signal);
+    }
+    for (const frame of stateMonitor(state)!.overlayFrames()) for (const [name, record] of frame) {
+      const saved = record as SavedVariable;
+      if (!saved.superseded && !typedSavedVariables.has(saved)) await this.prepareVariable(state, name, saved, true);
+      await owner.ledger.checkpoint(this.signal);
+    }
+  }
+  async discardVariable(saved: SavedVariable): Promise<void> {
+    saved.heldValue?.release();
+    delete saved.heldValue;
+    const typed = typedSavedVariables.get(saved);
+    if (!typed) return;
+    typedSavedVariables.delete(saved);
+    typed.watch.close();
+    await typed.binding?.release();
+    await typed.owner.close();
+  }
+  async indexedEnvironment(state: State, env: Readonly<Record<string, string>>): Promise<void> {
+    const store = requireArrays(state);
+    const operation = ArrayOwner.create(store.owner.ledger, store.owner);
+    const holding = store.owner.hold();
+    const epoch = stateMonitor(state)!.epoch;
+    try {
+      const keys = Object.keys(env);
+      operation.reserve({ metadata: 128 + keys.length * 64, allocatedSlots: keys.length * 2, work: keys.length * 5 + 8 });
+      for (const key of keys) {
+        const value = env[key];
+        if (key.includes("\0") || key.includes("=") || typeof value !== "string" || value.includes("\0")) throw new TypeError("Invalid invoke environment entry");
+        if (state.readonlyVariables?.has(key)) throw new ArrayFailure("readonly environment collision");
+      }
+      const publications = new Map<string, Admission>();
+      for (const key of keys) {
+        await textToken(store.owner, key, this.signal);
+        await textToken(store.owner, env[key]!, this.signal);
+        publications.set(key, operation.reserve({ generation: true, version: true, epoch: true, work: 8 }));
+      }
+      const controls = operation.reserve({ epoch: true, work: state.exported.size + keys.length + 5 });
+      this.signal.throwIfAborted();
+      if (stateMonitor(state)!.epoch !== epoch) throw new ArrayFailure("stale state snapshot");
+      stateMonitor(state)!.publish(controls, undefined, () => {
+        for (const key of state.exported) delete state.variables[key];
+        state.exported = new Set(keys);});
+      for (const key of keys) {
+        const tickets = publications.get(key)!;
+        stateMonitor(state)!.publish(tickets, key, () => {
+          void store.remove(key, tickets);
+          publishVariable(state, key, env[key]!);});
+      }
+    } finally { try { await operation.close(); } finally { holding.release(); } }
+  }
+  async unsetIndexed(state: State, name: string, index?: number | "members"): Promise<void> {
+    const store = requireArrays(state);
+    const operation = ArrayOwner.create(store.owner.ledger, store.owner);
+    const holding = store.owner.hold();
+    let staged: IndexedBinding | undefined;
+    try {
+      if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
+      const watch = await store.watch(name, operation, this.signal);
+      const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });
+      const current = store.get(name);
+      if (index !== undefined && current) {
+        staged = index === "members" ? IndexedBinding.create(store.owner) : await current.copy(this.signal);
+        staged.assigned = current.assigned;
+        let maximum = -1;
+        for (const key of staged.values.keys()) {
+          operation.reserve({ work: 2 }).release();
+          if (key !== index && key > maximum) maximum = key;
+          await operation.ledger.checkpoint(this.signal, 2);
+        }
+        if (typeof index === "number") staged.remove(index);
+        staged.maximum = maximum;
+      }
+      this.signal.throwIfAborted();
+      if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
+      if (!watch.valid()) throw new ArrayFailure("stale binding");
+      let released: Promise<void> | undefined;
+      stateMonitor(state)!.publish(tickets, name, () => {
+        if (staged) released = store.publish(name, staged, tickets);
+        else if (index === undefined) {
+          released = store.remove(name, tickets);
+          delete state.variables[name];
+          state.exported.delete(name);
+        } else if (index === 0 || index === "members") delete state.variables[name];});
+      staged = undefined;
+      watch.close();
+      await released;
+    } finally { try { await staged?.release(); await operation.close(); } finally { holding.release(); } }
+  }
+  private assertArrayWritable(state: State, name: string, origin: "assignment" | "declaration" = "assignment"): void {
+    if (!state.readonlyVariables?.has(name)) return;
+    if (state.extensions?.syntax.indexedDeclarations?.includes("readonly")) throw new DiscardCommandFailure(name, 1, origin);
+    throw new ArrayFailure("readonly binding");
+  }
+  async arrayZero(state: State, name: string, io: IO, expand: () => Promise<ShellValue>, append = false, freeze = false): Promise<void> {
+    const store = requireArrays(state);
+    const operation = ArrayOwner.create(store.owner.ledger, store.owner);
+    const holding = store.owner.hold();
+    const valueAllocation = this.budget.values.scope();
+    let staged: IndexedBinding | undefined;
+    try {
+      const watch = await store.watch(name, operation, this.signal);
+      const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });
+      let frozenAttributes: Set<string> | undefined;
+      if (freeze) {
+        store.owner.reserve({ metadata: state.readonlyVariables ? 32 : 96, slots: 1, work: 5 });
+        if (!state.readonlyVariables) frozenAttributes = stateMonitor(state)!.prepareCollection(new Set<string>(), "readonlyVariables");
+      }
+      const expanded = await expand();
+      this.signal.throwIfAborted();
+      this.assertArrayWritable(state, name);
+      if (!watch.valid()) throw new ArrayFailure("stale binding");
+      const current = store.get(name);
+      if (!current) throw new ArrayFailure("stale binding");
+      staged = await current.copy(this.signal);
+      const index = staged.associative ? (await staged.keyIndex("0", operation, this.signal, true))! : 0;
+      const previous = current.getValue(index) ?? "";
+      const integer = state.variableAttributes?.get(name)?.includes("i");
+      let value = !append || integer ? expanded : typeof previous === "string" && typeof expanded === "string"
+        ? await this.arrayJoin(operation, [previous, expanded], "") : concatShellValues([previous, expanded], valueAllocation);
+      value = await this.attributeValue(state, name, value, io, "assignment", append ? previous : undefined);
+      const token = await textToken(staged.owner, value, this.signal);
+      try { staged.insert(index, token); } catch (error) { token.release(); throw error; }
+      const supersede = await stateMonitor(state)!.prepareTypedPublication(name, operation, this.signal);
+      this.signal.throwIfAborted();
+      this.assertArrayWritable(state, name);
+      if (!watch.valid()) throw new ArrayFailure("stale binding");
+      let released: Promise<void> | undefined;
+      stateMonitor(state)!.publish(tickets, name, () => {
+        supersede();
+        released = store.publish(name, staged!, tickets);
+        if (state.allexport) state.exported.add(name);
+        if (freeze) { state.readonlyVariables ??= frozenAttributes!; state.readonlyVariables.add(name); }});
+      staged = undefined;
+      watch.close();
+      await released;
+    } finally { try { await staged?.release(); await operation.close(); } finally { valueAllocation.close(); holding.release(); } }
+  }
+  async arrayJoin(owner: ArrayOwner, values: readonly string[], separator: string): Promise<string>;
+  async arrayJoin(owner: ArrayOwner, values: readonly ShellValue[], separator: ShellValue): Promise<ShellValue>;
+  async arrayJoin(owner: ArrayOwner, values: readonly ShellValue[], separator: ShellValue): Promise<ShellValue> {
+    const raw = typeof separator !== "string" || values.some(value => typeof value !== "string");
+    let bytes = 0;
+    for (const value of values) {
+      const length = typeof value === "string" ? value.length : shellValueByteLength(value);
+      owner.reserve({ work: length + 1 }).release();
+      bytes = exactSum(bytes, shellValueByteLength(value));
+      await owner.ledger.checkpoint(this.signal, length + 1);
+    }
+    bytes = exactSum(bytes, Math.max(0, values.length - 1) * shellValueByteLength(separator));
+    owner.reserve({ metadata: exactSum(exactSum(96, values.length * 32), raw ? exactSum(bytes * 2, 64) : 0), payload: bytes, allocatedSlots: values.length * (raw ? 2 : 1), work: values.length * 3 + 7 });
+    this.signal.throwIfAborted();
+    const allocation = raw ? this.budget.values.scope() : undefined;
+    try {
+      const result = raw ? concatShellValues(values.flatMap((value, index) => index ? [separator, value] : [value]), allocation) : values.join(separator as string);
+      await owner.ledger.checkpoint(this.signal);
+      return result;
+    } finally { allocation?.close(); }
+  }
+  private async arrayIndex(binding: IndexedBinding | undefined, index: { decimal: string; source?: string; word?: Word }, state: State, io: IO, owner: ArrayOwner, create = false, relativeMaximum = binding?.maximum ?? -1): Promise<number | undefined> {
+    if (!binding?.associative) {
+      if (index.source === "") throw new ArrayFailure("bad array subscript");
+      const word = index.word ?? parseArraySubscript(index.source ?? index.decimal, this.budget.parsing, byteLocale(state.variables), state.depth, false, state.extensions?.syntax, !!state.extglob);
+      const fast = this.fastValueWord(word, state, io, false, false, false, false);
+      const source = fast !== undefined ? shellValueText(fast) : shellValueText(concatShellValues(await this.valueWord(word, state, io, false), io[valueScope]));
+      owner.reserve({ work: source.length + 1 }).release();
+      let number = await this.arithmeticValue(prepareArithmetic(source || "0", this.budget.parsing), state, io);
+      if (number < 0n) number += BigInt(relativeMaximum + 1);
+      const maximum = create ? 2147483647 : 4294967295;
+      if (number < 0n || number > BigInt(maximum)) throw new ArrayFailure(`index outside 0..${maximum}`);
+      return Number(number);
+    }
+    const word = index.word ?? parseArraySubscript(index.source ?? index.decimal, this.budget.parsing, byteLocale(state.variables), state.depth, false, state.extensions?.syntax, !!state.extglob);
+    const fast = this.fastValueWord(word, state, io, false, false, false, false);
+    const resolvedValue = fast !== undefined ? fast : await (async () => {
+      const fields = await this.valueWord(word, state, io, false);
+      return fields.length === 1 ? fields[0]! : concatShellValues(fields, io[valueScope]);
+    })();
+    if (shellValueByteLength(resolvedValue) === 0) {
+      await this.diagnostic(io, "associative array: bad array subscript");
+      if (create) throw completedExit(1);
+      return undefined;
+    }
+    return binding.keyIndex(resolvedValue, owner, this.signal, create);
+  }
+
+  tryFastArrayAssignmentSync(..._args: any[]): boolean { return false; }
+  async arrayAssignment(assignment: ArrayAssignment, state: State, io: IO, declaration?: "readonly", origin: "assignment" | "declaration" = "assignment", associative?: boolean, skipSyncFastPath = false): Promise<void> {
+    if (!skipSyncFastPath && this.tryFastArrayAssignmentSync(assignment, state, io, io.diagnosticLine, declaration, associative, false)) return;
+    if (!declaration && !skipSyncFastPath) {
+      const m = stateMonitor(state);
+      const ck = m?.store?.owner.ledger.checkpoint(this.signal, 8);
+      if (ck) await ck;
+      if (this.tryFastArrayAssignmentSync(assignment, state, io, io.diagnosticLine, declaration, associative, true)) return;
+    }
+    const name = assignment.name;
+    this.signal.throwIfAborted();
+    if (state.readonlyVariables?.has(name) && arrayStore(state)?.get(name)?.associative) { await this.diagnostic(io, `${name}: readonly variable`); throw completedExit(1); }
+    this.assertArrayWritable(state, name, origin);
+    if (controlNames.has(name)) throw new ArrayFailure("control binding cannot be indexed");
+    const store = requireArrays(state);
+    const operation = ArrayOwner.create(store.owner.ledger, store.owner);
+    const holding = store.owner.hold();
+    let staged: IndexedBinding | undefined;
+    try {
+      let current = store.get(name);
+      if (associative !== undefined && current && current.associative !== associative) throw new ArrayFailure("cannot convert array kind");
+      const isAssociative = associative ?? current?.associative;
+      let initialMaximum = current?.maximum ?? (state.variables[name] === undefined ? -1 : 0);
+      let selectedIndex: number | undefined;
+      let planned: number | null = assignment.append && assignment.kind === "compound" ? initialMaximum + 1 : 0;
+      if (assignment.kind === "element") {
+        operation.reserve({ work: assignment.index.decimal.length + 1 }).release();
+        if (!current?.associative) selectedIndex = await this.arrayIndex(current, assignment.index, state, io, operation, true, initialMaximum);
+      } else for (const entry of assignment.entries) {
+        if (isAssociative && !entry.index) throw new ArrayFailure("associative compound entry requires a subscript");
+        operation.reserve({ work: entry.value.parts.length + (entry.index?.decimal.length ?? 0) + 2 }).release();
+        if (entry.index) {
+          const index = numericIndex(entry.index);
+          planned = !isAssociative && index !== undefined ? index + 1 : null;
+        } else {
+          const quotedScalar = (part: WordPart): boolean => {
+            const selector = getArraySelector(part);
+            return part.quoted && !(part.kind === "variable" && (part.name === "@" || selector && selector.kind !== "element" && selector.separator === "@"));};
+          const certain = entry.value.parts.every(part => part.kind === "text" ? part.quoted || !/[*?[]/u.test(part.value) : quotedScalar(part));
+          const demanded = entry.value.parts.some(part => part.kind === "text" ? part.quoted || part.value.length > 0 : quotedScalar(part));
+          if (demanded && planned !== null && planned > 2147483647) throw new ArrayFailure("index outside 0..2147483647");
+          if (certain && planned !== null) planned++; else planned = null;
+        }
+        await operation.ledger.checkpoint(this.signal, entry.value.parts.length + 2);
+      }
+      // Word expansion can mutate this binding. Finish it before taking the
+      // publication snapshot, and choose the append cursor from the new maximum.
+      const expandedEntries: Array<{ entry: import("./arrays/syntax.js").ArrayEntry; fields: ShellValue[] }> = [];
+      let elementFields: ShellValue[] | undefined;
+      let attributedElement: ShellValue | undefined;
+      if (assignment.kind === "element") {
+        elementFields = await this.valueWord(assignment.value, state, io, false, false, false, false, undefined, false, false, 0);
+        if (selectedIndex !== undefined && state.variableAttributes?.get(name)?.includes("i")) {
+          const previous = assignment.append ? store.get(name)?.getValue(selectedIndex)
+            ?? (selectedIndex === 0 ? state.variables[name] : undefined) ?? "" : undefined;
+          attributedElement = await this.attributeValue(state, name, concatShellValues(elementFields, io[valueScope]), io, "assignment", previous);
+        }
+      } else for (const entry of assignment.entries) {
+        const original = compoundEntryWords.get(entry);
+        let expandedEntry = false;
+        if (entry.index && original && state.braceexpand !== false && original.parts.some(part => part.kind === "text" && !part.quoted && part.value.includes("{"))) {
+          for await (const expanded of expandBraces(original, this.budget, this.signal)) {
+            if (expanded === original) break;
+            expandedEntry = true;
+            const fields = await this.valueWord(expanded, state, io, true, false, false, false, undefined, false, false);
+            operation.reserve({ metadata: 32, slots: 1, work: 1 });
+            expandedEntries.push({ entry: { value: expanded }, fields });
+          }
+        }
+        if (expandedEntry) continue;
+        const fields = await this.valueWord(entry.value, state, io, entry.index === undefined, false, false, false, undefined, false, entry.index === undefined, entry.index === undefined ? undefined : 0);
+        operation.reserve({ metadata: 32, slots: 1, work: 1 });
+        expandedEntries.push({ entry, fields });
+      }
+      current = store.get(name);
+      initialMaximum = current?.maximum ?? (state.variables[name] === undefined ? -1 : 0);
+      // Arithmetic attributes and computed indices observe each preceding write.
+      // Expand words against the original binding first, then use ordinary element
+      // assignment publication so arithmetic reads the current array, not a draft.
+      if (assignment.kind === "compound" && expandedEntries.length > 0
+        && (state.variableAttributes?.get(name)?.includes("i")
+          || !isAssociative && expandedEntries.some(({ entry }) => entry.index && numericIndex(entry.index) === undefined))) {
+        let cursor = assignment.append ? initialMaximum + 1 : 0;
+        if (!assignment.append) await this.arrayAssignment({ ...assignment, entries: [] }, state, io, undefined, origin, associative, true);
+        for (const { entry, fields } of expandedEntries) {
+          const values = entry.index ? [concatShellValues(fields, io[valueScope])] : fields;
+          for (const value of values) {
+            const index = entry.index && !isAssociative
+              ? (await this.arrayIndex(store.get(name), entry.index, state, io, operation, true))! : cursor;
+            const part: WordPart = { kind: "text", value: shellValueText(value), quoted: true };
+            if (typeof value !== "string") invokedValues.set(part, value);
+            await this.arrayAssignment({ kind: "element", name, append: entry.append ?? false,
+              index: isAssociative ? entry.index! : { decimal: String(index) }, value: { offset: entry.value.offset, parts: [part] } },
+            state, io, undefined, origin, associative, true);
+            cursor = index + 1;
+          }
+        }
+        if (declaration) await this.arrayAssignment({ ...assignment, append: true, entries: [] }, state, io, declaration, origin, associative, true);
+        return;
+      }
+      this.assertArrayWritable(state, name, origin);
+      const watch = await store.watch(name, operation, this.signal);
+      const supersede = await stateMonitor(state)!.prepareTypedPublication(name, operation, this.signal);
+      await this.prepareArrayObservers(state, operation);
+      const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });
+      let frozenAttributes: Set<string> | undefined;
+      if (declaration && !state.readonlyVariables?.has(name)) {
+        store.owner.reserve({ metadata: state.readonlyVariables ? 32 : 96, slots: 1, work: 5 });
+        if (!state.readonlyVariables) frozenAttributes = stateMonitor(state)!.prepareCollection(new Set<string>(), "readonlyVariables");
+      }
+      const prepared = await store.prepareName(name, operation, this.signal);
+      const preserve = assignment.kind === "element" || assignment.append;
+      const canReviseInPlace = false;
+      const pendingInPlace: Array<{ index: number; token: import("./arrays/bindings.js").OwnedText; slot: Admission }> = [];
+      const pendingKeys: Array<{
+        identity: string;
+        index: number;
+        text: import("./arrays/bindings.js").OwnedText;
+        admission: Admission;
+      }> = [];
+      try {
+        staged = canReviseInPlace ? undefined : preserve && current ? await current.copy(this.signal) : IndexedBinding.create(store.owner, isAssociative);
+        if (preserve && !current && state.variables[name] !== undefined) {
+          const token = await textToken(staged!.owner, stateMonitor(state)?.values.get(name, state.variables[name]!) ?? state.variables[name]!, this.signal);
+          try { staged!.insert(0, token); } catch (error) { token.release(); throw error; }
+        }
+        let writes = 0;
+        let cursor = assignment.append && assignment.kind === "compound" ? initialMaximum + 1 : 0;
+        const targetBinding = canReviseInPlace ? current! : staged!;
+        const insert = async (index: number, value: ShellValue, append = false) => {
+          if (index > 2147483647) throw new ArrayFailure("index outside 0..2147483647");
+          const previous = append ? targetBinding.getValue(index) ?? "" : undefined;
+          if (append && !state.variableAttributes?.get(name)?.includes("i")) value = await join([previous!, value]);
+          if (attributedElement !== undefined) value = attributedElement;
+          else if (state.variableAttributes?.get(name)) value = await this.attributeValue(state, name, value, io, "assignment", previous); else if (shellValueByteLength(value) > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
+          const token = await valueToken(targetBinding.owner, value, this.signal);
+          if (canReviseInPlace) {
+            let slot: Admission | undefined;
+            try {
+              slot = targetBinding.owner.reserve({ slots: 1, metadata: 32, work: 5 });
+              targetBinding.owner.share(token.admission);
+              pendingInPlace.push({ index, token, slot });
+            } catch (error) {
+              slot?.release();
+              token.release();
+              throw error;
+            }
+          } else {
+            try { staged!.insert(index, token); } catch (error) { token.release(); throw error; }
+          }
+          writes++;};
+        const join = async (values: readonly ShellValue[]): Promise<ShellValue> => values.every(value => typeof value === "string")
+          ? this.arrayJoin(operation, values as readonly string[], "") : concatShellValues(values, io[valueScope]);
+        if (assignment.kind === "element") {
+          let index: number;
+          if (selectedIndex !== undefined) index = selectedIndex; else if (canReviseInPlace && targetBinding.associative) {
+            const word = assignment.index.word ?? parseArraySubscript(assignment.index.source ?? assignment.index.decimal, this.budget.parsing, byteLocale(state.variables), state.depth, false, state.extensions?.syntax, !!state.extglob);
+            const fastKey = this.fastValueWord(word, state, io, false, false, false, false);
+            const keyValue = fastKey !== undefined ? fastKey : await (async () => {
+              const keyFields = await this.valueWord(word, state, io, false);
+              return keyFields.length === 1 ? keyFields[0]! : concatShellValues(keyFields, io[valueScope]);
+            })();
+            if (shellValueByteLength(keyValue) === 0) {
+              await this.diagnostic(io, "associative array: bad array subscript");
+              throw completedExit(1);
+            }
+            const stagedKey = await targetBinding.stageKeyIndex(keyValue, operation, this.signal);
+            if (stagedKey.pendingKey) pendingKeys.push(stagedKey.pendingKey);
+            index = stagedKey.index;
+          } else index = (await this.arrayIndex(targetBinding, assignment.index, state, io, operation, true))!;
+          const value = await join(elementFields!);
+          // Expansion can initialize the unset target as a scalar. Preserve that
+          // value when promoting it to an indexed binding.
+          if (!current && state.variables[name] !== undefined && (index !== 0 || assignment.append)) {
+            const scalar = stateMonitor(state)?.values.get(name, state.variables[name]!) ?? state.variables[name]!;
+            const token = await valueToken(targetBinding.owner, scalar, this.signal);
+            try { targetBinding.insert(0, token); } catch (error) { token.release(); throw error; }
+          }
+          await insert(index, value, assignment.append);
+        } else for (const { entry, fields } of expandedEntries) {
+          const index = entry.index ? (await this.arrayIndex(targetBinding, entry.index, state, io, operation, true))! : undefined;
+          if (index !== undefined) {
+            const value = await join(fields);
+            await insert(index, value, entry.append);
+            cursor = index + 1;
+          } else for (const value of fields) {
+            if (!canReviseInPlace && !state.variableAttributes?.get(name) && typeof value === "string" && value.length <= 64 && cursor <= 2147483647 && shellValueByteLength(value) <= this.budget.limits.maxExpansionBytes) {
+              const fastTok = tryTextTokenSync(targetBinding.owner, value, this.signal);
+              if (fastTok) {
+                try { staged!.insert(cursor, fastTok); } catch (error) { fastTok.release(); throw error; }
+                writes++;
+                cursor++;
+                continue;
+              }
+            }
+            await insert(cursor, value);
+            cursor++;
+          }
+        }
+        this.signal.throwIfAborted();
+        this.assertArrayWritable(state, name, origin);
+        const scalarInitialized = assignment.kind === "element" && !current && !store.get(name)
+          && state.variables[name] !== undefined && watch.watch.typedVersion === watch.typedVersion;
+        if ((!watch.valid() && !scalarInitialized) || (canReviseInPlace && (store.get(name) !== current || current!.references !== 1))) throw new ArrayFailure("stale binding");
+        if (canReviseInPlace) {
+          if (declaration || !(assignment.kind === "compound" && assignment.append && writes === 0 && current!.assigned)) {
+            stateMonitor(state)!.publish(tickets, name, () => {
+              supersede();
+              delete state.variables[name];
+              for (const keyItem of pendingKeys) {
+                current!.commitStagedKey(keyItem);
+              }
+              pendingKeys.length = 0;
+              for (const item of pendingInPlace) {
+                current!.insert(item.index, item.token, item.slot);
+              }
+              pendingInPlace.length = 0;
+              current!.assigned = true;
+              store.revise(name, current!, tickets);
+              if (declaration) { state.readonlyVariables ??= frozenAttributes!; state.readonlyVariables.add(name); }});
+          }
+        } else {
+          staged!.assigned = true;
+          if (declaration || !(assignment.kind === "compound" && assignment.append && writes === 0 && current?.assigned)) {
+            let released: Promise<void> | undefined;
+            stateMonitor(state)!.publish(tickets, name, () => {
+              supersede();
+              delete state.variables[name];
+              released = store.publish(name, staged!, tickets, prepared);
+              if (declaration) { state.readonlyVariables ??= frozenAttributes!; state.readonlyVariables.add(name); }});
+            staged = undefined;
+            await released;
+          }
+        }
+      } finally {
+        for (const keyItem of pendingKeys) {
+          keyItem.admission.release();
+          keyItem.text.release();
+        }
+        for (const item of pendingInPlace) {
+          item.slot.release();
+          item.token.release();
+        }
+      }
+      watch.close();
+    } finally { try { await staged?.release(); await operation.close(); } finally { holding.release(); } }
+  }
+  async run(script: Script, state: State, io: IO): Promise<number> {
+    try { return await this.finishShell(state, io, (await this.runUnit(script, state, io)).exitCode); }
+    finally { await closeExecDescriptors(state); }
+  }
+  private extensionContext(state: State, io: IO, command = "", args: readonly string[] = [], argumentValues: readonly ShellValue[] = args): ShellExtensionContext {
+    const frame = state.extensions!;
+    let bindings: ShellExtensionBindings | undefined;
+    let input: ShellExtensionInput | undefined;
+    const createBindings = this.extensionBindings.bind(this, state, io);
+    const createInput = this.extensionInput.bind(this, state, io);
+    const signal = AbortSignal.any([this.signal, this.budget.executionCleanup.controller.signal]);
+    return {
+      command, args, argumentValues, status: state.status, functionDepth: state.functionDepth, sourceDepth: state.sourceDepth ?? 0, stdin: io.stdin, stdout: io.stdout, stderr: io.stderr, signal, scope: frame, get bindings() { return bindings ??= createBindings(); }, get input() { return input ??= createInput(); }, variable: name => state.variables[name], accountSource: source => this.budget.source(shellValueByteLength(source)), diagnostic: message => this.diagnostic(io, message), evaluate: async (source, options) => {
+        this.signal.throwIfAborted();
+        if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
+        this.budget.source(shellValueByteLength(source));
+        const byteSource = typeof source !== "string";
+        const text = byteSource ? latin1Text(shellValueBytes(source)) : source;
+        const restoration = stateMonitor(state)?.restoration(true);
+        try {
+          state.depth++;
+          return await this.runCurrentText(text, state, { ...io, diagnosticOffset: (io.diagnosticLine ?? 1) - 1 }, false, options?.name === undefined ? undefined : `${io.scriptName ?? "shell"}: ${options.name}`, byteSource, false);
+        } finally {
+          if (restoration) restoration.apply(() => { state.depth--; });
+          else state.depth--;
+        }
+      }, registerCleanup: cleanup => {
+        let completion: Promise<void> | undefined;
+        const close = (): Promise<void> => completion ??= Promise.resolve().then(cleanup);
+        frame.cleanup.push(close);
+        io[invocationScope].register(close);
+      }, registerExecutionCleanup: cleanup => {
+        this.budget.executionCleanup.register(cleanup);
+        return AbortSignal.any([this.commandSignal, this.budget.signal, this.budget.executionCleanup.controller.signal]);
+      }, interruptWait: status => {
+        validateExitCode(status);
+        return !signal.aborted && (frame.waiting?.(status) ?? false);
+      }, waitInterruptibly: async operation => {
+        signal.throwIfAborted();
+        const scope = io[invocationScope];
+        scope.assertOpen();
+        if (typeof operation !== "function") throw new TypeError("Cooperative wait requires a callable operation");
+        if (frame.waiting) throw new Error("A cooperative wait is already active in this shell scope");
+        const controller = new AbortController();
+        const reason = Object.freeze({});
+        let interruption: { status: number } | undefined;
+        const interrupt = (status: number): boolean => {
+          if (interruption || signal.aborted || scope.signal.aborted) return false;
+          interruption = { status };
+          controller.abort(reason);
+          return true;};
+        const close = (): void => { if (frame.waiting === interrupt) delete frame.waiting; };
+        scope.register(close);
+        frame.waiting = interrupt;
+        try {
+          const value = await scope.run(() => operation(AbortSignal.any([signal, scope.signal, controller.signal])));
+          signal.throwIfAborted();
+          return { kind: "completed", value };
+        } catch (error) {
+          signal.throwIfAborted();
+          if (interruption && error === reason) return { kind: "interrupted", status: interruption.status };
+          throw error;
+        } finally { close(); }
+      }, };
+  }
+  private extensionBindings(state: State, io: IO): ShellExtensionBindings {
+    const scope = io[invocationScope];
+    scope.assertOpen();
+    const allocation = this.budget.values.scope();
+    const references = new Set<() => Promise<void>>();
+    scope.register(async () => {
+      try { await Promise.all([...references].map(close => close())); }
+      finally { allocation.close(); }});
+    const assertOpen = (): void => { this.signal.throwIfAborted(); scope.assertOpen(); allocation.assertOpen(); };
+    const checkName = (name: string): void => {
+      assertOpen();
+      if (typeof name !== "string" || !/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name)) throw new TypeError("Invalid binding name");};
+    const checkIndex = (index: number, maximum: 2147483647 | 4294967295 = 2147483647): void => {
+      if (!Number.isSafeInteger(index) || index < 0 || index > maximum) throw new RangeError(`Binding index outside 0..${maximum}`);};
+    const retain = (value: ShellValue | undefined): ShellValue | undefined => {
+      if (value !== undefined && typeof value !== "string") allocation.hold(value);
+      return value;};
+    return Object.freeze({
+      describe: (name: string) => {
+        checkName(name);
+        const kind = arrayStore(state)?.get(name) ? "indexed" : state.variables[name] === undefined ? "unset" : "scalar";
+        return Object.freeze({ kind, readonly: state.readonlyVariables?.has(name) ?? false, exported: state.exported.has(name) });
+      }, get: (name: string, index = 0) => {
+        checkName(name);
+        checkIndex(index, 4294967295);
+        const binding = arrayStore(state)?.get(name);
+        const scalar = state.variables[name];
+        return retain(binding ? binding.getValue(index) : index === 0 && scalar !== undefined ? stateMonitor(state)?.values.get(name, scalar) ?? scalar : undefined);
+      }, assign: async (name: string, value: ShellValue) => {
+        checkName(name);
+        await scope.run(() => this.assignVariable(state, name, value, io));
+        assertOpen();
+      }, prepareReference: async (reference: ShellValue): Promise<ShellBindingResult<ShellBindingReference>> => {
+        assertOpen();
+        let owned: ValueScope | undefined;
+        let closed = false;
+        let completion: Promise<void> | undefined;
+        const work = new Set<Promise<unknown>>();
+        const close = (): Promise<void> => {
+          closed = true;
+          return completion ??= Promise.resolve().then(async () => {
+            await Promise.allSettled([...work]);
+            try { owned?.close(); }
+            finally { references.delete(close); }});};
+        references.add(close);
+        const failure = (value: ShellValue, suffix: string, prefix = ""): ShellBindingResult<never> => {
+          const diagnostic = concatShellValues([prefix, value, suffix], allocation);
+          allocation.hold(diagnostic);
+          return Object.freeze({ ok: false, diagnostic });};
+        try {
+          owned = this.budget.values.scope();
+          owned.hold(reference);
+          const text = shellValueText(reference);
+          const match = /^([a-zA-Z_][a-zA-Z_0-9]*)(?:\[([^\[\]]+)\])?$/u.exec(text);
+          if (!match) {
+            const result = failure(reference, "': not a valid identifier", "`");
+            await close();
+            return result;
+          }
+          const name = match[1]!;
+          const subscript = match[2];
+          const reservation = owned.reserve(128 + text.length * 2, 1);
+          const run = (action: () => Promise<ShellBindingResult<void>>): Promise<ShellBindingResult<void>> => {
+            try {
+              assertOpen();
+              if (closed) throw new Error("Binding reference is closed");
+              if (work.size) throw new Error("Binding reference is busy");
+              const pending = scope.run(() => Promise.resolve().then(() => {
+                this.signal.throwIfAborted();
+                return action();
+              }));
+              work.add(pending);
+              void pending.then(() => { work.delete(pending); }, () => { work.delete(pending); });
+              return pending;
+            } catch (error) { return Promise.reject(error); }};
+          const handle: ShellBindingReference = Object.freeze({
+            unbindName: () => run(async () => {
+              if (state.readonlyVariables?.has(text)) return failure(reference, ": cannot unset: readonly variable");
+              if (arrayStore(state)?.get(text)) await this.unsetIndexed(state, text);
+              else this.unsetVariable(state, text);
+              return Object.freeze({ ok: true, value: undefined });
+            }), assignInteger: (value: number) => run(async () => {
+              if (!Number.isSafeInteger(value)) throw new TypeError("Binding integer must be a safe integer");
+              if (state.readonlyVariables?.has(name)) return failure(name, ": readonly variable");
+              if (subscript === undefined) await this.assignVariable(state, name, String(value), io);
+              else {
+                const index = literalIndex(subscript, name.length + 1);
+                await this.arrayAssignment({
+                  kind: "element", name, index, append: false, value: { offset: 0, parts: [{ kind: "text", value: String(value), quoted: true }] }, }, state, io, undefined, "assignment", undefined, true);
+              }
+              return Object.freeze({ ok: true, value: undefined });
+            }), close, });
+          reservation.commit(handle);
+          return Object.freeze({ ok: true, value: handle });
+        } catch (error) {
+          try { await close(); }
+          catch (cleanup) { scope.failures.push(cleanup); }
+          throw error;
+        }
+      }, openIndexed: async (name: string, options: { readonly clear?: boolean } = {}) => {
+        checkName(name);
+        const clear = options.clear;
+        if (clear !== undefined && typeof clear !== "boolean") throw new TypeError("Invalid indexed writer options");
+        return this.incrementalIndexed(state, io, name, clear === true);
+      }, prepare: async (name: string, options: { readonly kind: "indexed"; readonly clear?: boolean }) => {
+        checkName(name);
+        if (options.kind !== "indexed" || options.clear !== undefined && typeof options.clear !== "boolean") throw new TypeError("Unsupported binding preparation");
+        if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
+        if (controlNames.has(name)) throw new ArrayFailure("control binding cannot be indexed");
+        if (state.exported.has(name)) throw new ArrayFailure("exported binding cannot be indexed");
+        const clear = options.clear === true;
+        const store = requireArrays(state);
+        let prepared: PreparedBinding | undefined;
+        let preparing: Promise<void> | undefined;
+        let active: Promise<void> | undefined;
+        let closed = false;
+        let completion: Promise<void> | undefined;
+        const close = (): Promise<void> => {
+          closed = true;
+          return completion ??= (async () => {
+            await Promise.allSettled([preparing, active]);
+            await prepared?.close();
+          })();};
+        scope.register(close);
+        const validate = (): void => {
+          assertOpen();
+          if (closed) throw new ArrayFailure("binding transaction is closed");
+          if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
+          if (state.exported.has(name)) throw new ArrayFailure("exported binding cannot be indexed");
+          prepared!.validate();};
+        const run = (action: () => Promise<void>): Promise<void> => {
+          try {
+            validate();
+            if (active) throw new ArrayFailure("binding transaction is busy");
+            const work = scope.run(action);
+            active = work;
+            void work.then(() => { if (active === work) active = undefined; }, () => { if (active === work) active = undefined; });
+            return work;
+          } catch (error) { return Promise.reject(error); }};
+        try {
+          preparing = scope.run(async () => {
+            prepared = await store.prepare(name, this.signal, !clear);
+            validate();
+            if (!clear && !store.get(name) && state.variables[name] !== undefined) {
+              const value = stateMonitor(state)!.values.get(name, state.variables[name]!);
+              const token = await textToken(prepared.binding.owner, value, this.signal);
+              try { validate(); prepared.binding.insert(0, token); }
+              catch (error) { token.release(); throw error; }
+            }
+            validate();});
+          await preparing;
+          return Object.freeze({
+            get: (index: number) => { validate(); checkIndex(index); return retain(prepared!.binding.getValue(index)); }, set: (index: number, value: ShellValue) => run(async () => {
+              checkIndex(index);
+              const token = await textToken(prepared!.binding.owner, value, this.signal);
+              try { validate(); prepared!.binding.insert(index, token); }
+              catch (error) { token.release(); throw error; }
+            }), unset: (index: number) => run(async () => {
+              checkIndex(index);
+              const binding = prepared!.binding;
+              binding.values.get(index)?.slot.release();
+              let maximum = -1;
+              for (const key of binding.values.keys()) {
+                maximum = Math.max(maximum, key);
+                await binding.owner.ledger.checkpoint(this.signal, 2);
+                validate();
+              }
+              binding.maximum = maximum;
+            }), commit: () => run(async () => {
+              await this.prepareArrayObservers(state, prepared!.binding.owner);
+              const supersede = await stateMonitor(state)!.prepareTypedPublication(name, prepared!.binding.owner, this.signal);
+              validate();
+              let retirement: Promise<void> | undefined;
+              stateMonitor(state)!.publish(prepared!.tickets, name, () => {
+                supersede();
+                delete state.variables[name];
+                retirement = prepared!.publish();});
+              await retirement;
+              this.signal.throwIfAborted();
+            }), close, });
+        } catch (error) { await close(); throw error; }
+      }, });
+  }
+  private async incrementalIndexed(state: State, io: IO, name: string, clear: boolean): Promise<ShellIndexedWriter> {
+    const scope = io[invocationScope];
+    scope.assertOpen();
+    this.signal.throwIfAborted();
+    if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
+    if (controlNames.has(name)) throw new ArrayFailure("control binding cannot be indexed");
+    const store = requireArrays(state);
+    const owner = store.owner;
+    const monitor = stateMonitor(state)!;
+    let lifetime: ArrayOwner | undefined;
+    let holding: Admission | undefined;
+    let identity: number | undefined;
+    let admittedLocal: SavedVariable | undefined;
+    let preparing: Promise<void> | undefined;
+    let active: Promise<void> | undefined;
+    let closed = false;
+    let completion: Promise<void> | undefined;
+    const close = (): Promise<void> => {
+      closed = true;
+      return completion ??= (async () => {
+        await Promise.allSettled([preparing, active]);
+        try { await lifetime?.close(); }
+        finally { holding?.release(); }
+      })();};
+    scope.register(close);
+    const localIdentity = (): SavedVariable | undefined => {
+      for (let index = state.locals.length - 1; index >= 0; index--) {
+        owner.reserve({ work: 2 }).release();
+        const saved = state.locals[index]!.get(name);
+        if (saved) return saved;
+      }
+      return undefined;};
+    const validate = (): void => {
+      this.signal.throwIfAborted();
+      scope.assertOpen();
+      if (closed) throw new ArrayFailure("indexed writer is closed");
+      owner.assertOpen();
+      if (arrayStore(state) !== store || store.owner !== owner || identity !== undefined && store.bindings.get(name)?.identity !== identity) throw new ArrayFailure("incremental target identity changed");
+      if (localIdentity() !== admittedLocal) throw new ArrayFailure("incremental target local identity changed");};
+    try {
+      admittedLocal = localIdentity();
+      preparing = scope.run(async () => {
+        holding = owner.hold();
+        lifetime = ArrayOwner.create(owner.ledger, owner);
+        lifetime.reserve({ metadata: 192, work: 12 });
+        await textToken(lifetime, name, this.signal);
+        const watch = await store.watch(name, lifetime, this.signal);
+        try {
+          await this.prepareArrayObservers(state, lifetime);
+          validate();
+          if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
+          if (!watch.valid()) throw new ArrayFailure("binding changed during writer admission");
+          if (clear || !store.get(name)) {
+            const prepared = await store.prepare(name, this.signal, false);
+            try {
+              if (!clear && state.variables[name] !== undefined) {
+                const value = monitor.values.get(name, state.variables[name]!);
+                const token = await textToken(prepared.binding.owner, value, this.signal);
+                try { prepared.validate(); prepared.binding.insert(0, token); }
+                catch (error) { token.release(); throw error; }
+              }
+              validate();
+              if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
+              if (!watch.valid()) throw new ArrayFailure("binding changed during writer admission");
+              prepared.validate();
+              // Clearing an indexed destination is an assignment even without elements.
+              if (clear) prepared.binding.assigned = true;
+              let retirement: Promise<void> | undefined;
+              monitor.publish(prepared.tickets, name, () => {
+                delete state.variables[name];
+                retirement = prepared.publish();});
+              await retirement;
+            } finally { await prepared.close(); }
+          }
+          identity = store.bindings.get(name)?.identity;
+          if (identity === undefined) throw new ArrayFailure("incremental target is not indexed");
+          validate();
+        } finally { watch.close(); }});
+      await preparing;
+    } catch (error) {
+      try { await close(); } catch (cleanup) { scope.failures.push(cleanup); }
+      throw error;
+    }
+    return Object.freeze({
+      set: (index: number, value: ShellValue): Promise<void> => {
+        try {
+          validate();
+          if (!Number.isSafeInteger(index) || index < 0 || index > 4294967295) throw new ArrayFailure("index outside 0..4294967295");
+          if (active) throw new ArrayFailure("indexed writer is busy");
+          const work = scope.run(async () => {
+            await resolvedVoid;
+            validate();
+            const fastCurrent = store.get(name);
+            if ( fastCurrent && !fastCurrent.associative && fastCurrent.references === 1 && state.locals.length === 0 && !monitor.hasAnyOverlays() && store.watches.size === 0) {
+              const fastToken = tryTextTokenSync(fastCurrent.owner, value, this.signal);
+              if (fastToken) {
+                try {
+                  const tickets = fastCurrent.owner.ledger.charge({ generation: true, version: true, epoch: true, metadata: 128, work: 14 });
+                  monitor.publish(tickets, name, () => {
+                    fastCurrent.insert(index, fastToken);
+                    store.revise(name, fastCurrent, tickets);});
+                  return resolvedVoid;
+                } catch (error) {
+                  fastToken.release();
+                  throw error;
+                }
+              }
+            }
+            const current = store.get(name)!;
+            const operation = ArrayOwner.create(owner.ledger, lifetime!);
+            let retained = false;
+            let staged: IndexedBinding | undefined;
+            let token: OwnedText | undefined;
+            try {
+              current.retain();
+              retained = true;
+              const watch = await store.watch(name, operation, this.signal);
+              const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });
+              await this.prepareArrayObservers(state, operation);
+              token = await textToken(operation, value, this.signal);
+              validate();
+              if (!watch.valid() || store.get(name) !== current) throw new ArrayFailure("incremental target changed during write");
+              if (current.references > 2) staged = await current.copy(this.signal);
+              validate();
+              if (!watch.valid() || store.get(name) !== current) throw new ArrayFailure("incremental target changed during write");
+              const target = staged ?? current;
+              let retirement: Promise<void> | undefined;
+              monitor.publish(tickets, name, () => {
+                target.insert(index, token!);
+                token = undefined;
+                if (staged) retirement = store.publish(name, staged, tickets);
+                else store.revise(name, current, tickets);});
+              staged = undefined;
+              watch.close();
+              await retirement;
+              this.signal.throwIfAborted();
+            } finally {
+              token?.release();
+              try { await staged?.release(); }
+              finally {
+                try { if (retained) await current.release(); }
+                finally { await operation.close(); }
+              }
+            }});
+          active = work;
+          void work.then(() => { if (active === work) active = undefined; }, () => { if (active === work) active = undefined; });
+          return work;
+        } catch (error) { return Promise.reject(error); }
+      }, close, });
+  }
+  private extensionInput(state: State, io: IO): ShellExtensionInput {
+    const scope = io[invocationScope];
+    const assertOpen = (): void => { this.signal.throwIfAborted(); scope.assertOpen(); };
+    assertOpen();
+    const checkDescriptor = (descriptor: number): void => {
+      assertOpen();
+      if (!Number.isSafeInteger(descriptor) || descriptor < 0) throw new RangeError("Invalid input descriptor");};
+    return Object.freeze({ validateOpen: (descriptor: number): void => {
+      checkDescriptor(descriptor);
+      const entry = io.descriptors?.get(descriptor);
+      const input = entry?.input ?? (!io.descriptors && descriptor === 0 ? io.stdin : undefined);
+      const output = entry?.output ?? (!io.descriptors ? descriptor === 1 ? io.stdout : descriptor === 2 ? io.stderr : undefined : undefined);
+      if (entry?.closed || (!input || input === closedSource) && (!output || output === closedSink)) throw new FsError("EBADF", { message: "Closed input descriptor" });
+    }, observe: (descriptor: number) => {
+      checkDescriptor(descriptor);
+      const entry = io.descriptors?.get(descriptor);
+      const input = entry?.input ?? (!io.descriptors && descriptor === 0 ? io.stdin : undefined);
+      const output = entry?.output ?? (!io.descriptors ? descriptor === 1 ? io.stdout : descriptor === 2 ? io.stderr : undefined : undefined);
+      if (entry?.closed || (!input || input === closedSource) && (!output || output === closedSink)) throw new FsError("EBADF", { syscall: "observe" });
+      const readable = input !== undefined && input !== closedSource;
+      if (entry?.pipe) return observeDescriptor(pipeObservation(entry.pipe.endpoint, input instanceof ShellInput ? () => input.probeRead() : undefined), scope, this.budget, this.signal);
+      const file = (input instanceof ShellInput ? input.descriptor : undefined) ?? entry?.file;
+      const stat = file?.stat.bind(file);
+      const method = file?.capabilities.readObservation === true ? file.probeRead : undefined;
+      if (file?.capabilities.readObservation === true && typeof method !== "function") throw new FsError("ENOTSUP", { syscall: "probeRead" });
+      const probe = method?.bind(file);
+      return observeDescriptor({ readable, async probeRead(signal) {
+        signal.throwIfAborted();
+        const local = input instanceof ShellInput ? input.probeRead() : undefined;
+        if (!file && local) return local;
+        const timeout = local?.timeout ?? (stat && (await stat({ signal })).type === "file" ? "ignore" : "unknown");
+        if (input instanceof ShellInput && input.bufferedBytes > 0) return { readiness: "ready", timeout };
+        if (probe) return { readiness: await probe({ signal }), timeout };
+        if (local) return local;
+        return { readiness: timeout === "ignore" ? "ready" : "unknown", timeout };
+      } }, scope, this.budget, this.signal);
+    }, borrow: (descriptor: number) => {
+      checkDescriptor(descriptor);
+      const entry = io.descriptors?.get(descriptor);
+      const source = entry?.closed ? undefined : entry?.input ?? (descriptor === 0 && !io.descriptors ? io.stdin : undefined);
+      if (!source) throw new FsError("EBADF", { message: "Unreadable input descriptor" });
+      if (!(source instanceof ShellInput)) throw new FsError("ENOTSUP", { message: "Input descriptor has no enrolled shared cursor" });
+      const resource: { input?: ShellInput } = {};
+      let closed = false;
+      let completion: Promise<void> | undefined;
+      const release = (): Promise<void> => {
+        closed = true;
+        return completion ??= Promise.resolve().then(() => resource.input?.close());};
+      scope.register(release);
+      const input = new ShellInput(source, this.budget, this.signal);
+      resource.input = input;
+      const stdinIsDefault = entry?.stdinIsDefault ?? (descriptor === 0 ? io.stdinIsDefault : undefined);
+      return Object.freeze({
+        ...(stdinIsDefault === undefined ? {} : { stdinIsDefault }), read: async (raw: boolean, options: { readonly count?: number; readonly delimiter?: number; readonly exact?: boolean; readonly timeoutMs?: number } = {}) => {
+          assertOpen();
+          if (closed) throw new Error("Input borrow is closed");
+          const { count, delimiter, exact, timeoutMs } = options;
+          assertOpen();
+          if (closed) throw new Error("Input borrow is closed");
+          if (typeof raw !== "boolean" || count !== undefined && (!Number.isSafeInteger(count) || count < 0) || delimiter !== undefined && (!Number.isInteger(delimiter) || delimiter < 0 || delimiter > 255) || exact !== undefined && typeof exact !== "boolean" || timeoutMs !== undefined && (!Number.isFinite(timeoutMs) || timeoutMs <= 0)) throw new TypeError("Invalid input read options");
+          return scope.run(() => input.line(raw, { ...(count === undefined ? {} : { count }), ...(delimiter === undefined ? {} : { delimiter }), ...(exact === undefined ? {} : { exact }), ...(timeoutMs === undefined ? {} : { timeoutMs }), byteCount: byteLocale(state.variables) }));
+        }, record: async (options: { readonly delimiter?: number } = {}) => {
+          assertOpen();
+          if (closed) throw new Error("Input borrow is closed");
+          const { delimiter } = options;
+          assertOpen();
+          if (closed) throw new Error("Input borrow is closed");
+          if (delimiter !== undefined && (!Number.isInteger(delimiter) || delimiter < 0 || delimiter > 255)) throw new TypeError("Invalid input record options");
+          return scope.run(() => input.record(delimiter === undefined ? {} : { delimiter }));
+        }, readiness: () => {
+          assertOpen();
+          if (closed) throw new Error("Input borrow is closed");
+          return input.readiness();
+        }, release, });
+    } });
+  }
+  private async startExtensions(state: State, io: IO): Promise<void> {
+    const frame = state.extensions;
+    if (!frame || frame.started) return;
+    frame.started = true;
+    if (frame.isIdleTrapState) return;
+    for (const [name, builtin] of frame.builtins) if (shellBuiltinNames.has(name) && builtin.replace !== true) throw new TypeError(`Extension builtin conflicts with existing builtin: ${name}`);
+    for (const entry of frame.entries) if (entry.instance.start) await entry.instance.start(this.extensionContext(state, io));
+  }
+  private tryStartExtensionsSync(state: State): boolean {
+    const frame = state.extensions;
+    if (!frame || frame.started) return true;
+    if (frame.isIdleTrapState) {
+      frame.started = true;
+      return true;
+    }
+    return false;
+  }
+  private async extensionEvent(event: ShellExtensionEvent, state: State, io: IO, status: number, command = ""): Promise<boolean> {
+    if (!hasActiveExtensions(state)) return false;
+    this.signal.throwIfAborted();
+    if (!this.tryStartExtensionsSync(state)) await this.startExtensions(state, io);
+    const previous = state.status;
+    state.status = status;
+    state.extensions.eventDepth = (state.extensions.eventDepth ?? 0) + 1;
+    try {
+      for (const entry of state.extensions.entries) {
+        this.signal.throwIfAborted();
+        const result = await entry.instance.event?.(event, this.extensionContext(state, io, command));
+        if (result !== undefined) {
+          if (event !== "command" || !result || (result.action !== "skip" && result.action !== "return")) throw new TypeError("Invalid extension lifecycle control");
+          if (result.action === "return") throw new Flow("return", validateExitCode(result.status), 1, status);
+          return true;
+        }
+      }
+      return false;
+    } finally {
+      state.extensions.eventDepth!--;
+      if (!this.signal.aborted) state.status = previous;
+    }
+  }
+  private async extensionCheckpoint(point: ShellExecutionCheckpoint, state: State, io: IO): Promise<void> {
+    try {
+      for (const checkpoint of state.extensions!.checkpoints) {
+        await io[invocationScope].run(() => Promise.resolve().then(async () => {
+          const context = this.extensionContext(state, io);
+          context.signal.throwIfAborted();
+          await checkpoint(point, context);
+          context.signal.throwIfAborted();
+        }));
+      }
+    } catch (reason) {
+      this.signal.throwIfAborted();
+      if (reason instanceof Flow) throw reason;
+      throw new ExtensionCheckpointFailure(reason);
+    }
+  }
+  private async beginShellExit(state: State, io: IO, status: number): Promise<number> {
+    const frame = state.extensions;
+    if (!frame || frame.exiting) return status;
+    if (frame.exitStatus !== undefined) return frame.exitStatus;
+    this.signal.throwIfAborted();
+    if (!hasActiveExtensions(state)) {
+      frame.exitStatus = status;
+      return status;
+    }
+    state = trackState(state, this.budget, io[invocationScope]);
+    frame.exiting = true;
+    frame.exitStatus = status;
+    try {
+      try { await this.extensionEvent("exit", state, io, status); }
+      catch (error) { if (error instanceof Flow && error.kind === "exit" && !(error instanceof ExtensionCheckpointFailure)) { if (!error.expansionFailure) status = error.status; } else throw error; }
+      this.signal.throwIfAborted();
+    } catch (reason) { extensionExitFailures.set(frame, { reason }); }
+    finally { frame.exiting = false; }
+    frame.exitStatus = status;
+    return status;
+  }
+  tryResetWarmInvocation(_state: State, _expectedCwd: string): boolean { return false; }
+  tryFinishShellSync(state: State): boolean {
+    const frame = state.extensions;
+    if (!frame || frame.exiting) return true;
+    if (!hasActiveExtensions(state) && frame.cleanup.length === 0) {
+      frame.exiting = true;
+      this.signal.throwIfAborted();
+      return true;
+    }
+    return false;
+  }
+  private releaseExtensionsSyncIfEmpty(state: State): boolean {
+    if (!state.extensions?.cleanup.length) {
+      this.signal.throwIfAborted();
+      return true;
+    }
+    return false;
+  }
+  async finishShell(state: State, io: IO, status: number): Promise<number> {
+    if (this.tryFinishShellSync(state)) return status;
+    const frame = state.extensions;
+    if (!frame || frame.exiting) return status;
+    let failure: { reason: unknown } | undefined;
+    try {
+      status = await this.beginShellExit(state, io, status);
+      failure = extensionExitFailures.get(frame);
+    } catch (reason) { failure = { reason }; }
+    try { await this.releaseExtensions(state); }
+    catch (cleanup) {
+      this.signal.throwIfAborted();
+      if (failure?.reason instanceof ExtensionCheckpointFailure) io[invocationScope].failures.push(cleanup);
+      else {
+        if (failure) throw new AggregateError([failure.reason, cleanup], "Shell completion and extension cleanup failed");
+        throw cleanup;
+      }
+    }
+    this.signal.throwIfAborted();
+    if (failure) throw failure.reason instanceof ExtensionCheckpointFailure && !state.isolated ? failure.reason.reason : failure.reason;
+    return status;
+  }
+  private async releaseExtensions(state: State): Promise<void> {
+    if (!state.extensions?.cleanup.length) {
+      this.signal.throwIfAborted();
+      return;
+    }
+    const cleanup = await Promise.allSettled(state.extensions.cleanup.map(close => close()));
+    this.signal.throwIfAborted();
+    throwCleanupFailures(cleanup.filter(result => result.status === "rejected").map(result => result.reason));
+  }
+  private async finishReturn(event: "function-return" | "source-return", state: State, io: IO, status: number, previous = status): Promise<number> {
+    while (true) {
+      try { await this.extensionEvent(event, state, io, previous); return status; }
+      catch (error) {
+        if (error instanceof ExtensionCheckpointFailure) throw error;
+        if (error instanceof Flow && error.kind === "return") { status = error.status; previous = error.previousStatus ?? status; continue; }
+        if (error instanceof Flow && error.kind === "exit") throw new Flow("exit", await this.beginShellExit(state, io, error.status), 1, error.previousStatus);
+        throw error;
+      }
+    }
+  }
+  tryRunCachedSyncForScript(..._args: any[]): { exitCode: number; terminated: boolean } | undefined { return undefined; }
+  runUnit(script: Script, state: State, io: IO): { exitCode: number; terminated: boolean } | Promise<{ exitCode: number; terminated: boolean }> {
+    if (state.noexec) return SYNC_UNIT_ZERO;
+    const monitor = ensureStateMonitor(state, this.budget, io[invocationScope]);
+    if (this.tryStartExtensionsSync(state)) {
+      if (state.extensions?.syntax.indexedDeclarations?.includes("readonly")) io.assignmentDiagnosticContext ??= { name: undefined };
+      try {
+        const ignoreErrexit = Boolean(io.execution?.ignoreErrexit);
+        if (!ignoreErrexit && script.lists.length >= 2) {
+          const fastScriptRes = this.tryRunCachedSyncForScript(script, monitor, io);
+          if (fastScriptRes !== undefined) return fastScriptRes;
+        }
+        for (let listIndex = 0; listIndex < script.lists.length; listIndex++) {
+          const list = script.lists[listIndex]!;
+          if (list.terminator) return this.runUnitFrom(script, monitor.proxy, io, listIndex, 0, false);
+          for (let index = 0; index < list.pipelines.length; index++) {
+            if (state.noexec) throw new Flow("discard", 0);
+            const operator = index > 0 ? list.operators[index - 1] : undefined;
+            if ((operator === "&&" && state.status !== 0) || (operator === "||" && state.status === 0)) continue;
+            const pipeline = list.pipelines[index]!;
+            const ignored = ignoreErrexit || index < list.pipelines.length - 1 || pipeline.negate;
+            const syncStatus = (pipeline as { _skipTrySync?: boolean })._skipTrySync ? undefined : this.trySyncPipeline(pipeline, state, io, ignored);
+            if (this._syncPendingReturnStatus !== undefined) {
+              const retStatus = this._syncPendingReturnStatus;
+              this._syncPendingReturnStatus = undefined;
+              throw completedExit(retStatus, "return", 1, retStatus);
+            }
+            if (syncStatus !== undefined) {
+              continue;
+            }
+            const fastUnit = this.tryFastSinglePipelineUnit(pipeline, state, io, Boolean(ignored));
+            if (fastUnit !== undefined) {
+              if (!(fastUnit instanceof Promise)) {
+                if (fastUnit.terminated) return fastUnit;
+                continue;
+              }
+              if (listIndex === script.lists.length - 1 && index === list.pipelines.length - 1) return fastUnit;
+              return this.continueRunUnitAfterFastPromise(fastUnit, script, monitor.proxy, io, listIndex, index);
+            }
+            return this.runUnitFrom(script, monitor.proxy, io, listIndex, index, false);
+          }
+        }
+        const finalCode = script.lists.length ? state.status : 0;
+        return finalCode === 0 ? SYNC_UNIT_ZERO : finalCode === 1 ? SYNC_UNIT_ONE : { exitCode: finalCode, terminated: false };
+      } catch (error) {
+        if (error instanceof Flow && error.kind === "discard") {
+          this.signal.throwIfAborted();
+          throwCleanupFailures(io[invocationScope].failures);
+          state.status = error.status;
+          return { exitCode: error.status, terminated: false };
+        }
+        if (error instanceof NounsetDiagnosticFailure) {
+          if (state.isolated) throw error;
+          throw error.reason;
+        }
+        if (error instanceof Flow && (error.kind === "exit" || error.kind === "return" || error.kind === "break" || error.kind === "continue")) {
+          if (this.tryFinishShellSync(state)) return { exitCode: error.status, terminated: true };
+          return this.finishShell(monitor.proxy, io, error.status).then(exitCode => ({ exitCode, terminated: true }));
+        }
+        throw error;
+      }
+    }
+    return this.runUnitFrom(script, monitor.proxy, io, 0, 0, true);
+  }
+  private async continueRunUnitAfterFastPromise( fastPromise: Promise<{ exitCode: number; terminated: boolean }>, script: Script, state: State, io: IO, listIndex: number, pipelineIndex: number, ): Promise<{ exitCode: number; terminated: boolean }> {
+    try {
+      const res = await fastPromise;
+      if (res.terminated) return res;
+      const list = script.lists[listIndex]!;
+      // The next pipeline has not been selected; evaluate its conditional operator.
+      if (pipelineIndex + 1 < list.pipelines.length) return await this.runUnitFrom(script, state, io, listIndex, pipelineIndex + 1, false, false);
+      if (listIndex + 1 < script.lists.length) return await this.runUnitFrom(script, state, io, listIndex + 1, 0, false, false);
+      return res;
+    } catch (error) {
+      if (error instanceof NounsetDiagnosticFailure) {
+        if (state.isolated) throw error;
+        throw error.reason;
+      }
+      if (error instanceof Flow && (error.kind === "exit" || error.kind === "return" || error.kind === "break" || error.kind === "continue")) return { exitCode: await this.finishShell(state, io, error.status), terminated: true };
+      throw error;
+    }
+  }
+  private async runUnitFrom(script: Script, state: State, io: IO, startListIndex: number, startPipelineIndex: number, needStartExtensions: boolean, skipFirstSync = !needStartExtensions): Promise<{ exitCode: number; terminated: boolean }> {
+    try {
+      if (needStartExtensions) await this.startExtensions(state, io);
+      return { exitCode: await this.inputUnit(script, state, io, startListIndex, startPipelineIndex, skipFirstSync), terminated: false };
+    } catch (error) {
+      if (error instanceof NounsetDiagnosticFailure) {
+        if (state.isolated) throw error;
+        throw error.reason;
+      }
+      if (error instanceof Flow && (error.kind === "exit" || error.kind === "return" || error.kind === "break" || error.kind === "continue")) return { exitCode: await this.finishShell(state, io, error.status), terminated: true };
+      throw error;
+    }
+  }
+  tryFastSinglePipelineUnit(..._args: any[]): { exitCode: number; terminated: boolean } | Promise<{ exitCode: number; terminated: boolean }> | undefined { return undefined; }
+  private async inputUnit(script: Script, state: State, io: IO, startListIndex = 0, startPipelineIndex = 0, skipFirstSync = false): Promise<number> {
+    try { return await this.script(script, state, io, startListIndex, startPipelineIndex, skipFirstSync); }
+    catch (error) {
+      if (!(error instanceof Flow) || error.kind !== "discard") throw error;
+      this.signal.throwIfAborted();
+      throwCleanupFailures(io[invocationScope].failures);
+      state.status = error.status;
+      return error.status;
+    }
+  }
+  trySyncPipeline(..._args: any[]): number | undefined { return undefined; }
+  executeSyncPipelineBody(..._args: any[]): number | undefined { return undefined; }
+  isPureSyncValueWord(..._args: any[]): boolean { return false; }
+  async script(script: Script, state: State, io: IO, startListIndex = 0, startPipelineIndex = 0, skipFirstSync = false): Promise<number> {
+    if (state.extensions?.syntax.indexedDeclarations?.includes("readonly")) io.assignmentDiagnosticContext ??= { name: undefined };
+    for (let listIndex = startListIndex; listIndex < script.lists.length; listIndex++) {
+      const list = script.lists[listIndex]!;
+      if (state.noexec) throw new Flow("discard", 0);
+      if (list.terminator) {
+        const hook = state.extensions?.listTerminators.get(list.terminator.operator);
+        if (!hook) throw new TypeError("Missing captured shell list terminator handler");
+        let admissionOpen = true;
+        let preparation: Promise<PreparedShellChild> | undefined;
+        let failure: { reason: unknown } | undefined;
+        let status = 0;
+        try {
+          status = validateExitCode(await hook.execute({
+            ...this.extensionContext(state, io), commandText: scriptText({ ...script, lists: [list] }, ""), prepareChild: options => {
+              if (!admissionOpen || preparation) return Promise.reject(this.commandSignal.aborted ? this.commandSignal.reason : new TypeError("Shell child preparation is single-use and dispatch-scoped"));
+              preparation = this.prepareListChild(list, script, state, io, options);
+              void preparation.catch(() => undefined);
+              return preparation;
+            }, }));
+        } catch (reason) { failure = { reason }; }
+        finally { admissionOpen = false; }
+        await preparation?.catch(() => undefined);
+        this.commandSignal.throwIfAborted();
+        if (failure) throw failure.reason;
+        state.status = status;
+        continue;
+      }
+      const firstIndex = listIndex === startListIndex ? startPipelineIndex : 0;
+      for (let index = firstIndex; index < list.pipelines.length; index++) {
+        io = this.persistentIO(state, io);
+        if (state.noexec) throw new Flow("discard", 0);
+        const operator = index > 0 ? list.operators[index - 1] : undefined;
+        const resumingEnteredPipeline = skipFirstSync && listIndex === startListIndex && index === startPipelineIndex;
+        // The sync executor already selected this RHS before nested commands changed status.
+        if (!resumingEnteredPipeline && ((operator === "&&" && state.status !== 0) || (operator === "||" && state.status === 0))) continue;
+        const pipeline = list.pipelines[index]!;
+        const ignored = io.execution?.ignoreErrexit || index < list.pipelines.length - 1 || pipeline.negate;
+        const syncStatus = (skipFirstSync && listIndex === startListIndex && index === startPipelineIndex)
+          ? undefined
+          : this.trySyncPipeline(pipeline, state, io, Boolean(ignored));
+        if (this._syncPendingReturnStatus !== undefined) {
+          const retStatus = this._syncPendingReturnStatus;
+          this._syncPendingReturnStatus = undefined;
+          throw completedExit(retStatus, "return", 1, retStatus);
+        }
+        if (syncStatus !== undefined) continue;
+        const fastUnit = this.tryFastSinglePipelineUnit(pipeline, state, io, Boolean(ignored));
+        if (fastUnit !== undefined) {
+          const fastRes = fastUnit instanceof Promise ? await fastUnit : fastUnit;
+          if (fastRes.terminated) return fastRes.exitCode;
+          continue;
+        }
+        let completion: Restoration | undefined;
+        try { completion = stateMonitor(state)?.restoration(); }
+        catch (error) {
+          if (!(error instanceof ArrayFailure)) throw error;
+          await this.diagnostic(io, error.message);
+          throw completedExit(1);
+        }
+        try {
+          const status = await this.pipeline(pipeline, state, ignored ? (io.execution?.ignoreErrexit ? io : { ...io, execution: { ignoreErrexit: true } }) : io);
+          if (completion) completion.completeStatus(status);
+          else state.status = status;
+        } finally { completion?.close(); }
+      }
+    }
+    return script.lists.length ? state.status : 0;
+  }
+  private async prepareListChild(list: AndOr, script: Script, state: State, io: IO, options: ShellChildPreparation): Promise<PreparedShellChild> {
+    this.signal.throwIfAborted();
+    if (!options || !(options.signal instanceof AbortSignal) || typeof options.registerCleanup !== "function"
+      || options.stdin !== "inherit" && options.stdin !== "async-default") throw new TypeError("Invalid shell child preparation");
+    const signal = AbortSignal.any([this.commandSignal, options.signal, this.budget.executionCleanup.controller.signal]);
+    signal.throwIfAborted();
+    const scope = new InvocationScope(signal);
+    const references = new PipeDescriptorFrame(scope);
+    const descriptors = new PreparedDescriptorFrame(references, this.budget);
+    let child: State | undefined;
+    let runtime: Runtime | undefined;
+    let execution: Promise<number> | undefined;
+    let closing: Promise<void> | undefined;
+    let closed = false;
+    let ready!: () => void;
+    const acquisition = new Promise<void>(resolve => { ready = resolve; });
+    const close = (): Promise<void> => {
+      closed = true;
+      return closing ??= Promise.resolve().then(async () => {
+        await acquisition;
+        await execution?.catch(() => undefined);
+        await scope.close();
+        if (child) stateMonitor(child)?.closeValues();
+        throwCleanupFailures(scope.failures);});};
+    try {
+      options.registerCleanup(close);
+      if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
+      child = tryCloneStateSync(state) ?? await cloneState(state, signal);
+      if (closed) throw new TypeError("Shell child preparation is closed");
+      signal.throwIfAborted();
+      child.extensions = forkExtensions(state.extensions, "subshell");
+      child.isolated = true;
+      child.variables.BASH_SUBSHELL = String(Number(state.variables.BASH_SUBSHELL ?? 0) + 1);
+      child.depth++;
+      const allocation = this.budget.values.scope();
+      scope.register(() => allocation.close());
+      const childIO = isolateIO({ ...io, [invocationScope]: scope, [valueScope]: allocation }, references);
+      descriptors.acquire(childIO.descriptors!);
+      Object.assign(childIO, { terminal: list.pipelines.length === 1 ? { target: list.pipelines[0]!, frame: descriptors } : undefined });
+      if (options.stdin === "async-default") {
+        const input = new ShellInput((async function* () {})(), this.budget, signal);
+        scope.register(async () => {
+          try { await input.close(); }
+          catch (reason) { if (!signal.aborted || !Object.is(reason, signal.reason)) throw reason; }});
+        Object.assign(childIO, { asyncDefaultInput: input });
+      }
+      runtime = new Runtime(this.sourceFs, this.commands, this.middleware, this.budget, signal, this.fileWrites, this.outputFiles, signal, this.cancellation, this.cancellationState, this.cancellationOwner, this.cancellationDepth, this.cancellationMaxDepth);
+      const identityOwner = this.budget.session ?? this.budget;
+      const processId = (childIdentities.get(identityOwner) ?? 1000) + 1;
+      if (!Number.isSafeInteger(processId)) throw new RangeError("Shell child identity exhausted");
+      childIdentities.set(identityOwner, processId);
+      const childScript: Script = { ...script, lists: [{ pipelines: list.pipelines, operators: list.operators }] };
+      return Object.freeze({ processId, run: (): Promise<number> => {
+        if (closed || execution) return Promise.reject(new TypeError("Prepared shell child run is single-use"));
+        execution = Promise.resolve().then(async () => {
+          signal.throwIfAborted();
+          try { return await runtime!.run(childScript, child!, childIO); }
+          catch (reason) {
+            if (reason instanceof Flow && reason.kind === "return") return runtime!.finishShell(child!, childIO, reason.status);
+            if (reason instanceof NounsetDiagnosticFailure) throw reason.reason;
+            throw reason;
+          }});
+        return execution;
+      } });
+    } catch (reason) {
+      ready();
+      try { await close(); } catch { this.commandSignal.throwIfAborted(); }
+      throw reason;
+    } finally { ready(); }
+  }
+  async pipeline(pipeline: Pipeline, state: State, io: IO): Promise<number> {
+    this.signal.throwIfAborted();
+    const terminal = io.terminal?.target === pipeline ? io.terminal : undefined;
+    let status: number;
+    if (pipeline.commands.length === 1) status = await this.command(pipeline.commands[0]!, state, terminal ? { ...io, terminal: { target: pipeline.commands[0]!, frame: terminal.frame } } : io, false, pipeline.negate);
+    else {
+      const release = this.budget.reservePipelineStages(pipeline.commands.length);
+      const retained = new Set<Promise<unknown>>();
+      let setupClosed = false;
+      const retain = (work: Promise<unknown>): void => {
+        retained.add(work);
+        const settled = (): void => {
+          retained.delete(work);
+          if (setupClosed && !retained.size) release();};
+        void work.then(settled, settled);};
+      const pipes: ReturnType<typeof createBytePipe>[] = [];
+      const controllers: ManagedControlController[] = [];
+      const written = new Set<number>();
+      const completed = new Set<number>();
+      const closing = new Set<TurnHandle>();
+      let statuses: number[];
+      let unsealScope: (() => void) | undefined;
+      try {
+        if (hasActiveExtensions(state) && !state.extensions!.eventDepth) {
+          for (const command of pipeline.commands) {
+            if (command.kind === "simple" || command.kind === "arithmetic" || command.kind === "conditional") publishCommandSpelling(state, commandSpelling(command));
+          }
+        }
+        for (let index = 1; index < pipeline.commands.length; index++) pipes.push(createBytePipe({
+          highWaterMark: this.budget.limits.pipeHighWaterMark, signal: this.signal, admitWrite: this.budget.pipelineInput, }));
+        for (let index = 0; index < pipeline.commands.length; index++) {
+          controllers.push(createManagedControlController());
+        }
+        unsealScope = io[invocationScope].onSeal(() => {
+          const closedReason = new Error("Invocation is closed");
+          for (const controller of controllers) abortManagedController(controller, closedReason);});
+        let transferred: (() => void) | undefined;
+        let pendingTransfers = pipeline.commands.length;
+        const retireBaseline = terminal
+          ? new Promise<void>(resolve => { transferred = resolve; }).then(() => terminal.frame.reconcile(new Map()))
+          : undefined;
+        if (retireBaseline) {
+          retain(retireBaseline);
+          void retireBaseline.catch(() => undefined);
+        }
+        let preparedStages = 0;
+        let acceptPreparation: (() => void) | undefined;
+        let rejectPreparation: ((reason: unknown) => void) | undefined;
+        const installation = state.extensions?.checkpoints.length ? new Promise<void>((resolve, reject) => {
+          acceptPreparation = () => { if (++preparedStages === pipeline.commands.length) resolve(); };
+          rejectPreparation = reject;
+        }).then(async () => {
+          if (retireBaseline) await retireBaseline;
+          await this.extensionCheckpoint("child-job-install", state, io);
+        }) : undefined;
+        if (installation) {
+          retain(installation);
+          void installation.catch(() => undefined);
+        }
+        const tasks = pipeline.commands.map(async (command, index) => {
+          const inCurrentShell = !!state.lastpipe && index === pipeline.commands.length - 1;
+          let admitted = false;
+          const admit = (): void => {
+            if (admitted) return;
+            admitted = true;
+            if (--pendingTransfers === 0) transferred?.();};
+          try {
+          const incoming = pipes[index - 1];
+          const outgoing = pipes[index];
+          const childDepth = this.cancellationDepth + 1;
+          const controls: readonly CancellationControlOriginInput[] = [
+            { role: "pipeline-control", signal: controllers[index]!.signal }, ];
+          const prepared = prepareChildCancellation( this.cancellation, undefined, this.cancellationAdmission(childDepth, controls.length), controls, );
+          const owner = new InvocationCancellationOwner(io[invocationScope], prepared, this.cancellationState);
+          let boundary: CancellationBoundary;
+          try { boundary = owner.activate(false); }
+          catch (error) { await owner.abandon(Promise.resolve()); throw error; }
+          const signal = boundary.deliverySignal;
+          const frame: RuntimeOutcomeFrame = {};
+          const runtime = new Runtime( this.sourceFs, this.commands, this.middleware, this.budget, signal, this.fileWrites, this.outputFiles, boundary.deliverySignal, boundary, this.cancellationState, owner, childDepth, this.cancellationMaxDepth, frame, this.inputProfile, );
+          let captured: CapturedCancellationOutcome<CommandResult>;
+          let cleanupRefs: PipeDescriptorFrame | undefined;
+          let cleanupDescFrame: PreparedDescriptorFrame | undefined;
+          let cleanupInput: ShellInput | undefined;
+          let stageOwnsCleanup = false;
+          try {
+          const rawStateForChild = stateMonitor(state)?.raw ?? state;
+          const isPureStage = !inCurrentShell && !terminal && !(io.descriptors && (io.descriptors.size > 3 || io.descriptors.get(0)?.closed || io.descriptors.get(1)?.closed || io.descriptors.get(2)?.closed)) && runtime.isPureExternalStageCommand(command, rawStateForChild);
+          const references = isPureStage ? undefined : (cleanupRefs = new PipeDescriptorFrame(io[invocationScope]));
+          const descriptorFrame = isPureStage ? undefined : (cleanupDescFrame = new PreparedDescriptorFrame(references!, this.budget));
+          const reading = incoming?.endpoints?.read;
+          const writing = outgoing?.endpoints?.write;
+          const readReference = reading && references ? references.open(reading, this.budget) : undefined;
+          const writeReference = writing && references ? references.open(writing, this.budget) : undefined;
+          const input = (cleanupInput = incoming
+            ? new ShellInput(reading?.readable ?? incoming.readable, this.budget, signal, { provenance: "stream", poll: pollIncomingPipe, incoming } as unknown as ConstructorParameters<typeof ShellInput>[3], true)
+            : new ShellInput(io.stdin, this.budget, signal, undefined, true));
+          const writable = writing?.writable ?? outgoing?.writable;
+          stageOwnsCleanup = true;
+          let stageResult: CommandResult;
+          {
+            let preparedChild: State | undefined;
+            let preparationFailed = false;
+            let started = false;
+            let checkpointFailure: ExtensionCheckpointFailure | undefined;
+            let outcome: CapturedCancellationOutcome<CommandResult>;
+            try {
+              let exitCode: number;
+              try {
+                const isFastPure = isPureStage || runtime.isPureExternalStageCommand(command, rawStateForChild);
+                const forkedExt = isFastPure ? forkExtensions(state.extensions, "pipeline") : undefined;
+                const child: State = inCurrentShell ? state : isFastPure
+                  ? Object.assign(cloneRawState(rawStateForChild, false), {
+                        extensions: forkedExt, isolated: true, _readOnlyStage: true, }, )
+                  : (tryCloneStateSync(state) ?? await cloneState(state, this.signal));
+                preparedChild = inCurrentShell ? undefined : child;
+                if (!inCurrentShell) child.variables.BASH_SUBSHELL = String(Number(state.variables.BASH_SUBSHELL ?? 0) + 1);
+                if (!inCurrentShell && !child._readOnlyStage) {
+                  child.extensions = undefined;
+                  child.extensions = forkExtensions(state.extensions, "pipeline");
+                  child.isolated = true;
+                }
+                let childIO: IO;
+                if (isPureStage) {
+                  childIO = {
+                    ...io, nameExpansionContext: undefined, descriptors: undefined, terminal: undefined, stdin: input, ...(incoming ? { asyncDefaultInput: undefined, stdinIsDefault: false } : {}), stdout: outgoing ? new BudgetedPipeStageSink(this.budget, writable!, signal, written, index, controllers[index]!) : signalSink(io.stdout, signal), stderr: signalSink(io.stderr, signal), } as unknown as IO;
+                } else {
+                  const inherited = isolateIO(io, references!);
+                  childIO = {
+                    ...inherited, stdin: input, ...(incoming ? { asyncDefaultInput: undefined } : {}), ...(incoming ? { stdinIsDefault: false } : {}), stdout: outgoing ? new BudgetedPipeStageSink(this.budget, writable!, signal, written, index, controllers[index]!) : signalSink(io.stdout, signal), stderr: signalSink(io.stderr, signal), terminal: { target: command, frame: descriptorFrame! }, };
+                  const descriptors = inherited.descriptors as Map<number, Descriptor>;
+                  descriptors.set(0, incoming ? { input, stdinIsDefault: false, ...(readReference ? { pipe: readReference } : {}) } : { ...descriptors.get(0), input });
+                  descriptors.set(1, outgoing ? { output: childIO.stdout, ...(writeReference ? { pipe: writeReference } : {}) } : { ...descriptors.get(1), output: childIO.stdout });
+                  descriptors.set(2, { ...descriptors.get(2), output: childIO.stderr });
+                  childIO.descriptors = descriptors;
+                  descriptorFrame!.acquire(descriptors);
+                }
+                admit();
+                acceptPreparation?.();
+                if (retireBaseline) await retireBaseline;
+                if (installation) {
+                  await installation;
+                  signal.throwIfAborted();
+                }
+                const work = inCurrentShell
+                  ? runtime.command(command, child, { ...childIO, terminal: undefined })
+                  : runtime.runPipelineStageWork(command, child, childIO, io, reason => { checkpointFailure = reason; });
+                preparedChild = undefined;
+                started = true;
+                retain(work);
+                exitCode = await interruptible(work, signal);
+              } catch (error) {
+                if (error instanceof ExtensionCheckpointFailure) checkpointFailure = error;
+                if (!started) {
+                  preparationFailed = true;
+                  rejectPreparation?.(error);
+                }
+                if (!(error instanceof PipelineClosed)) throw error;
+                exitCode = 141;
+              }
+              outcome = { kind: "return", value: { exitCode } };
+            } catch (reason) {
+              outcome = { kind: "throw", reason };
+            } finally {
+              admit();
+              const cleanupFailures: unknown[] = [];
+              if (preparedChild) {
+                const child = preparedChild;
+                await io[invocationScope].cleanup(async () => {
+                  try { await runtime.releaseExtensions(child); }
+                  finally { stateMonitor(child)?.closeValues(); }});
+              }
+              completed.add(index);
+              if (incoming && !reading) {
+                const upstream = index - 1;
+                const close = scheduleTurn(() => {
+                  closing.delete(close);
+                  if (written.has(upstream) && !completed.has(upstream)) abortManagedController(controllers[upstream]!, SHARED_PIPELINE_CLOSED);});
+                closing.add(close);
+                try { await incoming.abort(); }
+                catch (reason) { cleanupFailures.push(reason); }
+              }
+              const closedInput = input.close();
+              if (!isSyncResolved(closedInput)) {
+                try { await closedInput.catch((error: unknown) => { if (!(error instanceof PipelineClosed)) throw error; }); }
+                catch (reason) { cleanupFailures.push(reason); }
+              }
+              if (isPureStage) {
+                if (reading) {
+                  const closedRead = reading.close();
+                  if (!isSyncResolved(closedRead)) {
+                    try { await closedRead; }
+                    catch (reason) { cleanupFailures.push(reason); }
+                  }
+                }
+                if (writing) {
+                  const closedWrite = writing.close();
+                  if (!isSyncResolved(closedWrite)) {
+                    try { await closedWrite; }
+                    catch (reason) { cleanupFailures.push(reason); }
+                  }
+                }
+              } else {
+                if (!descriptorFrame!.closeSyncIfIdle()) {
+                  try { await descriptorFrame!.close(); }
+                  catch (reason) { cleanupFailures.push(reason); }
+                }
+                const closedRefs = references!.close();
+                if (!isSyncResolved(closedRefs)) {
+                  try { await closedRefs; }
+                  catch (reason) { cleanupFailures.push(reason); }
+                }
+              }
+              if (outgoing && !writing) {
+                const closedOut = outgoing.close();
+                if (!isSyncResolved(closedOut)) await closedOut.catch(() => undefined);
+              }
+              if (checkpointFailure || installation && preparationFailed) io[invocationScope].failures.push(...cleanupFailures);
+              else if (cleanupFailures.length) {
+                io[invocationScope].failures.push(...cleanupFailures.slice(1));
+                outcome = { kind: "throw", reason: cleanupFailures[0] };
+              }
+            }
+            if (outcome.kind === "throw") throw outcome.reason;
+            stageResult = outcome.value;
+          }
+          captured = { kind: "return", value: stageResult };
+          } catch (reason) {
+            rejectPreparation?.(reason);
+            if (!stageOwnsCleanup) {
+              if (cleanupRefs) await io[invocationScope].cleanup(() => cleanupRefs!.close());
+              if (cleanupDescFrame) await io[invocationScope].cleanup(() => cleanupDescFrame!.close());
+              if (cleanupInput) await io[invocationScope].cleanup(() => cleanupInput!.close());
+            }
+            captured = frame.report && Object.is(frame.report.origin.signal.reason, reason)
+              ? { kind: "throw", reason, report: frame.report }
+              : { kind: "throw", reason };
+          }
+          const selection = owner.finishSync(captured);
+          if (selection.outcome.kind === "throw") throw selection.outcome.reason;
+          return selection.outcome.value.exitCode;
+          } catch (reason) {
+            rejectPreparation?.(reason);
+            throw reason;
+          } finally { admit(); }});
+        for (const task of tasks) retain(task);
+        statuses = await interruptible(Promise.all(tasks), this.signal);
+      } finally {
+        unsealScope?.();
+        try {
+          for (const close of closing) cancelTurn(close);
+          for (const [index, controller] of controllers.entries()) if (!completed.has(index) || written.has(index)) abortManagedController(controller, SHARED_PIPELINE_CLOSED);
+          const aborts = pipes.map((pipe) => pipe.abort());
+          for (const abort of aborts) retain(abort);
+          await Promise.all(aborts);
+        } finally {
+          setupClosed = true;
+          if (!retained.size) release();
+        }
+      }
+      await this.publishStatus(state, statuses, io);
+      status = state.pipefail ? statuses.findLast((status) => status !== 0) ?? 0 : statuses.at(-1)!;
+    }
+    if (pipeline.commands.length > 1) await this.errexit(status, state, io);
+    return pipeline.negate && !terminal ? Number(status === 0) : status;
+  }
+  async runCommandIsolated(command: Command, state: State, io: IO, fileShortcut = false): Promise<number> {
+    try {
+      if (!this.tryStartExtensionsSync(state)) await this.startExtensions(state, io);
+      if (!fileShortcut && (command.kind === "arithmetic-for" || command.kind === "for" || command.kind === "while" || command.kind === "until") && (command.redirects.length === 0 || (command.kind === "while" && command.redirects.length === 1 && (command.redirects[0]!.operator === "<" || command.redirects[0]!.operator === "<<<")))) {
+        const syncLoopRes = this.executeSyncPipelineBody({ commands: [command], negate: false }, command, state, io.terminal ? { ...io, terminal: undefined } : io, Boolean(io.execution?.ignoreErrexit));
+        if (syncLoopRes !== undefined) return syncLoopRes;
+      }
+      return await this.command(command, state, io, fileShortcut);
+    }
+    catch (error) {
+      if (error instanceof NounsetDiagnosticFailure) throw error;
+      if (error instanceof Flow && (error.kind === "exit" || error.kind === "discard")) return this.finishShell(state, io, error.status);
+      if (error instanceof Flow && error.kind === "return") return error.status;
+      throw error;
+    }
+  }
+  async runPipelineStageWork( command: Command, child: State, childIO: IO, io: IO, onCheckpointFailure: (reason: ExtensionCheckpointFailure) => void, ): Promise<number> {
+    let stageOutcome: CapturedCancellationOutcome<number>;
+    let hadCheckpointFailure = false;
+    try {
+      let stageStatus = await this.runCommandIsolated(command, child, childIO);
+      if (!this.tryFinishShellSync(child)) stageStatus = await this.finishShell(child, childIO, stageStatus);
+      stageOutcome = { kind: "return", value: stageStatus };
+    } catch (reason) {
+      if (reason instanceof ExtensionCheckpointFailure) {
+        hadCheckpointFailure = true;
+        onCheckpointFailure(reason);
+      }
+      stageOutcome = { kind: "throw", reason };
+    }
+    try {
+      if (!this.releaseExtensionsSyncIfEmpty(child)) await this.releaseExtensions(child);
+    } catch (cleanup) {
+      if (hadCheckpointFailure) io[invocationScope].failures.push(cleanup);
+      else stageOutcome = { kind: "throw", reason: cleanup };
+    } finally {
+      stateMonitor(child)?.closeValues();
+    }
+    if (stageOutcome.kind === "throw") throw stageOutcome.reason;
+    return stageOutcome.value;
+  }
+  async errexit(status: number, state: State, io: IO): Promise<void> {
+    this.signal.throwIfAborted();
+    if (status !== 0 && !io.execution?.ignoreErrexit) {
+      await this.extensionEvent("error", state, io, status);
+      if (state.errexit) throw new Flow("exit", status);
+    }
+  }
+  isPureExternalStageCommand(_command: Command, _rawState: State): boolean { return false; }
+  private publishStatus(state: State, statuses: readonly number[], io: IO, terminal?: IO["terminal"]): Promise<void> | void {
+    this.signal.throwIfAborted();
+    try { throwCleanupFailures(io[invocationScope].failures); }
+    catch (error) { throw new NounsetDiagnosticFailure(error); }
+    if (state._readOnlyStage || (state.isolated === true && terminal && !hasActiveExtensions(state))) return;
+    return publishPipelineStatus(trackState(state, this.budget, io[invocationScope]), statuses, this.signal, io[invocationScope]);
+  }
+  private runTerminalBeforeExit( command: Command, state: State, terminal: NonNullable<IO["terminal"]>, status: number, completionIO: IO, ): Promise<void> | void {
+    const publishes = command.kind === "simple" || command.kind === "subshell" || command.kind === "arithmetic" || command.kind === "conditional";
+    if (!publishes) return;
+    const reported = terminal.publicationNegate && (command.kind === "conditional" || command.kind === "arithmetic") ? Number(status === 0) : status;
+    const statuses = reported === 0 ? singleStatusZero : reported === 1 ? singleStatusOne : [reported];
+    const publishing = this.publishStatus(state, statuses, completionIO, terminal);
+    if (!publishing && (status === 0 || (!state.errexit && !hasActiveExtensions(state)) || completionIO.execution?.ignoreErrexit)) {
+      this.signal.throwIfAborted();
+      terminal.published = status;
+      return;
+    }
+    return (async () => {
+      if (publishing) await publishing;
+      terminal.published = status;
+      await this.errexit(status, state, completionIO);
+    })();
+  }
+  async command(command: Command, state: State, io: IO, fileShortcut = false, publicationNegate = false): Promise<number> {
+    io.descriptors ??= new Map<number, Descriptor>([
+      [0, { input: io.stdin, ...(io.stdinIsDefault === undefined ? {} : { stdinIsDefault: io.stdinIsDefault }) }], [1, { output: io.stdout }], [2, { output: io.stderr }], ]);
+    io[invocationScope].assertOpen();
+    if (state.extensions && (command.kind === "simple" || command.kind === "arithmetic" || command.kind === "conditional")) {
+      const description = commandSpelling(command);
+      if (!state.extensions.eventDepth) publishCommandSpelling(state, description);
+      if (hasActiveExtensions(state)) {
+        io = { ...io, diagnosticLine: io.diagnosticCommandLines?.get(command) ?? (command.line ?? 1) + (io.diagnosticOffset ?? 0) };
+        if (await this.extensionEvent("command", state, io, state.status, description)) return state.status;
+      }
+    }
+    const publishes = command.kind === "simple" || command.kind === "subshell" || command.kind === "arithmetic" || command.kind === "conditional";
+    const terminal = io.terminal?.target === command ? io.terminal : undefined;
+    if (terminal && publicationNegate) terminal.publicationNegate = true;
+    const scope = io[invocationScope];
+    let status: number;
+    scope.enterWork();
+    try { status = await this.executeCommand(command, state, io, fileShortcut); }
+    catch (error) {
+      if (publishes && error instanceof Flow && completedFlows.has(error)) {
+        completedFlows.delete(error);
+        this.signal.throwIfAborted();
+        if (!io[invocationScope].failures.length) await this.publishStatus(state, [error.status], io);
+      }
+      throw error;
+    }
+    finally { scope.leaveWork(); }
+    if (terminal && state.extensions?.exitStatus !== undefined && !state.extensions.exiting) state.extensions.exitStatus = status;
+    if (publishes) {
+      const reported = publicationNegate && (command.kind === "conditional" || command.kind === "arithmetic") ? Number(status === 0) : status;
+      if (terminal?.published !== status) {
+        const statuses = reported === 0 ? singleStatusZero : reported === 1 ? singleStatusOne : [reported];
+        const publishing = this.publishStatus(state, statuses, io, terminal);
+        if (publishing) await publishing;
+      }
+      if (!terminal?.completed && status !== 0) await this.errexit(status, state, io);
+    }
+    return status;
+  }
+  async executeCommand(command: Command, state: State, originalIO: IO, fileShortcut = false): Promise<number> {
+    originalIO = this.persistentIO(state, originalIO);
+    const terminal = originalIO.terminal?.target === command ? originalIO.terminal : undefined;
+    if (!state._readOnlyStage) state = trackState(state, this.budget, originalIO[invocationScope]);
+    if (originalIO.asyncDefaultInput) {
+      if (!originalIO.descriptors?.get(0)?.closed && !command.redirects.some(redirect => redirect.descriptor === 0)) {
+        const descriptors = new Map(originalIO.descriptors);
+        descriptors.set(0, { input: originalIO.asyncDefaultInput, stdinIsDefault: true });
+        originalIO = { ...originalIO, terminal: undefined, descriptors, stdin: originalIO.asyncDefaultInput, stdinIsDefault: true, asyncDefaultInput: undefined };
+      } else originalIO = { ...originalIO, terminal: undefined, asyncDefaultInput: undefined };
+    }
+    originalIO = activeIO(originalIO);
+    const diagnosticLine = originalIO.diagnosticCommandLines?.get(command) ?? (command.line ?? 1) + (originalIO.diagnosticOffset ?? 0);
+    const references = command.kind === "subshell" ? new PipeDescriptorFrame(originalIO[invocationScope]) : undefined;
+    if (command.kind === "subshell") originalIO = isolateIO(originalIO, references!);
+    this.budget.tick();
+    if (this.budget.commands % 128 === 0) {
+      if (hasYieldCheckpoint(this.signal) || this.budget.commands % 2048 === 0) await yieldTurn(this.signal);
+      else runYieldCheckpoint(this.signal);
+    }
+    this.signal.throwIfAborted();
+    const fastCmdRes = this.tryFastExecuteCommandSync(command, state, originalIO, fileShortcut, terminal, diagnosticLine);
+    if (fastCmdRes !== undefined) return await fastCmdRes;
+    const hasRedirects = command.redirects.length > 0 || fileShortcut || command.kind === "subshell";
+    const inputs = hasRedirects ? new Set<{ close(): void | Promise<void> }>() : emptyInputs;
+    const outputs = hasRedirects ? new Set<OutputFinalizer>() : emptyOutputs;
+    const processSubstitutions: (() => Promise<void>)[] = [];
+    const allocation = this.budget.values.scope();
+    originalIO = {
+      ...originalIO, terminal: undefined, diagnosticLine, substitutionDiagnosticLine: originalIO.substitutionDiagnosticLines?.get(command) ?? diagnosticLine, [valueScope]: allocation, processSubstitutions, };
+    let io = originalIO;
+    let diagnosticFailure: NounsetDiagnosticFailure | undefined;
+    let outputTracker: OutputFailureTracker | undefined;
+    const snapshotHolder: { scope?: InvocationScope; finish?: () => void; persistentRedirects?: boolean } = {};
+    const execState = stateMonitor(state)?.raw ?? state;
+    const savedExecDescriptors = new Map<number, { descriptor: Descriptor; revision: number | undefined; release: (() => Promise<void>) | undefined }>();
+    // Terminal commands cannot return to the original descriptors. Retaining
+    // their capture lifetime would prevent redirected background jobs from detaching.
+    if (command.redirects.length && !terminal) {
+      const frame = execDescriptorFrames.get(execState);
+      for (const redirect of command.redirects) {
+        for (const number of redirect.operator === "&>" || redirect.operator === "&>>" ? [1, 2] : [redirect.descriptor]) {
+          if (savedExecDescriptors.has(number)) continue;
+          const descriptor = originalIO.descriptors?.get(number)
+            ?? (number === 0 ? { input: originalIO.stdin } : number === 1 ? { output: originalIO.stdout } : number === 2 ? { output: originalIO.stderr } : { closed: true });
+          savedExecDescriptors.set(number, { descriptor, revision: frame?.revisions.get(number), release: descriptor.lifetime?.acquire() });
+        }
+      }
+    }
+    try {
+      let status = 0;
+      if (command.kind === "simple") {
+        status = await this.simple(command, state, originalIO, inputs, outputs, snapshotHolder, fileShortcut, terminal);
+        if (originalIO.assignmentDiagnosticContext) originalIO.assignmentDiagnosticContext.name = undefined;
+      } else {
+        const compoundResult = await this.executeCompoundCommand(command, state, io, inputs, outputs, allocation, terminal);
+        status = compoundResult.status;
+        io = compoundResult.io;
+        if (compoundResult.diagnosticFailure) diagnosticFailure = compoundResult.diagnosticFailure;
+      }
+      if (terminal) {
+        const before = this.runTerminalBeforeExit(command, state, terminal, status, terminal.io ?? io);
+        if (before) await before;
+        if (!this.tryFinishShellSync(state)) status = await this.finishShell(state, terminal.io ?? io, status);
+        terminal.completed = true;
+      }
+      if (outputs.size > 0 || inputs.size > 0 || processSubstitutions.length > 0) {
+        await this.finishCommandResources(status, outputs, inputs, processSubstitutions, outputTracker = {});
+      }
+      return status;
+    } catch (caught) {
+      const errResult = await this.handleExecuteCommandError( caught, command, state, io, terminal, outputs, inputs, processSubstitutions, outputTracker, );
+      if (errResult.diagnosticFailure) diagnosticFailure = errResult.diagnosticFailure;
+      return errResult.status;
+    } finally {
+      try {
+        const frame = execDescriptorFrames.get(execState);
+        const retirements: Promise<void>[] = [];
+        for (const [number, saved] of savedExecDescriptors) {
+          if (frame && !snapshotHolder.persistentRedirects && frame.revisions.get(number) !== saved.revision) {
+            const release = frame.releases.get(number);
+            if (saved.release) frame.releases.set(number, saved.release); else frame.releases.delete(number);
+            frame.descriptors.set(number, saved.descriptor);
+            frame.revisions.set(number, ++frame.version);
+            if (release) retirements.push(release());
+          } else if (saved.release) retirements.push(saved.release());
+        }
+        const retired = await Promise.allSettled(retirements);
+        throwCleanupFailures(retired.filter(result => result.status === "rejected").map(result => result.reason));
+      } finally {
+        try {
+          if (!references && outputs.size === 0 && inputs.size === 0 && processSubstitutions.length === 0) allocation.close(); else await this.cleanupCommandResources(references, outputs, inputs, processSubstitutions, allocation, diagnosticFailure, io);
+        } finally {
+          snapshotHolder.finish?.();
+          if (snapshotHolder.scope) await snapshotHolder.scope.close();
+        }
+      }
+    }
+  }
+  private async finishCommandResources( status: number, outputs: Set<OutputFinalizer>, inputs: Set<{ close(): void | Promise<void> }>, processSubstitutions: (() => Promise<void>)[], outputFailuresOut?: OutputFailureTracker, ): Promise<void> {
+    if (outputs.size > 0) {
+      const pending = [...outputs];
+      outputs.clear();
+      const settled = await Promise.allSettled(pending.map(close => close({ status })));
+      for (const [index, result] of settled.entries()) {
+        const descriptor = pending[index]?.descriptor;
+        if (result.status === "rejected" && descriptor && outputFailuresOut) {
+          (outputFailuresOut.list ??= []).push({ descriptor, reason: result.reason });
+        }
+      }
+      if (status !== 0 && outputFailuresOut) outputFailuresOut.outputStatus = status;
+      throwCleanupFailures(settled.filter(result => result.status === "rejected").map(result => result.reason));
+    }
+    if (inputs.size > 0) {
+      const pendingInputs = [...inputs];
+      inputs.clear();
+      await Promise.allSettled(pendingInputs.map(input => input.close()));
+    }
+    if (processSubstitutions.length > 0) {
+      const pending = processSubstitutions.splice(0);
+      for (const callback of pending) await callback();
+    }
+  }
+  private async cleanupCommandResources( references: PipeDescriptorFrame | undefined, outputs: Set<OutputFinalizer>, inputs: Set<{ close(): void | Promise<void> }>, processSubstitutions: (() => Promise<void>)[], allocation: ReturnType<Runtime["budget"]["values"]["scope"]>, diagnosticFailure: NounsetDiagnosticFailure | undefined, io: IO, ): Promise<void> {
+    await Promise.allSettled([
+      ...(references ? [references.close()] : []), ...[...outputs].map(async close => close({ reason: new FsError("ECANCELED", { syscall: "redirect" }) })), ...[...inputs].map(async input => input.close()), ]).then(async results => {
+      if (processSubstitutions.length > 0) await Promise.allSettled(processSubstitutions.splice(0).map(callback => callback()));
+      const failures = results.filter(result => result.status === "rejected").map(result => result.reason);
+      if (diagnosticFailure) io[invocationScope].failures.push(...failures);
+      else throwCleanupFailures(failures);
+    }).finally(() => allocation.close());
+  }
+  private async executeCompoundCommand( command: Exclude<Command, { kind: "simple" }>, state: State, io: IO, inputs: Set<{ close(): void | Promise<void> }>, outputs: Set<OutputFinalizer>, allocation: ReturnType<Runtime["budget"]["values"]["scope"]>, terminal: IO["terminal"], ): Promise<{ status: number; io: IO; diagnosticFailure: NounsetDiagnosticFailure | undefined }> {
+    let status = 0;
+    let diagnosticFailure: NounsetDiagnosticFailure | undefined;
+    if (command.kind === "function") {
+      if (state.readonlyFunctions?.has(command.name)) {
+        await this.diagnostic(io, `${command.name}: readonly function`);
+        status = 1;
+      } else if (state.profile === "sh" && (specialBuiltinNames.has(command.name) || state.extensions?.builtins.get(command.name)?.special)) {
+        await this.diagnostic(io, `\`${command.name}': is a special builtin`);
+        throw new Flow("exit", 2);
+      } else {
+        const body = { ...command.body, sourceName: io.scriptName ?? "shell" };
+        const offset = io.diagnosticOffset ?? 0;
+        const bodyLine = io.functionCommandLines?.get(command.body);
+        if (bodyLine !== undefined) body.line = bodyLine - offset;
+        functionDiagnostics.set(body, { offset, ...(bodyLine === undefined ? {} : { lines: io.functionCommandLines! }) });
+        state.functions.set(command.name, body);
+        status = 0;
+      }
+      return { status, io, diagnosticFailure };
+    }
+    {
+      io = await this.redirect(command.redirects, state, io, inputs, outputs, command.kind === "subshell", command.kind !== "subshell");
+      if (terminal) {
+        terminal.io = io;
+        await terminal.frame.reconcile(io.descriptors!);
+      }
+      if (command.kind === "conditional") {
+        if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = "[[";
+        try {
+          status = await evaluateConditional(command.expression, {
+            fs: this.fs, cwd: state.cwd, signal: this.signal, predicateIdentity: io.capabilities?.predicateIdentity, reference: name => state.variableAttributes?.get(name)?.includes("n") ?? false, locale: state.variables.LC_ALL || state.variables.LC_COLLATE || state.variables.LANG || "C", characterLocale: state.variables.LC_ALL || state.variables.LC_CTYPE || state.variables.LANG || "C", ignoreCase: !!state.nocasematch, extglob: true, work: { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes"), allocation }, expand: async (word, pattern = false) => {
+              const fast = !pattern ? this.fastValueWord(word, state, { ...io, nameExpansionContext: "conditional" }, false, false, false, false) : undefined;
+              if (typeof fast === "string") return fast;
+              return (await this.word(word, state, { ...io, nameExpansionContext: "conditional" }, false, pattern, false, pattern)).join("");
+            }, arithmetic: value => this.arithmeticValue(prepareArithmetic(value || "0", this.budget.parsing), state, io), regex: (subject, pattern) => this.ere(subject, pattern, state, { ...io, nameExpansionContext: "conditional" }), option: name => name === "allexport" ? !!state.allexport : name === "braceexpand" ? state.braceexpand !== false : name === "noexec" ? !!state.noexec : name === "noglob" ? !!state.noglob : name === "noclobber" ? !!state.noclobber : name === "errexit" ? !!state.errexit : name === "nounset" ? !!state.nounset : name === "pipefail" ? state.pipefail : state.extensions?.options.get(name)?.enabled ?? false, present: name => this.variablePresent(state, name, io), });
+        } catch (error) {
+          this.signal.throwIfAborted();
+          if (error instanceof NounsetDiagnosticFailure) { diagnosticFailure = error; throw error; }
+          if (error instanceof EreProfileLimitError) {
+            try { await this.diagnostic(io, `[[ ${error.message}`); }
+            catch (reason) { this.signal.throwIfAborted(); if (reason instanceof ShellLimitError) throw reason; diagnosticFailure = new NounsetDiagnosticFailure(reason); throw diagnosticFailure; }
+            status = 3;
+          } else if (error instanceof ConditionalUnsupported) {
+            try { await this.diagnostic(io, error.message); }
+            catch (reason) { this.signal.throwIfAborted(); if (reason instanceof ShellLimitError) throw reason; diagnosticFailure = new NounsetDiagnosticFailure(reason); throw diagnosticFailure; }
+            status = 2;
+          } else if (error instanceof PublicDiagnostic) {
+            await this.diagnostic(io, `[[: ${error.message}`);
+            status = 1;
+          } else {
+            if (error instanceof ExpansionFailure || error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError || error instanceof ArrayFailure) throw error;
+            diagnosticFailure = new NounsetDiagnosticFailure(error);
+            throw diagnosticFailure;
+          }
+        }
+      } else if (command.kind === "arithmetic") {
+        if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = "((";
+        try {
+          status = Number(await this.expandedArithmeticValue(command.expression, state, io) === 0n);
+        }
+        catch (error) {
+          this.rethrowArithmeticControl(error);
+          if (io.execution) io.execution.arithmeticDiagnostic = true;
+          await this.diagnostic(io, `((: ${message(error, this.budget.onInternalError)}`);
+          status = 1;
+        }
+      } else if (command.kind === "subshell") {
+        const child = tryCloneStateSync(state) ?? await cloneState(state, this.signal);
+        child.extensions = undefined;
+        let started = false;
+        try {
+          child.extensions = forkExtensions(state.extensions, "subshell");
+          child.isolated = true;
+          child.variables.BASH_SUBSHELL = String(Number(state.variables.BASH_SUBSHELL ?? 0) + 1);
+          child.loopDepth = 0;
+          if (state.extensions?.checkpoints.length) await this.extensionCheckpoint("child-job-install", state, io);
+          started = true;
+          status = await this.run(command.body, child, io);
+        } finally {
+          try {
+            if (!started && child.extensions?.cleanup.length) await io[invocationScope].cleanup(() => this.releaseExtensions(child));
+          } finally { stateMonitor(child)?.closeValues(); }
+        }
+      } else if (command.kind === "group") {
+        const resume = (command as { _resumeSyncCursor?: { listIndex: number; pipelineIndex: number } })._resumeSyncCursor;
+        if (resume) {
+          (command as { _resumeSyncCursor?: undefined })._resumeSyncCursor = undefined;
+          status = await this.script(command.body, state, io, resume.listIndex, resume.pipelineIndex, true);
+        } else {
+          status = await this.script(command.body, state, io);
+        }
+      } else if (command.kind === "if") {
+        const ifResume = (command as { _resumeSyncScript?: { script: Script; listIndex: number; pipelineIndex: number } })._resumeSyncScript;
+        if (ifResume) {
+          (command as { _resumeSyncScript?: undefined })._resumeSyncScript = undefined;
+          status = await this.script(ifResume.script, state, io, ifResume.listIndex, ifResume.pipelineIndex, true);
+        } else {
+          const conditionResume = (command as { _resumeSyncIfCondition?: { branchIndex: number; listIndex: number; pipelineIndex: number } })._resumeSyncIfCondition;
+          (command as { _resumeSyncIfCondition?: undefined })._resumeSyncIfCondition = undefined;
+          let matchedBranch = false;
+          for (let branchIndex = conditionResume?.branchIndex ?? 0; branchIndex < command.branches.length; branchIndex++) {
+            const branch = command.branches[branchIndex]!;
+            const resume = branchIndex === conditionResume?.branchIndex ? conditionResume : undefined;
+            const conditionStatus = await this.script(branch.condition, state, { ...io, execution: { ignoreErrexit: true } }, resume?.listIndex ?? 0, resume?.pipelineIndex ?? 0, resume !== undefined);
+            if (conditionStatus === 0) {
+              status = await this.script(branch.body, state, io);
+              matchedBranch = true;
+              break;
+            }
+          }
+          if (!matchedBranch) status = command.otherwise ? await this.script(command.otherwise, state, io) : 0;
+        }
+      } else if (command.kind === "case") {
+        const caseResumeSlow = (command as { _resumeSyncScript?: { script: Script; listIndex: number; pipelineIndex: number } })._resumeSyncScript;
+        if (caseResumeSlow) {
+          (command as { _resumeSyncScript?: undefined })._resumeSyncScript = undefined;
+          status = await this.script(caseResumeSlow.script, state, io, caseResumeSlow.listIndex, caseResumeSlow.pipelineIndex, true);
+        } else
+        if (hasActiveExtensions(state)) {
+          const description = `case ${command.subject.spelling ?? command.subject.plain ?? ""} in `;
+          if (!state.extensions.eventDepth) publishCommandSpelling(state, description);
+          if (await this.extensionEvent("command", state, io, state.status, description)) status = state.status;
+          else {
+            const subject = (await this.word(command.subject, state, io, false)).join("");
+            const work = { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes"), allocation };
+            let fallthrough = false;
+            let patterns = 0;
+            for (const clause of command.clauses) {
+              let matched = fallthrough;
+              if (!matched) for (const word of clause.patterns) {
+                if (++patterns % 128 === 0) await yieldTurn(this.signal);
+                const pattern = (await this.word(word, state, io, false, true)).join("");
+                if (await matchesPattern(pattern, subject, work, !!state.nocasematch, !!state.extglob)) { matched = true; break; }
+              }
+              if (!matched) continue;
+              status = clause.body.lists.length ? await this.script(clause.body, state, io) : 0;
+              if (clause.terminator === ";;" || clause.terminator === "esac") break;
+              fallthrough = clause.terminator === ";&";
+            }
+          }
+        } else {
+          const subject = (await this.word(command.subject, state, io, false)).join("");
+          const work = { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes"), allocation };
+          let fallthrough = false;
+          let patterns = 0;
+          for (const clause of command.clauses) {
+            let matched = fallthrough;
+            if (!matched) for (const word of clause.patterns) {
+              if (++patterns % 128 === 0) await yieldTurn(this.signal);
+              const pattern = (await this.word(word, state, io, false, true)).join("");
+              if (await matchesPattern(pattern, subject, work, !!state.nocasematch, !!state.extglob)) { matched = true; break; }
+            }
+            if (!matched) continue;
+            status = clause.body.lists.length ? await this.script(clause.body, state, io) : 0;
+            if (clause.terminator === ";;" || clause.terminator === "esac") break;
+            fallthrough = clause.terminator === ";&";
+          }
+        }
+      } else {
+      const loopRestoration = stateMonitor(state)?.restoration();
+      state.loopDepth++;
+      try {
+        if (command.kind === "for") {
+          const rawLoopState = stateMonitor(state)?.raw ?? state;
+          const fastLoopWords = command.words?.length === 1 && rawLoopState.braceexpand !== false && !hasActiveVariableAttributes(rawLoopState) && !guestArrays(rawLoopState)
+            ? tryFastExpandBraceRange(command.words[0]!, this.budget, io[valueScope] ? (b, o) => io[valueScope]!.reserve(b, o) : undefined)
+            : undefined;
+          const values = fastLoopWords ?? (command.words ? await this.valueWords(command.words, state, io) : this.positionalValues(state));
+          const canFastAssignLoopVar = isShellIdentifier(command.name) && command.name !== "OPTIND" && !command.name.includes("[") && !rawLoopState.readonlyVariables?.has(command.name) && !hasActiveVariableAttributes(rawLoopState) && !guestArrays(rawLoopState) && !arrayStore(rawLoopState)?.get(command.name);
+          let loopTurn = 0;
+          for (const value of values) {
+            this.budget.loop();
+            if ((++loopTurn & 127) === 0) {
+              if (this.budget._hasExternalSignal || hasYieldCheckpoint(this.signal) || (loopTurn & 2047) === 0) await yieldTurn(this.signal);
+              else runYieldCheckpoint(this.signal);
+            }
+            if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
+            if (state.variableAttributes?.get(command.name)?.includes("n")) {
+              const target = shellValueText(value);
+              if (!this.variableTarget(target) || target === command.name) throw new ExpansionFailure(`${target}: invalid name reference`);
+              await this.writeVariable(state, command.name, value, io, "assignment", false);
+            } else if (canFastAssignLoopVar && !rawLoopState.variableAttributes?.get(command.name) && !rawLoopState.readonlyVariables?.has(command.name) && !arrayStore(rawLoopState)?.get(command.name)) {
+              publishVariable(rawLoopState, command.name, value);
+              if (rawLoopState.allexport) state.exported.add(command.name);
+            } else await this.assignVariable(state, command.name, value, io);
+            if (hasActiveExtensions(rawLoopState)) {
+              const description = `for ${command.name} in ${command.words?.map(word => word.spelling ?? word.plain ?? "").join(" ") ?? '"$@"'}`;
+              if (!rawLoopState.extensions?.eventDepth) publishCommandSpelling(state, description);
+              if (await this.extensionEvent("command", state, io, state.status, description)) continue;
+            }
+            const result = await this.loopBody(command.body, state, io);
+            status = result.status;
+            if (result.stop) break;
+          }
+        } else if (command.kind === "arithmetic-for") {
+          const rawArithState = stateMonitor(state)?.raw ?? state;
+          const evaluate = async (program: ArithmeticProgram | undefined): Promise<bigint | undefined> => {
+            if (!program) return 1n;
+            try { return await this.expandedArithmeticValue(program, state, io); }
+            catch (error) {
+              this.rethrowArithmeticControl(error);
+              await this.diagnostic(io, `((: ${message(error, this.budget.onInternalError)}`);
+              return undefined;
+            }};
+          const evaluateSyncNonZero = (program: ArithmeticProgram | undefined): boolean | Promise<bigint | undefined> => {
+            if (!program) return true;
+            if (!program.error && !guestArrays(rawArithState) && (!program.hasMutation || !arithTreeTouchesArray(program.tree, arrayStore(rawArithState))) && !program.hasSubscript && !hasActiveVariableAttributes(rawArithState)) {
+              const snap = this.budget.parsing.snapshot();
+              try { const r = this.syncShellArithmeticNonZero(program, rawArithState, io.diagnosticLine); if (r !== undefined) return r; }
+              catch (error) {
+                if (error instanceof ArrayFailure) this.budget.parsing.restore(snap); else {
+                  this.rethrowArithmeticControl(error);
+                  return this.diagnostic(io, `((: ${message(error, this.budget.onInternalError)}`).then(() => undefined);
+                }
+              }
+            }
+            return evaluate(program);};
+          const initOrPromise = evaluateSyncNonZero(command.expressions[0]);
+          if ((typeof initOrPromise === "boolean" ? initOrPromise : await initOrPromise) === undefined) return { status: 1, io, diagnosticFailure };
+          let loopTurn = 0;
+          const arithMonitor = stateMonitor(state);
+          const enableArithForBatch = !this._syncArithRawWriteOnly && Boolean(arithMonitor) && !hasActiveExtensions(rawArithState) && !hasActiveVariableAttributes(rawArithState) && !rawArithState.readonlyVariables?.size && !rawArithState.allexport;
+          const batchTouched = enableArithForBatch ? new Set<string>() : undefined;
+          if (enableArithForBatch) {
+            this._syncArithRawWriteOnly = true;
+            this._syncArithTouched = batchTouched;
+          }
+          try {
+            while (true) {
+              if ((++loopTurn & 127) === 0) {
+                if (this.budget._hasExternalSignal || hasYieldCheckpoint(this.signal) || (loopTurn & 2047) === 0) await yieldTurn(this.signal);
+                else runYieldCheckpoint(this.signal);
+              }
+              const condOrPromise = evaluateSyncNonZero(command.expressions[1]);
+              if (typeof condOrPromise === "boolean") {
+                if (!condOrPromise) break;
+              } else {
+                const condition = await condOrPromise;
+                if (condition === undefined) return { status: 1, io, diagnosticFailure };
+                if (condition === 0n) break;
+              }
+              this.budget.loop();
+              const result = await this.loopBody(command.body, state, io);
+              status = result.status;
+              if (result.stop) break;
+              const stepOrPromise = evaluateSyncNonZero(command.expressions[2]);
+              if ((typeof stepOrPromise === "boolean" ? stepOrPromise : await stepOrPromise) === undefined) { status = 1; break; }
+            }
+          } finally {
+            if (enableArithForBatch && arithMonitor && batchTouched) {
+              this._syncArithRawWriteOnly = false;
+              this._syncArithTouched = undefined;
+              for (const vName of batchTouched) {
+                const vVal = rawArithState.variables[vName];
+                if (typeof vVal === "string") arithMonitor.publishStringVariable(vName, vVal);
+                else if (vVal === undefined) delete arithMonitor.proxy.variables[vName];
+              }
+            }
+          }
+        } else if (command.kind === "select") {
+          const values = command.words ? await this.valueWords(command.words, state, io) : this.positionalValues(state);
+          if (values.length) {
+          const input = io.stdin instanceof ShellInput ? io.stdin : new ShellInput(io.stdin, this.budget, this.signal);
+          const work = { remaining: this.budget.limits.maxExpansionBytes * 8, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
+          let showMenu = true;
+          while (true) {
+            this.budget.loop();
+            if (showMenu) await selectMenu(values, state.variables.COLUMNS, byteLocale(state.variables), io.stderr, work, allocation);
+            const prompt = stateMonitor(state)?.values.get("PS3", state.variables.PS3 ?? "#? ") ?? state.variables.PS3 ?? "#? ";
+            await io.stderr.write(shellValueBytes(prompt, allocation));
+            const line = await input.selectLine(allocation);
+            if (state.readonlyVariables?.has("REPLY")) {
+              await this.diagnostic(io, "REPLY: readonly variable");
+              await writeText(io.stdout, "\n");
+              status = 1;
+              break;
+            }
+            await this.writeVariable(state, "REPLY", line.value, io);
+            if (!line.terminated) { await writeText(io.stdout, "\n"); status = 1; break; }
+            const bytes = shellValueBytes(line.value, allocation);
+            if (!bytes.length) { showMenu = true; continue; }
+            let choice = 0;
+            let phase: "start" | "digits" | "tail" = "start";
+            let valid = true;
+            let negative = false;
+            let digits = false;
+            for (const byte of bytes) {
+              const pending = stringCheckpoint(work);
+              if (pending) await pending;
+              if (byte === 32 || byte >= 9 && byte <= 13) { if (phase === "digits") phase = "tail"; continue; }
+              if (phase === "start" && (byte === 43 || byte === 45)) { negative = byte === 45; phase = "digits"; continue; }
+              if (phase === "tail" || byte < 48 || byte > 57) { valid = false; continue; }
+              phase = "digits";
+              digits = true;
+              choice = Math.min(values.length + 1, choice * 10 + byte - 48);
+            }
+            await this.assignVariable(state, command.name, valid && digits && !negative && choice >= 1 && choice <= values.length ? values[choice - 1]! : "", io);
+            const result = await this.loopBody(command.body, state, io);
+            status = result.status;
+            if (result.stop) break;
+            showMenu = shellValueByteLength(stateMonitor(state)?.values.get("REPLY", state.variables.REPLY ?? "") ?? state.variables.REPLY ?? "") === 0;
+          }
+          }
+        } else {
+          const conditionExecution = { ignoreErrexit: true, arithmeticDiagnostic: false };
+          const conditionIO = { ...io, execution: conditionExecution };
+          let loopTurn = 0;
+          while (true) {
+            if ((++loopTurn & 127) === 0) {
+              if (this.budget._hasExternalSignal || hasYieldCheckpoint(this.signal) || (loopTurn & 2047) === 0) await yieldTurn(this.signal);
+              else runYieldCheckpoint(this.signal);
+            }
+            conditionExecution.arithmeticDiagnostic = false;
+            let condition: number;
+            try { condition = await this.script(command.condition, state, conditionIO); }
+            catch (error) {
+              if (!(error instanceof Flow) || (error.kind !== "break" && error.kind !== "continue")) throw error;
+              status = error.status;
+              if (--error.levels > 0) throw error;
+              if (error.kind === "break") break;
+              continue;
+            }
+            if (conditionExecution.arithmeticDiagnostic || (condition === 0) !== (command.kind === "while")) break;
+            this.budget.loop();
+            const result = await this.loopBody(command.body, state, io);
+            status = result.status;
+            if (result.stop) break;
+          }
+        }
+      } finally {
+        if (loopRestoration) loopRestoration.decrementLoopDepth();
+        else state.loopDepth--;
+      }
+      }
+      }
+      return { status, io, diagnosticFailure };
+  }
+  private async handleExecuteCommandError( caught: unknown, command: Command, state: State, io: IO, terminal: IO["terminal"], outputs: Set<OutputFinalizer>, inputs: Set<{ close(): void | Promise<void> }>, processSubstitutions: (() => Promise<void>)[], outputTracker: OutputFailureTracker = {}, ): Promise<{ status: number; diagnosticFailure: NounsetDiagnosticFailure | undefined }> {
+      let diagnosticFailure: NounsetDiagnosticFailure | undefined;
+      const diagnostic = caught instanceof ExecutionFailure ? caught.diagnostic : undefined;
+      const error = caught instanceof ExecutionFailure ? caught.original : caught;
+      if (caught instanceof ExecutionFailure) io = caught.io;
+      if (error instanceof NounsetDiagnosticFailure) diagnosticFailure = error;
+      this.signal.throwIfAborted();
+      if (error instanceof Flow) {
+        if (terminal && error.kind === "exit" && !(error instanceof NounsetDiagnosticFailure)) {
+          await this.finishShell(state, terminal.io ?? io, error.status);
+          terminal.completed = true;
+        }
+        try {
+          await this.finishCommandResources(error.status, outputs, inputs, processSubstitutions, outputTracker);
+        }
+        catch (reason) {
+          this.signal.throwIfAborted();
+          if (!outputTracker.list?.length) throw reason;
+          await writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${io.diagnosticLine ?? 1}: ${message(reason, this.budget.onInternalError)}\n`);
+          for (const failure of outputTracker.list) failure.descriptor.acknowledgeCloseFailure(failure.reason);
+        }
+      }
+      if (error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError) throw error;
+      this.clearOutcomeReport();
+      if (error instanceof HereDocumentSyntaxError) {
+        await writeDiagnostic(io.stderr, error.diagnostic);
+        if (command.kind !== "simple" && command.kind !== "subshell" && command.kind !== "arithmetic" && command.kind !== "conditional") await this.errexit(1, state, io);
+        return { status: 1, diagnosticFailure };
+      }
+      if (errorCode(error) === "EPIPE") {
+        if (outputTracker.list) for (const failure of outputTracker.list) failure.descriptor.acknowledgeCloseFailure(failure.reason);
+        if (command.kind !== "simple" && command.kind !== "subshell" && command.kind !== "arithmetic" && command.kind !== "conditional") await this.errexit(141, state, io);
+        return { status: 141, diagnosticFailure };
+      }
+      const publicMessage = message(error, this.budget.onInternalError);
+      const line = error instanceof ExpansionFailure ? error.line ?? io.diagnosticLine ?? 1 : io.diagnosticLine ?? 1;
+      if (error instanceof NounsetFailure || error instanceof ParameterExpansionFailure) {
+        const detail = error instanceof ParameterExpansionFailure ? diagnostic ?? publicMessage : publicMessage;
+        try { await writeDiagnostic(io.stderr, `${io.scriptName ?? "shell"}: line ${line}: ${detail}\n`); }
+        catch (reason) {
+          this.signal.throwIfAborted();
+          if (reason instanceof ShellLimitError) throw reason;
+          diagnosticFailure = new NounsetDiagnosticFailure(reason);
+          throw diagnosticFailure;
+        }
+        throw completedExit(error instanceof NounsetFailure ? error.status : state.isolated ? 1 : 127, "exit", 1, undefined, true);
+      }
+      if (error instanceof ArrayFailure) await writeDiagnostic(io.stderr, `${io.scriptName ?? "shell"}: line ${line}: ${diagnostic ?? publicMessage}\n`);
+      else {
+        try {
+          const origin = io.assignmentDiagnosticContext;
+          const namedDeclaration = error instanceof DiscardCommandFailure && error.origin === "declaration" && origin?.name !== undefined;
+          const detail = diagnostic ?? `${namedDeclaration ? `${origin.name}: ` : ""}${publicMessage}`;
+          await writeDiagnostic(io.stderr, `${io.scriptName ?? "shell"}: line ${line}: ${detail}\n`);
+          if (outputTracker.list) for (const failure of outputTracker.list) failure.descriptor.acknowledgeCloseFailure(failure.reason);
+        }
+        catch (failure) { this.signal.throwIfAborted(); publicDiagnosticMessage(failure, this.budget.onInternalError); }
+      }
+      if (error instanceof FailglobFailure) throw completedExit(1, state.errexit ? "exit" : "discard");
+      if (error instanceof ExpansionFailure || error instanceof BraceExpansionFailure) throw completedExit(error instanceof ParameterExpansionFailure && !state.isolated ? 127 : 1);
+      if (error instanceof FatalCommandFailure) throw completedExit(error.status);
+      if (error instanceof DiscardCommandFailure) throw completedExit(error.status, "discard");
+      const status = outputTracker.outputStatus ?? (error instanceof CommandFailure ? error.status : 1);
+      if (command.kind !== "simple" && command.kind !== "subshell" && command.kind !== "arithmetic" && command.kind !== "conditional") await this.errexit(status, state, io);
+      return { status, diagnosticFailure };
+  }
+  async loopBody(body: Script, state: State, io: IO, startListIndex = 0, startPipelineIndex = 0): Promise<{ status: number; stop: boolean }> {
+    let status = 0;
+    let control: Flow | undefined;
+    try { status = await this.script(body, state, io, startListIndex, startPipelineIndex); }
+    catch (error) {
+      if (!(error instanceof Flow) || (error.kind !== "break" && error.kind !== "continue")) throw error;
+      control = error;
+      status = error.status;
+    }
+    if (state.extensions?.checkpoints.length) await this.extensionCheckpoint("loop-body-complete", state, io);
+    if (control && --control.levels > 0) throw control;
+    return { status, stop: control?.kind === "break" };
+  }
+  async document(document: HereDocument, state: State, io: IO, line = document.endLine): Promise<ShellValue> {
+    this.signal.throwIfAborted();
+    let value = "";
+    let fragments: ShellValue[] | undefined;
+    const allocation = this.budget.values.scope();
+    let size = 0;
+    let words = 0;
+    const warnings: string[] = [];
+    try {
+      for (const word of hereDocumentWords(document, line, byteLocale(state.variables), warnings, this.budget.parsing, state.extensions?.syntax, !!state.extglob)) {
+        this.signal.throwIfAborted();
+        for (const warning of warnings.splice(0)) await writeDiagnostic(io.stderr, `shell: warning: ${warning}\n`);
+        if (++words % 128 === 0) await yieldTurn(this.signal);
+        for (const part of await this.valueWord(word, state, { ...io, nameExpansionContext: "document" }, false, false, false, false, undefined, true, false)) {
+          size += shellValueByteLength(part);
+          if (size > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
+          if (!fragments && typeof part === "string") value += part;
+          else {
+            if (!fragments) {
+              allocation.reserve(64 + value.length * 2, 2);
+              fragments = [value];
+              value = "";
+            }
+            allocation.reserve(32 + (typeof part === "string" ? part.length * 2 : 0), 1);
+            fragments.push(part);
+          }
+        }
+      }
+      return fragments ? concatShellValues(fragments, io[valueScope] ?? allocation) : value;
+    } finally {
+      try {
+        for (const warning of warnings.splice(0)) await writeDiagnostic(io.stderr, `shell: warning: ${warning}\n`);
+      } finally { allocation.close(); }
+    }
+  }
+  async redirect(redirects: readonly Redirect[], state: State, io: IO, inputs: Set<{ close(): void | Promise<void> }>, outputs: Set<OutputFinalizer>, isolatedInlineInput = false, persistMoves = false, fileShortcut = false, line?: number): Promise<IO> {
+    this.signal.throwIfAborted();
+    if (redirects.length > this.budget.limits.maxRedirects) this.budget.fail("maxRedirects");
+    io.descriptors ??= new Map<number, Descriptor>([
+      [0, { input: io.stdin, ...(io.stdinIsDefault === undefined ? {} : { stdinIsDefault: io.stdinIsDefault }) }], [1, { output: io.stdout }], [2, { output: io.stderr }], ]);
+    if (redirects.length === 0 && !fileShortcut) {
+      const d0 = io.descriptors.get(0);
+      const d1 = io.descriptors.get(1);
+      const d2 = io.descriptors.get(2);
+      if ( (io.stdin === closedSource ? (!d0 || d0.closed) : (d0 && !d0.closed && d0.input === io.stdin && d0.stdinIsDefault === io.stdinIsDefault)) && io.stdout !== closedSink && io.stderr !== closedSink && d1 && !d1.closed && d1.output === io.stdout && d2 && !d2.closed && d2.output === io.stderr) {
+        return io;
+      }
+    }
+    const resourceFs = this.getRedirectFs(state.umask ?? 0o022);
+    const inputDescriptor = io.descriptors.get(0);
+    const outputDescriptor = io.descriptors.get(1);
+    const errorDescriptor = io.descriptors.get(2);
+    const descriptors = new Map<number, Descriptor>([
+      ...io.descriptors ?? [], [0, inputDescriptor?.input === io.stdin ? inputDescriptor : { input: io.stdin, ...(io.stdinIsDefault === undefined ? {} : { stdinIsDefault: io.stdinIsDefault }) }], [1, outputDescriptor?.output === io.stdout ? outputDescriptor : { output: io.stdout }], [2, errorDescriptor?.output === io.stderr ? errorDescriptor : { output: io.stderr }], ]);
+    const replaced = new Set<number>();
+    const references = new PipeDescriptorFrame(io[invocationScope]);
+    inputs.add(references);
+    const replaceDescriptor = async (number: number, next?: Descriptor): Promise<void> => {
+      const previous = descriptors.get(number)?.pipe;
+      if (previous && references.references.has(previous)) await previous.close();
+      if (next) descriptors.set(number, next);
+      else descriptors.delete(number);};
+    let errorTarget: string | undefined;
+    if (io.stdin === closedSource) descriptors.delete(0);
+    if (io.stdout === closedSink) descriptors.delete(1);
+    if (io.stderr === closedSink) descriptors.delete(2);
+    const currentIO = (): IO => {
+      const descriptor = descriptors.get(0)?.closed ? undefined : descriptors.get(0);
+      const stdinIsDefault = descriptor?.input ? descriptor.stdinIsDefault : false;
+      return {
+        ...(io.execVersion === undefined ? {} : { execVersion: io.execVersion }),
+        ...(io.execFrame === undefined ? {} : { execFrame: io.execFrame }),
+        capabilities: io.capabilities, ...(io.argv0 === undefined ? {} : { argv0: io.argv0 }), [invocationScope]: io[invocationScope], ...(io.admittedHandles === undefined ? {} : { admittedHandles: io.admittedHandles }), ...(io.processSignals === undefined ? {} : { processSignals: io.processSignals }), ...(io[valueScope] === undefined ? {} : { [valueScope]: io[valueScope] }), ...(io.execution === undefined ? {} : { execution: io.execution }), ...(io.diagnosticLine === undefined ? {} : { diagnosticLine: io.diagnosticLine }), ...(io.diagnosticOffset === undefined ? {} : { diagnosticOffset: io.diagnosticOffset }), ...(io.assignmentDiagnosticContext === undefined ? {} : { assignmentDiagnosticContext: io.assignmentDiagnosticContext }), ...(io.functionCommandLines === undefined ? {} : { functionCommandLines: io.functionCommandLines }), ...(io.diagnosticCommandLines === undefined ? {} : { diagnosticCommandLines: io.diagnosticCommandLines }), ...(io.scriptName === undefined ? {} : { scriptName: io.scriptName }), ...(io.substitutionDiagnosticLine === undefined ? {} : { substitutionDiagnosticLine: io.substitutionDiagnosticLine }), ...(io.substitutionDiagnosticLines === undefined ? {} : { substitutionDiagnosticLines: io.substitutionDiagnosticLines }), ...(io.processSubstitutions === undefined ? {} : { processSubstitutions: io.processSubstitutions }), stdin: descriptor?.input ?? closedSource, ...(stdinIsDefault === undefined ? {} : { stdinIsDefault }), stdout: descriptors.get(1)?.closed ? closedSink : descriptors.get(1)?.output ?? closedSink, stderr: descriptors.get(2)?.closed ? closedSink : descriptors.get(2)?.output ?? closedSink, descriptors, };};
+    try { for (const redirect of redirects) {
+      replaced.add(redirect.descriptor);
+      if (redirect.document || redirect.operator === "<<<") {
+        const hereString = redirect.operator === "<<<";
+        let value: ShellValue;
+        try { value = redirect.document ? await this.document(redirect.document, state, currentIO(), line) : concatShellValues(await this.valueWord(redirect.target, state, currentIO(), false, false, hereString), io[valueScope]); }
+        catch (error) {
+          if (error instanceof NounsetFailure) throw error;
+          if (error instanceof ParameterExpansionFailure && !isolatedInlineInput) throw error;
+          if (error instanceof ParameterExpansionFailure) throw new CommandFailure(error.message, state.isolated ? 1 : 127);
+          if (error instanceof ExpansionFailure) throw new PublicDiagnostic(error.message);
+          throw error;
+        }
+        if (hereString) {
+          if (shellValueByteLength(value) >= this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
+          value = concatShellValues([value, "\n"], io[valueScope]);
+        }
+        const prepared = prepareBytesInput(typeof value === "string" ? value : shellValueBytes(value, io[valueScope]), this.budget);
+        const input = new ShellInput(prepared.source, this.budget, this.commandSignal, prepared.options);
+        const lifetime = new DescriptorLifetime(async () => { try { await input.close(); } finally { await prepared.close(); } });
+        inputs.add({ close: () => lifetime.release() });
+        io[invocationScope].register(() => lifetime.release());
+        await replaceDescriptor(redirect.descriptor, { input, stdinIsDefault: false, lifetime });
+        continue;
+      }
+      const targets = await this.word(redirect.target, state, currentIO());
+      if (targets.length !== 1) throw new PublicDiagnostic("Ambiguous redirect");
+      const target = targets[0]!;
+      errorTarget = target;
+      const bothOutput = redirect.operator === "&>" || redirect.operator === "&>>"
+        || redirect.operator === ">&" && !redirect.explicitDescriptor && target !== "-" && !/^\d+-?$/u.test(target);
+      if (redirect.operator.endsWith("&") && !bothOutput) {
+        if (target === "-") await replaceDescriptor(redirect.descriptor);
+        else {
+          if (!/^\d+-?$/u.test(target)) throw new PublicDiagnostic(`${target}: Bad file descriptor`);
+          const move = target.endsWith("-");
+          if (move && !redirect.move) throw new PublicDiagnostic(`${target}: ambiguous redirect`);
+          const sourceDescriptor = Number(move ? target.slice(0, -1) : target);
+          const descriptor = descriptors.get(sourceDescriptor);
+          if (!descriptor || descriptor.closed || (!move && (redirect.operator === "<&" ? !descriptor.input : !descriptor.output))) throw new PublicDiagnostic(`${move ? sourceDescriptor : target}: Bad file descriptor`);
+          const pipe = descriptor.pipe && references.acquire(descriptor.pipe);
+          await replaceDescriptor(redirect.descriptor, { ...descriptor, ...(pipe ? { pipe } : {}) });
+          if (move && sourceDescriptor !== redirect.descriptor) {
+            descriptors.delete(sourceDescriptor);
+            if (descriptor.pipe && (references.references.has(descriptor.pipe) || persistMoves && !replaced.has(sourceDescriptor))) await descriptor.pipe.close();
+            if (persistMoves && !replaced.has(sourceDescriptor)) descriptor.closed = true;
+          }
+        }
+      } else {
+        const path = pathOf(state, target);
+        const options = { signal: this.commandSignal };
+        if (redirect.operator === "<" || redirect.operator === "<>") {
+          const readwrite = redirect.operator === "<>";
+          if (!readwrite) await interruptible(this.fs.access(path, 4, options), this.signal);
+          const stat = readwrite ? undefined : await interruptible(this.fs.stat(path, options), this.signal);
+          if (stat?.type === "directory" && !fileShortcut) throw new PublicDiagnostic(`${target}: Is a directory`);
+          const inputOwner: { input?: ShellInput } = {};
+          let closing: Promise<void> | undefined;
+          const cleanups: (() => void | Promise<void>)[] = [];
+          const close = (): Promise<void> => closing ??= (async () => {
+            const failures: unknown[] = [];
+            try { await inputOwner.input?.close(); } catch (error) { failures.push(error); }
+            for (const cleanup of cleanups) {
+              try { await cleanup(); }
+              catch (error) { if (!failures.some(failure => Object.is(failure, error))) failures.push(error); }
+            }
+            throwCleanupFailures(failures.filter(error => !(error instanceof PipelineClosed
+              && this.signal.aborted && Object.is(error, this.signal.reason))));
+          })();
+          const lifetime = new DescriptorLifetime(close);
+          inputs.add({ close: () => lifetime.release() });
+          io[invocationScope].register(() => lifetime.release());
+          const prepared = stat?.type === "directory" ? prepareBytesInput("", this.budget)
+            : await prepareFileInput({ fs: resourceFs, signal: this.commandSignal, readwrite, cleanupFailurePrioritySignal: this.budget.signal, registerCleanup: close => {
+              cleanups.push(close);
+            } }, path, this.budget, this.inputProfile, stat);
+          if (!cleanups.includes(prepared.close)) cleanups.push(prepared.close);
+          io[invocationScope].assertOpen();
+          const input = new ShellInput(prepared.source, this.budget, this.commandSignal, prepared.options);
+          inputOwner.input = input;
+          const file = prepared.options.descriptor;
+          const output = readwrite && file ? this.budget.sink({ async write(chunk) {
+            let offset = 0;
+            while (offset < chunk.length) {
+              const written = await file.write(chunk.subarray(offset), null, options);
+              if (written === 0) throw new FsError("EIO", { path, syscall: "write" });
+              offset += written;
+            }
+          } }, this.commandSignal) : undefined;
+          await replaceDescriptor(redirect.descriptor, { input, stdinIsDefault: false, lifetime, ...(file ? { file } : {}), ...(output ? { output } : {}) });
+        } else {
+          const append = redirect.operator === ">>" || redirect.operator === "&>>";
+          let flag: "a" | "wx" | "w" = append ? "a" : state.noclobber && redirect.operator !== ">|" ? "wx" : "w";
+          if (flag === "wx") {
+            try {
+              const entry = await resourceFs.lstat(path, options);
+              const stat = entry.type === "symlink" ? await resourceFs.stat(path, options) : entry;
+              if (stat.type !== "file" && stat.type !== "directory") flag = "w";
+            } catch (error) {
+              this.signal.throwIfAborted();
+              // Exclusive acquisition must diagnose an existing final symlink itself.
+              if (!(error instanceof FsError) || (error.code !== "ENOENT" && error.code !== "ELOOP")) throw error;
+            }
+          }
+          const capabilities = await this.fs.capabilitiesFor?.(path, { ...options, ...(flag === "wx" ? { creation: "exclusive" as const } : {}) }) ?? this.fs.capabilities;
+          const streaming = capabilities.preferStreamingRedirection === true && typeof this.fs.writeStream === "function"
+            && (append ? capabilities.streamingAppend ?? capabilities.streamingWrite : capabilities.streamingWrite) === true;
+          const canonical = capabilities.open === true && !streaming;
+          const random = capabilities.randomAccessWrite === true && !streaming;
+          const key = resolvePath(state.cwd, path);
+          let file!: OutputFile;
+          if (!canonical) await this.fileOperation(key, async () => {
+            file = this.outputFiles.get(key) ?? { data: undefined, references: 0 };
+            if (!random && capabilities.independentWriteStreams !== true && file.references) throw new FsError("ENOTSUP", { path, message: "Conflicting sequential output descriptors" });
+            file.references++;
+            this.outputFiles.set(key, file);});
+          let closed = false;
+          let offset = 0;
+          const incremental = async (): Promise<ByteSink> => {
+            await this.fileOperation(key, async () => {
+              if (append) await resourceFs.appendFile(path, new Uint8Array(), options);
+              else await resourceFs.writeFile(path, new Uint8Array(), { ...options, flag: "w" });
+              if (!append) file.data = new Uint8Array();});
+            return { write: (chunk) => {
+              const copy = new Uint8Array(chunk);
+              return this.fileOperation(key, async () => {
+                if (closed) throw new Error("Output descriptor is closed");
+                const current = file.data;
+                let atEOF = false;
+                if (!append && current && offset === current.length && capabilities.append === true && capabilities.stat !== false) {
+                  try {
+                    atEOF = (await interruptible(this.fs.stat(path, options), this.signal)).size === offset;
+                  } catch {
+                    this.signal.throwIfAborted();
+                  }
+                  this.signal.throwIfAborted();
+                }
+                if (append || atEOF) {
+                  const bytes = current ? appendOutputBytes(current, copy) : undefined;
+                  await resourceFs.appendFile(path, copy, options);
+                  file.data = bytes;
+                } else {
+                  const bytes = new Uint8Array(Math.max(current?.length ?? 0, offset + copy.length));
+                  if (current) bytes.set(current);
+                  bytes.set(copy, offset);
+                  await resourceFs.writeFile(path, bytes, options);
+                  file.data = bytes;
+                }
+                if (!append) offset += copy.length;});
+            } };};
+          this.budget.beginPathLookupSuspension();
+          const release = (): void => {
+            if (closed) return;
+            closed = true;
+            this.budget.endPathLookupSuspension();
+            if (canonical) return;
+            if (--file.references === 0 && this.outputFiles.get(key) === file) this.outputFiles.delete(key);};
+          let target;
+          let outputScope: InvocationScope | undefined;
+          const retireOutputCleanups: (() => void)[] = [];
+          let outputOwner = io[invocationScope];
+          while (outputOwner.parent) outputOwner = outputOwner.parent;
+          try {
+            if (!canonical) outputScope = new InvocationScope(this.commandSignal, io[invocationScope].failures);
+            const context = { fs: resourceFs, signal: this.commandSignal, cleanupFailurePrioritySignal: this.budget.signal, registerCleanup: (cleanup: () => void | Promise<void>) => {
+              const retire = (canonical ? outputOwner : outputScope!).register(cleanup);
+              if (canonical) retireOutputCleanups.push(retire);
+            } };
+            if (canonical) bindFileOutputBudget(context, sink => this.budget.sink(sink, this.commandSignal), (chunk, write, preserveReceipt) => this.budget.writeCounted(chunk, write, this.commandSignal, preserveReceipt));
+            target = await openFileOutput(context, path, { flag, ...(canonical ? { descriptor: true } : {}) }, !canonical && random && flag !== "wx" ? incremental : undefined);
+          } catch (error) {
+            try { await outputScope?.close(); }
+            finally { release(); }
+            if (flag === "wx" && error instanceof FsError && error.code === "EEXIST") throw new PublicDiagnostic(`${errorTarget}: cannot overwrite existing file`);
+            throw error;
+          }
+          const finalize: OutputFinalizer = async completion => {
+            try {
+              if (this.commandSignal.aborted) await target.abort(this.commandSignal.reason);
+              else if ("reason" in completion) await target.abort(completion.reason);
+              else {
+                try {
+                  await target.finish();
+                  for (const retire of retireOutputCleanups) retire();
+                }
+                catch (error) {
+                  this.signal.throwIfAborted();
+                  if (completion.status === 0 || target.descriptor && !target.signal.aborted) throw error;
+                }
+              }
+            } finally {
+              try { await outputScope?.close(); }
+              finally { release(); }
+            }};
+          let completion: Parameters<OutputFinalizer>[0] | undefined;
+          const lifetime = new DescriptorLifetime(() => finalize(completion ?? { status: 0 }));
+          const ownerFinalize: OutputFinalizer = value => { completion ??= value; return lifetime.release(); };
+          outputs.add(Object.assign(ownerFinalize, target.descriptor ? { descriptor: target.descriptor } : {}));
+          const output = canonical ? target.sink : this.budget.sink(target.sink, this.commandSignal);
+          if (canonical) budgetedSinks.set(output, { budget: this.budget, write: output.write });
+          budgetedSinks.get(output)!.file = Object.freeze({ path });
+          const binding: Descriptor = { output, lifetime, ...(target.descriptor ? { file: target.descriptor } : {}) };
+          await replaceDescriptor(redirect.descriptor, binding);
+          if (bothOutput) {
+            replaced.add(2);
+            await replaceDescriptor(2, { ...binding });
+          }
+        }
+      }
+    } } catch (error) {
+      const diagnostic = errorTarget === undefined ? undefined : filesystemDiagnostic(error, errorTarget);
+      throw new ExecutionFailure(error, currentIO(), diagnostic);
+    }
+    return currentIO();
+  }
+  async fileOperation(path: string, operation: () => Promise<void>): Promise<void> {
+    const previous = this.fileWrites.get(path) ?? Promise.resolve();
+    const pending = previous.catch(() => undefined).then(() => { this.signal.throwIfAborted(); return operation(); });
+    this.fileWrites.set(path, pending);
+    try { await interruptible(pending, this.signal); }
+    finally { if (this.fileWrites.get(path) === pending) this.fileWrites.delete(path); }
+  }
+  assignment(word: Word): { name: string; value: Word; append: boolean } | undefined {
+    const cached = assignmentCache.get(word);
+    if (cached !== undefined) return cached ?? undefined;
+    const first = word.parts[0];
+    if (first?.kind !== "text" || first.quoted) {
+      assignmentCache.set(word, null);
+      return undefined;
+    }
+    const fv = first.value;
+    const eqIdx = fv.indexOf("=");
+    if (eqIdx <= 0) {
+      assignmentCache.set(word, null);
+      return undefined;
+    }
+    const append = fv.charCodeAt(eqIdx - 1) === 43;
+    const nameEnd = append ? eqIdx - 1 : eqIdx;
+    if (nameEnd <= 0) {
+      assignmentCache.set(word, null);
+      return undefined;
+    }
+    const c0 = fv.charCodeAt(0);
+    if (!((c0 >= 65 && c0 <= 90) || (c0 >= 97 && c0 <= 122) || c0 === 95)) {
+      assignmentCache.set(word, null);
+      return undefined;
+    }
+    for (let i = 1; i < nameEnd; i++) {
+      const cc = fv.charCodeAt(i);
+      if (!((cc >= 65 && cc <= 90) || (cc >= 97 && cc <= 122) || (cc >= 48 && cc <= 57) || cc === 95)) {
+        assignmentCache.set(word, null);
+        return undefined;
+      }
+    }
+    const prefixLen = eqIdx + 1;
+    const name = fv.slice(0, nameEnd);
+    const rhsPlain = word.plain !== undefined ? word.plain.slice(prefixLen) : undefined;
+    let rhsParts: readonly WordPart[];
+    if (prefixLen === fv.length && word.parts.length === 2 && !isQuoteMarker(first)) {
+      rhsParts = [word.parts[1]!];
+    } else if (word.parts.length === 1) {
+      rhsParts = [{ kind: "text", value: fv.slice(prefixLen), quoted: false }];
+    } else {
+      rhsParts = [{ ...first, value: fv.slice(prefixLen) }, ...word.parts.slice(1)];
+    }
+    const result = { name, append, value: rhsPlain !== undefined ? { offset: word.offset, plain: rhsPlain, parts: rhsParts as WordPart[] } : { offset: word.offset, parts: rhsParts as WordPart[] } };
+    assignmentCache.set(word, result);
+    return result;
+  }
+  async simple( command: Extract<Command, { kind: "simple" }>, state: State, originalIO: IO, inputs: Set<{ close(): void | Promise<void> }>, outputs: Set<OutputFinalizer>, snapshotHolder: { scope?: InvocationScope; finish?: () => void; persistentRedirects?: boolean }, fileShortcut = false, terminal?: IO["terminal"], ): Promise<number> {
+    state.substitutionStatus = 0;
+    const firstAssignment = command.words.length > 0 ? (getArrayAssignment(command.words[0]!) ?? this.assignment(command.words[0]!)) : undefined;
+    if (!firstAssignment && command.redirects.length === 0 && !fileShortcut) {
+      const commandWords = command.words;
+      let declarationIndex = 0;
+      if (commandWords.length > 0) {
+        while ((commandWords[declarationIndex]?.plain === "command" || commandWords[declarationIndex]?.plain === "builtin") && !state.extensions?.builtins.has(commandWords[declarationIndex]!.plain!)) {
+          declarationIndex++;
+          if (commandWords[declarationIndex]?.plain === "--") declarationIndex++;
+        }
+      }
+      const declarationName = commandWords[declarationIndex]?.plain ?? "";
+      const declarationBuiltin = declarationName ? state.extensions?.builtins.get(declarationName) : undefined;
+      const declaration = declarationBuiltin ? declarationBuiltin.expansion === "declaration" : ["export", "declare", "typeset", "local", "readonly"].includes(declarationName);
+      if (!declaration) {
+        try {
+          const wordValues = commandWords.length > 0
+            ? (this.fastValueWords(commandWords, state, originalIO, false, false) ?? await this.valueWords(commandWords, state, originalIO, false, false, undefined, declarationIndex + 1))
+            : emptyShellValues;
+          let allStrings = true;
+          for (let i = 0; i < wordValues.length; i++) {
+            if (typeof wordValues[i] !== "string") {
+              allStrings = false;
+              break;
+            }
+          }
+          const words = wordValues.length > 0 ? (allStrings ? (wordValues as readonly string[]) : wordValues.map(shellValueText)) : emptyStrings;
+          const special = state.profile === "sh" && (specialBuiltinNames.has(words[0] ?? "") || !!state.extensions?.builtins.get(words[0] ?? "")?.special);
+          if (terminal) {
+            terminal.io = originalIO;
+            await terminal.frame.reconcile(originalIO.descriptors!);
+          }
+          const rawState = stateMonitor(state)?.raw ?? state;
+          if (!state._readOnlyStage && rawState.variables._ !== undefined) delete rawState.variables._;
+          if (!state.functions.has(words[0] ?? "") && !["eval", ".", "source"].includes(words[declarationIndex] ?? "")) {
+            rawState.lastArgument = words.at(-1) ?? "";
+            state.lastArgument = rawState.lastArgument;
+          }
+          if (!words.length) return state.substitutionStatus;
+          const args = words.slice(1);
+          const argValues = allStrings ? args : wordValues.slice(1);
+          try {
+            return await this.dispatch(wordValues[0]!, args, state, originalIO, emptySavedVariables, false, argValues, emptySavedVariables);
+          } catch (error) {
+            if (error instanceof Flow) {
+              if ((error.kind === "break" || error.kind === "continue" || error.kind === "return") && originalIO.assignmentDiagnosticContext) originalIO.assignmentDiagnosticContext.name = undefined;
+              throw error;
+            }
+            this.signal.throwIfAborted();
+            const original = error instanceof ExecutionFailure ? error.original : error;
+            if (special && !(original instanceof ShellLimitError) && !(original instanceof ExpansionFailure) && !(original instanceof Flow) && !(original instanceof ShellSyntaxError)) throw new ExecutionFailure(new FatalCommandFailure(message(original, this.budget.onInternalError), 1), error instanceof ExecutionFailure ? error.io : originalIO, error instanceof ExecutionFailure ? error.diagnostic : undefined);
+            if (error instanceof ExecutionFailure) throw error;
+            throw new ExecutionFailure(error, originalIO);
+          }
+        } catch (error) {
+          if (error instanceof Flow) {
+            if ((error.kind === "break" || error.kind === "continue" || error.kind === "return") && originalIO.assignmentDiagnosticContext) originalIO.assignmentDiagnosticContext.name = undefined;
+            throw error;
+          }
+          this.signal.throwIfAborted();
+          if (error instanceof ExecutionFailure) throw error;
+          throw new ExecutionFailure(error, originalIO);
+        }
+      }
+    }
+    return this.simpleWithSetup(command, state, originalIO, inputs, outputs, snapshotHolder, fileShortcut, terminal);
+  }
+  private async simpleWithSetup( command: Extract<Command, { kind: "simple" }>, state: State, originalIO: IO, inputs: Set<{ close(): void | Promise<void> }>, outputs: Set<OutputFinalizer>, snapshotHolder: { scope?: InvocationScope; finish?: () => void; persistentRedirects?: boolean }, fileShortcut = false, terminal?: IO["terminal"], ): Promise<number> {
+    const assignments: ({ name: string; value: Word; append: boolean; kind?: undefined } | ArrayAssignment)[] = [];
+    let wordIndex = 0;
+    for (; wordIndex < command.words.length; wordIndex++) {
+      const assignment = getArrayAssignment(command.words[wordIndex]!) ?? this.assignment(command.words[wordIndex]!);
+      if (!assignment) break;
+      assignments.push(assignment);
+    }
+    const commandWords = wordIndex === 0 ? command.words : wordIndex === command.words.length ? emptyWords : command.words.slice(wordIndex);
+    let declarationIndex = 0;
+    if (commandWords.length > 0) {
+      while ((commandWords[declarationIndex]?.plain === "command" || commandWords[declarationIndex]?.plain === "builtin") && !state.extensions?.builtins.has(commandWords[declarationIndex]!.plain!)) {
+        declarationIndex++;
+        if (commandWords[declarationIndex]?.plain === "--") declarationIndex++;
+      }
+    }
+    const declarationName = commandWords[declarationIndex]?.plain ?? "";
+    const declarationBuiltin = declarationName ? state.extensions?.builtins.get(declarationName) : undefined;
+    const declaration = declarationBuiltin ? declarationBuiltin.expansion === "declaration" : ["export", "declare", "typeset", "local", "readonly"].includes(declarationName);
+    const indexedDeclaration = declaration && ["declare", "typeset", "local", "readonly"].includes(declarationName);
+    const compounds = indexedDeclaration && declarationName !== "readonly" ? new Map<number, ArrayAssignment>() : undefined;
+    const wordValues = commandWords.length > 0
+      ? (this.fastValueWords(commandWords, state, originalIO, declaration, indexedDeclaration) ?? await this.valueWords(commandWords, state, originalIO, declaration, indexedDeclaration, compounds, declarationIndex + 1))
+      : emptyShellValues;
+    const allStrings = wordValues.length === 0 || wordValues.every(value => typeof value === "string");
+    const words = wordValues.length > 0 ? (allStrings ? (wordValues as readonly string[]) : wordValues.map(shellValueText)) : emptyStrings;
+    const special = state.profile === "sh" && (specialBuiltinNames.has(words[0] ?? "") || !!state.extensions?.builtins.get(words[0] ?? "")?.special);
+    const inlineInput = command.redirects.some((redirect) => redirect.document || redirect.operator === "<<<");
+    const functionCommand = words.length > 0 && state.functions.has(words[0]!);
+    const isolatedInlineInput = inlineInput && words.length > 0 && !shellBuiltinNames.has(words[0]!) && !state.extensions?.builtins.has(words[0]!) && !functionCommand;
+    const snapshotScope = isolatedInlineInput ? (() => {
+      const s = originalIO[invocationScope].child();
+      snapshotHolder.scope = s;
+      void s.run(() => new Promise<void>(resolve => { snapshotHolder.finish = resolve; }));
+      return s;
+    })() : undefined;
+    let io = snapshotScope ? { ...originalIO, [invocationScope]: snapshotScope } : originalIO;
+    const previous = words.length > 0 ? (assignments.length > 0 || declaration ? new Map<string, SavedVariable>() : emptySavedVariables) : undefined;
+    const assign = async () => {
+      for (const original of assignments) {
+        const refName = this.referenceName(state, original.name);
+        const assignment = refName === original.name ? original : { ...original, name: refName };
+        const target = !assignment.kind && !assignment.name.includes("[") ? { name: assignment.name } : this.variableTarget(assignment.name)!;
+        if (!assignment.kind && target.subscript !== undefined) {
+          await this.arrayAssignment({ kind: "element", name: target.name, append: assignment.append, index: stringIndex(target.subscript, this.budget.parsing, parseArraySubscript(target.subscript, this.budget.parsing, byteLocale(state.variables), state.depth, false, state.extensions?.syntax, !!state.extglob)), value: assignment.value }, state, io);
+          continue;
+        }
+        if (assignment.kind) { await this.arrayAssignment(assignment, state, io); continue; }
+        if (!words.length && arrayStore(state)?.get(assignment.name)) {
+          await this.arrayZero(state, assignment.name, io, async () => {
+            const fields = await this.valueWord(assignment.value, state, io, false, false, false, false, undefined, false, false, 0);
+            return this.arrayJoin(requireArrays(state).owner, fields, "");
+          }, assignment.append);
+          if (state.allexport) state.exported.add(assignment.name);
+          continue;
+        }
+        const fastAssigned = this.fastValueWord(assignment.value, state, io, false, false, false, false, 0);
+        let value = fastAssigned !== undefined
+          ? fastAssigned
+          : concatShellValues(await this.valueWord(assignment.value, state, io, false, false, false, false, undefined, false, false, 0), io[valueScope]);
+        if (assignment.append) {
+          value = state.variableAttributes?.get(assignment.name)?.includes("i")
+            ? concatShellValues([`(${state.variables[assignment.name] || "0"})+(`, value, ")"], io[valueScope])
+            : concatShellValues([stateMonitor(state)?.values.get(assignment.name, state.variables[assignment.name] ?? "") ?? state.variables[assignment.name] ?? "", value], io[valueScope]);
+        }
+        if (state.readonlyVariables?.has(assignment.name)) {
+          await this.diagnostic(io, `${assignment.name}: readonly variable`);
+          if (state.profile === "sh" || !words.length) throw new Flow("exit", state.profile === "sh" && (special || !words.length) ? 127 : 1);
+          continue;
+        }
+        if (previous && !previous.has(assignment.name)) {
+          const saved = saveVariable(state, assignment.name);
+          previous.set(assignment.name, saved);
+          const existingArray = arrayStore(state)?.get(assignment.name);
+          const canSkipTypedScalarOverlay = !existingArray && words[0] === "read" && !state.functions.has("read") && !state.extensions?.builtins.has("read") && !words.some(w => w.startsWith("-a") || (w.startsWith("-") && !w.startsWith("--") && w.includes("a")));
+          if (words.length && !canSkipTypedScalarOverlay && (guestArrays(state) || existingArray)) {
+            const store = requireArrays(state);
+            await this.prepareVariable(state, assignment.name, saved, !existingArray);
+            if (existingArray) {
+              const publication = store.tickets(assignment.name);
+              await store.remove(assignment.name, publication);
+              publication.release();
+            }
+          }
+        }
+        await this.writeVariable(state, assignment.name, value, io);
+        if (words.length) state.exported.add(assignment.name);
+      }};
+    let overlayOpen = false;
+    try {
+      if (snapshotScope) state = await cloneState(state, this.signal, snapshotScope);
+      if (words.length && assignments.length > 0) {
+        stateMonitor(state)?.openOverlay(previous!);
+        overlayOpen = true;
+      }
+      if (inlineInput || (state.profile === "sh" || !words.length) && assignments.some(assignment => state.readonlyVariables?.has(assignment.name))) await assign();
+      if (inlineInput && previous?.size) {
+        if (stateMonitor(state)?.lazyPipeStatus !== undefined) stateMonitor(state)!.activate(true);
+        const redirectState = tryCloneStateSync(state) ?? await cloneState(state, this.signal);
+        const variables = redirectState.variables;
+        const redirectAssignments = new Map<string, ShellValue>();
+        for (const [name, saved] of previous) {
+          redirectAssignments.set(name, stateMonitor(state)!.values.get(name, state.variables[name]!));
+          if (saved.exported) redirectState.exported.add(name);
+          else redirectState.exported.delete(name);
+          if (saved.value === undefined) delete variables[name];
+          else publishVariable(redirectState, name, saved.heldValue?.value ?? saved.value);
+          const binding = typedSavedVariables.get(saved)?.binding;
+          if (binding) {
+            const store = requireArrays(redirectState);
+            const prepared = await store.prepareName(name, store.owner, this.signal);
+            const tickets = store.tickets(name);
+            try { await store.publish(name, binding.retain(), tickets, prepared); }
+            finally { tickets.release(); }
+          }
+        }
+        redirectState.redirectAssignments = redirectAssignments;
+        const savedIndex = previous.get("OPTIND");
+        if (savedIndex?.getopts) redirectState.getopts = { integer: savedIndex.getopts.integer, cursor: cloneGetoptsState(savedIndex.getopts.cursor) };
+        const parentStore = arrayStore(state);
+        const copyOwner = parentStore ? ArrayOwner.create(parentStore.owner.ledger, parentStore.owner) : undefined;
+        const holding = parentStore?.owner.hold();
+        copyOwner?.reserve({ metadata: 64, work: 3 });
+        const publications = new Map<string, { binding: IndexedBinding; tickets: Admission }>();
+        if (parentStore && copyOwner) for (const [name, entry] of parentStore.bindings) {
+          copyOwner.reserve({ slots: 1, metadata: 32, work: 5 });
+          publications.set(name, { binding: entry.binding, tickets: copyOwner.reserve({ generation: true, version: true, epoch: true, work: 8 }) });
+        }
+        const epoch = stateMonitor(state)?.epoch;
+        try {
+          io = await this.redirect(command.redirects, redirectState, io, inputs, outputs, isolatedInlineInput, !isolatedInlineInput, false, command.line ?? 1);
+          if (parentStore && stateMonitor(state)!.epoch !== epoch) throw new ArrayFailure("stale state snapshot");
+        } finally {
+          try {
+          const stale = parentStore && stateMonitor(state)!.epoch !== epoch;
+          if (!stale) {
+          if (parentStore) for (const [name, publication] of publications) {
+            const changed = arrayStore(redirectState)!.get(name);
+            if (!previous.has(name) && changed && changed !== publication.binding) {
+              let released: Promise<void> | undefined;
+              stateMonitor(state)!.publish(publication.tickets, name, () => { released = parentStore.publish(name, changed.retain(), publication.tickets); });
+              await released;
+            }
+          }
+          state.substitutionStatus = redirectState.substitutionStatus;
+          for (const [name, value] of Object.entries(variables)) {
+            if (!previous.has(name)) publishVariable(state, name, stateMonitor(redirectState)!.values.get(name, value));
+          }
+          for (const [name, saved] of previous) {
+            const typed = typedSavedVariables.get(saved);
+            const binding = arrayStore(redirectState)?.get(name);
+            if (typed && binding !== typed.binding) {
+              typedSavedVariables.set(saved, { ...typed, binding: binding?.retain() });
+              await typed.binding?.release();
+            }
+            saved.value = variables[name];
+            const value = stateMonitor(redirectState)!.values.get(name, saved.value ?? "");
+            const held = saved.value === undefined ? undefined : stateMonitor(state)!.values.scope.hold(value);
+            saved.heldValue?.release();
+            if (held) saved.heldValue = held;
+            else delete saved.heldValue;
+            if (name === "OPTIND") saved.getopts = cloneGetoptsBinding(redirectState);
+          }
+          if (!previous.has("OPTIND")) state.getopts = cloneGetoptsBinding(redirectState);
+          }
+          } finally { try { await copyOwner?.close(); } finally { holding?.release(); stateMonitor(redirectState)?.closeValues(); } }
+        }
+      } else io = await this.redirect(command.redirects, state, io, inputs, outputs, isolatedInlineInput, !words.length || shellBuiltinNames.has(words[0]!) || !!state.extensions?.builtins.has(words[0]!) || functionCommand, fileShortcut, command.line ?? 1);
+      if (terminal) {
+        terminal.io = io;
+        await terminal.frame.reconcile(io.descriptors!);
+      }
+      if (!inlineInput && assignments.length > 0) await assign();
+      if (fileShortcut) {
+        const input = io.descriptors?.get(command.redirects[0]!.descriptor)?.input;
+        if (!input) throw new PublicDiagnostic("Bad file descriptor");
+        await pipeBytes(input, io.stdout, this.signal);
+        return 0;
+      }
+      if (!snapshotScope) {
+        const rawState = stateMonitor(state)?.raw ?? state;
+        if (rawState.variables._ !== undefined && !assignments.some(assignment => assignment.name === "_")) delete rawState.variables._;
+        if (!functionCommand && !["eval", ".", "source"].includes(words[declarationIndex] ?? "")) {
+          rawState.lastArgument = words.at(-1) ?? "";
+          state.lastArgument = rawState.lastArgument;
+        }
+      }
+      if (!words.length) return state.substitutionStatus;
+      if (words[declarationIndex] === "exec" && !functionCommand && !state.extensions?.builtins.has("exec")) {
+        snapshotHolder.persistentRedirects = true;
+        const raw = stateMonitor(state)?.raw ?? state;
+        let frame = execDescriptorFrames.get(raw);
+        if (!frame) {
+          frame = { version: 0, descriptors: new Map(), revisions: new Map(), releases: new Map() };
+          execDescriptorFrames.set(raw, frame);
+          this.budget.executionCleanup.register(() => closeExecDescriptors(raw));
+        }
+        for (const redirect of command.redirects) {
+          const numbers = redirect.operator === "&>" || redirect.operator === "&>>" ? [1, 2] : [redirect.descriptor];
+          for (const number of numbers) {
+            const descriptor = io.descriptors?.get(number) ?? { closed: true };
+            const release = descriptor.lifetime?.acquire();
+            const previousRelease = frame.releases.get(number);
+            if (release) frame.releases.set(number, release); else frame.releases.delete(number);
+            frame.descriptors.set(number, descriptor);
+            frame.revisions.set(number, ++frame.version);
+            await previousRelease?.();
+          }
+        }
+      }
+      const args = words.slice(1);
+      const argValues = allStrings ? args : wordValues.slice(1);
+      const dispatchIO = compounds ? { ...io, [declarationArrays]: compounds } : io;
+      return await this.dispatch(wordValues[0]!, args, state, dispatchIO, previous!, false, argValues, previous!);
+    } catch (error) {
+      if (error instanceof Flow) {
+        if ((error.kind === "break" || error.kind === "continue" || error.kind === "return") && io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
+        throw error;
+      }
+      this.signal.throwIfAborted();
+      const original = error instanceof ExecutionFailure ? error.original : error;
+      if (special && !(original instanceof ShellLimitError) && !(original instanceof ExpansionFailure) && !(original instanceof Flow) && !(original instanceof ShellSyntaxError)) throw new ExecutionFailure(new FatalCommandFailure(message(original, this.budget.onInternalError), 1), error instanceof ExecutionFailure ? error.io : io, error instanceof ExecutionFailure ? error.diagnostic : undefined);
+      if (error instanceof ExecutionFailure) throw error;
+      throw new ExecutionFailure(error, io);
+    } finally {
+      if (overlayOpen) {
+        let canRestoreSync = true;
+        for (const [key, saved] of previous!) {
+          if (saved.superseded || typedSavedVariables.has(saved) || arrayStore(state)?.get(key)) {
+            canRestoreSync = false;
+            break;
+          }
+        }
+        if (canRestoreSync) {
+          for (const [key, saved] of previous!) {
+            await restoreVariable(state, key, saved);
+          }
+          stateMonitor(state)?.closeOverlay(previous!);
+        } else {
+          for (const [key, saved] of previous!) await originalIO[invocationScope].cleanup(async () => {
+            if (saved.superseded) await this.discardVariable(saved);
+            else await restoreVariable(state, key, saved);});
+          await originalIO[invocationScope].cleanup(() => stateMonitor(state)?.closeOverlay(previous!));
+        }
+      } else if (previous) for (const saved of previous.values()) saved.heldValue?.release();
+    }
+  }
+  private dispatchFastCommand?(_name: string, _definition: any, _values: readonly ShellValue[], _state: State, _io: IO, _scope: InvocationScope): Promise<number>;
+  private dispatchFastFunction?(_name: string, _body: Command, _args: readonly string[], _state: State, _io: IO, _pendingResume?: any): Promise<number>;
+  private tryFastPredicateSync?(_name: string, _rawArgs: readonly string[]): number | undefined;
+  async dispatch(name: ShellValue, args: readonly string[], state: State, io: IO, assignments: Map<string, SavedVariable>, bypassFunctions = false, values: readonly ShellValue[] = args, temporaryEnvironment?: ReadonlyMap<string, SavedVariable>, defaultPath = false, forceBuiltin = false): Promise<number> {
+    if ( !state.externalInvocation && this.middleware.length === 0 && typeof name === "string" && !state.extensions?.builtins.has(name) && !bypassFunctions && state.functions.has(name) && this.firstInternalDiscovery(name, state, false) === "function" && !hasActiveExtensions(state) && !guestArrays(state) && !mapfileCallbackStates.has(state) && assignments.size === 0 && !temporaryEnvironment && (values === args || !values.some(value => typeof value !== "string"))) {
+      if (this.dispatchFastFunction) return await this.dispatchFastFunction(name, state.functions.get(name)!, args, state, io);
+    }
+    if ( !state.externalInvocation && this.middleware.length === 0 && typeof name === "string" && !state.extensions?.builtins.has(name) && !(!bypassFunctions && state.functions.has(name)) && (values === args || !values.some(value => typeof value !== "string"))) {
+      if (name === "[" || name === "test") {
+        const def = this.commands.get(name);
+        if (def && defaultPredicateExecutors.has(def.execute)) {
+          const fastStatus = this.tryFastPredicateSync?.(name, args);
+          if (fastStatus !== undefined) return fastStatus;
+        }
+      } else if (name === ":") {
+        if (state.profile === "sh" && !bypassFunctions) assignments.clear();
+        return 0;
+      } else if (name === "true" && (forceBuiltin || !this.hasBuiltinOverride(name))) return 0; else if (name === "false" && (forceBuiltin || !this.hasBuiltinOverride(name))) return 1; else if (name === "echo" && (args.length === 0 || !args[0]!.startsWith("-"))) {
+        const def = this.commands.get("echo");
+        if (def && (!state.xpg_echo && defaultEchoExecutors.has(def.execute))) {
+          const text = args.length === 0 ? "\n" : args.length === 1 ? `${args[0]!}\n` : `${args.join(" ")}\n`;
+          const targetSink = io.descriptors?.get(1)?.output ?? io.stdout;
+          await writeBytes(targetSink, fastSharedTextEncoder.encode(text), this.commandSignal);
+          return 0;
+        }
+      } else if (name === "read" && !hasActiveVariableAttributes(state) && io.stdin instanceof ShellInput) {
+        let raw = false;
+        let argIdx = 0;
+        let simpleRead = true;
+        while (argIdx < args.length && args[argIdx]!.startsWith("-") && args[argIdx] !== "--" && args[argIdx] !== "-") {
+          const opt = args[argIdx++]!;
+          for (let k = 1; k < opt.length; k++) {
+            if (opt[k] === "r") raw = true;
+            else if (opt[k] === "s") { /* no-op */ } else { simpleRead = false; break; }
+          }
+          if (!simpleRead) break;
+        }
+        if (simpleRead && args[argIdx] === "--") argIdx++;
+        if (simpleRead) {
+          const varNames = args.slice(argIdx);
+          for (let i = 0; i < varNames.length; i++) {
+            const vn = varNames[i]!;
+            if ( !isShellIdentifier(vn) || state.readonlyVariables?.has(vn) || arrayStore(state)?.get(vn) || state.variableAttributes?.get(vn) || vn === "OPTIND") {
+              simpleRead = false;
+              break;
+            }
+          }
+          if (simpleRead && varNames.length === 0) {
+            if (state.readonlyVariables?.has("REPLY") || arrayStore(state)?.get("REPLY") || state.variableAttributes?.get("REPLY")) simpleRead = false;
+          }
+          if (simpleRead) {
+            const line = await io.stdin.line(raw, { byteCount: byteLocale(state.variables) });
+            try {
+              if (varNames.length === 0) {
+                publishVariable(state, "REPLY", line.shellValue);
+                if (state.allexport) state.exported.add("REPLY");
+              } else {
+                const separators = stateMonitor(state)?.values.get("IFS", state.variables.IFS ?? " \t\n") ?? state.variables.IFS ?? " \t\n";
+                const fields = await line.fields(separators, varNames.length);
+                for (let i = 0; i < varNames.length; i++) {
+                  const v = fields[i]?.value ?? "";
+                  publishVariable(state, varNames[i]!, v);
+                  if (state.allexport) state.exported.add(varNames[i]!);
+                }
+              }
+              return line.terminated ? 0 : 1;
+            } finally {
+              line.release();
+            }
+          }
+        }
+      }
+    }
+    const scope = io[invocationScope].child();
+    const externalDef = typeof name === "string" ? this.commands.get(name) : undefined;
+    const fastInline = !state.externalInvocation && this.middleware.length === 0 && typeof name === "string" && (!externalDef || (!customRegisteredCommands.has(externalDef.execute) && !customRegisteredRegistries.has(this.commands))) && !(!bypassFunctions && state.functions.has(name)) && !state.extensions?.builtins.has(name) && name !== "." && name !== "source" && name !== "eval" && name !== "command" && name !== "builtin" && name !== "type" && name !== "read" && name !== "mapfile" && name !== "readarray";
+    if ( this.dispatchFastCommand && fastInline && externalDef !== undefined && values.every(value => typeof value === "string") && !implementedBuiltins.has(name) && !(name === "printf" && externalDef.execute === printfCommand.execute && args[0]?.startsWith("-v"))) {
+      try {
+        return await this.dispatchFastCommand(name, externalDef, values, state, io, scope);
+      } finally {
+        await scope.close();
+      }
+    }
+    const runtime = fastInline
+      ? this
+      : new Runtime( this.sourceFs, this.commands, this.middleware, this.budget, combineManagedSignals(this.signal, scope.signal), this.fileWrites, this.outputFiles, this.commandSignal, this.cancellation, this.cancellationState, this.cancellationOwner, this.cancellationDepth, this.cancellationMaxDepth, this.outcomeFrame, this.inputProfile, );
+    try { return await runtime.dispatchScoped(name, values, state, { ...io, [invocationScope]: scope }, assignments, bypassFunctions, temporaryEnvironment, defaultPath, !fastInline || this._isMemoryBackingFs, forceBuiltin); }
+    finally { await scope.close(); }
+  }
+  private async dispatchScoped(nameValue: ShellValue, values: readonly ShellValue[], state: State, io: IO, assignments: Map<string, SavedVariable>, bypassFunctions: boolean, temporaryEnvironment?: ReadonlyMap<string, SavedVariable>, defaultPath = false, signalIsScoped = false, forceBuiltin = false): Promise<number> {
+    const { [invocationScope]: scope, [valueScope]: ignoredValueScope, [declarationArrays]: ignoredDeclarationArrays, argumentValues: ignoredArgumentValues, ...publicIO } = io as IO & { argumentValues?: unknown };
+    const allocation = this.budget.values.scope();
+    try {
+    if (typeof nameValue !== "string") allocation.hold(nameValue);
+    const name = shellValueText(nameValue);
+    let currentName = nameValue;
+    const readName = (): string => shellValueText(currentName);
+    const argumentValues = this.admitArguments(values, allocation);
+    let allStrings = true;
+    for (let i = 0; i < argumentValues.values.length; i++) {
+      if (typeof argumentValues.values[i] !== "string") { allStrings = false; break; }
+    }
+    let builtinFailure: { error: unknown; diagnostic: string } | undefined;
+    const hasMiddleware = this.middleware.length > 0;
+    const env = Object.create(null) as Record<string, string>;
+    for (const key of state.exported) {
+      const value = state.variables[key];
+      if (value !== undefined) env[key] = value;
+    }
+    if (state.exportedFunctions) {
+      for (const key of state.exportedFunctions) {
+        const body = state.functions.get(key);
+        if (body) env[`BASH_FUNC_${key}%%`] = functionDisplay(key, body).slice(key.length + 1).trimEnd();
+      }
+    }
+    const initialEnv = hasMiddleware ? { ...env } : env;
+    const runtimeFrame: RuntimeOutcomeFrame = {};
+    let scopedSignal: AbortSignal | undefined = signalIsScoped ? this.signal : undefined;
+    const getScopedSignal = (): AbortSignal => (scopedSignal ??= combineManagedSignals(this.signal, scope.signal));
+    let contextFs: FileSystem | undefined;
+    const getContextFs = (): FileSystem => {
+      if (!contextFs) contextFs = this.getContextFsFor(state.umask ?? 0o022, getScopedSignal());
+      return contextFs;};
+    let cachedPredicates: NonNullable<CommandContext["shellPredicates"]> | undefined;
+    let cachedInputBudget: NonNullable<CommandContext["inputBudget"]> | undefined;
+    const getShellPredicates = (): NonNullable<CommandContext["shellPredicates"]> => {
+      if (!cachedPredicates) {
+        cachedPredicates = {
+          variable: name => this.variable(state, name) !== undefined, reference: name => state.variableAttributes?.get(name)?.includes("n") ?? false, option: name => {
+            const extension = state.extensions?.options.get(name);
+            if (extension) return extension.enabled;
+            if (name === "braceexpand") return state.braceexpand !== false;
+            if (name === "allexport") return !!state.allexport;
+            if (["errexit", "noclobber", "noglob", "noexec", "nounset", "pipefail"].includes(name)) return !!state[name as "nounset"];
+            return false;
+          }, terminal: () => false, };
+        variablePresence.set(cachedPredicates, name => this.variablePresent(state, name, io));
+      }
+      return cachedPredicates;};
+    const getInputBudget = (): NonNullable<CommandContext["inputBudget"]> => (cachedInputBudget ??= {
+      maxBytes: this.budget.limits.maxInputBytes, check: totalBytes => {
+        this.commandSignal.throwIfAborted();
+        if (!Number.isSafeInteger(totalBytes) || totalBytes < 0) throw new RangeError("Input byte total must be a nonnegative safe integer");
+        if (totalBytes > this.budget.limits.maxInputBytes) this.budget.fail("maxInputBytes");
+      }, });
+    const context: ShellCommandContext = {
+      ...publicIO, ...{ xpgEcho: !!state.xpg_echo, shellStartedAt: state.shellStartedAt ??= Date.now() }, command: name, args: argumentValues.args, ...(allStrings ? {} : { argumentValues }), env, cwd: state.cwd,
+      commandDiscovery: {
+        defaultPath: state.variables.PATH ?? (state.pathUnset ? undefined : defaultCommandPath),
+        isExecutable: path => this.virtualExecutable(path) !== undefined,
+      },
+      get shellPredicates(): NonNullable<CommandContext["shellPredicates"]> { return getShellPredicates(); }, set shellPredicates(replacement: NonNullable<CommandContext["shellPredicates"]>) { cachedPredicates = replacement; }, get fs() { return getContextFs(); }, set fs(replacement: FileSystem) { contextFs = replacement; }, signal: toNativeAbortSignal(this.commandSignal), executionScope: this.budget.executionScope, onInternalError: this.budget.onInternalError, get inputBudget(): NonNullable<CommandContext["inputBudget"]> { return getInputBudget(); }, set inputBudget(replacement: NonNullable<CommandContext["inputBudget"]>) { cachedInputBudget = replacement; }, registerCleanup: (cleanup) => { scope.register(cleanup); }, invoke: (name, args, options) => {
+        const invRuntime = new Runtime( this.sourceFs, this.commands, this.middleware, this.budget, this.signal, this.fileWrites, this.outputFiles, this.commandSignal, this.cancellation, this.cancellationState, this.cancellationOwner, this.cancellationDepth, this.cancellationMaxDepth, this.outcomeFrame, this.inputProfile, );
+        const invocation = invRuntime.invoke(name, args, options, context, state, scope);
+        void invocation.catch(() => undefined);
+        return invocation;
+      }, };
+    workerRuntimeContexts.set(context, Object.defineProperty({
+      budget: this.budget, umask: state.umask ?? 0o022, ignoredSignals: captureIgnoredTrapSignals(state.extensions),
+    }, "fs", {
+      configurable: true, enumerable: true, get: () => this.getContextFsForFast(0, getScopedSignal()),
+    }) as NonNullable<ReturnType<typeof workerRuntimeContexts.get>>);
+    if (typeof nameValue !== "string") Object.defineProperty(context, "command", {
+      configurable: true, enumerable: true, get: readName, set(replacement: string) { currentName = replacement; }, });
+    bindCommandIO(context, io, this.budget.limits);
+    bindFileOutputBudget(context, sink => this.budget.sink(sink, getScopedSignal()), (chunk, write) => this.budget.writeCounted(chunk, write, getScopedSignal()));
+    const middleware = hasMiddleware ? this.middleware.map<Middleware>((handler) => (context, next) => {
+      scope.assertOpen();
+      this.budget.pathLookup.suspendUntilClosed(scope);
+      let downstream: Promise<CommandResult> | undefined;
+      const raw = handler(context, () => {
+        downstream = next();
+        return downstream;});
+      return this.observeRuntimeReturn(raw, runtimeFrame, () => downstream);
+    }) : [];
+    const terminalHandler = (forwarded: CommandContext): Promise<CommandResult> => scope.run(async () => {
+      scope.assertOpen();
+      const commandName = !hasMiddleware && typeof nameValue === "string" ? name : (Object.getOwnPropertyDescriptor(forwarded, "command")?.get === readName ? currentName : forwarded.command);
+      const forwardedValues = hasMiddleware ? getCommandArguments(forwarded) : argumentValues;
+      const admitted = forwardedValues === argumentValues ? argumentValues : this.admitArguments(forwardedValues.values, allocation);
+      const context = (hasMiddleware
+        ? Object.create(Object.getPrototypeOf(forwarded), {
+          ...Object.getOwnPropertyDescriptors(forwarded), ...Object.getOwnPropertyDescriptors({
+            args: admitted.args, argumentValues: admitted, [invocationScope]: scope, ...(io[valueScope] === undefined ? {} : { [valueScope]: io[valueScope] }), }), })
+        : forwarded) as ShellCommandContext & {
+        args: readonly string[];
+        argumentValues: CommandArguments;
+        [invocationScope]: InvocationScope;
+        [valueScope]?: ValueScope;};
+      const ensureRuntimeContext = (): void => {
+        if (!hasMiddleware && context[invocationScope] === undefined) {
+          context.args = admitted.args;
+          context.argumentValues = admitted;
+          context[invocationScope] = scope;
+          if (io[valueScope] !== undefined) context[valueScope] = io[valueScope];
+        }};
+      const previous = hasMiddleware ? new Map<string, SavedVariable & { overlay: string | undefined }>() : undefined;
+      const cwd = state.cwd;
+      const directoryStackCwdPublication = state.directoryStackCwdPublication;
+      let cwdRestoration: Restoration | undefined;
+      if (hasMiddleware) {
+      const prevMap = previous!;
+      const environmentKeys = new Set([...Object.keys(initialEnv), ...Object.keys(context.env)]);
+      const typedEnvironment = [...environmentKeys].some(key => arrayStore(state)?.get(key) && initialEnv[key] !== context.env[key]);
+      cwdRestoration = stateMonitor(state)?.restoration(true);
+      if (typedEnvironment) {
+        const store = requireArrays(state);
+        store.owner.reserve({ metadata: 64 + environmentKeys.size * 64, allocatedSlots: environmentKeys.size * 2, work: environmentKeys.size * 4 + 4 });
+        const publications = new Map<string, Admission>();
+        try {
+          for (const key of environmentKeys) {
+            const value: unknown = Object.hasOwn(context.env, key) ? context.env[key] : undefined;
+            if (key.includes("\0") || key.includes("=") || Object.hasOwn(context.env, key) && (typeof value !== "string" || value.includes("\0"))) throw new TypeError("Invalid middleware environment value");
+            if (initialEnv[key] === value) continue;
+            if (state.readonlyVariables?.has(key)) throw new ArrayFailure("readonly environment collision");
+          }
+          for (const key of environmentKeys) {
+            const value = Object.hasOwn(context.env, key) ? context.env[key] : undefined;
+            if (initialEnv[key] === value) continue;
+            const saved = { ...saveVariable(state, key), overlay: value };
+            await this.prepareVariable(state, key, saved);
+            if (value !== undefined) await textToken(store.owner, value, this.signal);
+            prevMap.set(key, saved);
+            publications.set(key, store.tickets(key));
+          }
+          const cwdPublication = store.tickets();
+          for (const [key, saved] of prevMap) {
+            if (state.readonlyVariables?.has(key)) throw new ArrayFailure("readonly environment collision");
+            if (!typedSavedVariables.get(saved)!.watch.valid()) throw new ArrayFailure("stale binding");
+          }
+          this.signal.throwIfAborted();
+          stateMonitor(state)!.publish(cwdPublication, undefined, () => { state.cwd = resolvePath("/", context.cwd); });
+          cwdPublication.release();
+          for (const [key, saved] of prevMap) {
+            const publication = publications.get(key)!;
+            stateMonitor(state)!.publish(publication, key, () => {
+              void store.remove(key, publication);
+              if (saved.overlay === undefined) { delete state.variables[key]; state.exported.delete(key); } else { publishVariable(state, key, saved.overlay); state.exported.add(key); }
+              if (key === "OPTIND") this.reconcileGetopts(state, saved.value);});
+            typedSavedVariables.get(saved)!.overlayVersion = publication.version;
+            publication.release();
+          }
+        } catch (error) {
+          for (const saved of prevMap.values()) await this.discardVariable(saved);
+          for (const publication of publications.values()) publication.release();
+          cwdRestoration?.close();
+          throw error;
+        }
+      } else {
+      state.cwd = resolvePath("/", context.cwd);
+      for (const key of environmentKeys) {
+        if (Object.hasOwn(context.env, key) && typeof context.env[key] !== "string") throw new TypeError("Invalid middleware environment value");
+        if (initialEnv[key] === context.env[key]) continue;
+        const value = context.env[key];
+        if (key.includes("\0") || key.includes("=") || (value !== undefined && (typeof value !== "string" || value.includes("\0")))) throw new TypeError("Invalid middleware environment value");
+        prevMap.set(key, { ...saveVariable(state, key), overlay: value });
+        if (value === undefined) { delete state.variables[key]; state.exported.delete(key); } else { publishVariable(state, key, value); state.exported.add(key); }
+        if (key === "OPTIND") this.reconcileGetopts(state, prevMap.get(key)!.value);
+      }
+      }
+      stateMonitor(state)?.openOverlay(prevMap);
+      }
+      try {
+        const selectedKind = this.firstInternalDiscovery(context.command, state, bypassFunctions);
+        const body = selectedKind === "function" ? state.functions.get(context.command) : undefined;
+        if (body) {
+          ensureRuntimeContext();
+          if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
+          if (state.functionDepth >= this.budget.limits.maxFunctionDepth) this.budget.fail("maxFunctionDepth");
+          const positional = state.positional;
+          const savedPositionals = stateMonitor(state)!.positionals.clone();
+          const positionalSetVersion = state.positionalSetVersion ?? 0;
+          const frameOwner = guestArrays(state)?.owner;
+          frameOwner?.reserve({ metadata: 256 + context.args.length * 32, allocatedSlots: context.args.length + 1, work: context.args.length + 16 });
+          const getoptsEntry = cloneGetoptsBinding(state);
+          const functionRestoration = stateMonitor(state)?.restoration(true);
+          let getoptsRestoration: Restoration | undefined;
+          const locals = new Map<string, SavedVariable>();
+          try {
+            getoptsRestoration = stateMonitor(state)?.restoration();
+            const stack = state.locals;
+            const argumentsCopy = [...context.args];
+            const monitor = stateMonitor(state);
+            const preparedLocals = frameOwner ? monitor!.prepareCollection(locals, "locals") : locals;
+            const preparedArguments = frameOwner ? monitor!.prepareCollection(argumentsCopy, "positional") : argumentsCopy;
+            const entry = () => {
+              this.replacePositionals(state, context.argumentValues.values, () => { state.positional = preparedArguments; });
+              state.functionDepth++;
+              state.depth++;
+              stack.push(preparedLocals);
+              const rawState = stateMonitor(state)?.raw ?? state;
+              (rawState.callerFrames ??= []).unshift(captureCallerFrame(rawState, io, context.command));
+              (rawState.functionNames ??= []).unshift(context.command);
+              if (rawState !== state) state.functionNames = rawState.functionNames;};
+            if (frameOwner) {
+              const tickets = frameOwner.reserve({ epoch: true, work: 8 });
+              monitor!.publish(tickets, undefined, entry);
+              tickets.release();
+            } else entry();
+          } catch (error) { savedPositionals.close(); getoptsRestoration?.close(); functionRestoration?.close(); throw error; }
+          const callerLoopDepth = state.loopDepth;
+          if (mapfileCallbackStates.has(state)) state.loopDepth = 0;
+          let restoredLocals = false;
+          const restoreLocals = async (): Promise<void> => {
+            if (restoredLocals) return;
+            restoredLocals = true;
+            if (!this.signal.aborted && scope.failures.length === 0) {
+              let allSync = true;
+              for (const [, previous] of locals) {
+                if (typedSavedVariables.has(previous)) { allSync = false; break; }
+              }
+              if (allSync) {
+                for (const [name, previous] of locals) {
+                  tryRestoreVariableSync(state, name, previous);
+                }
+                return;
+              }
+            }
+            for (const [name, previous] of locals) await scope.cleanup(async () => {
+              const typed = typedSavedVariables.has(previous);
+              await restoreVariable(state, name, previous);
+              if (!typed && !previous.readOnly) state.readonlyVariables?.delete(name);});};
+          let primaryFailure = false;
+          const activeExt = hasActiveExtensions(state);
+          let outcome: CapturedCancellationOutcome<CommandResult>;
+          let checkpointFailure: ExtensionCheckpointFailure | undefined;
+          try {
+            try {
+              if (activeExt) await this.extensionEvent("function-enter", state, io, state.status);
+              if (activeExt && await this.extensionEvent("command", state, { ...io, ...context }, state.status, context.command)) outcome = { kind: "return", value: { exitCode: state.status } };
+              else {
+                const diagnostic = functionDiagnostics.get(body);
+                const status = await this.command(body, state, {
+                  ...io, ...context, scriptName: body.sourceName ?? io.scriptName ?? "shell", diagnosticOffset: diagnostic?.offset ?? 0, assignmentDiagnosticContext: { name: context.command }, functionCommandLines: diagnostic?.lines, diagnosticCommandLines: diagnostic?.lines, });
+                outcome = { kind: "return", value: { exitCode: hasActiveExtensions(state) ? await this.finishReturn("function-return", state, { ...io, ...context }, status) : status } };
+              }
+            }
+            catch (error) {
+              if (error instanceof NounsetDiagnosticFailure) throw error;
+              if (error instanceof Flow && error.kind === "return") {
+                outcome = { kind: "return", value: { exitCode: hasActiveExtensions(state) ? await this.finishReturn("function-return", state, { ...io, ...context }, error.status, error.previousStatus) : error.status } };
+              } else {
+                if (error instanceof Flow && error.kind === "exit" && state.extensions) {
+                  if (error.previousStatus === undefined) await restoreLocals();
+                  throw new Flow("exit", await this.beginShellExit(state, { ...io, ...context }, error.status));
+                }
+                throw error;
+              }
+            }
+          } catch (error) {
+            primaryFailure = !(error instanceof Flow) || error instanceof NounsetDiagnosticFailure;
+            outcome = { kind: "throw", reason: error };
+          } finally {
+            const activeExt = hasActiveExtensions(state);
+            if (activeExt) {
+              await scope.cleanup(async () => {
+                try { if (!this.signal.aborted) await this.extensionEvent("function-leave", state, io, state.status); }
+                catch (error) {
+                  if (error instanceof ExtensionCheckpointFailure && !primaryFailure) checkpointFailure = error;
+                  else throw error;
+                }});
+            }
+            const restoreControls = () => {
+              stateMonitor(state)!.positionals.restore(savedPositionals, () => { state.positional = positional; });
+              savedPositionals.close();
+              state.positionalSetVersion = positionalSetVersion;
+              state.functionDepth--;
+              state.loopDepth = callerLoopDepth;
+              state.depth--;
+              state.locals.pop();
+              const rawState = stateMonitor(state)?.raw ?? state;
+              rawState.functionNames?.shift();
+              rawState.callerFrames?.shift();};
+            if (!activeExt && !this.signal.aborted && scope.failures.length === 0 && !locals.has("OPTIND")) {
+              if (functionRestoration) functionRestoration.apply(restoreControls, false);
+              else restoreControls();
+              await restoreLocals();
+              getoptsRestoration?.close();
+              functionRestoration?.close();
+            } else {
+              await scope.cleanup(() => {
+                if (functionRestoration) functionRestoration.apply(restoreControls, false);
+                else restoreControls();});
+              await restoreLocals();
+              if (locals.has("OPTIND")) await scope.cleanup(() => {
+                const restoreGetopts = () => {
+                  state.getopts ??= getoptsEntry;
+                  state.getopts.cursor = getoptsEntry.cursor;};
+                if (getoptsRestoration) getoptsRestoration.apply(restoreGetopts);
+                else restoreGetopts();});
+              await scope.cleanup(() => getoptsRestoration?.close());
+              await scope.cleanup(() => functionRestoration?.close());
+            }
+          }
+          if (checkpointFailure) {
+            this.signal.throwIfAborted();
+            throw checkpointFailure;
+          }
+          if (outcome.kind === "throw") throw outcome.reason;
+          state.lastArgument = context.args.at(-1) ?? context.command;
+          return outcome.value;
+        }
+        if (selectedKind === "builtin" && (forceBuiltin || !this.hasBuiltinOverride(context.command)) && !(state.externalInvocation && this.commands.has(context.command))) {
+          ensureRuntimeContext();
+          const extensionBuiltin = state.extensions?.builtins.get(context.command);
+          const special = state.profile === "sh" && !bypassFunctions && (specialBuiltinNames.has(context.command) || !!extensionBuiltin?.special);
+          if (special) assignments.clear();
+          if (extensionBuiltin) {
+            const status = validateExitCode(await interruptible(Promise.resolve(extensionBuiltin.execute(this.extensionContext(state, { ...io, ...context }, context.command, context.args, context.argumentValues.values))), this.signal));
+            if (special && status !== 0) throw new Flow("exit", status);
+            return { exitCode: status };
+          }
+          if (context.command === "command" || context.command === "builtin" || context.command === "type") return { exitCode: await this.discoveryBuiltin(context, state, io, assignments, defaultPath) };
+          if (context.command === "." || context.command === "source") {
+            const exitCode = await this.sourceBuiltin(context, state, { ...io, ...context }, special);
+            state.lastArgument = context.args.at(-1) ?? context.command;
+            return { exitCode };
+          }
+          if (context.command === "eval") {
+            const exitCode = await this.evalBuiltin(context, state, { ...io, ...context }, special);
+            state.lastArgument = context.args.at(-1) ?? context.command;
+            return { exitCode };
+          }
+          if (context.command === "exec") {
+            let execIdx = 0;
+            let clearEnvironment = false;
+            let login = false;
+            let argv0: string | undefined;
+            while (execIdx < context.args.length) {
+              const f = context.args[execIdx]!;
+              if (f === "--") { execIdx += 1; break; }
+              if (!f.startsWith("-") || f === "-") break;
+              execIdx++;
+              for (let index = 1; index < f.length; index++) {
+                const flag = f[index];
+                if (flag === "c") clearEnvironment = true;
+                else if (flag === "l") login = true;
+                else if (flag === "a") {
+                  argv0 = f.slice(index + 1) || context.args[execIdx++];
+                  if (argv0 === undefined) {
+                    await this.diagnostic(io, "exec: -a: option requires an argument");
+                    return { exitCode: 2 };
+                  }
+                  break;
+                } else {
+                  await this.diagnostic(io, `exec: -${flag}: invalid option`);
+                  return { exitCode: 2 };
+                }
+              }
+            }
+            const execRest = context.args.slice(execIdx);
+            const execCmd = execRest[0];
+            if (execCmd === undefined) {
+              return { exitCode: 0 };
+            }
+            const execArguments = context.argumentValues.slice(execIdx + 1);
+            const result = await context.invoke(execCmd, execArguments.args, {
+              replaceEnv: true, env: clearEnvironment ? {} : context.env,
+              argv0: login ? `-${argv0 ?? execCmd}` : argv0,
+              argumentValues: execArguments,
+              externalInvocation: true,
+            });
+            throw completedExit(result.exitCode, "exit");
+          }
+          if (context.command === "read" && context.args.some(arg => arg.startsWith("-") && (arg.includes("u") || arg.includes("t")))) {
+            const { executeRead } = await import("./read-builtin.js");
+            return { exitCode: await executeRead(true, this.extensionContext(state, { ...io, ...context }, context.command, context.args, context.argumentValues.values)) };
+          }
+          const builtinWork = this.builtin({ ...context, [declarationArrays]: io[declarationArrays] }, state, assignments, (error, diagnostic) => { builtinFailure = { error, diagnostic }; }, bypassFunctions);
+          const builtin = await interruptible(builtinWork, this.signal);
+          if (builtin !== undefined) {
+            if (special && builtin !== 0 && context.command !== "shift") throw new Flow("exit", builtin);
+            return { exitCode: builtin };
+          }
+        }
+        const virtualName = context.command.includes("/") ? this.virtualExecutable(pathOf(state, context.command)) : undefined;
+        const definition = this.commands.get(virtualName ?? context.command);
+        if (context.command === "printf" && definition?.execute === printfCommand.execute && context.args[0]?.startsWith("-v")) {
+          ensureRuntimeContext();
+          return { exitCode: await this.printfVariable(context, state, assignments) };
+        }
+        if (!definition) {
+          ensureRuntimeContext();
+          if (context.command === "bash" || context.command === "sh" || context.command === "zsh" || virtualName === "bash" || virtualName === "sh" || virtualName === "zsh") {
+            return { exitCode: await this.interpreter(virtualName ? this.virtualExecutionContext(context, virtualName) : context, state, io) };
+          }
+          if (context.command.includes("/") || !defaultPath && state.variables.PATH === undefined && state.pathUnset) return { exitCode: await this.scriptFile(context, state, io, context.command, context.args, true) };
+          const [target] = await this.searchPaths(context.command, state, false, false, defaultPath);
+          if (target !== undefined) return { exitCode: await this.scriptFile(context, state, io, target, context.args, true) };
+          const localeValue = (key: string) => temporaryEnvironment?.has(key) && !previous?.has(key)
+            ? temporaryEnvironment.get(key)!.value ?? "" : state.variables[key] ?? "";
+          const displayed = diagnosticCommandName(commandName, byteLocale({
+            LC_ALL: localeValue("LC_ALL"), LC_CTYPE: localeValue("LC_CTYPE"), LANG: localeValue("LANG"), }), allocation);
+          await this.diagnostic({ ...io, ...context }, concatShellValues([displayed, ": command not found"], allocation));
+          return { exitCode: 127 };
+        }
+        this.budget.beginPathLookupSuspension();
+        const executionContext = state.externalInvocation
+          ? Object.create(Object.getPrototypeOf(forwarded), {
+            ...Object.getOwnPropertyDescriptors(forwarded), externalInvocation: { value: true, configurable: true }, }) as ShellCommandContext
+          : forwarded;
+        try {
+          const raw = definition.execute(virtualName ? this.virtualExecutionContext(executionContext, virtualName) : executionContext);
+          const observed = this.observeRuntimeReturn(raw, runtimeFrame);
+          return await interruptible(observed, this.signal);
+        } finally {
+          this.budget.endPathLookupSuspension();
+        }
+      } finally {
+        if (hasMiddleware) {
+        const prevMap = previous!;
+        const restoreCwd = () => {
+          if (context.command !== "cd" && state.cwd === context.cwd && state.directoryStackCwdPublication === directoryStackCwdPublication) state.cwd = cwd;};
+        await scope.cleanup(() => {
+          if (cwdRestoration) cwdRestoration.apply(restoreCwd, false);
+          else restoreCwd();});
+        for (const [key, saved] of prevMap) await scope.cleanup(async () => {
+          const typed = typedSavedVariables.get(saved);
+          if (typed) {
+            const owned = typed.binding ? typed.watch.watch.version === typed.overlayVersion : state.variables[key] === saved.overlay && typed.watch.watch.typedVersion === typed.watch.typedVersion;
+            if (owned) await restoreVariable(state, key, saved);
+            else await this.discardVariable(saved);
+            return;
+          }
+          if (saved.superseded || state.variables[key] !== saved.overlay) { await this.discardVariable(saved); return; }
+          await restoreVariable(state, key, saved);});
+        await scope.cleanup(() => stateMonitor(state)?.closeOverlay(prevMap));
+        await scope.cleanup(() => cwdRestoration?.close());
+        }
+      }});
+    const execute = hasMiddleware ? composeMiddleware(middleware, terminalHandler) : terminalHandler;
+    try { return validateExitCode((await interruptible(execute(context), this.signal)).exitCode); }
+    catch (error) {
+      if (builtinFailure && error === builtinFailure.error) throw new ExecutionFailure(error, io, builtinFailure.diagnostic);
+      if (runtimeFrame.report && Object.is(runtimeFrame.report.origin.signal.reason, error) && this.outcomeFrame) this.outcomeFrame.report = runtimeFrame.report;
+      throw error;
+    }
+    } finally {
+      allocation.close();
+    }
+  }
+  private virtualExecutionContext<Context extends CommandContext>(context: Context, name: string): Context {
+    const normalized = Object.create(Object.getPrototypeOf(context), {
+      ...Object.getOwnPropertyDescriptors(context),
+      ...Object.getOwnPropertyDescriptors({ command: name, argv0: context.argv0 ?? context.command }),
+    }) as Context;
+    const workerState = workerRuntimeContexts.get(context);
+    if (workerState) workerRuntimeContexts.set(normalized, workerState);
+    return normalized;
+  }
+
+  virtualExecutable(path: string): string | undefined {
+    if (path.endsWith("/") || path.endsWith("/.") || path.endsWith("/..")) return undefined;
+    path = resolvePath("/", path);
+    const slash = path.lastIndexOf("/");
+    const directory = path.slice(0, slash);
+    const name = path.slice(slash + 1);
+    if ((name === "zsh" || name === "bash" || name === "sh") && (directory === "/bin" || directory === "/usr/bin" || directory === "/tmp")) return name;
+    if (directory !== "/bin" && directory !== "/usr/bin") return undefined;
+    return this.commands.has(name) || name === "bash" || name === "sh" || name === "zsh" ? name : undefined;
+  }
+
+  internalDiscovery(name: string, state: State, bypassFunctions = false): Discovery[] {
+    const matches: Discovery[] = [];
+    if (!bypassFunctions && state.functions.has(name)) matches.push({ kind: "function", name });
+    if (implementedBuiltins.has(name) || state.extensions?.builtins.has(name)) matches.push({ kind: "builtin", name });
+    else if (this.commands.has(name)) matches.push({ kind: "command", name });
+    else if (name === "bash" || name === "sh" || name === "zsh") matches.push({ kind: "interpreter", name });
+    if (state.profile === "sh" && (specialBuiltinNames.has(name) || state.extensions?.builtins.get(name)?.special)) matches.sort((left, right) => Number(right.kind === "builtin") - Number(left.kind === "builtin"));
+    return matches;
+  }
+  hasBuiltinOverride(name: string | undefined): boolean {
+    if (name !== "true" && name !== "false" && name !== "pwd") return false;
+    const definition = this.commands.get(name);
+    return definition !== undefined && replacedBuiltinCommands.has(definition.execute);
+  }
+  firstInternalDiscovery(name: string, state: State, bypassFunctions = false): Discovery["kind"] | undefined {
+    const isBuiltin = implementedBuiltins.has(name) || Boolean(state.extensions?.builtins.has(name));
+    if (isBuiltin && state.profile === "sh" && (specialBuiltinNames.has(name) || state.extensions?.builtins.get(name)?.special)) return "builtin";
+    if (!bypassFunctions && state.functions.has(name)) return "function";
+    if (isBuiltin) return "builtin";
+    if (this.commands.has(name)) return "command";
+    if (name === "bash" || name === "sh" || name === "zsh") return "interpreter";
+    return undefined;
+  }
+  async discoveryBuiltin(context: CommandContext, state: State, io: IO, assignments: Map<string, SavedVariable>, inheritedDefaultPath = false): Promise<number> {
+    const args = [...context.args];
+    const command = context.command === "command";
+    const builtin = context.command === "builtin";
+    let mode: "describe" | "name" | "kind" | "path" = "describe";
+    let discover = !command && !builtin;
+    let all = false;
+    let skipFunctions = false;
+    let forcePath = false;
+    let defaultPath = false;
+    while (args[0]?.startsWith("-") && args[0] !== "-") {
+      const option = args.shift()!;
+      if (option === "--") break;
+      if (builtin) { await this.diagnostic({ ...io, ...context }, `builtin: ${option}: invalid option`); return 2; }
+      for (const flag of option.slice(1)) {
+        if (command && (flag === "v" || flag === "V")) { discover = true; mode = flag === "v" ? "name" : "describe"; } else if (command && flag === "p") defaultPath = true;
+        else if (!command && flag === "a") all = true;
+        else if (!command && flag === "f") skipFunctions = true;
+        else if (!command && flag === "t") mode = "kind";
+        else if (!command && (flag === "p" || flag === "P")) { mode = "path"; if (flag === "P") forcePath = true; } else {
+          if (command) {
+            await this.diagnostic({ ...io, ...context }, `command: -${flag}: invalid option`);
+            await writeDiagnostic(context.stderr, "command: usage: command [-pVv] command [arg ...]\n");
+          } else await writeDiagnostic(context.stderr, `${context.command}: ${option}: unsupported option\n`);
+          return 2;
+        }
+      }
+    }
+    if (!discover) {
+      const targetIndex = context.args.length - args.length;
+      const target = args.shift();
+      if (target === undefined) return 0;
+      const targetValue = getCommandArguments(context).values[targetIndex]!;
+      if (builtin && !shellBuiltinNames.has(target) && !state.extensions?.builtins.has(target)) {
+        await this.diagnostic({ ...io, ...context }, concatShellValues(["builtin: ", targetValue, ": not a shell builtin"], io[valueScope]));
+        return 1;
+      }
+      this.budget.tick();
+      if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
+      const restoration = stateMonitor(state)?.restoration(true);
+      try { state.depth++; }
+      catch (error) { restoration?.close(); throw error; }
+      try { return await this.dispatch(targetValue, args, state, { ...io, ...context }, assignments, true, getCommandArguments(context).values.slice(context.args.length - args.length), undefined, command && (defaultPath || inheritedDefaultPath), builtin); }
+      finally {
+        const restore = () => { state.depth--; };
+        if (restoration) restoration.apply(restore);
+        else restore();
+      }
+    }
+    let found = 0;
+    for (const name of args) {
+      this.signal.throwIfAborted();
+      let matches = forcePath || all && mode === "path" ? [] : this.internalDiscovery(name, state, skipFunctions);
+      if (!forcePath && !(all && mode === "path") && shellKeywords.has(name)) matches.unshift({ kind: "keyword", name });
+      if (!all) matches = matches.slice(0, 1);
+      if (mode === "path" && (matches[0]?.kind === "command" && !shellBuiltinNames.has(name)
+        || matches[0]?.kind === "interpreter")) matches = [];
+      if (all || !matches.length) {
+        const paths = await this.searchPaths(name, state, all, true, defaultPath);
+        matches.push(...paths.map(path => {
+          const absolute = command && mode === "describe";
+          if ((absolute || state.profile === "sh") && !name.includes("/") && !path.startsWith("/")) {
+            const relative = absolute && path.startsWith("./") ? path.slice(2) : path;
+            path = `${state.cwd === "/" ? "" : state.cwd}/${relative}`;
+          }
+          return { kind: "file" as const, name: path };
+        }));
+      }
+      if (!matches.length) {
+        if (mode === "describe") await writeDiagnostic(context.stderr, `${io.scriptName ?? "shell"}: line ${io.diagnosticLine ?? 1}: ${context.command}: ${name}: not found\n`);
+        continue;
+      }
+      found++;
+      for (const match of matches) {
+        if (mode === "path" && match.kind !== "file") continue;
+        let text: string;
+        if (mode === "kind") {
+          const kind = match.kind === "command" ? (shellBuiltinNames.has(name) ? "builtin" : "file")
+            : match.kind === "interpreter" ? "file" : match.kind;
+          text = `${kind}\n`;
+        } else if (mode === "name" || mode === "path") text = `${match.name}\n`;
+        else if (match.kind === "function") text = `${name} is a function\n${functionDisplay(name, state.functions.get(name)!)}`;
+        else text = `${name} is ${match.kind === "keyword" ? "a shell keyword" : match.kind === "builtin" ? "a shell builtin" : match.kind === "command" ? "a registered command" : match.kind === "interpreter" ? "a virtual shell interpreter" : match.name}\n`;
+        await writeText(context.stdout, text);
+      }
+    }
+    return (command ? found > 0 || args.length === 0 : found === args.length) ? 0 : 1;
+  }
+  async searchPaths(name: string, state: State, all = false, discovery = false, defaultPath = false): Promise<string[]> {
+    if (!name) return [];
+    let denied: CommandFailure | undefined;
+    const matches: string[] = [];
+    for (const target of pathTargets(name, defaultPath ? defaultCommandPath : state.variables.PATH ?? (state.pathUnset ? undefined : defaultCommandPath), this.budget.limits, this.signal, limit => this.budget.fail(limit))) {
+      const resolved = pathOf(state, target);
+      if (this.virtualExecutable(resolved) !== undefined) {
+        matches.push(target);
+        if (!all) return matches;
+        continue;
+      }
+      try {
+        const options = { signal: this.signal };
+        if (!await interruptible(this.budget.pathLookup.isFile(this.fs, resolved, this.signal), this.signal)) continue;
+        const capabilities = this.fs.capabilitiesFor
+          ? await interruptible(this.fs.capabilitiesFor(resolved, options), this.signal) : this.fs.capabilities;
+        if (capabilities.permissions !== true) throw new CommandFailure(`${target}: execution permissions are not supported by this filesystem`, 126);
+        await interruptible(this.fs.access(resolved, ACCESS_MODES.X_OK, options), this.signal);
+        matches.push(target);
+        if (!all) return matches;
+      } catch (error) {
+        this.signal.throwIfAborted();
+        if (error instanceof ShellLimitError) throw error;
+        if (error instanceof CommandFailure) { if (discovery) continue; throw error; }
+        const code = errorCode(error);
+        if (code === "ENOENT" || code === "ENOTDIR") continue;
+        if (code !== "EACCES" && code !== "EPERM") throw new CommandFailure(filesystemDiagnostic(error, target, this.budget.onInternalError) ?? `${target}: ${message(error, this.budget.onInternalError)}`, 126);
+        denied ??= new CommandFailure(filesystemDiagnostic(error, target, this.budget.onInternalError) ?? `${target}: ${message(error, this.budget.onInternalError)}`, 126);
+      }
+    }
+    if (denied && !matches.length && !discovery) throw denied;
+    return matches;
+  }
+  processState(context: CommandContext, state: State, io: IO, arg0: ShellValue, args: readonly string[]): State {
+    if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
+    const variables = Object.assign(Object.create(null) as Record<string, string>, context.env, { PWD: state.cwd });
+    const exported = new Set(Object.keys(variables));
+    variables.OPTIND = "1";
+    variables.OPTERR = "1";
+    const child = trackState({
+      umask: state.umask ?? 0o022, extensions: forkExtensions(state.extensions, "process"), cwd: state.cwd, variables, exported, functions: new Map(), getopts: { cursor: createGetoptsState(), integer: true }, directoryStack: { entries: [], bytes: 0 }, dotglob: false, globstar: false, positional: [], arg0: shellValueText(arg0), profile: context.command === "sh" ? "sh" : "bash", status: 0, substitutionStatus: 0, depth: state.depth + 1, loopDepth: 0, functionDepth: 0, locals: [], pipefail: false, isolated: true, errexit: false, }, this.budget, io[invocationScope]);
+    for (const name of state.exportedFunctions ?? []) {
+      const body = state.functions.get(name);
+      const key = `BASH_FUNC_${name}%%`;
+      if (body && context.env[key] === functionDisplay(name, body).slice(name.length + 1).trimEnd()) {
+        child.functions.set(name, body);
+        (child.exportedFunctions ??= new Set()).add(name);
+        delete child.variables[key];
+        child.exported.delete(key);
+      }
+    }
+    this.replacePositionals(child, getCommandArguments(context).values.slice(context.args.length - args.length), undefined, arg0);
+    return child;
+  }
+  async interpreter(context: CommandContext, state: State, io: IO, loadedSource?: { path: string; source: string }): Promise<number> {
+    const args = [...context.args];
+    let commandString = false;
+    let standardInput = false;
+    const options = { allexport: false, braceexpand: true, errexit: false, noclobber: false, noexec: false, noglob: false, nounset: false, pipefail: false };
+    const flagsByName = { a: "allexport", B: "braceexpand", e: "errexit", C: "noclobber", n: "noexec", f: "noglob", u: "nounset" } as const;
+    while (args.length && (args[0]!.startsWith("-") || args[0]!.startsWith("+"))) {
+      const option = args.shift()!;
+      if (option === "--" || option === "-") break;
+      if (option === "--version") {
+        await writeDiagnostic(context.stdout, "safe-bash (poe-code)\n");
+        return 0;
+      }
+      if (option === "--login" || option === "--norc" || option === "--noprofile" || option === "--posix") {
+        continue;
+      }
+      const enabled = option[0] === "-";
+      if ((option === "-o" || option === "+o") && Object.hasOwn(options, args[0] ?? "")) {
+        options[args.shift()! as keyof typeof options] = enabled;
+        continue;
+      }
+      const flags = option.slice(1);
+      if (!flags.length || [...flags].some(flag => !Object.hasOwn(flagsByName, flag) && !(enabled && (flag === "c" || flag === "s" || flag === "l" || flag === "i")))) {
+        await writeDiagnostic(context.stderr, `${context.command}: ${option}: unsupported option; supported flags are -c, -s, +/-a, +/-e, +/-u, +/-n, +/-B, +/-f, +/-C and +/-o ${Object.keys(options).join(", ")}\n`);
+        return 2;
+      }
+      for (const flag of flags) {
+        if (flag === "c") commandString = true;
+        else if (flag === "s") standardInput = true;
+        else options[flagsByName[flag as keyof typeof flagsByName]] = enabled;
+      }
+    }
+    if (!commandString && !standardInput && args.length) return this.scriptFile(context, state, io, args[0]!, args.slice(1), false, options.errexit, loadedSource, options.braceexpand, options.noexec, options.nounset, options);
+    const source = commandString ? args.shift() : undefined;
+    if (commandString && source === undefined) {
+      await writeDiagnostic(context.stderr, `${context.command}: -c: option requires an argument\n`);
+      return 2;
+    }
+    const arg0 = commandString && args.length ? getCommandArguments(context).values[context.args.length - args.length]! : (context.argv0 ?? context.command);
+    if (commandString) args.shift();
+    const child = this.processState(context, state, io, arg0, args);
+    Object.assign(child, options);
+    const references = new PipeDescriptorFrame(io[invocationScope]);
+    const childIO = isolateIO({ ...io, ...context, argv0: undefined, execution: { ignoreErrexit: false }, diagnosticLine: 1, diagnosticOffset: 0, assignmentDiagnosticContext: undefined, scriptName: shellValueText(arg0) }, references);
+    try {
+    if (source !== undefined) {
+      this.budget.source(shellValueByteLength(source));
+      const exitCode = await this.finishShell(child, childIO, await this.runCommandString(source, child, childIO));
+      if ((context as { externalInvocation?: boolean }).externalInvocation) state.cwd = child.cwd;
+      return exitCode;
+    }
+    const input = new ShellInput(context.stdin, this.budget, this.signal);
+    const descriptors = new Map(childIO.descriptors);
+    descriptors.set(0, { ...descriptors.get(0), input });
+    const inputIO = { ...childIO, stdin: input, descriptors };
+    return await this.finishShell(child, inputIO, await this.runStandardInput(input, child, inputIO));
+    } finally { await references.close(); }
+  }
+  async syntaxFailure(error: ShellSyntaxError, source: string, io: IO, commandString: boolean, includeContext = true): Promise<number> {
+    const offset = io.diagnosticOffset ?? 0;
+    const line = source.slice(0, error.offset).split("\n").length;
+    const prefix = `${io.scriptName ?? "shell"}:${commandString ? " -c:" : ""}`;
+    if (error.unclosedQuote) await writeDiagnostic(io.stderr, `${prefix} line ${offset + error.unclosedQuote.line}: unexpected EOF while looking for matching \`${error.unclosedQuote.quote}'\n`);
+    else if (error.offset >= source.length && !/Unterminated|nesting|Unsupported/u.test(error.reason)) {
+      const context = includeContext && error.incompleteCommand ? ` from \`${error.incompleteCommand.name}' command on line ${offset + error.incompleteCommand.line}` : "";
+      await writeDiagnostic(io.stderr, `${prefix} line ${offset + source.split("\n").length + Number(!source.endsWith("\n"))}: syntax error: unexpected end of file${context}\n`);
+    } else {
+      const token = /^[;&|()<>]|^[^\s;&|()<>]+/u.exec(source.slice(error.offset))?.[0] ?? "newline";
+      await writeDiagnostic(io.stderr, `${prefix} line ${offset + line}: syntax error near unexpected token \`${token}'\n${prefix} line ${offset + line}: \`${source.split("\n")[line - 1] ?? ""}'\n`);
+    }
+    return error.exitCode;
+  }
+  async runCommandString(source: string, state: State, io: IO): Promise<number> {
+    const lineIndex = new SourceLineIndex(source, this.budget.parsing);
+    let position = 0;
+    let status = 0;
+    try {
+      do {
+        this.signal.throwIfAborted();
+        const unit = parseShellUnit(source, position, byteLocale(state.variables), this.budget.parsing, lineIndex, undefined, false, state.extensions?.syntax, state.expand_aliases ? state.aliases : undefined, !!state.extglob);
+        for (const warning of unit.script.warnings ?? []) await writeDiagnostic(io.stderr, `${io.scriptName}: warning: ${warning}\n`);
+        if (unit.script.lists.length) {
+          const result = await this.runUnit(unit.script, state, io);
+          status = result.exitCode;
+          if (result.terminated) return status;
+        }
+        position = unit.next;
+      } while (position < source.length);
+      return status;
+    } catch (error) {
+      if (!(error instanceof ShellSyntaxError)) throw error;
+      return this.syntaxFailure(error, source, io, true);
+    }
+  }
+  sourceText(bytes: Uint8Array, name: string): string {
+    if (bytes.some(byte => byte < 9 || byte > 10 && byte < 13 || byte > 13 && byte < 32 || byte === 127)) throw new CommandFailure(`${name}: cannot execute binary script`, 126);
+    try { return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes); }
+    catch { throw new CommandFailure(`${name}: cannot execute binary or non-UTF-8 script`, 126); }
+  }
+  async runStandardInput(input: ShellInput, state: State, io: IO): Promise<number> {
+    let source = "";
+    let lineIndex = new SourceLineIndex(source, this.budget.parsing);
+    let offset = 0;
+    let status = 0;
+    let lines = 0;
+    while (true) {
+      if (++lines % 32 === 0) await yieldTurn(this.signal);
+      this.signal.throwIfAborted();
+      const bytes = await input.sourceLine();
+      const eof = bytes === undefined;
+      if (bytes) {
+        lineIndex.append(this.sourceText(bytes, io.scriptName ?? "shell"));
+        source = lineIndex.source;
+      }
+      const unitIO = { ...io, diagnosticOffset: offset };
+      try {
+        const unit = eof ? parseShellUnit(source, 0, byteLocale(state.variables), this.budget.parsing, lineIndex, undefined, false, state.extensions?.syntax, state.expand_aliases ? state.aliases : undefined, !!state.extglob) : parseShellInputUnit(source, byteLocale(state.variables), this.budget.parsing, lineIndex, state.extensions?.syntax, state.expand_aliases ? state.aliases : undefined, !!state.extglob);
+        if (unit) {
+          for (const warning of unit.script.warnings ?? []) await writeDiagnostic(io.stderr, `${io.scriptName}: warning: ${warning}\n`);
+          if (unit.script.lists.length) {
+            const result = await this.runUnit(unit.script, state, unitIO);
+            status = result.exitCode;
+            if (result.terminated) return status;
+          }
+          offset += source.slice(0, unit.next).split("\n").length - 1;
+          source = source.slice(unit.next);
+          lineIndex = new SourceLineIndex(source, this.budget.parsing);
+        }
+      } catch (error) {
+        if (!(error instanceof ShellSyntaxError)) throw error;
+        return this.syntaxFailure(error, source, unitIO, false);
+      }
+      if (eof) return status;
+    }
+  }
+  private async shebangState(context: CommandContext, state: State): Promise<State> {
+    const child = await cloneState(state, this.signal);
+    child.cwd = resolvePath("/", context.cwd);
+    for (const key of child.exportedFunctions ?? []) {
+      const body = child.functions.get(key);
+      if (!body || context.env[`BASH_FUNC_${key}%%`] !== functionDisplay(key, body).slice(key.length + 1).trimEnd()) child.exportedFunctions?.delete(key);
+    }
+    if (guestArrays(child) || Object.keys(context.env).some(key => arrayStore(child)?.get(key))) {
+      await this.indexedEnvironment(child, context.env);
+      this.reconcileGetopts(child, state.variables.OPTIND);
+      return child;
+    }
+    for (const key of child.exported) delete child.variables[key];
+    for (const [key, value] of Object.entries(context.env)) {
+      if (key.includes("\0") || key.includes("=") || typeof value !== "string" || value.includes("\0")) throw new TypeError("Invalid middleware environment value");
+      child.variables[key] = value;
+    }
+    child.exported = new Set(Object.keys(context.env));
+    this.reconcileGetopts(child, state.variables.OPTIND);
+    return child;
+  }
+  private async shebangStage( incoming: CommandContext, state: State, io: IO, terminal: (runtime: Runtime, context: ShellCommandContext, child: State, childIO: IO) => Promise<CommandResult>, prepare?: (runtime: Runtime, context: ShellCommandContext, child: State, childIO: IO) => CommandInvoker, replacementInput?: ByteSource, existingScope?: InvocationScope, ): Promise<number> {
+    const scope = existingScope ?? io[invocationScope].child();
+    const ownsScope = existingScope === undefined;
+    const runtime = new Runtime( this.fs, this.commands, this.middleware, this.budget, combineManagedSignals(this.signal, scope.signal), this.fileWrites, this.outputFiles, this.commandSignal, this.cancellation, this.cancellationState, this.cancellationOwner, this.cancellationDepth, this.cancellationMaxDepth, this.outcomeFrame, this.inputProfile, );
+    let input: ShellInput | undefined;
+    try {
+      const allocation = this.budget.values.scope();
+      scope.register(() => allocation.close());
+      const argumentValues = this.admitArguments(getCommandArguments(incoming).values, allocation);
+      scope.register(async () => {
+        try { await input?.close(); }
+        catch (error) { if (!this.signal.aborted || error !== this.signal.reason) throw error; }});
+      if (replacementInput !== undefined) input = new ShellInput(replacementInput, this.budget, this.signal);
+      const invocationOverride: { current: CommandInvoker | undefined } = { current: undefined };
+      const context: ShellCommandContext = {
+        ...incoming, args: argumentValues.args, argumentValues, executionScope: this.budget.executionScope, onInternalError: this.budget.onInternalError, env: Object.assign(Object.create(null) as Record<string, string>, incoming.env), stdin: input ?? incoming.stdin, stdout: this.budget.sink(incoming.stdout, runtime.signal), stderr: this.budget.sink(incoming.stderr, runtime.signal), signal: toNativeAbortSignal(this.commandSignal), registerCleanup: cleanup => { scope.register(cleanup); }, invoke: (name, args, options) => {
+          const invocation = invocationOverride.current ? invocationOverride.current(name, args, options) : runtime.invoke(name, args, options, context, child, scope);
+          void invocation.catch(() => undefined);
+          return invocation;
+        }, };
+      Reflect.deleteProperty(context, invocationScope);
+      Reflect.deleteProperty(context, valueScope);
+      bindCommandIO(context, { ...io, [invocationScope]: scope }, this.budget.limits);
+      bindFileOutputBudget(context, sink => this.budget.sink(sink, runtime.signal), (chunk, write) => this.budget.writeCounted(chunk, write, runtime.signal));
+      if (argumentValues.values.every(value => typeof value === "string")) Reflect.deleteProperty(context, "argumentValues");
+      const child = await runtime.shebangState(context, state);
+      workerRuntimeContexts.set(context, {
+        budget: this.budget, umask: child.umask ?? 0o022, ignoredSignals: captureIgnoredTrapSignals(child.extensions), get fs() { return runtime.getContextFsForFast(0, runtime.signal); }, });
+      const childIO = { ...io, ...context, [invocationScope]: scope };
+      invocationOverride.current = prepare?.(runtime, context, child, childIO);
+      const runtimeFrame: RuntimeOutcomeFrame = {};
+      const middleware = this.middleware.map<Middleware>(handler => (context, next) => {
+        scope.assertOpen();
+        this.budget.pathLookup.suspendUntilClosed(scope);
+        let downstream: Promise<CommandResult> | undefined;
+        const raw = handler(context, () => {
+          downstream = next();
+          return downstream;});
+        return runtime.observeRuntimeReturn(raw, runtimeFrame, () => downstream);});
+      const execute = composeMiddleware(middleware, async () => {
+        scope.assertOpen();
+        const forwardedValues = getCommandArguments(context);
+        const admitted = forwardedValues === argumentValues ? argumentValues : runtime.admitArguments(forwardedValues.values, allocation);
+        const selected = { ...context, args: admitted.args, argumentValues: admitted };
+        const forwarded = await runtime.shebangState(selected, child);
+        selected.cwd = forwarded.cwd;
+        const raw = terminal(runtime, selected, forwarded, { ...childIO, ...selected });
+        return await runtime.observeRuntimeReturn(raw, runtimeFrame);});
+      try {
+        const result = await interruptible(execute(context), runtime.signal);
+        runtime.signal.throwIfAborted();
+        return validateExitCode(result.exitCode);
+      } catch (error) {
+        if (runtimeFrame.report && Object.is(runtimeFrame.report.origin.signal.reason, error) && runtime.outcomeFrame) runtime.outcomeFrame.report = runtimeFrame.report;
+        throw error;
+      }
+    } finally { if (ownsScope) await scope.close(); }
+  }
+  private shebangTarget(context: CommandContext, state: State, io: IO, command: string, args: readonly string[], options: ShellInvokeOptions, target: string, loadedSource: { path: string; source: string }): Promise<CommandResult> {
+    return this.invokeChild(options, state, io[invocationScope], () => {
+      this.signal.throwIfAborted();
+      io[invocationScope].assertOpen();
+      if (typeof command !== "string" || command.includes("\0") || !Array.isArray(args)
+        || args.some(argument => typeof argument !== "string" || argument.includes("\0"))) {
+        throw new TypeError("invoke requires a command and literal string arguments without NUL");
+      }
+      this.budget.tick();
+      if (args.length + 1 > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
+      for (const argument of [command, ...args]) {
+        if (shellValueByteLength(argument) > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
+      }
+    }, (runtime, scope) => runtime.shebangTargetScoped(context, state, io, command, args, options, target, loadedSource, scope));
+  }
+  private async shebangTargetScoped(context: CommandContext, state: State, io: IO, command: string, args: readonly string[], options: ShellInvokeOptions, target: string, loadedSource: { path: string; source: string }, scope: InvocationScope): Promise<CommandResult> {
+    const reserved = command === "bash" || command === "sh" || command === "zsh";
+    const direct = command.includes("/");
+    const definition = this.commands.get(command);
+    const child = await this.shebangState(context, state);
+    child.cwd = resolvePath(context.cwd, options.cwd ?? ".");
+    if (!reserved) {
+      if (child.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
+      child.depth++;
+      child.loopDepth = 0;
+      child.functionDepth = 0;
+      child.sourceDepth = 0;
+      child.locals = [];
+    }
+    const stdinIsDefault = options.stdin === undefined ? context.stdinIsDefault : options.stdinIsDefault ?? false;
+    const argumentValues = getCommandArguments({ args, ...(options.argumentValues ? { argumentValues: options.argumentValues } : {}) });
+    const selected: CommandContext = {
+      ...context, command, args: argumentValues.args, argumentValues, cwd: child.cwd, ...(options.admittedHandles === undefined ? {} : { admittedHandles: options.admittedHandles }), ...(options.processSignals === undefined ? {} : { processSignals: options.processSignals }), env: options.replaceEnv ? { ...options.env } : { ...context.env, ...options.env, PWD: child.cwd }, stdin: options.stdin ?? context.stdin, stdout: options.stdout ?? context.stdout, stderr: options.stderr ?? context.stderr, ...(stdinIsDefault === undefined ? {} : { stdinIsDefault }), };
+    const exitCode = await this.shebangStage(selected, child, io, async (runtime, forwarded, state, childIO) => {
+      if (reserved) {
+        if (definition) {
+          await runtime.diagnostic(childIO, `${target}: unsupported interpreter override: ${command}`);
+          return { exitCode: 126 };
+        }
+        return { exitCode: await runtime.interpreter(forwarded, state, childIO, loadedSource) };
+      }
+      if (direct) return { exitCode: await runtime.scriptFile(forwarded, state, childIO, command, forwarded.args, true) };
+      if (definition) {
+        runtime.budget.pathLookup.suspendUntilClosed(childIO[invocationScope]);
+        return definition.execute(forwarded);
+      }
+      await writeDiagnostic(forwarded.stderr, `env: ${command}: command not found\n`);
+      return { exitCode: 127 };
+    }, undefined, options.stdin !== context.stdin ? options.stdin : undefined, scope);
+    return { exitCode };
+  }
+  private async envShebang(context: CommandContext, state: State, io: IO, optionalArgument: string | undefined, target: string, args: readonly string[], loadedSource: { path: string; source: string }): Promise<number> {
+    const definition = executionCommands(() => { throw new Error("Unreserved shebang invocation"); }, { envSplitLimits: {
+      bytes: this.budget.limits.maxEnvSplitBytes, arguments: this.budget.limits.maxEnvSplitArguments,
+      expansions: this.budget.limits.maxEnvSplitExpansions, work: this.budget.limits.maxEnvSplitWork,
+    } }).find((command: { name: string }) => command.name === "env");
+    if (!definition) throw new CommandFailure(`${target}: env interpreter is unavailable`, 126);
+    const allocation = this.budget.values.scope();
+    io[invocationScope].register(() => allocation.close());
+    const incoming = getCommandArguments({ args, ...(context.argumentValues ? { argumentValues: context.argumentValues } : {}) });
+    const argumentValues = this.admitArguments([...(optionalArgument === undefined ? [] : [optionalArgument]), target, ...incoming.values], allocation);
+    return this.shebangStage({
+      ...context, command: "env", args: argumentValues.args, argumentValues, }, state, io, async (runtime, forwarded) => {
+      runtime.budget.pathLookup.suspendUntilClosed(io[invocationScope]);
+      let failed = false;
+      let failure: unknown;
+      let failureReport: CancellationReport | undefined;
+      const result = await interruptible(Promise.resolve(definition.execute({
+        ...forwarded, invoke: (command: string, arguments_: readonly string[], options?: any) => {
+          const raw = forwarded.invoke(command, arguments_, options);
+          return raw.catch(error => {
+            failed = true;
+            failure = error;
+            failureReport = runtime.cancellationState.consume(raw, error);
+            return { exitCode: 1 };});
+        }, })), runtime.signal);
+      runtime.signal.throwIfAborted();
+      if (failed) {
+        if (failureReport && runtime.outcomeFrame) runtime.outcomeFrame.report = failureReport;
+        throw failure;
+      }
+      return { exitCode: validateExitCode(result.exitCode) };
+    }, (runtime, forwarded, child, childIO) => (command, arguments_, options = {}) =>
+      runtime.shebangTarget(forwarded, child, childIO, command, arguments_, options, target, loadedSource));
+  }
+  async scriptFile(context: CommandContext, state: State, io: IO, target: string, args: readonly string[], direct: boolean, errexit = false, loadedSource?: { path: string; source: string }, braceexpand = true, noexec = false, nounset = false, options?: Pick<State, "allexport" | "noclobber" | "noglob" | "pipefail">): Promise<number> {
+    if (target === "") throw new CommandFailure(`${context.command}: : No such file or directory`, 127);
+    if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
+    const path = pathOf(state, target);
+    let source: string;
+    let environmentInterpreter: RegExpExecArray | null = null;
+    let interpreterCommand: { name: string; argument?: string } | undefined;
+    let sourceBytes: Uint8Array | undefined;
+    let interpreterProfile: "bash" | "sh" | undefined;
+    try {
+      if (loadedSource?.path === path) source = loadedSource.source;
+      else {
+        const options = { signal: this.signal };
+        const stat = await interruptible(this.fs.stat(path, options), this.signal);
+        if (stat.type === "directory") throw new CommandFailure(`${target}: Is a directory`, 126);
+        if (stat.type !== "file" && (direct || (stat.type !== "character" && (stat.type as string) !== "fifo"))) throw new CommandFailure(`${target}: not a regular file`, 126);
+        if (direct) {
+          const capabilities = this.fs.capabilitiesFor
+            ? await interruptible(this.fs.capabilitiesFor(path, options), this.signal) : this.fs.capabilities;
+          if (capabilities.permissions !== true) throw new CommandFailure(`${target}: execution permissions are not supported by this filesystem`, 126);
+        }
+        await interruptible(this.fs.access(path, ACCESS_MODES.R_OK | (direct ? ACCESS_MODES.X_OK : 0), options), this.signal);
+        const maxBytes = this.budget.limits.maxSourceBytes - this.budget.sourceBytes;
+        if (stat.size > maxBytes) this.budget.fail("maxSourceBytes");
+        const bytes = await interruptible(this.fs.readFile(path, { ...options, ...(maxBytes === Infinity ? {} : { maxBytes }) }), this.signal);
+        this.budget.source(bytes.byteLength);
+        sourceBytes = bytes;
+        const newline = bytes.indexOf(10);
+        source = direct && bytes[0] === 35 && bytes[1] === 33
+          ? this.sourceText(bytes.subarray(0, newline < 0 ? bytes.length : newline), target)
+          : this.sourceText(bytes, target);
+      }
+      if (direct && source.startsWith("#!")) {
+        const interpreter = source.split("\n", 1)[0]!.slice(2).replace(/^[ \t]+|[ \t]+$/gu, "");
+        environmentInterpreter = /^\/usr\/bin\/env(?:[ \t]+([^\n]*))?$/u.exec(interpreter);
+        if (!environmentInterpreter) {
+          const shell = /^\/(?:usr\/)?bin\/(bash|sh|zsh)(?:[ \t]+([-+]e+))?$/u.exec(interpreter);
+          if (!shell) {
+            const split = Array.from(interpreter).findIndex(character => character === " " || character === "\t");
+            const executable = split < 0 ? interpreter : interpreter.slice(0, split);
+            const name = executable.slice(executable.lastIndexOf("/") + 1);
+            const directory = executable.slice(0, executable.lastIndexOf("/"));
+            if ((directory !== "/bin" && directory !== "/usr/bin") || name === "sh" || name === "bash" || name === "zsh" || !this.commands.has(name)) {
+              throw new CommandFailure(`${target}: unsupported interpreter: ${interpreter}`, 126);
+            }
+            const argument = split < 0 ? undefined : interpreter.slice(split).trimStart();
+            interpreterCommand = { name, ...(argument ? { argument } : {}) };
+          } else {
+            interpreterProfile = shell[1] === "sh" ? "sh" : "bash";
+            if (shell[2]) errexit = shell[2].startsWith("-");
+          }
+        }
+      }
+    } catch (error) {
+      this.signal.throwIfAborted();
+      if (error instanceof ShellLimitError || error instanceof CommandFailure) throw error;
+      if (errorCode(error) === "EFBIG") this.budget.fail("maxSourceBytes");
+      throw new CommandFailure(filesystemDiagnostic(error, target, this.budget.onInternalError) ?? `${target}: ${message(error, this.budget.onInternalError)}`, errorCode(error) === "ENOENT" ? 127 : 126);
+    }
+    const decodeSource = () => sourceBytes ? this.sourceText(sourceBytes, target) : source;
+    const scriptSource = { path, get source() { return decodeSource(); } };
+    if (direct && environmentInterpreter) return this.envShebang(context, state, io, environmentInterpreter[1], target, args, scriptSource);
+    if (direct && interpreterCommand) {
+      const incoming = getCommandArguments({ args, ...(context.argumentValues ? { argumentValues: context.argumentValues } : {}) });
+      const allocation = this.budget.values.scope();
+      io[invocationScope].register(() => allocation.close());
+      const argumentValues = this.admitArguments([...(interpreterCommand.argument ? [interpreterCommand.argument] : []), target, ...incoming.values], allocation);
+      return (await this.shebangTarget(context, state, io, interpreterCommand.name, argumentValues.args, { argumentValues }, target, scriptSource)).exitCode;
+    }
+    source = scriptSource.source;
+    const lineIndex = new SourceLineIndex(source, this.budget.parsing);
+    const child = this.processState(context, state, io, target, args);
+    child.callerTopLevel = true;
+    child.errexit = errexit;
+    child.braceexpand = braceexpand;
+    child.noexec = noexec;
+    child.nounset = nounset;
+    if (options) Object.assign(child, options);
+    if (direct) child.profile = interpreterProfile ?? state.profile ?? "bash";
+    const references = new PipeDescriptorFrame(io[invocationScope]);
+    const childIO = isolateIO({ ...io, ...context, execution: { ignoreErrexit: false }, diagnosticLine: 1, diagnosticOffset: 0, assignmentDiagnosticContext: undefined, scriptName: target }, references);
+    try {
+    let status = 0;
+    let position = 0;
+    do {
+      this.signal.throwIfAborted();
+      let unit;
+      try {
+        unit = parseShellUnit(source, position, byteLocale(child.variables), this.budget.parsing, lineIndex, undefined, false, child.extensions?.syntax, child.expand_aliases ? child.aliases : undefined, !!child.extglob);
+      } catch (error) {
+        if (!(error instanceof ShellSyntaxError)) throw error;
+        await writeDiagnostic(context.stderr, `${target}: line ${lineIndex.lineAt(error.offset)}: syntax error: ${error.reason}\n`);
+        status = error.exitCode;
+        break;
+      }
+      for (const warning of unit.script.warnings ?? []) await writeDiagnostic(context.stderr, `${target}: warning: ${warning}\n`);
+      if (unit.script.lists.length) {
+        const result = await this.runUnit(unit.script, child, childIO);
+        status = result.exitCode;
+        if (result.terminated) break;
+      }
+      position = unit.next;
+    } while (position < source.length);
+    return await this.finishShell(child, childIO, status);
+    } finally { await references.close(); }
+  }
+  async runCurrentText(source: string, state: State, io: IO, fatalSyntax: boolean, syntaxName?: string, byteSource = false, includeSyntaxContext = true, sourceValues?: OwnedShellSource["values"]): Promise<number> {
+    if (!state.expand_aliases && !sourceValues && !byteSource && isDefaultShellSyntax(state.extensions?.syntax) && source.length <= 4096) {
+      try {
+        const cachedUnit = getOrParseSingleEvalUnit(source, byteLocale(state.variables), this.budget.parsing, !!state.extglob);
+        if (cachedUnit) {
+          const rawSt = stateMonitor(state)?.raw ?? state;
+          const pendingEval = (rawSt as { _syncPendingEvalResume?: { script: Script; listIndex: number; pipelineIndex: number } })._syncPendingEvalResume;
+          if (pendingEval && pendingEval.script === cachedUnit.script) {
+            (rawSt as { _syncPendingEvalResume?: undefined })._syncPendingEvalResume = undefined;
+            return await this.inputUnit(cachedUnit.script, state, io, pendingEval.listIndex, pendingEval.pipelineIndex, true);
+          }
+          if (cachedUnit.script.lists.length) return await this.inputUnit(cachedUnit.script, state, io);
+          return 0;
+        }
+      } catch (error) {
+        if (!(error instanceof ShellSyntaxError)) throw error;
+        const status = await this.syntaxFailure(error, source, syntaxName === undefined ? io : { ...io, scriptName: syntaxName }, false, includeSyntaxContext);
+        if (fatalSyntax) throw new Flow("exit", status);
+        return status;
+      }
+    }
+    const lineIndex = new SourceLineIndex(source, this.budget.parsing);
+    let position = 0;
+    let status = 0;
+    let executed = false;
+    try {
+      do {
+        this.signal.throwIfAborted();
+        const unit = parseShellUnit(source, position, byteLocale(state.variables), this.budget.parsing, lineIndex, sourceValues, byteSource, state.extensions?.syntax, state.expand_aliases ? state.aliases : undefined, !!state.extglob);
+        for (const warning of unit.script.warnings ?? []) await writeDiagnostic(io.stderr, `${io.scriptName ?? "shell"}: warning: ${warning}\n`);
+        if (unit.script.lists.length) {
+          status = await this.inputUnit(unit.script, state, io);
+          executed = true;
+        }
+        position = unit.next;
+      } while (position < source.length);
+      return status;
+    } catch (error) {
+      if (!(error instanceof ShellSyntaxError)) throw error;
+      const status = await this.syntaxFailure(error, source, syntaxName === undefined ? io : { ...io, scriptName: syntaxName }, false, includeSyntaxContext);
+      if (fatalSyntax && !executed) throw new Flow("exit", status);
+      return status;
+    }
+  }
+  async evalBuiltin(context: CommandContext, state: State, io: IO, special: boolean): Promise<number> {
+    const args = [...context.args];
+    if (args[0] === "--") args.shift();
+    else if (args[0]?.startsWith("-") && args[0] !== "-") {
+      await this.diagnostic(io, `eval: -${args[0][1]}: invalid option`);
+      await writeDiagnostic(io.stderr, "eval: usage: eval [arg ...]\n");
+      if (special) throw new Flow("exit", 2);
+      return 2;
+    }
+    if (!args.length) return 0;
+    if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
+    const values = getCommandArguments(context).values.slice(context.args.length - args.length);
+    let length = values.length - 1;
+    for (const value of values) { this.signal.throwIfAborted(); length += shellValueByteLength(value); }
+    this.budget.source(length);
+    const allocation = this.budget.values.scope();
+    try {
+    allocation.reserve(64 + values.length * 32, 0);
+    const value = concatShellValues(values.flatMap((entry, index) => index ? [" ", entry] : [entry]), allocation);
+    const source = typeof value === "string" ? { text: this.sourceText(fastSharedTextEncoder.encode(value), "eval"), values: undefined } : ownedShellSource(value, this.budget.parsing, allocation);
+    if (/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/u.test(source.text)) throw new CommandFailure("eval: cannot execute binary script", 126);
+    const restoration = stateMonitor(state)?.restoration(true);
+    try { state.depth++; }
+    catch (error) { restoration?.close(); throw error; }
+    try {
+      return await this.runCurrentText(source.text, state, { ...io, diagnosticOffset: (io.diagnosticLine ?? 1) - 1, assignmentDiagnosticContext: { name: context.command } }, special, `${io.scriptName ?? "shell"}: eval`, false, true, source.values);
+    } finally {
+      const restore = () => { state.depth--; };
+      if (restoration) restoration.apply(restore);
+      else restore();
+    }
+    } finally { allocation.close(); }
+  }
+  async sourceBuiltin(context: CommandContext, state: State, io: IO, special: boolean): Promise<number> {
+    const args = [...context.args];
+    if (args[0] === "--") args.shift();
+    else if (args[0]?.startsWith("-") && args[0] !== "-") {
+      await this.diagnostic(io, `${context.command}: ${args[0]}: unsupported option`);
+      if (special) throw new Flow("exit", 2);
+      return 2;
+    }
+    const filename = args.shift();
+    if (filename === undefined) {
+      await this.diagnostic(io, `${context.command}: filename argument required`);
+      await writeDiagnostic(io.stderr, `${context.command}: usage: ${context.command} [-p path] filename [arguments]\n`);
+      if (special) throw new Flow("exit", 2);
+      return 2;
+    }
+    if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
+    let target = filename;
+    let source: string;
+    try {
+      const options = { signal: this.signal };
+      if (filename && !filename.includes("/") && state.variables.PATH) {
+        let found = false;
+        for (const candidate of pathTargets(filename, state.variables.PATH, this.budget.limits, this.signal, limit => this.budget.fail(limit))) {
+          const path = pathOf(state, candidate);
+          try {
+            if (!await interruptible(this.budget.pathLookup.isFile(this.fs, path, this.signal), this.signal)) continue;
+            await interruptible(this.fs.access(path, ACCESS_MODES.R_OK, options), this.signal);
+            target = candidate;
+            found = true;
+            break;
+          } catch (error) {
+            this.signal.throwIfAborted();
+            if (!["ENOENT", "ENOTDIR", "EACCES", "EPERM"].includes(errorCode(error) ?? "")) throw error;
+          }
+        }
+        if (!found && state.profile === "sh") throw new CommandFailure(`${context.command}: ${filename}: file not found`, 1);
+      }
+      if (!filename) throw new CommandFailure(": No such file or directory", 1);
+      const path = pathOf(state, target);
+      const stat = await interruptible(this.fs.stat(path, options), this.signal);
+      if (stat.type === "directory") throw new CommandFailure(`${context.command}: ${target}: is a directory`, 1);
+      if (stat.type !== "file" && stat.type !== "character" && (stat.type as string) !== "fifo") throw new CommandFailure(`${target}: not a regular file`, 1);
+      await interruptible(this.fs.access(path, ACCESS_MODES.R_OK, options), this.signal);
+      const maxBytes = this.budget.limits.maxSourceBytes - this.budget.sourceBytes;
+      if (stat.size > maxBytes) this.budget.fail("maxSourceBytes");
+      const bytes = await interruptible(this.fs.readFile(path, { ...options, ...(maxBytes === Infinity ? {} : { maxBytes }) }), this.signal);
+      this.budget.source(bytes.byteLength);
+      source = this.sourceText(bytes, target);
+    } catch (error) {
+      this.signal.throwIfAborted();
+      if (error instanceof ShellLimitError) throw error;
+      if (errorCode(error) === "EFBIG") this.budget.fail("maxSourceBytes");
+      const diagnostic = error instanceof CommandFailure ? error.message : filesystemDiagnostic(error, target, this.budget.onInternalError) ?? `${target}: ${message(error, this.budget.onInternalError)}`;
+      if (special) throw new FatalCommandFailure(diagnostic, 1);
+      throw new CommandFailure(diagnostic, error instanceof CommandFailure ? error.status : 1);
+    }
+    const positional = state.positional;
+    const version = state.positionalSetVersion ?? 0;
+    const sourceDepth = state.sourceDepth ?? 0;
+    const monitor = stateMonitor(state);
+    const restoration = monitor?.restoration(true);
+    let savedPositionals: ValueStore | undefined;
+    try {
+      if (args.length) savedPositionals = monitor!.positionals.clone();
+      const owner = arrayStore(state)?.owner;
+      if (owner) {
+        owner.reserve({ metadata: 64 + args.length * 32, allocatedSlots: args.length, work: args.length + 4 });
+        monitor!.prepareCollection(args, "positional");
+      }
+      const entry = () => {
+        if (args.length) this.replacePositionals(state, getCommandArguments(context).values.slice(context.args.length - args.length), () => { state.positional = args; });
+        const raw = stateMonitor(state)?.raw ?? state;
+        (raw.callerFrames ??= []).unshift(captureCallerFrame(raw, io, "source"));
+        state.sourceDepth = (state.sourceDepth ?? 0) + 1;
+        state.depth++;};
+      if (owner) {
+        const tickets = owner.reserve({ epoch: true, work: 8 });
+        monitor!.publish(tickets, undefined, entry);
+        tickets.release();
+      } else entry();
+    } catch (error) { savedPositionals?.close(); restoration?.close(); throw error; }
+    let primaryFailure = false;
+    let outcome: CapturedCancellationOutcome<number>;
+    let leaveFailure: { reason: unknown } | undefined;
+    try {
+      try {
+        await this.extensionEvent("source-enter", state, io, state.status);
+        const status = await this.runCurrentText(source, state, { ...io, scriptName: target, diagnosticOffset: 0, diagnosticLine: 1, assignmentDiagnosticContext: undefined }, special);
+        outcome = { kind: "return", value: await this.finishReturn("source-return", state, io, status) };
+      } catch (error) {
+        if (error instanceof Flow && error.kind === "return") outcome = { kind: "return", value: await this.finishReturn("source-return", state, io, error.status, error.previousStatus) };
+        else throw error;
+      }
+    } catch (error) {
+      primaryFailure = !(error instanceof Flow) || error instanceof NounsetDiagnosticFailure;
+      outcome = { kind: "throw", reason: error instanceof Flow ? error : new NounsetDiagnosticFailure(error) };
+    } finally {
+      const scope = io[invocationScope];
+      try { if (!this.signal.aborted) await this.extensionEvent("source-leave", state, io, state.status); }
+      catch (reason) {
+        if (primaryFailure) scope.failures.push(reason);
+        else leaveFailure = { reason };
+      }
+      const restore = () => {
+        state.depth--;
+        state.sourceDepth = sourceDepth;
+        (stateMonitor(state)?.raw ?? state).callerFrames?.shift();
+        if (savedPositionals && (state.functionDepth > 0 || (state.positionalSetVersion ?? 0) === version)) {
+          monitor!.positionals.restore(savedPositionals, () => {
+            state.positional = positional;
+            state.positionalSetVersion = version;});
+        }};
+      try {
+        if (restoration) restoration.apply(restore);
+        else restore();
+      } catch (error) { scope.failures.push(error); }
+      try { savedPositionals?.close(); }
+      catch (error) { scope.failures.push(error); }
+      try { restoration?.close(); }
+      catch (error) { scope.failures.push(error); }
+    }
+    if (leaveFailure) {
+      this.signal.throwIfAborted();
+      throw leaveFailure.reason instanceof Flow ? leaveFailure.reason : new NounsetDiagnosticFailure(leaveFailure.reason);
+    }
+    if (outcome.kind === "throw") throw outcome.reason;
+    return outcome.value;
+  }
+  invoke(name: string, args: readonly string[], options: ShellInvokeOptions = {}, context: ShellCommandContext, state: State, parent: InvocationScope): Promise<{ exitCode: number }> {
+    const fast = this.tryFastExternalInvoke?.(name, args, options, context, state, parent);
+    if (fast) return fast;
+    return this.invokeChild(options, state, parent, () => {
+      if (typeof name !== "string" || name.includes("\0") || !Array.isArray(args)
+        || args.some((arg) => typeof arg !== "string" || arg.includes("\0"))) {
+        throw new TypeError("invoke requires a command and literal string arguments without NUL");
+      }
+      if (options.argv0 !== undefined && (typeof options.argv0 !== "string" || options.argv0.includes("\0"))) throw new TypeError("invoke argv0 must be a string without NUL");
+      if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
+    }, (runtime, scope) => runtime.invokeScoped(name, args, options, context, state, scope));
+  }
+  private async invokeScoped(name: string, args: readonly string[], options: ShellInvokeOptions, context: ShellCommandContext, state: State, scope: InvocationScope): Promise<{ exitCode: number }> {
+    this.signal.throwIfAborted();
+    const allocation = this.budget.values.scope();
+    scope.register(() => allocation.close());
+    const carrier = this.admitArguments(getCommandArguments({ args, ...(options.argumentValues ? { argumentValues: options.argumentValues } : {}) }).values, allocation);
+    const child = await cloneState(state, this.signal, scope, false);
+    child.extensions = forkExtensions(state.extensions, "invocation");
+    child.cwd = resolvePath(context.cwd, options.cwd ?? ".");
+    const env: Record<string, string> = options.replaceEnv ? { ...options.env } : { ...context.env, ...options.env, PWD: child.cwd };
+    if (guestArrays(child) || Object.keys(env).some(key => arrayStore(child)?.get(key))) await this.indexedEnvironment(child, env);
+    else {
+    for (const key of child.exported) delete child.variables[key];
+    for (const [key, value] of Object.entries(env)) {
+      if (key.includes("\0") || key.includes("=") || typeof value !== "string" || value.includes("\0")) throw new TypeError("Invalid invoke environment entry");
+      publishVariable(child, key, value);
+    }
+    child.exported = new Set(Object.keys(env));
+    }
+    for (const key of child.exportedFunctions ?? []) {
+      const body = child.functions.get(key);
+      if (!body || env[`BASH_FUNC_${key}%%`] !== functionDisplay(key, body).slice(key.length + 1).trimEnd()) child.exportedFunctions?.delete(key);
+    }
+    child.externalInvocation = options.externalInvocation === true;
+    if (child.externalInvocation) for (const key of child.functions.keys()) if (!child.exportedFunctions?.has(key)) child.functions.delete(key);
+    this.reconcileGetopts(child, state.variables.OPTIND);
+    child.depth++;
+    child.loopDepth = 0;
+    child.functionDepth = 0;
+    child.sourceDepth = 0;
+    child.locals = [];
+    const input = options.stdin === undefined ? undefined : new ShellInput(options.stdin, this.budget, this.signal);
+    const stdinIsDefault = options.stdin === undefined ? context.stdinIsDefault : (options.stdinIsDefault ?? false);
+    const references = new PipeDescriptorFrame(scope);
+    const io = isolateIO({
+      ...context, argv0: options.argv0, ...(options.admittedHandles === undefined ? {} : { admittedHandles: options.admittedHandles }), ...(options.processSignals === undefined ? {} : { processSignals: options.processSignals }), [invocationScope]: scope, stdin: input ?? context.stdin, ...(stdinIsDefault === undefined ? {} : { stdinIsDefault }), stdout: options.stdout ? this.budget.sink(options.stdout, this.signal) : context.stdout, stderr: options.stderr ? this.budget.sink(options.stderr, this.signal) : context.stderr, }, references);
+    const command: Command = {
+      kind: "simple", redirects: [], words: [name, ...carrier.values].map((value) => {
+        const part: WordPart = { kind: "text", value: shellValueText(value), quoted: true };
+        if (typeof value !== "string") invokedValues.set(part, value);
+        return { offset: 0, parts: [part] };
+      }), };
+    try { return { exitCode: await this.runCommandIsolated(command, child, io) }; }
+    finally {
+      try { await this.releaseExtensions(child); }
+      finally {
+        try { stateMonitor(child)?.closeValues(); await input?.close(); }
+        finally { await references.close(); }
+      }
+    }
+  }
+  private async setOptions(context: CommandContext & IO, state: State): Promise<number> {
+    const { args, stdout, stderr } = context;
+    let index = 0;
+    let positionals = false;
+    while (index < args.length) {
+      this.signal.throwIfAborted();
+      const option = args[index]!;
+      if (option === "--") { index++; positionals = true; break; }
+      if (option === "-") { index++; positionals = index < args.length; break; }
+      if (option[0] !== "-" && option[0] !== "+") { positionals = true; break; }
+      const enabled = option[0] === "-";
+      let valid = option.length > 1;
+      for (let position = 1; valid && position < option.length; position++) {
+        const flag = option[position];
+        if (flag === "e") state.errexit = enabled;
+        else if (flag === "a") state.allexport = enabled;
+        else if (flag === "u") state.nounset = enabled;
+        else if (flag === "f") state.noglob = enabled;
+        else if (flag === "C") state.noclobber = enabled;
+        else if (flag === "n") state.noexec = enabled;
+        else if ([...state.extensions?.options.values() ?? []].some(option => option.flag === flag)) {
+          for (const option of state.extensions!.options.values()) if (option.flag === flag) option.enabled = enabled;
+        }
+        else if (flag === "B") state.braceexpand = enabled;
+        else if (flag === "o" && position === option.length - 1) {
+          const name = args[index + 1];
+          if (name === undefined) {
+            const options = [["allexport", !!state.allexport], ["braceexpand", state.braceexpand !== false], ["errexit", !!state.errexit], ["noclobber", !!state.noclobber], ["noexec", !!state.noexec], ["noglob", !!state.noglob], ["nounset", !!state.nounset], ["pipefail", state.pipefail], ...[...state.extensions?.options.values() ?? []].map(option => [option.name, option.enabled] as const)] as const;
+            for (const [name, active] of options) await writeText(stdout, enabled ? `${name}\t${active ? "on" : "off"}\n` : `set ${active ? "-" : "+"}o ${name}\n`);
+          } else {
+            if (name === "errexit") state.errexit = enabled;
+            else if (name === "allexport") state.allexport = enabled;
+            else if (name === "nounset") state.nounset = enabled;
+            else if (name === "pipefail") state.pipefail = enabled;
+            else if (name === "braceexpand") state.braceexpand = enabled;
+            else if (name === "noglob") state.noglob = enabled;
+            else if (name === "noclobber") state.noclobber = enabled;
+            else if (name === "noexec") state.noexec = enabled;
+            else if (state.extensions?.options.has(name)) state.extensions.options.get(name)!.enabled = enabled;
+            else {
+              const unsupported = unsupportedSetOptionNames.has(name);
+              await this.diagnostic(context, `set: ${name}: ${unsupported ? "unsupported shell option" : "invalid option name"}`);
+              return unsupported ? 1 : 2;
+            }
+            index++;
+          }
+        } else valid = false;
+      }
+      if (!valid) {
+        await writeDiagnostic(stderr, "set: unsupported shell option; supported forms are +/- a/e/u/f/n/B/C clusters, -- arguments and terminal o with allexport, braceexpand, noclobber, noexec, noglob, pipefail, errexit or nounset\n");
+        return 1;
+      }
+      index++;
+    }
+    if (positionals) { this.replacePositionals(state, getCommandArguments(context).values.slice(index)); state.positionalSetVersion = (state.positionalSetVersion ?? 0) + 1; }
+    if (state.noexec) throw new Flow("discard", 0);
+    return 0;
+  }
+  private async letBuiltin(context: CommandContext & IO, state: State): Promise<number> {
+    this.signal.throwIfAborted();
+    const { maxExpansionBytes: bytes, maxExpansionFields: fields } = this.budget.limits;
+    const admit = (value: unknown): void => {
+      if (typeof value !== "string" || value.includes("\0")) throw new CommandFailure("let: arguments must be strings without NUL", 2);
+      if (value.length > bytes || shellValueByteLength(value) > bytes) this.budget.fail("maxExpansionBytes");};
+    const checkpoint = async (): Promise<void> => {
+      this.signal.throwIfAborted();
+      await yieldTurn(this.signal);
+      this.signal.throwIfAborted();};
+    const { args } = context;
+    if (!Array.isArray(args)) throw new CommandFailure("let: argument array required", 2);
+    if (args.length + 1 > fields) this.budget.fail("maxExpansionFields");
+    admit(context.command);
+    for (let index = 0; index < args.length; index++) {
+      this.signal.throwIfAborted();
+      admit(args[index]);
+      if ((index + 1) % 128 === 0) await checkpoint();
+    }
+    if (args[0] === "--help") throw new CommandFailure("let: --help: unsupported option", 2);
+    const offset = args[0] === "--" ? 1 : 0;
+    if (args.length === offset) throw new CommandFailure("let: expression expected", 1);
+    const variables = new Proxy(this.arithmeticVariables(state, context.diagnosticLine), { get: (target, key) => {
+      this.signal.throwIfAborted();
+      const value: unknown = Reflect.get(target, key);
+      if (typeof value === "string" && (value.length > bytes || shellValueByteLength(value) > bytes)) this.budget.fail("maxExpansionBytes");
+      return value;
+    } });
+    let value = 0n;
+    for (let index = offset; index < args.length; index++) {
+      this.signal.throwIfAborted();
+      try {
+        let program = prepareArithmetic(args[index]!, this.budget.parsing);
+        if (program.error) {
+          const word = parseArithmeticExpansion(args[index]!, this.budget.parsing, byteLocale(state.variables), state.depth + (context.parameterDepth ?? 0), context.diagnosticLine ?? 1, state.extensions?.syntax, !!state.extglob);
+          const operandIO = this.parameterOperandIO(word, state, context);
+          const fields = await this.valueWord(word, state, operandIO, false, false, true);
+          const source = shellValueText(concatShellValues(fields, context[valueScope]));
+          this.signal.throwIfAborted();
+          program = prepareArithmetic(source, this.budget.parsing);
+        }
+        value = await this.shellArithmetic(program, state, context, variables);
+      }
+      catch (error) {
+        this.rethrowArithmeticControl(error);
+        throw new PublicDiagnostic(`let: ${message(error, this.budget.onInternalError)}`);
+      }
+      if ((index - offset + 1) % 128 === 0) await checkpoint();
+    }
+    this.signal.throwIfAborted();
+    return Number(value === 0n);
+  }
+  private async getoptsBuiltin(context: CommandContext & IO, state: State): Promise<number> {
+    this.signal.throwIfAborted();
+    const { maxExpansionBytes: bytes, maxExpansionFields: fields } = this.budget.limits;
+    const admit = (value: unknown): void => {
+      if (typeof value !== "string") throw new CommandFailure("getopts: arguments must be strings without NUL", 2);
+      if (value.length > bytes || shellValueByteLength(value) > bytes) this.budget.fail("maxExpansionBytes");
+      if (value.includes("\0")) throw new CommandFailure("getopts: arguments must be strings without NUL", 2);};
+    const checkpoint = async (): Promise<void> => {
+      this.signal.throwIfAborted();
+      await yieldTurn(this.signal);
+      this.signal.throwIfAborted();};
+    if (!Array.isArray(context.args)) throw new CommandFailure("getopts: argument array required", 2);
+    if (context.args.length + 1 > fields) this.budget.fail("maxExpansionFields");
+    admit(context.command);
+    for (let index = 0; index < context.args.length; index++) {
+      this.signal.throwIfAborted();
+      admit(context.args[index]);
+      if ((index + 1) % 128 === 0) await checkpoint();
+    }
+    const offset = context.args[0] === "--" ? 1 : 0;
+    if (!offset && context.args[0]?.startsWith("-") && context.args[0] !== "-") {
+      await this.diagnostic(context, `getopts: -${context.args[0][1]}: invalid option`);
+      await writeDiagnostic(context.stderr, "getopts: usage: getopts optstring name [arg ...]\n");
+      return 2;
+    }
+    if (context.args.length - offset < 2) {
+      await writeDiagnostic(context.stderr, "getopts: usage: getopts optstring name [arg ...]\n");
+      return 2;
+    }
+    const optstring = context.args[offset]!;
+    const name = context.args[offset + 1]!;
+    const explicit = context.args.length > offset + 2;
+    const monitor = explicit ? undefined : stateMonitor(state);
+    const revision = monitor?.positionalRevision;
+    const supplied = explicit ? context.args.slice(offset + 2) : state.positional;
+    if (supplied.length > fields) this.budget.fail("maxExpansionFields");
+    const maxBytes = saturatedProduct(bytes, saturatedSum(supplied.length, 1));
+    const maxSteps = saturatedSum(saturatedProduct(maxBytes, 2), saturatedSum(supplied.length, 2));
+    const work = { maxArguments: supplied.length, maxBytes, maxSteps, yieldEvery: 128, signal: this.signal, checkpoint };
+    let input = monitor?.getoptsInput;
+    let allocation: ValueScope | undefined;
+    let result;
+    try {
+      if (!input && monitor) {
+        const size = getoptsInputAllocationSize(supplied.length);
+        const arena = this.budget.values;
+        const usage = arena.usage;
+        if (size.bytes + 64 <= arena.maximumBytes - usage.bytes && size.slots + 1 <= arena.maximumSlots - usage.slots) {
+          allocation = arena.scope();
+          input = await createGetoptsInput(supplied, allocation, work);
+        }
+      }
+      const args = input?.args ?? supplied;
+      if (!input || allocation) for (let index = 0; index < args.length; index++) {
+        this.signal.throwIfAborted();
+        admit(args[index]);
+        if ((index + 1) % 128 === 0) await checkpoint();
+      }
+      state.getopts ??= cloneGetoptsBinding(state);
+      try {
+        result = await scanGetopts(state.getopts.cursor, optstring, input ?? args, {
+          reportErrors: state.variables.OPTERR === undefined || state.variables.OPTERR === "" || decimalIndex(state.variables.OPTERR) !== 0, work, });
+      } catch (error) {
+        this.signal.throwIfAborted();
+        if (error instanceof GetoptsError && (error.code === "NON_ASCII_OPTION" || error.code === "INVALID_INPUT")) throw new CommandFailure(`getopts: ${error.message}`, 2);
+        throw error;
+      }
+      this.signal.throwIfAborted();
+      if (monitor && monitor.positionalRevision !== revision) throw new CommandFailure("getopts: positional arguments changed during validation", 2);
+      if (allocation && monitor!.retainGetoptsInput(revision!, input!, allocation)) allocation = undefined;
+    } finally { allocation?.close(); }
+    this.signal.throwIfAborted();
+    state.getopts.cursor = result.state;
+    if (result.diagnostic) {
+      const explanation = result.diagnostic.kind === "unknown-option" ? "illegal option" : "option requires an argument";
+      await writeDiagnostic(context.stderr, `${state.arg0 ?? context.scriptName ?? "shell"}: ${explanation} -- ${result.diagnostic.option}\n`);
+    }
+    this.signal.throwIfAborted();
+    await this.writeVariable(state, "OPTIND", String(result.optind), context, "getopts");
+    if (result.argument.kind === "set") await this.writeVariable(state, "OPTARG", result.argument.value, context, "getopts");
+    else this.unsetVariable(state, "OPTARG", true);
+    if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name)) throw new PublicDiagnostic(`getopts: \`${name}': not a valid identifier`);
+    await this.assignVariable(state, name, result.option, context, "getopts");
+    return result.status;
+  }
+  private async changeDirectory(context: CommandContext & IO, state: State, args: readonly string[], diagnose?: (error: unknown, diagnostic: string) => void, stackHooks?: { name: string; onCwdPublished(): void; emit(text: string): Promise<void> }): Promise<number> {
+    const name = stackHooks?.name ?? "cd";
+    this.signal.throwIfAborted();
+    const lookup = new CdLookup(this.signal, this.budget.limits);
+    let offset = 0;
+    let physical = false;
+    if (!stackHooks) for (; offset < args.length; offset++) {
+      await lookup.charge(1);
+      const option = args[offset]!;
+      if (option === "--") { offset++; break; }
+      if (!option.startsWith("-") || option === "-") break;
+      for (let index = 1; index < option.length; index++) {
+        await lookup.charge(1);
+        const flag = option[index]!;
+        if (flag === "L" || flag === "P") physical = flag === "P";
+        else { await writeDiagnostic(context.stderr, `cd: -${flag}: invalid option\n`); return 2; }
+      }
+    }
+    if (args.length - offset > 1) { await writeDiagnostic(context.stderr, `${name}: too many arguments\n`); return 1; }
+    const operand = args[offset];
+    const target = operand === "-" ? state.variables.OLDPWD : (operand ?? state.variables.HOME);
+    if (target === undefined) { await writeDiagnostic(context.stderr, `${name}: ${operand === "-" ? "OLDPWD" : "HOME"} not set\n`); return 1; }
+    let selected: { path: string; print?: string };
+    try {
+      selected = await lookup.find(this.fs, state.cwd, target || ".", state.variables.CDPATH, physical);
+    } catch (error) {
+      this.signal.throwIfAborted();
+      const description = filesystemDiagnostic(error, "", this.budget.onInternalError);
+      const text = description ? "" : message(error, this.budget.onInternalError);
+      diagnose?.(error, cdDiagnostic(description ? [name, ": ", target, description]
+        : stackHooks && text.startsWith("cd: ") ? [name, text.slice(2)] : [text], this.budget.limits.maxDirectoryDiagnosticBytes));
+      throw error;
+    }
+    this.signal.throwIfAborted();
+    const { path } = selected;
+    await this.writeVariable(state, "OLDPWD", state.cwd, context);
+    state.cwd = path;
+    stackHooks?.onCwdPublished();
+    await this.writeVariable(state, "PWD", path, context);
+    state.exported.add("PWD");
+    state.exported.add("OLDPWD");
+    const printedPath = selected.print ?? (operand === "-" ? target : undefined);
+    if (printedPath !== undefined) {
+      if (stackHooks) await stackHooks.emit(`${printedPath}\n`);
+      else await writeText(context.stdout, `${printedPath}\n`);
+    }
+    return 0;
+  }
+  private async directoryStackBuiltin(context: CommandContext & IO, state: State, diagnose?: (error: unknown, diagnostic: string) => void): Promise<number> {
+    const { command, args } = context;
+    const work = new DirectoryStackWork(command, this.signal, context.stdout, this.budget.limits);
+    const tail = state.directoryStack ?? { entries: [], bytes: 0 };
+    const count = tail.entries.length;
+    let noCd = false;
+    let clear = false;
+    let long = false;
+    let lines = false;
+    let verbose = false;
+    let selected: bigint | undefined;
+    let target: string | undefined;
+    let targetBytes: number | undefined;
+    const boundedIndex = (index: bigint): number => {
+      if (index < 0n || index > BigInt(count)) work.fail("directory stack index out of range");
+      return Number(index);};
+    const field = async (value: string): Promise<number> => {
+      await work.charge(1);
+      return work.scan(value, "argument");};
+    const plan = async (length: number, removed: number | undefined, added: string | undefined, addedBytes: number | undefined, entry: (index: number) => string): Promise<NonNullable<State["directoryStack"]>> => {
+      if (length > this.budget.limits.maxDirectoryStackEntries) work.fail("directory stack entry limit exceeded");
+      const removedBytes = removed === undefined ? 0 : await work.scan(tail.entries[removed]!, "path");
+      const extraBytes = added === undefined ? 0 : addedBytes ?? await work.scan(added, "path");
+      const bytes = tail.bytes - removedBytes + extraBytes;
+      if (!Number.isSafeInteger(bytes) || bytes < 0 || bytes > this.budget.limits.maxDirectoryStackBytes) work.fail("directory stack byte limit exceeded");
+      await work.charge(length);
+      const entries = new Array<string>(length);
+      for (let index = 0; index < length; index++) entries[index] = entry(index);
+      return { entries, bytes };};
+    const publish = async (next: NonNullable<State["directoryStack"]>): Promise<void> => {
+      await work.flushWork();
+      state.directoryStack = next;};
+    const cd = async (path: string): Promise<number> => {
+      await work.flushWork();
+      return this.changeDirectory(context, state, [path], diagnose, {
+        name: command, onCwdPublished() { state.directoryStackCwdPublication = Symbol(); }, async emit(text) { await work.emit(text); await work.flushOutput(); }, });};
+    const display = async (index?: number): Promise<void> => {
+      await work.display(state.cwd, state.directoryStack?.entries ?? [], { long, lines, verbose, ...(index !== undefined ? { index } : {}) }, state.variables.HOME);};
+    try {
+      for (let offset = 0; offset < args.length; offset++) {
+        const token = args[offset]!;
+        const bytes = await field(token);
+        if (token === "--") {
+          if (command === "pushd" && selected === undefined && offset + 1 < args.length) {
+            target = args[offset + 1]!;
+            targetBytes = await field(target);
+            if (!noCd && offset + 2 < args.length) work.fail("too many arguments");
+          }
+          break;
+        }
+        if (command === "dirs" && ["-c", "-l", "-p", "-v"].includes(token)) {
+          if (token === "-c") clear = true;
+          if (token === "-l") long = true;
+          if (token === "-p") lines = true;
+          if (token === "-v") verbose = true;
+          continue;
+        }
+        if (command !== "dirs" && token === "-n") { noCd = true; continue; }
+        if ((token.startsWith("+") || token.startsWith("-")) && !(command === "pushd" && token === "-")) {
+          const number = await work.number(token);
+          selected = token.startsWith("+") ? number : BigInt(count) - number;
+          if (command === "pushd") boundedIndex(selected);
+          continue;
+        }
+        if (command === "popd" && token === "") break;
+        if (command !== "pushd") work.fail("invalid directory stack argument", 2);
+        if (selected === undefined) {
+          target = token;
+          targetBytes = bytes;
+          if (!noCd && offset + 1 < args.length) work.fail("too many arguments");
+        }
+        break;
+      }
+      if (command === "dirs") {
+        if (clear) await publish({ entries: [], bytes: 0 });
+        else await display(selected === undefined ? undefined : boundedIndex(selected));
+      } else if (command === "pushd") {
+        if (selected !== undefined) {
+          const index = boundedIndex(selected);
+          if (!(noCd && index === 0)) {
+            const cwd = state.cwd;
+            const at = (fullIndex: number): string => fullIndex === 0 ? cwd : tail.entries[fullIndex - 1]!;
+            const next = await plan(count, index === 0 ? undefined : index - 1, index === 0 ? undefined : cwd, undefined, slot => at((index + slot + 1) % (count + 1)));
+            await publish(next);
+            if (!noCd) {
+              const status = await cd(at(index));
+              if (status !== 0) return status;
+              await display();
+            }
+          }
+        } else if (target !== undefined) {
+          const saved = noCd ? target : state.cwd;
+          const next = await plan(count + 1, undefined, saved, noCd ? targetBytes : undefined, slot => slot === 0 ? saved : tail.entries[slot - 1]!);
+          if (!noCd) {
+            const status = await cd(target);
+            if (status !== 0) return status;
+          }
+          await publish(next);
+          await display();
+        } else if (!noCd) {
+          if (!count) work.fail("no other directory");
+          const cwd = state.cwd;
+          const next = await plan(count, 0, cwd, undefined, slot => slot === 0 ? cwd : tail.entries[slot]!);
+          await publish(next);
+          const status = await cd(tail.entries[0]!);
+          if (status !== 0) return status;
+          await display();
+        }
+      } else {
+        const index = boundedIndex(selected ?? 0n);
+        if (!count) work.fail("directory stack empty");
+        const removed = Math.max(0, index - 1);
+        const next = await plan(count - 1, removed, undefined, undefined, slot => tail.entries[slot < removed ? slot : slot + 1]!);
+        if (index === 0 && !noCd) {
+          const status = await cd(tail.entries[0]!);
+          if (status !== 0) return status;
+        }
+        await publish(next);
+        await display();
+      }
+      return 0;
+    } finally {
+      await work.flushWork();
+    }
+  }
+  private async shoptBuiltin(context: CommandContext & IO, state: State): Promise<number> {
+    let setNamespace = false;
+    let print = false;
+    let quiet = false;
+    let set = false;
+    let unset = false;
+    let index = 0;
+    for (; index < context.args.length; index++) {
+      this.signal.throwIfAborted();
+      const option = context.args[index]!;
+      if (option === "--") { index++; break; }
+      if (!option.startsWith("-") || option === "-") break;
+      for (const flag of option.slice(1)) {
+        this.signal.throwIfAborted();
+        if (flag === "p") print = true;
+        else if (flag === "q") quiet = true;
+        else if (flag === "s") set = true;
+        else if (flag === "u") unset = true;
+        else if (flag === "o") setNamespace = true;
+        else {
+          await this.diagnostic(context, `shopt: ${option.startsWith("--") ? option : `-${flag}`}: unsupported option`);
+          await writeDiagnostic(context.stderr, "shopt: usage: shopt [-opqsu] [--] [option ...]\n");
+          return 2;
+        }
+      }
+    }
+    if (set && unset) {
+      await this.diagnostic(context, "shopt: cannot set and unset shell options simultaneously");
+      return 1;
+    }
+    const options = new Map<string, { enabled: boolean }>();
+    for (const name of setNamespace ? ["allexport", "braceexpand", "errexit", "noclobber", "noexec", "noglob", "nounset", "pipefail"] as const : ["dotglob", "expand_aliases", "extglob", "failglob", "globstar", "inherit_errexit", "lastpipe", "nocaseglob", "nocasematch", "nullglob", "xpg_echo"] as const) {
+      options.set(name, {
+        get enabled() { return name === "braceexpand" ? state.braceexpand !== false : !!state[name]; }, set enabled(value) { state[name] = value; }, });
+    }
+    for (const [name, option] of (setNamespace ? state.extensions?.options : state.extensions?.shoptOptions) ?? []) options.set(name, option);
+    const emit = async (name: string, enabled: boolean): Promise<void> => {
+      if (!quiet) await writeText(context.stdout, print ? setNamespace ? `set ${enabled ? "-" : "+"}o ${name}\n` : `shopt -${enabled ? "s" : "u"} ${name}\n` : `${name.padEnd(20)}\t${enabled ? "on" : "off"}\n`);};
+    if (index === context.args.length) {
+      for (const [name, option] of options) if ((!set || option.enabled) && (!unset || !option.enabled)) await emit(name, option.enabled);
+      return 0;
+    }
+    let status = 0;
+    for (; index < context.args.length; index++) {
+      this.signal.throwIfAborted();
+      const name = context.args[index]!;
+      const option = options.get(name);
+      if (!option) {
+        await this.diagnostic(context, `shopt: ${name}: unsupported shell option name (supported: ${[...options.keys()].join(", ")})`);
+        status = 1;
+      } else if (set || unset) option.enabled = set;
+      else {
+        await emit(name, option.enabled);
+        if (!option.enabled) status = 1;
+      }
+    }
+    return status;
+  }
+  private async printDeclarationValue(value: ShellValue, state: State, io: IO): Promise<void> {
+    const allocation = this.budget.values.scope();
+    try {
+      allocation.hold(value);
+      const length = shellValueByteLength(value);
+      allocation.reserve(length * 8 + 16, 1);
+      const bytes = shellValueBytes(value, allocation);
+      let text: string | undefined;
+      if (!byteLocale(state.variables)) {
+        try { text = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes); }
+        catch { text = undefined; }
+      }
+      const ansi = text === undefined ? bytes.some(byte => byte < 32 || byte >= 127) : /[\p{C}\p{Zl}\p{Zp}]/u.test(text);
+      let quoted = ansi ? "$'" : '"';
+      const controls = ["", "", "", "", "", "", "", "\\a", "\\b", "\\t", "\\n", "\\v", "\\f", "\\r"];
+      let visited = 0;
+      for (const item of text ?? bytes) {
+        if (visited++ % 1024 === 0) { this.budget.cpuCheckpoint(); await yieldTurn(this.signal); }
+        const character = typeof item === "number" ? String.fromCharCode(item) : item;
+        const code = character.codePointAt(0)!;
+        if (ansi && controls[code]) quoted += controls[code];
+        else if (ansi && code === 27) quoted += "\\E";
+        else if (ansi && (code < 32 || code === 127 || text === undefined && code >= 128 || /[\p{C}\p{Zl}\p{Zp}]/u.test(character))) {
+          const encoded = text === undefined ? [code] : new TextEncoder().encode(character);
+          for (const byte of encoded) quoted += `\\${byte.toString(8).padStart(3, "0")}`;
+        } else if (character === "\\" || (ansi ? character === "'" : character === '"' || character === "$" || character === "`")) quoted += `\\${character}`;
+        else quoted += character;
+      }
+      quoted += ansi ? "'" : '"';
+      await writeText(io.stdout, quoted);
+    } finally { allocation.close(); }
+  }
+  private async printfVariable(context: CommandContext & IO, state: State, assignments: Map<string, SavedVariable>): Promise<number> {
+    const incoming = getCommandArguments(context);
+    let offset = 0;
+    let name = "";
+    let index: ReturnType<typeof literalIndex> | undefined;
+    while (incoming.args[offset]?.startsWith("-v")) {
+      const option = incoming.args[offset++]!;
+      const target = option.slice(2) || incoming.args[offset++];
+      if (target === undefined) {
+        await writeDiagnostic(context.stderr, "printf: -v: option requires an argument\n");
+        return 2;
+      }
+      const bracket = target.indexOf("[");
+      name = bracket < 0 ? target : target.slice(0, bracket);
+      if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name) || bracket >= 0 && !target.endsWith("]")) {
+        await writeDiagnostic(context.stderr, `printf: '${target}': not a valid identifier\n`);
+        return 2;
+      }
+      index = undefined;
+      if (bracket >= 0) {
+        const source = target.slice(bracket + 1, -1);
+        try { index = stringIndex(source, this.budget.parsing, parseArraySubscript(source, this.budget.parsing, byteLocale(state.variables), state.depth, false, state.extensions?.syntax, !!state.extglob)); }
+        catch (error) {
+          this.signal.throwIfAborted();
+          if (!(error instanceof ShellSyntaxError)) throw error;
+          await writeDiagnostic(context.stderr, `printf: '${target}': unsupported indexed-array subscript\n`);
+          return 2;
+        }
+      }
+    }
+    const arguments_ = incoming.slice(offset);
+    const format = arguments_.args[0] === "--" ? arguments_.args[1] : arguments_.args[0];
+    if (format === undefined || arguments_.args[0] !== "--" && format.startsWith("-")) {
+      await writeDiagnostic(context.stderr, "printf: usage: printf [-v var] format [arguments]\n");
+      return 2;
+    }
+    const allocation = this.budget.values.scope();
+    context[invocationScope].register(() => allocation.close());
+    const chunks: ShellValue[] = [];
+    let length = 0;
+    let terminated = false;
+    const stdout: ByteSink = { write: async chunk => {
+      this.budget.cpuCheckpoint();
+      if (chunk.byteLength > this.budget.limits.maxExpansionBytes - length) this.budget.fail("maxExpansionBytes");
+      length += chunk.byteLength;
+      if (terminated || !chunk.byteLength) return;
+      const nul = chunk.indexOf(0);
+      const bytes = nul < 0 ? chunk : chunk.subarray(0, nul);
+      if (bytes.byteLength) { if (bytes.every(b => b < 128)) { allocation.reserve(bytes.byteLength * 2 + 32, 1); const str = latin1Text(bytes); if (typeof chunks[chunks.length - 1] === "string") chunks[chunks.length - 1] = (chunks[chunks.length - 1] as string) + str; else chunks.push(str); } else chunks.push(shellValueFromBytes(bytes, allocation)); }
+      terminated = nul >= 0;
+    } };
+    try {
+      let status: number;
+      try { status = (await formatPrintf({ ...context, args: arguments_.args, argumentValues: arguments_, stdout }, state.shellStartedAt ??= Date.now())).exitCode; }
+      catch (error) {
+        this.signal.throwIfAborted();
+        if (!(error instanceof UsageError)) throw error;
+        await writeDiagnostic(context.stderr, `printf: ${error.message}\n`);
+        status = 1;
+      }
+      const value = concatShellValues(chunks, allocation);
+      this.signal.throwIfAborted();
+      name = this.referenceName(state, name);
+      if (state.readonlyVariables?.has(name)) {
+        await writeDiagnostic(context.stderr, `printf: ${name}: readonly variable\n`);
+        return 1;
+      }
+      // Bash ignores assignments to its function-stack variable.
+      if (name === "FUNCNAME") return status;
+      if (index || arrayStore(state)?.get(name)) {
+        const decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
+        const decode = (bytes: Uint8Array): string | undefined => {
+          try { return decoder.decode(bytes); }
+          catch (error) {
+            this.signal.throwIfAborted();
+            if (!(error instanceof TypeError)) throw error;
+            return undefined;
+          }};
+        let text = decode(shellValueBytes(value, allocation));
+        if (text !== undefined && index && numericIndex(index) !== 0 && !arrayStore(state)?.get(name) && state.variables[name] !== undefined) {
+          const previous = stateMonitor(state)!.values.get(name, state.variables[name]!);
+          if (decode(shellValueBytes(previous, allocation)) === undefined) text = undefined;
+        }
+        if (text === undefined) {
+          await writeDiagnostic(context.stderr, "printf: indexed variables do not support non-UTF-8 bytes\n");
+          return 1;
+        }
+        if (index) await this.arrayAssignment({ kind: "element", name, index, append: false, value: { offset: 0, parts: [{ kind: "text", value: text, quoted: true }] } }, state, context);
+        else await this.assignVariable(state, name, text, context);
+      } else await this.writeVariable(state, name, value, context);
+      const previous = assignments.get(name);
+      if (previous) {
+        if (!previous.exported) state.exported.delete(name);
+        await this.discardVariable(previous);
+        assignments.delete(name);
+      }
+      return status;
+    } finally { allocation.close(); }
+  }
+  private async mapfileBuiltin(context: CommandContext & IO, state: State): Promise<number> {
+    const allocation = this.budget.values.scope();
+    const work = { remaining: this.budget.limits.maxExpansionBytes * 8, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
+    let pinned: IndexedBinding | undefined;
+    let releaseHolding: (() => void) | undefined;
+    try {
+      const options = await mapfileOptions(context, work, allocation);
+      const descriptor = context.descriptors?.get(options.descriptor);
+      const source = descriptor?.closed ? undefined : descriptor?.input ?? (options.descriptor === 0 && !context.descriptors ? context.stdin : undefined);
+      if (!source || source === closedSource) throw new MapfileUsageError(`${options.descriptor}: invalid file descriptor: Bad file descriptor`, 1);
+      options.name = this.referenceName(state, options.name);
+      if (arrayStore(state)?.get(options.name)?.associative) throw new MapfileUsageError(`${options.name}: not an indexed array`, 1);
+      if (state.readonlyVariables?.has(options.name)) throw new MapfileUsageError(`${options.name}: readonly variable`, 1);
+      if (controlNames.has(options.name) || state.exported.has(options.name)) throw new ArrayFailure("control or exported binding cannot be indexed");
+      const store = requireArrays(state);
+      const holding = store.owner.hold();
+      releaseHolding = () => holding.release();
+      if (!options.preserve || !store.get(options.name)) await this.arrayAssignment({ kind: "compound", name: options.name, append: options.preserve, entries: [] }, state, context);
+      const entry = store.bindings.get(options.name)!;
+      allocation.reserve(128 + shellValueByteLength(options.name) * 2, 0);
+      pinned = entry.binding.retain();
+      const input = source instanceof ShellInput ? source : new ShellInput(source, this.budget, this.signal);
+      let pendingFlow: Flow | undefined;
+      await collectMapfile(options, input, {
+        allocation: () => this.budget.values.scope(), loop: () => this.budget.loop(), tryWriteSync: (index, value) => {
+          if (pendingFlow) return true;
+          const current = pinned!;
+          const attached = store.bindings.get(options.name) === entry;
+          const mon = stateMonitor(state);
+          if ( !mon || current.associative || current.references > (attached ? 2 : 1) || state.locals.length > 0 || mon.hasAnyOverlays() || store.watches.size > 0) {
+            return false;
+          }
+          const fastToken = tryTextTokenSync(current.owner, value, this.signal);
+          if (!fastToken) return false;
+          try {
+            const tickets = current.owner.ledger.charge({ generation: true, version: true, epoch: true, metadata: 128, work: 14 });
+            if (attached) {
+              mon.publish(tickets, options.name, () => {
+                current.insert(index, fastToken);
+                store.revise(options.name, current, tickets);});
+            } else current.insert(index, fastToken);
+            return true;
+          } catch (error) {
+            fastToken.release();
+            throw error;
+          }
+        }, write: async (index, value) => {
+          if (pinned !== entry.binding) { const previous = pinned!; pinned = entry.binding.retain(); await previous.release(); }
+          const operation = ArrayOwner.create(store.owner.ledger, store.owner);
+          let staged: IndexedBinding | undefined;
+          try {
+            const current = pinned!;
+            const attached = store.bindings.get(options.name) === entry;
+            const watch = attached ? await store.watch(options.name, operation, this.signal) : undefined;
+            const supersede = attached ? await stateMonitor(state)!.prepareTypedPublication(options.name, operation, this.signal) : undefined;
+            if (attached) await this.prepareArrayObservers(state, operation);
+            const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });
+            staged = current.references > (attached ? 2 : 1) ? await current.copy(this.signal) : current.retain();
+            const token = await valueToken(staged.owner, value, this.signal);
+            try {
+              this.signal.throwIfAborted();
+              if (watch && !watch.valid()) throw new ArrayFailure("stale binding");
+              staged.insert(index, token);
+            } catch (error) { token.release(); throw error; }
+            if (attached) {
+              let released: Promise<void> | undefined;
+              stateMonitor(state)!.publish(tickets, options.name, () => {
+                supersede!();
+                released = store.publish(options.name, staged!, tickets);});
+              staged = undefined;
+              await released;
+            } else {
+              const previous = pinned!;
+              pinned = staged;
+              entry.binding = staged;
+              staged = undefined;
+              await previous.release();
+            }
+          } finally { try { await staged?.release(); } finally { await operation.close(); } }
+        }, callback: async (source, index, value) => {
+          if (pendingFlow) return;
+          const callbackAllocation = this.budget.values.scope();
+          const nested = mapfileCallbackStates.has(state);
+          try {
+            const quoted = shellValueText(await transformParameter(value, "Q", { maximumBytes: this.budget.limits.maxExpansionBytes, byteLocale: byteLocale(state.variables), work, allocation: callbackAllocation }));
+            if (shellValueByteLength(source) + shellValueByteLength(quoted) + String(index).length + 2 > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
+            const argumentValues = createCommandArguments([source, String(index), quoted], callbackAllocation);
+            mapfileCallbackStates.add(state);
+            await this.evalBuiltin({ ...context, args: argumentValues.args, argumentValues }, state, context, false);
+          } catch (error) {
+            if (error instanceof Flow && (error.kind === "break" || error.kind === "continue")) pendingFlow = error;
+            else throw error;
+          } finally {
+            if (!nested) mapfileCallbackStates.delete(state);
+            callbackAllocation.close();
+          }
+        }, });
+      if (pendingFlow) throw pendingFlow;
+      return 0;
+    } catch (error) {
+      this.signal.throwIfAborted();
+      if (!(error instanceof MapfileUsageError)) throw error;
+      await this.diagnostic(context, `${context.command}: ${error.message}`);
+      return error.status;
+    } finally { try { await pinned?.release(); } finally { try { releaseHolding?.(); } finally { allocation.close(); } } }
+  }
+  async builtin(context: CommandContext & IO, state: State, assignments: Map<string, SavedVariable>, diagnose?: (error: unknown, diagnostic: string) => void, suppressSpecial = false): Promise<number | undefined> {
+    const { args, stdout, stderr } = context;
+    const command = context.command === "typeset" ? "declare" : context.command;
+    if (command === ":" || command === "true") return 0;
+    if (command === "false") return 1;
+    if (command === "umask") return umaskBuiltin(context, state);
+    if (command === "hash") {
+      const hashArgs = [...args];
+      let reset = false;
+      let listMode = false;
+      let deleteMode = false;
+      let printTarget = false;
+      let customPath: string | undefined;
+      while (hashArgs[0]?.startsWith("-") && hashArgs[0] !== "-") {
+        const option = hashArgs.shift()!;
+        if (option === "--") break;
+        for (let i = 1; i < option.length; i++) {
+          const flag = option[i]!;
+          if (flag === "r") reset = true;
+          else if (flag === "l") listMode = true;
+          else if (flag === "d") deleteMode = true;
+          else if (flag === "t") printTarget = true;
+          else if (flag === "p") {
+            const inline = option.slice(i + 1);
+            customPath = inline.length > 0 ? inline : hashArgs.shift();
+            if (customPath === undefined) {
+              await this.diagnostic(context, "hash: -p: option requires an argument");
+              return 2;
+            }
+            break;
+          } else {
+            await this.diagnostic(context, `hash: -${flag}: invalid option`);
+            await writeDiagnostic(stderr, "hash: usage: hash [-lr] [-p pathname] [-dt] [name ...]\n");
+            return 2;
+          }
+        }
+      }
+      if (reset) state.hashedCommands?.clear();
+      if (printTarget && hashArgs.length === 0) {
+        await this.diagnostic(context, "hash: -t: option requires arguments");
+        return 1;
+      }
+      if (hashArgs.length === 0) {
+        if (!reset && state.hashedCommands?.size) {
+          for (const [name, target] of state.hashedCommands) {
+            await writeText(stdout, listMode ? `builtin hash -p ${target} ${name}\n` : `0\t${target}\n`);
+          }
+        }
+        return 0;
+      }
+      let status = 0;
+      const table = (state.hashedCommands ??= new Map<string, string>());
+      for (const name of hashArgs) {
+        if (deleteMode) {
+          if (!table.delete(name)) {
+            await this.diagnostic(context, `hash: ${name}: not found`);
+            status = 1;
+          }
+          continue;
+        }
+        if (customPath !== undefined) {
+          table.set(name, customPath);
+          continue;
+        }
+        if (printTarget) {
+          const existing = table.get(name) ?? (await this.searchPaths(name, state, false, true, false))[0];
+          if (existing === undefined) {
+            await this.diagnostic(context, `hash: ${name}: not found`);
+            status = 1;
+          } else {
+            await writeText(stdout, hashArgs.length > 1 ? `${name}\t${existing}\n` : `${existing}\n`);
+          }
+          continue;
+        }
+        const [resolved] = await this.searchPaths(name, state, false, true, false);
+        if (resolved !== undefined) table.set(name, resolved); else if (!shellBuiltinNames.has(name) && !this.commands.has(name) && name !== "bash" && name !== "sh" && name !== "zsh") {
+          await this.diagnostic(context, `hash: ${name}: not found`);
+          status = 1;
+        }
+      }
+      return status;
+    }
+    if (command === "shopt") return this.shoptBuiltin(context, state);
+    if (command === "caller") {
+      return (await createCallerCommand({ frames: state.callerFrames ?? [], limits: {
+        maxArgumentBytes: this.budget.limits.maxExpansionBytes, maxOutputBytes: this.budget.limits.maxExpansionBytes,
+      } }).execute(context)).exitCode;
+    }
+    if (command === "print") {
+      let noNewline = false;
+      let i = 0;
+      while (i < args.length && args[i]!.startsWith("-") && args[i] !== "-") {
+        const opt = args[i]!;
+        if (opt === "--") { i++; break; }
+        for (const ch of opt.slice(1)) {
+          if (ch === "n") noNewline = true;
+        }
+        i++;
+      }
+      await writeText(stdout, args.slice(i).join(" ") + (noNewline ? "" : "\n"));
+      return 0;
+    }
+    if (command === "functions") {
+      for (const [fnName, fnBody] of [...state.functions.entries()].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) {
+        await writeText(stdout, functionDisplay(fnName, fnBody));
+      }
+      return 0;
+    }
+    if (command === "setopt" || command === "unsetopt") {
+      return 0;
+    }
+    if (command === "alias" || command === "unalias") {
+      if (command === "alias" && context.args[0] === "-L") {
+        context = { ...context, args: ["-p", ...context.args.slice(1)] };
+      }
+      const aliases = state.aliases ??= new Map<string, string>();
+      const limits = { maxArgumentBytes: this.budget.limits.maxExpansionBytes, maxAliasBytes: this.budget.limits.maxExpansionBytes };
+      const definition = command === "alias" ? createAliasCommand({ aliases, limits }) : createUnaliasCommand({ aliases, limits });
+      return (await definition.execute(context)).exitCode;
+    }
+    if (command === "let") return this.letBuiltin(context, state);
+    if (command === "mapfile" || command === "readarray") return this.mapfileBuiltin(context, state);
+    if (command === "getopts") return this.getoptsBuiltin(context, state);
+    if (command === "pushd" || command === "dirs" || command === "popd") return this.directoryStackBuiltin(context, state, diagnose);
+    if (command === "pwd") {
+      let physical = false;
+      for (const arg of args) {
+        if (arg === "--" || !arg.startsWith("-") || arg === "-") break;
+        if (arg === "--logical") { physical = false; continue; }
+        if (arg === "--physical") { physical = true; continue; }
+        for (const flag of arg.slice(1)) {
+          if (flag !== "L" && flag !== "P") { await writeDiagnostic(stderr, "pwd: invalid option\n"); return 2; }
+          physical = flag === "P";
+        }
+      }
+      const path = physical ? await this.fs.realpath(state.cwd, { signal: this.signal }) : state.cwd;
+      await writeText(stdout, `${path}\n`);
+      return 0;
+    }
+    if (command === "cd") return this.changeDirectory(context, state, args, diagnose);
+    if (command === "set") {
+      if (state.profile === "bash" && args.length) return this.setOptions(context, state);
+      let index = 0;
+      let positionals = false;
+      while (index < args.length) {
+        const option = args[index]!;
+        if (option === "--") { index++; positionals = true; break; }
+        if (option === "-") { index++; positionals = index < args.length; break; }
+        const flags = /^[-+]([eu]*o|[eu]+)$/u.exec(option)?.[1];
+        const named = flags?.endsWith("o");
+        const name = named ? args[index + 1] : undefined;
+        if (flags && (!named || name === "pipefail" || name === "errexit" || name === "nounset")) {
+          const enabled = option.startsWith("-");
+          for (const flag of flags) {
+            if (flag === "e" || flag === "o" && name === "errexit") state.errexit = enabled;
+            else if (flag === "u" || flag === "o" && name === "nounset") state.nounset = enabled;
+            else if (flag === "o" && name === "pipefail") state.pipefail = enabled;
+          }
+          index += named ? 2 : 1;
+          continue;
+        }
+        if (/^[+-]/u.test(option)) {
+          await writeDiagnostic(stderr, "set: unsupported shell option; supported forms are +/- e/u clusters, -- arguments and terminal o with pipefail, errexit or nounset\n");
+          if (state.profile === "sh" && suppressSpecial) return 2;
+          throw new Flow("exit", 2);
+        }
+        positionals = true;
+        break;
+      }
+      if (positionals) { this.replacePositionals(state, getCommandArguments(context).values.slice(index)); state.positionalSetVersion = (state.positionalSetVersion ?? 0) + 1; }
+      if (args.length) return 0;
+      const store = arrayStore(state);
+      const varNames = [...new Set([...Object.keys(state.variables), ...store?.bindings.keys() ?? []])].sort();
+      for (const name of varNames) {
+        this.signal.throwIfAborted();
+        const binding = store?.get(name);
+        if (binding) {
+          binding.retain();
+          try {
+            await writeText(stdout, `${name}=(`);
+            let first = true;
+            for (const idx of [...binding.values.keys()].sort((left, right) => left - right)) {
+              await writeText(stdout, first ? "[" : " [");
+              if (binding.associative) await this.printDeclarationValue(binding.keys.get(binding.keyByIndex.get(idx)!)!.text.shellValue, state, context);
+              else await writeText(stdout, String(idx));
+              await writeText(stdout, "]=");
+              await this.printDeclarationValue(binding.getValue(idx)!, state, context);
+              first = false;
+            }
+            await writeText(stdout, ")\n");
+          } finally { await binding.release(); }
+        } else if (Object.hasOwn(state.variables, name)) {
+          const val = stateMonitor(state)?.values.get(name, state.variables[name]!) ?? state.variables[name]!;
+          if (typeof val === "string" && /^[a-zA-Z0-9_./:@%+=,-]*$/u.test(val)) {
+            await writeText(stdout, `${name}=${val}\n`);
+          } else {
+            await writeText(stdout, `${name}=`);
+            await this.printDeclarationValue(val, state, context);
+            await writeText(stdout, "\n");
+          }
+        }
+      }
+      for (const name of [...state.functions.keys()].sort()) {
+        this.signal.throwIfAborted();
+        const body = state.functions.get(name);
+        if (body) await writeText(stdout, functionDisplay(name, body));
+      }
+      return 0;
+    }
+    if (command === "shift") {
+      const offset = args[0] === "--" ? 1 : 0;
+      const operand = args[offset];
+      const value = operand === undefined ? 1n : await signedLong(operand, this.budget, this.signal);
+      if (value === undefined || value === "overflow") {
+        await writeDiagnostic(stderr, `shift: ${operand}: numeric argument required\n`);
+        return 2;
+      }
+      const count = Number(value);
+      if (args.length - offset > 1 || count < 0 || count > state.positional.length) return 1;
+      this.replacePositionals(state, this.positionalValues(state).slice(count));
+      return 0;
+    }
+    if (command === "export" || command === "local" || command === "readonly" || command === "declare") {
+      let associativeDeclaration = false;
+      const enabled = new Set<string>();
+      const disabled = new Set<string>();
+      const declarationArgs = [...args];
+      let indexedLocal = false;
+      let namerefDeclaration = false;
+      const readonlySyntax = state.extensions?.syntax.indexedDeclarations?.includes("readonly") === true
+        || command === "readonly" && args.some(arg => arg.startsWith("-") && arg.includes("a"));
+      let indexedReadonly = false;
+      let functionReadonly = false;
+      if (command === "export") {
+        while (declarationArgs[0]?.startsWith("-") && declarationArgs[0] !== "-") {
+          const option = declarationArgs.shift()!;
+          if (option === "--") break;
+          for (const flag of option.slice(1)) {
+            if (!"fnp".includes(flag)) {
+              await this.diagnostic(context, `export: -${flag}: invalid option`);
+              await writeText(stderr, "export: usage: export [-fn] [name[=value] ...] or export -p\n");
+              return 2;
+            }
+            enabled.add(flag);
+          }
+        }
+        if (enabled.has("f")) {
+          let status = 0;
+          if (!declarationArgs.length) {
+            for (const name of [...state.exportedFunctions ?? []].sort()) {
+              const body = state.functions.get(name);
+              if (!body) continue;
+              await writeText(stdout, functionDisplay(name, body));
+              await writeText(stdout, `declare -fx ${name}\n`);
+            }
+          }
+          for (const name of declarationArgs) {
+            if (!state.functions.has(name)) {
+              await this.diagnostic(context, `export: ${name}: not a function`);
+              status = 1;
+            } else if (enabled.has("n")) state.exportedFunctions?.delete(name);
+            else (state.exportedFunctions ??= new Set()).add(name);
+          }
+          return status;
+        }
+      }
+      if (command === "declare" || command === "local") {
+        while (declarationArgs[0]?.startsWith("-") || declarationArgs[0]?.startsWith("+")) {
+          const option = declarationArgs.shift()!;
+          if (option === "--") break;
+          for (const flag of option.slice(1)) {
+            if (!(command === "local" ? "AailunxrIp" : "AailunxrgIfFtp").includes(flag)) { await this.diagnostic(context, `${context.command}: ${option}: invalid option`); return 2; }
+            (option[0] === "-" ? enabled : disabled).add(flag);
+          }
+        }
+        associativeDeclaration = enabled.has("A");
+        indexedLocal = associativeDeclaration || enabled.has("a");
+        namerefDeclaration = enabled.has("n");
+        if (enabled.has("f") || enabled.has("F")) {
+          let status = 0;
+          const names = declarationArgs.length ? declarationArgs : [...state.functions.keys()].sort();
+          for (const name of names) {
+            const body = state.functions.get(name);
+            if (!body) { status = 1; continue; }
+            if (enabled.has("t")) continue;
+            await writeText(stdout, enabled.has("F") ? `${name}\n` : functionDisplay(name, body));
+          }
+          return status;
+        }
+      }
+      if (command === "local") {
+        if (enabled.has("n") && (enabled.has("i") || indexedLocal)) {
+          await this.diagnostic(context, "local: combined nameref attributes are unsupported");
+          return 2;
+        }
+        if (indexedLocal && declarationArgs.length === 0 && !enabled.has("p")) {
+          await writeDiagnostic(stderr, "local: -a requires a variable name\n");
+          return 2;
+        }
+      }
+      if (command === "readonly") {
+        while (declarationArgs[0]?.startsWith("-")) {
+          const option = declarationArgs.shift()!;
+          if (option === "--") break;
+          if (!readonlySyntax && [...option.slice(1)].some(flag => flag !== "f" && flag !== "p")) {
+            await writeDiagnostic(stderr, `readonly: ${option}: unsupported option\n`);
+            return 2;
+          }
+          if (option === "-") { declarationArgs.unshift(option); break; }
+          for (const flag of option.slice(1)) {
+            if (flag === "f") functionReadonly = true;
+            else if (flag === "p") continue;
+            else if (flag === "a" && readonlySyntax) indexedReadonly = true;
+            else {
+              await this.diagnostic(context, `readonly: -${flag}: invalid option`);
+              await writeText(stderr, "readonly: usage: readonly [-aAf] [name[=value] ...] or readonly -p\n");
+              return 2;
+            }
+          }
+        }
+        if (functionReadonly) {
+          let status = 0;
+          const names = declarationArgs.length ? declarationArgs : [...state.readonlyFunctions ?? []].sort();
+          for (const name of names) {
+            this.signal.throwIfAborted();
+            const body = state.functions.get(name);
+            if (!body) {
+              await this.diagnostic(context, `readonly: ${name}: not a function`);
+              status = 1;
+              continue;
+            }
+            if (!declarationArgs.length) {
+              await writeText(stdout, functionDisplay(name, body));
+              await writeText(stdout, `declare -fr ${name}\n`);
+            } else {
+              state.readonlyFunctions ??= new Set();
+              state.readonlyFunctions.add(name);
+            }
+          }
+          return status;
+        }
+      }
+      const locals = command === "declare" && enabled.has("g") ? undefined : state.locals.at(-1);
+      const localDeclaration = command === "local" || command === "declare" && locals !== undefined;
+      if (command === "local" && !locals) { await writeDiagnostic(stderr, "local: not in a function\n"); return 1; }
+      if ((command === "declare" || command === "local") && enabled.has("p")) {
+        let status = 0;
+        const names = declarationArgs.length ? declarationArgs : command === "local" ? [...locals!.keys()] : [...new Set([...Object.keys(state.variables), ...state.variableAttributes?.keys() ?? [], ...state.exported, ...state.readonlyVariables ?? [], ...arrayStore(state)?.bindings.keys() ?? []])];
+        for (const name of declarationArgs.length ? names : names.sort()) {
+          this.signal.throwIfAborted();
+          const binding = arrayStore(state)?.get(name);
+          if (!binding && !Object.hasOwn(state.variables, name) && !locals?.has(name) && !state.variableAttributes?.has(name) && !state.exported.has(name) && !state.readonlyVariables?.has(name)) {
+            await this.diagnostic(context, `${context.command}: ${name}: not found`);
+            status = 1;
+            continue;
+          }
+          const attributes = state.variableAttributes?.get(name) ?? "";
+          const flags = [..."aAilnrux"].filter(flag => flag === "a" ? binding && !binding.associative : flag === "A" ? binding?.associative : flag === "r" ? state.readonlyVariables?.has(name) : flag === "x" ? state.exported.has(name) : attributes.includes(flag)).join("");
+          await writeText(stdout, `declare ${flags ? `-${flags}` : "--"} ${name}`);
+          if (binding) {
+            binding.retain();
+            try {
+              await writeText(stdout, "=(");
+              let first = true;
+              for (const index of [...binding.values.keys()].sort((left, right) => left - right)) {
+                await writeText(stdout, first ? "[" : " [");
+                if (binding.associative) await this.printDeclarationValue(binding.keys.get(binding.keyByIndex.get(index)!)!.text.shellValue, state, context);
+                else await writeText(stdout, String(index));
+                await writeText(stdout, "]=");
+                await this.printDeclarationValue(binding.getValue(index)!, state, context);
+                first = false;
+              }
+              await writeText(stdout, ")");
+            } finally { await binding.release(); }
+          } else if (Object.hasOwn(state.variables, name)) {
+            await writeText(stdout, "=");
+            await this.printDeclarationValue(stateMonitor(state)?.values.get(name, state.variables[name]!) ?? state.variables[name]!, state, context);
+          }
+          await writeText(stdout, "\n");
+        }
+        return status;
+      }
+      let status = 0;
+      if (!declarationArgs.length && context.command === "typeset" && disabled.has("x")) {
+        for (const name of [...state.exported].sort()) {
+          await writeText(stdout, `${name}\n`);
+        }
+        return 0;
+      }
+      if (!declarationArgs.length) {
+        const names = command === "readonly" ? state.readonlyVariables ?? [] : state.exported;
+        if (command === "readonly" && readonlySyntax) {
+          const allocation = this.budget.values.scope();
+          try {
+            const count = state.readonlyVariables?.size ?? 0;
+            allocation.reserve(count * 32, count);
+            for (const name of [...names].sort()) {
+              this.signal.throwIfAborted();
+              const binding = arrayStore(state)?.get(name);
+              if (indexedReadonly && !binding) continue;
+              if (binding) {
+                binding.retain();
+                try {
+                  allocation.reserve(binding.values.size * 16, binding.values.size);
+                  await writeText(stdout, `declare -ar ${name}=(`);
+                  let first = true;
+                  for (const index of [...binding.values.keys()].sort((left, right) => left - right)) {
+                    await writeText(stdout, `${first ? "" : " "}[${index}]=`);
+                    await this.printDeclarationValue(binding.getValue(index)!, state, context);
+                    first = false;
+                  }
+                  await writeText(stdout, ")\n");
+                } finally { await binding.release(); }
+              } else {
+                await writeText(stdout, `declare -r ${name}`);
+                if (Object.hasOwn(state.variables, name)) {
+                  await writeText(stdout, "=");
+                  await this.printDeclarationValue(stateMonitor(state)?.values.get(name, state.variables[name]!) ?? state.variables[name]!, state, context);
+                }
+                await writeText(stdout, "\n");
+              }
+            }
+          } finally { allocation.close(); }
+          return 0;
+        }
+        for (const name of names) if (arrayStore(state)?.get(name)) { await this.diagnostic(context, "indexed array: listing indexed bindings is unsupported"); return 2; }
+        const prefix = state.profile === "sh" ? command : command === "readonly" ? "declare -r" : "declare -x";
+        for (const name of [...names].sort()) {
+          await writeText(stdout, `${prefix} ${name}`);
+          if (command !== "export" || Object.hasOwn(state.variables, name)) {
+            await writeText(stdout, "=");
+            if (command === "export") await this.printDeclarationValue(stateMonitor(state)?.values.get(name, state.variables[name]!) ?? state.variables[name]!, state, context);
+            else await writeText(stdout, JSON.stringify(state.variables[name] ?? ""));
+          }
+          await writeText(stdout, "\n");
+        }
+      }
+      const declarationValues = getCommandArguments(context).values;
+      const declarationOffset = args.length - declarationArgs.length;
+      for (let declarationIndex = 0; declarationIndex < declarationArgs.length; declarationIndex++) {
+        const arg = declarationArgs[declarationIndex]!;
+        const match = /^([a-zA-Z_][a-zA-Z_0-9]*)(?:\+?=(.*))?$/su.exec(arg);
+        if (!match) { await this.diagnostic(context, `${command}: \`${arg}': not a valid identifier`); status = 1; continue; }
+        const name = match[1]!;
+        // A global hidden by locals lives in the oldest frame's saved binding.
+        // Temporarily expose it so declarations use the same attributes, array
+        // ownership and assignment rules as an unshadowed global.
+        const globalFrame = command === "declare" && enabled.has("g") ? state.locals.find(frame => frame.has(name)) : undefined;
+        let visibleLocal: SavedVariable | undefined;
+        if (globalFrame) {
+          visibleLocal = saveVariable(state, name);
+          await this.prepareVariable(state, name, visibleLocal);
+          const global = globalFrame.get(name)!;
+          await restoreVariable(state, name, global);
+          if (global.readOnly) { state.readonlyVariables ??= new Set(); state.readonlyVariables.add(name); }
+        }
+        try {
+        const syntax = context[declarationArrays]?.get(declarationOffset + declarationIndex);
+        const compound = syntax?.name === name ? syntax : undefined;
+        const reference = match[2] ?? state.variables[name];
+        if (namerefDeclaration && reference !== undefined && (reference === name || !this.variableTarget(reference))) {
+          await this.diagnostic(context, `${command}: ${reference}: invalid name reference`); status = 1; continue;
+        }
+        const append = arg[name.length] === "+";
+        const assignedValue = (): ShellValue => {
+          const original = declarationValues[declarationOffset + declarationIndex]!;
+          return typeof original === "string" ? match[2]! : shellValueFromBytes(shellValueBytes(original, context[valueScope]).subarray(name.length + (append ? 2 : 1)), context[valueScope]);};
+        if (state.readonlyVariables?.has(name) && (match[2] !== undefined || localDeclaration)) {
+          const provenance = readonlySyntax && (command === "readonly" || command === "local" && indexedLocal) ? `${command}: ` : "";
+          await this.diagnostic(context, `${provenance}${name}: readonly variable`); status = 1; continue;
+        }
+        if (command === "readonly" && readonlySyntax && (indexedReadonly || match[2]?.startsWith("("))) {
+          const assigned = match[2] !== undefined ? assignedValue() : undefined;
+          if (match[2]?.startsWith("(")) {
+            this.budget.source(shellValueByteLength(assigned!));
+            const source = typeof assigned === "string" ? assigned : latin1Text(shellValueBytes(assigned!, context[valueScope]));
+            const entries = parseCompoundArrayValue(source, byteLocale(state.variables), typeof assigned !== "string", state.extensions?.syntax, this.budget.parsing, !!state.extglob);
+            await this.arrayAssignment({ kind: "compound", name, append, entries }, state, context, "readonly");
+          } else if (assigned !== undefined) {
+            await this.arrayAssignment({ kind: "element", name, append, index: { decimal: "0" }, value: {
+              offset: 0, parts: [{ kind: "text", value: shellValueText(assigned), quoted: true, ...(typeof assigned === "string" ? {} : { byteValue: assigned }) }], } }, state, context, "readonly");
+          } else if (!arrayStore(state)?.get(name) && Object.hasOwn(state.variables, name) && !state.readonlyVariables?.has(name)) {
+            await this.arrayAssignment({ kind: "compound", name, append: true, entries: [] }, state, context, "readonly");
+          } else {
+            state.readonlyVariables ??= new Set();
+            state.readonlyVariables.add(name);
+          }
+          const previous = assignments.get(name);
+          if (previous && locals?.get(name) !== previous) previous.heldValue?.release();
+          assignments.delete(name);
+          continue;
+        }
+        if ((localDeclaration || command === "declare") && (indexedLocal || compound)) {
+          if (controlNames.has(name)) throw new ArrayFailure("control binding cannot be indexed");
+          const existingLocal = locals?.get(name);
+          const saved = !locals || existingLocal ? undefined : assignments.get(name) ?? saveVariable(state, name);
+          let operation: ArrayOwner | undefined;
+          let holding: ReturnType<ArrayOwner["hold"]> | undefined;
+          let shadow: IndexedBinding | undefined;
+          let preparedExisting = false;
+          let preparedSaved = false;
+          let published = false;
+          let primaryPresent = false;
+          let primary: unknown;
+          try {
+            if (existingLocal && !typedSavedVariables.has(existingLocal)) {
+              preparedExisting = true;
+              await this.prepareVariable(state, name, existingLocal, true);
+            }
+            if (saved && !typedSavedVariables.has(saved)) {
+              preparedSaved = true;
+              await this.prepareVariable(state, name, saved);
+            }
+            if (saved && !enabled.has("I")) state.variableAttributes?.delete(name);
+            this.declareAttributes(state, name, enabled, disabled);
+            if (compound) {
+              if (saved) locals!.set(name, saved);
+              await this.arrayAssignment(compound, state, context, enabled.has("r") ? "readonly" : undefined, "declaration", indexedLocal ? associativeDeclaration : undefined);
+              published = true;
+              assignments.delete(name);
+            } else {
+              const store = requireArrays(state);
+              operation = ArrayOwner.create(store.owner.ledger, store.owner);
+              holding = store.owner.hold();
+              const watch = await store.watch(name, operation, this.signal);
+              const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });
+              const prepared = await store.prepareName(name, operation, this.signal);
+              const current = store.get(name);
+              if (!saved && current && current.associative !== associativeDeclaration) throw new ArrayFailure("cannot convert array kind");
+              shadow = !saved && current ? await current.copy(this.signal) : IndexedBinding.create(store.owner, associativeDeclaration);
+              let value = match[2] !== undefined ? assignedValue() : !saved && !current && Object.hasOwn(state.variables, name) ? stateMonitor(state)?.values.get(name, state.variables[name]!) ?? state.variables[name] : undefined;
+              if (value !== undefined) {
+                const index = associativeDeclaration ? (await shadow.keyIndex("0", operation, this.signal, true))! : 0;
+                if (append) {
+                  const previous = shadow.getValue(index) ?? "";
+                  value = state.variableAttributes?.get(name)?.includes("i")
+                    ? concatShellValues([`(${shellValueText(previous) || "0"})+(`, value, ")"], context[valueScope])
+                    : concatShellValues([previous, value], context[valueScope]);
+                }
+                const token = await textToken(shadow.owner, await this.attributeValue(state, name, value, context), this.signal);
+                try { shadow.insert(index, token); } catch (error) { token.release(); throw error; }
+              }
+              this.signal.throwIfAborted();
+              if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
+              if (!watch.valid()) throw new ArrayFailure("stale binding");
+              let released: Promise<void> | undefined;
+              stateMonitor(state)!.publish(tickets, name, () => {
+                if (saved) locals!.set(name, saved);
+                delete state.variables[name];
+                released = store.publish(name, shadow!, tickets, prepared);});
+              shadow = undefined;
+              published = true;
+              watch.close();
+              await released;
+              assignments.delete(name);
+            }
+          } catch (error) {
+            primaryPresent = true;
+            primary = error;
+          } finally {
+            const cleanup = async (action: () => void | Promise<void>): Promise<void> => {
+              try { await action(); }
+              catch (error) {
+                if (primaryPresent) context[invocationScope].failures.push(error);
+                else { primaryPresent = true; primary = error; }
+              }};
+            if (preparedSaved && saved && !locals!.has(name)) await cleanup(() => this.discardVariable(saved));
+            if (preparedExisting && existingLocal && !published) await cleanup(() => this.discardVariable(existingLocal));
+            await cleanup(() => shadow?.release());
+            await cleanup(() => operation?.close());
+            await cleanup(() => holding?.release());
+          }
+          if (primaryPresent) throw primary;
+          if (enabled.has("x")) state.exported.add(name);
+          if (disabled.has("x")) state.exported.delete(name);
+          if (enabled.has("r")) { state.readonlyVariables ??= new Set(); state.readonlyVariables.add(name); }
+          continue;
+        }
+        if (localDeclaration && !locals!.has(name)) {
+          const saved = assignments.get(name) ?? saveVariable(state, name);
+          if (name === "PIPESTATUS" && arrayStore(state)?.get(name)) {
+            await this.prepareVariable(state, name, saved);
+            const store = requireArrays(state);
+            const operation = ArrayOwner.create(store.owner.ledger, store.owner);
+            const holding = store.owner.hold();
+            try {
+              const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });
+              const value = match[2] ?? "";
+              await textToken(operation, value, this.signal);
+              this.signal.throwIfAborted();
+              if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
+              if (!typedSavedVariables.get(saved)!.watch.valid()) throw new ArrayFailure("stale binding");
+              let released: Promise<void> | undefined;
+              stateMonitor(state)!.publish(tickets, name, () => {
+                locals!.set(name, saved);
+                released = store.remove(name, tickets);
+                state.variables[name] = value;});
+              await released;
+            } finally { try { await operation.close(); } finally { holding.release(); } }
+            assignments.delete(name);
+            continue;
+          }
+          if (arrayStore(state)?.get(name)) {
+            await this.prepareVariable(state, name, saved);
+            const store = requireArrays(state);
+            const operation = ArrayOwner.create(store.owner.ledger, store.owner);
+            const holding = store.owner.hold();
+            let shadow: IndexedBinding | undefined;
+            try {
+              const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });
+              if (enabled.has("I")) shadow = await store.get(name)!.copy(this.signal);
+              this.signal.throwIfAborted();
+              if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
+              if (!typedSavedVariables.get(saved)!.watch.valid()) throw new ArrayFailure("stale binding");
+              let released: Promise<void> | undefined;
+              stateMonitor(state)!.publish(tickets, name, () => {
+                locals!.set(name, saved);
+                released = shadow ? store.publish(name, shadow, tickets) : store.remove(name, tickets);});
+              shadow = undefined;
+              await released;
+            } finally { try { await shadow?.release(); await operation.close(); } finally { holding.release(); } }
+          } else if (guestArrays(state)) await this.prepareVariable(state, name, saved);
+          locals!.set(name, saved);
+          if (!enabled.has("I")) state.variableAttributes?.delete(name);
+          if (!assignments.has(name) && (match[2] === undefined || append) && !enabled.has("I")) {
+            if (name === "PIPESTATUS") state.variables[name] = "";
+            else {
+              delete state.variables[name];
+              stateMonitor(state)?.values.invalidate(name);
+            }
+          }
+          if (name === "OPTIND") {
+            state.getopts ??= cloneGetoptsBinding(state);
+            state.getopts.integer = false;
+          }
+        }
+        const attributeName = enabled.has("n") || disabled.has("n") ? name : this.variableTarget(this.referenceName(state, name))!.name;
+        if (command === "declare" || command === "local") this.declareAttributes(state, attributeName, enabled, disabled);
+        if (match[2] !== undefined && arrayStore(state)?.get(name)) {
+          await this.arrayZero(state, name, context, async () => assignedValue(), append, command === "readonly");
+        } else if (match[2] !== undefined) {
+          if ((command === "declare" || command === "local") && enabled.has("n")) publishVariable(state, name, assignedValue());
+          else {
+            let value = assignedValue();
+            const target = this.referenceName(state, name);
+            const element = this.variableTarget(target)!;
+            if (element.subscript !== undefined && append) {
+              await this.arrayAssignment({ kind: "element", name: element.name, append: true, index: stringIndex(element.subscript, this.budget.parsing, parseArraySubscript(element.subscript, this.budget.parsing, byteLocale(state.variables), state.depth, false, state.extensions?.syntax, !!state.extglob)), value: { offset: 0, parts: [{ kind: "text", value: shellValueText(value), quoted: true, ...(typeof value === "string" ? {} : { byteValue: value }) }] } }, state, context);
+            } else {
+              if (append) value = state.variableAttributes?.get(target)?.includes("i")
+                ? concatShellValues([`(${state.variables[target] || "0"})+(`, value, ")"], context[valueScope])
+                : concatShellValues([stateMonitor(state)?.values.get(target, state.variables[target] ?? "") ?? state.variables[target] ?? "", value], context[valueScope]);
+              await this.assignVariable(state, name, value, context);
+            }
+          }
+        } else if (command === "local" && name === "OPTIND") this.syncGetopts(state);
+        if (command === "export" && !enabled.has("n") || enabled.has("x")) state.exported.add(attributeName);
+        if (command === "export" && enabled.has("n")) state.exported.delete(attributeName);
+        if (disabled.has("x")) state.exported.delete(attributeName);
+        if (command === "readonly" || enabled.has("r")) { state.readonlyVariables ??= new Set(); state.readonlyVariables.add(attributeName); }
+        const previous = assignments.get(name);
+        if (previous && locals?.get(name) !== previous) previous.heldValue?.release();
+        assignments.delete(name);
+        } finally {
+          if (globalFrame && visibleLocal) {
+            try {
+              const global = saveVariable(state, name);
+              await this.prepareVariable(state, name, global);
+              globalFrame.set(name, global);
+            } finally {
+              await restoreVariable(state, name, visibleLocal);
+              if (visibleLocal.readOnly) { state.readonlyVariables ??= new Set(); state.readonlyVariables.add(name); }
+            }
+          }
+        }
+      }
+      return status;
+    }
+    if (command === "unset") {
+      let variables = false;
+      let functions = false;
+      let dereference = true;
+      let offset = 0;
+      let scanned = 0;
+      while (args[offset]?.startsWith("-") && args[offset] !== "-") {
+        const option = args[offset++]!;
+        if (option === "--") break;
+        for (let index = 1; index < option.length; index++) {
+          if (++scanned % 1024 === 0) { this.budget.cpuCheckpoint(); await yieldTurn(this.signal); }
+          const flag = option[index]!;
+          if (flag === "v") variables = true;
+          else if (flag === "f") functions = true;
+          else if (flag === "n") dereference = false;
+          else { await writeDiagnostic(stderr, `unset: -${flag}: invalid option\n`); return 2; }
+        }
+      }
+      if (variables && functions) {
+        await writeDiagnostic(stderr, "unset: cannot simultaneously unset a function and a variable\n");
+        return 1;
+      }
+      let status = 0;
+      for (let argument = offset; argument < args.length; argument++) {
+        if ((argument - offset) % 128 === 0) { this.budget.cpuCheckpoint(); await yieldTurn(this.signal); }
+        let name = args[argument]!;
+        const fallbackFunction = !variables && dereference && hasShellFunction(state, name)
+          && !Object.hasOwn(state.variables, name) && !arrayStore(state)?.get(name)
+          && !state.exported.has(name) && !state.variableAttributes?.has(name)
+          && !state.readonlyVariables?.has(name) && !state.locals.some(frame => frame.has(name));
+        if (functions || fallbackFunction) {
+          if (state.readonlyFunctions?.has(name)) {
+            await this.diagnostic(context, `unset: ${name}: cannot unset: readonly function`);
+            status = 1;
+          } else {
+            state.functions.delete(name);
+            state.exportedFunctions?.delete(name);
+          }
+          continue;
+        }
+        if (dereference) name = this.referenceName(state, name);
+        const selected = /^([a-zA-Z_][a-zA-Z_0-9]*)\[(.*)\]$/su.exec(name);
+        if (selected) {
+          if (!dereference) continue;
+          const base = this.referenceName(state, selected[1]!);
+          const selector = selected[2]!;
+          if (state.readonlyVariables?.has(base)) {
+            await this.diagnostic(context, state.extensions?.syntax.indexedDeclarations?.includes("readonly") ? `unset: ${base}: cannot unset: readonly variable` : "indexed array: readonly binding");
+            status = 1;
+            continue;
+          }
+          const binding = arrayStore(state)?.get(base);
+          if (binding?.associative) {
+            const original = getCommandArguments(context).values[argument]!;
+            const index = typeof original === "string"
+              ? await this.arrayIndex(binding, { decimal: selector, source: selector }, state, context, binding.owner)
+              : await binding.keyIndex(shellValueFromBytes(shellValueBytes(original, context[valueScope]).subarray(args[argument]!.indexOf("[") + 1, shellValueByteLength(original) - 1), context[valueScope]), binding.owner, this.signal);
+            if (index !== undefined) await this.unsetIndexed(state, base, index);
+          } else if (selector === "@" || selector === "*") await this.unsetIndexed(state, base, "members");
+          else {
+            let index: number | undefined;
+            try { index = await this.arrayIndex(binding, { decimal: selector, source: selector }, state, context, requireArrays(state).owner, false, binding?.maximum ?? (state.variables[base] === undefined ? -1 : 0)); }
+            catch (error) {
+              this.signal.throwIfAborted();
+              if (error instanceof ShellLimitError) throw error;
+              await this.diagnostic(context, `unset: ${name}: bad array subscript`); status = 1; continue;
+            }
+            if (index === undefined) { await this.diagnostic(context, "indexed array: index outside 0..2147483647"); status = 1; continue; }
+            await this.unsetIndexed(state, base, index);
+          }
+          continue;
+        }
+        if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name)) { await writeDiagnostic(stderr, `unset: ${name}: not a valid identifier\n`); status = 1; continue; }
+        const resolved = dereference ? this.referenceName(state, name) : name;
+        if (!dereference && !state.variableAttributes?.get(name)?.includes("n")) continue;
+        if (state.readonlyVariables?.has(resolved)) { await this.diagnostic(context, `unset: ${resolved}: cannot unset: readonly variable`); status = 1; continue; }
+        // Unsetting a caller's local removes that binding entirely. A local in
+        // the current frame instead remains an unset shadow until return.
+        let enclosingFrame: Map<string, SavedVariable> | undefined;
+        if (!state.locals.at(-1)?.has(resolved)) {
+          for (let index = state.locals.length - 2; index >= 0; index--) {
+            if (state.locals[index]!.has(resolved)) {
+              enclosingFrame = state.locals[index];
+              break;
+            }
+          }
+        }
+        if (enclosingFrame) {
+          const saved = enclosingFrame.get(resolved)!;
+          enclosingFrame.delete(resolved);
+          await restoreVariable(state, resolved, saved);
+          continue;
+        }
+        if (resolved === "PATH") state.pathUnset = true;
+        if (arrayStore(state)?.get(resolved)) await this.unsetIndexed(state, resolved);
+        else this.unsetVariable(state, resolved, false, dereference);
+        if (state.profile === "sh") assignments.delete(resolved);
+      }
+      return status;
+    }
+    if (command === "read") {
+      const names = [...args];
+      let raw = false;
+      let count: number | undefined;
+      let exact = false;
+      let delimiter: number | undefined;
+      let array: string | undefined;
+      let invalid = false;
+      while (names[0]?.startsWith("-") && names[0] !== "--" && names[0] !== "-") {
+        const option = names.shift()!;
+        for (let index = 1; index < option.length; index++) {
+          const flag = option[index];
+          if (flag === "r") { raw = true; continue; }
+          if (flag === "s") continue;
+          if (flag !== "n" && flag !== "N" && flag !== "d" && flag !== "a" && flag !== "p" && flag !== "u") { invalid = true; break; }
+          if (flag === "N") exact = true;
+          const value = option.slice(index + 1) || names.shift();
+          if (value === undefined) invalid = true;
+          else if (flag === "p") { /* Consume the prompt without terminal output. */ } else if (flag === "u") {
+            const descriptor = value.trim();
+            const digits = descriptor.startsWith("+") || descriptor.startsWith("-") ? descriptor.slice(1) : descriptor;
+            if (!digits.length || [...digits].some(character => character !== "0")) invalid = true;
+          } else if (flag === "a") array = value;
+          else if (flag === "d") delimiter = new TextEncoder().encode(value)[0] ?? 0;
+          else {
+            let start = 0;
+            let end = value.length;
+            while (start < end && " \t\n\r\v\f".includes(value[start]!)) start++;
+            while (end > start && " \t\n\r\v\f".includes(value[end - 1]!)) end--;
+            if (value[start] === "+" || value[start] === "-") start++;
+            let decimal = start < end;
+            for (let digit = start; digit < end; digit++) {
+              if (value[digit]! < "0" || value[digit]! > "9") { decimal = false; break; }
+            }
+            const parsed = Number(value);
+            if (!decimal || !Number.isSafeInteger(parsed) || parsed < 0 || parsed > 2147483647) {
+              if (exact || decimal && parsed > 2147483647) {
+                const diagnosticIO: IO = context;
+                await writeDiagnostic(stderr, `${diagnosticIO.scriptName ?? "shell"}: line ${diagnosticIO.diagnosticLine ?? 1}: read: ${value}: invalid ${/^[+-]?0[xX]/u.test(value) ? "hex " : ""}number\n`);
+                return 1;
+              }
+              invalid = true;
+            } else count = parsed;
+          }
+          break;
+        }
+        if (invalid) break;
+      }
+      if (names[0] === "--") names.shift();
+      if (array !== undefined) names.splice(0, names.length, array);
+      const invalidName = names.find(name => !this.variableTarget(name));
+      if (exact && !invalid && invalidName !== undefined) {
+        const diagnosticIO: IO = context;
+        await writeDiagnostic(stderr, `${diagnosticIO.scriptName ?? "shell"}: line ${diagnosticIO.diagnosticLine ?? 1}: read: \`${invalidName}': not a valid identifier\n`);
+        return 1;
+      }
+      if (invalid || invalidName !== undefined) {
+        await writeDiagnostic(stderr, "read: invalid variable name or unsupported option\n");
+        return 2;
+      }
+      const input = context.stdin instanceof ShellInput ? context.stdin : new ShellInput(context.stdin, this.budget, this.signal);
+      const line = count === 0 && context.stdin === closedSource ? undefined
+        : await input.line(raw, {
+          ...(count === undefined ? {} : { count }), ...(delimiter === undefined ? {} : { delimiter }), byteCount: byteLocale(state.variables), exact, });
+      try {
+      if (array !== undefined) {
+        array = this.referenceName(state, array);
+        if (state.readonlyVariables?.has(array)) { await this.diagnostic(context, `${array}: readonly variable`); return 1; }
+        const writer = await this.incrementalIndexed(state, context, array, true);
+        try {
+          const separators = exact ? "" : stateMonitor(state)?.values.get("IFS", state.variables.IFS ?? " \t\n") ?? state.variables.IFS ?? " \t\n";
+          const fields = await line?.fields(separators) ?? [];
+          for (let index = 0; index < fields.length; index++) await writer.set(index, fields[index]!.value);
+        } finally { await writer.close(); }
+      } else if (!names.length) {
+        if (state.readonlyVariables?.has("REPLY")) { await this.diagnostic(context, "REPLY: readonly variable"); return 1; }
+        await this.writeVariable(state, "REPLY", line?.shellValue ?? "", context);
+      } else {
+        const separators = exact ? "" : stateMonitor(state)?.values.get("IFS", state.variables.IFS ?? " \t\n") ?? state.variables.IFS ?? " \t\n";
+        const fields = await line?.fields(separators, names.length) ?? [];
+        for (let index = 0; index < names.length; index++) {
+          if (state.readonlyVariables?.has(names[index]!)) {
+            await this.diagnostic(context, `${names[index]}: readonly variable`);
+            return index === names.length - 1 ? 1 : 2;
+          }
+          await this.assignVariable(state, names[index]!, fields[index]?.value ?? "", context);
+        }
+      }
+      return line?.terminated ? 0 : 1;
+      } finally { line?.release(); }
+    }
+    if (command === "exit" || command === "return") {
+      if (command === "return" && state.functionDepth === 0 && !state.sourceDepth) { await writeDiagnostic(stderr, "return: can only `return' from a function or sourced script\n"); return 2; }
+      const offset = args[0] === "--" ? 1 : 0;
+      const operand = args[offset];
+      if (args.length - offset > 1) { await writeDiagnostic(stderr, `${command}: too many arguments\n`); return 1; }
+      const value = operand === undefined ? BigInt(state.status) : await signedLong(operand, this.budget, this.signal);
+      if (value === undefined || value === "overflow") {
+        await writeDiagnostic(stderr, `${command}: ${operand}: numeric argument required\n`);
+        if (command === "exit") return 2;
+        throw completedExit(2, command);
+      }
+      const status = operand === undefined ? (command === "exit" && state.extensions?.exiting ? state.extensions.exitStatus ?? state.status : state.status) : Number((value % 256n + 256n) % 256n);
+      throw completedExit(status, command, 1, state.status);
+    }
+    if (command === "break" || command === "continue") {
+      if (!state.loopDepth) {
+        if ((state as { _subshellInLoop?: boolean })._subshellInLoop) throw completedExit(0, command, 1);
+        await writeDiagnostic(stderr, `${command}: only meaningful in a loop\n`);
+        return 0;
+      }
+      const offset = args[0] === "--" ? 1 : 0;
+      const operand = args[offset];
+      const count = operand === undefined ? 1n : await signedLong(operand, this.budget, this.signal);
+      if (count === undefined || count === "overflow") {
+        await writeDiagnostic(stderr, `${command}: ${operand}: numeric argument required\n`);
+        throw completedExit(2, "exit");
+      }
+      const levels = Number(count);
+      if (args.length - offset > 1) { await writeDiagnostic(stderr, `${command}: invalid loop count\n`); return 1; }
+      if (levels < 1) {
+        await writeDiagnostic(stderr, `${command}: invalid loop count\n`);
+        throw completedExit(1, "break", state.loopDepth);
+      }
+      throw completedExit(0, command, Math.min(levels, state.loopDepth));
+    }
+    return undefined;
+  }
+  async words(words: readonly Word[], state: State, io: IO, declaration = false): Promise<string[]> {
+    return (await this.valueWords(words, state, io, declaration)).map(shellValueText);
+  }
+  private fastValueWords(_words: readonly Word[], _state: State, _io: IO, _declaration = false, _indexedDeclaration = false, _overrideDiagnosticLine?: number): ShellValue[] | undefined { return undefined; }
+  private async valueWords(words: readonly Word[], state: State, io: IO, declaration = false, indexedDeclaration = false, compounds?: Map<number, ArrayAssignment>, argumentOffset = 1): Promise<ShellValue[]> {
+    const fields: ShellValue[] = [];
+    for (const word of words) {
+      const assignment = indexedDeclaration ? getArrayAssignment(word) : undefined;
+      if (assignment) {
+        if (compounds) compounds.set(fields.length - argumentOffset, assignment);
+        else await this.arrayAssignment(assignment, state, io, undefined, "declaration");
+        fields.push(assignment.name);
+      } else {
+        const scalarAssignment = declaration ? this.assignment(word) : undefined;
+        const split = !scalarAssignment;
+        const assignmentStart = scalarAssignment ? scalarAssignment.name.length + (scalarAssignment.append ? 2 : 1) : undefined;
+        const fast = this.fastValueWord(word, state, io, split, false, false, true, assignmentStart);
+        if (fast !== undefined) {
+          if (1 > this.budget.limits.maxExpansionFields - fields.length) this.budget.fail("maxExpansionFields");
+          fields.push(fast);
+          continue;
+        }
+        if (!scalarAssignment && state.braceexpand !== false && !hasActiveVariableAttributes(state) && !guestArrays(state)) {
+          const valScope = io[valueScope];
+          const fastBrace = tryFastExpandBraceRange(word, this.budget, valScope ? (b, o) => valScope.reserve(b, o) : undefined);
+          if (fastBrace !== undefined) {
+            if (fastBrace.length > this.budget.limits.maxExpansionFields - fields.length) this.budget.fail("maxExpansionFields");
+            if (fields.length === 0 && words.length === 1) return fastBrace;
+            for (let i = 0; i < fastBrace.length; i++) fields.push(fastBrace[i]!);
+            continue;
+          }
+        }
+        const values = await this.valueWord(word, state, io, split, false, false, false, undefined, false, true, assignmentStart, true);
+        if (values.length > this.budget.limits.maxExpansionFields - fields.length) this.budget.fail("maxExpansionFields");
+        for (const value of values) fields.push(value);
+      }
+      if (fields.length > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
+    }
+    return fields;
+  }
+  async part(part: Exclude<WordPart, { kind: "text" }>, state: State, io: IO, hereString = false): Promise<string> {
+    return shellValueText(await this.valuePart(part, state, io, hereString));
+  }
+  private async *prefixNames(prefix: string, state: State): AsyncGenerator<string> {
+    const allocation = this.budget.values.scope();
+    const store = arrayStore(state);
+    const holding = store?.owner.hold();
+    const work: StringWork = { remaining: Math.min(Number.MAX_SAFE_INTEGER, this.budget.limits.maxExpansionBytes * 4 + 1024), signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
+    try {
+      allocation.reserveBytes(128);
+      const names: string[] = [];
+      const seen = new Set<string>();
+      let bytes = 0;
+      const consider = async (name: string, assigned: boolean): Promise<void> => {
+        const scanned = await scanString(name, work);
+        const pending = stringCheckpoint(work, name.length + 1);
+        if (pending) await pending;
+        if (!assigned || !name.startsWith(prefix) || seen.has(name)) return;
+        for (let index = 0; index < name.length; index++) {
+          const pending = stringCheckpoint(work);
+          if (pending) await pending;
+          const code = name.charCodeAt(index);
+          if (!(code === 95 || code >= 65 && code <= 90 || code >= 97 && code <= 122 || index > 0 && code >= 48 && code <= 57)) return;
+        }
+        if (names.length >= this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
+        if (scanned.bytes > this.budget.limits.maxExpansionBytes - bytes) this.budget.fail("maxExpansionBytes");
+        bytes += scanned.bytes;
+        allocation.reserveBytes(name.length * 2 + 64);
+        seen.add(name);
+        names.push(name);};
+      await consider("DIRSTACK", true);
+      if (state.functionNames?.length) await consider("FUNCNAME", true);
+      for (const name in state.variables) if (Object.hasOwn(state.variables, name)) await consider(name, state.variables[name] !== undefined);
+      if (store) for (const [name, entry] of store.bindings) await consider(name, entry.binding.assigned);
+      for (const frame of state.locals) for (const [name, saved] of frame) {
+        await consider(name, saved.value !== undefined || typedSavedVariables.get(saved)?.binding?.assigned === true);
+      }
+      await sortExpansionStrings(names, work);
+      for (const name of names) {
+        const pending = stringCheckpoint(work);
+        if (pending) await pending;
+        yield name;
+      }
+    } finally { allocation.close(); holding?.release(); }
+  }
+  private async resolveParameter<T extends WordPart>(part: T, state: State, io: IO): Promise<T> {
+    if (part.kind === "variable" && part.indirect && state.variableAttributes?.get(part.name)?.includes("n")) return part;
+    if (part.kind === "variable" && part.indirect) {
+      const referencePart: Extract<WordPart, { kind: "variable" }> = { kind: "variable", name: part.name, quoted: true, ...(part.line === undefined ? {} : { line: part.line }) };
+      copyArraySelector(part, referencePart);
+      const reference = await this.valuePart(referencePart, state, io);
+      if (shellValueByteLength(reference) > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
+      const name = shellValueText(reference);
+      const target = this.variableTarget(name);
+      if (target && target.subscript !== undefined && target.subscript.length > 0) {
+        const resolved = { ...part, name: target.name, indirect: false };
+        if (target.subscript === "@" || target.subscript === "*") {
+          setArraySelector(resolved, { kind: "members", separator: target.subscript });
+        } else {
+          setArraySelector(resolved, { kind: "element", index: stringIndex(target.subscript, this.budget.parsing, parseArraySubscript(target.subscript, this.budget.parsing, byteLocale(state.variables), state.depth, false, state.extensions?.syntax, !!state.extglob)) });
+        }
+        part = resolved;
+      } else if (/^(?:[a-zA-Z_][a-zA-Z_0-9]*|[0-9]+|[?@*#$!_-])$/u.test(name)) {
+        part = { ...part, name, indirect: false };
+      } else {
+        throw new ExpansionFailure(`${name || part.name}: invalid variable name`, io.diagnosticLine ?? part.line);
+      }
+    }
+    if (part.kind === "variable" && !part.indirect && !part.prefixNames && !part.specialParameter && state.variableAttributes?.get(part.name)?.includes("n")) {
+      const target = this.variableTarget(this.referenceName(state, part.name))!;
+      if (target.subscript !== undefined && getArraySelector(part) !== undefined) {
+        throw new ExpansionFailure(`${part.name}: bad substitution`, io.diagnosticLine ?? part.line);
+      }
+      const resolved = { ...part, name: target.name };
+      copyArraySelector(part, resolved);
+      if (target.subscript === "@" || target.subscript === "*") {
+        setArraySelector(resolved, { kind: "members", separator: target.subscript });
+      } else if (target.subscript !== undefined) {
+        setArraySelector(resolved, { kind: "element", index: stringIndex(target.subscript, this.budget.parsing, parseArraySubscript(target.subscript, this.budget.parsing, byteLocale(state.variables), state.depth, false, state.extensions?.syntax, !!state.extglob)) });
+      }
+      part = resolved;
+    }
+    if (part.kind === "variable" && part.name === "DIRSTACK") {
+      const entries = [state.cwd, ...state.directoryStack?.entries ?? []];
+      const binding = arrayStore(state)?.get(part.name);
+      if (!binding || binding.values.size !== entries.length || entries.some((entry, index) => binding.get(index) !== entry)) {
+        await this.arrayAssignment({ kind: "compound", name: part.name, append: false, entries: entries.map(value => ({ value: { offset: 0, parts: [{ kind: "text", value, quoted: true }] } })) }, state, io);
+      }
+    }
+    const selector = getArraySelector(part);
+    if (part.kind !== "variable" || selector?.kind !== "element" || selector.index.source === undefined) return part;
+    const store = requireArrays(state);
+    const binding = store.get(part.name);
+    if (binding?.associative) {
+      const word = selector.index.word ?? parseArraySubscript(selector.index.source, this.budget.parsing, byteLocale(state.variables), state.depth, false, state.extensions?.syntax, !!state.extglob);
+      const fields = await this.valueWord(word, state, io, false);
+      const value = concatShellValues(fields, io[valueScope]);
+      const resolved = { ...part };
+      copyArraySelector(part, resolved);
+      setArraySelector(resolved, { kind: "element", index: { decimal: shellValueText(value), word: { offset: word.offset, parts: [{ kind: "text", value: shellValueText(value), quoted: true, ...(typeof value === "string" ? {} : { byteValue: value }) }] } } });
+      return resolved;
+    }
+    const maximum = binding?.maximum ?? (part.name === "FUNCNAME" && state.variables.FUNCNAME === undefined ? (state.functionNames?.length ?? 0) - 1 : state.variables[part.name] === undefined ? -1 : 0);
+    const index = await this.arrayIndex(binding, selector.index, state, io, store.owner, false, maximum);
+    const resolved = { ...part };
+    copyArraySelector(part, resolved);
+    setArraySelector(resolved, { kind: "element", index: { decimal: String(index) } });
+    return resolved;
+  }
+  private async valuePart(part: Exclude<WordPart, { kind: "text" }>, state: State, io: IO, hereString = false, split = false, hereDocument = false): Promise<ShellValue> {
+    part = await this.resolveParameter(part, state, io);
+    if (part.kind === "variable" && part.length && (part.name === "@" || part.name === "*")) return String(state.positional.length);
+    const memberSelector = getArraySelector(part);
+    if (part.kind === "variable" && memberSelector?.kind === "members" && part.operator && defaultParameterOperators.includes(part.operator)) {
+      const members = await this.arrayMembers(part.name, state, io);
+      const missing = members.length === 0;
+      const operator = part.operator.at(-1)!;
+      if (operator === "+" ? !missing : missing) {
+        if (operator === "=") throw new ArrayFailure(`${part.name}[${memberSelector.separator}]: bad array subscript`);
+        const alternate = concatShellValues(await this.valueWord(part.alternate!, state, this.parameterOperandIO(part.alternate!, state, io), false, false, hereString, false, undefined, hereDocument || part.quoted), io[valueScope]);
+        if (operator === "?") throw new ParameterExpansionFailure(`${part.name}: ${shellValueText(alternate) || "parameter not set"}`, io.diagnosticLine ?? part.line);
+        return alternate;
+      }
+      if (operator === "+") return "";
+    }
+    const element = getArraySelector(part);
+    if (part.kind === "variable" && element?.kind === "element") {
+      const store = requireArrays(state);
+      const binding = store.get(part.name);
+      const index = binding?.associative
+        ? await this.arrayIndex(binding, element.index, state, io, store.owner)
+        : numericIndex(element.index, 4294967295);
+      const value = binding ? index === undefined ? undefined : binding.getValue(index)
+        : part.name === "FUNCNAME" && state.variables.FUNCNAME === undefined ? (index === undefined ? undefined : state.functionNames?.[index])
+        : index === 0 ? this.variable(state, part.name) : undefined;
+      if (part.operator && defaultParameterOperators.includes(part.operator)) {
+        const missing = value === undefined || part.operator.startsWith(":") && shellValueByteLength(value) === 0;
+        const operator = part.operator.at(-1)!;
+        if (operator === "+" ? !missing : missing) {
+          const operandIO = this.parameterOperandIO(part.alternate!, state, io);
+          if (operator === "=") {
+            const elemAlt = part.quoted ? { ...part.alternate!, parts: part.alternate!.parts.map(p => ({ ...p, quoted: true })) } : part.alternate!;
+            await this.arrayAssignment({ kind: "element", name: part.name, index: element.index, append: false, value: elemAlt }, state, operandIO);
+            const assigned = store.get(part.name)!;
+            const assignedIndex = assigned.associative ? await this.arrayIndex(assigned, element.index, state, io, store.owner) : index;
+            return assignedIndex === undefined ? "" : assigned.getValue(assignedIndex) ?? "";
+          }
+          const alternate = concatShellValues(await this.valueWord(part.alternate!, state, operandIO, false, false, hereString, false, undefined, hereDocument || part.quoted), io[valueScope]);
+          if (operator === "?") throw new ParameterExpansionFailure(`${part.name}: ${shellValueText(alternate) || (part.operator.startsWith(":") ? "parameter null or not set" : "parameter not set")}`, io.diagnosticLine ?? part.line);
+          return alternate;
+        }
+        return operator === "+" ? "" : value ?? "";
+      }
+      this.requireParameter(value === undefined ? undefined : shellValueText(value), part.name, state, io, part.line);
+      if (part.length) return this.valueLength(value ?? "", state, io);
+      if (part.substring) return this.substring(part, value, state, io);
+      if (part.transform) return part.transform === "a" || part.transform === "A" || part.transform === "K" || part.transform === "k" ? this.variableMetaTransform(part, state, io) : value === undefined ? "" : this.transformValue(value, part.transform, state, io);
+      if (part.operator) return this.parameterPattern(part, value ?? "", state, io, hereString);
+      return value ?? "";
+    }
+    if (part.kind === "variable" && (part.transform === "a" || part.transform === "A" || part.transform === "K" || part.transform === "k")) return this.variableMetaTransform(part, state, io);
+    if (part.kind === "variable" && (part.transform || memberPatternOperators.includes(part.operator ?? ""))) {
+      const selector = getArraySelector(part);
+      if (selector?.kind === "members" || part.name === "@" || part.name === "*") {
+        const members = selector ? await this.arrayMembers(part.name, state, io, part.keys) : this.positionalValues(state);
+        // GNU Bash passes assignment flags for replacement/case operators, but not pattern removal or transforms.
+        const space = (selector?.kind === "members" ? selector.separator === "@" : part.name === "@") && (state.variables.IFS === "" || !split && !part.quoted && !part.transform && !["#", "##", "%", "%%"].includes(part.operator ?? ""));
+        const separator = space ? " " : this.ifsSeparator(state, io);
+        const fragments: ShellValue[] = [];
+        let bytes = 0;
+        for (const member of members) {
+          const value = part.transform ? await this.transformValue(member, part.transform, state, io) : await this.parameterPattern(part, member, state, io, hereString);
+          bytes += shellValueByteLength(value) + (fragments.length ? shellValueByteLength(separator) : 0);
+          if (bytes > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
+          io[valueScope]?.reserve(32, 0);
+          if (fragments.length) fragments.push(separator);
+          fragments.push(value);
+        }
+        return concatShellValues(fragments, io[valueScope]);
+      }
+      const binding = arrayStore(state)?.get(part.name);
+      if (selector?.kind === "element" && binding?.associative) {
+        const holding = binding.owner.hold();
+        try {
+          const index = await this.arrayIndex(binding, selector.index, state, io, binding.owner);
+          const value = index === undefined ? undefined : binding.getValue(index);
+          this.requireParameter(index === undefined ? undefined : binding.get(index), part.name, state, io);
+          if (value === undefined) return "";
+          const owned = shellValueFromBytes(shellValueBytes(value, io[valueScope]), io[valueScope]);
+          return part.transform ? this.transformValue(owned, part.transform, state, io) : this.parameterPattern(part, owned, state, io, hereString);
+        } finally { holding.release(); }
+      }
+      const base: Extract<WordPart, { kind: "variable" }> = { ...part };
+      delete base.transform;
+      if (!part.transform) { delete base.operator; delete base.alternate; }
+      copyArraySelector(part, base);
+      const existing = part.indirect && state.variableAttributes?.get(part.name)?.includes("n") ? state.variables[part.name]
+        : selector?.kind === "element" ? arrayStore(state)?.get(part.name)?.get(numericIndex(selector.index) ?? -1) ?? (numericIndex(selector.index) === 0 ? this.variable(state, part.name) : undefined)
+        : /^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(part.name) ? this.variable(state, part.name)
+        : /^[1-9][0-9]*$/u.test(part.name) ? state.positional[Number(part.name) - 1] : "";
+      const value = await this.valuePart(base, state, io, hereString, split, hereDocument);
+      return existing === undefined ? "" : part.transform ? this.transformValue(value, part.transform, state, io) : this.parameterPattern(part, value, state, io, hereString);
+    }
+    if (part.kind === "variable" && part.prefixNames) {
+      const ifs = state.variables.IFS ?? " ";
+      const separator = io.nameExpansionContext === "document" || part.prefixNames === "@" && (io.nameExpansionContext === "conditional" || ifs.length === 0)
+        ? " " : ifs.length ? String.fromCodePoint(ifs.codePointAt(0)!) : "";
+      const fragments: string[] = [];
+      let bytes = 0;
+      for await (const name of this.prefixNames(part.name, state)) {
+        const join = fragments.length ? separator : "";
+        bytes += shellValueByteLength(name) + shellValueByteLength(join);
+        if (bytes > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
+        io[valueScope]?.reserve((name.length + join.length) * 2 + 32, 0);
+        fragments.push(join, name);
+      }
+      io[valueScope]?.reserve(bytes * 2, 0);
+      return fragments.join("");
+    }
+    const binding = part.kind === "variable" ? arrayStore(state)?.get(part.name) : undefined;
+    const holding = binding ? requireArrays(state).owner.hold() : undefined;
+    const selector = getArraySelector(part);
+    if (selector?.kind === "element" && binding?.associative) {
+      try {
+        const index = await this.arrayIndex(binding, selector.index, state, io, binding.owner);
+        const token = index === undefined ? undefined : binding.values.get(index)?.text;
+        this.requireParameter(token?.value, part.kind === "variable" ? part.name : "", state, io);
+        if (part.kind === "variable" && part.length) return this.valueLength(token?.shellValue ?? "", state, io);
+        return token?.shellValue ? shellValueFromBytes(shellValueBytes(token.shellValue, io[valueScope]), io[valueScope]) : token?.value ?? "";
+      } finally { holding?.release(); }
+    }
+    const index = selector?.kind === "element" ? numericIndex(selector.index, 4294967295) : binding?.associative ? binding.keys.get("30")?.index : 0;
+    const token = index === undefined || selector && selector.kind !== "element" ? undefined : binding?.values.get(index)?.text;
+    token?.retain();
+    try {
+      if (token && part.kind === "variable" && part.operator && ["#", "##", "%", "%%"].includes(part.operator)) return this.parameterPattern(part, token.shellValue, state, io, hereString);
+      if (token?.shellValue && part.kind === "variable" && !part.length && !part.operator && !part.substring) return shellValueFromBytes(shellValueBytes(token.shellValue, io[valueScope]), io[valueScope]);
+      const value = await this.partValue(part, state, io, hereString, split, hereDocument);
+      if (binding) await textToken(requireArrays(state).owner, value, this.signal);
+      return value;
+    } finally { token?.release(); holding?.release(); }
+  }
+  private parameterOperandIO(word: Word, state: State, io: IO): IO {
+    this.signal.throwIfAborted();
+    const parameterDepth = (io.parameterDepth ?? 0) + 1;
+    if (state.depth + parameterDepth > this.budget.limits.maxSyntaxDepth) throw new ShellSyntaxError(`Syntax nesting exceeds ${this.budget.limits.maxSyntaxDepth}`, word.offset);
+    return { ...io, parameterDepth };
+  }
+  private async variableMetaTransform(part: Extract<WordPart, { kind: "variable" }> & { zshType?: boolean }, state: State, io: IO): Promise<ShellValue> {
+    const baseName = this.referenceName(state, part.name);
+    const name = part.indirect ? shellValueText(state.variables[baseName] ?? "") : baseName;
+    const binding = arrayStore(state)?.get(name);
+    const attributes = state.variableAttributes?.get(name) ?? "";
+    const flags = [..."aAilnrux"].filter(flag =>
+      flag === "a" ? Boolean(binding && !binding.associative)
+      : flag === "A" ? Boolean(binding?.associative)
+      : flag === "r" ? Boolean(state.readonlyVariables?.has(name))
+      : flag === "x" ? Boolean(state.exported.has(name))
+      : attributes.includes(flag)
+    ).join("");
+    const hasBindingOrVar = Boolean(binding) || Object.hasOwn(state.variables, name) || state.variableAttributes?.has(name) || state.exported.has(name) || state.readonlyVariables?.has(name);
+    if (part.transform === "a") {
+      if (part.zshType) {
+        if (!hasBindingOrVar) return "";
+        return [binding ? "array" : "scalar", ...(state.exported.has(name) ? ["export"] : []), ...(state.readonlyVariables?.has(name) ? ["readonly"] : [])].join("-");
+      }
+      return hasBindingOrVar ? flags : "";
+    }
+    if (part.transform === "A") {
+      if (!hasBindingOrVar) return "";
+      if (binding) {
+        const pairs: string[] = [];
+        for (const idx of [...binding.values.keys()].sort((l, r) => l - r)) {
+          const k = binding.associative ? binding.keys.get(binding.keyByIndex.get(idx)!)!.text.value : String(idx);
+          const v = binding.getValue(idx) ?? "";
+          const qk = binding.associative ? shellValueText(await this.transformValue(k, "Q", state, io, true)) : k;
+          pairs.push(`[${qk}]=${shellValueText(await this.transformValue(v, "Q", state, io, true))}`);
+        }
+        return `declare -${flags || "a"} ${name}=(${pairs.join(" ")})`;
+      }
+      const rawVal = state.variables[name];
+      if (rawVal === undefined) return flags ? `declare -${flags} ${name}` : "";
+      const quoted = shellValueText(await this.transformValue(stateMonitor(state)?.values.get(name, rawVal) ?? rawVal, "Q", state, io));
+      return `${flags ? `declare -${flags} ` : ""}${name}=${quoted}`;
+    }
+    if (binding) {
+      const pairs: string[] = [];
+      for (const idx of [...binding.values.keys()].sort((l, r) => l - r)) {
+        const k = binding.associative ? binding.keys.get(binding.keyByIndex.get(idx)!)!.text.value : String(idx);
+        const v = binding.getValue(idx) ?? "";
+        if (part.transform === "K") {
+          const qk = binding.associative ? shellValueText(await this.transformValue(k, "Q", state, io)) : k;
+          pairs.push(`${qk} ${shellValueText(await this.transformValue(v, "Q", state, io, true))}`);
+        } else pairs.push(k, shellValueText(v));
+      }
+      return pairs.join(" ");
+    }
+    const rawVal = this.variable(state, name);
+    if (rawVal === undefined) return "";
+    return part.transform === "K" ? this.transformValue(stateMonitor(state)?.values.get(name, rawVal) ?? rawVal, "Q", state, io) : rawVal;
+  }
+  private async transformValue(value: ShellValue, operator: NonNullable<Extract<WordPart, { kind: "variable" }>["transform"]>, state: State, io: IO, doubleQuoted = false): Promise<ShellValue> {
+    if (operator === "u" || operator === "U" || operator === "L") {
+      const text = shellValueText(value);
+      if (operator === "U") return text.toUpperCase();
+      if (operator === "L") return text.toLowerCase();
+      if (!text.length) return "";
+      const first = [...text][0]!;
+      return first.toUpperCase() + text.slice(first.length);
+    }
+    if (operator === "P") {
+      const source = shellValueText(value);
+      let text = "";
+      for (let index = 0; index < source.length; index++) {
+        const character = source[index]!;
+        if (character !== "\\" || index + 1 === source.length) {
+          text += character;
+          continue;
+        }
+        const escaped = source[++index]!;
+        // Decode each prompt escape once. Keep dollar quoting for the
+        // subsequent expansion parser so escaped substitutions stay literal.
+        switch (escaped) {
+          case "n": text += "\n"; break;
+          case "r": text += "\r"; break;
+          case "t": text += "\t"; break;
+          case "e": case "E": text += "\x1b"; break;
+          case "a": text += "\x07"; break;
+          case "\\": text += "\\"; break;
+          default: text += "\\" + escaped;
+        }
+      }
+      const word = parseArithmeticExpansion(text, this.budget.parsing, byteLocale(state.variables), state.depth + (io.parameterDepth ?? 0), io.diagnosticLine ?? 1, state.extensions?.syntax, !!state.extglob);
+      const fields = await this.valueWord(word, state, this.parameterOperandIO(word, state, io), false, false, true);
+      return concatShellValues(fields, io[valueScope]);
+    }
+    const allocation = io[valueScope] ?? this.budget.values.scope();
+    try {
+      return await transformParameter(value, operator === "E" ? "E" : "Q", {
+        doubleQuoted,
+        maximumBytes: this.budget.limits.maxExpansionBytes, byteLocale: byteLocale(state.variables), allocation, work: { remaining: Math.min(Number.MAX_SAFE_INTEGER, this.budget.limits.maxExpansionBytes * 8 + 1024), signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") }, });
+    } finally { if (!io[valueScope]) allocation.close(); }
+  }
+  private async partValue(part: Exclude<WordPart, { kind: "text" }>, state: State, io: IO, hereString: boolean, split: boolean, hereDocument: boolean): Promise<ShellValue> {
+    this.signal.throwIfAborted();
+    if (part.kind === "compound-substitution-eof") {
+      await writeDiagnostic(io.stderr, `${io.scriptName ?? "shell"}: command substitution: line ${io.diagnosticLine ?? part.line}: syntax error: unexpected end of file\n`);
+      throw completedExit(2);
+    }
+    if (part.kind === "failed-parameter") throw new ExpansionFailure(`${part.source}: bad substitution`, io.diagnosticLine ?? part.line);
+    if (part.kind === "failed-substitution") {
+      if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
+      await writeDiagnostic(io.stderr, part.diagnostic);
+      state.status = state.substitutionStatus = 2;
+      return "";
+    }
+    if (part.kind === "arithmetic") {
+      try { return String(await this.expandedArithmeticValue(part.expression, state, { ...io, diagnosticLine: io.diagnosticLine ?? part.line })); }
+      catch (error) { this.rethrowArithmeticControl(error); throw new ExpansionFailure(message(error, this.budget.onInternalError), io.diagnosticLine ?? part.line); }
+    }
+    if (part.kind === "process-substitution") {
+      if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
+      this.signal.throwIfAborted();
+      const ids = state.processSubstitutionIds ??= { next: 0 };
+      const requestedDirectory = pathOf(state, state.variables.TMPDIR || "/tmp");
+      const directory = requestedDirectory === "/" ? "/tmp" : requestedDirectory;
+      await this.sourceFs.mkdir(directory, { recursive: true, signal: this.signal });
+      let tempPath = "";
+      let owned = false;
+      io[invocationScope].register(async () => {
+        if (owned) try { await this.sourceFs.rm(tempPath, { force: true }); } catch {}});
+      while (!owned) {
+        this.budget.tick();
+        tempPath = pathOf(state, `${directory}/.procsub-${++ids.next}`);
+        try {
+          await this.sourceFs.writeFile(tempPath, new Uint8Array(0), { flag: "wx", signal: this.signal });
+          owned = true;
+        } catch (error) {
+          this.signal.throwIfAborted();
+          if (!(error instanceof FsError) || error.code !== "EEXIST") throw error;
+        }
+      }
+      if (part.direction === "<") {
+        const capture = new Capture();
+        const child = await cloneState(state, this.signal);
+        child.isolated = true;
+        child.variables.BASH_SUBSHELL = String(Number(state.variables.BASH_SUBSHELL ?? 0) + 1);
+        child.extensions = forkExtensions(state.extensions, "substitution");
+        if (state.profile !== "sh") child.errexit = false;
+        delete child.redirectAssignments;
+        child.depth++;
+        const references = new PipeDescriptorFrame(io[invocationScope]);
+        const lifetime = new DescriptorLifetime();
+        const captureIO = isolateIO({
+          ...io, stdout: this.budget.sink(capture, this.signal), processSubstitutions: undefined, }, references);
+        (captureIO.descriptors as Map<number, Descriptor>).set(1, { output: captureIO.stdout, lifetime });
+        try {
+          await this.run(part.script, child, captureIO);
+        } finally {
+          try {
+            if (!references.closeSyncIfEmpty()) await references.close();
+            if (!lifetime.releaseSyncIfIdle()) await lifetime.release();
+          } finally {
+            stateMonitor(child)?.closeValues();
+          }
+        }
+        const pendingCapture = lifetime.settled();
+        if (pendingCapture) await pendingCapture;
+        await this.sourceFs.writeFile(tempPath, capture.takeBytes());
+        io.processSubstitutions?.push(async () => {
+          try { await this.sourceFs.rm(tempPath, { force: true }); } catch {}});
+        return tempPath;
+      }
+      await this.sourceFs.writeFile(tempPath, new Uint8Array(0));
+      io.processSubstitutions?.push(async () => {
+        let bytes: Uint8Array = new Uint8Array(0);
+        try {
+          bytes = await this.sourceFs.readFile(tempPath);
+        } catch {}
+        finally {
+          try { await this.sourceFs.rm(tempPath, { force: true }); } catch {}
+        }
+        const child = await cloneState(state, this.signal);
+        child.isolated = true;
+        child.variables.BASH_SUBSHELL = String(Number(state.variables.BASH_SUBSHELL ?? 0) + 1);
+        child.extensions = forkExtensions(state.extensions, "substitution");
+        if (state.profile !== "sh") child.errexit = false;
+        delete child.redirectAssignments;
+        child.depth++;
+        const prepared = prepareBytesInput(bytes, this.budget);
+        const input = new ShellInput(prepared.source, this.budget, this.commandSignal, prepared.options);
+        const lifetime = new DescriptorLifetime(async () => {
+          try { await input.close(); }
+          finally { await prepared.close(); }});
+        const references = new PipeDescriptorFrame(io[invocationScope]);
+        const childIO = isolateIO({
+          ...io, stdin: input, stdinIsDefault: false, processSubstitutions: undefined, }, references);
+        (childIO.descriptors as Map<number, Descriptor>).set(0, { input, stdinIsDefault: false, lifetime });
+        try {
+          await this.run(part.script, child, childIO);
+        } finally {
+          try {
+            if (!references.closeSyncIfEmpty()) await references.close();
+            if (!lifetime.releaseSyncIfIdle()) await lifetime.release();
+          } finally {
+            stateMonitor(child)?.closeValues();
+          }
+        }});
+      return tempPath;
+    }
+    if (part.kind === "substitution") {
+      const fastSub = this.tryFastPureSubstitution(part, state, stateMonitor(state)?.raw ?? state, io);
+      if (fastSub !== undefined) return fastSub;
+      if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
+      this.signal.throwIfAborted();
+      if (part.form === "dollar-parenthesis" && state.extensions?.checkpoints.length) await this.extensionCheckpoint("source-input-read", state, io);
+      const parameterDepth = io.parameterDepth ?? 0;
+      if (parameterDepth > 0 && state.depth + parameterDepth + 1 > this.budget.limits.maxSyntaxDepth) throw new ShellSyntaxError(`Syntax nesting exceeds ${this.budget.limits.maxSyntaxDepth}`, 0);
+      const capture = new Capture();
+      const child = await cloneState(state, this.signal);
+      child.isolated = true;
+      child.variables.BASH_SUBSHELL = String(Number(state.variables.BASH_SUBSHELL ?? 0) + 1);
+      child.extensions = forkExtensions(state.extensions, "substitution");
+      if (state.profile !== "sh" && !state.inherit_errexit) child.errexit = false;
+      for (const [name, value] of state.redirectAssignments ?? []) {
+        await this.writeVariable(child, name, value, io);
+        child.exported.add(name);
+      }
+      delete child.redirectAssignments;
+      child.depth++;
+      const pipeline = part.script.lists.length === 1 && part.script.lists[0]!.pipelines.length === 1 ? part.script.lists[0]!.pipelines[0] : undefined;
+      const command = pipeline && !pipeline.negate && pipeline.commands.length === 1 ? pipeline.commands[0] : undefined;
+      const fileShortcut = command?.kind === "simple" && command.words.length === 0 && command.redirects.length === 1 && command.redirects[0]!.operator === "<";
+      const warningLine = io.substitutionDiagnosticLine ?? io.diagnosticLine ?? part.line;
+      let substitutionDiagnosticLines: Map<Command, number> | undefined;
+      if (part.script.printedLines?.size) {
+        substitutionDiagnosticLines = new Map<Command, number>();
+        for (const [command, line] of part.script.printedLines) {
+          substitutionDiagnosticLines.set( command, part.sourceLine === undefined ? warningLine + (command.line ?? part.line) - part.line : warningLine + line - 1, );
+        }
+      }
+      const reprintedLines = part.sourceLine === undefined ? undefined : functionReprintedLines(part.script);
+      const functionCommandLines = reprintedLines && new Map([...reprintedLines].map(([command, line]) => [command, warningLine + line - 1]));
+      const references = new PipeDescriptorFrame(io[invocationScope]);
+      const lifetime = new DescriptorLifetime();
+      const captureIO = isolateIO({
+        ...io, ...(substitutionDiagnosticLines === undefined ? { substitutionDiagnosticLines: undefined } : { substitutionDiagnosticLines }), diagnosticOffset: (io.diagnosticLine ?? part.line) - (part.sourceLine ?? part.line), functionCommandLines, diagnosticCommandLines: undefined, stdout: this.budget.sink(capture, this.signal), }, references);
+      (captureIO.descriptors as Map<number, Descriptor>).set(1, { output: captureIO.stdout, lifetime });
+      try {
+        state.substitutionStatus = fileShortcut
+          ? await this.finishShell(child, captureIO, await this.runCommandIsolated(command, child, captureIO, true))
+          : await this.run(part.script, child, captureIO);
+      }
+      finally {
+        try {
+          if (!this.releaseExtensionsSyncIfEmpty(child)) await this.releaseExtensions(child);
+        } finally {
+          try {
+            if (!references.closeSyncIfEmpty()) await references.close();
+            if (!lifetime.releaseSyncIfIdle()) await lifetime.release();
+          }
+          finally { stateMonitor(child)?.closeValues(); }
+        }
+      }
+      const pendingCapture = lifetime.settled();
+      if (pendingCapture) await pendingCapture;
+      state.status = state.substitutionStatus;
+      const bytes = capture.takeBytes();
+      let length = bytes.length;
+      if (bytes.includes(0)) {
+        await writeDiagnostic(io.stderr, `${io.scriptName ?? "shell"}: line ${warningLine}: warning: command substitution: ignored null byte in input\n`);
+        length = 0;
+        for (const byte of bytes) if (byte !== 0) bytes[length++] = byte;
+      }
+      while (length && bytes[length - 1] === 10) length--;
+      const sanitized = bytes.subarray(0, length);
+      if (length === 0) return "";
+      try { return fatalUtf8Decoder.decode(sanitized); }
+      catch (error) {
+        this.signal.throwIfAborted();
+        if (!(error instanceof TypeError) || ("code" in error && error.code !== "ERR_ENCODING_INVALID_ENCODED_DATA")) throw error;
+        return shellValueFromBytes(sanitized, io[valueScope]);
+      }
+    }
+    let specialValue: ShellValue | undefined;
+    if (part.specialParameter) {
+      const hook = state.extensions?.specialParameters.get(part.specialParameter.name);
+      if (!hook) throw new TypeError("Missing captured shell special parameter handler");
+      specialValue = hook.lookup(this.extensionContext(state, io));
+    }
+    const selector = getArraySelector(part);
+    if (selector) {
+      const store = requireArrays(state);
+      const binding = store.get(part.name);
+      if (selector.kind === "element") {
+        const index = numericIndex(selector.index, 4294967295);
+        if (index === undefined) throw new ArrayFailure("index outside 0..4294967295");
+        const value = binding ? binding.getValue(index)
+          : part.name === "FUNCNAME" && state.variables.FUNCNAME === undefined ? state.functionNames?.[index]
+          : index === 0 && state.variables[part.name] !== undefined ? stateMonitor(state)?.values.get(part.name, state.variables[part.name]!) ?? state.variables[part.name] : undefined;
+        if (["-", "+", ":-", ":+"].includes(part.operator ?? "")) {
+          const missing = value === undefined || part.operator!.startsWith(":") && shellValueByteLength(value) === 0;
+          const alternate = part.operator!.endsWith("+") ? !missing : missing;
+          if (alternate) return concatShellValues(await this.valueWord(part.alternate!, state, io, false, false, hereString, false, undefined, hereDocument), io[valueScope]);
+          return part.operator!.endsWith("+") ? "" : value ?? "";
+        }
+        this.requireParameter(value === undefined ? undefined : shellValueText(value), `${part.name}[${selector.index}]`, state, io, part.line);
+        return part.length ? this.valueLength(value ?? "", state, io) : value ?? "";
+      }
+      if (part.length) return String(binding?.values.size ?? (part.name === "FUNCNAME" && state.variables.FUNCNAME === undefined ? state.functionNames?.length ?? 0 : state.variables[part.name] === undefined ? 0 : 1));
+      const values = await this.arrayMembers(part.name, state, io, selector.kind === "keys" || part.keys === true, part.substring);
+      const space = (selector.kind === "keys" || part.keys === true) ? Boolean(hereDocument || (selector.separator === "@" ? !part.quoted && !split || state.variables.IFS === "" : !part.quoted && split && state.variables.IFS === "")) : (!split && selector.separator === "@" && (!part.substring || !part.quoted || state.variables.IFS === ""));
+      return this.arrayJoin(store.owner, values, space ? " " : this.ifsSeparator(state, io));
+    }
+    if (part.substring && (part.name === "@" || part.name === "*")) {
+      const values = await this.positionalSlice(part, state, io);
+      const separator = part.name === "@" && (state.variables.IFS === "" || !split && !part.quoted) || hereString && !part.quoted ? " " : this.ifsSeparator(state, io);
+      return concatShellValues(values.flatMap((entry, index) => index ? [separator, entry] : [entry]), io[valueScope]);
+    }
+    const namerefName = part.indirect && state.variableAttributes?.get(part.name)?.includes("n");
+    let value = namerefName ? state.variables[part.name] === undefined ? undefined : this.referenceName(state, part.name)
+      : part.specialParameter ? specialValue === undefined ? undefined : shellValueText(specialValue)
+      : part.name === "?" ? String(state.status)
+      : part.name === "-" ? `${state.allexport ? "a" : ""}${state.errexit ? "e" : ""}${state.noglob ? "f" : ""}${state.noexec ? "n" : ""}${state.nounset ? "u" : ""}${state.braceexpand !== false ? "B" : ""}${state.noclobber ? "C" : ""}`
+      : part.name === "#" ? String(state.positional.length)
+      : part.name === "@" || part.name === "*" ? state.positional.join(part.name === "@" && !split || hereString && (part.name === "@" || !part.quoted) ? " " : Array.from(state.variables.IFS ?? " ")[0] ?? "")
+      : /^0+$/u.test(part.name) ? state.arg0 ?? "virtual-bash"
+      : /^\d+$/u.test(part.name) ? state.positional[Number(part.name) - 1]
+      : part.name === "LINENO" ? (state.extensions ? String(io.diagnosticLine ?? part.line ?? 1) : state.variables.LINENO ?? String(io.diagnosticLine ?? part.line ?? 1)) : this.variable(state, part.name);
+    let retained: ShellValue | undefined = part.specialParameter ? specialValue : value;
+    if (value !== undefined && !namerefName) {
+      if (/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(part.name)) {
+        const name = this.referenceName(state, part.name);
+        const binding = arrayStore(state)?.get(name);
+        const index = binding?.associative ? binding.keys.get("30")?.index ?? -1 : 0;
+        retained = name === "RANDOM" || name === "SECONDS" || name === "LINENO" ? value : binding?.getValue(index) ?? stateMonitor(state)?.values.get(name, value) ?? value;
+      } else if (/^0+$/u.test(part.name)) retained = stateMonitor(state)?.positionals.get(zeroPositionKey, value) ?? value;
+      else if (/^[0-9]+$/u.test(part.name)) retained = stateMonitor(state)?.positionals.get(String(Number(part.name) - 1), value) ?? value;
+      else if (part.name === "@" || part.name === "*") {
+        const separator = part.name === "@" && !split || hereString && (part.name === "@" || !part.quoted) ? " " : this.ifsSeparator(state, io);
+        const values = this.positionalValues(state);
+        retained = concatShellValues(values.flatMap((entry, index) => index ? [separator, entry] : [entry]), io[valueScope]);
+      }
+    }
+    if (part.substring) {
+      this.requireParameter(value, part.name, state, io, part.line);
+      return this.substring(part, retained, state, io);
+    }
+    if (part.operator) {
+      if (["#", "##", "%", "%%", "^", "^^", ",", ",,"].includes(part.operator) || part.operator.startsWith("/")) {
+        this.requireParameter(value, part.name, state, io, part.line);
+        return this.parameterPattern(part, retained ?? "", state, io, hereString);
+      }
+      const missing = value === undefined || (part.operator.startsWith(":") && value === "");
+      const operator = part.operator.at(-1)!;
+      if ((operator === "+" && !missing) || (operator !== "+" && missing)) {
+        const operandIO = this.parameterOperandIO(part.alternate!, state, io);
+        let alternate: string;
+        const altWord = !hereDocument && !part.quoted && operator === "="
+          ? { ...part.alternate!, parts: expandTildes(part.alternate!.parts, state.variables, this.budget, undefined, true) }
+          : part.alternate!;
+        if (operator === "=" && arrayStore(state)?.get(part.name)) {
+          alternate = "";
+          await this.arrayZero(state, part.name, io, async () => {
+            retained = await this.arrayJoin(requireArrays(state).owner, await this.valueWord(altWord, state, operandIO, false, false, hereString, false, undefined, hereDocument || part.quoted || operator === "="), "");
+            return retained;});
+          value = shellValueText(retained!);
+          return part.length ? this.valueLength(retained!, state, io) : retained!;
+        }
+        retained = concatShellValues(await this.valueWord(altWord, state, operandIO, false, false, hereString, false, undefined, hereDocument || part.quoted || operator === "="), io[valueScope]);
+        alternate = shellValueText(retained);
+        if (operator === "?") throw new ParameterExpansionFailure(`${part.name}: ${alternate || (part.operator.startsWith(":") ? "parameter null or not set" : "parameter not set")}`, io.diagnosticLine ?? part.line);
+        if (operator === "=") {
+          if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(part.name)) throw new PublicDiagnostic("Cannot assign special parameter");
+          await this.writeVariable(state, part.name, retained, io);
+        }
+        value = alternate;
+      } else if (operator === "+") { value = ""; retained = ""; }
+    } else this.requireParameter(value, part.name, state, io, part.line);
+    return part.length ? this.valueLength(retained ?? "", state, io) : retained ?? "";
+  }
+  private async valueLength(value: ShellValue, state: State, io: IO): Promise<string> {
+    const limit = this.budget.limits.maxExpansionBytes;
+    const work = { remaining: Math.min(Number.MAX_SAFE_INTEGER, limit * 4 + 1024), signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
+    if (typeof value === "string") {
+      const scanned = await scanString(value, work);
+      if (scanned.bytes > limit) this.budget.fail("maxExpansionBytes");
+      return String(byteLocale(state.variables) ? scanned.bytes : scanned.count);
+    }
+    if (shellValueByteLength(value) > limit) this.budget.fail("maxExpansionBytes");
+    const bytes = shellValueBytes(value, io[valueScope]);
+    if (byteLocale(state.variables)) return String(bytes.length);
+    let length = 0;
+    for (let offset = 0; offset < bytes.length; offset += shellCharacterWidth(bytes, offset, false)) {
+      length++;
+      const pending = stringCheckpoint(work);
+      if (pending) await pending;
+    }
+    return String(length);
+  }
+  private ifsSeparator(state: State, io: IO): ShellValue {
+    const text = state.variables.IFS ?? " ";
+    const value = stateMonitor(state)?.values.get("IFS", text) ?? text;
+    const byteCount = byteLocale(state.variables);
+    if (typeof value === "string" && (!byteCount || !value || value.charCodeAt(0) < 128)) return value ? String.fromCodePoint(value.codePointAt(0)!) : "";
+    const bytes = shellValueBytes(value, io[valueScope]);
+    return bytes.length ? shellValueFromBytes(bytes.subarray(0, shellCharacterWidth(bytes, 0, byteCount)), io[valueScope]) : "";
+  }
+  async substring(part: Extract<WordPart, { kind: "variable" }>, value: ShellValue | undefined, state: State, io: IO): Promise<ShellValue> {
+    const owner = arrayStore(state)?.get(part.name) ? requireArrays(state).owner : undefined;
+    const expression = part.substring!;
+    const line = io.diagnosticLine ?? part.line;
+    if (!expression.offset.parts.length && !expression.length) throw new ExpansionFailure(`${expression.source}: bad substitution`, line);
+    if (value === undefined) return "";
+    const limit = this.budget.limits.maxExpansionBytes;
+    if (shellValueByteLength(value) > limit) this.budget.fail("maxExpansionBytes");
+    const scratch = this.budget.values.scope();
+    const work = { remaining: Math.min(Number.MAX_SAFE_INTEGER, limit * 4 + 1024), signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
+    try {
+    const variables = new Proxy(this.arithmeticVariables(state, line), { get: (target, key) => {
+      this.signal.throwIfAborted();
+      const value: unknown = Reflect.get(target, key);
+      if (typeof value === "string" && shellValueByteLength(value) > limit) this.budget.fail("maxExpansionBytes");
+      return value;
+    } });
+    const arithmetic = async (word: Word): Promise<{ value: bigint; source: string }> => {
+      const operandIO = this.parameterOperandIO(word, state, io);
+      let source = "";
+      let bytes = 0;
+      let retained: ValueReservation | undefined;
+      for (const entry of word.parts) {
+        this.signal.throwIfAborted();
+        const text = entry.kind === "text" ? entry.value : await this.part(entry, state, operandIO);
+        bytes += shellValueByteLength(text);
+        if (bytes > limit) this.budget.fail("maxExpansionBytes");
+        owner?.reserve({ metadata: 32, payload: bytes, work: text.length + 4 });
+        const pending = stringCheckpoint(work, text.length + 1);
+        if (pending) await pending;
+        const next = scratch.reserve((source.length + text.length) * 2, 0);
+        source += text;
+        retained?.release();
+        retained = next;
+      }
+      this.signal.throwIfAborted();
+      try { return { value: await this.shellArithmetic(prepareArithmetic(source, this.budget.parsing), state, io, variables), source }; }
+      catch (error) {
+        this.rethrowArithmeticControl(error);
+        throw new ExpansionFailure(`${part.name}: ${message(error, this.budget.onInternalError)}`, line);
+      }
+      finally { retained?.release(); }};
+    const offsetExpression = await arithmetic(expression.offset);
+    let bytes: Uint8Array | undefined;
+    if (byteLocale(state.variables)) {
+      bytes = shellValueBytes(value, scratch);
+    }
+    const text = shellValueText(value);
+    const size = BigInt(bytes?.byteLength ?? (await scanString(text, work)).count);
+    const offset = offsetExpression.value < 0n ? size + offsetExpression.value : offsetExpression.value;
+    if (offset < 0n || offset > size) return "";
+    let end = size;
+    if (expression.length) {
+      const length = await arithmetic(expression.length);
+      end = length.value < 0n ? size + length.value : offset + length.value;
+      if (end < offset) throw new ExpansionFailure(`${length.source}: substring expression < 0`, line);
+      if (end > size) end = size;
+    }
+    this.signal.throwIfAborted();
+    if (!bytes) {
+      const start = (await scanString(text, work, 0, text.length, Number(offset))).end;
+      const finish = (await scanString(text, work, start, text.length, Number(end - offset))).end;
+      if (finish > start) scratch.reserve((finish - start) * 2, 0);
+      return text.slice(start, finish);
+    }
+    return shellValueFromBytes(bytes.subarray(Number(offset), Number(end)), io[valueScope]);
+    } finally { scratch.close(); }
+  }
+  private tryFastParameterPatternSync(_part: Extract<WordPart, { kind: "variable" }>, _value: ShellValue, _state: State, _io: IO): string | undefined { return undefined; }
+  async parameterPattern(part: Extract<WordPart, { kind: "variable" }>, value: ShellValue, state: State, io: IO, hereString: boolean): Promise<ShellValue> {
+    const fastRes = this.tryFastParameterPatternSync(part, value, state, io);
+    if (fastRes !== undefined) {
+      io[valueScope]?.reserve(fastRes.length * 2 + 32, 0);
+      return fastRes;
+    }
+    const limit = this.budget.limits.maxExpansionBytes;
+    if (shellValueByteLength(value) > limit) this.budget.fail("maxExpansionBytes");
+    const scratch = this.budget.values.scope();
+    const work = { remaining: Math.min(Number.MAX_SAFE_INTEGER, limit * 4 + 1024), signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes"), allocation: scratch };
+    try {
+    if (!part.operator!.startsWith("/")) {
+      const parts: { value: ShellValue; literal: boolean }[] = [];
+      await this.valueWord(part.alternate!, state, this.parameterOperandIO(part.alternate!, state, io), false, true, hereString, false, (_text, literal, original) => {
+        scratch.reserveBytes(64);
+        parts.push({ value: original, literal });});
+      return await trimParameter(value, parts, part.operator!, byteLocale(state.variables), work, io[valueScope], limit, !!state.extglob);
+    }
+    const text = shellValueText(value);
+    // The anchor precedes the lexical pattern, so Bash does not expand a following tilde.
+    const anchored = part.operator === "/#" || part.operator === "/%";
+    const patternWord: Word = anchored
+      ? { ...part.alternate!, parts: [{ kind: "text", value: "", quoted: true }, ...part.alternate!.parts] }
+      : part.alternate!;
+    const patternFields = await this.word(patternWord, state, this.parameterOperandIO(part.alternate!, state, io), false, true, hereString);
+    let patternUnits = 0;
+    for (const field of patternFields) {
+      const pending = stringCheckpoint(work, field.length + 1);
+      if (pending) await pending;
+      patternUnits += field.length;
+    }
+    scratch.reserve(patternUnits * 2, 0);
+    const pattern = patternFields.join("");
+    await scanString(text, work);
+    const boundaries = await compilePatternBoundaries(pattern, work, !!state.nocasematch, !!state.extglob);
+    const operator = part.operator!;
+    scratch.reserve(64, 0);
+    const replacements: { value: string; quoted: boolean }[] = [];
+    let replacementBytes = 0;
+    const replacementIO = part.replacement ? this.parameterOperandIO(part.replacement, state, io) : io;
+    for (const [index, entry] of (part.replacement?.parts ?? []).entries()) {
+      let value = entry.kind === "text" ? entry.value : await this.part(entry, state, replacementIO, hereString);
+      if (index === 0 && entry.kind === "text" && !entry.quoted && /^~(?:\/|$)/u.test(value)) {
+        const home = state.variables.HOME ?? "~";
+        scratch.reserve((home.length + value.length - 1) * 2, 0);
+        value = home + value.slice(1);
+      }
+      replacementBytes += shellValueByteLength(value);
+      if (replacementBytes > limit) this.budget.fail("maxExpansionBytes");
+      const pending = stringCheckpoint(work, value.length + 1);
+      if (pending) await pending;
+      scratch.reserve(64 + value.length * 2, 0);
+      replacements.push({ value, quoted: entry.quoted });
+    }
+    if (!pattern && operator !== "/#" && operator !== "/%") return text;
+    // Bash searches an empty value only for a leading star (or a suffix-anchored pattern).
+    if (!text && pattern && operator !== "/%" && !pattern.startsWith("*")) return text;
+    let result = "";
+    let resultBytes = 0;
+    let retained: ValueReservation | undefined;
+    const append = async (value: string, start = 0, end = value.length): Promise<void> => {
+      resultBytes += (await scanString(value, work, start, end)).bytes;
+      if (resultBytes > limit) this.budget.fail("maxExpansionBytes");
+      if (start === end) return;
+      const fragment = scratch.reserve((end - start) * 2, 0);
+      const next = scratch.reserve((result.length + end - start) * 2, 0);
+      result += value.slice(start, end);
+      fragment.release();
+      retained?.release();
+      retained = next;};
+    const ends = await boundaries(text, false, operator === "/%");
+    let position = 0;
+    while (position <= text.length) {
+      let found = false;
+      for (let start = position; start <= text.length; start = nextCodePointOffset(text, start)) {
+        if (operator === "/#" && start !== 0) break;
+        const pending = stringCheckpoint(work);
+        if (pending) await pending;
+        const end = ends[start]!;
+        if (end < 0) {
+          if (start === text.length) break;
+          continue;
+        }
+        await append(text, position, start);
+        for (const replacement of replacements) {
+          if (replacement.quoted) await append(replacement.value);
+          else {
+            let fragment = 0;
+            for (let cursor = 0; cursor < replacement.value.length; cursor++) {
+              const pending = stringCheckpoint(work);
+              if (pending) await pending;
+              if (replacement.value[cursor] === "\\" && ["&", "\\"].includes(replacement.value[cursor + 1] ?? "")) {
+                await append(replacement.value, fragment, cursor);
+                await append(replacement.value, cursor + 1, cursor + 2);
+                cursor++;
+                fragment = cursor + 1;
+                continue;
+              }
+              if (replacement.value[cursor] !== "&") continue;
+              await append(replacement.value, fragment, cursor);
+              await append(text, start, end);
+              fragment = cursor + 1;
+            }
+            await append(replacement.value, fragment);
+          }
+        }
+        position = end;
+        found = true;
+        if (operator !== "//" || end === text.length) { await append(text, end); return result; }
+        if (end === start) {
+          position = nextCodePointOffset(text, end);
+          await append(text, end, position);
+          if (position === text.length) return result;
+        }
+        break;
+      }
+      if (!found) {
+        if (position === 0) return text;
+        await append(text, position);
+        break;
+      }
+    }
+    return result;
+    } finally { scratch.close(); }
+  }
+  async word(word: Word, state: State, io: IO, split = true, pattern = false, hereString = false, conditionalPattern = false, regexAppend?: (text: string, literal: boolean, value: ShellValue) => void): Promise<string[]> {
+    return (await this.valueWord(word, state, io, split, pattern, hereString, conditionalPattern, regexAppend)).map(shellValueText);
+  }
+  fastValueWord(_word: Word, _state: State, _io: IO, _split: boolean, _pattern: boolean, _hereDocument: boolean, _braces: boolean, _assignmentStart?: number, _overrideDiagnosticLine?: number): ShellValue | undefined { return undefined; }
+  isPureArgWord(_word: Word, _rawState: State): boolean { return false; }
+  tryFastPureSubstitution(_part: Extract<WordPart, { kind: "substitution" }>, _state: State, _rawState: State, _io: IO): string | undefined { return undefined; }
+  private async valueWord(word: Word, state: State, io: IO, split = true, pattern = false, hereString = false, conditionalPattern = false, regexAppend?: (text: string, literal: boolean, value: ShellValue) => void, hereDocument = false, braces = split && !pattern && !hereString && !hereDocument, assignmentStart?: number, skipFast = false): Promise<ShellValue[]> {
+    if (!conditionalPattern && !regexAppend && !skipFast) {
+      const fast = this.fastValueWord(word, state, io, split, pattern, hereDocument, braces, assignmentStart);
+      if (fast !== undefined) return [fast];
+      if (!split && !pattern && word.parts.length === 1 && !hasActiveVariableAttributes(state) && !guestArrays(state)) {
+        const part = word.parts[0]!;
+        if (part.kind === "arithmetic" || (part.kind === "variable" && !part.indirect && !part.prefixNames && !part.specialParameter && part.name !== "@" && part.name !== "*" && getArraySelector(part) === undefined && !["-", "+", ":-", ":+"].includes(part.operator ?? "") && isShellIdentifier(part.name))) {
+          const val = await this.valuePart(part, state, io, hereString, false, hereDocument);
+          if (1 > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
+          const maxBytes = this.budget.limits.maxExpansionBytes;
+          if ((typeof val !== "string" || val.length * 3 > maxBytes) && shellValueByteLength(val) > maxBytes) this.budget.fail("maxExpansionBytes");
+          if (typeof val !== "string") io[valueScope]?.hold(val);
+          return [val];
+        }
+      }
+    }
+    if (braces && state.braceexpand !== false && word.parts.some(part => part.kind === "text" && !part.quoted && part.value.includes("{"))) {
+      const fields: ShellValue[] = [];
+      let bytes = 0;
+      for await (const expanded of expandBraces(word, this.budget, this.signal)) {
+        const values = await this.valueWord(expanded, state, io, split, pattern, hereString, conditionalPattern, regexAppend, hereDocument, false, assignmentStart);
+        if (values.length > this.budget.limits.maxExpansionFields - fields.length) this.budget.fail("maxExpansionFields");
+        for (const value of values) {
+          const size = shellValueByteLength(value);
+          if (size > this.budget.limits.maxExpansionBytes - bytes) this.budget.fail("maxExpansionBytes");
+          bytes += size;
+          io[valueScope]?.reserve(32 + (typeof value === "string" ? value.length * 2 : 0), 0);
+          fields.push(value);
+        }
+      }
+      return fields;
+    }
+    const arrayOwned = word.parts.some(part => part.kind === "variable" && !part.prefixNames && (getArraySelector(part) !== undefined || arrayStore(state)?.get(part.name) !== undefined || (part.indirect || state.variableAttributes?.get(part.name)?.includes("n")) && state.variables[part.name]?.includes("[") === true));
+    const prefixOwned = word.parts.some(part => part.kind === "variable" && (part.prefixNames === "@" || (part.transform || memberPatternOperators.includes(part.operator ?? "")) && part.name === "@"));
+    const positionalOwned = split && word.parts.some(part => part.kind === "variable" && part.name === "@" && part.quoted && !part.length && (!part.operator || defaultParameterOperators.includes(part.operator)) && !part.transform);
+    const owner = arrayOwned ? requireArrays(state).owner : undefined;
+    const holding = owner?.hold();
+    const scratch = !owner && split && state.variables.IFS !== "" && word.parts.some(part => !part.quoted && part.kind !== "text")
+      ? this.budget.values.scope() : undefined;
+    try {
+    if (owner) await this.prepareArrayObservers(state, owner);
+    owner?.reserve({ metadata: 128 + word.parts.length * 32, allocatedSlots: word.parts.length + 1, work: word.parts.length + 5 });
+    scratch?.reserve(word.parts.length * 32, 0);
+    const fields: { fragments: ShellValue[]; bytes: boolean; patterns: string[] | undefined; present: boolean; independentPresence: boolean; quoteGroups?: object[] }[] = [];
+    let emptyNameGroups: Set<object> | undefined;
+    let quoteGroup: object | undefined;
+    let splitBoundary = false;
+    const addField = (): void => {
+      splitBoundary = false;
+      if (fields.length >= this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
+      scratch?.reserve(32, 0);
+      owner?.reserve({ metadata: 32, allocatedSlots: 1, work: 3 });
+      fields.push({ fragments: [], bytes: false, patterns: undefined, present: false, independentPresence: false });};
+    addField();
+    let expansionBytes = 0;
+    const append = (value: ShellValue, glob: boolean, present: boolean) => {
+      if (splitBoundary && present) addField();
+      const text = shellValueText(value);
+      const size = shellValueByteLength(value);
+      if (size > this.budget.limits.maxExpansionBytes - expansionBytes) this.budget.fail("maxExpansionBytes");
+      expansionBytes += size;
+      const field = fields.at(-1)!;
+      let escapes = 0;
+      if (!glob) {
+        const special = (conditionalPattern || state.extglob) ? "\\*?[]-^()|+!@:" : "\\*?[]-^!:";
+        for (const character of text) if (special.includes(character)) escapes++;
+      }
+      scratch?.reserve(32, 0);
+      if (owner) owner.reserve({ payload: size + (escapes ? size + escapes : 0), metadata: 64, work: text.length + 8 });
+      if (escapes) {
+        scratch?.reserve((field.patterns ? 32 : 32 * (field.fragments.length + 1)) + (text.length + escapes) * 2, 0);
+        field.patterns ??= field.fragments.map(shellValueText);
+        field.patterns.push(text.replace((conditionalPattern || state.extglob) ? /[\\*?[\]\-^()|+!@:]/gu : /[\\*?[\]\-^!:]/gu, "\\$&"));
+      } else if (field.patterns) {
+        scratch?.reserve(32, 0);
+        field.patterns.push(text);
+      }
+      if (typeof value !== "string" || field.bytes) {
+        if (!scratch) io[valueScope]?.reserve(32 * (field.bytes ? 1 : field.fragments.length + 1), field.bytes ? 1 : field.fragments.length + 1);
+        if (typeof value !== "string") io[valueScope]?.hold(value);
+        field.bytes = true;
+      }
+      regexAppend?.(text, !glob, value);
+      field.fragments.push(value);
+      field.present ||= present;
+      if (present) {
+        if (size > 0 || !quoteGroup) field.independentPresence = true;
+        else {
+          io[valueScope]?.reserve(32, 0);
+          field.quoteGroups ??= [];
+          field.quoteGroups.push(quoteGroup);
+        }
+      }};
+    const appendSplit = async (value: ShellValue): Promise<void> => {
+      this.budget.cpuCheckpoint();
+      if (shellValueByteLength(value) === 0) return;
+      const separators = state.variables.IFS ?? " \t\n";
+      const retainedSeparators = stateMonitor(state)?.values.get("IFS", separators) ?? separators;
+      let byteSeparators = false;
+      if (byteLocale(state.variables) && typeof retainedSeparators === "string") {
+        const work = this.splitWork ??= { scanned: 0 };
+        for (let index = 0; index < retainedSeparators.length; index++) {
+          if (retainedSeparators.charCodeAt(index) > 127) { byteSeparators = true; break; }
+          if (++work.scanned >= 4096) { work.scanned = 0; await yieldTurn(this.signal); }
+        }
+      }
+      if (typeof value !== "string" || typeof retainedSeparators !== "string" || byteSeparators) {
+        for await (const piece of this.splitRawValue(value, retainedSeparators, io, byteLocale(state.variables))) {
+          if (piece.separator) {
+            if (!piece.whitespace) { splitBoundary = false; fields.at(-1)!.present = true; addField(); } else if (fields.at(-1)!.present) splitBoundary = true;
+          } else {
+            if (splitBoundary) addField();
+            splitBoundary = false;
+            append(piece.value, true, true);
+          }
+        }
+        return;
+      }
+      const separatorScope = this.budget.values.scope();
+      try {
+      separatorScope.reserve(64, 0);
+      const points = new Set<number>();
+      const addSeparator = (point: number): void => {
+        if (points.has(point)) return;
+        separatorScope.reserve(32, 0);
+        points.add(point);};
+      let asciiSeparators = true;
+      const work = this.splitWork ??= { scanned: 0 };
+      for (let index = 0; index < separators.length; index++) {
+        const unit = separators.charCodeAt(index);
+        asciiSeparators &&= unit <= 127;
+        addSeparator(unit);
+        addSeparator(separators.codePointAt(index)!);
+        if (++work.scanned >= 4096) {
+          work.scanned = 0;
+          await yieldTurn(this.signal);
+        }
+      }
+      for await (const piece of this.splitValue(value, points, asciiSeparators, io, scratch)) {
+        const point = typeof piece === "string" ? piece.codePointAt(0) : undefined;
+        if (typeof piece === "string" && point !== undefined && piece.length === (point > 0xffff ? 2 : 1) && points.has(point)) {
+          if (!" \t\n".includes(piece)) {
+            splitBoundary = false;
+            fields.at(-1)!.present = true;
+            addField();
+          } else if (fields.at(-1)!.present) splitBoundary = true;
+        } else {
+          if (splitBoundary) addField();
+          splitBoundary = false;
+          append(piece, true, true);
+        }
+      }
+      } finally { separatorScope.close(); }};
+    const parts = (hereDocument ? word.parts : expandTildes(word.parts, state.variables, this.budget, assignmentStart)).map((part) => ({ part, splitText: false, io }));
+    for (let index = 0; index < parts.length; index++) {
+      let { part } = parts[index]!;
+      const { splitText, io: partIO } = parts[index]!;
+      part = await this.resolveParameter(part, state, partIO);
+      quoteGroup = prefixNameQuoteGroups.get(part);
+      const quotedPresence = part.quoted && !((arrayOwned || prefixOwned || positionalOwned) && isQuoteMarker(part));
+      const selector = getArraySelector(part);
+      const defaultMembers = part.kind === "variable" && defaultParameterOperators.includes(part.operator ?? "")
+        ? selector?.kind === "members" ? await this.arrayMembers(part.name, state, partIO) : part.name === "@" ? this.positionalValues(state) : undefined : undefined;
+      const expandMembers = !defaultMembers || defaultMembers.length > 0 && !(part.kind === "variable" && part.operator!.endsWith("+"));
+      if (part.kind === "variable" && ["-", "+", ":-", ":+"].includes(part.operator ?? "") && (part.name === "@" || /^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(part.name))) {
+        let value: ShellValue | undefined = part.indirect && state.variableAttributes?.get(part.name)?.includes("n")
+          ? state.variables[part.name] === undefined ? undefined : this.referenceName(state, part.name)
+          : this.variable(state, part.name);
+        if (defaultMembers) {
+          value = defaultMembers.length ? part.name === "@" && defaultMembers.length === 1 ? defaultMembers[0] : "set" : undefined;
+        } else if (selector?.kind === "element") {
+          const binding = arrayStore(state)?.get(part.name);
+          const index = binding?.associative
+            ? await this.arrayIndex(binding, selector.index, state, partIO, requireArrays(state).owner)
+            : numericIndex(selector.index, 4294967295);
+          if (index === undefined && !binding?.associative) throw new ArrayFailure("index outside 0..4294967295");
+          value = binding ? index === undefined ? undefined : binding.getValue(index)
+            : part.name === "FUNCNAME" && state.variables.FUNCNAME === undefined ? (index === undefined ? undefined : state.functionNames?.[index])
+            : index === 0 ? value : undefined;
+        }
+        const missing = value === undefined || (part.operator!.startsWith(":") && shellValueByteLength(value) === 0);
+        if (part.operator!.endsWith("+") ? !missing : missing) {
+          const operandIO = this.parameterOperandIO(part.alternate!, state, partIO);
+          scratch?.reserve(part.alternate!.parts.length * 32, 0);
+          const alternate = (part.quoted ? part.alternate!.parts : expandTildes(part.alternate!.parts, state.variables, this.budget)).map((entry) => ({ part: copyArraySelector(entry, { ...entry, quoted: entry.quoted || part.quoted }), splitText: true, io: operandIO }));
+          if (!alternate.length && part.quoted) append("", false, true);
+          parts.splice(index + 1, 0, ...alternate);
+          continue;
+        }
+      }
+      if (part.kind === "variable" && part.prefixNames === "@" && split && (part.quoted || state.variables.IFS === "")) {
+        let position = 0;
+        for await (const name of this.prefixNames(part.name, state)) {
+          if (position++) addField();
+          append(name, !part.quoted, true);
+        }
+        if (position === 0 && quoteGroup) {
+          io[valueScope]?.reserve(32, 0);
+          emptyNameGroups ??= new Set<object>();
+          emptyNameGroups.add(quoteGroup);
+        }
+      } else if (part.kind === "variable" && (part.transform === "a" || part.transform === "A" || part.transform === "K" || part.transform === "k")) {
+        if (part.transform === "k" && selector?.kind === "members" && split && (part.quoted && selector.separator === "@" || !part.quoted)) {
+          const name = this.referenceName(state, part.name);
+          const binding = arrayStore(state)?.get(name);
+          const tokens: string[] = [];
+          if (binding) {
+            for (const idx of [...binding.values.keys()].sort((l, r) => l - r)) {
+              const k = binding.associative ? binding.keys.get(binding.keyByIndex.get(idx)!)!.text.value : String(idx);
+              const v = shellValueText(binding.getValue(idx) ?? "");
+              tokens.push(k, v);
+            }
+          } else if (state.variables[name] !== undefined) tokens.push("0", state.variables[name]!);
+          for (let pos = 0; pos < tokens.length; pos++) {
+            if (pos > 0) addField();
+            append(tokens[pos]!, !part.quoted, true);
+          }
+        } else {
+          const value = await this.variableMetaTransform(part, state, partIO);
+          if (part.quoted || !split || state.variables.IFS === "") append(value, !part.quoted, quotedPresence || !split || shellValueByteLength(value) > 0);
+          else await appendSplit(value);
+        }
+      } else if (part.kind === "variable" && split && expandMembers && (selector && selector.kind !== "element" && !part.length && (selector.kind === "members" ? !part.quoted || selector.separator === "@" : selector.separator === "@" && (part.quoted || state.variables.IFS === "")) || (part.transform || memberPatternOperators.includes(part.operator ?? "")) && part.name === "@" || (part.substring || !part.operator && !part.transform && !part.length) && !part.quoted && state.variables.IFS === "" && (part.name === "@" || part.name === "*"))) {
+        const members = selector && selector.kind !== "element" ? await this.arrayMembers(part.name, state, io, selector.kind === "keys" || part.keys === true, part.substring) : part.substring ? await this.positionalSlice(part, state, partIO) : this.positionalValues(state);
+        if (selector?.kind === "members" && !part.quoted && state.variables.IFS !== "" && !part.transform && !part.operator) {
+          await appendSplit(await this.arrayJoin(requireArrays(state).owner, members, this.ifsSeparator(state, partIO)));
+          continue;
+        }
+        for (let position = 0; position < members.length; position++) {
+          if (position > 0) addField();
+          const original = members[position]!;
+          const value = part.transform ? await this.transformValue(original, part.transform, state, partIO) : memberPatternOperators.includes(part.operator ?? "") ? await this.parameterPattern(part, original, state, partIO, hereString) : original;
+          if (part.quoted || state.variables.IFS === "") append(value, !part.quoted, part.quoted || shellValueByteLength(value) > 0);
+          else await appendSplit(value);
+        }
+        if ((part.transform || memberPatternOperators.includes(part.operator ?? "")) && members.length === 0 && quoteGroup) {
+          io[valueScope]?.reserve(32, 0);
+          emptyNameGroups ??= new Set<object>();
+          emptyNameGroups.add(quoteGroup);
+        }
+      } else if (part.kind === "text" && !splitText) {
+        const value: ShellValue = invokedValues.get(part) ?? part.byteValue ?? part.value;
+        append(value, !part.quoted, quotedPresence || shellValueByteLength(value) > 0);
+      } else if (part.kind === "variable" && part.name === "@" && part.quoted && !part.length && (!part.operator || defaultMembers && expandMembers) && !part.transform && split) {
+        const members = part.substring ? await this.positionalSlice(part, state, partIO) : this.positionalValues(state);
+        for (let position = 0; position < members.length; position++) {
+          if (position > 0) addField();
+          append(members[position]!, false, true);
+        }
+      } else {
+        const value = part.kind === "text" ? part.byteValue ?? part.value : await this.valuePart(part, state, partIO, hereString, split, hereDocument);
+        if (part.quoted || !split || state.variables.IFS === "") append(value, !part.quoted, quotedPresence || !split || shellValueByteLength(value) > 0);
+        else await appendSplit(value);
+      }
+      if (fields.length > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
+      if (owner) await owner.ledger.checkpoint(this.signal);
+    }
+    const result: ShellValue[] = [];
+    let resultBytes = 0;
+    for (const field of fields) {
+      if (!field.present && split) continue;
+      if (split && !field.independentPresence && field.quoteGroups) {
+        const work: StringWork = { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
+        let empty = true;
+        for (const group of field.quoteGroups) {
+          const pending = stringCheckpoint(work);
+          if (pending) await pending;
+          if (!emptyNameGroups?.has(group)) { empty = false; break; }
+        }
+        if (empty) continue;
+      }
+      if (scratch && field.fragments.length > 1 && !field.bytes) scratch.reserve(field.fragments.reduce((bytes, value) => bytes + shellValueText(value).length * 2, 0), 0);
+      const assembled = concatShellValues(field.fragments, io[valueScope]);
+      const projection = shellValueText(assembled);
+      if (field.bytes && field.fragments.length > 1 && !field.patterns) {
+        scratch?.reserve(field.fragments.length * 32, 0);
+        field.patterns = field.fragments.map(shellValueText);
+      }
+      if (scratch && field.patterns && field.patterns.length > 1) scratch.reserve(field.patterns.reduce((bytes, text) => bytes + text.length * 2, 0), 0);
+      const fieldPattern = field.patterns ? field.patterns.join("") : projection;
+      const expanded = split ? await this.glob(projection, fieldPattern, state) : [pattern ? fieldPattern : projection];
+      for (const text of expanded) {
+        if (result.length >= this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
+        const value = !pattern && expanded.length === 1 && text === projection ? assembled : text;
+        const size = shellValueByteLength(value);
+        if (size > this.budget.limits.maxExpansionBytes - resultBytes) this.budget.fail("maxExpansionBytes");
+        resultBytes += size;
+        scratch?.reserve(32, 0);
+        owner?.reserve({ metadata: 32, allocatedSlots: 1, work: 3 });
+        result.push(value);
+      }
+      if (result.length > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
+    }
+    return result;
+    } finally { scratch?.close(); holding?.release(); }
+  }
+  private splitWork?: { scanned: number };
+  private async *splitValue(value: ShellValue, separators: ReadonlySet<number>, asciiSeparators: boolean, io: IO, scratch?: ValueScope): AsyncGenerator<ShellValue> {
+    this.budget.cpuCheckpoint();
+    const work = this.splitWork ??= { scanned: 0 };
+    if (typeof value === "string" || !asciiSeparators) {
+      const text = shellValueText(value);
+      const slice = (start: number, end: number): string => {
+        if (start === 0 && end === text.length) return text;
+        scratch?.reserve((end - start) * 2, 0);
+        return text.slice(start, end);};
+      let start = 0;
+      for (let index = 0; index < text.length;) {
+        const point = text.codePointAt(index)!;
+        const character = String.fromCodePoint(point);
+        const end = index + character.length;
+        if (separators.has(point)) {
+          if (start < index) yield slice(start, index);
+          yield character;
+          start = end;
+        } else if (end - start >= 4096) {
+          yield slice(start, end);
+          start = end;
+        }
+        work.scanned += character.length;
+        index = end;
+        if (work.scanned >= 4096) {
+          work.scanned = 0;
+          await yieldTurn(this.signal);
+        }
+      }
+      if (start < text.length) yield slice(start, text.length);
+      return;
+    }
+    const bytes = shellValueBytes(value, io[valueScope]);
+    let start = 0;
+    for (let index = 0; index < bytes.length; index++) {
+      if (++work.scanned >= 4096) {
+        work.scanned = 0;
+        await yieldTurn(this.signal);
+      }
+      const byte = bytes[index]!;
+      if (byte > 127 || !separators.has(byte)) continue;
+      if (start < index) yield shellValueFromBytes(bytes.subarray(start, index), io[valueScope]);
+      yield String.fromCharCode(byte);
+      start = index + 1;
+    }
+    if (start < bytes.length) yield start === 0 ? value : shellValueFromBytes(bytes.subarray(start), io[valueScope]);
+  }
+  private async *splitRawValue(value: ShellValue, separators: ShellValue, io: IO, byteCount: boolean): AsyncGenerator<{ value: ShellValue; separator: boolean; whitespace: boolean }> {
+    if (typeof value === "string" && typeof separators === "string" && !byteCount) {
+      for (const character of value) yield { value: character, separator: separators.includes(character), whitespace: " \t\n".includes(character) };
+      return;
+    }
+    const work = this.splitWork ??= { scanned: 0 };
+    const bytes = shellValueBytes(value, io[valueScope]);
+    const delimiters = shellValueBytes(separators, io[valueScope]);
+    const key = (input: Uint8Array, offset: number, length: number): number => {
+      let result = 1;
+      for (let index = offset; index < offset + length; index++) result = result * 257 + input[index]!;
+      return result;};
+    const keys = new Set<number>();
+    for (let offset = 0; offset < delimiters.length;) {
+      const length = shellCharacterWidth(delimiters, offset, byteCount);
+      const token = key(delimiters, offset, length);
+      if (!keys.has(token)) { io[valueScope]?.reserve(32, 1); keys.add(token); }
+      for (let index = offset; index < offset + length; index++) {
+        const byteKey = key(delimiters, index, 1);
+        if (!keys.has(byteKey)) { io[valueScope]?.reserve(32, 1); keys.add(byteKey); }
+      }
+      offset += length;
+      work.scanned += length;
+      if (work.scanned >= 4096) { work.scanned = 0; await yieldTurn(this.signal); }
+    }
+    let start = 0;
+    for (let offset = 0; offset < bytes.length;) {
+      const length = shellCharacterWidth(bytes, offset, byteCount);
+      if (keys.has(key(bytes, offset, length))) {
+        if (start < offset) yield { value: shellValueFromBytes(bytes.subarray(start, offset), io[valueScope]), separator: false, whitespace: false };
+        yield { value: "", separator: true, whitespace: length === 1 && (bytes[offset] === 32 || bytes[offset] === 9 || bytes[offset] === 10) };
+        start = offset + length;
+      }
+      offset += length;
+      work.scanned += length;
+      if (work.scanned >= 4096) { work.scanned = 0; await yieldTurn(this.signal); }
+    }
+    if (start < bytes.length) yield { value: start === 0 ? value : shellValueFromBytes(bytes.subarray(start), io[valueScope]), separator: false, whitespace: false };
+  }
+  positionalValues(state: State): ShellValue[] {
+    const store = stateMonitor(state)?.positionals;
+    if (!store || !store.hasObjectValues()) return state.positional.slice();
+    return state.positional.map((text, index) => store.get(String(index), text));
+  }
+  replacePositionals(state: State, values: readonly ShellValue[], action?: () => void, initialArg0?: ShellValue): void {
+    const publish = action ?? (() => { state.positional = values.map(shellValueText); });
+    const store = stateMonitor(state)?.positionals;
+    if (store) {
+      const zero = initialArg0 ?? store.get(zeroPositionKey, state.arg0 ?? "virtual-bash");
+      let allStrings = typeof zero === "string";
+      if (allStrings) {
+        for (let i = 0; i < values.length; i++) {
+          if (typeof values[i] !== "string") { allStrings = false; break; }
+        }
+      }
+      if (allStrings) {
+        store.replaceStrings(values as readonly string[], action ?? (() => { state.positional = values as string[]; }));
+        return;
+      }
+      const entries: (readonly [string, ShellValue])[] = values.map((value, index) => [String(index), value] as const);
+      if (typeof zero !== "string") entries.push([zeroPositionKey, zero]);
+      store.replace(entries, publish);
+    } else publish();
+  }
+  private admitArguments(values: readonly ShellValue[], allocation: ValueScope): CommandArguments {
+    if (!values.some(value => typeof value !== "string")) return createCommandArguments(values);
+    if (values.length > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
+    for (const value of values) if (typeof value !== "string") allocation.hold(value);
+    return createCommandArguments(values, allocation);
+  }
+  private async positionalSlice(part: Extract<WordPart, { kind: "variable" }>, state: State, io: IO): Promise<ShellValue[]> {
+    const evaluate = async (word: Word): Promise<bigint> => {
+      const fields = await this.valueWord(word, state, this.parameterOperandIO(word, state, io), false);
+      const source = shellValueText(concatShellValues(fields, io[valueScope]));
+      return this.arithmeticValue(prepareArithmetic(source || "0", this.budget.parsing), state, io);};
+    let offset = await evaluate(part.substring!.offset);
+    if (offset < 0n) offset += BigInt(state.positional.length + 1);
+    if (offset < 0n || offset > BigInt(state.positional.length)) return [];
+    const count = part.substring!.length ? await evaluate(part.substring!.length) : undefined;
+    if (count !== undefined && count < 0n) throw new ExpansionFailure("substring expression < 0", io.diagnosticLine ?? part.line);
+    if (count === 0n) return [];
+    const end = count === undefined ? state.positional.length + 1 : Number(offset + count > BigInt(state.positional.length + 1) ? BigInt(state.positional.length + 1) : offset + count);
+    const values: ShellValue[] = [];
+    for (let index = Number(offset); index < end; index++) {
+      if (values.length >= this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
+      io[valueScope]?.reserve(32, 0);
+      const text = index === 0 ? state.arg0 ?? "virtual-bash" : state.positional[index - 1]!;
+      values.push(stateMonitor(state)?.positionals.get(index === 0 ? zeroPositionKey : String(index - 1), text) ?? text);
+      if (index % 4096 === 0) await yieldTurn(this.signal);
+    }
+    return values;
+  }
+  async arrayMembers(name: string, state: State, io: IO, keys = false, substring?: Extract<WordPart, { kind: "variable" }>["substring"]): Promise<ShellValue[]> {
+    const store = requireArrays(state);
+    const holding = store.owner.hold();
+    try {
+    const binding = store.get(name);
+    let offset = 0n;
+    let count: bigint | undefined;
+    if (substring) {
+      const evaluate = async (word: Word): Promise<bigint> => {
+        const fields = await this.valueWord(word, state, this.parameterOperandIO(word, state, io), false);
+        const source = shellValueText(concatShellValues(fields, io[valueScope]));
+        return this.arithmeticValue(prepareArithmetic(source || "0", this.budget.parsing), state, io);};
+      offset = await evaluate(substring.offset);
+      const maximum = binding?.maximum ?? (name === "FUNCNAME" && state.variables.FUNCNAME === undefined ? (state.functionNames?.length ?? 0) - 1 : state.variables[name] === undefined ? -1 : 0);
+      if (offset < 0n) offset += BigInt(maximum + 1);
+      if (substring.length) {
+        count = await evaluate(substring.length);
+        if (count < 0n) throw new ExpansionFailure("substring expression < 0", io.diagnosticLine);
+      }
+    }
+    store.owner.reserve({ metadata: 64, work: 3 });
+    if (offset < 0n || count === 0n) return [];
+    if (!binding) {
+      if (name === "FUNCNAME" && state.variables.FUNCNAME === undefined) {
+        const stack = state.functionNames ?? [];
+        const start = Number(offset);
+        const end = count === undefined ? stack.length : start + Number(count);
+        const sliced = stack.slice(start, end);
+        return keys ? sliced.map((_v, idx) => String(start + idx)) : sliced;
+      }
+      const text = state.variables[name];
+      const value = text === undefined ? undefined : keys ? "0" : stateMonitor(state)?.values.get(name, text) ?? text;
+      if (value === undefined || offset > 0n) return [];
+      store.owner.reserve({ metadata: 32, allocatedSlots: 1, work: 3 });
+      await textToken(store.owner, value, this.signal);
+      return [keys ? "0" : value];
+    }
+    binding.retain();
+    try {
+      const indices = await binding.indices(store.owner, this.signal);
+      const values: ShellValue[] = [];
+      for (const index of indices) {
+        if (BigInt(index) < offset) continue;
+        if (count !== undefined && BigInt(values.length) >= count) break;
+        store.owner.reserve({ metadata: 32, allocatedSlots: 1, work: 4 });
+        const value = keys ? binding.associative ? binding.keys.get(binding.keyByIndex.get(index)!)!.text.shellValue : String(index) : binding.getValue(index)!;
+        await textToken(store.owner, value, this.signal);
+        values.push(value);
+        await store.owner.ledger.checkpoint(this.signal);
+      }
+      return values;
+    } finally { await binding.release(); }
+    } finally { holding.release(); }
+  }
+  private async recursiveGlob(value: string, pattern: string, state: State): Promise<string[]> {
+    const failWalk = (message: string): never => {
+      const error = new FsError("EFBIG", { syscall: "glob", message });
+      this.budget.abort(error);
+      throw error;};
+    const work: StringWork = { remaining: Math.min(Number.MAX_SAFE_INTEGER, this.budget.limits.maxExpansionBytes * 4 + 1024), signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
+    const scratch = this.budget.values.scope();
+    work.allocation = scratch;
+    type Candidate = { path: string; bytes: number; descend: boolean; depth: number };
+    try {
+      const segments: string[] = [];
+      let start = 0;
+      for (let end = 0; end <= pattern.length; end++) {
+        const pending = stringCheckpoint(work);
+        if (pending) await pending;
+        if (end !== pattern.length && pattern[end] !== "/") continue;
+        if (end > start) {
+          const bytes = (await scanString(pattern, work, start, end)).bytes;
+          if (++this.budget.globstarStates > this.budget.limits.maxGlobstarStates) failWalk("globstar traversal state limit exceeded");
+          scratch.reserveBytes(bytes * 2 + 64);
+          segments.push(pattern.slice(start, end));
+        }
+        start = end + 1;
+      }
+      const make = (parent: Candidate, suffix: string, bytes: number, descend: boolean, depth: number): Candidate => {
+        const separator = parent.path && parent.path !== "/" ? "/" : "";
+        const size = parent.bytes + separator.length + bytes;
+        if (size > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
+        if (++this.budget.globstarStates > this.budget.limits.maxGlobstarStates) failWalk("globstar traversal state limit exceeded");
+        if (depth > this.budget.limits.maxGlobstarDepth) failWalk("globstar directory depth limit exceeded");
+        // Includes the candidate, queue/map/set slots and later segment-array
+        // references. Reservations remain cumulative until this glob settles.
+        scratch.reserveBytes(size * 2 + 128);
+        return { path: parent.path + separator + suffix, bytes: size, descend, depth };};
+      const empty: Candidate = { path: "", bytes: 0, descend: true, depth: 0 };
+      let candidates = [make(empty, pattern.startsWith("/") ? "/" : "", pattern.startsWith("/") ? 1 : 0, true, 0)];
+      const ignored = (error: unknown): boolean => {
+        this.signal.throwIfAborted();
+        return ["ENOENT", "ENOTDIR", "EACCES", "EINVAL"].includes(errorCode(error) ?? "");};
+      const read = async (candidate: Candidate) => {
+        const maxEntries = this.budget.limits.maxGlobstarEntries - this.budget.globstarEntries;
+        let entries;
+        try { entries = await interruptible(this.fs.readdir(pathOf(state, candidate.path || "."), { signal: this.signal, ...(Number.isFinite(maxEntries) ? { maxEntries } : {}) }), this.signal); }
+        catch (error) {
+          this.signal.throwIfAborted();
+          if (errorCode(error) === "EFBIG") this.budget.abort(error);
+          throw error;
+        }
+        this.signal.throwIfAborted();
+        if (entries.length > maxEntries) failWalk("globstar directory entry limit exceeded");
+        this.budget.globstarEntries += entries.length;
+        return entries;};
+      let wildcardPrefix = false;
+      for (let index = 0; index < segments.length; index++) {
+        const segment = segments[index]!;
+        const terminal = index === segments.length - 1;
+        const next = new Map<string, Candidate>();
+        const add = (candidate: Candidate): void => {
+          const prior = next.get(candidate.path);
+          if (!prior || candidate.descend && !prior.descend) next.set(candidate.path, candidate);};
+        if (segment === "**") {
+          const visited = new Set<string>();
+          for (const root of candidates) {
+            this.signal.throwIfAborted();
+            try {
+              if ((await interruptible(this.fs.stat(pathOf(state, root.path || "."), { signal: this.signal }), this.signal)).type !== "directory") continue;
+            } catch (error) { if (ignored(error)) continue; throw error; }
+            if (!terminal || root.path) {
+              add(terminal && !wildcardPrefix && root.path !== "/" ? make(root, "", 0, root.descend, root.depth) : root);
+            }
+            const queue = root.descend ? [root] : [];
+            while (queue.length) {
+              const directory = queue.pop()!;
+              if (visited.has(directory.path)) continue;
+              visited.add(directory.path);
+              let entries;
+              try { entries = await read(directory); }
+              catch (error) { if (ignored(error)) continue; throw error; }
+              for (const entry of entries) {
+                const pending = stringCheckpoint(work);
+                if (pending) await pending;
+                if (entry.name === "." || entry.name === ".." || !state.dotglob && entry.name.startsWith(".")) continue;
+                const bytes = (await scanString(entry.name, work)).bytes;
+                const child = make(directory, entry.name, bytes, entry.type === "directory", directory.depth + (entry.type === "directory" ? 1 : 0));
+                if (terminal || entry.type === "directory" || entry.type === "symlink" && root.path !== "") add(child);
+                if (entry.type === "directory") queue.push(child);
+              }
+            }
+          }
+          wildcardPrefix = true;
+        } else if (segment === "." || segment === ".." || !state.nocaseglob && !(state.extglob ? /(?:^|[^\\])(?:\\\\)*(?:[*?[]|[?*+@!]\()/u.test(segment) : /(?:^|[^\\])(?:\\\\)*[*?[]/u.test(segment))) {
+          const literal = segment.replace(/\\(.)/gu, "$1");
+          const bytes = (await scanString(literal, work)).bytes;
+          for (const candidate of candidates) add(make(candidate, literal, bytes, true, candidate.depth));
+        } else {
+          const matches = await compilePattern(segment, work, !!state.nocaseglob, !!state.extglob);
+          for (const candidate of candidates) {
+            let entries;
+            try { entries = await read(candidate); }
+            catch (error) { if (ignored(error)) continue; throw error; }
+            for (const entry of entries) {
+              const pending = stringCheckpoint(work);
+              if (pending) await pending;
+              if (entry.name !== "." && entry.name !== ".." && (state.dotglob || !entry.name.startsWith(".") || segment.startsWith(".")) && await matches(entry.name)) add(make(candidate, entry.name, (await scanString(entry.name, work)).bytes, true, candidate.depth));
+            }
+          }
+          wildcardPrefix = true;
+        }
+        candidates = [...next.values()];
+      }
+      const found: string[] = [];
+      let outputBytes = 0;
+      for (const candidate of candidates) {
+        this.signal.throwIfAborted();
+        try {
+          const path = pathOf(state, candidate.path);
+          const stat = await interruptible(value.endsWith("/") ? this.fs.stat(path, { signal: this.signal }) : this.fs.lstat(path, { signal: this.signal }), this.signal);
+          if (value.endsWith("/") && stat.type !== "directory") continue;
+          const slash = value.endsWith("/") && !candidate.path.endsWith("/") ? "/" : "";
+          if (found.length >= this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
+          outputBytes += candidate.bytes + slash.length;
+          if (outputBytes > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
+          scratch.reserveBytes(candidate.bytes * 2 + slash.length + 8);
+          found.push(candidate.path + slash);
+        } catch (error) { if (!ignored(error)) throw error; }
+      }
+      await sortExpansionStrings(found, work, true);
+      if (!found.length && state.failglob) throw new FailglobFailure(`no match: ${value}`);
+      return found.length ? found : state.nullglob ? [] : [value];
+    } finally { scratch.close(); }
+  }
+  async glob(value: string, pattern: string, state: State): Promise<string[]> {
+    if (state.noglob) return [value];
+    if (!(state.extglob ? /(?:^|[^\\])(?:\\\\)*(?:[*?[]|[?*+@!]\()/u.test(pattern) : /(?:^|[^\\])(?:\\\\)*[*?[]/u.test(pattern))) return [value];
+    if (state.globstar) {
+      const work: StringWork = { remaining: Math.min(Number.MAX_SAFE_INTEGER, this.budget.limits.maxExpansionBytes * 4 + 1024), signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
+      let start = 0;
+      for (let end = 0; end <= pattern.length; end++) {
+        const pending = stringCheckpoint(work);
+        if (pending) await pending;
+        if (end !== pattern.length && pattern[end] !== "/") continue;
+        if (end - start === 2 && pattern[start] === "*" && pattern[start + 1] === "*") return this.recursiveGlob(value, pattern, state);
+        start = end + 1;
+      }
+    }
+    const absolute = pattern.startsWith("/");
+    const work: StringWork = { remaining: Math.min(Number.MAX_SAFE_INTEGER, this.budget.limits.maxExpansionBytes * 4 + 1024), signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
+    let candidates = [absolute ? "/" : ""];
+    let candidateTypes: FileType[] | undefined;
+    for (const segment of pattern.split("/").filter((segment) => segment.length > 0)) {
+      const next: string[] = [];
+      let nextTypes: FileType[] | undefined;
+      let candidateBytes = 0;
+      const addCandidate = (candidate: string, type?: FileType): void => {
+        const size = shellValueByteLength(candidate);
+        if (size > this.budget.limits.maxExpansionBytes - candidateBytes) this.budget.fail("maxExpansionBytes");
+        candidateBytes += size;
+        next.push(candidate);
+        if (type !== undefined) (nextTypes ??= []).push(type);
+        if (next.length > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");};
+      if (segment === "." || segment === ".." || !state.nocaseglob && !(state.extglob ? /(?:^|[^\\])(?:\\\\)*(?:[*?[]|[?*+@!]\()/u.test(segment) : /(?:^|[^\\])(?:\\\\)*[*?[]/u.test(segment))) {
+        const literal = segment.replace(/\\(.)/gu, "$1");
+        for (const candidate of candidates) addCandidate(`${candidate}${candidate && candidate !== "/" ? "/" : ""}${literal}`);
+        candidateTypes = undefined;
+      } else {
+        nextTypes = [];
+        const scratch = this.budget.values.scope();
+        work.allocation = scratch;
+        try {
+          const matches = await compilePattern(segment, work, !!state.nocaseglob, !!state.extglob);
+          for (const candidate of candidates) {
+            let entries;
+            try {
+              const pending = this.fs.readdir(pathOf(state, candidate || "."), { signal: this.signal });
+              entries = stateMonitor(state)?.store ? await interruptible(pending, this.signal) : await pending;
+            }
+            catch (error) {
+              this.signal.throwIfAborted();
+              if (["ENOENT", "ENOTDIR", "EACCES", "EINVAL"].includes(errorCode(error) ?? "")) continue;
+              throw error;
+            }
+            for (const entry of entries) {
+              if (entry.name !== "." && entry.name !== ".." && (state.dotglob || Boolean(state.variables.GLOBIGNORE) || !entry.name.startsWith(".") || segment.startsWith(".")) && await matches(entry.name)) {
+                addCandidate(`${candidate}${candidate && candidate !== "/" ? "/" : ""}${entry.name}`, entry.type);
+              }
+            }
+          }
+        } finally { scratch.close(); }
+        candidateTypes = nextTypes;
+      }
+      candidates = next;
+    }
+    const found: string[] = [];
+    const wantDir = value.endsWith("/");
+    const canSkipLstat = this._isMemoryBackingFs && this.canFastMemoryRedirect;
+    for (let ci = 0; ci < candidates.length; ci++) {
+      const candidate = candidates[ci]!;
+      const knownType = canSkipLstat ? candidateTypes?.[ci] : undefined;
+      if (knownType !== undefined && (!wantDir || knownType !== "symlink")) {
+        this.signal.throwIfAborted();
+        this.budget.fileSystemOperation();
+        if (!wantDir || knownType === "directory") found.push(candidate + (wantDir ? "/" : ""));
+        continue;
+      }
+      try {
+        const path = pathOf(state, candidate);
+        const pending = wantDir ? this.fs.stat(path, { signal: this.signal }) : this.fs.lstat(path, { signal: this.signal });
+        const stat = stateMonitor(state)?.store ? await interruptible(pending, this.signal) : await pending;
+        if (!wantDir || stat.type === "directory") found.push(candidate + (wantDir ? "/" : ""));
+      } catch (error) {
+        this.signal.throwIfAborted();
+        if (!["ENOENT", "ENOTDIR", "EACCES", "EINVAL"].includes(errorCode(error) ?? "")) throw error;
+      }
+    }
+    const globIgnore = state.variables.GLOBIGNORE;
+    if (globIgnore && found.length > 0) {
+      const ignorePats = globIgnore.split(":").filter(p => p.length > 0);
+      if (ignorePats.length > 0) {
+        const scratch = this.budget.values.scope();
+        work.allocation = scratch;
+        try {
+          const matchers = await Promise.all(ignorePats.map(p => compilePattern(p, work, !!state.nocaseglob, !!state.extglob)));
+          let writeIdx = 0;
+          for (let fi = 0; fi < found.length; fi++) {
+            const cand = found[fi]!;
+            let ignored = false;
+            for (let mi = 0; mi < matchers.length; mi++) {
+              if (await matchers[mi]!(cand)) { ignored = true; break; }
+            }
+            if (!ignored) found[writeIdx++] = cand;
+          }
+          found.length = writeIdx;
+        } finally { scratch.close(); }
+      }
+    }
+    const sortingWork: StringWork = {
+      remaining: Math.min(Number.MAX_SAFE_INTEGER, this.budget.limits.maxExpansionBytes * 4 * (Math.ceil(Math.log2(found.length + 1)) + 1) + 1024), signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes"), };
+    await sortExpansionStrings(found, sortingWork, true);
+    if (!found.length && state.failglob) throw new FailglobFailure(`no match: ${value}`);
+    return found.length ? found : state.nullglob ? [] : [value];
+  }
+}
+Object.assign(Budget.prototype, {
+  hasInfiniteFsOps: true, canRedirect1: true, maxSourceBytesSmi: 0x3fffffff, maxPipelineStagesSmi: 0x3fffffff, canSyncPurePipe: true, });
+Object.assign(Runtime.prototype, {
+  outcomeFrame: undefined, _fs: undefined, _contextFsMask: -1, _contextFsSignal: undefined, _contextFs: undefined, _redirectFsMask: -1, _redirectFs: undefined, _fileWrites: undefined, _outputFiles: undefined, _syncArithState: undefined, _canFastMemoryRedirect: undefined, _syncArithRawVars: undefined, _syncArithLine: undefined, _syncArithRawWriteOnly: false, _syncArithTouched: undefined, _syncArithRefs: undefined, });
+export class RootShellState implements State {
+  shellStartedAt = Date.now();
+  declare umask: number;
+  declare extensions: ShellExtensionState | undefined;
+  declare cwd: string;
+  declare variables: Record<string, string>;
+  declare _functions: Map<string, Command> | undefined;
+  declare getopts: GetoptsBinding | undefined;
+  declare directoryStack: { entries: string[]; bytes: number } | undefined;
+  declare dotglob: boolean;
+  declare globstar: boolean;
+  declare processSubstitutionIds: { next: number };
+  declare status: number;
+  declare substitutionStatus: number;
+  declare lastArgument: string;
+  declare depth: number;
+  declare loopDepth: number;
+  declare functionDepth: number;
+  declare _exported: Set<string> | undefined;
+  declare _positional: string[] | undefined;
+  declare _locals: Map<string, SavedVariable>[] | undefined;
+  declare pipefail: boolean;
+  declare profile: "bash";
+  declare secondsOrigin: number;
+  constructor( cwd: string, variables: Record<string, string>, exported: Set<string> | undefined, extensions: ShellExtensionState | undefined, ) {
+    this.cwd = cwd;
+    this.variables = variables;
+    this._exported = exported;
+    this.extensions = extensions;
+    this.status = 0;
+    this.substitutionStatus = 0;
+    this.lastArgument = "";
+    this.secondsOrigin = Date.now();
+    this.processSubstitutionIds = { next: 0 };
+  }
+  get exported(): Set<string> {
+    const raw = stateMonitor(this)?.raw as RootShellState | undefined;
+    const target = raw ?? this;
+    if (target._exported === undefined) {
+      const set = new Set<string>();
+      set.add("PWD");
+      target._exported = set;
+    }
+    return target._exported;
+  }
+  set exported(value: Set<string>) {
+    const raw = stateMonitor(this)?.raw as RootShellState | undefined;
+    (raw ?? this)._exported = value;
+  }
+  get positional(): string[] {
+    const raw = stateMonitor(this)?.raw as RootShellState | undefined;
+    return (raw ?? this)._positional ??= [];
+  }
+  set positional(value: string[]) {
+    const raw = stateMonitor(this)?.raw as RootShellState | undefined;
+    (raw ?? this)._positional = value;
+  }
+  get locals(): Map<string, SavedVariable>[] {
+    const raw = stateMonitor(this)?.raw as RootShellState | undefined;
+    return (raw ?? this)._locals ??= [];
+  }
+  set locals(value: Map<string, SavedVariable>[]) {
+    const raw = stateMonitor(this)?.raw as RootShellState | undefined;
+    (raw ?? this)._locals = value;
+  }
+  get functions(): Map<string, Command> {
+    const raw = stateMonitor(this)?.raw as RootShellState | undefined;
+    return (raw ?? this)._functions ??= new Map();
+  }
+  set functions(value: Map<string, Command>) {
+    this._functions = value;
+  }
+}
+Object.assign(RootShellState.prototype, {
+  [monitorSymbol]: undefined, umask: 0o022, extensions: undefined, cwd: "/", variables: undefined, _exported: undefined, _positional: undefined, _locals: undefined, _functions: undefined, getopts: undefined, directoryStack: undefined, dotglob: false, globstar: false, status: 0, substitutionStatus: 0, depth: 0, loopDepth: 0, functionDepth: 0, pipefail: false, profile: "bash", });
+export function hasShellFunction(state: State, name: string): boolean {
+  if (state instanceof RootShellState) return state._functions !== undefined && state._functions.has(name);
+  return state.functions.has(name);
+}
+
+Object.assign(Runtime.prototype, {
+  _syncReturnDepth: 0,
+  _activeSyncLoopHasFileMutations: false,
+  _inSyncLoopPreflight: false,
+  _syncLoopHasStaticInvSub: false,
+  _activePrintfInductionName: undefined,
+  _inPrintfIndFnCheck: false,
+  _syncTouchedPositionals: false,
+  _syncStdoutBatch: "",
+  _syncLoopAction: undefined,
+  _syncLoopFnCheckDepth: 0,
+});

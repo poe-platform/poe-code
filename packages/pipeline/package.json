@@ -1,0 +1,44 @@
+{
+  "name": "@poe-code/pipeline",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./testing": {
+      "types": "./dist/testing/simulation.d.ts",
+      "import": "./dist/testing/simulation.js"
+    }
+  },
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "test": "cd ../.. && vitest run packages/pipeline/src",
+    "test:unit": "cd ../.. && vitest run packages/pipeline/src"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@poe-code/agent-harness-tools": "*",
+    "@poe-code/config-extends": "*",
+    "@poe-code/terminal-name": "*",
+    "@poe-code/user-error": "*",
+    "toolcraft-design": "*",
+    "yaml": "^2.8.2",
+    "@poe-code/safe-fs": "*"
+  },
+  "imports": {
+    "#pipeline-filesystem": {
+      "types": "./src/default-filesystem.ts",
+      "workerd": "./dist/default-filesystem.workerd.js",
+      "browser": "./dist/default-filesystem.workerd.js",
+      "worker": "./dist/default-filesystem.workerd.js",
+      "default": "./dist/default-filesystem.js"
+    }
+  }
+}

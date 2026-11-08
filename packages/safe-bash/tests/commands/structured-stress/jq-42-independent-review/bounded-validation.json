@@ -1,0 +1,1730 @@
+{
+  "recordedAt": "2026-08-27T01:02:29.378Z",
+  "before": {
+    "productSha256": "f6140d9bab41d2ca79dbee102462130da85112fda0e05c319dee709038a13851",
+    "structuredSha256": "66dc67c31edcaf32c63b635b0d559545894ab83751b677750494fa16001ced9c",
+    "files": {
+      "src/commands/archive/create.ts": "cdddce8ccd1d53987fa1a314cdc6e04d48246fa59fd0880fb444c66bdca7199c",
+      "src/commands/archive/extract.ts": "db27fa691b839849b982fecd38eb1196d1c370dc08bae500905d8b62bd533212",
+      "src/commands/archive/format.ts": "30ba491fca428e91e11bc26802f6e69d05f94fdd30ab1c40f5812a4e92827719",
+      "src/commands/archive/index.ts": "6f23a98dbe89bb37f44799f47c365fb430e910f87363c50291f7b44293e416d0",
+      "src/commands/archive/internal.ts": "6e9a204384490607973f7e1109c51a082319b6eed2fecb8f410d9d51711367d9",
+      "src/commands/archive/options.ts": "1c2dc4e57c80901b402f8f08b1a5638b7acad9f882aca67ae4f9be73295bf956",
+      "src/commands/archive/README.md": "a2dad5781d249f9a206739cb7ab36cf77c839abe8ea1222e16abdea953896069",
+      "src/commands/archive/stream.ts": "31a3b70bf7ce89f81e287cac09c6816637bd06dc398010dd82386ce5d93ceba4",
+      "src/commands/basic.ts": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+      "src/commands/bytes/checksums/index.ts": "8aa42545dd80cc028bce529b0719b0af51d11bef5d7117d37ed2e773097834f4",
+      "src/commands/bytes/checksums/README.md": "f1fac999a988b48789368cf46105ef268d432a08fbc4be8f137a7eed90bb218d",
+      "src/commands/bytes/compression/files.ts": "1f8d8b243f10d63ae5cccea40d1d9cfc6cb841a46bea15cc61f4a5caa70572df",
+      "src/commands/bytes/compression/gunzip.ts": "6bf534778fa82558ae36bd96412662a8e4c4e864c0a93f15b40d1148a64f835f",
+      "src/commands/bytes/compression/index.ts": "cb0de2e91261eaf255491fe5dc2e62683ef002e07cddef5827b57527eaaf88f9",
+      "src/commands/bytes/compression/options.ts": "3218bbcba8d3c5c113eb7f4761f81e0919e380c6f3de76b26b6a52c44ba7cd95",
+      "src/commands/bytes/compression/README.md": "970ab6bf5c3c9fc97582d25b508513656aa265e5352ce3be5e77bc2d041c9dc7",
+      "src/commands/bytes/compression/stream.ts": "573157fda5382df052ea30011ff3094ac6c838618e1272689766819777a8c9e4",
+      "src/commands/bytes/encoding/base.ts": "91e4309ca4947fbf3ac0dd9d0dc9431d3d22d29fb66e46706290922c9feb134d",
+      "src/commands/bytes/encoding/index.ts": "6df6b0d7393fd2abb82b476915fc48ae333730c1e9b323a11776a3b9c2607d5f",
+      "src/commands/bytes/encoding/od.ts": "dbe5312675e4ecf74d852e28ac8134be5586d8aa53d5b21a3cccc5d986213a03",
+      "src/commands/bytes/encoding/README.md": "8b73fdf7a5ebc57fa44014a9449dcb767ba48030b29d36d5e37580cdbcdee886",
+      "src/commands/bytes/encoding/shared.ts": "8a0eb870513630296a7f28d7d6867d25aba9b785365b812d740c6d7b4da3d396",
+      "src/commands/bytes/encoding/xxd.ts": "1b78b95a9b0175e5297b988a1794310c03786df5a7aa90a4dd261e91ec765a78",
+      "src/commands/bytes/index.ts": "70643f22b1b47c1d6422b97d76cacf95e4e6337521f6f42e0f5f559bacbed84f",
+      "src/commands/bytes/README.md": "517a12a32591ea36e4d65954cd72f6f446b231414658249f115877b40b7e5053",
+      "src/commands/copy-identity.ts": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe",
+      "src/commands/diff-patch/diff-format.ts": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24",
+      "src/commands/diff-patch/diff.ts": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e",
+      "src/commands/diff-patch/GNU-DIFF.md": "e0e1f1f8e27bc68c991dee2a9e80a230896a6140fa4408e9b7379713dc8b81cb",
+      "src/commands/diff-patch/GNU-PATCH.md": "5e194d1b6dd8481fb7631f56ca3c81fd1e98eb35988d0ea5b1ed7ddde1909605",
+      "src/commands/diff-patch/index.ts": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17",
+      "src/commands/diff-patch/PARSER.md": "5d92f96bb67fdf4a284f6e2e7c802eeeb99d86cf0e4e71fb793c2f5405d66fa6",
+      "src/commands/diff-patch/patch-envelope.ts": "f6a15e78d7cea41d503f5352206efeb9fa950871c820af730cf27ea06ade99e8",
+      "src/commands/diff-patch/patch-formats.ts": "a78045ac43900582bdb19f0476414e8566c4e1e2edc86b654bc760cf86de3aa4",
+      "src/commands/diff-patch/patch-gnu-paths.ts": "3a06d5b33d3c0df12ff83b0bbf4396d90906d6fd61e3ca1bd5537f508c4282af",
+      "src/commands/diff-patch/patch-gnu-reject.ts": "5df12efd994c0187998f0112a5fac595f376142f2cd187a5e0b40738f7b6cf02",
+      "src/commands/diff-patch/patch-path.ts": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94",
+      "src/commands/diff-patch/patch.ts": "b344c6f7b0f6afaccdab75778a12c11c868d7f8bccd5d453c56e552039e619fe",
+      "src/commands/diff-patch/README.md": "b4d2e1edcb0d333af11bca02970ffed3602c6516196cf768b785eb0d6a5ce787",
+      "src/commands/diff-patch/shared.ts": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+      "src/commands/diff-patch/unified.ts": "a8659f40aeb9d1cac3548ffd24950e652eeace92cef1339de9e3a5e5ed7e10fb",
+      "src/commands/execution.ts": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de",
+      "src/commands/filesystem.ts": "2d907d283c0562d965abf7867cfe4839c439f560f80e9feece54706b3ff602c0",
+      "src/commands/find.ts": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+      "src/commands/grep.ts": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+      "src/commands/index.ts": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2",
+      "src/commands/internal.ts": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+      "src/commands/metadata/chmod.ts": "9286ebc9bea074bf9dad58cb6197aa5e10d325c549187eefbc9203ac76b09cfd",
+      "src/commands/metadata/index.ts": "bc4ad8e3fb5474796ff326b1f53b8c1b84cf45647640f8246d4ccfb3b61d467e",
+      "src/commands/metadata/internal.ts": "bd26d6f4a098c565ce38da6bc269503469638837d3dce47e21ac9c1604a45cd7",
+      "src/commands/metadata/mktemp.ts": "1165d822477e68f6b4dfac3db6a7fa43247226137122c0d980e1490b80bc34d4",
+      "src/commands/metadata/README.md": "211ee5e45c207e3dd775fdbfd3a58ef4b676c5c9aed9a13086693e1f3f99be68",
+      "src/commands/metadata/stat.ts": "21f4e1bd5f938f33f41ea9976fbd5b2e00fbe3a7b80cb99c8ecc03131900d860",
+      "src/commands/move.ts": "31e1fe6a2c0fc9efb9efa44b636d9478d4cab273de4c4e809d4f572b28084042",
+      "src/commands/network/args.ts": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c",
+      "src/commands/network/body.ts": "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf",
+      "src/commands/network/curl.ts": "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42",
+      "src/commands/network/index.ts": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329",
+      "src/commands/network/output.ts": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab",
+      "src/commands/network/README.md": "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f",
+      "src/commands/network/shared.ts": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f",
+      "src/commands/network/transport.ts": "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844",
+      "src/commands/network/types.ts": "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9",
+      "src/commands/predicates.ts": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+      "src/commands/README.md": "c541ca716302f6e59c2252ae2a0fcf6d999e93de9d187cc604a7f621e9ca0221",
+      "src/commands/safejs/index.ts": "479c111291e2e181b3ab1a8a41905592ff71b968a691e25f21970eee089d8f29",
+      "src/commands/safejs/io.ts": "ef366f40b1d1d161ec0f2c18f1138daf75693ab416274bb92763ebf73899f2f1",
+      "src/commands/safejs/options.ts": "4009050c3a75daececeb2e75af46be8872d21a83c7a8132b6221b0b4d87c7a43",
+      "src/commands/safejs/README.md": "7c182e72770fd7c4a9e98624c04d4e09770c3f8bc9d42a55890019f7fedc405c",
+      "src/commands/safejs/render.ts": "10eabbdc8d3c1f2e7c40aeafd51b15484ece05de844fcb73f2ef1aed01fe5d6e",
+      "src/commands/safejs/types.ts": "edd5f7cf2ed473ca33105cfe1039c3fb36ae913112d0564ea3d9b163b3c08bf4",
+      "src/commands/search/glob.ts": "d6fc574fbfde82b459426875801a36aaaf5ec9536ce25d1f5876215396094425",
+      "src/commands/search/index.ts": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf",
+      "src/commands/search/matcher.ts": "499848186cde72bd696cba1fc7d53af39354ba74ea63c42acd92d5eb1cda1cfb",
+      "src/commands/search/options.ts": "828d97d930dc615089a29efd3fe463293d4f61bf4dd33c81c2ceb6b910eb6ef8",
+      "src/commands/search/output.ts": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1",
+      "src/commands/search/README.md": "99385bcf106ecbe66185c285cc10626a487f748b8dc14562e7d47451aa9bca72",
+      "src/commands/search/rg.ts": "c677f831e8e9dcc5051713d894d277ffa9646d2de358c1970b2dd0a9dfb44417",
+      "src/commands/search/shared.ts": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724",
+      "src/commands/search/walk.ts": "474b87aa10e7daf0506edd7408d3a1b48c2bf7e644e8f585f1f5930bb658686a",
+      "src/commands/streams.ts": "0b49e7f14ae8a399fcbea5454c48e930f047472f8631c2d5fe3ca385d14437d5",
+      "src/commands/structured/index.ts": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415",
+      "src/commands/structured/input.ts": "1ac8e520cf80237a45a275d6fa55ad035b6ec0b83dae91765a7d77818ab2d935",
+      "src/commands/structured/interpreter.ts": "8239b8342f57a2f30a5c71c9207955e545fdd2af52e04dd3db11508187a0da37",
+      "src/commands/structured/jq.ts": "59239e32576e8f88d5ef49980c713ddb070468518800f16b5e2aa16a0520fb02",
+      "src/commands/structured/limits.ts": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe",
+      "src/commands/structured/numbers.ts": "f2f18b3f201b22f560b9022304235ca26084319ca103a954f1aabb5f0f74be7d",
+      "src/commands/structured/parser.ts": "5673072aa6512c4fcbc6b008ab9ee595a9b0555c6c35ccf93fc3bb45c57d0ff8",
+      "src/commands/structured/README.md": "5fecf1186d9004e378d77a1e9ad297af94b4f4f9070d9b620d70cd179a7e1b00",
+      "src/commands/structured/split.ts": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6",
+      "src/commands/structured/values.ts": "b7764b6333525b44875aa76f4e9bb546f1b655b91a7dda52360498574c4c6222",
+      "src/commands/table-text/comm.ts": "7a9a3d591dd3fda338748019b8c3e6eeb7e77db2f15f18bf20e041a80b894b4f",
+      "src/commands/table-text/index.ts": "9003d5c6d85d283eca5a5e1e50750eae10639ce1830bf68427536c50d40848a9",
+      "src/commands/table-text/internal.ts": "fc43999fdddaccb282e2a6bb868421c395804092076ecf2645554a80f9a3b7a8",
+      "src/commands/table-text/join.ts": "83704c0da1bcd137fedf1e90e1d922af482bcfac290bc90f6b7ef3e36b6429b0",
+      "src/commands/table-text/paste.ts": "39b236794d5254d3e40471d9cb867d488ab4c57c236c2730bd2640ded84d1ba5",
+      "src/commands/table-text/README.md": "96a3fc81954835657dcb7a88dbb073999aa12d857bdf5fb1228d00a77e4a2d66",
+      "src/commands/text-programs/awk-runtime.ts": "30821e08780042b3382ceedb4b133a89475938a1212ed607782e2d0e592bd35e",
+      "src/commands/text-programs/awk-syntax.ts": "179754bbb74643f57f8e19b0a87c43a8793130aa4b4f8d07a4cc14cae871d4d7",
+      "src/commands/text-programs/awk-values.ts": "6824c5348221d98f9d94c058bbe119eaa6aa1e7ca7775af8d460f358436c2d7c",
+      "src/commands/text-programs/awk.ts": "af422696809543efb470ae219774e32819124035d51a756d5761f41fa4607dc3",
+      "src/commands/text-programs/index.ts": "6df5a7c5c242e71e18d8a15ea87d1c6c5bcd90aa57edb529af64e147135ea9e2",
+      "src/commands/text-programs/README.md": "b39d89bf294fecc3da6d9ecff88aa07e8d7b0d12e0471d3c7974538907d1552a",
+      "src/commands/text-programs/regex.ts": "23df19386627659c3a5175562a2f8eeda873b81e3dc3e78d3cf51aafa7b3b06f",
+      "src/commands/text-programs/sed.ts": "38fceb4869a0db8197a050de3430d5b9c5017e1606a4348d17d8004745c645a9",
+      "src/commands/text-programs/shared.ts": "fec28a956be858e725811f9e83a7f325d99d3152da0231af0d619847e8e6206e",
+      "src/commands/text.ts": "d9411fd868ad8ef04749937024c0f0ff77267c5db5a2cece1f0cdf80c9b48490",
+      "src/contracts/command.ts": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+      "src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "src/contracts/filesystem.md": "0f930c0413b3c2a57b333c6cb4b1f88cf3cc2c878a326626036fa520ff929c83",
+      "src/contracts/filesystem.ts": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+      "src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+      "src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+      "src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "src/fs/memory/index.ts": "98704037c57bae8bd5c3782c65aceb98e967837df375b33eda52a00ce762b1a0",
+      "src/fs/mount/COMPARISON.md": "bcab4b184d6e4b45b9bde3933496516441fde7365658e72a2ca6f6901b46a60f",
+      "src/fs/mount/comparison.ts": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+      "src/fs/mount/identity.ts": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+      "src/fs/mount/index.ts": "290e22e36016bf206badff86e55047e8311c3c4feb1c525b9ae0807c568333ee",
+      "src/fs/mount/README.md": "ac5d57b95f1276d7aa095f5c8177254be8fbb37b8d6271f34b5d86b0469e4f2b",
+      "src/fs/overlay/index.ts": "6442f61ab61aee52a321ef91892ec4c0dc73674bb40ca9a732ffa69f7e73495e",
+      "src/fs/overlay/README.md": "58f8b4e1717af0de202c926af4541cfbea4be5650b624d8559a4e791279eabd5",
+      "src/fs/readonly/index.ts": "384f940196dc572f677541daa9c420da2e013324d66576004c1a2730e7899067",
+      "src/fs/readonly/README.md": "0a06e4740302f2e320d3bc7df70ff5190be34e135220a0a56409b31bc7541d64",
+      "src/fs/real/index.ts": "d3e79b80a5a48984e1f7f7dd9a79254c2db1faf8142e287a43792180874f77da",
+      "src/fs/s3/authority.ts": "c5ab9442b9c00456c1cca223e36c98c14b1393114ba12e22df5535b25eec5cfa",
+      "src/fs/s3/filesystem.ts": "1adfbf2ffe07b78a935752449a88c896a3f4f15a50d7f4a6f8a05981f5fafdb8",
+      "src/fs/s3/index.ts": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+      "src/fs/s3/mock.ts": "99655664c7a52c595dc1ec4e5d461e4c002a0c9ba60d222ded078e5b9780841e",
+      "src/fs/s3/README.md": "70b2aa1ed94a96ee1cde798496c63e9ca646b6f1f03f0339f5251a8f9e5a752f",
+      "src/fs/s3/transport.ts": "df60945a4cd9e9416fe0fdd054460c16bab058d81831ce6526b9a88a0e150d8e",
+      "src/fs/webdav/index.ts": "9a19fb0e61bf9ef07d97881bb93e30ba21491e580ef5e58ab0e80bb5f398d5e4",
+      "src/fs/webdav/PRODUCTION_CHECKPOINT.md": "ee00578d845be249d82cef70c999df1c92e30d1c5498d2da3a8e3191d5e1f6f2",
+      "src/fs/webdav/README.md": "d25f9ef4f5a79cc97b5325d88b42171b0c6fc5ffbeed7abd88f67e89f73a1095",
+      "src/fs/webdav/resource-id.ts": "55bb06db1393390761b0e9fcb57ff7f720adcb4e00fd22e580d3fa916292242e",
+      "src/fs/webdav/webdav.ts": "490178b8e847c7ce869550bde9b9c97d0533aa8757e00c0d0ebd20e6e1d02090",
+      "src/fs/webdav/xml.ts": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+      "src/index.ts": "76a17e2be09c743f8522a5f45868c1da84a80f107a2aae7e72b2e564bfff88b1",
+      "src/integrations/safejs/filesystem.ts": "c9ab864768e430bbfbea7590071646985c6374634124f62516ec09c13d9af578",
+      "src/integrations/safejs/index.ts": "b0866c13456991f05f30dd23cabcf895d92b8af89985eb88172ac3d76b3b8384",
+      "src/integrations/safejs/shell.ts": "5cb3e55c5e62adb540b41ac7ce39e8458a3a25ffb8422e6164419c1d22ef15da",
+      "src/integrations/safejs/stats.ts": "94bb724a7281296e08ac4465979e0f9cac585e28f91fc79382650a3c60ea4824",
+      "src/integrations/safejs/values.ts": "91ac3025b6420a7a908736f1d746077f27c9f045f6be22d82a37f4a07ff9111a",
+      "src/plugins/index.ts": "b42974c3208fda3c9e4378b235d6d5d955f1c753c8bfb5e5dd31e22355323f0d",
+      "src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "src/shell/display.ts": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+      "src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "src/shell/input.ts": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+      "src/shell/locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "src/shell/parser.ts": "cd31afa92e6e54a3e3fceb328064e1e2421e0461529c354794d7b7198c80e4ec",
+      "src/shell/pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "src/shell/runtime.ts": "2ffcaf00c4ea2e0db7817941410673a060903857dac6567124f00a56bc8db342",
+      "src/shell/shell.ts": "f4be37e13e400fb1e0cf52e3ba9f16c4ef32c8ae1a2c3d09908369a680e4931e",
+      "src/shell/types.ts": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874"
+    },
+    "head": "1faf5e05ee91144c5b4162d41ea81ad1cdbdba09",
+    "status": " M src/commands/archive/README.md\n M src/commands/archive/format.ts\n M src/fs/mount/COMPARISON.md\n M src/fs/mount/comparison.ts\n M src/fs/s3/filesystem.ts\n M src/fs/s3/mock.ts\n M src/fs/webdav/webdav.ts\n M src/shell/input.ts\n M src/shell/runtime.ts\n M src/shell/shell.ts\n M tests/commands/archive/built-package.mjs\n M tests/commands/archive/helpers.ts\n M tests/fs/mount/comparison.test.ts\n M tests/fs/webdav/mock.ts\n M tests/shell/invocation-closure-native.ts\n M tests/shell/invocation-closure-probe.ts\n?? benchmarks/reports/current-integration/registry-unblock/\n?? src/fs/s3/authority.ts\n?? src/fs/webdav/resource-id.ts\n?? tests/commands/archive-stress/\n?? tests/commands/archive/aggregate-integration.test.ts\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/filesystem-authority-stress/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/structured-stress/jq-42-independent-review/legacy-native-proof.json\n?? tests/commands/structured-stress/jq-42-independent-review/legacy-product-proof.json\n?? tests/commands/structured-stress/jq-42-independent-review/legacy-proof.ts\n?? tests/commands/structured-stress/jq-42-independent-review/post-handoff-d1f78d4-01.json\n?? tests/commands/structured-stress/jq-42-independent-review/validation.mjs\n?? tests/fs/mount/identity-authority-review/implementation/\n?? tests/fs/s3/comparison.test.ts\n?? tests/shell/invocation-closure-sh-cases.ts\n?? tests/shell/invocation-closure-sh-reference.json\n?? tests/shell/invocation-closure-sh.test.ts\n?? tests/stress/adapters/s3-permission-profile/authority-first-original-gate.json\n",
+    "tooling": {
+      "package.json": "216554f6115e7254b471b1e3b91319e516a80682b59a0b7fe6d8df16b2cb164b",
+      "package-lock.json": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b",
+      "tsconfig.json": "21c3c30b8995b180e079fa8516150f889950d648528de116a32f254f892301cd"
+    }
+  },
+  "after": {
+    "productSha256": "f6140d9bab41d2ca79dbee102462130da85112fda0e05c319dee709038a13851",
+    "structuredSha256": "66dc67c31edcaf32c63b635b0d559545894ab83751b677750494fa16001ced9c",
+    "files": {
+      "src/commands/archive/create.ts": "cdddce8ccd1d53987fa1a314cdc6e04d48246fa59fd0880fb444c66bdca7199c",
+      "src/commands/archive/extract.ts": "db27fa691b839849b982fecd38eb1196d1c370dc08bae500905d8b62bd533212",
+      "src/commands/archive/format.ts": "30ba491fca428e91e11bc26802f6e69d05f94fdd30ab1c40f5812a4e92827719",
+      "src/commands/archive/index.ts": "6f23a98dbe89bb37f44799f47c365fb430e910f87363c50291f7b44293e416d0",
+      "src/commands/archive/internal.ts": "6e9a204384490607973f7e1109c51a082319b6eed2fecb8f410d9d51711367d9",
+      "src/commands/archive/options.ts": "1c2dc4e57c80901b402f8f08b1a5638b7acad9f882aca67ae4f9be73295bf956",
+      "src/commands/archive/README.md": "a2dad5781d249f9a206739cb7ab36cf77c839abe8ea1222e16abdea953896069",
+      "src/commands/archive/stream.ts": "31a3b70bf7ce89f81e287cac09c6816637bd06dc398010dd82386ce5d93ceba4",
+      "src/commands/basic.ts": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+      "src/commands/bytes/checksums/index.ts": "8aa42545dd80cc028bce529b0719b0af51d11bef5d7117d37ed2e773097834f4",
+      "src/commands/bytes/checksums/README.md": "f1fac999a988b48789368cf46105ef268d432a08fbc4be8f137a7eed90bb218d",
+      "src/commands/bytes/compression/files.ts": "1f8d8b243f10d63ae5cccea40d1d9cfc6cb841a46bea15cc61f4a5caa70572df",
+      "src/commands/bytes/compression/gunzip.ts": "6bf534778fa82558ae36bd96412662a8e4c4e864c0a93f15b40d1148a64f835f",
+      "src/commands/bytes/compression/index.ts": "cb0de2e91261eaf255491fe5dc2e62683ef002e07cddef5827b57527eaaf88f9",
+      "src/commands/bytes/compression/options.ts": "3218bbcba8d3c5c113eb7f4761f81e0919e380c6f3de76b26b6a52c44ba7cd95",
+      "src/commands/bytes/compression/README.md": "970ab6bf5c3c9fc97582d25b508513656aa265e5352ce3be5e77bc2d041c9dc7",
+      "src/commands/bytes/compression/stream.ts": "573157fda5382df052ea30011ff3094ac6c838618e1272689766819777a8c9e4",
+      "src/commands/bytes/encoding/base.ts": "91e4309ca4947fbf3ac0dd9d0dc9431d3d22d29fb66e46706290922c9feb134d",
+      "src/commands/bytes/encoding/index.ts": "6df6b0d7393fd2abb82b476915fc48ae333730c1e9b323a11776a3b9c2607d5f",
+      "src/commands/bytes/encoding/od.ts": "dbe5312675e4ecf74d852e28ac8134be5586d8aa53d5b21a3cccc5d986213a03",
+      "src/commands/bytes/encoding/README.md": "8b73fdf7a5ebc57fa44014a9449dcb767ba48030b29d36d5e37580cdbcdee886",
+      "src/commands/bytes/encoding/shared.ts": "8a0eb870513630296a7f28d7d6867d25aba9b785365b812d740c6d7b4da3d396",
+      "src/commands/bytes/encoding/xxd.ts": "1b78b95a9b0175e5297b988a1794310c03786df5a7aa90a4dd261e91ec765a78",
+      "src/commands/bytes/index.ts": "70643f22b1b47c1d6422b97d76cacf95e4e6337521f6f42e0f5f559bacbed84f",
+      "src/commands/bytes/README.md": "517a12a32591ea36e4d65954cd72f6f446b231414658249f115877b40b7e5053",
+      "src/commands/copy-identity.ts": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe",
+      "src/commands/diff-patch/diff-format.ts": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24",
+      "src/commands/diff-patch/diff.ts": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e",
+      "src/commands/diff-patch/GNU-DIFF.md": "e0e1f1f8e27bc68c991dee2a9e80a230896a6140fa4408e9b7379713dc8b81cb",
+      "src/commands/diff-patch/GNU-PATCH.md": "5e194d1b6dd8481fb7631f56ca3c81fd1e98eb35988d0ea5b1ed7ddde1909605",
+      "src/commands/diff-patch/index.ts": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17",
+      "src/commands/diff-patch/PARSER.md": "5d92f96bb67fdf4a284f6e2e7c802eeeb99d86cf0e4e71fb793c2f5405d66fa6",
+      "src/commands/diff-patch/patch-envelope.ts": "f6a15e78d7cea41d503f5352206efeb9fa950871c820af730cf27ea06ade99e8",
+      "src/commands/diff-patch/patch-formats.ts": "a78045ac43900582bdb19f0476414e8566c4e1e2edc86b654bc760cf86de3aa4",
+      "src/commands/diff-patch/patch-gnu-paths.ts": "3a06d5b33d3c0df12ff83b0bbf4396d90906d6fd61e3ca1bd5537f508c4282af",
+      "src/commands/diff-patch/patch-gnu-reject.ts": "5df12efd994c0187998f0112a5fac595f376142f2cd187a5e0b40738f7b6cf02",
+      "src/commands/diff-patch/patch-path.ts": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94",
+      "src/commands/diff-patch/patch.ts": "b344c6f7b0f6afaccdab75778a12c11c868d7f8bccd5d453c56e552039e619fe",
+      "src/commands/diff-patch/README.md": "b4d2e1edcb0d333af11bca02970ffed3602c6516196cf768b785eb0d6a5ce787",
+      "src/commands/diff-patch/shared.ts": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+      "src/commands/diff-patch/unified.ts": "a8659f40aeb9d1cac3548ffd24950e652eeace92cef1339de9e3a5e5ed7e10fb",
+      "src/commands/execution.ts": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de",
+      "src/commands/filesystem.ts": "2d907d283c0562d965abf7867cfe4839c439f560f80e9feece54706b3ff602c0",
+      "src/commands/find.ts": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+      "src/commands/grep.ts": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+      "src/commands/index.ts": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2",
+      "src/commands/internal.ts": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+      "src/commands/metadata/chmod.ts": "9286ebc9bea074bf9dad58cb6197aa5e10d325c549187eefbc9203ac76b09cfd",
+      "src/commands/metadata/index.ts": "bc4ad8e3fb5474796ff326b1f53b8c1b84cf45647640f8246d4ccfb3b61d467e",
+      "src/commands/metadata/internal.ts": "bd26d6f4a098c565ce38da6bc269503469638837d3dce47e21ac9c1604a45cd7",
+      "src/commands/metadata/mktemp.ts": "1165d822477e68f6b4dfac3db6a7fa43247226137122c0d980e1490b80bc34d4",
+      "src/commands/metadata/README.md": "211ee5e45c207e3dd775fdbfd3a58ef4b676c5c9aed9a13086693e1f3f99be68",
+      "src/commands/metadata/stat.ts": "21f4e1bd5f938f33f41ea9976fbd5b2e00fbe3a7b80cb99c8ecc03131900d860",
+      "src/commands/move.ts": "31e1fe6a2c0fc9efb9efa44b636d9478d4cab273de4c4e809d4f572b28084042",
+      "src/commands/network/args.ts": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c",
+      "src/commands/network/body.ts": "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf",
+      "src/commands/network/curl.ts": "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42",
+      "src/commands/network/index.ts": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329",
+      "src/commands/network/output.ts": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab",
+      "src/commands/network/README.md": "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f",
+      "src/commands/network/shared.ts": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f",
+      "src/commands/network/transport.ts": "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844",
+      "src/commands/network/types.ts": "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9",
+      "src/commands/predicates.ts": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+      "src/commands/README.md": "c541ca716302f6e59c2252ae2a0fcf6d999e93de9d187cc604a7f621e9ca0221",
+      "src/commands/safejs/index.ts": "479c111291e2e181b3ab1a8a41905592ff71b968a691e25f21970eee089d8f29",
+      "src/commands/safejs/io.ts": "ef366f40b1d1d161ec0f2c18f1138daf75693ab416274bb92763ebf73899f2f1",
+      "src/commands/safejs/options.ts": "4009050c3a75daececeb2e75af46be8872d21a83c7a8132b6221b0b4d87c7a43",
+      "src/commands/safejs/README.md": "7c182e72770fd7c4a9e98624c04d4e09770c3f8bc9d42a55890019f7fedc405c",
+      "src/commands/safejs/render.ts": "10eabbdc8d3c1f2e7c40aeafd51b15484ece05de844fcb73f2ef1aed01fe5d6e",
+      "src/commands/safejs/types.ts": "edd5f7cf2ed473ca33105cfe1039c3fb36ae913112d0564ea3d9b163b3c08bf4",
+      "src/commands/search/glob.ts": "d6fc574fbfde82b459426875801a36aaaf5ec9536ce25d1f5876215396094425",
+      "src/commands/search/index.ts": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf",
+      "src/commands/search/matcher.ts": "499848186cde72bd696cba1fc7d53af39354ba74ea63c42acd92d5eb1cda1cfb",
+      "src/commands/search/options.ts": "828d97d930dc615089a29efd3fe463293d4f61bf4dd33c81c2ceb6b910eb6ef8",
+      "src/commands/search/output.ts": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1",
+      "src/commands/search/README.md": "99385bcf106ecbe66185c285cc10626a487f748b8dc14562e7d47451aa9bca72",
+      "src/commands/search/rg.ts": "c677f831e8e9dcc5051713d894d277ffa9646d2de358c1970b2dd0a9dfb44417",
+      "src/commands/search/shared.ts": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724",
+      "src/commands/search/walk.ts": "474b87aa10e7daf0506edd7408d3a1b48c2bf7e644e8f585f1f5930bb658686a",
+      "src/commands/streams.ts": "0b49e7f14ae8a399fcbea5454c48e930f047472f8631c2d5fe3ca385d14437d5",
+      "src/commands/structured/index.ts": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415",
+      "src/commands/structured/input.ts": "1ac8e520cf80237a45a275d6fa55ad035b6ec0b83dae91765a7d77818ab2d935",
+      "src/commands/structured/interpreter.ts": "8239b8342f57a2f30a5c71c9207955e545fdd2af52e04dd3db11508187a0da37",
+      "src/commands/structured/jq.ts": "59239e32576e8f88d5ef49980c713ddb070468518800f16b5e2aa16a0520fb02",
+      "src/commands/structured/limits.ts": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe",
+      "src/commands/structured/numbers.ts": "f2f18b3f201b22f560b9022304235ca26084319ca103a954f1aabb5f0f74be7d",
+      "src/commands/structured/parser.ts": "5673072aa6512c4fcbc6b008ab9ee595a9b0555c6c35ccf93fc3bb45c57d0ff8",
+      "src/commands/structured/README.md": "5fecf1186d9004e378d77a1e9ad297af94b4f4f9070d9b620d70cd179a7e1b00",
+      "src/commands/structured/split.ts": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6",
+      "src/commands/structured/values.ts": "b7764b6333525b44875aa76f4e9bb546f1b655b91a7dda52360498574c4c6222",
+      "src/commands/table-text/comm.ts": "7a9a3d591dd3fda338748019b8c3e6eeb7e77db2f15f18bf20e041a80b894b4f",
+      "src/commands/table-text/index.ts": "9003d5c6d85d283eca5a5e1e50750eae10639ce1830bf68427536c50d40848a9",
+      "src/commands/table-text/internal.ts": "fc43999fdddaccb282e2a6bb868421c395804092076ecf2645554a80f9a3b7a8",
+      "src/commands/table-text/join.ts": "83704c0da1bcd137fedf1e90e1d922af482bcfac290bc90f6b7ef3e36b6429b0",
+      "src/commands/table-text/paste.ts": "39b236794d5254d3e40471d9cb867d488ab4c57c236c2730bd2640ded84d1ba5",
+      "src/commands/table-text/README.md": "96a3fc81954835657dcb7a88dbb073999aa12d857bdf5fb1228d00a77e4a2d66",
+      "src/commands/text-programs/awk-runtime.ts": "30821e08780042b3382ceedb4b133a89475938a1212ed607782e2d0e592bd35e",
+      "src/commands/text-programs/awk-syntax.ts": "179754bbb74643f57f8e19b0a87c43a8793130aa4b4f8d07a4cc14cae871d4d7",
+      "src/commands/text-programs/awk-values.ts": "6824c5348221d98f9d94c058bbe119eaa6aa1e7ca7775af8d460f358436c2d7c",
+      "src/commands/text-programs/awk.ts": "af422696809543efb470ae219774e32819124035d51a756d5761f41fa4607dc3",
+      "src/commands/text-programs/index.ts": "6df5a7c5c242e71e18d8a15ea87d1c6c5bcd90aa57edb529af64e147135ea9e2",
+      "src/commands/text-programs/README.md": "b39d89bf294fecc3da6d9ecff88aa07e8d7b0d12e0471d3c7974538907d1552a",
+      "src/commands/text-programs/regex.ts": "23df19386627659c3a5175562a2f8eeda873b81e3dc3e78d3cf51aafa7b3b06f",
+      "src/commands/text-programs/sed.ts": "38fceb4869a0db8197a050de3430d5b9c5017e1606a4348d17d8004745c645a9",
+      "src/commands/text-programs/shared.ts": "fec28a956be858e725811f9e83a7f325d99d3152da0231af0d619847e8e6206e",
+      "src/commands/text.ts": "d9411fd868ad8ef04749937024c0f0ff77267c5db5a2cece1f0cdf80c9b48490",
+      "src/contracts/command.ts": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+      "src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "src/contracts/filesystem.md": "0f930c0413b3c2a57b333c6cb4b1f88cf3cc2c878a326626036fa520ff929c83",
+      "src/contracts/filesystem.ts": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+      "src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+      "src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+      "src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "src/fs/memory/index.ts": "98704037c57bae8bd5c3782c65aceb98e967837df375b33eda52a00ce762b1a0",
+      "src/fs/mount/COMPARISON.md": "bcab4b184d6e4b45b9bde3933496516441fde7365658e72a2ca6f6901b46a60f",
+      "src/fs/mount/comparison.ts": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+      "src/fs/mount/identity.ts": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+      "src/fs/mount/index.ts": "290e22e36016bf206badff86e55047e8311c3c4feb1c525b9ae0807c568333ee",
+      "src/fs/mount/README.md": "ac5d57b95f1276d7aa095f5c8177254be8fbb37b8d6271f34b5d86b0469e4f2b",
+      "src/fs/overlay/index.ts": "6442f61ab61aee52a321ef91892ec4c0dc73674bb40ca9a732ffa69f7e73495e",
+      "src/fs/overlay/README.md": "58f8b4e1717af0de202c926af4541cfbea4be5650b624d8559a4e791279eabd5",
+      "src/fs/readonly/index.ts": "384f940196dc572f677541daa9c420da2e013324d66576004c1a2730e7899067",
+      "src/fs/readonly/README.md": "0a06e4740302f2e320d3bc7df70ff5190be34e135220a0a56409b31bc7541d64",
+      "src/fs/real/index.ts": "d3e79b80a5a48984e1f7f7dd9a79254c2db1faf8142e287a43792180874f77da",
+      "src/fs/s3/authority.ts": "c5ab9442b9c00456c1cca223e36c98c14b1393114ba12e22df5535b25eec5cfa",
+      "src/fs/s3/filesystem.ts": "1adfbf2ffe07b78a935752449a88c896a3f4f15a50d7f4a6f8a05981f5fafdb8",
+      "src/fs/s3/index.ts": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+      "src/fs/s3/mock.ts": "99655664c7a52c595dc1ec4e5d461e4c002a0c9ba60d222ded078e5b9780841e",
+      "src/fs/s3/README.md": "70b2aa1ed94a96ee1cde798496c63e9ca646b6f1f03f0339f5251a8f9e5a752f",
+      "src/fs/s3/transport.ts": "df60945a4cd9e9416fe0fdd054460c16bab058d81831ce6526b9a88a0e150d8e",
+      "src/fs/webdav/index.ts": "9a19fb0e61bf9ef07d97881bb93e30ba21491e580ef5e58ab0e80bb5f398d5e4",
+      "src/fs/webdav/PRODUCTION_CHECKPOINT.md": "ee00578d845be249d82cef70c999df1c92e30d1c5498d2da3a8e3191d5e1f6f2",
+      "src/fs/webdav/README.md": "d25f9ef4f5a79cc97b5325d88b42171b0c6fc5ffbeed7abd88f67e89f73a1095",
+      "src/fs/webdav/resource-id.ts": "55bb06db1393390761b0e9fcb57ff7f720adcb4e00fd22e580d3fa916292242e",
+      "src/fs/webdav/webdav.ts": "490178b8e847c7ce869550bde9b9c97d0533aa8757e00c0d0ebd20e6e1d02090",
+      "src/fs/webdav/xml.ts": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+      "src/index.ts": "76a17e2be09c743f8522a5f45868c1da84a80f107a2aae7e72b2e564bfff88b1",
+      "src/integrations/safejs/filesystem.ts": "c9ab864768e430bbfbea7590071646985c6374634124f62516ec09c13d9af578",
+      "src/integrations/safejs/index.ts": "b0866c13456991f05f30dd23cabcf895d92b8af89985eb88172ac3d76b3b8384",
+      "src/integrations/safejs/shell.ts": "5cb3e55c5e62adb540b41ac7ce39e8458a3a25ffb8422e6164419c1d22ef15da",
+      "src/integrations/safejs/stats.ts": "94bb724a7281296e08ac4465979e0f9cac585e28f91fc79382650a3c60ea4824",
+      "src/integrations/safejs/values.ts": "91ac3025b6420a7a908736f1d746077f27c9f045f6be22d82a37f4a07ff9111a",
+      "src/plugins/index.ts": "b42974c3208fda3c9e4378b235d6d5d955f1c753c8bfb5e5dd31e22355323f0d",
+      "src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "src/shell/display.ts": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+      "src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "src/shell/input.ts": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+      "src/shell/locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "src/shell/parser.ts": "cd31afa92e6e54a3e3fceb328064e1e2421e0461529c354794d7b7198c80e4ec",
+      "src/shell/pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "src/shell/runtime.ts": "2ffcaf00c4ea2e0db7817941410673a060903857dac6567124f00a56bc8db342",
+      "src/shell/shell.ts": "f4be37e13e400fb1e0cf52e3ba9f16c4ef32c8ae1a2c3d09908369a680e4931e",
+      "src/shell/types.ts": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874"
+    },
+    "head": "1faf5e05ee91144c5b4162d41ea81ad1cdbdba09",
+    "status": " M src/commands/archive/README.md\n M src/commands/archive/format.ts\n M src/fs/mount/COMPARISON.md\n M src/fs/mount/comparison.ts\n M src/fs/s3/filesystem.ts\n M src/fs/s3/mock.ts\n M src/fs/webdav/webdav.ts\n M src/shell/input.ts\n M src/shell/runtime.ts\n M src/shell/shell.ts\n M tests/commands/archive/built-package.mjs\n M tests/commands/archive/helpers.ts\n M tests/fs/mount/comparison.test.ts\n M tests/fs/webdav/mock.ts\n M tests/shell/invocation-closure-native.ts\n M tests/shell/invocation-closure-probe.ts\n?? benchmarks/reports/current-integration/registry-unblock/\n?? src/fs/s3/authority.ts\n?? src/fs/webdav/resource-id.ts\n?? tests/commands/archive-stress/\n?? tests/commands/archive/aggregate-integration.test.ts\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/filesystem-authority-stress/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/structured-stress/jq-42-independent-review/legacy-native-proof.json\n?? tests/commands/structured-stress/jq-42-independent-review/legacy-product-proof.json\n?? tests/commands/structured-stress/jq-42-independent-review/legacy-proof.ts\n?? tests/commands/structured-stress/jq-42-independent-review/post-handoff-d1f78d4-01.json\n?? tests/commands/structured-stress/jq-42-independent-review/validation.mjs\n?? tests/fs/mount/identity-authority-review/implementation/\n?? tests/fs/s3/comparison.test.ts\n?? tests/shell/invocation-closure-sh-cases.ts\n?? tests/shell/invocation-closure-sh-reference.json\n?? tests/shell/invocation-closure-sh.test.ts\n?? tests/stress/adapters/s3-permission-profile/authority-first-original-gate.json\n",
+    "tooling": {
+      "package.json": "216554f6115e7254b471b1e3b91319e516a80682b59a0b7fe6d8df16b2cb164b",
+      "package-lock.json": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b",
+      "tsconfig.json": "21c3c30b8995b180e079fa8516150f889950d648528de116a32f254f892301cd"
+    }
+  },
+  "stableStructured": true,
+  "stableProduct": true,
+  "originalFailures": [
+    "strict UTF-8 rejection remains chunk invariant (not native parity): raw-lone-continuation",
+    "strict UTF-8 rejection remains chunk invariant (not native parity): raw-truncated",
+    "strict UTF-8 rejection remains chunk invariant (not native parity): raw-bad-continuation",
+    "strict UTF-8 rejection remains chunk invariant (not native parity): json-bad-string",
+    "raw native: record-error-prefix",
+    "raw native: file-unicode:-Rc",
+    "raw native: file-unicode:-Rsc",
+    "raw native: invalid:0:-Rc",
+    "raw native: invalid:0:-Rsc",
+    "raw native: invalid:1:-Rc",
+    "raw native: invalid:1:-Rsc",
+    "raw native: invalid:2:-Rc",
+    "raw native: invalid:2:-Rsc",
+    "raw native: invalid:3:-Rc",
+    "raw native: invalid:3:-Rsc",
+    "raw native: invalid:4:-Rc",
+    "raw native: invalid:4:-Rsc",
+    "strict malformed JSON 14 across chunk boundaries",
+    "strict malformed JSON 16 across chunk boundaries",
+    "invalid UTF-8 never becomes replacement text",
+    "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+    "valid large decimals survive while malformed JSON and division by zero fail"
+  ],
+  "phases": [
+    {
+      "name": "original-22-unchanged",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=^(?:strict UTF-8 rejection remains chunk invariant \\(not native parity\\): raw-lone-continuation|strict UTF-8 rejection remains chunk invariant \\(not native parity\\): raw-truncated|strict UTF-8 rejection remains chunk invariant \\(not native parity\\): raw-bad-continuation|strict UTF-8 rejection remains chunk invariant \\(not native parity\\): json-bad-string|raw native: record-error-prefix|raw native: file-unicode:-Rc|raw native: file-unicode:-Rsc|raw native: invalid:0:-Rc|raw native: invalid:0:-Rsc|raw native: invalid:1:-Rc|raw native: invalid:1:-Rsc|raw native: invalid:2:-Rc|raw native: invalid:2:-Rsc|raw native: invalid:3:-Rc|raw native: invalid:3:-Rsc|raw native: invalid:4:-Rc|raw native: invalid:4:-Rsc|strict malformed JSON 14 across chunk boundaries|strict malformed JSON 16 across chunk boundaries|invalid UTF-8 never becomes replacement text|malformed UTF-8 preserves completed JSON prefix across every chunk split|valid large decimals survive while malformed JSON and division by zero fail)$",
+        "tests/commands/structured-stress/independent-increment/safety.test.ts",
+        "tests/commands/structured-stress/raw-input.test.ts",
+        "tests/commands/structured-stress/safety.test.ts",
+        "tests/commands/structured/cli.test.ts",
+        "tests/commands/structured/resources.test.ts"
+      ],
+      "startedAt": "2026-08-27T01:02:19.024Z",
+      "endedAt": "2026-08-27T01:02:19.236Z",
+      "status": 1,
+      "signal": null,
+      "counts": {
+        "tests": 22,
+        "pass": 0,
+        "fail": 22,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "failures": [
+        "strict UTF-8 rejection remains chunk invariant (not native parity): raw-lone-continuation",
+        "strict UTF-8 rejection remains chunk invariant (not native parity): raw-truncated",
+        "strict UTF-8 rejection remains chunk invariant (not native parity): raw-bad-continuation",
+        "strict UTF-8 rejection remains chunk invariant (not native parity): json-bad-string",
+        "raw native: record-error-prefix",
+        "raw native: file-unicode:-Rc",
+        "raw native: file-unicode:-Rsc",
+        "raw native: invalid:0:-Rc",
+        "raw native: invalid:0:-Rsc",
+        "raw native: invalid:1:-Rc",
+        "raw native: invalid:1:-Rsc",
+        "raw native: invalid:2:-Rc",
+        "raw native: invalid:2:-Rsc",
+        "raw native: invalid:3:-Rc",
+        "raw native: invalid:3:-Rsc",
+        "raw native: invalid:4:-Rc",
+        "raw native: invalid:4:-Rsc",
+        "strict malformed JSON 14 across chunk boundaries",
+        "strict malformed JSON 16 across chunk boundaries",
+        "invalid UTF-8 never becomes replacement text",
+        "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+        "valid large decimals survive while malformed JSON and division by zero fail"
+      ],
+      "stdout": "TAP version 13\n# Subtest: strict UTF-8 rejection remains chunk invariant (not native parity): raw-lone-continuation\nnot ok 1 - strict UTF-8 rejection remains chunk invariant (not native parity): raw-lone-continuation\n  ---\n  duration_ms: 3.540417\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/independent-increment/safety.test.ts:1:1637'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly equal:\n    \n    0 !== 5\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 5\n  actual: 0\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/independent-increment/safety.test.ts:39:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)\n  ...\n# Subtest: strict UTF-8 rejection remains chunk invariant (not native parity): raw-truncated\nnot ok 2 - strict UTF-8 rejection remains chunk invariant (not native parity): raw-truncated\n  ---\n  duration_ms: 1.0225\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/independent-increment/safety.test.ts:1:1637'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly equal:\n    \n    0 !== 5\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 5\n  actual: 0\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/independent-increment/safety.test.ts:39:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: strict UTF-8 rejection remains chunk invariant (not native parity): raw-bad-continuation\nnot ok 3 - strict UTF-8 rejection remains chunk invariant (not native parity): raw-bad-continuation\n  ---\n  duration_ms: 0.437917\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/independent-increment/safety.test.ts:1:1637'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly equal:\n    \n    0 !== 5\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 5\n  actual: 0\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/independent-increment/safety.test.ts:39:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: strict UTF-8 rejection remains chunk invariant (not native parity): json-bad-string\nnot ok 4 - strict UTF-8 rejection remains chunk invariant (not native parity): json-bad-string\n  ---\n  duration_ms: 1.081958\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/independent-increment/safety.test.ts:1:1637'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly equal:\n    \n    0 !== 5\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 5\n  actual: 0\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/independent-increment/safety.test.ts:39:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: raw native: record-error-prefix\nnot ok 5 - raw native: record-error-prefix\n  ---\n  duration_ms: 4.18325\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/raw-input.test.ts:1:592'\n  failureType: 'testCodeFailure'\n  error: |-\n    record-error-prefix chunk 1\n    + actual - expected\n    \n    + '\"x\"\\n\"y\"\\n'\n    - '\"x\"\\n'\n            ^\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: |-\n    \"x\"\n    \n  actual: |-\n    \"x\"\n    \"y\"\n    \n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/raw-input.test.ts:29:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)\n  ...\n# Subtest: raw native: file-unicode:-Rc\nnot ok 6 - raw native: file-unicode:-Rc\n  ---\n  duration_ms: 0.833834\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/raw-input.test.ts:1:592'\n  failureType: 'testCodeFailure'\n  error: |-\n    file-unicode:-Rc chunk 1: \n    \n    0 !== 5\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 5\n  actual: 0\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/raw-input.test.ts:28:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: raw native: file-unicode:-Rsc\nnot ok 7 - raw native: file-unicode:-Rsc\n  ---\n  duration_ms: 0.375333\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/raw-input.test.ts:1:592'\n  failureType: 'testCodeFailure'\n  error: |-\n    file-unicode:-Rsc chunk 1: \n    \n    0 !== 5\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 5\n  actual: 0\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/raw-input.test.ts:28:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: raw native: invalid:0:-Rc\nnot ok 8 - raw native: invalid:0:-Rc\n  ---\n  duration_ms: 0.429208\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/raw-input.test.ts:1:592'\n  failureType: 'testCodeFailure'\n  error: |-\n    invalid:0:-Rc chunk 1: \n    \n    0 !== 5\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 5\n  actual: 0\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/raw-input.test.ts:28:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: raw native: invalid:0:-Rsc\nnot ok 9 - raw native: invalid:0:-Rsc\n  ---\n  duration_ms: 0.300584\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/raw-input.test.ts:1:592'\n  failureType: 'testCodeFailure'\n  error: |-\n    invalid:0:-Rsc chunk 1: \n    \n    0 !== 5\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 5\n  actual: 0\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/raw-input.test.ts:28:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: raw native: invalid:1:-Rc\nnot ok 10 - raw native: invalid:1:-Rc\n  ---\n  duration_ms: 0.249\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/raw-input.test.ts:1:592'\n  failureType: 'testCodeFailure'\n  error: |-\n    invalid:1:-Rc chunk 1: \n    \n    0 !== 5\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 5\n  actual: 0\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/raw-input.test.ts:28:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: raw native: invalid:1:-Rsc\nnot ok 11 - raw native: invalid:1:-Rsc\n  ---\n  duration_ms: 0.309917\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/raw-input.test.ts:1:592'\n  failureType: 'testCodeFailure'\n  error: |-\n    invalid:1:-Rsc chunk 1: \n    \n    0 !== 5\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 5\n  actual: 0\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/raw-input.test.ts:28:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: raw native: invalid:2:-Rc\nnot ok 12 - raw native: invalid:2:-Rc\n  ---\n  duration_ms: 0.897875\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/raw-input.test.ts:1:592'\n  failureType: 'testCodeFailure'\n  error: |-\n    invalid:2:-Rc chunk 1: \n    \n    0 !== 5\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 5\n  actual: 0\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/raw-input.test.ts:28:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: raw native: invalid:2:-Rsc\nnot ok 13 - raw native: invalid:2:-Rsc\n  ---\n  duration_ms: 0.583292\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/raw-input.test.ts:1:592'\n  failureType: 'testCodeFailure'\n  error: |-\n    invalid:2:-Rsc chunk 1: \n    \n    0 !== 5\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 5\n  actual: 0\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/raw-input.test.ts:28:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: raw native: invalid:3:-Rc\nnot ok 14 - raw native: invalid:3:-Rc\n  ---\n  duration_ms: 0.398042\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/raw-input.test.ts:1:592'\n  failureType: 'testCodeFailure'\n  error: |-\n    invalid:3:-Rc chunk 1: \n    \n    0 !== 5\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 5\n  actual: 0\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/raw-input.test.ts:28:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: raw native: invalid:3:-Rsc\nnot ok 15 - raw native: invalid:3:-Rsc\n  ---\n  duration_ms: 0.166041\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/raw-input.test.ts:1:592'\n  failureType: 'testCodeFailure'\n  error: |-\n    invalid:3:-Rsc chunk 1: \n    \n    0 !== 5\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 5\n  actual: 0\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/raw-input.test.ts:28:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: raw native: invalid:4:-Rc\nnot ok 16 - raw native: invalid:4:-Rc\n  ---\n  duration_ms: 0.201625\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/raw-input.test.ts:1:592'\n  failureType: 'testCodeFailure'\n  error: |-\n    invalid:4:-Rc chunk 1: \n    \n    0 !== 5\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 5\n  actual: 0\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/raw-input.test.ts:28:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: raw native: invalid:4:-Rsc\nnot ok 17 - raw native: invalid:4:-Rsc\n  ---\n  duration_ms: 0.293875\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/raw-input.test.ts:1:592'\n  failureType: 'testCodeFailure'\n  error: |-\n    invalid:4:-Rsc chunk 1: \n    \n    0 !== 5\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 5\n  actual: 0\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/raw-input.test.ts:28:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: strict malformed JSON 14 across chunk boundaries\nnot ok 18 - strict malformed JSON 14 across chunk boundaries\n  ---\n  duration_ms: 4.724125\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/safety.test.ts:1:774'\n  failureType: 'testCodeFailure'\n  error: |-\n    {\"input\":\"\\\"\\\\uDC00\\\"\",\"size\":1,\"result\":{\"status\":0,\"stdout\":\"\\\"�\\\"\\n\",\"stderr\":\"\"}}\n    \n    0 !== 5\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 5\n  actual: 0\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/safety.test.ts:20:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)\n  ...\n# Subtest: strict malformed JSON 16 across chunk boundaries\nnot ok 19 - strict malformed JSON 16 across chunk boundaries\n  ---\n  duration_ms: 1.367833\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/safety.test.ts:1:774'\n  failureType: 'testCodeFailure'\n  error: |-\n    {\"input\":\"null\\u0000\",\"size\":1,\"result\":{\"status\":0,\"stdout\":\"null\\n\",\"stderr\":\"\"}}\n    \n    0 !== 5\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 5\n  actual: 0\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/safety.test.ts:20:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: invalid UTF-8 never becomes replacement text\nnot ok 20 - invalid UTF-8 never becomes replacement text\n  ---\n  duration_ms: 0.782208\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/safety.test.ts:2:115'\n  failureType: 'testCodeFailure'\n  error: |-\n    The input did not match the regular expression /UTF-8/u. Input:\n    \n    'jq: parse error: Invalid numeric literal at line 2, column 2\\n'\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n  actual: |-\n    jq: parse error: Invalid numeric literal at line 2, column 2\n    \n  operator: 'match'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/safety.test.ts:44:14)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: malformed UTF-8 preserves completed JSON prefix across every chunk split\nnot ok 21 - malformed UTF-8 preserves completed JSON prefix across every chunk split\n  ---\n  duration_ms: 4.073084\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/structured/cli.test.ts:1:2601'\n  failureType: 'testCodeFailure'\n  error: |-\n    The input did not match the regular expression /invalid UTF-8/. Input:\n    \n    'jq: parse error: Invalid numeric literal at line 2, column 1\\n'\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n  actual: |-\n    jq: parse error: Invalid numeric literal at line 2, column 1\n    \n  operator: 'match'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/structured/cli.test.ts:65:117)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)\n  ...\n# Subtest: valid large decimals survive while malformed JSON and division by zero fail\nnot ok 22 - valid large decimals survive while malformed JSON and division by zero fail\n  ---\n  duration_ms: 4.478125\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/structured/resources.test.ts:2:292'\n  failureType: 'testCodeFailure'\n  error: |-\n    \"\\uDC00\"\n    \n    0 !== 5\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 5\n  actual: 0\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/structured/resources.test.ts:23:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)\n  ...\n1..22\n# tests 22\n# suites 0\n# pass 0\n# fail 22\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 180.913\n",
+      "stderr": ""
+    },
+    {
+      "name": "author-safety-1",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/commands/structured-stress/jq-42-author-20260827/safety.test.ts"
+      ],
+      "startedAt": "2026-08-27T01:02:19.237Z",
+      "endedAt": "2026-08-27T01:02:19.398Z",
+      "status": 0,
+      "signal": null,
+      "counts": {
+        "tests": 10,
+        "pass": 10,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "failures": [],
+      "stdout": "TAP version 13\n# Subtest: recovery stops at parse error instead of consuming later valid records\nok 1 - recovery stops at parse error instead of consuming later valid records\n  ---\n  duration_ms: 2.370458\n  type: 'test'\n  ...\n# Subtest: optional and recovery cannot swallow maxResults\nok 2 - optional and recovery cannot swallow maxResults\n  ---\n  duration_ms: 1.130833\n  type: 'test'\n  ...\n# Subtest: optional and recovery cannot swallow maxOutputBytes\nok 3 - optional and recovery cannot swallow maxOutputBytes\n  ---\n  duration_ms: 1.3115\n  type: 'test'\n  ...\n# Subtest: optional and recovery cannot swallow maxSteps\nok 4 - optional and recovery cannot swallow maxSteps\n  ---\n  duration_ms: 0.304208\n  type: 'test'\n  ...\n# Subtest: repeated runtime diagnostics are bounded even with no stdout\nok 5 - repeated runtime diagnostics are bounded even with no stdout\n  ---\n  duration_ms: 0.644\n  type: 'test'\n  ...\n# Subtest: host stdout failure is never a recoverable filter error: EPIPE: broken pipe\nok 6 - host stdout failure is never a recoverable filter error: EPIPE: broken pipe\n  ---\n  duration_ms: 0.412458\n  type: 'test'\n  ...\n# Subtest: host stdout failure is never a recoverable filter error: host sink failure\nok 7 - host stdout failure is never a recoverable filter error: host sink failure\n  ---\n  duration_ms: 0.157375\n  type: 'test'\n  ...\n# Subtest: blocked runtime stderr cancels and closes upstream\nok 8 - blocked runtime stderr cancels and closes upstream\n  ---\n  duration_ms: 0.36025\n  type: 'test'\n  ...\n# Subtest: replacement expansion respects exact UTF8 value bytes\nok 9 - replacement expansion respects exact UTF8 value bytes\n  ---\n  duration_ms: 1.010625\n  type: 'test'\n  ...\n# Subtest: large replacement workloads retain cooperative cancellation\nok 10 - large replacement workloads retain cooperative cancellation\n  ---\n  duration_ms: 12.185375\n  type: 'test'\n  ...\n1..10\n# tests 10\n# suites 0\n# pass 10\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 133.812958\n",
+      "stderr": ""
+    },
+    {
+      "name": "author-safety-2",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/commands/structured-stress/jq-42-author-20260827/safety.test.ts"
+      ],
+      "startedAt": "2026-08-27T01:02:19.398Z",
+      "endedAt": "2026-08-27T01:02:19.556Z",
+      "status": 0,
+      "signal": null,
+      "counts": {
+        "tests": 10,
+        "pass": 10,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "failures": [],
+      "stdout": "TAP version 13\n# Subtest: recovery stops at parse error instead of consuming later valid records\nok 1 - recovery stops at parse error instead of consuming later valid records\n  ---\n  duration_ms: 2.439916\n  type: 'test'\n  ...\n# Subtest: optional and recovery cannot swallow maxResults\nok 2 - optional and recovery cannot swallow maxResults\n  ---\n  duration_ms: 1.036542\n  type: 'test'\n  ...\n# Subtest: optional and recovery cannot swallow maxOutputBytes\nok 3 - optional and recovery cannot swallow maxOutputBytes\n  ---\n  duration_ms: 1.167375\n  type: 'test'\n  ...\n# Subtest: optional and recovery cannot swallow maxSteps\nok 4 - optional and recovery cannot swallow maxSteps\n  ---\n  duration_ms: 0.286709\n  type: 'test'\n  ...\n# Subtest: repeated runtime diagnostics are bounded even with no stdout\nok 5 - repeated runtime diagnostics are bounded even with no stdout\n  ---\n  duration_ms: 0.609625\n  type: 'test'\n  ...\n# Subtest: host stdout failure is never a recoverable filter error: EPIPE: broken pipe\nok 6 - host stdout failure is never a recoverable filter error: EPIPE: broken pipe\n  ---\n  duration_ms: 0.369834\n  type: 'test'\n  ...\n# Subtest: host stdout failure is never a recoverable filter error: host sink failure\nok 7 - host stdout failure is never a recoverable filter error: host sink failure\n  ---\n  duration_ms: 0.151583\n  type: 'test'\n  ...\n# Subtest: blocked runtime stderr cancels and closes upstream\nok 8 - blocked runtime stderr cancels and closes upstream\n  ---\n  duration_ms: 0.369708\n  type: 'test'\n  ...\n# Subtest: replacement expansion respects exact UTF8 value bytes\nok 9 - replacement expansion respects exact UTF8 value bytes\n  ---\n  duration_ms: 1.16125\n  type: 'test'\n  ...\n# Subtest: large replacement workloads retain cooperative cancellation\nok 10 - large replacement workloads retain cooperative cancellation\n  ---\n  duration_ms: 10.792\n  type: 'test'\n  ...\n1..10\n# tests 10\n# suites 0\n# pass 10\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 129.784958\n",
+      "stderr": ""
+    },
+    {
+      "name": "author-safety-3",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/commands/structured-stress/jq-42-author-20260827/safety.test.ts"
+      ],
+      "startedAt": "2026-08-27T01:02:19.557Z",
+      "endedAt": "2026-08-27T01:02:19.721Z",
+      "status": 0,
+      "signal": null,
+      "counts": {
+        "tests": 10,
+        "pass": 10,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "failures": [],
+      "stdout": "TAP version 13\n# Subtest: recovery stops at parse error instead of consuming later valid records\nok 1 - recovery stops at parse error instead of consuming later valid records\n  ---\n  duration_ms: 2.328167\n  type: 'test'\n  ...\n# Subtest: optional and recovery cannot swallow maxResults\nok 2 - optional and recovery cannot swallow maxResults\n  ---\n  duration_ms: 1.1575\n  type: 'test'\n  ...\n# Subtest: optional and recovery cannot swallow maxOutputBytes\nok 3 - optional and recovery cannot swallow maxOutputBytes\n  ---\n  duration_ms: 1.177292\n  type: 'test'\n  ...\n# Subtest: optional and recovery cannot swallow maxSteps\nok 4 - optional and recovery cannot swallow maxSteps\n  ---\n  duration_ms: 0.311208\n  type: 'test'\n  ...\n# Subtest: repeated runtime diagnostics are bounded even with no stdout\nok 5 - repeated runtime diagnostics are bounded even with no stdout\n  ---\n  duration_ms: 0.61025\n  type: 'test'\n  ...\n# Subtest: host stdout failure is never a recoverable filter error: EPIPE: broken pipe\nok 6 - host stdout failure is never a recoverable filter error: EPIPE: broken pipe\n  ---\n  duration_ms: 0.37075\n  type: 'test'\n  ...\n# Subtest: host stdout failure is never a recoverable filter error: host sink failure\nok 7 - host stdout failure is never a recoverable filter error: host sink failure\n  ---\n  duration_ms: 0.138667\n  type: 'test'\n  ...\n# Subtest: blocked runtime stderr cancels and closes upstream\nok 8 - blocked runtime stderr cancels and closes upstream\n  ---\n  duration_ms: 0.337084\n  type: 'test'\n  ...\n# Subtest: replacement expansion respects exact UTF8 value bytes\nok 9 - replacement expansion respects exact UTF8 value bytes\n  ---\n  duration_ms: 0.951542\n  type: 'test'\n  ...\n# Subtest: large replacement workloads retain cooperative cancellation\nok 10 - large replacement workloads retain cooperative cancellation\n  ---\n  duration_ms: 11.09425\n  type: 'test'\n  ...\n1..10\n# tests 10\n# suites 0\n# pass 10\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 133.885166\n",
+      "stderr": ""
+    },
+    {
+      "name": "review-evidence-controls",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/commands/structured-stress/jq-42-independent-review/evidence.test.ts"
+      ],
+      "startedAt": "2026-08-27T01:02:19.721Z",
+      "endedAt": "2026-08-27T01:02:20.405Z",
+      "status": 0,
+      "signal": null,
+      "counts": {
+        "tests": 4,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "failures": [],
+      "stdout": "TAP version 13\n# Subtest: review evidence preserves the original42 and complete 155/81 cohorts\nok 1 - review evidence preserves the original42 and complete 155/81 cohorts\n  ---\n  duration_ms: 198.80475\n  type: 'test'\n  ...\n# Subtest: independent specifications match frozen argv, files and exact input bytes\nok 2 - independent specifications match frozen argv, files and exact input bytes\n  ---\n  duration_ms: 172.964708\n  type: 'test'\n  ...\n# Subtest: every malformed/surrogate input boundary is explicit and byte preserving\nok 3 - every malformed/surrogate input boundary is explicit and byte preserving\n  ---\n  duration_ms: 166.022875\n  type: 'test'\n  ...\n# Subtest: review byte sinks retain invalid UTF8/NUL without decoding and enforce caps\nok 4 - review byte sinks retain invalid UTF8/NUL without decoding and enforce caps\n  ---\n  duration_ms: 1.110417\n  type: 'test'\n  ...\n1..4\n# tests 4\n# suites 0\n# pass 4\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 651.422167\n",
+      "stderr": ""
+    },
+    {
+      "name": "scoped-typecheck",
+      "command": "node_modules/.bin/tsc",
+      "args": [
+        "--noEmit",
+        "-p",
+        "tests/commands/structured-stress/jq-42-independent-review/tsconfig.json"
+      ],
+      "startedAt": "2026-08-27T01:02:20.405Z",
+      "endedAt": "2026-08-27T01:02:21.562Z",
+      "status": 0,
+      "signal": null,
+      "counts": {},
+      "failures": [],
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "global-typecheck",
+      "command": "npm",
+      "args": [
+        "run",
+        "typecheck"
+      ],
+      "startedAt": "2026-08-27T01:02:21.562Z",
+      "endedAt": "2026-08-27T01:02:25.293Z",
+      "status": 0,
+      "signal": null,
+      "counts": {},
+      "failures": [],
+      "stdout": "\n> virtual-bash@0.0.0 typecheck\n> tsc --noEmit\n\n",
+      "stderr": ""
+    }
+  ],
+  "historical": [
+    {
+      "path": "benchmarks/reports/current-integration/ARTIFACTS.sha256",
+      "frozenSha256": "02081891bcb2698626a3255b2a898c222c297aada1e55951c9c5e8936f6a9f6f",
+      "currentSha256": "02081891bcb2698626a3255b2a898c222c297aada1e55951c9c5e8936f6a9f6f",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/HANDOFF.md",
+      "frozenSha256": "d5db673d469c8ce266caf09a85850b85deca31d2b172fcdc29c896d9d1fe929f",
+      "currentSha256": "d5db673d469c8ce266caf09a85850b85deca31d2b172fcdc29c896d9d1fe929f",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/INDEPENDENT_REVIEW.md",
+      "frozenSha256": "88ea08fc889df9a2b60389bc4fcbdb3c79fd69f4c6834d9bb314801adaf08506",
+      "currentSha256": "88ea08fc889df9a2b60389bc4fcbdb3c79fd69f4c6834d9bb314801adaf08506",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/README.md",
+      "frozenSha256": "90d65f8cfc1415527067063507a8007727eb86e9491fd1560162927da8023ec4",
+      "currentSha256": "90d65f8cfc1415527067063507a8007727eb86e9491fd1560162927da8023ec4",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/account.py",
+      "frozenSha256": "861d20a8bf0e46a2fb4e60ee8c5c5422989d599fc0d7568618797d965dfc1dd1",
+      "currentSha256": "861d20a8bf0e46a2fb4e60ee8c5c5422989d599fc0d7568618797d965dfc1dd1",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/after.json",
+      "frozenSha256": "5005973bc8897637d1f157df3176db2d15bac193180c587881263434d8fdd762",
+      "currentSha256": "5005973bc8897637d1f157df3176db2d15bac193180c587881263434d8fdd762",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/audit.py",
+      "frozenSha256": "5ae3eaa086b93bcd2c18d97d36950e5ff6c895e784f88163ec48bda7a044bc2a",
+      "currentSha256": "5ae3eaa086b93bcd2c18d97d36950e5ff6c895e784f88163ec48bda7a044bc2a",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/benchmark-typecheck.result.json",
+      "frozenSha256": "7409008ce40818fc3ad13dbcd8e5191ddf0a690e7e434ed8c714002ca1687129",
+      "currentSha256": "7409008ce40818fc3ad13dbcd8e5191ddf0a690e7e434ed8c714002ca1687129",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/benchmark-typecheck.stderr.log",
+      "frozenSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "currentSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/benchmark-typecheck.stdout.log",
+      "frozenSha256": "d6c725f02f256f8fe9498a2a66ba2130452f9a1815625f3f62e3ba49cb0d6302",
+      "currentSha256": "d6c725f02f256f8fe9498a2a66ba2130452f9a1815625f3f62e3ba49cb0d6302",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/build.result.json",
+      "frozenSha256": "1bceacdd5145f9cad5768d3b56ecff8deded494802f74a89feda4db2f52d780a",
+      "currentSha256": "1bceacdd5145f9cad5768d3b56ecff8deded494802f74a89feda4db2f52d780a",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/build.stderr.log",
+      "frozenSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "currentSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/build.stdout.log",
+      "frozenSha256": "192358b3fd3475b4bb505c07ba0b5608c6e4aa06624198bba950fe56e278e6f0",
+      "currentSha256": "192358b3fd3475b4bb505c07ba0b5608c6e4aa06624198bba950fe56e278e6f0",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/checkpoint.txt",
+      "frozenSha256": "51d347cc9da1c62b2079669f1022b6dccf4a360c235744552b7538bcef6791ce",
+      "currentSha256": "51d347cc9da1c62b2079669f1022b6dccf4a360c235744552b7538bcef6791ce",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/clean-after.json",
+      "frozenSha256": "22d1915c827b24062ebe48d16eedf389a19e18cd883dea855d9e7d5d9d811ac3",
+      "currentSha256": "22d1915c827b24062ebe48d16eedf389a19e18cd883dea855d9e7d5d9d811ac3",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/clean-benchmark-typecheck.environment.json",
+      "frozenSha256": "0c8440af2f57b3865342d53d443782a84e5a5b7474da07353aa18726e711acc4",
+      "currentSha256": "0c8440af2f57b3865342d53d443782a84e5a5b7474da07353aa18726e711acc4",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/clean-benchmark-typecheck.result.json",
+      "frozenSha256": "ab7480534f0df0473ae12eaffb5bba814e05605569bac4619dcad2f302ad94f7",
+      "currentSha256": "ab7480534f0df0473ae12eaffb5bba814e05605569bac4619dcad2f302ad94f7",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/clean-benchmark-typecheck.stderr.log",
+      "frozenSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "currentSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/clean-benchmark-typecheck.stdout.log",
+      "frozenSha256": "d6c725f02f256f8fe9498a2a66ba2130452f9a1815625f3f62e3ba49cb0d6302",
+      "currentSha256": "d6c725f02f256f8fe9498a2a66ba2130452f9a1815625f3f62e3ba49cb0d6302",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/clean-build.environment.json",
+      "frozenSha256": "0c8440af2f57b3865342d53d443782a84e5a5b7474da07353aa18726e711acc4",
+      "currentSha256": "0c8440af2f57b3865342d53d443782a84e5a5b7474da07353aa18726e711acc4",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/clean-build.result.json",
+      "frozenSha256": "6eaaccb1b94f8ce708426058455533dd5ec57f4fb9e9cc636e124b9b80734e45",
+      "currentSha256": "6eaaccb1b94f8ce708426058455533dd5ec57f4fb9e9cc636e124b9b80734e45",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/clean-build.stderr.log",
+      "frozenSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "currentSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/clean-build.stdout.log",
+      "frozenSha256": "192358b3fd3475b4bb505c07ba0b5608c6e4aa06624198bba950fe56e278e6f0",
+      "currentSha256": "192358b3fd3475b4bb505c07ba0b5608c6e4aa06624198bba950fe56e278e6f0",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/clean-comparison.environment.json",
+      "frozenSha256": "0c8440af2f57b3865342d53d443782a84e5a5b7474da07353aa18726e711acc4",
+      "currentSha256": "0c8440af2f57b3865342d53d443782a84e5a5b7474da07353aa18726e711acc4",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/clean-comparison.json",
+      "frozenSha256": "8a6d04f51cca623b4f93c0b117515f67c222955ca54c1aeb9bdbdb0d5d298bb1",
+      "currentSha256": "8a6d04f51cca623b4f93c0b117515f67c222955ca54c1aeb9bdbdb0d5d298bb1",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/clean-comparison.result.json",
+      "frozenSha256": "83fcd5ac4cd87dce5393e10d065798152d2f813cb4e6e10236320edfcfac446d",
+      "currentSha256": "83fcd5ac4cd87dce5393e10d065798152d2f813cb4e6e10236320edfcfac446d",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/clean-comparison.stderr.log",
+      "frozenSha256": "9321cdd9c24f88ced5d88aa505d8d5ef8729c2eefa7ef4941f4bed0dcb5496f6",
+      "currentSha256": "9321cdd9c24f88ced5d88aa505d8d5ef8729c2eefa7ef4941f4bed0dcb5496f6",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/clean-comparison.stdout.log",
+      "frozenSha256": "ccb4541c02e12353e95a3f5439170759ec652a11f68469480612d177a5bc87f6",
+      "currentSha256": "ccb4541c02e12353e95a3f5439170759ec652a11f68469480612d177a5bc87f6",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/clean-contracts.accounting.json",
+      "frozenSha256": "7427ad5395a40a215896685893dfde1561956204bdd022f4a2273e6219ea4291",
+      "currentSha256": "7427ad5395a40a215896685893dfde1561956204bdd022f4a2273e6219ea4291",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/clean-contracts.environment.json",
+      "frozenSha256": "0c8440af2f57b3865342d53d443782a84e5a5b7474da07353aa18726e711acc4",
+      "currentSha256": "0c8440af2f57b3865342d53d443782a84e5a5b7474da07353aa18726e711acc4",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/clean-contracts.nonpass.json",
+      "frozenSha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "currentSha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/clean-contracts.result.json",
+      "frozenSha256": "1ff642fa7a77310f06b997d4e7d5e4b804ac5bc1c8fd2861fb62929fb9a0395e",
+      "currentSha256": "1ff642fa7a77310f06b997d4e7d5e4b804ac5bc1c8fd2861fb62929fb9a0395e",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/clean-contracts.stderr.log",
+      "frozenSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "currentSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/clean-contracts.stdout.log",
+      "frozenSha256": "799e94406670e9648a500d7c4396bb6b2d11cbf42f54c6c6874551c6315bd429",
+      "currentSha256": "799e94406670e9648a500d7c4396bb6b2d11cbf42f54c6c6874551c6315bd429",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/clean-equivalence.json",
+      "frozenSha256": "5a3ac47161d3f6045b284e142bbe610ca5c754cdb85bd6e4f72f72cac62a222c",
+      "currentSha256": "5a3ac47161d3f6045b284e142bbe610ca5c754cdb85bd6e4f72f72cac62a222c",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/clean-inputs.json",
+      "frozenSha256": "f9501513043fa96615dea2795e8a47c8e4f5038028f51407fc6c129e4f366c22",
+      "currentSha256": "f9501513043fa96615dea2795e8a47c8e4f5038028f51407fc6c129e4f366c22",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/clean-state.json",
+      "frozenSha256": "1a5d6cc7bebfe46d1c18968e08eb6d3da74ab3c03f4da7ed70363d013ae6b135",
+      "currentSha256": "1a5d6cc7bebfe46d1c18968e08eb6d3da74ab3c03f4da7ed70363d013ae6b135",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/clean-test.accounting.json",
+      "frozenSha256": "f6159a21786b5351de72eff9eca32418595ea363643a385eea06cfc149d99328",
+      "currentSha256": "f6159a21786b5351de72eff9eca32418595ea363643a385eea06cfc149d99328",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/clean-test.environment.json",
+      "frozenSha256": "0c8440af2f57b3865342d53d443782a84e5a5b7474da07353aa18726e711acc4",
+      "currentSha256": "0c8440af2f57b3865342d53d443782a84e5a5b7474da07353aa18726e711acc4",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/clean-test.nonpass.json",
+      "frozenSha256": "0dfb5f4b8cfc3505e2bb5de15c214e88f08d3a12a167716068f74e87bcc58543",
+      "currentSha256": "0dfb5f4b8cfc3505e2bb5de15c214e88f08d3a12a167716068f74e87bcc58543",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/clean-test.result.json",
+      "frozenSha256": "ca270d6ef026d38b3254cb5e210eac69254f2c7c5be8f6771a6b7474a363b0bb",
+      "currentSha256": "ca270d6ef026d38b3254cb5e210eac69254f2c7c5be8f6771a6b7474a363b0bb",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/clean-test.stderr.log",
+      "frozenSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "currentSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/clean-test.stdout.log",
+      "frozenSha256": "1474c867aad3ab1f7c08ca0223939ad7657310a18f4e2bbcb5750efb5a20ab1f",
+      "currentSha256": "1474c867aad3ab1f7c08ca0223939ad7657310a18f4e2bbcb5750efb5a20ab1f",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/clean-typecheck.environment.json",
+      "frozenSha256": "0c8440af2f57b3865342d53d443782a84e5a5b7474da07353aa18726e711acc4",
+      "currentSha256": "0c8440af2f57b3865342d53d443782a84e5a5b7474da07353aa18726e711acc4",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/clean-typecheck.result.json",
+      "frozenSha256": "81e49339e36c62e4f8809a299b3b6885bb1c34ccb2a47420a0ffbc9b63ca4a36",
+      "currentSha256": "81e49339e36c62e4f8809a299b3b6885bb1c34ccb2a47420a0ffbc9b63ca4a36",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/clean-typecheck.stderr.log",
+      "frozenSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "currentSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/clean-typecheck.stdout.log",
+      "frozenSha256": "1fdde720d88bceb0944ea367ca22ed421eb773fe2037128aef9cf9646f975e47",
+      "currentSha256": "1fdde720d88bceb0944ea367ca22ed421eb773fe2037128aef9cf9646f975e47",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison.json",
+      "frozenSha256": "42831bcb3e3b7bd042a08a63dc543fab0a6db2faefda45d6846c26880508a3f8",
+      "currentSha256": "42831bcb3e3b7bd042a08a63dc543fab0a6db2faefda45d6846c26880508a3f8",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison.result.json",
+      "frozenSha256": "a46c24904fdb8f990caef7052bb273f8f98613029d30fcdde66f0d14b81ab2ae",
+      "currentSha256": "a46c24904fdb8f990caef7052bb273f8f98613029d30fcdde66f0d14b81ab2ae",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison.stderr.log",
+      "frozenSha256": "9321cdd9c24f88ced5d88aa505d8d5ef8729c2eefa7ef4941f4bed0dcb5496f6",
+      "currentSha256": "9321cdd9c24f88ced5d88aa505d8d5ef8729c2eefa7ef4941f4bed0dcb5496f6",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison.stdout.log",
+      "frozenSha256": "19f386137c86498a3bfb8f97d1003c583007ef3cf0667e02778d7c98f832a65e",
+      "currentSha256": "19f386137c86498a3bfb8f97d1003c583007ef3cf0667e02778d7c98f832a65e",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/contracts.accounting.json",
+      "frozenSha256": "4e3d3462d0e5fe78fa346bae3c28abf01083f1f2c74e30a19723d0335eb005a9",
+      "currentSha256": "4e3d3462d0e5fe78fa346bae3c28abf01083f1f2c74e30a19723d0335eb005a9",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/contracts.nonpass.json",
+      "frozenSha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "currentSha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/contracts.result.json",
+      "frozenSha256": "419bb641bc24b22c9e8f01ee3c47549301c498d52224da87f5a3cb4652c26712",
+      "currentSha256": "419bb641bc24b22c9e8f01ee3c47549301c498d52224da87f5a3cb4652c26712",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/contracts.stderr.log",
+      "frozenSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "currentSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/contracts.stdout.log",
+      "frozenSha256": "5fe650e9a0676b0d218a5140440ca33769044577e671d0dea039920428332db5",
+      "currentSha256": "5fe650e9a0676b0d218a5140440ca33769044577e671d0dea039920428332db5",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/coverage-cohorts.json",
+      "frozenSha256": "e6dffd7330e4e592e3e6ec8db2fd963fdceb116c87df6cf208ac458d491c823b",
+      "currentSha256": "e6dffd7330e4e592e3e6ec8db2fd963fdceb116c87df6cf208ac458d491c823b",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/dependencies.json",
+      "frozenSha256": "c91fdd7894daf7c04403c6e9417b2ba9a79688776b7d1e2e8928c4a3a5b61d9a",
+      "currentSha256": "c91fdd7894daf7c04403c6e9417b2ba9a79688776b7d1e2e8928c4a3a5b61d9a",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/dependency-after.json",
+      "frozenSha256": "631ed824caf2b8c4ee978a842c4c4ec18fe5b8242bdbbf936b6de5787a8ec1b2",
+      "currentSha256": "631ed824caf2b8c4ee978a842c4c4ec18fe5b8242bdbbf936b6de5787a8ec1b2",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/dependency-copy.json",
+      "frozenSha256": "50c75e8d82b6240e7c572e7d9642616ad88116393ee2e1ae366ef2aa2c2e3a14",
+      "currentSha256": "50c75e8d82b6240e7c572e7d9642616ad88116393ee2e1ae366ef2aa2c2e3a14",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/environment-delta.json",
+      "frozenSha256": "aa2c99f089f37bbabe88ba729bd6863d174e8eb52d4485ba1a03cf035c2d8b42",
+      "currentSha256": "aa2c99f089f37bbabe88ba729bd6863d174e8eb52d4485ba1a03cf035c2d8b42",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/environment.json",
+      "frozenSha256": "0c8440af2f57b3865342d53d443782a84e5a5b7474da07353aa18726e711acc4",
+      "currentSha256": "0c8440af2f57b3865342d53d443782a84e5a5b7474da07353aa18726e711acc4",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/execution-order.json",
+      "frozenSha256": "1d0f2d2ca847e12c97a4467843f54e3fd38b0477dd5acc7a27bf4debf2c464ac",
+      "currentSha256": "1d0f2d2ca847e12c97a4467843f54e3fd38b0477dd5acc7a27bf4debf2c464ac",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/failure-groups.json",
+      "frozenSha256": "713d6124184f1b033abb285100829d49f9b3e732978a6aac6b14689ee6254157",
+      "currentSha256": "713d6124184f1b033abb285100829d49f9b3e732978a6aac6b14689ee6254157",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/finalization-checks.json",
+      "frozenSha256": "1969522748a4f69b3feaa2126fd066ebc1e0137368b88aeee74da66a3848fe48",
+      "currentSha256": "1969522748a4f69b3feaa2126fd066ebc1e0137368b88aeee74da66a3848fe48",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/fixture-cleanup.json",
+      "frozenSha256": "776ba090d4ae71c37e1c41858e72075df0e96176bddb13ccfdee6ae33c02739c",
+      "currentSha256": "776ba090d4ae71c37e1c41858e72075df0e96176bddb13ccfdee6ae33c02739c",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/generated-inventory.json",
+      "frozenSha256": "fa269ae95e52d70e66cb90d4a3d6ed34e401fdde7b9c8bdf4c7190653c626496",
+      "currentSha256": "fa269ae95e52d70e66cb90d4a3d6ed34e401fdde7b9c8bdf4c7190653c626496",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/host-tool-evidence.json",
+      "frozenSha256": "e95a415f1a4c2e72b9ced725f32e8e7422d347591ed8ba76f4985c7274c1ed41",
+      "currentSha256": "e95a415f1a4c2e72b9ced725f32e8e7422d347591ed8ba76f4985c7274c1ed41",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/independent-review-evidence.json",
+      "frozenSha256": "9752e22fbb1e0f790b80fed8e66b96e6f31606ffc8e19c37ed2bde2fc52bad1b",
+      "currentSha256": "9752e22fbb1e0f790b80fed8e66b96e6f31606ffc8e19c37ed2bde2fc52bad1b",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/inputs.json",
+      "frozenSha256": "95313fea4bad5f34dc1017b5293279a2fcfa11ffec9f9f5660acbc5ecff373d9",
+      "currentSha256": "95313fea4bad5f34dc1017b5293279a2fcfa11ffec9f9f5660acbc5ecff373d9",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/inventory.environment.json",
+      "frozenSha256": "0c8440af2f57b3865342d53d443782a84e5a5b7474da07353aa18726e711acc4",
+      "currentSha256": "0c8440af2f57b3865342d53d443782a84e5a5b7474da07353aa18726e711acc4",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/inventory.result.json",
+      "frozenSha256": "20b0badf7c399a404eb888b39c2fb4c3002bf5ac6f8a71ad2ed7a069175bc69b",
+      "currentSha256": "20b0badf7c399a404eb888b39c2fb4c3002bf5ac6f8a71ad2ed7a069175bc69b",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/inventory.stderr.log",
+      "frozenSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "currentSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/inventory.stdout.log",
+      "frozenSha256": "89bb784d2152a9bff6a63e95f1294d16e2169e552c0371b077e77c560981ea3d",
+      "currentSha256": "89bb784d2152a9bff6a63e95f1294d16e2169e552c0371b077e77c560981ea3d",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/isolated-tmp-cleanup.json",
+      "frozenSha256": "6996a0502d94ec491ccf1be39cc2ef6e8420f951123c52f687c7ce8aec7723bd",
+      "currentSha256": "6996a0502d94ec491ccf1be39cc2ef6e8420f951123c52f687c7ce8aec7723bd",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/jq-delta-classification.json",
+      "frozenSha256": "e407a10118eb3de2abb6c35f7891842c451b82fb47b0c48997d8a0e647524855",
+      "currentSha256": "e407a10118eb3de2abb6c35f7891842c451b82fb47b0c48997d8a0e647524855",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/oracle-rg-copy.json",
+      "frozenSha256": "1d0aea44ecda5b1bc9ab75f35f2abd6cd864cef00f42a03316199c766005a369",
+      "currentSha256": "1d0aea44ecda5b1bc9ab75f35f2abd6cd864cef00f42a03316199c766005a369",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/phase-order.json",
+      "frozenSha256": "a336e1f2f97296ef1f44fd7ae379557e63cb4ba9e434d844b5d2df2d4d737354",
+      "currentSha256": "a336e1f2f97296ef1f44fd7ae379557e63cb4ba9e434d844b5d2df2d4d737354",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/state.json",
+      "frozenSha256": "a4caa3ad00c8a143a4511fe2267a0bd74f5739fbe0e419d86bcc5bed43cb9455",
+      "currentSha256": "a4caa3ad00c8a143a4511fe2267a0bd74f5739fbe0e419d86bcc5bed43cb9455",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/summary.json",
+      "frozenSha256": "327ce0dafe8f9b70c5223b5eb1d2e7220a86b381d0cfed3d605a205ec5e9b31f",
+      "currentSha256": "327ce0dafe8f9b70c5223b5eb1d2e7220a86b381d0cfed3d605a205ec5e9b31f",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/test-inventory.json",
+      "frozenSha256": "78fe16b22146acdb1c2823af5cf5675e5cb5242223d06b929be2c43326f57e5f",
+      "currentSha256": "78fe16b22146acdb1c2823af5cf5675e5cb5242223d06b929be2c43326f57e5f",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/test-with-rg.accounting.json",
+      "frozenSha256": "c38e03dc8eb010a62ce7114484a5aeafa3a3704fd2638214dcf9018bbe70ade0",
+      "currentSha256": "c38e03dc8eb010a62ce7114484a5aeafa3a3704fd2638214dcf9018bbe70ade0",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/test-with-rg.environment.json",
+      "frozenSha256": "0c8440af2f57b3865342d53d443782a84e5a5b7474da07353aa18726e711acc4",
+      "currentSha256": "0c8440af2f57b3865342d53d443782a84e5a5b7474da07353aa18726e711acc4",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/test-with-rg.nonpass.json",
+      "frozenSha256": "d56f0a4dc2bb53a4b83b6f24ab17748e451e2ce67c0eb0c4c857d2daca3a5d8d",
+      "currentSha256": "d56f0a4dc2bb53a4b83b6f24ab17748e451e2ce67c0eb0c4c857d2daca3a5d8d",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/test-with-rg.result.json",
+      "frozenSha256": "058a8df9e34e8308ca8b6dd26ebeae824c0dabcf3f54cd6a2f27aff7ff52a4f9",
+      "currentSha256": "058a8df9e34e8308ca8b6dd26ebeae824c0dabcf3f54cd6a2f27aff7ff52a4f9",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/test-with-rg.stderr.log",
+      "frozenSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "currentSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/test-with-rg.stdout.log",
+      "frozenSha256": "72971fb235fa141dadb951661da95c3ac39c5e238c5991eda26cba2ec4239bf0",
+      "currentSha256": "72971fb235fa141dadb951661da95c3ac39c5e238c5991eda26cba2ec4239bf0",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/test.accounting.json",
+      "frozenSha256": "66fa4db87a824691b791a466216146712d76ab8de5eca7eabd1ae0cb2f3a84a3",
+      "currentSha256": "66fa4db87a824691b791a466216146712d76ab8de5eca7eabd1ae0cb2f3a84a3",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/test.nonpass.json",
+      "frozenSha256": "7c041453a6a8c4c74e5f203d2fc766a4e0fdf02d2c1509e878d49e8a7074668c",
+      "currentSha256": "7c041453a6a8c4c74e5f203d2fc766a4e0fdf02d2c1509e878d49e8a7074668c",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/test.result.json",
+      "frozenSha256": "4f78873a1678167a7167bc044ae68c60d47d198b4daf4d8910810d6319b06d41",
+      "currentSha256": "4f78873a1678167a7167bc044ae68c60d47d198b4daf4d8910810d6319b06d41",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/test.stderr.log",
+      "frozenSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "currentSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/test.stdout.log",
+      "frozenSha256": "5ddabeb809744f2d8a16ae36639d0c42a8e3d42aca64a229d9960b5cb34b8698",
+      "currentSha256": "5ddabeb809744f2d8a16ae36639d0c42a8e3d42aca64a229d9960b5cb34b8698",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/typecheck.result.json",
+      "frozenSha256": "de78f84e3be00d4552c1293ee24026972f7888ff15f744c128e2f28eeb406722",
+      "currentSha256": "de78f84e3be00d4552c1293ee24026972f7888ff15f744c128e2f28eeb406722",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/typecheck.stderr.log",
+      "frozenSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "currentSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "unchanged": true
+    },
+    {
+      "path": "benchmarks/reports/current-integration/typecheck.stdout.log",
+      "frozenSha256": "1fdde720d88bceb0944ea367ca22ed421eb773fe2037128aef9cf9646f975e47",
+      "currentSha256": "1fdde720d88bceb0944ea367ca22ed421eb773fe2037128aef9cf9646f975e47",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/README.md",
+      "frozenSha256": "266b87f7058879e8594e563cfcff01d583b80fd67aa0b7ec982336d0faaa1801",
+      "currentSha256": "266b87f7058879e8594e563cfcff01d583b80fd67aa0b7ec982336d0faaa1801",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/capture-join.mjs",
+      "frozenSha256": "83ed5aee2dbd96eb9798aafae5d2ef55fc5a15f8ffeb20669f46bed184c541a4",
+      "currentSha256": "83ed5aee2dbd96eb9798aafae5d2ef55fc5a15f8ffeb20669f46bed184c541a4",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/capture-raw-input.mjs",
+      "frozenSha256": "cbfe8243b08fceade229b37e2ceb41d88e02eaf2465d81e5378190dc538f6561",
+      "currentSha256": "cbfe8243b08fceade229b37e2ceb41d88e02eaf2465d81e5378190dc538f6561",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/cases.ts",
+      "frozenSha256": "dc95e73afd589904690dbc7c1b77d3aa996ca44c262899ba3c3e9bac5ad06beb",
+      "currentSha256": "dc95e73afd589904690dbc7c1b77d3aa996ca44c262899ba3c3e9bac5ad06beb",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/corpus.test.ts",
+      "frozenSha256": "03ad08f26ff3ab6f9b75ca52b6dc93297fa92b3b2e00202d011cb99917e05dbc",
+      "currentSha256": "03ad08f26ff3ab6f9b75ca52b6dc93297fa92b3b2e00202d011cb99917e05dbc",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/corpus.ts",
+      "frozenSha256": "761dd27935b63639eaa0c4e17c30d98b7ab35c68bece1fa0c601a2514cde17e0",
+      "currentSha256": "761dd27935b63639eaa0c4e17c30d98b7ab35c68bece1fa0c601a2514cde17e0",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/final-increment/README.md",
+      "frozenSha256": "5410cbe1a2d7e24f67b4780f7fc16435553e92ab426da70775f90d38e4b8006c",
+      "currentSha256": "5410cbe1a2d7e24f67b4780f7fc16435553e92ab426da70775f90d38e4b8006c",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/final-increment/fresh-interop.test.ts",
+      "frozenSha256": "8f2fb779603124626130089a706faa55778ef2e22637044b2bafa14bc53fd76e",
+      "currentSha256": "8f2fb779603124626130089a706faa55778ef2e22637044b2bafa14bc53fd76e",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/final-increment/fresh-native.json",
+      "frozenSha256": "2724f85ce5745706a96fb9c0052d84df2cabd28e00811eb9e42ad34be105a4ca",
+      "currentSha256": "2724f85ce5745706a96fb9c0052d84df2cabd28e00811eb9e42ad34be105a4ca",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/final-increment/fresh.test.ts",
+      "frozenSha256": "f2136c728cc94910274eb942dc5c7c67a0993e220561ab46420e6829acc04bdd",
+      "currentSha256": "f2136c728cc94910274eb942dc5c7c67a0993e220561ab46420e6829acc04bdd",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/final-increment/native.mjs",
+      "frozenSha256": "b2cc903b883e3a0b7eea521f9fb0e46adf0a8bb7ce25de480d9a7768483548d5",
+      "currentSha256": "b2cc903b883e3a0b7eea521f9fb0e46adf0a8bb7ce25de480d9a7768483548d5",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/final-increment/pinned-matrix.mjs",
+      "frozenSha256": "a0b3c45fee377a6326fa1955de41e3ae18db744fcc29e662a0cf0ed8292bd2b6",
+      "currentSha256": "a0b3c45fee377a6326fa1955de41e3ae18db744fcc29e662a0cf0ed8292bd2b6",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/final-increment/post-checkpoint.json",
+      "frozenSha256": "f21beb8ffae340c8c6e8bb79a791f92ce843356294d71e63577d90b4f7f4ae98",
+      "currentSha256": "f21beb8ffae340c8c6e8bb79a791f92ce843356294d71e63577d90b4f7f4ae98",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/final-increment/split-report.ts",
+      "frozenSha256": "0aab71a52f5f97f8de3ca626a04d7a9a222c1187c7ad5cf573a1fc3e2ee9a2d0",
+      "currentSha256": "0aab71a52f5f97f8de3ca626a04d7a9a222c1187c7ad5cf573a1fc3e2ee9a2d0",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/final-increment/verification.json",
+      "frozenSha256": "d4a6244f5a5240f3c57e8a0fe9be536b61d07750638cbce37b90b7d99daa4642",
+      "currentSha256": "d4a6244f5a5240f3c57e8a0fe9be536b61d07750638cbce37b90b7d99daa4642",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/final-increment/verify.mjs",
+      "frozenSha256": "4157bc7375278ac8d8a5c5afecaca0481c0104d16f7b54bf9b7b5d074de2b0ab",
+      "currentSha256": "4157bc7375278ac8d8a5c5afecaca0481c0104d16f7b54bf9b7b5d074de2b0ab",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/harness.ts",
+      "frozenSha256": "dabc50c83133b6927d987f4763b594e793a4374cec79e5a1eead9a2612a6d482",
+      "currentSha256": "dabc50c83133b6927d987f4763b594e793a4374cec79e5a1eead9a2612a6d482",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/independent-increment/additive-regressions.test.ts",
+      "frozenSha256": "f087733ca5e5f39c8f130b82c649e141b7cd4c20acb838ce67520168dce96b75",
+      "currentSha256": "f087733ca5e5f39c8f130b82c649e141b7cd4c20acb838ce67520168dce96b75",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/independent-increment/cases.mjs",
+      "frozenSha256": "0654cb9fe31471aac1caf462ae0311b6f68915d054a020403dd5cab96e4f118f",
+      "currentSha256": "0654cb9fe31471aac1caf462ae0311b6f68915d054a020403dd5cab96e4f118f",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/independent-increment/diagnose.ts",
+      "frozenSha256": "2286056250cdd27979d3b45db5780bcc26d1fed129e440a868aa78cd7c222b21",
+      "currentSha256": "2286056250cdd27979d3b45db5780bcc26d1fed129e440a868aa78cd7c222b21",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/independent-increment/exponent-vectors.json",
+      "frozenSha256": "e90ececb9f163080873975c46063245df6200b7316edd682a401e33c07f9039d",
+      "currentSha256": "e90ececb9f163080873975c46063245df6200b7316edd682a401e33c07f9039d",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/independent-increment/harness.ts",
+      "frozenSha256": "05f355390cb401ba7f1d318c836bb45d11eb112d33a877f70b47d42c450d3d85",
+      "currentSha256": "05f355390cb401ba7f1d318c836bb45d11eb112d33a877f70b47d42c450d3d85",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/independent-increment/native-regressions.test.ts",
+      "frozenSha256": "6fef0d1b53e76bf7c144fa38bf6bb4ba2593a848f0700256516f7acb872cb7db",
+      "currentSha256": "6fef0d1b53e76bf7c144fa38bf6bb4ba2593a848f0700256516f7acb872cb7db",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/independent-increment/native-vectors.json",
+      "frozenSha256": "924634ea7933a6b14be1295f65cd0f68485133975961572acab41fc307595a66",
+      "currentSha256": "924634ea7933a6b14be1295f65cd0f68485133975961572acab41fc307595a66",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/independent-increment/native.mjs",
+      "frozenSha256": "6776d73ead933398a9dbaca0cd42e0fb6d5e919eaa04c26d38a1748cc075aec5",
+      "currentSha256": "6776d73ead933398a9dbaca0cd42e0fb6d5e919eaa04c26d38a1748cc075aec5",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/independent-increment/numeric-fixes.test.ts",
+      "frozenSha256": "a7b2b91d071342706c4808d4db3f0aba04788e73395271cdf8077d726300e7ae",
+      "currentSha256": "a7b2b91d071342706c4808d4db3f0aba04788e73395271cdf8077d726300e7ae",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/independent-increment/numeric-safety.test.ts",
+      "frozenSha256": "5ad8d138f3733aa57f2c3a3147d20cb72affc6323111852cf646069da335e363",
+      "currentSha256": "5ad8d138f3733aa57f2c3a3147d20cb72affc6323111852cf646069da335e363",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/independent-increment/numeric-worker.ts",
+      "frozenSha256": "c2f552b697f1eca9df4d5603854b6aa60981ed092008df2801a73295da827259",
+      "currentSha256": "c2f552b697f1eca9df4d5603854b6aa60981ed092008df2801a73295da827259",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/independent-increment/overflow-comparison-vectors.json",
+      "frozenSha256": "86808210a4d14d5c5e5ad86db2a0803875e6143047a3f8dbf256378635891789",
+      "currentSha256": "86808210a4d14d5c5e5ad86db2a0803875e6143047a3f8dbf256378635891789",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/independent-increment/phase1-observation.json",
+      "frozenSha256": "b1553f455aedaf709384b5c76d7571bca18f6bcc7ecdb0b4d752d5d1be12a238",
+      "currentSha256": "b1553f455aedaf709384b5c76d7571bca18f6bcc7ecdb0b4d752d5d1be12a238",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/independent-increment/phase2-extra-vectors.json",
+      "frozenSha256": "230ac4fa5531e104b541b1e65f177c27c5efc9267125977a112df54dc7e743ac",
+      "currentSha256": "230ac4fa5531e104b541b1e65f177c27c5efc9267125977a112df54dc7e743ac",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/independent-increment/phase2-final-observation.json",
+      "frozenSha256": "3d17653b0b6a1dbc84c6928b1e65f00ed264fa6a20b584a1f785e5daf7d83d31",
+      "currentSha256": "3d17653b0b6a1dbc84c6928b1e65f00ed264fa6a20b584a1f785e5daf7d83d31",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/independent-increment/phase2-harness.ts",
+      "frozenSha256": "474df03b0e15b4c33ec9567fcdc78eadb0b9f0d04a9df028df2b5f4b379e4908",
+      "currentSha256": "474df03b0e15b4c33ec9567fcdc78eadb0b9f0d04a9df028df2b5f4b379e4908",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/independent-increment/phase2-native.mjs",
+      "frozenSha256": "925996d55a6dbc25539b2c32bb20b69d7b0f602fce1bce01a6e3927a19ffc25f",
+      "currentSha256": "925996d55a6dbc25539b2c32bb20b69d7b0f602fce1bce01a6e3927a19ffc25f",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/independent-increment/phase2-observation.json",
+      "frozenSha256": "2fc7931951d7d4baef37f2cf2164b6fdc5d21d173915a4754ade8044f07faca8",
+      "currentSha256": "2fc7931951d7d4baef37f2cf2164b6fdc5d21d173915a4754ade8044f07faca8",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/independent-increment/phase2-report.ts",
+      "frozenSha256": "610a812dd5c6666eae0f81f620563a15f6343e09610f3073a54fe2ddceb2ff05",
+      "currentSha256": "610a812dd5c6666eae0f81f620563a15f6343e09610f3073a54fe2ddceb2ff05",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/independent-increment/phase2-vectors.json",
+      "frozenSha256": "afcfae94201a04a4455e7410371bfbdcfbe35823939569cc13786779dfaca101",
+      "currentSha256": "afcfae94201a04a4455e7410371bfbdcfbe35823939569cc13786779dfaca101",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/independent-increment/quantifier-fixes.test.ts",
+      "frozenSha256": "bbada732f941a3787d79c94bc377a2d0d7195f2c5ff7777b89552000a71e6086",
+      "currentSha256": "bbada732f941a3787d79c94bc377a2d0d7195f2c5ff7777b89552000a71e6086",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+      "frozenSha256": "e46cdc464d16acdc1c6841d86dbb9b02274f7f22b2149751dcf1e8c44a8afcd1",
+      "currentSha256": "e46cdc464d16acdc1c6841d86dbb9b02274f7f22b2149751dcf1e8c44a8afcd1",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/independent-increment/supplement-observation.json",
+      "frozenSha256": "8b1f9ea12ae069704dc54e9c6fc42c962e62883631c3056c2e3fae1be7ee449f",
+      "currentSha256": "8b1f9ea12ae069704dc54e9c6fc42c962e62883631c3056c2e3fae1be7ee449f",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/independent-increment/supplement-vectors.json",
+      "frozenSha256": "3989c0678c2e87a6efff2bee562438fc0d03dfdbf167c2329cfebf296e3f4ba2",
+      "currentSha256": "3989c0678c2e87a6efff2bee562438fc0d03dfdbf167c2329cfebf296e3f4ba2",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/independent-increment/supplement.mjs",
+      "frozenSha256": "c61c7bb83ffe47ea7ff773d79b07accb6d9a9fb0b5d17704c371e9f060e74b6e",
+      "currentSha256": "c61c7bb83ffe47ea7ff773d79b07accb6d9a9fb0b5d17704c371e9f060e74b6e",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/independent-increment/verify-exponents.mjs",
+      "frozenSha256": "953ad8e41ccb92eedd35b3167fb66ba8e273865778259bb67f9e0a2e3d5edbb4",
+      "currentSha256": "953ad8e41ccb92eedd35b3167fb66ba8e273865778259bb67f9e0a2e3d5edbb4",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/join-native.json",
+      "frozenSha256": "b994b2c3ff60c873aa5649939e5e5804f09568e87511a1ed518c03fd69dcb68b",
+      "currentSha256": "b994b2c3ff60c873aa5649939e5e5804f09568e87511a1ed518c03fd69dcb68b",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/join-safety.test.ts",
+      "frozenSha256": "3fc48a40e945adcf1b25403b4d42659527e1f51c6addb0ca09632ccd6fdf6f39",
+      "currentSha256": "3fc48a40e945adcf1b25403b4d42659527e1f51c6addb0ca09632ccd6fdf6f39",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/join.test.ts",
+      "frozenSha256": "4e5ec178e0d35818f27d062af5343dc0df8acba45ca35225555d0835aee81f1d",
+      "currentSha256": "4e5ec178e0d35818f27d062af5343dc0df8acba45ca35225555d0835aee81f1d",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/native-corpus.json",
+      "frozenSha256": "6987c4241870b5449489f943c02498daa1a10c26c6de90845cb3d4b95099827c",
+      "currentSha256": "6987c4241870b5449489f943c02498daa1a10c26c6de90845cb3d4b95099827c",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/pipelines.test.ts",
+      "frozenSha256": "d9b577cb79810b1688103197b15edc3e0b50948b565aa8384850dfa094e7df78",
+      "currentSha256": "d9b577cb79810b1688103197b15edc3e0b50948b565aa8384850dfa094e7df78",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/raw-input-native.json",
+      "frozenSha256": "3f582f83c3015317bd53c27ef42290e60c1808ce968e588d8e25edaf3069ff96",
+      "currentSha256": "3f582f83c3015317bd53c27ef42290e60c1808ce968e588d8e25edaf3069ff96",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/raw-input-safety.test.ts",
+      "frozenSha256": "f8aa6cf1dd805c9cb54c5c84dc3769441bacb56e85bdc7d3c6d14bbd2a4e2b15",
+      "currentSha256": "f8aa6cf1dd805c9cb54c5c84dc3769441bacb56e85bdc7d3c6d14bbd2a4e2b15",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/raw-input.test.ts",
+      "frozenSha256": "bdd6aa8c1aa330be5b161c5dc86e2ffa91a5efb1ee0e8748f2ebd131d09544bf",
+      "currentSha256": "bdd6aa8c1aa330be5b161c5dc86e2ffa91a5efb1ee0e8748f2ebd131d09544bf",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/regressions.test.ts",
+      "frozenSha256": "3cffa27bae2d856ce118dd8c45e84a77b7b6c371039058681d9b49ec119a31fc",
+      "currentSha256": "3cffa27bae2d856ce118dd8c45e84a77b7b6c371039058681d9b49ec119a31fc",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/regressions.ts",
+      "frozenSha256": "382d2db8878da3cf2d9d3b39a936c8c394f6d849a4cc01da3dddf822ee33f9fc",
+      "currentSha256": "382d2db8878da3cf2d9d3b39a936c8c394f6d849a4cc01da3dddf822ee33f9fc",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/reviewer-corpus.json",
+      "frozenSha256": "f4670c06918aa026dad0636f20db363134d65571a0e3a8ec6a52e062b6b9ca69",
+      "currentSha256": "f4670c06918aa026dad0636f20db363134d65571a0e3a8ec6a52e062b6b9ca69",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/safety.test.ts",
+      "frozenSha256": "e50489b15c9d3fc232ef20bbd00701d507870ca5e95189caac07f156e9617611",
+      "currentSha256": "e50489b15c9d3fc232ef20bbd00701d507870ca5e95189caac07f156e9617611",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/split-increment/README.md",
+      "frozenSha256": "3b3518f0caed89d8d8dd4c0e8ed86f2c092784ff9353c9a23432a20161e8f183",
+      "currentSha256": "3b3518f0caed89d8d8dd4c0e8ed86f2c092784ff9353c9a23432a20161e8f183",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/split-increment/baseline.json",
+      "frozenSha256": "b43ca4b84f8eadb40c09a52664ee08037e836a84ca0674e8bb28b1cb83f4be55",
+      "currentSha256": "b43ca4b84f8eadb40c09a52664ee08037e836a84ca0674e8bb28b1cb83f4be55",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/split-increment/capture-native.ts",
+      "frozenSha256": "e220461b6c7400e6b0488b7aad0d87c5f270267a226581e3883f0fdca6a85c15",
+      "currentSha256": "e220461b6c7400e6b0488b7aad0d87c5f270267a226581e3883f0fdca6a85c15",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+      "frozenSha256": "04c05dd3e9f65303ac9ba0d8962c7af1d29342b62282f163e53229f85e7225d3",
+      "currentSha256": "04c05dd3e9f65303ac9ba0d8962c7af1d29342b62282f163e53229f85e7225d3",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/split-increment/delivery.json",
+      "frozenSha256": "28c2a4a8fde3880ce86282c68adb8cd4ae2ccf8a9210fd30d411b31f66403a80",
+      "currentSha256": "28c2a4a8fde3880ce86282c68adb8cd4ae2ccf8a9210fd30d411b31f66403a80",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/split-increment/evidence.ts",
+      "frozenSha256": "7c3437e366a5c034d87560189015b7cd132fea3727d3fd600acfe9c09c3561b0",
+      "currentSha256": "7c3437e366a5c034d87560189015b7cd132fea3727d3fd600acfe9c09c3561b0",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/split-increment/helper.test.ts",
+      "frozenSha256": "6f800fe74ec0459c7dd883c960df7158056829a17e58bc819cdc3b1903847146",
+      "currentSha256": "6f800fe74ec0459c7dd883c960df7158056829a17e58bc819cdc3b1903847146",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/split-increment/interop.test.ts",
+      "frozenSha256": "36fd0f134e7de263345e222ab449705c06fd69570c37d261c96045289b73df9f",
+      "currentSha256": "36fd0f134e7de263345e222ab449705c06fd69570c37d261c96045289b73df9f",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/split-increment/native.json",
+      "frozenSha256": "cdee2e3a38d929e66d8fdf3917bed62ea46ccff86091de0816128c38176bd8d3",
+      "currentSha256": "cdee2e3a38d929e66d8fdf3917bed62ea46ccff86091de0816128c38176bd8d3",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/split-increment/original-matrix.json",
+      "frozenSha256": "682aa25d20006a597c8e70a6c75b12409fd3ca89bb82e362bd8802fbb1d64be0",
+      "currentSha256": "682aa25d20006a597c8e70a6c75b12409fd3ca89bb82e362bd8802fbb1d64be0",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/split-increment/replay-original-matrix.ts",
+      "frozenSha256": "2d7b6f7e1026e0f7d117104e6b1cb6db98bee1c3ffa15c014c940423fdfd2cad",
+      "currentSha256": "2d7b6f7e1026e0f7d117104e6b1cb6db98bee1c3ffa15c014c940423fdfd2cad",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/split-increment/verify.ts",
+      "frozenSha256": "3196a60144ca180f6c2c97a71fa8bae0e7d409afde71f044a5a839ebfa9d01ec",
+      "currentSha256": "3196a60144ca180f6c2c97a71fa8bae0e7d409afde71f044a5a839ebfa9d01ec",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/verify-native.ts",
+      "frozenSha256": "5aa20d6cf0cea1f01dfcceee1965d4dc65ece75fdf0459a90b3200cd873f10f0",
+      "currentSha256": "5aa20d6cf0cea1f01dfcceee1965d4dc65ece75fdf0459a90b3200cd873f10f0",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured/cli.test.ts",
+      "frozenSha256": "61b291a521f4059b52dd7db90fedb82674bbf0046c2fbab4371b7d9478b30e5c",
+      "currentSha256": "61b291a521f4059b52dd7db90fedb82674bbf0046c2fbab4371b7d9478b30e5c",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured/hazard-worker.ts",
+      "frozenSha256": "87dab10a7f430a1a72b3de1a873429ed0f001958824144302b6933696d832f73",
+      "currentSha256": "87dab10a7f430a1a72b3de1a873429ed0f001958824144302b6933696d832f73",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured/helpers.ts",
+      "frozenSha256": "85810c3e66de2b343284ee9cc2bfc03a48cfb76125b4605fb797898f4dfe258c",
+      "currentSha256": "85810c3e66de2b343284ee9cc2bfc03a48cfb76125b4605fb797898f4dfe258c",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured/oracle.test.ts",
+      "frozenSha256": "f77b701f29e7f7c78dfea22650f516d32ce6598ffa79915a1f4b8a48f415a04d",
+      "currentSha256": "f77b701f29e7f7c78dfea22650f516d32ce6598ffa79915a1f4b8a48f415a04d",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured/resources.test.ts",
+      "frozenSha256": "18301807f1031dc0fd53bf0785730dbca3aff8608d646176d0f8509506371099",
+      "currentSha256": "18301807f1031dc0fd53bf0785730dbca3aff8608d646176d0f8509506371099",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured/semantics.test.ts",
+      "frozenSha256": "a548ea576635f788b97d0165efee8ee7cd6641755a9d5c4156b779c78a71f831",
+      "currentSha256": "a548ea576635f788b97d0165efee8ee7cd6641755a9d5c4156b779c78a71f831",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured/streaming.test.ts",
+      "frozenSha256": "e33c599f03bfbd4fd5293013d145b85a321bfa65921059bc272cd86a7b7bf3b1",
+      "currentSha256": "e33c599f03bfbd4fd5293013d145b85a321bfa65921059bc272cd86a7b7bf3b1",
+      "unchanged": true
+    }
+  ],
+  "prep": [
+    {
+      "path": "tests/commands/structured-stress/jq-42-independent-review/cases.d.mts",
+      "frozenSha256": "a7bd523bd9c7f3cc5b915b06d03478a5d8c3d5e6fe5d444c7409b1c0fa23a8b4",
+      "currentSha256": "a7bd523bd9c7f3cc5b915b06d03478a5d8c3d5e6fe5d444c7409b1c0fa23a8b4",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-independent-review/cases.mjs",
+      "frozenSha256": "70270b9df9a3e407106d7facec5de7432cd34fdc750b65a682566eddedb66b8d",
+      "currentSha256": "70270b9df9a3e407106d7facec5de7432cd34fdc750b65a682566eddedb66b8d",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-independent-review/common.d.mts",
+      "frozenSha256": "cd6923f50a115a2348d5e9878c42e13bf808640a37eabd19c313974501c9db53",
+      "currentSha256": "cd6923f50a115a2348d5e9878c42e13bf808640a37eabd19c313974501c9db53",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-independent-review/common.mjs",
+      "frozenSha256": "aaa86811255d230580ef9b0c3650f4216e22a1acdbd6489bfb9c412461e730e4",
+      "currentSha256": "aaa86811255d230580ef9b0c3650f4216e22a1acdbd6489bfb9c412461e730e4",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-independent-review/evidence.d.mts",
+      "frozenSha256": "c47ee3003c5b361e4402c7145e2815b96e71f317915905a8e453c767b5a140f7",
+      "currentSha256": "c47ee3003c5b361e4402c7145e2815b96e71f317915905a8e453c767b5a140f7",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-independent-review/evidence.mjs",
+      "frozenSha256": "77ed800ca44e6a50b91e674558fa439f983f5b2e1b62ec71798368440489ad52",
+      "currentSha256": "77ed800ca44e6a50b91e674558fa439f983f5b2e1b62ec71798368440489ad52",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-independent-review/evidence.test.ts",
+      "frozenSha256": "2ee5dd5f7fa81047ee6da02b9c5e92b4553ec88b03925c6e56fa6602304836a5",
+      "currentSha256": "2ee5dd5f7fa81047ee6da02b9c5e92b4553ec88b03925c6e56fa6602304836a5",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-independent-review/freeze.mjs",
+      "frozenSha256": "e23e3c1dad06a9a216f559fafe76453e45e3cc2698c2d66cc56c75b8c704cff1",
+      "currentSha256": "e23e3c1dad06a9a216f559fafe76453e45e3cc2698c2d66cc56c75b8c704cff1",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-independent-review/harness.ts",
+      "frozenSha256": "c927a0d301e053bcf8de2856d6928b009b53984d133c5027cca3503ab1b3fbd8",
+      "currentSha256": "c927a0d301e053bcf8de2856d6928b009b53984d133c5027cca3503ab1b3fbd8",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-independent-review/inspect.mjs",
+      "frozenSha256": "706580acef135051fa1b8e746c992f6a2844dedc215ef687002da0547371cb88",
+      "currentSha256": "706580acef135051fa1b8e746c992f6a2844dedc215ef687002da0547371cb88",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-independent-review/manifest.json",
+      "frozenSha256": "f4636b95d52c78b118c5eebc4a802ccf13d63a8a43c460f55da91e9f4e6ceacb",
+      "currentSha256": "f4636b95d52c78b118c5eebc4a802ccf13d63a8a43c460f55da91e9f4e6ceacb",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-independent-review/native-frozen.json",
+      "frozenSha256": "29dacce53a85733f524a2175ff6f1e21d1f2eafc0346de1a821834f581debbcc",
+      "currentSha256": "29dacce53a85733f524a2175ff6f1e21d1f2eafc0346de1a821834f581debbcc",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-independent-review/prep-advisory-20260827.json",
+      "frozenSha256": "5efd349e0a63f07a446693b17fd1d84a053b9e871d7fb35e835bd94cc53692cd",
+      "currentSha256": "5efd349e0a63f07a446693b17fd1d84a053b9e871d7fb35e835bd94cc53692cd",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-independent-review/review.ts",
+      "frozenSha256": "1036cbca3127131d942c2a44ba4e74ac20f25289ec1f0f40b92e2e30e28e0058",
+      "currentSha256": "1036cbca3127131d942c2a44ba4e74ac20f25289ec1f0f40b92e2e30e28e0058",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-independent-review/tsconfig.json",
+      "frozenSha256": "81973b4d5fbf08b62f072962ef0f468646e238c1c8ba104007f5837df1ee0349",
+      "currentSha256": "81973b4d5fbf08b62f072962ef0f468646e238c1c8ba104007f5837df1ee0349",
+      "unchanged": true
+    }
+  ],
+  "structuredStatus": "",
+  "authorSourceMatches": [
+    {
+      "path": "src/commands/structured/index.ts",
+      "currentSha256": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415",
+      "handoffSha256": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415"
+    },
+    {
+      "path": "src/commands/structured/input.ts",
+      "currentSha256": "1ac8e520cf80237a45a275d6fa55ad035b6ec0b83dae91765a7d77818ab2d935",
+      "handoffSha256": "1ac8e520cf80237a45a275d6fa55ad035b6ec0b83dae91765a7d77818ab2d935"
+    },
+    {
+      "path": "src/commands/structured/interpreter.ts",
+      "currentSha256": "8239b8342f57a2f30a5c71c9207955e545fdd2af52e04dd3db11508187a0da37",
+      "handoffSha256": "8239b8342f57a2f30a5c71c9207955e545fdd2af52e04dd3db11508187a0da37"
+    },
+    {
+      "path": "src/commands/structured/jq.ts",
+      "currentSha256": "59239e32576e8f88d5ef49980c713ddb070468518800f16b5e2aa16a0520fb02",
+      "handoffSha256": "59239e32576e8f88d5ef49980c713ddb070468518800f16b5e2aa16a0520fb02"
+    },
+    {
+      "path": "src/commands/structured/limits.ts",
+      "currentSha256": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe",
+      "handoffSha256": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe"
+    },
+    {
+      "path": "src/commands/structured/numbers.ts",
+      "currentSha256": "f2f18b3f201b22f560b9022304235ca26084319ca103a954f1aabb5f0f74be7d",
+      "handoffSha256": "f2f18b3f201b22f560b9022304235ca26084319ca103a954f1aabb5f0f74be7d"
+    },
+    {
+      "path": "src/commands/structured/parser.ts",
+      "currentSha256": "5673072aa6512c4fcbc6b008ab9ee595a9b0555c6c35ccf93fc3bb45c57d0ff8",
+      "handoffSha256": "5673072aa6512c4fcbc6b008ab9ee595a9b0555c6c35ccf93fc3bb45c57d0ff8"
+    },
+    {
+      "path": "src/commands/structured/README.md",
+      "currentSha256": "5fecf1186d9004e378d77a1e9ad297af94b4f4f9070d9b620d70cd179a7e1b00",
+      "handoffSha256": "5fecf1186d9004e378d77a1e9ad297af94b4f4f9070d9b620d70cd179a7e1b00"
+    },
+    {
+      "path": "src/commands/structured/split.ts",
+      "currentSha256": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6",
+      "handoffSha256": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6"
+    },
+    {
+      "path": "src/commands/structured/values.ts",
+      "currentSha256": "b7764b6333525b44875aa76f4e9bb546f1b655b91a7dda52360498574c4c6222",
+      "handoffSha256": "b7764b6333525b44875aa76f4e9bb546f1b655b91a7dda52360498574c4c6222"
+    }
+  ]
+}

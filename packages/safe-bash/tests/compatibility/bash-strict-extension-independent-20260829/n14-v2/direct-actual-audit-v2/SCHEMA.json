@@ -1,0 +1,36 @@
+{
+  "observation": {
+    "path": "source-built-B01.json",
+    "bytes": 110276,
+    "sha256": "f82133dd0b9682e49aeaea3d7cb0013fa6b5189dbb6d7876decff7648c85da2c"
+  },
+  "nativeKeys": [
+    "qualification",
+    "status",
+    "stdout",
+    "stderr",
+    "filesBefore",
+    "filesAfter",
+    "receiptSha256"
+  ],
+  "firstChildKeys": [
+    "id",
+    "events",
+    "exit",
+    "close",
+    "stdoutEOF",
+    "stderrEOF",
+    "captures",
+    "signals",
+    "forced",
+    "capturesQualified",
+    "knownOutstanding",
+    "pid",
+    "status",
+    "signal",
+    "primaryPresent",
+    "secondary",
+    "qualified",
+    "finished"
+  ]
+}

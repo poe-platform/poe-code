@@ -1,0 +1,23 @@
+{
+  "schema": "functional-reference-v3-input-preservation",
+  "oldSource": "a5fd225af5f9985ae805f48ab1b1790a9c3fbc7f",
+  "oldSealSha256": "384950a91459ff0ee66449a0604313b7af5af162b252426fe53ce787706a4dda",
+  "auditRawUnchanged": true,
+  "auditSha256": "2547adf1c6a71bc6868263ee5de469248ae98402fc076e865f202dcfbd0e59c6",
+  "literalPrograms": 40,
+  "selectedRequests": 37,
+  "withheld": [
+    "B26",
+    "B27",
+    "B28"
+  ],
+  "requestOnlyDelta": {
+    "from": "functional-v2-20260829-01",
+    "to": "functional-v3-20260829-01",
+    "reason": "fresh owned namespace, no literal argv/stdin/effect policy changes"
+  },
+  "oldRequestsSha256": "8b0c84331d4f374ee890181777bda41bfba1735ec3e930741f0f55ae0fcc2277",
+  "newRequestsSha256": "e69d98fc697e20462193d7e5a794537394fa66004ee685da3a8da401ea50c22d",
+  "limitsExactEqual": true,
+  "startup": "Root-ratified trusted-host qualification, not a permission enlargement"
+}

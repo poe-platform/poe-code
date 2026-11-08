@@ -1,0 +1,14 @@
+{
+  "checkedAt": "2026-08-27T06:23:13.417Z",
+  "command": [
+    "node_modules/.bin/tsc",
+    "-p",
+    "tests/commands/stream-next-stress/tsconfig.scoped.json"
+  ],
+  "status": 0,
+  "stdout": "",
+  "stderr": "",
+  "harnessSha256": "6fa5b5e445500e0ab29be962e9c5ac39a7e2e830fc736fd344e0580778c0f3ae",
+  "head": "26e40698176bbbfc0e5891439ee74885aafb96be",
+  "interpretation": "Current working-tree scoped noEmit (own harness and transitive source imports), not immutable full-project gate. Same TS7053 optional-key indexing fault already corrected narrowly by explicit Actual annotation in cf1d1f0; no unsafe cast/disabled typechecking or root config change."
+}

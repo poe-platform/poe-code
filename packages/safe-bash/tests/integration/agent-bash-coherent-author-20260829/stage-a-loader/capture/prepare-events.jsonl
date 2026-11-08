@@ -1,0 +1,2 @@
+{"pid":7938,"args":["status","--porcelain=v1","-z","--untracked-files=no"],"status":0,"signal":null}
+{"pid":7939,"args":["diff","--cached","--name-only","-z"],"status":0,"signal":null}

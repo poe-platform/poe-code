@@ -1,0 +1,47 @@
+{
+  "name": "@poe-code/office-xml",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./retained-xml": {
+      "types": "./dist/retained-xml.d.ts",
+      "import": "./dist/retained-xml.js"
+    },
+    "./retained-xml-document": {
+      "types": "./dist/retained-xml-document.d.ts",
+      "import": "./dist/retained-xml-document.js"
+    },
+    "./retained-values": {
+      "types": "./dist/retained-values.d.ts",
+      "import": "./dist/retained-values.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "test": "cd ../.. && vitest run packages/office-xml",
+    "test:unit": "cd ../.. && vitest run packages/office-xml",
+    "lint": "eslint src && tsc --noEmit && tsc -p tsconfig.test.json"
+  },
+  "dependencies": {
+    "@poe-code/office-package": "*",
+    "@poe-code/safe-fs": "*",
+    "@noble/hashes": "2.4.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poe-platform/poe-code.git",
+    "directory": "packages/office-xml"
+  }
+}

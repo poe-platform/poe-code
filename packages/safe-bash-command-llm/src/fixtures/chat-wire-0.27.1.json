@@ -1,0 +1,583 @@
+[
+  {
+    "name": "empty",
+    "args": [],
+    "input": "one\ntwo\nexit\n",
+    "responses": [
+      {
+        "content": ""
+      },
+      {
+        "content": "ok"
+      }
+    ],
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n> \n> ok\n> ",
+    "stderr": "",
+    "exitCode": 0,
+    "requests": [
+      [
+        {
+          "role": "user",
+          "content": "one"
+        }
+      ],
+      [
+        {
+          "role": "user",
+          "content": "one"
+        },
+        {
+          "role": "user",
+          "content": "two"
+        }
+      ]
+    ]
+  },
+  {
+    "name": "system",
+    "args": [
+      "-s",
+      "system"
+    ],
+    "input": "one\ntwo\nexit\n",
+    "responses": [
+      {
+        "content": "first"
+      },
+      {
+        "content": "second"
+      }
+    ],
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n> first\n> second\n> ",
+    "stderr": "",
+    "exitCode": 0,
+    "requests": [
+      [
+        {
+          "role": "system",
+          "content": "system"
+        },
+        {
+          "role": "user",
+          "content": "one"
+        }
+      ],
+      [
+        {
+          "role": "system",
+          "content": "system"
+        },
+        {
+          "role": "user",
+          "content": "one"
+        },
+        {
+          "role": "assistant",
+          "content": "first"
+        },
+        {
+          "role": "user",
+          "content": "two"
+        }
+      ]
+    ]
+  },
+  {
+    "name": "template-system",
+    "args": [
+      "-t",
+      "input"
+    ],
+    "input": "one\ntwo\nexit\n",
+    "responses": [
+      {
+        "content": "first"
+      },
+      {
+        "content": "second"
+      }
+    ],
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n> first\n> second\n> ",
+    "stderr": "",
+    "exitCode": 0,
+    "requests": [
+      [
+        {
+          "role": "system",
+          "content": "system"
+        },
+        {
+          "role": "user",
+          "content": "one"
+        }
+      ],
+      [
+        {
+          "role": "system",
+          "content": "system"
+        },
+        {
+          "role": "user",
+          "content": "one"
+        },
+        {
+          "role": "assistant",
+          "content": "first"
+        },
+        {
+          "role": "user",
+          "content": "two"
+        }
+      ]
+    ]
+  },
+  {
+    "name": "tool-empty",
+    "args": [
+      "--functions",
+      "def lookup():\n return \"tool value\""
+    ],
+    "input": "one\ntwo\nexit\n",
+    "responses": [
+      {
+        "content": null,
+        "tool_calls": [
+          {
+            "id": "call-one",
+            "type": "function",
+            "function": {
+              "name": "lookup",
+              "arguments": "{}"
+            }
+          }
+        ]
+      },
+      {
+        "content": ""
+      },
+      {
+        "content": "next"
+      }
+    ],
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n> \n> next\n> ",
+    "stderr": "",
+    "exitCode": 0,
+    "requests": [
+      [
+        {
+          "role": "user",
+          "content": "one"
+        }
+      ],
+      [
+        {
+          "role": "user",
+          "content": "one"
+        },
+        {
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "type": "function",
+              "id": "call-one",
+              "function": {
+                "name": "lookup",
+                "arguments": "{}"
+              }
+            }
+          ]
+        },
+        {
+          "role": "tool",
+          "tool_call_id": "call-one",
+          "content": "tool value"
+        }
+      ],
+      [
+        {
+          "role": "user",
+          "content": "one"
+        },
+        {
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "type": "function",
+              "id": "call-one",
+              "function": {
+                "name": "lookup",
+                "arguments": "{}"
+              }
+            }
+          ]
+        },
+        {
+          "role": "tool",
+          "tool_call_id": "call-one",
+          "content": "tool value"
+        },
+        {
+          "role": "user",
+          "content": "two"
+        }
+      ]
+    ]
+  },
+  {
+    "name": "tool-text",
+    "args": [
+      "--functions",
+      "def lookup():\n return \"tool value\""
+    ],
+    "input": "one\ntwo\nexit\n",
+    "responses": [
+      {
+        "content": "before",
+        "tool_calls": [
+          {
+            "id": "call-one",
+            "type": "function",
+            "function": {
+              "name": "lookup",
+              "arguments": "{}"
+            }
+          }
+        ]
+      },
+      {
+        "content": "after"
+      },
+      {
+        "content": "next"
+      }
+    ],
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n> beforeafter\n> next\n> ",
+    "stderr": "",
+    "exitCode": 0,
+    "requests": [
+      [
+        {
+          "role": "user",
+          "content": "one"
+        }
+      ],
+      [
+        {
+          "role": "user",
+          "content": "one"
+        },
+        {
+          "role": "assistant",
+          "content": "before"
+        },
+        {
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "type": "function",
+              "id": "call-one",
+              "function": {
+                "name": "lookup",
+                "arguments": "{}"
+              }
+            }
+          ]
+        },
+        {
+          "role": "tool",
+          "tool_call_id": "call-one",
+          "content": "tool value"
+        }
+      ],
+      [
+        {
+          "role": "user",
+          "content": "one"
+        },
+        {
+          "role": "assistant",
+          "content": "before"
+        },
+        {
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "type": "function",
+              "id": "call-one",
+              "function": {
+                "name": "lookup",
+                "arguments": "{}"
+              }
+            }
+          ]
+        },
+        {
+          "role": "tool",
+          "tool_call_id": "call-one",
+          "content": "tool value"
+        },
+        {
+          "role": "assistant",
+          "content": "after"
+        },
+        {
+          "role": "user",
+          "content": "two"
+        }
+      ]
+    ]
+  },
+  {
+    "name": "tool-attachment",
+    "args": [
+      "--functions",
+      "import llm as _llm\ndef lookup():\n return _llm.ToolOutput(\"tool value\", attachments=[_llm.Attachment(type=\"image/png\", content=b\"abc\")])"
+    ],
+    "input": "one\ntwo\nexit\n",
+    "responses": [
+      {
+        "content": null,
+        "tool_calls": [
+          {
+            "id": "call-one",
+            "type": "function",
+            "function": {
+              "name": "lookup",
+              "arguments": "{}"
+            }
+          }
+        ]
+      },
+      {
+        "content": "after"
+      },
+      {
+        "content": "next"
+      }
+    ],
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n> after\n> next\n> ",
+    "stderr": "",
+    "exitCode": 0,
+    "requests": [
+      [
+        {
+          "role": "user",
+          "content": "one"
+        }
+      ],
+      [
+        {
+          "role": "user",
+          "content": "one"
+        },
+        {
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "type": "function",
+              "id": "call-one",
+              "function": {
+                "name": "lookup",
+                "arguments": "{}"
+              }
+            }
+          ]
+        },
+        {
+          "role": "tool",
+          "tool_call_id": "call-one",
+          "content": "tool value"
+        },
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "image_url",
+              "image_url": {
+                "url": "data:image/png;base64,YWJj"
+              }
+            }
+          ]
+        }
+      ],
+      [
+        {
+          "role": "user",
+          "content": "one"
+        },
+        {
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "type": "function",
+              "id": "call-one",
+              "function": {
+                "name": "lookup",
+                "arguments": "{}"
+              }
+            }
+          ]
+        },
+        {
+          "role": "tool",
+          "tool_call_id": "call-one",
+          "content": "tool value"
+        },
+        {
+          "role": "assistant",
+          "content": "after"
+        },
+        {
+          "role": "user",
+          "content": "two"
+        }
+      ]
+    ]
+  },
+  {
+    "name": "dynamic-system",
+    "args": [
+      "-t",
+      "dynamic"
+    ],
+    "input": "one\ntwo\nexit\n",
+    "responses": [
+      {
+        "content": "first"
+      },
+      {
+        "content": "second"
+      }
+    ],
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n> first\n> second\n> ",
+    "stderr": "",
+    "exitCode": 0,
+    "requests": [
+      [
+        {
+          "role": "system",
+          "content": "one"
+        },
+        {
+          "role": "user",
+          "content": "one"
+        }
+      ],
+      [
+        {
+          "role": "system",
+          "content": "one"
+        },
+        {
+          "role": "user",
+          "content": "one"
+        },
+        {
+          "role": "assistant",
+          "content": "first"
+        },
+        {
+          "role": "system",
+          "content": "two"
+        },
+        {
+          "role": "user",
+          "content": "two"
+        }
+      ]
+    ]
+  },
+  {
+    "name": "empty-system",
+    "args": [
+      "-s",
+      ""
+    ],
+    "input": "one\ntwo\nexit\n",
+    "responses": [
+      {
+        "content": "first"
+      },
+      {
+        "content": "second"
+      }
+    ],
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n> first\n> second\n> ",
+    "stderr": "",
+    "exitCode": 0,
+    "requests": [
+      [
+        {
+          "role": "user",
+          "content": "one"
+        }
+      ],
+      [
+        {
+          "role": "user",
+          "content": "one"
+        },
+        {
+          "role": "assistant",
+          "content": "first"
+        },
+        {
+          "role": "user",
+          "content": "two"
+        }
+      ]
+    ]
+  },
+  {
+    "name": "prompt-attachment",
+    "args": [
+      "-f",
+      "image:value"
+    ],
+    "input": "one\ntwo\nexit\n",
+    "responses": [
+      {
+        "content": "first"
+      },
+      {
+        "content": "second"
+      }
+    ],
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n> first\n> second\n> ",
+    "stderr": "",
+    "exitCode": 0,
+    "requests": [
+      [
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "text",
+              "text": "one"
+            },
+            {
+              "type": "image_url",
+              "image_url": {
+                "url": "data:image/png;base64,YWJj"
+              }
+            }
+          ]
+        }
+      ],
+      [
+        {
+          "role": "user",
+          "content": "one"
+        },
+        {
+          "role": "assistant",
+          "content": "first"
+        },
+        {
+          "role": "user",
+          "content": "two"
+        }
+      ]
+    ]
+  }
+]

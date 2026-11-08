@@ -1,0 +1,14 @@
+{
+  "id": "empty-directory-append-rejection",
+  "families": [
+    "F01"
+  ],
+  "observation": {
+    "thrown": {
+      "code": "UNDECLARED_DIRECTORY",
+      "name": "Error",
+      "message": "UNDECLARED_DIRECTORY"
+    }
+  },
+  "classification": "SYNTHETIC_CONTROL_OBSERVATION_BEFORE_ASSERTION"
+}

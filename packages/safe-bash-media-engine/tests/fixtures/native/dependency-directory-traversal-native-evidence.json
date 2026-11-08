@@ -1,0 +1,628 @@
+{
+  "captured_utc": "2026-09-19T07:28:44.356738+00:00",
+  "executable": "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/bin/ffprobe",
+  "executableSha256": "860eadc7b01d86126a208601c83602feb8eab952da232ce603066fb2f65471d8",
+  "cwd": "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-directory-traversal-0tvs36fw",
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C"
+  },
+  "stdin_base64": "",
+  "timeout_seconds": 10,
+  "tracer_source": "#include <fcntl.h>\n#include <stdarg.h>\n#include <stdio.h>\n#include <unistd.h>\nstatic void record(const char *operation,const char *path,int flags) {\n char line[16384]; int n=snprintf(line,sizeof(line),\"ACCESS %s %d \",operation,flags);\n for(const unsigned char *p=(const unsigned char *)path;*p && n+3<sizeof(line);p++) n+=snprintf(line+n,sizeof(line)-n,\"%02x\",*p);\n line[n++]='\\n'; write(2,line,n);\n}\nstatic int observed_open(const char *path,int flags,...) {\n mode_t mode=0; if(flags&O_CREAT){va_list ap;va_start(ap,flags);mode=va_arg(ap,int);va_end(ap);}\n record(\"open\",path,flags);return open(path,flags,mode);\n}\nstatic FILE *observed_fopen(const char *path,const char *mode) {\n record(\"fopen\",path,mode[0]=='r'?O_RDONLY:O_WRONLY);return fopen(path,mode);\n}\n__attribute__((used)) static struct {const void *replacement;const void *original;} hooks[]\n__attribute__((section(\"__DATA,__interpose\"))) = {{(const void *)observed_open,(const void *)open},{(const void *)observed_fopen,(const void *)fopen}};\n",
+  "tracer_build_argv": [
+    "clang",
+    "-dynamiclib",
+    "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-directory-traversal-0tvs36fw/observer.c",
+    "-o",
+    "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-directory-traversal-0tvs36fw/observer.dylib"
+  ],
+  "fixtures": {
+    "Case雪\n.ppm": "UDYKMSAxCjI1NQoRIjM=",
+    "collision/case雪\n.ppm": "UDYKMiAxCjI1NQoBAgMEBQY=",
+    "block": "ZmlsZQ=="
+  },
+  "directories": [
+    "deep"
+  ],
+  "symlinks": {
+    "link": "block",
+    "good": "deep"
+  },
+  "fixture_hashes_before": {
+    "Case雪\n.ppm": "db0b94a0d06b635c5bc7eb136e077a42bfa2201e55ed2f4e2e66a28c5109cbd0",
+    "collision/case雪\n.ppm": "ff88205cfc4a8a121a1c768a87d5cfa43141be7fbf0551f0c4e8790b8b69f265",
+    "block": "3b9c358f36f0a31b6ad3e14f309c7cf198ac9246e8316f9ce543d5b19ac02b80"
+  },
+  "fixture_hashes_after": {
+    "Case雪\n.ppm": "db0b94a0d06b635c5bc7eb136e077a42bfa2201e55ed2f4e2e66a28c5109cbd0",
+    "collision/case雪\n.ppm": "ff88205cfc4a8a121a1c768a87d5cfa43141be7fbf0551f0c4e8790b8b69f265",
+    "block": "3b9c358f36f0a31b6ad3e14f309c7cf198ac9246e8316f9ce543d5b19ac02b80"
+  },
+  "fixtures_unchanged": true,
+  "results": [
+    {
+      "id": "file-parent",
+      "operand": "block/../Case雪\n.ppm",
+      "paired_equal": true,
+      "runs": [
+        {
+          "traced": false,
+          "argv": [
+            "-v",
+            "error",
+            "-show_entries",
+            "stream=width,height",
+            "-i",
+            "block/../Case雪\n.ppm"
+          ],
+          "status": 1,
+          "stdout_base64": "",
+          "stderr_base64": "YmxvY2svLi4vQ2FzZembqgoucHBtOiBOb3QgYSBkaXJlY3RvcnkK",
+          "accesses": []
+        },
+        {
+          "traced": true,
+          "argv": [
+            "-v",
+            "error",
+            "-show_entries",
+            "stream=width,height",
+            "-i",
+            "block/../Case雪\n.ppm"
+          ],
+          "status": 1,
+          "stdout_base64": "",
+          "stderr_base64": "YmxvY2svLi4vQ2FzZembqgoucHBtOiBOb3QgYSBkaXJlY3RvcnkK",
+          "accesses": [
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6465762f6175746f66735f6e6f77616974"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f55736572732f6b6a6f70656b2f2e43465573657254657874456e636f64696e67"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6465762f6175746f66735f6e6f77616974"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f55736572732f6b6a6f70656b2f2e43465573657254657874456e636f64696e67"
+            },
+            {
+              "operation": "open",
+              "flags": 16777216,
+              "path_hex": "626c6f636b2f2e2e2f43617365e99baa0a2e70706d"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "link-parent",
+      "operand": "link/../Case雪\n.ppm",
+      "paired_equal": true,
+      "runs": [
+        {
+          "traced": false,
+          "argv": [
+            "-v",
+            "error",
+            "-show_entries",
+            "stream=width,height",
+            "-i",
+            "link/../Case雪\n.ppm"
+          ],
+          "status": 1,
+          "stdout_base64": "",
+          "stderr_base64": "bGluay8uLi9DYXNl6ZuqCi5wcG06IE5vdCBhIGRpcmVjdG9yeQo=",
+          "accesses": []
+        },
+        {
+          "traced": true,
+          "argv": [
+            "-v",
+            "error",
+            "-show_entries",
+            "stream=width,height",
+            "-i",
+            "link/../Case雪\n.ppm"
+          ],
+          "status": 1,
+          "stdout_base64": "",
+          "stderr_base64": "bGluay8uLi9DYXNl6ZuqCi5wcG06IE5vdCBhIGRpcmVjdG9yeQo=",
+          "accesses": [
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6465762f6175746f66735f6e6f77616974"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f55736572732f6b6a6f70656b2f2e43465573657254657874456e636f64696e67"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6465762f6175746f66735f6e6f77616974"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f55736572732f6b6a6f70656b2f2e43465573657254657874456e636f64696e67"
+            },
+            {
+              "operation": "open",
+              "flags": 16777216,
+              "path_hex": "6c696e6b2f2e2e2f43617365e99baa0a2e70706d"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "file-slash",
+      "operand": "block/",
+      "paired_equal": true,
+      "runs": [
+        {
+          "traced": false,
+          "argv": [
+            "-v",
+            "error",
+            "-show_entries",
+            "stream=width,height",
+            "-i",
+            "block/"
+          ],
+          "status": 1,
+          "stdout_base64": "",
+          "stderr_base64": "YmxvY2svOiBOb3QgYSBkaXJlY3RvcnkK",
+          "accesses": []
+        },
+        {
+          "traced": true,
+          "argv": [
+            "-v",
+            "error",
+            "-show_entries",
+            "stream=width,height",
+            "-i",
+            "block/"
+          ],
+          "status": 1,
+          "stdout_base64": "",
+          "stderr_base64": "YmxvY2svOiBOb3QgYSBkaXJlY3RvcnkK",
+          "accesses": [
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6465762f6175746f66735f6e6f77616974"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f55736572732f6b6a6f70656b2f2e43465573657254657874456e636f64696e67"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6465762f6175746f66735f6e6f77616974"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f55736572732f6b6a6f70656b2f2e43465573657254657874456e636f64696e67"
+            },
+            {
+              "operation": "open",
+              "flags": 16777216,
+              "path_hex": "626c6f636b2f"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "file-dot",
+      "operand": "block/.",
+      "paired_equal": true,
+      "runs": [
+        {
+          "traced": false,
+          "argv": [
+            "-v",
+            "error",
+            "-show_entries",
+            "stream=width,height",
+            "-i",
+            "block/."
+          ],
+          "status": 1,
+          "stdout_base64": "",
+          "stderr_base64": "YmxvY2svLjogTm90IGEgZGlyZWN0b3J5Cg==",
+          "accesses": []
+        },
+        {
+          "traced": true,
+          "argv": [
+            "-v",
+            "error",
+            "-show_entries",
+            "stream=width,height",
+            "-i",
+            "block/."
+          ],
+          "status": 1,
+          "stdout_base64": "",
+          "stderr_base64": "YmxvY2svLjogTm90IGEgZGlyZWN0b3J5Cg==",
+          "accesses": [
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6465762f6175746f66735f6e6f77616974"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f55736572732f6b6a6f70656b2f2e43465573657254657874456e636f64696e67"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6465762f6175746f66735f6e6f77616974"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f55736572732f6b6a6f70656b2f2e43465573657254657874456e636f64696e67"
+            },
+            {
+              "operation": "open",
+              "flags": 16777216,
+              "path_hex": "626c6f636b2f2e"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "file-dotdot",
+      "operand": "block/..",
+      "paired_equal": true,
+      "runs": [
+        {
+          "traced": false,
+          "argv": [
+            "-v",
+            "error",
+            "-show_entries",
+            "stream=width,height",
+            "-i",
+            "block/.."
+          ],
+          "status": 1,
+          "stdout_base64": "",
+          "stderr_base64": "YmxvY2svLi46IE5vdCBhIGRpcmVjdG9yeQo=",
+          "accesses": []
+        },
+        {
+          "traced": true,
+          "argv": [
+            "-v",
+            "error",
+            "-show_entries",
+            "stream=width,height",
+            "-i",
+            "block/.."
+          ],
+          "status": 1,
+          "stdout_base64": "",
+          "stderr_base64": "YmxvY2svLi46IE5vdCBhIGRpcmVjdG9yeQo=",
+          "accesses": [
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6465762f6175746f66735f6e6f77616974"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f55736572732f6b6a6f70656b2f2e43465573657254657874456e636f64696e67"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6465762f6175746f66735f6e6f77616974"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f55736572732f6b6a6f70656b2f2e43465573657254657874456e636f64696e67"
+            },
+            {
+              "operation": "open",
+              "flags": 16777216,
+              "path_hex": "626c6f636b2f2e2e"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "link-slash",
+      "operand": "link/",
+      "paired_equal": true,
+      "runs": [
+        {
+          "traced": false,
+          "argv": [
+            "-v",
+            "error",
+            "-show_entries",
+            "stream=width,height",
+            "-i",
+            "link/"
+          ],
+          "status": 1,
+          "stdout_base64": "",
+          "stderr_base64": "bGluay86IEludmFsaWQgZGF0YSBmb3VuZCB3aGVuIHByb2Nlc3NpbmcgaW5wdXQK",
+          "accesses": []
+        },
+        {
+          "traced": true,
+          "argv": [
+            "-v",
+            "error",
+            "-show_entries",
+            "stream=width,height",
+            "-i",
+            "link/"
+          ],
+          "status": 1,
+          "stdout_base64": "",
+          "stderr_base64": "bGluay86IEludmFsaWQgZGF0YSBmb3VuZCB3aGVuIHByb2Nlc3NpbmcgaW5wdXQK",
+          "accesses": [
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6465762f6175746f66735f6e6f77616974"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f55736572732f6b6a6f70656b2f2e43465573657254657874456e636f64696e67"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6465762f6175746f66735f6e6f77616974"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f55736572732f6b6a6f70656b2f2e43465573657254657874456e636f64696e67"
+            },
+            {
+              "operation": "open",
+              "flags": 16777216,
+              "path_hex": "6c696e6b2f"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "valid",
+      "operand": "good/../Case雪\n.ppm",
+      "paired_equal": true,
+      "runs": [
+        {
+          "traced": false,
+          "argv": [
+            "-v",
+            "error",
+            "-show_entries",
+            "stream=width,height",
+            "-i",
+            "good/../Case雪\n.ppm"
+          ],
+          "status": 0,
+          "stdout_base64": "W1NUUkVBTV0Kd2lkdGg9MQpoZWlnaHQ9MQpbL1NUUkVBTV0K",
+          "stderr_base64": "",
+          "accesses": []
+        },
+        {
+          "traced": true,
+          "argv": [
+            "-v",
+            "error",
+            "-show_entries",
+            "stream=width,height",
+            "-i",
+            "good/../Case雪\n.ppm"
+          ],
+          "status": 0,
+          "stdout_base64": "W1NUUkVBTV0Kd2lkdGg9MQpoZWlnaHQ9MQpbL1NUUkVBTV0K",
+          "stderr_base64": "",
+          "accesses": [
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6465762f6175746f66735f6e6f77616974"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f55736572732f6b6a6f70656b2f2e43465573657254657874456e636f64696e67"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6465762f6175746f66735f6e6f77616974"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f55736572732f6b6a6f70656b2f2e43465573657254657874456e636f64696e67"
+            },
+            {
+              "operation": "open",
+              "flags": 16777216,
+              "path_hex": "676f6f642f2e2e2f43617365e99baa0a2e70706d"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "scope": "Partial attempted libc open/fopen evidence, including failed accesses; not exhaustive kernel timing, Linux or remote-runtime qualification. Case collisions are isolated on this case-insensitive host."
+}

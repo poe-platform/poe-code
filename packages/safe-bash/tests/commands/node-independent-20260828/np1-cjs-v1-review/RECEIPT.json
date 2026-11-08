@@ -1,0 +1,74 @@
+{
+  "schema": "node-independent-cjs-contract-review-v1",
+  "date": "2026-08-28",
+  "candidate": "3495d20e5d52c3fb90666b2453ed0a964a14a8ce",
+  "rootSelectionCommit": "85aff4ff877c2b25e4cd7e4c2a21a240dcc3247a",
+  "priorReviewCommit": "4362f91f98f2a8b56683a3a33e9fb582153af416",
+  "verdict": "HOLD_IMPLEMENTATION_AND_PROVIDER_QUALIFICATION",
+  "designStatus": "Substantially closed finite proposal, not evidence of frozen-engine enforcement",
+  "mapping": {
+    "included-as-is": 24,
+    "deferred": 3,
+    "adapted": 9
+  },
+  "closureIdentities": 10,
+  "closureVariants": 24,
+  "allProductCasesUnrun": true,
+  "originalN21LiteralDefectPreserved": true,
+  "findings": [
+    {
+      "id": "K1",
+      "classification": "SOURCE_ONLY_CONCRETE_PREALLOCATION_HOOK_GAP",
+      "members": [
+        "src/interp/globals/console-json.ts:82-85",
+        "src/interp/interpreter.ts:505-578",
+        "src/interp/methods/string.ts:175-192",
+        "src/interp/budget.ts:115-191",
+        "src/run.ts:182-186"
+      ],
+      "notClaimed": [
+        "measured overrun",
+        "global impossibility",
+        "RSS bound",
+        "engine product bug"
+      ]
+    },
+    {
+      "id": "K2",
+      "classification": "SOURCE_ONLY_ALL_PROMISE_QUIESCENCE_AND_REJECTION_ORDER_GAP",
+      "members": [
+        "src/interp/jobs.ts:49-56",
+        "src/interp/promise-tracker.ts:24-65",
+        "src/interp/promise-tracker.ts:90-94"
+      ],
+      "notClaimed": [
+        "actual pending-job run",
+        "new bridge evaluation",
+        "provider retirement established"
+      ]
+    }
+  ],
+  "syncOrdering": {
+    "coveredProspectivelyBy": [
+      "F03",
+      "F07"
+    ],
+    "boxingContrast": "F02",
+    "actualRuns": 0,
+    "additionalEvaluations": 0,
+    "noResolvedValueOnlyQualification": true
+  },
+  "archiveSourceBindings": {
+    "path": "tests/commands/node-provider-experiments-independent-20260828/INPUTS.json",
+    "sha256": "81ff3402efee0966e50084fca98a3ede7d744f33973ba2cb9111ee83d7dfaed4",
+    "presealCommit": "e64790155875dfb6cdfba6e8702cb2471b055825"
+  },
+  "review": {
+    "path": "tests/commands/node-independent-20260828/np1-cjs-v1-review/REVIEW.md",
+    "bytes": 9373,
+    "mode": 420,
+    "sha256": "5c1565eafe1c0912fe921d9cf6624d54fce53612019bac718a857d06f54d32d7"
+  },
+  "noPrivateAccess": true,
+  "noProductEdits": true
+}

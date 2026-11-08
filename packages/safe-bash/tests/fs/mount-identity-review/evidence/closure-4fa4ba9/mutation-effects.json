@@ -1,0 +1,1276 @@
+{
+  "note": "Only selected rejected-copy regressions; legitimate positive-control overwrites are excluded. Per-case before/after effects are not a unique coverage denominator.",
+  "samples": [
+    {
+      "mutant": "mount-alias-guard-removed",
+      "case": "real same-path across same-root instances",
+      "failure": null,
+      "effects": [
+        {
+          "store": "left",
+          "path": "/file",
+          "beforeBase64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+          "afterBase64": ""
+        },
+        {
+          "store": "right",
+          "path": "/file",
+          "beforeBase64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+          "afterBase64": ""
+        }
+      ],
+      "events": [
+        {
+          "backend": "real-left",
+          "operation": "readStream.acquire",
+          "path": "/file"
+        },
+        {
+          "backend": "real-right",
+          "operation": "writeStream.enter",
+          "path": "/file",
+          "flag": "w"
+        },
+        {
+          "backend": "real-left",
+          "operation": "readStream.next",
+          "path": "/file"
+        },
+        {
+          "backend": "real-left",
+          "operation": "readStream.return",
+          "path": "/file"
+        },
+        {
+          "backend": "real-right",
+          "operation": "writeStream.complete",
+          "path": "/file"
+        }
+      ]
+    },
+    {
+      "mutant": "mount-alias-guard-removed",
+      "case": "real hardlink across same-root instances",
+      "failure": null,
+      "effects": [
+        {
+          "store": "left",
+          "path": "/alias",
+          "beforeBase64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+          "afterBase64": ""
+        },
+        {
+          "store": "left",
+          "path": "/file",
+          "beforeBase64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+          "afterBase64": ""
+        },
+        {
+          "store": "right",
+          "path": "/alias",
+          "beforeBase64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+          "afterBase64": ""
+        },
+        {
+          "store": "right",
+          "path": "/file",
+          "beforeBase64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+          "afterBase64": ""
+        }
+      ],
+      "events": [
+        {
+          "backend": "real-left",
+          "operation": "readStream.acquire",
+          "path": "/file"
+        },
+        {
+          "backend": "real-right",
+          "operation": "writeStream.enter",
+          "path": "/alias",
+          "flag": "w"
+        },
+        {
+          "backend": "real-left",
+          "operation": "readStream.next",
+          "path": "/file"
+        },
+        {
+          "backend": "real-left",
+          "operation": "readStream.return",
+          "path": "/file"
+        },
+        {
+          "backend": "real-right",
+          "operation": "writeStream.complete",
+          "path": "/alias"
+        }
+      ]
+    },
+    {
+      "mutant": "mount-alias-guard-removed",
+      "case": "real symlink across same-root instances",
+      "failure": null,
+      "effects": [
+        {
+          "store": "left",
+          "path": "/file",
+          "beforeBase64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+          "afterBase64": ""
+        },
+        {
+          "store": "right",
+          "path": "/file",
+          "beforeBase64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+          "afterBase64": ""
+        }
+      ],
+      "events": [
+        {
+          "backend": "real-left",
+          "operation": "readStream.acquire",
+          "path": "/file"
+        },
+        {
+          "backend": "real-right",
+          "operation": "writeStream.enter",
+          "path": "/file",
+          "flag": "w"
+        },
+        {
+          "backend": "real-left",
+          "operation": "readStream.next",
+          "path": "/file"
+        },
+        {
+          "backend": "real-left",
+          "operation": "readStream.return",
+          "path": "/file"
+        },
+        {
+          "backend": "real-right",
+          "operation": "writeStream.complete",
+          "path": "/file"
+        }
+      ]
+    },
+    {
+      "mutant": "mount-alias-guard-removed",
+      "case": "nested mounts retain real same-path identity",
+      "failure": null,
+      "effects": [
+        {
+          "store": "left",
+          "path": "/file",
+          "beforeBase64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+          "afterBase64": ""
+        },
+        {
+          "store": "right",
+          "path": "/file",
+          "beforeBase64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+          "afterBase64": ""
+        }
+      ],
+      "events": [
+        {
+          "backend": "real-left",
+          "operation": "readStream.acquire",
+          "path": "/file"
+        },
+        {
+          "backend": "real-right",
+          "operation": "writeStream.enter",
+          "path": "/file",
+          "flag": "w"
+        },
+        {
+          "backend": "real-left",
+          "operation": "readStream.next",
+          "path": "/file"
+        },
+        {
+          "backend": "real-left",
+          "operation": "readStream.return",
+          "path": "/file"
+        },
+        {
+          "backend": "real-right",
+          "operation": "writeStream.complete",
+          "path": "/file"
+        }
+      ]
+    },
+    {
+      "mutant": "mount-alias-guard-removed",
+      "case": "readonly over nested mount retains real hardlink identity",
+      "failure": null,
+      "effects": [
+        {
+          "store": "left",
+          "path": "/alias",
+          "beforeBase64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+          "afterBase64": ""
+        },
+        {
+          "store": "left",
+          "path": "/file",
+          "beforeBase64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+          "afterBase64": ""
+        },
+        {
+          "store": "right",
+          "path": "/alias",
+          "beforeBase64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+          "afterBase64": ""
+        },
+        {
+          "store": "right",
+          "path": "/file",
+          "beforeBase64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+          "afterBase64": ""
+        }
+      ],
+      "events": [
+        {
+          "backend": "real-right",
+          "operation": "writeStream.enter",
+          "path": "/alias",
+          "flag": "w"
+        },
+        {
+          "backend": "real-left",
+          "operation": "readStream.acquire",
+          "path": "/file"
+        },
+        {
+          "backend": "real-left",
+          "operation": "readStream.next",
+          "path": "/file"
+        },
+        {
+          "backend": "real-left",
+          "operation": "readStream.return",
+          "path": "/file"
+        },
+        {
+          "backend": "real-right",
+          "operation": "writeStream.complete",
+          "path": "/alias"
+        }
+      ]
+    },
+    {
+      "mutant": "mount-alias-guard-removed",
+      "case": "overlay lower read aliases direct real destination",
+      "failure": null,
+      "effects": [
+        {
+          "store": "left",
+          "path": "/file",
+          "beforeBase64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+          "afterBase64": ""
+        },
+        {
+          "store": "right",
+          "path": "/file",
+          "beforeBase64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+          "afterBase64": ""
+        }
+      ],
+      "events": [
+        {
+          "backend": "real-right",
+          "operation": "writeStream.enter",
+          "path": "/file",
+          "flag": "w"
+        },
+        {
+          "backend": "real-left",
+          "operation": "readStream.acquire",
+          "path": "/file"
+        },
+        {
+          "backend": "real-left",
+          "operation": "readStream.next",
+          "path": "/file"
+        },
+        {
+          "backend": "real-left",
+          "operation": "readStream.return",
+          "path": "/file"
+        },
+        {
+          "backend": "real-right",
+          "operation": "writeStream.complete",
+          "path": "/file"
+        }
+      ]
+    },
+    {
+      "mutant": "mount-alias-guard-removed",
+      "case": "overlay upper read aliases direct real symlink destination",
+      "failure": null,
+      "effects": [
+        {
+          "store": "left",
+          "path": "/file",
+          "beforeBase64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+          "afterBase64": ""
+        },
+        {
+          "store": "right",
+          "path": "/file",
+          "beforeBase64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+          "afterBase64": ""
+        }
+      ],
+      "events": [
+        {
+          "backend": "real-right",
+          "operation": "writeStream.enter",
+          "path": "/file",
+          "flag": "w"
+        },
+        {
+          "backend": "real-left",
+          "operation": "readStream.acquire",
+          "path": "/file"
+        },
+        {
+          "backend": "real-left",
+          "operation": "readStream.next",
+          "path": "/file"
+        },
+        {
+          "backend": "real-left",
+          "operation": "readStream.return",
+          "path": "/file"
+        },
+        {
+          "backend": "real-right",
+          "operation": "writeStream.complete",
+          "path": "/file"
+        }
+      ]
+    },
+    {
+      "mutant": "mount-alias-guard-removed",
+      "case": "memory shared backend same-path alias",
+      "failure": null,
+      "effects": [
+        {
+          "store": "backend",
+          "path": "/file",
+          "beforeBase64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+          "afterBase64": ""
+        }
+      ],
+      "events": [
+        {
+          "backend": "memory-left",
+          "operation": "readStream.acquire",
+          "path": "/file"
+        },
+        {
+          "backend": "memory-right",
+          "operation": "writeStream.enter",
+          "path": "/file",
+          "flag": "w"
+        },
+        {
+          "backend": "memory-left",
+          "operation": "readStream.next",
+          "path": "/file"
+        },
+        {
+          "backend": "memory-left",
+          "operation": "readStream.return",
+          "path": "/file"
+        },
+        {
+          "backend": "memory-right",
+          "operation": "writeStream.complete",
+          "path": "/file"
+        }
+      ]
+    },
+    {
+      "mutant": "mount-alias-guard-removed",
+      "case": "memory shared backend nested hardlink alias",
+      "failure": null,
+      "effects": [
+        {
+          "store": "backend",
+          "path": "/alias",
+          "beforeBase64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+          "afterBase64": ""
+        },
+        {
+          "store": "backend",
+          "path": "/file",
+          "beforeBase64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+          "afterBase64": ""
+        }
+      ],
+      "events": [
+        {
+          "backend": "memory-left",
+          "operation": "readStream.acquire",
+          "path": "/file"
+        },
+        {
+          "backend": "memory-right",
+          "operation": "writeStream.enter",
+          "path": "/alias",
+          "flag": "w"
+        },
+        {
+          "backend": "memory-left",
+          "operation": "readStream.next",
+          "path": "/file"
+        },
+        {
+          "backend": "memory-left",
+          "operation": "readStream.return",
+          "path": "/file"
+        },
+        {
+          "backend": "memory-right",
+          "operation": "writeStream.complete",
+          "path": "/alias"
+        }
+      ]
+    },
+    {
+      "mutant": "native-scope-per-instance",
+      "case": "real same-path across same-root instances",
+      "failure": null,
+      "effects": [
+        {
+          "store": "left",
+          "path": "/file",
+          "beforeBase64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+          "afterBase64": ""
+        },
+        {
+          "store": "right",
+          "path": "/file",
+          "beforeBase64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+          "afterBase64": ""
+        }
+      ],
+      "events": [
+        {
+          "backend": "real-left",
+          "operation": "readStream.acquire",
+          "path": "/file"
+        },
+        {
+          "backend": "real-right",
+          "operation": "writeStream.enter",
+          "path": "/file",
+          "flag": "w"
+        },
+        {
+          "backend": "real-left",
+          "operation": "readStream.next",
+          "path": "/file"
+        },
+        {
+          "backend": "real-left",
+          "operation": "readStream.return",
+          "path": "/file"
+        },
+        {
+          "backend": "real-right",
+          "operation": "writeStream.complete",
+          "path": "/file"
+        }
+      ]
+    },
+    {
+      "mutant": "native-scope-per-instance",
+      "case": "real hardlink across same-root instances",
+      "failure": null,
+      "effects": [
+        {
+          "store": "left",
+          "path": "/alias",
+          "beforeBase64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+          "afterBase64": ""
+        },
+        {
+          "store": "left",
+          "path": "/file",
+          "beforeBase64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+          "afterBase64": ""
+        },
+        {
+          "store": "right",
+          "path": "/alias",
+          "beforeBase64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+          "afterBase64": ""
+        },
+        {
+          "store": "right",
+          "path": "/file",
+          "beforeBase64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+          "afterBase64": ""
+        }
+      ],
+      "events": [
+        {
+          "backend": "real-left",
+          "operation": "readStream.acquire",
+          "path": "/file"
+        },
+        {
+          "backend": "real-right",
+          "operation": "writeStream.enter",
+          "path": "/alias",
+          "flag": "w"
+        },
+        {
+          "backend": "real-left",
+          "operation": "readStream.next",
+          "path": "/file"
+        },
+        {
+          "backend": "real-left",
+          "operation": "readStream.return",
+          "path": "/file"
+        },
+        {
+          "backend": "real-right",
+          "operation": "writeStream.complete",
+          "path": "/alias"
+        }
+      ]
+    },
+    {
+      "mutant": "native-scope-per-instance",
+      "case": "real symlink across same-root instances",
+      "failure": null,
+      "effects": [
+        {
+          "store": "left",
+          "path": "/file",
+          "beforeBase64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+          "afterBase64": ""
+        },
+        {
+          "store": "right",
+          "path": "/file",
+          "beforeBase64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+          "afterBase64": ""
+        }
+      ],
+      "events": [
+        {
+          "backend": "real-left",
+          "operation": "readStream.acquire",
+          "path": "/file"
+        },
+        {
+          "backend": "real-right",
+          "operation": "writeStream.enter",
+          "path": "/file",
+          "flag": "w"
+        },
+        {
+          "backend": "real-left",
+          "operation": "readStream.next",
+          "path": "/file"
+        },
+        {
+          "backend": "real-left",
+          "operation": "readStream.return",
+          "path": "/file"
+        },
+        {
+          "backend": "real-right",
+          "operation": "writeStream.complete",
+          "path": "/file"
+        }
+      ]
+    },
+    {
+      "mutant": "native-scope-per-instance",
+      "case": "nested mounts retain real same-path identity",
+      "failure": null,
+      "effects": [
+        {
+          "store": "left",
+          "path": "/file",
+          "beforeBase64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+          "afterBase64": ""
+        },
+        {
+          "store": "right",
+          "path": "/file",
+          "beforeBase64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+          "afterBase64": ""
+        }
+      ],
+      "events": [
+        {
+          "backend": "real-left",
+          "operation": "readStream.acquire",
+          "path": "/file"
+        },
+        {
+          "backend": "real-right",
+          "operation": "writeStream.enter",
+          "path": "/file",
+          "flag": "w"
+        },
+        {
+          "backend": "real-left",
+          "operation": "readStream.next",
+          "path": "/file"
+        },
+        {
+          "backend": "real-left",
+          "operation": "readStream.return",
+          "path": "/file"
+        },
+        {
+          "backend": "real-right",
+          "operation": "writeStream.complete",
+          "path": "/file"
+        }
+      ]
+    },
+    {
+      "mutant": "native-scope-per-instance",
+      "case": "readonly over nested mount retains real hardlink identity",
+      "failure": null,
+      "effects": [
+        {
+          "store": "left",
+          "path": "/alias",
+          "beforeBase64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+          "afterBase64": ""
+        },
+        {
+          "store": "left",
+          "path": "/file",
+          "beforeBase64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+          "afterBase64": ""
+        },
+        {
+          "store": "right",
+          "path": "/alias",
+          "beforeBase64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+          "afterBase64": ""
+        },
+        {
+          "store": "right",
+          "path": "/file",
+          "beforeBase64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+          "afterBase64": ""
+        }
+      ],
+      "events": [
+        {
+          "backend": "real-right",
+          "operation": "writeStream.enter",
+          "path": "/alias",
+          "flag": "w"
+        },
+        {
+          "backend": "real-left",
+          "operation": "readStream.acquire",
+          "path": "/file"
+        },
+        {
+          "backend": "real-left",
+          "operation": "readStream.next",
+          "path": "/file"
+        },
+        {
+          "backend": "real-left",
+          "operation": "readStream.return",
+          "path": "/file"
+        },
+        {
+          "backend": "real-right",
+          "operation": "writeStream.complete",
+          "path": "/alias"
+        }
+      ]
+    },
+    {
+      "mutant": "native-scope-per-instance",
+      "case": "overlay lower read aliases direct real destination",
+      "failure": null,
+      "effects": [
+        {
+          "store": "left",
+          "path": "/file",
+          "beforeBase64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+          "afterBase64": ""
+        },
+        {
+          "store": "right",
+          "path": "/file",
+          "beforeBase64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+          "afterBase64": ""
+        }
+      ],
+      "events": [
+        {
+          "backend": "real-right",
+          "operation": "writeStream.enter",
+          "path": "/file",
+          "flag": "w"
+        },
+        {
+          "backend": "real-left",
+          "operation": "readStream.acquire",
+          "path": "/file"
+        },
+        {
+          "backend": "real-left",
+          "operation": "readStream.next",
+          "path": "/file"
+        },
+        {
+          "backend": "real-left",
+          "operation": "readStream.return",
+          "path": "/file"
+        },
+        {
+          "backend": "real-right",
+          "operation": "writeStream.complete",
+          "path": "/file"
+        }
+      ]
+    },
+    {
+      "mutant": "native-scope-per-instance",
+      "case": "overlay upper read aliases direct real symlink destination",
+      "failure": null,
+      "effects": [
+        {
+          "store": "left",
+          "path": "/file",
+          "beforeBase64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+          "afterBase64": ""
+        },
+        {
+          "store": "right",
+          "path": "/file",
+          "beforeBase64": "aW5kZXBlbmRlbnQgYWxpYXMgc2VudGluZWwKAP8K",
+          "afterBase64": ""
+        }
+      ],
+      "events": [
+        {
+          "backend": "real-right",
+          "operation": "writeStream.enter",
+          "path": "/file",
+          "flag": "w"
+        },
+        {
+          "backend": "real-left",
+          "operation": "readStream.acquire",
+          "path": "/file"
+        },
+        {
+          "backend": "real-left",
+          "operation": "readStream.next",
+          "path": "/file"
+        },
+        {
+          "backend": "real-left",
+          "operation": "readStream.return",
+          "path": "/file"
+        },
+        {
+          "backend": "real-right",
+          "operation": "writeStream.complete",
+          "path": "/file"
+        }
+      ]
+    },
+    {
+      "mutant": "unknown-identity-guard-removed",
+      "case": "missing scope",
+      "failure": null,
+      "effects": [
+        {
+          "store": "right",
+          "path": "/file",
+          "beforeBase64": "b2xkAP4=",
+          "afterBase64": "c2NvcGUA/wo="
+        }
+      ],
+      "events": [
+        {
+          "backend": "broken",
+          "operation": "readStream.acquire",
+          "path": "/file"
+        },
+        {
+          "backend": "complete",
+          "operation": "writeStream.enter",
+          "path": "/file",
+          "flag": "w"
+        },
+        {
+          "backend": "broken",
+          "operation": "readStream.next",
+          "path": "/file"
+        },
+        {
+          "backend": "broken",
+          "operation": "readStream.chunk",
+          "path": "/file",
+          "size": 8
+        }
+      ]
+    },
+    {
+      "mutant": "unknown-identity-guard-removed",
+      "case": "null scope",
+      "failure": null,
+      "effects": [
+        {
+          "store": "right",
+          "path": "/file",
+          "beforeBase64": "b2xkAP4=",
+          "afterBase64": "c2NvcGUA/wo="
+        }
+      ],
+      "events": [
+        {
+          "backend": "broken",
+          "operation": "readStream.acquire",
+          "path": "/file"
+        },
+        {
+          "backend": "complete",
+          "operation": "writeStream.enter",
+          "path": "/file",
+          "flag": "w"
+        },
+        {
+          "backend": "broken",
+          "operation": "readStream.next",
+          "path": "/file"
+        },
+        {
+          "backend": "broken",
+          "operation": "readStream.chunk",
+          "path": "/file",
+          "size": 8
+        }
+      ]
+    },
+    {
+      "mutant": "unknown-identity-guard-removed",
+      "case": "string scope",
+      "failure": null,
+      "effects": [
+        {
+          "store": "right",
+          "path": "/file",
+          "beforeBase64": "b2xkAP4=",
+          "afterBase64": "c2NvcGUA/wo="
+        }
+      ],
+      "events": [
+        {
+          "backend": "broken",
+          "operation": "readStream.acquire",
+          "path": "/file"
+        },
+        {
+          "backend": "complete",
+          "operation": "writeStream.enter",
+          "path": "/file",
+          "flag": "w"
+        },
+        {
+          "backend": "broken",
+          "operation": "readStream.next",
+          "path": "/file"
+        },
+        {
+          "backend": "broken",
+          "operation": "readStream.chunk",
+          "path": "/file",
+          "size": 8
+        }
+      ]
+    },
+    {
+      "mutant": "unknown-identity-guard-removed",
+      "case": "function scope",
+      "failure": null,
+      "effects": [
+        {
+          "store": "right",
+          "path": "/file",
+          "beforeBase64": "b2xkAP4=",
+          "afterBase64": "c2NvcGUA/wo="
+        }
+      ],
+      "events": [
+        {
+          "backend": "broken",
+          "operation": "readStream.acquire",
+          "path": "/file"
+        },
+        {
+          "backend": "complete",
+          "operation": "writeStream.enter",
+          "path": "/file",
+          "flag": "w"
+        },
+        {
+          "backend": "broken",
+          "operation": "readStream.next",
+          "path": "/file"
+        },
+        {
+          "backend": "broken",
+          "operation": "readStream.chunk",
+          "path": "/file",
+          "size": 8
+        }
+      ]
+    },
+    {
+      "mutant": "unknown-identity-guard-removed",
+      "case": "negative device",
+      "failure": null,
+      "effects": [
+        {
+          "store": "right",
+          "path": "/file",
+          "beforeBase64": "b2xkAP4=",
+          "afterBase64": "c2NvcGUA/wo="
+        }
+      ],
+      "events": [
+        {
+          "backend": "broken",
+          "operation": "readStream.acquire",
+          "path": "/file"
+        },
+        {
+          "backend": "complete",
+          "operation": "writeStream.enter",
+          "path": "/file",
+          "flag": "w"
+        },
+        {
+          "backend": "broken",
+          "operation": "readStream.next",
+          "path": "/file"
+        },
+        {
+          "backend": "broken",
+          "operation": "readStream.chunk",
+          "path": "/file",
+          "size": 8
+        }
+      ]
+    },
+    {
+      "mutant": "unknown-identity-guard-removed",
+      "case": "negative inode",
+      "failure": null,
+      "effects": [
+        {
+          "store": "right",
+          "path": "/file",
+          "beforeBase64": "b2xkAP4=",
+          "afterBase64": "c2NvcGUA/wo="
+        }
+      ],
+      "events": [
+        {
+          "backend": "broken",
+          "operation": "readStream.acquire",
+          "path": "/file"
+        },
+        {
+          "backend": "complete",
+          "operation": "writeStream.enter",
+          "path": "/file",
+          "flag": "w"
+        },
+        {
+          "backend": "broken",
+          "operation": "readStream.next",
+          "path": "/file"
+        },
+        {
+          "backend": "broken",
+          "operation": "readStream.chunk",
+          "path": "/file",
+          "size": 8
+        }
+      ]
+    },
+    {
+      "mutant": "unknown-identity-guard-removed",
+      "case": "unsafe inode",
+      "failure": null,
+      "effects": [
+        {
+          "store": "right",
+          "path": "/file",
+          "beforeBase64": "b2xkAP4=",
+          "afterBase64": "c2NvcGUA/wo="
+        }
+      ],
+      "events": [
+        {
+          "backend": "broken",
+          "operation": "readStream.acquire",
+          "path": "/file"
+        },
+        {
+          "backend": "complete",
+          "operation": "writeStream.enter",
+          "path": "/file",
+          "flag": "w"
+        },
+        {
+          "backend": "broken",
+          "operation": "readStream.next",
+          "path": "/file"
+        },
+        {
+          "backend": "broken",
+          "operation": "readStream.chunk",
+          "path": "/file",
+          "size": 8
+        }
+      ]
+    },
+    {
+      "mutant": "unknown-identity-guard-removed",
+      "case": "nonfinite device",
+      "failure": null,
+      "effects": [
+        {
+          "store": "right",
+          "path": "/file",
+          "beforeBase64": "b2xkAP4=",
+          "afterBase64": "c2NvcGUA/wo="
+        }
+      ],
+      "events": [
+        {
+          "backend": "broken",
+          "operation": "readStream.acquire",
+          "path": "/file"
+        },
+        {
+          "backend": "complete",
+          "operation": "writeStream.enter",
+          "path": "/file",
+          "flag": "w"
+        },
+        {
+          "backend": "broken",
+          "operation": "readStream.next",
+          "path": "/file"
+        },
+        {
+          "backend": "broken",
+          "operation": "readStream.chunk",
+          "path": "/file",
+          "size": 8
+        }
+      ]
+    },
+    {
+      "mutant": "unknown-identity-guard-removed",
+      "case": "missing inode",
+      "failure": null,
+      "effects": [
+        {
+          "store": "right",
+          "path": "/file",
+          "beforeBase64": "b2xkAP4=",
+          "afterBase64": "c2NvcGUA/wo="
+        }
+      ],
+      "events": [
+        {
+          "backend": "broken",
+          "operation": "readStream.acquire",
+          "path": "/file"
+        },
+        {
+          "backend": "complete",
+          "operation": "writeStream.enter",
+          "path": "/file",
+          "flag": "w"
+        },
+        {
+          "backend": "broken",
+          "operation": "readStream.next",
+          "path": "/file"
+        },
+        {
+          "backend": "broken",
+          "operation": "readStream.chunk",
+          "path": "/file",
+          "size": 8
+        }
+      ]
+    },
+    {
+      "mutant": "unknown-identity-guard-removed",
+      "case": "unknown same-mount delegation",
+      "failure": null,
+      "effects": [
+        {
+          "store": "backend",
+          "path": "/file",
+          "beforeBase64": "c2NvcGUA/wo=",
+          "afterBase64": ""
+        },
+        {
+          "store": "backend",
+          "path": "/target",
+          "beforeBase64": "c2NvcGUA/wo=",
+          "afterBase64": ""
+        }
+      ],
+      "events": [
+        {
+          "backend": "generic",
+          "operation": "copyFile.delegate",
+          "path": "/target"
+        },
+        {
+          "backend": "generic",
+          "operation": "readStream.acquire",
+          "path": "/file"
+        },
+        {
+          "backend": "generic",
+          "operation": "writeStream.enter",
+          "path": "/target",
+          "flag": "w"
+        },
+        {
+          "backend": "generic",
+          "operation": "readStream.next",
+          "path": "/file"
+        }
+      ]
+    },
+    {
+      "mutant": "missing-target-exclusive-removed",
+      "case": "default missing target race true",
+      "failure": null,
+      "effects": [
+        {
+          "store": "backend",
+          "path": "/file",
+          "beforeBase64": "c2NvcGUA/wo=",
+          "afterBase64": ""
+        }
+      ],
+      "events": [
+        {
+          "backend": "source",
+          "operation": "readStream.acquire",
+          "path": "/file"
+        },
+        {
+          "backend": "target",
+          "operation": "writeStream.enter",
+          "path": "/new",
+          "flag": "w"
+        },
+        {
+          "backend": "external-writer",
+          "operation": "link",
+          "path": "/new"
+        },
+        {
+          "backend": "source",
+          "operation": "readStream.next",
+          "path": "/file"
+        }
+      ]
+    },
+    {
+      "mutant": "missing-target-exclusive-removed",
+      "case": "default missing target race false",
+      "failure": null,
+      "effects": [],
+      "events": [
+        {
+          "backend": "source",
+          "operation": "readFile",
+          "path": "/file"
+        },
+        {
+          "backend": "target",
+          "operation": "writeFile",
+          "path": "/new",
+          "flag": "w"
+        },
+        {
+          "backend": "external-writer",
+          "operation": "link",
+          "path": "/new"
+        }
+      ]
+    },
+    {
+      "mutant": "generic-delegation-before-unknown-guard",
+      "case": "unknown same-mount delegation",
+      "failure": null,
+      "effects": [
+        {
+          "store": "backend",
+          "path": "/file",
+          "beforeBase64": "c2NvcGUA/wo=",
+          "afterBase64": ""
+        },
+        {
+          "store": "backend",
+          "path": "/target",
+          "beforeBase64": "c2NvcGUA/wo=",
+          "afterBase64": ""
+        }
+      ],
+      "events": [
+        {
+          "backend": "generic",
+          "operation": "copyFile.delegate",
+          "path": "/target"
+        },
+        {
+          "backend": "generic",
+          "operation": "readStream.acquire",
+          "path": "/file"
+        },
+        {
+          "backend": "generic",
+          "operation": "writeStream.enter",
+          "path": "/target",
+          "flag": "w"
+        },
+        {
+          "backend": "generic",
+          "operation": "readStream.next",
+          "path": "/file"
+        }
+      ]
+    }
+  ]
+}

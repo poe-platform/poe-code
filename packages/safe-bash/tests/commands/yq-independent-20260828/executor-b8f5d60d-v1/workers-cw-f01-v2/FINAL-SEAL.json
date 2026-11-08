@@ -1,0 +1,91 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "status": "SEALED_CANDIDATE_OVERLAY_DIFFERENT_REVIEW_PENDING_NO_GO",
+  "defect": "CW-F01",
+  "reviewerCommit": "9189eb71d6cc16e028793318543fd2c0437c3a4d",
+  "parentComponentCommit": "c0353685540288d504b93f206735fe4c448268ef",
+  "files": {
+    "ASSEMBLY.json": {
+      "sha256": "2d826d6cc3d508d46aa50950c5317a2a20d95513c9fff209eefe5ce8d6c254d2",
+      "bytes": 21601,
+      "mode": 420,
+      "kind": "file"
+    },
+    "DEFERRED-CONTROLS.json": {
+      "sha256": "418c6bc218b7ab6bdfefc6b43a1deb0394270ef191d8df171515c0575b6ad88a",
+      "bytes": 27008,
+      "mode": 420,
+      "kind": "file"
+    },
+    "SOURCE-SEAL.json": {
+      "sha256": "8b2509578e6ac09770cff0e465183d9c8efbd4579741b8714680e71c6847ed6f",
+      "bytes": 965,
+      "mode": 420,
+      "kind": "file"
+    },
+    "SPECIFICATION.md": {
+      "sha256": "cadc00f75a58d8d69c5d503c1a4658b6605180674cbfd3f789fa9ac3344ff3c4",
+      "bytes": 7236,
+      "mode": 420,
+      "kind": "file"
+    },
+    "STATIC-CHECKS.json": {
+      "sha256": "2b2fab4ae464a8a4253acab4e382e6f289a001687262b8a7eea886a367cb02d5",
+      "bytes": 5884,
+      "mode": 420,
+      "kind": "file"
+    },
+    "type-worker.mjs": {
+      "sha256": "f1d7b464a7018807289080a563ea4735a3902565ecdf16a32d0deab5200571fd",
+      "bytes": 11186,
+      "mode": 420,
+      "kind": "file"
+    }
+  },
+  "directories": {
+    "": 493
+  },
+  "membership": {
+    "self": "FINAL-SEAL.json",
+    "selfMode": 420,
+    "selfKind": "file",
+    "selfSha256": "REQUIRED_FROM_EXTERNAL_ROOT_HANDOFF",
+    "exactFilesIncludingSelf": 7,
+    "broadExclusions": []
+  },
+  "assembly": {
+    "source": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers-cw-f01-v2/type-worker.mjs",
+    "destination": "workers/type-worker.mjs",
+    "preimage": {
+      "sha256": "b9a26454115b72e096389657d2e8594ed7c938a4eea4bc9bc52e8ea9c25a4221",
+      "bytes": 10863,
+      "mode": 420,
+      "kind": "file"
+    },
+    "postimage": {
+      "sha256": "f1d7b464a7018807289080a563ea4735a3902565ecdf16a32d0deab5200571fd",
+      "bytes": 11186,
+      "mode": 420,
+      "kind": "file"
+    },
+    "changedExecutableFiles": 1,
+    "changedHunks": 1,
+    "unchangedInputs": 29
+  },
+  "staticGroups": 9,
+  "syntaxChecks": 1,
+  "deferredControls": 24,
+  "deferredControlsExecuted": 0,
+  "rootGO": false,
+  "compoundRecipeComplete": false,
+  "independentAcceptance": false,
+  "executionCounts": {
+    "compiler": 0,
+    "classifier": 0,
+    "worker": 0,
+    "control": 0,
+    "product": 0,
+    "moduleImports": 0
+  }
+}

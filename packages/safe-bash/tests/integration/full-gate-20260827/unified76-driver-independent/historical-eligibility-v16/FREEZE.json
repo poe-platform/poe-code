@@ -1,0 +1,146 @@
+{
+  "schema": "independent-historical-eligibility-freeze-v16/1",
+  "state": "PRE_SUCCESSOR_INSPECTION_NO_EXECUTION_AUTHORITY",
+  "timing": {
+    "observedAt": "2026-08-28T06:31:40-0500",
+    "timezone": "America/Chicago",
+    "head": "100685daa1a13dad8086c04bbbb24b0b19057a6f",
+    "priorIndependentTree": "d32826ecdd6ff6b41dca6be2b05d5daad3477254",
+    "authorScope": "tests/integration/full-gate-20260827/unified76-driver",
+    "authorTree": "6b1a27dfd4a5d1f991b3c00212cdfb078c08635c",
+    "authorIndexEntries": 482,
+    "authorIndexRecipe": "SHA256 of git ls-files --stage -z -- AUTHOR_SCOPE stdout",
+    "authorIndexSha256": "41fdf8582fcca7f0970b779789858b584ce39c2431a4ed57fb5af52cee77357d",
+    "authorDirtyPaths": [],
+    "stagedPaths": [],
+    "successorBodiesRead": false,
+    "exposure": "Post-root-ratification; authoring already permitted. Prior 9d diagnosis, 3077 proposal, and accepted source are known. Metadata and filenames only this turn; no absolute pre-code or blind-attestation claim.",
+    "metadataCommandQualification": "Initial index listing exceeded display cap. A later zsh loop used special variable path and caused two subsequent Git metadata commands to report command not found (exit127). Metadata-only calls were corrected in a new shell; no candidate/control execution occurred. Compact index digest recorded thereafter."
+  },
+  "authority": {
+    "rootDecision": "Current user ratification of 3077ba0295b1064e575d8ff66bde4e83619d9514; prospective named historical-observation profile, not an execution GO",
+    "proposal": "3077ba0295b1064e575d8ff66bde4e83619d9514",
+    "diagnosis": "9d7940c5e6f209ffd8a915abb2389034b3d58da7",
+    "historicalAttempt": "55db52a45e583017fba50c02ad64bddce2feb251",
+    "consumedAuthorization": "c222e17c4cbcc6bcb9da8a77414b90af3c465d88",
+    "historicalAttemptOutcome": "CONSUMED_EXIT1_0_OF_14; OS denial layer UNKNOWN; no private postguard claim",
+    "product": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+    "base": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+    "packageSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+    "priorSource": "02a5060019bccdd2a64f9811812104ba09d2aaee",
+    "priorReseal": "96daebc077381fb63ab6447a26ab707ce790ff25",
+    "priorEvidence": "770381bc61b49b5abed96acdf0ab09f2d4b610ca",
+    "frozenHelperSha256": "60ae62f6bab6e0348288cd04a6f69c551ce13769bd7ea9e47fb251b9a9dfa2db",
+    "recordPath": "tests/integration/full-gate-20260827/unified76-driver/released-run-v2/raw-v1/native-fixture-authority.json.gz",
+    "recordCompressedSha256": "bb9902f69536f9dfd1b8fe69247fbc3c146536cd40a15bf1af2950017bde8600",
+    "recordDecodedSha256": "9f018b4e8bae9f4ce0df48d65c25ecd4693b3b0929687a02f40c3b441ee21cb9",
+    "historicalToolSha256": "3b7a9b5819dd93eff18b25dfbbac1c1d17e2ccd419368da90b366653b1b1cbd2",
+    "historicalFenceSha256": "9fa2711b789d1f8d7cbc83b78a182eb3f83b6644aa1f8bba2568055d24a53faf",
+    "bindingQualification": "Inherited reference values, not freshly reverified evidence/tool identities. Successor source, normalized driver/profile, tool/import closure, APIs, exact executable recipe and scoped ROOT GO are PENDING."
+  },
+  "oracles": {
+    "historicalRows": [
+      {"id": "NA-2755", "originalMode": "2755", "originalKind": "native-fixture-authority", "operation": "FILE", "classification": "UNSUPPORTED_HOST_OPERATION", "nativeParity": "UNQUALIFIED"},
+      {"id": "NA-6755", "originalMode": "6755", "originalKind": "native-fixture-authority", "operation": "FILE", "classification": "UNSUPPORTED_HOST_OPERATION", "nativeParity": "UNQUALIFIED"}
+    ],
+    "rowSemantics": "IDs assigned prospectively, absent in original records. Bind each mode/kind record to exact tool, argv, target, cwd, env provenance, status1, null signal, stdout/stderr, before/after0644, file metadata, capture hash, source, fence and August28 observation context. No fresh probe timestamp or current universal capability assertion.",
+    "diagnostics": "Original raw captures remain byte-identical. New explanatory wording need not be byte-identical; semantic identity/status and honest attribution are mandatory.",
+    "canonical": "All632 exact path identities/bodies retained, not count-only; no skips, filters, exclusions, denominator deductions or changed expected values.",
+    "aggregate": "Qualified final exit NONZERO while either historical unsupported row remains, including all-runtime-pass input. Old strict profile cannot become green.",
+    "scope": "No inferred directory, Node or symbolic chmod incapability. Static48/384/4 are dependency attribution, not outcomes; two Node22.22.2 characterization mismatches under24.11.1 remain separate pending raw results.51 identity assets are not51 semantic cases."
+  },
+  "families": [
+    {"id": "H01", "topic": "Exact record authenticity", "cases": [
+      {"id": "H01.1", "method": "data", "input": "Exact two authenticated records with new stable-ID mapping and complete original context", "expected": "Accept historical mapping only; preserve both raw records and old provenance"},
+      {"id": "H01.2", "method": "data", "input": "Change mode2755 to2775", "expected": "Reject record authority before stage dispatch"},
+      {"id": "H01.3", "method": "data", "input": "Change original status1 to0", "expected": "Reject; no historical success substitution"},
+      {"id": "H01.4", "method": "data", "input": "Alter one decoded capture digest byte", "expected": "Reject authentication"},
+      {"id": "H01.5", "method": "data", "input": "Append third observation", "expected": "Reject widened unsupported set"},
+      {"id": "H01.6", "method": "data", "input": "Remove6755 observation", "expected": "Reject incomplete pair"},
+      {"id": "H01.7", "method": "data", "input": "Replace6755 with duplicate2755 using duplicate stableID", "expected": "Reject duplicate and missing identity"},
+      {"id": "H01.8", "method": "data", "input": "Replace original kind with unknown issue kind", "expected": "Reject; no generic unsupported bucket"},
+      {"id": "H01.9", "method": "data", "input": "Bind valid record bytes to different fence/context identity", "expected": "Reject mismatched context"}
+    ]},
+    {"id": "H02", "topic": "Historical versus fresh labels", "cases": [
+      {"id": "H02.1", "method": "data", "input": "All later synthetic runtime outcomes pass", "expected": "Both historical unsupported/unqualified rows retain original observation context"},
+      {"id": "H02.2", "method": "data", "input": "Report labels old records as fresh host capability measurements and generalizes to directory/Node/symbolic operations", "expected": "Fail attribution review; no new observation timestamp or broader inference"}
+    ]},
+    {"id": "H03", "topic": "Source-faithful maintained setup", "cases": [
+      {"id": "H03.1", "method": "static", "input": "Successor stage map against known frozen helper and assessor effects", "expected": "Account for authority, identity, group/temp/TMPDIR, archive, byte, private pre/copy/post and environment stages; exactly two admission probes omitted only by named profile"},
+      {"id": "H03.2", "method": "synthetic", "input": "No-side-effect stage callbacks return distinct stage receipts", "expected": "Exact source-bound declared ordering, once per required stage; no success from fabricated continuation"},
+      {"id": "H03.3", "method": "static", "input": "Successor imports/call graph and verdict construction", "expected": "Frozen helper unchanged; no catch-and-resume fiction, copied monolith labeled unchanged, subprocess monkeypatch, cleared issues or replaced native outcomes"}
+    ]},
+    {"id": "H04", "topic": "Mandatory fresh guards", "cases": [
+      {"id": "H04.1", "method": "synthetic", "input": "Identity callback reports stale or mismatched tool digest with valid historical pair", "expected": "Fatal/HOLD; no dependent dispatch"},
+      {"id": "H04.2", "method": "synthetic", "input": "Required fresh group/setup check fails", "expected": "Fatal/HOLD; historical rows do not waive group/setup"},
+      {"id": "H04.3", "method": "synthetic", "input": "Required source/projection authority check fails", "expected": "Fatal/HOLD before dependent work"},
+      {"id": "H04.4", "method": "static", "input": "Successor permission/env/tool/library/profile/projection diff", "expected": "Strict fresh checks preserved; no ambient routing, new exception, fence weakening or omission beyond exact six projection rules"}
+    ]},
+    {"id": "H05", "topic": "Ordering and phase independence", "cases": [
+      {"id": "H05.1", "method": "synthetic", "input": "First mandatory setup callback throws; later callbacks log entry", "expected": "Dependent setup/phases never entered; original failure retained"},
+      {"id": "H05.2", "method": "synthetic", "input": "One phase returns failure with eligible independent sibling", "expected": "Failure retained; sibling admission follows declared dependency/continuation policy, never inferred from global unsupported labels"},
+      {"id": "H05.3", "method": "data", "input": "Phase is selected but has no actual outcome", "expected": "UNEXECUTED, not PASS; membership or eligibility is not execution"}
+    ]},
+    {"id": "H06", "topic": "Private guard truth and errors", "cases": [
+      {"id": "H06.1", "method": "static", "input": "Shipping pre/post/finally private guard source map", "expected": "All required fresh operations/comparisons and conditional reachability retained; no real private access for review"},
+      {"id": "H06.2", "method": "synthetic", "input": "Benign pre/post tokens differ after simulated work", "expected": "Guard failure retained/nonzero; cleanup still required"},
+      {"id": "H06.3", "method": "synthetic", "input": "Early setup throws before private-before; cleanup also fails", "expected": "Both errors retained; private postguard NOT_REACHED, never clean/pristine"}
+    ]},
+    {"id": "H07", "topic": "Raw attribution", "cases": [
+      {"id": "H07.1", "method": "data", "input": "Synthetic raw failure tuple with exit/signal/stdout/stderr/counts/skip/TODO distinctions", "expected": "Lossless provenance, no status or denominator rewriting; no skip-as-pass"},
+      {"id": "H07.2", "method": "data", "input": "Separate Node22.22.2 mismatch diagnostic and pending outcomes", "expected": "Not NA2755/6755, not proven permission denial; preserve future raw failures separately"},
+      {"id": "H07.3", "method": "data", "input": "51 identity assets, two historical rows, static48/384/4 attribution", "expected": "Separate tables; reject49/51 semantic-pass claim or measured failure counts derived from static vectors"}
+    ]},
+    {"id": "H08", "topic": "Unknown issues and strict legacy policy", "cases": [
+      {"id": "H08.1", "method": "synthetic", "input": "Valid historical pair plus unknown mandatory-stage issue", "expected": "Fatal/HOLD; unknown issue not reclassified or swallowed"},
+      {"id": "H08.2", "method": "data", "input": "Legacy strict-profile identity with historical-pair waiver", "expected": "Reject waiver/profile mismatch; legacy strict result never becomes green"}
+    ]},
+    {"id": "H09", "topic": "Final nonzero and precedence", "cases": [
+      {"id": "H09.1", "method": "data", "input": "All14 synthetic phase outcomes pass, two unsupported rows remain", "expected": "Qualified NONZERO/native parity UNQUALIFIED, never all-qualified green"},
+      {"id": "H09.2", "method": "data", "input": "Expected-negative child exit plus declared successful assertion outcome", "expected": "Keep child nonzero and assertion verdict distinct; unsupported final result still nonzero"},
+      {"id": "H09.3", "method": "data", "input": "Late allPASS summary following nonzero exit/cleanup failure", "expected": "Actual failure controls verdict; no reporter override or erased error"}
+    ]},
+    {"id": "H10", "topic": "Membership and release binding", "cases": [
+      {"id": "H10.1", "method": "data", "input": "Replace one canonical path while retaining count632", "expected": "Reject sorted exact identity mismatch; no filters/exclusions/count deductions"},
+      {"id": "H10.2", "method": "static", "input": "Successor composition/source manifest versus prior14 topology and public scope", "expected": "All required phases/membership preserved; every permitted new orchestrator/profile/verdict/launcher/DRIVER change explicitly bound, not mutable overlay"},
+      {"id": "H10.3", "method": "data", "input": "Consumed c222 authorization or author GO used as independent execution/release permission", "expected": "Reject reuse; new review recipe/scoped ROOT GO and separate fresh gate release required"}
+    ]},
+    {"id": "H11", "topic": "Lifecycle and fence qualifications", "cases": [
+      {"id": "H11.1", "method": "synthetic", "input": "Cancellation during controlled awaited stage, then controlled settlement", "expected": "Dependent admission closed; cancellation/raw outcome/cleanup retained with actual settlement evidence"},
+      {"id": "H11.2", "method": "synthetic", "input": "Bounded timeout with deliberately unresolved synthetic task", "expected": "HOLD/no false background closure; late work and owned teardown qualified, not silently clean"},
+      {"id": "H11.3", "method": "static", "input": "Shipping ordinary-write/read-only/network/instruction fence and launch ownership diff", "expected": "No widened capabilities; v9 resolved-write/FD limits and exact-six rules retained, not fresh universal protection proof"}
+    ]},
+    {"id": "H12", "topic": "Future recipe and sensitivity", "cases": [
+      {"id": "H12.1", "method": "static", "input": "Future additive recipe with exact allowed source/import/tool/fixture/command/bounds and ROOT GO", "expected": "No dispatch before complete binding; missing seam/prerequisite stays UNEXECUTED/HOLD, not invented API or author permission inheritance"},
+      {"id": "H12.2", "method": "data", "input": "Mutation result falsely reports all controls pass while recording failed assertion or nonzero coordinator", "expected": "Reject summary; preserve failure and coordinator exit separately; no retry or hidden admission setid probe"}
+    ]}
+  ],
+  "accounting": {
+    "families": 12,
+    "proposedCases": 40,
+    "defaultCaseStatus": "UNEXECUTED",
+    "passes": 0,
+    "failures": 0,
+    "unexecuted": 40,
+    "staticProofsCompleted": 0,
+    "runtimeControlsExecuted": 0,
+    "historicalReferencesAreNewPasses": false
+  },
+  "futureReviewConditions": {
+    "oneCohortNoAutomaticRetry": true,
+    "maxProposedCases": 40,
+    "provisionalCeilingsOnlyNotExecutionAuthority": {
+      "caseSeconds": 60,
+      "cohortSeconds": 900,
+      "concurrentWorkers": 1,
+      "reviewOwnedChildProcesses": 2,
+      "bytesPerCapturedStream": 1048576,
+      "totalCapturedBytes": 16777216,
+      "ownedScratchBytes": 67108864
+    },
+    "exactBindingsPending": ["successor commit and evidence", "normalized driver/profile and full member closure", "APIs and source-backed synthetic seams", "exact tools/imports/argv/env", "exact enforced timer/output/disk/child bounds", "owned paths and cleanup protocol", "scoped ROOT GO enumerating allowed phases"],
+    "breachPolicy": "Capture, integrity or cleanup breach stops affected work; remaining cases UNEXECUTED. Ordinary assertions aggregate only while safe. No hidden retries; any later correction requires additive freeze and ROOT authorization.",
+    "seamLimits": "Synthetic callbacks prove only orchestrator routing/error accounting, not native/private/product behavior or background-host safety. If actual shipping seam is unavailable, report static-only/UNEXECUTED rather than copy implementation or invoke real prerequisites.",
+    "pendingInputsNotPolicyQuestions": "No contradiction identified. Candidate bindings and independent scoped GO are required inputs, not authority supplied by this freeze."
+  }
+}

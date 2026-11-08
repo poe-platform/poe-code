@@ -1,0 +1,236 @@
+{
+  "startedAt": "2026-08-26T21:49:39.558Z",
+  "head": "faca7b44e36ba6966fcd82eb32a6318fbd2ef60e",
+  "sourceBefore": {
+    "diff-format.ts": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24",
+    "diff.ts": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e",
+    "index.ts": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17",
+    "patch-envelope.ts": "f6a15e78d7cea41d503f5352206efeb9fa950871c820af730cf27ea06ade99e8",
+    "patch-formats.ts": "655242caac0b1395c9f9b12e8c28db8a35ba35d67c5fe2cff7db31a1ce6cf385",
+    "patch-gnu-paths.ts": "9a1d62f2620a87d7e68aebc3bf5e6d75d25b9b852e69f628f95bc524a10c9ddf",
+    "patch-gnu-reject.ts": "5df12efd994c0187998f0112a5fac595f376142f2cd187a5e0b40738f7b6cf02",
+    "patch-path.ts": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94",
+    "patch.ts": "51e3e7280bc5279bb1bac5536b55e82760cd2d7e495697c85599f8798151c721",
+    "shared.ts": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+    "unified.ts": "a090ed441d02349a4aece57e9049791c26f3ab04c6643665fd15097cc6d50855"
+  },
+  "testsBefore": {
+    "safety": {
+      "bounds.test.ts": "c1cedefecd7dd64bd28edec8286e693ed6d952f84449ccc671dbc2ba2a641735",
+      "cancellation.test.ts": "5098ab3dfa67b3024dcd83654524b0a8c205d4504736a022e2052d17777a0be2",
+      "encoding-gaps.test.ts": "9744a4ba8fe9f6f71455cb5c8beed80aae31b17bbe4c6f897a9124cc422bf225",
+      "failures.test.ts": "94c9c4794d92a6e34d724b2e25310744d2b0444c6e22cccca1499bb92a912fb1",
+      "helpers.ts": "b995fa07df8355fa593da3b38cde5453ac47b170e2dda6ba610c14993b1b7d53",
+      "integration.test.ts": "82b68d937490550f4962e3a793c6199ef7bc423c8739a1125997732dd1a4bf16",
+      "paths.test.ts": "37876954647c45a4e74e7829f72d6ebd35bbfecfc70eaa60c9ab6027416a808c"
+    },
+    "path-regressions": {
+      "bounds-shell.test.ts": "7a6fbab9aa4c3c6dcb681d1bc1eeb94d705693ae6366821ab50e326ea5c18efa",
+      "envelopes.test.ts": "37f384b9e4b4e3c980f2682bd3f30e3249466a09696fee7dab10969753d851b9",
+      "helpers.ts": "1d38b3b731818688b9031f8a3d0624ad65f96610cf1fa287d578d156ee8a5114",
+      "malformed.test.ts": "fdccabc5566c4c4c7b8b19a41dbad464653535e1ab908cd10f52c0cc5ab8bdbc",
+      "names.test.ts": "5287684c65b56ce39db3a247ccb7686e0a335629f4464f1892ab2bf5a1b36fc6",
+      "sequences.test.ts": "c49d774047f38af73e625a45fe700bd64c40084d261e6c647c82f60c28fb685b"
+    },
+    "parser-regressions": {
+      "fixtures.ts": "093d5ea1ae34de581dc65e459dd5644cee09feae72b79c01b91a499e16c12778",
+      "helpers.ts": "f4737da1871b12c0b00ca54f93f7b6c6c2593a378ca851871b3e3cf3534d443b",
+      "parser.test.ts": "5d72897bd9ff2281dfb8d18459de809463953decff9bfefb54ff9d0afe6a4c2d"
+    },
+    "gnu-target-followup": {
+      "capture-overlap.ts": "0331a281488d91fdeadc92ec3bf516ce2d38412df1a3246723972859ab128adf",
+      "capture.ts": "96d20fba88d7d62888a9a1a5ffb1ea8dd39b40b6ac8f47c67f80dde10886d125",
+      "evidence.ts": "d7f27a3a151fc00ce292a3b324c1daa0af96a62a21033b6a1b7b515b63f5cb1c",
+      "fixtures.ts": "e62f2ca7e5c20e3a171b3c62429eddbd38adc201cba0d1bdad67f3eea964af41",
+      "helpers.ts": "4aa2380cdb73984442b1e3db0c44adc0580029db618027ffd9d58bc31c9ba454",
+      "metadata-safety.test.ts": "0b7b565434c827b6479f45a1dee322700f0349350426a289780bc74c4a79dd2f",
+      "native-controls.test.ts": "d40336ea4f059a0aeaba037d8a6fef6fcd6876675de2f8902a8f5700fb05aedd",
+      "overlap-default.test.ts": "718addc0eb5879d06e956528e3e1b1647ef76b52f090a16c38e7582ac6f0a566"
+    }
+  },
+  "suites": [
+    {
+      "suite": "safety",
+      "artifact": "checkpoint-2026-08-26-safety.tap",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/safety/bounds.test.ts",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/safety/cancellation.test.ts",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/safety/encoding-gaps.test.ts",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/safety/failures.test.ts",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/safety/integration.test.ts",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/safety/paths.test.ts"
+      ],
+      "exitCode": 1,
+      "signal": null,
+      "tests": 152,
+      "pass": 151,
+      "fail": 1,
+      "skipped": 0,
+      "cancelled": 0,
+      "todo": 0,
+      "failures": [
+        "commit-stage lstat failure reports the existing prefix without attempting second write"
+      ],
+      "sha256": "53fafa6c4c07fa14c6091dc6290a7eacb94e0741e4fa1204c3dc6efcdcdc2416"
+    },
+    {
+      "suite": "path-regressions",
+      "artifact": "checkpoint-2026-08-26-path-regressions.tap",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/bounds-shell.test.ts",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/malformed.test.ts",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/names.test.ts",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/sequences.test.ts"
+      ],
+      "exitCode": 1,
+      "signal": null,
+      "tests": 619,
+      "pass": 605,
+      "fail": 14,
+      "skipped": 0,
+      "cancelled": 0,
+      "todo": 0,
+      "failures": [
+        "GNU default accepts interstitial metadata: rename from target",
+        "GNU default accepts interstitial metadata: rename to sentinel",
+        "GNU default accepts interstitial metadata: copy from target",
+        "GNU default accepts interstitial metadata: copy to sentinel",
+        "GNU default accepts interstitial metadata: new file mode 120000",
+        "GNU default accepts interstitial metadata: deleted file mode 120000",
+        "GNU default accepts interstitial metadata: old mode 120000",
+        "GNU default accepts interstitial metadata: new mode 120000",
+        "GNU default accepts interstitial metadata: similarity index 100%",
+        "GNU default accepts interstitial metadata: dissimilarity index 100%",
+        "GNU default accepts interstitial metadata: GIT binary patch",
+        "GNU default accepts interstitial metadata: unknown extension metadata",
+        "GNU strip/dot semantics ./leaf -p1",
+        "GNU strip/dot semantics a/./leaf -p2"
+      ],
+      "sha256": "464effc1c374bda30a2595d9ada8ae4f33358562a87e5eb236ee4a1490962b00"
+    },
+    {
+      "suite": "parser-regressions",
+      "artifact": "checkpoint-2026-08-26-parser-regressions.tap",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/parser-regressions/parser.test.ts"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "tests": 80,
+      "pass": 80,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "todo": 0,
+      "failures": [],
+      "sha256": "738f999a3624cfecbcfb1210a6a54c47b4a946e13e36f5a19aa65d78f05e231c"
+    },
+    {
+      "suite": "gnu-target-followup",
+      "artifact": "checkpoint-2026-08-26-gnu-target-followup.tap",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/metadata-safety.test.ts",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/native-controls.test.ts",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/overlap-default.test.ts"
+      ],
+      "exitCode": 1,
+      "signal": null,
+      "tests": 23,
+      "pass": 18,
+      "fail": 5,
+      "skipped": 0,
+      "cancelled": 0,
+      "todo": 0,
+      "failures": [
+        "interstitial metadata cannot hide selected traversal from whole-input authorization",
+        "interstitial metadata cannot hide selected symlink from whole-input authorization",
+        "interstitial metadata cannot hide selected hardlink from whole-input authorization",
+        "GNU default partial publication and diagnostics: default-normal-overlapping-old-hunks",
+        "GNU default partial publication and diagnostics: default-context-overlapping-hunks"
+      ],
+      "sha256": "e397490ac8a1c75b2ae6279ba0c7df663a9999a957a4ef416258652feb3f75b5"
+    }
+  ],
+  "typecheck": {
+    "command": [
+      "/Users/kjopek/Workspace/safe-bash/node_modules/.bin/tsc",
+      "--noEmit",
+      "-p",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/tsconfig.json"
+    ],
+    "exitCode": 0,
+    "signal": null,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "sourceAfter": {
+    "diff-format.ts": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24",
+    "diff.ts": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e",
+    "index.ts": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17",
+    "patch-envelope.ts": "f6a15e78d7cea41d503f5352206efeb9fa950871c820af730cf27ea06ade99e8",
+    "patch-formats.ts": "655242caac0b1395c9f9b12e8c28db8a35ba35d67c5fe2cff7db31a1ce6cf385",
+    "patch-gnu-paths.ts": "9a1d62f2620a87d7e68aebc3bf5e6d75d25b9b852e69f628f95bc524a10c9ddf",
+    "patch-gnu-reject.ts": "5df12efd994c0187998f0112a5fac595f376142f2cd187a5e0b40738f7b6cf02",
+    "patch-path.ts": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94",
+    "patch.ts": "51e3e7280bc5279bb1bac5536b55e82760cd2d7e495697c85599f8798151c721",
+    "shared.ts": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+    "unified.ts": "a090ed441d02349a4aece57e9049791c26f3ab04c6643665fd15097cc6d50855"
+  },
+  "testsAfter": {
+    "safety": {
+      "bounds.test.ts": "c1cedefecd7dd64bd28edec8286e693ed6d952f84449ccc671dbc2ba2a641735",
+      "cancellation.test.ts": "5098ab3dfa67b3024dcd83654524b0a8c205d4504736a022e2052d17777a0be2",
+      "encoding-gaps.test.ts": "9744a4ba8fe9f6f71455cb5c8beed80aae31b17bbe4c6f897a9124cc422bf225",
+      "failures.test.ts": "94c9c4794d92a6e34d724b2e25310744d2b0444c6e22cccca1499bb92a912fb1",
+      "helpers.ts": "b995fa07df8355fa593da3b38cde5453ac47b170e2dda6ba610c14993b1b7d53",
+      "integration.test.ts": "82b68d937490550f4962e3a793c6199ef7bc423c8739a1125997732dd1a4bf16",
+      "paths.test.ts": "37876954647c45a4e74e7829f72d6ebd35bbfecfc70eaa60c9ab6027416a808c"
+    },
+    "path-regressions": {
+      "bounds-shell.test.ts": "7a6fbab9aa4c3c6dcb681d1bc1eeb94d705693ae6366821ab50e326ea5c18efa",
+      "envelopes.test.ts": "37f384b9e4b4e3c980f2682bd3f30e3249466a09696fee7dab10969753d851b9",
+      "helpers.ts": "1d38b3b731818688b9031f8a3d0624ad65f96610cf1fa287d578d156ee8a5114",
+      "malformed.test.ts": "fdccabc5566c4c4c7b8b19a41dbad464653535e1ab908cd10f52c0cc5ab8bdbc",
+      "names.test.ts": "5287684c65b56ce39db3a247ccb7686e0a335629f4464f1892ab2bf5a1b36fc6",
+      "sequences.test.ts": "c49d774047f38af73e625a45fe700bd64c40084d261e6c647c82f60c28fb685b"
+    },
+    "parser-regressions": {
+      "fixtures.ts": "093d5ea1ae34de581dc65e459dd5644cee09feae72b79c01b91a499e16c12778",
+      "helpers.ts": "f4737da1871b12c0b00ca54f93f7b6c6c2593a378ca851871b3e3cf3534d443b",
+      "parser.test.ts": "5d72897bd9ff2281dfb8d18459de809463953decff9bfefb54ff9d0afe6a4c2d"
+    },
+    "gnu-target-followup": {
+      "capture-overlap.ts": "0331a281488d91fdeadc92ec3bf516ce2d38412df1a3246723972859ab128adf",
+      "capture.ts": "96d20fba88d7d62888a9a1a5ffb1ea8dd39b40b6ac8f47c67f80dde10886d125",
+      "evidence.ts": "d7f27a3a151fc00ce292a3b324c1daa0af96a62a21033b6a1b7b515b63f5cb1c",
+      "fixtures.ts": "e62f2ca7e5c20e3a171b3c62429eddbd38adc201cba0d1bdad67f3eea964af41",
+      "helpers.ts": "4aa2380cdb73984442b1e3db0c44adc0580029db618027ffd9d58bc31c9ba454",
+      "metadata-safety.test.ts": "0b7b565434c827b6479f45a1dee322700f0349350426a289780bc74c4a79dd2f",
+      "native-controls.test.ts": "d40336ea4f059a0aeaba037d8a6fef6fcd6876675de2f8902a8f5700fb05aedd",
+      "overlap-default.test.ts": "718addc0eb5879d06e956528e3e1b1647ef76b52f090a16c38e7582ac6f0a566"
+    }
+  },
+  "sourceChanged": false,
+  "testsChanged": false,
+  "finishedAt": "2026-08-26T21:49:42.901Z"
+}

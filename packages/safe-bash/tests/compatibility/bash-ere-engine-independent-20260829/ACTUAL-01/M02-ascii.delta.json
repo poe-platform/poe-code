@@ -1,0 +1,7 @@
+{
+  "name": "syntax",
+  "before": "if (code === 0 || code > 127)",
+  "after": "if (false)",
+  "base": "1dd893b7afdcd0afae025cd51562bc3255e3c78030e3876e6e33c5750f818a02",
+  "changed": "9b547ab9d098a29619419bde740e2fa6eb35119a0637d97a50f4d83ab3c99559"
+}

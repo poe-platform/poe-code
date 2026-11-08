@@ -1,0 +1,13 @@
+{
+  "startedAt": "2026-08-28T06:02:35.643Z",
+  "finishedAt": "2026-08-28T06:02:38.513Z",
+  "status": 1,
+  "signal": null,
+  "stdout": "",
+  "stderr": "{\"classification\":\"admission-or-executor-failure-not-product-pass\",\"code\":\"ENOENT\",\"message\":\"spawnSync git ENOENT\"}\n",
+  "bytes": 117,
+  "survivingGroup": false,
+  "groupStillPresent": false,
+  "naturalSettlement": true,
+  "cleanupClean": true
+}

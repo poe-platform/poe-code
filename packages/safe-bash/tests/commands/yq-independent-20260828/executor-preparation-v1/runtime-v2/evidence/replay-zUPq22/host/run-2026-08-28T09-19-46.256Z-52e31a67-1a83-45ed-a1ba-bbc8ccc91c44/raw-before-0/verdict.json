@@ -1,0 +1,23 @@
+{
+  "jobId": "raw-before-0",
+  "admitted": true,
+  "outcome": "FAIL",
+  "failures": [
+    "assertion: Error: intentional assertion after raw persistence"
+  ],
+  "integrity": true,
+  "reapProof": true,
+  "metadata": {
+    "pid": 14169,
+    "group": 14169,
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "overflow": false,
+    "spawnError": null,
+    "closed": true,
+    "reaped": true,
+    "kills": [],
+    "elapsedMs": 43
+  }
+}

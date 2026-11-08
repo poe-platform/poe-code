@@ -1,0 +1,307 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { collectBytes, createCommandArguments, getCommandArguments, toByteSource, type CommandContext, type CommandInvoker } from "../../src/contracts/index.js";
+import { shellValueFromBytes } from "../../src/contracts/value.js";
+import { createStandardCommands } from "../../src/commands/index.js";
+import { createTimeoutCommand } from "../../src/commands/timeout/index.js";
+import { options as commandOptions } from "../../src/commands/internal.js";
+import { chunks, fixture, run } from "./helpers.js";
+import { evalSyncXargs } from "../../src/commands/execution.js";
+
+for (const entry of [
+  { name: "env direct fallback", command: "env", values: ["-i", "capture", [255], [254]], stdin: "", invoke: false, expected: [[[255], [254]]] },
+  { name: "env invoke adapter", command: "env", values: ["--", "capture", [255], [254]], stdin: "", invoke: true, expected: [[[255], [254]]] },
+  { name: "env split string", command: "env", values: ["-S", [99, 97, 112, 116, 117, 114, 101, 32, 255, 32, 254]], stdin: "", invoke: true, expected: [[[255], [254]]] },
+  { name: "env split quoted empty and opaque spaces", command: "env", values: ["-S", [99, 97, 112, 116, 117, 114, 101, 32, 39, 39, 32, 34, 255, 32, 254, 34]], stdin: "", invoke: true, expected: [[[], [255, 32, 254]]] },
+  { name: "env attached split string", command: "env", values: [[45, 83, 99, 97, 112, 116, 117, 114, 101, 32, 255]], stdin: "", invoke: true, expected: [[[255]]] },
+  { name: "env long attached split string", command: "env", values: [[45, 45, 115, 112, 108, 105, 116, 45, 115, 116, 114, 105, 110, 103, 61, 99, 97, 112, 116, 117, 114, 101, 32, 255]], stdin: "", invoke: true, expected: [[[255]]] },
+  { name: "env nested split frames", command: "env", values: ["-S", [45, 83, 32, 39, 99, 97, 112, 116, 117, 114, 101, 32, 255, 39]], stdin: "", invoke: true, expected: [[[255]]] },
+  { name: "env unquoted split separator", command: "env", values: ["-S", [99, 97, 112, 116, 117, 114, 101, 32, 255, 92, 95, 254]], stdin: "", invoke: true, expected: [[[255], [254]]] },
+  { name: "xargs batching", command: "xargs", values: ["-n", "1", "capture", [255]], stdin: "one two", invoke: true, expected: [[[255], [111, 110, 101]], [[255], [116, 119, 111]]] },
+  { name: "xargs literal replacement", command: "xargs", values: ["-I", "{}", "capture", [255, 123, 125, 254]], stdin: "A", invoke: false, expected: [[[255, 65, 254]]] },
+  { name: "xargs optional long replacement", command: "xargs", values: ["--replace", "capture", [255, 123, 125, 254]], stdin: "A", invoke: true, expected: [[[255, 65, 254]]] },
+  { name: "find semicolon replacement", command: "find", values: [".", "-type", "f", "-exec", "capture", [255, 123, 125, 254], ";"], stdin: "", invoke: false, expected: [[[255, 46, 47, 102, 105, 108, 101, 254]]] },
+  { name: "find batched arguments", command: "find", values: [".", "-type", "f", "-exec", "capture", [255], "{}", "+"], stdin: "", invoke: true, expected: [[[255], [46, 47, 102, 105, 108, 101]]] },
+  { name: "timeout zero deadline", command: "timeout", values: ["--", "0", "capture", [255], [254]], stdin: "", invoke: true, expected: [[[255], [254]]] },
+]) test(`command forwarding preserves byte operands: ${entry.name}`, async () => {
+  const argumentValues = createCommandArguments(entry.values.map(value => typeof value === "string" ? value : shellValueFromBytes(Uint8Array.from(value))));
+  const captured: number[][][] = [];
+  const execute = (context: CommandContext) => {
+    const selected = getCommandArguments(context);
+    captured.push(selected.args.map((_value, index) => Array.from(selected.bytes(index)!)));
+    return { exitCode: 0 };
+  };
+  const errors: Uint8Array[] = [];
+  const context: CommandContext = {
+    command: entry.command, args: argumentValues.args, argumentValues, cwd: "/work", env: {}, fs: await fixture({ file: "data" }),
+    signal: new AbortController().signal, stdin: toByteSource(entry.stdin), stdout: { async write() {} }, stderr: { async write(bytes) { errors.push(bytes.slice()); } },
+  };
+  const invoke: CommandInvoker = async (command, args, options = {}) => execute({ ...context, command, args, argumentValues: options.argumentValues! });
+  const incoming = entry.invoke ? { ...context, invoke } : context;
+  const definition = entry.command === "timeout" ? createTimeoutCommand() : createStandardCommands({ execute }).find(command => command.name === entry.command)!;
+  const result = await definition.execute(incoming);
+  assert.equal(result.exitCode, 0, Buffer.concat(errors).toString());
+  assert.deepEqual(captured, entry.expected);
+});
+
+test("timeout legacy invocation forwards cancellation, omits carrier metadata and snapshots argv before asynchronous work", async () => {
+  const args = ["0", "capture", "before"];
+  const stdin = toByteSource("");
+  const stdout = { async write() {} };
+  const stderr = { async write() {} };
+  const context: CommandContext = {
+    command: "timeout", args, cwd: "/work", env: {}, fs: await fixture(),
+    signal: new AbortController().signal, stdin, stdout, stderr,
+    async invoke(command, selected, options) {
+      await Promise.resolve();
+      assert.equal(command, "capture");
+      assert.deepEqual(selected, ["before"]);
+      assert.ok(Object.isFrozen(selected));
+      assert.deepEqual(options, { signal: context.signal, stdin, stdout, stderr });
+      assert.equal(options?.signal, context.signal);
+      return { exitCode: 7 };
+    },
+  };
+  const pending = createTimeoutCommand().execute(context);
+  args[2] = "after";
+  assert.deepEqual(await pending, { exitCode: 7 });
+});
+
+test("timeout rejects an explicitly stale carrier before child dispatch", async () => {
+  const argumentValues = createCommandArguments(["0", "capture", shellValueFromBytes(Uint8Array.of(255))]);
+  let calls = 0;
+  const context: CommandContext = {
+    command: "timeout", args: [...argumentValues.args], argumentValues, cwd: "/work", env: {}, fs: await fixture(),
+    signal: new AbortController().signal, stdin: toByteSource(""),
+    stdout: { async write() {} }, stderr: { async write() {} },
+    async invoke() { calls++; return { exitCode: 0 }; },
+  };
+  await assert.rejects(async () => createTimeoutCommand().execute(context), /argument identity does not match/);
+  assert.equal(calls, 0);
+});
+
+for (const entry of [
+  { name: "NUL", bytes: [99, 97, 112, 116, 117, 114, 101, 32, 255, 0], diagnostic: /NUL is not supported/ },
+  { name: "unknown escape", bytes: [99, 97, 112, 116, 117, 114, 101, 32, 255, 92, 120], diagnostic: /invalid sequence/ },
+  { name: "unterminated quote", bytes: [99, 97, 112, 116, 117, 114, 101, 32, 34, 255], diagnostic: /no terminating quote/ },
+]) test(`byte env split refuses ${entry.name} before dispatch`, async () => {
+  const argumentValues = createCommandArguments(["-S", shellValueFromBytes(Uint8Array.from(entry.bytes))]);
+  const errors: Uint8Array[] = [];
+  let invoked = false;
+  const definition = createStandardCommands({ execute() { invoked = true; return { exitCode: 0 }; } }).find(command => command.name === "env")!;
+  const result = await definition.execute({ command: "env", args: argumentValues.args, argumentValues, cwd: "/work", env: {}, fs: await fixture(), signal: new AbortController().signal, stdin: toByteSource(""), stdout: { async write() {} }, stderr: { async write(bytes) { errors.push(bytes.slice()); } } });
+  assert.equal(result.exitCode, 125);
+  assert.equal(invoked, false);
+  assert.match(Buffer.concat(errors).toString(), entry.diagnostic);
+});
+
+const operandCases: readonly {
+  name: string; args: readonly string[]; short: string;
+  long: Readonly<Record<string, string>>; stop: boolean; indices: readonly number[];
+}[] = [
+  { name: "separate option values and identical operands", args: ["-n", "2", "child", "same", "same"], short: "n:", long: {}, stop: true, indices: [2, 3, 4] },
+  { name: "attached option and delimiter", args: ["-n2", "--", "-same", ""], short: "n:", long: {}, stop: false, indices: [2, 3] },
+  { name: "long equals option and delimiter after operand", args: ["--count=2", "same", "--", "same"], short: "n:", long: { count: "n" }, stop: false, indices: [1, 3] },
+  { name: "stop at first operand preserves remaining tokens", args: ["first", "-n", "2", "--", "last"], short: "n:", long: {}, stop: true, indices: [0, 1, 2, 3, 4] },
+  { name: "clustered option argument", args: ["-abvalue", "same", "same"], short: "ab:", long: {}, stop: false, indices: [1, 2] },
+];
+
+for (const entry of operandCases) test(`option parsing reports literal operand indices: ${entry.name}`, () => {
+  const observed: number[] = [];
+  const parsed = commandOptions(entry.args, entry.short, entry.long, entry.stop, index => { observed.push(index); });
+  assert.deepEqual(observed, entry.indices);
+  assert.deepEqual(parsed.operands, entry.indices.map(index => entry.args[index]));
+  assert.deepEqual(parsed, commandOptions(entry.args, entry.short, entry.long, entry.stop));
+});
+
+for (const reason of [false, 0, undefined, new Error("operand observer failure")]) test(
+  `option parsing preserves operand observer failure identity: ${String(reason)}`, () => {
+    let caught = false;
+    let calls = 0;
+    try {
+      commandOptions(["first", "second"], "", {}, false, () => { calls++; throw reason; });
+    } catch (error) { caught = true; assert.equal(error, reason); }
+    assert.equal(caught, true);
+    assert.equal(calls, 1);
+  },
+);
+
+test("env lists, clears, unsets and sets literal variables without mutating its parent", async () => {
+  const env = { FIRST: "one", SECOND: "two" };
+  assert.equal((await run("env", ["-0", "-u", "FIRST", "THIRD=three"], { env })).stdout, "THIRD=three\0SECOND=two\0");
+  assert.equal((await run("env", ["-i", "LITERAL=$(not executed)"])).stdout, "LITERAL=$(not executed)\n");
+  assert.deepEqual(env, { FIRST: "one", SECOND: "two" });
+  const calls: CommandContext[] = [];
+  const result = await run("env", ["-i", "VALUE=literal", "custom", "a;b"], { execute: context => { calls.push(context); return { exitCode: 7 }; } });
+  assert.equal(result.exitCode, 7);
+  assert.deepEqual(calls[0]!.args, ["a;b"]);
+  assert.deepEqual({ ...calls[0]!.env }, { VALUE: "literal" });
+});
+
+test("xargs tokenizes quoted/escaped words and batches direct argv without shell expansion", async () => {
+  const calls: readonly string[][] = [];
+  const collected = calls as string[][];
+  const execute = async (context: CommandContext) => {
+    assert.equal((await collectBytes(context.stdin, { maxBytes: 100 })).length, 0);
+    collected.push([...context.args]);
+    return { exitCode: 0 };
+  };
+  assert.equal((await run("xargs", ["-n", "2", "custom", "initial"], { stdin: chunks("'two words' escaped\\ word '' '$(unsafe);*'"), execute })).exitCode, 0);
+  assert.deepEqual(calls, [["initial", "two words", "escaped word"], ["initial", "", "$(unsafe);*"]]);
+  assert.equal((await run("xargs", [], { stdin: "one two" })).stdout, "one two\n");
+  assert.equal((await run("xargs", ["printf", "<%s>\n"], { stdin: "one two" })).stdout, "<one>\n<two>\n");
+});
+
+test("xargs null/custom delimiters, replacement, empty input and errors are explicit", async () => {
+  assert.equal((await run("xargs", ["-0", "printf", "<%s>\n"], { stdin: chunks("a b\0\0'quoted'\0") })).stdout, "<a b>\n<>\n<'quoted'>\n");
+  assert.equal((await run("xargs", ["-d", ",", "printf", "<%s>\n"], { stdin: "one,two" })).stdout, "<one>\n<two>\n");
+  assert.equal((await run("xargs", ["-I", "{}", "printf", "[%s]\n", "pre{}post"], { stdin: chunks("  one two\n'quoted word'\n") })).stdout, "[preone twopost]\n[prequoted wordpost]\n");
+  assert.equal((await run("xargs", [])).stdout, "\n");
+  assert.equal((await run("xargs", ["-r"])).stdout, "");
+  assert.equal((await run("xargs", [], { stdin: "'unmatched" })).exitCode, 2);
+  const parallelEmpty = await run("xargs", ["-P", "2"]);
+  assert.equal(parallelEmpty.exitCode, 0);
+  assert.equal(parallelEmpty.stdout, "\n");
+  assert.equal(parallelEmpty.stderr, "");
+  assert.equal((await run("xargs", ["-P", "-1"])).exitCode, 2);
+  assert.equal((await run("xargs", ["unknown"], { stdin: "one" })).exitCode, 127);
+});
+
+test("xargs replacement defaults to echo and trims only unquoted trailing blanks", async () => {
+  assert.equal((await run("xargs", ["-I", "{}"], { stdin: chunks("a\nb\n") })).stdout, "a\nb\n");
+  const result = await run("xargs", ["-I", "{}", "printf", "<%s>\n", "{}"], {
+    stdin: chunks("  a  \nb\t\n'c  '  \nd\\ \t\ne  f  "),
+  });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "<a>\n<b>\n<c  >\n<d >\n<e  f>\n");
+});
+
+for (const entry of [
+  { options: ["-n", "1", "-I", "{}"], expected: "a b\nc d\n" },
+  { options: ["-L", "2", "-I", "{}"], expected: "a b\nc d\n" },
+  { options: ["-I", "{}", "-n", "2"], expected: "{} a b\n{} c d\n" },
+  { options: ["-I", "{}", "-n", "1"], expected: "a b\nc d\n" },
+  { options: ["-I{}", "--max-args=1"], expected: "a b\nc d\n" },
+  { options: ["-I{}", "-rn1"], expected: "a b\nc d\n" },
+  { options: ["-I", "{}", "-L", "2"], expected: "{} a b c d\n" },
+  { options: ["-n", "1", "-L", "1"], expected: "{} a b\n{} c d\n" },
+  { options: ["-L", "2", "-n", "1"], expected: "{} a\n{} b\n{} c\n{} d\n" },
+  { options: ["--max-args=1", "--replace={}"], expected: "a b\nc d\n" },
+  { options: ["-I{}", "--max-lines=1"], expected: "{} a b\n{} c d\n" },
+]) test(`xargs last batching option wins: ${entry.options.join(" ")}`, async () => {
+  const result = await run("xargs", [...entry.options, "echo", "{}"], { stdin: "a b\nc d\n" });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, entry.expected);
+  assert.equal(evalSyncXargs(new TextEncoder().encode("a b\nc d\n"), [...entry.options, "echo", "{}"]), entry.expected);
+});
+
+test("xargs default invocation does not split at 5000 arguments", async () => {
+  const words = Array.from({ length: 5001 }, () => "a").join(" ");
+  const calls: number[] = [];
+  const result = await run("xargs", ["capture"], { stdin: words, execute(context) {
+    calls.push(context.args.length);
+    return { exitCode: 0 };
+  } });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(calls, [5001]);
+  assert.equal(evalSyncXargs(new TextEncoder().encode(words), ["echo"]), words + "\n");
+});
+
+test("xargs replacement does not hide an invalid max-args value", async () => {
+  const result = await run("xargs", ["-I{}", "-n", "1.0", "echo", "{}"], { stdin: "a\n" });
+  assert.equal(result.exitCode, 2);
+});
+
+test("xargs maps child failures and stops on status 255", async () => {
+  let calls = 0;
+  assert.equal((await run("xargs", ["-n", "1", "custom"], { stdin: "one two", execute: () => { calls++; return { exitCode: 1 }; } })).exitCode, 123);
+  assert.equal(calls, 2);
+  calls = 0;
+  assert.equal((await run("xargs", ["-n", "1", "custom"], { stdin: "one two", execute: () => { calls++; return { exitCode: 255 }; } })).exitCode, 124);
+  assert.equal(calls, 1);
+});
+
+test("find traverses virtual trees with name/type/depth filters, boolean expressions and pruning", async () => {
+  const fs = await fixture({ "1.digit": "digit", "a.txt": "A", "b.log": "B", "nested/c.txt": "C", "skip/hidden.txt": "H" });
+  assert.equal((await run("find", [".", "-type", "f", "-name", "[[:digit:]].digit"], { fs })).stdout, "./1.digit\n");
+  assert.equal((await run("find", [".", "-type", "f", "-name", "*.txt"], { fs })).stdout, "./a.txt\n./nested/c.txt\n./skip/hidden.txt\n");
+  assert.equal((await run("find", [".", "-maxdepth", "1", "-type", "f", "-print0"], { fs })).stdout, "./1.digit\0./a.txt\0./b.log\0");
+  assert.equal((await run("find", [".", "-name", "skip", "-prune", "-o", "-type", "f", "-print"], { fs })).stdout, "./1.digit\n./a.txt\n./b.log\n./nested/c.txt\n");
+  assert.equal((await run("find", [".", "(", "-name", "a.txt", "-o", "-name", "b.log", ")", "-type", "f"], { fs })).stdout, "./a.txt\n./b.log\n");
+  assert.equal((await run("find", [".", "-unsupported"], { fs })).exitCode, 2);
+});
+
+test("find executes semicolon and plus forms with literal argv and detects symlink loops", async () => {
+  const fs = await fixture({ "a;literal": "A", "b file": "B" });
+  assert.equal((await run("find", [".", "-type", "f", "-exec", "printf", "<%s>\n", "{}", ";"], { fs })).stdout, "<./a;literal>\n<./b file>\n");
+  assert.equal((await run("find", [".", "-type", "f", "-exec", "printf", "<%s>\n", "{}", "+"], { fs })).stdout, "<./a;literal>\n<./b file>\n");
+  await fs.symlink(".", "/work/loop");
+  assert.equal((await run("find", [".", "-type", "l"], { fs })).stdout, "./loop\n");
+  assert.equal((await run("find", ["-L", "."], { fs })).exitCode, 1);
+});
+
+test("xargs default whitespace mode preserves non-UTF-8 bytes without crashing", async () => {
+  const res = await run("xargs", ["printf", "%s"], { stdin: Uint8Array.from([0xff, 0x20, 0xfe, 0x0a]), env: { LC_ALL: "C" } });
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.deepEqual(res.stdoutBytes, Buffer.from([0xff, 0xfe]));
+});
+
+test("xargs supports -i[R], -l[MAX], and -e[EOF] short options", async () => {
+  assert.equal((await run("xargs", ["-i", "echo", "[{}]"], { stdin: "a\nb\n" })).stdout, "[a]\n[b]\n");
+  assert.equal((await run("xargs", ["-i%", "echo", "[%]"], { stdin: "a\nb\n" })).stdout, "[a]\n[b]\n");
+  assert.equal((await run("xargs", ["-l", "echo"], { stdin: "a b\nc d\n" })).stdout, "a b\nc d\n");
+  assert.equal((await run("xargs", ["-l2", "echo"], { stdin: "a\nb\nc\n" })).stdout, "a b\nc\n");
+  assert.equal((await run("xargs", ["-eEND", "echo"], { stdin: "a\nEND\nb\n" })).stdout, "a\n");
+  assert.equal((await run("xargs", ["-eEND", "-e", "echo"], { stdin: "a\nEND\nb\n" })).stdout, "a END b\n");
+});
+
+for (const entry of [
+  { args: ["--replace", "echo", "[{}]"], stdin: "a\nb\n", stdout: "[a]\n[b]\n" },
+  { args: ["--replace=%", "echo", "[%]"], stdin: "a\nb\n", stdout: "[a]\n[b]\n" },
+  { args: ["--max-lines", "echo"], stdin: "a b\nc d\n", stdout: "a b\nc d\n" },
+  { args: ["--max-lines=2", "echo"], stdin: "a\nb\nc\n", stdout: "a b\nc\n" },
+  { args: ["--max-lines"], stdin: "a b\nc d\n", stdout: "a b\nc d\n" },
+  { args: ["--eof", "echo"], stdin: "a\nEND\nb\n", stdout: "a END b\n" },
+  { args: ["--eof", "printf", "<%s>\n"], stdin: "printf\nEND\nb\n", stdout: "<printf>\n<END>\n<b>\n" },
+  { args: ["--eof=END", "echo"], stdin: "a\nEND\nb\n", stdout: "a\n" },
+  { args: ["-E", "END", "--eof", "echo"], stdin: "a\nEND\nb\n", stdout: "a END b\n" },
+  { args: ["--eof", "-E", "END", "echo"], stdin: "a\nEND\nb\n", stdout: "a\n" },
+  { args: ["--replace=%", "--replace", "echo", "[{}]"], stdin: "a\nb\n", stdout: "[a]\n[b]\n" },
+  { args: ["-n2", "--max-lines", "echo"], stdin: "a b\nc d\n", stdout: "a b\nc d\n" },
+  { args: ["--max-lines", "-n3", "echo"], stdin: "a b\nc d\n", stdout: "a b c\nd\n" },
+  { args: ["--replace", "-n2", "echo"], stdin: "a\nb\nc\n", stdout: "a b\nc\n" },
+  { args: ["-n2", "--replace", "echo", "[{}]"], stdin: "a b\nc d\n", stdout: "[a b]\n[c d]\n" },
+  { args: ["-I", "--replace", "echo", "[--replace]"], stdin: "a\nb\n", stdout: "[a]\n[b]\n" },
+  { args: ["-rI", "--replace", "echo", "[--replace]"], stdin: "a\nb\n", stdout: "[a]\n[b]\n" },
+  { args: ["--", "echo", "--replace"], stdin: "a b\n", stdout: "--replace a b\n" },
+  { args: ["echo", "--eof"], stdin: "a b\n", stdout: "--eof a b\n" },
+]) test(`xargs optional long options: ${entry.args.join(" ")}`, async () => {
+  const result = await run("xargs", entry.args, { stdin: chunks(entry.stdin) });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, entry.stdout);
+});
+
+test("env exits 125 on usage/chdir errors, rejects -u A=B, and accepts =value", async () => {
+  assert.equal((await run("env", ["-0", "true"])).exitCode, 125);
+  assert.equal((await run("env", ["--invalid"])).exitCode, 125);
+  assert.equal((await run("env", ["-u", "A=B"])).exitCode, 125);
+  assert.equal((await run("env", ["-C", "/no-such-dir", "true"])).exitCode, 125);
+  const eqVal = await run("env", ["-i", "=foo"]);
+  assert.equal(eqVal.exitCode, 0);
+  assert.equal(eqVal.stdout, "=foo\n");
+});
+
+test("xargs rejects printf-only punctuation delimiter escapes", async () => {
+  for (const delimiter of ["\\?", "\\'", '\\"']) {
+    const result = await run("xargs", ["-d", delimiter, "printf", "%s"], { stdin: "one?two" });
+    assert.equal(result.exitCode, 2);
+    assert.equal(result.stdout, "");
+    assert.match(result.stderr, /delimiter must be one ASCII byte/u);
+  }
+});
+
+test("xargs respects -d and -0 option ordering", async () => {
+  const res = await run("xargs", ["-d", ":", "-0", "-n", "1", "echo"], { stdin: "a:b\0c\0" });
+  assert.equal(res.exitCode, 0);
+  assert.equal(res.stdout, "a:b\nc\n");
+});

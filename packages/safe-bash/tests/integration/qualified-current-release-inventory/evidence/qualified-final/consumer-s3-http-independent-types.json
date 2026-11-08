@@ -1,0 +1,13 @@
+{
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-35fajW/snapshot/node_modules/typescript/bin/tsc",
+    "-p",
+    "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-35fajW/consumer/s3-http-independent/tsconfig.json"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-35fajW/consumer",
+  "status": 0,
+  "signal": null,
+  "stdout": "",
+  "stderr": ""
+}

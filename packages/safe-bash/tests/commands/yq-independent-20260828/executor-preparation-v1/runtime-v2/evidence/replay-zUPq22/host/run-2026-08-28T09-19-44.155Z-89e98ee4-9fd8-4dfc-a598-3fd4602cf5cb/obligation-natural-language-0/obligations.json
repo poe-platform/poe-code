@@ -1,0 +1,1 @@
+{"schemaVersion":2,"status":"INCOMPLETE","unfulfilled":[{"path":"expected.assertions[0]","value":"Composed query object has null prototype; keys are own data entries.","reason":"Natural-language obligation has no executable proof binding"}],"semanticFullRecordPass":false}

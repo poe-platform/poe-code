@@ -1,0 +1,41 @@
+import fs from 'node:fs';
+import crypto from 'node:crypto';
+import assert from 'node:assert/strict';
+const hash = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
+const read = (file, digest, size, maximum) => { const stat = fs.lstatSync(file); assert(stat.isFile() && !stat.isSymbolicLink() && stat.size === size && size <= maximum); const body = fs.readFileSync(file); assert.equal(body.length, size); assert.equal(hash(body), digest); return body; };
+try {
+  const [packetFile, packetHash, packetSize, grantHash, grantSize, ledgerHash, ledgerSize] = process.argv.slice(2);
+  assert.equal(process.argv.length, 9);
+  const packet = JSON.parse(read(packetFile, packetHash, Number(packetSize), 131072));
+  const grant = JSON.parse(read(packet.slots.rootGrantFile, grantHash, Number(grantSize), 32768));
+  const ledger = JSON.parse(read(packet.slots.ledgerPath, ledgerHash, Number(ledgerSize), 65536));
+  assert.equal(grant.action, 'ROOT_B1_PUBLIC15_ACTUAL'); assert.equal(grant.finalPacketSha256, packetHash);
+  assert(typeof grant.authorization === 'string' && grant.authorization.trim());
+  assert.equal(grant.latestStartUTC, packet.latestStartUTC); assert.equal(grant.expiresUTC, packet.expiresUTC);
+  const start = Date.parse(grant.startedUTC), now = Date.now();
+  assert(Number.isFinite(start) && start >= Date.parse(packet.issuedUTC) && start <= Date.parse(packet.latestStartUTC));
+  assert(now >= start && now < Math.min(start + 1800000, Date.parse(packet.expiresUTC)));
+  assert.equal(ledger.schema, 'B1-measured-known-role-ledger-v3'); assert.equal(ledger.attemptAuthorization, grant.authorization);
+  assert(Array.isArray(ledger.starts) && ledger.starts.length >= 6 && ledger.starts.length <= 26);
+  const seen = new Set();
+  for (const record of ledger.starts) {
+    assert(typeof record.id === 'string' && record.id && !seen.has(record.id)); seen.add(record.id);
+    assert(typeof record.role === 'string' && Number.isSafeInteger(record.pid) && record.pid > 0 && Number.isFinite(Date.parse(record.startedUTC)));
+    assert(record.startObserved === true);
+    assert(record.exitObserved === true && record.closeObserved === true);
+  }
+  const observedSelf = { id: `publication-preimport-${process.pid}`, role: 'publication-preimport', pid: process.pid, startedUTC: new Date().toISOString(), startObserved: true, observation: 'self process.pid at admitted helper execution; not independent process census', exitObserved: false, closeObserved: false };
+  assert(!seen.has(observedSelf.id));
+  for (const entry of [...packet.publisherFiles, packet.preimportFiles]) read(entry.path, entry.sha256, entry.bytes, 131072);
+  read(packet.publisherBinding.path, packet.publisherBinding.sha256, packet.publisherBinding.bytes, 131072);
+  read(packet.publisherPreseal.path, packet.publisherPreseal.sha256, packet.publisherPreseal.bytes, 131072);
+  read(packet.runtimePreseal.path, packet.runtimePreseal.sha256, packet.runtimePreseal.bytes, 32768);
+  assert.equal(fs.existsSync(packet.slots.authorityPath), false);
+  const authority = { action: grant.action, authorization: grant.authorization, bindingSha256: packet.publisherBinding.sha256, startedUTC: grant.startedUTC, latestStartUTC: packet.latestStartUTC, expiresUTC: packet.expiresUTC, knownStartsBeforePublication: ledger.starts.length + 1, measuredLedger: { path: packet.slots.ledgerPath, bytes: Number(ledgerSize), sha256: ledgerHash }, observedSelf, metadataHome: grant.metadataHome, finalPacketSha256: packetHash };
+  assert(typeof authority.metadataHome === 'string' && authority.metadataHome.startsWith(packet.absentSlots[0] + '/'));
+  const body = Buffer.from(JSON.stringify(authority, null, 2) + '\n'); assert(body.length <= 32768);
+  const descriptor = fs.openSync(packet.slots.authorityPath, 'wx');
+  try { let offset = 0; while (offset < body.length) { const count = fs.writeSync(descriptor, body, offset, body.length - offset); assert(count > 0); offset += count; } } finally { fs.closeSync(descriptor); }
+  const argv = [...packet.publicationCommand.argv]; argv[argv.length - 2] = hash(body); argv[argv.length - 1] = String(body.length);
+  console.log(JSON.stringify({ executable: packet.publicationCommand.executable, argv, cwd: packet.publicationCommand.cwd, login: false, env: packet.publicationCommand.env, authority: { path: packet.slots.authorityPath, bytes: body.length, sha256: hash(body) }, knownStartsBeforePublication: ledger.starts.length + 1, permission: 'NO AUTOMATIC DISPATCH; coordinator must observe this helper exit/close before publisher, and no intervening OS starts are permitted; preimport code itself requires trusted source authentication before startup' }));
+} catch (error) { console.error(error); process.exitCode = 78; }

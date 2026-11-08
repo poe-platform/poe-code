@@ -1,0 +1,41 @@
+import assert from 'node:assert/strict';
+import {execFileSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
+import {mkdtempSync,readFileSync,writeFileSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {dirname,join,resolve} from 'node:path';
+import {fileURLToPath} from 'node:url';
+
+const directory=dirname(fileURLToPath(import.meta.url));
+const repository=resolve(directory,'../../../../..');
+const source=process.argv[2];
+assert.match(source??'',/^[a-f0-9]{40}$/u);
+const git=(args,options={})=>execFileSync('git',['--no-replace-objects',...args],{cwd:repository,maxBuffer:32*1024*1024,...options});
+const blob=(revision,path)=>git(['show',`${revision}:${path}`]);
+const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
+const freeze=JSON.parse(readFileSync(join(directory,'FREEZE.json')));
+const previous=JSON.parse(readFileSync(join(directory,'../amendment-v2/driver/CANDIDATE.json')));
+assert.equal(freeze.previousCandidate,previous.candidate);
+git(['merge-base','--is-ancestor',source,'HEAD']);
+const output=mkdtempSync(join(tmpdir(),'unified76-final-amendment-'));
+const env={...process.env,GIT_OPTIONAL_LOCKS:'0',GIT_INDEX_FILE:join(output,'index')};
+git(['read-tree',freeze.base],{env});
+const changes=previous.changes.map(entry=>{
+  const amendment=freeze.files.find(row=>row.path===entry.path);
+  const before=blob(previous.candidate,entry.path);
+  assert.equal(sha(before),amendment.sha256);
+  let expected=before.toString();
+  for(const[from,to]of amendment.remainingReplacements){assert.equal(expected.split(from).length,2);expected=expected.replace(from,to);}
+  const after=blob(source,entry.path);assert.equal(after.toString(),expected);
+  const afterBlob=git(['rev-parse',`${source}:${entry.path}`]).toString().trim();
+  git(['update-index','--add','--cacheinfo','100644',afterBlob,entry.path],{env});
+  return{...entry,afterBlob,afterSha256:sha(after),replacements:[...entry.replacements,...amendment.remainingReplacements]};
+});
+const tree=git(['write-tree'],{env}).toString().trim();
+const candidate=git(['commit-tree',tree,'-p',freeze.base],{input:'Unify76 v3: complete authorized inventory sweep in the same four fixture paths\n'}).toString().trim();
+assert.deepEqual(git(['diff','--name-only',freeze.base,candidate]).toString().trim().split('\n').sort(),changes.map(row=>row.path).sort());
+for(const path of ['src','package.json','package-lock.json','README.md','tsconfig.json','tsconfig.build.json'])assert.equal(git(['rev-parse',`${freeze.base}:${path}`]).toString(),git(['rev-parse',`${candidate}:${path}`]).toString());
+const raw=git(['cat-file','commit',candidate]);
+const receipt={...previous,schema:3,createdAt:new Date().toISOString(),candidate,tree,fixtureSourceCommit:source,changes,rawCommitBase64:raw.toString('base64'),rawCommitSha256:sha(raw),previousCandidate:previous.candidate,amendmentFreezeSha256:sha(readFileSync(join(directory,'FREEZE.json'))),wholeGateLaunched:false};
+writeFileSync(join(output,'CANDIDATE.json'),JSON.stringify(receipt,null,2)+'\n',{flag:'wx'});
+console.log(JSON.stringify({output,candidate,tree,source,paths:changes.length,wholeGateLaunched:false}));

@@ -1,0 +1,10 @@
+import type {AgentDefinition} from './types.js';
+export declare const claudeCodeAgent:AgentDefinition;
+export declare const claudeDesktopAgent:AgentDefinition;
+export declare const codexAgent:AgentDefinition;
+export declare const cursorAgent:AgentDefinition;
+export declare const geminiCliAgent:AgentDefinition;
+export declare const openCodeAgent:AgentDefinition;
+export declare const gooseAgent:AgentDefinition;
+export declare const piAgent:AgentDefinition;
+export declare const poeAgentAgent:AgentDefinition;

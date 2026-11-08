@@ -1,0 +1,165 @@
+{
+  "schema": "independent-resolved-slot-review-v1",
+  "decision": "ACCEPT_DATA_ONLY",
+  "bindingCommit": "918cd1d414508364b676f8bd2e1a78c34ee9e060",
+  "publicationCommit": "d808acf7f67551807654e4089b366789190be07d",
+  "runtimeReceiptSha256": "0071e1161c134dff21e90e8dbd21abca418558d65561d6988f458dddd46ed99b",
+  "goSha256": "2ee3666ae6ad5e1507b65ccbb46e690401b95da569e47bd9ef6cbf5a69783fe6",
+  "resolvedApprovalSha256": "0cb976c7c314b3405f957f5feac0214fbe9e63086b5e0f89505e15f4f8e9bb14",
+  "commandSha256": "b514681b0c165c2b029992c08b89dcf3ac793dc062f5ad4d6e7b5eb24c0bd1f6",
+  "approvedTemplateSha256": "9243e5eb6c3db5fce5bee733740a2f59c0d8d447f1e3e38fe46fd476db00f6b7",
+  "approvedReviewCommit": "9b3d1c1d408a62c612132f335f6b6a6c8a239b2f",
+  "approvedGenericReceiptSha256": "8c122fab60856a744c97b299f327313dd08460e28a33388040baf822705008c3",
+  "checks": [
+    {
+      "id": "A01",
+      "matched": true,
+      "detail": {
+        "runtimeSchemaKeys": [
+          "schema",
+          "decision",
+          "profile",
+          "presealSha256",
+          "requestsSha256",
+          "reviewer",
+          "reviewCommit"
+        ],
+        "reviewCommit": "9b3d1c1d408a62c612132f335f6b6a6c8a239b2f",
+        "genericSha256": "8c122fab60856a744c97b299f327313dd08460e28a33388040baf822705008c3",
+        "runtimeSha256": "0071e1161c134dff21e90e8dbd21abca418558d65561d6988f458dddd46ed99b"
+      }
+    },
+    {
+      "id": "A02",
+      "matched": true,
+      "detail": {
+        "goSha256": "2ee3666ae6ad5e1507b65ccbb46e690401b95da569e47bd9ef6cbf5a69783fe6",
+        "fixedExpiry": "2026-08-29T09:03:39.808Z",
+        "runtimeReceiptPin": {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/REVIEW-ACCEPTANCE.json",
+          "mode": 384,
+          "bytes": 493,
+          "sha256": "0071e1161c134dff21e90e8dbd21abca418558d65561d6988f458dddd46ed99b"
+        },
+        "limitsUnchanged": true,
+        "startupScope": "INITIAL_TOOL_SHELL_TRUSTED_HOST_OUTSIDE_CHILD_FRESH_ENV_AND_OWNED_RAW_CAPTURE"
+      }
+    },
+    {
+      "id": "A03",
+      "matched": true,
+      "detail": {
+        "resolvedSha256": "0cb976c7c314b3405f957f5feac0214fbe9e63086b5e0f89505e15f4f8e9bb14",
+        "commandSha256": "b514681b0c165c2b029992c08b89dcf3ac793dc062f5ad4d6e7b5eb24c0bd1f6",
+        "commandBytes": 809,
+        "commandFileBytes": 810,
+        "commandFileSha256": "da8e58441eb3bc844d27bd06165294acbae68048dda14d82cd92b54c1fda9cbd",
+        "mutatedProperty": "parameters.cmd grant hash slot only",
+        "metadataPlaceholdersPreserved": true,
+        "rawByteEquality": true
+      }
+    },
+    {
+      "id": "A04",
+      "matched": true,
+      "detail": {
+        "tool": "functions.exec_command",
+        "shell": "/bin/zsh",
+        "login": false,
+        "sandboxPermissions": "require_escalated",
+        "prefixRule": "NONE",
+        "approvalIssued": false,
+        "initialToolShellTrusted": true
+      }
+    },
+    {
+      "id": "A05",
+      "matched": true,
+      "detail": {
+        "authorityOrder": [
+          "approved source/preseal and 9b3d1c1d review commit",
+          "runtime receipt binds that review",
+          "GO hashes runtime receipt",
+          "resolved command contains GO hash",
+          "this independent slot verdict"
+        ],
+        "hashReferenceCycle": false,
+        "executionWindow": "min(fixed expiry, entry start + 600000ms)",
+        "fullFreshWindowRequired": true,
+        "latestFullWindowStart": "2026-08-29T08:53:39.808Z"
+      }
+    },
+    {
+      "id": "A06",
+      "matched": true,
+      "detail": {
+        "observations": [
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/REVIEW-ACCEPTANCE.json",
+            "mode": 384,
+            "bytes": 493,
+            "sha256": "0071e1161c134dff21e90e8dbd21abca418558d65561d6988f458dddd46ed99b",
+            "device": "16777232",
+            "inode": "186274035",
+            "observedAt": "2026-08-29T08:24:30.432Z",
+            "role": "CURRENT_METADATA_AND_BYTES_NOT_GIT_POSIX_MODE_PROOF"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/GO.json",
+            "mode": 384,
+            "bytes": 1290,
+            "sha256": "2ee3666ae6ad5e1507b65ccbb46e690401b95da569e47bd9ef6cbf5a69783fe6",
+            "device": "16777232",
+            "inode": "186274041",
+            "observedAt": "2026-08-29T08:24:30.433Z",
+            "role": "CURRENT_METADATA_AND_BYTES_NOT_GIT_POSIX_MODE_PROOF"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/activation-v1/APPROVAL-REQUEST.resolved.json",
+            "mode": 420,
+            "bytes": 3290,
+            "sha256": "0cb976c7c314b3405f957f5feac0214fbe9e63086b5e0f89505e15f4f8e9bb14",
+            "device": "16777232",
+            "inode": "186305829",
+            "observedAt": "2026-08-29T08:24:30.433Z",
+            "role": "CURRENT_METADATA_AND_BYTES_NOT_GIT_POSIX_MODE_PROOF"
+          }
+        ],
+        "freshPreflightStillRequired": true,
+        "sourceToolsParentsRehashedThisReview": false
+      }
+    },
+    {
+      "id": "A07",
+      "matched": true,
+      "detail": {
+        "originalMistakenAssertionPreserved": true,
+        "newCommandOrTargetExecutions": 0
+      }
+    }
+  ],
+  "checkedAt": "2026-08-29T08:24:30.434Z",
+  "fixedExpiry": "2026-08-29T09:03:39.808Z",
+  "latestFullWindowStart": "2026-08-29T08:53:39.808Z",
+  "remainingMsAtCheck": 2349374,
+  "deadlineDisposition": "FULL_TEN_MINUTE_WINDOW_REMAINS_AT_CHECK",
+  "deadlineUnchanged": true,
+  "actualExecutionPermittedByThisReview": false,
+  "actualToolApproval": "STILL_REQUIRED_NO_REQUEST_ISSUED",
+  "freshPreflight": "REQUIRED_IMMEDIATELY_BEFORE_ANY_FUTURE_REQUEST",
+  "targetExecutions": 0,
+  "nativeEntry": 0,
+  "bash": 0,
+  "virtualRuns": 0,
+  "eligibleUnrun": 37,
+  "withheldUnrun": 3,
+  "childrenThisDataHelper": 0,
+  "metadataChildrenPreviouslyRetired": 4,
+  "processAccounting": {
+    "knownStartsThroughPublication": 23,
+    "peakKnown": 2,
+    "execReplacementNotExtraPid": true,
+    "notTransitiveKernelCensus": true
+  },
+  "historicalHoldAndP2": "UNCHANGED"
+}
